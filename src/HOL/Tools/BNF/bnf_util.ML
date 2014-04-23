@@ -215,7 +215,6 @@ fun map15 _ [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] = []
       map15 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s x14s x15s
   | map15 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
-
 fun fold_map4 _ [] [] [] [] acc = ([], acc)
   | fold_map4 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) acc =
     let

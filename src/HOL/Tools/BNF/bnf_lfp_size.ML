@@ -9,13 +9,15 @@ structure BNF_LFP_Size : sig end =
 struct
 
 open BNF_Util
+open BNF_Tactics
 open BNF_Def
 open BNF_FP_Def_Sugar
 
 val size_N = "size_"
 
+val rec_o_mapN = "rec_o_map"
 val sizeN = "size"
-val size_mapN = "size_map"
+val size_o_mapN = "size_o_map"
 
 structure Data = Theory_Data
 (
@@ -34,209 +36,287 @@ fun mk_to_natT T = T --> HOLogic.natT;
 
 fun mk_abs_zero_nat T = Term.absdummy T zero_nat;
 
-fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
-    fp_res = {bnfs = fp_bnfs, ...}, common_co_inducts = common_inducts, ...} : fp_sugar) :: _) thy =
-  let
-    val data = Data.get thy;
+fun pointfill ctxt th = unfold_thms ctxt [o_apply] (th RS fun_cong);
 
-    val Ts = map #T fp_sugars
-    val T_names = map (fst o dest_Type) Ts;
-    val nn = length Ts;
+fun mk_unabs_def_unused_0 n =
+  funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
 
-    val B_ify = Term.typ_subst_atomic (As ~~ Bs);
+val rec_o_map_simp_thms =
+  @{thms o_def id_apply case_prod_app case_sum_o_map_sum case_prod_o_map_prod
+      BNF_Comp.id_bnf_comp_def};
 
-    val recs = map #co_rec fp_sugars;
-    val rec_thmss = map #co_rec_thms fp_sugars;
-    val rec_Ts = map fastype_of recs;
-    val Cs = map body_type rec_Ts;
-    val Cs_rho = map (rpair HOLogic.natT) Cs;
-    val substCT = Term.subst_atomic_types Cs_rho;
+fun mk_rec_o_map_tac ctxt rec_def pre_map_defs abs_inverses ctor_rec_o_map =
+  unfold_thms_tac ctxt [rec_def] THEN
+  HEADGOAL (rtac (ctor_rec_o_map RS trans) THEN'
+    K (PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion)) THEN' asm_simp_tac
+      (ss_only (pre_map_defs @ distinct Thm.eq_thm_prop abs_inverses @ rec_o_map_simp_thms) ctxt));
 
-    val f_Ts = map mk_to_natT As;
-    val f_TsB = map mk_to_natT Bs;
-    val num_As = length As;
+val size_o_map_simp_thms =
+  @{thms o_apply prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
-    val f_names = map (prefix "f" o string_of_int) (1 upto num_As);
-    val fs = map2 (curry Free) f_names f_Ts;
-    val fsB = map2 (curry Free) f_names f_TsB;
-    val As_fs = As ~~ fs;
+fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
+  unfold_thms_tac ctxt [size_def] THEN
+  HEADGOAL (rtac (rec_o_map RS trans) THEN'
+    asm_simp_tac (ss_only (inj_maps @ size_maps @ size_o_map_simp_thms) ctxt));
 
-    val gen_size_names = map (Long_Name.map_base_name (prefix size_N)) T_names;
+fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
+        fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, nested_bnfs, ...}
+      : fp_sugar) :: _) thy =
+    let
+      val data = Data.get thy;
 
-    fun is_pair_C @{type_name prod} [_, T'] = member (op =) Cs T'
-      | is_pair_C _ _ = false;
+      val Ts = map #T fp_sugars
+      val T_names = map (fst o dest_Type) Ts;
+      val nn = length Ts;
 
-    fun mk_size_of_typ (T as TFree _) =
-        pair (case AList.lookup (op =) As_fs T of
-            SOME f => f
-          | NONE => if member (op =) Cs T then Term.absdummy T (Bound 0) else mk_abs_zero_nat T)
-      | mk_size_of_typ (T as Type (s, Ts)) =
-        if is_pair_C s Ts then
-          pair (snd_const T)
-        else if exists (exists_subtype_in As) Ts then
-          (case Symtab.lookup data s of
-            SOME (gen_size_name, (_, gen_size_maps)) =>
-            let
-              val (args, gen_size_mapss') = split_list (map (fn T => mk_size_of_typ T []) Ts);
-              val gen_size_const = Const (gen_size_name, map fastype_of args ---> mk_to_natT T);
-            in
-              fold (union Thm.eq_thm) (gen_size_maps :: gen_size_mapss')
-              #> pair (Term.list_comb (gen_size_const, args))
-            end
-          | NONE => pair (mk_abs_zero_nat T))
-        else
-          pair (mk_abs_zero_nat T);
+      val B_ify = Term.typ_subst_atomic (As ~~ Bs);
 
-    fun mk_size_of_arg t =
-      mk_size_of_typ (fastype_of t) #>> (fn s => substCT (betapply (s, t)));
+      val recs = map #co_rec fp_sugars;
+      val rec_thmss = map #co_rec_thms fp_sugars;
+      val rec_Ts as rec_T1 :: _ = map fastype_of recs;
+      val rec_arg_Ts = binder_fun_types rec_T1;
+      val Cs = map body_type rec_Ts;
+      val Cs_rho = map (rpair HOLogic.natT) Cs;
+      val substCnatT = Term.subst_atomic_types Cs_rho;
 
-    fun mk_gen_size_arg arg_T gen_size_maps =
-      let
-        val x_Ts = binder_types arg_T;
-        val m = length x_Ts;
-        val x_names = map (prefix "x" o string_of_int) (1 upto m);
-        val xs = map2 (curry Free) x_names x_Ts;
-        val (summands, gen_size_maps') =
-          fold_map mk_size_of_arg xs gen_size_maps
-          |>> remove (op =) zero_nat;
-        val sum =
-          if null summands then HOLogic.zero
-          else foldl1 mk_plus_nat (summands @ [HOLogic.Suc_zero]);
-      in
-        (fold_rev Term.lambda (map substCT xs) sum, gen_size_maps')
-      end;
+      val f_Ts = map mk_to_natT As;
+      val f_TsB = map mk_to_natT Bs;
+      val num_As = length As;
 
-    fun mk_gen_size_rhs rec_T recx gen_size_maps =
-      let
-        val arg_Ts = binder_fun_types rec_T;
-        val (args, gen_size_maps') = fold_map mk_gen_size_arg arg_Ts gen_size_maps;
-      in
-        (fold_rev Term.lambda fs (Term.list_comb (substCT recx, args)), gen_size_maps')
-      end;
+      val f_names = map (prefix "f" o string_of_int) (1 upto num_As);
+      val fs = map2 (curry Free) f_names f_Ts;
+      val fsB = map2 (curry Free) f_names f_TsB;
+      val As_fs = As ~~ fs;
 
-    fun mk_def_binding f = Binding.conceal o Binding.name o Thm.def_name o f o Long_Name.base_name;
+      val size_names = map (Long_Name.map_base_name (prefix size_N)) T_names;
 
-    val (gen_size_rhss, nested_gen_size_maps) = fold_map2 mk_gen_size_rhs rec_Ts recs [];
-    val gen_size_Ts = map fastype_of gen_size_rhss;
-    val gen_size_consts = map2 (curry Const) gen_size_names gen_size_Ts;
-    val gen_size_constsB = map (Term.map_types B_ify) gen_size_consts;
-    val gen_size_def_bs = map (mk_def_binding I) gen_size_names;
+      fun is_pair_C @{type_name prod} [_, T'] = member (op =) Cs T'
+        | is_pair_C _ _ = false;
 
-    val (gen_size_defs, thy2) =
-      thy
-      |> Sign.add_consts (map (fn (s, T) => (Binding.name (Long_Name.base_name s), T, NoSyn))
-        (gen_size_names ~~ gen_size_Ts))
-      |> Global_Theory.add_defs false (map Thm.no_attributes (gen_size_def_bs ~~
-        map Logic.mk_equals (gen_size_consts ~~ gen_size_rhss)));
+      fun mk_size_of_typ (T as TFree _) =
+          pair (case AList.lookup (op =) As_fs T of
+              SOME f => f
+            | NONE => if member (op =) Cs T then Term.absdummy T (Bound 0) else mk_abs_zero_nat T)
+        | mk_size_of_typ (T as Type (s, Ts)) =
+          if is_pair_C s Ts then
+            pair (snd_const T)
+          else if exists (exists_subtype_in As) Ts then
+            (case Symtab.lookup data s of
+              SOME (size_name, (_, size_o_maps)) =>
+              let
+                val (args, size_o_mapss') = split_list (map (fn T => mk_size_of_typ T []) Ts);
+                val size_const = Const (size_name, map fastype_of args ---> mk_to_natT T);
+              in
+                fold (union Thm.eq_thm) (size_o_maps :: size_o_mapss')
+                #> pair (Term.list_comb (size_const, args))
+              end
+            | NONE => pair (mk_abs_zero_nat T))
+          else
+            pair (mk_abs_zero_nat T);
 
-    val zeros = map mk_abs_zero_nat As;
+      fun mk_size_of_arg t =
+        mk_size_of_typ (fastype_of t) #>> (fn s => substCnatT (betapply (s, t)));
 
-    val spec_size_rhss = map (fn c => Term.list_comb (c, zeros)) gen_size_consts;
-    val spec_size_Ts = map fastype_of spec_size_rhss;
-    val spec_size_consts = map (curry Const @{const_name size}) spec_size_Ts;
-    val spec_size_def_bs = map (mk_def_binding (suffix "_overloaded")) gen_size_names;
-
-    fun define_spec_size def_b lhs0 rhs lthy =
-      let
-        val Free (c, _) = Syntax.check_term lthy lhs0;
-        val (thm, lthy') = lthy
-          |> Local_Theory.define ((Binding.name c, NoSyn), ((def_b, []), rhs))
-          |-> (fn (t, (_, thm)) => Spec_Rules.add Spec_Rules.Equational ([t], [thm]) #> pair thm);
-        val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy');
-        val thm' = singleton (Proof_Context.export lthy' ctxt_thy) thm;
-      in (thm', lthy') end;
-
-    val (spec_size_defs, thy3) = thy2
-      |> Class.instantiation (T_names, map dest_TFree As, [HOLogic.class_size])
-      |> fold_map3 define_spec_size spec_size_def_bs spec_size_consts spec_size_rhss
-      ||> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-      ||> Local_Theory.exit_global;
-
-    val thy3_ctxt = Proof_Context.init_global thy3;
-
-    val gen_size_defs' =
-      map (mk_unabs_def (num_As + 1) o (fn thm => thm RS meta_eq_to_obj_eq)) gen_size_defs;
-    val spec_size_defs' =
-      map (mk_unabs_def 1 o (fn thm => thm RS meta_eq_to_obj_eq)) spec_size_defs;
-
-    fun derive_size_simp unfolds folds size_def' simp0 =
-      fold_thms thy3_ctxt folds (unfold_thms thy3_ctxt unfolds (trans OF [size_def', simp0]));
-    val derive_gen_size_simp =
-      derive_size_simp (@{thm snd_o_convol} :: nested_gen_size_maps) gen_size_defs';
-    val derive_spec_size_simp = derive_size_simp @{thms add_0_left add_0_right} spec_size_defs';
-
-    val gen_size_simpss = map2 (map o derive_gen_size_simp) gen_size_defs' rec_thmss;
-    val gen_size_simps = flat gen_size_simpss;
-    val spec_size_simpss = map2 (map o derive_spec_size_simp) spec_size_defs' gen_size_simpss;
-
-    val ABs = As ~~ Bs;
-    val g_names = map (prefix "g" o string_of_int) (1 upto num_As);
-    val gs = map2 (curry Free) g_names (map (op -->) ABs);
-
-    val liveness = map (op <>) ABs;
-    val live_gs = AList.find (op =) (gs ~~ liveness) true;
-    val live = length live_gs;
-
-    val u_names = map (prefix "u" o string_of_int) (1 upto nn);
-    val us = map2 (curry Free) u_names Ts;
-
-    val maps0 = map map_of_bnf fp_bnfs;
-    val map_thms = maps #maps fp_sugars;
-
-    fun mk_gen_size_map_tac ctxt =
-      HEADGOAL (rtac (co_induct_of common_inducts)) THEN
-      ALLGOALS (asm_simp_tac (ss_only (o_apply :: map_thms @ gen_size_simps) ctxt));
-
-    val gen_size_map_thmss =
-      if live = 0 then
-        replicate nn []
-      else if null nested_gen_size_maps then
+      fun mk_size_arg rec_arg_T size_o_maps =
         let
-          val xgmaps =
-            map2 (fn map0 => fn u => Term.list_comb (mk_map live As Bs map0, live_gs) $ u) maps0 us;
-          val fsizes =
-            map (fn gen_size_constB => Term.list_comb (gen_size_constB, fsB)) gen_size_constsB;
-          val lhss = map2 (curry (op $)) fsizes xgmaps;
-
-          val fgs = map2 (fn fB => fn g as Free (_, Type (_, [A, B])) =>
-            if A = B then fB else HOLogic.mk_comp (fB, g)) fsB gs;
-          val rhss = map2 (fn gen_size_const => fn u => Term.list_comb (gen_size_const, fgs) $ u)
-            gen_size_consts us;
-
-          val goal = Library.foldr1 HOLogic.mk_conj (map2 (curry HOLogic.mk_eq) lhss rhss)
-            |> HOLogic.mk_Trueprop;
+          val x_Ts = binder_types rec_arg_T;
+          val m = length x_Ts;
+          val x_names = map (prefix "x" o string_of_int) (1 upto m);
+          val xs = map2 (curry Free) x_names x_Ts;
+          val (summands, size_o_maps') =
+            fold_map mk_size_of_arg xs size_o_maps
+            |>> remove (op =) zero_nat;
+          val sum =
+            if null summands then HOLogic.zero
+            else foldl1 mk_plus_nat (summands @ [HOLogic.Suc_zero]);
         in
-          Goal.prove_global thy3 [] [] goal (mk_gen_size_map_tac o #context)
-          |> Thm.close_derivation
-          |> conj_dests nn
-          |> map single
-        end
-      else
-        (* TODO: implement general case, with nesting of datatypes that themselves nest other
-           types *)
-        replicate nn [];
+          (fold_rev Term.lambda (map substCnatT xs) sum, size_o_maps')
+        end;
 
-    val (_, thy4) = thy3
-      |> fold_map3 (fn T_name => fn size_simps => fn gen_size_map_thms =>
-          let val qualify = Binding.qualify true (Long_Name.base_name T_name) in
-            Global_Theory.note_thmss ""
-              ([((qualify (Binding.name sizeN),
-                   [Simplifier.simp_add, Nitpick_Simps.add, Thm.declaration_attribute
-                      (fn thm => Context.mapping (Code.add_default_eqn thm) I)]),
-                 [(size_simps, [])]),
-                ((qualify (Binding.name size_mapN), []), [(gen_size_map_thms, [])])]
-               |> filter_out (forall (null o fst) o snd))
-          end)
-        T_names (map2 append gen_size_simpss spec_size_simpss) gen_size_map_thmss
-      ||> Spec_Rules.add_global Spec_Rules.Equational (gen_size_consts, gen_size_simps);
-  in
-    thy4
-    |> Data.map (fold2 (fn T_name => fn gen_size_name =>
-        Symtab.update_new (T_name, (gen_size_name, (gen_size_simps, flat gen_size_map_thmss))))
-      T_names gen_size_names)
-  end;
+      fun mk_size_rhs recx size_o_maps =
+        let val (args, size_o_maps') = fold_map mk_size_arg rec_arg_Ts size_o_maps in
+          (fold_rev Term.lambda fs (Term.list_comb (substCnatT recx, args)), size_o_maps')
+        end;
 
-(* FIXME: get rid of "perhaps o try" once the code is stable *)
-val _ = Theory.setup (fp_sugar_interpretation (perhaps o try o generate_size));
+      fun mk_def_binding f =
+        Binding.conceal o Binding.name o Thm.def_name o f o Long_Name.base_name;
+
+      val (size_rhss, nested_size_o_maps) = fold_map mk_size_rhs recs [];
+      val size_Ts = map fastype_of size_rhss;
+      val size_consts = map2 (curry Const) size_names size_Ts;
+      val size_constsB = map (Term.map_types B_ify) size_consts;
+      val size_def_bs = map (mk_def_binding I) size_names;
+
+      val (size_defs, thy2) =
+        thy
+        |> Sign.add_consts (map (fn (s, T) => (Binding.name (Long_Name.base_name s), T, NoSyn))
+          (size_names ~~ size_Ts))
+        |> Global_Theory.add_defs false (map Thm.no_attributes (size_def_bs ~~
+          map Logic.mk_equals (size_consts ~~ size_rhss)));
+
+      val zeros = map mk_abs_zero_nat As;
+
+      val overloaded_size_rhss = map (fn c => Term.list_comb (c, zeros)) size_consts;
+      val overloaded_size_Ts = map fastype_of overloaded_size_rhss;
+      val overloaded_size_consts = map (curry Const @{const_name size}) overloaded_size_Ts;
+      val overloaded_size_def_bs = map (mk_def_binding (suffix "_overloaded")) size_names;
+
+      fun define_overloaded_size def_b lhs0 rhs lthy =
+        let
+          val Free (c, _) = Syntax.check_term lthy lhs0;
+          val (thm, lthy') = lthy
+            |> Local_Theory.define ((Binding.name c, NoSyn), ((def_b, []), rhs))
+            |-> (fn (t, (_, thm)) => Spec_Rules.add Spec_Rules.Equational ([t], [thm]) #> pair thm);
+          val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy');
+          val thm' = singleton (Proof_Context.export lthy' ctxt_thy) thm;
+        in (thm', lthy') end;
+
+      val (overloaded_size_defs, thy3) = thy2
+        |> Class.instantiation (T_names, map dest_TFree As, [HOLogic.class_size])
+        |> fold_map3 define_overloaded_size overloaded_size_def_bs overloaded_size_consts
+          overloaded_size_rhss
+        ||> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+        ||> Local_Theory.exit_global;
+
+      val thy3_ctxt = Proof_Context.init_global thy3;
+
+      val size_defs' =
+        map (mk_unabs_def (num_As + 1) o (fn thm => thm RS meta_eq_to_obj_eq)) size_defs;
+      val size_defs_unused_0 =
+        map (mk_unabs_def_unused_0 (num_As + 1) o (fn thm => thm RS meta_eq_to_obj_eq)) size_defs;
+      val overloaded_size_defs' =
+        map (mk_unabs_def 1 o (fn thm => thm RS meta_eq_to_obj_eq)) overloaded_size_defs;
+
+      val nested_size_maps = map (pointfill thy3_ctxt) nested_size_o_maps @ nested_size_o_maps;
+      val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ nested_bnfs);
+
+      fun derive_size_simp size_def' simp0 =
+        (trans OF [size_def', simp0])
+        |> Simplifier.asm_full_simplify (ss_only (@{thms inj_on_convol_id snd_o_convol} @
+          all_inj_maps @ nested_size_maps) thy3_ctxt)
+        |> fold_thms thy3_ctxt size_defs_unused_0;
+      fun derive_overloaded_size_simp size_def' simp0 =
+        (trans OF [size_def', simp0])
+        |> unfold_thms thy3_ctxt @{thms add_0_left add_0_right}
+        |> fold_thms thy3_ctxt overloaded_size_defs';
+
+      val size_simpss = map2 (map o derive_size_simp) size_defs' rec_thmss;
+      val size_simps = flat size_simpss;
+      val overloaded_size_simpss =
+        map2 (map o derive_overloaded_size_simp) overloaded_size_defs' size_simpss;
+
+      val ABs = As ~~ Bs;
+      val g_names = map (prefix "g" o string_of_int) (1 upto num_As);
+      val gs = map2 (curry Free) g_names (map (op -->) ABs);
+
+      val liveness = map (op <>) ABs;
+      val live_gs = AList.find (op =) (gs ~~ liveness) true;
+      val live = length live_gs;
+
+      val maps0 = map map_of_bnf fp_bnfs;
+
+      val (rec_o_map_thmss, size_o_map_thmss) =
+        if live = 0 then
+          `I (replicate nn [])
+        else
+          let
+            val pre_bnfs = map #pre_bnf fp_sugars;
+            val pre_map_defs = map map_def_of_bnf pre_bnfs;
+            val abs_inverses = map (#abs_inverse o #absT_info) fp_sugars;
+            val rec_defs = map #co_rec_def fp_sugars;
+
+            val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
+
+            val num_rec_args = length rec_arg_Ts;
+            val h_Ts = map B_ify rec_arg_Ts;
+            val h_names = map (prefix "h" o string_of_int) (1 upto num_rec_args);
+            val hs = map2 (curry Free) h_names h_Ts;
+            val hrecs = map (fn recx => Term.list_comb (Term.map_types B_ify recx, hs)) recs;
+
+            val rec_o_map_lhss = map2 (curry HOLogic.mk_comp) hrecs gmaps;
+
+            val ABgs = ABs ~~ gs;
+
+            fun mk_rec_arg_arg (x as Free (_, T)) =
+              let val U = B_ify T in
+                if T = U then x else build_map thy3_ctxt (the o AList.lookup (op =) ABgs) (T, U) $ x
+              end;
+
+            fun mk_rec_o_map_arg rec_arg_T h =
+              let
+                val x_Ts = binder_types rec_arg_T;
+                val m = length x_Ts;
+                val x_names = map (prefix "x" o string_of_int) (1 upto m);
+                val xs = map2 (curry Free) x_names x_Ts;
+                val xs' = map mk_rec_arg_arg xs;
+              in
+                fold_rev Term.lambda xs (Term.list_comb (h, xs'))
+              end;
+
+            fun mk_rec_o_map_rhs recx =
+              let val args = map2 mk_rec_o_map_arg rec_arg_Ts hs in
+                Term.list_comb (recx, args)
+              end;
+
+            val rec_o_map_rhss = map mk_rec_o_map_rhs recs;
+
+            val rec_o_map_goals =
+              map2 (HOLogic.mk_Trueprop oo curry HOLogic.mk_eq) rec_o_map_lhss rec_o_map_rhss;
+            val rec_o_map_thms =
+              map3 (fn goal => fn rec_def => fn ctor_rec_o_map =>
+                  Goal.prove_global thy3 [] [] goal (fn {context = ctxt, ...} =>
+                    mk_rec_o_map_tac ctxt rec_def pre_map_defs abs_inverses ctor_rec_o_map)
+                  |> Thm.close_derivation)
+                rec_o_map_goals rec_defs ctor_rec_o_maps;
+
+            val size_o_map_conds =
+              if exists (can Logic.dest_implies o Thm.prop_of) nested_size_o_maps then
+                map (HOLogic.mk_Trueprop o mk_inj) live_gs
+              else
+                [];
+
+            val fsizes = map (fn size_constB => Term.list_comb (size_constB, fsB)) size_constsB;
+            val size_o_map_lhss = map2 (curry HOLogic.mk_comp) fsizes gmaps;
+
+            val fgs = map2 (fn fB => fn g as Free (_, Type (_, [A, B])) =>
+              if A = B then fB else HOLogic.mk_comp (fB, g)) fsB gs;
+            val size_o_map_rhss = map (fn c => Term.list_comb (c, fgs)) size_consts;
+
+            val size_o_map_goals =
+              map2 (curry Logic.list_implies size_o_map_conds o HOLogic.mk_Trueprop oo
+                curry HOLogic.mk_eq) size_o_map_lhss size_o_map_rhss;
+            val size_o_map_thms =
+              map3 (fn goal => fn size_def => fn rec_o_map =>
+                  Goal.prove_global thy3 [] [] goal (fn {context = ctxt, ...} =>
+                    mk_size_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
+                  |> Thm.close_derivation)
+                size_o_map_goals size_defs rec_o_map_thms;
+          in
+            pairself (map single) (rec_o_map_thms, size_o_map_thms)
+          end;
+
+      val (_, thy4) = thy3
+        |> fold_map4 (fn T_name => fn size_simps => fn rec_o_map_thms => fn size_o_map_thms =>
+            let val qualify = Binding.qualify true (Long_Name.base_name T_name) in
+              Global_Theory.note_thmss ""
+                ([((qualify (Binding.name rec_o_mapN), []), [(rec_o_map_thms, [])]),
+                  ((qualify (Binding.name sizeN),
+                     [Simplifier.simp_add, Nitpick_Simps.add, Thm.declaration_attribute
+                        (fn thm => Context.mapping (Code.add_default_eqn thm) I)]),
+                   [(size_simps, [])]),
+                  ((qualify (Binding.name size_o_mapN), []), [(size_o_map_thms, [])])]
+                 |> filter_out (forall (null o fst) o snd))
+            end)
+          T_names (map2 append size_simpss overloaded_size_simpss) rec_o_map_thmss size_o_map_thmss
+        ||> Spec_Rules.add_global Spec_Rules.Equational (size_consts, size_simps);
+    in
+      thy4
+      |> Data.map (fold2 (fn T_name => fn size_name =>
+          Symtab.update_new (T_name, (size_name, (size_simps, flat size_o_map_thmss))))
+        T_names size_names)
+    end
+  | generate_size _ thy = thy;
+
+val _ = Theory.setup (fp_sugar_interpretation generate_size);
 
 end;

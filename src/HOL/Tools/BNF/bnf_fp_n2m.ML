@@ -239,7 +239,7 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
     val co_recs = of_fp_res #xtor_co_recs;
     val ns = map (length o #Ts o #fp_res) fp_sugars;
 
-    fun substT rho (Type (@{type_name "fun"}, [T, U])) = substT rho T --> substT rho U
+    fun substT rho (Type (@{type_name fun}, [T, U])) = substT rho T --> substT rho U
       | substT rho (Type (s, Ts)) = Type (s, map (typ_subst_nonatomic rho) Ts)
       | substT _ T = T;
 
