@@ -9,7 +9,7 @@ theory Transfer
 imports Hilbert_Choice BNF_FP_Base Metis Option
 begin
 
-(* We include Option here altough it's not needed here. 
+(* We include Option here although it's not needed here. 
    By doing this, we avoid a diamond problem for BNF and 
    FP sugar interpretation defined in this file. *)
 
@@ -237,6 +237,9 @@ lemma eq_onp_to_eq:
   assumes "eq_onp P x y"
   shows "x = y"
 using assms by (simp add: eq_onp_def)
+
+lemma eq_onp_top_eq_eq: "eq_onp top = op=" 
+by (simp add: eq_onp_def)
 
 lemma eq_onp_same_args:
   shows "eq_onp P x x = P x"

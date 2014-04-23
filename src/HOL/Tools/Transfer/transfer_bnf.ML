@@ -259,7 +259,10 @@ fun predicator bnf lthy =
     fun qualify defname suffix = Binding.qualified true suffix defname
     val Domainp_rel_thm_name = qualify (base_name_of_bnf bnf) "Domainp_rel"
     val rel_eq_onp_thm_name = qualify (base_name_of_bnf bnf) "rel_eq_onp"
-    val pred_data = {rel_eq_onp = rel_eq_onp}
+    val rel_eq_onp_internal = Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv 
+      (Raw_Simplifier.rewrite lthy false @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})))
+        rel_eq_onp
+    val pred_data = {rel_eq_onp = rel_eq_onp_internal}
     val type_name = type_name_of_bnf bnf
     val relator_domain_attr = @{attributes [relator_domain]}
     val notes = [((Domainp_rel_thm_name, []), [([Domainp_rel], relator_domain_attr)]),
@@ -310,21 +313,26 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
     val cts = map (SOME o certify lthy) args
     fun get_rhs thm = thm |> concl_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
     fun is_eqn thm = can get_rhs thm
-    val dead_step = @{lemma "x = y \<Longrightarrow> ((a = a) \<and> x) = y" by blast}
-    val live_step = @{lemma "x = y \<Longrightarrow> (eq_onp P a a \<and> x) = (P a \<and> y)" by (simp only: eq_onp_same_args)}
     fun rel2pred_massage thm =
       let
-        fun pred_eq_onp_conj conjs = List.foldr (fn (conj, thm) => 
-          if can HOLogic.dest_eq conj then thm RS dead_step else thm RS live_step) @{thm refl[of True]} conjs
+        val live_step = @{lemma "x = y \<Longrightarrow> (eq_onp P a a \<and> x) = (P a \<and> y)" by (simp only: eq_onp_same_args)}
+        val kill_top1 = @{lemma "(top x \<and> P) = P" by blast}
+        val kill_top2 = @{lemma "(P \<and> top x) = P" by blast}
+        fun pred_eq_onp_conj conjs = List.foldr (fn (_, thm) => thm RS live_step)
+          @{thm refl[of True]} conjs
         val conjuncts = if is_eqn thm then thm |> get_rhs |> HOLogic.dest_conj else []
+        val kill_top = Local_Defs.unfold lthy [kill_top2] #> Local_Defs.unfold lthy [kill_top1]
         val kill_True = Local_Defs.unfold lthy [@{thm HOL.simp_thms(21)}]
       in
         thm
         |> Drule.instantiate' cTs cts
+        |> Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg_conv 
+          (Raw_Simplifier.rewrite lthy false @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})))
         |> Local_Defs.unfold lthy eq_onps
         |> (fn thm => if conjuncts <> [] then @{thm box_equals} 
               OF [thm, @{thm eq_onp_same_args}, pred_eq_onp_conj conjuncts |> kill_True]
             else thm RS (@{thm eq_onp_same_args} RS iffD1))
+        |> kill_top
       end
     val rel_injects = #rel_injects fp_sugar
   in
@@ -334,6 +342,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
     |> Variable.export lthy old_lthy
     |> map Drule.zero_var_indexes
   end
+
 
 (* fp_sugar interpretation *)
 

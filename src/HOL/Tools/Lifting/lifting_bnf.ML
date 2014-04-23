@@ -85,9 +85,11 @@ fun Quotient_map bnf ctxt =
 
 fun relator_eq_onp bnf ctxt =
   let
-    val pred_data = lookup_defined_pred_data ctxt (type_name_of_bnf bnf)
+    val relator_eq_onp_thm = lookup_defined_pred_data ctxt (type_name_of_bnf bnf)
+      |> Transfer.rel_eq_onp |> Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv 
+          (Raw_Simplifier.rewrite ctxt false @{thms eq_onp_top_eq_eq[THEN eq_reflection]})))
   in
-    [((Binding.empty, []), [([Transfer.rel_eq_onp pred_data], @{attributes [relator_eq_onp]})])]    
+    [((Binding.empty, []), [([relator_eq_onp_thm], @{attributes [relator_eq_onp]})])]    
   end
 
 (* relator_mono  *)
