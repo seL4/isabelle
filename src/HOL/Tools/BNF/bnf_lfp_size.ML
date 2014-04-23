@@ -69,7 +69,7 @@ fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   unfold_thms_tac ctxt [size_def] THEN
   HEADGOAL (rtac (rec_o_map RS trans) THEN'
     asm_simp_tac (ss_only (inj_maps @ size_maps @ size_o_map_simp_thms) ctxt)) THEN
-  IF_UNSOLVED (unfold_thms_tac ctxt [o_apply] THEN HEADGOAL (rtac refl));
+  IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
 
 fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
         fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, nested_bnfs, ...}
@@ -114,7 +114,7 @@ fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Leas
             pair (snd_const T)
           else if exists (exists_subtype_in As) Ts then
             (case Symtab.lookup data s of
-              SOME (size_name, (_, size_o_maps)) =>
+              SOME (size_name, (_, size_o_maps as _ :: _)) =>
               let
                 val (args, size_o_mapss') = split_list (map (fn T => mk_size_of_typ T []) Ts);
                 val size_const = Const (size_name, map fastype_of args ---> mk_to_natT T);
@@ -122,7 +122,7 @@ fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Leas
                 fold (union Thm.eq_thm) (size_o_maps :: size_o_mapss')
                 #> pair (Term.list_comb (size_const, args))
               end
-            | NONE => pair (mk_abs_zero_nat T))
+            | _ => pair (mk_abs_zero_nat T))
           else
             pair (mk_abs_zero_nat T);
 

@@ -241,7 +241,6 @@ BNF_LFP_Size.register_size @{type_name sum} @{const_name sum_size} @{thms sum.si
   @{thms prod_size_o_map}
 *}
 
-
 hide_fact (open) id_transfer
 
 end
