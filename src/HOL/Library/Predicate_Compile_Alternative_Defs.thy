@@ -174,16 +174,16 @@ section {* Alternative list definitions *}
 
 subsection {* Alternative rules for @{text length} *}
 
-definition size_list :: "'a list => nat"
-where "size_list = size"
+definition size_list' :: "'a list => nat"
+where "size_list' = size"
 
-lemma size_list_simps:
-  "size_list [] = 0"
-  "size_list (x # xs) = Suc (size_list xs)"
-by (auto simp add: size_list_def)
+lemma size_list'_simps:
+  "size_list' [] = 0"
+  "size_list' (x # xs) = Suc (size_list' xs)"
+by (auto simp add: size_list'_def)
 
-declare size_list_simps[code_pred_def]
-declare size_list_def[symmetric, code_pred_inline]
+declare size_list'_simps[code_pred_def]
+declare size_list'_def[symmetric, code_pred_inline]
 
 
 subsection {* Alternative rules for @{text list_all2} *}

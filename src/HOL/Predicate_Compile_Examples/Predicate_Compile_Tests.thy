@@ -1077,12 +1077,12 @@ thm inv_image.equation
 *)
 subsection {* Inverting list functions *}
 
-code_pred [inductify, skip_proof] size_list .
-code_pred [new_random_dseq inductify] size_list .
-thm size_listP.equation
-thm size_listP.new_random_dseq_equation
+code_pred [inductify, skip_proof] size_list' .
+code_pred [new_random_dseq inductify] size_list' .
+thm size_list'P.equation
+thm size_list'P.new_random_dseq_equation
 
-values [new_random_dseq 2,3,10] 3 "{xs. size_listP (xs::nat list) (5::nat)}"
+values [new_random_dseq 2,3,10] 3 "{xs. size_list'P (xs::nat list) (5::nat)}"
 
 code_pred (expected_modes: i => o => bool, o => i => bool, i => i => bool) [inductify, skip_proof] List.concat .
 thm concatP.equation
