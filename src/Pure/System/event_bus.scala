@@ -9,29 +9,24 @@ package isabelle
 
 
 import scala.actors.Actor, Actor._
-import scala.collection.mutable.ListBuffer
 
 
 class Event_Bus[Event]
 {
   /* receivers */
 
-  private val receivers = new ListBuffer[Actor]
+  private val receivers = Synchronized(List.empty[Actor])
 
-  def += (r: Actor) { synchronized { receivers += r } }
-  def + (r: Actor): Event_Bus[Event] = { this += r; this }
+  def += (r: Actor) { receivers >> (rs => Library.insert(r, rs)) }
 
   def += (f: Event => Unit) {
     this += actor { loop { react { case x => f(x.asInstanceOf[Event]) } } }
   }
 
-  def + (f: Event => Unit): Event_Bus[Event] = { this += f; this }
-
-  def -= (r: Actor) { synchronized { receivers -= r } }
-  def - (r: Actor) = { this -= r; this }
+  def -= (r: Actor) { receivers >> (rs => Library.remove(r, rs)) }
 
 
   /* event invocation */
 
-  def event(x: Event) { synchronized { receivers.foreach(_ ! x) } }
+  def event(x: Event) { receivers().reverseIterator.foreach(_ ! x) }
 }
