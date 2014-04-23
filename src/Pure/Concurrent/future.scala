@@ -41,7 +41,7 @@ trait Future[A]
 trait Promise[A] extends Future[A]
 {
   def fulfill_result(res: Exn.Result[A]): Unit
-  def fulfill(x: A) { fulfill_result(Exn.Res(x)) }
+  def fulfill(x: A): Unit
 }
 
 
@@ -62,7 +62,6 @@ private class Pending_Future[A](future: Scala_Future[A]) extends Future[A]
   override def is_finished: Boolean = future.isCompleted
 
   def join: A = Await.result(future, Duration.Inf)
-
   override def map[B](f: A => B): Future[B] = new Pending_Future[B](future.map(f))
 }
 
@@ -71,12 +70,11 @@ private class Promise_Future[A](promise: Scala_Promise[A])
 {
   override def is_finished: Boolean = promise.isCompleted
 
-  override def fulfill_result(res: Exn.Result[A]): Unit =
+  def fulfill_result(res: Exn.Result[A]): Unit =
     res match {
       case Exn.Res(x) => promise.success(x)
       case Exn.Exn(e) => promise.failure(e)
     }
-
-  override def fulfill(x: A): Unit = promise.success(x)
+  def fulfill(x: A): Unit = promise.success(x)
 }
 
