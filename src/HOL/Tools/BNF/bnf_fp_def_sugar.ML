@@ -33,8 +33,8 @@ sig
   val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
   val fp_sugars_of: Proof.context -> fp_sugar list
-  val fp_sugar_interpretation: (fp_sugar -> theory -> theory) -> theory -> theory
-  val register_fp_sugar: string -> fp_sugar -> local_theory -> local_theory
+  val fp_sugar_interpretation: (fp_sugar list -> theory -> theory) -> theory -> theory
+  val register_fp_sugars: fp_sugar list -> local_theory -> local_theory
 
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
@@ -189,39 +189,42 @@ fun strong_co_induct_of [_, s] = s;
 
 structure FP_Sugar_Interpretation = Interpretation
 (
-  type T = fp_sugar;
-  val eq: T * T -> bool = op = o pairself #T;
+  type T = fp_sugar list;
+  val eq: T * T -> bool = op = o pairself (map #T);
 );
 
-(* FIXME naming *)
-fun with_repaired_path f (fp_sugar as {T, ...} : fp_sugar) thy =
+fun with_repaired_path f (fp_sugars : fp_sugar list) thy =
   thy
-  (*|> Sign.root_path*)
-  (*|> Sign.add_path (Long_Name.qualifier (fst (dest_Type T)))*)
-  |> (fn thy => f (morph_fp_sugar (Morphism.transfer_morphism thy) fp_sugar) thy)
-  (*|> Sign.restore_naming thy*);
+  (* FIXME: |> Sign.root_path*)
+  |> Sign.add_path (Long_Name.qualifier (mk_common_name (map (fst o dest_Type o #T) fp_sugars)))
+  |> f fp_sugars
+  |> Sign.restore_naming thy;
 
 val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
 
-fun register_fp_sugar key fp_sugar =
-  Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update (key, morph_fp_sugar phi fp_sugar)))
-  #> Local_Theory.background_theory (FP_Sugar_Interpretation.data fp_sugar);
+fun register_fp_sugars fp_sugars =
+  fold (fn fp_sugar as {T as Type (s, _), ...} =>
+      Local_Theory.declaration {syntax = false, pervasive = true}
+        (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
+    fp_sugars
+  #> Local_Theory.background_theory (FP_Sugar_Interpretation.data fp_sugars);
 
-fun register_fp_sugars Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs (fp_res as {Ts, ...})
+fun register_as_fp_sugars Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs (fp_res as {Ts, ...})
     ctrXs_Tsss ctr_defss ctr_sugars co_recs mapss common_co_inducts co_inductss co_rec_thmss
-    disc_co_recss sel_co_recsss rel_injects lthy =
-  (0, lthy)
-  |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
-    register_fp_sugar s {T = T, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
-        pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk, nested_bnfs = nested_bnfs,
-        nesting_bnfs = nesting_bnfs, ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk,
-        ctr_sugar = nth ctr_sugars kk, co_rec = nth co_recs kk, maps = nth mapss kk,
-        common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
-        co_rec_thms = nth co_rec_thmss kk, disc_co_recs = nth disc_co_recss kk,
-        sel_co_recss = nth sel_co_recsss kk, rel_injects = nth rel_injects kk}
-      lthy)) Ts
-  |> snd;
+    disc_co_recss sel_co_recsss =
+  let
+    val fp_sugars =
+      map_index (fn (kk, T) =>
+        {T = T, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
+         pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk, nested_bnfs = nested_bnfs,
+         nesting_bnfs = nesting_bnfs, ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk,
+         ctr_sugar = nth ctr_sugars kk, co_rec = nth co_recs kk, maps = nth mapss kk,
+         common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
+         co_rec_thms = nth co_rec_thmss kk, disc_co_recs = nth disc_co_recss kk,
+         sel_co_recss = nth sel_co_recsss kk}) Ts
+  in
+    register_fp_sugars fp_sugars
+  end;
 
 (* This function could produce (fairly harmless) clashes in contrived examples (e.g., "x.A",
    "x.x_A", "y.A"). *)
@@ -1351,7 +1354,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             else
               I)
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars Xs Least_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
+        |> register_as_fp_sugars Xs Least_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
           ctrXs_Tsss ctr_defss ctr_sugars recs' mapss [induct_thm] (map single induct_thms)
           rec_thmss' (replicate nn []) (replicate nn []) rel_injects
       end;
@@ -1404,7 +1407,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> fold (curry (Spec_Rules.add Spec_Rules.Equational) corecs)
           [flat sel_corec_thmss, flat corec_thmss]
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars Xs Greatest_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
+        |> register_as_fp_sugars Xs Greatest_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
           ctrXs_Tsss ctr_defss ctr_sugars corecs mapss [coinduct_thm, strong_coinduct_thm]
           (transpose [coinduct_thms, strong_coinduct_thms]) corec_thmss disc_corec_thmss
           sel_corec_thmsss rel_injects
