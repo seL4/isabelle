@@ -186,5 +186,5 @@ class Basic_Library
     new java.util.concurrent.Callable[A] { def call = f() }
 
   val default_thread_pool =
-    scala.collection.parallel.ThreadPoolTasks.defaultThreadPool
+    scala.collection.parallel.ForkJoinTasks.defaultForkJoinPool
 }
