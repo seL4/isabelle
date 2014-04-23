@@ -423,6 +423,8 @@ object Build
       verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
+          if (progress.stopped) throw Exn.Interrupt()
+
           try {
             val (preloaded, parent_syntax) =
               info.parent match {
