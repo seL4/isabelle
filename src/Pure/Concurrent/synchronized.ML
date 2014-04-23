@@ -1,7 +1,7 @@
 (*  Title:      Pure/Concurrent/synchronized.ML
     Author:     Fabian Immler and Makarius
 
-State variables with synchronized access.
+Synchronized variables.
 *)
 
 signature SYNCHRONIZED =

@@ -25,5 +25,7 @@ final class Volatile[A] private(init: A)
     state = new_state
     result
   }
+
+  override def toString: String = state.toString
 }
 
