@@ -333,10 +333,11 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
             nth_map arg_idx (K (nth ctr_args ctr_arg_idx)))
           no_calls'
         |> fold (fn (ctr_arg_idx, (arg_idx, T)) => fn xs =>
-            nth_map arg_idx (K (ensure_unique xs (retype_free T (nth ctr_args ctr_arg_idx)))) xs)
+            nth_map arg_idx (K (ensure_unique xs
+              (retype_const_or_free T (nth ctr_args ctr_arg_idx)))) xs)
           mutual_calls'
         |> fold (fn (ctr_arg_idx, (arg_idx, T)) =>
-            nth_map arg_idx (K (retype_free T (nth ctr_args ctr_arg_idx))))
+            nth_map arg_idx (K (retype_const_or_free T (nth ctr_args ctr_arg_idx))))
           nested_calls';
 
       val fun_name_ctr_pos_list =

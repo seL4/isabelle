@@ -30,7 +30,7 @@ and size_of_type' f g h T = (case size_of_type f g h T of
     | SOME t => t);
 
 fun is_poly thy (Datatype_Aux.DtType (name, dts)) =
-      is_some (BNF_LFP_Size.lookup_size thy name) andalso exists (is_poly thy) dts
+      is_some (BNF_LFP_Size.lookup_size_global thy name) andalso exists (is_poly thy) dts
   | is_poly _ _ = true;
 
 fun constrs_of thy name =
@@ -68,8 +68,8 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
         val param_size = AList.lookup op = param_size_fs;
 
         val extra_rewrites = descr |> map (#1 o snd) |> distinct op = |>
-          map_filter (Option.map (fst o snd) o BNF_LFP_Size.lookup_size thy) |> flat;
-        val extra_size = Option.map fst o BNF_LFP_Size.lookup_size thy;
+          map_filter (Option.map (fst o snd) o BNF_LFP_Size.lookup_size_global thy) |> flat;
+        val extra_size = Option.map fst o BNF_LFP_Size.lookup_size_global thy;
 
         val (((size_names, size_fns), def_names), def_names') =
           recTs1 |> map (fn T as Type (s, _) =>
@@ -207,7 +207,7 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
 
       in
         fold2 (fn new_type_name => fn size_name =>
-            BNF_LFP_Size.register_size new_type_name size_name size_thms [])
+            BNF_LFP_Size.register_size_global new_type_name size_name size_thms [])
           new_type_names size_names thy''
       end
   end;

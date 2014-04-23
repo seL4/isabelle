@@ -1005,7 +1005,7 @@ lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = s
   by (auto simp: Abs_fset_inverse setsum_reindex_cong[OF subset_inj_on[OF _ top_greatest]])
 
 setup {*
-BNF_LFP_Size.register_size @{type_name fset} @{const_name size_fset}
+BNF_LFP_Size.register_size_global @{type_name fset} @{const_name size_fset}
   @{thms size_fset_simps size_fset_overloaded_simps} @{thms fset_size_o_map}
 *}
 

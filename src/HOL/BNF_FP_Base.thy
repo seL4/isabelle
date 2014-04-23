@@ -184,7 +184,6 @@ lemma case_prod_map_prod: "case_prod h (map_prod f g x) = case_prod (\<lambda>l 
 lemma prod_inj_map: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (map_prod f g)"
   by (simp add: inj_on_def)
 
-
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp_size.ML"
@@ -211,9 +210,9 @@ lemma prod_size_o_map: "prod_size g1 g2 \<circ> map_prod f1 f2 = prod_size (g1 \
   by (rule ext) auto
 
 setup {*
-BNF_LFP_Size.register_size @{type_name sum} @{const_name sum_size} @{thms sum.size}
+BNF_LFP_Size.register_size_global @{type_name sum} @{const_name sum_size} @{thms sum.size}
   @{thms sum_size_o_map}
-#> BNF_LFP_Size.register_size @{type_name prod} @{const_name prod_size} @{thms prod.size}
+#> BNF_LFP_Size.register_size_global @{type_name prod} @{const_name prod_size} @{thms prod.size}
   @{thms prod_size_o_map}
 *}
 

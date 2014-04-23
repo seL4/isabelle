@@ -122,12 +122,13 @@ structure FP_Sugar_Interpretation = Interpretation
   val eq: T * T -> bool = op = o pairself (map #T);
 );
 
+(* FIXME naming *)
 fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _) thy =
   thy
-  |> Sign.root_path (* FIXME *)
-  |> Sign.add_path (Long_Name.qualifier s)
+  (*|> Sign.root_path*)
+  (*|> Sign.add_path (Long_Name.qualifier s)*)
   |> f fp_sugars
-  |> Sign.restore_naming thy;
+  (*|> Sign.restore_naming thy*);
 
 val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
 
@@ -136,7 +137,7 @@ fun register_fp_sugars (fp_sugars as {fp, ...} :: _) =
       Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
     fp_sugars
-  #> Local_Theory.background_theory (generate_lfp_size fp_sugars)
+  #> fp = Least_FP ? generate_lfp_size fp_sugars
   #> Local_Theory.background_theory (FP_Sugar_Interpretation.data fp_sugars);
 
 fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res

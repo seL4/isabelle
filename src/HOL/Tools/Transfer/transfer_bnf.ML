@@ -18,6 +18,7 @@ struct
 
 open BNF_Util
 open BNF_Def
+open BNF_FP_Util
 open BNF_FP_Def_Sugar
 
 (* util functions *)

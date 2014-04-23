@@ -941,8 +941,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
       ||>> mk_Frees "R" transfer_domRTs
       ||>> mk_Frees "S" transfer_ranRTs;
 
-    val fs_copy = map2 (retype_free o fastype_of) fs gs;
-    val x_copy = retype_free CA' y;
+    val fs_copy = map2 (retype_const_or_free o fastype_of) fs gs;
+    val x_copy = retype_const_or_free CA' y;
 
     val rel = mk_bnf_rel pred2RTs CA' CB';
     val relAsAs = mk_bnf_rel self_pred2RTs CA' CA';

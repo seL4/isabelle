@@ -29,7 +29,7 @@ sig
   val exists_strict_subtype_in: typ list -> typ -> bool
   val tvar_subst: theory -> typ list -> typ list -> ((string * int) * typ) list
 
-  val retype_free: typ -> term -> term
+  val retype_const_or_free: typ -> term -> term
   val drop_all: term -> term
   val permute_args: int -> term -> term
 
@@ -82,8 +82,9 @@ fun exists_strict_subtype_in Ts T = exists_subtype_in (filter_out (curry (op =) 
 fun tvar_subst thy Ts Us =
   Vartab.fold (cons o apsnd snd) (fold (Sign.typ_match thy) (Ts ~~ Us) Vartab.empty) [];
 
-fun retype_free T (Free (s, _)) = Free (s, T)
-  | retype_free _ t = raise TERM ("retype_free", [t]);
+fun retype_const_or_free T (Const (s, _)) = Const (s, T)
+  | retype_const_or_free T (Free (s, _)) = Free (s, T)
+  | retype_const_or_free _ t = raise TERM ("retype_const_or_free", [t]);
 
 fun drop_all t =
   subst_bounds (strip_qnt_vars @{const_name Pure.all} t |> map Free |> rev,

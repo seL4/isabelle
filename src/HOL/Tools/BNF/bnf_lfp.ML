@@ -906,9 +906,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       ||>> mk_Frees "f" fTs
       ||>> mk_Frees "s" rec_sTs;
 
-    val Izs = map2 retype_free Ts zs;
-    val phis = map2 retype_free (map mk_pred1T Ts) init_phis;
-    val phi2s = map2 retype_free (map2 mk_pred2T Ts Ts') init_phis;
+    val Izs = map2 retype_const_or_free Ts zs;
+    val phis = map2 retype_const_or_free (map mk_pred1T Ts) init_phis;
+    val phi2s = map2 retype_const_or_free (map2 mk_pred2T Ts Ts') init_phis;
 
     fun ctor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctorN ^ "_");
     val ctor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o ctor_bind;
