@@ -332,7 +332,7 @@ object Isabelle_System
         kill_cmd(signal)
         kill_cmd("0") == 0
       }
-      catch { case _: InterruptedException => true }
+      catch { case Exn.Interrupt() => true }
     }
 
     private def multi_kill(signal: String): Boolean =
@@ -341,7 +341,7 @@ object Isabelle_System
       var count = 10
       while (running && count > 0) {
         if (kill(signal)) {
-          try { Thread.sleep(100) } catch { case _: InterruptedException => }
+          try { Thread.sleep(100) } catch { case Exn.Interrupt() => }
           count -= 1
         }
         else running = false
@@ -481,7 +481,7 @@ object Isabelle_System
 
       val rc =
         try { proc.join }
-        catch { case e: InterruptedException => proc.terminate; 130 }
+        catch { case Exn.Interrupt() => proc.terminate; Exn.Interrupt.return_code }
       Bash_Result(stdout.join, stderr.join, rc)
     }
   }

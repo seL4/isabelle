@@ -25,7 +25,7 @@ object Main
     def exit_error(exn: Throwable): Nothing =
     {
       GUI.dialog(null, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
-      system_dialog.return_code(2)
+      system_dialog.return_code(Exn.return_code(exn, 2))
       system_dialog.join_exit
     }
 
@@ -60,7 +60,7 @@ object Main
                     build_heap = true, more_dirs = more_dirs,
                     system_mode = system_mode, sessions = List(session)))
               }
-              catch { case exn: Throwable => (Exn.message(exn) + "\n", 2) }
+              catch { case exn: Throwable => (Exn.message(exn) + "\n", Exn.return_code(exn, 2)) }
 
             system_dialog.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
             system_dialog.return_code(rc)
@@ -155,7 +155,7 @@ object Main
       catch { case exn: Throwable => exit_error(exn) }
 
       if (system_dialog.stopped) {
-        system_dialog.return_code(130)
+        system_dialog.return_code(Exn.Interrupt.return_code)
         system_dialog.join_exit
       }
     }

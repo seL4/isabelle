@@ -58,7 +58,7 @@ object Invoke_Scala
         Exn.capture { f(arg) } match {
           case Exn.Res(null) => (Tag.NULL, "")
           case Exn.Res(res) => (Tag.OK, res)
-          case Exn.Exn(_: InterruptedException) => (Tag.INTERRUPT, "")
+          case Exn.Exn(Exn.Interrupt()) => (Tag.INTERRUPT, "")
           case Exn.Exn(e) => (Tag.ERROR, Exn.message(e))
         }
       case Exn.Exn(e) => (Tag.FAIL, Exn.message(e))

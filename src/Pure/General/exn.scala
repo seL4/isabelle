@@ -27,6 +27,26 @@ object Exn
     }
 
 
+  /* interrupts */
+
+  def is_interrupt(exn: Throwable): Boolean =
+    exn.isInstanceOf[InterruptedException]
+
+  object Interrupt
+  {
+    def apply(): Throwable = new InterruptedException
+    def unapply(exn: Throwable): Boolean = is_interrupt(exn)
+
+    val return_code = 130
+  }
+
+
+  /* POSIX return code */
+
+  def return_code(exn: Throwable, rc: Int): Int =
+    if (is_interrupt(exn)) Interrupt.return_code else rc
+
+
   /* message */
 
   private val runtime_exception = Class.forName("java.lang.RuntimeException")
@@ -44,8 +64,6 @@ object Exn
     else None
 
   def message(exn: Throwable): String =
-    user_message(exn) getOrElse
-      (if (exn.isInstanceOf[InterruptedException]) "Interrupt"
-       else exn.toString)
+    user_message(exn) getOrElse (if (is_interrupt(exn)) "Interrupt" else exn.toString)
 }
 

@@ -605,7 +605,7 @@ object Build
       args_file.delete
       timer.map(_.cancel())
 
-      if (res.rc == 130) {
+      if (res.rc == Exn.Interrupt.return_code) {
         if (timeout) res.add_err("*** Timeout").set_rc(1)
         else res.add_err("*** Interrupt")
       }
@@ -832,7 +832,7 @@ object Build
 
                 File.write(output_dir + log(name), Library.terminate_lines(res.out_lines))
                 progress.echo(name + " FAILED")
-                if (res.rc != 130) {
+                if (res.rc != Exn.Interrupt.return_code) {
                   progress.echo("(see also " + (output_dir + log(name)).file.toString + ")")
                   val lines = res.out_lines.filterNot(_.startsWith("\f"))
                   val tail = lines.drop(lines.length - 20 max 0)
