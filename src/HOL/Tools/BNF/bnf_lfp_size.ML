@@ -5,7 +5,12 @@
 Generation of size functions for new-style datatypes.
 *)
 
-structure BNF_LFP_Size : sig end =
+signature BNF_LFP_SIZE =
+sig
+  val register_size: string -> string -> thm list -> thm list -> theory -> theory
+end;
+
+structure BNF_LFP_Size : BNF_LFP_SIZE =
 struct
 
 open BNF_Util
@@ -26,6 +31,9 @@ structure Data = Theory_Data
   val extend = I
   fun merge data = Symtab.merge (K true) data;
 );
+
+fun register_size T_name size_name size_simps size_o_maps =
+  Data.map (Symtab.update_new (T_name, (size_name, (size_simps, size_o_maps))));
 
 val zero_nat = @{const zero_class.zero (nat)};
 
@@ -52,12 +60,13 @@ fun mk_rec_o_map_tac ctxt rec_def pre_map_defs abs_inverses ctor_rec_o_map =
       (ss_only (pre_map_defs @ distinct Thm.eq_thm_prop abs_inverses @ rec_o_map_simp_thms) ctxt));
 
 val size_o_map_simp_thms =
-  @{thms o_apply prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
+  @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
 fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   unfold_thms_tac ctxt [size_def] THEN
   HEADGOAL (rtac (rec_o_map RS trans) THEN'
-    asm_simp_tac (ss_only (inj_maps @ size_maps @ size_o_map_simp_thms) ctxt));
+    asm_simp_tac (ss_only (inj_maps @ size_maps @ size_o_map_simp_thms) ctxt)) THEN
+  IF_UNSOLVED (unfold_thms_tac ctxt [o_apply] THEN HEADGOAL (rtac refl));
 
 fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
         fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, nested_bnfs, ...}

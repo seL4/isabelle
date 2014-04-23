@@ -207,8 +207,6 @@ lemma case_prod_o_map_prod: "case_prod h (map_prod f g x) = case_prod (\<lambda>
 lemma prod_inj_map: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (map_prod f g)"
   by (simp add: inj_on_def)
 
-declare [[ML_print_depth = 10000]] (*###*)
-
 ML_file "Tools/BNF/bnf_lfp_util.ML"
 ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
@@ -217,60 +215,5 @@ ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 ML_file "Tools/BNF/bnf_lfp_size.ML"
 
 hide_fact (open) id_transfer
-
-datatype_new 'a i = I 'a
-thm i.size i.rec_o_map i.size_o_map
-
-datatype_new ('a, 'b) j = J0 | J 'a "('a, 'b) j"
-thm j.size j.rec_o_map j.size_o_map
-
-datatype_new 'a l = N nat nat | C 'a "'a l"
-thm l.size l.rec_o_map l.size_o_map
-
-datatype_new ('a, 'b) x = XN 'b | XC 'a "('a, 'b) x"
-thm x.size x.rec_o_map x.size_o_map
-
-datatype_new
-  'a tl = TN | TC "'a mt" "'a tl" and
-  'a mt = MT 'a "'a tl"
-thm tl.size tl.rec_o_map tl.size_o_map
-thm mt.size mt.rec_o_map mt.size_o_map
-
-datatype_new 'a t = T nat 'a "'a t l"
-thm t.size t.rec_o_map t.size_o_map
-
-datatype_new 'a fset = FSet0 | FSet 'a "'a fset"
-thm fset.size fset.rec_o_map fset.size_o_map
-
-datatype_new 'a u = U 'a "'a u fset"
-thm u.size u.rec_o_map u.size_o_map
-
-datatype_new
-  ('a, 'b) v = V "nat l" | V' 'a "('a, 'b) w" and
-  ('a, 'b) w = W 'b "('a, 'b) v fset l"
-thm v.size v.rec_o_map v.size_o_map
-thm w.size w.rec_o_map w.size_o_map
-
-(*TODO:
-* what happens if recursion through arbitrary bnf, like 'fsize'?
-  * by default
-  * offer possibility to register size function and theorems
-* compat with old size?
-  * recursion of old through new (e.g. through list)?
-  * recursion of new through old?
-  * should they share theory data?
-* code generator setup?
-*)
-
-
-end
-datatype_new 'a x = X0 | X 'a (*###*)
-thm x.size
-thm x.size_o_map
-datatype_new 'a x = X0 | X 'a "'a x" (*###*)
-thm x.size
-thm x.size_o_map
-datatype_new 'a l = N | C 'a "'a l"
-datatype_new ('a, 'b) tl = TN 'b | TC 'a "'a l"
 
 end
