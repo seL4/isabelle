@@ -207,7 +207,7 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
 
       in
         fold2 (fn new_type_name => fn size_name =>
-            BNF_LFP_Size.register_size new_type_name size_name [] size_thms)
+            BNF_LFP_Size.register_size new_type_name size_name size_thms [])
           new_type_names size_names thy''
       end
   end;
