@@ -26,7 +26,7 @@ class System_Dialog extends Build.Progress
 
   private def check_window(): Window =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     _window match {
       case Some(window) => window
@@ -48,7 +48,7 @@ class System_Dialog extends Build.Progress
 
   private def conclude()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
     require(_return_code.isDefined)
 
     _window match {

@@ -15,10 +15,10 @@ import scala.actors.Actor
 
 object Simple_Thread
 {
-  /* prending interrupts */
+  /* pending interrupts */
 
   def interrupted_exception(): Unit =
-    if (Thread.interrupted()) throw new InterruptedException
+    if (Thread.interrupted()) throw Exn.Interrupt()
 
 
   /* plain thread */

@@ -40,7 +40,7 @@ class Rich_Text_Area(
   def robust_body[A](default: A)(body: => A): A =
   {
     try {
-      Swing_Thread.require()
+      Swing_Thread.require {}
       if (buffer == text_area.getBuffer) body
       else {
         Log.log(Log.ERROR, this, ERROR("Implicit change of text area buffer"))

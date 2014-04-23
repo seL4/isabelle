@@ -49,7 +49,7 @@ object Completion_Popup
 
     def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] =
     {
-      Swing_Thread.require()
+      Swing_Thread.require {}
       text_area.getClientProperty(key) match {
         case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
         case _ => None
@@ -75,7 +75,7 @@ object Completion_Popup
 
     def exit(text_area: JEditTextArea)
     {
-      Swing_Thread.require()
+      Swing_Thread.require {}
       apply(text_area) match {
         case None =>
         case Some(text_area_completion) =>
@@ -95,7 +95,7 @@ object Completion_Popup
 
     def dismissed(text_area: TextArea): Boolean =
     {
-      Swing_Thread.require()
+      Swing_Thread.require {}
       apply(text_area) match {
         case Some(text_area_completion) => text_area_completion.dismissed()
         case None => false
@@ -194,7 +194,7 @@ object Completion_Popup
 
     private def insert(item: Completion.Item)
     {
-      Swing_Thread.require()
+      Swing_Thread.require {}
 
       val buffer = text_area.getBuffer
       val range = item.range
@@ -358,7 +358,7 @@ object Completion_Popup
 
     def input(evt: KeyEvent)
     {
-      Swing_Thread.require()
+      Swing_Thread.require {}
 
       if (PIDE.options.bool("jedit_completion")) {
         if (!evt.isConsumed) {
@@ -391,7 +391,7 @@ object Completion_Popup
 
     def dismissed(): Boolean =
     {
-      Swing_Thread.require()
+      Swing_Thread.require {}
 
       completion_popup match {
         case Some(completion) =>
@@ -460,7 +460,7 @@ object Completion_Popup
 
     private def insert(item: Completion.Item)
     {
-      Swing_Thread.require()
+      Swing_Thread.require {}
 
       val range = item.range
       if (text_field.isEditable && range.length > 0) {
@@ -574,7 +574,7 @@ class Completion_Popup private(
 {
   completion =>
 
-  Swing_Thread.require()
+  Swing_Thread.require {}
 
   require(!items.isEmpty)
   val multi = items.length > 1

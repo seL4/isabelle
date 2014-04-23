@@ -16,8 +16,8 @@ object YXML
 {
   /* chunk markers */
 
-  val X = '\5'
-  val Y = '\6'
+  val X = '\u0005'
+  val Y = '\u0006'
 
   val is_X = (c: Char) => c == X
   val is_Y = (c: Char) => c == Y

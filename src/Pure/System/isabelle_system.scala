@@ -107,7 +107,7 @@ object Isabelle_System
           if (rc != 0) error(output)
 
           val entries =
-            (for (entry <- File.read(dump) split "\0" if entry != "") yield {
+            (for (entry <- File.read(dump) split "\u0000" if entry != "") yield {
               val i = entry.indexOf('=')
               if (i <= 0) (entry -> "")
               else (entry.substring(0, i) -> entry.substring(i + 1))
@@ -332,7 +332,7 @@ object Isabelle_System
         kill_cmd(signal)
         kill_cmd("0") == 0
       }
-      catch { case _: InterruptedException => true }
+      catch { case Exn.Interrupt() => true }
     }
 
     private def multi_kill(signal: String): Boolean =
@@ -341,7 +341,7 @@ object Isabelle_System
       var count = 10
       while (running && count > 0) {
         if (kill(signal)) {
-          try { Thread.sleep(100) } catch { case _: InterruptedException => }
+          try { Thread.sleep(100) } catch { case Exn.Interrupt() => }
           count -= 1
         }
         else running = false
@@ -446,6 +446,19 @@ object Isabelle_System
     def set_rc(i: Int): Bash_Result = copy(rc = i)
   }
 
+  private class Limited_Progress(proc: Managed_Process, progress_limit: Option[Long])
+  {
+    private var count = 0L
+    def apply(progress: String => Unit)(line: String): Unit = synchronized {
+      progress(line)
+      count = count + line.length + 1
+      progress_limit match {
+        case Some(limit) if count > limit => proc.terminate
+        case _ =>
+      }
+    }
+  }
+
   def bash_env(cwd: JFile, env: Map[String, String], script: String,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
@@ -456,17 +469,7 @@ object Isabelle_System
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file))
       proc.stdin.close
 
-      val limited = new Object {
-        private var count = 0L
-        def apply(progress: String => Unit)(line: String): Unit = synchronized {
-          progress(line)
-          count = count + line.length + 1
-          progress_limit match {
-            case Some(limit) if count > limit => proc.terminate
-            case _ =>
-          }
-        }
-      }
+      val limited = new Limited_Progress(proc, progress_limit)
       val (_, stdout) =
         Simple_Thread.future("bash_stdout") {
           File.read_lines(proc.stdout, limited(progress_stdout))
@@ -478,7 +481,7 @@ object Isabelle_System
 
       val rc =
         try { proc.join }
-        catch { case e: InterruptedException => proc.terminate; 130 }
+        catch { case Exn.Interrupt() => proc.terminate; Exn.Interrupt.return_code }
       Bash_Result(stdout.join, stderr.join, rc)
     }
   }

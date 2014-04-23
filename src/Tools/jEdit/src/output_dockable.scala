@@ -40,7 +40,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def handle_resize()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     pretty_text_area.resize(
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom_factor / 100))
@@ -48,7 +48,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def handle_update(follow: Boolean, restriction: Option[Set[Command]])
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val (new_snapshot, new_command, new_results) =
       PIDE.editor.current_node_snapshot(view) match {

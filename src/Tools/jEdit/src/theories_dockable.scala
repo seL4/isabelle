@@ -74,7 +74,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def handle_phase(phase: Session.Phase)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
     session_phase.text = " " + phase_text(phase) + " "
   }
 
@@ -193,7 +193,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
 

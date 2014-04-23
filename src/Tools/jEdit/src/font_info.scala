@@ -42,7 +42,7 @@ object Font_Info
   {
     private def change_size(change: Float => Float)
     {
-      Swing_Thread.require()
+      Swing_Thread.require {}
 
       val size0 = main_size()
       val size = restrict_size(change(size0)).round

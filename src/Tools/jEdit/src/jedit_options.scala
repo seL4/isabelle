@@ -36,7 +36,7 @@ class JEdit_Options extends Options_Variable
 
   def make_color_component(opt: Options.Opt): Option_Component =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val opt_name = opt.name
     val opt_title = opt.title("jedit")
@@ -55,7 +55,7 @@ class JEdit_Options extends Options_Variable
 
   def make_component(opt: Options.Opt): Option_Component =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val opt_name = opt.name
     val opt_title = opt.title("jedit")

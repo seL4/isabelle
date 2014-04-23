@@ -152,7 +152,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def make_entries(): List[Entry] =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val name =
       Document_View(view.getTextArea) match {
@@ -175,7 +175,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
 

@@ -25,7 +25,8 @@ class Process_Indicator
     space_explode(':', PIDE.options.string("process_active_icons")).map(name =>
       JEdit_Lib.load_image_icon(name).getImage)
 
-  private val animation = new ImageIcon(passive_icon) {
+  private class Animation extends ImageIcon(passive_icon)
+  {
     private var current_frame = 0
     private val timer =
       new Timer(0, new ActionListener {
@@ -52,6 +53,8 @@ class Process_Indicator
       }
     }
   }
+
+  private val animation = new Animation
   label.icon = animation
 
   def component: Component = label

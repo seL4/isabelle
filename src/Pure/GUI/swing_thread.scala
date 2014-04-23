@@ -35,7 +35,7 @@ object Swing_Thread
   {
     if (SwingUtilities.isEventDispatchThread()) body
     else {
-      lazy val result = { assert(); Exn.capture(body) }
+      lazy val result = { assert { Exn.capture(body) } }
       SwingUtilities.invokeAndWait(new Runnable { def run = result })
       Exn.release(result)
     }
@@ -69,7 +69,7 @@ object Swing_Thread
       timer.setRepeats(false)
       timer.addActionListener(new ActionListener {
         override def actionPerformed(e: ActionEvent) {
-          assert()
+          assert {}
           timer.setInitialDelay(time.ms.toInt)
           action
         }
@@ -77,20 +77,20 @@ object Swing_Thread
 
       def invoke()
       {
-        require()
+        require {}
         if (first) timer.start() else timer.restart()
       }
 
       def revoke()
       {
-        require()
+        require {}
         timer.stop()
         timer.setInitialDelay(time.ms.toInt)
       }
 
       def postpone(alt_time: Time)
       {
-        require()
+        require {}
         if (timer.isRunning) {
           timer.setInitialDelay(timer.getInitialDelay max alt_time.ms.toInt)
           timer.restart()

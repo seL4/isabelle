@@ -232,13 +232,6 @@ then
   isabelle_jdk jar cfe "$(jvmpath "$TARGET")" isabelle.Main META-INF isabelle || \
     fail "Failed to produce $TARGET"
 
-  cp "$SCALA_HOME/lib/scala-compiler.jar" \
-    "$SCALA_HOME/lib/scala-library.jar" \
-    "$SCALA_HOME/lib/scala-swing.jar" \
-    "$SCALA_HOME/lib/scala-actors.jar" \
-    "$SCALA_HOME/lib/scala-reflect.jar" \
-    "$TARGET_DIR"
-
   popd >/dev/null
 
   rm -rf classes

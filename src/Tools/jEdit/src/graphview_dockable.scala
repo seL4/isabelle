@@ -29,7 +29,7 @@ object Graphview_Dockable
 
   private def set_implicit(snapshot: Document.Snapshot, graph: Exn.Result[graphview.Model.Graph])
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     implicit_snapshot = snapshot
     implicit_graph = graph

@@ -85,25 +85,25 @@ class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Out
 
   /* file content */
 
-  def file_content(buffer: Buffer): Bytes =
+  private class File_Content_Output(buffer: Buffer) extends
+    ByteArrayOutputStream(buffer.getLength + 1)
   {
-    val path = buffer.getPath
-    val vfs = VFSManager.getVFSForPath(path)
-    val content =
-      new BufferIORequest(null, buffer, null, vfs, path) {
-        def _run() { }
-        def apply(): Bytes =
-        {
-          val out =
-            new ByteArrayOutputStream(buffer.getLength + 1) {
-              def content(): Bytes = Bytes(this.buf, 0, this.count)
-            }
-          write(buffer, out)
-          out.content()
-        }
-      }
-    content()
+    def content(): Bytes = Bytes(this.buf, 0, this.count)
   }
+
+  private class File_Content(buffer: Buffer) extends
+    BufferIORequest(null, buffer, null, VFSManager.getVFSForPath(buffer.getPath), buffer.getPath)
+  {
+    def _run() { }
+    def content(): Bytes =
+    {
+      val out = new File_Content_Output(buffer)
+      write(buffer, out)
+      out.content()
+    }
+  }
+
+  def file_content(buffer: Buffer): Bytes = (new File_Content(buffer)).content()
 
 
   /* theory text edits */

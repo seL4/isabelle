@@ -64,7 +64,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   override def paintComponent(gfx: Graphics)
   {
     super.paintComponent(gfx)
-    Swing_Thread.assert()
+    Swing_Thread.assert {}
 
     doc_view.rich_text_area.robust_body(()) {
       JEdit_Lib.buffer_lock(buffer) {

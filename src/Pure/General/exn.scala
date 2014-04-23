@@ -27,6 +27,34 @@ object Exn
     }
 
 
+  /* interrupts */
+
+  def is_interrupt(exn: Throwable): Boolean =
+  {
+    var found_interrupt = false
+    var e = exn
+    while (!found_interrupt && e != null) {
+      found_interrupt |= e.isInstanceOf[InterruptedException]
+      e = e.getCause
+    }
+    found_interrupt
+  }
+
+  object Interrupt
+  {
+    def apply(): Throwable = new InterruptedException
+    def unapply(exn: Throwable): Boolean = is_interrupt(exn)
+
+    val return_code = 130
+  }
+
+
+  /* POSIX return code */
+
+  def return_code(exn: Throwable, rc: Int): Int =
+    if (is_interrupt(exn)) Interrupt.return_code else rc
+
+
   /* message */
 
   private val runtime_exception = Class.forName("java.lang.RuntimeException")
@@ -44,8 +72,12 @@ object Exn
     else None
 
   def message(exn: Throwable): String =
-    user_message(exn) getOrElse
-      (if (exn.isInstanceOf[InterruptedException]) "Interrupt"
-       else exn.toString)
+    user_message(exn) getOrElse (if (is_interrupt(exn)) "Interrupt" else exn.toString)
+
+
+  /* TTY error message */
+
+  def error_message(msg: String): String = cat_lines(split_lines(msg).map("*** " + _))
+  def error_message(exn: Throwable): String = error_message(message(exn))
 }
 

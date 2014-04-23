@@ -74,7 +74,7 @@ object JEdit_Lib
 
   def window_geometry(outer: Container, inner: Component): Window_Geometry =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val old_content = dummy_window.getContentPane
 
