@@ -39,6 +39,10 @@ sig
       'o -> 'p) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list -> 'o list -> 'p list
+ val map16: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n ->
+      'o -> 'p -> 'q) ->
+    'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
+    'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list -> 'o list -> 'p list -> 'q list
   val fold_map4: ('a -> 'b -> 'c -> 'd -> 'e -> 'f * 'e) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e -> 'f list * 'e
   val fold_map5: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g * 'f) ->
@@ -214,6 +218,13 @@ fun map15 _ [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] = []
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 ::
       map15 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s x14s x15s
   | map15 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
+
+fun map16 _ [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] = []
+  | map16 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      (x9::x9s) (x10::x10s) (x11::x11s) (x12::x12s) (x13::x13s) (x14::x14s) (x15::x15s) (x16::x16s) =
+    f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 ::
+      map16 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s x14s x15s x16s
+  | map16 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun fold_map4 _ [] [] [] [] acc = ([], acc)
   | fold_map4 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) acc =
@@ -471,7 +482,7 @@ fun mk_in As sets T =
   end;
 
 fun mk_inj t =
-  let val T as Type (@{type_name fun}, [domT, ranT]) = fastype_of t in
+  let val T as Type (@{type_name fun}, [domT, _]) = fastype_of t in
     Const (@{const_name inj_on}, T --> HOLogic.mk_setT domT --> HOLogic.boolT) $ t
       $ HOLogic.mk_UNIV domT
   end;

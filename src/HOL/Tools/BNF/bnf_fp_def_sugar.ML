@@ -29,7 +29,8 @@ sig
      co_rec_thms: thm list,
      disc_co_recs: thm list,
      sel_co_recss: thm list list,
-     rel_injects: thm list};
+     rel_injects: thm list,
+     rel_distincts: thm list};
 
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
@@ -145,12 +146,14 @@ type fp_sugar =
    co_rec_thms: thm list,
    disc_co_recs: thm list,
    sel_co_recss: thm list list,
-   rel_injects: thm list};
+   rel_injects: thm list,
+   rel_distincts: thm list};
 
-fun morph_fp_sugar phi ({T, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nested_bnfs,
-    nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, maps, common_co_inducts, co_inducts,
-    co_rec_thms, disc_co_recs, sel_co_recss, rel_injects} : fp_sugar) =
+fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nested_bnfs,
+    nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, co_rec_def, maps, common_co_inducts,
+    co_inducts, co_rec_thms, disc_co_recs, sel_co_recss, rel_injects, rel_distincts} : fp_sugar) =
   {T = Morphism.typ phi T,
+   BT = Morphism.typ phi BT,
    X = Morphism.typ phi X,
    fp = fp,
    fp_res = morph_fp_result phi fp_res,
@@ -170,7 +173,8 @@ fun morph_fp_sugar phi ({T, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nes
    co_rec_thms = map (Morphism.thm phi) co_rec_thms,
    disc_co_recs = map (Morphism.thm phi) disc_co_recs,
    sel_co_recss = map (map (Morphism.thm phi)) sel_co_recss,
-   rel_injects = map (Morphism.thm phi) rel_injects};
+   rel_injects = map (Morphism.thm phi) rel_injects,
+   rel_distincts = map (Morphism.thm phi) rel_distincts};
 
 val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
 
@@ -198,35 +202,36 @@ structure FP_Sugar_Interpretation = Interpretation
   val eq: T * T -> bool = op = o pairself (map #T);
 );
 
-fun with_repaired_path f (fp_sugars : fp_sugar list) thy =
+fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _) thy =
   thy
-  (* FIXME: |> Sign.root_path*)
-  |> Sign.add_path (Long_Name.qualifier (mk_common_name (map (fst o dest_Type o #T) fp_sugars)))
+  |> Sign.root_path (* FIXME *)
+  |> Sign.add_path (Long_Name.qualifier s)
   |> f fp_sugars
   |> Sign.restore_naming thy;
 
 val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
 
 fun register_fp_sugars fp_sugars =
-  fold (fn fp_sugar as {T as Type (s, _), ...} =>
+  fold (fn fp_sugar as {T = Type (s, _), ...} =>
       Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
     fp_sugars
   #> Local_Theory.background_theory (FP_Sugar_Interpretation.data fp_sugars);
 
-fun register_as_fp_sugars Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs (fp_res as {Ts, ...})
-    ctrXs_Tsss ctr_defss ctr_sugars co_recs mapss common_co_inducts co_inductss co_rec_thmss
-    disc_co_recss sel_co_recsss =
+fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
+    ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss common_co_inducts co_inductss
+    co_rec_thmss disc_co_recss sel_co_recsss rel_injectss rel_distinctss =
   let
     val fp_sugars =
       map_index (fn (kk, T) =>
-        {T = T, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
+        {T = T, BT = nth BTs kk, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
          pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk, nested_bnfs = nested_bnfs,
          nesting_bnfs = nesting_bnfs, ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk,
-         ctr_sugar = nth ctr_sugars kk, co_rec = nth co_recs kk, maps = nth mapss kk,
-         common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
-         co_rec_thms = nth co_rec_thmss kk, disc_co_recs = nth disc_co_recss kk,
-         sel_co_recss = nth sel_co_recsss kk}) Ts
+         ctr_sugar = nth ctr_sugars kk, co_rec = nth co_recs kk, co_rec_def = nth co_rec_defs kk,
+         maps = nth mapss kk, common_co_inducts = common_co_inducts,
+         co_inducts = nth co_inductss kk, co_rec_thms = nth co_rec_thmss kk,
+         disc_co_recs = nth disc_co_recss kk, sel_co_recss = nth sel_co_recsss kk,
+         rel_injects = nth rel_injectss kk, rel_distincts = nth rel_distinctss kk}) Ts
   in
     register_fp_sugars fp_sugars
   end;
@@ -451,7 +456,6 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
 fun mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val nn = length fpTs;
 
     val (xtor_co_rec_fun_Ts, xtor_co_recs) =
       mk_xtor_co_recs thy fp fpTs Cs xtor_co_recs0 |> `(binder_fun_types o fastype_of o hd);
@@ -1320,7 +1324,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       injects @ distincts @ case_thms @ co_recs @ mapsx @ rel_injects @ rel_distincts @ flat setss;
 
     fun derive_note_induct_recs_thms_for_types
-        ((((mapss, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
+        ((((mapss, rel_injectss, rel_distinctss, setss), (ctrss, _, ctr_defss, ctr_sugars)),
           (recs, rec_defs)), lthy) =
       let
         val ((induct_thms, induct_thm, induct_attrs), (rec_thmss, rec_attrs)) =
@@ -1331,7 +1335,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
         val simp_thmss =
-          map6 mk_simp_thms ctr_sugars rec_thmss mapss rel_injects rel_distincts setss;
+          map6 mk_simp_thms ctr_sugars rec_thmss mapss rel_injectss rel_distinctss setss;
 
         val common_notes =
           (if nn > 1 then [(inductN, [induct_thm], induct_attrs)] else [])
@@ -1346,13 +1350,14 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         lthy
         |> Spec_Rules.add Spec_Rules.Equational (recs, flat rec_thmss)
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_as_fp_sugars Xs Least_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
-          ctrXs_Tsss ctr_defss ctr_sugars recs mapss [induct_thm] (map single induct_thms)
-          rec_thmss (replicate nn []) (replicate nn []) rel_injects
+        |> register_as_fp_sugars fpTs fpBTs Xs Least_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs
+          fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs mapss [induct_thm]
+          (map single induct_thms) rec_thmss (replicate nn []) (replicate nn []) rel_injectss
+          rel_distinctss
       end;
 
     fun derive_note_coinduct_corecs_thms_for_types
-        ((((mapss, rel_injects, rel_distincts, setss), (_, _, ctr_defss, ctr_sugars)),
+        ((((mapss, rel_injectss, rel_distinctss, setss), (_, _, ctr_defss, ctr_sugars)),
           (corecs, corec_defs)), lthy) =
       let
         val (([(coinduct_thms, coinduct_thm), (strong_coinduct_thms, strong_coinduct_thm)],
@@ -1373,7 +1378,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val simp_thmss =
           map6 mk_simp_thms ctr_sugars
             (map3 flat_corec_thms disc_corec_thmss disc_corec_iff_thmss sel_corec_thmss)
-            mapss rel_injects rel_distincts setss;
+            mapss rel_injectss rel_distinctss setss;
 
         val common_notes =
           (if nn > 1 then
@@ -1399,10 +1404,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> fold (curry (Spec_Rules.add Spec_Rules.Equational) corecs)
           [flat sel_corec_thmss, flat corec_thmss]
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_as_fp_sugars Xs Greatest_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
-          ctrXs_Tsss ctr_defss ctr_sugars corecs mapss [coinduct_thm, strong_coinduct_thm]
-          (transpose [coinduct_thms, strong_coinduct_thms]) corec_thmss disc_corec_thmss
-          sel_corec_thmsss rel_injects
+        |> register_as_fp_sugars fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos nested_bnfs
+          nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars corecs corec_defs mapss
+          [coinduct_thm, strong_coinduct_thm] (transpose [coinduct_thms, strong_coinduct_thms])
+          corec_thmss disc_corec_thmss sel_corec_thmsss rel_injectss rel_distinctss
       end;
 
     val lthy'' = lthy'
