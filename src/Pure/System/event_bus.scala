@@ -28,5 +28,5 @@ class Event_Bus[Event]
 
   /* event invocation */
 
-  def event(x: Event) { receivers.value.reverseIterator.foreach(_ ! x) }
+  def event(x: Event) { receivers.value.iterator.foreach(_ ! x) }
 }
