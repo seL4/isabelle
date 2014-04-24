@@ -155,10 +155,10 @@ object Library
 
   /* canonical list operations */
 
-  def member[A, B](x: B, xs: List[A]): Boolean = xs.exists(_ == x)
-  def insert[A](x: A, xs: List[A]): List[A] = if (member(x, xs)) xs else x :: xs
-  def remove[A, B](x: B, xs: List[A]): List[A] = if (member(x, xs)) xs.filterNot(_ == x) else xs
-  def update[A](x: A, xs: List[A]): List[A] = x :: remove(x, xs)
+  def member[A, B](xs: List[A])(x: B): Boolean = xs.exists(_ == x)
+  def insert[A](x: A)(xs: List[A]): List[A] = if (xs.contains(x)) xs else x :: xs
+  def remove[A, B](x: B)(xs: List[A]): List[A] = if (member(xs)(x)) xs.filterNot(_ == x) else xs
+  def update[A](x: A)(xs: List[A]): List[A] = x :: remove(x)(xs)
 
 
   /* Java futures */

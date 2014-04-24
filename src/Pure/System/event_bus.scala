@@ -17,13 +17,13 @@ class Event_Bus[Event]
 
   private val receivers = Synchronized(List.empty[Actor])
 
-  def += (r: Actor) { receivers.change(rs => Library.insert(r, rs)) }
+  def += (r: Actor) { receivers.change(Library.insert(r)) }
 
   def += (f: Event => Unit) {
     this += actor { loop { react { case x => f(x.asInstanceOf[Event]) } } }
   }
 
-  def -= (r: Actor) { receivers.change(rs => Library.remove(r, rs)) }
+  def -= (r: Actor) { receivers.change(Library.remove(r)) }
 
 
   /* event invocation */
