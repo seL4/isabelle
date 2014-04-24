@@ -208,7 +208,7 @@ class Session(val resources: Resources)
   /* global state */
 
   private val syslog = Volatile(Queue.empty[XML.Elem])
-  def current_syslog(): String = cat_lines(syslog().iterator.map(XML.content))
+  def current_syslog(): String = cat_lines(syslog.value.iterator.map(XML.content))
 
   @volatile private var _phase: Session.Phase = Session.Inactive
   private def phase_=(new_phase: Session.Phase)
@@ -220,7 +220,7 @@ class Session(val resources: Resources)
   def is_ready: Boolean = phase == Session.Ready
 
   private val global_state = Volatile(Document.State.init)
-  def current_state(): Document.State = global_state()
+  def current_state(): Document.State = global_state.value
 
   def recent_syntax(): Prover.Syntax =
   {
@@ -230,7 +230,7 @@ class Session(val resources: Resources)
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
-    global_state().snapshot(name, pending_edits)
+    global_state.value.snapshot(name, pending_edits)
 
 
   /* protocol handlers */
@@ -290,7 +290,7 @@ class Session(val resources: Resources)
           case output: Prover.Output =>
             buffer += msg
             if (output.is_syslog)
-              syslog >> (queue =>
+              syslog.change(queue =>
                 {
                   val queue1 = queue.enqueue(output.message)
                   if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
@@ -357,9 +357,9 @@ class Session(val resources: Resources)
     {
       prover.get.discontinue_execution()
 
-      val previous = global_state().history.tip.version
+      val previous = global_state.value.history.tip.version
       val version = Future.promise[Document.Version]
-      val change = global_state >>> (_.continue_history(previous, edits, version))
+      val change = global_state.change_result(_.continue_history(previous, edits, version))
 
       raw_edits.event(Session.Raw_Edits(doc_blobs, edits))
       change_parser ! Text_Edits(previous, doc_blobs, edits, version)
@@ -376,19 +376,19 @@ class Session(val resources: Resources)
       {
         for {
           digest <- command.blobs_digests
-          if !global_state().defined_blob(digest)
+          if !global_state.value.defined_blob(digest)
         } {
           change.doc_blobs.get(digest) match {
             case Some(blob) =>
-              global_state >> (_.define_blob(digest))
+              global_state.change(_.define_blob(digest))
               prover.get.define_blob(digest, blob.bytes)
             case None =>
               System.err.println("Missing blob for SHA1 digest " + digest)
           }
         }
 
-        if (!global_state().defined_command(command.id)) {
-          global_state >> (_.define_command(command))
+        if (!global_state.value.defined_command(command.id)) {
+          global_state.change(_.define_command(command))
           prover.get.define_command(command)
         }
       }
@@ -397,8 +397,8 @@ class Session(val resources: Resources)
           edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
       }
 
-      val assignment = global_state().the_assignment(change.previous).check_finished
-      global_state >> (_.define_version(change.version, assignment))
+      val assignment = global_state.value.the_assignment(change.previous).check_finished
+      global_state.change(_.define_version(change.version, assignment))
       prover.get.update(change.previous.id, change.version.id, change.doc_edits)
       resources.commit(change)
     }
@@ -419,7 +419,7 @@ class Session(val resources: Resources)
       def accumulate(state_id: Document_ID.Generic, message: XML.Elem)
       {
         try {
-          val st = global_state >>> (_.accumulate(state_id, message))
+          val st = global_state.change_result(_.accumulate(state_id, message))
           delay_commands_changed.invoke(false, List(st.command))
         }
         catch {
@@ -443,7 +443,7 @@ class Session(val resources: Resources)
                 msg.text match {
                   case Protocol.Assign_Update(id, update) =>
                     try {
-                      val cmds = global_state >>> (_.assign(id, update))
+                      val cmds = global_state.change_result(_.assign(id, update))
                       delay_commands_changed.invoke(true, cmds)
                     }
                     catch { case _: Document.State.Fail => bad_output() }
@@ -451,7 +451,7 @@ class Session(val resources: Resources)
                 }
                 // FIXME separate timeout event/message!?
                 if (prover.isDefined && System.currentTimeMillis() > prune_next) {
-                  val old_versions = global_state >>> (_.prune_history(prune_size))
+                  val old_versions = global_state.change_result(_.prune_history(prune_size))
                   if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
                   prune_next = System.currentTimeMillis() + prune_delay.ms
                 }
@@ -460,7 +460,7 @@ class Session(val resources: Resources)
                 msg.text match {
                   case Protocol.Removed(removed) =>
                     try {
-                      global_state >> (_.removed_versions(removed))
+                      global_state.change(_.removed_versions(removed))
                     }
                     catch { case _: Document.State.Fail => bad_output() }
                   case _ => bad_output()
@@ -511,7 +511,7 @@ class Session(val resources: Resources)
         case Stop =>
           if (phase == Session.Ready) {
             _protocol_handlers = _protocol_handlers.stop(prover.get)
-            global_state >> (_ => Document.State.init)  // FIXME event bus!?
+            global_state.change(_ => Document.State.init)  // FIXME event bus!?
             phase = Session.Shutdown
             prover.get.terminate
             prover = None
@@ -556,7 +556,7 @@ class Session(val resources: Resources)
           }
 
         case change: Session.Change
-        if prover.isDefined && global_state().is_assigned(change.previous) =>
+        if prover.isDefined && global_state.value.is_assigned(change.previous) =>
           handle_change(change)
 
         case bad if !bad.isInstanceOf[Session.Change] =>

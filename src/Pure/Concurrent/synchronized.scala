@@ -17,9 +17,9 @@ object Synchronized
 final class Synchronized[A] private(init: A)
 {
   private var state: A = init
-  def apply(): A = synchronized { state }
-  def >> (f: A => A) = synchronized { state = f(state) }
-  def >>>[B] (f: A => (B, A)): B = synchronized {
+  def value: A = synchronized { state }
+  def change(f: A => A) = synchronized { state = f(state) }
+  def change_result[B](f: A => (B, A)): B = synchronized {
     val (result, new_state) = f(state)
     state = new_state
     result
