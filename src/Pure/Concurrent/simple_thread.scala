@@ -10,8 +10,6 @@ package isabelle
 
 import java.lang.Thread
 
-import scala.actors.Actor
-
 
 object Simple_Thread
 {
@@ -41,16 +39,6 @@ object Simple_Thread
     val result = Future.promise[A]
     val thread = fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
     (thread, result)
-  }
-
-
-  /* thread as actor */
-
-  def actor(name: String, daemon: Boolean = false)(body: => Unit): Actor =
-  {
-    val actor = Future.promise[Actor]
-    val thread = fork(name, daemon) { actor.fulfill(Actor.self); body }
-    actor.join
   }
 }
 
