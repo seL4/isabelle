@@ -9,6 +9,7 @@
 ## sources
 
 declare -a SOURCES=(
+  Concurrent/consumer_thread.scala
   Concurrent/counter.scala
   Concurrent/future.scala
   Concurrent/mailbox.scala
