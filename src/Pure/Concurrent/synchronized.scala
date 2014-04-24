@@ -68,10 +68,12 @@ final class Synchronized[A] private(init: A)
 
   /* unconditional change */
 
-  def change(f: A => A) = synchronized { state = f(state) }
+  def change(f: A => A): Unit = synchronized { state = f(state); notifyAll() }
+
   def change_result[B](f: A => (B, A)): B = synchronized {
     val (result, new_state) = f(state)
     state = new_state
+    notifyAll()
     result
   }
 }
