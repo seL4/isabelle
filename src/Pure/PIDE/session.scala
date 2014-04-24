@@ -345,7 +345,7 @@ class Session(val resources: Resources)
 
       val previous = global_state.value.history.tip.version
       val version = Future.promise[Document.Version]
-      val change = global_state.change_result(_.continue_history(previous, edits, version))
+      global_state.change(_.continue_history(previous, edits, version))
 
       raw_edits.event(Session.Raw_Edits(doc_blobs, edits))
       change_parser.send(Text_Edits(previous, doc_blobs, edits, version))
