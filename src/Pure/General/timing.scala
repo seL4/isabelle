@@ -14,11 +14,11 @@ object Timing
 
   def timeit[A](message: String, enabled: Boolean = true)(e: => A) =
     if (enabled) {
-      val start = System.currentTimeMillis()
+      val start = Time.now()
       val result = Exn.capture(e)
-      val stop = System.currentTimeMillis()
+      val stop = Time.now()
 
-      val timing = Time.ms(stop - start)
+      val timing = stop - start
       if (timing.is_relevant)
         System.err.println(
           (if (message == null || message.isEmpty) "" else message + ": ") +

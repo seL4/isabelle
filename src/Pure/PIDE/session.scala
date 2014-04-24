@@ -265,7 +265,7 @@ class Session(val resources: Resources)
   {
     val this_actor = self
 
-    var prune_next = System.currentTimeMillis() + prune_delay.ms
+    var prune_next = Time.now() + prune_delay
 
 
     /* buffered prover messages */
@@ -315,12 +315,12 @@ class Session(val resources: Resources)
       private var changed_nodes: Set[Document.Node.Name] = Set.empty
       private var changed_commands: Set[Command] = Set.empty
 
-      private var flush_time: Option[Long] = None
+      private var flush_time: Option[Time] = None
 
-      def flush_timeout: Long =
+      def flush_timeout: Time =
         flush_time match {
-          case None => 5000L
-          case Some(time) => (time - System.currentTimeMillis()) max 0
+          case None => Time.seconds(5.0)
+          case Some(time) => (time - Time.now()) max Time.zero
         }
 
       def flush()
@@ -341,9 +341,9 @@ class Session(val resources: Resources)
           changed_nodes += command.node_name
           changed_commands += command
         }
-        val now = System.currentTimeMillis()
+        val now = Time.now()
         flush_time match {
-          case None => flush_time = Some(now + output_delay.ms)
+          case None => flush_time = Some(now + output_delay)
           case Some(time) => if (now >= time) flush()
         }
       }
@@ -450,10 +450,10 @@ class Session(val resources: Resources)
                   case _ => bad_output()
                 }
                 // FIXME separate timeout event/message!?
-                if (prover.isDefined && System.currentTimeMillis() > prune_next) {
+                if (prover.isDefined && Time.now() > prune_next) {
                   val old_versions = global_state.change_result(_.prune_history(prune_size))
                   if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
-                  prune_next = System.currentTimeMillis() + prune_delay.ms
+                  prune_next = Time.now() + prune_delay
                 }
 
               case Markup.Removed_Versions =>
@@ -499,7 +499,7 @@ class Session(val resources: Resources)
     //{{{
     var finished = false
     while (!finished) {
-      receiveWithin(delay_commands_changed.flush_timeout) {
+      receiveWithin(delay_commands_changed.flush_timeout.ms) {
         case TIMEOUT => delay_commands_changed.flush()
 
         case Start(name, args) if prover.isEmpty =>
