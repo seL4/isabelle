@@ -215,9 +215,12 @@ object JEdit_Lib
     val buffer = text_area.getBuffer
     buffer_range(buffer).try_restrict(range) match {
       case Some(range1) if !range1.is_singularity =>
-        text_area.invalidateLineRange(
-          buffer.getLineOfOffset(range1.start),
-          buffer.getLineOfOffset(range1.stop))
+        try {
+          text_area.invalidateLineRange(
+            buffer.getLineOfOffset(range1.start),
+            buffer.getLineOfOffset(range1.stop))
+        }
+        catch { case _: ArrayIndexOutOfBoundsException => }
       case _ =>
     }
   }
