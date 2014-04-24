@@ -483,7 +483,7 @@ class Session(val resources: Resources)
 
     /* main thread */
 
-    Consumer_Thread.fork[Any]("manager", daemon = true)
+    Consumer_Thread.fork[Any]("Session.manager", daemon = true)
     {
       case arg: Any =>
         //{{{
@@ -540,8 +540,6 @@ class Session(val resources: Resources)
             if (global_state.value.is_assigned(change.previous))
               handle_change(change)
             else postponed_changes.store(change)
-
-          case bad => System.err.println("Session.manager: ignoring bad message " + bad)
         }
         true
         //}}}
