@@ -42,8 +42,7 @@ inductive_set ns_public :: "event list set"
 declare knows_Spy_partsEs [elim]
 declare knows_Spy_partsEs [elim]
 declare analz_into_parts [dest]
-declare Fake_parts_insert_in_Un  [dest]
-declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
+declare Fake_parts_insert_in_Un [dest]
 
 (*A "possibility property": there are traces that reach the end*)
 lemma "\<exists>NB. \<exists>evs \<in> ns_public. Says A B (Crypt (pubEK B) (Nonce NB)) \<in> set evs"

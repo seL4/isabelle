@@ -56,7 +56,7 @@ lemma wdef_Nonce: "[| Nonce n:parts {apm s X}; R:p; msg' R = X; wdef p;
 Nonce n ~:parts (apm s `(msg `(fst R))) |] ==>
 (EX k. Nonce k:parts {X} & nonce s k = n)"
 apply (erule Nonce_apm, unfold wdef_def)
-apply (drule_tac x=R in spec, drule_tac x=k in spec, clarsimp)
+apply (drule_tac x=R in spec, drule_tac x=k in spec, clarsimp simp: image_eq_UN)
 apply (drule_tac x=x in bspec, simp)
 apply (drule_tac Y="msg x" and s=s in apm_parts, simp)
 by (blast dest: parts_parts)
@@ -134,7 +134,7 @@ by (drule has_only_Says_tr, auto)
 
 lemma ok_not_used: "[| Nonce n ~:used evs; ok evs R s;
 ALL x. x:fst R --> is_Says x |] ==> Nonce n ~:parts (apm s `(msg `(fst R)))"
-apply (unfold ok_def, clarsimp)
+apply (unfold ok_def, clarsimp simp: image_eq_UN)
 apply (drule_tac x=x in spec, drule_tac x=x in spec)
 by (auto simp: is_Says_def dest: Says_imp_spies not_used_not_spied parts_parts)
 
@@ -188,10 +188,10 @@ Nonce n ~:used evs; R:p; ok evs R s; Nonce n:parts {apm' s R} |]
 apply (drule wdef_Nonce, simp+)
 apply (frule ok_not_used, simp+)
 apply (clarify, erule ok_is_Says, simp+)
-apply (clarify, rule_tac x=k in exI, simp add: newn_def)
+apply (clarify, rule_tac x=k in exI, simp add: newn_def image_eq_UN)
 apply (clarify, drule_tac Y="msg x" and s=s in apm_parts)
 apply (drule ok_not_used, simp+)
-by (clarify, erule ok_is_Says, simp+)
+by (clarify, erule ok_is_Says, simp_all add: image_eq_UN)
 
 lemma fresh_rule: "[| evs' @ ev # evs:tr p; wdef p; Nonce n ~:used evs;
 Nonce n:parts {msg ev} |] ==> EX R s. R:p & ap' s R = ev"

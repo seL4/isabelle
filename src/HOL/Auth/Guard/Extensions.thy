@@ -37,7 +37,6 @@ subsection{*Extensions to Theory @{text Message}*}
 subsubsection{*declarations for tactics*}
 
 declare analz_subset_parts [THEN subsetD, dest]
-declare image_eq_UN [simp]
 declare parts_insert2 [simp]
 declare analz_cut [dest]
 declare split_if_asm [split]
@@ -112,8 +111,9 @@ definition usekeys :: "msg set => key set" where
 
 lemma finite_keysFor [intro]: "finite G ==> finite (keysFor G)"
 apply (simp add: keysFor_def)
-apply (rule finite_UN_I, auto)
-apply (erule finite_induct, auto)
+apply (rule finite_imageI)
+apply (induct G rule: finite_induct)
+apply auto
 apply (case_tac "EX K X. x = Crypt K X", clarsimp)
 apply (subgoal_tac "{Ka. EX Xa. (Ka=K & Xa=X) | Crypt Ka Xa:F}
 = insert K (usekeys F)", auto simp: usekeys_def)

@@ -63,7 +63,7 @@ Y:kparts {X} --> Y:guardK n Ks"
 by (erule guardK.induct, auto dest: kparts_parts parts_sub)
 
 lemma guardK_Crypt: "[| Crypt K Y:guardK n Ks; K ~:invKey`Ks |] ==> Y:guardK n Ks"
-by (ind_cases "Crypt K Y:guardK n Ks", auto)
+  by (ind_cases "Crypt K Y:guardK n Ks") (auto intro!: image_eqI)
 
 lemma guardK_MPair [iff]: "({|X,Y|}:guardK n Ks)
 = (X:guardK n Ks & Y:guardK n Ks)"

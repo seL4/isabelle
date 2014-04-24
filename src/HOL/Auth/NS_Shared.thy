@@ -86,7 +86,6 @@ declare Says_imp_knows_Spy [THEN parts.Inj, dest]
 declare parts.Body  [dest]
 declare Fake_parts_insert_in_Un  [dest]
 declare analz_into_parts [dest]
-declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 
 
 text{*A "possibility property": there are traces that reach the end*}

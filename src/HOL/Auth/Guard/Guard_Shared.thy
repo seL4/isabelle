@@ -171,7 +171,7 @@ by (simp add: knows_decomp)+
 lemma GuardK_Key_analz: "[| GuardK n Ks (spies evs); evs:p;
 shrK_set Ks; good Ks; regular p; n ~:range shrK |] ==> Key n ~:analz (spies evs)"
 apply (clarify, simp only: knows_decomp)
-apply (drule GuardK_invKey_keyset, clarify, simp+, simp add: initState.simps)
+apply (drule GuardK_invKey_keyset, clarify, simp+, simp add: initState.simps image_eq_UN)
 apply clarify
 apply (drule in_good, simp)
 apply (drule in_shrK_set, simp+, clarify)
