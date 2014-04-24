@@ -560,7 +560,6 @@ session "HOL-ex" in ex = HOL +
     HarmonicSeries
     Refute_Examples
     Execute_Choice
-    Summation
     Gauge_Integration
     Dedekind_Real
     Quicksort
