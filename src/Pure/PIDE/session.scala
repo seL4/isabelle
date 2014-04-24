@@ -207,7 +207,7 @@ class Session(val resources: Resources)
 
   /* global state */
 
-  private val syslog = Volatile(Queue.empty[XML.Elem])
+  private val syslog = Synchronized(Queue.empty[XML.Elem])
   def current_syslog(): String = cat_lines(syslog.value.iterator.map(XML.content))
 
   @volatile private var _phase: Session.Phase = Session.Inactive
@@ -219,7 +219,7 @@ class Session(val resources: Resources)
   def phase = _phase
   def is_ready: Boolean = phase == Session.Ready
 
-  private val global_state = Volatile(Document.State.init)
+  private val global_state = Synchronized(Document.State.init)
   def current_state(): Document.State = global_state.value
 
   def recent_syntax(): Prover.Syntax =
