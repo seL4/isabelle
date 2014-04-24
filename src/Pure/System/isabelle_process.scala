@@ -57,18 +57,18 @@ class Isabelle_Process(
 
   /* command input actor */
 
+  @volatile private var command_input: (Thread, Actor) = null
+
   private case class Input_Chunks(chunks: List[Bytes])
 
   private case object Close
-  private def close(p: (Thread, Actor))
+  private def close_input()
   {
-    if (p != null && p._1.isAlive) {
-      p._2 ! Close
-      p._1.join
+    if (command_input != null && command_input._1.isAlive) {
+      command_input._2 ! Close
+      command_input._1.join
     }
   }
-
-  @volatile private var command_input: (Thread, Actor) = null
 
 
 
@@ -126,16 +126,16 @@ class Isabelle_Process(
     else {
       val (command_stream, message_stream) = system_channel.rendezvous()
 
-      val stdout = physical_output_actor(false)
-      val stderr = physical_output_actor(true)
+      val stdout = physical_output(false)
+      val stderr = physical_output(true)
+      val message = message_output(message_stream)
+
       command_input = input_actor(command_stream)
-      val message = message_actor(message_stream)
 
       val rc = process_result.join
       system_output("process terminated")
-      close(command_input)
-      for ((thread, _) <- List(stdout, stderr, command_input, message))
-        thread.join
+      close_input()
+      for (thread <- List(stdout, stderr, message)) thread.join
       system_output("process_manager terminated")
       exit_message(rc)
     }
@@ -155,7 +155,7 @@ class Isabelle_Process(
 
   def terminate()
   {
-    close(command_input)
+    close_input()
     system_output("Terminating Isabelle process")
     terminate_process()
   }
@@ -166,13 +166,13 @@ class Isabelle_Process(
 
   /* physical output */
 
-  private def physical_output_actor(err: Boolean): (Thread, Actor) =
+  private def physical_output(err: Boolean): Thread =
   {
     val (name, reader, markup) =
       if (err) ("standard_error", process.stderr, Markup.STDERR)
       else ("standard_output", process.stdout, Markup.STDOUT)
 
-    Simple_Thread.actor(name) {
+    Simple_Thread.fork(name) {
       try {
         var result = new StringBuilder(100)
         var finished = false
@@ -234,13 +234,13 @@ class Isabelle_Process(
 
   /* message output */
 
-  private def message_actor(stream: InputStream): (Thread, Actor) =
+  private def message_output(stream: InputStream): Thread =
   {
     class EOF extends Exception
     class Protocol_Error(msg: String) extends Exception(msg)
 
     val name = "message_output"
-    Simple_Thread.actor(name) {
+    Simple_Thread.fork(name) {
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
