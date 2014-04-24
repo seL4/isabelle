@@ -18,7 +18,7 @@ end;
 structure Synchronized: SYNCHRONIZED =
 struct
 
-(* state variables *)
+(* state variable *)
 
 abstype 'a var = Var of
  {name: string,
