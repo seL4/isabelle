@@ -265,6 +265,7 @@ class Session(val resources: Resources)
   /* internal messages */
 
   private case class Start(name: String, args: List[String])
+  private case object Stop
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
   private case class Messages(msgs: List[Prover.Message])
@@ -305,7 +306,7 @@ class Session(val resources: Resources)
     private val timer = new Timer("receiver", true)
     timer.schedule(new TimerTask { def run = flush }, message_delay.ms, message_delay.ms)
 
-    def cancel() { timer.cancel() }
+    def shutdown() { timer.cancel(); flush() }
   }
 
 
@@ -482,72 +483,69 @@ class Session(val resources: Resources)
 
     /* main thread */
 
-    Consumer_Thread.fork[Any]("manager", daemon = true)(
-      consume = (arg: Any) =>
-        {
-          //{{{
-          arg match {
-            case Start(name, args) if prover.isEmpty =>
-              if (phase == Session.Inactive || phase == Session.Failed) {
-                phase = Session.Startup
-                prover = Some(resources.start_prover(receiver.invoke _, name, args))
-              }
+    Consumer_Thread.fork[Any]("manager", daemon = true)
+    {
+      case arg: Any =>
+        //{{{
+        arg match {
+          case Start(name, args) if prover.isEmpty =>
+            if (phase == Session.Inactive || phase == Session.Failed) {
+              phase = Session.Startup
+              prover = Some(resources.start_prover(receiver.invoke _, name, args))
+            }
 
-            case Update_Options(options) =>
-              if (prover.isDefined && is_ready) {
-                prover.get.options(options)
-                handle_raw_edits(Document.Blobs.empty, Nil)
-              }
-              global_options.event(Session.Global_Options(options))
+          case Stop =>
+            if (phase == Session.Ready) {
+              _protocol_handlers = _protocol_handlers.stop(prover.get)
+              global_state.change(_ => Document.State.init)  // FIXME event bus!?
+              phase = Session.Shutdown
+              prover.get.terminate
+              prover = None
+              phase = Session.Inactive
+            }
 
-            case Cancel_Exec(exec_id) if prover.isDefined =>
-              prover.get.cancel_exec(exec_id)
+          case Update_Options(options) =>
+            if (prover.isDefined && is_ready) {
+              prover.get.options(options)
+              handle_raw_edits(Document.Blobs.empty, Nil)
+            }
+            global_options.event(Session.Global_Options(options))
 
-            case Session.Raw_Edits(doc_blobs, edits) if prover.isDefined =>
-              handle_raw_edits(doc_blobs, edits)
+          case Cancel_Exec(exec_id) if prover.isDefined =>
+            prover.get.cancel_exec(exec_id)
 
-            case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
-              prover.get.dialog_result(serial, result)
-              handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
+          case Session.Raw_Edits(doc_blobs, edits) if prover.isDefined =>
+            handle_raw_edits(doc_blobs, edits)
 
-            case Protocol_Command(name, args) if prover.isDefined =>
-              prover.get.protocol_command(name, args:_*)
+          case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
+            prover.get.dialog_result(serial, result)
+            handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
 
-            case Messages(msgs) =>
-              msgs foreach {
-                case input: Prover.Input =>
-                  all_messages.event(input)
+          case Protocol_Command(name, args) if prover.isDefined =>
+            prover.get.protocol_command(name, args:_*)
 
-                case output: Prover.Output =>
-                  if (output.is_stdout || output.is_stderr) raw_output_messages.event(output)
-                  else handle_output(output)
-                  if (output.is_syslog) syslog_messages.event(output)
-                  all_messages.event(output)
-              }
+          case Messages(msgs) =>
+            msgs foreach {
+              case input: Prover.Input =>
+                all_messages.event(input)
 
-            case change: Session.Change if prover.isDefined =>
-              if (global_state.value.is_assigned(change.previous))
-                handle_change(change)
-              else postponed_changes.store(change)
+              case output: Prover.Output =>
+                if (output.is_stdout || output.is_stderr) raw_output_messages.event(output)
+                else handle_output(output)
+                if (output.is_syslog) syslog_messages.event(output)
+                all_messages.event(output)
+            }
 
-            case bad => System.err.println("Session.manager: ignoring bad message " + bad)
-          }
-          true
-          //}}}
-        },
-      finish = () =>
-        {
-          if (phase == Session.Ready) {
-            _protocol_handlers = _protocol_handlers.stop(prover.get)
-            global_state.change(_ => Document.State.init)  // FIXME event bus!?
-            phase = Session.Shutdown
-            prover.get.terminate
-            prover = None
-            phase = Session.Inactive
-          }
-          receiver.cancel()
+          case change: Session.Change if prover.isDefined =>
+            if (global_state.value.is_assigned(change.previous))
+              handle_change(change)
+            else postponed_changes.store(change)
+
+          case bad => System.err.println("Session.manager: ignoring bad message " + bad)
         }
-    )
+        true
+        //}}}
+    }
   }
 
 
@@ -558,6 +556,8 @@ class Session(val resources: Resources)
 
   def stop()
   {
+    manager.send_wait(Stop)
+    receiver.shutdown()
     change_parser.shutdown()
     change_buffer.shutdown()
     manager.shutdown()
