@@ -228,7 +228,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
     fun derive_overloaded_size_simp size_def' simp0 =
       (trans OF [size_def', simp0])
       |> unfold_thms lthy2 @{thms add_0_left add_0_right}
-      |> fold_thms lthy2 overloaded_size_defs';
+      |> fold_thms lthy2 overloaded_size_defs;
 
     val size_simpss = map2 (map o derive_size_simp) size_defs' rec_thmss;
     val size_simps = flat size_simpss;
