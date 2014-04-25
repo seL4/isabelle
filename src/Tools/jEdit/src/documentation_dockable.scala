@@ -68,13 +68,14 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
                 if (path.is_file)
                   PIDE.editor.goto_file(view, Isabelle_System.platform_path(path))
                 else {
-                  default_thread_pool.submit(() =>
+                  Future.fork {
                     try { Doc.view(path) }
                     catch {
                       case exn: Throwable =>
                         GUI.error_dialog(view,
                           "Documentation error", GUI.scrollable_text(Exn.message(exn)))
-                    })
+                    }
+                  }
                 }
               case _ =>
             }
