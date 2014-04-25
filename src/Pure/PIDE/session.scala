@@ -403,7 +403,7 @@ class Session(val resources: Resources)
       def bad_output()
       {
         if (verbose)
-          System.err.println("Ignoring prover output: " + output.message.toString)
+          System.err.println("Ignoring bad prover output: " + output.message.toString)
       }
 
       def accumulate(state_id: Document_ID.Generic, message: XML.Elem)
@@ -475,6 +475,7 @@ class Session(val resources: Resources)
               phase = Session.Ready
 
             case Markup.Return_Code(rc) if output.is_exit =>
+              prover = None
               if (rc == 0) phase = Session.Inactive
               else phase = Session.Failed
 
@@ -504,8 +505,6 @@ class Session(val resources: Resources)
               global_state.change(_ => Document.State.init)  // FIXME event bus!?
               phase = Session.Shutdown
               prover.get.terminate
-              prover = None
-              phase = Session.Inactive
             }
 
           case Update_Options(options) =>
