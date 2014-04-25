@@ -172,7 +172,6 @@ sig
   val padding_command: Properties.entry
   val dialogN: string val dialog: serial -> string -> T
   val functionN: string
-  val flush: Properties.T
   val assign_update: Properties.T
   val removed_versions: Properties.T
   val protocol_handler: string -> Properties.T
@@ -556,8 +555,6 @@ fun dialog i result = (dialogN, [(serialN, print_int i), (resultN, result)]);
 (* protocol message functions *)
 
 val functionN = "function"
-
-val flush = [(functionN, "flush")];
 
 val assign_update = [(functionN, "assign_update")];
 val removed_versions = [(functionN, "removed_versions")];

@@ -365,8 +365,6 @@ object Markup
   val FUNCTION = "function"
   val Function = new Properties.String(FUNCTION)
 
-  val Flush: Properties.T = List((FUNCTION, "flush"))
-
   val Assign_Update: Properties.T = List((FUNCTION, "assign_update"))
   val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
 
