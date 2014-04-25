@@ -9,7 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
 import scala.swing.{TextArea, ScrollPane}
 
 import org.gjt.sp.jedit.View
@@ -21,22 +20,17 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
   set_content(new ScrollPane(text_area))
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case input: Prover.Input =>
-          Swing_Thread.later { text_area.append(input.toString + "\n\n") }
+  private val main =
+    Session.Consumer[Prover.Message](getClass.getName) {
+      case input: Prover.Input =>
+        Swing_Thread.later { text_area.append(input.toString + "\n\n") }
 
-        case output: Prover.Output =>
-          Swing_Thread.later { text_area.append(output.message.toString + "\n\n") }
-
-        case bad => System.err.println("Protocol_Dockable: ignoring bad message " + bad)
-      }
+      case output: Prover.Output =>
+        Swing_Thread.later { text_area.append(output.message.toString + "\n\n") }
     }
-  }
 
-  override def init() { PIDE.session.all_messages += main_actor }
-  override def exit() { PIDE.session.all_messages -= main_actor }
+  override def init() { PIDE.session.all_messages += main }
+  override def exit() { PIDE.session.all_messages -= main }
 }

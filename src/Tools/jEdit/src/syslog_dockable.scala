@@ -9,7 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
 import scala.swing.TextArea
 
 import org.gjt.sp.jedit.View
@@ -32,27 +31,22 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
   set_content(syslog)
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case output: Prover.Output =>
-          if (output.is_syslog) Swing_Thread.later { update_syslog() }
-
-        case bad => System.err.println("Syslog_Dockable: ignoring bad message " + bad)
-      }
+  private val main =
+    Session.Consumer[Prover.Output](getClass.getName) {
+      case output =>
+        if (output.is_syslog) Swing_Thread.later { update_syslog() }
     }
-  }
 
   override def init()
   {
-    PIDE.session.syslog_messages += main_actor
+    PIDE.session.syslog_messages += main
     update_syslog()
   }
 
   override def exit()
   {
-    PIDE.session.syslog_messages -= main_actor
+    PIDE.session.syslog_messages -= main
   }
 }

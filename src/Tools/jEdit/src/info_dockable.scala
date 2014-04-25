@@ -9,8 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
-
 import scala.swing.Button
 import scala.swing.event.ButtonClicked
 
@@ -97,30 +95,24 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   add(controls.peer, BorderLayout.NORTH)
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case _: Session.Global_Options =>
-          Swing_Thread.later { handle_resize() }
-
-        case bad => System.err.println("Info_Dockable: ignoring bad message " + bad)
-      }
+  private val main =
+    Session.Consumer[Session.Global_Options](getClass.getName) {
+      case _: Session.Global_Options => Swing_Thread.later { handle_resize() }
     }
-  }
 
   override def init()
   {
     GUI.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
-    PIDE.session.global_options += main_actor
+    PIDE.session.global_options += main
     handle_resize()
   }
 
   override def exit()
   {
     GUI.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
-    PIDE.session.global_options -= main_actor
+    PIDE.session.global_options -= main
     delay_resize.revoke()
   }
 }

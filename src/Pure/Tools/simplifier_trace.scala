@@ -287,7 +287,7 @@ object Simplifier_Trace
           }
 
           do_reply(session, serial, answer)
-          session.trace_events.event(Event)
+          session.trace_events.post(Event)
 
         case bad =>
           System.err.println("context_manager: bad message " + bad)

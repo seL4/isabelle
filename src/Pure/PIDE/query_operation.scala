@@ -8,9 +8,6 @@ document overlays.
 package isabelle
 
 
-import scala.actors.Actor._
-
-
 object Query_Operation
 {
   object Status extends Enumeration
@@ -33,12 +30,12 @@ class Query_Operation[Editor_Context](
 
   /* implicit state -- owned by Swing thread */
 
-  private var current_location: Option[Command] = None
-  private var current_query: List[String] = Nil
-  private var current_update_pending = false
-  private var current_output: List[XML.Tree] = Nil
-  private var current_status = Query_Operation.Status.FINISHED
-  private var current_exec_id = Document_ID.none
+  @volatile private var current_location: Option[Command] = None
+  @volatile private var current_query: List[String] = Nil
+  @volatile private var current_update_pending = false
+  @volatile private var current_output: List[XML.Tree] = Nil
+  @volatile private var current_status = Query_Operation.Status.FINISHED
+  @volatile private var current_exec_id = Document_ID.none
 
   private def reset_state()
   {
@@ -209,32 +206,27 @@ class Query_Operation[Editor_Context](
   }
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case changed: Session.Commands_Changed =>
-          current_location match {
-            case Some(command)
-            if current_update_pending ||
-              (current_status != Query_Operation.Status.FINISHED &&
-                changed.commands.contains(command)) =>
-              Swing_Thread.later { content_update() }
-            case _ =>
-          }
-        case bad =>
-          System.err.println("Query_Operation: ignoring bad message " + bad)
-      }
+  private val main =
+    Session.Consumer[Session.Commands_Changed](getClass.getName) {
+      case changed =>
+        current_location match {
+          case Some(command)
+          if current_update_pending ||
+            (current_status != Query_Operation.Status.FINISHED &&
+              changed.commands.contains(command)) =>
+            Swing_Thread.later { content_update() }
+          case _ =>
+        }
     }
-  }
 
   def activate() {
-    editor.session.commands_changed += main_actor
+    editor.session.commands_changed += main
   }
 
   def deactivate() {
-    editor.session.commands_changed -= main_actor
+    editor.session.commands_changed -= main
     remove_overlay()
     reset_state()
     consume_output(Document.Snapshot.init, Command.Results.empty, Nil)

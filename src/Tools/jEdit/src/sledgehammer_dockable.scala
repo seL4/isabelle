@@ -9,8 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
-
 import scala.swing.{Button, Component, Label, TextField, CheckBox}
 import scala.swing.event.ButtonClicked
 
@@ -135,23 +133,16 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   override def focusOnDefaultComponent { provers.requestFocus }
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case _: Session.Global_Options =>
-          Swing_Thread.later { update_provers(); handle_resize() }
-
-        case bad =>
-          System.err.println("Sledgehammer_Dockable: ignoring bad message " + bad)
-      }
+  private val main =
+    Session.Consumer[Session.Global_Options](getClass.getName) {
+      case _: Session.Global_Options => Swing_Thread.later { update_provers(); handle_resize() }
     }
-  }
 
   override def init()
   {
-    PIDE.session.global_options += main_actor
+    PIDE.session.global_options += main
     update_provers()
     handle_resize()
     sledgehammer.activate()
@@ -160,7 +151,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   override def exit()
   {
     sledgehammer.deactivate()
-    PIDE.session.global_options -= main_actor
+    PIDE.session.global_options -= main
     delay_resize.revoke()
   }
 }

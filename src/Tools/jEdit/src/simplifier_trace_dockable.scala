@@ -9,7 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
 import scala.swing.{Button, CheckBox, Orientation, Separator}
 import scala.swing.event.ButtonClicked
 
@@ -127,32 +126,31 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   }
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case _: Session.Global_Options =>
-          Swing_Thread.later { handle_resize() }
-        case changed: Session.Commands_Changed =>
-          Swing_Thread.later { handle_update(do_update) }
-        case Session.Caret_Focus =>
-          Swing_Thread.later { handle_update(do_update) }
-        case Simplifier_Trace.Event =>
-          Swing_Thread.later { handle_update(do_update) }
-        case bad => System.err.println("Simplifier_Trace_Dockable: ignoring bad message " + bad)
-      }
+  private val main =
+    Session.Consumer[Any](getClass.getName) {
+      case _: Session.Global_Options =>
+        Swing_Thread.later { handle_resize() }
+
+      case changed: Session.Commands_Changed =>
+        Swing_Thread.later { handle_update(do_update) }
+
+      case Session.Caret_Focus =>
+        Swing_Thread.later { handle_update(do_update) }
+
+      case Simplifier_Trace.Event =>
+        Swing_Thread.later { handle_update(do_update) }
     }
-  }
 
   override def init()
   {
     Swing_Thread.require {}
 
-    PIDE.session.global_options += main_actor
-    PIDE.session.commands_changed += main_actor
-    PIDE.session.caret_focus += main_actor
-    PIDE.session.trace_events += main_actor
+    PIDE.session.global_options += main
+    PIDE.session.commands_changed += main
+    PIDE.session.caret_focus += main
+    PIDE.session.trace_events += main
     handle_update(true)
   }
 
@@ -160,10 +158,10 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   {
     Swing_Thread.require {}
 
-    PIDE.session.global_options -= main_actor
-    PIDE.session.commands_changed -= main_actor
-    PIDE.session.caret_focus -= main_actor
-    PIDE.session.trace_events -= main_actor
+    PIDE.session.global_options -= main
+    PIDE.session.commands_changed -= main
+    PIDE.session.caret_focus -= main
+    PIDE.session.trace_events -= main
     delay_resize.revoke()
   }
 

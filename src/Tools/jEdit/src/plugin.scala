@@ -22,8 +22,6 @@ import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, Proper
 
 import org.gjt.sp.util.SyntaxUtilities
 
-import scala.actors.Actor._
-
 
 object PIDE
 {
@@ -174,7 +172,7 @@ class Plugin extends EBPlugin
 
   def options_changed()
   {
-    PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
+    PIDE.session.global_options.post(Session.Global_Options(PIDE.options.value))
     Swing_Thread.later { delay_load.invoke() }
   }
 
@@ -244,34 +242,27 @@ class Plugin extends EBPlugin
     }
 
 
-  /* session manager */
+  /* session phase */
 
-  private val session_manager = actor {
-    loop {
-      react {
-        case phase: Session.Phase =>
-          phase match {
-            case Session.Inactive | Session.Failed =>
-              Swing_Thread.later {
-                GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
-                    "Isabelle Syslog", GUI.scrollable_text(PIDE.session.current_syslog()))
-              }
+  private val session_phase =
+    Session.Consumer[Session.Phase](getClass.getName) {
+      case Session.Inactive | Session.Failed =>
+        Swing_Thread.later {
+          GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
+              "Isabelle Syslog", GUI.scrollable_text(PIDE.session.current_syslog()))
+        }
 
-            case Session.Ready =>
-              PIDE.session.update_options(PIDE.options.value)
-              PIDE.init_models()
-              Swing_Thread.later { delay_load.invoke() }
+      case Session.Ready =>
+        PIDE.session.update_options(PIDE.options.value)
+        PIDE.init_models()
+        Swing_Thread.later { delay_load.invoke() }
 
-            case Session.Shutdown =>
-              PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
-              Swing_Thread.later { delay_load.revoke() }
+      case Session.Shutdown =>
+        PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
+        Swing_Thread.later { delay_load.revoke() }
 
-            case _ =>
-          }
-        case bad => System.err.println("session_manager: ignoring bad message " + bad)
-      }
+      case _ =>
     }
-  }
 
 
   /* main plugin plumbing */
@@ -366,7 +357,7 @@ class Plugin extends EBPlugin
         override def reparse_limit = PIDE.options.int("editor_reparse_limit")
       }
 
-      PIDE.session.phase_changed += session_manager
+      PIDE.session.phase_changed += session_phase
       PIDE.startup_failure = None
     }
     catch {
@@ -385,7 +376,7 @@ class Plugin extends EBPlugin
       PIDE.completion_history.value.save()
     }
 
-    PIDE.session.phase_changed -= session_manager
+    PIDE.session.phase_changed -= session_phase
     PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
     PIDE.session.stop()
   }
