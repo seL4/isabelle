@@ -50,7 +50,6 @@ sig
   val updateN: string
   val ext_typeN: string
   val extN: string
-  val setup: theory -> theory
 end;
 
 
@@ -734,12 +733,14 @@ fun record_update_tr [t, u] = fold (curry op $) (field_updates_tr u) t
 
 in
 
-val parse_translation =
- [(@{syntax_const "_record_update"}, K record_update_tr),
-  (@{syntax_const "_record"}, record_tr),
-  (@{syntax_const "_record_scheme"}, record_scheme_tr),
-  (@{syntax_const "_record_type"}, record_type_tr),
-  (@{syntax_const "_record_type_scheme"}, record_type_scheme_tr)];
+val _ =
+  Theory.setup
+   (Sign.parse_translation
+     [(@{syntax_const "_record_update"}, K record_update_tr),
+      (@{syntax_const "_record"}, record_tr),
+      (@{syntax_const "_record_scheme"}, record_scheme_tr),
+      (@{syntax_const "_record_type"}, record_type_tr),
+      (@{syntax_const "_record_type_scheme"}, record_type_scheme_tr)]);
 
 end;
 
@@ -1429,6 +1430,10 @@ fun split_tac ctxt = CSUBGOAL (fn (cgoal, i) =>
       full_simp_tac (put_simpset HOL_basic_ss ctxt addsimprocs [split_simproc is_all]) i
     else no_tac
   end);
+
+val _ =
+  Theory.setup
+    (map_theory_simpset (fn ctxt => ctxt addsimprocs [simproc, upd_simproc, eq_simproc]));
 
 
 (* wrapper *)
@@ -2310,13 +2315,6 @@ fun add_record_cmd (raw_params, binding) raw_parent raw_fields thy =
   in thy |> add_record (params', binding) parent fields end;
 
 end;
-
-
-(* setup theory *)
-
-val setup =
-  Sign.parse_translation parse_translation #>
-  map_theory_simpset (fn ctxt => ctxt addsimprocs [simproc, upd_simproc, eq_simproc]);
 
 
 (* outer syntax *)
