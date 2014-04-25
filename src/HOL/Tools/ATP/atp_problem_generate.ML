@@ -2462,21 +2462,19 @@ fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _) u
 
         fun datatype_of_ctrs (ctrs as (_, T1) :: _) =
           let val ctrs' = map do_ctr ctrs in
-            if forall is_some ctrs' then
-              SOME (native_atp_type_of_typ type_enc false 0 (body_type T1), map_filter I ctrs')
-            else
-              NONE
+            (native_atp_type_of_typ type_enc false 0 (body_type T1), map_filter I ctrs',
+             forall is_some ctrs')
           end
       in
-        map_filter datatype_of_ctrs ctrss
+        ctrss |> map datatype_of_ctrs |> filter_out (null o #2)
       end
     else
       []
   | datatypes_of_sym_table _ _ _ _ _ _ = []
 
-fun decl_line_of_datatype (ty as AType (((_, s'), _), ty_args), ctrs) =
+fun decl_line_of_datatype (ty as AType (((_, s'), _), ty_args), ctrs, exhaust) =
   let val xs = map (fn AType ((name, _), []) => name) ty_args in
-    Datatype_Decl (datatype_decl_prefix ^ ascii_of s', map (rpair []) xs, ty, ctrs)
+    Datatype_Decl (datatype_decl_prefix ^ ascii_of s', map (rpair []) xs, ty, ctrs, exhaust)
   end
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
@@ -2589,7 +2587,7 @@ fun undeclared_in_problem problem =
     fun do_line (Class_Decl (_, _, cls)) = fold do_class cls
       | do_line (Type_Decl _) = I
       | do_line (Sym_Decl (_, _, ty)) = do_type ty
-      | do_line (Datatype_Decl (_, xs, ty, tms)) =
+      | do_line (Datatype_Decl (_, xs, ty, tms, _)) =
         fold do_bound_tvars xs #> do_type ty #> fold (do_term false) tms
       | do_line (Class_Memb (_, xs, ty, cl)) = fold do_bound_tvars xs #> do_type ty #> do_class cl
       | do_line (Formula (_, _, phi, _, _)) = do_formula phi
