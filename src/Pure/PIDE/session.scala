@@ -464,9 +464,9 @@ class Session(val resources: Resources)
               phase = Session.Ready
 
             case Markup.Return_Code(rc) if output.is_exit =>
-              prover = None
               if (rc == 0) phase = Session.Inactive
               else phase = Session.Failed
+              prover = None
 
             case _ => raw_output_messages.post(output)
           }
