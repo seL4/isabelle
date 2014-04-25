@@ -33,7 +33,7 @@ final class Consumer_Thread[A] private(
   private val mbox = Mailbox[Option[Consumer_Thread.Request[A]]]
 
   private val thread = Simple_Thread.fork(name, daemon) { main_loop() }
-  private def is_active: Boolean = active && thread.isAlive
+  def is_active: Boolean = active && thread.isAlive
 
   private def failure(exn: Throwable): Unit =
     System.err.println(
