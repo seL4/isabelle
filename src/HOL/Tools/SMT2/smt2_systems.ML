@@ -127,8 +127,7 @@ local
   fun z3_make_command name () = if_z3_non_commercial (make_command name)
 
   fun z3_options ctxt =
-    ["REFINE_INJ_AXIOM=false" (* not supported by replay *),
-     "smt.random_seed=" ^ string_of_int (Config.get ctxt SMT2_Config.random_seed),
+    ["smt.random_seed=" ^ string_of_int (Config.get ctxt SMT2_Config.random_seed),
      "-T:" ^ string_of_int (Real.ceil (Config.get ctxt SMT2_Config.timeout)),
      "-smt2"]
 
