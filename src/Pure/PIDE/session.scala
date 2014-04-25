@@ -341,6 +341,8 @@ class Session(val resources: Resources)
     def handle_raw_edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
     //{{{
     {
+      require(prover.isDefined)
+
       prover.get.discontinue_execution()
 
       val previous = global_state.value.history.tip.version
@@ -358,6 +360,8 @@ class Session(val resources: Resources)
     def handle_change(change: Session.Change)
     //{{{
     {
+      require(prover.isDefined)
+
       def id_command(command: Command)
       {
         for {
@@ -418,10 +422,10 @@ class Session(val resources: Resources)
           val handled = _protocol_handlers.invoke(msg)
           if (!handled) {
             msg.properties match {
-              case Markup.Protocol_Handler(name) =>
+              case Markup.Protocol_Handler(name) if prover.isDefined =>
                 _protocol_handlers = _protocol_handlers.add(prover.get, name)
 
-              case Protocol.Command_Timing(state_id, timing) =>
+              case Protocol.Command_Timing(state_id, timing) if prover.isDefined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
                 accumulate(state_id, prover.get.xml_cache.elem(message))
 
@@ -495,7 +499,7 @@ class Session(val resources: Resources)
             }
 
           case Stop =>
-            if (phase == Session.Ready) {
+            if (prover.isDefined && is_ready) {
               _protocol_handlers = _protocol_handlers.stop(prover.get)
               global_state.change(_ => Document.State.init)  // FIXME event bus!?
               phase = Session.Shutdown
