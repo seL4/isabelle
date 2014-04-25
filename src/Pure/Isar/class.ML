@@ -585,6 +585,7 @@ fun instantiation (tycos, vs, sort) thy =
         notes = Generic_Target.notes Generic_Target.theory_notes,
         abbrev = Generic_Target.abbrev Generic_Target.theory_abbrev,
         declaration = K Generic_Target.theory_declaration,
+        subscription = Generic_Target.theory_registration,
         pretty = pretty,
         exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
   end;

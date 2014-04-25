@@ -49,6 +49,8 @@ sig
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
   val declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory
+  val subscription: string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
   val set_defsort: sort -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
@@ -83,6 +85,8 @@ type operations =
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
   declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory,
+  subscription: string * morphism -> (morphism * bool) option -> morphism ->
+     local_theory -> local_theory,
   pretty: local_theory -> Pretty.T list,
   exit: local_theory -> Proof.context};
 
@@ -252,6 +256,7 @@ val operations_of = #operations o get_first_lthy;
 
 fun operation f lthy = f (operations_of lthy) lthy;
 fun operation2 f x y = operation (fn ops => f ops x y);
+fun operation3 f x y z = operation (fn ops => f ops x y z);
 
 val pretty = operation #pretty;
 val abbrev = operation2 #abbrev;
@@ -259,6 +264,7 @@ val define = operation2 #define false;
 val define_internal = operation2 #define true;
 val notes_kind = operation2 #notes;
 val declaration = operation2 #declaration;
+val subscription = operation3 #subscription;
 
 
 (* basic derived operations *)

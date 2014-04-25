@@ -85,13 +85,8 @@ fun generic_interpretation prep_interpretation setup_proof note add_registration
 
 (* interpretation with permanent registration *)
 
-fun subscribe lthy =
-  if Named_Target.is_theory lthy
-  then Generic_Target.theory_registration
-  else Generic_Target.locale_dependency (Named_Target.the_name lthy);
-
 fun gen_permanent_interpretation prep_interpretation expression raw_defs raw_eqns lthy =
-  generic_interpretation prep_interpretation Element.witness_proof_eqs Local_Theory.notes_kind (subscribe lthy)
+  generic_interpretation prep_interpretation Element.witness_proof_eqs Local_Theory.notes_kind Local_Theory.subscription
     expression raw_defs raw_eqns lthy
 
 in

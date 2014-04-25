@@ -134,6 +134,14 @@ fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
     |> (fn lthy' => lthy' |> Generic_Target.standard_declaration (fn level => level <> 0) decl);
 
 
+(* subscription *)
+
+fun target_subscription (Target {target, ...}) =
+  if target = ""
+  then Generic_Target.theory_registration
+  else Generic_Target.locale_dependency target
+
+
 (* pretty *)
 
 fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
@@ -183,6 +191,7 @@ fun init before_exit target thy =
         notes = Generic_Target.notes (target_notes ta),
         abbrev = Generic_Target.abbrev (target_abbrev ta),
         declaration = target_declaration ta,
+        subscription = target_subscription ta,
         pretty = pretty ta,
         exit = before_exit #> Local_Theory.target_of #> Sign.change_end_local}
   end;

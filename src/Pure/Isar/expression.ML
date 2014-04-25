@@ -921,14 +921,9 @@ fun gen_local_theory_interpretation prep_interpretation activate expression raw_
 
 (* second dimension: relation to underlying target *)
 
-fun subscribe lthy =
-  if Named_Target.is_theory lthy
-  then Generic_Target.theory_registration
-  else Generic_Target.locale_dependency (Named_Target.the_name lthy);
-
 fun subscribe_or_activate lthy =
   if Named_Target.is_theory lthy
-  then subscribe lthy
+  then Local_Theory.subscription
   else Local_Theory.activate;
 
 fun subscribe_locale_only lthy =
@@ -937,7 +932,7 @@ fun subscribe_locale_only lthy =
       if Named_Target.is_theory lthy
       then error "Not possible on level of global theory"
       else ();
-  in subscribe lthy end;
+  in Local_Theory.subscription end;
 
 
 (* special case: global sublocale command *)
@@ -964,7 +959,7 @@ fun interpret x = gen_interpret cert_interpretation x;
 fun interpret_cmd x = gen_interpret read_interpretation x;
 
 fun permanent_interpretation x =
-  gen_local_theory_interpretation cert_interpretation subscribe x;
+  gen_local_theory_interpretation cert_interpretation (K Local_Theory.subscription) x;
 
 fun ephemeral_interpretation x =
   gen_local_theory_interpretation cert_interpretation (K Local_Theory.activate) x;
