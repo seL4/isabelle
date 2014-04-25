@@ -230,7 +230,7 @@ lemma
   and "~x29 \<or> ~x58"
   and "~x28 \<or> ~x58"
   shows False
-  using assms by smt (* smt2 FIXME: THM 0 *)
+  using assms by smt2
 
 lemma "\<forall>x::int. P x \<longrightarrow> (\<forall>y::int. P x \<or> P y)"
   by smt2
@@ -238,13 +238,13 @@ lemma "\<forall>x::int. P x \<longrightarrow> (\<forall>y::int. P x \<or> P y)"
 lemma
   assumes "(\<forall>x y. P x y = x)"
   shows "(\<exists>y. P x y) = P x c"
-  using assms by smt (* smt2 FIXME: Option *)
+  using assms by smt2
 
 lemma
   assumes "(\<forall>x y. P x y = x)"
   and "(\<forall>x. \<exists>y. P x y) = (\<forall>x. P x c)"
   shows "(EX y. P x y) = P x c"
-  using assms by smt (* smt2 FIXME: Option *)
+  using assms by smt2
 
 lemma
   assumes "if P x then \<not>(\<exists>y. P y) else (\<forall>y. \<not>P y)"
@@ -337,17 +337,13 @@ subsection {* Linear arithmetic with quantifiers *}
 lemma "~ (\<exists>x::int. False)" by smt2
 lemma "~ (\<exists>x::real. False)" by smt2
 
-lemma "\<exists>x::int. 0 < x"
-  using [[smt_oracle=true]] (* no Z3 proof *)
-  by smt (* smt2 FIXME: requires Z3 4.3.1 *)
+lemma "\<exists>x::int. 0 < x" by smt2
 
 lemma "\<exists>x::real. 0 < x"
-  using [[smt_oracle=true]] (* no Z3 proof *)
-  by smt (* smt2 FIXME: requires Z3 4.3.1 *)
+  using [[smt2_oracle=true]] (* no Z3 proof *)
+  by smt2
 
-lemma "\<forall>x::int. \<exists>y. y > x"
-  using [[smt_oracle=true]] (* no Z3 proof *)
-  by smt (* smt2 FIXME: requires Z3 4.3.1 *)
+lemma "\<forall>x::int. \<exists>y. y > x" by smt2
 
 lemma "\<forall>x y::int. (x = 0 \<and> y = 1) \<longrightarrow> x \<noteq> y" by smt2
 lemma "\<exists>x::int. \<forall>y. x < y \<longrightarrow> y < 0 \<or> y >= 0" by smt2
@@ -355,12 +351,12 @@ lemma "\<forall>x y::int. x < y \<longrightarrow> (2 * x + 1) < (2 * y)" by smt2
 lemma "\<forall>x y::int. (2 * x + 1) \<noteq> (2 * y)" by smt2
 lemma "\<forall>x y::int. x + y > 2 \<or> x + y = 2 \<or> x + y < 2" by smt2
 lemma "\<forall>x::int. if x > 0 then x + 1 > 0 else 1 > x" by smt2
-lemma "if (ALL x::int. x < 0 \<or> x > 0) then False else True"  by smt (* smt2 FIXME: requires Z3 4.3.1 *)
-lemma "(if (ALL x::int. x < 0 \<or> x > 0) then -1 else 3) > (0::int)" by smt (* smt2 FIXME: requires Z3 4.3.1 *)
+lemma "if (ALL x::int. x < 0 \<or> x > 0) then False else True" by smt2
+lemma "(if (ALL x::int. x < 0 \<or> x > 0) then -1 else 3) > (0::int)" by smt2
 lemma "~ (\<exists>x y z::int. 4 * x + -6 * y = (1::int))" by smt2
 lemma "\<exists>x::int. \<forall>x y. 0 < x \<and> 0 < y \<longrightarrow> (0::int) < x + y" by smt2
 lemma "\<exists>u::int. \<forall>(x::int) y::real. 0 < x \<and> 0 < y \<longrightarrow> -1 < x" by smt2
-lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longrightarrow> x > 0" by smt (* smt2 FIXME: requires Z3 4.3.1 *)
+lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longrightarrow> x > 0" by smt2
 lemma "\<forall>x::int. SMT2.trigger [[SMT2.pat x]] (x < a \<longrightarrow> 2 * x < 2 * a)" by smt2
 lemma "\<forall>(a::int) b::int. 0 < b \<or> b < 1" by smt2
 
@@ -434,7 +430,7 @@ lemma "(f g (x::'a::type) = (g x \<and> True)) \<or> (f g x = True) \<or> (g x =
   by smt2
 
 lemma "id x = x \<and> id True = True"
-  by (smt id_def) (* smt2 FIXME: Option *)
+  by (smt2 id_def)
 
 lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> ((f (i1 := v1)) (i2 := v2)) i = f i"
   using fun_upd_same fun_upd_apply by smt2
@@ -500,6 +496,6 @@ axiomatization where
   g2: "g None = g []" and
   g3: "g xs = length xs"
 
-lemma "g (Some (3::int)) = g (Some True)" by (smt g1 g2 g3 list.size) (* smt2 FIXME: Option *)
+lemma "g (Some (3::int)) = g (Some True)" by (smt2 g1 g2 g3 list.size)
 
 end

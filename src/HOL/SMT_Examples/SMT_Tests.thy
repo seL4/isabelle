@@ -127,7 +127,7 @@ lemma
   "\<exists>x. P x \<longrightarrow> P a \<and> P b"
   "\<exists>x. (\<exists>y. P y) \<longrightarrow> P x"
   "(\<exists>x. Q \<longrightarrow> P x) \<longleftrightarrow> (Q \<longrightarrow> (\<exists>x. P x))"
-  oops (* smt2 FIXME: requires Z3 4.3.1 *)
+  by smt2+
 
 lemma
   "(\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
@@ -135,7 +135,7 @@ lemma
   "(\<forall>x y. R x y = x) \<longrightarrow> (\<exists>y. R x y) = R x c"
   "(if P x then \<not>(\<exists>y. P y) else (\<forall>y. \<not>P y)) \<longrightarrow> P x \<longrightarrow> P y"
   "(\<forall>x y. R x y = x) \<and> (\<forall>x. \<exists>y. R x y) = (\<forall>x. R x c) \<longrightarrow> (\<exists>y. R x y) = R x c"
-  by smt+ (* smt2 FIXME: Option *)
+  by smt2+
 
 lemma
   "\<forall>x. \<exists>y. f x y = f x (g x)"
@@ -146,7 +146,7 @@ lemma
   "(\<exists>x. \<forall>y. P x \<longleftrightarrow> P y) \<longrightarrow> ((\<exists>x. P x) \<longleftrightarrow> (\<forall>y. P y))"
   "\<exists>z. P z \<longrightarrow> (\<forall>x. P x)"
   "(\<exists>y. \<forall>x. R x y) \<longrightarrow> (\<forall>x. \<exists>y. R x y)"
-  by smt+ (* smt2 FIXME: requires Z3 4.3.1 *)
+  by smt2+
 
 lemma
   "(\<exists>!x. P x) \<longrightarrow> (\<exists>x. P x)"
@@ -174,11 +174,13 @@ lemma
 
 lemma
   "a \<noteq> b \<and> a \<noteq> c \<and> b \<noteq> c \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
+  using [[smt2_oracle=true]] (* FIXME: disable refine_inj_axiom in Z3 *)
   by smt2
 
 lemma
   "(\<forall>x y z. f x y = f x z \<longrightarrow> y = z) \<and> b \<noteq> c \<longrightarrow> f a b \<noteq> f a c"
   "(\<forall>x y z. f x y = f z y \<longrightarrow> x = z) \<and> a \<noteq> d \<longrightarrow> f a b \<noteq> f d b"
+  using [[smt2_oracle=true]] (* FIXME: disable refine_inj_axiom in Z3 *)
   by smt2+
 
 
@@ -248,7 +250,7 @@ lemma
   "(\<And>x y. h x y \<and> h y x) \<Longrightarrow> \<forall>x. h x x"
   "(p \<or> q) \<and> \<not>p \<Longrightarrow> q"
   "(a \<and> b) \<or> (c \<and> d) \<Longrightarrow> (a \<and> b) \<or> (c \<and> d)"
-  by smt+ (* smt2 FIXME: Option *)
+  by smt2+
 
 
 section {* Natural numbers *}
@@ -729,7 +731,7 @@ lemma
   "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
      p \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   using point.simps bw_point.simps
-  by smt+ (* smt2 FIXME: Option *)
+  by smt2+
 
 lemma
   "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> cx = 3, cy = 4, black = w \<rparr>"
@@ -907,7 +909,6 @@ lemma
   "i1 \<noteq> i2 \<and>i1 \<noteq> i3 \<and>  i2 \<noteq> i3 \<longrightarrow> (f (i1 := v1, i2 := v2)) i3 = f i3"
   using fun_upd_same fun_upd_apply
   by smt2+
-
 
 
 section {* Sets *}
