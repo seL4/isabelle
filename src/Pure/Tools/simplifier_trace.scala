@@ -104,7 +104,8 @@ object Simplifier_Trace
 
   /* manager actor */
 
-  private case class Handle_Results(session: Session, id: Document_ID.Command, results: Command.Results)
+  private case class Handle_Results(
+    session: Session, id: Document_ID.Command, results: Command.Results)
   private case class Generate_Trace(results: Command.Results)
   private case class Cancel(serial: Long)
   private object Clear_Memory
@@ -115,10 +116,8 @@ object Simplifier_Trace
 
   case class Context(
     last_serial: Long = 0L,
-    questions: SortedMap[Long, Question] = SortedMap.empty
-  )
+    questions: SortedMap[Long, Question] = SortedMap.empty)
   {
-
     def +(q: Question): Context =
       copy(questions = questions + ((q.data.serial, q)))
 
@@ -127,7 +126,6 @@ object Simplifier_Trace
 
     def with_serial(s: Long): Context =
       copy(last_serial = Math.max(last_serial, s))
-
   }
 
   case class Trace(entries: List[Item.Data])
@@ -175,7 +173,8 @@ object Simplifier_Trace
 
     def do_reply(session: Session, serial: Long, answer: Answer)
     {
-      session.protocol_command("Simplifier_Trace.reply", Properties.Value.Long(serial), answer.name)
+      session.protocol_command(
+        "Simplifier_Trace.reply", Properties.Value.Long(serial), answer.name)
     }
 
     loop {
@@ -188,7 +187,8 @@ object Simplifier_Trace
           {
             result match {
               case Item(markup, data) =>
-                memory_children += (data.parent -> (memory_children.getOrElse(data.parent, Set.empty) + serial))
+                memory_children +=
+                  (data.parent -> (memory_children.getOrElse(data.parent, Set.empty) + serial))
 
                 markup match {
 
@@ -206,7 +206,8 @@ object Simplifier_Trace
                       case Success(false) =>
                         results.get(data.parent) match {
                           case Some(Item(Markup.SIMP_TRACE_STEP, _)) =>
-                            new_context += Question(data, Answer.hint_fail.all, Answer.hint_fail.default)
+                            new_context +=
+                              Question(data, Answer.hint_fail.all, Answer.hint_fail.default)
                           case _ =>
                             // unknown, better send a default reply
                             do_reply(session, data.serial, Answer.hint_fail.default)
