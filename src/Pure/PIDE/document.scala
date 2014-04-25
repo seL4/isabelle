@@ -608,12 +608,12 @@ object Document
     def tip_version: Version = history.tip.version.get_finished
 
     def continue_history(
-        previous: Future[Version],
-        edits: List[Edit_Text],
-        version: Future[Version]): (Change, State) =
+      previous: Future[Version],
+      edits: List[Edit_Text],
+      version: Future[Version]): State =
     {
       val change = Change.make(previous, edits, version)
-      (change, copy(history = history + change))
+      copy(history = history + change)
     }
 
     def prune_history(retain: Int = 0): (List[Version], State) =

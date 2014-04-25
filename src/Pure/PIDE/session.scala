@@ -12,12 +12,40 @@ import java.util.{Timer, TimerTask}
 
 import scala.collection.mutable
 import scala.collection.immutable.Queue
-import scala.actors.TIMEOUT
-import scala.actors.Actor._
 
 
 object Session
 {
+  /* outlets */
+
+  object Consumer
+  {
+    def apply[A](name: String)(consume: A => Unit): Consumer[A] =
+      new Consumer[A](name, consume)
+  }
+  final class Consumer[-A] private(val name: String, val consume: A => Unit)
+
+  class Outlet[A](dispatcher: Consumer_Thread[() => Unit])
+  {
+    private val consumers = Synchronized(List.empty[Consumer[A]])
+
+    def += (c: Consumer[A]) { consumers.change(Library.update(c)) }
+    def -= (c: Consumer[A]) { consumers.change(Library.remove(c)) }
+
+    def post(a: A)
+    {
+      for (c <- consumers.value.iterator) {
+        dispatcher.send(() =>
+          try { c.consume(a) }
+          catch {
+            case exn: Throwable =>
+              System.err.println("Consumer failed: " + quote(c.name) + "\n" + Exn.message(exn))
+          })
+      }
+    }
+  }
+
+
   /* change */
 
   sealed case class Change(
@@ -136,91 +164,65 @@ class Session(val resources: Resources)
   def reparse_limit: Int = 0
 
 
-  /* pervasive event buses */
+  /* outlets */
 
-  val statistics = new Event_Bus[Session.Statistics]
-  val global_options = new Event_Bus[Session.Global_Options]
-  val caret_focus = new Event_Bus[Session.Caret_Focus.type]
-  val raw_edits = new Event_Bus[Session.Raw_Edits]
-  val commands_changed = new Event_Bus[Session.Commands_Changed]
-  val phase_changed = new Event_Bus[Session.Phase]
-  val syslog_messages = new Event_Bus[Prover.Output]
-  val raw_output_messages = new Event_Bus[Prover.Output]
-  val all_messages = new Event_Bus[Prover.Message]  // potential bottle-neck
-  val trace_events = new Event_Bus[Simplifier_Trace.Event.type]
+  private val dispatcher =
+    Consumer_Thread.fork[() => Unit]("Session.dispatcher", daemon = true) { case e => e(); true }
 
+  val statistics = new Session.Outlet[Session.Statistics](dispatcher)
+  val global_options = new Session.Outlet[Session.Global_Options](dispatcher)
+  val caret_focus = new Session.Outlet[Session.Caret_Focus.type](dispatcher)
+  val raw_edits = new Session.Outlet[Session.Raw_Edits](dispatcher)
+  val commands_changed = new Session.Outlet[Session.Commands_Changed](dispatcher)
+  val phase_changed = new Session.Outlet[Session.Phase](dispatcher)
+  val syslog_messages = new Session.Outlet[Prover.Output](dispatcher)
+  val raw_output_messages = new Session.Outlet[Prover.Output](dispatcher)
+  val all_messages = new Session.Outlet[Prover.Message](dispatcher)  // potential bottle-neck
+  val trace_events = new Session.Outlet[Simplifier_Trace.Event.type](dispatcher)
 
-  /** buffered command changes (delay_first discipline) **/
-
-  //{{{
-  private case object Stop
-
-  private val (_, commands_changed_buffer) =
-    Simple_Thread.actor("commands_changed_buffer", daemon = true)
-  {
-    var finished = false
-    while (!finished) {
-      receive {
-        case Stop => finished = true; reply(())
-        case changed: Session.Commands_Changed => commands_changed.event(changed)
-        case bad => System.err.println("commands_changed_buffer: ignoring bad message " + bad)
-      }
-    }
-  }
-  //}}}
 
 
   /** pipelined change parsing **/
 
-  //{{{
   private case class Text_Edits(
     previous: Future[Document.Version],
     doc_blobs: Document.Blobs,
     text_edits: List[Document.Edit_Text],
     version_result: Promise[Document.Version])
 
-  private val (_, change_parser) = Simple_Thread.actor("change_parser", daemon = true)
+  private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true)
   {
-    var finished = false
-    while (!finished) {
-      receive {
-        case Stop => finished = true; reply(())
-
-        case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
-          val prev = previous.get_finished
-          val change =
-            Timing.timeit("parse_change", timing) {
-              resources.parse_change(reparse_limit, prev, doc_blobs, text_edits)
-            }
-          version_result.fulfill(change.version)
-          sender ! change
-
-        case bad => System.err.println("change_parser: ignoring bad message " + bad)
-      }
-    }
+    case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
+      val prev = previous.get_finished
+      val change =
+        Timing.timeit("parse_change", timing) {
+          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits)
+        }
+      version_result.fulfill(change.version)
+      manager.send(change)
+      true
   }
-  //}}}
 
 
 
-  /** main protocol actor **/
+  /** main protocol manager **/
 
   /* global state */
 
-  private val syslog = Volatile(Queue.empty[XML.Elem])
-  def current_syslog(): String = cat_lines(syslog().iterator.map(XML.content))
+  private val syslog = Synchronized(Queue.empty[XML.Elem])
+  def current_syslog(): String = cat_lines(syslog.value.iterator.map(XML.content))
 
   @volatile private var _phase: Session.Phase = Session.Inactive
   private def phase_=(new_phase: Session.Phase)
   {
     _phase = new_phase
-    phase_changed.event(new_phase)
+    phase_changed.post(new_phase)
   }
   def phase = _phase
   def is_ready: Boolean = phase == Session.Ready
 
-  private val global_state = Volatile(Document.State.init)
-  def current_state(): Document.State = global_state()
+  private val global_state = Synchronized(Document.State.init)
+  def current_state(): Document.State = global_state.value
 
   def recent_syntax(): Prover.Syntax =
   {
@@ -230,7 +232,7 @@ class Session(val resources: Resources)
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
-    global_state().snapshot(name, pending_edits)
+    global_state.value.snapshot(name, pending_edits)
 
 
   /* protocol handlers */
@@ -253,101 +255,113 @@ class Session(val resources: Resources)
   }
 
 
-  /* actor messages */
+  /* internal messages */
 
   private case class Start(name: String, args: List[String])
+  private case object Stop
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
   private case class Messages(msgs: List[Prover.Message])
   private case class Update_Options(options: Options)
 
-  private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
+
+  /* buffered changes */
+
+  private object change_buffer
   {
-    val this_actor = self
+    private var assignment: Boolean = false
+    private var nodes: Set[Document.Node.Name] = Set.empty
+    private var commands: Set[Command] = Set.empty
 
-    var prune_next = System.currentTimeMillis() + prune_delay.ms
-
-
-    /* buffered prover messages */
-
-    object receiver
-    {
-      private var buffer = new mutable.ListBuffer[Prover.Message]
-
-      private def flush(): Unit = synchronized {
-        if (!buffer.isEmpty) {
-          val msgs = buffer.toList
-          this_actor ! Messages(msgs)
-          buffer = new mutable.ListBuffer[Prover.Message]
-        }
-      }
-      def invoke(msg: Prover.Message): Unit = synchronized {
-        msg match {
-          case _: Prover.Input =>
-            buffer += msg
-          case output: Prover.Protocol_Output if output.properties == Markup.Flush =>
-            flush()
-          case output: Prover.Output =>
-            buffer += msg
-            if (output.is_syslog)
-              syslog >> (queue =>
-                {
-                  val queue1 = queue.enqueue(output.message)
-                  if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
-                })
-        }
-      }
-
-      private val timer = new Timer("session_actor.receiver", true)
-      timer.schedule(new TimerTask { def run = flush }, message_delay.ms, message_delay.ms)
-
-      def cancel() { timer.cancel() }
+    def flush(): Unit = synchronized {
+      if (assignment || !nodes.isEmpty || !commands.isEmpty)
+        commands_changed.post(Session.Commands_Changed(assignment, nodes, commands))
+      assignment = false
+      nodes = Set.empty
+      commands = Set.empty
     }
+
+    def invoke(assign: Boolean, cmds: List[Command]): Unit = synchronized {
+      assignment |= assign
+      for (command <- cmds) {
+        nodes += command.node_name
+        commands += command
+      }
+    }
+
+    private val timer = new Timer("change_buffer", true)
+    timer.schedule(new TimerTask { def run = flush() }, output_delay.ms, output_delay.ms)
+
+    def shutdown()
+    {
+      timer.cancel()
+      flush()
+    }
+  }
+
+
+  /* buffered prover messages */
+
+  private object receiver
+  {
+    private var buffer = new mutable.ListBuffer[Prover.Message]
+
+    private def flush(): Unit = synchronized {
+      if (!buffer.isEmpty) {
+        val msgs = buffer.toList
+        manager.send(Messages(msgs))
+        buffer = new mutable.ListBuffer[Prover.Message]
+      }
+    }
+
+    def invoke(msg: Prover.Message): Unit = synchronized {
+      msg match {
+        case _: Prover.Input =>
+          buffer += msg
+        case output: Prover.Protocol_Output if output.properties == Markup.Flush =>
+          flush()
+        case output: Prover.Output =>
+          buffer += msg
+          if (output.is_syslog)
+            syslog.change(queue =>
+              {
+                val queue1 = queue.enqueue(output.message)
+                if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
+              })
+      }
+    }
+
+    private val timer = new Timer("receiver", true)
+    timer.schedule(new TimerTask { def run = flush }, message_delay.ms, message_delay.ms)
+
+    def shutdown() { timer.cancel(); flush() }
+  }
+
+
+  /* postponed changes */
+
+  private object postponed_changes
+  {
+    private var postponed: List[Session.Change] = Nil
+
+    def store(change: Session.Change): Unit = synchronized { postponed ::= change }
+
+    def flush(): Unit = synchronized {
+      val state = global_state.value
+      val (assigned, unassigned) = postponed.partition(change => state.is_assigned(change.previous))
+      postponed = unassigned
+      assigned.reverseIterator.foreach(change => manager.send(change))
+    }
+  }
+
+
+  /* manager thread */
+
+  private val manager: Consumer_Thread[Any] =
+  {
+    var prune_next = Time.now() + prune_delay
 
     var prover: Option[Prover] = None
-
-
-    /* delayed command changes */
-
-    object delay_commands_changed
-    {
-      private var changed_assignment: Boolean = false
-      private var changed_nodes: Set[Document.Node.Name] = Set.empty
-      private var changed_commands: Set[Command] = Set.empty
-
-      private var flush_time: Option[Long] = None
-
-      def flush_timeout: Long =
-        flush_time match {
-          case None => 5000L
-          case Some(time) => (time - System.currentTimeMillis()) max 0
-        }
-
-      def flush()
-      {
-        if (changed_assignment || !changed_nodes.isEmpty || !changed_commands.isEmpty)
-          commands_changed_buffer !
-            Session.Commands_Changed(changed_assignment, changed_nodes, changed_commands)
-        changed_assignment = false
-        changed_nodes = Set.empty
-        changed_commands = Set.empty
-        flush_time = None
-      }
-
-      def invoke(assign: Boolean, commands: List[Command])
-      {
-        changed_assignment |= assign
-        for (command <- commands) {
-          changed_nodes += command.node_name
-          changed_commands += command
-        }
-        val now = System.currentTimeMillis()
-        flush_time match {
-          case None => flush_time = Some(now + output_delay.ms)
-          case Some(time) => if (now >= time) flush()
-        }
-      }
-    }
 
 
     /* raw edits */
@@ -355,14 +369,16 @@ class Session(val resources: Resources)
     def handle_raw_edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
     //{{{
     {
+      require(prover.isDefined)
+
       prover.get.discontinue_execution()
 
-      val previous = global_state().history.tip.version
+      val previous = global_state.value.history.tip.version
       val version = Future.promise[Document.Version]
-      val change = global_state >>> (_.continue_history(previous, edits, version))
+      global_state.change(_.continue_history(previous, edits, version))
 
-      raw_edits.event(Session.Raw_Edits(doc_blobs, edits))
-      change_parser ! Text_Edits(previous, doc_blobs, edits, version)
+      raw_edits.post(Session.Raw_Edits(doc_blobs, edits))
+      change_parser.send(Text_Edits(previous, doc_blobs, edits, version))
     }
     //}}}
 
@@ -372,23 +388,25 @@ class Session(val resources: Resources)
     def handle_change(change: Session.Change)
     //{{{
     {
+      require(prover.isDefined)
+
       def id_command(command: Command)
       {
         for {
           digest <- command.blobs_digests
-          if !global_state().defined_blob(digest)
+          if !global_state.value.defined_blob(digest)
         } {
           change.doc_blobs.get(digest) match {
             case Some(blob) =>
-              global_state >> (_.define_blob(digest))
+              global_state.change(_.define_blob(digest))
               prover.get.define_blob(digest, blob.bytes)
             case None =>
               System.err.println("Missing blob for SHA1 digest " + digest)
           }
         }
 
-        if (!global_state().defined_command(command.id)) {
-          global_state >> (_.define_command(command))
+        if (!global_state.value.defined_command(command.id)) {
+          global_state.change(_.define_command(command))
           prover.get.define_command(command)
         }
       }
@@ -397,8 +415,8 @@ class Session(val resources: Resources)
           edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
       }
 
-      val assignment = global_state().the_assignment(change.previous).check_finished
-      global_state >> (_.define_version(change.version, assignment))
+      val assignment = global_state.value.the_assignment(change.previous).check_finished
+      global_state.change(_.define_version(change.version, assignment))
       prover.get.update(change.previous.id, change.version.id, change.doc_edits)
       resources.commit(change)
     }
@@ -413,14 +431,14 @@ class Session(val resources: Resources)
       def bad_output()
       {
         if (verbose)
-          System.err.println("Ignoring prover output: " + output.message.toString)
+          System.err.println("Ignoring bad prover output: " + output.message.toString)
       }
 
       def accumulate(state_id: Document_ID.Generic, message: XML.Elem)
       {
         try {
-          val st = global_state >>> (_.accumulate(state_id, message))
-          delay_commands_changed.invoke(false, List(st.command))
+          val st = global_state.change_result(_.accumulate(state_id, message))
+          change_buffer.invoke(false, List(st.command))
         }
         catch {
           case _: Document.State.Fail => bad_output()
@@ -432,10 +450,10 @@ class Session(val resources: Resources)
           val handled = _protocol_handlers.invoke(msg)
           if (!handled) {
             msg.properties match {
-              case Markup.Protocol_Handler(name) =>
+              case Markup.Protocol_Handler(name) if prover.isDefined =>
                 _protocol_handlers = _protocol_handlers.add(prover.get, name)
 
-              case Protocol.Command_Timing(state_id, timing) =>
+              case Protocol.Command_Timing(state_id, timing) if prover.isDefined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
                 accumulate(state_id, prover.get.xml_cache.elem(message))
 
@@ -443,31 +461,32 @@ class Session(val resources: Resources)
                 msg.text match {
                   case Protocol.Assign_Update(id, update) =>
                     try {
-                      val cmds = global_state >>> (_.assign(id, update))
-                      delay_commands_changed.invoke(true, cmds)
+                      val cmds = global_state.change_result(_.assign(id, update))
+                      change_buffer.invoke(true, cmds)
                     }
                     catch { case _: Document.State.Fail => bad_output() }
+                    postponed_changes.flush()
                   case _ => bad_output()
                 }
                 // FIXME separate timeout event/message!?
-                if (prover.isDefined && System.currentTimeMillis() > prune_next) {
-                  val old_versions = global_state >>> (_.prune_history(prune_size))
+                if (prover.isDefined && Time.now() > prune_next) {
+                  val old_versions = global_state.change_result(_.prune_history(prune_size))
                   if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
-                  prune_next = System.currentTimeMillis() + prune_delay.ms
+                  prune_next = Time.now() + prune_delay
                 }
 
               case Markup.Removed_Versions =>
                 msg.text match {
                   case Protocol.Removed(removed) =>
                     try {
-                      global_state >> (_.removed_versions(removed))
+                      global_state.change(_.removed_versions(removed))
                     }
                     catch { case _: Document.State.Fail => bad_output() }
                   case _ => bad_output()
                 }
 
               case Markup.ML_Statistics(props) =>
-                statistics.event(Session.Statistics(props))
+                statistics.post(Session.Statistics(props))
 
               case Markup.Task_Statistics(props) =>
                 // FIXME
@@ -484,114 +503,108 @@ class Session(val resources: Resources)
               phase = Session.Ready
 
             case Markup.Return_Code(rc) if output.is_exit =>
+              prover = None
               if (rc == 0) phase = Session.Inactive
               else phase = Session.Failed
 
-            case _ => raw_output_messages.event(output)
+            case _ => raw_output_messages.post(output)
           }
         }
     }
     //}}}
 
 
-    /* main loop */
+    /* main thread */
 
-    //{{{
-    var finished = false
-    while (!finished) {
-      receiveWithin(delay_commands_changed.flush_timeout) {
-        case TIMEOUT => delay_commands_changed.flush()
+    Consumer_Thread.fork[Any]("Session.manager", daemon = true)
+    {
+      case arg: Any =>
+        //{{{
+        arg match {
+          case Start(name, args) if prover.isEmpty =>
+            if (phase == Session.Inactive || phase == Session.Failed) {
+              phase = Session.Startup
+              prover = Some(resources.start_prover(receiver.invoke _, name, args))
+            }
 
-        case Start(name, args) if prover.isEmpty =>
-          if (phase == Session.Inactive || phase == Session.Failed) {
-            phase = Session.Startup
-            prover = Some(resources.start_prover(receiver.invoke _, name, args))
-          }
+          case Stop =>
+            if (prover.isDefined && is_ready) {
+              _protocol_handlers = _protocol_handlers.stop(prover.get)
+              global_state.change(_ => Document.State.init)  // FIXME event bus!?
+              phase = Session.Shutdown
+              prover.get.terminate
+            }
 
-        case Stop =>
-          if (phase == Session.Ready) {
-            _protocol_handlers = _protocol_handlers.stop(prover.get)
-            global_state >> (_ => Document.State.init)  // FIXME event bus!?
-            phase = Session.Shutdown
-            prover.get.terminate
-            prover = None
-            phase = Session.Inactive
-          }
-          finished = true
-          receiver.cancel()
-          reply(())
+          case Update_Options(options) =>
+            if (prover.isDefined && is_ready) {
+              prover.get.options(options)
+              handle_raw_edits(Document.Blobs.empty, Nil)
+            }
+            global_options.post(Session.Global_Options(options))
 
-        case Update_Options(options) =>
-          if (prover.isDefined && is_ready) {
-            prover.get.options(options)
-            handle_raw_edits(Document.Blobs.empty, Nil)
-          }
-          global_options.event(Session.Global_Options(options))
-          reply(())
+          case Cancel_Exec(exec_id) if prover.isDefined =>
+            prover.get.cancel_exec(exec_id)
 
-        case Cancel_Exec(exec_id) if prover.isDefined =>
-          prover.get.cancel_exec(exec_id)
+          case Session.Raw_Edits(doc_blobs, edits) if prover.isDefined =>
+            handle_raw_edits(doc_blobs, edits)
 
-        case Session.Raw_Edits(doc_blobs, edits) if prover.isDefined =>
-          handle_raw_edits(doc_blobs, edits)
-          reply(())
+          case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
+            prover.get.dialog_result(serial, result)
+            handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
 
-        case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
-          prover.get.dialog_result(serial, result)
-          handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
+          case Protocol_Command(name, args) if prover.isDefined =>
+            prover.get.protocol_command(name, args:_*)
 
-        case Protocol_Command(name, args) if prover.isDefined =>
-          prover.get.protocol_command(name, args:_*)
+          case Messages(msgs) =>
+            msgs foreach {
+              case input: Prover.Input =>
+                all_messages.post(input)
 
-        case Messages(msgs) =>
-          msgs foreach {
-            case input: Prover.Input =>
-              all_messages.event(input)
+              case output: Prover.Output =>
+                if (output.is_stdout || output.is_stderr) raw_output_messages.post(output)
+                else handle_output(output)
+                if (output.is_syslog) syslog_messages.post(output)
+                all_messages.post(output)
+            }
 
-            case output: Prover.Output =>
-              if (output.is_stdout || output.is_stderr) raw_output_messages.event(output)
-              else handle_output(output)
-              if (output.is_syslog) syslog_messages.event(output)
-              all_messages.event(output)
-          }
-
-        case change: Session.Change
-        if prover.isDefined && global_state().is_assigned(change.previous) =>
-          handle_change(change)
-
-        case bad if !bad.isInstanceOf[Session.Change] =>
-          System.err.println("session_actor: ignoring bad message " + bad)
-      }
+          case change: Session.Change if prover.isDefined =>
+            if (global_state.value.is_assigned(change.previous))
+              handle_change(change)
+            else postponed_changes.store(change)
+        }
+        true
+        //}}}
     }
-    //}}}
   }
 
 
   /* actions */
 
   def start(name: String, args: List[String])
-  {
-    session_actor ! Start(name, args)
-  }
+  { manager.send(Start(name, args)) }
 
   def stop()
   {
-    commands_changed_buffer !? Stop
-    change_parser !? Stop
-    session_actor !? Stop
+    manager.send_wait(Stop)
+    receiver.shutdown()
+    change_parser.shutdown()
+    change_buffer.shutdown()
+    manager.shutdown()
+    dispatcher.shutdown()
   }
 
   def protocol_command(name: String, args: String*)
-  { session_actor ! Protocol_Command(name, args.toList) }
+  { manager.send(Protocol_Command(name, args.toList)) }
 
-  def cancel_exec(exec_id: Document_ID.Exec) { session_actor ! Cancel_Exec(exec_id) }
+  def cancel_exec(exec_id: Document_ID.Exec)
+  { manager.send(Cancel_Exec(exec_id)) }
 
   def update(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
-  { if (!edits.isEmpty) session_actor !? Session.Raw_Edits(doc_blobs, edits) }
+  { if (!edits.isEmpty) manager.send_wait(Session.Raw_Edits(doc_blobs, edits)) }
 
   def update_options(options: Options)
-  { session_actor !? Update_Options(options) }
+  { manager.send_wait(Update_Options(options)) }
 
   def dialog_result(id: Document_ID.Generic, serial: Long, result: String)
-  { session_actor ! Session.Dialog_Result(id, serial, result) }
+  { manager.send(Session.Dialog_Result(id, serial, result)) }
 }

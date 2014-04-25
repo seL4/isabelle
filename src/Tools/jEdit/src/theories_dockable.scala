@@ -9,7 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
 import scala.swing.{Button, TextArea, Label, ListView, Alignment,
   ScrollPane, Component, CheckBox, BorderPanel}
 import scala.swing.event.{MouseClicked, MouseMoved}
@@ -216,35 +215,30 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case phase: Session.Phase =>
-          Swing_Thread.later { handle_phase(phase) }
+  private val main =
+    Session.Consumer[Any](getClass.getName) {
+      case phase: Session.Phase =>
+        Swing_Thread.later { handle_phase(phase) }
 
-        case _: Session.Global_Options =>
-          Swing_Thread.later {
-            continuous_checking.load()
-            logic.load ()
-            update_nodes_required()
-            status.repaint()
-          }
+      case _: Session.Global_Options =>
+        Swing_Thread.later {
+          continuous_checking.load()
+          logic.load ()
+          update_nodes_required()
+          status.repaint()
+        }
 
-        case changed: Session.Commands_Changed =>
-          Swing_Thread.later { handle_update(Some(changed.nodes)) }
-
-        case bad => System.err.println("Theories_Dockable: ignoring bad message " + bad)
-      }
+      case changed: Session.Commands_Changed =>
+        Swing_Thread.later { handle_update(Some(changed.nodes)) }
     }
-  }
 
   override def init()
   {
-    PIDE.session.phase_changed += main_actor
-    PIDE.session.global_options += main_actor
-    PIDE.session.commands_changed += main_actor
+    PIDE.session.phase_changed += main
+    PIDE.session.global_options += main
+    PIDE.session.commands_changed += main
 
     handle_phase(PIDE.session.phase)
     handle_update()
@@ -252,8 +246,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   override def exit()
   {
-    PIDE.session.phase_changed -= main_actor
-    PIDE.session.global_options -= main_actor
-    PIDE.session.commands_changed -= main_actor
+    PIDE.session.phase_changed -= main
+    PIDE.session.global_options -= main
+    PIDE.session.commands_changed -= main
   }
 }

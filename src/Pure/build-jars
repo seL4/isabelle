@@ -9,10 +9,12 @@
 ## sources
 
 declare -a SOURCES=(
+  Concurrent/consumer_thread.scala
   Concurrent/counter.scala
   Concurrent/future.scala
+  Concurrent/mailbox.scala
   Concurrent/simple_thread.scala
-  Concurrent/volatile.scala
+  Concurrent/synchronized.scala
   General/antiquote.scala
   General/bytes.scala
   General/completion.scala
@@ -62,7 +64,6 @@ declare -a SOURCES=(
   PIDE/xml.scala
   PIDE/yxml.scala
   System/command_line.scala
-  System/event_bus.scala
   System/interrupt.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala

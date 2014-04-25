@@ -10,8 +10,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
-
 import java.awt.Graphics2D
 import java.awt.event.KeyEvent
 import javax.swing.event.{CaretListener, CaretEvent}
@@ -176,7 +174,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private val delay_caret_update =
     Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
-      session.caret_focus.event(Session.Caret_Focus)
+      session.caret_focus.post(Session.Caret_Focus)
     }
 
   private val caret_listener = new CaretListener {
@@ -193,60 +191,54 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case _: Session.Raw_Edits =>
-          Swing_Thread.later {
-            overview.delay_repaint.postpone(PIDE.options.seconds("editor_input_delay"))
-          }
+  private val main =
+    Session.Consumer[Any](getClass.getName) {
+      case _: Session.Raw_Edits =>
+        Swing_Thread.later {
+          overview.delay_repaint.postpone(PIDE.options.seconds("editor_input_delay"))
+        }
 
-        case changed: Session.Commands_Changed =>
-          val buffer = model.buffer
-          Swing_Thread.later {
-            JEdit_Lib.buffer_lock(buffer) {
-              if (model.buffer == text_area.getBuffer) {
-                val snapshot = model.snapshot()
+      case changed: Session.Commands_Changed =>
+        val buffer = model.buffer
+        Swing_Thread.later {
+          JEdit_Lib.buffer_lock(buffer) {
+            if (model.buffer == text_area.getBuffer) {
+              val snapshot = model.snapshot()
 
-                val load_changed =
-                  snapshot.load_commands.exists(changed.commands.contains)
+              val load_changed =
+                snapshot.load_commands.exists(changed.commands.contains)
 
-                if (changed.assignment || load_changed ||
-                    (changed.nodes.contains(model.node_name) &&
-                     changed.commands.exists(snapshot.node.commands.contains)))
-                  Swing_Thread.later { overview.delay_repaint.invoke() }
+              if (changed.assignment || load_changed ||
+                  (changed.nodes.contains(model.node_name) &&
+                   changed.commands.exists(snapshot.node.commands.contains)))
+                Swing_Thread.later { overview.delay_repaint.invoke() }
 
-                val visible_lines = text_area.getVisibleLines
-                if (visible_lines > 0) {
-                  if (changed.assignment || load_changed)
-                    text_area.invalidateScreenLineRange(0, visible_lines)
-                  else {
-                    val visible_range = JEdit_Lib.visible_range(text_area).get
-                    val visible_iterator =
-                      snapshot.node.command_iterator(snapshot.revert(visible_range)).map(_._1)
-                    if (visible_iterator.exists(changed.commands)) {
-                      for {
-                        line <- (0 until visible_lines).iterator
-                        start = text_area.getScreenLineStartOffset(line) if start >= 0
-                        end = text_area.getScreenLineEndOffset(line) if end >= 0
-                        range = Text.Range(start, end)
-                        line_cmds = snapshot.node.command_iterator(snapshot.revert(range)).map(_._1)
-                        if line_cmds.exists(changed.commands)
-                      } text_area.invalidateScreenLineRange(line, line)
-                    }
+              val visible_lines = text_area.getVisibleLines
+              if (visible_lines > 0) {
+                if (changed.assignment || load_changed)
+                  text_area.invalidateScreenLineRange(0, visible_lines)
+                else {
+                  val visible_range = JEdit_Lib.visible_range(text_area).get
+                  val visible_iterator =
+                    snapshot.node.command_iterator(snapshot.revert(visible_range)).map(_._1)
+                  if (visible_iterator.exists(changed.commands)) {
+                    for {
+                      line <- (0 until visible_lines).iterator
+                      start = text_area.getScreenLineStartOffset(line) if start >= 0
+                      end = text_area.getScreenLineEndOffset(line) if end >= 0
+                      range = Text.Range(start, end)
+                      line_cmds = snapshot.node.command_iterator(snapshot.revert(range)).map(_._1)
+                      if line_cmds.exists(changed.commands)
+                    } text_area.invalidateScreenLineRange(line, line)
                   }
                 }
               }
             }
           }
-
-        case bad =>
-          System.err.println("command_change_actor: ignoring bad message " + bad)
-      }
+        }
     }
-  }
 
 
   /* activation */
@@ -261,16 +253,16 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.addKeyListener(key_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
-    session.raw_edits += main_actor
-    session.commands_changed += main_actor
+    session.raw_edits += main
+    session.commands_changed += main
   }
 
   private def deactivate()
   {
     val painter = text_area.getPainter
 
-    session.raw_edits -= main_actor
-    session.commands_changed -= main_actor
+    session.raw_edits -= main
+    session.commands_changed -= main
     text_area.removeLeftOfScrollBar(overview); overview.delay_repaint.revoke()
     text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeKeyListener(key_listener)

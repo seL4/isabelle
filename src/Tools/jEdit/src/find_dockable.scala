@@ -9,8 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
-
 import scala.swing.{Button, Component, TextField, CheckBox, Label, ComboBox}
 import scala.swing.event.ButtonClicked
 
@@ -68,23 +66,16 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   })
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case _: Session.Global_Options =>
-          Swing_Thread.later { handle_resize() }
-
-        case bad =>
-          System.err.println("Find_Dockable: ignoring bad message " + bad)
-      }
+  private val main =
+    Session.Consumer[Session.Global_Options](getClass.getName) {
+      case _: Session.Global_Options => Swing_Thread.later { handle_resize() }
     }
-  }
 
   override def init()
   {
-    PIDE.session.global_options += main_actor
+    PIDE.session.global_options += main
     handle_resize()
     find_theorems.activate()
   }
@@ -92,7 +83,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   override def exit()
   {
     find_theorems.deactivate()
-    PIDE.session.global_options -= main_actor
+    PIDE.session.global_options -= main
     delay_resize.revoke()
   }
 

@@ -9,8 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
-
 import scala.swing.{Button, CheckBox}
 import scala.swing.event.ButtonClicked
 
@@ -82,39 +80,34 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   }
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case _: Session.Global_Options =>
-          Swing_Thread.later { handle_resize() }
+  private val main =
+    Session.Consumer[Any](getClass.getName) {
+      case _: Session.Global_Options =>
+        Swing_Thread.later { handle_resize() }
 
-        case changed: Session.Commands_Changed =>
-          val restriction = if (changed.assignment) None else Some(changed.commands)
-          Swing_Thread.later { handle_update(do_update, restriction) }
+      case changed: Session.Commands_Changed =>
+        val restriction = if (changed.assignment) None else Some(changed.commands)
+        Swing_Thread.later { handle_update(do_update, restriction) }
 
-        case Session.Caret_Focus =>
-          Swing_Thread.later { handle_update(do_update, None) }
-
-        case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
-      }
+      case Session.Caret_Focus =>
+        Swing_Thread.later { handle_update(do_update, None) }
     }
-  }
 
   override def init()
   {
-    PIDE.session.global_options += main_actor
-    PIDE.session.commands_changed += main_actor
-    PIDE.session.caret_focus += main_actor
+    PIDE.session.global_options += main
+    PIDE.session.commands_changed += main
+    PIDE.session.caret_focus += main
     handle_update(true, None)
   }
 
   override def exit()
   {
-    PIDE.session.global_options -= main_actor
-    PIDE.session.commands_changed -= main_actor
-    PIDE.session.caret_focus -= main_actor
+    PIDE.session.global_options -= main
+    PIDE.session.commands_changed -= main
+    PIDE.session.caret_focus -= main
     delay_resize.revoke()
   }
 

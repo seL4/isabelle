@@ -9,7 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
 import scala.swing.{Label, ListView, Alignment, ScrollPane, Component, TextField}
 import scala.swing.event.{MouseClicked, ValueChanged}
 
@@ -200,27 +199,22 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   }
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case changed: Session.Commands_Changed =>
-          Swing_Thread.later { handle_update(Some(changed.nodes)) }
-
-        case bad => System.err.println("Timing_Dockable: ignoring bad message " + bad)
-      }
+  private val main =
+    Session.Consumer[Session.Commands_Changed](getClass.getName) {
+      case changed =>
+        Swing_Thread.later { handle_update(Some(changed.nodes)) }
     }
-  }
 
   override def init()
   {
-    PIDE.session.commands_changed += main_actor
+    PIDE.session.commands_changed += main
     handle_update()
   }
 
   override def exit()
   {
-    PIDE.session.commands_changed -= main_actor
+    PIDE.session.commands_changed -= main
   }
 }

@@ -9,7 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.actors.Actor._
 import scala.swing.{TextArea, ScrollPane, Component}
 
 import org.jfree.chart.ChartPanel
@@ -35,23 +34,18 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   set_content(new ChartPanel(chart))
 
 
-  /* main actor */
+  /* main */
 
-  private val main_actor = actor {
-    loop {
-      react {
-        case Session.Statistics(props) =>
-          Swing_Thread.later {
-            rev_stats ::= props
-            delay_update.invoke()
-          }
-
-        case bad => System.err.println("Monitor_Dockable: ignoring bad message " + bad)
-      }
+  private val main =
+    Session.Consumer[Session.Statistics](getClass.getName) {
+      case stats =>
+        Swing_Thread.later {
+          rev_stats ::= stats.props
+          delay_update.invoke()
+        }
     }
-  }
 
-  override def init() { PIDE.session.statistics += main_actor }
-  override def exit() { PIDE.session.statistics -= main_actor }
+  override def init() { PIDE.session.statistics += main }
+  override def exit() { PIDE.session.statistics -= main }
 }
 

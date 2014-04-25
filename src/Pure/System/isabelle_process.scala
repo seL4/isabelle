@@ -8,12 +8,7 @@ Isabelle process management -- always reactive due to multi-threaded I/O.
 package isabelle
 
 
-import java.util.concurrent.LinkedBlockingQueue
-import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
-  InputStream, OutputStream, BufferedOutputStream, IOException}
-
-import scala.actors.Actor
-import Actor._
+import java.io.{InputStream, OutputStream, BufferedOutputStream, IOException}
 
 
 class Isabelle_Process(
@@ -53,22 +48,6 @@ class Isabelle_Process(
   {
     output(Markup.EXIT, Markup.Return_Code(rc), List(XML.Text("Return code: " + rc.toString)))
   }
-
-
-  /* command input actor */
-
-  private case class Input_Chunks(chunks: List[Bytes])
-
-  private case object Close
-  private def close(p: (Thread, Actor))
-  {
-    if (p != null && p._1.isAlive) {
-      p._2 ! Close
-      p._1.join
-    }
-  }
-
-  @volatile private var command_input: (Thread, Actor) = null
 
 
 
@@ -126,16 +105,15 @@ class Isabelle_Process(
     else {
       val (command_stream, message_stream) = system_channel.rendezvous()
 
-      val stdout = physical_output_actor(false)
-      val stderr = physical_output_actor(true)
-      command_input = input_actor(command_stream)
-      val message = message_actor(message_stream)
+      command_input_init(command_stream)
+      val stdout = physical_output(false)
+      val stderr = physical_output(true)
+      val message = message_output(message_stream)
 
       val rc = process_result.join
       system_output("process terminated")
-      close(command_input)
-      for ((thread, _) <- List(stdout, stderr, command_input, message))
-        thread.join
+      command_input_close()
+      for (thread <- List(stdout, stderr, message)) thread.join
       system_output("process_manager terminated")
       exit_message(rc)
     }
@@ -155,24 +133,54 @@ class Isabelle_Process(
 
   def terminate()
   {
-    close(command_input)
+    command_input_close()
     system_output("Terminating Isabelle process")
     terminate_process()
   }
 
 
 
-  /** stream actors **/
+  /** process streams **/
+
+  /* command input */
+
+  private var command_input: Option[Consumer_Thread[List[Bytes]]] = None
+
+  private def command_input_close(): Unit = command_input.foreach(_.shutdown)
+
+  private def command_input_init(raw_stream: OutputStream)
+  {
+    val name = "command_input"
+    val stream = new BufferedOutputStream(raw_stream)
+    command_input =
+      Some(
+        Consumer_Thread.fork(name)(
+          consume =
+            {
+              case chunks =>
+                try {
+                  Bytes(chunks.map(_.length).mkString("", ",", "\n")).write(stream)
+                  chunks.foreach(_.write(stream))
+                  stream.flush
+                  true
+                }
+                catch { case e: IOException => system_output(name + ": " + e.getMessage); false }
+            },
+          finish = { case () => stream.close; system_output(name + " terminated") }
+        )
+      )
+  }
+
 
   /* physical output */
 
-  private def physical_output_actor(err: Boolean): (Thread, Actor) =
+  private def physical_output(err: Boolean): Thread =
   {
     val (name, reader, markup) =
       if (err) ("standard_error", process.stderr, Markup.STDERR)
       else ("standard_output", process.stdout, Markup.STDOUT)
 
-    Simple_Thread.actor(name) {
+    Simple_Thread.fork(name) {
       try {
         var result = new StringBuilder(100)
         var finished = false
@@ -202,45 +210,15 @@ class Isabelle_Process(
   }
 
 
-  /* command input */
-
-  private def input_actor(raw_stream: OutputStream): (Thread, Actor) =
-  {
-    val name = "command_input"
-    Simple_Thread.actor(name) {
-      try {
-        val stream = new BufferedOutputStream(raw_stream)
-        var finished = false
-        while (!finished) {
-          //{{{
-          receive {
-            case Input_Chunks(chunks) =>
-              Bytes(chunks.map(_.length).mkString("", ",", "\n")).write(stream)
-              chunks.foreach(_.write(stream))
-              stream.flush
-            case Close =>
-              stream.close
-              finished = true
-            case bad => System.err.println(name + ": ignoring bad message " + bad)
-          }
-          //}}}
-        }
-      }
-      catch { case e: IOException => system_output(name + ": " + e.getMessage) }
-      system_output(name + " terminated")
-    }
-  }
-
-
   /* message output */
 
-  private def message_actor(stream: InputStream): (Thread, Actor) =
+  private def message_output(stream: InputStream): Thread =
   {
     class EOF extends Exception
     class Protocol_Error(msg: String) extends Exception(msg)
 
     val name = "message_output"
-    Simple_Thread.actor(name) {
+    Simple_Thread.fork(name) {
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
@@ -328,7 +306,10 @@ class Isabelle_Process(
   /** protocol commands **/
 
   def protocol_command_bytes(name: String, args: Bytes*): Unit =
-    command_input._2 ! Input_Chunks(Bytes(name) :: args.toList)
+    command_input match {
+      case Some(thread) => thread.send(Bytes(name) :: args.toList)
+      case None => error("Uninitialized command input thread")
+    }
 
   def protocol_command(name: String, args: String*)
   {

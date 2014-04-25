@@ -25,5 +25,7 @@ final class Counter private
     count -= 1
     count
   }
+
+  override def toString: String = count.toString
 }
 

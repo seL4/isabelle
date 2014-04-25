@@ -1,7 +1,7 @@
 (*  Title:      Pure/Concurrent/synchronized.ML
     Author:     Fabian Immler and Makarius
 
-State variables with synchronized access.
+Synchronized variables.
 *)
 
 signature SYNCHRONIZED =
@@ -18,7 +18,7 @@ end;
 structure Synchronized: SYNCHRONIZED =
 struct
 
-(* state variables *)
+(* state variable *)
 
 abstype 'a var = Var of
  {name: string,
