@@ -64,7 +64,6 @@ declare -a SOURCES=(
   PIDE/xml.scala
   PIDE/yxml.scala
   System/command_line.scala
-  System/event_bus.scala
   System/interrupt.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
