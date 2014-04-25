@@ -55,7 +55,7 @@ val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq
 
 type pred_data = {rel_eq_onp: thm}
 
-val rel_eq_onp = #rel_eq_onp
+val rel_eq_onp: pred_data -> thm = #rel_eq_onp
 
 structure Data = Generic_Data
 (
