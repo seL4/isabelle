@@ -10,8 +10,6 @@ package isabelle
 
 import scala.collection.mutable
 
-import java.util.concurrent.{Future => JFuture, TimeUnit}
-
 
 object Library
 {
@@ -174,13 +172,4 @@ class Basic_Library
   val quote = Library.quote _
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _
-
-
-  /* parallel tasks */
-
-  implicit def function_as_callable[A](f: () => A) =
-    new java.util.concurrent.Callable[A] { def call = f() }
-
-  val default_thread_pool =
-    scala.collection.parallel.ForkJoinTasks.defaultForkJoinPool
 }

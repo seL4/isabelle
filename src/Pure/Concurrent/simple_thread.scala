@@ -9,6 +9,9 @@ package isabelle
 
 
 import java.lang.Thread
+import java.util.concurrent.{Callable, Future => JFuture}
+
+import scala.collection.parallel.ForkJoinTasks
 
 
 object Simple_Thread
@@ -40,5 +43,13 @@ object Simple_Thread
     val thread = fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
     (thread, result)
   }
+
+
+  /* thread pool */
+
+  lazy val default_pool = ForkJoinTasks.defaultForkJoinPool
+
+  def submit_task[A](body: => A): JFuture[A] =
+    default_pool.submit(new Callable[A] { def call = body })
 }
 
