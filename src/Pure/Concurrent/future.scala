@@ -10,16 +10,23 @@ package isabelle
 
 
 import scala.util.{Success, Failure}
-import scala.concurrent.{Future => Scala_Future, Promise => Scala_Promise, Await}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor,
+  Future => Scala_Future, Promise => Scala_Promise, Await}
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
 
 
 object Future
 {
+  lazy val execution_context: ExecutionContextExecutor =
+    ExecutionContext.fromExecutorService(Simple_Thread.default_pool)
+
   def value[A](x: A): Future[A] = new Finished_Future(x)
-  def fork[A](body: => A): Future[A] = new Pending_Future(Scala_Future[A](body))
-  def promise[A]: Promise[A] = new Promise_Future[A](Scala_Promise[A])
+
+  def fork[A](body: => A): Future[A] =
+    new Pending_Future(Scala_Future[A](body)(execution_context))
+
+  def promise[A]: Promise[A] =
+    new Promise_Future[A](Scala_Promise[A])
 }
 
 trait Future[A]
@@ -62,7 +69,8 @@ private class Pending_Future[A](future: Scala_Future[A]) extends Future[A]
   override def is_finished: Boolean = future.isCompleted
 
   def join: A = Await.result(future, Duration.Inf)
-  override def map[B](f: A => B): Future[B] = new Pending_Future[B](future.map(f))
+  override def map[B](f: A => B): Future[B] =
+    new Pending_Future[B](future.map(f)(Future.execution_context))
 }
 
 private class Promise_Future[A](promise: Scala_Promise[A])
