@@ -140,7 +140,7 @@ class Isabelle_Process(
 
 
 
-  /** stream actors **/
+  /** process streams **/
 
   /* command input */
 
