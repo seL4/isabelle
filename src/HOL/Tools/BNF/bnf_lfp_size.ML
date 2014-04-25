@@ -217,18 +217,23 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
     val overloaded_size_defs' =
       map (mk_unabs_def 1 o (fn thm => thm RS meta_eq_to_obj_eq)) overloaded_size_defs;
 
+    val all_overloaded_size_defs = overloaded_size_defs @
+      (Spec_Rules.retrieve lthy0 @{const size ('a)}
+       |> map_filter (try (fn (Equational, (_, [thm])) => thm)));
+
     val nested_size_maps = map (pointfill lthy2) nested_size_o_maps @ nested_size_o_maps;
     val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ nested_bnfs @ nesting_bnfs);
 
     fun derive_size_simp size_def' simp0 =
       (trans OF [size_def', simp0])
-      |> Simplifier.asm_full_simplify (ss_only (@{thms inj_on_convol_id snd_o_convol} @
+      |> Simplifier.asm_full_simplify (ss_only (@{thms inj_on_convol_ident id_def o_def snd_conv} @
         all_inj_maps @ nested_size_maps) lthy2)
       |> fold_thms lthy2 size_defs_unused_0;
-    fun derive_overloaded_size_simp size_def' simp0 =
-      (trans OF [size_def', simp0])
+
+    fun derive_overloaded_size_simp overloaded_size_def' simp0 =
+      (trans OF [overloaded_size_def', simp0])
       |> unfold_thms lthy2 @{thms add_0_left add_0_right}
-      |> fold_thms lthy2 overloaded_size_defs;
+      |> fold_thms lthy2 all_overloaded_size_defs;
 
     val size_simpss = map2 (map o derive_size_simp) size_defs' rec_thmss;
     val size_simps = flat size_simpss;

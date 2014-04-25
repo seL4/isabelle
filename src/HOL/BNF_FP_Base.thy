@@ -166,10 +166,7 @@ lemma vimage2p_comp: "vimage2p (f1 \<circ> f2) (g1 \<circ> g2) = vimage2p f2 g2 
 lemma fun_cong_unused_0: "f = (\<lambda>x. g) \<Longrightarrow> f (\<lambda>x. 0) = g"
   by (erule arg_cong)
 
-lemma snd_o_convol: "(snd \<circ> (\<lambda>x. (f x, g x))) = g"
-  by (rule ext) simp
-
-lemma inj_on_convol_id: "inj_on (\<lambda>x. (x, f x)) X"
+lemma inj_on_convol_ident: "inj_on (\<lambda>x. (x, f x)) X"
   unfolding inj_on_def by simp
 
 lemma case_prod_app: "case_prod f x y = case_prod (\<lambda>l r. f l r y) x"
