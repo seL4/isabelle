@@ -261,7 +261,6 @@ class Session(val resources: Resources)
   private case object Stop
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
-  private case class Messages(msgs: List[Prover.Message])
   private case class Update_Options(options: Options)
 
 
@@ -297,44 +296,6 @@ class Session(val resources: Resources)
       timer.cancel()
       flush()
     }
-  }
-
-
-  /* buffered prover messages */
-
-  private object receiver
-  {
-    private var buffer = new mutable.ListBuffer[Prover.Message]
-
-    private def flush(): Unit = synchronized {
-      if (!buffer.isEmpty) {
-        val msgs = buffer.toList
-        manager.send(Messages(msgs))
-        buffer = new mutable.ListBuffer[Prover.Message]
-      }
-    }
-
-    def invoke(msg: Prover.Message): Unit = synchronized {
-      msg match {
-        case _: Prover.Input =>
-          buffer += msg
-        case output: Prover.Protocol_Output if output.properties == Markup.Flush =>
-          flush()
-        case output: Prover.Output =>
-          buffer += msg
-          if (output.is_syslog)
-            syslog.change(queue =>
-              {
-                val queue1 = queue.enqueue(output.message)
-                if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
-              })
-      }
-    }
-
-    private val timer = new Timer("receiver", true)
-    timer.schedule(new TimerTask { def run = flush }, message_delay.ms, message_delay.ms)
-
-    def shutdown() { timer.cancel(); flush() }
   }
 
 
@@ -503,9 +464,9 @@ class Session(val resources: Resources)
               phase = Session.Ready
 
             case Markup.Return_Code(rc) if output.is_exit =>
-              prover = None
               if (rc == 0) phase = Session.Inactive
               else phase = Session.Failed
+              prover = None
 
             case _ => raw_output_messages.post(output)
           }
@@ -521,10 +482,26 @@ class Session(val resources: Resources)
       case arg: Any =>
         //{{{
         arg match {
+          case output: Prover.Output =>
+            if (output.is_stdout || output.is_stderr) raw_output_messages.post(output)
+            else handle_output(output)
+            if (output.is_syslog) {
+              syslog.change(queue =>
+                {
+                  val queue1 = queue.enqueue(output.message)
+                  if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
+                })
+              syslog_messages.post(output)
+            }
+            all_messages.post(output)
+
+          case input: Prover.Input =>
+            all_messages.post(input)
+
           case Start(name, args) if prover.isEmpty =>
             if (phase == Session.Inactive || phase == Session.Failed) {
               phase = Session.Startup
-              prover = Some(resources.start_prover(receiver.invoke _, name, args))
+              prover = Some(resources.start_prover(manager.send(_), name, args))
             }
 
           case Stop =>
@@ -555,18 +532,6 @@ class Session(val resources: Resources)
           case Protocol_Command(name, args) if prover.isDefined =>
             prover.get.protocol_command(name, args:_*)
 
-          case Messages(msgs) =>
-            msgs foreach {
-              case input: Prover.Input =>
-                all_messages.post(input)
-
-              case output: Prover.Output =>
-                if (output.is_stdout || output.is_stderr) raw_output_messages.post(output)
-                else handle_output(output)
-                if (output.is_syslog) syslog_messages.post(output)
-                all_messages.post(output)
-            }
-
           case change: Session.Change if prover.isDefined =>
             if (global_state.value.is_assigned(change.previous))
               handle_change(change)
@@ -586,7 +551,6 @@ class Session(val resources: Resources)
   def stop()
   {
     manager.send_wait(Stop)
-    receiver.shutdown()
     change_parser.shutdown()
     change_buffer.shutdown()
     manager.shutdown()

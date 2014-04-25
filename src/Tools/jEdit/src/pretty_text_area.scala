@@ -12,6 +12,7 @@ import isabelle._
 
 import java.awt.{Color, Font, FontMetrics, Toolkit, Window}
 import java.awt.event.KeyEvent
+import java.util.concurrent.{Future => JFuture}
 
 import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
@@ -67,7 +68,7 @@ class Pretty_Text_Area(
   private var current_base_results = Command.Results.empty
   private var current_rendering: Rendering =
     Pretty_Text_Area.text_rendering(current_base_snapshot, current_base_results, Nil)._2
-  private var future_rendering: Option[java.util.concurrent.Future[Unit]] = None
+  private var future_rendering: Option[JFuture[Unit]] = None
 
   private val rich_text_area =
     new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
@@ -118,8 +119,8 @@ class Pretty_Text_Area(
       val formatted_body = Pretty.formatted(current_body, margin, metric)
 
       future_rendering.map(_.cancel(true))
-      future_rendering = Some(default_thread_pool.submit(() =>
-        {
+      future_rendering =
+        Some(Simple_Thread.submit_task {
           val (text, rendering) =
             try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
@@ -136,7 +137,7 @@ class Pretty_Text_Area(
               getBuffer.setReadOnly(true)
             }
           }
-        }))
+        })
     }
   }
 

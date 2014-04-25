@@ -30,25 +30,23 @@ object Active
             // FIXME avoid hard-wired stuff
             elem match {
               case XML.Elem(Markup(Markup.BROWSER, _), body) =>
-                default_thread_pool.submit(() =>
-                  {
-                    val graph_file = Isabelle_System.tmp_file("graph")
-                    File.write(graph_file, XML.content(body))
-                    Isabelle_System.bash_env(null,
-                      Map("GRAPH_FILE" -> Isabelle_System.posix_path(graph_file)),
-                      "\"$ISABELLE_TOOL\" browser -c \"$GRAPH_FILE\" &")
-                  })
+                Future.fork {
+                  val graph_file = Isabelle_System.tmp_file("graph")
+                  File.write(graph_file, XML.content(body))
+                  Isabelle_System.bash_env(null,
+                    Map("GRAPH_FILE" -> Isabelle_System.posix_path(graph_file)),
+                    "\"$ISABELLE_TOOL\" browser -c \"$GRAPH_FILE\" &")
+                }
 
               case XML.Elem(Markup(Markup.GRAPHVIEW, _), body) =>
-                default_thread_pool.submit(() =>
-                  {
-                    val graph =
-                      Exn.capture {
-                        isabelle.graphview.Model.decode_graph(body)
-                          .transitive_reduction_acyclic
-                      }
-                    Swing_Thread.later { Graphview_Dockable(view, snapshot, graph) }
-                  })
+                Future.fork {
+                  val graph =
+                    Exn.capture {
+                      isabelle.graphview.Model.decode_graph(body)
+                        .transitive_reduction_acyclic
+                    }
+                  Swing_Thread.later { Graphview_Dockable(view, snapshot, graph) }
+                }
 
               case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
                 props match {

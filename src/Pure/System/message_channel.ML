@@ -34,14 +34,6 @@ fun output_message channel (Message ss) =
   List.app (System_Channel.output channel) ss;
 
 
-(* flush *)
-
-fun flush channel = ignore (try System_Channel.flush channel);
-
-val flush_message = message Markup.protocolN Markup.flush [];
-fun flush_output channel = (output_message channel flush_message; flush channel);
-
-
 (* channel *)
 
 datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
@@ -49,15 +41,17 @@ datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
 fun send (Message_Channel {send, ...}) = send;
 fun shutdown (Message_Channel {shutdown, ...}) = shutdown ();
 
+fun flush channel = ignore (try System_Channel.flush channel);
+
 fun message_output mbox channel =
   let
     fun loop receive =
       (case receive mbox of
-        SOME NONE => flush_output channel
+        SOME NONE => flush channel
       | SOME (SOME msg) =>
          (output_message channel msg;
           loop (Mailbox.receive_timeout (seconds 0.02)))
-      | NONE => (flush_output channel; loop (SOME o Mailbox.receive)));
+      | NONE => (flush channel; loop (SOME o Mailbox.receive)));
   in fn () => loop (SOME o Mailbox.receive) end;
 
 fun make channel =

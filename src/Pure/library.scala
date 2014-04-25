@@ -10,8 +10,6 @@ package isabelle
 
 import scala.collection.mutable
 
-import java.util.concurrent.{Future => JFuture, TimeUnit}
-
 
 object Library
 {
@@ -159,18 +157,6 @@ object Library
   def insert[A](x: A)(xs: List[A]): List[A] = if (xs.contains(x)) xs else x :: xs
   def remove[A, B](x: B)(xs: List[A]): List[A] = if (member(xs)(x)) xs.filterNot(_ == x) else xs
   def update[A](x: A)(xs: List[A]): List[A] = x :: remove(x)(xs)
-
-
-  /* Java futures */
-
-  def future_value[A](x: A) = new JFuture[A]
-  {
-    def cancel(may_interrupt: Boolean): Boolean = false
-    def isCancelled(): Boolean = false
-    def isDone(): Boolean = true
-    def get(): A = x
-    def get(timeout: Long, time_unit: TimeUnit): A = x
-  }
 }
 
 
@@ -186,13 +172,4 @@ class Basic_Library
   val quote = Library.quote _
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _
-
-
-  /* parallel tasks */
-
-  implicit def function_as_callable[A](f: () => A) =
-    new java.util.concurrent.Callable[A] { def call = f() }
-
-  val default_thread_pool =
-    scala.collection.parallel.ForkJoinTasks.defaultForkJoinPool
 }
