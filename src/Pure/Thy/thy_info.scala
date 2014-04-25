@@ -7,9 +7,6 @@ Theory and file dependencies.
 package isabelle
 
 
-import java.util.concurrent.{Future => JFuture}
-
-
 class Thy_Info(resources: Resources)
 {
   /* messages */

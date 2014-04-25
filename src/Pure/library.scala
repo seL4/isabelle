@@ -159,18 +159,6 @@ object Library
   def insert[A](x: A)(xs: List[A]): List[A] = if (xs.contains(x)) xs else x :: xs
   def remove[A, B](x: B)(xs: List[A]): List[A] = if (member(xs)(x)) xs.filterNot(_ == x) else xs
   def update[A](x: A)(xs: List[A]): List[A] = x :: remove(x)(xs)
-
-
-  /* Java futures */
-
-  def future_value[A](x: A) = new JFuture[A]
-  {
-    def cancel(may_interrupt: Boolean): Boolean = false
-    def isCancelled(): Boolean = false
-    def isDone(): Boolean = true
-    def get(): A = x
-    def get(timeout: Long, time_unit: TimeUnit): A = x
-  }
 }
 
 
