@@ -67,7 +67,7 @@ section "Parallel Checking"
 
 public option threads : int = 0
   -- "maximum number of worker threads for prover process (0 = hardware max.)"
-public option threads_trace : int = 0
+option threads_trace : int = 0
   -- "level of tracing information for multithreading"
 public option parallel_proofs : int = 2
   -- "level of parallel proof checking: 0, 1, 2"
