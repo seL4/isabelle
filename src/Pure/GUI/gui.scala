@@ -9,10 +9,10 @@ package isabelle
 
 
 import java.lang.{ClassLoader, ClassNotFoundException, NoSuchMethodException}
-import java.awt.{Image, Component, Container, Toolkit, Window, Font}
+import java.awt.{Image, Component, Container, Toolkit, Window, Font, KeyboardFocusManager}
 import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
 import java.awt.geom.AffineTransform
-import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow}
+import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow, JButton}
 
 import scala.collection.convert.WrapAsJava
 import scala.swing.{ComboBox, TextArea, ScrollPane}
@@ -37,6 +37,18 @@ object GUI
   def is_macos_laf(): Boolean =
     Platform.is_macos &&
     UIManager.getSystemLookAndFeelClassName() == UIManager.getLookAndFeel.getClass.getName
+
+
+  /* plain focus traversal, notably for text fields */
+
+  def plain_focus_traversal(component: Component)
+  {
+    val dummy_button = new JButton
+    def apply(id: Int): Unit =
+      component.setFocusTraversalKeys(id, dummy_button.getFocusTraversalKeys(id))
+    apply(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS)
+    apply(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS)
+  }
 
 
   /* X11 window manager */

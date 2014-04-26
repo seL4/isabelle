@@ -93,6 +93,7 @@ class JEdit_Options extends Options_Variable
               case _ => true
             }
           })
+        GUI.plain_focus_traversal(text_area.peer)
         text_area
       }
     component.load()

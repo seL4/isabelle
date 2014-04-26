@@ -1,4 +1,5 @@
 /*  Title:      Pure/PIDE/document_id.scala
+    Module:     PIDE
     Author:     Makarius
 
 Unique identifiers for document structure.

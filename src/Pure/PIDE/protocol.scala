@@ -101,7 +101,7 @@ object Protocol
   }
 
   val proper_status_elements =
-    Document.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
+    Markup.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
       Markup.FINISHED, Markup.FAILED)
 
   val liberal_status_elements =
@@ -187,7 +187,7 @@ object Protocol
   /* result messages */
 
   private val clean_elements =
-    Document.Elements(Markup.REPORT, Markup.NO_REPORT)
+    Markup.Elements(Markup.REPORT, Markup.NO_REPORT)
 
   def clean_message(body: XML.Body): XML.Body =
     body filter {
@@ -308,12 +308,12 @@ object Protocol
   /* reported positions */
 
   private val position_elements =
-    Document.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
+    Markup.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(
     self_id: Document_ID.Generic => Boolean,
-    chunk_name: Text.Chunk.Name,
-    chunk: Text.Chunk,
+    chunk_name: Symbol.Text_Chunk.Name,
+    chunk: Symbol.Text_Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =

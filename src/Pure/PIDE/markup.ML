@@ -1,7 +1,7 @@
 (*  Title:      Pure/PIDE/markup.ML
     Author:     Makarius
 
-Isabelle-specific implementation of quasi-abstract markup elements.
+Quasi-abstract markup elements.
 *)
 
 signature MARKUP =

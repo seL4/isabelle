@@ -11,6 +11,7 @@ sig
       Strict of string
     | Loose of string
     | Name of string
+  val read_query: Position.T -> string -> (bool * criterion) list
   val find_consts : Proof.context -> (bool * criterion) list -> unit
 end;
 
@@ -69,7 +70,7 @@ fun pretty_const ctxt (c, ty) =
 
 (* find_consts *)
 
-fun find_consts ctxt raw_criteria =
+fun pretty_consts ctxt raw_criteria =
   let
     val thy = Proof_Context.theory_of ctxt;
     val low_ranking = 10000;
@@ -119,8 +120,10 @@ fun find_consts ctxt raw_criteria =
       then "nothing found"
       else "found " ^ string_of_int (length matches) ^ " constant(s):") ::
     Pretty.str "" ::
-    map (pretty_const ctxt) matches
-  end |> Pretty.fbreaks |> curry Pretty.blk 0 |> Pretty.writeln;
+    map (Pretty.item o single o pretty_const ctxt) matches
+  end |> Pretty.fbreaks |> curry Pretty.blk 0;
+
+fun find_consts ctxt args = Pretty.writeln (pretty_consts ctxt args);
 
 
 (* command syntax *)
@@ -132,15 +135,37 @@ val criterion =
   Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Name ||
   Parse.xname >> Loose;
 
+val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
+
 in
+
+fun read_query pos str =
+  Outer_Syntax.scan pos str
+  |> filter Token.is_proper
+  |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query --| Scan.ahead Parse.eof)))
+  |> #1;
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "find_consts"}
-    "find constants by name/type patterns"
-    (Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion)
-      >> (fn spec => Toplevel.keep (fn state => find_consts (Toplevel.context_of state) spec)));
+    "find constants by name / type patterns"
+    (query >> (fn spec =>
+      Toplevel.keep (fn st =>
+        Pretty.writeln (pretty_consts (Toplevel.context_of st) spec))));
 
 end;
+
+
+(* PIDE query operation *)
+
+val _ =
+  Query_Operation.register "find_consts" (fn {state, args, output_result} =>
+    (case try Toplevel.context_of state of
+      SOME ctxt =>
+        let
+          val [query_arg] = args;
+          val query = read_query Position.none query_arg;
+        in output_result (Pretty.string_of (pretty_consts ctxt query)) end
+    | NONE => error "Unknown context"));
 
 end;
 

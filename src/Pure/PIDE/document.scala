@@ -45,7 +45,7 @@ object Document
 
   /* document blobs: auxiliary files */
 
-  sealed case class Blob(bytes: Bytes, chunk: Text.Chunk, changed: Boolean)
+  sealed case class Blob(bytes: Bytes, chunk: Symbol.Text_Chunk, changed: Boolean)
   {
     def unchanged: Blob = copy(changed = false)
   }
@@ -379,31 +379,6 @@ object Document
   }
 
 
-  /* markup elements */
-
-  object Elements
-  {
-    def apply(elems: Set[String]): Elements = new Elements(elems)
-    def apply(elems: String*): Elements = apply(Set(elems: _*))
-    val empty: Elements = apply()
-    val full: Elements = new Full_Elements
-  }
-
-  sealed class Elements private[Document](private val rep: Set[String])
-  {
-    def apply(elem: String): Boolean = rep.contains(elem)
-    def + (elem: String): Elements = new Elements(rep + elem)
-    def ++ (elems: Elements): Elements = new Elements(rep ++ elems.rep)
-    override def toString: String = rep.mkString("Elements(", ",", ")")
-  }
-
-  private class Full_Elements extends Elements(Set.empty)
-  {
-    override def apply(elem: String): Boolean = true
-    override def toString: String = "Full_Elements()"
-  }
-
-
   /* snapshot */
 
   object Snapshot
@@ -431,13 +406,13 @@ object Document
     def cumulate[A](
       range: Text.Range,
       info: A,
-      elements: Elements,
+      elements: Markup.Elements,
       result: List[Command.State] => (A, Text.Markup) => Option[A],
       status: Boolean = false): List[Text.Info[A]]
 
     def select[A](
       range: Text.Range,
-      elements: Elements,
+      elements: Markup.Elements,
       result: List[Command.State] => Text.Markup => Option[A],
       status: Boolean = false): List[Text.Info[A]]
   }
@@ -536,10 +511,11 @@ object Document
       id == st.command.id ||
       (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
 
-    private def other_id(id: Document_ID.Generic): Option[(Text.Chunk.Id, Text.Chunk)] = None
+    private def other_id(id: Document_ID.Generic)
+      : Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)] = None
     /* FIXME
       (execs.get(id) orElse commands.get(id)).map(st =>
-        ((Text.Chunk.Id(st.command.id), st.command.chunk)))
+        ((Symbol.Text_Chunk.Id(st.command.id), st.command.chunk)))
     */
 
     private def redirection(st: Command.State): Graph[Document_ID.Command, Unit] =
@@ -697,10 +673,10 @@ object Document
       Command.State.merge_results(command_states(version, command))
 
     def command_markup(version: Version, command: Command, index: Command.Markup_Index,
-        range: Text.Range, elements: Elements): Markup_Tree =
+        range: Text.Range, elements: Markup.Elements): Markup_Tree =
       Command.State.merge_markup(command_states(version, command), index, range, elements)
 
-    def markup_to_XML(version: Version, node: Node, elements: Elements): XML.Body =
+    def markup_to_XML(version: Version, node: Node, elements: Markup.Elements): XML.Body =
       (for {
         command <- node.commands.iterator
         markup =
@@ -769,15 +745,15 @@ object Document
         def cumulate[A](
           range: Text.Range,
           info: A,
-          elements: Elements,
+          elements: Markup.Elements,
           result: List[Command.State] => (A, Text.Markup) => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range).inflate_singularity
           val (chunk_name, command_iterator) =
             load_commands match {
-              case command :: _ => (Text.Chunk.File(node_name.node), Iterator((command, 0)))
-              case _ => (Text.Chunk.Default, node.command_iterator(former_range))
+              case command :: _ => (Symbol.Text_Chunk.File(node_name.node), Iterator((command, 0)))
+              case _ => (Symbol.Text_Chunk.Default, node.command_iterator(former_range))
             }
           val markup_index = Command.Markup_Index(status, chunk_name)
           (for {
@@ -797,7 +773,7 @@ object Document
 
         def select[A](
           range: Text.Range,
-          elements: Elements,
+          elements: Markup.Elements,
           result: List[Command.State] => Text.Markup => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {

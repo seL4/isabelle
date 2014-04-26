@@ -20,7 +20,7 @@ object Markup_Tree
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
-  def merge(trees: List[Markup_Tree], range: Text.Range, elements: Document.Elements): Markup_Tree =
+  def merge(trees: List[Markup_Tree], range: Text.Range, elements: Markup.Elements): Markup_Tree =
     (empty /: trees)(_.merge(_, range, elements))
 
   def merge_disjoint(trees: List[Markup_Tree]): Markup_Tree =
@@ -54,7 +54,7 @@ object Markup_Tree
   {
     def markup: List[XML.Elem] = rev_markup.reverse
 
-    def filter_markup(elements: Document.Elements): List[XML.Elem] =
+    def filter_markup(elements: Markup.Elements): List[XML.Elem] =
     {
       var result: List[XML.Elem] = Nil
       for { elem <- rev_markup; if (elements(elem.name)) }
@@ -161,7 +161,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     }
   }
 
-  def merge(other: Markup_Tree, root_range: Text.Range, elements: Document.Elements): Markup_Tree =
+  def merge(other: Markup_Tree, root_range: Text.Range, elements: Markup.Elements): Markup_Tree =
   {
     def merge_trees(tree1: Markup_Tree, tree2: Markup_Tree): Markup_Tree =
       (tree1 /: tree2.branches)(
@@ -181,7 +181,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     }
   }
 
-  def cumulate[A](root_range: Text.Range, root_info: A, elements: Document.Elements,
+  def cumulate[A](root_range: Text.Range, root_info: A, elements: Markup.Elements,
     result: (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
   {
     def results(x: A, entry: Entry): Option[A] =
@@ -230,7 +230,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       List((Text.Info(root_range, root_info), overlapping(root_range).toList)))
   }
 
-  def to_XML(root_range: Text.Range, text: CharSequence, elements: Document.Elements): XML.Body =
+  def to_XML(root_range: Text.Range, text: CharSequence, elements: Markup.Elements): XML.Body =
   {
     def make_text(start: Text.Offset, stop: Text.Offset): XML.Body =
       if (start == stop) Nil

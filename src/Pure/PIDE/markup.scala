@@ -2,7 +2,7 @@
     Module:     PIDE
     Author:     Makarius
 
-Isabelle-specific implementation of quasi-abstract markup elements.
+Quasi-abstract markup elements.
 */
 
 package isabelle
@@ -10,6 +10,30 @@ package isabelle
 
 object Markup
 {
+  /* elements */
+
+  object Elements
+  {
+    def apply(elems: Set[String]): Elements = new Elements(elems)
+    def apply(elems: String*): Elements = apply(Set(elems: _*))
+    val empty: Elements = apply()
+    val full: Elements =
+      new Elements(Set.empty)
+      {
+        override def apply(elem: String): Boolean = true
+        override def toString: String = "Elements.full"
+      }
+  }
+
+  sealed class Elements private[Markup](private val rep: Set[String])
+  {
+    def apply(elem: String): Boolean = rep.contains(elem)
+    def + (elem: String): Elements = new Elements(rep + elem)
+    def ++ (elems: Elements): Elements = new Elements(rep ++ elems.rep)
+    override def toString: String = rep.mkString("Elements(", ",", ")")
+  }
+
+
   /* properties */
 
   val NAME = "name"

@@ -83,13 +83,13 @@ object Position
 
   object Reported
   {
-    def unapply(pos: T): Option[(Long, Text.Chunk.Name, Symbol.Range)] =
+    def unapply(pos: T): Option[(Long, Symbol.Text_Chunk.Name, Symbol.Range)] =
       (pos, pos) match {
         case (Id(id), Range(range)) =>
           val chunk_name =
             pos match {
-              case File(name) => Text.Chunk.File(name)
-              case _ => Text.Chunk.Default
+              case File(name) => Symbol.Text_Chunk.File(name)
+              case _ => Symbol.Text_Chunk.Default
             }
           Some((id, chunk_name, range))
         case _ => None

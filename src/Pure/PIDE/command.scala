@@ -15,7 +15,7 @@ import scala.collection.immutable.SortedMap
 object Command
 {
   type Edit = (Option[Command], Option[Command])
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Text.Chunk)])]
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Symbol.Text_Chunk)])]
 
 
 
@@ -60,10 +60,10 @@ object Command
 
   object Markup_Index
   {
-    val markup: Markup_Index = Markup_Index(false, Text.Chunk.Default)
+    val markup: Markup_Index = Markup_Index(false, Symbol.Text_Chunk.Default)
   }
 
-  sealed case class Markup_Index(status: Boolean, chunk_name: Text.Chunk.Name)
+  sealed case class Markup_Index(status: Boolean, chunk_name: Symbol.Text_Chunk.Name)
 
   object Markups
   {
@@ -84,16 +84,16 @@ object Command
       new Markups(rep + (index -> (this(index) + markup)))
 
     def redirection_iterator: Iterator[Document_ID.Generic] =
-      for (Markup_Index(_, Text.Chunk.Id(id)) <- rep.keysIterator)
+      for (Markup_Index(_, Symbol.Text_Chunk.Id(id)) <- rep.keysIterator)
         yield id
 
     def redirect(other_id: Document_ID.Generic): Markups =
     {
       val rep1 =
         (for {
-          (Markup_Index(status, Text.Chunk.Id(id)), markup) <- rep.iterator
+          (Markup_Index(status, Symbol.Text_Chunk.Id(id)), markup) <- rep.iterator
           if other_id == id
-        } yield (Markup_Index(status, Text.Chunk.Default), markup)).toMap
+        } yield (Markup_Index(status, Symbol.Text_Chunk.Default), markup)).toMap
       if (rep1.isEmpty) Markups.empty else new Markups(rep1)
     }
 
@@ -115,7 +115,7 @@ object Command
       Results.merge(states.map(_.results))
 
     def merge_markup(states: List[State], index: Markup_Index,
-        range: Text.Range, elements: Document.Elements): Markup_Tree =
+        range: Text.Range, elements: Markup.Elements): Markup_Tree =
       Markup_Tree.merge(states.map(_.markup(index)), range, elements)
   }
 
@@ -156,7 +156,8 @@ object Command
     private def add_status(st: Markup): State =
       copy(status = st :: status)
 
-    private def add_markup(status: Boolean, chunk_name: Text.Chunk.Name, m: Text.Markup): State =
+    private def add_markup(
+      status: Boolean, chunk_name: Symbol.Text_Chunk.Name, m: Text.Markup): State =
     {
       val markups1 =
         if (status || Protocol.liberal_status_elements(m.info.name))
@@ -167,7 +168,7 @@ object Command
 
     def accumulate(
         self_id: Document_ID.Generic => Boolean,
-        other_id: Document_ID.Generic => Option[(Text.Chunk.Id, Text.Chunk)],
+        other_id: Document_ID.Generic => Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
         message: XML.Elem): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
@@ -176,7 +177,7 @@ object Command
               case elem @ XML.Elem(markup, Nil) =>
                 state.
                   add_status(markup).
-                  add_markup(true, Text.Chunk.Default, Text.Info(command.proper_range, elem))
+                  add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.proper_range, elem))
               case _ =>
                 System.err.println("Ignored status message: " + msg)
                 state
@@ -194,7 +195,7 @@ object Command
                   val target =
                     if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
                       Some((chunk_name, command.chunks(chunk_name)))
-                    else if (chunk_name == Text.Chunk.Default) other_id(id)
+                    else if (chunk_name == Symbol.Text_Chunk.Default) other_id(id)
                     else None
 
                   target match {
@@ -216,7 +217,7 @@ object Command
                   val range = command.proper_range
                   val props = Position.purge(atts)
                   val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
-                  state.add_markup(false, Text.Chunk.Default, info)
+                  state.add_markup(false, Symbol.Text_Chunk.Default, info)
 
                 case _ => bad(); state
               }
@@ -365,12 +366,12 @@ final class Command private(
 
   /* source chunks */
 
-  val chunk: Text.Chunk = Text.Chunk(source)
+  val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(source)
 
-  val chunks: Map[Text.Chunk.Name, Text.Chunk] =
-    ((Text.Chunk.Default -> chunk) ::
+  val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
+    ((Symbol.Text_Chunk.Default -> chunk) ::
       (for (Exn.Res((name, Some((_, file)))) <- blobs)
-        yield (Text.Chunk.File(name.node) -> file))).toMap
+        yield (Symbol.Text_Chunk.File(name.node) -> file))).toMap
 
   def length: Int = source.length
   def range: Text.Range = chunk.range
