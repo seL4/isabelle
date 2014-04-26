@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.event.ValueChanged
+import scala.swing.event.{SelectionChanged, ValueChanged}
 import scala.swing.{Action, Button, TabbedPane, TextField, BorderPanel, Label, ScrollPane}
 
 import org.gjt.sp.jedit.View
@@ -59,32 +59,40 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
             if (group == "control") contents += new Reset_Component
           }), null)
       })
-    pages += new TabbedPane.Page("search", new BorderPanel {
-      val search = new TextField(10)
-      val results_panel = new Wrap_Panel
-      add(search, BorderPanel.Position.North)
-      add(new ScrollPane(results_panel), BorderPanel.Position.Center)
 
-      val search_space =
-        (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList
+    val search_field = new TextField(10)
+    val search_page =
+      new TabbedPane.Page("search", new BorderPanel {
+        val results_panel = new Wrap_Panel
+        add(search_field, BorderPanel.Position.North)
+        add(new ScrollPane(results_panel), BorderPanel.Position.Center)
+  
+        val search_space =
+          (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList
+        val delay_search =
+          Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
+            val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
+            results_panel.contents.clear
+            val search_words = Word.explode(Word.lowercase(search_field.text))
+            val results =
+              (for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym).
+                take(search_limit + 1)
+            for (sym <- results.take(search_limit))
+              results_panel.contents += new Symbol_Component(sym)
+            if (results.length > search_limit)
+              results_panel.contents += new Label("...")
+            revalidate
+            repaint
+          }
+          search_field.reactions += { case ValueChanged(_) => delay_search.invoke() }
+      }, "Search Symbols")
+    pages += search_page
 
-      val delay_search =
-        Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
-          val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
-          results_panel.contents.clear
-          val search_words = Word.explode(Word.lowercase(search.text))
-          val results =
-            (for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym).
-              take(search_limit + 1)
-          for (sym <- results.take(search_limit))
-            results_panel.contents += new Symbol_Component(sym)
-          if (results.length > search_limit)
-            results_panel.contents += new Label("...")
-          revalidate
-          repaint
-        }
-        search.reactions += { case ValueChanged(_) => delay_search.invoke() }
-    }, "Search Symbols")
+    listenTo(selection)
+    reactions += {
+      case SelectionChanged(_) if selection.page == search_page => search_field.requestFocus
+    }
+
     pages.map(p =>
       p.title = Word.implode(Word.explode('_', p.title).map(Word.perhaps_capitalize(_))))
   }
