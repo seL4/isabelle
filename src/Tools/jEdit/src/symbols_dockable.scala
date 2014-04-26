@@ -9,8 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.Font
-
 import scala.swing.event.ValueChanged
 import scala.swing.{Action, Button, TabbedPane, TextField, BorderPanel, Label, ScrollPane}
 
@@ -19,10 +17,6 @@ import org.gjt.sp.jedit.View
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  val searchspace =
-    for ((group, symbols) <- Symbol.groups; sym <- symbols)
-      yield (sym, Word.lowercase(sym))
-
   private class Symbol_Component(val symbol: String) extends Button
   {
     private val decoded = Symbol.decode(symbol)
@@ -58,34 +52,36 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   val group_tabs: TabbedPane = new TabbedPane {
     pages ++=
-      Symbol.groups map { case (group, symbols) =>
+      Symbol.groups.map({ case (group, symbols) =>
         new TabbedPane.Page(group,
           new ScrollPane(new Wrap_Panel {
             contents ++= symbols.map(new Symbol_Component(_))
             if (group == "control") contents += new Reset_Component
           }), null)
-      }
+      })
     pages += new TabbedPane.Page("search", new BorderPanel {
       val search = new TextField(10)
       val results_panel = new Wrap_Panel
       add(search, BorderPanel.Position.North)
       add(new ScrollPane(results_panel), BorderPanel.Position.Center)
-      listenTo(search)
+
+      val search_space =
+        (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList
+
       val delay_search =
         Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
           val max_results = PIDE.options.int("jedit_symbols_search_limit") max 0
           results_panel.contents.clear
+          val search_words = Word.explode(Word.lowercase(search.text))
           val results =
-            (searchspace filter
-              (Word.explode(Word.lowercase(search.text)) forall _._2.contains)
-              take (max_results + 1)).toList
-          for ((sym, _) <- results)
-            results_panel.contents += new Symbol_Component(sym)
+            (for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym).
+              take(max_results + 1)
+          for (sym <- results) results_panel.contents += new Symbol_Component(sym)
           if (results.length > max_results) results_panel.contents += new Label("...")
           revalidate
           repaint
         }
-      reactions += { case ValueChanged(`search`) => delay_search.invoke() }
+        search.reactions += { case ValueChanged(_) => delay_search.invoke() }
     }, "Search Symbols")
     pages.map(p =>
       p.title = Word.implode(Word.explode('_', p.title).map(Word.perhaps_capitalize(_))))
