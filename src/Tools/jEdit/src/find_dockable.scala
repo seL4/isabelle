@@ -21,11 +21,11 @@ import org.gjt.sp.jedit.View
 
 object Find_Dockable
 {
-  private abstract class Operation
+  private abstract class Operation(view: View)
   {
+    val pretty_text_area = new Pretty_Text_Area(view)
     def query_operation: Query_Operation[View]
     def query: JComponent
-    def pretty_text_area: Pretty_Text_Area
     def page: TabbedPane.Page
   }
 }
@@ -75,11 +75,8 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* find theorems */
 
-  private val find_theorems = new Find_Dockable.Operation
+  private val find_theorems = new Find_Dockable.Operation(view)
   {
-    val pretty_text_area = new Pretty_Text_Area(view)
-
-
     /* query */
 
     private val process_indicator = new Process_Indicator
@@ -104,7 +101,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     val query = make_query("isabelle-find-theorems", query_label.tooltip, apply_query _)
 
 
-    /* controls */
+    /* GUI page */
 
     private val limit = new TextField(PIDE.options.int("find_theorems_limit").toString, 5) {
       tooltip = "Limit of displayed results"
@@ -124,9 +121,6 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
-
-    /* GUI page */
-
     private val controls: List[Component] =
       List(query_label, Component.wrap(query), limit, allow_dups,
         process_indicator.component, apply_button, zoom)
@@ -139,9 +133,53 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
 
+  /* find consts */
+
+  private val find_consts = new Find_Dockable.Operation(view)
+  {
+    /* query */
+
+    private val process_indicator = new Process_Indicator
+
+    val query_operation =
+      new Query_Operation(PIDE.editor, view, "find_consts",
+        consume_status(process_indicator, _),
+        (snapshot, results, body) =>
+          pretty_text_area.update(snapshot, results, Pretty.separate(body)))
+
+    private def apply_query()
+    {
+      query_operation.apply_query(List(query.getText))
+    }
+
+    private val query_label = new Label("Search criteria:") {
+      tooltip = GUI.tooltip_lines("Name / type patterns for constants")
+    }
+
+    val query = make_query("isabelle-find-consts", query_label.tooltip, apply_query _)
+
+
+    /* GUI page */
+
+    private val apply_button = new Button("Apply") {
+      tooltip = "Find constants by name / type patterns"
+      reactions += { case ButtonClicked(_) => apply_query() }
+    }
+
+    private val controls: List[Component] =
+      List(query_label, Component.wrap(query), process_indicator.component, apply_button, zoom)
+
+    val page =
+      new TabbedPane.Page("Constants", new BorderPanel {
+        add(new Wrap_Panel(Wrap_Panel.Alignment.Right)(controls:_*), BorderPanel.Position.North)
+        add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
+      }, apply_button.tooltip)
+  }
+
+
   /* operations */
 
-  private val operations = List(find_theorems)
+  private val operations = List(find_theorems, find_consts)
 
   private val tabs = new TabbedPane { for (op <- operations) pages += op.page }
   set_content(tabs)
