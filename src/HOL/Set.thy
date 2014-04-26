@@ -1826,6 +1826,18 @@ definition the_elem :: "'a set \<Rightarrow> 'a" where
 lemma the_elem_eq [simp]: "the_elem {x} = x"
   by (simp add: the_elem_def)
 
+lemma the_elem_image_unique:
+  assumes "A \<noteq> {}"
+  assumes *: "\<And>y. y \<in> A \<Longrightarrow> f y = f x"
+  shows "the_elem (f ` A) = f x"
+unfolding the_elem_def proof (rule the1_equality)
+  from `A \<noteq> {}` obtain y where "y \<in> A" by auto
+  with * have "f x = f y" by simp
+  with `y \<in> A` have "f x \<in> f ` A" by blast
+  with * show "f ` A = {f x}" by auto
+  then show "\<exists>!x. f ` A = {x}" by auto
+qed
+
 
 subsubsection {* Least value operator *}
 

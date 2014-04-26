@@ -235,11 +235,11 @@ done
 lemma image_surj_f_inv_f: "surj f ==> f ` (inv f ` A) = A"
 by (simp add: image_eq_UN surj_f_inv_f)
 
-lemma image_inv_f_f: "inj f ==> (inv f) ` (f ` A) = A"
-by (simp add: image_eq_UN)
+lemma image_inv_f_f: "inj f ==> inv f ` (f ` A) = A"
+  by (simp add: image_eq_UN)
 
-lemma inv_image_comp: "inj f ==> inv f ` (f`X) = X"
-by (auto simp add: image_def)
+lemma inv_image_comp: "inj f ==> inv f ` (f ` X) = X"
+  by (fact image_inv_f_f)
 
 lemma bij_image_Collect_eq: "bij f ==> f ` Collect P = {y. P (inv f y)}"
 apply auto

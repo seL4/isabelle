@@ -161,11 +161,8 @@ class finite_distrib_lattice_complete =
 
 lemma finite_distrib_lattice_complete_sup_Inf:
   "sup (x::'a::finite_distrib_lattice_complete) (Inf A) = (INF y:A. sup x y)"
-apply (rule finite_induct)
-apply (metis finite_code)
-apply (metis INF_empty Inf_empty sup_top_right)
-apply (metis INF_insert Inf_insert sup_inf_distrib1)
-done
+  using finite by (induct A rule: finite_induct)
+    (simp_all add: sup_inf_distrib1)
 
 lemma finite_distrib_lattice_complete_inf_Sup:
   "inf (x::'a::finite_distrib_lattice_complete) (Sup A) = (SUP y:A. inf x y)"
