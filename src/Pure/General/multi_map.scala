@@ -1,5 +1,6 @@
 /*  Title:      Pure/General/multi_map.scala
     Module:     PIDE
+    Author:     Makarius
 
 Maps with multiple entries per key.
 */
