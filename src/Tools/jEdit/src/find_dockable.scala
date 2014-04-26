@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.swing.{Button, Component, TextField, CheckBox, Label, ComboBox}
-import scala.swing.event.ButtonClicked
+import scala.swing.event.{ButtonClicked, Key, KeyPressed}
 
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
@@ -117,6 +117,8 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     tooltip = "Limit of displayed results"
     verifier = (s: String) =>
       s match { case Properties.Value.Int(x) => x >= 0 case _ => false }
+    listenTo(keys)
+    reactions += { case KeyPressed(_, Key.Enter, 0, _) => clicked }
   }
 
   private val allow_dups = new CheckBox("Duplicates") {
