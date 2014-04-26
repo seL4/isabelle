@@ -207,9 +207,7 @@ class Simplifier_Trace_Window(
   val use_regex = new CheckBox("Regex")
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-    new Label {
-      text = "Search"
-    },
+    new Label("Search"),
     new TextField(30) {
       listenTo(keys)
       reactions += {
