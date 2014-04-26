@@ -92,7 +92,6 @@ section{* Proving Elementary Properties \label{sec:regularity} *}
 declare knows_Spy_partsEs [elim]
 declare analz_subset_parts [THEN subsetD, dest]
 declare Fake_parts_insert [THEN subsetD, dest]
-declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 
 (*A "possibility property": there are traces that reach the end*)
 lemma "\<exists>NB. \<exists>evs \<in> ns_public. Says A B (Crypt (pubK B) (Nonce NB)) \<in> set evs"
