@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/word.scala
     Author:     Makarius
 
-Support for plain text words.
+Support for words within Unicode text.
 */
 
 package isabelle
@@ -84,6 +84,6 @@ object Word
     explode(_ == sep, text)
 
   def explode(text: String): List[String] =
-    explode(Symbol.is_ascii_blank(_), text)
+    explode(Character.isWhitespace(_), text)
 }
 
