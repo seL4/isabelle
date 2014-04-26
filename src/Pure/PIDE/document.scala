@@ -379,31 +379,6 @@ object Document
   }
 
 
-  /* markup elements */
-
-  object Elements
-  {
-    def apply(elems: Set[String]): Elements = new Elements(elems)
-    def apply(elems: String*): Elements = apply(Set(elems: _*))
-    val empty: Elements = apply()
-    val full: Elements = new Full_Elements
-  }
-
-  sealed class Elements private[Document](private val rep: Set[String])
-  {
-    def apply(elem: String): Boolean = rep.contains(elem)
-    def + (elem: String): Elements = new Elements(rep + elem)
-    def ++ (elems: Elements): Elements = new Elements(rep ++ elems.rep)
-    override def toString: String = rep.mkString("Elements(", ",", ")")
-  }
-
-  private class Full_Elements extends Elements(Set.empty)
-  {
-    override def apply(elem: String): Boolean = true
-    override def toString: String = "Full_Elements()"
-  }
-
-
   /* snapshot */
 
   object Snapshot
@@ -431,13 +406,13 @@ object Document
     def cumulate[A](
       range: Text.Range,
       info: A,
-      elements: Elements,
+      elements: Markup.Elements,
       result: List[Command.State] => (A, Text.Markup) => Option[A],
       status: Boolean = false): List[Text.Info[A]]
 
     def select[A](
       range: Text.Range,
-      elements: Elements,
+      elements: Markup.Elements,
       result: List[Command.State] => Text.Markup => Option[A],
       status: Boolean = false): List[Text.Info[A]]
   }
@@ -697,10 +672,10 @@ object Document
       Command.State.merge_results(command_states(version, command))
 
     def command_markup(version: Version, command: Command, index: Command.Markup_Index,
-        range: Text.Range, elements: Elements): Markup_Tree =
+        range: Text.Range, elements: Markup.Elements): Markup_Tree =
       Command.State.merge_markup(command_states(version, command), index, range, elements)
 
-    def markup_to_XML(version: Version, node: Node, elements: Elements): XML.Body =
+    def markup_to_XML(version: Version, node: Node, elements: Markup.Elements): XML.Body =
       (for {
         command <- node.commands.iterator
         markup =
@@ -769,7 +744,7 @@ object Document
         def cumulate[A](
           range: Text.Range,
           info: A,
-          elements: Elements,
+          elements: Markup.Elements,
           result: List[Command.State] => (A, Text.Markup) => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
@@ -797,7 +772,7 @@ object Document
 
         def select[A](
           range: Text.Range,
-          elements: Elements,
+          elements: Markup.Elements,
           result: List[Command.State] => Text.Markup => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {

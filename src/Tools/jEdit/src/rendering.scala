@@ -129,28 +129,28 @@ object Rendering
   /* markup elements */
 
   private val semantic_completion_elements =
-    Document.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
+    Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 
   private val language_context_elements =
-    Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
+    Markup.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 
   private val highlight_elements =
-    Document.Elements(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
+    Markup.Elements(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
       Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
       Markup.VAR, Markup.TFREE, Markup.TVAR)
 
   private val hyperlink_elements =
-    Document.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
 
   private val active_elements =
-    Document.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
+    Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
       Markup.SENDBACK, Markup.SIMP_TRACE)
 
   private val tooltip_message_elements =
-    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
+    Markup.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
 
   private val tooltip_descriptions =
     Map(
@@ -163,23 +163,23 @@ object Rendering
       Markup.TVAR -> "schematic type variable")
 
   private val tooltip_elements =
-    Document.Elements(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
+    Markup.Elements(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
       Markup.TYPING, Markup.ML_TYPING, Markup.PATH, Markup.URL) ++
-    Document.Elements(tooltip_descriptions.keySet)
+    Markup.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
-    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+    Markup.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   private val squiggly_elements =
-    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+    Markup.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   private val line_background_elements =
-    Document.Elements(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE,
+    Markup.Elements(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE,
       Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE,
       Markup.INFORMATION)
 
   private val separator_elements =
-    Document.Elements(Markup.SEPARATOR)
+    Markup.Elements(Markup.SEPARATOR)
 
   private val background_elements =
     Protocol.proper_status_elements + Markup.WRITELN_MESSAGE +
@@ -188,14 +188,14 @@ object Rendering
       active_elements
 
   private val foreground_elements =
-    Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
+    Markup.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
   private val bullet_elements =
-    Document.Elements(Markup.BULLET)
+    Markup.Elements(Markup.BULLET)
 
   private val fold_depth_elements =
-    Document.Elements(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
+    Markup.Elements(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
 }
 
 
@@ -287,7 +287,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* spell checker */
 
   private lazy val spell_checker_elements =
-    Document.Elements(space_explode(',', options.string("spell_checker_elements")): _*)
+    Markup.Elements(space_explode(',', options.string("spell_checker_elements")): _*)
 
   def spell_checker_ranges(range: Text.Range): List[Text.Range] =
     snapshot.select(range, spell_checker_elements, _ => _ => Some(())).map(_.range)
@@ -407,7 +407,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def command_results(range: Text.Range): Command.Results =
     Command.State.merge_results(
-      snapshot.select[List[Command.State]](range, Document.Elements.full, command_states =>
+      snapshot.select[List[Command.State]](range, Markup.Elements.full, command_states =>
         { case _ => Some(command_states) }).flatMap(_.info))
 
 
@@ -695,7 +695,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.SML_COMMENT -> inner_comment_color)
 
   private lazy val text_color_elements =
-    Document.Elements(text_colors.keySet)
+    Markup.Elements(text_colors.keySet)
 
   def text_color(range: Text.Range, color: Color): List[Text.Info[Color]] =
   {

@@ -115,7 +115,7 @@ object Command
       Results.merge(states.map(_.results))
 
     def merge_markup(states: List[State], index: Markup_Index,
-        range: Text.Range, elements: Document.Elements): Markup_Tree =
+        range: Text.Range, elements: Markup.Elements): Markup_Tree =
       Markup_Tree.merge(states.map(_.markup(index)), range, elements)
   }
 

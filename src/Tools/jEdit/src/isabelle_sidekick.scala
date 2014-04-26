@@ -162,7 +162,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
           val markup =
             snapshot.state.command_markup(
               snapshot.version, command, Command.Markup_Index.markup,
-                command.range, Document.Elements.full)
+                command.range, Markup.Elements.full)
           Isabelle_Sidekick.swing_markup_tree(markup, root, (info: Text.Info[List[XML.Elem]]) =>
               {
                 val range = info.range + command_start
