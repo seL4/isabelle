@@ -1,8 +1,0 @@
-# -*- shell-script -*- :mode=shellscript:
-
-LIGHTTPD="/usr/sbin/lighttpd"
-
-WWWFINDDIR="$COMPONENT"
-WWWCONFIG="$WWWFINDDIR/lighttpd.conf"
-
-ISABELLE_TOOLS="$ISABELLE_TOOLS:$WWWFINDDIR/lib/Tools"
