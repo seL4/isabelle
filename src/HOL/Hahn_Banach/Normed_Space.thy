@@ -13,7 +13,7 @@ subsection {* Quasinorms *}
 text {*
   A \emph{seminorm} @{text "\<parallel>\<cdot>\<parallel>"} is a function on a real vector space
   into the reals that has the following properties: it is positive
-  definite, absolute homogenous and subadditive.
+  definite, absolute homogeneous and subadditive.
 *}
 
 locale seminorm =

@@ -391,7 +391,7 @@ proof -
     ultimately show "0 \<le> p x"  
       by (simp add: p_def zero_le_mult_iff)
 
-    txt {* @{text p} is absolutely homogenous: *}
+    txt {* @{text p} is absolutely homogeneous: *}
 
     show "p (a \<cdot> x) = \<bar>a\<bar> * p x"
     proof -
