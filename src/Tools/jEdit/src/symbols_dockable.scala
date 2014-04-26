@@ -50,7 +50,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     tooltip = "Reset control symbols within text"
   }
 
-  val group_tabs: TabbedPane = new TabbedPane {
+  private val group_tabs: TabbedPane = new TabbedPane {
     pages ++=
       Symbol.groups.map({ case (group, symbols) =>
         new TabbedPane.Page(group,
@@ -71,16 +71,17 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList
         val delay_search =
           Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
-            val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
-            results_panel.contents.clear
             val search_words = Word.explode(Word.lowercase(search_field.text))
+            val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
             val results =
-              (for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym).
-                take(search_limit + 1)
+              for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym
+
+            results_panel.contents.clear
             for (sym <- results.take(search_limit))
               results_panel.contents += new Symbol_Component(sym)
             if (results.length > search_limit)
-              results_panel.contents += new Label("...")
+              results_panel.contents +=
+                new Label("...") { tooltip = "(" + (results.length - search_limit) + " more)" }
             revalidate
             repaint
           }
@@ -93,8 +94,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       case SelectionChanged(_) if selection.page == search_page => search_field.requestFocus
     }
 
-    pages.map(p =>
-      p.title = Word.implode(Word.explode('_', p.title).map(Word.perhaps_capitalize(_))))
+    for (page <- pages)
+      page.title = Word.implode(Word.explode('_', page.title).map(Word.perhaps_capitalize(_)))
   }
   set_content(group_tabs)
 }
