@@ -1,4 +1,5 @@
 /*  Title:      Pure/General/word.scala
+    Module:     PIDE
     Author:     Makarius
 
 Support for words within Unicode text.

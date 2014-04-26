@@ -1,5 +1,5 @@
 /*  Title:      Pure/Thy/html.scala
-    Module:     PIDE-GUI
+    Module:     PIDE
     Author:     Makarius
 
 HTML presentation elements.
