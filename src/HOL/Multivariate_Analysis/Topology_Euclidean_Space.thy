@@ -3291,7 +3291,8 @@ lemma eventually_filter_from_subbaseI: "P \<in> B \<Longrightarrow> eventually P
 
 lemma filter_from_subbase_not_bot:
   "\<forall>X \<subseteq> B. finite X \<longrightarrow> Inf X \<noteq> bot \<Longrightarrow> filter_from_subbase B \<noteq> bot"
-  unfolding trivial_limit_def eventually_filter_from_subbase by auto
+  unfolding trivial_limit_def eventually_filter_from_subbase
+    bot_bool_def [symmetric] bot_fun_def [symmetric] bot_unique by simp
 
 lemma closure_iff_nhds_not_empty:
   "x \<in> closure X \<longleftrightarrow> (\<forall>A. \<forall>S\<subseteq>A. open S \<longrightarrow> x \<in> S \<longrightarrow> X \<inter> A \<noteq> {})"

@@ -758,35 +758,93 @@ instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
 subsection {* Complete lattice on unary and binary predicates *}
 
-lemma INF1_I: "(\<And>x. x \<in> A \<Longrightarrow> B x b) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b"
+lemma Inf1_I: 
+  "(\<And>P. P \<in> A \<Longrightarrow> P a) \<Longrightarrow> (\<Sqinter>A) a"
   by auto
 
-lemma INF2_I: "(\<And>x. x \<in> A \<Longrightarrow> B x b c) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b c"
+lemma INF1_I:
+  "(\<And>x. x \<in> A \<Longrightarrow> B x b) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b"
+  by simp
+
+lemma INF2_I:
+  "(\<And>x. x \<in> A \<Longrightarrow> B x b c) \<Longrightarrow> (\<Sqinter>x\<in>A. B x) b c"
+  by simp
+
+lemma Inf2_I: 
+  "(\<And>r. r \<in> A \<Longrightarrow> r a b) \<Longrightarrow> (\<Sqinter>A) a b"
   by auto
 
-lemma INF1_D: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> a \<in> A \<Longrightarrow> B a b"
+lemma Inf1_D:
+  "(\<Sqinter>A) a \<Longrightarrow> P \<in> A \<Longrightarrow> P a"
   by auto
 
-lemma INF2_D: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> a \<in> A \<Longrightarrow> B a b c"
+lemma INF1_D:
+  "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> a \<in> A \<Longrightarrow> B a b"
+  by simp
+
+lemma Inf2_D:
+  "(\<Sqinter>A) a b \<Longrightarrow> r \<in> A \<Longrightarrow> r a b"
   by auto
 
-lemma INF1_E: "(\<Sqinter>x\<in>A. B x) b \<Longrightarrow> (B a b \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
+lemma INF2_D:
+  "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> a \<in> A \<Longrightarrow> B a b c"
+  by simp
+
+lemma Inf1_E:
+  assumes "(\<Sqinter>A) a"
+  obtains "P a" | "P \<notin> A"
+  using assms by auto
+
+lemma INF1_E:
+  assumes "(\<Sqinter>x\<in>A. B x) b"
+  obtains "B a b" | "a \<notin> A"
+  using assms by auto
+
+lemma Inf2_E:
+  assumes "(\<Sqinter>A) a b"
+  obtains "r a b" | "r \<notin> A"
+  using assms by auto
+
+lemma INF2_E:
+  assumes "(\<Sqinter>x\<in>A. B x) b c"
+  obtains "B a b c" | "a \<notin> A"
+  using assms by auto
+
+lemma Sup1_I:
+  "P \<in> A \<Longrightarrow> P a \<Longrightarrow> (\<Squnion>A) a"
   by auto
 
-lemma INF2_E: "(\<Sqinter>x\<in>A. B x) b c \<Longrightarrow> (B a b c \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
+lemma SUP1_I:
+  "a \<in> A \<Longrightarrow> B a b \<Longrightarrow> (\<Squnion>x\<in>A. B x) b"
   by auto
 
-lemma SUP1_I: "a \<in> A \<Longrightarrow> B a b \<Longrightarrow> (\<Squnion>x\<in>A. B x) b"
+lemma Sup2_I:
+  "r \<in> A \<Longrightarrow> r a b \<Longrightarrow> (\<Squnion>A) a b"
   by auto
 
-lemma SUP2_I: "a \<in> A \<Longrightarrow> B a b c \<Longrightarrow> (\<Squnion>x\<in>A. B x) b c"
+lemma SUP2_I:
+  "a \<in> A \<Longrightarrow> B a b c \<Longrightarrow> (\<Squnion>x\<in>A. B x) b c"
   by auto
 
-lemma SUP1_E: "(\<Squnion>x\<in>A. B x) b \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b \<Longrightarrow> R) \<Longrightarrow> R"
-  by auto
+lemma Sup1_E:
+  assumes "(\<Squnion>A) a"
+  obtains P where "P \<in> A" and "P a"
+  using assms by auto
 
-lemma SUP2_E: "(\<Squnion>x\<in>A. B x) b c \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> B x b c \<Longrightarrow> R) \<Longrightarrow> R"
-  by auto
+lemma SUP1_E:
+  assumes "(\<Squnion>x\<in>A. B x) b"
+  obtains x where "x \<in> A" and "B x b"
+  using assms by auto
+
+lemma Sup2_E:
+  assumes "(\<Squnion>A) a b"
+  obtains r where "r \<in> A" "r a b"
+  using assms by auto
+
+lemma SUP2_E:
+  assumes "(\<Squnion>x\<in>A. B x) b c"
+  obtains x where "x \<in> A" "B x b c"
+  using assms by auto
 
 
 subsection {* Complete lattice on @{typ "_ set"} *}
