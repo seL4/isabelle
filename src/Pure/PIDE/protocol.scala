@@ -312,8 +312,8 @@ object Protocol
 
   def message_positions(
     self_id: Document_ID.Generic => Boolean,
-    chunk_name: Text.Chunk.Name,
-    chunk: Text.Chunk,
+    chunk_name: Symbol.Text_Chunk.Name,
+    chunk: Symbol.Text_Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =

@@ -45,7 +45,7 @@ object Document
 
   /* document blobs: auxiliary files */
 
-  sealed case class Blob(bytes: Bytes, chunk: Text.Chunk, changed: Boolean)
+  sealed case class Blob(bytes: Bytes, chunk: Symbol.Text_Chunk, changed: Boolean)
   {
     def unchanged: Blob = copy(changed = false)
   }
@@ -511,10 +511,11 @@ object Document
       id == st.command.id ||
       (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
 
-    private def other_id(id: Document_ID.Generic): Option[(Text.Chunk.Id, Text.Chunk)] = None
+    private def other_id(id: Document_ID.Generic)
+      : Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)] = None
     /* FIXME
       (execs.get(id) orElse commands.get(id)).map(st =>
-        ((Text.Chunk.Id(st.command.id), st.command.chunk)))
+        ((Symbol.Text_Chunk.Id(st.command.id), st.command.chunk)))
     */
 
     private def redirection(st: Command.State): Graph[Document_ID.Command, Unit] =
@@ -751,8 +752,8 @@ object Document
           val former_range = revert(range).inflate_singularity
           val (chunk_name, command_iterator) =
             load_commands match {
-              case command :: _ => (Text.Chunk.File(node_name.node), Iterator((command, 0)))
-              case _ => (Text.Chunk.Default, node.command_iterator(former_range))
+              case command :: _ => (Symbol.Text_Chunk.File(node_name.node), Iterator((command, 0)))
+              case _ => (Symbol.Text_Chunk.Default, node.command_iterator(former_range))
             }
           val markup_index = Command.Markup_Index(status, chunk_name)
           (for {

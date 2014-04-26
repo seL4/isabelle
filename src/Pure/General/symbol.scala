@@ -179,6 +179,44 @@ object Symbol
   }
 
 
+  /* text chunks */
+
+  object Text_Chunk
+  {
+    sealed abstract class Name
+    case object Default extends Name
+    case class Id(id: Document_ID.Generic) extends Name
+    case class File(name: String) extends Name
+
+    def apply(text: CharSequence): Text_Chunk =
+      new Text_Chunk(Text.Range(0, text.length), Index(text))
+  }
+
+  final class Text_Chunk private(val range: Text.Range, private val index: Index)
+  {
+    override def hashCode: Int = (range, index).hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Text_Chunk =>
+          range == other.range &&
+          index == other.index
+        case _ => false
+      }
+
+    def decode(symbol_offset: Offset): Text.Offset = index.decode(symbol_offset)
+    def decode(symbol_range: Range): Text.Range = index.decode(symbol_range)
+    def incorporate(symbol_range: Range): Option[Text.Range] =
+    {
+      def in(r: Range): Option[Text.Range] =
+        range.try_restrict(decode(r)) match {
+          case Some(r1) if !r1.is_singularity => Some(r1)
+          case _ => None
+        }
+     in(symbol_range) orElse in(symbol_range - 1)
+    }
+  }
+
+
   /* recoding text */
 
   private class Recoder(list: List[(String, String)])
