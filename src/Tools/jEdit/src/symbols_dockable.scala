@@ -70,14 +70,16 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
       val delay_search =
         Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
-          val max_results = PIDE.options.int("jedit_symbols_search_limit") max 0
+          val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
           results_panel.contents.clear
           val search_words = Word.explode(Word.lowercase(search.text))
           val results =
             (for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield sym).
-              take(max_results + 1)
-          for (sym <- results) results_panel.contents += new Symbol_Component(sym)
-          if (results.length > max_results) results_panel.contents += new Label("...")
+              take(search_limit + 1)
+          for (sym <- results.take(search_limit))
+            results_panel.contents += new Symbol_Component(sym)
+          if (results.length > search_limit)
+            results_panel.contents += new Label("...")
           revalidate
           repaint
         }
