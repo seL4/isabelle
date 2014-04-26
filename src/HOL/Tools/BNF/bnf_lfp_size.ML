@@ -126,7 +126,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
       | mk_size_of_typ (T as Type (s, Ts)) =
         if is_pair_C s Ts then
           pair (snd_const T)
-        else if exists (exists_subtype_in As) Ts then
+        else if exists (exists_subtype_in (As @ Cs)) Ts then
           (case Symtab.lookup data s of
             SOME (size_name, (_, size_o_maps as _ :: _)) =>
             let
