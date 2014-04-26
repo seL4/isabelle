@@ -14,7 +14,7 @@ import javax.swing.{JComponent, JTextField}
 
 import scala.swing.{Button, Component, TextField, CheckBox, Label,
   ComboBox, TabbedPane, BorderPanel}
-import scala.swing.event.{ButtonClicked, Key, KeyPressed}
+import scala.swing.event.{SelectionChanged, ButtonClicked, Key, KeyPressed}
 
 import org.gjt.sp.jedit.View
 
@@ -26,6 +26,7 @@ object Find_Dockable
     val pretty_text_area = new Pretty_Text_Area(view)
     def query_operation: Query_Operation[View]
     def query: JComponent
+    def select: Unit
     def page: TabbedPane.Page
   }
 }
@@ -121,13 +122,16 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
-    private val controls: List[Component] =
-      List(query_label, Component.wrap(query), limit, allow_dups,
-        process_indicator.component, apply_button, zoom)
+    private val control_panel =
+      new Wrap_Panel(Wrap_Panel.Alignment.Right)(
+        query_label, Component.wrap(query), limit, allow_dups,
+        process_indicator.component, apply_button)
+
+    def select { control_panel.contents += zoom }
 
     val page =
       new TabbedPane.Page("Theorems", new BorderPanel {
-        add(new Wrap_Panel(Wrap_Panel.Alignment.Right)(controls:_*), BorderPanel.Position.North)
+        add(control_panel, BorderPanel.Position.North)
         add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
       }, apply_button.tooltip)
   }
@@ -166,12 +170,15 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
-    private val controls: List[Component] =
-      List(query_label, Component.wrap(query), process_indicator.component, apply_button, zoom)
+    private val control_panel =
+      new Wrap_Panel(Wrap_Panel.Alignment.Right)(
+        query_label, Component.wrap(query), process_indicator.component, apply_button)
+
+    def select { control_panel.contents += zoom }
 
     val page =
       new TabbedPane.Page("Constants", new BorderPanel {
-        add(new Wrap_Panel(Wrap_Panel.Alignment.Right)(controls:_*), BorderPanel.Position.North)
+        add(control_panel, BorderPanel.Position.North)
         add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
       }, apply_button.tooltip)
   }
@@ -181,13 +188,26 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val operations = List(find_theorems, find_consts)
 
-  private val tabs = new TabbedPane { for (op <- operations) pages += op.page }
-  set_content(tabs)
-
-  override def focusOnDefaultComponent {
-    try { operations(tabs.selection.index).query.requestFocus }
-    catch { case _: IndexOutOfBoundsException => }
+  private val operations_pane = new TabbedPane
+  {
+    pages ++= operations.map(_.page)
+    listenTo(selection)
+    reactions += { case SelectionChanged(_) => select_operation() }
   }
+
+  private def get_operation(): Option[Find_Dockable.Operation] =
+    try { Some(operations(operations_pane.selection.index)) }
+    catch { case _: IndexOutOfBoundsException => None }
+
+  private def select_operation() {
+    for (op <- get_operation()) op.select
+    operations_pane.revalidate
+  }
+
+  override def focusOnDefaultComponent { for (op <- get_operation()) op.query.requestFocus }
+
+  select_operation()
+  set_content(operations_pane)
 
 
   /* resize */
