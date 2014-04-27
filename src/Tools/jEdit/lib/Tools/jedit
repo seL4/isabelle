@@ -202,7 +202,6 @@ if [ -e "$ISABELLE_HOME/Admin/build" ]; then
 fi
 
 PURE_JAR="$ISABELLE_HOME/lib/classes/Pure.jar"
-GRAPHVIEW_JAR="$ISABELLE_HOME/lib/classes/Graphview.jar"
 
 pushd "$JEDIT_HOME" >/dev/null || failed
 
