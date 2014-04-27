@@ -123,8 +123,8 @@ sig
   val mk_ordLeq_csum: int -> int -> thm -> thm
   val mk_UnIN: int -> int -> thm
 
-  val Pair_eqD: thm
-  val Pair_eqI: thm
+  val prod_injectD: thm
+  val prod_injectI: thm
   val ctrans: thm
   val id_apply: thm
   val meta_mp: thm
@@ -518,8 +518,8 @@ fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;
 
 (*TODO: antiquote heavily used theorems once*)
-val Pair_eqD = @{thm iffD1[OF Pair_eq]};
-val Pair_eqI = @{thm iffD2[OF Pair_eq]};
+val prod_injectD = @{thm iffD1[OF prod.inject]};
+val prod_injectI = @{thm iffD2[OF prod.inject]};
 val ctrans = @{thm ordLeq_transitive};
 val id_apply = @{thm id_apply};
 val meta_mp = @{thm meta_mp};

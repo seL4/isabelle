@@ -288,7 +288,7 @@ fun mk_bis_O_tac ctxt m bis_rel rel_congs rel_OOs =
         REPEAT_DETERM_N (length rel_congs) o rtac @{thm relcompp_in_rel},
         rtac (rel_OO RS sym RS @{thm eq_refl} RS @{thm predicate2D}),
         etac @{thm relcompE},
-        REPEAT_DETERM o dtac Pair_eqD,
+        REPEAT_DETERM o dtac prod_injectD,
         etac conjE, hyp_subst_tac ctxt,
         REPEAT_DETERM o etac allE, rtac @{thm relcomppI},
         etac mp, atac, etac mp, atac]) (rel_congs ~~ rel_OOs)] 1;
@@ -607,7 +607,7 @@ fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_d
           rtac (mk_sum_caseN n i) THEN' rtac (mk_sum_caseN n i RS trans)),
         rtac (map_comp_id RS trans), rtac (map_cong0 OF replicate m refl),
         EVERY' (map3 (fn i' => fn to_sbd_inj => fn from_to_sbd =>
-          DETERM o EVERY' [rtac trans, rtac o_apply, rtac Pair_eqI, rtac conjI,
+          DETERM o EVERY' [rtac trans, rtac o_apply, rtac prod_injectI, rtac conjI,
             rtac trans, rtac @{thm Shift_def},
             rtac equalityI, rtac subsetI, etac thin_rl, 
             REPEAT_DETERM o eresolve_tac [CollectE, @{thm UN_E}], dtac length_Lev', dtac asm_rl,
@@ -969,7 +969,7 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
                 dtac set_rev_mp, etac @{thm image_mono}, etac imageE,
                 dtac @{thm ssubst_mem[OF pair_collapse]},
                 REPEAT_DETERM o eresolve_tac (CollectE :: conjE ::
-                  @{thms case_prodE iffD1[OF Pair_eq, elim_format]}),
+                  @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
                 hyp_subst_tac ctxt,
                 dtac (in_Jrel RS iffD1),
                 dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
@@ -984,8 +984,8 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
           rtac map_cong0, REPEAT_DETERM_N m o rtac @{thm fun_cong[OF comp_id]},
           EVERY' (map (fn in_Jrel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
             dtac @{thm ssubst_mem[OF pair_collapse]},
-            REPEAT_DETERM o
-              eresolve_tac (CollectE :: conjE :: @{thms case_prodE iffD1[OF Pair_eq, elim_format]}),
+            REPEAT_DETERM o eresolve_tac (CollectE :: conjE ::
+              @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
             hyp_subst_tac ctxt, dtac (in_Jrel RS iffD1),
             dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE, atac]) in_Jrels),
           atac]]

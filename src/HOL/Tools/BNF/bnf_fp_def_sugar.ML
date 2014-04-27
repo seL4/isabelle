@@ -1179,8 +1179,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
                 mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
 
-              val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
-
               fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
                 mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
                   cxIn cyIn;
@@ -1189,6 +1187,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 flip_rels lthy live thm
                 RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
 
+              val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
               val half_rel_distinct_thmss =
                 map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
               val other_half_rel_distinct_thmss =

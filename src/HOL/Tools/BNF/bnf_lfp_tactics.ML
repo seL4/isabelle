@@ -204,7 +204,7 @@ fun mk_min_algs_tac worel in_congs =
     (rtac (worel RS (@{thm wo_rel.worec_fixpoint} RS fun_cong)) THEN' rtac iffD2 THEN'
     rtac meta_eq_to_obj_eq THEN' rtac (worel RS @{thm wo_rel.adm_wo_def}) THEN'
     REPEAT_DETERM_N 3 o rtac allI THEN' rtac impI THEN'
-    CONJ_WRAP_GEN' (EVERY' [rtac Pair_eqI, rtac conjI]) minH_tac in_congs) 1
+    CONJ_WRAP_GEN' (EVERY' [rtac prod_injectI, rtac conjI]) minH_tac in_congs) 1
   end;
 
 fun mk_min_algs_mono_tac ctxt min_algs = EVERY' [rtac relChainD, rtac allI, rtac allI, rtac impI,
@@ -679,7 +679,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
                 dtac set_rev_mp, etac @{thm image_mono}, etac imageE,
                 dtac @{thm ssubst_mem[OF pair_collapse]},
                 REPEAT_DETERM o eresolve_tac (CollectE :: conjE ::
-                  @{thms case_prodE iffD1[OF Pair_eq, elim_format]}),
+                  @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
                 hyp_subst_tac ctxt,
                 dtac (in_Irel RS iffD1), dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
                 TRY o
@@ -693,8 +693,8 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
           REPEAT_DETERM_N m o rtac @{thm fun_cong[OF comp_id]},
           EVERY' (map (fn in_Irel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
             dtac @{thm ssubst_mem[OF pair_collapse]},
-            REPEAT_DETERM o
-              eresolve_tac (CollectE :: conjE :: @{thms case_prodE iffD1[OF Pair_eq, elim_format]}),
+            REPEAT_DETERM o eresolve_tac (CollectE :: conjE ::
+              @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
             hyp_subst_tac ctxt,
             dtac (in_Irel RS iffD1), dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE, atac])
           in_Irels),

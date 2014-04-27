@@ -42,7 +42,7 @@ val sumprod_thms_set =
   @{thms UN_empty UN_insert Un_empty_left Un_empty_right Un_iff UN_simps(10) UN_iff
       Union_Un_distrib image_iff o_apply map_prod_simp
       mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
-val sumprod_thms_rel = @{thms rel_prod_apply rel_sum_simps id_apply};
+val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_apply prod.inject id_apply conj_assoc};
 
 fun hhf_concl_conv cv ctxt ct =
   (case Thm.term_of ct of
@@ -82,7 +82,7 @@ fun mk_half_distinct_tac ctxt ctor_inject abs_inject ctr_defs =
 fun mk_inject_tac ctxt ctr_def ctor_inject abs_inject =
   unfold_thms_tac ctxt [ctr_def] THEN
   HEADGOAL (rtac (ctor_inject RS ssubst)) THEN
-  unfold_thms_tac ctxt (abs_inject :: @{thms sum.inject Pair_eq conj_assoc}) THEN
+  unfold_thms_tac ctxt (abs_inject :: @{thms sum.inject prod.inject conj_assoc}) THEN
   HEADGOAL (rtac refl);
 
 val rec_unfold_thms =
@@ -155,8 +155,7 @@ fun mk_coinduct_same_ctr_tac ctxt rel_eqs pre_rel_def fp_abs_inverse abs_inverse
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: fp_abs_inverse :: abs_inverse :: dtor_ctor ::
     sels @ sumprod_thms_rel @ @{thms o_apply vimage2p_def})) THEN'
   (atac ORELSE' REPEAT o etac conjE THEN'
-     full_simp_tac
-       (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN'
+     full_simp_tac (ss_only (no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN'
      REPEAT o etac conjE THEN_MAYBE' REPEAT o hyp_subst_tac ctxt THEN'
      REPEAT o (resolve_tac [refl, conjI] ORELSE' atac));
 
