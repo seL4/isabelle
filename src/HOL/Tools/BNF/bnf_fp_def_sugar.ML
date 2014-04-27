@@ -122,13 +122,12 @@ structure FP_Sugar_Interpretation = Interpretation
   val eq: T * T -> bool = op = o pairself (map #T);
 );
 
-(* FIXME naming *)
 fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _) thy =
   thy
-  (*|> Sign.root_path*)
-  (*|> Sign.add_path (Long_Name.qualifier s)*)
+  |> Sign.root_path
+  |> Sign.add_path (Long_Name.qualifier s)
   |> f fp_sugars
-  (*|> Sign.restore_naming thy*);
+  |> Sign.restore_naming thy;
 
 fun fp_sugar_interpretation f = FP_Sugar_Interpretation.interpretation (with_repaired_path f);
 
