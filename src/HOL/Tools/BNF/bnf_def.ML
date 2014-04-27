@@ -609,14 +609,14 @@ fun user_policy policy ctxt = if Config.get ctxt bnf_note_all then Note_All else
 
 val smart_max_inline_term_size = 25; (*FUDGE*)
 
-fun note_bnf_thms fact_policy qualify' bnf_b bnf =
+fun note_bnf_thms fact_policy qualify0 bnf_b bnf =
   let
     val axioms = axioms_of_bnf bnf;
     val facts = facts_of_bnf bnf;
     val wits = wits_of_bnf bnf;
     val qualify =
       let val (_, qs, _) = Binding.dest bnf_b;
-      in fold_rev (fn (s, mand) => Binding.qualify mand s) qs #> qualify' end;
+      in fold_rev (fn (s, mand) => Binding.qualify mand s) qs #> qualify0 end;
   in
     (if fact_policy = Note_All then
       let
@@ -1346,10 +1346,10 @@ fun with_repaired_path f bnf thy =
       | (_, qs, _) => qs)
   in
     thy
-    (*|> Sign.root_path*)
-    (*|> fold (uncurry (fn true => Sign.mandatory_path | false => Sign.add_path) o swap) qualifiers*)
+    |> Sign.root_path
+    |> fold (uncurry (fn true => Sign.mandatory_path | false => Sign.add_path) o swap) qualifiers
     |> (fn thy => f (morph_bnf (Morphism.transfer_morphism thy) bnf) thy)
-    (*|> Sign.restore_naming thy*)
+    |> Sign.restore_naming thy
   end;
 
 fun bnf_interpretation f = BNF_Interpretation.interpretation (with_repaired_path f);
@@ -1407,8 +1407,7 @@ fun print_bnfs ctxt =
       [Pretty.str (mk_setN (i + 1) ^ ":"), Pretty.brk 1,
           Pretty.quote (Syntax.pretty_term ctxt (nth sets i))];
 
-    fun pretty_bnf (key, BNF {T = T, map = map, sets = sets, bd = bd,
-      live = live, lives = lives, dead = dead, deads = deads, ...}) =
+    fun pretty_bnf (key, BNF {name, T, map, sets, bd, live, lives, dead, deads, ...}) =
       Pretty.big_list
         (Pretty.string_of (Pretty.block [Pretty.str key, Pretty.str ":", Pretty.brk 1,
           Pretty.quote (Syntax.pretty_typ ctxt T)]))

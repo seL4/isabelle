@@ -2438,7 +2438,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               (SOME deads) map_b rel_b set_bs consts
             #> (fn (bnf, lthy) => (bnf, register_bnf (Local_Theory.full_name lthy b) bnf lthy)))
           bs tacss map_bs rel_bs set_bss wit_thmss
-          ((((((bs ~~ Ts) ~~ Jmaps) ~~ Jsetss_by_bnf) ~~ Jbds) ~~ all_witss) ~~ map SOME Jrels)
+          ((((((replicate n Binding.empty ~~ Ts) ~~ Jmaps) ~~ Jsetss_by_bnf) ~~ Jbds) ~~
+            all_witss) ~~ map SOME Jrels)
           lthy;
 
         val timer = time (timer "registered new codatatypes as BNFs");

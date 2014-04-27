@@ -1726,8 +1726,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               map_b rel_b set_bs consts
             #> (fn (bnf, lthy) => (bnf, register_bnf (Local_Theory.full_name lthy b) bnf lthy)))
           bs tacss map_bs rel_bs set_bss
-            ((((((bs ~~ Ts) ~~ Imaps) ~~ Isetss_by_bnf) ~~ Ibds) ~~ Iwitss) ~~ map SOME Irels)
-            lthy;
+            ((((((replicate n Binding.empty ~~ Ts) ~~ Imaps) ~~ Isetss_by_bnf) ~~ Ibds) ~~
+              Iwitss) ~~ map SOME Irels) lthy;
 
         val timer = time (timer "registered new datatypes as BNFs");
 
