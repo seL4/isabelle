@@ -69,7 +69,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   
         val search_space =
           (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList
-        val delay_search =
+        val search_delay =
           Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
             val search_words = Word.explode(Word.lowercase(search_field.text))
             val search_limit = PIDE.options.int("jedit_symbols_search_limit") max 0
@@ -85,7 +85,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
             revalidate
             repaint
           }
-          search_field.reactions += { case ValueChanged(_) => delay_search.invoke() }
+          search_field.reactions += { case ValueChanged(_) => search_delay.invoke() }
       }, "Search Symbols")
     pages += search_page
 
