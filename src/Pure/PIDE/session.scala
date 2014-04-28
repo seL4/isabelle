@@ -500,7 +500,7 @@ class Session(val resources: Resources)
           case Stop =>
             if (prover.isDefined && is_ready) {
               _protocol_handlers = _protocol_handlers.stop(prover.get)
-              global_state.change(_ => Document.State.init)  // FIXME event bus!?
+              global_state.change(_ => Document.State.init)
               phase = Session.Shutdown
               prover.get.terminate
             }
