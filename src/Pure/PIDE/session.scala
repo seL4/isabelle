@@ -75,6 +75,27 @@ object Session
   //}}}
 
 
+  /* syslog */
+
+  private[Session] class Syslog(limit: Int)
+  {
+    private var queue = Queue.empty[XML.Elem]
+    private var length = 0
+
+    def += (msg: XML.Elem): Unit = synchronized {
+      queue = queue.enqueue(msg)
+      length += 1
+      if (length > limit) queue = queue.dequeue._2
+    }
+
+    def content: String = synchronized {
+      cat_lines(queue.iterator.map(XML.content)) +
+      (if (length > limit) "\n(A total of " + length + " messages...)" else "")
+    }
+  }
+
+
+
   /* protocol handlers */
 
   abstract class Protocol_Handler
@@ -207,8 +228,8 @@ class Session(val resources: Resources)
 
   /* global state */
 
-  private val syslog = Synchronized(Queue.empty[XML.Elem])
-  def current_syslog(): String = cat_lines(syslog.value.iterator.map(XML.content))
+  private val syslog = new Session.Syslog(syslog_limit)
+  def syslog_content(): String = syslog.content
 
   @volatile private var _phase: Session.Phase = Session.Inactive
   private def phase_=(new_phase: Session.Phase)
@@ -476,16 +497,15 @@ class Session(val resources: Resources)
         //{{{
         arg match {
           case output: Prover.Output =>
-            if (output.is_stdout || output.is_stderr) raw_output_messages.post(output)
+            if (output.is_stdout || output.is_stderr)
+              raw_output_messages.post(output)
             else handle_output(output)
+
             if (output.is_syslog) {
-              syslog.change(queue =>
-                {
-                  val queue1 = queue.enqueue(output.message)
-                  if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
-                })
+              syslog += output.message
               syslog_messages.post(output)
             }
+
             all_messages.post(output)
 
           case input: Prover.Input =>

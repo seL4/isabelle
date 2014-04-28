@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.TextArea
+import scala.swing.{TextArea, ScrollPane}
 
 import org.gjt.sp.jedit.View
 
@@ -20,29 +20,24 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val syslog = new TextArea()
 
-  private def update_syslog()
+  private def syslog_delay = Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay"))
   {
-    Swing_Thread.require {}
-
-    val text = PIDE.session.current_syslog()
+    val text = PIDE.session.syslog_content()
     if (text != syslog.text) syslog.text = text
   }
 
-  set_content(syslog)
+  set_content(new ScrollPane(syslog))
 
 
   /* main */
 
   private val main =
-    Session.Consumer[Prover.Output](getClass.getName) {
-      case output =>
-        if (output.is_syslog) Swing_Thread.later { update_syslog() }
-    }
+    Session.Consumer[Prover.Output](getClass.getName) { case _ => syslog_delay.invoke() }
 
   override def init()
   {
     PIDE.session.syslog_messages += main
-    update_syslog()
+    syslog_delay.invoke()
   }
 
   override def exit()

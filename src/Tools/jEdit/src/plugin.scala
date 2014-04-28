@@ -249,7 +249,7 @@ class Plugin extends EBPlugin
       case Session.Inactive | Session.Failed =>
         Swing_Thread.later {
           GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
-              "Isabelle Syslog", GUI.scrollable_text(PIDE.session.current_syslog()))
+            "Isabelle Syslog", GUI.scrollable_text(PIDE.session.syslog_content()))
         }
 
       case Session.Ready =>
