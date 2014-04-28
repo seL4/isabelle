@@ -126,22 +126,22 @@ object PIDE
     }
   }
 
-  def init_view(buffer: Buffer, text_area: JEditTextArea)
-  {
-    JEdit_Lib.swing_buffer_lock(buffer) {
-      document_model(buffer) match {
-        case Some(model) => Document_View.init(model, text_area)
-        case None =>
+  def init_view(buffer: Buffer, text_area: JEditTextArea): Unit =
+    Swing_Thread.now {
+      JEdit_Lib.buffer_lock(buffer) {
+        document_model(buffer) match {
+          case Some(model) => Document_View.init(model, text_area)
+          case None =>
+        }
       }
     }
-  }
 
-  def exit_view(buffer: Buffer, text_area: JEditTextArea)
-  {
-    JEdit_Lib.swing_buffer_lock(buffer) {
-      Document_View.exit(text_area)
+  def exit_view(buffer: Buffer, text_area: JEditTextArea): Unit =
+    Swing_Thread.now {
+      JEdit_Lib.buffer_lock(buffer) {
+        Document_View.exit(text_area)
+      }
     }
-  }
 
 
   /* current document content */
