@@ -11,6 +11,7 @@
 declare -a SOURCES=(
   Concurrent/consumer_thread.scala
   Concurrent/counter.scala
+  Concurrent/event_timer.scala
   Concurrent/future.scala
   Concurrent/mailbox.scala
   Concurrent/simple_thread.scala

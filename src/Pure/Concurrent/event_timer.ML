@@ -9,9 +9,8 @@ and should finish quickly without further ado.
 
 signature EVENT_TIMER =
 sig
-  type event = unit -> unit
   eqtype request
-  val request: Time.time -> event -> request
+  val request: Time.time -> (unit -> unit) -> request
   val cancel: request -> bool
   val shutdown: unit -> unit
   val future: Time.time -> unit future
@@ -19,11 +18,6 @@ end;
 
 structure Event_Timer: EVENT_TIMER =
 struct
-
-(* type event *)
-
-type event = unit -> unit;
-
 
 (* type request *)
 
@@ -35,7 +29,7 @@ fun new_request () = Request (request_counter ());
 (* type requests *)
 
 structure Requests = Table(type key = Time.time val ord = Time.compare);
-type requests = (request * event) list Requests.table;
+type requests = (request * (unit -> unit)) list Requests.table;
 
 fun add_request time entry (requests: requests) =
   Requests.cons_list (time, entry) requests;
