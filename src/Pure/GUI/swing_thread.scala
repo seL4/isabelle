@@ -54,53 +54,11 @@ object Swing_Thread
   }
 
 
-  /* delayed actions */
+  /* delayed events */
 
-  abstract class Delay extends
-  {
-    def invoke(): Unit
-    def revoke(): Unit
-    def postpone(time: Time): Unit
-  }
+  def delay_first(delay: => Time)(event: => Unit): Simple_Thread.Delay =
+    Simple_Thread.delay_first(delay) { later { event } }
 
-  private def delayed_action(first: Boolean)(time: => Time)(action: => Unit): Delay =
-    new Delay {
-      private val timer = new Timer(time.ms.toInt, null)
-      timer.setRepeats(false)
-      timer.addActionListener(new ActionListener {
-        override def actionPerformed(e: ActionEvent) {
-          assert {}
-          timer.setInitialDelay(time.ms.toInt)
-          action
-        }
-      })
-
-      def invoke()
-      {
-        require {}
-        if (first) timer.start() else timer.restart()
-      }
-
-      def revoke()
-      {
-        require {}
-        timer.stop()
-        timer.setInitialDelay(time.ms.toInt)
-      }
-
-      def postpone(alt_time: Time)
-      {
-        require {}
-        if (timer.isRunning) {
-          timer.setInitialDelay(timer.getInitialDelay max alt_time.ms.toInt)
-          timer.restart()
-        }
-      }
-    }
-
-  // delayed action after first invocation
-  def delay_first = delayed_action(true) _
-
-  // delayed action after last invocation
-  def delay_last = delayed_action(false) _
+  def delay_last(delay: => Time)(event: => Unit): Simple_Thread.Delay =
+    Simple_Thread.delay_last(delay) { later { event } }
 }

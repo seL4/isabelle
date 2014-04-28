@@ -173,12 +173,12 @@ class Plugin extends EBPlugin
   def options_changed()
   {
     PIDE.session.global_options.post(Session.Global_Options(PIDE.options.value))
-    Swing_Thread.later { delay_load.invoke() }
+    delay_load.invoke()
   }
 
   def deps_changed()
   {
-    Swing_Thread.later { delay_load.invoke() }
+    delay_load.invoke()
   }
 
 
@@ -255,11 +255,11 @@ class Plugin extends EBPlugin
       case Session.Ready =>
         PIDE.session.update_options(PIDE.options.value)
         PIDE.init_models()
-        Swing_Thread.later { delay_load.invoke() }
+        delay_load.invoke()
 
       case Session.Shutdown =>
         PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
-        Swing_Thread.later { delay_load.revoke() }
+        delay_load.revoke()
 
       case _ =>
     }

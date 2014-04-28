@@ -51,5 +51,58 @@ object Simple_Thread
 
   def submit_task[A](body: => A): JFuture[A] =
     default_pool.submit(new Callable[A] { def call = body })
+
+
+  /* delayed events */
+
+  final class Delay private [Simple_Thread](first: Boolean, delay: => Time, event: => Unit)
+  {
+    private var running: Option[Event_Timer.Request] = None
+
+    private def run: Unit =
+    {
+      val do_run = synchronized {
+        if (running.isDefined) { running = None; true } else false
+      }
+      if (do_run) event
+    }
+
+    def invoke(): Unit = synchronized
+    {
+      val new_run =
+        running match {
+          case Some(request) => if (first) false else { request.cancel; true }
+          case None => true
+        }
+      if (new_run)
+        running = Some(Event_Timer.request(Time.now() + delay)(run))
+    }
+
+    def revoke(): Unit = synchronized
+    {
+      running match {
+        case Some(request) => request.cancel; running = None
+        case None =>
+      }
+    }
+
+    def postpone(alt_delay: Time): Unit =
+    {
+      running match {
+        case Some(request) =>
+          val alt_time = Time.now() + alt_delay
+          if (request.time < alt_time && request.cancel) {
+            running = Some(Event_Timer.request(alt_time)(run))
+          }
+        case None =>
+      }
+    }
+  }
+
+  // delayed event after first invocation
+  def delay_first(delay: => Time)(event: => Unit): Delay = new Delay(true, delay, event)
+
+  // delayed event after last invocation
+  def delay_last(delay: => Time)(event: => Unit): Delay = new Delay(false, delay, event)
 }
 

@@ -34,7 +34,7 @@ class JEdit_Editor extends Editor[View]
   private val delay_flush =
     Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
 
-  def invoke(): Unit = Swing_Thread.require { delay_flush.invoke() }
+  def invoke(): Unit = delay_flush.invoke()
 
 
   /* current situation */

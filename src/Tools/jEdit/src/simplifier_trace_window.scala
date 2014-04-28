@@ -198,7 +198,7 @@ class Simplifier_Trace_Window(
 
   peer.addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-    override def componentShown(e: ComponentEvent)   { delay_resize.invoke() }
+    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
   })
 
 

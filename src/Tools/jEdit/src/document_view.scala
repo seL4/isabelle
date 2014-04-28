@@ -196,9 +196,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Raw_Edits =>
-        Swing_Thread.later {
-          overview.delay_repaint.postpone(PIDE.options.seconds("editor_input_delay"))
-        }
+        overview.delay_repaint.postpone(PIDE.options.seconds("editor_input_delay"))
 
       case changed: Session.Commands_Changed =>
         val buffer = model.buffer
@@ -213,7 +211,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
               if (changed.assignment || load_changed ||
                   (changed.nodes.contains(model.node_name) &&
                    changed.commands.exists(snapshot.node.commands.contains)))
-                Swing_Thread.later { overview.delay_repaint.invoke() }
+                overview.delay_repaint.invoke()
 
               val visible_lines = text_area.getVisibleLines
               if (visible_lines > 0) {

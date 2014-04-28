@@ -173,7 +173,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-    override def componentShown(e: ComponentEvent)   { delay_resize.invoke() }
+    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
   })
 
 
