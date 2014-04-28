@@ -615,19 +615,18 @@ instantiation enat :: complete_lattice
 begin
 
 definition inf_enat :: "enat \<Rightarrow> enat \<Rightarrow> enat" where
-  "inf_enat \<equiv> min"
+  "inf_enat = min"
 
 definition sup_enat :: "enat \<Rightarrow> enat \<Rightarrow> enat" where
-  "sup_enat \<equiv> max"
+  "sup_enat = max"
 
 definition Inf_enat :: "enat set \<Rightarrow> enat" where
-  "Inf_enat A \<equiv> if A = {} then \<infinity> else (LEAST x. x \<in> A)"
+  "Inf_enat A = (if A = {} then \<infinity> else (LEAST x. x \<in> A))"
 
 definition Sup_enat :: "enat set \<Rightarrow> enat" where
-  "Sup_enat A \<equiv> if A = {} then 0
-    else if finite A then Max A
-                     else \<infinity>"
-instance proof
+  "Sup_enat A = (if A = {} then 0 else if finite A then Max A else \<infinity>)"
+instance
+proof
   fix x :: "enat" and A :: "enat set"
   { assume "x \<in> A" then show "Inf A \<le> x"
       unfolding Inf_enat_def by (auto intro: Least_le) }

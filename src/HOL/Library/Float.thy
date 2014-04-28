@@ -919,7 +919,7 @@ next
   show ?thesis
   proof (cases "0 \<le> l")
     assume "0 \<le> l"
-    def x' == "x * 2 ^ nat l"
+    def x' \<equiv> "x * 2 ^ nat l"
     have "int x * 2 ^ nat l = x'" by (simp add: x'_def int_mult int_power)
     moreover have "real x * 2 powr real l = real x'"
       by (simp add: powr_realpow[symmetric] `0 \<le> l` x'_def)
@@ -931,7 +931,7 @@ next
          (simp add: floor_divide_eq_div[symmetric] dvd_eq_mod_eq_0 round_up_def)
    next
     assume "\<not> 0 \<le> l"
-    def y' == "y * 2 ^ nat (- l)"
+    def y' \<equiv> "y * 2 ^ nat (- l)"
     from `y \<noteq> 0` have "y' \<noteq> 0" by (simp add: y'_def)
     have "int y * 2 ^ nat (- l) = y'" by (simp add: y'_def int_mult int_power)
     moreover have "real x * real (2::int) powr real l / real y = x / real y'"
@@ -959,9 +959,12 @@ proof -
     using assms by (auto intro!: pos_add_strict simp add: field_simps rat_precision_def)
 qed
 
-lemma power_aux: assumes "x > 0" shows "(2::int) ^ nat (x - 1) \<le> 2 ^ nat x - 1"
+lemma power_aux:
+  assumes "x > 0"
+  shows "(2::int) ^ nat (x - 1) \<le> 2 ^ nat x - 1"
 proof -
-  def y \<equiv> "nat (x - 1)" moreover
+  def y \<equiv> "nat (x - 1)"
+  moreover
   have "(2::int) ^ y \<le> (2 ^ (y + 1)) - 1" by simp
   ultimately show ?thesis using assms by simp
 qed
@@ -1103,8 +1106,8 @@ qed
 
 lemma lapprox_rat_nonneg:
   fixes n x y
-  defines "p == int n - ((bitlen \<bar>x\<bar>) - (bitlen \<bar>y\<bar>))"
-  assumes "0 \<le> x" "0 < y"
+  defines "p \<equiv> int n - ((bitlen \<bar>x\<bar>) - (bitlen \<bar>y\<bar>))"
+  assumes "0 \<le> x" and "0 < y"
   shows "0 \<le> real (lapprox_rat n x y)"
 using assms unfolding lapprox_rat_def p_def[symmetric] round_down_def real_of_int_minus[symmetric]
    powr_int[of 2, simplified]

@@ -23,7 +23,7 @@ definition
 abbreviation
   funcset :: "['a set, 'b set] => ('a => 'b) set"
     (infixr "->" 60) where
-  "A -> B == Pi A (%_. B)"
+  "A -> B \<equiv> Pi A (%_. B)"
 
 notation (xsymbols)
   funcset  (infixr "\<rightarrow>" 60)
@@ -41,8 +41,8 @@ syntax (HTML output)
   "_lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
 
 translations
-  "PI x:A. B" == "CONST Pi A (%x. B)"
-  "%x:A. f" == "CONST restrict (%x. f) A"
+  "PI x:A. B" \<rightleftharpoons> "CONST Pi A (%x. B)"
+  "%x:A. f" \<rightleftharpoons> "CONST restrict (%x. f) A"
 
 definition
   "compose" :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)" where
@@ -352,7 +352,7 @@ syntax (xsymbols) "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<P
 
 syntax (HTML output) "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^sub>E _\<in>_./ _)" 10)
 
-translations "PIE x:A. B" == "CONST Pi\<^sub>E A (%x. B)"
+translations "PIE x:A. B" \<rightleftharpoons> "CONST Pi\<^sub>E A (%x. B)"
 
 abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set" (infixr "->\<^sub>E" 60) where
   "A ->\<^sub>E B \<equiv> (\<Pi>\<^sub>E i\<in>A. B)"
