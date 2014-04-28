@@ -8,12 +8,13 @@ begin
 
 subsection {* Square root of complex numbers *}
 
-definition csqrt :: "complex \<Rightarrow> complex" where
-"csqrt z = (if Im z = 0 then
-            if 0 \<le> Re z then Complex (sqrt(Re z)) 0
-            else Complex 0 (sqrt(- Re z))
-           else Complex (sqrt((cmod z + Re z) /2))
-                        ((Im z / abs(Im z)) * sqrt((cmod z - Re z) /2)))"
+definition csqrt :: "complex \<Rightarrow> complex"
+where
+  "csqrt z =
+    (if Im z = 0 then
+       if 0 \<le> Re z then Complex (sqrt(Re z)) 0
+       else Complex 0 (sqrt(- Re z))
+     else Complex (sqrt((cmod z + Re z) /2)) ((Im z / abs(Im z)) * sqrt((cmod z - Re z) /2)))"
 
 lemma csqrt[algebra]: "(csqrt z)\<^sup>2 = z"
 proof-
@@ -594,20 +595,27 @@ next
 qed
 
 lemma poly_decompose:
-  assumes nc: "~constant(poly p)"
-  shows "\<exists>k a q. a\<noteq>(0::'a::{idom}) \<and> k\<noteq>0 \<and>
+  assumes nc: "\<not> constant (poly p)"
+  shows "\<exists>k a q. a \<noteq> (0::'a::{idom}) \<and> k \<noteq> 0 \<and>
                psize q + k + 1 = psize p \<and>
               (\<forall>z. poly p z = poly p 0 + z^k * poly (pCons a q) z)"
-using nc
-proof(induct p)
-  case 0 thus ?case by (simp add: constant_def)
+  using nc
+proof (induct p)
+  case 0
+  then show ?case
+    by (simp add: constant_def)
 next
   case (pCons c cs)
-  {assume C:"\<forall>z. z \<noteq> 0 \<longrightarrow> poly cs z = 0"
-    {fix x y
-      from C have "poly (pCons c cs) x = poly (pCons c cs) y" by (cases "x=0", auto)}
-    with pCons.prems have False by (auto simp add: constant_def)}
-  hence th: "\<not> (\<forall>z. z \<noteq> 0 \<longrightarrow> poly cs z = 0)" ..
+  {
+    assume C:"\<forall>z. z \<noteq> 0 \<longrightarrow> poly cs z = 0"
+    {
+      fix x y
+      from C have "poly (pCons c cs) x = poly (pCons c cs) y"
+        by (cases "x = 0") auto
+    }
+    with pCons.prems have False by (auto simp add: constant_def)
+  }
+  then have th: "\<not> (\<forall>z. z \<noteq> 0 \<longrightarrow> poly cs z = 0)" ..
   from poly_decompose_lemma[OF th]
   show ?case
     apply clarsimp
@@ -622,17 +630,17 @@ qed
 text{* Fundamental theorem of algebra *}
 
 lemma fundamental_theorem_of_algebra:
-  assumes nc: "~constant(poly p)"
+  assumes nc: "\<not> constant (poly p)"
   shows "\<exists>z::complex. poly p z = 0"
-using nc
-proof(induct "psize p" arbitrary: p rule: less_induct)
+  using nc
+proof (induct "psize p" arbitrary: p rule: less_induct)
   case less
   let ?p = "poly p"
   let ?ths = "\<exists>z. ?p z = 0"
 
   from nonconstant_length[OF less(2)] have n2: "psize p \<ge> 2" .
-  from poly_minimum_modulus obtain c where
-    c: "\<forall>w. cmod (?p c) \<le> cmod (?p w)" by blast
+  from poly_minimum_modulus obtain c where c: "\<forall>w. cmod (?p c) \<le> cmod (?p w)"
+    by blast
   {assume pc: "?p c = 0" hence ?ths by blast}
   moreover
   {assume pc0: "?p c \<noteq> 0"
@@ -797,11 +805,13 @@ subsection{* Nullstellensatz, degrees and divisibility of polynomials *}
 lemma nullstellensatz_lemma:
   fixes p :: "complex poly"
   assumes "\<forall>x. poly p x = 0 \<longrightarrow> poly q x = 0"
-  and "degree p = n" and "n \<noteq> 0"
+    and "degree p = n"
+    and "n \<noteq> 0"
   shows "p dvd (q ^ n)"
-using assms
-proof(induct n arbitrary: p q rule: nat_less_induct)
-  fix n::nat fix p q :: "complex poly"
+  using assms
+proof (induct n arbitrary: p q rule: nat_less_induct)
+  fix n :: nat
+  fix p q :: "complex poly"
   assume IH: "\<forall>m<n. \<forall>p q.
                  (\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longrightarrow>
                  degree p = m \<longrightarrow> m \<noteq> 0 \<longrightarrow> p dvd (q ^ m)"
@@ -893,7 +903,7 @@ qed
 lemma nullstellensatz_univariate:
   "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow>
     p dvd (q ^ (degree p)) \<or> (p = 0 \<and> q = 0)"
-proof-
+proof -
   {assume pe: "p = 0"
     hence eq: "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow> q = 0"
       by (auto simp add: poly_all_0_iff_0)
@@ -933,20 +943,26 @@ lemma constant_degree:
 proof
   assume l: ?lhs
   from l[unfolded constant_def, rule_format, of _ "0"]
-  have th: "poly p = poly [:poly p 0:]" apply - by (rule ext, simp)
-  then have "p = [:poly p 0:]" by (simp add: poly_eq_poly_eq_iff)
-  then have "degree p = degree [:poly p 0:]" by simp
-  then show ?rhs by simp
+  have th: "poly p = poly [:poly p 0:]"
+    by auto
+  then have "p = [:poly p 0:]"
+    by (simp add: poly_eq_poly_eq_iff)
+  then have "degree p = degree [:poly p 0:]"
+    by simp
+  then show ?rhs
+    by simp
 next
   assume r: ?rhs
   then obtain k where "p = [:k:]"
     by (cases p) (simp split: if_splits)
-  then show ?lhs unfolding constant_def by auto
+  then show ?lhs
+    unfolding constant_def by auto
 qed
 
-lemma divides_degree: assumes pq: "p dvd (q:: complex poly)"
+lemma divides_degree:
+  assumes pq: "p dvd (q:: complex poly)"
   shows "degree p \<le> degree q \<or> q = 0"
-by (metis dvd_imp_degree_le pq)
+  by (metis dvd_imp_degree_le pq)
 
 (* Arithmetic operations on multivariate polynomials.                        *)
 
@@ -957,7 +973,8 @@ lemma mpoly_base_conv:
 
 lemma mpoly_norm_conv:
   fixes x :: "'a::comm_ring_1" 
-  shows "poly [:0:] x = poly 0 x" "poly [:poly 0 y:] x = poly 0 x" by simp_all
+  shows "poly [:0:] x = poly 0 x" "poly [:poly 0 y:] x = poly 0 x"
+  by simp_all
 
 lemma mpoly_sub_conv:
   fixes x :: "'a::comm_ring_1" 
@@ -982,78 +999,86 @@ proof-
 qed
 
 lemma poly_divides_conv0:
-  fixes p:: "('a::field) poly" 
-  assumes lgpq: "degree q < degree p" and lq:"p \<noteq> 0"
-  shows "p dvd q \<equiv> q = 0" (is "?lhs \<equiv> ?rhs")
-proof-
-  {assume r: ?rhs
-    hence "q = p * 0" by simp
-    hence ?lhs ..}
+  fixes p:: "'a::field poly" 
+  assumes lgpq: "degree q < degree p"
+    and lq: "p \<noteq> 0"
+  shows "p dvd q \<longleftrightarrow> q = 0" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume r: ?rhs
+  then have "q = p * 0" by simp
+  then show ?lhs ..
+next
+  assume l: ?lhs
+  {
+    assume q0: "q = 0"
+    then have ?rhs by simp
+  }
   moreover
-  {assume l: ?lhs
-    {assume q0: "q = 0"
-      hence ?rhs by simp}
-    moreover
-    {assume q0: "q \<noteq> 0"
-      from l q0 have "degree p \<le> degree q"
-        by (rule dvd_imp_degree_le)
-      with lgpq have ?rhs by simp }
-    ultimately have ?rhs by blast }
-  ultimately show "?lhs \<equiv> ?rhs" by - (atomize (full), blast)
+  {
+    assume q0: "q \<noteq> 0"
+    from l q0 have "degree p \<le> degree q"
+      by (rule dvd_imp_degree_le)
+    with lgpq have ?rhs by simp
+  }
+  ultimately show ?rhs by blast
 qed
 
 lemma poly_divides_conv1:
-  fixes p:: "('a::field) poly" 
-  assumes a0: "a\<noteq> 0" and pp': "p dvd p'"
-  and qrp': "smult a q - p' \<equiv> r"
-  shows "p dvd q \<equiv> p dvd r" (is "?lhs \<equiv> ?rhs")
-proof-
-  {
+  fixes p :: "('a::field) poly" 
+  assumes a0: "a \<noteq> 0"
+    and pp': "p dvd p'"
+    and qrp': "smult a q - p' = r"
+  shows "p dvd q \<longleftrightarrow> p dvd r" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
   from pp' obtain t where t: "p' = p * t" ..
-  {assume l: ?lhs
+  {
+    assume l: ?lhs
     then obtain u where u: "q = p * u" ..
-     have "r = p * (smult a u - t)"
-       using u qrp' [symmetric] t by (simp add: algebra_simps)
-     then have ?rhs ..}
-  moreover
-  {assume r: ?rhs
+    have "r = p * (smult a u - t)"
+      using u qrp' [symmetric] t by (simp add: algebra_simps)
+    then show ?rhs ..
+  next
+    assume r: ?rhs
     then obtain u where u: "r = p * u" ..
     from u [symmetric] t qrp' [symmetric] a0
     have "q = p * smult (1/a) (u + t)" by (simp add: algebra_simps)
-    hence ?lhs ..}
-  ultimately have "?lhs = ?rhs" by blast }
-thus "?lhs \<equiv> ?rhs"  by - (atomize(full), blast)
+    then show ?lhs ..
+  }
 qed
 
 lemma basic_cqe_conv1:
   "(\<exists>x. poly p x = 0 \<and> poly 0 x \<noteq> 0) \<longleftrightarrow> False"
   "(\<exists>x. poly 0 x \<noteq> 0) \<longleftrightarrow> False"
-  "(\<exists>x. poly [:c:] x \<noteq> 0) \<longleftrightarrow> c\<noteq>0"
+  "(\<exists>x. poly [:c:] x \<noteq> 0) \<longleftrightarrow> c \<noteq> 0"
   "(\<exists>x. poly 0 x = 0) \<longleftrightarrow> True"
-  "(\<exists>x. poly [:c:] x = 0) \<longleftrightarrow> c = 0" by simp_all
+  "(\<exists>x. poly [:c:] x = 0) \<longleftrightarrow> c = 0"
+  by simp_all
 
 lemma basic_cqe_conv2:
   assumes l:"p \<noteq> 0"
   shows "(\<exists>x. poly (pCons a (pCons b p)) x = (0::complex))"
-proof-
-  {fix h t
-    assume h: "h\<noteq>0" "t=0"  "pCons a (pCons b p) = pCons h t"
-    with l have False by simp}
-  hence th: "\<not> (\<exists> h t. h\<noteq>0 \<and> t=0 \<and> pCons a (pCons b p) = pCons h t)"
+proof -
+  {
+    fix h t
+    assume h: "h \<noteq> 0" "t = 0" and "pCons a (pCons b p) = pCons h t"
+    with l have False by simp
+  }
+  then have th: "\<not> (\<exists> h t. h \<noteq> 0 \<and> t = 0 \<and> pCons a (pCons b p) = pCons h t)"
     by blast
-  from fundamental_theorem_of_algebra_alt[OF th]
-  show ?thesis by auto
+  from fundamental_theorem_of_algebra_alt[OF th] show ?thesis
+    by auto
 qed
 
-lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<longleftrightarrow> (p \<noteq> 0)"
-by (metis poly_all_0_iff_0)
+lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<longleftrightarrow> p \<noteq> 0"
+  by (metis poly_all_0_iff_0)
 
 lemma basic_cqe_conv3:
   fixes p q :: "complex poly"
   assumes l: "p \<noteq> 0"
-  shows "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<longleftrightarrow> \<not> ((pCons a p) dvd (q ^ (psize p)))"
+  shows "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<longleftrightarrow> \<not> ((pCons a p) dvd (q ^ psize p))"
 proof -
-  from l have dp:"degree (pCons a p) = psize p" by (simp add: psize_def)
+  from l have dp: "degree (pCons a p) = psize p"
+    by (simp add: psize_def)
   from nullstellensatz_univariate[of "pCons a p" q] l
   show ?thesis
     by (metis dp pCons_eq_0_iff)
@@ -1063,14 +1088,18 @@ lemma basic_cqe_conv4:
   fixes p q :: "complex poly"
   assumes h: "\<And>x. poly (q ^ n) x = poly r x"
   shows "p dvd (q ^ n) \<longleftrightarrow> p dvd r"
-proof-
-  from h have "poly (q ^ n) = poly r" by auto
-  then have "(q ^ n) = r" by (simp add: poly_eq_poly_eq_iff)
-  thus "p dvd (q ^ n) \<longleftrightarrow> p dvd r" by simp
+proof -
+  from h have "poly (q ^ n) = poly r"
+    by auto
+  then have "(q ^ n) = r"
+    by (simp add: poly_eq_poly_eq_iff)
+  then show "p dvd (q ^ n) \<longleftrightarrow> p dvd r"
+    by simp
 qed
 
 lemma poly_const_conv:
   fixes x :: "'a::comm_ring_1" 
-  shows "poly [:c:] x = y \<longleftrightarrow> c = y" by simp
+  shows "poly [:c:] x = y \<longleftrightarrow> c = y"
+  by simp
 
 end
