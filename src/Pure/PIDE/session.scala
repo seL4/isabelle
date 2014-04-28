@@ -8,8 +8,6 @@ PIDE editor session, potentially with running prover process.
 package isabelle
 
 
-import java.util.{Timer, TimerTask}
-
 import scala.collection.mutable
 import scala.collection.immutable.Queue
 
@@ -262,6 +260,7 @@ class Session(val resources: Resources)
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
   private case class Update_Options(options: Options)
+  private case object Prune_History
 
 
   /* buffered changes */
@@ -279,6 +278,7 @@ class Session(val resources: Resources)
       nodes = Set.empty
       commands = Set.empty
     }
+    private val delay_flush = Simple_Thread.delay_first(output_delay) { flush() }
 
     def invoke(assign: Boolean, cmds: List[Command]): Unit = synchronized {
       assignment |= assign
@@ -286,14 +286,12 @@ class Session(val resources: Resources)
         nodes += command.node_name
         commands += command
       }
+      delay_flush.invoke()
     }
-
-    private val timer = new Timer("change_buffer", true)
-    timer.schedule(new TimerTask { def run = flush() }, output_delay.ms, output_delay.ms)
 
     def shutdown()
     {
-      timer.cancel()
+      delay_flush.revoke()
       flush()
     }
   }
@@ -318,10 +316,10 @@ class Session(val resources: Resources)
 
   /* manager thread */
 
+  private val delay_prune = Simple_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
+
   private val manager: Consumer_Thread[Any] =
   {
-    var prune_next = Time.now() + prune_delay
-
     var prover: Option[Prover] = None
 
 
@@ -429,12 +427,7 @@ class Session(val resources: Resources)
                     postponed_changes.flush()
                   case _ => bad_output()
                 }
-                // FIXME separate timeout event/message!?
-                if (prover.isDefined && Time.now() > prune_next) {
-                  val old_versions = global_state.change_result(_.prune_history(prune_size))
-                  if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
-                  prune_next = Time.now() + prune_delay
-                }
+                delay_prune.invoke()
 
               case Markup.Removed_Versions =>
                 msg.text match {
@@ -512,6 +505,12 @@ class Session(val resources: Resources)
               prover.get.terminate
             }
 
+          case Prune_History =>
+            if (prover.isDefined) {
+              val old_versions = global_state.change_result(_.prune_history(prune_size))
+              if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
+            }
+
           case Update_Options(options) =>
             if (prover.isDefined && is_ready) {
               prover.get.options(options)
@@ -553,6 +552,7 @@ class Session(val resources: Resources)
     manager.send_wait(Stop)
     change_parser.shutdown()
     change_buffer.shutdown()
+    delay_prune.revoke()
     manager.shutdown()
     dispatcher.shutdown()
   }
