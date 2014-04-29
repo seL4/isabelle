@@ -91,17 +91,21 @@ if [ "$DOC" = true ]; then
 session "$NAME" = "$ISABELLE_LOGIC" +
   options [document = pdf, document_output = "output"]
   theories [document = false]
-    (* Foo Bar *)
+    (* Foo *)
+    (* Bar *)
   theories
     (* Baz *)
-  files "document/root.tex"
+  document_files
+    "root.tex"
 EOF
 else
   cat > "$DIR/ROOT" <<EOF
 session "$NAME" = "$ISABELLE_LOGIC" +
   options [document = false]
   theories
-    (* Foo Bar Baz *)
+    (* Foo *)
+    (* Bar *)
+    (* Baz *)
 EOF
 fi
 
