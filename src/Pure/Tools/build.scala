@@ -208,16 +208,16 @@ object Build
       (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
       IN + DESCRIPTION + OPTIONS + THEORIES + FILES + DOCUMENT_FILES
 
-  private object Parser extends Parse.Parser
+  object Parser extends Parse.Parser
   {
-    val chapter: Parser[Chapter] =
+    private val chapter: Parser[Chapter] =
     {
       val chapter_name = atom("chapter name", _.is_name)
 
       command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
     }
 
-    val session_entry: Parser[Session_Entry] =
+    private val session_entry: Parser[Session_Entry] =
     {
       val session_name = atom("session name", _.is_name)
 
