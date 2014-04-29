@@ -390,7 +390,7 @@ proof -
     also have "\<dots> \<subseteq> O(g) + O(g)"
     proof -
       from a have "O(f) \<subseteq> O(g)" by (auto del: subsetI)
-      thus ?thesis by (auto del: subsetI)
+      then show ?thesis by (auto del: subsetI)
     qed
     also have "\<dots> \<subseteq> O(g)" by simp
     finally show ?thesis .
