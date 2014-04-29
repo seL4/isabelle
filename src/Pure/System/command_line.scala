@@ -30,7 +30,7 @@ object Command_Line
       catch {
         case exn: Throwable =>
           if (debug) exn.printStackTrace
-          System.err.println(Exn.error_message(exn))
+          Output.error_message(Exn.message(exn))
           Exn.return_code(exn, 2)
       }
     sys.exit(rc)

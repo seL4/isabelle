@@ -73,11 +73,5 @@ object Exn
 
   def message(exn: Throwable): String =
     user_message(exn) getOrElse (if (is_interrupt(exn)) "Interrupt" else exn.toString)
-
-
-  /* TTY error message */
-
-  def error_message(msg: String): String = cat_lines(split_lines(msg).map("*** " + _))
-  def error_message(exn: Throwable): String = error_message(message(exn))
 }
 

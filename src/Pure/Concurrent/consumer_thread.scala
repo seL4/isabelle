@@ -36,7 +36,7 @@ final class Consumer_Thread[A] private(
   def is_active: Boolean = active && thread.isAlive
 
   private def failure(exn: Throwable): Unit =
-    System.err.println(
+    Output.error_message(
       "Consumer thread failure: " + quote(thread.getName) + "\n" + Exn.message(exn))
 
   private def robust_finish(): Unit =

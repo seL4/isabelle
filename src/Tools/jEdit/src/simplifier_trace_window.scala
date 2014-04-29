@@ -124,7 +124,7 @@ private object Simplifier_Trace_Window
             {
               parent.parent match {
                 case None =>
-                  System.err.println("Simplifier_Trace_Window: malformed ignore message with parent " + head.parent)
+                  Output.error_message("Simplifier_Trace_Window: malformed ignore message with parent " + head.parent)
                 case Some(tree) =>
                   tree.children -= head.parent
                   walk_trace(tail, lookup) // FIXME discard from lookup
@@ -140,7 +140,7 @@ private object Simplifier_Trace_Window
             }
 
           case None =>
-            System.err.println("Simplifier_Trace_Window: unknown parent " + head.parent)
+            Output.error_message("Simplifier_Trace_Window: unknown parent " + head.parent)
         }
     }
 

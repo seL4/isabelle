@@ -20,7 +20,7 @@ object Timing
 
       val timing = stop - start
       if (timing.is_relevant)
-        System.err.println(
+        Output.warning(
           (if (message == null || message.isEmpty) "" else message + ": ") +
             timing.message + " elapsed time")
 

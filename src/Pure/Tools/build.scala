@@ -606,8 +606,8 @@ object Build
       timeout_request.foreach(_.cancel)
 
       if (res.rc == Exn.Interrupt.return_code) {
-        if (was_timeout) res.add_err("*** Timeout").set_rc(1)
-        else res.add_err("*** Interrupt")
+        if (was_timeout) res.add_err(Output.error_text("Timeout")).set_rc(1)
+        else res.add_err(Output.error_text("Interrupt"))
       }
       else res
     }
@@ -758,8 +758,7 @@ object Build
 
       def ignore_error(msg: String): (List[Properties.T], Double) =
       {
-        System.err.println("### Ignoring bad log file: " + path +
-          (if (msg == "") "" else "\n" + msg))
+        Output.warning("Ignoring bad log file: " + path + (if (msg == "") "" else "\n" + msg))
         (Nil, 0.0)
       }
 
@@ -902,7 +901,7 @@ object Build
 
     val results =
       if (deps.is_empty) {
-        progress.echo("### Nothing to build")
+        progress.echo(Output.warning_text("Nothing to build"))
         Map.empty[String, Result]
       }
       else loop(queue, Map.empty, Map.empty)

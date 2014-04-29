@@ -61,7 +61,8 @@ object Main
                     system_mode = system_mode, sessions = List(session)))
               }
               catch {
-                case exn: Throwable => (Exn.error_message(exn) + "\n", Exn.return_code(exn, 2))
+                case exn: Throwable =>
+                  (Output.error_text(Exn.message(exn)) + "\n", Exn.return_code(exn, 2))
               }
 
             system_dialog.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))

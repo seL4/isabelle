@@ -289,7 +289,7 @@ object Simplifier_Trace
                 }
                 do_cancel(serial, id)
               case None =>
-                System.err.println("send_reply: unknown serial " + serial)
+                Output.warning("send_reply: unknown serial " + serial)
             }
 
             do_reply(session, serial, answer)

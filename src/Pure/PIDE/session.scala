@@ -37,7 +37,7 @@ object Session
           try { c.consume(a) }
           catch {
             case exn: Throwable =>
-              System.err.println("Consumer failed: " + quote(c.name) + "\n" + Exn.message(exn))
+              Output.error_message("Consumer failed: " + quote(c.name) + "\n" + Exn.message(exn))
           })
       }
     }
@@ -115,7 +115,7 @@ object Session
       val (handlers1, functions1) =
         handlers.get(name) match {
           case Some(old_handler) =>
-            System.err.println("Redefining protocol handler: " + name)
+            Output.warning("Redefining protocol handler: " + name)
             old_handler.stop(prover)
             (handlers - name, functions -- old_handler.functions.keys)
           case None => (handlers, functions)
@@ -135,8 +135,8 @@ object Session
         }
         catch {
           case exn: Throwable =>
-            System.err.println(Exn.error_message(
-              "Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn)))
+            Output.error_message(
+              "Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
             (handlers1, functions1)
         }
 
@@ -149,8 +149,8 @@ object Session
           try { functions(a)(msg) }
           catch {
             case exn: Throwable =>
-              System.err.println(Exn.error_message(
-                "Failed invocation of protocol function: " + quote(a) + "\n" + Exn.message(exn)))
+              Output.error_message(
+                "Failed invocation of protocol function: " + quote(a) + "\n" + Exn.message(exn))
             false
           }
         case _ => false
@@ -381,7 +381,7 @@ class Session(val resources: Resources)
               global_state.change(_.define_blob(digest))
               prover.get.define_blob(digest, blob.bytes)
             case None =>
-              System.err.println("Missing blob for SHA1 digest " + digest)
+              Output.error_message("Missing blob for SHA1 digest " + digest)
           }
         }
 
@@ -411,7 +411,7 @@ class Session(val resources: Resources)
       def bad_output()
       {
         if (verbose)
-          System.err.println("Ignoring bad prover output: " + output.message.toString)
+          Output.warning("Ignoring bad prover output: " + output.message.toString)
       }
 
       def accumulate(state_id: Document_ID.Generic, message: XML.Elem)

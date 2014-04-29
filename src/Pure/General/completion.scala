@@ -62,7 +62,7 @@ object Completion
     def load(): History =
     {
       def ignore_error(msg: String): Unit =
-        System.err.println("### Ignoring bad content of file " + COMPLETION_HISTORY +
+        Output.warning("Ignoring bad content of file " + COMPLETION_HISTORY +
           (if (msg == "") "" else "\n" + msg))
 
       val content =

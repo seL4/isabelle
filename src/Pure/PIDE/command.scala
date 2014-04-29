@@ -179,14 +179,14 @@ object Command
                   add_status(markup).
                   add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.proper_range, elem))
               case _ =>
-                System.err.println("Ignored status message: " + msg)
+                Output.warning("Ignored status message: " + msg)
                 state
             })
 
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             {
-              def bad(): Unit = System.err.println("Ignored report message: " + msg)
+              def bad(): Unit = Output.warning("Ignored report message: " + msg)
 
               msg match {
                 case XML.Elem(
@@ -238,7 +238,7 @@ object Command
               st
 
             case _ =>
-              System.err.println("Ignored message without serial number: " + message)
+              Output.warning("Ignored message without serial number: " + message)
               this
           }
     }
