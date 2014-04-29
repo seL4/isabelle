@@ -28,10 +28,12 @@ object File
   }
 
   def find_files(dir: Path): Stream[Path] =
-    read_dir(dir).toStream.map(name => {
-      val path = dir + Path.basic(name)
-      path #:: (if (path.is_dir) find_files(path) else Stream.empty)
-    }).flatten
+    read_dir(dir).toStream.map(name =>
+      if (Path.is_wellformed(name)) {
+        val path = dir + Path.basic(name)
+        path #:: (if (path.is_dir) find_files(path) else Stream.empty)
+      }
+      else Stream.empty).flatten
 
 
   /* read */
