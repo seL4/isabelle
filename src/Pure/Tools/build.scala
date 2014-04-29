@@ -8,7 +8,6 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import java.util.{Timer, TimerTask}
 import java.io.{BufferedInputStream, FileInputStream,
   BufferedReader, InputStreamReader, IOException}
 import java.util.zip.GZIPInputStream
@@ -590,25 +589,24 @@ object Build
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
 
-    @volatile private var timeout = false
-    private val time = info.options.seconds("timeout")
-    private val timer: Option[Timer] =
-      if (time.seconds > 0.0) {
-        val t = new Timer("build", true)
-        t.schedule(new TimerTask { def run = { terminate; timeout = true } }, time.ms)
-        Some(t)
-      }
+    @volatile private var was_timeout = false
+    private val timeout_request: Option[Event_Timer.Request] =
+    {
+      val timeout = info.options.seconds("timeout")
+      if (timeout > Time.zero)
+        Some(Event_Timer.request(Time.now() + timeout) { terminate; was_timeout = true })
       else None
+    }
 
     def join: Isabelle_System.Bash_Result =
     {
       val res = result.join
 
       args_file.delete
-      timer.map(_.cancel())
+      timeout_request.foreach(_.cancel)
 
       if (res.rc == Exn.Interrupt.return_code) {
-        if (timeout) res.add_err("*** Timeout").set_rc(1)
+        if (was_timeout) res.add_err("*** Timeout").set_rc(1)
         else res.add_err("*** Interrupt")
       }
       else res
