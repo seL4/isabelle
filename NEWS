@@ -672,7 +672,7 @@ purposes.
 
 *** System ***
 
-* Session ROOT specifications support explicit 'document_files' for
+* Session ROOT specifications require explicit 'document_files' for
 robust dependencies on LaTeX sources.  Only these explicitly given
 files are copied to the document output directory, before document
 processing is started.

@@ -362,7 +362,7 @@ fun finish () =
 
     val _ =
       if not (null jobs) andalso null doc_files then
-        Output.physical_stderr ("### Document preparation for session " ^ quote name ^
+        Output.physical_stderr ("### Legacy feature! Document preparation for session " ^ quote name ^
           " without 'document_files'\n")
       else ();
 
