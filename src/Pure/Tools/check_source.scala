@@ -24,18 +24,18 @@ object Check_Source
 
         for { c <- Word.codepoint_iterator(line); if c > 128 && !Character.isAlphabetic(c) }
         {
-          Output.warning("Suspicious Unicode character " + quote(new String(Array(c), 0, 1)) +
+          Output.warning("Suspicious Unicode character " + quote(Word.codepoint(c)) +
             Position.here(line_pos(i)))
         }
       }
       catch { case ERROR(msg) => Output.error_message(msg + Position.here(line_pos(i))) }
 
       if (line.contains('\t'))
-        Output.warning("TAB character " + Position.here(line_pos(i)))
+        Output.warning("TAB character" + Position.here(line_pos(i)))
     }
 
     if (content.contains('\r'))
-      Output.warning("CR character " + Position.here(file_pos))
+      Output.warning("CR character" + Position.here(file_pos))
   }
 }
 

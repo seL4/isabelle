@@ -27,6 +27,8 @@ object Word
       }
     }
 
+  def codepoint(c: Int): String = new String(Array(c), 0, 1)
+
 
   /* case */
 
