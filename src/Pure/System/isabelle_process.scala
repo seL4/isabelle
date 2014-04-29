@@ -97,10 +97,9 @@ class Isabelle_Process(
 
     process.stdin.close
     if (startup_failed) {
-      exit_message(127)
-      Thread.sleep(300)
       terminate_process()
       process_result.join
+      exit_message(127)
     }
     else {
       val (command_stream, message_stream) = system_channel.rendezvous()
