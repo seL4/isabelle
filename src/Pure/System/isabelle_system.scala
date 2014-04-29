@@ -444,6 +444,7 @@ object Isabelle_System
     def err: String = cat_lines(err_lines)
     def add_err(s: String): Bash_Result = copy(err_lines = err_lines ::: List(s))
     def set_rc(i: Int): Bash_Result = copy(rc = i)
+    def check_error: Bash_Result = if (rc != 0) error(err) else this
   }
 
   private class Limited_Progress(proc: Managed_Process, progress_limit: Option[Long])
@@ -514,6 +515,8 @@ object Isabelle_System
   def pdf_viewer(arg: Path): Unit =
     bash("exec \"$PDF_VIEWER\" '" + standard_path(arg) + "' >/dev/null 2>/dev/null &")
 
+  def hg(cmd_line: String, cwd: Path = Path.current): Bash_Result =
+    bash("cd " + shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
 
 
   /** Isabelle resources **/
