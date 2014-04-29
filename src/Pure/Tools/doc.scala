@@ -77,7 +77,7 @@ object Doc
 
   def view(path: Path)
   {
-    if (path.is_file) Console.println(File.read(path))
+    if (path.is_file) System.out.println(Library.trim_line(File.read(path)))
     else {
       val pdf = path.ext("pdf")
       if (pdf.is_file) Isabelle_System.pdf_viewer(pdf)
@@ -92,7 +92,7 @@ object Doc
   {
     Command_Line.tool0 {
       val entries = contents()
-      if (args.isEmpty) Console.println(cat_lines(contents_lines().map(_._2)))
+      if (args.isEmpty) System.out.println(cat_lines(contents_lines().map(_._2)))
       else {
         args.foreach(arg =>
           entries.collectFirst { case Doc(name, _, path) if arg == name => path } match {
