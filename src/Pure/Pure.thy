@@ -97,7 +97,9 @@ theory Pure
   and "welcome" :: diag
   and "init_toplevel" "linear_undo" "undo" "undos_proof" "cannot_undo" "kill" :: control
   and "end" :: thy_end % "theory"
-  and "realizers" "realizability" "extract_type" "extract" :: thy_decl
+  and "realizers" :: thy_decl == ""
+  and "realizability" :: thy_decl == ""
+  and "extract_type" "extract" :: thy_decl
   and "find_theorems" "find_consts" :: diag
   and "ProofGeneral.process_pgip" "ProofGeneral.pr" "ProofGeneral.undo"
     "ProofGeneral.restart" "ProofGeneral.kill_proof" "ProofGeneral.inform_file_processed"
