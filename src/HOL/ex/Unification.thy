@@ -24,7 +24,7 @@ text {*
   Ph.D. thesis, TUM, 1999, Sect. 5.8
 
   A Krauss, Partial and Nested Recursive Function Definitions in
-  Higher-Order Logic, JAR 44(4):303–336, 2010. Sect. 6.3
+  Higher-Order Logic, JAR 44(4):303-336, 2010. Sect. 6.3
 *}
 
 

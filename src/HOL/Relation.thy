@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory; Stefan Berghofer, TU Muenchen
 *)
 
-header {* Relations – as sets of pairs, and binary predicates *}
+header {* Relations -- as sets of pairs, and binary predicates *}
 
 theory Relation
 imports Finite_Set

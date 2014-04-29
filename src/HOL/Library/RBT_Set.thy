@@ -645,7 +645,7 @@ proof -
     by (auto simp: Set_def lookup.abs_eq[OF **] dest!: * split: rbt.split)
 qed
 
-text {* A frequent case – avoid intermediate sets *}
+text {* A frequent case -- avoid intermediate sets *}
 lemma [code_unfold]:
   "Set t1 \<subseteq> Set t2 \<longleftrightarrow> RBT.foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> k \<in> Set t2) t1 True"
 by (simp add: subset_code Ball_Set)

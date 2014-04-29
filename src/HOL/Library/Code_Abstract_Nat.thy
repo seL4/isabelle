@@ -34,7 +34,7 @@ text {*
   The term @{term "Suc n"} is no longer a valid pattern.  Therefore,
   all occurrences of this term in a position where a pattern is
   expected (i.e.~on the left-hand side of a code equation) must be
-  eliminated.  This can be accomplished – as far as possible – by
+  eliminated.  This can be accomplished -- as far as possible -- by
   applying the following transformation rule:
 *}
 

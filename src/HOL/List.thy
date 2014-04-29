@@ -6541,7 +6541,7 @@ lemma subset_code [code]:
   "List.coset [] \<le> set [] \<longleftrightarrow> False"
   by auto
 
-text {* A frequent case – avoid intermediate sets *}
+text {* A frequent case -- avoid intermediate sets *}
 lemma [code_unfold]:
   "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
   by (auto simp: list_all_iff)
