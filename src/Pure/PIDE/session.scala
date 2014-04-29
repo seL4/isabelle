@@ -335,21 +335,32 @@ class Session(val resources: Resources)
   }
 
 
+  /* prover process */
+
+  private object prover
+  {
+    private val variable = Synchronized(None: Option[Prover])
+
+    def defined: Boolean = variable.value.isDefined
+    def get: Prover = variable.value.get
+    def set(p: Prover) { variable.change(_ => Some(p)) }
+    def reset { variable.change(_ => None) }
+    def await_reset() { variable.guarded_access({ case None => Some((), None) case _ => None }) }
+  }
+
+
   /* manager thread */
 
   private val delay_prune = Simple_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
 
   private val manager: Consumer_Thread[Any] =
   {
-    var prover: Option[Prover] = None
-
-
     /* raw edits */
 
     def handle_raw_edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
     //{{{
     {
-      require(prover.isDefined)
+      require(prover.defined)
 
       prover.get.discontinue_execution()
 
@@ -368,7 +379,7 @@ class Session(val resources: Resources)
     def handle_change(change: Session.Change)
     //{{{
     {
-      require(prover.isDefined)
+      require(prover.defined)
 
       def id_command(command: Command)
       {
@@ -430,10 +441,10 @@ class Session(val resources: Resources)
           val handled = _protocol_handlers.invoke(msg)
           if (!handled) {
             msg.properties match {
-              case Markup.Protocol_Handler(name) if prover.isDefined =>
+              case Markup.Protocol_Handler(name) if prover.defined =>
                 _protocol_handlers = _protocol_handlers.add(prover.get, name)
 
-              case Protocol.Command_Timing(state_id, timing) if prover.isDefined =>
+              case Protocol.Command_Timing(state_id, timing) if prover.defined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
                 accumulate(state_id, prover.get.xml_cache.elem(message))
 
@@ -480,7 +491,7 @@ class Session(val resources: Resources)
             case Markup.Return_Code(rc) if output.is_exit =>
               if (rc == 0) phase = Session.Inactive
               else phase = Session.Failed
-              prover = None
+              prover.reset
 
             case _ => raw_output_messages.post(output)
           }
@@ -511,14 +522,14 @@ class Session(val resources: Resources)
           case input: Prover.Input =>
             all_messages.post(input)
 
-          case Start(name, args) if prover.isEmpty =>
+          case Start(name, args) if !prover.defined =>
             if (phase == Session.Inactive || phase == Session.Failed) {
               phase = Session.Startup
-              prover = Some(resources.start_prover(manager.send(_), name, args))
+              prover.set(resources.start_prover(manager.send(_), name, args))
             }
 
           case Stop =>
-            if (prover.isDefined && is_ready) {
+            if (prover.defined && is_ready) {
               _protocol_handlers = _protocol_handlers.stop(prover.get)
               global_state.change(_ => Document.State.init)
               phase = Session.Shutdown
@@ -526,32 +537,32 @@ class Session(val resources: Resources)
             }
 
           case Prune_History =>
-            if (prover.isDefined) {
+            if (prover.defined) {
               val old_versions = global_state.change_result(_.prune_history(prune_size))
               if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
             }
 
           case Update_Options(options) =>
-            if (prover.isDefined && is_ready) {
+            if (prover.defined && is_ready) {
               prover.get.options(options)
               handle_raw_edits(Document.Blobs.empty, Nil)
             }
             global_options.post(Session.Global_Options(options))
 
-          case Cancel_Exec(exec_id) if prover.isDefined =>
+          case Cancel_Exec(exec_id) if prover.defined =>
             prover.get.cancel_exec(exec_id)
 
-          case Session.Raw_Edits(doc_blobs, edits) if prover.isDefined =>
+          case Session.Raw_Edits(doc_blobs, edits) if prover.defined =>
             handle_raw_edits(doc_blobs, edits)
 
-          case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
+          case Session.Dialog_Result(id, serial, result) if prover.defined =>
             prover.get.dialog_result(serial, result)
             handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
 
-          case Protocol_Command(name, args) if prover.isDefined =>
+          case Protocol_Command(name, args) if prover.defined =>
             prover.get.protocol_command(name, args:_*)
 
-          case change: Session.Change if prover.isDefined =>
+          case change: Session.Change if prover.defined =>
             if (global_state.value.is_assigned(change.previous))
               handle_change(change)
             else postponed_changes.store(change)
@@ -570,6 +581,7 @@ class Session(val resources: Resources)
   def stop()
   {
     manager.send_wait(Stop)
+    prover.await_reset()
     change_parser.shutdown()
     change_buffer.shutdown()
     delay_prune.revoke()
