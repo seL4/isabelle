@@ -16,7 +16,7 @@ session FOL = Pure +
     Michael Dummett, Elements of Intuitionism (Oxford, 1977)
   *}
   theories FOL
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "FOL-ex" in ex = FOL +
   description {*
@@ -40,5 +40,5 @@ session "FOL-ex" in ex = FOL +
     If
   theories [document = false, skip_proofs = false]
     "Locale_Test/Locale_Test"
-  files "document/root.tex"
+  document_files "root.tex"
 

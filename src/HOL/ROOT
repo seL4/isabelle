@@ -9,8 +9,9 @@ session HOL (main) = Pure +
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
-    "document/root.bib"
-    "document/root.tex"
+  document_files
+    "root.bib"
+    "root.tex"
 
 session "HOL-Proofs" = Pure +
   description {*
@@ -51,7 +52,7 @@ session "HOL-Library" (main) in Library = HOL +
     Old_Recdef
   theories [condition = ISABELLE_FULL_TEST]
     Sum_of_Squares_Remote
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
   description {*
@@ -73,7 +74,7 @@ session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
   *}
   options [document_graph]
   theories Hahn_Banach
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Induct" in Induct = HOL +
   description {*
@@ -106,7 +107,7 @@ session "HOL-Induct" in Induct = HOL +
     Comb
     PropLog
     Com
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-IMP" in IMP = HOL +
   options [document_graph, document_variants=document]
@@ -149,7 +150,7 @@ session "HOL-IMP" in IMP = HOL +
     Procs_Stat_Vars_Stat
     C_like
     OO
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-IMPP" in IMPP = HOL +
   description {*
@@ -185,8 +186,8 @@ session "HOL-Number_Theory" in Number_Theory = HOL +
     Pocklington
     Gauss
     Number_Theory
-  files
-    "document/root.tex"
+  document_files
+    "root.tex"
 
 session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
   description {*
@@ -206,7 +207,7 @@ session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
     Quadratic_Reciprocity
     Primes
     Pocklington
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-Hoare" in Hoare = HOL +
   description {*
@@ -214,7 +215,7 @@ session "HOL-Hoare" in Hoare = HOL +
     automatically from pre/post conditions and loop invariants).
   *}
   theories Hoare
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
   description {*
@@ -223,7 +224,7 @@ session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
   *}
   options [document_graph]
   theories Hoare_Parallel
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
   options [document = false, document_graph = false, browser_info = false]
@@ -285,7 +286,7 @@ session "HOL-Algebra" (main) in Algebra = HOL +
     Divisibility         (* Rings *)
     IntRing              (* Ideals and residue classes *)
     UnivPoly             (* Polynomials *)
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Auth" in Auth = HOL +
   description {*
@@ -298,7 +299,7 @@ session "HOL-Auth" in Auth = HOL +
     "Smartcard/Auth_Smartcard"
     "Guard/Auth_Guard_Shared"
     "Guard/Auth_Guard_Public"
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-UNITY" in UNITY = "HOL-Auth" +
   description {*
@@ -343,16 +344,16 @@ session "HOL-UNITY" in UNITY = "HOL-Auth" +
 
     (*obsolete*)
     "ELT"
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-Unix" in Unix = HOL +
   options [print_mode = "no_brackets,no_type_brackets"]
   theories Unix
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-ZF" in ZF = HOL +
   theories MainZF Games
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
   options [document_graph, print_mode = "iff,no_brackets"]
@@ -361,7 +362,7 @@ session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
     "~~/src/HOL/Library/Monad_Syntax"
     "~~/src/HOL/Library/LaTeXsugar"
   theories Imperative_HOL_ex
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Decision_Procs" in Decision_Procs = HOL +
   description {*
@@ -393,7 +394,7 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
     Higman_Extraction
     Pigeonhole
     Euclid
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
   description {*
@@ -413,7 +414,7 @@ session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
     StrongNorm
     Standardization
     WeakNorm
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Prolog" in Prolog = HOL +
   description {*
@@ -437,10 +438,10 @@ session "HOL-MicroJava" in MicroJava = HOL +
   options [document_graph]
   theories [document = false] "~~/src/HOL/Library/While_Combinator"
   theories MicroJava
-  files
-    "document/introduction.tex"
-    "document/root.bib"
-    "document/root.tex"
+  document_files
+    "introduction.tex"
+    "root.bib"
+    "root.tex"
 
 session "HOL-NanoJava" in NanoJava = HOL +
   description {*
@@ -448,7 +449,7 @@ session "HOL-NanoJava" in NanoJava = HOL +
   *}
   options [document_graph]
   theories Example
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Bali" in Bali = HOL +
   options [document_graph]
@@ -457,7 +458,7 @@ session "HOL-Bali" in Bali = HOL +
     AxSound
     AxCompl
     Trans
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-IOA" in IOA = HOL +
   description {*
@@ -497,7 +498,7 @@ session "HOL-Lattice" in Lattice = HOL +
     Basic theory of lattices and orders.
   *}
   theories CompleteLattice
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-ex" in ex = HOL +
   description {*
@@ -586,7 +587,7 @@ session "HOL-ex" in ex = HOL +
 (*requires a proof-generating SAT solver (zChaff or MiniSAT)*)
     SAT_Examples
 *)
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Isar_Examples" in Isar_Examples = HOL +
   description {*
@@ -611,10 +612,10 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
     Peirce
     Puzzle
     Summation
-  files
-    "document/root.bib"
-    "document/root.tex"
-    "document/style.tex"
+  document_files
+    "root.bib"
+    "root.tex"
+    "style.tex"
 
 session "HOL-SET_Protocol" in SET_Protocol = HOL +
   description {*
@@ -623,7 +624,7 @@ session "HOL-SET_Protocol" in SET_Protocol = HOL +
   options [document_graph]
   theories [document = false] "~~/src/HOL/Library/Nat_Bijection"
   theories SET_Protocol
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-Matrix_LP" in Matrix_LP = HOL +
   description {*
@@ -631,7 +632,7 @@ session "HOL-Matrix_LP" in Matrix_LP = HOL +
   *}
   options [document_graph]
   theories Cplex
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-TLA" in TLA = HOL +
   description {*
@@ -678,8 +679,8 @@ session "HOL-Multivariate_Analysis" (main) in Multivariate_Analysis = HOL +
     Determinants
     PolyRoots
     Complex_Analysis_Basics
-  files
-    "document/root.tex"
+  document_files
+    "root.tex"
 
 session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
   options [document_graph]
@@ -691,7 +692,7 @@ session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
     Probability
     "ex/Dining_Cryptographers"
     "ex/Koepf_Duermuth_Countermeasure"
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-Nominal" (main) in Nominal = HOL +
   options [document = false]
@@ -708,10 +709,10 @@ session "HOL-Cardinals" in Cardinals = HOL +
   *}
   options [document = false]
   theories Cardinals
-  files
-    "document/intro.tex"
-    "document/root.tex"
-    "document/root.bib"
+  document_files
+    "intro.tex"
+    "root.tex"
+    "root.bib"
 
 session "HOL-BNF_Examples" in BNF_Examples = HOL +
   description {*
@@ -735,7 +736,7 @@ session "HOL-BNF_Examples" in BNF_Examples = HOL +
 session "HOL-Word" (main) in Word = HOL +
   options [document_graph]
   theories Word
-  files "document/root.bib" "document/root.tex"
+  document_files "root.bib" "root.tex"
 
 session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
   options [document = false]
@@ -744,7 +745,7 @@ session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
 session "HOL-Statespace" in Statespace = HOL +
   theories [skip_proofs = false]
     StateSpaceEx
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-NSA" in NSA = HOL +
   description {*
@@ -752,7 +753,7 @@ session "HOL-NSA" in NSA = HOL +
   *}
   options [document_graph]
   theories Hypercomplex
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOL-NSA-Examples" in "NSA/Examples" = "HOL-NSA" +
   options [document = false]
@@ -850,18 +851,6 @@ session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
     "complex_types_app/initialize.fdl"
     "complex_types_app/initialize.rls"
     "complex_types_app/initialize.siv"
-    "document/complex_types.ads"
-    "document/complex_types_app.adb"
-    "document/complex_types_app.ads"
-    "document/Gcd.adb"
-    "document/Gcd.ads"
-    "document/intro.tex"
-    "document/loop_invariant.adb"
-    "document/loop_invariant.ads"
-    "document/root.bib"
-    "document/root.tex"
-    "document/Simple_Gcd.adb"
-    "document/Simple_Gcd.ads"
     "loop_invariant/proc1.fdl"
     "loop_invariant/proc1.rls"
     "loop_invariant/proc1.siv"
@@ -871,6 +860,19 @@ session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
     "simple_greatest_common_divisor/g_c_d.fdl"
     "simple_greatest_common_divisor/g_c_d.rls"
     "simple_greatest_common_divisor/g_c_d.siv"
+  document_files
+    "complex_types.ads"
+    "complex_types_app.adb"
+    "complex_types_app.ads"
+    "Gcd.adb"
+    "Gcd.ads"
+    "intro.tex"
+    "loop_invariant.adb"
+    "loop_invariant.ads"
+    "root.bib"
+    "root.tex"
+    "Simple_Gcd.adb"
+    "Simple_Gcd.ads"
 
 session "HOL-Mutabelle" in Mutabelle = HOL +
   options [document = false]
@@ -950,14 +952,14 @@ session HOLCF (main) in HOLCF = HOL +
     Plain_HOLCF
     Fixrec
     HOLCF
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOLCF-Tutorial" in "HOLCF/Tutorial" = HOLCF +
   theories
     Domain_ex
     Fixrec_ex
     New_Domain
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOLCF-Library" in "HOLCF/Library" = HOLCF +
   options [document = false]
@@ -971,7 +973,7 @@ session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
   *}
   options [document = false]
   theories HoareEx
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "HOLCF-ex" in "HOLCF/ex" = HOLCF +
   description {*

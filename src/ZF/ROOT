@@ -46,7 +46,7 @@ session ZF (main) = Pure +
   theories
     Main
     Main_ZFC
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "ZF-AC" in AC = ZF +
   description {*
@@ -75,7 +75,7 @@ session "ZF-AC" in AC = ZF +
     AC17_AC1
     AC18_AC19
     DC
-  files "document/root.tex" "document/root.bib"
+  document_files "root.tex" "root.bib"
 
 session "ZF-Coind" in Coind = ZF +
   description {*
@@ -125,7 +125,7 @@ session "ZF-Constructible" in Constructible = ZF +
   *}
   options [document_graph]
   theories DPow_absolute AC_in_L Rank_Separation
-  files "document/root.tex" "document/root.bib"
+  document_files "root.tex" "root.bib"
 
 session "ZF-IMP" in IMP = ZF +
   description {*
@@ -143,7 +143,7 @@ session "ZF-IMP" in IMP = ZF +
   *}
   options [document = false]
   theories Equiv
-  files "document/root.tex" "document/root.bib"
+  document_files "root.tex" "root.bib"
 
 session "ZF-Induct" in Induct = ZF +
   description {*
@@ -174,7 +174,7 @@ session "ZF-Induct" in Induct = ZF +
 
     Comb            (*Combinatory Logic example*)
     Primrec         (*Primitive recursive functions*)
-  files "document/root.tex"
+  document_files "root.tex"
 
 session "ZF-Resid" in Resid = ZF +
   description {*
