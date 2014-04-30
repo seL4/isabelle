@@ -35,7 +35,8 @@ object PIDE
   @volatile var startup_notified = false
 
   @volatile var plugin: Plugin = null
-  @volatile var session: Session = new Session(new JEdit_Resources(Set.empty, Outer_Syntax.empty))
+  @volatile var session: Session =
+    new Session(new JEdit_Resources(Set.empty, Map.empty, Outer_Syntax.empty))
 
   def options_changed() { plugin.options_changed() }
   def deps_changed() { plugin.deps_changed() }
@@ -210,7 +211,7 @@ class Plugin extends EBPlugin
 
           val thy_info = new Thy_Info(PIDE.resources)
           // FIXME avoid I/O in Swing thread!?!
-          val files = thy_info.dependencies(thys).deps.map(_.name.node).
+          val files = thy_info.dependencies("", thys).deps.map(_.name.node).
             filter(file => !loaded_buffer(file) && PIDE.resources.check_file(view, file))
 
           if (!files.isEmpty) {
@@ -350,7 +351,8 @@ class Plugin extends EBPlugin
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
       val content = Isabelle_Logic.session_content(false)
-      val resources = new JEdit_Resources(content.loaded_theories, content.syntax)
+      val resources =
+        new JEdit_Resources(content.loaded_theories, content.known_theories, content.syntax)
 
       PIDE.session = new Session(resources) {
         override def output_delay = PIDE.options.seconds("editor_output_delay")

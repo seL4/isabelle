@@ -395,6 +395,7 @@ trait Protocol extends Prover
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
           { case Document.Node.Deps(header) =>
               val master_dir = Isabelle_System.posix_path_url(name.master_dir)
+              val theory = Long_Name.base_name(name.theory)
               val imports = header.imports.map(_.node)
               val keywords = header.keywords.map({ case (a, b, _) => (a, b) })
               (Nil,
@@ -402,7 +403,7 @@ trait Protocol extends Prover
                   pair(list(pair(Encode.string,
                     option(pair(pair(Encode.string, list(Encode.string)), list(Encode.string))))),
                   list(Encode.string)))))(
-                (master_dir, (name.theory, (imports, (keywords, header.errors)))))) },
+                (master_dir, (theory, (imports, (keywords, header.errors)))))) },
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
                 list(pair(id, pair(Encode.string, list(Encode.string))))(c.dest)) }))

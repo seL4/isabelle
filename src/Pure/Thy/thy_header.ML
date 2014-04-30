@@ -83,8 +83,9 @@ val header_lexicons =
 local
 
 val theory_name = Parse.group (fn () => "theory name") (Parse.position Parse.name);
+val theory_xname = Parse.group (fn () => "theory name reference") (Parse.position Parse.xname);
 
-val imports = Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name);
+val imports = Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_xname);
 
 val opt_files =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];

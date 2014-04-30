@@ -71,6 +71,8 @@ object Parse
       atom("file name/path specification", tok => tok.is_name && Path.is_wellformed(tok.content))
     def theory_name: Parser[String] =
       atom("theory name", tok => tok.is_name && Path.is_wellformed(tok.content))
+    def theory_xname: Parser[String] =
+      atom("theory name reference", tok => tok.is_xname && Path.is_wellformed(tok.content))
 
     private def tag_name: Parser[String] =
       atom("tag name", tok =>

@@ -82,7 +82,9 @@ object Isabelle_Logic
   {
     val dirs = session_dirs()
     val name = session_args().last
-    Build.session_content(PIDE.options.value, inlined_files, dirs, name)
+    val content = Build.session_content(PIDE.options.value, inlined_files, dirs, name)
+    content.copy(known_theories =
+      content.known_theories.mapValues(name => name.map(Isabelle_System.jvm_path(_))))
   }
 }
 

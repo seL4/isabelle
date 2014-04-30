@@ -67,7 +67,7 @@ object Thy_Header extends Parse.Parser
 
     val args =
       theory_name ~
-      (opt(keyword(IMPORTS) ~! (rep1(theory_name))) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
+      (opt(keyword(IMPORTS) ~! (rep1(theory_xname))) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
       (opt(keyword(KEYWORDS) ~! keyword_decls) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
       keyword(BEGIN) ^^
       { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
