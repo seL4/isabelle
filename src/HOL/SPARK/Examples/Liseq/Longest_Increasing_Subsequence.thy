@@ -27,7 +27,7 @@ Length of longest increasing subsequence ending at a particular position
 *}
 
 definition liseq' :: "(nat \<Rightarrow> 'a::linorder) \<Rightarrow> nat \<Rightarrow> nat" where
-  "liseq' xs i = Max (card ` (iseq xs (Suc i) \<inter> {is. Max is = i}))"  
+  "liseq' xs i = Max (card ` (iseq xs (Suc i) \<inter> {is. Max is = i}))"
 
 lemma iseq_finite: "finite (iseq xs i)"
   apply (simp add: iseq_def)
@@ -541,7 +541,7 @@ spark_proof_functions
 
 text {* The verification conditions *}
 
-spark_open "liseq/liseq_length.siv"
+spark_open "liseq/liseq_length"
 
 spark_vc procedure_liseq_length_5
   by (simp_all add: liseq_singleton liseq'_singleton)

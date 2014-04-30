@@ -31,7 +31,7 @@ spark_proof_functions
   complex_types__initialized3 = initialized3
 
 (*<*)
-spark_open "complex_types_app/initialize.siv"
+spark_open "complex_types_app/initialize"
 
 spark_vc procedure_initialize_1
   by (simp add: initialized_def)

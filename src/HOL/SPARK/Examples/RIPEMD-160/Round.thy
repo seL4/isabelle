@@ -8,7 +8,7 @@ theory Round
 imports RMD_Specification
 begin
 
-spark_open "rmd/round.siv"
+spark_open "rmd/round"
 
 abbreviation from_chain :: "chain \<Rightarrow> RMD.chain" where
   "from_chain c \<equiv> (
@@ -88,7 +88,7 @@ proof -
   show ?thesis
     unfolding `nat (i + 1) = Suc (nat i)` steps_step steps_to_steps'
     ..
-qed 
+qed
 
 lemma step_from_hyp:
   assumes
@@ -244,7 +244,7 @@ proof -
         nat_transfer
       unfolding `?MM = 2 ^ len_of TYPE(32)`
       unfolding word_uint.Abs_norm
-      by (simp add: 
+      by (simp add:
         `a' mod ?MM = a'`
         `e' mod ?MM = e'`
         `?X mod ?MM = ?X`)
@@ -274,7 +274,7 @@ proof -
           \<lparr>h0 = ca, h1 = cb, h2 = cc,
              h3 = cd, h4 = ce\<rparr>\<rparr>)
     0 x"
-    unfolding steps_def 
+    unfolding steps_def
     by (simp add:
       uint_word_of_int_id[OF `0 <= ca` `ca <= ?M`]
       uint_word_of_int_id[OF `0 <= cb` `cb <= ?M`]
@@ -398,7 +398,7 @@ proof -
     `crc <= ?M`
     `crd <= ?M`
     `cre <= ?M`
-    
+
     `0 <= cla`
     `0 <= clb`
     `0 <= clc`

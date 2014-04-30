@@ -24,8 +24,9 @@ text {*
 This section describes the syntax and effect of each of the commands provided
 by HOL-\SPARK{}.
 @{rail "@'spark_open' name ('(' name ')')?"}
-Opens a new \SPARK{} verification environment and loads a file with VCs. The file can be either
-a \texttt{*.vcg} or a \texttt{*.siv} file. The corresponding \texttt{*.fdl} and \texttt{*.rls}
+Opens a new \SPARK{} verification environment and loads a \texttt{*.siv} file with VCs.
+Alternatively, \texttt{*.vcg} files can be loaded using \isa{\isacommand{spark\_open\_vcg}}.
+The corresponding \texttt{*.fdl} and \texttt{*.rls}
 files must reside in the same directory as the file given as an argument to the command.
 This command also generates records and datatypes for the types specified in the
 \texttt{*.fdl} file, unless they have already been associated with user-defined

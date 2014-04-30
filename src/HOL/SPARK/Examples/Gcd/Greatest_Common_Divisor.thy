@@ -10,7 +10,7 @@ begin
 spark_proof_functions
   gcd = "gcd :: int \<Rightarrow> int \<Rightarrow> int"
 
-spark_open "greatest_common_divisor/g_c_d.siv"
+spark_open "greatest_common_divisor/g_c_d"
 
 spark_vc procedure_g_c_d_4
 proof -

@@ -127,7 +127,7 @@ shows & "@{text "d = gcd m n"}"
 We now instruct Isabelle to open
 a new verification environment and load a set of VCs. This is done using the
 command \isa{\isacommand{spark\_open}}, which must be given the name of a
-\texttt{*.siv} or \texttt{*.vcg} file as an argument. Behind the scenes, Isabelle
+\texttt{*.siv} file as an argument. Behind the scenes, Isabelle
 parses this file and the corresponding \texttt{*.fdl} and \texttt{*.rls} files,
 and converts the VCs to Isabelle terms. Using the command \isa{\isacommand{spark\_status}},
 the user can display the current VCs together with their status (proved, unproved).

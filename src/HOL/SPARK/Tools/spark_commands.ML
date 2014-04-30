@@ -4,10 +4,11 @@
 
 Isar commands for handling SPARK/Ada verification conditions.
 *)
+
 structure SPARK_Commands: sig end =
 struct
 
-fun spark_open header (prfx, files) thy =
+fun spark_open header (files, prfx) thy =
   let
     val ([{src_path, lines = vc_lines, pos = vc_pos, ...}: Token.file,
       {lines = fdl_lines, pos = fdl_pos, ...},
@@ -19,25 +20,6 @@ fun spark_open header (prfx, files) thy =
       (Fdl_Parser.parse_rules rls_pos (cat_lines rls_lines))
       (snd (Fdl_Parser.parse_vcs header vc_pos (cat_lines vc_lines)))
       base prfx thy'
-  end;
-
-(* FIXME *)
-fun spark_open_old (vc_name, prfx) thy =
-  let
-    val ((vc_path, vc_id), vc_text) = Resources.load_file thy (Path.explode vc_name);
-    val (base, header) =
-      (case Path.split_ext vc_path of
-        (base, "vcg") => (base, Fdl_Lexer.vcg_header >> K ())
-      | (base, "siv") => (base, Fdl_Lexer.siv_header >> K ())
-      | _ => error "File name must end with .vcg or .siv");
-    val fdl_path = Path.ext "fdl" base;
-    val rls_path = Path.ext "rls" base;
-  in
-    SPARK_VCs.set_vcs
-      (snd (Fdl_Parser.parse_declarations (Path.position fdl_path) (File.read fdl_path)))
-      (Fdl_Parser.parse_rules (Path.position rls_path) (File.read rls_path))
-      (snd (Fdl_Parser.parse_vcs header (Path.position vc_path) vc_text))
-      base prfx thy
   end;
 
 fun add_proof_fun_cmd pf thy =
@@ -110,20 +92,15 @@ fun show_status thy (p, f) =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_open"}
-    "open a new SPARK environment and load a SPARK-generated .vcg or .siv file"
-    (Parse.name -- Parse.parname >> (Toplevel.theory o spark_open_old));
-
-val _ =
   Outer_Syntax.command @{command_spec "spark_open_vcg"}
     "open a new SPARK environment and load a SPARK-generated .vcg file"
-    (Parse.parname -- Resources.provide_parse_files "spark_open_vcg"
+    (Resources.provide_parse_files "spark_open_vcg" -- Parse.parname
       >> (Toplevel.theory o spark_open Fdl_Lexer.vcg_header));
 
 val _ =
-  Outer_Syntax.command @{command_spec "spark_open_siv"}
+  Outer_Syntax.command @{command_spec "spark_open"}
     "open a new SPARK environment and load a SPARK-generated .siv file"
-    (Parse.parname -- Resources.provide_parse_files "spark_open_siv"
+    (Resources.provide_parse_files "spark_open" -- Parse.parname
       >> (Toplevel.theory o spark_open Fdl_Lexer.siv_header));
 
 val pfun_type = Scan.option
@@ -169,7 +146,7 @@ val _ =
 val _ = Theory.setup (Theory.at_end (fn thy =>
   let
     val _ = SPARK_VCs.is_closed thy
-      orelse error ("Found the end of the theory, " ^ 
+      orelse error ("Found the end of the theory, " ^
         "but the last SPARK environment is still open.")
   in NONE end));
 

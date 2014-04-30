@@ -8,7 +8,7 @@ theory F
 imports RMD_Specification
 begin
 
-spark_open "rmd/f.siv"
+spark_open "rmd/f"
 
 spark_vc function_f_2
   using assms by simp_all

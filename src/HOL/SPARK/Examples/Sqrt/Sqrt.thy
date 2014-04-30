@@ -7,7 +7,7 @@ theory Sqrt
 imports SPARK
 begin
 
-spark_open "sqrt/isqrt.siv"
+spark_open "sqrt/isqrt"
 
 spark_vc function_isqrt_4
 proof -

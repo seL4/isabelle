@@ -8,7 +8,7 @@ theory K_R
 imports RMD_Specification
 begin
 
-spark_open "rmd/k_r.siv"
+spark_open "rmd/k_r"
 
 spark_vc function_k_r_6
   using assms by (simp add: K'_def)

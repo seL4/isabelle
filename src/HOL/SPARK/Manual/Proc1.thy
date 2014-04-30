@@ -2,7 +2,7 @@ theory Proc1
 imports SPARK
 begin
 
-spark_open "loop_invariant/proc1.siv"
+spark_open "loop_invariant/proc1"
 
 spark_vc procedure_proc1_5
   by (simp add: ring_distribs pull_mods)

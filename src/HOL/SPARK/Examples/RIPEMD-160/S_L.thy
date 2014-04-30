@@ -8,7 +8,7 @@ theory S_L
 imports RMD_Specification RMD_Lemmas
 begin
 
-spark_open "rmd/s_l.siv"
+spark_open "rmd/s_l"
 
 spark_vc function_s_l_2
 proof -
