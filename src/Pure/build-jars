@@ -24,6 +24,7 @@ declare -a SOURCES=(
   General/graph.scala
   General/graphics_file.scala
   General/linear_set.scala
+  General/long_name.scala
   General/multi_map.scala
   General/output.scala
   General/path.scala

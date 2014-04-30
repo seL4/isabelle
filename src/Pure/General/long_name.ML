@@ -26,6 +26,7 @@ structure Long_Name: LONG_NAME =
 struct
 
 val separator = ".";
+
 val is_qualified = exists_string (fn s => s = separator);
 
 fun hidden name = "??." ^ name;
