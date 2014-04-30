@@ -8,7 +8,6 @@ PIDE editor session, potentially with running prover process.
 package isabelle
 
 
-import scala.collection.mutable
 import scala.collection.immutable.Queue
 
 
@@ -93,7 +92,6 @@ object Session
       (if (length > limit) "\n(A total of " + length + " messages...)" else "")
     }
   }
-
 
 
   /* protocol handlers */
@@ -201,30 +199,17 @@ class Session(val resources: Resources)
 
 
 
-  /** pipelined change parsing **/
-
-  private case class Text_Edits(
-    previous: Future[Document.Version],
-    doc_blobs: Document.Blobs,
-    text_edits: List[Document.Edit_Text],
-    version_result: Promise[Document.Version])
-
-  private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true)
-  {
-    case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
-      val prev = previous.get_finished
-      val change =
-        Timing.timeit("parse_change", timing) {
-          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits)
-        }
-      version_result.fulfill(change.version)
-      manager.send(change)
-      true
-  }
-
-
-
   /** main protocol manager **/
+
+  /* internal messages */
+
+  private case class Start(name: String, args: List[String])
+  private case object Stop
+  private case class Cancel_Exec(exec_id: Document_ID.Exec)
+  private case class Protocol_Command(name: String, args: List[String])
+  private case class Update_Options(options: Options)
+  private case object Prune_History
+
 
   /* global state */
 
@@ -249,10 +234,6 @@ class Session(val resources: Resources)
     version.syntax getOrElse resources.base_syntax
   }
 
-  def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
-      pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
-    global_state.value.snapshot(name, pending_edits)
-
 
   /* protocol handlers */
 
@@ -274,14 +255,26 @@ class Session(val resources: Resources)
   }
 
 
-  /* internal messages */
+  /* pipelined change parsing */
 
-  private case class Start(name: String, args: List[String])
-  private case object Stop
-  private case class Cancel_Exec(exec_id: Document_ID.Exec)
-  private case class Protocol_Command(name: String, args: List[String])
-  private case class Update_Options(options: Options)
-  private case object Prune_History
+  private case class Text_Edits(
+    previous: Future[Document.Version],
+    doc_blobs: Document.Blobs,
+    text_edits: List[Document.Edit_Text],
+    version_result: Promise[Document.Version])
+
+  private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true)
+  {
+    case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
+      val prev = previous.get_finished
+      val change =
+        Timing.timeit("parse_change", timing) {
+          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits)
+        }
+      version_result.fulfill(change.version)
+      manager.send(change)
+      true
+  }
 
 
   /* buffered changes */
@@ -573,7 +566,11 @@ class Session(val resources: Resources)
   }
 
 
-  /* actions */
+  /* main operations */
+
+  def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
+      pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
+    global_state.value.snapshot(name, pending_edits)
 
   def start(name: String, args: List[String])
   { manager.send(Start(name, args)) }
