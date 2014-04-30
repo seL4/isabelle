@@ -15,7 +15,6 @@ sig
   val parse_files: string -> (theory -> Token.file list) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
-  val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
   val loaded_files: theory -> Path.T list
   val loaded_files_current: theory -> bool
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
@@ -108,7 +107,6 @@ fun load_file thy src_path =
     val full_path = check_file (master_directory thy) src_path;
     val text = File.read full_path;
     val id = SHA1.digest text;
-    val _ = legacy_feature ("Raw file-system access to load file " ^ Path.print full_path);
   in ((full_path, id), text) end;
 
 fun loaded_files_current thy =
