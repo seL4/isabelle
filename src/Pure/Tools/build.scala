@@ -56,7 +56,7 @@ object Build
     parent: Option[String],
     description: String,
     options: List[Options.Spec],
-    theories: List[(List[Options.Spec], List[String])],
+    theories: List[(Boolean, List[Options.Spec], List[String])],
     files: List[String],
     document_files: List[(String, String)]) extends Entry
 
@@ -70,7 +70,7 @@ object Build
     parent: Option[String],
     description: String,
     options: Options,
-    theories: List[(Options, List[Path])],
+    theories: List[(Boolean, Options, List[Path])],
     files: List[Path],
     document_files: List[(Path, Path)],
     entry_digest: SHA1.Digest)
@@ -89,8 +89,8 @@ object Build
       val session_options = options ++ entry.options
 
       val theories =
-        entry.theories.map({ case (opts, thys) =>
-          (session_options ++ opts, thys.map(Path.explode(_))) })
+        entry.theories.map({ case (global, opts, thys) =>
+          (global, session_options ++ opts, thys.map(Path.explode(_))) })
       val files = entry.files.map(Path.explode(_))
       val document_files =
         entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
@@ -179,8 +179,8 @@ object Build
         if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
         else pre_selected
 
-      val tree1 = new Session_Tree(graph.restrict(graph.all_preds(selected).toSet))
-      (selected, tree1)
+      val graph1 = graph.restrict(graph.all_preds(selected).toSet)
+      (selected, new Session_Tree(graph1))
     }
 
     def topological_order: List[(String, Session_Info)] =
@@ -199,6 +199,7 @@ object Build
   private val IN = "in"
   private val DESCRIPTION = "description"
   private val OPTIONS = "options"
+  private val GLOBAL_THEORIES = "global_theories"
   private val THEORIES = "theories"
   private val FILES = "files"
   private val DOCUMENT_FILES = "document_files"
@@ -206,7 +207,7 @@ object Build
   lazy val root_syntax =
     Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" +
       (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
-      IN + DESCRIPTION + OPTIONS + THEORIES + FILES + DOCUMENT_FILES
+      IN + DESCRIPTION + OPTIONS + GLOBAL_THEORIES + THEORIES + FILES + DOCUMENT_FILES
 
   object Parser extends Parse.Parser
   {
@@ -226,8 +227,9 @@ object Build
       val options = keyword("[") ~> rep1sep(option, keyword(",")) <~ keyword("]")
 
       val theories =
-        keyword(THEORIES) ~! ((options | success(Nil)) ~ rep(theory_name)) ^^
-          { case _ ~ (x ~ y) => (x, y) }
+        (keyword(GLOBAL_THEORIES) | keyword(THEORIES)) ~!
+          ((options | success(Nil)) ~ rep(theory_xname)) ^^
+          { case x ~ (y ~ z) => (x == GLOBAL_THEORIES, y, z) }
 
       val document_files =
         keyword(DOCUMENT_FILES) ~!
@@ -407,6 +409,7 @@ object Build
 
   sealed case class Session_Content(
     loaded_theories: Set[String],
+    known_theories: Map[String, Document.Node.Name],
     keywords: Thy_Header.Keywords,
     syntax: Outer_Syntax,
     sources: List[(Path, SHA1.Digest)])
@@ -425,15 +428,14 @@ object Build
           if (progress.stopped) throw Exn.Interrupt()
 
           try {
-            val (preloaded, parent_syntax) =
-              info.parent match {
+            val (loaded_theories0, known_theories0, syntax0) =
+              info.parent.map(deps(_)) match {
                 case None =>
-                  (Set.empty[String], Outer_Syntax.init())
-                case Some(parent_name) =>
-                  val parent = deps(parent_name)
-                  (parent.loaded_theories, parent.syntax)
+                  (Set.empty[String], Map.empty[String, Document.Node.Name], Outer_Syntax.init())
+                case Some(parent) =>
+                  (parent.loaded_theories, parent.known_theories, parent.syntax)
               }
-            val resources = new Resources(preloaded, parent_syntax)
+            val resources = new Resources(loaded_theories0, known_theories0, syntax0)
             val thy_info = new Thy_Info(resources)
 
             if (verbose || list_files) {
@@ -444,14 +446,32 @@ object Build
             }
 
             val thy_deps =
-              thy_info.dependencies(
-                info.theories.map(_._2).flatten.
-                  map(thy => (resources.node_name(info.dir + Resources.thy_path(thy)), info.pos)))
+            {
+              val root_theories =
+                info.theories.flatMap({
+                  case (global, _, thys) =>
+                    thys.map(thy =>
+                      (resources.node_name(
+                        if (global) "" else name, info.dir + Resources.thy_path(thy)), info.pos))
+                })
+              val thy_deps = thy_info.dependencies(name, root_theories)
 
-            thy_deps.errors match {
-              case Nil =>
-              case errs => error(cat_lines(errs))
+              thy_deps.errors match {
+                case Nil => thy_deps
+                case errs => error(cat_lines(errs))
+              }
             }
+
+            val known_theories =
+              (known_theories0 /: thy_deps.deps)({ case (known, dep) =>
+                val name = dep.name
+                known.get(name.theory) match {
+                  case Some(name1) if name != name1 =>
+                    error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
+                  case _ =>
+                    known + (name.theory -> name) + (Long_Name.base_name(name.theory) -> name)
+                }
+              })
 
             val loaded_theories = thy_deps.loaded_theories
             val keywords = thy_deps.keywords
@@ -480,7 +500,9 @@ object Build
 
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 
-            deps + (name -> Session_Content(loaded_theories, keywords, syntax, sources))
+            val content =
+              Session_Content(loaded_theories, known_theories, keywords, syntax, sources)
+            deps + (name -> content)
           }
           catch {
             case ERROR(msg) =>
@@ -528,12 +550,13 @@ object Build
       if (is_pure(name)) Options.encode(info.options)
       else
         {
+          val theories = info.theories.map(x => (x._2, x._3))
           import XML.Encode._
               pair(list(properties), pair(bool, pair(Options.encode, pair(bool, pair(Path.encode,
                 pair(list(pair(Path.encode, Path.encode)), pair(string, pair(string, pair(string,
                   list(pair(Options.encode, list(Path.encode))))))))))))(
               (command_timings, (do_output, (info.options, (verbose, (browser_info,
-                (info.document_files, (parent, (info.chapter, (name, info.theories))))))))))
+                (info.document_files, (parent, (info.chapter, (name, theories))))))))))
         }))
 
     private val env =

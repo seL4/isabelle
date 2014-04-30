@@ -19,8 +19,11 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 
-class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Outer_Syntax)
-  extends Resources(loaded_theories, base_syntax)
+class JEdit_Resources(
+    loaded_theories: Set[String],
+    known_theories: Map[String, Document.Node.Name],
+    base_syntax: Outer_Syntax)
+  extends Resources(loaded_theories, known_theories, base_syntax)
 {
   /* document node names */
 

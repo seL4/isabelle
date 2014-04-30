@@ -429,7 +429,7 @@ fun make_required nodes =
 
 fun loaded_theory name =
   (case try (unsuffix ".thy") name of
-    SOME a => Thy_Info.lookup_theory a
+    SOME a => get_first Thy_Info.lookup_theory [a, Long_Name.base_name a]
   | NONE => NONE);
 
 fun init_theory deps node span =

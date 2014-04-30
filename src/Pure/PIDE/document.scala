@@ -123,6 +123,8 @@ object Document
 
       def is_theory: Boolean = !theory.isEmpty
       override def toString: String = if (is_theory) theory else node
+
+      def map(f: String => String): Name = copy(f(node), f(master_dir), theory)
     }
 
 

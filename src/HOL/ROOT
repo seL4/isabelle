@@ -5,7 +5,9 @@ session HOL (main) = Pure +
     Classical Higher-order Logic.
   *}
   options [document_graph]
-  theories Complex_Main
+  global_theories
+    Main
+    Complex_Main
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"

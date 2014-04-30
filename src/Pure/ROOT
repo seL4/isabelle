@@ -26,7 +26,7 @@ session RAW =
     "ML-Systems/use_context.ML"
 
 session Pure =
-  theories Pure
+  global_theories Pure
   files
     "General/exn.ML"
     "ML-Systems/compiler_polyml.ML"

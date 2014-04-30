@@ -15,7 +15,9 @@ session FOL = Pure +
 
     Michael Dummett, Elements of Intuitionism (Oxford, 1977)
   *}
-  theories FOL
+  global_theories
+    IFOL
+    FOL
   document_files "root.tex"
 
 session "FOL-ex" in ex = FOL +

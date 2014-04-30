@@ -18,15 +18,18 @@ object Resources
 }
 
 
-class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: Prover.Syntax)
+class Resources(
+  val loaded_theories: Set[String],
+  val known_theories: Map[String, Document.Node.Name],
+  val base_syntax: Prover.Syntax)
 {
   /* document node names */
 
-  def node_name(raw_path: Path): Document.Node.Name =
+  def node_name(qualifier: String, raw_path: Path): Document.Node.Name =
   {
     val path = raw_path.expand
     val node = path.implode
-    val theory = Thy_Header.thy_name(node).getOrElse("")
+    val theory = Long_Name.qualify(qualifier, Thy_Header.thy_name(node).getOrElse(""))
     val master_dir = if (theory == "") "" else path.dir.implode
     Document.Node.Name(node, master_dir, theory)
   }
@@ -57,36 +60,50 @@ class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: P
     }
     else Nil
 
-  def import_name(master: Document.Node.Name, s: String): Document.Node.Name =
+  private def dummy_name(theory: String): Document.Node.Name =
+    Document.Node.Name(theory + ".thy", "", theory)
+
+  def import_name(qualifier: String, master: Document.Node.Name, s: String): Document.Node.Name =
   {
-    val theory = Thy_Header.base_name(s)
-    if (loaded_theories(theory)) Document.Node.Name(theory + ".thy", "", theory)
-    else {
-      val path = Path.explode(s)
-      val node = append(master.master_dir, Resources.thy_path(path))
-      val master_dir = append(master.master_dir, path.dir)
-      Document.Node.Name(node, master_dir, theory)
+    val thy1 = Thy_Header.base_name(s)
+    val thy2 = if (Long_Name.is_qualified(thy1)) thy1 else Long_Name.qualify(qualifier, thy1)
+    (known_theories.get(thy1) orElse
+     known_theories.get(thy2) orElse
+     known_theories.get(Long_Name.base_name(thy1))) match {
+      case Some(name) if loaded_theories(name.theory) => dummy_name(name.theory)
+      case Some(name) => name
+      case None =>
+        val path = Path.explode(s)
+        val theory = path.base.implode
+        if (Long_Name.is_qualified(theory)) dummy_name(theory)
+        else {
+          val node = append(master.master_dir, Resources.thy_path(path))
+          val master_dir = append(master.master_dir, path.dir)
+          Document.Node.Name(node, master_dir, Long_Name.qualify(qualifier, theory))
+        }
     }
   }
 
-  def check_thy_text(name: Document.Node.Name, text: CharSequence): Document.Node.Header =
+  def check_thy_text(qualifier: String, name: Document.Node.Name, text: CharSequence)
+    : Document.Node.Header =
   {
     try {
       val header = Thy_Header.read(text)
 
+      val base_name = Long_Name.base_name(name.theory)
       val name1 = header.name
-      if (name.theory != name1)
-        error("Bad file name " + Resources.thy_path(Path.basic(name.theory)) +
+      if (base_name != name1)
+        error("Bad file name " + Resources.thy_path(Path.basic(base_name)) +
           " for theory " + quote(name1))
 
-      val imports = header.imports.map(import_name(name, _))
+      val imports = header.imports.map(import_name(qualifier, name, _))
       Document.Node.Header(imports, header.keywords, Nil)
     }
     catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
   }
 
-  def check_thy(name: Document.Node.Name): Document.Node.Header =
-    with_thy_text(name, check_thy_text(name, _))
+  def check_thy(qualifier: String, name: Document.Node.Name): Document.Node.Header =
+    with_thy_text(name, check_thy_text(qualifier, name, _))
 
 
   /* document changes */
