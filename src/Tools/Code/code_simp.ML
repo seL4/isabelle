@@ -33,10 +33,6 @@ fun map_ss f thy = Simpset.map (simpset_map (Proof_Context.init_global thy) f) t
 
 fun simpset_default ctxt some_ss = the_default (Simpset.get (Proof_Context.theory_of ctxt)) some_ss;
 
-(*fun simp_ctxt_default ctxt some_ss =
-  Proof_Context.init_global ctxt
-  |> put_simpset (simpset_default ctxt some_ss);*)
-
 
 (* diagnostic *)
 
