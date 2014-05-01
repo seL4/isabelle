@@ -62,7 +62,7 @@ type z3_method = Proof.context -> thm list -> term -> thm
 
 (* utility functions *)
 
-val trace = SMT2_Config.trace_msg
+fun trace ctxt f = SMT2_Config.trace_msg ctxt f ()
 
 fun pretty_thm ctxt thm = Syntax.pretty_term ctxt (Thm.concl_of thm)
 
@@ -137,7 +137,10 @@ fun by_tac ctxt thms ns ts t tac =
 fun prove ctxt t tac = by_tac ctxt [] [] [] t (K o tac)
 
 fun prop_tac ctxt prems =
-  Method.insert_tac prems THEN' (Classical.fast_tac ctxt ORELSE' Clasimp.force_tac ctxt)
+  Method.insert_tac prems
+  THEN' SUBGOAL (fn (prop, i) =>
+    if Term.size_of_term prop > 100 then SAT.satx_tac ctxt i
+    else (Classical.fast_tac ctxt ORELSE' Clasimp.force_tac ctxt) i)
 
 fun quant_tac ctxt = Blast.blast_tac ctxt
 

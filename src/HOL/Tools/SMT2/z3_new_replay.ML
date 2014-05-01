@@ -182,7 +182,10 @@ fun replay outer_ctxt
       ((iidths, steps), TrueI)
     else
       let
-        val ctxt4 = put_simpset (Z3_New_Replay_Util.make_simpset ctxt3 []) ctxt3
+        val ctxt4 =
+          ctxt3
+          |> put_simpset (Z3_New_Replay_Util.make_simpset ctxt3 [])
+          |> Config.put SAT.solver (Config.get ctxt3 SMT2_Config.sat_solver)
         val proofs = fold (replay_step ctxt4 assumed) steps assumed
         val (_, Z3_New_Proof.Z3_Step {id, ...}) = split_last steps
         val thm = Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
