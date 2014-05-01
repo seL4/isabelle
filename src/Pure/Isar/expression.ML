@@ -958,8 +958,10 @@ in
 fun interpret x = gen_interpret cert_interpretation x;
 fun interpret_cmd x = gen_interpret read_interpretation x;
 
-fun permanent_interpretation x =
-  gen_local_theory_interpretation cert_interpretation (K Local_Theory.subscription) x;
+fun permanent_interpretation expression raw_eqns =
+  Local_Theory.assert_bottom true
+  #> gen_local_theory_interpretation cert_interpretation
+    (K Local_Theory.subscription) expression raw_eqns;
 
 fun ephemeral_interpretation x =
   gen_local_theory_interpretation cert_interpretation (K Local_Theory.activate) x;

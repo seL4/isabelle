@@ -256,7 +256,6 @@ val operations_of = #operations o get_first_lthy;
 
 fun operation f lthy = f (operations_of lthy) lthy;
 fun operation2 f x y = operation (fn ops => f ops x y);
-fun operation3 f x y z = operation (fn ops => f ops x y z);
 
 val pretty = operation #pretty;
 val abbrev = operation2 #abbrev;
@@ -264,7 +263,8 @@ val define = operation2 #define false;
 val define_internal = operation2 #define true;
 val notes_kind = operation2 #notes;
 val declaration = operation2 #declaration;
-val subscription = operation3 #subscription;
+fun subscription dep_morph mixin export =
+  assert_bottom true #> operation (fn ops => #subscription ops dep_morph mixin export);
 
 
 (* basic derived operations *)

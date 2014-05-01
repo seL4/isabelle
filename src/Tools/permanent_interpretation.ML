@@ -85,9 +85,10 @@ fun generic_interpretation prep_interpretation setup_proof note add_registration
 
 (* interpretation with permanent registration *)
 
-fun gen_permanent_interpretation prep_interpretation expression raw_defs raw_eqns lthy =
-  generic_interpretation prep_interpretation Element.witness_proof_eqs Local_Theory.notes_kind Local_Theory.subscription
-    expression raw_defs raw_eqns lthy
+fun gen_permanent_interpretation prep_interpretation expression raw_defs raw_eqns =
+  Local_Theory.assert_bottom true
+  #> generic_interpretation prep_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Local_Theory.subscription expression raw_defs raw_eqns
 
 in
 
