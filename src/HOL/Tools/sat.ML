@@ -332,8 +332,10 @@ fun rawsat_thm ctxt clauses =
       end
   in
     case
-      let val the_solver = Config.get ctxt solver
-      in (tracing ("Invoking solver " ^ the_solver); SatSolver.invoke_solver the_solver fm) end
+      let
+        val the_solver = Config.get ctxt solver
+        val _ = cond_tracing ctxt (fn () => "Invoking solver " ^ the_solver)
+      in SatSolver.invoke_solver the_solver fm end
     of
       SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) =>
        (cond_tracing ctxt (fn () =>
