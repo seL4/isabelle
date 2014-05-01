@@ -758,6 +758,7 @@ fun dissect_coeqn lthy has_call fun_names sequentials
   in
     if member (op =) discs head orelse
         is_some rhs_opt andalso
+          member (op =) (map SOME fun_names) (try (fst o dest_Free) head) andalso
           member (op =) (filter (null o binder_types o fastype_of) ctrs) (the rhs_opt) then
       dissect_coeqn_disc lthy fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl
         matchedsss
