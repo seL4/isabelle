@@ -278,11 +278,11 @@ fun haskell_program_of_program ctxt module_prefix module_name reserved identifie
     fun namify_fun upper base (nsp_fun, nsp_typ) =
       let
         val (base', nsp_fun') =
-          Name.variant (if upper then first_upper base else base) nsp_fun;
+          Name.variant (if upper then Name.enforce_case true base else base) nsp_fun;
       in (base', (nsp_fun', nsp_typ)) end;
     fun namify_typ base (nsp_fun, nsp_typ) =
       let
-        val (base', nsp_typ') = Name.variant (first_upper base) nsp_typ;
+        val (base', nsp_typ') = Name.variant (Name.enforce_case true base) nsp_typ;
       in (base', (nsp_fun, nsp_typ')) end;
     fun namify_stmt (Code_Thingol.Fun (_, SOME _)) = pair
       | namify_stmt (Code_Thingol.Fun _) = namify_fun false

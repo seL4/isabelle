@@ -31,8 +31,8 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
     val deresolve_const = deresolve o Constant;
     val deresolve_tyco = deresolve o Type_Constructor;
     val deresolve_class = deresolve o Type_Class;
-    fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
-    fun intro_tyvars vs = intro_vars (map (first_upper o fst) vs);
+    fun lookup_tyvar tyvars = lookup_var tyvars o Name.enforce_case true;
+    fun intro_tyvars vs = intro_vars (map (Name.enforce_case true o fst) vs);
     fun print_tyco_expr tyvars fxy (sym, tys) = applify "[" "]"
           (print_typ tyvars NOBR) fxy ((str o deresolve) sym) tys
     and print_typ tyvars fxy (tyco `%% tys) = (case tyco_syntax tyco
@@ -308,7 +308,7 @@ fun scala_program_of_program ctxt module_name reserved identifiers exports progr
     fun namify_common upper base ((nsp_class, nsp_object), nsp_common) =
       let
         val (base', nsp_common') =
-          Name.variant (if upper then first_upper base else base) nsp_common
+          Name.variant (if upper then Name.enforce_case true base else base) nsp_common
       in
         (base',
           ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))

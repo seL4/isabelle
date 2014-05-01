@@ -28,8 +28,6 @@ sig
   val markup_stmt: Code_Symbol.T -> Pretty.T -> Pretty.T
   val format: Code_Symbol.T list -> int -> Pretty.T -> string
 
-  val first_upper: string -> string
-  val first_lower: string -> string
   type var_ctxt
   val make_vars: string list -> var_ctxt
   val intro_vars: string list -> var_ctxt -> var_ctxt
@@ -174,9 +172,6 @@ fun lookup_var (namemap, _) name =
   case Symtab.lookup namemap name of
     SOME name' => name'
   | NONE => error ("Invalid name in context: " ^ quote name);
-
-val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o raw_explode;
-val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o raw_explode;
 
 fun aux_params vars lhss =
   let

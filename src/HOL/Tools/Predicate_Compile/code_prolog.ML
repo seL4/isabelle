@@ -132,12 +132,6 @@ structure System_Config = Generic_Data
 )
 
 
-(* general string functions *)
-
-val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o raw_explode;
-val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o raw_explode;
-
-
 (* internal program representation *)
 
 datatype arith_op = Plus | Minus
@@ -225,7 +219,7 @@ fun declare_consts consts constant_table =
     fun update' c table =
       if AList.defined (op =) table c then table else
         let
-          val c' = mk_conform first_lower "pred" (map snd table) (Long_Name.base_name c)
+          val c' = mk_conform (Name.enforce_case false) "pred" (map snd table) (Long_Name.base_name c)
         in
           AList.update (op =) (c, c') table
         end
@@ -433,7 +427,7 @@ fun declare_moded_predicate moded_preds table =
         let
           val name = Long_Name.base_name pred ^ (if pol then "p" else "n")
             ^ Predicate_Compile_Aux.ascii_string_of_mode mode
-          val p' = mk_conform first_lower "pred" (map snd table) name
+          val p' = mk_conform (Name.enforce_case false) "pred" (map snd table) name
         in
           AList.update (op =) (p, p') table
         end
@@ -526,7 +520,7 @@ fun add_ground_typ (Conj prems) = fold add_ground_typ prems
   | add_ground_typ _ = I
 
 fun mk_relname (Type (Tcon, Targs)) =
-      first_lower (Long_Name.base_name Tcon) ^ space_implode "_" (map mk_relname Targs)
+      Name.enforce_case false (Long_Name.base_name Tcon) ^ space_implode "_" (map mk_relname Targs)
   | mk_relname _ = raise Fail "unexpected type"
 
 fun mk_lim_relname T = "lim_" ^  mk_relname T
@@ -677,7 +671,7 @@ fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renam
 fun rename_vars_prem renaming = map_term_prem (rename_vars_term renaming)
 
 fun mk_renaming v renaming =
-  (v, mk_conform first_upper "Var" (map snd renaming) v) :: renaming
+  (v, mk_conform (Name.enforce_case true) "Var" (map snd renaming) v) :: renaming
 
 fun rename_vars_clause ((rel, args), prem) =
   let

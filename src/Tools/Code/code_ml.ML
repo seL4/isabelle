@@ -84,8 +84,8 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             (if is_pseudo_fun (Class_Instance inst) then [str "()"]
             else map_filter (print_dicts is_pseudo_fun BR) dss))
       | print_plain_dict is_pseudo_fun fxy (Dict_Var (v, (i, k))) =
-          [str (if k = 1 then first_upper v ^ "_"
-            else first_upper v ^ string_of_int (i+1) ^ "_")]
+          [str (if k = 1 then Name.enforce_case true v ^ "_"
+            else Name.enforce_case true v ^ string_of_int (i+1) ^ "_")]
     and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
       (map_index (fn (i, _) => Dict ([], Dict_Var (v, (i, length sort)))) sort));
@@ -395,8 +395,8 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             (if is_pseudo_fun (Class_Instance inst) then [str "()"]
             else map_filter (print_dicts is_pseudo_fun BR) dss))
       | print_plain_dict is_pseudo_fun fxy (Dict_Var (v, (i, k))) =
-          str (if k = 1 then "_" ^ first_upper v
-            else "_" ^ first_upper v ^ string_of_int (i+1))
+          str (if k = 1 then "_" ^ Name.enforce_case true v
+            else "_" ^ Name.enforce_case true v ^ string_of_int (i+1))
     and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
       (map_index (fn (i, _) => Dict ([], Dict_Var (v, (i, length sort)))) sort));
@@ -655,7 +655,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 (Constant classparam, ([(v, [class])], ty));
             fun print_classparam_field (classparam, ty) =
               print_field (deresolve_const classparam) (print_typ NOBR ty);
-            val w = "_" ^ first_upper v;
+            val w = "_" ^ Name.enforce_case true v;
             fun print_classparam_proj (classparam, _) =
               (concat o map str) ["let", deresolve_const classparam, w, "=",
                 w ^ "." ^ deresolve_const classparam ^ ";;"];
@@ -724,7 +724,7 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
     fun namify_const upper base (nsp_const, nsp_type) =
       let
         val (base', nsp_const') =
-          Name.variant (if upper then first_upper base else base) nsp_const
+          Name.variant (if upper then Name.enforce_case true base else base) nsp_const
       in (base', (nsp_const', nsp_type)) end;
     fun namify_type base (nsp_const, nsp_type) =
       let
