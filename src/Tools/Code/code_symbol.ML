@@ -88,8 +88,6 @@ local
 in
 
 fun default_base (Constant "") = "value"
-  | default_base (Constant @{const_name Pure.imp}) = "follows"
-  | default_base (Constant @{const_name Pure.eq}) = "meta_eq"
   | default_base (Constant c) = base c
   | default_base (Type_Constructor tyco) = base tyco
   | default_base (Type_Class class) = base class
