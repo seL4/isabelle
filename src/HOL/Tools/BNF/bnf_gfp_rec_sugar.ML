@@ -690,7 +690,7 @@ fun dissect_coeqn_ctr lthy fun_names sequentials (basic_ctr_specss : basic_corec
 
     val sel_concls = sels ~~ ctr_args
       |> map (fn (sel, ctr_arg) => HOLogic.mk_eq (betapply (sel, lhs), ctr_arg))
-        handle UnequalLengths =>
+        handle ListPair.UnequalLengths =>
           primcorec_error_eqn "partially applied constructor in right-hand side" rhs;
 
 (*
