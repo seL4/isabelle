@@ -193,20 +193,17 @@ differently).
 
 *** HOL ***
 
-* Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
-INCOMPATIBILITY.
-
-* Default congruence rules strong_INF_cong and strong_SUP_cong,
-with simplifier implication in premises.  Generalized and replace
-former INT_cong, SUP_cong.  INCOMPATIBILITY.
-
-* Consolidated theorem names containing INFI and SUPR: have INF
-and SUP instead uniformly.  INCOMPATIBILITY.
-
-* More aggressive normalization of expressions involving INF and Inf
-or SUP and Sup.  INCOMPATIBILITY.
-
-* INF_image and SUP_image do not unfold composition.
+* Adjustion of INF and SUP operations:
+  * Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
+  * Consolidated theorem names containing INFI and SUPR: have INF
+  and SUP instead uniformly.
+  * More aggressive normalization of expressions involving INF and Inf
+  or SUP and Sup.
+  * INF_image and SUP_image do not unfold composition.
+  * Dropped facts INF_comp, SUP_comp.
+  * Default congruence rules strong_INF_cong and strong_SUP_cong,
+  with simplifier implication in premises.  Generalize and replace
+  former INT_cong, SUP_cong
 INCOMPATIBILITY.
 
 * Swapped orientation of facts image_comp and vimage_comp:
@@ -221,8 +218,6 @@ INCOMPATIBILITY.
   For help with converting proofs, the old behaviour of the simplifier
   can be restored like this:  declare/using [[simp_legacy_precond]]
   This configuration option will disappear again in the future.
-
-* Dropped facts INF_comp, SUP_comp.  INCOMPATIBILITY.
 
 * HOL-Word:
   * Abandoned fact collection "word_arith_alts", which is a
@@ -434,7 +429,7 @@ max.left_commute, max.left_idem directly.
 For min_max.inf_sup_ord, prefer (one of) min.cobounded1, min.cobounded2,
 max.cobounded1m max.cobounded2 directly.
 
-For min_ac or max_ac, prefor more general collection ac_simps.
+For min_ac or max_ac, prefer more general collection ac_simps.
 
 INCOMPATBILITY. 
 
