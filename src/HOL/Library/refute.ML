@@ -1068,7 +1068,7 @@ fun find_model ctxt
             val fm_ax = Prop_Logic.all (map toTrue (tl intrs))
             val fm = Prop_Logic.all [#wellformed args, fm_ax, fm_u]
             val _ =
-              (if satsolver = "dpll" orelse satsolver = "enumerate" then
+              (if member (op =) ["dpll_p", "dpll", "enumerate"] satsolver then
                 warning ("Using SAT solver " ^ quote satsolver ^
                          "; for better performance, consider installing an \
                          \external solver.")

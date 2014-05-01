@@ -503,6 +503,201 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Internal SAT solver, available as 'SatSolver.invoke_solver "dpll_p"' --   *)
+(* a simple, slightly more efficient implementation of the DPLL algorithm    *)
+(* (cf. L. Zhang, S. Malik: "The Quest for Efficient Boolean Satisfiability  *)
+(* Solvers", July 2002, Fig. 2). In contrast to the other two ML solvers     *)
+(* above, this solver produces proof traces. *)
+(* ------------------------------------------------------------------------- *)
+
+let
+  type clause = int list * int
+  type value = bool option
+  datatype reason = Decided | Implied of clause | Level0 of int
+  type variable = bool option * reason * int * int
+  type proofs = int * int list Inttab.table
+  type state =
+    int * int list * variable Inttab.table * clause list Inttab.table * proofs
+  exception CONFLICT of clause * state
+  exception UNSAT of clause * state
+
+  fun neg i = ~i
+
+  fun lit_value lit value = if lit > 0 then value else Option.map not value
+
+  fun var_of vars lit: variable = the (Inttab.lookup vars (abs lit))
+  fun value_of vars lit = lit_value lit (#1 (var_of vars lit))
+  fun reason_of vars lit = #2 (var_of vars lit)
+  fun level_of vars lit = #3 (var_of vars lit)
+
+  fun is_true vars lit = (value_of vars lit = SOME true)
+  fun is_false vars lit = (value_of vars lit = SOME false)
+  fun is_unassigned vars lit = (value_of vars lit = NONE)
+  fun assignment_of vars lit = the_default NONE (try (value_of vars) lit)
+
+  fun put_var value reason level (_, _, _, rank) = (value, reason, level, rank)
+  fun incr_rank (value, reason, level, rank) = (value, reason, level, rank + 1)
+  fun update_var lit f = Inttab.map_entry (abs lit) f
+  fun add_var lit = Inttab.update (abs lit, (NONE, Decided, ~1, 0))
+
+  fun assign lit r l = update_var lit (put_var (SOME (lit > 0)) r l)
+  fun unassign lit = update_var lit (put_var NONE Decided ~1)
+
+  fun add_proof [] (idx, ptab) = (idx, (idx + 1, ptab))
+    | add_proof ps (idx, ptab) = (idx, (idx + 1, Inttab.update (idx, ps) ptab))
+
+  fun level0_proof_of (Level0 idx) = SOME idx
+    | level0_proof_of _ = NONE
+
+  fun level0_proofs_of vars = map_filter (level0_proof_of o reason_of vars)
+  fun prems_of vars (lits, p) = p :: level0_proofs_of vars lits
+  fun mk_proof vars cls proofs = add_proof (prems_of vars cls) proofs
+
+  fun push lit cls (level, trail, vars, clss, proofs) =
+    let
+      val (reason, proofs) =
+        if level = 0 then apfst Level0 (mk_proof vars cls proofs)
+        else (Implied cls, proofs)
+    in (level, lit :: trail, assign lit reason level vars, clss, proofs) end
+
+  fun push_decided lit (level, trail, vars, clss, proofs) =
+    let val vars' = assign lit Decided (level + 1) vars
+    in (level + 1, lit :: 0 :: trail, vars', clss, proofs) end
+
+  fun prop (cls as (lits, _)) (cx as (units, state as (level, _, vars, _, _))) =
+    if exists (is_true vars) lits then cx
+    else if forall (is_false vars) lits then
+      if level = 0 then raise UNSAT (cls, state)
+      else raise CONFLICT (cls, state)
+    else
+      (case filter (is_unassigned vars) lits of
+        [lit] => (lit :: units, push lit cls state)
+      | _ => cx)
+
+  fun propagate units (state as (_, _, _, clss, _)) =
+    (case fold (fold prop o Inttab.lookup_list clss) units ([], state) of
+      ([], state') => (NONE, state')
+    | (units', state') => propagate units' state')
+    handle CONFLICT (cls, state') => (SOME cls, state')
+
+  fun max_unassigned (v, (NONE, _, _, rank)) (x as (_, r)) =
+        if rank > r then (SOME v, rank) else x
+    | max_unassigned _  x = x
+
+  fun decide (state as (_, _, vars, _, _)) =
+    (case Inttab.fold max_unassigned vars (NONE, 0) of
+      (SOME lit, _) => SOME (lit, push_decided lit state)
+    | (NONE, _) => NONE)
+
+  fun mark lit = Inttab.update (abs lit, true)
+  fun marked ms lit = the_default false (Inttab.lookup ms (abs lit))
+  fun ignore l ms lit = ((lit = l) orelse marked ms lit)
+
+  fun first_lit _ [] = raise Empty
+    | first_lit _ (0 :: _) = raise Empty
+    | first_lit pred (lit :: lits) =
+        if pred lit then (lit, lits) else first_lit pred lits
+
+  fun reason_cls_of vars lit =
+    (case reason_of vars lit of
+      Implied cls => cls
+    | _ => raise Option)
+
+  fun analyze conflicting_cls (level, trail, vars, _, _) =
+    let
+      fun back i lit (lits, p) trail ms ls ps =
+        let
+          val (lits0, lits') = List.partition (equal 0 o level_of vars) lits
+          val lits1 = filter_out (ignore lit ms) lits'
+          val lits2 = filter_out (equal level o level_of vars) lits1
+          val i' = length lits1 - length lits2 + i
+          val ms' = fold mark lits1 ms
+          val ls' = lits2 @ ls
+          val ps' = level0_proofs_of vars lits0 @ (p :: ps)
+          val (lit', trail') = first_lit (marked ms') trail
+        in 
+          if i' = 1 then (neg lit', ls', rev ps')
+          else back (i' - 1) lit' (reason_cls_of vars lit') trail' ms' ls' ps'
+        end
+    in back 0 0 conflicting_cls trail Inttab.empty [] [] end
+
+  fun keep_clause (cls as (lits, _)) (level, trail, vars, clss, proofs) =
+    let
+      val vars' = fold (fn lit => update_var lit incr_rank) lits vars
+      val clss' = fold (fn lit => Inttab.cons_list (neg lit, cls)) lits clss
+    in (level, trail, vars', clss', proofs) end
+
+  fun learn (cls as (lits, _)) = (length lits <= 2) ? keep_clause cls
+
+  fun backjump _ (state as (_, [], _, _, _)) = state 
+    | backjump i (level, 0 :: trail, vars, clss, proofs) =
+        (level - 1, trail, vars, clss, proofs) |> (i > 1) ? backjump (i - 1)
+    | backjump i (level, lit :: trail, vars, clss, proofs) =
+        backjump i (level, trail, unassign lit vars, clss, proofs)
+
+  fun search units state =
+    (case propagate units state of
+      (NONE, state' as (_, _, vars, _, _)) =>
+        (case decide state' of
+          NONE => SatSolver.SATISFIABLE (assignment_of vars)
+        | SOME (lit, state'') => search [lit] state'')
+    | (SOME conflicting_cls, state' as (level, trail, vars, clss, proofs)) =>
+        let 
+          val (lit, lits, ps) = analyze conflicting_cls state'
+          val (idx, proofs') = add_proof ps proofs
+          val cls = (lit :: lits, idx)
+        in
+          (level, trail, vars, clss, proofs')
+          |> backjump (level - fold (Integer.max o level_of vars) lits 0)
+          |> learn cls
+          |> push lit cls
+          |> search [lit]
+        end)
+
+  fun has_opposing_lits [] = false
+    | has_opposing_lits (lit :: lits) =
+        member (op =) lits (neg lit) orelse has_opposing_lits lits
+
+  fun add_clause (cls as ([_], _)) (units, state) =
+        let val (units', state') = prop cls (units, state)
+        in (units', state') end
+    | add_clause (cls as (lits, _)) (cx as (units, state)) =
+        if has_opposing_lits lits then cx
+        else (units, keep_clause cls state)
+
+  fun mk_clause lits proofs =
+    apfst (pair (distinct (op =) lits)) (add_proof [] proofs)
+
+  fun solve litss =
+    let
+      val (clss, proofs) = fold_map mk_clause litss (0, Inttab.empty)
+      val vars = fold (fold add_var) litss Inttab.empty
+      val state = (0, [], vars, Inttab.empty, proofs)
+    in uncurry search (fold add_clause clss ([], state)) end
+    handle UNSAT (conflicting_cls, (_, _, vars, _, proofs)) =>
+      let val (idx, (_, ptab)) = mk_proof vars conflicting_cls proofs
+      in SatSolver.UNSATISFIABLE (SOME (ptab, idx)) end
+
+  fun variable_of (Prop_Logic.BoolVar 0) = error "bad propositional variable"
+    | variable_of (Prop_Logic.BoolVar i) = i
+    | variable_of _ = error "expected formula in CNF"
+  fun literal_of (Prop_Logic.Not fm) = neg (variable_of fm)
+    | literal_of fm = variable_of fm
+  fun clause_of (Prop_Logic.Or (fm1, fm2)) = clause_of fm1 @ clause_of fm2
+    | clause_of fm = [literal_of fm]
+  fun clauses_of (Prop_Logic.And (fm1, fm2)) = clauses_of fm1 @ clauses_of fm2
+    | clauses_of Prop_Logic.True = [[1, ~1]]
+    | clauses_of Prop_Logic.False = [[1], [~1]]
+    | clauses_of fm = [clause_of fm]
+
+  fun dpll_solver fm =
+    let val fm' = if Prop_Logic.is_cnf fm then fm else Prop_Logic.defcnf fm
+    in solve (clauses_of fm') end
+in
+  SatSolver.add_solver ("dpll_p", dpll_solver)
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Internal SAT solver, available as 'SatSolver.invoke_solver "auto"': uses  *)
 (* the last installed solver (other than "auto" itself) that does not raise  *)
 (* 'NOT_CONFIGURED'.  (However, the solver may return 'UNKNOWN'.)            *)

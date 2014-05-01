@@ -6,7 +6,7 @@
 header {* A SAT-based Sudoku Solver *}
 
 theory Sudoku
-imports Main
+imports Main "../Library/Refute"
 begin
 
 text {*

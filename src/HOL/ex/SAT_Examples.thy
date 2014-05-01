@@ -11,10 +11,10 @@ begin
 (*
 declare [[sat_solver = zchaff_with_proofs]]
 declare [[sat_solver = minisat_with_proofs]]
+declare [[sat_trace]]
 *)
 
-declare [[sat_trace]]
-declare [[quick_and_dirty]]
+declare [[sat_solver = dpll_p]]
 
 lemma "True"
 by sat

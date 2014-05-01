@@ -11,7 +11,7 @@ theory Refute_Examples
 imports "~~/src/HOL/Library/Refute"
 begin
 
-refute_params [satsolver = "dpll"]
+refute_params [satsolver = "dpll_p"]
 
 lemma "P \<and> Q"
 apply (rule conjI)
