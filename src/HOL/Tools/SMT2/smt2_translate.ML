@@ -98,7 +98,7 @@ fun add_typ T proper (cx as (names, typs, terms)) =
     SOME (name, _) => (name, cx)
   | NONE =>
       let
-        val sugg = Name.desymbolize true (suggested_name_of_typ T) ^ safe_suffix
+        val sugg = Name.desymbolize (SOME true) (suggested_name_of_typ T) ^ safe_suffix
         val (name, names') = Name.variant sugg names
         val typs' = Typtab.update (T, (name, proper)) typs
       in (name, (names', typs', terms)) end)
@@ -108,7 +108,7 @@ fun add_fun t sort (cx as (names, typs, terms)) =
     SOME (name, _) => (name, cx)
   | NONE => 
       let
-        val sugg = Name.desymbolize false (suggested_name_of_term t) ^ safe_suffix
+        val sugg = Name.desymbolize (SOME false) (suggested_name_of_term t) ^ safe_suffix
         val (name, names') = Name.variant sugg names
         val terms' = Termtab.update (t, (name, sort)) terms
       in (name, (names', typs, terms')) end)

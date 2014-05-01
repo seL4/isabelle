@@ -603,7 +603,7 @@ and translate_term ctxt algbr eqngr permissive some_thm (Const (c, ty), some_abs
       pair (IVar (SOME v))
   | translate_term ctxt algbr eqngr permissive some_thm (Abs (v, ty, t), some_abs) =
       let
-        val (v', t') = Syntax_Trans.variant_abs (Name.desymbolize false v, ty, t);
+        val (v', t') = Syntax_Trans.variant_abs (Name.desymbolize (SOME false) v, ty, t);
         val v'' = if member (op =) (Term.add_free_names t' []) v'
           then SOME v' else NONE
       in

@@ -229,7 +229,7 @@ fun to_definitional_cnf_with_quantifiers ctxt th =
 fun zapped_var_name ((ax_no, cluster_no), skolem) index_no s =
   (if skolem then new_skolem_var_prefix else new_nonskolem_var_prefix) ^
   "_" ^ string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^
-  string_of_int index_no ^ "_" ^ Name.desymbolize false s
+  string_of_int index_no ^ "_" ^ Name.desymbolize (SOME false) s
 
 fun cluster_of_zapped_var_name s =
   let val get_int = the o Int.fromString o nth (space_explode "_" s) in

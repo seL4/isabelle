@@ -721,7 +721,7 @@ fun is_line_cnf_ueq (Formula (_, _, AAtom (ATerm (((s, _), _), _)), _, _)) =
   | is_line_cnf_ueq _ = false
 
 fun open_conjecture_term (ATerm (((s, s'), tys), tms)) =
-    ATerm ((if is_tptp_variable s then (s |> Name.desymbolize false, s')
+    ATerm ((if is_tptp_variable s then (s |> Name.desymbolize (SOME false), s')
             else (s, s'), tys), tms |> map open_conjecture_term)
   | open_conjecture_term _ = raise Fail "unexpected higher-order term"
 fun open_formula conj =
@@ -843,7 +843,7 @@ fun readable_name protect full_name s =
    else
      s |> no_qualifiers
        |> unquote_tvar
-       |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
+       |> Name.desymbolize (SOME (Char.isUpper (String.sub (full_name, 0))))
        |> (fn s =>
               if size s > max_readable_name_size then
                 String.substring (s, 0, max_readable_name_size div 2 - 4) ^

@@ -621,7 +621,7 @@ fun same_arity thy thms =
 fun mk_desymbolization pre post mk vs =
   let
     val names = map (pre o fst o fst) vs
-      |> map (Name.desymbolize false)
+      |> map (Name.desymbolize (SOME false))
       |> Name.variant_list []
       |> map post;
   in map_filter (fn (((v, i), x), v') =>

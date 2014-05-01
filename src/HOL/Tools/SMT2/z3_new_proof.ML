@@ -313,7 +313,7 @@ fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: 'a context) =
 
 exception Z3_PARSE of string * SMTLIB2.tree
 
-val desymbolize = Name.desymbolize false o perhaps (try (unprefix "?"))
+val desymbolize = Name.desymbolize (SOME false) o perhaps (try (unprefix "?"))
 
 fun parse_type cx ty Ts =
   (case apply_parsers (get_type_parsers (ctxt_of cx)) (ty, Ts) of

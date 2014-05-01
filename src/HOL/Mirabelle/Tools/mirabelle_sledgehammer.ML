@@ -422,7 +422,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         #> Config.put Sledgehammer_Prover_ATP.atp_problem_prefix
           ("prob_" ^ str0 (Position.line_of pos) ^ "__")
         #> Config.put SMT_Config.debug_files
-          (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
+          (dir ^ "/" ^ Name.desymbolize (SOME false) (ATP_Util.timestamp ()) ^ "_"
           ^ serial_string ())
       | set_file_name NONE = I
     val st' =

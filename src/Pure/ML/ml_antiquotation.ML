@@ -30,7 +30,7 @@ structure Names = Proof_Data
 fun variant a ctxt =
   let
     val names = Names.get ctxt;
-    val (b, names') = Name.variant (Name.desymbolize false a) names;
+    val (b, names') = Name.variant (Name.desymbolize (SOME false) a) names;
     val ctxt' = Names.put names' ctxt;
   in (b, ctxt') end;
 

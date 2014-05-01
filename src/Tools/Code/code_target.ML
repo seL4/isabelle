@@ -128,14 +128,14 @@ fun check_name is_module s =
     val _ = if s = "" then error "Bad empty code name" else ();
     val xs = Long_Name.explode s;
     val xs' = if is_module
-        then map (Name.desymbolize true) xs
+        then map (Name.desymbolize (SOME true)) xs
       else if length xs < 2
         then error ("Bad code name without module component: " ^ quote s)
       else
         let
           val (ys, y) = split_last xs;
-          val ys' = map (Name.desymbolize true) ys;
-          val y' = Name.desymbolize false y;
+          val ys' = map (Name.desymbolize (SOME true)) ys;
+          val y' = Name.desymbolize (SOME false) y;
         in ys' @ [y'] end;
   in if xs' = xs
     then if is_module then (xs, "") else split_last xs
