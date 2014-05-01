@@ -51,22 +51,22 @@ ML_file "boogie.ML"
 
 section {* Verification condition proofs *}
 
-declare [[smt_oracle = false]]
-declare [[smt_read_only_certificates = true]]
+declare [[smt2_oracle = false]]
+declare [[smt2_read_only_certificates = true]]
 
 
-declare [[smt_certificates = "Boogie_Max.certs"]]
+declare [[smt2_certificates = "Boogie_Max.certs2"]]
 
 boogie_file Boogie_Max
 
 
-declare [[smt_certificates = "Boogie_Dijkstra.certs"]]
+declare [[smt2_certificates = "Boogie_Dijkstra.certs2"]]
 
 boogie_file Boogie_Dijkstra
 
 
-declare [[z3_with_extensions = true]]
-declare [[smt_certificates = "VCC_Max.certs"]]
+declare [[z3_new_extensions = true]]
+declare [[smt2_certificates = "VCC_Max.certs2"]]
 
 boogie_file VCC_Max
 

@@ -110,10 +110,10 @@ fun mk_quant q (Free (x, T)) t = q T $ absfree (x, T) t
 fun mk_list T = HOLogic.mk_list T
 
 
-val patternT = @{typ "SMT.pattern"}
+val patternT = @{typ "SMT2.pattern"}
 
 fun mk_pat t =
-  Const (@{const_name "SMT.pat"}, Term.fastype_of t --> patternT) $ t
+  Const (@{const_name "SMT2.pat"}, Term.fastype_of t --> patternT) $ t
 
 fun mk_pattern [] = raise TERM ("mk_pattern", [])
   | mk_pattern ts = mk_list patternT (map mk_pat ts)
@@ -121,8 +121,8 @@ fun mk_pattern [] = raise TERM ("mk_pattern", [])
 
 fun mk_trigger [] t = t
   | mk_trigger pss t =
-      @{term "SMT.trigger"} $
-        mk_list @{typ "SMT.pattern list"} (map mk_pattern pss) $ t
+      @{term "SMT2.trigger"} $
+        mk_list @{typ "SMT2.pattern list"} (map mk_pattern pss) $ t
 
 
 (* parser *)
@@ -294,7 +294,7 @@ val boogie_rules =
 
 
 fun boogie_tac ctxt axioms =
-  ALLGOALS (SMT_Solver.smt_tac ctxt (boogie_rules @ axioms))
+  ALLGOALS (SMT2_Solver.smt2_tac ctxt (boogie_rules @ axioms))
 
 
 fun boogie_prove thy lines =
