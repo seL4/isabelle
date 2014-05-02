@@ -1,9 +1,0 @@
-session How_to_Prove_it = HOL +
-  options [document = pdf, show_question_marks = false]
-  theories
-    How_to_Prove_it
-  document_files
-    "root.tex"
-    "root.bib"
-    "prelude.tex"
-

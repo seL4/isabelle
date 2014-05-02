@@ -73,6 +73,15 @@ session Functions (doc) in "Functions" = HOL +
     "root.tex"
     "style.sty"
 
+session How_to_Prove_it (doc) in "How_to_Prove_it" = HOL +
+  options [document_variants = "how_to_prove_it", show_question_marks = false]
+  theories
+    How_to_Prove_it
+  document_files
+    "root.tex"
+    "root.bib"
+    "prelude.tex"
+
 session Intro (doc) in "Intro" = Pure +
   options [document_variants = "intro"]
   theories
