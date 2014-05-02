@@ -126,6 +126,9 @@ simplification process, enabled by the newly-introduced
 * More support for remote files (e.g. http) using standard Java
 networking operations instead of jEdit virtual file-systems.
 
+* Improved Console/Scala plugin: more uniform scala.Console output,
+more robust treatment of threads and interrupts.
+
 
 *** Pure ***
 
