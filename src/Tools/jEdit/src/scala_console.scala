@@ -101,7 +101,11 @@ class Scala_Console extends Shell("Scala")
     global_console = console
     global_out = out
     global_err = if (err == null) out else err
-    val res = Exn.capture { scala.Console.withOut(console_stream)(e) }
+    val res = Exn.capture {
+      scala.Console.withErr(console_stream) {
+        scala.Console.withOut(console_stream) { e }
+      }
+    }
     console_stream.flush
     global_console = null
     global_out = null
