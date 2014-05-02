@@ -458,7 +458,7 @@ object Scan
     class Paged_Reader(override val offset: Int) extends Byte_Reader
     {
       override lazy val source: CharSequence = restricted_seq
-      def first: Char = if (seq.isDefinedAt(offset)) seq(offset) else '\032'
+      def first: Char = if (seq.isDefinedAt(offset)) seq(offset) else '\u001a'
       def rest: Paged_Reader = if (seq.isDefinedAt(offset)) new Paged_Reader(offset + 1) else this
       def pos: InputPosition = new OffsetPosition(source, offset)
       def atEnd: Boolean = !seq.isDefinedAt(offset)
