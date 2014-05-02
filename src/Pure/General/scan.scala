@@ -13,7 +13,8 @@ import scala.collection.immutable.PagedSeq
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
 import scala.util.parsing.combinator.RegexParsers
 
-import java.io.{File => JFile, BufferedInputStream, FileInputStream}
+import java.io.{File => JFile, BufferedInputStream, FileInputStream, InputStream}
+import java.net.URL
 
 
 object Scan
@@ -411,7 +412,7 @@ object Scan
 
 
 
-  /** read file without decoding -- enables efficient length operation **/
+  /** read stream without decoding: efficient length operation **/
 
   private class Restricted_Seq(seq: IndexedSeq[Char], start: Int, end: Int)
     extends CharSequence
@@ -420,7 +421,7 @@ object Scan
       if (0 <= i && i < length) seq(start + i)
       else throw new IndexOutOfBoundsException
 
-    def length: Int = end - start  // avoid potentially expensive seq.length
+    def length: Int = end - start  // avoid expensive seq.length
 
     def subSequence(i: Int, j: Int): CharSequence =
       if (0 <= i && i <= j && j <= length) new Restricted_Seq(seq, start + i, start + j)
@@ -436,9 +437,9 @@ object Scan
 
   abstract class Byte_Reader extends Reader[Char] { def close: Unit }
 
-  def byte_reader(file: JFile): Byte_Reader =
+  private def make_byte_reader(stream: InputStream, stream_length: Int): Byte_Reader =
   {
-    val stream = new BufferedInputStream(new FileInputStream(file))
+    val buffered_stream = new BufferedInputStream(stream)
     val seq = new PagedSeq(
       (buf: Array[Char], offset: Int, length: Int) =>
         {
@@ -446,13 +447,13 @@ object Scan
           var c = 0
           var eof = false
           while (!eof && i < length) {
-            c = stream.read
+            c = buffered_stream.read
             if (c == -1) eof = true
             else { buf(offset + i) = c.toChar; i += 1 }
           }
           if (i > 0) i else -1
         })
-    val restricted_seq = new Restricted_Seq(seq, 0, file.length.toInt)
+    val restricted_seq = new Restricted_Seq(seq, 0, stream_length)
 
     class Paged_Reader(override val offset: Int) extends Byte_Reader
     {
@@ -462,8 +463,19 @@ object Scan
       def pos: InputPosition = new OffsetPosition(source, offset)
       def atEnd: Boolean = !seq.isDefinedAt(offset)
       override def drop(n: Int): Paged_Reader = new Paged_Reader(offset + n)
-      def close { stream.close }
+      def close { buffered_stream.close }
     }
     new Paged_Reader(0)
+  }
+
+  def byte_reader(file: JFile): Byte_Reader =
+    make_byte_reader(new FileInputStream(file), file.length.toInt)
+
+  def byte_reader(url: URL): Byte_Reader =
+  {
+    val connection = url.openConnection
+    val stream = connection.getInputStream
+    val stream_length = connection.getContentLength
+    make_byte_reader(stream, stream_length)
   }
 }
