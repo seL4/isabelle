@@ -37,5 +37,25 @@ object Check_Source
     if (content.contains('\r'))
       Output.warning("CR character" + Position.here(file_pos))
   }
+
+  def check_hg(root: Path)
+  {
+    System.err.println("Checking " + root + " ...")
+    Isabelle_System.hg("--repository " + Isabelle_System.shell_path(root) + " root").check_error
+    for {
+      file <- Isabelle_System.hg("manifest", root).check_error.out_lines
+      if file.endsWith(".thy") || file.endsWith(".ML")
+    } check_file(root + Path.explode(file))
+  }
+
+
+  /* command line entry point */
+
+  def main(args: Array[String])
+  {
+    Command_Line.tool0 {
+      for (root <- args) check_hg(Path.explode(root))
+    }
+  }
 }
 
