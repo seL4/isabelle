@@ -14,6 +14,7 @@ import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
 import scala.annotation.tailrec
+import scala.util.parsing.input.CharSequenceReader
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug}
 import org.gjt.sp.jedit.gui.KeyEventWorkaround
@@ -96,6 +97,9 @@ object JEdit_Lib
 
   def buffer_text(buffer: JEditBuffer): String =
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
+
+  def buffer_reader(buffer: JEditBuffer): CharSequenceReader =
+    new CharSequenceReader(buffer.getSegment(0, buffer.getLength))
 
   def buffer_mode(buffer: JEditBuffer): String =
   {

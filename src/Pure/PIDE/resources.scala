@@ -8,6 +8,7 @@ package isabelle
 
 
 import scala.annotation.tailrec
+import scala.util.parsing.input.Reader
 
 import java.io.{File => JFile}
 
@@ -40,14 +41,13 @@ class Resources(
   def append(dir: String, source_path: Path): String =
     (Path.explode(dir) + source_path).expand.implode
 
-  def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A =
+  def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     val path = Path.explode(name.node)
     if (!path.is_file) error("No such file: " + path.toString)
 
-    val text = File.read(path)
-    Symbol.decode_strict(text)
-    f(text)
+    val reader = Scan.byte_reader(path.file)
+    try { f(reader) } finally { reader.close }
   }
 
 
@@ -84,11 +84,11 @@ class Resources(
     }
   }
 
-  def check_thy_text(qualifier: String, name: Document.Node.Name, text: CharSequence)
+  def check_thy_reader(qualifier: String, name: Document.Node.Name, reader: Reader[Char])
     : Document.Node.Header =
   {
     try {
-      val header = Thy_Header.read(text)
+      val header = Thy_Header.read(reader).decode_symbols
 
       val base_name = Long_Name.base_name(name.theory)
       val name1 = header.name
@@ -103,7 +103,7 @@ class Resources(
   }
 
   def check_thy(qualifier: String, name: Document.Node.Name): Document.Node.Header =
-    with_thy_text(name, check_thy_text(qualifier, name, _))
+    with_thy_reader(name, check_thy_reader(qualifier, name, _))
 
 
   /* document changes */

@@ -67,13 +67,16 @@ object Thy_Header extends Parse.Parser
 
     val args =
       theory_name ~
-      (opt(keyword(IMPORTS) ~! (rep1(theory_xname))) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
-      (opt(keyword(KEYWORDS) ~! keyword_decls) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
+      (opt(keyword(IMPORTS) ~! (rep1(theory_xname))) ^^
+        { case None => Nil case Some(_ ~ xs) => xs }) ~
+      (opt(keyword(KEYWORDS) ~! keyword_decls) ^^
+        { case None => Nil case Some(_ ~ xs) => xs }) ~
       keyword(BEGIN) ^^
       { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
     (keyword(HEADER) ~ tags) ~!
-      ((document_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
+      ((document_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^
+        { case _ ~ x => x } |
     (keyword(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
   }
 
@@ -119,5 +122,13 @@ sealed case class Thy_Header(
 {
   def map(f: String => String): Thy_Header =
     Thy_Header(f(name), imports.map(f), keywords)
+
+  def decode_symbols: Thy_Header =
+  {
+    val f = Symbol.decode _
+    Thy_Header(f(name), imports.map(f),
+      keywords.map({ case (a, b, c) =>
+        (f(a), b.map({ case ((x, y), z) => ((f(x), y.map(f)), z.map(f))  }), c.map(f)) }))
+  }
 }
 

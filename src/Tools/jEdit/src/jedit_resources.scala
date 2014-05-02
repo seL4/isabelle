@@ -13,6 +13,8 @@ import isabelle._
 import java.io.{File => JFile, ByteArrayOutputStream}
 import javax.swing.text.Segment
 
+import scala.util.parsing.input.Reader
+
 import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
 import org.gjt.sp.jedit.MiscUtilities
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
@@ -58,21 +60,19 @@ class JEdit_Resources(
     }
   }
 
-  override def with_thy_text[A](name: Document.Node.Name, consume: CharSequence => A): A =
+  override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     Swing_Thread.now {
       JEdit_Lib.jedit_buffer(name) match {
         case Some(buffer) =>
-          JEdit_Lib.buffer_lock(buffer) {
-            Some(consume(buffer.getSegment(0, buffer.getLength)))
-          }
+          JEdit_Lib.buffer_lock(buffer) { Some(f(JEdit_Lib.buffer_reader(buffer))) }
         case None => None
       }
     } getOrElse {
-      if (Url.is_wellformed(name.node)) consume(Url.read(name.node))
+      if (Url.is_wellformed(name.node)) f(Scan.byte_reader(Url(name.node)))
       else {
         val file = new JFile(name.node)
-        if (file.isFile) consume(File.read(file))
+        if (file.isFile) f(Scan.byte_reader(file))
         else error("No such file: " + quote(file.toString))
       }
     }

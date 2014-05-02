@@ -30,7 +30,7 @@ class Thy_Info(resources: Resources)
   {
     def loaded_files(syntax: Prover.Syntax): List[String] =
     {
-      val string = resources.with_thy_text(name, _.toString)
+      val string = resources.with_thy_reader(name, reader => Symbol.decode(reader.source.toString))
       resources.loaded_files(syntax, string)
     }
   }
