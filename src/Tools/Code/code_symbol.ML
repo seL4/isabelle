@@ -83,7 +83,7 @@ structure Table = Table(type key = T val ord = symbol_ord);
 structure Graph = Graph(type key = T val ord = symbol_ord);
 
 local
-  val base = Name.desymbolize (SOME false) o Long_Name.base_name;
+  val base = Name.desymbolize NONE o Long_Name.base_name;
   fun base_rel (x, y) = base y ^ "_" ^ base x;
 in
 

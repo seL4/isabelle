@@ -723,12 +723,11 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
   let
     fun namify_const upper base (nsp_const, nsp_type) =
       let
-        val (base', nsp_const') =
-          Name.variant (if upper then Name.enforce_case true base else base) nsp_const
+        val (base', nsp_const') = Name.variant (Name.enforce_case upper base) nsp_const
       in (base', (nsp_const', nsp_type)) end;
     fun namify_type base (nsp_const, nsp_type) =
       let
-        val (base', nsp_type') = Name.variant base nsp_type
+        val (base', nsp_type') = Name.variant (Name.enforce_case false base) nsp_type
       in (base', (nsp_const, nsp_type')) end;
     fun namify_stmt (Code_Thingol.Fun _) = namify_const false
       | namify_stmt (Code_Thingol.Datatype _) = namify_type

@@ -226,6 +226,9 @@ INCOMPATIBILITY.
   "sint_word_ariths", "word_arith_alts", "uint_word_ariths",
   "uint_word_arith_bintrs".
 
+* Code generator: enforce case of identifiers only for strict
+target language requirements.  INCOMPATIBILITY.
+
 * Code generator: explicit proof contexts in many ML interfaces.
 INCOMPATIBILITY.
 

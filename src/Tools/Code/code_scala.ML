@@ -305,21 +305,19 @@ fun scala_program_of_program ctxt module_name reserved identifiers exports progr
       let
         val (base', nsp_object') = Name.variant base nsp_object
       in (base', ((nsp_class, nsp_object'), Name.declare base' nsp_common)) end;
-    fun namify_common upper base ((nsp_class, nsp_object), nsp_common) =
+    fun namify_common base ((nsp_class, nsp_object), nsp_common) =
       let
-        val (base', nsp_common') =
-          Name.variant (if upper then Name.enforce_case true base else base) nsp_common
+        val (base', nsp_common') = Name.variant base nsp_common
       in
-        (base',
-          ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))
+        (base', ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))
       end;
     fun namify_stmt (Code_Thingol.Fun _) = namify_object
       | namify_stmt (Code_Thingol.Datatype _) = namify_class
-      | namify_stmt (Code_Thingol.Datatypecons _) = namify_common true
+      | namify_stmt (Code_Thingol.Datatypecons _) = namify_common
       | namify_stmt (Code_Thingol.Class _) = namify_class
       | namify_stmt (Code_Thingol.Classrel _) = namify_object
       | namify_stmt (Code_Thingol.Classparam _) = namify_object
-      | namify_stmt (Code_Thingol.Classinst _) = namify_common false;
+      | namify_stmt (Code_Thingol.Classinst _) = namify_common;
     fun memorize_implicits sym =
       let
         fun is_classinst stmt = case stmt

@@ -158,13 +158,14 @@ fun module_fragments { module_name, identifiers, reserved } =
   then module_fragments' { identifiers = identifiers, reserved = reserved }
   else K (Long_Name.explode module_name);
 
-fun build_module_namespace ctxt { module_prefix, module_name, identifiers, reserved } program =
+fun build_module_namespace ctxt enforce_upper { module_prefix, module_name, identifiers, reserved } program =
   let
     val module_names = Code_Symbol.Graph.fold (insert (op =) o Code_Symbol.default_prefix ctxt o fst) program [];
     val module_fragments' = module_fragments
       { module_name = module_name, identifiers = identifiers, reserved = reserved };
+    val adjust_case = if enforce_upper then map (Name.enforce_case true) else I;
   in
-    fold (fn name => Symtab.update (name, Long_Name.explode module_prefix @ module_fragments' name))
+    fold (fn name => Symtab.update (name, adjust_case (Long_Name.explode module_prefix @ module_fragments' name)))
       module_names Symtab.empty
   end;
 
@@ -195,7 +196,7 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
   let
 
     (* building module name hierarchy *)
-    val module_namespace = build_module_namespace ctxt { module_prefix = module_prefix,
+    val module_namespace = build_module_namespace ctxt true { module_prefix = module_prefix,
       module_name = module_name, identifiers = identifiers, reserved = reserved } program;
     val prep_sym = prep_symbol ctxt { module_namespace = module_namespace,
       force_module = Long_Name.explode module_name, identifiers = identifiers }
@@ -317,7 +318,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
   let
 
     (* building module name hierarchy *)
-    val module_namespace = build_module_namespace ctxt { module_prefix = "",
+    val module_namespace = build_module_namespace ctxt false { module_prefix = "",
       module_name = module_name, identifiers = identifiers, reserved = reserved } program;
     val prep_sym = prep_symbol ctxt { module_namespace = module_namespace,
       force_module = Long_Name.explode module_name, identifiers = identifiers }
