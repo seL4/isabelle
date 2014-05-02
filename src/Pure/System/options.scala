@@ -147,13 +147,13 @@ object Options
           val options = (Options.init() /: more_options)(_ + _)
 
           if (get_option != "")
-            System.out.println(options.check_name(get_option).value)
+            Console.println(options.check_name(get_option).value)
 
           if (export_file != "")
             File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
 
           if (get_option == "" && export_file == "")
-            System.out.println(options.print)
+            Console.println(options.print)
 
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

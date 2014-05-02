@@ -32,7 +32,7 @@ object Build
 
   class Console_Progress(verbose: Boolean) extends Progress
   {
-    override def echo(msg: String) { System.out.println(msg) }
+    override def echo(msg: String) { Console.println(msg) }
     override def theory(session: String, theory: String): Unit =
       if (verbose) echo(session + ": theory " + theory)
 

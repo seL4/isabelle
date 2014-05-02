@@ -12,7 +12,7 @@ import java.io.{InputStream, OutputStream, BufferedOutputStream, IOException}
 
 
 class Isabelle_Process(
-  receiver: Prover.Message => Unit = System.out.println(_),
+  receiver: Prover.Message => Unit = Console.println(_),
   prover_args: List[String] = Nil)
 {
   /* text and tree data */
