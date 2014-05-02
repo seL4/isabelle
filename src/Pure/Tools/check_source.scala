@@ -40,7 +40,7 @@ object Check_Source
 
   def check_hg(root: Path)
   {
-    System.err.println("Checking " + root + " ...")
+    Output.writeln("Checking " + root + " ...")
     Isabelle_System.hg("--repository " + Isabelle_System.shell_path(root) + " root").check_error
     for {
       file <- Isabelle_System.hg("manifest", root).check_error.out_lines
