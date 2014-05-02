@@ -38,7 +38,11 @@ object Build
 
     @volatile private var is_stopped = false
     def interrupt_handler[A](e: => A): A = Interrupt.handler { is_stopped = true } { e }
-    override def stopped: Boolean = is_stopped
+    override def stopped: Boolean =
+    {
+      if (Thread.interrupted) is_stopped = true
+      is_stopped
+    }
   }
 
 
@@ -807,7 +811,11 @@ object Build
     // scheduler loop
     case class Result(current: Boolean, heap: String, rc: Int)
 
-    def sleep(): Unit = Thread.sleep(500)
+    def sleep()
+    {
+      try { Thread.sleep(500) }
+      catch { case Exn.Interrupt() => Thread.currentThread.interrupt }
+    }
 
     @tailrec def loop(
       pending: Queue,
