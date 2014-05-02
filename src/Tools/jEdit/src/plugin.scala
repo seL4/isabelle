@@ -147,7 +147,7 @@ object PIDE
 
   /* current document content */
 
-  def snapshot(view: View): Document.Snapshot =
+  def snapshot(view: View): Document.Snapshot = Swing_Thread.now
   {
     val buffer = view.getBuffer
     document_model(buffer) match {
@@ -156,7 +156,7 @@ object PIDE
     }
   }
 
-  def rendering(view: View): Rendering =
+  def rendering(view: View): Rendering = Swing_Thread.now
   {
     val text_area = view.getTextArea
     document_view(text_area) match {

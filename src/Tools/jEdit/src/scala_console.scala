@@ -59,7 +59,8 @@ class Scala_Console extends Shell("Scala")
 
   /* global state -- owned by Swing thread */
 
-  private var interpreters = Map[Console, IMain]()
+  private abstract class Request
+  private var interpreters = Map[Console, Consumer_Thread[Request]]()
 
   private var global_console: Console = null
   private var global_out: Output = null
@@ -72,8 +73,10 @@ class Scala_Console extends Shell("Scala")
     {
       val s = buf.synchronized { val s = buf.toString; buf.setLength(0); s }
       val str = UTF8.decode_permissive(s)
-      if (global_out == null) System.out.print(str)
-      else Swing_Thread.now { global_out.writeAttrs(null, str) }
+      Swing_Thread.later {
+        if (global_out == null) System.out.print(str)
+        else global_out.writeAttrs(null, str)
+      }
     }
     override def close() { flush () }
     def write(byte: Int) {
@@ -121,13 +124,17 @@ class Scala_Console extends Shell("Scala")
   private def report_error(str: String)
   {
     if (global_console == null || global_err == null) System.err.println(str)
-    else Swing_Thread.now { global_err.print(global_console.getErrorColor, str) }
+    else Swing_Thread.later { global_err.print(global_console.getErrorColor, str) }
   }
 
 
-  /* jEdit console methods */
+  /* interpreter thread */
 
-  override def openConsole(console: Console)
+  private case class Start(console: Console) extends Request
+  private case class Execute(console: Console, out: Output, err: Output, command: String)
+    extends Request
+
+  private def fork_interpreter(): Consumer_Thread[Request] =
   {
     val settings = new GenericRunnerSettings(report_error)
     settings.classpath.value = reconstruct_classpath()
@@ -137,16 +144,44 @@ class Scala_Console extends Shell("Scala")
       override def parentClassLoader = new JARClassLoader
     }
     interp.setContextClassLoader
-    interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
-    interp.bind("console", "console.Console", console)
-    interp.interpret("import isabelle.jedit.PIDE")
 
+    Consumer_Thread.fork[Request]("Scala_Console") {
+      case Start(console) =>
+        interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
+        interp.bind("console", "console.Console", console)
+        interp.interpret("import isabelle.jedit.PIDE")
+        true
+
+      case Execute(console, out, err, command) =>
+        with_console(console, out, err) {
+          interp.interpret(command)
+          Swing_Thread.later {
+            if (err != null) err.commandDone()
+            out.commandDone()
+          }
+          true
+        }
+    }
+  }
+
+
+  /* jEdit console methods */
+
+  override def openConsole(console: Console)
+  {
+    val interp = fork_interpreter()
+    interp.send(Start(console))
     interpreters += (console -> interp)
   }
 
   override def closeConsole(console: Console)
   {
-    interpreters -= console
+    interpreters.get(console) match {
+      case Some(interp) =>
+        interp.shutdown
+        interpreters -= console
+      case None =>
+    }
   }
 
   override def printInfoMessage(out: Output)
@@ -167,10 +202,7 @@ class Scala_Console extends Shell("Scala")
 
   override def execute(console: Console, input: String, out: Output, err: Output, command: String)
   {
-    val interp = interpreters(console)
-    with_console(console, out, err) { interp.interpret(command) }
-    if (err != null) err.commandDone()
-    out.commandDone()
+    interpreters(console).send(Execute(console, out, err, command))
   }
 
   override def stop(console: Console)
