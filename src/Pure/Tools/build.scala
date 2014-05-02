@@ -484,19 +484,8 @@ object Build
                 info.files.map(file => info.dir + file) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
-            if (list_files) {
+            if (list_files)
               progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
-              for {
-                file <- all_files
-                if file.split_ext._2 == "ML"
-              } {
-                val path = info.dir + file
-                try { Symbol.decode_strict(File.read(path)) }
-                catch {
-                  case ERROR(msg) => cat_error(msg, "The error(s) above occurred in file " + path)
-                }
-              }
-            }
 
             val sources = all_files.map(p => (p, SHA1.digest(p.file)))
 

@@ -17,7 +17,7 @@ Checklist for official releases
 
 - check HTML header of library;
 
-- check ML sources: isabelle build -nal;
+- check sources: see isabelle.Check_Source;
 
 - run isabelle update_keywords;
 
