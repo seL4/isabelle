@@ -59,7 +59,7 @@ class Scala_Console extends Shell("Scala")
 
   /* global state -- owned by Swing thread */
 
-  private var interpreters = Map[Console, IMain]()
+  private var interpreters = Map.empty[Console, Interpreter]
 
   private var global_console: Console = null
   private var global_out: Output = null
@@ -67,16 +67,22 @@ class Scala_Console extends Shell("Scala")
 
   private val console_stream = new OutputStream
   {
-    val buf = new StringBuilder
+    val buf = new StringBuffer
     override def flush()
     {
-      val str = UTF8.decode_permissive(buf.toString)
-      buf.clear
-      if (global_out == null) System.out.print(str)
-      else Swing_Thread.now { global_out.writeAttrs(null, str) }
+      val s = buf.synchronized { val s = buf.toString; buf.setLength(0); s }
+      val str = UTF8.decode_permissive(s)
+      Swing_Thread.later {
+        if (global_out == null) System.out.print(str)
+        else global_out.writeAttrs(null, str)
+      }
     }
     override def close() { flush () }
-    def write(byte: Int) { buf.append(byte.toChar) }
+    def write(byte: Int) {
+      val c = byte.toChar
+      buf.append(c)
+      if (c == '\n') flush()
+    }
   }
 
   private val console_writer = new Writer
@@ -101,18 +107,72 @@ class Scala_Console extends Shell("Scala")
     global_console = console
     global_out = out
     global_err = if (err == null) out else err
-    val res = Exn.capture { scala.Console.withOut(console_stream)(e) }
-    console_stream.flush
-    global_console = null
-    global_out = null
-    global_err = null
-    Exn.release(res)
+    try {
+      scala.Console.withErr(console_stream) {
+        scala.Console.withOut(console_stream) { e }
+      }
+    }
+    finally {
+      console_stream.flush
+      global_console = null
+      global_out = null
+      global_err = null
+    }
   }
 
   private def report_error(str: String)
   {
     if (global_console == null || global_err == null) System.err.println(str)
-    else Swing_Thread.now { global_err.print(global_console.getErrorColor, str) }
+    else Swing_Thread.later { global_err.print(global_console.getErrorColor, str) }
+  }
+
+
+  /* interpreter thread */
+
+  private abstract class Request
+  private case class Start(console: Console) extends Request
+  private case class Execute(console: Console, out: Output, err: Output, command: String)
+    extends Request
+
+  private class Interpreter
+  {
+    private val running = Synchronized(None: Option[Thread])
+    def interrupt { running.change(opt => { opt.foreach(_.interrupt); opt }) }
+
+    private val settings = new GenericRunnerSettings(report_error)
+    settings.classpath.value = reconstruct_classpath()
+
+    private val interp = new IMain(settings, new PrintWriter(console_writer, true))
+    {
+      override def parentClassLoader = new JARClassLoader
+    }
+    interp.setContextClassLoader
+
+    val thread: Consumer_Thread[Request] = Consumer_Thread.fork("Scala_Console")
+    {
+      case Start(console) =>
+        interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
+        interp.bind("console", "console.Console", console)
+        interp.interpret("import isabelle.jedit.PIDE")
+        true
+
+      case Execute(console, out, err, command) =>
+        with_console(console, out, err) {
+          try {
+            running.change(_ => Some(Thread.currentThread()))
+            interp.interpret(command)
+          }
+          finally {
+            running.change(_ => None)
+            Thread.interrupted()
+          }
+          Swing_Thread.later {
+            if (err != null) err.commandDone()
+            out.commandDone()
+          }
+          true
+        }
+    }
   }
 
 
@@ -120,24 +180,20 @@ class Scala_Console extends Shell("Scala")
 
   override def openConsole(console: Console)
   {
-    val settings = new GenericRunnerSettings(report_error)
-    settings.classpath.value = reconstruct_classpath()
-
-    val interp = new IMain(settings, new PrintWriter(console_writer, true))
-    {
-      override def parentClassLoader = new JARClassLoader
-    }
-    interp.setContextClassLoader
-    interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
-    interp.bind("console", "console.Console", console)
-    interp.interpret("import isabelle.jedit.PIDE")
-
+    val interp = new Interpreter
+    interp.thread.send(Start(console))
     interpreters += (console -> interp)
   }
 
   override def closeConsole(console: Console)
   {
-    interpreters -= console
+    interpreters.get(console) match {
+      case Some(interp) =>
+        interp.interrupt
+        interp.thread.shutdown
+        interpreters -= console
+      case None =>
+    }
   }
 
   override def printInfoMessage(out: Output)
@@ -158,19 +214,11 @@ class Scala_Console extends Shell("Scala")
 
   override def execute(console: Console, input: String, out: Output, err: Output, command: String)
   {
-    val interp = interpreters(console)
-    with_console(console, out, err) { interp.interpret(command) }
-    if (err != null) err.commandDone()
-    out.commandDone()
+    interpreters(console).thread.send(Execute(console, out, err, command))
   }
 
   override def stop(console: Console)
   {
-    closeConsole(console)
-    console.clear
-    openConsole(console)
-    val out = console.getOutput
-    out.commandDone
-    printPrompt(console, out)
+    interpreters.get(console).foreach(_.interrupt)
   }
 }

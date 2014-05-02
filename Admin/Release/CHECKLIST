@@ -17,7 +17,8 @@ Checklist for official releases
 
 - check HTML header of library;
 
-- check sources: see isabelle.Check_Source;
+- check sources:
+    isabelle java isabelle.Check_Source '~~' '$AFP_BASE'
 
 - run isabelle update_keywords;
 

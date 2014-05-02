@@ -176,7 +176,7 @@ instance "fun" :: (type, comm_ring_1) comm_ring_1 ..
 instance "fun" :: (type, ring_char_0) ring_char_0 ..
 
 
-text {* Ordereded structures *}
+text {* Ordered structures *}
 
 instance "fun" :: (type, ordered_ab_semigroup_add) ordered_ab_semigroup_add
   by default (auto simp add: le_fun_def intro: add_left_mono)

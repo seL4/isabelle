@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/output.ML
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
 
-Isabelle output channels.
+Isabelle channels for diagnostic output.
 *)
 
 signature BASIC_OUTPUT =
