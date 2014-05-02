@@ -1,0 +1,43 @@
+\documentclass[11pt,a4paper]{report}
+
+\input{prelude}
+
+\begin{document}
+
+\title{How to Prove it in Isabelle/HOL}
+%\subtitle{\includegraphics[scale=.7]{isabelle_hol}}
+\author{Tobias Nipkow}
+\maketitle
+
+
+\begin{abstract}
+  How does one perform induction on the length of a list? How are numerals
+  converted into \isa{Suc} terms? How does one prove equalities in rings
+  and other algebraic structures?
+
+  This document is a collection of practical hints and techniques for dealing
+  with specific frequently occurring situations in proofs in Isabelle/HOL.
+  Not arbitrary proofs but proofs that refer to material that is part of
+  \isa{Main} or \isa{Complex\_Main}.
+
+  This is \emph{not} an introduction to
+\begin{itemize}
+\item proofs in general; for that see mathematics or logic books.
+\item Isabelle/HOL and its proof language; for that see the tutorial
+  \cite{ProgProve} or the reference manual~\cite{IsarRef}.
+\item the contents of theory \isa{Main}; for that see the overview
+  \cite{Main}.
+\end{itemize}
+\end{abstract}
+
+\setcounter{tocdepth}{1}
+\tableofcontents
+
+\input{How_to_Prove_it.tex}
+
+\bibliographystyle{plain}
+\bibliography{root}
+
+%\printindex
+
+\end{document}
