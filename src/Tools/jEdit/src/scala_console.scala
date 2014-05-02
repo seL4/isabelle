@@ -67,16 +67,20 @@ class Scala_Console extends Shell("Scala")
 
   private val console_stream = new OutputStream
   {
-    val buf = new StringBuilder
+    val buf = new StringBuffer
     override def flush()
     {
-      val str = UTF8.decode_permissive(buf.toString)
-      buf.clear
+      val s = buf.synchronized { val s = buf.toString; buf.setLength(0); s }
+      val str = UTF8.decode_permissive(s)
       if (global_out == null) System.out.print(str)
       else Swing_Thread.now { global_out.writeAttrs(null, str) }
     }
     override def close() { flush () }
-    def write(byte: Int) { buf.append(byte.toChar) }
+    def write(byte: Int) {
+      val c = byte.toChar
+      buf.append(c)
+      if (c == '\n') flush()
+    }
   }
 
   private val console_writer = new Writer
@@ -101,16 +105,17 @@ class Scala_Console extends Shell("Scala")
     global_console = console
     global_out = out
     global_err = if (err == null) out else err
-    val res = Exn.capture {
+    try {
       scala.Console.withErr(console_stream) {
         scala.Console.withOut(console_stream) { e }
       }
     }
-    console_stream.flush
-    global_console = null
-    global_out = null
-    global_err = null
-    Exn.release(res)
+    finally {
+      console_stream.flush
+      global_console = null
+      global_out = null
+      global_err = null
+    }
   }
 
   private def report_error(str: String)
