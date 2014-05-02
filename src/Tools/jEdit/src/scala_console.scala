@@ -59,8 +59,7 @@ class Scala_Console extends Shell("Scala")
 
   /* global state -- owned by Swing thread */
 
-  private abstract class Request
-  private var interpreters = Map[Console, Consumer_Thread[Request]]()
+  private var interpreters = Map.empty[Console, Interpreter]
 
   private var global_console: Console = null
   private var global_out: Output = null
@@ -130,22 +129,27 @@ class Scala_Console extends Shell("Scala")
 
   /* interpreter thread */
 
+  private abstract class Request
   private case class Start(console: Console) extends Request
   private case class Execute(console: Console, out: Output, err: Output, command: String)
     extends Request
 
-  private def fork_interpreter(): Consumer_Thread[Request] =
+  private class Interpreter
   {
-    val settings = new GenericRunnerSettings(report_error)
+    private val running = Synchronized(None: Option[Thread])
+    def interrupt { running.change(opt => { opt.foreach(_.interrupt); opt }) }
+
+    private val settings = new GenericRunnerSettings(report_error)
     settings.classpath.value = reconstruct_classpath()
 
-    val interp = new IMain(settings, new PrintWriter(console_writer, true))
+    private val interp = new IMain(settings, new PrintWriter(console_writer, true))
     {
       override def parentClassLoader = new JARClassLoader
     }
     interp.setContextClassLoader
 
-    Consumer_Thread.fork[Request]("Scala_Console") {
+    val thread: Consumer_Thread[Request] = Consumer_Thread.fork("Scala_Console")
+    {
       case Start(console) =>
         interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
         interp.bind("console", "console.Console", console)
@@ -154,7 +158,14 @@ class Scala_Console extends Shell("Scala")
 
       case Execute(console, out, err, command) =>
         with_console(console, out, err) {
-          interp.interpret(command)
+          try {
+            running.change(_ => Some(Thread.currentThread()))
+            interp.interpret(command)
+          }
+          finally {
+            running.change(_ => None)
+            Thread.interrupted()
+          }
           Swing_Thread.later {
             if (err != null) err.commandDone()
             out.commandDone()
@@ -169,8 +180,8 @@ class Scala_Console extends Shell("Scala")
 
   override def openConsole(console: Console)
   {
-    val interp = fork_interpreter()
-    interp.send(Start(console))
+    val interp = new Interpreter
+    interp.thread.send(Start(console))
     interpreters += (console -> interp)
   }
 
@@ -178,7 +189,8 @@ class Scala_Console extends Shell("Scala")
   {
     interpreters.get(console) match {
       case Some(interp) =>
-        interp.shutdown
+        interp.interrupt
+        interp.thread.shutdown
         interpreters -= console
       case None =>
     }
@@ -202,16 +214,11 @@ class Scala_Console extends Shell("Scala")
 
   override def execute(console: Console, input: String, out: Output, err: Output, command: String)
   {
-    interpreters(console).send(Execute(console, out, err, command))
+    interpreters(console).thread.send(Execute(console, out, err, command))
   }
 
   override def stop(console: Console)
   {
-    closeConsole(console)
-    console.clear
-    openConsole(console)
-    val out = console.getOutput
-    out.commandDone
-    printPrompt(console, out)
+    interpreters.get(console).foreach(_.interrupt)
   }
 }
