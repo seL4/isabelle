@@ -293,6 +293,7 @@ object Completion_Popup
           completion_popup = Some(completion)
           view.setKeyEventInterceptor(completion.inner_key_listener)
           JEdit_Lib.invalidate_range(text_area, range)
+          Pretty_Tooltip.dismissed_all()
           completion.show_popup(false)
         }
       }
