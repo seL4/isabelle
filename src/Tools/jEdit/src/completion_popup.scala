@@ -270,7 +270,9 @@ object Completion_Popup
                 insert(item)
               }
               override def propagate(evt: KeyEvent) {
-                if (view.getKeyEventInterceptor == inner_key_listener) {
+                if (view.getKeyEventInterceptor == null)
+                  JEdit_Lib.propagate_key(view, evt)
+                else if (view.getKeyEventInterceptor == inner_key_listener) {
                   try {
                     view.setKeyEventInterceptor(null)
                     JEdit_Lib.propagate_key(view, evt)
