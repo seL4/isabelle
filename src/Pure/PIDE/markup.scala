@@ -126,6 +126,7 @@ object Markup
   {
     val ML = "ML"
     val SML = "SML"
+    val PATH = "path"
     val UNKNOWN = "unknown"
 
     def unapply(markup: Markup): Option[(String, Boolean, Boolean, Boolean)] =

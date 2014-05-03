@@ -11,6 +11,8 @@ import isabelle._
 
 import java.awt.{Color, Font, Point, BorderLayout, Dimension}
 import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
+import java.io.{File => JFile}
+import java.util.regex.Pattern
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 import javax.swing.border.LineBorder
 import javax.swing.text.DefaultCaret
@@ -21,6 +23,7 @@ import scala.swing.event.MouseClicked
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, Selection}
 import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
+import org.gjt.sp.util.StandardUtilities
 
 
 object Completion_Popup
@@ -191,6 +194,52 @@ object Completion_Popup
     }
 
 
+    /* path completion */
+
+    def path_completion(rendering: Rendering): Option[Completion.Result] =
+    {
+      def complete(text: String): List[(String, String)] =
+      {
+        try {
+          val path = Path.explode(text)
+          val (dir, base_name) =
+            if (text == "" || text.endsWith("/")) (path, "")
+            else (path.dir, path.base.implode)
+
+          val directory =
+            new JFile(PIDE.resources.append(rendering.snapshot.node_name.master_dir, dir))
+          val files = directory.listFiles
+          if (files == null) Nil
+          else {
+            val ignore =
+              Library.space_explode(':', PIDE.options.string("jedit_completion_path_ignore")).
+                map(s => Pattern.compile(StandardUtilities.globToRE(s)))
+            (for {
+              file <- files.iterator
+              name = file.getName
+              if name.startsWith(base_name) && name != base_name
+              if !ignore.exists(pat => pat.matcher(name).matches)
+              descr = if (new JFile(directory, name).isDirectory) "(directory)" else "(file)"
+            } yield ((dir + Path.basic(name)).implode, descr)).
+              take(PIDE.options.int("completion_limit")).toList
+          }
+        }
+        catch { case ERROR(_) => Nil }
+      }
+
+      for {
+        r1 <- rendering.language_path(JEdit_Lib.before_caret_range(text_area, rendering))
+        s1 <- JEdit_Lib.try_get_text(text_area.getBuffer, r1)
+        s2 <- Library.try_unquote(s1)
+        r2 = Text.Range(r1.start + 1, r1.stop - 1)
+        if Path.is_valid(s2)
+        paths = complete(s2)
+        if !paths.isEmpty
+        items = paths.map(p => Completion.Item(r2, s2, "", List(p._1, p._2), p._1, 0, false))
+      } yield Completion.Result(r2, s2, false, items)
+    }
+
+
     /* completion action: text area */
 
     private def insert(item: Completion.Item)
@@ -336,7 +385,9 @@ object Completion_Popup
             opt_rendering match {
               case None => result0
               case Some(rendering) =>
-                Completion.Result.merge(history, result0, spell_checker_completion(rendering))
+                Completion.Result.merge(history, result0,
+                  Completion.Result.merge(history,
+                    spell_checker_completion(rendering), path_completion(rendering)))
             }
           }
           result match {

@@ -136,6 +136,8 @@ object Rendering
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 
+  private val language_elements = Markup.Elements(Markup.LANGUAGE)
+
   private val highlight_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
       Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
@@ -281,6 +283,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           Some(Completion.Language_Context.ML_inner)
         case Text.Info(_, _) =>
           Some(Completion.Language_Context.inner)
+      }).headOption.map(_.info)
+
+  def language_path(range: Text.Range): Option[Text.Range] =
+    snapshot.select(range, Rendering.language_elements, _ =>
+      {
+        case Text.Info(info_range, XML.Elem(Markup.Language(Markup.Language.PATH, _, _, _), _)) =>
+          Some(snapshot.convert(info_range))
+        case _ => None
       }).headOption.map(_.info)
 
 

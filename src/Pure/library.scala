@@ -112,6 +112,11 @@ object Library
   /* quote */
 
   def quote(s: String): String = "\"" + s + "\""
+
+  def try_unquote(s: String): Option[String] =
+    if (s.startsWith("\"") && s.endsWith("\"")) Some(s.substring(1, s.length - 1))
+    else None
+
   def commas(ss: Iterable[String]): String = ss.iterator.mkString(", ")
   def commas_quote(ss: Iterable[String]): String = ss.iterator.map(quote).mkString(", ")
 

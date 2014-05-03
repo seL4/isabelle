@@ -89,6 +89,9 @@ some examples.
     place-holder), e.g. "`" for text cartouche, or "@{" for
     antiquotation.
 
+  - Support for path completion within the formal text, based on
+    file-system content.
+
   - Improved treatment of completion vs. various forms of jEdit text
     selection (multiple selections, rectangular selections,
     rectangular selection as "tall caret").
