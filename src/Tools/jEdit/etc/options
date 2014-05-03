@@ -42,6 +42,9 @@ section "Completion"
 public option jedit_completion : bool = true
   -- "enable completion popup"
 
+public option jedit_completion_context : bool = true
+  -- "use semantic language context for completion"
+
 public option jedit_completion_delay : real = 0.5
   -- "delay for completion popup (seconds)"
 

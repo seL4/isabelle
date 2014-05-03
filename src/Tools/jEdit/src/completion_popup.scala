@@ -154,6 +154,7 @@ object Completion_Popup
           val context =
             (for {
               rendering <- opt_rendering
+              if PIDE.options.bool("jedit_completion_context")
               range = JEdit_Lib.before_caret_range(text_area, rendering)
               context <- rendering.language_context(range)
             } yield context) getOrElse syntax.language_context
