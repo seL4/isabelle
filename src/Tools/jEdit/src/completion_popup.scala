@@ -198,7 +198,7 @@ object Completion_Popup
 
     def path_completion(rendering: Rendering): Option[Completion.Result] =
     {
-      def complete(text: String): List[(String, String)] =
+      def complete(text: String): List[(String, List[String])] =
       {
         try {
           val path = Path.explode(text)
@@ -216,12 +216,18 @@ object Completion_Popup
                 map(s => Pattern.compile(StandardUtilities.globToRE(s)))
             (for {
               file <- files.iterator
+
               name = file.getName
-              if name.startsWith(base_name) && name != base_name
+              if name.startsWith(base_name)
               if !ignore.exists(pat => pat.matcher(name).matches)
-              descr = if (new JFile(directory, name).isDirectory) "(directory)" else "(file)"
-            } yield ((dir + Path.basic(name)).implode, descr)).
-              take(PIDE.options.int("completion_limit")).toList
+
+              text1 = (dir + Path.basic(name)).implode_short
+              if text != text1
+
+              is_dir = new JFile(directory, name).isDirectory
+              replacement = text1 + (if (is_dir) "/" else "")
+              descr = List(text1, if (is_dir) "(directory)" else "(file)")
+            } yield (replacement, descr)).take(PIDE.options.int("completion_limit")).toList
           }
         }
         catch { case ERROR(_) => Nil }
@@ -235,7 +241,7 @@ object Completion_Popup
         if Path.is_valid(s2)
         paths = complete(s2)
         if !paths.isEmpty
-        items = paths.map(p => Completion.Item(r2, s2, "", List(p._1, p._2), p._1, 0, false))
+        items = paths.map(p => Completion.Item(r2, s2, "", p._2, p._1, 0, false))
       } yield Completion.Result(r2, s2, false, items)
     }
 

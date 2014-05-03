@@ -50,11 +50,13 @@ object Path
   private def norm_elems(elems: List[Elem]): List[Elem] =
     (elems :\ (Nil: List[Elem]))(apply_elem)
 
-  private def implode_elem(elem: Elem): String =
+  private def implode_elem(elem: Elem, short: Boolean): String =
     elem match {
       case Root("") => ""
       case Root(s) => "//" + s
       case Basic(s) => s
+      case Variable("USER_HOME") if short => "~"
+      case Variable("ISABELLE_HOME") if short => "~~"
       case Variable(s) => "$" + s
       case Parent => ".."
     }
@@ -124,12 +126,14 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
 
   /* implode */
 
-  def implode: String =
+  private def gen_implode(short: Boolean): String =
     elems match {
       case Nil => "."
       case List(Path.Root("")) => "/"
-      case _ => elems.map(Path.implode_elem).reverse.mkString("/")
+      case _ => elems.map(Path.implode_elem(_, short)).reverse.mkString("/")
     }
+  def implode: String = gen_implode(false)
+  def implode_short: String = gen_implode(true)
 
   override def toString: String = quote(implode)
 
