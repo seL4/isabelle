@@ -5,7 +5,8 @@
 
 header {* Examples for proof methods "sat" and "satx" *}
 
-theory SAT_Examples imports Main
+theory SAT_Examples
+imports Main
 begin
 
 (*
@@ -13,8 +14,6 @@ declare [[sat_solver = zchaff_with_proofs]]
 declare [[sat_solver = minisat_with_proofs]]
 declare [[sat_trace]]
 *)
-
-declare [[sat_solver = dpll_p]]
 
 lemma "True"
 by sat

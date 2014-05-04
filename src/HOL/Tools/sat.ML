@@ -65,7 +65,7 @@ val trace = Attrib.setup_config_bool @{binding sat_trace} (K false);
 fun cond_tracing ctxt msg =
   if Config.get ctxt trace then tracing (msg ()) else ();
 
-val solver = Attrib.setup_config_string @{binding sat_solver} (K "dpll_p");
+val solver = Attrib.setup_config_string @{binding sat_solver} (K "cdclite");
   (*see HOL/Tools/sat_solver.ML for possible values*)
 
 val counter = Unsynchronized.ref 0;

@@ -161,7 +161,7 @@ val monomorph_instances = Attrib.setup_config_int @{binding smt2_monomorph_insta
 val infer_triggers = Attrib.setup_config_bool @{binding smt2_infer_triggers} (K false)
 val filter_only_facts = Attrib.setup_config_bool @{binding smt2_filter_only_facts} (K false)
 val debug_files = Attrib.setup_config_string @{binding smt2_debug_files} (K "")
-val sat_solver = Attrib.setup_config_string @{binding smt2_sat_solver} (K "dpll_p")
+val sat_solver = Attrib.setup_config_string @{binding smt2_sat_solver} (K "cdclite")
 
 
 (* diagnostics *)

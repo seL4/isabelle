@@ -384,7 +384,7 @@ end;  (* SatSolver *)
 (* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
-(* Internal SAT solver, available as 'SatSolver.invoke_solver "dpll_p"' --   *)
+(* Internal SAT solver, available as 'SatSolver.invoke_solver "cdclite"' --  *)
 (* a simplified implementation of the conflict-driven clause-learning        *)
 (* algorithm (cf. L. Zhang, S. Malik: "The Quest for Efficient Boolean       *)
 (* Satisfiability Solvers", July 2002, Fig. 2). This solver produces models  *)
@@ -575,7 +575,7 @@ let
     let val fm' = if Prop_Logic.is_cnf fm then fm else Prop_Logic.defcnf fm
     in solve (clauses_of fm') end
 in
-  SatSolver.add_solver ("dpll_p", dpll_solver)
+  SatSolver.add_solver ("cdclite", dpll_solver)
 end;
 
 (* ------------------------------------------------------------------------- *)
