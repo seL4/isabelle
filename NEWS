@@ -352,7 +352,10 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 * New internal SAT solver "dpll_p" that produces models and proof traces.
   This solver replaces the internal SAT solvers "enumerate" and "dpll".
   Applications that explicitly used one of these two SAT solvers should
-  use "dpll_p" instead. Minor INCOMPATIBILITY.
+  use "dpll_p" instead. In addition, "dpll_p" is now the default SAT
+  solver for the "sat" and "satx" proof methods and corresponding tactics;
+  the old default can be restored using
+  "declare [[sat_solver = zchaff_with_proofs]]". Minor INCOMPATIBILITY.
 
 * SMT module:
   * A new version of the SMT module, temporarily called "SMT2", uses SMT-LIB 2

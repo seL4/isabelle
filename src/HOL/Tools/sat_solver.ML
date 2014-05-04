@@ -1032,4 +1032,3 @@ let
 in
   SatSolver.add_solver ("jerusat", jerusat)
 end;
-

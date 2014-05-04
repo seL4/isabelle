@@ -434,5 +434,9 @@ lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = (1::nat) \<longleftrightarro
 lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
 lemma [presburger, algebra]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 
-end
 
+subsection {* Try0 *}
+
+ML_file "Tools/try0.ML"
+
+end

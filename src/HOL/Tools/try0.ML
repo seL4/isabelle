@@ -100,7 +100,8 @@ val named_methods =
    ("fast", ((false, false), clas_attrs)),
    ("fastforce", ((false, false), full_attrs)),
    ("force", ((false, false), full_attrs)),
-   ("meson", ((false, false), metis_attrs))]
+   ("meson", ((false, false), metis_attrs)),
+   ("satx", ((false, false), no_attrs))];
 
 val apply_methods = map apply_named_method named_methods;
 
