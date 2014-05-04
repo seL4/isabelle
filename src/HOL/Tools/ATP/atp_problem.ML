@@ -848,8 +848,7 @@ fun readable_name protect full_name s =
               if size s > max_readable_name_size then
                 String.substring (s, 0, max_readable_name_size div 2 - 4) ^
                 string_of_int (hash_string (cleanup_mirabelle_name full_name)) ^
-                String.extract (s, size s - max_readable_name_size div 2 + 4,
-                                NONE)
+                String.extract (s, size s - max_readable_name_size div 2 + 4, NONE)
               else
                 s)
        |> (fn s =>

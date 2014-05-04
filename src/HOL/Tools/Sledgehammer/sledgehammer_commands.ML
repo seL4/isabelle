@@ -123,7 +123,7 @@ val negated_alias_params =
    ("no_smt_proofs", "smt_proofs")]
 
 val params_not_for_minimize =
-  ["blocking", "fact_filter", "max_facts", "fact_thresholds", "slice", "minimize"];
+  ["provers", "blocking", "fact_filter", "max_facts", "fact_thresholds", "slice", "minimize"];
 
 val property_dependent_params = ["provers", "timeout"]
 
