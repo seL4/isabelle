@@ -13,6 +13,7 @@ sig
     Metis_Method of string option * string option |
     Meson_Method |
     SMT2_Method |
+    SATx_Method |
     Blast_Method |
     Simp_Method |
     Simp_Size_Method |
@@ -51,6 +52,7 @@ datatype proof_method =
   Metis_Method of string option * string option |
   Meson_Method |
   SMT2_Method |
+  SATx_Method |
   Blast_Method |
   Simp_Method |
   Simp_Size_Method |
@@ -77,6 +79,7 @@ fun string_of_proof_method meth =
     "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
   | Meson_Method => "meson"
   | SMT2_Method => "smt2"
+  | SATx_Method => "satx"
   | Blast_Method => "blast"
   | Simp_Method => "simp"
   | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
@@ -105,7 +108,8 @@ fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
     | _ =>
       Method.insert_tac global_facts THEN'
       (case meth of
-        Blast_Method => blast_tac ctxt
+        SATx_Method => SAT.satx_tac ctxt
+      | Blast_Method => blast_tac ctxt
       | Simp_Method => Simplifier.asm_full_simp_tac ctxt
       | Simp_Size_Method =>
         Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
