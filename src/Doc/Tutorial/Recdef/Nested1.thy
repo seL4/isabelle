@@ -21,9 +21,9 @@ text{*\noindent
 Remember that function @{term size} is defined for each \isacommand{datatype}.
 However, the definition does not succeed. Isabelle complains about an
 unproved termination condition
-@{prop[display]"t : set ts --> size t < Suc (term_list_size ts)"}
+@{prop[display]"t : set ts --> size t < Suc (size_term_list ts)"}
 where @{term set} returns the set of elements of a list
-and @{text"term_list_size :: term list \<Rightarrow> nat"} is an auxiliary
+and @{text"size_term_list :: term list \<Rightarrow> nat"} is an auxiliary
 function automatically defined by Isabelle
 (while processing the declaration of @{text term}).  Why does the
 recursive call of @{const trev} lead to this
@@ -31,7 +31,7 @@ condition?  Because \isacommand{recdef} knows that @{term map}
 will apply @{const trev} only to elements of @{term ts}. Thus the 
 condition expresses that the size of the argument @{prop"t : set ts"} of any
 recursive call of @{const trev} is strictly less than @{term"size(App f ts)"},
-which equals @{term"Suc(term_list_size ts)"}.  We will now prove the termination condition and
+which equals @{term"Suc(size_term_list ts)"}.  We will now prove the termination condition and
 continue with our definition.  Below we return to the question of how
 \isacommand{recdef} knows about @{term map}.
 

@@ -20,10 +20,9 @@ proof (rule UNIV_eq_I)
 qed
 
 lemma size_nibble [code, simp]:
-  "size (x::nibble) = 0" by (cases x) simp_all
-
-lemma nibble_size [code, simp]:
-  "nibble_size (x::nibble) = 0" by (cases x) simp_all
+  "size_nibble (x::nibble) = 0"
+  "size (x::nibble) = 0"
+  by (cases x, simp_all)+
 
 instantiation nibble :: enum
 begin
@@ -136,10 +135,9 @@ proof (rule UNIV_eq_I)
 qed
 
 lemma size_char [code, simp]:
-  "size (c::char) = 0" by (cases c) simp
-
-lemma char_size [code, simp]:
-  "char_size (c::char) = 0" by (cases c) simp
+  "size_char (c::char) = 0"
+  "size (c::char) = 0"
+  by (cases c, simp)+
 
 instantiation char :: enum
 begin

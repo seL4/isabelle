@@ -2399,7 +2399,7 @@ fun IDT_recursion_interpreter ctxt model args t =
                             end
                         end
                       val idt_size = Array.length (the (AList.lookup (op =) REC_OPERATORS idt_index))
-                      (* sanity check: the size of 'IDT' should be 'idt_size' *)
+                      (* sanity check: the size of 'IDT' should be 'size_idt' *)
                       val _ =
                           if idt_size <> size_of_type ctxt (typs, []) IDT then
                             raise REFUTE ("IDT_recursion_interpreter",

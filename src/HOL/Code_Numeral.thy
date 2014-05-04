@@ -810,10 +810,10 @@ lemma natural_cases [case_names nat, cases type: natural]:
   using assms by transfer blast
 
 lemma [simp, code]:
-  "natural_size = nat_of_natural"
+  "size_natural = nat_of_natural"
 proof (rule ext)
   fix n
-  show "natural_size n = nat_of_natural n"
+  show "size_natural n = nat_of_natural n"
     by (induct n) simp_all
 qed
 

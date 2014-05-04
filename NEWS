@@ -306,8 +306,9 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   * The generated theorems "xxx.cases" and "xxx.recs" have been renamed
     "xxx.case" and "xxx.rec" (e.g., "sum.cases" -> "sum.case").
     INCOMPATIBILITY.
-  * The generated constants "xxx_case" and "xxx_rec" have been renamed
-    "case_xxx" and "rec_xxx" (e.g., "prod_case" ~> "case_prod").
+  * The generated constants "xxx_case", "xxx_rec", and "xxx_size" have been
+    renamed "case_xxx", "rec_xxx", and "size_xxx" (e.g., "prod_case" ~>
+    "case_prod").
     INCOMPATIBILITY.
 
 * The types "'a list" and "'a option", their set and map functions, their
@@ -317,8 +318,6 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     Option.set ~> set_option
     Option.map ~> map_option
     option_rel ~> rel_option
-    list_size ~> size_list
-    option_size ~> size_option
   Renamed theorems:
     set_def ~> set_rec[abs_def]
     map_def ~> map_rec[abs_def]
@@ -6150,7 +6149,7 @@ form "is_measure f" and giving it the [measure_function] attribute.
 The "is_measure" predicate is logically meaningless (always true), and
 just guides the heuristic.  To find suitable measure functions, the
 termination prover sets up the goal "is_measure ?f" of the appropriate
-type and generates all solutions by prolog-style backwards proof using
+type and generates all solutions by Prolog-style backward proof using
 the declared rules.
 
 This setup also deals with rules like 

@@ -27,13 +27,10 @@ lemma lazy_sequence_eq_iff:
   "xq = yq \<longleftrightarrow> list_of_lazy_sequence xq = list_of_lazy_sequence yq"
   by (auto intro: lazy_sequence_eqI)
 
-lemma lazy_sequence_size_eq:
-  "lazy_sequence_size f xq = Suc (size_list f (list_of_lazy_sequence xq))"
-  by (cases xq) simp
-
 lemma size_lazy_sequence_eq [code]:
+  "size_lazy_sequence f xq = Suc (size_list f (list_of_lazy_sequence xq))"
   "size (xq :: 'a lazy_sequence) = 0"
-  by (cases xq) simp
+  by (cases xq, simp)+
 
 lemma case_lazy_sequence [simp]:
   "case_lazy_sequence f xq = f (list_of_lazy_sequence xq)"
@@ -75,11 +72,11 @@ lemma case_yield_eq [simp]: "case_option g h (yield xq) =
   case_list g (\<lambda>x. curry h x \<circ> lazy_sequence_of_list) (list_of_lazy_sequence xq)"
   by (cases "list_of_lazy_sequence xq") (simp_all add: yield_def)
 
-lemma lazy_sequence_size_code [code]:
-  "lazy_sequence_size s xq = (case yield xq of
+lemma size_lazy_sequence_code [code]:
+  "size_lazy_sequence s xq = (case yield xq of
     None \<Rightarrow> 1
-  | Some (x, xq') \<Rightarrow> Suc (s x + lazy_sequence_size s xq'))"
-  by (cases "list_of_lazy_sequence xq") (simp_all add: lazy_sequence_size_eq)
+  | Some (x, xq') \<Rightarrow> Suc (s x + size_lazy_sequence s xq'))"
+  by (cases "list_of_lazy_sequence xq") (simp_all add: size_lazy_sequence_eq)
 
 lemma equal_lazy_sequence_code [code]:
   "HOL.equal xq yq = (case (yield xq, yield yq) of

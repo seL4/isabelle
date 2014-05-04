@@ -498,7 +498,7 @@ lemma [code]:
   "size (P :: 'a Predicate.pred) = 0" by (cases P) simp
 
 lemma [code]:
-  "pred_size f P = 0" by (cases P) simp
+  "size_pred f P = 0" by (cases P) simp
 
 primrec contained :: "'a seq \<Rightarrow> 'a pred \<Rightarrow> bool" where
   "contained Empty Q \<longleftrightarrow> True"

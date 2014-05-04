@@ -74,7 +74,7 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
         val (((size_names, size_fns), def_names), def_names') =
           recTs1 |> map (fn T as Type (s, _) =>
             let
-              val s' = Long_Name.base_name s ^ "_size";
+              val s' = "size_" ^ Long_Name.base_name s;
               val s'' = Sign.full_bname thy s';
             in
               (s'',

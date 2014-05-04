@@ -2,7 +2,7 @@
 theory Nested2 imports Nested0 begin
 (*>*)
 
-lemma [simp]: "t \<in> set ts \<longrightarrow> size t < Suc(term_list_size ts)"
+lemma [simp]: "t \<in> set ts \<longrightarrow> size t < Suc(size_term_list ts)"
 by(induct_tac ts, auto)
 (*<*)
 recdef trev "measure size"
@@ -55,7 +55,7 @@ sensible termination conditions in the presence of higher-order functions
 like @{term"map"}. For a start, if nothing were known about @{term"map"}, then
 @{term"map trev ts"} might apply @{term"trev"} to arbitrary terms, and thus
 \isacommand{recdef} would try to prove the unprovable @{term"size t < Suc
-(term_list_size ts)"}, without any assumption about @{term"t"}.  Therefore
+(size_term_list ts)"}, without any assumption about @{term"t"}.  Therefore
 \isacommand{recdef} has been supplied with the congruence theorem
 @{thm[source]map_cong}:
 @{thm[display,margin=50]"map_cong"[no_vars]}

@@ -168,8 +168,8 @@ declare
   less_imp_le_nat[termination_simp]
   le_imp_less_Suc[termination_simp]
 
-lemma prod_size_simp[termination_simp]:
-  "prod_size f g p = f (fst p) + g (snd p) + Suc 0"
+lemma size_prod_simp[termination_simp]:
+  "size_prod f g p = f (fst p) + g (snd p) + Suc 0"
 by (induct p) auto
 
 
