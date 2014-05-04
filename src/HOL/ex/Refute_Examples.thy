@@ -20,7 +20,7 @@ refute [expect = genuine] 2  -- {* refutes @{term "Q"} *}
 refute [expect = genuine]    -- {* equivalent to 'refute 1' *}
   -- {* here 'refute 3' would cause an exception, since we only have 2 subgoals *}
 refute [maxsize = 5, expect = genuine]   -- {* we can override parameters ... *}
-refute [satsolver = "dpll", expect = genuine] 2
+refute [satsolver = "dpll_p", expect = genuine] 2
   -- {* ... and specify a subgoal at the same time *}
 oops
 

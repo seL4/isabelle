@@ -351,6 +351,9 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   * Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
 
 * New internal SAT solver "dpll_p" that produces models and proof traces.
+  This solver replaces the internal SAT solvers "enumerate" and "dpll".
+  Applications that explicitly used one of these two SAT solvers should
+  use "dpll_p" instead. Minor INCOMPATIBILITY.
 
 * SMT module:
   * A new version of the SMT module, temporarily called "SMT2", uses SMT-LIB 2
