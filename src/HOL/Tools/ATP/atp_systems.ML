@@ -575,7 +575,7 @@ val vampire_config : atp_config =
        (if is_vampire_at_least_1_8 () then
           (* Cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
           (if full_proof then
-             "--forced_options splitting=off:equality_proxy=off:general_splitting=off\
+             " --forced_options splitting=off:equality_proxy=off:general_splitting=off\
              \:inequality_splitting=0:naming=0"
            else
              "")
