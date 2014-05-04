@@ -103,7 +103,7 @@ fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
       Metis_Method (type_enc_opt, lam_trans_opt) =>
       Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
         (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
-    | Meson_Method => Meson.meson_tac ctxt global_facts
+    | Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
     | SMT2_Method => SMT2_Solver.smt2_tac ctxt global_facts
     | _ =>
       Method.insert_tac global_facts THEN'
