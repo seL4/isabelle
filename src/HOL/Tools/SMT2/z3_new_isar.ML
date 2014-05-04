@@ -63,7 +63,11 @@ fun inline_z3_hypotheses _ _ [] = []
           end
       end
 
-fun simplify_bool (@{const Not} $ t) = s_not (simplify_bool t)
+fun simplify_bool ((all as Const (@{const_name All}, _)) $ Abs (s, T, t)) =
+    let val t' = simplify_bool t in
+      if loose_bvar1 (t', 0) then all $ Abs (s, T, t') else t'
+    end
+  | simplify_bool (@{const Not} $ t) = s_not (simplify_bool t)
   | simplify_bool (@{const conj} $ t $ u) = s_conj (simplify_bool t, simplify_bool u)
   | simplify_bool (@{const disj} $ t $ u) = s_disj (simplify_bool t, simplify_bool u)
   | simplify_bool (@{const implies} $ t $ u) = s_imp (simplify_bool t, simplify_bool u)
