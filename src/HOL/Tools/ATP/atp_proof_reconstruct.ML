@@ -496,7 +496,8 @@ val waldmeister_conjecture_num = "1.0.0.0"
 
 fun repair_waldmeister_endgame proof =
   let
-    fun repair_tail (name, _, t, rule, deps) = (name, Negated_Conjecture, s_not t, rule, deps)
+    fun repair_tail (name, _, @{const Trueprop} $ t, rule, deps) =
+      (name, Negated_Conjecture, @{const Trueprop} $ s_not t, rule, deps)
     fun repair_body [] = []
       | repair_body ((line as ((num, _), _, _, _, _)) :: lines) =
         if num = waldmeister_conjecture_num then map repair_tail (line :: lines)
