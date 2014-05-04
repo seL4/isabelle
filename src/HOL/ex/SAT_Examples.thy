@@ -529,7 +529,7 @@ declare [[quick_and_dirty = false]]
 ML {*
   fun benchmark dimacsfile =
     let
-      val prop_fm = SatSolver.read_dimacs_cnf_file (Path.explode dimacsfile)
+      val prop_fm = SAT_Solver.read_dimacs_cnf_file (Path.explode dimacsfile)
       fun and_to_list (Prop_Logic.And (fm1, fm2)) acc = and_to_list fm2 (fm1 :: acc)
         | and_to_list fm acc = rev (fm :: acc)
       val clauses = and_to_list prop_fm []

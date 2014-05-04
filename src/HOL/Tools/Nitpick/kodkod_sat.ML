@@ -28,7 +28,7 @@ datatype sat_solver_info =
   External of string * string * string list |
   ExternalV2 of sink * string * string * string list * string * string * string
 
-(* for compatibility with "SatSolver" *)
+(* for compatibility with "SAT_Solver" *)
 val berkmin_exec = getenv "BERKMIN_EXE"
 
 val static_list =

@@ -1074,32 +1074,32 @@ fun find_model ctxt
                          \external solver.")
                else ());
             val solver =
-              SatSolver.invoke_solver satsolver
+              SAT_Solver.invoke_solver satsolver
               handle Option.Option =>
                      error ("Unknown SAT solver: " ^ quote satsolver ^
                             ". Available solvers: " ^
-                            commas (map (quote o fst) (SatSolver.get_solvers ())) ^ ".")
+                            commas (map (quote o fst) (SAT_Solver.get_solvers ())) ^ ".")
           in
             Output.urgent_message "Invoking SAT solver...";
             (case solver fm of
-              SatSolver.SATISFIABLE assignment =>
+              SAT_Solver.SATISFIABLE assignment =>
                 (Output.urgent_message ("Model found:\n" ^ print_model ctxt model
                   (fn i => case assignment i of SOME b => b | NONE => true));
                  if maybe_spurious then "potential" else "genuine")
-            | SatSolver.UNSATISFIABLE _ =>
+            | SAT_Solver.UNSATISFIABLE _ =>
                 (Output.urgent_message "No model exists.";
                 case next_universe universe sizes minsize maxsize of
                   SOME universe' => find_model_loop universe'
                 | NONE => (Output.urgent_message
                     "Search terminated, no larger universe within the given limits.";
                     "none"))
-            | SatSolver.UNKNOWN =>
+            | SAT_Solver.UNKNOWN =>
                 (Output.urgent_message "No model found.";
                 case next_universe universe sizes minsize maxsize of
                   SOME universe' => find_model_loop universe'
                 | NONE => (Output.urgent_message
                   "Search terminated, no larger universe within the given limits.";
-                  "unknown"))) handle SatSolver.NOT_CONFIGURED =>
+                  "unknown"))) handle SAT_Solver.NOT_CONFIGURED =>
               (error ("SAT solver " ^ quote satsolver ^ " is not configured.");
                "unknown")
           end

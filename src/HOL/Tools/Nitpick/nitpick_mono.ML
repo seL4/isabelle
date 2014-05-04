@@ -573,7 +573,7 @@ fun solve tac_timeout max_var (comps, clauses) =
       let
         (* use the first ML solver (to avoid startup overhead) *)
         val (ml_solvers, nonml_solvers) =
-          SatSolver.get_solvers ()
+          SAT_Solver.get_solvers ()
           |> List.partition (member (op =) ["dptsat", "cdclite"] o fst)
         val res =
           if null nonml_solvers then
@@ -582,10 +582,10 @@ fun solve tac_timeout max_var (comps, clauses) =
             TimeLimit.timeLimit ml_solver_timeout (snd (hd ml_solvers)) prop
             handle TimeLimit.TimeOut =>
                    TimeLimit.timeLimit tac_timeout
-                                       (SatSolver.invoke_solver "auto") prop
+                                       (SAT_Solver.invoke_solver "auto") prop
       in
         case res of
-          SatSolver.SATISFIABLE assigns => do_assigns assigns
+          SAT_Solver.SATISFIABLE assigns => do_assigns assigns
         | _ => (trace_msg (K "*** Unsolvable"); NONE)
       end
       handle TimeLimit.TimeOut => (trace_msg (K "*** Timed out"); NONE)

@@ -202,7 +202,7 @@ fun resolve_raw_clauses _ [] =
 
 (* ------------------------------------------------------------------------- *)
 (* replay_proof: replays the resolution proof returned by the SAT solver;    *)
-(*      cf. SatSolver.proof for details of the proof format.  Updates the    *)
+(*      cf. SAT_Solver.proof for details of the proof format.  Updates the   *)
 (*      'clauses' array with derived clauses, and returns the derived clause *)
 (*      at index 'empty_id' (which should just be "False" if proof           *)
 (*      reconstruction was successful, with the used clauses as hyps).       *)
@@ -335,9 +335,9 @@ fun rawsat_thm ctxt clauses =
       let
         val the_solver = Config.get ctxt solver
         val _ = cond_tracing ctxt (fn () => "Invoking solver " ^ the_solver)
-      in SatSolver.invoke_solver the_solver fm end
+      in SAT_Solver.invoke_solver the_solver fm end
     of
-      SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) =>
+      SAT_Solver.UNSATISFIABLE (SOME (clause_table, empty_id)) =>
        (cond_tracing ctxt (fn () =>
           "Proof trace from SAT solver:\n" ^
           "clauses: " ^ ML_Syntax.print_list
@@ -370,13 +370,13 @@ fun rawsat_thm ctxt clauses =
             (* [c_1, ..., c_n] |- False *)
             Thm.implies_elim (Thm.implies_intr cnf_cterm raw_thm) clauses_thm
           end)
-    | SatSolver.UNSATISFIABLE NONE =>
+    | SAT_Solver.UNSATISFIABLE NONE =>
         if Config.get ctxt quick_and_dirty then
          (warning "SAT solver claims the formula to be unsatisfiable, but did not provide a proof";
           make_quick_and_dirty_thm ())
         else
           raise THM ("SAT solver claims the formula to be unsatisfiable, but did not provide a proof", 0, [])
-    | SatSolver.SATISFIABLE assignment =>
+    | SAT_Solver.SATISFIABLE assignment =>
         let
           val msg =
             "SAT solver found a countermodel:\n" ^
@@ -388,7 +388,7 @@ fun rawsat_thm ctxt clauses =
         in
           raise THM (msg, 0, [])
         end
-    | SatSolver.UNKNOWN =>
+    | SAT_Solver.UNKNOWN =>
         raise THM ("SAT solver failed to decide the formula", 0, [])
   end;
 

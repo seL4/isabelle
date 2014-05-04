@@ -73,7 +73,7 @@ fun exactly_one n f = iexists n (the_one f n)
 (* SAT solving *)
 val solver = Unsynchronized.ref "auto";
 fun sat_solver x =
-  Function_Common.PROFILE "sat_solving..." (SatSolver.invoke_solver (!solver)) x
+  Function_Common.PROFILE "sat_solving..." (SAT_Solver.invoke_solver (!solver)) x
 
 (* "Virtual constructors" for various propositional variables *)
 fun var_constrs (gp as GP (arities, _)) =
@@ -250,7 +250,7 @@ fun generate_certificate use_tags labels gp =
   in
     get_first
       (fn l => case sat_solver (encode bits gp l) of
-                 SatSolver.SATISFIABLE f => SOME (mk_certificate bits l gp f)
+                 SAT_Solver.SATISFIABLE f => SOME (mk_certificate bits l gp f)
                | _ => NONE)
       labels
   end
