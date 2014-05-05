@@ -48,6 +48,19 @@ object Exn
     def expose() { if (Thread.interrupted()) throw apply() }
     def impose() { Thread.currentThread.interrupt }
 
+    def postpone[A](body: => A): Option[A] =
+    {
+      val interrupted = Thread.interrupted
+      val result = capture { body }
+      if (interrupted) impose()
+      result match {
+        case Res(x) => Some(x)
+        case Exn(e) =>
+          if (is_interrupt(e)) { impose(); None }
+          else throw e
+      }
+    }
+
     val return_code = 130
   }
 
