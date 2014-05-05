@@ -12,8 +12,8 @@ sig
   val pp_term: theory -> term -> Pretty.T
   val pp_ctyp: ctyp -> Pretty.T
   val pp_cterm: cterm -> Pretty.T
-  val print_theorems_diff: bool -> theory -> theory -> unit
-  val print_theorems: bool -> theory -> unit
+  val pretty_theorems_diff: bool -> theory list -> theory -> Pretty.T
+  val pretty_theorems: bool -> theory -> Pretty.T
   val pretty_full_theory: bool -> theory -> Pretty.T
   val print_theory: theory -> unit
   val string_of_rule: Proof.context -> string -> thm -> string
@@ -66,11 +66,8 @@ fun pretty_theorems_diff verbose prev_thys thy =
     val thmss = Facts.dest_static verbose (map Global_Theory.facts_of prev_thys) facts;
   in Pretty.big_list "theorems:" (map #1 (sort_wrt (#1 o #2) (map (`pretty_fact) thmss))) end;
 
-fun print_theorems_diff verbose prev_thy thy =
-  Pretty.writeln (pretty_theorems_diff verbose [prev_thy] thy);
-
-fun pretty_theorems verbose thy = pretty_theorems_diff verbose (Theory.parents_of thy) thy;
-val print_theorems = Pretty.writeln oo pretty_theorems;
+fun pretty_theorems verbose thy =
+  pretty_theorems_diff verbose (Theory.parents_of thy) thy;
 
 fun pretty_full_theory verbose thy =
   Pretty.chunks (Display.pretty_full_theory verbose thy @ [pretty_theorems verbose thy]);

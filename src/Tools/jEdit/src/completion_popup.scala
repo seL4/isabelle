@@ -254,7 +254,7 @@ object Completion_Popup
 
       val buffer = text_area.getBuffer
       val range = item.range
-      if (buffer.isEditable && range.length > 0) {
+      if (buffer.isEditable) {
         JEdit_Lib.buffer_edit(buffer) {
           JEdit_Lib.try_get_text(buffer, range) match {
             case Some(text) if text == item.original =>
@@ -524,7 +524,7 @@ object Completion_Popup
       Swing_Thread.require {}
 
       val range = item.range
-      if (text_field.isEditable && range.length > 0) {
+      if (text_field.isEditable) {
         val content = text_field.getText
         JEdit_Lib.try_get_text(content, range) match {
           case Some(text) if text == item.original =>

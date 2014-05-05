@@ -108,6 +108,7 @@ begin
 
 ML_file "ML/ml_antiquotations.ML"
 ML_file "ML/ml_thms.ML"
+ML_file "Tools/print_operation.ML"
 ML_file "Isar/isar_syn.ML"
 ML_file "Isar/calculation.ML"
 ML_file "Tools/rail.ML"

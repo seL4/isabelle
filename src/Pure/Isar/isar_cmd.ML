@@ -35,7 +35,7 @@ sig
   val ml_diag: bool -> Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
   val diag_state: Proof.context -> Toplevel.state
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
-  val print_theorems: bool -> Toplevel.transition -> Toplevel.transition
+  val pretty_theorems: bool -> Toplevel.state -> Pretty.T
   val thy_deps: Toplevel.transition -> Toplevel.transition
   val locale_deps: Toplevel.transition -> Toplevel.transition
   val class_deps: Toplevel.transition -> Toplevel.transition
@@ -258,20 +258,19 @@ val _ = Theory.setup
     (Scan.succeed "Isar_Cmd.diag_goal ML_context"));
 
 
-(* print theorems *)
+(* theorems of theory or proof context *)
 
-fun print_theorems_proof verbose =
-  Toplevel.keep (fn st =>
-    Proof_Context.print_local_facts (Proof.context_of (Toplevel.proof_of st)) verbose);
-
-fun print_theorems_theory verbose = Toplevel.keep (fn state =>
-  Toplevel.theory_of state |>
-  (case Toplevel.previous_context_of state of
-    SOME prev => Proof_Display.print_theorems_diff verbose (Proof_Context.theory_of prev)
-  | NONE => Proof_Display.print_theorems verbose));
-
-fun print_theorems verbose =
-  Toplevel.unknown_context o print_theorems_theory verbose o print_theorems_proof verbose;
+fun pretty_theorems verbose st =
+  if Toplevel.is_proof st then
+    Pretty.chunks (Proof_Context.pretty_local_facts (Toplevel.context_of st) verbose)
+  else
+    let
+      val thy = Toplevel.theory_of st;
+      val prev_thys =
+        (case Toplevel.previous_context_of st of
+          SOME prev => [Proof_Context.theory_of prev]
+        | NONE => Theory.parents_of thy);
+    in Proof_Display.pretty_theorems_diff verbose prev_thys thy end;
 
 
 (* display dependencies *)

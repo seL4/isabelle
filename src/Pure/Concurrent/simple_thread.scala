@@ -16,12 +16,6 @@ import scala.collection.parallel.ForkJoinTasks
 
 object Simple_Thread
 {
-  /* pending interrupts */
-
-  def interrupted_exception(): Unit =
-    if (Thread.interrupted()) throw Exn.Interrupt()
-
-
   /* plain thread */
 
   def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Thread =

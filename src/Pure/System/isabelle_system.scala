@@ -327,13 +327,7 @@ object Isabelle_System
       execute(true, "/usr/bin/env", "bash", "-c", "kill -" + signal + " -" + pid).waitFor
 
     private def kill(signal: String): Boolean =
-    {
-      try {
-        kill_cmd(signal)
-        kill_cmd("0") == 0
-      }
-      catch { case Exn.Interrupt() => true }
-    }
+      Exn.Interrupt.postpone { kill_cmd(signal); kill_cmd("0") == 0 } getOrElse true
 
     private def multi_kill(signal: String): Boolean =
     {
@@ -341,8 +335,10 @@ object Isabelle_System
       var count = 10
       while (running && count > 0) {
         if (kill(signal)) {
-          try { Thread.sleep(100) } catch { case Exn.Interrupt() => }
-          count -= 1
+          Exn.Interrupt.postpone {
+            Thread.sleep(100)
+            count -= 1
+          }
         }
         else running = false
       }

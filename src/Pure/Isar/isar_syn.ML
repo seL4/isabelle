@@ -673,32 +673,36 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "qed"} "conclude proof"
-    (Scan.option Method.parse >> (fn m => (Option.map Method.report m; Isar_Cmd.qed m)));
+    (Scan.option Method.parse >> (fn m =>
+     (Option.map Method.report m;
+      Toplevel.print o Isar_Cmd.qed m)));
 
 val _ =
   Outer_Syntax.command @{command_spec "by"} "terminal backward proof"
     (Method.parse -- Scan.option Method.parse >> (fn (m1, m2) =>
-      (Method.report m1; Option.map Method.report m2; Isar_Cmd.terminal_proof (m1, m2))));
+     (Method.report m1;
+      Option.map Method.report m2;
+      Toplevel.print o Isar_Cmd.terminal_proof (m1, m2))));
 
 val _ =
   Outer_Syntax.command @{command_spec ".."} "default proof"
-    (Scan.succeed Isar_Cmd.default_proof);
+    (Scan.succeed (Toplevel.print o Isar_Cmd.default_proof));
 
 val _ =
   Outer_Syntax.command @{command_spec "."} "immediate proof"
-    (Scan.succeed Isar_Cmd.immediate_proof);
+    (Scan.succeed (Toplevel.print o Isar_Cmd.immediate_proof));
 
 val _ =
   Outer_Syntax.command @{command_spec "done"} "done proof"
-    (Scan.succeed Isar_Cmd.done_proof);
+    (Scan.succeed (Toplevel.print o Isar_Cmd.done_proof));
 
 val _ =
   Outer_Syntax.command @{command_spec "sorry"} "skip proof (quick-and-dirty mode only!)"
-    (Scan.succeed Isar_Cmd.skip_proof);
+    (Scan.succeed (Toplevel.print o Isar_Cmd.skip_proof));
 
 val _ =
   Outer_Syntax.command @{command_spec "oops"} "forget proof"
-    (Scan.succeed Toplevel.forget_proof);
+    (Scan.succeed (Toplevel.print o Toplevel.forget_proof));
 
 
 (* proof steps *)
@@ -742,7 +746,8 @@ val _ =
       Toplevel.skip_proof (fn h => (report_back (); h))));
 
 
-(* nested commands *)
+
+(** nested commands **)
 
 val props_text =
   Scan.optional Parse.properties [] -- Parse.position Parse.string
@@ -788,7 +793,7 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_context"} "print main context"
-    (Scan.succeed (Toplevel.keep Toplevel.print_state_context));
+    (Scan.succeed (Toplevel.keep (Pretty.writeln_chunks o Toplevel.pretty_state_context)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_theory"}
@@ -817,7 +822,8 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_theorems"}
     "print theorems of local theory or proof context"
-    (opt_bang >> Isar_Cmd.print_theorems);
+    (opt_bang >> (fn b =>
+      Toplevel.unknown_context o Toplevel.keep (Pretty.writeln o Isar_Cmd.pretty_theorems b)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_locales"}
@@ -905,7 +911,7 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_binds"} "print term bindings of proof context"
     (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Proof_Context.print_binds o Toplevel.context_of)));
+      Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_binds o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_facts"} "print facts of proof context"
@@ -915,7 +921,7 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_cases"} "print cases of proof context"
     (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Proof_Context.print_cases o Toplevel.context_of)));
+      Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_cases o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_statement"}

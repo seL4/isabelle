@@ -184,9 +184,78 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
 
+  /* print operation */
+
+  private case class Print_Item(name: String, description: String)
+  {
+    override def toString: String = description
+  }
+
+  private val print_operation = new Find_Dockable.Operation(view)
+  {
+    /* query */
+
+    val query_operation =
+      new Query_Operation(PIDE.editor, view, "print_operation", _ => (),
+        (snapshot, results, body) =>
+          pretty_text_area.update(snapshot, results, Pretty.separate(body)))
+
+    private var _selector_item: Option[Print_Item] = None
+    private var _selector = new ComboBox[Print_Item](Nil)
+
+    private def apply_query()
+    {
+      query_operation.apply_query(List(_selector.selection.item.name))
+    }
+
+    private val query_label = new Label("Print:")
+
+    def query: JComponent = _selector.peer.asInstanceOf[JComponent]
+
+
+    /* GUI page */
+
+    private def update_selector()
+    {
+      val items = Print_Operation.print_operations(PIDE.session).map(p => Print_Item(p._1, p._2))
+      _selector =
+        new ComboBox(items) {
+          _selector_item.foreach(item => selection.item = item)
+          listenTo(selection)
+          reactions += {
+            case SelectionChanged(_) =>
+              _selector_item = Some(selection.item)
+              apply_query()
+          }
+        }
+    }
+    update_selector()
+
+    private val apply_button = new Button("Apply") {
+      tooltip = "Apply to current context"
+      reactions += { case ButtonClicked(_) => apply_query() }
+    }
+
+    private val control_panel = new Wrap_Panel(Wrap_Panel.Alignment.Right)()
+
+    def select
+    {
+      update_selector()
+      control_panel.contents.clear
+      control_panel.contents ++= List(query_label, _selector, apply_button, zoom)
+    }
+
+    val page =
+      new TabbedPane.Page("Print ...", new BorderPanel {
+        add(control_panel, BorderPanel.Position.North)
+        add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
+      }, "Print information from context")
+  }
+
+
   /* operations */
 
-  private val operations = List(find_theorems, find_consts)
+  private val operations = List(find_theorems, find_consts, print_operation)
 
   private val operations_pane = new TabbedPane
   {
@@ -200,7 +269,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     catch { case _: IndexOutOfBoundsException => None }
 
   private def select_operation() {
-    for (op <- get_operation()) op.select
+    for (op <- get_operation()) { op.select; op.query.requestFocus }
     operations_pane.revalidate
   }
 
