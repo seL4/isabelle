@@ -124,7 +124,7 @@ class Pretty_Text_Area(
           val (text, rendering) =
             try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
-          Simple_Thread.interrupted_exception()
+          Exn.Interrupt.expose()
 
           Swing_Thread.later {
             current_rendering = rendering

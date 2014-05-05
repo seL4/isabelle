@@ -45,6 +45,8 @@ object Exn
     def apply(): Throwable = new InterruptedException
     def unapply(exn: Throwable): Boolean = is_interrupt(exn)
 
+    def expose(): Unit = if (Thread.interrupted()) throw apply()
+
     val return_code = 130
   }
 

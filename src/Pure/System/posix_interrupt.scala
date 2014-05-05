@@ -10,7 +10,7 @@ package isabelle
 import sun.misc.{Signal, SignalHandler}
 
 
-object Interrupt
+object POSIX_Interrupt
 {
   def handler[A](h: => Unit)(e: => A): A =
   {

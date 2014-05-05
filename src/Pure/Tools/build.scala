@@ -37,7 +37,7 @@ object Build
       if (verbose) echo(session + ": theory " + theory)
 
     @volatile private var is_stopped = false
-    def interrupt_handler[A](e: => A): A = Interrupt.handler { is_stopped = true } { e }
+    def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { is_stopped = true } { e }
     override def stopped: Boolean =
     {
       if (Thread.interrupted) is_stopped = true
