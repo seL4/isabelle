@@ -186,6 +186,11 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* print operation */
 
+  private case class Print_Item(name: String, description: String)
+  {
+    override def toString: String = description
+  }
+
   private val print_operation = new Find_Dockable.Operation(view)
   {
     /* query */
@@ -195,12 +200,12 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
         (snapshot, results, body) =>
           pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
-    private var _selector_item = ""
-    private var _selector: ComboBox[String] = null
+    private var _selector_item: Option[Print_Item] = None
+    private var _selector = new ComboBox[Print_Item](Nil)
 
     private def apply_query()
     {
-      query_operation.apply_query(List(_selector.selection.item))
+      query_operation.apply_query(List(_selector.selection.item.name))
     }
 
     def query: JComponent = _selector.peer.asInstanceOf[JComponent]
@@ -210,18 +215,24 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
     private def update_selector()
     {
+      val items = Print_Operation.print_operations(PIDE.session).map(p => Print_Item(p._1, p._2))
       _selector =
-        new ComboBox(Print_Operation.print_operations(PIDE.session).map(_._1)) {
-          selection.item = _selector_item
+        new ComboBox(items) {
+          _selector_item.foreach(item => selection.item = item)
           listenTo(selection)
           reactions += {
             case SelectionChanged(_) =>
-              _selector_item = selection.item
+              _selector_item = Some(selection.item)
               apply_query()
           }
         }
     }
     update_selector()
+
+    private val apply_button = new Button("Apply") {
+      tooltip = "Apply to current context"
+      reactions += { case ButtonClicked(_) => apply_query() }
+    }
 
     private val control_panel = new Wrap_Panel(Wrap_Panel.Alignment.Right)()
 
@@ -229,9 +240,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     {
       update_selector()
       control_panel.contents.clear
-      control_panel.contents += _selector
-      control_panel.contents += zoom
-      _selector.requestFocus
+      control_panel.contents ++= List(_selector, apply_button, zoom)
     }
 
     val page =
@@ -258,7 +267,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     catch { case _: IndexOutOfBoundsException => None }
 
   private def select_operation() {
-    for (op <- get_operation()) op.select
+    for (op <- get_operation()) { op.select; op.query.requestFocus }
     operations_pane.revalidate
   }
 
