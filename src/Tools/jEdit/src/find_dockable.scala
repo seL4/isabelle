@@ -208,6 +208,8 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       query_operation.apply_query(List(_selector.selection.item.name))
     }
 
+    private val query_label = new Label("Print:")
+
     def query: JComponent = _selector.peer.asInstanceOf[JComponent]
 
 
@@ -240,7 +242,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     {
       update_selector()
       control_panel.contents.clear
-      control_panel.contents ++= List(_selector, apply_button, zoom)
+      control_panel.contents ++= List(query_label, _selector, apply_button, zoom)
     }
 
     val page =
