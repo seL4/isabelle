@@ -814,7 +814,7 @@ object Build
     def sleep()
     {
       try { Thread.sleep(500) }
-      catch { case Exn.Interrupt() => Thread.currentThread.interrupt }
+      catch { case Exn.Interrupt() => Exn.Interrupt.impose() }
     }
 
     @tailrec def loop(
