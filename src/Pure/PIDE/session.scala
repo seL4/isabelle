@@ -98,6 +98,7 @@ object Session
 
   abstract class Protocol_Handler
   {
+    def start(prover: Prover): Unit = {}
     def stop(prover: Prover): Unit = {}
     val functions: Map[String, (Prover, Prover.Protocol_Output) => Boolean]
   }
@@ -122,6 +123,8 @@ object Session
       val (handlers2, functions2) =
         try {
           val new_handler = Class.forName(name).newInstance.asInstanceOf[Protocol_Handler]
+          new_handler.start(prover)
+
           val new_functions =
             for ((a, f) <- new_handler.functions.toList) yield
               (a, (msg: Prover.Protocol_Output) => f(prover, msg))

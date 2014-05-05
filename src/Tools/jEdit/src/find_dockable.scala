@@ -184,9 +184,67 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
 
+  /* print operation */
+
+  private val print_operation = new Find_Dockable.Operation(view)
+  {
+    /* query */
+
+    val query_operation =
+      new Query_Operation(PIDE.editor, view, "print_operation", _ => (),
+        (snapshot, results, body) =>
+          pretty_text_area.update(snapshot, results, Pretty.separate(body)))
+
+    private var _selector_item = ""
+    private var _selector: ComboBox[String] = null
+
+    private def apply_query()
+    {
+      query_operation.apply_query(List(_selector.selection.item))
+    }
+
+    def query: JComponent = _selector.peer.asInstanceOf[JComponent]
+
+
+    /* GUI page */
+
+    private def update_selector()
+    {
+      _selector =
+        new ComboBox(Print_Operation.print_operations(PIDE.session).map(_._1)) {
+          selection.item = _selector_item
+          listenTo(selection)
+          reactions += {
+            case SelectionChanged(_) =>
+              _selector_item = selection.item
+              apply_query()
+          }
+        }
+    }
+    update_selector()
+
+    private val control_panel = new Wrap_Panel(Wrap_Panel.Alignment.Right)()
+
+    def select
+    {
+      update_selector()
+      control_panel.contents.clear
+      control_panel.contents += _selector
+      control_panel.contents += zoom
+      _selector.requestFocus
+    }
+
+    val page =
+      new TabbedPane.Page("Print ...", new BorderPanel {
+        add(control_panel, BorderPanel.Position.North)
+        add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
+      }, "Print information from context")
+  }
+
+
   /* operations */
 
-  private val operations = List(find_theorems, find_consts)
+  private val operations = List(find_theorems, find_consts, print_operation)
 
   private val operations_pane = new TabbedPane
   {

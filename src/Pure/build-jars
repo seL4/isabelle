@@ -89,6 +89,7 @@ declare -a SOURCES=(
   Tools/keywords.scala
   Tools/main.scala
   Tools/ml_statistics.scala
+  Tools/print_operation.scala
   Tools/simplifier_trace.scala
   Tools/task_statistics.scala
   library.scala

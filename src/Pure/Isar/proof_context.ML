@@ -162,6 +162,7 @@ sig
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
   val print_binds: Proof.context -> unit
+  val pretty_local_facts: Proof.context -> bool -> Pretty.T list
   val print_local_facts: Proof.context -> bool -> unit
   val print_cases: Proof.context -> unit
   val debug: bool Config.T

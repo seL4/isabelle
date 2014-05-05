@@ -459,6 +459,8 @@ object Markup
       }
   }
 
+  val PRINT_OPERATIONS = "print_operations"
+
 
   /* simplifier trace */
 
