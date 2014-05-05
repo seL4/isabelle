@@ -788,7 +788,7 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_context"} "print main context"
-    (Scan.succeed (Toplevel.keep Toplevel.print_state_context));
+    (Scan.succeed (Toplevel.keep (Pretty.writeln_chunks o Toplevel.pretty_state_context)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_theory"}
@@ -905,7 +905,7 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_binds"} "print term bindings of proof context"
     (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Proof_Context.print_binds o Toplevel.context_of)));
+      Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_binds o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_facts"} "print facts of proof context"
@@ -915,7 +915,7 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_cases"} "print cases of proof context"
     (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Proof_Context.print_cases o Toplevel.context_of)));
+      Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_cases o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_statement"}

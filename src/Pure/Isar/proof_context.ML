@@ -161,10 +161,10 @@ sig
   val generic_revert_abbrev: string -> string -> Context.generic -> Context.generic
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
-  val print_binds: Proof.context -> unit
+  val pretty_binds: Proof.context -> Pretty.T list
   val pretty_local_facts: Proof.context -> bool -> Pretty.T list
   val print_local_facts: Proof.context -> bool -> unit
-  val print_cases: Proof.context -> unit
+  val pretty_cases: Proof.context -> Pretty.T list
   val debug: bool Config.T
   val verbose: bool Config.T
   val pretty_ctxt: Proof.context -> Pretty.T list
@@ -1266,8 +1266,6 @@ fun pretty_binds ctxt =
     else [Pretty.big_list "term bindings:" (map prt_bind (Vartab.dest binds))]
   end;
 
-val print_binds = Pretty.writeln_chunks o pretty_binds;
-
 
 (* local facts *)
 
@@ -1332,8 +1330,6 @@ fun pretty_cases ctxt =
     if null cases then []
     else [Pretty.big_list "cases:" (map pretty_case cases)]
   end;
-
-val print_cases = Pretty.writeln_chunks o pretty_cases;
 
 end;
 

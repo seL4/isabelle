@@ -22,7 +22,8 @@ sig
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
   val end_theory: Position.T -> state -> theory
-  val print_state_context: state -> unit
+  val pretty_state_context: state -> Pretty.T list
+  val pretty_state: bool -> state -> Pretty.T list
   val print_state: bool -> state -> unit
   val pretty_abstract: state -> Pretty.T
   val quiet: bool Unsynchronized.ref
@@ -199,22 +200,23 @@ fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
 
 val pretty_context = Local_Theory.pretty o Context.cases (Named_Target.theory_init) I;
 
-fun print_state_context state =
+fun pretty_state_context state =
   (case try node_of state of
     NONE => []
   | SOME (Theory (gthy, _)) => pretty_context gthy
   | SOME (Proof (_, (_, gthy))) => pretty_context gthy
-  | SOME (Skipped_Proof (_, (gthy, _))) => pretty_context gthy)
-  |> Pretty.writeln_chunks;
+  | SOME (Skipped_Proof (_, (gthy, _))) => pretty_context gthy);
 
-fun print_state prf_only state =
+fun pretty_state prf_only state =
   (case try node_of state of
     NONE => []
   | SOME (Theory (gthy, _)) => if prf_only then [] else pretty_context gthy
   | SOME (Proof (prf, _)) =>
       Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
-  | SOME (Skipped_Proof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)])
-  |> Pretty.markup_chunks Markup.state |> Pretty.writeln;
+  | SOME (Skipped_Proof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
+
+fun print_state prf_only =
+  pretty_state prf_only #> Pretty.markup_chunks Markup.state #> Pretty.writeln;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
