@@ -21,8 +21,10 @@ sig
      weak_case_cong: thm,
      split: thm,
      split_asm: thm,
+     disc_defs: thm list,
      disc_thmss: thm list list,
      discIs: thm list,
+     sel_defs: thm list,
      sel_thmss: thm list list,
      disc_excludesss: thm list list list,
      disc_exhausts: thm list,
@@ -90,8 +92,10 @@ type ctr_sugar =
    weak_case_cong: thm,
    split: thm,
    split_asm: thm,
+   disc_defs: thm list,
    disc_thmss: thm list list,
    discIs: thm list,
+   sel_defs: thm list,
    sel_thmss: thm list list,
    disc_excludesss: thm list list list,
    disc_exhausts: thm list,
@@ -103,9 +107,9 @@ type ctr_sugar =
    case_eq_ifs: thm list};
 
 fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
-    case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss,
-    disc_excludesss, disc_exhausts, sel_exhausts, collapses, expands, sel_splits, sel_split_asms,
-    case_eq_ifs} =
+    case_thms, case_cong, weak_case_cong, split, split_asm, disc_defs, disc_thmss, discIs, sel_defs,
+    sel_thmss, disc_excludesss, disc_exhausts, sel_exhausts, collapses, expands, sel_splits,
+    sel_split_asms, case_eq_ifs} =
   {ctrs = map (Morphism.term phi) ctrs,
    casex = Morphism.term phi casex,
    discs = map (Morphism.term phi) discs,
@@ -119,8 +123,10 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    weak_case_cong = Morphism.thm phi weak_case_cong,
    split = Morphism.thm phi split,
    split_asm = Morphism.thm phi split_asm,
+   disc_defs = map (Morphism.thm phi) disc_defs,
    disc_thmss = map (map (Morphism.thm phi)) disc_thmss,
    discIs = map (Morphism.thm phi) discIs,
+   sel_defs = map (Morphism.thm phi) sel_defs,
    sel_thmss = map (map (Morphism.thm phi)) sel_thmss,
    disc_excludesss = map (map (map (Morphism.thm phi))) disc_excludesss,
    disc_exhausts = map (Morphism.thm phi) disc_exhausts,
@@ -692,12 +698,12 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
             (thm, asm_thm)
           end;
 
-        val (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thmss, discI_thms,
-             nontriv_discI_thms, disc_exclude_thms, disc_exclude_thmsss, disc_exhaust_thms,
-             sel_exhaust_thms, all_collapse_thms, safe_collapse_thms, expand_thms, sel_split_thms,
-             sel_split_asm_thms, case_eq_if_thms) =
+        val (sel_defs, all_sel_thms, sel_thmss, disc_defs, disc_thmss, nontriv_disc_thmss,
+             discI_thms, nontriv_discI_thms, disc_exclude_thms, disc_exclude_thmsss,
+             disc_exhaust_thms, sel_exhaust_thms, all_collapse_thms, safe_collapse_thms,
+             expand_thms, sel_split_thms, sel_split_asm_thms, case_eq_if_thms) =
           if no_discs_sels then
-            ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
+            ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
           else
             let
               val udiscs = map (rapp u) discs;
@@ -908,10 +914,10 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
                   |> Thm.close_derivation
                 end;
             in
-              (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thmss, discI_thms,
-               nontriv_discI_thms, disc_exclude_thms, disc_exclude_thmsss, [disc_exhaust_thm],
-               [sel_exhaust_thm], all_collapse_thms, safe_collapse_thms, [expand_thm],
-               [sel_split_thm], [sel_split_asm_thm], [case_eq_if_thm])
+              (sel_defs, all_sel_thms, sel_thmss, disc_defs, disc_thmss, nontriv_disc_thmss,
+               discI_thms, nontriv_discI_thms, disc_exclude_thms, disc_exclude_thmsss,
+               [disc_exhaust_thm], [sel_exhaust_thm], all_collapse_thms, safe_collapse_thms,
+               [expand_thm], [sel_split_thm], [sel_split_asm_thm], [case_eq_if_thm])
             end;
 
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
@@ -956,11 +962,12 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
           {ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
            nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
            case_thms = case_thms, case_cong = case_cong_thm, weak_case_cong = weak_case_cong_thm,
-           split = split_thm, split_asm = split_asm_thm, disc_thmss = disc_thmss,
-           discIs = discI_thms, sel_thmss = sel_thmss, disc_excludesss = disc_exclude_thmsss,
-           disc_exhausts = disc_exhaust_thms, sel_exhausts = sel_exhaust_thms,
-           collapses = all_collapse_thms, expands = expand_thms, sel_splits = sel_split_thms,
-           sel_split_asms = sel_split_asm_thms, case_eq_ifs = case_eq_if_thms};
+           split = split_thm, split_asm = split_asm_thm, disc_defs = disc_defs,
+           disc_thmss = disc_thmss, discIs = discI_thms, sel_defs = sel_defs, sel_thmss = sel_thmss,
+           disc_excludesss = disc_exclude_thmsss, disc_exhausts = disc_exhaust_thms,
+           sel_exhausts = sel_exhaust_thms, collapses = all_collapse_thms, expands = expand_thms,
+           sel_splits = sel_split_thms, sel_split_asms = sel_split_asm_thms,
+           case_eq_ifs = case_eq_if_thms};
       in
         (ctr_sugar,
          lthy
