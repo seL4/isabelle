@@ -817,7 +817,8 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_theorems"}
     "print theorems of local theory or proof context"
-    (opt_bang >> Isar_Cmd.print_theorems);
+    (opt_bang >> (fn b =>
+      Toplevel.unknown_context o Toplevel.keep (Pretty.writeln o Isar_Cmd.pretty_theorems b)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_locales"}

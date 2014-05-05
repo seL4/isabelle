@@ -69,14 +69,12 @@ val _ =
     (Pretty.string_of o Pretty.chunks o Proof_Context.pretty_cases o Toplevel.context_of);
 
 val _ =
-  register "binds" "term bindings of proof context"
+  register "terms" "term bindings of proof context"
     (Pretty.string_of o Pretty.chunks o Proof_Context.pretty_binds o Toplevel.context_of);
 
 val _ =
-  register "facts" "facts of proof context"
-    (fn st =>
-      Proof_Context.pretty_local_facts (Toplevel.context_of st) false
-      |> Pretty.chunks |> Pretty.string_of);
+  register "theorems" "theorems of local theory or proof context"
+    (Pretty.string_of o Isar_Cmd.pretty_theorems false);
 
 val _ =
   register "state" "proof state"
