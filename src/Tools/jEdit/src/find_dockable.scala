@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
 import javax.swing.{JComponent, JTextField}
 
-import scala.swing.{Button, Component, TextField, CheckBox, Label,
+import scala.swing.{Button, Component, TextField, CheckBox, Label, ListView,
   ComboBox, TabbedPane, BorderPanel}
 import scala.swing.event.{SelectionChanged, ButtonClicked, Key, KeyPressed}
 
@@ -186,11 +186,6 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* print operation */
 
-  private case class Print_Item(name: String, description: String)
-  {
-    override def toString: String = description
-  }
-
   private val print_operation = new Find_Dockable.Operation(view)
   {
     /* query */
@@ -200,12 +195,9 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
         (snapshot, results, body) =>
           pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
-    private var _selector_item: Option[Print_Item] = None
-    private var _selector = new ComboBox[Print_Item](Nil)
-
     private def apply_query()
     {
-      query_operation.apply_query(List(_selector.selection.item.name))
+      query_operation.apply_query(List(_selector.selection.item))
     }
 
     private val query_label = new Label("Print:")
@@ -213,13 +205,32 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     def query: JComponent = _selector.peer.asInstanceOf[JComponent]
 
 
-    /* GUI page */
+    /* items */
 
-    private def update_selector()
+    case class Item(name: String, description: String)
+
+    class Renderer(old_renderer: ListView.Renderer[String], items: List[Item])
+      extends ListView.Renderer[String]
     {
-      val items = Print_Operation.print_operations(PIDE.session).map(p => Print_Item(p._1, p._2))
+      def componentFor(list: ListView[_],
+        selected: Boolean, focused: Boolean, item: String, index: Int) =
+      {
+        val component = old_renderer.componentFor(list, selected, focused, item, index)
+        try { component.tooltip = items(index).description }
+        catch { case _: IndexOutOfBoundsException => }
+        component
+      }
+    }
+
+    private var _selector_item: Option[String] = None
+    private var _selector = new ComboBox[String](Nil)
+
+    private def set_selector()
+    {
+      val items = Print_Operation.print_operations(PIDE.session).map(p => Item(p._1, p._2))
+
       _selector =
-        new ComboBox(items) {
+        new ComboBox(items.map(_.name)) {
           _selector_item.foreach(item => selection.item = item)
           listenTo(selection)
           reactions += {
@@ -228,8 +239,12 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
               apply_query()
           }
         }
+      _selector.renderer = new Renderer(_selector.renderer, items)
     }
-    update_selector()
+    set_selector()
+
+
+    /* GUI page */
 
     private val apply_button = new Button("Apply") {
       tooltip = "Apply to current context"
@@ -240,7 +255,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
     def select
     {
-      update_selector()
+      set_selector()
       control_panel.contents.clear
       control_panel.contents ++= List(query_label, _selector, apply_button, zoom)
     }
