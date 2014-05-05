@@ -29,8 +29,8 @@ fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, ctr_defs, ctr_sugar, co
 fun get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0 =
   let
     val ((missing_arg_Ts, perm0_kks,
-          fp_sugars as {nested_bnfs, co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)),
-         lthy) =
+          fp_sugars as {nested_bnfs, common_co_inducts = [common_induct], ...} :: _,
+          (lfp_sugar_thms, _)), lthy) =
       nested_to_mutual_fps Least_FP bs arg_Ts callers callssss0 lthy0;
 
     val Ts = map #T fp_sugars;
@@ -51,7 +51,7 @@ fun get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0 =
     val nested_map_comps = map map_comp_of_bnf nested_bnfs;
   in
     (missing_arg_Ts, perm0_kks, map3 basic_lfp_sugar_of Cs fun_arg_Tssss fp_sugars,
-     nested_map_idents, nested_map_comps, induct_thm, is_some lfp_sugar_thms, lthy)
+     nested_map_idents, nested_map_comps, common_induct, is_some lfp_sugar_thms, lthy)
   end;
 
 exception NOT_A_MAP of term;

@@ -136,7 +136,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val thy = Proof_Context.theory_of lthy0;
 
     val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, nested_map_idents, nested_map_comps,
-         induct_thm, n2m, lthy) =
+         common_induct, n2m, lthy) =
       get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0;
 
     val perm_basic_lfp_sugars = sort (int_ord o pairself #fp_res_index) basic_lfp_sugars;
@@ -159,7 +159,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     fun unpermute0 perm0_xs = permute_like_unique (op =) perm0_kks kks perm0_xs;
     fun unpermute perm_xs = permute_like_unique (op =) perm_indices indices perm_xs;
 
-    val induct_thms = unpermute0 (conj_dests nn induct_thm);
+    val inducts = unpermute0 (conj_dests nn common_induct);
 
     val lfpTs = unpermute perm_lfpTs;
     val Cs = unpermute perm_Cs;
@@ -198,8 +198,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
        nested_map_idents = nested_map_idents, nested_map_comps = nested_map_comps,
        ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs rec_thms};
   in
-    ((n2m, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, induct_thm, induct_thms),
-     lthy)
+    ((n2m, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, common_induct, inducts), lthy)
   end;
 
 val undef_const = Const (@{const_name undefined}, dummyT);
@@ -452,7 +451,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
         [] => ()
       | (b, _) :: _ => raise PRIMREC ("type of " ^ Binding.print b ^ " contains top sort", []));
 
-    val ((n2m, rec_specs, _, induct_thm, induct_thms), lthy) =
+    val ((n2m, rec_specs, _, common_induct, inducts), lthy) =
       rec_specs_of bs arg_Ts res_Ts frees callssss lthy0;
 
     val actual_nn = length funs_data;
@@ -493,8 +492,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
 
     val notes =
       (if n2m then
-         map2 (fn name => fn thm => (name, inductN, [thm], [])) fun_names
-           (take actual_nn induct_thms)
+         map2 (fn name => fn thm => (name, inductN, [thm], [])) fun_names (take actual_nn inducts)
        else
          [])
       |> map (fn (prefix, thmN, thms, attrs) =>
@@ -503,7 +501,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
     val common_name = mk_common_name fun_names;
 
     val common_notes =
-      (if n2m then [(inductN, [induct_thm], [])] else [])
+      (if n2m then [(inductN, [common_induct], [])] else [])
       |> map (fn (thmN, thms, attrs) =>
         ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
   in
