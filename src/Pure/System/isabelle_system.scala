@@ -440,7 +440,11 @@ object Isabelle_System
     def err: String = cat_lines(err_lines)
     def add_err(s: String): Bash_Result = copy(err_lines = err_lines ::: List(s))
     def set_rc(i: Int): Bash_Result = copy(rc = i)
-    def check_error: Bash_Result = if (rc != 0) error(err) else this
+
+    def check_error: Bash_Result =
+      if (rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
+      else if (rc != 0) error(err)
+      else this
   }
 
   private class Limited_Progress(proc: Managed_Process, progress_limit: Option[Long])
@@ -459,7 +463,8 @@ object Isabelle_System
   def bash_env(cwd: JFile, env: Map[String, String], script: String,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
-    progress_limit: Option[Long] = None): Bash_Result =
+    progress_limit: Option[Long] = None,
+    strict: Boolean = true): Bash_Result =
   {
     with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
@@ -479,6 +484,8 @@ object Isabelle_System
       val rc =
         try { proc.join }
         catch { case Exn.Interrupt() => proc.terminate; Exn.Interrupt.return_code }
+      if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
+
       Bash_Result(stdout.join, stderr.join, rc)
     }
   }

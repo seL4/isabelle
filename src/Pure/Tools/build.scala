@@ -599,7 +599,8 @@ object Build
             info.options.int("process_output_limit") match {
               case 0 => None
               case m => Some(m * 1000000L)
-            })
+            },
+          strict = false)
       }
 
     def terminate: Unit = thread.interrupt
