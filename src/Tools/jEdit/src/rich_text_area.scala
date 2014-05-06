@@ -277,7 +277,7 @@ class Rich_Text_Area(
 
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
-            val line_range = Text.Range(start(i), end(i))
+            val line_range = Text.Range(start(i), end(i) min buffer.getLength)
 
             // line background color
             for { (color, separator) <- rendering.line_background(line_range) }
@@ -456,7 +456,7 @@ class Rich_Text_Area(
         for (i <- 0 until physical_lines.length) {
           val line = physical_lines(i)
           if (line != -1) {
-            val line_range = Text.Range(start(i), end(i))
+            val line_range = Text.Range(start(i), end(i) min buffer.getLength)
 
             // bullet bar
             for {
@@ -501,7 +501,7 @@ class Rich_Text_Area(
         val search_pattern = get_search_pattern()
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
-            val line_range = Text.Range(start(i), end(i))
+            val line_range = Text.Range(start(i), end(i) min buffer.getLength)
 
             // foreground color
             for {
