@@ -31,10 +31,10 @@ options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
 plugin.isabelle.jedit.Plugin.menu= \
   isabelle-documentation \
-  isabelle-find \
   isabelle-monitor \
   isabelle-output \
   isabelle-protocol \
+  isabelle-query \
   isabelle-raw-output \
   isabelle-simplifier-trace \
   isabelle-sledgehammer \
@@ -44,8 +44,6 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle-timing
 isabelle-documentation.label=Documentation panel
 isabelle-documentation.title=Documentation
-isabelle-find.label=Find panel
-isabelle-find.title=Find
 isabelle-graphview.label=Graphview panel
 isabelle-graphview.title=Graphview
 isabelle-info.label=Info panel
@@ -56,6 +54,8 @@ isabelle-output.label=Output panel
 isabelle-output.title=Output
 isabelle-protocol.label=Protocol panel
 isabelle-protocol.title=Protocol
+isabelle-query.label=Query panel
+isabelle-query.title=Query
 isabelle-raw-output.label=Raw Output panel
 isabelle-raw-output.title=Raw Output
 isabelle-simplifier-trace.label=Simplifier Trace panel

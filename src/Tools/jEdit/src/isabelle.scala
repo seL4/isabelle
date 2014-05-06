@@ -78,12 +78,6 @@ object Isabelle
       case _ => None
     }
 
-  def find_dockable(view: View): Option[Find_Dockable] =
-    wm(view).getDockableWindow("isabelle-find") match {
-      case dockable: Find_Dockable => Some(dockable)
-      case _ => None
-    }
-
   def monitor_dockable(view: View): Option[Monitor_Dockable] =
     wm(view).getDockableWindow("isabelle-monitor") match {
       case dockable: Monitor_Dockable => Some(dockable)
@@ -99,6 +93,12 @@ object Isabelle
   def protocol_dockable(view: View): Option[Protocol_Dockable] =
     wm(view).getDockableWindow("isabelle-protocol") match {
       case dockable: Protocol_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def query_dockable(view: View): Option[Query_Dockable] =
+    wm(view).getDockableWindow("isabelle-query") match {
+      case dockable: Query_Dockable => Some(dockable)
       case _ => None
     }
 

@@ -5,9 +5,6 @@
 	<DOCKABLE NAME="isabelle-documentation" MOVABLE="TRUE">
 		new isabelle.jedit.Documentation_Dockable(view, position);
 	</DOCKABLE>
-	<DOCKABLE NAME="isabelle-find" MOVABLE="TRUE">
-		new isabelle.jedit.Find_Dockable(view, position);
-	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-info" MOVABLE="TRUE">
 		new isabelle.jedit.Info_Dockable(view, position);
 	</DOCKABLE>
@@ -22,6 +19,9 @@
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-protocol" MOVABLE="TRUE">
 		new isabelle.jedit.Protocol_Dockable(view, position);
+	</DOCKABLE>
+	<DOCKABLE NAME="isabelle-query" MOVABLE="TRUE">
+		new isabelle.jedit.Query_Dockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-raw-output" MOVABLE="TRUE">
 		new isabelle.jedit.Raw_Output_Dockable(view, position);

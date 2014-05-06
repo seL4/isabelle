@@ -1,7 +1,7 @@
-/*  Title:      Tools/jEdit/src/find_dockable.scala
+/*  Title:      Tools/jEdit/src/query_dockable.scala
     Author:     Makarius
 
-Dockable window for "find" dialog.
+Dockable window for query operations.
 */
 
 package isabelle.jedit
@@ -19,7 +19,7 @@ import scala.swing.event.{SelectionChanged, ButtonClicked, Key, KeyPressed}
 import org.gjt.sp.jedit.View
 
 
-object Find_Dockable
+object Query_Dockable
 {
   private abstract class Operation(view: View)
   {
@@ -31,7 +31,7 @@ object Find_Dockable
   }
 }
 
-class Find_Dockable(view: View, position: String) extends Dockable(view, position)
+class Query_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   /* common GUI components */
 
@@ -76,7 +76,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* find theorems */
 
-  private val find_theorems = new Find_Dockable.Operation(view)
+  private val find_theorems = new Query_Dockable.Operation(view)
   {
     /* query */
 
@@ -130,7 +130,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     def select { control_panel.contents += zoom }
 
     val page =
-      new TabbedPane.Page("Theorems", new BorderPanel {
+      new TabbedPane.Page("Find Theorems", new BorderPanel {
         add(control_panel, BorderPanel.Position.North)
         add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
       }, apply_button.tooltip)
@@ -139,7 +139,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* find consts */
 
-  private val find_consts = new Find_Dockable.Operation(view)
+  private val find_consts = new Query_Dockable.Operation(view)
   {
     /* query */
 
@@ -177,7 +177,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     def select { control_panel.contents += zoom }
 
     val page =
-      new TabbedPane.Page("Constants", new BorderPanel {
+      new TabbedPane.Page("Find Constants", new BorderPanel {
         add(control_panel, BorderPanel.Position.North)
         add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
       }, apply_button.tooltip)
@@ -186,7 +186,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* print operation */
 
-  private val print_operation = new Find_Dockable.Operation(view)
+  private val print_operation = new Query_Dockable.Operation(view)
   {
     /* query */
 
@@ -261,7 +261,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     }
 
     val page =
-      new TabbedPane.Page("Print ...", new BorderPanel {
+      new TabbedPane.Page("Print Context", new BorderPanel {
         add(control_panel, BorderPanel.Position.North)
         add(Component.wrap(pretty_text_area), BorderPanel.Position.Center)
       }, "Print information from context")
@@ -279,7 +279,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     reactions += { case SelectionChanged(_) => select_operation() }
   }
 
-  private def get_operation(): Option[Find_Dockable.Operation] =
+  private def get_operation(): Option[Query_Dockable.Operation] =
     try { Some(operations(operations_pane.selection.index)) }
     catch { case _: IndexOutOfBoundsException => None }
 

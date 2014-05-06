@@ -112,8 +112,10 @@ auxiliary ML files.
 * Document panel: simplied interaction where every single mouse click
 (re)opens document via desktop environment or as jEdit buffer.
 
-* Find panel: support for 'find_consts' in addition to
-'find_theorems'.
+* More general "Query" panel supersedes "Find" panel, with GUI access
+to commands 'find_theorems' and 'find_consts', as well as print
+operations for the context.  Minor incompatibility in keyboard
+shortcuts etc.: replace action isabelle-find by isabelle-query.
 
 * Option "jedit_print_mode" (see also "Plugin Options / Isabelle /
 General") allows to specify additional print modes for the prover
