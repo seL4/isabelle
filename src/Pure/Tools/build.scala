@@ -26,11 +26,12 @@ object Build
     def echo(msg: String) {}
     def theory(session: String, theory: String) {}
     def stopped: Boolean = false
+    override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
   }
 
   object Ignore_Progress extends Progress
 
-  class Console_Progress(verbose: Boolean) extends Progress
+  class Console_Progress(verbose: Boolean = false) extends Progress
   {
     override def echo(msg: String) { Console.println(msg) }
     override def theory(session: String, theory: String): Unit =
