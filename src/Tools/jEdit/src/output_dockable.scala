@@ -140,10 +140,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     reactions += { case ButtonClicked(_) => handle_update(true, None) }
   }
 
-  private val detach = new Button("Detach") {
-    tooltip = "Detach window with static copy of current output"
-    reactions += { case ButtonClicked(_) => pretty_text_area.detach }
-  }
+  private val detach = pretty_text_area.make_detach_button
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update, detach, zoom)

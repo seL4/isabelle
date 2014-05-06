@@ -14,6 +14,9 @@ import java.awt.{Color, Font, FontMetrics, Toolkit, Window}
 import java.awt.event.KeyEvent
 import java.util.concurrent.{Future => JFuture}
 
+import scala.swing.event.ButtonClicked
+import scala.swing.Button
+
 import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
 import org.gjt.sp.jedit.syntax.SyntaxStyle
@@ -164,6 +167,14 @@ class Pretty_Text_Area(
   {
     Swing_Thread.require {}
     Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
+  }
+
+
+  /* common GUI components */
+
+  def make_detach_button: Button = new Button("Detach") {
+    tooltip = "Detach window with static copy of current output"
+    reactions += { case ButtonClicked(_) => text_area.detach }
   }
 
 

@@ -36,13 +36,11 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
   /* common GUI components */
 
   private var zoom_factor = 100
-
   private val zoom =
     new GUI.Zoom_Box(factor => if (zoom_factor != factor) { zoom_factor = factor; handle_resize() })
     {
       tooltip = "Zoom factor for output font size"
     }
-
 
   private def make_query(property: String, tooltip: String, apply_query: () => Unit): JTextField =
     new Completion_Popup.History_Text_Field(property)
@@ -122,10 +120,12 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
+    private val detach = pretty_text_area.make_detach_button
+
     private val control_panel =
       new Wrap_Panel(Wrap_Panel.Alignment.Right)(
         query_label, Component.wrap(query), limit, allow_dups,
-        process_indicator.component, apply_button)
+        process_indicator.component, apply_button, detach)
 
     def select { control_panel.contents += zoom }
 
@@ -170,9 +170,11 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
+    private val detach = pretty_text_area.make_detach_button
+
     private val control_panel =
       new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-        query_label, Component.wrap(query), process_indicator.component, apply_button)
+        query_label, Component.wrap(query), process_indicator.component, apply_button, detach)
 
     def select { control_panel.contents += zoom }
 
@@ -251,13 +253,15 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
+    private val detach = pretty_text_area.make_detach_button
+
     private val control_panel = new Wrap_Panel(Wrap_Panel.Alignment.Right)()
 
     def select
     {
       set_selector()
       control_panel.contents.clear
-      control_panel.contents ++= List(query_label, _selector, apply_button, zoom)
+      control_panel.contents ++= List(query_label, _selector, apply_button, detach, zoom)
     }
 
     val page =
