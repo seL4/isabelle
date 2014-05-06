@@ -52,7 +52,7 @@ public option jedit_completion_immediate : bool = false
   -- "insert uniquely completed abbreviation immediately into buffer"
 
 public option jedit_completion_path_ignore : string = "*~:*.marks:*.orig:*.rej:.DS_Store"
-  -- "glob patterns to ignore in path completion (separated by colons)"
+  -- "glob patterns to ignore in file-system path completion (separated by colons)"
 
 
 section "Spell Checker"
