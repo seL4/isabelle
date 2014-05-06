@@ -18,6 +18,8 @@ import javax.swing.SwingUtilities
 import java.text.AttributedString
 import java.util.ArrayList
 
+import scala.util.matching.Regex
+
 import org.gjt.sp.util.Log
 import org.gjt.sp.jedit.{OperatingSystem, Debug, View}
 import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
@@ -29,6 +31,7 @@ class Rich_Text_Area(
   text_area: TextArea,
   get_rendering: () => Rendering,
   close_action: () => Unit,
+  get_search_pattern: () => Option[Regex],
   caret_visible: Boolean,
   enable_hovering: Boolean)
 {
@@ -495,6 +498,7 @@ class Rich_Text_Area(
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_rendering { rendering =>
+        val search_pattern = get_search_pattern()
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             val line_range = Text.Range(start(i), end(i))
@@ -505,6 +509,18 @@ class Rich_Text_Area(
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
+              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+            }
+
+            // search pattern
+            for {
+              regex <- search_pattern
+              text <- JEdit_Lib.try_get_text(buffer, line_range)
+              m <- regex.findAllMatchIn(text)
+              range = Text.Range(m.start, m.end) + line_range.start
+              r <- JEdit_Lib.gfx_range(text_area, range)
+            } {
+              gfx.setColor(rendering.search_color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 

@@ -12,10 +12,13 @@ import isabelle._
 
 import java.awt.{Color, Font, FontMetrics, Toolkit, Window}
 import java.awt.event.KeyEvent
+import javax.swing.JTextField
+
 import java.util.concurrent.{Future => JFuture}
 
 import scala.swing.event.ButtonClicked
-import scala.swing.Button
+import scala.swing.{Button, Label, Component}
+import scala.util.matching.Regex
 
 import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
@@ -25,6 +28,8 @@ import org.gjt.sp.util.{SyntaxUtilities, Log}
 
 object Pretty_Text_Area
 {
+  /* auxiliary */
+
   private def document_state(base_snapshot: Document.Snapshot, base_results: Command.Results,
     formatted_body: XML.Body): (String, Document.State) =
   {
@@ -75,7 +80,10 @@ class Pretty_Text_Area(
 
   private val rich_text_area =
     new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
-      caret_visible = false, enable_hovering = true)
+      get_search_pattern _, caret_visible = false, enable_hovering = true)
+
+  private var current_search_pattern: Option[Regex] = None
+  def get_search_pattern(): Option[Regex] = Swing_Thread.require { current_search_pattern }
 
   def get_background(): Option[Color] = None
 
@@ -172,7 +180,47 @@ class Pretty_Text_Area(
 
   /* common GUI components */
 
-  def make_detach_button: Button = new Button("Detach") {
+  val search_label: Component = new Label("Search:") {
+    tooltip = "Search and highlight output via regular expression"
+  }
+
+  val search_pattern: Component =
+    Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search")
+      {
+        private val input_delay =
+          Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
+            search_action(this)
+          }
+        override def processKeyEvent(evt: KeyEvent)
+        {
+          super.processKeyEvent(evt)
+          input_delay.invoke()
+        }
+        setColumns(20)
+        setToolTipText(search_label.tooltip)
+        setFont(GUI.imitate_font(Font_Info.main_family(), getFont, 1.2))
+      })
+
+  private val search_pattern_foreground = search_pattern.foreground
+
+  private def search_action(text_field: JTextField)
+  {
+    val (pattern, ok) =
+      text_field.getText match {
+        case null | "" => (None, true)
+        case s =>
+          try { (Some(new Regex(s)), true) }
+          catch { case ERROR(_) => (None, false) }
+      }
+    if (current_search_pattern != pattern) {
+      current_search_pattern = pattern
+      text_area.getPainter.repaint()
+    }
+    text_field.setForeground(
+      if (ok) search_pattern_foreground else current_rendering.error_color)
+  }
+
+  val detach_button: Component = new Button("Detach") {
     tooltip = "Detach window with static copy of current output"
     reactions += { case ButtonClicked(_) => text_area.detach }
   }

@@ -105,6 +105,7 @@ option improper_color : string = "FF5050FF"
 option operator_color : string = "323232FF"
 option caret_invisible_color : string = "50000080"
 option completion_color : string = "0000FFFF"
+option search_color : string = "66FFFF64"
 
 option tfree_color : string = "A020F0FF"
 option tvar_color : string = "A020F0FF"

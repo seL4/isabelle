@@ -140,9 +140,9 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     reactions += { case ButtonClicked(_) => handle_update(true, None) }
   }
 
-  private val detach = pretty_text_area.make_detach_button
-
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update, detach, zoom)
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
+      pretty_text_area.search_label, pretty_text_area.search_pattern,
+      auto_update, update, pretty_text_area.detach_button, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }

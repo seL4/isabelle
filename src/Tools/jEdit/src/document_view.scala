@@ -64,7 +64,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   val rich_text_area =
     new Rich_Text_Area(text_area.getView, text_area, get_rendering _, () => (),
-      caret_visible = true, enable_hovering = false)
+      () => None, caret_visible = true, enable_hovering = false)
 
 
   /* perspective */

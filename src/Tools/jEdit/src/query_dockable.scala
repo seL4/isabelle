@@ -91,7 +91,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       query_operation.apply_query(List(limit.text, allow_dups.selected.toString, query.getText))
     }
 
-    private val query_label = new Label("Search criteria:") {
+    private val query_label = new Label("Query:") {
       tooltip =
         GUI.tooltip_lines(
           "Search criteria for find operation, e.g.\n\"_ = _\" \"op +\" name: Group -name: monoid")
@@ -120,12 +120,12 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
-    private val detach = pretty_text_area.make_detach_button
-
     private val control_panel =
       new Wrap_Panel(Wrap_Panel.Alignment.Right)(
         query_label, Component.wrap(query), limit, allow_dups,
-        process_indicator.component, apply_button, detach)
+        process_indicator.component, apply_button,
+        pretty_text_area.search_label, pretty_text_area.search_pattern,
+        pretty_text_area.detach_button)
 
     def select { control_panel.contents += zoom }
 
@@ -156,7 +156,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       query_operation.apply_query(List(query.getText))
     }
 
-    private val query_label = new Label("Search criteria:") {
+    private val query_label = new Label("Query:") {
       tooltip = GUI.tooltip_lines("Name / type patterns for constants")
     }
 
@@ -170,11 +170,11 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
-    private val detach = pretty_text_area.make_detach_button
-
     private val control_panel =
       new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-        query_label, Component.wrap(query), process_indicator.component, apply_button, detach)
+        query_label, Component.wrap(query), process_indicator.component, apply_button,
+        pretty_text_area.search_label, pretty_text_area.search_pattern,
+        pretty_text_area.detach_button)
 
     def select { control_panel.contents += zoom }
 
@@ -252,15 +252,16 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       reactions += { case ButtonClicked(_) => apply_query() }
     }
 
-    private val detach = pretty_text_area.make_detach_button
-
     private val control_panel = new Wrap_Panel(Wrap_Panel.Alignment.Right)()
 
     def select
     {
       set_selector()
       control_panel.contents.clear
-      control_panel.contents ++= List(query_label, selector, apply_button, detach, zoom)
+      control_panel.contents ++=
+        List(query_label, selector, apply_button,
+          pretty_text_area.search_label, pretty_text_area.search_pattern,
+          pretty_text_area.detach_button, zoom)
     }
 
     val page =
