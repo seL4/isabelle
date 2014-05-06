@@ -13,6 +13,7 @@ import isabelle._
 import java.awt.{Color, Font, FontMetrics, Toolkit, Window}
 import java.awt.event.KeyEvent
 import javax.swing.JTextField
+import javax.swing.event.{DocumentListener, DocumentEvent}
 
 import java.util.concurrent.{Future => JFuture}
 
@@ -191,11 +192,11 @@ class Pretty_Text_Area(
           Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
             search_action(this)
           }
-        override def processKeyEvent(evt: KeyEvent)
-        {
-          super.processKeyEvent(evt)
-          input_delay.invoke()
-        }
+        getDocument.addDocumentListener(new DocumentListener {
+          def changedUpdate(e: DocumentEvent) { input_delay.invoke() }
+          def insertUpdate(e: DocumentEvent) { input_delay.invoke() }
+          def removeUpdate(e: DocumentEvent) { input_delay.invoke() }
+        })
         setColumns(20)
         setToolTipText(search_label.tooltip)
         setFont(GUI.imitate_font(Font_Info.main_family(), getFont, 1.2))
