@@ -78,7 +78,7 @@ val _ =
 
 val _ =
   register "state" "proof state"
-    (Pretty.string_of o Pretty.chunks o Toplevel.pretty_state true);
+    (Pretty.string_of o Pretty.chunks o Toplevel.pretty_state);
 
 end;
 

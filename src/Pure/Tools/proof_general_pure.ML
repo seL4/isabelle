@@ -193,7 +193,7 @@ val _ =
     (Scan.succeed (Toplevel.keep (fn state =>
       if Toplevel.is_toplevel state orelse Toplevel.is_theory state
       then ProofGeneral.tell_clear_goals ()
-      else (Toplevel.quiet := false; Toplevel.print_state true state))));
+      else (Toplevel.quiet := false; Toplevel.print_state state))));
 
 val _ = (*undo without output -- historical*)
   Outer_Syntax.improper_command

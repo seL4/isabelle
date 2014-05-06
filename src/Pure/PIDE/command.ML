@@ -384,7 +384,7 @@ val _ =
             val do_print =
               not is_init andalso
                 (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
-          in if do_print then Toplevel.print_state false st' else () end});
+          in if do_print then Toplevel.print_state st' else () end});
 
 
 (* combined execution *)

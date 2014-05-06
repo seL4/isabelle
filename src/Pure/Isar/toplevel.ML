@@ -23,8 +23,8 @@ sig
   val proof_position_of: state -> int
   val end_theory: Position.T -> state -> theory
   val pretty_state_context: state -> Pretty.T list
-  val pretty_state: bool -> state -> Pretty.T list
-  val print_state: bool -> state -> unit
+  val pretty_state: state -> Pretty.T list
+  val print_state: state -> unit
   val pretty_abstract: state -> Pretty.T
   val quiet: bool Unsynchronized.ref
   val interact: bool Unsynchronized.ref
@@ -207,16 +207,15 @@ fun pretty_state_context state =
   | SOME (Proof (_, (_, gthy))) => pretty_context gthy
   | SOME (Skipped_Proof (_, (gthy, _))) => pretty_context gthy);
 
-fun pretty_state prf_only state =
+fun pretty_state state =
   (case try node_of state of
     NONE => []
-  | SOME (Theory (gthy, _)) => if prf_only then [] else pretty_context gthy
+  | SOME (Theory _) => []
   | SOME (Proof (prf, _)) =>
       Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
   | SOME (Skipped_Proof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
 
-fun print_state prf_only =
-  pretty_state prf_only #> Pretty.markup_chunks Markup.state #> Pretty.writeln;
+val print_state = pretty_state #> Pretty.markup_chunks Markup.state #> Pretty.writeln;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
@@ -592,7 +591,7 @@ fun app int (tr as Transition {trans, print, ...}) =
 
       val (result, opt_err) =
          state |> (apply_trans int trans |> ! profiling > 0 ? profile (! profiling));
-      val _ = if int andalso not (! quiet) andalso print then print_state false result else ();
+      val _ = if int andalso not (! quiet) andalso print then print_state result else ();
 
       val timing_result = Timing.result timing_start;
       val timing_props =

@@ -60,7 +60,7 @@ fun init () = edit_history 1 (K (K (Toplevel.toplevel, [])));
 fun goal () = Proof.goal (Toplevel.proof_of (state ()))
   handle Toplevel.UNDEF => error "No goal present";
 
-fun print () = Toplevel.print_state false (state ());
+fun print () = Toplevel.print_state (state ());
 
 
 (* history navigation *)

@@ -998,9 +998,7 @@ val _ = (*partial Proof General legacy*)
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_state"}
     "print current proof state (if present)"
-    (opt_modes >> (fn modes =>
-      Toplevel.keep (fn state =>
-        Print_Mode.with_modes modes (Toplevel.print_state true) state)));
+    (opt_modes >> (fn modes => Toplevel.keep (Print_Mode.with_modes modes Toplevel.print_state)));
 
 val _ = (*Proof General legacy, e.g. for ProofGeneral-3.7.x*)
   Outer_Syntax.improper_command @{command_spec "pr"} "print current proof state (if present)"
@@ -1009,7 +1007,7 @@ val _ = (*Proof General legacy, e.g. for ProofGeneral-3.7.x*)
        (if Isabelle_Process.is_active () then error "Illegal TTY command" else ();
         case limit of NONE => () | SOME n => Options.default_put_int @{system_option goals_limit} n;
         Toplevel.quiet := false;
-        Print_Mode.with_modes modes (Toplevel.print_state true) state))));
+        Print_Mode.with_modes modes Toplevel.print_state state))));
 
 val _ = (*Proof General legacy*)
   Outer_Syntax.improper_command @{command_spec "disable_pr"}
