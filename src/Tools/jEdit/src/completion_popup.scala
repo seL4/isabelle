@@ -132,7 +132,9 @@ object Completion_Popup
                   case Some(Text.Info(_, Completion.No_Completion)) => None
                   case Some(Text.Info(range1, _: Completion.Names)) => Some(range1)
                   case None =>
-                    syntax_completion(Completion.History.empty, false, Some(rendering)).map(_.range)
+                    Completion.Result.merge(Completion.History.empty,
+                      syntax_completion(Completion.History.empty, false, Some(rendering)),
+                      path_completion(rendering)).map(_.range)
                 }
               case _ => None
             }
