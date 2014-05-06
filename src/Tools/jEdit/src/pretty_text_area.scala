@@ -160,6 +160,12 @@ class Pretty_Text_Area(
     refresh()
   }
 
+  def detach
+  {
+    Swing_Thread.require {}
+    Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
+  }
+
 
   /* key handling */
 
