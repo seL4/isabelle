@@ -86,7 +86,9 @@ object Completion
   {
     override def toString: String = rep.mkString("Completion.History(", ",", ")")
 
-    def frequency(name: String): Int = rep.getOrElse(name, 0)
+    def frequency(name: String): Int =
+      default_frequency(Symbol.encode(name)) getOrElse
+      rep.getOrElse(name, 0)
 
     def + (entry: (String, Int)): History =
     {
@@ -268,8 +270,15 @@ object Completion
 
   private val caret_indicator = '\u0007'
   private val antiquote = "@{"
+
   private val default_abbrs =
-    List("@{" -> "@{\u0007}", "`" -> "\\<open>\u0007\\<close>", "`" -> "\\<open>", "`" -> "\\<close>")
+    List("@{" -> "@{\u0007}",
+      "`" -> "\\<close>",
+      "`" -> "\\<open>",
+      "`" -> "\\<open>\u0007\\<close>")
+
+  private def default_frequency(name: String): Option[Int] =
+    default_abbrs.iterator.map(_._2).zipWithIndex.find(_._1 == name).map(_._2)
 }
 
 final class Completion private(
