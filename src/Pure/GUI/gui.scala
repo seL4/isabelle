@@ -12,7 +12,8 @@ import java.lang.{ClassLoader, ClassNotFoundException, NoSuchMethodException}
 import java.awt.{Image, Component, Container, Toolkit, Window, Font, KeyboardFocusManager}
 import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
 import java.awt.geom.AffineTransform
-import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow, JButton}
+import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow,
+  JButton, JTextField}
 
 import scala.collection.convert.WrapAsJava
 import scala.swing.{ComboBox, TextArea, ScrollPane}
@@ -124,7 +125,7 @@ object GUI
       text match {
         case Factor(s) =>
           val i = Integer.parseInt(s)
-          if (10 <= i && i <= 1000) i else 100
+          if (10 <= i && i < 1000) i else 100
         case _ => 100
       }
 
@@ -138,12 +139,16 @@ object GUI
     }
 
     makeEditable()(c => new ComboBox.BuiltInEditor(c)(text => print(parse(text)), x => x))
+    peer.getEditor.getEditorComponent match {
+      case text: JTextField => text.setColumns(3)
+      case _ =>
+    }
+
     reactions += {
       case SelectionChanged(_) => apply_factor(parse(selection.item))
     }
     listenTo(selection)
     selection.index = 3
-    prototypeDisplayValue = Some("00000%")
   }
 
 
