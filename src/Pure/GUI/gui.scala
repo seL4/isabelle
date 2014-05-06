@@ -140,7 +140,7 @@ object GUI
 
     makeEditable()(c => new ComboBox.BuiltInEditor(c)(text => print(parse(text)), x => x))
     peer.getEditor.getEditorComponent match {
-      case text: JTextField => text.setColumns(3)
+      case text: JTextField => text.setColumns(4)
       case _ =>
     }
 
