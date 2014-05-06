@@ -63,12 +63,14 @@ option print_mode : string = ""
   -- "additional print modes for prover output (separated by commas)"
 
 
-section "Parallel Checking"
+section "Parallel Processing"
 
 public option threads : int = 0
   -- "maximum number of worker threads for prover process (0 = hardware max.)"
 option threads_trace : int = 0
   -- "level of tracing information for multithreading"
+public option parallel_print : bool = true
+  -- "parallel and asynchronous printing of results"
 public option parallel_proofs : int = 2
   -- "level of parallel proof checking: 0, 1, 2"
 option parallel_subproofs_threshold : real = 0.01

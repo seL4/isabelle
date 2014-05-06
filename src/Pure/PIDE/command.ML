@@ -399,7 +399,8 @@ fun exec_ids NONE = []
 local
 
 fun run_print execution_id (Print {name, delay, pri, print_process, ...}) =
-  if Multithreading.enabled () orelse pri <= 0 then
+  if pri <= 0 orelse (Multithreading.enabled () andalso Options.default_bool "parallel_print")
+  then
     let
       val group = Future.worker_subgroup ();
       fun fork () =
