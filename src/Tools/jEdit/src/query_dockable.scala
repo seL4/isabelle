@@ -199,12 +199,11 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private def apply_query()
     {
-      query_operation.apply_query(List(_selector.selection.item))
+      query_operation.apply_query(List(selector.selection.item))
     }
 
     private val query_label = new Label("Print:")
-
-    def query: JComponent = _selector.peer.asInstanceOf[JComponent]
+    def query: JComponent = apply_button.peer
 
 
     /* items */
@@ -224,24 +223,24 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       }
     }
 
-    private var _selector_item: Option[String] = None
-    private var _selector = new ComboBox[String](Nil)
+    private var selector_item: Option[String] = None
+    private var selector = new ComboBox[String](Nil)
 
     private def set_selector()
     {
       val items = Print_Operation.print_operations(PIDE.session).map(p => Item(p._1, p._2))
 
-      _selector =
+      selector =
         new ComboBox(items.map(_.name)) {
-          _selector_item.foreach(item => selection.item = item)
+          selector_item.foreach(item => selection.item = item)
           listenTo(selection)
           reactions += {
             case SelectionChanged(_) =>
-              _selector_item = Some(selection.item)
+              selector_item = Some(selection.item)
               apply_query()
           }
         }
-      _selector.renderer = new Renderer(_selector.renderer, items)
+      selector.renderer = new Renderer(selector.renderer, items)
     }
     set_selector()
 
@@ -261,7 +260,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     {
       set_selector()
       control_panel.contents.clear
-      control_panel.contents ++= List(query_label, _selector, apply_button, detach, zoom)
+      control_panel.contents ++= List(query_label, selector, apply_button, detach, zoom)
     }
 
     val page =
