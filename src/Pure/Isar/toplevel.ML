@@ -32,14 +32,11 @@ sig
   val profiling: int Unsynchronized.ref
   type transition
   val empty: transition
-  val print_of: transition -> bool
   val name_of: transition -> string
   val pos_of: transition -> Position.T
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val interactive: bool -> transition -> transition
-  val set_print: bool -> transition -> transition
-  val print: transition -> transition
   val init_theory: (unit -> theory) -> transition -> transition
   val is_init: transition -> bool
   val modify_init: (unit -> theory) -> transition -> transition
@@ -316,23 +313,21 @@ datatype transition = Transition of
  {name: string,              (*command name*)
   pos: Position.T,           (*source position*)
   int_only: bool,            (*interactive-only*)  (* TTY / Proof General legacy*)
-  print: bool,               (*print result state*)
   timing: Time.time option,  (*prescient timing information*)
   trans: trans list};        (*primitive transitions (union)*)
 
-fun make_transition (name, pos, int_only, print, timing, trans) =
-  Transition {name = name, pos = pos, int_only = int_only, print = print,
+fun make_transition (name, pos, int_only, timing, trans) =
+  Transition {name = name, pos = pos, int_only = int_only,
     timing = timing, trans = trans};
 
-fun map_transition f (Transition {name, pos, int_only, print, timing, trans}) =
-  make_transition (f (name, pos, int_only, print, timing, trans));
+fun map_transition f (Transition {name, pos, int_only, timing, trans}) =
+  make_transition (f (name, pos, int_only, timing, trans));
 
-val empty = make_transition ("", Position.none, false, false, NONE, []);
+val empty = make_transition ("", Position.none, false, NONE, []);
 
 
 (* diagnostics *)
 
-fun print_of (Transition {print, ...}) = print;
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
 
@@ -345,25 +340,20 @@ fun type_error tr state =
 
 (* modify transitions *)
 
-fun name name = map_transition (fn (_, pos, int_only, print, timing, trans) =>
-  (name, pos, int_only, print, timing, trans));
+fun name name = map_transition (fn (_, pos, int_only, timing, trans) =>
+  (name, pos, int_only, timing, trans));
 
-fun position pos = map_transition (fn (name, _, int_only, print, timing, trans) =>
-  (name, pos, int_only, print, timing, trans));
+fun position pos = map_transition (fn (name, _, int_only, timing, trans) =>
+  (name, pos, int_only, timing, trans));
 
-fun interactive int_only = map_transition (fn (name, pos, _, print, timing, trans) =>
-  (name, pos, int_only, print, timing, trans));
+fun interactive int_only = map_transition (fn (name, pos, _, timing, trans) =>
+  (name, pos, int_only, timing, trans));
 
-fun add_trans tr = map_transition (fn (name, pos, int_only, print, timing, trans) =>
-  (name, pos, int_only, print, timing, tr :: trans));
+fun add_trans tr = map_transition (fn (name, pos, int_only, timing, trans) =>
+  (name, pos, int_only, timing, tr :: trans));
 
-val reset_trans = map_transition (fn (name, pos, int_only, print, timing, _) =>
-  (name, pos, int_only, print, timing, []));
-
-fun set_print print = map_transition (fn (name, pos, int_only, _, timing, trans) =>
-  (name, pos, int_only, print, timing, trans));
-
-val print = set_print true;
+val reset_trans = map_transition (fn (name, pos, int_only, timing, _) =>
+  (name, pos, int_only, timing, []));
 
 
 (* basic transitions *)
@@ -583,19 +573,22 @@ end;
 (* apply transitions *)
 
 fun get_timing (Transition {timing, ...}) = timing;
-fun put_timing timing = map_transition (fn (name, pos, int_only, print, _, trans) =>
-  (name, pos, int_only, print, timing, trans));
+fun put_timing timing = map_transition (fn (name, pos, int_only, _, trans) =>
+  (name, pos, int_only, timing, trans));
 
 local
 
-fun app int (tr as Transition {trans, print, ...}) =
+fun app int (tr as Transition {name, trans, ...}) =
   setmp_thread_position tr (fn state =>
     let
       val timing_start = Timing.start ();
 
       val (result, opt_err) =
          state |> (apply_trans int trans |> ! profiling > 0 ? profile (! profiling));
-      val _ = if int andalso not (! quiet) andalso print then print_state result else ();
+
+      val _ =
+        if int andalso not (! quiet) andalso Keyword.is_printed name
+        then print_state result else ();
 
       val timing_result = Timing.result timing_start;
       val timing_props =
@@ -743,7 +736,7 @@ fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
                 (fn state => state |> Proof.global_done_proof |> Result.put (get_result state)));
 
             val st'' = st'
-              |> command (head_tr |> set_print false |> reset_trans |> forked_proof);
+              |> command (head_tr |> reset_trans |> forked_proof);
             val end_result = Result (end_tr, st'');
             val result =
               Result_List [head_result, Result.get (presentation_context_of st''), end_result];

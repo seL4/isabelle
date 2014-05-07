@@ -666,7 +666,6 @@ end;
 val _ =
   Outer_Syntax.command @{command_spec "rep_datatype"} "represent existing types inductively"
     (Scan.repeat1 Parse.term >> (fn ts =>
-      Toplevel.print o
       Toplevel.theory_to_proof (rep_datatype_cmd Datatype_Aux.default_config (K I) ts)));
 
 end;

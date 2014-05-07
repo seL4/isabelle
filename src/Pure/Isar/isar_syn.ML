@@ -404,14 +404,12 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "include"}
     "include declarations from bundle in proof body"
-    (Scan.repeat1 (Parse.position Parse.xname)
-      >> (Toplevel.print oo (Toplevel.proof o Bundle.include_cmd)));
+    (Scan.repeat1 (Parse.position Parse.xname) >> (Toplevel.proof o Bundle.include_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "including"}
     "include declarations from bundle in goal refinement"
-    (Scan.repeat1 (Parse.position Parse.xname)
-      >> (Toplevel.print oo (Toplevel.proof o Bundle.including_cmd)));
+    (Scan.repeat1 (Parse.position Parse.xname) >> (Toplevel.proof o Bundle.including_cmd));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_bundles"}
@@ -425,7 +423,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "context"} "begin local theory context"
     ((Parse.position Parse.xname >> (fn name =>
-        Toplevel.print o Toplevel.begin_local_theory true (Named_Target.context_cmd name)) ||
+        Toplevel.begin_local_theory true (Named_Target.context_cmd name)) ||
       Scan.optional Parse_Spec.includes [] -- Scan.repeat Parse_Spec.context_element
         >> (fn (incls, elems) => Toplevel.open_target (Bundle.context_cmd incls elems)))
       --| Parse.begin);
@@ -443,7 +441,7 @@ val _ =
     (Parse.binding --
       Scan.optional (@{keyword "="} |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
-          (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
+          Toplevel.begin_local_theory begin
             (Expression.add_locale_cmd I name Binding.empty expr elems #> snd)));
 
 fun interpretation_args mandatory =
@@ -456,24 +454,20 @@ val _ =
     "prove sublocale relation between a locale and a locale expression"
     ((Parse.position Parse.xname --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
       interpretation_args false >> (fn (loc, (expr, equations)) =>
-        Toplevel.print o
         Toplevel.theory_to_proof (Expression.sublocale_global_cmd I loc expr equations)))
     || interpretation_args false >> (fn (expr, equations) =>
-        Toplevel.print o
         Toplevel.local_theory_to_proof NONE (Expression.sublocale_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_spec "interpretation"}
     "prove interpretation of locale expression in local theory"
     (interpretation_args true >> (fn (expr, equations) =>
-      Toplevel.print o
       Toplevel.local_theory_to_proof NONE (Expression.interpretation_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_spec "interpret"}
     "prove interpretation of locale expression in proof context"
     (interpretation_args true >> (fn (expr, equations) =>
-      Toplevel.print o
       Toplevel.proof' (Expression.interpret_cmd expr equations)));
 
 
@@ -488,7 +482,7 @@ val _ =
   Outer_Syntax.command @{command_spec "class"} "define type class"
    (Parse.binding -- Scan.optional (@{keyword "="} |-- class_val) ([], []) -- Parse.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
-        (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
+        Toplevel.begin_local_theory begin
           (Class_Declaration.class_cmd I name supclasses elems #> snd)));
 
 val _ =
@@ -498,17 +492,14 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "instantiation"} "instantiate and prove type arity"
    (Parse.multi_arity --| Parse.begin
-     >> (fn arities => Toplevel.print o
-         Toplevel.begin_local_theory true (Class.instantiation_cmd arities)));
+     >> (fn arities => Toplevel.begin_local_theory true (Class.instantiation_cmd arities)));
 
 val _ =
   Outer_Syntax.command @{command_spec "instance"} "prove type arity or subclass relation"
   ((Parse.class --
     ((@{keyword "\<subseteq>"} || @{keyword "<"}) |-- Parse.!!! Parse.class) >> Class.classrel_cmd ||
-    Parse.multi_arity >> Class.instance_arity_cmd)
-    >> (Toplevel.print oo Toplevel.theory_to_proof) ||
-    Scan.succeed
-      (Toplevel.print o Toplevel.local_theory_to_proof NONE (Class.instantiation_instance I)));
+    Parse.multi_arity >> Class.instance_arity_cmd) >> Toplevel.theory_to_proof ||
+    Scan.succeed (Toplevel.local_theory_to_proof NONE (Class.instantiation_instance I)));
 
 
 (* arbitrary overloading *)
@@ -518,8 +509,7 @@ val _ =
    (Scan.repeat1 (Parse.name --| (@{keyword "\<equiv>"} || @{keyword "=="}) -- Parse.term --
       Scan.optional (@{keyword "("} |-- (@{keyword "unchecked"} >> K false) --| @{keyword ")"}) true
       >> Parse.triple1) --| Parse.begin
-   >> (fn operations => Toplevel.print o
-         Toplevel.begin_local_theory true (Overloading.overloading_cmd operations)));
+   >> (fn operations => Toplevel.begin_local_theory true (Overloading.overloading_cmd operations)));
 
 
 (* code generation *)
@@ -559,20 +549,20 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "have"} "state local goal"
-    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.have));
+    (Parse_Spec.statement >> (Toplevel.proof' o Isar_Cmd.have));
 
 val _ =
   Outer_Syntax.command @{command_spec "hence"} "old-style alias of \"then have\""
-    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.hence));
+    (Parse_Spec.statement >> (Toplevel.proof' o Isar_Cmd.hence));
 
 val _ =
   Outer_Syntax.command @{command_spec "show"}
     "state local goal, solving current obligation"
-    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.show));
+    (Parse_Spec.statement >> (Toplevel.proof' o Isar_Cmd.show));
 
 val _ =
   Outer_Syntax.command @{command_spec "thus"} "old-style alias of  \"then show\""
-    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.thus));
+    (Parse_Spec.statement >> (Toplevel.proof' o Isar_Cmd.thus));
 
 
 (* facts *)
@@ -581,42 +571,42 @@ val facts = Parse.and_list1 Parse_Spec.xthms1;
 
 val _ =
   Outer_Syntax.command @{command_spec "then"} "forward chaining"
-    (Scan.succeed (Toplevel.print o Toplevel.proof Proof.chain));
+    (Scan.succeed (Toplevel.proof Proof.chain));
 
 val _ =
   Outer_Syntax.command @{command_spec "from"} "forward chaining from given facts"
-    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.from_thmss_cmd)));
+    (facts >> (Toplevel.proof o Proof.from_thmss_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "with"} "forward chaining from given and current facts"
-    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.with_thmss_cmd)));
+    (facts >> (Toplevel.proof o Proof.with_thmss_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "note"} "define facts"
-    (Parse_Spec.name_facts >> (Toplevel.print oo (Toplevel.proof o Proof.note_thmss_cmd)));
+    (Parse_Spec.name_facts >> (Toplevel.proof o Proof.note_thmss_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "using"} "augment goal facts"
-    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.using_cmd)));
+    (facts >> (Toplevel.proof o Proof.using_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "unfolding"} "unfold definitions in goal and facts"
-    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.unfolding_cmd)));
+    (facts >> (Toplevel.proof o Proof.unfolding_cmd));
 
 
 (* proof context *)
 
 val _ =
   Outer_Syntax.command @{command_spec "fix"} "fix local variables (Skolem constants)"
-    (Parse.fixes >> (Toplevel.print oo (Toplevel.proof o Proof.fix_cmd)));
+    (Parse.fixes >> (Toplevel.proof o Proof.fix_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "assume"} "assume propositions"
-    (Parse_Spec.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume_cmd)));
+    (Parse_Spec.statement >> (Toplevel.proof o Proof.assume_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "presume"} "assume propositions, to be established later"
-    (Parse_Spec.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume_cmd)));
+    (Parse_Spec.statement >> (Toplevel.proof o Proof.presume_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "def"} "local definition (non-polymorphic)"
@@ -624,26 +614,26 @@ val _ =
       (Parse_Spec.opt_thm_name ":" --
         ((Parse.binding -- Parse.opt_mixfix) --
           ((@{keyword "\<equiv>"} || @{keyword "=="}) |-- Parse.!!! Parse.termp)))
-    >> (Toplevel.print oo (Toplevel.proof o Proof.def_cmd)));
+    >> (Toplevel.proof o Proof.def_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "obtain"} "generalized elimination"
     (Parse.parname -- Scan.optional (Parse.fixes --| Parse.where_) [] -- Parse_Spec.statement
-      >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain_cmd x y z)));
+      >> (fn ((x, y), z) => Toplevel.proof' (Obtain.obtain_cmd x y z)));
 
 val _ =
   Outer_Syntax.command @{command_spec "guess"} "wild guessing (unstructured)"
-    (Scan.optional Parse.fixes [] >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess_cmd)));
+    (Scan.optional Parse.fixes [] >> (Toplevel.proof' o Obtain.guess_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "let"} "bind text variables"
     (Parse.and_list1 (Parse.and_list1 Parse.term -- (@{keyword "="} |-- Parse.term))
-      >> (Toplevel.print oo (Toplevel.proof o Proof.let_bind_cmd)));
+      >> (Toplevel.proof o Proof.let_bind_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "write"} "add concrete syntax for constants / fixed variables"
     (opt_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
-    >> (fn (mode, args) => Toplevel.print o Toplevel.proof (Proof.write_cmd mode args)));
+    >> (fn (mode, args) => Toplevel.proof (Proof.write_cmd mode args)));
 
 val _ =
   Outer_Syntax.command @{command_spec "case"} "invoke local context"
@@ -651,22 +641,22 @@ val _ =
       Parse.!!! (Parse.position Parse.xname -- Scan.repeat (Parse.maybe Parse.binding)
         --| @{keyword ")"}) ||
       Parse.position Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> (fn ((c, xs), atts) =>
-        Toplevel.print o Toplevel.proof (Proof.invoke_case_cmd (c, xs, atts))));
+        Toplevel.proof (Proof.invoke_case_cmd (c, xs, atts))));
 
 
 (* proof structure *)
 
 val _ =
   Outer_Syntax.command @{command_spec "{"} "begin explicit proof block"
-    (Scan.succeed (Toplevel.print o Toplevel.proof Proof.begin_block));
+    (Scan.succeed (Toplevel.proof Proof.begin_block));
 
 val _ =
   Outer_Syntax.command @{command_spec "}"} "end explicit proof block"
-    (Scan.succeed (Toplevel.print o Toplevel.proof Proof.end_block));
+    (Scan.succeed (Toplevel.proof Proof.end_block));
 
 val _ =
   Outer_Syntax.command @{command_spec "next"} "enter next proof block"
-    (Scan.succeed (Toplevel.print o Toplevel.proof Proof.next_block));
+    (Scan.succeed (Toplevel.proof Proof.next_block));
 
 
 (* end proof *)
@@ -675,61 +665,58 @@ val _ =
   Outer_Syntax.command @{command_spec "qed"} "conclude proof"
     (Scan.option Method.parse >> (fn m =>
      (Option.map Method.report m;
-      Toplevel.print o Isar_Cmd.qed m)));
+      Isar_Cmd.qed m)));
 
 val _ =
   Outer_Syntax.command @{command_spec "by"} "terminal backward proof"
     (Method.parse -- Scan.option Method.parse >> (fn (m1, m2) =>
      (Method.report m1;
       Option.map Method.report m2;
-      Toplevel.print o Isar_Cmd.terminal_proof (m1, m2))));
+      Isar_Cmd.terminal_proof (m1, m2))));
 
 val _ =
   Outer_Syntax.command @{command_spec ".."} "default proof"
-    (Scan.succeed (Toplevel.print o Isar_Cmd.default_proof));
+    (Scan.succeed Isar_Cmd.default_proof);
 
 val _ =
   Outer_Syntax.command @{command_spec "."} "immediate proof"
-    (Scan.succeed (Toplevel.print o Isar_Cmd.immediate_proof));
+    (Scan.succeed Isar_Cmd.immediate_proof);
 
 val _ =
   Outer_Syntax.command @{command_spec "done"} "done proof"
-    (Scan.succeed (Toplevel.print o Isar_Cmd.done_proof));
+    (Scan.succeed Isar_Cmd.done_proof);
 
 val _ =
   Outer_Syntax.command @{command_spec "sorry"} "skip proof (quick-and-dirty mode only!)"
-    (Scan.succeed (Toplevel.print o Isar_Cmd.skip_proof));
+    (Scan.succeed Isar_Cmd.skip_proof);
 
 val _ =
   Outer_Syntax.command @{command_spec "oops"} "forget proof"
-    (Scan.succeed (Toplevel.print o Toplevel.forget_proof));
+    (Scan.succeed Toplevel.forget_proof);
 
 
 (* proof steps *)
 
 val _ =
   Outer_Syntax.command @{command_spec "defer"} "shuffle internal proof state"
-    (Scan.optional Parse.nat 1 >> (fn n => Toplevel.print o Toplevel.proof (Proof.defer n)));
+    (Scan.optional Parse.nat 1 >> (Toplevel.proof o Proof.defer));
 
 val _ =
   Outer_Syntax.command @{command_spec "prefer"} "shuffle internal proof state"
-    (Parse.nat >> (fn n => Toplevel.print o Toplevel.proof (Proof.prefer n)));
+    (Parse.nat >> (Toplevel.proof o Proof.prefer));
 
 val _ =
   Outer_Syntax.command @{command_spec "apply"} "initial refinement step (unstructured)"
-    (Method.parse >> (fn m =>
-      (Method.report m; Toplevel.print o Toplevel.proofs (Proof.apply_results m))));
+    (Method.parse >> (fn m => (Method.report m; Toplevel.proofs (Proof.apply_results m))));
 
 val _ =
   Outer_Syntax.command @{command_spec "apply_end"} "terminal refinement step (unstructured)"
-    (Method.parse >> (fn m =>
-      (Method.report m; Toplevel.print o Toplevel.proofs (Proof.apply_end_results m))));
+    (Method.parse >> (fn m => (Method.report m; Toplevel.proofs (Proof.apply_end_results m))));
 
 val _ =
   Outer_Syntax.command @{command_spec "proof"} "backward proof step"
     (Scan.option Method.parse >> (fn m =>
       (Option.map Method.report m;
-        Toplevel.print o
         Toplevel.actual_proof (Proof_Node.applys (Proof.proof_results m)) o
         Toplevel.skip_proof (fn i => i + 1))));
 
@@ -741,8 +728,8 @@ fun report_back () =
 
 val _ =
   Outer_Syntax.command @{command_spec "back"} "explicit backtracking of proof command"
-    (Scan.succeed (Toplevel.print o
-      Toplevel.actual_proof (fn prf => (report_back (); Proof_Node.back prf)) o
+    (Scan.succeed
+     (Toplevel.actual_proof (fn prf => (report_back (); Proof_Node.back prf)) o
       Toplevel.skip_proof (fn h => (report_back (); h))));
 
 

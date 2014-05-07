@@ -203,14 +203,13 @@ end;
 
 (* local_theory commands *)
 
-fun local_theory_command do_print trans command_spec comment parse =
-  command command_spec comment (Parse.opt_target -- parse
-    >> (fn (loc, f) => (if do_print then Toplevel.print else I) o trans loc f));
+fun local_theory_command trans command_spec comment parse =
+  command command_spec comment (Parse.opt_target -- parse >> (fn (loc, f) => trans loc f));
 
-val local_theory' = local_theory_command false Toplevel.local_theory';
-val local_theory = local_theory_command false Toplevel.local_theory;
-val local_theory_to_proof' = local_theory_command true Toplevel.local_theory_to_proof';
-val local_theory_to_proof = local_theory_command true Toplevel.local_theory_to_proof;
+val local_theory' = local_theory_command Toplevel.local_theory';
+val local_theory = local_theory_command Toplevel.local_theory;
+val local_theory_to_proof' = local_theory_command Toplevel.local_theory_to_proof';
+val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 
 
 (* inspect syntax *)
