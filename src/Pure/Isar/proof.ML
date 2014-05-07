@@ -365,8 +365,7 @@ fun pretty_state nr state =
       else if mode = Backward then Proof_Context.pretty_ctxt ctxt
       else [];
   in
-    [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
-      (if verbose then ", depth " ^ string_of_int (level state div 2 - 1) else "")),
+    [Pretty.str ("proof (" ^ mode_name mode ^ "): depth " ^ string_of_int (level state div 2 - 1)),
       Pretty.str ""] @
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
     (if verbose orelse mode = Forward then
