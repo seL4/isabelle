@@ -28,6 +28,7 @@ lemma fact_cancel:
   fixes c :: "'a::real_field"
   shows "of_nat (Suc n) * c / of_nat (fact (Suc n)) = c / of_nat (fact n)"
   by (simp add: of_nat_mult del: of_nat_Suc times_nat.simps)
+
 lemma linear_times:
   fixes c::"'a::real_algebra" shows "linear (\<lambda>x. c * x)"
   by (auto simp: linearI distrib_left)
@@ -260,8 +261,8 @@ unfolding sums_def
 by (metis real_lim_sequentially setsum_in_Reals)
 
 lemma Lim_null_comparison_Re:
-   "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F \<Longrightarrow>  (g ---> 0) F \<Longrightarrow> (f ---> 0) F"
-  by (metis Lim_null_comparison complex_Re_zero tendsto_Re)
+  assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g ---> 0) F" shows "(f ---> 0) F"
+  by (rule Lim_null_comparison[OF assms(1)] tendsto_eq_intros assms(2))+ simp
 
 subsection{*Holomorphic functions*}
 

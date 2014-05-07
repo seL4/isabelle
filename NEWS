@@ -590,6 +590,48 @@ INCOMPATIBILITY.
 * Include more theorems in continuous_intros. Remove the continuous_on_intros,
   isCont_intros collections, these facts are now in continuous_intros.
 
+* Theorems about complex numbers are now stated only using Re and Im, the Complex
+  constructor is not used anymore. It is possible to use primcorec to defined the
+  behaviour of a complex-valued function.
+
+  Removed theorems about the Complex constructor from the simpset, they are
+  available as the lemma collection legacy_Complex_simps. This especially
+  removes
+    i_complex_of_real: "ii * complex_of_real r = Complex 0 r".
+
+  Instead the reverse direction is supported with
+    Complex_eq: "Complex a b = a + \<i> * b"
+
+  Moved csqrt from Fundamental_Algebra_Theorem to Complex.
+
+  Renamings:
+    Re/Im                  ~>  complex.sel
+    complex_Re/Im_zero     ~>  zero_complex.sel
+    complex_Re/Im_add      ~>  plus_complex.sel
+    complex_Re/Im_minus    ~>  uminus_complex.sel
+    complex_Re/Im_diff     ~>  minus_complex.sel
+    complex_Re/Im_one      ~>  one_complex.sel
+    complex_Re/Im_mult     ~>  times_complex.sel
+    complex_Re/Im_inverse  ~>  inverse_complex.sel
+    complex_Re/Im_scaleR   ~>  scaleR_complex.sel
+    complex_Re/Im_i        ~>  ii.sel
+    complex_Re/Im_cnj      ~>  cnj.sel
+    Re/Im_cis              ~>  cis.sel
+
+    complex_divide_def   ~>  divide_complex_def
+    complex_norm_def     ~>  norm_complex_def
+    cmod_def             ~>  norm_complex_de
+
+  Removed theorems:
+    complex_zero_def
+    complex_add_def
+    complex_minus_def
+    complex_diff_def
+    complex_one_def
+    complex_mult_def
+    complex_inverse_def
+    complex_scaleR_def
+
 * Removed solvers remote_cvc3 and remote_z3. Use cvc3 and z3 instead.
 
 * Nitpick:

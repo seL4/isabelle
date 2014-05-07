@@ -58,12 +58,12 @@ by (simp add: LIM_NSLIM_iff NSLIM_Im)
 lemma LIM_cnj:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   shows "f -- a --> L ==> (%x. cnj (f x)) -- a --> cnj L"
-by (simp add: LIM_eq complex_cnj_diff [symmetric])
+by (simp add: LIM_eq complex_cnj_diff [symmetric] del: complex_cnj_diff)
 
 lemma LIM_cnj_iff:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   shows "((%x. cnj (f x)) -- a --> cnj L) = (f -- a --> L)"
-by (simp add: LIM_eq complex_cnj_diff [symmetric])
+by (simp add: LIM_eq complex_cnj_diff [symmetric] del: complex_cnj_diff)
 
 lemma starfun_norm: "( *f* (\<lambda>x. norm (f x))) = (\<lambda>x. hnorm (( *f* f) x))"
 by transfer (rule refl)
@@ -148,7 +148,7 @@ done
 text{*Nonstandard version*}
 lemma NSCDERIV_pow:
      "NSDERIV (%x. x ^ n) x :> complex_of_real (real n) * (x ^ (n - 1))"
-by (simp add: NSDERIV_DERIV_iff)
+by (simp add: NSDERIV_DERIV_iff del: of_real_real_of_nat_eq)
 
 text{*Can't relax the premise @{term "x \<noteq> 0"}: it isn't continuous at zero*}
 lemma NSCDERIV_inverse:

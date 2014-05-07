@@ -129,33 +129,33 @@ lemma hcomplex_equality [intro?]:
 by transfer (rule complex_equality)
 
 lemma hcomplex_hRe_zero [simp]: "hRe 0 = 0"
-by transfer (rule complex_Re_zero)
+by transfer simp
 
 lemma hcomplex_hIm_zero [simp]: "hIm 0 = 0"
-by transfer (rule complex_Im_zero)
+by transfer simp
 
 lemma hcomplex_hRe_one [simp]: "hRe 1 = 1"
-by transfer (rule complex_Re_one)
+by transfer simp
 
 lemma hcomplex_hIm_one [simp]: "hIm 1 = 0"
-by transfer (rule complex_Im_one)
+by transfer simp
 
 
 subsection{*Addition for Nonstandard Complex Numbers*}
 
 lemma hRe_add: "!!x y. hRe(x + y) = hRe(x) + hRe(y)"
-by transfer (rule complex_Re_add)
+by transfer simp
 
 lemma hIm_add: "!!x y. hIm(x + y) = hIm(x) + hIm(y)"
-by transfer (rule complex_Im_add)
+by transfer simp
 
 subsection{*More Minus Laws*}
 
 lemma hRe_minus: "!!z. hRe(-z) = - hRe(z)"
-by transfer (rule complex_Re_minus)
+by transfer (rule uminus_complex.sel)
 
 lemma hIm_minus: "!!z. hIm(-z) = - hIm(z)"
-by transfer (rule complex_Im_minus)
+by transfer (rule uminus_complex.sel)
 
 lemma hcomplex_add_minus_eq_minus:
       "x + y = (0::hcomplex) ==> x = -y"
@@ -212,10 +212,10 @@ by (simp add: hypreal_epsilon_not_zero)
 subsection{*HComplex theorems*}
 
 lemma hRe_HComplex [simp]: "!!x y. hRe (HComplex x y) = x"
-by transfer (rule Re)
+by transfer simp
 
 lemma hIm_HComplex [simp]: "!!x y. hIm (HComplex x y) = y"
-by transfer (rule Im)
+by transfer simp
 
 lemma hcomplex_surj [simp]: "!!z. HComplex (hRe z) (hIm z) = z"
 by transfer (rule complex_surj)
@@ -423,7 +423,7 @@ lemma HComplex_eq_1 [simp]: "!!x y. (HComplex x y = 1) = (x = 1 & y = 0)"
 by transfer (rule Complex_eq_1)
 
 lemma i_eq_HComplex_0_1: "iii = HComplex 0 1"
-by transfer (rule i_def [THEN meta_eq_to_obj_eq])
+by transfer (simp add: complex_eq_iff)
 
 lemma HComplex_eq_i [simp]: "!!x y. (HComplex x y = iii) = (x = 0 & y = 1)"
 by transfer (rule Complex_eq_i)
@@ -447,10 +447,10 @@ lemma hIm_mult_i_eq [simp]:
 by transfer simp
 
 lemma hcmod_mult_i [simp]: "!!y. hcmod (iii * hcomplex_of_hypreal y) = abs y"
-by transfer simp
+by transfer (simp add: norm_complex_def)
 
 lemma hcmod_mult_i2 [simp]: "!!y. hcmod (hcomplex_of_hypreal y * iii) = abs y"
-by transfer simp
+by transfer (simp add: norm_complex_def)
 
 (*---------------------------------------------------------------------------*)
 (*  harg                                                                     *)
@@ -458,7 +458,7 @@ by transfer simp
 
 lemma cos_harg_i_mult_zero [simp]:
      "!!y. y \<noteq> 0 ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
-by transfer (rule cos_arg_i_mult_zero)
+by transfer simp
 
 lemma hcomplex_of_hypreal_zero_iff [simp]:
      "!!y. (hcomplex_of_hypreal y = 0) = (y = 0)"
@@ -469,17 +469,17 @@ subsection{*Polar Form for Nonstandard Complex Numbers*}
 
 lemma complex_split_polar2:
      "\<forall>n. \<exists>r a. (z n) =  complex_of_real r * (Complex (cos a) (sin a))"
-by (blast intro: complex_split_polar)
+by (auto intro: complex_split_polar)
 
 lemma hcomplex_split_polar:
   "!!z. \<exists>r a. z = hcomplex_of_hypreal r * (HComplex(( *f* cos) a)(( *f* sin) a))"
-by transfer (rule complex_split_polar)
+by transfer (simp add: complex_split_polar)
 
 lemma hcis_eq:
    "!!a. hcis a =
     (hcomplex_of_hypreal(( *f* cos) a) +
     iii * hcomplex_of_hypreal(( *f* sin) a))"
-by transfer (simp add: cis_def)
+by transfer (simp add: complex_eq_iff)
 
 lemma hrcis_Ex: "!!z. \<exists>r a. z = hrcis r a"
 by transfer (rule rcis_Ex)
@@ -502,12 +502,12 @@ by transfer (rule Im_rcis)
 
 lemma hcmod_unit_one [simp]:
      "!!a. hcmod (HComplex (( *f* cos) a) (( *f* sin) a)) = 1"
-by transfer (rule cmod_unit_one)
+by transfer (simp add: cmod_unit_one)
 
 lemma hcmod_complex_polar [simp]:
   "!!r a. hcmod (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) =
       abs r"
-by transfer (rule cmod_complex_polar)
+by transfer (simp add: cmod_complex_polar)
 
 lemma hcmod_hrcis [simp]: "!!r a. hcmod(hrcis r a) = abs r"
 by transfer (rule complex_mod_rcis)
@@ -579,10 +579,10 @@ lemma hrcis_inverse: "!!a r. inverse(hrcis r a) = hrcis (inverse r) (-a)"
 by transfer (simp add: rcis_inverse inverse_eq_divide [symmetric])
 
 lemma hRe_hcis [simp]: "!!a. hRe(hcis a) = ( *f* cos) a"
-by transfer (rule Re_cis)
+by transfer simp
 
 lemma hIm_hcis [simp]: "!!a. hIm(hcis a) = ( *f* sin) a"
-by transfer (rule Im_cis)
+by transfer simp
 
 lemma cos_n_hRe_hcis_pow_n: "( *f* cos) (hypreal_of_nat n * a) = hRe(hcis a ^ n)"
 by (simp add: NSDeMoivre)

@@ -257,6 +257,12 @@ by (simp add: of_real_def scaleR_left_diff_distrib)
 lemma of_real_mult [simp]: "of_real (x * y) = of_real x * of_real y"
 by (simp add: of_real_def mult_commute)
 
+lemma of_real_setsum[simp]: "of_real (setsum f s) = (\<Sum>x\<in>s. of_real (f x))"
+  by (induct s rule: infinite_finite_induct) auto
+
+lemma of_real_setprod[simp]: "of_real (setprod f s) = (\<Prod>x\<in>s. of_real (f x))"
+  by (induct s rule: infinite_finite_induct) auto
+
 lemma nonzero_of_real_inverse:
   "x \<noteq> 0 \<Longrightarrow> of_real (inverse x) =
    inverse (of_real x :: 'a::real_div_algebra)"
@@ -303,6 +309,12 @@ by (induct n) auto
 
 lemma of_real_of_int_eq [simp]: "of_real (of_int z) = of_int z"
 by (cases z rule: int_diff_cases, simp)
+
+lemma of_real_real_of_nat_eq [simp]: "of_real (real n) = of_nat n"
+  by (simp add: real_of_nat_def)
+
+lemma of_real_real_of_int_eq [simp]: "of_real (real z) = of_int z"
+  by (simp add: real_of_int_def)
 
 lemma of_real_numeral: "of_real (numeral w) = numeral w"
 using of_real_of_int_eq [of "numeral w"] by simp
@@ -1120,6 +1132,18 @@ unfolding real_sgn_eq by simp
 
 lemma real_sgn_neg: "(x::real) < 0 \<Longrightarrow> sgn x = -1"
 unfolding real_sgn_eq by simp
+
+lemma zero_le_sgn_iff [simp]: "0 \<le> sgn x \<longleftrightarrow> 0 \<le> (x::real)"
+  by (cases "0::real" x rule: linorder_cases) simp_all
+  
+lemma zero_less_sgn_iff [simp]: "0 < sgn x \<longleftrightarrow> 0 < (x::real)"
+  by (cases "0::real" x rule: linorder_cases) simp_all
+
+lemma sgn_le_0_iff [simp]: "sgn x \<le> 0 \<longleftrightarrow> (x::real) \<le> 0"
+  by (cases "0::real" x rule: linorder_cases) simp_all
+  
+lemma sgn_less_0_iff [simp]: "sgn x < 0 \<longleftrightarrow> (x::real) < 0"
+  by (cases "0::real" x rule: linorder_cases) simp_all
 
 lemma norm_conv_dist: "norm x = dist x 0"
   unfolding dist_norm by simp

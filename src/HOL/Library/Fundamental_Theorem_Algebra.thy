@@ -6,125 +6,11 @@ theory Fundamental_Theorem_Algebra
 imports Polynomial Complex_Main
 begin
 
-subsection {* Square root of complex numbers *}
-
-definition csqrt :: "complex \<Rightarrow> complex"
-where
-  "csqrt z =
-    (if Im z = 0 then
-       if 0 \<le> Re z then Complex (sqrt(Re z)) 0
-       else Complex 0 (sqrt(- Re z))
-     else Complex (sqrt((cmod z + Re z) /2)) ((Im z / abs(Im z)) * sqrt((cmod z - Re z) /2)))"
-
-lemma csqrt[algebra]: "(csqrt z)\<^sup>2 = z"
-proof -
-  obtain x y where xy: "z = Complex x y" by (cases z)
-  {
-    assume y0: "y = 0"
-    {
-      assume x0: "x \<ge> 0"
-      then have ?thesis
-        using y0 xy real_sqrt_pow2[OF x0]
-        by (simp add: csqrt_def power2_eq_square)
-    }
-    moreover
-    {
-      assume "\<not> x \<ge> 0"
-      then have x0: "- x \<ge> 0" by arith
-      then have ?thesis
-        using y0 xy real_sqrt_pow2[OF x0]
-        by (simp add: csqrt_def power2_eq_square)
-    }
-    ultimately have ?thesis by blast
-  }
-  moreover
-  {
-    assume y0: "y \<noteq> 0"
-    {
-      fix x y
-      let ?z = "Complex x y"
-      from abs_Re_le_cmod[of ?z] have tha: "abs x \<le> cmod ?z"
-        by auto
-      then have "cmod ?z - x \<ge> 0" "cmod ?z + x \<ge> 0"
-        by arith+
-      then have "(sqrt (x * x + y * y) + x) / 2 \<ge> 0" "(sqrt (x * x + y * y) - x) / 2 \<ge> 0"
-        by (simp_all add: power2_eq_square)
-    }
-    note th = this
-    have sq4: "\<And>x::real. x\<^sup>2 / 4 = (x / 2)\<^sup>2"
-      by (simp add: power2_eq_square)
-    from th[of x y]
-    have sq4': "sqrt (((sqrt (x * x + y * y) + x)\<^sup>2 / 4)) = (sqrt (x * x + y * y) + x) / 2"
-      "sqrt (((sqrt (x * x + y * y) - x)\<^sup>2 / 4)) = (sqrt (x * x + y * y) - x) / 2"
-      unfolding sq4 by simp_all
-    then have th1: "sqrt ((sqrt (x * x + y * y) + x) * (sqrt (x * x + y * y) + x) / 4) -
-        sqrt ((sqrt (x * x + y * y) - x) * (sqrt (x * x + y * y) - x) / 4) = x"
-      unfolding power2_eq_square by simp
-    have "sqrt 4 = sqrt (2\<^sup>2)"
-      by simp
-    then have sqrt4: "sqrt 4 = 2"
-      by (simp only: real_sqrt_abs)
-    have th2: "2 * (y * sqrt ((sqrt (x * x + y * y) - x) * (sqrt (x * x + y * y) + x) / 4)) / \<bar>y\<bar> = y"
-      using iffD2[OF real_sqrt_pow2_iff sum_power2_ge_zero[of x y]] y0
-      unfolding power2_eq_square
-      by (simp add: algebra_simps real_sqrt_divide sqrt4)
-    from y0 xy have ?thesis
-      apply (simp add: csqrt_def power2_eq_square)
-      apply (simp add: real_sqrt_sum_squares_mult_ge_zero[of x y]
-        real_sqrt_pow2[OF th(1)[of x y], unfolded power2_eq_square]
-        real_sqrt_pow2[OF th(2)[of x y], unfolded power2_eq_square]
-        real_sqrt_mult[symmetric])
-      using th1 th2  ..
-  }
-  ultimately show ?thesis by blast
-qed
-
-lemma csqrt_Complex: "x \<ge> 0 \<Longrightarrow> csqrt (Complex x 0) = Complex (sqrt x) 0"
-  by (simp add: csqrt_def)
-
-lemma csqrt_0 [simp]: "csqrt 0 = 0"
-  by (simp add: csqrt_def)
-
-lemma csqrt_1 [simp]: "csqrt 1 = 1"
-  by (simp add: csqrt_def)
-
-lemma csqrt_principal: "0 < Re(csqrt(z)) | Re(csqrt(z)) = 0 & 0 \<le> Im(csqrt(z))"
-proof (cases z)
-  case (Complex x y)
-  then show ?thesis
-    using real_sqrt_sum_squares_ge1 [of "x" y]
-          real_sqrt_sum_squares_ge1 [of "-x" y]
-          real_sqrt_sum_squares_eq_cancel [of x y]
-    apply (auto simp: csqrt_def intro!: Rings.ordered_ring_class.split_mult_pos_le)
-    apply (metis add_commute diff_add_cancel le_add_same_cancel1 real_sqrt_sum_squares_ge1)
-    apply (metis add_commute less_eq_real_def power_minus_Bit0
-            real_0_less_add_iff real_sqrt_sum_squares_eq_cancel)
-    done
-qed
-
-lemma Re_csqrt: "0 \<le> Re(csqrt z)"
-  by (metis csqrt_principal le_less)
-
-lemma csqrt_square: "0 < Re z \<or> Re z = 0 \<and> 0 \<le> Im z \<Longrightarrow> csqrt (z\<^sup>2) = z"
-  using csqrt [of "z\<^sup>2"] csqrt_principal [of "z\<^sup>2"]
-  by (cases z) (auto simp: power2_eq_iff)
-
-lemma csqrt_eq_0 [simp]: "csqrt z = 0 \<longleftrightarrow> z = 0"
-  by auto (metis csqrt power_eq_0_iff)
-
-lemma csqrt_eq_1 [simp]: "csqrt z = 1 \<longleftrightarrow> z = 1"
-  by auto (metis csqrt power2_eq_1_iff)
-
-
 subsection {* More lemmas about module of complex numbers *}
-
-lemma complex_of_real_power: "complex_of_real x ^ n = complex_of_real (x^n)"
-  by (rule of_real_power [symmetric])
 
 text{* The triangle inequality for cmod *}
 lemma complex_mod_triangle_sub: "cmod w \<le> cmod (w + z) + norm z"
   using complex_mod_triangle_ineq2[of "w + z" "-z"] by auto
-
 
 subsection {* Basic lemmas about polynomials *}
 
@@ -281,7 +167,7 @@ proof (induct n rule: nat_less_induct)
     with IH[rule_format, of m] obtain z where z: "?P z m"
       by blast
     from z have "?P (csqrt z) n"
-      by (simp add: m power_mult csqrt)
+      by (simp add: m power_mult power2_csqrt)
     then have "\<exists>z. ?P z n" ..
   }
   moreover
@@ -319,7 +205,7 @@ proof (induct n rule: nat_less_induct)
     let ?w = "v / complex_of_real (root n (cmod b))"
     from odd_real_root_pow[OF o, of "cmod b"]
     have th1: "?w ^ n = v^n / complex_of_real (cmod b)"
-      by (simp add: power_divide complex_of_real_power)
+      by (simp add: power_divide of_real_power[symmetric])
     have th2:"cmod (complex_of_real (cmod b) / b) = 1"
       using b by (simp add: norm_divide)
     then have th3: "cmod (complex_of_real (cmod b) / b) \<ge> 0"
@@ -599,21 +485,6 @@ proof -
   }
   ultimately show ?thesis by blast
 qed
-
-lemma "(rcis (sqrt (abs r)) (a/2))\<^sup>2 = rcis (abs r) a"
-  unfolding power2_eq_square
-  apply (simp add: rcis_mult)
-  apply (simp add: power2_eq_square[symmetric])
-  done
-
-lemma cispi: "cis pi = -1"
-  by (simp add: cis_def)
-
-lemma "(rcis (sqrt (abs r)) ((pi + a) / 2))\<^sup>2 = rcis (- abs r) a"
-  unfolding power2_eq_square
-  apply (simp add: rcis_mult add_divide_distrib)
-  apply (simp add: power2_eq_square[symmetric] rcis_def cispi cis_mult[symmetric])
-  done
 
 text {* Nonzero polynomial in z goes to infinity as z does. *}
 

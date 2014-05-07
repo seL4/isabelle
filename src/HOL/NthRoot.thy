@@ -374,11 +374,17 @@ unfolding sqrt_def by (rule real_root_zero)
 lemma real_sqrt_one [simp]: "sqrt 1 = 1"
 unfolding sqrt_def by (rule real_root_one [OF pos2])
 
+lemma real_sqrt_four [simp]: "sqrt 4 = 2"
+  using real_sqrt_abs[of 2] by simp
+
 lemma real_sqrt_minus: "sqrt (- x) = - sqrt x"
 unfolding sqrt_def by (rule real_root_minus)
 
 lemma real_sqrt_mult: "sqrt (x * y) = sqrt x * sqrt y"
 unfolding sqrt_def by (rule real_root_mult)
+
+lemma real_sqrt_mult_self[simp]: "sqrt a * sqrt a = \<bar>a\<bar>"
+  using real_sqrt_abs[of a] unfolding power2_eq_square real_sqrt_mult .
 
 lemma real_sqrt_inverse: "sqrt (inverse x) = inverse (sqrt x)"
 unfolding sqrt_def by (rule real_root_inverse)

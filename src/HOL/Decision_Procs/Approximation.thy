@@ -235,8 +235,9 @@ proof (induct n)
         from xt1(5)[OF `0 \<le> ?E mod 2` this]
         show ?thesis by auto
       qed
-      hence "sqrt (2 powr (?E mod 2)) < sqrt (2 * 2)" by auto
-      hence E_mod_pow: "sqrt (2 powr (?E mod 2)) < 2" unfolding real_sqrt_abs2 by auto
+      hence "sqrt (2 powr (?E mod 2)) < sqrt (2 * 2)"
+        by (auto simp del: real_sqrt_four)
+      hence E_mod_pow: "sqrt (2 powr (?E mod 2)) < 2" by auto
 
       have E_eq: "2 powr ?E = 2 powr (?E div 2 + ?E div 2 + ?E mod 2)" by auto
       have "sqrt (2 powr ?E) = sqrt (2 powr (?E div 2) * 2 powr (?E div 2) * 2 powr (?E mod 2))"

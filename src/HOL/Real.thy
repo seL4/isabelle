@@ -1555,6 +1555,7 @@ lemma real_of_int_le_neg_numeral_power_cancel_iff[simp]:
   "real a \<le> (- numeral x::real) ^ n \<longleftrightarrow> a \<le> (- numeral x::int) ^ n"
   unfolding real_of_int_le_iff[symmetric] by simp
 
+
 subsection{*Density of the Reals*}
 
 lemma real_lbound_gt_zero:
@@ -1612,6 +1613,14 @@ apply auto
 apply (rule real_of_int_less_iff [THEN iffD1])
 apply (drule_tac [2] real_of_int_less_iff [THEN iffD2], auto)
 done
+
+lemma real_of_nat_less_numeral_iff [simp]:
+  "real (n::nat) < numeral w \<longleftrightarrow> n < numeral w"
+  using real_of_nat_less_iff[of n "numeral w"] by simp
+
+lemma numeral_less_real_of_nat_iff [simp]:
+  "numeral w < real (n::nat) \<longleftrightarrow> numeral w < n"
+  using real_of_nat_less_iff[of "numeral w" n] by simp
 
 lemma numeral_le_real_of_int_iff [simp]:
      "((numeral n) \<le> real (m::int)) = (numeral n \<le> m)"

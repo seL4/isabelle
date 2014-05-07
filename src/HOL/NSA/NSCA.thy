@@ -291,10 +291,10 @@ apply (drule (1) Infinitesimal_HComplex, simp)
 done
 
 lemma hRe_diff [simp]: "\<And>x y. hRe (x - y) = hRe x - hRe y"
-by transfer (rule complex_Re_diff)
+by transfer simp
 
 lemma hIm_diff [simp]: "\<And>x y. hIm (x - y) = hIm x - hIm y"
-by transfer (rule complex_Im_diff)
+by transfer simp
 
 lemma approx_hRe: "x \<approx> y \<Longrightarrow> hRe x \<approx> hRe y"
 unfolding approx_def by (drule Infinitesimal_hRe) simp

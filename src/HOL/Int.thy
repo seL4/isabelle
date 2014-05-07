@@ -293,6 +293,10 @@ lemma of_int_less_0_iff [simp]:
 
 end
 
+lemma of_nat_less_of_int_iff:
+  "(of_nat n::'a::linordered_idom) < of_int x \<longleftrightarrow> int n < x"
+  by (metis of_int_of_nat_eq of_int_less_iff)
+
 lemma of_int_eq_id [simp]: "of_int = id"
 proof
   fix z show "of_int z = id z"

@@ -3716,7 +3716,7 @@ proof (rule, rule)
     where b: "\<forall>x\<in>s. 0 < b x \<and> cball x (b x) \<subseteq> s"
     using bchoice[of s "\<lambda>x e. e > 0 \<and> cball x e \<subseteq> s"] by auto
   have "b ` t \<noteq> {}"
-    unfolding i_def using obt by auto
+    using obt by auto
   def i \<equiv> "b ` t"
 
   show "\<exists>e > 0.
