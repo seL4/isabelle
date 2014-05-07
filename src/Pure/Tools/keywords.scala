@@ -150,7 +150,7 @@ object Keywords
 
   def update_keywords(options: Options)
   {
-    val tree = Build.find_sessions(options, Nil)
+    val tree = Build.find_sessions(options)
 
     def chapter(ch: String): List[String] =
       for ((name, info) <- tree.topological_order if info.chapter == ch) yield name
