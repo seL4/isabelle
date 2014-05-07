@@ -70,7 +70,7 @@ Packaging
 
 - fully-automated packaging (requires Mac OS X):
 
-  hg up -r DISTNAME && Admin/Release/build -r DISTNAME /home/isabelle/dist
+  hg up -r DISTNAME && Admin/Release/build -l -r DISTNAME /home/isabelle/dist
 
 
 Final release stage

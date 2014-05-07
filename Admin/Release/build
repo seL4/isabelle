@@ -19,6 +19,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
+  echo "    -l           build library"
   echo "    -r RELEASE   proper release with name"
   echo
   echo "  Make Isabelle distribution DIR, using the local repository clone."
@@ -46,14 +47,18 @@ function check_number()
 # options
 
 JOBS=""
+LIBRARY=""
 RELEASE=""
 
-while getopts "j:r:" OPT
+while getopts "j:lr:" OPT
 do
   case "$OPT" in
     j)
       check_number "$OPTARG"
       JOBS="-j $OPTARG"
+      ;;
+    l)
+      LIBRARY="true"
       ;;
     r)
       RELEASE="$OPTARG"
@@ -89,6 +94,8 @@ ISABELLE_PLATFORM_FAMILY="$("$ISABELLE_TOOL" getenv -b ISABELLE_PLATFORM_FAMILY)
 
 ## main
 
+# make dist
+
 if [ -z "$RELEASE" ]; then
   DISTNAME="Isabelle_$(env LC_ALL=C date "+%d-%b-%Y")"
   "$ISABELLE_TOOL" makedist -d "$BASE_DIR" $JOBS
@@ -101,6 +108,8 @@ fi
 DISTBASE="$BASE_DIR/dist-${DISTNAME}"
 
 
+# make bundles
+
 for PLATFORM_FAMILY in linux macos windows
 do
 
@@ -112,5 +121,32 @@ echo "*** $PLATFORM_FAMILY ***"
 
 done
 
-"$THIS/build_library" $JOBS "$DISTBASE/${DISTNAME}_${ISABELLE_PLATFORM_FAMILY}.tar.gz"
+
+# minimal index
+
+cat > "$DISTBASE/index.html" <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>${DISTNAME}</title>
+</head>
+
+<body>
+<h1>${DISTNAME}</h1>
+<ul>
+<li><a href="${DISTNAME}_linux.tar.gz">Linux</a></li>
+<li><a href="${DISTNAME}.exe">Windows</a></li>
+<li><a href="${DISTNAME}.dmg">Mac OS X</a></li>
+</ul>
+</body>
+
+</html>
+EOF
+
+
+# HTML library
+
+if [ -n "$LIBRARY" ]; then
+  "$THIS/build_library" $JOBS "$DISTBASE/${DISTNAME}_${ISABELLE_PLATFORM_FAMILY}.tar.gz"
+fi
 
