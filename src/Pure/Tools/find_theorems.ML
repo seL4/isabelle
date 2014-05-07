@@ -483,7 +483,9 @@ fun pretty_theorems state opt_limit rem_dups raw_criteria =
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
   in
-    Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) ::
+    Pretty.block
+      (Pretty.keyword1 "find_theorems" :: Pretty.brk 1 :: Pretty.str "query:" :: Pretty.fbrk ::
+        Pretty.fbreaks (map (pretty_criterion ctxt) criteria)) ::
     Pretty.str "" ::
     (if null theorems then [Pretty.str "nothing found"]
      else
