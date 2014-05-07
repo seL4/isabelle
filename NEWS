@@ -117,6 +117,9 @@ to commands 'find_theorems' and 'find_consts', as well as print
 operations for the context.  Minor incompatibility in keyboard
 shortcuts etc.: replace action isabelle-find by isabelle-query.
 
+* Search field for all output panels ("Output", "Query", "Info" etc.)
+to highlight text via regular expression.
+
 * Option "jedit_print_mode" (see also "Plugin Options / Isabelle /
 General") allows to specify additional print modes for the prover
 process, without requiring old-fashioned command-line invocation of
