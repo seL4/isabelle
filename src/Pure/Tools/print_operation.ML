@@ -61,8 +61,8 @@ end;
 (* common print operations *)
 
 val _ =
-  register "context" "main context"
-    (Pretty.string_of o Pretty.chunks o Toplevel.pretty_state_context);
+  register "context" "context of local theory target"
+    (Pretty.string_of o Pretty.chunks o Toplevel.pretty_context);
 
 val _ =
   register "cases" "cases of proof context"

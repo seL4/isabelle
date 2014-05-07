@@ -792,8 +792,9 @@ val _ =
       Toplevel.keep (Attrib.print_options o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_context"} "print main context"
-    (Scan.succeed (Toplevel.keep (Pretty.writeln_chunks o Toplevel.pretty_state_context)));
+  Outer_Syntax.improper_command @{command_spec "print_context"}
+    "print context of local theory target"
+    (Scan.succeed (Toplevel.keep (Pretty.writeln_chunks o Toplevel.pretty_context)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_theory"}

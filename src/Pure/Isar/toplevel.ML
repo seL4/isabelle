@@ -22,7 +22,7 @@ sig
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
   val end_theory: Position.T -> state -> theory
-  val pretty_state_context: state -> Pretty.T list
+  val pretty_context: state -> Pretty.T list
   val pretty_state: state -> Pretty.T list
   val print_state: state -> unit
   val pretty_abstract: state -> Pretty.T
@@ -198,14 +198,18 @@ fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
 
 (* print state *)
 
-val pretty_context = Local_Theory.pretty o Context.cases (Named_Target.theory_init) I;
-
-fun pretty_state_context state =
+fun pretty_context state =
   (case try node_of state of
     NONE => []
-  | SOME (Theory (gthy, _)) => pretty_context gthy
-  | SOME (Proof (_, (_, gthy))) => pretty_context gthy
-  | SOME (Skipped_Proof (_, (gthy, _))) => pretty_context gthy);
+  | SOME node =>
+      let
+        val gthy =
+          (case node of
+            Theory (gthy, _) => gthy
+          | Proof (_, (_, gthy)) => gthy
+          | Skipped_Proof (_, (gthy, _)) => gthy);
+        val lthy = Context.cases (Named_Target.theory_init) I gthy;
+      in Local_Theory.pretty lthy end);
 
 fun pretty_state state =
   (case try node_of state of
