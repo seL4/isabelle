@@ -409,6 +409,10 @@ fun begin_local_theory begin f = transaction (fn _ =>
         let
           val lthy = f thy;
           val gthy = if begin then Context.Proof lthy else Context.Theory (loc_exit lthy);
+          val _ =
+            if begin then
+              Pretty.writeln (Pretty.mark Markup.state (Pretty.chunks (Local_Theory.pretty lthy)))
+            else ();
         in Theory (gthy, SOME lthy) end
     | _ => raise UNDEF));
 

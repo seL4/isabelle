@@ -1042,7 +1042,7 @@ fun global_skip_proof int state =
 local
 
 fun gen_have prep_att prepp before_qed after_qed stmt int =
-  local_goal (Proof_Display.print_results Markup.state int)
+  local_goal (Proof_Display.print_results int)
     prep_att prepp "have" before_qed after_qed stmt;
 
 fun gen_show prep_att prepp before_qed after_qed stmt int state =
@@ -1056,7 +1056,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
 
     fun print_results ctxt res =
       if ! testing then ()
-      else Proof_Display.print_results Markup.state int ctxt res;
+      else Proof_Display.print_results int ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
       else if int then

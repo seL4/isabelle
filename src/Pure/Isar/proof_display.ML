@@ -22,8 +22,7 @@ sig
   val pretty_goal_facts: Proof.context -> string -> thm list -> Pretty.T
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
-  val print_results: Markup.T -> bool -> Proof.context ->
-    ((string * string) * (string * thm list) list) -> unit
+  val print_results: bool -> Proof.context -> ((string * string) * (string * thm list) list) -> unit
   val print_consts: bool -> Proof.context -> (string * typ -> bool) -> (string * typ) list -> unit
 end
 
@@ -141,13 +140,13 @@ fun pretty_facts ctxt =
 
 in
 
-fun print_results markup do_print ctxt ((kind, name), facts) =
+fun print_results do_print ctxt ((kind, name), facts) =
   if not do_print orelse kind = "" then ()
   else if name = "" then
-    (Output.urgent_message o Pretty.string_of o Pretty.mark markup)
+    (Pretty.writeln o Pretty.mark Markup.state)
       (Pretty.block (Pretty.keyword1 kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
   else
-    (Output.urgent_message o Pretty.string_of o Pretty.mark markup)
+    (Pretty.writeln o Pretty.mark Markup.state)
       (case facts of
         [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
           Proof_Context.pretty_fact ctxt fact])
@@ -176,7 +175,7 @@ in
 
 fun print_consts do_print ctxt pred cs =
   if not do_print orelse null cs then ()
-  else Pretty.writeln (pretty_consts ctxt pred cs);
+  else Pretty.writeln (Pretty.mark Markup.state (pretty_consts ctxt pred cs));
 
 end;
 

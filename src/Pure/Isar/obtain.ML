@@ -300,7 +300,7 @@ fun gen_guess prep_vars raw_vars int state =
 
     val goal = Var (("guess", 0), propT);
     fun print_result ctxt' (k, [(s, [_, th])]) =
-      Proof_Display.print_results Markup.state int ctxt' (k, [(s, [th])]);
+      Proof_Display.print_results int ctxt' (k, [(s, [th])]);
     val before_qed =
       Method.primitive_text (fn ctxt =>
         Goal.conclude #> Raw_Simplifier.norm_hhf ctxt #>
