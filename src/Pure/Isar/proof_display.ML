@@ -144,10 +144,10 @@ in
 fun print_results markup do_print ctxt ((kind, name), facts) =
   if not do_print orelse kind = "" then ()
   else if name = "" then
-    (Pretty.writeln o Pretty.mark markup)
+    (Output.urgent_message o Pretty.string_of o Pretty.mark markup)
       (Pretty.block (Pretty.keyword1 kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
   else
-    (Pretty.writeln o Pretty.mark markup)
+    (Output.urgent_message o Pretty.string_of o Pretty.mark markup)
       (case facts of
         [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
           Proof_Context.pretty_fact ctxt fact])
