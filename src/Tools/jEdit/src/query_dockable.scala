@@ -295,6 +295,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
   select_operation()
   set_content(operations_pane)
 
+  override val detach_operation = Some(() => get_operation().foreach(_.pretty_text_area.detach))
+
 
   /* resize */
 

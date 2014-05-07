@@ -35,6 +35,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
+  override val detach_operation = Some(() => pretty_text_area.detach)
+
 
   private def handle_resize()
   {

@@ -5,6 +5,9 @@
   <SERVICE CLASS="org.gjt.sp.jedit.gui.DynamicContextMenuService" NAME="Spell_Checker">
     new isabelle.jedit.Context_Menu();
   </SERVICE>
+	<SERVICE CLASS="org.gjt.sp.jedit.gui.DockingFrameworkProvider" NAME="PIDE">
+		new org.gjt.sp.jedit.gui.PIDE_Docking_Framework();
+	</SERVICE>
   <SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
     new isabelle.jedit.Isabelle_Encoding();
   </SERVICE>

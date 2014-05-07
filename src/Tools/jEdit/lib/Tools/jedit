@@ -30,6 +30,7 @@ declare -a SOURCES=(
   "src/jedit_resources.scala"
   "src/monitor_dockable.scala"
   "src/output_dockable.scala"
+  "src/pide_docking_framework.scala"
   "src/plugin.scala"
   "src/pretty_text_area.scala"
   "src/pretty_tooltip.scala"
