@@ -201,7 +201,6 @@ val _ =
   Outer_Syntax.command @{command_spec "specification"} "define constants by specification"
     (@{keyword "("} |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| @{keyword ")"} --
       Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop)
-      >> (fn (cos, alt_props) => Toplevel.print o
-          (Toplevel.theory_to_proof (process_spec cos alt_props))))
+      >> (fn (cos, alt_props) => Toplevel.theory_to_proof (process_spec cos alt_props)))
 
 end

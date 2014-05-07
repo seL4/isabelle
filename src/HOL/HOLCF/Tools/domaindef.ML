@@ -212,7 +212,6 @@ fun mk_domaindef (((((args, t)), mx), A), morphs) =
 
 val _ =
   Outer_Syntax.command @{command_spec "domaindef"} "HOLCF definition of domains from deflations"
-    (domaindef_decl >>
-      (Toplevel.print oo (Toplevel.theory o mk_domaindef)))
+    (domaindef_decl >> (Toplevel.theory o mk_domaindef))
 
 end

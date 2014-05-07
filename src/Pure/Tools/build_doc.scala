@@ -24,7 +24,7 @@ object Build_Doc
   {
     val selection =
       for {
-        (name, info) <- Build.find_sessions(options, Nil).topological_order
+        (name, info) <- Build.find_sessions(options).topological_order
         if info.groups.contains("doc")
         doc = info.options.string("document_variants")
         if all_docs || docs.contains(doc)

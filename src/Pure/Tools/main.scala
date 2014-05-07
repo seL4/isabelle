@@ -41,13 +41,13 @@ object Main
         else {
           val options = Options.init()
           val system_mode = mode == "" || mode == "system"
-          val more_dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS")).map((false, _))
+          val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
           val session = Isabelle_System.default_logic(
             Isabelle_System.getenv("JEDIT_LOGIC"),
             options.string("jedit_logic"))
 
           if (Build.build(options = options, build_heap = true, no_build = true,
-              more_dirs = more_dirs, sessions = List(session)) == 0)
+              dirs = dirs, sessions = List(session)) == 0)
             system_dialog.return_code(0)
           else {
             system_dialog.title("Isabelle build (" + Isabelle_System.getenv("ML_IDENTIFIER") + ")")
@@ -56,9 +56,8 @@ object Main
             val (out, rc) =
               try {
                 ("",
-                  Build.build(options = options, progress = system_dialog,
-                    build_heap = true, more_dirs = more_dirs,
-                    system_mode = system_mode, sessions = List(session)))
+                  Build.build(options = options, progress = system_dialog, build_heap = true,
+                    dirs = dirs, system_mode = system_mode, sessions = List(session)))
               }
               catch {
                 case exn: Throwable =>

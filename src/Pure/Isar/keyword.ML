@@ -67,6 +67,7 @@ sig
   val is_proof_goal: string -> bool
   val is_qed: string -> bool
   val is_qed_global: string -> bool
+  val is_printed: string -> bool
 end;
 
 structure Keyword: KEYWORD =
@@ -262,6 +263,8 @@ val is_theory_goal = command_category [thy_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_asm_goal_script];
 val is_qed = command_category [qed, qed_script, qed_block];
 val is_qed_global = command_category [qed_global];
+
+val is_printed = is_theory_goal orf is_proof;
 
 end;
 

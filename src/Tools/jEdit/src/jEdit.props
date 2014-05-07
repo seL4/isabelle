@@ -243,6 +243,7 @@ print.font=IsabelleText
 recent-buffer.shortcut2=C+CIRCUMFLEX
 restore.remote=false
 restore=false
+search.subdirs.toggle=true
 select-block.shortcut2=C+8
 sidekick-tree.dock-position=right
 sidekick.auto-complete-popup-get-focus=true

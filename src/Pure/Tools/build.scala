@@ -288,7 +288,8 @@ object Build
     if (is_session_dir(dir)) dir
     else error("Bad session root directory: " + dir.toString)
 
-  def find_sessions(options: Options, more_dirs: List[(Boolean, Path)]): Session_Tree =
+  def find_sessions(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil)
+    : Session_Tree =
   {
     def find_dir(select: Boolean, dir: Path): List[(String, Session_Info)] =
       find_root(select, dir) ::: find_roots(select, dir)
@@ -320,13 +321,13 @@ object Build
       else Nil
     }
 
-    val default_dirs = Isabelle_System.components().filter(is_session_dir(_)).map((false, _))
-
-    more_dirs foreach { case (_, dir) => check_session_dir(dir) }
+    val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
+    dirs.foreach(check_session_dir(_))
+    select_dirs.foreach(check_session_dir(_))
 
     Session_Tree(
       for {
-        (select, dir) <- default_dirs ::: more_dirs
+        (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
         info <- find_dir(select, dir)
       } yield info)
   }
@@ -511,8 +512,7 @@ object Build
     dirs: List[Path],
     sessions: List[String]): Deps =
   {
-    val (_, tree) =
-      find_sessions(options, dirs.map((false, _))).selection(false, false, Nil, sessions)
+    val (_, tree) = find_sessions(options, dirs = dirs).selection(false, false, Nil, sessions)
     dependencies(Ignore_Progress, inlined_files, false, false, tree)
   }
 
@@ -722,7 +722,8 @@ object Build
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
-    more_dirs: List[(Boolean, Path)] = Nil,
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     list_files: Boolean = false,
@@ -733,7 +734,7 @@ object Build
   {
     /* session tree and dependencies */
 
-    val full_tree = find_sessions(options, more_dirs)
+    val full_tree = find_sessions(options, dirs, select_dirs)
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions, session_groups, sessions)
 
@@ -972,7 +973,8 @@ object Build
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
-    more_dirs: List[(Boolean, Path)] = Nil,
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil,
     session_groups: List[String] = Nil,
     max_jobs: Int = 1,
     list_files: Boolean = false,
@@ -983,8 +985,8 @@ object Build
   {
     val results =
       build_results(options, progress, requirements, all_sessions,
-        build_heap, clean_build, more_dirs, session_groups, max_jobs, list_files, no_build,
-        system_mode, verbose, sessions)
+        build_heap, clean_build, dirs, select_dirs, session_groups, max_jobs,
+        list_files, no_build, system_mode, verbose, sessions)
 
     val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
@@ -1012,16 +1014,13 @@ object Build
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
-          Command_Line.Chunks(select_dirs, include_dirs, session_groups, build_options, sessions) =>
+          Command_Line.Chunks(dirs, select_dirs, session_groups, build_options, sessions) =>
             val options = (Options.init() /: build_options)(_ + _)
-            val more_dirs =
-              select_dirs.map(d => (true, Path.explode(d))) :::
-              include_dirs.map(d => (false, Path.explode(d)))
             val progress = new Console_Progress(verbose)
             progress.interrupt_handler {
-              build(options, progress, requirements, all_sessions,
-                build_heap, clean_build, more_dirs, session_groups, max_jobs, list_files, no_build,
-                system_mode, verbose, sessions)
+              build(options, progress, requirements, all_sessions, build_heap, clean_build,
+                dirs.map(Path.explode(_)), select_dirs.map(Path.explode(_)), session_groups,
+                max_jobs, list_files, no_build, system_mode, verbose, sessions)
             }
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

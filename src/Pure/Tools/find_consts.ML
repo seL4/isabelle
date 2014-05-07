@@ -113,7 +113,9 @@ fun pretty_consts ctxt raw_criteria =
       |> sort (prod_ord (rev_order o int_ord) (string_ord o pairself fst))
       |> map (apsnd fst o snd);
   in
-    Pretty.big_list "searched for:" (map pretty_criterion raw_criteria) ::
+    Pretty.block
+      (Pretty.keyword1 "find_consts" :: Pretty.brk 1 :: Pretty.str "query:" :: Pretty.fbrk ::
+        Pretty.fbreaks (map pretty_criterion raw_criteria)) ::
     Pretty.str "" ::
     Pretty.str
      (if null matches

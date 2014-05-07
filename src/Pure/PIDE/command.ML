@@ -226,12 +226,10 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
   else
     let
       val malformed' = Toplevel.is_malformed tr;
-      val is_init = Toplevel.is_init tr;
-      val is_proof = Keyword.is_proof (Toplevel.name_of tr);
 
       val _ = Multithreading.interrupted ();
       val _ = status tr Markup.running;
-      val (errs1, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
+      val (errs1, result) = run true tr st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
       val errs = errs1 @ errs2;
       val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
@@ -376,15 +374,10 @@ val _ =
 val _ =
   print_function "print_state"
     (fn {command_name, ...} =>
-      SOME {delay = NONE, pri = 1, persistent = false, strict = true,
-        print_fn = fn tr => fn st' =>
-          let
-            val is_init = Keyword.is_theory_begin command_name;
-            val is_proof = Keyword.is_proof command_name;
-            val do_print =
-              not is_init andalso
-                (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
-          in if do_print then Toplevel.print_state st' else () end});
+      if Keyword.is_printed command_name then
+        SOME {delay = NONE, pri = 1, persistent = false, strict = true,
+          print_fn = fn _ => fn st => if Toplevel.is_proof st then Toplevel.print_state st else ()}
+      else NONE);
 
 
 (* combined execution *)
