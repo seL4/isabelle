@@ -226,12 +226,10 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
   else
     let
       val malformed' = Toplevel.is_malformed tr;
-      val is_init = Toplevel.is_init tr;
-      val is_proof = Keyword.is_proof (Toplevel.name_of tr);
 
       val _ = Multithreading.interrupted ();
       val _ = status tr Markup.running;
-      val (errs1, result) = run (is_init orelse is_proof) tr st;
+      val (errs1, result) = run true tr st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
       val errs = errs1 @ errs2;
       val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
