@@ -482,9 +482,12 @@ fun pretty_theorems state opt_limit rem_dups raw_criteria =
             (if returned < found
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
+    val position_markup = Position.markup (Position.thread_data ()) Markup.position;
   in
     Pretty.block
-      (Pretty.fbreaks (Pretty.keyword1 "find_theorems" :: map (pretty_criterion ctxt) criteria)) ::
+      (Pretty.fbreaks
+        (Pretty.mark position_markup (Pretty.keyword1 "find_theorems") ::
+          map (pretty_criterion ctxt) criteria)) ::
     Pretty.str "" ::
     (if null theorems then [Pretty.str "found nothing"]
      else
