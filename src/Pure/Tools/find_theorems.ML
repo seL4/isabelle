@@ -484,13 +484,12 @@ fun pretty_theorems state opt_limit rem_dups raw_criteria =
              else ""));
   in
     Pretty.block
-      (Pretty.keyword1 "find_theorems" :: Pretty.brk 1 :: Pretty.str "query:" :: Pretty.fbrk ::
-        Pretty.fbreaks (map (pretty_criterion ctxt) criteria)) ::
+      (Pretty.fbreaks (Pretty.keyword1 "find_theorems" :: map (pretty_criterion ctxt) criteria)) ::
     Pretty.str "" ::
-    (if null theorems then [Pretty.str "nothing found"]
+    (if null theorems then [Pretty.str "found nothing"]
      else
-      [Pretty.str (tally_msg ^ ":"), Pretty.str ""] @
-        grouped 10 Par_List.map (Pretty.item o single o pretty_thm ctxt) (rev theorems))
+       Pretty.str (tally_msg ^ ":") ::
+       grouped 10 Par_List.map (Pretty.item o single o pretty_thm ctxt) (rev theorems))
   end |> Pretty.fbreaks |> curry Pretty.blk 0;
 
 end;

@@ -114,15 +114,12 @@ fun pretty_consts ctxt raw_criteria =
       |> map (apsnd fst o snd);
   in
     Pretty.block
-      (Pretty.keyword1 "find_consts" :: Pretty.brk 1 :: Pretty.str "query:" :: Pretty.fbrk ::
-        Pretty.fbreaks (map pretty_criterion raw_criteria)) ::
+      (Pretty.fbreaks (Pretty.keyword1 "find_consts" :: map pretty_criterion raw_criteria)) ::
     Pretty.str "" ::
-    Pretty.str
-     (if null matches
-      then "nothing found"
-      else "found " ^ string_of_int (length matches) ^ " constant(s):") ::
-    Pretty.str "" ::
-    grouped 10 Par_List.map (Pretty.item o single o pretty_const ctxt) matches
+    (if null matches then [Pretty.str "found nothing"]
+     else
+       Pretty.str ("found " ^ string_of_int (length matches) ^ " constant(s):") ::
+       grouped 10 Par_List.map (Pretty.item o single o pretty_const ctxt) matches)
   end |> Pretty.fbreaks |> curry Pretty.blk 0;
 
 fun find_consts ctxt args = Pretty.writeln (pretty_consts ctxt args);
