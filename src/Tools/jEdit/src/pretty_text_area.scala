@@ -17,8 +17,7 @@ import javax.swing.event.{DocumentListener, DocumentEvent}
 
 import java.util.concurrent.{Future => JFuture}
 
-import scala.swing.event.ButtonClicked
-import scala.swing.{Button, Label, Component}
+import scala.swing.{Label, Component}
 import scala.util.matching.Regex
 
 import org.gjt.sp.jedit.{jEdit, View, Registers}
@@ -219,11 +218,6 @@ class Pretty_Text_Area(
     }
     text_field.setForeground(
       if (ok) search_pattern_foreground else current_rendering.error_color)
-  }
-
-  val detach_button: Component = new Button("Detach") {
-    tooltip = "Detach window with static copy of current output"
-    reactions += { case ButtonClicked(_) => text_area.detach }
   }
 
 

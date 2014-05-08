@@ -143,8 +143,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-      auto_update, update, pretty_text_area.detach_button,
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update,
       pretty_text_area.search_label, pretty_text_area.search_pattern, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
