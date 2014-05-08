@@ -70,7 +70,7 @@ fun pretty_criterion ctxt (b, c) =
     | Solves => Pretty.str (prfx "solves")
     | Simp pat => Pretty.block [Pretty.str (prfx "simp:"), Pretty.brk 1,
         Pretty.quote (Syntax.pretty_term ctxt (Term.show_dummy_patterns pat))]
-    | Pattern pat => Pretty.enclose (prfx " \"") "\""
+    | Pattern pat => Pretty.enclose (prfx "\"") "\""
         [Syntax.pretty_term ctxt (Term.show_dummy_patterns pat)])
   end;
 
