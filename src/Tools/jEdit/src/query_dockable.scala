@@ -115,7 +115,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       selected = false
     }
 
-    private val apply_button = new Button("Apply") {
+    private val apply_button = new Button("<html><b>Apply</b></html>") {
       tooltip = "Find theorems meeting specified criteria"
       reactions += { case ButtonClicked(_) => apply_query() }
     }
@@ -164,7 +164,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     /* GUI page */
 
-    private val apply_button = new Button("Apply") {
+    private val apply_button = new Button("<html><b>Apply</b></html>") {
       tooltip = "Find constants by name / type patterns"
       reactions += { case ButtonClicked(_) => apply_query() }
     }
@@ -248,7 +248,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     /* GUI page */
 
-    private val apply_button = new Button("Apply") {
+    private val apply_button = new Button("<html><b>Apply</b></html>") {
       tooltip = "Apply to current context"
       reactions += { case ButtonClicked(_) => apply_query() }
     }
