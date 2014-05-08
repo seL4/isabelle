@@ -887,6 +887,9 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{map\_id}\rm:] ~ \\
 @{thm list.map_id[no_vars]}
 
+\item[@{text "t."}\hthm{map\_id0}\rm:] ~ \\
+@{thm list.map_id0[no_vars]}
+
 \item[@{text "t."}\hthm{map\_ident}\rm:] ~ \\
 @{thm list.map_ident[no_vars]}
 
