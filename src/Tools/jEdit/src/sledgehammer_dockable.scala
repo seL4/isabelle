@@ -107,7 +107,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     selected = false
   }
 
-  private val apply_query = new Button("Apply") {
+  private val apply_query = new Button("<html><b>Apply</b></html>") {
     tooltip = "Search for first-order proof using automatic theorem provers"
     reactions += { case ButtonClicked(_) => clicked }
   }
