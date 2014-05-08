@@ -177,6 +177,9 @@ class Pretty_Text_Area(
     Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
   }
 
+  def detach_operation: Option[() => Unit] =
+    if (current_body.isEmpty) None else Some(() => detach)
+
 
   /* common GUI components */
 

@@ -24,6 +24,8 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
+  override def detach_operation = pretty_text_area.detach_operation
+
 
   /* query operation */
 
