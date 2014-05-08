@@ -12,6 +12,7 @@ sig
   val mk_in_mono_tac: int -> tactic
   val mk_inj_map_tac: int -> thm -> thm -> thm -> thm -> tactic
   val mk_map_id: thm -> thm
+  val mk_map_ident: Proof.context -> thm -> thm
   val mk_map_comp: thm -> thm
   val mk_map_cong_tac: Proof.context -> thm -> tactic
   val mk_set_map: thm -> thm
@@ -43,6 +44,7 @@ val ord_le_eq_trans = @{thm ord_le_eq_trans};
 val conversep_shift = @{thm conversep_le_swap} RS iffD1;
 
 fun mk_map_id id = mk_trans (fun_cong OF [id]) @{thm id_apply};
+fun mk_map_ident ctxt = unfold_thms ctxt @{thms id_def};
 fun mk_map_comp comp = @{thm comp_eq_dest_lhs} OF [mk_sym comp];
 fun mk_map_cong_tac ctxt cong0 =
   (hyp_subst_tac ctxt THEN' rtac cong0 THEN'
