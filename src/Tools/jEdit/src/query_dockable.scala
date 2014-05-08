@@ -91,7 +91,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       query_operation.apply_query(List(limit.text, allow_dups.selected.toString, query.getText))
     }
 
-    private val query_label = new Label("Query:") {
+    private val query_label = new Label("Find:") {
       tooltip =
         GUI.tooltip_lines(
           "Search criteria for find operation, e.g.\n\"_ = _\" \"op +\" name: Group -name: monoid")
@@ -155,7 +155,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       query_operation.apply_query(List(query.getText))
     }
 
-    private val query_label = new Label("Query:") {
+    private val query_label = new Label("Find:") {
       tooltip = GUI.tooltip_lines("Name / type patterns for constants")
     }
 
@@ -190,8 +190,11 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
   {
     /* query */
 
+    private val process_indicator = new Process_Indicator
+
     val query_operation =
-      new Query_Operation(PIDE.editor, view, "print_operation", _ => (),
+      new Query_Operation(PIDE.editor, view, "print_operation",
+        consume_status(process_indicator, _),
         (snapshot, results, body) =>
           pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
@@ -257,7 +260,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       set_selector()
       control_panel.contents.clear
       control_panel.contents ++=
-        List(query_label, selector, apply_button,
+        List(query_label, selector, process_indicator.component, apply_button,
           pretty_text_area.search_label, pretty_text_area.search_pattern, zoom)
     }
 
