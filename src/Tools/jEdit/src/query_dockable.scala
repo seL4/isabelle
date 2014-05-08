@@ -113,6 +113,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private val allow_dups = new CheckBox("Duplicates") {
       tooltip = "Show all versions of matching theorems"
       selected = false
+      reactions += { case ButtonClicked(_) => apply_query() }
     }
 
     private val apply_button = new Button("<html><b>Apply</b></html>") {
