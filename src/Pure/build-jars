@@ -37,6 +37,7 @@ declare -a SOURCES=(
   General/time.scala
   General/timing.scala
   General/url.scala
+  General/untyped.scala
   General/word.scala
   General/xz_file.scala
   GUI/color_value.scala

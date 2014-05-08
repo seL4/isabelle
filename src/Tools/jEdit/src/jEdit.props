@@ -266,6 +266,7 @@ vfs.favorite.1.type=1
 view.antiAlias=standard
 view.blockCaret=true
 view.caretBlink=false
+view.docking.framework=PIDE
 view.eolMarkers=false
 view.extendedState=0
 view.font=IsabelleText

@@ -27,6 +27,8 @@ class Dockable(view: View, position: String)
   def set_content(c: Component) { add(c, BorderLayout.CENTER) }
   def set_content(c: scala.swing.Component) { add(c.peer, BorderLayout.CENTER) }
 
+  def detach_operation: Option[() => Unit] = None
+
   protected def init() { }
   protected def exit() { }
 

@@ -70,7 +70,7 @@ fun pretty_criterion ctxt (b, c) =
     | Solves => Pretty.str (prfx "solves")
     | Simp pat => Pretty.block [Pretty.str (prfx "simp:"), Pretty.brk 1,
         Pretty.quote (Syntax.pretty_term ctxt (Term.show_dummy_patterns pat))]
-    | Pattern pat => Pretty.enclose (prfx " \"") "\""
+    | Pattern pat => Pretty.enclose (prfx "\"") "\""
         [Syntax.pretty_term ctxt (Term.show_dummy_patterns pat)])
   end;
 
@@ -482,15 +482,17 @@ fun pretty_theorems state opt_limit rem_dups raw_criteria =
             (if returned < found
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
+    val position_markup = Position.markup (Position.thread_data ()) Markup.position;
   in
     Pretty.block
-      (Pretty.keyword1 "find_theorems" :: Pretty.brk 1 :: Pretty.str "query:" :: Pretty.fbrk ::
-        Pretty.fbreaks (map (pretty_criterion ctxt) criteria)) ::
+      (Pretty.fbreaks
+        (Pretty.mark position_markup (Pretty.keyword1 "find_theorems") ::
+          map (pretty_criterion ctxt) criteria)) ::
     Pretty.str "" ::
-    (if null theorems then [Pretty.str "nothing found"]
+    (if null theorems then [Pretty.str "found nothing"]
      else
-      [Pretty.str (tally_msg ^ ":"), Pretty.str ""] @
-        grouped 10 Par_List.map (Pretty.item o single o pretty_thm ctxt) (rev theorems))
+       Pretty.str (tally_msg ^ ":") ::
+       grouped 10 Par_List.map (Pretty.item o single o pretty_thm ctxt) (rev theorems))
   end |> Pretty.fbreaks |> curry Pretty.blk 0;
 
 end;
