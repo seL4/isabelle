@@ -22,7 +22,7 @@ class Dockable(view: View, position: String)
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
 
-  def focusOnDefaultComponent { requestFocus }
+  def focusOnDefaultComponent { JEdit_Lib.request_focus_view(view) }
 
   def set_content(c: Component) { add(c, BorderLayout.CENTER) }
   def set_content(c: scala.swing.Component) { add(c.peer, BorderLayout.CENTER) }

@@ -326,9 +326,9 @@ object JEdit_Lib
 
   /* key event handling */
 
-  def request_focus_view
+  def request_focus_view(alt_view: View = null)
   {
-    val view = jEdit.getActiveView()
+    val view = if (alt_view != null) alt_view else jEdit.getActiveView()
     if (view != null) {
       val text_area = view.getTextArea
       if (text_area != null) text_area.requestFocus
