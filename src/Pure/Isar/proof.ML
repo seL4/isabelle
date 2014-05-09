@@ -1064,7 +1064,10 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
       else if int then
-        writeln (Markup.markup Markup.state (Proof_Display.string_of_rule ctxt "Successful" th))
+        Proof_Display.string_of_rule ctxt "Successful" th
+        |> Markup.markup Markup.text_fold
+        |> Markup.markup Markup.state
+        |> writeln
       else ();
     val test_proof =
       local_skip_proof true
