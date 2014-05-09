@@ -190,29 +190,4 @@ declare rtranclp_eq_rtrancl_tab_nil[THEN iffD2, code_pred_intro]
 
 code_pred rtranclp using rtranclp_eq_rtrancl_tab_nil [THEN iffD1] by fastforce
 
-subsection {* A simple example *}
-
-datatype ty = A | B | C
-
-inductive test :: "ty \<Rightarrow> ty \<Rightarrow> bool"
-where
-  "test A B"
-| "test B A"
-| "test B C"
-
-subsubsection {* Invoking with the predicate compiler and the generic code generator *}
-
-code_pred test .
-
-values "{x. test\<^sup>*\<^sup>* A C}"
-values "{x. test\<^sup>*\<^sup>* C A}"
-values "{x. test\<^sup>*\<^sup>* A x}"
-values "{x. test\<^sup>*\<^sup>* x C}"
-
-value "test\<^sup>*\<^sup>* A C"
-value "test\<^sup>*\<^sup>* C A"
-
-hide_type ty
-hide_const test A B C
-
 end

@@ -518,6 +518,7 @@ session "HOL-ex" in ex = HOL +
     Serbian
     "~~/src/HOL/Library/FinFun_Syntax"
     "~~/src/HOL/Library/Refute"
+    "~~/src/HOL/Library/Transitive_Closure_Table"
     Cartouche_Examples
   theories
     Iff_Oracle
@@ -560,6 +561,7 @@ session "HOL-ex" in ex = HOL +
     Sqrt_Script
     Transfer_Ex
     Transfer_Int_Nat
+    Transitive_Closure_Table_Ex
     HarmonicSeries
     Refute_Examples
     Execute_Choice
