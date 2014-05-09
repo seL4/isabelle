@@ -132,7 +132,9 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
           fs=fs, R=R, dom=dom, defname=defname, is_partial=true, cases=flat cases',
           pelims=pelims',elims=NONE}
 
-        val _ = Proof_Display.print_consts do_print lthy (K false) (map fst fixes)
+        val _ =
+          Proof_Display.print_consts do_print (Position.thread_data ()) lthy
+            (K false) (map fst fixes)
       in
         (info,
          lthy |> Local_Theory.declaration {syntax = false, pervasive = false}

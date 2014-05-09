@@ -1045,7 +1045,7 @@ fun global_skip_proof int state =
 local
 
 fun gen_have prep_att prepp before_qed after_qed stmt int =
-  local_goal (Proof_Display.print_results int)
+  local_goal (Proof_Display.print_results int (Position.thread_data ()))
     prep_att prepp "have" before_qed after_qed stmt;
 
 fun gen_show prep_att prepp before_qed after_qed stmt int state =
@@ -1057,9 +1057,10 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       (case ! rule of NONE => [] | SOME th => [Proof_Display.string_of_rule ctxt "Failed" th])
       |> cat_lines;
 
+    val pos = Position.thread_data ();
     fun print_results ctxt res =
       if ! testing then ()
-      else Proof_Display.print_results int ctxt res;
+      else Proof_Display.print_results int pos ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
       else if int then

@@ -223,7 +223,9 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
 
     val lhs' = Morphism.term (Local_Theory.target_morphism lthy4) lhs;
 
-    val _ = Proof_Display.print_consts int lthy4 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
+    val _ =
+      Proof_Display.print_consts int (Position.thread_data ()) lthy4
+        (member (op =) (Term.add_frees lhs' [])) [(x, T)];
   in ((lhs, (def_name, th')), lthy4) end;
 
 val definition' = gen_def check_free_spec;
@@ -256,7 +258,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
       |> Local_Theory.abbrev mode (var, rhs) |> snd
       |> Proof_Context.restore_syntax_mode lthy;
 
-    val _ = Proof_Display.print_consts int lthy2 (K false) [(x, T)];
+    val _ = Proof_Display.print_consts int (Position.thread_data ()) lthy2 (K false) [(x, T)];
   in lthy2 end;
 
 val abbreviation = gen_abbrev check_free_spec;
@@ -301,7 +303,7 @@ fun gen_theorems prep_fact prep_att prep_vars
       |> Attrib.partial_evaluation ctxt'
       |> Element.transform_facts (Proof_Context.export_morphism ctxt' lthy);
     val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts';
-    val _ = Proof_Display.print_results int lthy' ((kind, ""), res);
+    val _ = Proof_Display.print_results int (Position.thread_data ()) lthy' ((kind, ""), res);
   in (res, lthy') end;
 
 in
@@ -389,6 +391,7 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
       |> prep_statement (prep_att lthy) prep_stmt elems raw_concl;
     val atts = more_atts @ map (prep_att lthy) raw_atts;
 
+    val pos = Position.thread_data ();
     fun after_qed' results goal_ctxt' =
       let
         val results' =
@@ -400,12 +403,12 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
               (map2 (fn (b, _) => fn ths => (b, [(ths, [])])) stmt results') lthy;
         val lthy'' =
           if Attrib.is_empty_binding (name, atts) then
-            (Proof_Display.print_results int lthy' ((kind, ""), res); lthy')
+            (Proof_Display.print_results int pos lthy' ((kind, ""), res); lthy')
           else
             let
               val ([(res_name, _)], lthy'') =
                 Local_Theory.notes_kind kind [((name, atts), [(maps #2 res, [])])] lthy';
-              val _ = Proof_Display.print_results int lthy' ((kind, res_name), res);
+              val _ = Proof_Display.print_results int pos lthy' ((kind, res_name), res);
             in lthy'' end;
       in after_qed results' lthy'' end;
   in

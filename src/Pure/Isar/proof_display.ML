@@ -22,8 +22,10 @@ sig
   val pretty_goal_facts: Proof.context -> string -> thm list -> Pretty.T
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
-  val print_results: bool -> Proof.context -> ((string * string) * (string * thm list) list) -> unit
-  val print_consts: bool -> Proof.context -> (string * typ -> bool) -> (string * typ) list -> unit
+  val print_results: bool -> Position.T -> Proof.context ->
+    ((string * string) * (string * thm list) list) -> unit
+  val print_consts: bool -> Position.T -> Proof.context ->
+    (string * typ -> bool) -> (string * typ) list -> unit
 end
 
 structure Proof_Display: PROOF_DISPLAY =
@@ -127,11 +129,13 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
 
 (* results *)
 
+fun position_markup pos = Pretty.mark (Position.markup pos Markup.position);
+
 local
 
-fun pretty_fact_name (kind, "") = Pretty.keyword1 kind
-  | pretty_fact_name (kind, name) =
-      Pretty.block [Pretty.keyword1 kind, Pretty.brk 1,
+fun pretty_fact_name pos (kind, "") = position_markup pos (Pretty.keyword1 kind)
+  | pretty_fact_name pos (kind, name) =
+      Pretty.block [position_markup pos (Pretty.keyword1 kind), Pretty.brk 1,
         Pretty.str (Long_Name.base_name name), Pretty.str ":"];
 
 fun pretty_facts ctxt =
@@ -140,17 +144,18 @@ fun pretty_facts ctxt =
 
 in
 
-fun print_results do_print ctxt ((kind, name), facts) =
+fun print_results do_print pos ctxt ((kind, name), facts) =
   if not do_print orelse kind = "" then ()
   else if name = "" then
     (Pretty.writeln o Pretty.mark Markup.state)
-      (Pretty.block (Pretty.keyword1 kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
+      (Pretty.block (position_markup pos (Pretty.keyword1 kind) :: Pretty.brk 1 ::
+        pretty_facts ctxt facts))
   else
     (Pretty.writeln o Pretty.mark Markup.state)
       (case facts of
-        [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
+        [fact] => Pretty.blk (1, [pretty_fact_name pos (kind, name), Pretty.fbrk,
           Proof_Context.pretty_fact ctxt fact])
-      | _ => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
+      | _ => Pretty.blk (1, [pretty_fact_name pos (kind, name), Pretty.fbrk,
           Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]));
 
 end;
@@ -164,18 +169,19 @@ fun pretty_var ctxt (x, T) =
   Pretty.block [Pretty.str x, Pretty.str " ::", Pretty.brk 1,
     Pretty.quote (Syntax.pretty_typ ctxt T)];
 
-fun pretty_vars ctxt kind vs = Pretty.big_list kind (map (pretty_var ctxt) vs);
+fun pretty_vars pos ctxt kind vs =
+  Pretty.block (Pretty.fbreaks (position_markup pos (Pretty.str kind) :: map (pretty_var ctxt) vs));
 
-fun pretty_consts ctxt pred cs =
+fun pretty_consts pos ctxt pred cs =
   (case filter pred (#1 (Proof_Context.inferred_fixes ctxt)) of
-    [] => pretty_vars ctxt "constants" cs
-  | ps => Pretty.chunks [pretty_vars ctxt "parameters" ps, pretty_vars ctxt "constants" cs]);
+    [] => pretty_vars pos ctxt "constants" cs
+  | ps => Pretty.chunks [pretty_vars pos ctxt "parameters" ps, pretty_vars pos ctxt "constants" cs]);
 
 in
 
-fun print_consts do_print ctxt pred cs =
+fun print_consts do_print pos ctxt pred cs =
   if not do_print orelse null cs then ()
-  else Pretty.writeln (Pretty.mark Markup.state (pretty_consts ctxt pred cs));
+  else Pretty.writeln (Pretty.mark Markup.state (pretty_consts pos ctxt pred cs));
 
 end;
 
