@@ -2606,7 +2606,8 @@ text {* For validation purposes, it is often useful to \emph{execute}
   "del"}'' removes) theorems which are applied as rewrite rules to any
   result of an evaluation.
 
-  \item @{attribute (HOL) code_abbrev} declares equations which are
+  \item @{attribute (HOL) code_abbrev} declares (or with option ``@{text
+  "del"}'' removes) equations which are
   applied as rewrite rules to any result of an evaluation and
   symmetrically during preprocessing to any code equation or evaluation
   input.
