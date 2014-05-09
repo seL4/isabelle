@@ -87,8 +87,7 @@ fun dynamic_value ctxt =
 val setup =
   Method.setup @{binding code_simp}
     (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_tac)))
-    "simplification with code equations"
-  #> Value.add_evaluator ("simp", dynamic_value);
+    "simplification with code equations";
 
 
 (* evaluation with static code context *)
