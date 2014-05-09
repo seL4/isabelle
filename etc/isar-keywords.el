@@ -28,6 +28,7 @@
     "also"
     "apply"
     "apply_end"
+    "approximate"
     "assume"
     "atom_decl"
     "attribute_setup"
@@ -388,6 +389,7 @@
 (defconst isar-keywords-diag
   '("ML_command"
     "ML_val"
+    "approximate"
     "cartouche"
     "class_deps"
     "code_deps"
