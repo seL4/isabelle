@@ -24,14 +24,14 @@ sig
   val pretty: Proof.context -> code_graph -> Pretty.T
   val obtain: bool -> theory -> string list -> term list -> code_algebra * code_graph
   val dynamic_conv: Proof.context
-    -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
+    -> (code_algebra -> code_graph -> term -> conv) -> conv
   val dynamic_value: Proof.context -> ((term -> term) -> 'a -> 'a)
-    -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
+    -> (code_algebra -> code_graph -> term -> 'a) -> term -> 'a
   val static_conv: Proof.context -> string list
-    -> (code_algebra -> code_graph -> Proof.context -> (string * sort) list -> term -> conv)
+    -> (code_algebra -> code_graph -> Proof.context -> term -> conv)
     -> Proof.context -> conv
   val static_value: Proof.context -> ((term -> term) -> 'a -> 'a) -> string list
-    -> (code_algebra -> code_graph -> Proof.context -> (string * sort) list -> term -> 'a)
+    -> (code_algebra -> code_graph -> Proof.context -> term -> 'a)
     -> Proof.context -> term -> 'a
 
   val setup: theory -> theory
@@ -462,17 +462,15 @@ fun obtain ignore_cache thy consts ts = apsnd snd
   (Wellsorted.change_yield (if ignore_cache then NONE else SOME thy)
     (extend_arities_eqngr (Proof_Context.init_global thy) consts ts));
 
-fun dest_cterm ct = let val t = Thm.term_of ct in (Term.add_tfrees t [], t) end;
-
 fun dynamic_conv ctxt conv = no_variables_conv ctxt (fn ct =>
   let
     val thm1 = preprocess_conv ctxt ctxt ct;
     val ct' = Thm.rhs_of thm1;
-    val (vs', t') = dest_cterm ct';
+    val t' = Thm.term_of ct';
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
     val (algebra', eqngr') = obtain false (Proof_Context.theory_of ctxt) consts [t'];
-    val thm2 = conv algebra' eqngr' vs' t' ct';
+    val thm2 = conv algebra' eqngr' t' ct';
     val thm3 = postprocess_conv ctxt ctxt (Thm.rhs_of thm2);
   in
     Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
@@ -483,13 +481,12 @@ fun dynamic_conv ctxt conv = no_variables_conv ctxt (fn ct =>
 fun dynamic_value ctxt postproc evaluator t =
   let
     val (resubst, t') = preprocess_term ctxt ctxt t;
-    val vs' = Term.add_tfrees t' [];
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
     val (algebra', eqngr') = obtain false (Proof_Context.theory_of ctxt) consts [t'];
   in
     t'
-    |> evaluator algebra' eqngr' vs'
+    |> evaluator algebra' eqngr'
     |> postproc (postprocess_term ctxt ctxt o resubst)
   end;
 
@@ -500,7 +497,7 @@ fun static_conv ctxt consts conv =
     val conv' = conv algebra eqngr;
     val post_conv = postprocess_conv ctxt;
   in fn ctxt' => no_variables_conv ctxt' ((pre_conv ctxt')
-    then_conv (fn ct => uncurry (conv' ctxt') (dest_cterm ct) ct)
+    then_conv (fn ct => conv' ctxt' (Thm.term_of ct) ct)
     then_conv (post_conv ctxt'))
   end;
 
@@ -513,7 +510,7 @@ fun static_value ctxt postproc consts evaluator =
   in fn ctxt' => 
     preproc ctxt'
     #-> (fn resubst => fn t => t
-      |> evaluator' ctxt' (Term.add_tfrees t [])
+      |> evaluator' ctxt'
       |> postproc (postproc' ctxt' o resubst))
   end;
 

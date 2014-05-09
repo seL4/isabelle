@@ -86,20 +86,20 @@ sig
   val read_const_exprs: Proof.context -> string list -> string list
   val consts_program: theory -> string list -> program
   val dynamic_conv: Proof.context -> (program
-    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> conv)
+    -> (string -> (string * sort)) -> typscheme * iterm -> Code_Symbol.T list -> conv)
     -> conv
   val dynamic_value: Proof.context -> ((term -> term) -> 'a -> 'a) -> (program
-    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> 'a)
+    -> (string -> (string * sort)) -> typscheme * iterm -> Code_Symbol.T list -> 'a)
     -> term -> 'a
   val static_conv: Proof.context -> string list -> (program -> string list
-    -> Proof.context -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> conv)
+    -> Proof.context -> (string -> (string * sort)) -> typscheme * iterm -> Code_Symbol.T list -> conv)
     -> Proof.context -> conv
   val static_conv_simple: Proof.context -> string list
-    -> (program -> Proof.context -> (string * sort) list -> term -> conv)
+    -> (program -> Proof.context -> term -> conv)
     -> Proof.context -> conv
   val static_value: Proof.context -> ((term -> term) -> 'a -> 'a) -> string list ->
     (program -> string list
-      -> Proof.context -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> 'a)
+      -> Proof.context -> (string -> (string * sort)) -> typscheme * iterm -> Code_Symbol.T list -> 'a)
     -> Proof.context -> term -> 'a
 end;
 
@@ -388,7 +388,7 @@ fun ensure_stmt symbolize generate x (deps, program) =
 
 exception PERMISSIVE of unit;
 
-fun translation_error ctxt program permissive some_thm deps msg sub_msg =
+fun translation_error ctxt permissive some_thm deps msg sub_msg =
   if permissive
   then raise PERMISSIVE ()
   else
@@ -408,14 +408,14 @@ fun translation_error ctxt program permissive some_thm deps msg sub_msg =
 fun maybe_permissive f prgrm =
   f prgrm |>> SOME handle PERMISSIVE () => (NONE, prgrm);
 
-fun not_wellsorted ctxt program permissive some_thm deps ty sort e =
+fun not_wellsorted ctxt permissive some_thm deps ty sort e =
   let
     val err_class = Sorts.class_error (Context.pretty ctxt) e;
     val err_typ =
       "Type " ^ Syntax.string_of_typ ctxt ty ^ " not of sort " ^
         Syntax.string_of_sort ctxt sort;
   in
-    translation_error ctxt program permissive some_thm deps
+    translation_error ctxt permissive some_thm deps
       "Wellsortedness error" (err_typ ^ "\n" ^ err_class)
   end;
 
@@ -483,7 +483,7 @@ fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, so
       {class_relation = K (Sorts.classrel_derivation algebra class_relation),
        type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
-      handle Sorts.CLASS_ERROR e => not_wellsorted ctxt program permissive some_thm deps ty sort e;
+      handle Sorts.CLASS_ERROR e => not_wellsorted ctxt permissive some_thm deps ty sort e;
   in (typarg_witnesses, (deps, program)) end;
 
 
@@ -630,7 +630,7 @@ and translate_const ctxt algbr eqngr permissive some_thm ((c, ty), some_abs) (de
     val thy = Proof_Context.theory_of ctxt;
     val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
         andalso Code.is_abstr thy c
-        then translation_error ctxt program permissive some_thm deps
+        then translation_error ctxt permissive some_thm deps
           "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
       else ()
   in translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) (deps, program) end
@@ -795,11 +795,18 @@ fun consts_program thy consts =
 
 (* value evaluation *)
 
-fun ensure_value ctxt algbr eqngr t =
+fun normalize_tvars t = 
   let
     val ty = fastype_of t;
-    val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
+    val vs_original = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
+    val vs_normalized = Name.invent_names Name.context Name.aT (map snd vs_original);
+    val normalize = map_type_tfree (TFree o the o AList.lookup (op =) (vs_original ~~ vs_normalized));
+  in ((vs_original, (vs_normalized, normalize ty)), map_types normalize t) end;
+
+fun ensure_value ctxt algbr eqngr t_original =
+  let
+    val ((vs_original, (vs, ty)), t) = normalize_tvars t_original;
     val t' = annotate ctxt algbr eqngr (@{const_name Pure.dummy_pattern}, ty) [] t;
     val dummy_constant = Constant @{const_name Pure.dummy_pattern};
     val stmt_value =
@@ -808,29 +815,27 @@ fun ensure_value ctxt algbr eqngr t =
       ##>> translate_term ctxt algbr eqngr false NONE (t', NONE)
       #>> (fn ((vs, ty), t) => Fun
         (((vs, ty), [(([], t), (NONE, true))]), NONE));
-    fun term_value (deps, program1) =
+    fun term_value (_, program1) =
       let
-        val Fun ((vs_ty, [(([], t), _)]), _) =
+        val Fun ((vs_ty as (vs, _), [(([], t), _)]), _) =
           Code_Symbol.Graph.get_node program1 dummy_constant;
         val deps' = Code_Symbol.Graph.immediate_succs program1 dummy_constant;
         val program2 = Code_Symbol.Graph.del_node dummy_constant program1;
         val deps_all = Code_Symbol.Graph.all_succs program2 deps';
         val program3 = Code_Symbol.Graph.restrict (member (op =) deps_all) program2;
-      in ((program3, ((vs_ty, t), deps')), (deps, program2)) end;
+        val vs_mapping = map fst vs ~~ vs_original;
+      in (((the o AList.lookup (op =) vs_mapping), (program3, ((vs_ty, t), deps'))), (deps', program2)) end;
   in
     ensure_stmt Constant stmt_value @{const_name Pure.dummy_pattern}
     #> snd
     #> term_value
   end;
 
-fun original_sorts vs =
-  map (fn (v, _) => (v, (the o AList.lookup (op =) vs o prefix "'") v));
-
-fun dynamic_evaluator ctxt evaluator algebra eqngr vs t =
+fun dynamic_evaluator ctxt evaluator algebra eqngr t =
   let
-    val ((program, (((vs', ty'), t'), deps)), _) =
+    val ((resubst_tvar, (program, ((vs_ty', t'), deps))), _) =
       invoke_generation false (Proof_Context.theory_of ctxt) (algebra, eqngr) ensure_value t;
-  in evaluator program ((original_sorts vs vs', (vs', ty')), t') deps end;
+  in evaluator program resubst_tvar (vs_ty', t') deps end;
 
 fun dynamic_conv ctxt conv =
   Code_Preproc.dynamic_conv ctxt (dynamic_evaluator ctxt conv);
@@ -838,22 +843,22 @@ fun dynamic_conv ctxt conv =
 fun dynamic_value ctxt postproc evaluator =
   Code_Preproc.dynamic_value ctxt postproc (dynamic_evaluator ctxt evaluator);
 
-fun lift_evaluation ctxt evaluation algebra eqngr program vs t =
+fun static_subevaluator ctxt subevaluator algebra eqngr program t =
   let
-    val ((_, (((vs', ty'), t'), deps)), _) =
+    val ((resubst_tvar, (_, ((vs_ty', t'), deps))), _) =
       ensure_value ctxt algebra eqngr t ([], program);
-  in evaluation ctxt ((original_sorts vs vs', (vs', ty')), t') deps end;
+  in subevaluator ctxt resubst_tvar (vs_ty', t') deps end;
 
-fun lift_evaluator ctxt evaluator consts algebra eqngr =
+fun static_evaluator ctxt evaluator consts algebra eqngr =
   let
     fun generate_consts ctxt algebra eqngr =
       fold_map (ensure_const ctxt algebra eqngr false);
     val (consts', program) =
       invoke_generation true (Proof_Context.theory_of ctxt) (algebra, eqngr) generate_consts consts;
-    val evaluation = evaluator program consts';
-  in fn ctxt' => lift_evaluation ctxt' evaluation algebra eqngr program end;
+    val subevaluator = evaluator program consts';
+  in fn ctxt' => static_subevaluator ctxt' subevaluator algebra eqngr program end;
 
-fun lift_evaluator_simple ctxt evaluator consts algebra eqngr =
+fun static_evaluator_simple ctxt evaluator consts algebra eqngr =
   let
     fun generate_consts ctxt algebra eqngr =
       fold_map (ensure_const ctxt algebra eqngr false);
@@ -862,13 +867,13 @@ fun lift_evaluator_simple ctxt evaluator consts algebra eqngr =
   in evaluator program end;
 
 fun static_conv ctxt consts conv =
-  Code_Preproc.static_conv ctxt consts (lift_evaluator ctxt conv consts);
+  Code_Preproc.static_conv ctxt consts (static_evaluator ctxt conv consts);
 
 fun static_conv_simple ctxt consts conv =
-  Code_Preproc.static_conv ctxt consts (lift_evaluator_simple ctxt conv consts);
+  Code_Preproc.static_conv ctxt consts (static_evaluator_simple ctxt conv consts);
 
 fun static_value ctxt postproc consts evaluator =
-  Code_Preproc.static_value ctxt postproc consts (lift_evaluator ctxt evaluator consts);
+  Code_Preproc.static_value ctxt postproc consts (static_evaluator ctxt evaluator consts);
 
 
 (** constant expressions **)

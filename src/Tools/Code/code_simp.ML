@@ -76,7 +76,7 @@ fun conclude_tac ctxt some_ss =
 (* evaluation with dynamic code context *)
 
 fun dynamic_conv ctxt = Code_Thingol.dynamic_conv ctxt
-  (fn program => fn _ => fn _ => rewrite_modulo ctxt NONE program ctxt);
+  (fn program => fn _ => fn _ => fn _ => rewrite_modulo ctxt NONE program ctxt);
 
 fun dynamic_tac ctxt = CONVERSION (dynamic_conv ctxt)
   THEN' conclude_tac ctxt NONE ctxt;
@@ -96,7 +96,7 @@ val setup =
 fun static_conv ctxt some_ss consts =
   Code_Thingol.static_conv_simple ctxt consts
     (fn program => let val conv' = rewrite_modulo ctxt some_ss program
-     in fn ctxt' => fn _ => fn _ => conv' ctxt' end);
+     in fn ctxt' => fn _ => conv' ctxt' end);
 
 fun static_tac ctxt some_ss consts =
   let

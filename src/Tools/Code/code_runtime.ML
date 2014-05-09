@@ -112,8 +112,8 @@ fun dynamic_value_exn cookie ctxt some_target postproc t args =
     val _ = if ! trace
       then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term ctxt t))
       else ()
-    fun evaluator program ((_, vs_ty), t) deps =
-      evaluation cookie ctxt (obtain_evaluator ctxt some_target program deps) (vs_ty, t) args;
+    fun evaluator program _ vs_ty_t deps =
+      evaluation cookie ctxt (obtain_evaluator ctxt some_target program deps) vs_ty_t args;
   in Code_Thingol.dynamic_value ctxt (Exn.map_result o postproc) evaluator t end;
 
 fun dynamic_value_strict cookie ctxt some_target postproc t args =
@@ -126,7 +126,7 @@ fun static_evaluator cookie ctxt some_target program consts' =
   let
     val evaluator = obtain_evaluator ctxt some_target program (map Constant consts');
     val evaluation' = evaluation cookie ctxt evaluator;
-  in fn _ => fn ((_, vs_ty), t) => fn _ => evaluation' (vs_ty, t) [] end;
+  in fn _ => fn _ => fn vs_ty_t => fn _ => evaluation' vs_ty_t [] end;
 
 fun static_value_exn cookie ctxt some_target postproc consts =
   let
@@ -175,14 +175,14 @@ val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding holds_by_evaluation},
   fn (ctxt, evaluator, vs_t, ct) => check_holds ctxt evaluator vs_t ct)));
 
-fun check_holds_oracle ctxt evaluator ((_, vs_ty), t) deps ct =
-  raw_check_holds_oracle (ctxt, evaluator, (vs_ty, t), ct);
+fun check_holds_oracle ctxt evaluator vs_ty_t ct =
+  raw_check_holds_oracle (ctxt, evaluator, vs_ty_t, ct);
 
 in
 
 fun dynamic_holds_conv ctxt = Code_Thingol.dynamic_conv ctxt
-  (fn program => fn vs_t => fn deps =>
-    check_holds_oracle ctxt (obtain_evaluator ctxt NONE program deps) vs_t deps)
+  (fn program => fn _ => fn vs_t => fn deps =>
+    check_holds_oracle ctxt (obtain_evaluator ctxt NONE program deps) vs_t)
       o reject_vars ctxt;
 
 fun static_holds_conv ctxt consts =
@@ -190,7 +190,7 @@ fun static_holds_conv ctxt consts =
     let
       val evaluator' = obtain_evaluator ctxt NONE program (map Constant consts')
     in
-      fn ctxt' => fn vs_t => fn deps => check_holds_oracle ctxt' evaluator' vs_t deps o reject_vars ctxt'
+      fn ctxt' => fn _ => fn vs_t => fn _ => check_holds_oracle ctxt' evaluator' vs_t o reject_vars ctxt'
     end);
 
 (* o reject_vars ctxt'*)

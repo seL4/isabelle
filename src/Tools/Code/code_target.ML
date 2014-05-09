@@ -428,7 +428,7 @@ fun check_code_for ctxt target strict args program all_public syms =
     else Isabelle_System.with_tmp_dir "Code_Test" ext_check
   end;
 
-fun evaluation mounted_serializer prepared_program syms all_public ((vs, ty), t) =
+fun subevaluator mounted_serializer prepared_program syms all_public ((vs, ty), t) =
   let
     val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
@@ -449,7 +449,7 @@ fun evaluator ctxt target program syms =
   let
     val (mounted_serializer, (_, prepared_program)) =
       mount_serializer ctxt target NONE generatedN [] program syms;
-  in evaluation mounted_serializer prepared_program syms end;
+  in subevaluator mounted_serializer prepared_program syms end;
 
 end; (* local *)
 

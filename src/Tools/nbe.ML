@@ -502,10 +502,11 @@ fun compile_term ctxt nbe_program deps (vs : (string * sort) list, t) =
 
 (* reconstruction *)
 
-fun typ_of_itype vs (tyco `%% itys) =
-      Type (tyco, map (typ_of_itype vs) itys)
-  | typ_of_itype vs (ITyVar v) =
-      TFree ("'" ^ v, (the o AList.lookup (op =) vs) v);
+fun typ_of_itype resubst_tvar =
+  let
+    fun typ_of (tyco `%% itys) = Type (tyco, map typ_of itys)
+      | typ_of (ITyVar v) = TFree (resubst_tvar v);
+  in typ_of end;
 
 fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
   let
@@ -542,11 +543,11 @@ fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
 
 (* evaluation with type reconstruction *)
 
-fun eval_term raw_ctxt (nbe_program, idx_tab) ((vs0, (vs, ty)), t) deps =
+fun eval_term raw_ctxt (nbe_program, idx_tab) resubst_tvar ((vs, ty), t) deps =
   let
     val ctxt = Syntax.init_pretty_global (Proof_Context.theory_of raw_ctxt);
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
-    val ty' = typ_of_itype vs0 ty;
+    val ty' = typ_of_itype resubst_tvar ty;
     fun type_infer t =
       Syntax.check_term (Config.put Type_Infer_Context.const_sorts false ctxt)
         (Type.constraint ty' t);
@@ -592,11 +593,11 @@ fun mk_equals ctxt lhs raw_rhs =
 
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding normalization_by_evaluation},
-    fn (ctxt, nbe_program_idx_tab, vsp_ty_t, deps, ct) =>
-      mk_equals ctxt ct (eval_term ctxt nbe_program_idx_tab vsp_ty_t deps))));
+    fn (ctxt, nbe_program_idx_tab, resubst_tvars, vs_ty_t, deps, ct) =>
+      mk_equals ctxt ct (eval_term ctxt nbe_program_idx_tab resubst_tvars vs_ty_t deps))));
 
-fun oracle ctxt nbe_program_idx_tab vsp_ty_t deps ct =
-  raw_oracle (ctxt, nbe_program_idx_tab, vsp_ty_t, deps, ct);
+fun oracle ctxt nbe_program_idx_tab resubst_tvars vs_ty_t deps ct =
+  raw_oracle (ctxt, nbe_program_idx_tab, resubst_tvars, vs_ty_t, deps, ct);
 
 fun dynamic_conv ctxt = lift_triv_classes_conv ctxt
   (Code_Thingol.dynamic_conv ctxt (oracle ctxt o compile false ctxt));
