@@ -16,7 +16,6 @@ sig
   val static_conv: Proof.context -> string list -> typ list -> Proof.context -> conv
   val put_term: (unit -> term) -> Proof.context -> Proof.context
   val tracing: string -> 'a -> 'a
-  val setup: theory -> theory
 end;
 
 structure Code_Evaluation : CODE_EVALUATION =
@@ -129,6 +128,15 @@ fun ensure_abs_term_of_code (tyco, (raw_vs, ((abs, (_, ty)), (proj, _)))) thy =
   in if has_inst then add_abs_term_of_code tyco raw_vs abs ty proj thy else thy end;
 
 
+(* setup *)
+
+val _ = Context.>> (Context.map_theory
+  (Code.datatype_interpretation ensure_term_of
+  #> Code.abstype_interpretation ensure_term_of
+  #> Code.datatype_interpretation ensure_term_of_code
+  #> Code.abstype_interpretation ensure_abs_term_of_code));
+
+
 (** termifying syntax **)
 
 fun map_default f xs =
@@ -154,6 +162,8 @@ and subst_termify (Abs (v, T, t)) = (case subst_termify t
 
 fun check_termify ctxt ts =
   the_default ts (map_default subst_termify ts);
+
+val _ = Context.>> (Syntax_Phases.term_check 0 "termify" check_termify);
 
 
 (** evaluation **)
@@ -219,15 +229,5 @@ fun static_conv ctxt consts Ts =
 (** diagnostic **)
 
 fun tracing s x = (Output.tracing s; x);
-
-
-(** setup **)
-
-val setup =
-  Code.datatype_interpretation ensure_term_of
-  #> Code.abstype_interpretation ensure_term_of
-  #> Code.datatype_interpretation ensure_term_of_code
-  #> Code.abstype_interpretation ensure_abs_term_of_code
-  #> Context.theory_map (Syntax_Phases.term_check 0 "termify" check_termify);
 
 end;

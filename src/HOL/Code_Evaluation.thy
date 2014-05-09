@@ -77,8 +77,6 @@ ML_file "Tools/code_evaluation.ML"
 
 code_reserved Eval Code_Evaluation
 
-setup {* Code_Evaluation.setup *}
-
 
 subsection {* @{text term_of} instances *}
 
@@ -109,16 +107,9 @@ end
 
 subsubsection {* Code generator setup *}
 
-lemmas [code del] = term.rec term.case term.size
-lemma [code, code del]: "HOL.equal (t1\<Colon>term) t2 \<longleftrightarrow> HOL.equal t1 t2" ..
-
-lemma [code, code del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
-lemma [code, code del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
-lemma [code, code del]: "(term_of \<Colon> String.literal \<Rightarrow> term) = term_of" ..
-lemma [code, code del]: "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} Predicate.pred \<Rightarrow> Code_Evaluation.term)
-  = Code_Evaluation.term_of" ..
-lemma [code, code del]: "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} Predicate.seq \<Rightarrow> Code_Evaluation.term)
-  = Code_Evaluation.term_of" ..
+declare [[code drop: rec_term case_term size_term "size :: term \<Rightarrow> _" "HOL.equal :: term \<Rightarrow> _"
+  "term_of :: typerep \<Rightarrow> _" "term_of :: term \<Rightarrow> _" "term_of :: String.literal \<Rightarrow> _"
+  "term_of :: _ Predicate.pred \<Rightarrow> term" "term_of :: _ Predicate.seq \<Rightarrow> term"]]
 
 lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]:
   "Code_Evaluation.term_of c = (case c of Char x y \<Rightarrow>
@@ -168,8 +159,7 @@ subsection {* Interactive evaluation *}
 ML_file "~~/src/HOL/Tools/value.ML"
 
 setup {*
-  Value.setup
-  #> Value.add_evaluator ("nbe", Nbe.dynamic_value)
+  Value.add_evaluator ("nbe", Nbe.dynamic_value)
   #> Value.add_evaluator ("code", Code_Evaluation.dynamic_value_strict)
 *}
 

@@ -10,7 +10,6 @@ sig
   val value_select: string -> Proof.context -> term -> term
   val value_cmd: string option -> string list -> string -> Toplevel.state -> unit
   val add_evaluator: string * (Proof.context -> term -> term) -> theory -> theory
-  val setup : theory -> theory
 end;
 
 structure Value : VALUE =
@@ -67,13 +66,11 @@ val _ =
     (opt_evaluator -- opt_modes -- Parse.term
       >> (fn ((some_name, modes), t) => Toplevel.keep (value_cmd some_name modes t)));
 
-val antiq_setup =
-  Thy_Output.antiquotation @{binding value}
+val _ = Context.>> (Context.map_theory
+  (Thy_Output.antiquotation @{binding value}
     (Scan.lift opt_evaluator -- Term_Style.parse -- Args.term)
     (fn {source, context, ...} => fn ((some_name, style), t) => Thy_Output.output context
       (Thy_Output.maybe_pretty_source Thy_Output.pretty_term context source
-        [style (value_maybe_select some_name context t)]));
-
-val setup = antiq_setup;
+        [style (value_maybe_select some_name context t)]))));
 
 end;
