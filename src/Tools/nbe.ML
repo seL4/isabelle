@@ -24,7 +24,6 @@ sig
   val put_result: (unit -> Univ list -> Univ list) -> Proof.context -> Proof.context
   val trace: bool Unsynchronized.ref
 
-  val setup: theory -> theory
   val add_const_alias: thm -> theory -> theory
 end;
 
@@ -616,10 +615,5 @@ fun static_value ctxt consts =
     val evaluator = Code_Thingol.static_value ctxt I consts
       (fn program => fn _ => K (eval_term ctxt (compile true ctxt program)));
   in fn ctxt' => lift_triv_classes_rew ctxt' (evaluator ctxt') end;
-
-
-(** setup **)
-
-val setup = Value.add_evaluator ("nbe", dynamic_value);
 
 end;

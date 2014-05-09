@@ -7,14 +7,13 @@ header {* Loading the code generator and related modules *}
 theory Code_Generator
 imports Pure
 keywords
-  "value" "print_codeproc" "code_thms" "code_deps" :: diag and
+  "print_codeproc" "code_thms" "code_deps" :: diag and
   "export_code" "code_identifier" "code_printing" "code_reserved"
     "code_monad" "code_reflect" :: thy_decl and
   "datatypes" "functions" "module_name" "file" "checking"
   "constant" "type_constructor" "type_class" "class_relation" "class_instance" "code_module"
 begin
 
-ML_file "~~/src/Tools/value.ML"
 ML_file "~~/src/Tools/cache_io.ML"
 ML_file "~~/src/Tools/Code/code_preproc.ML"
 ML_file "~~/src/Tools/Code/code_symbol.ML"
@@ -28,8 +27,7 @@ ML_file "~~/src/Tools/Code/code_haskell.ML"
 ML_file "~~/src/Tools/Code/code_scala.ML"
 
 setup {*
-  Value.setup
-  #> Code_Preproc.setup
+  Code_Preproc.setup
   #> Code_Simp.setup
   #> Code_Target.setup
   #> Code_ML.setup
@@ -66,7 +64,6 @@ qed
 
 ML_file "~~/src/Tools/Code/code_runtime.ML"
 ML_file "~~/src/Tools/nbe.ML"
-setup Nbe.setup
 
 hide_const (open) holds
 

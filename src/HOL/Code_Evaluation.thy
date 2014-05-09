@@ -6,6 +6,7 @@ header {* Term evaluation using the generic code generator *}
 
 theory Code_Evaluation
 imports Typerep Limited_Sequence
+keywords "value" :: diag
 begin
 
 subsection {* Term representation *}
@@ -160,6 +161,17 @@ definition tracing :: "String.literal \<Rightarrow> 'a \<Rightarrow> 'a" where
 
 code_printing
   constant "tracing :: String.literal => 'a => 'a" \<rightharpoonup> (Eval) "Code'_Evaluation.tracing"
+
+
+subsection {* Interactive evaluation *}
+
+ML_file "~~/src/HOL/Tools/value.ML"
+
+setup {*
+  Value.setup
+  #> Value.add_evaluator ("nbe", Nbe.dynamic_value)
+  #> Value.add_evaluator ("code", Code_Evaluation.dynamic_value_strict)
+*}
 
 
 subsection {* Generic reification *}
