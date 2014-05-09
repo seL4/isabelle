@@ -204,8 +204,11 @@ differently).
 
 *** HOL ***
 
+* Command and antiquotation ''value'' are hardcoded against nbe and
+ML now.  Minor INCOMPATIBILITY.
+
 * Separate command ''approximate'' for approximative computation
-in Decision_Procs/Approximation.  Minor INCOMPATBILITY.
+in Decision_Procs/Approximation.  Minor INCOMPATIBILITY.
 
 * Adjustion of INF and SUP operations:
   * Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.

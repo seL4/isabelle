@@ -183,7 +183,7 @@ quickcheck[tester = random]
 quickcheck[tester = smart_exhaustive]
 oops
 
-value [code] "prop_regex a_sol"
+value "prop_regex a_sol"
 
 
 end

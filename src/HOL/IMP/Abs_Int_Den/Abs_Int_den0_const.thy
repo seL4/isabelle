@@ -100,12 +100,12 @@ definition "test7_const =
   WHILE Less (V ''x'') (N 1)
   DO (''x'' ::= V ''y'';; ''y'' ::= V ''z'';; ''z'' ::= V ''u'')"
 
-value [code] "list (AI_const test1_const Top)"
-value [code] "list (AI_const test2_const Top)"
-value [code] "list (AI_const test3_const Top)"
-value [code] "list (AI_const test4_const Top)"
-value [code] "list (AI_const test5_const Top)"
-value [code] "list (AI_const test6_const Top)"
-value [code] "list (AI_const test7_const Top)"
+value "list (AI_const test1_const Top)"
+value "list (AI_const test2_const Top)"
+value "list (AI_const test3_const Top)"
+value "list (AI_const test4_const Top)"
+value "list (AI_const test5_const Top)"
+value "list (AI_const test6_const Top)"
+value "list (AI_const test7_const Top)"
 
 end

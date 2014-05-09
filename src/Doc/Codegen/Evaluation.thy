@@ -90,18 +90,12 @@ text {*
 value %quote "42 / (12 :: rat)"
 
 text {*
-  \noindent By default @{command value} tries all available evaluation
-  techniques and prints the result of the first succeeding one.  A particular
-  technique may be specified in square brackets, e.g.
-*}
+  \noindent @{command value} tries first to evaluate using ML, falling
+  back to normalization by evaluation if this fails.
 
-value %quote [nbe] "42 / (12 :: rat)"
-
-text {*
   To employ dynamic evaluation in the document generation, there is also
-  a @{text value} antiquotation. By default, it also tries all available evaluation
-  techniques and prints the result of the first succeeding one, unless a particular
-  technique is specified in square brackets.
+  a @{text value} antiquotation with the same evaluation techniques 
+  as @{command value}.
 
   Static evaluation freezes the code generator configuration at a
   certain point and uses this context whenever evaluation is issued
@@ -172,10 +166,7 @@ text {*
   \fontsize{9pt}{12pt}\selectfont
   \begin{tabular}{ll||c|c|c}
     & & @{text simp} & @{text nbe} & @{text code} \tabularnewline \hline \hline
-    \multirow{5}{1ex}{\rotatebox{90}{dynamic}}
-      & interactive evaluation 
-      & @{command value} @{text "[simp]"} & @{command value} @{text "[nbe]"} & @{command value} @{text "[code]"}
-      \tabularnewline
+    \multirow{4}{1ex}{\rotatebox{90}{dynamic}}
     & plain evaluation & & & \ttsize@{ML "Code_Evaluation.dynamic_value"} \tabularnewline \cline{2-5}
     & evaluation method & @{method code_simp} & @{method normalization} & @{method eval} \tabularnewline
     & property conversion & & & \ttsize@{ML "Code_Runtime.dynamic_holds_conv"} \tabularnewline \cline{2-5}

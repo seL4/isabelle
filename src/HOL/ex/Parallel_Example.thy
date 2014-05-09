@@ -93,7 +93,7 @@ definition computation_future :: "unit \<Rightarrow> nat list \<times> rat" wher
    (\<lambda>() \<Rightarrow> let c = Parallel.fork computation_harmonic
      in (computation_primes (), Parallel.join c))"
 
-value [code] "computation_future ()"
+value "computation_future ()"
 
 definition computation_factorise :: "nat \<Rightarrow> nat list" where
   "computation_factorise = Debug.timing (STR ''factorise'') factorise"
@@ -102,7 +102,7 @@ definition computation_parallel :: "unit \<Rightarrow> nat list list" where
   "computation_parallel _ = Debug.timing (STR ''overall computation'')
      (Parallel.map computation_factorise) [20000..<20100]"
 
-value [code] "computation_parallel ()"
+value "computation_parallel ()"
 
 end
 

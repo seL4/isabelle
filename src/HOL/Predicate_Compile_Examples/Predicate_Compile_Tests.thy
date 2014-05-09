@@ -452,8 +452,8 @@ values [random_dseq 3, 1, 3] 10 "{(xs, ys, zs::int list). append xs ys zs}"
 values [random_dseq 1, 3, 3] 10 "{(xs, ys, zs::int list). append xs ys zs}"
 values [random_dseq 1, 1, 4] 10 "{(xs, ys, zs::int list). append xs ys zs}"
 
-value [code] "Predicate.the (concat [0::int, 1, 2] [3, 4, 5])"
-value [code] "Predicate.the (slice ([]::int list))"
+value "Predicate.the (concat [0::int, 1, 2] [3, 4, 5])"
+value "Predicate.the (slice ([]::int list))"
 
 
 text {* tricky case with alternative rules *}
@@ -830,7 +830,7 @@ inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> n
 
 code_pred divmod_rel .
 thm divmod_rel.equation
-value [code] "Predicate.the (divmod_rel_i_i_o_o 1705 42)"
+value "Predicate.the (divmod_rel_i_i_o_o 1705 42)"
 
 subsection {* Transforming predicate logic into logic programs *}
 

@@ -2444,10 +2444,10 @@ subsubsection {* Tests for code generator *}
 
 (* A small list of simple arithmetic expressions *)
 
-value [code] "- \<infinity> :: ereal"
-value [code] "\<bar>-\<infinity>\<bar> :: ereal"
-value [code] "4 + 5 / 4 - ereal 2 :: ereal"
-value [code] "ereal 3 < \<infinity>"
-value [code] "real (\<infinity>::ereal) = 0"
+value "- \<infinity> :: ereal"
+value "\<bar>-\<infinity>\<bar> :: ereal"
+value "4 + 5 / 4 - ereal 2 :: ereal"
+value "ereal 3 < \<infinity>"
+value "real (\<infinity>::ereal) = 0"
 
 end

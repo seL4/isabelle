@@ -213,22 +213,22 @@ fun list_up where
 "list_up bot = bot" |
 "list_up (Up x) = Up(list x)"
 
-value [code] "list_up(afilter_ivl (N 5) (I (Some 4) (Some 5)) Top)"
-value [code] "list_up(afilter_ivl (N 5) (I (Some 4) (Some 4)) Top)"
-value [code] "list_up(afilter_ivl (V ''x'') (I (Some 4) (Some 4))
+value "list_up(afilter_ivl (N 5) (I (Some 4) (Some 5)) Top)"
+value "list_up(afilter_ivl (N 5) (I (Some 4) (Some 4)) Top)"
+value "list_up(afilter_ivl (V ''x'') (I (Some 4) (Some 4))
  (Up(FunDom(Top(''x'':=I (Some 5) (Some 6))) [''x''])))"
-value [code] "list_up(afilter_ivl (V ''x'') (I (Some 4) (Some 5))
+value "list_up(afilter_ivl (V ''x'') (I (Some 4) (Some 5))
  (Up(FunDom(Top(''x'':=I (Some 5) (Some 6))) [''x''])))"
-value [code] "list_up(afilter_ivl (Plus (V ''x'') (V ''x'')) (I (Some 0) (Some 10))
+value "list_up(afilter_ivl (Plus (V ''x'') (V ''x'')) (I (Some 0) (Some 10))
   (Up(FunDom(Top(''x'':= I (Some 0) (Some 100)))[''x''])))"
-value [code] "list_up(afilter_ivl (Plus (V ''x'') (N 7)) (I (Some 0) (Some 10))
+value "list_up(afilter_ivl (Plus (V ''x'') (N 7)) (I (Some 0) (Some 10))
   (Up(FunDom(Top(''x'':= I (Some 0) (Some 100)))[''x''])))"
 
-value [code] "list_up(bfilter_ivl (Less (V ''x'') (V ''x'')) True
+value "list_up(bfilter_ivl (Less (V ''x'') (V ''x'')) True
   (Up(FunDom(Top(''x'':= I (Some 0) (Some 0)))[''x''])))"
-value [code] "list_up(bfilter_ivl (Less (V ''x'') (V ''x'')) True
+value "list_up(bfilter_ivl (Less (V ''x'') (V ''x'')) True
   (Up(FunDom(Top(''x'':= I (Some 0) (Some 2)))[''x''])))"
-value [code] "list_up(bfilter_ivl (Less (V ''x'') (Plus (N 10) (V ''y''))) True
+value "list_up(bfilter_ivl (Less (V ''x'') (Plus (N 10) (V ''y''))) True
   (Up(FunDom(Top(''x'':= I (Some 15) (Some 20),''y'':= I (Some 5) (Some 7)))[''x'', ''y''])))"
 
 definition "test_ivl1 =
@@ -236,7 +236,7 @@ definition "test_ivl1 =
  IF Less (V ''x'') (V ''y'')
  THEN ''y'' ::= Plus (V ''y'') (V ''x'')
  ELSE ''x'' ::= Plus (V ''x'') (V ''y'')"
-value [code] "list_up(AI_ivl test_ivl1 Top)"
+value "list_up(AI_ivl test_ivl1 Top)"
 
 value "list_up (AI_ivl test3_const Top)"
 
@@ -247,24 +247,24 @@ value "list_up (AI_ivl test6_const Top)"
 definition "test2_ivl =
  ''y'' ::= N 7;;
  WHILE Less (V ''x'') (N 100) DO ''y'' ::= Plus (V ''y'') (N 1)"
-value [code] "list_up(AI_ivl test2_ivl Top)"
+value "list_up(AI_ivl test2_ivl Top)"
 
 definition "test3_ivl =
  ''x'' ::= N 0;; ''y'' ::= N 100;; ''z'' ::= Plus (V ''x'') (V ''y'');;
  WHILE Less (V ''x'') (N 11)
  DO (''x'' ::= Plus (V ''x'') (N 1);; ''y'' ::= Plus (V ''y'') (N -1))"
-value [code] "list_up(AI_ivl test3_ivl Top)"
+value "list_up(AI_ivl test3_ivl Top)"
 
 definition "test4_ivl =
  ''x'' ::= N 0;; ''y'' ::= N 0;;
  WHILE Less (V ''x'') (N 1001)
  DO (''y'' ::= V ''x'';; ''x'' ::= Plus (V ''x'') (N 1))"
-value [code] "list_up(AI_ivl test4_ivl Top)"
+value "list_up(AI_ivl test4_ivl Top)"
 
 text{* Nontermination not detected: *}
 definition "test5_ivl =
  ''x'' ::= N 0;;
  WHILE Less (V ''x'') (N 1) DO ''x'' ::= Plus (V ''x'') (N -1)"
-value [code] "list_up(AI_ivl test5_ivl Top)"
+value "list_up(AI_ivl test5_ivl Top)"
 
 end

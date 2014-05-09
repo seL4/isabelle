@@ -68,20 +68,20 @@ lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization
 lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
   by normalization rule
 lemma "rev [a, b, c] = [c, b, a]" by normalization
-value [nbe] "rev (a#b#cs) = rev cs @ [b, a]"
-value [nbe] "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
-value [nbe] "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
-value [nbe] "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
+value "rev (a#b#cs) = rev cs @ [b, a]"
+value "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
+value "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
+value "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
 lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]" 
   by normalization
-value [nbe] "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
-value [nbe] "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs = P"
+value "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
+value "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs = P"
 lemma "let x = y in [x, x] = [y, y]" by normalization
 lemma "Let y (%x. [x,x]) = [y, y]" by normalization
-value [nbe] "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
+value "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
 lemma "(%(x,y). add x y) (S z,S z) = S (add z (S z))" by normalization
-value [nbe] "filter (%x. x) ([True,False,x]@xs)"
-value [nbe] "filter Not ([True,False,x]@xs)"
+value "filter (%x. x) ([True,False,x]@xs)"
+value "filter Not ([True,False,x]@xs)"
 
 lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b, c]" by normalization
 lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by normalization
@@ -106,7 +106,7 @@ lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "[Suc 0, 0] = [Suc 0, 0]" by normalization
 lemma "max (Suc 0) 0 = Suc 0" by normalization
 lemma "(42::rat) / 1704 = 1 / 284 + 3 / 142" by normalization
-value [nbe] "Suc 0 \<in> set ms"
+value "Suc 0 \<in> set ms"
 
 (* non-left-linear patterns, equality by extensionality *)
 
@@ -115,13 +115,13 @@ lemma "f x = f x" by normalization
 lemma "(f o g) x = f (g x)" by normalization
 lemma "(f o id) x = f x" by normalization
 lemma "(id :: bool \<Rightarrow> bool) = id" by normalization
-value [nbe] "(\<lambda>x. x)"
+value "(\<lambda>x. x)"
 
 (* Church numerals: *)
 
-value [nbe] "(%m n f x. m f (n f x)) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
-value [nbe] "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
-value [nbe] "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+value "(%m n f x. m f (n f x)) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+value "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+value "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 
 (* handling of type classes in connection with equality *)
 

@@ -158,11 +158,6 @@ subsection {* Interactive evaluation *}
 
 ML_file "~~/src/HOL/Tools/value.ML"
 
-setup {*
-  Value.add_evaluator ("nbe", Nbe.dynamic_value)
-  #> Value.add_evaluator ("code", Code_Evaluation.dynamic_value_strict)
-*}
-
 
 subsection {* Generic reification *}
 
