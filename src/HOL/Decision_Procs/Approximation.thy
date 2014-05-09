@@ -9,6 +9,7 @@ imports
   "~~/src/HOL/Library/Float"
   Dense_Linear_Order
   "~~/src/HOL/Library/Code_Target_Numeral"
+keywords "approximate" :: diag
 begin
 
 declare powr_one [simp]
@@ -3448,7 +3449,5 @@ method_setup approximation = {*
 *} "real number approximation"
 
 ML_file "approximation.ML"
-
-setup {* Value.add_evaluator ("approximate", Approximation.approx 30) *}
 
 end

@@ -204,6 +204,9 @@ differently).
 
 *** HOL ***
 
+* Separate command ''approximate'' for approximative computation
+in Decision_Procs/Approximation.  Minor INCOMPATBILITY.
+
 * Adjustion of INF and SUP operations:
   * Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
   * Consolidated theorem names containing INFI and SUPR: have INF

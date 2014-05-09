@@ -75,6 +75,6 @@ lemma
 lemma "x \<in> { 0 .. 1 :: real } \<longrightarrow> x\<^sup>2 \<le> x"
   by (approximation 30 splitting: x=1 taylor: x = 3)
 
-value [approximate] "10"
+approximate "10"
 
 end

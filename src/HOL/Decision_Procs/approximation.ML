@@ -91,11 +91,6 @@ fun realify t =
     val t = Term.subst_TVars m t
   in t end
 
-fun converted_result t =
-        prop_of t
-     |> HOLogic.dest_Trueprop
-     |> HOLogic.dest_eq |> snd
-
 fun apply_tactic ctxt term tactic =
   cterm_of (Proof_Context.theory_of ctxt) term
   |> Goal.init
@@ -139,5 +134,25 @@ fun approx prec ctxt t =
   if type_of t = @{typ prop} then approx_form prec ctxt t
   else if type_of t = @{typ bool} then approx_form prec ctxt (@{const Trueprop} $ t)
   else approx_arith prec ctxt t
+
+fun approximate_cmd modes raw_t state =
+  let
+    val ctxt = Toplevel.context_of state;
+    val t = Syntax.read_term ctxt raw_t;
+    val t' = approx 30 ctxt t;
+    val ty' = Term.type_of t';
+    val ctxt' = Variable.auto_fixes t' ctxt;
+    val p = Print_Mode.with_modes modes (fn () =>
+      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
+  in Pretty.writeln p end;
+
+val opt_modes =
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "approximate"} "print approximation of term"
+    (opt_modes -- Parse.term
+      >> (fn (modes, t) => Toplevel.keep (approximate_cmd modes t)));
 
 end;
