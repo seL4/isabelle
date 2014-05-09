@@ -20,9 +20,6 @@ import org.gjt.sp.jedit.View
 
 class Output_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  override def focusOnDefaultComponent { view.getTextArea.requestFocus }
-
-
   /* component state -- owned by Swing thread */
 
   private var zoom_factor = 100
