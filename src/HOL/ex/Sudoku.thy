@@ -1,24 +1,23 @@
 (*  Title:      HOL/ex/Sudoku.thy
     Author:     Tjark Weber
-    Copyright   2005-2008
+    Copyright   2005-2014
 *)
 
 header {* A SAT-based Sudoku Solver *}
 
 theory Sudoku
-imports Main "../Library/Refute"
+imports Main
 begin
 
 text {*
-  Please make sure you are using an efficient SAT solver (e.g., zChaff)
-  when loading this theory.  See Isabelle's settings file for details.
-
-  Using zChaff, each Sudoku in this theory is solved in less than a
-  second.
-
-  See the paper "A SAT-based Sudoku Solver" (Tjark Weber, published at
-  LPAR'05) for further explanations.
+  See the paper ``A SAT-based Sudoku Solver'' (Tjark Weber, published at
+  LPAR'05) for further explanations.  (The paper describes an older version of
+  this theory that used the model finder @{text refute} to find Sudoku
+  solutions.  The @{text refute} tool has since been superseded by
+  @{text nitpick}, which is used below.)
 *}
+
+no_notation Groups.one_class.one ("1")
 
 datatype digit = A ("1") | B ("2") | C ("3") | D ("4") | E ("5") | F ("6") | G ("7") | H ("8") | I ("9")
 
@@ -98,11 +97,11 @@ theorem "\<not> sudoku
     x71 x72 x73 x74 x75 x76 x77 x78 x79
     x81 x82 x83 x84 x85 x86 x87 x88 x89
     x91 x92 x93 x94 x95 x96 x97 x98 x99"
-  refute
+  nitpick [expect=genuine]
 oops
 
 text {*
-  An "easy" Sudoku:
+  An ``easy'' Sudoku:
 *}
 
 theorem "\<not> sudoku
@@ -115,11 +114,11 @@ theorem "\<not> sudoku
     x71  6  x73 x74 x75 x76  2   8  x79
     x81 x82 x83  4   1   9  x87 x88  5 
     x91 x92 x93 x94  8  x96 x97  7   9 "
-  refute
+  nitpick [expect=genuine]
 oops
 
 text {*
-  A "hard" Sudoku:
+  A ``hard'' Sudoku:
 *}
 
 theorem "\<not> sudoku
@@ -132,13 +131,13 @@ theorem "\<not> sudoku
     x71 x72 x73 x74  1  x76  7   8  x79
      5  x82 x83 x84 x85  9  x87 x88 x89
     x91 x92 x93 x94 x95 x96 x97  4  x99"
-  refute
+  nitpick [expect=genuine]
 oops
 
 text {*
-  Some "exceptionally difficult" Sudokus, taken from
+  Some ``exceptionally difficult'' Sudokus, taken from
   @{url "http://en.wikipedia.org/w/index.php?title=Algorithmics_of_sudoku&oldid=254685903"}
-  (accessed December 2, 2008).
+  (accessed December~2, 2008).
 *}
 
 text {*
@@ -172,7 +171,7 @@ theorem "\<not> sudoku
      7  x72 x73 x74 x75 x76  6  x78 x79
     x81  3  x83 x84 x85  9  x87  8  x89
     x91 x92  2  x94 x95 x96 x97 x98  1 "
-  refute
+  nitpick [expect=genuine]
 oops
 
 text {*
@@ -206,7 +205,7 @@ theorem "\<not> sudoku
      3  x72 x73 x74  8  x76 x77 x78  6 
     x81 x82  9   2  x85 x86 x87 x88 x89
     x91  4  x93 x94 x95  1  x97 x98 x99"
-  refute
+  nitpick [expect=genuine]
 oops
 
 text {*
@@ -240,7 +239,7 @@ theorem "\<not> sudoku
     x71 x72  9  x74  8  x76 x77  5  x79
     x81  2  x83 x84 x85 x86  6  x88 x89
      4  x92 x93  7  x95 x96 x97 x98 x99"
-  refute
+  nitpick [expect=genuine]
 oops
 
 text {*
@@ -274,7 +273,7 @@ theorem "\<not> sudoku
      5  x72 x73 x74 x75 x76  9  x78 x79
     x81  3  x83  9  x85 x86 x87 x88  7 
     x91 x92  1  x94 x95  8   6  x98 x99"
-  refute
+  nitpick [expect=genuine]
 oops
 
 text {*
@@ -308,7 +307,7 @@ theorem "\<not> sudoku
     x71 x72  9  x74  8  x76 x77  5  x79
     x81  2  x83 x84 x85 x86  6  x88 x89
      4  x92 x93  7  x95 x96 x97 x98 x99"
-  refute
+  nitpick [expect=genuine]
 oops
 
 end

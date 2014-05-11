@@ -581,13 +581,11 @@ session "HOL-ex" in ex = HOL +
     Simps_Case_Conv_Examples
     ML
     SAT_Examples
+    Sudoku
   theories [skip_proofs = false]
     Meson_Test
   theories [condition = SVC_HOME]
     svc_test
-  theories [condition = ZCHAFF_HOME]
-    (*requires zChaff (or some other reasonably fast SAT solver)*)
-    Sudoku
   document_files "root.bib" "root.tex"
 
 session "HOL-Isar_Examples" in Isar_Examples = HOL +
