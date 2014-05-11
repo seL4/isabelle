@@ -4,16 +4,18 @@
 PIDE docking framework: "Original" with some add-ons.
 */
 
-package org.gjt.sp.jedit.gui  // sic!
+package isabelle.jedit
 
 
 import isabelle._
-import isabelle.jedit._
 
 import java.awt.event.{ActionListener, ActionEvent}
 import javax.swing.{JPopupMenu, JMenuItem}
 
 import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.gui.{DockableWindowManagerProvider, DockableWindowFactory,
+  DockableWindowManager, DockableWindowManagerImpl, DockableWindowContainer,
+  FloatingWindowContainer, PanelWindowContainer}
 
 
 class PIDE_Docking_Framework extends DockableWindowManagerProvider
