@@ -29,7 +29,7 @@ fun read_constraint _ NONE = dummyS
 fun object_logic_arity name thy =
   (case Object_Logic.get_base_sort thy of
     NONE => thy
-  | SOME S => Axclass.axiomatize_arity (name, replicate (Sign.arity_number thy name) S, S) thy);
+  | SOME S => Axclass.arity_axiomatization (name, replicate (Sign.arity_number thy name) S, S) thy);
 
 fun basic_decl decl (b, n, mx) lthy =
   let val name = Local_Theory.full_name lthy b in

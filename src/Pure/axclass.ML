@@ -30,9 +30,9 @@ sig
   val prove_arity: string * sort list * sort -> (Proof.context -> tactic) -> theory -> theory
   val define_class: binding * class list -> string list ->
     (Thm.binding * term list) list -> theory -> class * theory
-  val axiomatize_classrel: (class * class) list -> theory -> theory
-  val axiomatize_arity: arity -> theory -> theory
-  val axiomatize_class: binding * class list -> theory -> theory
+  val classrel_axiomatization: (class * class) list -> theory -> theory
+  val arity_axiomatization: arity -> theory -> theory
+  val class_axiomatization: binding * class list -> theory -> theory
 end;
 
 structure Axclass: AXCLASS =
@@ -582,7 +582,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
 local
 
 (*old-style axioms*)
-fun axiomatize prep mk name add raw_args thy =
+fun add_axioms prep mk name add raw_args thy =
   let
     val args = prep thy raw_args;
     val specs = mk args;
@@ -598,22 +598,22 @@ fun class_const c =
 
 in
 
-val axiomatize_classrel =
-  axiomatize (map o cert_classrel) (map Logic.mk_classrel)
+val classrel_axiomatization =
+  add_axioms (map o cert_classrel) (map Logic.mk_classrel)
     (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
 
-val axiomatize_arity =
-  axiomatize (Proof_Context.cert_arity o Proof_Context.init_global) Logic.mk_arities
+val arity_axiomatization =
+  add_axioms (Proof_Context.cert_arity o Proof_Context.init_global) Logic.mk_arities
     (map (prefix arity_prefix) o Logic.name_arities) add_arity;
 
-fun axiomatize_class (bclass, raw_super) thy =
+fun class_axiomatization (bclass, raw_super) thy =
   let
     val class = Sign.full_name thy bclass;
     val super = map (Sign.certify_class thy) raw_super |> Sign.minimize_sort thy;
   in
     thy
     |> Sign.primitive_class (bclass, super)
-    |> axiomatize_classrel (map (fn c => (class, c)) super)
+    |> classrel_axiomatization (map (fn c => (class, c)) super)
     |> Theory.add_deps_global "" (class_const class) (map class_const super)
   end;
 

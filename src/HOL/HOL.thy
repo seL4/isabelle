@@ -44,7 +44,7 @@ subsection {* Primitive logic *}
 
 subsubsection {* Core syntax *}
 
-setup {* Axclass.axiomatize_class (@{binding type}, []) *}
+setup {* Axclass.class_axiomatization (@{binding type}, []) *}
 default_sort type
 setup {* Object_Logic.add_base_sort @{sort type} *}
 

@@ -428,7 +428,7 @@ fun gen_domain_isomorphism
         fun arity (vs, tbind, _, _, _) =
           (Sign.full_name thy tbind, map the_sort vs, @{sort "domain"})
       in
-        fold Axclass.axiomatize_arity (map arity doms) tmp_thy
+        fold Axclass.arity_axiomatization (map arity doms) tmp_thy
       end
 
     (* check bifiniteness of right-hand sides *)
