@@ -168,7 +168,7 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
           val _ = warning (redefining ());
           val _ =
             if ! batch_mode then
-              Output.physical_stderr ("### Legacy feature! " ^ redefining () ^ "\n")
+              Output.physical_stderr ("### Legacy feature!! " ^ redefining () ^ "\n")
             else ();
         in () end;
       Symtab.update (name, cmd) commands)))
