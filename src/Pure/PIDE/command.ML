@@ -194,6 +194,21 @@ val eval_result_state = #state o eval_result;
 
 local
 
+fun reset_state tr st0 = Toplevel.setmp_thread_position tr (fn () =>
+  let
+    val name = Toplevel.name_of tr;
+    val res =
+      if Keyword.is_theory name andalso not (Keyword.is_theory_begin name) then
+        Toplevel.reset_theory st0
+      else if Keyword.is_proof name then
+        Toplevel.reset_proof st0
+      else NONE;
+  in
+    (case res of
+      NONE => st0
+    | SOME st => (warning (Toplevel.type_error tr st0 ^ " -- resetting state"); st))
+  end) ();
+
 fun run int tr st =
   if Goal.future_enabled 1 andalso Keyword.is_diag (Toplevel.name_of tr) then
     (Execution.fork {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
@@ -220,14 +235,16 @@ fun proof_status tr st =
     SOME prf => status tr (Proof.status_markup prf)
   | NONE => ());
 
-fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
+fun eval_state span tr ({malformed, state, ...}: eval_state) =
   if malformed then
     {failed = true, malformed = malformed, command = tr, state = Toplevel.toplevel}
   else
     let
-      val malformed' = Toplevel.is_malformed tr;
-
       val _ = Multithreading.interrupted ();
+
+      val malformed' = Toplevel.is_malformed tr;
+      val st = reset_state tr state;
+
       val _ = status tr Markup.running;
       val (errs1, result) = run true tr st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');

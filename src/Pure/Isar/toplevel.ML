@@ -34,6 +34,7 @@ sig
   val empty: transition
   val name_of: transition -> string
   val pos_of: transition -> Position.T
+  val type_error: transition -> state -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val interactive: bool -> transition -> transition
@@ -87,6 +88,8 @@ sig
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val command_exception: bool -> transition -> state -> state
+  val reset_theory: state -> state option
+  val reset_proof: state -> state option
   type result
   val join_results: result -> (transition * state) list
   val element_result: transition Thy_Syntax.element -> state -> result * state
@@ -335,7 +338,7 @@ fun command_msg msg tr = msg ^ "command " ^ quote (name_of tr) ^ Position.here (
 fun at_command tr = command_msg "At " tr;
 
 fun type_error tr state =
-  ERROR (command_msg "Illegal application of " tr ^ " " ^ str_of_state state);
+  command_msg "Illegal application of " tr ^ " " ^ str_of_state state;
 
 
 (* modify transitions *)
@@ -599,7 +602,7 @@ fun app int (tr as Transition {name, trans, ...}) =
         Markup.command_timing :: (Markup.nameN, name_of tr) :: Position.properties_of (pos_of tr);
       val _ = Timing.protocol_message timing_props timing_result;
     in
-      (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_err)
+      (result, Option.map (fn UNDEF => ERROR (type_error tr state) | exn => exn) opt_err)
     end);
 
 in
@@ -638,6 +641,27 @@ fun command_exception int tr st =
   | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
 
 fun command tr = command_exception (! interact) tr;
+
+
+(* reset state *)
+
+local
+
+fun reset_state check trans st =
+  if check st then NONE
+  else #2 (command_errors false (trans empty) st);
+
+in
+
+val reset_theory = reset_state is_theory forget_proof;
+
+val reset_proof =
+  reset_state is_proof
+    (transaction (fn _ =>
+      (fn Theory (gthy, _) => Skipped_Proof (0, (gthy, gthy))
+        | _ => raise UNDEF)));
+
+end;
 
 
 (* scheduled proof result *)
