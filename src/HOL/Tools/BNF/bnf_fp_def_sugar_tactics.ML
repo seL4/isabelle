@@ -25,6 +25,7 @@ sig
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
+  val mk_set_empty_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
 end;
 
 structure BNF_FP_Def_Sugar_Tactics : BNF_FP_DEF_SUGAR_TACTICS =
@@ -190,5 +191,13 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
     EVERY' (map10 (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
+
+fun mk_set_empty_tac ctxt ct exhaust sets discs =
+  TRYALL Goal.conjunction_tac THEN
+  ALLGOALS(rtac (Ctr_Sugar_Util.cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
+    hyp_subst_tac ctxt) THEN
+  Local_Defs.unfold_tac ctxt (sets @ map_filter (fn thm =>
+    SOME (thm RS @{thm iffD2[OF eq_False]}) handle THM _ => NONE) discs) THEN
+  ALLGOALS(rtac refl ORELSE' etac FalseE);
 
 end;

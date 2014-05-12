@@ -97,6 +97,7 @@ open BNF_FP_Def_Sugar_Tactics
 open BNF_LFP_Size
 
 val EqN = "Eq_";
+val set_emptyN = "set_empty";
 
 structure Data = Generic_Data
 (
@@ -1115,7 +1116,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             free_constructors tacss ((wrap_opts, standard_binding), ctr_specs) lthy
           end;
 
-        fun derive_maps_sets_rels (ctr_sugar as {case_cong, ...} : ctr_sugar, lthy) =
+        fun derive_maps_sets_rels
+          (ctr_sugar as {case_cong, discs, ctrs, exhaust, disc_thmss, ...} : ctr_sugar, lthy) =
           if live = 0 then
             ((([], [], [], []), ctr_sugar), lthy)
           else
@@ -1164,6 +1166,36 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val set_thmss = map mk_set_thms fp_set_thms;
               val set_thms = flat set_thmss;
 
+              fun mk_set t =
+                let
+                  val Type (_, Ts0) = domain_type (fastype_of t);
+                  val Type (_, Ts) = fpT;
+                in
+                  Term.subst_atomic_types (Ts0 ~~ Ts) t
+                end;
+
+              val sets = map mk_set (sets_of_bnf fp_bnf);
+              val ctr_argT_namess = map ((fn Ts => fold Term.add_tfree_namesT Ts []) o
+                binder_types o fastype_of) ctrs;
+              val setTs = map (HOLogic.dest_setT o range_type o fastype_of) sets;
+              val setT_names = map (fn T => the_single (Term.add_tfree_namesT T [])) setTs;
+              fun mk_set_empty_goal disc set T = Logic.mk_implies (HOLogic.mk_Trueprop (disc $ u),
+                mk_Trueprop_eq (set $ u, HOLogic.mk_set T []));
+              val goals = map_filter I (flat
+                (map2 (fn names => fn disc =>
+                  map3 (fn name => fn setT => fn set =>
+                    if member (op =) names name then NONE
+                    else SOME (mk_set_empty_goal disc set setT))
+                  setT_names setTs sets)
+                ctr_argT_namess discs));
+
+              val set_empty_thms = if null goals then []
+                else Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                  (fn {context = ctxt, prems = _} =>
+                    mk_set_empty_tac ctxt (certify ctxt u) exhaust set_thms (flat disc_thmss))
+                  |> Conjunction.elim_balanced (length goals)
+                  |> Proof_Context.export names_lthy lthy;
+
               val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
 
               fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
@@ -1208,7 +1240,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 [(mapN, map_thms, code_nitpicksimp_attrs @ simp_attrs),
                  (rel_distinctN, rel_distinct_thms, simp_attrs),
                  (rel_injectN, rel_inject_thms, simp_attrs),
-                 (setN, set_thms, code_nitpicksimp_attrs @ simp_attrs)]
+                 (setN, set_thms, code_nitpicksimp_attrs @ simp_attrs),
+                 (set_emptyN, set_empty_thms, [])]
                 |> massage_simple_notes fp_b_name;
             in
               (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),
