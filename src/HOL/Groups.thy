@@ -1036,6 +1036,24 @@ lemma diff_eq_diff_less_eq:
   "a - b = c - d \<Longrightarrow> a \<le> b \<longleftrightarrow> c \<le> d"
   by (auto simp only: le_iff_diff_le_0 [of a b] le_iff_diff_le_0 [of c d])
 
+lemma diff_mono: "a \<le> b \<Longrightarrow> d \<le> c \<Longrightarrow> a - c \<le> b - d"
+  by (simp add: field_simps add_mono)
+
+lemma diff_left_mono: "b \<le> a \<Longrightarrow> c - a \<le> c - b"
+  by (simp add: field_simps)
+
+lemma diff_right_mono: "a \<le> b \<Longrightarrow> a - c \<le> b - c"
+  by (simp add: field_simps)
+
+lemma diff_strict_mono: "a < b \<Longrightarrow> d < c \<Longrightarrow> a - c < b - d"
+  by (simp add: field_simps add_strict_mono)
+
+lemma diff_strict_left_mono: "b < a \<Longrightarrow> c - a < c - b"
+  by (simp add: field_simps)
+
+lemma diff_strict_right_mono: "a < b \<Longrightarrow> a - c < b - c"
+  by (simp add: field_simps)
+
 end
 
 ML_file "Tools/group_cancel.ML"
