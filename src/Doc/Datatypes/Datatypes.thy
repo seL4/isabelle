@@ -1531,7 +1531,7 @@ subsubsection {* Simple Corecursion
 
 text {*
 Noncorecursive codatatypes coincide with the corresponding datatypes, so they
-are useless in practice. \emph{Corecursive codatatypes} have the same syntax
+are rarely used in practice. \emph{Corecursive codatatypes} have the same syntax
 as recursive datatypes, except for the command name. For example, here is the
 definition of lazy lists:
 *}
