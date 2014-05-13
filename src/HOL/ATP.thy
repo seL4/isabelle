@@ -16,6 +16,7 @@ ML_file "Tools/ATP/atp_problem.ML"
 ML_file "Tools/ATP/atp_proof.ML"
 ML_file "Tools/ATP/atp_proof_redirect.ML"
 
+
 subsection {* Higher-order reasoning helpers *}
 
 definition fFalse :: bool where
@@ -39,14 +40,14 @@ definition fdisj :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 definition fimplies :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 "fimplies P Q \<longleftrightarrow> (P \<longrightarrow> Q)"
 
-definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
-"fequal x y \<longleftrightarrow> (x = y)"
-
 definition fAll :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
 "fAll P \<longleftrightarrow> All P"
 
 definition fEx :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
 "fEx P \<longleftrightarrow> Ex P"
+
+definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
+"fequal x y \<longleftrightarrow> (x = y)"
 
 lemma fTrue_ne_fFalse: "fFalse \<noteq> fTrue"
 unfolding fFalse_def fTrue_def by simp
@@ -74,11 +75,6 @@ lemma fimplies_table:
 "fimplies fTrue fFalse = fFalse"
 unfolding fFalse_def fTrue_def fimplies_def by auto
 
-lemma fequal_table:
-"fequal x x = fTrue"
-"x = y \<or> fequal x y = fFalse"
-unfolding fFalse_def fTrue_def fequal_def by auto
-
 lemma fAll_table:
 "Ex (fComp P) \<or> fAll P = fTrue"
 "All P \<or> fAll P = fFalse"
@@ -88,6 +84,11 @@ lemma fEx_table:
 "All (fComp P) \<or> fEx P = fTrue"
 "Ex P \<or> fEx P = fFalse"
 unfolding fFalse_def fTrue_def fComp_def fEx_def by auto
+
+lemma fequal_table:
+"fequal x x = fTrue"
+"x = y \<or> fequal x y = fFalse"
+unfolding fFalse_def fTrue_def fequal_def by auto
 
 lemma fNot_law:
 "fNot P \<noteq> P"
@@ -114,12 +115,6 @@ lemma fimplies_laws:
 "fNot (fimplies P Q) \<longleftrightarrow> fconj P (fNot Q)"
 unfolding fNot_def fconj_def fdisj_def fimplies_def by auto
 
-lemma fequal_laws:
-"fequal x y = fequal y x"
-"fequal x y = fFalse \<or> fequal y z = fFalse \<or> fequal x z = fTrue"
-"fequal x y = fFalse \<or> fequal (f x) (f y) = fTrue"
-unfolding fFalse_def fTrue_def fequal_def by auto
-
 lemma fAll_law:
 "fNot (fAll R) \<longleftrightarrow> fEx (fComp R)"
 unfolding fNot_def fComp_def fAll_def fEx_def by auto
@@ -127,6 +122,13 @@ unfolding fNot_def fComp_def fAll_def fEx_def by auto
 lemma fEx_law:
 "fNot (fEx R) \<longleftrightarrow> fAll (fComp R)"
 unfolding fNot_def fComp_def fAll_def fEx_def by auto
+
+lemma fequal_laws:
+"fequal x y = fequal y x"
+"fequal x y = fFalse \<or> fequal y z = fFalse \<or> fequal x z = fTrue"
+"fequal x y = fFalse \<or> fequal (f x) (f y) = fTrue"
+unfolding fFalse_def fTrue_def fequal_def by auto
+
 
 subsection {* Setup *}
 
