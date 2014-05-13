@@ -531,12 +531,12 @@ fun add_primrec_simple' opts fixes ts lthy =
 val add_primrec_simple = add_primrec_simple' [];
 
 fun gen_primrec old_primrec prep_spec opts
-    (raw_fixes : (binding * 'a option * mixfix) list) raw_spec lthy =
+    (raw_fixes : (binding * 'a option * mixfix) list) raw_specs lthy =
   let
     val d = duplicates (op =) (map (Binding.name_of o #1) raw_fixes)
     val _ = null d orelse raise PRIMREC ("duplicate function name(s): " ^ commas d, []);
 
-    val (fixes, specs) = fst (prep_spec raw_fixes raw_spec lthy);
+    val (fixes, specs) = fst (prep_spec raw_fixes raw_specs lthy);
 
     val mk_notes =
       flat ooo map3 (fn js => fn prefix => fn thms =>
@@ -558,7 +558,7 @@ fun gen_primrec old_primrec prep_spec opts
       #> Local_Theory.notes (mk_notes jss names simpss)
       #>> pair ts o map snd)
   end
-  handle OLD_PRIMREC () => old_primrec raw_fixes raw_spec lthy |>> apsnd single;
+  handle OLD_PRIMREC () => old_primrec raw_fixes raw_specs lthy |>> apsnd single;
 
 val add_primrec = gen_primrec Primrec.add_primrec Specification.check_spec [];
 val add_primrec_cmd = gen_primrec Primrec.add_primrec_cmd Specification.read_spec;
@@ -581,6 +581,6 @@ val _ = Outer_Syntax.local_theory @{command_spec "primrec"}
   ((Scan.optional (@{keyword "("} |--
       Parse.!!! (Parse.list1 primrec_option_parser) --| @{keyword ")"}) []) --
     (Parse.fixes -- Parse_Spec.where_alt_specs)
-    >> (fn (opts, (fixes, spec)) => snd o add_primrec_cmd opts fixes spec));
+    >> (fn (opts, (fixes, specs)) => snd o add_primrec_cmd opts fixes specs));
 
 end;

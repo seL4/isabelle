@@ -1431,11 +1431,11 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
     (goalss, after_qed, lthy')
   end;
 
-fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs') lthy =
+fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
   let
     val (raw_specs, of_specs_opt) =
-      split_list raw_specs' ||> map (Option.map (Syntax.read_term lthy));
-    val ((fixes, specs), _) = Specification.read_spec raw_fixes raw_specs lthy;
+      split_list raw_specs_of ||> map (Option.map (Syntax.read_term lthy));
+    val (fixes, specs) = fst (Specification.read_spec raw_fixes raw_specs lthy);
   in
     add_primcorec_ursive auto opts fixes specs of_specs_opt lthy
     handle ERROR str => primcorec_error str

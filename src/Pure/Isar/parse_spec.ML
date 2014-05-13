@@ -158,4 +158,3 @@ val general_statement =
 val statement_keyword = Parse.$$$ "obtains" || Parse.$$$ "shows";
 
 end;
-
