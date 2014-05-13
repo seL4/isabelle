@@ -1963,6 +1963,12 @@ lemma root_powr_inverse: "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n
 lemma ln_powr: "ln (x powr y) = y * ln x"
   by (simp add: powr_def)
 
+lemma ln_root: "\<lbrakk> n > 0; b > 0 \<rbrakk> \<Longrightarrow> ln (root n b) =  ln b / n"
+by(simp add: root_powr_inverse ln_powr)
+
+lemma log_root: "\<lbrakk> n > 0; a > 0 \<rbrakk> \<Longrightarrow> log b (root n a) =  log b a / n"
+by(simp add: log_def ln_root)
+
 lemma log_powr: "log b (x powr y) = y * log b x"
   by (simp add: log_def ln_powr)
 
@@ -1977,6 +1983,9 @@ lemma log_base_pow: "0 < a \<Longrightarrow> log (a ^ n) x = log a x / n"
 
 lemma log_base_powr: "log (a powr b) x = log a x / b"
   by (simp add: log_def ln_powr)
+
+lemma log_base_root: "\<lbrakk> n > 0; b > 0 \<rbrakk> \<Longrightarrow> log (root n b) x = n * (log b x)"
+by(simp add: log_def ln_root)
 
 lemma ln_bound: "1 <= x ==> ln x <= x"
   apply (subgoal_tac "ln(1 + (x - 1)) <= x - 1")
