@@ -198,10 +198,8 @@ fun reset_state tr st0 = Toplevel.setmp_thread_position tr (fn () =>
   let
     val name = Toplevel.name_of tr;
     val res =
-      if Keyword.is_theory name andalso not (Keyword.is_theory_begin name) then
-        Toplevel.reset_theory st0
-      else if Keyword.is_proof name then
-        Toplevel.reset_proof st0
+      if Keyword.is_theory_body name then Toplevel.reset_theory st0
+      else if Keyword.is_proof name then Toplevel.reset_proof st0
       else NONE;
   in
     (case res of

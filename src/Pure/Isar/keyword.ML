@@ -61,6 +61,7 @@ sig
   val is_theory_begin: string -> bool
   val is_theory_load: string -> bool
   val is_theory: string -> bool
+  val is_theory_body: string -> bool
   val is_proof: string -> bool
   val is_proof_body: string -> bool
   val is_theory_goal: string -> bool
@@ -249,6 +250,9 @@ val is_theory_load = command_category [thy_load];
 val is_theory = command_category
   [thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
     thy_load, thy_decl, thy_goal];
+
+val is_theory_body = command_category
+  [thy_heading1, thy_heading2, thy_heading3, thy_heading4, thy_load, thy_decl, thy_goal];
 
 val is_proof = command_category
   [qed, qed_script, qed_block, qed_global, prf_heading2, prf_heading3, prf_heading4,
