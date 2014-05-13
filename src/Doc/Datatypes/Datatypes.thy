@@ -2528,8 +2528,8 @@ The syntactic entity \synt{target} can be used to specify a local context,
 *}
 
 
-subsubsection {* \keyw{bnf\_decl}
-  \label{sssec:bnf-decl} *}
+subsubsection {* \keyw{bnf\_axiomatization}
+  \label{sssec:bnf-axiomatization} *}
 
 text {*
 \begin{matharray}{rcl}
