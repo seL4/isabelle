@@ -90,14 +90,17 @@ fun string_of_proof_method meth =
   | Presburger_Method => "presburger"
   | Algebra_Method => "algebra")
 
-(* Makes proof methods as silent as possible. The "set_visible" calls suppresses "Unification bound
-   exceeded" warnings and the like. *)
 fun silence_proof_methods debug =
   Try0.silence_methods debug
   #> Config.put SMT2_Config.verbose debug
 
-fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
-  let val ctxt = silence_proof_methods debug ctxt0 in
+fun tac_of_proof_method ctxt0 debug (local_facts0, global_facts0) meth =
+  let
+    val ctxt = silence_proof_methods debug ctxt0
+    val thy = Proof_Context.theory_of ctxt
+    val local_facts = map (Thm.transfer thy) local_facts0
+    val global_facts = map (Thm.transfer thy) global_facts0
+  in
     Method.insert_tac local_facts THEN'
     (case meth of
       Metis_Method (type_enc_opt, lam_trans_opt) =>
