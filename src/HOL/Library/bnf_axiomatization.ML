@@ -1,17 +1,17 @@
-(*  Title:      HOL/Library/bnf_decl.ML
+(*  Title:      HOL/Library/bnf_axiomatization.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2013
 
 Axiomatic declaration of bounded natural functors.
 *)
 
-signature BNF_DECL =
+signature BNF_AXIOMATIZATION =
 sig
-  val bnf_decl: (binding option * (typ * sort)) list -> binding -> mixfix -> binding -> binding ->
-    typ list -> local_theory -> BNF_Def.bnf * local_theory
+  val bnf_axiomatization: (binding option * (typ * sort)) list -> binding -> mixfix -> binding ->
+    binding -> typ list -> local_theory -> BNF_Def.bnf * local_theory
 end
 
-structure BNF_Decl : BNF_DECL =
+structure BNF_Axiomatization : BNF_AXIOMATIZATION =
 struct
 
 open BNF_Util
@@ -94,12 +94,12 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
     (bnf, BNF_Def.register_bnf key bnf lthy')
   end;
 
-val bnf_decl = prepare_decl (K I) (K I);
+val bnf_axiomatization = prepare_decl (K I) (K I);
 
 fun read_constraint _ NONE = @{sort type}
   | read_constraint ctxt (SOME s) = Syntax.read_sort ctxt s;
 
-val bnf_decl_cmd = prepare_decl read_constraint Syntax.read_typ;
+val bnf_axiomatization_cmd = prepare_decl read_constraint Syntax.read_typ;
 
 val parse_witTs =
   @{keyword "["} |-- (Parse.short_ident --| @{keyword ":"} -- Scan.repeat Parse.typ
@@ -107,14 +107,14 @@ val parse_witTs =
          | (s, _) => error ("Unknown label " ^ quote s ^ " (expected \"wits\")"))) --|
   @{keyword "]"} || Scan.succeed [];
 
-val parse_bnf_decl =
+val parse_bnf_axiomatization =
   parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
     parse_witTs -- Parse.opt_mixfix;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "bnf_decl"} "bnf declaration"
-    (parse_bnf_decl >> 
+  Outer_Syntax.local_theory @{command_spec "bnf_axiomatization"} "bnf declaration"
+    (parse_bnf_axiomatization >> 
       (fn ((((bsTs, b), (mapb, relb)), witTs), mx) =>
-         bnf_decl_cmd bsTs b mx mapb relb witTs #> snd));
+         bnf_axiomatization_cmd bsTs b mx mapb relb witTs #> snd));
 
 end;

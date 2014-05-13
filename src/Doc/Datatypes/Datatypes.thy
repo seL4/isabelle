@@ -10,7 +10,7 @@ Tutorial for (co)datatype definitions with the new package.
 theory Datatypes
 imports
   Setup
-  "~~/src/HOL/Library/BNF_Decl"
+  "~~/src/HOL/Library/BNF_Axiomatization"
   "~~/src/HOL/Library/Cardinal_Notations"
   "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Simps_Case_Conv"
@@ -80,7 +80,7 @@ finitely many direct subtrees, whereas those of the second and fourth may have
 infinite branching.
 
 The package is part of @{theory Main}. Additional functionality is provided by
-the theory @{theory BNF_Decl}, located in the directory
+the theory @{theory BNF_Axiomatization}, located in the directory
 \verb|~~/src/HOL/Library|.
 
 The package, like its predecessor, fully adheres to the LCF philosophy
@@ -2477,7 +2477,7 @@ necessary. See \verb|~~/src/HOL/Basic_BNFs.thy|,
 for further examples of BNF registration, some of which feature custom
 witnesses.
 
-The next example declares a BNF axiomatically. The @{command bnf_decl} command
+The next example declares a BNF axiomatically. The @{command bnf_axiomatization} command
 introduces a type @{text "('a, 'b, 'c) F"}, three set constants, a map
 function, a relator, and a nonemptiness witness that depends only on
 @{typ 'a}. (The type @{text "'a \<Rightarrow> ('a, 'b, 'c) F"} of
@@ -2486,7 +2486,7 @@ we can construct a witness for @{text "('a, 'b, 'c) F"}.) The BNF
 properties are postulated as axioms.
 *}
 
-    bnf_decl (setA: 'a, setB: 'b, setC: 'c) F [wits: "'a \<Rightarrow> ('a, 'b, 'c) F"]
+    bnf_axiomatization (setA: 'a, setB: 'b, setC: 'c) F [wits: "'a \<Rightarrow> ('a, 'b, 'c) F"]
 
 text {* \blankline *}
 
@@ -2533,11 +2533,11 @@ subsubsection {* \keyw{bnf\_decl}
 
 text {*
 \begin{matharray}{rcl}
-  @{command_def "bnf_decl"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "bnf_axiomatization"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
 @{rail \<open>
-  @@{command bnf_decl} target? @{syntax tyargs}? name @{syntax map_rel}? \<newline>
+  @@{command bnf_axiomatization} target? @{syntax tyargs}? name @{syntax map_rel}? \<newline>
     @{syntax wit_types}? mixfix?
   ;
   @{syntax_def wit_types}: '[' 'wits' ':' types ']'
@@ -2546,7 +2546,7 @@ text {*
 \medskip
 
 \noindent
-The @{command bnf_decl} command declares a new type and associated constants
+The @{command bnf_axiomatization} command declares a new type and associated constants
 (map, set, relator, and cardinal bound) and asserts the BNF properties for
 these constants as axioms.
 
@@ -2558,12 +2558,12 @@ parenthesized mixfix notation \cite{isabelle-isar-ref}.
 Type arguments are live by default; they can be marked as dead by entering
 ``-'' (hyphen) instead of an identifier for the corresponding set function.
 Witnesses can be specified by their types. Otherwise, the syntax of
-@{command bnf_decl} is identical to the left-hand side of a
+@{command bnf_axiomatization} is identical to the left-hand side of a
 @{command datatype_new} or @{command codatatype} definition.
 
 The command is useful to reason abstractly about BNFs. The axioms are safe
 because there exists BNFs of arbitrary large arities. Applications must import
-the theory @{theory BNF_Decl}, located in the directory
+the theory @{theory BNF_Axiomatization}, located in the directory
 \verb|~~/src/HOL/Library|, to use this functionality.
 *}
 

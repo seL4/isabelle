@@ -4,7 +4,7 @@ imports
   AList
   BigO
   Bit
-  BNF_Decl
+  BNF_Axiomatization
   Boolean_Algebra
   Char_ord
   ContNotDenum

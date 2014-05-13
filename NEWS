@@ -291,7 +291,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   New theories:
     Wellorder_Extension.thy (split from Zorn.thy)
     Library/Cardinal_Notations.thy
-    Library/BNF_Decl.thy
+    Library/BNF_Axomatization.thy
     BNF_Examples/Misc_Primcorec.thy
     BNF_Examples/Stream_Processor.thy
   Discontinued theories:
