@@ -288,7 +288,7 @@ proof -
       ultimately show "g x = ?f x" by auto
     qed
     show "?f \<in> borel_measurable M"
-      using sf by (auto intro: borel_measurable_simple_function)
+      using sf[THEN borel_measurable_simple_function] by auto
   qed
 qed
 

@@ -1266,6 +1266,9 @@ lemma sets_eq_imp_space_eq:
 lemma emeasure_notin_sets: "A \<notin> sets M \<Longrightarrow> emeasure M A = 0"
   by (cases M) (auto simp: sets_def emeasure_def Abs_measure_inverse measure_space_def)
 
+lemma emeasure_neq_0_sets: "emeasure M A \<noteq> 0 \<Longrightarrow> A \<in> sets M"
+  using emeasure_notin_sets[of A M] by blast
+
 lemma measure_notin_sets: "A \<notin> sets M \<Longrightarrow> measure M A = 0"
   by (simp add: measure_def emeasure_notin_sets)
 

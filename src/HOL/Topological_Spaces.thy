@@ -973,6 +973,41 @@ lemma order_tendsto_iff:
 lemma tendsto_bot [simp]: "(f ---> a) bot"
   unfolding tendsto_def by simp
 
+lemma tendsto_max:
+  fixes x y :: "'a::linorder_topology"
+  assumes X: "(X ---> x) net"
+  assumes Y: "(Y ---> y) net"
+  shows "((\<lambda>x. max (X x) (Y x)) ---> max x y) net"
+proof (rule order_tendstoI)
+  fix a assume "a < max x y"
+  then show "eventually (\<lambda>x. a < max (X x) (Y x)) net"
+    using order_tendstoD(1)[OF X, of a] order_tendstoD(1)[OF Y, of a]
+    by (auto simp: less_max_iff_disj elim: eventually_elim1)
+next
+  fix a assume "max x y < a"
+  then show "eventually (\<lambda>x. max (X x) (Y x) < a) net"
+    using order_tendstoD(2)[OF X, of a] order_tendstoD(2)[OF Y, of a]
+    by (auto simp: eventually_conj_iff)
+qed
+
+lemma tendsto_min:
+  fixes x y :: "'a::linorder_topology"
+  assumes X: "(X ---> x) net"
+  assumes Y: "(Y ---> y) net"
+  shows "((\<lambda>x. min (X x) (Y x)) ---> min x y) net"
+proof (rule order_tendstoI)
+  fix a assume "a < min x y"
+  then show "eventually (\<lambda>x. a < min (X x) (Y x)) net"
+    using order_tendstoD(1)[OF X, of a] order_tendstoD(1)[OF Y, of a]
+    by (auto simp: eventually_conj_iff)
+next
+  fix a assume "min x y < a"
+  then show "eventually (\<lambda>x. min (X x) (Y x) < a) net"
+    using order_tendstoD(2)[OF X, of a] order_tendstoD(2)[OF Y, of a]
+    by (auto simp: min_less_iff_disj elim: eventually_elim1)
+qed
+
+
 lemma tendsto_ident_at [tendsto_intros]: "((\<lambda>x. x) ---> a) (at a within s)"
   unfolding tendsto_def eventually_at_topological by auto
 

@@ -467,6 +467,12 @@ lemma (in bounded_lattice) atLeastAtMost_eq_UNIV_iff:
   "{x..y} = UNIV \<longleftrightarrow> (x = bot \<and> y = top)"
 by (auto simp: set_eq_iff intro: top_le le_bot)
 
+lemma Iio_eq_empty_iff: "{..< n::'a::{linorder, order_bot}} = {} \<longleftrightarrow> n = bot"
+  by (auto simp: set_eq_iff not_less le_bot)
+
+lemma Iio_eq_empty_iff_nat: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
+  by (simp add: Iio_eq_empty_iff bot_nat_def)
+
 
 subsection {* Infinite intervals *}
 
