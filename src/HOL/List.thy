@@ -3262,6 +3262,10 @@ lemma nth_eq_iff_index_eq:
  "\<lbrakk> distinct xs; i < length xs; j < length xs \<rbrakk> \<Longrightarrow> (xs!i = xs!j) = (i = j)"
 by(auto simp: distinct_conv_nth)
 
+lemma set_update_distinct: "\<lbrakk> distinct xs;  n < length xs \<rbrakk> \<Longrightarrow>
+  set(xs[n := x]) = insert x (set xs - {xs!n})"
+by(auto simp: set_eq_iff in_set_conv_nth nth_list_update nth_eq_iff_index_eq)
+
 lemma distinct_card: "distinct xs ==> card (set xs) = size xs"
 by (induct xs) auto
 
