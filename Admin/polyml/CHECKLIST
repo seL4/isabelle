@@ -11,7 +11,5 @@ Notes on building Poly/ML as Isabelle component
 
 * include sha1 source and binary for each platform
 
-* copy polyml script for each platform
-
 * linux: include copy of libgmp.so with symlinks from build host
 
