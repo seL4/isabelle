@@ -5,7 +5,7 @@ POLYML_HOME="$COMPONENT"
 
 # basic settings
 
-#ML_SYSTEM=polyml-5.5.1
+#ML_SYSTEM=polyml-5.5.2
 #ML_PLATFORM="$ISABELLE_PLATFORM32"
 #ML_HOME="$POLYML_HOME/$ML_PLATFORM"
 #ML_OPTIONS="-H 500"
@@ -14,7 +14,7 @@ POLYML_HOME="$COMPONENT"
 
 # smart settings
 
-ML_SYSTEM=polyml-5.5.1
+ML_SYSTEM=polyml-5.5.2
 
 case "$ISABELLE_PLATFORM" in
   *-linux)

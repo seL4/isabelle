@@ -1,8 +1,8 @@
 Poly/ML for Isabelle
 ====================
 
-This compilation of Poly/ML 5.5.1 (http://www.polyml.org) is based on the
-official source distribution polyml.5.5.1.tar.gz from
+This compilation of Poly/ML 5.5.2 (http://www.polyml.org) is based on the
+official source distribution polyml.5.5.2.tar.gz from
 http://sourceforge.net/projects/polyml/.
 
 The included build script is used like this:
@@ -18,4 +18,4 @@ efficient digesting of strings according to SHA-1.
 
 
 	Makarius
-	17-Sep-2013
+	14-May-2014
