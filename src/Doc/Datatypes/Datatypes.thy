@@ -908,6 +908,9 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{rel\_mono}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]}
 
+\item[@{text "t."}\hthm{set\_empty}\rm:] ~ \\
+@{thm list.set_empty[no_vars]}
+
 \item[@{text "t."}\hthm{set\_map}\rm:] ~ \\
 @{thm list.set_map[no_vars]}
 
