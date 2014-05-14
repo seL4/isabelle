@@ -189,7 +189,6 @@ isabelle-output.height=174
 isabelle-output.width=412
 isabelle-query.dock-position=bottom
 isabelle-simplifier-trace.dock-position=bottom
-isabelle-sledgehammer.dock-position=bottom
 isabelle-symbols.dock-position=bottom
 isabelle-theories.dock-position=right
 isabelle.complete.label=Complete Isabelle text

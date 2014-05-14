@@ -69,9 +69,6 @@ case "$TARGET" in
   x86_64-windows)
     OPTIONS=()
     ;;
-  ppc-darwin | sparc-solaris | x86-solaris | x86-bsd)
-    OPTIONS=()
-    ;;
   *)
     fail "Bad platform identifier: \"$TARGET\""
     ;;
