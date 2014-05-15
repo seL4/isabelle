@@ -32,8 +32,6 @@ sig
   val static_value: Proof.context -> ((term -> term) -> 'a -> 'b) -> string list
     -> (code_algebra -> code_graph -> Proof.context -> term -> 'a)
     -> Proof.context -> term -> 'b
-
-  val setup: theory -> theory
 end
 
 structure Code_Preproc : CODE_PREPROC =
@@ -507,19 +505,20 @@ fun static_value ctxt lift_postproc consts evaluator =
 
 (** setup **)
 
-val setup = 
+val _ =
   let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
     fun add_del_attribute_parser process =
       Attrib.add_del (mk_attribute (process Simplifier.add_simp))
         (mk_attribute (process Simplifier.del_simp));
   in
-    Attrib.setup @{binding code_unfold} (add_del_attribute_parser process_unfold)
+    Context.>> (Context.map_theory
+      (Attrib.setup @{binding code_unfold} (add_del_attribute_parser process_unfold)
         "preprocessing equations for code generator"
-    #> Attrib.setup @{binding code_post} (add_del_attribute_parser process_post)
+      #> Attrib.setup @{binding code_post} (add_del_attribute_parser process_post)
         "postprocessing equations for code generator"
-    #> Attrib.setup @{binding code_abbrev} (add_del_attribute_parser process_abbrev)
-        "post- and preprocessing equations for code generator"
+      #> Attrib.setup @{binding code_abbrev} (add_del_attribute_parser process_abbrev)
+        "post- and preprocessing equations for code generator"))
   end;
 
 val _ =

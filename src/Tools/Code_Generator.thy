@@ -27,8 +27,7 @@ ML_file "~~/src/Tools/Code/code_haskell.ML"
 ML_file "~~/src/Tools/Code/code_scala.ML"
 
 setup {*
-  Code_Preproc.setup
-  #> Code_Simp.setup
+  Code_Simp.setup
   #> Code_Target.setup
   #> Code_ML.setup
   #> Code_Haskell.setup
