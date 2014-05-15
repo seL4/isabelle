@@ -26,11 +26,11 @@ sig
     -> (code_algebra -> code_graph -> term -> conv) -> conv
   val dynamic_value: Proof.context -> ((term -> term) -> 'a -> 'b)
     -> (code_algebra -> code_graph -> term -> 'a) -> term -> 'b
-  val static_conv: Proof.context -> string list
-    -> (code_algebra -> code_graph -> Proof.context -> term -> conv)
+  val static_conv: { ctxt: Proof.context, consts: string list }
+    -> ({ algebra: code_algebra, eqngr: code_graph } -> Proof.context -> term -> conv)
     -> Proof.context -> conv
-  val static_value: Proof.context -> ((term -> term) -> 'a -> 'b) -> string list
-    -> (code_algebra -> code_graph -> Proof.context -> term -> 'a)
+  val static_value: { ctxt: Proof.context, lift_postproc: ((term -> term) -> 'a -> 'b), consts: string list }
+    -> ({ algebra: code_algebra, eqngr: code_graph } -> Proof.context -> term -> 'a)
     -> Proof.context -> term -> 'b
 end
 
@@ -498,15 +498,15 @@ fun dynamic_conv ctxt conv =
 fun dynamic_value ctxt lift_postproc evaluator =
   evaluation (value_sandwich ctxt) lift_postproc (dynamic_evaluator evaluator) ctxt;
 
-fun static_conv ctxt consts conv =
+fun static_conv { ctxt, consts } conv =
   let
     val (algebra, eqngr) = obtain true (Proof_Context.theory_of ctxt) consts [];
-  in finalize (value_sandwich ctxt) (conv algebra eqngr) end;
+  in finalize (value_sandwich ctxt) (conv { algebra = algebra, eqngr = eqngr }) end;
 
-fun static_value ctxt lift_postproc consts evaluator =
+fun static_value { ctxt, lift_postproc, consts } evaluator =
   let
     val (algebra, eqngr) = obtain true (Proof_Context.theory_of ctxt) consts [];
-  in evaluation (value_sandwich ctxt) lift_postproc (evaluator algebra eqngr) end;
+  in evaluation (value_sandwich ctxt) lift_postproc (evaluator { algebra = algebra, eqngr = eqngr }) end;
 
 
 (** setup **)

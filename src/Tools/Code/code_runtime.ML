@@ -17,14 +17,17 @@ sig
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a
   val dynamic_value_exn: 'a cookie -> Proof.context -> string option
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a Exn.result
-  val static_value: 'a cookie -> Proof.context -> string option
-    -> ((term -> term) -> 'a -> 'a) -> string list -> Proof.context -> term -> 'a option
-  val static_value_strict: 'a cookie -> Proof.context -> string option
-    -> ((term -> term) -> 'a -> 'a) -> string list -> Proof.context -> term -> 'a
-  val static_value_exn: 'a cookie -> Proof.context -> string option
-    -> ((term -> term) -> 'a -> 'a) -> string list -> Proof.context -> term -> 'a Exn.result
+  val static_value: 'a cookie -> { ctxt: Proof.context, target: string option,
+    lift_postproc: (term -> term) -> 'a -> 'a, consts: string list }
+    -> Proof.context -> term -> 'a option
+  val static_value_strict: 'a cookie -> { ctxt: Proof.context, target: string option,
+    lift_postproc: (term -> term) -> 'a -> 'a, consts: string list }
+    -> Proof.context -> term -> 'a
+  val static_value_exn: 'a cookie -> { ctxt: Proof.context, target: string option,
+    lift_postproc: (term -> term) -> 'a -> 'a, consts: string list }
+    -> Proof.context -> term -> 'a Exn.result
   val dynamic_holds_conv: Proof.context -> conv
-  val static_holds_conv: Proof.context -> string list -> Proof.context -> conv
+  val static_holds_conv: { ctxt: Proof.context, consts: string list } -> Proof.context -> conv
   val code_reflect: (string * string list option) list -> string list -> string
     -> string option -> theory -> theory
   datatype truth = Holds
@@ -122,23 +125,22 @@ fun dynamic_value_strict cookie ctxt some_target postproc t args =
 fun dynamic_value cookie ctxt some_target postproc t args =
   partiality_as_none (dynamic_value_exn cookie ctxt some_target postproc t args);
 
-fun static_evaluator cookie ctxt some_target program consts' =
+fun static_evaluator cookie ctxt some_target { program, deps } =
   let
-    val evaluator = obtain_evaluator ctxt some_target program (map Constant consts');
+    val evaluator = obtain_evaluator ctxt some_target program (map Constant deps);
     val evaluation' = evaluation cookie ctxt evaluator;
   in fn _ => fn _ => fn vs_ty_t => fn _ => evaluation' vs_ty_t [] end;
 
-fun static_value_exn cookie ctxt some_target postproc consts =
+fun static_value_exn cookie { ctxt, target, lift_postproc, consts } =
   let
-    val evaluator = Code_Thingol.static_value ctxt (Exn.map_result o postproc) consts
-      (static_evaluator cookie ctxt some_target);
+    val evaluator = Code_Thingol.static_value { ctxt = ctxt,
+      lift_postproc = Exn.map_result o lift_postproc, consts = consts }
+      (static_evaluator cookie ctxt target);
   in fn ctxt' => evaluator ctxt' o reject_vars ctxt' end;
 
-fun static_value_strict cookie ctxt some_target postproc consts =
-  Exn.release oo static_value_exn cookie ctxt some_target postproc consts;
+fun static_value_strict cookie = Exn.release ooo static_value_exn cookie;
 
-fun static_value cookie thy some_target postproc consts =
-  partiality_as_none oo static_value_exn cookie thy some_target postproc consts;
+fun static_value cookie = partiality_as_none ooo static_value_exn cookie;
 
 
 (* evaluation for truth or nothing *)
@@ -185,15 +187,9 @@ fun dynamic_holds_conv ctxt = Code_Thingol.dynamic_conv ctxt
     check_holds_oracle ctxt (obtain_evaluator ctxt NONE program deps) vs_t)
       o reject_vars ctxt;
 
-fun static_holds_conv ctxt consts =
-  Code_Thingol.static_conv ctxt consts (fn program => fn consts' =>
-    let
-      val evaluator' = obtain_evaluator ctxt NONE program (map Constant consts')
-    in
-      fn ctxt' => fn vs_t => fn _ => check_holds_oracle ctxt' evaluator' vs_t o reject_vars ctxt'
-    end);
-
-(* o reject_vars ctxt'*)
+fun static_holds_conv (ctxt_consts as { ctxt, ... }) =
+  Code_Thingol.static_conv ctxt_consts (fn { program, deps } => fn ctxt' => fn vs_t =>
+    K (check_holds_oracle ctxt' (obtain_evaluator ctxt NONE program (map Constant deps)) vs_t o reject_vars ctxt'));
 
 end; (*local*)
 

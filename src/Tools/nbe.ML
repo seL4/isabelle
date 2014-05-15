@@ -8,8 +8,8 @@ signature NBE =
 sig
   val dynamic_conv: Proof.context -> conv
   val dynamic_value: Proof.context -> term -> term
-  val static_conv: Proof.context -> string list -> Proof.context -> conv
-  val static_value: Proof.context -> string list -> Proof.context -> term -> term
+  val static_conv: { ctxt: Proof.context, consts: string list } -> Proof.context -> conv
+  val static_value: { ctxt: Proof.context, consts: string list } -> Proof.context -> term -> term
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
@@ -597,16 +597,16 @@ fun dynamic_conv ctxt = lift_triv_classes_conv ctxt
 fun dynamic_value ctxt = lift_triv_classes_rew ctxt
   (Code_Thingol.dynamic_value ctxt I (eval_term ctxt o compile false ctxt));
 
-fun static_conv ctxt consts =
+fun static_conv (ctxt_consts as { ctxt, ... }) =
   let
-    val evaluator = Code_Thingol.static_conv ctxt consts
-      (fn program => fn _ => fn ctxt' => oracle ctxt' (compile true ctxt program));
+    val evaluator = Code_Thingol.static_conv ctxt_consts
+      (fn { program, ... } => fn ctxt' => oracle ctxt' (compile true ctxt program));
   in fn ctxt' => lift_triv_classes_conv ctxt' (evaluator ctxt') end;
 
-fun static_value ctxt consts =
+fun static_value { ctxt, consts } =
   let
-    val evaluator = Code_Thingol.static_value ctxt I consts
-      (fn program => fn _ => fn ctxt' => eval_term ctxt' (compile false ctxt program));
+    val evaluator = Code_Thingol.static_value { ctxt = ctxt, lift_postproc = I, consts = consts }
+      (fn { program, ... } => fn ctxt' => eval_term ctxt' (compile false ctxt program));
   in fn ctxt' => lift_triv_classes_rew ctxt' (evaluator ctxt') end;
 
 end;

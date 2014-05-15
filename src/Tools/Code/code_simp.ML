@@ -10,8 +10,10 @@ sig
   val dynamic_conv: Proof.context -> conv
   val dynamic_tac: Proof.context -> int -> tactic
   val dynamic_value: Proof.context -> term -> term
-  val static_conv: Proof.context -> simpset option -> string list -> Proof.context -> conv
-  val static_tac: Proof.context -> simpset option -> string list -> Proof.context -> int -> tactic
+  val static_conv: { ctxt: Proof.context, simpset: simpset option, consts: string list }
+    -> Proof.context -> conv
+  val static_tac: { ctxt: Proof.context, simpset: simpset option, consts: string list }
+    -> Proof.context -> int -> tactic
   val setup: theory -> theory
   val trace: bool Config.T
 end;
@@ -92,15 +94,14 @@ val setup =
 
 (* evaluation with static code context *)
 
-fun static_conv ctxt some_ss consts =
-  Code_Thingol.static_conv_simple ctxt consts
-    (fn program => let val conv' = rewrite_modulo ctxt some_ss program
-     in fn ctxt' => fn _ => conv' ctxt' end);
+fun static_conv { ctxt, simpset, consts } =
+  Code_Thingol.static_conv_simple { ctxt = ctxt, consts = consts }
+    (K oo rewrite_modulo ctxt simpset);
 
-fun static_tac ctxt some_ss consts =
+fun static_tac { ctxt, simpset, consts } =
   let
-    val conv = static_conv ctxt some_ss consts;
-    val tac = conclude_tac ctxt some_ss;
+    val conv = static_conv { ctxt = ctxt, simpset = simpset, consts = consts };
+    val tac = conclude_tac ctxt simpset;
   in fn ctxt' => CONVERSION (conv ctxt') THEN' (tac ctxt') end;
 
 end;

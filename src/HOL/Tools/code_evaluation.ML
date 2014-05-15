@@ -9,11 +9,15 @@ sig
   val dynamic_value: Proof.context -> term -> term option
   val dynamic_value_strict: Proof.context -> term -> term
   val dynamic_value_exn: Proof.context -> term -> term Exn.result
-  val static_value: Proof.context -> string list -> typ list -> Proof.context -> term -> term option
-  val static_value_strict: Proof.context -> string list -> typ list -> Proof.context -> term -> term
-  val static_value_exn: Proof.context -> string list -> typ list -> Proof.context -> term -> term Exn.result
+  val static_value: { ctxt: Proof.context, consts: string list, Ts: typ list }
+    -> Proof.context -> term -> term option
+  val static_value_strict: { ctxt: Proof.context, consts: string list, Ts: typ list }
+    -> Proof.context -> term -> term
+  val static_value_exn: { ctxt: Proof.context, consts: string list, Ts: typ list }
+    -> Proof.context -> term -> term Exn.result
   val dynamic_conv: Proof.context -> conv
-  val static_conv: Proof.context -> string list -> typ list -> Proof.context -> conv
+  val static_conv: { ctxt: Proof.context, consts: string list, Ts: typ list }
+    -> Proof.context -> conv
   val put_term: (unit -> term) -> Proof.context -> Proof.context
   val tracing: string -> 'a -> 'a
 end;
@@ -160,8 +164,7 @@ and subst_termify (Abs (v, T, t)) = (case subst_termify t
       | NONE => NONE)
   | subst_termify t = subst_termify_app (strip_comb t) 
 
-fun check_termify ctxt ts =
-  the_default ts (map_default subst_termify ts);
+fun check_termify _ ts = the_default ts (map_default subst_termify ts);
 
 val _ = Context.>> (Syntax_Phases.term_check 0 "termify" check_termify);
 
@@ -188,10 +191,11 @@ val dynamic_value = gen_dynamic_value Code_Runtime.dynamic_value;
 val dynamic_value_strict = gen_dynamic_value Code_Runtime.dynamic_value_strict;
 val dynamic_value_exn = gen_dynamic_value Code_Runtime.dynamic_value_exn;
 
-fun gen_static_value static_value ctxt consts Ts =
+fun gen_static_value static_value { ctxt, consts, Ts } =
   let
-    val static_value' = static_value cookie ctxt NONE I
-      (union (op =) (map (term_of_const_for (Proof_Context.theory_of ctxt)) Ts) consts)
+    val static_value' = static_value cookie
+      { ctxt = ctxt, target = NONE, lift_postproc = I, consts =
+        union (op =) (map (term_of_const_for (Proof_Context.theory_of ctxt)) Ts) consts }
   in fn ctxt' => fn t => static_value' ctxt' (mk_term_of t) end;
 
 val static_value = gen_static_value Code_Runtime.static_value;
@@ -214,13 +218,13 @@ fun certify_eval ctxt value conv ct =
 fun dynamic_conv ctxt = certify_eval ctxt dynamic_value
   Code_Runtime.dynamic_holds_conv;
 
-fun static_conv ctxt consts Ts =
+fun static_conv { ctxt, consts, Ts }  =
   let
     val eqs = @{const_name Pure.eq} :: @{const_name HOL.eq} ::
       map (fn T => Axclass.unoverload_const (Proof_Context.theory_of ctxt)
         (@{const_name HOL.equal}, T)) Ts; (*assumes particular code equations for Pure.eq etc.*)
-    val value = static_value ctxt consts Ts;
-    val holds = Code_Runtime.static_holds_conv ctxt (union (op =) eqs consts);
+    val value = static_value { ctxt = ctxt, consts = consts, Ts = Ts };
+    val holds = Code_Runtime.static_holds_conv { ctxt = ctxt, consts = union (op =) eqs consts };
   in
     fn ctxt' => certify_eval ctxt' value holds
   end;
