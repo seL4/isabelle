@@ -90,39 +90,28 @@ fun string_of_proof_method meth =
   | Presburger_Method => "presburger"
   | Algebra_Method => "algebra")
 
-fun silence_proof_methods debug =
-  Try0.silence_methods debug
-  #> Config.put SMT2_Config.verbose debug
-
-fun tac_of_proof_method ctxt0 debug (local_facts0, global_facts0) meth =
-  let
-    val ctxt = silence_proof_methods debug ctxt0
-    val thy = Proof_Context.theory_of ctxt
-    val local_facts = map (Thm.transfer thy) local_facts0
-    val global_facts = map (Thm.transfer thy) global_facts0
-  in
-    Method.insert_tac local_facts THEN'
+fun tac_of_proof_method ctxt debug (local_facts, global_facts) meth =
+  Method.insert_tac local_facts THEN'
+  (case meth of
+    Metis_Method (type_enc_opt, lam_trans_opt) =>
+    Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
+      (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
+  | Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
+  | SMT2_Method => SMT2_Solver.smt2_tac ctxt global_facts
+  | _ =>
+    Method.insert_tac global_facts THEN'
     (case meth of
-      Metis_Method (type_enc_opt, lam_trans_opt) =>
-      Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
-        (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
-    | Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
-    | SMT2_Method => SMT2_Solver.smt2_tac ctxt global_facts
-    | _ =>
-      Method.insert_tac global_facts THEN'
-      (case meth of
-        SATx_Method => SAT.satx_tac ctxt
-      | Blast_Method => blast_tac ctxt
-      | Simp_Method => Simplifier.asm_full_simp_tac ctxt
-      | Simp_Size_Method =>
-        Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
-      | Auto_Method => K (Clasimp.auto_tac ctxt)
-      | Fastforce_Method => Clasimp.fast_force_tac ctxt
-      | Force_Method => Clasimp.force_tac ctxt
-      | Linarith_Method => Lin_Arith.tac ctxt
-      | Presburger_Method => Cooper.tac true [] [] ctxt
-      | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
-  end
+      SATx_Method => SAT.satx_tac ctxt
+    | Blast_Method => blast_tac ctxt
+    | Simp_Method => Simplifier.asm_full_simp_tac ctxt
+    | Simp_Size_Method =>
+      Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
+    | Auto_Method => K (Clasimp.auto_tac ctxt)
+    | Fastforce_Method => Clasimp.fast_force_tac ctxt
+    | Force_Method => Clasimp.force_tac ctxt
+    | Linarith_Method => Lin_Arith.tac ctxt
+    | Presburger_Method => Cooper.tac true [] [] ctxt
+    | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
   | string_of_play_outcome (Play_Timed_Out time) =

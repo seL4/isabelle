@@ -358,8 +358,9 @@ fun minimize_command override_params i more_override_params prover_name
 
 val default_learn_prover_timeout = 2.0
 
-fun hammer_away override_params subcommand opt_i fact_override state =
+fun hammer_away override_params subcommand opt_i fact_override state0 =
   let
+    val state = Proof.map_context (Try0.silence_methods false) state0
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
