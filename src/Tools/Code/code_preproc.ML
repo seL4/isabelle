@@ -126,6 +126,24 @@ fun no_variables_conv ctxt conv ct =
     |> fold apply_beta all_vars
   end;
 
+fun normalized_tfrees ctxt conv ct =
+  let
+    val cert = cterm_of (Proof_Context.theory_of ctxt);
+    val t = term_of ct;
+    val vs_original = fold_term_types (K (fold_atyps (insert (eq_fst op =)
+      o dest_TFree))) t [];
+    val vs_normalized = Name.invent_names Name.context Name.aT (map snd vs_original);
+    val normalize = map_type_tfree (TFree o the o AList.lookup (op =) (vs_original ~~ vs_normalized));
+    val normalization =
+      map2 (fn (v, sort) => fn (v', _) => (((v', 0), sort), TFree (v, sort))) vs_original vs_normalized;
+    val ct_normalized = cert (map_types normalize t);
+  in
+    ct_normalized
+    |> conv
+    |> Thm.varifyT_global
+    |> Thm.certify_instantiate (normalization, [])
+  end;
+
 fun trans_conv_rule conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
 
 fun term_of_conv ctxt conv =
@@ -459,7 +477,7 @@ fun obtain ignore_cache thy consts ts = apsnd snd
   (Wellsorted.change_yield (if ignore_cache then NONE else SOME thy)
     (extend_arities_eqngr (Proof_Context.init_global thy) consts ts));
 
-fun dynamic_conv ctxt conv = no_variables_conv ctxt (fn ct =>
+fun dynamic_conv ctxt conv = normalized_tfrees ctxt (no_variables_conv ctxt (fn ct =>
   let
     val thm1 = preprocess_conv ctxt ctxt ct;
     val ct' = Thm.rhs_of thm1;
@@ -473,7 +491,7 @@ fun dynamic_conv ctxt conv = no_variables_conv ctxt (fn ct =>
     Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
       error ("could not construct evaluation proof:\n"
       ^ (cat_lines o map (Display.string_of_thm ctxt)) [thm1, thm2, thm3])
-  end);
+  end));
 
 fun dynamic_value ctxt postproc evaluator t =
   let
@@ -493,9 +511,9 @@ fun static_conv ctxt consts conv =
     val pre_conv = preprocess_conv ctxt;
     val conv' = conv algebra eqngr;
     val post_conv = postprocess_conv ctxt;
-  in fn ctxt' => no_variables_conv ctxt' ((pre_conv ctxt')
+  in fn ctxt' => normalized_tfrees ctxt' (no_variables_conv ctxt' ((pre_conv ctxt')
     then_conv (fn ct => conv' ctxt' (Thm.term_of ct) ct)
-    then_conv (post_conv ctxt'))
+    then_conv (post_conv ctxt')))
   end;
 
 fun static_value ctxt postproc consts evaluator =
