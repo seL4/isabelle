@@ -493,7 +493,7 @@ INCOMPATIBILITY.
   * HOLogic.dest_number also recognizes numerals in non-canonical forms
     like "numeral One", "- numeral One", "- 0" and even "- ... - _".
   * Syntax for negative numerals is mere input syntax.
-INCOMPATBILITY.
+INCOMPATIBILITY.
 
 * Elimination of fact duplicates:
     equals_zero_I ~> minus_unique
