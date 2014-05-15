@@ -128,7 +128,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
           pair (snd_const T)
         else if exists (exists_subtype_in (As @ Cs)) Ts then
           (case Symtab.lookup data s of
-            SOME (size_name, (_, size_o_maps as _ :: _)) =>
+            SOME (size_name, (_, size_o_maps)) =>
             let
               val (args, size_o_mapss') = split_list (map (fn T => mk_size_of_typ T []) Ts);
               val size_const = Const (size_name, map fastype_of args ---> mk_to_natT T);
@@ -160,9 +160,8 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
       end;
 
     fun mk_size_rhs recx size_o_maps =
-      let val (args, size_o_maps') = fold_map mk_size_arg rec_arg_Ts size_o_maps in
-        (fold_rev Term.lambda fs (Term.list_comb (substCnatT recx, args)), size_o_maps')
-      end;
+      fold_map mk_size_arg rec_arg_Ts size_o_maps
+      |>> (fn args => fold_rev Term.lambda fs (Term.list_comb (substCnatT recx, args)));
 
     val maybe_conceal_def_binding = Thm.def_binding
       #> Config.get lthy0 bnf_note_all = false ? Binding.conceal;
@@ -219,7 +218,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
 
     val all_overloaded_size_defs = overloaded_size_defs @
       (Spec_Rules.retrieve lthy0 @{const size ('a)}
-       |> map_filter (try (fn (Equational, (_, [thm])) => thm)));
+       |> map_filter (try (fn (Spec_Rules.Equational, (_, [thm])) => thm)));
 
     val nested_size_maps = map (pointfill lthy2) nested_size_o_maps @ nested_size_o_maps;
     val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ nested_bnfs @ nesting_bnfs);
@@ -323,14 +322,19 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
             map2 (fold_rev (fold_rev Logic.all) [fsB, gs] o
               curry Logic.list_implies size_o_map_conds o HOLogic.mk_Trueprop oo
               curry HOLogic.mk_eq) size_o_map_lhss size_o_map_rhss;
-          val size_o_map_thms =
-            map3 (fn goal => fn size_def => fn rec_o_map =>
+
+          (* The "size o map" theorem generation will fail if 'nested_size_maps' is incomplete,
+             which occurs when there is recursion through non-datatypes. In this case, we simply
+             avoid generating the theorem. The resulting characteristic lemmas are then expressed
+             in terms of "map", which is not the end of the world. *)
+          val size_o_map_thmss =
+            map3 (fn goal => fn size_def => the_list o try (fn rec_o_map =>
                 Goal.prove lthy2 [] [] goal (fn {context = ctxt, ...} =>
                   mk_size_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
-                |> Thm.close_derivation)
-              size_o_map_goals size_defs rec_o_map_thms;
+                |> Thm.close_derivation))
+              size_o_map_goals size_defs rec_o_map_thms
         in
-          pairself (map single) (rec_o_map_thms, size_o_map_thms)
+          (map single rec_o_map_thms, size_o_map_thmss)
         end;
 
     val massage_multi_notes =
