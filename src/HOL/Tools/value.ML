@@ -35,9 +35,6 @@ fun value_cmd modes raw_t state =
 val opt_modes =
   Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
 
-val opt_evaluator =
-  Scan.option (@{keyword "["} |-- Parse.xname --| @{keyword "]"})
-  
 val _ =
   Outer_Syntax.improper_command @{command_spec "value"} "evaluate and print term"
     (opt_modes -- Parse.term
