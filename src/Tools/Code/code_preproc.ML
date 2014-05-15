@@ -107,27 +107,41 @@ fun del_functrans name = (map_data o apsnd)
 
 (* algebra of sandwiches: cterm transformations with pending postprocessors *)
 
+fun matches_transitive eq1 eq2 = Thm.rhs_of eq1 aconvc Thm.lhs_of eq2;
+
 fun trans_comb eq1 eq2 =
-  if Thm.is_reflexive eq1 then eq2
-  else if Thm.is_reflexive eq2 then eq1
+  (*explicit assertions: evaluation conversion stacks are error-prone*)
+  if Thm.is_reflexive eq1 then (@{assert} (matches_transitive eq1 eq2); eq2)
+  else if Thm.is_reflexive eq2 then (@{assert} (matches_transitive eq1 eq2); eq1)
   else Thm.transitive eq1 eq2;
 
 fun trans_conv_rule conv eq = trans_comb eq (conv (Thm.rhs_of eq));
 
-type sandwich = Proof.context -> cterm -> (thm -> thm) * cterm;
-type conv_sandwich = Proof.context -> cterm -> conv * thm;
+structure Sandwich : sig
+  type T = Proof.context -> cterm -> (thm -> thm) * cterm;
+  val chain: T -> T -> T
+  val lift: (Proof.context -> cterm -> (cterm -> thm) * thm) -> T
+  val conversion: T -> (Proof.context -> term -> conv) -> Proof.context -> conv;
+  val evaluation: T -> ((term -> term) -> 'a -> 'b) ->
+    (Proof.context -> term -> 'a) -> Proof.context -> term -> 'b;
+end = struct
+
+type T = Proof.context -> cterm -> (thm -> thm) * cterm;
 
 fun chain sandwich2 sandwich1 ctxt =
   sandwich1 ctxt
   ##>> sandwich2 ctxt
   #>> (op o);
 
-fun lift_conv_sandwich conv_sandwhich ctxt ct =
+fun lift conv_sandwhich ctxt ct =
   let
     val (postproc_conv, eq) = conv_sandwhich ctxt ct;
-  in (trans_conv_rule postproc_conv o trans_comb eq, Thm.rhs_of eq) end;
+    fun potentail_trans_comb eq1 eq2 =
+      if matches_transitive eq1 eq2 then trans_comb eq1 eq2 else eq2;
+        (*weakened protocol for plain term evaluation*)
+  in (trans_conv_rule postproc_conv o potentail_trans_comb eq, Thm.rhs_of eq) end;
 
-fun finalize sandwich conv ctxt ct =
+fun conversion sandwich conv ctxt ct =
   let
     val (postproc, ct') = sandwich ctxt ct;
   in postproc (conv ctxt (term_of ct') ct') end;
@@ -141,6 +155,8 @@ fun evaluation sandwich lift_postproc eval ctxt t =
     |> eval ctxt
     |> lift_postproc (term_of o Thm.rhs_of o postproc o Thm.reflexive o cert)
   end;
+
+end;
 
 
 (* post- and preprocessing *)
@@ -190,12 +206,12 @@ fun simplifier_conv_sandwich ctxt =
       #> trans_conv_rule (Simplifier.rewrite (put_simpset post ctxt'))
   in fn ctxt' => pre_conv ctxt' #> pair (post_conv ctxt') end;
 
-fun simplifier_sandwich ctxt = lift_conv_sandwich (simplifier_conv_sandwich ctxt);
+fun simplifier_sandwich ctxt = Sandwich.lift (simplifier_conv_sandwich ctxt);
 
 fun value_sandwich ctxt =
   normalized_tfrees_sandwich
-  |> chain no_variables_sandwich
-  |> chain (simplifier_sandwich ctxt);
+  |> Sandwich.chain no_variables_sandwich
+  |> Sandwich.chain (simplifier_sandwich ctxt);
 
 fun print_codeproc ctxt =
   let
@@ -493,20 +509,20 @@ fun dynamic_evaluator eval ctxt t =
   in eval algebra eqngr t end;
 
 fun dynamic_conv ctxt conv =
-  finalize (value_sandwich ctxt) (dynamic_evaluator conv) ctxt;
+  Sandwich.conversion (value_sandwich ctxt) (dynamic_evaluator conv) ctxt;
 
 fun dynamic_value ctxt lift_postproc evaluator =
-  evaluation (value_sandwich ctxt) lift_postproc (dynamic_evaluator evaluator) ctxt;
+  Sandwich.evaluation (value_sandwich ctxt) lift_postproc (dynamic_evaluator evaluator) ctxt;
 
 fun static_conv { ctxt, consts } conv =
   let
     val (algebra, eqngr) = obtain true (Proof_Context.theory_of ctxt) consts [];
-  in finalize (value_sandwich ctxt) (conv { algebra = algebra, eqngr = eqngr }) end;
+  in Sandwich.conversion (value_sandwich ctxt) (conv { algebra = algebra, eqngr = eqngr }) end;
 
 fun static_value { ctxt, lift_postproc, consts } evaluator =
   let
     val (algebra, eqngr) = obtain true (Proof_Context.theory_of ctxt) consts [];
-  in evaluation (value_sandwich ctxt) lift_postproc (evaluator { algebra = algebra, eqngr = eqngr }) end;
+  in Sandwich.evaluation (value_sandwich ctxt) lift_postproc (evaluator { algebra = algebra, eqngr = eqngr }) end;
 
 
 (** setup **)
