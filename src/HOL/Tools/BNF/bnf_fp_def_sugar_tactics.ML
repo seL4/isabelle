@@ -18,6 +18,7 @@ sig
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
   val mk_disc_corec_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
+  val mk_disc_map_iff_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
@@ -31,6 +32,7 @@ end;
 structure BNF_FP_Def_Sugar_Tactics : BNF_FP_DEF_SUGAR_TACTICS =
 struct
 
+open Ctr_Sugar_Util
 open BNF_Tactics
 open BNF_Util
 open BNF_FP_Util
@@ -113,6 +115,15 @@ fun mk_disc_corec_iff_tac case_splits' corecs discs ctxt =
       (if is_refl disc then all_tac else HEADGOAL (rtac disc)))
     (map rtac case_splits' @ [K all_tac]) corecs discs);
 
+fun mk_disc_map_iff_tac ctxt ct exhaust discs maps =
+  TRYALL Goal.conjunction_tac THEN
+    ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
+      REPEAT_DETERM o hyp_subst_tac ctxt) THEN
+    unfold_thms_tac ctxt maps THEN
+    unfold_thms_tac ctxt (map (fn thm => thm RS @{thm iffD2[OF eq_False]}
+      handle THM _ => thm RS @{thm iffD2[OF eq_True]}) discs) THEN
+    ALLGOALS (rtac refl ORELSE' rtac TrueI);
+
 fun solve_prem_prem_tac ctxt =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'
     hyp_subst_tac ctxt ORELSE' resolve_tac @{thms disjI1 disjI2}) THEN'
@@ -194,10 +205,10 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
 
 fun mk_set_empty_tac ctxt ct exhaust sets discs =
   TRYALL Goal.conjunction_tac THEN
-  ALLGOALS(rtac (Ctr_Sugar_Util.cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
+  ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
     REPEAT_DETERM o hyp_subst_tac ctxt) THEN
   unfold_thms_tac ctxt (sets @ map_filter (fn thm =>
     SOME (thm RS @{thm iffD2[OF eq_False]}) handle THM _ => NONE) discs) THEN
-  ALLGOALS(rtac refl ORELSE' etac FalseE);
+  ALLGOALS (rtac refl ORELSE' etac FalseE);
 
 end;

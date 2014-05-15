@@ -98,6 +98,7 @@ open BNF_LFP_Size
 
 val EqN = "Eq_";
 val set_emptyN = "set_empty";
+val disc_map_iffN = "disc_map_iff";
 
 structure Data = Generic_Data
 (
@@ -1176,6 +1177,48 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 end;
 
               val sets = map mk_set (sets_of_bnf fp_bnf);
+
+              val disc_map_iff_thms =
+                let
+                  val (((Ds, As), Bs), names_lthy) = lthy
+                    |> mk_TFrees (dead_of_bnf fp_bnf)
+                    ||>> mk_TFrees (live_of_bnf fp_bnf)
+                    ||>> mk_TFrees (live_of_bnf fp_bnf);
+                  val fTs = map2 (curry op -->) As Bs;
+                  val T1 = mk_T_of_bnf Ds As fp_bnf;
+                  val T2 = mk_T_of_bnf Ds Bs fp_bnf;
+                  val ((fs, t), names_lthy) = names_lthy
+                    |> mk_Frees "f" fTs
+                    ||>> yield_singleton (mk_Frees "a") T1;
+                  val map_term = mk_map_of_bnf Ds As Bs fp_bnf;
+                  fun mk_discs T = map (fn disc =>
+                    subst_nonatomic_types [(domain_type (fastype_of disc), T)] disc);
+                  val discs1 = mk_discs T1 discs;
+                  val discs2 = mk_discs T2 discs;
+                  val discs1_t = map (fn disc1 => Term.betapply (disc1, t)) discs1;
+                  fun mk_goal (disc1_t, disc2) =
+                    let
+                      val (head, tail) = Term.strip_comb disc1_t;
+                      val is_t_eq_t = head aconv HOLogic.eq_const T1 andalso
+                        forall (fn u => u = t) tail;
+                    in
+                      if head aconv @{const Not} orelse is_t_eq_t then NONE
+                      else
+                        SOME (mk_Trueprop_eq
+                          (betapply (disc2, (Term.list_comb (map_term, fs) $ t)), disc1_t))
+                    end;
+                  val goals = map_filter mk_goal (discs1_t ~~ discs2);
+                in
+                  if null goals then []
+                  else
+                    Goal.prove_sorry names_lthy [] [] (Logic.mk_conjunction_balanced goals)
+                      (fn {context = ctxt, prems = _} =>
+                        mk_disc_map_iff_tac ctxt (certify ctxt t) exhaust (flat disc_thmss)
+                          map_thms)
+                      |> Conjunction.elim_balanced (length goals)
+                      |> Proof_Context.export names_lthy lthy
+                end;
+
               val ctr_argT_namess = map ((fn Ts => fold Term.add_tfree_namesT Ts []) o
                 binder_types o fastype_of) ctrs;
               val setTs = map (HOLogic.dest_setT o range_type o fastype_of) sets;
@@ -1238,7 +1281,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
               val notes =
-                [(mapN, map_thms, code_nitpicksimp_attrs @ simp_attrs),
+                [(disc_map_iffN, disc_map_iff_thms, simp_attrs),
+                 (mapN, map_thms, code_nitpicksimp_attrs @ simp_attrs),
                  (rel_distinctN, rel_distinct_thms, simp_attrs),
                  (rel_injectN, rel_inject_thms, simp_attrs),
                  (setN, set_thms, code_nitpicksimp_attrs @ simp_attrs),
