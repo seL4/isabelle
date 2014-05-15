@@ -156,7 +156,9 @@ fun normalized_tfrees_sandwich ctxt ct =
     val normalization =
       map2 (fn (v, sort) => fn (v', _) => (((v', 0), sort), TFree (v, sort))) vs_original vs_normalized;
   in
-    (Thm.certify_instantiate (normalization, []) o Thm.varifyT_global, cert (map_types normalize t))
+    if eq_list (eq_fst (op =)) (vs_normalized, vs_original)
+    then (I, ct)
+    else (Thm.certify_instantiate (normalization, []) o Thm.varifyT_global, cert (map_types normalize t))
   end;
 
 fun no_variables_sandwich ctxt ct =
@@ -169,7 +171,11 @@ fun no_variables_sandwich ctxt ct =
     fun apply_beta var thm = Thm.combination thm (Thm.reflexive var)
       |> Conv.fconv_rule (Conv.arg_conv (Conv.try_conv (Thm.beta_conversion false)))
       |> Conv.fconv_rule (Conv.arg1_conv (Thm.beta_conversion false));
-  in (fold apply_beta all_vars, fold_rev Thm.lambda all_vars ct) end;
+  in
+    if null all_vars
+    then (I, ct)
+    else (fold apply_beta all_vars, fold_rev Thm.lambda all_vars ct)
+  end;
 
 fun simplifier_conv_sandwich ctxt =
   let
