@@ -181,7 +181,7 @@ fun check_holds_oracle ctxt evaluator vs_ty_t ct =
 in
 
 fun dynamic_holds_conv ctxt = Code_Thingol.dynamic_conv ctxt
-  (fn program => fn _ => fn vs_t => fn deps =>
+  (fn program => fn vs_t => fn deps =>
     check_holds_oracle ctxt (obtain_evaluator ctxt NONE program deps) vs_t)
       o reject_vars ctxt;
 
@@ -190,7 +190,7 @@ fun static_holds_conv ctxt consts =
     let
       val evaluator' = obtain_evaluator ctxt NONE program (map Constant consts')
     in
-      fn ctxt' => fn _ => fn vs_t => fn _ => check_holds_oracle ctxt' evaluator' vs_t o reject_vars ctxt'
+      fn ctxt' => fn vs_t => fn _ => check_holds_oracle ctxt' evaluator' vs_t o reject_vars ctxt'
     end);
 
 (* o reject_vars ctxt'*)

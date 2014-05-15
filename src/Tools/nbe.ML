@@ -501,12 +501,6 @@ fun compile_term ctxt nbe_program deps (vs : (string * sort) list, t) =
 
 (* reconstruction *)
 
-fun typ_of_itype resubst_tvar =
-  let
-    fun typ_of (tyco `%% itys) = Type (tyco, map typ_of itys)
-      | typ_of (ITyVar v) = TFree (resubst_tvar v);
-  in typ_of end;
-
 fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
   let
     fun take_until f [] = []
@@ -542,17 +536,16 @@ fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
 
 (* evaluation with type reconstruction *)
 
-fun eval_term raw_ctxt (nbe_program, idx_tab) resubst_tvar ((vs, ty), t) deps =
+fun eval_term raw_ctxt (nbe_program, idx_tab) t_original ((vs, ty), t) deps =
   let
     val ctxt = Syntax.init_pretty_global (Proof_Context.theory_of raw_ctxt);
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
-    val ty' = typ_of_itype resubst_tvar ty;
-    fun type_infer t =
+    fun type_infer t' =
       Syntax.check_term (Config.put Type_Infer_Context.const_sorts false ctxt)
-        (Type.constraint ty' t);
-    fun check_tvars t =
-      if null (Term.add_tvars t []) then t
-      else error ("Illegal schematic type variables in normalized term: " ^ string_of_term t);
+        (Type.constraint (fastype_of t_original) t');
+    fun check_tvars t' =
+      if null (Term.add_tvars t' []) then t'
+      else error ("Illegal schematic type variables in normalized term: " ^ string_of_term t');
   in
     compile_term ctxt nbe_program deps (vs, t)
     |> term_of_univ ctxt idx_tab
@@ -592,11 +585,11 @@ fun mk_equals ctxt lhs raw_rhs =
 
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding normalization_by_evaluation},
-    fn (ctxt, nbe_program_idx_tab, resubst_tvars, vs_ty_t, deps, ct) =>
-      mk_equals ctxt ct (eval_term ctxt nbe_program_idx_tab resubst_tvars vs_ty_t deps))));
+    fn (ctxt, nbe_program_idx_tab, vs_ty_t, deps, ct) =>
+      mk_equals ctxt ct (eval_term ctxt nbe_program_idx_tab (term_of ct) vs_ty_t deps))));
 
-fun oracle ctxt nbe_program_idx_tab resubst_tvars vs_ty_t deps ct =
-  raw_oracle (ctxt, nbe_program_idx_tab, resubst_tvars, vs_ty_t, deps, ct);
+fun oracle ctxt nbe_program_idx_tab vs_ty_t deps ct =
+  raw_oracle (ctxt, nbe_program_idx_tab, vs_ty_t, deps, ct);
 
 fun dynamic_conv ctxt = lift_triv_classes_conv ctxt
   (Code_Thingol.dynamic_conv ctxt (oracle ctxt o compile false ctxt));
@@ -613,7 +606,7 @@ fun static_conv ctxt consts =
 fun static_value ctxt consts =
   let
     val evaluator = Code_Thingol.static_value ctxt I consts
-      (fn program => fn _ => K (eval_term ctxt (compile true ctxt program)));
+      (fn program => fn _ => K (eval_term ctxt (compile false ctxt program)));
   in fn ctxt' => lift_triv_classes_rew ctxt' (evaluator ctxt') end;
 
 end;

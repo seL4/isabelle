@@ -76,7 +76,7 @@ fun conclude_tac ctxt some_ss =
 (* evaluation with dynamic code context *)
 
 fun dynamic_conv ctxt = Code_Thingol.dynamic_conv ctxt
-  (fn program => fn _ => fn _ => fn _ => rewrite_modulo ctxt NONE program ctxt);
+  (fn program => fn _ => fn _ => rewrite_modulo ctxt NONE program ctxt);
 
 fun dynamic_tac ctxt = CONVERSION (dynamic_conv ctxt)
   THEN' conclude_tac ctxt NONE ctxt;
