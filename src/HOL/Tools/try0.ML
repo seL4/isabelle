@@ -122,7 +122,7 @@ fun silence_methods debug =
 
 fun generic_try0 mode timeout_opt quad st =
   let
-    val st = st |> Proof.map_context (silence_methods false);
+    val st = Proof.map_contexts (silence_methods false) st;
     fun trd (_, _, t) = t;
     fun par_map f =
       if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o pairself trd)

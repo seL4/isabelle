@@ -279,8 +279,7 @@ fun extract_params mode default_params override_params =
     val overlord = lookup_bool "overlord"
     val spy = getenv "SLEDGEHAMMER_SPY" = "yes" orelse lookup_bool "spy"
     val blocking =
-      Isabelle_Process.is_active () orelse mode <> Normal orelse debug orelse
-      lookup_bool "blocking"
+      Isabelle_Process.is_active () orelse mode <> Normal orelse debug orelse lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> mode = Auto_Try ? single o hd
     val type_enc =
@@ -360,7 +359,8 @@ val default_learn_prover_timeout = 2.0
 
 fun hammer_away override_params subcommand opt_i fact_override state0 =
   let
-    val state = Proof.map_context (Try0.silence_methods false) state0
+    val state =
+      Proof.map_contexts (Try0.silence_methods false #> Config.put SMT2_Config.verbose false) state0
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
