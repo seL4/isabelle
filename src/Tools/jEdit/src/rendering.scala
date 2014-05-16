@@ -328,8 +328,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         val status = Protocol.Status.make(results.iterator.flatMap(_.info))
 
         if (status.is_running) Some(running_color)
-        else if (status.is_warned) Some(warning_color)
         else if (status.is_failed) Some(error_color)
+        else if (status.is_warned) Some(warning_color)
         else if (status.is_unprocessed) Some(unprocessed_color)
         else None
       }
