@@ -2283,6 +2283,18 @@ lemma word_bitwise_1_simps [simp]:
   "- numeral a XOR 1 = word_of_int (- numeral a XOR 1)"
   by (transfer, simp)+
 
+text {* Special cases for when one of the arguments equals -1. *}
+
+lemma word_bitwise_m1_simps [simp]:
+  "NOT (-1::'a::len0 word) = 0"
+  "(-1::'a::len0 word) AND x = x"
+  "x AND (-1::'a::len0 word) = x"
+  "(-1::'a::len0 word) OR x = -1"
+  "x OR (-1::'a::len0 word) = -1"
+  " (-1::'a::len0 word) XOR x = NOT x"
+  "x XOR (-1::'a::len0 word) = NOT x"
+  by (transfer, simp)+
+
 lemma uint_or: "uint (x OR y) = (uint x) OR (uint y)"
   by (transfer, simp add: bin_trunc_ao)
 
