@@ -33,12 +33,12 @@ sig
   type one_line_params =
     (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
-  val string_of_proof_method : string list -> proof_method -> string
+  val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> bool -> thm list * thm list -> proof_method -> int ->
     tactic
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome * play_outcome -> order
-  val one_line_proof_text : int -> one_line_params -> string
+  val one_line_proof_text : Proof.context -> int -> one_line_params -> string
 end;
 
 structure Sledgehammer_Proof_Methods : SLEDGEHAMMER_PROOF_METHODS =
@@ -74,7 +74,7 @@ type one_line_params =
 
 fun maybe_paren s = s |> not (Symbol_Pos.is_identifier s) ? enclose "(" ")"
 
-fun string_of_proof_method ss meth =
+fun string_of_proof_method ctxt ss meth =
   let
     val meth_s =
       (case meth of
@@ -86,7 +86,7 @@ fun string_of_proof_method ss meth =
       | SATx_Method => "satx"
       | Blast_Method => "blast"
       | Simp_Method => if null ss then "simp" else "simp add:"
-      | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
+      | Simp_Size_Method => "simp add: " ^ short_thm_name ctxt @{thm size_ne_size_imp_ne}
       | Auto_Method => "auto"
       | Fastforce_Method => "fastforce"
       | Force_Method => "force"
@@ -141,8 +141,8 @@ fun apply_on_subgoal _ 1 = "by "
     "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 
 (* FIXME *)
-fun proof_method_command meth i n _(*used_chaineds*) _(*num_chained*) ss =
-  apply_on_subgoal i n ^ string_of_proof_method ss meth
+fun proof_method_command ctxt meth i n _(*used_chaineds*) _(*num_chained*) ss =
+  apply_on_subgoal i n ^ string_of_proof_method ctxt ss meth
 
 fun try_command_line banner play command =
   let val s = string_of_play_outcome play in
@@ -161,14 +161,14 @@ fun split_used_facts facts =
   |> List.partition (fn (_, (sc, _)) => sc = Chained)
   |> pairself (sort_distinct (string_ord o pairself fst))
 
-fun one_line_proof_text num_chained
+fun one_line_proof_text ctxt num_chained
     ((meth, play), banner, used_facts, minimize_command, subgoal, subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
 
     val try_line =
       map fst extra
-      |> proof_method_command meth subgoal subgoal_count (map fst chained) num_chained
+      |> proof_method_command ctxt meth subgoal subgoal_count (map fst chained) num_chained
       |> (if play = Play_Failed then enclose "One-line proof reconstruction failed: " "."
           else try_command_line banner play)
   in

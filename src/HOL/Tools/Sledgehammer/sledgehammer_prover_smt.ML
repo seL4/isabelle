@@ -243,7 +243,7 @@ fun run_smt_solver mode name (params as {debug, verbose, smt_proofs, preplay_tim
                  subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
-              one_line_proof_text num_chained one_line_params
+              one_line_proof_text ctxt num_chained one_line_params
             end,
          if verbose then "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "." else "")
       | SOME failure =>

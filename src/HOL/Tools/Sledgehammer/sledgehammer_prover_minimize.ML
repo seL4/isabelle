@@ -61,21 +61,22 @@ fun run_proof_method mode name (params as {debug, verbose, timeout, type_enc, la
       else raise Fail ("unknown proof_method: " ^ quote name)
     val used_facts = facts |> map fst
   in
-    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug verbose timeout facts
-        state subgoal meth [meth] of
+    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug verbose timeout
+        facts state subgoal meth [meth] of
       play as (_, Played time) =>
       {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
        preplay = Lazy.value play,
        message =
          fn play =>
             let
+              val ctxt = Proof.context_of state
               val (_, override_params) = extract_proof_method params meth
               val one_line_params =
                 (play, proof_banner mode name, used_facts, minimize_command override_params name,
                  subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
-              one_line_proof_text num_chained one_line_params
+              one_line_proof_text ctxt num_chained one_line_params
             end,
        message_tail = ""}
     | play =>

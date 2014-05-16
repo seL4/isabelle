@@ -8,8 +8,9 @@ signature Z3_NEW_ISAR =
 sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
 
-  val atp_proof_of_z3_proof: Proof.context -> thm list -> term list -> term -> int list -> int ->
-    (int * string) list -> Z3_New_Proof.z3_step list -> (term, string) atp_step list
+  val atp_proof_of_z3_proof: Proof.context -> thm list -> term list -> term ->
+    (string * term) list -> int list -> int -> (int * string) list -> Z3_New_Proof.z3_step list ->
+    (term, string) atp_step list
 end;
 
 structure Z3_New_Isar: Z3_NEW_ISAR =
@@ -83,15 +84,14 @@ val unskolemize_names =
   Term.map_abs_vars (perhaps (try Name.dest_skolem))
   #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
 
-fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t prem_ids conjecture_id fact_ids proof =
+fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_ts prem_ids conjecture_id fact_ids
+    proof =
   let
     val thy = Proof_Context.theory_of ctxt
 
     fun steps_of (Z3_New_Proof.Z3_Step {id, rule, prems, concl, ...}) =
       let
-        fun step_name_of id = (string_of_int id, the_list (AList.lookup (op =) fact_ids id))
-
-        val name as (sid, ss) = step_name_of id
+        val sid = string_of_int id
 
         val concl' =
           concl
@@ -102,22 +102,26 @@ fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t prem_ids conjecture_
           |> HOLogic.mk_Trueprop
 
         fun standard_step role =
-          (name, role, concl', Z3_New_Proof.string_of_rule rule, map step_name_of prems)
+          ((sid, []), role, concl', Z3_New_Proof.string_of_rule rule,
+           map (fn id => (string_of_int id, [])) prems)
       in
         (case rule of
           Z3_New_Proof.Asserted =>
           let
+            val ss = the_list (AList.lookup (op =) fact_ids id)
             val name0 = (sid ^ "a", ss)
+
             val (role0, concl0) =
-              if not (null ss) then
-                (Axiom, concl(*FIXME*))
-              else if id = conjecture_id then
-                (Conjecture, concl_t)
-              else
-                (Hypothesis,
-                 (case find_index (curry (op =) id) prem_ids of
-                   ~1 => concl
-                 | i => nth hyp_ts i))
+              (case ss of
+                [s] => (Axiom, the (AList.lookup (op =) fact_ts s))
+              | _ =>
+                if id = conjecture_id then
+                  (Conjecture, concl_t)
+                else
+                  (Hypothesis,
+                   (case find_index (curry (op =) id) prem_ids of
+                     ~1 => concl
+                   | i => nth hyp_ts i)))
 
             val normalize_prems =
               SMT2_Normalize.case_bool_entry :: SMT2_Normalize.special_quant_table @
@@ -128,12 +132,9 @@ fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t prem_ids conjecture_
                 else
                   NONE)
           in
-            if null normalize_prems then
-              [(name, role0, concl0, Z3_New_Proof.string_of_rule rule, [])]
-            else
-              [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, []),
-               (name, Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
-                name0 :: normalize_prems)]
+            [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, []),
+             ((sid, []), Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
+              name0 :: normalize_prems)]
           end
         | Z3_New_Proof.Rewrite => [standard_step Lemma]
         | Z3_New_Proof.Rewrite_Star => [standard_step Lemma]

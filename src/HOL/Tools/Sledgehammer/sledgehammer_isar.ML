@@ -295,7 +295,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         fun str_of_preplay_outcome outcome =
           if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
         fun str_of_meth l meth =
-          string_of_proof_method [] meth ^ " " ^
+          string_of_proof_method ctxt [] meth ^ " " ^
           str_of_preplay_outcome (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
         fun comment_of l = map (str_of_meth l) #> commas
 
@@ -355,7 +355,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           end)
       end
 
-    val one_line_proof = one_line_proof_text 0 one_line_params
+    val one_line_proof = one_line_proof_text ctxt 0 one_line_params
     val isar_proof =
       if debug then
         isar_proof_of ()
@@ -378,6 +378,6 @@ fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea smt_proofs preplay) then
      isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
    else
-     one_line_proof_text num_chained) one_line_params
+     one_line_proof_text ctxt num_chained) one_line_params
 
 end;

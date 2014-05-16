@@ -216,6 +216,8 @@ fun filter_used_facts keep_chained used =
 
 fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meths as meth :: _) =
   let
+    val ctxt = Proof.context_of state
+
     fun get_preferred meths = if member (op =) meths preferred then preferred else meth
   in
     if timeout = Time.zeroTime then
@@ -230,7 +232,7 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meth
             let
               val _ =
                 if verbose then
-                  Output.urgent_message ("Trying \"" ^ string_of_proof_method [] meth ^
+                  Output.urgent_message ("Trying \"" ^ string_of_proof_method ctxt [] meth ^
                     "\" for " ^ string_of_time timeout ^ "...")
                 else
                   ()

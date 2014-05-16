@@ -208,15 +208,15 @@ val relabel_isar_proof_nicely =
 
 val indent_size = 2
 
-fun string_of_isar_proof ctxt i n proof =
+fun string_of_isar_proof ctxt0 i n proof =
   let
     (* Make sure only type constraints inserted by the type annotation code are printed. *)
-    val ctxt =
-      ctxt |> Config.put show_markup false
-           |> Config.put Printer.show_type_emphasis false
-           |> Config.put show_types false
-           |> Config.put show_sorts false
-           |> Config.put show_consts false
+    val ctxt = ctxt0
+      |> Config.put show_markup false
+      |> Config.put Printer.show_type_emphasis false
+      |> Config.put show_types false
+      |> Config.put show_sorts false
+      |> Config.put show_consts false
 
     val register_fixes = map Free #> fold Variable.auto_fixes
 
@@ -264,7 +264,7 @@ fun string_of_isar_proof ctxt i n proof =
     fun of_method ls ss meth =
       let val direct = is_direct_method meth in
         using_facts ls (if direct then [] else ss) ^
-        "by " ^ string_of_proof_method (if direct then ss else []) meth
+        "by " ^ string_of_proof_method ctxt (if direct then ss else []) meth
       end
 
     fun of_free (s, T) =
