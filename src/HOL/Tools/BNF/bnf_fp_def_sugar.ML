@@ -1146,10 +1146,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_map_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (o_apply :: pre_map_def ::
-                       (if fp = Least_FP then [] else [ctor_dtor, dtor_ctor]) @ sumprod_thms_map @
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_map @
                        abs_inverses)
                      (cterm_instantiate_pos (nones @ [SOME cxIn])
-                        (if fp = Least_FP then fp_map_thm else fp_map_thm RS ctor_cong)))
+                        (if fp = Least_FP then fp_map_thm
+                         else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans))))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
               fun mk_set_thm fp_set_thm ctr_def' cxIn =
