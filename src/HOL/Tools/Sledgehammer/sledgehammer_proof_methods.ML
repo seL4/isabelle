@@ -33,7 +33,7 @@ sig
   type one_line_params =
     (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
-  val string_of_proof_method : proof_method -> string
+  val string_of_proof_method : string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> bool -> thm list * thm list -> proof_method -> int ->
     tactic
   val string_of_play_outcome : play_outcome -> string
@@ -72,23 +72,30 @@ type minimize_command = string list -> string
 type one_line_params =
   (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
-fun string_of_proof_method meth =
-  (case meth of
-    Metis_Method (NONE, NONE) => "metis"
-  | Metis_Method (type_enc_opt, lam_trans_opt) =>
-    "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
-  | Meson_Method => "meson"
-  | SMT2_Method => "smt2"
-  | SATx_Method => "satx"
-  | Blast_Method => "blast"
-  | Simp_Method => "simp"
-  | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
-  | Auto_Method => "auto"
-  | Fastforce_Method => "fastforce"
-  | Force_Method => "force"
-  | Linarith_Method => "linarith"
-  | Presburger_Method => "presburger"
-  | Algebra_Method => "algebra")
+fun maybe_paren s = s |> not (Symbol_Pos.is_identifier s) ? enclose "(" ")"
+
+fun string_of_proof_method ss meth =
+  let
+    val meth_s =
+      (case meth of
+        Metis_Method (NONE, NONE) => "metis"
+      | Metis_Method (type_enc_opt, lam_trans_opt) =>
+        "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
+      | Meson_Method => "meson"
+      | SMT2_Method => "smt2"
+      | SATx_Method => "satx"
+      | Blast_Method => "blast"
+      | Simp_Method => if null ss then "simp" else "simp add:"
+      | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
+      | Auto_Method => "auto"
+      | Fastforce_Method => "fastforce"
+      | Force_Method => "force"
+      | Linarith_Method => "linarith"
+      | Presburger_Method => "presburger"
+      | Algebra_Method => "algebra")
+  in
+    maybe_paren (space_implode " " (meth_s :: ss))
+  end
 
 fun tac_of_proof_method ctxt debug (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
@@ -98,12 +105,12 @@ fun tac_of_proof_method ctxt debug (local_facts, global_facts) meth =
       (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
   | Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
   | SMT2_Method => SMT2_Solver.smt2_tac ctxt global_facts
+  | Simp_Method => Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
   | _ =>
     Method.insert_tac global_facts THEN'
     (case meth of
       SATx_Method => SAT.satx_tac ctxt
     | Blast_Method => blast_tac ctxt
-    | Simp_Method => Simplifier.asm_full_simp_tac ctxt
     | Simp_Size_Method =>
       Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
     | Auto_Method => K (Clasimp.auto_tac ctxt)
@@ -128,27 +135,14 @@ fun play_outcome_ord (Played time1, Played time2) =
   | play_outcome_ord (_, Play_Timed_Out _) = GREATER
   | play_outcome_ord (Play_Failed, Play_Failed) = EQUAL
 
-(* FIXME: Various bugs, esp. with "unfolding"
-fun unusing_chained_facts _ 0 = ""
-  | unusing_chained_facts used_chaineds num_chained =
-    if length used_chaineds = num_chained then ""
-    else if null used_chaineds then "(* using no facts *) "
-    else "(* using only " ^ space_implode " " used_chaineds ^ " *) "
-*)
-
 fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal 1 _ = "apply "
   | apply_on_subgoal i n =
     "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 
-fun command_call name [] =
-    name |> not (Symbol_Pos.is_identifier name) ? enclose "(" ")"
-  | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
-
 (* FIXME *)
-fun proof_method_command meth i n used_chaineds num_chained ss =
-  (* unusing_chained_facts used_chaineds num_chained ^ *)
-  apply_on_subgoal i n ^ command_call (string_of_proof_method meth) ss
+fun proof_method_command meth i n _(*used_chaineds*) _(*num_chained*) ss =
+  apply_on_subgoal i n ^ string_of_proof_method ss meth
 
 fun try_command_line banner play command =
   let val s = string_of_play_outcome play in

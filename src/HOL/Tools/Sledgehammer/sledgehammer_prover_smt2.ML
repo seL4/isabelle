@@ -221,6 +221,8 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
+    val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
+
     fun weight_facts facts =
       let val num_facts = length facts in
         map (weight_smt2_fact ctxt num_facts) (facts ~~ (0 upto num_facts - 1))
@@ -245,8 +247,8 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_
               val fact_ids =
                 map (fn (id, th) => (id, short_thm_name ctxt th)) helper_ids @
                 map (fn (id, ((name, _), _)) => (id, name)) fact_ids
-              val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof thy rewrite_rules prem_ids conjecture_id
-                fact_ids z3_proof
+              val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t
+                prem_ids conjecture_id fact_ids z3_proof
               val isar_params =
                 K (verbose, (NONE, NONE), preplay_timeout, compress_isar, try0_isar,
                    minimize <> SOME false, atp_proof, goal)

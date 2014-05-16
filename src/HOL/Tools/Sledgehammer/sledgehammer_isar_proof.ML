@@ -248,18 +248,13 @@ fun string_of_isar_proof ctxt i n proof =
             |> maybe_quote),
        ctxt |> Variable.auto_fixes term)
 
-    fun with_facts none _ [] [] = none
-      | with_facts _ some ls ss = some (space_implode " " (map string_of_label ls @ ss))
-
-    val using_facts = with_facts "" (enclose "using " " ")
-
-    fun maybe_paren s = s |> String.isSubstring " " s ? enclose "(" ")"
-    fun by_facts meth ls ss =
-      "by " ^ with_facts (maybe_paren meth) (enclose ("(" ^ meth ^ " ") ")") ls ss
+    fun using_facts [] [] = ""
+      | using_facts ls ss = enclose "using " " " (space_implode " " (map string_of_label ls @ ss))
 
     fun is_direct_method (Metis_Method _) = true
       | is_direct_method Meson_Method = true
       | is_direct_method SMT2_Method = true
+      | is_direct_method Simp_Method = true
       | is_direct_method _ = false
 
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is
@@ -269,7 +264,7 @@ fun string_of_isar_proof ctxt i n proof =
     fun of_method ls ss meth =
       let val direct = is_direct_method meth in
         using_facts ls (if direct then [] else ss) ^
-        by_facts (string_of_proof_method meth) [] (if direct then ss else [])
+        "by " ^ string_of_proof_method (if direct then ss else []) meth
       end
 
     fun of_free (s, T) =

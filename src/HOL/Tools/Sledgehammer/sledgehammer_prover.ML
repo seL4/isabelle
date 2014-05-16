@@ -230,7 +230,7 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meth
             let
               val _ =
                 if verbose then
-                  Output.urgent_message ("Trying \"" ^ string_of_proof_method meth ^
+                  Output.urgent_message ("Trying \"" ^ string_of_proof_method [] meth ^
                     "\" for " ^ string_of_time timeout ^ "...")
                 else
                   ()

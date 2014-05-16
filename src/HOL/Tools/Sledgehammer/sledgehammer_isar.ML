@@ -295,7 +295,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         fun str_of_preplay_outcome outcome =
           if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
         fun str_of_meth l meth =
-          string_of_proof_method meth ^ " " ^
+          string_of_proof_method [] meth ^ " " ^
           str_of_preplay_outcome (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
         fun comment_of l = map (str_of_meth l) #> commas
 
