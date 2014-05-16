@@ -8,6 +8,11 @@ signature SMT2_NORMALIZE =
 sig
   val drop_fact_warning: Proof.context -> thm -> unit
   val atomize_conv: Proof.context -> conv
+
+  val special_quant_table: (string * thm) list
+  val case_bool_entry: string * thm
+  val abs_min_max_table: (string * thm) list
+
   type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
   val add_extra_norm: SMT2_Util.class * extra_norm -> Context.generic -> Context.generic
   val normalize: Proof.context -> (int option * thm) list -> (int * thm) list
@@ -71,13 +76,13 @@ val setup_atomize =
 
 (** unfold special quantifiers **)
 
+val special_quant_table = [
+  (@{const_name Ex1}, @{thm Ex1_def_raw}),
+  (@{const_name Ball}, @{thm Ball_def_raw}),
+  (@{const_name Bex}, @{thm Bex_def_raw})]
+
 local
-  val special_quants = [
-    (@{const_name Ex1}, @{thm Ex1_def_raw}),
-    (@{const_name Ball}, @{thm Ball_def_raw}),
-    (@{const_name Bex}, @{thm Bex_def_raw})]
-  
-  fun special_quant (Const (n, _)) = AList.lookup (op =) special_quants n
+  fun special_quant (Const (n, _)) = AList.lookup (op =) special_quant_table n
     | special_quant _ = NONE
 
   fun special_quant_conv _ ct =
@@ -89,7 +94,7 @@ in
 fun unfold_special_quants_conv ctxt =
   SMT2_Util.if_exists_conv (is_some o special_quant) (Conv.top_conv special_quant_conv ctxt)
 
-val setup_unfolded_quants = fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) special_quants
+val setup_unfolded_quants = fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) special_quant_table
 
 end
 
@@ -326,6 +331,8 @@ fun expand_head_conv cv ct =
 
 (** rewrite bool case expressions as if expressions **)
 
+val case_bool_entry = (@{const_name "bool.case_bool"}, @{thm case_bool_if})
+
 local
   fun is_case_bool (Const (@{const_name "bool.case_bool"}, _)) = true
     | is_case_bool _ = false
@@ -345,14 +352,14 @@ end
 
 (** unfold abs, min and max **)
 
-local
-  val defs = [
-    (@{const_name min}, @{thm min_def_raw}),
-    (@{const_name max}, @{thm max_def_raw}),
-    (@{const_name abs}, @{thm abs_if_raw})]
+val abs_min_max_table = [
+  (@{const_name min}, @{thm min_def_raw}),
+  (@{const_name max}, @{thm max_def_raw}),
+  (@{const_name abs}, @{thm abs_if_raw})]
 
+local
   fun abs_min_max ctxt (Const (n, Type (@{type_name fun}, [T, _]))) =
-        (case AList.lookup (op =) defs n of
+        (case AList.lookup (op =) abs_min_max_table n of
           NONE => NONE
         | SOME thm => if SMT2_Builtin.is_builtin_typ_ext ctxt T then SOME thm else NONE)
     | abs_min_max _ _ = NONE
@@ -366,7 +373,7 @@ in
 fun unfold_abs_min_max_conv ctxt =
   SMT2_Util.if_exists_conv (is_some o abs_min_max ctxt) (Conv.top_conv unfold_amm_conv ctxt)
   
-val setup_abs_min_max = fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) defs
+val setup_abs_min_max = fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) abs_min_max_table
 
 end
 

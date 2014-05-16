@@ -29,7 +29,7 @@ sig
   (*filter*)
   val smt2_filter: Proof.context -> thm -> ('a * (int option * thm)) list -> int -> Time.time ->
     {outcome: SMT2_Failure.failure option, rewrite_rules: thm list, conjecture_id: int,
-     helper_ids: (int * thm) list, fact_ids: (int * ('a * thm)) list,
+     prem_ids: int list, helper_ids: (int * thm) list, fact_ids: (int * ('a * thm)) list,
      z3_proof: Z3_New_Proof.z3_step list}
 
   (*tactic*)
@@ -260,17 +260,20 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
     val iwthms = map_index I wthms
 
     val conjecture_i = 0
-    val facts_i = 1 + length wprems
+    val prems_i = 1
+    val facts_i = prems_i + length wprems
   in
     wthms
     |> apply_solver ctxt
     |> (fn (((iidths0, z3_proof), _), {rewrite_rules, ...}) =>
-      let val iidths = if can_filter ctxt then iidths0 else map (apsnd (apfst (K no_id))) iwthms
+      let
+        val iidths = if can_filter ctxt then iidths0 else map (apsnd (apfst (K no_id))) iwthms
+        fun id_of_index i = the_default no_id (Option.map fst (AList.lookup (op =) iidths i))
       in
         {outcome = NONE,
          rewrite_rules = rewrite_rules,
-         conjecture_id =
-           the_default no_id (Option.map fst (AList.lookup (op =) iidths conjecture_i)),
+         conjecture_id = id_of_index conjecture_i,
+         prem_ids = map id_of_index (prems_i upto facts_i - 1),
          helper_ids = map_filter (try (fn (~1, idth) => idth)) iidths,
          fact_ids = map_filter (fn (i, (id, _)) =>
            try (apsnd (apsnd snd o nth xwfacts)) (id, i - facts_i)) iidths,
@@ -278,7 +281,7 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
       end)
   end
   handle SMT2_Failure.SMT fail => {outcome = SOME fail, rewrite_rules = [], conjecture_id = no_id,
-    helper_ids = [], fact_ids = [], z3_proof = []}
+    prem_ids = [], helper_ids = [], fact_ids = [], z3_proof = []}
 
 
 (* SMT tactic *)
