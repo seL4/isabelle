@@ -71,9 +71,7 @@ fun smt2_fact_weight ctxt j num_facts =
     NONE
 
 fun weight_smt2_fact ctxt num_facts ((info, th), j) =
-  let val thy = Proof_Context.theory_of ctxt in
-    (info, (smt2_fact_weight ctxt j num_facts, Thm.transfer thy th (* TODO: needed? *)))
-  end
+  (info, (smt2_fact_weight ctxt j num_facts, th))
 
 (* "SMT2_Failure.Abnormal_Termination" carries the solver's return code. Until these are sorted out
    properly in the SMT module, we must interpret these here. *)
