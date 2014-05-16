@@ -48,11 +48,15 @@ translations
   "_Collect p P"      <= "{p|xs. P}"
   "_CollectIn p A P"  <= "{p : A. P}"
 
+(* card *)
+notation (latex output)
+  card  ("|_|")
+
 (* LISTS *)
 
 (* Cons *)
 notation (latex)
-  Cons  ("_\<cdot>/_" [66,65] 65)
+  Cons  ("_ \<cdot>/ _" [66,65] 65)
 
 (* length *)
 notation (latex output)

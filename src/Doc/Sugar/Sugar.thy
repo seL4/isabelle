@@ -9,9 +9,9 @@ text{*
 This document is for those Isabelle users who have mastered
 the art of mixing \LaTeX\ text and Isabelle theories and never want to
 typeset a theorem by hand anymore because they have experienced the
-bliss of writing \verb!@!\verb!{thm[display]setsum_cartesian_product[no_vars]}!
+bliss of writing \verb!@!\verb!{thm[display,mode=latex_sum] setsum_Suc_diff [no_vars]}!
 and seeing Isabelle typeset it for them:
-@{thm[display,eta_contract=false] setsum_cartesian_product[no_vars]}
+@{thm[display,mode=latex_sum] setsum_Suc_diff[no_vars]}
 No typos, no omissions, no sweat.
 If you have not experienced that joy, read Chapter 4, \emph{Presenting
 Theories}, \cite{LNCS2283} first.
@@ -72,6 +72,7 @@ standard, we provide a few further improvements:
 \item @{term"{}"} instead of @{text"{}"}, where
  @{term"{}"} is also input syntax.
 \item @{term"insert a (insert b (insert c M))"} instead of @{text"insert a (insert b (insert c M))"}.
+\item @{term"card A"} instead of @{text"card A"}.
 \end{itemize}
 
 
@@ -81,10 +82,6 @@ If lists are used heavily, the following notations increase readability:
 \begin{itemize}
 \item @{term"x # xs"} instead of @{text"x # xs"},
       where @{term"x # xs"} is also input syntax.
-If you prefer more space around the $\cdot$ you have to redefine
-\verb!\isasymcdot! in \LaTeX:
-\verb!\renewcommand{\isasymcdot}{\isamath{\,\cdot\,}}!
-
 \item @{term"length xs"} instead of @{text"length xs"}.
 \item @{term"nth xs n"} instead of @{text"nth xs n"},
       the $n$th element of @{text xs}.
