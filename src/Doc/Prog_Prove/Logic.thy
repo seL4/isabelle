@@ -26,7 +26,7 @@ provides the standard logical constructs, in decreasing order of precedence:
 \]
 Terms are the ones we have seen all along, built from constants, variables,
 function application and @{text"\<lambda>"}-abstraction, including all the syntactic
-sugar like infix symbols, @{text "if"}, @{text "case"} etc.
+sugar like infix symbols, @{text "if"}, @{text "case"}, etc.
 \begin{warn}
 Remember that formulas are simply terms of type @{text bool}. Hence
 @{text "="} also works for formulas. Beware that @{text"="} has a higher
@@ -155,7 +155,7 @@ text{*
 Define a function @{text "set ::"} @{typ "'a tree \<Rightarrow> 'a set"}
 that returns the elements in a tree and a function
 @{text "ord ::"} @{typ "int tree \<Rightarrow> bool"}
-the tests if an @{typ "int tree"} is ordered.
+that tests if an @{typ "int tree"} is ordered.
 
 Define a function @{text ins} that inserts an element into an ordered @{typ "int tree"}
 while maintaining the order of the tree. If the element is already in the tree, the
@@ -259,7 +259,7 @@ means. For a start, Isabelle does not trust external tools (and in particular
 not the translations from Isabelle's logic to those tools!)
 and insists on a proof that it can check. This is what \indexed{@{text metis}}{metis} does.
 It is given a list of lemmas and tries to find a proof just using those lemmas
-(and pure logic). In contrast to @{text simp} and friends that know a lot of
+(and pure logic). In contrast to using @{text simp} and friends who know a lot of
 lemmas already, using @{text metis} manually is tedious because one has
 to find all the relevant lemmas first. But that is precisely what
 \isacom{sledgehammer} does for us.
@@ -284,7 +284,7 @@ By arithmetic formulas we mean formulas involving variables, numbers, @{text
 connectives @{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"}, @{text"\<longrightarrow>"},
 @{text"\<longleftrightarrow>"}. Strictly speaking, this is known as \concept{linear arithmetic}
 because it does not involve multiplication, although multiplication with
-numbers, e.g.\ @{text"2*n"} is allowed. Such formulas can be proved by
+numbers, e.g.\ @{text"2*n"}, is allowed. Such formulas can be proved by
 \indexed{@{text arith}}{arith}:
 *}
 
@@ -588,9 +588,9 @@ Case @{thm[source]ev0} requires us to prove @{prop"ev(0 - 2)"}, which follows
 from @{prop"ev 0"} because @{prop"0 - 2 = (0::nat)"} on type @{typ nat}. In
 case @{thm[source]evSS} we have \mbox{@{prop"m = n+(2::nat)"}} and may assume
 @{prop"ev n"}, which implies @{prop"ev (m - 2)"} because @{text"m - 2 = (n +
-2) - 2 = n"}. We did not need the induction hypothesis at all for this proof,
-it is just a case analysis of which rule was used, but having @{prop"ev
-n"} at our disposal in case @{thm[source]evSS} was essential.
+2) - 2 = n"}. We did not need the induction hypothesis at all for this proof (it
+is just a case analysis of which rule was used) but having @{prop"ev n"}
+at our disposal in case @{thm[source]evSS} was essential.
 This case analysis of rules is also called ``rule inversion''
 and is discussed in more detail in \autoref{ch:Isar}.
 
@@ -844,8 +844,8 @@ T &\to& \varepsilon \quad\mid\quad TaTb
 \]
 as two inductive predicates.
 If you think of @{text a} and @{text b} as ``@{text "("}'' and  ``@{text ")"}'',
-the grammars defines strings of balanced parentheses.
-Prove @{prop"T w \<Longrightarrow> S w"} and @{prop "S w \<Longrightarrow> T w"} separately and conclude
+the grammar defines strings of balanced parentheses.
+Prove @{prop"T w \<Longrightarrow> S w"} and \mbox{@{prop "S w \<Longrightarrow> T w"}} separately and conclude
 @{prop "S w = T w"}.
 \end{exercise}
 

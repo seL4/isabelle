@@ -27,7 +27,7 @@ postfix, i.e., after their arguments. For example,
 \item[function types,]
 denoted by @{text"\<Rightarrow>"}.
 \item[type variables,]
-  denoted by @{typ 'a}, @{typ 'b} etc., just like in ML\@.
+  denoted by @{typ 'a}, @{typ 'b}, etc., just like in ML\@.
 \end{description}
 Note that @{typ"'a \<Rightarrow> 'b list"} means @{typ[source]"'a \<Rightarrow> ('b list)"},
 not @{typ"('a \<Rightarrow> 'b) list"}: postfix type constructors have precedence
@@ -87,7 +87,7 @@ clearer as we go along.
 Right-arrows of all kinds always associate to the right. In particular,
 the formula
 @{text"A\<^sub>1 \<Longrightarrow> A\<^sub>2 \<Longrightarrow> A\<^sub>3"} means @{text "A\<^sub>1 \<Longrightarrow> (A\<^sub>2 \<Longrightarrow> A\<^sub>3)"}.
-The (Isabelle specific) notation \mbox{@{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}}
+The (Isabelle-specific) notation \mbox{@{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}}
 is short for the iterated implication \mbox{@{text"A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> A"}}.
 Sometimes we also employ inference rule notation:
 \inferrule{\mbox{@{text "A\<^sub>1"}}\\ \mbox{@{text "\<dots>"}}\\ \mbox{@{text "A\<^sub>n"}}}

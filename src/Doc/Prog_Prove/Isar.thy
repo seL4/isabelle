@@ -9,7 +9,7 @@ Apply-scripts are unreadable and hard to maintain. The language of choice
 for larger proofs is \concept{Isar}. The two key features of Isar are:
 \begin{itemize}
 \item It is structured, not linear.
-\item It is readable without running it because
+\item It is readable without its being run because
 you need to state what you are proving at any given point.
 \end{itemize}
 Whereas apply-scripts are like assembly language programs, Isar proofs
@@ -57,7 +57,7 @@ goal. In more detail, this is the Isar core syntax:
 
 \noindent A proof can either be an atomic \isacom{by} with a single proof
 method which must finish off the statement being proved, for example @{text
-auto}.  Or it can be a \isacom{proof}--\isacom{qed} block of multiple
+auto},  or it can be a \isacom{proof}--\isacom{qed} block of multiple
 steps. Such a block can optionally begin with a proof method that indicates
 how to start off the proof, e.g.\ \mbox{@{text"(induction xs)"}}.
 
@@ -65,10 +65,10 @@ A step either assumes a proposition or states a proposition
 together with its proof. The optional \isacom{from} clause
 indicates which facts are to be used in the proof.
 Intermediate propositions are stated with \isacom{have}, the overall goal
-with \isacom{show}. A step can also introduce new local variables with
+is stated with \isacom{show}. A step can also introduce new local variables with
 \isacom{fix}. Logically, \isacom{fix} introduces @{text"\<And>"}-quantified
 variables, \isacom{assume} introduces the assumption of an implication
-(@{text"\<Longrightarrow>"}) and \isacom{have}/\isacom{show} the conclusion.
+(@{text"\<Longrightarrow>"}) and \isacom{have}/\isacom{show} introduce the conclusion.
 
 Propositions are optionally named formulas. These names can be referred to in
 later \isacom{from} clauses. In the simplest case, a fact is such a name.
@@ -81,7 +81,7 @@ have the same status and are thus collectively referred to as
 Fact names can stand for whole lists of facts. For example, if @{text f} is
 defined by command \isacom{fun}, @{text"f.simps"} refers to the whole list of
 recursion equations defining @{text f}. Individual facts can be selected by
-writing @{text"f.simps(2)"}, whole sublists by @{text"f.simps(2-4)"}.
+writing @{text"f.simps(2)"}, whole sublists by writing @{text"f.simps(2-4)"}.
 
 
 \section{Isar by Example}
@@ -100,7 +100,7 @@ proof
 qed
 
 text{*
-The \isacom{proof} command lacks an explicit method how to perform
+The \isacom{proof} command lacks an explicit method by which to perform
 the proof. In such cases Isabelle tries to use some standard introduction
 rule, in the above case for @{text"\<not>"}:
 \[
@@ -206,7 +206,7 @@ qed
 text{*
 \begin{warn}
 Note the hyphen after the \isacom{proof} command.
-It is the null method that does nothing to the goal. Leaving it out would ask
+It is the null method that does nothing to the goal. Leaving it out would be asking
 Isabelle to try some suitable introduction rule on the goal @{const False}---but
 there is no such rule and \isacom{proof} would fail.
 \end{warn}
@@ -217,7 +217,7 @@ eliminated.
 
 Stating a lemma with \isacom{assumes}-\isacom{shows} implicitly introduces the
 name \indexed{@{text assms}}{assms} that stands for the list of all assumptions. You can refer
-to individual assumptions by @{text"assms(1)"}, @{text"assms(2)"} etc,
+to individual assumptions by @{text"assms(1)"}, @{text"assms(2)"}, etc.\
 thus obviating the need to name them individually.
 
 \section{Proof Patterns}
@@ -489,7 +489,7 @@ longer proofs, descriptive names are better. But look at this example:
 $\vdots$\\
 \isacom{from} @{text "x_gr_0"} \dots
 \end{quote}
-The name is longer than the fact it stands for! Short facts do not need names,
+The name is longer than the fact it stands for! Short facts do not need names;
 one can refer to them easily by quoting them:
 \begin{quote}
 \isacom{have} \ @{text"\"x > 0\""}\\
@@ -544,8 +544,8 @@ clearly and avoids new names.
 
 \subsection{Raw Proof Blocks}
 
-Sometimes one would like to prove some lemma locally within a proof.
-A lemma that shares the current context of assumptions but that
+Sometimes one would like to prove some lemma locally within a proof,
+a lemma that shares the current context of assumptions but that
 has its own assumptions and is generalized over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
 \begin{quote}\index{$IMP053@@{text"{ ... }"} (proof block)}
@@ -780,7 +780,7 @@ and \isacom{case}~@{text"(Suc n)"} stands for
 \isacom{let} @{text"?case = \"P(Suc n)\""}
 \end{quote}
 The list of assumptions @{text Suc} is actually subdivided
-into @{text"Suc.IH"}, the induction hypotheses (here @{text"A(n) \<Longrightarrow> P(n)"})
+into @{text"Suc.IH"}, the induction hypotheses (here @{text"A(n) \<Longrightarrow> P(n)"}),
 and @{text"Suc.prems"}, the premises of the goal being proved
 (here @{text"A(Suc n)"}).
 
@@ -986,7 +986,7 @@ defined predicate is triggered by piping the given fact
 Let us examine the assumptions available in each case. In case @{text ev0}
 we have @{text"n = 0"} and in case @{text evSS} we have @{prop"n = Suc(Suc k)"}
 and @{prop"ev k"}. In each case the assumptions are available under the name
-of the case; there is no fine grained naming schema like for induction.
+of the case; there is no fine-grained naming schema like there is for induction.
 
 Sometimes some rules could not have been used to derive the given fact
 because constructors clash. As an extreme example consider
@@ -1030,7 +1030,7 @@ new variables @{text x}, @{text y}, @{text z} and reformulating the goal like th
 \begin{isabelle}
 \isacom{lemma} @{text[source]"I x y z \<Longrightarrow> x = r \<Longrightarrow> y = s \<Longrightarrow> z = t \<Longrightarrow> \<dots>"}
 \end{isabelle}
-Standard rule induction will worke fine now, provided the free variables in
+Standard rule induction will work fine now, provided the free variables in
 @{text r}, @{text s}, @{text t} are generalized via @{text"arbitrary"}.
 
 However, induction can do the above transformation for us, behind the curtains, so we never
@@ -1077,7 +1077,8 @@ simplified @{prop"Suc(Suc n) = Suc m"} to @{prop"Suc n = m"} and could then elim
 \begin{warn}
 This advanced form of induction does not support the @{text IH}
 naming schema explained in \autoref{sec:assm-naming}:
-the induction hypotheses are instead found under the name @{text hyps}, like for the simpler
+the induction hypotheses are instead found under the name @{text hyps},
+as they are for the simpler
 @{text induct} method.
 \end{warn}
 \index{induction|)}
@@ -1109,7 +1110,7 @@ a proof immediateley with \isacom{qed}.
 \begin{exercise}
 Recall predicate @{text star} from \autoref{sec:star} and @{text iter}
 from Exercise~\ref{exe:iter}. Prove @{prop "iter r n x y \<Longrightarrow> star r x y"}
-in a structured style, do not just sledgehammer each case of the
+in a structured style; do not just sledgehammer each case of the
 required induction.
 \end{exercise}
 

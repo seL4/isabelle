@@ -99,7 +99,7 @@ abbreviates @{text"(a, (b, c))"} and @{text "\<tau>\<^sub>1 \<times> \<tau>\<^su
 
 \subsection{Definitions}
 
-Non recursive functions can be defined as in the following example:
+Non-recursive functions can be defined as in the following example:
 \index{definition@\isacom{definition}}*}
 
 definition sq :: "nat \<Rightarrow> nat" where
@@ -133,7 +133,7 @@ The ASCII representation of @{text"\<equiv>"} is \texttt{==} or \xsymbol{equiv}.
 \label{sec:recursive-funs}
 
 Recursive functions are defined with \indexed{\isacom{fun}}{fun} by pattern matching
-over datatype constructors. The order of equations matters. Just as in
+over datatype constructors. The order of equations matters, as in
 functional programming languages. However, all HOL functions must be
 total. This simplifies the logic---terms are always defined---but means
 that recursive functions must terminate. Otherwise one could define a
@@ -175,7 +175,7 @@ lemma "div2(n) = n div 2"
 apply(induction n rule: div2.induct)
 
 txt{* (where the infix @{text div} is the predefined division operation)
-yields the 3 subgoals
+yields the subgoals
 @{subgoals[display,margin=65]}
 An application of @{text auto} finishes the proof.
 Had we used ordinary structural induction on @{text n},
@@ -271,7 +271,7 @@ text{* The behaviour of @{const itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
 and it returns that second argument when the first one becomes
 empty. Note that @{const itrev} is tail-recursive: it can be
-compiled into a loop, no stack is necessary for executing it.
+compiled into a loop; no stack is necessary for executing it.
 
 Naturally, we would like to show that @{const itrev} does indeed reverse
 its first argument provided the second one is empty:
@@ -487,7 +487,7 @@ Note that @{text simp} acts only on subgoal 1, @{text auto} acts on all
 subgoals. There is also @{text simp_all}, which applies @{text simp} to
 all subgoals.
 
-\subsection{Rewriting With Definitions}
+\subsection{Rewriting with Definitions}
 \label{sec:rewr-defs}
 
 Definitions introduced by the command \isacom{definition}
@@ -557,7 +557,7 @@ text {*
 Find an equation expressing the size of a tree after exploding it
 (\noquotes{@{term [source] "nodes (explode n t)"}}) as a function
 of @{term "nodes t"} and @{text n}. Prove your equation.
-You may use the usual arithmetic operators including the exponentiation
+You may use the usual arithmetic operators, including the exponentiation
 operator ``@{text"^"}''. For example, \noquotes{@{prop [source] "2 ^ 2 = 4"}}.
 
 Hint: simplifying with the list of theorems @{thm[source] algebra_simps}
