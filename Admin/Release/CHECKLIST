@@ -68,7 +68,7 @@ Repository fork
 Packaging
 =========
 
-- fully-automated packaging (requires Mac OS X):
+- fully-automated packaging (requires Mac OS X with gnutar):
 
   hg up -r DISTNAME && Admin/Release/build -l -r DISTNAME /home/isabelle/dist
 
