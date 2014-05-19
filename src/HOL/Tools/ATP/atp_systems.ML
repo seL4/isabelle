@@ -338,10 +338,10 @@ fun e_kbo () = if is_e_at_least_1_3 () then "KBO6" else "KBO"
 
 val e_config : atp_config =
   {exec = (fn () => (["E_HOME"],
-       if is_e_at_least_1_8 () then ["eprover"] else ["eproof_ram", "eproof"])),
-   arguments = fn ctxt => fn full_proof => fn heuristic => fn timeout =>
-       fn file_name =>
-       fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
+     if is_e_at_least_1_8 () then ["eprover"] else ["eproof_ram", "eproof"])),
+   arguments = fn ctxt => fn full_proof => fn heuristic => fn timeout => fn file_name =>
+     fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
+       (if is_e_at_least_1_8 () then "--auto-schedule " else "") ^
        "--tstp-in --tstp-out --silent " ^
        e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
        e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
@@ -351,10 +351,8 @@ val e_config : atp_config =
           " --proof-object=1"
         else
           " --output-level=5" ^
-          (if is_e_at_least_1_6 () then
-             " --pcl-shell-level=" ^ (if full_proof then "0" else "2")
-           else
-             "")) ^
+          (if is_e_at_least_1_6 () then " --pcl-shell-level=" ^ (if full_proof then "0" else "2")
+           else "")) ^
        " " ^ file_name,
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
