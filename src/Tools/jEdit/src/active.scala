@@ -58,6 +58,7 @@ object Active
                       Isabelle.insert_line_padding(text_area, text)
                     else text_area.setSelectedText(text)
                 }
+                text_area.requestFocus
 
               case Simplifier_Trace.Active(serial, answer) =>
                 Simplifier_Trace.send_reply(PIDE.session, serial, answer)
