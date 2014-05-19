@@ -8,7 +8,7 @@ lemma image_ex1_eq: "inj_on f A \<Longrightarrow> (b \<in> f ` A) \<longleftrigh
 lemma Ex1_eq: "\<exists>!x. P x \<Longrightarrow> P x \<Longrightarrow> P y \<Longrightarrow> x = y"
   by auto
 
-section "Define the state space"
+subsection {* Define the state space *}
 
 text {*
 

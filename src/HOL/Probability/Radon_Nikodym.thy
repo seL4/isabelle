@@ -769,7 +769,7 @@ proof -
     by (auto intro!: bexI[of _ "\<lambda>x. h x * f x"] simp: density_density_eq)
 qed
 
-section "Uniqueness of densities"
+subsection {* Uniqueness of densities *}
 
 lemma finite_density_unique:
   assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
@@ -1060,7 +1060,7 @@ lemma (in sigma_finite_measure) sigma_finite_iff_density_finite:
   apply (auto simp: max_def intro!: measurable_If)
   done
 
-section "Radon-Nikodym derivative"
+subsection {* Radon-Nikodym derivative *}
 
 definition RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a \<Rightarrow> ereal" where
   "RN_deriv M N =

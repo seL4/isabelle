@@ -11,7 +11,7 @@ begin
 lemma split_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
   by auto
 
-subsubsection {* Merge two extensional functions *}
+subsubsection {* More about Function restricted by @{const extensional}  *}
 
 definition
   "merge I J = (\<lambda>(x, y) i. if i \<in> I then x i else if i \<in> J then y i else undefined)"
@@ -105,9 +105,9 @@ lemma merge_vimage:
   "I \<inter> J = {} \<Longrightarrow> merge I J -` Pi\<^sub>E (I \<union> J) E = Pi I E \<times> Pi J E"
   by (auto simp: restrict_Pi_cancel PiE_def)
 
-section "Finite product spaces"
+subsection {* Finite product spaces *}
 
-section "Products"
+subsubsection {* Products *}
 
 definition prod_emb where
   "prod_emb I M K X = (\<lambda>x. restrict x K) -` X \<inter> (PIE i:I. space (M i))"

@@ -45,7 +45,7 @@ proof -
                      SUP_ereal_setsum[symmetric] incseq_setsumI setsum_nonneg)
 qed
 
-subsection {* Measure Spaces *}
+subsection {* Characterizations of Measures *}
 
 definition subadditive where "subadditive M f \<longleftrightarrow>
   (\<forall>x\<in>M. \<forall>y\<in>M. x \<inter> y = {} \<longrightarrow> f (x \<union> y) \<le> f x + f y)"
@@ -53,9 +53,6 @@ definition subadditive where "subadditive M f \<longleftrightarrow>
 definition countably_subadditive where "countably_subadditive M f \<longleftrightarrow>
   (\<forall>A. range A \<subseteq> M \<longrightarrow> disjoint_family A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow>
     (f (\<Union>i. A i) \<le> (\<Sum>i. f (A i))))"
-
-definition lambda_system where "lambda_system \<Omega> M f = {l \<in> M.
-  \<forall>x \<in> M. f (l \<inter> x) + f ((\<Omega> - l) \<inter> x) = f x}"
 
 definition outer_measure_space where "outer_measure_space M f \<longleftrightarrow>
   positive M f \<and> increasing M f \<and> countably_subadditive M f"
@@ -67,7 +64,10 @@ lemma subadditiveD:
   "subadditive M f \<Longrightarrow> x \<inter> y = {} \<Longrightarrow> x \<in> M \<Longrightarrow> y \<in> M \<Longrightarrow> f (x \<union> y) \<le> f x + f y"
   by (auto simp add: subadditive_def)
 
-subsection {* Lambda Systems *}
+subsubsection {* Lambda Systems *}
+
+definition lambda_system where "lambda_system \<Omega> M f = {l \<in> M.
+  \<forall>x \<in> M. f (l \<inter> x) + f ((\<Omega> - l) \<inter> x) = f x}"
 
 lemma (in algebra) lambda_system_eq:
   shows "lambda_system \<Omega> M f = {l \<in> M. \<forall>x \<in> M. f (x \<inter> l) + f (x - l) = f x}"
@@ -643,6 +643,8 @@ lemma measure_down:
   by (simp add: measure_space_def positive_def countably_additive_def)
      blast
 
+subsection {* Caratheodory's theorem *}
+
 theorem (in ring_of_sets) caratheodory':
   assumes posf: "positive M f" and ca: "countably_additive M f"
   shows "\<exists>\<mu> :: 'a set \<Rightarrow> ereal. (\<forall>s \<in> M. \<mu> s = f s) \<and> measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>"
@@ -670,8 +672,6 @@ proof -
     by (intro exI[of _ ?infm]) auto
 qed
 
-subsubsection {*Alternative instances of caratheodory*}
-
 lemma (in ring_of_sets) caratheodory_empty_continuous:
   assumes f: "positive M f" "additive M f" and fin: "\<And>A. A \<in> M \<Longrightarrow> f A \<noteq> \<infinity>"
   assumes cont: "\<And>A. range A \<subseteq> M \<Longrightarrow> decseq A \<Longrightarrow> (\<Inter>i. A i) = {} \<Longrightarrow> (\<lambda>i. f (A i)) ----> 0"
@@ -680,7 +680,7 @@ proof (intro caratheodory' empty_continuous_imp_countably_additive f)
   show "\<forall>A\<in>M. f A \<noteq> \<infinity>" using fin by auto
 qed (rule cont)
 
-section {* Volumes *}
+subsection {* Volumes *}
 
 definition volume :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
   "volume M f \<longleftrightarrow>
@@ -818,7 +818,7 @@ proof -
   qed
 qed
 
-section {* Caratheodory on semirings *}
+subsubsection {* Caratheodory on semirings *}
 
 theorem (in semiring_of_sets) caratheodory:
   assumes pos: "positive M \<mu>" and ca: "countably_additive M \<mu>"

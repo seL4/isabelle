@@ -14,7 +14,7 @@ lemma Pair_vimage_times[simp]: "Pair x -` (A \<times> B) = (if x \<in> A then B 
 lemma rev_Pair_vimage_times[simp]: "(\<lambda>x. (x, y)) -` (A \<times> B) = (if y \<in> B then A else {})"
   by auto
 
-section "Binary products"
+subsection "Binary products"
 
 definition pair_measure (infixr "\<Otimes>\<^sub>M" 80) where
   "A \<Otimes>\<^sub>M B = measure_of (space A \<times> space B)
@@ -480,7 +480,7 @@ proof -
     done
 qed
 
-section "Fubinis theorem"
+subsection "Fubinis theorem"
 
 lemma measurable_compose_Pair1:
   "x \<in> space M1 \<Longrightarrow> g \<in> measurable (M1 \<Otimes>\<^sub>M M2) L \<Longrightarrow> (\<lambda>y. g (x, y)) \<in> measurable M2 L"
@@ -557,7 +557,7 @@ lemma (in pair_sigma_finite) Fubini:
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M2) \<partial>M1)"
   unfolding positive_integral_snd[OF assms] M2.positive_integral_fst[OF assms] ..
 
-section {* Products on counting spaces, densities and distributions *}
+subsection {* Products on counting spaces, densities and distributions *}
 
 lemma sigma_sets_pair_measure_generator_finite:
   assumes "finite A" and "finite B"

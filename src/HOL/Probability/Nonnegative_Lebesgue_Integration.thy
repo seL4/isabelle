@@ -13,7 +13,7 @@ lemma indicator_less_ereal[simp]:
   "indicator A x \<le> (indicator B x::ereal) \<longleftrightarrow> (x \<in> A \<longrightarrow> x \<in> B)"
   by (simp add: indicator_def not_le)
 
-section "Simple function"
+subsection "Simple function"
 
 text {*
 
@@ -501,7 +501,7 @@ proof (intro simple_function_def[THEN iffD2] conjI ballI)
   finally show "(\<lambda>x. f (T x)) -` {i} \<inter> space M \<in> sets M" .
 qed
 
-section "Simple integral"
+subsection "Simple integral"
 
 definition simple_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ereal" ("integral\<^sup>S") where
   "integral\<^sup>S M f = (\<Sum>x \<in> f ` space M. x * emeasure M (f -` {x} \<inter> space M))"
@@ -734,7 +734,7 @@ proof -
   then show ?thesis by simp
 qed
 
-section "Continuous positive integration"
+subsection {* Integral on nonnegative functions *}
 
 definition positive_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ereal" ("integral\<^sup>P") where
   "integral\<^sup>P M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f}. integral\<^sup>S M g)"
@@ -1556,7 +1556,9 @@ proof -
     by (simp add: F_def)
 qed
 
-section {* Distributions *}
+subsection {* Integral under concrete measures *}
+
+subsubsection {* Distributions *}
 
 lemma positive_integral_distr':
   assumes T: "T \<in> measurable M M'"
@@ -1587,7 +1589,7 @@ lemma positive_integral_distr:
   by (subst (1 2) positive_integral_max_0[symmetric])
      (simp add: positive_integral_distr')
 
-section {* Lebesgue integration on @{const count_space} *}
+subsubsection {* Counting space *}
 
 lemma simple_function_count_space[simp]:
   "simple_function (count_space A) f \<longleftrightarrow> finite (f ` A)"
@@ -1666,7 +1668,7 @@ next
   finally show ?thesis .
 qed
 
-section {* Measures with Restricted Space *}
+subsubsection {* Measures with Restricted Space *}
 
 lemma positive_integral_restrict_space:
   assumes \<Omega>: "\<Omega> \<in> sets M" and f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "\<And>x. x \<in> space M - \<Omega> \<Longrightarrow> f x = 0"
@@ -1696,7 +1698,7 @@ next
     by (auto simp add: SUP_eq_iff measurable_restrict_space1 \<Omega> positive_integral_monotone_convergence_SUP)
 qed
 
-section {* Measure spaces with an associated density *}
+subsubsection {* Measure spaces with an associated density *}
 
 definition density :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
   "density M f = measure_of (space M) (sets M) (\<lambda>A. \<integral>\<^sup>+ x. f x * indicator A x \<partial>M)"
@@ -1918,7 +1920,7 @@ proof -
     using f g by (subst density_density_eq) auto
 qed
 
-section {* Point measure *}
+subsubsection {* Point measure *}
 
 definition point_measure :: "'a set \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
   "point_measure A f = density (count_space A) f"
@@ -1991,7 +1993,7 @@ lemma positive_integral_point_measure_finite:
     integral\<^sup>P (point_measure A f) g = (\<Sum>a\<in>A. f a * g a)"
   by (subst positive_integral_point_measure) (auto intro!: setsum_mono_zero_left simp: less_le)
 
-section {* Uniform measure *}
+subsubsection {* Uniform measure *}
 
 definition "uniform_measure M A = density M (\<lambda>x. indicator A x / emeasure M A)"
 
@@ -2019,7 +2021,7 @@ lemma measure_uniform_measure[simp]:
   using emeasure_uniform_measure[OF emeasure_neq_0_sets[OF A(1)] B] A
   by (cases "emeasure M A" "emeasure M (A \<inter> B)" rule: ereal2_cases) (simp_all add: measure_def)
 
-section {* Uniform count measure *}
+subsubsection {* Uniform count measure *}
 
 definition "uniform_count_measure A = point_measure A (\<lambda>x. 1 / card A)"
  

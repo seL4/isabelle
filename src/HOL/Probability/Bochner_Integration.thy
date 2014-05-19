@@ -1519,7 +1519,7 @@ lemma integral_mono:
     integral\<^sup>L M f \<le> integral\<^sup>L M g"
   by (intro integral_mono_AE) auto
 
-section {* Measure spaces with an associated density *}
+subsection {* Measure spaces with an associated density *}
 
 lemma integrable_density:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}" and g :: "'a \<Rightarrow> real"
@@ -1673,7 +1673,7 @@ lemma has_bochner_integral_distr:
     has_bochner_integral M (\<lambda>x. f (g x)) x \<Longrightarrow> has_bochner_integral (distr M N g) f x"
   by (simp add: has_bochner_integral_iff integrable_distr_eq integral_distr)
 
-section {* Lebesgue integration on @{const count_space} *}
+subsection {* Lebesgue integration on @{const count_space} *}
 
 lemma integrable_count_space:
   fixes f :: "'a \<Rightarrow> 'b::{banach,second_countable_topology}"
@@ -1703,7 +1703,7 @@ lemma lebesgue_integral_count_space_finite: "finite A \<Longrightarrow> (\<integ
   by (subst lebesgue_integral_count_space_finite_support)
      (auto intro!: setsum_mono_zero_cong_left)
 
-section {* Point measure *}
+subsection {* Point measure *}
 
 lemma lebesgue_integral_point_measure_finite:
   fixes g :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -1720,7 +1720,7 @@ lemma integrable_point_measure_finite:
   apply (auto simp: AE_count_space integrable_count_space)
   done
 
-subsection {* Legacy lemmas for the real-valued Lebesgue integral\<^sup>L *}
+subsection {* Legacy lemmas for the real-valued Lebesgue integral *}
 
 lemma real_lebesgue_integral_def:
   assumes f: "integrable M f"
@@ -2080,7 +2080,7 @@ proof -
 qed
 
 
-section "Lebesgue integration on countable spaces"
+subsection {* Lebesgue integration on countable spaces *}
 
 lemma integral_on_countable:
   fixes f :: "real \<Rightarrow> real"

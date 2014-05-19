@@ -26,7 +26,7 @@ lemma split_pairs:
   "((A, B) = X) \<longleftrightarrow> (fst X = A \<and> snd X = B)" and
   "(X = (A, B)) \<longleftrightarrow> (fst X = A \<and> snd X = B)" by auto
 
-section "Information theory"
+subsection "Information theory"
 
 locale information_space = prob_space +
   fixes b :: real assumes b_gt_1: "1 < b"

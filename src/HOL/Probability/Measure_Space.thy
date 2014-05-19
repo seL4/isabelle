@@ -73,7 +73,7 @@ text {*
   represent sigma algebras (with an arbitrary emeasure).
 *}
 
-section "Extend binary sets"
+subsection "Extend binary sets"
 
 lemma LIMSEQ_binaryset:
   assumes f: "f {} = 0"
@@ -105,7 +105,7 @@ lemma suminf_binaryset_eq:
   shows "f {} = 0 \<Longrightarrow> (\<Sum>n. f (binaryset A B n)) = f A + f B"
   by (metis binaryset_sums sums_unique)
 
-section {* Properties of a premeasure @{term \<mu>} *}
+subsection {* Properties of a premeasure @{term \<mu>} *}
 
 text {*
   The definitions for @{const positive} and @{const countably_additive} should be here, by they are
@@ -429,7 +429,7 @@ lemma (in ring_of_sets) empty_continuous_imp_countably_additive:
   using empty_continuous_imp_continuous_from_below[OF f fin] cont
   by blast
 
-section {* Properties of @{const emeasure} *}
+subsection {* Properties of @{const emeasure} *}
 
 lemma emeasure_positive: "positive (sets M) (emeasure M)"
   by (cases M) (auto simp: sets_def emeasure_def Abs_measure_inverse measure_space_def)
@@ -761,7 +761,7 @@ proof (intro measure_eqI emeasure_measure_of_sigma)
     by (simp add: emeasure_countably_additive)
 qed simp_all
 
-section "@{text \<mu>}-null sets"
+subsection {* @{text \<mu>}-null sets *}
 
 definition null_sets :: "'a measure \<Rightarrow> 'a set set" where
   "null_sets M = {N\<in>sets M. emeasure M N = 0}"
@@ -853,7 +853,7 @@ proof -
     by (subst plus_emeasure[symmetric]) auto
 qed
 
-section "Formalize almost everywhere"
+subsection {* The almost everywhere filter (i.e.\ quantifier) *}
 
 definition ae_filter :: "'a measure \<Rightarrow> 'a filter" where
   "ae_filter M = Abs_filter (\<lambda>P. \<exists>N\<in>null_sets M. {x \<in> space M. \<not> P x} \<subseteq> N)"
@@ -1053,7 +1053,7 @@ lemma emeasure_eq_AE:
   shows "emeasure M A = emeasure M B"
   using assms by (safe intro!: antisym emeasure_mono_AE) auto
 
-section {* @{text \<sigma>}-finite Measures *}
+subsection {* @{text \<sigma>}-finite Measures *}
 
 locale sigma_finite_measure =
   fixes M :: "'a measure"
@@ -1103,7 +1103,7 @@ proof atomize_elim
   qed (force simp: incseq_def)+
 qed
 
-section {* Measure space induced by distribution of @{const measurable}-functions *}
+subsection {* Measure space induced by distribution of @{const measurable}-functions *}
 
 definition distr :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b measure" where
   "distr M N f = measure_of (space N) (sets N) (\<lambda>A. emeasure M (f -` A \<inter> space M))"
@@ -1187,7 +1187,7 @@ lemma distr_distr:
   by (auto simp add: emeasure_distr measurable_space
            intro!: arg_cong[where f="emeasure M"] measure_eqI)
 
-section {* Real measure values *}
+subsection {* Real measure values *}
 
 lemma measure_nonneg: "0 \<le> measure M A"
   using emeasure_nonneg[of M A] unfolding measure_def by (auto intro: real_of_ereal_pos)
@@ -1324,7 +1324,7 @@ proof -
     by (intro lim_real_of_ereal) simp
 qed
 
-section {* Measure spaces with @{term "emeasure M (space M) < \<infinity>"} *}
+subsection {* Measure spaces with @{term "emeasure M (space M) < \<infinity>"} *}
 
 locale finite_measure = sigma_finite_measure M for M +
   assumes finite_emeasure_space: "emeasure M (space M) \<noteq> \<infinity>"
@@ -1527,7 +1527,7 @@ lemma (in finite_measure) measure_exclude:
   shows "measure M B = 0"
   using measure_space_inter[of B A] assms by (auto simp: ac_simps)
 
-section {* Counting space *}
+subsection {* Counting space *}
 
 lemma strict_monoI_Suc:
   assumes ord [simp]: "(\<And>n. f n < f (Suc n))" shows "strict_mono f"
@@ -1653,7 +1653,7 @@ proof -
   show "sigma_finite_measure (count_space A)" ..
 qed
 
-section {* Measure restricted to space *}
+subsection {* Measure restricted to space *}
 
 lemma emeasure_restrict_space:
   assumes "\<Omega> \<in> sets M" "A \<subseteq> \<Omega>"

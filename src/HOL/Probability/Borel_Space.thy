@@ -11,7 +11,7 @@ imports
   "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
 begin
 
-section "Generic Borel spaces"
+subsection {* Generic Borel spaces *}
 
 definition borel :: "'a::topological_space measure" where
   "borel = sigma UNIV {S. open S}"
@@ -213,7 +213,7 @@ proof -
     unfolding eq by (rule borel_measurable_continuous_on[OF H]) auto
 qed
 
-section "Borel spaces on euclidean spaces"
+subsection {* Borel spaces on euclidean spaces *}
 
 lemma borel_measurable_inner[measurable (raw)]:
   fixes f g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_inner}"
@@ -1140,7 +1140,7 @@ lemma borel_measurable_extreal_suminf[measurable (raw)]:
   shows "(\<lambda>x. (\<Sum>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
-section "LIMSEQ is borel measurable"
+subsection {* LIMSEQ is borel measurable *}
 
 lemma borel_measurable_LIMSEQ:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> real"

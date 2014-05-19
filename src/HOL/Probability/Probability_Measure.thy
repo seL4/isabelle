@@ -349,7 +349,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-section {* Distributions *}
+subsection {* Distributions *}
 
 definition "distributed M N X f \<longleftrightarrow> distr M N X = density N f \<and> 
   f \<in> borel_measurable N \<and> (AE x in N. 0 \<le> f x) \<and> X \<in> measurable M N"

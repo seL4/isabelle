@@ -685,8 +685,9 @@ session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
   options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Countable"
-    "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits"
     "~~/src/HOL/Library/Permutation"
+    "~~/src/HOL/Library/Order_Continuity"
+    "~~/src/HOL/Library/Diagonal_Subsequence"
   theories
     Probability
     "ex/Dining_Cryptographers"
