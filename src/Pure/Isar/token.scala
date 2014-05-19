@@ -173,7 +173,7 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     kind == Token.Kind.STRING ||
     kind == Token.Kind.NAT
   def is_xname: Boolean = is_name || kind == Token.Kind.LONG_IDENT
-  def is_text: Boolean = is_xname || kind == Token.Kind.VERBATIM
+  def is_text: Boolean = is_xname || kind == Token.Kind.VERBATIM || kind == Token.Kind.CARTOUCHE
   def is_space: Boolean = kind == Token.Kind.SPACE
   def is_comment: Boolean = kind == Token.Kind.COMMENT
   def is_improper: Boolean = is_space || is_comment
