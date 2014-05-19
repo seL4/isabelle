@@ -75,7 +75,7 @@ fun generate_features ctxt thys file_name =
         val name = nickname_of_thm th
         val feats =
           features_of ctxt (theory_of_thm th) 0 Symtab.empty stature false [prop_of th] |> map fst
-        val s = encode_str name ^ ": " ^ encode_plain_features (sort_wrt hd feats) ^ "\n"
+        val s = encode_str name ^ ": " ^ encode_unweighted_features (sort_wrt hd feats) ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
 
@@ -194,8 +194,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
             |> map fst |> sort_wrt hd
           val update =
             "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-            encode_plain_features nongoal_feats ^ "; " ^ marker ^ " " ^
-            encode_strs deps ^ "\n"
+            encode_unweighted_features nongoal_feats ^ "; " ^ marker ^ " " ^ encode_strs deps ^ "\n"
         in query ^ update end
       else
         ""
