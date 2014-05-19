@@ -27,83 +27,62 @@ private object Simplifier_Trace_Window
 {
   sealed trait Trace_Tree
   {
-    var children: SortedMap[Long, Elem_Tree] = SortedMap.empty
+    // FIXME replace with immutable tree builder
+    var children: SortedMap[Long, Either[Simplifier_Trace.Item.Data, Elem_Tree]] = SortedMap.empty
     val serial: Long
     val parent: Option[Trace_Tree]
-    var hints: List[Simplifier_Trace.Item.Data]
-    def set_interesting(): Unit
+    val markup: String
+    def interesting: Boolean
+
+    def tree_children: List[Elem_Tree] = children.values.toList.collect {
+      case Right(tree) => tree
+    }
   }
 
   final class Root_Tree(val serial: Long) extends Trace_Tree
   {
     val parent = None
-    val hints = Nil
-    def hints_=(xs: List[Simplifier_Trace.Item.Data]) =
-      throw new IllegalStateException("Root_Tree.hints")
-    def set_interesting() = ()
+    val interesting = true
+    val markup = ""
 
-    def format(regex: Option[Regex]): XML.Body =
-      Pretty.separate(children.values.map(_.format(regex)._2)(collection.breakOut))
+    def format: XML.Body =
+      Pretty.separate(tree_children.flatMap(_.format))
   }
 
   final class Elem_Tree(data: Simplifier_Trace.Item.Data, val parent: Option[Trace_Tree])
     extends Trace_Tree
   {
     val serial = data.serial
-    var hints = List.empty[Simplifier_Trace.Item.Data]
-    var interesting: Boolean = false
+    val markup = data.markup
 
-    def set_interesting(): Unit =
-      if (!interesting)
-      {
-        interesting = true
-        parent match {
-          case Some(p) =>
-            p.set_interesting()
-          case None =>
-        }
-      }
+    lazy val interesting: Boolean =
+      data.markup == Markup.SIMP_TRACE_STEP ||
+      data.markup == Markup.SIMP_TRACE_LOG ||
+      tree_children.exists(_.interesting)
 
-    def format(regex: Option[Regex]): (Boolean, XML.Tree) =
+    private def body_contains(regex: Regex, body: XML.Body): Boolean =
+      body.exists(tree => regex.findFirstIn(XML.content(tree)).isDefined)
+
+    def format: Option[XML.Tree] =
     {
-      def format_child(child: Elem_Tree): Option[XML.Tree] = child.format(regex) match {
-        case (false, _) =>
-          None
-        case (true, res) =>
-          Some(XML.Elem(Markup(Markup.ITEM, Nil), List(res)))
-      }
-
       def format_hint(data: Simplifier_Trace.Item.Data): XML.Tree =
-        Pretty.block(Pretty.separate(
-          XML.Text(data.text) ::
-          data.content
-        ))
+        Pretty.block(Pretty.separate(XML.Text(data.text) :: data.content))
 
-      def body_contains(regex: Regex, body: XML.Body): Boolean =
-        body.exists(tree => regex.findFirstIn(XML.content(tree)).isDefined)
+      lazy val bodies: XML.Body =
+        children.values.toList.collect {
+          case Left(data) => Some(format_hint(data))
+          case Right(tree) if tree.interesting => tree.format
+        }.flatten.map(item =>
+          XML.Elem(Markup(Markup.ITEM, Nil), List(item))
+        )
 
-      val children_bodies: XML.Body =
-        children.values.filter(_.interesting).flatMap(format_child).toList
-
-      lazy val hint_bodies: XML.Body =
-        hints.reverse.map(format_hint)
-
-      val eligible = regex match {
-        case None =>
-          true
-        case Some(r) =>
-          body_contains(r, data.content) || hints.exists(h => body_contains(r, h.content))
-      }
-
-      val all =
-        if (eligible)
-          XML.Text(data.text) :: data.content ::: children_bodies ::: hint_bodies
-        else
-          XML.Text(data.text) :: children_bodies
-
+      val all = XML.Text(data.text) :: data.content ::: bodies
       val res = XML.Elem(Markup(Markup.TEXT_FOLD, Nil), List(Pretty.block(Pretty.separate(all))))
 
-      (eligible || children_bodies != Nil, res)
+      if (bodies != Nil)
+        Some(res)
+      else
+        None
     }
   }
 
@@ -117,7 +96,15 @@ private object Simplifier_Trace_Window
           case Some(parent) =>
             if (head.markup == Markup.SIMP_TRACE_HINT)
             {
-              parent.hints ::= head
+              head.props match {
+                case Simplifier_Trace.Success(x)
+                  if x ||
+                     parent.markup == Markup.SIMP_TRACE_LOG ||
+                     parent.markup == Markup.SIMP_TRACE_STEP =>
+                  parent.children += ((head.serial, Left(head)))
+                case _ =>
+                  // ignore
+              }
               walk_trace(tail, lookup)
             }
             else if (head.markup == Markup.SIMP_TRACE_IGNORE)
@@ -127,15 +114,13 @@ private object Simplifier_Trace_Window
                   Output.error_message("Simplifier_Trace_Window: malformed ignore message with parent " + head.parent)
                 case Some(tree) =>
                   tree.children -= head.parent
-                  walk_trace(tail, lookup) // FIXME discard from lookup
+                  walk_trace(tail, lookup)
               }
             }
             else
             {
               val entry = new Elem_Tree(head, Some(parent))
-              parent.children += ((head.serial, entry))
-              if (head.markup == Markup.SIMP_TRACE_STEP || head.markup == Markup.SIMP_TRACE_LOG)
-                entry.set_interesting()
+              parent.children += ((head.serial, Right(entry)))
               walk_trace(tail, lookup + (head.serial -> entry))
             }
 
@@ -152,12 +137,14 @@ class Simplifier_Trace_Window(
 {
   Swing_Thread.require {}
 
-  val area = new Pretty_Text_Area(view)
+  val pretty_text_area = new Pretty_Text_Area(view)
 
   size = new Dimension(500, 500)
   contents = new BorderPanel {
-    layout(Component.wrap(area)) = BorderPanel.Position.Center
+    layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
   }
+
+  trace.entries.foreach(System.err.println)
 
   private val tree = trace.entries.headOption match {
     case Some(first) =>
@@ -168,20 +155,20 @@ class Simplifier_Trace_Window(
       new Simplifier_Trace_Window.Root_Tree(0)
   }
 
-  do_update(None)
+  do_update()
   open()
   do_paint()
 
-  def do_update(regex: Option[Regex])
+  def do_update()
   {
-    val xml = tree.format(regex)
-    area.update(snapshot, Command.Results.empty, xml)
+    val xml = tree.format
+    pretty_text_area.update(snapshot, Command.Results.empty, xml)
   }
 
   def do_paint()
   {
     Swing_Thread.later {
-      area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
+      pretty_text_area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
     }
   }
 
@@ -204,28 +191,9 @@ class Simplifier_Trace_Window(
 
   /* controls */
 
-  val use_regex = new CheckBox("Regex")
-
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-    new Label("Search"),
-    new TextField(30) {
-      listenTo(keys)
-      reactions += {
-        case KeyPressed(_, Key.Enter, 0, _) =>
-          val input = text.trim
-          val regex =
-            if (input.isEmpty)
-              None
-            else if (use_regex.selected)
-              Some(input.r)
-            else
-              Some(java.util.regex.Pattern.quote(input).r)
-          do_update(regex)
-          do_paint()
-      }
-    },
-    use_regex
-  )
+    pretty_text_area.search_label,
+    pretty_text_area.search_pattern)
 
   peer.add(controls.peer, BorderLayout.NORTH)
 }
