@@ -239,7 +239,7 @@ lemma (in sigma_finite_measure) emeasure_pair_measure:
   shows "emeasure (N \<Otimes>\<^sub>M M) X = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. indicator X (x, y) \<partial>M \<partial>N)" (is "_ = ?\<mu> X")
 proof (rule emeasure_measure_of[OF pair_measure_def])
   show "positive (sets (N \<Otimes>\<^sub>M M)) ?\<mu>"
-    by (auto simp: positive_def positive_integral_positive)
+    by (auto simp: positive_def nn_integral_nonneg)
   have eq[simp]: "\<And>A x y. indicator A (x, y) = indicator (Pair x -` A) y"
     by (auto simp: indicator_def)
   show "countably_additive (sets (N \<Otimes>\<^sub>M M)) ?\<mu>"
@@ -253,8 +253,8 @@ proof (rule emeasure_measure_of[OF pair_measure_def])
     moreover have "\<And>x. range (\<lambda>i. Pair x -` F i) \<subseteq> sets M"
       using F by (auto simp: sets_Pair1)
     ultimately show "(\<Sum>n. ?\<mu> (F n)) = ?\<mu> (\<Union>i. F i)"
-      by (auto simp add: vimage_UN positive_integral_suminf[symmetric] suminf_emeasure subset_eq emeasure_nonneg sets_Pair1
-               intro!: positive_integral_cong positive_integral_indicator[symmetric])
+      by (auto simp add: vimage_UN nn_integral_suminf[symmetric] suminf_emeasure subset_eq emeasure_nonneg sets_Pair1
+               intro!: nn_integral_cong nn_integral_indicator[symmetric])
   qed
   show "{a \<times> b |a b. a \<in> sets N \<and> b \<in> sets M} \<subseteq> Pow (space N \<times> space M)"
     using sets.space_closed[of N] sets.space_closed[of M] by auto
@@ -267,7 +267,7 @@ proof -
   have [simp]: "\<And>x y. indicator X (x, y) = indicator (Pair x -` X) y"
     by (auto simp: indicator_def)
   show ?thesis
-    using X by (auto intro!: positive_integral_cong simp: emeasure_pair_measure sets_Pair1)
+    using X by (auto intro!: nn_integral_cong simp: emeasure_pair_measure sets_Pair1)
 qed
 
 lemma (in sigma_finite_measure) emeasure_pair_measure_Times:
@@ -275,9 +275,9 @@ lemma (in sigma_finite_measure) emeasure_pair_measure_Times:
   shows "emeasure (N \<Otimes>\<^sub>M M) (A \<times> B) = emeasure N A * emeasure M B"
 proof -
   have "emeasure (N \<Otimes>\<^sub>M M) (A \<times> B) = (\<integral>\<^sup>+x. emeasure M B * indicator A x \<partial>N)"
-    using A B by (auto intro!: positive_integral_cong simp: emeasure_pair_measure_alt)
+    using A B by (auto intro!: nn_integral_cong simp: emeasure_pair_measure_alt)
   also have "\<dots> = emeasure M B * emeasure N A"
-    using A by (simp add: emeasure_nonneg positive_integral_cmult_indicator)
+    using A by (simp add: emeasure_nonneg nn_integral_cmult_indicator)
   finally show ?thesis
     by (simp add: ac_simps)
 qed
@@ -418,7 +418,7 @@ proof -
   proof (rule AE_I)
     from N measurable_emeasure_Pair1[OF `N \<in> sets (M1 \<Otimes>\<^sub>M M2)`]
     show "emeasure M1 {x\<in>space M1. emeasure M2 (Pair x -` N) \<noteq> 0} = 0"
-      by (auto simp: M2.emeasure_pair_measure_alt positive_integral_0_iff emeasure_nonneg)
+      by (auto simp: M2.emeasure_pair_measure_alt nn_integral_0_iff emeasure_nonneg)
     show "{x \<in> space M1. emeasure M2 (Pair x -` N) \<noteq> 0} \<in> sets M1"
       by (intro borel_measurable_ereal_neq_const measurable_emeasure_Pair1 N)
     { fix x assume "x \<in> space M1" "emeasure M2 (Pair x -` N) = 0"
@@ -446,9 +446,9 @@ proof (subst AE_iff_measurable[OF _ refl])
     by (simp add: M2.emeasure_pair_measure)
   also have "\<dots> = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. 0 \<partial>M2 \<partial>M1)"
     using ae
-    apply (safe intro!: positive_integral_cong_AE)
+    apply (safe intro!: nn_integral_cong_AE)
     apply (intro AE_I2)
-    apply (safe intro!: positive_integral_cong_AE)
+    apply (safe intro!: nn_integral_cong_AE)
     apply auto
     done
   finally show "emeasure (M1 \<Otimes>\<^sub>M M2) {x \<in> space (M1 \<Otimes>\<^sub>M M2). \<not> P x} = 0" by simp
@@ -486,7 +486,7 @@ lemma measurable_compose_Pair1:
   "x \<in> space M1 \<Longrightarrow> g \<in> measurable (M1 \<Otimes>\<^sub>M M2) L \<Longrightarrow> (\<lambda>y. g (x, y)) \<in> measurable M2 L"
   by simp
 
-lemma (in sigma_finite_measure) borel_measurable_positive_integral_fst':
+lemma (in sigma_finite_measure) borel_measurable_nn_integral_fst':
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)" "\<And>x. 0 \<le> f x"
   shows "(\<lambda>x. \<integral>\<^sup>+ y. f (x, y) \<partial>M) \<in> borel_measurable M1"
 using f proof induct
@@ -495,7 +495,7 @@ using f proof induct
     by (auto simp: space_pair_measure)
   show ?case
     apply (subst measurable_cong)
-    apply (rule positive_integral_cong)
+    apply (rule nn_integral_cong)
     apply fact+
     done
 next
@@ -506,56 +506,56 @@ next
     by (simp add: sets_Pair1[OF set])
   from this measurable_emeasure_Pair[OF set] show ?case
     by (rule measurable_cong[THEN iffD1])
-qed (simp_all add: positive_integral_add positive_integral_cmult measurable_compose_Pair1
-                   positive_integral_monotone_convergence_SUP incseq_def le_fun_def
+qed (simp_all add: nn_integral_add nn_integral_cmult measurable_compose_Pair1
+                   nn_integral_monotone_convergence_SUP incseq_def le_fun_def
               cong: measurable_cong)
 
-lemma (in sigma_finite_measure) positive_integral_fst':
+lemma (in sigma_finite_measure) nn_integral_fst':
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)" "\<And>x. 0 \<le> f x"
-  shows "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>M \<partial>M1) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M) f" (is "?I f = _")
+  shows "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>M \<partial>M1) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M) f" (is "?I f = _")
 using f proof induct
   case (cong u v)
   then have "?I u = ?I v"
-    by (intro positive_integral_cong) (auto simp: space_pair_measure)
+    by (intro nn_integral_cong) (auto simp: space_pair_measure)
   with cong show ?case
-    by (simp cong: positive_integral_cong)
-qed (simp_all add: emeasure_pair_measure positive_integral_cmult positive_integral_add
-                   positive_integral_monotone_convergence_SUP
-                   measurable_compose_Pair1 positive_integral_positive
-                   borel_measurable_positive_integral_fst' positive_integral_mono incseq_def le_fun_def
-              cong: positive_integral_cong)
+    by (simp cong: nn_integral_cong)
+qed (simp_all add: emeasure_pair_measure nn_integral_cmult nn_integral_add
+                   nn_integral_monotone_convergence_SUP
+                   measurable_compose_Pair1 nn_integral_nonneg
+                   borel_measurable_nn_integral_fst' nn_integral_mono incseq_def le_fun_def
+              cong: nn_integral_cong)
 
-lemma (in sigma_finite_measure) positive_integral_fst:
+lemma (in sigma_finite_measure) nn_integral_fst:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)"
-  shows "(\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M) \<partial>M1) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M) f"
+  shows "(\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M) \<partial>M1) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M) f"
   using f
-    borel_measurable_positive_integral_fst'[of "\<lambda>x. max 0 (f x)"]
-    positive_integral_fst'[of "\<lambda>x. max 0 (f x)"]
-  unfolding positive_integral_max_0 by auto
+    borel_measurable_nn_integral_fst'[of "\<lambda>x. max 0 (f x)"]
+    nn_integral_fst'[of "\<lambda>x. max 0 (f x)"]
+  unfolding nn_integral_max_0 by auto
 
-lemma (in sigma_finite_measure) borel_measurable_positive_integral[measurable (raw)]:
+lemma (in sigma_finite_measure) borel_measurable_nn_integral[measurable (raw)]:
   "split f \<in> borel_measurable (N \<Otimes>\<^sub>M M) \<Longrightarrow> (\<lambda>x. \<integral>\<^sup>+ y. f x y \<partial>M) \<in> borel_measurable N"
-  using borel_measurable_positive_integral_fst'[of "\<lambda>x. max 0 (split f x)" N]
-  by (simp add: positive_integral_max_0)
+  using borel_measurable_nn_integral_fst'[of "\<lambda>x. max 0 (split f x)" N]
+  by (simp add: nn_integral_max_0)
 
-lemma (in pair_sigma_finite) positive_integral_snd:
+lemma (in pair_sigma_finite) nn_integral_snd:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
-  shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M2) f"
+  shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M2) f"
 proof -
   note measurable_pair_swap[OF f]
-  from M1.positive_integral_fst[OF this]
+  from M1.nn_integral_fst[OF this]
   have "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ (x, y). f (y, x) \<partial>(M2 \<Otimes>\<^sub>M M1))"
     by simp
-  also have "(\<integral>\<^sup>+ (x, y). f (y, x) \<partial>(M2 \<Otimes>\<^sub>M M1)) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M2) f"
+  also have "(\<integral>\<^sup>+ (x, y). f (y, x) \<partial>(M2 \<Otimes>\<^sub>M M1)) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M2) f"
     by (subst distr_pair_swap)
-       (auto simp: positive_integral_distr[OF measurable_pair_swap' f] intro!: positive_integral_cong)
+       (auto simp: nn_integral_distr[OF measurable_pair_swap' f] intro!: nn_integral_cong)
   finally show ?thesis .
 qed
 
 lemma (in pair_sigma_finite) Fubini:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M2) \<partial>M1)"
-  unfolding positive_integral_snd[OF assms] M2.positive_integral_fst[OF assms] ..
+  unfolding nn_integral_snd[OF assms] M2.nn_integral_fst[OF assms] ..
 
 subsection {* Products on counting spaces, densities and distributions *}
 
@@ -602,7 +602,7 @@ proof (rule measure_eqI)
     apply (subst emeasure_count_space)
     using X_subset apply auto []
     apply (simp add: fin_Pair emeasure_count_space X_subset fin_X)
-    apply (subst positive_integral_count_space)
+    apply (subst nn_integral_count_space)
     using A apply simp
     apply (simp del: real_of_nat_setsum add: real_of_nat_setsum[symmetric])
     apply (subst card_gt_0_iff)
@@ -626,12 +626,12 @@ proof (rule measure_eqI)
   fix A assume A: "A \<in> sets ?L"
   with f g have "(\<integral>\<^sup>+ x. f x * \<integral>\<^sup>+ y. g y * indicator A (x, y) \<partial>M2 \<partial>M1) =
     (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f x * g y * indicator A (x, y) \<partial>M2 \<partial>M1)"
-    by (intro positive_integral_cong_AE)
-       (auto simp add: positive_integral_cmult[symmetric] ac_simps)
+    by (intro nn_integral_cong_AE)
+       (auto simp add: nn_integral_cmult[symmetric] ac_simps)
   with A f g show "emeasure ?L A = emeasure ?R A"
-    by (simp add: D2.emeasure_pair_measure emeasure_density positive_integral_density
-                  M2.positive_integral_fst[symmetric]
-             cong: positive_integral_cong)
+    by (simp add: D2.emeasure_pair_measure emeasure_density nn_integral_density
+                  M2.nn_integral_fst[symmetric]
+             cong: nn_integral_cong)
 qed simp
 
 lemma sigma_finite_measure_distr:
@@ -662,8 +662,8 @@ proof (rule measure_eqI)
   fix A assume A: "A \<in> sets ?P"
   with f g show "emeasure ?P A = emeasure ?D A"
     by (auto simp add: N.emeasure_pair_measure_alt space_pair_measure emeasure_distr
-                       T.emeasure_pair_measure_alt positive_integral_distr
-             intro!: positive_integral_cong arg_cong[where f="emeasure N"])
+                       T.emeasure_pair_measure_alt nn_integral_distr
+             intro!: nn_integral_cong arg_cong[where f="emeasure N"])
 qed simp
 
 lemma pair_measure_eqI:

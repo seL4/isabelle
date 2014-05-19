@@ -56,9 +56,9 @@ proof -
 
   have "emeasure ?D (space ?D) = (\<integral>\<^sup>+ x. ereal (?f x) * indicator {0..} x \<partial>lborel)"
     by (auto simp: emeasure_density exponential_density_def
-             intro!: positive_integral_cong split: split_indicator)
+             intro!: nn_integral_cong split: split_indicator)
   also have "\<dots> = ereal (0 - ?F 0)"
-  proof (rule positive_integral_FTC_atLeast)
+  proof (rule nn_integral_FTC_atLeast)
     have "((\<lambda>x. exp (l * x)) ---> 0) at_bot"
       by (rule filterlim_compose[OF exp_at_bot filterlim_tendsto_pos_mult_at_bot[of _ l]])
          (simp_all add: tendsto_const filterlim_ident)
@@ -72,10 +72,10 @@ proof -
 
   assume "0 \<le> a"
   have "emeasure ?D {..a} = (\<integral>\<^sup>+x. ereal (?f x) * indicator {0..a} x \<partial>lborel)"
-    by (auto simp add: emeasure_density intro!: positive_integral_cong split: split_indicator)
+    by (auto simp add: emeasure_density intro!: nn_integral_cong split: split_indicator)
        (auto simp: exponential_density_def)
   also have "(\<integral>\<^sup>+x. ereal (?f x) * indicator {0..a} x \<partial>lborel) = ereal (?F a) - ereal (?F 0)"
-    using `0 \<le> a` deriv by (intro positive_integral_FTC_atLeastAtMost) auto
+    using `0 \<le> a` deriv by (intro nn_integral_FTC_atLeastAtMost) auto
   also have "\<dots> = 1 - exp (- a * l)"
     by simp
   finally show "emeasure ?D {.. a} = 1 - exp (- a * l)" .
@@ -241,9 +241,9 @@ proof (intro measure_eqI)
      by simp
   also have "\<dots> = (\<integral>\<^sup>+ x. (1 / emeasure M' A) * indicator (A \<inter> B) x \<partial>M')"
     using A B
-    by (intro positive_integral_cmult_indicator[symmetric]) (auto intro!: zero_le_divide_ereal)
+    by (intro nn_integral_cmult_indicator[symmetric]) (auto intro!: zero_le_divide_ereal)
   also have "\<dots> = (\<integral>\<^sup>+ x. ?f x * indicator B x \<partial>M')"
-    by (rule positive_integral_cong) (auto split: split_indicator)
+    by (rule nn_integral_cong) (auto split: split_indicator)
   finally show "emeasure (distr M M' X) B = emeasure (density M' ?f) B"
     using A B X by (auto simp add: emeasure_distr emeasure_density)
 qed simp
@@ -271,10 +271,10 @@ proof (rule distributedI_borel_atMost)
  
   have "(\<integral>\<^sup>+ x. ereal (indicator A x / measure lborel A * indicator {..a} x) \<partial>lborel) =
     (\<integral>\<^sup>+ x. ereal (1 / measure lborel A) * indicator (A \<inter> {..a}) x \<partial>lborel)"
-    by (auto intro!: positive_integral_cong split: split_indicator)
+    by (auto intro!: nn_integral_cong split: split_indicator)
   also have "\<dots> = ereal (1 / measure lborel A) * emeasure lborel (A \<inter> {..a})"
     using `A \<in> sets borel`
-    by (intro positive_integral_cmult_indicator) (auto simp: measure_nonneg)
+    by (intro nn_integral_cmult_indicator) (auto simp: measure_nonneg)
   also have "\<dots> = ereal (measure lborel (A \<inter> {..a}) / r)"
     unfolding emeasure_eq_ereal_measure[OF fin] using A by (simp add: measure_def)
   finally show "(\<integral>\<^sup>+ x. ereal (indicator A x / measure lborel A * indicator {..a} x) \<partial>lborel) =
@@ -331,10 +331,10 @@ proof -
     using distributed_borel_measurable[OF D] `a \<le> t` `t \<le> b`
     unfolding distributed_distr_eq_density[OF D]
     by (subst emeasure_density)
-       (auto intro!: positive_integral_cong simp: measure_def split: split_indicator)
+       (auto intro!: nn_integral_cong simp: measure_def split: split_indicator)
   also have "\<dots> = ereal (1 / (b - a)) * (t - a)"
     using `a \<le> t` `t \<le> b`
-    by (subst positive_integral_cmult_indicator) auto
+    by (subst nn_integral_cmult_indicator) auto
   finally show ?thesis
     by (simp add: measure_def)
 qed

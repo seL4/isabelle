@@ -59,7 +59,7 @@ next
       using K J by (subst emeasure_fold_integral) auto
     also have "\<dots> = (\<integral>\<^sup>+ y. \<mu>G ((\<lambda>x. merge J (I - J) (y, x)) -` Z \<inter> space (Pi\<^sub>M I M)) \<partial>Pi\<^sub>M J M)"
       (is "_ = (\<integral>\<^sup>+x. \<mu>G (?MZ x) \<partial>Pi\<^sub>M J M)")
-    proof (intro positive_integral_cong)
+    proof (intro nn_integral_cong)
       fix x assume x: "x \<in> space (Pi\<^sub>M J M)"
       with K merge_in_G(2)[OF this]
       show "emeasure (Pi\<^sub>M (K - J) M) (?M x) = \<mu>G (?MZ x)"
@@ -141,7 +141,7 @@ next
           have "?a / 2^k \<le> \<mu>G (Z n)" using Z by auto
           also have "\<dots> \<le> (\<integral>\<^sup>+ x. indicator (?Q n) x + ?a / 2^(k+1) \<partial>Pi\<^sub>M J' M)"
             unfolding fold(2)[OF J' `Z n \<in> ?G`]
-          proof (intro positive_integral_mono)
+          proof (intro nn_integral_mono)
             fix x assume x: "x \<in> space (Pi\<^sub>M J' M)"
             then have "?q n x \<le> 1 + 0"
               using J' Z fold(3) Z_sets by auto
@@ -153,7 +153,7 @@ next
           qed
           also have "\<dots> = emeasure (Pi\<^sub>M J' M) (?Q n) + ?a / 2^(k+1)"
             using `0 \<le> ?a` Q_sets J'.emeasure_space_1
-            by (subst positive_integral_add) auto
+            by (subst nn_integral_add) auto
           finally show "?a / 2^(k+1) \<le> emeasure (Pi\<^sub>M J' M) (?Q n)" using `?a \<le> 1`
             by (cases rule: ereal2_cases[of ?a "emeasure (Pi\<^sub>M J' M) (?Q n)"])
                (auto simp: field_simps)

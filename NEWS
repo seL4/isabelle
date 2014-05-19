@@ -733,6 +733,13 @@ INCOMPATIBILITY.
     integral_cmul_indicator
     integral_real
 
+  - Renamed positive_integral to nn_integral:
+
+    * Renamed all lemmas "*positive_integral*" to *nn_integral*"
+      positive_integral_positive ~> nn_integral_nonneg
+
+    * Renamed abbreviation integral\<^sup>P to integral\<^sup>N.
+
 *** Scala ***
 
 * The signature and semantics of Document.Snapshot.cumulate_markup /

@@ -290,7 +290,7 @@ proof -
              simp: disjoint_family_on_def)
   also have "\<dots> = (\<integral>\<^sup>+i. \<P>(x in M. P i x) \<partial>count_space I)"
     unfolding emeasure_eq_measure using disj
-    by (intro positive_integral_cong ereal.inject[THEN iffD2] prob_eq_AE)
+    by (intro nn_integral_cong ereal.inject[THEN iffD2] prob_eq_AE)
        (auto intro!: sets.sets_Collect_countable_Ex' sets.sets_Collect_conj sets.sets_Collect_countable_Ex1' I sets)+
   finally show ?thesis .
 qed
@@ -402,9 +402,9 @@ proof -
   also have "\<dots> = emeasure (density (count_space A) P) {a}"
     using X by (simp add: distributed_distr_eq_density)
   also have "\<dots> = (\<integral>\<^sup>+x. P a * indicator {a} x \<partial>count_space A)"
-    using X a by (auto simp add: emeasure_density distributed_def indicator_def intro!: positive_integral_cong)
+    using X a by (auto simp add: emeasure_density distributed_def indicator_def intro!: nn_integral_cong)
   also have "\<dots> = P a"
-    using X a by (subst positive_integral_cmult_indicator) (auto simp: distributed_def one_ereal_def[symmetric] AE_count_space)
+    using X a by (subst nn_integral_cmult_indicator) (auto simp: distributed_def one_ereal_def[symmetric] AE_count_space)
   finally show ?thesis ..
 qed
 
@@ -446,10 +446,10 @@ lemma distributed_emeasure:
   by (auto simp: distributed_AE
                  distributed_distr_eq_density[symmetric] emeasure_density[symmetric] emeasure_distr)
 
-lemma distributed_positive_integral:
+lemma distributed_nn_integral:
   "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<integral>\<^sup>+x. f x * g x \<partial>N) = (\<integral>\<^sup>+x. g (X x) \<partial>M)"
   by (auto simp: distributed_AE
-                 distributed_distr_eq_density[symmetric] positive_integral_density[symmetric] positive_integral_distr)
+                 distributed_distr_eq_density[symmetric] nn_integral_density[symmetric] nn_integral_distr)
 
 lemma distributed_integral:
   "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<integral>x. f x * g x \<partial>N) = (\<integral>x. g (X x) \<partial>M)"
@@ -520,10 +520,10 @@ proof safe
     have "emeasure ?L E = emeasure M {x \<in> space M. X x \<in> A \<and> Y x \<in> B}"
       by (auto intro!: arg_cong[where f="emeasure M"] simp add: emeasure_distr measurable_Pair)
     also have "\<dots> = (\<integral>\<^sup>+x. (\<integral>\<^sup>+y. (f (x, y) * indicator B y) * indicator A x \<partial>T) \<partial>S)"
-      using f by (auto simp add: eq positive_integral_multc intro!: positive_integral_cong)
+      using f by (auto simp add: eq nn_integral_multc intro!: nn_integral_cong)
     also have "\<dots> = emeasure ?R E"
-      by (auto simp add: emeasure_density T.positive_integral_fst[symmetric]
-               intro!: positive_integral_cong split: split_indicator)
+      by (auto simp add: emeasure_density T.nn_integral_fst[symmetric]
+               intro!: nn_integral_cong split: split_indicator)
     finally show "emeasure ?L E = emeasure ?R E" .
   qed
 qed (auto simp: f)
@@ -564,12 +564,12 @@ proof -
         using Pxy A by (intro distributed_emeasure) auto
       finally have "emeasure M ((\<lambda>x. (Y x, X x)) -` A \<inter> space M) =
         (\<integral>\<^sup>+ x. Pxy x * indicator A (snd x, fst x) \<partial>(S \<Otimes>\<^sub>M T))"
-        by (auto intro!: positive_integral_cong split: split_indicator) }
+        by (auto intro!: nn_integral_cong split: split_indicator) }
     note * = this
     show "distr M ?D (\<lambda>x. (Y x, X x)) = density ?D (\<lambda>(x, y). Pxy (y, x))"
       apply (intro measure_eqI)
       apply (simp_all add: emeasure_distr[OF 2] emeasure_density[OF 1])
-      apply (subst positive_integral_distr)
+      apply (subst nn_integral_distr)
       apply (auto intro!: * simp: comp_def split_beta)
       done
   qed
@@ -590,13 +590,13 @@ proof safe
   show X: "X \<in> measurable M S" by simp
 
   show borel: "Px \<in> borel_measurable S"
-    by (auto intro!: T.positive_integral_fst simp: Px_def)
+    by (auto intro!: T.nn_integral_fst simp: Px_def)
 
   interpret Pxy: prob_space "distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))"
     by (intro prob_space_distr) simp
   have "(\<integral>\<^sup>+ x. max 0 (- Pxy x) \<partial>(S \<Otimes>\<^sub>M T)) = (\<integral>\<^sup>+ x. 0 \<partial>(S \<Otimes>\<^sub>M T))"
     using Pxy
-    by (intro positive_integral_cong_AE) (auto simp: max_def dest: distributed_AE)
+    by (intro nn_integral_cong_AE) (auto simp: max_def dest: distributed_AE)
 
   show "distr M S X = density S Px"
   proof (rule measure_eqI)
@@ -608,18 +608,18 @@ proof safe
       using Pxy by (simp add: distributed_def)
     also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T \<partial>S"
       using A borel Pxy
-      by (simp add: emeasure_density T.positive_integral_fst[symmetric])
+      by (simp add: emeasure_density T.nn_integral_fst[symmetric])
     also have "\<dots> = \<integral>\<^sup>+ x. Px x * indicator A x \<partial>S"
-      apply (rule positive_integral_cong_AE)
+      apply (rule nn_integral_cong_AE)
       using Pxy[THEN distributed_AE, THEN ST.AE_pair] AE_space
     proof eventually_elim
       fix x assume "x \<in> space S" "AE y in T. 0 \<le> Pxy (x, y)"
       moreover have eq: "\<And>y. y \<in> space T \<Longrightarrow> indicator (A \<times> space T) (x, y) = indicator A x"
         by (auto simp: indicator_def)
       ultimately have "(\<integral>\<^sup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T) = (\<integral>\<^sup>+ y. Pxy (x, y) \<partial>T) * indicator A x"
-        by (simp add: eq positive_integral_multc cong: positive_integral_cong)
+        by (simp add: eq nn_integral_multc cong: nn_integral_cong)
       also have "(\<integral>\<^sup>+ y. Pxy (x, y) \<partial>T) = Px x"
-        by (simp add: Px_def ereal_real positive_integral_positive)
+        by (simp add: Px_def ereal_real nn_integral_nonneg)
       finally show "(\<integral>\<^sup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T) = Px x * indicator A x" .
     qed
     finally show "emeasure (distr M S X) A = emeasure (density S Px) A"
@@ -627,7 +627,7 @@ proof safe
   qed simp
   
   show "AE x in S. 0 \<le> Px x"
-    by (simp add: Px_def positive_integral_positive real_of_ereal_pos)
+    by (simp add: Px_def nn_integral_nonneg real_of_ereal_pos)
 qed
 
 lemma (in prob_space) distr_marginal2:
@@ -727,10 +727,10 @@ proof safe
                intro!: arg_cong[where f=prob])
     also have "\<dots> = (\<integral>\<^sup>+x. ereal (P' a) * indicator {a} x \<partial>S)"
       using A X a
-      by (subst positive_integral_cmult_indicator)
+      by (subst nn_integral_cmult_indicator)
          (auto simp: S_def P'_def simple_distributed_def simple_functionD measure_nonneg)
     also have "\<dots> = (\<integral>\<^sup>+x. ereal (P' x) * indicator {a} x \<partial>S)"
-      by (auto simp: indicator_def intro!: positive_integral_cong)
+      by (auto simp: indicator_def intro!: nn_integral_cong)
     also have "\<dots> = emeasure (density S P') {a}"
       using a A by (intro emeasure_density[symmetric]) (auto simp: S_def)
     finally show "emeasure (distr M S X) {a} = emeasure (density S P') {a}" .
@@ -866,7 +866,7 @@ proof -
     Pxy[THEN simple_distributed, THEN distributed_real_AE]
   show ?thesis
     unfolding AE_count_space
-    apply (auto simp add: positive_integral_count_space_finite * intro!: setsum_cong split: split_max)
+    apply (auto simp add: nn_integral_count_space_finite * intro!: setsum_cong split: split_max)
     done
 qed
 

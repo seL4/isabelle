@@ -688,15 +688,15 @@ lemma (in finite_product_sigma_finite) measure_times:
   "(\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> emeasure (Pi\<^sub>M I M) (Pi\<^sub>E I A) = (\<Prod>i\<in>I. emeasure (M i) (A i))"
   using emeasure_PiM[OF finite_index] by auto
 
-lemma (in product_sigma_finite) positive_integral_empty:
+lemma (in product_sigma_finite) nn_integral_empty:
   assumes pos: "0 \<le> f (\<lambda>k. undefined)"
-  shows "integral\<^sup>P (Pi\<^sub>M {} M) f = f (\<lambda>k. undefined)"
+  shows "integral\<^sup>N (Pi\<^sub>M {} M) f = f (\<lambda>k. undefined)"
 proof -
   interpret finite_product_sigma_finite M "{}" by default (fact finite.emptyI)
   have "\<And>A. emeasure (Pi\<^sub>M {} M) (Pi\<^sub>E {} A) = 1"
     using assms by (subst measure_times) auto
   then show ?thesis
-    unfolding positive_integral_def simple_function_def simple_integral_def[abs_def]
+    unfolding nn_integral_def simple_function_def simple_integral_def[abs_def]
   proof (simp add: space_PiM_empty sets_PiM_empty, intro antisym)
     show "f (\<lambda>k. undefined) \<le> (SUP f:{g. g \<le> max 0 \<circ> f}. f (\<lambda>k. undefined))"
       by (intro SUP_upper) (auto simp: le_fun_def split: split_max)
@@ -768,10 +768,10 @@ proof -
   qed
 qed
 
-lemma (in product_sigma_finite) product_positive_integral_fold:
+lemma (in product_sigma_finite) product_nn_integral_fold:
   assumes IJ: "I \<inter> J = {}" "finite I" "finite J"
   and f: "f \<in> borel_measurable (Pi\<^sub>M (I \<union> J) M)"
-  shows "integral\<^sup>P (Pi\<^sub>M (I \<union> J) M) f =
+  shows "integral\<^sup>N (Pi\<^sub>M (I \<union> J) M) f =
     (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (merge I J (x, y)) \<partial>(Pi\<^sub>M J M)) \<partial>(Pi\<^sub>M I M))"
 proof -
   interpret I: finite_product_sigma_finite M I by default fact
@@ -781,8 +781,8 @@ proof -
     using measurable_comp[OF measurable_merge f] by (simp add: comp_def)
   show ?thesis
     apply (subst distr_merge[OF IJ, symmetric])
-    apply (subst positive_integral_distr[OF measurable_merge f])
-    apply (subst J.positive_integral_fst[symmetric, OF P_borel])
+    apply (subst nn_integral_distr[OF measurable_merge f])
+    apply (subst J.nn_integral_fst[symmetric, OF P_borel])
     apply simp
     done
 qed
@@ -799,30 +799,30 @@ proof (intro measure_eqI[symmetric])
     by (simp add: emeasure_distr measurable_component_singleton)
 qed simp
 
-lemma (in product_sigma_finite) product_positive_integral_singleton:
+lemma (in product_sigma_finite) product_nn_integral_singleton:
   assumes f: "f \<in> borel_measurable (M i)"
-  shows "integral\<^sup>P (Pi\<^sub>M {i} M) (\<lambda>x. f (x i)) = integral\<^sup>P (M i) f"
+  shows "integral\<^sup>N (Pi\<^sub>M {i} M) (\<lambda>x. f (x i)) = integral\<^sup>N (M i) f"
 proof -
   interpret I: finite_product_sigma_finite M "{i}" by default simp
   from f show ?thesis
     apply (subst distr_singleton[symmetric])
-    apply (subst positive_integral_distr[OF measurable_component_singleton])
+    apply (subst nn_integral_distr[OF measurable_component_singleton])
     apply simp_all
     done
 qed
 
-lemma (in product_sigma_finite) product_positive_integral_insert:
+lemma (in product_sigma_finite) product_nn_integral_insert:
   assumes I[simp]: "finite I" "i \<notin> I"
     and f: "f \<in> borel_measurable (Pi\<^sub>M (insert i I) M)"
-  shows "integral\<^sup>P (Pi\<^sub>M (insert i I) M) f = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x(i := y)) \<partial>(M i)) \<partial>(Pi\<^sub>M I M))"
+  shows "integral\<^sup>N (Pi\<^sub>M (insert i I) M) f = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x(i := y)) \<partial>(M i)) \<partial>(Pi\<^sub>M I M))"
 proof -
   interpret I: finite_product_sigma_finite M I by default auto
   interpret i: finite_product_sigma_finite M "{i}" by default auto
   have IJ: "I \<inter> {i} = {}" and insert: "I \<union> {i} = insert i I"
     using f by auto
   show ?thesis
-    unfolding product_positive_integral_fold[OF IJ, unfolded insert, OF I(1) i.finite_index f]
-  proof (rule positive_integral_cong, subst product_positive_integral_singleton[symmetric])
+    unfolding product_nn_integral_fold[OF IJ, unfolded insert, OF I(1) i.finite_index f]
+  proof (rule nn_integral_cong, subst product_nn_integral_singleton[symmetric])
     fix x assume x: "x \<in> space (Pi\<^sub>M I M)"
     let ?f = "\<lambda>y. f (x(i := y))"
     show "?f \<in> borel_measurable (M i)"
@@ -830,16 +830,16 @@ proof -
       unfolding comp_def .
     show "(\<integral>\<^sup>+ y. f (merge I {i} (x, y)) \<partial>Pi\<^sub>M {i} M) = (\<integral>\<^sup>+ y. f (x(i := y i)) \<partial>Pi\<^sub>M {i} M)"
       using x
-      by (auto intro!: positive_integral_cong arg_cong[where f=f]
+      by (auto intro!: nn_integral_cong arg_cong[where f=f]
                simp add: space_PiM extensional_def PiE_def)
   qed
 qed
 
-lemma (in product_sigma_finite) product_positive_integral_setprod:
+lemma (in product_sigma_finite) product_nn_integral_setprod:
   fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "finite I" and borel: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable (M i)"
   and pos: "\<And>i x. i \<in> I \<Longrightarrow> 0 \<le> f i x"
-  shows "(\<integral>\<^sup>+ x. (\<Prod>i\<in>I. f i (x i)) \<partial>Pi\<^sub>M I M) = (\<Prod>i\<in>I. integral\<^sup>P (M i) (f i))"
+  shows "(\<integral>\<^sup>+ x. (\<Prod>i\<in>I. f i (x i)) \<partial>Pi\<^sub>M I M) = (\<Prod>i\<in>I. integral\<^sup>N (M i) (f i))"
 using assms proof induct
   case (insert i I)
   note `finite I`[intro, simp]
@@ -852,10 +852,10 @@ using assms proof induct
               measurable_comp[OF measurable_component_singleton, unfolded comp_def])
        auto
   then show ?case
-    apply (simp add: product_positive_integral_insert[OF insert(1,2) prod])
-    apply (simp add: insert(2-) * pos borel setprod_ereal_pos positive_integral_multc)
-    apply (subst positive_integral_cmult)
-    apply (auto simp add: pos borel insert(2-) setprod_ereal_pos positive_integral_positive)
+    apply (simp add: product_nn_integral_insert[OF insert(1,2) prod])
+    apply (simp add: insert(2-) * pos borel setprod_ereal_pos nn_integral_multc)
+    apply (subst nn_integral_cmult)
+    apply (auto simp add: pos borel insert(2-) setprod_ereal_pos nn_integral_nonneg)
     done
 qed (simp add: space_PiM)
 
@@ -871,9 +871,9 @@ proof (intro measure_eqI[symmetric])
   then have "emeasure ?P A = (\<integral>\<^sup>+x. indicator A x \<partial>?P)" 
     by simp
   also have "\<dots> = (\<integral>\<^sup>+x. indicator ((\<lambda>x. \<lambda>i\<in>{i}. x) -` A \<inter> space (M i)) (x i) \<partial>PiM {i} M)" 
-    by (intro positive_integral_cong) (auto simp: space_PiM indicator_def PiE_def eq)
+    by (intro nn_integral_cong) (auto simp: space_PiM indicator_def PiE_def eq)
   also have "\<dots> = emeasure ?D A"
-    using A by (simp add: product_positive_integral_singleton emeasure_distr)
+    using A by (simp add: product_nn_integral_singleton emeasure_distr)
   finally show "emeasure (Pi\<^sub>M {i} M) A = emeasure ?D A" .
 qed simp
 
@@ -894,7 +894,7 @@ proof -
     apply (subst distr_merge[symmetric, OF IJ])
     apply (subst emeasure_distr[OF measurable_merge A])
     apply (subst J.emeasure_pair_measure_alt[OF merge])
-    apply (auto intro!: positive_integral_cong arg_cong2[where f=emeasure] simp: space_pair_measure)
+    apply (auto intro!: nn_integral_cong arg_cong2[where f=emeasure] simp: space_pair_measure)
     done
 
   show ?B

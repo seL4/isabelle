@@ -143,10 +143,10 @@ proof -
     using D by auto
 
   have D_neg: "(\<integral>\<^sup>+ x. ereal (- D x) \<partial>M) = 0"
-    using D by (subst positive_integral_0_iff_AE) auto
+    using D by (subst nn_integral_0_iff_AE) auto
 
   have "(\<integral>\<^sup>+ x. ereal (D x) \<partial>M) = emeasure (density M D) (space M)"
-    using D by (simp add: emeasure_density cong: positive_integral_cong)
+    using D by (simp add: emeasure_density cong: nn_integral_cong)
   then have D_pos: "(\<integral>\<^sup>+ x. ereal (D x) \<partial>M) = 1"
     using N.emeasure_space_1 by simp
 
@@ -178,11 +178,11 @@ proof -
       have "emeasure M {x\<in>space M. D x = 1} = (\<integral>\<^sup>+ x. indicator {x\<in>space M. D x = 1} x \<partial>M)"
         using D(1) by auto
       also have "\<dots> = (\<integral>\<^sup>+ x. ereal (D x) \<partial>M)"
-        using disj by (auto intro!: positive_integral_cong_AE simp: indicator_def one_ereal_def)
+        using disj by (auto intro!: nn_integral_cong_AE simp: indicator_def one_ereal_def)
       finally have "AE x in M. D x = 1"
         using D D_pos by (intro AE_I_eq_1) auto
       then have "(\<integral>\<^sup>+x. indicator A x\<partial>M) = (\<integral>\<^sup>+x. ereal (D x) * indicator A x\<partial>M)"
-        by (intro positive_integral_cong_AE) (auto simp: one_ereal_def[symmetric])
+        by (intro nn_integral_cong_AE) (auto simp: one_ereal_def[symmetric])
       also have "\<dots> = density M D A"
         using `A \<in> sets M` D by (simp add: emeasure_density)
       finally show False using `A \<in> sets M` `emeasure (density M D) A \<noteq> emeasure M A` by simp
@@ -844,9 +844,9 @@ proof
   from X.emeasure_space_1 have "(\<integral>\<^sup>+x. Px x \<partial>MX) = 1"
     unfolding distributed_distr_eq_density[OF X] using Px
     by (subst (asm) emeasure_density)
-       (auto simp: borel_measurable_ereal_iff intro!: integral_cong cong: positive_integral_cong)
+       (auto simp: borel_measurable_ereal_iff intro!: integral_cong cong: nn_integral_cong)
   ultimately show False
-    by (simp add: positive_integral_cong_AE)
+    by (simp add: nn_integral_cong_AE)
 qed
 
 lemma (in information_space) entropy_le:
@@ -876,11 +876,11 @@ proof -
     have [simp]: "\<And>x. x \<in> space MX \<Longrightarrow> ereal (if Px x = 0 then 0 else 1) = indicator {x \<in> space MX. Px x \<noteq> 0} x"
       by (auto simp: one_ereal_def)
     have "(\<integral>\<^sup>+ x. max 0 (ereal (- (if Px x = 0 then 0 else 1))) \<partial>MX) = (\<integral>\<^sup>+ x. 0 \<partial>MX)"
-      by (intro positive_integral_cong) (auto split: split_max)
+      by (intro nn_integral_cong) (auto split: split_max)
     then show "integrable (distr M MX X) (\<lambda>x. 1 / Px x)"
       unfolding distributed_distr_eq_density[OF X] using Px
-      by (auto simp: positive_integral_density real_integrable_def borel_measurable_ereal_iff fin positive_integral_max_0
-              cong: positive_integral_cong)
+      by (auto simp: nn_integral_density real_integrable_def borel_measurable_ereal_iff fin nn_integral_max_0
+              cong: nn_integral_cong)
     have "integrable MX (\<lambda>x. Px x * log b (1 / Px x)) =
       integrable MX (\<lambda>x. - Px x * log b (Px x))"
       using Px
@@ -1084,37 +1084,37 @@ proof -
     by (intro TP.AE_pair_measure) (auto dest: distributed_real_AE)
 
   have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<le> (\<integral>\<^sup>+ (x, y, z). Pxz (x, z) * (Pyz (y, z) / Pz z) \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P))"
-    apply (subst positive_integral_density)
+    apply (subst nn_integral_density)
     apply simp
     apply (rule distributed_AE[OF Pxyz])
     apply auto []
-    apply (rule positive_integral_mono_AE)
+    apply (rule nn_integral_mono_AE)
     using ae5 ae6 ae7 ae8
     apply eventually_elim
     apply auto
     done
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
-    by (subst STP.positive_integral_snd[symmetric]) (auto simp add: split_beta')
+    by (subst STP.nn_integral_snd[symmetric]) (auto simp add: split_beta')
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (Pyz x) * 1 \<partial>T \<Otimes>\<^sub>M P)"
-    apply (rule positive_integral_cong_AE)
+    apply (rule nn_integral_cong_AE)
     using aeX1 aeX2 aeX3 distributed_AE[OF Pyz] AE_space
     apply eventually_elim
   proof (case_tac x, simp del: times_ereal.simps add: space_pair_measure)
     fix a b assume "Pz b = 0 \<longrightarrow> Pyz (a, b) = 0" "0 \<le> Pz b" "a \<in> space T \<and> b \<in> space P"
       "(\<integral>\<^sup>+ x. ereal (Pxz (x, b)) \<partial>S) = ereal (Pz b)" "0 \<le> Pyz (a, b)" 
     then show "(\<integral>\<^sup>+ x. ereal (Pxz (x, b)) * ereal (Pyz (a, b) / Pz b) \<partial>S) = ereal (Pyz (a, b))"
-      by (subst positive_integral_multc)
+      by (subst nn_integral_multc)
          (auto split: prod.split)
   qed
   also have "\<dots> = 1"
     using Q.emeasure_space_1 distributed_AE[OF Pyz] distributed_distr_eq_density[OF Pyz]
-    by (subst positive_integral_density[symmetric]) auto
+    by (subst nn_integral_density[symmetric]) auto
   finally have le1: "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<le> 1" .
   also have "\<dots> < \<infinity>" by simp
   finally have fin: "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> \<infinity>" by simp
 
   have pos: "(\<integral>\<^sup>+x. ?f x \<partial>?P) \<noteq> 0"
-    apply (subst positive_integral_density)
+    apply (subst nn_integral_density)
     apply simp
     apply (rule distributed_AE[OF Pxyz])
     apply auto []
@@ -1123,18 +1123,18 @@ proof -
     let ?g = "\<lambda>x. ereal (if Pxyz x = 0 then 0 else Pxz (fst x, snd (snd x)) * Pyz (snd x) / Pz (snd (snd x)))"
     assume "(\<integral>\<^sup>+x. ?g x \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)) = 0"
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. ?g x \<le> 0"
-      by (intro positive_integral_0_iff_AE[THEN iffD1]) auto
+      by (intro nn_integral_0_iff_AE[THEN iffD1]) auto
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. Pxyz x = 0"
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
       by eventually_elim (auto split: split_if_asm simp: mult_le_0_iff divide_le_0_iff)
     then have "(\<integral>\<^sup>+ x. ereal (Pxyz x) \<partial>S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) = 0"
-      by (subst positive_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
+      by (subst nn_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
     with P.emeasure_space_1 show False
-      by (subst (asm) emeasure_density) (auto cong: positive_integral_cong)
+      by (subst (asm) emeasure_density) (auto cong: nn_integral_cong)
   qed
 
   have neg: "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) = 0"
-    apply (rule positive_integral_0_iff_AE[THEN iffD2])
+    apply (rule nn_integral_0_iff_AE[THEN iffD2])
     apply simp
     apply (subst AE_density)
     apply simp
@@ -1160,14 +1160,14 @@ proof -
         by simp
     qed simp
     then have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) = (\<integral>x. ?f x \<partial>?P)"
-      apply (rule positive_integral_eq_integral)
+      apply (rule nn_integral_eq_integral)
       apply (subst AE_density)
       apply simp
       using ae5 ae6 ae7 ae8
       apply eventually_elim
       apply auto
       done
-    with positive_integral_positive[of ?P ?f] pos le1
+    with nn_integral_nonneg[of ?P ?f] pos le1
     show "0 < (\<integral>x. ?f x \<partial>?P)" "(\<integral>x. ?f x \<partial>?P) \<le> 1"
       by (simp_all add: one_ereal_def)
   qed
@@ -1341,36 +1341,36 @@ proof -
     using Pz distributed_marginal_eq_joint2[OF P S Pz Pxz]
     by (intro TP.AE_pair_measure) (auto dest: distributed_real_AE)
   have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<le> (\<integral>\<^sup>+ (x, y, z). Pxz (x, z) * (Pyz (y, z) / Pz z) \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P))"
-    apply (subst positive_integral_density)
+    apply (subst nn_integral_density)
     apply (rule distributed_borel_measurable[OF Pxyz])
     apply (rule distributed_AE[OF Pxyz])
     apply simp
-    apply (rule positive_integral_mono_AE)
+    apply (rule nn_integral_mono_AE)
     using ae5 ae6 ae7 ae8
     apply eventually_elim
     apply auto
     done
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
-    by (subst STP.positive_integral_snd[symmetric]) (auto simp add: split_beta')
+    by (subst STP.nn_integral_snd[symmetric]) (auto simp add: split_beta')
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (Pyz x) * 1 \<partial>T \<Otimes>\<^sub>M P)"
-    apply (rule positive_integral_cong_AE)
+    apply (rule nn_integral_cong_AE)
     using aeX1 aeX2 aeX3 distributed_AE[OF Pyz] AE_space
     apply eventually_elim
   proof (case_tac x, simp del: times_ereal.simps add: space_pair_measure)
     fix a b assume "Pz b = 0 \<longrightarrow> Pyz (a, b) = 0" "0 \<le> Pz b" "a \<in> space T \<and> b \<in> space P"
       "(\<integral>\<^sup>+ x. ereal (Pxz (x, b)) \<partial>S) = ereal (Pz b)" "0 \<le> Pyz (a, b)" 
     then show "(\<integral>\<^sup>+ x. ereal (Pxz (x, b)) * ereal (Pyz (a, b) / Pz b) \<partial>S) = ereal (Pyz (a, b))"
-      by (subst positive_integral_multc) auto
+      by (subst nn_integral_multc) auto
   qed
   also have "\<dots> = 1"
     using Q.emeasure_space_1 distributed_AE[OF Pyz] distributed_distr_eq_density[OF Pyz]
-    by (subst positive_integral_density[symmetric]) auto
+    by (subst nn_integral_density[symmetric]) auto
   finally have le1: "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<le> 1" .
   also have "\<dots> < \<infinity>" by simp
   finally have fin: "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> \<infinity>" by simp
 
   have pos: "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> 0"
-    apply (subst positive_integral_density)
+    apply (subst nn_integral_density)
     apply simp
     apply (rule distributed_AE[OF Pxyz])
     apply simp
@@ -1379,18 +1379,18 @@ proof -
     let ?g = "\<lambda>x. ereal (if Pxyz x = 0 then 0 else Pxz (fst x, snd (snd x)) * Pyz (snd x) / Pz (snd (snd x)))"
     assume "(\<integral>\<^sup>+ x. ?g x \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)) = 0"
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. ?g x \<le> 0"
-      by (intro positive_integral_0_iff_AE[THEN iffD1]) (auto intro!: borel_measurable_ereal measurable_If)
+      by (intro nn_integral_0_iff_AE[THEN iffD1]) (auto intro!: borel_measurable_ereal measurable_If)
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. Pxyz x = 0"
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
       by eventually_elim (auto split: split_if_asm simp: mult_le_0_iff divide_le_0_iff)
     then have "(\<integral>\<^sup>+ x. ereal (Pxyz x) \<partial>S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) = 0"
-      by (subst positive_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
+      by (subst nn_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
     with P.emeasure_space_1 show False
-      by (subst (asm) emeasure_density) (auto cong: positive_integral_cong)
+      by (subst (asm) emeasure_density) (auto cong: nn_integral_cong)
   qed
 
   have neg: "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) = 0"
-    apply (rule positive_integral_0_iff_AE[THEN iffD2])
+    apply (rule nn_integral_0_iff_AE[THEN iffD2])
     apply (auto simp: split_beta') []
     apply (subst AE_density)
     apply (auto simp: split_beta') []
@@ -1416,14 +1416,14 @@ proof -
         by simp
     qed simp
     then have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) = (\<integral>x. ?f x \<partial>?P)"
-      apply (rule positive_integral_eq_integral)
+      apply (rule nn_integral_eq_integral)
       apply (subst AE_density)
       apply simp
       using ae5 ae6 ae7 ae8
       apply eventually_elim
       apply auto
       done
-    with positive_integral_positive[of ?P ?f] pos le1
+    with nn_integral_nonneg[of ?P ?f] pos le1
     show "0 < (\<integral>x. ?f x \<partial>?P)" "(\<integral>x. ?f x \<partial>?P) \<le> 1"
       by (simp_all add: one_ereal_def)
   qed
