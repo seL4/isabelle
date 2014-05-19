@@ -498,6 +498,15 @@ fun proof_kind_of_str "a" = Automatic_Proof
   | proof_kind_of_str "x" = Isar_Proof_wegen_Prover_Flop
   | proof_kind_of_str _ (* "i" *) = Isar_Proof
 
+fun add_edge_to name parent =
+  Graph.default_node (parent, (Isar_Proof, [], []))
+  #> Graph.add_edge (parent, name)
+
+fun add_node kind name parents feats deps =
+  Graph.default_node (name, (kind, feats, deps))
+  #> Graph.map_node name (K (kind, feats, deps))
+  #> fold (add_edge_to name) parents;
+
 fun try_graph ctxt when def f =
   f ()
   handle
@@ -550,21 +559,16 @@ fun load_state _ _ (state as (true, _)) = state
        (case try File.read_lines path of
          SOME (version' :: node_lines) =>
          let
-           fun add_edge_to name parent =
-             Graph.default_node (parent, (Isar_Proof, [], []))
-             #> Graph.add_edge (parent, name)
-           fun add_node line =
+           fun extract_line_and_add_node line =
              (case extract_node line of
                NONE => I (* should not happen *)
-             | SOME (kind, name, parents, feats, deps) =>
-               Graph.default_node (name, (kind, feats, deps))
-               #> Graph.map_node name (K (kind, feats, deps))
-               #> fold (add_edge_to name) parents)
+             | SOME (kind, name, parents, feats, deps) => add_node kind name parents feats deps)
+
            val (access_G, num_known_facts) =
              (case string_ord (version', version) of
                EQUAL =>
                (try_graph ctxt "loading state" Graph.empty (fn () =>
-                  fold add_node node_lines Graph.empty),
+                  fold extract_line_and_add_node node_lines Graph.empty),
                 length node_lines)
              | LESS =>
                (if Config.get ctxt sml then wipe_out_mash_state_dir ()
@@ -1260,6 +1264,9 @@ fun launch_thread timeout task =
     Async_Manager.thread MaShN birth_time death_time desc task
   end
 
+fun fresh_enough_name () =
+  Date.fmt ".%Y%m%d_%H%M%S__" (Date.fromTimeLocal (Time.now ())) ^ serial_string ()
+
 fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
   if is_mash_enabled () then
     launch_thread timeout (fn () =>
@@ -1267,15 +1274,20 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
         val thy = Proof_Context.theory_of ctxt
         val feats = features_of ctxt thy 0 Symtab.empty (Local, General) false [t]
       in
-        peek_state ctxt overlord (fn {access_G, ...} =>
+        map_state ctxt overlord (fn state as {access_G, num_known_facts, dirty} =>
           let
+            val name = fresh_enough_name ()
             val parents = maximal_wrt_access_graph access_G facts
-            val deps =
-              used_ths |> filter (is_fact_in_graph access_G)
-                       |> map nickname_of_thm
+            val deps = used_ths
+              |> filter (is_fact_in_graph access_G)
+              |> map nickname_of_thm
           in
-            if Config.get ctxt sml then () (* TODO: implement *)
-            else MaSh_Py.learn ctxt overlord true [("", parents, map fst feats, deps)]
+            if Config.get ctxt sml then
+              {access_G = add_node Automatic_Proof name parents feats deps access_G,
+               num_known_facts = num_known_facts + 1,
+               dirty = Option.map (cons name) dirty}
+            else
+              (MaSh_Py.learn ctxt overlord true [("", parents, map fst feats, deps)]; state)
           end);
         (true, "")
       end)
@@ -1525,8 +1537,7 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
             val {access_G, num_known_facts, ...} = peek_state ctxt overlord I
             val is_in_access_G = is_fact_in_graph access_G o snd
           in
-            if length facts - num_known_facts
-               <= max_facts_to_learn_before_query then
+            if length facts - num_known_facts <= max_facts_to_learn_before_query then
               (case length (filter_out is_in_access_G facts) of
                 0 => false
               | num_facts_to_learn =>
