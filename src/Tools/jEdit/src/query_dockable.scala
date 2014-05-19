@@ -251,7 +251,13 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private val apply_button = new Button("<html><b>Apply</b></html>") {
       tooltip = "Apply to current context"
-      reactions += { case ButtonClicked(_) => apply_query() }
+      listenTo(keys)
+      reactions += {
+        case ButtonClicked(_) => apply_query()
+        case evt @ KeyPressed(_, Key.Enter, 0, _) =>
+          evt.peer.consume
+          apply_query()
+      }
     }
 
     private val control_panel = new Wrap_Panel(Wrap_Panel.Alignment.Right)()
