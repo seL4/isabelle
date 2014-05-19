@@ -843,8 +843,8 @@ subsubsection {* Functorial Theorems
 
 text {*
 The functorial theorems are partitioned in two subgroups. The first subgroup
-consists of properties involving the constructors and either a set function, the
-map function, or the relator:
+consists of properties involving the constructors or the destructors and either
+a set function, the map function, or the relator:
 
 \begin{indentblock}
 \begin{description}
@@ -853,9 +853,15 @@ map function, or the relator:
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]}
 
+\item[@{text "t."}\hthm{set\_empty}\rm:] ~ \\
+@{thm list.set_empty[no_vars]}
+
 \item[@{text "t."}\hthm{map} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]}
+
+\item[@{text "t."}\hthm{disc\_map\_iff} @{text "[simp]"}\rm:] ~ \\
+@{thm list.disc_map_iff[no_vars]}
 
 \item[@{text "t."}\hthm{rel\_inject} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
@@ -877,6 +883,9 @@ the map function, and the relator:
 
 \begin{indentblock}
 \begin{description}
+
+\item[@{text "t."}\hthm{set\_map}\rm:] ~ \\
+@{thm list.set_map[no_vars]}
 
 \item[@{text "t."}\hthm{map\_comp}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
@@ -907,12 +916,6 @@ the map function, and the relator:
 
 \item[@{text "t."}\hthm{rel\_mono}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]}
-
-\item[@{text "t."}\hthm{set\_empty}\rm:] ~ \\
-@{thm list.set_empty[no_vars]}
-
-\item[@{text "t."}\hthm{set\_map}\rm:] ~ \\
-@{thm list.set_map[no_vars]}
 
 \end{description}
 \end{indentblock}
