@@ -195,8 +195,8 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
 fun mk_set_empty_tac ctxt ct exhaust sets discs =
   TRYALL Goal.conjunction_tac THEN
   ALLGOALS(rtac (Ctr_Sugar_Util.cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
-    hyp_subst_tac ctxt) THEN
-  Local_Defs.unfold_tac ctxt (sets @ map_filter (fn thm =>
+    REPEAT_DETERM o hyp_subst_tac ctxt) THEN
+  unfold_thms_tac ctxt (sets @ map_filter (fn thm =>
     SOME (thm RS @{thm iffD2[OF eq_False]}) handle THM _ => NONE) discs) THEN
   ALLGOALS(rtac refl ORELSE' etac FalseE);
 
