@@ -194,7 +194,7 @@ its homologue from the @{theory Option} theory:
 *}
 
 (*<*)
-    hide_const None Some
+    hide_const None Some map_option
     hide_type option
 (*>*)
     datatype_new 'a option = None | Some 'a
@@ -367,7 +367,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
       Cons (infixr "#" 65)
 
     hide_type list
-    hide_const Nil Cons hd tl set map list_all2
+    hide_const Nil Cons hd tl set map list_all2 rec_list size_list
 
     context early begin
 (*>*)

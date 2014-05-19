@@ -991,6 +991,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
 
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
+
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [prop_of th]
       |> features_of ctxt (theory_of_thm th) num_facts const_tab stature false
