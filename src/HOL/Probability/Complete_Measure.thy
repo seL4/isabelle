@@ -3,7 +3,7 @@
 *)
 
 theory Complete_Measure
-imports Lebesgue_Integration
+imports Bochner_Integration
 begin
 
 definition

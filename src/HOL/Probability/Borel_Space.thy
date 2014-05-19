@@ -655,6 +655,9 @@ qed auto
 
 subsection "Borel measurable operators"
 
+lemma borel_measurable_norm[measurable]: "norm \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
+
 lemma borel_measurable_uminus[measurable (raw)]:
   fixes g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes g: "g \<in> borel_measurable M"
@@ -819,20 +822,6 @@ lemma borel_measurable_log[measurable (raw)]:
 
 lemma borel_measurable_exp[measurable]: "exp \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_at_imp_continuous_on ballI isCont_exp)
-
-lemma measurable_count_space_eq2_countable:
-  fixes f :: "'a => 'c::countable"
-  shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
-proof -
-  { fix X assume "X \<subseteq> A" "f \<in> space M \<rightarrow> A"
-    then have "f -` X \<inter> space M = (\<Union>a\<in>X. f -` {a} \<inter> space M)"
-      by auto
-    moreover assume "\<And>a. a\<in>A \<Longrightarrow> f -` {a} \<inter> space M \<in> sets M"
-    ultimately have "f -` X \<inter> space M \<in> sets M"
-      using `X \<subseteq> A` by (simp add: subset_eq del: UN_simps) }
-  then show ?thesis
-    unfolding measurable_def by auto
-qed
 
 lemma measurable_real_floor[measurable]:
   "(floor :: real \<Rightarrow> int) \<in> measurable borel (count_space UNIV)"
@@ -1165,6 +1154,37 @@ proof -
     by auto
   ultimately show ?thesis by (simp cong: measurable_cong add: borel_measurable_ereal_iff)
 qed
+
+lemma borel_measurable_LIMSEQ_metric:
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b :: metric_space"
+  assumes [measurable]: "\<And>i. f i \<in> borel_measurable M"
+  assumes lim: "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. f i x) ----> g x"
+  shows "g \<in> borel_measurable M"
+  unfolding borel_eq_closed
+proof (safe intro!: measurable_measure_of)
+  fix A :: "'b set" assume "closed A" 
+
+  have [measurable]: "(\<lambda>x. infdist (g x) A) \<in> borel_measurable M"
+  proof (rule borel_measurable_LIMSEQ)
+    show "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. infdist (f i x) A) ----> infdist (g x) A"
+      by (intro tendsto_infdist lim)
+    show "\<And>i. (\<lambda>x. infdist (f i x) A) \<in> borel_measurable M"
+      by (intro borel_measurable_continuous_on[where f="\<lambda>x. infdist x A"]
+        continuous_at_imp_continuous_on ballI continuous_infdist isCont_ident) auto
+  qed
+
+  show "g -` A \<inter> space M \<in> sets M"
+  proof cases
+    assume "A \<noteq> {}"
+    then have "\<And>x. infdist x A = 0 \<longleftrightarrow> x \<in> A"
+      using `closed A` by (simp add: in_closed_iff_infdist_zero)
+    then have "g -` A \<inter> space M = {x\<in>space M. infdist (g x) A = 0}"
+      by auto
+    also have "\<dots> \<in> sets M"
+      by measurable
+    finally show ?thesis .
+  qed simp
+qed auto
 
 lemma sets_Collect_Cauchy[measurable]: 
   fixes f :: "nat \<Rightarrow> 'a => real"

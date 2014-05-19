@@ -112,6 +112,7 @@ proof -
 qed
 
 lemma (in prob_space) expectation_less:
+  fixes X :: "_ \<Rightarrow> real"
   assumes [simp]: "integrable M X"
   assumes gt: "AE x in M. X x < b"
   shows "expectation X < b"
@@ -123,6 +124,7 @@ proof -
 qed
 
 lemma (in prob_space) expectation_greater:
+  fixes X :: "_ \<Rightarrow> real"
   assumes [simp]: "integrable M X"
   assumes gt: "AE x in M. a < X x"
   shows "a < expectation X"
@@ -134,7 +136,7 @@ proof -
 qed
 
 lemma (in prob_space) jensens_inequality:
-  fixes a b :: real
+  fixes q :: "real \<Rightarrow> real"
   assumes X: "integrable M X" "AE x in M. X x \<in> I"
   assumes I: "I = {a <..< b} \<or> I = {a <..} \<or> I = {..< b} \<or> I = UNIV"
   assumes q: "integrable M (\<lambda>x. q (X x))" "convex_on I q"
@@ -173,8 +175,8 @@ proof -
       using prob_space by (simp add: X)
     also have "\<dots> \<le> expectation (\<lambda>w. q (X w))"
       using `x \<in> I` `open I` X(2)
-      apply (intro integral_mono_AE integral_add integral_cmult integral_diff
-                lebesgue_integral_const X q)
+      apply (intro integral_mono_AE integrable_add integrable_mult_right integrable_diff
+                integrable_const X q)
       apply (elim eventually_elim1)
       apply (intro convex_le_Inf_differential)
       apply (auto simp: interior_open q)
@@ -452,7 +454,7 @@ lemma distributed_positive_integral:
 lemma distributed_integral:
   "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<integral>x. f x * g x \<partial>N) = (\<integral>x. g (X x) \<partial>M)"
   by (auto simp: distributed_real_AE
-                 distributed_distr_eq_density[symmetric] integral_density[symmetric] integral_distr)
+                 distributed_distr_eq_density[symmetric] integral_real_density[symmetric] integral_distr)
   
 lemma distributed_transform_integral:
   assumes Px: "distributed M N X Px"
@@ -520,7 +522,7 @@ proof safe
     also have "\<dots> = (\<integral>\<^sup>+x. (\<integral>\<^sup>+y. (f (x, y) * indicator B y) * indicator A x \<partial>T) \<partial>S)"
       using f by (auto simp add: eq positive_integral_multc intro!: positive_integral_cong)
     also have "\<dots> = emeasure ?R E"
-      by (auto simp add: emeasure_density T.positive_integral_fst_measurable(2)[symmetric]
+      by (auto simp add: emeasure_density T.positive_integral_fst[symmetric]
                intro!: positive_integral_cong split: split_indicator)
     finally show "emeasure ?L E = emeasure ?R E" .
   qed
@@ -588,7 +590,7 @@ proof safe
   show X: "X \<in> measurable M S" by simp
 
   show borel: "Px \<in> borel_measurable S"
-    by (auto intro!: T.positive_integral_fst_measurable simp: Px_def)
+    by (auto intro!: T.positive_integral_fst simp: Px_def)
 
   interpret Pxy: prob_space "distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))"
     by (intro prob_space_distr) simp
@@ -606,7 +608,7 @@ proof safe
       using Pxy by (simp add: distributed_def)
     also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T \<partial>S"
       using A borel Pxy
-      by (simp add: emeasure_density T.positive_integral_fst_measurable(2)[symmetric])
+      by (simp add: emeasure_density T.positive_integral_fst[symmetric])
     also have "\<dots> = \<integral>\<^sup>+ x. Px x * indicator A x \<partial>S"
       apply (rule positive_integral_cong_AE)
       using Pxy[THEN distributed_AE, THEN ST.AE_pair] AE_space

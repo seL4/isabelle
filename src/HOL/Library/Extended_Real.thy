@@ -453,7 +453,7 @@ lemma ereal_uminus_le_0_iff[simp]:
 
 lemma ereal_add_strict_mono:
   fixes a b c d :: ereal
-  assumes "a = b"
+  assumes "a \<le> b"
     and "0 \<le> a"
     and "a \<noteq> \<infinity>"
     and "c < d"
@@ -2022,6 +2022,22 @@ proof (induct rule: generate_topology.induct)
      by auto
 qed (auto simp add: image_Union image_Int)
 
+
+lemma eventually_finite:
+  fixes x :: ereal
+  assumes "\<bar>x\<bar> \<noteq> \<infinity>" "(f ---> x) F"
+  shows "eventually (\<lambda>x. \<bar>f x\<bar> \<noteq> \<infinity>) F"
+proof -
+  have "(f ---> ereal (real x)) F"
+    using assms by (cases x) auto
+  then have "eventually (\<lambda>x. f x \<in> ereal ` UNIV) F"
+    by (rule topological_tendstoD) (auto intro: open_ereal)
+  also have "(\<lambda>x. f x \<in> ereal ` UNIV) = (\<lambda>x. \<bar>f x\<bar> \<noteq> \<infinity>)"
+    by auto
+  finally show ?thesis .
+qed
+
+
 lemma open_ereal_def:
   "open A \<longleftrightarrow> open (ereal -` A) \<and> (\<infinity> \<in> A \<longrightarrow> (\<exists>x. {ereal x <..} \<subseteq> A)) \<and> (-\<infinity> \<in> A \<longrightarrow> (\<exists>x. {..<ereal x} \<subseteq> A))"
   (is "open A \<longleftrightarrow> ?rhs")
@@ -2264,6 +2280,27 @@ lemma ereal_mult_cancel_left:
   fixes a b c :: ereal
   shows "a * b = a * c \<longleftrightarrow> (\<bar>a\<bar> = \<infinity> \<and> 0 < b * c) \<or> a = 0 \<or> b = c"
   by (cases rule: ereal3_cases[of a b c]) (simp_all add: zero_less_mult_iff)
+
+lemma tendsto_add_ereal:
+  fixes x y :: ereal
+  assumes x: "\<bar>x\<bar> \<noteq> \<infinity>" and y: "\<bar>y\<bar> \<noteq> \<infinity>"
+  assumes f: "(f ---> x) F" and g: "(g ---> y) F"
+  shows "((\<lambda>x. f x + g x) ---> x + y) F"
+proof -
+  from x obtain r where x': "x = ereal r" by (cases x) auto
+  with f have "((\<lambda>i. real (f i)) ---> r) F" by simp
+  moreover
+  from y obtain p where y': "y = ereal p" by (cases y) auto
+  with g have "((\<lambda>i. real (g i)) ---> p) F" by simp
+  ultimately have "((\<lambda>i. real (f i) + real (g i)) ---> r + p) F"
+    by (rule tendsto_add)
+  moreover
+  from eventually_finite[OF x f] eventually_finite[OF y g]
+  have "eventually (\<lambda>x. f x + g x = ereal (real (f x) + real (g x))) F"
+    by eventually_elim auto
+  ultimately show ?thesis
+    by (simp add: x' y' cong: filterlim_cong)
+qed
 
 lemma ereal_inj_affinity:
   fixes m t :: ereal

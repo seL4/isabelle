@@ -670,6 +670,68 @@ INCOMPATIBILITY.
     derivative_is_linear      ~>  has_derivative_linear
     bounded_linear_imp_linear ~>  bounded_linear.linear
 
+* HOL-Probability:
+  - replaced the Lebesgue integral on real numbers by the more general Bochner
+    integral for functions into a real-normed vector space.
+
+    integral_zero               ~>  integral_zero / integrable_zero
+    integral_minus              ~>  integral_minus / integrable_minus
+    integral_add                ~>  integral_add / integrable_add
+    integral_diff               ~>  integral_diff / integrable_diff
+    integral_setsum             ~>  integral_setsum / integrable_setsum
+    integral_multc              ~>  integral_mult_left / integrable_mult_left
+    integral_cmult              ~>  integral_mult_right / integrable_mult_right
+    integral_triangle_inequality~>  integral_norm_bound
+    integrable_nonneg           ~>  integrableI_nonneg
+    integral_positive           ~>  integral_nonneg_AE
+    integrable_abs_iff          ~>  integrable_abs_cancel
+    positive_integral_lim_INF   ~>  positive_integral_liminf
+    lebesgue_real_affine        ~>  lborel_real_affine
+    borel_integral_has_integral ~>  has_integral_lebesgue_integral
+    integral_indicator          ~>
+         integral_real_indicator / integrable_real_indicator
+    positive_integral_fst       ~>  positive_integral_fst'
+    positive_integral_fst_measurable ~> positive_integral_fst
+    positive_integral_snd_measurable ~> positive_integral_snd
+
+    integrable_fst_measurable   ~>
+         integral_fst / integrable_fst / AE_integrable_fst
+
+    integrable_snd_measurable   ~>
+         integral_snd / integrable_snd / AE_integrable_snd
+
+    integral_monotone_convergence  ~>
+         integral_monotone_convergence / integrable_monotone_convergence
+
+    integral_monotone_convergence_at_top  ~>
+         integral_monotone_convergence_at_top /
+         integrable_monotone_convergence_at_top
+
+    has_integral_iff_positive_integral_lebesgue  ~>
+         has_integral_iff_has_bochner_integral_lebesgue_nonneg
+
+    lebesgue_integral_has_integral  ~>
+         has_integral_integrable_lebesgue_nonneg
+
+    positive_integral_lebesgue_has_integral  ~>
+         integral_has_integral_lebesgue_nonneg /
+         integrable_has_integral_lebesgue_nonneg
+
+    lebesgue_integral_real_affine  ~>
+         positive_integral_real_affine
+
+    has_integral_iff_positive_integral_lborel  ~>
+         integral_has_integral_nonneg / integrable_has_integral_nonneg
+
+    The following theorems where removed:
+
+    lebesgue_integral_nonneg
+    lebesgue_integral_uminus
+    lebesgue_integral_cmult
+    lebesgue_integral_multc
+    lebesgue_integral_cmult_nonneg
+    integral_cmul_indicator
+    integral_real
 
 *** Scala ***
 

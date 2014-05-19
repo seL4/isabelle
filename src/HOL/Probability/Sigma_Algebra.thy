@@ -1391,6 +1391,11 @@ lemma measurable_cong:
   unfolding measurable_def using assms
   by (simp cong: vimage_inter_cong Pi_cong)
 
+lemma measurable_cong_strong:
+  "M = N \<Longrightarrow> M' = N' \<Longrightarrow> (\<And>w. w \<in> space M \<Longrightarrow> f w = g w) \<Longrightarrow>
+    f \<in> measurable M M' \<longleftrightarrow> g \<in> measurable N N'"
+  by (metis measurable_cong)
+
 lemma measurable_eqI:
      "\<lbrakk> space m1 = space m1' ; space m2 = space m2' ;
         sets m1 = sets m1' ; sets m2 = sets m2' \<rbrakk>
@@ -1536,6 +1541,21 @@ proof -
     moreover assume "\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M"
     ultimately have "f -` X \<inter> space M \<in> sets M"
       using `X \<subseteq> A` by (auto intro!: sets.finite_UN simp del: UN_simps) }
+  then show ?thesis
+    unfolding measurable_def by auto
+qed
+
+lemma measurable_count_space_eq2_countable:
+  fixes f :: "'a => 'c::countable"
+  shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
+proof -
+  { fix X assume "X \<subseteq> A" "f \<in> space M \<rightarrow> A"
+    assume *: "\<And>a. a\<in>A \<Longrightarrow> f -` {a} \<inter> space M \<in> sets M"
+    have "f -` X \<inter> space M = (\<Union>a\<in>X. f -` {a} \<inter> space M)"
+      by auto
+    also have "\<dots> \<in> sets M"
+      using * `X \<subseteq> A` by (intro sets.countable_UN) auto
+    finally have "f -` X \<inter> space M \<in> sets M" . }
   then show ?thesis
     unfolding measurable_def by auto
 qed

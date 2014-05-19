@@ -256,6 +256,76 @@ lemma measurable_Least[measurable]:
   shows "(\<lambda>x. LEAST i. P i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_def by (safe intro!: sets_Least) simp_all
 
+lemma measurable_Max_nat[measurable (raw)]: 
+  fixes P :: "nat \<Rightarrow> 'a \<Rightarrow> bool"
+  assumes [measurable]: "\<And>i. Measurable.pred M (P i)"
+  shows "(\<lambda>x. Max {i. P i x}) \<in> measurable M (count_space UNIV)"
+  unfolding measurable_count_space_eq2_countable
+proof safe
+  fix n
+
+  { fix x assume "\<forall>i. \<exists>n\<ge>i. P n x"
+    then have "infinite {i. P i x}"
+      unfolding infinite_nat_iff_unbounded_le by auto
+    then have "Max {i. P i x} = the None"
+      by (rule Max.infinite) }
+  note 1 = this
+
+  { fix x i j assume "P i x" "\<forall>n\<ge>j. \<not> P n x"
+    then have "finite {i. P i x}"
+      by (auto simp: subset_eq not_le[symmetric] finite_nat_iff_bounded)
+    with `P i x` have "P (Max {i. P i x}) x" "i \<le> Max {i. P i x}" "finite {i. P i x}"
+      using Max_in[of "{i. P i x}"] by auto }
+  note 2 = this
+
+  have "(\<lambda>x. Max {i. P i x}) -` {n} \<inter> space M = {x\<in>space M. Max {i. P i x} = n}"
+    by auto
+  also have "\<dots> = 
+    {x\<in>space M. if (\<forall>i. \<exists>n\<ge>i. P n x) then the None = n else 
+      if (\<exists>i. P i x) then P n x \<and> (\<forall>i>n. \<not> P i x)
+      else Max {} = n}"
+    by (intro arg_cong[where f=Collect] ext conj_cong)
+       (auto simp add: 1 2 not_le[symmetric] intro!: Max_eqI)
+  also have "\<dots> \<in> sets M"
+    by measurable
+  finally show "(\<lambda>x. Max {i. P i x}) -` {n} \<inter> space M \<in> sets M" .
+qed simp
+
+lemma measurable_Min_nat[measurable (raw)]: 
+  fixes P :: "nat \<Rightarrow> 'a \<Rightarrow> bool"
+  assumes [measurable]: "\<And>i. Measurable.pred M (P i)"
+  shows "(\<lambda>x. Min {i. P i x}) \<in> measurable M (count_space UNIV)"
+  unfolding measurable_count_space_eq2_countable
+proof safe
+  fix n
+
+  { fix x assume "\<forall>i. \<exists>n\<ge>i. P n x"
+    then have "infinite {i. P i x}"
+      unfolding infinite_nat_iff_unbounded_le by auto
+    then have "Min {i. P i x} = the None"
+      by (rule Min.infinite) }
+  note 1 = this
+
+  { fix x i j assume "P i x" "\<forall>n\<ge>j. \<not> P n x"
+    then have "finite {i. P i x}"
+      by (auto simp: subset_eq not_le[symmetric] finite_nat_iff_bounded)
+    with `P i x` have "P (Min {i. P i x}) x" "Min {i. P i x} \<le> i" "finite {i. P i x}"
+      using Min_in[of "{i. P i x}"] by auto }
+  note 2 = this
+
+  have "(\<lambda>x. Min {i. P i x}) -` {n} \<inter> space M = {x\<in>space M. Min {i. P i x} = n}"
+    by auto
+  also have "\<dots> = 
+    {x\<in>space M. if (\<forall>i. \<exists>n\<ge>i. P n x) then the None = n else 
+      if (\<exists>i. P i x) then P n x \<and> (\<forall>i<n. \<not> P i x)
+      else Min {} = n}"
+    by (intro arg_cong[where f=Collect] ext conj_cong)
+       (auto simp add: 1 2 not_le[symmetric] intro!: Min_eqI)
+  also have "\<dots> \<in> sets M"
+    by measurable
+  finally show "(\<lambda>x. Min {i. P i x}) -` {n} \<inter> space M \<in> sets M" .
+qed simp
+
 lemma measurable_count_space_insert[measurable (raw)]:
   "s \<in> S \<Longrightarrow> A \<in> sets (count_space S) \<Longrightarrow> insert s A \<in> sets (count_space S)"
   by simp

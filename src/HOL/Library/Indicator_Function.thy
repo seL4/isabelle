@@ -5,7 +5,7 @@
 header {* Indicator Function *}
 
 theory Indicator_Function
-imports Main
+imports Complex_Main
 begin
 
 definition "indicator S x = (if x \<in> S then 1 else 0)"
@@ -64,5 +64,10 @@ lemma setsum_indicator_eq_card:
   shows "(SUM x : A. indicator B x) = card (A Int B)"
   using setsum_mult_indicator[OF assms, of "%x. 1::nat"]
   unfolding card_eq_setsum by simp
+
+lemma setsum_indicator_scaleR[simp]:
+  "finite A \<Longrightarrow>
+    (\<Sum>x \<in> A. indicator (B x) (g x) *\<^sub>R f x) = (\<Sum>x \<in> {x\<in>A. g x \<in> B x}. f x::'a::real_vector)"
+  using assms by (auto intro!: setsum_mono_zero_cong_right split: split_if_asm simp: indicator_def)
 
 end

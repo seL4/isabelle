@@ -5,7 +5,7 @@
 header {*Binary product measures*}
 
 theory Binary_Product_Measure
-imports Lebesgue_Integration
+imports Nonnegative_Lebesgue_Integration
 begin
 
 lemma Pair_vimage_times[simp]: "Pair x -` (A \<times> B) = (if x \<in> A then B else {})"
@@ -510,7 +510,7 @@ qed (simp_all add: positive_integral_add positive_integral_cmult measurable_comp
                    positive_integral_monotone_convergence_SUP incseq_def le_fun_def
               cong: measurable_cong)
 
-lemma (in sigma_finite_measure) positive_integral_fst:
+lemma (in sigma_finite_measure) positive_integral_fst':
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)" "\<And>x. 0 \<le> f x"
   shows "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>M \<partial>M1) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M) f" (is "?I f = _")
 using f proof induct
@@ -525,30 +525,25 @@ qed (simp_all add: emeasure_pair_measure positive_integral_cmult positive_integr
                    borel_measurable_positive_integral_fst' positive_integral_mono incseq_def le_fun_def
               cong: positive_integral_cong)
 
-lemma (in sigma_finite_measure) positive_integral_fst_measurable:
+lemma (in sigma_finite_measure) positive_integral_fst:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)"
-  shows "(\<lambda>x. \<integral>\<^sup>+ y. f (x, y) \<partial>M) \<in> borel_measurable M1"
-      (is "?C f \<in> borel_measurable M1")
-    and "(\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M) \<partial>M1) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M) f"
+  shows "(\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M) \<partial>M1) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M) f"
   using f
     borel_measurable_positive_integral_fst'[of "\<lambda>x. max 0 (f x)"]
-    positive_integral_fst[of "\<lambda>x. max 0 (f x)"]
+    positive_integral_fst'[of "\<lambda>x. max 0 (f x)"]
   unfolding positive_integral_max_0 by auto
 
 lemma (in sigma_finite_measure) borel_measurable_positive_integral[measurable (raw)]:
   "split f \<in> borel_measurable (N \<Otimes>\<^sub>M M) \<Longrightarrow> (\<lambda>x. \<integral>\<^sup>+ y. f x y \<partial>M) \<in> borel_measurable N"
-  using positive_integral_fst_measurable(1)[of "split f" N] by simp
+  using borel_measurable_positive_integral_fst'[of "\<lambda>x. max 0 (split f x)" N]
+  by (simp add: positive_integral_max_0)
 
-lemma (in sigma_finite_measure) borel_measurable_lebesgue_integral[measurable (raw)]:
-  "split f \<in> borel_measurable (N \<Otimes>\<^sub>M M) \<Longrightarrow> (\<lambda>x. \<integral> y. f x y \<partial>M) \<in> borel_measurable N"
-  by (simp add: lebesgue_integral_def)
-
-lemma (in pair_sigma_finite) positive_integral_snd_measurable:
+lemma (in pair_sigma_finite) positive_integral_snd:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M2) f"
 proof -
   note measurable_pair_swap[OF f]
-  from M1.positive_integral_fst_measurable[OF this]
+  from M1.positive_integral_fst[OF this]
   have "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ (x, y). f (y, x) \<partial>(M2 \<Otimes>\<^sub>M M1))"
     by simp
   also have "(\<integral>\<^sup>+ (x, y). f (y, x) \<partial>(M2 \<Otimes>\<^sub>M M1)) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M2) f"
@@ -560,113 +555,7 @@ qed
 lemma (in pair_sigma_finite) Fubini:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M2) \<partial>M1)"
-  unfolding positive_integral_snd_measurable[OF assms]
-  unfolding M2.positive_integral_fst_measurable[OF assms] ..
-
-lemma (in pair_sigma_finite) integrable_product_swap:
-  assumes "integrable (M1 \<Otimes>\<^sub>M M2) f"
-  shows "integrable (M2 \<Otimes>\<^sub>M M1) (\<lambda>(x,y). f (y,x))"
-proof -
-  interpret Q: pair_sigma_finite M2 M1 by default
-  have *: "(\<lambda>(x,y). f (y,x)) = (\<lambda>x. f (case x of (x,y)\<Rightarrow>(y,x)))" by (auto simp: fun_eq_iff)
-  show ?thesis unfolding *
-    by (rule integrable_distr[OF measurable_pair_swap'])
-       (simp add: distr_pair_swap[symmetric] assms)
-qed
-
-lemma (in pair_sigma_finite) integrable_product_swap_iff:
-  "integrable (M2 \<Otimes>\<^sub>M M1) (\<lambda>(x,y). f (y,x)) \<longleftrightarrow> integrable (M1 \<Otimes>\<^sub>M M2) f"
-proof -
-  interpret Q: pair_sigma_finite M2 M1 by default
-  from Q.integrable_product_swap[of "\<lambda>(x,y). f (y,x)"] integrable_product_swap[of f]
-  show ?thesis by auto
-qed
-
-lemma (in pair_sigma_finite) integral_product_swap:
-  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
-  shows "(\<integral>(x,y). f (y,x) \<partial>(M2 \<Otimes>\<^sub>M M1)) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) f"
-proof -
-  have *: "(\<lambda>(x,y). f (y,x)) = (\<lambda>x. f (case x of (x,y)\<Rightarrow>(y,x)))" by (auto simp: fun_eq_iff)
-  show ?thesis unfolding *
-    by (simp add: integral_distr[symmetric, OF measurable_pair_swap' f] distr_pair_swap[symmetric])
-qed
-
-lemma (in pair_sigma_finite) integrable_fst_measurable:
-  assumes f: "integrable (M1 \<Otimes>\<^sub>M M2) f"
-  shows "AE x in M1. integrable M2 (\<lambda> y. f (x, y))" (is "?AE")
-    and "(\<integral>x. (\<integral>y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) f" (is "?INT")
-proof -
-  have f_borel: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
-    using f by auto
-  let ?pf = "\<lambda>x. ereal (f x)" and ?nf = "\<lambda>x. ereal (- f x)"
-  have
-    borel: "?nf \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)""?pf \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)" and
-    int: "integral\<^sup>P (M1 \<Otimes>\<^sub>M M2) ?nf \<noteq> \<infinity>" "integral\<^sup>P (M1 \<Otimes>\<^sub>M M2) ?pf \<noteq> \<infinity>"
-    using assms by auto
-  have "(\<integral>\<^sup>+x. (\<integral>\<^sup>+y. ereal (f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<infinity>"
-     "(\<integral>\<^sup>+x. (\<integral>\<^sup>+y. ereal (- f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<infinity>"
-    using borel[THEN M2.positive_integral_fst_measurable(1)] int
-    unfolding borel[THEN M2.positive_integral_fst_measurable(2)] by simp_all
-  with borel[THEN M2.positive_integral_fst_measurable(1)]
-  have AE_pos: "AE x in M1. (\<integral>\<^sup>+y. ereal (f (x, y)) \<partial>M2) \<noteq> \<infinity>"
-    "AE x in M1. (\<integral>\<^sup>+y. ereal (- f (x, y)) \<partial>M2) \<noteq> \<infinity>"
-    by (auto intro!: positive_integral_PInf_AE )
-  then have AE: "AE x in M1. \<bar>\<integral>\<^sup>+y. ereal (f (x, y)) \<partial>M2\<bar> \<noteq> \<infinity>"
-    "AE x in M1. \<bar>\<integral>\<^sup>+y. ereal (- f (x, y)) \<partial>M2\<bar> \<noteq> \<infinity>"
-    by (auto simp: positive_integral_positive)
-  from AE_pos show ?AE using assms
-    by (simp add: measurable_Pair2[OF f_borel] integrable_def)
-  { fix f have "(\<integral>\<^sup>+ x. - \<integral>\<^sup>+ y. ereal (f x y) \<partial>M2 \<partial>M1) = (\<integral>\<^sup>+x. 0 \<partial>M1)"
-      using positive_integral_positive
-      by (intro positive_integral_cong_pos) (auto simp: ereal_uminus_le_reorder)
-    then have "(\<integral>\<^sup>+ x. - \<integral>\<^sup>+ y. ereal (f x y) \<partial>M2 \<partial>M1) = 0" by simp }
-  note this[simp]
-  { fix f assume borel: "(\<lambda>x. ereal (f x)) \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
-      and int: "integral\<^sup>P (M1 \<Otimes>\<^sub>M M2) (\<lambda>x. ereal (f x)) \<noteq> \<infinity>"
-      and AE: "AE x in M1. (\<integral>\<^sup>+y. ereal (f (x, y)) \<partial>M2) \<noteq> \<infinity>"
-    have "integrable M1 (\<lambda>x. real (\<integral>\<^sup>+y. ereal (f (x, y)) \<partial>M2))" (is "integrable M1 ?f")
-    proof (intro integrable_def[THEN iffD2] conjI)
-      show "?f \<in> borel_measurable M1"
-        using borel by (auto intro!: M2.positive_integral_fst_measurable)
-      have "(\<integral>\<^sup>+x. ereal (?f x) \<partial>M1) = (\<integral>\<^sup>+x. (\<integral>\<^sup>+y. ereal (f (x, y))  \<partial>M2) \<partial>M1)"
-        using AE positive_integral_positive[of M2]
-        by (auto intro!: positive_integral_cong_AE simp: ereal_real)
-      then show "(\<integral>\<^sup>+x. ereal (?f x) \<partial>M1) \<noteq> \<infinity>"
-        using M2.positive_integral_fst_measurable[OF borel] int by simp
-      have "(\<integral>\<^sup>+x. ereal (- ?f x) \<partial>M1) = (\<integral>\<^sup>+x. 0 \<partial>M1)"
-        by (intro positive_integral_cong_pos)
-           (simp add: positive_integral_positive real_of_ereal_pos)
-      then show "(\<integral>\<^sup>+x. ereal (- ?f x) \<partial>M1) \<noteq> \<infinity>" by simp
-    qed }
-  with this[OF borel(1) int(1) AE_pos(2)] this[OF borel(2) int(2) AE_pos(1)]
-  show ?INT
-    unfolding lebesgue_integral_def[of "M1 \<Otimes>\<^sub>M M2"] lebesgue_integral_def[of M2]
-      borel[THEN M2.positive_integral_fst_measurable(2), symmetric]
-    using AE[THEN integral_real]
-    by simp
-qed
-
-lemma (in pair_sigma_finite) integrable_snd_measurable:
-  assumes f: "integrable (M1 \<Otimes>\<^sub>M M2) f"
-  shows "AE y in M2. integrable M1 (\<lambda>x. f (x, y))" (is "?AE")
-    and "(\<integral>y. (\<integral>x. f (x, y) \<partial>M1) \<partial>M2) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) f" (is "?INT")
-proof -
-  interpret Q: pair_sigma_finite M2 M1 by default
-  have Q_int: "integrable (M2 \<Otimes>\<^sub>M M1) (\<lambda>(x, y). f (y, x))"
-    using f unfolding integrable_product_swap_iff .
-  show ?INT
-    using Q.integrable_fst_measurable(2)[OF Q_int]
-    using integral_product_swap[of f] f by auto
-  show ?AE
-    using Q.integrable_fst_measurable(1)[OF Q_int]
-    by simp
-qed
-
-lemma (in pair_sigma_finite) Fubini_integral:
-  assumes f: "integrable (M1 \<Otimes>\<^sub>M M2) f"
-  shows "(\<integral>y. (\<integral>x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>x. (\<integral>y. f (x, y) \<partial>M2) \<partial>M1)"
-  unfolding integrable_snd_measurable[OF assms]
-  unfolding integrable_fst_measurable[OF assms] ..
+  unfolding positive_integral_snd[OF assms] M2.positive_integral_fst[OF assms] ..
 
 section {* Products on counting spaces, densities and distributions *}
 
@@ -741,7 +630,7 @@ proof (rule measure_eqI)
        (auto simp add: positive_integral_cmult[symmetric] ac_simps)
   with A f g show "emeasure ?L A = emeasure ?R A"
     by (simp add: D2.emeasure_pair_measure emeasure_density positive_integral_density
-                  M2.positive_integral_fst_measurable(2)[symmetric]
+                  M2.positive_integral_fst[symmetric]
              cong: positive_integral_cong)
 qed simp
 

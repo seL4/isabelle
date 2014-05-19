@@ -5,7 +5,7 @@
 header {*Radon-Nikod{\'y}m derivative*}
 
 theory Radon_Nikodym
-imports Lebesgue_Integration
+imports Bochner_Integration
 begin
 
 definition "diff_measure M N =
@@ -1062,34 +1062,52 @@ lemma (in sigma_finite_measure) sigma_finite_iff_density_finite:
 
 section "Radon-Nikodym derivative"
 
-definition
-  "RN_deriv M N \<equiv> SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N"
+definition RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a \<Rightarrow> ereal" where
+  "RN_deriv M N =
+    (if \<exists>f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N
+       then SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N
+       else (\<lambda>_. 0))"
 
-lemma
+lemma RN_derivI: 
+  assumes "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "density M f = N"
+  shows "density M (RN_deriv M N) = N"
+proof -
+  have "\<exists>f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N"
+    using assms by auto
+  moreover then have "density M (SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N) = N"
+    by (rule someI2_ex) auto
+  ultimately show ?thesis
+    by (auto simp: RN_deriv_def)
+qed
+
+lemma 
+  shows borel_measurable_RN_deriv[measurable]: "RN_deriv M N \<in> borel_measurable M" (is ?m)
+    and RN_deriv_nonneg: "0 \<le> RN_deriv M N x" (is ?nn)
+proof -
+  { assume ex: "\<exists>f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N"
+    have 1: "(SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N) \<in> borel_measurable M"
+      using ex by (rule someI2_ex) auto
+    moreover
+    have 2: "0 \<le> (SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N) x"
+      using ex by (rule someI2_ex) auto
+    note 1 2 }
+  from this show ?m ?nn
+    by (auto simp: RN_deriv_def)
+qed
+
+lemma density_RN_deriv_density:
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
-  shows borel_measurable_RN_deriv_density: "RN_deriv M (density M f) \<in> borel_measurable M" (is ?borel)
-    and density_RN_deriv_density: "density M (RN_deriv M (density M f)) = density M f" (is ?density)
-    and RN_deriv_density_nonneg: "0 \<le> RN_deriv M (density M f) x" (is ?pos)
-proof -
-  let ?f = "\<lambda>x. max 0 (f x)"
-  let ?P = "\<lambda>g. g \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> g x) \<and> density M g = density M f"
-  from f have "?P ?f" using f by (auto intro!: density_cong simp: split: split_max)
-  then have "?P (RN_deriv M (density M f))"
-    unfolding RN_deriv_def by (rule someI[where P="?P"])
-  then show ?borel ?density ?pos by auto
+  shows "density M (RN_deriv M (density M f)) = density M f"
+proof (rule RN_derivI)
+  show "(\<lambda>x. max 0 (f x)) \<in> borel_measurable M" "\<And>x. 0 \<le> max 0 (f x)"
+    using f by auto
+  show "density M (\<lambda>x. max 0 (f x)) = density M f"
+    using f by (intro density_cong) (auto simp: max_def)
 qed
 
-lemma (in sigma_finite_measure) RN_deriv:
-  assumes "absolutely_continuous M N" "sets N = sets M"
-  shows borel_measurable_RN_deriv[measurable]: "RN_deriv M N \<in> borel_measurable M" (is ?borel)
-    and density_RN_deriv: "density M (RN_deriv M N) = N" (is ?density)
-    and RN_deriv_nonneg: "0 \<le> RN_deriv M N x" (is ?pos)
-proof -
-  note Ex = Radon_Nikodym[OF assms, unfolded Bex_def]
-  from Ex show ?borel unfolding RN_deriv_def by (rule someI2_ex) simp
-  from Ex show ?density unfolding RN_deriv_def by (rule someI2_ex) simp
-  from Ex show ?pos unfolding RN_deriv_def by (rule someI2_ex) simp
-qed
+lemma (in sigma_finite_measure) density_RN_deriv:
+  "absolutely_continuous M N \<Longrightarrow> sets N = sets M \<Longrightarrow> density M (RN_deriv M N) = N"
+  by (metis RN_derivI Radon_Nikodym)
 
 lemma (in sigma_finite_measure) RN_deriv_positive_integral:
   assumes N: "absolutely_continuous M N" "sets N = sets M"
@@ -1099,7 +1117,7 @@ proof -
   have "integral\<^sup>P N f = integral\<^sup>P (density M (RN_deriv M N)) f"
     using N by (simp add: density_RN_deriv)
   also have "\<dots> = (\<integral>\<^sup>+x. RN_deriv M N x * f x \<partial>M)"
-    using RN_deriv(1,3)[OF N] f by (simp add: positive_integral_density)
+    using f by (simp add: positive_integral_density RN_deriv_nonneg)
   finally show ?thesis by simp
 qed
 
@@ -1111,16 +1129,16 @@ lemma (in sigma_finite_measure) RN_deriv_unique:
   and eq: "density M f = N"
   shows "AE x in M. f x = RN_deriv M N x"
   unfolding eq[symmetric]
-  by (intro density_unique_iff[THEN iffD1] f borel_measurable_RN_deriv_density
-            RN_deriv_density_nonneg[THEN AE_I2] density_RN_deriv_density[symmetric])
+  by (intro density_unique_iff[THEN iffD1] f borel_measurable_RN_deriv
+            RN_deriv_nonneg[THEN AE_I2] density_RN_deriv_density[symmetric])
 
 lemma RN_deriv_unique_sigma_finite:
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
   and eq: "density M f = N" and fin: "sigma_finite_measure N"
   shows "AE x in M. f x = RN_deriv M N x"
   using fin unfolding eq[symmetric]
-  by (intro sigma_finite_density_unique[THEN iffD1] f borel_measurable_RN_deriv_density
-            RN_deriv_density_nonneg[THEN AE_I2] density_RN_deriv_density[symmetric])
+  by (intro sigma_finite_density_unique[THEN iffD1] f borel_measurable_RN_deriv
+            RN_deriv_nonneg[THEN AE_I2] density_RN_deriv_density[symmetric])
 
 lemma (in sigma_finite_measure) RN_deriv_distr:
   fixes T :: "'a \<Rightarrow> 'b"
@@ -1165,7 +1183,7 @@ proof (rule RN_deriv_unique)
     using T ac by measurable
   then show "(\<lambda>x. RN_deriv ?M' ?N' (T x)) \<in> borel_measurable M"
     by (simp add: comp_def)
-  show "AE x in M. 0 \<le> RN_deriv ?M' ?N' (T x)" using M'.RN_deriv_nonneg[OF ac] by auto
+  show "AE x in M. 0 \<le> RN_deriv ?M' ?N' (T x)" by (auto intro: RN_deriv_nonneg)
 
   have "N = distr N M (T' \<circ> T)"
     by (subst measure_of_of_measure[of N, symmetric])
@@ -1175,7 +1193,7 @@ proof (rule RN_deriv_unique)
   also have "\<dots> = distr (density (distr M M' T) (RN_deriv (distr M M' T) (distr N M' T))) M T'"
     using ac by (simp add: M'.density_RN_deriv)
   also have "\<dots> = density M (RN_deriv (distr M M' T) (distr N M' T) \<circ> T)"
-    using M'.borel_measurable_RN_deriv[OF ac] by (simp add: distr_density_distr[OF T T', OF inv])
+    by (simp add: distr_density_distr[OF T T', OF inv])
   finally show "density M (\<lambda>x. RN_deriv (distr M M' T) (distr N M' T) (T x)) = N"
     by (simp add: comp_def)
 qed
@@ -1186,7 +1204,9 @@ lemma (in sigma_finite_measure) RN_deriv_finite:
 proof -
   interpret N: sigma_finite_measure N by fact
   from N show ?thesis
-    using sigma_finite_iff_density_finite[OF RN_deriv(1)[OF ac]] RN_deriv(2,3)[OF ac] by simp
+    using sigma_finite_iff_density_finite[OF borel_measurable_RN_deriv, of N]
+      density_RN_deriv[OF ac]
+    by (simp add: RN_deriv_nonneg)
 qed
 
 lemma (in sigma_finite_measure)
@@ -1194,29 +1214,31 @@ lemma (in sigma_finite_measure)
     and f: "f \<in> borel_measurable M"
   shows RN_deriv_integrable: "integrable N f \<longleftrightarrow>
       integrable M (\<lambda>x. real (RN_deriv M N x) * f x)" (is ?integrable)
-    and RN_deriv_integral: "integral\<^sup>L N f =
-      (\<integral>x. real (RN_deriv M N x) * f x \<partial>M)" (is ?integral)
+    and RN_deriv_integral: "integral\<^sup>L N f = (\<integral>x. real (RN_deriv M N x) * f x \<partial>M)" (is ?integral)
 proof -
   note ac(2)[simp] and sets_eq_imp_space_eq[OF ac(2), simp]
   interpret N: sigma_finite_measure N by fact
-  have minus_cong: "\<And>A B A' B'::ereal. A = A' \<Longrightarrow> B = B' \<Longrightarrow> real A - real B = real A' - real B'" by simp
-  have f': "(\<lambda>x. - f x) \<in> borel_measurable M" using f by auto
-  have Nf: "f \<in> borel_measurable N" using f by (simp add: measurable_def)
-  { fix f :: "'a \<Rightarrow> real"
-    { fix x assume *: "RN_deriv M N x \<noteq> \<infinity>"
-      have "ereal (real (RN_deriv M N x)) * ereal (f x) = ereal (real (RN_deriv M N x) * f x)"
-        by (simp add: mult_le_0_iff)
-      then have "RN_deriv M N x * ereal (f x) = ereal (real (RN_deriv M N x) * f x)"
-        using RN_deriv(3)[OF ac] * by (auto simp add: ereal_real split: split_if_asm) }
-    then have "(\<integral>\<^sup>+x. ereal (real (RN_deriv M N x) * f x) \<partial>M) = (\<integral>\<^sup>+x. RN_deriv M N x * ereal (f x) \<partial>M)"
-              "(\<integral>\<^sup>+x. ereal (- (real (RN_deriv M N x) * f x)) \<partial>M) = (\<integral>\<^sup>+x. RN_deriv M N x * ereal (- f x) \<partial>M)"
-      using RN_deriv_finite[OF N ac] unfolding ereal_mult_minus_right uminus_ereal.simps(1)[symmetric]
-      by (auto intro!: positive_integral_cong_AE) }
-  note * = this
-  show ?integral ?integrable
-    unfolding lebesgue_integral_def integrable_def *
-    using Nf f RN_deriv(1)[OF ac]
-    by (auto simp: RN_deriv_positive_integral[OF ac])
+
+  have eq: "density M (RN_deriv M N) = density M (\<lambda>x. real (RN_deriv M N x))"
+  proof (rule density_cong)
+    from RN_deriv_finite[OF assms(1,2,3)]
+    show "AE x in M. RN_deriv M N x = ereal (real (RN_deriv M N x))"
+      by eventually_elim (insert RN_deriv_nonneg[of M N], auto simp: ereal_real)
+  qed (insert ac, auto)
+
+  show ?integrable
+    apply (subst density_RN_deriv[OF ac, symmetric])
+    unfolding eq
+    apply (intro integrable_real_density f AE_I2 real_of_ereal_pos RN_deriv_nonneg)
+    apply (insert ac, auto)
+    done
+
+  show ?integral
+    apply (subst density_RN_deriv[OF ac, symmetric])
+    unfolding eq
+    apply (intro integral_real_density f AE_I2 real_of_ereal_pos RN_deriv_nonneg)
+    apply (insert ac, auto)
+    done
 qed
 
 lemma (in sigma_finite_measure) real_RN_deriv:
@@ -1229,7 +1251,7 @@ lemma (in sigma_finite_measure) real_RN_deriv:
 proof
   interpret N: finite_measure N by fact
   
-  note RN = RN_deriv[OF ac]
+  note RN = borel_measurable_RN_deriv density_RN_deriv[OF ac] RN_deriv_nonneg[of M N]
 
   let ?RN = "\<lambda>t. {x \<in> space M. RN_deriv M N x = t}"
 
@@ -1277,11 +1299,10 @@ lemma (in sigma_finite_measure) RN_deriv_singleton:
   and x: "{x} \<in> sets M"
   shows "N {x} = RN_deriv M N x * emeasure M {x}"
 proof -
-  note deriv = RN_deriv[OF ac]
-  from deriv(1,3) `{x} \<in> sets M`
+  from `{x} \<in> sets M`
   have "density M (RN_deriv M N) {x} = (\<integral>\<^sup>+w. RN_deriv M N x * indicator {x} w \<partial>M)"
     by (auto simp: indicator_def emeasure_density intro!: positive_integral_cong)
-  with x deriv show ?thesis
+  with x density_RN_deriv[OF ac] RN_deriv_nonneg[of M N] show ?thesis
     by (auto simp: positive_integral_cmult_indicator)
 qed
 

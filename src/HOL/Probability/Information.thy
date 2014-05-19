@@ -79,37 +79,26 @@ definition
 definition
   "KL_divergence b M N = integral\<^sup>L N (entropy_density b M N)"
 
-lemma (in information_space) measurable_entropy_density:
-  assumes ac: "absolutely_continuous M N" "sets N = events"
-  shows "entropy_density b M N \<in> borel_measurable M"
-proof -
-  from borel_measurable_RN_deriv[OF ac] b_gt_1 show ?thesis
-    unfolding entropy_density_def by auto
-qed
-
-lemma borel_measurable_RN_deriv_density[measurable (raw)]:
-  "f \<in> borel_measurable M \<Longrightarrow> RN_deriv M (density M f) \<in> borel_measurable M"
-  using borel_measurable_RN_deriv_density[of "\<lambda>x. max 0 (f x )" M]
-  by (simp add: density_max_0[symmetric])
+lemma measurable_entropy_density[measurable]: "entropy_density b M N \<in> borel_measurable M"
+  unfolding entropy_density_def by auto
 
 lemma (in sigma_finite_measure) KL_density:
   fixes f :: "'a \<Rightarrow> real"
   assumes "1 < b"
-  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
+  assumes f[measurable]: "f \<in> borel_measurable M" and nn: "AE x in M. 0 \<le> f x"
   shows "KL_divergence b M (density M f) = (\<integral>x. f x * log b (f x) \<partial>M)"
   unfolding KL_divergence_def
-proof (subst integral_density)
-  show "entropy_density b M (density M (\<lambda>x. ereal (f x))) \<in> borel_measurable M"
+proof (subst integral_real_density)
+  show [measurable]: "entropy_density b M (density M (\<lambda>x. ereal (f x))) \<in> borel_measurable M"
     using f
     by (auto simp: comp_def entropy_density_def)
   have "density M (RN_deriv M (density M f)) = density M f"
-    using f by (intro density_RN_deriv_density) auto
+    using f nn by (intro density_RN_deriv_density) auto
   then have eq: "AE x in M. RN_deriv M (density M f) x = f x"
-    using f
-    by (intro density_unique)
-       (auto intro!: borel_measurable_log borel_measurable_RN_deriv_density simp: RN_deriv_density_nonneg)
+    using f nn by (intro density_unique) (auto simp: RN_deriv_nonneg)
   show "(\<integral>x. f x * entropy_density b M (density M (\<lambda>x. ereal (f x))) x \<partial>M) = (\<integral>x. f x * log b (f x) \<partial>M)"
     apply (intro integral_cong_AE)
+    apply measurable
     using eq
     apply eventually_elim
     apply (auto simp: entropy_density_def)
@@ -161,8 +150,10 @@ proof -
   then have D_pos: "(\<integral>\<^sup>+ x. ereal (D x) \<partial>M) = 1"
     using N.emeasure_space_1 by simp
 
-  have "integrable M D" "integral\<^sup>L M D = 1"
-    using D D_pos D_neg unfolding integrable_def lebesgue_integral_def by simp_all
+  have "integrable M D"
+    using D D_pos D_neg unfolding real_integrable_def real_lebesgue_integral_def by simp_all
+  then have "integral\<^sup>L M D = 1"
+    using D D_pos D_neg by (simp add: real_lebesgue_integral_def)
 
   have "0 \<le> 1 - measure M ?D_set"
     using prob_le_1 by (auto simp: field_simps)
@@ -172,10 +163,9 @@ proof -
   also have "\<dots> < (\<integral> x. D x * (ln b * log b (D x)) \<partial>M)"
   proof (rule integral_less_AE)
     show "integrable M (\<lambda>x. D x - indicator ?D_set x)"
-      using `integrable M D`
-      by (intro integral_diff integral_indicator) auto
+      using `integrable M D` by auto
   next
-    from integral_cmult(1)[OF int, of "ln b"]
+    from integrable_mult_left(1)[OF int, of "ln b"]
     show "integrable M (\<lambda>x. D x * (ln b * log b (D x)))" 
       by (simp add: ac_simps)
   next
@@ -242,7 +232,7 @@ proof -
   also have "\<dots> = (\<integral> x. ln b * (D x * log b (D x)) \<partial>M)"
     by (simp add: ac_simps)
   also have "\<dots> = ln b * (\<integral> x. D x * log b (D x) \<partial>M)"
-    using int by (rule integral_cmult)
+    using int by simp
   finally show ?thesis
     using b_gt_1 D by (subst KL_density) (auto simp: zero_less_mult_iff)
 qed
@@ -260,7 +250,7 @@ proof -
   qed
   then have "AE x in M. log b (real (RN_deriv M M x)) = 0"
     by (elim AE_mp) simp
-  from integral_cong_AE[OF this]
+  from integral_cong_AE[OF _ _ this]
   have "integral\<^sup>L M (entropy_density b M M) = 0"
     by (simp add: entropy_density_def comp_def)
   then show "KL_divergence b M M = 0"
@@ -291,7 +281,7 @@ proof -
   have "N = density M (RN_deriv M N)"
     using ac by (rule density_RN_deriv[symmetric])
   also have "\<dots> = density M D"
-    using borel_measurable_RN_deriv[OF ac] D by (auto intro!: density_cong)
+    using D by (auto intro!: density_cong)
   finally have N: "N = density M D" .
 
   from absolutely_continuous_AE[OF ac(2,1) D(2)] D b_gt_1 ac measurable_entropy_density
@@ -299,7 +289,7 @@ proof -
     by (intro integrable_cong_AE[THEN iffD2, OF _ _ _ int])
        (auto simp: N entropy_density_def)
   with D b_gt_1 have "integrable M (\<lambda>x. D x * log b (D x))"
-    by (subst integral_density(2)[symmetric]) (auto simp: N[symmetric] comp_def)
+    by (subst integrable_real_density[symmetric]) (auto simp: N[symmetric] comp_def)
   with `prob_space N` D show ?thesis
     unfolding N
     by (intro KL_eq_0_iff_eq) auto
@@ -335,7 +325,7 @@ proof -
       using f g by (auto simp: AE_density)
     show "integrable (density M f) (\<lambda>x. g x / f x * log b (g x / f x))"
       using `1 < b` f g ac
-      by (subst integral_density)
+      by (subst integrable_density)
          (auto intro!: integrable_cong_AE[THEN iffD2, OF _ _ _ int] measurable_If)
   qed
   also have "\<dots> = KL_divergence b (density M f) (density M g)"
@@ -414,7 +404,7 @@ lemma distributed_integrable:
   "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow>
     integrable N (\<lambda>x. f x * g x) \<longleftrightarrow> integrable M (\<lambda>x. g (X x))"
   by (auto simp: distributed_real_AE
-                    distributed_distr_eq_density[symmetric] integral_density[symmetric] integrable_distr_eq)
+                    distributed_distr_eq_density[symmetric] integrable_real_density[symmetric] integrable_distr_eq)
   
 lemma distributed_transform_integrable:
   assumes Px: "distributed M N X Px"
@@ -431,8 +421,9 @@ proof -
   finally show ?thesis .
 qed
 
-lemma integrable_cong_AE_imp: "integrable M g \<Longrightarrow> f \<in> borel_measurable M \<Longrightarrow> (AE x in M. g x = f x) \<Longrightarrow> integrable M f"
-  using integrable_cong_AE by blast
+lemma integrable_cong_AE_imp:
+  "integrable M g \<Longrightarrow> f \<in> borel_measurable M \<Longrightarrow> (AE x in M. g x = f x) \<Longrightarrow> integrable M f"
+  using integrable_cong_AE[of f M g] by (auto simp: eq_commute)
 
 lemma (in information_space) finite_entropy_integrable:
   "finite_entropy S X Px \<Longrightarrow> integrable S (\<lambda>x. Px x * log b (Px x))"
@@ -485,7 +476,7 @@ proof safe
 
     show ac: "absolutely_continuous P Q" by (simp add: absolutely_continuous_def)
     then have ed: "entropy_density b P Q \<in> borel_measurable P"
-      by (rule P.measurable_entropy_density) simp
+      by simp
 
     have "AE x in P. 1 = RN_deriv P Q x"
     proof (rule P.RN_deriv_unique)
@@ -494,13 +485,15 @@ proof safe
     qed auto
     then have ae_0: "AE x in P. entropy_density b P Q x = 0"
       by eventually_elim (auto simp: entropy_density_def)
-    then have "integrable P (entropy_density b P Q) \<longleftrightarrow> integrable Q (\<lambda>x. 0)"
+    then have "integrable P (entropy_density b P Q) \<longleftrightarrow> integrable Q (\<lambda>x. 0::real)"
       using ed unfolding `Q = P` by (intro integrable_cong_AE) auto
     then show "integrable Q (entropy_density b P Q)" by simp
 
-    show "mutual_information b S T X Y = 0"
+    from ae_0 have "mutual_information b S T X Y = (\<integral>x. 0 \<partial>P)"
       unfolding mutual_information_def KL_divergence_def P_def[symmetric] Q_def[symmetric] `Q = P`
-      using ae_0 by (simp cong: integral_cong_AE) }
+      by (intro integral_cong_AE) auto
+    then show "mutual_information b S T X Y = 0"
+      by simp }
 
   { assume ac: "absolutely_continuous P Q"
     assume int: "integrable Q (entropy_density b P Q)"
@@ -722,8 +715,8 @@ qed
 lemma (in information_space)
   fixes Pxy :: "'b \<times> 'c \<Rightarrow> real" and Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real"
   assumes "sigma_finite_measure S" "sigma_finite_measure T"
-  assumes Px: "distributed M S X Px" and Py: "distributed M T Y Py"
-  assumes Pxy: "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  assumes Px[measurable]: "distributed M S X Px" and Py[measurable]: "distributed M T Y Py"
+  assumes Pxy[measurable]: "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) Pxy"
   assumes ae: "AE x in S. AE y in T. Pxy (x, y) = Px x * Py y"
   shows mutual_information_eq_0: "mutual_information b S T X Y = 0"
 proof -
@@ -743,7 +736,7 @@ proof -
   ultimately have "AE x in S \<Otimes>\<^sub>M T. Pxy x * log b (Pxy x / (Px (fst x) * Py (snd x))) = 0"
     by eventually_elim simp
   then have "(\<integral>x. Pxy x * log b (Pxy x / (Px (fst x) * Py (snd x))) \<partial>(S \<Otimes>\<^sub>M T)) = (\<integral>x. 0 \<partial>(S \<Otimes>\<^sub>M T))"
-    by (rule integral_cong_AE)
+    by (intro integral_cong_AE) auto
   then show ?thesis
     by (subst mutual_information_distr[OF assms(1-5)]) simp
 qed
@@ -810,7 +803,7 @@ qed
 
 lemma (in information_space)
   fixes X :: "'a \<Rightarrow> 'b"
-  assumes X: "distributed M MX X f"
+  assumes X[measurable]: "distributed M MX X f"
   shows entropy_distr: "entropy b MX X = - (\<integral>x. f x * log b (f x) \<partial>MX)" (is ?eq)
 proof -
   note D = distributed_measurable[OF X] distributed_borel_measurable[OF X] distributed_AE[OF X]
@@ -825,18 +818,15 @@ proof -
     apply auto
     done
 
-  have int_eq: "- (\<integral> x. log b (f x) \<partial>distr M MX X) = - (\<integral> x. f x * log b (f x) \<partial>MX)"
+  have int_eq: "(\<integral> x. f x * log b (f x) \<partial>MX) = (\<integral> x. log b (f x) \<partial>distr M MX X)"
     unfolding distributed_distr_eq_density[OF X]
     using D
     by (subst integral_density)
        (auto simp: borel_measurable_ereal_iff)
 
   show ?eq
-    unfolding entropy_def KL_divergence_def entropy_density_def comp_def
-    apply (subst integral_cong_AE)
-    apply (rule ae_eq)
-    apply (rule int_eq)
-    done
+    unfolding entropy_def KL_divergence_def entropy_density_def comp_def int_eq neg_equal_iff_equal
+    using ae_eq by (intro integral_cong_AE) auto
 qed
 
 lemma (in prob_space) distributed_imp_emeasure_nonzero:
@@ -861,7 +851,7 @@ qed
 
 lemma (in information_space) entropy_le:
   fixes Px :: "'b \<Rightarrow> real" and MX :: "'b measure"
-  assumes X: "distributed M MX X Px"
+  assumes X[measurable]: "distributed M MX X Px"
   and fin: "emeasure MX {x \<in> space MX. Px x \<noteq> 0} \<noteq> \<infinity>"
   and int: "integrable MX (\<lambda>x. - Px x * log b (Px x))"
   shows "entropy b MX X \<le> log b (measure MX {x \<in> space MX. Px x \<noteq> 0})"
@@ -873,7 +863,7 @@ proof -
   have " - log b (measure MX {x \<in> space MX. Px x \<noteq> 0}) = 
     - log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX)"
     using Px fin
-    by (subst integral_indicator) (auto simp: measure_def borel_measurable_ereal_iff)
+    by (subst integral_real_indicator) (auto simp: measure_def borel_measurable_ereal_iff)
   also have "- log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX) = - log b (\<integral> x. 1 / Px x \<partial>distr M MX X)"
     unfolding distributed_distr_eq_density[OF X] using Px
     apply (intro arg_cong[where f="log b"] arg_cong[where f=uminus])
@@ -889,7 +879,7 @@ proof -
       by (intro positive_integral_cong) (auto split: split_max)
     then show "integrable (distr M MX X) (\<lambda>x. 1 / Px x)"
       unfolding distributed_distr_eq_density[OF X] using Px
-      by (auto simp: positive_integral_density integrable_def borel_measurable_ereal_iff fin positive_integral_max_0
+      by (auto simp: positive_integral_density real_integrable_def borel_measurable_ereal_iff fin positive_integral_max_0
               cong: positive_integral_cong)
     have "integrable MX (\<lambda>x. Px x * log b (1 / Px x)) =
       integrable MX (\<lambda>x. - Px x * log b (Px x))"
@@ -900,7 +890,7 @@ proof -
     then show "integrable (distr M MX X) (\<lambda>x. - log b (1 / Px x))"
       unfolding distributed_distr_eq_density[OF X]
       using Px int
-      by (subst integral_density) (auto simp: borel_measurable_ereal_iff)
+      by (subst integrable_real_density) (auto simp: borel_measurable_ereal_iff)
   qed (auto simp: minus_log_convex[OF b_gt_1])
   also have "\<dots> = (\<integral> x. log b (Px x) \<partial>distr M MX X)"
     unfolding distributed_distr_eq_density[OF X] using Px
@@ -940,11 +930,11 @@ proof (subst entropy_distr[OF X])
   have eq: "(\<integral> x. indicator A x / measure MX A * log b (indicator A x / measure MX A) \<partial>MX) =
     (\<integral> x. (- log b (measure MX A) / measure MX A) * indicator A x \<partial>MX)"
     using measure_nonneg[of MX A] uniform_distributed_params[OF X]
-    by (auto intro!: integral_cong split: split_indicator simp: log_divide_eq)
+    by (intro integral_cong) (auto split: split_indicator simp: log_divide_eq)
   show "- (\<integral> x. indicator A x / measure MX A * log b (indicator A x / measure MX A) \<partial>MX) =
     log b (measure MX A)"
     unfolding eq using uniform_distributed_params[OF X]
-    by (subst lebesgue_integral_cmult) (auto simp: measure_def)
+    by (subst integral_mult_right) (auto simp: measure_def)
 qed
 
 lemma (in information_space) entropy_simple_distributed:
@@ -1068,7 +1058,7 @@ proof -
     unfolding conditional_mutual_information_def
     apply (subst mi_eq)
     apply (subst mutual_information_distr[OF S TP Px Pyz Pxyz])
-    apply (subst integral_diff(2)[symmetric])
+    apply (subst integral_diff[symmetric])
     apply (auto intro!: integral_cong_AE simp: split_beta' simp del: integral_diff)
     done
 
@@ -1104,7 +1094,7 @@ proof -
     apply auto
     done
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
-    by (subst STP.positive_integral_snd_measurable[symmetric]) (auto simp add: split_beta')
+    by (subst STP.positive_integral_snd[symmetric]) (auto simp add: split_beta')
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (Pyz x) * 1 \<partial>T \<Otimes>\<^sub>M P)"
     apply (rule positive_integral_cong_AE)
     using aeX1 aeX2 aeX3 distributed_AE[OF Pyz] AE_space
@@ -1123,7 +1113,7 @@ proof -
   also have "\<dots> < \<infinity>" by simp
   finally have fin: "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> \<infinity>" by simp
 
-  have pos: "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> 0"
+  have pos: "(\<integral>\<^sup>+x. ?f x \<partial>?P) \<noteq> 0"
     apply (subst positive_integral_density)
     apply simp
     apply (rule distributed_AE[OF Pxyz])
@@ -1131,7 +1121,7 @@ proof -
     apply (simp add: split_beta')
   proof
     let ?g = "\<lambda>x. ereal (if Pxyz x = 0 then 0 else Pxz (fst x, snd (snd x)) * Pyz (snd x) / Pz (snd (snd x)))"
-    assume "(\<integral>\<^sup>+ x. ?g x \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)) = 0"
+    assume "(\<integral>\<^sup>+x. ?g x \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)) = 0"
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. ?g x \<le> 0"
       by (intro positive_integral_0_iff_AE[THEN iffD1]) auto
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. Pxyz x = 0"
@@ -1154,19 +1144,32 @@ proof -
     done
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
-    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ integral_diff(1)[OF I1 I2]])
+    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ integrable_diff[OF I1 I2]])
     using ae
     apply (auto simp: split_beta')
     done
 
   have "- log b 1 \<le> - log b (integral\<^sup>L ?P ?f)"
   proof (intro le_imp_neg_le log_le[OF b_gt_1])
-    show "0 < integral\<^sup>L ?P ?f"
-      using neg pos fin positive_integral_positive[of ?P ?f]
-      by (cases "(\<integral>\<^sup>+ x. ?f x \<partial>?P)") (auto simp add: lebesgue_integral_def less_le split_beta')
-    show "integral\<^sup>L ?P ?f \<le> 1"
-      using neg le1 fin positive_integral_positive[of ?P ?f]
-      by (cases "(\<integral>\<^sup>+ x. ?f x \<partial>?P)") (auto simp add: lebesgue_integral_def split_beta' one_ereal_def)
+    have If: "integrable ?P ?f"
+      unfolding real_integrable_def
+    proof (intro conjI)
+      from neg show "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) \<noteq> \<infinity>"
+        by simp
+      from fin show "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> \<infinity>"
+        by simp
+    qed simp
+    then have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) = (\<integral>x. ?f x \<partial>?P)"
+      apply (rule positive_integral_eq_integral)
+      apply (subst AE_density)
+      apply simp
+      using ae5 ae6 ae7 ae8
+      apply eventually_elim
+      apply auto
+      done
+    with positive_integral_positive[of ?P ?f] pos le1
+    show "0 < (\<integral>x. ?f x \<partial>?P)" "(\<integral>x. ?f x \<partial>?P) \<le> 1"
+      by (simp_all add: one_ereal_def)
   qed
   also have "- log b (integral\<^sup>L ?P ?f) \<le> (\<integral> x. - log b (?f x) \<partial>?P)"
   proof (rule P.jensens_inequality[where a=0 and b=1 and I="{0<..}"])
@@ -1175,10 +1178,10 @@ proof -
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
       by eventually_elim (auto)
     show "integrable ?P ?f"
-      unfolding integrable_def 
+      unfolding real_integrable_def 
       using fin neg by (auto simp: split_beta')
     show "integrable ?P (\<lambda>x. - log b (?f x))"
-      apply (subst integral_density)
+      apply (subst integrable_real_density)
       apply simp
       apply (auto intro!: distributed_real_AE[OF Pxyz]) []
       apply simp
@@ -1192,13 +1195,12 @@ proof -
   qed (auto simp: b_gt_1 minus_log_convex)
   also have "\<dots> = conditional_mutual_information b S T P X Y Z"
     unfolding `?eq`
-    apply (subst integral_density)
+    apply (subst integral_real_density)
     apply simp
     apply (auto intro!: distributed_real_AE[OF Pxyz]) []
     apply simp
     apply (intro integral_cong_AE)
     using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
-    apply eventually_elim
     apply (auto simp: log_divide_eq zero_less_mult_iff zero_less_divide_iff field_simps)
     done
   finally show ?nonneg
@@ -1316,7 +1318,7 @@ proof -
     unfolding conditional_mutual_information_def
     apply (subst mi_eq)
     apply (subst mutual_information_distr[OF S TP Px Pyz Pxyz])
-    apply (subst integral_diff(2)[symmetric])
+    apply (subst integral_diff[symmetric])
     apply (auto intro!: integral_cong_AE simp: split_beta' simp del: integral_diff)
     done
 
@@ -1349,8 +1351,7 @@ proof -
     apply auto
     done
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
-    by (subst STP.positive_integral_snd_measurable[symmetric])
-       (auto simp add: split_beta')
+    by (subst STP.positive_integral_snd[symmetric]) (auto simp add: split_beta')
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (Pyz x) * 1 \<partial>T \<Otimes>\<^sub>M P)"
     apply (rule positive_integral_cong_AE)
     using aeX1 aeX2 aeX3 distributed_AE[OF Pyz] AE_space
@@ -1399,19 +1400,32 @@ proof -
     done
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
-    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ integral_diff(1)[OF I1 I2]])
+    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ integrable_diff[OF I1 I2]])
     using ae
     apply (auto simp: split_beta')
     done
 
   have "- log b 1 \<le> - log b (integral\<^sup>L ?P ?f)"
   proof (intro le_imp_neg_le log_le[OF b_gt_1])
-    show "0 < integral\<^sup>L ?P ?f"
-      using neg pos fin positive_integral_positive[of ?P ?f]
-      by (cases "(\<integral>\<^sup>+ x. ?f x \<partial>?P)") (auto simp add: lebesgue_integral_def less_le split_beta')
-    show "integral\<^sup>L ?P ?f \<le> 1"
-      using neg le1 fin positive_integral_positive[of ?P ?f]
-      by (cases "(\<integral>\<^sup>+ x. ?f x \<partial>?P)") (auto simp add: lebesgue_integral_def split_beta' one_ereal_def)
+    have If: "integrable ?P ?f"
+      unfolding real_integrable_def
+    proof (intro conjI)
+      from neg show "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) \<noteq> \<infinity>"
+        by simp
+      from fin show "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> \<infinity>"
+        by simp
+    qed simp
+    then have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) = (\<integral>x. ?f x \<partial>?P)"
+      apply (rule positive_integral_eq_integral)
+      apply (subst AE_density)
+      apply simp
+      using ae5 ae6 ae7 ae8
+      apply eventually_elim
+      apply auto
+      done
+    with positive_integral_positive[of ?P ?f] pos le1
+    show "0 < (\<integral>x. ?f x \<partial>?P)" "(\<integral>x. ?f x \<partial>?P) \<le> 1"
+      by (simp_all add: one_ereal_def)
   qed
   also have "- log b (integral\<^sup>L ?P ?f) \<le> (\<integral> x. - log b (?f x) \<partial>?P)"
   proof (rule P.jensens_inequality[where a=0 and b=1 and I="{0<..}"])
@@ -1420,10 +1434,10 @@ proof -
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
       by eventually_elim (auto)
     show "integrable ?P ?f"
-      unfolding integrable_def
+      unfolding real_integrable_def
       using fin neg by (auto simp: split_beta')
     show "integrable ?P (\<lambda>x. - log b (?f x))"
-      apply (subst integral_density)
+      apply (subst integrable_real_density)
       apply simp
       apply (auto intro!: distributed_real_AE[OF Pxyz]) []
       apply simp
@@ -1437,13 +1451,12 @@ proof -
   qed (auto simp: b_gt_1 minus_log_convex)
   also have "\<dots> = conditional_mutual_information b S T P X Y Z"
     unfolding `?eq`
-    apply (subst integral_density)
+    apply (subst integral_real_density)
     apply simp
     apply (auto intro!: distributed_real_AE[OF Pxyz]) []
     apply simp
     apply (intro integral_cong_AE)
     using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
-    apply eventually_elim
     apply (auto simp: log_divide_eq zero_less_mult_iff zero_less_divide_iff field_simps)
     done
   finally show ?nonneg
@@ -1532,7 +1545,7 @@ abbreviation (in information_space)
   "\<H>(X | Y) \<equiv> conditional_entropy b (count_space (X`space M)) (count_space (Y`space M)) X Y"
 
 lemma (in information_space) conditional_entropy_generic_eq:
-  fixes Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real"
+  fixes Pxy :: "_ \<Rightarrow> real" and Py :: "'c \<Rightarrow> real"
   assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
   assumes Py[measurable]: "distributed M T Y Py"
   assumes Pxy[measurable]: "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) Pxy"
@@ -1552,19 +1565,15 @@ proof -
     unfolding AE_density[OF distributed_borel_measurable, OF Pxy]
     unfolding distributed_distr_eq_density[OF Py]
     apply (rule ST.AE_pair_measure)
-    apply (auto intro!: sets.sets_Collect borel_measurable_eq measurable_compose[OF _ distributed_real_measurable[OF Py]]
-                        distributed_real_measurable[OF Pxy] distributed_real_AE[OF Py]
-                        borel_measurable_real_of_ereal measurable_compose[OF _ borel_measurable_RN_deriv_density])
+    apply auto
     using distributed_RN_deriv[OF Py]
     apply auto
     done    
   ultimately
   have "conditional_entropy b S T X Y = - (\<integral>x. Pxy x * log b (Pxy x / Py (snd x)) \<partial>(S \<Otimes>\<^sub>M T))"
     unfolding conditional_entropy_def neg_equal_iff_equal
-    apply (subst integral_density(1)[symmetric])
-    apply (auto simp: distributed_real_measurable[OF Pxy] distributed_real_AE[OF Pxy]
-                      measurable_compose[OF _ distributed_real_measurable[OF Py]]
-                      distributed_distr_eq_density[OF Pxy]
+    apply (subst integral_real_density[symmetric])
+    apply (auto simp: distributed_real_AE[OF Pxy] distributed_distr_eq_density[OF Pxy]
                 intro!: integral_cong_AE)
     done
   then show ?thesis by (simp add: split_beta')
@@ -1573,8 +1582,8 @@ qed
 lemma (in information_space) conditional_entropy_eq_entropy:
   fixes Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real"
   assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
-  assumes Py: "distributed M T Y Py"
-  assumes Pxy: "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  assumes Py[measurable]: "distributed M T Y Py"
+  assumes Pxy[measurable]: "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) Pxy"
   assumes I1: "integrable (S \<Otimes>\<^sub>M T) (\<lambda>x. Pxy x * log b (Pxy x))"
   assumes I2: "integrable (S \<Otimes>\<^sub>M T) (\<lambda>x. Pxy x * log b (Py (snd x)))"
   shows "conditional_entropy b S T X Y = entropy b (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) - entropy b T Y"
@@ -1606,7 +1615,6 @@ proof -
     unfolding conditional_entropy_generic_eq[OF S T Py Pxy] neg_equal_iff_equal
     apply (intro integral_cong_AE)
     using ae
-    apply eventually_elim
     apply auto
     done
   also have "\<dots> = - (\<integral>x. Pxy x * log b (Pxy x) \<partial>(S \<Otimes>\<^sub>M T)) - - (\<integral>x.  Pxy x * log b (Py (snd x)) \<partial>(S \<Otimes>\<^sub>M T))"
@@ -1702,8 +1710,8 @@ subsection {* Equalities *}
 lemma (in information_space) mutual_information_eq_entropy_conditional_entropy_distr:
   fixes Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real" and Pxy :: "('b \<times> 'c) \<Rightarrow> real"
   assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
-  assumes Px: "distributed M S X Px" and Py: "distributed M T Y Py"
-  assumes Pxy: "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  assumes Px[measurable]: "distributed M S X Px" and Py[measurable]: "distributed M T Y Py"
+  assumes Pxy[measurable]: "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) Pxy"
   assumes Ix: "integrable(S \<Otimes>\<^sub>M T) (\<lambda>x. Pxy x * log b (Px (fst x)))"
   assumes Iy: "integrable(S \<Otimes>\<^sub>M T) (\<lambda>x. Pxy x * log b (Py (snd x)))"
   assumes Ixy: "integrable(S \<Otimes>\<^sub>M T) (\<lambda>x. Pxy x * log b (Pxy x))"
@@ -1758,13 +1766,13 @@ proof -
   have "entropy b S X + entropy b T Y - entropy b (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) = integral\<^sup>L (S \<Otimes>\<^sub>M T) ?f"
     unfolding X Y XY
     apply (subst integral_diff)
-    apply (intro integral_diff Ixy Ix Iy)+
+    apply (intro integrable_diff Ixy Ix Iy)+
     apply (subst integral_diff)
-    apply (intro integral_diff Ixy Ix Iy)+
+    apply (intro Ixy Ix Iy)+
     apply (simp add: field_simps)
     done
   also have "\<dots> = integral\<^sup>L (S \<Otimes>\<^sub>M T) ?g"
-    using `AE x in _. ?f x = ?g x` by (rule integral_cong_AE)
+    using `AE x in _. ?f x = ?g x` by (intro integral_cong_AE) auto
   also have "\<dots> = mutual_information b S T X Y"
     by (rule mutual_information_distr[OF S T Px Py Pxy, symmetric])
   finally show ?thesis ..

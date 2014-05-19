@@ -162,8 +162,8 @@ lemma (in prob_space) exponential_distributed_iff:
   by (auto intro!: exponential_distributedI simp: one_ereal_def emeasure_eq_measure)
 
 lemma borel_integral_x_exp:
-  "(\<integral>x. x * exp (- x) * indicator {0::real ..} x \<partial>lborel) = 1"
-proof (rule integral_monotone_convergence)
+  "has_bochner_integral lborel (\<lambda>x. x * exp (- x) * indicator {0::real ..} x) 1"
+proof (rule has_bochner_integral_monotone_convergence)
   let ?f = "\<lambda>i x. x * exp (- x) * indicator {0::real .. i} x"
   have "eventually (\<lambda>b::real. 0 \<le> b) at_top"
     by (rule eventually_ge_at_top)
@@ -172,7 +172,7 @@ proof (rule integral_monotone_convergence)
    fix b :: real assume [simp]: "0 \<le> b"
     have "(\<integral>x. (exp (-x)) * indicator {0 .. b} x \<partial>lborel) - (integral\<^sup>L lborel (?f b)) = 
       (\<integral>x. (exp (-x) - x * exp (-x)) * indicator {0 .. b} x \<partial>lborel)"
-      by (subst integral_diff(2)[symmetric])
+      by (subst integral_diff[symmetric])
          (auto intro!: borel_integrable_atLeastAtMost integral_cong split: split_indicator)
     also have "\<dots> = b * exp (-b) - 0 * exp (- 0)"
     proof (rule integral_FTC_atLeastAtMost)
@@ -217,9 +217,11 @@ proof (subst distributed_integral[OF D, of "\<lambda>x. x", symmetric])
     using `0 < l`
     by (auto split: split_indicator simp: zero_le_mult_iff exponential_density_def)
   from borel_integral_x_exp `0 < l`
-  show "(\<integral> x. exponential_density l x * x \<partial>lborel) = 1 / l"
-    by (subst (asm) lebesgue_integral_real_affine[of "l" _ 0])
-       (simp_all add: borel_measurable_exp nonzero_eq_divide_eq ac_simps)
+  have "has_bochner_integral lborel (\<lambda>x. exponential_density l x * x) (1 / l)"
+    by (subst (asm) lborel_has_bochner_integral_real_affine_iff[of l _ _ 0])
+       (simp_all add: field_simps)
+  then show "(\<integral> x. exponential_density l x * x \<partial>lborel) = 1 / l"
+    by (metis has_bochner_integral_integral_eq)
 qed simp
 
 subsection {* Uniform distribution *}
@@ -356,7 +358,9 @@ lemma (in prob_space) uniform_distributed_iff:
     uniform_distributed_bounds[of X a b]
     uniform_distributed_measure[of X a b]
     distributed_measurable[of M lborel X]
-  by (auto intro!: uniform_distrI_borel_atLeastAtMost simp: one_ereal_def emeasure_eq_measure)
+  by (auto intro!: uniform_distrI_borel_atLeastAtMost 
+              simp: one_ereal_def emeasure_eq_measure
+              simp del: measure_lborel)
 
 lemma (in prob_space) uniform_distributed_expectation:
   fixes a b :: real

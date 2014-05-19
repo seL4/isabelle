@@ -125,6 +125,9 @@ next
   finally show ?case .
 qed
 
+lemma infinite: "\<not> finite A \<Longrightarrow> F A = the None"
+  unfolding eq_fold' by (cases "finite (UNIV::'a set)") (auto intro: finite_subset fold_infinite)
+
 end
 
 locale semilattice_order_set = binary?: semilattice_order + semilattice_set
