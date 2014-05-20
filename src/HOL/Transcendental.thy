@@ -10,6 +10,32 @@ theory Transcendental
 imports Fact Series Deriv NthRoot
 begin
 
+lemma root_test_convergence:
+  fixes f :: "nat \<Rightarrow> 'a::banach"
+  assumes f: "(\<lambda>n. root n (norm (f n))) ----> x" -- "could be weakened to lim sup"
+  assumes "x < 1"
+  shows "summable f"
+proof -
+  have "0 \<le> x"
+    by (rule LIMSEQ_le[OF tendsto_const f]) (auto intro!: exI[of _ 1])
+  from `x < 1` obtain z where z: "x < z" "z < 1"
+    by (metis dense)
+  from f `x < z`
+  have "eventually (\<lambda>n. root n (norm (f n)) < z) sequentially"
+    by (rule order_tendstoD)
+  then have "eventually (\<lambda>n. norm (f n) \<le> z^n) sequentially"
+    using eventually_ge_at_top
+  proof eventually_elim
+    fix n assume less: "root n (norm (f n)) < z" and n: "1 \<le> n"
+    from power_strict_mono[OF less, of n] n
+    show "norm (f n) \<le> z ^ n"
+      by simp
+  qed
+  then show "summable f"
+    unfolding eventually_sequentially
+    using z `0 \<le> x` by (auto intro!: summable_comparison_test[OF _  summable_geometric])
+qed
+
 subsection {* Properties of Power Series *}
 
 lemma lemma_realpow_diff:

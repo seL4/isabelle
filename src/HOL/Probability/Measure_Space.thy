@@ -1632,14 +1632,23 @@ lemma null_sets_count_space: "null_sets (count_space A) = { {} }"
 lemma AE_count_space: "(AE x in count_space A. P x) \<longleftrightarrow> (\<forall>x\<in>A. P x)"
   unfolding eventually_ae_filter by (auto simp add: null_sets_count_space)
 
-lemma sigma_finite_measure_count_space:
-  fixes A :: "'a::countable set"
+lemma sigma_finite_measure_count_space_countable:
+  assumes A: "countable A"
   shows "sigma_finite_measure (count_space A)"
 proof
   show "\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> sets (count_space A) \<and> (\<Union>i. F i) = space (count_space A) \<and>
      (\<forall>i. emeasure (count_space A) (F i) \<noteq> \<infinity>)"
-     using surj_from_nat by (intro exI[of _ "\<lambda>i. {from_nat i} \<inter> A"]) (auto simp del: surj_from_nat)
+     using A
+     apply (intro exI[of _ "\<lambda>i. {from_nat_into A i} \<inter> A"])
+     apply auto
+     apply (rule_tac x="to_nat_on A x" in exI)
+     apply simp
+     done
 qed
+
+lemma sigma_finite_measure_count_space:
+  fixes A :: "'a::countable set" shows "sigma_finite_measure (count_space A)"
+  by (rule sigma_finite_measure_count_space_countable) auto
 
 lemma finite_measure_count_space:
   assumes [simp]: "finite A"
@@ -1656,28 +1665,26 @@ qed
 subsection {* Measure restricted to space *}
 
 lemma emeasure_restrict_space:
-  assumes "\<Omega> \<in> sets M" "A \<subseteq> \<Omega>"
+  assumes "\<Omega> \<inter> space M \<in> sets M" "A \<subseteq> \<Omega>"
   shows "emeasure (restrict_space M \<Omega>) A = emeasure M A"
 proof cases
   assume "A \<in> sets M"
-  
-  have "emeasure (restrict_space M \<Omega>) A = emeasure M (A \<inter> \<Omega>)"
+  show ?thesis
   proof (rule emeasure_measure_of[OF restrict_space_def])
-    show "op \<inter> \<Omega> ` sets M \<subseteq> Pow \<Omega>" "A \<in> sets (restrict_space M \<Omega>)"
-      using assms `A \<in> sets M` by (auto simp: sets_restrict_space sets.sets_into_space)
-    show "positive (sets (restrict_space M \<Omega>)) (\<lambda>A. emeasure M (A \<inter> \<Omega>))"
+    show "op \<inter> \<Omega> ` sets M \<subseteq> Pow (\<Omega> \<inter> space M)" "A \<in> sets (restrict_space M \<Omega>)"
+      using `A \<subseteq> \<Omega>` `A \<in> sets M` sets.space_closed by (auto simp: sets_restrict_space)
+    show "positive (sets (restrict_space M \<Omega>)) (emeasure M)"
       by (auto simp: positive_def emeasure_nonneg)
-    show "countably_additive (sets (restrict_space M \<Omega>)) (\<lambda>A. emeasure M (A \<inter> \<Omega>))"
+    show "countably_additive (sets (restrict_space M \<Omega>)) (emeasure M)"
     proof (rule countably_additiveI)
       fix A :: "nat \<Rightarrow> _" assume "range A \<subseteq> sets (restrict_space M \<Omega>)" "disjoint_family A"
       with assms have "\<And>i. A i \<in> sets M" "\<And>i. A i \<subseteq> space M" "disjoint_family A"
-        by (auto simp: sets_restrict_space_iff subset_eq dest: sets.sets_into_space)
-      with `\<Omega> \<in> sets M` show "(\<Sum>i. emeasure M (A i \<inter> \<Omega>)) = emeasure M ((\<Union>i. A i) \<inter> \<Omega>)"
+        by (fastforce simp: sets_restrict_space_iff[OF assms(1)] image_subset_iff
+                      dest: sets.sets_into_space)+
+      then show "(\<Sum>i. emeasure M (A i)) = emeasure M (\<Union>i. A i)"
         by (subst suminf_emeasure) (auto simp: disjoint_family_subset)
     qed
   qed
-  with `A \<subseteq> \<Omega>` show ?thesis
-    by (simp add: Int_absorb2)
 next
   assume "A \<notin> sets M"
   moreover with assms have "A \<notin> sets (restrict_space M \<Omega>)"
@@ -1686,15 +1693,28 @@ next
     by (simp add: emeasure_notin_sets)
 qed
 
-lemma restrict_count_space:
-  assumes "A \<subseteq> B" shows "restrict_space (count_space B) A = count_space A"
+lemma restrict_restrict_space:
+  assumes "A \<inter> space M \<in> sets M" "B \<inter> space M \<in> sets M"
+  shows "restrict_space (restrict_space M A) B = restrict_space M (A \<inter> B)" (is "?l = ?r")
+proof (rule measure_eqI[symmetric])
+  show "sets ?r = sets ?l"
+    unfolding sets_restrict_space image_comp by (intro image_cong) auto
+next
+  fix X assume "X \<in> sets (restrict_space M (A \<inter> B))"
+  then obtain Y where "Y \<in> sets M" "X = Y \<inter> A \<inter> B"
+    by (auto simp: sets_restrict_space)
+  with assms sets.Int[OF assms] show "emeasure ?r X = emeasure ?l X"
+    by (subst (1 2) emeasure_restrict_space)
+       (auto simp: space_restrict_space sets_restrict_space_iff emeasure_restrict_space ac_simps)
+qed
+
+lemma restrict_count_space: "restrict_space (count_space B) A = count_space (A \<inter> B)"
 proof (rule measure_eqI)
-  show "sets (restrict_space (count_space B) A) = sets (count_space A)"
-    using `A \<subseteq> B` by (subst sets_restrict_space) auto
+  show "sets (restrict_space (count_space B) A) = sets (count_space (A \<inter> B))"
+    by (subst sets_restrict_space) auto
   moreover fix X assume "X \<in> sets (restrict_space (count_space B) A)"
-  moreover note `A \<subseteq> B`
-  ultimately have "X \<subseteq> A" by auto
-  with `A \<subseteq> B` show "emeasure (restrict_space (count_space B) A) X = emeasure (count_space A) X"
+  ultimately have "X \<subseteq> A \<inter> B" by auto
+  then show "emeasure (restrict_space (count_space B) A) X = emeasure (count_space (A \<inter> B)) X"
     by (cases "finite X") (auto simp add: emeasure_restrict_space)
 qed
 

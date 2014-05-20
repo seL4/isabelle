@@ -1519,6 +1519,39 @@ lemma integral_mono:
     integral\<^sup>L M f \<le> integral\<^sup>L M g"
   by (intro integral_mono_AE) auto
 
+lemma (in finite_measure) integrable_measure: 
+  assumes I: "disjoint_family_on X I" "countable I"
+  shows "integrable (count_space I) (\<lambda>i. measure M (X i))"
+proof -
+  have "(\<integral>\<^sup>+i. measure M (X i) \<partial>count_space I) = (\<integral>\<^sup>+i. measure M (if X i \<in> sets M then X i else {}) \<partial>count_space I)"
+    by (auto intro!: nn_integral_cong measure_notin_sets)
+  also have "\<dots> = measure M (\<Union>i\<in>I. if X i \<in> sets M then X i else {})"
+    using I unfolding emeasure_eq_measure[symmetric]
+    by (subst emeasure_UN_countable) (auto simp: disjoint_family_on_def)
+  finally show ?thesis
+    by (auto intro!: integrableI_bounded simp: measure_nonneg)
+qed
+
+lemma integrableI_real_bounded:
+  assumes f: "f \<in> borel_measurable M" and ae: "AE x in M. 0 \<le> f x" and fin: "integral\<^sup>N M f < \<infinity>"
+  shows "integrable M f"
+proof (rule integrableI_bounded)
+  have "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) = \<integral>\<^sup>+ x. ereal (f x) \<partial>M"
+    using ae by (auto intro: nn_integral_cong_AE)
+  also note fin
+  finally show "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>" .
+qed fact
+
+lemma integral_real_bounded:
+  assumes "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x" "integral\<^sup>N M f \<le> ereal r"
+  shows "integral\<^sup>L M f \<le> r"
+proof -
+  have "integrable M f"
+    using assms by (intro integrableI_real_bounded) auto
+  from nn_integral_eq_integral[OF this] assms show ?thesis
+    by simp
+qed
+
 subsection {* Measure spaces with an associated density *}
 
 lemma integrable_density:

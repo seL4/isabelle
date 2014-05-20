@@ -745,8 +745,7 @@ syntax
 translations
   "\<integral>\<^sup>+x. f \<partial>M" == "CONST nn_integral M (\<lambda>x. f)"
 
-lemma nn_integral_nonneg:
-  "0 \<le> integral\<^sup>N M f"
+lemma nn_integral_nonneg: "0 \<le> integral\<^sup>N M f"
   by (auto intro!: SUP_upper2[of "\<lambda>x. 0"] simp: nn_integral_def le_fun_def)
 
 lemma nn_integral_not_MInfty[simp]: "integral\<^sup>N M f \<noteq> -\<infinity>"
@@ -1389,6 +1388,20 @@ proof -
     by (rule ereal_mono_minus_cancel) (intro w nn_integral_nonneg)+
 qed
 
+lemma nn_integral_LIMSEQ:
+  assumes f: "incseq f" "\<And>i. f i \<in> borel_measurable M" "\<And>n x. 0 \<le> f n x"
+    and u: "\<And>x. (\<lambda>i. f i x) ----> u x"
+  shows "(\<lambda>n. integral\<^sup>N M (f n)) ----> integral\<^sup>N M u"
+proof -
+  have "(\<lambda>n. integral\<^sup>N M (f n)) ----> (SUP n. integral\<^sup>N M (f n))"
+    using f by (intro LIMSEQ_SUP[of "\<lambda>n. integral\<^sup>N M (f n)"] incseq_nn_integral)
+  also have "(SUP n. integral\<^sup>N M (f n)) = integral\<^sup>N M (\<lambda>x. SUP n. f n x)"
+    using f by (intro nn_integral_monotone_convergence_SUP[symmetric])
+  also have "integral\<^sup>N M (\<lambda>x. SUP n. f n x) = integral\<^sup>N M (\<lambda>x. u x)"
+    using f by (subst SUP_Lim_ereal[OF _ u]) (auto simp: incseq_def le_fun_def)
+  finally show ?thesis .
+qed
+
 lemma nn_integral_dominated_convergence:
   assumes [measurable]:
        "\<And>i. u i \<in> borel_measurable M" "u' \<in> borel_measurable M" "w \<in> borel_measurable M"
@@ -1667,6 +1680,56 @@ next
   qed
   finally show ?thesis .
 qed
+
+lemma nn_integral_count_space_nat:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes nonneg: "\<And>i. 0 \<le> f i"
+  shows "(\<integral>\<^sup>+i. f i \<partial>count_space UNIV) = (\<Sum>i. f i)"
+proof -
+  have "(\<integral>\<^sup>+i. f i \<partial>count_space UNIV) =
+    (\<integral>\<^sup>+i. (\<Sum>j. f j * indicator {j} i) \<partial>count_space UNIV)"
+  proof (intro nn_integral_cong)
+    fix i
+    have "f i = (\<Sum>j\<in>{i}. f j * indicator {j} i)"
+      by simp
+    also have "\<dots> = (\<Sum>j. f j * indicator {j} i)"
+      by (rule suminf_finite[symmetric]) auto
+    finally show "f i = (\<Sum>j. f j * indicator {j} i)" .
+  qed
+  also have "\<dots> = (\<Sum>j. (\<integral>\<^sup>+i. f j * indicator {j} i \<partial>count_space UNIV))"
+    by (rule nn_integral_suminf) (auto simp: nonneg)
+  also have "\<dots> = (\<Sum>j. f j)"
+    by (simp add: nonneg nn_integral_cmult_indicator one_ereal_def[symmetric])
+  finally show ?thesis .
+qed
+
+lemma emeasure_countable_singleton:
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M" and X: "countable X"
+  shows "emeasure M X = (\<integral>\<^sup>+x. emeasure M {x} \<partial>count_space X)"
+proof -
+  have "emeasure M (\<Union>i\<in>X. {i}) = (\<integral>\<^sup>+x. emeasure M {x} \<partial>count_space X)"
+    using assms by (intro emeasure_UN_countable) (auto simp: disjoint_family_on_def)
+  also have "(\<Union>i\<in>X. {i}) = X" by auto
+  finally show ?thesis .
+qed
+
+lemma measure_eqI_countable:
+  assumes [simp]: "sets M = Pow A" "sets N = Pow A" and A: "countable A"
+  assumes eq: "\<And>a. a \<in> A \<Longrightarrow> emeasure M {a} = emeasure N {a}"
+  shows "M = N"
+proof (rule measure_eqI)
+  fix X assume "X \<in> sets M"
+  then have X: "X \<subseteq> A" by auto
+  moreover with A have "countable X" by (auto dest: countable_subset)
+  ultimately have
+    "emeasure M X = (\<integral>\<^sup>+a. emeasure M {a} \<partial>count_space X)"
+    "emeasure N X = (\<integral>\<^sup>+a. emeasure N {a} \<partial>count_space X)"
+    by (auto intro!: emeasure_countable_singleton)
+  moreover have "(\<integral>\<^sup>+a. emeasure M {a} \<partial>count_space X) = (\<integral>\<^sup>+a. emeasure N {a} \<partial>count_space X)"
+    using X by (intro nn_integral_cong eq) auto
+  ultimately show "emeasure M X = emeasure N X"
+    by simp
+qed simp
 
 subsubsection {* Measures with Restricted Space *}
 

@@ -700,5 +700,41 @@ proof -
       by simp
   qed
 qed
+  
+lemma sets_pair_countable:
+  assumes "countable S1" "countable S2"
+  assumes M: "sets M = Pow S1" and N: "sets N = Pow S2"
+  shows "sets (M \<Otimes>\<^sub>M N) = Pow (S1 \<times> S2)"
+proof auto
+  fix x a b assume x: "x \<in> sets (M \<Otimes>\<^sub>M N)" "(a, b) \<in> x"
+  from sets.sets_into_space[OF x(1)] x(2)
+    sets_eq_imp_space_eq[of N "count_space S2"] sets_eq_imp_space_eq[of M "count_space S1"] M N
+  show "a \<in> S1" "b \<in> S2"
+    by (auto simp: space_pair_measure)
+next
+  fix X assume X: "X \<subseteq> S1 \<times> S2"
+  then have "countable X"
+    by (metis countable_subset `countable S1` `countable S2` countable_SIGMA)
+  have "X = (\<Union>(a, b)\<in>X. {a} \<times> {b})" by auto
+  also have "\<dots> \<in> sets (M \<Otimes>\<^sub>M N)"
+    using X
+    by (safe intro!: sets.countable_UN' `countable X` subsetI pair_measureI) (auto simp: M N)
+  finally show "X \<in> sets (M \<Otimes>\<^sub>M N)" .
+qed
+
+lemma pair_measure_countable:
+  assumes "countable S1" "countable S2"
+  shows "count_space S1 \<Otimes>\<^sub>M count_space S2 = count_space (S1 \<times> S2)"
+proof (rule pair_measure_eqI)
+  show "sigma_finite_measure (count_space S1)" "sigma_finite_measure (count_space S2)"
+    using assms by (auto intro!: sigma_finite_measure_count_space_countable)
+  show "sets (count_space S1 \<Otimes>\<^sub>M count_space S2) = sets (count_space (S1 \<times> S2))"
+    by (subst sets_pair_countable[OF assms]) auto
+next
+  fix A B assume "A \<in> sets (count_space S1)" "B \<in> sets (count_space S2)"
+  then show "emeasure (count_space S1) A * emeasure (count_space S2) B = 
+    emeasure (count_space (S1 \<times> S2)) (A \<times> B)"
+    by (subst (1 2 3) emeasure_count_space) (auto simp: finite_cartesian_product_iff)
+qed
 
 end

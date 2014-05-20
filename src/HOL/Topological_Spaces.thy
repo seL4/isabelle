@@ -1230,6 +1230,22 @@ lemma filterlim_at_split:
   "filterlim f F (at (x::'a::linorder_topology)) \<longleftrightarrow> filterlim f F (at_left x) \<and> filterlim f F (at_right x)"
   by (subst at_eq_sup_left_right) (simp add: filterlim_def filtermap_sup)
 
+lemma eventually_nhds_top:
+  fixes P :: "'a :: {order_top, linorder_topology} \<Rightarrow> bool"
+  assumes "(b::'a) < top"
+  shows "eventually P (nhds top) \<longleftrightarrow> (\<exists>b<top. (\<forall>z. b < z \<longrightarrow> P z))"
+  unfolding eventually_nhds
+proof safe
+  fix S :: "'a set" assume "open S" "top \<in> S"
+  note open_left[OF this `b < top`]
+  moreover assume "\<forall>s\<in>S. P s"
+  ultimately show "\<exists>b<top. \<forall>z>b. P z"
+    by (auto simp: subset_eq Ball_def)
+next
+  fix b assume "b < top" "\<forall>z>b. P z"
+  then show "\<exists>S. open S \<and> top \<in> S \<and> (\<forall>xa\<in>S. P xa)"
+    by (intro exI[of _ "{b <..}"]) auto
+qed
 
 subsection {* Limits on sequences *}
 
@@ -1723,6 +1739,50 @@ lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::'a::first_countable_topology) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
    (X -- a --> (L::'b::topological_space))"
   using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
+
+lemma sequentially_imp_eventually_at_left:
+  fixes a :: "'a :: {dense_linorder, linorder_topology, first_countable_topology}"
+  assumes b[simp]: "b < a"
+  assumes *: "\<And>f. (\<And>n. b < f n) \<Longrightarrow> (\<And>n. f n < a) \<Longrightarrow> incseq f \<Longrightarrow> f ----> a \<Longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
+  shows "eventually P (at_left a)"
+proof (safe intro!: sequentially_imp_eventually_within)
+  fix X assume X: "\<forall>n. X n \<in> {..<a} \<and> X n \<noteq> a" "X ----> a"
+  show "eventually (\<lambda>n. P (X n)) sequentially"
+  proof (rule ccontr)
+    assume "\<not> eventually (\<lambda>n. P (X n)) sequentially"
+    from not_eventually_sequentiallyD[OF this]
+    obtain r where "subseq r" "\<And>n. \<not> P (X (r n))"
+      by auto
+    with X have "(X \<circ> r) ----> a"
+      by (auto intro: LIMSEQ_subseq_LIMSEQ)
+    from order_tendstoD(1)[OF this] obtain s' where s': "\<And>b i. b < a \<Longrightarrow> s' b \<le> i \<Longrightarrow> b < X (r i)"
+      unfolding eventually_sequentially comp_def by metis
+    def s \<equiv> "rec_nat (s' b) (\<lambda>_ i. max (s' (X (r i))) (Suc i))"
+    then have [simp]: "s 0 = s' b" "\<And>n. s (Suc n) = max (s' (X (r (s n)))) (Suc (s n))"
+      by auto
+    have "eventually (\<lambda>n. P (((X \<circ> r) \<circ> s) n)) sequentially"
+    proof (rule *)
+      from X show inc: "incseq (X \<circ> r \<circ> s)"
+        unfolding incseq_Suc_iff comp_def by (intro allI s'[THEN less_imp_le]) auto
+      { fix n show "b < (X \<circ> r \<circ> s) n"
+          using inc[THEN incseqD, of 0 n] s'[OF b order_refl] by simp }
+      { fix n show "(X \<circ> r \<circ> s) n < a"
+          using X by simp }
+      from `(X \<circ> r) ----> a` show "(X \<circ> r \<circ> s) ----> a"
+        by (rule LIMSEQ_subseq_LIMSEQ) (auto simp: subseq_Suc_iff)
+    qed
+    with `\<And>n. \<not> P (X (r n))` show False
+      by auto
+  qed
+qed
+
+lemma tendsto_at_left_sequentially:
+  fixes a :: "_ :: {dense_linorder, linorder_topology, first_countable_topology}"
+  assumes "b < a"
+  assumes *: "\<And>S. (\<And>n. S n < a) \<Longrightarrow> (\<And>n. b < S n) \<Longrightarrow> incseq S \<Longrightarrow> S ----> a \<Longrightarrow> (\<lambda>n. X (S n)) ----> L"
+  shows "(X ---> L) (at_left a)"
+  using assms unfolding tendsto_def [where l=L]
+  by (simp add: sequentially_imp_eventually_at_left)
 
 subsection {* Continuity *}
 

@@ -330,6 +330,31 @@ lemma measurable_count_space_insert[measurable (raw)]:
   "s \<in> S \<Longrightarrow> A \<in> sets (count_space S) \<Longrightarrow> insert s A \<in> sets (count_space S)"
   by simp
 
+lemma measurable_card[measurable]:
+  fixes S :: "'a \<Rightarrow> nat set"
+  assumes [measurable]: "\<And>i. {x\<in>space M. i \<in> S x} \<in> sets M"
+  shows "(\<lambda>x. card (S x)) \<in> measurable M (count_space UNIV)"
+  unfolding measurable_count_space_eq2_countable
+proof safe
+  fix n show "(\<lambda>x. card (S x)) -` {n} \<inter> space M \<in> sets M"
+  proof (cases n)
+    case 0
+    then have "(\<lambda>x. card (S x)) -` {n} \<inter> space M = {x\<in>space M. infinite (S x) \<or> (\<forall>i. i \<notin> S x)}"
+      by auto
+    also have "\<dots> \<in> sets M"
+      by measurable
+    finally show ?thesis .
+  next
+    case (Suc i)
+    then have "(\<lambda>x. card (S x)) -` {n} \<inter> space M =
+      (\<Union>F\<in>{A\<in>{A. finite A}. card A = n}. {x\<in>space M. (\<forall>i. i \<in> S x \<longleftrightarrow> i \<in> F)})"
+      unfolding set_eq_iff[symmetric] Collect_bex_eq[symmetric] by (auto intro: card_ge_0_finite)
+    also have "\<dots> \<in> sets M"
+      by (intro sets.countable_UN' countable_Collect countable_Collect_finite) auto
+    finally show ?thesis .
+  qed
+qed rule
+
 subsection {* Measurability for (co)inductive predicates *}
 
 lemma measurable_lfp:

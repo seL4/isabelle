@@ -111,6 +111,26 @@ proof -
   then show False by auto
 qed
 
+lemma (in prob_space) integral_ge_const:
+  fixes c :: real
+  shows "integrable M f \<Longrightarrow> (AE x in M. c \<le> f x) \<Longrightarrow> c \<le> (\<integral>x. f x \<partial>M)"
+  using integral_mono_AE[of M "\<lambda>x. c" f] prob_space by simp
+
+lemma (in prob_space) integral_le_const:
+  fixes c :: real
+  shows "integrable M f \<Longrightarrow> (AE x in M. f x \<le> c) \<Longrightarrow> (\<integral>x. f x \<partial>M) \<le> c"
+  using integral_mono_AE[of M f "\<lambda>x. c"] prob_space by simp
+
+lemma (in prob_space) nn_integral_ge_const:
+  "(AE x in M. c \<le> f x) \<Longrightarrow> c \<le> (\<integral>\<^sup>+x. f x \<partial>M)"
+  using nn_integral_mono_AE[of "\<lambda>x. c" f M] emeasure_space_1
+  by (simp add: nn_integral_const_If split: split_if_asm)
+
+lemma (in prob_space) nn_integral_le_const:
+  "0 \<le> c \<Longrightarrow> (AE x in M. f x \<le> c) \<Longrightarrow> (\<integral>\<^sup>+x. f x \<partial>M) \<le> c"
+  using nn_integral_mono_AE[of f "\<lambda>x. c" M] emeasure_space_1
+  by (simp add: nn_integral_const_If split: split_if_asm)
+
 lemma (in prob_space) expectation_less:
   fixes X :: "_ \<Rightarrow> real"
   assumes [simp]: "integrable M X"

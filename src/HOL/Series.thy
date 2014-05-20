@@ -316,6 +316,21 @@ lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f ----> 0"
 
 end
 
+context
+  fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::real_normed_vector" and I :: "'i set"
+begin
+
+lemma sums_setsum: "(\<And>i. i \<in> I \<Longrightarrow> (f i) sums (x i)) \<Longrightarrow> (\<lambda>n. \<Sum>i\<in>I. f i n) sums (\<Sum>i\<in>I. x i)"
+  by (induct I rule: infinite_finite_induct) (auto intro!: sums_add)
+
+lemma suminf_setsum: "(\<And>i. i \<in> I \<Longrightarrow> summable (f i)) \<Longrightarrow> (\<Sum>n. \<Sum>i\<in>I. f i n) = (\<Sum>i\<in>I. \<Sum>n. f i n)"
+  using sums_unique[OF sums_setsum, OF summable_sums] by simp
+
+lemma summable_setsum: "(\<And>i. i \<in> I \<Longrightarrow> summable (f i)) \<Longrightarrow> summable (\<lambda>n. \<Sum>i\<in>I. f i n)"
+  using sums_summable[OF sums_setsum[OF summable_sums]] .
+
+end
+
 lemma (in bounded_linear) sums: "(\<lambda>n. X n) sums a \<Longrightarrow> (\<lambda>n. f (X n)) sums (f a)"
   unfolding sums_def by (drule tendsto, simp only: setsum)
 

@@ -415,10 +415,13 @@ proof -
     by (auto simp add: finite_conv_nat_seg_image)
 qed
 
+lemma finite_cartesian_product_iff:
+  "finite (A \<times> B) \<longleftrightarrow> (A = {} \<or> B = {} \<or> (finite A \<and> finite B))"
+  by (auto dest: finite_cartesian_productD1 finite_cartesian_productD2 finite_cartesian_product)
+
 lemma finite_prod: 
   "finite (UNIV :: ('a \<times> 'b) set) \<longleftrightarrow> finite (UNIV :: 'a set) \<and> finite (UNIV :: 'b set)"
-by(auto simp add: UNIV_Times_UNIV[symmetric] simp del: UNIV_Times_UNIV 
-   dest: finite_cartesian_productD1 finite_cartesian_productD2)
+  using finite_cartesian_product_iff[of UNIV UNIV] by simp
 
 lemma finite_Pow_iff [iff]:
   "finite (Pow A) \<longleftrightarrow> finite A"

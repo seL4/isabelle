@@ -2168,6 +2168,10 @@ proof -
     by (auto simp: order_tendsto_iff)
 qed
 
+lemma tendsto_PInfty_eq_at_top:
+  "((\<lambda>z. ereal (f z)) ---> \<infinity>) F \<longleftrightarrow> (LIM z F. f z :> at_top)"
+  unfolding tendsto_PInfty filterlim_at_top_dense by simp
+
 lemma tendsto_MInfty: "(f ---> -\<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. f x < ereal r) F)"
   unfolding tendsto_def
 proof safe

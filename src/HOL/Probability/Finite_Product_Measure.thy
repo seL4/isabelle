@@ -497,6 +497,10 @@ proof (rule measurable_PiM_single)
     using A X by (auto intro!: measurable_sets)
 qed (insert X, auto simp add: PiE_def dest: measurable_space)
 
+lemma measurable_abs_UNIV: 
+  "(\<And>n. (\<lambda>\<omega>. f n \<omega>) \<in> measurable M (N n)) \<Longrightarrow> (\<lambda>\<omega> n. f n \<omega>) \<in> measurable M (PiM UNIV N)"
+  by (intro measurable_PiM_single) (auto dest: measurable_space)
+
 lemma measurable_restrict_subset: "J \<subseteq> L \<Longrightarrow> (\<lambda>f. restrict f J) \<in> measurable (Pi\<^sub>M L M) (Pi\<^sub>M J M)"
   by (intro measurable_restrict measurable_component_singleton) auto
 

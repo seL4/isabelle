@@ -1220,6 +1220,39 @@ lemma min_Liminf_at:
   by (metis INF_absorb centre_in_ball)
 
 
+lemma suminf_ereal_offset_le:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes f: "\<And>i. 0 \<le> f i"
+  shows "(\<Sum>i. f (i + k)) \<le> suminf f"
+proof -
+  have "(\<lambda>n. \<Sum>i<n. f (i + k)) ----> (\<Sum>i. f (i + k))"
+    using summable_sums[OF summable_ereal_pos] by (simp add: sums_def atLeast0LessThan f)
+  moreover have "(\<lambda>n. \<Sum>i<n. f i) ----> (\<Sum>i. f i)"
+    using summable_sums[OF summable_ereal_pos] by (simp add: sums_def atLeast0LessThan f)
+  then have "(\<lambda>n. \<Sum>i<n + k. f i) ----> (\<Sum>i. f i)"
+    by (rule LIMSEQ_ignore_initial_segment)
+  ultimately show ?thesis
+  proof (rule LIMSEQ_le, safe intro!: exI[of _ k])
+    fix n assume "k \<le> n"
+    have "(\<Sum>i<n. f (i + k)) = (\<Sum>i<n. (f \<circ> (\<lambda>i. i + k)) i)"
+      by simp
+    also have "\<dots> = (\<Sum>i\<in>(\<lambda>i. i + k) ` {..<n}. f i)"
+      by (subst setsum_reindex) auto
+    also have "\<dots> \<le> setsum f {..<n + k}"
+      by (intro setsum_mono3) (auto simp: f)
+    finally show "(\<Sum>i<n. f (i + k)) \<le> setsum f {..<n + k}" .
+  qed
+qed
+
+lemma sums_suminf_ereal: "f sums x \<Longrightarrow> (\<Sum>i. ereal (f i)) = ereal x"
+  by (metis sums_ereal sums_unique)
+
+lemma suminf_ereal': "summable f \<Longrightarrow> (\<Sum>i. ereal (f i)) = ereal (\<Sum>i. f i)"
+  by (metis sums_ereal sums_unique summable_def)
+
+lemma suminf_ereal_finite: "summable f \<Longrightarrow> (\<Sum>i. ereal (f i)) \<noteq> \<infinity>"
+  by (auto simp: sums_ereal[symmetric] summable_def sums_unique[symmetric])
+
 subsection {* monoset *}
 
 definition (in order) mono_set:

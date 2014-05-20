@@ -39,6 +39,7 @@ imports
   Monad_Syntax
   Multiset
   Numeral_Type
+  NthRoot_Limits
   OptionalSugar
   Option_ord
   Order_Continuity
