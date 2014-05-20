@@ -403,8 +403,7 @@ and it cannot learn.
 \item[\labelitemi]
 An experimental alternative to MePo is \emph{MaSh}
 (\underline{Ma}chine Learner for \underline{S}ledge\underline{h}ammer). It
-relies on an external Python tool that applies machine learning to
-the problem of finding relevant facts.
+applies machine learning to the problem of finding relevant facts.
 
 \item[\labelitemi] The \emph{MeSh} filter combines MePo and MaSh.
 \end{enum}
@@ -1068,10 +1067,19 @@ Specifies the relevance filter to use. The following filters are available:
 The traditional memoryless MePo relevance filter.
 
 \item[\labelitemi] \textbf{\textit{mash}:}
-The experimental MaSh machine learner. MaSh relies on the external Python
-program \texttt{mash.py}, which is part of Isabelle. To enable MaSh, set the
-environment variable \texttt{MASH} to \texttt{yes}. Persistent data is stored in
-the directory \texttt{\$ISABELLE\_HOME\_USER/mash}.
+The experimental MaSh machine learner.
+Two learning engines are provided:
+
+\begin{enum}
+\item[\labelitemi] \emph{sml} (also called \emph{sml\_knn}) refers to a Standard ML implementation
+of $k$-nearest neighbors.
+
+\item[\labelitemi] \emph{py} (also called \emph{yes}) refers to a Python implementation of naive
+Bayes. The program is included with Isabelle as \texttt{mash.py}.
+\end{enum}
+
+To enable MaSh, set the environment variable \texttt{MASH} to the name of the desired engine.
+Persistent data for both engines is stored in the directory \texttt{\$ISABELLE\_HOME\_USER/mash}.
 
 \item[\labelitemi] \textbf{\textit{mesh}:} The MeSh filter, which combines the
 rankings from MePo and MaSh.
