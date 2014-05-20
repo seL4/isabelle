@@ -130,6 +130,22 @@ instance ..
 
 end
 
+instantiation unit :: linorder
+begin
+
+definition less_eq_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool" where
+"less_eq_unit _ _ = True"
+
+definition less_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool" where
+"less_unit _ _ = False"
+
+declare less_eq_unit_def [simp] less_unit_def [simp]
+
+instance
+proof qed auto
+
+end
+
 lemma [code]:
   "HOL.equal (u\<Colon>unit) v \<longleftrightarrow> True" unfolding equal unit_eq [of u] unit_eq [of v] by rule+
 
