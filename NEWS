@@ -386,8 +386,8 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
       - Activation of MaSh now works via the "mash" system option (without
         requiring restart), instead of former settings variable "MASH".
         The option can be edited in Isabelle/jEdit menu Plugin
-        Options / Isabelle / General. Allowed values include "sml" (for the new
-        SML engine), "py" (for the Python engine), and "no".
+        Options / Isabelle / General. Allowed values include "sml" (for the
+        default SML engine), "py" (for the old Python engine), and "none".
   - New option:
       smt_proofs
   - Renamed options:
