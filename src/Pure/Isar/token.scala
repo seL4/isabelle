@@ -185,7 +185,9 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
    (source.startsWith("\"") ||
     source.startsWith("`") ||
     source.startsWith("{*") ||
-    source.startsWith("(*"))
+    source.startsWith("(*") ||
+    source.startsWith(Symbol.open) ||
+    source.startsWith(Symbol.open_decoded))
 
   def is_begin: Boolean = is_keyword && source == "begin"
   def is_end: Boolean = is_keyword && source == "end"
