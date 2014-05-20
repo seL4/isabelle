@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* May 2014: Cezary Kaliszyk, University of Innsbruck, and Jasmin Blanchette, TUM
+  SML-based engines for MaSh.
+
 * March 2014: René Thiemann
   Improved code generation for multisets.
 
@@ -18,7 +21,7 @@ Contributions to this Isabelle version
   a more polished "primcorec" command, optimizations, and integration in
   the "HOL" session.
 
-* Winter 2014: Sascha Boehme, QAware GmbH, and Jasmin Blanchette, TUM
+* Winter/Spring 2014: Sascha Boehme, QAware GmbH, and Jasmin Blanchette, TUM
   "SMT2" module and "smt2" proof method, based on SMT-LIB 2 and Z3 4.3.
 
 * January 2014: Lars Hupel, TUM
