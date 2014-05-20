@@ -183,8 +183,7 @@ fun extract_known_atp_failure known_failures output =
   |> find_first (fn (_, pattern) => String.isSubstring pattern output)
   |> Option.map fst
 
-fun extract_tstplike_proof_and_outcome verbose proof_delims known_failures
-                                       output =
+fun extract_tstplike_proof_and_outcome verbose proof_delims known_failures output =
   (case (extract_tstplike_proof proof_delims output,
       extract_known_atp_failure known_failures output) of
     (_, SOME ProofIncomplete) => ("", NONE)
