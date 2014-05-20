@@ -157,20 +157,14 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
           then Keyword.define (name, SOME kind)
           else error ("Undeclared outer syntax command " ^ quote name ^ Position.here pos));
     val _ = Context_Position.report_generic context pos (command_markup true (name, cmd));
-
-    fun redefining () =
-      "Redefining outer syntax command " ^ quote name ^ Position.here (Position.thread_data ());
   in
     Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
      (if not (Symtab.defined commands name) then ()
+      else if ! batch_mode then
+        error ("Attempt to redefine outer syntax command " ^ quote name)
       else
-        let
-          val _ = warning (redefining ());
-          val _ =
-            if ! batch_mode then
-              Output.physical_stderr ("### Legacy feature!! " ^ redefining () ^ "\n")
-            else ();
-        in () end;
+        warning ("Redefining outer syntax command " ^ quote name ^
+          Position.here (Position.thread_data ()));
       Symtab.update (name, cmd) commands)))
   end);
 
