@@ -115,21 +115,23 @@ fun wipe_out_mash_state_dir () =
     ()
   end
 
-datatype mash_flavor = MaSh_Py | MaSh_SML_KNN | MaSh_SML_NB
+datatype mash_engine = MaSh_Py | MaSh_SML_KNN | MaSh_SML_NB
 
-fun mash_flavor () =
-  (case getenv "MASH" of
-    "yes" => SOME MaSh_Py
-  | "py" => SOME MaSh_Py
-  | "sml" => SOME MaSh_SML_KNN
-  | "sml_knn" => SOME MaSh_SML_KNN
-  | "sml_nb" => SOME MaSh_SML_NB
-  | _ => NONE)
+fun mash_engine () =
+  let val flag1 = Options.default_string @{system_option maSh} in
+    (case if flag1 <> "none" (* default *) then flag1 else getenv "MASH" of
+      "yes" => SOME MaSh_Py
+    | "py" => SOME MaSh_Py
+    | "sml" => SOME MaSh_SML_KNN
+    | "sml_knn" => SOME MaSh_SML_KNN
+    | "sml_nb" => SOME MaSh_SML_NB
+    | _ => NONE)
+  end
 
-val is_mash_enabled = is_some o mash_flavor
+val is_mash_enabled = is_some o mash_engine
 
 fun is_mash_sml_enabled () =
-  (case mash_flavor () of
+  (case mash_engine () of
     SOME MaSh_SML_KNN => true
   | SOME MaSh_SML_NB => true
   | _ => false)

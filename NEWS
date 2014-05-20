@@ -382,8 +382,12 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   - New prover "z3_new" with support for Isar proofs
   - MaSh overhaul:
       - A new SML-based learning engine eliminates the dependency on Python
-        and increases performance and reliability. See the Sledgehammer
-        documentation for details.
+        and increases performance and reliability.
+      - Activation of MaSh now works via the "mash" system option (without
+        requiring restart), instead of former settings variable "MASH".
+        The option can be edited in Isabelle/jEdit menu Plugin
+        Options / Isabelle / General. Allowed values include "sml" (for the new
+        SML engine), "py" (for the Python engine), and "no".
   - New option:
       smt_proofs
   - Renamed options:
