@@ -870,6 +870,10 @@ instance nat :: wellorder proof
   then show "P n" by auto
 qed
 
+
+lemma Least_eq_0[simp]: "P(0::nat) \<Longrightarrow> Least P = 0"
+by (rule Least_equality[OF _ le0])
+
 lemma Least_Suc:
      "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
   apply (cases n, auto)
