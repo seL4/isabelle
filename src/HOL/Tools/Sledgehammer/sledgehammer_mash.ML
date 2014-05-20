@@ -448,12 +448,12 @@ fun learn_and_query ctxt parents access_G max_suggs hints feats =
     val visible_fact_set = Symtab.make_set visible_facts
 
     val all_nodes =
-      Graph.schedule (K I) access_G
-      |> List.partition (Symtab.defined visible_fact_set o fst)
-      |> op @
+      (Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
+       |> List.partition (Symtab.defined visible_fact_set o #1) |> op @) @
+      (if null hints then [] else [(".goal", feats, hints)])
 
     val (rev_depss, featss, (_, _, rev_facts), (num_feats, feat_tab, _)) =
-      fold (fn (fact, (_, feats, deps)) =>
+      fold (fn (fact, feats, deps) =>
             fn (depss, featss, fact_xtab as (_, fact_tab, _), feat_xtab) =>
           let
             fun add_feat (feat, weight) (xtab as (n, tab, _)) =
