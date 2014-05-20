@@ -1,5 +1,5 @@
 03 00 * * *                  $HOME/bin/checkout-admin
-17 00 * * *                  $HOME/bin/isatest-makedist
+17 00 * * *                  /usr/bin/ssh lxbroy10 '$HOME/bin/isatest-makedist'
 01 08 * * *                  $HOME/bin/isatest-check
 
 04 23 31 1,3,5,7,8,10,12 *   $HOME/bin/logmove
