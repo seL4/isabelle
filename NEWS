@@ -380,6 +380,10 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 
 * Sledgehammer:
   - New prover "z3_new" with support for Isar proofs
+  - MaSh overhaul:
+      - A new SML-based learning engine eliminates the dependency on Python
+        and increases performance and reliability. See the Sledgehammer
+        documentation for details.
   - New option:
       smt_proofs
   - Renamed options:
