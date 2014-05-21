@@ -1187,13 +1187,13 @@ proof (safe intro!: measurable_measure_of)
 qed auto
 
 lemma sets_Collect_Cauchy[measurable]: 
-  fixes f :: "nat \<Rightarrow> 'a => real"
+  fixes f :: "nat \<Rightarrow> 'a => 'b::{metric_space, second_countable_topology}"
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "{x\<in>space M. Cauchy (\<lambda>i. f i x)} \<in> sets M"
-  unfolding Cauchy_iff2 using f by auto
+  unfolding metric_Cauchy_iff2 using f by auto
 
 lemma borel_measurable_lim[measurable (raw)]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> real"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. lim (\<lambda>i. f i x)) \<in> borel_measurable M"
 proof -
@@ -1201,7 +1201,7 @@ proof -
   then have *: "\<And>x. lim (\<lambda>i. f i x) = (if Cauchy (\<lambda>i. f i x) then u' x else (THE x. False))"
     by (auto simp: lim_def convergent_eq_cauchy[symmetric])
   have "u' \<in> borel_measurable M"
-  proof (rule borel_measurable_LIMSEQ)
+  proof (rule borel_measurable_LIMSEQ_metric)
     fix x
     have "convergent (\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0)"
       by (cases "Cauchy (\<lambda>i. f i x)")
@@ -1215,7 +1215,7 @@ proof -
 qed
 
 lemma borel_measurable_suminf[measurable (raw)]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> real"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. suminf (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
