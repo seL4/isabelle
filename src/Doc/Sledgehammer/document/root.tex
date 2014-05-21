@@ -14,6 +14,9 @@
 
 \newcommand\download{\url{http://isabelle.in.tum.de/components/}}
 
+\let\oldS=\S
+\def\S{\oldS\,}
+
 \def\qty#1{\ensuremath{\left<\mathit{#1\/}\right>}}
 \def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1\/}}\right>}$}
 
@@ -601,8 +604,8 @@ Isabelle developers.
 Problems can be easy for \textit{auto} and difficult for automatic provers, but
 the reverse is also true, so do not be discouraged if your first attempts fail.
 Because the system refers to all theorems known to Isabelle, it is particularly
-suitable when your goal has a short proof from lemmas that you do not know
-about.
+suitable when your goal has a short proof but requires lemmas that you do not
+know about.
 
 \point{Why are there so many options?}
 
@@ -614,6 +617,7 @@ for experiments. Of course, feel free to try them out if you are so inclined.
 \label{command-syntax}
 
 \subsection{Sledgehammer}
+\label{sledgehammer}
 
 Sledgehammer can be invoked at any point when there is an open goal by entering
 the \textbf{sledgehammer} command in the theory file. Its general syntax is as
@@ -728,6 +732,7 @@ superseded by the ``Auto Time Limit'' option in jEdit. Sledgehammer's output is
 also more concise.
 
 \subsection{Metis}
+\label{metis}
 
 The \textit{metis} proof method has the syntax
 
@@ -1087,7 +1092,9 @@ engine---either in the environment in which Isabelle is launched, in your
 \texttt{\$ISABELLE\_HOME\_USER/etc/settings} file, or via the ``Mash'' option
 under ``Plugins > Plugin Options > Isabelle > General'' in Isabelle/jEdit.
 Persistent data for both engines is stored in the directory
-\texttt{\$ISABELLE\_HOME\_USER/mash}.
+\texttt{\$ISABELLE\_HOME\_USER/mash}. When switching to the \textit{py} engine,
+it is recommended to invoke the \textit{relearn\_isar} subcommand
+(\S\ref{sledgehammer}) to synchronize the Python persistent databases.
 
 \item[\labelitemi] \textbf{\textit{mesh}:} The MeSh filter, which combines the
 rankings from MePo and MaSh.
@@ -1102,10 +1109,10 @@ filter. If the option is set to \textit{smart} (the default), it effectively
 takes a value that was empirically found to be appropriate for the prover.
 Typical values range between 50 and 1000.
 
-For the MaSh-related commands \textit{learn\_isar}, \textit{learn\_prover},
-\textit{relearn\_isar}, and \textit{relearn\_prover}, this option specifies the
-maximum number of facts from the background library that should be learned
-($\infty$ by default).
+For the MaSh-related subcommands \textit{learn\_isar}, \textit{learn\_prover},
+\textit{relearn\_isar}, and \textit{relearn\_prover} (\S\ref{sledgehammer}),
+this option specifies the maximum number of facts from the background library
+that should be learned ($\infty$ by default).
 
 \opdefault{fact\_thresholds}{float\_pair}{\upshape 0.45~0.85}
 Specifies the thresholds above which facts are considered relevant by the
@@ -1216,7 +1223,7 @@ tagged with its type using a function $\const{t\/}(\tau, t)$.
 \item[\labelitemi] \textbf{\textit{poly\_args} (unsound):}
 Like for \textit{poly\_guards} constants are annotated with their types to
 resolve overloading, but otherwise no type information is encoded. This
-is the default encoding used by the \textit{metis} command.
+is the default encoding used by the \textit{metis} proof method.
 
 \item[\labelitemi]
 \textbf{%

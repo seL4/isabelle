@@ -143,33 +143,33 @@ suggesting several textual improvements.
 \section{Installation}
 \label{installation}
 
-Nitpick is part of Isabelle, so you don't need to install it. However, it
-relies on a third-party Kodkod front-end called Kodkodi as well as a Java
-virtual machine called \texttt{java} (version 1.5 or above).
+Nitpick is part of Isabelle, so you do not need to install it. It relies on a
+third-party Kodkod front-end called Kodkodi, which in turn requires a Java
+virtual machine. Both are provided as official Isabelle components.
 
-There are two main ways of installing Kodkodi:
-
-\begin{enum}
-\item[\labelitemi] If you installed an official Isabelle package,
-it should already include a properly setup version of Kodkodi.
-
-\item[\labelitemi] If you use a repository or snapshot version of Isabelle, you
-an official Isabelle package, you can download the Isabelle-aware Kodkodi package
-from \url{http://www21.in.tum.de/~blanchet/\#software}. Extract the archive, then add a
-line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash components}%
-\footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
-startup. Its value can be retrieved by executing \texttt{isabelle}
-\texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
-file with the absolute path to Kodkodi. For example, if the
-\texttt{components} file does not exist yet and you extracted Kodkodi to
-\texttt{/usr/local/kodkodi-1.5.2}, create it with the single line
-
-\prew
-\texttt{/usr/local/kodkodi-1.5.2}
-\postw
-
-(including an invisible newline character) in it.
-\end{enum}
+%There are two main ways of installing Kodkodi:
+%
+%\begin{enum}
+%\item[\labelitemi] If you installed an official Isabelle package,
+%it should already include a properly setup version of Kodkodi.
+%
+%\item[\labelitemi] If you use a repository or snapshot version of Isabelle, you
+%an official Isabelle package, you can download the Isabelle-aware Kodkodi package
+%from \url{http://www21.in.tum.de/~blanchet/\#software}. Extract the archive, then add a
+%line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash components}%
+%\footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
+%startup. Its value can be retrieved by executing \texttt{isabelle}
+%\texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
+%file with the absolute path to Kodkodi. For example, if the
+%\texttt{components} file does not exist yet and you extracted Kodkodi to
+%\texttt{/usr/local/kodkodi-1.5.2}, create it with the single line
+%
+%\prew
+%\texttt{/usr/local/kodkodi-1.5.2}
+%\postw
+%
+%(including an invisible newline character) in it.
+%\end{enum}
 
 To check whether Kodkodi is successfully installed, you can try out the example
 in \S\ref{propositional-logic}.
