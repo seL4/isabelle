@@ -194,12 +194,7 @@ fi
 
 if [ -e "$ISABELLE_HOME/Admin/build" ]; then
   "$ISABELLE_TOOL" browser -b || exit $?
-  if [ "$BUILD_JARS" = jars_fresh ]; then
-    "$ISABELLE_TOOL" graphview -b -f || exit $?
-  else
-    "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?
-    "$ISABELLE_TOOL" graphview -b || exit $?
-  fi
+  "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?
 fi
 
 PURE_JAR="$ISABELLE_HOME/lib/classes/Pure.jar"
@@ -238,11 +233,11 @@ else
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
       declare -a DEPS=(
-        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$GRAPHVIEW_JAR"
+        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
         "${SOURCES[@]}" "${RESOURCES[@]}"
       )
     elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
-      declare -a DEPS=("$PURE_JAR" "$GRAPHVIEW_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
+      declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
     else
       declare -a DEPS=()
     fi
@@ -316,7 +311,7 @@ then
     function stty() { :; }
     export -f stty
 
-    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$GRAPHVIEW_JAR"
+    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
     do
       classpath "$JAR"
     done
