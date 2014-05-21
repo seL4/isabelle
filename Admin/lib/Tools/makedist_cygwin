@@ -68,6 +68,8 @@ do
   rm "$TARGET/etc/$NAME"
 done
 
+ln -s cygperl5_14.dll "$TARGET/bin/cygperl5_14_2.dll"
+
 rm "$TARGET/Cygwin.bat"
 
 
