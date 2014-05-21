@@ -32,11 +32,7 @@ class Main_Panel(graph: Model.Graph)
   val model = new Model(graph)
   val visualizer = new Visualizer(model)
 
-  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
-    "<html><pre style=\"font-family: " + visualizer.font_family +
-      "; font-size: " + visualizer.tooltip_font_size + "px; \">" +
-      HTML.encode(Pretty.string_of(body)) + "</pre></html>"
-
+  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = null
   val graph_panel = new Graph_Panel(visualizer, make_tooltip)
 
   listenTo(keys)
