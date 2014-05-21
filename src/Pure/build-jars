@@ -98,7 +98,6 @@ declare -a SOURCES=(
   term.scala
   term_xml.scala
   "../Tools/Graphview/src/graph_panel.scala"
-  "../Tools/Graphview/src/graphview.scala"
   "../Tools/Graphview/src/layout_pendulum.scala"
   "../Tools/Graphview/src/main_panel.scala"
   "../Tools/Graphview/src/model.scala"
