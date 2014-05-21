@@ -67,6 +67,7 @@ sig
     -> prover_problem -> prover_result
 
   val SledgehammerN : string
+  val str_of_mode : mode -> string
   val smtN : string
   val overlord_file_location_of_prover : string -> string * string
   val proof_banner : mode -> string -> string
@@ -104,11 +105,18 @@ open Metis_Tactic
 open Sledgehammer_Fact
 open Sledgehammer_Proof_Methods
 
-datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
-
 (* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
 val SledgehammerN = "Sledgehammer"
+
+datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
+
+fun str_of_mode Auto_Try = "Auto Try"
+  | str_of_mode Try = "Try"
+  | str_of_mode Normal = "Normal"
+  | str_of_mode MaSh = "MaSh"
+  | str_of_mode Auto_Minimize = "Auto_Minimize"
+  | str_of_mode Minimize = "Minimize"
 
 val smtN = "smt"
 

@@ -246,7 +246,7 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
             SOME name => error ("No such prover: " ^ name ^ ".")
           | NONE => ())
         val _ = print "Sledgehammering..."
-        val _ = spying spy (fn () => (state, i, "***", "Starting " ^ @{make_string} mode ^ " mode"))
+        val _ = spying spy (fn () => (state, i, "***", "Starting " ^ str_of_mode mode ^ " mode"))
 
         val spying_str_of_factss =
           commas o map (fn (filter, facts) => filter ^ ": " ^ string_of_int (length facts))
