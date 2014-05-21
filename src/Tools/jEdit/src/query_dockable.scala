@@ -35,12 +35,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 {
   /* common GUI components */
 
-  private var zoom_factor = 100
-  private val zoom =
-    new GUI.Zoom_Box(factor => if (zoom_factor != factor) { zoom_factor = factor; handle_resize() })
-    {
-      tooltip = "Zoom factor for output font size"
-    }
+  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private def make_query(property: String, tooltip: String, apply_query: () => Unit): JTextField =
     new Completion_Popup.History_Text_Field(property)
@@ -125,7 +120,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       new Wrap_Panel(Wrap_Panel.Alignment.Right)(
         query_label, Component.wrap(query), limit, allow_dups,
         process_indicator.component, apply_button,
-        pretty_text_area.search_label, pretty_text_area.search_pattern)
+        pretty_text_area.search_label, pretty_text_area.search_field)
 
     def select { control_panel.contents += zoom }
 
@@ -173,7 +168,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private val control_panel =
       new Wrap_Panel(Wrap_Panel.Alignment.Right)(
         query_label, Component.wrap(query), process_indicator.component, apply_button,
-        pretty_text_area.search_label, pretty_text_area.search_pattern)
+        pretty_text_area.search_label, pretty_text_area.search_field)
 
     def select { control_panel.contents += zoom }
 
@@ -268,7 +263,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       control_panel.contents.clear
       control_panel.contents ++=
         List(query_label, selector, process_indicator.component, apply_button,
-          pretty_text_area.search_label, pretty_text_area.search_pattern, zoom)
+          pretty_text_area.search_label, pretty_text_area.search_field, zoom)
     }
 
     val page =
@@ -317,7 +312,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     Swing_Thread.require {
       for (op <- operations) {
         op.pretty_text_area.resize(
-          Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom_factor / 100))
+          Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
       }
     }
 

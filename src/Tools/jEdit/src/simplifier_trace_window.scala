@@ -111,7 +111,8 @@ private object Simplifier_Trace_Window
             {
               parent.parent match {
                 case None =>
-                  Output.error_message("Simplifier_Trace_Window: malformed ignore message with parent " + head.parent)
+                  Output.error_message(
+                    "Simplifier_Trace_Window: malformed ignore message with parent " + head.parent)
                 case Some(tree) =>
                   tree.children -= head.parent
                   walk_trace(tail, lookup)
@@ -137,7 +138,8 @@ class Simplifier_Trace_Window(
 {
   Swing_Thread.require {}
 
-  val pretty_text_area = new Pretty_Text_Area(view)
+  private val pretty_text_area = new Pretty_Text_Area(view)
+  private val zoom = new Font_Info.Zoom_Box { def changed = do_paint() }
 
   size = new Dimension(500, 500)
   contents = new BorderPanel {
@@ -166,7 +168,8 @@ class Simplifier_Trace_Window(
   def do_paint()
   {
     Swing_Thread.later {
-      pretty_text_area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
+      pretty_text_area.resize(
+        Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
     }
   }
 
@@ -191,7 +194,8 @@ class Simplifier_Trace_Window(
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
     pretty_text_area.search_label,
-    pretty_text_area.search_pattern)
+    pretty_text_area.search_field,
+    zoom)
 
   peer.add(controls.peer, BorderLayout.NORTH)
 }

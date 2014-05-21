@@ -51,14 +51,14 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   /* resize */
 
-  private var zoom_factor = 100
+  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private def handle_resize()
   {
     Swing_Thread.require {}
 
     pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom_factor / 100))
+      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
   }
 
   private val delay_resize =
@@ -120,10 +120,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   private val locate_query = new Button("Locate") {
     tooltip = "Locate context of current query within source text"
     reactions += { case ButtonClicked(_) => sledgehammer.locate_query() }
-  }
-
-  private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() }) {
-    tooltip = "Zoom factor for output font size"
   }
 
   private val controls =

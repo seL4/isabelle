@@ -117,19 +117,23 @@ object GUI
 
   /* zoom box */
 
-  class Zoom_Box(apply_factor: Int => Unit) extends ComboBox[String](
+  private val Zoom_Factor = "([0-9]+)%?".r
+
+  abstract class Zoom_Box extends ComboBox[String](
     List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%"))
   {
-    val Factor = "([0-9]+)%?".r
-    def parse(text: String): Int =
+    def changed: Unit
+    def factor: Int = parse(selection.item)
+
+    private def parse(text: String): Int =
       text match {
-        case Factor(s) =>
+        case Zoom_Factor(s) =>
           val i = Integer.parseInt(s)
           if (10 <= i && i < 1000) i else 100
         case _ => 100
       }
 
-    def print(i: Int): String = i.toString + "%"
+    private def print(i: Int): String = i.toString + "%"
 
     def set_item(i: Int) {
       peer.getEditor match {
@@ -144,11 +148,10 @@ object GUI
       case _ =>
     }
 
-    reactions += {
-      case SelectionChanged(_) => apply_factor(parse(selection.item))
-    }
-    listenTo(selection)
     selection.index = 3
+
+    listenTo(selection)
+    reactions += { case SelectionChanged(_) => changed }
   }
 
 

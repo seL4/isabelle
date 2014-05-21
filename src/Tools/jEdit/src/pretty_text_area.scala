@@ -187,7 +187,7 @@ class Pretty_Text_Area(
     tooltip = "Search and highlight output via regular expression"
   }
 
-  val search_pattern: Component =
+  val search_field: Component =
     Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search")
       {
         private val input_delay =
@@ -204,7 +204,7 @@ class Pretty_Text_Area(
         setFont(GUI.imitate_font(Font_Info.main_family(), getFont, 1.2))
       })
 
-  private val search_pattern_foreground = search_pattern.foreground
+  private val search_field_foreground = search_field.foreground
 
   private def search_action(text_field: JTextField)
   {
@@ -220,7 +220,7 @@ class Pretty_Text_Area(
       text_area.getPainter.repaint()
     }
     text_field.setForeground(
-      if (ok) search_pattern_foreground else current_rendering.error_color)
+      if (ok) search_field_foreground else current_rendering.error_color)
   }
 
 

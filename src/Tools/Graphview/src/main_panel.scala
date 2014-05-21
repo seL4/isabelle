@@ -67,7 +67,7 @@ class Main_Panel(graph: Model.Graph)
       }
     }
     contents += Swing.RigidBox(new Dimension(10, 0))
-    contents += graph_panel.zoom_box
+    contents += graph_panel.zoom
 
     contents += Swing.RigidBox(new Dimension(10, 0))
     contents += new Button{
