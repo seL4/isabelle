@@ -191,7 +191,7 @@ class Simplifier_Trace_Window(
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
     pretty_text_area.search_label,
-    pretty_text_area.search_pattern)
+    pretty_text_area.search_field)
 
   peer.add(controls.peer, BorderLayout.NORTH)
 }

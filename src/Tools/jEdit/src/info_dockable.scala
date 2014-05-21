@@ -92,7 +92,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   zoom.tooltip = "Zoom factor for basic font size"
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-    pretty_text_area.search_label, pretty_text_area.search_pattern, zoom)
+    pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
 
