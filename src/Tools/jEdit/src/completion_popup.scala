@@ -181,10 +181,13 @@ object Completion_Popup
 
     /* spell-checker completion */
 
-    def spell_checker_completion(rendering: Rendering): Option[Completion.Result] =
+    def spell_checker_completion(
+      explicit: Boolean,
+      rendering: Rendering): Option[Completion.Result] =
     {
       for {
         spell_checker <- PIDE.spell_checker.get
+        if explicit
         range = JEdit_Lib.before_caret_range(text_area, rendering)
         word <- Spell_Checker.current_word(text_area, rendering, range)
         words = spell_checker.complete(word.info)
@@ -395,7 +398,7 @@ object Completion_Popup
               case Some(rendering) =>
                 Completion.Result.merge(history, result0,
                   Completion.Result.merge(history,
-                    spell_checker_completion(rendering), path_completion(rendering)))
+                    spell_checker_completion(explicit, rendering), path_completion(rendering)))
             }
           }
           result match {
