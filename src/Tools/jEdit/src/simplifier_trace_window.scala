@@ -138,9 +138,8 @@ class Simplifier_Trace_Window(
 {
   Swing_Thread.require {}
 
-  private var zoom_factor = 100
-
-  val pretty_text_area = new Pretty_Text_Area(view)
+  private val pretty_text_area = new Pretty_Text_Area(view)
+  private val zoom = new Font_Info.Zoom_Box { def changed = do_paint() }
 
   size = new Dimension(500, 500)
   contents = new BorderPanel {
@@ -170,7 +169,7 @@ class Simplifier_Trace_Window(
   {
     Swing_Thread.later {
       pretty_text_area.resize(
-        Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom_factor / 100))
+        Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
     }
   }
 
@@ -192,9 +191,6 @@ class Simplifier_Trace_Window(
 
 
   /* controls */
-
-  private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
-  zoom.tooltip = "Zoom factor for basic font size"
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
     pretty_text_area.search_label,

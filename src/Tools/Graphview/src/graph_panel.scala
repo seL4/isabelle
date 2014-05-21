@@ -63,12 +63,12 @@ class Graph_Panel(
     refresh()
   }
 
-  val zoom_box: GUI.Zoom_Box = new GUI.Zoom_Box(percent => rescale(0.01 * percent))
+  val zoom = new GUI.Zoom_Box { def changed = rescale(0.01 * factor) }
 
   def rescale(s: Double)
   {
     Transform.scale = s
-    if (zoom_box != null) zoom_box.set_item((Transform.scale_discrete * 100).round.toInt)
+    if (zoom != null) zoom.set_item((Transform.scale_discrete * 100).round.toInt)
     refresh()
   }
 

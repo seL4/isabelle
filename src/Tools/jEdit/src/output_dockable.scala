@@ -22,7 +22,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 {
   /* component state -- owned by Swing thread */
 
-  private var zoom_factor = 100
   private var do_update = true
   private var current_snapshot = Document.Snapshot.init
   private var current_command = Command.empty
@@ -38,12 +37,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   override def detach_operation = pretty_text_area.detach_operation
 
 
+  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+
   private def handle_resize()
   {
     Swing_Thread.require {}
 
     pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom_factor / 100))
+      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
   }
 
   private def handle_update(follow: Boolean, restriction: Option[Set[Command]])
@@ -125,10 +126,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
 
   /* controls */
-
-  private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() }) {
-    tooltip = "Zoom factor for output font size"
-  }
 
   private val auto_update = new CheckBox("Auto update") {
     tooltip = "Indicate automatic update following cursor movement"

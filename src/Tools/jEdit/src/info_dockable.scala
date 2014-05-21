@@ -50,8 +50,6 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 {
   /* component state -- owned by Swing thread */
 
-  private var zoom_factor = 100
-
   private val snapshot = Info_Dockable.implicit_snapshot
   private val results = Info_Dockable.implicit_results
   private val info = Info_Dockable.implicit_info
@@ -70,12 +68,14 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   pretty_text_area.update(snapshot, results, info)
 
+  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+
   private def handle_resize()
   {
     Swing_Thread.require {}
 
     pretty_text_area.resize(
-      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom_factor / 100))
+      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
   }
 
 
@@ -87,9 +87,6 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
   })
-
-  private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
-  zoom.tooltip = "Zoom factor for basic font size"
 
   private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
     pretty_text_area.search_label, pretty_text_area.search_field, zoom)
