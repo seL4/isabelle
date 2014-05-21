@@ -144,8 +144,6 @@ class Simplifier_Trace_Window(
     layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
   }
 
-  trace.entries.foreach(System.err.println)
-
   private val tree = trace.entries.headOption match {
     case Some(first) =>
       val tree = new Simplifier_Trace_Window.Root_Tree(first.parent)
