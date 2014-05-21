@@ -26,6 +26,7 @@ sig
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
+  val mk_sel_map_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_set_empty_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
 end;
 
@@ -202,6 +203,16 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
     EVERY' (map10 (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
+
+fun mk_sel_map_tac ctxt ct exhaust discs maps sels =
+  TRYALL Goal.conjunction_tac THEN
+    ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
+      REPEAT_DETERM o hyp_subst_tac ctxt) THEN
+    Local_Defs.unfold_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
+      @{thms not_True_eq_False not_False_eq_True}) THEN
+    TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
+    Local_Defs.unfold_tac ctxt (maps @ sels) THEN
+    ALLGOALS (rtac refl);
 
 fun mk_set_empty_tac ctxt ct exhaust sets discs =
   TRYALL Goal.conjunction_tac THEN
