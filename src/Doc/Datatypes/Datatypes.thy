@@ -863,6 +863,9 @@ a set function, the map function, or the relator:
 \item[@{text "t."}\hthm{disc\_map\_iff} @{text "[simp]"}\rm:] ~ \\
 @{thm list.disc_map_iff[no_vars]}
 
+\item[@{text "t."}\hthm{sel\_map}\rm:] ~ \\
+@{thm list.sel_map[no_vars]}
+
 \item[@{text "t."}\hthm{rel\_inject} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
