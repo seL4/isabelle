@@ -115,11 +115,8 @@ fun config raw_mode interactive max_depth memory =
        breakpoints = breakpoints})
   in Thm.declaration_attribute (K update) end
 
-fun term_breakpoint terms =
-  Thm.declaration_attribute (K (fold add_term_breakpoint terms))
-
-val thm_breakpoint =
-  Thm.declaration_attribute add_thm_breakpoint
+fun breakpoint terms =
+  Thm.declaration_attribute (fn thm => add_thm_breakpoint thm o fold add_term_breakpoint terms)
 
 
 
@@ -419,12 +416,9 @@ val config_parser =
     (fn (((interactive, mode), depth), memory) => config mode interactive depth memory)
 
 val _ = Theory.setup
-  (Attrib.setup @{binding break_term}
-    (Scan.repeat1 Args.term_pattern >> term_breakpoint)
-    "declaration of a term breakpoint" #>
-   Attrib.setup @{binding break_thm}
-    (Scan.succeed thm_breakpoint)
-    "declaration of a theorem breakpoint" #>
+  (Attrib.setup @{binding simp_break}
+    (Scan.repeat Args.term_pattern >> breakpoint)
+    "declaration of a simplifier breakpoint" #>
    Attrib.setup @{binding simplifier_trace} (Scan.lift config_parser)
     "simplifier trace configuration")
 
