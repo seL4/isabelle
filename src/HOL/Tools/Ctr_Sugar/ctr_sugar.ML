@@ -932,8 +932,11 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
            (flat nontriv_disc_eq_thmss, code_nitpicksimp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
+        (* "exhaust" is deliberately put first to avoid apparent circular dependencies in the proof
+           objects, which would confuse MaSh. *)
         val notes =
-          [(caseN, case_thms, code_nitpicksimp_simp_attrs),
+          [(exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
+           (caseN, case_thms, code_nitpicksimp_simp_attrs),
            (case_congN, [case_cong_thm], []),
            (case_eq_ifN, case_eq_if_thms, []),
            (collapseN, safe_collapse_thms, simp_attrs),
@@ -942,7 +945,6 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
            (disc_excludeN, disc_exclude_thms, dest_attrs),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
            (distinctN, distinct_thms, simp_attrs @ inductsimp_attrs),
-           (exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
            (expandN, expand_thms, []),
            (injectN, inject_thms, iff_attrs @ inductsimp_attrs),
            (nchotomyN, [nchotomy_thm], []),
