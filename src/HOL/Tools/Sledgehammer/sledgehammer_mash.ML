@@ -806,6 +806,8 @@ fun crude_theory_ord p =
 fun crude_thm_ord p =
   (case crude_theory_ord (pairself theory_of_thm p) of
     EQUAL =>
+    (* The hack below is necessary because of odd dependencies that are not reflected in the theory
+       comparison. *)
     let val q = pairself nickname_of_thm p in
       (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
       (case bool_ord (pairself (String.isSuffix "_def") (swap q)) of
