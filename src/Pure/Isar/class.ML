@@ -316,21 +316,25 @@ val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
 local
 
-fun target_extension f class =
-  Local_Theory.raw_theory f
-  #> synchronize_class_syntax_target class;
-
-fun class_const class ((b, mx), rhs) (type_params, term_params) thy =
+fun target_extension f class b_mx_rhs lthy =
   let
-    val morph = morphism thy class;
+    val phi = morphism (Proof_Context.theory_of lthy) class;
+  in
+    lthy
+    |> Local_Theory.raw_theory (f class phi b_mx_rhs)
+    |> synchronize_class_syntax_target class
+  end;
+
+fun class_const (type_params, term_params) class phi ((b, mx), rhs) thy =
+  let
     val class_params = map fst (these_params thy [class]);
     val additional_params =
       subtract (fn (v, Free (w, _)) => v = w | _ => false) class_params term_params;
-    val context_params = map (Morphism.term morph) (type_params @ additional_params);
-    val b' = Morphism.binding morph b;
-    val b_def = Morphism.binding morph (Binding.suffix_name "_dict" b');
+    val context_params = map (Morphism.term phi) (type_params @ additional_params);
+    val b' = Morphism.binding phi b;
+    val b_def = Morphism.binding phi (Binding.suffix_name "_dict" b');
     val c' = Sign.full_name thy b';
-    val rhs' = Morphism.term morph rhs;
+    val rhs' = Morphism.term phi rhs;
     val ty' = map Term.fastype_of context_params ---> Term.fastype_of rhs';
     val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), context_params), rhs')
       |> map_types Type.strip_sorts;
@@ -346,11 +350,10 @@ fun class_const class ((b, mx), rhs) (type_params, term_params) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun class_abbrev class prmode ((b, mx), rhs) thy =
+fun class_abbrev prmode class phi ((b, mx), rhs) thy =
   let
-    val morph = morphism thy class;
     val unchecks = these_unchecks thy [class];
-    val b' = Morphism.binding morph b;
+    val b' = Morphism.binding phi b;
     val c' = Sign.full_name thy b';
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val ty' = Term.fastype_of rhs';
@@ -365,8 +368,8 @@ fun class_abbrev class prmode ((b, mx), rhs) thy =
 
 in
 
-fun const class b_mx_rhs params = target_extension (class_const class b_mx_rhs params) class;
-fun abbrev class prmode b_mx_rhs = target_extension (class_abbrev class prmode b_mx_rhs) class;
+fun const class b_mx_rhs params = target_extension (class_const params) class b_mx_rhs;
+fun abbrev class prmode b_mx_rhs = target_extension (class_abbrev prmode) class b_mx_rhs;
 
 end;
 
