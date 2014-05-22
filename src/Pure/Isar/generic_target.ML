@@ -20,6 +20,7 @@ sig
     (Attrib.binding * (thm list * Args.src list) list) list ->
     (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
+  val background_abbrev: binding * term -> local_theory -> (term * term) * local_theory
   val abbrev: (string * bool -> binding * mixfix -> term * term ->
       term list -> local_theory -> local_theory) ->
     string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
@@ -194,6 +195,9 @@ end;
 
 
 (* abbrev *)
+
+fun background_abbrev (b, t) =
+  Local_Theory.background_theory_result (Sign.add_abbrev Print_Mode.internal (b, t))
 
 fun abbrev target_abbrev prmode ((b, mx), t) lthy =
   let
