@@ -320,54 +320,53 @@ fun target_extension f class =
   Local_Theory.raw_theory f
   #> synchronize_class_syntax_target class;
 
-fun target_const class ((c, mx), dict) (type_params, term_params) thy =
+fun class_const class ((b, mx), rhs) (type_params, term_params) thy =
   let
     val morph = morphism thy class;
     val class_params = map fst (these_params thy [class]);
     val additional_params =
       subtract (fn (v, Free (w, _)) => v = w | _ => false) class_params term_params;
     val context_params = map (Morphism.term morph) (type_params @ additional_params);
-    val b = Morphism.binding morph c;
-    val b_def = Morphism.binding morph (Binding.suffix_name "_dict" b);
-    val c' = Sign.full_name thy b;
-    val dict' = Morphism.term morph dict;
-    val ty' = map Term.fastype_of context_params ---> Term.fastype_of dict';
-    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), context_params), dict')
+    val b' = Morphism.binding morph b;
+    val b_def = Morphism.binding morph (Binding.suffix_name "_dict" b');
+    val c' = Sign.full_name thy b';
+    val rhs' = Morphism.term morph rhs;
+    val ty' = map Term.fastype_of context_params ---> Term.fastype_of rhs';
+    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), context_params), rhs')
       |> map_types Type.strip_sorts;
   in
     thy
-    |> Sign.declare_const_global ((b, Type.strip_sorts ty'), mx)
+    |> Sign.declare_const_global ((b', Type.strip_sorts ty'), mx)
     |> snd
     |> Thm.add_def_global false false (b_def, def_eq)
     |>> apsnd Thm.varifyT_global
     |-> (fn (_, def_thm) => Global_Theory.store_thm (b_def, def_thm)
       #> snd
-      #> null context_params ? register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
+      #> null context_params ? register_operation class (c', (rhs', SOME (Thm.symmetric def_thm))))
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun target_abbrev class prmode ((c, mx), rhs) thy =
+fun class_abbrev class prmode ((b, mx), rhs) thy =
   let
     val morph = morphism thy class;
     val unchecks = these_unchecks thy [class];
-    val b = Morphism.binding morph c;
-    val c' = Sign.full_name thy b;
+    val b' = Morphism.binding morph b;
+    val c' = Sign.full_name thy b';
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val ty' = Term.fastype_of rhs';
-    val rhs'' = Logic.varify_types_global rhs';
   in
     thy
-    |> Sign.add_abbrev (#1 prmode) (b, rhs'')
+    |> Sign.add_abbrev (#1 prmode) (b', Logic.varify_types_global rhs')
     |> snd
-    |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> not (#1 prmode = Print_Mode.input) ? register_operation class (c', (rhs', NONE))
+    |> Sign.add_const_constraint (c', SOME ty')
   end;
 
 in
 
-fun const class arg params = target_extension (target_const class arg params) class;
-fun abbrev class prmode arg = target_extension (target_abbrev class prmode arg) class;
+fun const class b_mx_rhs params = target_extension (class_const class b_mx_rhs params) class;
+fun abbrev class prmode b_mx_rhs = target_extension (class_abbrev class prmode b_mx_rhs) class;
 
 end;
 
