@@ -31,6 +31,8 @@ sig
     Context.generic -> Context.generic
   val const_declaration: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
+  val locale_const_declaration: string -> Syntax.mode -> (binding * mixfix) * term ->
+    local_theory -> local_theory
   val background_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
@@ -279,6 +281,16 @@ fun const_declaration pred prmode ((b, mx), rhs) =
       val rhs' = Morphism.term phi rhs;
       val same_shape = Term.aconv_untyped (rhs, rhs');
     in generic_const same_shape prmode ((b', mx), rhs') end);
+
+fun locale_const_declaration locale prmode ((b, mx), rhs) =
+  locale_declaration locale true (fn phi =>
+    let
+      val b' = Morphism.binding phi b;
+      val rhs' = Morphism.term phi rhs;
+      val same_shape = Term.aconv_untyped (rhs, rhs');
+    in generic_const same_shape prmode ((b', mx), rhs') end)
+  #> const_declaration
+    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
 
 
 (* registrations and dependencies *)

@@ -18,7 +18,7 @@ sig
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
   val const: class -> (binding * mixfix) * term -> term list * term list -> local_theory -> local_theory
-  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory -> local_theory
+  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> term -> local_theory -> local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
   val register: class -> class list -> ((string * typ) * (string * typ)) list
@@ -325,6 +325,26 @@ fun target_extension f class b_mx_rhs lthy =
     |> synchronize_class_syntax_target class
   end;
 
+fun const_declaration class prmode (b, rhs) =
+  Generic_Target.locale_declaration class true (fn phi =>
+    let
+      val b' = Morphism.binding phi b;
+      val rhs' = Morphism.term phi rhs;
+      val same_shape = Term.aconv_untyped (rhs, rhs');
+
+      (* FIXME workaround based on educated guess *)
+      val prefix' = Binding.prefix_of b';
+      val is_canonical_class = 
+        Binding.eq_name (b, b')
+          andalso not (null prefix')
+          andalso List.last prefix' = (class_prefix class, false)
+        orelse same_shape;
+    in
+      not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', NoSyn), rhs')
+    end) #>
+  Generic_Target.const_declaration
+    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), rhs);
+
 fun class_const (type_params, term_params) class phi ((b, mx), rhs) thy =
   let
     val class_params = map fst (these_params thy [class]);
@@ -368,8 +388,13 @@ fun class_abbrev prmode class phi ((b, mx), rhs) thy =
 
 in
 
-fun const class b_mx_rhs params = target_extension (class_const params) class b_mx_rhs;
-fun abbrev class prmode b_mx_rhs = target_extension (class_abbrev prmode) class b_mx_rhs;
+fun const class ((b, mx), lhs) params =
+  const_declaration class Syntax.mode_default (b, lhs)
+  #> target_extension (class_const params) class ((b, mx), lhs);
+
+fun abbrev class prmode ((b, mx), lhs) t' =
+  const_declaration class prmode (b, lhs)
+  #> target_extension (class_abbrev prmode) class ((b, mx), t');
 
 end;
 

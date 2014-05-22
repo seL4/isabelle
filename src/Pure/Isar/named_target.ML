@@ -48,52 +48,16 @@ fun is_theory lthy =
   Option.map #target (peek lthy) = SOME "" andalso Local_Theory.level lthy = 1;
 
 
-(* consts *)
-
-fun locale_const locale prmode ((b, mx), rhs) =
-  Generic_Target.locale_declaration locale true (fn phi =>
-    let
-      val b' = Morphism.binding phi b;
-      val rhs' = Morphism.term phi rhs;
-      val same_shape = Term.aconv_untyped (rhs, rhs');
-    in
-      Generic_Target.generic_const same_shape prmode ((b', mx), rhs')
-    end) #>
-  Generic_Target.const_declaration
-    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
-
-fun class_const class prmode (b, rhs) =
-  Generic_Target.locale_declaration class true (fn phi =>
-    let
-      val b' = Morphism.binding phi b;
-      val rhs' = Morphism.term phi rhs;
-      val same_shape = Term.aconv_untyped (rhs, rhs');
-
-      (* FIXME workaround based on educated guess *)
-      val prefix' = Binding.prefix_of b';
-      val is_canonical_class = 
-        Binding.eq_name (b, b')
-          andalso not (null prefix')
-          andalso List.last prefix' = (Class.class_prefix class, false)
-        orelse same_shape;
-    in
-      not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', NoSyn), rhs')
-    end) #>
-  Generic_Target.const_declaration
-    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), rhs);
-
-
 (* define *)
 
 fun locale_foundation target (((b, U), mx), (b_def, rhs)) params =
   Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
-  #-> (fn (lhs, def) => locale_const target Syntax.mode_default ((b, mx), lhs)
+  #-> (fn (lhs, def) => Generic_Target.locale_const_declaration target Syntax.mode_default ((b, mx), lhs)
     #> pair (lhs, def));
 
 fun class_foundation target (((b, U), mx), (b_def, rhs)) params =
   Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
-  #-> (fn (lhs, def) => class_const target Syntax.mode_default (b, lhs)
-    #> Class.const target ((b, mx), lhs) params
+  #-> (fn (lhs, def) => Class.const target ((b, mx), lhs) params
     #> pair (lhs, def));
 
 fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
@@ -114,13 +78,11 @@ fun target_notes (Target {target, is_locale, ...}) =
 fun locale_abbrev target prmode (b, mx) (t, _) xs =
   Generic_Target.background_abbrev (b, t)
   #-> (fn (lhs, _) =>
-        locale_const target prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+        Generic_Target.locale_const_declaration target prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun class_abbrev target prmode (b, mx) (t, t') xs =
   Generic_Target.background_abbrev (b, t)
-  #-> (fn (lhs, _) =>
-        class_const target prmode (b, Term.list_comb (Logic.unvarify_global lhs, xs)))
-  #> Class.abbrev target prmode ((b, mx), t');
+  #-> (fn (lhs, _) => Class.abbrev target prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)) t');
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) =
   if is_class then class_abbrev target
