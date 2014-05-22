@@ -1200,7 +1200,10 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
     val facts = facts |> sort (crude_thm_ord o pairself snd o swap)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val num_facts = length facts
-    val const_tab = fold (add_const_counts o prop_of o snd) facts Symtab.empty
+
+    (* Weights are currently ignored by SML naive Bayes and appear to hurt kNN more than they
+       help. *)
+    val const_tab = Symtab.empty |> engine = MaSh_Py ? fold (add_const_counts o prop_of o snd) facts
 
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
