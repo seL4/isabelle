@@ -29,9 +29,9 @@ sig
   val standard_declaration: (int * int -> bool) -> declaration -> local_theory -> local_theory
   val generic_const: bool -> Syntax.mode -> (binding * mixfix) * term ->
     Context.generic -> Context.generic
-  val const_declaration: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
+  val const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
-  val locale_const_declaration: string -> Syntax.mode -> (binding * mixfix) * term ->
+  val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
   val background_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
@@ -275,7 +275,7 @@ fun generic_const same_shape prmode ((b, mx), t) context =
                Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
   end;
 
-fun const_declaration pred prmode ((b, mx), rhs) =
+fun const pred prmode ((b, mx), rhs) =
   standard_declaration pred (fn phi =>
     let
       val b' = Morphism.binding phi b;
@@ -283,15 +283,14 @@ fun const_declaration pred prmode ((b, mx), rhs) =
       val same_shape = Term.aconv_untyped (rhs, rhs');
     in generic_const same_shape prmode ((b', mx), rhs') end);
 
-fun locale_const_declaration locale prmode ((b, mx), rhs) =
+fun locale_const locale prmode ((b, mx), rhs) =
   locale_declaration locale true (fn phi =>
     let
       val b' = Morphism.binding phi b;
       val rhs' = Morphism.term phi rhs;
       val same_shape = Term.aconv_untyped (rhs, rhs');
     in generic_const same_shape prmode ((b', mx), rhs') end)
-  #> const_declaration
-    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
+  #> const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
 
 
 (* registrations and dependencies *)
@@ -324,8 +323,7 @@ fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params)
-  #-> (fn (lhs, def) =>
-        const_declaration (op <>) Syntax.mode_default ((b, mx), lhs)
+  #-> (fn (lhs, def) => const (op <>) Syntax.mode_default ((b, mx), lhs)
     #> pair (lhs, def));
 
 fun theory_notes kind global_facts local_facts =
@@ -341,8 +339,7 @@ fun theory_abbrev prmode (b, mx) (t, _) xs =
     (Sign.add_abbrev (#1 prmode) (b, t) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
         Sign.notation true prmode [(lhs, check_mixfix_global (b, null xs) mx)] #> pair lhs))
-  #-> (fn lhs =>
-        const_declaration (op <>) prmode
+  #-> (fn lhs => const (op <>) prmode
           ((b, if null xs then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun theory_declaration decl =

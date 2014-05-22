@@ -325,7 +325,7 @@ fun target_extension f class b_mx_rhs lthy =
     |> synchronize_class_syntax_target class
   end;
 
-fun const_declaration class prmode (b, rhs) =
+fun class_const class prmode (b, rhs) =
   Generic_Target.locale_declaration class true (fn phi =>
     let
       val b' = Morphism.binding phi b;
@@ -342,10 +342,9 @@ fun const_declaration class prmode (b, rhs) =
     in
       not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', NoSyn), rhs')
     end) #>
-  Generic_Target.const_declaration
-    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), rhs);
+  Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), rhs);
 
-fun class_const (type_params, term_params) class phi ((b, mx), rhs) thy =
+fun global_const (type_params, term_params) class phi ((b, mx), rhs) thy =
   let
     val class_params = map fst (these_params thy [class]);
     val additional_params =
@@ -370,7 +369,7 @@ fun class_const (type_params, term_params) class phi ((b, mx), rhs) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun class_abbrev prmode class phi ((b, mx), rhs) thy =
+fun global_abbrev prmode class phi ((b, mx), rhs) thy =
   let
     val unchecks = these_unchecks thy [class];
     val b' = Morphism.binding phi b;
@@ -389,12 +388,12 @@ fun class_abbrev prmode class phi ((b, mx), rhs) thy =
 in
 
 fun const class ((b, mx), lhs) params =
-  const_declaration class Syntax.mode_default (b, lhs)
-  #> target_extension (class_const params) class ((b, mx), lhs);
+  class_const class Syntax.mode_default (b, lhs)
+  #> target_extension (global_const params) class ((b, mx), lhs);
 
 fun abbrev class prmode ((b, mx), lhs) t' =
-  const_declaration class prmode (b, lhs)
-  #> target_extension (class_abbrev prmode) class ((b, mx), t');
+  class_const class prmode (b, lhs)
+  #> target_extension (global_abbrev prmode) class ((b, mx), t');
 
 end;
 
