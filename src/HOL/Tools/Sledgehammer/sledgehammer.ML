@@ -54,15 +54,9 @@ fun max_outcome_code codes =
        ordered_outcome_codes
   |> the_default unknownN
 
-fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i n goal =
+fun prover_description verbose name num_facts =
   (quote name,
-   (if verbose then
-      " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts
-    else
-      "") ^
-   " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^
-   (if blocking then "."
-    else "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
+   if verbose then " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts else "")
 
 fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout, expect, ...}) mode
     output_result minimize_command only learn
@@ -76,8 +70,6 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
     val death_time = Time.+ (birth_time, hard_timeout)
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
     val num_facts = length facts |> not only ? Integer.min max_facts
-
-    fun desc () = prover_description ctxt params name num_facts subgoal subgoal_count goal
 
     val problem =
       {comment = comment, state = state, goal = goal, subgoal = subgoal,
@@ -195,7 +187,8 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
             |> List.app Output.urgent_message
       in (outcome_code, state) end
     else
-      (Async_Manager.thread SledgehammerN birth_time death_time (desc ())
+      (Async_Manager.thread SledgehammerN birth_time death_time
+         (prover_description verbose name num_facts)
          ((fn (outcome_code, message) => (verbose orelse outcome_code = someN, message ())) o go);
        (unknownN, state))
   end
