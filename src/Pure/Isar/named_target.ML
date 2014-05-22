@@ -58,10 +58,22 @@ fun the_name lthy =
   end;
 
 
-(* consts in locale *)
+(* consts *)
 
-fun locale_const (Target {target, is_class, ...}) prmode ((b, mx), rhs) =
-  Generic_Target.locale_declaration target true (fn phi =>
+fun locale_const locale prmode ((b, mx), rhs) =
+  Generic_Target.locale_declaration locale true (fn phi =>
+    let
+      val b' = Morphism.binding phi b;
+      val rhs' = Morphism.term phi rhs;
+      val same_shape = Term.aconv_untyped (rhs, rhs');
+    in
+      Generic_Target.generic_const same_shape prmode ((b', mx), rhs')
+    end) #>
+  Generic_Target.const_declaration
+    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
+
+fun class_const class prmode (b, rhs) =
+  Generic_Target.locale_declaration class true (fn phi =>
     let
       val b' = Morphism.binding phi b;
       val rhs' = Morphism.term phi rhs;
@@ -69,34 +81,34 @@ fun locale_const (Target {target, is_class, ...}) prmode ((b, mx), rhs) =
 
       (* FIXME workaround based on educated guess *)
       val prefix' = Binding.prefix_of b';
-      val is_canonical_class = is_class andalso
-        (Binding.eq_name (b, b')
+      val is_canonical_class = 
+        Binding.eq_name (b, b')
           andalso not (null prefix')
-          andalso List.last prefix' = (Class.class_prefix target, false)
-        orelse same_shape);
+          andalso List.last prefix' = (Class.class_prefix class, false)
+        orelse same_shape;
     in
-      not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', mx), rhs')
+      not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', NoSyn), rhs')
     end) #>
   Generic_Target.const_declaration
-    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
+    (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), rhs);
 
 
 (* define *)
 
-fun locale_foundation ta (((b, U), mx), (b_def, rhs)) params =
+fun locale_foundation target (((b, U), mx), (b_def, rhs)) params =
   Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
-  #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, mx), lhs)
+  #-> (fn (lhs, def) => locale_const target Syntax.mode_default ((b, mx), lhs)
     #> pair (lhs, def));
 
-fun class_foundation (ta as Target {target, ...}) (((b, U), mx), (b_def, rhs)) params =
+fun class_foundation target (((b, U), mx), (b_def, rhs)) params =
   Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
-  #-> (fn (lhs, def) => locale_const ta Syntax.mode_default ((b, NoSyn), lhs)
+  #-> (fn (lhs, def) => class_const target Syntax.mode_default (b, lhs)
     #> Class.const target ((b, mx), (#1 params, #2 params, lhs))
     #> pair (lhs, def));
 
-fun target_foundation (ta as Target {is_locale, is_class, ...}) =
-  if is_class then class_foundation ta
-  else if is_locale then locale_foundation ta
+fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
+  if is_class then class_foundation target
+  else if is_locale then locale_foundation target
   else Generic_Target.theory_foundation;
 
 
@@ -109,18 +121,21 @@ fun target_notes (Target {target, is_locale, ...}) =
 
 (* abbrev *)
 
-fun locale_abbrev ta prmode ((b, mx), t) xs =
-  Local_Theory.background_theory_result
-    (Sign.add_abbrev Print_Mode.internal (b, t)) #->
-      (fn (lhs, _) =>
-        locale_const ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+fun locale_abbrev target prmode (b, mx) (t, _) xs =
+  Local_Theory.background_theory_result (Sign.add_abbrev Print_Mode.internal (b, t))
+  #-> (fn (lhs, _) =>
+        locale_const target prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
-fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) prmode (b, mx) (t, t') xs lthy =
-  if is_locale then
-    lthy
-    |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), t) xs
-    |> is_class ? Class.abbrev target prmode ((b, mx), t')
-  else lthy |> Generic_Target.theory_abbrev prmode (b, mx) (t, t') xs;
+fun class_abbrev target prmode (b, mx) (t, t') xs =
+  Local_Theory.background_theory_result (Sign.add_abbrev Print_Mode.internal (b, t))
+  #-> (fn (lhs, _) =>
+        class_const target prmode (b, Term.list_comb (Logic.unvarify_global lhs, xs)))
+  #> Class.abbrev target prmode ((b, mx), t');
+
+fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) =
+  if is_class then class_abbrev target
+  else if is_locale then locale_abbrev target
+  else Generic_Target.theory_abbrev;
 
 
 (* declaration *)
