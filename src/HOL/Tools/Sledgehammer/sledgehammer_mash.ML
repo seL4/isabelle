@@ -128,7 +128,7 @@ fun mash_engine () =
   end
 
 val is_mash_enabled = is_some o mash_engine
-val the_mash_engine = the_default MaSh_SML_kNN o mash_engine
+val the_mash_engine = the_default MaSh_Py o mash_engine
 
 
 (*** Low-level communication with Python version of MaSh ***)
@@ -534,7 +534,8 @@ fun query ctxt engine parents access_G max_suggs hints feats =
     val num_visible_facts = length visible_facts
     val get_deps = curry Vector.sub deps_vec
   in
-    trace_msg ctxt (fn () => "MaSh_SML query " ^ encode_features feats ^ " from {" ^
+    trace_msg ctxt (fn () => "MaSh_SML " ^ (if engine = MaSh_SML_kNN then "kNN" else "NB") ^
+      " query " ^ encode_features feats ^ " from {" ^
       elide_string 1000 (space_implode " " (take num_visible_facts facts)) ^ "}");
     (if engine = MaSh_SML_kNN then
        let
