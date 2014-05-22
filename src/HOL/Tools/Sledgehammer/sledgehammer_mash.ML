@@ -1390,8 +1390,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
               val access_G = access_G |> fold flop_wrt_access_graph flops
               val num_known_facts = num_known_facts + length learns
               val dirty =
-                (case (was_empty, dirty, relearns) of
-                  (false, SOME names, []) => SOME (map #1 learns @ map #1 relearns @ names)
+                (case (was_empty, dirty) of
+                  (false, SOME names) => SOME (map #1 learns @ map #1 relearns @ names)
                 | _ => NONE)
             in
               if engine = MaSh_Py then
@@ -1474,16 +1474,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
             let
               val max_isar = 1000 * max_dependencies
 
-              val kind_of_proof =
-                nickname_of_thm #> try (#1 o Graph.get_node access_G) #> the_default Isar_Proof
-
               fun priority_of th =
-                random_range 0 max_isar
-                + (case kind_of_proof th of
-                     Isar_Proof => 0
-                   | Automatic_Proof => 2 * max_isar
-                   | Isar_Proof_wegen_Prover_Flop => max_isar)
-                - 100 * length (isar_dependencies_of name_tabs th)
+                random_range 0 max_isar +
+                (case try (Graph.get_node access_G) (nickname_of_thm th) of
+                  SOME (Isar_Proof, _, deps) => ~100 * length deps
+                | SOME (Automatic_Proof, _, _) => 2 * max_isar
+                | SOME (Isar_Proof_wegen_Prover_Flop, _, _) => max_isar
+                | NONE => 0)
 
               val old_facts = facts
                 |> filter is_in_access_G
