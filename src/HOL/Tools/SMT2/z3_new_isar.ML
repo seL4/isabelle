@@ -84,8 +84,8 @@ val unskolemize_names =
   Term.map_abs_vars (perhaps (try Name.dest_skolem))
   #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
 
-fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_ts prem_ids conjecture_id fact_ids
-    proof =
+fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids conjecture_id
+    fact_helper_ids proof =
   let
     val thy = Proof_Context.theory_of ctxt
 
@@ -108,12 +108,12 @@ fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_ts prem_ids con
         (case rule of
           Z3_New_Proof.Asserted =>
           let
-            val ss = the_list (AList.lookup (op =) fact_ids id)
+            val ss = the_list (AList.lookup (op =) fact_helper_ids id)
             val name0 = (sid ^ "a", ss)
 
             val (role0, concl0) =
               (case ss of
-                [s] => (Axiom, the (AList.lookup (op =) fact_ts s))
+                [s] => (Axiom, the (AList.lookup (op =) fact_helper_ts s))
               | _ =>
                 if id = conjecture_id then
                   (Conjecture, concl_t)

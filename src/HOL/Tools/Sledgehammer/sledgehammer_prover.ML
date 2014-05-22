@@ -63,8 +63,8 @@ sig
      message_tail : string}
 
   type prover =
-    params -> ((string * string list) list -> string -> minimize_command)
-    -> prover_problem -> prover_result
+    params -> ((string * string list) list -> string -> minimize_command) -> prover_problem ->
+    prover_result
 
   val SledgehammerN : string
   val str_of_mode : mode -> string
@@ -76,8 +76,7 @@ sig
   val is_atp : theory -> string -> bool
   val bunch_of_proof_methods : bool -> bool -> string -> proof_method list
   val is_fact_chained : (('a * stature) * 'b) -> bool
-  val filter_used_facts :
-    bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
+  val filter_used_facts : bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
   val play_one_line_proof : mode -> bool -> Time.time -> ((string * 'a) * thm) list ->
     Proof.state -> int -> proof_method -> proof_method list -> proof_method * play_outcome
@@ -294,8 +293,7 @@ fun supported_provers ctxt =
       sort_strings (SMT2_Config.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in
-    Output.urgent_message ("Supported provers: " ^
-                           commas (local_provers @ remote_provers) ^ ".")
+    Output.urgent_message ("Supported provers: " ^ commas (local_provers @ remote_provers) ^ ".")
   end
 
 fun kill_provers () = Async_Manager.kill_threads SledgehammerN "prover"

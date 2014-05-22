@@ -129,8 +129,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
          ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
                    print_used_facts used_facts used_from
                  | _ => ())
-      |> spy
-         ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
+      |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
       |> (fn {outcome, preplay, message, message_tail, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
@@ -143,13 +142,12 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
             really_go ()
           else
             (really_go ()
-             handle ERROR msg => (unknownN, fn () => "Error: " ^ msg ^ "\n")
-                  | exn =>
-                    if Exn.is_interrupt exn then
-                      reraise exn
-                    else
-                      (unknownN, fn () => "Internal error:\n" ^
-                                          Runtime.exn_message exn ^ "\n"))
+             handle
+               ERROR msg => (unknownN, fn () => "Error: " ^ msg ^ "\n")
+             | exn =>
+               if Exn.is_interrupt exn then reraise exn
+               else (unknownN, fn () => "Internal error:\n" ^ Runtime.exn_message exn ^ "\n"))
+
         val _ =
           (* The "expect" argument is deliberately ignored if the prover is
              missing so that the "Metis_Examples" can be processed on any
@@ -175,9 +173,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
       let
         val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
         val outcome =
-          if outcome_code = someN orelse mode = Normal then
-            quote name ^ ": " ^ message ()
-          else ""
+          if outcome_code = someN orelse mode = Normal then quote name ^ ": " ^ message () else ""
         val _ =
           if outcome <> "" andalso is_some output_result then
             the output_result outcome
@@ -274,9 +270,8 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
             if mode = Auto_Try then
               (unknownN, state)
               |> fold (fn prover => fn accum as (outcome_code, _) =>
-                          if outcome_code = someN then accum
-                          else launch problem prover)
-                      provers
+                  if outcome_code = someN then accum else launch problem prover)
+                provers
             else
               provers
               |> (if blocking then Par_List.map else map) (launch problem #> fst)

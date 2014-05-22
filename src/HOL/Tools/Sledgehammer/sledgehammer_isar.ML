@@ -73,16 +73,11 @@ fun is_True_prop t = t aconv @{prop True}
 fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
-    if role = Conjecture orelse role = Negated_Conjecture then
-      line :: lines
-    else if is_True_prop t then
-      map (replace_dependencies_in_line (name, [])) lines
-    else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then
-      line :: lines
-    else if role = Axiom then
-      lines (* axioms (facts) need no proof lines *)
-    else
-      map (replace_dependencies_in_line (name, [])) lines
+    if role = Conjecture orelse role = Negated_Conjecture then line :: lines
+    else if is_True_prop t then map (replace_dependencies_in_line (name, [])) lines
+    else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then line :: lines
+    else if role = Axiom then lines (* axioms (facts) need no proof lines *)
+    else map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
 
 fun add_lines_pass2 res _ [] = rev res
@@ -364,7 +359,9 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           SOME s => s
         | NONE =>
           if isar_proofs = SOME true then "\nWarning: Isar proof construction failed." else "")
-  in one_line_proof ^ isar_proof end
+  in
+    one_line_proof ^ isar_proof
+  end
 
 fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   (case play of

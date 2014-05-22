@@ -242,15 +242,22 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_
              SMT2_Method (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
          fn preplay =>
             let
-              val fact_ids =
-                map (fn (id, th) => (id, short_thm_name ctxt th)) helper_ids @
-                map (fn (id, ((name, _), _)) => (id, name)) fact_ids
-              val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t
-                (map (fn ((s, _), th) => (s, prop_of th)) used_named_facts) prem_ids conjecture_id
-                fact_ids z3_proof
-              val isar_params =
-                K (verbose, (NONE, NONE), preplay_timeout, compress_isar, try0_isar,
+              fun isar_params () =
+                let
+                  val fact_helper_ts =
+                    map (fn (_, th) => (short_thm_name ctxt th, prop_of th)) helper_ids @
+                    map (fn ((s, _), th) => (s, prop_of th)) used_named_facts
+                  val fact_helper_ids =
+                    map (fn (id, th) => (id, short_thm_name ctxt th)) helper_ids @
+                    map (fn (id, ((name, _), _)) => (id, name)) fact_ids
+
+                  val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts
+                    concl_t fact_helper_ts prem_ids conjecture_id fact_helper_ids z3_proof
+                in
+                  (verbose, (NONE, NONE), preplay_timeout, compress_isar, try0_isar,
                    minimize <> SOME false, atp_proof, goal)
+                end
+
               val one_line_params =
                 (preplay, proof_banner mode name, used_facts,
                  choose_minimize_command thy params minimize_command name preplay, subgoal,
