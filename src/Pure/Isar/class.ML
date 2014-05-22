@@ -17,7 +17,7 @@ sig
   val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
-  val const: class -> (binding * mixfix) * (term list * term list * term) -> local_theory -> local_theory
+  val const: class -> (binding * mixfix) * term -> term list * term list -> local_theory -> local_theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory -> local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
@@ -320,7 +320,7 @@ fun target_extension f class =
   Local_Theory.raw_theory f
   #> synchronize_class_syntax_target class;
 
-fun target_const class ((c, mx), (type_params, term_params, dict)) thy =
+fun target_const class ((c, mx), dict) (type_params, term_params) thy =
   let
     val morph = morphism thy class;
     val class_params = map fst (these_params thy [class]);
@@ -366,7 +366,7 @@ fun target_abbrev class prmode ((c, mx), rhs) thy =
 
 in
 
-fun const class arg = target_extension (target_const class arg) class;
+fun const class arg params = target_extension (target_const class arg params) class;
 fun abbrev class prmode arg = target_extension (target_abbrev class prmode arg) class;
 
 end;
