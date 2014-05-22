@@ -9,7 +9,6 @@ signature NAMED_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool, is_class: bool} option
   val is_theory: local_theory -> bool
-  val the_name: local_theory -> string
   val init: (local_theory -> local_theory) -> string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val reinit: local_theory -> local_theory -> local_theory
@@ -47,15 +46,6 @@ val peek =
 
 fun is_theory lthy =
   Option.map #target (peek lthy) = SOME "" andalso Local_Theory.level lthy = 1;
-
-fun the_name lthy =
-  let
-    val _ = Local_Theory.assert_bottom true lthy;
-  in
-    (case Option.map #target (peek lthy) of
-      SOME target => target
-    | _ => error "Not in a named target")
-  end;
 
 
 (* consts *)
