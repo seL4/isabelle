@@ -31,8 +31,7 @@ sig
   val encode_strs : string list -> string
   val decode_str : string -> string
   val decode_strs : string -> string list
-  val encode_unweighted_features : string list list -> string
-  val encode_features : (string list * real) list -> string
+  val encode_features : (string * real) list -> string
   val extract_suggestions : string -> string * string list
 
   val mash_unlearn : Proof.context -> params -> unit
@@ -44,8 +43,8 @@ sig
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash : Proof.context -> params -> string -> string -> fact list -> thm ->
     prover_result
-  val features_of : Proof.context -> theory -> int -> int Symtab.table -> stature -> bool ->
-    term list -> (string list * real) list
+  val features_of : Proof.context -> theory -> int -> int Symtab.table -> stature -> term list ->
+    (string * real) list
   val trim_dependencies : string list -> string list option
   val isar_dependencies_of : string Symtab.table * string Symtab.table -> thm -> string list
   val prover_dependencies_of : Proof.context -> params -> string -> int -> raw_fact list ->
@@ -213,26 +212,20 @@ fun safe_str_of_real r =
   else if r >= 1000000.0 then "1000000"
   else Markup.print_real r
 
-val encode_unweighted_feature = map encode_str #> space_implode "|"
-val decode_unweighted_feature = space_explode "|" #> map decode_str
-
 fun encode_feature (names, weight) =
-  encode_unweighted_feature names ^
-  (if Real.== (weight, 1.0) then "" else "=" ^ safe_str_of_real weight)
+  encode_str names ^ (if Real.== (weight, 1.0) then "" else "=" ^ safe_str_of_real weight)
 
 fun decode_feature s =
   (case space_explode "=" s of
-    [feat, weight] => (decode_unweighted_feature feat, Real.fromString weight |> the_default 1.0)
-  | _ => (decode_unweighted_feature s, 1.0))
-
-val encode_unweighted_features = map encode_unweighted_feature #> space_implode " "
+    [feat, weight] => (decode_str feat, Real.fromString weight |> the_default 1.0)
+  | _ => (decode_str s, 1.0))
 
 val encode_features = map encode_feature #> space_implode " "
 val decode_features = space_explode " " #> map decode_feature
 
 fun str_of_learn (name, parents, feats, deps) =
-  "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-  encode_unweighted_features feats ^ "; " ^ encode_strs deps ^ "\n"
+  "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^ encode_strs feats ^ "; " ^
+  encode_strs deps ^ "\n"
 
 fun str_of_relearn (name, deps) = "p " ^ encode_str name ^ ": " ^ encode_strs deps ^ "\n"
 
@@ -509,8 +502,6 @@ fun map_array_at ary f i = Array.update (ary, i, f (Array.sub (ary, i)))
 
 fun query ctxt engine parents access_G max_suggs hints feats =
   let
-    val str_of_feat = space_implode "|"
-
     val visible_facts = Graph.all_preds access_G parents
     val visible_fact_set = Symtab.make_set visible_facts
 
@@ -528,7 +519,7 @@ fun query ctxt engine parents access_G max_suggs hints feats =
                 SOME i => ((i, weight), xtab)
               | NONE => ((n, weight), add_to_xtab feat xtab))
 
-            val (feats', feat_xtab') = fold_map (add_feat o apfst str_of_feat) feats feat_xtab
+            val (feats', feat_xtab') = fold_map add_feat feats feat_xtab
           in
             (map_filter (Symtab.lookup fact_tab) deps :: rev_depss, feats' :: rev_featss,
              add_to_xtab fact fact_xtab, feat_xtab')
@@ -547,18 +538,18 @@ fun query ctxt engine parents access_G max_suggs hints feats =
       elide_string 1000 (space_implode " " (take num_visible_facts facts)) ^ "}");
     (if engine = MaSh_SML_kNN then
        let
-        val facts_ary = Array.array (num_feats, [])
-        val _ =
-          fold (fn feats => fn fact =>
-              let val fact' = fact - 1 in
-                List.app (fn (feat, weight) => map_array_at facts_ary (cons (fact', weight)) feat)
-                  feats;
-                fact'
-              end)
-            rev_featss num_facts
+         val facts_ary = Array.array (num_feats, [])
+         val _ =
+           fold (fn feats => fn fact =>
+               let val fact' = fact - 1 in
+                 List.app (fn (feat, weight) => map_array_at facts_ary (cons (fact', weight)) feat)
+                   feats;
+                 fact'
+               end)
+             rev_featss num_facts
          val get_facts = curry Array.sub facts_ary
          val syms = map_filter (fn (feat, weight) =>
-           Option.map (rpair weight) (Symtab.lookup feat_tab (str_of_feat feat))) feats
+           Option.map (rpair weight) (Symtab.lookup feat_tab feat)) feats
        in
          k_nearest_neighbors num_facts num_visible_facts get_deps get_facts knns max_suggs syms
        end
@@ -566,7 +557,7 @@ fun query ctxt engine parents access_G max_suggs hints feats =
        let
          val unweighted_feats_ary = Vector.fromList (map (map fst) (rev rev_featss))
          val get_unweighted_feats = curry Vector.sub unweighted_feats_ary
-         val unweighted_syms = map_filter (Symtab.lookup feat_tab o str_of_feat o fst) feats
+         val unweighted_syms = map_filter (Symtab.lookup feat_tab o fst) feats
        in
          naive_bayes num_facts num_visible_facts get_deps get_unweighted_feats num_feats ess prior
            max_suggs unweighted_syms
@@ -620,7 +611,7 @@ fun graph_info G =
   string_of_int (length (Graph.maximals G)) ^ " maximal"
 
 type mash_state =
-  {access_G : (proof_kind * (string list * real) list * string list) Graph.T,
+  {access_G : (proof_kind * (string * real) list * string list) Graph.T,
    num_known_facts : int,
    dirty : string list option}
 
@@ -784,12 +775,11 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
     end
 
 val default_weight = 1.0
-fun free_feature_of s = (["f" ^ s], 40.0 (* FUDGE *))
-fun thy_feature_of s = (["y" ^ s], 8.0 (* FUDGE *))
-fun type_feature_of s = (["t" ^ s], 4.0 (* FUDGE *))
-fun var_feature_of s = ([s], 1.0 (* FUDGE *))
-fun class_feature_of s = (["s" ^ s], 1.0 (* FUDGE *))
-val local_feature = (["local"], 16.0 (* FUDGE *))
+fun free_feature_of s = ("f" ^ s, 40.0 (* FUDGE *))
+fun thy_feature_of s = ("y" ^ s, 8.0 (* FUDGE *))
+fun type_feature_of s = ("t" ^ s, 4.0 (* FUDGE *))
+fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
+val local_feature = ("local", 16.0 (* FUDGE *))
 
 fun crude_theory_ord p =
   if Theory.subthy p then
@@ -843,7 +833,7 @@ val pat_tvar_prefix = "_"
 val pat_var_prefix = "_"
 
 (* try "Long_Name.base_name" for shorter names *)
-fun massage_long_name s = if s = @{class type} then "T" else s
+fun massage_long_name s = s
 
 val crude_str_of_sort = space_implode ":" o map massage_long_name o subtract (op =) @{sort type}
 
@@ -857,33 +847,9 @@ fun maybe_singleton_str _ "" = []
 
 val max_pat_breadth = 10 (* FUDGE *)
 
-fun keep m xs =
-  let val n = length xs in
-    if n <= m then xs else take (m div 2) xs @ drop (n - (m + 1) div 2) xs
-  end
-
-fun sort_of_type alg T =
-  let
-    val G = Sorts.classes_of alg
-
-    fun cls_of S [] = S
-      | cls_of S (cl :: cls) =
-        if Sorts.of_sort alg (T, [cl]) then
-          cls_of (insert (op =) cl S) cls
-        else
-          let val cls' = Sorts.minimize_sort alg (Sorts.super_classes alg cl) in
-            cls_of S (union (op =) cls' cls)
-          end
-  in
-    cls_of [] (Graph.maximals G)
-  end
-
-val generalize_goal = false
-
-fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth in_goal ts =
+fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth ts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val alg = Sign.classes_of thy
 
     val fixes = map snd (Variable.dest_fixes ctxt)
     val classes = Sign.classes_of thy
@@ -902,8 +868,8 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
       | pattify_type depth (Type (s, U :: Ts)) =
         let
           val T = Type (s, Ts)
-          val ps = keep max_pat_breadth (pattify_type depth T)
-          val qs = keep max_pat_breadth ("" :: pattify_type (depth - 1) U)
+          val ps = take max_pat_breadth (pattify_type depth T)
+          val qs = take max_pat_breadth ("" :: pattify_type (depth - 1) U)
         in
           map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs
         end
@@ -935,64 +901,37 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
            Real.fromInt num_facts / Real.fromInt count (* FUDGE *)
          end)
 
-    fun pattify_term _ 0 _ = ([] : (string list * real) list)
-      | pattify_term _ _ (Const (x as (s, _))) =
-        if is_widely_irrelevant_const s then
-          []
-        else
-          let
-            val strs_of_sort =
-              (if generalize_goal andalso in_goal then Sorts.complete_sort alg
-               else single o hd)
-              #> map massage_long_name
-            fun strs_of_type_arg (T as Type (s, _)) =
-                massage_long_name s ::
-                (if generalize_goal andalso in_goal then strs_of_sort (sort_of_type alg T) else [])
-              | strs_of_type_arg (TFree (_, S)) = strs_of_sort S
-              | strs_of_type_arg (TVar (_, S)) = strs_of_sort S
-
-            val typargss =
-              these (try (Sign.const_typargs thy) x)
-              |> map strs_of_type_arg
-              |> n_fold_cartesian_product
-              |> keep max_pat_breadth
-            val s' = massage_long_name s
-            val w = weight_of_const s
-
-            fun str_of_type_args [] = ""
-              | str_of_type_args ss = "(" ^ space_implode "," ss ^ ")"
-          in
-            [(map (curry (op ^) s' o str_of_type_args) typargss, w)]
-          end
+    fun pattify_term _ 0 _ = []
+      | pattify_term _ _ (Const (s, _)) =
+        if is_widely_irrelevant_const s then [] else [(massage_long_name s, weight_of_const s)]
       | pattify_term _ _ (Free (s, T)) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
-        |> map var_feature_of
+        |> map (rpair 1.0)
         |> (if member (op =) fixes s then
-              cons (free_feature_of (massage_long_name (thy_name ^ Long_Name.separator ^ s)))
+              cons (free_feature_of (massage_long_name
+                  (thy_name ^ Long_Name.separator ^ s)))
             else
               I)
       | pattify_term _ _ (Var (_, T)) =
-        maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
-        |> map var_feature_of
+        maybe_singleton_str pat_var_prefix (crude_str_of_typ T) |> map (rpair default_weight)
       | pattify_term Ts _ (Bound j) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j))
-        |> map var_feature_of
+        |> map (rpair default_weight)
       | pattify_term Ts depth (t $ u) =
         let
-          val ps = keep max_pat_breadth (pattify_term Ts depth t)
-          val qs = keep max_pat_breadth (([], default_weight) :: pattify_term Ts (depth - 1) u)
+          val ps = take max_pat_breadth (pattify_term Ts depth t)
+          val qs = take max_pat_breadth (("", default_weight) :: pattify_term Ts (depth - 1) u)
         in
-          map_product (fn ppw as (p :: _, pw) =>
-              fn ([], _) => ppw
-               | (q :: _, qw) => ([p ^ "(" ^ q ^ ")"], pw + qw)) ps qs
+          map_product (fn ppw as (p, pw) =>
+            fn ("", _) => ppw
+             | (q, qw) => (p ^ "(" ^ q ^ ")", pw + qw)) ps qs
         end
       | pattify_term _ _ _ = []
 
     fun add_term_pat Ts = union (eq_fst (op =)) oo pattify_term Ts
 
     fun add_term_pats _ 0 _ = I
-      | add_term_pats Ts depth t =
-        add_term_pat Ts depth t #> add_term_pats Ts (depth - 1) t
+      | add_term_pats Ts depth t = add_term_pat Ts depth t #> add_term_pats Ts (depth - 1) t
 
     fun add_term Ts = add_term_pats Ts term_max_depth
 
@@ -1017,10 +956,10 @@ val term_max_depth = 2
 val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of ctxt thy num_facts const_tab (scope, _) in_goal ts =
+fun features_of ctxt thy num_facts const_tab (scope, _) ts =
   let val thy_name = Context.theory_name thy in
     thy_feature_of thy_name ::
-    term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth in_goal ts
+    term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth ts
     |> scope <> Global ? cons local_feature
   end
 
@@ -1268,7 +1207,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
 
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [prop_of th]
-      |> features_of ctxt (theory_of_thm th) num_facts const_tab stature false
+      |> features_of ctxt (theory_of_thm th) num_facts const_tab stature
       |> map (apsnd (fn r => weight * factor * r))
 
     fun query_args access_G =
@@ -1279,7 +1218,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
           |> map (nickname_of_thm o snd)
 
         val goal_feats =
-          features_of ctxt thy num_facts const_tab (Local, General) true (concl_t :: hyp_ts)
+          features_of ctxt thy num_facts const_tab (Local, General) (concl_t :: hyp_ts)
         val chained_feats = chained
           |> map (rpair 1.0)
           |> map (chained_or_extra_features_of chained_feature_factor)
@@ -1375,7 +1314,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
     launch_thread timeout (fn () =>
       let
         val thy = Proof_Context.theory_of ctxt
-        val feats = features_of ctxt thy 0 Symtab.empty (Local, General) false [t]
+        val feats = features_of ctxt thy 0 Symtab.empty (Local, General) [t]
       in
         map_state ctxt overlord (fn state as {access_G, num_known_facts, dirty} =>
           let
@@ -1477,8 +1416,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
               (learns, (n, next_commit, _)) =
             let
               val name = nickname_of_thm th
-              val feats =
-                features_of ctxt (theory_of_thm th) 0 Symtab.empty stature false [prop_of th]
+              val feats = features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th]
               val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
