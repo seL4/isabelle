@@ -584,10 +584,10 @@ fun add_edge_to name parent =
   Graph.default_node (parent, (Isar_Proof, [], []))
   #> Graph.add_edge (parent, name)
 
-fun add_node kind name parents feats deps =
-  Graph.default_node (name, (kind, feats, deps))
-  #> Graph.map_node name (K (kind, feats, deps))
-  #> fold (add_edge_to name) parents
+fun add_node kind name parents feats deps G =
+  (Graph.new_node (name, (kind, feats, deps)) G
+   handle Graph.DUP _ => Graph.map_node name (K (kind, feats, deps)) G)
+  |> fold (add_edge_to name) parents
 
 fun try_graph ctxt when def f =
   f ()
@@ -1391,7 +1391,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
               val num_known_facts = num_known_facts + length learns
               val dirty =
                 (case (was_empty, dirty, relearns) of
-                  (false, SOME names, []) => SOME (map #1 learns @ names)
+                  (false, SOME names, []) => SOME (map #1 learns @ map #1 relearns @ names)
                 | _ => NONE)
             in
               if engine = MaSh_Py then
