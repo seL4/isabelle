@@ -25,10 +25,10 @@ sig
     string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
   val locale_declaration: string -> bool -> declaration -> local_theory -> local_theory
-  val standard_declaration: (int -> bool) -> declaration -> local_theory -> local_theory
+  val standard_declaration: (int -> int -> bool) -> declaration -> local_theory -> local_theory
   val generic_const: bool -> Syntax.mode -> (binding * mixfix) * term ->
     Context.generic -> Context.generic
-  val const_declaration: (int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
+  val const_declaration: (int -> int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
   val background_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
@@ -231,7 +231,8 @@ fun locale_declaration locale syntax decl lthy = lthy
 
 fun standard_declaration pred decl lthy =
   Local_Theory.map_contexts (fn level => fn ctxt =>
-    if pred level then Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt
+    if pred (Local_Theory.level lthy) level
+    then Context.proof_map (Local_Theory.standard_form lthy ctxt decl) ctxt
     else ctxt) lthy;
 
 
@@ -306,10 +307,10 @@ fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params)
-  #-> (fn (lhs, def) => fn lthy' => lthy' |>
-        const_declaration (fn level => level <> Local_Theory.level lthy')
+  #-> (fn (lhs, def) =>
+        const_declaration (fn this_level => fn level => level <> this_level)
           Syntax.mode_default ((b, mx), lhs)
-    |> pair (lhs, def));
+    #> pair (lhs, def));
 
 fun theory_notes kind global_facts local_facts =
   Local_Theory.background_theory (Attrib.global_notes kind global_facts #> snd) #>
@@ -324,11 +325,11 @@ fun theory_abbrev prmode (b, mx) (t, _) xs =
     (Sign.add_abbrev (#1 prmode) (b, t) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
         Sign.notation true prmode [(lhs, check_mixfix_global (b, null xs) mx)] #> pair lhs))
-  #-> (fn lhs => fn lthy' => lthy' |>
-        const_declaration (fn level => level <> Local_Theory.level lthy') prmode
+  #-> (fn lhs =>
+        const_declaration (fn this_level => fn level => level <> this_level) prmode
           ((b, if null xs then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun theory_declaration decl =
-  background_declaration decl #> standard_declaration (K true) decl;
+  background_declaration decl #> standard_declaration ((K o K) true) decl;
 
 end;

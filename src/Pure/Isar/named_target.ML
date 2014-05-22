@@ -77,8 +77,8 @@ fun locale_const (Target {target, is_class, ...}) prmode ((b, mx), rhs) =
     in
       not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', mx), rhs')
     end) #>
-  (fn lthy => lthy |> Generic_Target.const_declaration
-    (fn level => level <> 0 andalso level <> Local_Theory.level lthy) prmode ((b, mx), rhs));
+  Generic_Target.const_declaration
+    (fn this_level => fn level => level <> 0 andalso level <> this_level) prmode ((b, mx), rhs);
 
 
 (* define *)
@@ -131,7 +131,7 @@ fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
     lthy
     |> pervasive ? Generic_Target.background_declaration decl
     |> Generic_Target.locale_declaration target syntax decl
-    |> (fn lthy' => lthy' |> Generic_Target.standard_declaration (fn level => level <> 0) decl);
+    |> Generic_Target.standard_declaration (fn _ => fn level => level <> 0) decl;
 
 
 (* subscription *)
