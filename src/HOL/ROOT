@@ -582,6 +582,7 @@ session "HOL-ex" in ex = HOL +
     ML
     SAT_Examples
     Sudoku
+    Nominal2_Dummy
   theories [skip_proofs = false]
     Meson_Test
   theories [condition = SVC_HOME]
