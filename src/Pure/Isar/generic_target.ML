@@ -275,21 +275,18 @@ fun generic_const same_shape prmode ((b, mx), t) context =
                Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
   end;
 
+fun standard_const prmode ((b, mx), rhs) phi =
+  let
+    val b' = Morphism.binding phi b;
+    val rhs' = Morphism.term phi rhs;
+    val same_shape = Term.aconv_untyped (rhs, rhs');
+  in generic_const same_shape prmode ((b', mx), rhs') end;
+
 fun const pred prmode ((b, mx), rhs) =
-  standard_declaration pred (fn phi =>
-    let
-      val b' = Morphism.binding phi b;
-      val rhs' = Morphism.term phi rhs;
-      val same_shape = Term.aconv_untyped (rhs, rhs');
-    in generic_const same_shape prmode ((b', mx), rhs') end);
+  standard_declaration pred (standard_const prmode ((b, mx), rhs));
 
 fun locale_const locale prmode ((b, mx), rhs) =
-  locale_declaration locale true (fn phi =>
-    let
-      val b' = Morphism.binding phi b;
-      val rhs' = Morphism.term phi rhs;
-      val same_shape = Term.aconv_untyped (rhs, rhs');
-    in generic_const same_shape prmode ((b', mx), rhs') end)
+  locale_declaration locale true (standard_const prmode ((b, mx), rhs))
   #> const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
 
 
