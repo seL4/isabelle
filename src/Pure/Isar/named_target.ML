@@ -76,13 +76,12 @@ fun target_notes (Target {target, is_locale, ...}) =
 (* abbrev *)
 
 fun locale_abbrev target prmode (b, mx) (t, _) xs =
-  Generic_Target.background_abbrev (b, t)
-  #-> (fn (lhs, _) =>
-        Generic_Target.locale_const_declaration target prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+  Generic_Target.background_abbrev (b, t) xs
+  #-> (fn (lhs, _) => Generic_Target.locale_const_declaration target prmode ((b, mx), lhs));
 
 fun class_abbrev target prmode (b, mx) (t, t') xs =
-  Generic_Target.background_abbrev (b, t)
-  #-> (fn (lhs, _) => Class.abbrev target prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)) t');
+  Generic_Target.background_abbrev (b, t) xs
+  #-> (fn (lhs, _) => Class.abbrev target prmode ((b, mx), lhs) t');
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) =
   if is_class then class_abbrev target
