@@ -34,8 +34,7 @@ sig
     (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
-  val tac_of_proof_method : Proof.context -> bool -> thm list * thm list -> proof_method -> int ->
-    tactic
+  val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome * play_outcome -> order
   val one_line_proof_text : Proof.context -> int -> one_line_params -> string
@@ -97,7 +96,7 @@ fun string_of_proof_method ctxt ss meth =
     maybe_paren (space_implode " " (meth_s :: ss))
   end
 
-fun tac_of_proof_method ctxt debug (local_facts, global_facts) meth =
+fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
   (case meth of
     Metis_Method (type_enc_opt, lam_trans_opt) =>

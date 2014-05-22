@@ -79,7 +79,7 @@ sig
   val filter_used_facts :
     bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
-  val play_one_line_proof : mode -> bool -> bool -> Time.time -> ((string * 'a) * thm) list ->
+  val play_one_line_proof : mode -> bool -> Time.time -> ((string * 'a) * thm) list ->
     Proof.state -> int -> proof_method -> proof_method list -> proof_method * play_outcome
   val isar_supported_prover_of : theory -> string -> string
   val choose_minimize_command : theory -> params -> ((string * string list) list -> string -> 'a) ->
@@ -214,15 +214,15 @@ fun timed_apply timeout tac state i =
     TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal
   end
 
-fun timed_proof_method debug timeout ths meth =
-  timed_apply timeout (fn ctxt => tac_of_proof_method ctxt debug ([], ths) meth)
+fun timed_proof_method timeout ths meth =
+  timed_apply timeout (fn ctxt => tac_of_proof_method ctxt ([], ths) meth)
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 
 fun filter_used_facts keep_chained used =
   filter ((member (op =) used o fst) orf (if keep_chained then is_fact_chained else K false))
 
-fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meths as meth :: _) =
+fun play_one_line_proof mode verbose timeout pairs state i preferred (meths as meth :: _) =
   let
     val ctxt = Proof.context_of state
 
@@ -246,7 +246,7 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meth
                   ()
               val timer = Timer.startRealTimer ()
             in
-              (case timed_proof_method debug timeout ths meth state i of
+              (case timed_proof_method timeout ths meth state i of
                 SOME (SOME _) => (meth, Played (Timer.checkRealTimer timer))
               | _ => play timed_out meths)
             end

@@ -12,8 +12,8 @@ sig
   type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
   val keep_fastest_method_of_isar_step : isar_preplay_data -> isar_step -> isar_step
-  val minimize_isar_step_dependencies : Proof.context -> bool ->
-    isar_preplay_data Unsynchronized.ref -> isar_step -> isar_step
+  val minimize_isar_step_dependencies : Proof.context -> isar_preplay_data Unsynchronized.ref ->
+    isar_step -> isar_step
   val postprocess_isar_proof_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof ->
     isar_proof
 end;
@@ -34,7 +34,7 @@ fun keep_fastest_method_of_isar_step preplay_data
 
 val slack = seconds 0.025
 
-fun minimize_isar_step_dependencies ctxt debug preplay_data
+fun minimize_isar_step_dependencies ctxt preplay_data
       (step as Prove (qs, xs, l, t, subproofs, (lfs0, gfs0), meths as meth :: _, comment)) =
     (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
       Played time =>
@@ -43,7 +43,7 @@ fun minimize_isar_step_dependencies ctxt debug preplay_data
 
         fun minimize_facts _ min_facts [] time = (min_facts, time)
           | minimize_facts mk_step min_facts (fact :: facts) time =
-            (case preplay_isar_step_for_method ctxt debug (Time.+ (time, slack)) meth
+            (case preplay_isar_step_for_method ctxt (Time.+ (time, slack)) meth
                 (mk_step (min_facts @ facts)) of
               Played time' => minimize_facts mk_step min_facts facts time'
             | _ => minimize_facts mk_step (fact :: min_facts) facts time)
@@ -53,12 +53,11 @@ fun minimize_isar_step_dependencies ctxt debug preplay_data
 
         val step' = mk_step_lfs_gfs min_lfs min_gfs
       in
-        set_preplay_outcomes_of_isar_step ctxt debug time'' preplay_data step'
-          [(meth, Played time'')];
+        set_preplay_outcomes_of_isar_step ctxt time'' preplay_data step' [(meth, Played time'')];
         step'
       end
     | _ => step (* don't touch steps that time out or fail *))
-  | minimize_isar_step_dependencies _ _ _ step = step
+  | minimize_isar_step_dependencies _ _ step = step
 
 fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
   let

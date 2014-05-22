@@ -51,7 +51,7 @@ open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT
 open Sledgehammer_Prover_SMT2
 
-fun run_proof_method mode name (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
+fun run_proof_method mode name (params as {verbose, timeout, type_enc, lam_trans, ...})
     minimize_command
     ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...} : prover_problem) =
   let
@@ -61,23 +61,22 @@ fun run_proof_method mode name (params as {debug, verbose, timeout, type_enc, la
       else raise Fail ("unknown proof_method: " ^ quote name)
     val used_facts = facts |> map fst
   in
-    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug verbose timeout
-        facts state subgoal meth [meth] of
+    (case play_one_line_proof (if mode = Minimize then Normal else mode) verbose timeout facts state
+        subgoal meth [meth] of
       play as (_, Played time) =>
       {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
        preplay = Lazy.value play,
-       message =
-         fn play =>
-            let
-              val ctxt = Proof.context_of state
-              val (_, override_params) = extract_proof_method params meth
-              val one_line_params =
-                (play, proof_banner mode name, used_facts, minimize_command override_params name,
-                 subgoal, subgoal_count)
-              val num_chained = length (#facts (Proof.goal state))
-            in
-              one_line_proof_text ctxt num_chained one_line_params
-            end,
+       message = fn play =>
+          let
+            val ctxt = Proof.context_of state
+            val (_, override_params) = extract_proof_method params meth
+            val one_line_params =
+              (play, proof_banner mode name, used_facts, minimize_command override_params name,
+               subgoal, subgoal_count)
+            val num_chained = length (#facts (Proof.goal state))
+          in
+            one_line_proof_text ctxt num_chained one_line_params
+          end,
        message_tail = ""}
     | play =>
       let
@@ -128,10 +127,7 @@ fun get_prover ctxt mode name =
 fun n_facts names =
   let val n = length names in
     string_of_int n ^ " fact" ^ plural_s n ^
-    (if n > 0 then
-       ": " ^ (names |> map fst |> sort string_ord |> space_implode " ")
-     else
-       "")
+    (if n > 0 then ": " ^ (names |> map fst |> sort string_ord |> space_implode " ") else "")
   end
 
 fun print silent f = if silent then () else Output.urgent_message (f ())
@@ -141,10 +137,9 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
       smt_proofs, preplay_timeout, ...} : params)
     silent (prover : prover) timeout i n state goal facts =
   let
-    val _ =
-      print silent (fn () =>
-        "Testing " ^ n_facts (map fst facts) ^
-        (if verbose then " (timeout: " ^ string_of_time timeout ^ ")" else "") ^ "...")
+    val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^
+      (if verbose then " (timeout: " ^ string_of_time timeout ^ ")" else "") ^ "...")
+
     val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = true,
@@ -230,7 +225,7 @@ fun binary_minimize test timeout result xs =
             (case test timeout (sup @ r0) of
               result as {outcome = NONE, used_facts, ...} =>
               min depth result (filter_used_facts true used_facts sup)
-                        (filter_used_facts true used_facts r0)
+                (filter_used_facts true used_facts r0)
             | _ =>
               let
                 val (sup_r0, (l, result)) = min depth result (sup @ r0) l0
@@ -259,8 +254,8 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
     val prover = get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
     fun test timeout = test_facts params silent prover timeout i n state goal
     val (chained, non_chained) = List.partition is_fact_chained facts
-    (* Push chained facts to the back, so that they are less likely to be
-       kicked out by the linear minimization algorithm. *)
+    (* Push chained facts to the back, so that they are less likely to be kicked out by the linear
+       minimization algorithm. *)
     val facts = non_chained @ chained
   in
     (print silent (fn () => "Sledgehammer minimizer: " ^ quote prover_name ^ ".");
@@ -378,8 +373,7 @@ fun maybe_minimize ctxt mode do_learn name (params as {verbose, isar_proofs, min
       | NONE => result)
     end
 
-fun get_minimizing_prover ctxt mode do_learn name params minimize_command
-                          problem =
+fun get_minimizing_prover ctxt mode do_learn name params minimize_command problem =
   get_prover ctxt mode name params minimize_command problem
   |> maybe_minimize ctxt mode do_learn name params problem
 
@@ -393,14 +387,14 @@ fun run_minimize (params as {provers, ...}) do_learn i refs state =
   in
     (case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"
-    | n => (case provers of
-             [] => error "No prover is set."
-           | prover :: _ =>
-             (kill_provers ();
-              minimize_facts do_learn prover params false i n state goal NONE facts
-              |> (fn (_, (preplay, message, message_tail)) =>
-                     message (Lazy.force preplay) ^ message_tail
-                     |> Output.urgent_message))))
+    | n =>
+      (case provers of
+        [] => error "No prover is set."
+      | prover :: _ =>
+        (kill_provers ();
+         minimize_facts do_learn prover params false i n state goal NONE facts
+         |> (fn (_, (preplay, message, message_tail)) =>
+                Output.urgent_message (message (Lazy.force preplay) ^ message_tail)))))
   end
 
 end;
