@@ -111,8 +111,7 @@ fun smart_dependencies_of ctxt params_opt facts name_tabs th isar_deps_opt =
     | NONE => (omitted_marker, []))
   end
 
-fun generate_isar_or_prover_dependencies ctxt params_opt range thys linearize
-                                         file_name =
+fun generate_isar_or_prover_dependencies ctxt params_opt range thys linearize file_name =
   let
     val path = file_name |> Path.explode
     val facts = all_facts ctxt |> filter_out (has_thys thys o snd)
@@ -124,8 +123,7 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys linearize
           val name = nickname_of_thm th
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val access_facts =
-            if linearize then take (j - 1) facts
-            else facts |> filter_accessible_from th
+            if linearize then take (j - 1) facts else facts |> filter_accessible_from th
           val (marker, deps) =
             smart_dependencies_of ctxt params_opt access_facts name_tabs th NONE
         in encode_str name ^ ": " ^ marker ^ " " ^ encode_strs deps ^ "\n" end
@@ -169,8 +167,8 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys l
             features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature [prop_of th]
             |> sort_wrt fst
           val access_facts =
-            (if linearize then take (j - 1) new_facts
-             else new_facts |> filter_accessible_from th) @ old_facts
+            (if linearize then take (j - 1) new_facts else new_facts |> filter_accessible_from th) @
+            old_facts
           val (marker, deps) =
             smart_dependencies_of ctxt params_opt access_facts name_tabs th
                                   (SOME isar_deps)
@@ -246,7 +244,7 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) (ran
             let
               val suggs =
                 old_facts
-                |> linearize ? filter_accessible_from th
+                |> not linearize ? filter_accessible_from th
                 |> Sledgehammer_Fact.drop_duplicate_facts
                 |> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t
                 |> map (nickname_of_thm o snd)
