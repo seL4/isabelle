@@ -633,68 +633,78 @@ fun extract_node line =
     | _ => NONE)
   | _ => NONE)
 
-fun load_state _ _ (state as (true, _)) = state
-  | load_state ctxt overlord _ =
-    let val path = mash_state_file () in
-      (true,
-       (case try File.read_lines path of
-         SOME (version' :: node_lines) =>
-         let
-           fun extract_line_and_add_node line =
-             (case extract_node line of
-               NONE => I (* should not happen *)
-             | SOME (kind, name, parents, feats, deps) => add_node kind name parents feats deps)
+fun load_state ctxt overlord (time_state as (memory_time, _)) =
+  let val path = mash_state_file () in
+    (case try OS.FileSys.modTime (Path.implode (Path.expand path)) of
+      NONE => time_state
+    | SOME disk_time =>
+      if Time.>= (memory_time, disk_time) then
+        time_state
+      else
+        (disk_time,
+         (case try File.read_lines path of
+           SOME (version' :: node_lines) =>
+           let
+             fun extract_line_and_add_node line =
+               (case extract_node line of
+                 NONE => I (* should not happen *)
+               | SOME (kind, name, parents, feats, deps) => add_node kind name parents feats deps)
 
-           val (access_G, num_known_facts) =
-             (case string_ord (version', version) of
-               EQUAL =>
-               (try_graph ctxt "loading state" Graph.empty (fn () =>
-                  fold extract_line_and_add_node node_lines Graph.empty),
-                length node_lines)
-             | LESS =>
-               (* cannot parse old file *)
-               (if the_mash_engine () = MaSh_Py then MaSh_Py.unlearn ctxt overlord
-                else wipe_out_mash_state_dir ();
-                (Graph.empty, 0))
-             | GREATER => raise FILE_VERSION_TOO_NEW ())
-         in
-           trace_msg ctxt (fn () => "Loaded fact graph (" ^ graph_info access_G ^ ")");
-           {access_G = access_G, num_known_facts = num_known_facts, dirty = SOME []}
-         end
-       | _ => empty_state))
-    end
+             val (access_G, num_known_facts) =
+               (case string_ord (version', version) of
+                 EQUAL =>
+                 (try_graph ctxt "loading state" Graph.empty (fn () =>
+                    fold extract_line_and_add_node node_lines Graph.empty),
+                  length node_lines)
+               | LESS =>
+                 (* cannot parse old file *)
+                 (if the_mash_engine () = MaSh_Py then MaSh_Py.unlearn ctxt overlord
+                  else wipe_out_mash_state_dir ();
+                  (Graph.empty, 0))
+               | GREATER => raise FILE_VERSION_TOO_NEW ())
+           in
+             trace_msg ctxt (fn () => "Loaded fact graph (" ^ graph_info access_G ^ ")");
+             {access_G = access_G, num_known_facts = num_known_facts, dirty = SOME []}
+           end
+         | _ => empty_state)))
+  end
 
 fun str_of_entry (kind, name, parents, feats, deps) =
   str_of_proof_kind kind ^ " " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
   encode_features feats ^ "; " ^ encode_strs deps ^ "\n"
 
-fun save_state _ (state as {dirty = SOME [], ...}) = state
-  | save_state ctxt {access_G, num_known_facts, dirty} =
+fun save_state _ (time_state as (_, {dirty = SOME [], ...})) = time_state
+  | save_state ctxt (memory_time, {access_G, num_known_facts, dirty}) =
     let
       fun append_entry (name, ((kind, feats, deps), (parents, _))) =
         cons (kind, name, Graph.Keys.dest parents, feats, deps)
 
+      val path = mash_state_file ()
+      val dirty' =
+        (case try OS.FileSys.modTime (Path.implode path) of
+          NONE => NONE
+        | SOME disk_time => if Time.< (disk_time, memory_time) then dirty else NONE)
       val (banner, entries) =
-        (case dirty of
+        (case dirty' of
           SOME names => (NONE, fold (append_entry o Graph.get_entry access_G) names [])
         | NONE => (SOME (version ^ "\n"), Graph.fold append_entry access_G []))
     in
-      write_file banner (entries, str_of_entry) (mash_state_file ());
+      write_file banner (entries, str_of_entry) path;
       trace_msg ctxt (fn () =>
         "Saved fact graph (" ^ graph_info access_G ^
         (case dirty of
           SOME dirty => "; " ^ string_of_int (length dirty) ^ " dirty fact(s)"
         | _ => "") ^  ")");
-      {access_G = access_G, num_known_facts = num_known_facts, dirty = SOME []}
+      (Time.now (), {access_G = access_G, num_known_facts = num_known_facts, dirty = SOME []})
     end
 
 val global_state =
-  Synchronized.var "Sledgehammer_MaSh.global_state" (false, empty_state)
+  Synchronized.var "Sledgehammer_MaSh.global_state" (Time.zeroTime, empty_state)
 
 in
 
 fun map_state ctxt overlord f =
-  Synchronized.change global_state (load_state ctxt overlord ##> (f #> save_state ctxt))
+  Synchronized.change global_state (load_state ctxt overlord ##> f #> save_state ctxt)
   handle FILE_VERSION_TOO_NEW () => ()
 
 fun peek_state ctxt overlord f =
@@ -705,7 +715,7 @@ fun clear_state ctxt overlord =
   Synchronized.change global_state (fn _ =>
     (if the_mash_engine () = MaSh_Py then MaSh_Py.unlearn ctxt overlord
      else wipe_out_mash_state_dir ();
-     (false, empty_state)))
+     (Time.zeroTime, empty_state)))
 
 end
 
