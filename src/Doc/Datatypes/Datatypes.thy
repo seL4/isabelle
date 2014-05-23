@@ -1,5 +1,6 @@
 (*  Title:      Doc/Datatypes/Datatypes.thy
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Martin Desharnais, Ecole de technologie superieure
     Author:     Lorenz Panny, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen
@@ -140,11 +141,13 @@ datatype_new} and @{command codatatype}.
 
 \newcommand\authoremaili{\texttt{blan{\color{white}NOSPAM}\kern-\wd\boxA{}chette@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
-\newcommand\authoremailii{\texttt{lore{\color{white}NOSPAM}\kern-\wd\boxA{}nz.panny@\allowbreak
-\allowbreak tum.\allowbreak de}}
-\newcommand\authoremailiii{\texttt{pope{\color{white}NOSPAM}\kern-\wd\boxA{}scua@\allowbreak
+\newcommand\authoremailii{\texttt{desh{\color{white}NOSPAM}\kern-\wd\boxA{}arna@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
-\newcommand\authoremailiv{\texttt{tray{\color{white}NOSPAM}\kern-\wd\boxA{}tel@\allowbreak
+\newcommand\authoremailiii{\texttt{lore{\color{white}NOSPAM}\kern-\wd\boxA{}nz.panny@\allowbreak
+in.\allowbreak tum.\allowbreak de}}
+\newcommand\authoremailiv{\texttt{pope{\color{white}NOSPAM}\kern-\wd\boxA{}scua@\allowbreak
+in.\allowbreak tum.\allowbreak de}}
+\newcommand\authoremailv{\texttt{tray{\color{white}NOSPAM}\kern-\wd\boxA{}tel@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
 
 The command @{command datatype_new} is expected to replace \keyw{datatype} in a
@@ -153,7 +156,7 @@ and maintainers of older theories may want to consider upgrading.
 
 Comments and bug reports concerning either the tool or this tutorial should be
 directed to the authors at \authoremaili, \authoremailii, \authoremailiii,
-and \authoremailiv.
+\authoremailiv, and \authoremailv.
 *}
 
 
