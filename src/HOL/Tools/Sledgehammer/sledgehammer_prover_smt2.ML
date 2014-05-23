@@ -150,7 +150,6 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
           else
             ()
         val birth = Timer.checkRealTimer timer
-        val _ = if debug then Output.urgent_message "Invoking SMT solver..." else ()
 
         val filter_result as {outcome, ...} =
           SMT2_Solver.smt2_filter ctxt goal weighted_facts i slice_timeout

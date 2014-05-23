@@ -151,7 +151,6 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
           else
             ()
         val birth = Timer.checkRealTimer timer
-        val _ = if debug then Output.urgent_message "Invoking SMT solver..." else ()
 
         val (outcome, used_facts) =
           SMT_Solver.smt_filter_preprocess ctxt [] goal weighted_facts i
