@@ -72,14 +72,11 @@ fun copy_file src0 dst0 =
   let
     val src = Path.expand src0;
     val dst = Path.expand dst0;
-    val (target_dir, target) =
-      if File.is_dir dst then (dst, Path.append dst (Path.base src))
-      else (Path.dir dst, dst);
+    val target = if File.is_dir dst then Path.append dst (Path.base src) else dst;
   in
     if File.eq (src, target) then ()
     else
-      (ignore o system_command)
-        ("cp -p -f " ^ File.shell_path src ^ " " ^ File.shell_path target_dir ^ "/.")
+      ignore (system_command ("cp -p -f " ^ File.shell_path src ^ " " ^ File.shell_path target))
   end;
 
 fun copy_file_base (base_dir, src0) target_dir =
