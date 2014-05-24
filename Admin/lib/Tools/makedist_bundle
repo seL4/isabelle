@@ -213,7 +213,6 @@ case "$PLATFORM_FAMILY" in
 
     cp "$TMP/windows_app/Isabelle.exe" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe"
     cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
-      "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Latex-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" "$ISABELLE_TARGET"
 
     (

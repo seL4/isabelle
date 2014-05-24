@@ -839,8 +839,13 @@ the Isabelle environment to avoid dynamic path lookup.  Rare
 incompatibility for old tools that do not use the $ISABELLE_PROCESS
 settings variable yet.
 
-* Retired the now unused Isabelle tool "wwwfind". Similar functionality
-may be integrated into PIDE/jEdit at a later point.
+* Retired the now unused Isabelle tool "wwwfind". Similar
+functionality may be integrated into PIDE/jEdit at a later point.
+
+* Windows: support for regular TeX installation (e.g. MiKTeX) instead
+of TeX Live from Cygwin.
+
+
 
 New in Isabelle2013-2 (December 2013)
 -------------------------------------
