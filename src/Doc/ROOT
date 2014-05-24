@@ -406,8 +406,8 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "Sets/Relations"
     "Sets/Recur"
   document_files (in "ToyList")
-    "ToyList1"
-    "ToyList2"
+    "ToyList1.txt"
+    "ToyList2.txt"
   document_files (in "..")
     "pdfsetup.sty"
     "ttbox.sty"
