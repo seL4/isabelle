@@ -87,7 +87,7 @@ function usage()
   echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
   echo "    -l NAME      logic session name"
   echo "    -m MODE      add print mode for output"
-  echo "    -n           no build dialog for session image on startup"
+  echo "    -n           no build of session image on startup"
   echo "    -s           system build mode for session image"
   echo
   echo "  Start jEdit with Isabelle plugin setup and open theory FILES"

@@ -20,7 +20,7 @@ text {* The @{tool_def jedit} tool invokes a version of
     -j OPTION    add jEdit runtime option (default JEDIT_OPTIONS)
     -l NAME      logic image name (default ISABELLE_LOGIC)
     -m MODE      add print mode for output
-    -n           no build dialog for session image on startup
+    -n           no build of session image on startup
     -s           system build mode for session image
 
   Start jEdit with Isabelle plugin setup and open theory FILES
@@ -35,7 +35,8 @@ text {* The @{tool_def jedit} tool invokes a version of
   By default, the specified image is checked and built on demand. The
   @{verbatim "-s"} option determines where to store the result session
   image (see also \secref{sec:tool-build}). The @{verbatim "-n"}
-  option bypasses the session build dialog.
+  option bypasses the implicit build process for the selected session
+  image.
 
   The @{verbatim "-m"} option specifies additional print modes for the
   prover process.  Note that the system option @{system_option
