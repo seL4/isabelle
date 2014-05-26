@@ -422,10 +422,10 @@ unspecified).
 
 Because @{const Nil} is nullary, it is also possible to use
 @{term "\<lambda>xs. xs = Nil"} as a discriminator. This is specified by
-entering ``@{text "="}'' instead of the identifier @{const null}. Although this
-may look appealing, the mixture of constructors and selectors in the
-characteristic theorems can lead Isabelle's automation to switch between the
-constructor and the destructor view in surprising ways.
+entering ``@{text "="}'' (equality) instead of the identifier @{const null}.
+Although this may look appealing, the mixture of constructors and selectors
+in the characteristic theorems can lead Isabelle's automation to switch between
+the constructor and the destructor view in surprising ways.
 
 The usual mixfix syntax annotations are available for both types and
 constructors. For example:
@@ -519,7 +519,7 @@ variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (@{text set1_t}, \ldots, @{text setM_t}). Type
-arguments can be marked as dead by entering ``-'' (hyphen) instead of an
+arguments can be marked as dead by entering ``@{text "-"}'' (hyphen) instead of an
 identifier for the corresponding set function; otherwise, they are live or dead
 (and a set function is generated or not) depending on where they occur in the
 right-hand sides of the definition. Declaring a type argument as dead can speed
@@ -530,7 +530,7 @@ Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
 @{rail \<open>
-  @{syntax_def dt_ctor}: (name ':')? name (@{syntax dt_ctor_arg} * ) \<newline>
+  @{syntax_def dt_ctor}: ((name | '=') ':')? name (@{syntax dt_ctor_arg} * ) \<newline>
     @{syntax dt_sel_defaults}? mixfix?
 \<close>}
 
@@ -540,7 +540,9 @@ mention exactly the same type variables in the same order.
 The main constituents of a constructor specification are the name of the
 constructor and the list of its argument types. An optional discriminator name
 can be supplied at the front to override the default name
-(@{text t.is_C\<^sub>j}).
+(@{text t.is_C\<^sub>j}). For nullary constructors @{text C\<^sub>j}, the term
+@{text "\<lambda>x. x = C\<^sub>j"} can be used as a discriminator by entering
+``@{text "="}'' (equality) instead of a name.
 
 @{rail \<open>
   @{syntax_def dt_ctor_arg}: type | '(' name ':' type ')'
