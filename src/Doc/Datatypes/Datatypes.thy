@@ -505,7 +505,7 @@ define, its type parameters, and additional information:
 @{rail \<open>
   @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? mixfix?
   ;
-  @{syntax_def tyargs}: typefree | '(' (((name | '-') ':')? typefree + ',') ')'
+  @{syntax_def tyargs}: typefree | '(' (('dead' | name ':')? typefree + ',') ')'
   ;
   @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
 \<close>}
@@ -519,8 +519,8 @@ variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (@{text set1_t}, \ldots, @{text setM_t}). Type
-arguments can be marked as dead by entering ``@{text "-"}'' (hyphen) instead of an
-identifier for the corresponding set function; otherwise, they are live or dead
+arguments can be marked as dead by entering ``@{text dead}'' in front of the
+type variable (e.g., ``@{text "(dead 'a)"}''); otherwise, they are live or dead
 (and a set function is generated or not) depending on where they occur in the
 right-hand sides of the definition. Declaring a type argument as dead can speed
 up the type definition but will prevent any later (co)recursion through that
@@ -2572,10 +2572,11 @@ The syntactic entity \synt{target} can be used to specify a local context,
 parenthesized mixfix notation \cite{isabelle-isar-ref}.
 
 Type arguments are live by default; they can be marked as dead by entering
-``-'' (hyphen) instead of an identifier for the corresponding set function.
-Witnesses can be specified by their types. Otherwise, the syntax of
-@{command bnf_axiomatization} is identical to the left-hand side of a
-@{command datatype_new} or @{command codatatype} definition.
+``@{text dead}'' in front of the type variable (e.g., ``@{text "(dead 'a)"}'')
+instead of an identifier for the corresponding set function. Witnesses can be
+specified by their types. Otherwise, the syntax of @{command bnf_axiomatization}
+is identical to the left-hand side of a @{command datatype_new} or
+@{command codatatype} definition.
 
 The command is useful to reason abstractly about BNFs. The axioms are safe
 because there exists BNFs of arbitrary large arities. Applications must import

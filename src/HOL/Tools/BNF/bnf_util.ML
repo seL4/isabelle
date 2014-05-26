@@ -290,7 +290,7 @@ val parse_type_arg_constrained =
   Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
 
 val parse_type_arg_named_constrained =
-   (Parse.minus --| @{keyword ":"} >> K NONE || parse_opt_binding_colon >> SOME) --
+   (Parse.reserved "dead" >> K NONE || parse_opt_binding_colon >> SOME) --
    parse_type_arg_constrained;
 
 val parse_type_args_named_constrained =
