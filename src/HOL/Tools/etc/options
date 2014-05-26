@@ -35,5 +35,5 @@ public option sledgehammer_timeout : int = 30
 public option z3_non_commercial : string = "unknown"
   -- "status of Z3 activation for non-commercial use (yes, no, unknown)"
 
-public option maSh : string = "none"
+public option MaSh : string = "none"
   -- "machine learning engine to use by Sledgehammer (sml, sml_knn, sml_nb, py, none)"

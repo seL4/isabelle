@@ -117,7 +117,7 @@ fun wipe_out_mash_state_dir () =
 datatype mash_engine = MaSh_Py | MaSh_SML_kNN | MaSh_SML_NB
 
 fun mash_engine () =
-  let val flag1 = Options.default_string @{system_option maSh} in
+  let val flag1 = Options.default_string @{system_option MaSh} in
     (case if flag1 <> "none" (* default *) then flag1 else getenv "MASH" of
       "yes" => SOME MaSh_Py
     | "py" => SOME MaSh_Py
