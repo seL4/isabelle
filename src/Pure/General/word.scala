@@ -43,10 +43,9 @@ object Word
     }
 
   def perhaps_capitalize(str: String): String =
-    str match {
-      case Case(c) if c != Lowercase => str
-      case _ => capitalize(str)
-    }
+    if (codepoint_iterator(str).forall(c => Character.isLowerCase(c) || Character.isDigit(c)))
+      capitalize(str)
+    else str
 
   sealed abstract class Case
   case object Lowercase extends Case
