@@ -860,7 +860,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val ((T_names, (T_glob_infos, T_loc_infos)), lthy) =
       lthy
       |> fold_map3 (fn b => fn mx => fn car_init =>
-        typedef (Binding.conceal b, params, mx) car_init NONE
+        typedef (b, params, mx) car_init NONE
           (EVERY' [rtac iffD2, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
             rtac alg_init_thm] 1)) bs mixfixes car_inits
       |>> apsnd split_list o split_list;
