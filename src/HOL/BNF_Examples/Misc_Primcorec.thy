@@ -56,7 +56,7 @@ where
   "un_J112 (j1_sum _) = j1_sum 0" |
   "un_J121 (j1_sum n) = n + 1" |
   "un_J122 (j1_sum n) = j2_sum (n + 1)" |
-  "n = 0 \<Longrightarrow> is_J21 (j2_sum n)" |
+  "n = 0 \<Longrightarrow> j2_sum n = J21" |
   "un_J221 (j2_sum n) = j1_sum (n + 1)" |
   "un_J222 (j2_sum n) = j2_sum (n + 1)"
 

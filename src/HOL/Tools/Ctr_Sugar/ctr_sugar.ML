@@ -368,6 +368,8 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
       can_definitely_rely_on_disc k orelse (k = 1 andalso not (can_definitely_rely_on_disc 2));
     fun should_omit_disc_binding k = n = 1 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
+    val equal_binding = @{binding "="};
+
     fun is_disc_binding_valid b =
       not (Binding.is_empty b orelse Binding.eq_name (b, equal_binding));
 
@@ -378,10 +380,9 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
       |> map4 (fn k => fn m => fn ctr => fn disc =>
         qualify false
           (if Binding.is_empty disc then
-             if should_omit_disc_binding k then disc else standard_disc_binding ctr
-           else if Binding.eq_name (disc, equal_binding) then
-             if m = 0 then disc
-             else error "Cannot use \"=\" syntax for discriminating nonnullary constructor"
+             if should_omit_disc_binding k then disc
+             else if m = 0 then equal_binding
+             else standard_disc_binding ctr
            else if Binding.eq_name (disc, standard_binding) then
              standard_disc_binding ctr
            else
