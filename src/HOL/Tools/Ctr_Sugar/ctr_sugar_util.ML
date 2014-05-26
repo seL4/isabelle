@@ -66,7 +66,6 @@ sig
   val certify: Proof.context -> term -> cterm
 
   val standard_binding: binding
-  val parse_binding: binding parser
   val parse_binding_colon: binding parser
   val parse_opt_binding_colon: binding parser
 
@@ -234,8 +233,7 @@ fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
    binding at all, depending on the context. *)
 val standard_binding = @{binding _};
 
-val parse_binding = Parse.binding || @{keyword "="} >> K equal_binding;
-val parse_binding_colon = parse_binding --| @{keyword ":"};
+val parse_binding_colon = Parse.binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;

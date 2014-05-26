@@ -108,7 +108,7 @@ val parse_witTs =
   @{keyword "]"} || Scan.succeed [];
 
 val parse_bnf_axiomatization =
-  parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
+  parse_type_args_named_constrained -- Parse.binding -- parse_map_rel_bindings --
     parse_witTs -- Parse.opt_mixfix;
 
 val _ =

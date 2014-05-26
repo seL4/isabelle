@@ -298,7 +298,7 @@ val parse_type_args_named_constrained =
   @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
   Scan.succeed [];
 
-val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- parse_binding;
+val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- Parse.binding;
 
 val no_map_rel = (Binding.empty, Binding.empty);
 

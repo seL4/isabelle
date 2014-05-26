@@ -12,7 +12,7 @@ begin
 
 subsection {* @{typ bool} is a datatype *}
 
-free_constructors case_bool for =: True | False
+free_constructors case_bool for True | False
 by auto
 
 text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}

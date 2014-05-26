@@ -316,6 +316,9 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   * The constant "xxx_(un)fold" and related theorems are no longer generated.
     Use "xxx_(co)rec" or define "xxx_(un)fold" manually using "prim(co)rec".
     INCOMPATIBILITY.
+  * No discriminators are generated for nullary constructors by default,
+    eliminating the need for the odd "=:" syntax.
+    INCOMPATIBILITY.
 
 * Old datatype package:
   * The generated theorems "xxx.cases" and "xxx.recs" have been renamed

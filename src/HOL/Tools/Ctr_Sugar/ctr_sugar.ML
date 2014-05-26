@@ -363,7 +363,8 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
 
     val ms = map length ctr_Tss;
 
-    fun can_definitely_rely_on_disc k = not (Binding.is_empty (nth raw_disc_bindings (k - 1)));
+    fun can_definitely_rely_on_disc k =
+      not (Binding.is_empty (nth raw_disc_bindings (k - 1))) orelse nth ms (k - 1) = 0;
     fun can_rely_on_disc k =
       can_definitely_rely_on_disc k orelse (k = 1 andalso not (can_definitely_rely_on_disc 2));
     fun should_omit_disc_binding k = n = 1 orelse (n = 2 andalso can_rely_on_disc (3 - k));
@@ -380,8 +381,8 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
       |> map4 (fn k => fn m => fn ctr => fn disc =>
         qualify false
           (if Binding.is_empty disc then
-             if should_omit_disc_binding k then disc
-             else if m = 0 then equal_binding
+             if m = 0 then equal_binding
+             else if should_omit_disc_binding k then disc
              else standard_disc_binding ctr
            else if Binding.eq_name (disc, standard_binding) then
              standard_disc_binding ctr
@@ -1005,7 +1006,7 @@ val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
   prepare_free_constructors Syntax.read_term;
 
-val parse_bound_term = parse_binding --| @{keyword ":"} -- Parse.term;
+val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
 
 val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
@@ -1021,12 +1022,12 @@ fun parse_ctr_spec parse_ctr parse_arg =
   parse_opt_binding_colon -- parse_ctr -- Scan.repeat parse_arg --
   Scan.optional parse_defaults [];
 
-val parse_ctr_specs = Parse.enum1 "|" (parse_ctr_spec Parse.term parse_binding);
+val parse_ctr_specs = Parse.enum1 "|" (parse_ctr_spec Parse.term Parse.binding);
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "free_constructors"}
     "register an existing freely generated type's constructors"
-    (parse_ctr_options -- parse_binding --| @{keyword "for"} -- parse_ctr_specs
+    (parse_ctr_options -- Parse.binding --| @{keyword "for"} -- parse_ctr_specs
      >> free_constructors_cmd);
 
 val _ = Context.>> (Context.map_theory Ctr_Sugar_Interpretation.init);

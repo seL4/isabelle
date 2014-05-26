@@ -9,7 +9,7 @@ imports Presburger Code_Numeral Quotient Lifting_Set Lifting_Option Lifting_Prod
 begin
 
 datatype_new (set: 'a) list (map: map rel: list_all2) =
-    =: Nil (defaults tl: "[]")  ("[]")
+    Nil (defaults tl: "[]")  ("[]")
   | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
 datatype_compat list
 

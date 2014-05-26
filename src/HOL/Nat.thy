@@ -83,7 +83,7 @@ apply (iprover elim: Nat_Abs_Nat_inverse [THEN subst])
 done
 
 free_constructors case_nat for
-    =: "0 \<Colon> nat" (defaults pred: "0 \<Colon> nat")
+    "0 \<Colon> nat" (defaults pred: "0 \<Colon> nat")
   | Suc pred
   apply atomize_elim
   apply (rename_tac n, induct_tac n rule: nat_induct0, auto)

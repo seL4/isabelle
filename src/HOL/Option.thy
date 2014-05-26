@@ -9,7 +9,7 @@ imports BNF_LFP Datatype Finite_Set
 begin
 
 datatype_new 'a option =
-    =: None
+    None
   | Some (the: 'a)
 datatype_compat option
 

@@ -421,11 +421,11 @@ to ensure that the tail of the empty list is itself (instead of being left
 unspecified).
 
 Because @{const Nil} is nullary, it is also possible to use
-@{term "\<lambda>xs. xs = Nil"} as a discriminator. This is specified by
-entering ``@{text "="}'' (equality) instead of the identifier @{const null}.
-Although this may look appealing, the mixture of constructors and selectors
-in the characteristic theorems can lead Isabelle's automation to switch between
-the constructor and the destructor view in surprising ways.
+@{term "\<lambda>xs. xs = Nil"} as a discriminator. This is the default behavior
+if we omit the identifier @{const null} and the associated colon. Some users
+argue against this, because the mixture of constructors and selectors in the
+characteristic theorems can lead Isabelle's automation to switch between the
+constructor and the destructor view in surprising ways.
 
 The usual mixfix syntax annotations are available for both types and
 constructors. For example:
@@ -530,7 +530,7 @@ Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
 @{rail \<open>
-  @{syntax_def dt_ctor}: ((name | '=') ':')? name (@{syntax dt_ctor_arg} * ) \<newline>
+  @{syntax_def dt_ctor}: (name ':')? name (@{syntax dt_ctor_arg} * ) \<newline>
     @{syntax dt_sel_defaults}? mixfix?
 \<close>}
 
@@ -539,10 +539,9 @@ mention exactly the same type variables in the same order.
 \noindent
 The main constituents of a constructor specification are the name of the
 constructor and the list of its argument types. An optional discriminator name
-can be supplied at the front to override the default name
-(@{text t.is_C\<^sub>j}). For nullary constructors @{text C\<^sub>j}, the term
-@{text "\<lambda>x. x = C\<^sub>j"} can be used as a discriminator by entering
-``@{text "="}'' (equality) instead of a name.
+can be supplied at the front to override the default, which is
+@{text "\<lambda>x. x = C\<^sub>j"} for nullary constructors and
+@{text t.is_C\<^sub>j} otherwise.
 
 @{rail \<open>
   @{syntax_def dt_ctor_arg}: type | '(' name ':' type ')'
@@ -2238,7 +2237,7 @@ constructors:
     primcorec
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
-      "n mod 4 = 0 \<Longrightarrow> is_Fail (random_process s f n)" |
+      "n mod 4 = 0 \<Longrightarrow> random_process s f n = Fail" |
       "n mod 4 = 1 \<Longrightarrow> is_Skip (random_process s f n)" |
       "n mod 4 = 2 \<Longrightarrow> is_Action (random_process s f n)" |
       "n mod 4 = 3 \<Longrightarrow> is_Choice (random_process s f n)" |
@@ -2260,7 +2259,7 @@ Here are more examples to conclude:
       even_infty :: even_enat and
       odd_infty :: odd_enat
     where
-      "\<not> is_Even_EZero even_infty" |
+      "even_infty \<noteq> Even_EZero" |
       "un_Even_ESuc even_infty = odd_infty" |
       "un_Odd_ESuc odd_infty = even_infty"
 
