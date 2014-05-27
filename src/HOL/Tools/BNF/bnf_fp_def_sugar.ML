@@ -829,14 +829,11 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
   end;
 
 fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
-    (wrap_opts as (no_discs_sels, _), specs) no_defs_lthy0 =
+    ((discs_sels0, no_code), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
 
-    val _ = if fp = Greatest_FP andalso no_discs_sels then
-        error "Cannot define codatatypes without discriminators and selectors"
-      else
-        ();
+    val discs_sels = discs_sels0 orelse fp = Greatest_FP;
 
     val nn = length specs;
     val fp_bs = map type_binding_of_spec specs;
@@ -1115,7 +1112,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             fun ctr_spec_of disc_b ctr0 sel_bs sel_defs = (((disc_b, ctr0), sel_bs), sel_defs);
             val ctr_specs = map4 ctr_spec_of disc_bindings ctrs0 sel_bindingss sel_defaultss;
           in
-            free_constructors tacss ((wrap_opts, standard_binding), ctr_specs) lthy
+            free_constructors tacss (((discs_sels, no_code), standard_binding), ctr_specs) lthy
           end;
 
         fun derive_maps_sets_rels
@@ -1193,22 +1190,26 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     ||>> yield_singleton (mk_Frees "a") TA;
                   val map_term = mk_map_of_bnf Ds As Bs fp_bnf;
                   val discsA = map (mk_disc_or_sel ADs) discs;
+
                   fun is_t_eq_t T t term =
                     let
                       val (head, tail) = Term.strip_comb term;
                     in
                       head aconv HOLogic.eq_const T andalso forall (fn u => u = t) tail
                     end;
+
                   val disc_map_iff_thms =
                     let
                       val discsB = map (mk_disc_or_sel BDs) discs;
                       val discsA_t = map (fn disc1 => Term.betapply (disc1, ta)) discsA;
+
                       fun mk_goal (discA_t, discB) =
-                          if head_of discA_t aconv @{const Not} orelse is_t_eq_t TA ta discA_t then
-                            NONE
-                          else
-                            SOME (mk_Trueprop_eq
-                              (betapply (discB, (Term.list_comb (map_term, fs) $ ta)), discA_t));
+                        if head_of discA_t aconv @{const Not} orelse is_t_eq_t TA ta discA_t then
+                          NONE
+                        else
+                          SOME (mk_Trueprop_eq
+                            (betapply (discB, (Term.list_comb (map_term, fs) $ ta)), discA_t));
+
                       val goals = map_filter mk_goal (discsA_t ~~ discsB);
                     in
                       if null goals then []
@@ -1220,6 +1221,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                           |> Conjunction.elim_balanced (length goals)
                           |> Proof_Context.export names_lthy lthy
                     end;
+
                   val sel_map_thms =
                     let
                       fun mk_sel_map_goal (discA, selA) =
@@ -1236,11 +1238,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                             | _ => map_rhs $ (selA $ ta));
                           val conclusion = mk_Trueprop_eq (lhs, rhs);
                         in
-                          if is_t_eq_t TA ta premise then
-                            conclusion
-                          else
-                            Logic.mk_implies (HOLogic.mk_Trueprop premise, conclusion)
+                          if is_t_eq_t TA ta premise then conclusion
+                          else Logic.mk_implies (HOLogic.mk_Trueprop premise, conclusion)
                         end;
+
                       val disc_sel_pairs = flat (map2 (fn disc => fn sels => map (pair disc) sels)
                         discsA (map (map (mk_disc_or_sel ADs)) selss));
                       val goals = map mk_sel_map_goal disc_sel_pairs;
@@ -1258,26 +1259,38 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   (disc_map_iff_thms, sel_map_thms)
                 end;
 
-              val ctr_argT_namess = map ((fn Ts => fold Term.add_tfree_namesT Ts []) o
-                binder_types o fastype_of) ctrs;
-              val setTs = map (HOLogic.dest_setT o range_type o fastype_of) sets;
-              val setT_names = map (fn T => the_single (Term.add_tfree_namesT T [])) setTs;
-              fun mk_set_empty_goal disc set T = Logic.mk_implies (HOLogic.mk_Trueprop (disc $ u),
-                mk_Trueprop_eq (set $ u, HOLogic.mk_set T []));
-              val goals = map_filter I (flat
-                (map2 (fn names => fn disc =>
-                  map3 (fn name => fn setT => fn set =>
-                    if member (op =) names name then NONE
-                    else SOME (mk_set_empty_goal disc set setT))
-                  setT_names setTs sets)
-                ctr_argT_namess discs));
+              val set_empty_thms =
+                let
+                  val ctr_argT_namess = map ((fn Ts => fold Term.add_tfree_namesT Ts []) o
+                    binder_types o fastype_of) ctrs;
+                  val setTs = map (HOLogic.dest_setT o range_type o fastype_of) sets;
+                  val setT_names = map (fn T => the_single (Term.add_tfree_namesT T [])) setTs;
 
-              val set_empty_thms = if null goals then []
-                else Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                  (fn {context = ctxt, prems = _} =>
-                    mk_set_empty_tac ctxt (certify ctxt u) exhaust set_thms (flat disc_thmss))
-                  |> Conjunction.elim_balanced (length goals)
-                  |> Proof_Context.export names_lthy lthy;
+                  fun mk_set_empty_goal disc set T =
+                    Logic.mk_implies (HOLogic.mk_Trueprop (disc $ u),
+                      mk_Trueprop_eq (set $ u, HOLogic.mk_set T []));
+
+                  val goals =
+                    if null discs then
+                      []
+                    else
+                      map_filter I (flat
+                        (map2 (fn names => fn disc =>
+                          map3 (fn name => fn setT => fn set =>
+                            if member (op =) names name then NONE
+                            else SOME (mk_set_empty_goal disc set setT))
+                          setT_names setTs sets)
+                        ctr_argT_namess discs));
+                in
+                  if null goals then
+                    []
+                  else
+                    Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                      (fn {context = ctxt, prems = _} =>
+                        mk_set_empty_tac ctxt (certify ctxt u) exhaust set_thms (flat disc_thmss))
+                      |> Conjunction.elim_balanced (length goals)
+                      |> Proof_Context.export names_lthy lthy
+                end;
 
               val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
 

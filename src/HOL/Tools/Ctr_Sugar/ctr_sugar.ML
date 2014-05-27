@@ -322,7 +322,7 @@ fun ctr_of_ctr_spec (((_, ctr), _), _) = ctr;
 fun args_of_ctr_spec ((_, args), _) = args;
 fun sel_defaults_of_ctr_spec (_, ds) = ds;
 
-fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_binding), ctr_specs)
+fun prepare_free_constructors prep_term (((discs_sels, no_code), raw_case_binding), ctr_specs)
     no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -480,6 +480,11 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
         (let val b = nth disc_bindings (k - 1) in
            if is_disc_binding_valid b then get_udisc b (k - 1) else nth exist_xs_u_eq_ctrs (k - 1)
          end);
+
+    val no_discs_sels =
+      not discs_sels andalso
+      forall (forall Binding.is_empty) (raw_disc_bindings :: raw_sel_bindingss) andalso
+      forall null raw_sel_defaultss;
 
     val (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy') =
       if no_discs_sels then
@@ -1010,7 +1015,7 @@ val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
 
 val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
-        (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1) --|
+        (Parse.reserved "discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1) --|
       @{keyword ")"}
       >> (fn js => (member (op =) js 0, member (op =) js 1)))
     (false, false);

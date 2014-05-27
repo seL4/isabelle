@@ -472,7 +472,7 @@ text {*
   @@{command datatype_new} target? @{syntax dt_options}? \<newline>
     (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') + @'and')
   ;
-  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code') + ',') ')'
+  @{syntax_def dt_options}: '(' (('discs_sels' | 'no_code') + ',') ')'
 \<close>}
 
 \medskip
@@ -491,8 +491,9 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text "no_discs_sels"} option indicates that no discriminators or selectors
-should be generated.
+The @{text "discs_sels"} option indicates that discriminators and selectors
+should be generated. The option is implicitly enabled if names are specified for
+discriminators or selectors.
 
 \item
 The @{text "no_code"} option indicates that the datatype should not be
@@ -1648,8 +1649,9 @@ text {*
 
 \noindent
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
-(Section~\ref{ssec:datatype-command-syntax}). The @{text "no_discs_sels"} option
-is not available, because destructors are a crucial notion for codatatypes.
+(Section~\ref{ssec:datatype-command-syntax}). The @{text "discs_sels"} option
+is superfluous because discriminators and selectors are always generated for
+codatatypes.
 *}
 
 
