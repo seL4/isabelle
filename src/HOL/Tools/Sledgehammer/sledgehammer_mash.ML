@@ -140,7 +140,7 @@ datatype mash_engine = MaSh_Py | MaSh_SML_kNN | MaSh_SML_NB
 fun mash_engine () =
   let val flag1 = Options.default_string @{system_option MaSh} in
     (case if flag1 <> "none" (* default *) then flag1 else getenv "MASH" of
-      "yes" => SOME MaSh_Py
+      "yes" => SOME MaSh_SML_NB
     | "py" => SOME MaSh_Py
     | "sml" => SOME MaSh_SML_NB
     | "sml_knn" => SOME MaSh_SML_kNN
@@ -149,10 +149,10 @@ fun mash_engine () =
   end
 
 val is_mash_enabled = is_some o mash_engine
-val the_mash_engine = the_default MaSh_Py o mash_engine
+val the_mash_engine = the_default MaSh_SML_NB o mash_engine
 
 
-(*** Low-level communication with Python version of MaSh ***)
+(*** Low-level communication with the Python version of MaSh ***)
 
 val save_models_arg = "--saveModels"
 val shutdown_server_arg = "--shutdownServer"
@@ -1634,8 +1634,7 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
           SOME ff => (ff <> mepoN andalso maybe_learn (), ff)
         | NONE =>
           if is_mash_enabled () then
-            (maybe_learn (),
-             if mash_can_suggest_facts ctxt overlord then meshN else mepoN)
+            (maybe_learn (), if mash_can_suggest_facts ctxt overlord then meshN else mepoN)
           else
             (false, mepoN))
 

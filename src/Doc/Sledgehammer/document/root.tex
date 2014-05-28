@@ -1037,7 +1037,7 @@ These statistics can be useful to the developers of Sledgehammer. If you are wil
 interactions recorded in the name of science, please enable this feature and send the statistics
 file every now and then to the author of this manual (\authoremail).
 To change the default value of this option globally, set the environment variable
-\texttt{SLEDGEHAMMER\_SPY} to \texttt{yes}.
+\texttt{SLEDGEHAMMER\_SPY} to \textit{yes}.
 
 \nopagebreak
 {\small See also \textit{debug} (\S\ref{output-format}).}
@@ -1070,43 +1070,44 @@ The traditional memoryless MePo relevance filter.
 The experimental MaSh machine learner. Three learning engines are provided:
 
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{sml\_nb}} (also called \textbf{\textit{sml}})
-is a Standard ML implementation of naive Bayes.
+\item[\labelitemi] \textbf{\textit{sml\_nb}} (also called \textbf{\textit{sml}}
+and \textbf{\textit{yes}}) is a Standard ML implementation of naive Bayes.
 
 \item[\labelitemi] \textbf{\textit{sml\_knn}} is a Standard ML implementation of
 $k$-nearest neighbors.
 
-\item[\labelitemi] \textbf{\textit{py}} (also called \textbf{\textit{yes}}) is a
-Python implementation of naive Bayes. The program is included with Isabelle as
-\texttt{mash.py}.
+\item[\labelitemi] \textbf{\textit{py}} is a Python implementation of naive Bayes.
+The program is included with Isabelle as \texttt{mash.py}.
 \end{enum}
 
-To enable MaSh, set the variable \texttt{MASH} to the name of the desired
+The engine can be selected by setting \texttt{MASH} to the name of the desired
 engine---either in the environment in which Isabelle is launched, in your
 \texttt{\$ISABELLE\_HOME\_USER/etc/settings} file, or via the ``MaSh'' option
 under ``Plugins > Plugin Options > Isabelle > General'' in Isabelle/jEdit.
 Persistent data for both engines is stored in the directory
 \texttt{\$ISABELLE\_HOME\_USER/mash}. When switching to the \textit{py} engine,
-it is recommended to invoke the \textit{relearn\_isar} subcommand
-(\S\ref{sledgehammer}) to synchronize the Python persistent databases.
+you will need to invoke the \textit{relearn\_isar} subcommand
+(\S\ref{sledgehammer}) to synchronize the persistent databases on the
+Python side.
 
 \item[\labelitemi] \textbf{\textit{mesh}:} The MeSh filter, which combines the
 rankings from MePo and MaSh.
 
-\item[\labelitemi] \textbf{\textit{smart}:} A mixture of MePo, MaSh, and MeSh if
-MaSh is enabled; otherwise, MePo.
+\item[\labelitemi] \textbf{\textit{smart}:} A combination of MePo, MaSh, and
+MeSh if MaSh is a learning engine has been specified (as explained above);
+otherwise, MePo.
 \end{enum}
+
+The behavior of \textit{smart} ensures that MaSh is not used by default,
+reflecting the experimental nature of the filter. Nevertheless, there is ample
+empirical evidence in favor of a combination of MePo, MaSh, and MeSh, and you
+are warmly encouraged to try it out.
 
 \opdefault{max\_facts}{smart\_int}{smart}
 Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart} (the default), it effectively
 takes a value that was empirically found to be appropriate for the prover.
-Typical values range between 50 and 1000.
-
-For the MaSh-related subcommands \textit{learn\_isar}, \textit{learn\_prover},
-\textit{relearn\_isar}, and \textit{relearn\_prover} (\S\ref{sledgehammer}),
-this option specifies the maximum number of facts from the background library
-that should be learned ($\infty$ by default).
+Typical values lie between 50 and 1000.
 
 \opdefault{fact\_thresholds}{float\_pair}{\upshape 0.45~0.85}
 Specifies the thresholds above which facts are considered relevant by the
