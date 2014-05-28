@@ -391,9 +391,9 @@ fun const class ((b, mx), lhs) params =
   class_const class Syntax.mode_default (b, lhs)
   #> target_extension (global_const params) class ((b, mx), lhs);
 
-fun abbrev class prmode ((b, mx), lhs) t' =
+fun abbrev class prmode ((b, mx), lhs) rhs' =
   class_const class prmode (b, lhs)
-  #> target_extension (global_abbrev prmode) class ((b, mx), t');
+  #> target_extension (global_abbrev prmode) class ((b, mx), rhs');
 
 end;
 

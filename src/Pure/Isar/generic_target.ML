@@ -198,17 +198,17 @@ end;
 
 (* abbrev *)
 
-fun background_abbrev (b, t) xs =
-  Local_Theory.background_theory_result (Sign.add_abbrev Print_Mode.internal (b, t))
-  #>> (fn (lhs, rhs) => (Term.list_comb (Logic.unvarify_global lhs, xs), rhs))
+fun background_abbrev (b, global_rhs) params =
+  Local_Theory.background_theory_result (Sign.add_abbrev Print_Mode.internal (b, global_rhs))
+  #>> (fn (lhs, rhs) => (Term.list_comb (Logic.unvarify_global lhs, params), rhs))
 
-fun abbrev target_abbrev prmode ((b, mx), t) lthy =
+fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
   let
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
-    val t' = Assumption.export_term lthy (Local_Theory.target_of lthy) t;
-    val xs = map Free (sort (Variable.fixed_ord lthy o pairself #1) (Variable.add_fixed lthy t' []));
-    val u = fold_rev lambda xs t';
+    val rhs' = Assumption.export_term lthy (Local_Theory.target_of lthy) rhs;
+    val params = map Free (sort (Variable.fixed_ord lthy o pairself #1) (Variable.add_fixed lthy rhs' []));
+    val u = fold_rev lambda params rhs';
     val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
 
     val extra_tfrees =
@@ -216,9 +216,9 @@ fun abbrev target_abbrev prmode ((b, mx), t) lthy =
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
   in
     lthy
-    |> target_abbrev prmode (b, mx') (global_rhs, t') xs
-    |> Proof_Context.add_abbrev Print_Mode.internal (b, t) |> snd
-    |> Local_Defs.fixed_abbrev ((b, NoSyn), t)
+    |> target_abbrev prmode (b, mx') (global_rhs, rhs') params
+    |> Proof_Context.add_abbrev Print_Mode.internal (b, rhs) |> snd
+    |> Local_Defs.fixed_abbrev ((b, NoSyn), rhs)
   end;
 
 
@@ -331,13 +331,13 @@ fun theory_notes kind global_facts local_facts =
       ctxt |> Attrib.local_notes kind
         (Element.transform_facts (Local_Theory.standard_morphism lthy ctxt) local_facts) |> snd));
 
-fun theory_abbrev prmode (b, mx) (t, _) xs =
+fun theory_abbrev prmode (b, mx) (global_rhs, _) params =
   Local_Theory.background_theory_result
-    (Sign.add_abbrev (#1 prmode) (b, t) #->
+    (Sign.add_abbrev (#1 prmode) (b, global_rhs) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
-        Sign.notation true prmode [(lhs, check_mixfix_global (b, null xs) mx)] #> pair lhs))
+        Sign.notation true prmode [(lhs, check_mixfix_global (b, null params) mx)] #> pair lhs))
   #-> (fn lhs => const (op <>) prmode
-          ((b, if null xs then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+          ((b, if null params then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, params)));
 
 fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
