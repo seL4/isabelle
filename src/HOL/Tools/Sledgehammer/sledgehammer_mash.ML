@@ -455,7 +455,7 @@ fun naive_bayes avail_num adv_max get_deps get_th_syms sym_num advno syms =
       end
 
     fun tfidf _ = 1.0
-    (*fun tfidf sym = Math.ln (Real.fromInt (!afreq)) - Math.ln (Real.fromInt (Array.sub (dffreq, sym)))*)
+    (* fun tfidf sym = Math.ln (Real.fromInt (!afreq)) - Math.ln (Real.fromInt (Array.sub (dffreq, sym))) *)
 
     fun eval syms =
       let
@@ -902,13 +902,14 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
     fun add_subtypes (T as Type (_, Ts)) = add_type T #> fold add_subtypes Ts
       | add_subtypes T = add_type T
 
-    fun weight_of_const s =
-      16.0 +
-      (if num_facts = 0 then
-         0.0
+    val base_weight_of_const = 16.0 (* FUDGE *)
+    val weight_of_const =
+      (if num_facts = 0 orelse Symtab.is_empty const_tab then
+         K base_weight_of_const
        else
+         fn s =>
          let val count = Symtab.lookup const_tab s |> the_default 1 in
-           Real.fromInt num_facts / Real.fromInt count (* FUDGE *)
+           base_weight_of_const + Real.fromInt num_facts / Real.fromInt count
          end)
 
     fun pattify_term _ 0 _ = []
