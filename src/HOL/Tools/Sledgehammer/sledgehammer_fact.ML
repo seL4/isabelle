@@ -377,7 +377,9 @@ fun build_name_tables name_of facts =
     val prop_tab = fold cons_thm facts Termtab.empty
     val plain_name_tab = Termtab.fold add_plains prop_tab Symtab.empty
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
-  in (plain_name_tab, inclass_name_tab) end
+  in
+    (plain_name_tab, inclass_name_tab)
+  end
 
 fun fact_distinct eq facts =
   fold (fn fact as (_, th) =>

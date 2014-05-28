@@ -85,7 +85,7 @@ sig
   val mash_learn : Proof.context -> params -> fact_override -> thm list -> bool -> unit
 
   val mash_can_suggest_facts : Proof.context -> bool -> bool
-  val generous_max_facts : int -> int
+  val generous_max_suggestions : int -> int
   val mepo_weight : real
   val mash_weight : real
   val relevant_facts : Proof.context -> params -> string -> int -> fact_override -> term list ->
@@ -1574,7 +1574,7 @@ fun mash_can_suggest_facts ctxt overlord =
 
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons. *)
-fun generous_max_facts max_facts = max_facts + Int.min (50, max_facts)
+fun generous_max_suggestions max_facts = max_facts (*### 11 * max_facts div 10 + 20 *)
 
 val mepo_weight = 0.5
 val mash_weight = 0.5
@@ -1655,7 +1655,7 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
          |> weight_facts_steeply, [])
 
       fun mash () =
-        mash_suggested_facts ctxt params (generous_max_facts max_facts) hyp_ts concl_t facts
+        mash_suggested_facts ctxt params (generous_max_suggestions max_facts) hyp_ts concl_t facts
         |>> weight_facts_steeply
 
       val mess =

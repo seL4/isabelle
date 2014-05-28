@@ -84,9 +84,8 @@ val subgoal_count = Try.subgoal_count
 fun reserved_isar_keyword_table () =
   Keyword.dest () |-> union (op =) |> map (rpair ()) |> Symtab.make
 
-(* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
-   fixes that seem to be missing over there; or maybe the two code portions are
-   not doing the same? *)
+(* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few fixes that seem to
+   be missing over there; or maybe the two code portions are not doing the same? *)
 fun fold_body_thm outer_name (map_plain_name, map_inclass_name) =
   let
     fun app_thm map_name (_, (name, _, body)) accum =
@@ -104,7 +103,9 @@ fun fold_body_thm outer_name (map_plain_name, map_inclass_name) =
           accum |> union (op =) (the_list (map_name name))
       end
     and app_body map_name (PBody {thms, ...}) = fold (app_thm map_name) thms
-  in app_body map_plain_name end
+  in
+    app_body map_plain_name
+  end
 
 fun thms_in_proof name_tabs th =
   let val map_names = (case name_tabs of SOME p => pairself Symtab.lookup p | NONE => `I SOME) in

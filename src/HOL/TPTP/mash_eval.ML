@@ -54,7 +54,7 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
     fun print s = File.append report_path (s ^ "\n")
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} = default_params thy []
     val prover = hd provers
-    val slack_max_facts = generous_max_facts (the max_facts)
+    val max_suggs = generous_max_suggestions (the max_facts)
     val lines_of = Path.explode #> try File.read_lines #> these
     val file_names =
       [mepo_file_name, mash_isar_file_name, mash_prover_file_name,
@@ -97,7 +97,7 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
                          mesh_isar_line), mesh_prover_line)) =
       if in_range range j then
         let
-          val get_suggs = extract_suggestions ##> take slack_max_facts
+          val get_suggs = extract_suggestions ##> take max_suggs
           val (name1, mepo_suggs) = get_suggs mepo_line
           val (name2, mash_isar_suggs) = get_suggs mash_isar_line
           val (name3, mash_prover_suggs) = get_suggs mash_prover_line
