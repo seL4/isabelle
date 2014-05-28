@@ -532,7 +532,6 @@ fun query ctxt engine parents access_G max_suggs hints feats =
 
     val num_visible_facts = length visible_facts
     val get_deps = curry Vector.sub deps_vec
-    val syms = map (apfst (the_default ~1 o Symtab.lookup feat_tab)) feats
   in
     trace_msg ctxt (fn () => "MaSh_SML " ^ (if engine = MaSh_SML_kNN then "kNN" else "NB") ^
       " query " ^ encode_features feats ^ " from {" ^
@@ -549,6 +548,8 @@ fun query ctxt engine parents access_G max_suggs hints feats =
                end)
              rev_featss num_facts
          val get_facts = curry Array.sub facts_ary
+         val syms = map_filter (fn (feat, weight) =>
+           Option.map (rpair weight) (Symtab.lookup feat_tab feat)) feats
        in
          k_nearest_neighbors num_facts num_visible_facts get_deps get_facts max_suggs syms
        end
@@ -556,6 +557,7 @@ fun query ctxt engine parents access_G max_suggs hints feats =
        let
          val unweighted_feats_ary = Vector.fromList (map (map fst) (rev rev_featss))
          val get_unweighted_feats = curry Vector.sub unweighted_feats_ary
+         val syms = map (apfst (the_default ~1 o Symtab.lookup feat_tab)) feats
        in
          naive_bayes num_facts num_visible_facts get_deps get_unweighted_feats num_feats max_suggs
            syms
