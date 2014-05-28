@@ -429,12 +429,13 @@ val nb_pos_weight = 2.0 (* FUDGE *)
 val nb_def_val = ~15.0 (* FUDGE *)
 val nb_def_prior_weight = 20 (* FUDGE *)
 
+(* TODO: Either use IDF or don't use it. See commented out code portions below. *)
+
 fun naive_bayes_learn num_facts get_deps get_th_feats num_feats =
   let
-    val afreq = Unsynchronized.ref 0
     val tfreq = Array.array (num_facts, 0)
     val sfreq = Array.array (num_facts, Inttab.empty)
-    val dffreq = Array.array (num_feats, 0)
+(*    val dffreq = Array.array (num_feats, 0) *)
 
     fun learn th feats deps =
       let
@@ -447,23 +448,26 @@ fun naive_bayes_learn num_facts get_deps get_th_feats num_feats =
             Array.update (sfreq, t, fold fold_fn feats im)
           end
 
-        fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s))
+(*        fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s)) *)
       in
         add_th nb_def_prior_weight th;
-        List.app (add_th 1) deps;
-        List.app add_sym feats;
-        afreq := !afreq + 1
+        List.app (add_th 1) deps
+(* ;        List.app add_sym feats *)
       end
 
     fun for i =
       if i = num_facts then () else (learn i (get_th_feats i) (get_deps i); for (i + 1))
   in
-    for 0; (Real.fromInt (!afreq), Array.vector tfreq, Array.vector sfreq, Array.vector dffreq)
+    for 0; (Array.vector tfreq, Array.vector sfreq (*, Array.vector dffreq *))
   end
 
-fun naive_bayes_query num_visible_facts max_suggs feats (afreq, tfreq, sfreq, dffreq) =
+fun naive_bayes_query _ (* num_facts *) num_visible_facts max_suggs feats (tfreq, sfreq (*, dffreq*)) =
   let
+(*
+    val afreq = Real.fromInt num_facts
     fun tfidf feat = Math.ln afreq - Math.ln (Real.fromInt (Vector.sub (dffreq, feat)))
+*)
+    fun tfidf _ = 1.0
 
     fun log_posterior i =
       let
@@ -497,7 +501,7 @@ fun naive_bayes_query num_visible_facts max_suggs feats (afreq, tfreq, sfreq, df
 
 fun naive_bayes num_facts num_visible_facts get_deps get_th_feats num_feats max_suggs feats =
   naive_bayes_learn num_facts get_deps get_th_feats num_feats
-  |> naive_bayes_query num_visible_facts max_suggs feats
+  |> naive_bayes_query num_facts num_visible_facts max_suggs feats
 
 fun add_to_xtab key (next, tab, keys) = (next + 1, Symtab.update_new (key, next) tab, key :: keys)
 
@@ -1214,7 +1218,8 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
     val num_facts = length facts
 
     (* Weights appear to hurt kNN more than they help. *)
-    val const_tab = Symtab.empty |> engine = MaSh_Py ? fold (add_const_counts o prop_of o snd) facts
+    val const_tab = Symtab.empty |> engine <> MaSh_SML_kNN
+      ? fold (add_const_counts o prop_of o snd) facts
 
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
