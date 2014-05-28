@@ -503,14 +503,12 @@ fun add_to_xtab key (next, tab, keys) = (next + 1, Symtab.update_new (key, next)
 
 fun map_array_at ary f i = Array.update (ary, i, f (Array.sub (ary, i)))
 
-fun query ctxt engine parents access_G max_suggs hints feats =
+fun query ctxt engine visible_facts max_suggs (learns, hints, parents, feats) =
   let
-    val visible_facts = Graph.all_preds access_G parents
     val visible_fact_set = Symtab.make_set visible_facts
 
-    val all_nodes =
-      (Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
-       |> List.partition (Symtab.defined visible_fact_set o #1) |> op @) @
+    val learns' =
+      (learns |> List.partition (Symtab.defined visible_fact_set o #1) |> op @) @
       (if null hints then [] else [(".goal", feats, hints)])
 
     val (rev_depss, rev_featss, (num_facts, _, rev_facts), (num_feats, feat_tab, _)) =
@@ -527,7 +525,7 @@ fun query ctxt engine parents access_G max_suggs hints feats =
             (map_filter (Symtab.lookup fact_tab) deps :: rev_depss, feats' :: rev_featss,
              add_to_xtab fact fact_xtab, feat_xtab')
           end)
-        all_nodes ([], [], (0, Symtab.empty, []), (0, Symtab.empty, []))
+        learns' ([], [], (0, Symtab.empty, []), (0, Symtab.empty, []))
 
     val facts = rev rev_facts
     val fact_vec = Vector.fromList facts
@@ -1269,8 +1267,13 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
       if engine = MaSh_Py then
         []
       else
-        let val (parents, hints, feats) = query_args access_G in
-          MaSh_SML.query ctxt engine parents access_G max_facts hints feats
+        let
+          val (parents, hints, feats) = query_args access_G
+          val visible_facts = Graph.all_preds access_G parents
+          val learns =
+            Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
+        in
+          MaSh_SML.query ctxt engine visible_facts max_facts (learns, hints, parents, feats)
         end
 
     val unknown = filter_out (is_fact_in_graph access_G o snd) facts
