@@ -34,6 +34,27 @@ sig
   val encode_features : (string * real) list -> string
   val extract_suggestions : string -> string * string list
 
+  datatype mash_engine = MaSh_Py | MaSh_SML_kNN | MaSh_SML_NB
+
+  structure MaSh_Py :
+  sig
+    val unlearn : Proof.context -> bool -> unit
+    val learn : Proof.context -> bool -> bool ->
+      (string * string list * string list * string list) list -> unit
+    val relearn : Proof.context -> bool -> bool -> (string * string list) list -> unit
+    val query : Proof.context -> bool -> int ->
+      (string * string list * string list * string list) list * string list * string list
+        * (string * real) list ->
+      string list
+  end
+
+  structure MaSh_SML :
+  sig
+    val query : Proof.context -> mash_engine -> string list -> int ->
+      (string * (string * real) list * string list) list * string list * (string * real) list ->
+      string list
+  end
+
   val mash_unlearn : Proof.context -> params -> unit
   val nickname_of_thm : thm -> string
   val find_suggested_facts : Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
@@ -507,7 +528,7 @@ fun add_to_xtab key (next, tab, keys) = (next + 1, Symtab.update_new (key, next)
 
 fun map_array_at ary f i = Array.update (ary, i, f (Array.sub (ary, i)))
 
-fun query ctxt engine visible_facts max_suggs (learns, hints, parents, feats) =
+fun query ctxt engine visible_facts max_suggs (learns, hints, feats) =
   let
     val visible_fact_set = Symtab.make_set visible_facts
 
@@ -1278,7 +1299,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
           val learns =
             Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
         in
-          MaSh_SML.query ctxt engine visible_facts max_facts (learns, hints, parents, feats)
+          MaSh_SML.query ctxt engine visible_facts max_facts (learns, hints, feats)
         end
 
     val unknown = filter_out (is_fact_in_graph access_G o snd) facts
