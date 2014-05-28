@@ -454,8 +454,7 @@ fun naive_bayes avail_num adv_max get_deps get_th_syms sym_num advno syms =
         afreq := !afreq + 1
       end
 
-    fun tfidf _ = 1.0
-    (* fun tfidf sym = Math.ln (Real.fromInt (!afreq)) - Math.ln (Real.fromInt (Array.sub (dffreq, sym))) *)
+    fun tfidf sym = Math.ln (Real.fromInt (!afreq)) - Math.ln (Real.fromInt (Array.sub (dffreq, sym)))
 
     fun eval syms =
       let
@@ -1212,8 +1211,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
     val num_facts = length facts
 
     (* Weights appear to hurt kNN more than they help. *)
-    val const_tab = Symtab.empty |> engine <> MaSh_SML_kNN
-      ? fold (add_const_counts o prop_of o snd) facts
+    val const_tab = Symtab.empty |> engine = MaSh_Py ? fold (add_const_counts o prop_of o snd) facts
 
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
