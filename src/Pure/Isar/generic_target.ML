@@ -200,7 +200,7 @@ end;
 
 fun background_abbrev (b, global_rhs) params =
   Local_Theory.background_theory_result (Sign.add_abbrev Print_Mode.internal (b, global_rhs))
-  #>> (fn (lhs, rhs) => (Term.list_comb (Logic.unvarify_global lhs, params), rhs))
+  #>> (fn (lhs, rhs) => (Term.list_comb (Logic.unvarify_global lhs, params), Logic.unvarify_global rhs))
 
 fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
   let
