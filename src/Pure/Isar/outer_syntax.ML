@@ -36,7 +36,7 @@ sig
   type isar
   val isar: TextIO.instream -> bool -> isar
   val side_comments: Token.T list -> Token.T list
-  val command_reports: outer_syntax -> Token.T -> (Position.report * string) list
+  val command_reports: outer_syntax -> Token.T -> Position.report_text list
   val read_spans: outer_syntax -> Token.T list -> Toplevel.transition list
 end;
 

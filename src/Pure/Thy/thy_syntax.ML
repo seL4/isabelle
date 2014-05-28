@@ -7,7 +7,7 @@ Superficial theory syntax: tokens and spans.
 signature THY_SYNTAX =
 sig
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
-  val reports_of_tokens: Token.T list -> bool * (Position.report * string) list
+  val reports_of_tokens: Token.T list -> bool * Position.report_text list
   val present_token: Token.T -> Output.output
   datatype span_kind = Command of string * Position.T | Ignored | Malformed
   datatype span = Span of span_kind * Token.T list
