@@ -526,8 +526,7 @@ fun query ctxt engine parents access_G max_suggs hints feats =
 
     val num_visible_facts = length visible_facts
     val get_deps = curry Vector.sub deps_vec
-    val syms = map_filter (fn (feat, weight) =>
-      Option.map (rpair weight) (Symtab.lookup feat_tab feat)) feats
+    val syms = map (apfst (the_default ~1 o Symtab.lookup feat_tab)) feats
   in
     trace_msg ctxt (fn () => "MaSh_SML " ^ (if engine = MaSh_SML_kNN then "kNN" else "NB") ^
       " query " ^ encode_features feats ^ " from {" ^
@@ -757,8 +756,8 @@ fun normalize_scores _ [] = []
   | normalize_scores max_facts xs =
     map (apsnd (curry Real.* (1.0 / avg (map snd (take max_facts xs))))) xs
 
-fun mesh_facts _ max_facts [(_, (sels, unks))] =
-    map fst (take max_facts sels) @ take (max_facts - length sels) unks
+fun mesh_facts fact_eq max_facts [(_, (sels, unks))] =
+    distinct fact_eq (map fst (take max_facts sels) @ take (max_facts - length sels) unks)
   | mesh_facts fact_eq max_facts mess =
     let
       val mess = mess |> map (apsnd (apfst (normalize_scores max_facts)))
@@ -1074,8 +1073,7 @@ fun chunks_and_parents_for chunks th =
   let
     fun insert_parent new parents =
       let val parents = parents |> filter_out (fn p => thm_less_eq (p, new)) in
-        parents |> forall (fn p => not (thm_less_eq (new, p))) parents
-                   ? cons new
+        parents |> forall (fn p => not (thm_less_eq (new, p))) parents ? cons new
       end
 
     fun rechunk seen (rest as th' :: ths) =
@@ -1204,9 +1202,9 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val num_facts = length facts
 
-    (* Weights are currently ignored by SML naive Bayes and appear to hurt kNN more than they
-       help. *)
-    val const_tab = Symtab.empty |> engine = MaSh_Py ? fold (add_const_counts o prop_of o snd) facts
+    (* Weights appear to hurt kNN more than they help. *)
+    val const_tab = Symtab.empty |> engine <> MaSh_SML_kNN
+      ? fold (add_const_counts o prop_of o snd) facts
 
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
