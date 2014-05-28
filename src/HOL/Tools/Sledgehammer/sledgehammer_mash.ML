@@ -437,19 +437,19 @@ fun naive_bayes avail_num adv_max get_deps get_th_syms sym_num advno syms =
 
     fun learn th syms deps =
       let
-        fun add_th t =
+        fun add_th weight t =
           let
             val im = Array.sub (sfreq, t)
-            fun fold_fn s sf = Inttab.update (s, 1 + the_default 0 (Inttab.lookup im s)) sf
+            fun fold_fn s sf = Inttab.update (s, weight + the_default 0 (Inttab.lookup im s)) sf
           in
-            Array.update (tfreq, t, 1 + Array.sub (tfreq, t));
+            Array.update (tfreq, t, weight + Array.sub (tfreq, t));
             Array.update (sfreq, t, fold fold_fn syms im)
           end
 
         fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s))
       in
-        List.app add_th (replicate nb_def_prior_weight th);
-        List.app add_th deps;
+        add_th nb_def_prior_weight th;
+        List.app (add_th 1) deps;
         List.app add_sym syms;
         afreq := !afreq + 1
       end

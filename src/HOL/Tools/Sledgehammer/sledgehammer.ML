@@ -192,8 +192,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
 val auto_try_max_facts_divisor = 2 (* FUDGE *)
 
 fun string_of_facts facts =
-  "Including " ^ string_of_int (length facts) ^
-  " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
+  "Including " ^ string_of_int (length facts) ^ " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
   (facts |> map (fst o fst) |> space_implode " ") ^ "."
 
 fun string_of_factss factss =
