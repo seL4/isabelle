@@ -758,6 +758,22 @@ lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \
   apply (simp_all add: atLeastLessThanSuc)   
   done
 
+subsubsection {* Intervals and numerals *}
+
+lemma lessThan_nat_numeral:  --{*Evaluation for specific numerals*}
+  "lessThan (numeral k :: nat) = insert (pred_numeral k) (lessThan (pred_numeral k))"
+  by (simp add: numeral_eq_Suc lessThan_Suc)
+
+lemma atMost_nat_numeral:  --{*Evaluation for specific numerals*}
+  "atMost (numeral k :: nat) = insert (numeral k) (atMost (pred_numeral k))"
+  by (simp add: numeral_eq_Suc atMost_Suc)
+
+lemma atLeastLessThan_nat_numeral:  --{*Evaluation for specific numerals*}
+  "atLeastLessThan m (numeral k :: nat) = 
+     (if m \<le> (pred_numeral k) then insert (pred_numeral k) (atLeastLessThan m (pred_numeral k))
+                 else {})"
+  by (simp add: numeral_eq_Suc atLeastLessThanSuc)
+
 subsubsection {* Image *}
 
 lemma image_add_atLeastAtMost:
@@ -1006,16 +1022,17 @@ lemma card_atMost [simp]: "card {..u} = Suc u"
   by (simp add: lessThan_Suc_atMost [THEN sym])
 
 lemma card_atLeastLessThan [simp]: "card {l..<u} = u - l"
-  apply (subgoal_tac "card {l..<u} = card {..<u-l}")
-  apply (erule ssubst, rule card_lessThan)
-  apply (subgoal_tac "(%x. x + l) ` {..<u-l} = {l..<u}")
-  apply (erule subst)
-  apply (rule card_image)
-  apply (simp add: inj_on_def)
-  apply (auto simp add: image_def atLeastLessThan_def lessThan_def)
-  apply (rule_tac x = "x - l" in exI)
-  apply arith
-  done
+proof -
+  have "{l..<u} = (%x. x + l) ` {..<u-l}"
+    apply (auto simp add: image_def atLeastLessThan_def lessThan_def)
+    apply (rule_tac x = "x - l" in exI)
+    apply arith
+    done
+  then have "card {l..<u} = card {..<u-l}"
+    by (simp add: card_image inj_on_def)
+  then show ?thesis
+    by simp
+qed
 
 lemma card_atLeastAtMost [simp]: "card {l..u} = Suc u - l"
   by (subst atLeastLessThanSuc_atLeastAtMost [THEN sym], simp)
@@ -1174,8 +1191,6 @@ qed
 
 lemma card_less_Suc2: "0 \<notin> M \<Longrightarrow> card {k. Suc k \<in> M \<and> k < i} = card {k \<in> M. k < Suc i}"
 apply (rule card_bij_eq [of Suc _ _ "\<lambda>x. x - Suc 0"])
-apply simp
-apply fastforce
 apply auto
 apply (rule inj_on_diff_nat)
 apply auto
@@ -1195,7 +1210,8 @@ proof -
   hence c: "{k \<in> M. k < Suc i} = insert 0 ({k \<in> M. k < Suc i} - {0})"
     by (auto simp only: insert_Diff)
   have b: "{k \<in> M. k < Suc i} - {0} = {k \<in> M - {0}. k < Suc i}"  by auto
-  from finite_M_bounded_by_nat[of "\<lambda>x. x \<in> M" "Suc i"] have "Suc (card {k. Suc k \<in> M \<and> k < i}) = card (insert 0 ({k \<in> M. k < Suc i} - {0}))"
+  from finite_M_bounded_by_nat[of "\<lambda>x. x \<in> M" "Suc i"] 
+  have "Suc (card {k. Suc k \<in> M \<and> k < i}) = card (insert 0 ({k \<in> M. k < Suc i} - {0}))"
     apply (subst card_insert)
     apply simp_all
     apply (subst b)

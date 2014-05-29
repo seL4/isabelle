@@ -324,4 +324,8 @@ proof -
     by (induct r rule: nat.induct) (auto simp add: fact_div_fact Suc_diff_Suc mult_le_mono)
 qed
 
+lemma fact_numeral:  --{*Evaluation for specific numerals*}
+  "fact (numeral k) = (numeral k) * (fact (pred_numeral k))"
+  by (simp add: numeral_eq_Suc)
+
 end
