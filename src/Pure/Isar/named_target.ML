@@ -79,9 +79,9 @@ fun locale_abbrev locale prmode (b, mx) (global_rhs, _) params =
   Generic_Target.background_abbrev (b, global_rhs) params
   #-> (fn (lhs, _) => Generic_Target.locale_const locale prmode ((b, mx), lhs));
 
-fun class_abbrev class prmode (b, mx) (global_rhs, rhs') params =
+fun class_abbrev class prmode (b, mx) (global_rhs, _) params =
   Generic_Target.background_abbrev (b, global_rhs) params
-  #-> (fn (lhs, _) => Class.abbrev class prmode ((b, mx), lhs) rhs');
+  #-> (fn (lhs, rhs) => Class.abbrev class prmode ((b, mx), lhs) rhs);
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) =
   if is_class then class_abbrev target
