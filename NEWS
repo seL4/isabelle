@@ -755,6 +755,8 @@ INCOMPATIBILITY.
 
     * Renamed abbreviation integral\<^sup>P to integral\<^sup>N.
 
+* Library/Kleene-Algebra was removed because AFP/Kleene_Algebra subsumes it.
+
 *** Scala ***
 
 * The signature and semantics of Document.Snapshot.cumulate_markup /

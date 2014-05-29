@@ -34,7 +34,6 @@ imports
   Lattice_Syntax
   ListVector
   Lubs_Glbs
-  Kleene_Algebra
   Mapping
   Monad_Syntax
   Multiset
