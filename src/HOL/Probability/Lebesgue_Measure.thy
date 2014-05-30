@@ -740,7 +740,7 @@ next
     show "\<forall>x\<in>UNIV. (\<lambda>k. s k x) ----> f x"
       using lim by auto
     show "(\<lambda>k. integral\<^sup>L lebesgue (s k)) ----> integral\<^sup>L lebesgue f"
-      using lim by (intro integral_dominated_convergence(3)[where w="\<lambda>x. 2 * norm (f x)"]) auto
+      using lim by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"]) auto
   qed
 qed
 

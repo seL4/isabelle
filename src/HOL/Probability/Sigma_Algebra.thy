@@ -2351,9 +2351,9 @@ proof (intro CollectI conjI ballI)
 qed
 
 lemma measurable_restrict_space2:
-  "\<Omega> \<in> sets N \<Longrightarrow> f \<in> space M \<rightarrow> \<Omega> \<Longrightarrow> f \<in> measurable M N \<Longrightarrow>
+  "\<Omega> \<inter> space N \<in> sets N \<Longrightarrow> f \<in> space M \<rightarrow> \<Omega> \<Longrightarrow> f \<in> measurable M N \<Longrightarrow>
     f \<in> measurable M (restrict_space N \<Omega>)"
-  by (simp add: measurable_def space_restrict_space sets_restrict_space_iff)
+  by (simp add: measurable_def space_restrict_space sets_restrict_space_iff Pi_Int[symmetric])
 
 end
 

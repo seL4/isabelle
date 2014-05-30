@@ -1693,6 +1693,29 @@ next
     by (simp add: emeasure_notin_sets)
 qed
 
+lemma measure_restrict_space:
+  assumes "\<Omega> \<inter> space M \<in> sets M" "A \<subseteq> \<Omega>"
+  shows "measure (restrict_space M \<Omega>) A = measure M A"
+  using emeasure_restrict_space[OF assms] by (simp add: measure_def)
+
+lemma AE_restrict_space_iff:
+  assumes "\<Omega> \<inter> space M \<in> sets M"
+  shows "(AE x in restrict_space M \<Omega>. P x) \<longleftrightarrow> (AE x in M. x \<in> \<Omega> \<longrightarrow> P x)"
+proof -
+  have ex_cong: "\<And>P Q f. (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> (\<And>x. Q x \<Longrightarrow> P (f x)) \<Longrightarrow> (\<exists>x. P x) \<longleftrightarrow> (\<exists>x. Q x)"
+    by auto
+  { fix X assume X: "X \<in> sets M" "emeasure M X = 0"
+    then have "emeasure M (\<Omega> \<inter> space M \<inter> X) \<le> emeasure M X"
+      by (intro emeasure_mono) auto
+    then have "emeasure M (\<Omega> \<inter> space M \<inter> X) = 0"
+      using X by (auto intro!: antisym) }
+  with assms show ?thesis
+    unfolding eventually_ae_filter
+    by (auto simp add: space_restrict_space null_sets_def sets_restrict_space_iff
+                       emeasure_restrict_space cong: conj_cong
+             intro!: ex_cong[where f="\<lambda>X. (\<Omega> \<inter> space M) \<inter> X"])
+qed  
+
 lemma restrict_restrict_space:
   assumes "A \<inter> space M \<in> sets M" "B \<inter> space M \<in> sets M"
   shows "restrict_space (restrict_space M A) B = restrict_space M (A \<inter> B)" (is "?l = ?r")
@@ -1717,6 +1740,19 @@ proof (rule measure_eqI)
   then show "emeasure (restrict_space (count_space B) A) X = emeasure (count_space (A \<inter> B)) X"
     by (cases "finite X") (auto simp add: emeasure_restrict_space)
 qed
+
+lemma restrict_distr: 
+  assumes [measurable]: "f \<in> measurable M N"
+  assumes [simp]: "\<Omega> \<inter> space N \<in> sets N" and restrict: "f \<in> space M \<rightarrow> \<Omega>"
+  shows "restrict_space (distr M N f) \<Omega> = distr M (restrict_space N \<Omega>) f"
+  (is "?l = ?r")
+proof (rule measure_eqI)
+  fix A assume "A \<in> sets (restrict_space (distr M N f) \<Omega>)"
+  with restrict show "emeasure ?l A = emeasure ?r A"
+    by (subst emeasure_distr)
+       (auto simp: sets_restrict_space_iff emeasure_restrict_space emeasure_distr
+             intro!: measurable_restrict_space2)
+qed (simp add: sets_restrict_space)
 
 end
 

@@ -856,6 +856,32 @@ proof -
     by (rule has_bochner_integral_eq)
 qed
 
+lemma simple_bochner_integrable_restrict_space:
+  fixes f :: "_ \<Rightarrow> 'b::real_normed_vector"
+  assumes \<Omega>: "\<Omega> \<inter> space M \<in> sets M"
+  shows "simple_bochner_integrable (restrict_space M \<Omega>) f \<longleftrightarrow>
+    simple_bochner_integrable M (\<lambda>x. indicator \<Omega> x *\<^sub>R f x)"
+  by (simp add: simple_bochner_integrable.simps space_restrict_space
+    simple_function_restrict_space[OF \<Omega>] emeasure_restrict_space[OF \<Omega>] Collect_restrict
+    indicator_eq_0_iff conj_ac)
+
+lemma simple_bochner_integral_restrict_space:
+  fixes f :: "_ \<Rightarrow> 'b::real_normed_vector"
+  assumes \<Omega>: "\<Omega> \<inter> space M \<in> sets M"
+  assumes f: "simple_bochner_integrable (restrict_space M \<Omega>) f"
+  shows "simple_bochner_integral (restrict_space M \<Omega>) f =
+    simple_bochner_integral M (\<lambda>x. indicator \<Omega> x *\<^sub>R f x)"
+proof -
+  have "finite ((\<lambda>x. indicator \<Omega> x *\<^sub>R f x)`space M)"
+    using f simple_bochner_integrable_restrict_space[OF \<Omega>, of f]
+    by (simp add: simple_bochner_integrable.simps simple_function_def)
+  then show ?thesis
+    by (auto simp: space_restrict_space measure_restrict_space[OF \<Omega>(1)] le_infI2
+                   simple_bochner_integral_def Collect_restrict
+             split: split_indicator split_indicator_asm
+             intro!: setsum_mono_zero_cong_left arg_cong2[where f=measure])
+qed
+
 inductive integrable for M f where
   "has_bochner_integral M f x \<Longrightarrow> integrable M f"
 
@@ -1251,14 +1277,14 @@ lemma integrable_indicator_iff:
   by (simp add: integrable_iff_bounded borel_measurable_indicator_iff ereal_indicator nn_integral_indicator'
            cong: conj_cong)
 
-lemma integral_dominated_convergence:
+lemma
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}" and w :: "'a \<Rightarrow> real"
   assumes "f \<in> borel_measurable M" "\<And>i. s i \<in> borel_measurable M" "integrable M w"
   assumes lim: "AE x in M. (\<lambda>i. s i x) ----> f x"
   assumes bound: "\<And>i. AE x in M. norm (s i x) \<le> w x"
-  shows "integrable M f"
-    and "\<And>i. integrable M (s i)"
-    and "(\<lambda>i. integral\<^sup>L M (s i)) ----> integral\<^sup>L M f"
+  shows integrable_dominated_convergence: "integrable M f"
+    and integrable_dominated_convergence2: "\<And>i. integrable M (s i)"
+    and integral_dominated_convergence: "(\<lambda>i. integral\<^sup>L M (s i)) ----> integral\<^sup>L M f"
 proof -
   have "AE x in M. 0 \<le> w x"
     using bound[of 0] by eventually_elim (auto intro: norm_ge_zero order_trans)
@@ -1421,13 +1447,14 @@ proof -
     finally show "norm (\<Sum>i<j. f i x) \<le> (\<Sum>i. norm (f i x))" by simp
   qed
 
-  note int = integral_dominated_convergence(1,3)[OF _ _ 1 2 3]
+  note ibl = integrable_dominated_convergence[OF _ _ 1 2 3]
+  note int = integral_dominated_convergence[OF _ _ 1 2 3]
 
   show "integrable M ?S"
-    by (rule int) measurable
+    by (rule ibl) measurable
 
   show "?f sums ?x" unfolding sums_def
-    using int(2) by (simp add: integrable)
+    using int by (simp add: integrable)
   then show "?x = suminf ?f" "summable ?f"
     unfolding sums_iff by auto
 qed
@@ -1600,6 +1627,49 @@ proof -
     by simp
 qed
 
+subsection {* Restricted measure spaces *}
+
+lemma integrable_restrict_space:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes \<Omega>[simp]: "\<Omega> \<inter> space M \<in> sets M"
+  shows "integrable (restrict_space M \<Omega>) f \<longleftrightarrow> integrable M (\<lambda>x. indicator \<Omega> x *\<^sub>R f x)"
+  unfolding integrable_iff_bounded
+    borel_measurable_restrict_space_iff[OF \<Omega>]
+    nn_integral_restrict_space[OF \<Omega>]
+  by (simp add: ac_simps ereal_indicator times_ereal.simps(1)[symmetric] del: times_ereal.simps)
+
+lemma integral_restrict_space:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes \<Omega>[simp]: "\<Omega> \<inter> space M \<in> sets M"
+  shows "integral\<^sup>L (restrict_space M \<Omega>) f = integral\<^sup>L M (\<lambda>x. indicator \<Omega> x *\<^sub>R f x)"
+proof (rule integral_eq_cases)
+  assume "integrable (restrict_space M \<Omega>) f"
+  then show ?thesis
+  proof induct
+    case (base A c) then show ?case
+      by (simp add: indicator_inter_arith[symmetric] sets_restrict_space_iff
+                    emeasure_restrict_space Int_absorb1 measure_restrict_space)
+  next
+    case (add g f) then show ?case
+      by (simp add: scaleR_add_right integrable_restrict_space)
+  next
+    case (lim f s)
+    show ?case
+    proof (rule LIMSEQ_unique)
+      show "(\<lambda>i. integral\<^sup>L (restrict_space M \<Omega>) (s i)) ----> integral\<^sup>L (restrict_space M \<Omega>) f"
+        using lim by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"]) simp_all
+      
+      show "(\<lambda>i. integral\<^sup>L (restrict_space M \<Omega>) (s i)) ----> (\<integral> x. indicator \<Omega> x *\<^sub>R f x \<partial>M)"
+        unfolding lim
+        using lim
+        by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (indicator \<Omega> x *\<^sub>R f x)"])
+           (auto simp add: space_restrict_space integrable_restrict_space
+                 simp del: norm_scaleR
+                 split: split_indicator)
+    qed
+  qed
+qed (simp add: integrable_restrict_space)
+
 subsection {* Measure spaces with an associated density *}
 
 lemma integrable_density:
@@ -1653,7 +1723,7 @@ proof (rule integral_eq_cases)
     show ?case
     proof (rule LIMSEQ_unique)
       show "(\<lambda>i. integral\<^sup>L M (\<lambda>x. g x *\<^sub>R s i x)) ----> integral\<^sup>L M (\<lambda>x. g x *\<^sub>R f x)"
-      proof (rule integral_dominated_convergence(3))
+      proof (rule integral_dominated_convergence)
         show "integrable M (\<lambda>x. 2 * norm (g x *\<^sub>R f x))"
           by (intro integrable_mult_right integrable_norm integrable_density[THEN iffD1] lim g) auto
         show "AE x in M. (\<lambda>i. g x *\<^sub>R s i x) ----> g x *\<^sub>R f x"
@@ -1663,7 +1733,7 @@ proof (rule integral_eq_cases)
       qed auto
       show "(\<lambda>i. integral\<^sup>L M (\<lambda>x. g x *\<^sub>R s i x)) ----> integral\<^sup>L (density M g) f"
         unfolding lim(2)[symmetric]
-        by (rule integral_dominated_convergence(3)[where w="\<lambda>x. 2 * norm (f x)"])
+        by (rule integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"])
            (insert lim(3-5), auto)
     qed
   qed
@@ -1732,7 +1802,7 @@ proof (rule integral_eq_cases)
     show ?case
     proof (rule LIMSEQ_unique)
       show "(\<lambda>i. integral\<^sup>L M (\<lambda>x. s i (g x))) ----> integral\<^sup>L M (\<lambda>x. f (g x))"
-      proof (rule integral_dominated_convergence(3))
+      proof (rule integral_dominated_convergence)
         show "integrable M (\<lambda>x. 2 * norm (f (g x)))"
           using lim by (auto simp: integrable_distr_eq) 
         show "AE x in M. (\<lambda>i. s i (g x)) ----> f (g x)"
@@ -1742,7 +1812,7 @@ proof (rule integral_eq_cases)
       qed auto
       show "(\<lambda>i. integral\<^sup>L M (\<lambda>x. s i (g x))) ----> integral\<^sup>L (distr M N g) f"
         unfolding lim(2)[symmetric]
-        by (rule integral_dominated_convergence(3)[where w="\<lambda>x. 2 * norm (f x)"])
+        by (rule integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"])
            (insert lim(3-5), auto)
     qed
   qed

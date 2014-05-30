@@ -119,6 +119,52 @@ lemma borel_measurable_subalgebra:
   shows "f \<in> borel_measurable M"
   using assms unfolding measurable_def by auto
 
+lemma borel_measurable_restrict_space_iff_ereal:
+  fixes f :: "'a \<Rightarrow> ereal"
+  assumes \<Omega>[measurable, simp]: "\<Omega> \<inter> space M \<in> sets M"
+  shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
+    (\<lambda>x. f x * indicator \<Omega> x) \<in> borel_measurable M"
+proof -
+  { fix X :: "ereal set" assume "X \<in> sets borel"
+    have 1: "(\<lambda>x. f x * indicator \<Omega> x) -` X \<inter> space M = 
+      (if 0 \<in> X then (f -` X \<inter> (\<Omega> \<inter> space M)) \<union> (space M - (\<Omega> \<inter> space M)) else f -` X \<inter> (\<Omega> \<inter> space M))" 
+      by (auto split: split_if_asm simp: indicator_def)
+    have *: "f -` X \<inter> (\<Omega> \<inter> space M) = 
+      (f -` X \<inter> (\<Omega> \<inter> space M) \<union> (space M - \<Omega> \<inter> space M)) - (space M - \<Omega> \<inter> space M)"
+      by auto
+    have "f -` X \<inter> (\<Omega> \<inter> space M) \<union> (space M - \<Omega> \<inter> space M) \<in> sets M
+      \<Longrightarrow> f -` X \<inter> (\<Omega> \<inter> space M) \<in> sets M"
+      by (subst *) auto
+    note this 1 }
+  note 1 = this(1) and 2 = this(2)
+
+  from 2 show ?thesis
+    by (auto simp add: measurable_def space_restrict_space sets_restrict_space_iff intro: 1 \<Omega>)
+qed
+
+lemma borel_measurable_restrict_space_iff:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  assumes \<Omega>[measurable, simp]: "\<Omega> \<inter> space M \<in> sets M"
+  shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
+    (\<lambda>x. indicator \<Omega> x *\<^sub>R f x) \<in> borel_measurable M"
+proof -
+  { fix X :: "'b set" assume "X \<in> sets borel"
+    have 1: "(\<lambda>x. indicator \<Omega> x *\<^sub>R f x) -` X \<inter> space M = 
+      (if 0 \<in> X then (f -` X \<inter> (\<Omega> \<inter> space M)) \<union> (space M - (\<Omega> \<inter> space M)) else f -` X \<inter> (\<Omega> \<inter> space M))" 
+      by (auto split: split_if_asm simp: indicator_def)
+    have *: "f -` X \<inter> (\<Omega> \<inter> space M) = 
+      (f -` X \<inter> (\<Omega> \<inter> space M) \<union> (space M - \<Omega> \<inter> space M)) - (space M - \<Omega> \<inter> space M)"
+      by auto
+    have "f -` X \<inter> (\<Omega> \<inter> space M) \<union> (space M - \<Omega> \<inter> space M) \<in> sets M
+      \<Longrightarrow> f -` X \<inter> (\<Omega> \<inter> space M) \<in> sets M"
+      by (subst *) auto
+    note this 1 }
+  note 1 = this(1) and 2 = this(2)
+
+  from 2 show ?thesis
+    by (auto simp add: measurable_def space_restrict_space sets_restrict_space_iff intro: 1 \<Omega>)
+qed
+
 lemma borel_measurable_continuous_on1:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
   assumes "continuous_on UNIV f"

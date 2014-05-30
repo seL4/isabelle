@@ -1733,32 +1733,102 @@ qed simp
 
 subsubsection {* Measures with Restricted Space *}
 
+lemma simple_function_iff_borel_measurable:
+  fixes f :: "'a \<Rightarrow> 'x::{t2_space}"
+  shows "simple_function M f \<longleftrightarrow> finite (f ` space M) \<and> f \<in> borel_measurable M"
+  by (metis borel_measurable_simple_function simple_functionD(1) simple_function_borel_measurable)
+
+lemma simple_function_restrict_space_ereal:
+  fixes f :: "'a \<Rightarrow> ereal"
+  assumes "\<Omega> \<inter> space M \<in> sets M"
+  shows "simple_function (restrict_space M \<Omega>) f \<longleftrightarrow> simple_function M (\<lambda>x. f x * indicator \<Omega> x)"
+proof -
+  { assume "finite (f ` space (restrict_space M \<Omega>))"
+    then have "finite (f ` space (restrict_space M \<Omega>) \<union> {0})" by simp
+    then have "finite ((\<lambda>x. f x * indicator \<Omega> x) ` space M)"
+      by (rule rev_finite_subset) (auto split: split_indicator simp: space_restrict_space) }
+  moreover
+  { assume "finite ((\<lambda>x. f x * indicator \<Omega> x) ` space M)"
+    then have "finite (f ` space (restrict_space M \<Omega>))"
+      by (rule rev_finite_subset) (auto split: split_indicator simp: space_restrict_space) }
+  ultimately show ?thesis
+    unfolding simple_function_iff_borel_measurable
+      borel_measurable_restrict_space_iff_ereal[OF assms]
+    by auto
+qed
+
+lemma simple_function_restrict_space:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  assumes "\<Omega> \<inter> space M \<in> sets M"
+  shows "simple_function (restrict_space M \<Omega>) f \<longleftrightarrow> simple_function M (\<lambda>x. indicator \<Omega> x *\<^sub>R f x)"
+proof -
+  { assume "finite (f ` space (restrict_space M \<Omega>))"
+    then have "finite (f ` space (restrict_space M \<Omega>) \<union> {0})" by simp
+    then have "finite ((\<lambda>x. indicator \<Omega> x *\<^sub>R f x) ` space M)"
+      by (rule rev_finite_subset) (auto split: split_indicator simp: space_restrict_space) }
+  moreover
+  { assume "finite ((\<lambda>x. indicator \<Omega> x *\<^sub>R f x) ` space M)"
+    then have "finite (f ` space (restrict_space M \<Omega>))"
+      by (rule rev_finite_subset) (auto split: split_indicator simp: space_restrict_space) }
+  ultimately show ?thesis
+    unfolding simple_function_iff_borel_measurable
+      borel_measurable_restrict_space_iff[OF assms]
+    by auto
+qed
+
+
+lemma split_indicator_asm: "P (indicator Q x) = (\<not> (x \<in> Q \<and> \<not> P 1 \<or> x \<notin> Q \<and> \<not> P 0))"
+  by (auto split: split_indicator)
+
+lemma simple_integral_restrict_space:
+  assumes \<Omega>: "\<Omega> \<inter> space M \<in> sets M" "simple_function (restrict_space M \<Omega>) f"
+  shows "simple_integral (restrict_space M \<Omega>) f = simple_integral M (\<lambda>x. f x * indicator \<Omega> x)"
+  using simple_function_restrict_space_ereal[THEN iffD1, OF \<Omega>, THEN simple_functionD(1)]
+  by (auto simp add: space_restrict_space emeasure_restrict_space[OF \<Omega>(1)] le_infI2 simple_integral_def
+           split: split_indicator split_indicator_asm
+           intro!: setsum_mono_zero_cong_left ereal_left_mult_cong arg_cong2[where f=emeasure])
+
+lemma one_not_less_zero[simp]: "\<not> 1 < (0::ereal)"
+  by (simp add: zero_ereal_def one_ereal_def) 
+
 lemma nn_integral_restrict_space:
-  assumes \<Omega>: "\<Omega> \<in> sets M" and f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "\<And>x. x \<in> space M - \<Omega> \<Longrightarrow> f x = 0"
-  shows "nn_integral (restrict_space M \<Omega>) f = nn_integral M f"
-using f proof (induct rule: borel_measurable_induct)
-  case (cong f g) then show ?case
-    using nn_integral_cong[of M f g] nn_integral_cong[of "restrict_space M \<Omega>" f g]
-      sets.sets_into_space[OF `\<Omega> \<in> sets M`]
-    by (simp add: subset_eq space_restrict_space)
-next
-  case (set A)
-  then have "A \<subseteq> \<Omega>"
-    unfolding indicator_eq_0_iff by (auto dest: sets.sets_into_space)
-  with set `\<Omega> \<in> sets M` sets.sets_into_space[OF `\<Omega> \<in> sets M`] show ?case
-    by (subst nn_integral_indicator')
-       (auto simp add: sets_restrict_space_iff space_restrict_space
-                  emeasure_restrict_space Int_absorb2
-                dest: sets.sets_into_space)
-next
-  case (mult f c) then show ?case
-    by (cases "c = 0") (simp_all add: measurable_restrict_space1 \<Omega> nn_integral_cmult)
-next
-  case (add f g) then show ?case
-    by (simp add: measurable_restrict_space1 \<Omega> nn_integral_add ereal_add_nonneg_eq_0_iff)
-next
-  case (seq F) then show ?case
-    by (auto simp add: SUP_eq_iff measurable_restrict_space1 \<Omega> nn_integral_monotone_convergence_SUP)
+  assumes \<Omega>[simp]: "\<Omega> \<inter> space M \<in> sets M"
+  shows "nn_integral (restrict_space M \<Omega>) f = nn_integral M (\<lambda>x. f x * indicator \<Omega> x)"
+proof -
+  let ?R = "restrict_space M \<Omega>" and ?X = "\<lambda>M f. {s. simple_function M s \<and> s \<le> max 0 \<circ> f \<and> range s \<subseteq> {0 ..< \<infinity>}}"
+  have "integral\<^sup>S ?R ` ?X ?R f = integral\<^sup>S M ` ?X M (\<lambda>x. f x * indicator \<Omega> x)"
+  proof (safe intro!: image_eqI)
+    fix s assume s: "simple_function ?R s" "s \<le> max 0 \<circ> f" "range s \<subseteq> {0..<\<infinity>}"
+    from s show "integral\<^sup>S (restrict_space M \<Omega>) s = integral\<^sup>S M (\<lambda>x. s x * indicator \<Omega> x)"
+      by (intro simple_integral_restrict_space) auto
+    from s show "simple_function M (\<lambda>x. s x * indicator \<Omega> x)"
+      by (simp add: simple_function_restrict_space_ereal)
+    from s show "(\<lambda>x. s x * indicator \<Omega> x) \<le> max 0 \<circ> (\<lambda>x. f x * indicator \<Omega> x)"
+      "\<And>x. s x * indicator \<Omega> x \<in> {0..<\<infinity>}"
+      by (auto split: split_indicator simp: le_fun_def image_subset_iff)
+  next
+    fix s assume s: "simple_function M s" "s \<le> max 0 \<circ> (\<lambda>x. f x * indicator \<Omega> x)" "range s \<subseteq> {0..<\<infinity>}"
+    then have "simple_function M (\<lambda>x. s x * indicator (\<Omega> \<inter> space M) x)" (is ?s')
+      by (intro simple_function_mult simple_function_indicator) auto
+    also have "?s' \<longleftrightarrow> simple_function M (\<lambda>x. s x * indicator \<Omega> x)"
+      by (rule simple_function_cong) (auto split: split_indicator)
+    finally show sf: "simple_function (restrict_space M \<Omega>) s"
+      by (simp add: simple_function_restrict_space_ereal)
+
+    from s have s_eq: "s = (\<lambda>x. s x * indicator \<Omega> x)"
+      by (auto simp add: fun_eq_iff le_fun_def image_subset_iff
+                  split: split_indicator split_indicator_asm
+                  intro: antisym)
+
+    show "integral\<^sup>S M s = integral\<^sup>S (restrict_space M \<Omega>) s"
+      by (subst s_eq) (rule simple_integral_restrict_space[symmetric, OF \<Omega> sf])
+    show "\<And>x. s x \<in> {0..<\<infinity>}"
+      using s by (auto simp: image_subset_iff)
+    from s show "s \<le> max 0 \<circ> f" 
+      by (subst s_eq) (auto simp: image_subset_iff le_fun_def split: split_indicator split_indicator_asm)
+  qed
+  then show ?thesis
+    unfolding nn_integral_def_finite SUP_def by simp
 qed
 
 subsubsection {* Measure spaces with an associated density *}
