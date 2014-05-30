@@ -55,7 +55,7 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
   --site "$CYGWIN_MIRROR" --no-verify \
   --local-package-dir 'C:\temp' \
   --root "$(cygpath -w "$TARGET")" \
-  --packages libgmp3,perl,python,rlwrap,vim \
+  --packages libgmp3,perl,perl_vendor,python,rlwrap,vim \
   --no-shortcuts --no-startmenu --no-desktop --quiet-mode
 
 [ "$?" = 0 -a -e "$TARGET/etc" ] || exit 2
