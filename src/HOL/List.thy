@@ -8,9 +8,10 @@ theory List
 imports Presburger Code_Numeral Quotient Lifting_Set Lifting_Option Lifting_Product
 begin
 
-datatype_new (set: 'a) list (map: map rel: list_all2) =
+datatype_new (set: 'a) list  (map: map rel: list_all2) =
     Nil (defaults tl: "[]")  ("[]")
   | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
+
 datatype_compat list
 
 lemma [case_names Nil Cons, cases type: list]:

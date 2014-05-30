@@ -14,6 +14,7 @@ begin
 
 datatype_new 'a listF (map: mapF rel: relF) =
   NilF (defaults tlF: NilF) | Conss (hdF: 'a) (tlF: "'a listF")
+
 datatype_compat listF
 
 definition Singll ("[[_]]") where
