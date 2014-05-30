@@ -162,7 +162,7 @@ val the_mash_engine = the_default MaSh_SML_NB o mash_engine
 val save_models_arg = "--saveModels"
 val shutdown_server_arg = "--shutdownServer"
 
-fun wipe_out_file file = (try (File.rm o Path.explode) file; ())
+fun wipe_out_file file = ignore (try (File.rm o Path.explode) file)
 
 fun write_file banner (xs, f) path =
   (case banner of SOME s => File.write path s | NONE => ();
@@ -1579,7 +1579,7 @@ fun mash_can_suggest_facts ctxt overlord =
 
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons. *)
-fun generous_max_suggestions max_facts = max_facts (*### 11 * max_facts div 10 + 20 *)
+fun generous_max_suggestions max_facts = 11 * max_facts div 10 + 20
 
 val mepo_weight = 0.5
 val mash_weight = 0.5

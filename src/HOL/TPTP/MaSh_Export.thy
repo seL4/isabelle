@@ -8,7 +8,6 @@ theory MaSh_Export
 imports Main
 begin
 
-ML_file "~~/src/HOL/Tools/Sledgehammer/sledgehammer_mash.ML" (*###*)
 ML_file "mash_export.ML"
 
 sledgehammer_params
@@ -28,11 +27,11 @@ open MaSh_Export
 *}
 
 ML {*
-val do_it = true (*###*) (* switch to "true" to generate the files *)
+val do_it = false (* switch to "true" to generate the files *)
 val thys = [@{theory List}]
 val params as {provers, ...} = Sledgehammer_Commands.default_params @{theory} []
 val prover = hd provers
-val range = (1, (* ### NONE *) SOME 100)
+val range = (1, NONE)
 val step = 1
 val max_suggestions = 1024
 val dir = "List"
@@ -51,7 +50,7 @@ ML {* Options.put_default @{system_option MaSh} "sml_nb" *}
 ML {*
 if do_it then
   generate_mash_suggestions @{context} params (range, step) thys max_suggestions
-    (prefix ^ "mash_sml_knn_suggestions")
+    (prefix ^ "mash_sml_nb_suggestions")
 else
   ()
 *}
@@ -60,8 +59,8 @@ ML {* Options.put_default @{system_option MaSh} "sml_knn" *}
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params (range, step) thys max_suggestions
-    (prefix ^ "mash_sml_nb_suggestions")
+  generate_mash_suggestions @{context} params (range, step) thys max_suggestions
+    (prefix ^ "mash_sml_knn_suggestions")
 else
   ()
 *}
@@ -70,8 +69,8 @@ ML {* Options.put_default @{system_option MaSh} "py" *}
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params (range, step) thys max_suggestions
-    (prefix ^ "mepo_suggestions")
+  generate_mash_suggestions @{context} params (range, step) thys max_suggestions
+    (prefix ^ "mash_py_suggestions")
 else
   ()
 *}

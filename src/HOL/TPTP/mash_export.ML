@@ -53,13 +53,11 @@ fun filter_accessible_from th = filter (fn (_, th') => thm_less (th', th))
 fun generate_accessibility ctxt thys file_name =
   let
     val path = Path.explode file_name
-    val _ = File.write path ""
 
     fun do_fact (parents, fact) prevs =
-      let
-        val s = encode_str fact ^ ": " ^ encode_strs parents ^ "\n"
-        val _ = File.append path s
-      in [fact] end
+      let val s = encode_str fact ^ ": " ^ encode_strs parents ^ "\n" in
+        File.append path s; [fact]
+      end
 
     val facts =
       all_facts ctxt
@@ -67,7 +65,8 @@ fun generate_accessibility ctxt thys file_name =
       |> attach_parents_to_facts []
       |> map (apsnd (nickname_of_thm o snd))
   in
-    fold do_fact facts []; ()
+    File.write path "";
+    ignore (fold do_fact facts [])
   end
 
 fun generate_features ctxt thys file_name =
@@ -75,13 +74,16 @@ fun generate_features ctxt thys file_name =
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts = all_facts ctxt |> filter_out (has_thys thys o snd)
+
     fun do_fact ((_, stature), th) =
       let
         val name = nickname_of_thm th
         val feats =
           features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th] |> map fst
         val s = encode_str name ^ ": " ^ encode_strs (sort string_ord feats) ^ "\n"
-      in File.append path s end
+      in
+        File.append path s
+      end
   in
     List.app do_fact facts
   end
@@ -169,11 +171,12 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
           val access_facts = filter_accessible_from th new_facts @ old_facts
           val (marker, deps) =
             smart_dependencies_of ctxt params_opt access_facts name_tabs th (SOME isar_deps)
-          val parents = parents
+
           fun extra_features_of (((_, stature), th), weight) =
             [prop_of th]
             |> features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature
             |> map (apsnd (fn r => weight * extra_feature_factor * r))
+
           val query =
             if do_query then
               let
@@ -186,9 +189,8 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
                   |> map extra_features_of
                   |> rpair goal_feats |-> fold (union (eq_fst (op =)))
               in
-                "? " ^ string_of_int max_suggs ^ " # " ^
-                encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-                encode_features query_feats ^ "\n"
+                "? " ^ string_of_int max_suggs ^ " # " ^ encode_str name ^ ": " ^
+                encode_strs parents ^ "; " ^ encode_features query_feats ^ "\n"
               end
             else
               ""
@@ -198,9 +200,9 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
         in query ^ update end
       else
         ""
+
     val new_facts =
-      new_facts |> attach_parents_to_facts old_facts
-                |> map (`(nickname_of_thm o snd o snd))
+      new_facts |> attach_parents_to_facts old_facts |> map (`(nickname_of_thm o snd o snd))
     val hd_prevs = map (nickname_of_thm o snd) (the_list (try List.last old_facts))
     val prevss = hd_prevs :: map (single o fst) new_facts |> split_last |> fst
     val hd_const_tabs = fold (add_const_counts o prop_of o snd) old_facts Symtab.empty
@@ -269,7 +271,7 @@ fun generate_mash_suggestions ctxt params =
    generate_mepo_or_mash_suggestions
      (fn ctxt => fn params as {provers = prover :: _, ...} => fn max_suggs => fn hyp_ts =>
           fn concl_t =>
-        tap (Sledgehammer_MaSh.mash_learn_facts ctxt params prover false 2 false
+        tap (Sledgehammer_MaSh.mash_learn_facts ctxt params prover true 2 false
           Sledgehammer_Util.one_year)
         #> Sledgehammer_MaSh.mash_suggested_facts ctxt params max_suggs hyp_ts concl_t
         #> fst) ctxt params)
@@ -298,10 +300,8 @@ fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_
     val mash_lines = Path.explode mash_file_name |> File.read_lines
     val mepo_lines = Path.explode mepo_file_name |> File.read_lines
   in
-    if length mash_lines = length mepo_lines then
-      List.app do_fact (mash_lines ~~ mepo_lines)
-    else
-      warning "Skipped: MaSh file missing or out of sync with MePo file."
+    if length mash_lines = length mepo_lines then List.app do_fact (mash_lines ~~ mepo_lines)
+    else warning "Skipped: MaSh file missing or out of sync with MePo file."
   end
 
 end;
