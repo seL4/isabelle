@@ -629,7 +629,7 @@ declaration {*
       @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
       @{thm of_int_minus}, @{thm of_int_diff},
       @{thm of_int_of_nat_eq}]
-  #> Lin_Arith.add_simprocs Numeral_Simprocs.field_cancel_numeral_factors
+  #> Lin_Arith.add_simprocs Numeral_Simprocs.field_divide_cancel_numeral_factor
   #> Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat => rat"})
   #> Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int => rat"}))
 *}

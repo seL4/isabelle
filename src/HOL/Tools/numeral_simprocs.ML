@@ -37,7 +37,7 @@ sig
   val div_cancel_numeral_factor: Proof.context -> cterm -> thm option
   val divide_cancel_numeral_factor: Proof.context -> cterm -> thm option
   val field_combine_numerals: Proof.context -> cterm -> thm option
-  val field_cancel_numeral_factors: simproc list
+  val field_divide_cancel_numeral_factor: simproc list
   val num_ss: simpset
   val field_comp_conv: Proof.context -> conv
 end;
@@ -446,20 +446,24 @@ fun le_cancel_numeral_factor ctxt ct = LeCancelNumeralFactor.proc ctxt (term_of 
 fun div_cancel_numeral_factor ctxt ct = DivCancelNumeralFactor.proc ctxt (term_of ct)
 fun divide_cancel_numeral_factor ctxt ct = DivideCancelNumeralFactor.proc ctxt (term_of ct)
 
-val field_cancel_numeral_factors =
-  map (prep_simproc @{theory})
-   [("field_eq_cancel_numeral_factor",
-     ["(l::'a::field) * m = n",
-      "(l::'a::field) = m * n"],
-     EqCancelNumeralFactor.proc),
-    ("field_cancel_numeral_factor",
+val field_divide_cancel_numeral_factor =
+  [prep_simproc @{theory}
+    ("field_divide_cancel_numeral_factor",
      ["((l::'a::field_inverse_zero) * m) / n",
       "(l::'a::field_inverse_zero) / (m * n)",
       "((numeral v)::'a::field_inverse_zero) / (numeral w)",
       "((numeral v)::'a::field_inverse_zero) / (- numeral w)",
       "((- numeral v)::'a::field_inverse_zero) / (numeral w)",
       "((- numeral v)::'a::field_inverse_zero) / (- numeral w)"],
-     DivideCancelNumeralFactor.proc)]
+     DivideCancelNumeralFactor.proc)];
+
+val field_cancel_numeral_factors =
+  prep_simproc @{theory}
+    ("field_eq_cancel_numeral_factor",
+     ["(l::'a::field) * m = n",
+      "(l::'a::field) = m * n"],
+     EqCancelNumeralFactor.proc)
+   :: field_divide_cancel_numeral_factor;
 
 
 (** Declarations for ExtractCommonTerm **)
