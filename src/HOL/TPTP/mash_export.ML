@@ -21,6 +21,8 @@ sig
     theory list -> bool -> int -> string -> unit
   val generate_mepo_suggestions : Proof.context -> params -> (int * int option) * int ->
     theory list -> bool -> int -> string -> unit
+  val generate_mash_suggestions : Proof.context -> params -> (int * int option) * int ->
+    theory list -> bool -> int -> string -> unit
   val generate_mesh_suggestions : int -> string -> string -> string -> unit
 end;
 
@@ -220,8 +222,8 @@ fun generate_isar_commands ctxt prover =
 fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
   generate_isar_or_prover_commands ctxt prover (SOME params)
 
-fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) (range, step) thys
-    linearize max_suggs file_name =
+fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
+    (params as {provers = prover :: _, ...}) (range, step) thys linearize max_suggs file_name =
   let
     val ho_atp = is_ho_atp ctxt prover
     val path = file_name |> Path.explode
@@ -245,10 +247,11 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) (ran
               val suggs =
                 old_facts
                 |> not linearize ? filter_accessible_from th
-                |> Sledgehammer_Fact.drop_duplicate_facts
-                |> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t
+                |> mepo_or_mash_suggested_facts ctxt params max_suggs hyp_ts concl_t
                 |> map (nickname_of_thm o snd)
-            in encode_str name ^ ": " ^ encode_strs suggs ^ "\n" end
+            in
+              encode_str name ^ ": " ^ encode_strs suggs ^ "\n"
+            end
         end
       else
         ""
@@ -259,6 +262,22 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) (ran
   in
     File.write_list path lines
   end
+
+val generate_mepo_suggestions =
+  generate_mepo_or_mash_suggestions
+    (fn ctxt => fn params => fn max_suggs => fn hyp_ts => fn concl_t =>
+       Sledgehammer_Fact.drop_duplicate_facts
+       #> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t)
+
+fun generate_mash_suggestions ctxt params =
+  (Sledgehammer_MaSh.mash_unlearn ctxt params;
+   generate_mepo_or_mash_suggestions
+     (fn ctxt => fn params as {provers = prover :: _, ...} => fn max_suggs => fn hyp_ts =>
+          fn concl_t =>
+        tap (Sledgehammer_MaSh.mash_learn_facts ctxt params prover false 2 false
+          Sledgehammer_Util.one_year)
+        #> Sledgehammer_MaSh.mash_suggested_facts ctxt params max_suggs hyp_ts concl_t
+        #> fst) ctxt params)
 
 fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_name =
   let

@@ -36,6 +36,9 @@ sig
 
   datatype mash_engine = MaSh_Py | MaSh_SML_kNN | MaSh_SML_NB
 
+  val is_mash_enabled : unit -> bool
+  val the_mash_engine : unit -> mash_engine
+
   structure MaSh_Py :
   sig
     val unlearn : Proof.context -> bool -> unit
@@ -82,6 +85,8 @@ sig
   val mash_suggested_facts : Proof.context -> params -> int -> term list -> term -> raw_fact list ->
     fact list * fact list
   val mash_learn_proof : Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
+  val mash_learn_facts : Proof.context -> params -> string -> bool -> int -> bool -> Time.time ->
+    raw_fact list -> string
   val mash_learn : Proof.context -> params -> fact_override -> thm list -> bool -> unit
 
   val mash_can_suggest_facts : Proof.context -> bool -> bool
