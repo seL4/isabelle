@@ -560,19 +560,10 @@ text {*
 lemma setsum_triangle_reindex:
   fixes n :: nat
   shows "(\<Sum>(i,j)\<in>{(i,j). i+j < n}. f i j) = (\<Sum>k<n. \<Sum>i\<le>k. f i (k - i))"
-proof -
-  have "(\<Sum>(i, j)\<in>{(i, j). i + j < n}. f i j) =
-    (\<Sum>(k, i)\<in>(SIGMA k:{..<n}. {..k}). f i (k - i))"
-  proof (rule setsum_reindex_cong)
-    show "inj_on (\<lambda>(k,i). (i, k - i)) (SIGMA k:{..<n}. {..k})"
-      by (rule inj_on_inverseI [where g="\<lambda>(i,j). (i+j, i)"], auto)
-    show "{(i,j). i + j < n} = (\<lambda>(k,i). (i, k - i)) ` (SIGMA k:{..<n}. {..k})"
-      by (safe, rule_tac x="(a+b,a)" in image_eqI, auto)
-    show "\<And>a. (\<lambda>(k, i). f i (k - i)) a = split f ((\<lambda>(k, i). (i, k - i)) a)"
-      by clarify
-  qed
-  thus ?thesis by (simp add: setsum_Sigma)
-qed
+  apply (simp add: setsum_Sigma)
+  apply (rule setsum.reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
+  apply auto
+  done
 
 lemma Cauchy_product_sums:
   fixes a b :: "nat \<Rightarrow> 'a::{real_normed_algebra,banach}"

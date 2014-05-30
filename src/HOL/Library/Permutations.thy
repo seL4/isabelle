@@ -1025,7 +1025,7 @@ proof -
   show ?thesis
     unfolding permutes_insert
     unfolding setsum_cartesian_product
-    unfolding  th1[symmetric]
+    unfolding th1[symmetric]
     unfolding th0
   proof (rule setsum_reindex)
     let ?f = "(\<lambda>(b, y). Fun.swap a b id \<circ> y)"

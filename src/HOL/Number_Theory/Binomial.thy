@@ -198,12 +198,8 @@ lemma sum_choose_upper: "(\<Sum>k=0..n. k choose m) = Suc n choose Suc m"
 
 lemma natsum_reverse_index:
   fixes m::nat
-  assumes "\<And>k. m \<le> k \<Longrightarrow> k \<le> n \<Longrightarrow> g k = f (m + n - k)"
-  shows "(\<Sum>k=m..n. f k) = (\<Sum>k=m..n. g k)"
-apply (rule setsum_reindex_cong [where f = "\<lambda>k. m+n-k"])
-apply (auto simp add: inj_on_def image_def)
-apply (rule_tac x="m+n-x" in bexI, auto simp: assms)
-done
+  shows "(\<And>k. m \<le> k \<Longrightarrow> k \<le> n \<Longrightarrow> g k = f (m + n - k)) \<Longrightarrow> (\<Sum>k=m..n. f k) = (\<Sum>k=m..n. g k)"
+  by (rule setsum.reindex_bij_witness[where i="\<lambda>k. m+n-k" and j="\<lambda>k. m+n-k"]) auto
 
 lemma sum_choose_diagonal:
   assumes "m\<le>n" shows "(\<Sum>k=0..m. (n-k) choose (m-k)) = Suc n choose m"
@@ -347,16 +343,13 @@ proof (cases k)
   then show ?thesis by simp
 next
   case (Suc h)
-  have eq: "((- 1) ^ Suc h :: 'a) = setprod (%i. - 1) {0 .. h}"
+  have eq: "((- 1) ^ Suc h :: 'a) = (\<Prod>i=0..h. - 1)"
     using setprod_constant[where A="{0 .. h}" and y="- 1 :: 'a"]
     by auto
   show ?thesis
     unfolding Suc pochhammer_Suc_setprod eq setprod_timesf[symmetric]
-    apply (rule strong_setprod_reindex_cong[where f = "%i. h - i"])
-    using Suc
-    apply (auto simp add: inj_on_def image_def of_nat_diff)
-    apply (metis atLeast0AtMost atMost_iff diff_diff_cancel diff_le_self)
-    done
+    by (rule setprod.reindex_bij_witness[where i="op - h" and j="op - h"])
+       (auto simp: of_nat_diff)
 qed
 
 lemma pochhammer_minus':
@@ -454,14 +447,9 @@ proof -
     have eq:"(- 1 :: 'a) ^ k = setprod (\<lambda>i. - 1) {0..h}"
       by (subst setprod_constant) auto
     have eq': "(\<Prod>i\<in>{0..h}. of_nat n + - (of_nat i :: 'a)) = (\<Prod>i\<in>{n - h..n}. of_nat i)"
-      apply (rule strong_setprod_reindex_cong[where f="op - n"])
         using h kn
-        apply (simp_all add: inj_on_def image_iff Bex_def set_eq_iff)
-        apply clarsimp
-        apply presburger
-       apply presburger
-      apply (simp add: fun_eq_iff field_simps of_nat_add[symmetric] del: of_nat_add)
-      done
+      by (intro setprod.reindex_bij_witness[where i="op - n" and j="op - n"])
+         (auto simp: of_nat_diff)
     have th0: "finite {1..n - Suc h}" "finite {n - h .. n}"
         "{1..n - Suc h} \<inter> {n - h .. n} = {}" and
         eq3: "{1..n - Suc h} \<union> {n - h .. n} = {1..n}"
@@ -476,13 +464,8 @@ proof -
       unfolding mult_assoc[symmetric]
       unfolding setprod_timesf[symmetric]
       apply simp
-      apply (rule strong_setprod_reindex_cong[where f= "op - n"])
-        apply (auto simp add: inj_on_def image_iff Bex_def)
-       apply presburger
-      apply (subgoal_tac "(of_nat (n - x) :: 'a) = of_nat n - of_nat x")
-       apply simp
-      apply (rule of_nat_diff)
-      apply simp
+      apply (intro setprod.reindex_bij_witness[where i="op - n" and j="op - n"])
+      apply (auto simp: of_nat_diff)
       done
   }
   moreover

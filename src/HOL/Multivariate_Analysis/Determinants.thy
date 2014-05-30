@@ -40,12 +40,7 @@ qed
 lemma setprod_offset:
   fixes m n :: nat
   shows "setprod f {m + p .. n + p} = setprod (\<lambda>i. f (i + p)) {m..n}"
-  apply (rule setprod_reindex_cong[where f="op + p"])
-  apply (auto simp add: image_iff Bex_def inj_on_def)
-  apply presburger
-  apply (rule ext)
-  apply (simp add: add_commute)
-  done
+  by (rule setprod.reindex_bij_witness[where i="op + p" and j="\<lambda>i. i - p"]) auto
 
 lemma setprod_singleton: "setprod f {x} = f x"
   by simp
@@ -678,7 +673,7 @@ next
   let ?h = "\<lambda>(y,g) i. if i = z then y else g i"
   let ?k = "\<lambda>h. (h(z),(\<lambda>i. if i = z then i else h i))"
   let ?s = "\<lambda> k a c f. det((\<chi> i. if i \<in> T then a i (f i) else c i)::'a^'n^'n)"
-  let ?c = "\<lambda>i. if i = z then a i j else c i"
+  let ?c = "\<lambda>j i. if i = z then a i j else c i"
   have thif: "\<And>a b c d. (if a \<or> b then c else d) = (if a then c else if b then c else d)"
     by simp
   have thif2: "\<And>a b c d e. (if a then b else if c then d else e) =
@@ -702,14 +697,9 @@ next
                                 else c i))"
     unfolding insert.hyps unfolding setsum_cartesian_product by blast
   show ?case unfolding tha
-    apply (rule setsum_eq_general_reverses[where h= "?h" and k= "?k"],
-      blast intro: finite_cartesian_product fS finite,
-      blast intro: finite_cartesian_product fS finite)
     using `z \<notin> T`
-    apply auto
-    apply (rule cong[OF refl[of det]])
-    apply vector
-    done
+    by (intro setsum.reindex_bij_witness[where i="?k" and j="?h"])
+       (auto intro!: cong[OF refl[of det]] simp: vec_eq_iff)
 qed
 
 lemma det_linear_rows_setsum:

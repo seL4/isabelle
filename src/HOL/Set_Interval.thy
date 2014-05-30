@@ -1537,9 +1537,7 @@ by (induct "n", auto simp:atLeastLessThanSuc)
 
 lemma setsum_shift_bounds_cl_nat_ivl:
   "setsum f {m+k..n+k} = setsum (%i. f(i + k)){m..n::nat}"
-apply (insert setsum_reindex[OF inj_on_add_nat, where h=f and B = "{m..n}"])
-apply (simp add:image_add_atLeastAtMost o_def)
-done
+  by (rule setsum.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
 
 corollary setsum_shift_bounds_cl_Suc_ivl:
   "setsum f {Suc m..Suc n} = setsum (%i. f(Suc i)){m..n}"
@@ -1706,13 +1704,8 @@ next
   show ?case by simp
 qed
 
-lemma nat_diff_setsum_reindex:
-  fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
-apply (subst setsum_reindex_cong [of "%i. n - Suc i" "{..< n}"])
-apply (auto simp: inj_on_def)
-apply (rule_tac x="n - Suc x" in image_eqI, auto)
-done
+lemma nat_diff_setsum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
+  by (rule setsum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
 
 subsection {* Products indexed over intervals *}
 

@@ -185,38 +185,4 @@ lemma int_card_bdd_int_set_l_le: "0 \<le> n ==>
   by (auto simp add: card_bdd_int_set_l_le)
 
 
-subsection {* Cardinality of finite cartesian products *}
-
-(* FIXME could be useful in general but not needed here
-lemma insert_Sigma [simp]: "(insert x A) <*> B = ({ x } <*> B) \<union> (A <*> B)"
-  by blast
- *)
-
-text {* Lemmas for counting arguments. *}
-
-lemma setsum_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A;
-    g ` B \<subseteq> A; inj_on g B |] ==> setsum g B = setsum (g \<circ> f) A"
-  apply (frule_tac h = g and f = f in setsum_reindex)
-  apply (subgoal_tac "setsum g B = setsum g (f ` A)")
-   apply (simp add: inj_on_def)
-  apply (subgoal_tac "card A = card B")
-   apply (drule_tac A = "f ` A" and B = B in card_seteq)
-     apply (auto simp add: card_image)
-  apply (frule_tac A = A and B = B and f = f in card_inj_on_le, auto)
-  apply (frule_tac A = B and B = A and f = g in card_inj_on_le)
-    apply auto
-  done
-
-lemma setprod_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A;
-    g ` B \<subseteq> A; inj_on g B |] ==> setprod g B = setprod (g \<circ> f) A"
-  apply (frule_tac h = g and f = f in setprod_reindex)
-  apply (subgoal_tac "setprod g B = setprod g (f ` A)")
-   apply (simp add: inj_on_def)
-  apply (subgoal_tac "card A = card B")
-   apply (drule_tac A = "f ` A" and B = B in card_seteq)
-     apply (auto simp add: card_image)
-  apply (frule_tac A = A and B = B and f = f in card_inj_on_le, auto)
-  apply (frule_tac A = B and B = A and f = g in card_inj_on_le, auto)
-  done
-
 end

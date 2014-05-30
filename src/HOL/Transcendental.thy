@@ -76,10 +76,7 @@ by (cases "n = 0") (simp_all add: field_simps)
 lemma lemma_realpow_rev_sumr:
    "(\<Sum>p<Suc n. (x ^ p) * (y ^ (n - p))) =
     (\<Sum>p<Suc n. (x ^ (n - p)) * (y ^ p))"
-  apply (rule setsum_reindex_cong [where f="\<lambda>i. n - i"])
-  apply (auto simp: image_iff Bex_def intro!: inj_onI)
-  apply arith
-  done
+  by (subst nat_diff_setsum_reindex[symmetric]) simp
 
 lemma power_diff_1_eq:
   fixes x :: "'a::{comm_ring,monoid_mult}"
