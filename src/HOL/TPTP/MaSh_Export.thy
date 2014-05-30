@@ -34,7 +34,6 @@ val params as {provers, ...} = Sledgehammer_Commands.default_params @{theory} []
 val prover = hd provers
 val range = (1, (* ### NONE *) SOME 100)
 val step = 1
-val linearize = false
 val max_suggestions = 1024
 val dir = "List"
 val prefix = "/tmp/" ^ dir ^ "/"
@@ -47,21 +46,21 @@ else
   ()
 *}
 
-ML {* Options.put_default @{system_option MaSh} "sml_knn" *}
+ML {* Options.put_default @{system_option MaSh} "sml_nb" *}
 
 ML {*
 if do_it then
-  generate_mash_suggestions @{context} params (range, step) thys linearize max_suggestions
+  generate_mash_suggestions @{context} params (range, step) thys max_suggestions
     (prefix ^ "mash_sml_knn_suggestions")
 else
   ()
 *}
 
-ML {* Options.put_default @{system_option MaSh} "sml_nb" *}
+ML {* Options.put_default @{system_option MaSh} "sml_knn" *}
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params (range, step) thys linearize max_suggestions
+  generate_mepo_suggestions @{context} params (range, step) thys max_suggestions
     (prefix ^ "mash_sml_nb_suggestions")
 else
   ()
@@ -71,7 +70,7 @@ ML {* Options.put_default @{system_option MaSh} "py" *}
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params (range, step) thys linearize max_suggestions
+  generate_mepo_suggestions @{context} params (range, step) thys max_suggestions
     (prefix ^ "mepo_suggestions")
 else
   ()
@@ -79,7 +78,7 @@ else
 
 ML {*
 if do_it then
-  generate_accessibility @{context} thys linearize (prefix ^ "mash_accessibility")
+  generate_accessibility @{context} thys (prefix ^ "mash_accessibility")
 else
   ()
 *}
@@ -93,14 +92,14 @@ else
 
 ML {*
 if do_it then
-  generate_isar_dependencies @{context} range thys linearize (prefix ^ "mash_dependencies")
+  generate_isar_dependencies @{context} range thys (prefix ^ "mash_dependencies")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_isar_commands @{context} prover (range, step) thys linearize max_suggestions
+  generate_isar_commands @{context} prover (range, step) thys max_suggestions
     (prefix ^ "mash_commands")
 else
   ()
@@ -108,7 +107,7 @@ else
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params (range, step) thys linearize max_suggestions
+  generate_mepo_suggestions @{context} params (range, step) thys max_suggestions
     (prefix ^ "mepo_suggestions")
 else
   ()
@@ -124,15 +123,14 @@ else
 
 ML {*
 if do_it then
-  generate_prover_dependencies @{context} params range thys linearize
-    (prefix ^ "mash_prover_dependencies")
+  generate_prover_dependencies @{context} params range thys (prefix ^ "mash_prover_dependencies")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_prover_commands @{context} params (range, step) thys linearize max_suggestions
+  generate_prover_commands @{context} params (range, step) thys max_suggestions
     (prefix ^ "mash_prover_commands")
 else
   ()

@@ -9,20 +9,20 @@ signature MASH_EXPORT =
 sig
   type params = Sledgehammer_Prover.params
 
-  val generate_accessibility : Proof.context -> theory list -> bool -> string -> unit
+  val generate_accessibility : Proof.context -> theory list -> string -> unit
   val generate_features : Proof.context -> theory list -> string -> unit
-  val generate_isar_dependencies : Proof.context -> int * int option -> theory list -> bool ->
-    string -> unit
+  val generate_isar_dependencies : Proof.context -> int * int option -> theory list -> string ->
+    unit
   val generate_prover_dependencies : Proof.context -> params -> int * int option -> theory list ->
-    bool -> string -> unit
+    string -> unit
   val generate_isar_commands : Proof.context -> string -> (int * int option) * int -> theory list ->
-    bool -> int -> string -> unit
+    int -> string -> unit
   val generate_prover_commands : Proof.context -> params -> (int * int option) * int ->
-    theory list -> bool -> int -> string -> unit
+    theory list -> int -> string -> unit
   val generate_mepo_suggestions : Proof.context -> params -> (int * int option) * int ->
-    theory list -> bool -> int -> string -> unit
+    theory list -> int -> string -> unit
   val generate_mash_suggestions : Proof.context -> params -> (int * int option) * int ->
-    theory list -> bool -> int -> string -> unit
+    theory list -> int -> string -> unit
   val generate_mesh_suggestions : int -> string -> string -> string -> unit
 end;
 
@@ -50,14 +50,13 @@ fun all_facts ctxt =
 
 fun filter_accessible_from th = filter (fn (_, th') => thm_less (th', th))
 
-fun generate_accessibility ctxt thys linearize file_name =
+fun generate_accessibility ctxt thys file_name =
   let
-    val path = file_name |> Path.explode
+    val path = Path.explode file_name
     val _ = File.write path ""
 
     fun do_fact (parents, fact) prevs =
       let
-        val parents = if linearize then prevs else parents
         val s = encode_str fact ^ ": " ^ encode_strs parents ^ "\n"
         val _ = File.append path s
       in [fact] end
@@ -113,10 +112,10 @@ fun smart_dependencies_of ctxt params_opt facts name_tabs th isar_deps_opt =
     | NONE => (omitted_marker, []))
   end
 
-fun generate_isar_or_prover_dependencies ctxt params_opt range thys linearize file_name =
+fun generate_isar_or_prover_dependencies ctxt params_opt range thys file_name =
   let
-    val path = file_name |> Path.explode
-    val facts = all_facts ctxt |> filter_out (has_thys thys o snd)
+    val path = Path.explode file_name
+    val facts = filter_out (has_thys thys o snd) (all_facts ctxt)
     val name_tabs = build_name_tables nickname_of_thm facts
 
     fun do_fact (j, (_, th)) =
@@ -124,11 +123,11 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys linearize fi
         let
           val name = nickname_of_thm th
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
-          val access_facts =
-            if linearize then take (j - 1) facts else facts |> filter_accessible_from th
-          val (marker, deps) =
-            smart_dependencies_of ctxt params_opt access_facts name_tabs th NONE
-        in encode_str name ^ ": " ^ marker ^ " " ^ encode_strs deps ^ "\n" end
+          val access_facts = filter_accessible_from th facts
+          val (marker, deps) = smart_dependencies_of ctxt params_opt access_facts name_tabs th NONE
+        in
+          encode_str name ^ ": " ^ marker ^ " " ^ encode_strs deps ^ "\n"
+        end
       else
         ""
 
@@ -149,8 +148,7 @@ fun is_bad_query ctxt ho_atp step j th isar_deps =
   null isar_deps orelse
   is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
 
-fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys linearize max_suggs
-    file_name =
+fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys max_suggs file_name =
   let
     val ho_atp = is_ho_atp ctxt prover
     val path = file_name |> Path.explode
@@ -168,13 +166,10 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys l
           val goal_feats =
             features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature [prop_of th]
             |> sort_wrt fst
-          val access_facts =
-            (if linearize then take (j - 1) new_facts else new_facts |> filter_accessible_from th) @
-            old_facts
+          val access_facts = filter_accessible_from th new_facts @ old_facts
           val (marker, deps) =
-            smart_dependencies_of ctxt params_opt access_facts name_tabs th
-                                  (SOME isar_deps)
-          val parents = if linearize then prevs else parents
+            smart_dependencies_of ctxt params_opt access_facts name_tabs th (SOME isar_deps)
+          val parents = parents
           fun extra_features_of (((_, stature), th), weight) =
             [prop_of th]
             |> features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature
@@ -223,7 +218,7 @@ fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
   generate_isar_or_prover_commands ctxt prover (SOME params)
 
 fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
-    (params as {provers = prover :: _, ...}) (range, step) thys linearize max_suggs file_name =
+    (params as {provers = prover :: _, ...}) (range, step) thys max_suggs file_name =
   let
     val ho_atp = is_ho_atp ctxt prover
     val path = file_name |> Path.explode
@@ -246,7 +241,7 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
             let
               val suggs =
                 old_facts
-                |> not linearize ? filter_accessible_from th
+                |> filter_accessible_from th
                 |> mepo_or_mash_suggested_facts ctxt params max_suggs hyp_ts concl_t
                 |> map (nickname_of_thm o snd)
             in
