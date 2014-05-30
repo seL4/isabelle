@@ -188,6 +188,7 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
     val cmd_file = temp_dir ^ "/mash_commands" ^ serial
     val cmd_path = Path.explode cmd_file
     val model_dir = File.shell_path (mash_state_dir ())
+
     val command =
       "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; \
       \PYTHONDONTWRITEBYTECODE=y ./mash.py\
@@ -201,6 +202,7 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
       " --predictions " ^ sugg_file ^
       (if extra_args = [] then "" else " " ^ space_implode " " extra_args) ^ " >& " ^ err_file ^
       (if background then " &" else "")
+
     fun run_on () =
       (Isabelle_System.bash command
        |> tap (fn _ =>
@@ -208,6 +210,7 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
            "" => trace_msg ctxt (K "Done")
          | s => warning ("MaSh error: " ^ elide_string 1000 s)));
        read_suggs (fn () => try File.read_lines sugg_path |> these))
+
     fun clean_up () =
       if overlord then () else List.app wipe_out_file [err_file, sugg_file, cmd_file]
   in
@@ -558,6 +561,7 @@ fun naive_bayes_py ctxt overlord num_facts num_visible_facts get_deps get_feats 
     val feats' = map (apfst name_of_feature) feats
   in
     MaSh_Py.unlearn ctxt overlord;
+    OS.Process.sleep (seconds 2.0); (* hack *)
     MaSh_Py.query ctxt overlord max_suggs (learns, [], parents', feats')
     |> map (apfst fact_of_name)
   end
