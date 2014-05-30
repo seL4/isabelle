@@ -131,27 +131,8 @@ lemma cong:
   assumes "A = B"
   assumes g_h: "\<And>x. x \<in> B \<Longrightarrow> g x = h x"
   shows "F g A = F h B"
-proof (cases "finite A")
-  case True
-  then have "\<And>C. C \<subseteq> A \<longrightarrow> (\<forall>x\<in>C. g x = h x) \<longrightarrow> F g C = F h C"
-  proof induct
-    case empty then show ?case by simp
-  next
-    case (insert x F) then show ?case apply -
-    apply (simp add: subset_insert_iff, clarify)
-    apply (subgoal_tac "finite C")
-      prefer 2 apply (blast dest: finite_subset [rotated])
-    apply (subgoal_tac "C = insert x (C - {x})")
-      prefer 2 apply blast
-    apply (erule ssubst)
-    apply (simp add: Ball_def del: insert_Diff_single)
-    done
-  qed
-  with `A = B` g_h show ?thesis by simp
-next
-  case False
-  with `A = B` show ?thesis by simp
-qed
+  using g_h unfolding `A = B`
+  by (induct B rule: infinite_finite_induct) auto
 
 lemma strong_cong [cong]:
   assumes "A = B" "\<And>x. x \<in> B =simp=> g x = h x"
@@ -206,42 +187,6 @@ lemma related:
   shows "R (F h S) (F g S)"
   using fS by (rule finite_subset_induct) (insert assms, auto)
 
-lemma eq_general:
-  assumes h: "\<forall>y\<in>S'. \<exists>!x. x \<in> S \<and> h x = y" 
-  and f12:  "\<forall>x\<in>S. h x \<in> S' \<and> f2 (h x) = f1 x"
-  shows "F f1 S = F f2 S'"
-proof-
-  from h f12 have hS: "h ` S = S'" by blast
-  {fix x y assume H: "x \<in> S" "y \<in> S" "h x = h y"
-    from f12 h H  have "x = y" by auto }
-  hence hinj: "inj_on h S" unfolding inj_on_def Ex1_def by blast
-  from f12 have th: "\<And>x. x \<in> S \<Longrightarrow> (f2 \<circ> h) x = f1 x" by auto 
-  from hS have "F f2 S' = F f2 (h ` S)" by simp
-  also have "\<dots> = F (f2 o h) S" using reindex [OF hinj, of f2] .
-  also have "\<dots> = F f1 S " using th cong [of _ _ "f2 o h" f1]
-    by blast
-  finally show ?thesis ..
-qed
-
-lemma eq_general_reverses:
-  assumes kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
-  and hk: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> T \<and> k (h x) = x \<and> g (h x) = j x"
-  shows "F j S = F g T"
-  (* metis solves it, but not yet available here *)
-  apply (rule eq_general [of T S h g j])
-  apply (rule ballI)
-  apply (frule kh)
-  apply (rule ex1I[])
-  apply blast
-  apply clarsimp
-  apply (drule hk) apply simp
-  apply (rule sym)
-  apply (erule conjunct1[OF conjunct2[OF hk]])
-  apply (rule ballI)
-  apply (drule hk)
-  apply blast
-  done
-
 lemma mono_neutral_cong_left:
   assumes "finite T" and "S \<subseteq> T" and "\<forall>i \<in> T - S. h i = 1"
   and "\<And>x. x \<in> S \<Longrightarrow> g x = h x" shows "F g S = F h T"
@@ -266,6 +211,74 @@ lemma mono_neutral_left:
 lemma mono_neutral_right:
   "\<lbrakk> finite T;  S \<subseteq> T;  \<forall>i \<in> T - S. g i = 1 \<rbrakk> \<Longrightarrow> F g T = F g S"
   by (blast intro!: mono_neutral_left [symmetric])
+
+lemma reindex_bij_betw: "bij_betw h S T \<Longrightarrow> F (\<lambda>x. g (h x)) S = F g T"
+  by (auto simp: bij_betw_def reindex)
+
+lemma reindex_bij_witness:
+  assumes witness:
+    "\<And>a. a \<in> S \<Longrightarrow> i (j a) = a"
+    "\<And>a. a \<in> S \<Longrightarrow> j a \<in> T"
+    "\<And>b. b \<in> T \<Longrightarrow> j (i b) = b"
+    "\<And>b. b \<in> T \<Longrightarrow> i b \<in> S"
+  assumes eq:
+    "\<And>a. a \<in> S \<Longrightarrow> h (j a) = g a"
+  shows "F g S = F h T"
+proof -
+  have "bij_betw j S T"
+    using bij_betw_byWitness[where A=S and f=j and f'=i and A'=T] witness by auto
+  moreover have "F g S = F (\<lambda>x. h (j x)) S"
+    by (intro cong) (auto simp: eq)
+  ultimately show ?thesis
+    by (simp add: reindex_bij_betw)
+qed
+
+lemma reindex_bij_betw_not_neutral:
+  assumes fin: "finite S'" "finite T'"
+  assumes bij: "bij_betw h (S - S') (T - T')"
+  assumes nn:
+    "\<And>a. a \<in> S' \<Longrightarrow> g (h a) = z"
+    "\<And>b. b \<in> T' \<Longrightarrow> g b = z"
+  shows "F (\<lambda>x. g (h x)) S = F g T"
+proof -
+  have [simp]: "finite S \<longleftrightarrow> finite T"
+    using bij_betw_finite[OF bij] fin by auto
+
+  show ?thesis
+  proof cases
+    assume "finite S"
+    with nn have "F (\<lambda>x. g (h x)) S = F (\<lambda>x. g (h x)) (S - S')"
+      by (intro mono_neutral_cong_right) auto
+    also have "\<dots> = F g (T - T')"
+      using bij by (rule reindex_bij_betw)
+    also have "\<dots> = F g T"
+      using nn `finite S` by (intro mono_neutral_cong_left) auto
+    finally show ?thesis .
+  qed simp
+qed
+
+lemma reindex_bij_witness_not_neutral:
+  assumes fin: "finite S'" "finite T'"
+  assumes witness:
+    "\<And>a. a \<in> S - S' \<Longrightarrow> i (j a) = a"
+    "\<And>a. a \<in> S - S' \<Longrightarrow> j a \<in> T - T'"
+    "\<And>b. b \<in> T - T' \<Longrightarrow> j (i b) = b"
+    "\<And>b. b \<in> T - T' \<Longrightarrow> i b \<in> S - S'"
+  assumes nn:
+    "\<And>a. a \<in> S' \<Longrightarrow> g a = z"
+    "\<And>b. b \<in> T' \<Longrightarrow> h b = z"
+  assumes eq:
+    "\<And>a. a \<in> S \<Longrightarrow> h (j a) = g a"
+  shows "F g S = F h T"
+proof -
+  have bij: "bij_betw j (S - (S' \<inter> S)) (T - (T' \<inter> T))"
+    using witness by (intro bij_betw_byWitness[where f'=i]) auto
+  have F_eq: "F g S = F (\<lambda>x. h (j x)) S"
+    by (intro cong) (auto simp: eq)
+  show ?thesis
+    unfolding F_eq using fin nn eq
+    by (intro reindex_bij_betw_not_neutral[OF _ _ bij]) auto
+qed
 
 lemma delta: 
   assumes fS: "finite S"
@@ -403,46 +416,17 @@ context comm_monoid_add
 begin
 
 lemma setsum_reindex_id: 
-  "inj_on f B ==> setsum f B = setsum id (f ` B)"
+  "inj_on f B \<Longrightarrow> setsum f B = setsum id (f ` B)"
   by (simp add: setsum.reindex)
 
 lemma setsum_reindex_nonzero:
   assumes fS: "finite S"
   and nz: "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<noteq> y \<Longrightarrow> f x = f y \<Longrightarrow> h (f x) = 0"
   shows "setsum h (f ` S) = setsum (h \<circ> f) S"
-using nz proof (induct rule: finite_induct [OF fS])
-  case 1 thus ?case by simp
-next
-  case (2 x F) 
-  { assume fxF: "f x \<in> f ` F" hence "\<exists>y \<in> F . f y = f x" by auto
-    then obtain y where y: "y \<in> F" "f x = f y" by auto 
-    from "2.hyps" y have xy: "x \<noteq> y" by auto
-    from "2.prems" [of x y] "2.hyps" xy y have h0: "h (f x) = 0" by simp
-    have "setsum h (f ` insert x F) = setsum h (f ` F)" using fxF by auto
-    also have "\<dots> = setsum (h o f) (insert x F)" 
-      unfolding setsum.insert[OF `finite F` `x\<notin>F`]
-      using h0
-      apply (simp cong del: setsum.strong_cong)
-      apply (rule "2.hyps"(3))
-      apply (rule_tac y="y" in  "2.prems")
-      apply simp_all
-      done
-    finally have ?case . }
-  moreover
-  { assume fxF: "f x \<notin> f ` F"
-    have "setsum h (f ` insert x F) = h (f x) + setsum h (f ` F)" 
-      using fxF "2.hyps" by simp 
-    also have "\<dots> = setsum (h o f) (insert x F)"
-      unfolding setsum.insert[OF `finite F` `x\<notin>F`]
-      apply (simp cong del: setsum.strong_cong)
-      apply (rule cong [OF refl [of "op + (h (f x))"]])
-      apply (rule "2.hyps"(3))
-      apply (rule_tac y="y" in  "2.prems")
-      apply simp_all
-      done
-    finally have ?case . }
-  ultimately show ?case by blast
-qed
+proof (subst setsum.reindex_bij_betw_not_neutral[symmetric])
+  show "bij_betw f (S - {x\<in>S. h (f x) = 0}) (f`S - f`{x\<in>S. h (f x) = 0})"
+    using nz by (auto intro!: inj_onI simp: bij_betw_def)
+qed (insert fS, auto)
 
 lemma setsum_cong2:
   "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> setsum f A = setsum g A"
@@ -494,19 +478,8 @@ text {* Commuting outer and inner summation *}
 
 lemma setsum_commute:
   "(\<Sum>i\<in>A. \<Sum>j\<in>B. f i j) = (\<Sum>j\<in>B. \<Sum>i\<in>A. f i j)"
-proof (simp add: setsum_cartesian_product)
-  have "(\<Sum>(x,y) \<in> A <*> B. f x y) =
-    (\<Sum>(y,x) \<in> (%(i, j). (j, i)) ` (A \<times> B). f x y)"
-    (is "?s = _")
-    apply (simp add: setsum.reindex [where h = "%(i, j). (j, i)"] swap_inj_on)
-    apply (simp add: split_def)
-    done
-  also have "... = (\<Sum>(y,x)\<in>B \<times> A. f x y)"
-    (is "_ = ?t")
-    apply (simp add: swap_product)
-    done
-  finally show "?s = ?t" .
-qed
+  unfolding setsum_cartesian_product
+  by (rule setsum.reindex_bij_witness[where i="\<lambda>(i, j). (j, i)" and j="\<lambda>(i, j). (j, i)"]) auto
 
 lemma setsum_Plus:
   fixes A :: "'a set" and B :: "'b set"
@@ -615,14 +588,6 @@ lemma setsum_Un_zero:
   "\<lbrakk> finite S; finite T; \<forall>x \<in> S\<inter>T. f x = 0 \<rbrakk> \<Longrightarrow>
   setsum f (S \<union> T) = setsum f S + setsum f T"
   by (fact setsum.union_inter_neutral)
-
-lemma setsum_eq_general_reverses:
-  assumes fS: "finite S" and fT: "finite T"
-  and kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
-  and hk: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> T \<and> k (h x) = x \<and> g (h x) = f x"
-  shows "setsum f S = setsum g T"
-  using kh hk by (fact setsum.eq_general_reverses)
-
 
 subsubsection {* Properties in more restricted classes of structures *}
 
@@ -1124,17 +1089,9 @@ lemma setprod_reindex_cong:
   by (frule setprod.reindex, simp)
 
 lemma strong_setprod_reindex_cong:
-  assumes i: "inj_on f A"
-  and B: "B = f ` A" and eq: "\<And>x. x \<in> A \<Longrightarrow> g x = (h \<circ> f) x"
-  shows "setprod h B = setprod g A"
-proof-
-  have "setprod h B = setprod (h o f) A"
-    by (simp add: B setprod.reindex [OF i, of h])
-  then show ?thesis apply simp
-    apply (rule setprod.cong)
-    apply simp
-    by (simp add: eq)
-qed
+  "inj_on f A \<Longrightarrow> B = f ` A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> g x = (h \<circ> f) x) \<Longrightarrow> setprod h B = setprod g A"
+  by (subst setprod.reindex_bij_betw[symmetric, where h=f])
+     (auto simp: bij_betw_def)
 
 lemma setprod_Union_disjoint:
   assumes "\<forall>A\<in>C. finite A" "\<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A Int B = {}" 

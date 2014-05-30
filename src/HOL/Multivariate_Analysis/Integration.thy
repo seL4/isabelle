@@ -1672,41 +1672,30 @@ lemma tagged_partial_division_subset:
   by blast
 
 lemma setsum_over_tagged_division_lemma:
-  fixes d :: "'m::euclidean_space set \<Rightarrow> 'a::real_normed_vector"
   assumes "p tagged_division_of i"
     and "\<And>u v. cbox u v \<noteq> {} \<Longrightarrow> content (cbox u v) = 0 \<Longrightarrow> d (cbox u v) = 0"
   shows "setsum (\<lambda>(x,k). d k) p = setsum d (snd ` p)"
 proof -
-  note assm = tagged_division_ofD[OF assms(1)]
   have *: "(\<lambda>(x,k). d k) = d \<circ> snd"
     unfolding o_def by (rule ext) auto
+  note assm = tagged_division_ofD[OF assms(1)]
   show ?thesis
     unfolding *
-    apply (subst eq_commute)
-  proof (rule setsum_reindex_nonzero)
+  proof (rule setsum_reindex_nonzero[symmetric])
     show "finite p"
       using assm by auto
     fix x y
-    assume as: "x\<in>p" "y\<in>p" "x\<noteq>y" "snd x = snd y"
+    assume "x\<in>p" "y\<in>p" "x\<noteq>y" "snd x = snd y"
     obtain a b where ab: "snd x = cbox a b"
-      using assm(4)[of "fst x" "snd x"] as(1) by auto
+      using assm(4)[of "fst x" "snd x"] `x\<in>p` by auto
     have "(fst x, snd y) \<in> p" "(fst x, snd y) \<noteq> y"
-      unfolding as(4)[symmetric] using as(1-3) by auto
-    then have "interior (snd x) \<inter> interior (snd y) = {}"
-      apply -
-      apply (rule assm(5)[of "fst x" _ "fst y"])
-      using as
-      apply auto
-      done
+      by (metis pair_collapse `x\<in>p` `snd x = snd y` `x \<noteq> y`)+
+    with `x\<in>p` `y\<in>p` have "interior (snd x) \<inter> interior (snd y) = {}"
+      by (intro assm(5)[of "fst x" _ "fst y"]) auto
     then have "content (cbox a b) = 0"
-      unfolding as(4)[symmetric] ab content_eq_0_interior by auto
+      unfolding `snd x = snd y`[symmetric] ab content_eq_0_interior by auto
     then have "d (cbox a b) = 0"
-      apply -
-      apply (rule assms(2))
-      using assm(2)[of "fst x" "snd x"] as(1)
-      unfolding ab[symmetric]
-      apply auto
-      done
+      using assm(2)[of "fst x" "snd x"] `x\<in>p` ab[symmetric] by (intro assms(2)) auto
     then show "d (snd x) = 0"
       unfolding ab by auto
   qed
@@ -7433,18 +7422,10 @@ proof -
         have *: "inj_on (\<lambda>(x, k). (g x, g ` k)) p"
           using inj(1) unfolding inj_on_def by fastforce
         have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _")
-          unfolding algebra_simps add_left_cancel
-          unfolding setsum_reindex[OF *]
-          apply (subst scaleR_right.setsum)
-          defer
-          apply (rule setsum_cong2)
-          unfolding o_def split_paired_all split_conv
-          apply (drule p(4))
-          apply safe
-          unfolding assms(7)[rule_format]
-          using p
-          apply auto
-          done
+          using assms(7)
+          unfolding algebra_simps add_left_cancel scaleR_right.setsum
+          by (subst setsum.reindex_bij_betw[symmetric, where h="\<lambda>(x, k). (g x, g ` k)" and S=p])
+             (auto intro!: * setsum_cong simp: bij_betw_def dest!: p(4))
       also have "\<dots> = r *\<^sub>R ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i)" (is "_ = ?r")
         unfolding scaleR_diff_right scaleR_scaleR
         using assms(1)

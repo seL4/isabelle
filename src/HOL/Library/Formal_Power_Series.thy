@@ -163,20 +163,7 @@ lemma fps_mult_commute_lemma:
   fixes n :: nat
     and f :: "nat \<Rightarrow> nat \<Rightarrow> 'a::comm_monoid_add"
   shows "(\<Sum>i=0..n. f i (n - i)) = (\<Sum>i=0..n. f (n - i) i)"
-proof (rule setsum_reindex_cong)
-  show "inj_on (\<lambda>i. n - i) {0..n}"
-    by (rule inj_onI) simp
-  show "{0..n} = (\<lambda>i. n - i) ` {0..n}"
-    apply auto
-    apply (rule_tac x = "n - x" in image_eqI)
-    apply simp_all
-    done
-next
-  fix i
-  assume "i \<in> {0..n}"
-  then have "n - (n - i) = i" by simp
-  then show "f (n - i) i = f (n - i) (n - (n - i))" by simp
-qed
+  by (rule setsum.reindex_bij_witness[where i="op - n" and j="op - n"]) auto
 
 instance fps :: (comm_semiring_0) ab_semigroup_mult
 proof
@@ -811,54 +798,23 @@ proof -
     fix n :: nat
     let ?Zn = "{0 ..n}"
     let ?Zn1 = "{0 .. n + 1}"
-    let ?f = "\<lambda>i. i + 1"
-    have fi: "inj_on ?f {0..n}"
-      by (simp add: inj_on_def)
-    have eq: "{1.. n+1} = ?f ` {0..n}"
-      by auto
     let ?g = "\<lambda>i. of_nat (i+1) * g $ (i+1) * f $ (n - i) +
         of_nat (i+1)* f $ (i+1) * g $ (n - i)"
     let ?h = "\<lambda>i. of_nat i * g $ i * f $ ((n+1) - i) +
         of_nat i* f $ i * g $ ((n + 1) - i)"
-    {
-      fix k
-      assume k: "k \<in> {0..n}"
-      have "?h (k + 1) = ?g k"
-        using k by auto
-    }
-    note th0 = this
-    have eq': "{0..n +1}- {1 .. n+1} = {0}" by auto
     have s0: "setsum (\<lambda>i. of_nat i * f $ i * g $ (n + 1 - i)) ?Zn1 =
       setsum (\<lambda>i. of_nat (n + 1 - i) * f $ (n + 1 - i) * g $ i) ?Zn1"
-      apply (rule setsum_reindex_cong[where f="\<lambda>i. n + 1 - i"])
-      apply (simp add: inj_on_def Ball_def)
-      apply presburger
-      apply (rule set_eqI)
-      apply (presburger add: image_iff)
-      apply simp
-      done
+       by (rule setsum.reindex_bij_witness[where i="op - (n + 1)" and j="op - (n + 1)"]) auto
     have s1: "setsum (\<lambda>i. f $ i * g $ (n + 1 - i)) ?Zn1 =
       setsum (\<lambda>i. f $ (n + 1 - i) * g $ i) ?Zn1"
-      apply (rule setsum_reindex_cong[where f="\<lambda>i. n + 1 - i"])
-      apply (simp add: inj_on_def Ball_def)
-      apply presburger
-      apply (rule set_eqI)
-      apply (presburger add: image_iff)
-      apply simp
-      done
+       by (rule setsum.reindex_bij_witness[where i="op - (n + 1)" and j="op - (n + 1)"]) auto
     have "(f * ?D g + ?D f * g)$n = (?D g * f + ?D f * g)$n"
       by (simp only: mult_commute)
     also have "\<dots> = (\<Sum>i = 0..n. ?g i)"
       by (simp add: fps_mult_nth setsum_addf[symmetric])
-    also have "\<dots> = setsum ?h {1..n+1}"
-      using th0 setsum_reindex_cong[OF fi eq, of "?g" "?h"] by auto
     also have "\<dots> = setsum ?h {0..n+1}"
-      apply (rule setsum_mono_zero_left)
-      apply simp
-      apply (simp add: subset_eq)
-      unfolding eq'
-      apply simp
-      done
+      by (rule setsum.reindex_bij_witness_not_neutral
+            [where S'="{}" and T'="{0}" and j="Suc" and i="\<lambda>i. i - 1"]) auto
     also have "\<dots> = (fps_deriv (f * g)) $ n"
       apply (simp only: fps_deriv_nth fps_mult_nth setsum_addf)
       unfolding s0 s1
@@ -2521,14 +2477,7 @@ qed
 lemma convolution_eq:
   "setsum (\<lambda>i. a (i :: nat) * b (n - i)) {0 .. n} =
     setsum (\<lambda>(i,j). a i * b j) {(i,j). i \<le> n \<and> j \<le> n \<and> i + j = n}"
-  apply (rule setsum_reindex_cong[where f=fst])
-  apply (clarsimp simp add: inj_on_def)
-  apply (auto simp add: set_eq_iff image_iff)
-  apply (rule_tac x= "x" in exI)
-  apply clarsimp
-  apply (rule_tac x="n - x" in exI)
-  apply arith
-  done
+  by (rule setsum.reindex_bij_witness[where i=fst and j="\<lambda>i. (i, n - i)"]) auto
 
 lemma product_composition_lemma:
   assumes c0: "c$0 = (0::'a::idom)"
@@ -3329,12 +3278,9 @@ proof -
           done
         have eq1: "setprod (\<lambda>k. (1::'a) + of_nat m - of_nat k) {0 .. h} =
           setprod of_nat {Suc (m - h) .. Suc m}"
-          apply (rule strong_setprod_reindex_cong[where f="\<lambda>k. Suc m - k "])
           using kn' h m
-          apply (auto simp add: inj_on_def image_def)
-          apply (rule_tac x="Suc m - x" in bexI)
-          apply (simp_all add: of_nat_diff)
-          done
+          by (intro setprod.reindex_bij_witness[where i="\<lambda>k. Suc m - k" and j="\<lambda>k. Suc m - k"])
+             (auto simp: of_nat_diff)
 
         have th1: "(?m1 k * ?p (of_nat n) k) / ?f n = 1 / of_nat(fact (n - k))"
           unfolding m1nk
@@ -3360,12 +3306,9 @@ proof -
         have th21:"pochhammer (b - of_nat n + 1) k = setprod (\<lambda>i. b - of_nat i) {n - k .. n - 1}"
           unfolding h m
           unfolding pochhammer_Suc_setprod
-          apply (rule strong_setprod_reindex_cong[where f="\<lambda>k. n - 1 - k"])
-          using kn
-          apply (auto simp add: inj_on_def m h image_def)
-          apply (rule_tac x= "m - x" in bexI)
-          apply (auto simp add: of_nat_diff)
-          done
+          using kn m h
+          by (intro setprod.reindex_bij_witness[where i="\<lambda>k. n - 1 - k" and j="\<lambda>i. m-i"])
+             (auto simp: of_nat_diff)
 
         have "?m1 n * ?p b n =
           pochhammer (b - of_nat n + 1) k * setprod (\<lambda>i. b - of_nat i) {0.. n - k - 1}"

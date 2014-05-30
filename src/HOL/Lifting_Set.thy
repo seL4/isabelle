@@ -85,6 +85,26 @@ lemma set_relator_eq_onp [relator_eq_onp]:
   "rel_set (eq_onp P) = eq_onp (\<lambda>A. Ball A P)"
   unfolding fun_eq_iff rel_set_def eq_onp_def Ball_def by fast
 
+lemma bi_unique_rel_set_lemma:
+  assumes "bi_unique R" and "rel_set R X Y"
+  obtains f where "Y = image f X" and "inj_on f X" and "\<forall>x\<in>X. R x (f x)"
+proof
+  def f \<equiv> "\<lambda>x. THE y. R x y"
+  { fix x assume "x \<in> X"
+    with `rel_set R X Y` `bi_unique R` have "R x (f x)"
+      by (simp add: bi_unique_def rel_set_def f_def) (metis theI)
+    with assms `x \<in> X` 
+    have  "R x (f x)" "\<forall>x'\<in>X. R x' (f x) \<longrightarrow> x = x'" "\<forall>y\<in>Y. R x y \<longrightarrow> y = f x" "f x \<in> Y"
+      by (fastforce simp add: bi_unique_def rel_set_def)+ }
+  note * = this
+  moreover
+  { fix y assume "y \<in> Y"
+    with `rel_set R X Y` *(3) `y \<in> Y` have "\<exists>x\<in>X. y = f x"
+      by (fastforce simp: rel_set_def) }
+  ultimately show "\<forall>x\<in>X. R x (f x)" "Y = image f X" "inj_on f X"
+    by (auto simp: inj_on_def image_iff)
+qed
+
 subsection {* Quotient theorem for the Lifting package *}
 
 lemma Quotient_set[quot_map]:
@@ -231,90 +251,37 @@ lemma filter_transfer [transfer_rule]:
   shows "((A ===> op=) ===> rel_set A ===> rel_set A) Set.filter Set.filter"
   unfolding Set.filter_def[abs_def] rel_fun_def rel_set_def by blast
 
-lemma bi_unique_rel_set_lemma:
-  assumes "bi_unique R" and "rel_set R X Y"
-  obtains f where "Y = image f X" and "inj_on f X" and "\<forall>x\<in>X. R x (f x)"
-proof
-  let ?f = "\<lambda>x. THE y. R x y"
-  from assms show f: "\<forall>x\<in>X. R x (?f x)"
-    apply (clarsimp simp add: rel_set_def)
-    apply (drule (1) bspec, clarify)
-    apply (rule theI2, assumption)
-    apply (simp add: bi_unique_def)
-    apply assumption
-    done
-  from assms show "Y = image ?f X"
-    apply safe
-    apply (clarsimp simp add: rel_set_def)
-    apply (drule (1) bspec, clarify)
-    apply (rule image_eqI)
-    apply (rule the_equality [symmetric], assumption)
-    apply (simp add: bi_unique_def)
-    apply assumption
-    apply (clarsimp simp add: rel_set_def)
-    apply (frule (1) bspec, clarify)
-    apply (rule theI2, assumption)
-    apply (clarsimp simp add: bi_unique_def)
-    apply (simp add: bi_unique_def, metis)
-    done
-  show "inj_on ?f X"
-    apply (rule inj_onI)
-    apply (drule f [rule_format])
-    apply (drule f [rule_format])
-    apply (simp add: assms(1) [unfolded bi_unique_def])
-    done
-qed
-
 lemma finite_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_set A ===> op =) finite finite"
-  by (rule rel_funI, erule (1) bi_unique_rel_set_lemma,
-    auto dest: finite_imageD)
+  by (rule rel_funI, erule (1) bi_unique_rel_set_lemma)
+     (auto dest: finite_imageD)
 
 lemma card_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_set A ===> op =) card card"
-  by (rule rel_funI, erule (1) bi_unique_rel_set_lemma, simp add: card_image)
+  by (rule rel_funI, erule (1) bi_unique_rel_set_lemma)
+     (simp add: card_image)
 
 lemma vimage_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_total A" "bi_unique B"
   shows "((A ===> B) ===> rel_set B ===> rel_set A) vimage vimage"
-unfolding vimage_def[abs_def] by transfer_prover
-
-lemma setsum_parametric [transfer_rule]:
-  assumes "bi_unique A"
-  shows "((A ===> op =) ===> rel_set A ===> op =) setsum setsum"
-proof(rule rel_funI)+
-  fix f :: "'a \<Rightarrow> 'c" and g S T
-  assume fg: "(A ===> op =) f g"
-    and ST: "rel_set A S T"
-  show "setsum f S = setsum g T"
-  proof(rule setsum_reindex_cong)
-    let ?f = "\<lambda>t. THE s. A s t"
-    show "S = ?f ` T"
-      by(blast dest: rel_setD1[OF ST] rel_setD2[OF ST] bi_uniqueDl[OF assms] 
-           intro: rev_image_eqI the_equality[symmetric] subst[rotated, where P="\<lambda>x. x \<in> S"])
-
-    show "inj_on ?f T"
-    proof(rule inj_onI)
-      fix t1 t2
-      assume "t1 \<in> T" "t2 \<in> T" "?f t1 = ?f t2"
-      from ST `t1 \<in> T` obtain s1 where "A s1 t1" "s1 \<in> S" by(auto dest: rel_setD2)
-      hence "?f t1 = s1" by(auto dest: bi_uniqueDl[OF assms])
-      moreover
-      from ST `t2 \<in> T` obtain s2 where "A s2 t2" "s2 \<in> S" by(auto dest: rel_setD2)
-      hence "?f t2 = s2" by(auto dest: bi_uniqueDl[OF assms])
-      ultimately have "s1 = s2" using `?f t1 = ?f t2` by simp
-      with `A s1 t1` `A s2 t2` show "t1 = t2" by(auto dest: bi_uniqueDr[OF assms])
-    qed
-
-    fix t
-    assume "t \<in> T"
-    with ST obtain s where "A s t" "s \<in> S" by(auto dest: rel_setD2)
-    hence "?f t = s" by(auto dest: bi_uniqueDl[OF assms])
-    moreover from fg `A s t` have "f s = g t" by(rule rel_funD)
-    ultimately show "g t = f (?f t)" by simp
-  qed
-qed
+  unfolding vimage_def[abs_def] by transfer_prover
 
 end
+
+lemma (in comm_monoid_set) F_parametric [transfer_rule]:
+  fixes A :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
+  assumes "bi_unique A"
+  shows "rel_fun (rel_fun A (op =)) (rel_fun (rel_set A) (op =)) F F"
+proof(rule rel_funI)+
+  fix f :: "'b \<Rightarrow> 'a" and g S T
+  assume "rel_fun A (op =) f g" "rel_set A S T"
+  with `bi_unique A` obtain i where "bij_betw i S T" "\<And>x. x \<in> S \<Longrightarrow> f x = g (i x)"
+    by (auto elim: bi_unique_rel_set_lemma simp: rel_fun_def bij_betw_def)
+  then show "F f S = F g T"
+    by (simp add: reindex_bij_betw)
+qed
+
+lemmas setsum_parametric = setsum.F_parametric
+lemmas setprod_parametric = setprod.F_parametric
 
 end

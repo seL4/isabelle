@@ -308,12 +308,7 @@ by (auto intro: order_less_imp_le)
 
 lemma fact_eq_rev_setprod_nat: "fact (k::nat) = (\<Prod>i<k. k - i)"
   unfolding fact_altdef_nat
-proof (rule strong_setprod_reindex_cong)
-  { fix i assume "Suc 0 \<le> i" "i \<le> k" then have "\<exists>j\<in>{..<k}. i = k - j"
-      by (intro bexI[of _ "k - i"]) simp_all }
-  then show "{1..k} = (\<lambda>i. k - i) ` {..<k}"
-    by (auto simp: image_iff)
-qed (auto intro: inj_onI)
+  by (rule setprod.reindex_bij_witness[where i="\<lambda>i. k - i" and j="\<lambda>i. k - i"]) auto
 
 lemma fact_div_fact_le_pow:
   assumes "r \<le> n" shows "fact n div fact (n - r) \<le> n ^ r"

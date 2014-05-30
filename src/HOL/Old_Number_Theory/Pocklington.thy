@@ -18,6 +18,13 @@ lemma modeq_trans:
   "\<lbrakk> [a = b] (mod p); [b = c] (mod p) \<rbrakk> \<Longrightarrow> [a = c] (mod p)"
   by (simp add:modeq_def)
 
+lemma modeq_sym[sym]:
+  "[a = b] (mod p) \<Longrightarrow> [b = a] (mod p)"
+  unfolding modeq_def by simp
+
+lemma modneq_sym[sym]:
+  "[a \<noteq> b] (mod p) \<Longrightarrow> [b \<noteq> a] (mod p)"
+  by (simp add: modneq_def)
 
 lemma nat_mod_lemma: assumes xyn: "[x = y] (mod n)" and xy:"y \<le> x"
   shows "\<exists>q. x = y + n * q"
@@ -597,44 +604,39 @@ proof-
       by (simp add: coprime_commute)
     have Paphi: "[?P*a^ (\<phi> n) = ?P*1] (mod n)"
     proof-
-      let ?h = "\<lambda>m. m mod n"
-      {fix m assume mS: "m\<in> ?S"
-        hence "?h m \<in> ?S" by simp}
-      hence hS: "?h ` ?S = ?S"by (auto simp add: image_iff)
-      have "a\<noteq>0" using an n1 nz apply- apply (rule ccontr) by simp
-      hence inj: "inj_on (op * a) ?S" unfolding inj_on_def by simp
-      have eq0: "setprod (?h \<circ> op * a) {m. coprime m n \<and> m < n} = setprod (\<lambda>m. m) {m. coprime m n \<and> m < n}"
-      proof (rule setprod.eq_general [where h="?h o (op * a)"])
-        {fix y assume yS: "y \<in> ?S" hence y: "coprime y n" "y < n" by simp_all
-          from cong_solve_unique[OF an nz, of y]
-          obtain x where x:"x < n" "[a * x = y] (mod n)" "\<forall>z. z < n \<and> [a * z = y] (mod n) \<longrightarrow> z=x" by blast
-          from cong_coprime[OF x(2)] y(1)
-          have xm: "coprime x n" by (simp add: coprime_mul_eq coprime_commute)
-          {fix z assume "z \<in> ?S" "(?h \<circ> op * a) z = y"
-            hence z: "coprime z n" "z < n" "(?h \<circ> op * a) z = y" by simp_all
-            from x(3)[rule_format, of z] z(2,3) have "z=x"
-              unfolding modeq_def mod_less[OF y(2)] by simp}
-          with xm x(1,2) have "\<exists>!x. x \<in> ?S \<and> (?h \<circ> op * a) x = y"
-            unfolding modeq_def mod_less[OF y(2)] by safe auto }
-        thus "\<forall>y\<in>{m. coprime m n \<and> m < n}.
-       \<exists>!x. x \<in> {m. coprime m n \<and> m < n} \<and> ((\<lambda>m. m mod n) \<circ> op * a) x = y" by blast
-      next
-        {fix x assume xS: "x\<in> ?S"
-          hence x: "coprime x n" "x < n" by simp_all
-          with an have "coprime (a*x) n"
-            by (simp add: coprime_mul_eq[of n a x] coprime_commute)
-          hence "?h (a*x) \<in> ?S" using nz
-            by (simp add: coprime_mod[OF nz])}
-        thus " \<forall>x\<in>{m. coprime m n \<and> m < n}.
-       ((\<lambda>m. m mod n) \<circ> op * a) x \<in> {m. coprime m n \<and> m < n} \<and>
-       ((\<lambda>m. m mod n) \<circ> op * a) x = ((\<lambda>m. m mod n) \<circ> op * a) x" by simp
+      let ?h = "\<lambda>m. (a * m) mod n"
+      
+      have eq0: "(\<Prod>i\<in>?S. ?h i) = (\<Prod>i\<in>?S. i)"
+      proof (rule setprod.reindex_bij_betw)
+        have "inj_on (\<lambda>i. ?h i) ?S"
+        proof (rule inj_onI)
+          fix x y assume "?h x = ?h y"
+          then have "[a * x = a * y] (mod n)"
+            by (simp add: modeq_def)
+          moreover assume "x \<in> ?S" "y \<in> ?S"
+          ultimately show "x = y"
+            by (auto intro: cong_imp_eq cong_mult_lcancel an)
+        qed
+        moreover have "?h ` ?S = ?S"
+        proof safe
+          fix y assume "coprime y n" then show "coprime (?h y) n"
+            by (metis an nz coprime_commute coprime_mod coprime_mul_eq)
+        next
+          fix y assume y: "coprime y n" "y < n"
+          from cong_solve_unique[OF an nz] obtain x where x: "x < n" "[a * x = y] (mod n)"
+            by blast
+          then show "y \<in> ?h ` ?S"
+            using cong_coprime[OF x(2)] coprime_mul_eq[of n a x] an y x
+            by (intro image_eqI[of _ _ x]) (auto simp add: coprime_commute modeq_def)
+        qed (insert nz, simp)
+        ultimately show "bij_betw ?h ?S ?S"
+          by (simp add: bij_betw_def)
       qed
       from nproduct_mod[OF fS nz, of "op * a"]
-      have "[(setprod (op *a) ?S) = (setprod (?h o (op * a)) ?S)] (mod n)"
-        unfolding o_def
+      have "[(\<Prod>i\<in>?S. a * i) = (\<Prod>i\<in>?S. ?h i)] (mod n)"
         by (simp add: cong_commute)
-      also have "[setprod (?h o (op * a)) ?S = ?P ] (mod n)"
-        using eq0 fS an by (simp add: setprod_def modeq_def o_def)
+      also have "[(\<Prod>i\<in>?S. ?h i) = ?P] (mod n)"
+        using eq0 fS an by (simp add: setprod_def modeq_def)
       finally show "[?P*a^ (\<phi> n) = ?P*1] (mod n)"
         unfolding cardfS mult_commute[of ?P "a^ (card ?S)"]
           nproduct_cmul[OF fS, symmetric] mult_1_right by simp

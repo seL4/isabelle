@@ -30,11 +30,8 @@ lemma setsum_power_shift:
 proof -
   have "(\<Sum>i=m..n. x^i) = x^m * (\<Sum>i=m..n. x^(i-m))"
     by (simp add: setsum_right_distrib power_add [symmetric])
-  also have "... = x^m * (\<Sum>i\<le>n-m. x^i)"
-    apply (subst setsum_reindex_cong [where f = "%i. i+m" and A = "{..n-m}"])
-    apply (auto simp: image_def)
-    apply (rule_tac x="x-m" in bexI, auto)
-    by (metis assms ordered_cancel_comm_monoid_diff_class.le_diff_conv2)
+  also have "(\<Sum>i=m..n. x^(i-m)) = (\<Sum>i\<le>n-m. x^i)"
+    using `m \<le> n` by (intro setsum.reindex_bij_witness[where j="\<lambda>i. i - m" and i="\<lambda>i. i + m"]) auto
   finally show ?thesis .
 qed
 
@@ -95,13 +92,9 @@ lemma sub_polyfun_alt:
            (x - y) * (\<Sum>j<n. \<Sum>k<n-j. a (j+k+1) * y^k * x^j)"
 proof -
   { fix j
-    assume "j < n"
     have "(\<Sum>k = Suc j..n. a k * y^(k - Suc j) * x^j) =
           (\<Sum>k <n - j. a (Suc (j + k)) * y^k * x^j)"
-      apply (rule_tac f = "\<lambda>i. Suc j + i" in setsum_reindex_cong)
-      apply (auto simp: inj_on_def image_def atLeastLessThan_def lessThan_def)
-      apply (metis Suc_le_eq diff_add_inverse diff_less_mono le_add1 less_imp_Suc_add)
-      done }
+      by (rule setsum.reindex_bij_witness[where i="\<lambda>i. i + Suc j" and j="\<lambda>i. i - Suc j"]) auto }
   then show ?thesis
     by (simp add: sub_polyfun)
 qed
