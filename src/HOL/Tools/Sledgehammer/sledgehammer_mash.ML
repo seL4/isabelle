@@ -523,7 +523,7 @@ fun naive_bayes_query _ (* num_facts *) num_visible_facts max_suggs feats (tfreq
 
         val fold_sfh =
           if nb_kuehlwein_style then
-            (fn (f, sf) => fn sow => sow - tfidf f * (tfreq / Math.ln (Real.fromInt sf)))
+            (fn (f, sf) => fn sow => sow - tfidf f * Math.ln (Real.fromInt sf / tfreq))
           else
             (fn (f, sf) => fn sow =>
                sow + tfidf f * Math.ln (1.0 + (1.0 - Real.fromInt sf) / tfreq))
