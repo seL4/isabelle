@@ -316,14 +316,9 @@ val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
 local
 
-fun target_extension f class b_mx_rhs lthy =
-  let
-    val phi = morphism (Proof_Context.theory_of lthy) class;
-  in
-    lthy
-    |> Local_Theory.raw_theory (f class phi b_mx_rhs)
-    |> synchronize_class_syntax_target class
-  end;
+fun target_extension f class b_mx_rhs =
+  Local_Theory.raw_theory (fn thy => f class (morphism thy class) b_mx_rhs thy)
+  #> synchronize_class_syntax_target class;
 
 fun class_const class prmode (b, rhs) =
   Generic_Target.locale_declaration class true (fn phi =>
@@ -344,28 +339,39 @@ fun class_const class prmode (b, rhs) =
     end) #>
   Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), rhs);
 
-fun global_const (type_params, term_params) class phi ((b, mx), rhs) thy =
+fun dangling_params_for lthy class (type_params, term_params) =
   let
-    val class_params = map fst (these_params thy [class]);
-    val additional_params =
-      subtract (fn (v, Free (w, _)) => v = w | _ => false) class_params term_params;
-    val context_params = map (Morphism.term phi) (type_params @ additional_params);
+    val class_param_names =
+      map fst (these_params (Proof_Context.theory_of lthy) [class]);
+    val dangling_term_params =
+      subtract (fn (v, Free (w, _)) => v = w | _ => false) class_param_names term_params;
+  in type_params @ dangling_term_params end;
+
+fun global_def (b, eq) thy =
+  thy
+  |> Thm.add_def_global false false (b, eq)
+  |>> (Thm.varifyT_global o snd)
+  |-> (fn def_thm => Global_Theory.store_thm (b, def_thm)
+      #> snd
+      #> pair def_thm);
+
+fun global_const dangling_params class phi ((b, mx), rhs) thy =
+  let
+    val dangling_params' = map (Morphism.term phi) dangling_params;
     val b' = Morphism.binding phi b;
     val b_def = Morphism.binding phi (Binding.suffix_name "_dict" b');
-    val c' = Sign.full_name thy b';
     val rhs' = Morphism.term phi rhs;
-    val ty' = map Term.fastype_of context_params ---> Term.fastype_of rhs';
-    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), context_params), rhs')
+    val c' = Sign.full_name thy b';
+    val ty' = map Term.fastype_of dangling_params' ---> Term.fastype_of rhs';
+    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), dangling_params'), rhs')
       |> map_types Type.strip_sorts;
   in
     thy
     |> Sign.declare_const_global ((b', Type.strip_sorts ty'), mx)
     |> snd
-    |> Thm.add_def_global false false (b_def, def_eq)
-    |>> apsnd Thm.varifyT_global
-    |-> (fn (_, def_thm) => Global_Theory.store_thm (b_def, def_thm)
-      #> snd
-      #> null context_params ? register_operation class (c', (rhs', SOME (Thm.symmetric def_thm))))
+    |> global_def (b_def, def_eq)
+    |-> (fn def_thm =>
+      null dangling_params' ? register_operation class (c', (rhs', SOME (Thm.symmetric def_thm))))
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
@@ -373,8 +379,8 @@ fun global_abbrev prmode class phi ((b, mx), rhs) thy =
   let
     val unchecks = these_unchecks thy [class];
     val b' = Morphism.binding phi b;
-    val c' = Sign.full_name thy b';
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
+    val c' = Sign.full_name thy b';
     val ty' = Term.fastype_of rhs';
   in
     thy
@@ -387,9 +393,14 @@ fun global_abbrev prmode class phi ((b, mx), rhs) thy =
 
 in
 
-fun const class ((b, mx), lhs) params =
-  class_const class Syntax.mode_default (b, lhs)
-  #> target_extension (global_const params) class ((b, mx), lhs);
+fun const class ((b, mx), lhs) params lthy =
+  let
+    val dangling_params = dangling_params_for lthy class params;
+  in
+    lthy
+    |> class_const class Syntax.mode_default (b, lhs)
+    |> target_extension (global_const dangling_params) class ((b, mx), lhs)
+  end;
 
 fun abbrev class prmode ((b, mx), lhs) rhs' =
   class_const class prmode (b, lhs)
