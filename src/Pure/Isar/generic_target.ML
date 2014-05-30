@@ -21,7 +21,7 @@ sig
     (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
   val background_abbrev: binding * term -> term list -> local_theory -> (term * term) * local_theory
-  val abbrev: (string * bool -> binding * mixfix -> term * term ->
+  val abbrev: (string * bool -> binding * mixfix -> term ->
       term list -> local_theory -> local_theory) ->
     string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
@@ -41,7 +41,7 @@ sig
     (Attrib.binding * (thm list * Args.src list) list) list ->
     (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
-  val theory_abbrev: Syntax.mode -> (binding * mixfix) -> term * term -> term list ->
+  val theory_abbrev: Syntax.mode -> (binding * mixfix) -> term -> term list ->
     local_theory -> local_theory
   val theory_declaration: declaration -> local_theory -> local_theory
   val theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
@@ -216,7 +216,7 @@ fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
   in
     lthy
-    |> target_abbrev prmode (b, mx') (global_rhs, rhs') params
+    |> target_abbrev prmode (b, mx') global_rhs params
     |> Proof_Context.add_abbrev Print_Mode.internal (b, rhs) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), rhs)
   end;
@@ -331,7 +331,7 @@ fun theory_notes kind global_facts local_facts =
       ctxt |> Attrib.local_notes kind
         (Element.transform_facts (Local_Theory.standard_morphism lthy ctxt) local_facts) |> snd));
 
-fun theory_abbrev prmode (b, mx) (global_rhs, _) params =
+fun theory_abbrev prmode (b, mx) global_rhs params =
   Local_Theory.background_theory_result
     (Sign.add_abbrev (#1 prmode) (b, global_rhs) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
