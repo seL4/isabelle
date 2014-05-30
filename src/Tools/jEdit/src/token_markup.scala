@@ -104,7 +104,7 @@ object Token_Markup
   }
 
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
-    font_style(style, _.deriveFont(Font.BOLD))
+    font_style(style, font => font.deriveFont(if (font.isBold) Font.PLAIN else Font.BOLD))
 
   val hidden_color: Color = new Color(255, 255, 255, 0)
 

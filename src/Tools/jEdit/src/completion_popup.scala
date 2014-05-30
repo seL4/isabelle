@@ -351,6 +351,7 @@ object Completion_Popup
                 JEdit_Lib.invalidate_range(text_area, range)
               }
             }
+          dismissed()
           completion_popup = Some(completion)
           view.setKeyEventInterceptor(completion.inner_key_listener)
           JEdit_Lib.invalidate_range(text_area, range)
@@ -576,6 +577,7 @@ object Completion_Popup
                   }
                   override def shutdown(focus: Boolean) { if (focus) text_field.requestFocus }
                 }
+              dismissed()
               completion_popup = Some(completion)
               completion.show_popup(true)
 
