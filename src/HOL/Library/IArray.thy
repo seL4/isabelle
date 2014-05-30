@@ -86,8 +86,12 @@ code_printing
   constant IArray.tabulate \<rightharpoonup> (SML) "Vector.tabulate"
 
 primrec sub' :: "'a iarray \<times> integer \<Rightarrow> 'a" where
-"sub' (as, n) = IArray.list_of as ! nat_of_integer n"
+[code del]: "sub' (as, n) = IArray.list_of as ! nat_of_integer n"
 hide_const (open) sub'
+
+lemma [code]:
+  "IArray.sub' (IArray as, n) = as ! nat_of_integer n"
+  by simp
 
 lemma [code]:
 "as !! n = IArray.sub' (as, integer_of_nat n)"
@@ -97,8 +101,12 @@ code_printing
   constant IArray.sub' \<rightharpoonup> (SML) "Vector.sub"
 
 definition length' :: "'a iarray \<Rightarrow> integer" where
-[simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
+[code del, simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
 hide_const (open) length'
+
+lemma [code]:
+  "IArray.length' (IArray as) = integer_of_nat (List.length as)" 
+  by simp
 
 lemma [code]:
 "IArray.length as = nat_of_integer (IArray.length' as)"
