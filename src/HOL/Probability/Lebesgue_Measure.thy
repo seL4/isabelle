@@ -428,6 +428,16 @@ proof -
     by (simp add: indicator_def [abs_def] cbox_interval[symmetric])
 qed
 
+lemma
+  fixes a b ::"'a::ordered_euclidean_space"
+  shows lmeasure_cbox[simp]: "emeasure lebesgue (cbox a b) = ereal (content (cbox a b))"
+proof -
+  have "(indicator (UNIV \<inter> {a..b})::_\<Rightarrow>real) integrable_on UNIV"
+    unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def [abs_def] cbox_interval[symmetric])
+  from lmeasure_eq_integral[OF this] show ?thesis unfolding integral_indicator_UNIV
+    by (simp add: indicator_def [abs_def] cbox_interval[symmetric])
+qed
+
 lemma lmeasure_singleton[simp]:
   fixes a :: "'a::ordered_euclidean_space" shows "emeasure lebesgue {a} = 0"
   using lmeasure_atLeastAtMost[of a a] by simp
@@ -1035,40 +1045,56 @@ lemma integrable_on_borel_integrable:
 
 subsection {* Fundamental Theorem of Calculus for the Lebesgue integral *}
 
+lemma emeasure_bounded_finite:
+  assumes "bounded A" shows "emeasure lborel A < \<infinity>"
+proof -
+  from bounded_subset_cbox[OF `bounded A`] obtain a b where "A \<subseteq> cbox a b"
+    by auto
+  then have "emeasure lborel A \<le> emeasure lborel (cbox a b)"
+    by (intro emeasure_mono) auto
+  then show ?thesis
+    by auto
+qed
+
+lemma emeasure_compact_finite: "compact A \<Longrightarrow> emeasure lborel A < \<infinity>"
+  using emeasure_bounded_finite[of A] by (auto intro: compact_imp_bounded)
+
+lemma borel_integrable_compact:
+  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes "compact S" "continuous_on S f"
+  shows "integrable lborel (\<lambda>x. indicator S x *\<^sub>R f x)"
+proof cases
+  assume "S \<noteq> {}"
+  have "continuous_on S (\<lambda>x. norm (f x))"
+    using assms by (intro continuous_intros)
+  from continuous_attains_sup[OF `compact S` `S \<noteq> {}` this]
+  obtain M where M: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> M"
+    by auto
+
+  show ?thesis
+  proof (rule integrable_bound)
+    show "integrable lborel (\<lambda>x. indicator S x * M)"
+      using assms by (auto intro!: emeasure_compact_finite borel_compact integrable_mult_left)
+    show "(\<lambda>x. indicator S x *\<^sub>R f x) \<in> borel_measurable lborel"
+      using assms by (auto intro!: borel_measurable_continuous_on_indicator borel_compact)
+    show "AE x in lborel. norm (indicator S x *\<^sub>R f x) \<le> norm (indicator S x * M)"
+      by (auto split: split_indicator simp: abs_real_def dest!: M)
+  qed
+qed simp
+
 lemma borel_integrable_atLeastAtMost:
   fixes f :: "real \<Rightarrow> real"
   assumes f: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> isCont f x"
   shows "integrable lborel (\<lambda>x. f x * indicator {a .. b} x)" (is "integrable _ ?f")
-proof cases
-  assume "a \<le> b"
-
-  from isCont_Lb_Ub[OF `a \<le> b`, of f] f
-  obtain M L where
-    bounds: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> f x \<le> M" "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> L \<le> f x"
-    by metis
-
-  show ?thesis
-  proof (rule integrable_bound)
-    show "integrable lborel (\<lambda>x. max \<bar>M\<bar> \<bar>L\<bar> * indicator {a..b} x)"
-      by (intro integrable_mult_right integrable_real_indicator) simp_all
-    show "AE x in lborel. norm (?f x) \<le> norm (max \<bar>M\<bar> \<bar>L\<bar> * indicator {a..b} x)"
-    proof (rule AE_I2)
-      fix x show "norm (?f x) \<le> norm (max \<bar>M\<bar> \<bar>L\<bar> * indicator {a..b} x)"
-        using bounds[of x] by (auto split: split_indicator)
-    qed
-
-    let ?g = "\<lambda>x. if x = a then f a else if x = b then f b else if x \<in> {a <..< b} then f x else 0"
-    from f have "continuous_on {a <..< b} f"
-      by (subst continuous_on_eq_continuous_at) auto
-    then have "?g \<in> borel_measurable borel"
-      using borel_measurable_continuous_on_open[of "{a <..< b }" f "\<lambda>x. x" borel 0]
-      by (auto intro!: measurable_If[where P="\<lambda>x. x = a"] measurable_If[where P="\<lambda>x. x = b"])
-    also have "?g = ?f"
-      using `a \<le> b` by (intro ext) (auto split: split_indicator)
-    finally show "?f \<in> borel_measurable lborel"
-      by simp
-  qed
-qed simp
+proof -
+  have "integrable lborel (\<lambda>x. indicator {a .. b} x *\<^sub>R f x)"
+  proof (rule borel_integrable_compact)
+    from f show "continuous_on {a..b} f"
+      by (auto intro: continuous_at_imp_continuous_on)
+  qed simp
+  then show ?thesis
+    by (auto simp: mult_commute)
+qed
 
 lemma has_field_derivative_subset:
   "(f has_field_derivative y) (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_field_derivative y) (at x within t)"

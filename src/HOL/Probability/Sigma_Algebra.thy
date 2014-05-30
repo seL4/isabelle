@@ -2355,5 +2355,35 @@ lemma measurable_restrict_space2:
     f \<in> measurable M (restrict_space N \<Omega>)"
   by (simp add: measurable_def space_restrict_space sets_restrict_space_iff Pi_Int[symmetric])
 
+lemma measurable_restrict_space_iff:
+  assumes \<Omega>[simp, intro]: "\<Omega> \<inter> space M \<in> sets M" "c \<in> space N"
+  shows "f \<in> measurable (restrict_space M \<Omega>) N \<longleftrightarrow>
+    (\<lambda>x. if x \<in> \<Omega> then f x else c) \<in> measurable M N" (is "f \<in> measurable ?R N \<longleftrightarrow> ?f \<in> measurable M N")
+  unfolding measurable_def
+proof safe
+  fix x assume "f \<in> space ?R \<rightarrow> space N" "x \<in> space M" then show "?f x \<in> space N"
+    using `c\<in>space N` by (auto simp: space_restrict_space)
+next
+  fix x assume "?f \<in> space M \<rightarrow> space N" "x \<in> space ?R" then show "f x \<in> space N"
+    using `c\<in>space N` by (auto simp: space_restrict_space Pi_iff)
+next
+  fix X assume X: "X \<in> sets N"
+  assume *[THEN bspec]: "\<forall>y\<in>sets N. f -` y \<inter> space ?R \<in> sets ?R"
+  have "?f -` X \<inter> space M = (f -` X \<inter> (\<Omega> \<inter> space M)) \<union> (if c \<in> X then (space M - (\<Omega> \<inter> space M)) else {})"
+    by (auto split: split_if_asm)
+  also have "\<dots> \<in> sets M"
+    using *[OF X] by (auto simp add: space_restrict_space sets_restrict_space_iff)
+  finally show "?f -` X \<inter> space M \<in> sets M" .
+next
+  assume *[THEN bspec]: "\<forall>y\<in>sets N. ?f -` y \<inter> space M \<in> sets M"
+  fix X :: "'b set" assume X: "X \<in> sets N"
+  have "f -` X \<inter> (\<Omega> \<inter> space M) = (?f -` X \<inter> space M) \<inter> (\<Omega> \<inter> space M)"
+    by (auto simp: space_restrict_space)
+  also have "\<dots> \<in> sets M"
+    using *[OF X] by auto
+  finally show "f -` X \<inter> space ?R \<in> sets ?R"
+    by (auto simp add: sets_restrict_space_iff space_restrict_space)
+qed
+
 end
 

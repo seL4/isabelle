@@ -124,53 +124,68 @@ lemma borel_measurable_restrict_space_iff_ereal:
   assumes \<Omega>[measurable, simp]: "\<Omega> \<inter> space M \<in> sets M"
   shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
     (\<lambda>x. f x * indicator \<Omega> x) \<in> borel_measurable M"
-proof -
-  { fix X :: "ereal set" assume "X \<in> sets borel"
-    have 1: "(\<lambda>x. f x * indicator \<Omega> x) -` X \<inter> space M = 
-      (if 0 \<in> X then (f -` X \<inter> (\<Omega> \<inter> space M)) \<union> (space M - (\<Omega> \<inter> space M)) else f -` X \<inter> (\<Omega> \<inter> space M))" 
-      by (auto split: split_if_asm simp: indicator_def)
-    have *: "f -` X \<inter> (\<Omega> \<inter> space M) = 
-      (f -` X \<inter> (\<Omega> \<inter> space M) \<union> (space M - \<Omega> \<inter> space M)) - (space M - \<Omega> \<inter> space M)"
-      by auto
-    have "f -` X \<inter> (\<Omega> \<inter> space M) \<union> (space M - \<Omega> \<inter> space M) \<in> sets M
-      \<Longrightarrow> f -` X \<inter> (\<Omega> \<inter> space M) \<in> sets M"
-      by (subst *) auto
-    note this 1 }
-  note 1 = this(1) and 2 = this(2)
-
-  from 2 show ?thesis
-    by (auto simp add: measurable_def space_restrict_space sets_restrict_space_iff intro: 1 \<Omega>)
-qed
+  by (subst measurable_restrict_space_iff)
+     (auto simp: indicator_def if_distrib[where f="\<lambda>x. a * x" for a] cong del: if_cong)
 
 lemma borel_measurable_restrict_space_iff:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes \<Omega>[measurable, simp]: "\<Omega> \<inter> space M \<in> sets M"
   shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
     (\<lambda>x. indicator \<Omega> x *\<^sub>R f x) \<in> borel_measurable M"
-proof -
-  { fix X :: "'b set" assume "X \<in> sets borel"
-    have 1: "(\<lambda>x. indicator \<Omega> x *\<^sub>R f x) -` X \<inter> space M = 
-      (if 0 \<in> X then (f -` X \<inter> (\<Omega> \<inter> space M)) \<union> (space M - (\<Omega> \<inter> space M)) else f -` X \<inter> (\<Omega> \<inter> space M))" 
-      by (auto split: split_if_asm simp: indicator_def)
-    have *: "f -` X \<inter> (\<Omega> \<inter> space M) = 
-      (f -` X \<inter> (\<Omega> \<inter> space M) \<union> (space M - \<Omega> \<inter> space M)) - (space M - \<Omega> \<inter> space M)"
-      by auto
-    have "f -` X \<inter> (\<Omega> \<inter> space M) \<union> (space M - \<Omega> \<inter> space M) \<in> sets M
-      \<Longrightarrow> f -` X \<inter> (\<Omega> \<inter> space M) \<in> sets M"
-      by (subst *) auto
-    note this 1 }
-  note 1 = this(1) and 2 = this(2)
+  by (subst measurable_restrict_space_iff)
+     (auto simp: indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a] mult_ac cong del: if_cong)
 
-  from 2 show ?thesis
-    by (auto simp add: measurable_def space_restrict_space sets_restrict_space_iff intro: 1 \<Omega>)
+lemma cbox_borel[measurable]: "cbox a b \<in> sets borel"
+  by (auto intro: borel_closed)
+
+lemma borel_compact: "compact (A::'a::t2_space set) \<Longrightarrow> A \<in> sets borel"
+  by (auto intro: borel_closed dest!: compact_imp_closed)
+
+lemma borel_measurable_continuous_on_if:
+  assumes A: "A \<in> sets borel" and f: "continuous_on A f" and g: "continuous_on (- A) g"
+  shows "(\<lambda>x. if x \<in> A then f x else g x) \<in> borel_measurable borel"
+proof (rule borel_measurableI)
+  fix S :: "'b set" assume "open S"
+  have "(\<lambda>x. if x \<in> A then f x else g x) -` S \<inter> space borel = (f -` S \<inter> A) \<union> (g -` S \<inter> -A)"
+    by (auto split: split_if_asm)
+  moreover obtain A' where "f -` S \<inter> A = A' \<inter> A" "open A'"
+    using continuous_on_open_invariant[THEN iffD1, rule_format, OF f `open S`] by metis
+  moreover obtain B' where "g -` S \<inter> -A = B' \<inter> -A" "open B'"
+    using continuous_on_open_invariant[THEN iffD1, rule_format, OF g `open S`] by metis
+  ultimately show "(\<lambda>x. if x \<in> A then f x else g x) -` S \<inter> space borel \<in> sets borel"
+    using A by auto
 qed
 
 lemma borel_measurable_continuous_on1:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes "continuous_on UNIV f"
-  shows "f \<in> borel_measurable borel"
-  apply(rule borel_measurableI)
-  using continuous_open_preimage[OF assms] unfolding vimage_def by auto
+  "continuous_on UNIV f \<Longrightarrow> f \<in> borel_measurable borel"
+  using borel_measurable_continuous_on_if[of UNIV f "\<lambda>_. undefined"]
+  by (auto intro: continuous_on_const)
+
+lemma borel_measurable_continuous_on:
+  assumes f: "continuous_on UNIV f" and g: "g \<in> borel_measurable M"
+  shows "(\<lambda>x. f (g x)) \<in> borel_measurable M"
+  using measurable_comp[OF g borel_measurable_continuous_on1[OF f]] by (simp add: comp_def)
+
+lemma borel_measurable_continuous_on_open':
+  "continuous_on A f \<Longrightarrow> open A \<Longrightarrow>
+    (\<lambda>x. if x \<in> A then f x else c) \<in> borel_measurable borel"
+  using borel_measurable_continuous_on_if[of A f "\<lambda>_. c"] by (auto intro: continuous_on_const)
+
+lemma borel_measurable_continuous_on_open:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t1_space"
+  assumes cont: "continuous_on A f" "open A"
+  assumes g: "g \<in> borel_measurable M"
+  shows "(\<lambda>x. if g x \<in> A then f (g x) else c) \<in> borel_measurable M"
+  using measurable_comp[OF g borel_measurable_continuous_on_open'[OF cont], of c]
+  by (simp add: comp_def)
+
+lemma borel_measurable_continuous_on_indicator:
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  assumes A: "A \<in> sets borel" and f: "continuous_on A f"
+  shows "(\<lambda>x. indicator A x *\<^sub>R f x) \<in> borel_measurable borel"
+  using borel_measurable_continuous_on_if[OF assms, of "\<lambda>_. 0"]
+  by (simp add: indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a] continuous_on_const
+           cong del: if_cong)
 
 lemma borel_eq_countable_basis:
   fixes B::"'a::topological_space set set"
@@ -215,37 +230,6 @@ proof (subst borel_eq_countable_basis)
     finally show "(\<lambda>x. (f x, g x)) -` S \<inter> space M \<in> sets M" .
   qed auto
 qed
-
-lemma borel_measurable_continuous_on:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes f: "continuous_on UNIV f" and g: "g \<in> borel_measurable M"
-  shows "(\<lambda>x. f (g x)) \<in> borel_measurable M"
-  using measurable_comp[OF g borel_measurable_continuous_on1[OF f]] by (simp add: comp_def)
-
-lemma borel_measurable_continuous_on_open':
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::t1_space"
-  assumes cont: "continuous_on A f" "open A"
-  shows "(\<lambda>x. if x \<in> A then f x else c) \<in> borel_measurable borel" (is "?f \<in> _")
-proof (rule borel_measurableI)
-  fix S :: "'b set" assume "open S"
-  then have "open {x\<in>A. f x \<in> S}"
-    by (intro continuous_open_preimage[OF cont]) auto
-  then have *: "{x\<in>A. f x \<in> S} \<in> sets borel" by auto
-  have "?f -` S \<inter> space borel = 
-    {x\<in>A. f x \<in> S} \<union> (if c \<in> S then space borel - A else {})"
-    by (auto split: split_if_asm)
-  also have "\<dots> \<in> sets borel"
-    using * `open A` by auto
-  finally show "?f -` S \<inter> space borel \<in> sets borel" .
-qed
-
-lemma borel_measurable_continuous_on_open:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::t1_space"
-  assumes cont: "continuous_on A f" "open A"
-  assumes g: "g \<in> borel_measurable M"
-  shows "(\<lambda>x. if g x \<in> A then f (g x) else c) \<in> borel_measurable M"
-  using measurable_comp[OF g borel_measurable_continuous_on_open'[OF cont], of c]
-  by (simp add: comp_def)
 
 lemma borel_measurable_continuous_Pair:
   fixes f :: "'a \<Rightarrow> 'b::second_countable_topology" and g :: "'a \<Rightarrow> 'c::second_countable_topology"
@@ -852,11 +836,8 @@ proof -
       by (auto simp: ln_def) }
   note ln_imp = this
   have "(\<lambda>x. if f x \<in> {0<..} then ln (f x) else ln 0) \<in> borel_measurable M"
-  proof (rule borel_measurable_continuous_on_open[OF _ _ f])
-    show "continuous_on {0<..} ln"
-      by (auto intro!: continuous_at_imp_continuous_on DERIV_ln DERIV_isCont)
-    show "open ({0<..}::real set)" by auto
-  qed
+    by (rule borel_measurable_continuous_on_open[OF _ _ f])
+       (auto intro!: continuous_intros)
   also have "(\<lambda>x. if x \<in> {0<..} then ln x else ln 0) = ln"
     by (simp add: fun_eq_iff not_less ln_imp)
   finally show ?thesis .
