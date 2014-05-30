@@ -97,7 +97,7 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
                          mesh_isar_line), mesh_prover_line)) =
       if in_range range j then
         let
-          val get_suggs = extract_suggestions ##> take max_suggs
+          val get_suggs = extract_suggestions ##> (take max_suggs #> map fst)
           val (name1, mepo_suggs) = get_suggs mepo_line
           val (name2, mash_isar_suggs) = get_suggs mash_isar_line
           val (name3, mash_prover_suggs) = get_suggs mash_prover_line
