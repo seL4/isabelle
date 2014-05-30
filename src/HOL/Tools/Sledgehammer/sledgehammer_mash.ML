@@ -460,7 +460,7 @@ fun k_nearest_neighbors num_facts num_visible_facts get_deps get_sym_ths max_sug
     ret [] (Integer.max 0 (num_visible_facts - max_suggs))
   end
 
-val nb_def_prior_weight = 20 (* FUDGE *)
+val nb_def_prior_weight = 21 (* FUDGE *)
 
 (* TODO: Either use IDF or don't use it. See commented out code portions below. *)
 
@@ -497,7 +497,7 @@ fun naive_bayes_learn num_facts get_deps get_feats num_feats =
 val nb_kuehlwein_style = false
 
 val nb_tau = if nb_kuehlwein_style then 0.05 else 0.02 (* FUDGE *)
-val nb_pos_weight = if nb_kuehlwein_style then 20.0 else 2.0 (* FUDGE *)
+val nb_pos_weight = if nb_kuehlwein_style then 10.0 else 2.0 (* FUDGE *)
 val nb_def_val = ~15.0 (* FUDGE *)
 
 fun naive_bayes_query _ (* num_facts *) num_visible_facts max_suggs feats (tfreq, sfreq (*, dffreq*)) =
