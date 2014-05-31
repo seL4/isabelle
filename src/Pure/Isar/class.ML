@@ -359,7 +359,7 @@ fun global_const dangling_params class phi ((b, mx), rhs) thy =
   let
     val dangling_params' = map (Morphism.term phi) dangling_params;
     val b' = Morphism.binding phi b;
-    val b_def = Morphism.binding phi (Binding.suffix_name "_dict" b');
+    val b_def = Binding.suffix_name "_dict" b';
     val rhs' = Morphism.term phi rhs;
     val c' = Sign.full_name thy b';
     val ty' = map Term.fastype_of dangling_params' ---> Term.fastype_of rhs';
