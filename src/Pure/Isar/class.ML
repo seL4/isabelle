@@ -332,8 +332,7 @@ fun class_const class prmode (b, rhs) =
         orelse same_shape;
     in
       not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', NoSyn), rhs')
-    end) #>
-  Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), rhs);
+    end);
 
 fun dangling_params_for lthy class (type_params, term_params) =
   let
@@ -397,6 +396,7 @@ fun const class ((b, mx), lhs) params lthy =
     lthy
     |> class_const class Syntax.mode_default (b, lhs)
     |> Local_Theory.raw_theory (canonical_const class phi dangling_params ((b, mx), lhs))
+    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) Syntax.mode_default ((b, NoSyn), lhs)
     |> synchronize_class_syntax_target class
   end;
 
@@ -407,6 +407,7 @@ fun abbrev class prmode ((b, mx), lhs) rhs' lthy =
     lthy
     |> class_const class prmode (b, lhs)
     |> Local_Theory.raw_theory (canonical_abbrev class phi prmode ((b, mx), rhs'))
+    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), lhs)
     |> synchronize_class_syntax_target class
   end;
 
