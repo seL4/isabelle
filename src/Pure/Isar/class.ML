@@ -316,10 +316,6 @@ val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
 local
 
-fun target_extension f class b_mx_rhs =
-  Local_Theory.raw_theory (fn thy => f class (morphism thy class) b_mx_rhs thy)
-  #> synchronize_class_syntax_target class;
-
 fun class_const class prmode (b, rhs) =
   Generic_Target.locale_declaration class true (fn phi =>
     let
@@ -396,15 +392,23 @@ in
 fun const class ((b, mx), lhs) params lthy =
   let
     val dangling_params = dangling_params_for lthy class params;
+    val phi = morphism (Proof_Context.theory_of lthy) class;
   in
     lthy
     |> class_const class Syntax.mode_default (b, lhs)
-    |> target_extension (canonical_const dangling_params) class ((b, mx), lhs)
+    |> Local_Theory.raw_theory (canonical_const dangling_params class phi ((b, mx), lhs))
+    |> synchronize_class_syntax_target class
   end;
 
-fun abbrev class prmode ((b, mx), lhs) rhs' =
-  class_const class prmode (b, lhs)
-  #> target_extension (canonical_abbrev prmode) class ((b, mx), rhs');
+fun abbrev class prmode ((b, mx), lhs) rhs' lthy =
+  let
+    val phi = morphism (Proof_Context.theory_of lthy) class;
+  in
+    lthy
+    |> class_const class prmode (b, lhs)
+    |> Local_Theory.raw_theory (canonical_abbrev prmode class phi ((b, mx), rhs'))
+    |> synchronize_class_syntax_target class
+  end;
 
 end;
 
