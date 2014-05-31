@@ -355,7 +355,7 @@ fun global_def (b, eq) thy =
       #> snd
       #> pair def_thm);
 
-fun global_const dangling_params class phi ((b, mx), rhs) thy =
+fun canonical_const dangling_params class phi ((b, mx), rhs) thy =
   let
     val dangling_params' = map (Morphism.term phi) dangling_params;
     val b' = Morphism.binding phi b;
@@ -375,7 +375,7 @@ fun global_const dangling_params class phi ((b, mx), rhs) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun global_abbrev prmode class phi ((b, mx), rhs) thy =
+fun canonical_abbrev prmode class phi ((b, mx), rhs) thy =
   let
     val unchecks = these_unchecks thy [class];
     val b' = Morphism.binding phi b;
@@ -399,12 +399,12 @@ fun const class ((b, mx), lhs) params lthy =
   in
     lthy
     |> class_const class Syntax.mode_default (b, lhs)
-    |> target_extension (global_const dangling_params) class ((b, mx), lhs)
+    |> target_extension (canonical_const dangling_params) class ((b, mx), lhs)
   end;
 
 fun abbrev class prmode ((b, mx), lhs) rhs' =
   class_const class prmode (b, lhs)
-  #> target_extension (global_abbrev prmode) class ((b, mx), rhs');
+  #> target_extension (canonical_abbrev prmode) class ((b, mx), rhs');
 
 end;
 
