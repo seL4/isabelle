@@ -435,7 +435,7 @@ fun abstract_eq f (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
 
 fun prove_prop_rewrite ctxt t =
   prove_abstract' ctxt t prop_tac (
-    abstract_eq (abstract_eq abstract_prop) (dest_prop t))
+    abstract_eq abstract_prop (dest_prop t))
 
 fun arith_rewrite_tac ctxt _ =
   TRY o Simplifier.simp_tac ctxt
