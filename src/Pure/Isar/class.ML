@@ -351,7 +351,7 @@ fun global_def (b, eq) thy =
       #> snd
       #> pair def_thm);
 
-fun canonical_const dangling_params class phi ((b, mx), rhs) thy =
+fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
   let
     val dangling_params' = map (Morphism.term phi) dangling_params;
     val b' = Morphism.binding phi b;
@@ -371,7 +371,7 @@ fun canonical_const dangling_params class phi ((b, mx), rhs) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun canonical_abbrev prmode class phi ((b, mx), rhs) thy =
+fun canonical_abbrev class phi prmode ((b, mx), rhs) thy =
   let
     val unchecks = these_unchecks thy [class];
     val b' = Morphism.binding phi b;
@@ -396,7 +396,7 @@ fun const class ((b, mx), lhs) params lthy =
   in
     lthy
     |> class_const class Syntax.mode_default (b, lhs)
-    |> Local_Theory.raw_theory (canonical_const dangling_params class phi ((b, mx), lhs))
+    |> Local_Theory.raw_theory (canonical_const class phi dangling_params ((b, mx), lhs))
     |> synchronize_class_syntax_target class
   end;
 
@@ -406,7 +406,7 @@ fun abbrev class prmode ((b, mx), lhs) rhs' lthy =
   in
     lthy
     |> class_const class prmode (b, lhs)
-    |> Local_Theory.raw_theory (canonical_abbrev prmode class phi ((b, mx), rhs'))
+    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode ((b, mx), rhs'))
     |> synchronize_class_syntax_target class
   end;
 
