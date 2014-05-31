@@ -316,10 +316,6 @@ val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
 local
 
-fun target_extension f class b_mx_rhs =
-  Local_Theory.raw_theory (fn thy => f class (morphism thy class) b_mx_rhs thy)
-  #> synchronize_class_syntax_target class;
-
 fun class_const class prmode (b, rhs) =
   Generic_Target.locale_declaration class true (fn phi =>
     let
@@ -336,8 +332,7 @@ fun class_const class prmode (b, rhs) =
         orelse same_shape;
     in
       not is_canonical_class ? Generic_Target.generic_const same_shape prmode ((b', NoSyn), rhs')
-    end) #>
-  Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), rhs);
+    end);
 
 fun dangling_params_for lthy class (type_params, term_params) =
   let
@@ -355,11 +350,11 @@ fun global_def (b, eq) thy =
       #> snd
       #> pair def_thm);
 
-fun global_const dangling_params class phi ((b, mx), rhs) thy =
+fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
   let
     val dangling_params' = map (Morphism.term phi) dangling_params;
     val b' = Morphism.binding phi b;
-    val b_def = Morphism.binding phi (Binding.suffix_name "_dict" b');
+    val b_def = Binding.suffix_name "_dict" b';
     val rhs' = Morphism.term phi rhs;
     val c' = Sign.full_name thy b';
     val ty' = map Term.fastype_of dangling_params' ---> Term.fastype_of rhs';
@@ -375,7 +370,7 @@ fun global_const dangling_params class phi ((b, mx), rhs) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun global_abbrev prmode class phi ((b, mx), rhs) thy =
+fun canonical_abbrev class phi prmode ((b, mx), rhs) thy =
   let
     val unchecks = these_unchecks thy [class];
     val b' = Morphism.binding phi b;
@@ -396,15 +391,25 @@ in
 fun const class ((b, mx), lhs) params lthy =
   let
     val dangling_params = dangling_params_for lthy class params;
+    val phi = morphism (Proof_Context.theory_of lthy) class;
   in
     lthy
     |> class_const class Syntax.mode_default (b, lhs)
-    |> target_extension (global_const dangling_params) class ((b, mx), lhs)
+    |> Local_Theory.raw_theory (canonical_const class phi dangling_params ((b, mx), lhs))
+    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) Syntax.mode_default ((b, NoSyn), lhs)
+    |> synchronize_class_syntax_target class
   end;
 
-fun abbrev class prmode ((b, mx), lhs) rhs' =
-  class_const class prmode (b, lhs)
-  #> target_extension (global_abbrev prmode) class ((b, mx), rhs');
+fun abbrev class prmode ((b, mx), lhs) rhs' lthy =
+  let
+    val phi = morphism (Proof_Context.theory_of lthy) class;
+  in
+    lthy
+    |> class_const class prmode (b, lhs)
+    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode ((b, mx), rhs'))
+    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), lhs)
+    |> synchronize_class_syntax_target class
+  end;
 
 end;
 
