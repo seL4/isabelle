@@ -395,13 +395,47 @@ fun not_or_elim ctxt [thm] t =
 
 (* rewriting *)
 
-fun abstract_eq f1 f2 (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
-      f1 t1 ##>> f2 t2 #>> HOLogic.mk_eq
-  | abstract_eq _ _ t = abstract_term t
+local
+
+fun dest_all (Const (@{const_name HOL.All}, _) $ Abs (_, T, t)) nctxt =
+      let
+        val (n, nctxt') = Name.variant "" nctxt
+        val f = Free (n, T)
+        val t' = Term.subst_bound (f, t)
+      in dest_all t' nctxt' |>> cons f end
+  | dest_all t _ = ([], t)
+
+fun dest_alls t =
+  let
+    val nctxt = Name.make_context (Term.add_free_names t [])
+    val (lhs, rhs) = HOLogic.dest_eq (dest_prop t)
+    val (ls, lhs') = dest_all lhs nctxt
+    val (rs, rhs') = dest_all rhs nctxt
+  in
+    if eq_list (op aconv) (ls, rs) then SOME (ls, (HOLogic.mk_eq (lhs', rhs')))
+    else NONE
+  end
+
+fun forall_intr ctxt t thm =
+  let val ct = Thm.cterm_of (Proof_Context.theory_of ctxt) t
+  in Thm.forall_intr ct thm COMP_INCR @{thm iff_allI} end
+
+in
+
+fun focus_eq f ctxt t =
+  (case dest_alls t of
+    NONE => f ctxt t
+  | SOME (vs, t') => fold (forall_intr ctxt) vs (f ctxt t'))
+
+end
+
+fun abstract_eq f (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
+      f t1 ##>> f t2 #>> HOLogic.mk_eq
+  | abstract_eq _ t = abstract_term t
 
 fun prove_prop_rewrite ctxt t =
   prove_abstract' ctxt t prop_tac (
-    abstract_eq abstract_prop abstract_prop (dest_prop t))
+    abstract_eq (abstract_eq abstract_prop) (dest_prop t))
 
 fun arith_rewrite_tac ctxt _ =
   TRY o Simplifier.simp_tac ctxt
@@ -409,12 +443,12 @@ fun arith_rewrite_tac ctxt _ =
 
 fun prove_arith_rewrite ctxt t =
   prove_abstract' ctxt t arith_rewrite_tac (
-    abstract_eq (abstract_arith ctxt) (abstract_arith ctxt) (dest_prop t))
+    abstract_eq (abstract_arith ctxt) (dest_prop t))
 
 fun rewrite ctxt _ = try_provers ctxt Z3_New_Proof.Rewrite [
   ("rules", apply_rule ctxt),
   ("prop_rewrite", prove_prop_rewrite ctxt),
-  ("arith_rewrite", prove_arith_rewrite ctxt)] []
+  ("arith_rewrite", focus_eq prove_arith_rewrite ctxt)] []
 
 fun rewrite_star ctxt = rewrite ctxt
 
