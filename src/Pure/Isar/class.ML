@@ -392,9 +392,10 @@ fun const class ((b, mx), lhs) params lthy =
   in
     lthy
     |> class_const class Syntax.mode_default (b, lhs)
-    |> Local_Theory.raw_theory
-        (canonical_const class phi dangling_params ((Morphism.binding phi b, mx), Morphism.term phi lhs))
-    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) Syntax.mode_default ((b, NoSyn), lhs)
+    |> Local_Theory.raw_theory (canonical_const class phi dangling_params
+         ((Morphism.binding phi b, if null dangling_params then mx else NoSyn), Morphism.term phi lhs))
+    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other)
+         Syntax.mode_default ((b, if null dangling_params then NoSyn else mx), lhs)
     |> synchronize_class_syntax_target class
   end;
 
