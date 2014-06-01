@@ -352,22 +352,19 @@ fun global_def (b, eq) thy =
 
 fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
   let
-    val dangling_params' = map (Morphism.term phi) dangling_params;
-    val b' = Morphism.binding phi b;
-    val b_def = Binding.suffix_name "_dict" b';
-    val rhs' = Morphism.term phi rhs;
-    val c' = Sign.full_name thy b';
-    val ty' = map Term.fastype_of dangling_params' ---> Term.fastype_of rhs';
-    val def_eq = Logic.mk_equals (list_comb (Const (c', ty'), dangling_params'), rhs')
+    val b_def = Binding.suffix_name "_dict" b;
+    val c = Sign.full_name thy b;
+    val ty = map Term.fastype_of dangling_params ---> Term.fastype_of rhs;
+    val def_eq = Logic.mk_equals (list_comb (Const (c, ty), dangling_params), rhs)
       |> map_types Type.strip_sorts;
   in
     thy
-    |> Sign.declare_const_global ((b', Type.strip_sorts ty'), mx)
+    |> Sign.declare_const_global ((b, Type.strip_sorts ty), mx)
     |> snd
     |> global_def (b_def, def_eq)
     |-> (fn def_thm =>
-      null dangling_params' ? register_operation class (c', (rhs', SOME (Thm.symmetric def_thm))))
-    |> Sign.add_const_constraint (c', SOME ty')
+      null dangling_params ? register_operation class (c, (rhs, SOME (Thm.symmetric def_thm))))
+    |> Sign.add_const_constraint (c, SOME ty)
   end;
 
 fun canonical_abbrev class phi prmode ((b, mx), rhs) thy =
@@ -390,12 +387,13 @@ in
 
 fun const class ((b, mx), lhs) params lthy =
   let
-    val dangling_params = dangling_params_for lthy class params;
     val phi = morphism (Proof_Context.theory_of lthy) class;
+    val dangling_params = map (Morphism.term phi) (dangling_params_for lthy class params);
   in
     lthy
     |> class_const class Syntax.mode_default (b, lhs)
-    |> Local_Theory.raw_theory (canonical_const class phi dangling_params ((b, mx), lhs))
+    |> Local_Theory.raw_theory
+        (canonical_const class phi dangling_params ((Morphism.binding phi b, mx), Morphism.term phi lhs))
     |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) Syntax.mode_default ((b, NoSyn), lhs)
     |> synchronize_class_syntax_target class
   end;
