@@ -17,8 +17,6 @@ sig
     default_max_relevant: int,
     can_filter: bool,
     outcome: string -> string list -> outcome * string list,
-    cex_parser: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-      term list * term list) option,
     replay: (Proof.context -> SMT2_Translate.replay_data -> string list ->
       ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm) option}
 
@@ -144,8 +142,6 @@ type solver_config = {
   default_max_relevant: int,
   can_filter: bool,
   outcome: string -> string list -> outcome * string list,
-  cex_parser: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-    term list * term list) option,
   replay: (Proof.context -> SMT2_Translate.replay_data -> string list ->
     ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm) option}
 
@@ -180,7 +176,7 @@ structure Solvers = Generic_Data
 )
 
 local
-  fun finish outcome cex_parser replay ocl outer_ctxt
+  fun finish outcome replay ocl outer_ctxt
       (replay_data as {context = ctxt, ...} : SMT2_Translate.replay_data) output =
     (case outcome output of
       (Unsat, ls) =>
@@ -188,25 +184,22 @@ local
         then the replay outer_ctxt replay_data ls
         else (([], []), ocl ())
     | (result, ls) =>
-        let val (ts, us) = (case cex_parser of SOME f => f ctxt replay_data ls | _ => ([], []))
-        in
-          raise SMT2_Failure.SMT (SMT2_Failure.Counterexample {
-            is_real_cex = (result = Sat),
-            free_constraints = ts,
-            const_defs = us})
-        end)
+        raise SMT2_Failure.SMT (SMT2_Failure.Counterexample {
+          is_real_cex = (result = Sat),
+          free_constraints = [],
+          const_defs = []}))
 
   val cfalse = Thm.cterm_of @{theory} (@{const Trueprop} $ @{const False})
 in
 
 fun add_solver ({name, class, avail, command, options, default_max_relevant, can_filter,
-    outcome, cex_parser, replay} : solver_config) =
+    outcome, replay} : solver_config) =
   let
     fun solver ocl = {
       command = command,
       default_max_relevant = default_max_relevant,
       can_filter = can_filter,
-      finish = finish (outcome name) cex_parser replay ocl}
+      finish = finish (outcome name) replay ocl}
 
     val info = {name = name, class = class, avail = avail, options = options}
   in

@@ -58,7 +58,6 @@ val cvc3: SMT2_Solver.solver_config = {
   can_filter = false,
   outcome =
     on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
-  cex_parser = NONE,
   replay = NONE }
 
 end
@@ -79,7 +78,6 @@ val yices: SMT2_Solver.solver_config = {
   default_max_relevant = 350 (* FUDGE *),
   can_filter = false,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
-  cex_parser = NONE,
   replay = NONE }
 
 
@@ -145,7 +143,6 @@ val z3: SMT2_Solver.solver_config = {
   default_max_relevant = 350 (* FUDGE *),
   can_filter = true,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
-  cex_parser = SOME Z3_New_Model.parse_counterex,
   replay = SOME Z3_New_Replay.replay }
 
 end
