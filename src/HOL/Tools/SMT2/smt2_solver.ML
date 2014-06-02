@@ -183,9 +183,7 @@ local
     (case outcome output of
       (Unsat, ls) =>
         (case parse_proof0 of SOME pp => pp outer_ctxt replay_data ls | NONE => ([], []))
-    | (result, _) =>
-        raise SMT2_Failure.SMT (SMT2_Failure.Counterexample {
-          is_real_cex = (result = Sat), free_constraints = [], const_defs = []}))
+    | (result, _) => raise SMT2_Failure.SMT (SMT2_Failure.Counterexample (result = Sat)))
 
   fun replay outcome replay0 oracle outer_ctxt
       (replay_data as {context = ctxt, ...} : SMT2_Translate.replay_data) output =
@@ -194,9 +192,7 @@ local
         if not (Config.get ctxt SMT2_Config.oracle) andalso is_some replay0
         then the replay0 outer_ctxt replay_data ls
         else oracle ()
-    | (result, _) =>
-        raise SMT2_Failure.SMT (SMT2_Failure.Counterexample {
-          is_real_cex = (result = Sat), free_constraints = [], const_defs = []}))
+    | (result, _) => raise SMT2_Failure.SMT (SMT2_Failure.Counterexample (result = Sat)))
 
   val cfalse = Thm.cterm_of @{theory} @{prop False}
 in
@@ -297,7 +293,7 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
 
 local
   fun str_of ctxt fail =
-    "Solver " ^ SMT2_Config.solver_of ctxt ^ ": " ^ SMT2_Failure.string_of_failure ctxt fail
+    "Solver " ^ SMT2_Config.solver_of ctxt ^ ": " ^ SMT2_Failure.string_of_failure fail
 
   fun safe_solve ctxt wfacts = SOME (apply_solver_and_replay ctxt wfacts)
     handle
@@ -305,7 +301,7 @@ local
         (SMT2_Config.verbose_msg ctxt (str_of ctxt) fail; NONE)
     | SMT2_Failure.SMT (fail as SMT2_Failure.Time_Out) =>
         error ("SMT: Solver " ^ quote (SMT2_Config.solver_of ctxt) ^ ": " ^
-          SMT2_Failure.string_of_failure ctxt fail ^ " (setting the " ^
+          SMT2_Failure.string_of_failure fail ^ " (setting the " ^
           "configuration option " ^ quote (Config.name_of SMT2_Config.timeout) ^ " might help)")
     | SMT2_Failure.SMT fail => error (str_of ctxt fail)
 

@@ -85,8 +85,8 @@ val unix_failures =
    (139, Crashed)]
 val smt2_failures = z3_failures @ unix_failures
 
-fun failure_of_smt2_failure (SMT2_Failure.Counterexample {is_real_cex, ...}) =
-    if is_real_cex then Unprovable else GaveUp
+fun failure_of_smt2_failure (SMT2_Failure.Counterexample genuine) =
+    if genuine then Unprovable else GaveUp
   | failure_of_smt2_failure SMT2_Failure.Time_Out = TimedOut
   | failure_of_smt2_failure (SMT2_Failure.Abnormal_Termination code) =
     (case AList.lookup (op =) smt2_failures code of
