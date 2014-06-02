@@ -461,7 +461,7 @@ lemma continuous_real_sqrt[continuous_intros]:
   unfolding sqrt_def by (rule continuous_real_root)
   
 lemma continuous_on_real_sqrt[continuous_intros]:
-  "continuous_on s f \<Longrightarrow> 0 < n \<Longrightarrow> continuous_on s (\<lambda>x. sqrt (f x))"
+  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. sqrt (f x))"
   unfolding sqrt_def by (rule continuous_on_real_root)
 
 lemma DERIV_real_sqrt_generic:
