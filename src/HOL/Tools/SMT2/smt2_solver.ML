@@ -17,8 +17,9 @@ sig
     default_max_relevant: int,
     can_filter: bool,
     outcome: string -> string list -> outcome * string list,
-    replay: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-      ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm) option}
+    parse_proof: (Proof.context -> SMT2_Translate.replay_data -> string list ->
+      (int * (int * thm)) list * Z3_New_Proof.z3_step list) option,
+    replay: (Proof.context -> SMT2_Translate.replay_data -> string list -> thm) option}
 
   (*registry*)
   val add_solver: solver_config -> theory -> theory
@@ -142,8 +143,9 @@ type solver_config = {
   default_max_relevant: int,
   can_filter: bool,
   outcome: string -> string list -> outcome * string list,
-  replay: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm) option}
+  parse_proof: (Proof.context -> SMT2_Translate.replay_data -> string list ->
+    (int * (int * thm)) list * Z3_New_Proof.z3_step list) option,
+  replay: (Proof.context -> SMT2_Translate.replay_data -> string list -> thm) option}
 
 
 (* check well-sortedness *)
@@ -164,8 +166,9 @@ type solver_info = {
   command: unit -> string list,
   default_max_relevant: int,
   can_filter: bool,
-  finish: Proof.context -> SMT2_Translate.replay_data -> string list ->
-    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm}
+  parse_proof: Proof.context -> SMT2_Translate.replay_data -> string list ->
+    (int * (int * thm)) list * Z3_New_Proof.z3_step list,
+  replay: Proof.context -> SMT2_Translate.replay_data -> string list -> thm}
 
 structure Solvers = Generic_Data
 (
@@ -176,35 +179,42 @@ structure Solvers = Generic_Data
 )
 
 local
-  fun finish outcome replay ocl outer_ctxt
+  fun parse_proof outcome parse_proof0 outer_ctxt replay_data output =
+    (case outcome output of
+      (Unsat, ls) =>
+        (case parse_proof0 of SOME pp => pp outer_ctxt replay_data ls | NONE => ([], []))
+    | (result, _) =>
+        raise SMT2_Failure.SMT (SMT2_Failure.Counterexample {
+          is_real_cex = (result = Sat), free_constraints = [], const_defs = []}))
+
+  fun replay outcome replay0 oracle outer_ctxt
       (replay_data as {context = ctxt, ...} : SMT2_Translate.replay_data) output =
     (case outcome output of
       (Unsat, ls) =>
-        if not (Config.get ctxt SMT2_Config.oracle) andalso is_some replay
-        then the replay outer_ctxt replay_data ls
-        else (([], []), ocl ())
-    | (result, ls) =>
+        if not (Config.get ctxt SMT2_Config.oracle) andalso is_some replay0
+        then the replay0 outer_ctxt replay_data ls
+        else oracle ()
+    | (result, _) =>
         raise SMT2_Failure.SMT (SMT2_Failure.Counterexample {
-          is_real_cex = (result = Sat),
-          free_constraints = [],
-          const_defs = []}))
+          is_real_cex = (result = Sat), free_constraints = [], const_defs = []}))
 
-  val cfalse = Thm.cterm_of @{theory} (@{const Trueprop} $ @{const False})
+  val cfalse = Thm.cterm_of @{theory} @{prop False}
 in
 
 fun add_solver ({name, class, avail, command, options, default_max_relevant, can_filter,
-    outcome, replay} : solver_config) =
+    outcome, parse_proof = parse_proof0, replay = replay0} : solver_config) =
   let
-    fun solver ocl = {
+    fun solver oracle = {
       command = command,
       default_max_relevant = default_max_relevant,
       can_filter = can_filter,
-      finish = finish (outcome name) replay ocl}
+      parse_proof = parse_proof (outcome name) parse_proof0,
+      replay = replay (outcome name) replay0 oracle}
 
     val info = {name = name, class = class, avail = avail, options = options}
   in
-    Thm.add_oracle (Binding.name name, K cfalse) #-> (fn (_, ocl) =>
-    Context.theory_map (Solvers.map (Symtab.update_new (name, solver ocl)))) #>
+    Thm.add_oracle (Binding.name name, K cfalse) #-> (fn (_, oracle) =>
+    Context.theory_map (Solvers.map (Symtab.update_new (name, solver oracle)))) #>
     Context.theory_map (SMT2_Config.add_solver info)
   end
 
@@ -216,12 +226,19 @@ fun name_and_info_of ctxt =
   let val name = SMT2_Config.solver_of ctxt
   in (name, get_info ctxt name) end
 
-fun apply_solver ctxt wthms0 =
+fun apply_solver_and_parse_proof ctxt wthms0 =
   let
     val wthms = map (apsnd (check_topsort ctxt)) wthms0
-    val (name, {command, finish, ...}) = name_and_info_of ctxt
+    val (name, {command, parse_proof, ...}) = name_and_info_of ctxt
     val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt wthms) ctxt
-  in (finish ctxt replay_data output, replay_data) end
+  in (parse_proof ctxt replay_data output, replay_data) end
+
+fun apply_solver_and_replay ctxt wthms0 =
+  let
+    val wthms = map (apsnd (check_topsort ctxt)) wthms0
+    val (name, {command, replay, ...}) = name_and_info_of ctxt
+    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt wthms) ctxt
+  in replay ctxt replay_data output end
 
 val default_max_relevant = #default_max_relevant oo get_info
 val can_filter = #can_filter o snd o name_and_info_of 
@@ -236,7 +253,6 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
     val ctxt =
       ctxt
       |> Config.put SMT2_Config.oracle false
-      |> Config.put SMT2_Config.filter_only_facts true
       |> Config.put SMT2_Config.timeout (Time.toReal time_limit)
 
     val ({context = ctxt, prems, concl, ...}, _) = Subgoal.focus ctxt i goal
@@ -257,8 +273,8 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
     val facts_i = prems_i + length wprems
   in
     wthms
-    |> apply_solver ctxt
-    |> (fn (((iidths0, z3_proof), _), {rewrite_rules, ...}) =>
+    |> apply_solver_and_parse_proof ctxt
+    |> (fn ((iidths0, z3_proof), {rewrite_rules, ...}) =>
       let
         val iidths = if can_filter ctxt then iidths0 else map (apsnd (apfst (K no_id))) iwthms
         fun id_of_index i = the_default no_id (Option.map fst (AList.lookup (op =) iidths i))
@@ -280,25 +296,10 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
 (* SMT tactic *)
 
 local
-  fun trace_assumptions ctxt wfacts iidths =
-    let val used = map_filter (try (snd o nth wfacts) o fst) iidths in
-      if Config.get ctxt SMT2_Config.trace_used_facts andalso length wfacts > 0 then
-        tracing (Pretty.string_of (Pretty.big_list "SMT used facts:"
-          (map (Display.pretty_thm ctxt) used)))
-      else ()
-    end
-
-  fun solve ctxt wfacts =
-    wfacts
-    |> apply_solver ctxt
-    |> fst
-    |>> apfst (trace_assumptions ctxt wfacts)
-    |> snd
-
   fun str_of ctxt fail =
     "Solver " ^ SMT2_Config.solver_of ctxt ^ ": " ^ SMT2_Failure.string_of_failure ctxt fail
 
-  fun safe_solve ctxt wfacts = SOME (solve ctxt wfacts)
+  fun safe_solve ctxt wfacts = SOME (apply_solver_and_replay ctxt wfacts)
     handle
       SMT2_Failure.SMT (fail as SMT2_Failure.Counterexample _) =>
         (SMT2_Config.verbose_msg ctxt (str_of ctxt) fail; NONE)
@@ -319,7 +320,7 @@ local
 in
 
 val smt2_tac = tac safe_solve
-val smt2_tac' = tac (SOME oo solve)
+val smt2_tac' = tac (SOME oo apply_solver_and_replay)
 
 end
 

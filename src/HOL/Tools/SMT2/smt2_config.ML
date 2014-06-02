@@ -28,11 +28,9 @@ sig
   val read_only_certificates: bool Config.T
   val verbose: bool Config.T
   val trace: bool Config.T
-  val trace_used_facts: bool Config.T
   val monomorph_limit: int Config.T
   val monomorph_instances: int Config.T
   val infer_triggers: bool Config.T
-  val filter_only_facts: bool Config.T
   val debug_files: string Config.T
   val sat_solver: string Config.T
 
@@ -155,11 +153,9 @@ val random_seed = Attrib.setup_config_int @{binding smt2_random_seed} (K 1)
 val read_only_certificates = Attrib.setup_config_bool @{binding smt2_read_only_certificates} (K false)
 val verbose = Attrib.setup_config_bool @{binding smt2_verbose} (K true)
 val trace = Attrib.setup_config_bool @{binding smt2_trace} (K false)
-val trace_used_facts = Attrib.setup_config_bool @{binding smt2_trace_used_facts} (K false)
 val monomorph_limit = Attrib.setup_config_int @{binding smt2_monomorph_limit} (K 10)
 val monomorph_instances = Attrib.setup_config_int @{binding smt2_monomorph_instances} (K 500)
 val infer_triggers = Attrib.setup_config_bool @{binding smt2_infer_triggers} (K false)
-val filter_only_facts = Attrib.setup_config_bool @{binding smt2_filter_only_facts} (K false)
 val debug_files = Attrib.setup_config_string @{binding smt2_debug_files} (K "")
 val sat_solver = Attrib.setup_config_string @{binding smt2_sat_solver} (K "cdclite")
 

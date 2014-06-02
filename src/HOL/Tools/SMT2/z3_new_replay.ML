@@ -7,8 +7,9 @@ Z3 proof replay.
 
 signature Z3_NEW_REPLAY =
 sig
-  val replay: Proof.context -> SMT2_Translate.replay_data -> string list ->
-    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm
+  val parse_proof: Proof.context -> SMT2_Translate.replay_data -> string list ->
+    (int * (int * thm)) list * Z3_New_Proof.z3_step list
+  val replay: Proof.context -> SMT2_Translate.replay_data -> string list -> thm
 end
 
 structure Z3_New_Replay: Z3_NEW_REPLAY =
@@ -172,24 +173,28 @@ fun discharge rules outer_ctxt inner_ctxt =
   singleton (Proof_Context.export inner_ctxt outer_ctxt)
   #> discharge_assms outer_ctxt (make_discharge_rules rules)
 
+fun parse_proof outer_ctxt
+    ({context=ctxt, typs, terms, rewrite_rules, assms} : SMT2_Translate.replay_data) output =
+  let
+    val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
+    val ((iidths, _), _) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
+  in
+    (iidths, steps)
+  end
+
 fun replay outer_ctxt
     ({context=ctxt, typs, terms, rewrite_rules, assms} : SMT2_Translate.replay_data) output =
   let
     val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
-    val ((iidths, rules), (ctxt3, assumed)) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
+    val ((_, rules), (ctxt3, assumed)) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
+    val ctxt4 =
+      ctxt3
+      |> put_simpset (Z3_New_Replay_Util.make_simpset ctxt3 [])
+      |> Config.put SAT.solver (Config.get ctxt3 SMT2_Config.sat_solver)
+    val proofs = fold (replay_step ctxt4 assumed) steps assumed
+    val (_, Z3_New_Proof.Z3_Step {id, ...}) = split_last steps
   in
-    if Config.get ctxt3 SMT2_Config.filter_only_facts then
-      ((iidths, steps), TrueI)
-    else
-      let
-        val ctxt4 =
-          ctxt3
-          |> put_simpset (Z3_New_Replay_Util.make_simpset ctxt3 [])
-          |> Config.put SAT.solver (Config.get ctxt3 SMT2_Config.sat_solver)
-        val proofs = fold (replay_step ctxt4 assumed) steps assumed
-        val (_, Z3_New_Proof.Z3_Step {id, ...}) = split_last steps
-        val thm = Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
-      in (([], steps), thm) end
+    Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
   end
 
 end

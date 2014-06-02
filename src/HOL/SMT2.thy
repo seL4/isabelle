@@ -306,15 +306,6 @@ well as the returned result of the solver, the option
 
 declare [[ smt2_trace = false ]]
 
-text {*
-From the set of assumptions given to the SMT solver, those assumptions
-used in the proof are traced when the following option is set to
-@{term true}.  This only works for Z3 when it runs in non-oracle mode
-(see options @{text smt2_solver} and @{text smt2_oracle} above).
-*}
-
-declare [[ smt2_trace_used_facts = false ]]
-
 
 subsection {* Schematic rules for Z3 proof reconstruction *}
 
