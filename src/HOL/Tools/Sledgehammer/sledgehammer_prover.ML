@@ -95,9 +95,10 @@ end;
 structure Sledgehammer_Prover : SLEDGEHAMMER_PROVER =
 struct
 
+open ATP_Proof
 open ATP_Util
-open ATP_Problem
 open ATP_Systems
+open ATP_Problem
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Tactic

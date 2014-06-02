@@ -209,18 +209,18 @@ fun sledgehammer_tac demo ctxt timeout i =
             else ""))
           (atp_tac ctxt completeness [] (mult * timeout div frac) prover i)
   in
-    slice 2 0 ATP_Systems.spassN
-    ORELSE slice 2 0 ATP_Systems.vampireN
-    ORELSE slice 2 0 ATP_Systems.eN
-    ORELSE slice 2 0 ATP_Systems.z3_tptpN
-    ORELSE slice 1 1 ATP_Systems.spassN
-    ORELSE slice 1 2 ATP_Systems.eN
-    ORELSE slice 1 1 ATP_Systems.vampireN
-    ORELSE slice 1 2 ATP_Systems.vampireN
+    slice 2 0 ATP_Proof.spassN
+    ORELSE slice 2 0 ATP_Proof.vampireN
+    ORELSE slice 2 0 ATP_Proof.eN
+    ORELSE slice 2 0 ATP_Proof.z3_tptpN
+    ORELSE slice 1 1 ATP_Proof.spassN
+    ORELSE slice 1 2 ATP_Proof.eN
+    ORELSE slice 1 1 ATP_Proof.vampireN
+    ORELSE slice 1 2 ATP_Proof.vampireN
     ORELSE
       (if demo then
-         slice 2 0 ATP_Systems.satallaxN
-         ORELSE slice 2 0 ATP_Systems.leo2N
+         slice 2 0 ATP_Proof.satallaxN
+         ORELSE slice 2 0 ATP_Proof.leo2N
        else
          no_tac)
   end
@@ -238,7 +238,7 @@ fun auto_etc_tac ctxt timeout i =
   ORELSE SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 5) "auto+spass"
       (auto_tac ctxt
-       THEN ALLGOALS (atp_tac ctxt 0 [] (timeout div 5) ATP_Systems.spassN))
+       THEN ALLGOALS (atp_tac ctxt 0 [] (timeout div 5) ATP_Proof.spassN))
   ORELSE SOLVE_TIMEOUT (timeout div 10) "fast" (fast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "z3" (smt_solver_tac "z3" ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "cvc3" (smt_solver_tac "cvc3" ctxt i)
@@ -286,7 +286,7 @@ fun generic_isabelle_tptp_file demo thy timeout file_name =
       read_tptp_file thy (freeze_problem_consts thy o snd) file_name
     val conj = make_conj assms conjs
     val (last_hope_atp, last_hope_completeness) =
-      if demo then (ATP_Systems.satallaxN, 0) else (ATP_Systems.vampireN, 2)
+      if demo then (ATP_Proof.satallaxN, 0) else (ATP_Proof.vampireN, 2)
   in
     (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
      can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) 1) conj orelse

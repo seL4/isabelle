@@ -123,8 +123,8 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
     fun isar_proof_of () =
       let
-        val SOME (verbose, alt_metis_args, preplay_timeout, compress_isar, try0_isar, minimize,
-          atp_proof, goal) = try isar_params ()
+        val (verbose, alt_metis_args, preplay_timeout, compress_isar, try0_isar, minimize,
+          atp_proof, goal) = isar_params ()
 
         val systematic_methods = insert (op =) (Metis_Method alt_metis_args) systematic_methods0
 

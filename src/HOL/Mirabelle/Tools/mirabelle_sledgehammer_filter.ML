@@ -89,7 +89,7 @@ fun done id ({log, ...} : Mirabelle.done_args) =
   else
     ()
 
-val default_prover = ATP_Systems.eN (* arbitrary ATP *)
+val default_prover = ATP_Proof.eN (* arbitrary ATP *)
 
 fun with_index (i, s) = s ^ "@" ^ string_of_int i
 

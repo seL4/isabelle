@@ -48,25 +48,6 @@ sig
   val spass_H2NuVS0Red2 : string
   val spass_H2SOS : string
   val spass_extra_options : string Config.T
-  val agsyholN : string
-  val alt_ergoN : string
-  val dummy_thfN : string
-  val eN : string
-  val e_malesN : string
-  val e_parN : string
-  val e_sineN : string
-  val e_tofofN : string
-  val iproverN : string
-  val iprover_eqN : string
-  val leo2N : string
-  val satallaxN : string
-  val snarkN : string
-  val spassN : string
-  val spass_pirateN : string
-  val vampireN : string
-  val waldmeisterN : string
-  val z3_tptpN : string
-  val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (atp_failure * string) list -> atp_formula_role
@@ -156,28 +137,6 @@ fun known_szs_failures wrap =
 
 val known_szs_status_failures = known_szs_failures (prefix "SZS status ")
 val known_says_failures = known_szs_failures (prefix " says ")
-
-(* named ATPs *)
-
-val agsyholN = "agsyhol"
-val alt_ergoN = "alt_ergo"
-val dummy_thfN = "dummy_thf" (* for experiments *)
-val eN = "e"
-val e_malesN = "e_males"
-val e_parN = "e_par"
-val e_sineN = "e_sine"
-val e_tofofN = "e_tofof"
-val iproverN = "iprover"
-val iprover_eqN = "iprover_eq"
-val leo2N = "leo2"
-val satallaxN = "satallax"
-val snarkN = "snark"
-val spassN = "spass"
-val spass_pirateN = "spass_pirate"
-val vampireN = "vampire"
-val waldmeisterN = "waldmeister"
-val z3_tptpN = "z3_tptp"
-val remote_prefix = "remote_"
 
 structure Data = Theory_Data
 (
@@ -634,6 +593,27 @@ val z3_tptp_config : atp_config =
 val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 
+(* Zipperposition*)
+
+val zipperposition_tff1 = TFF Polymorphic
+
+val zipperposition_config : atp_config =
+  {exec = K (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
+       "-print none -proof tstp -print-types -timeout " ^
+       string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
+   proof_delims = tstp_proof_delims,
+   known_failures = known_szs_status_failures,
+   prem_role = Hypothesis,
+   best_slices = fn _ =>
+     (* FUDGE *)
+     [(1.0, (((100, ""), alt_ergo_tff1, "poly_native", liftingN, false), ""))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
+
+val zipperposition = (zipperpositionN, fn () => zipperposition_config)
+
+
 (* Not really a prover: Experimental Polymorphic THF and DFG output *)
 
 fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
@@ -816,8 +796,8 @@ fun effective_term_order ctxt atp =
 
 val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax, spass, vampire,
-   z3_tptp, dummy_thf, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
-   remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire, remote_snark,
+   z3_tptp,zipperposition, dummy_thf, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof,
+   remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire, remote_snark,
    remote_spass_pirate, remote_waldmeister]
 
 val setup = fold add_atp atps

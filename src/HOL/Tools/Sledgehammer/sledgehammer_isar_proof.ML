@@ -122,7 +122,7 @@ fun comment_isar_proof comment_of = map_isar_steps (comment_isar_step comment_of
 fun chain_qs_lfs NONE lfs = ([], lfs)
   | chain_qs_lfs (SOME l0) lfs =
     if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
-fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment)) =
+fun chain_isar_step lbl (x as Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment)) =
     let val (qs', lfs) = chain_qs_lfs lbl lfs in
       Prove (qs' @ qs, xs, l, t, map chain_isar_proof subs, (lfs, gfs), meths, comment)
     end

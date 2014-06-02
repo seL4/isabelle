@@ -651,10 +651,10 @@ fun run_proof_method trivial full m name meth named_thms id
             (override_params prover type_enc (my_timeout time_slice)) fact_override
       in
         if !meth = "sledgehammer_tac" then
-          sledge_tac 0.2 ATP_Systems.vampireN "mono_native"
-          ORELSE' sledge_tac 0.2 ATP_Systems.eN "poly_guards??"
-          ORELSE' sledge_tac 0.2 ATP_Systems.spassN "mono_native"
-          ORELSE' sledge_tac 0.2 ATP_Systems.z3_tptpN "poly_tags??"
+          sledge_tac 0.2 ATP_Proof.vampireN "mono_native"
+          ORELSE' sledge_tac 0.2 ATP_Proof.eN "poly_guards??"
+          ORELSE' sledge_tac 0.2 ATP_Proof.spassN "mono_native"
+          ORELSE' sledge_tac 0.2 ATP_Proof.z3_tptpN "poly_tags??"
           ORELSE' SMT_Solver.smt_tac ctxt thms
         else if !meth = "smt" then
           SMT_Solver.smt_tac ctxt thms
