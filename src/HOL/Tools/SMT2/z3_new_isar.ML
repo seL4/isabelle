@@ -6,11 +6,9 @@ Z3 proofs as generic ATP proofs for Isar proof reconstruction.
 
 signature Z3_NEW_ISAR =
 sig
-  type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
-
   val atp_proof_of_z3_proof: Proof.context -> thm list -> term list -> term ->
     (string * term) list -> int list -> int -> (int * string) list -> Z3_New_Proof.z3_step list ->
-    (term, string) atp_step list
+    (term, string) ATP_Proof.atp_step list
 end;
 
 structure Z3_New_Isar: Z3_NEW_ISAR =
