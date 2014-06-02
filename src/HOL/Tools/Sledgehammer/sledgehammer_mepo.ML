@@ -35,9 +35,8 @@ sig
   val trace : bool Config.T
   val pseudo_abs_name : string
   val default_relevance_fudge : relevance_fudge
-  val mepo_suggested_facts :
-    Proof.context -> params -> int -> relevance_fudge option -> term list -> term ->
-    raw_fact list -> fact list
+  val mepo_suggested_facts : Proof.context -> params -> int -> relevance_fudge option ->
+    term list -> term -> raw_fact list -> fact list
 end;
 
 structure Sledgehammer_MePo : SLEDGEHAMMER_MEPO =
@@ -48,8 +47,8 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Prover
 
-val trace =
-  Attrib.setup_config_bool @{binding sledgehammer_mepo_trace} (K false)
+val trace = Attrib.setup_config_bool @{binding sledgehammer_mepo_trace} (K false)
+
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
@@ -107,40 +106,34 @@ datatype pattern = PVar | PApp of string * pattern list
 datatype ptype = PType of int * typ list
 
 fun string_of_patternT (TVar _) = "_"
-  | string_of_patternT (Type (s, ps)) =
-    if null ps then s else s ^ string_of_patternsT ps
+  | string_of_patternT (Type (s, ps)) = if null ps then s else s ^ string_of_patternsT ps
   | string_of_patternT (TFree (s, _)) = s
 and string_of_patternsT ps = "(" ^ commas (map string_of_patternT ps) ^ ")"
 fun string_of_ptype (PType (_, ps)) = string_of_patternsT ps
 
 (*Is the second type an instance of the first one?*)
 fun match_patternT (TVar _, _) = true
-  | match_patternT (Type (s, ps), Type (t, qs)) =
-    s = t andalso match_patternsT (ps, qs)
+  | match_patternT (Type (s, ps), Type (t, qs)) = s = t andalso match_patternsT (ps, qs)
   | match_patternT (TFree (s, _), TFree (t, _)) = s = t
   | match_patternT (_, _) = false
 and match_patternsT (_, []) = true
   | match_patternsT ([], _) = false
-  | match_patternsT (p :: ps, q :: qs) =
-    match_patternT (p, q) andalso match_patternsT (ps, qs)
+  | match_patternsT (p :: ps, q :: qs) = match_patternT (p, q) andalso match_patternsT (ps, qs)
 fun match_ptype (PType (_, ps), PType (_, qs)) = match_patternsT (ps, qs)
 
 (* Is there a unifiable constant? *)
 fun pconst_mem f consts (s, ps) =
-  exists (curry (match_ptype o f) ps)
-         (map snd (filter (curry (op =) s o fst) consts))
+  exists (curry (match_ptype o f) ps) (map snd (filter (curry (op =) s o fst) consts))
+
 fun pconst_hyper_mem f const_tab (s, ps) =
   exists (curry (match_ptype o f) ps) (these (Symtab.lookup const_tab s))
 
 (* Pairs a constant with the list of its type instantiations. *)
-fun ptype thy const x =
-  (if const then these (try (Sign.const_typargs thy) x) else [])
-fun rich_ptype thy const (s, T) =
-  PType (order_of_type T, ptype thy const (s, T))
+fun ptype thy const x = (if const then these (try (Sign.const_typargs thy) x) else [])
+fun rich_ptype thy const (s, T) = PType (order_of_type T, ptype thy const (s, T))
 fun rich_pconst thy const (s, T) = (s, rich_ptype thy const (s, T))
 
-fun string_of_hyper_pconst (s, ps) =
-  s ^ "{" ^ commas (map string_of_ptype ps) ^ "}"
+fun string_of_hyper_pconst (s, ps) = s ^ "{" ^ commas (map string_of_ptype ps) ^ "}"
 
 fun patternT_eq (TVar _, TVar _) = true
   | patternT_eq (Type (s, Ts), Type (t, Us)) = s = t andalso patternsT_eq (Ts, Us)
@@ -150,15 +143,14 @@ and patternsT_eq ([], []) = true
   | patternsT_eq ([], _) = false
   | patternsT_eq (_, []) = false
   | patternsT_eq (T :: Ts, U :: Us) = patternT_eq (T, U) andalso patternsT_eq (Ts, Us)
+
 fun ptype_eq (PType (m, Ts), PType (n, Us)) = m = n andalso patternsT_eq (Ts, Us)
 
- (* Add a pconstant to the table, but a [] entry means a standard connective,
-    which we ignore. *)
+ (* Add a pconstant to the table, but a [] entry means a standard connective, which we ignore. *)
 fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert ptype_eq p)
 
-(* Set constants tend to pull in too many irrelevant facts. We limit the damage
-   by treating them more or less as if they were built-in but add their
-   axiomatization at the end. *)
+(* Set constants tend to pull in too many irrelevant facts. We limit the damage by treating them
+   more or less as if they were built-in but add their axiomatization at the end. *)
 val set_consts = [@{const_name Collect}, @{const_name Set.member}]
 val set_thms = @{thms Collect_mem_eq mem_Collect_eq Collect_cong}
 
@@ -176,11 +168,9 @@ fun add_pconsts_in_term thy =
       | (Free x, ts) => do_const false x ts
       | (Abs (_, T, t'), ts) =>
         ((null ts andalso not ext_arg)
-         (* Since lambdas on the right-hand side of equalities are usually
-            extensionalized later by "abs_extensionalize_term", we don't
-            penalize them here. *)
-         ? add_pconst_to_table (pseudo_abs_name,
-                                PType (order_of_type T + 1, [])))
+         (* Since lambdas on the right-hand side of equalities are usually extensionalized later by
+            "abs_extensionalize_term", we don't penalize them here. *)
+         ? add_pconst_to_table (pseudo_abs_name, PType (order_of_type T + 1, [])))
         #> fold (do_term false) (t' :: ts)
       | (_, ts) => fold (do_term false) ts)
     and do_term_or_formula ext_arg T =
@@ -202,8 +192,7 @@ fun add_pconsts_in_term thy =
       | @{const HOL.implies} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
-      | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
-        $ t1 $ t2 $ t3 =>
+      | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])])) $ t1 $ t2 $ t3 =>
         do_formula t1 #> fold (do_term_or_formula false T) [t2, t3]
       | Const (@{const_name Ex1}, _) $ Abs (_, _, t') => do_formula t'
       | Const (@{const_name Ball}, _) $ t1 $ Abs (_, _, t') =>
@@ -213,18 +202,19 @@ fun add_pconsts_in_term thy =
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term false t0 #> do_formula t1  (* theory constant *)
       | _ => do_term false t)
-  in do_formula end
+  in
+    do_formula
+  end
 
 fun pconsts_in_fact thy t =
-  Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (Symtab.empty |> add_pconsts_in_term thy t) []
+  Symtab.fold (fn (s, pss) => fold (cons o pair s) pss) (Symtab.empty |> add_pconsts_in_term thy t)
+    []
 
 (* Inserts a dummy "constant" referring to the theory name, so that relevance
    takes the given theory into account. *)
-fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...}
-                     : relevance_fudge) thy_name t =
-  if exists (curry (op <) 0.0) [theory_const_rel_weight,
-                                theory_const_irrel_weight] then
+fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...} : relevance_fudge)
+    thy_name t =
+  if exists (curry (op <) 0.0) [theory_const_rel_weight, theory_const_irrel_weight] then
     Const (thy_name ^ theory_const_suffix, @{typ bool}) $ t
   else
     t
@@ -253,6 +243,7 @@ fun patternT_ord p =
   | (Type _, TFree _) => LESS
   | (TFree (s, _), TFree (t, _)) => fast_string_ord (s, t)
   | (TFree _, _) => GREATER)
+
 fun ptype_ord (PType (m, ps), PType (n, qs)) =
   (case dict_ord patternT_ord (ps, qs) of
     EQUAL => int_ord (m, n)
@@ -281,12 +272,10 @@ fun pow_int _ 0 = 1.0
 
 (*The frequency of a constant is the sum of those of all instances of its type.*)
 fun pconst_freq match const_tab (c, ps) =
-  PType_Tab.fold (fn (qs, m) => match (ps, qs) ? Integer.add m)
-                 (the (Symtab.lookup const_tab c)) 0
+  PType_Tab.fold (fn (qs, m) => match (ps, qs) ? Integer.add m) (the (Symtab.lookup const_tab c)) 0
 
-
-(* A surprising number of theorems contain only a few significant constants.
-   These include all induction rules, and other general theorems. *)
+(* A surprising number of theorems contain only a few significant constants. These include all
+   induction rules and other general theorems. *)
 
 (* "log" seems best in practice. A constant function of one ignores the constant
    frequencies. Rare constants give more points if they are relevant than less
@@ -297,8 +286,8 @@ fun rel_weight_for _ freq = 1.0 + 2.0 / Math.ln (Real.fromInt freq + 1.0)
    very rare constants and very common ones -- the former because they can't
    lead to the inclusion of too many new facts, and the latter because they are
    so common as to be of little interest. *)
-fun irrel_weight_for ({worse_irrel_freq, higher_order_irrel_weight, ...}
-                      : relevance_fudge) order freq =
+fun irrel_weight_for ({worse_irrel_freq, higher_order_irrel_weight, ...} : relevance_fudge) order
+    freq =
   let val (k, x) = worse_irrel_freq |> `Real.ceil in
     (if freq < k then Math.ln (Real.fromInt (freq + 1)) / Math.ln x
      else rel_weight_for order freq / rel_weight_for order k)
@@ -309,9 +298,8 @@ fun multiplier_of_const_name local_const_multiplier s =
   if String.isSubstring "." s then 1.0 else local_const_multiplier
 
 (* Computes a constant's weight, as determined by its frequency. *)
-fun generic_pconst_weight local_const_multiplier abs_weight theory_const_weight
-        chained_const_weight weight_for f const_tab chained_const_tab
-        (c as (s, PType (m, _))) =
+fun generic_pconst_weight local_const_multiplier abs_weight theory_const_weight chained_const_weight
+    weight_for f const_tab chained_const_tab (c as (s, PType (m, _))) =
   if s = pseudo_abs_name then
     abs_weight
   else if String.isSuffix theory_const_suffix s then
@@ -319,30 +307,22 @@ fun generic_pconst_weight local_const_multiplier abs_weight theory_const_weight
   else
     multiplier_of_const_name local_const_multiplier s
     * weight_for m (pconst_freq (match_ptype o f) const_tab c)
-    |> (if chained_const_weight < 1.0 andalso
-           pconst_hyper_mem I chained_const_tab c then
+    |> (if chained_const_weight < 1.0 andalso pconst_hyper_mem I chained_const_tab c then
           curry (op *) chained_const_weight
         else
           I)
 
-fun rel_pconst_weight ({local_const_multiplier, abs_rel_weight,
-                        theory_const_rel_weight, ...} : relevance_fudge)
-                      const_tab =
-  generic_pconst_weight local_const_multiplier abs_rel_weight
-                        theory_const_rel_weight 0.0 rel_weight_for I const_tab
-                        Symtab.empty
+fun rel_pconst_weight ({local_const_multiplier, abs_rel_weight, theory_const_rel_weight,
+    ...} : relevance_fudge) const_tab =
+  generic_pconst_weight local_const_multiplier abs_rel_weight theory_const_rel_weight 0.0
+    rel_weight_for I const_tab Symtab.empty
 
 fun irrel_pconst_weight (fudge as {local_const_multiplier, abs_irrel_weight,
-                                   theory_const_irrel_weight,
-                                   chained_const_irrel_weight, ...})
-                        const_tab chained_const_tab =
-  generic_pconst_weight local_const_multiplier abs_irrel_weight
-                        theory_const_irrel_weight chained_const_irrel_weight
-                        (irrel_weight_for fudge) swap const_tab
-                        chained_const_tab
+    theory_const_irrel_weight, chained_const_irrel_weight, ...}) const_tab chained_const_tab =
+  generic_pconst_weight local_const_multiplier abs_irrel_weight theory_const_irrel_weight
+    chained_const_irrel_weight (irrel_weight_for fudge) swap const_tab chained_const_tab
 
-fun stature_bonus ({intro_bonus, ...} : relevance_fudge) (_, Intro) =
-    intro_bonus
+fun stature_bonus ({intro_bonus, ...} : relevance_fudge) (_, Intro) = intro_bonus
   | stature_bonus {elim_bonus, ...} (_, Elim) = elim_bonus
   | stature_bonus {simp_bonus, ...} (_, Simp) = simp_bonus
   | stature_bonus {local_bonus, ...} (Local, _) = local_bonus
@@ -364,45 +344,42 @@ fun fact_weight fudge stature const_tab rel_const_tab chained_const_tab
     else
       let
         val irrel = irrel |> filter_out (pconst_mem swap rel)
-        val rel_weight =
-          0.0 |> fold (curry (op +) o rel_pconst_weight fudge const_tab) rel
+        val rel_weight = 0.0 |> fold (curry (op +) o rel_pconst_weight fudge const_tab) rel
         val irrel_weight =
           ~ (stature_bonus fudge stature)
-          |> fold (curry (op +)
-                   o irrel_pconst_weight fudge const_tab chained_const_tab)
-                  irrel
+          |> fold (curry (op +) o irrel_pconst_weight fudge const_tab chained_const_tab) irrel
         val res = rel_weight / (rel_weight + irrel_weight)
-      in if Real.isFinite res then res else 0.0 end)
+      in
+        if Real.isFinite res then res else 0.0
+      end)
 
 fun take_most_relevant ctxt max_facts remaining_max
-        ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge)
-        (candidates : ((raw_fact * (string * ptype) list) * real) list) =
+    ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge)
+    (candidates : ((raw_fact * (string * ptype) list) * real) list) =
   let
     val max_imperfect =
       Real.ceil (Math.pow (max_imperfect,
-                    Math.pow (Real.fromInt remaining_max
-                              / Real.fromInt max_facts, max_imperfect_exp)))
-    val (perfect, imperfect) =
-      candidates |> sort (Real.compare o swap o pairself snd)
-                 |> take_prefix (fn (_, w) => w > 0.99999)
+        Math.pow (Real.fromInt remaining_max / Real.fromInt max_facts, max_imperfect_exp)))
+    val (perfect, imperfect) = candidates
+      |> sort (Real.compare o swap o pairself snd)
+      |> take_prefix (fn (_, w) => w > 0.99999)
     val ((accepts, more_rejects), rejects) =
       chop max_imperfect imperfect |>> append perfect |>> chop remaining_max
   in
     trace_msg ctxt (fn () =>
-        "Actually passed (" ^ string_of_int (length accepts) ^ " of " ^
-        string_of_int (length candidates) ^ "): " ^
-        (accepts |> map (fn ((((name, _), _), _), weight) =>
-                            name () ^ " [" ^ Real.toString weight ^ "]")
-                 |> commas));
+      "Actually passed (" ^ string_of_int (length accepts) ^ " of " ^
+      string_of_int (length candidates) ^ "): " ^
+      (accepts
+       |> map (fn ((((name, _), _), _), weight) => name () ^ " [" ^ Real.toString weight ^ "]")
+       |> commas));
     (accepts, more_rejects @ rejects)
   end
 
 fun if_empty_replace_with_scope thy facts sc tab =
   if Symtab.is_empty tab then
     Symtab.empty
-    |> fold (add_pconsts_in_term thy)
-            (map_filter (fn ((_, (sc', _)), th) =>
-                            if sc' = sc then SOME (prop_of th) else NONE) facts)
+    |> fold (add_pconsts_in_term thy) (map_filter (fn ((_, (sc', _)), th) =>
+      if sc' = sc then SOME (prop_of th) else NONE) facts)
   else
     tab
 
@@ -420,7 +397,9 @@ fun consider_arities th =
                NONE => SOME (Symtab.update (s, length args) tab)
              | SOME n => if n = length args then SOME tab else NONE))
         | _ => SOME tab)
-  in aux (prop_of th) [] end
+  in
+    aux (prop_of th) []
+  end
 
 (* FIXME: This is currently only useful for polymorphic type encodings. *)
 fun could_benefit_from_ext facts =
@@ -442,8 +421,7 @@ fun relevance_filter ctxt thres0 decay max_facts
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
     val add_pconsts = add_pconsts_in_term thy
     val chained_ts =
-      facts |> map_filter (fn ((_, (Chained, _)), th) => SOME (prop_of th)
-                            | _ => NONE)
+      facts |> map_filter (try (fn ((_, (Chained, _)), th) => prop_of th))
     val chained_const_tab = Symtab.empty |> fold add_pconsts chained_ts
     val goal_const_tab =
       Symtab.empty
@@ -451,17 +429,16 @@ fun relevance_filter ctxt thres0 decay max_facts
       |> add_pconsts concl_t
       |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
       |> fold (if_empty_replace_with_scope thy facts) [Chained, Assum, Local]
+
     fun iter j remaining_max thres rel_const_tab hopeless hopeful =
       let
         val hopeless =
-          hopeless |> j = really_hopeless_get_kicked_out_iter
-                      ? filter_out (fn (_, w) => w < 0.001)
+          hopeless |> j = really_hopeless_get_kicked_out_iter ? filter_out (fn (_, w) => w < 0.001)
         fun relevant [] _ [] =
             (* Nothing has been added this iteration. *)
             if j = 0 andalso thres >= ridiculous_threshold then
               (* First iteration? Try again. *)
-              iter 0 max_facts (thres / threshold_divisor) rel_const_tab
-                   hopeless hopeful
+              iter 0 max_facts (thres / threshold_divisor) rel_const_tab hopeless hopeful
             else
               []
           | relevant candidates rejects [] =
@@ -471,40 +448,34 @@ fun relevance_filter ctxt thres0 decay max_facts
               val sps = maps (snd o fst) accepts
               val rel_const_tab' =
                 rel_const_tab |> fold add_pconst_to_table sps
-              fun is_dirty (s, _) =
-                Symtab.lookup rel_const_tab' s <> Symtab.lookup rel_const_tab s
+
+              fun is_dirty (s, _) = Symtab.lookup rel_const_tab' s <> Symtab.lookup rel_const_tab s
+
               val (hopeful_rejects, hopeless_rejects) =
                  (rejects @ hopeless, ([], []))
                  |-> fold (fn (ax as (_, consts), old_weight) =>
-                              if exists is_dirty consts then
-                                apfst (cons (ax, NONE))
-                              else
-                                apsnd (cons (ax, old_weight)))
+                   if exists is_dirty consts then apfst (cons (ax, NONE))
+                   else apsnd (cons (ax, old_weight)))
                  |>> append (more_rejects
                              |> map (fn (ax as (_, consts), old_weight) =>
                                         (ax, if exists is_dirty consts then NONE
                                              else SOME old_weight)))
-              val thres =
-                1.0 - (1.0 - thres)
-                      * Math.pow (decay, Real.fromInt (length accepts))
+              val thres = 1.0 - (1.0 - thres) * Math.pow (decay, Real.fromInt (length accepts))
               val remaining_max = remaining_max - length accepts
             in
               trace_msg ctxt (fn () => "New or updated constants: " ^
-                  commas (rel_const_tab'
-                          |> Symtab.dest
-                          |> subtract (eq_prod (op =) (eq_list ptype_eq))
-                                      (rel_const_tab |> Symtab.dest)
-                          |> map string_of_hyper_pconst));
+                commas (rel_const_tab'
+                  |> Symtab.dest
+                  |> subtract (eq_prod (op =) (eq_list ptype_eq)) (Symtab.dest rel_const_tab)
+                  |> map string_of_hyper_pconst));
               map (fst o fst) accepts @
               (if remaining_max = 0 then
                  []
                else
-                 iter (j + 1) remaining_max thres rel_const_tab'
-                      hopeless_rejects hopeful_rejects)
+                 iter (j + 1) remaining_max thres rel_const_tab' hopeless_rejects hopeful_rejects)
             end
           | relevant candidates rejects
-                     (((ax as (((_, stature), _), fact_consts)), cached_weight)
-                      :: hopeful) =
+              (((ax as (((_, stature), _), fact_consts)), cached_weight) :: hopeful) =
             let
               val weight =
                 (case cached_weight of
@@ -539,31 +510,34 @@ fun relevance_filter ctxt thres0 decay max_facts
       | insert_into_facts accepts ths =
         let
           val add = facts |> filter (member Thm.eq_thm_prop ths o snd)
-          val (bef, after) =
-            accepts |> filter_out (member Thm.eq_thm_prop ths o snd)
-                    |> take (max_facts - length add)
-                    |> chop special_fact_index
-        in bef @ add @ after end
+          val (bef, after) = accepts
+            |> filter_out (member Thm.eq_thm_prop ths o snd)
+            |> take (max_facts - length add)
+            |> chop special_fact_index
+        in
+          bef @ add @ after
+        end
     fun insert_special_facts accepts =
       (* FIXME: get rid of "ext" here once it is treated as a helper *)
-      [] |> could_benefit_from_ext accepts ? cons @{thm ext}
-         |> add_set_const_thms accepts
-         |> insert_into_facts accepts
+      []
+      |> could_benefit_from_ext accepts ? cons @{thm ext}
+      |> add_set_const_thms accepts
+      |> insert_into_facts accepts
   in
-    facts |> map_filter (pair_consts_fact thy fudge)
-          |> iter 0 max_facts thres0 goal_const_tab []
-          |> insert_special_facts
-          |> tap (fn accepts => trace_msg ctxt (fn () =>
-                      "Total relevant: " ^ string_of_int (length accepts)))
+    facts
+    |> map_filter (pair_consts_fact thy fudge)
+    |> iter 0 max_facts thres0 goal_const_tab []
+    |> insert_special_facts
+    |> tap (fn accepts => trace_msg ctxt (fn () =>
+      "Total relevant: " ^ string_of_int (length accepts)))
   end
 
 fun mepo_suggested_facts ctxt ({fact_thresholds = (thres0, thres1), ...} : params) max_facts fudge
-      hyp_ts concl_t facts =
+    hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val fudge = fudge |> the_default default_relevance_fudge
-    val decay = Math.pow ((1.0 - thres1) / (1.0 - thres0),
-                          1.0 / Real.fromInt (max_facts + 1))
+    val decay = Math.pow ((1.0 - thres1) / (1.0 - thres0), 1.0 / Real.fromInt (max_facts + 1))
   in
     trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^ " facts");
     (if thres1 < 0.0 then
