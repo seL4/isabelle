@@ -861,6 +861,9 @@ a set function, the map function, or the relator:
 \item[@{text "t."}\hthm{set\_empty}\rm:] ~ \\
 @{thm list.set_empty[no_vars]}
 
+\item[@{text "t."}\hthm{sel\_set}\rm:] ~ \\
+@{thm list.sel_set[no_vars]}
+
 \item[@{text "t."}\hthm{map} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]}
