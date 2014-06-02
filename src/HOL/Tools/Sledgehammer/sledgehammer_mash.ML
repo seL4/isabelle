@@ -15,6 +15,7 @@ sig
   type prover_result = Sledgehammer_Prover.prover_result
 
   val trace : bool Config.T
+  val duplicates : bool Config.T
   val MePoN : string
   val MaShN : string
   val MeShN : string
@@ -117,8 +118,11 @@ open Sledgehammer_Prover_Minimize
 open Sledgehammer_MePo
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_mash_trace} (K false)
+val duplicates = Attrib.setup_config_bool @{binding sledgehammer_fact_duplicates} (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
+
+fun gen_eq_thm ctxt = if Config.get ctxt duplicates then Thm.eq_thm_strict else Thm.eq_thm_prop
 
 val MePoN = "MePo"
 val MaShN = "MaSh"
@@ -1264,7 +1268,7 @@ fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     val unknown = raw_unknown
       |> fold (subtract (eq_snd Thm.eq_thm_prop)) [unknown_chained, unknown_proximate]
   in
-    (mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess, unknown)
+    (mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess, unknown)
   end
 
 fun add_const_counts t =
@@ -1633,9 +1637,7 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
   else if only then
-    let val facts = facts |> map fact_of_raw_fact in
-      [("", facts)]
-    end
+    [("", map fact_of_raw_fact facts)]
   else if max_facts <= 0 orelse null facts then
     [("", [])]
   else
@@ -1689,8 +1691,8 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
       fun add_and_take accepts =
         (case add_ths of
            [] => accepts
-         | _ => (unique_facts |> filter in_add |> map fact_of_raw_fact) @
-                (accepts |> filter_out in_add))
+         | _ =>
+           (unique_facts |> filter in_add |> map fact_of_raw_fact) @ (accepts |> filter_out in_add))
         |> take max_facts
 
       fun mepo () =
@@ -1706,7 +1708,7 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
         [] |> effective_fact_filter <> mepoN ? cons (mash_weight, mash)
            |> effective_fact_filter <> mashN ? cons (mepo_weight, mepo)
            |> Par_List.map (apsnd (fn f => f ()))
-      val mesh = mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess |> add_and_take
+      val mesh = mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess |> add_and_take
     in
       if the_mash_engine () = MaSh_Py andalso save then MaSh_Py.save ctxt overlord else ();
       (case (fact_filter, mess) of

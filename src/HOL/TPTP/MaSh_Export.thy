@@ -14,6 +14,7 @@ sledgehammer_params
   [provers = spass, max_facts = 32, strict, dont_slice, type_enc = mono_native,
    lam_trans = lifting, timeout = 2, dont_preplay, minimize]
 
+declare [[sledgehammer_fact_duplicates = true]]
 declare [[sledgehammer_instantiate_inducts = false]]
 
 hide_fact (open) HOL.ext

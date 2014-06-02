@@ -263,7 +263,7 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
 val generate_mepo_suggestions =
   generate_mepo_or_mash_suggestions
     (fn ctxt => fn params => fn max_suggs => fn hyp_ts => fn concl_t =>
-       Sledgehammer_Fact.drop_duplicate_facts
+       not (Config.get ctxt Sledgehammer_MaSh.duplicates) ? Sledgehammer_Fact.drop_duplicate_facts
        #> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t)
 
 fun generate_mash_suggestions ctxt params =

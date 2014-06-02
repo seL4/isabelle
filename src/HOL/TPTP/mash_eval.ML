@@ -15,10 +15,8 @@ sig
   val MeSh_IsarN : string
   val MeSh_ProverN : string
   val IsarN : string
-  val evaluate_mash_suggestions :
-    Proof.context -> params -> int * int option -> bool -> string list
-    -> string option -> string -> string -> string -> string -> string -> string
-    -> unit
+  val evaluate_mash_suggestions : Proof.context -> params -> int * int option -> bool ->
+    string list -> string option -> string -> string -> string -> string -> string -> string -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
