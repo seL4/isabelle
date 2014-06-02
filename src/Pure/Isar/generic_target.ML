@@ -22,7 +22,7 @@ sig
     local_theory -> local_theory
   val background_abbrev: binding * term -> term list -> local_theory -> (term * term) * local_theory
   val abbrev: (string * bool -> binding * mixfix -> term ->
-      term list -> local_theory -> local_theory) ->
+      term list * term list -> local_theory -> local_theory) ->
     string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
   val background_declaration: declaration -> local_theory -> local_theory
   val locale_declaration: string -> bool -> declaration -> local_theory -> local_theory
@@ -41,7 +41,7 @@ sig
     (Attrib.binding * (thm list * Args.src list) list) list ->
     (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
-  val theory_abbrev: Syntax.mode -> (binding * mixfix) -> term -> term list ->
+  val theory_abbrev: Syntax.mode -> (binding * mixfix) -> term -> term list * term list ->
     local_theory -> local_theory
   val theory_declaration: declaration -> local_theory -> local_theory
   val theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
@@ -207,16 +207,17 @@ fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
     val rhs' = Assumption.export_term lthy (Local_Theory.target_of lthy) rhs;
-    val params = map Free (sort (Variable.fixed_ord lthy o pairself #1) (Variable.add_fixed lthy rhs' []));
-    val u = fold_rev lambda params rhs';
+    val term_params = map Free (sort (Variable.fixed_ord lthy o pairself #1) (Variable.add_fixed lthy rhs' []));
+    val u = fold_rev lambda term_params rhs';
     val global_rhs = singleton (Variable.polymorphic thy_ctxt) u;
 
     val extra_tfrees =
       subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
+    val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in
     lthy
-    |> target_abbrev prmode (b, mx') global_rhs params
+    |> target_abbrev prmode (b, mx') global_rhs (type_params, term_params)
     |> Proof_Context.add_abbrev Print_Mode.internal (b, rhs) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), rhs)
   end;
@@ -335,9 +336,9 @@ fun theory_abbrev prmode (b, mx) global_rhs params =
   Local_Theory.background_theory_result
     (Sign.add_abbrev (#1 prmode) (b, global_rhs) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
-        Sign.notation true prmode [(lhs, check_mixfix_global (b, null params) mx)] #> pair lhs))
+        Sign.notation true prmode [(lhs, check_mixfix_global (b, null (snd params)) mx)] #> pair lhs))
   #-> (fn lhs => const (op <>) prmode
-          ((b, if null params then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, params)));
+          ((b, if null (snd params) then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, snd params)));
 
 fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
