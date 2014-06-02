@@ -241,8 +241,12 @@ fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
                   ~1 => steps
                 | i =>
                   let val successors = get_successors l in
-                    if length successors > compress_degree then steps
-                    else compression_loop candidates' (try_eliminate i l successors steps)
+                    if length successors > compress_degree then
+                      steps
+                    else
+                      steps
+                      |> not (null successors) ? try_eliminate i l successors
+                      |> compression_loop candidates'
                   end))
 
           fun add_cand (Prove (_, _, l, t, _, _, _, _)) = cons (l, size_of_term t)
