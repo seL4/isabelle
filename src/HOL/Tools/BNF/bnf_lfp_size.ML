@@ -133,7 +133,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
               val (args, size_o_mapss') = split_list (map (fn T => mk_size_of_typ T []) Ts);
               val size_const = Const (size_name, map fastype_of args ---> mk_to_natT T);
             in
-              fold (union Thm.eq_thm) (size_o_maps :: size_o_mapss')
+              fold (union Thm.eq_thm_prop) (size_o_maps :: size_o_mapss')
               #> pair (Term.list_comb (size_const, args))
             end
           | _ => pair (mk_abs_zero_nat T))
@@ -221,7 +221,8 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
        |> map_filter (try (fn (Spec_Rules.Equational, (_, [thm])) => thm)));
 
     val nested_size_maps = map (pointfill lthy2) nested_size_o_maps @ nested_size_o_maps;
-    val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ nested_bnfs @ nesting_bnfs);
+    val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ nested_bnfs @ nesting_bnfs)
+      |> distinct Thm.eq_thm_prop;
 
     fun derive_size_simp size_def' simp0 =
       (trans OF [size_def', simp0])
