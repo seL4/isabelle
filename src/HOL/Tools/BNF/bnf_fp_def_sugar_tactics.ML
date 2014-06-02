@@ -27,6 +27,7 @@ sig
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
   val mk_sel_map_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
+  val mk_sel_set_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_set_empty_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
 end;
 
@@ -213,6 +214,20 @@ fun mk_sel_map_tac ctxt ct exhaust discs maps sels =
     TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
     Local_Defs.unfold_tac ctxt (maps @ sels) THEN
     ALLGOALS (rtac refl);
+
+fun mk_sel_set_tac ctxt ct exhaust discs sels sets =
+  TRYALL Goal.conjunction_tac THEN
+    ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
+      REPEAT_DETERM o hyp_subst_tac ctxt) THEN
+    Local_Defs.unfold_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
+      @{thms not_True_eq_False not_False_eq_True}) THEN
+    TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
+    Local_Defs.unfold_tac ctxt (sels @ sets) THEN
+    ALLGOALS (
+      REPEAT o (resolve_tac @{thms UnI1 UnI2 imageI} ORELSE'
+        eresolve_tac @{thms UN_I UN_I[rotated] imageE} ORELSE'
+        hyp_subst_tac ctxt) THEN'
+      (rtac @{thm singletonI} ORELSE' atac));
 
 fun mk_set_empty_tac ctxt ct exhaust sets discs =
   TRYALL Goal.conjunction_tac THEN
