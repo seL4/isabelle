@@ -18,7 +18,7 @@ sig
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
   val const: class -> (binding * mixfix) * term -> term list * term list -> local_theory -> local_theory
-  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> term -> local_theory -> local_theory
+  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> term -> term list * term list -> local_theory -> local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
   val register: class -> class list -> ((string * typ) * (string * typ)) list
@@ -340,7 +340,7 @@ fun dangling_params_for lthy class (type_params, term_params) =
       map fst (these_params (Proof_Context.theory_of lthy) [class]);
     val dangling_term_params =
       subtract (fn (v, Free (w, _)) => v = w | _ => false) class_param_names term_params;
-  in type_params @ dangling_term_params end;
+  in (type_params, dangling_term_params) end;
 
 fun global_def (b, eq) thy =
   thy
@@ -367,19 +367,19 @@ fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
     |> Sign.add_const_constraint (c, SOME ty)
   end;
 
-fun canonical_abbrev class phi prmode ((b, mx), rhs) thy =
+fun canonical_abbrev class phi prmode dangling_term_params ((b, mx), rhs) thy =
   let
     val unchecks = these_unchecks thy [class];
-    val b' = Morphism.binding phi b;
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
-    val c' = Sign.full_name thy b';
-    val ty' = Term.fastype_of rhs';
+    val c' = Sign.full_name thy b;
+    val ty' = map Term.fastype_of dangling_term_params ---> Term.fastype_of rhs';
   in
     thy
-    |> Sign.add_abbrev (#1 prmode) (b', Logic.varify_types_global rhs')
+    |> Sign.add_abbrev (#1 prmode) (b, Logic.varify_types_global (fold lambda dangling_term_params rhs'))
     |> snd
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
-    |> not (#1 prmode = Print_Mode.input) ? register_operation class (c', (rhs', NONE))
+    |> (null dangling_term_params andalso not (#1 prmode = Print_Mode.input))
+      ? register_operation class (c', (rhs', NONE))
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
@@ -388,7 +388,7 @@ in
 fun const class ((b, mx), lhs) params lthy =
   let
     val phi = morphism (Proof_Context.theory_of lthy) class;
-    val dangling_params = map (Morphism.term phi) (dangling_params_for lthy class params);
+    val dangling_params = map (Morphism.term phi) (uncurry append (dangling_params_for lthy class params));
   in
     lthy
     |> class_const class Syntax.mode_default (b, lhs)
@@ -399,14 +399,17 @@ fun const class ((b, mx), lhs) params lthy =
     |> synchronize_class_syntax_target class
   end;
 
-fun abbrev class prmode ((b, mx), lhs) rhs' lthy =
+fun abbrev class prmode ((b, mx), lhs) rhs' params lthy =
   let
     val phi = morphism (Proof_Context.theory_of lthy) class;
+    val dangling_term_params = map (Morphism.term phi) (snd (dangling_params_for lthy class params));
   in
     lthy
     |> class_const class prmode (b, lhs)
-    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode ((b, mx), rhs'))
-    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, NoSyn), lhs)
+    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode dangling_term_params
+         ((Morphism.binding phi b, if null dangling_term_params then mx else NoSyn), rhs'))
+    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other)
+         prmode ((b, if null dangling_term_params then NoSyn else mx), lhs)
     |> synchronize_class_syntax_target class
   end;
 

@@ -81,7 +81,7 @@ fun locale_abbrev locale prmode (b, mx) global_rhs params =
 
 fun class_abbrev class prmode (b, mx) global_rhs params =
   Generic_Target.background_abbrev (b, global_rhs) (snd params)
-  #-> (fn (lhs, rhs) => Class.abbrev class prmode ((b, mx), lhs) rhs);
+  #-> (fn (lhs, rhs) => Class.abbrev class prmode ((b, mx), lhs) rhs params);
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) =
   if is_class then class_abbrev target
