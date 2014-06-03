@@ -125,6 +125,7 @@ local
 
   fun z3_options ctxt =
     ["smt.random_seed=" ^ string_of_int (Config.get ctxt SMT2_Config.random_seed),
+     "smt.refine_inj_axioms=false",
      "-T:" ^ string_of_int (Real.ceil (Config.get ctxt SMT2_Config.timeout)),
      "-smt2"]
 

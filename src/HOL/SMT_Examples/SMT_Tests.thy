@@ -174,13 +174,11 @@ lemma
 
 lemma
   "a \<noteq> b \<and> a \<noteq> c \<and> b \<noteq> c \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
-  using [[smt2_oracle=true]] (* FIXME: disable refine_inj_axiom in Z3 *)
   by smt2
 
 lemma
   "(\<forall>x y z. f x y = f x z \<longrightarrow> y = z) \<and> b \<noteq> c \<longrightarrow> f a b \<noteq> f a c"
   "(\<forall>x y z. f x y = f z y \<longrightarrow> x = z) \<and> a \<noteq> d \<longrightarrow> f a b \<noteq> f d b"
-  using [[smt2_oracle=true]] (* FIXME: disable refine_inj_axiom in Z3 *)
   by smt2+
 
 
