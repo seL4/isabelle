@@ -590,10 +590,15 @@ lemma lborel_integrable_real_affine_iff:
 
 lemma lborel_integral_real_affine:
   fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}" and c :: real
-  assumes c: "c \<noteq> 0" and f[measurable]: "integrable lborel f"
-  shows "(\<integral>x. f x \<partial> lborel) = \<bar>c\<bar> *\<^sub>R (\<integral>x. f (t + c * x) \<partial>lborel)"
-  using c f f[THEN borel_measurable_integrable] f[THEN lborel_integrable_real_affine, of c t]
-  by (subst lborel_real_affine[OF c, of t]) (simp add: integral_density integral_distr)
+  assumes c: "c \<noteq> 0" shows "(\<integral>x. f x \<partial> lborel) = \<bar>c\<bar> *\<^sub>R (\<integral>x. f (t + c * x) \<partial>lborel)"
+proof cases
+  assume f[measurable]: "integrable lborel f" then show ?thesis
+    using c f f[THEN borel_measurable_integrable] f[THEN lborel_integrable_real_affine, of c t]
+    by (subst lborel_real_affine[OF c, of t]) (simp add: integral_density integral_distr)
+next
+  assume "\<not> integrable lborel f" with c show ?thesis
+    by (simp add: lborel_integrable_real_affine_iff not_integrable_integral_eq)
+qed
 
 lemma divideR_right: 
   fixes x y :: "'a::real_normed_vector"

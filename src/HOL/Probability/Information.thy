@@ -863,11 +863,11 @@ proof -
   have " - log b (measure MX {x \<in> space MX. Px x \<noteq> 0}) = 
     - log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX)"
     using Px fin
-    by (subst integral_real_indicator) (auto simp: measure_def borel_measurable_ereal_iff)
+    by (auto simp: measure_def borel_measurable_ereal_iff)
   also have "- log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX) = - log b (\<integral> x. 1 / Px x \<partial>distr M MX X)"
     unfolding distributed_distr_eq_density[OF X] using Px
     apply (intro arg_cong[where f="log b"] arg_cong[where f=uminus])
-    by (subst integral_density) (auto simp: borel_measurable_ereal_iff intro!: integral_cong)
+    by (subst integral_density) (auto simp: borel_measurable_ereal_iff simp del: integral_indicator intro!: integral_cong)
   also have "\<dots> \<le> (\<integral> x. - log b (1 / Px x) \<partial>distr M MX X)"
   proof (rule X.jensens_inequality[of "\<lambda>x. 1 / Px x" "{0<..}" 0 1 "\<lambda>x. - log b x"])
     show "AE x in distr M MX X. 1 / Px x \<in> {0<..}"
