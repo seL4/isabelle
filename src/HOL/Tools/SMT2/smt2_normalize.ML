@@ -15,7 +15,7 @@ sig
 
   type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
   val add_extra_norm: SMT2_Util.class * extra_norm -> Context.generic -> Context.generic
-  val normalize: Proof.context -> (int option * thm) list -> (int * thm) list
+  val normalize: Proof.context -> thm list -> (int * thm) list
 end
 
 structure SMT2_Normalize: SMT2_NORMALIZE =
@@ -239,79 +239,25 @@ val setup_trigger =
 end
 
 
-(** adding quantifier weights **)
-
-local
-  (*** check weight syntax ***)
-
-  val has_no_weight =
-    not o Term.exists_subterm (fn @{const SMT2.weight} => true | _ => false)
-
-  fun is_weight (@{const SMT2.weight} $ w $ t) =
-        (case try HOLogic.dest_number w of
-          SOME (_, i) => i >= 0 andalso has_no_weight t
-        | _ => false)
-    | is_weight t = has_no_weight t
-
-  fun proper_trigger (@{const SMT2.trigger} $ _ $ t) = is_weight t
-    | proper_trigger t = is_weight t 
-
-  fun check_weight_error ctxt t =
-    error ("SMT weight must be a non-negative number and must only occur " ^
-      "under the top-most quantifier and an optional trigger: " ^
-      Syntax.string_of_term ctxt t)
-
-  fun check_weight_conv ctxt ct =
-    if SMT2_Util.under_quant proper_trigger (SMT2_Util.term_of ct) then Conv.all_conv ct
-    else check_weight_error ctxt (Thm.term_of ct)
-
-
-  (*** insertion of weights ***)
-
-  fun under_trigger_conv cv ct =
-    (case Thm.term_of ct of
-      @{const SMT2.trigger} $ _ $ _ => Conv.arg_conv cv
-    | _ => cv) ct
-
-  val weight_eq = mk_meta_eq @{lemma "p = SMT2.weight i p" by (simp add: weight_def)}
-  fun mk_weight_eq w =
-    let val cv = Thm.dest_arg1 (Thm.rhs_of weight_eq)
-    in Thm.instantiate ([], [(cv, Numeral.mk_cnumber @{ctyp int} w)]) weight_eq end
-
-  fun add_weight_conv NONE _ = Conv.all_conv
-    | add_weight_conv (SOME weight) ctxt =
-        let val cv = Conv.rewr_conv (mk_weight_eq weight)
-        in SMT2_Util.under_quant_conv (K (under_trigger_conv cv)) ctxt end
-in
-
-fun weight_conv weight ctxt = 
-  SMT2_Util.prop_conv (check_weight_conv ctxt then_conv add_weight_conv weight ctxt)
-
-val setup_weight = SMT2_Builtin.add_builtin_fun_ext'' @{const_name SMT2.weight}
-
-end
-
-
 (** combined general normalizations **)
 
-fun gen_normalize1_conv ctxt weight =
+fun gen_normalize1_conv ctxt =
   atomize_conv ctxt then_conv
   unfold_special_quants_conv ctxt then_conv
   Thm.beta_conversion true then_conv
-  trigger_conv ctxt then_conv
-  weight_conv weight ctxt
+  trigger_conv ctxt
 
-fun gen_normalize1 ctxt weight =
+fun gen_normalize1 ctxt =
   instantiate_elim #>
   norm_def #>
   Conv.fconv_rule (Thm.beta_conversion true then_conv Thm.eta_conversion) #>
   Drule.forall_intr_vars #>
-  Conv.fconv_rule (gen_normalize1_conv ctxt weight) #>
+  Conv.fconv_rule (gen_normalize1_conv ctxt) #>
   (* Z3 4.3.1 silently normalizes "P --> Q --> R" to "P & Q --> R" *)
   Raw_Simplifier.rewrite_rule ctxt @{thms HOL.imp_conjL[symmetric, THEN eq_reflection]}
 
-fun gen_norm1_safe ctxt (i, (weight, thm)) =
-  (case try (gen_normalize1 ctxt weight) thm of
+fun gen_norm1_safe ctxt (i, thm) =
+  (case try (gen_normalize1 ctxt) thm of
     SOME thm' => SOME (i, thm')
   | NONE => (drop_fact_warning ctxt thm; NONE))
 
@@ -576,7 +522,6 @@ val _ = Theory.setup (Context.theory_map (
   setup_atomize #>
   setup_unfolded_quants #>
   setup_trigger #>
-  setup_weight #>
   setup_case_bool #>
   setup_abs_min_max #>
   setup_nat_as_int))

@@ -13,7 +13,7 @@ sig
     SVar of int |
     SApp of string * sterm list |
     SLet of string * sterm * sterm |
-    SQua of squant * string list * sterm spattern list * int option * sterm
+    SQua of squant * string list * sterm spattern list * sterm
 
   (*translation configuration*)
   type sign = {
@@ -51,7 +51,7 @@ datatype sterm =
   SVar of int |
   SApp of string * sterm list |
   SLet of string * sterm * sterm |
-  SQua of squant * string list * sterm spattern list * int option * sterm
+  SQua of squant * string list * sterm spattern list * sterm
 
 
 
@@ -196,9 +196,8 @@ fun eta_expand ctxt funcs =
       | expand ((q as Const (@{const_name Ex}, _)) $ Abs a) = q $ abs_expand a
       | expand ((q as Const (@{const_name Ex}, T)) $ t) = q $ exp expand T t
       | expand (q as Const (@{const_name Ex}, T)) = exp2 T q
-      | expand ((l as Const (@{const_name Let}, _)) $ t $ Abs a) = expand (Term.betapply (Abs a, t))
-      | expand ((l as Const (@{const_name Let}, T)) $ t $ u) = expand (u $ t)
-      | expand ((l as Const (@{const_name Let}, T)) $ t) =
+      | expand (Const (@{const_name Let}, _) $ t $ u) = expand (Term.betapply (u, t))
+      | expand (Const (@{const_name Let}, T) $ t) =
           let val U = Term.domain_type (Term.range_type T)
           in Abs (Name.uu, U, Bound 0 $ Term.incr_boundvars 1 t) end
       | expand (Const (@{const_name Let}, T)) =
@@ -290,15 +289,13 @@ fun intro_explicit_application ctxt funcs ts =
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
       | (Abs (n, T, u), ts) => traverses Ts (Abs (n, T, traverse (T::Ts) u)) ts
       | (u, ts) => traverses Ts u ts)
-    and in_trigger Ts ((c as @{const SMT2.trigger}) $ p $ t) = c $ in_pats Ts p $ in_weight Ts t
-      | in_trigger Ts t = in_weight Ts t
+    and in_trigger Ts ((c as @{const SMT2.trigger}) $ p $ t) = c $ in_pats Ts p $ traverse Ts t
+      | in_trigger Ts t = traverse Ts t
     and in_pats Ts ps =
       in_list @{typ "SMT2.pattern list"} (in_list @{typ SMT2.pattern} (in_pat Ts)) ps
     and in_pat Ts ((p as Const (@{const_name SMT2.pat}, _)) $ t) = p $ traverse Ts t
       | in_pat Ts ((p as Const (@{const_name SMT2.nopat}, _)) $ t) = p $ traverse Ts t
       | in_pat _ t = raise TERM ("bad pattern", [t])
-    and in_weight Ts ((c as @{const SMT2.weight}) $ w $ t) = c $ w $ traverse Ts t
-      | in_weight Ts t = traverse Ts t 
     and traverses Ts t ts = Term.list_comb (t, map (traverse Ts) ts)
   in map (traverse []) ts end
 
@@ -344,9 +341,6 @@ fun folify ctxt =
       | (Free c, ts) => Term.list_comb (Free c, map (in_term pat) ts)
       | _ => t)
 
-    and in_weight ((c as @{const SMT2.weight}) $ w $ t) = c $ w $ in_form t
-      | in_weight t = in_form t 
-
     and in_pat ((p as Const (@{const_name SMT2.pat}, _)) $ t) =
           p $ in_term true t
       | in_pat ((p as Const (@{const_name SMT2.nopat}, _)) $ t) =
@@ -356,8 +350,8 @@ fun folify ctxt =
     and in_pats ps =
       in_list @{typ "SMT2.pattern list"} (SOME o in_list @{typ SMT2.pattern} (try in_pat)) ps
 
-    and in_trigger ((c as @{const SMT2.trigger}) $ p $ t) = c $ in_pats p $ in_weight t
-      | in_trigger t = in_weight t
+    and in_trigger ((c as @{const SMT2.trigger}) $ p $ t) = c $ in_pats p $ in_form t
+      | in_trigger t = in_form t
 
     and in_form t =
       (case Term.strip_comb t of
@@ -393,9 +387,6 @@ fun group_quant qname Ts (t as Const (q, _) $ Abs (_, T, u)) =
       if q = qname then group_quant qname (T :: Ts) u else (Ts, t)
   | group_quant _ Ts t = (Ts, t)
 
-fun dest_weight (@{const SMT2.weight} $ w $ t) = (SOME (snd (HOLogic.dest_number w)), t)
-  | dest_weight t = (NONE, t)
-
 fun dest_pat (Const (@{const_name SMT2.pat}, _) $ t) = (t, true)
   | dest_pat (Const (@{const_name SMT2.nopat}, _) $ t) = (t, false)
   | dest_pat t = raise TERM ("bad pattern", [t])
@@ -415,8 +406,7 @@ fun dest_quant qn T t = quantifier qn |> Option.map (fn q =>
   let
     val (Ts, u) = group_quant qn [T] t
     val (ps, p) = dest_trigger u
-    val (w, b) = dest_weight p
-  in (q, rev Ts, ps, w, b) end)
+  in (q, rev Ts, ps, p) end)
 
 fun fold_map_pat f (SPat ts) = fold_map f ts #>> SPat
   | fold_map_pat f (SNoPat ts) = fold_map f ts #>> SNoPat
@@ -439,9 +429,9 @@ fun intermediate header dtyps builtin ctxt ts trx =
       (case Term.strip_comb t of
         (Const (qn, _), [Abs (_, T, t1)]) =>
           (case dest_quant qn T t1 of
-            SOME (q, Ts, ps, w, b) =>
+            SOME (q, Ts, ps, b) =>
               fold_map transT Ts ##>> fold_map (fold_map_pat trans) ps ##>>
-              trans b #>> (fn ((Ts', ps'), b') => SQua (q, Ts', ps', w, b'))
+              trans b #>> (fn ((Ts', ps'), b') => SQua (q, Ts', ps', b'))
           | NONE => raise TERM ("unsupported quantifier", [t]))
       | (Const (@{const_name Let}, _), [t1, Abs (_, T, t2)]) =>
           transT T ##>> trans t1 ##>> trans t2 #>> (fn ((U, u1), u2) => SLet (U, u1, u2))

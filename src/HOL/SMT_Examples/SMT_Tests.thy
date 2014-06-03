@@ -184,7 +184,7 @@ lemma
   by smt2+
 
 
-section {* Guidance for quantifier heuristics: patterns and weights *}
+section {* Guidance for quantifier heuristics: patterns *}
 
 lemma
   assumes "\<forall>x. SMT2.trigger [[SMT2.pat (f x)]] (f x = x)"
@@ -214,18 +214,6 @@ lemma
     ((P x --> R x) & (Q x --> R x))"
   and "P t | Q t"
   shows "R t"
-  using assms by smt2
-
-lemma
-  assumes "ALL x. SMT2.trigger [[SMT2.pat (P x)]] (SMT2.weight 2 (P x --> Q x))"
-  and "P t"
-  shows "Q t"
-  using assms by smt2
-
-lemma
-  assumes "ALL x. SMT2.weight 1 (P x --> Q x)"
-  and "P t"
-  shows "Q t"
   using assms by smt2
 
 

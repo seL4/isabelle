@@ -32,9 +32,8 @@ sig
   val default_max_relevant: Proof.context -> string -> int
 
   (*filter*)
-  val smt2_filter: Proof.context -> thm ->
-    ((string * ATP_Problem_Generate.stature) * (int option * thm)) list -> int -> Time.time ->
-    parsed_proof
+  val smt2_filter: Proof.context -> thm -> ((string * ATP_Problem_Generate.stature) * thm) list ->
+    int -> Time.time -> parsed_proof
 
   (*tactic*)
   val smt2_tac: Proof.context -> thm list -> int -> tactic
@@ -235,17 +234,17 @@ fun name_and_info_of ctxt =
 
 val default_max_relevant = #default_max_relevant oo get_info
 
-fun apply_solver_and_replay ctxt wthms0 =
+fun apply_solver_and_replay ctxt thms0 =
   let
-    val wthms = map (apsnd (check_topsort ctxt)) wthms0
+    val thms = map (check_topsort ctxt) thms0
     val (name, {command, replay, ...}) = name_and_info_of ctxt
-    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt wthms) ctxt
+    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt thms) ctxt
   in replay ctxt replay_data output end
 
 
 (* filter *)
 
-fun smt2_filter ctxt0 goal xwfacts i time_limit =
+fun smt2_filter ctxt0 goal xfacts i time_limit =
   let
     val ctxt = ctxt0 |> Config.put SMT2_Config.timeout (Time.toReal time_limit)
 
@@ -256,15 +255,13 @@ fun smt2_filter ctxt0 goal xwfacts i time_limit =
         SOME ct => ct
       | NONE => raise SMT2_Failure.SMT (SMT2_Failure.Other_Failure "goal is not a HOL term"))
 
-    val wconjecture = (NONE, Thm.assume cprop)
-    val wprems = map (pair NONE) prems
-    val wfacts = map snd xwfacts
-    val xfacts = map (apsnd snd) xwfacts
-    val wthms = wconjecture :: wprems @ wfacts
-    val wthms' = map (apsnd (check_topsort ctxt)) wthms
+    val conjecture = Thm.assume cprop
+    val facts = map snd xfacts
+    val thms = conjecture :: prems @ facts
+    val thms' = map (check_topsort ctxt) thms
 
     val (name, {command, parse_proof, ...}) = name_and_info_of ctxt
-    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt wthms') ctxt
+    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt thms') ctxt
   in
     parse_proof ctxt replay_data xfacts (map Thm.prop_of prems) (Thm.term_of concl) output
   end
@@ -277,7 +274,7 @@ local
   fun str_of ctxt fail =
     "Solver " ^ SMT2_Config.solver_of ctxt ^ ": " ^ SMT2_Failure.string_of_failure fail
 
-  fun safe_solve ctxt wfacts = SOME (apply_solver_and_replay ctxt wfacts)
+  fun safe_solve ctxt facts = SOME (apply_solver_and_replay ctxt facts)
     handle
       SMT2_Failure.SMT (fail as SMT2_Failure.Counterexample _) =>
         (SMT2_Config.verbose_msg ctxt (str_of ctxt) fail; NONE)
@@ -293,8 +290,7 @@ local
   fun tac prove ctxt rules =
     CONVERSION (SMT2_Normalize.atomize_conv ctxt)
     THEN' rtac @{thm ccontr}
-    THEN' SUBPROOF (fn {context = ctxt, prems, ...} =>
-      resolve (prove ctxt (map (pair NONE) (rules @ prems)))) ctxt
+    THEN' SUBPROOF (fn {context = ctxt, prems, ...} => resolve (prove ctxt (rules @ prems))) ctxt
 in
 
 val smt2_tac = tac safe_solve

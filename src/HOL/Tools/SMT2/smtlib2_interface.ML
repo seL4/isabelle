@@ -89,7 +89,7 @@ fun tree_of_sterm l (SMT2_Translate.SVar i) = SMTLIB2.Sym (var (l - i - 1))
       SMTLIB2.S (SMTLIB2.Sym n :: map (tree_of_sterm l) ts)
   | tree_of_sterm _ (SMT2_Translate.SLet _) =
       raise Fail "SMT-LIB: unsupported let expression"
-  | tree_of_sterm l (SMT2_Translate.SQua (q, ss, pats, w, t)) =
+  | tree_of_sterm l (SMT2_Translate.SQua (q, ss, pats, t)) =
       let
         val l' = l + length ss
 
@@ -100,18 +100,15 @@ fun tree_of_sterm l (SMT2_Translate.SVar i) = SMTLIB2.Sym (var (l - i - 1))
           [SMTLIB2.Key keyword, (case map (tree_of_sterm l') ps of [t] => t | ts => SMTLIB2.S ts)]
         fun trees_of_pat (SMT2_Translate.SPat ps) = gen_trees_of_pat "pattern" ps
           | trees_of_pat (SMT2_Translate.SNoPat ps) = gen_trees_of_pat "no-pattern" ps
-        fun trees_of_weight NONE = []
-          | trees_of_weight (SOME i) = [SMTLIB2.Key "weight", SMTLIB2.Num i]
-        fun tree_of_pats_weight [] NONE t = t
-          | tree_of_pats_weight pats w t =
-            SMTLIB2.S (SMTLIB2.Sym "!" :: t :: maps trees_of_pat pats @ trees_of_weight w)
+        fun tree_of_pats [] t = t
+          | tree_of_pats pats t = SMTLIB2.S (SMTLIB2.Sym "!" :: t :: maps trees_of_pat pats)
 
         val vs = map_index (fn (i, ty) =>
           SMTLIB2.S [SMTLIB2.Sym (var (l + i)), SMTLIB2.Sym ty]) ss
 
         val body = t
           |> tree_of_sterm l'
-          |> tree_of_pats_weight pats w
+          |> tree_of_pats pats
       in
         SMTLIB2.S [SMTLIB2.Sym (quant_name q), SMTLIB2.S vs, body]
       end

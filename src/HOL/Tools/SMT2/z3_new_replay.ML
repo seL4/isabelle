@@ -72,14 +72,13 @@ fun replay_step ctxt assumed (step as Z3_New_Proof.Z3_Step {id, prems, fixes, ..
 
 local
   val remove_trigger = mk_meta_eq @{thm SMT2.trigger_def}
-  val remove_weight = mk_meta_eq @{thm SMT2.weight_def}
   val remove_fun_app = mk_meta_eq @{thm SMT2.fun_app_def}
 
   fun rewrite_conv _ [] = Conv.all_conv
     | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)
 
-  val prep_rules = [@{thm Let_def}, remove_trigger, remove_weight,
-    remove_fun_app, Z3_New_Replay_Literals.rewrite_true]
+  val prep_rules = [@{thm Let_def}, remove_trigger, remove_fun_app,
+    Z3_New_Replay_Literals.rewrite_true]
 
   fun rewrite _ [] = I
     | rewrite ctxt eqs = Conv.fconv_rule (rewrite_conv ctxt eqs)

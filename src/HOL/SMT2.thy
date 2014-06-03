@@ -40,32 +40,6 @@ consts
 definition trigger :: "pattern list list \<Rightarrow> bool \<Rightarrow> bool" where "trigger _ P = P"
 
 
-subsection {* Quantifier weights *}
-
-text {*
-Weight annotations to quantifiers influence the priority of quantifier
-instantiations.  They should be handled with care for solvers, which support
-them, because incorrect choices of weights might render a problem unsolvable.
-*}
-
-definition weight :: "int \<Rightarrow> bool \<Rightarrow> bool" where "weight _ P = P"
-
-text {*
-Weights must be nonnegative.  The value @{text 0} is equivalent to providing
-no weight at all.
-
-Weights should only be used at quantifiers and only inside triggers (if the
-quantifier has triggers).  Valid usages of weights are as follows:
-
-\begin{itemize}
-\item
-@{term "\<forall>x. trigger [[pat (P x)]] (weight 2 (P x))"}
-\item
-@{term "\<forall>x. weight 3 (P x)"}
-\end{itemize}
-*}
-
-
 subsection {* Higher-order encoding *}
 
 text {*
@@ -430,6 +404,6 @@ lemma [z3_new_rule]:  (* for def-axiom *)
 
 hide_type (open) pattern
 hide_const fun_app z3div z3mod
-hide_const (open) trigger pat nopat weight
+hide_const (open) trigger pat nopat
 
 end

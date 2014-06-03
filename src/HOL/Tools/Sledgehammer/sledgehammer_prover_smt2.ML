@@ -14,12 +14,6 @@ sig
 
   val smt2_builtins : bool Config.T
   val smt2_triggers : bool Config.T
-  val smt2_weights : bool Config.T
-  val smt2_weight_min_facts : int Config.T
-  val smt2_min_weight : int Config.T
-  val smt2_max_weight : int Config.T
-  val smt2_max_weight_index : int Config.T
-  val smt2_weight_curve : (int -> int) Unsynchronized.ref
   val smt2_max_slices : int Config.T
   val smt2_slice_fact_frac : real Config.T
   val smt2_slice_time_frac : real Config.T
@@ -44,34 +38,8 @@ open Sledgehammer_Prover
 
 val smt2_builtins = Attrib.setup_config_bool @{binding sledgehammer_smt2_builtins} (K true)
 val smt2_triggers = Attrib.setup_config_bool @{binding sledgehammer_smt2_triggers} (K true)
-val smt2_weights = Attrib.setup_config_bool @{binding sledgehammer_smt2_weights} (K true)
-val smt2_weight_min_facts =
-  Attrib.setup_config_int @{binding sledgehammer_smt2_weight_min_facts} (K 20)
 
 val is_smt2_prover = member (op =) o SMT2_Config.available_solvers_of
-
-(* FUDGE *)
-val smt2_min_weight = Attrib.setup_config_int @{binding sledgehammer_smt2_min_weight} (K 0)
-val smt2_max_weight = Attrib.setup_config_int @{binding sledgehammer_smt2_max_weight} (K 10)
-val smt2_max_weight_index =
-  Attrib.setup_config_int @{binding sledgehammer_smt2_max_weight_index} (K 200)
-val smt2_weight_curve = Unsynchronized.ref (fn x : int => x * x)
-
-fun smt2_fact_weight ctxt j num_facts =
-  if Config.get ctxt smt2_weights andalso num_facts >= Config.get ctxt smt2_weight_min_facts then
-    let
-      val min = Config.get ctxt smt2_min_weight
-      val max = Config.get ctxt smt2_max_weight
-      val max_index = Config.get ctxt smt2_max_weight_index
-      val curve = !smt2_weight_curve
-    in
-      SOME (max - (max - min + 1) * curve (Int.max (0, max_index - j - 1)) div curve max_index)
-    end
-  else
-    NONE
-
-fun weight_smt2_fact ctxt num_facts ((info, th), j) =
-  (info, (smt2_fact_weight ctxt j num_facts, th))
 
 (* "SMT2_Failure.Abnormal_Termination" carries the solver's return code. Until these are sorted out
    properly in the SMT module, we must interpret these here. *)
@@ -128,8 +96,7 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
     val ctxt = Proof.context_of state
     val max_slices = if slice then Config.get ctxt smt2_max_slices else 1
 
-    fun do_slice timeout slice outcome0 time_so_far
-        (weighted_factss as (fact_filter, weighted_facts) :: _) =
+    fun do_slice timeout slice outcome0 time_so_far (factss as (fact_filter, facts) :: _) =
       let
         val timer = Timer.startRealTimer ()
         val slice_timeout =
@@ -141,7 +108,7 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
             end
           else
             timeout
-        val num_facts = length weighted_facts
+        val num_facts = length facts
         val _ =
           if debug then
             quote name ^ " slice " ^ string_of_int slice ^ " with " ^ string_of_int num_facts ^
@@ -152,7 +119,7 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
         val birth = Timer.checkRealTimer timer
 
         val filter_result as {outcome, ...} =
-          SMT2_Solver.smt2_filter ctxt goal weighted_facts i slice_timeout
+          SMT2_Solver.smt2_filter ctxt goal facts i slice_timeout
           handle exn =>
             if Exn.is_interrupt exn orelse debug then
               reraise exn
@@ -179,8 +146,8 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
           let
             val new_num_facts =
               Real.ceil (Config.get ctxt smt2_slice_fact_frac * Real.fromInt num_facts)
-            val weighted_factss as (new_fact_filter, _) :: _ =
-              weighted_factss
+            val factss as (new_fact_filter, _) :: _ =
+              factss
               |> (fn (x :: xs) => xs @ [x])
               |> app_hd (apsnd (take new_num_facts))
             val show_filter = fact_filter <> new_fact_filter
@@ -200,11 +167,11 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
               else
                 ()
           in
-            do_slice timeout (slice + 1) outcome0 time_so_far weighted_factss
+            do_slice timeout (slice + 1) outcome0 time_so_far factss
           end
         else
           {outcome = if is_none outcome then NONE else the outcome0, filter_result = filter_result,
-           used_from = map (apsnd snd) weighted_facts, run_time = time_so_far}
+           used_from = facts, run_time = time_so_far}
       end
   in
     do_slice timeout 1 NONE Time.zeroTime
@@ -217,16 +184,8 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
-    val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
-
-    fun weight_facts facts =
-      let val num_facts = length facts in
-        map (weight_smt2_fact ctxt num_facts) (facts ~~ (0 upto num_facts - 1))
-      end
-
-    val weighted_factss = map (apsnd weight_facts) factss
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
-      smt2_filter_loop name params state goal subgoal weighted_factss
+      smt2_filter_loop name params state goal subgoal factss
     val used_named_facts = map snd fact_ids
     val used_facts = map fst used_named_facts
     val outcome = Option.map failure_of_smt2_failure outcome
