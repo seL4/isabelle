@@ -886,7 +886,7 @@ inductive integrable for M f where
   "has_bochner_integral M f x \<Longrightarrow> integrable M f"
 
 definition lebesgue_integral ("integral\<^sup>L") where
-  "integral\<^sup>L M f = (THE x. has_bochner_integral M f x)"
+  "integral\<^sup>L M f = (if \<exists>x. has_bochner_integral M f x then THE x. has_bochner_integral M f x else 0)"
 
 syntax
   "_lebesgue_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> 'a measure \<Rightarrow> real" ("\<integral> _. _ \<partial>_" [60,61] 110)
@@ -910,7 +910,7 @@ lemma simple_bochner_integrable_eq_integral:
   using has_bochner_integral_simple_bochner_integrable[of M f]
   by (simp add: has_bochner_integral_integral_eq)
 
-lemma not_integrable_integral_eq: "\<not> integrable M f \<Longrightarrow> integral\<^sup>L M f = (THE x. False)"
+lemma not_integrable_integral_eq: "\<not> integrable M f \<Longrightarrow> integral\<^sup>L M f = 0"
   unfolding integrable.simps lebesgue_integral_def by (auto intro!: arg_cong[where f=The])
 
 lemma integral_eq_cases:
@@ -934,13 +934,13 @@ lemma integrable_cong_AE:
 
 lemma integral_cong:
   "M = N \<Longrightarrow> (\<And>x. x \<in> space N \<Longrightarrow> f x = g x) \<Longrightarrow> integral\<^sup>L M f = integral\<^sup>L N g"
-  using assms by (simp cong: has_bochner_integral_cong add: lebesgue_integral_def)
+  using assms by (simp cong: has_bochner_integral_cong cong del: if_cong add: lebesgue_integral_def)
 
 lemma integral_cong_AE:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> AE x in M. f x = g x \<Longrightarrow>
     integral\<^sup>L M f = integral\<^sup>L M g"
   unfolding lebesgue_integral_def
-  by (intro has_bochner_integral_cong_AE arg_cong[where f=The] ext)
+  by (rule arg_cong[where x="has_bochner_integral M f"]) (intro has_bochner_integral_cong_AE ext)
 
 lemma integrable_add[simp, intro]: "integrable M f \<Longrightarrow> integrable M g \<Longrightarrow> integrable M (\<lambda>x. f x + g x)"
   by (auto simp: integrable.simps)
@@ -1030,19 +1030,38 @@ lemma integral_bounded_linear: "bounded_linear T \<Longrightarrow> integrable M 
     integral\<^sup>L M (\<lambda>x. T (f x)) = T (integral\<^sup>L M f)"
   by (metis has_bochner_integral_bounded_linear has_bochner_integral_integrable has_bochner_integral_integral_eq)
 
-lemma integral_indicator[simp]: "A \<in> sets M \<Longrightarrow> emeasure M A < \<infinity> \<Longrightarrow>
-  integral\<^sup>L M (\<lambda>x. indicator A x *\<^sub>R c) = measure M A *\<^sub>R c"
-  by (intro has_bochner_integral_integral_eq has_bochner_integral_indicator has_bochner_integral_integrable)
-
-lemma integral_real_indicator[simp]: "A \<in> sets M \<Longrightarrow> emeasure M A < \<infinity> \<Longrightarrow>
-  integral\<^sup>L M (indicator A :: 'a \<Rightarrow> real) = measure M A"
-  by (intro has_bochner_integral_integral_eq has_bochner_integral_real_indicator has_bochner_integral_integrable)
+lemma integral_bounded_linear':
+  assumes T: "bounded_linear T" and T': "bounded_linear T'"
+  assumes *: "\<not> (\<forall>x. T x = 0) \<Longrightarrow> (\<forall>x. T' (T x) = x)"
+  shows "integral\<^sup>L M (\<lambda>x. T (f x)) = T (integral\<^sup>L M f)"
+proof cases
+  assume "(\<forall>x. T x = 0)" then show ?thesis
+    by simp
+next
+  assume **: "\<not> (\<forall>x. T x = 0)"
+  show ?thesis
+  proof cases
+    assume "integrable M f" with T show ?thesis
+      by (rule integral_bounded_linear)
+  next
+    assume not: "\<not> integrable M f"
+    moreover have "\<not> integrable M (\<lambda>x. T (f x))"
+    proof
+      assume "integrable M (\<lambda>x. T (f x))"
+      from integrable_bounded_linear[OF T' this] not *[OF **]
+      show False
+        by auto
+    qed
+    ultimately show ?thesis
+      using T by (simp add: not_integrable_integral_eq linear_simps)
+  qed
+qed
 
 lemma integral_scaleR_left[simp]: "(c \<noteq> 0 \<Longrightarrow> integrable M f) \<Longrightarrow> (\<integral> x. f x *\<^sub>R c \<partial>M) = integral\<^sup>L M f *\<^sub>R c"
   by (intro has_bochner_integral_integral_eq has_bochner_integral_integrable has_bochner_integral_scaleR_left)
 
-lemma integral_scaleR_right[simp]: "(c \<noteq> 0 \<Longrightarrow> integrable M f) \<Longrightarrow> (\<integral> x. c *\<^sub>R f x \<partial>M) = c *\<^sub>R integral\<^sup>L M f"
-  by (intro has_bochner_integral_integral_eq has_bochner_integral_integrable has_bochner_integral_scaleR_right)
+lemma integral_scaleR_right[simp]: "(\<integral> x. c *\<^sub>R f x \<partial>M) = c *\<^sub>R integral\<^sup>L M f"
+  by (rule integral_bounded_linear'[OF bounded_linear_scaleR_right bounded_linear_scaleR_right[of "1 / c"]]) simp
 
 lemma integral_mult_left[simp]:
   fixes c :: "_::{real_normed_algebra,second_countable_topology}"
@@ -1054,6 +1073,16 @@ lemma integral_mult_right[simp]:
   shows "(c \<noteq> 0 \<Longrightarrow> integrable M f) \<Longrightarrow> (\<integral> x. c * f x \<partial>M) = c * integral\<^sup>L M f"
   by (intro has_bochner_integral_integral_eq has_bochner_integral_integrable has_bochner_integral_mult_right)
 
+lemma integral_mult_left_zero[simp]:
+  fixes c :: "_::{real_normed_field,second_countable_topology}"
+  shows "(\<integral> x. f x * c \<partial>M) = integral\<^sup>L M f * c"
+  by (rule integral_bounded_linear'[OF bounded_linear_mult_left bounded_linear_mult_left[of "1 / c"]]) simp
+
+lemma integral_mult_right_zero[simp]:
+  fixes c :: "_::{real_normed_field,second_countable_topology}"
+  shows "(\<integral> x. c * f x \<partial>M) = c * integral\<^sup>L M f"
+  by (rule integral_bounded_linear'[OF bounded_linear_mult_right bounded_linear_mult_right[of "1 / c"]]) simp
+
 lemma integral_inner_left[simp]: "(c \<noteq> 0 \<Longrightarrow> integrable M f) \<Longrightarrow> (\<integral> x. f x \<bullet> c \<partial>M) = integral\<^sup>L M f \<bullet> c"
   by (intro has_bochner_integral_integral_eq has_bochner_integral_integrable has_bochner_integral_inner_left)
 
@@ -1062,19 +1091,24 @@ lemma integral_inner_right[simp]: "(c \<noteq> 0 \<Longrightarrow> integrable M 
 
 lemma integral_divide_zero[simp]:
   fixes c :: "_::{real_normed_field, field_inverse_zero, second_countable_topology}"
-  shows "(c \<noteq> 0 \<Longrightarrow> integrable M f) \<Longrightarrow> integral\<^sup>L M (\<lambda>x. f x / c) = integral\<^sup>L M f / c"
-  by (intro has_bochner_integral_integral_eq has_bochner_integral_integrable has_bochner_integral_divide_zero)
+  shows "integral\<^sup>L M (\<lambda>x. f x / c) = integral\<^sup>L M f / c"
+  by (rule integral_bounded_linear'[OF bounded_linear_divide bounded_linear_mult_left[of c]]) simp
 
-lemmas integral_minus[simp] =
-  integral_bounded_linear[OF bounded_linear_minus[OF bounded_linear_ident]]
+lemma integral_minus[simp]: "integral\<^sup>L M (\<lambda>x. - f x) = - integral\<^sup>L M f"
+  by (rule integral_bounded_linear'[OF bounded_linear_minus[OF bounded_linear_ident] bounded_linear_minus[OF bounded_linear_ident]]) simp
+
+lemma integral_complex_of_real[simp]: "integral\<^sup>L M (\<lambda>x. complex_of_real (f x)) = of_real (integral\<^sup>L M f)"
+  by (rule integral_bounded_linear'[OF bounded_linear_of_real bounded_linear_Re]) simp
+
+lemma integral_cnj[simp]: "integral\<^sup>L M (\<lambda>x. cnj (f x)) = cnj (integral\<^sup>L M f)"
+  by (rule integral_bounded_linear'[OF bounded_linear_cnj bounded_linear_cnj]) simp
+
 lemmas integral_divide[simp] =
   integral_bounded_linear[OF bounded_linear_divide]
 lemmas integral_Re[simp] =
   integral_bounded_linear[OF bounded_linear_Re]
 lemmas integral_Im[simp] =
   integral_bounded_linear[OF bounded_linear_Im]
-lemmas integral_cnj[simp] =
-  integral_bounded_linear[OF bounded_linear_cnj]
 lemmas integral_of_real[simp] =
   integral_bounded_linear[OF bounded_linear_of_real]
 lemmas integral_fst[simp] =
@@ -1276,6 +1310,25 @@ lemma integrable_indicator_iff:
   "integrable M (indicator A::_ \<Rightarrow> real) \<longleftrightarrow> A \<inter> space M \<in> sets M \<and> emeasure M (A \<inter> space M) < \<infinity>"
   by (simp add: integrable_iff_bounded borel_measurable_indicator_iff ereal_indicator nn_integral_indicator'
            cong: conj_cong)
+
+lemma integral_indicator[simp]: "integral\<^sup>L M (indicator A) = measure M (A \<inter> space M)"
+proof cases
+  assume *: "A \<inter> space M \<in> sets M \<and> emeasure M (A \<inter> space M) < \<infinity>"
+  have "integral\<^sup>L M (indicator A) = integral\<^sup>L M (indicator (A \<inter> space M))"
+    by (intro integral_cong) (auto split: split_indicator)
+  also have "\<dots> = measure M (A \<inter> space M)"
+    using * by (intro has_bochner_integral_integral_eq has_bochner_integral_real_indicator) auto
+  finally show ?thesis .
+next
+  assume *: "\<not> (A \<inter> space M \<in> sets M \<and> emeasure M (A \<inter> space M) < \<infinity>)"
+  have "integral\<^sup>L M (indicator A) = integral\<^sup>L M (indicator (A \<inter> space M) :: _ \<Rightarrow> real)"
+    by (intro integral_cong) (auto split: split_indicator)
+  also have "\<dots> = 0"
+    using * by (subst not_integrable_integral_eq) (auto simp: integrable_indicator_iff)
+  also have "\<dots> = measure M (A \<inter> space M)"
+    using * by (auto simp: measure_def emeasure_notin_sets)
+  finally show ?thesis .
+qed
 
 lemma
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}" and w :: "'a \<Rightarrow> real"
@@ -1547,20 +1600,22 @@ qed
 
 lemma integral_nonneg_AE:
   fixes f :: "'a \<Rightarrow> real"
-  assumes [measurable]: "integrable M f" "AE x in M. 0 \<le> f x"
+  assumes [measurable]: "AE x in M. 0 \<le> f x"
   shows "0 \<le> integral\<^sup>L M f"
-proof -
-  have "0 \<le> ereal (integral\<^sup>L M (\<lambda>x. max 0 (f x)))"
+proof cases
+  assume [measurable]: "integrable M f"
+  then have "0 \<le> ereal (integral\<^sup>L M (\<lambda>x. max 0 (f x)))"
     by (subst integral_eq_nn_integral) (auto intro: real_of_ereal_pos nn_integral_nonneg assms)
   also have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) = integral\<^sup>L M f"
-    using assms(2) by (intro integral_cong_AE assms integrable_max) auto
+    using assms by (intro integral_cong_AE assms integrable_max) auto
   finally show ?thesis
     by simp
-qed
+qed (simp add: not_integrable_integral_eq)
 
 lemma integral_eq_zero_AE:
-  "f \<in> borel_measurable M \<Longrightarrow> (AE x in M. f x = 0) \<Longrightarrow> integral\<^sup>L M f = 0"
-  using integral_cong_AE[of f M "\<lambda>_. 0"] by simp
+  "(AE x in M. f x = 0) \<Longrightarrow> integral\<^sup>L M f = 0"
+  using integral_cong_AE[of f M "\<lambda>_. 0"]
+  by (cases "integrable M f") (simp_all add: not_integrable_integral_eq)
 
 lemma integral_nonneg_eq_0_iff_AE:
   fixes f :: "_ \<Rightarrow> real"
@@ -1618,13 +1673,17 @@ proof (rule integrableI_bounded)
 qed fact
 
 lemma integral_real_bounded:
-  assumes "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x" "integral\<^sup>N M f \<le> ereal r"
+  assumes "AE x in M. 0 \<le> f x" "integral\<^sup>N M f \<le> ereal r"
   shows "integral\<^sup>L M f \<le> r"
-proof -
-  have "integrable M f"
-    using assms by (intro integrableI_real_bounded) auto
-  from nn_integral_eq_integral[OF this] assms show ?thesis
+proof cases
+  assume "integrable M f" from nn_integral_eq_integral[OF this] assms show ?thesis
     by simp
+next
+  assume "\<not> integrable M f"
+  moreover have "0 \<le> ereal r"
+    using nn_integral_nonneg assms(2) by (rule order_trans)
+  ultimately show ?thesis
+    by (simp add: not_integrable_integral_eq)
 qed
 
 subsection {* Restricted measure spaces *}
@@ -1780,11 +1839,11 @@ proof (rule integral_eq_cases)
       by (intro integrable_indicator)
   
     have "integral\<^sup>L (distr M N g) (\<lambda>a. indicator A a *\<^sub>R c) = measure (distr M N g) A *\<^sub>R c"
-      using base by (subst integral_indicator) auto
+      using base by auto
     also have "\<dots> = measure M (g -` A \<inter> space M) *\<^sub>R c"
       by (subst measure_distr) auto
     also have "\<dots> = integral\<^sup>L M (\<lambda>a. indicator (g -` A \<inter> space M) a *\<^sub>R c)"
-      using base by (subst integral_indicator) (auto simp: emeasure_distr)
+      using base by (auto simp: emeasure_distr)
     also have "\<dots> = integral\<^sup>L M (\<lambda>a. indicator A (g a) *\<^sub>R c)"
       using int base by (intro integral_cong_AE) (auto simp: emeasure_distr split: split_indicator)
     finally show ?case .
@@ -2030,13 +2089,29 @@ lemma integral_0_iff:
   shows "integrable M f \<Longrightarrow> (\<integral>x. abs (f x) \<partial>M) = 0 \<longleftrightarrow> emeasure M {x\<in>space M. f x \<noteq> 0} = 0"
   using integral_norm_eq_0_iff[of M f] by simp
 
-lemma (in finite_measure) lebesgue_integral_const[simp]:
-  "(\<integral>x. a \<partial>M) = measure M (space M) *\<^sub>R a"
-  using integral_indicator[of "space M" M a]
-  by (simp del: integral_indicator integral_scaleR_left cong: integral_cong)
-
 lemma (in finite_measure) integrable_const[intro!, simp]: "integrable M (\<lambda>x. a)"
   using integrable_indicator[of "space M" M a] by (simp cong: integrable_cong)
+
+lemma lebesgue_integral_const[simp]: 
+  fixes a :: "'a :: {banach, second_countable_topology}"
+  shows "(\<integral>x. a \<partial>M) = measure M (space M) *\<^sub>R a"
+proof -
+  { assume "emeasure M (space M) = \<infinity>" "a \<noteq> 0"
+    then have ?thesis
+      by (simp add: not_integrable_integral_eq measure_def integrable_iff_bounded) }
+  moreover
+  { assume "a = 0" then have ?thesis by simp }
+  moreover
+  { assume "emeasure M (space M) \<noteq> \<infinity>"
+    interpret finite_measure M
+      proof qed fact
+    have "(\<integral>x. a \<partial>M) = (\<integral>x. indicator (space M) x *\<^sub>R a \<partial>M)"
+      by (intro integral_cong) auto
+    also have "\<dots> = measure M (space M) *\<^sub>R a"
+      by simp
+    finally have ?thesis . }
+  ultimately show ?thesis by blast
+qed
 
 lemma (in finite_measure) integrable_const_bound:
   fixes f :: "'a \<Rightarrow> 'b::{banach,second_countable_topology}"
@@ -2204,9 +2279,7 @@ proof -
   have "\<And>i. s i \<in> measurable (N \<Otimes>\<^sub>M M) (count_space UNIV)"
     by (rule measurable_simple_function) fact
 
-  def f' \<equiv> "\<lambda>i x. if integrable M (f x)
-    then simple_bochner_integral M (\<lambda>y. s i (x, y))
-    else (THE x. False)"
+  def f' \<equiv> "\<lambda>i x. if integrable M (f x) then simple_bochner_integral M (\<lambda>y. s i (x, y)) else 0"
 
   { fix i x assume "x \<in> space N"
     then have "simple_bochner_integral M (\<lambda>y. s i (x, y)) =
