@@ -21,10 +21,10 @@ sig
      command: unit -> string list,
      options: Proof.context -> string list,
      default_max_relevant: int,
-     can_filter: bool,
      outcome: string -> string list -> outcome * string list,
-     parse_proof: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-       (int * (int * thm)) list * Z3_New_Proof.z3_step list) option,
+     parse_proof: (Proof.context -> SMT2_Translate.replay_data ->
+       ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
+       parsed_proof) option,
      replay: (Proof.context -> SMT2_Translate.replay_data -> string list -> thm) option}
 
   (*registry*)
@@ -87,7 +87,7 @@ val normal_return_codes = [0, 1]
 
 fun run_solver ctxt name mk_cmd input =
   let
-    fun pretty tag ls = Pretty.string_of (Pretty.big_list tag (map Pretty.str ls))
+    fun pretty tag lines = Pretty.string_of (Pretty.big_list tag (map Pretty.str lines))
 
     val _ = SMT2_Config.trace_msg ctxt (pretty "Problem:" o split_lines) input
 
@@ -151,10 +151,10 @@ type solver_config =
    command: unit -> string list,
    options: Proof.context -> string list,
    default_max_relevant: int,
-   can_filter: bool,
    outcome: string -> string list -> outcome * string list,
-   parse_proof: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-     (int * (int * thm)) list * Z3_New_Proof.z3_step list) option,
+   parse_proof: (Proof.context -> SMT2_Translate.replay_data ->
+     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
+     parsed_proof) option,
    replay: (Proof.context -> SMT2_Translate.replay_data -> string list -> thm) option}
 
 
@@ -175,9 +175,9 @@ fun check_topsort ctxt thm =
 type solver_info = {
   command: unit -> string list,
   default_max_relevant: int,
-  can_filter: bool,
-  parse_proof: Proof.context -> SMT2_Translate.replay_data -> string list ->
-    (int * (int * thm)) list * Z3_New_Proof.z3_step list,
+  parse_proof: Proof.context -> SMT2_Translate.replay_data ->
+    ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
+    parsed_proof,
   replay: Proof.context -> SMT2_Translate.replay_data -> string list -> thm}
 
 structure Solvers = Generic_Data
@@ -189,31 +189,32 @@ structure Solvers = Generic_Data
 )
 
 local
-  fun parse_proof outcome parse_proof0 outer_ctxt replay_data output =
+  fun parse_proof outcome parse_proof0 outer_ctxt replay_data xfacts prems concl output =
     (case outcome output of
-      (Unsat, ls) =>
-        (case parse_proof0 of SOME pp => pp outer_ctxt replay_data ls | NONE => ([], []))
+      (Unsat, lines) =>
+        (case parse_proof0 of
+          SOME pp => pp outer_ctxt replay_data xfacts prems concl lines
+        | NONE => {outcome = NONE, fact_ids = [], atp_proof = K []})
     | (result, _) => raise SMT2_Failure.SMT (SMT2_Failure.Counterexample (result = Sat)))
 
   fun replay outcome replay0 oracle outer_ctxt
       (replay_data as {context = ctxt, ...} : SMT2_Translate.replay_data) output =
     (case outcome output of
-      (Unsat, ls) =>
+      (Unsat, lines) =>
         if not (Config.get ctxt SMT2_Config.oracle) andalso is_some replay0
-        then the replay0 outer_ctxt replay_data ls
+        then the replay0 outer_ctxt replay_data lines
         else oracle ()
     | (result, _) => raise SMT2_Failure.SMT (SMT2_Failure.Counterexample (result = Sat)))
 
   val cfalse = Thm.cterm_of @{theory} @{prop False}
 in
 
-fun add_solver ({name, class, avail, command, options, default_max_relevant, can_filter,
-    outcome, parse_proof = parse_proof0, replay = replay0} : solver_config) =
+fun add_solver ({name, class, avail, command, options, default_max_relevant, outcome,
+    parse_proof = parse_proof0, replay = replay0} : solver_config) =
   let
     fun solver oracle = {
       command = command,
       default_max_relevant = default_max_relevant,
-      can_filter = can_filter,
       parse_proof = parse_proof (outcome name) parse_proof0,
       replay = replay (outcome name) replay0 oracle}
 
@@ -233,7 +234,6 @@ fun name_and_info_of ctxt =
   in (name, get_info ctxt name) end
 
 val default_max_relevant = #default_max_relevant oo get_info
-val can_filter = #can_filter o snd o name_and_info_of
 
 fun apply_solver_and_replay ctxt wthms0 =
   let
@@ -244,8 +244,6 @@ fun apply_solver_and_replay ctxt wthms0 =
 
 
 (* filter *)
-
-val no_id = ~1
 
 fun smt2_filter ctxt0 goal xwfacts i time_limit =
   let
@@ -261,41 +259,14 @@ fun smt2_filter ctxt0 goal xwfacts i time_limit =
     val wconjecture = (NONE, Thm.assume cprop)
     val wprems = map (pair NONE) prems
     val wfacts = map snd xwfacts
+    val xfacts = map (apsnd snd) xwfacts
     val wthms = wconjecture :: wprems @ wfacts
-    val iwthms = map_index I wthms
-
-    val conjecture_i = 0
-    val prems_i = 1
-    val facts_i = prems_i + length wprems
-
     val wthms' = map (apsnd (check_topsort ctxt)) wthms
+
     val (name, {command, parse_proof, ...}) = name_and_info_of ctxt
-    val (output, replay_data as {rewrite_rules, ...}) =
-      invoke name command (SMT2_Normalize.normalize ctxt wthms') ctxt
+    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt wthms') ctxt
   in
-    parse_proof ctxt replay_data output
-    |> (fn (iidths0, z3_proof) =>
-      let
-        val iidths = if can_filter ctxt then iidths0 else map (apsnd (apfst (K no_id))) iwthms
-
-        fun id_of_index i = the_default no_id (Option.map fst (AList.lookup (op =) iidths i))
-
-        val conjecture_id = id_of_index conjecture_i
-        val prem_ids = map id_of_index (prems_i upto facts_i - 1)
-        val helper_ids = map_filter (try (fn (~1, idth) => idth)) iidths
-        val fact_ids = map_filter (fn (i, (id, _)) =>
-          try (apsnd (apsnd snd o nth xwfacts)) (id, i - facts_i)) iidths
-        val fact_helper_ts =
-          map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, prop_of th)) helper_ids @
-          map (fn (_, ((s, _), th)) => (s, prop_of th)) fact_ids
-        val fact_helper_ids =
-          map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids @ map (apsnd (fst o fst)) fact_ids
-      in
-        {outcome = NONE, fact_ids = fact_ids,
-         atp_proof = fn () => Z3_New_Isar.atp_proof_of_z3_proof ctxt rewrite_rules
-           (map Thm.prop_of prems) (Thm.term_of concl) fact_helper_ts prem_ids conjecture_id
-           fact_helper_ids z3_proof}
-      end)
+    parse_proof ctxt replay_data xfacts (map Thm.prop_of prems) (Thm.term_of concl) output
   end
   handle SMT2_Failure.SMT fail => {outcome = SOME fail, fact_ids = [], atp_proof = K []}
 

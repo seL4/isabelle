@@ -7,8 +7,9 @@ Z3 proof replay.
 
 signature Z3_NEW_REPLAY =
 sig
-  val parse_proof: Proof.context -> SMT2_Translate.replay_data -> string list ->
-    (int * (int * thm)) list * Z3_New_Proof.z3_step list
+  val parse_proof: Proof.context -> SMT2_Translate.replay_data ->
+    ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
+    SMT2_Solver.parsed_proof
   val replay: Proof.context -> SMT2_Translate.replay_data -> string list -> thm
 end
 
@@ -174,12 +175,31 @@ fun discharge rules outer_ctxt inner_ctxt =
   #> discharge_assms outer_ctxt (make_discharge_rules rules)
 
 fun parse_proof outer_ctxt
-    ({context=ctxt, typs, terms, rewrite_rules, assms} : SMT2_Translate.replay_data) output =
+    ({context = ctxt, typs, terms, rewrite_rules, assms} : SMT2_Translate.replay_data) xfacts prems
+    concl output =
   let
     val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
     val ((iidths, _), _) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
+
+    fun id_of_index i = the_default ~1 (Option.map fst (AList.lookup (op =) iidths i))
+
+    val conjecture_i = 0
+    val prems_i = 1
+    val facts_i = prems_i + length prems
+
+    val conjecture_id = id_of_index conjecture_i
+    val prem_ids = map id_of_index (prems_i upto facts_i - 1)
+    val helper_ids = map_filter (try (fn (~1, idth) => idth)) iidths
+    val fact_ids = map_filter (fn (i, (id, _)) => try (apsnd (nth xfacts)) (id, i - facts_i)) iidths
+    val fact_helper_ts =
+      map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, prop_of th)) helper_ids @
+      map (fn (_, ((s, _), th)) => (s, prop_of th)) fact_ids
+    val fact_helper_ids =
+      map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids @ map (apsnd (fst o fst)) fact_ids
   in
-    (iidths, steps)
+    {outcome = NONE, fact_ids = fact_ids,
+     atp_proof = fn () => Z3_New_Isar.atp_proof_of_z3_proof ctxt rewrite_rules prems concl
+       fact_helper_ts prem_ids conjecture_id fact_helper_ids steps}
   end
 
 fun replay outer_ctxt
