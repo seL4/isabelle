@@ -19,13 +19,12 @@ text {* Isabelle/jEdit is a Prover IDE that integrates \emph{parallel
 
   \begin{description}
 
-  \item [PIDE] is a general framework for Prover IDEs based on
-  Isabelle/Scala. It is built around a concept of parallel and
-  asynchronous document processing, which is supported natively by the
-  parallel proof engine that is implemented in Isabelle/ML. The prover
-  discontinues the traditional TTY-based command loop, and supports
-  direct editing of formal source text with rich formal markup for GUI
-  rendering.
+  \item [PIDE] is a general framework for Prover IDEs based on Isabelle/Scala.
+  It is built around a concept of parallel and asynchronous document
+  processing, which is supported natively by the parallel proof engine that is
+  implemented in Isabelle/ML. The traditional prover command loop is given up;
+  instead there is direct support for editing of source text, with rich formal
+  markup for GUI rendering.
 
   \item [Isabelle/ML] is the implementation and extension language of
   Isabelle, see also \cite{isabelle-implementation}. It is integrated
@@ -88,7 +87,7 @@ text {*
 
   \item Prover feedback works via colors, boxes, squiggly underline,
   hyperlinks, popup windows, icons, clickable output --- all based on
-  semantic markup produced by Isabelle in the background.
+  semantic markup produced by the prover process in the background.
 
   \item Using the mouse together with the modifier key @{verbatim
   CONTROL} (Linux, Windows) or @{verbatim COMMAND} (Mac OS X) exposes
@@ -120,18 +119,21 @@ text {*
 
 subsection {* Documentation *}
 
-text {* Regular jEdit documentation is accessible via its @{verbatim
-  Help} menu or @{verbatim F1} keyboard shortcut.  This includes a
-  full \emph{User's Guide} and \emph{Frequently Asked Questions} for
-  this sophisticated text editor.  The same can be browsed without the
-  technical restrictions of the built-in Java HTML viewer here:
-  @{url "http://www.jedit.org/index.php?page=docs"} (potentially for a
-  different version of jEdit).
+text {*
+  The \emph{Documentation} panel of Isabelle/jEdit provides access to the
+  standard Isabelle documentation: PDF files are opened by regular desktop
+  operations of the underlying platform. The section ``jEdit Documentation''
+  contains the original \emph{User's Guide} of this sophisticated text editor.
+  The same is accessible via the @{verbatim Help} menu or @{verbatim F1}
+  keyboard shortcut, using the built-in HTML viewer of Java/Swing. The latter
+  also includes \emph{Frequently Asked Questions} and documentation of
+  individual plugins.
 
-  Most of this information about jEdit is relevant for Isabelle/jEdit
-  as well, but one needs to keep in mind that defaults sometimes
-  differ, and the official jEdit documentation does not know about the
-  Isabelle plugin with its special support for theory editing.
+  Most of the information about generic jEdit is relevant for Isabelle/jEdit
+  as well, but one needs to keep in mind that defaults sometimes differ, and
+  the official jEdit documentation does not know about the Isabelle plugin
+  with its support for continuous checking of formal source text: jEdit is a
+  plain text editor, but Isabelle/jEdit is a Prover IDE.
 *}
 
 
@@ -151,12 +153,15 @@ text {* The \emph{Plugin Manager} of jEdit allows to augment editor
   scale.
 
   \medskip The main \emph{Isabelle} plugin is an integral part of
-  Isabelle/jEdit and needs to remain active at all times! A few
-  additional plugins are bundled with Isabelle/jEdit for convenience
-  or out of necessity, notably \emph{Console} with its Isabelle/Scala
-  sub-plugin and \emph{SideKick} with some Isabelle-specific parsers
-  for document tree structure.  The \emph{ErrorList} plugin is
-  required by \emph{SideKick}, but not used specifically in
+  Isabelle/jEdit and needs to remain active at all times! A few additional
+  plugins are bundled with Isabelle/jEdit for convenience or out of necessity,
+  notably \emph{Console} with its Isabelle/Scala sub-plugin
+  (\secref{sec:scala-console}) and \emph{SideKick} with some Isabelle-specific
+  parsers for document tree structure (\secref{sec:sidekick}). The
+  \emph{Navigator} plugin is particularly important for hyperlinks within the
+  formal document-model (\secref{sec:tooltips-hyperlinks}). Further plugins
+  (e.g.\ \emph{ErrorList}, \emph{Code2HTML}) are included to saturate the
+  dependencies of bundled plugins, but have no particular use in
   Isabelle/jEdit. *}
 
 
@@ -165,34 +170,35 @@ subsection {* Options *}
 text {* Both jEdit and Isabelle have distinctive management of
   persistent options.
 
-  Regular jEdit options are accessible via the dialog for
-  \emph{Plugins / Plugin Options}, which is also accessible via
-  \emph{Utilities / Global Options}.  Changed properties are stored in
-  @{file_unchecked "$ISABELLE_HOME_USER/jedit/properties"}.  In
-  contrast, Isabelle system options are managed by Isabelle/Scala and
-  changed values stored in @{file_unchecked
-  "$ISABELLE_HOME_USER/etc/preferences"}, independently of the jEdit
-  properties.  See also \cite{isabelle-sys}, especially the coverage
-  of sessions and command-line tools like @{tool build} or @{tool
+  Regular jEdit options are accessible via the dialogs \emph{Utilities /
+  Global Options} or \emph{Plugins / Plugin Options}, with a second chance to
+  flip the two within the central options dialog. Changes are stored in
+  @{file_unchecked "$ISABELLE_HOME_USER/jedit/properties"} and
+  @{file_unchecked "$ISABELLE_HOME_USER/jedit/keymaps"}.
+
+  Isabelle system options are managed by Isabelle/Scala and changes are stored
+  in @{file_unchecked "$ISABELLE_HOME_USER/etc/preferences"}, independently of
+  other jEdit properties. See also \cite{isabelle-sys}, especially the
+  coverage of sessions and command-line tools like @{tool build} or @{tool
   options}.
 
-  Those Isabelle options that are declared as \textbf{public} are
-  configurable in jEdit via \emph{Plugin Options / Isabelle /
-  General}.  Moreover, there are various options for rendering of
-  document content, which are configurable via \emph{Plugin Options /
-  Isabelle / Rendering}.  Thus \emph{Plugin Options / Isabelle} in
-  jEdit provides a view on a subset of Isabelle system options.  Note
-  that some of these options affect general parameters that are
-  relevant outside Isabelle/jEdit as well, e.g.\ @{system_option
-  threads} or @{system_option parallel_proofs} for the Isabelle build
-  tool \cite{isabelle-sys}.
+  Those Isabelle options that are declared as \textbf{public} are configurable
+  in Isabelle/jEdit via \emph{Plugin Options / Isabelle / General}. Moreover,
+  there are various options for rendering of document content, which are
+  configurable via \emph{Plugin Options / Isabelle / Rendering}. Thus
+  \emph{Plugin Options / Isabelle} in jEdit provides a view on a subset of
+  Isabelle system options. Note that some of these options affect general
+  parameters that are relevant outside Isabelle/jEdit as well, e.g.\
+  @{system_option threads} or @{system_option parallel_proofs} for the
+  Isabelle build tool \cite{isabelle-sys}, but it is possible to use the
+  settings variable @{setting ISABELLE_BUILD_OPTIONS} to change defaults for
+  batch builds without affecting Isabelle/jEdit.
 
-  \medskip All options are loaded on startup and saved on shutdown of
-  Isabelle/jEdit.  Editing the machine-generated @{file_unchecked
+  \medskip Options are usually loaded on startup and saved on shutdown of
+  Isabelle/jEdit. Editing the machine-generated @{file_unchecked
   "$ISABELLE_HOME_USER/jedit/properties"} or @{file_unchecked
-  "$ISABELLE_HOME_USER/etc/preferences"} manually while the
-  application is running is likely to cause surprise due to lost
-  update!  *}
+  "$ISABELLE_HOME_USER/etc/preferences"} manually while the application is
+  running is likely to cause surprise due to lost update! *}
 
 
 subsection {* Keymaps *}
@@ -204,11 +210,11 @@ text {* Keyboard shortcuts used to be managed as jEdit properties in
   initial environment of properties that is available at the first
   start of the editor; afterwards the keymap file takes precedence.
 
-  This is relevant for Isabelle/jEdit due to various fine-tuning of
-  default properties, and additional keyboard shortcuts for Isabelle
-  specific functionality. Users may change their keymap later, but
-  need to copy Isabelle-specific key bindings manually (see also
-  @{file_unchecked "$ISABELLE_HOME_USER/jedit/keymaps"}).  *}
+  This is relevant for Isabelle/jEdit due to various fine-tuning of default
+  properties, and additional keyboard shortcuts for Isabelle-specific
+  functionality. Users may change their keymap later, but need to copy some
+  key bindings manually (see also @{file_unchecked
+  "$ISABELLE_HOME_USER/jedit/keymaps"}). *}
 
 
 subsection {* Look-and-feel *}
@@ -226,23 +232,22 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   \item[Linux] The platform-independent \emph{Nimbus} is used by
   default.
 
-  \emph{GTK+} works under the side-condition that the overall GTK
-  theme is selected in a Swing-friendly way.\footnote{GTK support in
-  Java/Swing was once marketed aggressively by Sun, but never quite
-  finished, and is today (2013) lagging a bit behind further
-  development of Swing and GTK.  The graphics rendering performance
-  can be worse than for other Swing look-and-feels.}
+  \emph{GTK+} works under the side-condition that the overall GTK theme is
+  selected in a Swing-friendly way.\footnote{GTK support in Java/Swing was
+  once marketed aggressively by Sun, but never quite finished. Today (2013) it
+  is lagging behind further development of Swing and GTK. The graphics
+  rendering performance can be worse than for other Swing look-and-feels.}
 
   \item[Windows] Regular \emph{Windows} is used by default, but
   \emph{Windows Classic} also works.
 
   \item[Mac OS X] Regular \emph{Mac OS X} is used by default.
 
-  Moreover the bundled \emph{MacOSX} plugin provides various functions
-  that are expected from applications on that particular platform:
-  quit from menu or dock, preferences menu, drag-and-drop of text
-  files on the application, full-screen mode for main editor windows
-  etc.
+  Moreover the bundled \emph{MacOSX} plugin provides various functions that
+  are expected from applications on that particular platform: quit from menu
+  or dock, preferences menu, drag-and-drop of text files on the application,
+  full-screen mode for main editor windows. It is advisable to have the
+  \emph{MacOSX} enabled all the time on that platform.
 
   \end{description}
 
@@ -268,18 +273,18 @@ text {* File specifications in jEdit follow various formats and
   Isabelle/jEdit attempts to work with the file-system access model of
   jEdit as far as possible.  In particular, theory sources are passed
   directly from the editor to the prover, without indirection via
-  files.
+  physical files.
 
   Despite the flexibility of URLs in jEdit, local files are
   particularly important and are accessible without protocol prefix.
   Here the path notation is that of the Java Virtual Machine on the
   underlying platform.  On Windows the preferred form uses
-  backslashes, but happens to accept Unix/POSIX forward slashes, too.
+  backslashes, but happens to accept forward slashes of Unix/POSIX, too.
   Further differences arise due to drive letters and network shares.
 
   The Java notation for files needs to be distinguished from the one
   of Isabelle, which uses POSIX notation with forward slashes on
-  \emph{all} platforms.\footnote{Isabelle on Windows uses Cygwin
+  \emph{all} platforms.\footnote{Isabelle/ML on Windows uses Cygwin
   file-system access.}  Moreover, environment variables from the
   Isabelle process may be used freely, e.g.\ @{file
   "$ISABELLE_HOME/etc/symbols"} or @{file_unchecked "$POLYML_HOME/README"}.
@@ -296,15 +301,20 @@ text {* File specifications in jEdit follow various formats and
   @{verbatim "isabelle jedit"} run from the command line).
 
   For convenience, Isabelle/jEdit imitates at least @{verbatim
-  "$ISABELLE_HOME"} and @{verbatim "$ISABELLE_HOME_USER"} within the
-  Java process environment, in order to allow easy access to these
-  important places from the editor.
+  "$ISABELLE_HOME"} and @{verbatim "$ISABELLE_HOME_USER"} within the Java
+  process environment, in order to allow easy access to these important places
+  from the editor. The file browser of jEdit also includes \emph{Favorites}
+  for these two important locations.
 
-  Moreover note that path specifications in prover input or output
-  usually include formal markup that turns it into a hyperlink (see
-  also \secref{sec:tooltips-hyperlinks}).  This allows to open the
-  corresponding file in the text editor, independently of the path
-  notation.  *}
+  \medskip Path specifications in prover input or output usually include
+  formal markup that turns it into a hyperlink (see also
+  \secref{sec:tooltips-hyperlinks}). This allows to open the corresponding
+  file in the text editor, independently of the path notation.
+
+  Formally checked paths in prover input are subject to completion
+  (\secref{sec:complation}): partial specifications are resolved via actual
+  directory content and possible completions are offered in a popup.
+*}
 
 
 section {* Text buffers and theories \label{sec:buffers-theories} *}
@@ -326,12 +336,11 @@ text {* As regular text editor, jEdit maintains a collection of open
   session.
 
   Certain events to open or update buffers with theory files cause
-  Isabelle/jEdit to resolve dependencies of \emph{theory imports}.
-  The system requests to load additional files into editor buffers, in
-  order to be included in the theory document model for further
-  checking.  It is also possible to resolve dependencies
-  automatically, depending on \emph{Plugin Options / Isabelle /
-  General / Auto load}.
+  Isabelle/jEdit to resolve dependencies of \emph{theory imports}. The system
+  requests to load additional files into editor buffers, in order to be
+  included in the document model for further checking. It is also possible to
+  resolve dependencies automatically, according to \emph{Plugin Options /
+  Isabelle / General / Auto Load}.
 
   \medskip The open text area views on theory buffers define the
   visible \emph{perspective} of Isabelle/jEdit.  This is taken as a
@@ -339,7 +348,7 @@ text {* As regular text editor, jEdit maintains a collection of open
   a theory where the user is looking are checked, while other parts
   that are presently not required are ignored.  The perspective is
   changed by opening or closing text area windows, or scrolling within
-  an editor window.
+  a window.
 
   The \emph{Theories} panel provides some further options to influence
   the process of continuous checking: it may be switched off globally
@@ -352,18 +361,16 @@ text {* As regular text editor, jEdit maintains a collection of open
   though.
 
   \medskip Formal markup of checked theory content is turned into GUI
-  rendering, based on a standard repertoire known from IDEs for
-  programming languages: colors, icons, highlighting, squiggly
-  underline, tooltips, hyperlinks etc.  For outer syntax of
-  Isabelle/Isar there is some traditional syntax-highlighting via
-  static keyword tables and tokenization within the editor.  In
-  contrast, the painting of inner syntax (term language etc.)\ uses
-  semantic information that is reported dynamically from the logical
-  context.  Thus the prover can provide additional markup to help the
-  user to understand the meaning of formal text, and to produce more
-  text with some add-on tools (e.g.\ information messages by automated
-  provers or disprovers running in the background).
-*}
+  rendering, based on a standard repertoire known from IDEs for programming
+  languages: colors, icons, highlighting, squiggly underline, tooltips,
+  hyperlinks etc. For outer syntax of Isabelle/Isar there is some traditional
+  syntax-highlighting via static keyword tables and tokenization within the
+  editor. In contrast, the painting of inner syntax (term language etc.)\ uses
+  semantic information that is reported dynamically from the logical context.
+  Thus the prover can provide additional markup to help the user to understand
+  the meaning of formal text, and to produce more text with some add-on tools
+  (e.g.\ information messages with \emph{sendback} markup by automated provers
+  or disprovers in the background). *}
 
 
 section {* Prover output \label{sec:prover-output} *}
@@ -390,17 +397,16 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
   The ``gutter area'' on the left-hand-side of the text area uses
   icons to provide a summary of the messages within the adjacent
   line of text.  Message priorities are used to prefer errors over
-  warnings, warnings over information messages etc.  Plain output is
-  ignored here.
+  warnings, warnings over information messages, but plain output is
+  ignored.
 
-  The ``overview area'' on the right-hand-side of the text area uses
-  similar information to paint small rectangles for the overall status
-  of the whole text buffer.  The graphics is scaled to fit the logical
-  buffer length into the given window height.  Mouse clicks on the
-  overview area position the cursor approximately to the corresponding
-  line of text in the buffer.  Repainting the overview in real-time
-  causes problems with big theories, so it is restricted to part of
-  the text according to \emph{Plugin Options / Isabelle / General /
+  The ``overview area'' on the right-hand-side of the text area uses similar
+  information to paint small rectangles for the overall status of the whole
+  text buffer. The graphics is scaled to fit the logical buffer length into
+  the given window height. Mouse clicks on the overview area position the
+  cursor approximately to the corresponding line of text in the buffer.
+  Repainting the overview in real-time causes problems with big theories, so
+  it is restricted according to \emph{Plugin Options / Isabelle / General /
   Text Overview Limit} (in characters).
 
   Another course-grained overview is provided by the \emph{Theories}
@@ -413,20 +419,19 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
   messages that correspond to a given command, within a separate
   window.
 
-  The cursor position in the presently active text area determines the
-  prover commands whose cumulative message output is appended and
-  shown in that window (in canonical order according to the processing
-  of the command).  There are also control elements to modify the
-  update policy of the output wrt.\ continued editor movements.  This
-  is particularly useful with several independent instances of the
-  \emph{Output} panel, which the Dockable Window Manager of jEdit can
-  handle conveniently.
+  The cursor position in the presently active text area determines the prover
+  command whose cumulative message output is appended and shown in that window
+  (in canonical order according to the internal execution of the command).
+  There are also control elements to modify the update policy of the output
+  wrt.\ continued editor movements. This is particularly useful with several
+  independent instances of the \emph{Output} panel, which the Dockable Window
+  Manager of jEdit can handle conveniently.
 
-  Former users of the old TTY interaction model (e.g.\ Proof~General)
-  might find a separate window for prover messages familiar, but it is
-  important to understand that the main Prover IDE feedback happens
-  elsewhere.  It is possible to do meaningful proof editing
-  efficiently, using secondary output windows only rarely.
+  Former users of the old TTY interaction model (e.g.\ Proof~General) might
+  find a separate window for prover messages familiar, but it is important to
+  understand that the main Prover IDE feedback happens elsewhere. It is
+  possible to do meaningful proof editing, while using secondary output
+  windows only rarely.
 
   The main purpose of the output window is to ``debug'' unclear
   situations by inspecting internal state of the prover.\footnote{In
@@ -444,13 +449,14 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
 
 section {* Tooltips and hyperlinks \label{sec:tooltips-hyperlinks} *}
 
-text {* Formally processed text (prover input or output) contains rich
-  markup information that can be explored further by using the
-  @{verbatim CONTROL} modifier key on Linux and Windows, or @{verbatim
-  COMMAND} on Mac OS X.  Hovering with the mouse while the modifier is
-  pressed reveals a \emph{tooltip} (grey box over the text with a
-  yellow popup) and/or a \emph{hyperlink} (black rectangle over the
-  text); see also \figref{fig:tooltip}.
+text {*
+  Formally processed text (prover input or output) contains rich markup
+  information that can be explored further by using the @{verbatim CONTROL}
+  modifier key on Linux and Windows, or @{verbatim COMMAND} on Mac OS X.
+  Hovering with the mouse while the modifier is pressed reveals a
+  \emph{tooltip} (grey box over the text with a yellow popup) and/or a
+  \emph{hyperlink} (black rectangle over the text with change of mouse
+  pointer); see also \figref{fig:tooltip}.
 
   \begin{figure}[htb]
   \begin{center}
@@ -460,7 +466,7 @@ text {* Formally processed text (prover input or output) contains rich
   \label{fig:tooltip}
   \end{figure}
 
-  Tooltip popups use the same rendering principles as the main text
+  Tooltip popups use the same rendering mechanisms as the main text
   area, and further tooltips and/or hyperlinks may be exposed
   recursively by the same mechanism; see \figref{fig:nested-tooltips}.
 
@@ -478,11 +484,12 @@ text {* Formally processed text (prover input or output) contains rich
   \emph{all} popups, which is particularly relevant when nested
   tooltips are stacking up.
 
-  \medskip A black rectangle in the text indicates a hyperlink that
-  may be followed by a mouse click (while the @{verbatim CONTROL} or
-  @{verbatim COMMAND} modifier key is still pressed). Presently
-  (Isabelle2013-2) there is no systematic navigation within the
-  editor to return to the original location.
+  \medskip A black rectangle in the text indicates a hyperlink that may be
+  followed by a mouse click (while the @{verbatim CONTROL} or @{verbatim
+  COMMAND} modifier key is still pressed). Such jumps to other text locations
+  are recorded by the \emph{Navigator} plugin, which is bundled with
+  Isabelle/jEdit and enabled by default, including navigation arrows in the
+  main jEdit toolbar.
 
   Also note that the link target may be a file that is itself not
   subject to formal document processing of the editor session and thus
@@ -561,7 +568,7 @@ text {* \paragraph{Completion tables} are determined statically from
   characters in the text.
 
   \item The system option @{system_option jedit_completion_delay}
-  determines an additional delay (0.0 by default), before opening a
+  determines an additional delay (0.5 by default), before opening a
   completion popup.
 
   \item The system option @{system_option jedit_completion_immediate}
@@ -579,8 +586,6 @@ text {* \paragraph{Completion tables} are determined statically from
   These completion options may be configured in \emph{Plugin Options /
   Isabelle / General / Completion}.  The default is quite moderate in
   showing occasional popups and refraining from immediate insertion.
-  An additional completion delay of 0.3 seconds will make it even less
-  ambitious.
 
   In contrast, more aggressive completion works via @{system_option
   jedit_completion_delay}~@{verbatim "= 0.0"} and @{system_option
@@ -591,10 +596,7 @@ text {* \paragraph{Completion tables} are determined statically from
   mode.
 
   In any case, unintended completions can be reverted by the regular
-  @{verbatim undo} operation of jEdit.  When editing embedded
-  languages such as ML, it is better to disable either @{system_option
-  jedit_completion} or @{system_option jedit_completion_immediate}
-  temporarily.  *}
+  @{verbatim undo} operation of jEdit. *}
 
 
 section {* Isabelle symbols \label{sec:symbols} *}
@@ -651,12 +653,12 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   Note that a Java/AWT/Swing application can load additional fonts
   only if they are not installed on the operating system already!
   Some old version of @{verbatim IsabelleText} that happens to be
-  provided by the operating system would prevents Isabelle/jEdit from
+  provided by the operating system would prevent Isabelle/jEdit to use
   its bundled version.  This could lead to missing glyphs (black
   rectangles), when the system version of @{verbatim IsabelleText} is
   older than the application version.  This problem can be avoided by
   refraining to ``install'' any version of @{verbatim IsabelleText} in
-  the first place (although it might be occasionally tempting to use
+  the first place (although it is occasionally tempting to use
   the same font in other applications).
 
   \medskip \paragraph{Input methods.} In principle, Isabelle/jEdit
@@ -673,7 +675,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
 
   \begin{enumerate}
 
-  \item The \emph{Symbols} panel with some GUI buttons to insert
+  \item The \emph{Symbols} panel: some GUI buttons allow to insert
   certain symbols in the text buffer.  There are also tooltips to
   reveal the official Isabelle representation with some additional
   information about \emph{symbol abbreviations} (see below).
@@ -682,7 +684,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   as Unicode already can be re-used to produce further text.  This
   also works between different applications, e.g.\ Isabelle/jEdit and
   some web browser or mail client, as long as the same Unicode view on
-  Isabelle symbols is used uniformly.
+  Isabelle symbols is used.
 
   \item Copy / paste from prover output within Isabelle/jEdit.  The
   same principles as for text buffers apply, but note that \emph{copy}
@@ -919,7 +921,7 @@ text {* The \emph{Find} panel (\figref{fig:find}) provides an
 
 chapter {* Miscellaneous tools *}
 
-section {* SideKick *}
+section {* SideKick \label{sec:sidekick} *}
 
 text {* The \emph{SideKick} plugin of jEdit provides some general
   services to display buffer structure in a tree view.
@@ -975,33 +977,28 @@ text {* Managed evaluation of commands within PIDE documents includes
   further access to statistics of Isabelle/ML.  *}
 
 
-section {* Isabelle/Scala console *}
+section {* Isabelle/Scala console \label{sec:scala-console} *}
 
-text {* The \emph{Console} plugin of jEdit manages various shells
-  (command interpreters), e.g.\ \emph{BeanShell}, which is the
-  official jEdit scripting language, and the cross-platform
-  \emph{System} shell.  Thus the console provides similar
-  functionality than the special buffers @{verbatim "*scratch*"} and
-  @{verbatim "*shell*"} in Emacs.
+text {*
+  The \emph{Console} plugin of jEdit manages various shells (command
+  interpreters), e.g.\ \emph{BeanShell}, which is the official jEdit scripting
+  language, and the cross-platform \emph{System} shell. Thus the console
+  provides similar functionality than the special Emacs buffers @{verbatim
+  "*scratch*"} and @{verbatim "*shell*"}.
 
-  Isabelle/jEdit extends the repertoire of the console by
-  \emph{Scala}, which is the regular Scala toplevel loop running
-  inside the \emph{same} JVM process as Isabelle/jEdit itself.  This
-  means the Scala command interpreter has access to the JVM name space
-  and state of the running Prover IDE application: the main entry
-  points are @{verbatim view} (the current editor view of jEdit) and
-  @{verbatim PIDE} (the Isabelle/jEdit plugin object).
+  Isabelle/jEdit extends the repertoire of the console by \emph{Scala}, which
+  is the regular Scala toplevel loop running inside the \emph{same} JVM
+  process as Isabelle/jEdit itself. This means the Scala command interpreter
+  has access to the JVM name space and state of the running Prover IDE
+  application: the main entry points are @{verbatim view} (the current editor
+  view of jEdit) and @{verbatim PIDE} (the Isabelle/jEdit plugin object). For
+  example, the Scala expression @{verbatim "PIDE.snapshot(view)"} makes a PIDE
+  document snapshot of the current buffer within the current editor view.
 
-  For example, the subsequent Scala snippet gets the PIDE document
-  model of the current buffer within the current editor view:
-
-  \begin{center}
-  @{verbatim "PIDE.document_model(view.getBuffer).get"}
-  \end{center}
-
-  This helps to explore Isabelle/Scala functionality interactively.
-  Some care is required to avoid interference with the internals of
-  the running application, especially in production use.  *}
+  This helps to explore Isabelle/Scala functionality interactively. Some care
+  is required to avoid interference with the internals of the running
+  application, especially in production use.
+*}
 
 
 section {* Low-level output *}
@@ -1033,11 +1030,11 @@ text {* Prover output is normally shown directly in the main text area
   difficult to relate raw output to the actual command from where it
   was originating.  Parallel execution may add to the confusion.
   Peeking at physical process I/O is only the last resort to diagnose
-  problems with tools that are not fully PIDE compliant.
+  problems with tools that are not PIDE compliant.
 
-  Under normal circumstances, prover output always works via managed
-  message channels (corresponding to @{ML writeln}, @{ML warning},
-  @{ML error} etc.\ in Isabelle/ML), which are displayed by regular
+  Under normal circumstances, prover output always works via managed message
+  channels (corresponding to @{ML writeln}, @{ML warning}, @{ML
+  Output.error_message} etc.\ in Isabelle/ML), which are displayed by regular
   means within the document model (\secref{sec:prover-output}).
 
   \item \emph{Syslog} shows system messages that might be relevant to
@@ -1065,7 +1062,7 @@ text {*
   global side-effects, like writing a physical file.
 
   \textbf{Workaround:} Copy / paste complete command text from
-  elsewhere, or discontinue continuous checking temporarily.
+  elsewhere, or disable continuous checking temporarily.
 
   \item \textbf{Problem:} No way to delete document nodes from the overall
   collection of theories.
@@ -1107,7 +1104,7 @@ text {*
   by Java. This affects either historic or neo-minimalistic window
   managers like @{verbatim awesome} or @{verbatim xmonad}.
 
-  \textbf{Workaround:} Use regular re-parenting window manager.
+  \textbf{Workaround:} Use a regular re-parenting window manager.
 
   \item \textbf{Problem:} Recent forks of Linux / X11 window managers
   and desktop environments (variants of Gnome) disrupt the handling of
@@ -1121,12 +1118,6 @@ text {*
 
   \textbf{Workaround:} Use native full-screen control of the window
   manager (notably on Mac OS X).
-
-  \item \textbf{Problem:} Full-screen mode and dockable windows in
-  \emph{floating} state may lead to confusion about window placement
-  (depending on platform characteristics).
-
-  \textbf{Workaround:} Avoid this combination.
 
   \end{itemize}
 *}
