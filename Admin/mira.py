@@ -24,8 +24,6 @@ def prepare_isabelle_repository(loc_isabelle, loc_dependency_heaps, more_setting
 
     # patch settings
     extra_settings = '''
-ISABELLE_HOME_USER="$ISABELLE_HOME/home_user"
-
 Z3_NON_COMMERCIAL="yes"
 
 init_components "/home/isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
@@ -103,6 +101,7 @@ def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
     # copy over build results from dependencies
     heap_dir = path.join(isabelle_home, 'heaps')
     classes_dir = path.join(heap_dir, 'classes')
+    home_user_dir = path.join(isabelle_home, 'home_user')
     os.makedirs(classes_dir)
 
     for dep_path in dep_paths:
@@ -125,7 +124,8 @@ ISABELLE_GHC="/usr/bin/ghc"
     args = (['-o', 'timeout=%s' % timeout] if timeout is not None else []) + list(cmdargs)
 
     # invoke build tool
-    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'build', '-s', '-v', *args)
+    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'build', '-s', '-v', *args,
+            USER_HOME=home_user_dir)
 
     # collect report
     return (return_code == 0, extract_isabelle_run_summary(log),
