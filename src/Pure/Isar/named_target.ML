@@ -40,12 +40,13 @@ structure Data = Proof_Data
   fun init _ = NONE;
 );
 
-val peek =
-  Data.get #> Option.map (fn Target {target, is_locale, is_class, ...} =>
-    {target = target, is_locale = is_locale, is_class = is_class});
+fun peek lthy =
+  if Local_Theory.level lthy = 1
+  then Option.map (fn Target {target, is_locale, is_class, ...} =>
+    {target = target, is_locale = is_locale, is_class = is_class}) (Data.get lthy)
+  else NONE;
 
-fun is_theory lthy =
-  Option.map #target (peek lthy) = SOME "" andalso Local_Theory.level lthy = 1;
+fun is_theory lthy = Option.map #target (peek lthy) = SOME "";
 
 
 (* define *)
