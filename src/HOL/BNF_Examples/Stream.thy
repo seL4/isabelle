@@ -46,15 +46,9 @@ next
   with Step prems show "P a s" by simp
 qed
 
-lemma smap_simps[simp]:
-  "shd (smap f s) = f (shd s)" "stl (smap f s) = smap f (stl s)"
-  by (case_tac [!] s) auto
-
-theorem shd_sset: "shd s \<in> sset s"
-  by (case_tac s) auto
-
-theorem stl_sset: "y \<in> sset (stl s) \<Longrightarrow> y \<in> sset s"
-  by (case_tac s) auto
+lemmas smap_simps[simp] = stream.sel_map
+lemmas shd_sset = stream.sel_set(1)
+lemmas stl_sset = stream.sel_set(2)
 
 (* only for the non-mutual case: *)
 theorem sset_induct1[consumes 1, case_names shd stl, induct set: "sset"]:
@@ -154,6 +148,9 @@ lemma shift_snth_less[simp]: "p < length xs \<Longrightarrow> (xs @- s) !! p = x
 lemma shift_snth_ge[simp]: "p \<ge> length xs \<Longrightarrow> (xs @- s) !! p = s !! (p - length xs)"
   by (induct p arbitrary: xs) (auto simp: Suc_diff_eq_diff_pred)
 
+lemma shift_snth: "(xs @- s) !! n = (if n < length xs then xs ! n else s !! (n - length xs))"
+  by auto
+
 lemma snth_sset[simp]: "s !! n \<in> sset s"
   by (induct n arbitrary: s) (auto intro: shd_sset stl_sset)
 
@@ -178,6 +175,11 @@ lemma length_stake[simp]: "length (stake n s) = n"
 lemma stake_smap[simp]: "stake n (smap f s) = map f (stake n s)"
   by (induct n arbitrary: s) auto
 
+lemma take_stake: "take n (stake m s) = stake (min n m) s"
+proof (induct m arbitrary: s n)
+  case (Suc m) thus ?case by (cases n) auto
+qed simp
+
 primrec sdrop :: "nat \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where
   "sdrop 0 s = s"
 | "sdrop (Suc n) s = sdrop n (stl s)"
@@ -191,6 +193,11 @@ lemma sdrop_smap[simp]: "sdrop n (smap f s) = smap f (sdrop n s)"
 
 lemma sdrop_stl: "sdrop n (stl s) = stl (sdrop n s)"
   by (induct n) auto
+
+lemma drop_stake: "drop n (stake m s) = stake (m - n) (sdrop n s)"
+proof (induct m arbitrary: s n)
+  case (Suc m) thus ?case by (cases n) auto
+qed simp
 
 lemma stake_sdrop: "stake n s @- sdrop n s = s"
   by (induct n arbitrary: s) auto
@@ -210,17 +217,20 @@ qed auto
 lemma stake_invert_Nil[iff]: "stake n s = [] \<longleftrightarrow> n = 0"
   by (induct n) auto
 
-lemma sdrop_shift: "\<lbrakk>s = w @- s'; length w = n\<rbrakk> \<Longrightarrow> sdrop n s = s'"
-  by (induct n arbitrary: w s) auto
+lemma sdrop_shift: "sdrop i (w @- s) = drop i w @- sdrop (i - length w) s"
+  by (induct i arbitrary: w s) (auto simp: drop_tl drop_Suc neq_Nil_conv)
 
-lemma stake_shift: "\<lbrakk>s = w @- s'; length w = n\<rbrakk> \<Longrightarrow> stake n s = w"
-  by (induct n arbitrary: w s) auto
+lemma stake_shift: "stake i (w @- s) = take i w @ stake (i - length w) s"
+  by (induct i arbitrary: w s) (auto simp: neq_Nil_conv)
 
 lemma stake_add[simp]: "stake m s @ stake n (sdrop m s) = stake (m + n) s"
   by (induct m arbitrary: s) auto
 
 lemma sdrop_add[simp]: "sdrop n (sdrop m s) = sdrop (m + n) s"
   by (induct m arbitrary: s) auto
+
+lemma sdrop_snth: "sdrop n s !! m = s !! (n + m)"
+  by (induct n arbitrary: m s) auto
 
 partial_function (tailrec) sdrop_while :: "('a \<Rightarrow> bool) \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where 
   "sdrop_while P s = (if P (shd s) then sdrop_while P (stl s) else s)"
@@ -301,10 +311,10 @@ using min_absorb2[OF less_imp_le_nat[OF assms(2)]]
   by (subst cycle_decomp[OF assms(1)], subst stake_append) auto
 
 lemma stake_cycle_eq[simp]: "u \<noteq> [] \<Longrightarrow> stake (length u) (cycle u) = u"
-  by (metis cycle_decomp stake_shift)
+  by (subst cycle_decomp) (auto simp: stake_shift)
 
 lemma sdrop_cycle_eq[simp]: "u \<noteq> [] \<Longrightarrow> sdrop (length u) (cycle u) = cycle u"
-  by (metis cycle_decomp sdrop_shift)
+  by (subst cycle_decomp) (auto simp: sdrop_shift)
 
 lemma stake_cycle_eq_mod_0[simp]: "\<lbrakk>u \<noteq> []; n mod length u = 0\<rbrakk> \<Longrightarrow>
    stake n (cycle u) = concat (replicate (n div length u) u)"
@@ -354,8 +364,20 @@ abbreviation "sconst \<equiv> siterate id"
 lemma shift_replicate_sconst[simp]: "replicate n x @- sconst x = sconst x"
   by (subst (3) stake_sdrop[symmetric]) (simp add: map_replicate_trivial)
 
-lemma stream_all_same[simp]: "sset (sconst x) = {x}"
+lemma sset_sconst[simp]: "sset (sconst x) = {x}"
   by (simp add: sset_siterate)
+
+lemma sconst_alt: "s = sconst x \<longleftrightarrow> sset s = {x}"
+proof
+  assume "sset s = {x}"
+  then show "s = sconst x"
+  proof (coinduction arbitrary: s)
+    case Eq_stream
+    then have "shd s = x" "sset (stl s) \<subseteq> {x}" by (case_tac [!] s) auto
+    then have "sset (stl s) = {x}" by (cases "stl s") auto
+    with `shd s = x` show ?case by auto
+  qed
+qed simp
 
 lemma same_cycle: "sconst x = cycle [x]"
   by coinduction auto
@@ -375,6 +397,14 @@ abbreviation "nats \<equiv> fromN 0"
 
 lemma sset_fromN[simp]: "sset (fromN n) = {n ..}"
   by (auto simp add: sset_siterate le_iff_add)
+
+lemma stream_smap_fromN: "s = smap (\<lambda>j. let i = j - n in s !! i) (fromN n)"
+  by (coinduction arbitrary: s n)
+    (force simp: neq_Nil_conv Let_def snth.simps(2)[symmetric] Suc_diff_Suc
+      intro: stream.map_cong split: if_splits simp del: snth.simps(2))
+
+lemma stream_smap_nats: "s = smap (snth s) nats"
+  using stream_smap_fromN[where n = 0] by simp
 
 
 subsection {* flatten a stream of lists *}
@@ -521,6 +551,21 @@ lemma szip_unfold[code]: "szip (a ## s1) (b ## s2) = (a, b) ## (szip s1 s2)"
 lemma snth_szip[simp]: "szip s1 s2 !! n = (s1 !! n, s2 !! n)"
   by (induct n arbitrary: s1 s2) auto
 
+lemma stake_szip[simp]:
+  "stake n (szip s1 s2) = zip (stake n s1) (stake n s2)"
+  by (induct n arbitrary: s1 s2) auto
+
+lemma sdrop_szip[simp]: "sdrop n (szip s1 s2) = szip (sdrop n s1) (sdrop n s2)"
+  by (induct n arbitrary: s1 s2) auto
+
+lemma smap_szip_fst:
+  "smap (\<lambda>x. f (fst x)) (szip s1 s2) = smap f s1"
+  by (coinduction arbitrary: s1 s2) auto
+
+lemma smap_szip_snd:
+  "smap (\<lambda>x. g (snd x)) (szip s1 s2) = smap g s2"
+  by (coinduction arbitrary: s1 s2) auto
+
 
 subsection {* zip via function *}
 
@@ -535,5 +580,25 @@ lemma smap2_unfold[code]:
 lemma smap2_szip:
   "smap2 f s1 s2 = smap (split f) (szip s1 s2)"
   by (coinduction arbitrary: s1 s2) auto
+
+lemma smap_smap2[simp]:
+  "smap f (smap2 g s1 s2) = smap2 (\<lambda>x y. f (g x y)) s1 s2"
+  unfolding smap2_szip stream.map_comp o_def split_def ..
+
+lemma smap2_alt:
+  "(smap2 f s1 s2 = s) = (\<forall>n. f (s1 !! n) (s2 !! n) = s !! n)"
+  unfolding smap2_szip smap_alt by auto
+
+lemma snth_smap2[simp]:
+  "smap2 f s1 s2 !! n = f (s1 !! n) (s2 !! n)"
+  by (induct n arbitrary: s1 s2) auto
+
+lemma stake_smap2[simp]:
+  "stake n (smap2 f s1 s2) = map (split f) (zip (stake n s1) (stake n s2))"
+  by (induct n arbitrary: s1 s2) auto
+
+lemma sdrop_smap2[simp]:
+  "sdrop n (smap2 f s1 s2) = smap2 f (sdrop n s1) (sdrop n s2)"
+  by (induct n arbitrary: s1 s2) auto
 
 end
