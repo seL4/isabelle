@@ -373,7 +373,7 @@ text {* As regular text editor, jEdit maintains a collection of open
   or disprovers in the background). *}
 
 
-section {* Prover output \label{sec:prover-output} *}
+section {* Output \label{sec:prover-output} *}
 
 text {* Prover output consists of \emph{markup} and \emph{messages}.
   Both are directly attached to the corresponding positions in the
@@ -445,6 +445,82 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
   \secref{sec:tooltips-hyperlinks}), or clicked directly to initiate
   certain actions (see \secref{sec:auto-tools} and
   \secref{sec:sledgehammer}).  *}
+
+
+section {* Query \label{sec:query} *}
+
+text {*
+  The \emph{Query} panel provides various GUI forms to request extra
+  information from the prover explicitly. In old times the user would have
+  issued some diagnostic command like @{command find_theorems} and inspected
+  its output, but this is now integrated more directly into the Prover IDE.
+
+  A \emph{Query} window provides some input fields and buttons for a
+  particular query command, with output in a dedicated text area. There are
+  various query modes: \emph{Find Theorems}, \emph{Find Constants},
+  \emph{Print Context}. As usual in jEdit, multiple \emph{Query} windows may
+  be active simultaneously: any number of floating instances, but at most one
+  docked instance (which is used by default).
+
+  \medskip The following GUI elements are common to all modes of query:
+  \begin{itemize}
+
+  \item The spinning wheel provides feedback about the status of a pending
+  query wrt.\ the evaluation of its context and its own operation.
+
+  \item The \emph{Apply} button attaches a fresh query invocation to the
+  current context of the command where the cursor is pointing in the text.
+
+  \item The \emph{Search} field allows to highlight query output according to
+  some regular expression. This may serve as an additional visual filter of
+  the result.
+
+  \item The \emph{Zoom} box controls the font size of the output area.
+
+  \end{itemize}
+
+  All query operations are asynchronous: there is no need to wait for the
+  evaluation of the document for the query context, nor for the query
+  operation itself. Query output may be detached as independent \emph{Info}
+  window, using a menu operation of the dockable window manager. The printed
+  result usually provides sufficient clues about the original query, with some
+  hyperlink to its context (via markup of its head line).
+*}
+
+
+subsection {* Find theorems *}
+
+text {*
+  The \emph{Query} panel in \emph{Find Theorems} mode
+  (\figref{fig:find-theorems}) provides access to the Isar command @{command
+  find_theorems}, using some GUI elements instead of command-line arguments.
+  The main text field accepts search criteria according to the syntax @{syntax
+  thmcriterium} given in \cite{isabelle-isar-ref}. Some further options of
+  @{command find_theorems} are available via GUI elements.
+
+  % FIXME update
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.3]{find}
+  \end{center}
+  \caption{An instance of the Find panel}
+  \label{fig:find-theorems}
+  \end{figure}
+*}
+
+
+subsection {* Find constants *}
+
+text {*
+  FIXME
+*}
+
+
+subsection {* Print context *}
+
+text {*
+  FIXME
+*}
 
 
 section {* Tooltips and hyperlinks \label{sec:tooltips-hyperlinks} *}
@@ -553,11 +629,11 @@ text {* \paragraph{Completion tables} are determined statically from
   Replacement text is inserted immediately into the buffer, unless
   ambiguous results demand an explicit popup.
 
-  \paragraph{Implicit completion} is triggered by regular keyboard
-  input events during of the editing process in the main jEdit text
-  area (and a few additional text fields like the search criteria of
-  the Find panel, see \secref{sec:find}).  Implicit completion depends
-  on on further side-conditions:
+  \paragraph{Implicit completion} is triggered by regular keyboard input
+  events during of the editing process in the main jEdit text area (and a few
+  additional text fields like the ones of the the \emph{Query} panel, see
+  \secref{sec:query}). Implicit completion depends on on further
+  side-conditions:
 
   \begin{enumerate}
 
@@ -895,28 +971,6 @@ text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
   means a single mouse click inserts the text into a suitable place of
   the original source.  Some manual editing may be required
   nonetheless, say to remove earlier proof attempts. *}
-
-
-section {* Find theorems \label{sec:find} *}
-
-text {* The \emph{Find} panel (\figref{fig:find}) provides an
-  independent view for the Isar command @{command find_theorems}.  The
-  main text field accepts search criteria according to the syntax
-  @{syntax thmcriterium} given in \cite{isabelle-isar-ref}.  Further
-  options of @{command find_theorems} are available via GUI elements.
-
-  \begin{figure}[htb]
-  \begin{center}
-  \includegraphics[scale=0.3]{find}
-  \end{center}
-  \caption{An instance of the Find panel}
-  \label{fig:find}
-  \end{figure}
-
-  The \emph{Apply} button attaches a fresh invocation of @{command
-  find_theorems} to the current context of the command where the
-  cursor is pointing in the text, unless an alternative theory context
-  (from the underlying logic image) is specified explicitly. *}
 
 
 chapter {* Miscellaneous tools *}
