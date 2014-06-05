@@ -98,10 +98,12 @@ def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
 
     isabelle_home = paths[0]
 
+    home_user_dir = path.join(isabelle_home, 'home_user')
+    os.makedirs(home_user_dir)
+
     # copy over build results from dependencies
     heap_dir = path.join(isabelle_home, 'heaps')
     classes_dir = path.join(heap_dir, 'classes')
-    home_user_dir = path.join(isabelle_home, 'home_user')
     os.makedirs(classes_dir)
 
     for dep_path in dep_paths:
