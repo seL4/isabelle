@@ -227,7 +227,7 @@ fun activate_defs class thms thy =
         (eq_morph, true) (export_morphism thy cls)) thy) (heritage thy [class]) thy
   | NONE => thy);
 
-fun register_operation class (c, (t, some_def)) thy =
+fun register_operation class (c, t) thy =
   let
     val base_sort = base_sort thy class;
     val prep_typ = map_type_tfree
@@ -237,11 +237,18 @@ fun register_operation class (c, (t, some_def)) thy =
     val ty' = Term.fastype_of t';
   in
     thy
-    |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd)
-      (fn (defs, operations) =>
-        (fold cons (the_list some_def) defs,
-          (c, (class, (ty', t'))) :: operations))
-    |> activate_defs class (the_list some_def)
+    |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd o apsnd)
+        (cons (c, (class, (ty', t'))))
+  end;
+
+fun register_def class def_thm thy =
+  let
+    val sym_thm = Thm.symmetric def_thm
+  in
+    thy
+    |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd o apfst)
+        (cons sym_thm)
+    |> activate_defs class [sym_thm]
   end;
 
 
@@ -362,8 +369,8 @@ fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
     |> Sign.declare_const_global ((b, Type.strip_sorts ty), mx)
     |> snd
     |> global_def (b_def, def_eq)
-    |-> (fn def_thm =>
-      null dangling_params ? register_operation class (c, (rhs, SOME (Thm.symmetric def_thm))))
+    |-> (fn def_thm => register_def class def_thm)
+    |> null dangling_params ? register_operation class (c, rhs)
     |> Sign.add_const_constraint (c, SOME ty)
   end;
 
@@ -379,7 +386,7 @@ fun canonical_abbrev class phi prmode dangling_term_params ((b, mx), rhs) thy =
     |> snd
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> (null dangling_term_params andalso not (#1 prmode = Print_Mode.input))
-      ? register_operation class (c', (rhs', NONE))
+      ? register_operation class (c', rhs')
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
