@@ -29,10 +29,10 @@ fun make_target target is_locale is_class before_exit =
     before_exit = before_exit};
 
 fun named_target _ "" before_exit = make_target "" false false before_exit
-  | named_target thy locale before_exit =
-      if Locale.defined thy locale
-      then make_target locale true (Class.is_class thy locale) before_exit
-      else error ("No such locale: " ^ quote locale);
+  | named_target thy target before_exit =
+      if Locale.defined thy target
+      then make_target target true (Class.is_class thy target) before_exit
+      else error ("No such locale: " ^ quote target);
 
 structure Data = Proof_Data
 (
@@ -60,7 +60,7 @@ fun class_foundation class (((b, U), mx), (b_def, rhs)) params =
   #-> (fn (lhs, def) => Class.const class ((b, mx), lhs) params
     #> pair (lhs, def));
 
-fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
+fun foundation (ta as Target {target, is_locale, is_class, ...}) =
   if is_class then class_foundation target
   else if is_locale then locale_foundation target
   else Generic_Target.theory_foundation;
@@ -68,7 +68,7 @@ fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
 
 (* notes *)
 
-fun target_notes (Target {target, is_locale, ...}) =
+fun notes (Target {target, is_locale, ...}) =
   if is_locale then Generic_Target.locale_notes target
   else Generic_Target.theory_notes;
 
@@ -83,7 +83,7 @@ fun class_abbrev class prmode (b, mx) global_rhs params =
   Generic_Target.background_abbrev (b, global_rhs) (snd params)
   #-> (fn (lhs, rhs) => Class.abbrev class prmode ((b, mx), lhs) rhs params);
 
-fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) =
+fun abbrev (ta as Target {target, is_locale, is_class, ...}) =
   if is_class then class_abbrev target
   else if is_locale then locale_abbrev target
   else Generic_Target.theory_abbrev;
@@ -91,21 +91,19 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...}) =
 
 (* declaration *)
 
-fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
-  if target = "" then Generic_Target.theory_declaration decl lthy
-  else
-    lthy
-    |> pervasive ? Generic_Target.background_declaration decl
-    |> Generic_Target.locale_declaration target syntax decl
-    |> Generic_Target.standard_declaration (fn (_, other) => other <> 0) decl;
+fun declaration (Target {target, is_locale, ...}) {syntax, pervasive} decl =
+  if is_locale then
+    pervasive ? Generic_Target.background_declaration decl
+    #> Generic_Target.locale_declaration target syntax decl
+    #> Generic_Target.standard_declaration (fn (_, other) => other <> 0) decl
+  else Generic_Target.theory_declaration decl;
 
 
 (* subscription *)
 
-fun target_subscription (Target {target, ...}) =
-  if target = ""
-  then Generic_Target.theory_registration
-  else Generic_Target.locale_dependency target
+fun subscription (Target {target, is_locale, ...}) =
+  if is_locale then Generic_Target.locale_dependency target
+  else Generic_Target.theory_registration;
 
 
 (* pretty *)
@@ -153,11 +151,11 @@ fun init before_exit target thy =
     |> init_context ta
     |> Data.put (SOME ta)
     |> Local_Theory.init naming
-       {define = Generic_Target.define (target_foundation ta),
-        notes = Generic_Target.notes (target_notes ta),
-        abbrev = Generic_Target.abbrev (target_abbrev ta),
-        declaration = target_declaration ta,
-        subscription = target_subscription ta,
+       {define = Generic_Target.define (foundation ta),
+        notes = Generic_Target.notes (notes ta),
+        abbrev = Generic_Target.abbrev (abbrev ta),
+        declaration = declaration ta,
+        subscription = subscription ta,
         pretty = pretty ta,
         exit = before_exit #> Local_Theory.target_of #> Sign.change_end_local}
   end;
