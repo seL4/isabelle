@@ -536,7 +536,7 @@ fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
 
 (* evaluation with type reconstruction *)
 
-fun eval_term (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty), t) deps =
+fun eval_term (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typscheme, t) deps =
   let
     val ctxt = Syntax.init_pretty_global (Proof_Context.theory_of raw_ctxt);
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
