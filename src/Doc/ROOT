@@ -180,9 +180,9 @@ session JEdit (doc) in "JEdit" = HOL +
   document_files
     "auto-tools.png"
     "build"
-    "find.png"
     "isabelle-jedit.png"
     "output.png"
+    "query.png"
     "popup1.png"
     "popup2.png"
     "root.tex"

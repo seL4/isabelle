@@ -65,7 +65,7 @@ section {* The Isabelle/jEdit Prover IDE *}
 text {*
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[width=\textwidth]{isabelle-jedit}
+  \includegraphics[scale=0.333]{isabelle-jedit}
   \end{center}
   \caption{The Isabelle/jEdit Prover IDE}
   \label{fig:isabelle-jedit}
@@ -387,7 +387,7 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[width=\textwidth]{output}
+  \includegraphics[scale=0.333]{output}
   \end{center}
   \caption{Multiple views on prover output: gutter area with icon,
     text area with popup, overview area, Theories panel, Output panel}
@@ -501,9 +501,9 @@ text {*
   % FIXME update
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.3]{find}
+  \includegraphics[scale=0.333]{query}
   \end{center}
-  \caption{An instance of the Find panel}
+  \caption{An instance of the Query panel}
   \label{fig:find-theorems}
   \end{figure}
 *}
@@ -536,7 +536,7 @@ text {*
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.3]{popup1}
+  \includegraphics[scale=0.5]{popup1}
   \end{center}
   \caption{Tooltip and hyperlink for some formal entity}
   \label{fig:tooltip}
@@ -548,7 +548,7 @@ text {*
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.3]{popup2}
+  \includegraphics[scale=0.5]{popup2}
   \end{center}
   \caption{Nested tooltips over formal entities}
   \label{fig:nested-tooltips}
@@ -860,9 +860,9 @@ text {* Continuous document processing works asynchronously in the
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.3]{auto-tools}
+  \includegraphics[scale=0.333]{auto-tools}
   \end{center}
-  \caption{Results of automatically tried tools}
+  \caption{Result of automatically tried tools}
   \label{fig:auto-tools}
   \end{figure}
 
@@ -954,7 +954,7 @@ text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.3]{sledgehammer}
+  \includegraphics[scale=0.333]{sledgehammer}
   \end{center}
   \caption{An instance of the Sledgehammer panel}
   \label{fig:sledgehammer}
