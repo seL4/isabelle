@@ -460,19 +460,6 @@ lemma tranclp_into_tranclp2: "r a b ==> r^++ b c ==> r^++ a c"
 
 lemmas trancl_into_trancl2 = tranclp_into_tranclp2 [to_set]
 
-lemma trancl_insert:
-  "(insert (y, x) r)^+ = r^+ \<union> {(a, b). (a, y) \<in> r^* \<and> (x, b) \<in> r^*}"
-  -- {* primitive recursion for @{text trancl} over finite relations *}
-  apply (rule equalityI)
-   apply (rule subsetI)
-   apply (simp only: split_tupled_all)
-   apply (erule trancl_induct, blast)
-   apply (blast intro: rtrancl_into_trancl1 trancl_into_rtrancl trancl_trans)
-  apply (rule subsetI)
-  apply (blast intro: trancl_mono rtrancl_mono
-    [THEN [2] rev_subsetD] rtrancl_trancl_trancl rtrancl_into_trancl2)
-  done
-
 lemma tranclp_converseI: "(r^++)^--1 x y ==> (r^--1)^++ x y"
   apply (drule conversepD)
   apply (erule tranclp_induct)
@@ -602,6 +589,28 @@ by (auto dest: tranclD2 intro: rtrancl_into_trancl1)
 
 lemma trancl_unfold_left: "r^+ = r O r^*"
 by (auto dest: tranclD intro: rtrancl_into_trancl2)
+
+lemma trancl_insert:
+  "(insert (y, x) r)^+ = r^+ \<union> {(a, b). (a, y) \<in> r^* \<and> (x, b) \<in> r^*}"
+  -- {* primitive recursion for @{text trancl} over finite relations *}
+  apply (rule equalityI)
+   apply (rule subsetI)
+   apply (simp only: split_tupled_all)
+   apply (erule trancl_induct, blast)
+   apply (blast intro: rtrancl_into_trancl1 trancl_into_rtrancl trancl_trans)
+  apply (rule subsetI)
+  apply (blast intro: trancl_mono rtrancl_mono
+    [THEN [2] rev_subsetD] rtrancl_trancl_trancl rtrancl_into_trancl2)
+  done
+
+lemma trancl_insert2:
+  "(insert (a,b) r)^+ = r^+ \<union> {(x,y). ((x,a) : r^+ \<or> x=a) \<and> ((b,y) \<in> r^+ \<or> y=b)}"
+by(auto simp add: trancl_insert rtrancl_eq_or_trancl)
+
+lemma rtrancl_insert:
+  "(insert (a,b) r)^* = r^* \<union> {(x,y). (x,a) : r^* \<and> (b,y) \<in> r^*}"
+using trancl_insert[of a b r]
+by(simp add: rtrancl_trancl_reflcl del: reflcl_trancl) blast
 
 
 text {* Simplifying nested closures *}
