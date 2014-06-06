@@ -31,9 +31,9 @@ sig
   val read_declaration: expression -> (Proof.context -> Proof.context) -> Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
-  val add_locale: (local_theory -> local_theory) -> binding -> binding ->
+  val add_locale: binding -> binding ->
     expression_i -> Element.context_i list -> theory -> string * local_theory
-  val add_locale_cmd: (local_theory -> local_theory) -> binding -> binding ->
+  val add_locale_cmd: binding -> binding ->
     expression -> Element.context list -> theory -> string * local_theory
 
   (* Interpretation *)
@@ -53,9 +53,9 @@ sig
     local_theory -> Proof.state
   val sublocale: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
   val sublocale_cmd: expression -> (Attrib.binding * string) list -> local_theory -> Proof.state
-  val sublocale_global: (local_theory -> local_theory) -> string -> expression_i ->
+  val sublocale_global: string -> expression_i ->
     (Attrib.binding * term) list -> theory -> Proof.state
-  val sublocale_global_cmd: (local_theory -> local_theory) -> xstring * Position.T -> expression ->
+  val sublocale_global_cmd: xstring * Position.T -> expression ->
     (Attrib.binding * string) list -> theory -> Proof.state
 
   (* Diagnostic *)
@@ -762,7 +762,7 @@ fun defines_to_notes ctxt (Defines defs) =
   | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
-    before_exit binding raw_predicate_binding raw_import raw_body thy =
+    binding raw_predicate_binding raw_import raw_body thy =
   let
     val name = Sign.full_name thy binding;
     val _ = Locale.defined thy name andalso
@@ -820,7 +820,7 @@ fun gen_add_locale prep_decl
     val loc_ctxt = thy'
       |> Locale.register_locale binding (extraTs, params)
           (asm, rev defs) (a_intro, b_intro) axioms [] (rev notes) (rev deps')
-      |> Named_Target.init before_exit name
+      |> Named_Target.init name
       |> fold (fn (kind, facts) => Local_Theory.notes_kind kind facts #> snd) notes';
 
   in (name, loc_ctxt) end;
@@ -938,9 +938,9 @@ fun subscribe_locale_only lthy =
 (* special case: global sublocale command *)
 
 fun gen_sublocale_global prep_loc prep_interpretation
-    before_exit raw_locale expression raw_eqns thy =
+    raw_locale expression raw_eqns thy =
   let
-    val lthy = Named_Target.init before_exit (prep_loc thy raw_locale) thy;
+    val lthy = Named_Target.init (prep_loc thy raw_locale) thy;
     fun setup_proof after_qed =
       Element.witness_proof_eqs
         (fn wits => fn eqs => after_qed wits eqs #> Local_Theory.exit);

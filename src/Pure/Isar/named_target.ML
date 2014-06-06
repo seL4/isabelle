@@ -9,7 +9,7 @@ signature NAMED_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool, is_class: bool} option
   val is_theory: local_theory -> bool
-  val init: (local_theory -> local_theory) -> string -> theory -> local_theory
+  val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val reinit: local_theory -> local_theory -> local_theory
   val context_cmd: xstring * Position.T -> theory -> local_theory
@@ -21,17 +21,15 @@ struct
 (* context data *)
 
 datatype target =
-  Target of {target: string, is_locale: bool, is_class: bool,
-    before_exit: local_theory -> local_theory};
+  Target of {target: string, is_locale: bool, is_class: bool};
 
-fun make_target target is_locale is_class before_exit =
-  Target {target = target, is_locale = is_locale, is_class = is_class,
-    before_exit = before_exit};
+fun make_target target is_locale is_class =
+  Target {target = target, is_locale = is_locale, is_class = is_class};
 
-fun named_target _ "" before_exit = make_target "" false false before_exit
-  | named_target thy target before_exit =
+fun named_target _ "" = make_target "" false false
+  | named_target thy target =
       if Locale.defined thy target
-      then make_target target true (Class.is_class thy target) before_exit
+      then make_target target true (Class.is_class thy target)
       else error ("No such locale: " ^ quote target);
 
 structure Data = Proof_Data
@@ -141,9 +139,9 @@ fun init_context (Target {target, is_locale, is_class, ...}) =
   else if not is_class then Locale.init target
   else Class.init target;
 
-fun init before_exit target thy =
+fun init target thy =
   let
-    val ta = named_target thy target before_exit;
+    val ta = named_target thy target;
     val naming = Sign.naming_of thy
       |> Name_Space.mandatory_path (Long_Name.base_name target);
   in
@@ -158,16 +156,16 @@ fun init before_exit target thy =
         declaration = declaration ta,
         subscription = subscription ta,
         pretty = pretty ta,
-        exit = before_exit #> Local_Theory.target_of #> Sign.change_end_local}
+        exit = Local_Theory.target_of #> Sign.change_end_local}
   end;
 
-val theory_init = init I "";
+val theory_init = init "";
 
 val reinit =
   Local_Theory.assert_bottom true #> Data.get #> the #>
-  (fn Target {target, before_exit, ...} => Local_Theory.exit_global #> init before_exit target);
+  (fn Target {target, ...} => Local_Theory.exit_global #> init target);
 
 fun context_cmd ("-", _) thy = theory_init thy
-  | context_cmd target thy = init I (Locale.check thy target) thy;
+  | context_cmd target thy = init (Locale.check thy target) thy;
 
 end;

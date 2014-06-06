@@ -6,14 +6,14 @@ Declaring classes and subclass relations.
 
 signature CLASS_DECLARATION =
 sig
-  val class: (local_theory -> local_theory) -> binding -> class list ->
+  val class: binding -> class list ->
     Element.context_i list -> theory -> string * local_theory
-  val class_cmd: (local_theory -> local_theory) -> binding -> xstring list ->
+  val class_cmd: binding -> xstring list ->
     Element.context list -> theory -> string * local_theory
-  val prove_subclass: (local_theory -> local_theory) -> tactic -> class ->
+  val prove_subclass: tactic -> class ->
     local_theory -> local_theory
-  val subclass: (local_theory -> local_theory) -> class -> local_theory -> Proof.state
-  val subclass_cmd: (local_theory -> local_theory) -> xstring -> local_theory -> Proof.state
+  val subclass: class -> local_theory -> Proof.state
+  val subclass_cmd: xstring -> local_theory -> Proof.state
 end;
 
 structure Class_Declaration: CLASS_DECLARATION =
@@ -306,7 +306,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
     #> pair (param_map, params, assm_axiom)))
   end;
 
-fun gen_class prep_class_spec before_exit b raw_supclasses raw_elems thy =
+fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
   let
     val class = Sign.full_name thy b;
     val prefix = Binding.qualify true "class";
@@ -314,7 +314,7 @@ fun gen_class prep_class_spec before_exit b raw_supclasses raw_elems thy =
       prep_class_spec thy raw_supclasses raw_elems;
   in
     thy
-    |> Expression.add_locale I b (prefix b) supexpr elems
+    |> Expression.add_locale b (prefix b) supexpr elems
     |> snd |> Local_Theory.exit_global
     |> adjungate_axclass b class base_sort sups supsort supparam_names global_syntax
     |-> (fn (param_map, params, assm_axiom) =>
@@ -325,7 +325,7 @@ fun gen_class prep_class_spec before_exit b raw_supclasses raw_elems thy =
     #> Class.register class sups params base_sort base_morph export_morph some_axiom some_assm_intro of_class
     #> Global_Theory.store_thm (prefix (Binding.qualified_name (class ^ ".of_class.intro")), of_class)))
     |> snd
-    |> Named_Target.init before_exit class
+    |> Named_Target.init class
     |> pair class
   end;
 
@@ -342,7 +342,7 @@ end; (*local*)
 
 local
 
-fun gen_subclass prep_class do_proof before_exit raw_sup lthy =
+fun gen_subclass prep_class do_proof raw_sup lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val proto_sup = prep_class thy raw_sup;
@@ -371,7 +371,7 @@ fun tactic_proof tac after_qed some_prop ctxt =
 
 in
 
-fun prove_subclass before_exit tac = gen_subclass (K I) (tactic_proof tac) before_exit;
+fun prove_subclass tac = gen_subclass (K I) (tactic_proof tac);
 
 fun subclass x = gen_subclass (K I) user_proof x;
 fun subclass_cmd x =

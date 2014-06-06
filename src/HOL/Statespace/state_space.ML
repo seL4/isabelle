@@ -127,20 +127,20 @@ fun expression_no_pos (expr, fixes) : Expression.expression =
 
 fun prove_interpretation_in ctxt_tac (name, expr) thy =
    thy
-   |> Expression.sublocale_global_cmd I (name, Position.none) (expression_no_pos expr) []
+   |> Expression.sublocale_global_cmd (name, Position.none) (expression_no_pos expr) []
    |> Proof.global_terminal_proof
          ((Method.Basic (fn ctxt => SIMPLE_METHOD (ctxt_tac ctxt)), Position.no_range), NONE)
    |> Proof_Context.theory_of
 
 fun add_locale name expr elems thy =
   thy
-  |> Expression.add_locale I (Binding.name name) (Binding.name name) expr elems
+  |> Expression.add_locale (Binding.name name) (Binding.name name) expr elems
   |> snd
   |> Local_Theory.exit;
 
 fun add_locale_cmd name expr elems thy =
   thy
-  |> Expression.add_locale_cmd I (Binding.name name) Binding.empty (expression_no_pos expr) elems
+  |> Expression.add_locale_cmd (Binding.name name) Binding.empty (expression_no_pos expr) elems
   |> snd
   |> Local_Theory.exit;
 
@@ -294,7 +294,7 @@ fun inject_name T = injectN ^"_"^encode_type T;
 
 fun add_declaration name decl thy =
   thy
-  |> Named_Target.init I name
+  |> Named_Target.init name
   |> (fn lthy => Local_Theory.declaration {syntax = false, pervasive = false} (decl lthy) lthy)
   |> Local_Theory.exit_global;
 

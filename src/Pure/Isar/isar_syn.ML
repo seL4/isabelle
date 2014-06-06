@@ -442,7 +442,7 @@ val _ =
       Scan.optional (@{keyword "="} |-- Parse.!!! locale_val) (([], []), []) -- Parse.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           Toplevel.begin_local_theory begin
-            (Expression.add_locale_cmd I name Binding.empty expr elems #> snd)));
+            (Expression.add_locale_cmd name Binding.empty expr elems #> snd)));
 
 fun interpretation_args mandatory =
   Parse.!!! (Parse_Spec.locale_expression mandatory) --
@@ -454,7 +454,7 @@ val _ =
     "prove sublocale relation between a locale and a locale expression"
     ((Parse.position Parse.xname --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
       interpretation_args false >> (fn (loc, (expr, equations)) =>
-        Toplevel.theory_to_proof (Expression.sublocale_global_cmd I loc expr equations)))
+        Toplevel.theory_to_proof (Expression.sublocale_global_cmd loc expr equations)))
     || interpretation_args false >> (fn (expr, equations) =>
         Toplevel.local_theory_to_proof NONE (Expression.sublocale_cmd expr equations)));
 
@@ -483,11 +483,11 @@ val _ =
    (Parse.binding -- Scan.optional (@{keyword "="} |-- class_val) ([], []) -- Parse.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
         Toplevel.begin_local_theory begin
-          (Class_Declaration.class_cmd I name supclasses elems #> snd)));
+          (Class_Declaration.class_cmd name supclasses elems #> snd)));
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "subclass"} "prove a subclass relation"
-    (Parse.class >> Class_Declaration.subclass_cmd I);
+    (Parse.class >> Class_Declaration.subclass_cmd);
 
 val _ =
   Outer_Syntax.command @{command_spec "instantiation"} "instantiate and prove type arity"
