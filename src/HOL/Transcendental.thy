@@ -1951,6 +1951,9 @@ lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
 lemma powr_realpow_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
   unfolding real_of_nat_numeral [symmetric] by (rule powr_realpow)
 
+lemma powr2_sqrt[simp]: "0 < x \<Longrightarrow> sqrt x powr 2 = x"
+by(simp add: powr_realpow_numeral)
+
 lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0 else x powr (real n))"
   apply (case_tac "x = 0", simp, simp)
   apply (rule powr_realpow [THEN sym], simp)
