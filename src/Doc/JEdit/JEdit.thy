@@ -451,15 +451,15 @@ section {* Query \label{sec:query} *}
 
 text {*
   The \emph{Query} panel provides various GUI forms to request extra
-  information from the prover explicitly. In old times the user would have
-  issued some diagnostic command like @{command find_theorems} and inspected
-  its output, but this is now integrated more directly into the Prover IDE.
+  information from the prover In old times the user would have issued some
+  diagnostic command like @{command find_theorems} and inspected its output,
+  but this is now integrated into the Prover IDE.
 
   A \emph{Query} window provides some input fields and buttons for a
   particular query command, with output in a dedicated text area. There are
   various query modes: \emph{Find Theorems}, \emph{Find Constants},
-  \emph{Print Context}, see also \figref{fig:query}. As usual in jEdit,
-  multiple \emph{Query} windows may be active simultaneously: any number of
+  \emph{Print Context}, e.g.\ see \figref{fig:query}. As usual in jEdit,
+  multiple \emph{Query} windows may be active at the same time: any number of
   floating instances, but at most one docked instance (which is used by
   default).
 
@@ -471,7 +471,7 @@ text {*
   \label{fig:query}
   \end{figure}
 
-  \medskip The following GUI elements are common to all modes of query:
+  \medskip The following GUI elements are common to all query modes:
   \begin{itemize}
 
   \item The spinning wheel provides feedback about the status of a pending
