@@ -458,9 +458,18 @@ text {*
   A \emph{Query} window provides some input fields and buttons for a
   particular query command, with output in a dedicated text area. There are
   various query modes: \emph{Find Theorems}, \emph{Find Constants},
-  \emph{Print Context}. As usual in jEdit, multiple \emph{Query} windows may
-  be active simultaneously: any number of floating instances, but at most one
-  docked instance (which is used by default).
+  \emph{Print Context}, see also \figref{fig:query}. As usual in jEdit,
+  multiple \emph{Query} windows may be active simultaneously: any number of
+  floating instances, but at most one docked instance (which is used by
+  default).
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{query}
+  \end{center}
+  \caption{An instance of the Query panel}
+  \label{fig:query}
+  \end{figure}
 
   \medskip The following GUI elements are common to all modes of query:
   \begin{itemize}
@@ -472,8 +481,8 @@ text {*
   current context of the command where the cursor is pointing in the text.
 
   \item The \emph{Search} field allows to highlight query output according to
-  some regular expression. This may serve as an additional visual filter of
-  the result.
+  some regular expression, in the notation that is commonly used on the Java
+  platform. This may serve as an additional visual filter of the result.
 
   \item The \emph{Zoom} box controls the font size of the output area.
 
@@ -491,35 +500,45 @@ text {*
 subsection {* Find theorems *}
 
 text {*
-  The \emph{Query} panel in \emph{Find Theorems} mode
-  (\figref{fig:find-theorems}) provides access to the Isar command @{command
-  find_theorems}, using some GUI elements instead of command-line arguments.
-  The main text field accepts search criteria according to the syntax @{syntax
-  thmcriterium} given in \cite{isabelle-isar-ref}. Some further options of
-  @{command find_theorems} are available via GUI elements.
+  The \emph{Query} panel in \emph{Find Theorems} mode retrieves facts from the
+  theory or proof context matching all of given criteria in the \emph{Find}
+  text field. A single criterium has the following syntax:
 
-  % FIXME update
-  \begin{figure}[htb]
-  \begin{center}
-  \includegraphics[scale=0.333]{query}
-  \end{center}
-  \caption{An instance of the Query panel}
-  \label{fig:find-theorems}
-  \end{figure}
+  @{rail \<open>
+    ('-'?) ('name' ':' @{syntax nameref} | 'intro' | 'elim' | 'dest' |
+      'solves' | 'simp' ':' @{syntax term} | @{syntax term})
+  \<close>}
+
+  See also the Isar command @{command find_theorems} in
+  \cite{isabelle-isar-ref}.
 *}
 
 
 subsection {* Find constants *}
 
 text {*
-  FIXME
+  The \emph{Query} panel in \emph{Find Constants} mode prints all constants
+  whose type meets all of the given criteria in the \emph{Find} text field.
+  A single criterium has the following syntax:
+
+  @{rail \<open>
+    ('-'?)
+      ('name' ':' @{syntax nameref} | 'strict' ':' @{syntax type} | @{syntax type})
+  \<close>}
+
+  See also the Isar command @{command find_consts} in
+  \cite{isabelle-isar-ref}.
 *}
 
 
 subsection {* Print context *}
 
 text {*
-  FIXME
+  The \emph{Query} panel in \emph{Print Context} mode prints information from
+  the theory or proof context, or proof state. See also the Isar commands
+  @{command print_context}, @{command print_cases}, @{command print_binds},
+  @{command print_theorems}, @{command print_state} in
+  \cite{isabelle-isar-ref}.
 *}
 
 
