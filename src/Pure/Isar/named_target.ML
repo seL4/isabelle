@@ -43,7 +43,10 @@ fun peek lthy =
   then Option.map (fn Target ta => ta) (Data.get lthy)
   else NONE;
 
-fun is_theory lthy = Option.map #target (peek lthy) = SOME "";
+fun is_theory lthy =
+  case peek lthy of
+    SOME {target = "", ...} => true
+  | _ => false;
 
 fun locale_of lthy =
   case peek lthy of
