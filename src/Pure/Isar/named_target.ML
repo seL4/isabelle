@@ -12,7 +12,6 @@ sig
   val class_of: local_theory -> string option
   val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
-  val reinit: local_theory -> local_theory -> local_theory
   val context_cmd: xstring * Position.T -> theory -> local_theory
 end;
 
@@ -170,10 +169,6 @@ fun init target thy =
   end;
 
 val theory_init = init "";
-
-val reinit =
-  Local_Theory.assert_bottom true #> Data.get #> the #>
-  (fn Target {target, ...} => Local_Theory.exit_global #> init target);
 
 fun context_cmd ("-", _) thy = theory_init thy
   | context_cmd target thy = init (Locale.check thy target) thy;

@@ -115,8 +115,8 @@ fun named_begin NONE (Context.Theory thy) =
   | named_begin NONE (Context.Proof lthy) =
       (Context.Proof o Local_Theory.restore, lthy)
   | named_begin (SOME loc) (Context.Proof lthy) =
-      (Context.Proof o Named_Target.reinit lthy,
-        named_init loc (named_exit (Local_Theory.assert_nonbrittle lthy)));
+      (Context.Proof o Named_Target.init (the (Named_Target.locale_of lthy)) o named_exit,
+        (named_init loc o named_exit o Local_Theory.assert_nonbrittle) lthy);
 
 
 (* datatype node *)
