@@ -7,8 +7,9 @@ Targets for theory, locale, class -- at the bottom the nested structure.
 
 signature NAMED_TARGET =
 sig
-  val peek: local_theory -> {target: string, is_locale: bool, is_class: bool} option
   val is_theory: local_theory -> bool
+  val locale_of: local_theory -> string option
+  val class_of: local_theory -> string option
   val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val reinit: local_theory -> local_theory -> local_theory
@@ -40,11 +41,20 @@ structure Data = Proof_Data
 
 fun peek lthy =
   if Local_Theory.level lthy = 1
-  then Option.map (fn Target {target, is_locale, is_class, ...} =>
-    {target = target, is_locale = is_locale, is_class = is_class}) (Data.get lthy)
+  then Option.map (fn Target ta => ta) (Data.get lthy)
   else NONE;
 
 fun is_theory lthy = Option.map #target (peek lthy) = SOME "";
+
+fun locale_of lthy =
+  case peek lthy of
+    SOME {target = locale, is_locale = true, ...} => SOME locale
+  | _ => NONE;
+
+fun class_of lthy =
+  case peek lthy of
+    SOME {target = class, is_class = true, ...} => SOME class
+  | _ => NONE;
 
 
 (* define *)
