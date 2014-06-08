@@ -21,25 +21,13 @@ struct
 
 (* context data *)
 
-datatype target =
-  Target of {target: string, is_locale: bool, is_class: bool};
-
-fun make_target target is_locale is_class =
-  Target {target = target, is_locale = is_locale, is_class = is_class};
-
-fun named_target _ "" = make_target "" false false
-  | named_target thy target =
-      if Locale.defined thy target
-      then make_target target true (Class.is_class thy target)
-      else error ("No such locale: " ^ quote target);
-
 structure Data = Proof_Data
 (
-  type T = target option;
+  type T = (string * bool) option;
   fun init _ = NONE;
 );
 
-val get_bottom_data = Option.map (fn Target ta => ta) o Data.get;
+val get_bottom_data = Data.get;
 
 fun get_data lthy =
   if Local_Theory.level lthy = 1
@@ -48,22 +36,20 @@ fun get_data lthy =
 
 fun is_theory lthy =
   case get_data lthy of
-    SOME {target = "", ...} => true
+    SOME ("", _) => true
   | _ => false;
 
-fun locale_of lthy =
-  case get_data lthy of
-    SOME {target = locale, is_locale = true, ...} => SOME locale
-  | _ => NONE;
+fun locale_name_of NONE = NONE
+  | locale_name_of (SOME ("", _)) = NONE
+  | locale_name_of (SOME (locale, _)) = SOME locale;
 
-fun bottom_locale_of lthy =
-  case get_bottom_data lthy of
-    SOME {target = locale, is_locale = true, ...} => SOME locale
-  | _ => NONE;
+val locale_of = locale_name_of o get_data;
+
+val bottom_locale_of = locale_name_of o get_bottom_data;
 
 fun class_of lthy =
   case get_data lthy of
-    SOME {target = class, is_class = true, ...} => SOME class
+    SOME (class, true) => SOME class
   | _ => NONE;
 
 
@@ -79,17 +65,15 @@ fun class_foundation class (((b, U), mx), (b_def, rhs)) params =
   #-> (fn (lhs, def) => Class.const class ((b, mx), lhs) params
     #> pair (lhs, def));
 
-fun foundation (Target {target, is_locale, is_class, ...}) =
-  if is_class then class_foundation target
-  else if is_locale then locale_foundation target
-  else Generic_Target.theory_foundation;
+fun foundation ("", _) = Generic_Target.theory_foundation
+  | foundation (locale, false) = locale_foundation locale
+  | foundation (class, true) = class_foundation class;
 
 
 (* notes *)
 
-fun notes (Target {target, is_locale, ...}) =
-  if is_locale then Generic_Target.locale_notes target
-  else Generic_Target.theory_notes;
+fun notes ("", _) = Generic_Target.theory_notes
+  | notes (locale, _) = Generic_Target.locale_notes locale;
 
 
 (* abbrev *)
@@ -102,29 +86,26 @@ fun class_abbrev class prmode (b, mx) global_rhs params =
   Generic_Target.background_abbrev (b, global_rhs) (snd params)
   #-> (fn (lhs, rhs) => Class.abbrev class prmode ((b, mx), lhs) rhs params);
 
-fun abbrev (Target {target, is_locale, is_class, ...}) =
-  if is_class then class_abbrev target
-  else if is_locale then locale_abbrev target
-  else Generic_Target.theory_abbrev;
+fun abbrev ("", _) = Generic_Target.theory_abbrev
+  | abbrev (locale, false) = locale_abbrev locale
+  | abbrev (class, true) = class_abbrev class;
 
 
 (* declaration *)
 
-fun declaration (Target {target, is_locale, ...}) flags decl =
-  if is_locale then Generic_Target.locale_declaration target flags decl
-  else Generic_Target.theory_declaration decl;
+fun declaration ("", _) flags decl = Generic_Target.theory_declaration decl
+  | declaration (locale, _) flags decl = Generic_Target.locale_declaration locale flags decl;
 
 
 (* subscription *)
 
-fun subscription (Target {target, is_locale, ...}) =
-  if is_locale then Generic_Target.locale_dependency target
-  else Generic_Target.theory_registration;
+fun subscription ("", _) = Generic_Target.theory_registration
+  | subscription (locale, _) = Generic_Target.locale_dependency locale;
 
 
 (* pretty *)
 
-fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
+fun pretty (target, is_class) ctxt =
   let
     val target_name =
       [Pretty.keyword1 (if is_class then "class" else "locale"), Pretty.brk 1,
@@ -139,7 +120,7 @@ fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
     val body_elems =
-      if not is_locale then []
+      if target = "" then []
       else if null elems then [Pretty.block target_name]
       else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
         map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))];
@@ -151,28 +132,33 @@ fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
 
 (* init *)
 
-fun init_context (Target {target, is_locale, is_class, ...}) =
-  if not is_locale then Proof_Context.init_global
-  else if not is_class then Locale.init target
-  else Class.init target;
+fun make_name_data _ "" = ("", false)
+  | make_name_data thy target =
+      if Locale.defined thy target
+      then (target, Class.is_class thy target)
+      else error ("No such locale: " ^ quote target);
+
+fun init_context ("", _) = Proof_Context.init_global
+  | init_context (locale, false) = Locale.init locale
+  | init_context (class, true) = Class.init class;
 
 fun init target thy =
   let
-    val ta = named_target thy target;
+    val name_data = make_name_data thy target;
     val naming = Sign.naming_of thy
       |> Name_Space.mandatory_path (Long_Name.base_name target);
   in
     thy
     |> Sign.change_begin
-    |> init_context ta
-    |> Data.put (SOME ta)
+    |> init_context name_data
+    |> Data.put (SOME name_data)
     |> Local_Theory.init naming
-       {define = Generic_Target.define (foundation ta),
-        notes = Generic_Target.notes (notes ta),
-        abbrev = Generic_Target.abbrev (abbrev ta),
-        declaration = declaration ta,
-        subscription = subscription ta,
-        pretty = pretty ta,
+       {define = Generic_Target.define (foundation name_data),
+        notes = Generic_Target.notes (notes name_data),
+        abbrev = Generic_Target.abbrev (abbrev name_data),
+        declaration = declaration name_data,
+        subscription = subscription name_data,
+        pretty = pretty name_data,
         exit = Local_Theory.target_of #> Sign.change_end_local}
   end;
 
