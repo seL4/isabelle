@@ -333,17 +333,14 @@ fun guess_morphism_identity (b, rhs) phi1 phi2 =
     val rhs2 = Morphism.term phi2 rhs;
   in n1 = n2 andalso Term.aconv_untyped (rhs1, rhs2) end;
 
-fun class_const class phi0 prmode ((b, mx), rhs) =
-  Generic_Target.locale_declaration class true (fn phi =>
-    let
-      val b' = Morphism.binding phi b;
-      val rhs' = Morphism.term phi rhs;
-      val same_shape = Term.aconv_untyped (rhs, rhs');
-      val is_plain = guess_morphism_identity (b, rhs) Morphism.identity phi;
-      val is_canonical = guess_morphism_identity (b, rhs) phi0 phi;
-    in
-      not (is_plain orelse is_canonical) ? Generic_Target.generic_const same_shape prmode ((b', NoSyn), rhs')
-    end);
+fun const_declaration class phi0 prmode ((b, _), rhs) =
+  let
+    val guess_identity = guess_morphism_identity (b, rhs) Morphism.identity;
+    val guess_canonical = guess_morphism_identity (b, rhs) phi0;
+  in
+    Generic_Target.locale_const_declaration class
+      (not o (guess_identity orf guess_canonical)) prmode ((b, NoSyn), rhs)
+  end;
 
 fun dangling_params_for lthy class (type_params, term_params) =
   let
@@ -402,10 +399,10 @@ fun const class ((b, mx), lhs) params lthy =
     val dangling_params = map (Morphism.term phi) (uncurry append (dangling_params_for lthy class params));
   in
     lthy
-    |> class_const class phi Syntax.mode_default ((b, mx), lhs)
+    |> const_declaration class phi Syntax.mode_default ((b, mx), lhs)
     |> Local_Theory.raw_theory (canonical_const class phi dangling_params
          ((Morphism.binding phi b, if null dangling_params then mx else NoSyn), Morphism.term phi lhs))
-    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other)
+    |> Generic_Target.standard_const_declaration (fn (this, other) => other <> 0 andalso this <> other)
          Syntax.mode_default ((b, if null dangling_params then NoSyn else mx), lhs)
     |> synchronize_class_syntax_target class
   end;
@@ -416,10 +413,10 @@ fun abbrev class prmode ((b, mx), lhs) rhs' params lthy =
     val dangling_term_params = map (Morphism.term phi) (snd (dangling_params_for lthy class params));
   in
     lthy
-    |> class_const class phi prmode ((b, mx), lhs)
+    |> const_declaration class phi prmode ((b, mx), lhs)
     |> Local_Theory.raw_theory (canonical_abbrev class phi prmode dangling_term_params
          ((Morphism.binding phi b, if null dangling_term_params then mx else NoSyn), rhs'))
-    |> Generic_Target.const (fn (this, other) => other <> 0 andalso this <> other)
+    |> Generic_Target.standard_const_declaration (fn (this, other) => other <> 0 andalso this <> other)
          prmode ((b, if null dangling_term_params then NoSyn else mx), lhs)
     |> synchronize_class_syntax_target class
   end;
