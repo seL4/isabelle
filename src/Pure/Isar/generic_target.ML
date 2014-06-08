@@ -64,10 +64,19 @@ end
 structure Generic_Target: GENERIC_TARGET =
 struct
 
-(** declarations **)
+(** notes **)
 
 fun standard_facts lthy ctxt =
   Element.transform_facts (Local_Theory.standard_morphism lthy ctxt);
+
+fun standard_notes pred kind facts lthy =
+  Local_Theory.map_contexts (fn level => fn ctxt =>
+    if pred (Local_Theory.level lthy, level)
+    then Attrib.local_notes kind (standard_facts lthy ctxt facts) ctxt |> snd
+    else ctxt) lthy;
+
+
+(** declarations **)
 
 fun standard_declaration pred decl lthy =
   Local_Theory.map_contexts (fn level => fn ctxt =>
@@ -303,12 +312,8 @@ fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
     #> pair (lhs, def));
 
 fun theory_notes kind global_facts local_facts =
-  Local_Theory.background_theory (Attrib.global_notes kind global_facts #> snd) #>
-  (fn lthy => lthy |> Local_Theory.map_contexts (fn level => fn ctxt =>
-    if level = Local_Theory.level lthy then ctxt
-    else
-      ctxt |> Attrib.local_notes kind
-        (Element.transform_facts (Local_Theory.standard_morphism lthy ctxt) local_facts) |> snd));
+  Local_Theory.background_theory (Attrib.global_notes kind global_facts #> snd)
+  #> standard_notes (op <>) kind local_facts;
 
 fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
@@ -333,10 +338,7 @@ fun locale_notes locale kind global_facts local_facts =
   (fn lthy => lthy |>
     Local_Theory.target (fn ctxt => ctxt |>
       Locale.add_thmss locale kind (standard_facts lthy ctxt local_facts))) #>
-  (fn lthy => lthy |>
-    Local_Theory.map_contexts (fn level => fn ctxt =>
-      if level = 0 orelse level = Local_Theory.level lthy then ctxt
-      else ctxt |> Attrib.local_notes kind (standard_facts lthy ctxt local_facts) |> snd));
+  standard_notes (fn (this, other) => other <> 0 andalso this <> other) kind local_facts;
 
 fun locale_declaration locale syntax decl lthy = lthy
   |> Local_Theory.target (fn ctxt => ctxt |>
