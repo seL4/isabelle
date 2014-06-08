@@ -112,15 +112,15 @@ structure Data = Proof_Data
 fun assert lthy =
   if null (Data.get lthy) then error "Missing local theory context" else lthy;
 
-val get_last_lthy = List.last o Data.get o assert;
-val get_first_lthy = hd o Data.get o assert;
+val bottom_of = List.last o Data.get o assert;
+val top_of = hd o Data.get o assert;
 
-fun map_first_lthy f =
+fun map_bottom f =
   assert #>
   Data.map (fn {naming, operations, after_close, brittle, target} :: parents =>
     make_lthy (f (naming, operations, after_close, brittle, target)) :: parents);
 
-fun restore lthy = #target (get_first_lthy lthy) |> Data.put (Data.get lthy);
+fun restore lthy = #target (top_of lthy) |> Data.put (Data.get lthy);
 
 
 (* nested structure *)
@@ -163,23 +163,23 @@ fun map_contexts f lthy =
 
 fun mark_brittle lthy =
   if level lthy = 1
-  then map_first_lthy (fn (naming, operations, after_close, brittle, target) =>
+  then map_bottom (fn (naming, operations, after_close, brittle, target) =>
     (naming, operations, after_close, true, target)) lthy
   else lthy;
 
 fun assert_nonbrittle lthy =
-  if #brittle (get_first_lthy lthy)
+  if #brittle (top_of lthy)
   then error "Brittle local theory context"
   else lthy;
 
 
 (* naming *)
 
-val naming_of = #naming o get_first_lthy;
+val naming_of = #naming o top_of;
 val full_name = Name_Space.full_name o naming_of;
 
 fun map_naming f =
-  map_first_lthy (fn (naming, operations, after_close, brittle, target) =>
+  map_bottom (fn (naming, operations, after_close, brittle, target) =>
     (f naming, operations, after_close, brittle, target));
 
 val conceal = map_naming Name_Space.conceal;
@@ -222,7 +222,7 @@ fun background_theory f = #2 o background_theory_result (f #> pair ());
 
 (* target contexts *)
 
-val target_of = #target o get_last_lthy;
+val target_of = #target o bottom_of;
 
 fun target f lthy =
   let
@@ -249,7 +249,7 @@ fun propagate_ml_env (context as Context.Proof lthy) =
 
 (** operations **)
 
-val operations_of = #operations o get_first_lthy;
+val operations_of = #operations o top_of;
 
 
 (* primitives *)
@@ -311,7 +311,7 @@ val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 (* activation of locale fragments *)
 
 fun activate_nonbrittle dep_morph mixin export =
-  map_first_lthy (fn (naming, operations, after_close, brittle, target) =>
+  map_bottom (fn (naming, operations, after_close, brittle, target) =>
     (naming, operations, after_close, brittle,
       (Context.proof_map ooo Locale.add_registration) dep_morph mixin export target));
 
