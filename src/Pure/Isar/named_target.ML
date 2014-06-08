@@ -105,7 +105,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) =
 fun declaration (Target {target, is_locale, ...}) {syntax, pervasive} decl =
   if is_locale then
     pervasive ? Generic_Target.background_declaration decl
-    #> Generic_Target.locale_declaration target syntax decl
+    #> Generic_Target.locale_target_declaration target syntax decl
     #> Generic_Target.standard_declaration (fn (_, other) => other <> 0) decl
   else Generic_Target.theory_declaration decl;
 

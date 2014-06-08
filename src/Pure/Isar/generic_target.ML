@@ -11,7 +11,7 @@ sig
   val standard_declaration: (int * int -> bool) -> declaration -> local_theory -> local_theory
 
   (* consts *)
-  val standard_const_declaration: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
+  val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
 
   (* background operations *)
@@ -52,8 +52,8 @@ sig
     (Attrib.binding * (thm list * Args.src list) list) list ->
     (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
-  val locale_declaration: string -> bool -> declaration -> local_theory -> local_theory
-  val locale_const_declaration: string -> (morphism -> bool) -> Syntax.mode ->
+  val locale_target_declaration: string -> bool -> declaration -> local_theory -> local_theory
+  val locale_target_const: string -> (morphism -> bool) -> Syntax.mode ->
     (binding * mixfix) * term -> local_theory -> local_theory
   val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
@@ -138,7 +138,7 @@ fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
     end
   else context;
 
-fun standard_const_declaration pred prmode ((b, mx), rhs) =
+fun standard_const pred prmode ((b, mx), rhs) =
   standard_declaration pred (const_decl (K true) prmode ((b, mx), rhs));
 
 
@@ -264,7 +264,7 @@ fun import_export_proof ctxt (name, raw_th) =
 
 in
 
-fun notes target_notes kind facts lthy =
+fun notes notes' kind facts lthy =
   let
     val facts' = facts
       |> map (fn (a, bs) => (a, Global_Theory.burrow_fact (Global_Theory.name_multi
@@ -274,7 +274,7 @@ fun notes target_notes kind facts lthy =
     val global_facts = Global_Theory.map_facts #2 facts';
   in
     lthy
-    |> target_notes kind global_facts (Attrib.partial_evaluation lthy local_facts)
+    |> notes' kind global_facts (Attrib.partial_evaluation lthy local_facts)
     |> Attrib.local_notes kind local_facts
   end;
 
@@ -283,7 +283,7 @@ end;
 
 (* abbrev *)
 
-fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
+fun abbrev abbrev' prmode ((b, mx), rhs) lthy =
   let
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
@@ -298,7 +298,7 @@ fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
   in
     lthy
-    |> target_abbrev prmode (b, mx') global_rhs (type_params, term_params)
+    |> abbrev' prmode (b, mx') global_rhs (type_params, term_params)
     |> Proof_Context.add_abbrev Print_Mode.internal (b, rhs) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), rhs)
   end;
@@ -308,7 +308,7 @@ fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params)
-  #-> (fn (lhs, def) => standard_const_declaration (op <>) Syntax.mode_default ((b, mx), lhs)
+  #-> (fn (lhs, def) => standard_const (op <>) Syntax.mode_default ((b, mx), lhs)
     #> pair (lhs, def));
 
 fun theory_notes kind global_facts local_facts =
@@ -323,7 +323,7 @@ fun theory_abbrev prmode (b, mx) global_rhs params =
     (Sign.add_abbrev (#1 prmode) (b, global_rhs) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
         Sign.notation true prmode [(lhs, check_mixfix_global (b, null (snd params)) mx)] #> pair lhs))
-  #-> (fn lhs => standard_const_declaration (op <>) prmode
+  #-> (fn lhs => standard_const (op <>) prmode
           ((b, if null (snd params) then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, snd params)));
 
 val theory_registration =
@@ -340,17 +340,17 @@ fun locale_notes locale kind global_facts local_facts =
       Locale.add_thmss locale kind (standard_facts lthy ctxt local_facts))) #>
   standard_notes (fn (this, other) => other <> 0 andalso this <> other) kind local_facts;
 
-fun locale_declaration locale syntax decl lthy = lthy
+fun locale_target_declaration locale syntax decl lthy = lthy
   |> Local_Theory.target (fn ctxt => ctxt |>
     Locale.add_declaration locale syntax
       (Morphism.transform (Local_Theory.standard_morphism lthy ctxt) decl));
 
-fun locale_const_declaration locale phi_pred prmode ((b, mx), rhs) =
-  locale_declaration locale true (const_decl phi_pred prmode ((b, mx), rhs))
+fun locale_target_const locale phi_pred prmode ((b, mx), rhs) =
+  locale_target_declaration locale true (const_decl phi_pred prmode ((b, mx), rhs))
 
 fun locale_const locale prmode ((b, mx), rhs) =
-  locale_const_declaration locale (K true) prmode ((b, mx), rhs)
-  #> standard_const_declaration (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
+  locale_target_const locale (K true) prmode ((b, mx), rhs)
+  #> standard_const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
 
 fun locale_dependency locale dep_morph mixin export =
   (Local_Theory.raw_theory ooo Locale.add_dependency locale) dep_morph mixin export
