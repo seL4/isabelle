@@ -9,6 +9,7 @@ signature NAMED_TARGET =
 sig
   val is_theory: local_theory -> bool
   val locale_of: local_theory -> string option
+  val bottom_locale_of: local_theory -> string option
   val class_of: local_theory -> string option
   val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
@@ -38,23 +39,30 @@ structure Data = Proof_Data
   fun init _ = NONE;
 );
 
-fun peek lthy =
+val get_bottom_data = Option.map (fn Target ta => ta) o Data.get;
+
+fun get_data lthy =
   if Local_Theory.level lthy = 1
-  then Option.map (fn Target ta => ta) (Data.get lthy)
+  then get_bottom_data lthy
   else NONE;
 
 fun is_theory lthy =
-  case peek lthy of
+  case get_data lthy of
     SOME {target = "", ...} => true
   | _ => false;
 
 fun locale_of lthy =
-  case peek lthy of
+  case get_data lthy of
+    SOME {target = locale, is_locale = true, ...} => SOME locale
+  | _ => NONE;
+
+fun bottom_locale_of lthy =
+  case get_bottom_data lthy of
     SOME {target = locale, is_locale = true, ...} => SOME locale
   | _ => NONE;
 
 fun class_of lthy =
-  case peek lthy of
+  case get_data lthy of
     SOME {target = class, is_class = true, ...} => SOME class
   | _ => NONE;
 

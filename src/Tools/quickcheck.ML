@@ -362,7 +362,7 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val some_locale = Named_Target.locale_of lthy;
+    val some_locale = Named_Target.bottom_locale_of lthy;
     val assms =
       if Config.get lthy no_assms then []
       else
