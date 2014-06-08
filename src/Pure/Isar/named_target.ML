@@ -71,7 +71,7 @@ fun class_foundation class (((b, U), mx), (b_def, rhs)) params =
   #-> (fn (lhs, def) => Class.const class ((b, mx), lhs) params
     #> pair (lhs, def));
 
-fun foundation (ta as Target {target, is_locale, is_class, ...}) =
+fun foundation (Target {target, is_locale, is_class, ...}) =
   if is_class then class_foundation target
   else if is_locale then locale_foundation target
   else Generic_Target.theory_foundation;
@@ -94,7 +94,7 @@ fun class_abbrev class prmode (b, mx) global_rhs params =
   Generic_Target.background_abbrev (b, global_rhs) (snd params)
   #-> (fn (lhs, rhs) => Class.abbrev class prmode ((b, mx), lhs) rhs params);
 
-fun abbrev (ta as Target {target, is_locale, is_class, ...}) =
+fun abbrev (Target {target, is_locale, is_class, ...}) =
   if is_class then class_abbrev target
   else if is_locale then locale_abbrev target
   else Generic_Target.theory_abbrev;
@@ -102,11 +102,8 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) =
 
 (* declaration *)
 
-fun declaration (Target {target, is_locale, ...}) {syntax, pervasive} decl =
-  if is_locale then
-    pervasive ? Generic_Target.background_declaration decl
-    #> Generic_Target.locale_target_declaration target syntax decl
-    #> Generic_Target.standard_declaration (fn (_, other) => other <> 0) decl
+fun declaration (Target {target, is_locale, ...}) flags decl =
+  if is_locale then Generic_Target.locale_declaration target flags decl
   else Generic_Target.theory_declaration decl;
 
 

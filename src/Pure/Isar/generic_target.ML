@@ -7,9 +7,6 @@ Common target infrastructure.
 
 signature GENERIC_TARGET =
 sig
-  (* declarations *)
-  val standard_declaration: (int * int -> bool) -> declaration -> local_theory -> local_theory
-
   (* consts *)
   val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
@@ -53,6 +50,8 @@ sig
     (Attrib.binding * (thm list * Args.src list) list) list ->
     local_theory -> local_theory
   val locale_target_declaration: string -> bool -> declaration -> local_theory -> local_theory
+  val locale_declaration: string -> {syntax: bool, pervasive: bool} -> declaration ->
+    local_theory -> local_theory
   val locale_target_const: string -> (morphism -> bool) -> Syntax.mode ->
     (binding * mixfix) * term -> local_theory -> local_theory
   val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
@@ -344,6 +343,11 @@ fun locale_target_declaration locale syntax decl lthy = lthy
   |> Local_Theory.target (fn ctxt => ctxt |>
     Locale.add_declaration locale syntax
       (Morphism.transform (Local_Theory.standard_morphism lthy ctxt) decl));
+
+fun locale_declaration locale {syntax, pervasive} decl =
+  pervasive ? background_declaration decl
+  #> locale_target_declaration locale syntax decl
+  #> standard_declaration (fn (_, other) => other <> 0) decl;
 
 fun locale_target_const locale phi_pred prmode ((b, mx), rhs) =
   locale_target_declaration locale true (const_decl phi_pred prmode ((b, mx), rhs))
