@@ -342,7 +342,7 @@ fun class_const class phi0 prmode ((b, mx), rhs) =
       val is_plain = guess_morphism_identity (b, rhs) Morphism.identity phi;
       val is_canonical = guess_morphism_identity (b, rhs) phi0 phi;
     in
-      not (is_plain orelse is_canonical) ? Generic_Target.generic_const same_shape prmode ((b', mx), rhs')
+      not (is_plain orelse is_canonical) ? Generic_Target.generic_const same_shape prmode ((b', NoSyn), rhs')
     end);
 
 fun dangling_params_for lthy class (type_params, term_params) =
