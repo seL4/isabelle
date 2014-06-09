@@ -317,7 +317,7 @@ text {* File specifications in jEdit follow various formats and
 *}
 
 
-section {* Dockable Windows *}
+section {* Dockable windows *}
 
 text {*
   In jEdit terminology, a \emph{view} is an editor window with one or more
@@ -367,6 +367,50 @@ text {*
   similar \emph{Detach} operation as an icon.
 
   \end{itemize}
+*}
+
+
+section {* SideKick parsers \label{sec:sidekick} *}
+
+text {*
+  The \emph{SideKick} plugin provides some general services to display buffer
+  structure in a tree view.
+
+  Isabelle/jEdit provides SideKick parsers for its main mode for
+  theory files, as well as some minor modes for the @{verbatim NEWS}
+  file, session @{verbatim ROOT} files, and system @{verbatim
+  options}.
+
+  Moreover, the special SideKick parser @{verbatim "isabelle-markup"}
+  provides access to the full (uninterpreted) markup tree of the PIDE
+  document model of the current buffer.  This is occasionally useful
+  for informative purposes, but the amount of displayed information
+  might cause problems for large buffers, both for the human and the
+  machine.
+*}
+
+
+section {* Scala console \label{sec:scala-console} *}
+
+text {*
+  The \emph{Console} plugin manages various shells (command interpreters),
+  e.g.\ \emph{BeanShell}, which is the official jEdit scripting language, and
+  the cross-platform \emph{System} shell. Thus the console provides similar
+  functionality than the special Emacs buffers @{verbatim "*scratch*"} and
+  @{verbatim "*shell*"}.
+
+  Isabelle/jEdit extends the repertoire of the console by \emph{Scala}, which
+  is the regular Scala toplevel loop running inside the \emph{same} JVM
+  process as Isabelle/jEdit itself. This means the Scala command interpreter
+  has access to the JVM name space and state of the running Prover IDE
+  application: the main entry points are @{verbatim view} (the current editor
+  view of jEdit) and @{verbatim PIDE} (the Isabelle/jEdit plugin object). For
+  example, the Scala expression @{verbatim "PIDE.snapshot(view)"} makes a PIDE
+  document snapshot of the current buffer within the current editor view.
+
+  This helps to explore Isabelle/Scala functionality interactively. Some care
+  is required to avoid interference with the internals of the running
+  application, especially in production use.
 *}
 
 
@@ -1049,25 +1093,6 @@ text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
 
 chapter {* Miscellaneous tools *}
 
-section {* SideKick \label{sec:sidekick} *}
-
-text {* The \emph{SideKick} plugin of jEdit provides some general
-  services to display buffer structure in a tree view.
-
-  Isabelle/jEdit provides SideKick parsers for its main mode for
-  theory files, as well as some minor modes for the @{verbatim NEWS}
-  file, session @{verbatim ROOT} files, and system @{verbatim
-  options}.
-
-  Moreover, the special SideKick parser @{verbatim "isabelle-markup"}
-  provides access to the full (uninterpreted) markup tree of the PIDE
-  document model of the current buffer.  This is occasionally useful
-  for informative purposes, but the amount of displayed information
-  might cause problems for large buffers, both for the human and the
-  machine.
-*}
-
-
 section {* Timing *}
 
 text {* Managed evaluation of commands within PIDE documents includes
@@ -1103,30 +1128,6 @@ text {* Managed evaluation of commands within PIDE documents includes
   runs Isabelle/Scala, not Isabelle/ML.  Internally, the
   Isabelle/Scala module @{verbatim isabelle.ML_Statistics} provides
   further access to statistics of Isabelle/ML.  *}
-
-
-section {* Isabelle/Scala console \label{sec:scala-console} *}
-
-text {*
-  The \emph{Console} plugin of jEdit manages various shells (command
-  interpreters), e.g.\ \emph{BeanShell}, which is the official jEdit scripting
-  language, and the cross-platform \emph{System} shell. Thus the console
-  provides similar functionality than the special Emacs buffers @{verbatim
-  "*scratch*"} and @{verbatim "*shell*"}.
-
-  Isabelle/jEdit extends the repertoire of the console by \emph{Scala}, which
-  is the regular Scala toplevel loop running inside the \emph{same} JVM
-  process as Isabelle/jEdit itself. This means the Scala command interpreter
-  has access to the JVM name space and state of the running Prover IDE
-  application: the main entry points are @{verbatim view} (the current editor
-  view of jEdit) and @{verbatim PIDE} (the Isabelle/jEdit plugin object). For
-  example, the Scala expression @{verbatim "PIDE.snapshot(view)"} makes a PIDE
-  document snapshot of the current buffer within the current editor view.
-
-  This helps to explore Isabelle/Scala functionality interactively. Some care
-  is required to avoid interference with the internals of the running
-  application, especially in production use.
-*}
 
 
 section {* Low-level output *}
