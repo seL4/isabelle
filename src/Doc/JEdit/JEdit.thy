@@ -317,6 +317,211 @@ text {*
 *}
 
 
+section {* Isabelle symbols \label{sec:symbols} *}
+
+text {* Isabelle sources consist of \emph{symbols} that extend plain
+  ASCII to allow infinitely many mathematical symbols within the
+  formal sources.  This works without depending on particular
+  encodings and varying Unicode standards
+  \cite{Wenzel:2011:CICM}.\footnote{Raw Unicode characters within
+  formal sources would compromise portability and reliability in the
+  face of changing interpretation of special features of Unicode, such
+  as Combining Characters or Bi-directional Text.}
+
+  For the prover back-end, formal text consists of ASCII characters
+  that are grouped according to some simple rules, e.g.\ as plain
+  ``@{verbatim a}'' or symbolic ``@{verbatim "\<alpha>"}''.
+
+  For the editor front-end, a certain subset of symbols is rendered
+  physically via Unicode glyphs, in order to show ``@{verbatim "\<alpha>"}''
+  as ``@{text "\<alpha>"}'', for example.  This symbol interpretation is
+  specified by the Isabelle system distribution in @{file
+  "$ISABELLE_HOME/etc/symbols"} and may be augmented by the user in
+  @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"}.
+
+  The appendix of \cite{isabelle-isar-ref} gives an overview of the
+  standard interpretation of finitely many symbols from the infinite
+  collection.  Uninterpreted symbols are displayed literally, e.g.\
+  ``@{verbatim "\<foobar>"}''.  Overlap of Unicode characters used in
+  symbol interpretation with informal ones (which might appear e.g.\
+  in comments) needs to be avoided!  Raw Unicode characters within
+  prover source files should be restricted to informal parts, e.g.\ to
+  write text in non-latin alphabets in comments.
+
+  \medskip \paragraph{Encoding.} Technically, the Unicode view on
+  Isabelle symbols is an \emph{encoding} in jEdit (not in the
+  underlying JVM) that is called @{verbatim "UTF-8-Isabelle"}.  It is
+  provided by the Isabelle/jEdit plugin and enabled by default for all
+  source files.  Sometimes such defaults are reset accidentally, or
+  malformed UTF-8 sequences in the text force jEdit to fall back on a
+  different encoding like @{verbatim "ISO-8859-15"}.  In that case,
+  verbatim ``@{verbatim "\<alpha>"}'' will be shown in the text buffer
+  instead of its Unicode rendering ``@{text "\<alpha>"}''.  The jEdit menu
+  operation \emph{File / Reload with Encoding / UTF-8-Isabelle} helps
+  to resolve such problems, potentially after repairing malformed
+  parts of the text.
+
+  \medskip \paragraph{Font.} Correct rendering via Unicode requires a
+  font that contains glyphs for the corresponding codepoints.  Most
+  system fonts lack that, so Isabelle/jEdit prefers its own
+  application font @{verbatim IsabelleText}, which ensures that
+  standard collection of Isabelle symbols are actually seen on the
+  screen (or printer).
+
+  Note that a Java/AWT/Swing application can load additional fonts
+  only if they are not installed on the operating system already!
+  Some old version of @{verbatim IsabelleText} that happens to be
+  provided by the operating system would prevent Isabelle/jEdit to use
+  its bundled version.  This could lead to missing glyphs (black
+  rectangles), when the system version of @{verbatim IsabelleText} is
+  older than the application version.  This problem can be avoided by
+  refraining to ``install'' any version of @{verbatim IsabelleText} in
+  the first place (although it is occasionally tempting to use
+  the same font in other applications).
+
+  \medskip \paragraph{Input methods.} In principle, Isabelle/jEdit
+  could delegate the problem to produce Isabelle symbols in their
+  Unicode rendering to the underlying operating system and its
+  \emph{input methods}.  Regular jEdit also provides various ways to
+  work with \emph{abbreviations} to produce certain non-ASCII
+  characters.  Since none of these standard input methods work
+  satisfactorily for the mathematical characters required for
+  Isabelle, various specific Isabelle/jEdit mechanisms are provided.
+
+  Here is a summary for practically relevant input methods for
+  Isabelle symbols:
+
+  \begin{enumerate}
+
+  \item The \emph{Symbols} panel: some GUI buttons allow to insert
+  certain symbols in the text buffer.  There are also tooltips to
+  reveal the official Isabelle representation with some additional
+  information about \emph{symbol abbreviations} (see below).
+
+  \item Copy / paste from decoded source files: text that is rendered
+  as Unicode already can be re-used to produce further text.  This
+  also works between different applications, e.g.\ Isabelle/jEdit and
+  some web browser or mail client, as long as the same Unicode view on
+  Isabelle symbols is used.
+
+  \item Copy / paste from prover output within Isabelle/jEdit.  The
+  same principles as for text buffers apply, but note that \emph{copy}
+  in secondary Isabelle/jEdit windows works via the keyboard shortcut
+  @{verbatim "C+c"}, while jEdit menu actions always refer to the
+  primary text area!
+
+  \item Completion provided by Isabelle plugin (see
+  \secref{sec:completion}).  Isabelle symbols have a canonical name
+  and optional abbreviations.  This can be used with the text
+  completion mechanism of Isabelle/jEdit, to replace a prefix of the
+  actual symbol like @{verbatim "\<lambda>"}, or its backslashed name
+  @{verbatim "\\"}@{verbatim "lambda"}, or its ASCII abbreviation
+  @{verbatim "%"} by the Unicode rendering.
+
+  The following table is an extract of the information provided by the
+  standard @{file "$ISABELLE_HOME/etc/symbols"} file:
+
+  \medskip
+  \begin{tabular}{lll}
+    \textbf{symbol} & \textbf{backslashed name} & \textbf{abbreviation} \\\hline
+    @{text "\<lambda>"} & @{verbatim "\\lambda"} & @{verbatim "%"} \\
+    @{text "\<Rightarrow>"} & @{verbatim "\\Rightarrow"} & @{verbatim "=>"} \\
+    @{text "\<Longrightarrow>"} & @{verbatim "\\Longrightarrow"} & @{verbatim "==>"} \\[0.5ex]
+    @{text "\<And>"} & @{verbatim "\\And"} & @{verbatim "!!"} \\
+    @{text "\<equiv>"} & @{verbatim "\\equiv"} & @{verbatim "=="} \\[0.5ex]
+    @{text "\<forall>"} & @{verbatim "\\forall"} & @{verbatim "!"} \\
+    @{text "\<exists>"} & @{verbatim "\\exists"} & @{verbatim "?"} \\
+    @{text "\<longrightarrow>"} & @{verbatim "\\longrightarrow"} & @{verbatim "-->"} \\
+    @{text "\<and>"} & @{verbatim "\\and"} & @{verbatim "&"} \\
+    @{text "\<or>"} & @{verbatim "\\or"} & @{verbatim "|"} \\
+    @{text "\<not>"} & @{verbatim "\\not"} & @{verbatim "~"} \\
+    @{text "\<noteq>"} & @{verbatim "\\noteq"} & @{verbatim "~="} \\
+    @{text "\<in>"} & @{verbatim "\\in"} & @{verbatim ":"} \\
+    @{text "\<notin>"} & @{verbatim "\\notin"} & @{verbatim "~:"} \\
+  \end{tabular}
+  \medskip
+
+  Note that the above abbreviations refer to the input method. The
+  logical notation provides ASCII alternatives that often coincide,
+  but deviate occasionally.  This occasionally causes user confusion
+  with very old-fashioned Isabelle source that use ASCII replacement
+  notation like @{verbatim "!"} or @{verbatim "ALL"} directly in the
+  text.
+
+  On the other hand, coincidence of symbol abbreviations with ASCII
+  replacement syntax syntax helps to update old theory sources via
+  explicit completion (see also @{verbatim "C+b"} explained in
+  \secref{sec:completion}).
+
+  \end{enumerate}
+
+  \paragraph{Control symbols.} There are some special control symbols
+  to modify the display style of a single symbol (without
+  nesting). Control symbols may be applied to a region of selected
+  text, either using the \emph{Symbols} panel or keyboard shortcuts or
+  jEdit actions.  These editor operations produce a separate control
+  symbol for each symbol in the text, in order to make the whole text
+  appear in a certain style.
+
+  \medskip
+  \begin{tabular}{llll}
+    \textbf{style} & \textbf{symbol} & \textbf{shortcut} & \textbf{action} \\\hline
+    superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{action "isabelle.control-sup"} \\
+    subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{action "isabelle.control-sub"} \\
+    bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{action "isabelle.control-bold"} \\
+    reset & & @{verbatim "C+e LEFT"} & @{action "isabelle.control-reset"} \\
+  \end{tabular}
+  \medskip
+
+  To produce a single control symbol, it is also possible to complete
+  on @{verbatim "\\"}@{verbatim sup}, @{verbatim "\\"}@{verbatim sub},
+  @{verbatim "\\"}@{verbatim bold} as for regular symbols.  *}
+
+
+section {* SideKick parsers \label{sec:sidekick} *}
+
+text {*
+  The \emph{SideKick} plugin provides some general services to display buffer
+  structure in a tree view.
+
+  Isabelle/jEdit provides SideKick parsers for its main mode for
+  theory files, as well as some minor modes for the @{verbatim NEWS}
+  file, session @{verbatim ROOT} files, and system @{verbatim
+  options}.
+
+  Moreover, the special SideKick parser @{verbatim "isabelle-markup"}
+  provides access to the full (uninterpreted) markup tree of the PIDE
+  document model of the current buffer.  This is occasionally useful
+  for informative purposes, but the amount of displayed information
+  might cause problems for large buffers, both for the human and the
+  machine.
+*}
+
+
+section {* Scala console \label{sec:scala-console} *}
+
+text {*
+  The \emph{Console} plugin manages various shells (command interpreters),
+  e.g.\ \emph{BeanShell}, which is the official jEdit scripting language, and
+  the cross-platform \emph{System} shell. Thus the console provides similar
+  functionality than the special Emacs buffers @{verbatim "*scratch*"} and
+  @{verbatim "*shell*"}.
+
+  Isabelle/jEdit extends the repertoire of the console by \emph{Scala}, which
+  is the regular Scala toplevel loop running inside the \emph{same} JVM
+  process as Isabelle/jEdit itself. This means the Scala command interpreter
+  has access to the JVM name space and state of the running Prover IDE
+  application: the main entry points are @{verbatim view} (the current editor
+  view of jEdit) and @{verbatim PIDE} (the Isabelle/jEdit plugin object). For
+  example, the Scala expression @{verbatim "PIDE.snapshot(view)"} makes a PIDE
+  document snapshot of the current buffer within the current editor view.
+
+  This helps to explore Isabelle/Scala functionality interactively. Some care
+  is required to avoid interference with the internals of the running
+  application, especially in production use.
+*}
+
+
 section {* File-system access *}
 
 text {* File specifications in jEdit follow various formats and
@@ -367,50 +572,6 @@ text {* File specifications in jEdit follow various formats and
   Formally checked paths in prover input are subject to completion
   (\secref{sec:completion}): partial specifications are resolved via actual
   directory content and possible completions are offered in a popup.
-*}
-
-
-section {* SideKick parsers \label{sec:sidekick} *}
-
-text {*
-  The \emph{SideKick} plugin provides some general services to display buffer
-  structure in a tree view.
-
-  Isabelle/jEdit provides SideKick parsers for its main mode for
-  theory files, as well as some minor modes for the @{verbatim NEWS}
-  file, session @{verbatim ROOT} files, and system @{verbatim
-  options}.
-
-  Moreover, the special SideKick parser @{verbatim "isabelle-markup"}
-  provides access to the full (uninterpreted) markup tree of the PIDE
-  document model of the current buffer.  This is occasionally useful
-  for informative purposes, but the amount of displayed information
-  might cause problems for large buffers, both for the human and the
-  machine.
-*}
-
-
-section {* Scala console \label{sec:scala-console} *}
-
-text {*
-  The \emph{Console} plugin manages various shells (command interpreters),
-  e.g.\ \emph{BeanShell}, which is the official jEdit scripting language, and
-  the cross-platform \emph{System} shell. Thus the console provides similar
-  functionality than the special Emacs buffers @{verbatim "*scratch*"} and
-  @{verbatim "*shell*"}.
-
-  Isabelle/jEdit extends the repertoire of the console by \emph{Scala}, which
-  is the regular Scala toplevel loop running inside the \emph{same} JVM
-  process as Isabelle/jEdit itself. This means the Scala command interpreter
-  has access to the JVM name space and state of the running Prover IDE
-  application: the main entry points are @{verbatim view} (the current editor
-  view of jEdit) and @{verbatim PIDE} (the Isabelle/jEdit plugin object). For
-  example, the Scala expression @{verbatim "PIDE.snapshot(view)"} makes a PIDE
-  document snapshot of the current buffer within the current editor view.
-
-  This helps to explore Isabelle/Scala functionality interactively. Some care
-  is required to avoid interference with the internals of the running
-  application, especially in production use.
 *}
 
 
@@ -791,167 +952,6 @@ text {* \paragraph{Completion tables} are determined statically from
 
   In any case, unintended completions can be reverted by the regular
   @{verbatim undo} operation of jEdit. *}
-
-
-section {* Isabelle symbols \label{sec:symbols} *}
-
-text {* Isabelle sources consist of \emph{symbols} that extend plain
-  ASCII to allow infinitely many mathematical symbols within the
-  formal sources.  This works without depending on particular
-  encodings and varying Unicode standards
-  \cite{Wenzel:2011:CICM}.\footnote{Raw Unicode characters within
-  formal sources would compromise portability and reliability in the
-  face of changing interpretation of special features of Unicode, such
-  as Combining Characters or Bi-directional Text.}
-
-  For the prover back-end, formal text consists of ASCII characters
-  that are grouped according to some simple rules, e.g.\ as plain
-  ``@{verbatim a}'' or symbolic ``@{verbatim "\<alpha>"}''.
-
-  For the editor front-end, a certain subset of symbols is rendered
-  physically via Unicode glyphs, in order to show ``@{verbatim "\<alpha>"}''
-  as ``@{text "\<alpha>"}'', for example.  This symbol interpretation is
-  specified by the Isabelle system distribution in @{file
-  "$ISABELLE_HOME/etc/symbols"} and may be augmented by the user in
-  @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"}.
-
-  The appendix of \cite{isabelle-isar-ref} gives an overview of the
-  standard interpretation of finitely many symbols from the infinite
-  collection.  Uninterpreted symbols are displayed literally, e.g.\
-  ``@{verbatim "\<foobar>"}''.  Overlap of Unicode characters used in
-  symbol interpretation with informal ones (which might appear e.g.\
-  in comments) needs to be avoided!  Raw Unicode characters within
-  prover source files should be restricted to informal parts, e.g.\ to
-  write text in non-latin alphabets in comments.
-
-  \medskip \paragraph{Encoding.} Technically, the Unicode view on
-  Isabelle symbols is an \emph{encoding} in jEdit (not in the
-  underlying JVM) that is called @{verbatim "UTF-8-Isabelle"}.  It is
-  provided by the Isabelle/jEdit plugin and enabled by default for all
-  source files.  Sometimes such defaults are reset accidentally, or
-  malformed UTF-8 sequences in the text force jEdit to fall back on a
-  different encoding like @{verbatim "ISO-8859-15"}.  In that case,
-  verbatim ``@{verbatim "\<alpha>"}'' will be shown in the text buffer
-  instead of its Unicode rendering ``@{text "\<alpha>"}''.  The jEdit menu
-  operation \emph{File / Reload with Encoding / UTF-8-Isabelle} helps
-  to resolve such problems, potentially after repairing malformed
-  parts of the text.
-
-  \medskip \paragraph{Font.} Correct rendering via Unicode requires a
-  font that contains glyphs for the corresponding codepoints.  Most
-  system fonts lack that, so Isabelle/jEdit prefers its own
-  application font @{verbatim IsabelleText}, which ensures that
-  standard collection of Isabelle symbols are actually seen on the
-  screen (or printer).
-
-  Note that a Java/AWT/Swing application can load additional fonts
-  only if they are not installed on the operating system already!
-  Some old version of @{verbatim IsabelleText} that happens to be
-  provided by the operating system would prevent Isabelle/jEdit to use
-  its bundled version.  This could lead to missing glyphs (black
-  rectangles), when the system version of @{verbatim IsabelleText} is
-  older than the application version.  This problem can be avoided by
-  refraining to ``install'' any version of @{verbatim IsabelleText} in
-  the first place (although it is occasionally tempting to use
-  the same font in other applications).
-
-  \medskip \paragraph{Input methods.} In principle, Isabelle/jEdit
-  could delegate the problem to produce Isabelle symbols in their
-  Unicode rendering to the underlying operating system and its
-  \emph{input methods}.  Regular jEdit also provides various ways to
-  work with \emph{abbreviations} to produce certain non-ASCII
-  characters.  Since none of these standard input methods work
-  satisfactorily for the mathematical characters required for
-  Isabelle, various specific Isabelle/jEdit mechanisms are provided.
-
-  Here is a summary for practically relevant input methods for
-  Isabelle symbols:
-
-  \begin{enumerate}
-
-  \item The \emph{Symbols} panel: some GUI buttons allow to insert
-  certain symbols in the text buffer.  There are also tooltips to
-  reveal the official Isabelle representation with some additional
-  information about \emph{symbol abbreviations} (see below).
-
-  \item Copy / paste from decoded source files: text that is rendered
-  as Unicode already can be re-used to produce further text.  This
-  also works between different applications, e.g.\ Isabelle/jEdit and
-  some web browser or mail client, as long as the same Unicode view on
-  Isabelle symbols is used.
-
-  \item Copy / paste from prover output within Isabelle/jEdit.  The
-  same principles as for text buffers apply, but note that \emph{copy}
-  in secondary Isabelle/jEdit windows works via the keyboard shortcut
-  @{verbatim "C+c"}, while jEdit menu actions always refer to the
-  primary text area!
-
-  \item Completion provided by Isabelle plugin (see
-  \secref{sec:completion}).  Isabelle symbols have a canonical name
-  and optional abbreviations.  This can be used with the text
-  completion mechanism of Isabelle/jEdit, to replace a prefix of the
-  actual symbol like @{verbatim "\<lambda>"}, or its backslashed name
-  @{verbatim "\\"}@{verbatim "lambda"}, or its ASCII abbreviation
-  @{verbatim "%"} by the Unicode rendering.
-
-  The following table is an extract of the information provided by the
-  standard @{file "$ISABELLE_HOME/etc/symbols"} file:
-
-  \medskip
-  \begin{tabular}{lll}
-    \textbf{symbol} & \textbf{backslashed name} & \textbf{abbreviation} \\\hline
-    @{text "\<lambda>"} & @{verbatim "\\lambda"} & @{verbatim "%"} \\
-    @{text "\<Rightarrow>"} & @{verbatim "\\Rightarrow"} & @{verbatim "=>"} \\
-    @{text "\<Longrightarrow>"} & @{verbatim "\\Longrightarrow"} & @{verbatim "==>"} \\[0.5ex]
-    @{text "\<And>"} & @{verbatim "\\And"} & @{verbatim "!!"} \\
-    @{text "\<equiv>"} & @{verbatim "\\equiv"} & @{verbatim "=="} \\[0.5ex]
-    @{text "\<forall>"} & @{verbatim "\\forall"} & @{verbatim "!"} \\
-    @{text "\<exists>"} & @{verbatim "\\exists"} & @{verbatim "?"} \\
-    @{text "\<longrightarrow>"} & @{verbatim "\\longrightarrow"} & @{verbatim "-->"} \\
-    @{text "\<and>"} & @{verbatim "\\and"} & @{verbatim "&"} \\
-    @{text "\<or>"} & @{verbatim "\\or"} & @{verbatim "|"} \\
-    @{text "\<not>"} & @{verbatim "\\not"} & @{verbatim "~"} \\
-    @{text "\<noteq>"} & @{verbatim "\\noteq"} & @{verbatim "~="} \\
-    @{text "\<in>"} & @{verbatim "\\in"} & @{verbatim ":"} \\
-    @{text "\<notin>"} & @{verbatim "\\notin"} & @{verbatim "~:"} \\
-  \end{tabular}
-  \medskip
-
-  Note that the above abbreviations refer to the input method. The
-  logical notation provides ASCII alternatives that often coincide,
-  but deviate occasionally.  This occasionally causes user confusion
-  with very old-fashioned Isabelle source that use ASCII replacement
-  notation like @{verbatim "!"} or @{verbatim "ALL"} directly in the
-  text.
-
-  On the other hand, coincidence of symbol abbreviations with ASCII
-  replacement syntax syntax helps to update old theory sources via
-  explicit completion (see also @{verbatim "C+b"} explained in
-  \secref{sec:completion}).
-
-  \end{enumerate}
-
-  \paragraph{Control symbols.} There are some special control symbols
-  to modify the display style of a single symbol (without
-  nesting). Control symbols may be applied to a region of selected
-  text, either using the \emph{Symbols} panel or keyboard shortcuts or
-  jEdit actions.  These editor operations produce a separate control
-  symbol for each symbol in the text, in order to make the whole text
-  appear in a certain style.
-
-  \medskip
-  \begin{tabular}{llll}
-    \textbf{style} & \textbf{symbol} & \textbf{shortcut} & \textbf{action} \\\hline
-    superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{action "isabelle.control-sup"} \\
-    subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{action "isabelle.control-sub"} \\
-    bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{action "isabelle.control-bold"} \\
-    reset & & @{verbatim "C+e LEFT"} & @{action "isabelle.control-reset"} \\
-  \end{tabular}
-  \medskip
-
-  To produce a single control symbol, it is also possible to complete
-  on @{verbatim "\\"}@{verbatim sup}, @{verbatim "\\"}@{verbatim sub},
-  @{verbatim "\\"}@{verbatim bold} as for regular symbols.  *}
 
 
 section {* Automatically tried tools \label{sec:auto-tools} *}
