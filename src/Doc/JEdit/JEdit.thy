@@ -317,6 +317,59 @@ text {* File specifications in jEdit follow various formats and
 *}
 
 
+section {* Dockable Windows *}
+
+text {*
+  In jEdit terminology, a \emph{view} is an editor window with one or more
+  \emph{text areas} that show the content of one or more \emph{buffers}. A
+  regular view may be surrounded by \emph{dockable windows} that show
+  additional information in arbitrary format, not just text; a \emph{plain
+  view} does not allow dockables. The \emph{dockable window manager} of jEdit
+  organizes these dockable windows, either as \emph{floating} windows, or
+  \emph{docked} panels within one of the four margins of the view. There may
+  be any number of floating instances of some dockable window, but at most one
+  docked instance; jEdit actions that address \emph{the} dockable window of a
+  particular kind refer to the unique docked instance.
+
+  Dockables are used routinely in jEdit for important functionality like
+  \emph{HyperSearch Results} or the \emph{File System Browser}. Plugins often
+  provide a central dockable to access their key functionality, which may be
+  opened by the user on demand. The Isabelle/jEdit plugin takes this approach
+  to the extreme: its main plugin menu merely provides entry-points to panels
+  that are managed as dockable windows. Some important panels are docked by
+  default, e.g.\ \emph{Documentation}, \emph{Output}, \emph{Query}, but the
+  user can change this arrangement easily.
+
+  Compared to plain jEdit, dockable window management in Isabelle/jEdit is
+  slightly augmented according to the the following principles:
+
+  \begin{itemize}
+
+  \item Floating windows are dependent on the main window as \emph{dialog} in
+  the sense of Java/AWT/Swing. Dialog windows always stay on top of the view,
+  which is particularly important in full-screen mode. The desktop environment
+  of the underlying platform may impose further policies on such dependent
+  dialogs, in contrast to fully independent windows, e.g.\ some window
+  management functions may be missing.
+
+  \item Keyboard focus of the main view vs.\ a dockable window is carefully
+  managed according to the intended semantics, as a panel mainly for output or
+  input. For example, activating the \emph{Output} (\secref{sec:output}) panel
+  via the dockable window manager returns keyboard focus to the main text
+  area, but for \emph{Query} (\secref{sec:query}) the focus is given to the
+  main input field of that panel.
+
+  \item Panels that provide their own text area for output have an additional
+  dockable menu item \emph{Detach}. This produces an independent copy of the
+  current output as a floating \emph{Info} window, which displays that content
+  independently of ongoing changes of the PIDE document-model. Note that
+  Isabelle/jEdit popup windows (\secref{sec:tooltips-hyperlinks}) provide a
+  similar \emph{Detach} operation as an icon.
+
+  \end{itemize}
+*}
+
+
 chapter {* Prover IDE functionality *}
 
 section {* Text buffers and theories \label{sec:buffers-theories} *}
@@ -375,7 +428,7 @@ text {* As regular text editor, jEdit maintains a collection of open
   or disprovers in the background). *}
 
 
-section {* Output \label{sec:prover-output} *}
+section {* Output \label{sec:output} *}
 
 text {* Prover output consists of \emph{markup} and \emph{messages}.
   Both are directly attached to the corresponding positions in the
@@ -874,7 +927,7 @@ text {* Continuous document processing works asynchronously in the
   \emph{information messages}, which are indicated in the text area by
   blue squiggles and a blue information sign in the gutter (see
   \figref{fig:auto-tools}).  The message content may be shown as for
-  other output (see also \secref{sec:prover-output}).  Some tools
+  other output (see also \secref{sec:output}).  Some tools
   produce output with \emph{sendback} markup, which means that
   clicking on certain parts of the output inserts that text into the
   source in the proper place.
@@ -1080,7 +1133,7 @@ section {* Low-level output *}
 
 text {* Prover output is normally shown directly in the main text area
   or secondary \emph{Output} panels, as explained in
-  \secref{sec:prover-output}.
+  \secref{sec:output}.
 
   Beyond this, it is occasionally useful to inspect low-level output
   channels via some of the following additional panels:
@@ -1110,7 +1163,7 @@ text {* Prover output is normally shown directly in the main text area
   Under normal circumstances, prover output always works via managed message
   channels (corresponding to @{ML writeln}, @{ML warning}, @{ML
   Output.error_message} etc.\ in Isabelle/ML), which are displayed by regular
-  means within the document model (\secref{sec:prover-output}).
+  means within the document model (\secref{sec:output}).
 
   \item \emph{Syslog} shows system messages that might be relevant to
   diagnose problems with the startup or shutdown phase of the prover
