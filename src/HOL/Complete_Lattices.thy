@@ -719,7 +719,7 @@ qed (auto intro: bool_induct)
 
 subsection {* Complete lattice on @{typ "_ \<Rightarrow> _"} *}
 
-instantiation "fun" :: (type, complete_lattice) complete_lattice
+instantiation "fun" :: (type, Inf) Inf
 begin
 
 definition
@@ -729,12 +729,26 @@ lemma Inf_apply [simp, code]:
   "(\<Sqinter>A) x = (\<Sqinter>f\<in>A. f x)"
   by (simp add: Inf_fun_def)
 
+instance ..
+
+end
+
+instantiation "fun" :: (type, Sup) Sup
+begin
+
 definition
   "\<Squnion>A = (\<lambda>x. \<Squnion>f\<in>A. f x)"
 
 lemma Sup_apply [simp, code]:
   "(\<Squnion>A) x = (\<Squnion>f\<in>A. f x)"
   by (simp add: Sup_fun_def)
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, complete_lattice) complete_lattice
+begin
 
 instance proof
 qed (auto simp add: le_fun_def intro: INF_lower INF_greatest SUP_upper SUP_least)
