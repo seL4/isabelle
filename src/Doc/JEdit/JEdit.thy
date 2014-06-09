@@ -262,7 +262,7 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   take full effect.  *}
 
 
-chapter {* Prover IDE functionality *}
+chapter {* Augmented jEdit functionality *}
 
 section {* File-system access *}
 
@@ -312,10 +312,12 @@ text {* File specifications in jEdit follow various formats and
   file in the text editor, independently of the path notation.
 
   Formally checked paths in prover input are subject to completion
-  (\secref{sec:complation}): partial specifications are resolved via actual
+  (\secref{sec:completion}): partial specifications are resolved via actual
   directory content and possible completions are offered in a popup.
 *}
 
+
+chapter {* Prover IDE functionality *}
 
 section {* Text buffers and theories \label{sec:buffers-theories} *}
 
