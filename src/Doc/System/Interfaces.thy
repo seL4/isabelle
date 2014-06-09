@@ -4,60 +4,10 @@ begin
 
 chapter {* User interfaces *}
 
-section {* Isabelle/jEdit Prover IDE \label{sec:tool-jedit} *}
-
-text {* The @{tool_def jedit} tool invokes a version of
-  jEdit\footnote{@{url "http://www.jedit.org/"}} that has been augmented
-  with some plugins to provide a fully-featured Prover IDE:
-\begin{ttbox} Usage: isabelle jedit [OPTIONS]
-  [FILES ...]
-
-  Options are:
-    -J OPTION    add JVM runtime option (default JEDIT_JAVA_OPTIONS)
-    -b           build only
-    -d DIR       include session directory
-    -f           fresh build
-    -j OPTION    add jEdit runtime option (default JEDIT_OPTIONS)
-    -l NAME      logic image name (default ISABELLE_LOGIC)
-    -m MODE      add print mode for output
-    -n           no build of session image on startup
-    -s           system build mode for session image
-
-  Start jEdit with Isabelle plugin setup and open theory FILES
-  (default "\$USER_HOME/Scratch.thy").
-\end{ttbox}
-
-  The @{verbatim "-l"} option specifies the session name of the logic
-  image to be used for proof processing.  Additional session root
-  directories may be included via option @{verbatim "-d"} to augment
-  that name space (see also \secref{sec:tool-build}).
-
-  By default, the specified image is checked and built on demand. The
-  @{verbatim "-s"} option determines where to store the result session
-  image (see also \secref{sec:tool-build}). The @{verbatim "-n"}
-  option bypasses the implicit build process for the selected session
-  image.
-
-  The @{verbatim "-m"} option specifies additional print modes for the
-  prover process.  Note that the system option @{system_option
-  jedit_print_mode} allows to do the same persistently (e.g.\ via the
-  Plugin Options dialog of Isabelle/jEdit), without requiring
-  command-line invocation.
-
-  The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass
-  additional low-level options to the JVM or jEdit, respectively.  The
-  defaults are provided by the Isabelle settings environment
-  (\secref{sec:settings}).
-
-  The @{verbatim "-b"} and @{verbatim "-f"} options control the
-  self-build mechanism of Isabelle/jEdit.  This is only relevant for
-  building from sources, which also requires an auxiliary @{verbatim
-  jedit_build}
-  component.\footnote{@{url "http://isabelle.in.tum.de/components"}} Note
-  that official Isabelle releases already include a version of
-  Isabelle/jEdit that is built properly.
+text {*
+  The default user-interface and Prover IDE is Isabelle/jEdit, which is
+  described in a separate manual \cite{isabelle-jedit}.
 *}
-
 
 section {* Proof General / Emacs *}
 

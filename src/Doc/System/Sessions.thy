@@ -44,7 +44,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   organize browser info (\secref{sec:info}), but have no formal
   meaning.  The default chapter is ``@{text "Unsorted"}''.
 
-  Isabelle/jEdit (\secref{sec:tool-jedit}) includes a simple editing
+  Isabelle/jEdit \cite{isabelle-jedit} includes a simple editing
   mode @{verbatim "isabelle-root"} for session ROOT files, which is
   enabled by default for any file of that name.
 
@@ -161,7 +161,7 @@ text {* See @{file "~~/src/HOL/ROOT"} for a diversity of practically
 section {* System build options \label{sec:system-options} *}
 
 text {* See @{file "~~/etc/options"} for the main defaults provided by
-  the Isabelle distribution.  Isabelle/jEdit (\secref{sec:tool-jedit})
+  the Isabelle distribution.  Isabelle/jEdit \cite{isabelle-jedit}
   includes a simple editing mode @{verbatim "isabelle-options"} for
   this file-format.
 

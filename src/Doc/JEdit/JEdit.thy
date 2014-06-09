@@ -217,6 +217,61 @@ text {* Keyboard shortcuts used to be managed as jEdit properties in
   "$ISABELLE_HOME_USER/jedit/keymaps"}). *}
 
 
+section {* Command-line invocation *}
+
+text {*
+  Isabelle/jEdit is normally invoked as standalone application, with
+  platform-specific executable wrappers for Linux, Windows, Mac OS X.
+  Nonetheless it is occasionally useful to invoke the Prover IDE on the
+  command-line, with some extra options and environment settings as explained
+  below. The command-line usage of @{tool_def jedit} is as follows:
+\begin{ttbox}
+  Usage: isabelle jedit [OPTIONS] [FILES ...]
+
+  Options are:
+    -J OPTION    add JVM runtime option (default JEDIT_JAVA_OPTIONS)
+    -b           build only
+    -d DIR       include session directory
+    -f           fresh build
+    -j OPTION    add jEdit runtime option (default JEDIT_OPTIONS)
+    -l NAME      logic image name (default ISABELLE_LOGIC)
+    -m MODE      add print mode for output
+    -n           no build of session image on startup
+    -s           system build mode for session image
+
+  Start jEdit with Isabelle plugin setup and open theory FILES
+  (default "\$USER_HOME/Scratch.thy").
+\end{ttbox}
+
+  The @{verbatim "-l"} option specifies the session name of the logic
+  image to be used for proof processing.  Additional session root
+  directories may be included via option @{verbatim "-d"} to augment
+  that name space of @{tool build} \cite{isabelle-sys}.
+
+  By default, the specified image is checked and built on demand. The
+  @{verbatim "-s"} option determines where to store the result session image
+  of @{tool build}. The @{verbatim "-n"} option bypasses the implicit build
+  process for the selected session image.
+
+  The @{verbatim "-m"} option specifies additional print modes for the
+  prover process.  Note that the system option @{system_option
+  jedit_print_mode} allows to do the same persistently (e.g.\ via the
+  Plugin Options dialog of Isabelle/jEdit), without requiring
+  command-line invocation.
+
+  The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass
+  additional low-level options to the JVM or jEdit, respectively.  The
+  defaults are provided by the Isabelle settings environment
+  \cite{isabelle-sys}.
+
+  The @{verbatim "-b"} and @{verbatim "-f"} options control the self-build
+  mechanism of Isabelle/jEdit. This is only relevant for building from
+  sources, which also requires an auxiliary @{verbatim jedit_build} component
+  from @{url "http://isabelle.in.tum.de/components"}. Note that official
+  Isabelle releases already include a pre-built version of Isabelle/jEdit.
+*}
+
+
 chapter {* Augmented jEdit functionality *}
 
 section {* Look-and-feel *}
@@ -587,13 +642,12 @@ text {* As regular text editor, jEdit maintains a collection of open
   \emph{isabelle} and treated specifically.
 
   \medskip Isabelle theory files are automatically added to the formal
-  document model of Isabelle/Scala, which maintains a family of
-  versions of all sources for the prover.  The \emph{Theories} panel
-  provides an overview of the status of continuous checking of theory
-  sources.  Unlike batch sessions \cite{isabelle-sys}, theory nodes
-  are identified by full path names; this allows to work with multiple
-  (disjoint) Isabelle sessions simultaneously within the same editor
-  session.
+  document model of Isabelle/Scala, which maintains a family of versions of
+  all sources for the prover. The \emph{Theories} panel provides an overview
+  of the status of continuous checking of theory sources. Unlike batch
+  sessions of @{tool build} \cite{isabelle-sys}, theory nodes are identified
+  by full path names; this allows to work with multiple (disjoint) Isabelle
+  sessions simultaneously within the same editor session.
 
   Certain events to open or update buffers with theory files cause
   Isabelle/jEdit to resolve dependencies of \emph{theory imports}. The system
