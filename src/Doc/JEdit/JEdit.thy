@@ -224,7 +224,7 @@ text {*
   platform-specific executable wrappers for Linux, Windows, Mac OS X.
   Nonetheless it is occasionally useful to invoke the Prover IDE on the
   command-line, with some extra options and environment settings as explained
-  below. The command-line usage of @{tool_def jedit} is as follows:
+  below. The command-line usage of @{tool jedit} is as follows:
 \begin{ttbox}
   Usage: isabelle jedit [OPTIONS] [FILES ...]
 
