@@ -174,8 +174,11 @@ upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
 definition insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "insert x xs = (if x \<in> set xs then xs else x # xs)"
 
-hide_const (open) insert
-hide_fact (open) insert_def
+definition union :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"union = fold insert"
+
+hide_const (open) insert union
+hide_fact (open) insert_def union_def
 
 primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a option" where
 "find _ [] = None" |
@@ -295,6 +298,7 @@ text{*
 @{lemma "remdups_adj [2,2,3,1,1::nat,2,1] = [2,3,1,2,1]" by simp}\\
 @{lemma "List.insert 2 [0::nat,1,2] = [0,1,2]" by (simp add: List.insert_def)}\\
 @{lemma "List.insert 3 [0::nat,1,2] = [3,0,1,2]" by (simp add: List.insert_def)}\\
+@{lemma "List.union [2,3,4] [0::int,1,2] = [4,3,0,1,2]" by (simp add: List.insert_def List.union_def)}\\
 @{lemma "List.find (%i::int. i>0) [0,0] = None" by simp}\\
 @{lemma "List.find (%i::int. i>0) [0,1,0,2] = Some 1" by simp}\\
 @{lemma "List.extract (%i::int. i>0) [0,0] = None" by(simp add: extract_def)}\\
@@ -3611,12 +3615,24 @@ lemma set_insert [simp]:
   by (auto simp add: List.insert_def)
 
 lemma distinct_insert [simp]:
-  "distinct xs \<Longrightarrow> distinct (List.insert x xs)"
+  "distinct (List.insert x xs) = distinct xs"
   by (simp add: List.insert_def)
 
 lemma insert_remdups:
   "List.insert x (remdups xs) = remdups (List.insert x xs)"
   by (simp add: List.insert_def)
+
+
+subsubsection {* @{const List.union} *}
+
+text{* This is all one should need to know about union: *}
+lemma set_union[simp]: "set (List.union xs ys) = set xs \<union> set ys"
+unfolding List.union_def
+by(induct xs arbitrary: ys) simp_all
+
+lemma distinct_union[simp]: "distinct(List.union xs ys) = distinct ys"
+unfolding List.union_def
+by(induct xs arbitrary: ys) simp_all
 
 
 subsubsection {* @{const List.find} *}
