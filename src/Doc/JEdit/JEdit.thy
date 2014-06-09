@@ -217,7 +217,9 @@ text {* Keyboard shortcuts used to be managed as jEdit properties in
   "$ISABELLE_HOME_USER/jedit/keymaps"}). *}
 
 
-subsection {* Look-and-feel *}
+chapter {* Augmented jEdit functionality *}
+
+section {* Look-and-feel *}
 
 text {* jEdit is a Java/AWT/Swing application with some ambition to
   support ``native'' look-and-feel on all platforms, within the limits
@@ -260,61 +262,6 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   After changing the look-and-feel in \emph{Global Options /
   Appearance}, it is advisable to restart Isabelle/jEdit in order to
   take full effect.  *}
-
-
-chapter {* Augmented jEdit functionality *}
-
-section {* File-system access *}
-
-text {* File specifications in jEdit follow various formats and
-  conventions according to \emph{Virtual File Systems}, which may be
-  also provided by additional plugins.  This allows to access remote
-  files via the @{verbatim "http:"} protocol prefix, for example.
-  Isabelle/jEdit attempts to work with the file-system access model of
-  jEdit as far as possible.  In particular, theory sources are passed
-  directly from the editor to the prover, without indirection via
-  physical files.
-
-  Despite the flexibility of URLs in jEdit, local files are
-  particularly important and are accessible without protocol prefix.
-  Here the path notation is that of the Java Virtual Machine on the
-  underlying platform.  On Windows the preferred form uses
-  backslashes, but happens to accept forward slashes of Unix/POSIX, too.
-  Further differences arise due to drive letters and network shares.
-
-  The Java notation for files needs to be distinguished from the one
-  of Isabelle, which uses POSIX notation with forward slashes on
-  \emph{all} platforms.\footnote{Isabelle/ML on Windows uses Cygwin
-  file-system access.}  Moreover, environment variables from the
-  Isabelle process may be used freely, e.g.\ @{file
-  "$ISABELLE_HOME/etc/symbols"} or @{file_unchecked "$POLYML_HOME/README"}.
-  There are special shortcuts: @{file "~"} for @{file "$USER_HOME"}
-  and @{file "~~"} for @{file "$ISABELLE_HOME"}.
-
-  \medskip Since jEdit happens to support environment variables within
-  file specifications as well, it is natural to use similar notation
-  within the editor, e.g.\ in the file-browser.  This does not work in
-  full generality, though, due to the bias of jEdit towards
-  platform-specific notation and of Isabelle towards POSIX.  Moreover,
-  the Isabelle settings environment is not yet active when starting
-  Isabelle/jEdit via its standard application wrapper (in contrast to
-  @{verbatim "isabelle jedit"} run from the command line).
-
-  For convenience, Isabelle/jEdit imitates at least @{verbatim
-  "$ISABELLE_HOME"} and @{verbatim "$ISABELLE_HOME_USER"} within the Java
-  process environment, in order to allow easy access to these important places
-  from the editor. The file browser of jEdit also includes \emph{Favorites}
-  for these two important locations.
-
-  \medskip Path specifications in prover input or output usually include
-  formal markup that turns it into a hyperlink (see also
-  \secref{sec:tooltips-hyperlinks}). This allows to open the corresponding
-  file in the text editor, independently of the path notation.
-
-  Formally checked paths in prover input are subject to completion
-  (\secref{sec:completion}): partial specifications are resolved via actual
-  directory content and possible completions are offered in a popup.
-*}
 
 
 section {* Dockable windows *}
@@ -367,6 +314,59 @@ text {*
   similar \emph{Detach} operation as an icon.
 
   \end{itemize}
+*}
+
+
+section {* File-system access *}
+
+text {* File specifications in jEdit follow various formats and
+  conventions according to \emph{Virtual File Systems}, which may be
+  also provided by additional plugins.  This allows to access remote
+  files via the @{verbatim "http:"} protocol prefix, for example.
+  Isabelle/jEdit attempts to work with the file-system access model of
+  jEdit as far as possible.  In particular, theory sources are passed
+  directly from the editor to the prover, without indirection via
+  physical files.
+
+  Despite the flexibility of URLs in jEdit, local files are
+  particularly important and are accessible without protocol prefix.
+  Here the path notation is that of the Java Virtual Machine on the
+  underlying platform.  On Windows the preferred form uses
+  backslashes, but happens to accept forward slashes of Unix/POSIX, too.
+  Further differences arise due to drive letters and network shares.
+
+  The Java notation for files needs to be distinguished from the one
+  of Isabelle, which uses POSIX notation with forward slashes on
+  \emph{all} platforms.\footnote{Isabelle/ML on Windows uses Cygwin
+  file-system access.}  Moreover, environment variables from the
+  Isabelle process may be used freely, e.g.\ @{file
+  "$ISABELLE_HOME/etc/symbols"} or @{file_unchecked "$POLYML_HOME/README"}.
+  There are special shortcuts: @{file "~"} for @{file "$USER_HOME"}
+  and @{file "~~"} for @{file "$ISABELLE_HOME"}.
+
+  \medskip Since jEdit happens to support environment variables within
+  file specifications as well, it is natural to use similar notation
+  within the editor, e.g.\ in the file-browser.  This does not work in
+  full generality, though, due to the bias of jEdit towards
+  platform-specific notation and of Isabelle towards POSIX.  Moreover,
+  the Isabelle settings environment is not yet active when starting
+  Isabelle/jEdit via its standard application wrapper (in contrast to
+  @{verbatim "isabelle jedit"} run from the command line).
+
+  For convenience, Isabelle/jEdit imitates at least @{verbatim
+  "$ISABELLE_HOME"} and @{verbatim "$ISABELLE_HOME_USER"} within the Java
+  process environment, in order to allow easy access to these important places
+  from the editor. The file browser of jEdit also includes \emph{Favorites}
+  for these two important locations.
+
+  \medskip Path specifications in prover input or output usually include
+  formal markup that turns it into a hyperlink (see also
+  \secref{sec:tooltips-hyperlinks}). This allows to open the corresponding
+  file in the text editor, independently of the path notation.
+
+  Formally checked paths in prover input are subject to completion
+  (\secref{sec:completion}): partial specifications are resolved via actual
+  directory content and possible completions are offered in a popup.
 *}
 
 
