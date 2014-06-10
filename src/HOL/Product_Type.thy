@@ -139,12 +139,29 @@ definition less_eq_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool" where
 definition less_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool" where
 "less_unit _ _ = False"
 
-declare less_eq_unit_def [simp] less_unit_def [simp]
+declare less_eq_unit_def [simp, abs_def, code_unfold] less_unit_def [simp, abs_def, code_unfold]
 
 instance
 proof qed auto
 
 end
+
+instantiation unit :: complete_boolean_algebra begin
+
+definition "top = ()"
+definition "bot = ()"
+definition [code_unfold]: "sup _ _ = ()"
+definition [code_unfold]: "inf _ _ = ()"
+definition "Sup _ = ()"
+definition "Inf _ = ()"
+definition [simp, code_unfold]: "uminus = (\<lambda>_ :: unit. ())"
+
+instance by intro_classes auto
+
+end
+
+instance unit :: "{complete_linorder, wellorder}"
+  by intro_classes auto
 
 lemma [code]:
   "HOL.equal (u\<Colon>unit) v \<longleftrightarrow> True" unfolding equal unit_eq [of u] unit_eq [of v] by rule+
