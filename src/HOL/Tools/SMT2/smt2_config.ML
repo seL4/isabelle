@@ -99,9 +99,9 @@ fun available_solvers_of ctxt =
 
 fun warn_solver (Context.Proof ctxt) name =
       if Context_Position.is_visible ctxt then
-        warning ("The SMT solver " ^ quote name ^ " is not installed.")
+        warning ("The SMT solver " ^ quote name ^ " is not installed")
       else ()
-  | warn_solver _ _ = ();
+  | warn_solver _ _ = ()
 
 fun select_solver name context =
   let

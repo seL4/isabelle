@@ -193,12 +193,13 @@ fun term_of_atp ctxt textual sym_tab =
        conflict with variable constraints in the goal. At least, type inference often fails
        otherwise. See also "axiom_inference" in "Metis_Reconstruct". *)
     val var_index = if textual then 0 else 1
+
     fun do_term extra_ts opt_T u =
       (case u of
         ATerm ((s, tys), us) =>
-        if s = ""
-          then error "Isar proof reconstruction failed because the ATP proof \
-                     \contains unparsable material."
+        if s = "" then
+          error "Isar proof reconstruction failed because the ATP proof contains unparsable \
+            \material."
         else if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information *)
         else if s = tptp_equal then
@@ -221,10 +222,8 @@ fun term_of_atp ctxt textual sym_tab =
               else if s' = app_op_name then
                 let val extra_t = do_term [] NONE (List.last us) in
                   do_term (extra_t :: extra_ts)
-                          (case opt_T of
-                             SOME T => SOME (slack_fastype_of extra_t --> T)
-                           | NONE => NONE)
-                          (nth us (length us - 2))
+                    (case opt_T of SOME T => SOME (slack_fastype_of extra_t --> T) | NONE => NONE)
+                    (nth us (length us - 2))
                 end
               else if s' = type_guard_name then
                 @{const True} (* ignore type predicates *)
@@ -238,18 +237,15 @@ fun term_of_atp ctxt textual sym_tab =
                   val Ts = map (typ_of_atp_type ctxt) tys @ map (typ_of_atp_term ctxt) type_us
                   val T =
                     (if not (null Ts) andalso robust_const_num_type_args thy s' = length Ts then
-                       if new_skolem then
-                         SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
-                       else if textual then
-                         try (Sign.const_instance thy) (s', Ts)
-                       else
-                         NONE
+                       if new_skolem then SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
+                       else if textual then try (Sign.const_instance thy) (s', Ts)
+                       else NONE
                      else
                        NONE)
                     |> (fn SOME T => T
                          | NONE =>
                            map slack_fastype_of term_ts --->
-                            the_default (Type_Infer.anyT @{sort type}) opt_T)
+                           the_default (Type_Infer.anyT @{sort type}) opt_T)
                   val t =
                     if new_skolem then Var ((new_skolem_var_name_of_const s'', var_index), T)
                     else Const (unproxify_const s', T)
@@ -261,8 +257,8 @@ fun term_of_atp ctxt textual sym_tab =
                  "Variable.variant_frees". This does not hold in general but should hold for
                  ATP-generated Skolem function names, since these end with a digit and
                  "variant_frees" appends letters. *)
-              fun fresh_up s =
-                [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
+              fun fresh_up s = [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
+
               val term_ts =
                 map (do_term [] NONE) us
                 (* SPASS (3.8ds) and Vampire (2.6) pass arguments to Skolem functions in reverse
