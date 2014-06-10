@@ -67,15 +67,13 @@ sig
     thm list -> (thm -> thm) -> thm list list -> Ctr_Sugar.ctr_sugar list -> term list ->
     thm list -> (thm list -> thm list) -> Proof.context -> gfp_sugar_thms
 
-  type co_datatype_spec =
-    ((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
-    * ((binding, binding * typ, term) Ctr_Sugar.ctr_spec * mixfix) list
-
   val co_datatypes: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
-    (bool * bool) * co_datatype_spec list ->
+    (bool * bool)
+    * ((((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
+       * ((binding, binding * typ) Ctr_Sugar.ctr_spec * mixfix) list) * term list) list ->
     local_theory -> local_theory
   val parse_co_datatype_cmd: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
@@ -250,15 +248,16 @@ fun reassoc_conjs thm =
   handle THM _ => thm;
 
 type co_datatype_spec =
-  ((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
-  * ((binding, binding * typ, term) ctr_spec * mixfix) list;
+  (((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
+   * ((binding, binding * typ) ctr_spec * mixfix) list) * term list;
 
-fun type_args_named_constrained_of_spec ((((ncAs, _), _), _), _) = ncAs;
-fun type_binding_of_spec ((((_, b), _), _), _) = b;
-fun map_binding_of_spec (((_, (b, _)), _), _) = b;
-fun rel_binding_of_spec (((_, (_, b)), _), _) = b;
-fun mixfix_of_spec ((_, mx), _) = mx;
-fun mixfixed_ctr_specs_of_spec (_, mx_ctr_specs) = mx_ctr_specs;
+fun type_args_named_constrained_of_spec (((((ncAs, _), _), _), _), _) = ncAs;
+fun type_binding_of_spec (((((_, b), _), _), _), _) = b;
+fun map_binding_of_spec ((((_, (b, _)), _), _), _) = b;
+fun rel_binding_of_spec ((((_, (_, b)), _), _), _) = b;
+fun mixfix_of_spec (((_, mx), _), _) = mx;
+fun mixfixed_ctr_specs_of_spec ((_, mx_ctr_specs), _) = mx_ctr_specs;
+fun sel_default_eqs_of_spec (_, ts) = ts;
 
 fun add_nesty_bnf_names Us =
   let
@@ -900,7 +899,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val sel_bindingsss = map (map (map fst)) ctr_argsss;
     val fake_ctr_Tsss0 = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
-    val raw_sel_defaultsss = map (map sel_defaults_of_ctr_spec) ctr_specss;
+    val raw_sel_default_eqss = map sel_default_eqs_of_spec specs;
 
     val (As :: _) :: fake_ctr_Tsss =
       burrow (burrow (Syntax.check_typs fake_lthy)) (Ass0 :: fake_ctr_Tsss0);
@@ -1038,7 +1037,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               xtor_co_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
             pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), abs),
           abs_inject), abs_inverse), type_definition), ctr_bindings), ctr_mixfixes), ctr_Tss),
-        disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
+        disc_bindings), sel_bindingss), raw_sel_default_eqs) no_defs_lthy =
       let
         val fp_b_name = Binding.name_of fp_b;
 
@@ -1110,12 +1109,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
             val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss;
 
-            val sel_defaultss = map (map (apsnd (prepare_term lthy))) raw_sel_defaultss
+            val sel_default_eqs = map (prepare_term lthy) raw_sel_default_eqs;
 
-            fun ctr_spec_of disc_b ctr0 sel_bs sel_defs = (((disc_b, ctr0), sel_bs), sel_defs);
-            val ctr_specs = map4 ctr_spec_of disc_bindings ctrs0 sel_bindingss sel_defaultss;
+            fun ctr_spec_of disc_b ctr0 sel_bs = ((disc_b, ctr0), sel_bs);
+            val ctr_specs = map3 ctr_spec_of disc_bindings ctrs0 sel_bindingss;
           in
-            free_constructors tacss (((discs_sels, no_code), standard_binding), ctr_specs) lthy
+            free_constructors tacss ((((discs_sels, no_code), standard_binding), ctr_specs),
+              sel_default_eqs) lthy
           end;
 
         fun derive_maps_sets_rels (ctr_sugar as {case_cong, discs, selss, ctrs, exhaust, disc_thmss,
@@ -1525,7 +1525,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         xtor_co_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~ pre_set_defss ~~
         pre_rel_defs ~~ xtor_map_thms ~~ xtor_set_thmss ~~ xtor_rel_thms ~~ ns ~~ kss ~~ mss ~~
         abss ~~ abs_injects ~~ abs_inverses ~~ type_definitions ~~ ctr_bindingss ~~ ctr_mixfixess ~~
-        ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_defaultsss)
+        ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_default_eqss)
       |> wrap_types_etc
       |> case_fp fp derive_note_induct_recs_thms_for_types
            derive_note_coinduct_corecs_thms_for_types;
@@ -1550,7 +1550,7 @@ val parse_ctr_specs =
 
 val parse_spec =
   parse_type_args_named_constrained -- Parse.binding -- parse_map_rel_bindings --
-  Parse.opt_mixfix -- (@{keyword "="} |-- parse_ctr_specs);
+  Parse.opt_mixfix -- (@{keyword "="} |-- parse_ctr_specs) -- parse_sel_default_eqs;
 
 val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 

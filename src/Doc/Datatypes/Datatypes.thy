@@ -375,8 +375,10 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
     context early begin
 (*>*)
     datatype_new (set: 'a) list (map: map rel: list_all2) =
-      null: Nil (defaults tl: Nil)
+      null: Nil
     | Cons (hd: 'a) (tl: "'a list")
+    where
+      "tl Nil = Nil"
 
 text {*
 \noindent
@@ -415,10 +417,10 @@ For two-constructor datatypes, a single discriminator constant is sufficient.
 The discriminator associated with @{const Cons} is simply
 @{term "\<lambda>xs. \<not> null xs"}.
 
-The @{text defaults} clause following the @{const Nil} constructor specifies a
-default value for selectors associated with other constructors. Here, it is used
-to ensure that the tail of the empty list is itself (instead of being left
-unspecified).
+The \keyw{where} clause at the end of the command specifies a default value for
+selectors applied to constructors on which they are not a priori specified.
+Here, it is used to ensure that the tail of the empty list is itself (instead of
+being left unspecified).
 
 Because @{const Nil} is nullary, it is also possible to use
 @{term "\<lambda>xs. xs = Nil"} as a discriminator. This is the default behavior
@@ -470,7 +472,8 @@ text {*
 
 @{rail \<open>
   @@{command datatype_new} target? @{syntax dt_options}? \<newline>
-    (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') + @'and')
+    (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') + @'and') \<newline>
+    (@'where' (@{syntax prop} + '|'))?
   ;
   @{syntax_def dt_options}: '(' (('discs_sels' | 'no_code') + ',') ')'
 \<close>}
@@ -482,7 +485,8 @@ The @{command datatype_new} command introduces a set of mutually recursive
 datatypes specified by their constructors.
 
 The syntactic entity \synt{target} can be used to specify a local
-context---e.g., @{text "(in linorder)"} \cite{isabelle-isar-ref}.
+context (e.g., @{text "(in linorder)"} \cite{isabelle-isar-ref}),
+and \synt{prop} denotes a HOL proposition.
 
 The optional target is optionally followed by one or both of the following
 options:
@@ -499,6 +503,11 @@ discriminators or selectors.
 The @{text "no_code"} option indicates that the datatype should not be
 registered for code generation.
 \end{itemize}
+
+The optional \keyw{where} clause specifies default values for selectors.
+Each proposition must be an equation of the form
+@{text "un_D (C \<dots>) = \<dots>"}, where @{text C} is a constructor and
+@{text un_D} is a selector.
 
 The left-hand sides of the datatype equations specify the name of the type to
 define, its type parameters, and additional information:
@@ -531,8 +540,7 @@ Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
 @{rail \<open>
-  @{syntax_def dt_ctor}: (name ':')? name (@{syntax dt_ctor_arg} * ) \<newline>
-    @{syntax dt_sel_defaults}? mixfix?
+  @{syntax_def dt_ctor}: (name ':')? name (@{syntax dt_ctor_arg} * ) mixfix?
 \<close>}
 
 \medskip
@@ -557,21 +565,6 @@ In addition to the type of a constructor argument, it is possible to specify a
 name for the corresponding selector to override the default name
 (@{text un_C\<^sub>ji}). The same selector names can be reused for several
 constructors as long as they share the same type.
-
-@{rail \<open>
-  @{syntax_def dt_sel_defaults}: '(' 'defaults' (name ':' term +) ')'
-\<close>}
-
-\medskip
-
-\noindent
-Given a constructor
-@{text "C \<Colon> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<sigma>"},
-default values can be specified for any selector
-@{text "un_D \<Colon> \<sigma> \<Rightarrow> \<tau>"}
-associated with other constructors. The specified default value must be of type
-@{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<tau>"}
-(i.e., it may depend on @{text C}'s arguments).
 *}
 
 
@@ -1485,13 +1478,19 @@ for @{text "un_D\<^sub>0"}.
 The following example illustrates this procedure:
 *}
 
+(*<*)
+    hide_const termi
+(*>*)
     consts termi\<^sub>0 :: 'a
 
 text {* \blankline *}
 
     datatype_new ('a, 'b) tlist =
-      TNil (termi: 'b) (defaults ttl: TNil)
-    | TCons (thd: 'a) (ttl : "('a, 'b) tlist") (defaults termi: "\<lambda>_ xs. termi\<^sub>0 xs")
+      TNil (termi: 'b)
+    | TCons (thd: 'a) (ttl: "('a, 'b) tlist")
+    where
+      "ttl (TNil y) = TNil y"
+    | "termi (TCons _ xs) = termi\<^sub>0 xs"
 
 text {* \blankline *}
 
@@ -1557,8 +1556,10 @@ definition of lazy lists:
 *}
 
     codatatype (lset: 'a) llist (map: lmap rel: llist_all2) =
-      lnull: LNil (defaults ltl: LNil)
+      lnull: LNil
     | LCons (lhd: 'a) (ltl: "'a llist")
+    where
+      "ltl LNil = LNil"
 
 text {*
 \noindent
@@ -2646,10 +2647,10 @@ text {*
 
 @{rail \<open>
   @@{command free_constructors} target? @{syntax dt_options} \<newline>
-    name 'for' (@{syntax fc_ctor} + '|')
+    name 'for' (@{syntax fc_ctor} + '|') \<newline>
+  (@'where' (@{syntax prop} + '|'))?
   ;
-  @{syntax_def fc_ctor}: (name ':')? term (name * ) \<newline>
-    @{syntax dt_sel_defaults}?
+  @{syntax_def fc_ctor}: (name ':')? term (name * )
 \<close>}
 
 \medskip
@@ -2661,8 +2662,8 @@ destructors. It also registers the constants and theorems in a data structure
 that is queried by various tools (e.g., \keyw{function}).
 
 The syntactic entity \synt{target} can be used to specify a local context,
-\synt{name} denotes an identifier, and \synt{term} denotes a HOL term
-\cite{isabelle-isar-ref}.
+\synt{name} denotes an identifier, \synt{prop} denotes a HOL proposition, and
+\synt{term} denotes a HOL term \cite{isabelle-isar-ref}.
 
 The syntax resembles that of @{command datatype_new} and @{command codatatype}
 definitions (Sections

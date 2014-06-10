@@ -13,7 +13,10 @@ imports Main
 begin
 
 datatype_new 'a listF (map: mapF rel: relF) =
-  NilF (defaults tlF: NilF) | Conss (hdF: 'a) (tlF: "'a listF")
+    NilF
+  | Conss (hdF: 'a) (tlF: "'a listF")
+where
+  "tlF NilF = NilF"
 
 datatype_compat listF
 
