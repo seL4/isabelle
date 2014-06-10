@@ -10,6 +10,7 @@ sig
   val smtlib2C: SMT2_Util.class
   val add_logic: int * (term list -> string option) -> Context.generic -> Context.generic
   val translate_config: Proof.context -> SMT2_Translate.config
+  val assert_index_of_name: string -> int
 end
 
 structure SMTLIB2_Interface: SMTLIB2_INTERFACE =
@@ -120,21 +121,28 @@ fun sdatatype (name, ctrs) = enclose "(" ")" (space_implode " " (name :: map sct
 
 fun string_of_fun (f, (ss, s)) = f ^ " (" ^ space_implode " " ss ^ ") " ^ s
 
+fun named_sterm s t = SMTLIB2.S [SMTLIB2.Sym "!", t, SMTLIB2.Key "named", SMTLIB2.Sym s]
+
+val assert_prefix = "a"
+
+fun assert_name_of_index i = assert_prefix ^ string_of_int i
+fun assert_index_of_name s = the_default ~1 (Int.fromString (unprefix assert_prefix s))
+
 fun serialize comments {header, sorts, dtyps, funcs} ts =
   Buffer.empty
   |> fold (Buffer.add o enclose "; " "\n") comments
   |> Buffer.add "(set-option :produce-proofs true)\n"
   |> Buffer.add header
-  |> fold (Buffer.add o enclose "(declare-sort " " 0)\n")
-       (sort fast_string_ord sorts)
+  |> fold (Buffer.add o enclose "(declare-sort " " 0)\n") (sort fast_string_ord sorts)
   |> (if null dtyps then I
     else Buffer.add (enclose "(declare-datatypes () (" "))\n"
       (space_implode "\n  " (maps (map sdatatype) dtyps))))
   |> fold (Buffer.add o enclose "(declare-fun " ")\n" o string_of_fun)
        (sort (fast_string_ord o pairself fst) funcs)
-  |> fold (Buffer.add o enclose "(assert " ")\n" o SMTLIB2.str_of o
-       tree_of_sterm 0) ts
-  |> Buffer.add "(check-sat)\n(get-proof)\n" (* FIXME: (get-model)\n" *)
+  |> fold (fn (i, t) => Buffer.add (enclose "(assert " ")\n"
+      (SMTLIB2.str_of (named_sterm (assert_name_of_index i) (tree_of_sterm 0 t)))))
+    (map_index I ts)
+  |> Buffer.add "(check-sat)\n(get-proof)\n"
   |> Buffer.content
 
 (* interface *)
