@@ -181,8 +181,6 @@ val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
 val simp_attrs = @{attributes [simp]};
 
-fun is_triv_eq t = op aconv (HOLogic.dest_eq t) handle TERM _ => false;
-
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
 fun flat_corec_predss_getterss qss gss = maps (op @) (qss ~~ gss);
@@ -1197,7 +1195,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                       val discsA_t = map (fn disc1 => Term.betapply (disc1, ta)) discsA;
 
                       fun mk_goal (discA_t, discB) =
-                        if head_of discA_t aconv HOLogic.Not orelse is_triv_eq discA_t then
+                        if head_of discA_t aconv HOLogic.Not orelse is_refl_bool discA_t then
                           NONE
                         else
                           SOME (mk_Trueprop_eq
@@ -1232,7 +1230,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                             | _ => map_rhs $ (selA $ ta));
                           val concl = mk_Trueprop_eq (lhs, rhs);
                         in
-                          if is_triv_eq prem then concl
+                          if is_refl_bool prem then concl
                           else Logic.mk_implies (HOLogic.mk_Trueprop prem, concl)
                         end;
                       val goals = map mk_goal disc_sel_pairs;
@@ -1292,7 +1290,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                               travese_nested_types (selA $ ta) names_lthy;
                         in
                           if exists_subtype_in [A] sel_rangeT then
-                            if is_triv_eq prem then
+                            if is_refl_bool prem then
                               (concls, ctxt')
                             else
                               (map (Logic.mk_implies o pair (HOLogic.mk_Trueprop prem)) concls,
@@ -1542,8 +1540,8 @@ fun co_datatype_cmd x =
   define_co_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term x;
 
 val parse_ctr_arg =
-  @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||
-  (Parse.typ >> pair Binding.empty);
+  @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"}
+  || Parse.typ >> pair Binding.empty;
 
 val parse_ctr_specs =
   Parse.enum1 "|" (parse_ctr_spec Parse.binding parse_ctr_arg -- Parse.opt_mixfix);
