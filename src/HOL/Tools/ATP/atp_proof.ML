@@ -406,8 +406,7 @@ fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2))
   | is_same_formula comm subst (AConn (c1, phis1)) (AConn (c2, phis2)) =
     c1 = c2 andalso length phis1 = length phis2 andalso
     forall (uncurry (is_same_formula comm subst)) (phis1 ~~ phis2)
-  | is_same_formula comm subst
-        (AAtom (tm1 as ATerm (("equal", tys), [tm11, tm12]))) (AAtom tm2) =
+  | is_same_formula comm subst (AAtom (tm1 as ATerm (("equal", tys), [tm11, tm12]))) (AAtom tm2) =
     is_same_term subst tm1 tm2 orelse
     (comm andalso is_same_term subst (ATerm (("equal", tys), [tm12, tm11])) tm2)
   | is_same_formula _ subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
@@ -451,8 +450,8 @@ fun parse_tstp_line problem =
                 File_Source (_, SOME s) =>
                 (if s = waldmeister_conjecture_name then
                    (case find_formula_in_problem (mk_anot phi) problem of
-                     (* Waldmeister hack: Get the original orientation of the
-                        equation to avoid confusing Isar. *)
+                     (* Waldmeister hack: Get the original orientation of the equation to avoid
+                        confusing Isar. *)
                      [(s, phi')] =>
                      ((num, [s]),
                       phi |> not (is_same_formula false [] (mk_anot phi) phi') ? commute_eq)
