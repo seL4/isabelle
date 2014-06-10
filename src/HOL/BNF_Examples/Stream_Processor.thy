@@ -150,7 +150,7 @@ lemma sp\<^sub>\<nu>_comp_sp\<^sub>\<nu>_comp2: "sp o\<^sub>\<nu> sp' = sp o\<^s
 
 section {* Generalization to an Arbitrary BNF as Codomain *}
 
-bnf_axiomatization ('a, 'b) F (map: F)
+bnf_axiomatization ('a, 'b) F for map: F
 
 notation BNF_Def.convol ("<_ , _>")
 

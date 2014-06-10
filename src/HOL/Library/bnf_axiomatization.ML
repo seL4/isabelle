@@ -108,13 +108,13 @@ val parse_witTs =
   @{keyword "]"} || Scan.succeed [];
 
 val parse_bnf_axiomatization =
-  parse_type_args_named_constrained -- Parse.binding -- parse_map_rel_bindings --
-    parse_witTs -- Parse.opt_mixfix;
+  parse_type_args_named_constrained -- Parse.binding -- parse_witTs -- Parse.opt_mixfix --
+  parse_map_rel_bindings;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "bnf_axiomatization"} "bnf declaration"
     (parse_bnf_axiomatization >> 
-      (fn ((((bsTs, b), (mapb, relb)), witTs), mx) =>
+      (fn ((((bsTs, b), witTs), mx), (mapb, relb)) =>
          bnf_axiomatization_cmd bsTs b mx mapb relb witTs #> snd));
 
 end;

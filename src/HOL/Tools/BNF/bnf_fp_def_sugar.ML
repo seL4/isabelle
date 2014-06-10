@@ -72,8 +72,9 @@ sig
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
     (bool * bool)
-    * ((((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
-       * ((binding, binding * typ) Ctr_Sugar.ctr_spec * mixfix) list) * term list) list ->
+    * ((((((binding option * (typ * sort)) list * binding) * mixfix)
+         * ((binding, binding * typ) Ctr_Sugar.ctr_spec * mixfix) list) * (binding * binding))
+       * term list) list ->
     local_theory -> local_theory
   val parse_co_datatype_cmd: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
@@ -245,16 +246,12 @@ fun reassoc_conjs thm =
   reassoc_conjs (thm RS @{thm conj_assoc[THEN iffD1]})
   handle THM _ => thm;
 
-type co_datatype_spec =
-  (((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
-   * ((binding, binding * typ) ctr_spec * mixfix) list) * term list;
-
 fun type_args_named_constrained_of_spec (((((ncAs, _), _), _), _), _) = ncAs;
 fun type_binding_of_spec (((((_, b), _), _), _), _) = b;
-fun map_binding_of_spec ((((_, (b, _)), _), _), _) = b;
-fun rel_binding_of_spec ((((_, (_, b)), _), _), _) = b;
-fun mixfix_of_spec (((_, mx), _), _) = mx;
-fun mixfixed_ctr_specs_of_spec ((_, mx_ctr_specs), _) = mx_ctr_specs;
+fun mixfix_of_spec ((((_, mx), _), _), _) = mx;
+fun mixfixed_ctr_specs_of_spec (((_, mx_ctr_specs), _), _) = mx_ctr_specs;
+fun map_binding_of_spec ((_, (b, _)), _) = b;
+fun rel_binding_of_spec ((_, (_, b)), _) = b;
 fun sel_default_eqs_of_spec (_, ts) = ts;
 
 fun add_nesty_bnf_names Us =
@@ -1547,8 +1544,8 @@ val parse_ctr_specs =
   Parse.enum1 "|" (parse_ctr_spec Parse.binding parse_ctr_arg -- Parse.opt_mixfix);
 
 val parse_spec =
-  parse_type_args_named_constrained -- Parse.binding -- parse_map_rel_bindings --
-  Parse.opt_mixfix -- (@{keyword "="} |-- parse_ctr_specs) -- parse_sel_default_eqs;
+  parse_type_args_named_constrained -- Parse.binding -- Parse.opt_mixfix --
+  (@{keyword "="} |-- parse_ctr_specs) -- parse_map_rel_bindings -- parse_sel_default_eqs;
 
 val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 

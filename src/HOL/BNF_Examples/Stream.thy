@@ -12,8 +12,11 @@ theory Stream
 imports "~~/src/HOL/Library/Nat_Bijection"
 begin
 
-codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
+codatatype (sset: 'a) stream =
   SCons (shd: 'a) (stl: "'a stream") (infixr "##" 65)
+for
+  map: smap
+  rel: stream_all2
 
 (*for code generation only*)
 definition smember :: "'a \<Rightarrow> 'a stream \<Rightarrow> bool" where

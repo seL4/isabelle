@@ -308,9 +308,9 @@ fun extract_map_rel ("map", b) = apfst (K b)
   | extract_map_rel (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
 
 val parse_map_rel_bindings =
-  @{keyword "("} |-- Scan.repeat parse_map_rel_binding --| @{keyword ")"}
-    >> (fn ps => fold extract_map_rel ps no_map_rel) ||
-  Scan.succeed no_map_rel;
+  @{keyword "for"} |-- Scan.repeat parse_map_rel_binding
+    >> (fn ps => fold extract_map_rel ps no_map_rel)
+  || Scan.succeed no_map_rel;
 
 
 (*TODO: is this really different from Typedef.add_typedef_global?*)

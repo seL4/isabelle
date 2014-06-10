@@ -12,9 +12,12 @@ theory ListF
 imports Main
 begin
 
-datatype_new 'a listF (map: mapF rel: relF) =
+datatype_new 'a listF =
     NilF
   | Conss (hdF: 'a) (tlF: "'a listF")
+for
+  map: mapF
+  rel: relF
 where
   "tlF NilF = NilF"
 

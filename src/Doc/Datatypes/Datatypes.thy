@@ -374,9 +374,12 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
 
     context early begin
 (*>*)
-    datatype_new (set: 'a) list (map: map rel: list_all2) =
+    datatype_new (set: 'a) list =
       null: Nil
     | Cons (hd: 'a) (tl: "'a list")
+    for
+      map: map
+      rel: list_all2
     where
       "tl Nil = Nil"
 
@@ -440,9 +443,12 @@ constructors. For example:
 
 text {* \blankline *}
 
-    datatype_new (set: 'a) list (map: map rel: list_all2) =
+    datatype_new (set: 'a) list =
       null: Nil ("[]")
     | Cons (hd: 'a) (tl: "'a list") (infixr "#" 65)
+    for
+      map: map
+      rel: list_all2
 
 text {*
 \noindent
@@ -472,10 +478,12 @@ text {*
 
 @{rail \<open>
   @@{command datatype_new} target? @{syntax dt_options}? \<newline>
-    (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') + @'and') \<newline>
-    (@'where' (@{syntax prop} + '|'))?
+    (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') \<newline>
+     @{syntax map_rel}? (@'where' (prop + '|'))? + @'and')
   ;
   @{syntax_def dt_options}: '(' (('discs_sels' | 'no_code') + ',') ')'
+  ;
+  @{syntax_def map_rel}: @'for' ((('map' | 'rel') ':' name) +)
 \<close>}
 
 \medskip
@@ -513,11 +521,9 @@ The left-hand sides of the datatype equations specify the name of the type to
 define, its type parameters, and additional information:
 
 @{rail \<open>
-  @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? mixfix?
+  @{syntax_def dt_name}: @{syntax tyargs}? name mixfix?
   ;
   @{syntax_def tyargs}: typefree | '(' (('dead' | name ':')? typefree + ',') ')'
-  ;
-  @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
 \<close>}
 
 \medskip
@@ -620,7 +626,7 @@ some third-party extensions.
 \end{itemize}
 
 An alternative to @{command datatype_compat} is to use the old package's
-\keyw{rep\_datatype} command. The associated proof obligations must then be
+\keyw{rep\_\allowbreak datatype} command. The associated proof obligations must then be
 discharged manually.
 *}
 
@@ -1555,9 +1561,12 @@ as recursive datatypes, except for the command name. For example, here is the
 definition of lazy lists:
 *}
 
-    codatatype (lset: 'a) llist (map: lmap rel: llist_all2) =
+    codatatype (lset: 'a) llist =
       lnull: LNil
     | LCons (lhd: 'a) (ltl: "'a llist")
+    for
+      map: lmap
+      rel: llist_all2
     where
       "ltl LNil = LNil"
 
@@ -1568,8 +1577,11 @@ Lazy lists can be infinite, such as @{text "LCons 0 (LCons 0 (\<dots>))"} and
 infinite streams:
 *}
 
-    codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
+    codatatype (sset: 'a) stream =
       SCons (shd: 'a) (stl: "'a stream")
+    for
+      map: smap
+      rel: stream_all2
 
 text {*
 \noindent
@@ -2559,8 +2571,8 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command bnf_axiomatization} target? @{syntax tyargs}? name @{syntax map_rel}? \<newline>
-    @{syntax wit_types}? mixfix?
+  @@{command bnf_axiomatization} target? @{syntax tyargs}? name @{syntax wit_types}? \<newline>
+    mixfix? @{syntax map_rel}?
   ;
   @{syntax_def wit_types}: '[' 'wits' ':' types ']'
 \<close>}
@@ -2648,7 +2660,7 @@ text {*
 @{rail \<open>
   @@{command free_constructors} target? @{syntax dt_options} \<newline>
     name 'for' (@{syntax fc_ctor} + '|') \<newline>
-  (@'where' (@{syntax prop} + '|'))?
+  (@'where' (prop + '|'))?
   ;
   @{syntax_def fc_ctor}: (name ':')? term (name * )
 \<close>}
