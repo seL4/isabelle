@@ -296,4 +296,23 @@ proof -  show thesis
   qed
 qed
 
+subsection {* Uncountable *}
+
+abbreviation uncountable where
+  "uncountable A \<equiv> \<not> countable A"
+
+lemma uncountable_def: "uncountable A \<longleftrightarrow> A \<noteq> {} \<and> \<not> (\<exists>f::(nat \<Rightarrow> 'a). range f = A)"
+  by (auto intro: inj_on_inv_into simp: countable_def)
+     (metis all_not_in_conv inj_on_iff_surj subset_UNIV)
+
+lemma uncountable_bij_betw: "bij_betw f A B \<Longrightarrow> uncountable B \<Longrightarrow> uncountable A"
+  unfolding bij_betw_def by (metis countable_image)
+  
+lemma uncountable_infinite: "uncountable A \<Longrightarrow> infinite A"
+  by (metis countable_finite)
+  
+lemma uncountable_minus_countable:
+  "uncountable A \<Longrightarrow> countable B \<Longrightarrow> uncountable (A - B)"
+  using countable_Un[of B "A - B"] assms by auto
+
 end
