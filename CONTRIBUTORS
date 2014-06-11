@@ -6,6 +6,10 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* Summer 2014: Mathias Fleury, ENS Rennes, and Albert Steckermeier, TUM
+  Work on exotic automatic theorem provers for Sledgehammer (LEO-II, veriT,
+  Waldmeister, etc.).
+
 * May 2014: Cezary Kaliszyk, University of Innsbruck, and Jasmin Blanchette, TUM
   SML-based engines for MaSh.
 
@@ -15,8 +19,8 @@ Contributions to this Isabelle version
 * February 2014: Florian Haftmann, TUM
   Permanent interpretation inside theory, locale and class targets with mixin definitions.
 
-* Fall 2013 and Winter 2014: Lorenz Panny, Dmitriy Traytel, and
-  Jasmin Blanchette, TUM
+* Fall 2013 and Winter 2014: Martin Desharnais, Lorenz Panny, Dmitriy Traytel,
+  and Jasmin Blanchette, TUM
   Various improvements to the BNF-based (co)datatype package, including
   a more polished "primcorec" command, optimizations, and integration in
   the "HOL" session.
