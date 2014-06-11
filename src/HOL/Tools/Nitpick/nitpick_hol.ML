@@ -1493,21 +1493,19 @@ fun is_mutually_inductive_pred_def thy table t =
 
 fun unfold_mutually_inductive_preds thy table =
   map_aterms (fn t as Const x =>
-                 (case def_of_const thy table x of
-                    SOME t' =>
-                    let val t' = Envir.eta_contract t' in
-                      if is_mutually_inductive_pred_def thy table t' then t'
-                      else t
-                    end
-                 | NONE => t)
-               | t => t)
+      (case def_of_const thy table x of
+         SOME t' =>
+         let val t' = Envir.eta_contract t' in
+           if is_mutually_inductive_pred_def thy table t' then t' else t
+         end
+      | NONE => t)
+    | t => t)
 
 fun case_const_names ctxt =
   map_filter (fn {casex = Const (s, T), ...} =>
-      let val Ts = binder_types T in
-        if is_data_type ctxt (List.last Ts) then SOME (s, length Ts - 1)
-        else NONE
-      end)
+      (case rev (binder_types T) of
+        [] => NONE
+      | T :: Ts => if is_data_type ctxt T then SOME (s, length Ts) else NONE))
     (Ctr_Sugar.ctr_sugars_of ctxt) @
   map (apsnd length o snd) (#codatatypes (Data.get (Context.Proof ctxt)))
 
@@ -1516,8 +1514,7 @@ fun fixpoint_kind_of_const thy table x =
   else fixpoint_kind_of_rhs (the (def_of_const thy table x))
   handle Option.Option => NoFp
 
-fun is_raw_inductive_pred ({thy, def_tables, intro_table, ...} : hol_context)
-                          x =
+fun is_raw_inductive_pred ({thy, def_tables, intro_table, ...} : hol_context) x =
   fixpoint_kind_of_const thy def_tables x <> NoFp andalso
   not (null (def_props_for_const thy intro_table x))
 
@@ -1673,8 +1670,7 @@ fun optimized_record_get (hol_ctxt as {thy, ctxt, ...}) s rec_T res_T t =
                  select_nth_constr_arg ctxt constr_x t j res_T
                  |> optimized_record_get hol_ctxt s rec_T' res_T
                end
-             | _ => raise TYPE ("Nitpick_HOL.optimized_record_get", [rec_T],
-                                []))
+             | _ => raise TYPE ("Nitpick_HOL.optimized_record_get", [rec_T], []))
     | j => select_nth_constr_arg ctxt constr_x t j res_T
   end
 
