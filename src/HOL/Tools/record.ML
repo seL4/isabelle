@@ -1192,7 +1192,7 @@ val upd_simproc =
         (*If f is constant then (f o g) = f.  We know that K_skeleton
           only returns constant abstractions thus when we see an
           abstraction we can discard inner updates.*)
-        fun add_upd (f as Abs _) fs = [f]
+        fun add_upd (f as Abs _) _ = [f]
           | add_upd f fs = (f :: fs);
 
         (*mk_updterm returns
@@ -1500,7 +1500,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val ext_binding = Binding.name (suffix extN base_name);
     val ext_name = suffix extN name;
-    val ext_tyco = suffix ext_typeN name
+    val ext_tyco = suffix ext_typeN name;
     val extT = Type (ext_tyco, map TFree alphas_zeta);
     val ext_type = fields_moreTs ---> extT;
 
@@ -1781,6 +1781,15 @@ fun add_code ext_tyco vs extT ext simps inject thy =
     end
   else thy;
 
+fun add_ctr_sugar T_name ctr sels exhaust inject sel_defs sel_thms =
+  Ctr_Sugar.default_register_ctr_sugar_global T_name
+    {ctrs = [ctr], casex = Term.dummy, discs = [], selss = [sels], exhaust = exhaust,
+     nchotomy = Drule.dummy_thm, injects = [inject], distincts = [], case_thms = [],
+     case_cong = Drule.dummy_thm, weak_case_cong = Drule.dummy_thm, split = Drule.dummy_thm,
+     split_asm = Drule.dummy_thm, disc_defs = [], disc_thmss = [], discIs = [], sel_defs = sel_defs,
+     sel_thmss = [sel_thms], disc_excludesss = [], disc_exhausts = [], sel_exhausts = [],
+     collapses = [], expands = [], sel_splits = [], sel_split_asms = [], case_eq_ifs = []};
+
 
 (* definition *)
 
@@ -1882,7 +1891,6 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val r0 = r 0;
     fun r_unit n = Free (rN, recT n);
     val r_unit0 = r_unit 0;
-    val w = Free (wN, rec_schemeT 0);
 
 
     (* print translations *)
@@ -2213,6 +2221,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         sel_convs' upd_convs' sel_defs' upd_defs' fold_congs' unfold_congs' splits' derived_defs'
         surjective' equality' induct_scheme' induct' cases_scheme' cases' simps' iffs';
 
+    val sels = map (fst o Logic.dest_equals o prop_of) sel_defs;
+
     val final_thy =
       thms_thy'
       |> put_record name info
@@ -2224,6 +2234,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       |> add_extfields extension_name (fields @ [(full_moreN, moreT)])
       |> add_fieldext (extension_name, snd extension) names
       |> add_code ext_tyco vs extT ext simps' ext_inject
+      |> add_ctr_sugar ext_tyco (Const ext) sels cases_scheme' ext_inject sel_defs' sel_convs'
       |> Sign.restore_naming thy;
 
   in final_thy end;

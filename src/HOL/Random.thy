@@ -188,4 +188,3 @@ no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 end
-
