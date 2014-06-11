@@ -51,8 +51,8 @@ in
 val cvc3: SMT2_Solver.solver_config = {
   name = "cvc3",
   class = K SMTLIB2_Interface.smtlib2C,
-  avail = make_avail "CVC3_NEW",
-  command = make_command "CVC3_NEW",
+  avail = make_avail "CVC3",
+  command = make_command "CVC3",
   options = cvc3_options,
   default_max_relevant = 400 (* FUDGE *),
   outcome = on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
@@ -67,8 +67,8 @@ end
 val yices: SMT2_Solver.solver_config = {
   name = "yices",
   class = K SMTLIB2_Interface.smtlib2C,
-  avail = make_avail "YICES_NEW",
-  command = make_command "YICES_NEW",
+  avail = make_avail "YICES",
+  command = make_command "YICES",
   options = (fn ctxt => [
     "--rand-seed=" ^ string_of_int (Config.get ctxt SMT2_Config.random_seed),
     "--timeout=" ^
