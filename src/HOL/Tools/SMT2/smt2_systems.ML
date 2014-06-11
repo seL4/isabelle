@@ -49,7 +49,7 @@ local
 in
 
 val cvc3: SMT2_Solver.solver_config = {
-  name = "cvc3_new",
+  name = "cvc3",
   class = K SMTLIB2_Interface.smtlib2C,
   avail = make_avail "CVC3_NEW",
   command = make_command "CVC3_NEW",
@@ -65,7 +65,7 @@ end
 (* Yices *)
 
 val yices: SMT2_Solver.solver_config = {
-  name = "yices_new",
+  name = "yices",
   class = K SMTLIB2_Interface.smtlib2C,
   avail = make_avail "YICES_NEW",
   command = make_command "YICES_NEW",
@@ -135,7 +135,7 @@ local
 in
 
 val z3: SMT2_Solver.solver_config = {
-  name = "z3_new",
+  name = "z3",
   class = select_class,
   avail = make_avail "Z3_NEW",
   command = z3_make_command "Z3_NEW",

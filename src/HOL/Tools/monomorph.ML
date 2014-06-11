@@ -61,27 +61,24 @@ fun all_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 fun clear_grounds grounds = Symtab.map (K (K [])) grounds
 
 
-
 (* configuration options *)
 
 val max_rounds = Attrib.setup_config_int @{binding monomorph_max_rounds} (K 5)
 
 val max_new_instances =
-  Attrib.setup_config_int @{binding monomorph_max_new_instances} (K 300)
+  Attrib.setup_config_int @{binding monomorph_max_new_instances} (K 500)
 
 val max_thm_instances =
   Attrib.setup_config_int @{binding monomorph_max_thm_instances} (K 20)
 
 val max_new_const_instances_per_round =
-  Attrib.setup_config_int @{binding monomorph_max_new_const_instances_per_round}
-    (K 5)
+  Attrib.setup_config_int @{binding monomorph_max_new_const_instances_per_round} (K 5)
 
 fun limit_rounds ctxt f =
   let
     val max = Config.get ctxt max_rounds
     fun round i x = if i > max then x else round (i + 1) (f ctxt i x)
   in round 1 end
-
 
 
 (* theorem information and related functions *)
@@ -96,9 +93,7 @@ datatype thm_info =
     schematics: (string * typ) list,
     initial_round: int}
 
-
 fun fold_grounds f = fold (fn Ground thm => f thm | _ => I)
-
 
 fun fold_schematic f thm_info =
   (case thm_info of
@@ -106,13 +101,11 @@ fun fold_schematic f thm_info =
       f id theorem tvars schematics initial_round
   | _ => I)
 
-
 fun fold_schematics pred f =
   let
     fun apply id thm tvars schematics initial_round x =
       if pred initial_round then f id thm tvars schematics x else x
   in fold (fold_schematic apply) end
-
 
 
 (* collecting data *)
@@ -157,9 +150,9 @@ fun prepare schematic_consts_of rthms =
                 initial_round = initial_round}
         in (thm_info, ((id + 1, idx'), consts')) end
       else (Ground thm, ((id + 1, idx + Thm.maxidx_of thm + 1), consts))
-
-  in fold_map prep rthms ((0, 0), Symtab.empty) ||> snd end
-
+  in
+    fold_map prep rthms ((0, 0), Symtab.empty) ||> snd
+  end
 
 
 (* collecting instances *)
@@ -170,7 +163,6 @@ fun instantiate thy subst =
     fun cert' subst = Vartab.fold (cons o cert) subst []
   in Thm.instantiate (cert' subst, []) end
 
-
 fun add_new_grounds used_grounds new_grounds thm =
   let
     fun mem tab (n, T) = member (op =) (Symtab.lookup_list tab n) T
@@ -180,7 +172,6 @@ fun add_new_grounds used_grounds new_grounds thm =
           else Symtab.insert_list (op =) c
       | add _ = I
   in Term.fold_aterms add (Thm.prop_of thm) end
-
 
 fun add_insts max_instances max_thm_insts ctxt round used_grounds
     new_grounds id thm tvars schematics cx =
@@ -247,13 +238,11 @@ fun add_insts max_instances max_thm_insts ctxt round used_grounds
     handle ENOUGH cx' => cx'
   end
 
-
 fun is_new round initial_round = (round = initial_round)
 fun is_active round initial_round = (round > initial_round)
 
-
-fun find_instances max_instances max_thm_insts max_new_grounds thm_infos ctxt
-    round (known_grounds, new_grounds0, insts) =
+fun find_instances max_instances max_thm_insts max_new_grounds thm_infos ctxt round
+    (known_grounds, new_grounds0, insts) =
   let
     val new_grounds =
       Symtab.map (fn _ => fn grounds =>
@@ -271,14 +260,13 @@ fun find_instances max_instances max_thm_insts max_new_grounds thm_infos ctxt
       (Symtab.empty, insts)
       |> consider_all (is_active round) (add_new known_grounds new_grounds)
       |> consider_all (is_new round) (add_new empty_grounds known_grounds')
-
-  in (known_grounds', new_grounds', insts') end
-
+  in
+    (known_grounds', new_grounds', insts')
+  end
 
 fun add_ground_types thm =
   let fun add (n, T) = Symtab.map_entry n (insert (op =) T)
   in Term.fold_aterms (fn Const c => add c | _ => I) (Thm.prop_of thm) end
-
 
 fun collect_instances ctxt max_thm_insts max_new_grounds thm_infos consts =
   let
@@ -294,9 +282,7 @@ fun collect_instances ctxt max_thm_insts max_new_grounds thm_infos consts =
   end
 
 
-
 (* monomorphization *)
-
 
 fun size_of_subst subst =
   Vartab.fold (Integer.add o size_of_typ o snd o snd) subst 0

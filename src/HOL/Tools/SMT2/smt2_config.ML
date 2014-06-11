@@ -80,7 +80,7 @@ fun add_solver (info as {name, ...} : solver_info) context =
   else
     context
     |> Solvers.map (apfst (Symtab.update (name, (info, []))))
-    |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_options"))
+    |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_new_options"))
         (Scan.lift (@{keyword "="} |-- Args.name) >>
           (Thm.declaration_attribute o K o set_solver_options o pair name))
         ("Additional command line options for SMT solver " ^ quote name))

@@ -161,7 +161,7 @@ by default.  Z3 is free for non-commercial applications and can be enabled
 by setting Isabelle system option @{text z3_non_commercial} to @{text yes}.
 *}
 
-declare [[ smt2_solver = z3_new ]]
+declare [[smt2_solver = z3]]
 
 text {*
 Since SMT solvers are potentially non-terminating, there is a timeout
@@ -169,14 +169,14 @@ Since SMT solvers are potentially non-terminating, there is a timeout
 120 (seconds) is in most cases not advisable.
 *}
 
-declare [[ smt2_timeout = 20 ]]
+declare [[smt2_timeout = 20]]
 
 text {*
 SMT solvers apply randomized heuristics.  In case a problem is not
 solvable by an SMT solver, changing the following option might help.
 *}
 
-declare [[ smt2_random_seed = 1 ]]
+declare [[smt2_random_seed = 1]]
 
 text {*
 In general, the binding to SMT solvers runs as an oracle, i.e, the SMT
@@ -185,7 +185,7 @@ option can cause the SMT solver to run in proof-producing mode, giving
 a checkable certificate.  This is currently only implemented for Z3.
 *}
 
-declare [[ smt2_oracle = false ]]
+declare [[smt2_oracle = false]]
 
 text {*
 Each SMT solver provides several commandline options to tweak its
@@ -193,9 +193,9 @@ behaviour.  They can be passed to the solver by setting the following
 options.
 *}
 
-(* declare [[ cvc3_options = "" ]] TODO *)
-(* declare [[ yices_options = "" ]] TODO *)
-(* declare [[ z3_options = "" ]] TODO *)
+declare [[cvc3_new_options = ""]]
+declare [[yices_new_options = ""]]
+declare [[z3_new_options = ""]]
 
 text {*
 The SMT method provides an inference mechanism to detect simple triggers
@@ -204,31 +204,14 @@ solvable by SMT solvers (note: triggers guide quantifier instantiations
 in the SMT solver).  To turn it on, set the following option.
 *}
 
-declare [[ smt2_infer_triggers = false ]]
+declare [[smt2_infer_triggers = false]]
 
 text {*
 Enable the following option to use built-in support for div/mod, datatypes,
 and records in Z3.  Currently, this is implemented only in oracle mode.
 *}
 
-declare [[ z3_new_extensions = false ]]
-
-text {*
-The SMT method monomorphizes the given facts, that is, it tries to
-instantiate all schematic type variables with fixed types occurring
-in the problem.  This is a (possibly nonterminating) fixed-point
-construction whose cycles are limited by the following option.
-*}
-
-declare [[ monomorph_max_rounds = 5 ]]
-
-text {*
-In addition, the number of generated monomorphic instances is limited
-by the following option.
-*}
-
-declare [[ monomorph_max_new_instances = 500 ]]
-
+declare [[z3_new_extensions = false]]
 
 
 subsection {* Certificates *}
@@ -247,7 +230,7 @@ Certificate files should be used at most once in a certain theory context,
 to avoid race conditions with other concurrent accesses.
 *}
 
-declare [[ smt2_certificates = "" ]]
+declare [[smt2_certificates = ""]]
 
 text {*
 The option @{text smt2_read_only_certificates} controls whether only
@@ -259,7 +242,7 @@ certificate for some proposition, then the configured SMT solver is
 invoked.
 *}
 
-declare [[ smt2_read_only_certificates = false ]]
+declare [[smt2_read_only_certificates = false]]
 
 
 
@@ -270,7 +253,7 @@ The SMT method, when applied, traces important information.  To
 make it entirely silent, set the following option to @{text false}.
 *}
 
-declare [[ smt2_verbose = true ]]
+declare [[smt2_verbose = true]]
 
 text {*
 For tracing the generated problem file given to the SMT solver as
@@ -278,7 +261,7 @@ well as the returned result of the solver, the option
 @{text smt2_trace} should be set to @{text true}.
 *}
 
-declare [[ smt2_trace = false ]]
+declare [[smt2_trace = false]]
 
 
 subsection {* Schematic rules for Z3 proof reconstruction *}
