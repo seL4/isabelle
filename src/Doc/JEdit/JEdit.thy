@@ -632,37 +632,85 @@ text {* File specifications in jEdit follow various formats and
 
 chapter {* Prover IDE functionality *}
 
-section {* Text buffers and theories \label{sec:buffers-theories} *}
+section {* Document model *}
 
-text {* As regular text editor, jEdit maintains a collection of open
-  \emph{text buffers} to store source files; each buffer may be
-  associated with any number of visible \emph{text areas}.  Buffers
-  are subject to an \emph{edit mode} that is determined from the file
-  type.  Files with extension \texttt{.thy} are assigned to the mode
-  \emph{isabelle} and treated specifically.
+text {*
+  The document model is central to the PIDE architecture: the editor and the
+  prover have a common notion of structured source text with markup, which is
+  produced by formal processing. The editor is responsible for edits of
+  document source, as produced by the user. The prover is responsible for
+  reports of document markup, as produced by its processing in the background.
 
-  \medskip Isabelle theory files are automatically added to the formal
-  document model of Isabelle/Scala, which maintains a family of versions of
-  all sources for the prover. The \emph{Theories} panel provides an overview
-  of the status of continuous checking of theory sources. Unlike batch
-  sessions of @{tool build} \cite{isabelle-sys}, theory nodes are identified
-  by full path names; this allows to work with multiple (disjoint) Isabelle
-  sessions simultaneously within the same editor session.
+  Isabelle/jEdit handles classic editor events of jEdit, in order to connect
+  the physical world of the GUI (with its singleton state) to the mathematical
+  world of multiple document versions (with timeless and stateless updates).
+*}
 
-  Certain events to open or update buffers with theory files cause
-  Isabelle/jEdit to resolve dependencies of \emph{theory imports}. The system
-  requests to load additional files into editor buffers, in order to be
-  included in the document model for further checking. It is also possible to
+
+subsection {* Editor buffers and document nodes *}
+
+text {*
+  As a regular text editor, jEdit maintains a collection of \emph{buffers} to
+  store text files; each buffer may be associated with any number of visible
+  \emph{text areas}. Buffers are subject to an \emph{edit mode} that is
+  determined from the file name extension. The following modes are treated
+  specifically in Isabelle/jEdit:
+
+  \medskip
+  \begin{tabular}{lll}
+  \textbf{mode} & \textbf{file extension} & \textbf{content} \\\hline
+  @{verbatim "isabelle"} & @{verbatim ".thy"} & theory source \\
+  @{verbatim "isabelle-ml"} & @{verbatim ".ML"} & Isabelle/ML source \\
+  @{verbatim "sml"} & @{verbatim ".sml"} or @{verbatim ".sig"} & Standard ML source \\
+  \end{tabular}
+  \medskip
+
+  All jEdit buffers are automatically added to the PIDE document-model as
+  \emph{document nodes}. The overall document structure is defined by the
+  theory nodes in two dimensions:
+
+  \begin{enumerate}
+
+  \item via \textbf{theory imports} that are specified in the \emph{theory
+  header} using concrete syntax of the @{command theory} command
+  \cite{isabelle-isar-ref};
+
+  \item via \textbf{auxiliary files} that are loaded into a theory by special
+  \emph{load commands}, notably @{command ML_file} and @{command SML_file}
+  \cite{isabelle-isar-ref}.
+
+  \end{enumerate}
+
+  In any case, source files are managed by the PIDE infrastructure: the
+  physical file-system only plays a subordinate role. The relevant version of
+  source text is passed directly from the editor to the prover, via internal
+  communication channels.
+*}
+
+
+subsection {* Theories \label{sec:theories} *}
+
+text {*
+  The \emph{Theories} panel (see also \figref{fig:output}) provides an
+  overview of the status of continuous checking of theory nodes within the
+  document model. Unlike batch sessions of @{tool build} \cite{isabelle-sys},
+  theory nodes are identified by full path names; this allows to work with
+  multiple (disjoint) Isabelle sessions simultaneously within the same editor
+  session.
+
+  Certain events to open or update editor buffers cause Isabelle/jEdit to
+  resolve dependencies of theory imports. The system requests to load
+  additional files into editor buffers, in order to be included in the
+  document model for further checking. It is also possible to let the system
   resolve dependencies automatically, according to \emph{Plugin Options /
   Isabelle / General / Auto Load}.
 
-  \medskip The open text area views on theory buffers define the
-  visible \emph{perspective} of Isabelle/jEdit.  This is taken as a
-  hint for document processing: the prover ensures that those parts of
-  a theory where the user is looking are checked, while other parts
-  that are presently not required are ignored.  The perspective is
-  changed by opening or closing text area windows, or scrolling within
-  a window.
+  \medskip The visible \emph{perspective} of Isabelle/jEdit is defined by the
+  collective view on theory buffers via open text areas. The perspective is
+  taken as a hint for document processing: the prover ensures that those parts
+  of a theory where the user is looking are checked, while other parts that
+  are presently not required are ignored. The perspective is changed by
+  opening or closing text area windows, or scrolling within a window.
 
   The \emph{Theories} panel provides some further options to influence
   the process of continuous checking: it may be switched off globally
@@ -684,7 +732,15 @@ text {* As regular text editor, jEdit maintains a collection of open
   Thus the prover can provide additional markup to help the user to understand
   the meaning of formal text, and to produce more text with some add-on tools
   (e.g.\ information messages with \emph{sendback} markup by automated provers
-  or disprovers in the background). *}
+  or disprovers in the background).
+
+*}
+
+subsection {* Auxiliary files \label{sec:aux-files} *}
+
+text {*
+  FIXME
+*}
 
 
 section {* Output \label{sec:output} *}
