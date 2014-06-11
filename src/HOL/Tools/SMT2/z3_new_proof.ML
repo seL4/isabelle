@@ -38,30 +38,6 @@ struct
 open SMTLIB2_Proof
 
 
-(* proof parser context *)
-
-fun next_id ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
-  (id, mk_context ctxt (id + 1) syms typs funs extra)
-
-fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
-  let
-    fun bind (_, v as (_, T)) t = Logic.all_const T $ Term.absfree v t
-
-    val needs_inferT = equal Term.dummyT orf Term.is_TVar
-    val needs_infer = Term.exists_type (Term.exists_subtype needs_inferT)
-    fun infer_types ctxt =
-      singleton (Type_Infer_Context.infer_types ctxt) #>
-      singleton (Proof_Context.standard_term_check_finish ctxt)
-    fun infer ctxt t = if needs_infer t then infer_types ctxt t else t
-
-    type bindings = (string * (string * typ)) list
-    val (t, {ctxt=ctxt', extra=names, ...}: (bindings, 'b) context) =
-      f (mk_context ctxt id syms typs funs [])
-    val t' = infer ctxt' (fold_rev bind names (HOLogic.mk_Trueprop t))
-
-  in ((t', map fst names), mk_context ctxt id syms typs funs extra) end
-
-
 (* proof rules *)
 
 datatype z3_rule = True_Axiom | Asserted | Goal | Modus_Ponens | Reflexivity |

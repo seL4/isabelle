@@ -9,14 +9,7 @@ SMT-LIB-2-style proofs: parsing and abstract syntax tree.
 signature SMTLIB2_PROOF =
 sig
   datatype 'b shared = Tree of SMTLIB2.tree | Term of term | Proof of 'b | None
-
-  type ('a, 'b) context = {
-    ctxt: Proof.context,
-    id: int,
-    syms: 'b shared Symtab.table,
-    typs: typ Symtab.table,
-    funs: term Symtab.table,
-    extra: 'a}
+  type ('a, 'b) context
 
   val mk_context: Proof.context -> int -> 'b shared Symtab.table -> typ Symtab.table ->
     term Symtab.table -> 'a -> ('a, 'b) context
@@ -80,6 +73,28 @@ fun with_bindings bs f cx =
     |> fold update_binding bs
     |> f
     ||> fold2 (fn (name, _) => update_binding o pair name) bs bs'
+  end
+
+fun next_id ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
+  (id, mk_context ctxt (id + 1) syms typs funs extra)
+
+fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
+  let
+    fun bind (_, v as (_, T)) t = Logic.all_const T $ Term.absfree v t
+
+    val needs_inferT = equal Term.dummyT orf Term.is_TVar
+    val needs_infer = Term.exists_type (Term.exists_subtype needs_inferT)
+    fun infer_types ctxt =
+      singleton (Type_Infer_Context.infer_types ctxt) #>
+      singleton (Proof_Context.standard_term_check_finish ctxt)
+    fun infer ctxt t = if needs_infer t then infer_types ctxt t else t
+
+    type bindings = (string * (string * typ)) list
+    val (t, {ctxt=ctxt', extra=names, ...}: (bindings, 'b) context) =
+      f (mk_context ctxt id syms typs funs [])
+    val t' = infer ctxt' (fold_rev bind names (HOLogic.mk_Trueprop t))
+  in
+    ((t', map fst names), mk_context ctxt id syms typs funs extra)
   end
 
 fun lookup_typ ({typs, ...}: ('a, 'b) context) = Symtab.lookup typs
@@ -250,10 +265,8 @@ fun dest_binding (SMTLIB2.S [SMTLIB2.Sym name, t]) = (name, Tree t)
 
 fun term_of t cx =
   (case t of
-    SMTLIB2.S [SMTLIB2.Sym "forall", SMTLIB2.S vars, body] =>
-      quant HOLogic.mk_all vars body cx
-  | SMTLIB2.S [SMTLIB2.Sym "exists", SMTLIB2.S vars, body] =>
-      quant HOLogic.mk_exists vars body cx
+    SMTLIB2.S [SMTLIB2.Sym "forall", SMTLIB2.S vars, body] => quant HOLogic.mk_all vars body cx
+  | SMTLIB2.S [SMTLIB2.Sym "exists", SMTLIB2.S vars, body] => quant HOLogic.mk_exists vars body cx
   | SMTLIB2.S [SMTLIB2.Sym "let", SMTLIB2.S bindings, body] =>
       with_bindings (map dest_binding bindings) (term_of body) cx
   | SMTLIB2.S (SMTLIB2.Sym "!" :: t :: _) => term_of t cx
