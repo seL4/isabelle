@@ -5,7 +5,7 @@
 header {* Bindings to Satisfiability Modulo Theories (SMT) solvers based on SMT-LIB 2 *}
 
 theory SMT2
-imports Record
+imports List
 keywords "smt2_status" :: diag
 begin
 

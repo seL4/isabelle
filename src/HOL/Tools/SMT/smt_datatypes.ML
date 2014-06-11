@@ -17,56 +17,23 @@ struct
 
 val lhs_head_of = Term.head_of o fst o Logic.dest_equals o Thm.prop_of
 
-fun mk_selectors T Ts ctxt =
+fun mk_selectors T Ts =
+  Variable.variant_fixes (replicate (length Ts) "select")
+  #>> map2 (fn U => fn n => Free (n, T --> U)) Ts
+
+
+(* free constructor type declarations *)
+
+fun get_ctr_sugar_decl ({ctrs, ...} : Ctr_Sugar.ctr_sugar) T Ts ctxt =
   let
-    val (sels, ctxt') =
-      Variable.variant_fixes (replicate (length Ts) "select") ctxt
-  in (map2 (fn n => fn U => Free (n, T --> U)) sels Ts, ctxt') end
-
-
-(* datatype declarations *)
-
-fun get_datatype_decl ({descr, ...} : Datatype.info) n Ts ctxt =
-  let
-    fun get_vars (_, (m, vs, _)) = if m = n then SOME vs else NONE
-    val vars = the (get_first get_vars descr) ~~ Ts
-    val lookup_var = the o AList.lookup (op =) vars
-
-    fun typ_of (dt as Datatype.DtTFree _) = lookup_var dt
-      | typ_of (Datatype.DtType (m, dts)) = Type (m, map typ_of dts)
-      | typ_of (Datatype.DtRec i) =
-          the (AList.lookup (op =) descr i)
-          |> (fn (m, dts, _) => Type (m, map typ_of dts))
-
-    fun mk_constr T (m, dts) ctxt =
-      let
-        val Ts = map typ_of dts
-        val constr = Const (m, Ts ---> T)
-        val (selects, ctxt') = mk_selectors T Ts ctxt
-      in ((constr, selects), ctxt') end
-
-    fun mk_decl (i, (_, _, constrs)) ctxt =
-      let
-        val T = typ_of (Datatype.DtRec i)
-        val (css, ctxt') = fold_map (mk_constr T) constrs ctxt
-      in ((T, css), ctxt') end
-
-  in fold_map mk_decl descr ctxt end
-
-
-(* record declarations *)
-
-val record_name_of = Long_Name.implode o fst o split_last o Long_Name.explode
-
-fun get_record_decl ({ext_def, ...} : Record.info) T ctxt =
-  let
-    val (con, _) = Term.dest_Const (lhs_head_of ext_def)
-    val (fields, more) = Record.get_extT_fields (Proof_Context.theory_of ctxt) T
-    val fieldTs = map snd fields @ [snd more]
-
-    val constr = Const (con, fieldTs ---> T)
-    val (selects, ctxt') = mk_selectors T fieldTs ctxt
-  in ((T, [(constr, selects)]), ctxt') end
+    fun mk_constr ctr0 =
+      let val ctr = Ctr_Sugar.mk_ctr Ts ctr0 in
+        mk_selectors T (binder_types (fastype_of ctr)) #>> pair ctr
+      end
+  in
+    fold_map mk_constr ctrs ctxt
+    |>> (pair T #> single)
+  end
 
 
 (* typedef declarations *)
@@ -91,18 +58,12 @@ fun declared declss T = exists (exists (equal T o fst)) declss
 fun declared' dss T = exists (exists (equal T o fst) o snd) dss
 
 fun get_decls T n Ts ctxt =
-  let val thy = Proof_Context.theory_of ctxt
-  in
-    (case Datatype.get_info thy n of
-      SOME info => get_datatype_decl info n Ts ctxt
-    | NONE =>
-        (case Record.get_info thy (record_name_of n) of
-          SOME info => get_record_decl info T ctxt |>> single
-        | NONE =>
-            (case Typedef.get_info ctxt n of
-              [] => ([], ctxt)
-            | info :: _ => (get_typedef_decl info T Ts, ctxt))))
-  end
+  (case Ctr_Sugar.ctr_sugar_of ctxt n of
+    SOME ctr_sugar => get_ctr_sugar_decl ctr_sugar T Ts ctxt
+  | NONE =>
+      (case Typedef.get_info ctxt n of
+        [] => ([], ctxt)
+      | info :: _ => (get_typedef_decl info T Ts, ctxt)))
 
 fun add_decls T (declss, ctxt) =
   let
@@ -131,6 +92,5 @@ fun add_decls T (declss, ctxt) =
                         else Uds :: ins Udss
             in fold add Us (ins dss, ctxt2) end))
   in add T ([], ctxt) |>> append declss o map snd end
-
 
 end
