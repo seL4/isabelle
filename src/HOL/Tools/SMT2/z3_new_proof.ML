@@ -15,6 +15,7 @@ sig
     Iff_True | Iff_False | Commutativity | Def_Axiom | Intro_Def | Apply_Def |
     Iff_Oeq | Nnf_Pos | Nnf_Neg | Nnf_Star | Cnf_Star | Skolemize |
     Modus_Ponens_Oeq | Th_Lemma of string
+  val is_assumption: z3_rule -> bool
   val string_of_rule: z3_rule -> string
 
   (*proofs*)
@@ -112,6 +113,13 @@ val rule_names = Symtab.make [
   ("cnf*", Cnf_Star),
   ("sk", Skolemize),
   ("mp~", Modus_Ponens_Oeq)]
+
+fun is_assumption Asserted = true
+  | is_assumption Goal = true
+  | is_assumption Hypothesis = true
+  | is_assumption Intro_Def = true
+  | is_assumption Skolemize = true
+  | is_assumption _ = false
 
 fun rule_of_string name =
   (case Symtab.lookup rule_names name of

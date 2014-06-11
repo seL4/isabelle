@@ -58,7 +58,7 @@ fun under_fixes f ctxt (prems, nthms) names concl =
 
 fun replay_thm ctxt assumed nthms
     (Z3_New_Proof.Z3_Step {id, rule, concl, fixes, is_fix_step, ...}) =
-  if Z3_New_Replay_Methods.is_assumption rule then
+  if Z3_New_Proof.is_assumption rule then
     (case Inttab.lookup assumed id of
       SOME (_, thm) => thm
     | NONE => Thm.assume (SMT2_Util.certify ctxt concl))
@@ -115,7 +115,7 @@ fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
 
     fun add (Z3_New_Proof.Z3_Step {id, rule, concl, fixes, ...})
         (cx as ((iidths, thms), (ctxt, ptab))) =
-      if Z3_New_Replay_Methods.is_assumption rule andalso rule <> Z3_New_Proof.Hypothesis then
+      if Z3_New_Proof.is_assumption rule andalso rule <> Z3_New_Proof.Hypothesis then
         let
           val ct = SMT2_Util.certify ctxt concl
           val thm1 = Thm.trivial ct |> Conv.fconv_rule (Conv.arg1_conv (revert_conv outer_ctxt))

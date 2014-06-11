@@ -49,7 +49,6 @@ sig
   val nnf_neg: z3_method
   val mp_oeq: z3_method
   val th_lemma: string -> z3_method
-  val is_assumption: Z3_New_Proof.z3_rule -> bool
   val method_for: Z3_New_Proof.z3_rule -> z3_method
 end
 
@@ -645,13 +644,6 @@ fun th_lemma name ctxt thms =
 
 
 (* mapping of rules to methods *)
-
-fun is_assumption Z3_New_Proof.Asserted = true
-  | is_assumption Z3_New_Proof.Goal = true
-  | is_assumption Z3_New_Proof.Hypothesis = true
-  | is_assumption Z3_New_Proof.Intro_Def = true
-  | is_assumption Z3_New_Proof.Skolemize = true
-  | is_assumption _ = false
 
 fun unsupported rule ctxt = replay_error ctxt "Unsupported" rule
 fun assumed rule ctxt = replay_error ctxt "Assumed" rule
