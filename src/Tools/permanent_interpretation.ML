@@ -24,8 +24,8 @@ local
 fun prep_interpretation prep_expr prep_term prep_prop prep_attr expression raw_defs raw_eqns initial_ctxt =
   let
     (*reading*)
-    val ((_, deps, _), proto_deps_ctxt) = prep_expr expression initial_ctxt;
-    val deps_ctxt = fold Locale.activate_declarations deps proto_deps_ctxt;
+    val ((propss, deps, export), expr_ctxt1) = prep_expr expression initial_ctxt;
+    val deps_ctxt = fold Locale.activate_declarations deps expr_ctxt1;
     val prep = Syntax.check_terms deps_ctxt #> Variable.export_terms deps_ctxt deps_ctxt;
     val rhss = (prep o map (prep_term deps_ctxt o snd o snd)) raw_defs;
     val eqns = (prep o map (prep_prop deps_ctxt o snd)) raw_eqns;
@@ -35,15 +35,12 @@ fun prep_interpretation prep_expr prep_term prep_prop prep_attr expression raw_d
       ((b, mx), ((Thm.def_binding_optional b name, atts), rhs))) raw_defs rhss;
     val (defs, defs_ctxt) = fold_map Local_Theory.define pre_defs initial_ctxt;
     val def_eqns = map (Thm.symmetric o Morphism.thm (Local_Theory.standard_morphism defs_ctxt initial_ctxt) o snd o snd) defs;
-    val base_ctxt = if null def_eqns then defs_ctxt else Local_Theory.restore defs_ctxt;
-      (*the "if" prevents restoring a proof context which is no local theory*)
+    val expr_ctxt2 = Proof_Context.transfer (Proof_Context.theory_of defs_ctxt) expr_ctxt1;
 
     (*setting up*)
-    val ((propss, deps, export), expr_ctxt) = prep_expr expression base_ctxt;
-      (*FIXME: only re-prepare if defs are given*)
-    val attrss = map (apsnd (map (prep_attr expr_ctxt)) o fst) raw_eqns;
-    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
-    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
+    val attrss = map (apsnd (map (prep_attr expr_ctxt2)) o fst) raw_eqns;
+    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt2;
+    val export' = Variable.export_morphism goal_ctxt expr_ctxt2;
   in (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) end;
 
 val cert_interpretation =
