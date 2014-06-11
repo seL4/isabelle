@@ -257,10 +257,10 @@ fun play_one_line_proof mode verbose timeout pairs state i preferred (meths as m
   end
 
 val canonical_isar_supported_prover = eN
-val z3_newN = "z3_new"
+val z3N = "z3"
 
 fun isar_supported_prover_of thy name =
-  if is_atp thy name orelse name = z3_newN then name
+  if is_atp thy name orelse name = z3N then name
   else if is_atp_installed thy canonical_isar_supported_prover then canonical_isar_supported_prover
   else name
 
@@ -290,7 +290,6 @@ fun supported_provers ctxt =
     val (remote_provers, local_provers) =
       proof_method_names @
       sort_strings (supported_atps thy) @
-      sort_strings (SMT_Solver.available_solvers_of ctxt) @
       sort_strings (SMT2_Config.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in

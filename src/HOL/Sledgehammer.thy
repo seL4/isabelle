@@ -7,7 +7,7 @@
 header {* Sledgehammer: Isabelle--ATP Linkup *}
 
 theory Sledgehammer
-imports ATP SMT SMT2
+imports ATP SMT2
 keywords "sledgehammer" :: diag and "sledgehammer_params" :: thy_decl
 begin
 
@@ -26,7 +26,6 @@ ML_file "Tools/Sledgehammer/sledgehammer_isar_minimize.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_isar.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_prover.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_prover_atp.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_prover_smt.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_prover_smt2.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_prover_minimize.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_mepo.ML"
