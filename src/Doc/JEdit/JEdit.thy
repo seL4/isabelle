@@ -739,7 +739,52 @@ text {*
 subsection {* Auxiliary files \label{sec:aux-files} *}
 
 text {*
-  FIXME
+  Special load commands like @{command ML_file} and @{command SML_file}
+  \cite{isabelle-isar-ref} refer to auxiliary files within some theory.
+  Conceptually, the file argument of the command extends the theory source by
+  the content of the file, but its editor buffer may be loaded~/ changed~/
+  saved separately. The PIDE document model propagates changes of auxiliary
+  file content to the corresponding load command in the theory, to update and
+  process it accordingly: changes of auxiliary file content are treated as
+  changes of the corresponding load command.
+
+  \medskip As a concession to the massive amount of ML files in Isabelle/HOL
+  itself, the content of auxiliary files is only added to the PIDE
+  document-model on demand, the first time when opened explicitly in the
+  editor. There are further special tricks to manage markup of ML files, such
+  that Isabelle/HOL may be edited conveniently in the Prover IDE on small
+  machines with only 4--8\,GB of main memory. Using @{verbatim Pure} as logic
+  session image, the exploration may start at the top @{file
+  "$ISABELLE_HOME/src/HOL/Main.thy"} or the bottom @{file
+  "$ISABELLE_HOME/src/HOL/HOL.thy"}, for example.
+
+  Initially, before an auxiliary file is opened in the editor, the prover
+  reads its content from the physical file-system. After the file is opened
+  for the first time in the editor, e.g.\ by following the hyperlink
+  (\secref{sec:tooltips-hyperlinks}) for the argument of its @{command
+  ML_file} command, the content is taken from the jEdit buffer.
+
+  The change of responsibility from prover to editor counts as an update of
+  the document content, so subsequent theory sources need to be re-checked.
+  When the buffer is closed, the responsibility remains to the editor, though:
+  the file may be opened again without causing another document update.
+
+  A file that is opened in the editor, but its theory with the load command is
+  not, is presently inactive in the document model. A file that is loaded via
+  multiple load commands is associated to an arbitrary one: this situation is
+  morally unsupported and might lead to confusion.
+
+  \medskip Output that refers to an auxiliary file is combined with that of
+  the corresponding load command, and shown whenever the file or the command
+  are active (see also \secref{sec:output}).
+
+  Warnings, errors, and other useful markup is attached directly to the
+  positions in the auxiliary file buffer, in the manner of other well-known
+  IDEs. By using the load command @{command SML_file} as explained in @{file
+  "$ISABELLE_HOME/src/Tools/SML/Examples.thy"}, Isabelle/jEdit may be used as
+  fully-featured IDE for Standard ML, independently of theory or proof
+  development: the required theory merely serves as some kind of project
+  file for a collection of SML source modules.
 *}
 
 
