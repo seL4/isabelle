@@ -59,6 +59,7 @@ sig
   val spass_pirateN : string
   val vampireN : string
   val waldmeisterN : string
+  val waldmeister_newN : string
   val z3_tptpN : string
   val zipperpositionN : string
   val remote_prefix : string
@@ -112,10 +113,10 @@ val spassN = "spass"
 val spass_pirateN = "spass_pirate"
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
+val waldmeister_newN = "waldmeister_new"
 val z3_tptpN = "z3_tptp"
 val zipperpositionN = "zipperposition"
 val remote_prefix = "remote_"
-
 
 val agsyhol_core_rule = "__agsyhol_core" (* arbitrary *)
 val satallax_core_rule = "__satallax_core" (* arbitrary *)
