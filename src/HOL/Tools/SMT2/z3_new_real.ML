@@ -25,8 +25,8 @@ fun abstract abs t =
   | _ => pair NONE)
 
 val _ = Theory.setup (Context.theory_map (
-  SMT2LIB_Proof.add_type_parser real_type_parser #>
-  SMT2LIB_Proof.add_term_parser real_term_parser #>
+  SMTLIB2_Proof.add_type_parser real_type_parser #>
+  SMTLIB2_Proof.add_term_parser real_term_parser #>
   Z3_New_Replay_Methods.add_arith_abstracter abstract))
 
 end

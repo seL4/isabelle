@@ -19,6 +19,10 @@ sig
   val update_binding: string * 'b shared -> ('a, 'b) context -> ('a, 'b) context
   val with_bindings: (string * 'b shared) list -> (('a, 'b) context -> 'c * ('d, 'b) context) ->
     ('a, 'b) context -> 'c * ('d, 'b) context
+  val next_id: ('a, 'b) context -> int * ('a, 'b) context
+  val with_fresh_names: (('a list, 'b) context ->
+    term * ((string * (string * typ)) list, 'b) context) -> ('c, 'b) context ->
+    (term * string list) * ('c, 'b) context
 
   (*type and term parsers*)
   type type_parser = SMTLIB2.tree * typ list -> typ option
@@ -89,8 +93,7 @@ fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
       singleton (Proof_Context.standard_term_check_finish ctxt)
     fun infer ctxt t = if needs_infer t then infer_types ctxt t else t
 
-    type bindings = (string * (string * typ)) list
-    val (t, {ctxt=ctxt', extra=names, ...}: (bindings, 'b) context) =
+    val (t, {ctxt=ctxt', extra=names, ...}: ((string * (string * typ)) list, 'b) context) =
       f (mk_context ctxt id syms typs funs [])
     val t' = infer ctxt' (fold_rev bind names (HOLogic.mk_Trueprop t))
   in
