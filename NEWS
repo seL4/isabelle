@@ -382,8 +382,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 * SMT module:
   * A new version of the SMT module, temporarily called "SMT2", uses SMT-LIB 2
     and supports recent versions of Z3 (e.g., 4.3). The new proof method is
-    called "smt2", and the new Z3 is called "z3_new" in Sledgehammer and
-    elsewhere.
+    called "smt2".
 
 * Sledgehammer:
   - New prover "z3_new" with support for Isar proofs
