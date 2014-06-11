@@ -7,7 +7,7 @@ Custom rules for Z3 proof replay.
 signature Z3_NEW_REPLAY_RULES =
 sig
   val apply: Proof.context -> cterm -> thm option
-end
+end;
 
 structure Z3_New_Replay_Rules: Z3_NEW_REPLAY_RULES =
 struct
@@ -51,4 +51,4 @@ val description = "declaration of Z3 proof rules"
 val _ = Theory.setup (Attrib.setup name (Attrib.add_del add del) description #>
   Global_Theory.add_thms_dynamic (name, Net.content o Data.get))
 
-end
+end;

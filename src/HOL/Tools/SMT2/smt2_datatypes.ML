@@ -10,7 +10,7 @@ sig
   val add_decls: typ ->
     (typ * (term * term list) list) list list * Proof.context ->
     (typ * (term * term list) list) list list * Proof.context
-end
+end;
 
 structure SMT2_Datatypes: SMT2_DATATYPES =
 struct
@@ -90,4 +90,4 @@ fun add_decls T (declss, ctxt) =
             in fold add Us (ins dss, ctxt2) end))
   in add T ([], ctxt) |>> append declss o map snd end
 
-end
+end;

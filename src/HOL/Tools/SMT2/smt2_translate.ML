@@ -35,7 +35,7 @@ sig
   (*translation*)
   val add_config: SMT2_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
   val translate: Proof.context -> string list -> (int * thm) list -> string * replay_data
-end
+end;
 
 structure SMT2_Translate: SMT2_TRANSLATE =
 struct
@@ -52,7 +52,6 @@ datatype sterm =
   SApp of string * sterm list |
   SLet of string * sterm * sterm |
   SQua of squant * string list * sterm spattern list * sterm
-
 
 
 (* translation configuration *)
@@ -74,7 +73,6 @@ type replay_data = {
   terms: term Symtab.table,
   rewrite_rules: thm list,
   assms: (int * thm) list }
-
 
 
 (* translation context *)
@@ -129,7 +127,6 @@ fun replay_data_of ctxt rules assms (_, typs, terms) =
   in
     {context=ctxt, typs=typs', terms=terms', rewrite_rules=rules, assms=assms}
   end
-
 
 
 (* preprocessing *)
@@ -454,7 +451,6 @@ fun intermediate header dtyps builtin ctxt ts trx =
   in ((sign_of (header ts) dtyps trx', us), trx') end
 
 
-
 (* translation *)
 
 structure Configs = Generic_Data
@@ -521,4 +517,4 @@ fun translate ctxt comments ithms =
     ||> replay_data_of ctxt2 rewrite_rules ithms
   end
 
-end
+end;

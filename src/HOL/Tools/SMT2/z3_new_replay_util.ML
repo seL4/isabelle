@@ -23,12 +23,10 @@ sig
   (*simpset*)
   val add_simproc: Simplifier.simproc -> Context.generic -> Context.generic
   val make_simpset: Proof.context -> thm list -> simpset
-end
+end;
 
 structure Z3_New_Replay_Util: Z3_NEW_REPLAY_UTIL =
 struct
-
-
 
 (* theorem nets *)
 
@@ -59,14 +57,12 @@ fun net_instances net =
 end
 
 
-
 (* proof combinators *)
 
 fun under_assumption f ct =
   let val ct' = SMT2_Util.mk_cprop ct in Thm.implies_intr ct' (f (Thm.assume ct')) end
 
 fun discharge p pq = Thm.implies_elim pq p
-
 
 
 (* a faster COMP *)
@@ -80,7 +76,6 @@ fun precompose2 f rule = precompose (list2 o f) rule
 
 fun compose (cvs, f, rule) thm =
   discharge thm (Thm.instantiate ([], cvs ~~ f (Thm.cprop_of thm)) rule)
-
 
 
 (* simpset *)
@@ -152,4 +147,4 @@ fun make_simpset ctxt rules =
 
 end
 
-end
+end;

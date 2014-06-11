@@ -5,7 +5,7 @@
 header {* Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 
 theory SMT
-imports List
+imports ATP
 keywords "smt_status" :: diag
 begin
 

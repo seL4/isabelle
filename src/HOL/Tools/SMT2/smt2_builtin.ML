@@ -40,7 +40,7 @@ sig
   val dest_builtin_ext: Proof.context -> string * typ -> term list -> term list option
   val is_builtin_fun: Proof.context -> string * typ -> term list -> bool
   val is_builtin_fun_ext: Proof.context -> string * typ -> term list -> bool
-end
+end;
 
 structure SMT2_Builtin: SMT2_BUILTIN =
 struct
@@ -219,4 +219,4 @@ fun is_builtin_fun ctxt c ts = is_some (dest_builtin_fun ctxt c ts)
 
 fun is_builtin_fun_ext ctxt c ts = is_some (dest_builtin_fun_ext ctxt c ts)
 
-end
+end;

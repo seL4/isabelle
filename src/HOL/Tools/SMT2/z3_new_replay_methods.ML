@@ -50,13 +50,12 @@ sig
   val mp_oeq: z3_method
   val th_lemma: string -> z3_method
   val method_for: Z3_New_Proof.z3_rule -> z3_method
-end
+end;
 
 structure Z3_New_Replay_Methods: Z3_NEW_REPLAY_METHODS =
 struct
 
 type z3_method = Proof.context -> thm list -> term -> thm
-
 
 
 (* utility functions *)
@@ -144,7 +143,6 @@ fun prop_tac ctxt prems =
 fun quant_tac ctxt = Blast.blast_tac ctxt
 
 
-
 (* plug-ins *)
 
 type abs_context = int * term Termtab.table
@@ -172,7 +170,6 @@ fun get_arith_abstracters ctxt = map snd (fst (Plugins.get (Context.Proof ctxt))
 
 fun add_th_lemma_method method = Plugins.map (apsnd (Symtab.update_new method))
 fun get_th_lemma_method ctxt = snd (Plugins.get (Context.Proof ctxt))
-
 
 
 (* abstraction *)
@@ -279,11 +276,9 @@ fun abstract_arith ctxt u =
   in abs u end
 
 
-
 (* truth axiom *)
 
 fun true_axiom _ _ _ = @{thm TrueI}
-
 
 
 (* modus ponens *)
@@ -294,11 +289,9 @@ fun mp _ [p, p_eq_q] _ = discharge 1 [p_eq_q, p] iffD1
 val mp_oeq = mp
 
 
-
 (* reflexivity *)
 
 fun refl ctxt _ t = match_instantiate ctxt t @{thm refl}
-
 
 
 (* symmetry *)
@@ -307,12 +300,10 @@ fun symm _ [thm] _ = thm RS @{thm sym}
   | symm ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Reflexivity thms t
 
 
-
 (* transitivity *)
 
 fun trans _ [thm1, thm2] _ = thm1 RSN (1, thm2 RSN (2, @{thm trans}))
   | trans ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Transitivity thms t
-
 
 
 (* congruence *)
@@ -345,7 +336,6 @@ fun cong ctxt thms = try_provers ctxt Z3_New_Proof.Monotonicity [
   ("full", cong_full ctxt thms)] thms
 
 
-
 (* quantifier introduction *)
 
 val quant_intro_rules = @{lemma
@@ -360,13 +350,11 @@ fun quant_intro ctxt [thm] t =
   | quant_intro ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Quant_Intro thms t
 
 
-
 (* distributivity of conjunctions and disjunctions *)
 
 (* TODO: there are no tests with this proof rule *)
 fun distrib ctxt _ t =
   prove_abstract' ctxt t prop_tac (abstract_prop (dest_prop t))
-
 
 
 (* elimination of conjunctions *)
@@ -379,7 +367,6 @@ fun and_elim ctxt [thm] t =
   | and_elim ctxt thms t = replay_rule_error ctxt Z3_New_Proof.And_Elim thms t
 
 
-
 (* elimination of negated disjunctions *)
 
 fun not_or_elim ctxt [thm] t =
@@ -389,7 +376,6 @@ fun not_or_elim ctxt [thm] t =
         apfst single o swap)
   | not_or_elim ctxt thms t =
       replay_rule_error ctxt Z3_New_Proof.Not_Or_Elim thms t
-
 
 
 (* rewriting *)
@@ -452,17 +438,14 @@ fun rewrite ctxt _ = try_provers ctxt Z3_New_Proof.Rewrite [
 fun rewrite_star ctxt = rewrite ctxt
 
 
-
 (* pulling quantifiers *)
 
 fun pull_quant ctxt _ t = prove ctxt t quant_tac
 
 
-
 (* pushing quantifiers *)
 
 fun push_quant _ _ _ = raise Fail "unsupported" (* FIXME *)
-
 
 
 (* elimination of unused bound variables *)
@@ -480,11 +463,9 @@ fun elim_unused_tac i st = (
 fun elim_unused ctxt _ t = prove ctxt t (fn _ => elim_unused_tac)
 
 
-
 (* destructive equality resolution *)
 
 fun dest_eq_res _ _ _ = raise Fail "dest_eq_res" (* FIXME *)
-
 
 
 (* quantifier instantiation *)
@@ -494,7 +475,6 @@ val quant_inst_rule = @{lemma "~P x | Q ==> ~(ALL x. P x) | Q" by fast}
 fun quant_inst ctxt _ t = prove ctxt t (fn _ => 
   REPEAT_ALL_NEW (rtac quant_inst_rule)
   THEN' rtac @{thm excluded_middle})
-
 
 
 (* propositional lemma *)
@@ -535,7 +515,6 @@ fun lemma ctxt (thms as [thm]) t =
   | lemma ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Lemma thms t
 
 
-
 (* unit resolution *)
 
 fun abstract_unit (t as (@{const HOL.Not} $ (@{const HOL.disj} $ t1 $ t2))) =
@@ -553,14 +532,12 @@ fun unit_res ctxt thms t =
     (fn (prems, concl) => (prems, concl)))
 
 
-
 (* iff-true *)
 
 val iff_true_rule = @{lemma "P ==> P = True" by fast}
 
 fun iff_true _ [thm] _ = thm RS iff_true_rule
   | iff_true ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Iff_True thms t
-
 
 
 (* iff-false *)
@@ -571,11 +548,9 @@ fun iff_false _ [thm] _ = thm RS iff_false_rule
   | iff_false ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Iff_False thms t
 
 
-
 (* commutativity *)
 
 fun comm ctxt _ t = match_instantiate ctxt t @{thm eq_commute}
-
 
 
 (* definitional axioms *)
@@ -592,18 +567,15 @@ fun def_axiom ctxt _ = try_provers ctxt Z3_New_Proof.Def_Axiom [
   ("disj", def_axiom_disj ctxt)] []
 
 
-
 (* application of definitions *)
 
 fun apply_def _ [thm] _ = thm (* TODO: cover also the missing cases *)
   | apply_def ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Apply_Def thms t
 
 
-
 (* iff-oeq *)
 
 fun iff_oeq _ _ _ = raise Fail "iff_oeq" (* FIXME *)
-
 
 
 (* negation normal form *)
@@ -619,7 +591,6 @@ fun nnf ctxt rule thms = try_provers ctxt rule [
 
 fun nnf_pos ctxt = nnf ctxt Z3_New_Proof.Nnf_Pos
 fun nnf_neg ctxt = nnf ctxt Z3_New_Proof.Nnf_Neg
-
 
 
 (* theory lemmas *)
@@ -640,7 +611,6 @@ fun th_lemma name ctxt thms =
   (case Symtab.lookup (get_th_lemma_method ctxt) name of
     SOME method => method ctxt thms
   | NONE => replay_error ctxt "Bad theory" (Z3_New_Proof.Th_Lemma name) thms)
-
 
 
 (* mapping of rules to methods *)
@@ -693,4 +663,4 @@ fun with_tracing rule method ctxt thms t =
 
 fun method_for rule = with_tracing rule (choose rule)
 
-end
+end;

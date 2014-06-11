@@ -59,7 +59,7 @@ sig
   val under_quant_conv: (Proof.context * cterm list -> conv) ->
     Proof.context -> conv
   val prop_conv: conv -> conv
-end
+end;
 
 structure SMT2_Util: SMT2_UTIL =
 struct
@@ -221,4 +221,4 @@ fun prop_conv cv ct =
     @{const Trueprop} $ _ => Conv.arg_conv cv ct
   | _ => raise CTERM ("not a property", [ct]))
 
-end
+end;

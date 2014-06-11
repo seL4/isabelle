@@ -47,7 +47,7 @@ sig
 
   (*setup*)
   val print_setup: Proof.context -> unit
-end
+end;
 
 structure SMT2_Config: SMT2_CONFIG =
 struct
@@ -246,4 +246,4 @@ val _ =
     \and the values of SMT configuration options"
     (Scan.succeed (Toplevel.keep (print_setup o Toplevel.context_of)))
 
-end
+end;

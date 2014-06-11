@@ -19,13 +19,12 @@ sig
   val mk_builtin_fun: Proof.context -> sym -> cterm list -> cterm option
 
   val is_builtin_theory_term: Proof.context -> term -> bool
-end
+end;
 
 structure Z3_New_Interface: Z3_NEW_INTERFACE =
 struct
 
 val smtlib2_z3C = SMTLIB2_Interface.smtlib2C @ ["z3"]
-
 
 
 (* interface *)
@@ -61,7 +60,6 @@ val _ = Theory.setup (Context.theory_map (
   SMT2_Translate.add_config (smtlib2_z3C, translate_config)))
 
 end
-
 
 
 (* constructors *)
@@ -185,7 +183,6 @@ fun mk_builtin_fun ctxt sym cts =
     | _ => chained_mk_builtin_fun ctxt (get_mk_builtins ctxt) sym cts))
 
 
-
 (* abstraction *)
 
 fun is_builtin_theory_term ctxt t =
@@ -195,4 +192,4 @@ fun is_builtin_theory_term ctxt t =
       (Const c, ts) => SMT2_Builtin.is_builtin_fun ctxt c ts
     | _ => false)
 
-end
+end;

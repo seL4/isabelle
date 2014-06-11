@@ -118,4 +118,4 @@ val _ = Theory.setup (Context.theory_map (
   Z3_New_Interface.add_mk_builtins z3_mk_builtins #>
   Z3_New_Replay_Util.add_simproc real_linarith_proc))
 
-end
+end;

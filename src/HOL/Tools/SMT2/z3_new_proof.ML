@@ -194,7 +194,6 @@ fun parse_proof typs funs lines ctxt =
            error (msg ^ ": " ^ SMTLIB2.str_of t)
 
 
-
 (* handling of bound variables *)
 
 fun subst_of tyenv =
@@ -269,7 +268,6 @@ fun match_rule ctxt env (Z3_Node {bounds=bs', concl=t', ...}) bs t =
   end
 
 
-
 (* linearizing proofs and resolving types of bound variables *)
 
 fun has_step (tab, _) = Inttab.defined tab
@@ -298,7 +296,6 @@ fun lin_proof ctxt env (Z3_Node {id, rule, prems, concl, bounds}) steps =
 
 fun linearize ctxt node =
   rev (snd (snd (lin_proof ctxt Symtab.empty node (Inttab.empty, []))))
-
 
 
 (* overall proof parser *)

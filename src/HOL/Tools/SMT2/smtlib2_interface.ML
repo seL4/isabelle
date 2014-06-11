@@ -11,7 +11,7 @@ sig
   val add_logic: int * (term list -> string option) -> Context.generic -> Context.generic
   val translate_config: Proof.context -> SMT2_Translate.config
   val assert_index_of_name: string -> int
-end
+end;
 
 structure SMTLIB2_Interface: SMTLIB2_INTERFACE =
 struct
@@ -156,4 +156,4 @@ val _ = Theory.setup (Context.theory_map
   (setup_builtins #>
    SMT2_Translate.add_config (smtlib2C, translate_config)))
 
-end
+end;

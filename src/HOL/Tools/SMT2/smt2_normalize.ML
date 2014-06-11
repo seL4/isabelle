@@ -16,7 +16,7 @@ sig
   type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
   val add_extra_norm: SMT2_Util.class * extra_norm -> Context.generic -> Context.generic
   val normalize: Proof.context -> thm list -> (int * thm) list
-end
+end;
 
 structure SMT2_Normalize: SMT2_NORMALIZE =
 struct
@@ -264,7 +264,6 @@ fun gen_norm1_safe ctxt (i, thm) =
 fun gen_normalize ctxt iwthms = map_filter (gen_norm1_safe ctxt) iwthms
 
 
-
 (* unfolding of definitions and theory-specific rewritings *)
 
 fun expand_head_conv cv ct =
@@ -456,7 +455,6 @@ fun unfold2 ctxt ithms =
   |> burrow_ids add_nat_embedding
 
 
-
 (* overall normalization *)
 
 type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
@@ -526,4 +524,4 @@ val _ = Theory.setup (Context.theory_map (
   setup_abs_min_max #>
   setup_nat_as_int))
 
-end
+end;

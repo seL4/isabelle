@@ -28,12 +28,10 @@ sig
   val explode: bool -> bool -> bool -> term list -> thm -> thm list
   val join: bool -> littab -> term -> thm
   val prove_conj_disj_eq: cterm -> thm
-end
+end;
 
 structure Z3_New_Replay_Literals: Z3_NEW_REPLAY_LITERALS =
 struct
-
-
 
 (* literal table *)
 
@@ -48,12 +46,10 @@ fun get_first_lit f =
   Termtab.get_first (fn (t, thm) => if f t then SOME thm else NONE)
 
 
-
 (* rules *)
 
 val true_thm = @{lemma "~False" by simp}
 val rewrite_true = @{lemma "True == ~ False" by simp}
-
 
 
 (* properties and term operations *)
@@ -82,7 +78,6 @@ fun exists_lit is_conj P =
   in exists end
 
 val negate = Thm.apply (Thm.cterm_of @{theory} @{const Not})
-
 
 
 (* proof tools *)
@@ -353,4 +348,4 @@ fun prove_conj_disj_eq ct =
 
 end
 
-end
+end;

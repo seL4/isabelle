@@ -29,4 +29,4 @@ val _ = Theory.setup (Context.theory_map (
   SMTLIB2_Proof.add_term_parser real_term_parser #>
   Z3_New_Replay_Methods.add_arith_abstracter abstract))
 
-end
+end;

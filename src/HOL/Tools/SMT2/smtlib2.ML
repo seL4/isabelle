@@ -17,7 +17,7 @@ sig
   val parse: string list -> tree
   val pretty_tree: tree -> Pretty.T
   val str_of: tree -> string
-end
+end;
 
 structure SMTLIB2: SMTLIB2 =
 struct
@@ -37,7 +37,6 @@ datatype tree =
 datatype unfinished = None | String of string | Symbol of string
 
 
-
 (* utilities *)
 
 fun read_raw pred l cs =
@@ -45,7 +44,6 @@ fun read_raw pred l cs =
     ([], []) => raise PARSE (l, "empty token")
   | ([], c :: _) => raise PARSE (l, "unexpected character " ^ quote c)
   | x => x)
-
 
 
 (* numerals and decimals *)
@@ -60,13 +58,11 @@ fun read_num l cs =
   | (cs1, cs2) => (Num (int_of cs1), cs2))
 
 
-
 (* binary numbers *)
 
 fun is_bin c = (c = "0" orelse c = "1")
 
 fun read_bin l cs = read_raw is_bin l cs |>> Num o fst o read_radix_int 2
-
 
 
 (* hex numbers *)
@@ -85,7 +81,6 @@ fun unhex i [] = i
 fun read_hex l cs = read_raw is_hex l cs |>> Num o unhex 0
 
 
-
 (* symbols *)
 
 val symbol_chars = raw_explode "~!@$%^&*_+=<>.?/-" 
@@ -96,7 +91,6 @@ fun is_sym c =
   member (op =) symbol_chars c
 
 fun read_sym f l cs = read_raw is_sym l cs |>> f o implode
-
 
 
 (* quoted tokens *)
@@ -114,7 +108,6 @@ fun read_quoted stop (escape, replacement) cs =
 
 fun read_string cs = read_quoted ["\\", "\""] (["\\", "\\"], "\\") cs
 fun read_symbol cs = read_quoted ["|"] ([], "") cs
-
 
 
 (* core parser *)
@@ -172,7 +165,6 @@ fun finish (_, (None, [[t]])) = t
 fun parse lines = finish (fold add_line lines (1, (None, [[]])))
 
 
-
 (* pretty printer *)
 
 fun pretty_tree (Num i) = Pretty.str (string_of_int i)
@@ -196,4 +188,4 @@ fun pretty_tree (Num i) = Pretty.str (string_of_int i)
 
 val str_of = Pretty.str_of o pretty_tree
 
-end
+end;

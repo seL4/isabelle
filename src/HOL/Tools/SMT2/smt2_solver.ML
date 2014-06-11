@@ -38,11 +38,10 @@ sig
   (*tactic*)
   val smt2_tac: Proof.context -> thm list -> int -> tactic
   val smt2_tac': Proof.context -> thm list -> int -> tactic
-end
+end;
 
 structure SMT2_Solver: SMT2_SOLVER =
 struct
-
 
 (* interface to external solvers *)
 
@@ -298,4 +297,4 @@ val smt2_tac' = tac (SOME oo apply_solver_and_replay)
 
 end
 
-end
+end;

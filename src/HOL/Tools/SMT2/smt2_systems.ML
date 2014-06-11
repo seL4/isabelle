@@ -12,7 +12,7 @@ sig
     Z3_Non_Commercial_Declined
   val z3_non_commercial: unit -> z3_non_commercial
   val z3_extensions: bool Config.T
-end
+end;
 
 structure SMT2_Systems: SMT2_SYSTEMS =
 struct
@@ -155,4 +155,4 @@ val _ = Theory.setup (
   SMT2_Solver.add_solver yices #>
   SMT2_Solver.add_solver z3)
 
-end
+end;

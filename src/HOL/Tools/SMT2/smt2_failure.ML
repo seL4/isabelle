@@ -14,7 +14,7 @@ sig
     Other_Failure of string
   val string_of_failure: failure -> string
   exception SMT of failure
-end
+end;
 
 structure SMT2_Failure: SMT2_FAILURE =
 struct
@@ -37,4 +37,4 @@ fun string_of_failure (Counterexample genuine) =
 
 exception SMT of failure
 
-end
+end;

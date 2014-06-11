@@ -11,7 +11,7 @@ sig
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
     SMT2_Solver.parsed_proof
   val replay: Proof.context -> SMT2_Translate.replay_data -> string list -> thm
-end
+end;
 
 structure Z3_New_Replay: Z3_NEW_REPLAY =
 struct
@@ -216,4 +216,4 @@ fun replay outer_ctxt
     Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
   end
 
-end
+end;

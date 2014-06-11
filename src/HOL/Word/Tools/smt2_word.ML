@@ -9,12 +9,11 @@ struct
 
 open Word_Lib
 
+
 (* SMT-LIB logic *)
 
 fun smtlib_logic ts =
-  if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts
-  then SOME "QF_AUFBV"
-  else NONE
+  if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts then SOME "QF_AUFBV" else NONE
 
 
 (* SMT-LIB builtins *)
@@ -141,4 +140,4 @@ val _ = Theory.setup (Context.theory_map (
   SMTLIB2_Interface.add_logic (20, smtlib_logic) #>
   setup_builtins))
 
-end
+end;
