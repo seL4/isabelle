@@ -33,8 +33,8 @@ fun prep_interpretation prep_expr prep_term prep_prop prep_attr expression raw_d
     (*defining*)
     val pre_defs = map2 (fn ((name, atts), ((b, mx), _)) => fn rhs =>
       ((b, mx), ((Thm.def_binding_optional b name, atts), rhs))) raw_defs rhss;
-    val (defs, defs_ctxt) = fold_map Local_Theory.define pre_defs initial_ctxt;
-    val def_eqns = map (Thm.symmetric o Morphism.thm (Local_Theory.standard_morphism defs_ctxt initial_ctxt) o snd o snd) defs;
+    val (defs, defs_ctxt) = fold_map Local_Theory.define pre_defs expr_ctxt1;
+    val def_eqns = map (Thm.symmetric o Morphism.thm (Local_Theory.standard_morphism defs_ctxt expr_ctxt1) o snd o snd) defs;
     val expr_ctxt2 = Proof_Context.transfer (Proof_Context.theory_of defs_ctxt) expr_ctxt1;
 
     (*setting up*)
