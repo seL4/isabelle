@@ -730,28 +730,18 @@ lemma
 
 subsubsection {* Type definitions *}
 
-definition "three = {1, 2, 3::int}"
+typedef int' = "UNIV::int set" by (rule UNIV_witness)
 
-typedef three = three
-  unfolding three_def by auto
-
-definition n1 where "n1 = Abs_three 1"
-definition n2 where "n2 = Abs_three 2"
-definition n3 where "n3 = Abs_three 3"
-definition nplus where "nplus n m = Abs_three (Rep_three n + Rep_three m)"
-
-lemma three_def': "(n \<in> three) = (n = 1 \<or> n = 2 \<or> n = 3)"
-  by (auto simp add: three_def)
+definition n0 where "n0 = Abs_int' 0"
+definition n1 where "n1 = Abs_int' 1"
+definition n2 where "n2 = Abs_int' 2"
+definition plus' where "plus' n m = Abs_int' (Rep_int' n + Rep_int' m)"
 
 lemma
-  "n1 = n1"
-  "n2 = n2"
-  "n1 \<noteq> n2"
-  "nplus n1 n1 = n2"
-  "nplus n1 n2 = n3"
-  using n1_def n2_def n3_def nplus_def
-  using three_def' Rep_three Abs_three_inverse
-  by smt2+
+  "n0 \<noteq> n1"
+  "plus' n1 n1 = n2"
+  "plus' n0 n2 = n2"
+  by (smt2 n0_def n1_def n2_def plus'_def Abs_int'_inverse Rep_int'_inverse UNIV_I)+
 
 
 subsection {* With support by the SMT solver (but without proofs) *}
@@ -873,14 +863,11 @@ lemma
 subsubsection {* Type definitions *}
 
 lemma
-  "n1 = n1"
-  "n2 = n2"
-  "n1 \<noteq> n2"
-  "nplus n1 n1 = n2"
-  "nplus n1 n2 = n3"
-  using n1_def n2_def n3_def nplus_def
+  "n0 \<noteq> n1"
+  "plus' n1 n1 = n2"
+  "plus' n0 n2 = n2"
   using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  by (smt2 n0_def n1_def n2_def plus'_def)+
 
 
 section {* Function updates *}
