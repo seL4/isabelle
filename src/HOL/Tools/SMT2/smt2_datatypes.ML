@@ -19,8 +19,7 @@ val lhs_head_of = Term.head_of o fst o Logic.dest_equals o Thm.prop_of
 
 fun mk_selectors T Ts ctxt =
   let
-    val (sels, ctxt') =
-      Variable.variant_fixes (replicate (length Ts) "select") ctxt
+    val (sels, ctxt') = Variable.variant_fixes (replicate (length Ts) "select") ctxt
   in (map2 (fn n => fn U => Free (n, T --> U)) sels Ts, ctxt') end
 
 
@@ -71,16 +70,18 @@ fun get_record_decl ({ext_def, ...} : Record.info) T ctxt =
 
 (* typedef declarations *)
 
-fun get_typedef_decl (info : Typedef.info) T Ts =
-  let
-    val ({Abs_name, Rep_name, abs_type, rep_type, ...}, _) = info
+fun get_typedef_decl (({Abs_name, Rep_name, abs_type, rep_type, ...}, {Abs_inverse, ...})
+    : Typedef.info) T Ts =
+  if can (curry (op RS) @{thm UNIV_I}) Abs_inverse then
+    let
+      val env = snd (Term.dest_Type abs_type) ~~ Ts
+      val instT = Term.map_atyps (perhaps (AList.lookup (op =) env))
 
-    val env = snd (Term.dest_Type abs_type) ~~ Ts
-    val instT = Term.map_atyps (perhaps (AList.lookup (op =) env))
-
-    val constr = Const (Abs_name, instT (rep_type --> abs_type))
-    val select = Const (Rep_name, instT (abs_type --> rep_type))
-  in (T, [(constr, [select])]) end
+      val constr = Const (Abs_name, instT (rep_type --> abs_type))
+      val select = Const (Rep_name, instT (abs_type --> rep_type))
+    in [(T, [(constr, [select])])] end
+  else
+    []
 
 
 (* collection of declarations *)
@@ -99,7 +100,7 @@ fun get_decls T n Ts ctxt =
         | NONE =>
             (case Typedef.get_info ctxt n of
               [] => ([], ctxt)
-            | info :: _ => ([get_typedef_decl info T Ts], ctxt))))
+            | info :: _ => (get_typedef_decl info T Ts, ctxt))))
   end
 
 fun add_decls T (declss, ctxt) =
