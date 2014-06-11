@@ -1168,7 +1168,7 @@ lemma nat_diff_split:
     -- {* elimination of @{text -} on @{text nat} *}
 by (cases "a < b")
   (auto simp add: diff_is_0_eq [THEN iffD2] diff_add_inverse
-    not_less le_less dest!: sym [of a] sym [of b] add_eq_self_zero)
+    not_less le_less dest!: add_eq_self_zero add_eq_self_zero[OF sym])
 
 lemma nat_diff_split_asm:
   "P(a - b::nat) = (~ (a < b & ~ P 0 | (EX d. a = b + d & ~ P d)))"

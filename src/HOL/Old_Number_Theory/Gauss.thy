@@ -170,7 +170,7 @@ lemma B_ncong_p: "x \<in> B ==> ~[x = 0](mod p)"
   apply (auto simp add: B_def)
   apply (frule A_ncong_p)
   apply (insert p_a_relprime p_prime a_nonzero)
-  apply (frule_tac a = x and b = a in zcong_zprime_prod_zero_contra)
+  apply (frule_tac a = xa and b = a in zcong_zprime_prod_zero_contra)
   apply (auto simp add: A_greater_zero)
   done
 
@@ -180,9 +180,9 @@ lemma B_greater_zero: "x \<in> B ==> 0 < x"
 lemma C_ncong_p: "x \<in> C ==>  ~[x = 0](mod p)"
   apply (auto simp add: C_def)
   apply (frule B_ncong_p)
-  apply (subgoal_tac "[x = StandardRes p x](mod p)")
+  apply (subgoal_tac "[xa = StandardRes p xa](mod p)")
   defer apply (simp add: StandardRes_prop1)
-  apply (frule_tac a = x and b = "StandardRes p x" and c = 0 in zcong_trans)
+  apply (frule_tac a = xa and b = "StandardRes p xa" and c = 0 in zcong_trans)
   apply auto
   done
 

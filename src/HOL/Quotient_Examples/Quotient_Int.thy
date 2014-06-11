@@ -57,6 +57,7 @@ lemma times_int_raw_fst:
   using a
   apply(cases x, cases y, cases z)
   apply(auto simp add: times_int_raw.simps intrel.simps)
+  apply(hypsubst_thin)
   apply(rename_tac u v w x y z)
   apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
   apply(simp add: mult_ac)
@@ -69,6 +70,7 @@ lemma times_int_raw_snd:
   using a
   apply(cases x, cases y, cases z)
   apply(auto simp add: times_int_raw.simps intrel.simps)
+  apply(hypsubst_thin)
   apply(rename_tac u v w x y z)
   apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
   apply(simp add: mult_ac)

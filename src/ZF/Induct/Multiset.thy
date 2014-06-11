@@ -931,6 +931,7 @@ apply clarify
 apply (rule_tac x = M0 in exI, force)
 (* Subgoal 2 *)
 apply clarify
+apply hypsubst_thin
 apply (case_tac "a \<in> mset_of (Ka) ")
 apply (rule_tac x = I in exI, simp (no_asm_simp))
 apply (rule_tac x = J in exI, simp (no_asm_simp))

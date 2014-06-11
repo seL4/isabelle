@@ -168,7 +168,7 @@ definition Range :: "ZF \<Rightarrow> ZF" where
 
 theorem Domain: "Elem x (Domain f) = (? y. Elem (Opair x y) f)"
   apply (auto simp add: Domain_def Replacement)
-  apply (rule_tac x="Snd x" in exI)
+  apply (rule_tac x="Snd xa" in exI)
   apply (simp add: FstSnd)
   apply (rule_tac x="Opair x y" in exI)
   apply (simp add: isOpair Fst)

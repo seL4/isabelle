@@ -1119,6 +1119,7 @@ lemma Signed_PReq_imp_Says_Cardholder:
                        OIData, Hash PIData|}
               \<in> set evs"
 apply clarify
+apply hypsubst_thin
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_pur.induct, simp_all, auto)

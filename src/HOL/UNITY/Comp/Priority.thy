@@ -209,7 +209,7 @@ lemma above_decreases:
                leadsTo {s. above i s < x}"
 apply (rule leadsTo_UN)
 apply (rule single_leadsTo_I, clarify)
-apply (rule_tac x = "above i x" in above_decreases_lemma)
+apply (rule_tac x = "above i xa" in above_decreases_lemma)
 apply (simp_all (no_asm_use) add: Highest_iff_above0)
 apply blast+
 done

@@ -419,8 +419,7 @@ apply safe
 apply (simp (no_asm))
 apply (simp (no_asm) add: sin_expansion_lemma)
 apply (force intro!: derivative_eq_intros)
-apply (subst (asm) setsum.neutral, clarify, case_tac "x", simp, simp)
-apply (cases n, simp, simp)
+apply (subst (asm) setsum.neutral, auto)[1]
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)

@@ -1653,7 +1653,7 @@ apply (case_tac "a :# K")
  apply (simp (no_asm))
  apply (rule_tac x = "(K - {#a#}) + Ka" in exI)
  apply (simp (no_asm_simp) add: add_assoc [symmetric])
- apply (drule_tac f = "\<lambda>M. M - {#a#}" in arg_cong)
+ apply (drule_tac f = "\<lambda>M. M - {#a#}" and x="?S + ?T" in arg_cong)
  apply (simp add: diff_union_single_conv)
  apply (simp (no_asm_use) add: trans_def)
  apply blast
@@ -1664,7 +1664,7 @@ apply (subgoal_tac "a :# I")
  apply (rule conjI)
   apply (simp add: multiset_eq_iff split: nat_diff_split)
  apply (rule conjI)
-  apply (drule_tac f = "\<lambda>M. M - {#a#}" in arg_cong, simp)
+  apply (drule_tac f = "\<lambda>M. M - {#a#}" and x="?S + ?T" in arg_cong, simp)
   apply (simp add: multiset_eq_iff split: nat_diff_split)
  apply (simp (no_asm_use) add: trans_def)
  apply blast
@@ -2760,7 +2760,9 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
           using inj unfolding inj_on_def inj2_def using b1 c u(3) by blast
         also have "... = count N1 b1" unfolding ss1[OF c b1, symmetric]
           apply(rule setsum.cong[OF refl]) apply (transfer fixing: Ms u c b1 set2)
-          using True h_u[OF c b1] set2_def u(2,3)[OF c b1] u_SET[OF c b1] by fastforce
+          using True h_u[OF c b1] set2_def u(2,3)[OF c b1] u_SET[OF c b1]
+            [[hypsubst_thin = true]]
+          by fastforce
         finally show ?thesis .
       qed
       thus "count (mmap p1 M) b1 = count N1 b1" by transfer
@@ -2796,7 +2798,9 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
         also have "... = setsum (\<lambda> b1. count M (u c b1 b2)) (set1 c)" by simp
         also have "... = count N2 b2" unfolding ss2[OF c b2, symmetric] comp_def
           apply(rule setsum.cong[OF refl]) apply (transfer fixing: Ms u c b2 set1)
-          using True h_u1[OF c _ b2] u(2,3)[OF c _ b2] u_SET[OF c _ b2] set1_def by fastforce
+          using True h_u1[OF c _ b2] u(2,3)[OF c _ b2] u_SET[OF c _ b2] set1_def
+            [[hypsubst_thin = true]]
+          by fastforce
         finally show ?thesis .
       qed
       thus "count (mmap p2 M) b2 = count N2 b2" by transfer

@@ -47,6 +47,8 @@ end;
 signature HYPSUBST =
 sig
   val bound_hyp_subst_tac    : Proof.context -> int -> tactic
+  val hyp_subst_tac_thin     : bool -> Proof.context -> int -> tactic
+  val hyp_subst_thins        : bool Config.T
   val hyp_subst_tac          : Proof.context -> int -> tactic
   val blast_hyp_subst_tac    : bool -> int -> tactic
   val stac                   : thm -> int -> tactic
@@ -77,7 +79,8 @@ val has_tvars = Term.exists_type (Term.exists_subtype Term.is_TVar);
     Not if it involves a variable free in the premises,
         but we can't check for this -- hence bnd and bound_hyp_subst_tac
   Prefer to eliminate Bound variables if possible.
-  Result:  true = use as is,  false = reorient first *)
+  Result:  true = use as is,  false = reorient first
+    also returns var to substitute, relevant if it is Free *)
 fun inspect_pair bnd novars (t, u) =
   if novars andalso (has_tvars t orelse has_tvars u)
   then raise Match   (*variables in the type!*)
@@ -86,40 +89,57 @@ fun inspect_pair bnd novars (t, u) =
       (Bound i, _) =>
         if loose_bvar1 (u, i) orelse novars andalso has_vars u
         then raise Match
-        else true                (*eliminates t*)
+        else (true, Bound i)                (*eliminates t*)
     | (_, Bound i) =>
         if loose_bvar1 (t, i) orelse novars andalso has_vars t
         then raise Match
-        else false               (*eliminates u*)
+        else (false, Bound i)               (*eliminates u*)
     | (t' as Free _, _) =>
         if bnd orelse Logic.occs (t', u) orelse novars andalso has_vars u
         then raise Match
-        else true                (*eliminates t*)
+        else (true, t')                (*eliminates t*)
     | (_, u' as Free _) =>
         if bnd orelse Logic.occs (u', t) orelse novars andalso has_vars t
         then raise Match
-        else false               (*eliminates u*)
+        else (false, u')               (*eliminates u*)
     | _ => raise Match);
 
 (*Locates a substitutable variable on the left (resp. right) of an equality
    assumption.  Returns the number of intervening assumptions. *)
-fun eq_var bnd novars =
-  let fun eq_var_aux k (Const(@{const_name Pure.all},_) $ Abs(_,_,t)) = eq_var_aux k t
-        | eq_var_aux k (Const(@{const_name Pure.imp},_) $ A $ B) =
-              ((k, inspect_pair bnd novars
-                    (Data.dest_eq (Data.dest_Trueprop A)))
-               handle TERM _ => eq_var_aux (k+1) B
-                 | Match => eq_var_aux (k+1) B)
-        | eq_var_aux k _ = raise EQ_VAR
-  in  eq_var_aux 0  end;
+fun eq_var bnd novars check_frees t =
+  let
+    fun check_free ts (orient, Free f)
+      = if not check_frees orelse not orient
+            orelse exists (curry Logic.occs (Free f)) ts
+        then (orient, true) else raise Match
+      | check_free ts (orient, _) = (orient, false)
+    fun eq_var_aux k (Const(@{const_name Pure.all},_) $ Abs(_,_,t)) hs = eq_var_aux k t hs
+      | eq_var_aux k (Const(@{const_name Pure.imp},_) $ A $ B) hs =
+              ((k, check_free (B :: hs) (inspect_pair bnd novars
+                    (Data.dest_eq (Data.dest_Trueprop A))))
+               handle TERM _ => eq_var_aux (k+1) B (A :: hs)
+                 | Match => eq_var_aux (k+1) B (A :: hs))
+      | eq_var_aux k _ _ = raise EQ_VAR
+  
+  in  eq_var_aux 0 t [] end;
+
+val thin_free_eq_tac = SUBGOAL (fn (t, i) => let
+     val (k, _) = eq_var false false false t
+     val ok = (eq_var false false true t |> fst) > k
+        handle EQ_VAR => true
+   in if ok then EVERY [rotate_tac k i, etac thin_rl i, rotate_tac (~k) i]
+    else no_tac
+   end handle EQ_VAR => no_tac)
 
 (*For the simpset.  Adds ALL suitable equalities, even if not first!
   No vars are allowed here, as simpsets are built from meta-assumptions*)
 fun mk_eqs bnd th =
-    [ if inspect_pair bnd false (Data.dest_eq (Data.dest_Trueprop (Thm.prop_of th)))
+    [ if inspect_pair bnd false (Data.dest_eq (Data.dest_Trueprop (Thm.prop_of th))) |> fst
       then th RS Data.eq_reflection
       else Thm.symmetric(th RS Data.eq_reflection) (*reorient*) ]
     handle TERM _ => [] | Match => [];
+
+fun bool2s true = "true" | bool2s false = "false"
 
 local
 in
@@ -127,14 +147,17 @@ in
   (*Select a suitable equality assumption; substitute throughout the subgoal
     If bnd is true, then it replaces Bound variables only. *)
   fun gen_hyp_subst_tac ctxt bnd =
-    let fun tac i st = SUBGOAL (fn (Bi, _) =>
+    SUBGOAL (fn (Bi, i) =>
       let
-        val (k, _) = eq_var bnd true Bi
+        val (k, (orient, is_free)) = eq_var bnd true true Bi
         val hyp_subst_ctxt = empty_simpset ctxt |> Simplifier.set_mksimps (K (mk_eqs bnd))
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ctxt i,
-        etac thin_rl i, rotate_tac (~k) i]
-      end handle THM _ => no_tac | EQ_VAR => no_tac) i st
-    in REPEAT_DETERM1 o tac end;
+        if not is_free then etac thin_rl i
+          else if orient then etac Data.rev_mp i
+          else etac (Data.sym RS Data.rev_mp) i,
+        rotate_tac (~k) i,
+        if is_free then rtac Data.imp_intr i else all_tac]
+      end handle THM _ => no_tac | EQ_VAR => no_tac)
 
 end;
 
@@ -174,6 +197,9 @@ fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
 
 val imp_intr_tac = rtac Data.imp_intr;
 
+fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
+val dup_subst = rev_dup_elim ssubst
+
 (* FIXME: "etac Data.rev_mp i" will not behave as expected if goal has *)
 (* premises containing meta-implications or quantifiers                *)
 
@@ -181,26 +207,37 @@ val imp_intr_tac = rtac Data.imp_intr;
   to handle equalities containing Vars.*)
 fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
       let val n = length(Logic.strip_assums_hyp Bi) - 1
-          val (k,symopt) = eq_var bnd false Bi
+          val (k, (orient, is_free)) = eq_var bnd false true Bi
+          val rl = if is_free then dup_subst else ssubst
+          val rl = if orient then rl else Data.sym RS rl
       in
          DETERM
            (EVERY [REPEAT_DETERM_N k (etac Data.rev_mp i),
                    rotate_tac 1 i,
                    REPEAT_DETERM_N (n-k) (etac Data.rev_mp i),
-                   inst_subst_tac symopt (if symopt then ssubst else Data.subst) i,
+                   inst_subst_tac orient rl i,
                    REPEAT_DETERM_N n (imp_intr_tac i THEN rotate_tac ~1 i)])
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);
 
-(*Substitutes for Free or Bound variables*)
-fun hyp_subst_tac ctxt =
-  FIRST' [ematch_tac [Data.thin_refl],
-    gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac false];
+(*Substitutes for Free or Bound variables,
+  discarding equalities on Bound variables
+  and on Free variables if thin=true*)
+fun hyp_subst_tac_thin thin ctxt =
+  REPEAT_DETERM1 o FIRST' [ematch_tac [Data.thin_refl],
+    gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac false,
+    if thin then thin_free_eq_tac else K no_tac];
+
+val (hyp_subst_thins, hyp_subst_thins_setup) = Attrib.config_bool
+    @{binding hypsubst_thin} (K false);
+
+fun hyp_subst_tac ctxt = hyp_subst_tac_thin
+    (Config.get ctxt hyp_subst_thins) ctxt
 
 (*Substitutes for Bound variables only -- this is always safe*)
 fun bound_hyp_subst_tac ctxt =
-  gen_hyp_subst_tac ctxt true ORELSE' vars_gen_hyp_subst_tac true;
-
+  REPEAT_DETERM1 o (gen_hyp_subst_tac ctxt true
+    ORELSE' vars_gen_hyp_subst_tac true);
 
 (** Version for Blast_tac.  Hyps that are affected by the substitution are
     moved to the front.  Defect: even trivial changes are noticed, such as
@@ -236,7 +273,7 @@ fun all_imp_intr_tac hyps i =
 
 
 fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
-      let val (k,symopt) = eq_var false false Bi
+      let val (k, (symopt, _)) = eq_var false false false Bi
           val hyps0 = map Data.dest_Trueprop (Logic.strip_assums_hyp Bi)
           (*omit selected equality, returning other hyps*)
           val hyps = List.take(hyps0, k) @ List.drop(hyps0, k+1)
@@ -252,7 +289,6 @@ fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);
 
-
 (*apply an equality or definition ONCE;
   fails unless the substitution has an effect*)
 fun stac th =
@@ -266,6 +302,11 @@ val hypsubst_setup =
   Method.setup @{binding hypsubst}
     (Scan.succeed (fn ctxt => SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac ctxt)))
     "substitution using an assumption (improper)" #>
+  Method.setup @{binding hypsubst_thin}
+    (Scan.succeed (fn ctxt => SIMPLE_METHOD'
+        (CHANGED_PROP o hyp_subst_tac_thin true ctxt)))
+    "substitution using an assumption, eliminating assumptions" #>
+  hyp_subst_thins_setup #>
   Method.setup @{binding simplesubst} (Attrib.thm >> (fn th => K (SIMPLE_METHOD' (stac th))))
     "simple substitution";
 

@@ -75,6 +75,7 @@ qed
 
 lemma uminus_float[simp]: "x \<in> float \<Longrightarrow> -x \<in> float"
   apply (auto simp: float_def)
+  apply hypsubst_thin
   apply (rule_tac x="-x" in exI)
   apply (rule_tac x="xa" in exI)
   apply (simp add: field_simps)
@@ -82,6 +83,7 @@ lemma uminus_float[simp]: "x \<in> float \<Longrightarrow> -x \<in> float"
 
 lemma times_float[simp]: "x \<in> float \<Longrightarrow> y \<in> float \<Longrightarrow> x * y \<in> float"
   apply (auto simp: float_def)
+  apply hypsubst_thin
   apply (rule_tac x="x * xa" in exI)
   apply (rule_tac x="xb + xc" in exI)
   apply (simp add: powr_add)
@@ -98,6 +100,7 @@ lemma sgn_of_float[simp]: "x \<in> float \<Longrightarrow> sgn x \<in> float"
 
 lemma div_power_2_float[simp]: "x \<in> float \<Longrightarrow> x / 2^d \<in> float"
   apply (auto simp add: float_def)
+  apply hypsubst_thin
   apply (rule_tac x="x" in exI)
   apply (rule_tac x="xa - d" in exI)
   apply (simp add: powr_realpow[symmetric] field_simps powr_add[symmetric])
@@ -105,6 +108,7 @@ lemma div_power_2_float[simp]: "x \<in> float \<Longrightarrow> x / 2^d \<in> fl
 
 lemma div_power_2_int_float[simp]: "x \<in> float \<Longrightarrow> x / (2::int)^d \<in> float"
   apply (auto simp add: float_def)
+  apply hypsubst_thin
   apply (rule_tac x="x" in exI)
   apply (rule_tac x="xa - d" in exI)
   apply (simp add: powr_realpow[symmetric] field_simps powr_add[symmetric])

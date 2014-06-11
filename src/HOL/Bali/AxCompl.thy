@@ -1381,6 +1381,7 @@ apply  (fast intro: ax_derivs_asm)
 apply (rule MGF_nested_Methd)
 apply (rule ballI)
 apply (drule spec, erule impE, erule_tac [2] impE, erule_tac [3] spec)
+apply hypsubst_thin
 apply   fast
 apply (drule finite_subset)
 apply (erule finite_imageI)
