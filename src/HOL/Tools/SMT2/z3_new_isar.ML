@@ -130,8 +130,9 @@ fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_helper_ts prem_
                 else
                   NONE)
           in
-            [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, []),
-             ((sid, []), Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
+            (if role0 = Axiom then []
+             else [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, [])]) @
+            [((sid, []), Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
               name0 :: normalize_prems)]
           end
         | Z3_New_Proof.Rewrite => [standard_step Lemma]
