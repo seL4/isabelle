@@ -357,7 +357,9 @@ lemma "~ (\<exists>x y z::int. 4 * x + -6 * y = (1::int))" by smt2
 lemma "\<exists>x::int. \<forall>x y. 0 < x \<and> 0 < y \<longrightarrow> (0::int) < x + y" by smt2
 lemma "\<exists>u::int. \<forall>(x::int) y::real. 0 < x \<and> 0 < y \<longrightarrow> -1 < x" by smt2
 lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longrightarrow> x > 0" by smt2
-lemma "\<forall>x::int. SMT2.trigger [[SMT2.pat x]] (x < a \<longrightarrow> 2 * x < 2 * a)" by smt2
+lemma "\<forall>x::int.
+  SMT2.trigger (SMT2.Symb_Cons (SMT2.Symb_Cons (SMT2.pat x) SMT2.Symb_Nil) SMT2.Symb_Nil)
+    (x < a \<longrightarrow> 2 * x < 2 * a)" by smt2
 lemma "\<forall>(a::int) b::int. 0 < b \<or> b < 1" by smt2
 
 

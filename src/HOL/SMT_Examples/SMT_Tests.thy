@@ -18,28 +18,28 @@ section {* Propositional logic *}
 
 lemma
   "True"
-  "\<not>False"
-  "\<not>\<not>True"
+  "\<not> False"
+  "\<not> \<not> True"
   "True \<and> True"
   "True \<or> False"
   "False \<longrightarrow> True"
-  "\<not>(False \<longleftrightarrow> True)"
+  "\<not> (False \<longleftrightarrow> True)"
   by smt2+
 
 lemma
-  "P \<or> \<not>P"
-  "\<not>(P \<and> \<not>P)"
-  "(True \<and> P) \<or> \<not>P \<or> (False \<and> P) \<or> P"
+  "P \<or> \<not> P"
+  "\<not> (P \<and> \<not> P)"
+  "(True \<and> P) \<or> \<not> P \<or> (False \<and> P) \<or> P"
   "P \<longrightarrow> P"
   "P \<and> \<not> P \<longrightarrow> False"
   "P \<and> Q \<longrightarrow> Q \<and> P"
   "P \<or> Q \<longrightarrow> Q \<or> P"
   "P \<and> Q \<longrightarrow> P \<or> Q"
-  "\<not>(P \<or> Q) \<longrightarrow> \<not>P"
-  "\<not>(P \<or> Q) \<longrightarrow> \<not>Q"
-  "\<not>P \<longrightarrow> \<not>(P \<and> Q)"
-  "\<not>Q \<longrightarrow> \<not>(P \<and> Q)"
-  "(P \<and> Q) \<longleftrightarrow> (\<not>(\<not>P \<or> \<not>Q))"
+  "\<not> (P \<or> Q) \<longrightarrow> \<not> P"
+  "\<not> (P \<or> Q) \<longrightarrow> \<not> Q"
+  "\<not> P \<longrightarrow> \<not> (P \<and> Q)"
+  "\<not> Q \<longrightarrow> \<not> (P \<and> Q)"
+  "(P \<and> Q) \<longleftrightarrow> (\<not> (\<not> P \<or> \<not> Q))"
   "(P \<and> Q) \<and> R \<longrightarrow> P \<and> (Q \<and> R)"
   "(P \<or> Q) \<or> R \<longrightarrow> P \<or> (Q \<or> R)"
   "(P \<and> Q) \<or> R  \<longrightarrow> (P \<or> R) \<and> (Q \<or> R)"
@@ -50,23 +50,23 @@ lemma
   "(P \<longrightarrow> R) \<and> (Q \<longrightarrow> R) \<longleftrightarrow> (P \<or> Q \<longrightarrow> R)"
   "(P \<and> Q \<longrightarrow> R) \<longleftrightarrow> (P \<longrightarrow> (Q \<longrightarrow> R))"
   "((P \<longrightarrow> R) \<longrightarrow> R) \<longrightarrow>  ((Q \<longrightarrow> R) \<longrightarrow> R) \<longrightarrow> (P \<and> Q \<longrightarrow> R) \<longrightarrow> R"
-  "\<not>(P \<longrightarrow> R) \<longrightarrow>  \<not>(Q \<longrightarrow> R) \<longrightarrow> \<not>(P \<and> Q \<longrightarrow> R)"
+  "\<not> (P \<longrightarrow> R) \<longrightarrow>  \<not> (Q \<longrightarrow> R) \<longrightarrow> \<not> (P \<and> Q \<longrightarrow> R)"
   "(P \<longrightarrow> Q \<and> R) \<longleftrightarrow> (P \<longrightarrow> Q) \<and> (P \<longrightarrow> R)"
   "P \<longrightarrow> (Q \<longrightarrow> P)"
   "(P \<longrightarrow> Q \<longrightarrow> R) \<longrightarrow> (P \<longrightarrow> Q)\<longrightarrow> (P \<longrightarrow> R)"
   "(P \<longrightarrow> Q) \<or> (P \<longrightarrow> R) \<longrightarrow> (P \<longrightarrow> Q \<or> R)"
   "((((P \<longrightarrow> Q) \<longrightarrow> P) \<longrightarrow> P) \<longrightarrow> Q) \<longrightarrow> Q"
-  "(P \<longrightarrow> Q) \<longrightarrow> (\<not>Q \<longrightarrow> \<not>P)"
+  "(P \<longrightarrow> Q) \<longrightarrow> (\<not> Q \<longrightarrow> \<not> P)"
   "(P \<longrightarrow> Q \<or> R) \<longrightarrow> (P \<longrightarrow> Q) \<or> (P \<longrightarrow> R)"
   "(P \<longrightarrow> Q) \<and> (Q  \<longrightarrow> P) \<longrightarrow> (P \<longleftrightarrow> Q)"
   "(P \<longleftrightarrow> Q) \<longleftrightarrow> (Q \<longleftrightarrow> P)"
-  "\<not>(P \<longleftrightarrow> \<not>P)"
-  "(P \<longrightarrow> Q) \<longleftrightarrow> (\<not>Q \<longrightarrow> \<not>P)"
+  "\<not> (P \<longleftrightarrow> \<not> P)"
+  "(P \<longrightarrow> Q) \<longleftrightarrow> (\<not> Q \<longrightarrow> \<not> P)"
   "P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P"
   by smt2+
 
 lemma
-  "(if P then Q1 else Q2) \<longleftrightarrow> ((P \<longrightarrow> Q1) \<and> (\<not>P \<longrightarrow> Q2))"
+  "(if P then Q1 else Q2) \<longleftrightarrow> ((P \<longrightarrow> Q1) \<and> (\<not> P \<longrightarrow> Q2))"
   "if P then (Q \<longrightarrow> P) else (P \<longrightarrow> Q)"
   "(if P1 \<or> P2 then Q1 else Q2) \<longleftrightarrow> (if P1 then Q1 else if P2 then Q1 else Q2)"
   "(if P1 \<and> P2 then Q1 else Q2) \<longleftrightarrow> (if P1 then if P2 then Q1 else Q2 else Q2)"
@@ -75,9 +75,9 @@ lemma
   by smt2+
 
 lemma
-  "case P of True \<Rightarrow> P | False \<Rightarrow> \<not>P"
-  "case P of False \<Rightarrow> \<not>P | True \<Rightarrow> P"
-  "case \<not>P of True \<Rightarrow> \<not>P | False \<Rightarrow> P"
+  "case P of True \<Rightarrow> P | False \<Rightarrow> \<not> P"
+  "case P of False \<Rightarrow> \<not> P | True \<Rightarrow> P"
+  "case \<not> P of True \<Rightarrow> \<not> P | False \<Rightarrow> P"
   "case P of True \<Rightarrow> (Q \<longrightarrow> P) | False \<Rightarrow> (P \<longrightarrow> Q)"
   by smt2+
 
@@ -104,7 +104,7 @@ lemma
   "(\<forall>x y. S x y \<longrightarrow> S y x) \<longrightarrow> (\<forall>x. S x y) \<longrightarrow> S y x"
   "(\<forall>x. P x \<longrightarrow> P (f x)) \<and> P d \<longrightarrow> P (f(f(f(d))))"
   "(\<forall>x y. s x y = s y x) \<longrightarrow> a = a \<and> s a b = s b a"
-  "(\<forall>s. q s \<longrightarrow> r s) \<and> \<not>r s \<and> (\<forall>s. \<not>r s \<and> \<not>q s \<longrightarrow> p t \<or> q t) \<longrightarrow> p t \<or> r t"
+  "(\<forall>s. q s \<longrightarrow> r s) \<and> \<not> r s \<and> (\<forall>s. \<not> r s \<and> \<not> q s \<longrightarrow> p t \<or> q t) \<longrightarrow> p t \<or> r t"
   by smt2+
 
 lemma
@@ -117,7 +117,7 @@ lemma
   "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> (\<exists>x. P x) \<or> (\<exists>x. Q x)"
   "(\<exists>x. P x) \<and> R \<longleftrightarrow> (\<exists>x. P x \<and> R)"
   "(\<exists>x y z. S x z) \<longleftrightarrow> (\<exists>x z. S x z)"
-  "\<not>((\<exists>x. \<not>P x) \<and> ((\<exists>x. P x) \<or> (\<exists>x. P x \<and> Q x)) \<and> \<not>(\<exists>x. P x))"
+  "\<not> ((\<exists>x. \<not> P x) \<and> ((\<exists>x. P x) \<or> (\<exists>x. P x \<and> Q x)) \<and> \<not> (\<exists>x. P x))"
   by smt2+
 
 lemma
@@ -130,16 +130,16 @@ lemma
   by smt2+
 
 lemma
-  "(\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
+  "(\<not> (\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
   "(\<exists>x. P x \<longrightarrow> Q) \<longleftrightarrow> (\<forall>x. P x) \<longrightarrow> Q"
   "(\<forall>x y. R x y = x) \<longrightarrow> (\<exists>y. R x y) = R x c"
-  "(if P x then \<not>(\<exists>y. P y) else (\<forall>y. \<not>P y)) \<longrightarrow> P x \<longrightarrow> P y"
+  "(if P x then \<not> (\<exists>y. P y) else (\<forall>y. \<not> P y)) \<longrightarrow> P x \<longrightarrow> P y"
   "(\<forall>x y. R x y = x) \<and> (\<forall>x. \<exists>y. R x y) = (\<forall>x. R x c) \<longrightarrow> (\<exists>y. R x y) = R x c"
   by smt2+
 
 lemma
   "\<forall>x. \<exists>y. f x y = f x (g x)"
-  "(\<not>\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<not>(\<forall>x. \<not> P x))"
+  "(\<not> \<not> (\<exists>x. P x)) \<longleftrightarrow> (\<not> (\<forall>x. \<not> P x))"
   "\<forall>u. \<exists>v. \<forall>w. \<exists>x. f u v w x = f u (g u) w (h u w)"
   "\<exists>x. if x = y then (\<forall>y. y = x \<or> y \<noteq> x) else (\<forall>y. y = (x, x) \<or> y \<noteq> (x, x))"
   "\<exists>x. if x = y then (\<exists>y. y = x \<or> y \<noteq> x) else (\<exists>y. y = (x, x) \<or> y \<noteq> (x, x))"
@@ -150,7 +150,7 @@ lemma
 
 lemma
   "(\<exists>!x. P x) \<longrightarrow> (\<exists>x. P x)"
-  "(\<exists>!x. P x) \<longleftrightarrow> (\<exists>x. P x \<and> (\<forall>y. y \<noteq> x \<longrightarrow> \<not>P y))"
+  "(\<exists>!x. P x) \<longleftrightarrow> (\<exists>x. P x \<and> (\<forall>y. y \<noteq> x \<longrightarrow> \<not> P y))"
   "P a \<longrightarrow> (\<forall>x. P x \<longrightarrow> x = a) \<longrightarrow> (\<exists>!x. P x)"
   "(\<exists>x. P x) \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> x = y) \<longrightarrow> (\<exists>!x. P x)"
   "(\<exists>!x. P x) \<and> (\<forall>x. P x \<and> (\<forall>y. P y \<longrightarrow> y = x) \<longrightarrow> R) \<longrightarrow> R"
@@ -158,18 +158,18 @@ lemma
 
 lemma
   "(\<forall>x\<in>M. P x) \<and> c \<in> M \<longrightarrow> P c"
-  "(\<exists>x\<in>M. P x) \<or> \<not>(P c \<and> c \<in> M)"
+  "(\<exists>x\<in>M. P x) \<or> \<not> (P c \<and> c \<in> M)"
   by smt2+
 
 lemma
   "let P = True in P"
-  "let P = P1 \<or> P2 in P \<or> \<not>P"
+  "let P = P1 \<or> P2 in P \<or> \<not> P"
   "let P1 = True; P2 = False in P1 \<and> P2 \<longrightarrow> P2 \<or> P1"
   "(let x = y in x) = y"
   "(let x = y in Q x) \<longleftrightarrow> (let z = y in Q z)"
   "(let x = y1; z = y2 in R x z) \<longleftrightarrow> (let z = y2; x = y1 in R x z)"
   "(let x = y1; z = y2 in R x z) \<longleftrightarrow> (let z = y1; x = y2 in R z x)"
-  "let P = (\<forall>x. Q x) in if P then P else \<not>P"
+  "let P = (\<forall>x. Q x) in if P then P else \<not> P"
   by smt2+
 
 lemma
@@ -185,33 +185,17 @@ lemma
 section {* Guidance for quantifier heuristics: patterns *}
 
 lemma
-  assumes "\<forall>x. SMT2.trigger [[SMT2.pat (f x)]] (f x = x)"
+  assumes "\<forall>x.
+    SMT2.trigger (SMT2.Symb_Cons (SMT2.Symb_Cons (SMT2.pat (f x)) SMT2.Symb_Nil) SMT2.Symb_Nil)
+    (f x = x)"
   shows "f 1 = 1"
   using assms using [[smt2_trace]] by smt2
 
 lemma
-  assumes "\<forall>x y. SMT2.trigger [[SMT2.pat (f x), SMT2.pat (g y)]] (f x = g y)"
+  assumes "\<forall>x y.
+    SMT2.trigger (SMT2.Symb_Cons (SMT2.Symb_Cons (SMT2.pat (f x))
+      (SMT2.Symb_Cons (SMT2.pat (g y)) SMT2.Symb_Nil)) SMT2.Symb_Nil) (f x = g y)"
   shows "f a = g b"
-  using assms by smt2
-
-lemma
-  assumes "ALL x. SMT2.trigger [[SMT2.pat (P x)]] (P x --> Q x)"
-  and "P t"
-  shows "Q t"
-  using assms by smt2
-
-lemma
-  assumes "ALL x. SMT2.trigger [[SMT2.pat (P x), SMT2.pat (Q x)]]
-    (P x & Q x --> R x)"
-  and "P t" and "Q t"
-  shows "R t"
-  using assms by smt2
-
-lemma
-  assumes "ALL x. SMT2.trigger [[SMT2.pat (P x)], [SMT2.pat (Q x)]]
-    ((P x --> R x) & (Q x --> R x))"
-  and "P t | Q t"
-  shows "R t"
   using assms by smt2
 
 
@@ -224,9 +208,9 @@ lemma
   "P' x \<Longrightarrow> P' x"
   "P \<Longrightarrow> P \<or> Q"
   "Q \<Longrightarrow> P \<or> Q"
-  "\<not>P \<Longrightarrow> P \<longrightarrow> Q"
+  "\<not> P \<Longrightarrow> P \<longrightarrow> Q"
   "Q \<Longrightarrow> P \<longrightarrow> Q"
-  "\<lbrakk>P; \<not>Q\<rbrakk> \<Longrightarrow> \<not>(P \<longrightarrow> Q)"
+  "\<lbrakk>P; \<not> Q\<rbrakk> \<Longrightarrow> \<not> (P \<longrightarrow> Q)"
   "P' x \<equiv> P' x"
   "P' x \<equiv> Q' x \<Longrightarrow> P' x = Q' x"
   "P' x = Q' x \<Longrightarrow> P' x \<equiv> Q' x"
@@ -234,7 +218,7 @@ lemma
   "x \<equiv> y \<Longrightarrow> (f x :: 'b::type) \<equiv> f y"
   "(\<And>x. g x) \<Longrightarrow> g a \<or> a"
   "(\<And>x y. h x y \<and> h y x) \<Longrightarrow> \<forall>x. h x x"
-  "(p \<or> q) \<and> \<not>p \<Longrightarrow> q"
+  "(p \<or> q) \<and> \<not> p \<Longrightarrow> q"
   "(a \<and> b) \<or> (c \<and> d) \<Longrightarrow> (a \<and> b) \<or> (c \<and> d)"
   by smt2+
 
@@ -343,12 +327,12 @@ lemma
   "x < y \<longrightarrow> 3 * x < 3 * y"
   "x < y \<longrightarrow> x \<le> y"
   "(x < y) = (x + 1 \<le> y)"
-  "\<not>(x < x)"
+  "\<not> (x < x)"
   "x \<le> y \<longrightarrow> y \<le> z \<longrightarrow> x \<le> z"
   "x < y \<longrightarrow> y \<le> z \<longrightarrow> x \<le> z"
   "x \<le> y \<longrightarrow> y < z \<longrightarrow> x \<le> z"
   "x < y \<longrightarrow> y < z \<longrightarrow> x < z"
-  "x < y \<and> y < z \<longrightarrow> \<not>(z < x)"
+  "x < y \<and> y < z \<longrightarrow> \<not> (z < x)"
   by smt2+
 
 
@@ -358,7 +342,7 @@ lemma
   "(0::int) = 0"
   "(0::int) = (- 0)"
   "(1::int) = 1"
-  "\<not>(-1 = (1::int))"
+  "\<not> (-1 = (1::int))"
   "(0::int) < 1"
   "(0::int) \<le> 1"
   "-123 + 345 < (567::int)"
@@ -498,12 +482,12 @@ lemma
   "x < y \<longrightarrow> 3 * x < 3 * y"
   "x < y \<longrightarrow> x \<le> y"
   "(x < y) = (x + 1 \<le> y)"
-  "\<not>(x < x)"
+  "\<not> (x < x)"
   "x \<le> y \<longrightarrow> y \<le> z \<longrightarrow> x \<le> z"
   "x < y \<longrightarrow> y \<le> z \<longrightarrow> x \<le> z"
   "x \<le> y \<longrightarrow> y < z \<longrightarrow> x \<le> z"
   "x < y \<longrightarrow> y < z \<longrightarrow> x < z"
-  "x < y \<and> y < z \<longrightarrow> \<not>(z < x)"
+  "x < y \<and> y < z \<longrightarrow> \<not> (z < x)"
   by smt2+
 
 
@@ -514,7 +498,7 @@ lemma
   "(0::real) = -0"
   "(0::real) = (- 0)"
   "(1::real) = 1"
-  "\<not>(-1 = (1::real))"
+  "\<not> (-1 = (1::real))"
   "(0::real) < 1"
   "(0::real) \<le> 1"
   "-123 + 345 < (567::real)"
@@ -608,12 +592,12 @@ lemma
   "x \<le> y \<longrightarrow> 3 * x \<le> 3 * y"
   "x < y \<longrightarrow> 3 * x < 3 * y"
   "x < y \<longrightarrow> x \<le> y"
-  "\<not>(x < x)"
+  "\<not> (x < x)"
   "x \<le> y \<longrightarrow> y \<le> z \<longrightarrow> x \<le> z"
   "x < y \<longrightarrow> y \<le> z \<longrightarrow> x \<le> z"
   "x \<le> y \<longrightarrow> y < z \<longrightarrow> x \<le> z"
   "x < y \<longrightarrow> y < z \<longrightarrow> x < z"
-  "x < y \<and> y < z \<longrightarrow> \<not>(z < x)"
+  "x < y \<and> y < z \<longrightarrow> \<not> (z < x)"
   by smt2+
 
 
