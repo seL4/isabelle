@@ -26,19 +26,40 @@ sig
     fixes: string list,
     is_fix_step: bool}
 
-  (*type and term parsers*)
-  type type_parser = SMTLIB2.tree * typ list -> typ option
-  type term_parser = SMTLIB2.tree * term list -> term option
-  val add_type_parser: type_parser -> Context.generic -> Context.generic
-  val add_term_parser: term_parser -> Context.generic -> Context.generic
-
   (*proof parser*)
   val parse: typ Symtab.table -> term Symtab.table -> string list ->
     Proof.context -> z3_step list * Proof.context
-end
+end;
 
 structure Z3_New_Proof: Z3_NEW_PROOF =
 struct
+
+open SMTLIB2_Proof
+
+
+(* proof parser context *)
+
+fun next_id ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
+  (id, mk_context ctxt (id + 1) syms typs funs extra)
+
+fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
+  let
+    fun bind (_, v as (_, T)) t = Logic.all_const T $ Term.absfree v t
+
+    val needs_inferT = equal Term.dummyT orf Term.is_TVar
+    val needs_infer = Term.exists_type (Term.exists_subtype needs_inferT)
+    fun infer_types ctxt =
+      singleton (Type_Infer_Context.infer_types ctxt) #>
+      singleton (Proof_Context.standard_term_check_finish ctxt)
+    fun infer ctxt t = if needs_infer t then infer_types ctxt t else t
+
+    type bindings = (string * (string * typ)) list
+    val (t, {ctxt=ctxt', extra=names, ...}: (bindings, 'b) context) =
+      f (mk_context ctxt id syms typs funs [])
+    val t' = infer ctxt' (fold_rev bind names (HOLogic.mk_Trueprop t))
+
+  in ((t', map fst names), mk_context ctxt id syms typs funs extra) end
+
 
 (* proof rules *)
 
@@ -99,9 +120,8 @@ fun rule_of_string name =
 
 fun string_of_rule (Th_Lemma kind) = "th-lemma " ^ kind
   | string_of_rule r =
-      let fun eq_rule (s, r') = if r = r' then SOME s else NONE 
+      let fun eq_rule (s, r') = if r = r' then SOME s else NONE
       in the (Symtab.get_first eq_rule rule_names) end
-
 
 
 (* proofs *)
@@ -129,271 +149,14 @@ fun mk_step id rule prems concl fixes is_fix_step =
     is_fix_step=is_fix_step}
 
 
-
-(* core type and term parser *)
-
-fun core_type_parser (SMTLIB2.Sym "Bool", []) = SOME @{typ HOL.bool}
-  | core_type_parser (SMTLIB2.Sym "Int", []) = SOME @{typ Int.int}
-  | core_type_parser _ = NONE
-
-fun mk_unary n t =
-  let val T = fastype_of t
-  in Const (n, T --> T) $ t end
-
-fun mk_binary' n T U t1 t2 = Const (n, [T, T] ---> U) $ t1 $ t2
-
-fun mk_binary n t1 t2 =
-  let val T = fastype_of t1
-  in mk_binary' n T T t1 t2 end
-
-fun mk_rassoc f t ts =
-  let val us = rev (t :: ts)
-  in fold f (tl us) (hd us) end
-
-fun mk_lassoc f t ts = fold (fn u1 => fn u2 => f u2 u1) ts t
-
-fun mk_lassoc' n = mk_lassoc (mk_binary n)
-
-fun mk_binary_pred n S t1 t2 =
-  let
-    val T1 = fastype_of t1
-    val T2 = fastype_of t2
-    val T =
-      if T1 <> Term.dummyT then T1
-      else if T2 <> Term.dummyT then T2
-      else TVar (("?a", serial ()), S)
-  in mk_binary' n T @{typ HOL.bool} t1 t2 end
-
-fun mk_less t1 t2 = mk_binary_pred @{const_name ord_class.less} @{sort linorder} t1 t2
-fun mk_less_eq t1 t2 = mk_binary_pred @{const_name ord_class.less_eq} @{sort linorder} t1 t2
-
-fun core_term_parser (SMTLIB2.Sym "true", _) = SOME @{const HOL.True}
-  | core_term_parser (SMTLIB2.Sym "false", _) = SOME @{const HOL.False}
-  | core_term_parser (SMTLIB2.Sym "not", [t]) = SOME (HOLogic.mk_not t)
-  | core_term_parser (SMTLIB2.Sym "and", t :: ts) = SOME (mk_rassoc (curry HOLogic.mk_conj) t ts)
-  | core_term_parser (SMTLIB2.Sym "or", t :: ts) = SOME (mk_rassoc (curry HOLogic.mk_disj) t ts)
-  | core_term_parser (SMTLIB2.Sym "=>", [t1, t2]) = SOME (HOLogic.mk_imp (t1, t2))
-  | core_term_parser (SMTLIB2.Sym "implies", [t1, t2]) = SOME (HOLogic.mk_imp (t1, t2))
-  | core_term_parser (SMTLIB2.Sym "=", [t1, t2]) = SOME (HOLogic.mk_eq (t1, t2))
-  | core_term_parser (SMTLIB2.Sym "~", [t1, t2]) = SOME (HOLogic.mk_eq (t1, t2))
-  | core_term_parser (SMTLIB2.Sym "ite", [t1, t2, t3]) =
-      let
-        val T = fastype_of t2
-        val c = Const (@{const_name HOL.If}, [@{typ HOL.bool}, T, T] ---> T)
-      in SOME (c $ t1 $ t2 $ t3) end
-  | core_term_parser (SMTLIB2.Num i, []) = SOME (HOLogic.mk_number @{typ Int.int} i)
-  | core_term_parser (SMTLIB2.Sym "-", [t]) = SOME (mk_unary @{const_name uminus_class.uminus} t)
-  | core_term_parser (SMTLIB2.Sym "~", [t]) = SOME (mk_unary @{const_name uminus_class.uminus} t)
-  | core_term_parser (SMTLIB2.Sym "+", t :: ts) =
-      SOME (mk_lassoc' @{const_name plus_class.plus} t ts)
-  | core_term_parser (SMTLIB2.Sym "-", t :: ts) =
-      SOME (mk_lassoc' @{const_name minus_class.minus} t ts)
-  | core_term_parser (SMTLIB2.Sym "*", t :: ts) =
-      SOME (mk_lassoc' @{const_name times_class.times} t ts)
-  | core_term_parser (SMTLIB2.Sym "div", [t1, t2]) = SOME (mk_binary @{const_name SMT2.z3div} t1 t2)
-  | core_term_parser (SMTLIB2.Sym "mod", [t1, t2]) = SOME (mk_binary @{const_name SMT2.z3mod} t1 t2)
-  | core_term_parser (SMTLIB2.Sym "<", [t1, t2]) = SOME (mk_less t1 t2)
-  | core_term_parser (SMTLIB2.Sym ">", [t1, t2]) = SOME (mk_less t2 t1)
-  | core_term_parser (SMTLIB2.Sym "<=", [t1, t2]) = SOME (mk_less_eq t1 t2)
-  | core_term_parser (SMTLIB2.Sym ">=", [t1, t2]) = SOME (mk_less_eq t2 t1)
-  | core_term_parser _ = NONE
-
-
-
-(* type and term parsers *)
-
-type type_parser = SMTLIB2.tree * typ list -> typ option
-
-type term_parser = SMTLIB2.tree * term list -> term option
-
-fun id_ord ((id1, _), (id2, _)) = int_ord (id1, id2)
-
-structure Parsers = Generic_Data
-(
-  type T = (int * type_parser) list * (int * term_parser) list
-  val empty : T = ([(serial (), core_type_parser)], [(serial (), core_term_parser)])
-  val extend = I
-  fun merge ((tys1, ts1), (tys2, ts2)) =
-    (Ord_List.merge id_ord (tys1, tys2), Ord_List.merge id_ord (ts1, ts2))
-)
-
-fun add_type_parser type_parser =
-  Parsers.map (apfst (Ord_List.insert id_ord (serial (), type_parser)))
-
-fun add_term_parser term_parser =
-  Parsers.map (apsnd (Ord_List.insert id_ord (serial (), term_parser)))
-
-fun get_type_parsers ctxt = map snd (fst (Parsers.get (Context.Proof ctxt)))
-fun get_term_parsers ctxt = map snd (snd (Parsers.get (Context.Proof ctxt)))
-
-fun apply_parsers parsers x =
-  let
-    fun apply [] = NONE
-      | apply (parser :: parsers) =
-          (case parser x of
-            SOME y => SOME y
-          | NONE => apply parsers)
-  in apply parsers end
-
-
-
-(* proof parser context *)
-
-datatype shared = Tree of SMTLIB2.tree | Term of term | Proof of z3_node | None
-
-type 'a context = {
-  ctxt: Proof.context,
-  id: int,
-  syms: shared Symtab.table,
-  typs: typ Symtab.table,
-  funs: term Symtab.table,
-  extra: 'a}
-
-fun mk_context ctxt id syms typs funs extra: 'a context =
-  {ctxt=ctxt, id=id, syms=syms, typs=typs, funs=funs, extra=extra}
-
-fun empty_context ctxt typs funs = mk_context ctxt 1 Symtab.empty typs funs []
-
-fun ctxt_of ({ctxt, ...}: 'a context) = ctxt
-
-fun next_id ({ctxt, id, syms, typs, funs, extra}: 'a context) =
-  (id, mk_context ctxt (id + 1) syms typs funs extra)
-
-fun lookup_binding ({syms, ...}: 'a context) =
-  the_default None o Symtab.lookup syms
-
-fun map_syms f ({ctxt, id, syms, typs, funs, extra}: 'a context) =
-  mk_context ctxt id (f syms) typs funs extra
-
-fun update_binding b = map_syms (Symtab.update b)
-
-fun with_bindings bs f cx =
-  let val bs' = map (lookup_binding cx o fst) bs
-  in
-    cx
-    |> fold update_binding bs
-    |> f
-    ||> fold2 (fn (name, _) => update_binding o pair name) bs bs'
-  end
-
-fun lookup_typ ({typs, ...}: 'a context) = Symtab.lookup typs
-fun lookup_fun ({funs, ...}: 'a context) = Symtab.lookup funs
-
-fun fresh_fun add name n T ({ctxt, id, syms, typs, funs, extra}: 'a context) =
-  let
-    val (n', ctxt') = yield_singleton Variable.variant_fixes n ctxt
-    val t = Free (n', T)
-    val funs' = Symtab.update (name, t) funs
-  in (t, mk_context ctxt' id syms typs funs' (add (n', T) extra)) end
-
-fun declare_fun name n T = snd o fresh_fun cons name n T
-fun declare_free name n T = fresh_fun (cons o pair name) name n T
-
-fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: 'a context) =
-  let
-    fun bind (_, v as (_, T)) t = Logic.all_const T $ Term.absfree v t
-
-    val needs_inferT = equal Term.dummyT orf Term.is_TVar
-    val needs_infer = Term.exists_type (Term.exists_subtype needs_inferT)
-    fun infer_types ctxt =
-      singleton (Type_Infer_Context.infer_types ctxt) #>
-      singleton (Proof_Context.standard_term_check_finish ctxt)
-    fun infer ctxt t = if needs_infer t then infer_types ctxt t else t
-
-    type bindings = (string * (string * typ)) list
-    val (t, {ctxt=ctxt', extra=names, ...}: bindings context) =
-      f (mk_context ctxt id syms typs funs [])
-    val t' = infer ctxt' (fold_rev bind names (HOLogic.mk_Trueprop t))
-   
-  in ((t', map fst names), mk_context ctxt id syms typs funs extra) end
-
-
-
 (* proof parser *)
-
-exception Z3_PARSE of string * SMTLIB2.tree
-
-val desymbolize = Name.desymbolize (SOME false) o perhaps (try (unprefix "?"))
-
-fun parse_type cx ty Ts =
-  (case apply_parsers (get_type_parsers (ctxt_of cx)) (ty, Ts) of
-    SOME T => T
-  | NONE =>
-      (case ty of
-        SMTLIB2.Sym name =>
-          (case lookup_typ cx name of
-            SOME T => T
-          | NONE => raise Z3_PARSE ("unknown Z3 type", ty))
-      | _ => raise Z3_PARSE ("bad Z3 type format", ty)))
-
-fun parse_term t ts cx =
-  (case apply_parsers (get_term_parsers (ctxt_of cx)) (t, ts) of
-    SOME u => (u, cx)
-  | NONE =>
-      (case t of
-        SMTLIB2.Sym name =>
-          (case lookup_fun cx name of
-            SOME u => (Term.list_comb (u, ts), cx)
-          | NONE =>
-              if null ts then declare_free name (desymbolize name) Term.dummyT cx
-              else raise Z3_PARSE ("bad Z3 term", t))
-      | _ => raise Z3_PARSE ("bad Z3 term format", t)))
-
-fun type_of cx ty =
-  (case try (parse_type cx ty) [] of
-    SOME T => T
-  | NONE =>
-      (case ty of
-        SMTLIB2.S (ty' :: tys) => parse_type cx ty' (map (type_of cx) tys)
-      | _ => raise Z3_PARSE ("bad Z3 type", ty)))
-
-fun dest_var cx (SMTLIB2.S [SMTLIB2.Sym name, ty]) = (name, (desymbolize name, type_of cx ty))
-  | dest_var _ v = raise Z3_PARSE ("bad Z3 quantifier variable format", v)
-
-fun dest_body (SMTLIB2.S (SMTLIB2.Sym "!" :: body :: _)) = dest_body body
-  | dest_body body = body
-
-fun dest_binding (SMTLIB2.S [SMTLIB2.Sym name, t]) = (name, Tree t)
-  | dest_binding b = raise Z3_PARSE ("bad Z3 let binding format", b)
-
-fun term_of t cx =
-  (case t of
-    SMTLIB2.S [SMTLIB2.Sym "forall", SMTLIB2.S vars, body] =>
-      quant HOLogic.mk_all vars body cx
-  | SMTLIB2.S [SMTLIB2.Sym "exists", SMTLIB2.S vars, body] =>
-      quant HOLogic.mk_exists vars body cx
-  | SMTLIB2.S [SMTLIB2.Sym "let", SMTLIB2.S bindings, body] =>
-      with_bindings (map dest_binding bindings) (term_of body) cx
-  | SMTLIB2.S (SMTLIB2.Sym "!" :: t :: _) => term_of t cx
-  | SMTLIB2.S (f :: args) =>
-      cx
-      |> fold_map term_of args
-      |-> parse_term f
-  | SMTLIB2.Sym name =>
-      (case lookup_binding cx name of
-        Tree u =>
-          cx
-          |> term_of u
-          |-> (fn u' => pair u' o update_binding (name, Term u'))
-      | Term u => (u, cx)
-      | None => parse_term t [] cx
-      | _ => raise Z3_PARSE ("bad Z3 term format", t))
-  | _ => parse_term t [] cx)
-
-and quant q vars body cx =
-  let val vs = map (dest_var cx) vars
-  in
-    cx
-    |> with_bindings (map (apsnd (Term o Free)) vs) (term_of (dest_body body))
-    |>> fold_rev (fn (_, (n, T)) => fn t => q (n, T, t)) vs
-  end
 
 fun rule_of (SMTLIB2.Sym name) = rule_of_string name
   | rule_of (SMTLIB2.S (SMTLIB2.Sym "_" :: SMTLIB2.Sym name :: args)) =
       (case (name, args) of
         ("th-lemma", SMTLIB2.Sym kind :: _) => Th_Lemma kind
       | _ => rule_of_string name)
-  | rule_of r = raise Z3_PARSE ("bad Z3 proof rule format", r)
+  | rule_of r = raise SMTLIB2_PARSE ("bad Z3 proof rule format", r)
 
 fun node_of p cx =
   (case p of
@@ -404,7 +167,7 @@ fun node_of p cx =
           cx
           |> node_of p'
           |-> (fn node => pair node o update_binding (name, Proof node))
-      | _ => raise Z3_PARSE ("bad Z3 proof format", p))
+      | _ => raise SMTLIB2_PARSE ("bad Z3 proof format", p))
   | SMTLIB2.S [SMTLIB2.Sym "let", SMTLIB2.S bindings, p] =>
       with_bindings (map dest_binding bindings) (node_of p) cx
   | SMTLIB2.S (name :: parts) =>
@@ -418,13 +181,13 @@ fun node_of p cx =
         ||>> next_id
         |>> (fn ((prems, (t, ns)), id) => mk_node id r prems t ns)
       end
-  | _ => raise Z3_PARSE ("bad Z3 proof format", p))
+  | _ => raise SMTLIB2_PARSE ("bad Z3 proof format", p))
 
 fun dest_name (SMTLIB2.Sym name) = name
-  | dest_name t = raise Z3_PARSE ("bad name", t)
+  | dest_name t = raise SMTLIB2_PARSE ("bad name", t)
 
 fun dest_seq (SMTLIB2.S ts) = ts
-  | dest_seq t = raise Z3_PARSE ("bad Z3 proof format", t)
+  | dest_seq t = raise SMTLIB2_PARSE ("bad Z3 proof format", t)
 
 fun parse' (SMTLIB2.S (SMTLIB2.Sym "set-logic" :: _) :: ts) cx = parse' ts cx
   | parse' (SMTLIB2.S [SMTLIB2.Sym "declare-fun", n, tys, ty] :: ts) cx =
@@ -432,9 +195,9 @@ fun parse' (SMTLIB2.S (SMTLIB2.Sym "set-logic" :: _) :: ts) cx = parse' ts cx
         val name = dest_name n
         val Ts = map (type_of cx) (dest_seq tys)
         val T = type_of cx ty
-      in parse' ts (declare_fun name (desymbolize name) (Ts ---> T) cx) end
+      in parse' ts (declare_fun name (Ts ---> T) cx) end
   | parse' (SMTLIB2.S [SMTLIB2.Sym "proof", p] :: _) cx = node_of p cx
-  | parse' ts _ = raise Z3_PARSE ("bad Z3 proof declarations", SMTLIB2.S ts)
+  | parse' ts _ = raise SMTLIB2_PARSE ("bad Z3 proof declarations", SMTLIB2.S ts)
 
 fun parse_proof typs funs lines ctxt =
   let
@@ -443,7 +206,7 @@ fun parse_proof typs funs lines ctxt =
   in (node, ctxt_of cx) end
   handle SMTLIB2.PARSE (l, msg) =>
            error ("parsing error at line " ^ string_of_int l ^ ": " ^ msg)
-       | Z3_PARSE (msg, t) =>
+       | SMTLIB2_PARSE (msg, t) =>
            error (msg ^ ": " ^ SMTLIB2.str_of t)
 
 
@@ -454,7 +217,7 @@ fun subst_of tyenv =
   let fun add (ix, (S, T)) = cons (TVar (ix, S), T)
   in Vartab.fold add tyenv [] end
 
-fun substTs_same subst = 
+fun substTs_same subst =
   let val applyT = Same.function (AList.lookup (op =) subst)
   in Term_Subst.map_atypsT_same applyT end
 
@@ -560,4 +323,4 @@ fun parse typs funs lines ctxt =
   let val (node, ctxt') = parse_proof typs funs lines ctxt
   in (linearize ctxt' node, ctxt') end
 
-end
+end;

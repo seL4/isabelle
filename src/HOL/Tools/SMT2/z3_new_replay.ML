@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
-Z3 proof replay.
+Z3 proof parsing and replay.
 *)
 
 signature Z3_NEW_REPLAY =
