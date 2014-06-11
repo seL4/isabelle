@@ -98,7 +98,6 @@ sig
   val is_bit_type : typ -> bool
   val is_word_type : typ -> bool
   val is_integer_like_type : typ -> bool
-  val is_record_type : typ -> bool
   val is_number_type : Proof.context -> typ -> bool
   val is_higher_order_type : typ -> bool
   val elem_type : typ -> typ
@@ -116,7 +115,6 @@ sig
   val is_pure_typedef : Proof.context -> typ -> bool
   val is_univ_typedef : Proof.context -> typ -> bool
   val is_data_type : Proof.context -> typ -> bool
-  val is_record_constr : string * typ -> bool
   val is_record_get : theory -> string * typ -> bool
   val is_record_update : theory -> string * typ -> bool
   val is_abs_fun : Proof.context -> string * typ -> bool
@@ -523,8 +521,6 @@ fun is_word_type (Type (@{type_name word}, _)) = true
 
 val is_integer_like_type = is_iterator_type orf is_integer_type orf is_word_type
 
-val is_record_type = not o null o Record.dest_recTs
-
 fun is_frac_type ctxt (Type (s, [])) =
     s |> AList.defined (op =) (#frac_types (Data.get (Context.Proof ctxt)))
   | is_frac_type _ _ = false
@@ -713,8 +709,7 @@ fun is_pure_typedef ctxt (T as Type (s, _)) =
     is_frac_type ctxt T orelse
     (is_raw_typedef ctxt s andalso
      not (is_raw_free_datatype ctxt s orelse is_raw_quot_type ctxt T orelse
-          is_codatatype ctxt T orelse is_record_type T orelse
-          is_integer_like_type T))
+       is_codatatype ctxt T orelse is_integer_like_type T))
   | is_pure_typedef _ _ = false
 
 fun is_univ_typedef ctxt (Type (s, _)) =
@@ -750,18 +745,10 @@ fun all_record_fields thy T =
   end
   handle TYPE _ => []
 
-fun is_record_constr (s, T) =
-  String.isSuffix Record.extN s andalso
-  let val dataT = body_type T in
-    is_record_type dataT andalso
-    s = unsuffix Record.ext_typeN (fst (dest_Type dataT)) ^ Record.extN
-  end
-
 val num_record_fields = Integer.add 1 o length o fst oo Record.get_extT_fields
 
 fun no_of_record_field thy s T1 =
-  find_index (curry (op =) s o fst)
-             (Record.get_extT_fields thy T1 ||> single |> op @)
+  find_index (curry (op =) s o fst) (Record.get_extT_fields thy T1 ||> single |> op @)
 
 fun is_record_get thy (s, Type (@{type_name fun}, [T1, _])) =
     exists (curry (op =) s o fst) (all_record_fields thy T1)
@@ -769,8 +756,7 @@ fun is_record_get thy (s, Type (@{type_name fun}, [T1, _])) =
 
 fun is_record_update thy (s, T) =
   String.isSuffix Record.updateN s andalso
-  exists (curry (op =) (unsuffix Record.updateN s) o fst)
-         (all_record_fields thy (body_type T))
+  exists (curry (op =) (unsuffix Record.updateN s) o fst) (all_record_fields thy (body_type T))
   handle TYPE _ => false
 
 fun is_abs_fun ctxt (s, Type (@{type_name fun}, [_, Type (s', _)])) =
@@ -862,7 +848,7 @@ fun is_nonfree_constr ctxt (s, T) =
                  @{const_name Quot}, @{const_name Zero_Rep},
                  @{const_name Suc_Rep}] s orelse
   let val (x as (_, T)) = (s, unarize_unbox_etc_type T) in
-    is_raw_free_datatype_constr ctxt x orelse is_record_constr x orelse
+    is_raw_free_datatype_constr ctxt x orelse
     (is_abs_fun ctxt x andalso is_pure_typedef ctxt (range_type T)) orelse
     is_registered_coconstr ctxt x
   end
@@ -988,43 +974,31 @@ fun distinctness_formula T =
 fun zero_const T = Const (@{const_name zero_class.zero}, T)
 fun suc_const T = Const (@{const_name Suc}, T --> T)
 
-fun uncached_data_type_constrs ({thy, ctxt, ...} : hol_context)
-                               (T as Type (s, _)) =
+fun uncached_data_type_constrs ({thy, ctxt, ...} : hol_context) (T as Type (s, _)) =
     if is_interpreted_type s then
       []
     else
-      (case AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
-                         s of
+      (case AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt))) s of
          SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type T)) xs'
        | _ =>
          if is_frac_type ctxt T then
            case typedef_info ctxt s of
              SOME {abs_type, rep_type, Abs_name, ...} =>
-             [(Abs_name,
-               varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
+             [(Abs_name, varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
            | NONE => [] (* impossible *)
          else
            case Ctr_Sugar.ctr_sugar_of ctxt s of
              SOME {ctrs, ...} =>
              map (apsnd (repair_constr_type T) o dest_Const) ctrs
            | NONE =>
-             if is_record_type T then
-               let
-                 val s' = unsuffix Record.ext_typeN s ^ Record.extN
-                 val T' = (Record.get_extT_fields thy T
-                          |> apsnd single |> uncurry append |> map snd) ---> T
-               in [(s', T')] end
-             else if is_raw_quot_type ctxt T then
+             if is_raw_quot_type ctxt T then
                [(@{const_name Quot}, rep_type_for_quot_type ctxt T --> T)]
              else case typedef_info ctxt s of
                SOME {abs_type, rep_type, Abs_name, ...} =>
-               [(Abs_name,
-                 varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
+               [(Abs_name, varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
              | NONE =>
-               if T = @{typ ind} then
-                 [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
-               else
-                 [])
+               if T = @{typ ind} then [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
+               else [])
   | uncached_data_type_constrs _ _ = []
 
 fun data_type_constrs (hol_ctxt as {constr_cache, ...}) T =
@@ -1218,8 +1192,7 @@ fun s_beta_norm Ts t =
 fun discr_term_for_constr hol_ctxt (x as (s, T)) =
   let val dataT = body_type T in
     if s = @{const_name Suc} then
-      Abs (Name.uu, dataT,
-           @{const Not} $ HOLogic.mk_eq (zero_const dataT, Bound 0))
+      Abs (Name.uu, dataT, @{const Not} $ HOLogic.mk_eq (zero_const dataT, Bound 0))
     else if length (data_type_constrs hol_ctxt dataT) >= 2 then
       Const (discr_for_constr x)
     else
@@ -1407,10 +1380,8 @@ fun arity_of_built_in_const (s, T) =
         SOME n => SOME n
       | NONE =>
         case s of
-          @{const_name zero_class.zero} =>
-          if is_iterator_type T then SOME 0 else NONE
-        | @{const_name Suc} =>
-          if is_iterator_type (domain_type T) then SOME 0 else NONE
+          @{const_name zero_class.zero} => if is_iterator_type T then SOME 0 else NONE
+        | @{const_name Suc} => if is_iterator_type (domain_type T) then SOME 0 else NONE
         | _ => if is_fun_type T andalso is_set_like_type (domain_type T) then
                  AList.lookup (op =) built_in_set_like_consts s
                else
@@ -1674,8 +1645,7 @@ fun optimized_record_get (hol_ctxt as {thy, ctxt, ...}) s rec_T res_T t =
     | j => select_nth_constr_arg ctxt constr_x t j res_T
   end
 
-fun optimized_record_update (hol_ctxt as {thy, ctxt, ...}) s rec_T fun_t
-                            rec_t =
+fun optimized_record_update (hol_ctxt as {thy, ctxt, ...}) s rec_T fun_t rec_t =
   let
     val constr_x as (_, constr_T) = hd (data_type_constrs hol_ctxt rec_T)
     val Ts = binder_types constr_T
@@ -2079,8 +2049,7 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, ...}) T =
     val n_var = Var (("n", 0), iter_T)
     val n_var_minus_1 =
       Const (@{const_name safe_The}, (iter_T --> bool_T) --> iter_T)
-      $ Abs ("m", iter_T, HOLogic.eq_const iter_T
-                          $ (suc_const iter_T $ Bound 0) $ n_var)
+      $ Abs ("m", iter_T, HOLogic.eq_const iter_T $ (suc_const iter_T $ Bound 0) $ n_var)
     val x_var = Var (("x", 0), T)
     val y_var = Var (("y", 0), T)
     fun bisim_const T = Const (@{const_name bisim}, [iter_T, T, T] ---> bool_T)
@@ -2100,8 +2069,7 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, ...}) T =
   in
     [HOLogic.mk_imp
        (HOLogic.mk_disj (HOLogic.eq_const iter_T $ n_var $ zero_const iter_T,
-            s_betapply [] (optimized_case_def hol_ctxt [] T bool_T
-                                              (map case_func xs), x_var)),
+            s_betapply [] (optimized_case_def hol_ctxt [] T bool_T (map case_func xs), x_var)),
         bisim_const T $ n_var $ x_var $ y_var),
      HOLogic.eq_const pred_T $ (bisim_const T $ bisim_max $ x_var)
      $ Abs (Name.uu, T, HOLogic.mk_eq (x_var, Bound 0))]
