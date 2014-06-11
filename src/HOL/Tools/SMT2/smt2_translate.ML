@@ -104,7 +104,7 @@ fun add_typ T proper (cx as (names, typs, terms)) =
 fun add_fun t sort (cx as (names, typs, terms)) =
   (case Termtab.lookup terms t of
     SOME (name, _) => (name, cx)
-  | NONE => 
+  | NONE =>
       let
         val sugg = Name.desymbolize (SOME false) (suggested_name_of_term t) ^ safe_suffix
         val (name, names') = Name.variant sugg names
@@ -214,7 +214,7 @@ fun eta_expand ctxt funcs =
           | (u, ts) => Term.list_comb (u, map expand ts))
 
     and abs_expand (n, T, t) = Abs (n, T, expand t)
-  
+
   in map expand end
 
 end
@@ -246,7 +246,7 @@ local
       val (Ts, T) = Term.strip_type (Term.type_of t)
     in find_min 0 (take i (rev Ts)) T end
 
-  fun app u (t, T) = (Const (@{const_name SMT2.fun_app}, T --> T) $ t $ u, Term.range_type T)
+  fun app u (t, T) = (Const (@{const_name fun_app}, T --> T) $ t $ u, Term.range_type T)
 
   fun apply i t T ts =
     let
@@ -264,7 +264,7 @@ fun intro_explicit_application ctxt funcs ts =
       if is_some (Termtab.lookup funcs t) then Term.list_comb (t, ts)
       else apply (the (Termtab.lookup arities' t)) t T ts
 
-    fun in_list T f t = HOLogic.mk_list T (map f (HOLogic.dest_list t))
+    fun in_list T f t = SMT2_Util.mk_symb_list T (map f (SMT2_Util.dest_symb_list t))
 
     fun traverse Ts t =
       (case Term.strip_comb t of
@@ -286,17 +286,17 @@ fun intro_explicit_application ctxt funcs ts =
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
       | (Abs (n, T, u), ts) => traverses Ts (Abs (n, T, traverse (T::Ts) u)) ts
       | (u, ts) => traverses Ts u ts)
-    and in_trigger Ts ((c as @{const SMT2.trigger}) $ p $ t) = c $ in_pats Ts p $ traverse Ts t
+    and in_trigger Ts ((c as @{const trigger}) $ p $ t) = c $ in_pats Ts p $ traverse Ts t
       | in_trigger Ts t = traverse Ts t
     and in_pats Ts ps =
-      in_list @{typ "SMT2.pattern list"} (in_list @{typ SMT2.pattern} (in_pat Ts)) ps
-    and in_pat Ts ((p as Const (@{const_name SMT2.pat}, _)) $ t) = p $ traverse Ts t
-      | in_pat Ts ((p as Const (@{const_name SMT2.nopat}, _)) $ t) = p $ traverse Ts t
+      in_list @{typ "pattern symb_list"} (in_list @{typ pattern} (in_pat Ts)) ps
+    and in_pat Ts ((p as Const (@{const_name pat}, _)) $ t) = p $ traverse Ts t
+      | in_pat Ts ((p as Const (@{const_name nopat}, _)) $ t) = p $ traverse Ts t
       | in_pat _ t = raise TERM ("bad pattern", [t])
     and traverses Ts t ts = Term.list_comb (t, map (traverse Ts) ts)
   in map (traverse []) ts end
 
-val fun_app_eq = mk_meta_eq @{thm SMT2.fun_app_def}
+val fun_app_eq = mk_meta_eq @{thm fun_app_def}
 
 end
 
@@ -323,7 +323,7 @@ in
 
 fun folify ctxt =
   let
-    fun in_list T f t = HOLogic.mk_list T (map_filter f (HOLogic.dest_list t))
+    fun in_list T f t = SMT2_Util.mk_symb_list T (map_filter f (SMT2_Util.dest_symb_list t))
 
     fun in_term pat t =
       (case Term.strip_comb t of
@@ -338,16 +338,16 @@ fun folify ctxt =
       | (Free c, ts) => Term.list_comb (Free c, map (in_term pat) ts)
       | _ => t)
 
-    and in_pat ((p as Const (@{const_name SMT2.pat}, _)) $ t) =
+    and in_pat ((p as Const (@{const_name pat}, _)) $ t) =
           p $ in_term true t
-      | in_pat ((p as Const (@{const_name SMT2.nopat}, _)) $ t) =
+      | in_pat ((p as Const (@{const_name nopat}, _)) $ t) =
           p $ in_term true t
       | in_pat t = raise TERM ("bad pattern", [t])
 
     and in_pats ps =
-      in_list @{typ "SMT2.pattern list"} (SOME o in_list @{typ SMT2.pattern} (try in_pat)) ps
+      in_list @{typ "pattern symb_list"} (SOME o in_list @{typ pattern} (try in_pat)) ps
 
-    and in_trigger ((c as @{const SMT2.trigger}) $ p $ t) = c $ in_pats p $ in_form t
+    and in_trigger ((c as @{const trigger}) $ p $ t) = c $ in_pats p $ in_form t
       | in_trigger t = in_form t
 
     and in_form t =
@@ -384,8 +384,8 @@ fun group_quant qname Ts (t as Const (q, _) $ Abs (_, T, u)) =
       if q = qname then group_quant qname (T :: Ts) u else (Ts, t)
   | group_quant _ Ts t = (Ts, t)
 
-fun dest_pat (Const (@{const_name SMT2.pat}, _) $ t) = (t, true)
-  | dest_pat (Const (@{const_name SMT2.nopat}, _) $ t) = (t, false)
+fun dest_pat (Const (@{const_name pat}, _) $ t) = (t, true)
+  | dest_pat (Const (@{const_name nopat}, _) $ t) = (t, false)
   | dest_pat t = raise TERM ("bad pattern", [t])
 
 fun dest_pats [] = I
@@ -395,8 +395,8 @@ fun dest_pats [] = I
       | (ps, [false]) => cons (SNoPat ps)
       | _ => raise TERM ("bad multi-pattern", ts))
 
-fun dest_trigger (@{const SMT2.trigger} $ tl $ t) =
-      (rev (fold (dest_pats o HOLogic.dest_list) (HOLogic.dest_list tl) []), t)
+fun dest_trigger (@{const trigger} $ tl $ t) =
+      (rev (fold (dest_pats o SMT2_Util.dest_symb_list) (SMT2_Util.dest_symb_list tl) []), t)
   | dest_trigger t = ([], t)
 
 fun dest_quant qn T t = quantifier qn |> Option.map (fn q =>
@@ -439,7 +439,7 @@ fun intermediate header dtyps builtin ctxt ts trx =
       | (u as Free (_, T), ts) => transs u T ts
       | (Bound i, []) => pair (SVar i)
       | _ => raise TERM ("bad SMT term", [t]))
- 
+
     and transs t T ts =
       let val (Us, U) = SMT2_Util.dest_funT (length ts) T
       in
@@ -463,7 +463,7 @@ structure Configs = Generic_Data
 
 fun add_config (cs, cfg) = Configs.map (SMT2_Util.dict_update (cs, cfg))
 
-fun get_config ctxt = 
+fun get_config ctxt =
   let val cs = SMT2_Config.solver_class_of ctxt
   in
     (case SMT2_Util.dict_get (Configs.get (Context.Proof ctxt)) cs of
@@ -491,11 +491,11 @@ fun translate ctxt comments ithms =
     fun mk_trigger ((q as Const (@{const_name All}, _)) $ Abs (n, T, t)) =
           q $ Abs (n, T, mk_trigger t)
       | mk_trigger (eq as (Const (@{const_name HOL.eq}, T) $ lhs $ _)) =
-          Term.domain_type T --> @{typ SMT2.pattern}
-          |> (fn T => Const (@{const_name SMT2.pat}, T) $ lhs)
-          |> HOLogic.mk_list @{typ SMT2.pattern} o single
-          |> HOLogic.mk_list @{typ "SMT2.pattern list"} o single
-          |> (fn t => @{const SMT2.trigger} $ t $ eq)
+          Term.domain_type T --> @{typ pattern}
+          |> (fn T => Const (@{const_name pat}, T) $ lhs)
+          |> SMT2_Util.mk_symb_list @{typ pattern} o single
+          |> SMT2_Util.mk_symb_list @{typ "pattern symb_list"} o single
+          |> (fn t => @{const trigger} $ t $ eq)
       | mk_trigger t = t
 
     val (ctxt2, ts3) =
@@ -505,7 +505,7 @@ fun translate ctxt comments ithms =
       |-> Lambda_Lifting.lift_lambdas NONE is_binder
       |-> (fn (ts', defs) => fn ctxt' =>
           map mk_trigger defs @ ts'
-          |> intro_explicit_application ctxt' funcs 
+          |> intro_explicit_application ctxt' funcs
           |> pair ctxt')
 
     val ((rewrite_rules, builtin), ts4) = folify ctxt2 ts3

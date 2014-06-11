@@ -164,8 +164,8 @@ fun core_term_parser (SMTLIB2.Sym "true", _) = SOME @{const HOL.True}
       SOME (mk_lassoc' @{const_name minus_class.minus} t ts)
   | core_term_parser (SMTLIB2.Sym "*", t :: ts) =
       SOME (mk_lassoc' @{const_name times_class.times} t ts)
-  | core_term_parser (SMTLIB2.Sym "div", [t1, t2]) = SOME (mk_binary @{const_name SMT2.z3div} t1 t2)
-  | core_term_parser (SMTLIB2.Sym "mod", [t1, t2]) = SOME (mk_binary @{const_name SMT2.z3mod} t1 t2)
+  | core_term_parser (SMTLIB2.Sym "div", [t1, t2]) = SOME (mk_binary @{const_name z3div} t1 t2)
+  | core_term_parser (SMTLIB2.Sym "mod", [t1, t2]) = SOME (mk_binary @{const_name z3mod} t1 t2)
   | core_term_parser (SMTLIB2.Sym "<", [t1, t2]) = SOME (mk_less t1 t2)
   | core_term_parser (SMTLIB2.Sym ">", [t1, t2]) = SOME (mk_less t2 t1)
   | core_term_parser (SMTLIB2.Sym "<=", [t1, t2]) = SOME (mk_less_eq t1 t2)

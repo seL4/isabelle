@@ -29,7 +29,7 @@ fun drop_fact_warning ctxt =
 (* general theorem normalizations *)
 
 (** instantiate elimination rules **)
- 
+
 local
   val (cpfalse, cfalse) = `SMT2_Util.mk_cprop (Thm.cterm_of @{theory} @{const False})
 
@@ -113,8 +113,8 @@ local
 
   fun proper_trigger t =
     t
-    |> these o try HOLogic.dest_list
-    |> map (map_filter dest_trigger o these o try HOLogic.dest_list)
+    |> these o try SMT2_Util.dest_symb_list
+    |> map (map_filter dest_trigger o these o try SMT2_Util.dest_symb_list)
     |> (fn [] => false | bss => forall eq_list bss)
 
   fun proper_quant inside f t =
@@ -185,16 +185,17 @@ local
             Pattern.matches thy (t', u) andalso not (t aconv u))
         in not (Term.exists_subterm some_match u) end
 
-  val pat = SMT2_Util.mk_const_pat @{theory} @{const_name SMT2.pat} SMT2_Util.destT1
+  val pat = SMT2_Util.mk_const_pat @{theory} @{const_name pat} SMT2_Util.destT1
   fun mk_pat ct = Thm.apply (SMT2_Util.instT' ct pat) ct
 
-  fun mk_clist T = pairself (Thm.cterm_of @{theory}) (HOLogic.cons_const T, HOLogic.nil_const T)
+  fun mk_clist T =
+    pairself (Thm.cterm_of @{theory}) (SMT2_Util.symb_cons_const T, SMT2_Util.symb_nil_const T)
   fun mk_list (ccons, cnil) f cts = fold_rev (Thm.mk_binop ccons o f) cts cnil
-  val mk_pat_list = mk_list (mk_clist @{typ SMT2.pattern})
-  val mk_mpat_list = mk_list (mk_clist @{typ "SMT2.pattern list"})  
+  val mk_pat_list = mk_list (mk_clist @{typ pattern})
+  val mk_mpat_list = mk_list (mk_clist @{typ "pattern symb_list"})
   fun mk_trigger ctss = mk_mpat_list (mk_pat_list mk_pat) ctss
 
-  val trigger_eq = mk_meta_eq @{lemma "p = SMT2.trigger t p" by (simp add: trigger_def)}
+  val trigger_eq = mk_meta_eq @{lemma "p = trigger t p" by (simp add: trigger_def)}
 
   fun insert_trigger_conv [] ct = Conv.all_conv ct
     | insert_trigger_conv ctss ct =
@@ -216,7 +217,7 @@ local
 
     in insert_trigger_conv (filter_mpats (get_mpats lhs)) ct end
 
-  fun has_trigger (@{const SMT2.trigger} $ _ $ _) = true
+  fun has_trigger (@{const trigger} $ _ $ _) = true
     | has_trigger _ = false
 
   fun try_trigger_conv cv ct =
@@ -234,7 +235,7 @@ fun trigger_conv ctxt =
 
 val setup_trigger =
   fold SMT2_Builtin.add_builtin_fun_ext''
-    [@{const_name SMT2.pat}, @{const_name SMT2.nopat}, @{const_name SMT2.trigger}]
+    [@{const_name pat}, @{const_name nopat}, @{const_name trigger}]
 
 end
 
@@ -317,7 +318,7 @@ in
 
 fun unfold_abs_min_max_conv ctxt =
   SMT2_Util.if_exists_conv (is_some o abs_min_max ctxt) (Conv.top_conv unfold_amm_conv ctxt)
-  
+
 val setup_abs_min_max = fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) abs_min_max_table
 
 end
@@ -481,18 +482,17 @@ local
 
   val schematic_consts_of =
     let
-      fun collect (@{const SMT2.trigger} $ p $ t) =
-            collect_trigger p #> collect t
+      fun collect (@{const trigger} $ p $ t) = collect_trigger p #> collect t
         | collect (t $ u) = collect t #> collect u
         | collect (Abs (_, _, t)) = collect t
-        | collect (t as Const (n, _)) = 
+        | collect (t as Const (n, _)) =
             if not (ignored n) then Monomorph.add_schematic_consts_of t else I
         | collect _ = I
       and collect_trigger t =
-        let val dest = these o try HOLogic.dest_list 
+        let val dest = these o try SMT2_Util.dest_symb_list
         in fold (fold collect_pat o dest) (dest t) end
-      and collect_pat (Const (@{const_name SMT2.pat}, _) $ t) = collect t
-        | collect_pat (Const (@{const_name SMT2.nopat}, _) $ t) = collect t
+      and collect_pat (Const (@{const_name pat}, _) $ t) = collect t
+        | collect_pat (Const (@{const_name nopat}, _) $ t) = collect t
         | collect_pat _ = I
     in (fn t => collect t Symtab.empty) end
 in

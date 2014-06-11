@@ -92,7 +92,7 @@ local
   val dest_conj2 = precomp destc @{thm conjunct2}
   fun dest_conj_rules t =
     dest_conj_term t |> Option.map (K (dest_conj1, dest_conj2))
-    
+
   fun destd f ct = f (Thm.dest_binop (Thm.dest_arg (Thm.dest_arg ct)))
   val dn1 = apfst Thm.dest_arg and dn2 = apsnd Thm.dest_arg
   val dest_disj1 = precomp (destd I) @{lemma "~(P | Q) ==> ~P" by fast}
@@ -251,7 +251,7 @@ fun join is_conj littab t =
     fun join1 (s, t) =
       (case lookup t of
         SOME lit => (s, lit)
-      | NONE => 
+      | NONE =>
           (case lookup_rule t of
             (rewrite, SOME lit) => (s, rewrite lit)
           | (_, NONE) => (s, comp (pairself join1 (dest t)))))

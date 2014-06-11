@@ -50,7 +50,7 @@ struct
 
 datatype ('a, 'b) kind = Ext of 'a | Int of 'b
 
-type ('a, 'b) ttab = ((typ * ('a, 'b) kind) Ord_List.T) SMT2_Util.dict 
+type ('a, 'b) ttab = ((typ * ('a, 'b) kind) Ord_List.T) SMT2_Util.dict
 
 fun typ_ord ((T, _), (U, _)) =
   let
@@ -120,7 +120,7 @@ fun lookup_builtin_typ ctxt =
 fun dest_builtin_typ ctxt T =
   (case lookup_builtin_typ ctxt T of
     SOME (_, Int (f, _)) => f T
-  | _ => NONE) 
+  | _ => NONE)
 
 fun is_builtin_typ_ext ctxt T =
   (case lookup_builtin_typ ctxt T of
@@ -205,7 +205,7 @@ fun dest_builtin ctxt c ts =
     | NONE => dest_builtin_fun ctxt c ts)
   end
 
-fun dest_builtin_fun_ext ctxt (c as (_, T)) ts =    
+fun dest_builtin_fun_ext ctxt (c as (_, T)) ts =
   (case lookup_builtin_fun ctxt c of
     SOME (_, Int f) => f ctxt T ts |> Option.map (fn (_, _, us, _) => us)
   | SOME (_, Ext f) => SOME (f ctxt T ts)

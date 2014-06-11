@@ -30,6 +30,12 @@ sig
   val under_quant: (term -> 'a) -> term -> 'a
   val is_number: term -> bool
 
+  (*symbolic lists*)
+  val symb_nil_const: typ -> term
+  val symb_cons_const: typ -> term
+  val mk_symb_list: typ -> term list -> term
+  val dest_symb_list: term -> term list
+
   (*patterns and instantiations*)
   val mk_const_pat: theory -> string -> (ctyp -> 'a) -> 'a * cterm
   val destT1: ctyp -> ctyp
@@ -142,6 +148,22 @@ val is_number =
   in is_num [] end
 
 
+(* symbolic lists *)
+
+fun symb_listT T = Type (@{type_name symb_list}, [T])
+
+fun symb_nil_const T = Const (@{const_name Symb_Nil}, symb_listT T)
+
+fun symb_cons_const T =
+  let val listT = symb_listT T in Const (@{const_name Symb_Cons}, T --> listT --> listT) end
+
+fun mk_symb_list T ts =
+  fold_rev (fn t => fn u => symb_cons_const T $ t $ u) ts (symb_nil_const T)
+
+fun dest_symb_list (Const (@{const_name Symb_Nil}, _)) = []
+  | dest_symb_list (Const (@{const_name Symb_Cons}, _) $ t $ u) = t :: dest_symb_list u
+
+
 (* patterns and instantiations *)
 
 fun mk_const_pat thy name destT =
@@ -160,7 +182,7 @@ fun instT' ct = instT (Thm.ctyp_of_term ct)
 
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt)
 
-fun typ_of ct = #T (Thm.rep_cterm ct) 
+fun typ_of ct = #T (Thm.rep_cterm ct)
 
 fun dest_cabs ct ctxt =
   (case Thm.term_of ct of
@@ -169,7 +191,7 @@ fun dest_cabs ct ctxt =
       in (snd (Thm.dest_abs (SOME n) ct), ctxt') end
   | _ => raise CTERM ("no abstraction", [ct]))
 
-val dest_all_cabs = repeat_yield (try o dest_cabs) 
+val dest_all_cabs = repeat_yield (try o dest_cabs)
 
 fun dest_cbinder ct ctxt =
   (case Thm.term_of ct of

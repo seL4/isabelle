@@ -29,7 +29,7 @@ fun apply ctxt ct =
     val net = Data.get (Context.Proof ctxt)
     val xthms = Net.match_term net (Thm.term_of ct)
 
-    fun select ct = map_filter (maybe_instantiate ct) xthms 
+    fun select ct = map_filter (maybe_instantiate ct) xthms
     fun select' ct =
       let val thm = Thm.trivial ct
       in map_filter (try (fn rule => rule COMP thm)) xthms end

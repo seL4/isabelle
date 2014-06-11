@@ -220,7 +220,7 @@ fun print_setup ctxt =
     val ns = if null names then ["(none)"] else sort_strings names
     val n = the_default "(none)" (solver_name_of ctxt)
     val opts = solver_options_of ctxt
-    
+
     val t = string_of_real (Config.get ctxt timeout)
 
     val certs_filename =

@@ -43,7 +43,7 @@ local
     let
       val lookup = if match then Net.match_term else Net.unify_term
       val xthms = lookup net (Thm.term_of ct)
-      fun select ct = map_filter (f (maybe_instantiate ct)) xthms 
+      fun select ct = map_filter (f (maybe_instantiate ct)) xthms
       fun select' ct =
         let val thm = Thm.trivial ct
         in map_filter (f (try (fn rule => rule COMP thm))) xthms end

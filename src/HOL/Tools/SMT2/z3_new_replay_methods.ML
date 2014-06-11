@@ -472,7 +472,7 @@ fun dest_eq_res _ _ _ = raise Fail "dest_eq_res" (* FIXME *)
 
 val quant_inst_rule = @{lemma "~P x | Q ==> ~(ALL x. P x) | Q" by fast}
 
-fun quant_inst ctxt _ t = prove ctxt t (fn _ => 
+fun quant_inst ctxt _ t = prove ctxt t (fn _ =>
   REPEAT_ALL_NEW (rtac quant_inst_rule)
   THEN' rtac @{thm excluded_middle})
 

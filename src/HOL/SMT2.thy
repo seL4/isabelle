@@ -5,14 +5,9 @@
 header {* Bindings to Satisfiability Modulo Theories (SMT) solvers based on SMT-LIB 2 *}
 
 theory SMT2
-imports List
+imports Divides
 keywords "smt2_status" :: diag
 begin
-
-ML_file "Tools/SMT2/smt2_util.ML"
-ML_file "Tools/SMT2/smt2_failure.ML"
-ML_file "Tools/SMT2/smt2_config.ML"
-
 
 subsection {* Triggers for quantifier instantiation *}
 
@@ -31,13 +26,20 @@ should mention at least all quantified variables of the preceding
 quantifier block.
 *}
 
+typedecl 'a symb_list
+
+consts
+  Symb_Nil :: "'a symb_list"
+  Symb_Cons :: "'a \<Rightarrow> 'a symb_list \<Rightarrow> 'a symb_list"
+
 typedecl pattern
 
 consts
   pat :: "'a \<Rightarrow> pattern"
   nopat :: "'a \<Rightarrow> pattern"
 
-definition trigger :: "pattern list list \<Rightarrow> bool \<Rightarrow> bool" where "trigger _ P = P"
+definition trigger :: "pattern symb_list symb_list \<Rightarrow> bool \<Rightarrow> bool" where
+  "trigger _ P = P"
 
 
 subsection {* Higher-order encoding *}
@@ -68,8 +70,8 @@ lemma nat_int': "\<forall>n. nat (int n) = n" by simp
 lemma int_nat_nneg: "\<forall>i. i \<ge> 0 \<longrightarrow> int (nat i) = i" by simp
 lemma int_nat_neg: "\<forall>i. i < 0 \<longrightarrow> int (nat i) = 0" by simp
 
-lemma nat_zero_as_int: "0 = nat 0" by (rule transfer_nat_int_numerals(1))
-lemma nat_one_as_int: "1 = nat 1" by (rule transfer_nat_int_numerals(2))
+lemma nat_zero_as_int: "0 = nat 0" by simp
+lemma nat_one_as_int: "1 = nat 1" by simp
 lemma nat_numeral_as_int: "numeral = (\<lambda>i. nat (numeral i))" by simp
 lemma nat_less_as_int: "op < = (\<lambda>a b. int a < int b)" by simp
 lemma nat_leq_as_int: "op \<le> = (\<lambda>a b. int a <= int b)" by simp
@@ -116,6 +118,9 @@ lemma mod_as_z3mod:
 
 subsection {* Setup *}
 
+ML_file "Tools/SMT2/smt2_util.ML"
+ML_file "Tools/SMT2/smt2_failure.ML"
+ML_file "Tools/SMT2/smt2_config.ML"
 ML_file "Tools/SMT2/smt2_builtin.ML"
 ML_file "Tools/SMT2/smt2_datatypes.ML"
 ML_file "Tools/SMT2/smt2_normalize.ML"
@@ -355,7 +360,7 @@ lemma [z3_new_rule]:
   "0 * x = 0"
   "1 * x = x"
   "x + y = y + x"
-  by auto
+  by (auto simp add: mult_2)
 
 lemma [z3_new_rule]:  (* for def-axiom *)
   "P = Q \<or> P \<or> Q"
@@ -386,8 +391,7 @@ lemma [z3_new_rule]:  (* for def-axiom *)
   "(if P then Q else \<not> R) \<or> P \<or> R"
   by auto
 
-hide_type (open) pattern
-hide_const fun_app z3div z3mod
-hide_const (open) trigger pat nopat
+hide_type (open) symb_list pattern
+hide_const (open) Symb_Nil Symb_Cons trigger pat nopat fun_app z3div z3mod
 
 end

@@ -71,8 +71,8 @@ fun replay_step ctxt assumed (step as Z3_New_Proof.Z3_Step {id, prems, fixes, ..
   in Inttab.update (id, (fixes, replay_thm ctxt assumed nthms step)) proofs end
 
 local
-  val remove_trigger = mk_meta_eq @{thm SMT2.trigger_def}
-  val remove_fun_app = mk_meta_eq @{thm SMT2.fun_app_def}
+  val remove_trigger = mk_meta_eq @{thm trigger_def}
+  val remove_fun_app = mk_meta_eq @{thm fun_app_def}
 
   fun rewrite_conv _ [] = Conv.all_conv
     | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)
@@ -97,7 +97,7 @@ fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
       assms
       |> map (apsnd (rewrite ctxt eqs'))
       |> map (apsnd (Conv.fconv_rule Thm.eta_conversion))
-      |> Z3_New_Replay_Util.thm_net_of snd 
+      |> Z3_New_Replay_Util.thm_net_of snd
 
     fun revert_conv ctxt = rewrite_conv ctxt eqs' then_conv Thm.eta_conversion
 
@@ -159,7 +159,7 @@ val intro_def_rules = @{lemma
 
 fun discharge_assms_tac rules =
   REPEAT (HEADGOAL (resolve_tac (intro_def_rules @ rules) ORELSE' SOLVED' discharge_sk_tac))
-  
+
 fun discharge_assms ctxt rules thm =
   (if Thm.nprems_of thm = 0 then
      thm
