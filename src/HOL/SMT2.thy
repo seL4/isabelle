@@ -200,6 +200,7 @@ options.
 *}
 
 declare [[cvc3_new_options = ""]]
+declare [[cvc4_new_options = ""]]
 declare [[z3_new_options = ""]]
 
 text {*

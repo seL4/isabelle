@@ -387,7 +387,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     SMT-LIB 2 and quantifiers.
 
 * Sledgehammer:
-  - "z3" can now produce Isar proofs
+  - Z3 can now produce Isar proofs.
   - MaSh overhaul:
       - New SML-based learning engines eliminate the dependency on Python
         and increase performance and reliability.
