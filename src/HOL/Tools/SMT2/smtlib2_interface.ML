@@ -59,7 +59,7 @@ end
 
 (* serialization *)
 
-(** header **)
+(** logic **)
 
 fun fst_int_ord ((i1, _), (i2, _)) = int_ord (i1, i2)
 
@@ -128,11 +128,11 @@ val assert_prefix = "a"
 fun assert_name_of_index i = assert_prefix ^ string_of_int i
 fun assert_index_of_name s = the_default ~1 (Int.fromString (unprefix assert_prefix s))
 
-fun serialize comments {header, sorts, dtyps, funcs} ts =
+fun serialize comments {logic, sorts, dtyps, funcs} ts =
   Buffer.empty
   |> fold (Buffer.add o enclose "; " "\n") comments
   |> Buffer.add "(set-option :produce-proofs true)\n"
-  |> Buffer.add header
+  |> Buffer.add logic
   |> fold (Buffer.add o enclose "(declare-sort " " 0)\n") (sort fast_string_ord sorts)
   |> (if null dtyps then I
     else Buffer.add (enclose "(declare-datatypes () (" "))\n"
@@ -148,7 +148,7 @@ fun serialize comments {header, sorts, dtyps, funcs} ts =
 (* interface *)
 
 fun translate_config ctxt = {
-  header = choose_logic ctxt,
+  logic = choose_logic ctxt,
   has_datatypes = false,
   serialize = serialize}
 

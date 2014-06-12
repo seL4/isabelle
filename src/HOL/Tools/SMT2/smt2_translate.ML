@@ -17,12 +17,12 @@ sig
 
   (*translation configuration*)
   type sign = {
-    header: string,
+    logic: string,
     sorts: string list,
     dtyps: (string * (string * (string * string) list) list) list list,
     funcs: (string * (string list * string)) list }
   type config = {
-    header: term list -> string,
+    logic: term list -> string,
     has_datatypes: bool,
     serialize: string list -> sign -> sterm list -> string }
   type replay_data = {
@@ -57,13 +57,13 @@ datatype sterm =
 (* translation configuration *)
 
 type sign = {
-  header: string,
+  logic: string,
   sorts: string list,
   dtyps: (string * (string * (string * string) list) list) list list,
   funcs: (string * (string list * string)) list }
 
 type config = {
-  header: term list -> string,
+  logic: term list -> string,
   has_datatypes: bool,
   serialize: string list -> sign -> sterm list -> string }
 
@@ -111,8 +111,8 @@ fun add_fun t sort (cx as (names, typs, terms)) =
         val terms' = Termtab.update (t, (name, sort)) terms
       in (name, (names', typs, terms')) end)
 
-fun sign_of header dtyps (_, typs, terms) = {
-  header = header,
+fun sign_of logic dtyps (_, typs, terms) = {
+  logic = logic,
   sorts = Typtab.fold (fn (_, (n, true)) => cons n | _ => I) typs [],
   dtyps = dtyps,
   funcs = Termtab.fold (fn (_, (n, SOME ss)) => cons (n,ss) | _ => I) terms []}
@@ -411,7 +411,7 @@ fun fold_map_pat f (SPat ts) = fold_map f ts #>> SPat
 
 (** translation from Isabelle terms into SMT intermediate terms **)
 
-fun intermediate header dtyps builtin ctxt ts trx =
+fun intermediate logic dtyps builtin ctxt ts trx =
   let
     fun transT (T as TFree _) = add_typ T true
       | transT (T as TVar _) = (fn _ => raise TYPE ("bad SMT type", [T], []))
@@ -448,7 +448,7 @@ fun intermediate header dtyps builtin ctxt ts trx =
       end
 
     val (us, trx') = fold_map trans ts trx
-  in ((sign_of (header ts) dtyps trx', us), trx') end
+  in ((sign_of (logic ts) dtyps trx', us), trx') end
 
 
 (* translation *)
@@ -474,7 +474,7 @@ fun get_config ctxt =
 
 fun translate ctxt comments ithms =
   let
-    val {header, has_datatypes, serialize} = get_config ctxt
+    val {logic, has_datatypes, serialize} = get_config ctxt
 
     fun no_dtyps (tr_context, ctxt) ts =
       ((Termtab.empty, [], tr_context, ctxt), ts)
@@ -512,7 +512,7 @@ fun translate ctxt comments ithms =
       |>> apfst (cons fun_app_eq)
   in
     (ts4, tr_context)
-    |-> intermediate header dtyps (builtin SMT2_Builtin.dest_builtin) ctxt2
+    |-> intermediate logic dtyps (builtin SMT2_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize comments)
     ||> replay_data_of ctxt2 rewrite_rules ithms
   end
