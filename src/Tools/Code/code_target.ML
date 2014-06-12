@@ -437,7 +437,7 @@ fun subevaluator mounted_serializer prepared_program syms all_public ((vs, ty), 
     val ty' = ITyVar v' `-> ty;
     val program = prepared_program
       |> Code_Symbol.Graph.new_node (Code_Symbol.value,
-          Code_Thingol.Fun (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE))
+          Code_Thingol.Fun (((vs', ty'), [(([IVar (SOME "dummy")], t), (NONE, true))]), NONE))
       |> fold (curry (perhaps o try o
           Code_Symbol.Graph.add_edge) Code_Symbol.value) syms;
     val (program_code, deresolve) =
