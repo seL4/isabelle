@@ -35,6 +35,9 @@ lemma space_borel[simp]: "space borel = UNIV"
 lemma space_in_borel[measurable]: "UNIV \<in> sets borel"
   unfolding borel_def by auto
 
+lemma sets_borel: "sets borel = sigma_sets UNIV {S. open S}"
+  unfolding borel_def by (rule sets_measure_of) simp
+
 lemma pred_Collect_borel[measurable (raw)]: "Measurable.pred borel P \<Longrightarrow> {x. P x} \<in> sets borel"
   unfolding borel_def pred_def by auto
 
@@ -801,6 +804,20 @@ lemma borel_measurable_min[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. min (g x) (f x) :: 'b::{second_countable_topology, dense_linorder, linorder_topology}) \<in> borel_measurable M"
   by (simp add: min_def)
 
+lemma borel_measurable_Min[measurable (raw)]:
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable M) \<Longrightarrow> (\<lambda>x. Min ((\<lambda>i. f i x)`I) :: 'b::{second_countable_topology, dense_linorder, linorder_topology}) \<in> borel_measurable M"
+proof (induct I rule: finite_induct)
+  case (insert i I) then show ?case
+    by (cases "I = {}") auto
+qed auto
+
+lemma borel_measurable_Max[measurable (raw)]:
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable M) \<Longrightarrow> (\<lambda>x. Max ((\<lambda>i. f i x)`I) :: 'b::{second_countable_topology, dense_linorder, linorder_topology}) \<in> borel_measurable M"
+proof (induct I rule: finite_induct)
+  case (insert i I) then show ?case
+    by (cases "I = {}") auto
+qed auto
+
 lemma borel_measurable_abs[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. \<bar>f x :: real\<bar>) \<in> borel_measurable M"
   unfolding abs_real_def by simp
@@ -873,6 +890,36 @@ lemma borel_measurable_real_floor: "(\<lambda>x::real. real \<lfloor>x\<rfloor>)
 lemma borel_measurable_real_natfloor:
   "f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. real (natfloor (f x))) \<in> borel_measurable M"
   by simp
+
+lemma borel_measurable_root [measurable]: "(root n) \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
+
+lemma borel_measurable_sqrt [measurable]: "sqrt \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
+
+lemma borel_measurable_power [measurable (raw)]:
+   fixes f :: "_ \<Rightarrow> 'b::{power,real_normed_algebra}"
+   assumes f: "f \<in> borel_measurable M"
+   shows "(\<lambda>x. (f x) ^ n) \<in> borel_measurable M"
+   by (intro borel_measurable_continuous_on [OF _ f] continuous_intros)
+
+lemma borel_measurable_Re [measurable]: "Re \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
+
+lemma borel_measurable_Im [measurable]: "Im \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
+
+lemma borel_measurable_of_real [measurable]: "(of_real :: _ \<Rightarrow> (_::real_normed_algebra)) \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
+
+lemma borel_measurable_sin [measurable]: "sin \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
+
+lemma borel_measurable_cos [measurable]: "cos \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
+
+lemma borel_measurable_arctan [measurable]: "arctan \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_intros)
 
 subsection "Borel space on the extended reals"
 

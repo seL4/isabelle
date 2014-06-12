@@ -6,9 +6,13 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+
 * Summer 2014: Mathias Fleury, ENS Rennes, and Albert Steckermeier, TUM
   Work on exotic automatic theorem provers for Sledgehammer (LEO-II, veriT,
   Waldmeister, etc.).
+
+* June 2014: Sudeep Kanav, TUM, and Johannes Hölzl, TUM
+  Various properties of Erlang and exponentially distributed random variables.
 
 * May 2014: Cezary Kaliszyk, University of Innsbruck, and Jasmin Blanchette, TUM
   SML-based engines for MaSh.

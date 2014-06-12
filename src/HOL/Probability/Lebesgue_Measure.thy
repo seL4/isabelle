@@ -516,6 +516,8 @@ proof
     by (intro exI[of _ A]) (auto simp: subset_eq)
 qed
 
+interpretation lborel_pair: pair_sigma_finite lborel lborel ..
+
 lemma Int_stable_atLeastAtMost:
   fixes x::"'a::ordered_euclidean_space"
   shows "Int_stable (range (\<lambda>(a, b::'a). {a..b}))"
@@ -1225,5 +1227,65 @@ proof -
   qed
   finally show ?thesis .
 qed
+
+subsection {* Integration by parts *}
+
+lemma integral_by_parts_integrable:
+  fixes f g F G::"real \<Rightarrow> real"
+  assumes "a \<le> b"
+  assumes cont_f[intro]: "!!x. a \<le>x \<Longrightarrow> x\<le>b \<Longrightarrow> isCont f x"
+  assumes cont_g[intro]: "!!x. a \<le>x \<Longrightarrow> x\<le>b \<Longrightarrow> isCont g x"
+  assumes [intro]: "!!x. DERIV F x :> f x"
+  assumes [intro]: "!!x. DERIV G x :> g x"
+  shows  "integrable lborel (\<lambda>x.((F x) * (g x) + (f x) * (G x)) * indicator {a .. b} x)"
+  by (auto intro!: borel_integrable_atLeastAtMost continuous_intros) (auto intro!: DERIV_isCont)
+
+lemma integral_by_parts:
+  fixes f g F G::"real \<Rightarrow> real"
+  assumes [arith]: "a \<le> b"
+  assumes cont_f[intro]: "!!x. a \<le>x \<Longrightarrow> x\<le>b \<Longrightarrow> isCont f x"
+  assumes cont_g[intro]: "!!x. a \<le>x \<Longrightarrow> x\<le>b \<Longrightarrow> isCont g x"
+  assumes [intro]: "!!x. DERIV F x :> f x"
+  assumes [intro]: "!!x. DERIV G x :> g x"
+  shows "(\<integral>x. (F x * g x) * indicator {a .. b} x \<partial>lborel)
+            =  F b * G b - F a * G a - \<integral>x. (f x * G x) * indicator {a .. b} x \<partial>lborel" 
+proof-
+  have 0: "(\<integral>x. (F x * g x + f x * G x) * indicator {a .. b} x \<partial>lborel) = F b * G b - F a * G a"
+    by (rule integral_FTC_atLeastAtMost, auto intro!: derivative_eq_intros continuous_intros) 
+      (auto intro!: DERIV_isCont)
+
+  have "(\<integral>x. (F x * g x + f x * G x) * indicator {a .. b} x \<partial>lborel) =
+    (\<integral>x. (F x * g x) * indicator {a .. b} x \<partial>lborel) + \<integral>x. (f x * G x) * indicator {a .. b} x \<partial>lborel"
+    apply (subst integral_add[symmetric])
+    apply (auto intro!: borel_integrable_atLeastAtMost continuous_intros)
+    by (auto intro!: DERIV_isCont integral_cong split:split_indicator)
+
+  thus ?thesis using 0 by auto
+qed
+
+lemma integral_by_parts':
+  fixes f g F G::"real \<Rightarrow> real"
+  assumes "a \<le> b"
+  assumes "!!x. a \<le>x \<Longrightarrow> x\<le>b \<Longrightarrow> isCont f x"
+  assumes "!!x. a \<le>x \<Longrightarrow> x\<le>b \<Longrightarrow> isCont g x"
+  assumes "!!x. DERIV F x :> f x"
+  assumes "!!x. DERIV G x :> g x"
+  shows "(\<integral>x. indicator {a .. b} x *\<^sub>R (F x * g x) \<partial>lborel)
+            =  F b * G b - F a * G a - \<integral>x. indicator {a .. b} x *\<^sub>R (f x * G x) \<partial>lborel" 
+  using integral_by_parts[OF assms] by (simp add: mult_ac)
+
+lemma integral_tendsto_at_top:
+  fixes f :: "real \<Rightarrow> real"
+  assumes [simp, intro]: "\<And>x. isCont f x"
+  assumes [simp, arith]: "\<And>x. 0 \<le> f x"
+  assumes [simp]: "integrable lborel f"
+  assumes [measurable]: "f \<in> borel_measurable borel"
+  shows "((\<lambda>x. \<integral>xa. f xa * indicator {0..x} xa \<partial>lborel) ---> \<integral>xa. f xa * indicator {0..} xa \<partial>lborel) at_top"
+  apply (auto intro!: borel_integrable_atLeastAtMost monoI integral_mono tendsto_at_topI_sequentially  
+    split:split_indicator)
+  apply (rule integral_dominated_convergence[where w = " \<lambda>x. f x * indicator {0..} x"])
+  unfolding LIMSEQ_def  
+  apply (auto intro!: AE_I2 tendsto_mult integrable_mult_indicator split: split_indicator)
+  by (metis ge_natfloor_plus_one_imp_gt less_imp_le)
 
 end

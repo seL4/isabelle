@@ -8,7 +8,7 @@ header {*Information theory*}
 theory Information
 imports
   Independent_Family
-  Radon_Nikodym
+  Distributions
   "~~/src/HOL/Library/Convex"
 begin
 
@@ -398,27 +398,6 @@ proof -
     apply (auto simp: null_sets_distr_iff)
     apply (auto simp: null_sets_def intro!: measurable_sets)
     done
-qed
-
-lemma distributed_integrable:
-  "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow>
-    integrable N (\<lambda>x. f x * g x) \<longleftrightarrow> integrable M (\<lambda>x. g (X x))"
-  by (auto simp: distributed_real_AE
-                    distributed_distr_eq_density[symmetric] integrable_real_density[symmetric] integrable_distr_eq)
-  
-lemma distributed_transform_integrable:
-  assumes Px: "distributed M N X Px"
-  assumes "distributed M P Y Py"
-  assumes Y: "Y = (\<lambda>x. T (X x))" and T: "T \<in> measurable N P" and f: "f \<in> borel_measurable P"
-  shows "integrable P (\<lambda>x. Py x * f x) \<longleftrightarrow> integrable N (\<lambda>x. Px x * f (T x))"
-proof -
-  have "integrable P (\<lambda>x. Py x * f x) \<longleftrightarrow> integrable M (\<lambda>x. f (Y x))"
-    by (rule distributed_integrable) fact+
-  also have "\<dots> \<longleftrightarrow> integrable M (\<lambda>x. f (T (X x)))"
-    using Y by simp
-  also have "\<dots> \<longleftrightarrow> integrable N (\<lambda>x. Px x * f (T x))"
-    using measurable_comp[OF T f] Px by (intro distributed_integrable[symmetric]) (auto simp: comp_def)
-  finally show ?thesis .
 qed
 
 lemma integrable_cong_AE_imp:
@@ -935,6 +914,35 @@ proof (subst entropy_distr[OF X])
     log b (measure MX A)"
     unfolding eq using uniform_distributed_params[OF X]
     by (subst integral_mult_right) (auto simp: measure_def)
+qed
+
+lemma (in information_space) entropy_exponential:
+  assumes D: "distributed M lborel X (exponential_density l)"
+  shows "entropy b lborel X = log b (exp 1 / l)"
+proof -
+  have l[simp, arith]: "0 < l" by (rule exponential_distributed_params[OF D])
+ 
+  have [simp]: "integrable lborel (exponential_density l)"
+    using distributed_integrable[OF D, of "\<lambda>_. 1"] by simp
+
+  have [simp]: "integral\<^sup>L lborel (exponential_density l) = 1"
+    using distributed_integral[OF D, of "\<lambda>_. 1"] by (simp add: prob_space)
+    
+  have [simp]: "integrable lborel (\<lambda>x. exponential_density l x * x)"
+    using erlang_ith_moment_integrable[OF l D, of 1] distributed_integrable[OF D, of "\<lambda>x. x"] by simp
+
+  have [simp]: "integral\<^sup>L lborel (\<lambda>x. exponential_density l x * x) = 1 / l"
+    using erlang_ith_moment[OF l D, of 1] distributed_integral[OF D, of "\<lambda>x. x"] by simp
+    
+  have "entropy b lborel X = - (\<integral> x. exponential_density l x * log b (exponential_density l x) \<partial>lborel)"
+    using D by (rule entropy_distr)
+  also have "(\<integral> x. exponential_density l x * log b (exponential_density l x) \<partial>lborel) = 
+    (\<integral> x. (ln l * exponential_density l x - l * (exponential_density l x * x)) / ln b \<partial>lborel)"
+    by (intro integral_cong) (auto simp: log_def ln_mult exponential_density_def field_simps)
+  also have "\<dots> = (ln l - 1) / ln b"
+    by simp
+  finally show ?thesis
+    by (simp add: log_def divide_simps ln_div)
 qed
 
 lemma (in information_space) entropy_simple_distributed:

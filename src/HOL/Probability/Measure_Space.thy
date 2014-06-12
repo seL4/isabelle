@@ -1187,6 +1187,7 @@ lemma distr_distr:
   by (auto simp add: emeasure_distr measurable_space
            intro!: arg_cong[where f="emeasure M"] measure_eqI)
 
+
 subsection {* Real measure values *}
 
 lemma measure_nonneg: "0 \<le> measure M A"
@@ -1526,6 +1527,14 @@ lemma (in finite_measure) measure_exclude:
   assumes "measure M A = measure M (space M)" "A \<inter> B = {}"
   shows "measure M B = 0"
   using measure_space_inter[of B A] assms by (auto simp: ac_simps)
+lemma (in finite_measure) finite_measure_distr:
+  assumes f: "f \<in> measurable M M'" 
+  shows "finite_measure (distr M M' f)"
+proof (rule finite_measureI)
+  have "f -` space M' \<inter> space M = space M" using f by (auto dest: measurable_space)
+  with f show "emeasure (distr M M' f) (space (distr M M' f)) \<noteq> \<infinity>" by (auto simp: emeasure_distr)
+qed
+
 
 subsection {* Counting space *}
 

@@ -27,6 +27,7 @@ abbreviation (in prob_space) "events \<equiv> sets M"
 abbreviation (in prob_space) "prob \<equiv> measure M"
 abbreviation (in prob_space) "random_variable M' X \<equiv> X \<in> measurable M M'"
 abbreviation (in prob_space) "expectation \<equiv> integral\<^sup>L M"
+abbreviation (in prob_space) "variance X \<equiv> integral\<^sup>L M (\<lambda>x. (X x - expectation X)\<^sup>2)"
 
 lemma (in prob_space) prob_space_distr:
   assumes f: "f \<in> measurable M M'" shows "prob_space (distr M M' f)"
@@ -332,6 +333,16 @@ lemma (in prob_space) joint_distribution_Times_le_snd:
   "random_variable MX X \<Longrightarrow> random_variable MY Y \<Longrightarrow> A \<in> sets MX \<Longrightarrow> B \<in> sets MY
     \<Longrightarrow> emeasure (distr M (MX \<Otimes>\<^sub>M MY) (\<lambda>x. (X x, Y x))) (A \<times> B) \<le> emeasure (distr M MY Y) B"
   by (auto simp: emeasure_distr measurable_pair_iff comp_def intro!: emeasure_mono measurable_sets)
+
+lemma (in prob_space) variance_eq:
+  fixes X :: "'a \<Rightarrow> real"
+  assumes [simp]: "integrable M X"
+  assumes [simp]: "integrable M (\<lambda>x. (X x)\<^sup>2)"
+  shows "variance X = expectation (\<lambda>x. (X x)\<^sup>2) - (expectation X)\<^sup>2"
+  by (simp add: field_simps prob_space power2_diff power2_eq_square[symmetric])
+
+lemma (in prob_space) variance_positive: "0 \<le> variance (X::'a \<Rightarrow> real)"
+  by (intro integral_nonneg_AE) (auto intro!: integral_nonneg_AE)
 
 locale pair_prob_space = pair_sigma_finite M1 M2 + M1: prob_space M1 + M2: prob_space M2 for M1 M2
 
@@ -712,6 +723,47 @@ proof safe
     apply auto
     done
 qed
+
+lemma distributed_integrable:
+  "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow>
+    integrable N (\<lambda>x. f x * g x) \<longleftrightarrow> integrable M (\<lambda>x. g (X x))"
+  by (auto simp: distributed_real_AE
+                    distributed_distr_eq_density[symmetric] integrable_real_density[symmetric] integrable_distr_eq)
+  
+lemma distributed_transform_integrable:
+  assumes Px: "distributed M N X Px"
+  assumes "distributed M P Y Py"
+  assumes Y: "Y = (\<lambda>x. T (X x))" and T: "T \<in> measurable N P" and f: "f \<in> borel_measurable P"
+  shows "integrable P (\<lambda>x. Py x * f x) \<longleftrightarrow> integrable N (\<lambda>x. Px x * f (T x))"
+proof -
+  have "integrable P (\<lambda>x. Py x * f x) \<longleftrightarrow> integrable M (\<lambda>x. f (Y x))"
+    by (rule distributed_integrable) fact+
+  also have "\<dots> \<longleftrightarrow> integrable M (\<lambda>x. f (T (X x)))"
+    using Y by simp
+  also have "\<dots> \<longleftrightarrow> integrable N (\<lambda>x. Px x * f (T x))"
+    using measurable_comp[OF T f] Px by (intro distributed_integrable[symmetric]) (auto simp: comp_def)
+  finally show ?thesis .
+qed
+
+lemma (in prob_space) distributed_variance:
+  fixes f::"real \<Rightarrow> real"
+  assumes D: "distributed M lborel X f"
+  shows "variance X = (\<integral>x. x\<^sup>2 * f (x + expectation X) \<partial>lborel)"
+proof (subst distributed_integral[OF D, symmetric])
+  show "(\<integral> x. f x * (x - expectation X)\<^sup>2 \<partial>lborel) = (\<integral> x. x\<^sup>2 * f (x + expectation X) \<partial>lborel)"
+    by (subst lborel_integral_real_affine[where c=1 and t="expectation X"])  (auto simp: ac_simps)
+qed simp
+
+lemma (in prob_space) variance_affine:
+  fixes f::"real \<Rightarrow> real"
+  assumes [arith]: "b \<noteq> 0"
+  assumes D[intro]: "distributed M lborel X f"
+  assumes [simp]: "prob_space (density lborel f)"
+  assumes I[simp]: "integrable M X"
+  assumes I2[simp]: "integrable M (\<lambda>x. (X x)\<^sup>2)" 
+  shows "variance (\<lambda>x. a + b * X x) = b\<^sup>2 * variance X"
+  by (subst variance_eq)
+     (auto simp: power2_sum power_mult_distrib prob_space variance_eq right_diff_distrib)
 
 definition
   "simple_distributed M X f \<longleftrightarrow> distributed M (count_space (X`space M)) X (\<lambda>x. ereal (f x)) \<and>

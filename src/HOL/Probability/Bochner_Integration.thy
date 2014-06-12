@@ -1518,9 +1518,37 @@ lemma integral_norm_bound:
   using nn_integral_eq_integral[of M "\<lambda>x. norm (f x)"]
   using integral_norm_bound_ereal[of M f] by simp
   
+lemma integrableI_nn_integral_finite:
+  assumes [measurable]: "f \<in> borel_measurable M"
+    and nonneg: "AE x in M. 0 \<le> f x"
+    and finite: "(\<integral>\<^sup>+x. f x \<partial>M) = ereal x"
+  shows "integrable M f"
+proof (rule integrableI_bounded)
+  have "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) = (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
+    using nonneg by (intro nn_integral_cong_AE) auto
+  with finite show "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>"
+    by auto
+qed simp
+
 lemma integral_eq_nn_integral:
-  "integrable M f \<Longrightarrow> (\<And>x. 0 \<le> f x) \<Longrightarrow> integral\<^sup>L M f = real (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
-  by (subst nn_integral_eq_integral) auto
+  assumes [measurable]: "f \<in> borel_measurable M"
+  assumes nonneg: "AE x in M. 0 \<le> f x"
+  shows "integral\<^sup>L M f = real (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
+proof cases
+  assume *: "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) = \<infinity>"
+  also have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) = (\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M)"
+    using nonneg by (intro nn_integral_cong_AE) auto
+  finally have "\<not> integrable M f"
+    by (auto simp: integrable_iff_bounded)
+  then show ?thesis
+    by (simp add: * not_integrable_integral_eq)
+next
+  assume "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity>"
+  then have "integrable M f"
+    by (cases "\<integral>\<^sup>+ x. ereal (f x) \<partial>M") (auto intro!: integrableI_nn_integral_finite assms)
+  from nn_integral_eq_integral[OF this nonneg] show ?thesis
+    by simp
+qed
   
 lemma integrableI_simple_bochner_integrable:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -1933,7 +1961,7 @@ lemma integrable_point_measure_finite:
 subsection {* Legacy lemmas for the real-valued Lebesgue integral *}
 
 lemma real_lebesgue_integral_def:
-  assumes f: "integrable M f"
+  assumes f[measurable]: "integrable M f"
   shows "integral\<^sup>L M f = real (\<integral>\<^sup>+x. f x \<partial>M) - real (\<integral>\<^sup>+x. - f x \<partial>M)"
 proof -
   have "integral\<^sup>L M f = integral\<^sup>L M (\<lambda>x. max 0 (f x) - max 0 (- f x))"
@@ -1941,9 +1969,9 @@ proof -
   also have "\<dots> = integral\<^sup>L M (\<lambda>x. max 0 (f x)) - integral\<^sup>L M (\<lambda>x. max 0 (- f x))"
     by (intro integral_diff integrable_max integrable_minus integrable_zero f)
   also have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) = real (\<integral>\<^sup>+x. max 0 (f x) \<partial>M)"
-    by (subst integral_eq_nn_integral[symmetric]) (auto intro!: f)
+    by (subst integral_eq_nn_integral[symmetric]) auto
   also have "integral\<^sup>L M (\<lambda>x. max 0 (- f x)) = real (\<integral>\<^sup>+x. max 0 (- f x) \<partial>M)"
-    by (subst integral_eq_nn_integral[symmetric]) (auto intro!: f)
+    by (subst integral_eq_nn_integral[symmetric]) auto
   also have "(\<lambda>x. ereal (max 0 (f x))) = (\<lambda>x. max 0 (ereal (f x)))"
     by (auto simp: max_def)
   also have "(\<lambda>x. ereal (max 0 (- f x))) = (\<lambda>x. max 0 (- ereal (f x)))"

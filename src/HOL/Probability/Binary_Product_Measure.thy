@@ -557,6 +557,11 @@ lemma (in pair_sigma_finite) Fubini:
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M2) \<partial>M1)"
   unfolding nn_integral_snd[OF assms] M2.nn_integral_fst[OF assms] ..
 
+lemma (in pair_sigma_finite) Fubini':
+  assumes f: "split f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
+  shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f x y \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f x y \<partial>M2) \<partial>M1)"
+  using Fubini[OF f] by simp
+
 subsection {* Products on counting spaces, densities and distributions *}
 
 lemma sigma_sets_pair_measure_generator_finite:
@@ -735,6 +740,111 @@ next
   then show "emeasure (count_space S1) A * emeasure (count_space S2) B = 
     emeasure (count_space (S1 \<times> S2)) (A \<times> B)"
     by (subst (1 2 3) emeasure_count_space) (auto simp: finite_cartesian_product_iff)
+qed
+
+subsection {* Product of Borel spaces *}
+
+lemma borel_Times:
+  fixes A :: "'a::topological_space set" and B :: "'b::topological_space set"
+  assumes A: "A \<in> sets borel" and B: "B \<in> sets borel"
+  shows "A \<times> B \<in> sets borel"
+proof -
+  have "A \<times> B = (A\<times>UNIV) \<inter> (UNIV \<times> B)"
+    by auto
+  moreover
+  { have "A \<in> sigma_sets UNIV {S. open S}" using A by (simp add: sets_borel)
+    then have "A\<times>UNIV \<in> sets borel"
+    proof (induct A)
+      case (Basic S) then show ?case
+        by (auto intro!: borel_open open_Times)
+    next
+      case (Compl A)
+      moreover have *: "(UNIV - A) \<times> UNIV = UNIV - (A \<times> UNIV)"
+        by auto
+      ultimately show ?case
+        unfolding * by auto
+    next
+      case (Union A)
+      moreover have *: "(UNION UNIV A) \<times> UNIV = UNION UNIV (\<lambda>i. A i \<times> UNIV)"
+        by auto
+      ultimately show ?case
+        unfolding * by auto
+    qed simp }
+  moreover
+  { have "B \<in> sigma_sets UNIV {S. open S}" using B by (simp add: sets_borel)
+    then have "UNIV\<times>B \<in> sets borel"
+    proof (induct B)
+      case (Basic S) then show ?case
+        by (auto intro!: borel_open open_Times)
+    next
+      case (Compl B)
+      moreover have *: "UNIV \<times> (UNIV - B) = UNIV - (UNIV \<times> B)"
+        by auto
+      ultimately show ?case
+        unfolding * by auto
+    next
+      case (Union B)
+      moreover have *: "UNIV \<times> (UNION UNIV B) = UNION UNIV (\<lambda>i. UNIV \<times> B i)"
+        by auto
+      ultimately show ?case
+        unfolding * by auto
+    qed simp }
+  ultimately show ?thesis
+    by auto
+qed
+
+lemma borel_prod: "sets (borel \<Otimes>\<^sub>M borel) =
+    (sets borel :: ('a::second_countable_topology \<times> 'b::second_countable_topology) set set)"
+  (is "?l = ?r")
+proof -
+  obtain A :: "'a set set" where A: "countable A" "topological_basis A"
+    by (metis ex_countable_basis)
+  moreover obtain B :: "'b set set" where B: "countable B" "topological_basis B"
+    by (metis ex_countable_basis)
+  ultimately have AB: "countable ((\<lambda>(a, b). a \<times> b) ` (A \<times> B))" "topological_basis ((\<lambda>(a, b). a \<times> b) ` (A \<times> B))"
+    by (auto intro!: topological_basis_prod)
+  have "sets (borel \<Otimes>\<^sub>M borel) = sigma_sets UNIV {a \<times> b |a b. a \<in> sigma_sets UNIV A \<and> b \<in> sigma_sets UNIV B}"
+    by (simp add: sets_pair_measure
+       borel_eq_countable_basis[OF A] borel_eq_countable_basis[OF B])
+  also have "\<dots> \<supseteq> sigma_sets UNIV ((\<lambda>(a, b). a \<times> b) ` (A \<times> B))" (is "... \<supseteq> ?A")
+    by (auto intro!: sigma_sets_mono)
+  also (xtrans) have "?A = sets borel"
+    by (simp add: borel_eq_countable_basis[OF AB])
+  finally have "?r \<subseteq> ?l" .
+  moreover have "?l \<subseteq> ?r"
+  proof (simp add: sets_pair_measure, safe intro!: sigma_sets_mono)
+    fix A::"('a \<times> 'b) set" assume "A \<in> sigma_sets UNIV {a \<times> b |a b. a \<in> sets borel \<and> b \<in> sets borel}"
+    then show "A \<in> sets borel"
+      by (induct A) (auto intro!: borel_Times)
+  qed
+  ultimately show ?thesis by auto
+qed
+
+lemma borel_prod':
+  "borel \<Otimes>\<^sub>M borel = (borel :: 
+      ('a::second_countable_topology \<times> 'b::second_countable_topology) measure)"
+proof (rule measure_eqI[OF borel_prod])
+  interpret sigma_finite_measure "borel :: 'b measure"
+      by (default) (auto simp: borel_def emeasure_sigma intro!: exI[of _ "\<lambda>_. UNIV"])
+  fix X :: "('a \<times> 'b) set" assume asm: "X \<in> sets (borel \<Otimes>\<^sub>M borel)"
+  have "UNIV \<times> UNIV \<in> sets (borel \<Otimes>\<^sub>M borel :: ('a \<times> 'b) measure)" 
+      by (simp add: borel_prod)
+  moreover have "emeasure (borel \<Otimes>\<^sub>M borel) (UNIV \<times> UNIV :: ('a \<times> 'b) set) = 0"
+      by (subst emeasure_pair_measure_Times, simp_all add: borel_def emeasure_sigma)
+  moreover have "X \<subseteq> UNIV \<times> UNIV" by auto
+  ultimately have "emeasure (borel \<Otimes>\<^sub>M borel) X = 0" by (rule emeasure_eq_0)
+  thus "emeasure (borel \<Otimes>\<^sub>M borel) X = emeasure borel X"
+      by (simp add: borel_def emeasure_sigma)
+qed
+
+lemma finite_measure_pair_measure:
+  assumes "finite_measure M" "finite_measure N"
+  shows "finite_measure (N  \<Otimes>\<^sub>M M)"
+proof (rule finite_measureI)
+  interpret M: finite_measure M by fact
+  interpret N: finite_measure N by fact
+  show "emeasure (N  \<Otimes>\<^sub>M M) (space (N  \<Otimes>\<^sub>M M)) \<noteq> \<infinity>"
+    by (auto simp: space_pair_measure M.emeasure_pair_measure_Times)
 qed
 
 end
