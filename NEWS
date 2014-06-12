@@ -382,9 +382,9 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 * SMT module:
   * A new version of the SMT module, temporarily called "SMT2", uses SMT-LIB 2
     and supports recent versions of Z3 (e.g., 4.3). The new proof method is
-    called "smt2". CVC3 is also supported as an oracle. Yices is no longer
-    supported, because no version of the solver can handle both SMT-LIB 2 and
-    quantifiers.
+    called "smt2". CVC3 and CVC4 are also supported as oracles. Yices is no
+    longer supported, because no version of the solver can handle both
+    SMT-LIB 2 and quantifiers.
 
 * Sledgehammer:
   - New prover "z3_new" with support for Isar proofs

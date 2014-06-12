@@ -109,13 +109,12 @@ The supported ATPs are AgsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 \cite{leo2}, Satallax \cite{satallax}, SNARK \cite{snark}, SPASS
 \cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002}, and
 Waldmeister \cite{waldmeister}. The ATPs are run either locally or remotely via
-the System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition to the ATPs,
-a selection of the SMT solvers CVC3 \cite{cvc3} and Z3 \cite{z3} are run by
-default; these are run either locally or (for CVC3 and Z3) on a server at the
-TU M\"unchen.
+the System\-On\-TPTP web service \cite{sutcliffe-2000}. The supported SMT
+solvers are CVC3 \cite{cvc3}, CVC4 \cite{cvc4}, and Z3 \cite{z3}. These are
+always run locally.
 
-The problem passed to the automatic provers consists of your current goal
-together with a heuristic selection of hundreds of facts (theorems) from the
+The problem passed to the external provers (or solvers) consists of your current
+goal together with a heuristic selection of hundreds of facts (theorems) from the
 current theory context, filtered by relevance.
 
 The result of a successful proof search is some source text that usually (but
@@ -157,8 +156,8 @@ Among the ATPs, AgsyHOL, Alt-Ergo, E, LEO-II, Satallax, SPASS, and Vampire can
 be run locally; in addition, AgsyHOL, E, E-SInE, E-ToFoF, iProver, iProver-Eq,
 LEO-II, Satallax, SNARK, Vampire, and Waldmeister are available remotely via
 System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
-should at least install E and SPASS locally. The SMT solvers CVC3 and Z3 can be
-run locally.
+should at least install E and SPASS locally. The SMT solvers CVC3, CVC4, and Z3
+can be run locally.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -213,15 +212,16 @@ you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{SATALLAX\_VERSION}, \texttt{SPASS\_VERSION}, or
 \texttt{VAMPIRE\_VERSION} to the prover's version number (e.g., ``3.0'').
 
-Similarly, if you want to build CVC3, or found a
+Similarly, if you want to build CVC3 or CVC4, or found a
 Z3 executable somewhere (e.g., \url{http://z3.codeplex.com/}),
-set the environment variable \texttt{CVC3\_\allowbreak SOLVER}
-or \texttt{Z3\_SOLVER} to the complete path of the executable, \emph{including
-the file name}. Sledgehammer has been tested with CVC3 2.2 and 2.4.1 and Z3
-4.3.2. Since the SMT solvers' output formats are somewhat unstable, other
-versions of the solvers might not work well with Sledgehammer. Ideally, also set
-\texttt{CVC3\_VERSION} or \texttt{Z3\_NEW\_VERSION} to the solver's version
-number (e.g., ``4.3.2'').
+set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
+\texttt{CVC4\_\allowbreak SOLVER}, or \texttt{Z3\_SOLVER} to the complete path
+of the executable, \emph{including the file name}. Sledgehammer has been tested
+with CVC3 2.2 and 2.4.1, CVC4 1.2, and Z3 4.3.2. Since Z3's output format is
+somewhat unstable, other versions of the solver might not work well with
+Sledgehammer. Ideally, also set
+\texttt{CVC3\_VERSION}, \texttt{CVC4\_VERSION}, or \texttt{Z3\_NEW\_VERSION} to
+the solver's version number (e.g., ``4.3.2'').
 \end{enum}
 \end{sloppy}
 
@@ -770,8 +770,8 @@ For convenience, the following aliases are provided:
 Sledgehammer's options are categorized as follows:\ mode of operation
 (\S\ref{mode-of-operation}), problem encoding (\S\ref{problem-encoding}),
 relevance filter (\S\ref{relevance-filter}), output format
-(\S\ref{output-format}), authentication (\S\ref{authentication}), and timeouts
-(\S\ref{timeouts}).
+(\S\ref{output-format}), regression testing (\S\ref{regression-testing}),
+and timeouts (\S\ref{timeouts}).
 
 The descriptions below refer to the following syntactic quantities:
 
@@ -824,7 +824,13 @@ requires Alt-Ergo 0.95.2 and Why3 0.83.
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
 set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
 executable, including the file name, or install the prebuilt CVC3 package from
-\download. Sledgehammer has been tested with version 2.2 and 2.4.1.
+\download. Sledgehammer has been tested with versions 2.2 and 2.4.1.
+
+\item[\labelitemi] \textbf{\textit{cvc4}:} CVC4 \cite{cvc4} is the successor to
+CVC3. To use CVC4, set the environment variable \texttt{CVC4\_SOLVER} to the
+complete path of the executable, including the file name, or install the
+prebuilt CVC4 package from \download. Sledgehammer has been tested with version
+1.2.
 
 \item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
 developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
@@ -1338,8 +1344,8 @@ default), the \textit{smt2} method is used for one-line proofs but not in Isar
 proofs.
 \end{enum}
 
-\subsection{Authentication}
-\label{authentication}
+\subsection{Regression Testing}
+\label{regression-testing}
 
 \begin{enum}
 \opnodefault{expect}{string}
