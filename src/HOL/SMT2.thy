@@ -162,9 +162,9 @@ The option @{text smt2_solver} can be used to change the target SMT
 solver.  The possible values can be obtained from the @{text smt2_status}
 command.
 
-Due to licensing restrictions, Yices and Z3 are not installed/enabled
-by default.  Z3 is free for non-commercial applications and can be enabled
-by setting Isabelle system option @{text z3_non_commercial} to @{text yes}.
+Due to licensing restrictions, Z3 is not enabled by default.  Z3 is free
+for non-commercial applications and can be enabled by setting Isabelle
+system option @{text z3_non_commercial} to @{text yes}.
 *}
 
 declare [[smt2_solver = z3]]
@@ -200,7 +200,6 @@ options.
 *}
 
 declare [[cvc3_new_options = ""]]
-declare [[yices_new_options = ""]]
 declare [[z3_new_options = ""]]
 
 text {*

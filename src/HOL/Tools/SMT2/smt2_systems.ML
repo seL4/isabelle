@@ -62,24 +62,6 @@ val cvc3: SMT2_Solver.solver_config = {
 end
 
 
-(* Yices *)
-
-val yices: SMT2_Solver.solver_config = {
-  name = "yices",
-  class = K SMTLIB2_Interface.smtlib2C,
-  avail = make_avail "YICES",
-  command = make_command "YICES",
-  options = (fn ctxt => [
-    "--rand-seed=" ^ string_of_int (Config.get ctxt SMT2_Config.random_seed),
-    "--timeout=" ^
-      string_of_int (Real.ceil (Config.get ctxt SMT2_Config.timeout)),
-    "--smtlib"]),
-  default_max_relevant = 350 (* FUDGE *),
-  outcome = on_first_nontrivial_line (outcome_of "unsat" "sat" "unknown"),
-  parse_proof = NONE,
-  replay = NONE }
-
-
 (* Z3 *)
 
 datatype z3_non_commercial =
@@ -152,7 +134,6 @@ end
 
 val _ = Theory.setup (
   SMT2_Solver.add_solver cvc3 #>
-  SMT2_Solver.add_solver yices #>
   SMT2_Solver.add_solver z3)
 
 end;
