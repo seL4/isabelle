@@ -123,13 +123,13 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
     fun isar_proof_of () =
       let
-        val (verbose, alt_metis_args, preplay_timeout, compress_isar, try0_isar, minimize,
-          atp_proof, goal) = isar_params ()
+        val (verbose, alt_metis_args, preplay_timeout, compress, try0, minimize, atp_proof, goal) =
+          isar_params ()
 
         val systematic_methods = insert (op =) (Metis_Method alt_metis_args) systematic_methods0
 
         fun massage_methods (meths as meth :: _) =
-          if not try0_isar then [meth]
+          if not try0 then [meth]
           else if smt_proofs = SOME true then SMT2_Method :: meths
           else meths
 
@@ -138,7 +138,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val ctxt = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
 
         val do_preplay = preplay_timeout <> Time.zeroTime
-        val compress_isar = if isar_proofs = NONE andalso do_preplay then 1000.0 else compress_isar
+        val compress = if isar_proofs = NONE andalso do_preplay then 1000.0 else compress
 
         val is_fixed = Variable.is_declared ctxt orf Name.is_skolem
         fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
@@ -311,17 +311,17 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val (play_outcome, isar_proof) =
           canonical_isar_proof
           |> tap (trace_isar_proof "Original")
-          |> compress_isar_proof ctxt compress_isar preplay_timeout preplay_data
+          |> compress_isar_proof ctxt compress preplay_timeout preplay_data
           |> tap (trace_isar_proof "Compressed")
           |> postprocess_isar_proof_remove_unreferenced_steps
                (keep_fastest_method_of_isar_step (!preplay_data)
                 #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
-          (* It's not clear whether this is worth the trouble (and if so, "isar_compress" has an
+          (* It's not clear whether this is worth the trouble (and if so, "compress" has an
              unnatural semantics): *)
 (*
           |> minimize
-               ? (compress_isar_proof ctxt compress_isar preplay_timeout preplay_data
+               ? (compress_isar_proof ctxt compress preplay_timeout preplay_data
                   #> tap (trace_isar_proof "Compressed again"))
 *)
           |> `(preplay_outcome_of_isar_proof (!preplay_data))

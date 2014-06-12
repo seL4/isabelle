@@ -352,7 +352,7 @@ if that helps.
 \item[\labelitemi] \textbf{\textit{isar\_proofs}} (\S\ref{output-format}) specifies
 that Isar proofs should be generated, in addition to one-line \textit{metis} or
 \textit{smt2} proofs. The length of the Isar proofs can be controlled by setting
-\textit{compress\_isar} (\S\ref{output-format}).
+\textit{compress} (\S\ref{output-format}).
 
 \item[\labelitemi] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
 provers' time limit. It is set to 30 seconds, but since Sledgehammer runs
@@ -1324,15 +1324,15 @@ however, when they succeed they are usually faster and more intelligible than
 one-line proofs. If the option is set to \textit{smart} (the default), Isar
 proofs are only generated when no working one-line proof is available.
 
-\opdefault{compress\_isar}{int}{\upshape 10}
+\opdefault{compress}{int}{\upshape 10}
 Specifies the granularity of the generated Isar proofs if \textit{isar\_proofs}
 is explicitly enabled. A value of $n$ indicates that each Isar proof step should
 correspond to a group of up to $n$ consecutive proof steps in the ATP proof.
 
-\optrueonly{dont\_compress\_isar}
-Alias for ``\textit{compress\_isar} = 0''.
+\optrueonly{dont\_compress}
+Alias for ``\textit{compress} = 0''.
 
-\optrue{try0\_isar}{dont\_try0\_isar}
+\optrue{try0}{dont\_try0}
 Specifies whether standard proof methods such as \textit{auto} and
 \textit{blast} should be tried as alternatives to \textit{metis} in Isar proofs.
 The collection of methods is roughly the same as for the \textbf{try0} command.

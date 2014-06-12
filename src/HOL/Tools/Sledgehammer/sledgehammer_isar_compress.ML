@@ -109,15 +109,15 @@ fun adjust_merge_timeout max time =
 val compress_degree = 2
 
 (* Precondition: The proof must be labeled canonically. *)
-fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
-  if compress_isar <= 1.0 then
+fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
+  if compress <= 1.0 then
     proof
   else
     let
       val (compress_further, decrement_step_count) =
         let
           val number_of_steps = add_isar_steps (steps_of_isar_proof proof) 0
-          val target_number_of_steps = Real.round (Real.fromInt number_of_steps / compress_isar)
+          val target_number_of_steps = Real.round (Real.fromInt number_of_steps / compress)
           val delta = Unsynchronized.ref (number_of_steps - target_number_of_steps)
         in
           (fn () => !delta > 0, fn () => delta := !delta - 1)

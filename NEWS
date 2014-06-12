@@ -387,7 +387,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     SMT-LIB 2 and quantifiers.
 
 * Sledgehammer:
-  - New prover "z3_new" with support for Isar proofs
+  - "z3" can now produce Isar proofs
   - MaSh overhaul:
       - New SML-based learning engines eliminate the dependency on Python
         and increase performance and reliability.
@@ -399,8 +399,8 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   - New option:
       smt_proofs
   - Renamed options:
-      isar_compress ~> compress_isar
-      isar_try0 ~> try0_isar
+      isar_compress ~> compress
+      isar_try0 ~> try0
     INCOMPATIBILITY.
 
 * Metis:
