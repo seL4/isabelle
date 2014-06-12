@@ -64,6 +64,7 @@ imports
   Sublist
   Sum_of_Squares
   Transitive_Closure_Table
+  Tree
   While_Combinator
 begin
 end
