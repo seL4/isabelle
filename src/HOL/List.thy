@@ -2711,7 +2711,7 @@ by(auto simp add: set_zip list_all2_eq list_all2_conv_all_nth cong: conj_cong)
 
 subsubsection {* @{const List.product} and @{const product_lists} *}
 
-lemma product_list_set:
+lemma set_product[simp]:
   "set (List.product xs ys) = set xs \<times> set ys"
   by (induct xs) auto
 
@@ -3332,10 +3332,8 @@ proof
 qed (auto simp: dec_def)
 
 lemma distinct_product:
-  assumes "distinct xs" and "distinct ys"
-  shows "distinct (List.product xs ys)"
-  using assms by (induct xs)
-    (auto intro: inj_onI simp add: product_list_set distinct_map)
+  "distinct xs \<Longrightarrow> distinct ys \<Longrightarrow> distinct (List.product xs ys)"
+by (induct xs) (auto intro: inj_onI simp add: distinct_map)
 
 lemma distinct_product_lists:
   assumes "\<forall>xs \<in> set xss. distinct xs"
