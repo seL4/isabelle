@@ -62,6 +62,30 @@ val cvc3: SMT2_Solver.solver_config = {
 end
 
 
+(* CVC4 *)
+
+local
+  fun cvc4_options ctxt = [
+    "--random-seed=" ^ string_of_int (Config.get ctxt SMT2_Config.random_seed),
+    "--lang=smt2",
+    "--tlimit", string_of_int (Real.ceil (1000.0 * Config.get ctxt SMT2_Config.timeout))]
+in
+
+val cvc4: SMT2_Solver.solver_config = {
+  name = "cvc4",
+  class = K SMTLIB2_Interface.smtlib2C,
+  avail = make_avail "CVC4",
+  command = make_command "CVC4",
+  options = cvc4_options,
+  smt_options = [],
+  default_max_relevant = 400 (* FUDGE *),
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
+  parse_proof = NONE,
+  replay = NONE }
+
+end
+
+
 (* Z3 *)
 
 datatype z3_non_commercial =
@@ -135,6 +159,7 @@ end
 
 val _ = Theory.setup (
   SMT2_Solver.add_solver cvc3 #>
+  SMT2_Solver.add_solver cvc4 #>
   SMT2_Solver.add_solver z3)
 
 end;

@@ -393,11 +393,4 @@ lemma [z3_new_rule]:  (* for def-axiom *)
 hide_type (open) symb_list pattern
 hide_const (open) Symb_Nil Symb_Cons trigger pat nopat fun_app z3div z3mod
 
-declare [[smt2_solver = cvc3]]
-
-lemma "2 + 2 = (4::int)"
-using [[smt2_trace]]
-apply smt2
-done
-
 end
