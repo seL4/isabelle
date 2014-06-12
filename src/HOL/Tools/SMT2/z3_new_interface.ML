@@ -31,11 +31,8 @@ val smtlib2_z3C = SMTLIB2_Interface.smtlib2C @ ["z3"]
 
 local
   fun translate_config ctxt =
-    let
-      val {serialize, ...} = SMTLIB2_Interface.translate_config ctxt
-    in
-      {header=K "", serialize=serialize, has_datatypes=true}
-    end
+    {header = K "", has_datatypes = true,
+     serialize = #serialize (SMTLIB2_Interface.translate_config ctxt)}
 
   fun is_div_mod @{const div (int)} = true
     | is_div_mod @{const mod (int)} = true
