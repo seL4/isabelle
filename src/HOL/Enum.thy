@@ -447,7 +447,7 @@ definition
 
  
 instance by default
-  (simp_all add: enum_prod_def product_list_set distinct_product
+  (simp_all add: enum_prod_def distinct_product
     enum_UNIV enum_distinct enum_all_prod_def enum_ex_prod_def)
 
 end

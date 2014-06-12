@@ -224,7 +224,7 @@ lemma enum_char_product_enum_nibble:
 
 instance proof
   show UNIV: "UNIV = set (Enum.enum :: char list)"
-    by (simp add: enum_char_product_enum_nibble UNIV_char product_list_set enum_UNIV)
+    by (simp add: enum_char_product_enum_nibble UNIV_char enum_UNIV)
   show "distinct (Enum.enum :: char list)"
     by (auto intro: inj_onI simp add: enum_char_product_enum_nibble distinct_map distinct_product enum_distinct)
   show "\<And>P. Enum.enum_all P \<longleftrightarrow> Ball (UNIV :: char set) P"
