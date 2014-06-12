@@ -20,6 +20,7 @@ sig
      avail: unit -> bool,
      command: unit -> string list,
      options: Proof.context -> string list,
+     smt_options: (string * string) list,
      default_max_relevant: int,
      outcome: string -> string list -> outcome * string list,
      parse_proof: (Proof.context -> SMT2_Translate.replay_data ->
@@ -118,7 +119,7 @@ fun trace_replay_data ({context = ctxt, typs, terms, ...} : SMT2_Translate.repla
 
 in
 
-fun invoke name command ithms ctxt =
+fun invoke name command smt_options ithms ctxt =
   let
     val options = SMT2_Config.solver_options_of ctxt
     val comments = [space_implode " " options]
@@ -126,7 +127,7 @@ fun invoke name command ithms ctxt =
     val (str, replay_data as {context = ctxt', ...}) =
       ithms
       |> tap (trace_assms ctxt)
-      |> SMT2_Translate.translate ctxt comments
+      |> SMT2_Translate.translate ctxt smt_options comments
       ||> tap trace_replay_data
   in (run_solver ctxt' name (make_command command options) str, replay_data) end
 
@@ -148,6 +149,7 @@ type solver_config =
    avail: unit -> bool,
    command: unit -> string list,
    options: Proof.context -> string list,
+   smt_options: (string * string) list,
    default_max_relevant: int,
    outcome: string -> string list -> outcome * string list,
    parse_proof: (Proof.context -> SMT2_Translate.replay_data ->
@@ -172,6 +174,7 @@ fun check_topsort ctxt thm =
 
 type solver_info = {
   command: unit -> string list,
+  smt_options: (string * string) list,
   default_max_relevant: int,
   parse_proof: Proof.context -> SMT2_Translate.replay_data ->
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
@@ -207,11 +210,12 @@ local
   val cfalse = Thm.cterm_of @{theory} @{prop False}
 in
 
-fun add_solver ({name, class, avail, command, options, default_max_relevant, outcome,
+fun add_solver ({name, class, avail, command, options, smt_options, default_max_relevant, outcome,
     parse_proof = parse_proof0, replay = replay0} : solver_config) =
   let
     fun solver oracle = {
       command = command,
+      smt_options = smt_options,
       default_max_relevant = default_max_relevant,
       parse_proof = parse_proof (outcome name) parse_proof0,
       replay = replay (outcome name) replay0 oracle}
@@ -236,8 +240,9 @@ val default_max_relevant = #default_max_relevant oo get_info
 fun apply_solver_and_replay ctxt thms0 =
   let
     val thms = map (check_topsort ctxt) thms0
-    val (name, {command, replay, ...}) = name_and_info_of ctxt
-    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt thms) ctxt
+    val (name, {command, smt_options, replay, ...}) = name_and_info_of ctxt
+    val (output, replay_data) =
+      invoke name command smt_options (SMT2_Normalize.normalize ctxt thms) ctxt
   in replay ctxt replay_data output end
 
 
@@ -259,8 +264,9 @@ fun smt2_filter ctxt0 goal xfacts i time_limit =
     val thms = conjecture :: prems @ facts
     val thms' = map (check_topsort ctxt) thms
 
-    val (name, {command, parse_proof, ...}) = name_and_info_of ctxt
-    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt thms') ctxt
+    val (name, {command, smt_options, parse_proof, ...}) = name_and_info_of ctxt
+    val (output, replay_data) =
+      invoke name command smt_options (SMT2_Normalize.normalize ctxt thms') ctxt
   in
     parse_proof ctxt replay_data xfacts (map Thm.prop_of prems) (Thm.term_of concl) output
   end

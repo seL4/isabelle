@@ -24,7 +24,7 @@ sig
   type config = {
     logic: term list -> string,
     has_datatypes: bool,
-    serialize: string list -> sign -> sterm list -> string }
+    serialize: (string * string) list -> string list -> sign -> sterm list -> string }
   type replay_data = {
     context: Proof.context,
     typs: typ Symtab.table,
@@ -34,7 +34,8 @@ sig
 
   (*translation*)
   val add_config: SMT2_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
-  val translate: Proof.context -> string list -> (int * thm) list -> string * replay_data
+  val translate: Proof.context -> (string * string) list -> string list -> (int * thm) list ->
+    string * replay_data
 end;
 
 structure SMT2_Translate: SMT2_TRANSLATE =
@@ -65,7 +66,7 @@ type sign = {
 type config = {
   logic: term list -> string,
   has_datatypes: bool,
-  serialize: string list -> sign -> sterm list -> string }
+  serialize: (string * string) list -> string list -> sign -> sterm list -> string }
 
 type replay_data = {
   context: Proof.context,
@@ -472,7 +473,7 @@ fun get_config ctxt =
         "for solver class " ^ quote (SMT2_Util.string_of_class cs)))
   end
 
-fun translate ctxt comments ithms =
+fun translate ctxt smt_options comments ithms =
   let
     val {logic, has_datatypes, serialize} = get_config ctxt
 
@@ -513,7 +514,7 @@ fun translate ctxt comments ithms =
   in
     (ts4, tr_context)
     |-> intermediate logic dtyps (builtin SMT2_Builtin.dest_builtin) ctxt2
-    |>> uncurry (serialize comments)
+    |>> uncurry (serialize smt_options comments)
     ||> replay_data_of ctxt2 rewrite_rules ithms
   end
 

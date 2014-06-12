@@ -31,11 +31,10 @@ fun outcome_of unsat sat unknown solver_name line =
     " failed -- enable tracing using the " ^ quote (Config.name_of SMT2_Config.trace) ^
     " option for details"))
 
-fun on_first_nontrivial_line test_outcome solver_name lines =
+fun on_first_line test_outcome solver_name lines =
   let
-    val empty_line = (fn "" => true | s => String.isPrefix "***" s)
     val split_first = (fn [] => ("", []) | l :: ls => (l, ls))
-    val (l, ls) = split_first (snd (take_prefix empty_line lines))
+    val (l, ls) = split_first (snd (take_prefix (curry (op =) "") lines))
   in (test_outcome solver_name l, ls) end
 
 
@@ -44,7 +43,7 @@ fun on_first_nontrivial_line test_outcome solver_name lines =
 local
   fun cvc3_options ctxt = [
     "-seed", string_of_int (Config.get ctxt SMT2_Config.random_seed),
-    "-lang", "smt2", "-output-lang", "presentation",
+    "-lang", "smt2",
     "-timeout", string_of_int (Real.ceil (Config.get ctxt SMT2_Config.timeout))]
 in
 
@@ -54,8 +53,9 @@ val cvc3: SMT2_Solver.solver_config = {
   avail = make_avail "CVC3",
   command = make_command "CVC3",
   options = cvc3_options,
+  smt_options = [],
   default_max_relevant = 400 (* FUDGE *),
-  outcome = on_first_nontrivial_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   parse_proof = NONE,
   replay = NONE }
 
@@ -122,8 +122,9 @@ val z3: SMT2_Solver.solver_config = {
   avail = make_avail "Z3_NEW",
   command = z3_make_command "Z3_NEW",
   options = z3_options,
+  smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 350 (* FUDGE *),
-  outcome = on_first_nontrivial_line (outcome_of "unsat" "sat" "unknown"),
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   parse_proof = SOME Z3_New_Replay.parse_proof,
   replay = SOME Z3_New_Replay.replay }
 

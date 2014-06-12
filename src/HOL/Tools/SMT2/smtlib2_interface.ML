@@ -128,10 +128,10 @@ val assert_prefix = "a"
 fun assert_name_of_index i = assert_prefix ^ string_of_int i
 fun assert_index_of_name s = the_default ~1 (Int.fromString (unprefix assert_prefix s))
 
-fun serialize comments {logic, sorts, dtyps, funcs} ts =
+fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
   Buffer.empty
   |> fold (Buffer.add o enclose "; " "\n") comments
-  |> Buffer.add "(set-option :produce-proofs true)\n"
+  |> fold (fn (k, v) => Buffer.add ("(set-option " ^ k ^ " " ^ v ^ ")\n")) smt_options
   |> Buffer.add logic
   |> fold (Buffer.add o enclose "(declare-sort " " 0)\n") (sort fast_string_ord sorts)
   |> (if null dtyps then I
