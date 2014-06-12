@@ -184,6 +184,8 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
+    val factss = map (apsnd (map (apsnd (Thm.transfer thy)))) factss
+
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
       smt2_filter_loop name params state goal subgoal factss
     val used_named_facts = map snd fact_ids
