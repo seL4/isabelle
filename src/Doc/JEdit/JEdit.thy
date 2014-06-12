@@ -647,7 +647,7 @@ text {*
 *}
 
 
-subsection {* Editor buffers and document nodes *}
+subsection {* Editor buffers and document nodes \label{sec:buffer-node} *}
 
 text {*
   As a regular text editor, jEdit maintains a collection of \emph{buffers} to
@@ -1008,9 +1008,33 @@ text {*
   Isabelle/ML bootstrap sources of Isabelle/Pure. *}
 
 
-section {* Text completion \label{sec:completion} *}
+section {* Completion \label{sec:completion} *}
 
-text {* \paragraph{Completion tables} are determined statically from
+text {*
+  Completion of partial input by the user, with the help of the editor and the
+  prover is the IDE functionality \emph{par excellance}. Isabelle/jEdit
+  combines several sources of information, both from the editor and the
+  prover, to achieve a quite powerful completion mechanisms.
+  It should be possible to get some idea how completion works just by
+  experimentation, while the systematic explanations below are meant to help
+  proficient users to make the best out of this increasingly complex
+  mechanism.
+
+  The asynchronous nature of PIDE interaction means that information from the
+  prover is always delayed --- at least by a full round-trip of the document
+  update protocol. The default completion options
+  (\secref{sec:completion-options}) already take this into account, with a
+  sufficiently long completion delay to speculate on the availability of all
+  relevant information from the editor and the prover.
+
+  Although there is an inherent danger of non-deterministic behaviour due to
+  such real-time delays, the general completion policies aim at determined
+  results as far as possible.
+*}
+
+text {*
+  %FIXME
+  \paragraph{Completion tables} are determined statically from
   the ``outer syntax'' of the underlying edit mode (for theory files
   this is the syntax of Isar commands), and specifications of Isabelle
   symbols (see also \secref{sec:symbols}).
@@ -1022,35 +1046,6 @@ text {* \paragraph{Completion tables} are determined statically from
   and allows to produce Isabelle symbols robustly in most syntactic
   contexts.}  Alternatively, symbol abbreviations may be used as
   specified in @{file "$ISABELLE_HOME/etc/symbols"}.
-
-  \paragraph{Completion popups} are required in situations of
-  ambiguous completion results or where explicit confirmation is
-  demanded before inserting completed text into the buffer.
-
-  The popup is some minimally invasive GUI component over the text
-  area.  It interprets special keys @{verbatim TAB}, @{verbatim
-  ESCAPE}, @{verbatim UP}, @{verbatim DOWN}, @{verbatim PAGE_UP},
-  @{verbatim PAGE_DOWN}, but all other key events are passed to the
-  underlying text area.  This allows to ignore unwanted completions
-  most of the time and continue typing quickly.
-
-  The meaning of special keys is as follows:
-
-  \medskip
-  \begin{tabular}{ll}
-  \textbf{key} & \textbf{action} \\\hline
-  @{verbatim "TAB"} & select completion \\
-  @{verbatim "ESCAPE"} & dismiss popup \\
-  @{verbatim "UP"} & move up one item \\
-  @{verbatim "DOWN"} & move down one item \\
-  @{verbatim "PAGE_UP"} & move up one page of items \\
-  @{verbatim "PAGE_DOWN"} & move down one page of items \\
-  \end{tabular}
-  \medskip
-
-  Movement within the popup is only active for multiple items.
-  Otherwise the corresponding key event retains its standard meaning
-  within the underlying text area.
 
   \paragraph{Explicit completion} is triggered by the keyboard
   shortcut @{verbatim "C+b"} (action @{action "isabelle.complete"}).
@@ -1106,7 +1101,162 @@ text {* \paragraph{Completion tables} are determined statically from
   mode.
 
   In any case, unintended completions can be reverted by the regular
-  @{verbatim undo} operation of jEdit. *}
+  @{verbatim undo} operation of jEdit.
+*}
+
+
+subsection {* Varieties of completion *}
+
+text {* FIXME *}
+
+
+subsubsection {* Templates *}
+
+text {* FIXME *}
+
+
+subsubsection {* Symbols *}
+
+text {* FIXME *}
+
+
+subsubsection {* Syntax keywords *}
+
+text {* FIXME *}
+
+
+subsubsection {* Name-space entries *}
+
+text {*
+  This is genuine semantic completion, using information from the prover, so
+  it requires some delay. A \emph{failed name-space lookup} produces an error
+  message that is annotated with a list of alternative names that are legal,
+  which truncated according to the system option @{system_option
+  completion_limit}. The completion mechanism takes this into account when
+  collecting information.
+
+  Already recognized names are \emph{not} completed further, but appending a
+  suffix of underscores provokes a failed lookup and subsequent completion,
+  where the underscores are ignored. For example, the input @{verbatim "foo_"}
+  may be completed to @{verbatim "foo"} or @{verbatim "foobar"}, if these are
+  both known in the context.
+
+  The special identifier @{verbatim "__"} serves as a wild-card for arbitrary
+  completion: it exposes the name-space content to the completion mechanism
+  (truncated according to @{system_option completion_limit}). This is
+  occasionally useful to explore an unknown name-space, e.g.\ in some
+  template.
+*}
+
+
+subsubsection {* Spell-checking *}
+
+text {* FIXME *}
+
+
+subsubsection {* File-system paths *}
+
+text {*
+  Depending on prover markup about file-system path specifications in the
+  formal text, e.g.\ for the argument of a load command
+  (\secref{sec:aux-files}), the completion mechanism explores the directory
+  content and offers the result as completion popup. Relative path
+  specifications are understood wrt.\ the \emph{master directory} of the
+  document node (\secref{sec:buffer-node}) of the enclosing editor buffer
+  (this requires a proper theory, not an auxiliary file).
+
+  A suffix of slashes may be used to continue the exploration of an already
+  recognized directory name.
+
+  The system option @{system_option jedit_completion_path_ignore} specifies
+  ``glob'' patterns to ignore in file-system path completion (separated by
+  colons), e.g.\ backup files ending with tilde.
+*}
+
+
+subsection {* Input events *}
+
+text {*
+  FIXME
+*}
+
+
+subsection {* Completion popup \label{sec:completion-popup} *}
+
+text {*
+  A \emph{completion popup} is a minimally GUI component over the text area
+  that offers a selection of completion items to be inserted into the text.
+  The popup interprets special keys @{verbatim TAB}, @{verbatim ESCAPE},
+  @{verbatim UP}, @{verbatim DOWN}, @{verbatim PAGE_UP}, @{verbatim
+  PAGE_DOWN}, but all other key events are passed to the underlying text area.
+  This allows to ignore unwanted completions most of the time and continue
+  typing quickly. Thus the popup serves as a mechanism of confirmation of
+  proposed items, but the default is to continue without completion.
+
+  The meaning of special keys is as follows:
+
+  \medskip
+  \begin{tabular}{ll}
+  \textbf{key} & \textbf{action} \\\hline
+  @{verbatim "TAB"} & select completion \\
+  @{verbatim "ESCAPE"} & dismiss popup \\
+  @{verbatim "UP"} & move up one item \\
+  @{verbatim "DOWN"} & move down one item \\
+  @{verbatim "PAGE_UP"} & move up one page of items \\
+  @{verbatim "PAGE_DOWN"} & move down one page of items \\
+  \end{tabular}
+  \medskip
+
+  Movement within the popup is only active for multiple items.
+  Otherwise the corresponding key event retains its standard meaning
+  within the underlying text area.
+*}
+
+
+subsection {* Rendering *}
+
+text {*
+  FIXME
+*}
+
+
+subsection {* Insert item \label{sec:completion-insert} *}
+
+text {*
+  FIXME
+*}
+
+
+subsection {* Semantic completion context *}
+
+text {*
+  Completion depends on a semantic context that is provided by the prover,
+  although with some delay, because at least a full PIDE protocol round-trip
+  is required. Until that information becomes available in the PIDE
+  document-model, the default context is given by the outer syntax of the
+  editor mode (see also \secref{sec:buffer-node}).
+
+  The \emph{language context} by the prover provides information about
+  embedded languages of Isabelle: keywords are only completed for outer
+  syntax, symbols or antiquotations for languages that support them. E.g.\
+  there is no symbol completion for ML source, but within ML strings,
+  comments, antiquotations.
+
+  In exceptional situations, the prover may produce \emph{no completion}
+  markup, to tell that some language keywords should be excluded from further
+  completion attempts. For example, @{verbatim ":"} within accepted Isar
+  syntax looses its meaning as abbreviation for symbol @{text "\<in>"}.
+*}
+
+
+subsection {* Options \label{sec:completion-options} *}
+
+text {*
+  This is a summary of Isabelle/Scala system options that are relevant for
+  completion.
+
+  FIXME
+*}
 
 
 section {* Automatically tried tools \label{sec:auto-tools} *}
