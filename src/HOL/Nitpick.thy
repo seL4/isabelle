@@ -8,7 +8,7 @@ Nitpick: Yet another counterexample generator for Isabelle/HOL.
 header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
-imports BNF_FP_Base Map Record
+imports Record
 keywords
   "nitpick" :: diag and
   "nitpick_params" :: thy_decl

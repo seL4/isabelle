@@ -7,7 +7,7 @@
 header {* Sledgehammer: Isabelle--ATP Linkup *}
 
 theory Sledgehammer
-imports Presburger ATP SMT2
+imports Presburger SMT2
 keywords "sledgehammer" :: diag and "sledgehammer_params" :: thy_decl
 begin
 
