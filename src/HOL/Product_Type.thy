@@ -130,38 +130,65 @@ instance ..
 
 end
 
-instantiation unit :: linorder
+instantiation unit :: "{complete_boolean_algebra, complete_linorder, wellorder}"
 begin
 
-definition less_eq_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool" where
-"less_eq_unit _ _ = True"
+definition less_eq_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool"
+where
+  "(_::unit) \<le> _ \<longleftrightarrow> True"
 
-definition less_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool" where
-"less_unit _ _ = False"
+lemma less_eq_unit [iff]:
+  "(u::unit) \<le> v"
+  by (simp add: less_eq_unit_def)
 
-declare less_eq_unit_def [simp, abs_def, code_unfold] less_unit_def [simp, abs_def, code_unfold]
+definition less_unit :: "unit \<Rightarrow> unit \<Rightarrow> bool"
+where
+  "(_::unit) < _ \<longleftrightarrow> False"
+
+lemma less_unit [iff]:
+  "\<not> (u::unit) < v"
+  by (simp_all add: less_eq_unit_def less_unit_def)
+
+definition bot_unit :: unit
+where
+  [code_unfold]: "\<bottom> = ()"
+
+definition top_unit :: unit
+where
+  [code_unfold]: "\<top> = ()"
+
+definition inf_unit :: "unit \<Rightarrow> unit \<Rightarrow> unit"
+where
+  [simp]: "_ \<sqinter> _ = ()"
+
+definition sup_unit :: "unit \<Rightarrow> unit \<Rightarrow> unit"
+where
+  [simp]: "_ \<squnion> _ = ()"
+
+definition Inf_unit :: "unit set \<Rightarrow> unit"
+where
+  [simp]: "\<Sqinter>_ = ()"
+
+definition Sup_unit :: "unit set \<Rightarrow> unit"
+where
+  [simp]: "\<Squnion>_ = ()"
+
+definition uminus_unit :: "unit \<Rightarrow> unit"
+where
+  [simp]: "- _ = ()"
+
+declare less_eq_unit_def [abs_def, code_unfold]
+  less_unit_def [abs_def, code_unfold]
+  inf_unit_def [abs_def, code_unfold]
+  sup_unit_def [abs_def, code_unfold]
+  Inf_unit_def [abs_def, code_unfold]
+  Sup_unit_def [abs_def, code_unfold]
+  uminus_unit_def [abs_def, code_unfold]
 
 instance
-proof qed auto
-
-end
-
-instantiation unit :: complete_boolean_algebra begin
-
-definition "top = ()"
-definition "bot = ()"
-definition [code_unfold]: "sup _ _ = ()"
-definition [code_unfold]: "inf _ _ = ()"
-definition "Sup _ = ()"
-definition "Inf _ = ()"
-definition [simp, code_unfold]: "uminus = (\<lambda>_ :: unit. ())"
-
-instance by intro_classes auto
-
-end
-
-instance unit :: "{complete_linorder, wellorder}"
   by intro_classes auto
+
+end
 
 lemma [code]:
   "HOL.equal (u\<Colon>unit) v \<longleftrightarrow> True" unfolding equal unit_eq [of u] unit_eq [of v] by rule+
