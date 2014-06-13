@@ -1015,97 +1015,31 @@ text {*
   prover is the IDE functionality \emph{par excellance}. Isabelle/jEdit
   combines several sources of information, both from the editor and the
   prover, to achieve a quite powerful completion mechanisms.
-  It should be possible to get some idea how completion works just by
-  experimentation, while the systematic explanations below are meant to help
-  proficient users to make the best out of this increasingly complex
-  mechanism.
 
-  The asynchronous nature of PIDE interaction means that information from the
-  prover is always delayed --- at least by a full round-trip of the document
-  update protocol. The default completion options
+  It should be possible to get some idea how completion works just by
+  experimentation and the overview of completion varieties in
+  \secref{sec:completion-varieties}. Later sections explain more
+  systematically the individual concepts that contribute to the increasingly
+  complex completion mechanism.
+
+  \medskip The asynchronous nature of PIDE interaction means that information
+  from the prover is always delayed --- at least by a full round-trip of the
+  document update protocol. The default completion options
   (\secref{sec:completion-options}) already take this into account, with a
   sufficiently long completion delay to speculate on the availability of all
-  relevant information from the editor and the prover.
+  relevant information from the editor and the prover. Although there is an
+  inherent danger of non-deterministic behaviour due to such real-time delays,
+  the general completion policies aim at determined results as far as
+  possible.
 
-  Although there is an inherent danger of non-deterministic behaviour due to
-  such real-time delays, the general completion policies aim at determined
-  results as far as possible.
-*}
-
-text {*
-  %FIXME
-  \paragraph{Completion tables} are determined statically from
-  the ``outer syntax'' of the underlying edit mode (for theory files
-  this is the syntax of Isar commands), and specifications of Isabelle
-  symbols (see also \secref{sec:symbols}).
-
-  Symbols are completed in backslashed forms, e.g.\ @{verbatim
-  "\\"}@{verbatim "forall"} or @{verbatim "\<forall>"} that both produce the
-  Isabelle symbol @{text "\<forall>"} in its Unicode rendering.\footnote{The
-  extra backslash avoids overlap with keywords of the buffer syntax,
-  and allows to produce Isabelle symbols robustly in most syntactic
-  contexts.}  Alternatively, symbol abbreviations may be used as
-  specified in @{file "$ISABELLE_HOME/etc/symbols"}.
-
-  \paragraph{Explicit completion} is triggered by the keyboard
-  shortcut @{verbatim "C+b"} (action @{action "isabelle.complete"}).
-  This overrides the original jEdit binding for action @{verbatim
-  "complete-word"}, but the latter is used as fall-back for
-  non-Isabelle edit modes.  It is also possible to restore the
-  original jEdit keyboard mapping of @{verbatim "complete-word"} via
-  \emph{Global Options / Shortcuts}.
-
-  Replacement text is inserted immediately into the buffer, unless
-  ambiguous results demand an explicit popup.
-
-  \paragraph{Implicit completion} is triggered by regular keyboard input
-  events during of the editing process in the main jEdit text area (and a few
-  additional text fields like the ones of the the \emph{Query} panel, see
-  \secref{sec:query}). Implicit completion depends on on further
-  side-conditions:
-
-  \begin{enumerate}
-
-  \item The system option @{system_option jedit_completion} needs to
-  be enabled (default).
-
-  \item Completion of syntax keywords requires at least 3 relevant
-  characters in the text.
-
-  \item The system option @{system_option jedit_completion_delay}
-  determines an additional delay (0.5 by default), before opening a
-  completion popup.
-
-  \item The system option @{system_option jedit_completion_immediate}
-  (disabled by default) controls whether replacement text should be
-  inserted immediately without popup.  This is restricted to Isabelle
-  symbols and their abbreviations (\secref{sec:symbols}) --- plain
-  keywords always demand a popup for clarity.
-
-  \item Completion of symbol abbreviations with only one relevant
-  character in the text always enforces an explicit popup,
-  independently of @{system_option jedit_completion_immediate}.
-
-  \end{enumerate}
-
-  These completion options may be configured in \emph{Plugin Options /
-  Isabelle / General / Completion}.  The default is quite moderate in
-  showing occasional popups and refraining from immediate insertion.
-
-  In contrast, more aggressive completion works via @{system_option
-  jedit_completion_delay}~@{verbatim "= 0.0"} and @{system_option
-  jedit_completion_immediate}~@{verbatim "= true"}.  Thus the editing
-  process becomes dependent on the system guessing correctly what the
-  user had in mind.  It requires some practice (and study of the
-  symbol abbreviation tables) to become productive in this advanced
-  mode.
-
-  In any case, unintended completions can be reverted by the regular
-  @{verbatim undo} operation of jEdit.
+  \textbf{Completion options} may be configured in \emph{Plugin Options /
+  Isabelle / General / Completion}. These are explained in further detail
+  below, whenever relevant. There is also a summary of options in
+  \secref{sec:completion-options}.
 *}
 
 
-subsection {* Varieties of completion *}
+subsection {* Varieties of completion \label{sec:completion-varieties} *}
 
 text {* FIXME *}
 
@@ -1117,12 +1051,54 @@ text {* FIXME *}
 
 subsubsection {* Symbols *}
 
-text {* FIXME *}
+text {*
+  The completion tables for Isabelle symbols (\secref{sec:symbols}) are
+  determined statically from @{file "$ISABELLE_HOME/etc/symbols"} and
+  @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"} for each entry as
+  follows:
+
+  \medskip
+  \begin{tabular}{ll}
+  \textbf{completion entry} & \textbf{example} \\\hline
+  literal symbol & @{verbatim "\<forall>"} \\
+  backslashed symbol name & @{verbatim "\\"}@{verbatim forall} \\
+  symbol abbreviation & @{verbatim "!"} or @{verbatim "ALL"} \\
+  \end{tabular}
+  \medskip
+
+  A symbol abbreviation that is a plain word, like @{verbatim "ALL"}, is
+  treated like a syntax keyword. Non-word abbreviations are inserted more
+  aggressively, with the exception of single-character abbreviations like
+  @{verbatim "!"} above.
+
+  When inserted into the text, the examples above all produce the same Unicode
+  rendering @{text "\<forall>"} of the underlying symbol @{verbatim "\<forall>"}.
+
+  \medskip Symbol completion of depends on the semantic language context
+  (\secref{sec:completion-context}), to enable or disable that aspect for a
+  particular sub-language of Isabelle. For example, within document source,
+  symbol completion is suppressed to avoid confusion with {\LaTeX} that use
+  similar notation.
+*}
 
 
 subsubsection {* Syntax keywords *}
 
-text {* FIXME *}
+text {*
+  Syntax completion tables are determined statically from the keywords of the
+  ``outer syntax'' of the underlying edit mode: for theory files this is the
+  syntax of Isar commands.
+
+  Keywords are usually plain words, which means the completion mechanism only
+  inserts them directly into the text for explicit completion
+  (\secref{sec:completion-input}).
+
+  At the point where outer syntax keywords are defined, it is possible to
+  specify an alternative replacement string to be inserted instead of the
+  keyword itself. An empty string means to suppress the keyword altogether,
+  which is occasionally important to avoid confusion (e.g.\ the rare keyword
+  @{verbatim simproc_setup} vs.\ the frequent name-space entry @{text simp}.
+*}
 
 
 subsubsection {* Name-space entries *}
@@ -1174,10 +1150,81 @@ text {*
 *}
 
 
-subsection {* Input events *}
+subsection {* Semantic completion context \label{sec:completion-context} *}
+
+text {*
+  Completion depends on a semantic context that is provided by the prover,
+  although with some delay, because at least a full PIDE protocol round-trip
+  is required. Until that information becomes available in the PIDE
+  document-model, the default context is given by the outer syntax of the
+  editor mode (see also \secref{sec:buffer-node}).
+
+  The \emph{language context} by the prover provides information about
+  embedded languages of Isabelle: keywords are only completed for outer
+  syntax, symbols or antiquotations for languages that support them. E.g.\
+  there is no symbol completion for ML source, but within ML strings,
+  comments, antiquotations.
+
+  In exceptional situations, the prover may produce \emph{no completion}
+  markup, to tell that some language keywords should be excluded from further
+  completion attempts. For example, @{verbatim ":"} within accepted Isar
+  syntax looses its meaning as abbreviation for symbol @{text "\<in>"}.
+*}
+
+
+subsection {* Input events \label{sec:completion-input} *}
 
 text {*
   FIXME
+
+  \paragraph{Explicit completion} is triggered by the keyboard
+  shortcut @{verbatim "C+b"} (action @{action "isabelle.complete"}).
+  This overrides the original jEdit binding for action @{verbatim
+  "complete-word"}, but the latter is used as fall-back for
+  non-Isabelle edit modes.  It is also possible to restore the
+  original jEdit keyboard mapping of @{verbatim "complete-word"} via
+  \emph{Global Options / Shortcuts}.
+
+  Replacement text is inserted immediately into the buffer, unless
+  ambiguous results demand an explicit popup.
+
+  \paragraph{Implicit completion} is triggered by regular keyboard input
+  events during of the editing process in the main jEdit text area (and a few
+  additional text fields like the ones of the the \emph{Query} panel, see
+  \secref{sec:query}). Implicit completion depends on on further
+  side-conditions:
+
+  \begin{enumerate}
+
+  \item The system option @{system_option jedit_completion} needs to
+  be enabled (default).
+
+  \item Completion of syntax keywords requires at least 3 relevant
+  characters in the text.
+
+  \item The system option @{system_option jedit_completion_delay}
+  determines an additional delay (0.5 by default), before opening a
+  completion popup.
+
+  \item The system option @{system_option jedit_completion_immediate}
+  (disabled by default) controls whether replacement text should be
+  inserted immediately without popup.  This is restricted to Isabelle
+  symbols and their abbreviations (\secref{sec:symbols}) --- plain
+  keywords always demand a popup for clarity.
+
+  \item Completion of symbol abbreviations with only one relevant
+  character in the text always enforces an explicit popup,
+  independently of @{system_option jedit_completion_immediate}.
+
+  \end{enumerate}
+
+  In contrast, more aggressive completion works via @{system_option
+  jedit_completion_delay}~@{verbatim "= 0.0"} and @{system_option
+  jedit_completion_immediate}~@{verbatim "= true"}.  Thus the editing
+  process becomes dependent on the system guessing correctly what the
+  user had in mind.  It requires some practice (and study of the
+  symbol abbreviation tables) to become productive in this advanced
+  mode.
 *}
 
 
@@ -1220,32 +1267,15 @@ text {*
 *}
 
 
-subsection {* Insert item \label{sec:completion-insert} *}
+subsection {* Insertion \label{sec:completion-insert} *}
 
 text {*
   FIXME
-*}
 
-
-subsection {* Semantic completion context *}
-
-text {*
-  Completion depends on a semantic context that is provided by the prover,
-  although with some delay, because at least a full PIDE protocol round-trip
-  is required. Until that information becomes available in the PIDE
-  document-model, the default context is given by the outer syntax of the
-  editor mode (see also \secref{sec:buffer-node}).
-
-  The \emph{language context} by the prover provides information about
-  embedded languages of Isabelle: keywords are only completed for outer
-  syntax, symbols or antiquotations for languages that support them. E.g.\
-  there is no symbol completion for ML source, but within ML strings,
-  comments, antiquotations.
-
-  In exceptional situations, the prover may produce \emph{no completion}
-  markup, to tell that some language keywords should be excluded from further
-  completion attempts. For example, @{verbatim ":"} within accepted Isar
-  syntax looses its meaning as abbreviation for symbol @{text "\<in>"}.
+  In any case, unintended completions may be reverted by the regular
+  @{verbatim undo} operation of jEdit. According to normal jEdit policies, the
+  recovered text after @{verbatim undo} is selected: @{verbatim ESCAPE} is
+  required to reset the selection and to to continue typing more text.
 *}
 
 
@@ -1261,13 +1291,13 @@ text {*
 
 section {* Automatically tried tools \label{sec:auto-tools} *}
 
-text {* Continuous document processing works asynchronously in the
-  background.  Visible document source that has been evaluated already
-  may get augmented by additional results of \emph{asynchronous print
-  functions}.  The canonical example is proof state output, which is
-  always enabled.  More heavy-weight print functions may be applied,
-  in order to prove or disprove parts of the formal text by other
-  means.
+text {*
+  Continuous document processing works asynchronously in the background.
+  Visible document source that has been evaluated may get augmented by
+  additional results of \emph{asynchronous print functions}. The canonical
+  example is proof state output, which is always enabled. More heavy-weight
+  print functions may be applied, in order to prove or disprove parts of the
+  formal text by other means.
 
   Isabelle/HOL provides various automatically tried tools that operate
   on outermost goal statements (e.g.\ @{command lemma}, @{command
