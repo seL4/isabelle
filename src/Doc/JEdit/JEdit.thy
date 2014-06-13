@@ -613,11 +613,11 @@ text {* File specifications in jEdit follow various formats and
   Isabelle/jEdit via its standard application wrapper (in contrast to
   @{verbatim "isabelle jedit"} run from the command line).
 
-  For convenience, Isabelle/jEdit imitates at least @{verbatim
-  "$ISABELLE_HOME"} and @{verbatim "$ISABELLE_HOME_USER"} within the Java
-  process environment, in order to allow easy access to these important places
-  from the editor. The file browser of jEdit also includes \emph{Favorites}
-  for these two important locations.
+  For convenience, Isabelle/jEdit imitates @{verbatim "$ISABELLE_HOME"} and
+  @{verbatim "$ISABELLE_HOME_USER"} within the Java process environment, in
+  order to allow easy access to these important places from the editor. The
+  file browser of jEdit also includes \emph{Favorites} for these two important
+  locations.
 
   \medskip Path specifications in prover input or output usually include
   formal markup that turns it into a hyperlink (see also
@@ -1117,10 +1117,10 @@ text {*
   may be completed to @{verbatim "foo"} or @{verbatim "foobar"}, if these are
   both known in the context.
 
-  The special identifier @{verbatim "__"} serves as a wild-card for arbitrary
-  completion: it exposes the name-space content to the completion mechanism
-  (truncated according to @{system_option completion_limit}). This is
-  occasionally useful to explore an unknown name-space, e.g.\ in some
+  The special identifier ``@{verbatim "__"}'' serves as a wild-card for
+  arbitrary completion: it exposes the name-space content to the completion
+  mechanism (truncated according to @{system_option completion_limit}). This
+  is occasionally useful to explore an unknown name-space, e.g.\ in some
   template.
 *}
 
@@ -1167,8 +1167,8 @@ text {*
 
   In exceptional situations, the prover may produce \emph{no completion}
   markup, to tell that some language keywords should be excluded from further
-  completion attempts. For example, @{verbatim ":"} within accepted Isar
-  syntax looses its meaning as abbreviation for symbol @{text "\<in>"}.
+  completion attempts. For example, ``@{verbatim ":"}'' within accepted Isar
+  syntax looses its meaning as abbreviation for symbol ``@{text "\<in>"}''.
 *}
 
 
