@@ -365,8 +365,9 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     cset_rel ~> rel_cset (in "Library/Countable_Set_Type.thy")
     vset ~> rel_vset (in "Library/Quotient_Set.thy")
 
-* New theory:
+* New theories:
     Cardinals/Ordinal_Arithmetic.thy
+    Library/Tree
 
 * Theory reorganizations:
   * Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
