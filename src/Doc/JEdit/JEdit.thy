@@ -1041,12 +1041,33 @@ text {*
 
 subsection {* Varieties of completion \label{sec:completion-varieties} *}
 
-text {* FIXME *}
+subsubsection {* Built-in templates *}
 
+text {*
+  Isabelle is ultimately a framework of nested sub-languages of different
+  kinds and purposes.  The completion mechanism supports this by two built-in
+  templates:
+  \begin{enumerate}
 
-subsubsection {* Templates *}
+  \item @{verbatim "`"} (single ASCII back-quote) supports \emph{quotations}
+  via text cartouches. There are three selections, which are always presented
+  in this order and do not depend on any context information. The default
+  choice produces a template ``@{text "\<open>\<box>\<close>"}'', where the box indicates the
+  cursor position after insertion; the other choices help to repair the block
+  structure of unbalanced text cartouches.
 
-text {* FIXME *}
+  \item @{verbatim "@{"} is completed to the template ``@{text "@{\<box>}"}'' where
+  the box indicates the cursor position after insertion. Here it is convenient
+  to use ``@{verbatim __}'' or more specific name prefixes to let semantic
+  completion of name-space entries propose antiquotation names.
+
+  \end{enumerate}
+
+  With some practice, the nesting of quoted sub-languages and antiquotations
+  with other languages should work fluently. Note that national keyboard
+  layouts might cause problems with back-quote as dead key: if possible, dead
+  keys are better disabled.
+*}
 
 
 subsubsection {* Symbols *}
