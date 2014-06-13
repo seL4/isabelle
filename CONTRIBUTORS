@@ -12,7 +12,7 @@ Contributions to this Isabelle version
   Waldmeister, etc.).
 
 * June 2014: Sudeep Kanav, TUM, and Johannes Hölzl, TUM
-  Various properties of Erlang and exponentially distributed random variables.
+  Various properties of exponentially, Erlang, and normal distributed random variables.
 
 * May 2014: Cezary Kaliszyk, University of Innsbruck, and Jasmin Blanchette, TUM
   SML-based engines for MaSh.

@@ -6,7 +6,6 @@ imports
   Infinite_Product_Measure
   Projective_Limit
   Independent_Family
-  Information
   Distributions
 begin
 
