@@ -469,7 +469,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   \secref{sec:completion}).  Isabelle symbols have a canonical name
   and optional abbreviations.  This can be used with the text
   completion mechanism of Isabelle/jEdit, to replace a prefix of the
-  actual symbol like @{verbatim "\<lambda>"}, or its backslashed name
+  actual symbol like @{verbatim "\<lambda>"}, or its name preceded by backslash
   @{verbatim "\\"}@{verbatim "lambda"}, or its ASCII abbreviation
   @{verbatim "%"} by the Unicode rendering.
 
@@ -478,7 +478,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
 
   \medskip
   \begin{tabular}{lll}
-    \textbf{symbol} & \textbf{backslashed name} & \textbf{abbreviation} \\\hline
+    \textbf{symbol} & \textbf{name with backslash} & \textbf{abbreviation} \\\hline
     @{text "\<lambda>"} & @{verbatim "\\lambda"} & @{verbatim "%"} \\
     @{text "\<Rightarrow>"} & @{verbatim "\\Rightarrow"} & @{verbatim "=>"} \\
     @{text "\<Longrightarrow>"} & @{verbatim "\\Longrightarrow"} & @{verbatim "==>"} \\[0.5ex]
@@ -1011,18 +1011,25 @@ text {*
 section {* Completion \label{sec:completion} *}
 
 text {*
-  Completion of partial input by the user, with the help of the editor and the
-  prover is the IDE functionality \emph{par excellance}. Isabelle/jEdit
-  combines several sources of information, both from the editor and the
-  prover, to achieve a quite powerful completion mechanisms.
+  Smart completion of partial input is the IDE functionality \emph{par
+  excellance}. Isabelle/jEdit combines several sources of information to
+  achieve that. Despite its complexity, it should be possible to get some idea
+  how completion works by experimentation, based on the overview of completion
+  varieties in \secref{sec:completion-varieties}. Later sections explain
+  concepts around completion more systematically.
 
-  It should be possible to get some idea how completion works just by
-  experimentation and the overview of completion varieties in
-  \secref{sec:completion-varieties}. Later sections explain more
-  systematically the individual concepts that contribute to the increasingly
-  complex completion mechanism.
+  \emph{Explicit completion} works via the action @{action
+  "isabelle.complete"}, which is bound to the key sequence @{verbatim "C+b"}
+  (overriding the jEdit default for @{verbatim "complete-word"}).
+  \emph{Implicit completion} hooks into the regular keyboard input stream of
+  the editor, with some filtering and optional delays.
 
-  \medskip The asynchronous nature of PIDE interaction means that information
+  \medskip Completion options may be configured in \emph{Plugin Options /
+  Isabelle / General / Completion}. These are explained in further detail
+  below, whenever relevant. There is also a summary of options in
+  \secref{sec:completion-options}.
+
+  The asynchronous nature of PIDE interaction means that information
   from the prover is always delayed --- at least by a full round-trip of the
   document update protocol. The default completion options
   (\secref{sec:completion-options}) already take this into account, with a
@@ -1031,11 +1038,6 @@ text {*
   inherent danger of non-deterministic behaviour due to such real-time delays,
   the general completion policies aim at determined results as far as
   possible.
-
-  \textbf{Completion options} may be configured in \emph{Plugin Options /
-  Isabelle / General / Completion}. These are explained in further detail
-  below, whenever relevant. There is also a summary of options in
-  \secref{sec:completion-options}.
 *}
 
 
@@ -1045,13 +1047,14 @@ subsubsection {* Built-in templates *}
 
 text {*
   Isabelle is ultimately a framework of nested sub-languages of different
-  kinds and purposes.  The completion mechanism supports this by two built-in
-  templates:
-  \begin{enumerate}
+  kinds and purposes. The completion mechanism supports this by the following
+  built-in templates:
+
+  \begin{itemize}
 
   \item @{verbatim "`"} (single ASCII back-quote) supports \emph{quotations}
   via text cartouches. There are three selections, which are always presented
-  in this order and do not depend on any context information. The default
+  in the same order and do not depend on any context information. The default
   choice produces a template ``@{text "\<open>\<box>\<close>"}'', where the box indicates the
   cursor position after insertion; the other choices help to repair the block
   structure of unbalanced text cartouches.
@@ -1061,10 +1064,10 @@ text {*
   to use ``@{verbatim __}'' or more specific name prefixes to let semantic
   completion of name-space entries propose antiquotation names.
 
-  \end{enumerate}
+  \end{itemize}
 
   With some practice, the nesting of quoted sub-languages and antiquotations
-  with other languages should work fluently. Note that national keyboard
+  of embedded languages should work fluently. Note that national keyboard
   layouts might cause problems with back-quote as dead key: if possible, dead
   keys are better disabled.
 *}
@@ -1075,21 +1078,21 @@ subsubsection {* Symbols *}
 text {*
   The completion tables for Isabelle symbols (\secref{sec:symbols}) are
   determined statically from @{file "$ISABELLE_HOME/etc/symbols"} and
-  @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"} for each entry as
-  follows:
+  @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"} for each symbol
+  specification as follows:
 
   \medskip
   \begin{tabular}{ll}
   \textbf{completion entry} & \textbf{example} \\\hline
   literal symbol & @{verbatim "\<forall>"} \\
-  backslashed symbol name & @{verbatim "\\"}@{verbatim forall} \\
+  symbol name with backslash & @{verbatim "\\"}@{verbatim forall} \\
   symbol abbreviation & @{verbatim "!"} or @{verbatim "ALL"} \\
   \end{tabular}
   \medskip
 
   A symbol abbreviation that is a plain word, like @{verbatim "ALL"}, is
   treated like a syntax keyword. Non-word abbreviations are inserted more
-  aggressively, with the exception of single-character abbreviations like
+  aggressively, but with the exception of single-character abbreviations like
   @{verbatim "!"} above.
 
   When inserted into the text, the examples above all produce the same Unicode
@@ -1117,8 +1120,8 @@ text {*
   At the point where outer syntax keywords are defined, it is possible to
   specify an alternative replacement string to be inserted instead of the
   keyword itself. An empty string means to suppress the keyword altogether,
-  which is occasionally important to avoid confusion (e.g.\ the rare keyword
-  @{verbatim simproc_setup} vs.\ the frequent name-space entry @{text simp}.
+  which is occasionally useful to avoid confusion (e.g.\ the rare keyword
+  @{command simproc_setup} vs.\ the frequent name-space entry @{text simp}).
 *}
 
 
@@ -1132,11 +1135,12 @@ text {*
   completion_limit}. The completion mechanism takes this into account when
   collecting information.
 
-  Already recognized names are \emph{not} completed further, but appending a
-  suffix of underscores provokes a failed lookup and subsequent completion,
-  where the underscores are ignored. For example, the input @{verbatim "foo_"}
-  may be completed to @{verbatim "foo"} or @{verbatim "foobar"}, if these are
-  both known in the context.
+  Already recognized names are \emph{not} completed further, but completion
+  may be extended by appending a suffix of underscores. This provokes a failed
+  lookup, and another completion attempt while ignoring the underscores. For
+  example, in a name space where @{verbatim "foo"} and @{verbatim "foobar"}
+  are known, the input @{verbatim "foo"} remains unchanged, but @{verbatim
+  "foo_"} may be completed to @{verbatim "foo"} or @{verbatim "foobar"}.
 
   The special identifier ``@{verbatim "__"}'' serves as a wild-card for
   arbitrary completion: it exposes the name-space content to the completion
@@ -1144,11 +1148,6 @@ text {*
   is occasionally useful to explore an unknown name-space, e.g.\ in some
   template.
 *}
-
-
-subsubsection {* Spell-checking *}
-
-text {* FIXME *}
 
 
 subsubsection {* File-system paths *}
@@ -1168,6 +1167,49 @@ text {*
   The system option @{system_option jedit_completion_path_ignore} specifies
   ``glob'' patterns to ignore in file-system path completion (separated by
   colons), e.g.\ backup files ending with tilde.
+*}
+
+
+subsubsection {* Spell-checking *}
+
+text {*
+  The spell-checker combines semantic markup from the prover (regions of plain
+  words) with static dictionaries (word lists) that are known to the editor.
+
+  The system option @{system_option spell_checker_elements} specifies a
+  comma-separated list of markup elements that delimit words in the source
+  that is subject to spell-checking, including various forms of comments.
+
+  The system option @{system_option spell_checker_dictionary} determines the
+  current dictionary, from the colon-separated list given by the settings
+  variable @{setting JORTHO_DICTIONARIES}. There are jEdit actions to specify
+  local updates to a dictionary, by including or excluding words. The result
+  of permanent dictionary updates is stored in the directory @{file_unchecked
+  "$ISABELLE_HOME_USER/dictionaries"}.
+
+  \medskip Unknown words are underlined in the text, using @{system_option
+  spell_checker_color} (blue by default). This is not an error, but a hint to
+  the user that some action may have to be taken. The jEdit context menu
+  provides various actions, as far as applicable:
+
+  \medskip
+  \begin{tabular}{l}
+  @{action "isabelle.complete-word"} \\
+  @{action "isabelle.exclude-word"} \\
+  @{action "isabelle.exclude-word-permanently"} \\
+  @{action "isabelle.include-word"} \\
+  @{action "isabelle.include-word-permanently"} \\
+  \end{tabular}
+  \medskip
+
+  Instead of the specific @{action "isabelle.complete-word"}, it is also
+  possible to use the generic @{action "isabelle.complete"} with its default
+  key binding @{verbatim "C+b"}.
+
+  \medskip Dictionary lookup uses some educated guesses about lower-case,
+  upper-case, and capitalized words. This is oriented on common use in
+  English, where this aspect is not decisive for proper spelling, unlike
+  German, for example.
 *}
 
 
