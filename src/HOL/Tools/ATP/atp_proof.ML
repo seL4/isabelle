@@ -21,6 +21,7 @@ sig
     GaveUp |
     ProofMissing |
     ProofIncomplete |
+    ProofUnparsable |
     UnsoundProof of bool * string list |
     CantConnect |
     TimedOut |
@@ -132,6 +133,7 @@ datatype atp_failure =
   GaveUp |
   ProofMissing |
   ProofIncomplete |
+  ProofUnparsable |
   UnsoundProof of bool * string list |
   CantConnect |
   TimedOut |
@@ -164,8 +166,9 @@ fun string_of_atp_failure Unprovable = "The generated problem is unprovable."
   | string_of_atp_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
   | string_of_atp_failure ProofIncomplete =
-    "The prover claims the conjecture is a theorem but provided an incomplete \
-    \(or unparsable) proof."
+    "The prover claims the conjecture is a theorem but provided an incomplete proof."
+  | string_of_atp_failure ProofUnparsable =
+    "The prover claims the conjecture is a theorem but provided an unparsable proof."
   | string_of_atp_failure (UnsoundProof (false, ss)) =
     "The prover derived \"False\"" ^ from_lemmas ss ^
     ". Specify a sound type encoding or omit the \"type_enc\" option."
@@ -234,6 +237,7 @@ fun extract_tstplike_proof_and_outcome verbose proof_delims known_failures outpu
   (case (extract_tstplike_proof proof_delims output,
       extract_known_atp_failure known_failures output) of
     (_, SOME ProofIncomplete) => ("", NONE)
+  | (_, SOME ProofUnparsable) => ("", NONE)
   | ("", SOME ProofMissing) => ("", NONE)
   | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
   | res as ("", _) => res
@@ -300,7 +304,7 @@ and parse_dependencies x =
 and parse_file_source x =
   (Scan.this_string "file" |-- $$ "(" |-- scan_general_id
    -- Scan.option ($$ "," |-- scan_general_id
-  --| Scan.option ($$"," |-- $$"[" -- Scan.option scan_general_id --| $$"]") --| $$ ")")) x
+     --| Scan.option ($$ "," |-- $$ "[" -- Scan.option scan_general_id --| $$ "]")) --| $$ ")") x
 and parse_inference_source x =
   (Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
    --| skip_term --| $$ "," --| skip_term --| $$ "," --| $$ "["

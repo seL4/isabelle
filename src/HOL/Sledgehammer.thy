@@ -33,8 +33,4 @@ ML_file "Tools/Sledgehammer/sledgehammer_mash.ML"
 ML_file "Tools/Sledgehammer/sledgehammer.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_commands.ML"
 
-lemma "1 + 1 = (2::nat)"
-sledgehammer [remote_waldmeister, max_facts = 3, verbose, overlord]
-oops
-
 end
