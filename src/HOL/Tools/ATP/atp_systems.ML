@@ -576,7 +576,7 @@ val z3_tff0 = TFF Monomorphic
 val z3_tptp_config : atp_config =
   {exec = K (["Z3_TPTP_HOME"], ["z3_tptp"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-     "-core -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ file_name,
+     "-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ file_name,
    proof_delims = [("SZS status Theorem", "")],
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,

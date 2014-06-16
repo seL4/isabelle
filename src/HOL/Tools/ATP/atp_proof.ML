@@ -706,7 +706,7 @@ fun map_term_names_in_atp_proof f =
     map map_step
   end
 
-fun nasty_name pool s = s |> Symtab.lookup pool |> the_default s
+fun nasty_name pool s = Symtab.lookup pool s |> the_default s
 
 fun nasty_atp_proof pool =
   not (Symtab.is_empty pool) ? map_term_names_in_atp_proof (nasty_name pool)
