@@ -595,14 +595,14 @@ text {* File specifications in jEdit follow various formats and
   backslashes, but happens to accept forward slashes of Unix/POSIX, too.
   Further differences arise due to drive letters and network shares.
 
-  The Java notation for files needs to be distinguished from the one
-  of Isabelle, which uses POSIX notation with forward slashes on
-  \emph{all} platforms.\footnote{Isabelle/ML on Windows uses Cygwin
-  file-system access.}  Moreover, environment variables from the
+  The Java notation for files needs to be distinguished from the one of
+  Isabelle, which uses POSIX notation with forward slashes on \emph{all}
+  platforms.\footnote{Isabelle/ML on Windows uses Cygwin file-system access
+  and Unix-style path notation.} Moreover, environment variables from the
   Isabelle process may be used freely, e.g.\ @{file
   "$ISABELLE_HOME/etc/symbols"} or @{file_unchecked "$POLYML_HOME/README"}.
-  There are special shortcuts: @{file "~"} for @{file "$USER_HOME"}
-  and @{file "~~"} for @{file "$ISABELLE_HOME"}.
+  There are special shortcuts: @{file "~"} for @{file "$USER_HOME"} and @{file
+  "~~"} for @{file "$ISABELLE_HOME"}.
 
   \medskip Since jEdit happens to support environment variables within
   file specifications as well, it is natural to use similar notation
@@ -613,10 +613,10 @@ text {* File specifications in jEdit follow various formats and
   Isabelle/jEdit via its standard application wrapper (in contrast to
   @{verbatim "isabelle jedit"} run from the command line).
 
-  For convenience, Isabelle/jEdit imitates @{verbatim "$ISABELLE_HOME"} and
-  @{verbatim "$ISABELLE_HOME_USER"} within the Java process environment, in
-  order to allow easy access to these important places from the editor. The
-  file browser of jEdit also includes \emph{Favorites} for these two important
+  Isabelle/jEdit imitates @{verbatim "$ISABELLE_HOME"} and @{verbatim
+  "$ISABELLE_HOME_USER"} within the Java process environment, in order to
+  allow easy access to these important places from the editor. The file
+  browser of jEdit also includes \emph{Favorites} for these two important
   locations.
 
   \medskip Path specifications in prover input or output usually include
@@ -1320,13 +1320,6 @@ text {*
   Movement within the popup is only active for multiple items.
   Otherwise the corresponding key event retains its standard meaning
   within the underlying text area.
-*}
-
-
-subsection {* Rendering *}
-
-text {*
-  FIXME
 *}
 
 
