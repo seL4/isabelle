@@ -1,6 +1,7 @@
 (*  Title:      HOL/Probability/Distributions.thy
     Author:     Sudeep Kanav, TU München
-    Author:     Johannes Hölzl, TU München *)
+    Author:     Johannes Hölzl, TU München
+    Author:     Jeremy Avigad, CMU *)
 
 header {* Properties of Various Distributions *}
 
@@ -8,35 +9,223 @@ theory Distributions
   imports Convolution Information
 begin
 
-lemma nn_integral_even_function:
-  fixes f :: "real \<Rightarrow> ereal"
-  assumes [measurable]: "f \<in> borel_measurable borel"
-  assumes even: "\<And>x. f x = f (- x)"
-  shows "(\<integral>\<^sup>+x. f x \<partial>lborel) = 2 * (\<integral>\<^sup>+x. f x * indicator {0 ..} x \<partial>lborel)"
-proof -
-  def f' \<equiv> "\<lambda>x. max 0 (f x)"
-  have [measurable]: "f' \<in> borel_measurable borel"
-    by (simp add: f'_def)
-  
-  { fix x :: ereal have "2 * x = x + x"
-      by (cases x) auto }
-  note two_mult = this
+lemma tendsto_at_topI_sequentially:
+  fixes f :: "real \<Rightarrow> 'b::first_countable_topology"
+  assumes *: "\<And>X. filterlim X at_top sequentially \<Longrightarrow> (\<lambda>n. f (X n)) ----> y"
+  shows "(f ---> y) at_top"
+  unfolding filterlim_iff
+proof safe
+  fix P assume "eventually P (nhds y)"
+  then have seq: "\<And>f. f ----> y \<Longrightarrow> eventually (\<lambda>x. P (f x)) at_top"
+    unfolding eventually_nhds_iff_sequentially by simp
 
-  have "(\<integral>\<^sup>+x. f x \<partial>lborel) = (\<integral>\<^sup>+x. f' x \<partial>lborel)"
-    unfolding f'_def nn_integral_max_0 ..
-  also have "\<dots> = (\<integral>\<^sup>+x. f' x * indicator {0 ..} x + f' x * indicator {.. 0} x \<partial>lborel)"
-    by (intro nn_integral_cong_AE AE_I[where N="{0}"]) (auto split: split_indicator_asm)
-  also have "\<dots> = (\<integral>\<^sup>+x. f' x * indicator {0 ..} x \<partial>lborel) + (\<integral>\<^sup>+x. f' x * indicator {.. 0} x \<partial>lborel)"
-    by (intro nn_integral_add) (auto simp: f'_def)
-  also have "(\<integral>\<^sup>+x. f' x * indicator {.. 0} x \<partial>lborel) = (\<integral>\<^sup>+x. f' x * indicator {0 ..} x \<partial>lborel)"
-    using even
-    by (subst nn_integral_real_affine[where c="-1" and t=0])
-       (auto simp: f'_def one_ereal_def[symmetric] split: split_indicator intro!: nn_integral_cong)
-  also have "(\<integral>\<^sup>+x. f' x * indicator {0 ..} x \<partial>lborel) = (\<integral>\<^sup>+x. f x * indicator {0 ..} x \<partial>lborel)"
-    unfolding f'_def by (subst (2) nn_integral_max_0[symmetric]) (auto intro!: nn_integral_cong split: split_indicator split_max)
-  finally show ?thesis
-    unfolding two_mult by simp
+  show "eventually (\<lambda>x. P (f x)) at_top"
+  proof (rule ccontr)
+    assume "\<not> eventually (\<lambda>x. P (f x)) at_top"
+    then have "\<And>X. \<exists>x>X. \<not> P (f x)"
+      unfolding eventually_at_top_dense by simp
+    then obtain r where not_P: "\<And>x. \<not> P (f (r x))" and r: "\<And>x. x < r x"
+      by metis
+    
+    def s \<equiv> "rec_nat (r 0) (\<lambda>_ x. r (x + 1))"
+    then have [simp]: "s 0 = r 0" "\<And>n. s (Suc n) = r (s n + 1)"
+      by auto
+
+    { fix n have "n < s n" using r
+        by (induct n) (auto simp add: real_of_nat_Suc intro: less_trans add_strict_right_mono) }
+    note s_subseq = this
+
+    have "mono s"
+    proof (rule incseq_SucI)
+      fix n show "s n \<le> s (Suc n)"
+        using r[of "s n + 1"] by simp
+    qed
+
+    have "filterlim s at_top sequentially"
+      unfolding filterlim_at_top_gt[where c=0] eventually_sequentially
+    proof (safe intro!: exI)
+      fix Z :: real and n assume "0 < Z" "natceiling Z \<le> n"
+      with real_natceiling_ge[of Z] `n < s n`
+      show "Z \<le> s n"
+        by auto
+    qed
+    moreover then have "eventually (\<lambda>x. P (f (s x))) sequentially"
+      by (rule seq[OF *])
+    then obtain n where "P (f (s n))"
+      by (auto simp: eventually_sequentially)
+    then show False
+      using not_P by (cases n) auto
+  qed
 qed
+  
+lemma tendsto_integral_at_top:
+  fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
+  assumes [simp]: "sets M = sets borel" and f[measurable]: "integrable M f"
+  shows "((\<lambda>y. \<integral> x. indicator {.. y} x *\<^sub>R f x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
+proof (rule tendsto_at_topI_sequentially)
+  fix X :: "nat \<Rightarrow> real" assume "filterlim X at_top sequentially"
+  show "(\<lambda>n. \<integral>x. indicator {..X n} x *\<^sub>R f x \<partial>M) ----> integral\<^sup>L M f"
+  proof (rule integral_dominated_convergence)
+    show "integrable M (\<lambda>x. norm (f x))"
+      by (rule integrable_norm) fact
+    show "AE x in M. (\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
+    proof
+      fix x
+      from `filterlim X at_top sequentially` 
+      have "eventually (\<lambda>n. x \<le> X n) sequentially"
+        unfolding filterlim_at_top_ge[where c=x] by auto
+      then show "(\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
+        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_elim1)
+    qed
+    fix n show "AE x in M. norm (indicator {..X n} x *\<^sub>R f x) \<le> norm (f x)"
+      by (auto split: split_indicator)
+  qed auto
+qed
+
+lemma filterlim_at_top_imp_at_infinity:
+  fixes f :: "_ \<Rightarrow> real"
+  shows "filterlim f at_top F \<Longrightarrow> filterlim f at_infinity F"
+  by (rule filterlim_mono[OF _ at_top_le_at_infinity order_refl])
+
+lemma measurable_discrete_difference:
+  fixes f :: "'a \<Rightarrow> 'b::t1_space"
+  assumes f: "f \<in> measurable M N"
+  assumes X: "countable X"
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes space: "\<And>x. x \<in> X \<Longrightarrow> g x \<in> space N"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "g \<in> measurable M N"
+  unfolding measurable_def
+proof safe
+  fix x assume "x \<in> space M" then show "g x \<in> space N"
+    using measurable_space[OF f, of x] eq[of x] space[of x] by (cases "x \<in> X") auto
+next
+  fix S assume S: "S \<in> sets N"
+  have "g -` S \<inter> space M = (f -` S \<inter> space M) - (\<Union>x\<in>X. {x}) \<union> (\<Union>x\<in>{x\<in>X. g x \<in> S}. {x})"
+    using sets.sets_into_space[OF sets] eq by auto
+  also have "\<dots> \<in> sets M"
+    by (safe intro!: sets.Diff sets.Un measurable_sets[OF f] S sets.countable_UN' X countable_Collect sets)
+  finally show "g -` S \<inter> space M \<in> sets M" .
+qed
+
+lemma AE_discrete_difference:
+  assumes X: "countable X"
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  shows "AE x in M. x \<notin> X"
+proof -
+  have X_sets: "(\<Union>x\<in>X. {x}) \<in> sets M"
+    using assms by (intro sets.countable_UN') auto
+  have "emeasure M (\<Union>x\<in>X. {x}) = (\<integral>\<^sup>+ i. emeasure M {i} \<partial>count_space X)"
+    by (rule emeasure_UN_countable) (auto simp: assms disjoint_family_on_def)
+  also have "\<dots> = (\<integral>\<^sup>+ i. 0 \<partial>count_space X)"
+    by (intro nn_integral_cong) (simp add: null)
+  finally show "AE x in M. x \<notin> X"
+    using AE_iff_measurable[of X M "\<lambda>x. x \<notin> X"] X_sets sets.sets_into_space[OF sets] by auto
+qed
+
+lemma integrable_discrete_difference:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes X: "countable X"
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "integrable M f \<longleftrightarrow> integrable M g"
+  unfolding integrable_iff_bounded
+proof (rule conj_cong)
+  { assume "f \<in> borel_measurable M" then have "g \<in> borel_measurable M"
+      by (rule measurable_discrete_difference[where X=X]) (auto simp: assms) }
+  moreover
+  { assume "g \<in> borel_measurable M" then have "f \<in> borel_measurable M"
+      by (rule measurable_discrete_difference[where X=X]) (auto simp: assms) }
+  ultimately show "f \<in> borel_measurable M \<longleftrightarrow> g \<in> borel_measurable M" ..
+next
+  have "AE x in M. x \<notin> X"
+    by (rule AE_discrete_difference) fact+
+  then have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) = (\<integral>\<^sup>+ x. norm (g x) \<partial>M)"
+    by (intro nn_integral_cong_AE) (auto simp: eq)
+  then show "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) < \<infinity> \<longleftrightarrow> (\<integral>\<^sup>+ x. norm (g x) \<partial>M) < \<infinity>"
+    by simp
+qed
+
+lemma integral_discrete_difference:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes X: "countable X"
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "integral\<^sup>L M f = integral\<^sup>L M g"
+proof (rule integral_eq_cases)
+  show eq: "integrable M f \<longleftrightarrow> integrable M g"
+    by (rule integrable_discrete_difference[where X=X]) fact+
+
+  assume f: "integrable M f"
+  show "integral\<^sup>L M f = integral\<^sup>L M g"
+  proof (rule integral_cong_AE)
+    show "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+      using f eq by (auto intro: borel_measurable_integrable)
+
+    have "AE x in M. x \<notin> X"
+      by (rule AE_discrete_difference) fact+
+    with AE_space show "AE x in M. f x = g x"
+      by eventually_elim fact
+  qed
+qed
+
+lemma has_bochner_integral_discrete_difference:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes X: "countable X"
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "has_bochner_integral M f x \<longleftrightarrow> has_bochner_integral M g x"
+  using integrable_discrete_difference[of X M f g, OF assms]
+  using integral_discrete_difference[of X M f g, OF assms]
+  by (metis has_bochner_integral_iff)
+
+lemma has_bochner_integral_even_function:
+  fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
+  assumes f: "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x) x"
+  assumes even: "\<And>x. f (- x) = f x"
+  shows "has_bochner_integral lborel f (2 *\<^sub>R x)"
+proof -
+  have indicator: "\<And>x::real. indicator {..0} (- x) = indicator {0..} x"
+    by (auto split: split_indicator)
+  have "has_bochner_integral lborel (\<lambda>x. indicator {.. 0} x *\<^sub>R f x) x"
+    by (subst lborel_has_bochner_integral_real_affine_iff[where c="-1" and t=0])
+       (auto simp: indicator even f)
+  with f have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x + indicator {.. 0} x *\<^sub>R f x) (x + x)"
+    by (rule has_bochner_integral_add)
+  then have "has_bochner_integral lborel f (x + x)"
+    by (rule has_bochner_integral_discrete_difference[where X="{0}", THEN iffD1, rotated 4])
+       (auto split: split_indicator)
+  then show ?thesis
+    by (simp add: scaleR_2)
+qed
+
+lemma has_bochner_integral_odd_function:
+  fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
+  assumes f: "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x) x"
+  assumes odd: "\<And>x. f (- x) = - f x"
+  shows "has_bochner_integral lborel f 0"
+proof -
+  have indicator: "\<And>x::real. indicator {..0} (- x) = indicator {0..} x"
+    by (auto split: split_indicator)
+  have "has_bochner_integral lborel (\<lambda>x. - indicator {.. 0} x *\<^sub>R f x) x"
+    by (subst lborel_has_bochner_integral_real_affine_iff[where c="-1" and t=0])
+       (auto simp: indicator odd f)
+  from has_bochner_integral_minus[OF this]
+  have "has_bochner_integral lborel (\<lambda>x. indicator {.. 0} x *\<^sub>R f x) (- x)"
+    by simp 
+  with f have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x + indicator {.. 0} x *\<^sub>R f x) (x + - x)"
+    by (rule has_bochner_integral_add)
+  then have "has_bochner_integral lborel f (x + - x)"
+    by (rule has_bochner_integral_discrete_difference[where X="{0}", THEN iffD1, rotated 4])
+       (auto split: split_indicator)
+  then show ?thesis
+    by simp
+qed
+
 
 lemma filterlim_power2_at_top[intro]: "filterlim (\<lambda>(x::real). x\<^sup>2) at_top at_top"
   by (auto intro!: filterlim_at_top_mult_at_top filterlim_ident simp: power2_eq_square)
@@ -897,6 +1086,7 @@ qed fact
 
 subsection {* Normal distribution *}
 
+
 definition normal_density :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> real" where
   "normal_density \<mu> \<sigma> x = 1 / sqrt (2 * pi * \<sigma>\<^sup>2) * exp (-(x - \<mu>)\<^sup>2/ (2 * \<sigma>\<^sup>2))"
 
@@ -906,45 +1096,54 @@ abbreviation std_normal_density :: "real \<Rightarrow> real" where
 lemma std_normal_density_def: "std_normal_density x = (1 / sqrt (2 * pi)) * exp (- x\<^sup>2 / 2)"
   unfolding normal_density_def by simp
 
+lemma normal_density_nonneg: "0 \<le> normal_density \<mu> \<sigma> x"
+  by (auto simp: normal_density_def)
+
+lemma normal_density_pos: "0 < \<sigma> \<Longrightarrow> 0 < normal_density \<mu> \<sigma> x"
+  by (auto simp: normal_density_def)
+
 lemma borel_measurable_normal_density[measurable]: "normal_density \<mu> \<sigma> \<in> borel_measurable borel"
   by (auto simp: normal_density_def[abs_def])
 
-lemma nn_integral_gaussian: "(\<integral>\<^sup>+x. (exp (- x\<^sup>2)) \<partial>lborel) = sqrt pi"
+lemma gaussian_moment_0:
+  "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R exp (- x\<^sup>2)) (sqrt pi / 2)"
 proof -
   let ?pI = "\<lambda>f. (\<integral>\<^sup>+s. f (s::real) * indicator {0..} s \<partial>lborel)"
   let ?gauss = "\<lambda>x. exp (- x\<^sup>2)"
 
-  have "?pI ?gauss * ?pI ?gauss = ?pI (\<lambda>s. ?pI (\<lambda>x. ereal (x * exp (-x\<^sup>2 * (1 + s\<^sup>2)))))"
-  proof-
-    let ?ff= "\<lambda>(x, s). ((x * exp (- x\<^sup>2 * (1 + s\<^sup>2)) * indicator {0<..} s * indicator {0<..} x)) :: real"
-  
-    have *: "?pI ?gauss = (\<integral>\<^sup>+x. ?gauss x * indicator {0<..} x \<partial>lborel)"
-      by (intro nn_integral_cong_AE AE_I[where N="{0}"]) (auto split: split_indicator)
-  
-    have "?pI ?gauss * ?pI ?gauss = (\<integral>\<^sup>+x. \<integral>\<^sup>+s. ?ff (x, s) \<partial>lborel \<partial>lborel)"
-      unfolding *
-      apply (auto simp: nn_integral_nonneg nn_integral_cmult[symmetric])
-      apply (auto intro!: nn_integral_cong split:split_indicator)
-      apply (auto simp: nn_integral_multc[symmetric])
-      apply (subst nn_integral_real_affine[where t="0" and c="x"])
-      by (auto simp: mult_exp_exp nn_integral_cmult[symmetric] field_simps zero_less_mult_iff
-          intro!: nn_integral_cong split:split_indicator)
-    also have "... = \<integral>\<^sup>+ (s::real). \<integral>\<^sup>+ (x::real). ?ff (x, s) \<partial>lborel \<partial>lborel"
-      by (rule lborel_pair.Fubini[symmetric]) auto
-    also have "... = ?pI (\<lambda>s. ?pI (\<lambda>x. ereal (x * exp (-x\<^sup>2 * (1 + s\<^sup>2)))))"
-      by (rule nn_integral_cong_AE) (auto intro!: nn_integral_cong_AE AE_I[where N="{0}"] split: split_indicator_asm)
-    finally show ?thesis
-      by simp
-  qed
+  let ?I = "indicator {0<..} :: real \<Rightarrow> real"
+  let ?ff= "\<lambda>x s. x * exp (- x\<^sup>2 * (1 + s\<^sup>2)) :: real"
+
+  have *: "?pI ?gauss = (\<integral>\<^sup>+x. ?gauss x * ?I x \<partial>lborel)"
+    by (intro nn_integral_cong_AE AE_I[where N="{0}"]) (auto split: split_indicator)
+
+  have "?pI ?gauss * ?pI ?gauss = (\<integral>\<^sup>+x. \<integral>\<^sup>+s. ?gauss x * ?gauss s * ?I s * ?I x \<partial>lborel \<partial>lborel)"
+    by (auto simp: nn_integral_nonneg nn_integral_cmult[symmetric] nn_integral_multc[symmetric] *
+             intro!: nn_integral_cong split: split_indicator)
+  also have "\<dots> = (\<integral>\<^sup>+x. \<integral>\<^sup>+s. ?ff x s * ?I s * ?I x \<partial>lborel \<partial>lborel)"
+  proof (rule nn_integral_cong, cases)
+    fix x :: real assume "x \<noteq> 0"
+    then show "(\<integral>\<^sup>+s. ?gauss x * ?gauss s * ?I s * ?I x \<partial>lborel) = (\<integral>\<^sup>+s. ?ff x s * ?I s * ?I x \<partial>lborel)"
+      by (subst nn_integral_real_affine[where t="0" and c="x"])
+         (auto simp: mult_exp_exp nn_integral_cmult[symmetric] field_simps zero_less_mult_iff
+               intro!: nn_integral_cong split: split_indicator)
+  qed simp
+  also have "... = \<integral>\<^sup>+s. \<integral>\<^sup>+x. ?ff x s * ?I s * ?I x \<partial>lborel \<partial>lborel"
+    by (rule lborel_pair.Fubini'[symmetric]) auto
+  also have "... = ?pI (\<lambda>s. ?pI (\<lambda>x. ?ff x s))"
+    by (rule nn_integral_cong_AE)
+       (auto intro!: nn_integral_cong_AE AE_I[where N="{0}"] split: split_indicator_asm)
   also have "\<dots> = ?pI (\<lambda>s. ereal (1 / (2 * (1 + s\<^sup>2))))"
   proof (intro nn_integral_cong ereal_right_mult_cong)
-    fix s :: real show "?pI (\<lambda>x. ereal (x * exp (-x\<^sup>2 * (1 + s\<^sup>2)))) = ereal (1 / (2 * (1 + s\<^sup>2)))"
+    fix s :: real show "?pI (\<lambda>x. ?ff x s) = ereal (1 / (2 * (1 + s\<^sup>2)))"
     proof (subst nn_integral_FTC_atLeast)
       have "((\<lambda>a. - (exp (- (a\<^sup>2 * (1 + s\<^sup>2))) / (2 + 2 * s\<^sup>2))) ---> (- (0 / (2 + 2 * s\<^sup>2)))) at_top"
         apply (intro tendsto_intros filterlim_compose[OF exp_at_bot] filterlim_compose[OF filterlim_uminus_at_bot_at_top])
         apply (subst mult_commute)         
-        by (auto intro!: filterlim_tendsto_pos_mult_at_top filterlim_at_top_mult_at_top[OF filterlim_ident filterlim_ident] 
-          simp: add_pos_nonneg  power2_eq_square add_nonneg_eq_0_iff)
+        apply (auto intro!: filterlim_tendsto_pos_mult_at_top
+                            filterlim_at_top_mult_at_top[OF filterlim_ident filterlim_ident] 
+                    simp: add_pos_nonneg  power2_eq_square add_nonneg_eq_0_iff)
+        done
       then show "((\<lambda>a. - (exp (- a\<^sup>2 - s\<^sup>2 * a\<^sup>2) / (2 + 2 * s\<^sup>2))) ---> 0) at_top"
         by (simp add: field_simps)
     qed (auto intro!: derivative_eq_intros simp: field_simps add_nonneg_eq_0_iff)
@@ -958,47 +1157,307 @@ proof -
     by (simp add: power2_eq_square)
   then have "?pI ?gauss = sqrt (pi / 4)"
     using power_eq_iff_eq_base[of 2 "real (?pI ?gauss)" "sqrt (pi / 4)"]
-      nn_integral_nonneg[of lborel "\<lambda>x. ?gauss x * indicator {0..} x"]
+          nn_integral_nonneg[of lborel "\<lambda>x. ?gauss x * indicator {0..} x"]
     by (cases "?pI ?gauss") auto
-  then show ?thesis
-    by (subst nn_integral_even_function) (auto simp add: real_sqrt_divide)
+  also have "?pI ?gauss = (\<integral>\<^sup>+x. indicator {0..} x *\<^sub>R exp (- x\<^sup>2) \<partial>lborel)"
+    by (intro nn_integral_cong) (simp split: split_indicator)
+  also have "sqrt (pi / 4) = sqrt pi / 2"
+    by (simp add: real_sqrt_divide)
+  finally show ?thesis
+    by (rule has_bochner_integral_nn_integral[rotated 2]) auto
 qed
 
-lemma has_bochner_integral_gaussian: "has_bochner_integral lborel (\<lambda>x. exp (- x\<^sup>2)) (sqrt pi)"
-  by (auto intro!: nn_integral_gaussian has_bochner_integral_nn_integral)
+lemma gaussian_moment_1:
+  "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (- x\<^sup>2) * x)) (1 / 2)" 
+proof - 
+  have "(\<integral>\<^sup>+x. indicator {0..} x *\<^sub>R (exp (- x\<^sup>2) * x) \<partial>lborel) =
+    (\<integral>\<^sup>+x. ereal (x * exp (- x\<^sup>2)) * indicator {0..} x \<partial>lborel)"
+    by (intro nn_integral_cong)
+       (auto simp: ac_simps times_ereal.simps(1)[symmetric] ereal_indicator simp del: times_ereal.simps)
+  also have "\<dots> = ereal (0 - (- exp (- 0\<^sup>2) / 2))"
+  proof (rule nn_integral_FTC_atLeast)
+    have "((\<lambda>x::real. - exp (- x\<^sup>2) / 2) ---> - 0 / 2) at_top"
+      by (intro tendsto_divide tendsto_minus filterlim_compose[OF exp_at_bot]
+                   filterlim_compose[OF filterlim_uminus_at_bot_at_top])
+         auto
+    then show "((\<lambda>a::real. - exp (- a\<^sup>2) / 2) ---> 0) at_top"
+      by simp
+  qed (auto intro!: derivative_eq_intros)
+  also have "\<dots> = ereal (1 / 2)"
+    by simp
+  finally show ?thesis
+    by (rule has_bochner_integral_nn_integral[rotated 2]) (auto split: split_indicator)
+qed
 
-lemma integral_gaussian: "(\<integral>x. (exp (- x\<^sup>2)) \<partial>lborel) = sqrt pi"
-  using has_bochner_integral_gaussian by (rule has_bochner_integral_integral_eq)
+lemma
+  fixes k :: nat
+  shows gaussian_moment_even_pos:
+    "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k)))
+       ((sqrt pi / 2) * (fact (2 * k) / (2 ^ (2 * k) * fact k)))" (is "?even")
+    and gaussian_moment_odd_pos:
+      "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k + 1))) (fact k / 2)" (is "?odd")
+proof -
+  let ?M = "\<lambda>k x. exp (- x\<^sup>2) * x^k :: real"
 
-lemma integrable_gaussian[intro]: "integrable lborel (\<lambda>x. exp (- x\<^sup>2)::real)"
-  using has_bochner_integral_gaussian by rule
+  { fix k I assume Mk: "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R ?M k x) I"
+    have "2 \<noteq> (0::real)"
+      by linarith
+    let ?f = "\<lambda>b. \<integral>x. indicator {0..} x *\<^sub>R ?M (k + 2) x * indicator {..b} x \<partial>lborel"
+    have "((\<lambda>b. (k + 1) / 2 * (\<integral>x. indicator {..b} x *\<^sub>R (indicator {0..} x *\<^sub>R ?M k x) \<partial>lborel) - ?M (k + 1) b / 2) --->
+        (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel) - 0 / 2) at_top" (is ?tendsto)
+    proof (intro tendsto_intros `2 \<noteq> 0` tendsto_integral_at_top sets_lborel Mk[THEN integrable.intros])
+      show "(?M (k + 1) ---> 0) at_top"
+      proof cases
+        assume "even k"
+        have "((\<lambda>x. ((x\<^sup>2)^(k div 2 + 1) / exp (x\<^sup>2)) * (1 / x) :: real) ---> 0 * 0) at_top"
+          by (intro tendsto_intros tendsto_divide_0[OF tendsto_const] filterlim_compose[OF tendsto_power_div_exp_0]
+                   filterlim_at_top_imp_at_infinity filterlim_ident filterlim_power2_at_top)
+        also have "(\<lambda>x. ((x\<^sup>2)^(k div 2 + 1) / exp (x\<^sup>2)) * (1 / x) :: real) = ?M (k + 1)"
+          using `even k` by (auto simp: even_mult_two_ex fun_eq_iff exp_minus field_simps power2_eq_square power_mult)
+        finally show ?thesis by simp
+      next
+        assume "odd k"
+        have "((\<lambda>x. ((x\<^sup>2)^((k - 1) div 2 + 1) / exp (x\<^sup>2)) :: real) ---> 0) at_top"
+          by (intro filterlim_compose[OF tendsto_power_div_exp_0] filterlim_at_top_imp_at_infinity filterlim_ident filterlim_power2_at_top)
+        also have "(\<lambda>x. ((x\<^sup>2)^((k - 1) div 2 + 1) / exp (x\<^sup>2)) :: real) = ?M (k + 1)"
+          using `odd k` by (auto simp: odd_Suc_mult_two_ex fun_eq_iff exp_minus field_simps power2_eq_square power_mult)
+        finally show ?thesis by simp
+      qed
+    qed
+    also have "?tendsto \<longleftrightarrow> ((?f ---> (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel) - 0 / 2) at_top)"
+    proof (intro filterlim_cong refl eventually_at_top_linorder[THEN iffD2] exI[of _ 0] allI impI)
+      fix b :: real assume b: "0 \<le> b"
+      have "Suc k * (\<integral>x. indicator {0..b} x *\<^sub>R ?M k x \<partial>lborel) = (\<integral>x. indicator {0..b} x *\<^sub>R (exp (- x\<^sup>2) * ((Suc k) * x ^ k)) \<partial>lborel)"
+        unfolding integral_mult_right_zero[symmetric] by (intro integral_cong) auto
+      also have "\<dots> = exp (- b\<^sup>2) * b ^ (Suc k) - exp (- 0\<^sup>2) * 0 ^ (Suc k) -
+          (\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * x * exp (- x\<^sup>2) * x ^ (Suc k)) \<partial>lborel)"
+        by (rule integral_by_parts')
+           (auto intro!: derivative_eq_intros b
+                 simp: real_of_nat_def[symmetric] diff_Suc real_of_nat_Suc field_simps split: nat.split)
+      also have "(\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * x * exp (- x\<^sup>2) * x ^ (Suc k)) \<partial>lborel) =
+        (\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * (exp (- x\<^sup>2) * x ^ (k + 2))) \<partial>lborel)"
+        by (intro integral_cong) auto
+      finally have "Suc k * (\<integral>x. indicator {0..b} x *\<^sub>R ?M k x \<partial>lborel) =
+        exp (- b\<^sup>2) * b ^ (Suc k) + 2 * (\<integral>x. indicator {0..b} x *\<^sub>R ?M (k + 2) x \<partial>lborel)"
+        apply (simp del: real_scaleR_def integral_mult_right add: integral_mult_right[symmetric])
+        apply (subst integral_mult_right_zero[symmetric])
+        apply (intro integral_cong)
+        apply simp_all
+        done
+      then show "(k + 1) / 2 * (\<integral>x. indicator {..b} x *\<^sub>R (indicator {0..} x *\<^sub>R ?M k x)\<partial>lborel) - exp (- b\<^sup>2) * b ^ (k + 1) / 2 = ?f b"
+        by (simp add: field_simps atLeastAtMost_def indicator_inter_arith)
+    qed
+    finally have int_M_at_top: "((?f ---> (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel)) at_top)"
+      by simp
+    
+    have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R ?M (k + 2) x) ((k + 1) / 2 * I)"
+    proof (rule has_bochner_integral_monotone_convergence_at_top)
+      fix y :: real
+      have *: "(\<lambda>x. indicator {0..} x *\<^sub>R ?M (k + 2) x * indicator {..y} x::real) =
+            (\<lambda>x. indicator {0..y} x *\<^sub>R ?M (k + 2) x)"
+        by rule (simp split: split_indicator)
+      show "integrable lborel (\<lambda>x. indicator {0..} x *\<^sub>R (?M (k + 2) x) * indicator {..y} x::real)"
+        unfolding * by (rule borel_integrable_compact) (auto intro!: continuous_intros)
+      show "((?f ---> (k + 1) / 2 * I) at_top)"
+        using int_M_at_top has_bochner_integral_integral_eq[OF Mk] by simp
+    qed (auto split: split_indicator) }
+  note step = this
+
+  show ?even
+  proof (induct k)
+    case (Suc k)
+    note step[OF this]
+    also have "(real (2 * k + 1) / 2 * (sqrt pi / 2 * (real (fact (2 * k)) / real (2 ^ (2 * k) * fact k)))) =
+      sqrt pi / 2 * (real (fact (2 * Suc k)) / real (2 ^ (2 * Suc k) * fact (Suc k)))"
+      by (simp add: field_simps real_of_nat_Suc divide_simps del: fact_Suc) (simp add: field_simps)
+    finally show ?case
+      by simp
+  qed (insert gaussian_moment_0, simp)
+
+  show ?odd
+  proof (induct k)
+    case (Suc k)
+    note step[OF this]
+    also have "(real (2 * k + 1 + 1) / 2 * (real (fact k) / 2)) = real (fact (Suc k)) / 2"
+      by (simp add: field_simps real_of_nat_Suc divide_simps del: fact_Suc) (simp add: field_simps)
+    finally show ?case
+      by simp
+  qed (insert gaussian_moment_1, simp)
+qed
+
+context
+  fixes k :: nat and \<mu> \<sigma> :: real assumes [arith]: "0 < \<sigma>"
+begin
+
+lemma normal_moment_even:
+  "has_bochner_integral lborel (\<lambda>x. normal_density \<mu> \<sigma> x * (x - \<mu>) ^ (2 * k)) (fact (2 * k) / ((2 / \<sigma>\<^sup>2)^k * fact k))"
+proof -
+  have eq: "\<And>x::real. x\<^sup>2^k = (x^k)\<^sup>2"
+    by (simp add: power_mult[symmetric] ac_simps)
+
+  have "has_bochner_integral lborel (\<lambda>x. exp (-x\<^sup>2)*x^(2 * k))
+      (sqrt pi * (fact (2 * k) / (2 ^ (2 * k) * fact k)))"
+    using has_bochner_integral_even_function[OF gaussian_moment_even_pos[where k=k]] by simp
+  then have "has_bochner_integral lborel (\<lambda>x. (exp (-x\<^sup>2)*x^(2 * k)) * ((2*\<sigma>\<^sup>2)^k / sqrt (2 * pi * \<sigma>\<^sup>2)))
+      ((sqrt pi * (fact (2 * k) / (2 ^ (2 * k) * fact k))) * ((2*\<sigma>\<^sup>2)^k / sqrt (2 * pi * \<sigma>\<^sup>2)))"
+    by (rule has_bochner_integral_mult_left)
+  also have "(\<lambda>x. (exp (-x\<^sup>2)*x^(2 * k)) * ((2*\<sigma>\<^sup>2)^k / sqrt (2 * pi * \<sigma>\<^sup>2))) =
+    (\<lambda>x. exp (- ((sqrt 2 * \<sigma>) * x)\<^sup>2 / (2*\<sigma>\<^sup>2)) * ((sqrt 2 * \<sigma>) * x) ^ (2 * k) / sqrt (2 * pi * \<sigma>\<^sup>2))"
+    by (auto simp: fun_eq_iff field_simps real_sqrt_power[symmetric] real_sqrt_mult
+                   real_sqrt_divide power_mult eq)
+  also have "((sqrt pi * (fact (2 * k) / (2 ^ (2 * k) * fact k))) * ((2*\<sigma>\<^sup>2)^k / sqrt (2 * pi * \<sigma>\<^sup>2))) = 
+    (inverse (sqrt 2 * \<sigma>) * (real (fact (2 * k))) / ((2/\<sigma>\<^sup>2) ^ k * real (fact k)))"
+    by (auto simp: fun_eq_iff power_mult field_simps real_sqrt_power[symmetric] real_sqrt_mult
+                   power2_eq_square)
+  finally show ?thesis
+    unfolding normal_density_def
+    by (subst lborel_has_bochner_integral_real_affine_iff[where c="sqrt 2 * \<sigma>" and t=\<mu>]) simp_all
+qed
+
+lemma normal_moment_abs_odd:
+  "has_bochner_integral lborel (\<lambda>x. normal_density \<mu> \<sigma> x * \<bar>x - \<mu>\<bar>^(2 * k + 1)) (2^k * \<sigma>^(2 * k + 1) * fact k * sqrt (2 / pi))"
+proof -
+  have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1))) (fact k / 2)"
+    by (rule has_bochner_integral_cong[THEN iffD1, OF _ _ _ gaussian_moment_odd_pos[of k]]) auto
+  from has_bochner_integral_even_function[OF this]
+  have "has_bochner_integral lborel (\<lambda>x. exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1)) (fact k)"
+    by simp
+  then have "has_bochner_integral lborel (\<lambda>x. (exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1)) * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2)))
+      (fact k * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2)))"
+    by (rule has_bochner_integral_mult_left)
+  also have "(\<lambda>x. (exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1)) * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2))) =
+    (\<lambda>x. exp (- (((sqrt 2 * \<sigma>) * x)\<^sup>2 / (2 * \<sigma>\<^sup>2))) * \<bar>sqrt 2 * \<sigma> * x\<bar> ^ (2 * k + 1) / sqrt (2 * pi * \<sigma>\<^sup>2))"
+    by (simp add: field_simps abs_mult real_sqrt_power[symmetric] power_mult real_sqrt_mult)
+  also have "(fact k * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2))) = 
+    (inverse (sqrt 2) * inverse \<sigma> * (2 ^ k * (\<sigma> * \<sigma> ^ (2 * k)) * real (fact k) * sqrt (2 / pi)))"
+    by (auto simp: fun_eq_iff power_mult field_simps real_sqrt_power[symmetric] real_sqrt_divide
+                   real_sqrt_mult)
+  finally show ?thesis
+    unfolding normal_density_def
+    by (subst lborel_has_bochner_integral_real_affine_iff[where c="sqrt 2 * \<sigma>" and t=\<mu>])
+       simp_all
+qed
+
+lemma normal_moment_odd:
+  "has_bochner_integral lborel (\<lambda>x. normal_density \<mu> \<sigma> x * (x - \<mu>)^(2 * k + 1)) 0"
+proof -
+  have "has_bochner_integral lborel (\<lambda>x. exp (- x\<^sup>2) * x^(2 * k + 1)::real) 0"
+    using gaussian_moment_odd_pos by (rule has_bochner_integral_odd_function) simp
+  then have "has_bochner_integral lborel (\<lambda>x. (exp (-x\<^sup>2)*x^(2 * k + 1)) * (2^k*\<sigma>^(2*k)/sqrt pi))
+      (0 * (2^k*\<sigma>^(2*k)/sqrt pi))"
+    by (rule has_bochner_integral_mult_left)
+  also have "(\<lambda>x. (exp (-x\<^sup>2)*x^(2 * k + 1)) * (2^k*\<sigma>^(2*k)/sqrt pi)) =
+    (\<lambda>x. exp (- ((sqrt 2 * \<sigma> * x)\<^sup>2 / (2 * \<sigma>\<^sup>2))) *
+          (sqrt 2 * \<sigma> * x * (sqrt 2 * \<sigma> * x) ^ (2 * k)) /
+          sqrt (2 * pi * \<sigma>\<^sup>2))"
+    unfolding real_sqrt_mult
+    by (simp add: field_simps abs_mult real_sqrt_power[symmetric] power_mult fun_eq_iff)
+  finally show ?thesis
+    unfolding normal_density_def
+    by (subst lborel_has_bochner_integral_real_affine_iff[where c="sqrt 2 * \<sigma>" and t=\<mu>]) simp_all
+qed
+
+lemma integral_normal_moment_even:
+  "integral\<^sup>L lborel (\<lambda>x. normal_density \<mu> \<sigma> x * (x - \<mu>)^(2 * k)) = fact (2 * k) / ((2 / \<sigma>\<^sup>2)^k * fact k)"
+  using normal_moment_even by (rule has_bochner_integral_integral_eq)
+
+lemma integral_normal_moment_abs_odd:
+  "integral\<^sup>L lborel (\<lambda>x. normal_density \<mu> \<sigma> x * \<bar>x - \<mu>\<bar>^(2 * k + 1)) = 2 ^ k * \<sigma> ^ (2 * k + 1) * fact k * sqrt (2 / pi)"
+  using normal_moment_abs_odd by (rule has_bochner_integral_integral_eq)
+
+lemma integral_normal_moment_odd:
+  "integral\<^sup>L lborel (\<lambda>x. normal_density \<mu> \<sigma> x * (x - \<mu>)^(2 * k + 1)) = 0"
+  using normal_moment_odd by (rule has_bochner_integral_integral_eq)
+
+end
+
 
 context
   fixes \<sigma> :: real
   assumes \<sigma>_pos[arith]: "0 < \<sigma>"
 begin
 
-lemma nn_integral_normal_density: "(\<integral>\<^sup>+x. normal_density \<mu> \<sigma> x \<partial>lborel) = 1"
-  unfolding normal_density_def
-  apply (subst times_ereal.simps(1)[symmetric],subst nn_integral_cmult)
-  apply auto
-  apply (subst nn_integral_real_affine[where t=\<mu> and  c="(sqrt 2) * \<sigma>"])
-  by (auto simp: power_mult_distrib nn_integral_gaussian real_sqrt_mult one_ereal_def)
+lemma normal_moment_nz_1: "has_bochner_integral lborel (\<lambda>x. normal_density \<mu> \<sigma> x * x) \<mu>"
+proof -
+  note normal_moment_even[OF \<sigma>_pos, of \<mu> 0]
+  note normal_moment_odd[OF \<sigma>_pos, of \<mu> 0] has_bochner_integral_mult_left[of \<mu>, OF this]
+  note has_bochner_integral_add[OF this]
+  then show ?thesis
+    by (simp add: power2_eq_square field_simps)  
+qed
 
-lemma 
-  shows normal_density_pos: "\<And>x. 0 < normal_density \<mu> \<sigma> x"
-  and normal_density_nonneg: "\<And>x. 0 \<le> normal_density \<mu> \<sigma> x" 
-  by (auto simp: normal_density_def)
+lemma integral_normal_moment_nz_1:
+  "integral\<^sup>L lborel (\<lambda>x. normal_density \<mu> \<sigma> x * x) = \<mu>"
+  using normal_moment_nz_1 by (rule has_bochner_integral_integral_eq)
 
-lemma integrable_normal[intro]: "integrable lborel (normal_density \<mu> \<sigma>)"
-  by (auto intro!: integrableI_nn_integral_finite simp: nn_integral_normal_density normal_density_nonneg)
+lemma integrable_normal_moment_nz_1: "integrable lborel (\<lambda>x. normal_density \<mu> \<sigma> x * x)"
+  using normal_moment_nz_1 by rule
+
+lemma integrable_normal_moment: "integrable lborel (\<lambda>x. normal_density \<mu> \<sigma> x * (x - \<mu>)^k)"
+proof cases
+  assume "even k" then show ?thesis
+    using integrable.intros[OF normal_moment_even] by (auto simp add: even_mult_two_ex)
+next
+  assume "odd k" then show ?thesis
+    using integrable.intros[OF normal_moment_odd] by (auto simp add: odd_Suc_mult_two_ex)
+qed
+
+lemma integrable_normal_moment_abs: "integrable lborel (\<lambda>x. normal_density \<mu> \<sigma> x * \<bar>x - \<mu>\<bar>^k)"
+proof cases
+  assume "even k" then show ?thesis
+    using integrable.intros[OF normal_moment_even] by (auto simp add: even_mult_two_ex power_even_abs)
+next
+  assume "odd k" then show ?thesis
+    using integrable.intros[OF normal_moment_abs_odd] by (auto simp add: odd_Suc_mult_two_ex)
+qed
+
+lemma integrable_normal_density[simp, intro]: "integrable lborel (normal_density \<mu> \<sigma>)"
+  using integrable_normal_moment[of \<mu> 0] by simp
 
 lemma integral_normal_density[simp]: "(\<integral>x. normal_density \<mu> \<sigma> x \<partial>lborel) = 1"
-  by (simp add: integral_eq_nn_integral normal_density_nonneg nn_integral_normal_density)
+  using integral_normal_moment_even[of \<sigma> \<mu> 0] by simp
 
 lemma prob_space_normal_density:
-  "prob_space (density lborel (normal_density \<mu> \<sigma>))" (is "prob_space ?D")
-  proof qed (simp add: emeasure_density nn_integral_normal_density)
+  "prob_space (density lborel (normal_density \<mu> \<sigma>))"
+  proof qed (simp add: emeasure_density nn_integral_eq_integral normal_density_nonneg)
+
+end
+
+
+
+context
+  fixes k :: nat
+begin
+
+lemma std_normal_moment_even:
+  "has_bochner_integral lborel (\<lambda>x. std_normal_density x * x ^ (2 * k)) (fact (2 * k) / (2^k * fact k))"
+  using normal_moment_even[of 1 0 k] by simp
+
+lemma std_normal_moment_abs_odd:
+  "has_bochner_integral lborel (\<lambda>x. std_normal_density x * \<bar>x\<bar>^(2 * k + 1)) (sqrt (2/pi) * 2^k * fact k)"
+  using normal_moment_abs_odd[of 1 0 k] by (simp add: ac_simps)
+
+lemma std_normal_moment_odd:
+  "has_bochner_integral lborel (\<lambda>x. std_normal_density x * x^(2 * k + 1)) 0"
+  using normal_moment_odd[of 1 0 k] by simp
+
+lemma integral_std_normal_moment_even:
+  "integral\<^sup>L lborel (\<lambda>x. std_normal_density x * x^(2*k)) = fact (2 * k) / (2^k * fact k)"
+  using std_normal_moment_even by (rule has_bochner_integral_integral_eq)
+
+lemma integral_std_normal_moment_abs_odd:
+  "integral\<^sup>L lborel (\<lambda>x. std_normal_density x * \<bar>x\<bar>^(2 * k + 1)) = sqrt (2 / pi) * 2^k * fact k"
+  using std_normal_moment_abs_odd by (rule has_bochner_integral_integral_eq)
+
+lemma integral_std_normal_moment_odd:
+  "integral\<^sup>L lborel (\<lambda>x. std_normal_density x * x^(2 * k + 1)) = 0"
+  using std_normal_moment_odd by (rule has_bochner_integral_integral_eq)
+
+lemma integrable_std_normal_moment_abs: "integrable lborel (\<lambda>x. std_normal_density x * \<bar>x\<bar>^k)"
+  using integrable_normal_moment_abs[of 1 0 k] by simp
+
+lemma integrable_std_normal_moment: "integrable lborel (\<lambda>x. std_normal_density x * x^k)"
+  using integrable_normal_moment[of 1 0 k] by simp
 
 end
 
@@ -1058,7 +1517,7 @@ proof -
     by (subst nn_integral_cmult[symmetric]) (auto simp: \<sigma>'_def \<tau>'_def normal_density_def)
 
   also have "... = (\<lambda>x. (normal_density 0 (sqrt (\<sigma>\<^sup>2 + \<tau>\<^sup>2)) x))"
-    by (subst nn_integral_normal_density) (auto simp: sum_power2_gt_zero_iff)
+    by (subst nn_integral_eq_integral) (auto simp: normal_density_nonneg)
 
   finally show ?thesis by fast
 qed
@@ -1145,291 +1604,31 @@ next
     show ?case using 1 2 3 by simp  
 qed
 
-lemma nn_integral_x_exp_x_square: "(\<integral>\<^sup>+x. ereal (x * exp (- x\<^sup>2 )) \<partial>lborel) = ereal 1 / 2" 
-  and nn_integral_x_exp_x_square_indicator: "(\<integral>\<^sup>+x. ereal( x * exp (-x\<^sup>2 )) * indicator {0..} x \<partial>lborel) = ereal 1 / 2"
-proof - 
-  let ?F = "\<lambda>x. - exp (-x\<^sup>2 ) / 2"
-
-  have 1: "(\<integral>\<^sup>+x. ereal (x * exp (- x\<^sup>2)) * indicator {0..} x \<partial>lborel) =ereal( 0 - ?F 0)"
-  apply (rule nn_integral_FTC_atLeast)
-  apply (auto intro!: derivative_eq_intros)
-  apply (rule tendsto_minus_cancel)
-  apply (simp add: field_simps)
-  proof - 
-    have "((\<lambda>(x::real). exp (- x\<^sup>2) / 2) ---> 0 / 2) at_top"
-    apply (intro tendsto_divide filterlim_compose[OF exp_at_bot] filterlim_compose[OF filterlim_uminus_at_bot_at_top])
-    apply auto
-    done
-    then show "((\<lambda>(x::real). exp (- x\<^sup>2) / 2) ---> 0) at_top" by simp
-  qed
-
-  also have 2: "(\<integral>\<^sup>+x. ereal (x * exp (- x\<^sup>2)) * indicator {0..} x \<partial>lborel) = integral\<^sup>N lborel (\<lambda>x. ereal (x * exp (- x\<^sup>2)))"
-    by (subst(2) nn_integral_max_0[symmetric])
-       (auto intro!: nn_integral_cong split: split_indicator simp: max_def zero_le_mult_iff)
-  finally show "(\<integral>\<^sup>+x. ereal (x * exp (- x\<^sup>2)) \<partial>lborel) = ereal 1 / 2" by auto
-
-  show "(\<integral>\<^sup>+x. ereal (x * exp (- x\<^sup>2)) * indicator {0..} x \<partial>lborel) = ereal 1 / 2" using 1 by auto
-qed
-
-lemma borel_integral_x_times_standard_normal[intro]: "(\<integral>x. std_normal_density x * x \<partial>lborel) = 0" 
-  and borel_integrable_x_times_standard_normal[intro]: "integrable lborel (\<lambda>x. std_normal_density x * x)"
-  and borel_integral_x_times_standard_normal'[intro]: "(\<integral>x. x * std_normal_density x \<partial>lborel) = 0" 
-  and borel_integrable_x_times_standard_normal'[intro]: "integrable lborel (\<lambda>x. x * std_normal_density x)"
-proof -    
-  have 0: "(\<integral>\<^sup>+x. ereal (x * std_normal_density x) \<partial>lborel) = \<integral>\<^sup>+x. ereal (x * std_normal_density x) * indicator {0..} x \<partial>lborel"
-    apply (subst nn_integral_max_0[symmetric]) 
-    unfolding max_def std_normal_density_def
-    apply (auto intro!: nn_integral_cong split:split_indicator simp: zero_le_divide_iff zero_le_mult_iff)
-    apply (metis not_le pi_gt_zero)
-    done
-
-  have 1: "(\<integral>\<^sup>+x. ereal (- (x * std_normal_density x)) \<partial>lborel) = \<integral>\<^sup>+x. ereal (x * std_normal_density x) * indicator {0..} x \<partial>lborel"
-    apply (subst(2) nn_integral_real_affine[where c = "-1" and t = 0])
-    apply(auto simp: std_normal_density_def split: split_indicator)
-    apply(subst nn_integral_max_0[symmetric]) 
-    unfolding max_def std_normal_density_def
-    apply (auto intro!: nn_integral_cong split: split_indicator
-                simp: divide_le_0_iff mult_le_0_iff one_ereal_def[symmetric])
-    apply (metis not_le pi_gt_zero)
-    done
-
-  have 2: "sqrt pi / sqrt 2 * (\<integral>\<^sup>+x. ereal (x * std_normal_density x) * indicator {0..} x \<partial>lborel) = integral\<^sup>N lborel (\<lambda>x. ereal (x * exp (- x\<^sup>2)))"
-    unfolding std_normal_density_def
-    apply (subst nn_integral_real_affine[where c = "sqrt 2" and t = 0])
-    apply (auto simp: power_mult_distrib split: split_indicator)
-    apply (subst mult_assoc[symmetric])
-    apply (subst nn_integral_cmult[symmetric])
-    apply auto
-    apply (subst(2) nn_integral_max_0[symmetric])
-    apply (auto intro!: nn_integral_cong split: split_indicator simp: max_def zero_le_mult_iff real_sqrt_mult)
-    done
-
-  have *: "(\<integral>\<^sup>+x. ereal (x * std_normal_density x) * indicator {0..} x \<partial>lborel) = sqrt 2 / sqrt pi *(integral\<^sup>N lborel (\<lambda>x. ereal (x * exp (- x\<^sup>2))))"
-    apply (subst 2[symmetric])
-    apply (subst mult_assoc[symmetric])
-    apply (auto simp: field_simps one_ereal_def[symmetric])
-    done
-    
-  show "(\<integral> x. x * std_normal_density x \<partial>lborel) = 0" "integrable lborel (\<lambda>x. x * std_normal_density x)"
-    by (subst real_lebesgue_integral_def)
-       (auto simp: 0 1 * nn_integral_x_exp_x_square real_integrable_def)
-
-  then show "(\<integral> x. std_normal_density x * x \<partial>lborel) = 0" "integrable lborel (\<lambda>x. std_normal_density x * x)"
-    by (simp_all add:mult_commute)
-qed
-
 lemma (in prob_space) standard_normal_distributed_expectation:
-  assumes D: "distributed M lborel X std_normal_density "
+  assumes D: "distributed M lborel X std_normal_density"
   shows "expectation X = 0"
+  using integral_std_normal_moment_odd[of 0]
   by (auto simp: distributed_integral[OF D, of "\<lambda>x. x", symmetric])
 
 lemma (in prob_space) normal_distributed_expectation:
-  assumes pos_var[arith]: "0 < \<sigma>"
+  assumes \<sigma>[arith]: "0 < \<sigma>"
   assumes D: "distributed M lborel X (normal_density \<mu> \<sigma>)"
   shows "expectation X = \<mu>"
-proof -
-  def X' \<equiv> "\<lambda>x. (X x - \<mu>) / \<sigma>"
-  then have D1: "distributed M lborel X' std_normal_density"
-    by (simp add: normal_standard_normal_convert[OF pos_var, of X \<mu>, symmetric] D)
-  then have [simp]: "integrable M X'"
-    by (rule distributed_integrable_var) auto
-
-  have "expectation X = expectation (\<lambda>x. \<mu> + \<sigma> * X' x)"
-    by (simp add: X'_def)
-  then show ?thesis
-    by (simp add: prob_space standard_normal_distributed_expectation[OF D1])
-qed
-
-lemma integral_xsquare_exp_xsquare: "(\<integral> x. (x\<^sup>2 * exp (-x\<^sup>2 )) \<partial>lborel) =  sqrt pi / 2"
-  and integrable_xsquare_exp_xsquare: "integrable lborel (\<lambda>x. x\<^sup>2 * exp (- x\<^sup>2)::real)"
-proof- 
-  note filterlim_compose[OF exp_at_top, intro] filterlim_ident[intro]
-
-  let ?f = "(\<lambda>x. x * - exp (- x\<^sup>2) / 2 - 0 * - exp (- 0\<^sup>2) / 2 -
-                 \<integral> xa. 1 * (- exp (- xa\<^sup>2) / 2) * indicator {0..x} xa \<partial>lborel)::real\<Rightarrow>real"
-  let ?IFunc = "(\<lambda>z. \<integral>x. (x\<^sup>2 * exp (- x\<^sup>2)) * indicator {0 .. z} x \<partial>lborel)::real\<Rightarrow>real"
-
-
-  from nn_integral_gaussian  
-  have 1: "(\<integral>\<^sup>+xa. ereal (exp (- xa\<^sup>2)) * indicator {0..} xa \<partial>lborel) = ereal (sqrt pi) / ereal 2"
-    apply (subst (asm) nn_integral_even_function)
-    apply simp
-    apply simp
-    apply (cases "\<integral>\<^sup>+ xa. ereal (exp (- xa\<^sup>2)) * indicator {0..} xa \<partial>lborel")
-    apply auto
-    done
-
-  then have I: "(\<integral>xa. exp (- xa\<^sup>2) * indicator {0..} xa \<partial>lborel) = sqrt pi / 2"
-    by (subst integral_eq_nn_integral) (auto simp: ereal_mult_indicator)
-  
-  have byparts: "?IFunc = (\<lambda>z. (if z < 0 then 0 else ?f z))"
-    proof (intro HOL.ext, subst split_ifs, safe)
-      fix z::real assume [arith]:" \<not> z < 0 "
-  
-      have "?IFunc z =  \<integral>x. (x * (x * exp (- x\<^sup>2))) * indicator {0 .. z} x \<partial>lborel"
-        by(auto intro!: integral_cong split: split_indicator simp: power2_eq_square)
-  
-      also have "... = (\<lambda>x. x) z * (\<lambda>x. - exp (- x\<^sup>2 ) / 2) z - (\<lambda>x. x) 0 * (\<lambda>x. - exp (- x\<^sup>2) / 2) 0 
-          -  \<integral>x. 1 * ( - exp (- x\<^sup>2) / 2) * indicator {0 .. z} x \<partial>lborel"
-        by(rule integral_by_parts, auto intro!: derivative_eq_intros)  
-      finally have "?IFunc z = ..." .
-
-      then show "?IFunc z = ?f z" by simp
-    qed simp    
-
-  have [simp]: "(\<lambda>y. \<integral> x. x\<^sup>2 * exp (- x\<^sup>2) * indicator {0..} x * indicator {..y} x \<partial>lborel) = ?IFunc"
-    by(auto intro!: integral_cong split:split_indicator)
-
-  have [intro]: "((\<lambda>(x::real). x * exp (- x\<^sup>2) / 2) ---> 0) at_top"
-  proof -
-    have "((\<lambda>(x::real). x * exp (- x\<^sup>2) / 2) ---> 0 / 2) at_top"
-      apply (intro tendsto_divide filterlim_compose[OF exp_at_bot] filterlim_compose[OF filterlim_uminus_at_bot_at_top])
-      apply (auto simp: exp_minus inverse_eq_divide)
-      apply (rule lhospital_at_top_at_top[where f' = "\<lambda>x. 1" and g' = "\<lambda>x. 2 * x * exp (x\<^sup>2)"])
-      apply (auto intro!: derivative_eq_intros eventually_elim1[OF eventually_gt_at_top, of 1])
-      apply (subst inverse_eq_divide[symmetric])
-      apply (rule  tendsto_inverse_0_at_top)
-      apply (subst mult_assoc)
-      by (auto intro!: filterlim_tendsto_pos_mult_at_top[of "\<lambda>x. 2" 2] filterlim_at_top_mult_at_top[OF filterlim_ident])
-    
-    then show ?thesis by simp
-  qed
-
-  have "((\<lambda>x. (\<integral>y. (exp (- y\<^sup>2) * indicator {0..} y) * indicator {.. x} y \<partial>lborel) :: real) ---> \<integral>y. exp (- y\<^sup>2) * indicator {0..} y \<partial>lborel) at_top"
-    by (intro tendsto_integral_at_top integrable_mult_indicator) auto
-  also have "(\<lambda>x. (\<integral>y. (exp (- y\<^sup>2) * indicator {0..} y) * indicator {.. x} y \<partial>lborel) :: real) = 
-    (\<lambda>x. (\<integral>y. exp (- y\<^sup>2) * indicator {0..x} y \<partial>lborel) :: real)"
-    by (auto simp: fun_eq_iff split: split_indicator intro!: integral_cong)
-  finally have *: "((\<lambda>x. (\<integral>y. exp (- y\<^sup>2) * indicator {0..x} y \<partial>lborel) :: real) ---> \<integral>y. exp (- y\<^sup>2) * indicator {0..} y \<partial>lborel) at_top"
-    .
-
-  have tends: "((\<lambda>x. (\<integral> xa. exp (- xa\<^sup>2) * indicator {0..x} xa \<partial>lborel) / 2) ---> (sqrt pi / 2) / 2) at_top"
-    apply (rule tendsto_divide)
-    apply (subst I[symmetric])
-    apply (auto intro: *)
-    done
-
-  have [intro]: "(?IFunc ---> sqrt pi / 4) at_top"
-    apply (simp add: byparts)
-    apply (subst filterlim_cong[where g = ?f])
-    apply (auto simp: eventually_ge_at_top linorder_not_less)
-  proof -
-    have "((\<lambda>x. (\<integral> xa. exp (- xa\<^sup>2) * indicator {0..x} xa / 2 \<partial>lborel) - x * exp (- x\<^sup>2) / 2::real) --->
-        (0 + sqrt pi / 4 - 0)) at_top"
-      apply (intro tendsto_diff)
-      apply auto
-      apply (subst divide_real_def)
-      using tends
-      by (auto intro!: integrable_mult_indicator)
-    then show "((\<lambda>x. (\<integral> xa. exp (- xa\<^sup>2) * indicator {0..x} xa \<partial>lborel) / 2 - x * exp (- x\<^sup>2) / 2) ---> sqrt pi / 4) at_top" by  simp
-  qed
-    
-  have [intro]:"\<And>y. integrable lborel (\<lambda>x. x\<^sup>2 * exp (- x\<^sup>2) * indicator {0..} x * indicator {..y} x::real)"
-    apply (subst integrable_cong[where g = "\<lambda>x. x\<^sup>2 * exp (- x\<^sup>2) * indicator {0..y} x" for y])
-    by (auto intro!: borel_integrable_atLeastAtMost split:split_indicator)
-    
-  have **[intro]: "integrable lborel (\<lambda>x. x\<^sup>2 * exp (- x\<^sup>2) * indicator {0..} x::real)"
-    by (rule integrable_monotone_convergence_at_top) auto
-
-  have "(\<integral>x. x\<^sup>2 * exp (- x\<^sup>2) * indicator {0..} x \<partial>lborel) = sqrt pi / 4"
-    by (rule integral_monotone_convergence_at_top) auto
-  
-  then have "(\<integral>\<^sup>+x. ereal (x\<^sup>2 * exp (- x\<^sup>2)* indicator {0..} x) \<partial>lborel) = sqrt pi / 4"
-    by (subst nn_integral_eq_integral) auto
-
-  then have ***: "(\<integral>\<^sup>+ x. ereal (x\<^sup>2 * exp (- x\<^sup>2)) \<partial>lborel) = sqrt pi / 2"
-    by (subst nn_integral_even_function)
-       (auto simp: real_sqrt_mult real_sqrt_divide ereal_mult_indicator)
-  
-  then show "(\<integral> x. x\<^sup>2 * exp (- x\<^sup>2) \<partial>lborel) = sqrt pi / 2"
-    by (subst integral_eq_nn_integral) auto
-
-  show "integrable lborel (\<lambda>x. x\<^sup>2 * exp (- x\<^sup>2)::real)"
-    by (intro integrableI_nn_integral_finite[OF _ _ ***]) auto
-qed
-
-lemma integral_xsquare_times_standard_normal[intro]: "(\<integral> x. std_normal_density x * x\<^sup>2 \<partial>lborel) = 1"
-  and integrable_xsquare_times_standard_normal[intro]: "integrable lborel (\<lambda>x. std_normal_density x * x\<^sup>2)"
-proof -
-  have [intro]:"integrable lborel (\<lambda>x. exp (- x\<^sup>2) * (2 * x\<^sup>2) / (sqrt 2 * sqrt pi))"
-    apply (subst integrable_cong[where g ="(\<lambda>x. (2 * inverse (sqrt 2 * sqrt pi)) * (exp (- x\<^sup>2) * x\<^sup>2))"])
-    by (auto intro!: integrable_xsquare_exp_xsquare simp: field_simps)
-
-  have "(\<integral> x. std_normal_density x * x\<^sup>2 \<partial>lborel) = (2 / sqrt pi) * \<integral> x. x\<^sup>2 * exp (- x\<^sup>2) \<partial>lborel"
-    apply (subst integral_mult_right[symmetric])
-    apply (rule integrable_xsquare_exp_xsquare)
-    unfolding std_normal_density_def
-    apply (subst lborel_integral_real_affine[where c = "sqrt 2" and t=0], simp_all)
-    unfolding integral_mult_right_zero[symmetric] integral_divide_zero[symmetric]
-    apply (intro integral_cong)
-    by (auto simp: power_mult_distrib real_sqrt_mult)
-  also have "... = 1"
-    by (subst integral_xsquare_exp_xsquare, auto)
-  finally show "(\<integral> x. std_normal_density x * x\<^sup>2 \<partial>lborel) = 1" .
-
-  show "integrable lborel (\<lambda>x. std_normal_density x * x\<^sup>2)"
-    unfolding std_normal_density_def
-    apply (subst lborel_integrable_real_affine_iff[where c = "sqrt 2" and t=0, symmetric])
-    by (auto simp: power_mult_distrib real_sqrt_mult)
-qed
-
-lemma 
-  assumes [arith]: "0 < \<sigma>"
-  shows integral_xsquare_times_normal: "(\<integral> x. normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2 \<partial>lborel) = \<sigma>\<^sup>2"
-  and integrable_xsquare_times_normal: "integrable lborel (\<lambda>x. normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2)"
-proof -
-  have "(\<integral> x. normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2 \<partial>lborel) = \<sigma> * \<sigma> * \<integral> x. std_normal_density x * x\<^sup>2 \<partial>lborel"
-    unfolding normal_density_def
-    apply (subst lborel_integral_real_affine[ where c = \<sigma> and t = \<mu>])
-    apply (auto simp: power_mult_distrib)
-    unfolding integral_mult_right_zero[symmetric] integral_divide_zero[symmetric]
-    apply (intro integral_cong)
-    apply auto
-    unfolding normal_density_def
-    by (auto simp: real_sqrt_mult field_simps power2_eq_square[symmetric])
-    
-  also have "... = \<sigma>\<^sup>2" 
-    by(auto simp: power2_eq_square[symmetric])
-
-  finally show "(\<integral> x. normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2 \<partial>lborel) = \<sigma>\<^sup>2" .
- 
-  show "integrable lborel (\<lambda>x. normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2)"
-    unfolding normal_density_def
-    apply (subst lborel_integrable_real_affine_iff[ where c = \<sigma> and t = \<mu>, symmetric])
-    apply auto
-    apply (auto simp: power_mult_distrib)
-    apply (subst integrable_cong[where g ="(\<lambda>x. \<sigma> * (std_normal_density x * x\<^sup>2))"], auto)
-    unfolding std_normal_density_def
-    by (auto simp: field_simps real_sqrt_mult power2_eq_square[symmetric])
-qed
-  
-lemma (in prob_space) standard_normal_distributed_variance:
-  fixes a b :: real
-  assumes D: "distributed M lborel X std_normal_density"
-  shows "variance X = 1"
-  apply (subst distributed_integral[OF D, of "(\<lambda>x. (x - expectation X)\<^sup>2)", symmetric])
-  by (auto simp: standard_normal_distributed_expectation[OF D])
+  using integral_normal_moment_nz_1[OF \<sigma>, of \<mu>] distributed_integral[OF D, of "\<lambda>x. x", symmetric]
+  by (auto simp: field_simps)
 
 lemma (in prob_space) normal_distributed_variance:
   fixes a b :: real
-  assumes [simp, arith]: " 0 < \<sigma>"
+  assumes [simp, arith]: "0 < \<sigma>"
   assumes D: "distributed M lborel X (normal_density \<mu> \<sigma>)"
   shows "variance X = \<sigma>\<^sup>2"
-proof-  
-  have *[intro]: "distributed M lborel (\<lambda>x. (X x - \<mu>) / \<sigma>) (\<lambda>x. ereal (std_normal_density x))"
-    by (subst normal_standard_normal_convert[OF assms(1) , symmetric]) fact
+  using integral_normal_moment_even[of \<sigma> \<mu> 1]
+  by (subst distributed_integral[OF D, symmetric])
+     (simp_all add: eval_nat_numeral normal_distributed_expectation[OF assms])
 
-  have "variance X = variance  (\<lambda>x. \<mu> + \<sigma> * ((X x - \<mu>) / \<sigma>) )" by simp
-  also have "... = \<sigma>\<^sup>2 * 1"
-    apply (subst variance_affine)
-    apply (auto intro!: standard_normal_distributed_variance prob_space_normal_density
-      simp: distributed_integrable[OF *,of "\<lambda>x. x", symmetric]
-      distributed_integrable[OF *,of "\<lambda>x. x\<^sup>2", symmetric] variance_affine
-      simp del: integral_divide_zero)
-    done
-
-  finally show ?thesis by simp
-qed
+lemma (in prob_space) standard_normal_distributed_variance:
+  "distributed M lborel X std_normal_density \<Longrightarrow> variance X = 1"
+  using normal_distributed_variance[of 1 X 0] by simp
 
 lemma (in information_space) entropy_normal_density:
   assumes [arith]: "0 < \<sigma>"
@@ -1446,7 +1645,7 @@ proof -
   also have "\<dots> = (\<integral>x. normal_density \<mu> \<sigma> x * (ln (2 * pi * \<sigma>\<^sup>2)) + (normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2) / \<sigma>\<^sup>2 \<partial>lborel) / (2 * ln b)"
     by (simp del: minus_add_distrib)
   also have "\<dots> = (ln (2 * pi * \<sigma>\<^sup>2) + 1) / (2 * ln b)"
-    by (simp add: integrable_xsquare_times_normal integrable_normal integral_xsquare_times_normal)
+    using integral_normal_moment_even[of \<sigma> \<mu> 1] by (simp add: integrable_normal_moment fact_numeral)
   also have "\<dots> = log b (2 * pi * exp 1 * \<sigma>\<^sup>2) / 2"
     by (simp add: log_def field_simps ln_mult)
   finally show ?thesis .

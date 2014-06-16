@@ -11,7 +11,7 @@ Contributions to this Isabelle version
   Work on exotic automatic theorem provers for Sledgehammer (LEO-II, veriT,
   Waldmeister, etc.).
 
-* June 2014: Sudeep Kanav, TUM, and Johannes Hölzl, TUM
+* June 2014: Sudeep Kanav, TUM, Jeremy Avigad, CMU, and Johannes Hölzl, TUM
   Various properties of exponentially, Erlang, and normal distributed random variables.
 
 * May 2014: Cezary Kaliszyk, University of Innsbruck, and Jasmin Blanchette, TUM
