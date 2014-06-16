@@ -323,7 +323,6 @@ session System (doc) in "System" = Pure +
   options [document_variants = "system", thy_output_source]
   theories
     Basics
-    Interfaces
     Sessions
     Presentation
     Scala
