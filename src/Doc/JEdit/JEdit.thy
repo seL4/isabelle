@@ -1238,24 +1238,25 @@ text {*
 subsection {* Input events \label{sec:completion-input} *}
 
 text {*
-  FIXME
+  Completion is triggered by certain events produced by the user, with
+  optional delay after keyboard input according to @{system_option
+  jedit_completion_delay}.
 
-  \paragraph{Explicit completion} is triggered by the keyboard
-  shortcut @{verbatim "C+b"} (action @{action "isabelle.complete"}).
-  This overrides the original jEdit binding for action @{verbatim
-  "complete-word"}, but the latter is used as fall-back for
-  non-Isabelle edit modes.  It is also possible to restore the
+  \begin{description}
+
+  \item[Explicit completion] via action @{action_ref "isabelle.complete"}
+  with keyboard shortcut @{verbatim "C+b"}. This overrides the shortcut for
+  @{verbatim "complete-word"} in jEdit. It is also possible to restore the
   original jEdit keyboard mapping of @{verbatim "complete-word"} via
-  \emph{Global Options / Shortcuts}.
+  \emph{Global Options / Shortcuts}, and invent a different one for @{action
+  "isabelle.complete"}.
 
-  Replacement text is inserted immediately into the buffer, unless
-  ambiguous results demand an explicit popup.
+  \item[Explicit spell-checker completion] via @{action_ref
+  "isabelle.complete-word"}, which is exposed in the jEdit context menu, if
+  the mouse points to a word that the spell-checker can complete.
 
-  \paragraph{Implicit completion} is triggered by regular keyboard input
-  events during of the editing process in the main jEdit text area (and a few
-  additional text fields like the ones of the the \emph{Query} panel, see
-  \secref{sec:query}). Implicit completion depends on on further
-  side-conditions:
+  \item[Implicit completion] via regular keyboard input of the editor. This
+  depends on further side-conditions:
 
   \begin{enumerate}
 
@@ -1266,28 +1267,23 @@ text {*
   characters in the text.
 
   \item The system option @{system_option_ref jedit_completion_delay}
-  determines an additional delay (0.5 by default), before opening a
-  completion popup.
+  determines an additional delay (0.5 by default), before opening a completion
+  popup.  The delay gives the prover a chance to provide semantic completion
+  information, notably the context (\secref{sec:completion-context}).
 
   \item The system option @{system_option_ref jedit_completion_immediate}
-  (disabled by default) controls whether replacement text should be
-  inserted immediately without popup.  This is restricted to Isabelle
-  symbols and their abbreviations (\secref{sec:symbols}) --- plain
-  keywords always demand a popup for clarity.
+  (disabled by default) controls whether replacement text should be inserted
+  immediately without popup, regardless of @{system_option
+  jedit_completion_delay}. This aggressive mode of completion is restricted to
+  Isabelle symbols and their abbreviations (\secref{sec:symbols}).
 
   \item Completion of symbol abbreviations with only one relevant
   character in the text always enforces an explicit popup,
-  independently of @{system_option_ref jedit_completion_immediate}.
+  regardless of @{system_option_ref jedit_completion_immediate}.
 
   \end{enumerate}
 
-  In contrast, more aggressive completion works via @{system_option
-  jedit_completion_delay}~@{verbatim "= 0.0"} and @{system_option
-  jedit_completion_immediate}~@{verbatim "= true"}.  Thus the editing
-  process becomes dependent on the system guessing correctly what the
-  user had in mind.  It requires some practice (and study of the
-  symbol abbreviation tables) to become productive in this advanced
-  mode.
+  \end{description}
 *}
 
 
@@ -1339,9 +1335,37 @@ subsection {* Options \label{sec:completion-options} *}
 
 text {*
   This is a summary of Isabelle/Scala system options that are relevant for
-  completion.
+  completion. They may be configured in \emph{Plugin Options / Isabelle /
+  General} as usual.
 
-  FIXME
+  \begin{itemize}
+
+  \item @{system_option_def completion_limit} specifies the limit of
+  name-space entries exposed in semantic completion by the prover.
+
+  \item @{system_option_def jedit_completion} guards implicit completion via
+  regular jEdit keyboard input events (\secref{sec:completion-input}).
+
+  \item @{system_option_def jedit_completion_context} specifies whether the
+  language context provided by the prover should be used. Disabling that
+  option makes completion less ``semantic''. Note that incomplete or broken
+  input may cause some disagreement of the prover and the user about the
+  intended language context.
+
+  \item @{system_option_def jedit_completion_delay} FIXME
+
+  \item @{system_option_def jedit_completion_immediate} specifies whether
+
+  \item @{system_option_def jedit_completion_path_ignore} specifies ``glob''
+  patterns to ignore in file-system path completion (separated by colons).
+
+  \item @{system_option_def spell_checker} FIXME
+
+  \item @{system_option_def spell_checker_dictionary} FIXME
+
+  \item @{system_option_def spell_checker_elements} FIXME
+
+  \end{itemize}
 *}
 
 
