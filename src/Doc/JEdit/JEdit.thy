@@ -224,7 +224,7 @@ text {*
   platform-specific executable wrappers for Linux, Windows, Mac OS X.
   Nonetheless it is occasionally useful to invoke the Prover IDE on the
   command-line, with some extra options and environment settings as explained
-  below. The command-line usage of @{tool jedit} is as follows:
+  below. The command-line usage of @{tool_def jedit} is as follows:
 \begin{ttbox}
   Usage: isabelle jedit [OPTIONS] [FILES ...]
 
@@ -254,7 +254,7 @@ text {*
   process for the selected session image.
 
   The @{verbatim "-m"} option specifies additional print modes for the
-  prover process.  Note that the system option @{system_option
+  prover process.  Note that the system option @{system_option_ref
   jedit_print_mode} allows to do the same persistently (e.g.\ via the
   Plugin Options dialog of Isabelle/jEdit), without requiring
   command-line invocation.
@@ -521,10 +521,10 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   \medskip
   \begin{tabular}{llll}
     \textbf{style} & \textbf{symbol} & \textbf{shortcut} & \textbf{action} \\\hline
-    superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{action "isabelle.control-sup"} \\
-    subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{action "isabelle.control-sub"} \\
-    bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{action "isabelle.control-bold"} \\
-    reset & & @{verbatim "C+e LEFT"} & @{action "isabelle.control-reset"} \\
+    superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{action_ref "isabelle.control-sup"} \\
+    subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{action_ref "isabelle.control-sub"} \\
+    bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{action_ref "isabelle.control-bold"} \\
+    reset & & @{verbatim "C+e LEFT"} & @{action_ref "isabelle.control-reset"} \\
   \end{tabular}
   \medskip
 
@@ -672,12 +672,12 @@ text {*
   \begin{enumerate}
 
   \item via \textbf{theory imports} that are specified in the \emph{theory
-  header} using concrete syntax of the @{command theory} command
+  header} using concrete syntax of the @{command_ref theory} command
   \cite{isabelle-isar-ref};
 
   \item via \textbf{auxiliary files} that are loaded into a theory by special
-  \emph{load commands}, notably @{command ML_file} and @{command SML_file}
-  \cite{isabelle-isar-ref}.
+  \emph{load commands}, notably @{command_ref ML_file} and @{command_ref
+  SML_file} \cite{isabelle-isar-ref}.
 
   \end{enumerate}
 
@@ -739,14 +739,14 @@ text {*
 subsection {* Auxiliary files \label{sec:aux-files} *}
 
 text {*
-  Special load commands like @{command ML_file} and @{command SML_file}
-  \cite{isabelle-isar-ref} refer to auxiliary files within some theory.
-  Conceptually, the file argument of the command extends the theory source by
-  the content of the file, but its editor buffer may be loaded~/ changed~/
-  saved separately. The PIDE document model propagates changes of auxiliary
-  file content to the corresponding load command in the theory, to update and
-  process it accordingly: changes of auxiliary file content are treated as
-  changes of the corresponding load command.
+  Special load commands like @{command_ref ML_file} and @{command_ref
+  SML_file} \cite{isabelle-isar-ref} refer to auxiliary files within some
+  theory. Conceptually, the file argument of the command extends the theory
+  source by the content of the file, but its editor buffer may be loaded~/
+  changed~/ saved separately. The PIDE document model propagates changes of
+  auxiliary file content to the corresponding load command in the theory, to
+  update and process it accordingly: changes of auxiliary file content are
+  treated as changes of the corresponding load command.
 
   \medskip As a concession to the massive amount of ML files in Isabelle/HOL
   itself, the content of auxiliary files is only added to the PIDE
@@ -924,7 +924,7 @@ text {*
       'solves' | 'simp' ':' @{syntax term} | @{syntax term})
   \<close>}
 
-  See also the Isar command @{command find_theorems} in
+  See also the Isar command @{command_ref find_theorems} in
   \cite{isabelle-isar-ref}.
 *}
 
@@ -941,7 +941,7 @@ text {*
       ('name' ':' @{syntax nameref} | 'strict' ':' @{syntax type} | @{syntax type})
   \<close>}
 
-  See also the Isar command @{command find_consts} in
+  See also the Isar command @{command_ref find_consts} in
   \cite{isabelle-isar-ref}.
 *}
 
@@ -951,8 +951,8 @@ subsection {* Print context *}
 text {*
   The \emph{Query} panel in \emph{Print Context} mode prints information from
   the theory or proof context, or proof state. See also the Isar commands
-  @{command print_context}, @{command print_cases}, @{command print_binds},
-  @{command print_theorems}, @{command print_state} in
+  @{command_ref print_context}, @{command_ref print_cases}, @{command_ref
+  print_binds}, @{command_ref print_theorems}, @{command_ref print_state} in
   \cite{isabelle-isar-ref}.
 *}
 
@@ -1018,7 +1018,7 @@ text {*
   varieties in \secref{sec:completion-varieties}. Later sections explain
   concepts around completion more systematically.
 
-  \emph{Explicit completion} works via the action @{action
+  \emph{Explicit completion} works via the action @{action_ref
   "isabelle.complete"}, which is bound to the key sequence @{verbatim "C+b"}
   (overriding the jEdit default for @{verbatim "complete-word"}).
   \emph{Implicit completion} hooks into the regular keyboard input stream of
@@ -1131,7 +1131,7 @@ text {*
   This is genuine semantic completion, using information from the prover, so
   it requires some delay. A \emph{failed name-space lookup} produces an error
   message that is annotated with a list of alternative names that are legal,
-  which truncated according to the system option @{system_option
+  which truncated according to the system option @{system_option_ref
   completion_limit}. The completion mechanism takes this into account when
   collecting information.
 
@@ -1164,9 +1164,9 @@ text {*
   A suffix of slashes may be used to continue the exploration of an already
   recognized directory name.
 
-  The system option @{system_option jedit_completion_path_ignore} specifies
-  ``glob'' patterns to ignore in file-system path completion (separated by
-  colons), e.g.\ backup files ending with tilde.
+  The system option @{system_option_ref jedit_completion_path_ignore}
+  specifies ``glob'' patterns to ignore in file-system path completion
+  (separated by colons), e.g.\ backup files ending with tilde.
 *}
 
 
@@ -1176,35 +1176,35 @@ text {*
   The spell-checker combines semantic markup from the prover (regions of plain
   words) with static dictionaries (word lists) that are known to the editor.
 
-  The system option @{system_option spell_checker_elements} specifies a
+  The system option @{system_option_ref spell_checker_elements} specifies a
   comma-separated list of markup elements that delimit words in the source
   that is subject to spell-checking, including various forms of comments.
 
-  The system option @{system_option spell_checker_dictionary} determines the
-  current dictionary, from the colon-separated list given by the settings
-  variable @{setting JORTHO_DICTIONARIES}. There are jEdit actions to specify
-  local updates to a dictionary, by including or excluding words. The result
-  of permanent dictionary updates is stored in the directory @{file_unchecked
-  "$ISABELLE_HOME_USER/dictionaries"}.
+  The system option @{system_option_ref spell_checker_dictionary} determines
+  the current dictionary, from the colon-separated list given by the settings
+  variable @{setting_ref JORTHO_DICTIONARIES}. There are jEdit actions to
+  specify local updates to a dictionary, by including or excluding words. The
+  result of permanent dictionary updates is stored in the directory
+  @{file_unchecked "$ISABELLE_HOME_USER/dictionaries"}.
 
-  \medskip Unknown words are underlined in the text, using @{system_option
+  \medskip Unknown words are underlined in the text, using @{system_option_ref
   spell_checker_color} (blue by default). This is not an error, but a hint to
   the user that some action may have to be taken. The jEdit context menu
   provides various actions, as far as applicable:
 
   \medskip
   \begin{tabular}{l}
-  @{action "isabelle.complete-word"} \\
-  @{action "isabelle.exclude-word"} \\
-  @{action "isabelle.exclude-word-permanently"} \\
-  @{action "isabelle.include-word"} \\
-  @{action "isabelle.include-word-permanently"} \\
+  @{action_ref "isabelle.complete-word"} \\
+  @{action_ref "isabelle.exclude-word"} \\
+  @{action_ref "isabelle.exclude-word-permanently"} \\
+  @{action_ref "isabelle.include-word"} \\
+  @{action_ref "isabelle.include-word-permanently"} \\
   \end{tabular}
   \medskip
 
-  Instead of the specific @{action "isabelle.complete-word"}, it is also
-  possible to use the generic @{action "isabelle.complete"} with its default
-  key binding @{verbatim "C+b"}.
+  Instead of the specific @{action_ref "isabelle.complete-word"}, it is also
+  possible to use the generic @{action_ref "isabelle.complete"} with its
+  default key binding @{verbatim "C+b"}.
 
   \medskip Dictionary lookup uses some educated guesses about lower-case,
   upper-case, and capitalized words. This is oriented on common use in
@@ -1259,17 +1259,17 @@ text {*
 
   \begin{enumerate}
 
-  \item The system option @{system_option jedit_completion} needs to
+  \item The system option @{system_option_ref jedit_completion} needs to
   be enabled (default).
 
   \item Completion of syntax keywords requires at least 3 relevant
   characters in the text.
 
-  \item The system option @{system_option jedit_completion_delay}
+  \item The system option @{system_option_ref jedit_completion_delay}
   determines an additional delay (0.5 by default), before opening a
   completion popup.
 
-  \item The system option @{system_option jedit_completion_immediate}
+  \item The system option @{system_option_ref jedit_completion_immediate}
   (disabled by default) controls whether replacement text should be
   inserted immediately without popup.  This is restricted to Isabelle
   symbols and their abbreviations (\secref{sec:symbols}) --- plain
@@ -1277,7 +1277,7 @@ text {*
 
   \item Completion of symbol abbreviations with only one relevant
   character in the text always enforces an explicit popup,
-  independently of @{system_option jedit_completion_immediate}.
+  independently of @{system_option_ref jedit_completion_immediate}.
 
   \end{enumerate}
 
@@ -1389,17 +1389,17 @@ text {*
 
   \begin{itemize}
 
-  \item @{system_option auto_methods} controls automatic use of a
+  \item @{system_option_ref auto_methods} controls automatic use of a
   combination of standard proof methods (@{method auto}, @{method
   simp}, @{method blast}, etc.).  This corresponds to the Isar command
-  @{command "try0"}.
+  @{command_ref "try0"}.
 
   The tool is disabled by default, since unparameterized invocation of
   standard proof methods often consumes substantial CPU resources
   without leading to success.
 
-  \item @{system_option auto_nitpick} controls a slightly reduced
-  version of @{command nitpick}, which tests for counterexamples using
+  \item @{system_option_ref auto_nitpick} controls a slightly reduced
+  version of @{command_ref nitpick}, which tests for counterexamples using
   first-order relational logic. See also the Nitpick manual
   \cite{isabelle-nitpick}.
 
@@ -1407,23 +1407,23 @@ text {*
   invoking an external Java process for each attempt to disprove a
   subgoal.
 
-  \item @{system_option auto_quickcheck} controls automatic use of
-  @{command quickcheck}, which tests for counterexamples using a
+  \item @{system_option_ref auto_quickcheck} controls automatic use of
+  @{command_ref quickcheck}, which tests for counterexamples using a
   series of assignments for free variables of a subgoal.
 
   This tool is \emph{enabled} by default.  It requires little
   overhead, but is a bit weaker than @{command nitpick}.
 
-  \item @{system_option auto_sledgehammer} controls a significantly
-  reduced version of @{command sledgehammer}, which attempts to prove
+  \item @{system_option_ref auto_sledgehammer} controls a significantly
+  reduced version of @{command_ref sledgehammer}, which attempts to prove
   a subgoal using external automatic provers. See also the
   Sledgehammer manual \cite{isabelle-sledgehammer}.
 
   This tool is disabled by default, due to the relatively heavy nature
   of Sledgehammer.
 
-  \item @{system_option auto_solve_direct} controls automatic use of
-  @{command solve_direct}, which checks whether the current subgoals
+  \item @{system_option_ref auto_solve_direct} controls automatic use of
+  @{command_ref solve_direct}, which checks whether the current subgoals
   can be solved directly by an existing theorem.  This also helps to
   detect duplicate lemmas.
 
@@ -1436,10 +1436,10 @@ text {*
 
   \begin{itemize}
 
-  \item @{system_option auto_time_limit} (default 2.0) determines the
+  \item @{system_option_ref auto_time_limit} (default 2.0) determines the
   timeout (in seconds) for each tool execution.
 
-  \item @{system_option auto_time_start} (default 1.0) determines the
+  \item @{system_option_ref auto_time_start} (default 1.0) determines the
   start delay (in seconds) for automatically tried tools, after the
   main command evaluation is finished.
 
@@ -1462,7 +1462,7 @@ section {* Sledgehammer \label{sec:sledgehammer} *}
 
 text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
   provides a view on some independent execution of the Isar command
-  @{command sledgehammer}, with process indicator (spinning wheel) and
+  @{command_ref sledgehammer}, with process indicator (spinning wheel) and
   GUI elements for important Sledgehammer arguments and options.  Any
   number of Sledgehammer panels may be active, according to the
   standard policies of Dockable Window Management in jEdit.  Closing
@@ -1515,12 +1515,12 @@ text {* Managed evaluation of commands within PIDE documents includes
   of mouse hovering with @{verbatim CONTROL}/@{verbatim COMMAND}
   modifier key as explained in \secref{sec:tooltips-hyperlinks}.
   Actual display of timing depends on the global option
-  @{system_option jedit_timing_threshold}, which can be configured in
+  @{system_option_ref jedit_timing_threshold}, which can be configured in
   "Plugin Options / Isabelle / General".
 
   \medskip The \emph{Monitor} panel provides a general impression of
   recent activity of the farm of worker threads in Isabelle/ML.  Its
-  display is continuously updated according to @{system_option
+  display is continuously updated according to @{system_option_ref
   editor_chart_delay}.  Note that the painting of the chart takes
   considerable runtime itself --- on the Java Virtual Machine that
   runs Isabelle/Scala, not Isabelle/ML.  Internally, the
