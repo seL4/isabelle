@@ -58,7 +58,6 @@ sig
   val is_atp_installed : theory -> string -> bool
   val refresh_systems_on_tptp : unit -> unit
   val effective_term_order : Proof.context -> string -> term_order
-  val setup : theory -> theory
 end;
 
 structure ATP_Systems : ATP_SYSTEMS =
@@ -799,6 +798,6 @@ val atps =
    remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire, remote_snark,
    remote_spass_pirate, remote_waldmeister]
 
-val setup = fold add_atp atps
+val _ = Theory.setup (fold add_atp atps)
 
 end;

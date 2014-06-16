@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_prover_waldmeister.ML
+(*  Title:      HOL/Tools/ATP/atp_waldmeister.ML
     Author:     Albert Steckermeier, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 General-purpose functions used by the Sledgehammer modules.
 *)
 
-signature SLEDGEHAMMER_PROVER_WALDMEISTER =
+signature ATP_WALDMEISTER =
 sig
   type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
   type atp_connective = ATP_Problem.atp_connective
@@ -46,7 +46,7 @@ sig
     ((string, string, (string, string) atp_term, string) atp_formula,string) atp_step list
 end;
 
-structure Sledgehammer_Prover_Waldmeister : SLEDGEHAMMER_PROVER_WALDMEISTER =
+structure ATP_Waldmeister : ATP_WALDMEISTER =
 struct
 
 open ATP_Problem

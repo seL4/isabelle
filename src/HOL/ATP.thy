@@ -129,12 +129,21 @@ lemma fequal_laws:
 unfolding fFalse_def fTrue_def fequal_def by auto
 
 
+subsection {* Waldmeister helpers *}
+
+(* Has all needed simplification lemmas for logic.
+   "HOL.simp_thms(35-42)" are about \<exists> and \<forall>. These lemmas are left out for now. *)
+lemmas waldmeister_fol = simp_thms(1-34) disj_absorb disj_left_absorb conj_absorb conj_left_absorb
+  eq_ac disj_comms disj_assoc conj_comms conj_assoc
+
+
 subsection {* Setup *}
 
 ML_file "Tools/ATP/atp_problem_generate.ML"
 ML_file "Tools/ATP/atp_proof_reconstruct.ML"
 ML_file "Tools/ATP/atp_systems.ML"
+ML_file "Tools/ATP/atp_waldmeister.ML"
 
-setup ATP_Systems.setup
+hide_fact (open) waldmeister_fol
 
 end
