@@ -49,6 +49,8 @@ sig
   val termify_atp_proof : Proof.context -> string -> ATP_Problem.atp_format ->
     ATP_Problem_Generate.type_enc -> string Symtab.table -> (string * term) list ->
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
+  val repair_waldmeister_endgame : (term, 'a) atp_step list -> (term, 'a) atp_step list
+  val infer_formula_types : Proof.context -> term -> term
   val introduce_spass_skolem : (term, string) atp_step list -> (term, string) atp_step list
   val factify_atp_proof : (string * 'a) list -> term list -> term -> (term, string) atp_step list ->
     (term, string) atp_step list
@@ -605,8 +607,7 @@ fun repair_waldmeister_endgame proof =
   end
 
 fun termify_atp_proof ctxt local_prover format type_enc pool lifted sym_tab =
-  clean_up_atp_proof_dependencies
-  #> nasty_atp_proof pool
+  nasty_atp_proof pool
   #> map_term_names_in_atp_proof repair_name
   #> map_filter (termify_line ctxt format type_enc lifted sym_tab)
   #> local_prover = waldmeisterN ? repair_waldmeister_endgame

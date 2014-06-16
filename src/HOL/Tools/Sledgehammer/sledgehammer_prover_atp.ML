@@ -29,6 +29,7 @@ open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
+open ATP_Waldmeister
 open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
@@ -141,6 +142,10 @@ fun run_atp mode name
 
     val {exec, arguments, proof_delims, known_failures, prem_role, best_slices, best_max_mono_iters,
       best_max_new_mono_instances, ...} = get_atp thy name ()
+
+    val local_name = perhaps (try (unprefix remote_prefix)) name
+    val waldmeister_new = (local_name = waldmeister_newN)
+    val spass = (local_name = spassN orelse local_name = spass_pirateN)
 
     val atp_mode = if Config.get ctxt atp_completish then Sledgehammer_Completish else Sledgehammer
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
@@ -261,8 +266,11 @@ fun run_atp mode name
                 |> take num_facts
                 |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
                 |> map (apsnd prop_of)
-                |> generate_atp_problem ctxt format prem_role type_enc atp_mode lam_trans
-                  uncurried_aliases readable_names true hyp_ts concl_t
+                |> (if waldmeister_new then
+                      generate_waldmeister_problem ctxt hyp_ts concl_t
+                    else
+                      generate_atp_problem ctxt format prem_role type_enc atp_mode lam_trans
+                        uncurried_aliases readable_names true hyp_ts concl_t)
 
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem

@@ -155,7 +155,6 @@ struct
 
 open ATP_Util
 
-
 val parens = enclose "(" ")"
 
 (** ATP problem **)
@@ -385,8 +384,7 @@ fun uncurry_type (APi (tys, ty)) = APi (tys, uncurry_type ty)
 
 val dfg_individual_type = "iii" (* cannot clash *)
 
-val suffix_type_of_types =
-  suffix (" " ^ tptp_has_type ^ " " ^ tptp_type_of_types)
+val suffix_type_of_types = suffix (" " ^ tptp_has_type ^ " " ^ tptp_type_of_types)
 
 fun str_of_type format ty =
   let
@@ -439,9 +437,7 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
     let
       val of_type = string_of_type format
       val of_term = tptp_string_of_term format
-      fun app () =
-        tptp_string_of_app format s
-            (map of_type tys @ map of_term ts)
+      fun app () = tptp_string_of_app format s (map of_type tys @ map of_term ts)
     in
       if s = tptp_empty_list then
         (* used for lists in the optional "source" field of a derivation *)
