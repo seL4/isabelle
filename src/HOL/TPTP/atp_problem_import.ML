@@ -319,8 +319,8 @@ fun translate_tptp_file thy format_str file_name =
     val presimp = true
     val facts = map (apfst (rpair (Global, Non_Rec_Def))) defs @
       map (apfst (rpair (Global, General))) nondefs
-    val (atp_problem, _, _, _, _) =
-      prepare_atp_problem ctxt format Hypothesis (type_enc_of_string Strict type_enc) Translator
+    val (atp_problem, _, _, _) =
+      generate_atp_problem ctxt format Hypothesis (type_enc_of_string Strict type_enc) Translator
         lam_trans uncurried_aliases readable_names presimp [] conj facts
 
     val ord = effective_term_order ctxt spassN
