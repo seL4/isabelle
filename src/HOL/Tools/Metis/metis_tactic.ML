@@ -156,8 +156,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
                  th |> Drule.eta_contraction_rule
-                    |> Meson_Clausify.cnf_axiom ctxt new_skolem
-                                                (lam_trans = combsN) j
+                    |> Meson_Clausify.cnf_axiom ctxt new_skolem (lam_trans = combsN) j
                     ||> map do_lams))
              (0 upto length ths0 - 1) ths0
       val ths = maps (snd o snd) th_cls_pairs
@@ -168,7 +167,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val type_enc = type_enc_of_string Strict type_enc
       val (sym_tab, axioms, ord_info, concealed) =
-        prepare_metis_problem ctxt type_enc lam_trans cls ths
+        generate_metis_problem ctxt type_enc lam_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth
         | get_isa_thm mth Isa_Lambda_Lifted =

@@ -252,7 +252,7 @@ fun run_atp mode name
             val readable_names = not (Config.get ctxt atp_full_names)
             val lam_trans = lam_trans |> the_default best_lam_trans
             val uncurried_aliases = uncurried_aliases |> the_default best_uncurried_aliases
-            val value as (atp_problem, _, fact_names, _, _) =
+            val value as (atp_problem, _, _, _) =
               if cache_key = SOME key then
                 cache_value
               else
@@ -261,8 +261,8 @@ fun run_atp mode name
                 |> take num_facts
                 |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
                 |> map (apsnd prop_of)
-                |> prepare_atp_problem ctxt format prem_role type_enc atp_mode lam_trans
-                     uncurried_aliases readable_names true hyp_ts concl_t
+                |> generate_atp_problem ctxt format prem_role type_enc atp_mode lam_trans
+                  uncurried_aliases readable_names true hyp_ts concl_t
 
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
@@ -275,11 +275,13 @@ fun run_atp mode name
             val command =
               "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^ ")"
               |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
+
             val _ =
               atp_problem
               |> lines_of_atp_problem format ord ord_info
               |> cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
               |> File.write_list prob_path
+
             val ((output, run_time), (atp_proof, outcome)) =
               TimeLimit.timeLimit generous_slice_timeout Isabelle_System.bash_output command
               |>> (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I)
@@ -290,10 +292,11 @@ fun run_atp mode name
                       |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name) atp_problem
                       handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)))
               handle TimeLimit.TimeOut => (("", slice_timeout), ([], SOME TimedOut))
+
             val outcome =
               (case outcome of
                 NONE =>
-                (case used_facts_in_unsound_atp_proof ctxt fact_names atp_proof
+                (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof
                       |> Option.map (sort string_ord) of
                   SOME facts =>
                   let val failure = UnsoundProof (is_type_enc_sound type_enc, facts) in
@@ -321,7 +324,7 @@ fun run_atp mode name
             end
           | maybe_run_slice _ result = result
       in
-        ((NONE, ([], Symtab.empty, Vector.fromList [], [], Symtab.empty)),
+        ((NONE, ([], Symtab.empty, [], Symtab.empty)),
          ("", Time.zeroTime, [], [], SOME InternalError), NONE)
         |> fold maybe_run_slice actual_slices
       end
@@ -333,8 +336,8 @@ fun run_atp mode name
       if dest_dir = "" then ()
       else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
 
-    val ((_, (_, pool, fact_names, lifted, sym_tab)),
-         (output, run_time, used_from, atp_proof, outcome), SOME (format, type_enc)) =
+    val ((_, (_, pool, lifted, sym_tab)), (output, run_time, used_from, atp_proof, outcome),
+         SOME (format, type_enc)) =
       with_cleanup clean_up run () |> tap export
 
     val important_message =
@@ -347,7 +350,7 @@ fun run_atp mode name
       (case outcome of
         NONE =>
         let
-          val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
+          val used_facts = used_facts_in_atp_proof ctxt (map fst used_from) atp_proof
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val meths =
             bunch_of_proof_methods (smt_proofs <> SOME false) needs_full_types
@@ -362,6 +365,7 @@ fun run_atp mode name
            fn preplay =>
               let
                 val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
+
                 fun isar_params () =
                   let
                     val metis_type_enc =
@@ -372,11 +376,12 @@ fun run_atp mode name
                       atp_proof
                       |> termify_atp_proof ctxt name format type_enc pool lifted sym_tab
                       |> introduce_spass_skolem
-                      |> factify_atp_proof fact_names hyp_ts concl_t
+                      |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,
                      minimize <> SOME false, atp_proof, goal)
                   end
+
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command thy params minimize_command name preplay, subgoal,

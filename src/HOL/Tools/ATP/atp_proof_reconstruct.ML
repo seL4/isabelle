@@ -38,10 +38,10 @@ sig
     bool -> int Symtab.table ->
     (string, string, (string, string atp_type) atp_term, string) atp_formula -> term
 
-  val used_facts_in_atp_proof :
-    Proof.context -> (string * stature) list vector -> string atp_proof -> (string * stature) list
-  val used_facts_in_unsound_atp_proof : Proof.context -> (string * stature) list vector ->
-    'a atp_proof -> string list option
+  val used_facts_in_atp_proof : Proof.context -> (string * stature) list -> string atp_proof ->
+    (string * stature) list
+  val used_facts_in_unsound_atp_proof : Proof.context -> (string * stature) list -> 'a atp_proof ->
+    string list option
   val atp_proof_prefers_lifting : string atp_proof -> bool
   val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
   val replace_dependencies_in_line : atp_step_name * atp_step_name list -> ('a, 'b) atp_step ->
@@ -50,8 +50,8 @@ sig
     ATP_Problem_Generate.type_enc -> string Symtab.table -> (string * term) list ->
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
   val introduce_spass_skolem : (term, string) atp_step list -> (term, string) atp_step list
-  val factify_atp_proof : (string * 'a) list vector -> term list -> term ->
-    (term, string) atp_step list -> (term, string) atp_step list
+  val factify_atp_proof : (string * 'a) list -> term list -> term -> (term, string) atp_step list ->
+    (term, string) atp_step list
 end;
 
 structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
@@ -452,66 +452,58 @@ fun prop_of_atp ctxt format type_enc textual sym_tab phi =
     repair_tvar_sorts (do_formula true phi Vartab.empty)
   end
 
-fun find_first_in_list_vector vec key =
-  Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
-                 | (_, value) => value) NONE vec
-
 val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
 
-fun resolve_one_named_fact fact_names s =
+fun resolve_fact facts s =
   (case try (unprefix fact_prefix) s of
     SOME s' =>
     let val s' = s' |> unprefix_fact_number |> unascii_of in
-      s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
+      AList.lookup (op =) facts s' |> Option.map (pair s')
     end
   | NONE => NONE)
 
-fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
-
-fun resolve_one_named_conjecture s =
+fun resolve_conjecture s =
   (case try (unprefix conjecture_prefix) s of
     SOME s' => Int.fromString s'
   | NONE => NONE)
 
-val resolve_conjecture = map_filter resolve_one_named_conjecture
+fun resolve_facts facts = map_filter (resolve_fact facts)
+val resolve_conjectures = map_filter resolve_conjecture
 
 fun is_axiom_used_in_proof pred =
   exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
 
-fun add_non_rec_defs fact_names accum =
-  Vector.foldl (fn (facts, facts') =>
-      union (op =) (filter (fn (_, (_, status)) => status = Non_Rec_Def) facts) facts')
-    accum fact_names
+fun add_non_rec_defs facts =
+  fold (fn fact as (_, (_, status)) => status = Non_Rec_Def ? insert (op =) fact) facts
 
 val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
 val leo2_unfold_def_rule = "unfold_def"
 
-fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
+fun add_fact ctxt facts ((_, ss), _, _, rule, deps) =
   (if rule = leo2_extcnf_equal_neg_rule then
      insert (op =) (short_thm_name ctxt ext, (Global, General))
    else if rule = leo2_unfold_def_rule then
      (* LEO 1.3.3 does not record definitions properly, leading to missing dependencies in the TSTP
         proof. Remove the next line once this is fixed. *)
-     add_non_rec_defs fact_names
+     add_non_rec_defs facts
    else if rule = agsyhol_core_rule orelse rule = satallax_core_rule then
      (fn [] =>
          (* agsyHOL and Satallax don't include definitions in their unsatisfiable cores, so we
             assume the worst and include them all here. *)
-         [(short_thm_name ctxt ext, (Global, General))] |> add_non_rec_defs fact_names
+         [(short_thm_name ctxt ext, (Global, General))] |> add_non_rec_defs facts
        | facts => facts)
    else
      I)
-  #> (if null deps then union (op =) (resolve_fact fact_names ss) else I)
+  #> (if null deps then union (op =) (resolve_facts facts ss) else I)
 
-fun used_facts_in_atp_proof ctxt fact_names atp_proof =
-  if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
-  else fold (add_fact ctxt fact_names) atp_proof []
+fun used_facts_in_atp_proof ctxt facts atp_proof =
+  if null atp_proof then facts else fold (add_fact ctxt facts) atp_proof []
 
 fun used_facts_in_unsound_atp_proof _ _ [] = NONE
-  | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
-    let val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof in
+  | used_facts_in_unsound_atp_proof ctxt facts atp_proof =
+    let val used_facts = used_facts_in_atp_proof ctxt facts atp_proof in
       if forall (fn (_, (sc, _)) => sc = Global) used_facts andalso
-         not (is_axiom_used_in_proof (not o null o resolve_conjecture o single) atp_proof) then
+         not (is_axiom_used_in_proof (is_some o resolve_conjecture) atp_proof) then
         SOME (map fst used_facts)
       else
         NONE
@@ -716,16 +708,16 @@ fun introduce_spass_skolem [] = []
   else
     proof
 
-fun factify_atp_proof fact_names hyp_ts concl_t atp_proof =
+fun factify_atp_proof facts hyp_ts concl_t atp_proof =
   let
     fun factify_step ((num, ss), _, t, rule, deps) =
       let
         val (ss', role', t') =
-          (case resolve_conjecture ss of
+          (case resolve_conjectures ss of
             [j] =>
             if j = length hyp_ts then ([], Conjecture, concl_t) else ([], Hypothesis, nth hyp_ts j)
           | _ =>
-            (case resolve_fact fact_names ss of
+            (case resolve_facts facts ss of
               [] => (ss, Plain, t)
             | facts => (map fst facts, Axiom, t)))
       in

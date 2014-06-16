@@ -29,11 +29,9 @@ sig
   val metis_name_table : ((string * int) * ((type_enc -> string) * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val reveal_lam_lifted : (string * term) list -> term -> term
-  val prepare_metis_problem :
-    Proof.context -> type_enc -> string -> thm list -> thm list
-    -> int Symtab.table * (Metis_Thm.thm * isa_thm) list
-       * (unit -> (string * int) list)
-       * ((string * term) list * (string * term) list)
+  val generate_metis_problem : Proof.context -> type_enc -> string -> thm list -> thm list ->
+    int Symtab.table * (Metis_Thm.thm * isa_thm) list * (unit -> (string * int) list)
+    * ((string * term) list * (string * term) list)
 end
 
 structure Metis_Generate : METIS_GENERATE =
@@ -172,42 +170,33 @@ fun metis_axiom_of_atp ctxt type_enc clauses (Formula ((ident, _), _, phi, _, _)
       else if String.isPrefix conjecture_prefix ident then
         NONE
       else if String.isPrefix helper_prefix ident then
-        case (String.isSuffix typed_helper_suffix ident,
-              space_explode "_" ident) of
+        case (String.isSuffix typed_helper_suffix ident, space_explode "_" ident) of
           (needs_fairly_sound, _ :: const :: j :: _) =>
-          nth (AList.lookup (op =) helper_table (const, needs_fairly_sound)
-               |> the)
-              (the (Int.fromString j) - 1)
+          nth (AList.lookup (op =) helper_table (const, needs_fairly_sound) |> the)
+            (the (Int.fromString j) - 1)
           |> snd |> prepare_helper ctxt
           |> Isa_Raw |> some
         | _ => raise Fail ("malformed helper identifier " ^ quote ident)
       else case try (unprefix fact_prefix) ident of
         SOME s =>
-        let val s = s |> space_explode "_" |> tl |> space_implode "_"
-          in
+        let val s = s |> space_explode "_" |> tl |> space_implode "_" in
           case Int.fromString s of
-            SOME j =>
-            Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some
+            SOME j => Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some
           | NONE =>
-            if String.isPrefix lam_fact_prefix (unascii_of s) then
-              Isa_Lambda_Lifted |> some
-            else
-              raise Fail ("malformed fact identifier " ^ quote ident)
+            if String.isPrefix lam_fact_prefix (unascii_of s) then Isa_Lambda_Lifted |> some
+            else raise Fail ("malformed fact identifier " ^ quote ident)
         end
       | NONE => TrueI |> Isa_Raw |> some
     end
   | metis_axiom_of_atp _ _ _ _ = raise Fail "not CNF -- expected formula"
 
-fun eliminate_lam_wrappers (Const (@{const_name Metis.lambda}, _) $ t) =
-    eliminate_lam_wrappers t
-  | eliminate_lam_wrappers (t $ u) =
-    eliminate_lam_wrappers t $ eliminate_lam_wrappers u
-  | eliminate_lam_wrappers (Abs (s, T, t)) =
-    Abs (s, T, eliminate_lam_wrappers t)
+fun eliminate_lam_wrappers (Const (@{const_name Metis.lambda}, _) $ t) = eliminate_lam_wrappers t
+  | eliminate_lam_wrappers (t $ u) = eliminate_lam_wrappers t $ eliminate_lam_wrappers u
+  | eliminate_lam_wrappers (Abs (s, T, t)) = Abs (s, T, eliminate_lam_wrappers t)
   | eliminate_lam_wrappers t = t
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
+fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
   let
     val (conj_clauses, fact_clauses) =
       if is_type_enc_polymorphic type_enc then
@@ -221,34 +210,31 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     val num_conjs = length conj_clauses
     (* Pretend every clause is a "simp" rule, to guide the term ordering. *)
     val clauses =
-      map2 (fn j => pair (Int.toString j, (Local, Simp)))
-           (0 upto num_conjs - 1) conj_clauses @
+      map2 (fn j => pair (Int.toString j, (Local, Simp))) (0 upto num_conjs - 1) conj_clauses @
       map2 (fn j => pair (Int.toString (num_conjs + j), (Local, Simp)))
-           (0 upto length fact_clauses - 1) fact_clauses
+        (0 upto length fact_clauses - 1) fact_clauses
     val (old_skolems, props) =
       fold_rev (fn (name, th) => fn (old_skolems, props) =>
-                   th |> prop_of |> Logic.strip_imp_concl
-                      |> conceal_old_skolem_terms (length clauses) old_skolems
-                      ||> (lam_trans = liftingN orelse lam_trans = lam_liftingN)
-                          ? eliminate_lam_wrappers
-                      ||> (fn prop => (name, prop) :: props))
-               clauses ([], [])
+           th |> prop_of |> Logic.strip_imp_concl
+              |> conceal_old_skolem_terms (length clauses) old_skolems
+              ||> (lam_trans = liftingN orelse lam_trans = lam_liftingN) ? eliminate_lam_wrappers
+              ||> (fn prop => (name, prop) :: props))
+         clauses ([], [])
     (*
     val _ =
       tracing ("PROPS:\n" ^
                cat_lines (map (Syntax.string_of_term ctxt o snd) props))
     *)
     val lam_trans = if lam_trans = combsN then no_lamsN else lam_trans
-    val (atp_problem, _, _, lifted, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis type_enc Metis lam_trans false
-                          false false [] @{prop False} props
+    val (atp_problem, _, lifted, sym_tab) =
+      generate_atp_problem ctxt CNF Hypothesis type_enc Metis lam_trans false false false []
+        @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (lines_of_atp_problem CNF atp_problem))
     *)
     (* "rev" is for compatibility with existing proof scripts. *)
-    val axioms =
-      atp_problem
+    val axioms = atp_problem
       |> maps (map_filter (metis_axiom_of_atp ctxt type_enc clauses) o snd) |> rev
     fun ord_info () = atp_problem_term_order_info atp_problem
   in (sym_tab, axioms, ord_info, (lifted, old_skolems)) end

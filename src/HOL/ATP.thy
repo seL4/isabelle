@@ -9,8 +9,8 @@ theory ATP
 imports Meson
 begin
 
-ML_file "Tools/lambda_lifting.ML"
-ML_file "Tools/monomorph.ML"
+subsection {* ATP problems and proofs *}
+
 ML_file "Tools/ATP/atp_util.ML"
 ML_file "Tools/ATP/atp_problem.ML"
 ML_file "Tools/ATP/atp_proof.ML"
@@ -137,8 +137,10 @@ lemmas waldmeister_fol = simp_thms(1-34) disj_absorb disj_left_absorb conj_absor
   eq_ac disj_comms disj_assoc conj_comms conj_assoc
 
 
-subsection {* Setup *}
+subsection {* Basic connection between ATPs and HOL *}
 
+ML_file "Tools/lambda_lifting.ML"
+ML_file "Tools/monomorph.ML"
 ML_file "Tools/ATP/atp_problem_generate.ML"
 ML_file "Tools/ATP/atp_proof_reconstruct.ML"
 ML_file "Tools/ATP/atp_systems.ML"

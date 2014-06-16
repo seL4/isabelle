@@ -110,12 +110,9 @@ sig
     Proof.context -> type_enc -> string -> term list -> term list * term list
   val string_of_status : status -> string
   val factsN : string
-  val prepare_atp_problem :
-    Proof.context -> atp_format -> atp_formula_role -> type_enc -> mode
-    -> string -> bool -> bool -> bool -> term list -> term
-    -> ((string * stature) * term) list
-    -> string atp_problem * string Symtab.table * (string * stature) list vector
-       * (string * term) list * int Symtab.table
+  val generate_atp_problem : Proof.context -> atp_format -> atp_formula_role -> type_enc -> mode ->
+    string -> bool -> bool -> bool -> term list -> term -> ((string * stature) * term) list ->
+    string atp_problem * string Symtab.table * (string * term) list * int Symtab.table
   val atp_problem_selection_weights : string atp_problem -> (string * real) list
   val atp_problem_term_order_info : string atp_problem -> (string * int) list
 end;
@@ -1279,8 +1276,7 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
       iformula_of_prop ctxt type_enc iff_for_eq (SOME (role <> Conjecture)) t []
       |>> close_universally add_iterm_vars
   in
-    {name = name, stature = stature, role = role, iformula = iformula,
-     atomic_types = atomic_Ts}
+    {name = name, stature = stature, role = role, iformula = iformula, atomic_types = atomic_Ts}
   end
 
 fun is_format_with_defs (THF _) = true
@@ -1295,7 +1291,7 @@ fun make_fact ctxt format type_enc iff_for_eq ((name, stature as (_, status)), t
       else
         Axiom
   in
-    (case t |> make_formula ctxt format type_enc iff_for_eq name stature role of
+    (case make_formula ctxt format type_enc iff_for_eq name stature role t of
       formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
       if s = tptp_true then NONE else SOME formula
     | formula => SOME formula)
@@ -1303,13 +1299,10 @@ fun make_fact ctxt format type_enc iff_for_eq ((name, stature as (_, status)), t
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (role, t)) =>
-          let
-            val role =
-              if role <> Conjecture andalso is_legitimate_tptp_def t then Definition else role
-          in
-            t |> role = Conjecture ? s_not
-              |> make_formula ctxt format type_enc true name stature role
-          end)
+    let
+      val role' = if role <> Conjecture andalso is_legitimate_tptp_def t then Definition else role
+      val t' = t |> role' = Conjecture ? s_not
+    in make_formula ctxt format type_enc true name stature role' t' end)
 
 (** Finite and infinite type inference **)
 
@@ -1907,10 +1900,8 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
       conjs |> make_conjecture ctxt format type_enc
             |> pull_and_reorder_definitions
     val facts =
-      facts |> map_filter (fn (name, (_, t)) =>
-                              make_fact ctxt format type_enc true (name, t))
+      facts |> map_filter (fn (name, (_, t)) => make_fact ctxt format type_enc true (name, t))
             |> pull_and_reorder_definitions
-    val fact_names = facts |> map (fn {name, stature, ...} : ifact => (name, stature))
     val lifted = lam_facts |> map (extract_lambda_def o snd o snd)
     val lam_facts = lam_facts |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
@@ -1922,8 +1913,7 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
       else make_tcon_clauses thy tycons supers
     val subclass_pairs = make_subclass_pairs thy subs supers
   in
-    (fact_names |> map single, union (op =) subs supers, conjs,
-     facts @ lam_facts, subclass_pairs, tcon_clauses, lifted)
+    (union (op =) subs supers, conjs, facts @ lam_facts, subclass_pairs, tcon_clauses, lifted)
   end
 
 val type_guard = `(make_fixed_const NONE) type_guard_name
@@ -2616,7 +2606,7 @@ val all_ctrss_of_datatypes = map (map_filter (try dest_Const) o #ctrs) o Ctr_Sug
 
 val app_op_and_predicator_threshold = 45
 
-fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried_aliases
+fun generate_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried_aliases
     readable_names presimp hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2636,7 +2626,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried_
     val lam_trans =
       if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
       else lam_trans
-    val (fact_names, classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
+    val (classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
       translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
     val (_, sym_tab0) = sym_table_of_facts ctxt type_enc app_op_level conjs facts
     val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
@@ -2700,8 +2690,8 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried_
     val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) = min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
   in
-    (problem, pool |> Option.map snd |> the_default Symtab.empty, fact_names |> Vector.fromList,
-     lifted, Symtab.empty |> Symtab.fold add_sym_ary sym_tab)
+    (problem, Option.map snd pool |> the_default Symtab.empty, lifted,
+     Symtab.fold add_sym_ary sym_tab Symtab.empty)
   end
 
 (* FUDGE *)
