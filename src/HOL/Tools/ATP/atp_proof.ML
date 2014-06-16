@@ -289,6 +289,8 @@ datatype source =
 
 val dummy_phi = AAtom (ATerm (("", []), []))
 val dummy_inference = Inference_Source ("", [])
+val dummy_aterm = ATerm (("", []), [])
+val dummy_atype = AType(("", []), [])
 
 (* "skip_term" is there to cope with Waldmeister nonsense such as "theory(equality)". *)
 fun parse_dependency x =
@@ -433,7 +435,87 @@ fun role_of_tptp_string "axiom" = Axiom
   | role_of_tptp_string "conjecture" = Conjecture
   | role_of_tptp_string "negated_conjecture" = Negated_Conjecture
   | role_of_tptp_string "plain" = Plain
+  | role_of_tptp_string "type" = Type_Role
   | role_of_tptp_string _ = Unknown
+
+fun parse_binary_op x =
+  foldl1 (op||) (map Scan.this_string tptp_binary_op_list) x
+
+fun parse_thf0_type x =
+  ($$ "(" |-- parse_thf0_type --| $$ ")"
+   || parse_type --| $$ tptp_fun_type -- parse_thf0_type >> AFun
+   || parse_type) x
+
+fun mk_ho_of_fo_quant q =
+  if q = tptp_forall then tptp_ho_forall
+  else if q = tptp_exists then tptp_ho_exists
+  else raise Fail ("unrecognized quantification: " ^ q)
+
+fun remove_thf_app (ATerm ((x, ty), arg)) =
+  if x = tptp_app then
+    (case arg of
+      ATerm ((x, ty), arg) :: t => remove_thf_app (ATerm ((x, ty), map remove_thf_app arg @ t))
+    | [AAbs ((var, tvar), phi), t] =>
+      remove_thf_app (AAbs ((var, tvar), map remove_thf_app phi @ [t])))
+  else ATerm ((x, ty), map remove_thf_app arg)
+  | remove_thf_app (AAbs (((x, ty), arg), t)) = AAbs (((x, ty), remove_thf_app arg), t)
+
+fun parse_thf0_typed_var x =
+  (Scan.repeat (scan_general_id -- Scan.option ($$ ":" |-- parse_thf0_type)
+     --| Scan.option (Scan.this_string ","))
+   || $$ "(" |-- parse_thf0_typed_var --| $$ ")") x
+
+fun parse_literal_hol x =
+  ((Scan.repeat ($$ tptp_not) >> length)
+   -- ($$ "(" |-- parse_formula_hol_raw --| $$ ")"
+       || scan_general_id >> mk_simple_aterm
+       || scan_general_id --| $$ ":" --| scan_general_id >> mk_simple_aterm
+       || (Scan.this_string tptp_ho_forall || Scan.this_string tptp_ho_exists) >> mk_simple_aterm)
+   >> (fn (n, phi) => phi |> n mod 2 = 1 ? mk_app (mk_simple_aterm tptp_not))) x
+
+and parse_formula_hol_raw x =
+  (((parse_literal_hol
+      -- parse_binary_op
+      -- parse_formula_hol_raw)
+    >> (fn ((phi1, c) , phi2) =>
+        if c = tptp_app then mk_app phi1 phi2
+        else mk_apps (mk_simple_aterm c) [phi1, phi2]))
+   || (Scan.this_string tptp_forall || Scan.this_string tptp_exists || Scan.this_string tptp_lambda)
+        -- ($$ "[" |-- parse_thf0_typed_var --| $$ "]" --| $$ ":") -- parse_formula_hol_raw
+      >> (fn ((q, t), phi) =>
+        if q <> tptp_lambda then
+          fold_rev
+            (fn (var, ty) => fn r =>
+              mk_app (q |> mk_ho_of_fo_quant |> mk_simple_aterm)
+                (AAbs (((var, the_default dummy_atype ty), r), [])))
+            t phi
+        else
+          fold_rev (fn (var, ty) => fn r => AAbs (((var, the_default dummy_atype ty), r), []))
+                   t phi)
+   || Scan.this_string tptp_not |-- parse_formula_hol_raw >> (mk_app (mk_simple_aterm tptp_not))
+   || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var, typ) => ATerm ((var, [typ]), []))
+   || parse_literal_hol
+   || scan_general_id >> mk_simple_aterm) x
+
+fun parse_formula_hol x = (parse_formula_hol_raw #>> remove_thf_app #>> AAtom) x
+
+fun parse_tstp_line_hol problem =
+  ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
+    || Scan.this_string tptp_tff || Scan.this_string tptp_thf)
+  -- $$ "(") |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
+  -- parse_formula_hol -- parse_tstp_extra_arguments--| $$ ")" --| $$ "."
+  >> (fn (((num, role), phi), deps) =>
+      let
+        val ((name, phi), rule, deps) =
+          (case deps of
+             File_Source (_, SOME s) =>
+             (((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]), phi), "", [])
+          | File_Source _ =>
+             (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
+          | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
+      in
+        [(name, role_of_tptp_string role, phi, rule, map (rpair []) deps)]
+      end)
 
 (* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
@@ -469,7 +551,7 @@ fun parse_tstp_line problem =
             [(case role_of_tptp_string role of
                Definition =>
                (case phi of
-                  AAtom (ATerm (("equal", _), _)) =>
+                 AAtom (ATerm (("equal", _), _)) =>
                   (* Vampire's equality proxy axiom *)
                   (name, Definition, phi, rule, map (rpair []) deps)
                 | _ => mk_step ())
@@ -554,10 +636,11 @@ fun parse_z3_tptp_core_line x =
    >> map (core_inference z3_tptp_core_rule)) x
 
 fun parse_line name problem =
-  if name = z3_tptpN then parse_z3_tptp_core_line
-  else if name = spass_pirateN then  parse_spass_pirate_line
-  else if name = spassN then  parse_spass_line
+  if name = leo2N then parse_tstp_line_hol problem
   else if name = satallaxN then parse_satallax_core_line
+  else if name = spassN then parse_spass_line
+  else if name = spass_pirateN then parse_spass_pirate_line
+  else if name = z3_tptpN then parse_z3_tptp_core_line
   else parse_tstp_line problem
 
 fun parse_proof name problem =
@@ -573,7 +656,7 @@ fun core_of_agsyhol_proof s =
     _ :: proof_term :: _ => SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
   | _ => NONE)
 
-fun atp_proof_of_tstplike_proof prover _ ""  = []
+fun atp_proof_of_tstplike_proof prover _ "" = []
   | atp_proof_of_tstplike_proof prover problem tstp =
     (case core_of_agsyhol_proof tstp of
       SOME facts => facts |> map (core_inference agsyhol_core_rule)

@@ -569,7 +569,6 @@ val vampire_config : atp_config =
 
 val vampire = (vampireN, fn () => vampire_config)
 
-
 (* Z3 with TPTP syntax (half experimental, half legacy) *)
 
 val z3_tff0 = TFF Monomorphic
@@ -796,7 +795,7 @@ fun effective_term_order ctxt atp =
 
 val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax, spass, vampire,
-   z3_tptp,zipperposition, dummy_thf, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof,
+   z3_tptp, zipperposition, dummy_thf, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof,
    remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire, remote_snark,
    remote_spass_pirate, remote_waldmeister]
 

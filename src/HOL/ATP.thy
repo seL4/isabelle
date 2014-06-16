@@ -16,7 +16,6 @@ ML_file "Tools/ATP/atp_problem.ML"
 ML_file "Tools/ATP/atp_proof.ML"
 ML_file "Tools/ATP/atp_proof_redirect.ML"
 
-
 subsection {* Higher-order reasoning helpers *}
 
 definition fFalse :: bool where

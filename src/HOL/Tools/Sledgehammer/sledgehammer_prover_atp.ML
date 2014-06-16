@@ -302,36 +302,39 @@ fun run_atp mode name
                 | NONE => NONE)
               | _ => outcome)
           in
-            ((SOME key, value), (output, run_time, facts, atp_proof, outcome))
+            ((SOME key, value), (output, run_time, facts, atp_proof, outcome),
+              SOME (format, type_enc))
           end
 
         val timer = Timer.startRealTimer ()
 
-        fun maybe_run_slice slice (result as (cache, (_, run_time0, _, _, SOME _))) =
+        fun maybe_run_slice slice (result as (cache, (_, run_time0, _, _, SOME _), _)) =
             let val time_left = Time.- (timeout, Timer.checkRealTimer timer) in
               if Time.<= (time_left, Time.zeroTime) then
                 result
               else
                 run_slice time_left cache slice
-                |> (fn (cache, (output, run_time, used_from, atp_proof, outcome)) =>
-                  (cache, (output, Time.+ (run_time0, run_time), used_from, atp_proof, outcome)))
+                |> (fn (cache, (output, run_time, used_from, atp_proof, outcome),
+                        format_type_enc) =>
+                  (cache, (output, Time.+ (run_time0, run_time), used_from, atp_proof, outcome),
+                   format_type_enc))
             end
           | maybe_run_slice _ result = result
       in
         ((NONE, ([], Symtab.empty, Vector.fromList [], [], Symtab.empty)),
-         ("", Time.zeroTime, [], [], SOME InternalError))
+         ("", Time.zeroTime, [], [], SOME InternalError), NONE)
         |> fold maybe_run_slice actual_slices
       end
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
     fun clean_up () = if dest_dir = "" then (try File.rm prob_path; ()) else ()
-    fun export (_, (output, _, _, _, _)) =
+    fun export (_, (output, _, _, _, _), _) =
       if dest_dir = "" then ()
       else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
 
     val ((_, (_, pool, fact_names, lifted, sym_tab)),
-         (output, run_time, used_from, atp_proof, outcome)) =
+         (output, run_time, used_from, atp_proof, outcome), SOME (format, type_enc)) =
       with_cleanup clean_up run () |> tap export
 
     val important_message =
@@ -367,7 +370,7 @@ fun run_atp mode name
                       if atp_proof_prefers_lifting atp_proof then SOME liftingN else NONE
                     val atp_proof =
                       atp_proof
-                      |> termify_atp_proof ctxt pool lifted sym_tab
+                      |> termify_atp_proof ctxt name format type_enc pool lifted sym_tab
                       |> introduce_spass_skolem
                       |> factify_atp_proof fact_names hyp_ts concl_t
                   in

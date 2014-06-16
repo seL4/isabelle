@@ -48,7 +48,7 @@ fun atp_term_of_metis type_enc (Metis_Term.Fn (s, tms)) =
     ATerm ((Metis_Name.toString s, []), [])
 
 fun hol_term_of_metis ctxt type_enc sym_tab =
-  atp_term_of_metis type_enc #> term_of_atp ctxt false sym_tab NONE
+  atp_term_of_metis type_enc #> term_of_atp ctxt ATP_Problem.CNF type_enc false sym_tab NONE
 
 fun atp_literal_of_metis type_enc (pos, atom) =
   atom |> Metis_Term.Fn |> atp_term_of_metis type_enc
@@ -65,7 +65,7 @@ fun hol_clause_of_metis ctxt type_enc sym_tab concealed =
   Metis_Thm.clause
   #> Metis_LiteralSet.toList
   #> atp_clause_of_metis type_enc
-  #> prop_of_atp ctxt false sym_tab
+  #> prop_of_atp ctxt ATP_Problem.CNF type_enc false sym_tab
   #> singleton (polish_hol_terms ctxt concealed)
 
 fun hol_terms_of_metis ctxt type_enc concealed sym_tab fol_tms =

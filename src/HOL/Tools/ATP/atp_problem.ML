@@ -44,7 +44,7 @@ sig
 
   datatype atp_formula_role =
     Axiom | Definition | Lemma | Hypothesis | Conjecture | Negated_Conjecture |
-    Plain | Unknown
+    Plain | Type_Role | Unknown
 
   datatype 'a atp_problem_line =
     Class_Decl of string * 'a * 'a list |
@@ -75,9 +75,12 @@ sig
   val tptp_exists : string
   val tptp_ho_exists : string
   val tptp_choice : string
+  val tptp_ho_choice : string
   val tptp_not : string
   val tptp_and : string
+  val tptp_not_and : string
   val tptp_or : string
+  val tptp_not_or : string
   val tptp_implies : string
   val tptp_if : string
   val tptp_iff : string
@@ -85,10 +88,13 @@ sig
   val tptp_app : string
   val tptp_not_infix : string
   val tptp_equal : string
+  val tptp_not_equal : string
   val tptp_old_equal : string
   val tptp_false : string
   val tptp_true : string
+  val tptp_lambda : string
   val tptp_empty_list : string
+  val tptp_binary_op_list : string list
   val isabelle_info_prefix : string
   val isabelle_info : string -> int -> (string, 'a) atp_term list
   val extract_isabelle_status : (string, 'a) atp_term list -> string option
@@ -114,6 +120,9 @@ sig
   val mk_aconn :
     atp_connective -> ('a, 'b, 'c, 'd) atp_formula
     -> ('a, 'b, 'c, 'd) atp_formula -> ('a, 'b, 'c, 'd) atp_formula
+  val mk_app : (string, 'a) atp_term -> (string, 'a) atp_term -> (string, 'a) atp_term
+  val mk_apps :  (string, 'a) atp_term -> (string, 'a) atp_term list -> (string, 'a) atp_term
+  val mk_simple_aterm:  'a -> ('a, 'b) atp_term
   val aconn_fold :
     bool option -> (bool option -> 'a -> 'b -> 'b) -> atp_connective * 'a list
     -> 'b -> 'b
@@ -189,7 +198,7 @@ datatype atp_format =
 
 datatype atp_formula_role =
   Axiom | Definition | Lemma | Hypothesis | Conjecture | Negated_Conjecture |
-  Plain | Unknown
+  Plain | Type_Role | Unknown
 
 datatype 'a atp_problem_line =
   Class_Decl of string * 'a * 'a list |
@@ -221,9 +230,12 @@ val tptp_pi_binder = "!>"
 val tptp_exists = "?"
 val tptp_ho_exists = "??"
 val tptp_choice = "@+"
+val tptp_ho_choice = "@@+"
 val tptp_not = "~"
 val tptp_and = "&"
+val tptp_not_and = "~&"
 val tptp_or = "|"
+val tptp_not_or = "~|"
 val tptp_implies = "=>"
 val tptp_if = "<="
 val tptp_iff = "<=>"
@@ -231,11 +243,14 @@ val tptp_not_iff = "<~>"
 val tptp_app = "@"
 val tptp_not_infix = "!"
 val tptp_equal = "="
+val tptp_not_equal = "!="
 val tptp_old_equal = "equal"
 val tptp_false = "$false"
 val tptp_true = "$true"
+val tptp_lambda = "^"
 val tptp_empty_list = "[]"
-
+val tptp_binary_op_list = [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if,
+                             tptp_iff, tptp_not_iff, tptp_equal, tptp_app]
 val isabelle_info_prefix = "isabelle_"
 
 val inductionN = "induction"
@@ -291,6 +306,11 @@ fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 
+fun mk_app t u = ATerm ((tptp_app, []), [t, u])
+fun mk_apps f xs = fold (fn x => fn f => mk_app f x) xs f
+
+fun mk_simple_aterm p = ATerm ((p, []), [])
+
 fun aconn_fold pos f (ANot, [phi]) = f (Option.map not pos) phi
   | aconn_fold pos f (AImplies, [phi1, phi2]) =
     f (Option.map not pos) phi1 #> f pos phi2
@@ -345,6 +365,7 @@ fun tptp_string_of_role Axiom = "axiom"
   | tptp_string_of_role Conjecture = "conjecture"
   | tptp_string_of_role Negated_Conjecture = "negated_conjecture"
   | tptp_string_of_role Plain = "plain"
+  | tptp_string_of_role Type_Role = "type"
   | tptp_string_of_role Unknown = "unknown"
 
 fun tptp_string_of_app _ func [] = func
