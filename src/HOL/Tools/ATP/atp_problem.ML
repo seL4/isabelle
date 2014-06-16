@@ -94,7 +94,6 @@ sig
   val tptp_true : string
   val tptp_lambda : string
   val tptp_empty_list : string
-  val tptp_binary_op_list : string list
   val isabelle_info_prefix : string
   val isabelle_info : string -> int -> (string, 'a) atp_term list
   val extract_isabelle_status : (string, 'a) atp_term list -> string option
@@ -249,8 +248,6 @@ val tptp_false = "$false"
 val tptp_true = "$true"
 val tptp_lambda = "^"
 val tptp_empty_list = "[]"
-val tptp_binary_op_list = [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if,
-                             tptp_iff, tptp_not_iff, tptp_equal, tptp_app]
 val isabelle_info_prefix = "isabelle_"
 
 val inductionN = "induction"

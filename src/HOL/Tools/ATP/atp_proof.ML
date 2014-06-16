@@ -438,13 +438,18 @@ fun role_of_tptp_string "axiom" = Axiom
   | role_of_tptp_string "type" = Type_Role
   | role_of_tptp_string _ = Unknown
 
+val tptp_binary_op_list = [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if,
+                             tptp_iff, tptp_not_iff, tptp_equal, tptp_app]
+
 fun parse_binary_op x =
-  foldl1 (op||) (map Scan.this_string tptp_binary_op_list) x
+  foldl1 (op ||) (map Scan.this_string tptp_binary_op_list) x
 
 fun parse_thf0_type x =
-  ($$ "(" |-- parse_thf0_type --| $$ ")"
-   || parse_type --| $$ tptp_fun_type -- parse_thf0_type >> AFun
-   || parse_type) x
+  ($$ "(" |-- parse_thf0_type --| $$ ")" --| $$ tptp_fun_type -- parse_thf0_type >> AFun
+   || scan_general_id --| $$ tptp_fun_type --
+parse_thf0_type >> apfst (fn t => AType ((t, []), [])) >> AFun
+   || scan_general_id >> (fn t => AType ((t, []), []))
+   || $$ "(" |-- parse_thf0_type --| $$ ")") x
 
 fun mk_ho_of_fo_quant q =
   if q = tptp_forall then tptp_ho_forall
@@ -469,7 +474,7 @@ fun parse_literal_hol x =
   ((Scan.repeat ($$ tptp_not) >> length)
    -- ($$ "(" |-- parse_formula_hol_raw --| $$ ")"
        || scan_general_id >> mk_simple_aterm
-       || scan_general_id --| $$ ":" --| scan_general_id >> mk_simple_aterm
+       || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var,typ) => ATerm(((var,[typ]),[])))
        || (Scan.this_string tptp_ho_forall || Scan.this_string tptp_ho_exists) >> mk_simple_aterm)
    >> (fn (n, phi) => phi |> n mod 2 = 1 ? mk_app (mk_simple_aterm tptp_not))) x
 
@@ -503,7 +508,7 @@ fun parse_tstp_line_hol problem =
   ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
     || Scan.this_string tptp_tff || Scan.this_string tptp_thf)
   -- $$ "(") |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
-  -- parse_formula_hol -- parse_tstp_extra_arguments--| $$ ")" --| $$ "."
+  -- parse_formula_hol -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
   >> (fn (((num, role), phi), deps) =>
       let
         val ((name, phi), rule, deps) =
