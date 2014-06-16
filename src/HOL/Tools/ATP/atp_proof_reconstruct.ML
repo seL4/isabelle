@@ -189,6 +189,19 @@ val spass_skolem_prefix = "sk" (* "skc" or "skf" *)
 val vampire_skolem_prefix = "sK"
 
 
+fun var_index_of_textual textual = if textual then 0 else 1
+
+fun quantify_over_var textual quant_of var_s var_T t =
+  let
+    val vars = ((var_s, var_index_of_textual textual), var_T) ::
+                 filter (fn ((s, _), _) => s = var_s) (Term.add_vars t [])
+    val normTs = vars |> AList.group (op =) |> map (apsnd hd)
+    fun norm_var_types (Var (x, T)) =
+        Var (x, the_default T (AList.lookup (op =) normTs x))
+      | norm_var_types t = t
+  in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
+
+
 (* Higher-order translation. Variables are typed (although we don't use that information). Lambdas
    are typed.
 
@@ -196,14 +209,16 @@ val vampire_skolem_prefix = "sK"
 fun term_of_atp_ho ctxt textual sym_tab =
   let
     val thy = Proof_Context.theory_of ctxt
-    val var_index = if textual then 0 else 1
+    val var_index = var_index_of_textual textual
 
     fun do_term opt_T u =
       (case u of
         AAbs(((var, ty), term), []) =>
-        let val typ = typ_of_atp_type ctxt ty in
-          absfree (repair_var_name textual var, typ) (do_term NONE term)
-        end
+        let
+          val typ = typ_of_atp_type ctxt ty
+          val var_name = repair_var_name textual var
+          val tm = do_term NONE term
+        in quantify_over_var textual lambda' var_name typ tm end
       | ATerm ((s, tys), us) =>
         if s = ""
         then error "Isar proof reconstruction failed because the ATP proof \
@@ -284,7 +299,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
     (* For Metis, we use 1 rather than 0 because variable references in clauses may otherwise
        conflict with variable constraints in the goal. At least, type inference often fails
        otherwise. See also "axiom_inference" in "Metis_Reconstruct". *)
-    val var_index = if textual then 0 else 1
+    val var_index = var_index_of_textual textual
 
     fun do_term extra_ts opt_T u =
       (case u of
@@ -409,15 +424,6 @@ fun repair_tvar_sorts (t, tvar_tab) =
       | do_term (t1 $ t2) = do_term t1 $ do_term t2
   in t |> not (Vartab.is_empty tvar_tab) ? do_term end
 
-fun quantify_over_var quant_of var_s t =
-  let
-    val vars = filter (fn ((s, _), _) => s = var_s) (Term.add_vars t [])
-    val normTs = vars |> AList.group (op =) |> map (apsnd hd)
-    fun norm_var_types (Var (x, T)) =
-        Var (x, the_default T (AList.lookup (op =) normTs x))
-      | norm_var_types t = t
-  in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
-
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they appear in the
    formula. *)
 fun prop_of_atp ctxt format type_enc textual sym_tab phi =
@@ -428,8 +434,8 @@ fun prop_of_atp ctxt format type_enc textual sym_tab phi =
       | AQuant (q, (s, _) :: xs, phi') =>
         do_formula pos (AQuant (q, xs, phi'))
         (* FIXME: TFF *)
-        #>> quantify_over_var (case q of AForall => forall_of | AExists => exists_of)
-          (repair_var_name textual s)
+        #>> quantify_over_var textual (case q of AForall => forall_of | AExists => exists_of)
+          (repair_var_name textual s) dummyT
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1

@@ -289,7 +289,6 @@ datatype source =
 
 val dummy_phi = AAtom (ATerm (("", []), []))
 val dummy_inference = Inference_Source ("", [])
-val dummy_aterm = ATerm (("", []), [])
 val dummy_atype = AType(("", []), [])
 
 (* "skip_term" is there to cope with Waldmeister nonsense such as "theory(equality)". *)
@@ -384,23 +383,38 @@ val tofof_fact_prefix = "fof_"
 
 fun is_same_term subst tm1 tm2 =
   let
-    fun do_term_pair _ NONE = NONE
-      | do_term_pair (ATerm ((s1, _), tm1), ATerm ((s2, _), tm2)) (SOME subst) =
+    fun do_term_pair (AAbs (((var1, typ1), body1), args1)) (AAbs (((var2, typ2), body2), args2))
+          (SOME subst) =
+        if typ1 <> typ2 andalso length args1 = length args2 then NONE
+        else
+          let val ls = length subst in
+            SOME ((var1, var2) :: subst)
+            |> do_term_pair body1 body2
+            |> (fn SOME subst => SOME (nth_drop (length subst - ls - 1) subst)
+                 | NONE => NONE)
+            |> (if length args1 = length args2
+              then fold2 do_term_pair args1 args2
+              else (fn _ => NONE))
+          end
+      | do_term_pair (ATerm ((s1, _), args1)) (ATerm ((s2, _), args2)) (SOME subst) =
         (case pairself is_tptp_variable (s1, s2) of
           (true, true) =>
           (case AList.lookup (op =) subst s1 of
-             SOME s2' => if s2' = s2 then SOME subst else NONE
-           | NONE =>
-             if null (AList.find (op =) subst s2) then SOME ((s1, s2) :: subst)
-             else NONE)
+            SOME s2' => if s2' = s2 then SOME subst else NONE
+          | NONE =>
+            if null (AList.find (op =) subst s2) then SOME ((s1, s2) :: subst)
+            else NONE)
         | (false, false) =>
-          if s1 = s2 andalso length tm1 = length tm2 then
-            SOME subst |> fold do_term_pair (tm1 ~~ tm2)
+          if s1 = s2 then
+            SOME subst
           else
             NONE
-        | _ => NONE)
+        | _ => NONE) |> (if length args1 = length args2
+                       then fold2 do_term_pair args1 args2
+                       else (fn _ => NONE))
+      | do_term_pair _ _ _ = NONE
   in
-    SOME subst |> do_term_pair (tm1, tm2) |> is_some
+    SOME subst |> do_term_pair tm1 tm2 |> is_some
   end
 
 fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2)) =
@@ -442,14 +456,14 @@ val tptp_binary_op_list = [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_im
                              tptp_iff, tptp_not_iff, tptp_equal, tptp_app]
 
 fun parse_binary_op x =
-  foldl1 (op ||) (map Scan.this_string tptp_binary_op_list) x
+  (foldl1 (op ||) (map Scan.this_string tptp_binary_op_list)
+    >> (fn c => if c = tptp_equal then "equal" else c)) x
 
 fun parse_thf0_type x =
-  ($$ "(" |-- parse_thf0_type --| $$ ")" --| $$ tptp_fun_type -- parse_thf0_type >> AFun
-   || scan_general_id --| $$ tptp_fun_type --
-parse_thf0_type >> apfst (fn t => AType ((t, []), [])) >> AFun
-   || scan_general_id >> (fn t => AType ((t, []), []))
-   || $$ "(" |-- parse_thf0_type --| $$ ")") x
+  (($$ "(" |-- parse_thf0_type --| $$ ")" || scan_general_id >> (fn t => AType ((t, []), [])))
+     -- Scan.option ($$ tptp_fun_type |-- parse_thf0_type)
+  >> (fn (a, NONE) => a
+       | (a, SOME b) => AFun (a, b))) x
 
 fun mk_ho_of_fo_quant q =
   if q = tptp_forall then tptp_ho_forall
@@ -470,56 +484,51 @@ fun parse_thf0_typed_var x =
      --| Scan.option (Scan.this_string ","))
    || $$ "(" |-- parse_thf0_typed_var --| $$ ")") x
 
-fun parse_literal_hol x =
-  ((Scan.repeat ($$ tptp_not) >> length)
-   -- ($$ "(" |-- parse_formula_hol_raw --| $$ ")"
-       || scan_general_id >> mk_simple_aterm
-       || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var,typ) => ATerm(((var,[typ]),[])))
-       || (Scan.this_string tptp_ho_forall || Scan.this_string tptp_ho_exists) >> mk_simple_aterm)
-   >> (fn (n, phi) => phi |> n mod 2 = 1 ? mk_app (mk_simple_aterm tptp_not))) x
-
-and parse_formula_hol_raw x =
-  (((parse_literal_hol
-      -- parse_binary_op
-      -- parse_formula_hol_raw)
-    >> (fn ((phi1, c) , phi2) =>
-        if c = tptp_app then mk_app phi1 phi2
-        else mk_apps (mk_simple_aterm c) [phi1, phi2]))
-   || (Scan.this_string tptp_forall || Scan.this_string tptp_exists || Scan.this_string tptp_lambda)
-        -- ($$ "[" |-- parse_thf0_typed_var --| $$ "]" --| $$ ":") -- parse_formula_hol_raw
-      >> (fn ((q, t), phi) =>
-        if q <> tptp_lambda then
+fun parse_simple_thf0_term x =
+  ((Scan.this_string tptp_forall || Scan.this_string tptp_exists || Scan.this_string tptp_lambda)
+        -- ($$ "[" |-- parse_thf0_typed_var --| $$ "]" --| $$ ":") -- parse_thf0_term
+      >> (fn ((q, ys), t) =>
           fold_rev
             (fn (var, ty) => fn r =>
-              mk_app (q |> mk_ho_of_fo_quant |> mk_simple_aterm)
-                (AAbs (((var, the_default dummy_atype ty), r), [])))
-            t phi
-        else
-          fold_rev (fn (var, ty) => fn r => AAbs (((var, the_default dummy_atype ty), r), []))
-                   t phi)
-   || Scan.this_string tptp_not |-- parse_formula_hol_raw >> (mk_app (mk_simple_aterm tptp_not))
-   || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var, typ) => ATerm ((var, [typ]), []))
-   || parse_literal_hol
-   || scan_general_id >> mk_simple_aterm) x
+                AAbs (((var, the_default dummy_atype ty), r), [])
+                |> (if tptp_lambda <> q then
+                      mk_app (q |> mk_ho_of_fo_quant
+                                |> mk_simple_aterm)
+                    else I))
+            ys t)
+  || Scan.this_string tptp_not |-- parse_thf0_term >> mk_app (mk_simple_aterm tptp_not)
+  || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var, typ) => ATerm ((var, [typ]), []))
+  || (Scan.this_string tptp_ho_forall || Scan.this_string tptp_ho_exists) >> mk_simple_aterm
+  || $$ "(" |-- parse_thf0_term --| $$ ")"
+  || scan_general_id >> mk_simple_aterm) x
+and parse_thf0_term x =
+  (parse_simple_thf0_term
+      -- Scan.option (parse_binary_op
+      -- parse_thf0_term)
+    >> (fn (t1, SOME (c, t2)) =>
+           if c = tptp_app then mk_app t1 t2 else mk_apps (mk_simple_aterm c) [t1, t2]
+         | (t, NONE) => t)) x
 
-fun parse_formula_hol x = (parse_formula_hol_raw #>> remove_thf_app #>> AAtom) x
+fun parse_thf0_formula x = (parse_thf0_term #>> remove_thf_app #>> AAtom) x
 
-fun parse_tstp_line_hol problem =
+fun parse_tstp_thf0_line problem =
   ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
     || Scan.this_string tptp_tff || Scan.this_string tptp_thf)
   -- $$ "(") |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
-  -- parse_formula_hol -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
+  -- parse_thf0_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
   >> (fn (((num, role), phi), deps) =>
       let
+        val role' = role_of_tptp_string role
         val ((name, phi), rule, deps) =
           (case deps of
-             File_Source (_, SOME s) =>
-             (((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]), phi), "", [])
-          | File_Source _ =>
-             (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
+            File_Source (_, SOME s) =>
+            if role' = Definition then
+              (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
+            else
+              (((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]), phi), "", [])
           | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
       in
-        [(name, role_of_tptp_string role, phi, rule, map (rpair []) deps)]
+        [(name, role', phi, rule, map (rpair []) deps)]
       end)
 
 (* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
@@ -559,7 +568,7 @@ fun parse_tstp_line problem =
                  AAtom (ATerm (("equal", _), _)) =>
                   (* Vampire's equality proxy axiom *)
                   (name, Definition, phi, rule, map (rpair []) deps)
-                | _ => mk_step ())
+               | _ => mk_step ())
              | _ => mk_step ())]
           end)
 
@@ -641,7 +650,7 @@ fun parse_z3_tptp_core_line x =
    >> map (core_inference z3_tptp_core_rule)) x
 
 fun parse_line name problem =
-  if name = leo2N then parse_tstp_line_hol problem
+  if name = leo2N then parse_tstp_thf0_line problem
   else if name = satallaxN then parse_satallax_core_line
   else if name = spassN then parse_spass_line
   else if name = spass_pirateN then parse_spass_pirate_line
