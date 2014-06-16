@@ -718,11 +718,11 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
    remotify_config system_name system_versions best_slice o config)
 
 fun gen_remote_waldmeister name =
-  remote_atp name "Waldmeister" ["710"]
-    [("#START OF PROOF", "Proved Goals:")]
-    [(OutOfResources, "Too many function symbols"),
-     (Inappropriate, "****  Unexpected end of file."),
-     (Crashed, "Unrecoverable Segmentation Fault")]
+  remote_atp name "Waldmeister" ["710"] tstp_proof_delims
+    ([(OutOfResources, "Too many function symbols"),
+      (Inappropriate, "****  Unexpected end of file."),
+      (Crashed, "Unrecoverable Segmentation Fault")]
+     @ known_szs_status_failures)
     Hypothesis
     (K (((50, ""), CNF_UEQ, "raw_mono_tags??", combsN, false), "") (* FUDGE *))
 
