@@ -921,6 +921,15 @@ lemma borel_measurable_cos [measurable]: "cos \<in> borel_measurable borel"
 lemma borel_measurable_arctan [measurable]: "arctan \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
 
+lemma borel_measurable_complex_iff:
+  "f \<in> borel_measurable M \<longleftrightarrow>
+    (\<lambda>x. Re (f x)) \<in> borel_measurable M \<and> (\<lambda>x. Im (f x)) \<in> borel_measurable M"
+  apply auto
+  apply (subst fun_complex_eq)
+  apply (intro borel_measurable_add)
+  apply auto
+  done
+
 subsection "Borel space on the extended reals"
 
 lemma borel_measurable_ereal[measurable (raw)]:

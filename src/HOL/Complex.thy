@@ -168,6 +168,15 @@ primcorec "ii" :: complex  ("\<i>") where
   "Re ii = 0"
 | "Im ii = 1"
 
+lemma Complex_eq[simp]: "Complex a b = a + \<i> * b"
+  by (simp add: complex_eq_iff)
+
+lemma complex_eq: "a = Re a + \<i> * Im a"
+  by (simp add: complex_eq_iff)
+
+lemma fun_complex_eq: "f = (\<lambda>x. Re (f x) + \<i> * Im (f x))"
+  by (simp add: fun_eq_iff complex_eq)
+
 lemma i_squared [simp]: "ii * ii = -1"
   by (simp add: complex_eq_iff)
 
@@ -182,9 +191,6 @@ lemma divide_i [simp]: "x / ii = - ii * x"
 
 lemma complex_i_mult_minus [simp]: "ii * (ii * x) = - x"
   by (simp add: mult_assoc [symmetric])
-
-lemma Complex_eq[simp]: "Complex a b = a + \<i> * b"
-  by (simp add: complex_eq_iff)
 
 lemma complex_i_not_zero [simp]: "ii \<noteq> 0"
   by (simp add: complex_eq_iff)
@@ -258,6 +264,13 @@ lemma abs_Re_le_cmod: "\<bar>Re x\<bar> \<le> cmod x"
 
 lemma abs_Im_le_cmod: "\<bar>Im x\<bar> \<le> cmod x"
   by (simp add: norm_complex_def)
+
+lemma cmod_le: "cmod z \<le> \<bar>Re z\<bar> + \<bar>Im z\<bar>"
+  apply (subst complex_eq)
+  apply (rule order_trans)
+  apply (rule norm_triangle_ineq)
+  apply (simp add: norm_mult)
+  done
 
 lemma cmod_eq_Re: "Im z = 0 \<Longrightarrow> cmod z = \<bar>Re z\<bar>"
   by (simp add: norm_complex_def)
@@ -335,6 +348,24 @@ proof safe
   from tendsto_Complex[OF this] show "(f ---> x) F"
     unfolding complex.collapse .
 qed (auto intro: tendsto_intros)
+
+lemma continuous_complex_iff: "continuous F f \<longleftrightarrow>
+    continuous F (\<lambda>x. Re (f x)) \<and> continuous F (\<lambda>x. Im (f x))"
+  unfolding continuous_def tendsto_complex_iff ..
+
+lemma has_vector_derivative_complex_iff: "(f has_vector_derivative x) F \<longleftrightarrow>
+    ((\<lambda>x. Re (f x)) has_field_derivative (Re x)) F \<and>
+    ((\<lambda>x. Im (f x)) has_field_derivative (Im x)) F"
+  unfolding has_vector_derivative_def has_field_derivative_def has_derivative_def tendsto_complex_iff
+  by (simp add: field_simps bounded_linear_scaleR_left bounded_linear_mult_right)
+
+lemma has_field_derivative_Re[derivative_intros]:
+  "(f has_vector_derivative D) F \<Longrightarrow> ((\<lambda>x. Re (f x)) has_field_derivative (Re D)) F"
+  unfolding has_vector_derivative_complex_iff by safe
+
+lemma has_field_derivative_Im[derivative_intros]:
+  "(f has_vector_derivative D) F \<Longrightarrow> ((\<lambda>x. Im (f x)) has_field_derivative (Im D)) F"
+  unfolding has_vector_derivative_complex_iff by safe
 
 instance complex :: banach
 proof
