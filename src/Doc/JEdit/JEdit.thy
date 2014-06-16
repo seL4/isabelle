@@ -1176,18 +1176,7 @@ text {*
   The spell-checker combines semantic markup from the prover (regions of plain
   words) with static dictionaries (word lists) that are known to the editor.
 
-  The system option @{system_option_ref spell_checker_elements} specifies a
-  comma-separated list of markup elements that delimit words in the source
-  that is subject to spell-checking, including various forms of comments.
-
-  The system option @{system_option_ref spell_checker_dictionary} determines
-  the current dictionary, from the colon-separated list given by the settings
-  variable @{setting_ref JORTHO_DICTIONARIES}. There are jEdit actions to
-  specify local updates to a dictionary, by including or excluding words. The
-  result of permanent dictionary updates is stored in the directory
-  @{file_unchecked "$ISABELLE_HOME_USER/dictionaries"}.
-
-  \medskip Unknown words are underlined in the text, using @{system_option_ref
+  Unknown words are underlined in the text, using @{system_option_ref
   spell_checker_color} (blue by default). This is not an error, but a hint to
   the user that some action may have to be taken. The jEdit context menu
   provides various actions, as far as applicable:
@@ -1322,9 +1311,40 @@ text {*
 subsection {* Insertion \label{sec:completion-insert} *}
 
 text {*
-  FIXME
+  Completion may first propose replacements to be selected (via a popup), or
+  replace text immediately in certain situations and depending on certain
+  options like @{system_option jedit_completion_immediate}. In any case,
+  insertion works uniformly, by imitating normal text insertion by the user to
+  some extent. The precise behaviour depends on the state of the jEdit
+  \emph{text selection}. Isabelle/jEdit attempts to imitate the most common
+  forms of advanced selections in jEdit to some extent, but not all
+  combinations make sense. The following important cases are well-defined.
 
-  In any case, unintended completions may be reverted by the regular
+  \begin{description}
+
+  \item[No selection.] The original is removed and the replacement inserted,
+  depending on the caret position.
+
+  \item[Rectangular selection zero width.] This special case is treated by
+  jEdit as ``tall caret'' and insertion of completion imitates its normal
+  behaviour: separate copies of the text are inserted for each line of the
+  selection.
+
+  \item[Other rectangular selection or multiple selections.] Here the
+  replacement is inserted in each segment of the selection. For a rectangular
+  one in each line.
+
+  \end{description}
+
+  Support for multiple selections is particularly useful for HyperSearch:
+  clicking on one of the results in the output window makes jEdit select all
+  its occurrences in the corresponding line of text. The explicit completion
+  can be invoked via @{verbatim "C+b"}, for example to replace occurrences of
+  @{verbatim "-->"} by @{text "\<longrightarrow>"}.
+
+  \medskip Insertion works by removing and inserting pieces of text from the
+  buffer. This counts as one atomic operation in terms of the jEdit
+  \emph{undo} history. Unintended completions may be reverted by the regular
   @{verbatim undo} operation of jEdit. According to normal jEdit policies, the
   recovered text after @{verbatim undo} is selected: @{verbatim ESCAPE} is
   required to reset the selection and to to continue typing more text.
@@ -1352,18 +1372,32 @@ text {*
   input may cause some disagreement of the prover and the user about the
   intended language context.
 
-  \item @{system_option_def jedit_completion_delay} FIXME
+  \item @{system_option_def jedit_completion_delay} and @{system_option_def
+  jedit_completion_immediate} determine the handling of keyboard events for
+  implicit completion (\secref{sec:completion-input}).
 
-  \item @{system_option_def jedit_completion_immediate} specifies whether
+  A @{system_option jedit_completion_delay}~@{verbatim "> 0"} postpones the
+  processing of key event, until after the user has stopped typing for the
+  given time span, but @{system_option jedit_completion_immediate}~@{verbatim
+  "= true"} means that abbreviations of Isabelle symbols are handled
+  nonetheless.
 
   \item @{system_option_def jedit_completion_path_ignore} specifies ``glob''
   patterns to ignore in file-system path completion (separated by colons).
 
-  \item @{system_option_def spell_checker} FIXME
+  \item @{system_option_def spell_checker} is a global guard for all
+  spell-checker operations: it allows to disable that mechanism altogether.
 
-  \item @{system_option_def spell_checker_dictionary} FIXME
+  \item @{system_option_def spell_checker_dictionary} determines the current
+  dictionary, from the colon-separated list given by the settings variable
+  @{setting_def JORTHO_DICTIONARIES}. There are jEdit actions to specify local
+  updates to a dictionary, by including or excluding words. The result of
+  permanent dictionary updates is stored in the directory @{file_unchecked
+  "$ISABELLE_HOME_USER/dictionaries"}.
 
-  \item @{system_option_def spell_checker_elements} FIXME
+  \item @{system_option_def spell_checker_elements} specifies a
+  comma-separated list of markup elements that delimit words in the source
+  that is subject to spell-checking, including various forms of comments.
 
   \end{itemize}
 *}
