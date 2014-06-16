@@ -246,7 +246,7 @@ lemma eq_onp_same_args:
 using assms by (auto simp add: eq_onp_def)
 
 lemma Ball_Collect: "Ball A P = (A \<subseteq> (Collect P))"
-by (metis mem_Collect_eq subset_eq)
+by auto
 
 ML_file "Tools/Transfer/transfer.ML"
 setup Transfer.setup

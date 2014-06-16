@@ -262,17 +262,16 @@ fun name_of_const what t =
 val name_of_ctr = name_of_const "constructor";
 
 val notN = "not_";
-val eqN = "eq_";
-val neqN = "neq_";
+val isN = "is_";
 
 fun name_of_disc t =
   (case head_of t of
     Abs (_, _, @{const Not} $ (t' $ Bound 0)) =>
     Long_Name.map_base_name (prefix notN) (name_of_disc t')
   | Abs (_, _, Const (@{const_name HOL.eq}, _) $ Bound 0 $ t') =>
-    Long_Name.map_base_name (prefix eqN) (name_of_disc t')
+    Long_Name.map_base_name (prefix isN) (name_of_disc t')
   | Abs (_, _, @{const Not} $ (Const (@{const_name HOL.eq}, _) $ Bound 0 $ t')) =>
-    Long_Name.map_base_name (prefix neqN) (name_of_disc t')
+    Long_Name.map_base_name (prefix (notN ^ isN)) (name_of_disc t')
   | t' => name_of_const "destructor" t');
 
 val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
