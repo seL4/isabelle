@@ -1020,7 +1020,7 @@ text {*
 
   \emph{Explicit completion} works via the action @{action_ref
   "isabelle.complete"}, which is bound to the key sequence @{verbatim "C+b"}
-  (overriding the jEdit default for @{verbatim "complete-word"}).
+  (overriding the jEdit default for @{action_ref "complete-word"}).
   \emph{Implicit completion} hooks into the regular keyboard input stream of
   the editor, with some filtering and optional delays.
 
@@ -1235,8 +1235,8 @@ text {*
 
   \item[Explicit completion] via action @{action_ref "isabelle.complete"}
   with keyboard shortcut @{verbatim "C+b"}. This overrides the shortcut for
-  @{verbatim "complete-word"} in jEdit. It is also possible to restore the
-  original jEdit keyboard mapping of @{verbatim "complete-word"} via
+  @{action_ref "complete-word"} in jEdit. It is also possible to restore the
+  original jEdit keyboard mapping of @{action "complete-word"} via
   \emph{Global Options / Shortcuts}, and invent a different one for @{action
   "isabelle.complete"}.
 
@@ -1344,9 +1344,9 @@ text {*
 
   \medskip Insertion works by removing and inserting pieces of text from the
   buffer. This counts as one atomic operation in terms of the jEdit
-  \emph{undo} history. Unintended completions may be reverted by the regular
-  @{verbatim undo} operation of jEdit. According to normal jEdit policies, the
-  recovered text after @{verbatim undo} is selected: @{verbatim ESCAPE} is
+  @{action_ref undo} history. Unintended completions may be reverted by the
+  regular @{action undo} action of jEdit. According to normal jEdit policies,
+  the recovered text after @{action undo} is selected: @{verbatim ESCAPE} is
   required to reset the selection and to to continue typing more text.
 *}
 
@@ -1658,7 +1658,7 @@ text {*
   \item \textbf{Problem:} The Mac OS X keyboard shortcut @{verbatim
   "COMMAND+COMMA"} for application \emph{Preferences} is in conflict
   with the jEdit default shortcut for \emph{Incremental Search Bar}
-  (action @{verbatim "quick-search"}).
+  (action @{action_ref "quick-search"}).
 
   \textbf{Workaround:} Rebind key via \emph{Global Options /
   Shortcuts} according to national keyboard, e.g.\ @{verbatim
@@ -1690,7 +1690,7 @@ text {*
 
   \textbf{Workaround:} Use mainstream versions of Linux desktops.
 
-  \item \textbf{Problem:} Full-screen mode via jEdit action @{verbatim
+  \item \textbf{Problem:} Full-screen mode via jEdit action @{action_ref
   "toggle-full-screen"} (default shortcut @{verbatim F11}) works on
   Windows, but not on Mac OS X or various Linux / X11 window managers.
 

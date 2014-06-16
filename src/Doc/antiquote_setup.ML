@@ -166,21 +166,32 @@ fun parse_named a (XML.Elem ((b, props), _)) =
       | NONE => [])
   | parse_named _ _ = [];
 
-val jedit_actions =
+val isabelle_jedit_actions =
   (case XML.parse (File.read @{path "~~/src/Tools/jEdit/src/actions.xml"}) of
     XML.Elem (("ACTIONS", _), body) => maps (parse_named "ACTION") body
   | _ => []);
 
-val jedit_dockables =
+val isabelle_jedit_dockables =
   (case XML.parse (File.read @{path "~~/src/Tools/jEdit/src/dockables.xml"}) of
     XML.Elem (("DOCKABLES", _), body) => maps (parse_named "DOCKABLE") body
   | _ => []);
 
-val all_actions = jedit_actions @ jedit_dockables;
+val jedit_actions =
+  Lazy.lazy (fn () =>
+    (case Isabelle_System.bash_output
+      "unzip -p \"$JEDIT_HOME/dist/jedit.jar\" org/gjt/sp/jedit/actions.xml" of
+      (txt, 0) =>
+        (case XML.parse txt of
+          XML.Elem (("ACTIONS", _), body) => maps (parse_named "ACTION") body
+        | _ => [])
+    | (_, rc) => error ("Cannot unzip jedit.jar\nreturn code = " ^ string_of_int rc)));
 
 in
 
-val is_action = member (op =) all_actions;
+fun is_action a =
+  member (op =) isabelle_jedit_actions a orelse
+  member (op =) isabelle_jedit_dockables a orelse
+  member (op =) (Lazy.force jedit_actions) a;
 
 end;
 
