@@ -608,9 +608,8 @@ fun type_enc_of_string strictness s =
     SOME s => (SOME Type_Class_Polymorphic, s)
   | NONE =>
     (case try (unprefix "poly_") s of
-      (* It's still unclear whether all TFF1 implementations will support
-         type signatures such as "!>[A : $tType] : $o", with phantom type
-         variables. *)
+      (* It's still unclear whether all TFF1 implementations will support type signatures such as
+         "!>[A : $tType] : $o", with phantom type variables. *)
       SOME s => (SOME (Raw_Polymorphic With_Phantom_Type_Vars), s)
     | NONE =>
       (case try (unprefix "raw_mono_") s of
@@ -651,15 +650,13 @@ fun type_enc_of_string strictness s =
              Native (Higher_Order THF_With_Choice, poly, All_Types)
            | _ => raise Same.SAME)
         | ("guards", (SOME poly, _)) =>
-          if (poly = Mangled_Monomorphic andalso
-              level = Undercover_Types) orelse
+          if (poly = Mangled_Monomorphic andalso level = Undercover_Types) orelse
              poly = Type_Class_Polymorphic then
             raise Same.SAME
           else
             Guards (poly, level)
         | ("tags", (SOME poly, _)) =>
-          if (poly = Mangled_Monomorphic andalso
-              level = Undercover_Types) orelse
+          if (poly = Mangled_Monomorphic andalso level = Undercover_Types) orelse
              poly = Type_Class_Polymorphic then
             raise Same.SAME
           else
@@ -668,8 +665,7 @@ fun type_enc_of_string strictness s =
           if poly = Type_Class_Polymorphic then raise Same.SAME
           else Guards (poly, Const_Types Without_Ctr_Optim)
         | ("args", (SOME poly, Nonmono_Types (_, Uniform) (* naja *))) =>
-          if poly = Mangled_Monomorphic orelse
-             poly = Type_Class_Polymorphic then
+          if poly = Mangled_Monomorphic orelse poly = Type_Class_Polymorphic then
             raise Same.SAME
           else
             Guards (poly, Const_Types With_Ctr_Optim)
@@ -682,8 +678,7 @@ fun adjust_order THF_Without_Choice (Higher_Order _) =
     Higher_Order THF_Without_Choice
   | adjust_order _ type_enc = type_enc
 
-fun no_type_classes Type_Class_Polymorphic =
-    Raw_Polymorphic With_Phantom_Type_Vars
+fun no_type_classes Type_Class_Polymorphic = Raw_Polymorphic With_Phantom_Type_Vars
   | no_type_classes poly = poly
 
 fun adjust_type_enc (THF (Polymorphic, choice)) (Native (order, poly, level)) =

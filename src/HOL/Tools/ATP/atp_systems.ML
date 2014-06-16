@@ -717,6 +717,15 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
    remotify_config system_name system_versions best_slice o config)
 
+fun gen_remote_waldmeister name =
+  remote_atp name "Waldmeister" ["710"]
+    [("#START OF PROOF", "Proved Goals:")]
+    [(OutOfResources, "Too many function symbols"),
+     (Inappropriate, "****  Unexpected end of file."),
+     (Crashed, "Unrecoverable Segmentation Fault")]
+    Hypothesis
+    (K (((50, ""), CNF_UEQ, "raw_mono_tags??", combsN, false), "") (* FUDGE *))
+
 val explicit_tff0 = TFF Monomorphic
 
 val remote_agsyhol =
@@ -750,14 +759,8 @@ val remote_snark =
 val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Hypothesis
       (K (((150, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
-val remote_waldmeister =
-  remote_atp waldmeisterN "Waldmeister" ["710"]
-      [("#START OF PROOF", "Proved Goals:")]
-      [(OutOfResources, "Too many function symbols"),
-       (Inappropriate, "****  Unexpected end of file."),
-       (Crashed, "Unrecoverable Segmentation Fault")]
-      Hypothesis
-      (K (((50, ""), CNF_UEQ, "raw_mono_tags??", combsN, false), "") (* FUDGE *))
+val remote_waldmeister = gen_remote_waldmeister waldmeisterN
+val remote_waldmeister_new = gen_remote_waldmeister waldmeister_newN
 
 
 (* Setup *)
@@ -796,7 +799,7 @@ val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax, spass, vampire,
    z3_tptp, zipperposition, dummy_thf, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof,
    remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire, remote_snark,
-   remote_spass_pirate, remote_waldmeister]
+   remote_spass_pirate, remote_waldmeister, remote_waldmeister_new]
 
 val _ = Theory.setup (fold add_atp atps)
 
