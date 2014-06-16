@@ -612,12 +612,12 @@ fun repair_waldmeister_endgame proof =
     repair_body proof
   end
 
-fun termify_atp_proof ctxt prover format type_enc pool lifted sym_tab =
+fun termify_atp_proof ctxt local_prover format type_enc pool lifted sym_tab =
   clean_up_atp_proof_dependencies
   #> nasty_atp_proof pool
   #> map_term_names_in_atp_proof repair_name
   #> map_filter (termify_line ctxt format type_enc lifted sym_tab)
-  #> perhaps (try (unprefix remote_prefix)) prover = waldmeisterN ? repair_waldmeister_endgame
+  #> local_prover = waldmeisterN ? repair_waldmeister_endgame
 
 fun take_distinct_vars seen ((t as Var _) :: ts) =
     if member (op aconv) seen t then rev seen else take_distinct_vars (t :: seen) ts

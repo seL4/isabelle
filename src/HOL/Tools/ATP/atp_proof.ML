@@ -394,7 +394,7 @@ fun is_same_term subst tm1 tm2 =
                  | NONE => NONE)
             |> (if length args1 = length args2
               then fold2 do_term_pair args1 args2
-              else (fn _ => NONE))
+              else K NONE)
           end
       | do_term_pair (ATerm ((s1, _), args1)) (ATerm ((s2, _), args2)) (SOME subst) =
         (case pairself is_tptp_variable (s1, s2) of
@@ -411,7 +411,7 @@ fun is_same_term subst tm1 tm2 =
             NONE
         | _ => NONE) |> (if length args1 = length args2
                        then fold2 do_term_pair args1 args2
-                       else (fn _ => NONE))
+                       else K NONE)
       | do_term_pair _ _ _ = NONE
   in
     SOME subst |> do_term_pair tm1 tm2 |> is_some
@@ -649,19 +649,19 @@ fun parse_z3_tptp_core_line x =
   (Scan.this_string "SZS core" |-- Scan.repeat ($$ " " |-- scan_general_id)
    >> map (core_inference z3_tptp_core_rule)) x
 
-fun parse_line name problem =
-  if name = leo2N then parse_tstp_thf0_line problem
-  else if name = satallaxN then parse_satallax_core_line
-  else if name = spassN then parse_spass_line
-  else if name = spass_pirateN then parse_spass_pirate_line
-  else if name = z3_tptpN then parse_z3_tptp_core_line
+fun parse_line local_name problem =
+  if local_name = leo2N then parse_tstp_thf0_line problem
+  else if local_name = satallaxN then parse_satallax_core_line
+  else if local_name = spassN then parse_spass_line
+  else if local_name = spass_pirateN then parse_spass_pirate_line
+  else if local_name = z3_tptpN then parse_z3_tptp_core_line
   else parse_tstp_line problem
 
-fun parse_proof name problem =
+fun parse_proof local_name problem =
   strip_spaces_except_between_idents
   #> raw_explode
   #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-       (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line name problem) >> flat)))
+       (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line local_name problem) >> flat)))
   #> fst
 
 fun core_of_agsyhol_proof s =
@@ -670,15 +670,15 @@ fun core_of_agsyhol_proof s =
     _ :: proof_term :: _ => SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
   | _ => NONE)
 
-fun atp_proof_of_tstplike_proof prover _ "" = []
-  | atp_proof_of_tstplike_proof prover problem tstp =
+fun atp_proof_of_tstplike_proof local_prover _ "" = []
+  | atp_proof_of_tstplike_proof local_prover problem tstp =
     (case core_of_agsyhol_proof tstp of
       SOME facts => facts |> map (core_inference agsyhol_core_rule)
     | NONE =>
       tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-      |> parse_proof prover problem
-      |> prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o pairself #1)))
-      |> prover = zipperpositionN ? rev)
+      |> parse_proof local_prover problem
+      |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o pairself #1)))
+      |> local_prover = zipperpositionN ? rev)
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =

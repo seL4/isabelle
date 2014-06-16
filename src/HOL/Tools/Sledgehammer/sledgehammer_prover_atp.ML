@@ -287,7 +287,7 @@ fun run_atp mode name
               |> (fn accum as (output, _) =>
                      (accum,
                       extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
-                      |>> atp_proof_of_tstplike_proof name atp_problem
+                      |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name) atp_problem
                       handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)))
               handle TimeLimit.TimeOut => (("", slice_timeout), ([], SOME TimedOut))
             val outcome =
