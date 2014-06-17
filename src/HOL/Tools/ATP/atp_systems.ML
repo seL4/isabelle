@@ -717,14 +717,14 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
    remotify_config system_name system_versions best_slice o config)
 
-fun gen_remote_waldmeister name =
+fun gen_remote_waldmeister name type_enc =
   remote_atp name "Waldmeister" ["710"] tstp_proof_delims
     ([(OutOfResources, "Too many function symbols"),
       (Inappropriate, "****  Unexpected end of file."),
       (Crashed, "Unrecoverable Segmentation Fault")]
      @ known_szs_status_failures)
     Hypothesis
-    (K (((50, ""), CNF_UEQ, "raw_mono_tags??", combsN, false), "") (* FUDGE *))
+    (K (((50, ""), CNF_UEQ, type_enc, combsN, false), "") (* FUDGE *))
 
 val explicit_tff0 = TFF Monomorphic
 
@@ -759,8 +759,8 @@ val remote_snark =
 val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Hypothesis
       (K (((150, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
-val remote_waldmeister = gen_remote_waldmeister waldmeisterN
-val remote_waldmeister_new = gen_remote_waldmeister waldmeister_newN
+val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
+val remote_waldmeister_new = gen_remote_waldmeister waldmeister_newN "mono_args"
 
 
 (* Setup *)
