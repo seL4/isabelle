@@ -540,10 +540,18 @@ text {*
   The \emph{SideKick} plugin provides some general services to display buffer
   structure in a tree view.
 
-  Isabelle/jEdit provides SideKick parsers for its main mode for
-  theory files, as well as some minor modes for the @{verbatim NEWS}
-  file, session @{verbatim ROOT} files, and system @{verbatim
-  options}.
+  Isabelle/jEdit provides SideKick parsers for its main mode for theory files,
+  as well as some minor modes for the @{verbatim NEWS} file (see
+  \figref{fig:sidekick}), session @{verbatim ROOT} files, and system
+  @{verbatim options}.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{sidekick}
+  \end{center}
+  \caption{The Isabelle NEWS file with SideKick tree view}
+  \label{fig:sidekick}
+  \end{figure}
 
   Moreover, the special SideKick parser @{verbatim "isabelle-markup"}
   provides access to the full (uninterpreted) markup tree of the PIDE

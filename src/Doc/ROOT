@@ -186,6 +186,7 @@ session JEdit (doc) in "JEdit" = HOL +
     "popup1.png"
     "popup2.png"
     "root.tex"
+    "sidekick.png"
     "sledgehammer.png"
 
 session Sugar (doc) in "Sugar" = HOL +
