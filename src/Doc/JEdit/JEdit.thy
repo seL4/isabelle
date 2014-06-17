@@ -170,8 +170,8 @@ subsection {* Options *}
 text {* Both jEdit and Isabelle have distinctive management of
   persistent options.
 
-  Regular jEdit options are accessible via the dialogs \emph{Utilities /
-  Global Options} or \emph{Plugins / Plugin Options}, with a second chance to
+  Regular jEdit options are accessible via the dialogs \emph{Utilities~/
+  Global Options} or \emph{Plugins~/ Plugin Options}, with a second chance to
   flip the two within the central options dialog. Changes are stored in
   @{file_unchecked "$ISABELLE_HOME_USER/jedit/properties"} and
   @{file_unchecked "$ISABELLE_HOME_USER/jedit/keymaps"}.
@@ -183,10 +183,10 @@ text {* Both jEdit and Isabelle have distinctive management of
   options}.
 
   Those Isabelle options that are declared as \textbf{public} are configurable
-  in Isabelle/jEdit via \emph{Plugin Options / Isabelle / General}. Moreover,
+  in Isabelle/jEdit via \emph{Plugin Options~/ Isabelle~/ General}. Moreover,
   there are various options for rendering of document content, which are
-  configurable via \emph{Plugin Options / Isabelle / Rendering}. Thus
-  \emph{Plugin Options / Isabelle} in jEdit provides a view on a subset of
+  configurable via \emph{Plugin Options~/ Isabelle~/ Rendering}. Thus
+  \emph{Plugin Options~/ Isabelle} in jEdit provides a view on a subset of
   Isabelle system options. Note that some of these options affect general
   parameters that are relevant outside Isabelle/jEdit as well, e.g.\
   @{system_option threads} or @{system_option parallel_proofs} for the
@@ -205,7 +205,7 @@ subsection {* Keymaps *}
 
 text {* Keyboard shortcuts used to be managed as jEdit properties in
   the past, but recent versions (2013) have a separate concept of
-  \emph{keymap} that is configurable via \emph{Global Options /
+  \emph{keymap} that is configurable via \emph{Global Options~/
   Shortcuts}.  The @{verbatim imported} keymap is derived from the
   initial environment of properties that is available at the first
   start of the editor; afterwards the keymap file takes precedence.
@@ -213,8 +213,9 @@ text {* Keyboard shortcuts used to be managed as jEdit properties in
   This is relevant for Isabelle/jEdit due to various fine-tuning of default
   properties, and additional keyboard shortcuts for Isabelle-specific
   functionality. Users may change their keymap later, but need to copy some
-  key bindings manually (see also @{file_unchecked
-  "$ISABELLE_HOME_USER/jedit/keymaps"}). *}
+  keyboard shortcuts manually (see also @{file_unchecked
+  "$ISABELLE_HOME_USER/jedit/keymaps"}).
+*}
 
 
 section {* Command-line invocation *}
@@ -314,7 +315,7 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   \emph{Nimbus} and \emph{Metal} should always work.  The historic
   \emph{CDE/Motif} is better avoided.
 
-  After changing the look-and-feel in \emph{Global Options /
+  After changing the look-and-feel in \emph{Global Options~/
   Appearance}, it is advisable to restart Isabelle/jEdit in order to
   take full effect.  *}
 
@@ -412,7 +413,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   different encoding like @{verbatim "ISO-8859-15"}.  In that case,
   verbatim ``@{verbatim "\<alpha>"}'' will be shown in the text buffer
   instead of its Unicode rendering ``@{text "\<alpha>"}''.  The jEdit menu
-  operation \emph{File / Reload with Encoding / UTF-8-Isabelle} helps
+  operation \emph{File~/ Reload with Encoding~/ UTF-8-Isabelle} helps
   to resolve such problems, potentially after repairing malformed
   parts of the text.
 
@@ -453,13 +454,13 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   reveal the official Isabelle representation with some additional
   information about \emph{symbol abbreviations} (see below).
 
-  \item Copy / paste from decoded source files: text that is rendered
+  \item Copy/paste from decoded source files: text that is rendered
   as Unicode already can be re-used to produce further text.  This
   also works between different applications, e.g.\ Isabelle/jEdit and
   some web browser or mail client, as long as the same Unicode view on
   Isabelle symbols is used.
 
-  \item Copy / paste from prover output within Isabelle/jEdit.  The
+  \item Copy/paste from prover output within Isabelle/jEdit.  The
   same principles as for text buffers apply, but note that \emph{copy}
   in secondary Isabelle/jEdit windows works via the keyboard shortcut
   @{verbatim "C+c"}, while jEdit menu actions always refer to the
@@ -702,8 +703,8 @@ text {*
   resolve dependencies of theory imports. The system requests to load
   additional files into editor buffers, in order to be included in the
   document model for further checking. It is also possible to let the system
-  resolve dependencies automatically, according to \emph{Plugin Options /
-  Isabelle / General / Auto Load}.
+  resolve dependencies automatically, according to \emph{Plugin Options~/
+  Isabelle~/ General~/ Auto Load}.
 
   \medskip The visible \emph{perspective} of Isabelle/jEdit is defined by the
   collective view on theory buffers via open text areas. The perspective is
@@ -821,7 +822,7 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
   the given window height. Mouse clicks on the overview area position the
   cursor approximately to the corresponding line of text in the buffer.
   Repainting the overview in real-time causes problems with big theories, so
-  it is restricted according to \emph{Plugin Options / Isabelle / General /
+  it is restricted according to \emph{Plugin Options~/ Isabelle~/ General~/
   Text Overview Limit} (in characters).
 
   Another course-grained overview is provided by the \emph{Theories}
@@ -1015,29 +1016,30 @@ text {*
   excellance}. Isabelle/jEdit combines several sources of information to
   achieve that. Despite its complexity, it should be possible to get some idea
   how completion works by experimentation, based on the overview of completion
-  varieties in \secref{sec:completion-varieties}. Later sections explain
-  concepts around completion more systematically.
+  varieties in \secref{sec:completion-varieties}. The remaining subsections
+  explain concepts around completion more systematically.
 
-  \emph{Explicit completion} works via the action @{action_ref
-  "isabelle.complete"}, which is bound to the key sequence @{verbatim "C+b"}
-  (overriding the jEdit default for @{action_ref "complete-word"}).
+  \medskip \emph{Explicit completion} is triggered by the action @{action_ref
+  "isabelle.complete"}, which is bound to the keyboard shortcut @{verbatim
+  "C+b"}, and thus overrides the jEdit default for @{action_ref
+  "complete-word"}.
+
   \emph{Implicit completion} hooks into the regular keyboard input stream of
-  the editor, with some filtering and optional delays.
+  the editor, with some event filtering and optional delays.
 
-  \medskip Completion options may be configured in \emph{Plugin Options /
-  Isabelle / General / Completion}. These are explained in further detail
+  \medskip Completion options may be configured in \emph{Plugin Options~/
+  Isabelle~/ General~/ Completion}. These are explained in further detail
   below, whenever relevant. There is also a summary of options in
   \secref{sec:completion-options}.
 
-  The asynchronous nature of PIDE interaction means that information
-  from the prover is always delayed --- at least by a full round-trip of the
-  document update protocol. The default completion options
-  (\secref{sec:completion-options}) already take this into account, with a
+  The asynchronous nature of PIDE interaction means that information from the
+  prover is delayed --- at least by a full round-trip of the document update
+  protocol. The default options already take this into account, with a
   sufficiently long completion delay to speculate on the availability of all
-  relevant information from the editor and the prover. Although there is an
-  inherent danger of non-deterministic behaviour due to such real-time delays,
-  the general completion policies aim at determined results as far as
-  possible.
+  relevant information from the editor and the prover, before completing text
+  immediately or producing a popup. Although there is an inherent danger of
+  non-deterministic behaviour due to such real-time parameters, the general
+  completion policy aims at determined results as far as possible.
 *}
 
 
@@ -1050,26 +1052,47 @@ text {*
   kinds and purposes. The completion mechanism supports this by the following
   built-in templates:
 
-  \begin{itemize}
+  \begin{description}
 
-  \item @{verbatim "`"} (single ASCII back-quote) supports \emph{quotations}
+  \item[] @{verbatim "`"} (single ASCII back-quote) supports \emph{quotations}
   via text cartouches. There are three selections, which are always presented
   in the same order and do not depend on any context information. The default
   choice produces a template ``@{text "\<open>\<box>\<close>"}'', where the box indicates the
   cursor position after insertion; the other choices help to repair the block
   structure of unbalanced text cartouches.
 
-  \item @{verbatim "@{"} is completed to the template ``@{text "@{\<box>}"}'' where
-  the box indicates the cursor position after insertion. Here it is convenient
-  to use ``@{verbatim __}'' or more specific name prefixes to let semantic
-  completion of name-space entries propose antiquotation names.
+  \item[] @{verbatim "@{"} is completed to the template ``@{text "@{\<box>}"}'',
+  where the box indicates the cursor position after insertion. Here it is
+  convenient to use the wildcard ``@{verbatim __}'' or a more specific name
+  prefix to let semantic completion of name-space entries propose
+  antiquotation names.
 
-  \end{itemize}
+  \end{description}
 
-  With some practice, the nesting of quoted sub-languages and antiquotations
-  of embedded languages should work fluently. Note that national keyboard
-  layouts might cause problems with back-quote as dead key: if possible, dead
-  keys are better disabled.
+  With some practice, input of quoted sub-languages and antiquotations of
+  embedded languages should work fluently. Note that national keyboard layouts
+  might cause problems with back-quote as dead key: if possible, dead keys
+  should be disabled.
+*}
+
+
+subsubsection {* Syntax keywords *}
+
+text {*
+  Syntax completion tables are determined statically from the keywords of the
+  ``outer syntax'' of the underlying edit mode: for theory files this is the
+  syntax of Isar commands.
+
+  Keywords are usually plain words, which means the completion mechanism only
+  inserts them directly into the text for explicit completion
+  (\secref{sec:completion-input}), but produces a popup
+  (\secref{sec:completion-popup}) otherwise.
+
+  At the point where outer syntax keywords are defined, it is possible to
+  specify an alternative replacement string to be inserted instead of the
+  keyword itself. An empty string means to suppress the keyword altogether,
+  which is occasionally useful to avoid confusion, e.g.\ the rare keyword
+  @{command simproc_setup} vs.\ the frequent name-space entry @{text simp}.
 *}
 
 
@@ -1086,42 +1109,23 @@ text {*
   \textbf{completion entry} & \textbf{example} \\\hline
   literal symbol & @{verbatim "\<forall>"} \\
   symbol name with backslash & @{verbatim "\\"}@{verbatim forall} \\
-  symbol abbreviation & @{verbatim "!"} or @{verbatim "ALL"} \\
+  symbol abbreviation & @{verbatim "ALL"} or @{verbatim "!"} \\
   \end{tabular}
   \medskip
 
-  A symbol abbreviation that is a plain word, like @{verbatim "ALL"}, is
-  treated like a syntax keyword. Non-word abbreviations are inserted more
-  aggressively, but with the exception of single-character abbreviations like
-  @{verbatim "!"} above.
-
-  When inserted into the text, the examples above all produce the same Unicode
+  When inserted into the text, the above examples all produce the same Unicode
   rendering @{text "\<forall>"} of the underlying symbol @{verbatim "\<forall>"}.
 
-  \medskip Symbol completion of depends on the semantic language context
+  A symbol abbreviation that is a plain word, like @{verbatim "ALL"}, is
+  treated like a syntax keyword. Non-word abbreviations like @{verbatim "-->"}
+  are inserted more aggressively, except for single-character abbreviations
+  like @{verbatim "!"} above.
+
+  \medskip Symbol completion depends on the semantic language context
   (\secref{sec:completion-context}), to enable or disable that aspect for a
-  particular sub-language of Isabelle. For example, within document source,
-  symbol completion is suppressed to avoid confusion with {\LaTeX} that use
-  similar notation.
-*}
-
-
-subsubsection {* Syntax keywords *}
-
-text {*
-  Syntax completion tables are determined statically from the keywords of the
-  ``outer syntax'' of the underlying edit mode: for theory files this is the
-  syntax of Isar commands.
-
-  Keywords are usually plain words, which means the completion mechanism only
-  inserts them directly into the text for explicit completion
-  (\secref{sec:completion-input}).
-
-  At the point where outer syntax keywords are defined, it is possible to
-  specify an alternative replacement string to be inserted instead of the
-  keyword itself. An empty string means to suppress the keyword altogether,
-  which is occasionally useful to avoid confusion (e.g.\ the rare keyword
-  @{command simproc_setup} vs.\ the frequent name-space entry @{text simp}).
+  particular sub-language of Isabelle. For example, symbol completion is
+  suppressed within document source to avoid confusion with {\LaTeX} macros
+  that use similar notation.
 *}
 
 
@@ -1130,10 +1134,10 @@ subsubsection {* Name-space entries *}
 text {*
   This is genuine semantic completion, using information from the prover, so
   it requires some delay. A \emph{failed name-space lookup} produces an error
-  message that is annotated with a list of alternative names that are legal,
-  which truncated according to the system option @{system_option_ref
-  completion_limit}. The completion mechanism takes this into account when
-  collecting information.
+  message that is annotated with a list of alternative names that are legal.
+  The list of results is truncated according to the system option
+  @{system_option_ref completion_limit}. The completion mechanism takes this
+  into account when collecting information on the prover side.
 
   Already recognized names are \emph{not} completed further, but completion
   may be extended by appending a suffix of underscores. This provokes a failed
@@ -1154,19 +1158,15 @@ subsubsection {* File-system paths *}
 
 text {*
   Depending on prover markup about file-system path specifications in the
-  formal text, e.g.\ for the argument of a load command
+  source text, e.g.\ for the argument of a load command
   (\secref{sec:aux-files}), the completion mechanism explores the directory
   content and offers the result as completion popup. Relative path
   specifications are understood wrt.\ the \emph{master directory} of the
-  document node (\secref{sec:buffer-node}) of the enclosing editor buffer
-  (this requires a proper theory, not an auxiliary file).
+  document node (\secref{sec:buffer-node}) of the enclosing editor buffer;
+  this requires a proper theory, not an auxiliary file.
 
   A suffix of slashes may be used to continue the exploration of an already
   recognized directory name.
-
-  The system option @{system_option_ref jedit_completion_path_ignore}
-  specifies ``glob'' patterns to ignore in file-system path completion
-  (separated by colons), e.g.\ backup files ending with tilde.
 *}
 
 
@@ -1178,8 +1178,8 @@ text {*
 
   Unknown words are underlined in the text, using @{system_option_ref
   spell_checker_color} (blue by default). This is not an error, but a hint to
-  the user that some action may have to be taken. The jEdit context menu
-  provides various actions, as far as applicable:
+  the user that some action may be taken. The jEdit context menu provides
+  various actions, as far as applicable:
 
   \medskip
   \begin{tabular}{l}
@@ -1193,12 +1193,12 @@ text {*
 
   Instead of the specific @{action_ref "isabelle.complete-word"}, it is also
   possible to use the generic @{action_ref "isabelle.complete"} with its
-  default key binding @{verbatim "C+b"}.
+  default keyboard shortcut @{verbatim "C+b"}.
 
   \medskip Dictionary lookup uses some educated guesses about lower-case,
   upper-case, and capitalized words. This is oriented on common use in
-  English, where this aspect is not decisive for proper spelling, unlike
-  German, for example.
+  English, where this aspect is not decisive for proper spelling, in contrast
+  to German, for example.
 *}
 
 
@@ -1211,16 +1211,16 @@ text {*
   document-model, the default context is given by the outer syntax of the
   editor mode (see also \secref{sec:buffer-node}).
 
-  The \emph{language context} by the prover provides information about
-  embedded languages of Isabelle: keywords are only completed for outer
-  syntax, symbols or antiquotations for languages that support them. E.g.\
-  there is no symbol completion for ML source, but within ML strings,
-  comments, antiquotations.
+  The semantic \emph{language context} provides information about nested
+  sub-languages of Isabelle: keywords are only completed for outer syntax,
+  symbols or antiquotations for languages that support them. E.g.\ there is no
+  symbol completion for ML source, but within ML strings, comments,
+  antiquotations.
 
-  In exceptional situations, the prover may produce \emph{no completion}
-  markup, to tell that some language keywords should be excluded from further
-  completion attempts. For example, ``@{verbatim ":"}'' within accepted Isar
-  syntax looses its meaning as abbreviation for symbol ``@{text "\<in>"}''.
+  The prover may produce \emph{no completion} markup in exceptional
+  situations, to tell that some language keywords should be excluded from
+  further completion attempts. For example, @{verbatim ":"} within accepted
+  Isar syntax looses its meaning as abbreviation for symbol @{text "\<in>"}.
 *}
 
 
@@ -1233,19 +1233,19 @@ text {*
 
   \begin{description}
 
-  \item[Explicit completion] via action @{action_ref "isabelle.complete"}
-  with keyboard shortcut @{verbatim "C+b"}. This overrides the shortcut for
-  @{action_ref "complete-word"} in jEdit. It is also possible to restore the
-  original jEdit keyboard mapping of @{action "complete-word"} via
-  \emph{Global Options / Shortcuts}, and invent a different one for @{action
-  "isabelle.complete"}.
+  \item[Explicit completion] works via action @{action_ref
+  "isabelle.complete"} with keyboard shortcut @{verbatim "C+b"}. This
+  overrides the shortcut for @{action_ref "complete-word"} in jEdit, but it is
+  possible to restore the original jEdit keyboard mapping of @{action
+  "complete-word"} via \emph{Global Options~/ Shortcuts} and invent a
+  different one for @{action "isabelle.complete"}.
 
-  \item[Explicit spell-checker completion] via @{action_ref
+  \item[Explicit spell-checker completion] works via @{action_ref
   "isabelle.complete-word"}, which is exposed in the jEdit context menu, if
   the mouse points to a word that the spell-checker can complete.
 
-  \item[Implicit completion] via regular keyboard input of the editor. This
-  depends on further side-conditions:
+  \item[Implicit completion] works via regular keyboard input of the editor.
+  It depends on further side-conditions:
 
   \begin{enumerate}
 
@@ -1279,14 +1279,15 @@ text {*
 subsection {* Completion popup \label{sec:completion-popup} *}
 
 text {*
-  A \emph{completion popup} is a minimally GUI component over the text area
-  that offers a selection of completion items to be inserted into the text.
-  The popup interprets special keys @{verbatim TAB}, @{verbatim ESCAPE},
-  @{verbatim UP}, @{verbatim DOWN}, @{verbatim PAGE_UP}, @{verbatim
-  PAGE_DOWN}, but all other key events are passed to the underlying text area.
-  This allows to ignore unwanted completions most of the time and continue
-  typing quickly. Thus the popup serves as a mechanism of confirmation of
-  proposed items, but the default is to continue without completion.
+  A \emph{completion popup} is a minimally invasive GUI component over the
+  text area that offers a selection of completion items to be inserted into
+  the text, e.g.\ by mouse clicks. The popup interprets special keys
+  @{verbatim TAB}, @{verbatim ESCAPE}, @{verbatim UP}, @{verbatim DOWN},
+  @{verbatim PAGE_UP}, @{verbatim PAGE_DOWN}, but all other key events are
+  passed to the underlying text area. This allows to ignore unwanted
+  completions most of the time and continue typing quickly. Thus the popup
+  serves as a mechanism of confirmation of proposed items, but the default is
+  to continue without completion.
 
   The meaning of special keys is as follows:
 
@@ -1314,11 +1315,11 @@ text {*
   Completion may first propose replacements to be selected (via a popup), or
   replace text immediately in certain situations and depending on certain
   options like @{system_option jedit_completion_immediate}. In any case,
-  insertion works uniformly, by imitating normal text insertion by the user to
-  some extent. The precise behaviour depends on the state of the jEdit
-  \emph{text selection}. Isabelle/jEdit attempts to imitate the most common
-  forms of advanced selections in jEdit to some extent, but not all
-  combinations make sense. The following important cases are well-defined.
+  insertion works uniformly, by imitating normal text insertion to some
+  extent. The precise behaviour depends on the state of the \emph{text
+  selection} of jEdit. Isabelle/jEdit tries to accommodate the most common
+  forms of advanced selections in jEdit, but not all combinations make sense.
+  At least the following important cases are well-defined.
 
   \begin{description}
 
@@ -1327,27 +1328,27 @@ text {*
 
   \item[Rectangular selection zero width.] This special case is treated by
   jEdit as ``tall caret'' and insertion of completion imitates its normal
-  behaviour: separate copies of the text are inserted for each line of the
-  selection.
+  behaviour: separate copies of the replacement are inserted for each line of
+  the selection.
 
-  \item[Other rectangular selection or multiple selections.] Here the
-  replacement is inserted in each segment of the selection. For a rectangular
-  one in each line.
+  \item[Other rectangular selection or multiple selections.] Here the original
+  is removed and the replacement is inserted for each line (or segment) of the
+  selection.
 
   \end{description}
 
-  Support for multiple selections is particularly useful for HyperSearch:
-  clicking on one of the results in the output window makes jEdit select all
-  its occurrences in the corresponding line of text. The explicit completion
-  can be invoked via @{verbatim "C+b"}, for example to replace occurrences of
-  @{verbatim "-->"} by @{text "\<longrightarrow>"}.
+  Support for multiple selections is particularly useful for
+  \emph{HyperSearch}: clicking on one of the items in the \emph{HyperSearch
+  Results} window makes jEdit select all its occurrences in the corresponding
+  line of text. Then explicit completion can be invoked via @{verbatim "C+b"},
+  for example to replace occurrences of @{verbatim "-->"} by @{text "\<longrightarrow>"}.
 
   \medskip Insertion works by removing and inserting pieces of text from the
-  buffer. This counts as one atomic operation in terms of the jEdit
-  @{action_ref undo} history. Unintended completions may be reverted by the
-  regular @{action undo} action of jEdit. According to normal jEdit policies,
-  the recovered text after @{action undo} is selected: @{verbatim ESCAPE} is
-  required to reset the selection and to to continue typing more text.
+  buffer. This counts as one atomic operation on the jEdit history. Thus
+  unintended completions may be reverted by the regular @{action undo} action
+  of jEdit. According to normal jEdit policies, the recovered text after
+  @{action undo} is selected: @{verbatim ESCAPE} is required to reset the
+  selection and to continue typing more text.
 *}
 
 
@@ -1355,45 +1356,47 @@ subsection {* Options \label{sec:completion-options} *}
 
 text {*
   This is a summary of Isabelle/Scala system options that are relevant for
-  completion. They may be configured in \emph{Plugin Options / Isabelle /
+  completion. They may be configured in \emph{Plugin Options~/ Isabelle~/
   General} as usual.
 
   \begin{itemize}
 
-  \item @{system_option_def completion_limit} specifies the limit of
+  \item @{system_option_def completion_limit} specifies the maximum number of
   name-space entries exposed in semantic completion by the prover.
 
   \item @{system_option_def jedit_completion} guards implicit completion via
-  regular jEdit keyboard input events (\secref{sec:completion-input}).
+  regular jEdit key events (\secref{sec:completion-input}): it allows to
+  disable implicit completion altogether.
 
   \item @{system_option_def jedit_completion_context} specifies whether the
-  language context provided by the prover should be used. Disabling that
-  option makes completion less ``semantic''. Note that incomplete or broken
-  input may cause some disagreement of the prover and the user about the
-  intended language context.
+  language context provided by the prover should be used at all. Disabling
+  that option makes completion less ``semantic''. Note that incomplete or
+  severely broken input may cause some disagreement of the prover and the user
+  about the intended language context.
 
   \item @{system_option_def jedit_completion_delay} and @{system_option_def
   jedit_completion_immediate} determine the handling of keyboard events for
   implicit completion (\secref{sec:completion-input}).
 
   A @{system_option jedit_completion_delay}~@{verbatim "> 0"} postpones the
-  processing of key event, until after the user has stopped typing for the
+  processing of key events, until after the user has stopped typing for the
   given time span, but @{system_option jedit_completion_immediate}~@{verbatim
   "= true"} means that abbreviations of Isabelle symbols are handled
   nonetheless.
 
   \item @{system_option_def jedit_completion_path_ignore} specifies ``glob''
-  patterns to ignore in file-system path completion (separated by colons).
+  patterns to ignore in file-system path completion (separated by colons),
+  e.g.\ backup files ending with tilde.
 
   \item @{system_option_def spell_checker} is a global guard for all
   spell-checker operations: it allows to disable that mechanism altogether.
 
   \item @{system_option_def spell_checker_dictionary} determines the current
-  dictionary, from the colon-separated list given by the settings variable
+  dictionary, taken from the colon-separated list in the settings variable
   @{setting_def JORTHO_DICTIONARIES}. There are jEdit actions to specify local
   updates to a dictionary, by including or excluding words. The result of
   permanent dictionary updates is stored in the directory @{file_unchecked
-  "$ISABELLE_HOME_USER/dictionaries"}.
+  "$ISABELLE_HOME_USER/dictionaries"}, in a separate file for each dictionary.
 
   \item @{system_option_def spell_checker_elements} specifies a
   comma-separated list of markup elements that delimit words in the source
@@ -1435,7 +1438,7 @@ text {*
 
   \medskip The following Isabelle system options control the behavior
   of automatically tried tools (see also the jEdit dialog window
-  \emph{Plugin Options / Isabelle / General / Automatically tried
+  \emph{Plugin Options~/ Isabelle~/ General~/ Automatically tried
   tools}):
 
   \begin{itemize}
@@ -1567,7 +1570,7 @@ text {* Managed evaluation of commands within PIDE documents includes
   modifier key as explained in \secref{sec:tooltips-hyperlinks}.
   Actual display of timing depends on the global option
   @{system_option_ref jedit_timing_threshold}, which can be configured in
-  "Plugin Options / Isabelle / General".
+  "Plugin Options~/ Isabelle~/ General".
 
   \medskip The \emph{Monitor} panel provides a general impression of
   recent activity of the farm of worker threads in Isabelle/ML.  Its
@@ -1639,7 +1642,7 @@ text {*
   \item \textbf{Problem:} Odd behavior of some diagnostic commands with
   global side-effects, like writing a physical file.
 
-  \textbf{Workaround:} Copy / paste complete command text from
+  \textbf{Workaround:} Copy/paste complete command text from
   elsewhere, or disable continuous checking temporarily.
 
   \item \textbf{Problem:} No way to delete document nodes from the overall
@@ -1652,15 +1655,15 @@ text {*
   @{verbatim "C+MINUS"} for adjusting the editor font size depend on
   platform details and national keyboards.
 
-  \textbf{Workaround:} Rebind keys via \emph{Global Options /
+  \textbf{Workaround:} Rebind keys via \emph{Global Options~/
   Shortcuts}.
 
-  \item \textbf{Problem:} The Mac OS X keyboard shortcut @{verbatim
-  "COMMAND+COMMA"} for application \emph{Preferences} is in conflict
-  with the jEdit default shortcut for \emph{Incremental Search Bar}
-  (action @{action_ref "quick-search"}).
+  \item \textbf{Problem:} The Mac OS X key sequence @{verbatim
+  "COMMAND+COMMA"} for application \emph{Preferences} is in conflict with the
+  jEdit default keyboard shortcut for \emph{Incremental Search Bar} (action
+  @{action_ref "quick-search"}).
 
-  \textbf{Workaround:} Rebind key via \emph{Global Options /
+  \textbf{Workaround:} Rebind key via \emph{Global Options~/
   Shortcuts} according to national keyboard, e.g.\ @{verbatim
   "COMMAND+SLASH"} on English ones.
 
@@ -1670,29 +1673,29 @@ text {*
   \textbf{Workaround:} Use the default @{verbatim IsabelleText} font.
   (Do not install that font on the system.)
 
-  \item \textbf{Problem:} Some Linux / X11 input methods such as IBus
+  \item \textbf{Problem:} Some Linux/X11 input methods such as IBus
   tend to disrupt key event handling of Java/AWT/Swing.
 
   \textbf{Workaround:} Do not use input methods, reset the environment
   variable @{verbatim XMODIFIERS} within Isabelle settings (default in
   Isabelle2013-2).
 
-  \item \textbf{Problem:} Some Linux / X11 window managers that are
+  \item \textbf{Problem:} Some Linux/X11 window managers that are
   not ``re-parenting'' cause problems with additional windows opened
   by Java. This affects either historic or neo-minimalistic window
   managers like @{verbatim awesome} or @{verbatim xmonad}.
 
   \textbf{Workaround:} Use a regular re-parenting window manager.
 
-  \item \textbf{Problem:} Recent forks of Linux / X11 window managers
+  \item \textbf{Problem:} Recent forks of Linux/X11 window managers
   and desktop environments (variants of Gnome) disrupt the handling of
   menu popups and mouse positions of Java/AWT/Swing.
 
   \textbf{Workaround:} Use mainstream versions of Linux desktops.
 
   \item \textbf{Problem:} Full-screen mode via jEdit action @{action_ref
-  "toggle-full-screen"} (default shortcut @{verbatim F11}) works on
-  Windows, but not on Mac OS X or various Linux / X11 window managers.
+  "toggle-full-screen"} (default keyboard shortcut @{verbatim F11}) works on
+  Windows, but not on Mac OS X or various Linux/X11 window managers.
 
   \textbf{Workaround:} Use native full-screen control of the window
   manager (notably on Mac OS X).
