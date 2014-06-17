@@ -146,9 +146,13 @@ fun atp_proof_step_to_term (name, role, formula, formula_name, step_names) =
 
 fun generate_waldmeister_problem ctxt hyp_ts0 concl_t0 facts0 =
   let
-    val hyp_ts = map HOLogic.dest_Trueprop hyp_ts0
-    val concl_t = HOLogic.dest_Trueprop concl_t0
-    val facts = map (apsnd HOLogic.dest_Trueprop) facts0
+    val thy = Proof_Context.theory_of ctxt
+
+    val preproc = Object_Logic.atomize_term thy
+
+    val hyp_ts = map preproc hyp_ts0
+    val concl_t = preproc concl_t0
+    val facts = map (apsnd preproc) facts0
 
     val (conditions, consequence) = prepare_conjecture concl_t
     val fact_lines = maps (problem_lines_of_fact (fact_prefix ^ "0_" (* FIXME *))) facts
@@ -161,7 +165,7 @@ fun generate_waldmeister_problem ctxt hyp_ts0 concl_t0 facts0 =
       if List.exists (is_eq o snd) facts orelse not (is_eq concl_t) then
         [(helpersN,
           @{thms waldmeister_fol}
-          |> map (fn th => (("", (Global, General)), HOLogic.dest_Trueprop (prop_of th)))
+          |> map (fn th => (("", (Global, General)), preproc (prop_of th)))
           |> maps (problem_lines_of_fact helper_prefix))]
       else
         []
