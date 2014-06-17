@@ -388,6 +388,14 @@ apply (rule the_equality)
 apply (rule r_cancel [THEN iffD1], auto)
 done
 
+(* Contributed by Joachim Breitner *)
+lemma (in group) inv_solve_left:
+  "\<lbrakk> a \<in> carrier G; b \<in> carrier G; c \<in> carrier G \<rbrakk> \<Longrightarrow> a = inv b \<otimes> c \<longleftrightarrow> c = b \<otimes> a"
+  by (metis inv_equality l_inv_ex l_one m_assoc r_inv)
+lemma (in group) inv_solve_right:
+  "\<lbrakk> a \<in> carrier G; b \<in> carrier G; c \<in> carrier G \<rbrakk> \<Longrightarrow> a = b \<otimes> inv c \<longleftrightarrow> b = a \<otimes> c"
+  by (metis inv_equality l_inv_ex l_one m_assoc r_inv)
+
 text {* Power *}
 
 lemma (in group) int_pow_def2:
@@ -402,7 +410,30 @@ lemma (in group) int_pow_one [simp]:
   "\<one> (^) (z::int) = \<one>"
   by (simp add: int_pow_def2)
 
+(* The following are contributed by Joachim Breitner *)
 
+lemma (in group) int_pow_closed [intro, simp]:
+  "x \<in> carrier G ==> x (^) (i::int) \<in> carrier G"
+  by (simp add: int_pow_def2)
+
+lemma (in group) int_pow_1 [simp]:
+  "x \<in> carrier G \<Longrightarrow> x (^) (1::int) = x"
+  by (simp add: int_pow_def2)
+
+lemma (in group) int_pow_neg:
+  "x \<in> carrier G \<Longrightarrow> x (^) (-i::int) = inv (x (^) i)"
+  by (simp add: int_pow_def2)
+
+lemma (in group) int_pow_mult:
+  "x \<in> carrier G \<Longrightarrow> x (^) (i + j::int) = x (^) i \<otimes> x (^) j"
+proof -
+  have [simp]: "-i - j = -j - i" by simp
+  assume "x : carrier G" then
+  show ?thesis
+    by (auto simp add: int_pow_def2 inv_solve_left inv_solve_right nat_add_distrib [symmetric] nat_pow_mult )
+qed
+
+ 
 subsection {* Subgroups *}
 
 locale subgroup =
@@ -626,6 +657,11 @@ proof -
   finally have "h x \<otimes>\<^bsub>H\<^esub> h (inv x) = h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h x)" .
   with x show ?thesis by (simp del: H.r_inv H.Units_r_inv)
 qed
+
+(* Contributed by Joachim Breitner *)
+lemma (in group) int_pow_is_hom:
+  "x \<in> carrier G \<Longrightarrow> (op(^) x) \<in> hom \<lparr> carrier = UNIV, mult = op +, one = 0::int \<rparr> G "
+  unfolding hom_def by (simp add: int_pow_mult)
 
 
 subsection {* Commutative Structures *}
