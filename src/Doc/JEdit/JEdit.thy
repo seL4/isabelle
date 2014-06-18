@@ -42,7 +42,7 @@ text {* Isabelle/jEdit is a Prover IDE that integrates \emph{parallel
   \item [jEdit] is a sophisticated text editor implemented in
   Java.\footnote{@{url "http://www.jedit.org"}} It is easily extensible
   by plugins written in languages that work on the JVM, e.g.\
-  Scala\footnote{@{url "http://www.scala-lang.org/"}}.
+  Scala\footnote{@{url "http://www.scala-lang.org"}}.
 
   \item [Isabelle/jEdit] is the main example application of the PIDE
   framework and the default user-interface for Isabelle. It targets
@@ -71,49 +71,39 @@ text {*
   \label{fig:isabelle-jedit}
   \end{figure}
 
-  Isabelle/jEdit (\figref{fig:isabelle-jedit}) consists of some
-  plugins for the well-known jEdit text editor
-  @{url "http://www.jedit.org"}, according to the following principles.
+  Isabelle/jEdit (\figref{fig:isabelle-jedit}) consists of some plugins for
+  the jEdit text editor, while preserving its general look-and-feel as far as
+  possible. The main plugin is called ``Isabelle'' and has its own menu
+  \emph{Plugins~/ Isabelle} with several panels (see also
+  \secref{sec:dockables}), as well as \emph{Plugins~/ Plugin Options~/
+  Isabelle} (see also \secref{sec:options}).
 
-  \begin{itemize}
+  The options allow to specify a logic session name --- the same selector is
+  accessible in the \emph{Theories} panel (\secref{sec:theories}). On
+  application startup, the selected logic session image is provided
+  automatically by the Isabelle build tool \cite{isabelle-sys}: if it is
+  absent or outdated wrt.\ its sources, the build process updates it before
+  entering the Prover IDE.  Changing the logic session within Isabelle/jEdit
+  requires a restart of the application.
 
-  \item The original jEdit look-and-feel is generally preserved,
-  although some default properties are changed to accommodate Isabelle
-  (e.g.\ the text area font).
+  \medskip The main job of the Prover IDE is to manage sources and their
+  changes, taking the logical structure as a formal document into account (see
+  also \secref{sec:document-model}). The editor and the prover are connected
+  asynchronously in a lock-free manner. The prover is free to organize the
+  checking of the formal text in parallel on multiple cores, and provides
+  feedback via markup, which is rendered in the editor via colors, boxes,
+  squiggly underline, hyperlinks, popup windows, icons, clickable output etc.
 
-  \item Formal Isabelle/Isar text is checked asynchronously while
-  editing.  The user is in full command of the editor, and the prover
-  refrains from locking portions of the buffer.
+  Using the mouse together with the modifier key @{verbatim CONTROL} (Linux,
+  Windows) or @{verbatim COMMAND} (Mac OS X) exposes additional formal content
+  via tooltips and/or hyperlinks (see also \secref{sec:tooltips-hyperlinks}).
+  Formal output (in popups etc.) may be explored recursively, using the same
+  techniques as in the editor source buffer.
 
-  \item Prover feedback works via colors, boxes, squiggly underline,
-  hyperlinks, popup windows, icons, clickable output --- all based on
-  semantic markup produced by the prover process in the background.
-
-  \item Using the mouse together with the modifier key @{verbatim
-  CONTROL} (Linux, Windows) or @{verbatim COMMAND} (Mac OS X) exposes
-  additional formal content via tooltips and/or hyperlinks.
-
-  \item Formal output (in popups etc.) may be explored recursively,
-  using the same techniques as in the editor source buffer.
-
-  \item Additional panels (e.g.\ \emph{Output}, \emph{Symbols}) are
-  organized by the Dockable Window Manager of jEdit, which also allows
-  multiple floating instances of each window class.
-
-  \item The prover process and source files are managed on the editor
-  side.  The prover operates on timeless and stateless document
-  content as provided via Isabelle/Scala.
-
-  \item Plugin options of jEdit (for the \emph{Isabelle} plugin) give
-  access to a selection of Isabelle/Scala options and its persistent
-  preferences, usually with immediate effect on the prover back-end or
-  editor front-end.
-
-  \item The logic image of the prover session may be specified within
-  Isabelle/jEdit.  The new image is provided automatically by the
-  Isabelle build tool after restart of the application.
-
-  \end{itemize}
+  Thus the Prover IDE gives an impression of direct access to formal content
+  of the prover within the editor, but in reality only certain aspects are
+  exposed, according to the possibilities of the prover and its many add-on
+  tools.
 *}
 
 
@@ -165,7 +155,7 @@ text {* The \emph{Plugin Manager} of jEdit allows to augment editor
   Isabelle/jEdit. *}
 
 
-subsection {* Options *}
+subsection {* Options \label{sec:options} *}
 
 text {* Both jEdit and Isabelle have distinctive management of
   persistent options.
@@ -320,7 +310,7 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   take full effect.  *}
 
 
-section {* Dockable windows *}
+section {* Dockable windows \label{sec:dockables} *}
 
 text {*
   In jEdit terminology, a \emph{view} is an editor window with one or more
@@ -639,9 +629,9 @@ text {* File specifications in jEdit follow various formats and
 *}
 
 
-chapter {* Prover IDE functionality *}
+chapter {* Prover IDE functionality \label{sec:document-model} *}
 
-section {* Document model *}
+section {* Document model \label{sec:document-model} *}
 
 text {*
   The document model is central to the PIDE architecture: the editor and the
