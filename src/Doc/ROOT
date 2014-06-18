@@ -188,6 +188,7 @@ session JEdit (doc) in "JEdit" = HOL +
     "root.tex"
     "sidekick.png"
     "sledgehammer.png"
+    "theories.png"
 
 session Sugar (doc) in "Sugar" = HOL +
   options [document_variants = "sugar"]

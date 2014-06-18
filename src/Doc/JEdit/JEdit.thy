@@ -690,12 +690,21 @@ text {*
 subsection {* Theories \label{sec:theories} *}
 
 text {*
-  The \emph{Theories} panel (see also \figref{fig:output}) provides an
+  The \emph{Theories} panel (see also \figref{fig:theories}) provides an
   overview of the status of continuous checking of theory nodes within the
   document model. Unlike batch sessions of @{tool build} \cite{isabelle-sys},
   theory nodes are identified by full path names; this allows to work with
   multiple (disjoint) Isabelle sessions simultaneously within the same editor
   session.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{theories}
+  \end{center}
+  \caption{Theories panel with an overview of the document-model, and some
+  jEdit text areas as editable view on some of the document nodes}
+  \label{fig:theories}
+  \end{figure}
 
   Certain events to open or update editor buffers cause Isabelle/jEdit to
   resolve dependencies of theory imports. The system requests to load
