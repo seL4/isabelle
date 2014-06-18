@@ -392,11 +392,11 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   - MaSh overhaul:
       - New SML-based learning engines eliminate the dependency on Python
         and increase performance and reliability.
-      - Activation of MaSh now works via the "MaSh" system option (without
-        requiring restart), instead of former settings variable "MASH".
-        The option can be edited in Isabelle/jEdit menu Plugin
-        Options / Isabelle / General. Allowed values include "sml" (for the
-        default SML engine), "py" (for the old Python engine), and "none".
+      - MaSh and MeSh are now used by default together with the traditional
+        MePo (Meng-Paulson) relevance filter. To disable MaSh, set the "MaSh"
+        system option in Plugin Options / Isabelle / General to "none". Other
+        allowed values include "sml" (for the default SML engine) and "py"
+        (for the old Python engine).
   - New option:
       smt_proofs
   - Renamed options:

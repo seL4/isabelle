@@ -395,9 +395,9 @@ no information about how many times a particular fact has been used in a proof,
 and it cannot learn.
 
 \item[\labelitemi]
-An experimental alternative to MePo is \emph{MaSh}
-(\underline{Ma}chine Learner for \underline{S}ledge\underline{h}ammer). It
-applies machine learning to the problem of finding relevant facts.
+An alternative to MePo is \emph{MaSh} (\underline{Ma}chine Learner for
+\underline{S}ledge\underline{h}ammer). It applies machine learning to the
+problem of finding relevant facts.
 
 \item[\labelitemi] The \emph{MeSh} filter combines MePo and MaSh.
 \end{enum}
@@ -1056,7 +1056,7 @@ Specifies the relevance filter to use. The following filters are available:
 The traditional memoryless MePo relevance filter.
 
 \item[\labelitemi] \textbf{\textit{mash}:}
-The experimental MaSh machine learner. Three learning engines are provided:
+The MaSh machine learner. Three learning engines are provided:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{sml\_nb}} (also called \textbf{\textit{sml}}
@@ -1068,6 +1068,9 @@ $k$-nearest neighbors.
 \item[\labelitemi] \textbf{\textit{py}} is a Python implementation of naive Bayes.
 The program is included with Isabelle as \texttt{mash.py}.
 \end{enum}
+
+In addition, the special value \textit{none} is used to disable machine learning by
+default (cf.\ \textit{smart} below).
 
 The engine can be selected by setting \texttt{MASH} to the name of the desired
 engine---either in the environment in which Isabelle is launched, in your
@@ -1083,14 +1086,9 @@ Python side.
 rankings from MePo and MaSh.
 
 \item[\labelitemi] \textbf{\textit{smart}:} A combination of MePo, MaSh, and
-MeSh if MaSh is a learning engine has been specified (as explained above);
-otherwise, MePo.
+MeSh. If the learning engine is set to be \textit{none}, \textit{smart} behaves
+like MePo.
 \end{enum}
-
-The behavior of \textit{smart} ensures that MaSh is not used by default,
-reflecting the experimental nature of the filter. Nevertheless, there is ample
-empirical evidence in favor of a combination of MePo, MaSh, and MeSh, and you
-are warmly encouraged to try it out.
 
 \opdefault{max\_facts}{smart\_int}{smart}
 Specifies the maximum number of facts that may be returned by the relevance
