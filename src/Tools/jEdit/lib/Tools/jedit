@@ -327,7 +327,7 @@ then
   cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.1.0manual-a4.pdf" dist/doc/jedit-manual.pdf
   cp dist/doc/CHANGES.txt dist/doc/jedit-changes
   cat > dist/doc/Contents <<EOF
-jEdit Documentation
+Original jEdit Documentation
   jedit-manual    jEdit 5.1 User's Guide
   jedit-changes   jEdit 5.1 Version History
 

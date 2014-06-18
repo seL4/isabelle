@@ -112,12 +112,12 @@ subsection {* Documentation *}
 text {*
   The \emph{Documentation} panel of Isabelle/jEdit provides access to the
   standard Isabelle documentation: PDF files are opened by regular desktop
-  operations of the underlying platform. The section ``jEdit Documentation''
-  contains the original \emph{User's Guide} of this sophisticated text editor.
-  The same is accessible via the @{verbatim Help} menu or @{verbatim F1}
-  keyboard shortcut, using the built-in HTML viewer of Java/Swing. The latter
-  also includes \emph{Frequently Asked Questions} and documentation of
-  individual plugins.
+  operations of the underlying platform. The section ``Original jEdit
+  Documentation'' contains the original \emph{User's Guide} of this
+  sophisticated text editor. The same is accessible via the @{verbatim Help}
+  menu or @{verbatim F1} keyboard shortcut, using the built-in HTML viewer of
+  Java/Swing. The latter also includes \emph{Frequently Asked Questions} and
+  documentation of individual plugins.
 
   Most of the information about generic jEdit is relevant for Isabelle/jEdit
   as well, but one needs to keep in mind that defaults sometimes differ, and
