@@ -3262,38 +3262,6 @@ lemma open_delete:
 
 text{*Compactness expressed with filters*}
 
-definition "filter_from_subbase B = Abs_filter (\<lambda>P. \<exists>X \<subseteq> B. finite X \<and> Inf X \<le> P)"
-
-lemma eventually_filter_from_subbase:
-  "eventually P (filter_from_subbase B) \<longleftrightarrow> (\<exists>X \<subseteq> B. finite X \<and> Inf X \<le> P)"
-    (is "_ \<longleftrightarrow> ?R P")
-  unfolding filter_from_subbase_def
-proof (rule eventually_Abs_filter is_filter.intro)+
-  show "?R (\<lambda>x. True)"
-    by (rule exI[of _ "{}"]) (simp add: le_fun_def)
-next
-  fix P Q
-  assume "?R P" then guess X ..
-  moreover
-  assume "?R Q" then guess Y ..
-  ultimately show "?R (\<lambda>x. P x \<and> Q x)"
-    by (intro exI[of _ "X \<union> Y"]) auto
-next
-  fix P Q
-  assume "?R P" then guess X ..
-  moreover assume "\<forall>x. P x \<longrightarrow> Q x"
-  ultimately show "?R Q"
-    by (intro exI[of _ X]) auto
-qed
-
-lemma eventually_filter_from_subbaseI: "P \<in> B \<Longrightarrow> eventually P (filter_from_subbase B)"
-  by (subst eventually_filter_from_subbase) (auto intro!: exI[of _ "{P}"])
-
-lemma filter_from_subbase_not_bot:
-  "\<forall>X \<subseteq> B. finite X \<longrightarrow> Inf X \<noteq> bot \<Longrightarrow> filter_from_subbase B \<noteq> bot"
-  unfolding trivial_limit_def eventually_filter_from_subbase
-    bot_bool_def [symmetric] bot_fun_def [symmetric] bot_unique by simp
-
 lemma closure_iff_nhds_not_empty:
   "x \<in> closure X \<longleftrightarrow> (\<forall>A. \<forall>S\<subseteq>A. open S \<longrightarrow> x \<in> S \<longrightarrow> X \<inter> A \<noteq> {})"
 proof safe
@@ -3360,34 +3328,31 @@ proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
 next
   fix A
   assume A: "\<forall>a\<in>A. closed a" "\<forall>B\<subseteq>A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}" "U \<inter> \<Inter>A = {}"
-  def P' \<equiv> "(\<lambda>a (x::'a). x \<in> a)"
-  then have inj_P': "\<And>A. inj_on P' A"
-    by (auto intro!: inj_onI simp: fun_eq_iff)
-  def F \<equiv> "filter_from_subbase (P' ` insert U A)"
+  def F \<equiv> "INF a:insert U A. principal a"
   have "F \<noteq> bot"
     unfolding F_def
-  proof (safe intro!: filter_from_subbase_not_bot)
-    fix X
-    assume "X \<subseteq> P' ` insert U A" "finite X" "Inf X = bot"
-    then obtain B where "B \<subseteq> insert U A" "finite B" and B: "Inf (P' ` B) = bot"
-      unfolding subset_image_iff by (auto intro: inj_P' finite_imageD simp del: Inf_image_eq)
-    with A(2)[THEN spec, of "B - {U}"] have "U \<inter> \<Inter>(B - {U}) \<noteq> {}"
+  proof (rule INF_filter_not_bot)
+    fix X assume "X \<subseteq> insert U A" "finite X"
+    moreover with A(2)[THEN spec, of "X - {U}"] have "U \<inter> \<Inter>(X - {U}) \<noteq> {}"
       by auto
-    with B show False
-      by (auto simp: P'_def fun_eq_iff)
+    ultimately show "(INF a:X. principal a) \<noteq> bot"
+      by (auto simp add: INF_principal_finite principal_eq_bot_iff)
   qed
-  moreover have "eventually (\<lambda>x. x \<in> U) F"
-    unfolding F_def by (rule eventually_filter_from_subbaseI) (auto simp: P'_def)
+  moreover
+  have "F \<le> principal U"
+    unfolding F_def by auto
+  then have "eventually (\<lambda>x. x \<in> U) F"
+    by (auto simp: le_filter_def eventually_principal)
   moreover
   assume "\<forall>F. F \<noteq> bot \<longrightarrow> eventually (\<lambda>x. x \<in> U) F \<longrightarrow> (\<exists>x\<in>U. inf (nhds x) F \<noteq> bot)"
   ultimately obtain x where "x \<in> U" and x: "inf (nhds x) F \<noteq> bot"
     by auto
 
-  {
-    fix V
-    assume "V \<in> A"
+  { fix V assume "V \<in> A"
+    then have "F \<le> principal V"
+      unfolding F_def by (intro INF_lower2[of V]) auto
     then have V: "eventually (\<lambda>x. x \<in> V) F"
-      by (auto simp add: F_def image_iff P'_def intro!: eventually_filter_from_subbaseI)
+      by (auto simp: le_filter_def eventually_principal)
     have "x \<in> closure V"
       unfolding closure_iff_nhds_not_empty
     proof (intro impI allI)

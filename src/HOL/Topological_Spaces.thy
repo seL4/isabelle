@@ -530,6 +530,86 @@ lemma trivial_limit_def: "trivial_limit F \<longleftrightarrow> eventually (\<la
 lemma eventually_const: "\<not> trivial_limit net \<Longrightarrow> eventually (\<lambda>x. P) net \<longleftrightarrow> P"
   by (cases P) (simp_all add: eventually_False)
 
+lemma eventually_Inf: "eventually P (Inf B) \<longleftrightarrow> (\<exists>X\<subseteq>B. finite X \<and> eventually P (Inf X))"
+proof -
+  let ?F = "\<lambda>P. \<exists>X\<subseteq>B. finite X \<and> eventually P (Inf X)"
+  
+  { fix P have "eventually P (Abs_filter ?F) \<longleftrightarrow> ?F P"
+    proof (rule eventually_Abs_filter is_filter.intro)+
+      show "?F (\<lambda>x. True)"
+        by (rule exI[of _ "{}"]) (simp add: le_fun_def)
+    next
+      fix P Q
+      assume "?F P" then guess X ..
+      moreover
+      assume "?F Q" then guess Y ..
+      ultimately show "?F (\<lambda>x. P x \<and> Q x)"
+        by (intro exI[of _ "X \<union> Y"])
+           (auto simp: Inf_union_distrib eventually_inf)
+    next
+      fix P Q
+      assume "?F P" then guess X ..
+      moreover assume "\<forall>x. P x \<longrightarrow> Q x"
+      ultimately show "?F Q"
+        by (intro exI[of _ X]) (auto elim: eventually_elim1)
+    qed }
+  note eventually_F = this
+
+  have "Inf B = Abs_filter ?F"
+  proof (intro antisym Inf_greatest)
+    show "Inf B \<le> Abs_filter ?F"
+      by (auto simp: le_filter_def eventually_F dest: Inf_superset_mono)
+  next
+    fix F assume "F \<in> B" then show "Abs_filter ?F \<le> F"
+      by (auto simp add: le_filter_def eventually_F intro!: exI[of _ "{F}"])
+  qed
+  then show ?thesis
+    by (simp add: eventually_F)
+qed
+
+lemma eventually_INF: "eventually P (INF b:B. F b) \<longleftrightarrow> (\<exists>X\<subseteq>B. finite X \<and> eventually P (INF b:X. F b))"
+  unfolding INF_def[of B] eventually_Inf[of P "F`B"]
+  by (metis Inf_image_eq finite_imageI image_mono finite_subset_image)
+
+lemma Inf_filter_not_bot:
+  fixes B :: "'a filter set"
+  shows "(\<And>X. X \<subseteq> B \<Longrightarrow> finite X \<Longrightarrow> Inf X \<noteq> bot) \<Longrightarrow> Inf B \<noteq> bot"
+  unfolding trivial_limit_def eventually_Inf[of _ B]
+    bot_bool_def [symmetric] bot_fun_def [symmetric] bot_unique by simp
+
+lemma INF_filter_not_bot:
+  fixes F :: "'i \<Rightarrow> 'a filter"
+  shows "(\<And>X. X \<subseteq> B \<Longrightarrow> finite X \<Longrightarrow> (INF b:X. F b) \<noteq> bot) \<Longrightarrow> (INF b:B. F b) \<noteq> bot"
+  unfolding trivial_limit_def eventually_INF[of _ B]
+    bot_bool_def [symmetric] bot_fun_def [symmetric] bot_unique by simp
+
+lemma eventually_Inf_base:
+  assumes "B \<noteq> {}" and base: "\<And>F G. F \<in> B \<Longrightarrow> G \<in> B \<Longrightarrow> \<exists>x\<in>B. x \<le> inf F G"
+  shows "eventually P (Inf B) \<longleftrightarrow> (\<exists>b\<in>B. eventually P b)"
+proof (subst eventually_Inf, safe)
+  fix X assume "finite X" "X \<subseteq> B"
+  then have "\<exists>b\<in>B. \<forall>x\<in>X. b \<le> x"
+  proof induct
+    case empty then show ?case
+      using `B \<noteq> {}` by auto
+  next
+    case (insert x X)
+    then obtain b where "b \<in> B" "\<And>x. x \<in> X \<Longrightarrow> b \<le> x"
+      by auto
+    with `insert x X \<subseteq> B` base[of b x] show ?case
+      by (auto intro: order_trans)
+  qed
+  then obtain b where "b \<in> B" "b \<le> Inf X"
+    by (auto simp: le_Inf_iff)
+  then show "eventually P (Inf X) \<Longrightarrow> Bex B (eventually P)"
+    by (intro bexI[of _ b]) (auto simp: le_filter_def)
+qed (auto intro!: exI[of _ "{x}" for x])
+
+lemma eventually_INF_base:
+  "B \<noteq> {} \<Longrightarrow> (\<And>a b. a \<in> B \<Longrightarrow> b \<in> B \<Longrightarrow> \<exists>x\<in>B. F x \<le> inf (F a) (F b)) \<Longrightarrow>
+    eventually P (INF b:B. F b) \<longleftrightarrow> (\<exists>b\<in>B. eventually P (F b))"
+  unfolding INF_def by (subst eventually_Inf_base) auto
+
 
 subsubsection {* Map function for filters *}
 
@@ -560,124 +640,26 @@ lemma filtermap_bot [simp]: "filtermap f bot = bot"
 lemma filtermap_sup: "filtermap f (sup F1 F2) = sup (filtermap f F1) (filtermap f F2)"
   by (auto simp: filter_eq_iff eventually_filtermap eventually_sup)
 
-subsubsection {* Order filters *}
+lemma filtermap_inf: "filtermap f (inf F1 F2) \<le> inf (filtermap f F1) (filtermap f F2)"
+  by (auto simp: le_filter_def eventually_filtermap eventually_inf)
 
-definition at_top :: "('a::order) filter"
-  where "at_top = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
-
-lemma eventually_at_top_linorder: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::linorder. \<forall>n\<ge>N. P n)"
-  unfolding at_top_def
-proof (rule eventually_Abs_filter, rule is_filter.intro)
-  fix P Q :: "'a \<Rightarrow> bool"
-  assume "\<exists>i. \<forall>n\<ge>i. P n" and "\<exists>j. \<forall>n\<ge>j. Q n"
-  then obtain i j where "\<forall>n\<ge>i. P n" and "\<forall>n\<ge>j. Q n" by auto
-  then have "\<forall>n\<ge>max i j. P n \<and> Q n" by simp
-  then show "\<exists>k. \<forall>n\<ge>k. P n \<and> Q n" ..
-qed auto
-
-lemma eventually_ge_at_top:
-  "eventually (\<lambda>x. (c::_::linorder) \<le> x) at_top"
-  unfolding eventually_at_top_linorder by auto
-
-lemma eventually_at_top_dense: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::unbounded_dense_linorder. \<forall>n>N. P n)"
-  unfolding eventually_at_top_linorder
-proof safe
-  fix N assume "\<forall>n\<ge>N. P n"
-  then show "\<exists>N. \<forall>n>N. P n" by (auto intro!: exI[of _ N])
-next
-  fix N assume "\<forall>n>N. P n"
-  moreover obtain y where "N < y" using gt_ex[of N] ..
-  ultimately show "\<exists>N. \<forall>n\<ge>N. P n" by (auto intro!: exI[of _ y])
+lemma filtermap_INF: "filtermap f (INF b:B. F b) \<le> (INF b:B. filtermap f (F b))"
+proof -
+  { fix X :: "'c set" assume "finite X"
+    then have "filtermap f (INFIMUM X F) \<le> (INF b:X. filtermap f (F b))"
+    proof induct
+      case (insert x X)
+      have "filtermap f (INF a:insert x X. F a) \<le> inf (filtermap f (F x)) (filtermap f (INF a:X. F a))"
+        by (rule order_trans[OF _ filtermap_inf]) simp
+      also have "\<dots> \<le> inf (filtermap f (F x)) (INF a:X. filtermap f (F a))"
+        by (intro inf_mono insert order_refl)
+      finally show ?case
+        by simp
+    qed simp }
+  then show ?thesis
+    unfolding le_filter_def eventually_filtermap
+    by (subst (1 2) eventually_INF) auto
 qed
-
-lemma eventually_gt_at_top:
-  "eventually (\<lambda>x. (c::_::unbounded_dense_linorder) < x) at_top"
-  unfolding eventually_at_top_dense by auto
-
-definition at_bot :: "('a::order) filter"
-  where "at_bot = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<le>k. P n)"
-
-lemma eventually_at_bot_linorder:
-  fixes P :: "'a::linorder \<Rightarrow> bool" shows "eventually P at_bot \<longleftrightarrow> (\<exists>N. \<forall>n\<le>N. P n)"
-  unfolding at_bot_def
-proof (rule eventually_Abs_filter, rule is_filter.intro)
-  fix P Q :: "'a \<Rightarrow> bool"
-  assume "\<exists>i. \<forall>n\<le>i. P n" and "\<exists>j. \<forall>n\<le>j. Q n"
-  then obtain i j where "\<forall>n\<le>i. P n" and "\<forall>n\<le>j. Q n" by auto
-  then have "\<forall>n\<le>min i j. P n \<and> Q n" by simp
-  then show "\<exists>k. \<forall>n\<le>k. P n \<and> Q n" ..
-qed auto
-
-lemma eventually_le_at_bot:
-  "eventually (\<lambda>x. x \<le> (c::_::linorder)) at_bot"
-  unfolding eventually_at_bot_linorder by auto
-
-lemma eventually_at_bot_dense:
-  fixes P :: "'a::unbounded_dense_linorder \<Rightarrow> bool" shows "eventually P at_bot \<longleftrightarrow> (\<exists>N. \<forall>n<N. P n)"
-  unfolding eventually_at_bot_linorder
-proof safe
-  fix N assume "\<forall>n\<le>N. P n" then show "\<exists>N. \<forall>n<N. P n" by (auto intro!: exI[of _ N])
-next
-  fix N assume "\<forall>n<N. P n" 
-  moreover obtain y where "y < N" using lt_ex[of N] ..
-  ultimately show "\<exists>N. \<forall>n\<le>N. P n" by (auto intro!: exI[of _ y])
-qed
-
-lemma eventually_gt_at_bot:
-  "eventually (\<lambda>x. x < (c::_::unbounded_dense_linorder)) at_bot"
-  unfolding eventually_at_bot_dense by auto
-
-lemma trivial_limit_at_bot_linorder: "\<not> trivial_limit (at_bot ::('a::linorder) filter)"
-  unfolding trivial_limit_def
-  by (metis eventually_at_bot_linorder order_refl)
-
-lemma trivial_limit_at_top_linorder: "\<not> trivial_limit (at_top ::('a::linorder) filter)"
-  unfolding trivial_limit_def
-  by (metis eventually_at_top_linorder order_refl)
-
-subsection {* Sequentially *}
-
-abbreviation sequentially :: "nat filter"
-  where "sequentially == at_top"
-
-lemma sequentially_def: "sequentially = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
-  unfolding at_top_def by simp
-
-lemma eventually_sequentially:
-  "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
-  by (rule eventually_at_top_linorder)
-
-lemma sequentially_bot [simp, intro]: "sequentially \<noteq> bot"
-  unfolding filter_eq_iff eventually_sequentially by auto
-
-lemmas trivial_limit_sequentially = sequentially_bot
-
-lemma eventually_False_sequentially [simp]:
-  "\<not> eventually (\<lambda>n. False) sequentially"
-  by (simp add: eventually_False)
-
-lemma le_sequentially:
-  "F \<le> sequentially \<longleftrightarrow> (\<forall>N. eventually (\<lambda>n. N \<le> n) F)"
-  unfolding le_filter_def eventually_sequentially
-  by (safe, fast, drule_tac x=N in spec, auto elim: eventually_rev_mp)
-
-lemma eventually_sequentiallyI:
-  assumes "\<And>x. c \<le> x \<Longrightarrow> P x"
-  shows "eventually P sequentially"
-using assms by (auto simp: eventually_sequentially)
-
-lemma eventually_sequentially_seg:
-  "eventually (\<lambda>n. P (n + k)) sequentially \<longleftrightarrow> eventually P sequentially"
-  unfolding eventually_sequentially
-  apply safe
-   apply (rule_tac x="N + k" in exI)
-   apply rule
-   apply (erule_tac x="n - k" in allE)
-   apply auto []
-  apply (rule_tac x=N in exI)
-  apply auto []
-  done
-
 subsubsection {* Standard filters *}
 
 definition principal :: "'a set \<Rightarrow> 'a filter" where
@@ -695,6 +677,9 @@ lemma principal_UNIV[simp]: "principal UNIV = top"
 
 lemma principal_empty[simp]: "principal {} = bot"
   by (auto simp: filter_eq_iff eventually_principal)
+
+lemma principal_eq_bot_iff: "principal X = bot \<longleftrightarrow> X = {}"
+  by (auto simp add: filter_eq_iff eventually_principal)
 
 lemma principal_le_iff[iff]: "principal A \<le> principal B \<longleftrightarrow> A \<subseteq> B"
   by (auto simp: le_filter_def eventually_principal)
@@ -719,13 +704,122 @@ lemma inf_principal[simp]: "inf (principal A) (principal B) = principal (A \<int
 lemma SUP_principal[simp]: "(SUP i : I. principal (A i)) = principal (\<Union>i\<in>I. A i)"
   unfolding filter_eq_iff eventually_Sup SUP_def by (auto simp: eventually_principal)
 
+lemma INF_principal_finite: "finite X \<Longrightarrow> (INF x:X. principal (f x)) = principal (\<Inter>x\<in>X. f x)"
+  by (induct X rule: finite_induct) auto
+
 lemma filtermap_principal[simp]: "filtermap f (principal A) = principal (f ` A)"
   unfolding filter_eq_iff eventually_filtermap eventually_principal by simp
+
+subsubsection {* Order filters *}
+
+definition at_top :: "('a::order) filter"
+  where "at_top = (INF k. principal {k ..})"
+
+lemma eventually_at_top_linorder: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::linorder. \<forall>n\<ge>N. P n)"
+  unfolding at_top_def
+  by (subst eventually_INF_base) (auto simp: eventually_principal intro: max.cobounded1 max.cobounded2)
+
+lemma eventually_ge_at_top:
+  "eventually (\<lambda>x. (c::_::linorder) \<le> x) at_top"
+  unfolding eventually_at_top_linorder by auto
+
+lemma (in linorder) Ici_subset_Ioi_iff: "{a ..} \<subseteq> {b <..} \<longleftrightarrow> b < a"
+  by auto
+
+lemma (in linorder) Iic_subset_Iio_iff: "{.. a} \<subseteq> {..< b} \<longleftrightarrow> a < b"
+  by auto
+
+lemma eventually_at_top_dense: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::{no_top, linorder}. \<forall>n>N. P n)"
+proof -
+  have "eventually P (INF k. principal {k <..}) \<longleftrightarrow> (\<exists>N::'a. \<forall>n>N. P n)"
+    by (subst eventually_INF_base) (auto simp: eventually_principal intro: max.cobounded1 max.cobounded2)
+  also have "(INF k. principal {k::'a <..}) = at_top"
+    unfolding at_top_def 
+    by (intro INF_eq) (auto intro: less_imp_le simp: Ici_subset_Ioi_iff gt_ex)
+  finally show ?thesis .
+qed
+
+lemma eventually_gt_at_top:
+  "eventually (\<lambda>x. (c::_::unbounded_dense_linorder) < x) at_top"
+  unfolding eventually_at_top_dense by auto
+
+definition at_bot :: "('a::order) filter"
+  where "at_bot = (INF k. principal {.. k})"
+
+lemma eventually_at_bot_linorder:
+  fixes P :: "'a::linorder \<Rightarrow> bool" shows "eventually P at_bot \<longleftrightarrow> (\<exists>N. \<forall>n\<le>N. P n)"
+  unfolding at_bot_def
+  by (subst eventually_INF_base) (auto simp: eventually_principal intro: min.cobounded1 min.cobounded2)
+
+lemma eventually_le_at_bot:
+  "eventually (\<lambda>x. x \<le> (c::_::linorder)) at_bot"
+  unfolding eventually_at_bot_linorder by auto
+
+lemma eventually_at_bot_dense: "eventually P at_bot \<longleftrightarrow> (\<exists>N::'a::{no_bot, linorder}. \<forall>n<N. P n)"
+proof -
+  have "eventually P (INF k. principal {..< k}) \<longleftrightarrow> (\<exists>N::'a. \<forall>n<N. P n)"
+    by (subst eventually_INF_base) (auto simp: eventually_principal intro: min.cobounded1 min.cobounded2)
+  also have "(INF k. principal {..< k::'a}) = at_bot"
+    unfolding at_bot_def 
+    by (intro INF_eq) (auto intro: less_imp_le simp: Iic_subset_Iio_iff lt_ex)
+  finally show ?thesis .
+qed
+
+lemma eventually_gt_at_bot:
+  "eventually (\<lambda>x. x < (c::_::unbounded_dense_linorder)) at_bot"
+  unfolding eventually_at_bot_dense by auto
+
+lemma trivial_limit_at_bot_linorder: "\<not> trivial_limit (at_bot ::('a::linorder) filter)"
+  unfolding trivial_limit_def
+  by (metis eventually_at_bot_linorder order_refl)
+
+lemma trivial_limit_at_top_linorder: "\<not> trivial_limit (at_top ::('a::linorder) filter)"
+  unfolding trivial_limit_def
+  by (metis eventually_at_top_linorder order_refl)
+
+subsection {* Sequentially *}
+
+abbreviation sequentially :: "nat filter"
+  where "sequentially \<equiv> at_top"
+
+lemma eventually_sequentially:
+  "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
+  by (rule eventually_at_top_linorder)
+
+lemma sequentially_bot [simp, intro]: "sequentially \<noteq> bot"
+  unfolding filter_eq_iff eventually_sequentially by auto
+
+lemmas trivial_limit_sequentially = sequentially_bot
+
+lemma eventually_False_sequentially [simp]:
+  "\<not> eventually (\<lambda>n. False) sequentially"
+  by (simp add: eventually_False)
+
+lemma le_sequentially:
+  "F \<le> sequentially \<longleftrightarrow> (\<forall>N. eventually (\<lambda>n. N \<le> n) F)"
+  by (simp add: at_top_def le_INF_iff le_principal)
+
+lemma eventually_sequentiallyI:
+  assumes "\<And>x. c \<le> x \<Longrightarrow> P x"
+  shows "eventually P sequentially"
+using assms by (auto simp: eventually_sequentially)
+
+lemma eventually_sequentially_seg:
+  "eventually (\<lambda>n. P (n + k)) sequentially \<longleftrightarrow> eventually P sequentially"
+  unfolding eventually_sequentially
+  apply safe
+   apply (rule_tac x="N + k" in exI)
+   apply rule
+   apply (erule_tac x="n - k" in allE)
+   apply auto []
+  apply (rule_tac x=N in exI)
+  apply auto []
+  done
 
 subsubsection {* Topological filters *}
 
 definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
-  where "nhds a = Abs_filter (\<lambda>P. \<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
+  where "nhds a = (INF S:{S. open S \<and> a \<in> S}. principal S)"
 
 definition (in topological_space) at_within :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a filter" ("at (_) within (_)" [1000, 60] 60)
   where "at a within s = inf (nhds a) (principal (s - {a}))"
@@ -741,21 +835,7 @@ abbreviation (in order_topology) at_left :: "'a \<Rightarrow> 'a filter" where
 
 lemma (in topological_space) eventually_nhds:
   "eventually P (nhds a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
-  unfolding nhds_def
-proof (rule eventually_Abs_filter, rule is_filter.intro)
-  have "open UNIV \<and> a \<in> UNIV \<and> (\<forall>x\<in>UNIV. True)" by simp
-  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. True)" ..
-next
-  fix P Q
-  assume "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x)"
-     and "\<exists>T. open T \<and> a \<in> T \<and> (\<forall>x\<in>T. Q x)"
-  then obtain S T where
-    "open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x)"
-    "open T \<and> a \<in> T \<and> (\<forall>x\<in>T. Q x)" by auto
-  hence "open (S \<inter> T) \<and> a \<in> S \<inter> T \<and> (\<forall>x\<in>(S \<inter> T). P x \<and> Q x)"
-    by (simp add: open_Int)
-  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x \<and> Q x)" ..
-qed auto
+  unfolding nhds_def by (subst eventually_INF_base) (auto simp: eventually_principal)
 
 lemma nhds_neq_bot [simp]: "nhds a \<noteq> bot"
   unfolding trivial_limit_def eventually_nhds by simp
@@ -893,6 +973,10 @@ lemma filterlim_inf:
   "(LIM x F1. f x :> inf F2 F3) \<longleftrightarrow> ((LIM x F1. f x :> F2) \<and> (LIM x F1. f x :> F3))"
   unfolding filterlim_def by simp
 
+lemma filterlim_INF:
+  "(LIM x F. f x :> (INF b:B. G b)) \<longleftrightarrow> (\<forall>b\<in>B. LIM x F. f x :> G b)"
+  unfolding filterlim_def le_INF_iff ..
+
 lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambda>x. f (g x)) F1 F2"
   unfolding filterlim_def filtermap_filtermap ..
 
@@ -933,13 +1017,7 @@ setup {*
 
 lemma (in topological_space) tendsto_def:
    "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
-  unfolding filterlim_def
-proof safe
-  fix S assume "open S" "l \<in> S" "filtermap f F \<le> nhds l"
-  then show "eventually (\<lambda>x. f x \<in> S) F"
-    unfolding eventually_nhds eventually_filtermap le_filter_def
-    by (auto elim!: allE[of _ "\<lambda>x. x \<in> S"] eventually_rev_mp)
-qed (auto elim!: eventually_rev_mp simp: eventually_nhds eventually_filtermap le_filter_def)
+   unfolding nhds_def filterlim_INF filterlim_principal by auto
 
 lemma tendsto_mono: "F \<le> F' \<Longrightarrow> (f ---> l) F' \<Longrightarrow> (f ---> l) F"
   unfolding tendsto_def le_filter_def by fast
@@ -1120,7 +1198,7 @@ lemma tendsto_ge_const:
 
 subsubsection {* Rules about @{const Lim} *}
 
-lemma (in t2_space) tendsto_Lim:
+lemma tendsto_Lim:
   "\<not>(trivial_limit net) \<Longrightarrow> (f ---> l) net \<Longrightarrow> Lim net f = l"
   unfolding Lim_def using tendsto_unique[of net f] by auto
 
@@ -1565,9 +1643,7 @@ lemma convergent_subseq_convergent:
   unfolding convergent_def by (auto intro: LIMSEQ_subseq_LIMSEQ)
 
 lemma limI: "X ----> L ==> lim X = L"
-apply (simp add: lim_def)
-apply (blast intro: LIMSEQ_unique)
-done
+  by (rule tendsto_Lim) (rule trivial_limit_sequentially)
 
 lemma lim_le: "convergent f \<Longrightarrow> (\<And>n. f n \<le> (x::'a::linorder_topology)) \<Longrightarrow> lim f \<le> x"
   using LIMSEQ_le_const2[of f "lim f" x] by (simp add: convergent_LIMSEQ_iff)
@@ -1767,6 +1843,7 @@ proof (safe intro!: sequentially_imp_eventually_within)
   fix X assume X: "\<forall>n. X n \<in> {..<a} \<and> X n \<noteq> a" "X ----> a"
   show "eventually (\<lambda>n. P (X n)) sequentially"
   proof (rule ccontr)
+
     assume "\<not> eventually (\<lambda>n. P (X n)) sequentially"
     from not_eventually_sequentiallyD[OF this]
     obtain r where "subseq r" "\<And>n. \<not> P (X (r n))"

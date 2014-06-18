@@ -875,40 +875,19 @@ qed
 subsection {* The almost everywhere filter (i.e.\ quantifier) *}
 
 definition ae_filter :: "'a measure \<Rightarrow> 'a filter" where
-  "ae_filter M = Abs_filter (\<lambda>P. \<exists>N\<in>null_sets M. {x \<in> space M. \<not> P x} \<subseteq> N)"
+  "ae_filter M = (INF N:null_sets M. principal (space M - N))"
 
-abbreviation
-  almost_everywhere :: "'a measure \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+abbreviation almost_everywhere :: "'a measure \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "almost_everywhere M P \<equiv> eventually P (ae_filter M)"
 
 syntax
   "_almost_everywhere" :: "pttrn \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool" ("AE _ in _. _" [0,0,10] 10)
 
 translations
-  "AE x in M. P" == "CONST almost_everywhere M (%x. P)"
+  "AE x in M. P" == "CONST almost_everywhere M (\<lambda>x. P)"
 
-lemma eventually_ae_filter:
-  fixes M P
-  defines [simp]: "F \<equiv> \<lambda>P. \<exists>N\<in>null_sets M. {x \<in> space M. \<not> P x} \<subseteq> N" 
-  shows "eventually P (ae_filter M) \<longleftrightarrow> F P"
-  unfolding ae_filter_def F_def[symmetric]
-proof (rule eventually_Abs_filter)
-  show "is_filter F"
-  proof
-    fix P Q assume "F P" "F Q"
-    then obtain N L where N: "N \<in> null_sets M" "{x \<in> space M. \<not> P x} \<subseteq> N"
-      and L: "L \<in> null_sets M" "{x \<in> space M. \<not> Q x} \<subseteq> L"
-      by auto
-    then have "L \<union> N \<in> null_sets M" "{x \<in> space M. \<not> (P x \<and> Q x)} \<subseteq> L \<union> N" by auto
-    then show "F (\<lambda>x. P x \<and> Q x)" by auto
-  next
-    fix P Q assume "F P"
-    then obtain N where N: "N \<in> null_sets M" "{x \<in> space M. \<not> P x} \<subseteq> N" by auto
-    moreover assume "\<forall>x. P x \<longrightarrow> Q x"
-    ultimately have "N \<in> null_sets M" "{x \<in> space M. \<not> Q x} \<subseteq> N" by auto
-    then show "F Q" by auto
-  qed auto
-qed
+lemma eventually_ae_filter: "eventually P (ae_filter M) \<longleftrightarrow> (\<exists>N\<in>null_sets M. {x \<in> space M. \<not> P x} \<subseteq> N)"
+  unfolding ae_filter_def by (subst eventually_INF_base) (auto simp: eventually_principal subset_eq)
 
 lemma AE_I':
   "N \<in> null_sets M \<Longrightarrow> {x\<in>space M. \<not> P x} \<subseteq> N \<Longrightarrow> (AE x in M. P x)"

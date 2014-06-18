@@ -3,7 +3,6 @@
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Lawrence C Paulson
     Author:     Jeremy Avigad
-
 *)
 
 header {* Limits on Real Vector Spaces *}
@@ -15,43 +14,27 @@ begin
 subsection {* Filter going to infinity norm *}
 
 definition at_infinity :: "'a::real_normed_vector filter" where
-  "at_infinity = Abs_filter (\<lambda>P. \<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x)"
+  "at_infinity = (INF r. principal {x. r \<le> norm x})"
 
-lemma eventually_at_infinity:
-  "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. b \<le> norm x \<longrightarrow> P x)"
-unfolding at_infinity_def
-proof (rule eventually_Abs_filter, rule is_filter.intro)
-  fix P Q :: "'a \<Rightarrow> bool"
-  assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<exists>s. \<forall>x. s \<le> norm x \<longrightarrow> Q x"
-  then obtain r s where
-    "\<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<forall>x. s \<le> norm x \<longrightarrow> Q x" by auto
-  then have "\<forall>x. max r s \<le> norm x \<longrightarrow> P x \<and> Q x" by simp
-  then show "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x \<and> Q x" ..
-qed auto
+lemma eventually_at_infinity: "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. b \<le> norm x \<longrightarrow> P x)"
+  unfolding at_infinity_def
+  by (subst eventually_INF_base)
+     (auto simp: subset_eq eventually_principal intro!: exI[of _ "max a b" for a b])
 
 lemma at_infinity_eq_at_top_bot:
   "(at_infinity \<Colon> real filter) = sup at_top at_bot"
-  unfolding sup_filter_def at_infinity_def eventually_at_top_linorder eventually_at_bot_linorder
-proof (intro arg_cong[where f=Abs_filter] ext iffI)
-  fix P :: "real \<Rightarrow> bool"
-  assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x"
-  then obtain r where "\<forall>x. r \<le> norm x \<longrightarrow> P x" ..
-  then have "(\<forall>x\<ge>r. P x) \<and> (\<forall>x\<le>-r. P x)" by auto
-  then show "(\<exists>r. \<forall>x\<ge>r. P x) \<and> (\<exists>r. \<forall>x\<le>r. P x)" by auto
-next
-  fix P :: "real \<Rightarrow> bool"
-  assume "(\<exists>r. \<forall>x\<ge>r. P x) \<and> (\<exists>r. \<forall>x\<le>r. P x)"
-  then obtain p q where "\<forall>x\<ge>p. P x" "\<forall>x\<le>q. P x" by auto
-  then show "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x"
-    by (intro exI[of _ "max p (-q)"]) (auto simp: abs_real_def)
-qed
+  apply (simp add: filter_eq_iff eventually_sup eventually_at_infinity
+                   eventually_at_top_linorder eventually_at_bot_linorder)
+  apply safe
+  apply (rule_tac x="b" in exI, simp)
+  apply (rule_tac x="- b" in exI, simp)
+  apply (rule_tac x="max (- Na) N" in exI, auto simp: abs_real_def)
+  done
 
-lemma at_top_le_at_infinity:
-  "at_top \<le> (at_infinity :: real filter)"
+lemma at_top_le_at_infinity: "at_top \<le> (at_infinity :: real filter)"
   unfolding at_infinity_eq_at_top_bot by simp
 
-lemma at_bot_le_at_infinity:
-  "at_bot \<le> (at_infinity :: real filter)"
+lemma at_bot_le_at_infinity: "at_bot \<le> (at_infinity :: real filter)"
   unfolding at_infinity_eq_at_top_bot by simp
 
 lemma filterlim_at_top_imp_at_infinity:
