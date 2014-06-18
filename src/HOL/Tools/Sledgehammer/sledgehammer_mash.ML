@@ -1381,7 +1381,7 @@ fun relearn_wrt_access_graph ctxt (name, deps) (relearns, G) =
 fun flop_wrt_access_graph name =
   Graph.map_node name (fn (_, feats, deps) => (Isar_Proof_wegen_Prover_Flop, feats, deps))
 
-val learn_timeout_slack = 2.0
+val learn_timeout_slack = 20.0
 
 fun launch_thread timeout task =
   let
@@ -1643,7 +1643,7 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
   else
     let
       fun maybe_launch_thread () =
-        if not blocking andalso not (Async_Manager.has_running_threads MaShN) andalso
+        if not (Async_Manager.has_running_threads MaShN) andalso
            Time.toSeconds timeout >= min_secs_for_learning then
           let val timeout = time_mult learn_timeout_slack timeout in
             launch_thread timeout

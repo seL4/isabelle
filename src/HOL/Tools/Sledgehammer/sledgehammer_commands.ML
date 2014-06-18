@@ -52,10 +52,8 @@ fun add_fact_override ns : fact_override = {add = ns, del = [], only = false}
 fun del_fact_override ns : fact_override = {add = [], del = ns, only = false}
 fun only_fact_override ns : fact_override = {add = ns, del = [], only = true}
 fun merge_fact_override_pairwise (r1 : fact_override) (r2 : fact_override) =
-  {add = #add r1 @ #add r2, del = #del r1 @ #del r2,
-   only = #only r1 andalso #only r2}
-fun merge_fact_overrides rs =
-  fold merge_fact_override_pairwise rs (only_fact_override [])
+  {add = #add r1 @ #add r2, del = #del r1 @ #del r2, only = #only r1 andalso #only r2}
+fun merge_fact_overrides rs = fold merge_fact_override_pairwise rs (only_fact_override [])
 
 (*** parameters ***)
 
