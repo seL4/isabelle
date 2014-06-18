@@ -498,10 +498,11 @@ fun naive_bayes_learn num_facts get_deps get_feats num_feats =
     for 0; (Array.vector tfreq, Array.vector sfreq (*, Array.vector dffreq *))
   end
 
-val nb_kuehlwein_style = false
+val nb_kuehlwein_style_log = false
+val nb_kuehlwein_style_params = false
 
-val nb_tau = if nb_kuehlwein_style then 0.05 else 0.02 (* FUDGE *)
-val nb_pos_weight = if nb_kuehlwein_style then 10.0 else 2.0 (* FUDGE *)
+val nb_tau = if nb_kuehlwein_style_params then 0.05 else 0.02 (* FUDGE *)
+val nb_pos_weight = if nb_kuehlwein_style_params then 10.0 else 2.0 (* FUDGE *)
 val nb_def_val = ~15.0 (* FUDGE *)
 
 fun naive_bayes_query _ (* num_facts *) num_visible_facts max_suggs feats (tfreq, sfreq (*, dffreq*)) =
@@ -526,7 +527,7 @@ fun naive_bayes_query _ (* num_facts *) num_visible_facts max_suggs feats (tfreq
         val (res, sfh) = fold fold_feats feats (Math.ln tfreq, Vector.sub (sfreq, i))
 
         val fold_sfh =
-          if nb_kuehlwein_style then
+          if nb_kuehlwein_style_log then
             (fn (f, sf) => fn sow => sow - tfidf f * Math.ln (Real.fromInt sf / tfreq))
           else
             (fn (f, sf) => fn sow =>
