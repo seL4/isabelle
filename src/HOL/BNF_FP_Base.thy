@@ -71,9 +71,6 @@ lemma case_sum_if:
 "case_sum f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
 
-lemma Inl_Inr_False: "(Inl x = Inr y) = False"
-by simp
-
 lemma prod_set_simps:
 "fsts (x, y) = {x}"
 "snds (x, y) = {y}"
