@@ -1855,7 +1855,7 @@ next
     from cInf_lessD[OF _ this] False obtain y where y: "x < y" "y \<in> I" "f y < a"
       by auto
     then have "eventually (\<lambda>x. x \<in> I \<longrightarrow> f x < a) (at_right x)"
-      unfolding eventually_at_right by (metis less_imp_le le_less_trans mono)
+      unfolding eventually_at_right[OF `x < y`] by (metis less_imp_le le_less_trans mono)
     then show "eventually (\<lambda>x. f x < a) (at x within ({x<..} \<inter> I))"
       unfolding eventually_at_filter by eventually_elim simp
   qed

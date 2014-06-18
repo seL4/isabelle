@@ -789,13 +789,13 @@ lemma at_neq_bot [simp]: "at (a::'a::perfect_space) \<noteq> bot"
   by (simp add: at_eq_bot_iff not_open_singleton)
 
 lemma eventually_at_right:
-  fixes x :: "'a :: {no_top, linorder_topology}"
+  fixes x :: "'a :: linorder_topology"
+  assumes gt_ex: "x < y"
   shows "eventually P (at_right x) \<longleftrightarrow> (\<exists>b. x < b \<and> (\<forall>z. x < z \<and> z < b \<longrightarrow> P z))"
   unfolding eventually_at_topological
 proof safe
-  obtain y where "x < y" using gt_ex[of x] ..
+  note gt_ex
   moreover fix S assume "open S" "x \<in> S" note open_right[OF this, of y]
-  moreover note gt_ex[of x]
   moreover assume "\<forall>s\<in>S. s \<noteq> x \<longrightarrow> s \<in> {x<..} \<longrightarrow> P s"
   ultimately show "\<exists>b>x. \<forall>z. x < z \<and> z < b \<longrightarrow> P z"
     by (auto simp: subset_eq Ball_def)
@@ -806,11 +806,12 @@ next
 qed
 
 lemma eventually_at_left:
-  fixes x :: "'a :: {no_bot, linorder_topology}"
+  fixes x :: "'a :: linorder_topology"
+  assumes lt_ex: "y < x"
   shows "eventually P (at_left x) \<longleftrightarrow> (\<exists>b. x > b \<and> (\<forall>z. b < z \<and> z < x \<longrightarrow> P z))"
   unfolding eventually_at_topological
 proof safe
-  obtain y where "y < x" using lt_ex[of x] ..
+  note lt_ex
   moreover fix S assume "open S" "x \<in> S" note open_left[OF this, of y]
   moreover assume "\<forall>s\<in>S. s \<noteq> x \<longrightarrow> s \<in> {..<x} \<longrightarrow> P s"
   ultimately show "\<exists>b<x. \<forall>z. b < z \<and> z < x \<longrightarrow> P z"
@@ -821,13 +822,21 @@ next
     by (intro exI[of _ "{b <..}"]) auto
 qed
 
+lemma trivial_limit_at_right_top: "at_right (top::_::{order_top, linorder_topology}) = bot"
+  unfolding filter_eq_iff eventually_at_topological by auto
+
+lemma trivial_limit_at_left_bot: "at_left (bot::_::{order_bot, linorder_topology}) = bot"
+  unfolding filter_eq_iff eventually_at_topological by auto
+
 lemma trivial_limit_at_left_real [simp]:
-  "\<not> trivial_limit (at_left (x::'a::{no_bot, unbounded_dense_linorder, linorder_topology}))"
-  unfolding trivial_limit_def eventually_at_left by (auto dest: dense)
+  "\<not> trivial_limit (at_left (x::'a::{no_bot, dense_order, linorder_topology}))"
+  using lt_ex[of x]
+  by safe (auto simp add: trivial_limit_def eventually_at_left dest: dense)
 
 lemma trivial_limit_at_right_real [simp]:
-  "\<not> trivial_limit (at_right (x::'a::{no_top, unbounded_dense_linorder, linorder_topology}))"
-  unfolding trivial_limit_def eventually_at_right by (auto dest: dense)
+  "\<not> trivial_limit (at_right (x::'a::{no_top, dense_order, linorder_topology}))"
+  using gt_ex[of x]
+  by safe (auto simp add: trivial_limit_def eventually_at_right dest: dense)
 
 lemma at_eq_sup_left_right: "at (x::'a::linorder_topology) = sup (at_left x) (at_right x)"
   by (auto simp: eventually_at_filter filter_eq_iff eventually_sup 
@@ -866,6 +875,15 @@ lemma filterlim_ident: "LIM x F. x :> F"
 lemma filterlim_cong:
   "F1 = F1' \<Longrightarrow> F2 = F2' \<Longrightarrow> eventually (\<lambda>x. f x = g x) F2 \<Longrightarrow> filterlim f F1 F2 = filterlim g F1' F2'"
   by (auto simp: filterlim_def le_filter_def eventually_filtermap elim: eventually_elim2)
+
+lemma filterlim_mono_eventually:
+  assumes "filterlim f F G" and ord: "F \<le> F'" "G' \<le> G"
+  assumes eq: "eventually (\<lambda>x. f x = f' x) G'"
+  shows "filterlim f' F' G'"
+  apply (rule filterlim_cong[OF refl refl eq, THEN iffD1])
+  apply (rule filterlim_mono[OF _ ord])
+  apply fact
+  done
 
 lemma filterlim_principal:
   "(LIM x F. f x :> principal S) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> S) F)"
@@ -1179,7 +1197,7 @@ lemma filterlim_at_bot_lt:
   by (metis filterlim_at_bot filterlim_at_bot_le lt_ex order_le_less_trans)
 
 lemma filterlim_at_bot_at_right:
-  fixes f :: "'a::{no_top, linorder_topology} \<Rightarrow> 'b::linorder"
+  fixes f :: "'a::linorder_topology \<Rightarrow> 'b::linorder"
   assumes mono: "\<And>x y. Q x \<Longrightarrow> Q y \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
   assumes bij: "\<And>x. P x \<Longrightarrow> f (g x) = x" "\<And>x. P x \<Longrightarrow> Q (g x)"
   assumes Q: "eventually Q (at_right a)" and bound: "\<And>b. Q b \<Longrightarrow> a < b"
@@ -1194,14 +1212,14 @@ proof -
     with x have "P z" by auto
     have "eventually (\<lambda>x. x \<le> g z) (at_right a)"
       using bound[OF bij(2)[OF `P z`]]
-      unfolding eventually_at_right by (auto intro!: exI[of _ "g z"])
+      unfolding eventually_at_right[OF bound[OF bij(2)[OF `P z`]]] by (auto intro!: exI[of _ "g z"])
     with Q show "eventually (\<lambda>x. f x \<le> z) (at_right a)"
       by eventually_elim (metis bij `P z` mono)
   qed
 qed
 
 lemma filterlim_at_top_at_left:
-  fixes f :: "'a::{no_bot, linorder_topology} \<Rightarrow> 'b::linorder"
+  fixes f :: "'a::linorder_topology \<Rightarrow> 'b::linorder"
   assumes mono: "\<And>x y. Q x \<Longrightarrow> Q y \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
   assumes bij: "\<And>x. P x \<Longrightarrow> f (g x) = x" "\<And>x. P x \<Longrightarrow> Q (g x)"
   assumes Q: "eventually Q (at_left a)" and bound: "\<And>b. Q b \<Longrightarrow> b < a"
@@ -1216,7 +1234,7 @@ proof -
     with x have "P z" by auto
     have "eventually (\<lambda>x. g z \<le> x) (at_left a)"
       using bound[OF bij(2)[OF `P z`]]
-      unfolding eventually_at_left by (auto intro!: exI[of _ "g z"])
+      unfolding eventually_at_left[OF bound[OF bij(2)[OF `P z`]]] by (auto intro!: exI[of _ "g z"])
     with Q show "eventually (\<lambda>x. z \<le> f x) (at_left a)"
       by eventually_elim (metis bij `P z` mono)
   qed

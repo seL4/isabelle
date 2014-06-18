@@ -1990,6 +1990,13 @@ lemma nn_integral_density:
      (auto intro!: nn_integral_cong_AE
            simp: measurable_If max_def ereal_zero_le_0_iff nn_integral_density')
 
+lemma density_distr:
+  assumes [measurable]: "f \<in> borel_measurable N" "X \<in> measurable M N"
+  shows "density (distr M N X) f = distr (density M (\<lambda>x. f (X x))) N X"
+  by (intro measure_eqI)
+     (auto simp add: emeasure_density nn_integral_distr emeasure_distr
+           split: split_indicator intro!: nn_integral_cong)
+
 lemma emeasure_restricted:
   assumes S: "S \<in> sets M" and X: "X \<in> sets M"
   shows "emeasure (density M (indicator S)) X = emeasure M (S \<inter> X)"

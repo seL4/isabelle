@@ -559,4 +559,62 @@ proof
 qed
 end
 
+lemma interval_cases:
+  fixes S :: "'a :: conditionally_complete_linorder set"
+  assumes ivl: "\<And>a b x. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> x \<in> S"
+  shows "\<exists>a b. S = {} \<or>
+    S = UNIV \<or>
+    S = {..<b} \<or>
+    S = {..b} \<or>
+    S = {a<..} \<or>
+    S = {a..} \<or>
+    S = {a<..<b} \<or>
+    S = {a<..b} \<or>
+    S = {a..<b} \<or>
+    S = {a..b}"
+proof -
+  def lower \<equiv> "{x. \<exists>s\<in>S. s \<le> x}" and upper \<equiv> "{x. \<exists>s\<in>S. x \<le> s}"
+  with ivl have "S = lower \<inter> upper"
+    by auto
+  moreover 
+  have "\<exists>a. upper = UNIV \<or> upper = {} \<or> upper = {.. a} \<or> upper = {..< a}"
+  proof cases
+    assume *: "bdd_above S \<and> S \<noteq> {}"
+    from * have "upper \<subseteq> {.. Sup S}"
+      by (auto simp: upper_def intro: cSup_upper2)
+    moreover from * have "{..< Sup S} \<subseteq> upper"
+      by (force simp add: less_cSup_iff upper_def subset_eq Ball_def)
+    ultimately have "upper = {.. Sup S} \<or> upper = {..< Sup S}"
+      unfolding ivl_disj_un(2)[symmetric] by auto
+    then show ?thesis by auto
+  next
+    assume "\<not> (bdd_above S \<and> S \<noteq> {})"
+    then have "upper = UNIV \<or> upper = {}"
+      by (auto simp: upper_def bdd_above_def not_le dest: less_imp_le)
+    then show ?thesis
+      by auto
+  qed
+  moreover
+  have "\<exists>b. lower = UNIV \<or> lower = {} \<or> lower = {b ..} \<or> lower = {b <..}"
+  proof cases
+    assume *: "bdd_below S \<and> S \<noteq> {}"
+    from * have "lower \<subseteq> {Inf S ..}"
+      by (auto simp: lower_def intro: cInf_lower2)
+    moreover from * have "{Inf S <..} \<subseteq> lower"
+      by (force simp add: cInf_less_iff lower_def subset_eq Ball_def)
+    ultimately have "lower = {Inf S ..} \<or> lower = {Inf S <..}"
+      unfolding ivl_disj_un(1)[symmetric] by auto
+    then show ?thesis by auto
+  next
+    assume "\<not> (bdd_below S \<and> S \<noteq> {})"
+    then have "lower = UNIV \<or> lower = {}"
+      by (auto simp: lower_def bdd_below_def not_le dest: less_imp_le)
+    then show ?thesis
+      by auto
+  qed
+  ultimately show ?thesis
+    unfolding greaterThanAtMost_def greaterThanLessThan_def atLeastAtMost_def atLeastLessThan_def
+    by (elim exE disjE) auto
+qed
+
 end

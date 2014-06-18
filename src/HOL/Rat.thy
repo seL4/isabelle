@@ -916,6 +916,8 @@ lemma Rats_induct [case_names of_rat, induct set: Rats]:
   "q \<in> \<rat> \<Longrightarrow> (\<And>r. P (of_rat r)) \<Longrightarrow> P q"
   by (rule Rats_cases) auto
 
+lemma Rats_infinite: "\<not> finite \<rat>"
+  by (auto dest!: finite_imageD simp: inj_on_def infinite_UNIV_char_0 Rats_def)
 
 subsection {* Implementation of rational numbers as pairs of integers *}
 

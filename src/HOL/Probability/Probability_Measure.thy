@@ -745,6 +745,11 @@ proof -
   finally show ?thesis .
 qed
 
+lemma distributed_integrable_var:
+  fixes X :: "'a \<Rightarrow> real"
+  shows "distributed M lborel X (\<lambda>x. ereal (f x)) \<Longrightarrow> integrable lborel (\<lambda>x. f x * x) \<Longrightarrow> integrable M X"
+  using distributed_integrable[of M lborel X f "\<lambda>x. x"] by simp
+
 lemma (in prob_space) distributed_variance:
   fixes f::"real \<Rightarrow> real"
   assumes D: "distributed M lborel X f"

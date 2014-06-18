@@ -538,6 +538,10 @@ lemma four_x_squared:
   shows "4 * x\<^sup>2 = (2 * x)\<^sup>2"
 by (simp add: power2_eq_square)
 
+lemma sqrt_at_top: "LIM x at_top. sqrt x :: real :> at_top"
+  by (rule filterlim_at_top_at_top[where Q="\<lambda>x. True" and P="\<lambda>x. 0 < x" and g="power2"])
+     (auto intro: eventually_gt_at_top)
+
 subsection {* Square Root of Sum of Squares *}
 
 lemma sum_squares_bound: 

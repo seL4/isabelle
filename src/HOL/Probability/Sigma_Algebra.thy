@@ -364,6 +364,17 @@ proof -
   finally show ?thesis .
 qed
 
+
+lemma (in sigma_algebra) countable:
+  assumes "\<And>a. a \<in> A \<Longrightarrow> {a} \<in> M" "countable A"
+  shows "A \<in> M"
+proof -
+  have "(\<Union>a\<in>A. {a}) \<in> M"
+    using assms by (intro countable_UN') auto
+  also have "(\<Union>a\<in>A. {a}) = A" by auto
+  finally show ?thesis by auto
+qed
+
 lemma ring_of_sets_Pow: "ring_of_sets sp (Pow sp)"
   by (auto simp: ring_of_sets_iff)
 
@@ -2026,6 +2037,26 @@ proof -
     apply (subst eq)
     apply (metis ba cb)
     done
+qed
+
+lemma measurable_discrete_difference:
+  assumes f: "f \<in> measurable M N"
+  assumes X: "countable X"
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes space: "\<And>x. x \<in> X \<Longrightarrow> g x \<in> space N"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "g \<in> measurable M N"
+  unfolding measurable_def
+proof safe
+  fix x assume "x \<in> space M" then show "g x \<in> space N"
+    using measurable_space[OF f, of x] eq[of x] space[of x] by (cases "x \<in> X") auto
+next
+  fix S assume S: "S \<in> sets N"
+  have "g -` S \<inter> space M = (f -` S \<inter> space M) - (\<Union>x\<in>X. {x}) \<union> (\<Union>x\<in>{x\<in>X. g x \<in> S}. {x})"
+    using sets.sets_into_space[OF sets] eq by auto
+  also have "\<dots> \<in> sets M"
+    by (safe intro!: sets.Diff sets.Un measurable_sets[OF f] S sets.countable_UN' X countable_Collect sets)
+  finally show "g -` S \<inter> space M \<in> sets M" .
 qed
 
 lemma measurable_mono1:

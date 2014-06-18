@@ -54,6 +54,11 @@ lemma at_bot_le_at_infinity:
   "at_bot \<le> (at_infinity :: real filter)"
   unfolding at_infinity_eq_at_top_bot by simp
 
+lemma filterlim_at_top_imp_at_infinity:
+  fixes f :: "_ \<Rightarrow> real"
+  shows "filterlim f at_top F \<Longrightarrow> filterlim f at_infinity F"
+  by (rule filterlim_mono[OF _ at_top_le_at_infinity order_refl])
+
 subsubsection {* Boundedness *}
 
 definition Bfun :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'a filter \<Rightarrow> bool" where

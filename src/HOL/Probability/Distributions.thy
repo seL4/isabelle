@@ -9,258 +9,6 @@ theory Distributions
   imports Convolution Information
 begin
 
-lemma tendsto_at_topI_sequentially:
-  fixes f :: "real \<Rightarrow> 'b::first_countable_topology"
-  assumes *: "\<And>X. filterlim X at_top sequentially \<Longrightarrow> (\<lambda>n. f (X n)) ----> y"
-  shows "(f ---> y) at_top"
-  unfolding filterlim_iff
-proof safe
-  fix P assume "eventually P (nhds y)"
-  then have seq: "\<And>f. f ----> y \<Longrightarrow> eventually (\<lambda>x. P (f x)) at_top"
-    unfolding eventually_nhds_iff_sequentially by simp
-
-  show "eventually (\<lambda>x. P (f x)) at_top"
-  proof (rule ccontr)
-    assume "\<not> eventually (\<lambda>x. P (f x)) at_top"
-    then have "\<And>X. \<exists>x>X. \<not> P (f x)"
-      unfolding eventually_at_top_dense by simp
-    then obtain r where not_P: "\<And>x. \<not> P (f (r x))" and r: "\<And>x. x < r x"
-      by metis
-    
-    def s \<equiv> "rec_nat (r 0) (\<lambda>_ x. r (x + 1))"
-    then have [simp]: "s 0 = r 0" "\<And>n. s (Suc n) = r (s n + 1)"
-      by auto
-
-    { fix n have "n < s n" using r
-        by (induct n) (auto simp add: real_of_nat_Suc intro: less_trans add_strict_right_mono) }
-    note s_subseq = this
-
-    have "mono s"
-    proof (rule incseq_SucI)
-      fix n show "s n \<le> s (Suc n)"
-        using r[of "s n + 1"] by simp
-    qed
-
-    have "filterlim s at_top sequentially"
-      unfolding filterlim_at_top_gt[where c=0] eventually_sequentially
-    proof (safe intro!: exI)
-      fix Z :: real and n assume "0 < Z" "natceiling Z \<le> n"
-      with real_natceiling_ge[of Z] `n < s n`
-      show "Z \<le> s n"
-        by auto
-    qed
-    moreover then have "eventually (\<lambda>x. P (f (s x))) sequentially"
-      by (rule seq[OF *])
-    then obtain n where "P (f (s n))"
-      by (auto simp: eventually_sequentially)
-    then show False
-      using not_P by (cases n) auto
-  qed
-qed
-  
-lemma tendsto_integral_at_top:
-  fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
-  assumes [simp]: "sets M = sets borel" and f[measurable]: "integrable M f"
-  shows "((\<lambda>y. \<integral> x. indicator {.. y} x *\<^sub>R f x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
-proof (rule tendsto_at_topI_sequentially)
-  fix X :: "nat \<Rightarrow> real" assume "filterlim X at_top sequentially"
-  show "(\<lambda>n. \<integral>x. indicator {..X n} x *\<^sub>R f x \<partial>M) ----> integral\<^sup>L M f"
-  proof (rule integral_dominated_convergence)
-    show "integrable M (\<lambda>x. norm (f x))"
-      by (rule integrable_norm) fact
-    show "AE x in M. (\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
-    proof
-      fix x
-      from `filterlim X at_top sequentially` 
-      have "eventually (\<lambda>n. x \<le> X n) sequentially"
-        unfolding filterlim_at_top_ge[where c=x] by auto
-      then show "(\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
-        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_elim1)
-    qed
-    fix n show "AE x in M. norm (indicator {..X n} x *\<^sub>R f x) \<le> norm (f x)"
-      by (auto split: split_indicator)
-  qed auto
-qed
-
-lemma filterlim_at_top_imp_at_infinity:
-  fixes f :: "_ \<Rightarrow> real"
-  shows "filterlim f at_top F \<Longrightarrow> filterlim f at_infinity F"
-  by (rule filterlim_mono[OF _ at_top_le_at_infinity order_refl])
-
-lemma measurable_discrete_difference:
-  fixes f :: "'a \<Rightarrow> 'b::t1_space"
-  assumes f: "f \<in> measurable M N"
-  assumes X: "countable X"
-  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
-  assumes space: "\<And>x. x \<in> X \<Longrightarrow> g x \<in> space N"
-  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
-  shows "g \<in> measurable M N"
-  unfolding measurable_def
-proof safe
-  fix x assume "x \<in> space M" then show "g x \<in> space N"
-    using measurable_space[OF f, of x] eq[of x] space[of x] by (cases "x \<in> X") auto
-next
-  fix S assume S: "S \<in> sets N"
-  have "g -` S \<inter> space M = (f -` S \<inter> space M) - (\<Union>x\<in>X. {x}) \<union> (\<Union>x\<in>{x\<in>X. g x \<in> S}. {x})"
-    using sets.sets_into_space[OF sets] eq by auto
-  also have "\<dots> \<in> sets M"
-    by (safe intro!: sets.Diff sets.Un measurable_sets[OF f] S sets.countable_UN' X countable_Collect sets)
-  finally show "g -` S \<inter> space M \<in> sets M" .
-qed
-
-lemma AE_discrete_difference:
-  assumes X: "countable X"
-  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
-  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
-  shows "AE x in M. x \<notin> X"
-proof -
-  have X_sets: "(\<Union>x\<in>X. {x}) \<in> sets M"
-    using assms by (intro sets.countable_UN') auto
-  have "emeasure M (\<Union>x\<in>X. {x}) = (\<integral>\<^sup>+ i. emeasure M {i} \<partial>count_space X)"
-    by (rule emeasure_UN_countable) (auto simp: assms disjoint_family_on_def)
-  also have "\<dots> = (\<integral>\<^sup>+ i. 0 \<partial>count_space X)"
-    by (intro nn_integral_cong) (simp add: null)
-  finally show "AE x in M. x \<notin> X"
-    using AE_iff_measurable[of X M "\<lambda>x. x \<notin> X"] X_sets sets.sets_into_space[OF sets] by auto
-qed
-
-lemma integrable_discrete_difference:
-  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
-  assumes X: "countable X"
-  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
-  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
-  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
-  shows "integrable M f \<longleftrightarrow> integrable M g"
-  unfolding integrable_iff_bounded
-proof (rule conj_cong)
-  { assume "f \<in> borel_measurable M" then have "g \<in> borel_measurable M"
-      by (rule measurable_discrete_difference[where X=X]) (auto simp: assms) }
-  moreover
-  { assume "g \<in> borel_measurable M" then have "f \<in> borel_measurable M"
-      by (rule measurable_discrete_difference[where X=X]) (auto simp: assms) }
-  ultimately show "f \<in> borel_measurable M \<longleftrightarrow> g \<in> borel_measurable M" ..
-next
-  have "AE x in M. x \<notin> X"
-    by (rule AE_discrete_difference) fact+
-  then have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) = (\<integral>\<^sup>+ x. norm (g x) \<partial>M)"
-    by (intro nn_integral_cong_AE) (auto simp: eq)
-  then show "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) < \<infinity> \<longleftrightarrow> (\<integral>\<^sup>+ x. norm (g x) \<partial>M) < \<infinity>"
-    by simp
-qed
-
-lemma integral_discrete_difference:
-  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
-  assumes X: "countable X"
-  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
-  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
-  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
-  shows "integral\<^sup>L M f = integral\<^sup>L M g"
-proof (rule integral_eq_cases)
-  show eq: "integrable M f \<longleftrightarrow> integrable M g"
-    by (rule integrable_discrete_difference[where X=X]) fact+
-
-  assume f: "integrable M f"
-  show "integral\<^sup>L M f = integral\<^sup>L M g"
-  proof (rule integral_cong_AE)
-    show "f \<in> borel_measurable M" "g \<in> borel_measurable M"
-      using f eq by (auto intro: borel_measurable_integrable)
-
-    have "AE x in M. x \<notin> X"
-      by (rule AE_discrete_difference) fact+
-    with AE_space show "AE x in M. f x = g x"
-      by eventually_elim fact
-  qed
-qed
-
-lemma has_bochner_integral_discrete_difference:
-  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
-  assumes X: "countable X"
-  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
-  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
-  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
-  shows "has_bochner_integral M f x \<longleftrightarrow> has_bochner_integral M g x"
-  using integrable_discrete_difference[of X M f g, OF assms]
-  using integral_discrete_difference[of X M f g, OF assms]
-  by (metis has_bochner_integral_iff)
-
-lemma has_bochner_integral_even_function:
-  fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
-  assumes f: "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x) x"
-  assumes even: "\<And>x. f (- x) = f x"
-  shows "has_bochner_integral lborel f (2 *\<^sub>R x)"
-proof -
-  have indicator: "\<And>x::real. indicator {..0} (- x) = indicator {0..} x"
-    by (auto split: split_indicator)
-  have "has_bochner_integral lborel (\<lambda>x. indicator {.. 0} x *\<^sub>R f x) x"
-    by (subst lborel_has_bochner_integral_real_affine_iff[where c="-1" and t=0])
-       (auto simp: indicator even f)
-  with f have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x + indicator {.. 0} x *\<^sub>R f x) (x + x)"
-    by (rule has_bochner_integral_add)
-  then have "has_bochner_integral lborel f (x + x)"
-    by (rule has_bochner_integral_discrete_difference[where X="{0}", THEN iffD1, rotated 4])
-       (auto split: split_indicator)
-  then show ?thesis
-    by (simp add: scaleR_2)
-qed
-
-lemma has_bochner_integral_odd_function:
-  fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
-  assumes f: "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x) x"
-  assumes odd: "\<And>x. f (- x) = - f x"
-  shows "has_bochner_integral lborel f 0"
-proof -
-  have indicator: "\<And>x::real. indicator {..0} (- x) = indicator {0..} x"
-    by (auto split: split_indicator)
-  have "has_bochner_integral lborel (\<lambda>x. - indicator {.. 0} x *\<^sub>R f x) x"
-    by (subst lborel_has_bochner_integral_real_affine_iff[where c="-1" and t=0])
-       (auto simp: indicator odd f)
-  from has_bochner_integral_minus[OF this]
-  have "has_bochner_integral lborel (\<lambda>x. indicator {.. 0} x *\<^sub>R f x) (- x)"
-    by simp 
-  with f have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x + indicator {.. 0} x *\<^sub>R f x) (x + - x)"
-    by (rule has_bochner_integral_add)
-  then have "has_bochner_integral lborel f (x + - x)"
-    by (rule has_bochner_integral_discrete_difference[where X="{0}", THEN iffD1, rotated 4])
-       (auto split: split_indicator)
-  then show ?thesis
-    by simp
-qed
-
-
-lemma filterlim_power2_at_top[intro]: "filterlim (\<lambda>(x::real). x\<^sup>2) at_top at_top"
-  by (auto intro!: filterlim_at_top_mult_at_top filterlim_ident simp: power2_eq_square)
-
-lemma distributed_integrable_var:
-  fixes X :: "'a \<Rightarrow> real"
-  shows "distributed M lborel X (\<lambda>x. ereal (f x)) \<Longrightarrow> integrable lborel (\<lambda>x. f x * x) \<Longrightarrow> integrable M X"
-  using distributed_integrable[of M lborel X f "\<lambda>x. x"] by simp
-
-lemma (in ordered_comm_monoid_add) setsum_pos: 
-  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 < f i) \<Longrightarrow> 0 < setsum f I"
-  by (induct I rule: finite_ne_induct) (auto intro: add_pos_pos)
-
-lemma ln_sqrt: "0 < x \<Longrightarrow> ln (sqrt x) = ln x / 2"
-  by (simp add: ln_powr powr_numeral ln_powr[symmetric] mult_commute)
-
-lemma distr_cong: "M = K \<Longrightarrow> sets N = sets L \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> f x = g x) \<Longrightarrow> distr M N f = distr K L g"
-  using sets_eq_imp_space_eq[of N L] by (simp add: distr_def Int_def cong: rev_conj_cong)
-
-lemma AE_borel_affine: 
-  fixes P :: "real \<Rightarrow> bool"
-  shows "c \<noteq> 0 \<Longrightarrow> Measurable.pred borel P \<Longrightarrow> AE x in lborel. P x \<Longrightarrow> AE x in lborel. P (t + c * x)"
-  by (subst lborel_real_affine[where t="- t / c" and c="1 / c"])
-     (simp_all add: AE_density AE_distr_iff field_simps)
-
-lemma density_distr:
-  assumes [measurable]: "f \<in> borel_measurable N" "X \<in> measurable M N"
-  shows "density (distr M N X) f = distr (density M (\<lambda>x. f (X x))) N X"
-  by (intro measure_eqI)
-     (auto simp add: emeasure_density nn_integral_distr emeasure_distr
-           split: split_indicator intro!: nn_integral_cong)
-
-lemma ereal_mult_indicator: "ereal (x * indicator A y) = ereal x * indicator A y"
-  by (simp split: split_indicator)
-
 lemma (in prob_space) distributed_affine:
   fixes f :: "real \<Rightarrow> ereal"
   assumes f: "distributed M lborel X f"
@@ -1178,7 +926,8 @@ proof -
   proof (rule nn_integral_FTC_atLeast)
     have "((\<lambda>x::real. - exp (- x\<^sup>2) / 2) ---> - 0 / 2) at_top"
       by (intro tendsto_divide tendsto_minus filterlim_compose[OF exp_at_bot]
-                   filterlim_compose[OF filterlim_uminus_at_bot_at_top])
+                   filterlim_compose[OF filterlim_uminus_at_bot_at_top]
+                   filterlim_pow_at_top filterlim_ident)
          auto
     then show "((\<lambda>a::real. - exp (- a\<^sup>2) / 2) ---> 0) at_top"
       by simp
@@ -1211,14 +960,17 @@ proof -
         assume "even k"
         have "((\<lambda>x. ((x\<^sup>2)^(k div 2 + 1) / exp (x\<^sup>2)) * (1 / x) :: real) ---> 0 * 0) at_top"
           by (intro tendsto_intros tendsto_divide_0[OF tendsto_const] filterlim_compose[OF tendsto_power_div_exp_0]
-                   filterlim_at_top_imp_at_infinity filterlim_ident filterlim_power2_at_top)
+                   filterlim_at_top_imp_at_infinity filterlim_ident filterlim_pow_at_top filterlim_ident)
+             auto
         also have "(\<lambda>x. ((x\<^sup>2)^(k div 2 + 1) / exp (x\<^sup>2)) * (1 / x) :: real) = ?M (k + 1)"
           using `even k` by (auto simp: even_mult_two_ex fun_eq_iff exp_minus field_simps power2_eq_square power_mult)
         finally show ?thesis by simp
       next
         assume "odd k"
         have "((\<lambda>x. ((x\<^sup>2)^((k - 1) div 2 + 1) / exp (x\<^sup>2)) :: real) ---> 0) at_top"
-          by (intro filterlim_compose[OF tendsto_power_div_exp_0] filterlim_at_top_imp_at_infinity filterlim_ident filterlim_power2_at_top)
+          by (intro filterlim_compose[OF tendsto_power_div_exp_0] filterlim_at_top_imp_at_infinity
+                    filterlim_ident filterlim_pow_at_top)
+             auto
         also have "(\<lambda>x. ((x\<^sup>2)^((k - 1) div 2 + 1) / exp (x\<^sup>2)) :: real) = ?M (k + 1)"
           using `odd k` by (auto simp: odd_Suc_mult_two_ex fun_eq_iff exp_minus field_simps power2_eq_square power_mult)
         finally show ?thesis by simp

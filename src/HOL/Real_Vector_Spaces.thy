@@ -856,14 +856,63 @@ by (induct n) (simp_all add: norm_mult)
 lemma setprod_norm:
   fixes f :: "'a \<Rightarrow> 'b::{comm_semiring_1,real_normed_div_algebra}"
   shows "setprod (\<lambda>x. norm(f x)) A = norm (setprod f A)"
-proof (cases "finite A")
-  case True then show ?thesis 
-    by (induct A rule: finite_induct) (auto simp: norm_mult)
-next
-  case False then show ?thesis
-    by (metis norm_one setprod.infinite) 
-qed
+  by (induct A rule: infinite_finite_induct) (auto simp: norm_mult)
 
+lemma norm_setprod_le: 
+  "norm (setprod f A) \<le> (\<Prod>a\<in>A. norm (f a :: 'a :: {real_normed_algebra_1, comm_monoid_mult}))"
+proof (induction A rule: infinite_finite_induct)
+  case (insert a A)
+  then have "norm (setprod f (insert a A)) \<le> norm (f a) * norm (setprod f A)"
+    by (simp add: norm_mult_ineq)
+  also have "norm (setprod f A) \<le> (\<Prod>a\<in>A. norm (f a))"
+    by (rule insert)
+  finally show ?case
+    by (simp add: insert mult_left_mono)
+qed simp_all
+
+lemma norm_setprod_diff:
+  fixes z w :: "'i \<Rightarrow> 'a::{real_normed_algebra_1, comm_monoid_mult}"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> norm (z i) \<le> 1) \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> norm (w i) \<le> 1) \<Longrightarrow>
+    norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) \<le> (\<Sum>i\<in>I. norm (z i - w i))" 
+proof (induction I rule: infinite_finite_induct)
+  case (insert i I)
+  note insert.hyps[simp]
+
+  have "norm ((\<Prod>i\<in>insert i I. z i) - (\<Prod>i\<in>insert i I. w i)) =
+    norm ((\<Prod>i\<in>I. z i) * (z i - w i) + ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) * w i)"
+    (is "_ = norm (?t1 + ?t2)")
+    by (auto simp add: field_simps)
+  also have "... \<le> norm ?t1 + norm ?t2"
+    by (rule norm_triangle_ineq)
+  also have "norm ?t1 \<le> norm (\<Prod>i\<in>I. z i) * norm (z i - w i)"
+    by (rule norm_mult_ineq)
+  also have "\<dots> \<le> (\<Prod>i\<in>I. norm (z i)) * norm(z i - w i)"
+    by (rule mult_right_mono) (auto intro: norm_setprod_le)
+  also have "(\<Prod>i\<in>I. norm (z i)) \<le> (\<Prod>i\<in>I. 1)"
+    by (intro setprod_mono) (auto intro!: insert)
+  also have "norm ?t2 \<le> norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) * norm (w i)"
+    by (rule norm_mult_ineq)
+  also have "norm (w i) \<le> 1"
+    by (auto intro: insert)
+  also have "norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) \<le> (\<Sum>i\<in>I. norm (z i - w i))"
+    using insert by auto
+  finally show ?case
+    by (auto simp add: add_ac mult_right_mono mult_left_mono)
+qed simp_all
+
+lemma norm_power_diff: 
+  fixes z w :: "'a::{real_normed_algebra_1, comm_monoid_mult}"
+  assumes "norm z \<le> 1" "norm w \<le> 1"
+  shows "norm (z^m - w^m) \<le> m * norm (z - w)"
+proof -
+  have "norm (z^m - w^m) = norm ((\<Prod> i < m. z) - (\<Prod> i < m. w))"
+    by (simp add: setprod_constant)
+  also have "\<dots> \<le> (\<Sum>i<m. norm (z - w))"
+    by (intro norm_setprod_diff) (auto simp add: assms)
+  also have "\<dots> = m * norm (z - w)"
+    by (simp add: real_of_nat_def)
+  finally show ?thesis .
+qed
 
 subsection {* Metric spaces *}
 
@@ -1734,6 +1783,55 @@ class banach = real_normed_vector + complete_space
 instance real :: banach by default
 
 lemma tendsto_at_topI_sequentially:
+  fixes f :: "real \<Rightarrow> 'b::first_countable_topology"
+  assumes *: "\<And>X. filterlim X at_top sequentially \<Longrightarrow> (\<lambda>n. f (X n)) ----> y"
+  shows "(f ---> y) at_top"
+  unfolding filterlim_iff
+proof safe
+  fix P assume "eventually P (nhds y)"
+  then have seq: "\<And>f. f ----> y \<Longrightarrow> eventually (\<lambda>x. P (f x)) at_top"
+    unfolding eventually_nhds_iff_sequentially by simp
+
+  show "eventually (\<lambda>x. P (f x)) at_top"
+  proof (rule ccontr)
+    assume "\<not> eventually (\<lambda>x. P (f x)) at_top"
+    then have "\<And>X. \<exists>x>X. \<not> P (f x)"
+      unfolding eventually_at_top_dense by simp
+    then obtain r where not_P: "\<And>x. \<not> P (f (r x))" and r: "\<And>x. x < r x"
+      by metis
+    
+    def s \<equiv> "rec_nat (r 0) (\<lambda>_ x. r (x + 1))"
+    then have [simp]: "s 0 = r 0" "\<And>n. s (Suc n) = r (s n + 1)"
+      by auto
+
+    { fix n have "n < s n" using r
+        by (induct n) (auto simp add: real_of_nat_Suc intro: less_trans add_strict_right_mono) }
+    note s_subseq = this
+
+    have "mono s"
+    proof (rule incseq_SucI)
+      fix n show "s n \<le> s (Suc n)"
+        using r[of "s n + 1"] by simp
+    qed
+
+    have "filterlim s at_top sequentially"
+      unfolding filterlim_at_top_gt[where c=0] eventually_sequentially
+    proof (safe intro!: exI)
+      fix Z :: real and n assume "0 < Z" "natceiling Z \<le> n"
+      with real_natceiling_ge[of Z] `n < s n`
+      show "Z \<le> s n"
+        by auto
+    qed
+    moreover then have "eventually (\<lambda>x. P (f (s x))) sequentially"
+      by (rule seq[OF *])
+    then obtain n where "P (f (s n))"
+      by (auto simp: eventually_sequentially)
+    then show False
+      using not_P by (cases n) auto
+  qed
+qed
+
+lemma tendsto_at_topI_sequentially_real:
   fixes f :: "real \<Rightarrow> real"
   assumes mono: "mono f"
   assumes limseq: "(\<lambda>n. f (real n)) ----> y"

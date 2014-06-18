@@ -23,6 +23,9 @@ subsection "Relate extended reals and the indicator function"
 lemma ereal_indicator: "ereal (indicator A x) = indicator A x"
   by (auto simp: indicator_def one_ereal_def)
 
+lemma ereal_mult_indicator: "ereal (x * indicator A y) = ereal x * indicator A y"
+  by (simp split: split_indicator)
+
 lemma ereal_indicator_pos[simp,intro]: "0 \<le> (indicator A x ::ereal)"
   unfolding indicator_def by auto
 
@@ -793,26 +796,42 @@ proof (rule ring_of_setsI)
     by (auto intro!: antisym)
 qed
 
-lemma UN_from_nat: "(\<Union>i. N i) = (\<Union>i. N (Countable.from_nat i))"
+lemma UN_from_nat_into: 
+  assumes I: "countable I" "I \<noteq> {}"
+  shows "(\<Union>i\<in>I. N i) = (\<Union>i. N (from_nat_into I i))"
 proof -
-  have "\<Union>range N = \<Union>(N ` range from_nat)" by simp
-  then have "(\<Union>i. N i) = (\<Union>i. (N \<circ> Countable.from_nat) i)"
+  have "(\<Union>i\<in>I. N i) = \<Union>(N ` range (from_nat_into I))"
+    using I by simp
+  also have "\<dots> = (\<Union>i. (N \<circ> from_nat_into I) i)"
     by (simp only: SUP_def image_comp)
-  then show ?thesis by simp
+  finally show ?thesis by simp
+qed
+
+lemma null_sets_UN':
+  assumes "countable I"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> N i \<in> null_sets M"
+  shows "(\<Union>i\<in>I. N i) \<in> null_sets M"
+proof cases
+  assume "I = {}" then show ?thesis by simp
+next
+  assume "I \<noteq> {}"
+  show ?thesis
+  proof (intro conjI CollectI null_setsI)
+    show "(\<Union>i\<in>I. N i) \<in> sets M"
+      using assms by (intro sets.countable_UN') auto
+    have "emeasure M (\<Union>i\<in>I. N i) \<le> (\<Sum>n. emeasure M (N (from_nat_into I n)))"
+      unfolding UN_from_nat_into[OF `countable I` `I \<noteq> {}`]
+      using assms `I \<noteq> {}` by (intro emeasure_subadditive_countably) (auto intro: from_nat_into)
+    also have "(\<lambda>n. emeasure M (N (from_nat_into I n))) = (\<lambda>_. 0)"
+      using assms `I \<noteq> {}` by (auto intro: from_nat_into)
+    finally show "emeasure M (\<Union>i\<in>I. N i) = 0"
+      by (intro antisym emeasure_nonneg) simp
+  qed
 qed
 
 lemma null_sets_UN[intro]:
-  assumes "\<And>i::'i::countable. N i \<in> null_sets M"
-  shows "(\<Union>i. N i) \<in> null_sets M"
-proof (intro conjI CollectI null_setsI)
-  show "(\<Union>i. N i) \<in> sets M" using assms by auto
-  have "0 \<le> emeasure M (\<Union>i. N i)" by (rule emeasure_nonneg)
-  moreover have "emeasure M (\<Union>i. N i) \<le> (\<Sum>n. emeasure M (N (Countable.from_nat n)))"
-    unfolding UN_from_nat[of N]
-    using assms by (intro emeasure_subadditive_countably) auto
-  ultimately show "emeasure M (\<Union>i. N i) = 0"
-    using assms by (auto simp: null_setsD1)
-qed
+  "(\<And>i::'i::countable. N i \<in> null_sets M) \<Longrightarrow> (\<Union>i. N i) \<in> null_sets M"
+  by (rule null_sets_UN') auto
 
 lemma null_set_Int1:
   assumes "B \<in> null_sets M" "A \<in> sets M" shows "A \<inter> B \<in> null_sets M"
@@ -1020,6 +1039,18 @@ proof
   ultimately show "AE x in M. \<forall>i. P i x"
     unfolding eventually_ae_filter by auto
 qed auto
+
+lemma AE_discrete_difference:
+  assumes X: "countable X"
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  shows "AE x in M. x \<notin> X"
+proof -
+  have "(\<Union>x\<in>X. {x}) \<in> null_sets M"
+    using assms by (intro null_sets_UN') auto
+  from AE_not_in[OF this] show "AE x in M. x \<notin> X"
+    by auto
+qed
 
 lemma AE_finite_all:
   assumes f: "finite S" shows "(AE x in M. \<forall>i\<in>S. P i x) \<longleftrightarrow> (\<forall>i\<in>S. AE x in M. P i x)"

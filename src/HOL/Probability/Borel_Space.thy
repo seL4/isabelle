@@ -159,6 +159,18 @@ proof (rule borel_measurableI)
     using A by auto
 qed
 
+lemma borel_measurable_continuous_countable_exceptions:
+  fixes f :: "'a::t1_space \<Rightarrow> 'b::topological_space"
+  assumes X: "countable X"
+  assumes "continuous_on (- X) f"
+  shows "f \<in> borel_measurable borel"
+proof (rule measurable_discrete_difference[OF _ X])
+  have "X \<in> sets borel"
+    by (rule sets.countable[OF _ X]) auto
+  then show "(\<lambda>x. if x \<in> X then undefined else f x) \<in> borel_measurable borel"
+    by (intro borel_measurable_continuous_on_if assms continuous_intros)
+qed auto
+
 lemma borel_measurable_continuous_on1:
   "continuous_on UNIV f \<Longrightarrow> f \<in> borel_measurable borel"
   using borel_measurable_continuous_on_if[of UNIV f "\<lambda>_. undefined"]
@@ -691,6 +703,10 @@ subsection "Borel measurable operators"
 lemma borel_measurable_norm[measurable]: "norm \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
 
+lemma borel_measurable_sgn [measurable]: "(sgn::'a::real_normed_vector \<Rightarrow> 'a) \<in> borel_measurable borel"
+  by (rule borel_measurable_continuous_countable_exceptions[where X="{0}"])
+     (auto intro!: continuous_on_sgn continuous_on_id)
+
 lemma borel_measurable_uminus[measurable (raw)]:
   fixes g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes g: "g \<in> borel_measurable M"
@@ -780,21 +796,18 @@ lemma borel_measurable_const_add[measurable (raw)]:
   using affine_borel_measurable_vector[of f M a 1] by simp
 
 lemma borel_measurable_inverse[measurable (raw)]:
-  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_div_algebra}"
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_div_algebra"
   assumes f: "f \<in> borel_measurable M"
   shows "(\<lambda>x. inverse (f x)) \<in> borel_measurable M"
-proof -
-  have "(\<lambda>x::'b. if x \<in> UNIV - {0} then inverse x else inverse 0) \<in> borel_measurable borel"
-    by (intro borel_measurable_continuous_on_open' continuous_intros) auto
-  also have "(\<lambda>x::'b. if x \<in> UNIV - {0} then inverse x else inverse 0) = inverse"
-    by (intro ext) auto
-  finally show ?thesis using f by simp
-qed
+  apply (rule measurable_compose[OF f])
+  apply (rule borel_measurable_continuous_countable_exceptions[of "{0}"])
+  apply (auto intro!: continuous_on_inverse continuous_on_id)
+  done
 
 lemma borel_measurable_divide[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow>
-    (\<lambda>x. f x / g x::'b::{second_countable_topology, real_normed_field}) \<in> borel_measurable M"
-  by (simp add: field_divide_inverse)
+    (\<lambda>x. f x / g x::'b::{second_countable_topology, real_normed_div_algebra}) \<in> borel_measurable M"
+  by (simp add: divide_inverse)
 
 lemma borel_measurable_max[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. max (g x) (f x) :: 'b::{second_countable_topology, dense_linorder, linorder_topology}) \<in> borel_measurable M"
@@ -846,19 +859,10 @@ qed
 lemma borel_measurable_ln[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M"
   shows "(\<lambda>x. ln (f x)) \<in> borel_measurable M"
-proof -
-  { fix x :: real assume x: "x \<le> 0"
-    { fix x::real assume "x \<le> 0" then have "\<And>u. exp u = x \<longleftrightarrow> False" by auto }
-    from this[of x] x this[of 0] have "ln 0 = ln x"
-      by (auto simp: ln_def) }
-  note ln_imp = this
-  have "(\<lambda>x. if f x \<in> {0<..} then ln (f x) else ln 0) \<in> borel_measurable M"
-    by (rule borel_measurable_continuous_on_open[OF _ _ f])
-       (auto intro!: continuous_intros)
-  also have "(\<lambda>x. if x \<in> {0<..} then ln x else ln 0) = ln"
-    by (simp add: fun_eq_iff not_less ln_imp)
-  finally show ?thesis .
-qed
+  apply (rule measurable_compose[OF f])
+  apply (rule borel_measurable_continuous_countable_exceptions[of "{0}"])
+  apply (auto intro!: continuous_on_ln continuous_on_id)
+  done
 
 lemma borel_measurable_log[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. log (g x) (f x)) \<in> borel_measurable M"

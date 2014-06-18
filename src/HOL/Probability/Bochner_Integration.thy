@@ -1235,6 +1235,30 @@ proof -
   qed fact
 qed
 
+lemma integrableI_bounded_set:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes [measurable]: "A \<in> sets M" "f \<in> borel_measurable M"
+  assumes finite: "emeasure M A < \<infinity>"
+    and bnd: "AE x in M. x \<in> A \<longrightarrow> norm (f x) \<le> B"
+    and null: "AE x in M. x \<notin> A \<longrightarrow> f x = 0"
+  shows "integrable M f"
+proof (rule integrableI_bounded)
+  { fix x :: 'b have "norm x \<le> B \<Longrightarrow> 0 \<le> B"
+      using norm_ge_zero[of x] by arith }
+  with bnd null have "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (max 0 B) * indicator A x \<partial>M)"
+    by (intro nn_integral_mono_AE) (auto split: split_indicator split_max)
+  also have "\<dots> < \<infinity>"
+    using finite by (subst nn_integral_cmult_indicator) (auto simp: max_def)
+  finally show "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>" .
+qed simp
+
+lemma integrableI_bounded_set_indicator:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "A \<in> sets M \<Longrightarrow> f \<in> borel_measurable M \<Longrightarrow>
+    emeasure M A < \<infinity> \<Longrightarrow> (AE x in M. x \<in> A \<longrightarrow> norm (f x) \<le> B) \<Longrightarrow>
+    integrable M (\<lambda>x. indicator A x *\<^sub>R f x)"
+  by (rule integrableI_bounded_set[where A=A]) auto
+
 lemma integrableI_nonneg:
   fixes f :: "'a \<Rightarrow> real"
   assumes "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>M) < \<infinity>"
@@ -1267,6 +1291,11 @@ proof safe
   finally show "(\<integral>\<^sup>+ x. ereal (norm (g x)) \<partial>M) < \<infinity>" .
 qed 
 
+lemma integrable_mult_indicator:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "A \<in> sets M \<Longrightarrow> integrable M f \<Longrightarrow> integrable M (\<lambda>x. indicator A x *\<^sub>R f x)"
+  by (rule integrable_bound[of M f]) (auto split: split_indicator)
+
 lemma integrable_abs[simp, intro]:
   fixes f :: "'a \<Rightarrow> real"
   assumes [measurable]: "integrable M f" shows "integrable M (\<lambda>x. \<bar>f x\<bar>)"
@@ -1282,10 +1311,20 @@ lemma integrable_norm_cancel:
   assumes [measurable]: "integrable M (\<lambda>x. norm (f x))" "f \<in> borel_measurable M" shows "integrable M f"
   using assms by (rule integrable_bound) auto
 
+lemma integrable_norm_iff:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "f \<in> borel_measurable M \<Longrightarrow> integrable M (\<lambda>x. norm (f x)) \<longleftrightarrow> integrable M f"
+  by (auto intro: integrable_norm_cancel)
+
 lemma integrable_abs_cancel:
   fixes f :: "'a \<Rightarrow> real"
   assumes [measurable]: "integrable M (\<lambda>x. \<bar>f x\<bar>)" "f \<in> borel_measurable M" shows "integrable M f"
   using assms by (rule integrable_bound) auto
+
+lemma integrable_abs_iff:
+  fixes f :: "'a \<Rightarrow> real"
+  shows "f \<in> borel_measurable M \<Longrightarrow> integrable M (\<lambda>x. \<bar>f x\<bar>) \<longleftrightarrow> integrable M f"
+  by (auto intro: integrable_abs_cancel)
 
 lemma integrable_max[simp, intro]:
   fixes f :: "'a \<Rightarrow> real"
@@ -1329,6 +1368,65 @@ next
     using * by (auto simp: measure_def emeasure_notin_sets)
   finally show ?thesis .
 qed
+
+lemma integrable_discrete_difference:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes X: "countable X"
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "integrable M f \<longleftrightarrow> integrable M g"
+  unfolding integrable_iff_bounded
+proof (rule conj_cong)
+  { assume "f \<in> borel_measurable M" then have "g \<in> borel_measurable M"
+      by (rule measurable_discrete_difference[where X=X]) (auto simp: assms) }
+  moreover
+  { assume "g \<in> borel_measurable M" then have "f \<in> borel_measurable M"
+      by (rule measurable_discrete_difference[where X=X]) (auto simp: assms) }
+  ultimately show "f \<in> borel_measurable M \<longleftrightarrow> g \<in> borel_measurable M" ..
+next
+  have "AE x in M. x \<notin> X"
+    by (rule AE_discrete_difference) fact+
+  then have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) = (\<integral>\<^sup>+ x. norm (g x) \<partial>M)"
+    by (intro nn_integral_cong_AE) (auto simp: eq)
+  then show "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) < \<infinity> \<longleftrightarrow> (\<integral>\<^sup>+ x. norm (g x) \<partial>M) < \<infinity>"
+    by simp
+qed
+
+lemma integral_discrete_difference:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes X: "countable X"
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "integral\<^sup>L M f = integral\<^sup>L M g"
+proof (rule integral_eq_cases)
+  show eq: "integrable M f \<longleftrightarrow> integrable M g"
+    by (rule integrable_discrete_difference[where X=X]) fact+
+
+  assume f: "integrable M f"
+  show "integral\<^sup>L M f = integral\<^sup>L M g"
+  proof (rule integral_cong_AE)
+    show "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+      using f eq by (auto intro: borel_measurable_integrable)
+
+    have "AE x in M. x \<notin> X"
+      by (rule AE_discrete_difference) fact+
+    with AE_space show "AE x in M. f x = g x"
+      by eventually_elim fact
+  qed
+qed
+
+lemma has_bochner_integral_discrete_difference:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes X: "countable X"
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
+  assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
+  shows "has_bochner_integral M f x \<longleftrightarrow> has_bochner_integral M g x"
+  using integrable_discrete_difference[of X M f g, OF assms]
+  using integral_discrete_difference[of X M f g, OF assms]
+  by (metis has_bochner_integral_iff)
 
 lemma
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}" and w :: "'a \<Rightarrow> real"
@@ -2188,54 +2286,28 @@ lemma (in finite_measure) integral_less_AE_space:
   shows "integral\<^sup>L M X < integral\<^sup>L M Y"
   using gt by (intro integral_less_AE[OF int, where A="space M"]) auto
 
-lemma integrable_mult_indicator:
-  fixes f :: "'a \<Rightarrow> real"
-  shows "A \<in> sets M \<Longrightarrow> integrable M f \<Longrightarrow> integrable M (\<lambda>x. f x * indicator A x)"
-  by (rule integrable_bound[where f="\<lambda>x. \<bar>f x\<bar>"]) (auto split: split_indicator)
-
 lemma tendsto_integral_at_top:
-  fixes f :: "real \<Rightarrow> real"
-  assumes M: "sets M = sets borel" and f[measurable]: "integrable M f"
-  shows "((\<lambda>y. \<integral> x. f x * indicator {.. y} x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
-proof -
-  have M_measure[simp]: "borel_measurable M = borel_measurable borel"
-    using M by (simp add: sets_eq_imp_space_eq measurable_def)
-  { fix f :: "real \<Rightarrow> real" assume f: "integrable M f" "\<And>x. 0 \<le> f x"
-    then have [measurable]: "f \<in> borel_measurable borel"
-      by (simp add: real_integrable_def)
-    have "((\<lambda>y. \<integral> x. f x * indicator {.. y} x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
-    proof (rule tendsto_at_topI_sequentially)
-      have int: "\<And>n. integrable M (\<lambda>x. f x * indicator {.. n} x)"
-        by (rule integrable_mult_indicator) (auto simp: M f)
-      show "(\<lambda>n. \<integral> x. f x * indicator {..real n} x \<partial>M) ----> integral\<^sup>L M f"
-      proof (rule integral_dominated_convergence)
-        { fix x have "eventually (\<lambda>n. f x * indicator {..real n} x = f x) sequentially"
-            by (rule eventually_sequentiallyI[of "natceiling x"])
-               (auto split: split_indicator simp: natceiling_le_eq) }
-        from filterlim_cong[OF refl refl this]
-        show "AE x in M. (\<lambda>n. f x * indicator {..real n} x) ----> f x"
-          by (simp add: tendsto_const)
-        show "\<And>j. AE x in M. norm (f x * indicator {.. j} x) \<le> f x"
-          using f(2) by (intro AE_I2) (auto split: split_indicator)
-      qed (simp | fact)+
-      show "mono (\<lambda>y. \<integral> x. f x * indicator {..y} x \<partial>M)"
-        by (intro monoI integral_mono int) (auto split: split_indicator intro: f)
-    qed }
-  note nonneg = this
-  let ?P = "\<lambda>y. \<integral> x. max 0 (f x) * indicator {..y} x \<partial>M"
-  let ?N = "\<lambda>y. \<integral> x. max 0 (- f x) * indicator {..y} x \<partial>M"
-  let ?p = "integral\<^sup>L M (\<lambda>x. max 0 (f x))"
-  let ?n = "integral\<^sup>L M (\<lambda>x. max 0 (- f x))"
-  have "(?P ---> ?p) at_top" "(?N ---> ?n) at_top"
-    by (auto intro!: nonneg f)
-  note tendsto_diff[OF this]
-  also have "(\<lambda>y. ?P y - ?N y) = (\<lambda>y. \<integral> x. f x * indicator {..y} x \<partial>M)"
-    by (subst integral_diff[symmetric])
-       (auto intro!: integrable_mult_indicator f integral_cong
-             simp: M split: split_max)
-  also have "?p - ?n = integral\<^sup>L M f"
-    by (subst integral_diff[symmetric]) (auto intro!: f integral_cong simp: M split: split_max)
-  finally show ?thesis .
+  fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
+  assumes [simp]: "sets M = sets borel" and f[measurable]: "integrable M f"
+  shows "((\<lambda>y. \<integral> x. indicator {.. y} x *\<^sub>R f x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
+proof (rule tendsto_at_topI_sequentially)
+  fix X :: "nat \<Rightarrow> real" assume "filterlim X at_top sequentially"
+  show "(\<lambda>n. \<integral>x. indicator {..X n} x *\<^sub>R f x \<partial>M) ----> integral\<^sup>L M f"
+  proof (rule integral_dominated_convergence)
+    show "integrable M (\<lambda>x. norm (f x))"
+      by (rule integrable_norm) fact
+    show "AE x in M. (\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
+    proof
+      fix x
+      from `filterlim X at_top sequentially` 
+      have "eventually (\<lambda>n. x \<le> X n) sequentially"
+        unfolding filterlim_at_top_ge[where c=x] by auto
+      then show "(\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
+        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_elim1)
+    qed
+    fix n show "AE x in M. norm (indicator {..X n} x *\<^sub>R f x) \<le> norm (f x)"
+      by (auto split: split_indicator)
+  qed auto
 qed
 
 lemma

@@ -1303,29 +1303,42 @@ lemma ln_eq_zero_iff [simp]: "0 < x \<Longrightarrow> ln x = 0 \<longleftrightar
 lemma ln_less_zero: "0 < x \<Longrightarrow> x < 1 \<Longrightarrow> ln x < 0"
   by simp
 
-lemma isCont_ln: "0 < x \<Longrightarrow> isCont ln x"
-  apply (subgoal_tac "isCont ln (exp (ln x))", simp)
-  apply (rule isCont_inverse_function [where f=exp], simp_all)
-  done
+lemma ln_neg_is_const: "x \<le> 0 \<Longrightarrow> ln x = (THE x. False)"
+  by (auto simp add: ln_def intro!: arg_cong[where f=The])
+
+lemma isCont_ln: assumes "x \<noteq> 0" shows "isCont ln x"
+proof cases
+  assume "0 < x"
+  moreover then have "isCont ln (exp (ln x))"
+    by (intro isCont_inv_fun[where d="\<bar>x\<bar>" and f=exp]) auto
+  ultimately show ?thesis
+    by simp
+next
+  assume "\<not> 0 < x" with `x \<noteq> 0` show "isCont ln x"
+    unfolding isCont_def
+    by (subst filterlim_cong[OF _ refl, of _ "nhds (ln 0)" _ "\<lambda>_. ln 0"])
+       (auto simp: ln_neg_is_const not_less eventually_at dist_real_def
+                intro!: tendsto_const exI[of _ "\<bar>x\<bar>"])
+qed
 
 lemma tendsto_ln [tendsto_intros]:
-  "(f ---> a) F \<Longrightarrow> 0 < a \<Longrightarrow> ((\<lambda>x. ln (f x)) ---> ln a) F"
+  "(f ---> a) F \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> ((\<lambda>x. ln (f x)) ---> ln a) F"
   by (rule isCont_tendsto_compose [OF isCont_ln])
 
 lemma continuous_ln:
-  "continuous F f \<Longrightarrow> 0 < f (Lim F (\<lambda>x. x)) \<Longrightarrow> continuous F (\<lambda>x. ln (f x))"
+  "continuous F f \<Longrightarrow> f (Lim F (\<lambda>x. x)) \<noteq> 0 \<Longrightarrow> continuous F (\<lambda>x. ln (f x))"
   unfolding continuous_def by (rule tendsto_ln)
 
 lemma isCont_ln' [continuous_intros]:
-  "continuous (at x) f \<Longrightarrow> 0 < f x \<Longrightarrow> continuous (at x) (\<lambda>x. ln (f x))"
+  "continuous (at x) f \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow> continuous (at x) (\<lambda>x. ln (f x))"
   unfolding continuous_at by (rule tendsto_ln)
 
 lemma continuous_within_ln [continuous_intros]:
-  "continuous (at x within s) f \<Longrightarrow> 0 < f x \<Longrightarrow> continuous (at x within s) (\<lambda>x. ln (f x))"
+  "continuous (at x within s) f \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow> continuous (at x within s) (\<lambda>x. ln (f x))"
   unfolding continuous_within by (rule tendsto_ln)
 
 lemma continuous_on_ln [continuous_intros]:
-  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. 0 < f x) \<Longrightarrow> continuous_on s (\<lambda>x. ln (f x))"
+  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. f x \<noteq> 0) \<Longrightarrow> continuous_on s (\<lambda>x. ln (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_ln)
 
 lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
@@ -1992,6 +2005,9 @@ lemma ln_powr: "ln (x powr y) = y * ln x"
 lemma ln_root: "\<lbrakk> n > 0; b > 0 \<rbrakk> \<Longrightarrow> ln (root n b) =  ln b / n"
 by(simp add: root_powr_inverse ln_powr)
 
+lemma ln_sqrt: "0 < x \<Longrightarrow> ln (sqrt x) = ln x / 2"
+  by (simp add: ln_powr powr_numeral ln_powr[symmetric] mult_commute)
+
 lemma log_root: "\<lbrakk> n > 0; a > 0 \<rbrakk> \<Longrightarrow> log b (root n a) =  log b a / n"
 by(simp add: log_def ln_root)
 
@@ -2085,30 +2101,30 @@ proof -
 qed
 
 lemma tendsto_powr [tendsto_intros]:
-  "\<lbrakk>(f ---> a) F; (g ---> b) F; 0 < a\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x powr g x) ---> a powr b) F"
+  "\<lbrakk>(f ---> a) F; (g ---> b) F; a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x powr g x) ---> a powr b) F"
   unfolding powr_def by (intro tendsto_intros)
 
 lemma continuous_powr:
   assumes "continuous F f"
     and "continuous F g"
-    and "0 < f (Lim F (\<lambda>x. x))"
+    and "f (Lim F (\<lambda>x. x)) \<noteq> 0"
   shows "continuous F (\<lambda>x. (f x) powr (g x))"
   using assms unfolding continuous_def by (rule tendsto_powr)
 
 lemma continuous_at_within_powr[continuous_intros]:
   assumes "continuous (at a within s) f"
     and "continuous (at a within s) g"
-    and "0 < f a"
+    and "f a \<noteq> 0"
   shows "continuous (at a within s) (\<lambda>x. (f x) powr (g x))"
   using assms unfolding continuous_within by (rule tendsto_powr)
 
 lemma isCont_powr[continuous_intros, simp]:
-  assumes "isCont f a" "isCont g a" "0 < f a"
+  assumes "isCont f a" "isCont g a" "f a \<noteq> 0"
   shows "isCont (\<lambda>x. (f x) powr g x) a"
   using assms unfolding continuous_at by (rule tendsto_powr)
 
 lemma continuous_on_powr[continuous_intros]:
-  assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. 0 < f x"
+  assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. f x \<noteq> 0"
   shows "continuous_on s (\<lambda>x. (f x) powr (g x))"
   using assms unfolding continuous_on_def by (fast intro: tendsto_powr)
 
@@ -2149,6 +2165,53 @@ proof (rule tendstoI)
   ultimately
   show "eventually (\<lambda>x. dist (f x powr s) 0 < e) F" by (rule eventually_elim1)
 qed
+
+(* it is funny that this isn't in the library! It could go in Transcendental *)
+lemma tendsto_exp_limit_at_right:
+  fixes x :: real
+  shows "((\<lambda>y. (1 + x * y) powr (1 / y)) ---> exp x) (at_right 0)"
+proof cases
+  assume "x \<noteq> 0"
+
+  have "((\<lambda>y. ln (1 + x * y)::real) has_real_derivative 1 * x) (at 0)"
+    by (auto intro!: derivative_eq_intros)
+  then have "((\<lambda>y. ln (1 + x * y) / y) ---> x) (at 0)"
+    by (auto simp add: has_field_derivative_def field_has_derivative_at) 
+  then have *: "((\<lambda>y. exp (ln (1 + x * y) / y)) ---> exp x) (at 0)"
+    by (rule tendsto_intros)
+  then show ?thesis
+  proof (rule filterlim_mono_eventually)
+    show "eventually (\<lambda>xa. exp (ln (1 + x * xa) / xa) = (1 + x * xa) powr (1 / xa)) (at_right 0)"
+      unfolding eventually_at_right[OF zero_less_one]
+      using `x \<noteq> 0` by (intro exI[of _ "1 / \<bar>x\<bar>"]) (auto simp: field_simps powr_def)
+  qed (simp_all add: at_eq_sup_left_right)
+qed (simp add: tendsto_const)
+
+lemma tendsto_exp_limit_at_top:
+  fixes x :: real
+  shows "((\<lambda>y. (1 + x / y) powr y) ---> exp x) at_top"
+  apply (subst filterlim_at_top_to_right)
+  apply (simp add: inverse_eq_divide)
+  apply (rule tendsto_exp_limit_at_right)
+  done
+
+lemma tendsto_exp_limit_sequentially:
+  fixes x :: real
+  shows "(\<lambda>n. (1 + x / n) ^ n) ----> exp x"
+proof (rule filterlim_mono_eventually)
+  from reals_Archimedean2 [of "abs x"] obtain n :: nat where *: "real n > abs x" ..
+  hence "eventually (\<lambda>n :: nat. 0 < 1 + x / real n) at_top"
+    apply (intro eventually_sequentiallyI [of n])
+    apply (case_tac "x \<ge> 0")
+    apply (rule add_pos_nonneg, auto intro: divide_nonneg_nonneg)
+    apply (subgoal_tac "x / real xa > -1")
+    apply (auto simp add: field_simps)
+    done
+  then show "eventually (\<lambda>n. (1 + x / n) powr n = (1 + x / n) ^ n) at_top"
+    by (rule eventually_elim1) (erule powr_realpow)
+  show "(\<lambda>n. (1 + x / real n) powr real n) ----> exp x"
+    by (rule filterlim_compose [OF tendsto_exp_limit_at_top filterlim_real_sequentially])
+qed auto
 
 subsection {* Sine and Cosine *}
 
@@ -2374,6 +2437,31 @@ lemma cos_double: "cos(2* x) = ((cos x)\<^sup>2) - ((sin x)\<^sup>2)"
   using cos_add [where x=x and y=x]
   by (simp add: power2_eq_square)
 
+lemma sin_x_le_x: assumes x: "x \<ge> 0" shows "sin x \<le> x"
+proof -
+  let ?f = "\<lambda>x. x - sin x"
+  from x have "?f x \<ge> ?f 0"
+    apply (rule DERIV_nonneg_imp_nondecreasing)
+    apply (intro allI impI exI[of _ "1 - cos x" for x])
+    apply (auto intro!: derivative_eq_intros simp: field_simps)
+    done
+  thus "sin x \<le> x" by simp
+qed
+
+lemma sin_x_ge_neg_x: assumes x: "x \<ge> 0" shows "sin x \<ge> - x"
+proof -
+  let ?f = "\<lambda>x. x + sin x"
+  from x have "?f x \<ge> ?f 0"
+    apply (rule DERIV_nonneg_imp_nondecreasing)
+    apply (intro allI impI exI[of _ "1 + cos x" for x])
+    apply (auto intro!: derivative_eq_intros simp: field_simps real_0_le_add_iff)
+    done
+  thus "sin x \<ge> -x" by simp
+qed
+
+lemma abs_sin_x_le_abs_x: "\<bar>sin x\<bar> \<le> \<bar>x\<bar>"
+  using sin_x_ge_neg_x [of x] sin_x_le_x [of x] sin_x_ge_neg_x [of "-x"] sin_x_le_x [of "-x"]
+  by (auto simp: abs_real_def)
 
 subsection {* The Constant Pi *}
 

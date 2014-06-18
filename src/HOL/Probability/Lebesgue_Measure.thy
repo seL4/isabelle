@@ -1274,18 +1274,53 @@ lemma integral_by_parts':
             =  F b * G b - F a * G a - \<integral>x. indicator {a .. b} x *\<^sub>R (f x * G x) \<partial>lborel" 
   using integral_by_parts[OF assms] by (simp add: mult_ac)
 
-lemma integral_tendsto_at_top:
-  fixes f :: "real \<Rightarrow> real"
-  assumes [simp, intro]: "\<And>x. isCont f x"
-  assumes [simp, arith]: "\<And>x. 0 \<le> f x"
-  assumes [simp]: "integrable lborel f"
-  assumes [measurable]: "f \<in> borel_measurable borel"
-  shows "((\<lambda>x. \<integral>xa. f xa * indicator {0..x} xa \<partial>lborel) ---> \<integral>xa. f xa * indicator {0..} xa \<partial>lborel) at_top"
-  apply (auto intro!: borel_integrable_atLeastAtMost monoI integral_mono tendsto_at_topI_sequentially  
-    split:split_indicator)
-  apply (rule integral_dominated_convergence[where w = " \<lambda>x. f x * indicator {0..} x"])
-  unfolding LIMSEQ_def  
-  apply (auto intro!: AE_I2 tendsto_mult integrable_mult_indicator split: split_indicator)
-  by (metis ge_natfloor_plus_one_imp_gt less_imp_le)
+lemma AE_borel_affine: 
+  fixes P :: "real \<Rightarrow> bool"
+  shows "c \<noteq> 0 \<Longrightarrow> Measurable.pred borel P \<Longrightarrow> AE x in lborel. P x \<Longrightarrow> AE x in lborel. P (t + c * x)"
+  by (subst lborel_real_affine[where t="- t / c" and c="1 / c"])
+     (simp_all add: AE_density AE_distr_iff field_simps)
+
+lemma has_bochner_integral_even_function:
+  fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
+  assumes f: "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x) x"
+  assumes even: "\<And>x. f (- x) = f x"
+  shows "has_bochner_integral lborel f (2 *\<^sub>R x)"
+proof -
+  have indicator: "\<And>x::real. indicator {..0} (- x) = indicator {0..} x"
+    by (auto split: split_indicator)
+  have "has_bochner_integral lborel (\<lambda>x. indicator {.. 0} x *\<^sub>R f x) x"
+    by (subst lborel_has_bochner_integral_real_affine_iff[where c="-1" and t=0])
+       (auto simp: indicator even f)
+  with f have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x + indicator {.. 0} x *\<^sub>R f x) (x + x)"
+    by (rule has_bochner_integral_add)
+  then have "has_bochner_integral lborel f (x + x)"
+    by (rule has_bochner_integral_discrete_difference[where X="{0}", THEN iffD1, rotated 4])
+       (auto split: split_indicator)
+  then show ?thesis
+    by (simp add: scaleR_2)
+qed
+
+lemma has_bochner_integral_odd_function:
+  fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
+  assumes f: "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x) x"
+  assumes odd: "\<And>x. f (- x) = - f x"
+  shows "has_bochner_integral lborel f 0"
+proof -
+  have indicator: "\<And>x::real. indicator {..0} (- x) = indicator {0..} x"
+    by (auto split: split_indicator)
+  have "has_bochner_integral lborel (\<lambda>x. - indicator {.. 0} x *\<^sub>R f x) x"
+    by (subst lborel_has_bochner_integral_real_affine_iff[where c="-1" and t=0])
+       (auto simp: indicator odd f)
+  from has_bochner_integral_minus[OF this]
+  have "has_bochner_integral lborel (\<lambda>x. indicator {.. 0} x *\<^sub>R f x) (- x)"
+    by simp 
+  with f have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R f x + indicator {.. 0} x *\<^sub>R f x) (x + - x)"
+    by (rule has_bochner_integral_add)
+  then have "has_bochner_integral lborel f (x + - x)"
+    by (rule has_bochner_integral_discrete_difference[where X="{0}", THEN iffD1, rotated 4])
+       (auto split: split_indicator)
+  then show ?thesis
+    by simp
+qed
 
 end

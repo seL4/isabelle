@@ -1319,7 +1319,6 @@ subsection{* Rationals *}
 lemma Rats_real_nat[simp]: "real(n::nat) \<in> \<rat>"
 by (simp add: real_eq_of_nat)
 
-
 lemma Rats_eq_int_div_int:
   "\<rat> = { real(i::int)/real(j::int) |i j. j \<noteq> 0}" (is "_ = ?S")
 proof
@@ -1995,6 +1994,9 @@ lemma natceiling_add_one: "0 <= x ==> natceiling(x + 1) = natceiling x + 1"
 lemma natceiling_subtract [simp]: "natceiling(x - real a) = natceiling x - a"
   unfolding natceiling_def real_of_int_of_nat_eq [symmetric] ceiling_subtract
   by simp
+
+lemma Rats_unbounded: "\<exists> q \<in> \<rat>. (x :: real) \<le> q"
+  by (auto intro!: bexI[of _ "of_nat (natceiling x)"]) (metis real_natceiling_ge real_of_nat_def)
 
 subsection {* Exponentiation with floor *}
 

@@ -344,6 +344,14 @@ lemmas sums_of_real = bounded_linear.sums [OF bounded_linear_of_real]
 lemmas summable_of_real = bounded_linear.summable [OF bounded_linear_of_real]
 lemmas suminf_of_real = bounded_linear.suminf [OF bounded_linear_of_real]
 
+lemmas sums_scaleR_left = bounded_linear.sums[OF bounded_linear_scaleR_left]
+lemmas summable_scaleR_left = bounded_linear.summable[OF bounded_linear_scaleR_left]
+lemmas suminf_scaleR_left = bounded_linear.suminf[OF bounded_linear_scaleR_left]
+
+lemmas sums_scaleR_right = bounded_linear.sums[OF bounded_linear_scaleR_right]
+lemmas summable_scaleR_right = bounded_linear.summable[OF bounded_linear_scaleR_right]
+lemmas suminf_scaleR_right = bounded_linear.suminf[OF bounded_linear_scaleR_right]
+
 subsection {* Infinite summability on real normed algebras *}
 
 context
