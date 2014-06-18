@@ -1619,9 +1619,9 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
 fun mash_can_suggest_facts ctxt overlord =
   not (Graph.is_empty (#access_G (peek_state ctxt overlord I)))
 
-(* Generate more suggestions than requested, because some might be thrown out
-   later for various reasons. *)
-fun generous_max_suggestions max_facts = 11 * max_facts div 10 + 20
+(* Generate more suggestions than requested, because some might be thrown out later for various
+   reasons (e.g., duplicates). *)
+fun generous_max_suggestions max_facts = 3 * max_facts div 2 + 25
 
 val mepo_weight = 0.5
 val mash_weight = 0.5
