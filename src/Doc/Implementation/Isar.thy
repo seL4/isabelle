@@ -6,7 +6,7 @@ chapter {* Isar language elements *}
 
 text {* The Isar proof language (see also
   \cite[\S2]{isabelle-isar-ref}) consists of three main categories of
-  language elements as follows.
+  language elements:
 
   \begin{enumerate}
 
@@ -191,7 +191,7 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
 
   \begin{itemize}
 
-  \item Goal addressing is further limited either to operate either
+  \item Goal addressing is further limited either to operate
   uniformly on \emph{all} subgoals, or specifically on the
   \emph{first} subgoal.
 
@@ -276,11 +276,10 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   the goal state.
 
   Example: @{method "rule"}, which captures the key ideas behind
-  structured reasoning in Isar in purest form.
+  structured reasoning in Isar in its purest form.
 
   \item \emph{Simple method} with weaker emphasis on facts, which are
-  inserted into subgoals to emulate old-style tactical as
-  ``premises''.
+  inserted into subgoals to emulate old-style tactical ``premises''.
 
   Examples: @{method "simp"}, @{method "blast"}, @{method "auto"}.
 
@@ -300,7 +299,7 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   tactic expressions as methods.\footnote{Aliases or abbreviations of
   the standard method combinators should be avoided.  Note that from
   Isabelle99 until Isabelle2009 the system did provide various odd
-  combinations of method wrappers that made user applications more
+  combinations of method syntax wrappers that made applications more
   complicated than necessary.}
 *}
 
@@ -362,31 +361,32 @@ text %mlex {* See also @{command method_setup} in
 
 notepad
 begin
+  fix A B :: bool
   assume a: A and b: B
 
   have "A \<and> B"
-    apply (tactic {* rtac @{thm conjI} 1 *})
-    using a apply (tactic {* resolve_tac facts 1 *})
-    using b apply (tactic {* resolve_tac facts 1 *})
+    apply (tactic \<open>rtac @{thm conjI} 1\<close>)
+    using a apply (tactic \<open>resolve_tac facts 1\<close>)
+    using b apply (tactic \<open>resolve_tac facts 1\<close>)
     done
 
   have "A \<and> B"
     using a and b
-    ML_val "@{Isar.goal}"
-    apply (tactic {* Method.insert_tac facts 1 *})
-    apply (tactic {* (rtac @{thm conjI} THEN_ALL_NEW atac) 1 *})
+    ML_val \<open>@{Isar.goal}\<close>
+    apply (tactic \<open>Method.insert_tac facts 1\<close>)
+    apply (tactic \<open>(rtac @{thm conjI} THEN_ALL_NEW atac) 1\<close>)
     done
 end
 
 text {* \medskip The next example implements a method that simplifies
-  the first subgoal by rewrite rules given as arguments.  *}
+  the first subgoal by rewrite rules that are given as arguments.  *}
 
-method_setup my_simp = {*
-  Attrib.thms >> (fn thms => fn ctxt =>
+method_setup my_simp =
+  \<open>Attrib.thms >> (fn thms => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
-        (put_simpset HOL_basic_ss ctxt addsimps thms) i)))
-*} "rewrite subgoal by given rules"
+        (put_simpset HOL_basic_ss ctxt addsimps thms) i)))\<close>
+  "rewrite subgoal by given rules"
 
 text {* The concrete syntax wrapping of @{command method_setup} always
   passes-through the proof context at the end of parsing, but it is
@@ -410,7 +410,7 @@ text {* The concrete syntax wrapping of @{command method_setup} always
 
 notepad
 begin
-  fix a b c
+  fix a b c :: 'a
   assume a: "a = b"
   assume b: "b = c"
   have "a = c" by (my_simp a b)
@@ -419,17 +419,17 @@ end
 text {* Here is a similar method that operates on all subgoals,
   instead of just the first one. *}
 
-method_setup my_simp_all = {*
-  Attrib.thms >> (fn thms => fn ctxt =>
+method_setup my_simp_all =
+  \<open>Attrib.thms >> (fn thms => fn ctxt =>
     SIMPLE_METHOD
       (CHANGED
         (ALLGOALS (asm_full_simp_tac
-          (put_simpset HOL_basic_ss ctxt addsimps thms)))))
-*} "rewrite all subgoals by given rules"
+          (put_simpset HOL_basic_ss ctxt addsimps thms)))))\<close>
+  "rewrite all subgoals by given rules"
 
 notepad
 begin
-  fix a b c
+  fix a b c :: 'a
   assume a: "a = b"
   assume b: "b = c"
   have "a = c" and "c = b" by (my_simp_all a b)
@@ -437,14 +437,16 @@ end
 
 text {* \medskip Apart from explicit arguments, common proof methods
   typically work with a default configuration provided by the context.
-  As a shortcut to rule management we use a cheap solution via functor
-  @{ML_functor Named_Thms} (see also @{file
+  As a shortcut to rule management we use a cheap solution via the
+  functor @{ML_functor Named_Thms} (see also @{file
   "~~/src/Pure/Tools/named_thms.ML"}).  *}
 
 ML {*
   structure My_Simps =
-    Named_Thms
-      (val name = @{binding my_simp} val description = "my_simp rule")
+    Named_Thms(
+      val name = @{binding my_simp}
+      val description = "my_simp rule"
+    )
 *}
 setup My_Simps.setup
 
@@ -454,13 +456,13 @@ text {* This provides ML access to a list of theorems in canonical
   proof method is now defined as before, but we append the explicit
   arguments and the rules from the context.  *}
 
-method_setup my_simp' = {*
-  Attrib.thms >> (fn thms => fn ctxt =>
+method_setup my_simp' =
+  \<open>Attrib.thms >> (fn thms => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
         (put_simpset HOL_basic_ss ctxt
-          addsimps (thms @ My_Simps.get ctxt)) i)))
-*} "rewrite subgoal by given rules and my_simp rules from the context"
+          addsimps (thms @ My_Simps.get ctxt)) i)))\<close>
+  "rewrite subgoal by given rules and my_simp rules from the context"
 
 text {*
   \medskip Method @{method my_simp'} can be used in Isar proofs
