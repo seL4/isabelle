@@ -8,43 +8,30 @@ chapter {* System integration *}
 
 section {* Isar toplevel \label{sec:isar-toplevel} *}
 
-text {* The Isar toplevel may be considered the central hub of the
-  Isabelle/Isar system, where all key components and sub-systems are
-  integrated into a single read-eval-print loop of Isar commands,
-  which also incorporates the underlying ML compiler.
+text {*
+  The Isar \emph{toplevel state} represents the outermost configuration that
+  is transformed by a sequence of transitions (commands) within a theory body.
+  This is a pure value with pure functions acting on it in a timeless and
+  stateless manner. Historically, the sequence of transitions was wrapped up
+  as sequential command loop, such that commands are applied sequentially
+  one-by-one. In contemporary Isabelle/Isar, processing toplevel commands
+  usually works in parallel in multi-threaded Isabelle/ML.
+*}
 
-  Isabelle/Isar departs from the original ``LCF system architecture''
-  where ML was really The Meta Language for defining theories and
-  conducting proofs.  Instead, ML now only serves as the
-  implementation language for the system (and user extensions), while
-  the specific Isar toplevel supports the concepts of theory and proof
-  development natively.  This includes the graph structure of theories
-  and the block structure of proofs, support for unlimited undo,
-  facilities for tracing, debugging, timing, profiling etc.
 
-  \medskip The toplevel maintains an implicit state, which is
-  transformed by a sequence of transitions -- either interactively or
-  in batch-mode.
+subsection {* Toplevel state *}
 
-  The toplevel state is a disjoint sum of empty @{text toplevel}, or
-  @{text theory}, or @{text proof}.  On entering the main Isar loop we
-  start with an empty toplevel.  A theory is commenced by giving a
-  @{text \<THEORY>} header; within a theory we may issue theory
-  commands such as @{text \<DEFINITION>}, or state a @{text
-  \<THEOREM>} to be proven.  Now we are within a proof state, with a
-  rich collection of Isar proof commands for structured proof
-  composition, or unstructured proof scripts.  When the proof is
-  concluded we get back to the theory, which is then updated by
-  storing the resulting fact.  Further theory declarations or theorem
-  statements with proofs may follow, until we eventually conclude the
-  theory development by issuing @{text \<END>}.  The resulting theory
-  is then stored within the theory database and we are back to the
-  empty toplevel.
-
-  In addition to these proper state transformations, there are also
-  some diagnostic commands for peeking at the toplevel state without
-  modifying it (e.g.\ \isakeyword{thm}, \isakeyword{term},
-  \isakeyword{print-cases}).
+text {*
+  The toplevel state is a disjoint sum of empty @{text toplevel}, or @{text
+  theory}, or @{text proof}. The initial toplevel is empty; a theory is
+  commenced by a @{command theory} header; within a theory we may use theory
+  commands such as @{command definition}, or state a @{command theorem} to be
+  proven. A proof state accepts a rich collection of Isar proof commands for
+  structured proof composition, or unstructured proof scripts. When the proof
+  is concluded we get back to the theory, which is then updated by defining
+  the resulting fact. Further theory declarations or theorem statements with
+  proofs may follow, until we eventually conclude the theory development by
+  issuing @{command end} to get back to the empty toplevel.
 *}
 
 text %mlref {*
@@ -62,9 +49,7 @@ text %mlref {*
 
   \item Type @{ML_type Toplevel.state} represents Isar toplevel
   states, which are normally manipulated through the concept of
-  toplevel transitions only (\secref{sec:toplevel-transition}).  Also
-  note that a raw toplevel state is subject to the same linearity
-  restrictions as a theory context (cf.~\secref{sec:context-theory}).
+  toplevel transitions only (\secref{sec:toplevel-transition}).
 
   \item @{ML Toplevel.UNDEF} is raised for undefined toplevel
   operations.  Many operations work only partially for certain cases,
