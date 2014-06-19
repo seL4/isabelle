@@ -1,3 +1,5 @@
+(*:wrap=hard:maxLineLen=78:*)
+
 theory Integration
 imports Base
 begin
@@ -176,62 +178,15 @@ text %mlref {*
 *}
 
 
-section {* Theory database \label{sec:theory-database} *}
+section {* Theory loader database *}
 
 text {*
-  %FIXME update
-
-  The theory database maintains a collection of theories, together
-  with some administrative information about their original sources,
-  which are held in an external store (i.e.\ some directory within the
-  regular file system).
-
-  The theory database is organized as a directed acyclic graph;
-  entries are referenced by theory name.  Although some additional
-  interfaces allow to include a directory specification as well, this
-  is only a hint to the underlying theory loader.  The internal theory
-  name space is flat!
-
-  Theory @{text A} is associated with the main theory file @{text
-  A}\verb,.thy,, which needs to be accessible through the theory
-  loader path.  Any number of additional ML source files may be
-  associated with each theory, by declaring these dependencies in the
-  theory header as @{text \<USES>}, and loading them consecutively
-  within the theory context.  The system keeps track of incoming ML
-  sources and associates them with the current theory.
-
-  The basic internal actions of the theory database are @{text
-  "update"} and @{text "remove"}:
-
-  \begin{itemize}
-
-  \item @{text "update A"} introduces a link of @{text "A"} with a
-  @{text "theory"} value of the same name; it asserts that the theory
-  sources are now consistent with that value;
-
-  \item @{text "remove A"} deletes entry @{text "A"} from the theory
-  database.
-  
-  \end{itemize}
-
-  These actions are propagated to sub- or super-graphs of a theory
-  entry as expected, in order to preserve global consistency of the
-  state of all loaded theories with the sources of the external store.
-  This implies certain causalities between actions: @{text "update"}
-  or @{text "remove"} of an entry will @{text "remove"} all
-  descendants.
-
-  \medskip There are separate user-level interfaces to operate on the
-  theory database directly or indirectly.  The primitive actions then
-  just happen automatically while working with the system.  In
-  particular, processing a theory header @{text "\<THEORY> A
-  \<IMPORTS> B\<^sub>1 \<dots> B\<^sub>n \<BEGIN>"} ensures that the
-  sub-graph of the collective imports @{text "B\<^sub>1 \<dots> B\<^sub>n"}
-  is up-to-date, too.  Earlier theories are reloaded as required, with
-  @{text update} actions proceeding in topological order according to
-  theory dependencies.  There may be also a wave of implied @{text
-  remove} actions for derived theory nodes until a stable situation
-  is achieved eventually.
+  In batch mode and within dumped logic images, the theory database maintains
+  a collection of theories as a directed acyclic graph. A theory may refer to
+  other theories as @{keyword "imports"}, or to auxiliary files via special
+  \emph{load commands} (e.g.\ @{command ML_file}). For each theory, the base
+  directory of its own theory file is called \emph{master directory}: this is
+  used as the relative location to refer to other files from that theory.
 *}
 
 text %mlref {*
@@ -239,48 +194,32 @@ text %mlref {*
   @{index_ML use_thy: "string -> unit"} \\
   @{index_ML use_thys: "string list -> unit"} \\
   @{index_ML Thy_Info.get_theory: "string -> theory"} \\
-  @{index_ML Thy_Info.remove_thy: "string -> unit"} \\[1ex]
-  @{index_ML Thy_Info.register_thy: "theory -> unit"} \\[1ex]
-  @{ML_text "datatype action = Update | Remove"} \\
-  @{index_ML Thy_Info.add_hook: "(Thy_Info.action -> string -> unit) -> unit"} \\
+  @{index_ML Thy_Info.remove_thy: "string -> unit"} \\
+  @{index_ML Thy_Info.register_thy: "theory -> unit"} \\
   \end{mldecls}
 
   \begin{description}
 
   \item @{ML use_thy}~@{text A} ensures that theory @{text A} is fully
-  up-to-date wrt.\ the external file store, reloading outdated
-  ancestors as required.  In batch mode, the simultaneous @{ML
-  use_thys} should be used exclusively.
+  up-to-date wrt.\ the external file store, reloading outdated ancestors as
+  required.
 
-  \item @{ML use_thys} is similar to @{ML use_thy}, but handles
-  several theories simultaneously.  Thus it acts like processing the
-  import header of a theory, without performing the merge of the
-  result.  By loading a whole sub-graph of theories like that, the
-  intrinsic parallelism can be exploited by the system, to speedup
-  loading.
+  \item @{ML use_thys} is similar to @{ML use_thy}, but handles several
+  theories simultaneously. Thus it acts like processing the import header of a
+  theory, without performing the merge of the result. By loading a whole
+  sub-graph of theories, the intrinsic parallelism can be exploited by the
+  system to speedup loading.
 
   \item @{ML Thy_Info.get_theory}~@{text A} retrieves the theory value
-  presently associated with name @{text A}.  Note that the result
-  might be outdated.
+  presently associated with name @{text A}. Note that the result might be
+  outdated wrt.\ the file-system content.
 
   \item @{ML Thy_Info.remove_thy}~@{text A} deletes theory @{text A} and all
   descendants from the theory database.
 
-  \item @{ML Thy_Info.register_thy}~@{text "text thy"} registers an
-  existing theory value with the theory loader database and updates
-  source version information according to the current file-system
-  state.
-
-  \item @{ML "Thy_Info.add_hook"}~@{text f} registers function @{text
-  f} as a hook for theory database actions.  The function will be
-  invoked with the action and theory name being involved; thus derived
-  actions may be performed in associated system components, e.g.\
-  maintaining the state of an editor for the theory sources.
-
-  The kind and order of actions occurring in practice depends both on
-  user interactions and the internal process of resolving theory
-  imports.  Hooks should not rely on a particular policy here!  Any
-  exceptions raised by the hook are ignored.
+  \item @{ML Thy_Info.register_thy}~@{text "text thy"} registers an existing
+  theory value with the theory loader database and updates source version
+  information according to the current file-system state.
 
   \end{description}
 *}
