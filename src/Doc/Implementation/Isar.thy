@@ -471,7 +471,7 @@ text {*
 
 notepad
 begin
-  fix a b c
+  fix a b c :: 'a
   assume [my_simp]: "a \<equiv> b"
   assume [my_simp]: "b \<equiv> c"
   have "a \<equiv> c" by my_simp'
