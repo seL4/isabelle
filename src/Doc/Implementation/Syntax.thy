@@ -1,3 +1,5 @@
+(*:wrap=hard:maxLineLen=78:*)
+
 theory Syntax
 imports Base
 begin
@@ -46,7 +48,7 @@ text {* Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} is
   resulting pre-term before full type-reconstruction is performed by
   @{text "check"}, for example.  Note that the formal status of bound
   variables, versus free variables, versus constants must not be
-  changed here! *}
+  changed between these phases! *}
 
 
 section {* Reading and pretty printing \label{sec:read-print} *}
@@ -57,7 +59,7 @@ text {* Read and print operations are roughly dual to each other, such
   side-conditions.  There are also explicit options to control
   suppressing of type information in the output.  The default
   configuration routinely looses information, so @{text "t' = read
-  (pretty t)"} might fail, produce a differently typed term, or a
+  (pretty t)"} might fail, or produce a differently typed term, or a
   completely different term in the face of syntactic overloading!  *}
 
 text %mlref {*
@@ -79,18 +81,19 @@ text {* Parsing and unparsing converts between actual source text and
   a certain \emph{pre-term} format, where all bindings and scopes are
   resolved faithfully.  Thus the names of free variables or constants
   are already determined in the sense of the logical context, but type
-  information might is still missing.  Pre-terms support an explicit
+  information might be still missing.  Pre-terms support an explicit
   language of \emph{type constraints} that may be augmented by user
-  code to guide the later \emph{check} phase, for example.
+  code to guide the later \emph{check} phase.
 
   Actual parsing is based on traditional lexical analysis and Earley
   parsing for arbitrary context-free grammars.  The user can specify
-  this via mixfix annotations.  Moreover, there are \emph{syntax
+  the grammar via mixfix annotations.  Moreover, there are \emph{syntax
   translations} that can be augmented by the user, either
   declaratively via @{command translations} or programmatically via
   @{command parse_translation}, @{command print_translation} etc.  The
   final scope resolution is performed by the system, according to name
-  spaces for types, constants etc.\ determined by the context.
+  spaces for types, term variables and constants etc.\ determined by
+  the context.
 *}
 
 text %mlref {*
@@ -126,7 +129,7 @@ text {* These operations define the transition from pre-terms and
   affecting the type-assignment of the given terms.
 
   \medskip The precise meaning of type checking depends on the context
-  --- additional check/uncheck plugins might be defined in user space!
+  --- additional check/uncheck plugins might be defined in user space.
 
   For example, the @{command class} command defines a context where
   @{text "check"} treats certain type instances of overloaded
