@@ -88,35 +88,36 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML Syntax.read_typs}~@{text "ctxt strs"} reads and checks a
+  \item @{ML Syntax.read_typs}~@{text "ctxt strs"} parses and checks a
   simultaneous list of source strings as types of the logic.
 
-  \item @{ML Syntax.read_terms}~@{text "ctxt strs"} reads and checks a
+  \item @{ML Syntax.read_terms}~@{text "ctxt strs"} parses and checks a
   simultaneous list of source strings as terms of the logic.
-  Type-reconstruction puts all parsed terms into the same scope.
+  Type-reconstruction puts all parsed terms into the same scope: types of
+  free variables ultimately need to coincide.
 
   If particular type-constraints are required for some of the arguments, the
-  read operations needs to be split into its parse and check phases, using
-  @{ML Type.constraint} on the intermediate pre-terms.
+  read operations needs to be split into its parse and check phases. Then it
+  is possible to use @{ML Type.constraint} on the intermediate pre-terms.
 
-  \item @{ML Syntax.read_props} ~@{text "ctxt strs"} reads and checks a
-  simultaneous list of source strings as propositions of the logic, with an
-  implicit type-constraint for each argument to make it of type @{typ prop};
-  this also affects the inner syntax for parsing. The remaining
-  type-reconstructions works as for @{ML Syntax.read_terms} above.
+  \item @{ML Syntax.read_props}~@{text "ctxt strs"} parses and checks a
+  simultaneous list of source strings as terms of the logic, with an implicit
+  type-constraint for each argument to enforce type @{typ prop}; this also
+  affects the inner syntax for parsing. The remaining type-reconstructions
+  works as for @{ML Syntax.read_terms} above.
 
   \item @{ML Syntax.read_typ}, @{ML Syntax.read_term}, @{ML Syntax.read_prop}
   are like the simultaneous versions above, but operate on a single argument
   only. This convenient shorthand is adequate in situations where a single
-  item in its own scope is processed. Never use @{ML "map o Syntax.read_term"}
-  where @{ML Syntax.read_terms} is actually intended!
+  item in its own scope is processed. Do not use @{ML "map o
+  Syntax.read_term"} where @{ML Syntax.read_terms} is actually intended!
 
   \item @{ML Syntax.pretty_typ}~@{text "ctxt T"} and @{ML
   Syntax.pretty_term}~@{text "ctxt t"} uncheck and pretty-print the given type
   or term, respectively. Although the uncheck phase acts on a simultaneous
   list as well, this is rarely relevant in practice, so only the singleton
-  case is provided as combined pretty operation. Moreover, the distinction of
-  term vs.\ proposition is ignored here.
+  case is provided as combined pretty operation. There is no distinction of
+  term vs.\ proposition.
 
   \item @{ML Syntax.string_of_typ} and @{ML Syntax.string_of_term} are
   convenient compositions of @{ML Syntax.pretty_typ} and @{ML
@@ -126,20 +127,21 @@ text %mlref {*
 
   \end{description}
 
-  The most important operations in practice are @{ML Syntax.read_term}, @{ML
-  Syntax.read_prop}, and @{ML Syntax.string_of_term}.
+  @{ML Syntax.read_term}, @{ML Syntax.read_prop}, and @{ML
+  Syntax.string_of_term} are the most important operations in practice.
 
   \medskip Note that the string values that are passed in and out here are
-  actually annotated by the system, to carry further markup that is relevant
-  for the Prover IDE \cite{isabelle-jedit}. User code should neither compose
-  its own strings for input, nor try to analyze the string for output.
+  annotated by the system, to carry further markup that is relevant for the
+  Prover IDE \cite{isabelle-jedit}. User code should neither compose its own
+  input strings, nor try to analyze the output strings. Conceptually this is
+  an abstract datatype, encoded into a concrete string for historical reasons.
 
   The standard way to provide the required position markup for input works via
   the outer syntax parser wrapper @{ML Parse.inner_syntax}, which is already
   part of @{ML Parse.typ}, @{ML Parse.term}, @{ML Parse.prop}. So a string
   obtained from one of the latter may be directly passed to the corresponding
-  read operation, in order to get PIDE markup of the input and precise
-  positions for warnings and errors.
+  read operation: this yields PIDE markup of the input and precise positions
+  for warning and error messages.
 *}
 
 
@@ -159,7 +161,7 @@ text {* Parsing and unparsing converts between actual source text and
   translations} that can be augmented by the user, either
   declaratively via @{command translations} or programmatically via
   @{command parse_translation}, @{command print_translation} etc.  The
-  final scope resolution is performed by the system, according to name
+  final scope-resolution is performed by the system, according to name
   spaces for types, term variables and constants etc.\ determined by
   the context.
 *}
@@ -173,7 +175,31 @@ text %mlref {*
   @{index_ML Syntax.unparse_term: "Proof.context -> term -> Pretty.T"} \\
   \end{mldecls}
 
-  %FIXME description
+  \begin{description}
+
+  \item @{ML Syntax.parse_typ}~@{text "ctxt str"} parses a source strings as
+  pre-type that is ready to be used with subsequent check operations.
+
+  \item @{ML Syntax.parse_term}~@{text "ctxt str"} parses a source strings as
+  pre-term that is ready to be used with subsequent check operations.
+
+  \item @{ML Syntax.parse_prop}~@{text "ctxt str"} parses a source strings as
+  pre-term that is ready to be used with subsequent check operations. The
+  inner syntax category is @{typ prop} and a suitable type-constraint is
+  included to ensure that this information is preserved during the check
+  phase.
+
+  \item @{ML Syntax.unparse_typ}~@{text "ctxt T"} unparses a type after
+  uncheck operations, to turn it into a pretty tree.
+
+  \item @{ML Syntax.unparse_term}~@{text "ctxt T"} unparses a term after
+  uncheck operations, to turn it into a pretty tree. There is no distinction
+  for propositions here.
+
+  \end{description}
+
+  These operations always operate on single items; use the combinator @{ML
+  map} to apply them to a list of items.
 *}
 
 
@@ -216,7 +242,39 @@ text %mlref {*
   @{index_ML Syntax.uncheck_terms: "Proof.context -> term list -> term list"} \\
   \end{mldecls}
 
-  %FIXME description
+  \begin{description}
+
+  \item @{ML Syntax.check_typs}~@{text "ctxt Ts"} checks a simultaneous list
+  of pre-types as types of the logic.  Typically, this involves normalization
+  of type synonyms.
+
+  \item @{ML Syntax.check_terms}~@{text "ctxt ts"} checks a simultaneous list
+  of pre-terms as terms of the logic. Typically, this involves type-inference
+  and normalization term abbreviations. The types within the given terms are
+  treated in the same way as for @{ML Syntax.check_typs}.
+
+  Applications sometimes need to check several types and terms together. The
+  standard approach uses @{ML Logic.mk_type} to embed the language of types
+  into that of terms; all arguments are appended into one list of terms that
+  is checked; afterwards the original type arguments are recovered with @{ML
+  Logic.dest_type}.
+
+  \item @{ML Syntax.check_props}~@{text "ctxt ts"} checks a simultaneous list
+  of pre-terms as terms of the logic, such that all terms are constrained by
+  type @{typ prop}. The remaining check operation works as @{ML
+  Syntax.check_terms} above.
+
+  \item @{ML Syntax.uncheck_typs}~@{text "ctxt Ts"} unchecks a simultaneous
+  list of types of the logic, in preparation of pretty printing.
+
+  \item @{ML Syntax.uncheck_terms}~@{text "ctxt ts"} unchecks a simultaneous
+  list of terms of the logic, in preparation of pretty printing. There is no
+  distinction for propositions here.
+
+  \end{description}
+
+  These operations always operate simultaneously on multiple items; use the
+  combinator @{ML singleton} to apply them to a single item.
 *}
 
 end
