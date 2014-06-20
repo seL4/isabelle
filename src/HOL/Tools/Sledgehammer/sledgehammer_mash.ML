@@ -160,7 +160,7 @@ datatype mash_engine =
 | MaSh_SML_NB of bool * bool
 | MaSh_SML_NB_Py
 
-val default_MaSh_SML_NB = MaSh_SML_NB (false, false)
+val default_MaSh_SML_NB = MaSh_SML_NB (false, true)
 
 fun mash_engine () =
   let val flag1 = Options.default_string @{system_option MaSh} in
