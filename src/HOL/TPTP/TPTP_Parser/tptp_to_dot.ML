@@ -86,13 +86,11 @@ fun have_role_shape role =
 
 (*Different styles are applied to nodes relating to clauses written in
   difference languages.*)
-exception NO_LANG_STYLE
 fun the_lang_style lang =
   case lang of
       CNF => "dotted"
     | FOF => "dashed"
-    | THF => "" (*NOTE could use "filled" to contrast with first-order languages*)
-    | _ => raise NO_LANG_STYLE
+    | _ => ""
 
 (*Check if the formula just consists of "$false"?
   which we interpret to be the last line of the proof.*)
