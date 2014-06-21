@@ -2161,4 +2161,127 @@ text {*
 *}
 
 
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type "'a future"} \\
+  @{index_ML Future.fork: "(unit -> 'a) -> 'a future"} \\
+  @{index_ML Future.forks: "Future.params -> (unit -> 'a) list -> 'a future list"} \\
+  @{index_ML Future.value: "'a -> 'a future"} \\
+  @{index_ML Future.join: "'a future -> 'a"} \\
+  @{index_ML Future.map: "('a -> 'b) -> 'a future -> 'b future"} \\
+  @{index_ML Future.cancel: "'a future -> unit"} \\
+  @{index_ML Future.cancel_group: "Future.group -> unit"} \\[0.5ex]
+  @{index_ML Future.promise: "(unit -> unit) -> 'a future"} \\
+  @{index_ML Future.fulfill: "'a future -> 'a -> unit"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type @{ML_type "'a future"} represents future values over type
+  @{verbatim "'a"}.
+
+  \item @{ML Future.fork}~@{text "(fn () => e)"} registers the unevaluated
+  expression @{text e} as unfinished future value, to be evaluated eventually
+  on the parallel worker-thread farm. This is a shorthand for @{ML
+  Future.forks} below, with default parameters and a single expression.
+
+  \item @{ML Future.forks}~@{text "params exprs"} is the general interface to
+  fork several futures simultaneously. The @{text params} consist of the
+  following fields:
+
+  \begin{itemize}
+
+  \item @{text "name : string"} (default @{ML "\"\""}) specifies a common name
+  for the tasks of the forked futures, which serves diagnostic purposes.
+
+  \item @{text "group : Future.group option"} (default @{ML NONE}) specifies
+  an optional task group for the forked futures. @{ML NONE} means that a new
+  sub-group of the current worker-thread task context is created. If this is
+  not a worker thread, the group will be a new root in the group hierarchy.
+
+  \item @{text "deps : Future.task list"} (default @{ML "[]"}) specifies
+  dependencies on other future tasks, i.e.\ the adjacency relation in the
+  global task queue. Dependencies on already finished future tasks are
+  ignored.
+
+  \item @{text "pri : int"} (default @{ML 0}) specifies a priority within the
+  task queue.
+
+  Typically there is only little deviation from the default priority @{ML 0}.
+  As a rule of thumb, @{ML "~1"} means ``low priority" and @{ML 1} means
+  ``high priority''.
+
+  Note that the priority only affects the position in the task queue, not a
+  thread priority. When a worker thread picks up a task for processing, it
+  runs with the normal thread priority to the end (or until canceled). Higher
+  priority tasks that are queued later need to wait until this (or another)
+  worker thread becomes free again.
+
+  \item @{text "interrupts : bool"} (default @{ML true}) tells whether the
+  worker thread that processes the corresponding task is initially put into
+  interruptible state. Note that it may change this state later while running,
+  by modifying the thread attributes.
+
+  With interrupts disabled, a running future task cannot be canceled.  It is
+  the responsibility of the programmer that this special state is retained
+  only briefly.
+
+  \end{itemize}
+
+  \item @{ML Future.value}~@{text a} wraps the value @{text a} as finished
+  future value, bypassing the worker-thread farm. When joined, it returns
+  @{text a} without any further evaluation.
+
+  The overhead of this pro-forma wrapping of strict values as future values is
+  very low.
+
+  \item @{ML Future.join}~@{text x} retrieves the value of an already finished
+  future, which may lead to an exception, according to the result of its
+  previous evaluation.
+
+  For an unfinished future there are several cases depending on the role of
+  the current thread and the status of the future. A non-worker thread waits
+  passively until the future is eventually evaluated. A worker thread
+  temporarily changes its task context and takes over the responsibility to
+  evaluate the future expression on the spot; this is done in a thread-safe
+  manner: other threads that intend to join the same future need to wait until
+  the ongoing evaluation is finished.
+
+  Excessive use of dynamic dependencies of futures by adhoc joining may lead
+  to bad utilization of CPU cores, due to threads waiting on other threads to
+  finish required futures. The future task farm has a limited amount of
+  replacement threads that continue working on other tasks after some timeout.
+
+  Whenever possible, static dependencies of futures should be specified
+  explicitly when forked. Thus the evaluation can work from the bottom up,
+  without join conflicts and wait states.
+
+  \item @{ML Future.map}~@{text "f x"} is a fast-path implementation of @{ML
+  Future.fork}~@{text "(fn () => f ("}@{ML Future.join}~@{text "x))"}, which
+  avoids the full overhead of the task queue and worker-thread farm as far as
+  possible. The function @{text f} is supposed to be some trivial
+  post-processing or projection of the future result.
+
+  \item @{ML Future.cancel}~@{text "x"} cancels the task group of the given
+  future, using @{ML Future.cancel_group} below.
+
+  \item @{ML Future.cancel_group}~@{text "g"} cancels all tasks of the given
+  group for all time. Threads that are presently processing a task of the
+  given group are interrupted. Tasks that are queued but not yet processed are
+  dequeued and forced into interrupted state. Since the task group is itself
+  invalidated, any further attempt to fork a future that belongs to it will
+  yield a canceled result as well.
+
+  \item @{ML Future.promise}~@{text abort} registers a passive future with the
+  given @{text abort} operation: it is invoked when the future task group is
+  canceled.
+
+  \item @{ML Future.fulfill}~@{text "x a"} finishes the passive future @{text
+  x} by the given value @{text a}. If the promise has already been canceled,
+  the attempt to fulfill it causes an exception.
+
+  \end{description}
+*}
+
+
 end
