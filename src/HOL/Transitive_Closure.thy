@@ -87,7 +87,7 @@ subsection {* Reflexive-transitive closure *}
 lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) op =) = (\<lambda>x y. (x, y) \<in> r \<union> Id)"
   by (auto simp add: fun_eq_iff)
 
-lemma r_into_rtrancl [intro]: "!!p. p \<in> r ==> p \<in> r^*"
+lemma r_into_rtrancl [intro,simp]: "!!p. p \<in> r ==> p \<in> r^*"
   -- {* @{text rtrancl} of @{text r} contains @{text r} *}
   apply (simp only: split_tupled_all)
   apply (erule rtrancl_refl [THEN rtrancl_into_rtrancl])
@@ -340,7 +340,7 @@ lemma trancl_mono: "!!p. p \<in> r^+ ==> r \<subseteq> s ==> p \<in> s^+"
    apply (iprover dest: subsetD)+
   done
 
-lemma r_into_trancl': "!!p. p : r ==> p : r^+"
+lemma r_into_trancl'[simp]: "!!p. p : r ==> p : r^+"
   by (simp only: split_tupled_all) (erule r_into_trancl)
 
 text {*
