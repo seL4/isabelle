@@ -295,6 +295,13 @@ apply (drule_tac x = y in spec, clarify)
 apply (drule_tac x = x in spec, blast)
 done
 
+lemma bij_betw_imageI:
+  "\<lbrakk> inj_on f A; f ` A = B \<rbrakk> \<Longrightarrow> bij_betw f A B"
+unfolding bij_betw_def by clarify
+
+lemma bij_betw_imp_surj_on: "bij_betw f A B \<Longrightarrow> f ` A = B"
+  unfolding bij_betw_def by clarify
+
 lemma bij_betw_imp_surj: "bij_betw f A UNIV \<Longrightarrow> surj f"
   unfolding bij_betw_def by auto
 
