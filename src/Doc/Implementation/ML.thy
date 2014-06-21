@@ -1,3 +1,5 @@
+(*:wrap=hard:maxLineLen=78:*)
+
 theory "ML"
 imports Base
 begin
@@ -2098,9 +2100,55 @@ ML_val {*
 subsection {* Lazy evaluation *}
 
 text {*
-  %FIXME
+  Classic lazy evaluation works via two operations: @{text lazy} to wrap an
+  unevaluated expression, and @{text force} to evaluate it once and store its
+  result persistently. Later invocations of @{text force} retrieve the stored
+  result without another evaluation. Isabelle/ML refines this idea to
+  accommodate the aspects of multi-threading, synchronous program exceptions
+  and asynchronous interrupts.
 
-  See also @{file "~~/src/Pure/Concurrent/lazy.ML"}.
+  The first thread that invokes @{text force} on an unfinished lazy value
+  changes its state into a \emph{promise} of the eventual result and starts
+  evaluating it. Any other threads that @{text force} the same lazy value in
+  the meantime need to wait for it to finish, by producing a regular result or
+  program exception. If the evaluation attempt is interrupted, this event is
+  propagated to all waiting threads and the lazy value is reset to its
+  original state.
+
+  This means a lazy value is completely evaluated at most once, in a
+  thread-safe manner. There might be multiple interrupted evaluation attempts,
+  and multiple receivers of intermediate interrupt events. Interrupts are
+  \emph{not} made persistent: later evaluation attempts start again from the
+  original expression.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type "'a lazy"} \\
+  @{index_ML Lazy.lazy: "(unit -> 'a) -> 'a lazy"} \\
+  @{index_ML Lazy.value: "'a -> 'a lazy"} \\
+  @{index_ML Lazy.force: "'a lazy -> 'a"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type @{ML_type "'a lazy"} represents lazy values over type @{verbatim
+  "'a"}.
+
+  \item @{ML Lazy.lazy}~@{text "(fn () => e)"} wraps the unevaluated
+  expression @{text e} as unfinished lazy value.
+
+  \item @{ML Lazy.value}~@{text a} wraps the value @{text a} as finished lazy
+  value.  When forced, it returns @{text a} without any further evaluation.
+
+  The overhead of this pro-forma wrapping of strict values as lazy values is
+  very low.
+
+  \item @{ML Lazy.force}~@{text x} produces the result of the lazy value in a
+  thread-safe manner as explained above. Thus it may cause the current thread
+  to wait on a pending evaluation attempt by another thread.
+
+  \end{description}
 *}
 
 
