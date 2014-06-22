@@ -2116,7 +2116,10 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
   in
     case inference_name of
       "fo_atp_e" =>
+        HEADGOAL (Metis_Tactic.metis_tac [] ATP_Problem_Generate.combs_or_liftingN ctxt [])
+        (*NOTE To treat E as an oracle use the following line:
         HEADGOAL (etac (oracle_based_reconstruction_tac ctxt prob_name node))
+        *)
     | "copy" =>
          HEADGOAL
           (atac
