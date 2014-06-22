@@ -249,7 +249,7 @@ ML {*
 (*given a list of tactics to be applied in sequence (i.e., they
   follow a skeleton), we build a single tactic, interleaving
   some tracing info to help with debugging.*)
-fun step_by_step_tacs verbose (thm_tacs : (thm * tactic) list) : tactic =
+fun step_by_step_tacs ctxt verbose (thm_tacs : (thm * tactic) list) : tactic =
     let
       fun interleave_tacs [] [] = all_tac
         | interleave_tacs (tac1 :: tacs1) (tac2 :: tacs2) =
@@ -258,7 +258,7 @@ fun step_by_step_tacs verbose (thm_tacs : (thm * tactic) list) : tactic =
       val thms_to_traceprint =
         map (fn thm => fn st =>
               (*FIXME uses makestring*)
-              print_tac (PolyML.makestring thm) st)
+              print_tac ctxt (PolyML.makestring thm) st)
 
     in
       if verbose then
@@ -272,9 +272,9 @@ fun step_by_step_tacs verbose (thm_tacs : (thm * tactic) list) : tactic =
 
 ML {*
 (*apply step_by_step_tacs to all problems under test*)
-val narrated_tactics =
+fun narrated_tactics ctxt =
  map (map (#3 #> the)
-      #> step_by_step_tacs false)
+      #> step_by_step_tacs ctxt false)
    the_tactics;
 
 (*produce thm*)
@@ -284,7 +284,7 @@ else
   map (fn (prob_name, tac) =>
          TPTP_Reconstruct.reconstruct @{context}
            (fn _ => tac) prob_name)
-    (ListPair.zip (prob_names, narrated_tactics))
+    (ListPair.zip (prob_names, narrated_tactics @{context}))
 *}
 
 
