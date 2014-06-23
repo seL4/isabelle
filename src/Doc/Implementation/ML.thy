@@ -2100,12 +2100,12 @@ ML_val {*
 subsection {* Lazy evaluation *}
 
 text {*
-  Classic lazy evaluation works via two operations: @{text lazy} to wrap an
-  unevaluated expression, and @{text force} to evaluate it once and store its
-  result persistently. Later invocations of @{text force} retrieve the stored
-  result without another evaluation. Isabelle/ML refines this idea to
-  accommodate the aspects of multi-threading, synchronous program exceptions
-  and asynchronous interrupts.
+  Classic lazy evaluation works via the @{text lazy}~/ @{text force} pair of
+  operations: @{text lazy} to wrap an unevaluated expression, and @{text
+  force} to evaluate it once and store its result persistently. Later
+  invocations of @{text force} retrieve the stored result without another
+  evaluation. Isabelle/ML refines this idea to accommodate the aspects of
+  multi-threading, synchronous program exceptions and asynchronous interrupts.
 
   The first thread that invokes @{text force} on an unfinished lazy value
   changes its state into a \emph{promise} of the eventual result and starts
@@ -2141,8 +2141,8 @@ text %mlref {*
   \item @{ML Lazy.value}~@{text a} wraps the value @{text a} as finished lazy
   value.  When forced, it returns @{text a} without any further evaluation.
 
-  The overhead of this pro-forma wrapping of strict values as lazy values is
-  very low.
+  There is very low overhead for this proforma wrapping of strict values as
+  lazy values.
 
   \item @{ML Lazy.force}~@{text x} produces the result of the lazy value in a
   thread-safe manner as explained above. Thus it may cause the current thread
@@ -2152,22 +2152,56 @@ text %mlref {*
 *}
 
 
-subsection {* Future values \label{sec:futures} *}
+subsection {* Futures \label{sec:futures} *}
 
 text {*
-  %FIXME
+  Futures help to organize parallel execution in a value-oriented manner, with
+  @{text fork}~/ @{text join} as the main pair of operations, and some further
+  variants. Unlike lazy values, futures are evaluated strictly and
+  spontaneously on separate worker threads. Futures may be canceled, which
+  leads to interrupts on running evaluation attempts, and forces structurally
+  related futures to fail for all time. Exceptions between related futures are
+  propagated as well, and turned into parallel exceptions (see above).
 
-  See also @{file "~~/src/Pure/Concurrent/future.ML"}.
+  Technically, a future is a single-assignment variable together with a
+  \emph{task} that serves administrative purposes, notably within the
+  \emph{task queue} where new futures are registered for eventual evaluation
+  and the worker threads retrieve their work.
+
+  \medskip Each future task belongs to some \emph{task group}, which
+  represents the hierarchic structure of related tasks, together with the
+  exception status a that point. By default, the task group of a newly created
+  future is a new sub-group of the presently running one, but it is also
+  possible to indicate different group layouts under program control.
+
+  Cancellation of futures actually refers to the corresponding task group and
+  all its sub-groups. Thus interrupts are propagated down the group hierarchy.
+  Regular program exceptions are treated likewise: failure of the evaluation
+  of some future task affects its own group and all sub-groups. Given a
+  particular task group, its \emph{group status} cumulates all relevant
+  exceptions according to its position within the group hierarchy.
+
+  \medskip A \emph{passive future} or \emph{promise} is a future with slightly
+  different evaluation policies: there is only a single-assignment variable
+  and some expression to evaluate for the \emph{failed} case (e.g.\ to clean
+  up resources when canceled). A regular result is produced by external means,
+  using a separate \emph{fulfill} operation.
+
+  Promises are managed in the same task queue, so regular futures may depend
+  on them. This allows a form of reactive programming, where some promises are
+  used as minimal elements (or guards) within the future dependency graph:
+  when these promises are fulfilled the evaluation of subsequent futures
+  starts spontaneously, according to their own inter-dependencies.
 *}
-
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type "'a future"} \\
   @{index_ML Future.fork: "(unit -> 'a) -> 'a future"} \\
   @{index_ML Future.forks: "Future.params -> (unit -> 'a) list -> 'a future list"} \\
-  @{index_ML Future.value: "'a -> 'a future"} \\
   @{index_ML Future.join: "'a future -> 'a"} \\
+  @{index_ML Future.joins: "'a future list -> 'a list"} \\
+  @{index_ML Future.value: "'a -> 'a future"} \\
   @{index_ML Future.map: "('a -> 'b) -> 'a future -> 'b future"} \\
   @{index_ML Future.cancel: "'a future -> unit"} \\
   @{index_ML Future.cancel_group: "Future.group -> unit"} \\[0.5ex]
@@ -2201,8 +2235,7 @@ text %mlref {*
 
   \item @{text "deps : Future.task list"} (default @{ML "[]"}) specifies
   dependencies on other future tasks, i.e.\ the adjacency relation in the
-  global task queue. Dependencies on already finished future tasks are
-  ignored.
+  global task queue. Dependencies on already finished tasks are ignored.
 
   \item @{text "pri : int"} (default @{ML 0}) specifies a priority within the
   task queue.
@@ -2211,7 +2244,7 @@ text %mlref {*
   As a rule of thumb, @{ML "~1"} means ``low priority" and @{ML 1} means
   ``high priority''.
 
-  Note that the priority only affects the position in the task queue, not a
+  Note that the task priority only affects the position in the queue, not the
   thread priority. When a worker thread picks up a task for processing, it
   runs with the normal thread priority to the end (or until canceled). Higher
   priority tasks that are queued later need to wait until this (or another)
@@ -2219,21 +2252,14 @@ text %mlref {*
 
   \item @{text "interrupts : bool"} (default @{ML true}) tells whether the
   worker thread that processes the corresponding task is initially put into
-  interruptible state. Note that it may change this state later while running,
-  by modifying the thread attributes.
+  interruptible state. This state may change again while running, by modifying
+  the thread attributes.
 
   With interrupts disabled, a running future task cannot be canceled.  It is
   the responsibility of the programmer that this special state is retained
   only briefly.
 
   \end{itemize}
-
-  \item @{ML Future.value}~@{text a} wraps the value @{text a} as finished
-  future value, bypassing the worker-thread farm. When joined, it returns
-  @{text a} without any further evaluation.
-
-  The overhead of this pro-forma wrapping of strict values as future values is
-  very low.
 
   \item @{ML Future.join}~@{text x} retrieves the value of an already finished
   future, which may lead to an exception, according to the result of its
@@ -2243,18 +2269,36 @@ text %mlref {*
   the current thread and the status of the future. A non-worker thread waits
   passively until the future is eventually evaluated. A worker thread
   temporarily changes its task context and takes over the responsibility to
-  evaluate the future expression on the spot; this is done in a thread-safe
-  manner: other threads that intend to join the same future need to wait until
-  the ongoing evaluation is finished.
+  evaluate the future expression on the spot. The latter is done in a
+  thread-safe manner: other threads that intend to join the same future need
+  to wait until the ongoing evaluation is finished.
 
-  Excessive use of dynamic dependencies of futures by adhoc joining may lead
-  to bad utilization of CPU cores, due to threads waiting on other threads to
-  finish required futures. The future task farm has a limited amount of
-  replacement threads that continue working on other tasks after some timeout.
+  Note that excessive use of dynamic dependencies of futures by adhoc joining
+  may lead to bad utilization of CPU cores, due to threads waiting on other
+  threads to finish required futures. The future task farm has a limited
+  amount of replacement threads that continue working on unrelated tasks after
+  some timeout.
 
   Whenever possible, static dependencies of futures should be specified
-  explicitly when forked. Thus the evaluation can work from the bottom up,
-  without join conflicts and wait states.
+  explicitly when forked (see @{text deps} above). Thus the evaluation can
+  work from the bottom up, without join conflicts and wait states.
+
+  \item @{ML Future.joins}~@{text xs} joins the given list of futures
+  simultaneously, which is more efficient than @{ML "map Future.join"}~@{text
+  xs}.
+
+  Based on the dependency graph of tasks, the current thread takes over the
+  responsibility to evaluate future expressions that are required for the main
+  result, working from the bottom up. Waiting on future results that are
+  presently evaluated on other threads only happens as last resort, when no
+  other unfinished futures are left over.
+
+  \item @{ML Future.value}~@{text a} wraps the value @{text a} as finished
+  future value, bypassing the worker-thread farm. When joined, it returns
+  @{text a} without any further evaluation.
+
+  There is very low overhead for this proforma wrapping of strict values as
+  future values.
 
   \item @{ML Future.map}~@{text "f x"} is a fast-path implementation of @{ML
   Future.fork}~@{text "(fn () => f ("}@{ML Future.join}~@{text "x))"}, which
@@ -2265,9 +2309,10 @@ text %mlref {*
   \item @{ML Future.cancel}~@{text "x"} cancels the task group of the given
   future, using @{ML Future.cancel_group} below.
 
-  \item @{ML Future.cancel_group}~@{text "g"} cancels all tasks of the given
-  group for all time. Threads that are presently processing a task of the
-  given group are interrupted. Tasks that are queued but not yet processed are
+  \item @{ML Future.cancel_group}~@{text "group"} cancels all tasks of the
+  given task group for all time. Threads that are presently processing a task
+  of the given group are interrupted: it may take some time until they are
+  actually terminated. Tasks that are queued but not yet processed are
   dequeued and forced into interrupted state. Since the task group is itself
   invalidated, any further attempt to fork a future that belongs to it will
   yield a canceled result as well.
