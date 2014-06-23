@@ -2,7 +2,7 @@
     Module:     PIDE
     Author:     Makarius
 
-Value-oriented parallelism via futures and promises in Scala -- with
+Value-oriented parallel execution via futures and promises in Scala -- with
 signatures as in Isabelle/ML.
 */
 

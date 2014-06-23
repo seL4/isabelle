@@ -2157,16 +2157,26 @@ subsection {* Futures \label{sec:futures} *}
 text {*
   Futures help to organize parallel execution in a value-oriented manner, with
   @{text fork}~/ @{text join} as the main pair of operations, and some further
-  variants. Unlike lazy values, futures are evaluated strictly and
-  spontaneously on separate worker threads. Futures may be canceled, which
-  leads to interrupts on running evaluation attempts, and forces structurally
-  related futures to fail for all time. Exceptions between related futures are
-  propagated as well, and turned into parallel exceptions (see above).
+  variants; see also \cite{Wenzel:2009,Wenzel:2013:ITP}. Unlike lazy values,
+  futures are evaluated strictly and spontaneously on separate worker threads.
+  Futures may be canceled, which leads to interrupts on running evaluation
+  attempts, and forces structurally related futures to fail for all time;
+  already finished futures remain unchanged. Exceptions between related
+  futures are propagated as well, and turned into parallel exceptions (see
+  above).
 
   Technically, a future is a single-assignment variable together with a
   \emph{task} that serves administrative purposes, notably within the
   \emph{task queue} where new futures are registered for eventual evaluation
   and the worker threads retrieve their work.
+
+  The pool of worker threads is limited, in correlation with the number of
+  physical cores on the machine. Note that allocation of runtime resources may
+  be distorted either if workers yield CPU time (e.g.\ via system sleep or
+  wait operations), or if non-worker threads contend for significant runtime
+  resources independently. There is a limited number of replacement worker
+  threads that get activated in certain explicit wait conditions, after a
+  timeout.
 
   \medskip Each future task belongs to some \emph{task group}, which
   represents the hierarchic structure of related tasks, together with the
@@ -2179,7 +2189,9 @@ text {*
   Regular program exceptions are treated likewise: failure of the evaluation
   of some future task affects its own group and all sub-groups. Given a
   particular task group, its \emph{group status} cumulates all relevant
-  exceptions according to its position within the group hierarchy.
+  exceptions according to its position within the group hierarchy. Interrupted
+  tasks that lack regular result information, will pick up parallel exceptions
+  from the cumulative group status.
 
   \medskip A \emph{passive future} or \emph{promise} is a future with slightly
   different evaluation policies: there is only a single-assignment variable
