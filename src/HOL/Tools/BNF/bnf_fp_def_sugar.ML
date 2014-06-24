@@ -597,10 +597,47 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
      (rec_thmss, code_nitpicksimp_attrs @ simp_attrs))
   end;
 
-fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs ctr_sugars abs_inverses abs_injects
+fun coinduct_attrs fpTs ctr_sugars mss =
+  let
+    val nn = length fpTs;
+    val fp_b_names = map base_name_of_typ fpTs;
+    val ctrss = map #ctrs ctr_sugars;
+    val discss = map #discs ctr_sugars;
+    fun mk_coinduct_concls ms discs ctrs =
+      let
+        fun mk_disc_concl disc = [name_of_disc disc];
+        fun mk_ctr_concl 0 _ = []
+          | mk_ctr_concl _ ctor = [name_of_ctr ctor];
+        val disc_concls = map mk_disc_concl (fst (split_last discs)) @ [[]];
+        val ctr_concls = map2 mk_ctr_concl ms ctrs;
+      in
+        flat (map2 append disc_concls ctr_concls)
+      end;
+    val coinduct_cases = quasi_unambiguous_case_names (map (prefix EqN) fp_b_names);
+    val coinduct_conclss =
+      map3 (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
+
+    val common_coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes nn));
+    val coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
+
+    val coinduct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names coinduct_cases));
+    val coinduct_case_concl_attrs =
+      map2 (fn casex => fn concls =>
+          Attrib.internal (K (Rule_Cases.case_conclusion (casex, concls))))
+        coinduct_cases coinduct_conclss;
+
+    val common_coinduct_attrs =
+      common_coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
+    val coinduct_attrs =
+      coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
+  in
+    (coinduct_attrs, common_coinduct_attrs)
+  end;
+
+fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_inverses abs_injects
   ctor_injects dtor_ctors rel_pre_defs ctor_defss dtor_rel_coinduct =
   let
-    val fpB_Ts = map (typ_subst_nonatomic (As ~~ Bs)) fpA_Ts
+    val fpB_Ts = map (typ_subst_nonatomic (As ~~ Bs)) fpA_Ts;
 
     val (Rs, IRs, fpAs, fpBs, names_lthy) =
       let
@@ -613,7 +650,8 @@ fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs ctr_sugars abs_inver
       in
         (Rs, IRs,
           map2 (curry Free) fpAs_names fpA_Ts,
-          map2 (curry Free) fpBs_names fpB_Ts, names_lthy)
+          map2 (curry Free) fpBs_names fpB_Ts,
+          names_lthy)
       end;
 
     val ((discA_tss, selA_tsss), (discB_tss, selB_tsss)) =
@@ -624,8 +662,8 @@ fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs ctr_sugars abs_inver
         fun mk_selsss ts Ts = map2 (map o map o rapp) ts (map (map (map (mk_disc_or_sel Ts)))
           selsss);
       in
-        ((mk_discss fpAs As, mk_selsss fpAs As)
-        ,(mk_discss fpBs Bs, mk_selsss fpBs Bs))
+        ((mk_discss fpAs As, mk_selsss fpAs As),
+         (mk_discss fpBs Bs, mk_selsss fpBs Bs))
       end;
 
     fun choose_relator (A, B) = the (find_first (fn t =>
@@ -664,23 +702,37 @@ fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs ctr_sugars abs_inver
         map8 mk_prem IRs fpAs fpBs ns discA_tss selA_tsss discB_tss selB_tsss
       end;
 
-      val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-        (map2 mk_leq IRs (map (build_rel lthy choose_relator) (fpA_Ts ~~ fpB_Ts))));
+    val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
+      (map2 mk_leq IRs (map (build_rel lthy choose_relator) (fpA_Ts ~~ fpB_Ts))));
 
-      fun string_of_list f Ts = "[" ^ (fold_rev (curry op ^) (separate ", " (map f Ts)) "") ^ "]"
+    (*
+    fun string_of_list f Ts = "[" ^ (fold_rev (curry op ^) (separate ", " (map f Ts)) "") ^ "]"
+    val _ = writeln ("Premises: " ^ string_of_list (Syntax.string_of_term names_lthy) premises)
+    val _ = writeln ("Goal: " ^ Syntax.string_of_term names_lthy goal)
+    val _ = writeln ("derive_rel_coinduct0_thm_for_types " ^ string_of_list (Syntax.string_of_typ names_lthy) fpA_Ts)
+    *)
 
-      (*
-      val _ = writeln ("Premises: " ^ string_of_list (Syntax.string_of_term names_lthy) premises)
-      val _ = writeln ("Goal: " ^ Syntax.string_of_term names_lthy goal)
-      val _ = writeln ("derive_rel_coinduct0_thm_for_types " ^ string_of_list (Syntax.string_of_typ names_lthy) fpA_Ts)
-      *)
-  in
-    Goal.prove_sorry lthy [] premises goal
+    val rel_coinduct0_thm = Goal.prove_sorry lthy [] premises goal
       (fn {context = ctxt, prems = prems} =>
           mk_rel_coinduct0_tac ctxt dtor_rel_coinduct (map (certify ctxt) IRs) prems
             (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars) (map (flat o #sel_thmss)
               ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses)
       |> singleton (Proof_Context.export names_lthy lthy)
+      |> Thm.close_derivation;
+
+    val nn = length fpA_Ts;
+    val predicate2D = @{thm predicate2D};
+    val predicate2D_conj = @{thm predicate2D_conj};
+
+    val postproc =
+      Drule.zero_var_indexes
+      #> `(conj_dests nn)
+      #>> map (fn thm => Thm.permute_prems 0 nn (thm RS predicate2D))
+      ##> (fn thm => Thm.permute_prems 0 nn
+        (if nn = 1 then thm RS predicate2D
+         else funpow nn (fn thm => reassoc_conjs (thm RS predicate2D_conj)) thm));
+  in
+    (postproc rel_coinduct0_thm, coinduct_attrs fpA_Ts ctr_sugars mss)
   end;
 
 fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss), _))
@@ -752,12 +804,10 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
             (1 upto n) udiscs uselss vdiscs vselss ctrXs_Tss))
           handle List.Empty => @{term True};
 
-        (* Probably the good premise *)
         fun mk_prem rs' uvr u v n udiscs uselss vdiscs vselss ctrXs_Tss =
           fold_rev Logic.all [u, v] (Logic.mk_implies (HOLogic.mk_Trueprop uvr,
             HOLogic.mk_Trueprop (mk_prem_concl rs' n udiscs uselss vdiscs vselss ctrXs_Tss)));
 
-        (* Make a new conclusion (e.g. rel_concl) *)
         val concl =
           HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
             (map3 (fn uvr => fn u => fn v => HOLogic.mk_imp (uvr, HOLogic.mk_eq (u, v)))
@@ -791,21 +841,6 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
       in
         map2 (postproc oo prove) dtor_coinducts goals
       end;
-
-    fun mk_coinduct_concls ms discs ctrs =
-      let
-        fun mk_disc_concl disc = [name_of_disc disc];
-        fun mk_ctr_concl 0 _ = []
-          | mk_ctr_concl _ ctor = [name_of_ctr ctor];
-        val disc_concls = map mk_disc_concl (fst (split_last discs)) @ [[]];
-        val ctr_concls = map2 mk_ctr_concl ms ctrs;
-      in
-        flat (map2 append disc_concls ctr_concls)
-      end;
-
-    val coinduct_cases = quasi_unambiguous_case_names (map (prefix EqN) fp_b_names);
-    val coinduct_conclss =
-      map3 (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
 
     fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
 
@@ -898,22 +933,8 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
       map3 (map3 (map2 o mk_sel_corec_thm)) corec_thmss selsss sel_thmsss;
 
     val sel_corec_thmsss = mk_sel_corec_thms corec_thmss;
-
-    val common_coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes nn));
-    val coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
-
-    val coinduct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names coinduct_cases));
-    val coinduct_case_concl_attrs =
-      map2 (fn casex => fn concls =>
-          Attrib.internal (K (Rule_Cases.case_conclusion (casex, concls))))
-        coinduct_cases coinduct_conclss;
-
-    val common_coinduct_attrs =
-      common_coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
-    val coinduct_attrs =
-      coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
   in
-    ((coinduct_thms_pairs, (coinduct_attrs, common_coinduct_attrs)),
+    ((coinduct_thms_pairs, coinduct_attrs fpTs ctr_sugars mss),
      (corec_thmss, code_nitpicksimp_attrs),
      (disc_corec_thmss, []),
      (disc_corec_iff_thmss, simp_attrs),
@@ -1569,13 +1590,15 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
             (Proof_Context.export lthy' no_defs_lthy) lthy;
 
-        val rel_coinduct0_thm = derive_rel_coinduct0_thm_for_types lthy fpTs ns As Bs ctr_sugars
-           abs_inverses abs_injects ctor_injects dtor_ctors pre_rel_defs ctr_defss
-           rel_xtor_co_induct_thm;
+        val ((rel_coinduct_thms, rel_coinduct_thm),
+             (rel_coinduct_attrs, common_rel_coinduct_attrs)) =
+          derive_rel_coinduct0_thm_for_types lthy fpTs ns As Bs mss ctr_sugars abs_inverses abs_injects
+          ctor_injects dtor_ctors pre_rel_defs ctr_defss rel_xtor_co_induct_thm;
 
         val sel_corec_thmss = map flat sel_corec_thmsss;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
+        val coinduct_pred_attr = Attrib.internal o K o Induct.coinduct_pred;
 
         val flat_corec_thms = append oo append;
 
@@ -1585,16 +1608,19 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             mapss rel_injectss rel_distinctss setss;
 
         val common_notes =
-          (rel_coinductN ^ "0", [rel_coinduct0_thm], []) :: (if nn > 1 then
-             [(coinductN, [coinduct_thm], common_coinduct_attrs),
-              (strong_coinductN, [strong_coinduct_thm], common_coinduct_attrs)]
-           else
-             [])
+          (if nn > 1 then
+            [(rel_coinductN, [rel_coinduct_thm], common_rel_coinduct_attrs),
+             (coinductN, [coinduct_thm], common_coinduct_attrs),
+             (strong_coinductN, [strong_coinduct_thm], common_coinduct_attrs)]
+          else
+            [])
           |> massage_simple_notes fp_common_name;
 
         val notes =
           [(coinductN, map single coinduct_thms,
             fn T_name => coinduct_attrs @ [coinduct_type_attr T_name]),
+           (rel_coinductN, map single rel_coinduct_thms,
+            K (rel_coinduct_attrs @ [coinduct_pred_attr ""])),
            (corecN, corec_thmss, K corec_attrs),
            (disc_corecN, disc_corec_thmss, K disc_corec_attrs),
            (disc_corec_iffN, disc_corec_iff_thmss, K disc_corec_iff_attrs),
