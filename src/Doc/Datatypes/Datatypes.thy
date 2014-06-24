@@ -941,7 +941,7 @@ The inductive theorems are as follows:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{induct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct t]"}\rm:] ~ \\
 @{thm list.induct[no_vars]}
 
 \item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
@@ -1727,8 +1727,9 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 \begin{description}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t."}\hthm{coinduct} @{text "[coinduct t, consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t."}\hthm{coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
+  @{text "t."}\hthm{coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t."}\hthm{coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n, coinduct t]"}\rm:
 \end{tabular}] ~ \\
 @{thm llist.coinduct[no_vars]}
 
@@ -1739,9 +1740,17 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 @{thm llist.strong_coinduct[no_vars]}
 
 \item[\begin{tabular}{@ {}l@ {}}
+  @{text "t."}\hthm{rel_coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t."}\hthm{rel_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n, coinduct pred]"}\rm:
+\end{tabular}] ~ \\
+@{thm llist.rel_coinduct[no_vars]}
+
+\item[\begin{tabular}{@ {}l@ {}}
   @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m, case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"} \\
   @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong\_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong\_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
+  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong\_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m, case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"} \\
 \end{tabular}] ~ \\
 Given $m > 1$ mutually corecursive codatatypes, these coinduction rules can be
 used to prove $m$ properties simultaneously.
