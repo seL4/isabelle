@@ -239,7 +239,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let
     fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
 
-    val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd);
+    val build_map_Inl = build_map ctxt [] (uncurry Inl_const o dest_sumT o snd);
 
     fun massage_mutual_call bound_Ts U T t =
       if has_call t then

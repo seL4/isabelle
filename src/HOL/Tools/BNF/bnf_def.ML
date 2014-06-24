@@ -83,9 +83,8 @@ sig
 
   val mk_map: int -> typ list -> typ list -> term -> term
   val mk_rel: int -> typ list -> typ list -> term -> term
-  val build_map: Proof.context -> (typ * typ -> term) -> typ * typ -> term
-  val build_rel: Proof.context -> (typ * typ -> term) -> typ * typ -> term
-  val build_rel': Proof.context -> typ list -> (typ * typ -> term) -> typ * typ -> term
+  val build_map: Proof.context -> typ list -> (typ * typ -> term) -> typ * typ -> term
+  val build_rel: Proof.context -> typ list -> (typ * typ -> term) -> typ * typ -> term
   val flatten_type_args_of_bnf: bnf -> 'a -> 'a list -> 'a list
   val map_flattened_map_args: Proof.context -> string -> (term list -> 'a list) -> term list ->
     'a list
@@ -534,12 +533,12 @@ fun mk_rel live Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
-fun build_map_or_rel mk const of_bnf dest blacklist ctxt build_simple =
+fun build_map_or_rel mk const of_bnf dest ctxt simpleTs build_simple =
   let
     fun build (TU as (T, U)) =
-      if exists (curry (op =) T) blacklist then
+      if exists (curry (op =) T) simpleTs then
         build_simple TU
-      else if T = U andalso not (exists_subtype_in blacklist T) then
+      else if T = U andalso not (exists_subtype_in simpleTs T) then
         const T
       else
         (case TU of
@@ -556,9 +555,8 @@ fun build_map_or_rel mk const of_bnf dest blacklist ctxt build_simple =
         | _ => build_simple TU);
   in build end;
 
-val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT [];
-val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T [];
-fun build_rel' ctxt blacklist = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T blacklist ctxt;
+val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT;
+val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T;
 
 fun map_flattened_map_args ctxt s map_args fs =
   let

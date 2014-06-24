@@ -16,7 +16,7 @@ begin
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
 by auto
 
-lemma predicate2D_conj: "(P \<le> Q) \<and> R \<Longrightarrow> P x y \<Longrightarrow> R \<and> Q x y"
+lemma predicate2D_conj: "P \<le> Q \<and> R \<Longrightarrow> P x y \<Longrightarrow> R \<and> Q x y"
   by auto
 
 lemma eq_sym_Unity_conv: "(x = (() = ())) = x"

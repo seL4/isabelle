@@ -359,7 +359,7 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
 
     val cpss = map2 (map o rapp) cs pss;
 
-    fun build_sum_inj mk_inj = build_map lthy (uncurry mk_inj o dest_sumT o snd);
+    fun build_sum_inj mk_inj = build_map lthy [] (uncurry mk_inj o dest_sumT o snd);
 
     fun build_dtor_corec_arg _ [] [cg] = cg
       | build_dtor_corec_arg T [cq] [cg, cg'] =
@@ -574,7 +574,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
           if T = U then
             x
           else
-            build_map lthy (indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
+            build_map lthy [] (indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
               (fn kk => fn TU => maybe_tick TU (nth us kk) (nth frecs kk))) (T, U) $ x;
 
         val fxsss = map2 (map2 (flat_rec_arg_args oo map2 (map o build_rec))) xsss x_Tssss;
@@ -634,6 +634,14 @@ fun coinduct_attrs fpTs ctr_sugars mss =
     (coinduct_attrs, common_coinduct_attrs)
   end;
 
+fun postproc_coinduct nn prop prop_conj =
+  Drule.zero_var_indexes
+  #> `(conj_dests nn)
+  #>> map (fn thm => Thm.permute_prems 0 nn (thm RS prop))
+  ##> (fn thm => Thm.permute_prems 0 nn
+    (if nn = 1 then thm RS prop
+     else funpow nn (fn thm => reassoc_conjs (thm RS prop_conj)) thm));
+
 fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_inverses abs_injects
   ctor_injects dtor_ctors rel_pre_defs ctor_defss dtor_rel_coinduct =
   let
@@ -666,18 +674,12 @@ fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_i
          (mk_discss fpBs Bs, mk_selsss fpBs Bs))
       end;
 
-    fun choose_relator (A, B) = the (find_first (fn t =>
-      let
-        val T = fastype_of t
-        val arg1T = domain_type T;
-        val arg2T = domain_type (range_type T);
-      in
-        A = arg1T andalso B = arg2T
-      end) (Rs @ IRs));
+    fun choose_relator AB = the (find_first
+      (fastype_of #> binder_types #> (fn [T1, T2] => AB = (T1, T2))) (Rs @ IRs));
 
     val premises =
       let
-        fun build_the_rel A B = build_rel' lthy fpA_Ts choose_relator (A, B);
+        fun build_the_rel A B = build_rel lthy fpA_Ts choose_relator (A, B);
 
         fun build_rel_app selA_t selB_t =
           (build_the_rel (fastype_of selA_t) (fastype_of selB_t )) $ selA_t $ selB_t
@@ -685,7 +687,7 @@ fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_i
         fun mk_prem_ctr_concls n k discA_t selA_ts discB_t selB_ts =
           (if k = n then [] else [HOLogic.mk_eq (discA_t, discB_t)]) @
           (case (selA_ts, selB_ts) of
-            ([],[]) => []
+            ([], []) => []
           | (_ :: _, _ :: _) =>
             [Library.foldr HOLogic.mk_imp (if n = 1 then [] else [discA_t, discB_t],
               Library.foldr1 HOLogic.mk_conj (map2 build_rel_app selA_ts selB_ts))]);
@@ -703,36 +705,19 @@ fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_i
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-      (map2 mk_leq IRs (map (build_rel lthy choose_relator) (fpA_Ts ~~ fpB_Ts))));
-
-    (*
-    fun string_of_list f Ts = "[" ^ (fold_rev (curry op ^) (separate ", " (map f Ts)) "") ^ "]"
-    val _ = writeln ("Premises: " ^ string_of_list (Syntax.string_of_term names_lthy) premises)
-    val _ = writeln ("Goal: " ^ Syntax.string_of_term names_lthy goal)
-    val _ = writeln ("derive_rel_coinduct0_thm_for_types " ^ string_of_list (Syntax.string_of_typ names_lthy) fpA_Ts)
-    *)
+      (map2 mk_leq IRs (map (build_rel lthy [] choose_relator) (fpA_Ts ~~ fpB_Ts))));
 
     val rel_coinduct0_thm = Goal.prove_sorry lthy [] premises goal
       (fn {context = ctxt, prems = prems} =>
           mk_rel_coinduct0_tac ctxt dtor_rel_coinduct (map (certify ctxt) IRs) prems
-            (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars) (map (flat o #sel_thmss)
-              ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses)
+            (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars)
+            (map (flat o #sel_thmss) ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects
+            rel_pre_defs abs_inverses)
       |> singleton (Proof_Context.export names_lthy lthy)
       |> Thm.close_derivation;
-
-    val nn = length fpA_Ts;
-    val predicate2D = @{thm predicate2D};
-    val predicate2D_conj = @{thm predicate2D_conj};
-
-    val postproc =
-      Drule.zero_var_indexes
-      #> `(conj_dests nn)
-      #>> map (fn thm => Thm.permute_prems 0 nn (thm RS predicate2D))
-      ##> (fn thm => Thm.permute_prems 0 nn
-        (if nn = 1 then thm RS predicate2D
-         else funpow nn (fn thm => reassoc_conjs (thm RS predicate2D_conj)) thm));
   in
-    (postproc rel_coinduct0_thm, coinduct_attrs fpA_Ts ctr_sugars mss)
+    (postproc_coinduct (length fpA_Ts) @{thm predicate2D} @{thm predicate2D_conj} rel_coinduct0_thm,
+     coinduct_attrs fpA_Ts ctr_sugars mss)
   end;
 
 fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss), _))
@@ -785,7 +770,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
             fold_rev Term.lambda [u, v] (HOLogic.mk_disj (uvr, uv_eq))) us vs uvrs uv_eqs;
 
         fun build_the_rel rs' T Xs_T =
-          build_rel lthy (fn (_, X) => nth rs' (find_index (curry (op =) X) Xs)) (T, Xs_T)
+          build_rel lthy [] (fn (_, X) => nth rs' (find_index (curry (op =) X) Xs)) (T, Xs_T)
           |> Term.subst_atomic_types (Xs ~~ fpTs);
 
         fun build_rel_app rs' usel vsel Xs_T =
@@ -826,20 +811,12 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
           |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation;
 
-        val postproc =
-          Drule.zero_var_indexes
-          #> `(conj_dests nn)
-          #>> map (fn thm => Thm.permute_prems 0 nn (thm RS mp))
-          ##> (fn thm => Thm.permute_prems 0 nn
-            (if nn = 1 then thm RS mp
-             else funpow nn (fn thm => reassoc_conjs (thm RS mp_conj)) thm));
-
         val rel_eqs = map rel_eq_of_bnf pre_bnfs;
         val rel_monos = map rel_mono_of_bnf pre_bnfs;
         val dtor_coinducts =
           [dtor_coinduct, mk_strong_coinduct_thm dtor_coinduct rel_eqs rel_monos mk_vimage2p lthy]
       in
-        map2 (postproc oo prove) dtor_coinducts goals
+        map2 (postproc_coinduct nn mp mp_conj oo prove) dtor_coinducts goals
       end;
 
     fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
@@ -864,7 +841,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
           let val T = fastype_of cqg in
             if exists_subtype_in Cs T then
               let val U = mk_U T in
-                build_map lthy (indexify fst (map2 (curry mk_sumT) fpTs Cs) (fn kk => fn _ =>
+                build_map lthy [] (indexify fst (map2 (curry mk_sumT) fpTs Cs) (fn kk => fn _ =>
                   tack (nth cs kk, nth us kk) (nth gcorecs kk))) (T, U) $ cqg
               end
             else
@@ -1336,7 +1313,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                           val lhs = selB $ (Term.list_comb (map_term, fs) $ ta);
                           val lhsT = fastype_of lhs;
                           val map_rhsT = map_atyps (perhaps (AList.lookup (op =) (Bs ~~ As))) lhsT;
-                          val map_rhs = build_map lthy
+                          val map_rhs = build_map lthy []
                             (the o (AList.lookup (op =) ((As ~~ Bs) ~~ fs))) (map_rhsT, lhsT);
                           val rhs = (case map_rhs of
                             Const (@{const_name id}, _) => selA $ ta
@@ -1592,8 +1569,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
         val ((rel_coinduct_thms, rel_coinduct_thm),
              (rel_coinduct_attrs, common_rel_coinduct_attrs)) =
-          derive_rel_coinduct0_thm_for_types lthy fpTs ns As Bs mss ctr_sugars abs_inverses abs_injects
-          ctor_injects dtor_ctors pre_rel_defs ctr_defss rel_xtor_co_induct_thm;
+          derive_rel_coinduct0_thm_for_types lthy fpTs ns As Bs mss ctr_sugars abs_inverses
+            abs_injects ctor_injects dtor_ctors pre_rel_defs ctr_defss rel_xtor_co_induct_thm;
 
         val sel_corec_thmss = map flat sel_corec_thmsss;
 

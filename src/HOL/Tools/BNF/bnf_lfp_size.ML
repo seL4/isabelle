@@ -275,7 +275,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
 
           fun mk_rec_arg_arg (x as Free (_, T)) =
             let val U = B_ify T in
-              if T = U then x else build_map lthy2 (the o AList.lookup (op =) ABgs) (T, U) $ x
+              if T = U then x else build_map lthy2 [] (the o AList.lookup (op =) ABgs) (T, U) $ x
             end;
 
           fun mk_rec_o_map_arg rec_arg_T h =

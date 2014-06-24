@@ -340,11 +340,11 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
                       val (TY, (U, X)) = TU |> dest_co_algT ||> dest_co_productT;
                       val T = mk_co_algT TY U;
                     in
-                      (case try (force_typ names_lthy T o build_map lthy co_proj1_const o dest_funT) T of
+                      (case try (force_typ names_lthy T o build_map lthy [] co_proj1_const o dest_funT) T of
                         SOME f => mk_co_product f
                           (fst (fst (mk_rec NONE recs lthy (mk_co_algT TY X))))
                       | NONE => mk_map_co_product
-                          (build_map lthy co_proj1_const
+                          (build_map lthy [] co_proj1_const
                             (dest_funT (mk_co_algT (dest_co_productT TY |> fst) U)))
                           (HOLogic.id_const X))
                     end)

@@ -44,6 +44,7 @@ open BNF_FP_Util
 
 val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
 val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
+val simp_thms' = @{thms simp_thms(6,7,8,11,12,15,16,22,24)};
 
 val sumprod_thms_map = @{thms id_apply map_prod_simp prod.case sum.case map_sum.simps};
 val sumprod_thms_set =
@@ -218,12 +219,12 @@ fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss 
         arg_cong2}) RS iffD1)) THEN'
         atac THEN' atac THEN' hyp_subst_tac ctxt THEN' dtac assm THEN'
         REPEAT_DETERM o etac conjE))) 1 THEN
-      Local_Defs.unfold_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
-        sels @ @{thms simp_thms(6,7,8,11,12,15,16,22,24)}) THEN
+      Local_Defs.unfold_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @ sels
+        @ simp_thms') THEN
       Local_Defs.unfold_tac ctxt (dtor_ctor :: rel_pre_def :: abs_inverse :: ctor_inject ::
-        abs_inject :: ctor_defs @ @{thms BNF_Comp.id_bnf_comp_def rel_sum_simps rel_prod_apply
-        vimage2p_def Inl_Inr_False iffD2[OF eq_False Inr_not_Inl] sum.inject prod.inject
-        simp_thms(6,7,8,11,12,15,16,22,24)}) THEN
+        abs_inject :: ctor_defs @ simp_thms' @ @{thms BNF_Comp.id_bnf_comp_def rel_sum_simps
+        rel_prod_apply vimage2p_def Inl_Inr_False iffD2[OF eq_False Inr_not_Inl] sum.inject
+        prod.inject}) THEN
       REPEAT_DETERM (HEADGOAL ((REPEAT_DETERM o etac conjE) THEN' (REPEAT_DETERM o rtac conjI) THEN'
         (rtac refl ORELSE' atac))))
     cts assms exhausts discss selss ctor_defss dtor_ctors ctor_injects abs_injects rel_pre_defs

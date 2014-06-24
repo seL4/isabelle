@@ -68,7 +68,7 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     fun check_no_call t = if has_call t then unexpected_rec_call ctxt t else ();
 
     val typof = curry fastype_of1 bound_Ts;
-    val build_map_fst = build_map ctxt (fst_const o fst);
+    val build_map_fst = build_map ctxt [] (fst_const o fst);
 
     val yT = typof y;
     val yU = typof y';
