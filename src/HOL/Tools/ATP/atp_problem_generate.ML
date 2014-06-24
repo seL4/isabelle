@@ -969,7 +969,7 @@ fun class_atom type_enc (cl, T) =
     val tm_args =
       tm_args @
       (case type_enc of
-        Native (First_Order, Raw_Polymorphic Without_Phantom_Type_Vars, _) =>
+        Native (_, Raw_Polymorphic Without_Phantom_Type_Vars, _) =>
         [ATerm ((TYPE_name, ty_args), [])]
       | _ => [])
   in AAtom (ATerm ((cl, ty_args), tm_args)) end
@@ -2196,7 +2196,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
        ? (fold (fold add_fact_syms) [conjs, facts]
           #> fold add_iterm_syms extra_tms
           #> (case type_enc of
-                Native (First_Order, Raw_Polymorphic phantoms, _) =>
+                Native (_, Raw_Polymorphic phantoms, _) =>
                 phantoms = Without_Phantom_Type_Vars ? add_TYPE_const ()
               | Native _ => I
               | _ => fold add_undefined_const (var_types ())))
