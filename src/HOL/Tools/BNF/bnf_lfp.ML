@@ -1223,8 +1223,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val prems = map4 mk_prem phis ctors FTs_setss xFs;
 
         fun mk_concl phi z = phi $ z;
-        val concl =
-          HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_concl phis Izs));
+        val concl = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_concl phis Izs));
 
         val goal = Logic.list_implies (prems, concl);
       in
