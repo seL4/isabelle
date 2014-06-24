@@ -497,7 +497,7 @@ fun naive_bayes_learn num_facts get_deps get_feats num_feats =
         fun add_th weight t =
           let
             val im = Array.sub (sfreq, t)
-            fun fold_fn s sf = Inttab.update (s, weight + the_default 0 (Inttab.lookup im s)) sf
+            fun fold_fn s sf = Inttab.map_default (s, 0) (Integer.add weight) sf
           in
             Array.update (tfreq, t, weight + Array.sub (tfreq, t));
             Array.update (sfreq, t, fold fold_fn feats im)
