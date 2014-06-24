@@ -234,6 +234,7 @@ fun extract_params mode default_params override_params =
     val raw_params = rev override_params @ rev default_params
     val lookup = Option.map implode_param o AList.lookup (op =) raw_params
     val lookup_string = the_default "" o lookup
+
     fun general_lookup_bool option default_value name =
       (case lookup name of
         SOME s => parse_bool_option option name s
@@ -275,8 +276,7 @@ fun extract_params mode default_params override_params =
     val spy = getenv "SLEDGEHAMMER_SPY" = "yes" orelse lookup_bool "spy"
     val blocking =
       Isabelle_Process.is_active () orelse mode <> Normal orelse debug orelse lookup_bool "blocking"
-    val provers = lookup_string "provers" |> space_explode " "
-                  |> mode = Auto_Try ? single o hd
+    val provers = lookup_string "provers" |> space_explode " " |> mode = Auto_Try ? single o hd
     val type_enc =
       if mode = Auto_Try then
         NONE
@@ -322,40 +322,35 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 val default_minimize_prover = metisN
 
-fun is_raw_param_relevant_for_minimize (name, _) =
-  not (member (op =) params_not_for_minimize name)
+fun is_raw_param_relevant_for_minimize (name, _) = not (member (op =) params_not_for_minimize name)
+
 fun string_of_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
+
 fun nice_string_of_raw_param (p as (key, ["false"])) =
     (case AList.find (op =) negated_alias_params key of
        [neg] => neg
      | _ => string_of_raw_param p)
   | nice_string_of_raw_param p = string_of_raw_param p
 
-fun minimize_command override_params i more_override_params prover_name
-                     fact_names =
+fun minimize_command override_params i more_override_params prover_name fact_names =
   let
     val params =
-      (override_params
-       |> filter_out (AList.defined (op =) more_override_params o fst)) @
+      (override_params |> filter_out (AList.defined (op =) more_override_params o fst)) @
       more_override_params
       |> filter is_raw_param_relevant_for_minimize
       |> map nice_string_of_raw_param
       |> (if prover_name = default_minimize_prover then I else cons prover_name)
       |> space_implode ", "
   in
-    sledgehammerN ^ " " ^ minN ^
-    (if params = "" then "" else enclose " [" "]" params) ^
-    " (" ^ space_implode " " fact_names ^ ")" ^
-    (if i = 1 then "" else " " ^ string_of_int i)
+    sledgehammerN ^ " " ^ minN ^ (if params = "" then "" else enclose " [" "]" params) ^
+    " (" ^ space_implode " " fact_names ^ ")" ^ (if i = 1 then "" else " " ^ string_of_int i)
   end
 
 val default_learn_prover_timeout = 2.0
 
-fun hammer_away override_params subcommand opt_i fact_override state0 =
+fun hammer_away override_params subcommand opt_i fact_override state =
   let
-    val state =
-      Proof.map_contexts (Try0.silence_methods false #> Config.put SMT2_Config.verbose false) state0
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
@@ -415,25 +410,20 @@ fun hammer_away override_params subcommand opt_i fact_override state0 =
 
 fun sledgehammer_trans (((subcommand, params), fact_override), opt_i) =
   Toplevel.unknown_proof o
-  Toplevel.keep (hammer_away params subcommand opt_i fact_override
-                 o Toplevel.proof_of)
+  Toplevel.keep (hammer_away params subcommand opt_i fact_override o Toplevel.proof_of)
 
 fun string_of_raw_param (name, value) = name ^ " = " ^ implode_param value
 
 fun sledgehammer_params_trans params =
-  Toplevel.theory
-    (fold set_default_raw_param params
-     #> tap (fn thy =>
-          writeln ("Default parameters for Sledgehammer:\n" ^
-            (case rev (default_raw_params Normal thy) of
-              [] => "none"
-            | params => params |> map string_of_raw_param |> sort_strings |> cat_lines))))
+  Toplevel.theory (fold set_default_raw_param params #> tap (fn thy =>
+    writeln ("Default parameters for Sledgehammer:\n" ^
+      (case rev (default_raw_params Normal thy) of
+        [] => "none"
+      | params => params |> map string_of_raw_param |> sort_strings |> cat_lines))))
 
 val parse_query_bang = @{keyword "?"} || @{keyword "!"} || @{keyword "!!"}
-val parse_key =
-  Scan.repeat1 (Parse.typ_group || parse_query_bang) >> implode_param
-val parse_value =
-  Scan.repeat1 (Parse.xname || Parse.float_number || parse_query_bang)
+val parse_key = Scan.repeat1 (Parse.typ_group || parse_query_bang) >> implode_param
+val parse_value = Scan.repeat1 (Parse.xname || Parse.float_number || parse_query_bang)
 val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
@@ -443,8 +433,7 @@ val parse_fact_override_chunk =
   || (Args.del |-- Args.colon |-- parse_fact_refs >> del_fact_override)
   || (parse_fact_refs >> only_fact_override)
 val parse_fact_override =
-  Scan.optional (Args.parens (Scan.repeat parse_fact_override_chunk
-                              >> merge_fact_overrides))
+  Scan.optional (Args.parens (Scan.repeat parse_fact_override_chunk >> merge_fact_overrides))
                 no_fact_override
 
 val _ =

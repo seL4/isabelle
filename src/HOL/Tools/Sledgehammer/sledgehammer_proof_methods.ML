@@ -103,14 +103,21 @@ fun string_of_proof_method ctxt ss meth =
     maybe_paren (space_implode " " (meth_s :: ss))
   end
 
+val silence_unifier = Try0.silence_methods false
+
 fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
   (case meth of
     Metis_Method (type_enc_opt, lam_trans_opt) =>
-    Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
-      (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
+    let val ctxt = Config.put Metis_Tactic.verbose false ctxt in
+      Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
+        (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
+    end
   | Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
-  | SMT2_Method => SMT2_Solver.smt2_tac ctxt global_facts
+  | SMT2_Method =>
+    let val ctxt = Config.put SMT2_Config.verbose false ctxt in
+      SMT2_Solver.smt2_tac ctxt global_facts
+    end
   | Simp_Method => Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
   | _ =>
     Method.insert_tac global_facts THEN'
@@ -119,10 +126,11 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
     | Blast_Method => blast_tac ctxt
     | Simp_Size_Method =>
       Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
-    | Auto_Method => K (Clasimp.auto_tac ctxt)
-    | Fastforce_Method => Clasimp.fast_force_tac ctxt
-    | Force_Method => Clasimp.force_tac ctxt
-    | Linarith_Method => Lin_Arith.tac ctxt
+    | Auto_Method => K (Clasimp.auto_tac (silence_unifier ctxt))
+    | Fastforce_Method => Clasimp.fast_force_tac (silence_unifier ctxt)
+    | Force_Method => Clasimp.force_tac (silence_unifier ctxt)
+    | Linarith_Method =>
+      let val ctxt = Config.put Lin_Arith.verbose false ctxt in Lin_Arith.tac ctxt end
     | Presburger_Method => Cooper.tac true [] [] ctxt
     | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 
