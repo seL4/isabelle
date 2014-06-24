@@ -512,20 +512,23 @@ fun naive_bayes_learn num_facts get_deps get_feats num_feats =
 
     fun for i =
       if i = num_facts then () else (learn i (get_feats i) (get_deps i); for (i + 1))
+
+    val ln_afreq = Math.ln (Real.fromInt num_facts)
   in
-    for 0; (Array.vector tfreq, Array.vector sfreq, Array.vector dffreq)
+    for 0;
+    (Array.vector tfreq, Array.vector sfreq,
+     Vector.map (fn i => ln_afreq - Math.ln (Real.fromInt i)) (Array.vector dffreq))
   end
 
 fun naive_bayes_query (kuehlwein_log, kuehlwein_params) num_facts num_visible_facts max_suggs feats
-    (tfreq, sfreq, dffreq) =
+    (tfreq, sfreq, idf) =
   let
     val tau = if kuehlwein_params then 0.05 else 0.02 (* FUDGE *)
     val pos_weight = if kuehlwein_params then 10.0 else 2.0 (* FUDGE *)
     val def_val = ~15.0 (* FUDGE *)
 
-    val afreq = Real.fromInt num_facts
-    fun tfidf feat =
-      Math.ln afreq - (Math.ln (Real.fromInt (Vector.sub (dffreq, feat))) handle Subscript => 0.0)
+    val ln_afreq = Math.ln (Real.fromInt num_facts)
+    fun tfidf feat = Vector.sub (idf, feat) handle Subscript => ln_afreq (* TODO: clean up *)
 
     fun log_posterior i =
       let
