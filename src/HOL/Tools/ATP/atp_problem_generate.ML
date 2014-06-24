@@ -608,16 +608,17 @@ fun type_enc_of_string strictness s =
     SOME s => (SOME Type_Class_Polymorphic, s)
   | NONE =>
     (case try (unprefix "poly_") s of
-      (* It's still unclear whether all TFF1 implementations will support type signatures such as
-         "!>[A : $tType] : $o", with phantom type variables. *)
       SOME s => (SOME (Raw_Polymorphic With_Phantom_Type_Vars), s)
     | NONE =>
-      (case try (unprefix "raw_mono_") s of
-        SOME s => (SOME Raw_Monomorphic, s)
+      (case try (unprefix "ml_poly_") s of
+        SOME s => (SOME (Raw_Polymorphic Without_Phantom_Type_Vars), s)
       | NONE =>
-        (case try (unprefix "mono_") s of
-          SOME s => (SOME Mangled_Monomorphic, s)
-        | NONE => (NONE, s)))))
+        (case try (unprefix "raw_mono_") s of
+          SOME s => (SOME Raw_Monomorphic, s)
+        | NONE =>
+          (case try (unprefix "mono_") s of
+            SOME s => (SOME Mangled_Monomorphic, s)
+          | NONE => (NONE, s))))))
   ||> (fn s =>
        (case try_unsuffixes queries s of
          SOME s =>

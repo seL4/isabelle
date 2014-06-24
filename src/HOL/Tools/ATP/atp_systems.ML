@@ -628,8 +628,12 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    best_max_new_mono_instances = default_max_new_mono_instances}
 
 val dummy_thf_format = THF (Polymorphic, THF_With_Choice)
+
 val dummy_thf_config = dummy_config Hypothesis dummy_thf_format "poly_native_higher" false
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
+
+val dummy_thf_ml_config = dummy_config Hypothesis dummy_thf_format "ml_poly_native_higher" false
+val dummy_thf_ml = (dummy_thf_mlN, fn () => dummy_thf_ml_config)
 
 val spass_pirate_format = DFG Polymorphic
 val remote_spass_pirate_config : atp_config =
@@ -797,9 +801,9 @@ fun effective_term_order ctxt atp =
 
 val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax, spass, vampire,
-   z3_tptp, zipperposition, dummy_thf, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof,
-   remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire, remote_snark,
-   remote_spass_pirate, remote_waldmeister, remote_waldmeister_new]
+   z3_tptp, zipperposition, dummy_thf, dummy_thf_ml, remote_agsyhol, remote_e, remote_e_sine,
+   remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire,
+   remote_snark, remote_spass_pirate, remote_waldmeister, remote_waldmeister_new]
 
 val _ = Theory.setup (fold add_atp atps)
 
