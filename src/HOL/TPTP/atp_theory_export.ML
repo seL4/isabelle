@@ -155,6 +155,8 @@ fun monomorphize_term ctxt t =
 fun heading_sort_key heading =
   if String.isPrefix "Relevant fact" heading then "_" ^ heading else heading
 
+val max_dependencies = 100
+
 fun problem_of_theory ctxt thy format infer_policy type_enc =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
@@ -182,8 +184,8 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
         facts
         |> map (fn (_, th) =>
                    (fact_name_of (Thm.get_name_hint th),
-                    th |> Sledgehammer_Util.thms_in_proof (SOME name_tabs)
-                       |> map fact_name_of))
+                    th |> Sledgehammer_Util.thms_in_proof max_dependencies (SOME name_tabs)
+                       |> these |> map fact_name_of))
     val all_problem_names =
       problem |> maps (map ident_of_problem_line o snd)
               |> distinct (op =)

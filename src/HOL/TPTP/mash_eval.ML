@@ -111,7 +111,7 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
             | NONE => error ("No fact called \"" ^ name ^ "\".")
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
-          val isar_deps = isar_dependencies_of name_tabs th
+          val isar_deps = these (isar_dependencies_of name_tabs th)
           val facts =
             facts
             |> filter (fn (_, th') =>

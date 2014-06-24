@@ -19,7 +19,8 @@ sig
   val parse_time : string -> string -> Time.time
   val subgoal_count : Proof.state -> int
   val reserved_isar_keyword_table : unit -> unit Symtab.table
-  val thms_in_proof : (string Symtab.table * string Symtab.table) option -> thm -> string list
+  val thms_in_proof : int -> (string Symtab.table * string Symtab.table) option -> thm ->
+    string list option
   val thms_of_name : Proof.context -> string -> thm list
   val one_day : Time.time
   val one_year : Time.time
@@ -84,11 +85,13 @@ val subgoal_count = Try.subgoal_count
 fun reserved_isar_keyword_table () =
   Keyword.dest () |-> union (op =) |> map (rpair ()) |> Symtab.make
 
+exception TOO_MANY of unit
+
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few fixes that seem to
    be missing over there; or maybe the two code portions are not doing the same? *)
-fun fold_body_thm outer_name (map_plain_name, map_inclass_name) =
+fun fold_body_thm max_thms outer_name (map_plain_name, map_inclass_name) body =
   let
-    fun app_thm map_name (_, (name, _, body)) accum =
+    fun app_thm map_name (_, (name, _, body)) (accum as (num_thms, names)) =
       let
         val (anonymous, enter_class) =
           (* The "name = outer_name" case caters for the uncommon case where the proved theorem
@@ -98,18 +101,25 @@ fun fold_body_thm outer_name (map_plain_name, map_inclass_name) =
           else (false, false)
       in
         if anonymous then
-          accum |> app_body (if enter_class then map_inclass_name else map_name) (Future.join body)
+          app_body (if enter_class then map_inclass_name else map_name) (Future.join body) accum
         else
-          accum |> union (op =) (the_list (map_name name))
+          (case map_name name of
+            SOME name' =>
+            if member (op =) names name' then accum
+            else if num_thms = max_thms then raise TOO_MANY ()
+            else (num_thms + 1, name' :: names)
+          | NONE => accum)
       end
     and app_body map_name (PBody {thms, ...}) = fold (app_thm map_name) thms
   in
-    app_body map_plain_name
+    snd (app_body map_plain_name body (0, []))
   end
 
-fun thms_in_proof name_tabs th =
+fun thms_in_proof max_thms name_tabs th =
   let val map_names = (case name_tabs of SOME p => pairself Symtab.lookup p | NONE => `I SOME) in
-    fold_body_thm (Thm.get_name_hint th) map_names (Proofterm.strip_thm (Thm.proof_body_of th)) []
+    SOME (fold_body_thm max_thms (Thm.get_name_hint th) map_names
+      (Proofterm.strip_thm (Thm.proof_body_of th)))
+    handle TOO_MANY () => NONE
   end
 
 fun thms_of_name ctxt name =

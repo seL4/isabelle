@@ -83,7 +83,7 @@ sig
   val features_of : Proof.context -> theory -> int -> int Symtab.table -> stature -> term list ->
     (string * real) list
   val trim_dependencies : string list -> string list option
-  val isar_dependencies_of : string Symtab.table * string Symtab.table -> thm -> string list
+  val isar_dependencies_of : string Symtab.table * string Symtab.table -> thm -> string list option
   val prover_dependencies_of : Proof.context -> params -> string -> int -> raw_fact list ->
     string Symtab.table * string Symtab.table -> thm -> bool * string list
   val attach_parents_to_facts : ('a * thm) list -> ('a * thm) list ->
@@ -1153,21 +1153,22 @@ fun trim_dependencies deps =
   if length deps > max_dependencies then NONE else SOME deps
 
 fun isar_dependencies_of name_tabs th =
-  let val deps = thms_in_proof (SOME name_tabs) th in
+  thms_in_proof max_dependencies (SOME name_tabs) th
+  |> Option.map (fn deps =>
     if deps = [typedef_dep] orelse deps = [class_some_dep] orelse
        exists (member (op =) fundef_ths) deps orelse exists (member (op =) typedef_ths) deps orelse
        is_size_def deps th then
       []
     else
-      deps
-  end
+      deps)
 
 fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover auto_level facts
     name_tabs th =
   (case isar_dependencies_of name_tabs th of
-    [] => (false, [])
-  | isar_deps =>
+    SOME [] => (false, [])
+  | isar_deps0 =>
     let
+      val isar_deps = these isar_deps0
       val thy = Proof_Context.theory_of ctxt
       val goal = goal_of_thm thy th
       val name = nickname_of_thm th
@@ -1533,7 +1534,6 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
             |> (fn (false, _) => NONE | (true, deps) => trim_dependencies deps)
           else
             isar_dependencies_of name_tabs th
-            |> trim_dependencies
 
         fun do_commit [] [] [] state = state
           | do_commit learns relearns flops {access_G, num_known_facts, dirty} =

@@ -90,6 +90,7 @@ fun generate_features ctxt thys file_name =
 
 val prover_marker = "$a"
 val isar_marker = "$i"
+val missing_marker = "$m"
 val omitted_marker = "$o"
 val unprovable_marker = "$u" (* axiom or definition or characteristic theorem *)
 val prover_failed_marker = "$x"
@@ -105,9 +106,14 @@ fun smart_dependencies_of ctxt params_opt facts name_tabs th isar_deps_opt =
         let
           val deps =
             (case isar_deps_opt of
-              SOME deps => deps
-            | NONE => isar_dependencies_of name_tabs th)
-        in (if null deps then unprovable_marker else isar_marker, deps) end)
+              NONE => isar_dependencies_of name_tabs th
+            | deps => deps)
+        in
+          ((case deps of
+             NONE => missing_marker
+           | SOME [] => unprovable_marker
+           | SOME deps => isar_marker), [])
+        end)
   in
     (case trim_dependencies deps of
       SOME deps => (marker, deps)
@@ -147,7 +153,7 @@ fun generate_prover_dependencies ctxt params =
 fun is_bad_query ctxt ho_atp step j th isar_deps =
   j mod step <> 0 orelse
   Thm.legacy_get_kind th = "" orelse
-  null isar_deps orelse
+  null (the_list isar_deps) orelse
   is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
 
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys max_suggs file_name =
@@ -170,7 +176,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
             |> sort_wrt fst
           val access_facts = filter_accessible_from th new_facts @ old_facts
           val (marker, deps) =
-            smart_dependencies_of ctxt params_opt access_facts name_tabs th (SOME isar_deps)
+            smart_dependencies_of ctxt params_opt access_facts name_tabs th isar_deps
 
           fun extra_features_of (((_, stature), th), weight) =
             [prop_of th]
