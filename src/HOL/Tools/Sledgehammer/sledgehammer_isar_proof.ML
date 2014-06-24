@@ -122,7 +122,7 @@ fun comment_isar_proof comment_of = map_isar_steps (comment_isar_step comment_of
 fun chain_qs_lfs NONE lfs = ([], lfs)
   | chain_qs_lfs (SOME l0) lfs =
     if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
-fun chain_isar_step lbl (x as Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment)) =
+fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment)) =
     let val (qs', lfs) = chain_qs_lfs lbl lfs in
       Prove (qs' @ qs, xs, l, t, map chain_isar_proof subs, (lfs, gfs), meths, comment)
     end
@@ -261,10 +261,10 @@ fun string_of_isar_proof ctxt0 i n proof =
        arguably stylistically superior, because it emphasises the structure of the proof. It is also
        more robust w.r.t. preplay: Preplay is performed before chaining of local facts with "hence"
        and "thus" is introduced. See also "tac_of_method" in "Sledgehammer_Isar_Preplay". *)
-    fun of_method ls ss meth =
+    fun of_method command ls ss meth =
       let val direct = is_direct_method meth in
         using_facts ls (if direct then [] else ss) ^
-        "by " ^ string_of_proof_method ctxt (if direct then ss else []) meth
+        command ^ " " ^ string_of_proof_method ctxt (if direct then ss else []) meth
       end
 
     fun of_free (s, T) =
@@ -308,7 +308,7 @@ fun string_of_isar_proof ctxt0 i n proof =
         #> add_str (of_label l)
         #> add_term t
         #> add_str (" " ^
-             of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
+             of_method "by" (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
              (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
@@ -318,14 +318,13 @@ fun string_of_isar_proof ctxt0 i n proof =
       |> add_steps ind steps
       |> fst
   in
-    (* One-step Metis proofs are pointless; better use the one-liner directly. *)
+    (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
     (case proof of
-      Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], _, Metis_Method _ :: _, _)]) => ""
+      Proof (_, _, [Prove (_, _, _, _, [], (_, gfs), meth :: _, _)]) =>
+      of_method (if n = 1 then "by" else "apply") [] gfs meth
     | _ =>
-      (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
-      of_indent 0 ^ (if n <> 1 then "next" else "qed"))
+      of_indent 0 ^ (if n = 1 then "qed" else "next"))
   end
 
 end;

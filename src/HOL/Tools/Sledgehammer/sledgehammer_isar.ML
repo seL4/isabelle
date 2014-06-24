@@ -329,25 +329,19 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                #> chain_isar_proof
                #> kill_useless_labels_in_isar_proof
                #> relabel_isar_proof_nicely)
+
+        val isar_text = string_of_isar_proof ctxt subgoal subgoal_count isar_proof
+        val msg =
+          (if verbose then
+             let val num_steps = add_isar_steps (steps_of_isar_proof isar_proof) 0 in
+               [string_of_int num_steps ^ " step" ^ plural_s num_steps]
+             end
+           else
+             []) @
+          (if do_preplay then [string_of_play_outcome play_outcome] else [])
       in
-        (case string_of_isar_proof ctxt subgoal subgoal_count isar_proof of
-          "" =>
-          if isar_proofs = SOME true then "\nNo structured proof available (proof too simple)."
-          else ""
-        | isar_text =>
-          let
-            val msg =
-              (if verbose then
-                 let val num_steps = add_isar_steps (steps_of_isar_proof isar_proof) 0 in
-                   [string_of_int num_steps ^ " step" ^ plural_s num_steps]
-                 end
-               else
-                 []) @
-              (if do_preplay then [string_of_play_outcome play_outcome] else [])
-          in
-            "\n\nStructured proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
-            Active.sendback_markup [Markup.padding_command] isar_text
-          end)
+        "\n\nStructured proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
+        Active.sendback_markup [Markup.padding_command] isar_text
       end
 
     val one_line_proof = one_line_proof_text ctxt 0 one_line_params
