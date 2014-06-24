@@ -486,13 +486,11 @@ fun k_nearest_neighbors num_facts num_visible_facts get_deps get_sym_ths max_sug
 
 val nb_def_prior_weight = 21 (* FUDGE *)
 
-(* TODO: Either use IDF or don't use it. See commented out code portions below. *)
-
 fun naive_bayes_learn num_facts get_deps get_feats num_feats =
   let
     val tfreq = Array.array (num_facts, 0)
     val sfreq = Array.array (num_facts, Inttab.empty)
-(*    val dffreq = Array.array (num_feats, 0) *)
+    val dffreq = Array.array (num_feats, 0)
 
     fun learn th feats deps =
       let
@@ -505,42 +503,40 @@ fun naive_bayes_learn num_facts get_deps get_feats num_feats =
             Array.update (sfreq, t, fold fold_fn feats im)
           end
 
-(*        fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s)) *)
+        fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s))
       in
         add_th nb_def_prior_weight th;
-        List.app (add_th 1) deps
-(* ;        List.app add_sym feats *)
+        List.app (add_th 1) deps;
+        List.app add_sym feats
       end
 
     fun for i =
       if i = num_facts then () else (learn i (get_feats i) (get_deps i); for (i + 1))
   in
-    for 0; (Array.vector tfreq, Array.vector sfreq (*, Array.vector dffreq *))
+    for 0; (Array.vector tfreq, Array.vector sfreq, Array.vector dffreq)
   end
 
-fun naive_bayes_query (kuehlwein_log, kuehlwein_params) _ (* num_facts *) num_visible_facts
-    max_suggs feats (tfreq, sfreq (*, dffreq*)) =
+fun naive_bayes_query (kuehlwein_log, kuehlwein_params) num_facts num_visible_facts max_suggs feats
+    (tfreq, sfreq, dffreq) =
   let
     val tau = if kuehlwein_params then 0.05 else 0.02 (* FUDGE *)
     val pos_weight = if kuehlwein_params then 10.0 else 2.0 (* FUDGE *)
     val def_val = ~15.0 (* FUDGE *)
 
-(*
     val afreq = Real.fromInt num_facts
-    fun tfidf feat = Math.ln afreq - Math.ln (Real.fromInt (Vector.sub (dffreq, feat)))
-*)
-    fun tfidf _ = 1.0
+    fun tfidf feat =
+      Math.ln afreq - (Math.ln (Real.fromInt (Vector.sub (dffreq, feat))) handle Subscript => 0.0)
 
     fun log_posterior i =
       let
         val tfreq = Real.fromInt (Vector.sub (tfreq, i))
 
-        fun fold_feats (f, fw) (res, sfh) =
+        fun fold_feats (f, _) (res, sfh) =
           (case Inttab.lookup sfh f of
             SOME sf =>
-            (res + tfidf f * fw * Math.ln (pos_weight * Real.fromInt sf / tfreq),
+            (res + tfidf f * Math.ln (pos_weight * Real.fromInt sf / tfreq),
              Inttab.delete f sfh)
-          | NONE => (res + fw * def_val, sfh))
+          | NONE => (res + tfidf f * def_val, sfh))
 
         val (res, sfh) = fold fold_feats feats (Math.ln tfreq, Vector.sub (sfreq, i))
 
@@ -640,7 +636,7 @@ fun query ctxt overlord engine visible_facts max_suggs (learns0, hints, feats) =
     val visible_fact_set = Symtab.make_set visible_facts
     val learns =
       (learns0 |> List.partition (Symtab.defined visible_fact_set o #1) |> op @) @
-      (if null hints then [] else [(".goal", feats, hints)])
+      (if null hints then [] else [(".hints", feats, hints)])
   in
     if engine = MaSh_SML_kNN_Cpp then
       k_nearest_neighbors_cpp max_suggs learns (map fst feats)
