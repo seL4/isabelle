@@ -416,8 +416,6 @@ fun heap cmp bnd a =
       ()
   end
 
-val number_of_nearest_neighbors = 40 (* FUDGE *)
-
 (*
   num_facts = maximum number of theorems to check dependencies and symbols
   num_visible_facts = do not return theorems over or equal to this number.
@@ -429,6 +427,8 @@ val number_of_nearest_neighbors = 40 (* FUDGE *)
 *)
 fun k_nearest_neighbors num_facts num_visible_facts get_deps get_sym_ths max_suggs feats =
   let
+    val number_of_nearest_neighbors = 40 (* FUDGE *)
+
     (* Can be later used for TFIDF *)
     fun sym_wght _ = 1.0
 
@@ -589,22 +589,28 @@ fun naive_bayes_py ctxt overlord num_facts num_visible_facts get_deps get_feats 
 (* experimental *)
 fun k_nearest_neighbors_cpp max_suggs learns cfeats =
   let
+    val number_of_nearest_neighbors = 10 (* FUDGE *)
+
     val ocs = TextIO.openOut "adv_syms"
     val ocd = TextIO.openOut "adv_deps"
     val ocq = TextIO.openOut "adv_seq"
     val occ = TextIO.openOut "adv_conj"
+
     fun os oc s = TextIO.output (oc, s)
+
     fun ol _ _ _   [] = ()
       | ol _ f _   [e] = f e
       | ol oc f sep (h :: t) = (f h; os oc sep; ol oc f sep t)
+
     fun do_learn (name, feats, deps) =
       (os ocs name; os ocs ":"; ol ocs (fn (sy, _) => (os ocs "\""; os ocs sy; os ocs "\"")) ", " feats; os ocs "\n";
        os ocd name; os ocd ":"; ol ocd (os ocd) " " deps; os ocd "\n";
        os ocq name; os ocq "\n")
+
     fun forkexec no =
       let
         val cmd =
-          "~/misc/predict/knn " ^ string_of_int number_of_nearest_neighbors ^
+          "~/misc/newknn/knn " ^ string_of_int number_of_nearest_neighbors ^
           " adv_syms adv_deps " ^ string_of_int no ^ " adv_seq < adv_conj"
       in
         fst (Isabelle_System.bash_output cmd)
