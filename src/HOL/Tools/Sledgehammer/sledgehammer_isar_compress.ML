@@ -94,8 +94,8 @@ fun merge_steps preplay_data (Prove ([], fix1, l1, _, subproofs1, (lfs1, gfs1), 
     val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
     val gfs = union (op =) gfs1 gfs2
   in
-    (Prove (qs2, union (op =) fix1 fix2, l2, t, subproofs1 @ subproofs2, (lfs, gfs), meths,
-       comment1 ^ comment2), hopeless)
+    (Prove (qs2, if member (op =) qs2 Show then [] else union (op =) fix1 fix2, l2, t,
+       subproofs1 @ subproofs2, (lfs, gfs), meths, comment1 ^ comment2), hopeless)
   end
 
 val merge_slack_time = seconds 0.005
