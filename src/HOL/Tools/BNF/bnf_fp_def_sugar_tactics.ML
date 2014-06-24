@@ -26,6 +26,9 @@ sig
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
+  val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
+    thm list list -> thm list list -> thm list list -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> tactic
   val mk_sel_map_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_sel_set_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_set_empty_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
@@ -204,6 +207,27 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
     EVERY' (map10 (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
+
+fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss ctor_defss
+  dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses =
+  rtac dtor_rel_coinduct 1 THEN
+  EVERY (map11 (fn ct => fn assm => fn exhaust => fn discs => fn sels => fn ctor_defs =>
+    fn dtor_ctor => fn ctor_inject => fn abs_inject => fn rel_pre_def => fn abs_inverse =>
+      (rtac exhaust THEN_ALL_NEW (rtac exhaust THEN_ALL_NEW
+        (dtac (rotate_prems (~1) ((cterm_instantiate_pos [NONE, NONE, NONE, NONE, SOME ct] @{thm
+        arg_cong2}) RS iffD1)) THEN'
+        atac THEN' atac THEN' hyp_subst_tac ctxt THEN' dtac assm THEN'
+        REPEAT_DETERM o etac conjE))) 1 THEN
+      Local_Defs.unfold_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
+        sels @ @{thms simp_thms(6,7,8,11,12,15,16,22,24)}) THEN
+      Local_Defs.unfold_tac ctxt (dtor_ctor :: rel_pre_def :: abs_inverse :: ctor_inject ::
+        abs_inject :: ctor_defs @ @{thms BNF_Comp.id_bnf_comp_def rel_sum_simps rel_prod_apply
+        vimage2p_def Inl_Inr_False iffD2[OF eq_False Inr_not_Inl] sum.inject prod.inject
+        simp_thms(6,7,8,11,12,15,16,22,24)}) THEN
+      REPEAT_DETERM (HEADGOAL ((REPEAT_DETERM o etac conjE) THEN' (REPEAT_DETERM o rtac conjI) THEN'
+        (rtac refl ORELSE' atac))))
+    cts assms exhausts discss selss ctor_defss dtor_ctors ctor_injects abs_injects rel_pre_defs
+      abs_inverses);
 
 fun mk_sel_map_tac ctxt ct exhaust discs maps sels =
   TRYALL Goal.conjunction_tac THEN

@@ -85,6 +85,7 @@ sig
   val mk_rel: int -> typ list -> typ list -> term -> term
   val build_map: Proof.context -> (typ * typ -> term) -> typ * typ -> term
   val build_rel: Proof.context -> (typ * typ -> term) -> typ * typ -> term
+  val build_rel': Proof.context -> typ list -> (typ * typ -> term) -> typ * typ -> term
   val flatten_type_args_of_bnf: bnf -> 'a -> 'a list -> 'a list
   val map_flattened_map_args: Proof.context -> string -> (term list -> 'a list) -> term list ->
     'a list
@@ -533,10 +534,12 @@ fun mk_rel live Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
-fun build_map_or_rel mk const of_bnf dest ctxt build_simple =
+fun build_map_or_rel mk const of_bnf dest blacklist ctxt build_simple =
   let
     fun build (TU as (T, U)) =
-      if T = U then
+      if exists (curry (op =) T) blacklist then
+        build_simple TU
+      else if T = U andalso not (exists_subtype_in blacklist T) then
         const T
       else
         (case TU of
@@ -553,8 +556,9 @@ fun build_map_or_rel mk const of_bnf dest ctxt build_simple =
         | _ => build_simple TU);
   in build end;
 
-val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT;
-val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T;
+val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT [];
+val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T [];
+fun build_rel' ctxt blacklist = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T blacklist ctxt;
 
 fun map_flattened_map_args ctxt s map_args fs =
   let
@@ -1284,7 +1288,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 (mk_Ball (setA $ x) (Term.absfree (dest_Free a)
                   (mk_Ball (setB $ y) (Term.absfree (dest_Free b)
                     (HOLogic.mk_imp (R $ a $ b, S $ a $ b))))));
-            val prems = HOLogic.mk_Trueprop (Term.list_comb (rel, Rs) $ x $ y) :: 
+            val prems = HOLogic.mk_Trueprop (Term.list_comb (rel, Rs) $ x $ y) ::
               map6 mk_prem bnf_sets_As bnf_sets_Bs Rs Rs_copy zs ys;
             val concl = HOLogic.mk_Trueprop (Term.list_comb (rel, Rs_copy) $ x $ y);
           in
@@ -1399,7 +1403,7 @@ val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs
         |> Conjunction.elim_balanced (length wit_goals)
         |> map2 (Conjunction.elim_balanced o length) wit_goalss
         |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
-    val (mk_wit_thms, nontriv_wit_goals) = 
+    val (mk_wit_thms, nontriv_wit_goals) =
       (case triv_tac_opt of
         NONE => (fn _ => [], map (map (rpair [])) wit_goalss)
       | SOME tac => (mk_triv_wit_thms tac, []));
