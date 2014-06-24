@@ -254,8 +254,8 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
         ""
 
     fun accum x (yss as ys :: _) = (x :: ys) :: yss
-    val old_factss = tl (fold accum new_facts [old_facts])
-    val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ rev old_factss))
+    val old_factss = tl (fold accum new_facts [rev old_facts])
+    val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ rev (map rev old_factss)))
   in
     File.write_list path lines
   end
