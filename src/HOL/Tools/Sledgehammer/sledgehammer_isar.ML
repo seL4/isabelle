@@ -141,8 +141,8 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val do_preplay = preplay_timeout <> Time.zeroTime
         val compress = if isar_proofs = NONE andalso do_preplay then 1000.0 else compress
 
-        val is_fixed = Variable.is_declared ctxt orf Name.is_skolem
-        fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
+        fun is_fixed ctxt = Variable.is_declared ctxt orf Name.is_skolem
+        fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
 
         fun get_role keep_role ((num, _), role, t, rule, _) =
           if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
@@ -157,18 +157,21 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               if member (op =) [Conjecture, Negated_Conjecture] role then SOME name else NONE)
             atp_proof
         val assms = map_filter (Option.map fst o get_role (curry (op =) Hypothesis)) atp_proof
-        val lems =
-          map_filter (get_role (curry (op =) Lemma)) atp_proof
-          |> map (fn ((l, t), rule) =>
-            let
-              val (skos, meths) =
-                (if is_skolemize_rule rule then (skolems_of t, skolem_methods)
-                 else if is_arith_rule rule then ([], arith_methods)
-                 else ([], rewrite_methods))
-                ||> massage_methods
-            in
-              Prove ([], skos, l, t, [], ([], []), meths, "")
-            end)
+
+        fun add_lemma ((l, t), rule) ctxt =
+          let
+            val (skos, meths) =
+              (if is_skolemize_rule rule then (skolems_of ctxt t, skolem_methods)
+               else if is_arith_rule rule then ([], arith_methods)
+               else ([], rewrite_methods))
+              ||> massage_methods
+          in
+            (Prove ([], skos, l, t, [], ([], []), meths, ""),
+             ctxt |> not (null skos) ? (Variable.add_fixes (map fst skos) #> snd))
+          end
+
+        val (lems, _) =
+          fold_map add_lemma (map_filter (get_role (curry (op =) Lemma)) atp_proof) ctxt
 
         val bot = atp_proof |> List.last |> #1
 
@@ -242,15 +245,16 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 (case gamma of
                   [g] =>
                   if skolem andalso is_clause_tainted g then
-                    let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
+                    let val subproof = Proof (skolems_of ctxt (prop_of_clause g), [], rev accum) in
                       isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
                     end
                   else
                     steps_of_rest (prove [] deps)
                 | _ => steps_of_rest (prove [] deps))
               else
-                steps_of_rest (if skolem then Prove ([], skolems_of t, l, t, [], deps, meths, "")
-                  else prove [] deps)
+                steps_of_rest
+                  (if skolem then Prove ([], skolems_of ctxt t, l, t, [], deps, meths, "")
+                   else prove [] deps)
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
             let
