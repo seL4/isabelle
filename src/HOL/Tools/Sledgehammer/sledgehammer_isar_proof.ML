@@ -251,20 +251,14 @@ fun string_of_isar_proof ctxt0 i n proof =
     fun using_facts [] [] = ""
       | using_facts ls ss = enclose "using " " " (space_implode " " (map string_of_label ls @ ss))
 
-    fun is_direct_method (Metis_Method _) = true
-      | is_direct_method Meson_Method = true
-      | is_direct_method SMT2_Method = true
-      | is_direct_method Simp_Method = true
-      | is_direct_method _ = false
-
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is
        arguably stylistically superior, because it emphasises the structure of the proof. It is also
        more robust w.r.t. preplay: Preplay is performed before chaining of local facts with "hence"
        and "thus" is introduced. See also "tac_of_method" in "Sledgehammer_Isar_Preplay". *)
-    fun of_method command ls ss meth =
-      let val direct = is_direct_method meth in
+    fun of_method ls ss meth =
+      let val direct = is_proof_method_direct meth in
         using_facts ls (if direct then [] else ss) ^
-        command ^ " " ^ string_of_proof_method ctxt (if direct then ss else []) meth
+        "by " ^ string_of_proof_method ctxt (if direct then ss else []) meth
       end
 
     fun of_free (s, T) =
@@ -308,7 +302,7 @@ fun string_of_isar_proof ctxt0 i n proof =
         #> add_str (of_label l)
         #> add_term t
         #> add_str (" " ^
-             of_method "by" (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
+             of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
              (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
@@ -319,12 +313,8 @@ fun string_of_isar_proof ctxt0 i n proof =
       |> fst
   in
     (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
-    (case proof of
-      Proof (_, _, [Prove (_, _, _, _, [], (_, gfs), meth :: _, _)]) =>
-      of_method (if n = 1 then "by" else "apply") [] gfs meth
-    | _ =>
-      of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
-      of_indent 0 ^ (if n = 1 then "qed" else "next"))
+    of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
+    of_indent 0 ^ (if n = 1 then "qed" else "next")
   end
 
 end;

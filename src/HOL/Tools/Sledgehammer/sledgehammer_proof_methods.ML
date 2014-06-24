@@ -33,6 +33,7 @@ sig
   type one_line_params =
     (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
+  val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
   val string_of_play_outcome : play_outcome -> string
@@ -70,6 +71,12 @@ datatype play_outcome =
 type minimize_command = string list -> string
 type one_line_params =
   (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
+
+fun is_proof_method_direct (Metis_Method _) = true
+  | is_proof_method_direct Meson_Method = true
+  | is_proof_method_direct SMT2_Method = true
+  | is_proof_method_direct Simp_Method = true
+  | is_proof_method_direct _ = false
 
 fun maybe_paren s = s |> not (Symbol_Pos.is_identifier s) ? enclose "(" ")"
 
@@ -136,12 +143,14 @@ fun play_outcome_ord (Played time1, Played time2) =
 
 fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal 1 _ = "apply "
-  | apply_on_subgoal i n =
-    "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
+  | apply_on_subgoal i n = "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 
 (* FIXME *)
 fun proof_method_command ctxt meth i n _(*used_chaineds*) _(*num_chained*) ss =
-  apply_on_subgoal i n ^ string_of_proof_method ctxt ss meth
+  let val (indirect_ss, direct_ss) = if is_proof_method_direct meth then ([], ss) else (ss, []) in
+    (if null indirect_ss then "" else "using " ^ space_implode " " indirect_ss ^ " ") ^
+    apply_on_subgoal i n ^ string_of_proof_method ctxt direct_ss meth
+  end
 
 fun try_command_line banner play command =
   let val s = string_of_play_outcome play in
