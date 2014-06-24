@@ -82,6 +82,16 @@ val unskolemize_names =
   Term.map_abs_vars (perhaps (try Name.dest_skolem))
   #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
 
+fun strip_alls (Const (@{const_name All}, _) $ Abs (s, T, body)) = strip_alls body |>> cons (s, T)
+  | strip_alls t = ([], t)
+
+fun push_skolem_all_under_iff t =
+  (case strip_alls t of
+    (qs as _ :: _,
+     (t0 as Const (@{const_name HOL.eq}, _)) $ (t1 as Const (@{const_name Ex}, _) $ _) $ t2) =>
+    t0 $ HOLogic.list_all (qs, t1) $ HOLogic.list_all (qs, t2)
+  | _ => t)
+
 fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids conjecture_id
     fact_helper_ids proof =
   let
@@ -97,6 +107,7 @@ fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_helper_ts prem_
           |> Object_Logic.atomize_term thy
           |> simplify_bool
           |> unskolemize_names
+          |> push_skolem_all_under_iff
           |> HOLogic.mk_Trueprop
 
         fun standard_step role =
