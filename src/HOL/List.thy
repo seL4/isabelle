@@ -2708,6 +2708,8 @@ lemma list_eq_iff_zip_eq:
   "xs = ys \<longleftrightarrow> length xs = length ys \<and> (\<forall>(x,y) \<in> set (zip xs ys). x = y)"
 by(auto simp add: set_zip list_all2_eq list_all2_conv_all_nth cong: conj_cong)
 
+lemma list_all2_same: "list_all2 P xs xs \<longleftrightarrow> (\<forall>x\<in>set xs. P x x)"
+by(auto simp add: list_all2_conv_all_nth set_conv_nth)
 
 subsubsection {* @{const List.product} and @{const product_lists} *}
 
