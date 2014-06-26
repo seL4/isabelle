@@ -1530,7 +1530,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
             isar_dependencies_of name_tabs th
 
         fun do_commit [] [] [] state = state
-          | do_commit learns relearns flops {access_G, xtabs, ffds, freqs, dirty_facts} =
+          | do_commit learns relearns flops
+              {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =
             let
               val was_empty = Graph.is_empty access_G
 
@@ -1545,7 +1546,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                   (false, SOME names) => SOME (map #1 learns @ map #1 relearns @ names)
                 | _ => NONE)
 
-              val (ffds', freqs') = recompute_ffds_freqs_from_access_G access_G xtabs
+              val (ffds', freqs') =
+                if null relearns then
+                  recompute_ffds_freqs_from_learns
+                    (map (fn (name, _, feats, deps) => (name, feats, deps)) learns) xtabs num_facts0
+                    ffds freqs
+                else
+                  recompute_ffds_freqs_from_access_G access_G xtabs
             in
               if engine = MaSh_Py then
                 (MaSh_Py.learn ctxt overlord (save andalso null relearns) learns;
