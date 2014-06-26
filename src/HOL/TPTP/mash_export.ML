@@ -138,7 +138,7 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys file_name =
       else
         ""
 
-    val lines = Par_List.map do_fact (tag_list 1 facts)
+    val lines = map do_fact (tag_list 1 facts)
   in
     File.write_list path lines
   end
@@ -213,7 +213,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
     val hd_const_tabs = fold (add_const_counts o prop_of o snd) old_facts Symtab.empty
     val (const_tabs, _) =
       fold_map (`I oo add_const_counts o prop_of o snd o snd o snd) new_facts hd_const_tabs
-    val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ prevss ~~ const_tabs))
+    val lines = map do_fact (tag_list 1 (new_facts ~~ prevss ~~ const_tabs))
   in
     File.write_list path lines
   end
@@ -260,7 +260,7 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
 
     fun accum x (yss as ys :: _) = (x :: ys) :: yss
     val old_factss = tl (fold accum new_facts [rev old_facts])
-    val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ rev (map rev old_factss)))
+    val lines = map do_fact (tag_list 1 (new_facts ~~ rev (map rev old_factss)))
   in
     File.write_list path lines
   end
