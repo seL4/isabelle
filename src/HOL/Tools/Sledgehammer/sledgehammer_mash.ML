@@ -1292,7 +1292,7 @@ fun steep_weight_of_fact rank =
 fun weight_facts_steeply facts =
   facts ~~ map steep_weight_of_fact (0 upto length facts - 1)
 
-val max_proximity_facts = 100
+val max_proximity_facts = 0 (*###*)
 
 fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
   let
@@ -1573,13 +1573,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
 
         fun learn_new_fact _ (accum as (_, (_, _, true))) = accum
           | learn_new_fact (parents, ((_, stature as (_, status)), th))
-              (learns, (n, next_commit, _)) =
+              (learns, (num_nontrivial, next_commit, _)) =
             let
               val name = nickname_of_thm th
               val feats =
                 map fst (features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th])
               val deps = deps_of status th |> these
-              val n = n |> not (null deps) ? Integer.add 1
+              val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
               val (learns, next_commit) =
                 if Time.> (Timer.checkRealTimer timer, next_commit) then
@@ -1588,33 +1588,34 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                   (learns, next_commit)
               val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
             in
-              (learns, (n, next_commit, timed_out))
+              (learns, (num_nontrivial, next_commit, timed_out))
             end
 
-        val n =
+        val (num_new_facts, num_nontrivial) =
           if no_new_facts then
-            0
+            (0, 0)
           else
             let
               val new_facts = facts
                 |> sort (crude_thm_ord o pairself snd)
                 |> attach_parents_to_facts []
                 |> filter_out (is_in_access_G o snd)
-              val (learns, (n, _, _)) =
+              val (learns, (num_nontrivial, _, _)) =
                 ([], (0, next_commit_time (), false))
                 |> fold learn_new_fact new_facts
             in
-              commit true learns [] []; n
+              commit true learns [] []; (length new_facts, num_nontrivial)
             end
 
         fun relearn_old_fact _ (accum as (_, (_, _, true))) = accum
-          | relearn_old_fact ((_, (_, status)), th) ((relearns, flops), (n, next_commit, _)) =
+          | relearn_old_fact ((_, (_, status)), th)
+              ((relearns, flops), (num_nontrivial, next_commit, _)) =
             let
               val name = nickname_of_thm th
-              val (n, relearns, flops) =
+              val (num_nontrivial, relearns, flops) =
                 (case deps_of status th of
-                  SOME deps => (n + 1, (name, deps) :: relearns, flops)
-                | NONE => (n, relearns, name :: flops))
+                  SOME deps => (num_nontrivial + 1, (name, deps) :: relearns, flops)
+                | NONE => (num_nontrivial, relearns, name :: flops))
               val (relearns, flops, next_commit) =
                 if Time.> (Timer.checkRealTimer timer, next_commit) then
                   (commit false [] relearns flops; ([], [], next_commit_time ()))
@@ -1622,12 +1623,12 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                   (relearns, flops, next_commit)
               val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
             in
-              ((relearns, flops), (n, next_commit, timed_out))
+              ((relearns, flops), (num_nontrivial, next_commit, timed_out))
             end
 
-        val n =
+        val num_nontrivial =
           if not run_prover then
-            n
+            num_nontrivial
           else
             let
               val max_isar = 1000 * max_dependencies
@@ -1645,16 +1646,17 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                 |> map (`(priority_of o snd))
                 |> sort (int_ord o pairself fst)
                 |> map snd
-              val ((relearns, flops), (n, _, _)) =
-                (([], []), (n, next_commit_time (), false))
+              val ((relearns, flops), (num_nontrivial, _, _)) =
+                (([], []), (num_nontrivial, next_commit_time (), false))
                 |> fold relearn_old_fact old_facts
             in
-              commit true [] relearns flops; n
+              commit true [] relearns flops; num_nontrivial
             end
       in
         if verbose orelse auto_level < 2 then
-          "Learned " ^ string_of_int n ^ " nontrivial " ^
-          (if run_prover then "automatic and " else "") ^ "Isar proof" ^ plural_s n ^
+          "Learned " ^ string_of_int num_new_facts ^ " fact" ^ plural_s num_new_facts ^ " and " ^
+          string_of_int num_nontrivial ^ " nontrivial " ^
+          (if run_prover then "automatic and " else "") ^ "Isar proof" ^ plural_s num_nontrivial ^
           (if verbose then " in " ^ string_of_time (Timer.checkRealTimer timer) else "") ^ "."
         else
           ""
