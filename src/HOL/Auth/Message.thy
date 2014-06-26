@@ -198,7 +198,7 @@ lemma parts_insert: "parts (insert X H) = parts {X} \<union> parts H"
 by (metis insert_is_Un parts_Un)
 
 text{*TWO inserts to avoid looping.  This rewrite is better than nothing.
-  Not suitable for Addsimps: its behaviour can be strange.*}
+  But its behaviour can be strange.*}
 lemma parts_insert2:
      "parts (insert X (insert Y H)) = parts {X} \<union> parts {Y} \<union> parts H"
 by (metis Un_commute Un_empty_right Un_insert_right insert_is_Un parts_Un)
@@ -310,14 +310,15 @@ done
 
 text{*In any message, there is an upper bound N on its greatest nonce.*}
 lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n --> Nonce n \<notin> parts {msg}"
-apply (induct msg)
-apply (simp_all (no_asm_simp) add: exI parts_insert2)
-txt{*Nonce case*}
-apply (metis Suc_n_not_le_n)
-txt{*MPair case: metis works out the necessary sum itself!*}
-apply (metis le_trans nat_le_linear)
-done
-
+proof (induct msg)
+  case (Nonce n)
+    show ?case
+      by simp (metis Suc_n_not_le_n)
+next
+  case (MPair X Y)
+    then show ?case --{*metis works out the necessary sum itself!*}
+      by (simp add: parts_insert2) (metis le_trans nat_le_linear)
+qed auto
 
 subsection{*Inductive relation "analz"*}
 
@@ -618,18 +619,6 @@ text{*Cut; Lemma 2 of Lowe*}
 lemma synth_cut: "[| Y\<in> synth (insert X H);  X\<in> synth H |] ==> Y\<in> synth H"
 by (erule synth_trans, blast)
 
-lemma Agent_synth [simp]: "Agent A \<in> synth H"
-by blast
-
-lemma Number_synth [simp]: "Number n \<in> synth H"
-by blast
-
-lemma Nonce_synth_eq [simp]: "(Nonce N \<in> synth H) = (Nonce N \<in> H)"
-by blast
-
-lemma Key_synth_eq [simp]: "(Key K \<in> synth H) = (Key K \<in> H)"
-by blast
-
 lemma Crypt_synth_eq [simp]:
      "Key K \<notin> H ==> (Crypt K X \<in> synth H) = (Crypt K X \<in> H)"
 by blast
@@ -726,22 +715,22 @@ subsection{*HPair: a combination of Hash and MPair*}
 subsubsection{*Freeness *}
 
 lemma Agent_neq_HPair: "Agent A ~= Hash[X] Y"
-by (unfold HPair_def, simp)
+  unfolding HPair_def by simp
 
 lemma Nonce_neq_HPair: "Nonce N ~= Hash[X] Y"
-by (unfold HPair_def, simp)
+  unfolding HPair_def by simp
 
 lemma Number_neq_HPair: "Number N ~= Hash[X] Y"
-by (unfold HPair_def, simp)
+  unfolding HPair_def by simp
 
 lemma Key_neq_HPair: "Key K ~= Hash[X] Y"
-by (unfold HPair_def, simp)
+  unfolding HPair_def by simp
 
 lemma Hash_neq_HPair: "Hash Z ~= Hash[X] Y"
-by (unfold HPair_def, simp)
+  unfolding HPair_def by simp
 
 lemma Crypt_neq_HPair: "Crypt K X' ~= Hash[X] Y"
-by (unfold HPair_def, simp)
+  unfolding HPair_def by simp
 
 lemmas HPair_neqs = Agent_neq_HPair Nonce_neq_HPair Number_neq_HPair 
                     Key_neq_HPair Hash_neq_HPair Crypt_neq_HPair
@@ -840,9 +829,7 @@ lemma parts_keyfree: "parts (keyfree) \<subseteq> keyfree"
 
 (*The key-free part of a set of messages can be removed from the scope of the analz operator.*)
 lemma analz_keyfree_into_Un: "\<lbrakk>X \<in> analz (G \<union> H); G \<subseteq> keyfree\<rbrakk> \<Longrightarrow> X \<in> parts G \<union> analz H"
-apply (erule analz.induct, auto)
-apply (blast dest:parts.Body)
-apply (blast dest: parts.Body)
+apply (erule analz.induct, auto dest: parts.Body)
 apply (metis Un_absorb2 keyfree_KeyE parts_Un parts_keyfree UnI2)
 done
 
