@@ -274,13 +274,7 @@ fun safe_str_of_real r =
 fun encode_feature (names, weight) =
   encode_str names ^ (if Real.== (weight, 1.0) then "" else "=" ^ safe_str_of_real weight)
 
-fun decode_feature s =
-  (case space_explode "=" s of
-    [feat, weight] => (decode_str feat, Real.fromString weight |> the_default 1.0)
-  | _ => (decode_str s, 1.0))
-
 val encode_features = map encode_feature #> space_implode " "
-val decode_features = space_explode " " #> map decode_feature
 
 fun str_of_learn (name, parents, feats, deps) =
   "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^ encode_strs feats ^ "; " ^
