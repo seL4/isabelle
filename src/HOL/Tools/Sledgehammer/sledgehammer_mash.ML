@@ -767,17 +767,15 @@ fun graph_info G =
   string_of_int (length (Graph.maximals G)) ^ " maximal"
 
 type mash_state =
-  {access_G : (proof_kind * (string * real) list * string list) Graph.T,
+  {access_G : (proof_kind * string list * string list) Graph.T,
    num_known_facts : int,
    dirty : string list option}
 
 val empty_state = {access_G = Graph.empty, num_known_facts = 0, dirty = SOME []} : mash_state
 
-(* TODO: get rid of weights in data structure *)
-
 local
 
-val version = "*** MaSh version 20140519 ***"
+val version = "*** MaSh version 20140625 ***"
 
 exception FILE_VERSION_TOO_NEW of unit
 
@@ -786,7 +784,7 @@ fun extract_node line =
     [head, tail] =>
     (case (space_explode " " head, map (unprefix " ") (space_explode ";" tail)) of
       ([kind, name], [parents, feats, deps]) =>
-      SOME (proof_kind_of_str kind, decode_str name, decode_strs parents, decode_features feats,
+      SOME (proof_kind_of_str kind, decode_str name, decode_strs parents, decode_strs feats,
         decode_strs deps)
     | _ => NONE)
   | _ => NONE)
@@ -829,7 +827,7 @@ fun load_state ctxt overlord (time_state as (memory_time, _)) =
 
 fun str_of_entry (kind, name, parents, feats, deps) =
   str_of_proof_kind kind ^ " " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-  encode_features feats ^ "; " ^ encode_strs deps ^ "\n"
+  encode_strs feats ^ "; " ^ encode_strs deps ^ "\n"
 
 fun save_state _ (time_state as (_, {dirty = SOME [], ...})) = time_state
   | save_state ctxt (memory_time, {access_G, num_known_facts, dirty}) =
@@ -1430,8 +1428,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
           val (parents, hints, feats) = query_args access_G
           val visible_facts = Graph.all_preds access_G parents
           val learns =
-            Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, map fst feats, deps))
-              access_G
+            Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
         in
           MaSh_SML.query ctxt overlord engine visible_facts max_facts (learns, hints, map fst feats)
         end
@@ -1451,7 +1448,7 @@ fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (learns, G) =
     val (parents, G) = ([], G) |> fold maybe_learn_from parents
     val (deps, _) = ([], G) |> fold maybe_learn_from deps
   in
-    ((name, parents, map fst feats, deps) :: learns, G)
+    ((name, parents, feats, deps) :: learns, G)
   end
 
 fun relearn_wrt_access_graph ctxt (name, deps) (relearns, G) =
@@ -1488,7 +1485,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
     launch_thread timeout (fn () =>
       let
         val thy = Proof_Context.theory_of ctxt
-        val feats = features_of ctxt thy 0 Symtab.empty (Local, General) [t]
+        val feats = map fst (features_of ctxt thy 0 Symtab.empty (Local, General) [t])
       in
         map_state ctxt overlord (fn state as {access_G, num_known_facts, dirty} =>
           let
@@ -1498,7 +1495,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
               |> map nickname_of_thm
           in
             if the_mash_engine () = MaSh_Py then
-              (MaSh_Py.learn ctxt overlord true [("", parents, map fst feats, deps)]; state)
+              (MaSh_Py.learn ctxt overlord true [("", parents, feats, deps)]; state)
             else
               let
                 val name = learned_proof_name ()
@@ -1590,7 +1587,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
               (learns, (n, next_commit, _)) =
             let
               val name = nickname_of_thm th
-              val feats = features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th]
+              val feats =
+                map fst (features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th])
               val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
