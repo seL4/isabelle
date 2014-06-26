@@ -438,7 +438,7 @@ fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts n
     val _ = for1 0
 
     val ln_afreq = Math.ln (Real.fromInt num_facts)
-    fun tfidf feat = ln_afreq - Math.ln (Real.fromInt (Array.sub (dffreq, feat))) handle Subscript => ln_afreq
+    fun tfidf feat = ln_afreq - Math.ln (Real.fromInt (Array.sub (dffreq, feat)))
 
     val overlaps_sqr = Array.tabulate (num_facts, rpair 0.0)
 
@@ -550,8 +550,7 @@ fun naive_bayes_query (kuehlwein_log, kuehlwein_params) num_facts max_suggs feat
     val pos_weight = if kuehlwein_params then 10.0 else 2.0 (* FUDGE *)
     val def_val = ~15.0 (* FUDGE *)
 
-    val ln_afreq = Math.ln (Real.fromInt num_facts)
-    fun tfidf feat = Vector.sub (idf, feat) handle Subscript => ln_afreq (* TODO: clean up *)
+    fun tfidf feat = Vector.sub (idf, feat)
 
     fun log_posterior i =
       let
@@ -687,7 +686,7 @@ fun query ctxt overlord engine visible_facts max_suggs (learns0, hints, feats) =
 
         val get_deps = curry Vector.sub deps_vec
 
-        val int_feats = map (the_default ~1 o Symtab.lookup feat_tab) feats
+        val int_feats = map_filter (Symtab.lookup feat_tab) feats
       in
         trace_msg ctxt (fn () => "MaSh_SML query " ^ encode_strs feats ^ " from {" ^
           elide_string 1000 (space_implode " " (take num_facts facts)) ^ "}");
