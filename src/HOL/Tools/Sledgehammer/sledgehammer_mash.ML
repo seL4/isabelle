@@ -749,9 +749,9 @@ fun graph_info G =
 type mash_state =
   {access_G : (proof_kind * string list * string list) Graph.T,
    num_known_facts : int,
-   dirty : string list option}
+   dirty_facts : string list option}
 
-val empty_state = {access_G = Graph.empty, num_known_facts = 0, dirty = SOME []} : mash_state
+val empty_state = {access_G = Graph.empty, num_known_facts = 0, dirty_facts = SOME []} : mash_state
 
 local
 
@@ -800,7 +800,7 @@ fun load_state ctxt overlord (time_state as (memory_time, _)) =
                | GREATER => raise FILE_VERSION_TOO_NEW ())
            in
              trace_msg ctxt (fn () => "Loaded fact graph (" ^ graph_info access_G ^ ")");
-             {access_G = access_G, num_known_facts = num_known_facts, dirty = SOME []}
+             {access_G = access_G, num_known_facts = num_known_facts, dirty_facts = SOME []}
            end
          | _ => empty_state)))
   end
@@ -809,33 +809,32 @@ fun str_of_entry (kind, name, parents, feats, deps) =
   str_of_proof_kind kind ^ " " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
   encode_strs feats ^ "; " ^ encode_strs deps ^ "\n"
 
-fun save_state _ (time_state as (_, {dirty = SOME [], ...})) = time_state
-  | save_state ctxt (memory_time, {access_G, num_known_facts, dirty}) =
+fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
+  | save_state ctxt (memory_time, {access_G, num_known_facts, dirty_facts}) =
     let
       fun append_entry (name, ((kind, feats, deps), (parents, _))) =
         cons (kind, name, Graph.Keys.dest parents, feats, deps)
 
       val path = mash_state_file ()
-      val dirty' =
+      val dirty_facts' =
         (case try OS.FileSys.modTime (Path.implode path) of
           NONE => NONE
-        | SOME disk_time => if Time.< (disk_time, memory_time) then dirty else NONE)
+        | SOME disk_time => if Time.< (disk_time, memory_time) then dirty_facts else NONE)
       val (banner, entries) =
-        (case dirty' of
+        (case dirty_facts' of
           SOME names => (NONE, fold (append_entry o Graph.get_entry access_G) names [])
         | NONE => (SOME (version ^ "\n"), Graph.fold append_entry access_G []))
     in
       write_file banner (entries, str_of_entry) path;
       trace_msg ctxt (fn () =>
         "Saved fact graph (" ^ graph_info access_G ^
-        (case dirty of
-          SOME dirty => "; " ^ string_of_int (length dirty) ^ " dirty fact(s)"
+        (case dirty_facts of
+          SOME dirty_facts => "; " ^ string_of_int (length dirty_facts) ^ " dirty fact(s)"
         | _ => "") ^  ")");
-      (Time.now (), {access_G = access_G, num_known_facts = num_known_facts, dirty = SOME []})
+      (Time.now (), {access_G = access_G, num_known_facts = num_known_facts, dirty_facts = SOME []})
     end
 
-val global_state =
-  Synchronized.var "Sledgehammer_MaSh.global_state" (Time.zeroTime, empty_state)
+val global_state = Synchronized.var "Sledgehammer_MaSh.global_state" (Time.zeroTime, empty_state)
 
 in
 
@@ -1467,7 +1466,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
         val thy = Proof_Context.theory_of ctxt
         val feats = map fst (features_of ctxt thy 0 Symtab.empty (Local, General) [t])
       in
-        map_state ctxt overlord (fn state as {access_G, num_known_facts, dirty} =>
+        map_state ctxt overlord (fn state as {access_G, num_known_facts, dirty_facts} =>
           let
             val parents = maximal_wrt_access_graph access_G facts
             val deps = used_ths
@@ -1482,7 +1481,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
                 val access_G = access_G |> add_node Automatic_Proof name parents feats deps
               in
                 {access_G = access_G, num_known_facts = num_known_facts + 1,
-                 dirty = Option.map (cons name) dirty}
+                 dirty_facts = Option.map (cons name) dirty_facts}
               end
           end);
         (true, "")
@@ -1529,7 +1528,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
             isar_dependencies_of name_tabs th
 
         fun do_commit [] [] [] state = state
-          | do_commit learns relearns flops {access_G, num_known_facts, dirty} =
+          | do_commit learns relearns flops {access_G, num_known_facts, dirty_facts} =
             let
               val was_empty = Graph.is_empty access_G
               val (learns, access_G) = ([], access_G) |> fold (learn_wrt_access_graph ctxt) learns
@@ -1537,8 +1536,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                 ([], access_G) |> fold (relearn_wrt_access_graph ctxt) relearns
               val access_G = access_G |> fold flop_wrt_access_graph flops
               val num_known_facts = num_known_facts + length learns
-              val dirty =
-                (case (was_empty, dirty) of
+              val dirty_facts =
+                (case (was_empty, dirty_facts) of
                   (false, SOME names) => SOME (map #1 learns @ map #1 relearns @ names)
                 | _ => NONE)
             in
@@ -1547,7 +1546,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                  MaSh_Py.relearn ctxt overlord save relearns)
               else
                 ();
-              {access_G = access_G, num_known_facts = num_known_facts, dirty = dirty}
+              {access_G = access_G, num_known_facts = num_known_facts, dirty_facts = dirty_facts}
             end
 
         fun commit last learns relearns flops =
