@@ -145,6 +145,8 @@ val learn_proverN = "learn_prover"
 val relearn_isarN = "relearn_isar"
 val relearn_proverN = "relearn_prover"
 
+fun map_array_at ary f i = Array.update (ary, i, f (Array.sub (ary, i)))
+
 fun mash_state_dir () = Path.explode "$ISABELLE_HOME_USER/mash" |> tap Isabelle_System.mkdir
 fun mash_state_file () = Path.append (mash_state_dir ()) (Path.explode "state")
 
@@ -418,7 +420,7 @@ fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts n
   let
     val dffreq = Array.array (num_feats, 0)
 
-    fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s))
+    val add_sym = map_array_at dffreq (Integer.add 1)
     fun for1 i =
       if i = num_feats then () else
       (List.app (fn _ => add_sym i) (get_sym_ths i); for1 (i + 1))
@@ -499,11 +501,11 @@ fun learn_facts tfreq sfreq dffreq num_facts get_deps get_feats num_feats =
             val im = Array.sub (sfreq, t)
             fun fold_fn s sf = Inttab.map_default (s, 0) (Integer.add weight) sf
           in
-            Array.update (tfreq, t, weight + Array.sub (tfreq, t));
+            map_array_at tfreq (Integer.add weight) t;
             Array.update (sfreq, t, fold fold_fn feats im)
           end
 
-        fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s))
+        val add_sym = map_array_at dffreq (Integer.add 1)
       in
         add_th nb_def_prior_weight th;
         List.app (add_th 1) deps;
@@ -633,8 +635,6 @@ val empty_xtab = (0, Symtab.empty)
 
 fun add_to_xtab key (next, tab) = (next + 1, Symtab.update_new (key, next) tab)
 fun maybe_add_to_xtab key = perhaps (try (add_to_xtab key))
-
-fun map_array_at ary f i = Array.update (ary, i, f (Array.sub (ary, i)))
 
 fun query ctxt overlord engine visible_facts max_suggs (learns0, hints, feats) =
   let

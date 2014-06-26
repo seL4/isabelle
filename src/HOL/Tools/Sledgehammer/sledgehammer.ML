@@ -206,7 +206,7 @@ fun string_of_factss factss =
       |> map (fn (filter, facts) => quote filter ^ ": " ^ string_of_facts facts)
       |> space_implode "\n\n")
 
-fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_facts, ...}) mode
+fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...}) mode
     output_result i (fact_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
