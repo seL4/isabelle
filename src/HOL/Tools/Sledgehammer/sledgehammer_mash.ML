@@ -419,6 +419,10 @@ fun heap cmp bnd a =
       ()
   end
 
+val number_of_nearest_neighbors = 10 (* FUDGE *)
+
+exception EXIT of unit
+
 (*
   num_facts = maximum number of theorems to check dependencies and symbols
   num_visible_facts = do not return theorems over or equal to this number.
@@ -430,8 +434,6 @@ fun heap cmp bnd a =
 *)
 fun k_nearest_neighbors num_facts num_visible_facts get_deps get_sym_ths max_suggs feats =
   let
-    val number_of_nearest_neighbors = 40 (* FUDGE *)
-
     (* Can be later used for TFIDF *)
     fun sym_wght _ = 1.0
 
@@ -455,16 +457,23 @@ fun k_nearest_neighbors num_facts num_visible_facts get_deps get_sym_ths max_sug
       end
 
     val _ = List.app do_feat feats
-    val _ = heap (Real.compare o pairself snd) number_of_nearest_neighbors overlaps_sqr
+    val _ = heap (Real.compare o pairself snd) num_facts overlaps_sqr
+    val no_recommends = Unsynchronized.ref 0
     val recommends = Array.tabulate (num_visible_facts, rpair 0.0)
+    val age = Unsynchronized.ref 1000000000.0
 
     fun inc_recommend j v =
-      if j >= num_visible_facts then ()
-      else Array.update (recommends, j, (j, v + snd (Array.sub (recommends, j))))
+      let val ov = snd (Array.sub (recommends, j)) in
+        if ov <= 0.0 then
+          (no_recommends := !no_recommends + 1; Array.update (recommends, j, (j, !age + ov)))
+        else
+          (if ov < !age + 1000.0 then Array.update (recommends, j, (j, v + ov)) else ())
+      end
 
-    fun for k =
-      if k = number_of_nearest_neighbors orelse k >= num_visible_facts then
-        ()
+    val k = Unsynchronized.ref 0
+    fun do_k k =
+      if k >= num_visible_facts then
+        raise EXIT ()
       else
         let
           val (j, o2) = Array.sub (overlaps_sqr, num_facts - k - 1)
@@ -473,13 +482,22 @@ fun k_nearest_neighbors num_facts num_visible_facts get_deps get_sym_ths max_sug
           val ds = get_deps j
           val l = Real.fromInt (length ds)
         in
-          List.app (fn d => inc_recommend d (o1 / l)) ds; for (k + 1)
+          List.app (fn d => inc_recommend d (o1 / l)) ds
         end
+
+    fun while1 () =
+      if !k = number_of_nearest_neighbors then () else (do_k (!k); k := !k + 1; while1 ())
+      handle EXIT () => ()
+
+    fun while2 () =
+      if !no_recommends >= max_suggs then ()
+      else (do_k (!k); k := !k + 1; age := !age - 10000.0; while2 ())
+      handle EXIT () => ()
 
     fun ret acc at =
       if at = Array.length recommends then acc else ret (Array.sub (recommends, at) :: acc) (at + 1)
   in
-    for 0;
+    while1 (); while2 ();
     heap (Real.compare o pairself snd) max_suggs recommends;
     ret [] (Integer.max 0 (num_visible_facts - max_suggs))
   end
@@ -624,10 +642,8 @@ fun c_plus_plus_tool tool max_suggs learns cfeats =
      forkexec max_suggs)
   end
 
-val cpp_number_of_nearest_neighbors = 10 (* FUDGE *)
-
 val k_nearest_neighbors_cpp =
-  c_plus_plus_tool ("newknn/knn" ^ " " ^ string_of_int cpp_number_of_nearest_neighbors)
+  c_plus_plus_tool ("newknn/knn" ^ " " ^ string_of_int number_of_nearest_neighbors)
 val naive_bayes_cpp = c_plus_plus_tool "predict/nbayes"
 
 fun add_to_xtab key (next, tab, keys) = (next + 1, Symtab.update_new (key, next) tab, key :: keys)
@@ -1496,8 +1512,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
   else
     ()
 
-fun sendback sub =
-  Active.sendback_markup [Markup.padding_command] (sledgehammerN ^ " " ^ sub)
+fun sendback sub = Active.sendback_markup [Markup.padding_command] (sledgehammerN ^ " " ^ sub)
 
 val commit_timeout = seconds 30.0
 
