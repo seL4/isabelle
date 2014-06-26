@@ -120,8 +120,6 @@ val learn_proverN = "learn_prover"
 val relearn_isarN = "relearn_isar"
 val relearn_proverN = "relearn_prover"
 
-val hintsN = ".hints"
-
 fun map_array_at ary f i = Array.update (ary, i, f (Array.sub (ary, i)))
 
 type xtab = int * int Symtab.table
@@ -686,13 +684,11 @@ fun graph_info G =
 type mash_state =
   {access_G : (proof_kind * string list * string list) Graph.T,
    xtabs : xtab * xtab,
-   num_known_facts : int, (* ### FIXME: kill *)
    dirty_facts : string list option}
 
 val empty_state =
   {access_G = Graph.empty,
    xtabs = (empty_xtab, empty_xtab),
-   num_known_facts = 0,
    dirty_facts = SOME []} : mash_state
 
 val empty_graphxx = (Graph.empty, (empty_xtab, empty_xtab))
@@ -730,22 +726,20 @@ fun load_state ctxt overlord (time_state as (memory_time, _)) =
                  NONE => I (* should not happen *)
                | SOME (kind, name, parents, feats, deps) => add_node kind name parents feats deps)
 
-             val ((access_G, xtabs), num_known_facts) =
+             val (access_G, xtabs) =
                (case string_ord (version', version) of
                  EQUAL =>
-                 (try_graph ctxt "loading state" empty_graphxx (fn () =>
-                    fold extract_line_and_add_node node_lines empty_graphxx),
-                  length node_lines)
+                 try_graph ctxt "loading state" empty_graphxx
+                   (fn () => fold extract_line_and_add_node node_lines empty_graphxx)
                | LESS =>
                  (* cannot parse old file *)
                  (if the_mash_engine () = MaSh_Py then MaSh_Py.unlearn ctxt overlord
                   else wipe_out_mash_state_dir ();
-                  (empty_graphxx, 0))
+                  empty_graphxx)
                | GREATER => raise FILE_VERSION_TOO_NEW ())
            in
              trace_msg ctxt (fn () => "Loaded fact graph (" ^ graph_info access_G ^ ")");
-             {access_G = access_G, xtabs = xtabs, num_known_facts = num_known_facts,
-              dirty_facts = SOME []}
+             {access_G = access_G, xtabs = xtabs, dirty_facts = SOME []}
            end
          | _ => empty_state)))
   end
@@ -755,7 +749,7 @@ fun str_of_entry (kind, name, parents, feats, deps) =
   encode_strs feats ^ "; " ^ encode_strs deps ^ "\n"
 
 fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
-  | save_state ctxt (memory_time, {access_G, xtabs, num_known_facts, dirty_facts}) =
+  | save_state ctxt (memory_time, {access_G, xtabs, dirty_facts}) =
     let
       fun append_entry (name, ((kind, feats, deps), (parents, _))) =
         cons (kind, name, Graph.Keys.dest parents, feats, deps)
@@ -776,9 +770,7 @@ fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
         (case dirty_facts of
           SOME dirty_facts => "; " ^ string_of_int (length dirty_facts) ^ " dirty fact(s)"
         | _ => "") ^  ")");
-      (Time.now (),
-       {access_G = access_G, xtabs = xtabs, num_known_facts = num_known_facts,
-        dirty_facts = SOME []})
+      (Time.now (), {access_G = access_G, xtabs = xtabs, dirty_facts = SOME []})
     end
 
 val global_state = Synchronized.var "Sledgehammer_MaSh.global_state" (Time.zeroTime, empty_state)
@@ -1366,7 +1358,6 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
           if engine = MaSh_SML_kNN_Ext orelse engine = MaSh_SML_NB_Ext then
             let
               val learns =
-                (if null hints then [] else [(hintsN, goal_feats, hints)]) @ (* ### FIXME *)
                 Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
             in
               MaSh_SML.query_external ctxt engine max_suggs learns goal_feats
@@ -1374,7 +1365,6 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
           else
             let
               val learns0 =
-                (if null hints then [] else [(hintsN, goal_feats, hints)]) @ (* ### FIXME *)
                 Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
               val learns = reorder_learns fact_xtab learns0
 
@@ -1457,7 +1447,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
         val feats = map fst (features_of ctxt thy 0 Symtab.empty (Local, General) [t])
       in
         map_state ctxt overlord
-          (fn state as {access_G, xtabs, num_known_facts, dirty_facts} =>
+          (fn state as {access_G, xtabs, dirty_facts} =>
              let
                val parents = maximal_wrt_access_graph access_G facts
                val deps = used_ths
@@ -1472,7 +1462,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
                    val (access_G, xtabs) =
                      add_node Automatic_Proof name parents feats deps (access_G, xtabs)
                  in
-                   {access_G = access_G, xtabs = xtabs, num_known_facts = num_known_facts + 1,
+                   {access_G = access_G, xtabs = xtabs,
                     dirty_facts = Option.map (cons name) dirty_facts}
                  end
              end);
@@ -1520,7 +1510,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
             isar_dependencies_of name_tabs th
 
         fun do_commit [] [] [] state = state
-          | do_commit learns relearns flops {access_G, xtabs, num_known_facts, dirty_facts} =
+          | do_commit learns relearns flops {access_G, xtabs, dirty_facts} =
             let
               val (learns, (access_G, xtabs)) =
                 fold (learn_wrt_access_graph ctxt) learns ([], (access_G, xtabs))
@@ -1529,7 +1519,6 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
 
               val was_empty = Graph.is_empty access_G
               val access_G = access_G |> fold flop_wrt_access_graph flops
-              val num_known_facts = num_known_facts + length learns
               val dirty_facts =
                 (case (was_empty, dirty_facts) of
                   (false, SOME names) => SOME (map #1 learns @ map #1 relearns @ names)
@@ -1540,8 +1529,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                  MaSh_Py.relearn ctxt overlord save relearns)
               else
                 ();
-              {access_G = access_G, xtabs = xtabs, num_known_facts = num_known_facts,
-               dirty_facts = dirty_facts}
+              {access_G = access_G, xtabs = xtabs, dirty_facts = dirty_facts}
             end
 
         fun commit last learns relearns flops =
@@ -1712,10 +1700,10 @@ fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...})
       fun maybe_learn () =
         if is_mash_enabled () andalso learn then
           let
-            val {access_G, num_known_facts, ...} = peek_state ctxt overlord I
+            val {access_G, xtabs = ((num_facts0, _), _), ...} = peek_state ctxt overlord I
             val is_in_access_G = is_fact_in_graph access_G o snd
           in
-            if length facts - num_known_facts <= max_facts_to_learn_before_query then
+            if length facts - num_facts0 <= max_facts_to_learn_before_query then
               (case length (filter_out is_in_access_G facts) of
                 0 => false
               | num_facts_to_learn =>
