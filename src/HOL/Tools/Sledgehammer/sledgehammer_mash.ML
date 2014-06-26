@@ -700,14 +700,17 @@ val empty_state =
    freqs = empty_freqs,
    dirty_facts = SOME []} : mash_state
 
-fun recompute_ffd_freqs_from_learns learns ((num_facts, fact_tab), (num_feats, feat_tab)) freqs =
+fun recompute_ffds_freqs_from_learns learns ((num_facts, fact_tab), (num_feats, feat_tab))
+    num_facts0 (fact_names0, featss0, depss0) freqs0 =
   let
-    val fact_names = Vector.fromList (map #1 learns)
-    val featss = Vector.fromList (map (map_filter (Symtab.lookup feat_tab) o #2) learns)
-    val depss = Vector.fromList (map (map_filter (Symtab.lookup fact_tab) o #3) learns)
+    val fact_names = Vector.concat [fact_names0, Vector.fromList (map #1 learns)]
+    val featss = Vector.concat [featss0,
+      Vector.fromList (map (map_filter (Symtab.lookup feat_tab) o #2) learns)]
+    val depss = Vector.concat [depss0,
+      Vector.fromList (map (map_filter (Symtab.lookup fact_tab) o #3) learns)]
   in
     ((fact_names, featss, depss),
-     MaSh_SML.learn_facts freqs 0 num_facts num_feats depss featss)
+     MaSh_SML.learn_facts freqs0 num_facts0 num_facts num_feats depss featss)
   end
 
 fun reorder_learns (num_facts, fact_tab) learns =
@@ -718,13 +721,13 @@ fun reorder_learns (num_facts, fact_tab) learns =
     Array.foldr (op ::) [] ary
   end
 
-fun recompute_ffd_freqs_from_access_G access_G (xtabs as (fact_xtab, _)) =
+fun recompute_ffds_freqs_from_access_G access_G (xtabs as (fact_xtab, _)) =
   let
     val learns =
       Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
       |> reorder_learns fact_xtab
   in
-    recompute_ffd_freqs_from_learns learns xtabs empty_freqs
+    recompute_ffds_freqs_from_learns learns xtabs 0 empty_ffds empty_freqs
   end
 
 local
@@ -774,7 +777,8 @@ fun load_state ctxt overlord (time_state as (memory_time, _)) =
                   empty_G_etc)
                | GREATER => raise FILE_VERSION_TOO_NEW ())
 
-             val (ffds, freqs) = recompute_ffd_freqs_from_learns (rev rev_learns) xtabs empty_freqs
+             val (ffds, freqs) =
+               recompute_ffds_freqs_from_learns (rev rev_learns) xtabs 0 empty_ffds empty_freqs
            in
              trace_msg ctxt (fn () => "Loaded fact graph (" ^ graph_info access_G ^ ")");
              {access_G = access_G, xtabs = xtabs, ffds = ffds, freqs = freqs, dirty_facts = SOME []}
@@ -1461,7 +1465,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
         val feats = map fst (features_of ctxt thy 0 Symtab.empty (Local, General) [t])
       in
         map_state ctxt overlord
-          (fn state as {access_G, xtabs, ffds, freqs, dirty_facts} =>
+          (fn state as {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
              let
                val parents = maximal_wrt_access_graph access_G facts
                val deps = used_ths
@@ -1473,10 +1477,11 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
                else
                  let
                    val name = learned_proof_name ()
-                   val (access_G', xtabs', learns) =
+                   val (access_G', xtabs', rev_learns) =
                      add_node Automatic_Proof name parents feats deps (access_G, xtabs, [])
 
-                   val (ffds', freqs') = recompute_ffd_freqs_from_access_G access_G' xtabs'
+                   val (ffds', freqs') =
+                     recompute_ffds_freqs_from_learns (rev rev_learns) xtabs' num_facts0 ffds freqs
                  in
                    {access_G = access_G', xtabs = xtabs', ffds = ffds', freqs = freqs',
                     dirty_facts = Option.map (cons name) dirty_facts}
@@ -1542,7 +1547,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                   (false, SOME names) => SOME (map #1 learns @ map #1 relearns @ names)
                 | _ => NONE)
 
-              val (ffds', freqs') = recompute_ffd_freqs_from_access_G access_G xtabs
+              val (ffds', freqs') = recompute_ffds_freqs_from_access_G access_G xtabs
             in
               if engine = MaSh_Py then
                 (MaSh_Py.learn ctxt overlord (save andalso null relearns) (rev learns);
