@@ -1714,10 +1714,13 @@ fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...})
     [("", [])]
   else
     let
-      fun maybe_launch_thread () =
+      fun maybe_launch_thread min_num_facts_to_learn =
         if not (Async_Manager.has_running_threads MaShN) andalso
            Time.toSeconds timeout >= min_secs_for_learning then
           let val timeout = time_mult learn_timeout_slack timeout in
+            Output.urgent_message ("Started MaShing through at least " ^
+              string_of_int min_num_facts_to_learn ^ " fact" ^ plural_s min_num_facts_to_learn ^
+              " in the background");
             launch_thread timeout
               (fn () => (true, mash_learn_facts ctxt params prover true 2 false timeout facts))
           end
@@ -1729,8 +1732,9 @@ fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...})
           let
             val {access_G, xtabs = ((num_facts0, _), _), ...} = peek_state ctxt overlord I
             val is_in_access_G = is_fact_in_graph access_G o snd
+            val min_num_facts_to_learn = length facts - num_facts0
           in
-            if length facts - num_facts0 <= max_facts_to_learn_before_query then
+            if min_num_facts_to_learn <= max_facts_to_learn_before_query then
               (case length (filter_out is_in_access_G facts) of
                 0 => false
               | num_facts_to_learn =>
@@ -1739,9 +1743,9 @@ fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...})
                    |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s));
                    true)
                 else
-                  (maybe_launch_thread (); false))
+                  (maybe_launch_thread num_facts_to_learn; false))
             else
-              (maybe_launch_thread (); false)
+              (maybe_launch_thread min_num_facts_to_learn; false)
           end
         else
           false

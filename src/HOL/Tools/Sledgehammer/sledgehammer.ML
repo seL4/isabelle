@@ -192,19 +192,12 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
 val auto_try_max_facts_divisor = 2 (* FUDGE *)
 
 fun string_of_facts facts =
-  "Including " ^ string_of_int (length facts) ^ " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
+  "Including " ^ string_of_int (length facts) ^ " relevant fact" ^ plural_s (length facts) ^ ": " ^
   (facts |> map (fst o fst) |> space_implode " ") ^ "."
 
 fun string_of_factss factss =
-  if forall (null o snd) factss then
-    "Found no relevant facts."
-  else
-    (case factss of
-      [(_, facts)] => string_of_facts facts
-    | _ =>
-      factss
-      |> map (fn (filter, facts) => quote filter ^ ": " ^ string_of_facts facts)
-      |> space_implode "\n\n")
+  if forall (null o snd) factss then "Found no relevant facts."
+  else cat_lines (map (fn (filter, facts) => quote filter ^ ": " ^ string_of_facts facts) factss)
 
 fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...}) mode
     output_result i (fact_override as {only, ...}) minimize_command state =
