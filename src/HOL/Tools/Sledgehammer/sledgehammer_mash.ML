@@ -500,13 +500,10 @@ fun learn_facts (tfreq0, sfreq0, dffreq0) num_facts0 num_facts num_feats depss f
       end
 
     fun for i =
-      if i = num_facts then
-        ()
-      else
-        (learn_one (num_facts0 + i) (Vector.sub (featss, i)) (Vector.sub (depss, i));
-         for (i + 1))
+      if i = num_facts then ()
+      else (learn_one i (Vector.sub (featss, i)) (Vector.sub (depss, i)); for (i + 1))
   in
-    for 0;
+    for num_facts0;
     (Array.vector tfreq, Array.vector sfreq, Array.vector dffreq)
   end
 
@@ -657,8 +654,7 @@ fun add_node kind name parents feats deps (access_G, (fact_xtab, feat_xtab), lea
   ((Graph.new_node (name, (kind, feats, deps)) access_G
     handle Graph.DUP _ => Graph.map_node name (K (kind, feats, deps)) access_G)
    |> fold (add_edge_to name) parents,
-  (maybe_add_to_xtab name fact_xtab,
-   fold maybe_add_to_xtab feats feat_xtab),
+  (add_to_xtab name fact_xtab, fold maybe_add_to_xtab feats feat_xtab),
   (name, feats, deps) :: learns)
 
 fun try_graph ctxt when def f =
@@ -1420,7 +1416,7 @@ fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (access_G, (fact_xt
     val (parents, access_G) = ([], access_G) |> fold maybe_learn_from parents
     val (deps, _) = ([], access_G) |> fold maybe_learn_from deps
 
-    val fact_xtab = maybe_add_to_xtab name fact_xtab
+    val fact_xtab = add_to_xtab name fact_xtab
     val feat_xtab = fold maybe_add_to_xtab feats feat_xtab
   in
     ((name, parents, feats, deps), (access_G, (fact_xtab, feat_xtab)))
