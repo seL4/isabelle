@@ -1206,8 +1206,7 @@ fun attach_parents_to_facts _ [] = []
           let
             val chunks = app_hd (cons th) chunks
             val chunks_and_parents' =
-              if thm_less_eq (th, th') andalso
-                 thy_name_of_thm th = thy_name_of_thm th' then
+              if thm_less_eq (th, th') andalso thy_name_of_thm th = thy_name_of_thm th' then
                 (chunks, [nickname_of_thm th])
               else
                 chunks_and_parents_for chunks th'
@@ -1254,7 +1253,7 @@ fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
 val chained_feature_factor = 0.5 (* FUDGE *)
 val extra_feature_factor = 0.1 (* FUDGE *)
-val num_extra_feature_facts = 10 (* FUDGE *)
+val num_extra_feature_facts = 0 (* FUDGE *) (* TODO: keep or eliminate? *)
 
 (* FUDGE *)
 fun weight_of_proximity_fact rank =
