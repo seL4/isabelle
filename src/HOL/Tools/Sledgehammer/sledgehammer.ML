@@ -264,9 +264,10 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
                   if outcome_code = someN then accum else launch problem prover)
                 provers
             else
-              provers
-              |> (if blocking then Par_List.map else map) (launch problem #> fst)
-              |> max_outcome_code |> rpair state
+              (learn chained;
+               provers
+               |> (if blocking then Par_List.map else map) (launch problem #> fst)
+               |> max_outcome_code |> rpair state)
           end
       in
         (if blocking then launch_provers state

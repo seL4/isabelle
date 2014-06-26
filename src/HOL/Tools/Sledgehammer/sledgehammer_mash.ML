@@ -260,10 +260,9 @@ fun str_of_learn (name, parents, feats, deps) =
 
 fun str_of_relearn (name, deps) = "p " ^ encode_str name ^ ": " ^ encode_strs deps ^ "\n"
 
-fun str_of_query max_suggs (learns, hints, parents, feats) =
+fun str_of_query max_suggs (learns, parents, feats) =
   implode (map str_of_learn learns) ^
-  "? " ^ string_of_int max_suggs ^ " # " ^ encode_strs parents ^ "; " ^ encode_features feats ^
-  (if null hints then "" else "; " ^ encode_strs hints) ^ "\n"
+  "? " ^ string_of_int max_suggs ^ " # " ^ encode_strs parents ^ "; " ^ encode_features feats ^ "\n"
 
 (* The suggested weights do not make much sense. *)
 fun extract_suggestion sugg =
@@ -307,7 +306,7 @@ fun relearn _ _ _ [] = ()
      run_mash_tool ctxt overlord ([] |> save ? cons save_models_arg) false
        (relearns, str_of_relearn) (K ()))
 
-fun query ctxt overlord max_suggs (query as (_, _, _, feats)) =
+fun query ctxt overlord max_suggs (query as (_, _, feats)) =
   (trace_msg ctxt (fn () => "MaSh_Py query " ^ encode_features feats);
    run_mash_tool ctxt overlord [] false ([query], str_of_query max_suggs) (fn suggs =>
      (case suggs () of [] => [] | suggs => snd (extract_suggestions (List.last suggs))))
@@ -566,7 +565,7 @@ fun naive_bayes_py ctxt overlord num_facts depss featss max_suggs goal_feats =
   in
     MaSh_Py.unlearn ctxt overlord;
     OS.Process.sleep (seconds 2.0); (* hack *)
-    MaSh_Py.query ctxt overlord max_suggs (learns, [], parents', goal_feats')
+    MaSh_Py.query ctxt overlord max_suggs (learns, parents', goal_feats')
     |> map (apfst fact_of_name)
   end
 
@@ -1341,9 +1340,6 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
     fun query_args access_G =
       let
         val parents = maximal_wrt_access_graph access_G facts
-        val hints = chained
-          |> filter (is_fact_in_graph access_G o snd)
-          |> map (nickname_of_thm o snd)
 
         val goal_feats =
           features_of ctxt thy num_facts const_tab (Local, General) (concl_t :: hyp_ts)
@@ -1361,7 +1357,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
         val feats = fold (union (eq_fst (op =))) [chained_feats, extra_feats] goal_feats
           |> debug ? sort (Real.compare o swap o pairself snd)
       in
-        (parents, hints, feats)
+        (parents, feats)
       end
 
     val ((access_G, ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs), py_suggs) =
@@ -1370,8 +1366,8 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
          if Graph.is_empty access_G then
            (trace_msg ctxt (K "Nothing has been learned yet"); [])
          else if engine = MaSh_Py then
-           let val (parents, hints, feats) = query_args access_G in
-             MaSh_Py.query ctxt overlord max_suggs ([], hints, parents, feats)
+           let val (parents, feats) = query_args access_G in
+             MaSh_Py.query ctxt overlord max_suggs ([], parents, feats)
              |> map fst
            end
          else
@@ -1382,7 +1378,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
         []
       else
         let
-          val (parents, hints, goal_feats0) = query_args access_G
+          val (parents, goal_feats0) = query_args access_G
           val goal_feats = map fst goal_feats0
           val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
         in
@@ -1455,7 +1451,7 @@ fun learned_proof_name () =
   Date.fmt ".%Y%m%d.%H%M%S." (Date.fromTimeLocal (Time.now ())) ^ serial_string ()
 
 fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
-  if is_mash_enabled () then
+  if not (null used_ths) andalso is_mash_enabled () then
     launch_thread timeout (fn () =>
       let
         val thy = Proof_Context.theory_of ctxt
