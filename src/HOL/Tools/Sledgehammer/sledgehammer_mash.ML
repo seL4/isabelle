@@ -41,7 +41,6 @@ sig
   | MaSh_SML_kNN_Cpp
   | MaSh_SML_NB
   | MaSh_SML_NB_Cpp
-  | MaSh_SML_NB_Py
 
   val is_mash_enabled : unit -> bool
   val the_mash_engine : unit -> mash_engine
@@ -148,7 +147,6 @@ datatype mash_engine =
 | MaSh_SML_kNN_Cpp
 | MaSh_SML_NB
 | MaSh_SML_NB_Cpp
-| MaSh_SML_NB_Py
 
 fun mash_engine () =
   let val flag1 = Options.default_string @{system_option MaSh} in
@@ -160,7 +158,6 @@ fun mash_engine () =
     | "sml_knn_cpp" => SOME MaSh_SML_kNN_Cpp
     | "sml_nb" => SOME MaSh_SML_NB
     | "sml_nb_cpp" => SOME MaSh_SML_NB_Cpp
-    | "sml_nb_py" => SOME MaSh_SML_NB_Py
     | _ => NONE)
   end
 
@@ -616,8 +613,8 @@ val k_nearest_neighbors_cpp =
   c_plus_plus_tool ("newknn/knn" ^ " " ^ string_of_int number_of_nearest_neighbors)
 val naive_bayes_cpp = c_plus_plus_tool "predict/nbayes"
 
-fun query ctxt overlord engine (num_facts, fact_tab) (num_feats, feat_tab) visible_facts max_suggs
-    learns0 conj_feats =
+fun query ctxt engine (num_facts, fact_tab) (num_feats, feat_tab) visible_facts max_suggs learns0
+    conj_feats =
   if engine = MaSh_SML_kNN_Cpp then
     k_nearest_neighbors_cpp max_suggs learns0 conj_feats
   else if engine = MaSh_SML_NB_Cpp then
@@ -645,30 +642,27 @@ fun query ctxt overlord engine (num_facts, fact_tab) (num_feats, feat_tab) visib
     in
       trace_msg ctxt (fn () => "MaSh_SML query " ^ encode_strs conj_feats ^ " from {" ^
         elide_string 1000 (space_implode " " (take num_facts facts)) ^ "}");
-      (if engine = MaSh_SML_kNN then
-         let
-           val facts_ary = Array.array (num_feats, [])
-           val _ =
-             fold (fn feats => fn fact =>
-                 (List.app (map_array_at facts_ary (cons fact)) feats; fact + 1))
-               featss 0
-           val get_facts = curry Array.sub facts_ary
-         in
-           k_nearest_neighbors num_facts get_deps get_facts max_suggs int_visible_facts num_feats
-             int_conj_feats
-         end
-       else
-         let
-           val feats_ary = Vector.fromList featss
-           val get_feats = curry Vector.sub feats_ary
-         in
-           (case engine of
-             MaSh_SML_NB =>
-             naive_bayes num_facts get_deps get_feats num_feats max_suggs int_visible_facts
-               int_conj_feats
-           | MaSh_SML_NB_Py =>
-             naive_bayes_py ctxt overlord num_facts get_deps get_feats max_suggs int_conj_feats)
-         end)
+      (case engine of
+        MaSh_SML_kNN =>
+        let
+          val facts_ary = Array.array (num_feats, [])
+          val _ =
+            fold (fn feats => fn fact =>
+                (List.app (map_array_at facts_ary (cons fact)) feats; fact + 1))
+              featss 0
+          val get_facts = curry Array.sub facts_ary
+        in
+          k_nearest_neighbors num_facts get_deps get_facts max_suggs int_visible_facts num_feats
+            int_conj_feats
+        end
+      | MaSh_SML_NB =>
+        let
+          val feats_ary = Vector.fromList featss
+          val get_feats = curry Vector.sub feats_ary
+        in
+          naive_bayes num_facts get_deps get_feats num_feats max_suggs int_visible_facts
+            int_conj_feats
+        end)
       |> map (curry Vector.sub fact_vec o fst)
     end
 
@@ -1394,8 +1388,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts
             (if null hints then [] else [(hintsN, feats, hints)]) @ (* ### FIXME *)
             Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
         in
-          MaSh_SML.query ctxt overlord engine fact_xtab feat_xtab visible_facts max_facts learns
-            feats
+          MaSh_SML.query ctxt engine fact_xtab feat_xtab visible_facts max_facts learns feats
         end
 
     val unknown = filter_out (is_fact_in_graph access_G o snd) facts
@@ -1497,7 +1490,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
     fun next_commit_time () = Time.+ (Timer.checkRealTimer timer, commit_timeout)
 
     val engine = the_mash_engine ()
-    val {access_G, fact_xtab, feat_xtab, ...} = peek_state ctxt overlord I
+    val {access_G, ...} = peek_state ctxt overlord I
     val is_in_access_G = is_fact_in_graph access_G o snd
     val no_new_facts = forall is_in_access_G facts
   in
