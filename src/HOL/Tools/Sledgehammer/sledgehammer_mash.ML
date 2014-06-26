@@ -129,7 +129,9 @@ val empty_xtab = (0, Symtab.empty)
 fun add_to_xtab key (next, tab) = (next + 1, Symtab.update_new (key, next) tab)
 fun maybe_add_to_xtab key = perhaps (try (add_to_xtab key))
 
-fun mash_state_dir () = Path.explode "$ISABELLE_HOME_USER/mash" |> tap Isabelle_System.mkdir
+fun mash_state_dir () =
+  Path.expand (Path.explode "$ISABELLE_HOME_USER/mash" |> tap Isabelle_System.mkdir)
+
 fun mash_state_file () = Path.append (mash_state_dir ()) (Path.explode "state")
 
 fun wipe_out_mash_state_dir () =
@@ -744,7 +746,7 @@ fun extract_node line =
 
 fun load_state ctxt overlord (time_state as (memory_time, _)) =
   let val path = mash_state_file () in
-    (case try OS.FileSys.modTime (Path.implode (Path.expand path)) of
+    (case try OS.FileSys.modTime (Path.implode path) of
       NONE => time_state
     | SOME disk_time =>
       if Time.>= (memory_time, disk_time) then
@@ -1292,7 +1294,7 @@ fun steep_weight_of_fact rank =
 fun weight_facts_steeply facts =
   facts ~~ map steep_weight_of_fact (0 upto length facts - 1)
 
-val max_proximity_facts = 0 (*###*)
+val max_proximity_facts = 100
 
 fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
   let
@@ -1722,7 +1724,7 @@ fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...})
           let val timeout = time_mult learn_timeout_slack timeout in
             Output.urgent_message ("Started MaShing through at least " ^
               string_of_int min_num_facts_to_learn ^ " fact" ^ plural_s min_num_facts_to_learn ^
-              " in the background");
+              " in the background.");
             launch_thread timeout
               (fn () => (true, mash_learn_facts ctxt params prover true 2 false timeout facts))
           end
