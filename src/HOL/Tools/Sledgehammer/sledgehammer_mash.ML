@@ -63,7 +63,7 @@ sig
     val k_nearest_neighbors : int -> (int -> int list) -> (int -> int list) -> int -> int list ->
       int -> int list -> (int * real) list
     val naive_bayes : (bool * bool) -> int -> (int -> int list) -> (int -> int list) -> int ->
-      int -> int list -> (int * real) list
+      int -> int list -> int list -> (int * real) list
     val naive_bayes_py : Proof.context -> bool -> int -> (int -> int list) -> (int -> int list) ->
       int -> int -> int list -> (int * real) list
     val query : Proof.context -> bool -> mash_engine -> string list -> int ->
@@ -414,13 +414,6 @@ val number_of_nearest_neighbors = 10 (* FUDGE *)
 
 exception EXIT of unit
 
-(*
-  num_facts = maximum number of theorems to check dependencies and symbols
-  get_deps = returns dependencies of a theorem
-  get_sym_ths = get theorems that have this feature
-  max_suggs = number of suggestions to return
-  feats = features of the goal
-*)
 fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts num_feats feats =
   let
     val dffreq = Array.array (num_feats, 0)
@@ -437,9 +430,7 @@ fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts n
     val overlaps_sqr = Array.tabulate (num_facts, rpair 0.0)
 
     fun inc_overlap j v =
-      let
-        val ov = snd (Array.sub (overlaps_sqr, j))
-      in
+      let val ov = snd (Array.sub (overlaps_sqr, j)) in
         Array.update (overlaps_sqr, j, (j, v + ov))
       end
 
@@ -479,13 +470,12 @@ fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts n
         end
 
     fun while1 () =
-      (if !k = number_of_nearest_neighbors then () else
-      (do_k (!k); k := !k + 1; while1 ()))
+      if !k = number_of_nearest_neighbors then () else (do_k (!k); k := !k + 1; while1 ())
       handle EXIT () => ()
 
     fun while2 () =
-      (if !no_recommends >= max_suggs then () else
-      (do_k (!k); k := !k + 1; age := !age - 10000.0; while2 ()))
+      if !no_recommends >= max_suggs then ()
+      else (do_k (!k); k := !k + 1; age := !age - 10000.0; while2 ())
       handle EXIT () => ()
 
     fun ret acc at =
@@ -537,7 +527,7 @@ fun learn num_facts get_deps get_feats num_feats =
     learn_facts tfreq sfreq dffreq num_facts get_deps get_feats num_feats
   end
 
-fun naive_bayes_query (kuehlwein_log, kuehlwein_params) num_facts max_suggs feats
+fun naive_bayes_query (kuehlwein_log, kuehlwein_params) num_facts max_suggs visible_facts feats
     (tfreq, sfreq, idf) =
   let
     val tau = if kuehlwein_params then 0.05 else 0.02 (* FUDGE *)
@@ -580,9 +570,9 @@ fun naive_bayes_query (kuehlwein_log, kuehlwein_params) num_facts max_suggs feat
     ret [] (Integer.max 0 (num_facts - max_suggs))
   end
 
-fun naive_bayes opts num_facts get_deps get_feats num_feats max_suggs feats =
+fun naive_bayes opts num_facts get_deps get_feats num_feats max_suggs visible_facts feats =
   learn num_facts get_deps get_feats num_feats
-  |> naive_bayes_query opts num_facts max_suggs feats
+  |> naive_bayes_query opts num_facts max_suggs visible_facts feats
 
 (* experimental *)
 fun naive_bayes_py ctxt overlord num_facts get_deps get_feats num_feats max_suggs feats =
@@ -706,7 +696,7 @@ fun query ctxt overlord engine visible_facts max_suggs (learns0, hints, feats) =
              (case engine of
                MaSh_SML_NB opts =>
                naive_bayes opts num_facts get_deps get_unweighted_feats num_feats max_suggs
-                 int_feats
+                 int_visible_facts int_feats
              | MaSh_SML_NB_Py => naive_bayes_py ctxt overlord num_facts get_deps
                  get_unweighted_feats num_feats max_suggs int_feats)
            end)
@@ -1708,8 +1698,8 @@ val max_facts_to_learn_before_query = 100
    and Try. *)
 val min_secs_for_learning = 15
 
-fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, timeout, ...}) prover
-    max_facts ({add, only, ...} : fact_override) hyp_ts concl_t facts =
+fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...}) prover max_facts
+    ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
   else if only then
