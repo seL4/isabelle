@@ -1410,8 +1410,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
     |> pairself (map fact_of_raw_fact)
   end
 
-fun learn_wrt_access_graph ctxt (name, parents, feats, deps)
-    (learns, (access_G, (fact_xtab, feat_xtab))) =
+fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (access_G, (fact_xtab, feat_xtab)) =
   let
     fun maybe_learn_from from (accum as (parents, access_G)) =
       try_graph ctxt "updating graph" accum (fn () =>
@@ -1424,10 +1423,10 @@ fun learn_wrt_access_graph ctxt (name, parents, feats, deps)
     val fact_xtab = maybe_add_to_xtab name fact_xtab
     val feat_xtab = fold maybe_add_to_xtab feats feat_xtab
   in
-    ((name, parents, feats, deps) :: learns, (access_G, (fact_xtab, feat_xtab)))
+    ((name, parents, feats, deps), (access_G, (fact_xtab, feat_xtab)))
   end
 
-fun relearn_wrt_access_graph ctxt (name, deps) (relearns, access_G) =
+fun relearn_wrt_access_graph ctxt (name, deps) access_G =
   let
     fun maybe_relearn_from from (accum as (parents, access_G)) =
       try_graph ctxt "updating graph" accum (fn () =>
@@ -1436,7 +1435,7 @@ fun relearn_wrt_access_graph ctxt (name, deps) (relearns, access_G) =
       access_G |> Graph.map_node name (fn (_, feats, _) => (Automatic_Proof, feats, deps))
     val (deps, _) = ([], access_G) |> fold maybe_relearn_from deps
   in
-    ((name, deps) :: relearns, access_G)
+    ((name, deps), access_G)
   end
 
 fun flop_wrt_access_graph name =
@@ -1535,11 +1534,10 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
             let
               val was_empty = Graph.is_empty access_G
 
-              (* TODO: use "fold_map" *)
               val (learns, (access_G, xtabs)) =
-                fold (learn_wrt_access_graph ctxt) learns ([], (access_G, xtabs))
+                fold_map (learn_wrt_access_graph ctxt) learns (access_G, xtabs)
               val (relearns, access_G) =
-                fold (relearn_wrt_access_graph ctxt) relearns ([], access_G)
+                fold_map (relearn_wrt_access_graph ctxt) relearns access_G
 
               val access_G = access_G |> fold flop_wrt_access_graph flops
               val dirty_facts =
@@ -1550,7 +1548,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
               val (ffds', freqs') = recompute_ffds_freqs_from_access_G access_G xtabs
             in
               if engine = MaSh_Py then
-                (MaSh_Py.learn ctxt overlord (save andalso null relearns) (rev learns);
+                (MaSh_Py.learn ctxt overlord (save andalso null relearns) learns;
                  MaSh_Py.relearn ctxt overlord save relearns)
               else
                 ();
