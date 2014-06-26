@@ -90,7 +90,6 @@ fun generate_features ctxt thys file_name =
 
 val prover_marker = "$a"
 val isar_marker = "$i"
-val missing_marker = "$m"
 val omitted_marker = "$o"
 val unprovable_marker = "$u" (* axiom or definition or characteristic theorem *)
 val prover_failed_marker = "$x"
@@ -109,10 +108,10 @@ fun smart_dependencies_of ctxt params_opt facts name_tabs th isar_deps_opt =
               NONE => isar_dependencies_of name_tabs th
             | deps => deps)
         in
-          ((case deps of
-             NONE => missing_marker
-           | SOME [] => unprovable_marker
-           | SOME deps => isar_marker), [])
+          (case deps of
+            NONE => (omitted_marker, [])
+          | SOME [] => (unprovable_marker, [])
+          | SOME deps => (isar_marker, deps))
         end)
   in
     (case trim_dependencies deps of
