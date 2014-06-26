@@ -441,7 +441,7 @@ fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts n
     val _ = heap (Real.compare o pairself snd) num_facts num_facts overlaps_sqr
     val no_recommends = Unsynchronized.ref 0
     val recommends = Array.tabulate (num_facts, rpair 0.0)
-    val age = Unsynchronized.ref 1000000000.0
+    val age = Unsynchronized.ref 500000000.0
 
     fun inc_recommend j v =
       let val ov = snd (Array.sub (recommends, j)) in
@@ -473,9 +473,14 @@ fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts n
       handle EXIT () => ()
 
     fun ret acc at =
-      if at = Array.length recommends then acc else ret (Array.sub (recommends, at) :: acc) (at + 1)
+      if at = num_facts then acc else ret (Array.sub (recommends, at) :: acc) (at + 1)
   in
     while1 (); while2 ();
+    List.app (fn at =>
+        let val (j, ov) = Array.sub (recommends, at) in
+          Array.update (recommends, at, (j, 1000000000.0 + ov))
+        end)
+      visible_facts;
     heap (Real.compare o pairself snd) max_suggs num_facts recommends;
     ret [] (Integer.max 0 (num_facts - max_suggs))
   end
@@ -652,7 +657,7 @@ fun query ctxt overlord engine visible_facts max_suggs (learns0, hints, feats) =
 
         val facts = rev rev_facts
         val fact_vec = Vector.fromList facts
-        val int_visible_facts = map (Symtab.lookup fact_tab) visible_facts
+        val int_visible_facts = map_filter (Symtab.lookup fact_tab) visible_facts
 
         val deps_vec = Vector.fromList (rev rev_depss)
 
