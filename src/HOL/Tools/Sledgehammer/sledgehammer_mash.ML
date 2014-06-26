@@ -38,9 +38,9 @@ sig
   datatype mash_engine =
     MaSh_Py
   | MaSh_SML_kNN
-  | MaSh_SML_kNN_Cpp
+  | MaSh_SML_kNN_Ext
   | MaSh_SML_NB
-  | MaSh_SML_NB_Cpp
+  | MaSh_SML_NB_Ext
 
   val is_mash_enabled : unit -> bool
   val the_mash_engine : unit -> mash_engine
@@ -144,9 +144,9 @@ fun wipe_out_mash_state_dir () =
 datatype mash_engine =
   MaSh_Py
 | MaSh_SML_kNN
-| MaSh_SML_kNN_Cpp
+| MaSh_SML_kNN_Ext
 | MaSh_SML_NB
-| MaSh_SML_NB_Cpp
+| MaSh_SML_NB_Ext
 
 fun mash_engine () =
   let val flag1 = Options.default_string @{system_option MaSh} in
@@ -155,9 +155,9 @@ fun mash_engine () =
     | "py" => SOME MaSh_Py
     | "sml" => SOME MaSh_SML_NB
     | "sml_knn" => SOME MaSh_SML_kNN
-    | "sml_knn_cpp" => SOME MaSh_SML_kNN_Cpp
+    | "sml_knn_ext" => SOME MaSh_SML_kNN_Ext
     | "sml_nb" => SOME MaSh_SML_NB
-    | "sml_nb_cpp" => SOME MaSh_SML_NB_Cpp
+    | "sml_nb_ext" => SOME MaSh_SML_NB_Ext
     | _ => NONE)
   end
 
@@ -574,7 +574,7 @@ fun naive_bayes_py ctxt overlord num_facts depss featss max_suggs conj_feats =
   end
 
 (* experimental *)
-fun c_plus_plus_tool tool max_suggs learns cfeats =
+fun experimental_external_tool tool max_suggs learns cfeats =
   let
     val ser = string_of_int (serial ()) (* poor person's attempt at thread-safety *)
     val ocs = TextIO.openOut ("adv_syms" ^ ser)
@@ -608,9 +608,9 @@ fun c_plus_plus_tool tool max_suggs learns cfeats =
      forkexec max_suggs)
   end
 
-val k_nearest_neighbors_cpp =
-  c_plus_plus_tool ("newknn/knn" ^ " " ^ string_of_int number_of_nearest_neighbors)
-val naive_bayes_cpp = c_plus_plus_tool "predict/nbayes"
+val k_nearest_neighbors_ext =
+  experimental_external_tool ("newknn/knn" ^ " " ^ string_of_int number_of_nearest_neighbors)
+val naive_bayes_ext = experimental_external_tool "predict/nbayes"
 
 fun reorder_learns (num_facts, fact_tab) learns0 =
   let
@@ -624,10 +624,10 @@ fun reorder_learns (num_facts, fact_tab) learns0 =
 
 fun query ctxt engine (fact_xtab as (num_facts, fact_tab)) (num_feats, feat_tab) visible_facts
     max_suggs learns0 conj_feats =
-  if engine = MaSh_SML_kNN_Cpp then
-    k_nearest_neighbors_cpp max_suggs learns0 conj_feats
-  else if engine = MaSh_SML_NB_Cpp then
-    naive_bayes_cpp max_suggs learns0 conj_feats
+  if engine = MaSh_SML_kNN_Ext then
+    k_nearest_neighbors_ext max_suggs learns0 conj_feats
+  else if engine = MaSh_SML_NB_Ext then
+    naive_bayes_ext max_suggs learns0 conj_feats
   else
     let
       val learns = reorder_learns fact_xtab learns0
