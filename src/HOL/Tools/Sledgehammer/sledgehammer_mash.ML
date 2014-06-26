@@ -504,32 +504,33 @@ fun k_nearest_neighbors num_facts num_visible_facts get_deps get_sym_ths max_sug
 
 val nb_def_prior_weight = 21 (* FUDGE *)
 
+fun naive_bayes_learn_fact tfreq sfreq dffreq th feats deps =
+  let
+    fun add_th weight t =
+      let
+        val im = Array.sub (sfreq, t)
+        fun fold_fn s sf = Inttab.map_default (s, 0) (Integer.add weight) sf
+      in
+        Array.update (tfreq, t, weight + Array.sub (tfreq, t));
+        Array.update (sfreq, t, fold fold_fn feats im)
+      end
+
+    fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s))
+  in
+    add_th nb_def_prior_weight th;
+    List.app (add_th 1) deps;
+    List.app add_sym feats
+  end
+
 fun naive_bayes_learn num_facts get_deps get_feats num_feats =
   let
     val tfreq = Array.array (num_facts, 0)
     val sfreq = Array.array (num_facts, Inttab.empty)
     val dffreq = Array.array (num_feats, 0)
 
-    fun learn th feats deps =
-      let
-        fun add_th weight t =
-          let
-            val im = Array.sub (sfreq, t)
-            fun fold_fn s sf = Inttab.map_default (s, 0) (Integer.add weight) sf
-          in
-            Array.update (tfreq, t, weight + Array.sub (tfreq, t));
-            Array.update (sfreq, t, fold fold_fn feats im)
-          end
-
-        fun add_sym s = Array.update (dffreq, s, 1 + Array.sub (dffreq, s))
-      in
-        add_th nb_def_prior_weight th;
-        List.app (add_th 1) deps;
-        List.app add_sym feats
-      end
-
     fun for i =
-      if i = num_facts then () else (learn i (get_feats i) (get_deps i); for (i + 1))
+      if i = num_facts then ()
+      else (naive_bayes_learn_fact tfreq sfreq dffreq i (get_feats i) (get_deps i); for (i + 1))
 
     val ln_afreq = Math.ln (Real.fromInt num_facts)
   in
