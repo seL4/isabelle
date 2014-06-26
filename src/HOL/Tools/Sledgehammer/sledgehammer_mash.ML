@@ -406,6 +406,12 @@ fun heap cmp bnd al a =
 
 val number_of_nearest_neighbors = 10 (* FUDGE *)
 
+fun select_visible_facts recommends =
+  List.app (fn at =>
+    let val (j, ov) = Array.sub (recommends, at) in
+      Array.update (recommends, at, (j, 1000000000.0 + ov))
+    end)
+
 exception EXIT of unit
 
 fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts num_feats feats =
@@ -475,12 +481,9 @@ fun k_nearest_neighbors num_facts get_deps get_sym_ths max_suggs visible_facts n
     fun ret acc at =
       if at = num_facts then acc else ret (Array.sub (recommends, at) :: acc) (at + 1)
   in
-    while1 (); while2 ();
-    List.app (fn at =>
-        let val (j, ov) = Array.sub (recommends, at) in
-          Array.update (recommends, at, (j, 1000000000.0 + ov))
-        end)
-      visible_facts;
+    while1 ();
+    while2 ();
+    select_visible_facts recommends visible_facts;
     heap (Real.compare o pairself snd) max_suggs num_facts recommends;
     ret [] (Integer.max 0 (num_facts - max_suggs))
   end
@@ -556,11 +559,12 @@ fun naive_bayes_query num_facts max_suggs visible_facts feats (tfreq, sfreq, idf
 
     val posterior = Array.tabulate (num_facts, (fn j => (j, log_posterior j)))
 
-    fun ret acc at =
-      if at = num_facts then acc else ret (Array.sub (posterior, at) :: acc) (at + 1)
+    fun ret at acc =
+      if at = num_facts then acc else ret (at + 1) (Array.sub (posterior, at) :: acc)
   in
+    select_visible_facts posterior visible_facts;
     heap (Real.compare o pairself snd) max_suggs num_facts posterior;
-    ret [] (Integer.max 0 (num_facts - max_suggs))
+    ret (Integer.max 0 (num_facts - max_suggs)) []
   end
 
 fun naive_bayes num_facts get_deps get_feats num_feats max_suggs visible_facts feats =
