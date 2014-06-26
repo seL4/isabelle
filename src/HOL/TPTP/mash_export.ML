@@ -71,7 +71,7 @@ fun generate_accessibility ctxt thys file_name =
 
 fun generate_features ctxt thys file_name =
   let
-    val path = file_name |> Path.explode
+    val path = Path.explode file_name
     val _ = File.write path ""
     val facts = all_facts ctxt |> filter_out (has_thys thys o snd)
 
@@ -158,7 +158,7 @@ fun is_bad_query ctxt ho_atp step j th isar_deps =
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys max_suggs file_name =
   let
     val ho_atp = is_ho_atp ctxt prover
-    val path = file_name |> Path.explode
+    val path = Path.explode file_name
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val num_old_facts = length old_facts
@@ -228,7 +228,7 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
     (params as {provers = prover :: _, ...}) (range, step) thys max_suggs file_name =
   let
     val ho_atp = is_ho_atp ctxt prover
-    val path = file_name |> Path.explode
+    val path = Path.explode file_name
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val name_tabs = build_name_tables nickname_of_thm facts
