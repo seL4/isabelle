@@ -79,7 +79,7 @@ type rec_ctr_spec =
 
 type rec_spec =
   {recx: term,
-   fp_nesting_map_idents: thm list,
+   fp_nesting_map_ident0s: thm list,
    fp_nesting_map_comps: thm list,
    ctr_specs: rec_ctr_spec list};
 
@@ -135,7 +135,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
-    val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, fp_nesting_map_idents, fp_nesting_map_comps,
+    val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, fp_nesting_map_ident0s, fp_nesting_map_comps,
          common_induct, n2m, lthy) =
       get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0;
 
@@ -195,7 +195,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     fun mk_spec ctr_offset
         ({T, fp_res_index, ctr_sugar = {ctrs, ...}, recx, rec_thms, ...} : basic_lfp_sugar) =
       {recx = mk_co_rec thy Least_FP (substAT T) perm_Cs' recx,
-       fp_nesting_map_idents = fp_nesting_map_idents, fp_nesting_map_comps = fp_nesting_map_comps,
+       fp_nesting_map_ident0s = fp_nesting_map_ident0s, fp_nesting_map_comps = fp_nesting_map_comps,
        ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs rec_thms};
   in
     ((n2m, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, common_induct, inducts), lthy)
@@ -415,10 +415,10 @@ fun find_rec_calls has_call ({ctr, ctr_args, rhs_term, ...} : eqn_data) =
     |> (fn [] => NONE | callss => SOME (ctr, callss))
   end;
 
-fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
+fun mk_primrec_tac ctxt num_extra_args map_ident0s map_comps fun_defs recx =
   unfold_thms_tac ctxt fun_defs THEN
   HEADGOAL (rtac (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
-  unfold_thms_tac ctxt (nested_simps ctxt @ map_comps @ map_idents) THEN
+  unfold_thms_tac ctxt (nested_simps ctxt @ map_ident0s @ map_comps) THEN
   HEADGOAL (rtac refl);
 
 fun prepare_primrec nonexhaustive fixes specs lthy0 =
@@ -464,7 +464,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
 
     val defs = build_defs lthy nonexhaustive bs mxs funs_data rec_specs has_call;
 
-    fun prove lthy' def_thms' ({ctr_specs, fp_nesting_map_idents, fp_nesting_map_comps, ...}
+    fun prove lthy' def_thms' ({ctr_specs, fp_nesting_map_ident0s, fp_nesting_map_comps, ...}
         : rec_spec) (fun_data : eqn_data list) =
       let
         val js =
@@ -477,7 +477,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
           |> map_filter (try (fn (x, [y]) =>
             (#fun_name x, #user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
           |> map2 (fn j => fn (fun_name, user_eqn, num_extra_args, rec_thm) =>
-              mk_primrec_tac lthy' num_extra_args fp_nesting_map_idents fp_nesting_map_comps
+              mk_primrec_tac lthy' num_extra_args fp_nesting_map_ident0s fp_nesting_map_comps
                 def_thms rec_thm
               |> K |> Goal.prove_sorry lthy' [] [] user_eqn
               (* for code extraction from proof terms: *)

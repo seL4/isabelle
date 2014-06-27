@@ -98,15 +98,15 @@ val rec_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def case_prod_Pair_iden snd_conv split_conv
       case_unit_Unity} @ sumprod_thms_map;
 
-fun mk_rec_tac pre_map_defs map_idents rec_defs ctor_rec fp_abs_inverse abs_inverse ctr_def ctxt =
+fun mk_rec_tac pre_map_defs map_ident0s rec_defs ctor_rec fp_abs_inverse abs_inverse ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
-    pre_map_defs @ map_idents @ rec_unfold_thms) THEN HEADGOAL (rtac refl);
+    pre_map_defs @ map_ident0s @ rec_unfold_thms) THEN HEADGOAL (rtac refl);
 
 val corec_unfold_thms = @{thms id_def} @ sumprod_thms_map;
 
-fun mk_corec_tac corec_defs map_idents ctor_dtor_corec pre_map_def abs_inverse ctr_def ctxt =
+fun mk_corec_tac corec_defs map_ident0s ctor_dtor_corec pre_map_def abs_inverse ctr_def ctxt =
   let
-    val ss = ss_only (pre_map_def :: abs_inverse :: map_idents @ corec_unfold_thms @
+    val ss = ss_only (pre_map_def :: abs_inverse :: map_ident0s @ corec_unfold_thms @
       @{thms o_apply vimage2p_def if_True if_False}) ctxt;
   in
     unfold_thms_tac ctxt (ctr_def :: corec_defs) THEN

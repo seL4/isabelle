@@ -80,7 +80,7 @@ type corec_spec =
    disc_exhausts: thm list,
    sel_defs: thm list,
    fp_nesting_maps: thm list,
-   fp_nesting_map_idents: thm list,
+   fp_nesting_map_ident0s: thm list,
    fp_nesting_map_comps: thm list,
    ctr_specs: corec_ctr_spec list};
 
@@ -466,8 +466,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
       {corec = mk_co_rec thy Greatest_FP (substAT T) perm_Cs' corec, disc_exhausts = disc_exhausts,
        sel_defs = sel_defs,
        fp_nesting_maps = maps (map_thms_of_typ lthy o T_of_bnf) fp_nesting_bnfs,
-       fp_nesting_map_idents =
-         map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) fp_nesting_bnfs,
+       fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs,
        fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs,
        ctr_specs = mk_ctr_specs ctr_sugar p_is q_isss f_isss f_Tsss corec_thms disc_corecs
          sel_corecss};
@@ -1175,7 +1174,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_sel ({sel_defs, fp_nesting_maps, fp_nesting_map_idents, fp_nesting_map_comps,
+        fun prove_sel ({sel_defs, fp_nesting_maps, fp_nesting_map_ident0s, fp_nesting_map_comps,
               ctr_specs, ...} : corec_spec) (disc_eqns : coeqn_data_disc list) excludesss
             ({fun_name, fun_T, fun_args, ctr, sel, rhs_term, code_rhs_opt, eqn_pos, ...}
              : coeqn_data_sel) =
@@ -1198,7 +1197,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             val (distincts, _, _, sel_splits, sel_split_asms) = case_thms_of_term lthy rhs_term;
           in
             mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms fp_nesting_maps
-              fp_nesting_map_idents fp_nesting_map_comps sel_corec k m excludesss
+              fp_nesting_map_ident0s fp_nesting_map_comps sel_corec k m excludesss
             |> K |> Goal.prove_sorry lthy [] [] goal
             |> Thm.close_derivation
             |> `(is_some code_rhs_opt ? fold_thms lthy sel_defs) (*mildly too aggressive*)

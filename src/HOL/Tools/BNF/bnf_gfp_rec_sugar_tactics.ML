@@ -126,7 +126,7 @@ fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_d
     (etac FalseE ORELSE'
      resolve_tac (map (unfold_thms ctxt [atomize_conjL]) fun_discs) THEN_MAYBE' atac));
 
-fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents map_comps fun_sel k
+fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_ident0s map_comps fun_sel k
     m excludesss =
   prelude_tac ctxt defs (fun_sel RS trans) THEN
   cases_tac ctxt k m excludesss THEN
@@ -139,7 +139,7 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents 
     etac notE THEN' atac ORELSE'
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt (@{thms fst_conv snd_conv id_def comp_def split_def
          sum.case sum.sel sum.distinct[THEN eq_False[THEN iffD2]]} @
-       mapsx @ map_comps @ map_idents))) ORELSE'
+       mapsx @ map_ident0s @ map_comps))) ORELSE'
     fo_rtac @{thm cong} ctxt ORELSE'
     rtac @{thm ext}));
 

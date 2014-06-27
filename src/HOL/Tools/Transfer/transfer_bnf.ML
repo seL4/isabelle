@@ -36,14 +36,14 @@ fun mk_Domainp P =
 
 fun mk_pred pred_def args T =
   let
-    val pred_name = pred_def |> prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq 
+    val pred_name = pred_def |> prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq
       |> head_of |> fst o dest_Const
     val argsT = map fastype_of args
   in
     list_comb (Const (pred_name, argsT ---> (T --> HOLogic.boolT)), args)
   end
 
-fun mk_eq_onp arg = 
+fun mk_eq_onp arg =
   let
     val argT = domain_type (fastype_of arg)
   in
@@ -75,17 +75,17 @@ fun fp_sugar_only_type_ctr f fp_sugars =
 fun mk_relation_constraint name arg =
   (Const (name, fastype_of arg --> HOLogic.boolT)) $ arg
 
-fun side_constraint_tac bnf constr_defs ctxt i = 
+fun side_constraint_tac bnf constr_defs ctxt i =
   let
     val thms = constr_defs @ map mk_sym [rel_eq_of_bnf bnf, rel_conversep_of_bnf bnf,
       rel_OO_of_bnf bnf]
-  in                
+  in
     (SELECT_GOAL (Local_Defs.unfold_tac ctxt thms) THEN' rtac (rel_mono_of_bnf bnf)
       THEN_ALL_NEW atac) i
   end
 
-fun bi_constraint_tac constr_iff sided_constr_intros ctxt i = 
-  (SELECT_GOAL (Local_Defs.unfold_tac ctxt [constr_iff]) THEN' 
+fun bi_constraint_tac constr_iff sided_constr_intros ctxt i =
+  (SELECT_GOAL (Local_Defs.unfold_tac ctxt [constr_iff]) THEN'
     CONJ_WRAP' (fn thm => rtac thm THEN_ALL_NEW (REPEAT_DETERM o etac conjE THEN' atac)) sided_constr_intros) i
 
 fun generate_relation_constraint_goal ctxt bnf constraint_def =
@@ -97,7 +97,7 @@ fun generate_relation_constraint_goal ctxt bnf constraint_def =
       |> mk_TFrees live
       ||>> mk_TFrees live
       ||>> mk_TFrees (dead_of_bnf bnf)
-      
+
     val relator = mk_rel_of_bnf Ds As Bs bnf
     val relsT = map2 mk_pred2T As Bs
     val (args, ctxt) = Ctr_Sugar_Util.mk_Frees "R" relsT ctxt
@@ -112,7 +112,7 @@ fun prove_relation_side_constraint ctxt bnf constraint_def =
   let
     val old_ctxt = ctxt
     val (goal, ctxt) = generate_relation_constraint_goal ctxt bnf constraint_def
-    val thm = Goal.prove ctxt [] [] goal 
+    val thm = Goal.prove ctxt [] [] goal
       (fn {context = ctxt, prems = _} => side_constraint_tac bnf [constraint_def] ctxt 1)
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
@@ -122,7 +122,7 @@ fun prove_relation_bi_constraint ctxt bnf constraint_def side_constraints =
   let
     val old_ctxt = ctxt
     val (goal, ctxt) = generate_relation_constraint_goal ctxt bnf constraint_def
-    val thm = Goal.prove ctxt [] [] goal 
+    val thm = Goal.prove ctxt [] [] goal
       (fn {context = ctxt, prems = _} => bi_constraint_tac constraint_def side_constraints ctxt 1)
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
@@ -136,11 +136,11 @@ fun prove_relation_constraints bnf lthy =
     val transfer_attr = @{attributes [transfer_rule]}
     val Tname = base_name_of_bnf bnf
     fun qualify suffix = Binding.qualified true suffix Tname
-    
+
     val defs = map (apsnd (prove_relation_side_constraint lthy bnf)) defs
-    val bi_total = prove_relation_bi_constraint lthy bnf @{thm bi_total_alt_def} 
+    val bi_total = prove_relation_bi_constraint lthy bnf @{thm bi_total_alt_def}
       [snd (nth defs 0), snd (nth defs 1)]
-    val bi_unique = prove_relation_bi_constraint lthy bnf @{thm bi_unique_alt_def} 
+    val bi_unique = prove_relation_bi_constraint lthy bnf @{thm bi_unique_alt_def}
       [snd (nth defs 2), snd (nth defs 3)]
     val defs = ("bi_total_rel", bi_total) :: ("bi_unique_rel", bi_unique) :: defs
     val notes = maps (fn (name, thm) => [((qualify name, []), [([thm], transfer_attr)])]) defs
@@ -174,7 +174,7 @@ fun define_pred bnf lthy =
     val head = Free (Binding.name_of pred_name, headT)
     val lhs = list_comb (head, args)
     val def = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
-    val ((_, (_, pred_def)), lthy) = Specification.definition ((SOME (pred_name, SOME headT, NoSyn)), 
+    val ((_, (_, pred_def)), lthy) = Specification.definition ((SOME (pred_name, SOME headT, NoSyn)),
       ((Binding.empty, []), def)) lthy
   in
     (pred_def, lthy)
@@ -185,19 +185,19 @@ fun Domainp_tac bnf pred_def ctxt i =
     val n = live_of_bnf bnf
     val set_map's = set_map_of_bnf bnf
   in
-    EVERY' [rtac ext, SELECT_GOAL (Local_Defs.unfold_tac ctxt [@{thm Domainp.simps}, 
+    EVERY' [rtac ext, SELECT_GOAL (Local_Defs.unfold_tac ctxt [@{thm Domainp.simps},
         in_rel_of_bnf bnf, pred_def]), rtac iffI,
         REPEAT_DETERM o eresolve_tac [exE, conjE, CollectE], hyp_subst_tac ctxt,
         CONJ_WRAP' (fn set_map => EVERY' [rtac ballI, dtac (set_map RS equalityD1 RS set_mp),
           etac imageE, dtac set_rev_mp, atac, REPEAT_DETERM o eresolve_tac [CollectE, @{thm case_prodE}],
           hyp_subst_tac ctxt, rtac @{thm iffD2[OF arg_cong2[of _ _ _ _ Domainp, OF refl fst_conv]]},
-          etac @{thm DomainPI}]) set_map's, 
-        REPEAT_DETERM o etac conjE, REPEAT_DETERM o resolve_tac [exI, (refl RS conjI), rotate_prems 1 conjI], 
+          etac @{thm DomainPI}]) set_map's,
+        REPEAT_DETERM o etac conjE, REPEAT_DETERM o resolve_tac [exI, (refl RS conjI), rotate_prems 1 conjI],
         rtac refl, rtac (box_equals OF [map_cong0_of_bnf bnf, map_comp_of_bnf bnf RS sym,
           map_id_of_bnf bnf]),
         REPEAT_DETERM_N n o (EVERY' [rtac @{thm box_equals[OF _ sym[OF o_apply] sym[OF id_apply]]},
           rtac @{thm fst_conv}]), rtac CollectI,
-        CONJ_WRAP' (fn set_map => EVERY' [rtac (set_map RS @{thm ord_eq_le_trans}), 
+        CONJ_WRAP' (fn set_map => EVERY' [rtac (set_map RS @{thm ord_eq_le_trans}),
           REPEAT_DETERM o resolve_tac [@{thm image_subsetI}, CollectI, @{thm case_prodI}],
           dtac (rotate_prems 1 bspec), atac, etac @{thm DomainpE}, etac @{thm someI}]) set_map's
       ] i
@@ -219,14 +219,14 @@ fun prove_Domainp_rel ctxt bnf pred_def =
     val lhs = mk_Domainp (list_comb (relator, args))
     val rhs = mk_pred pred_def (map mk_Domainp args) T
     val goal = HOLogic.mk_eq (lhs, rhs) |> HOLogic.mk_Trueprop
-    val thm = Goal.prove ctxt [] [] goal 
+    val thm = Goal.prove ctxt [] [] goal
       (fn {context = ctxt, prems = _} => Domainp_tac bnf pred_def ctxt 1)
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
   end
 
 fun pred_eq_onp_tac bnf pred_def ctxt i =
-  (SELECT_GOAL (Local_Defs.unfold_tac ctxt [@{thm eq_onp_Grp}, 
+  (SELECT_GOAL (Local_Defs.unfold_tac ctxt [@{thm eq_onp_Grp},
     @{thm Ball_Collect}, pred_def]) THEN' CONVERSION (subst_conv (map_id0_of_bnf bnf RS sym))
   THEN' rtac (rel_Grp_of_bnf bnf)) i
 
@@ -244,7 +244,7 @@ fun prove_rel_eq_onp ctxt bnf pred_def =
     val lhs = list_comb (relator, map mk_eq_onp args)
     val rhs = mk_eq_onp (mk_pred pred_def args T)
     val goal = HOLogic.mk_eq (lhs, rhs) |> HOLogic.mk_Trueprop
-    val thm = Goal.prove ctxt [] [] goal 
+    val thm = Goal.prove ctxt [] [] goal
       (fn {context = ctxt, prems = _} => pred_eq_onp_tac bnf pred_def ctxt 1)
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
@@ -259,7 +259,7 @@ fun predicator bnf lthy =
     fun qualify defname suffix = Binding.qualified true suffix defname
     val Domainp_rel_thm_name = qualify (base_name_of_bnf bnf) "Domainp_rel"
     val rel_eq_onp_thm_name = qualify (base_name_of_bnf bnf) "rel_eq_onp"
-    val rel_eq_onp_internal = Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv 
+    val rel_eq_onp_internal = Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
       (Raw_Simplifier.rewrite lthy false @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})))
         rel_eq_onp
     val pred_data = {rel_eq_onp = rel_eq_onp_internal}
@@ -279,7 +279,7 @@ fun transfer_bnf_interpretation bnf lthy =
   let
     val constr_notes = if dead_of_bnf bnf > 0 then []
       else prove_relation_constraints bnf lthy
-    val relator_eq_notes = if dead_of_bnf bnf > 0 then [] 
+    val relator_eq_notes = if dead_of_bnf bnf > 0 then []
       else relator_eq bnf
     val (pred_notes, lthy) = predicator bnf lthy
   in
@@ -299,8 +299,8 @@ fun lookup_defined_pred_data lthy name =
 fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
   let
     val involved_types = distinct op= (
-        map type_name_of_bnf (#nested_bnfs fp_sugar) 
-      @ map type_name_of_bnf (#nesting_bnfs fp_sugar)
+        map type_name_of_bnf (#fp_nesting_bnfs fp_sugar)
+      @ map type_name_of_bnf (#live_nesting_bnfs fp_sugar)
       @ map type_name_of_bnf (#bnfs (#fp_res fp_sugar)))
     val eq_onps = map (Transfer.rel_eq_onp o lookup_defined_pred_data lthy) involved_types
     val live = live_of_bnf (bnf_of_fp_sugar fp_sugar)
@@ -326,10 +326,10 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
       in
         thm
         |> Drule.instantiate' cTs cts
-        |> Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg_conv 
+        |> Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg_conv
           (Raw_Simplifier.rewrite lthy false @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})))
         |> Local_Defs.unfold lthy eq_onps
-        |> (fn thm => if conjuncts <> [] then @{thm box_equals} 
+        |> (fn thm => if conjuncts <> [] then @{thm box_equals}
               OF [thm, @{thm eq_onp_same_args}, pred_eq_onp_conj conjuncts |> kill_True]
             else thm RS (@{thm eq_onp_same_args} RS iffD1))
         |> kill_top

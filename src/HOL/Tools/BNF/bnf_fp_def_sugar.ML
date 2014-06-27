@@ -456,9 +456,8 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
-    val live_nesting_map_idents =
-      map (unfold_thms lthy [id_def] o map_id0_of_bnf) live_nesting_bnfs;
-    val fp_nesting_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) fp_nesting_bnfs;
+    val live_nesting_map_ident0s = map map_ident0_of_bnf live_nesting_bnfs;
+    val fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs;
     val fp_nesting_set_maps = maps set_map_of_bnf fp_nesting_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
@@ -583,7 +582,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
         val goalss = map5 (map4 o mk_goal) frecs xctrss fss xsss fxsss;
 
         val tacss = map4 (map ooo
-              mk_rec_tac pre_map_defs (fp_nesting_map_idents @ live_nesting_map_idents) rec_defs)
+              mk_rec_tac pre_map_defs (fp_nesting_map_ident0s @ live_nesting_map_ident0s) rec_defs)
             ctor_rec_thms fp_abs_inverses abs_inverses ctr_defss;
 
         fun prove goal tac =
@@ -736,8 +735,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
-    val live_nesting_map_idents =
-      map (unfold_thms lthy [id_def] o map_id0_of_bnf) live_nesting_bnfs;
+    val live_nesting_map_ident0s = map map_ident0_of_bnf live_nesting_bnfs;
     val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
@@ -855,7 +853,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
         val goalss = map8 (map4 oooo mk_goal) cs cpss gcorecs ns kss ctrss mss cqgsss';
 
         val tacss =
-          map4 (map ooo mk_corec_tac corec_defs live_nesting_map_idents)
+          map4 (map ooo mk_corec_tac corec_defs live_nesting_map_ident0s)
             ctor_dtor_corec_thms pre_map_defs abs_inverses ctr_defss;
 
         fun prove goal tac =

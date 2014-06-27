@@ -61,6 +61,7 @@ sig
   val map_def_of_bnf: bnf -> thm
   val map_id0_of_bnf: bnf -> thm
   val map_id_of_bnf: bnf -> thm
+  val map_ident0_of_bnf: bnf -> thm
   val map_ident_of_bnf: bnf -> thm
   val map_transfer_of_bnf: bnf -> thm
   val le_rel_OO_of_bnf: bnf -> thm
@@ -223,6 +224,7 @@ type facts = {
   map_comp: thm lazy,
   map_cong: thm lazy,
   map_id: thm lazy,
+  map_ident0: thm lazy,
   map_ident: thm lazy,
   map_transfer: thm lazy,
   rel_eq: thm lazy,
@@ -237,8 +239,8 @@ type facts = {
 };
 
 fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong in_mono in_rel
-    inj_map map_comp map_cong map_id map_ident map_transfer rel_eq rel_flip set_map rel_cong
-    rel_mono rel_mono_strong rel_Grp rel_conversep rel_OO = {
+    inj_map map_comp map_cong map_id map_ident0 map_ident map_transfer rel_eq rel_flip set_map
+    rel_cong rel_mono rel_mono_strong rel_Grp rel_conversep rel_OO = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
   bd_Cnotzero = bd_Cnotzero,
@@ -251,6 +253,7 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_con
   map_comp = map_comp,
   map_cong = map_cong,
   map_id = map_id,
+  map_ident0 = map_ident0,
   map_ident = map_ident,
   map_transfer = map_transfer,
   rel_eq = rel_eq,
@@ -276,6 +279,7 @@ fun map_facts f {
   map_comp,
   map_cong,
   map_id,
+  map_ident0,
   map_ident,
   map_transfer,
   rel_eq,
@@ -299,6 +303,7 @@ fun map_facts f {
     map_comp = Lazy.map f map_comp,
     map_cong = Lazy.map f map_cong,
     map_id = Lazy.map f map_id,
+    map_ident0 = Lazy.map f map_ident0,
     map_ident = Lazy.map f map_ident,
     map_transfer = Lazy.map f map_transfer,
     rel_eq = Lazy.map f rel_eq,
@@ -418,6 +423,7 @@ val inj_map_of_bnf = Lazy.force o #inj_map o #facts o rep_bnf;
 val map_def_of_bnf = #map_def o #defs o rep_bnf;
 val map_id0_of_bnf = #map_id0 o #axioms o rep_bnf;
 val map_id_of_bnf = Lazy.force o #map_id o #facts o rep_bnf;
+val map_ident0_of_bnf = Lazy.force o #map_ident0 o #facts o rep_bnf;
 val map_ident_of_bnf = Lazy.force o #map_ident o #facts o rep_bnf;
 val map_comp0_of_bnf = #map_comp0 o #axioms o rep_bnf;
 val map_comp_of_bnf = Lazy.force o #map_comp o #facts o rep_bnf;
@@ -1104,6 +1110,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         val in_cong = Lazy.lazy mk_in_cong;
 
         val map_id = Lazy.lazy (fn () => mk_map_id (#map_id0 axioms));
+        val map_ident0 = Lazy.lazy (fn () => mk_map_ident lthy (#map_id0 axioms));
         val map_ident = Lazy.lazy (fn () => mk_map_ident lthy (Lazy.force map_id));
         val map_comp = Lazy.lazy (fn () => mk_map_comp (#map_comp0 axioms));
 
@@ -1321,8 +1328,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         val defs = mk_defs bnf_map_def bnf_set_defs bnf_rel_def;
 
         val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong
-          in_mono in_rel inj_map map_comp map_cong map_id map_ident map_transfer rel_eq rel_flip
-          set_map rel_cong rel_mono rel_mono_strong rel_Grp rel_conversep rel_OO;
+          in_mono in_rel inj_map map_comp map_cong map_id map_ident0 map_ident map_transfer rel_eq
+          rel_flip set_map rel_cong rel_mono rel_mono_strong rel_Grp rel_conversep rel_OO;
 
         val wits = map2 mk_witness bnf_wits wit_thms;
 
