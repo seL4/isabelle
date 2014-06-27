@@ -55,7 +55,7 @@ sig
   val run_prover_for_mash : Proof.context -> params -> string -> string -> fact list -> thm ->
     prover_result
   val features_of : Proof.context -> theory -> int -> int Symtab.table -> stature -> term list ->
-    (string * real) list
+    string list
   val trim_dependencies : string list -> string list option
   val isar_dependencies_of : string Symtab.table * string Symtab.table -> thm -> string list option
   val prover_dependencies_of : Proof.context -> params -> string -> int -> raw_fact list ->
@@ -896,12 +896,11 @@ fun mesh_facts fact_eq max_facts [(_, (sels, unks))] =
       |> map snd |> take max_facts
     end
 
-val default_weight = 1.0
-fun free_feature_of s = ("f" ^ s, 40.0 (* FUDGE *))
-fun thy_feature_of s = ("y" ^ s, 8.0 (* FUDGE *))
-fun type_feature_of s = ("t" ^ s, 4.0 (* FUDGE *))
-fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
-val local_feature = ("local", 16.0 (* FUDGE *))
+fun free_feature_of s = "f" ^ s
+fun thy_feature_of s = "y" ^ s
+fun type_feature_of s = "t" ^ s
+fun class_feature_of s = "s" ^ s
+val local_feature = "local"
 
 fun crude_theory_ord p =
   if Theory.subthy p then
@@ -982,7 +981,7 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
           #> swap #> op ::
           #> subtract (op =) @{sort type} #> map massage_long_name
           #> map class_feature_of
-          #> union (eq_fst (op =))) S
+          #> union (op =)) S
 
     fun pattify_type 0 _ = []
       | pattify_type _ (Type (s, [])) =
@@ -1001,11 +1000,10 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
         maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
 
     fun add_type_pat depth T =
-      union (eq_fst (op =)) (map type_feature_of (pattify_type depth T))
+      union (op =) (map type_feature_of (pattify_type depth T))
 
     fun add_type_pats 0 _ = I
-      | add_type_pats depth t =
-        add_type_pat depth t #> add_type_pats (depth - 1) t
+      | add_type_pats depth t = add_type_pat depth t #> add_type_pats (depth - 1) t
 
     fun add_type T =
       add_type_pats type_max_depth T
@@ -1014,44 +1012,28 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
     fun add_subtypes (T as Type (_, Ts)) = add_type T #> fold add_subtypes Ts
       | add_subtypes T = add_type T
 
-    val base_weight_of_const = 16.0 (* FUDGE *)
-    val weight_of_const =
-      (if num_facts = 0 orelse Symtab.is_empty const_tab then
-         K base_weight_of_const
-       else
-         fn s =>
-         let val count = Symtab.lookup const_tab s |> the_default 1 in
-           base_weight_of_const + Real.fromInt num_facts / Real.fromInt count
-         end)
-
     fun pattify_term _ 0 _ = []
       | pattify_term _ _ (Const (s, _)) =
-        if is_widely_irrelevant_const s then [] else [(massage_long_name s, weight_of_const s)]
+        if is_widely_irrelevant_const s then [] else [massage_long_name s]
       | pattify_term _ _ (Free (s, T)) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
-        |> map (rpair 1.0)
         |> (if member (op =) fixes s then
-              cons (free_feature_of (massage_long_name
-                  (thy_name ^ Long_Name.separator ^ s)))
+              cons (free_feature_of (massage_long_name (thy_name ^ Long_Name.separator ^ s)))
             else
               I)
-      | pattify_term _ _ (Var (_, T)) =
-        maybe_singleton_str pat_var_prefix (crude_str_of_typ T) |> map (rpair default_weight)
+      | pattify_term _ _ (Var (_, T)) = maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
       | pattify_term Ts _ (Bound j) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j))
-        |> map (rpair default_weight)
       | pattify_term Ts depth (t $ u) =
         let
           val ps = take max_pat_breadth (pattify_term Ts depth t)
-          val qs = take max_pat_breadth (("", default_weight) :: pattify_term Ts (depth - 1) u)
+          val qs = take max_pat_breadth ("" :: pattify_term Ts (depth - 1) u)
         in
-          map_product (fn ppw as (p, pw) =>
-            fn ("", _) => ppw
-             | (q, qw) => (p ^ "(" ^ q ^ ")", pw + qw)) ps qs
+          map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs
         end
       | pattify_term _ _ _ = []
 
-    fun add_term_pat Ts = union (eq_fst (op =)) oo pattify_term Ts
+    fun add_term_pat Ts = union (op =) oo pattify_term Ts
 
     fun add_term_pats _ 0 _ = I
       | add_term_pats Ts depth t = add_term_pat Ts depth t #> add_term_pats Ts (depth - 1) t
@@ -1062,8 +1044,7 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
       (case strip_comb t of
         (Const (s, T), args) =>
         (not (is_widely_irrelevant_const s) ? add_term Ts t)
-        #> add_subtypes T
-        #> fold (add_subterms Ts) args
+        #> add_subtypes T #> fold (add_subterms Ts) args
       | (head, args) =>
         (case head of
            Free (_, T) => add_term Ts t #> add_subtypes T
@@ -1333,7 +1314,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [prop_of th]
       |> features_of ctxt (theory_of_thm th) num_facts const_tab stature
-      |> map (apsnd (fn r => weight * factor * r))
+      |> map (rpair (weight * factor))
 
     fun query_args access_G =
       let
@@ -1352,7 +1333,8 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
           |> weight_facts_steeply
           |> map (chained_or_extra_features_of extra_feature_factor)
           |> rpair [] |-> fold (union (eq_fst (op =)))
-        val feats = fold (union (eq_fst (op =))) [chained_feats, extra_feats] goal_feats
+        val feats =
+          fold (union (eq_fst (op =))) [chained_feats, extra_feats] (map (rpair 1.0) goal_feats)
           |> debug ? sort (Real.compare o swap o pairself snd)
       in
         (parents, feats)
@@ -1453,7 +1435,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
     launch_thread timeout (fn () =>
       let
         val thy = Proof_Context.theory_of ctxt
-        val feats = map fst (features_of ctxt thy 0 Symtab.empty (Local, General) [t])
+        val feats = features_of ctxt thy 0 Symtab.empty (Local, General) [t]
       in
         map_state ctxt overlord
           (fn state as {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
@@ -1572,8 +1554,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
               (learns, (num_nontrivial, next_commit, _)) =
             let
               val name = nickname_of_thm th
-              val feats =
-                map fst (features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th])
+              val feats = features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th]
               val deps = deps_of status th |> these
               val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
