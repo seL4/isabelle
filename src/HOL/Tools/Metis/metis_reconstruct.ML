@@ -36,6 +36,8 @@ open Metis_Generate
 
 exception METIS_RECONSTRUCT of string * string
 
+val meta_not_not = @{thms not_not[THEN eq_reflection]}
+
 fun atp_name_of_metis type_enc s =
   case find_first (fn (_, (f, _)) => f type_enc = s) metis_name_table of
     SOME ((s, _), (_, swap)) => (s, swap)
@@ -173,36 +175,46 @@ fun incr_type_indexes inc th =
 (* Like RSN, but we rename apart only the type variables. Vars here typically
    have an index of 1, and the use of RSN would increase this typically to 3.
    Instantiations of those Vars could then fail. *)
-fun resolve_inc_tyvars thy tha i thb =
+fun resolve_inc_tyvars ctxt tha i thb =
   let
     val tha = incr_type_indexes (1 + Thm.maxidx_of thb) tha
-    fun aux (tha, thb) =
+    fun res (tha, thb) =
       case Thm.bicompose {flatten = true, match = false, incremented = true}
             (false, tha, nprems_of tha) i thb
            |> Seq.list_of |> distinct Thm.eq_thm of
         [th] => th
-      | _ => raise THM ("resolve_inc_tyvars: unique result expected", i,
-                        [tha, thb])
+      | _ =>
+        let
+          val thaa'bb' as [(tha', _), (thb', _)] =
+            map (`(Local_Defs.unfold ctxt meta_not_not)) [tha, thb]
+        in
+          if forall Thm.eq_thm_prop thaa'bb' then
+            raise THM ("resolve_inc_tyvars: unique result expected", i, [tha, thb])
+          else
+            res (tha', thb')
+        end
   in
-    aux (tha, thb)
+    res (tha, thb)
     handle TERM z =>
-           (* The unifier, which is invoked from "Thm.bicompose", will sometimes
-              refuse to unify "?a::?'a" with "?a::?'b" or "?a::nat" and throw a
-              "TERM" exception (with "add_ffpair" as first argument). We then
-              perform unification of the types of variables by hand and try
-              again. We could do this the first time around but this error
-              occurs seldom and we don't want to break existing proofs in subtle
-              ways or slow them down needlessly. *)
-           (case []
-                 |> fold (Term.add_vars o prop_of) [tha, thb]
-                 |> AList.group (op =)
-                 |> maps (fn ((s, _), T :: Ts) => map (fn T' => (Free (s, T), Free (s, T'))) Ts)
-                 |> rpair (Envir.empty ~1)
-                 |-> fold (Pattern.unify thy)
-                 |> Envir.type_env |> Vartab.dest
-                 |> map (fn (x, (S, T)) => pairself (ctyp_of thy) (TVar (x, S), T)) of
-             [] => raise TERM z
-           | ps => (tha, thb) |> pairself (Drule.instantiate_normalize (ps, [])) |> aux)
+      let
+        val thy = Proof_Context.theory_of ctxt
+        val ps = []
+          |> fold (Term.add_vars o prop_of) [tha, thb]
+          |> AList.group (op =)
+          |> maps (fn ((s, _), T :: Ts) => map (fn T' => (Free (s, T), Free (s, T'))) Ts)
+          |> rpair (Envir.empty ~1)
+          |-> fold (Pattern.unify thy)
+          |> Envir.type_env |> Vartab.dest
+          |> map (fn (x, (S, T)) => pairself (ctyp_of thy) (TVar (x, S), T))
+      in
+        (* The unifier, which is invoked from "Thm.bicompose", will sometimes refuse to unify
+           "?a::?'a" with "?a::?'b" or "?a::nat" and throw a "TERM" exception (with "add_ffpair" as
+           first argument). We then perform unification of the types of variables by hand and try
+           again. We could do this the first time around but this error occurs seldom and we don't
+           want to break existing proofs in subtle ways or slow them down. *)
+        if null ps then raise TERM z
+        else res (pairself (Drule.instantiate_normalize (ps, [])) (tha, thb))
+      end
   end
 
 fun s_not (@{const Not} $ t) = t
@@ -262,7 +274,6 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
       i_th1
     else
       let
-        val thy = Proof_Context.theory_of ctxt
         val i_atom =
           singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) (Metis_Term.Fn atom)
         val _ = trace_msg ctxt (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atom)
@@ -275,7 +286,7 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
              0 => (trace_msg ctxt (fn () => "Failed to find literal in \"th2\""); i_th2)
            | j2 =>
              (trace_msg ctxt (fn () => "  index th2: " ^ string_of_int j2);
-              resolve_inc_tyvars thy (select_literal ctxt j1 i_th1) j2 i_th2
+              resolve_inc_tyvars ctxt (select_literal ctxt j1 i_th1) j2 i_th2
               handle TERM (s, _) => raise METIS_RECONSTRUCT ("resolve_inference", s))))
       end
   end
@@ -418,10 +429,7 @@ fun resynchronize ctxt fol_th th =
         val prems = prems0 |> map normalize_literal |> distinct Term.aconv_untyped
         val goal = Logic.list_implies (prems, concl)
         val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm th)) ctxt
-        val tac =
-          cut_tac th 1
-          THEN rewrite_goals_tac ctxt' @{thms not_not [THEN eq_reflection]}
-          THEN ALLGOALS assume_tac
+        val tac = cut_tac th 1 THEN rewrite_goals_tac ctxt' meta_not_not THEN ALLGOALS assume_tac
       in
         if length prems = length prems0 then
           raise METIS_RECONSTRUCT ("resynchronize", "Out of sync")
