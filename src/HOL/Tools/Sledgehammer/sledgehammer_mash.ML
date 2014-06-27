@@ -241,14 +241,8 @@ val decode_str = String.explode #> unmeta_chars []
 val encode_strs = map encode_str #> space_implode " "
 val decode_strs = space_explode " " #> filter_out (curry (op =) "") #> map decode_str
 
-(* Avoid scientific notation *)
-fun safe_str_of_real r =
-  if r < 0.00001 then "0.00001"
-  else if r >= 1000000.0 then "1000000"
-  else Markup.print_real r
-
 fun encode_feature (names, weight) =
-  encode_str names ^ (if Real.== (weight, 1.0) then "" else "=" ^ safe_str_of_real weight)
+  encode_str names ^ (if Real.== (weight, 1.0) then "" else "=" ^ Real.toString weight)
 
 val encode_features = map encode_feature #> space_implode " "
 
@@ -525,11 +519,12 @@ fun naive_bayes (tfreq, sfreq, dffreq) num_facts max_suggs visible_facts goal_fe
             SOME sf =>
             (res + fw0 * tfidf f * Math.ln (pos_weight * Real.fromInt sf / tfreq),
              Inttab.delete f sfh)
-          | NONE => (res + tfidf f * def_val, sfh))
+          | NONE => (res + fw0 * tfidf f * def_val, sfh))
 
         val (res, sfh) = fold fold_feats goal_feats (Math.ln tfreq, Vector.sub (sfreq, i))
 
-        fun fold_sfh (f, sf) sow = sow + tfidf f * Math.ln (1.0 + (1.0 - Real.fromInt sf) / tfreq)
+        fun fold_sfh (f, sf) sow =
+          sow + tfidf f * Math.ln (1.0 + (1.0 - Real.fromInt sf) / tfreq)
 
         val sum_of_weights = Inttab.fold fold_sfh sfh 0.0
       in
