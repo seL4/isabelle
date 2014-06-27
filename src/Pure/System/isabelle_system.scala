@@ -75,12 +75,22 @@ object Isabelle_System
       }
 
       set_cygwin_root()
-      val env0 = sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home()))
 
-      val user_home = System.getProperty("user.home", "")
       val env =
-        if (user_home == "" || env0.isDefinedAt("HOME")) env0
-        else env0 + ("HOME" -> user_home)
+      {
+        val user_home = System.getProperty("user.home", "")
+        val isabelle_app = System.getProperty("isabelle.app", "")
+
+        val env0 = sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home()))
+        val env1 =
+          if (user_home == "" || env0.isDefinedAt("HOME")) env0
+          else env0 + ("HOME" -> user_home)
+        val env2 =
+          if (isabelle_app == "") env1
+          else env1 + ("ISABELLE_APP" -> "true")
+
+        env2
+      }
 
       val system_home =
         if (isabelle_home != null && isabelle_home != "") isabelle_home

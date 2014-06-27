@@ -1,4 +1,5 @@
 <string>-Disabelle.home=$APP_ROOT/Contents/Resources/{ISABELLE_NAME}</string>
+<string>-Disabelle.app=true</string>
 </array>
 <key>JVMArguments</key>
 <array>
