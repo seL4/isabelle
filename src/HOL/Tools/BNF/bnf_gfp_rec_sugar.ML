@@ -79,9 +79,9 @@ type corec_spec =
   {corec: term,
    disc_exhausts: thm list,
    sel_defs: thm list,
-   nested_maps: thm list,
-   nested_map_idents: thm list,
-   nested_map_comps: thm list,
+   fp_nesting_maps: thm list,
+   fp_nesting_map_idents: thm list,
+   fp_nesting_map_comps: thm list,
    ctr_specs: corec_ctr_spec list};
 
 exception NOT_A_MAP of term;
@@ -375,7 +375,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
-    val ((missing_res_Ts, perm0_kks, fp_sugars as {nested_bnfs,
+    val ((missing_res_Ts, perm0_kks, fp_sugars as {fp_nesting_bnfs,
           common_co_inducts = common_coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy) =
       nested_to_mutual_fps Greatest_FP bs res_Ts callers callssss0 lthy0;
 
@@ -464,9 +464,11 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
         co_rec_thms = corec_thms, disc_co_recs = disc_corecs,
         sel_co_recss = sel_corecss, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
       {corec = mk_co_rec thy Greatest_FP (substAT T) perm_Cs' corec, disc_exhausts = disc_exhausts,
-       sel_defs = sel_defs, nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,
-       nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs,
-       nested_map_comps = map map_comp_of_bnf nested_bnfs,
+       sel_defs = sel_defs,
+       fp_nesting_maps = maps (map_thms_of_typ lthy o T_of_bnf) fp_nesting_bnfs,
+       fp_nesting_map_idents =
+         map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) fp_nesting_bnfs,
+       fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs,
        ctr_specs = mk_ctr_specs ctr_sugar p_is q_isss f_isss f_Tsss corec_thms disc_corecs
          sel_corecss};
   in
@@ -1173,8 +1175,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_sel ({sel_defs, nested_maps, nested_map_idents, nested_map_comps, ctr_specs, ...}
-              : corec_spec) (disc_eqns : coeqn_data_disc list) excludesss
+        fun prove_sel ({sel_defs, fp_nesting_maps, fp_nesting_map_idents, fp_nesting_map_comps,
+              ctr_specs, ...} : corec_spec) (disc_eqns : coeqn_data_disc list) excludesss
             ({fun_name, fun_T, fun_args, ctr, sel, rhs_term, code_rhs_opt, eqn_pos, ...}
              : coeqn_data_sel) =
           let
@@ -1195,8 +1197,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> curry Logic.list_all (map dest_Free fun_args);
             val (distincts, _, _, sel_splits, sel_split_asms) = case_thms_of_term lthy rhs_term;
           in
-            mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_maps
-              nested_map_idents nested_map_comps sel_corec k m excludesss
+            mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms fp_nesting_maps
+              fp_nesting_map_idents fp_nesting_map_comps sel_corec k m excludesss
             |> K |> Goal.prove_sorry lthy [] [] goal
             |> Thm.close_derivation
             |> `(is_some code_rhs_opt ? fold_thms lthy sel_defs) (*mildly too aggressive*)

@@ -79,8 +79,8 @@ type rec_ctr_spec =
 
 type rec_spec =
   {recx: term,
-   nested_map_idents: thm list,
-   nested_map_comps: thm list,
+   fp_nesting_map_idents: thm list,
+   fp_nesting_map_comps: thm list,
    ctr_specs: rec_ctr_spec list};
 
 type basic_lfp_sugar =
@@ -135,7 +135,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
-    val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, nested_map_idents, nested_map_comps,
+    val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, fp_nesting_map_idents, fp_nesting_map_comps,
          common_induct, n2m, lthy) =
       get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0;
 
@@ -195,7 +195,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     fun mk_spec ctr_offset
         ({T, fp_res_index, ctr_sugar = {ctrs, ...}, recx, rec_thms, ...} : basic_lfp_sugar) =
       {recx = mk_co_rec thy Least_FP (substAT T) perm_Cs' recx,
-       nested_map_idents = nested_map_idents, nested_map_comps = nested_map_comps,
+       fp_nesting_map_idents = fp_nesting_map_idents, fp_nesting_map_comps = fp_nesting_map_comps,
        ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs rec_thms};
   in
     ((n2m, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, common_induct, inducts), lthy)
@@ -464,8 +464,8 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
 
     val defs = build_defs lthy nonexhaustive bs mxs funs_data rec_specs has_call;
 
-    fun prove lthy' def_thms' ({ctr_specs, nested_map_idents, nested_map_comps, ...} : rec_spec)
-        (fun_data : eqn_data list) =
+    fun prove lthy' def_thms' ({ctr_specs, fp_nesting_map_idents, fp_nesting_map_comps, ...}
+        : rec_spec) (fun_data : eqn_data list) =
       let
         val js =
           find_indices (op = o pairself (fn {fun_name, ctr, ...} => (fun_name, ctr)))
@@ -477,8 +477,8 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
           |> map_filter (try (fn (x, [y]) =>
             (#fun_name x, #user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
           |> map2 (fn j => fn (fun_name, user_eqn, num_extra_args, rec_thm) =>
-              mk_primrec_tac lthy' num_extra_args nested_map_idents nested_map_comps def_thms
-                rec_thm
+              mk_primrec_tac lthy' num_extra_args fp_nesting_map_idents fp_nesting_map_comps
+                def_thms rec_thm
               |> K |> Goal.prove_sorry lthy' [] [] user_eqn
               (* for code extraction from proof terms: *)
               |> singleton (Proof_Context.export lthy' lthy)

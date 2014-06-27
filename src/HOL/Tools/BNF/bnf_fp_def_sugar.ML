@@ -17,7 +17,7 @@ sig
 
   val flat_corec_preds_predsss_gettersss: 'a list -> 'a list list list -> 'a list list list ->
     'a list
-  val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
+  val nesting_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
 
   type lfp_sugar_thms =
     (thm list * thm * Args.src list) * (thm list list * Args.src list)
@@ -142,20 +142,21 @@ fun register_fp_sugars (fp_sugars as {fp, ...} :: _) =
   #> fp = Least_FP ? generate_lfp_size fp_sugars
   #> Local_Theory.background_theory (FP_Sugar_Interpretation.data fp_sugars);
 
-fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
+fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs live_nesting_bnfs fp_res
     ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss common_co_inducts co_inductss
     co_rec_thmss disc_co_recss sel_co_recsss rel_injectss rel_distinctss =
   let
     val fp_sugars =
       map_index (fn (kk, T) =>
         {T = T, BT = nth BTs kk, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
-         pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk, nested_bnfs = nested_bnfs,
-         nesting_bnfs = nesting_bnfs, ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk,
-         ctr_sugar = nth ctr_sugars kk, co_rec = nth co_recs kk, co_rec_def = nth co_rec_defs kk,
-         maps = nth mapss kk, common_co_inducts = common_co_inducts,
-         co_inducts = nth co_inductss kk, co_rec_thms = nth co_rec_thmss kk,
-         disc_co_recs = nth disc_co_recss kk, sel_co_recss = nth sel_co_recsss kk,
-         rel_injects = nth rel_injectss kk, rel_distincts = nth rel_distinctss kk}) Ts
+         pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk,
+         fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
+         ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk, ctr_sugar = nth ctr_sugars kk,
+         co_rec = nth co_recs kk, co_rec_def = nth co_rec_defs kk, maps = nth mapss kk,
+         common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
+         co_rec_thms = nth co_rec_thmss kk, disc_co_recs = nth disc_co_recss kk,
+         sel_co_recss = nth sel_co_recsss kk, rel_injects = nth rel_injectss kk,
+         rel_distincts = nth rel_distinctss kk}) Ts
   in
     register_fp_sugars fp_sugars
   end;
@@ -254,7 +255,7 @@ fun map_binding_of_spec ((_, (b, _)), _) = b;
 fun rel_binding_of_spec ((_, (_, b)), _) = b;
 fun sel_default_eqs_of_spec (_, ts) = ts;
 
-fun add_nesty_bnf_names Us =
+fun add_nesting_bnf_names Us =
   let
     fun add (Type (s, Ts)) ss =
         let val (needs, ss') = fold_map add Ts ss in
@@ -263,8 +264,8 @@ fun add_nesty_bnf_names Us =
       | add T ss = (member (op =) Us T, ss);
   in snd oo add end;
 
-fun nesty_bnfs ctxt ctr_Tsss Us =
-  map_filter (bnf_of ctxt) (fold (fold (fold (add_nesty_bnf_names Us))) ctr_Tsss []);
+fun nesting_bnfs ctxt ctr_Tsss Us =
+  map_filter (bnf_of ctxt) (fold (fold (fold (add_nesting_bnf_names Us))) ctr_Tsss []);
 
 fun indexify proj xs f p = f (find_index (curry (op =) (proj p)) xs) p;
 
@@ -444,8 +445,8 @@ fun define_corec (_, cs, cpss, ((pgss, cqgsss), f_absTs)) mk_binding fpTs Cs abs
   end;
 
 fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_rec_thms
-    nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses fp_type_definitions abs_inverses
-    ctrss ctr_defss recs rec_defs lthy =
+    live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses fp_type_definitions
+    abs_inverses ctrss ctr_defss recs rec_defs lthy =
   let
     val ctr_Tsss = map (map (binder_types o fastype_of)) ctrss;
 
@@ -455,9 +456,10 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
-    val nesting_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
-    val nested_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs;
-    val nested_set_maps = maps set_map_of_bnf nested_bnfs;
+    val live_nesting_map_idents =
+      map (unfold_thms lthy [id_def] o map_id0_of_bnf) live_nesting_bnfs;
+    val fp_nesting_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) fp_nesting_bnfs;
+    val fp_nesting_set_maps = maps set_map_of_bnf fp_nesting_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
 
@@ -482,7 +484,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
         (T_name, map mk_set Us)
       end;
 
-    val setss_nested = map mk_sets_nested nested_bnfs;
+    val setss_nested = map mk_sets_nested fp_nesting_bnfs;
 
     val (induct_thms, induct_thm) =
       let
@@ -541,7 +543,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
         val thm =
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
             mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' fp_abs_inverses
-              abs_inverses nested_set_maps pre_set_defss)
+              abs_inverses fp_nesting_set_maps pre_set_defss)
           |> singleton (Proof_Context.export names_lthy lthy)
           (* for "datatype_realizer.ML": *)
           |> Thm.name_derivation (fst (dest_Type (hd fpTs)) ^ Long_Name.separator ^
@@ -580,8 +582,8 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
         val fxsss = map2 (map2 (flat_rec_arg_args oo map2 (map o build_rec))) xsss x_Tssss;
         val goalss = map5 (map4 o mk_goal) frecs xctrss fss xsss fxsss;
 
-        val tacss =
-          map4 (map ooo mk_rec_tac pre_map_defs (nested_map_idents @ nesting_map_idents) rec_defs)
+        val tacss = map4 (map ooo
+              mk_rec_tac pre_map_defs (fp_nesting_map_idents @ live_nesting_map_idents) rec_defs)
             ctor_rec_thms fp_abs_inverses abs_inverses ctr_defss;
 
         fun prove goal tac =
@@ -721,8 +723,8 @@ fun derive_rel_coinduct0_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_i
   end;
 
 fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss), _))
-    dtor_coinduct dtor_injects dtor_ctors dtor_corec_thms nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss
-    mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
+    dtor_coinduct dtor_injects dtor_ctors dtor_corec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss
+    kss mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
     corecs corec_defs export_args lthy =
   let
     fun mk_ctor_dtor_corec_thm dtor_inject dtor_ctor corec =
@@ -734,8 +736,9 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
-    val nesting_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
-    val nesting_rel_eqs = map rel_eq_of_bnf nesting_bnfs;
+    val live_nesting_map_idents =
+      map (unfold_thms lthy [id_def] o map_id0_of_bnf) live_nesting_bnfs;
+    val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
 
@@ -806,8 +809,8 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
 
         fun prove dtor_coinduct' goal =
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-            mk_coinduct_tac ctxt nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs fp_abs_inverses
-              abs_inverses dtor_ctors exhausts ctr_defss disc_thmsss sel_thmsss)
+            mk_coinduct_tac ctxt live_nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs
+              fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss disc_thmsss sel_thmsss)
           |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation;
 
@@ -852,7 +855,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
         val goalss = map8 (map4 oooo mk_goal) cs cpss gcorecs ns kss ctrss mss cqgsss';
 
         val tacss =
-          map4 (map ooo mk_corec_tac corec_defs nesting_map_idents)
+          map4 (map ooo mk_corec_tac corec_defs live_nesting_map_idents)
             ctor_dtor_corec_thms pre_map_defs abs_inverses ctr_defss;
 
         fun prove goal tac =
@@ -1073,14 +1076,14 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
 
-    val nesting_bnfs = nesty_bnfs lthy ctrXs_Tsss As;
-    val nested_bnfs = nesty_bnfs lthy ctrXs_Tsss Xs;
+    val fp_nesting_bnfs = nesting_bnfs lthy ctrXs_Tsss Xs;
+    val live_nesting_bnfs = nesting_bnfs lthy ctrXs_Tsss As;
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
-    val nesting_set_maps = maps set_map_of_bnf nesting_bnfs;
-    val nested_set_maps = maps set_map_of_bnf nested_bnfs;
+    val fp_nesting_set_maps = maps set_map_of_bnf fp_nesting_bnfs;
+    val live_nesting_set_maps = maps set_map_of_bnf live_nesting_bnfs;
 
     val live = live_of_bnf any_fp_bnf;
     val _ =
@@ -1245,7 +1248,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
               fun mk_set_thm fp_set_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
-                  (unfold_thms lthy (pre_set_defs @ nested_set_maps @ nesting_set_maps @
+                  (unfold_thms lthy (pre_set_defs @ fp_nesting_set_maps @ live_nesting_set_maps @
                        (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_set @
                        abs_inverses)
                      (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
@@ -1357,8 +1360,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                                     let
                                       val X = HOLogic.dest_setT (range_type (fastype_of set));
                                       val (x, ctxt') = yield_singleton (mk_Frees "x") X ctxt;
-                                      val assm = HOLogic.mk_Trueprop
-                                        (HOLogic.mk_mem (x, set $ a));
+                                      val assm = HOLogic.mk_Trueprop (HOLogic.mk_mem (x, set $ a));
                                     in
                                       travese_nested_types x ctxt'
                                       |>> map (Logic.mk_implies o pair assm)
@@ -1527,7 +1529,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       let
         val ((induct_thms, induct_thm, induct_attrs), (rec_thmss, rec_attrs)) =
           derive_induct_recs_thms_for_types pre_bnfs recs_args_types xtor_co_induct xtor_co_rec_thms
-            nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss abs_inverses type_definitions
+            live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss abs_inverses type_definitions
             abs_inverses ctrss ctr_defss recs rec_defs lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
@@ -1548,8 +1550,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         lthy
         |> Spec_Rules.add Spec_Rules.Equational (recs, flat rec_thmss)
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_as_fp_sugars fpTs fpBTs Xs Least_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs
-          fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs mapss [induct_thm]
+        |> register_as_fp_sugars fpTs fpBTs Xs Least_FP pre_bnfs absT_infos fp_nesting_bnfs
+          live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs mapss [induct_thm]
           (map single induct_thms) rec_thmss (replicate nn []) (replicate nn []) rel_injectss
           rel_distinctss
       end;
@@ -1563,8 +1565,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (corec_thmss, corec_attrs), (disc_corec_thmss, disc_corec_attrs),
              (disc_corec_iff_thmss, disc_corec_iff_attrs), (sel_corec_thmsss, sel_corec_attrs)) =
           derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types) xtor_co_induct
-            dtor_injects dtor_ctors xtor_co_rec_thms nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss ns
-            abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
+            dtor_injects dtor_ctors xtor_co_rec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss
+            ns abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
             (Proof_Context.export lthy' no_defs_lthy) lthy;
 
         val ((rel_coinduct_thms, rel_coinduct_thm),
@@ -1611,8 +1613,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> fold (curry (Spec_Rules.add Spec_Rules.Equational) corecs)
           [flat sel_corec_thmss, flat corec_thmss]
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_as_fp_sugars fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos nested_bnfs
-          nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars corecs corec_defs mapss
+        |> register_as_fp_sugars fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos fp_nesting_bnfs
+          live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars corecs corec_defs mapss
           [coinduct_thm, strong_coinduct_thm] (transpose [coinduct_thms, strong_coinduct_thms])
           corec_thmss disc_corec_thmss sel_corec_thmsss rel_injectss rel_distinctss
       end;

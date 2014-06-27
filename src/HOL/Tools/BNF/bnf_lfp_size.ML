@@ -66,12 +66,12 @@ fun mk_unabs_def_unused_0 n =
 val rec_o_map_simp_thms =
   @{thms o_def id_def case_prod_app case_sum_map_sum case_prod_map_prod BNF_Comp.id_bnf_comp_def};
 
-fun mk_rec_o_map_tac ctxt rec_def pre_map_defs nesting_map_idents abs_inverses ctor_rec_o_map =
+fun mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_idents abs_inverses ctor_rec_o_map =
   unfold_thms_tac ctxt [rec_def] THEN
   HEADGOAL (rtac (ctor_rec_o_map RS trans)) THEN
   PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion) THEN
   HEADGOAL (asm_simp_tac (ss_only (pre_map_defs @
-    distinct Thm.eq_thm_prop (nesting_map_idents @ abs_inverses) @ rec_o_map_simp_thms) ctxt));
+    distinct Thm.eq_thm_prop (live_nesting_map_idents @ abs_inverses) @ rec_o_map_simp_thms) ctxt));
 
 val size_o_map_simp_thms = @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
@@ -82,8 +82,8 @@ fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
 
 fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
-    fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, nested_bnfs,
-    nesting_bnfs, ...} : fp_sugar) :: _) lthy0 =
+    fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, fp_nesting_bnfs,
+    live_nesting_bnfs, ...} : fp_sugar) :: _) lthy0 =
   let
     val data = Data.get (Context.Proof lthy0);
 
@@ -221,7 +221,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
        |> map_filter (try (fn (Spec_Rules.Equational, (_, [thm])) => thm)));
 
     val nested_size_maps = map (pointfill lthy2) nested_size_o_maps @ nested_size_o_maps;
-    val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ nested_bnfs @ nesting_bnfs)
+    val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ fp_nesting_bnfs @ live_nesting_bnfs)
       |> distinct Thm.eq_thm_prop;
 
     fun derive_size_simp size_def' simp0 =
@@ -258,7 +258,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
         let
           val pre_bnfs = map #pre_bnf fp_sugars;
           val pre_map_defs = map map_def_of_bnf pre_bnfs;
-          val nesting_map_idents = map map_ident_of_bnf nesting_bnfs;
+          val live_nesting_map_idents = map map_ident_of_bnf live_nesting_bnfs;
           val abs_inverses = map (#abs_inverse o #absT_info) fp_sugars;
           val rec_defs = map #co_rec_def fp_sugars;
 
@@ -303,7 +303,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
           val rec_o_map_thms =
             map3 (fn goal => fn rec_def => fn ctor_rec_o_map =>
                 Goal.prove lthy2 [] [] goal (fn {context = ctxt, ...} =>
-                  mk_rec_o_map_tac ctxt rec_def pre_map_defs nesting_map_idents abs_inverses
+                  mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_idents abs_inverses
                     ctor_rec_o_map)
                 |> Thm.close_derivation)
               rec_o_map_goals rec_defs ctor_rec_o_maps;

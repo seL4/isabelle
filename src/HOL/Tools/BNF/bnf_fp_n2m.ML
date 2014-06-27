@@ -71,9 +71,10 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
     val fp_absT_infos = map #absT_info fp_sugars;
     val fp_bnfs = of_fp_res #bnfs;
     val pre_bnfs = map #pre_bnf fp_sugars;
-    val nesty_bnfss = map (fn sugar => #nested_bnfs sugar @ #nesting_bnfs sugar) fp_sugars;
-    val fp_nesty_bnfss = fp_bnfs :: nesty_bnfss;
-    val fp_nesty_bnfs = distinct (op = o pairself T_of_bnf) (flat fp_nesty_bnfss);
+    val nesting_bnfss =
+      map (fn sugar => #fp_nesting_bnfs sugar @ #live_nesting_bnfs sugar) fp_sugars;
+    val fp_or_nesting_bnfss = fp_bnfs :: nesting_bnfss;
+    val fp_or_nesting_bnfs = distinct (op = o pairself T_of_bnf) (flat fp_or_nesting_bnfss);
 
     val fp_absTs = map #absT fp_absT_infos;
     val fp_repTs = map #repT fp_absT_infos;
@@ -137,7 +138,7 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
 
     val rels =
       let
-        fun find_rel T As Bs = fp_nesty_bnfss
+        fun find_rel T As Bs = fp_or_nesting_bnfss
           |> map (filter_out (curry (op = o pairself name_of_bnf) BNF_Comp.DEADID_bnf))
           |> get_first (find_first (fn bnf => Type.could_unify (T_of_bnf bnf, T)))
           |> Option.map (fn bnf =>
@@ -186,7 +187,7 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
         xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts rel_defs rel_monos)
         lthy;
 
-    val rel_eqs = no_refl (map rel_eq_of_bnf fp_nesty_bnfs);
+    val rel_eqs = no_refl (map rel_eq_of_bnf fp_or_nesting_bnfs);
     val map_id0s = no_refl (map map_id0_of_bnf bnfs);
 
     val xtor_co_induct_thm =
@@ -419,7 +420,8 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
 
         val map_thms = no_refl (maps (fn bnf =>
            let val map_comp0 = map_comp0_of_bnf bnf RS sym
-           in [map_comp0, map_comp0 RS rewrite_comp_comp, map_id0_of_bnf bnf] end) fp_nesty_bnfs) @
+           in [map_comp0, map_comp0 RS rewrite_comp_comp, map_id0_of_bnf bnf] end)
+          fp_or_nesting_bnfs) @
           remove eq_thm_prop_untyped (case_fp fp @{thm comp_assoc[symmetric]} @{thm comp_assoc})
           (map2 (fn thm => fn bnf =>
             @{thm type_copy_map_comp0_undo} OF
