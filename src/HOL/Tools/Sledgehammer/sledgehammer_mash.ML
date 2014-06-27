@@ -404,17 +404,17 @@ fun k_nearest_neighbors dffreq num_facts depss feat_facts max_suggs visible_fact
 
     val overlaps_sqr = Array.tabulate (num_facts, rpair 0.0)
 
-    fun inc_overlap v j =
-      let val (_, ov) = Array.sub (overlaps_sqr, j) in
-        Array.update (overlaps_sqr, j, (j, v + ov))
-      end
-
     fun do_feat (s, sw0) =
       let
         val sw = sw0 * tfidf s
         val w2 = sw * sw
+
+        fun inc_overlap j =
+          let val (_, ov) = Array.sub (overlaps_sqr, j) in
+            Array.update (overlaps_sqr, j, (j, w2 + ov))
+          end
       in
-        List.app (inc_overlap w2) (Array.sub (feat_facts, s))
+        List.app inc_overlap (Array.sub (feat_facts, s))
       end
 
     val _ = List.app do_feat goal_feats
@@ -424,7 +424,7 @@ fun k_nearest_neighbors dffreq num_facts depss feat_facts max_suggs visible_fact
     val age = Unsynchronized.ref 500000000.0
 
     fun inc_recommend j v =
-      let val ov = snd (Array.sub (recommends, j)) in
+      let val (_, ov) = Array.sub (recommends, j) in
         if ov <= 0.0 then
           (no_recommends := !no_recommends + 1; Array.update (recommends, j, (j, !age + ov)))
         else if ov < !age + 1000.0 then
@@ -1275,7 +1275,7 @@ fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
 val chained_feature_factor = 0.5 (* FUDGE *)
 val extra_feature_factor = 0.05 (* FUDGE *)
-val num_extra_feature_facts = 10 (* FUDGE *)
+val num_extra_feature_facts = 0 (* FUDGE *)
 
 (* FUDGE *)
 fun weight_of_proximity_fact rank =
