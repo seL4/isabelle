@@ -15,8 +15,8 @@ sig
   val MeSh_IsarN : string
   val MeSh_ProverN : string
   val IsarN : string
-  val evaluate_mash_suggestions : Proof.context -> params -> int * int option -> bool ->
-    string list -> string option -> string -> string -> string -> string -> string -> string -> unit
+  val evaluate_mash_suggestions : Proof.context -> params -> int * int option -> string list ->
+    string option -> string -> string -> string -> string -> string -> string -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
@@ -41,9 +41,9 @@ val IsarN = "Isar"
 fun in_range (from, to) j =
   j >= from andalso (to = NONE orelse j <= the to)
 
-fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
-        mepo_file_name mash_isar_file_name mash_prover_file_name
-        mesh_isar_file_name mesh_prover_file_name report_file_name =
+fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_name
+    mash_isar_file_name mash_prover_file_name mesh_isar_file_name mesh_prover_file_name
+    report_file_name =
   let
     val thy = Proof_Context.theory_of ctxt
     val zeros = [0, 0, 0, 0, 0, 0]
@@ -112,11 +112,7 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
           val isar_deps = these (isar_dependencies_of name_tabs th)
-          val facts =
-            facts
-            |> filter (fn (_, th') =>
-                          if linearize then crude_thm_ord (th', th) = LESS
-                          else thm_less (th', th))
+          val facts = facts |> filter (fn (_, th') => thm_less (th', th))
           (* adapted from "mirabelle_sledgehammer.ML" *)
           fun set_file_name method (SOME dir) =
               let

@@ -54,8 +54,7 @@ sig
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash : Proof.context -> params -> string -> string -> fact list -> thm ->
     prover_result
-  val features_of : Proof.context -> theory -> int -> int Symtab.table -> stature -> term list ->
-    string list
+  val features_of : Proof.context -> theory -> stature -> term list -> string list
   val trim_dependencies : string list -> string list option
   val isar_dependencies_of : string Symtab.table * string Symtab.table -> thm -> string list option
   val prover_dependencies_of : Proof.context -> params -> string -> int -> raw_fact list ->
@@ -68,7 +67,6 @@ sig
   val weight_facts_steeply : 'a list -> ('a * real) list
   val find_mash_suggestions : Proof.context -> int -> string list -> ('b * thm) list ->
     ('b * thm) list -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
-  val add_const_counts : term -> int Symtab.table -> int Symtab.table
   val mash_suggested_facts : Proof.context -> params -> int -> term list -> term -> raw_fact list ->
     fact list * fact list
   val mash_learn_proof : Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
@@ -320,10 +318,10 @@ end;
 structure MaSh_SML =
 struct
 
-exception BOTTOM of int
-
 fun heap cmp bnd al a =
   let
+    exception BOTTOM of int
+
     fun maxson l i =
       let val i31 = i + i + i + 1 in
         if i31 + 2 < l then
@@ -395,10 +393,10 @@ fun select_visible_facts big_number recommends =
       Array.update (recommends, at, (j, big_number + ov))
     end)
 
-exception EXIT of unit
-
 fun k_nearest_neighbors dffreq num_facts depss feat_facts max_suggs visible_facts goal_feats =
   let
+    exception EXIT of unit
+
     val ln_afreq = Math.ln (Real.fromInt num_facts)
     fun tfidf feat = ln_afreq - Math.ln (Real.fromInt (Vector.sub (dffreq, feat)))
 
@@ -968,7 +966,7 @@ fun maybe_singleton_str _ "" = []
 
 val max_pat_breadth = 10 (* FUDGE *)
 
-fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth ts =
+fun term_features_of ctxt thy_name term_max_depth type_max_depth ts =
   let
     val thy = Proof_Context.theory_of ctxt
 
@@ -1060,10 +1058,10 @@ val term_max_depth = 2
 val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of ctxt thy num_facts const_tab (scope, _) ts =
+fun features_of ctxt thy (scope, _) ts =
   let val thy_name = Context.theory_name thy in
     thy_feature_of thy_name ::
-    term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth ts
+    term_features_of ctxt thy_name term_max_depth type_max_depth ts
     |> scope <> Global ? cons local_feature
   end
 
@@ -1291,9 +1289,6 @@ fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     (mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess, unknown)
   end
 
-fun add_const_counts t =
-  fold (fn s => Symtab.map_default (s, 0) (Integer.add 1)) (Term.add_const_names t [])
-
 fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -1302,26 +1297,20 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts
 
     val facts = facts |> sort (crude_thm_ord o pairself snd o swap)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
-    val num_facts = length facts
-
-    (* Weights appear to hurt kNN more than they help. *)
-    val const_tab = Symtab.empty |> engine <> MaSh_SML_kNN
-      ? fold (add_const_counts o prop_of o snd) facts
 
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
 
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [prop_of th]
-      |> features_of ctxt (theory_of_thm th) num_facts const_tab stature
+      |> features_of ctxt (theory_of_thm th) stature
       |> map (rpair (weight * factor))
 
     fun query_args access_G =
       let
         val parents = maximal_wrt_access_graph access_G facts
 
-        val goal_feats =
-          features_of ctxt thy num_facts const_tab (Local, General) (concl_t :: hyp_ts)
+        val goal_feats = features_of ctxt thy (Local, General) (concl_t :: hyp_ts)
         val chained_feats = chained
           |> map (rpair 1.0)
           |> map (chained_or_extra_features_of chained_feature_factor)
@@ -1435,7 +1424,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
     launch_thread timeout (fn () =>
       let
         val thy = Proof_Context.theory_of ctxt
-        val feats = features_of ctxt thy 0 Symtab.empty (Local, General) [t]
+        val feats = features_of ctxt thy (Local, General) [t]
       in
         map_state ctxt overlord
           (fn state as {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
@@ -1554,7 +1543,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
               (learns, (num_nontrivial, next_commit, _)) =
             let
               val name = nickname_of_thm th
-              val feats = features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th]
+              val feats = features_of ctxt (theory_of_thm th) stature [prop_of th]
               val deps = deps_of status th |> these
               val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns

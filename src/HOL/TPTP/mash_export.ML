@@ -54,9 +54,9 @@ fun generate_accessibility ctxt thys file_name =
   let
     val path = Path.explode file_name
 
-    fun do_fact (parents, fact) prevs =
+    fun do_fact (parents, fact) =
       let val s = encode_str fact ^ ": " ^ encode_strs parents ^ "\n" in
-        File.append path s; [fact]
+        File.append path s
       end
 
     val facts =
@@ -66,7 +66,7 @@ fun generate_accessibility ctxt thys file_name =
       |> map (apsnd (nickname_of_thm o snd))
   in
     File.write path "";
-    ignore (fold do_fact facts [])
+    List.app do_fact facts
   end
 
 fun generate_features ctxt thys file_name =
@@ -78,8 +78,7 @@ fun generate_features ctxt thys file_name =
     fun do_fact ((_, stature), th) =
       let
         val name = nickname_of_thm th
-        val feats =
-          features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th] |> map fst
+        val feats = features_of ctxt (theory_of_thm th) stature [prop_of th]
         val s = encode_str name ^ ": " ^ encode_strs (sort string_ord feats) ^ "\n"
       in
         File.append path s
@@ -161,26 +160,23 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
     val path = Path.explode file_name
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
-    val num_old_facts = length old_facts
     val name_tabs = build_name_tables nickname_of_thm facts
 
-    fun do_fact (j, (((name, (parents, ((_, stature), th))), prevs), const_tab)) =
+    fun do_fact (j, ((name, (parents, ((_, stature), th))), prevs)) =
       if in_range range j then
         let
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val isar_deps = isar_dependencies_of name_tabs th
           val do_query = not (is_bad_query ctxt ho_atp step j th isar_deps)
-          val goal_feats =
-            features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature [prop_of th]
-            |> sort_wrt fst
+          val goal_feats = features_of ctxt (theory_of_thm th) stature [prop_of th]
           val access_facts = filter_accessible_from th new_facts @ old_facts
           val (marker, deps) =
             smart_dependencies_of ctxt params_opt access_facts name_tabs th isar_deps
 
           fun extra_features_of (((_, stature), th), weight) =
             [prop_of th]
-            |> features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature
-            |> map (apsnd (fn r => weight * extra_feature_factor * r))
+            |> features_of ctxt (theory_of_thm th) stature
+            |> map (rpair (weight * extra_feature_factor))
 
           val query =
             if do_query then
@@ -192,7 +188,8 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
                   |> rev
                   |> weight_facts_steeply
                   |> map extra_features_of
-                  |> rpair goal_feats |-> fold (union (eq_fst (op =)))
+                  |> rpair (map (rpair 1.0) goal_feats)
+                  |-> fold (union (eq_fst (op =)))
               in
                 "? " ^ string_of_int max_suggs ^ " # " ^ encode_str name ^ ": " ^
                 encode_strs parents ^ "; " ^ encode_features query_feats ^ "\n"
@@ -200,8 +197,8 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
             else
               ""
           val update =
-            "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-            encode_strs (map fst goal_feats) ^ "; " ^ marker ^ " " ^ encode_strs deps ^ "\n"
+            "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^ encode_strs goal_feats ^
+            "; " ^ marker ^ " " ^ encode_strs deps ^ "\n"
         in query ^ update end
       else
         ""
@@ -210,10 +207,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
       new_facts |> attach_parents_to_facts old_facts |> map (`(nickname_of_thm o snd o snd))
     val hd_prevs = map (nickname_of_thm o snd) (the_list (try List.last old_facts))
     val prevss = hd_prevs :: map (single o fst) new_facts |> split_last |> fst
-    val hd_const_tabs = fold (add_const_counts o prop_of o snd) old_facts Symtab.empty
-    val (const_tabs, _) =
-      fold_map (`I oo add_const_counts o prop_of o snd o snd o snd) new_facts hd_const_tabs
-    val lines = map do_fact (tag_list 1 (new_facts ~~ prevss ~~ const_tabs))
+    val lines = map do_fact (tag_list 1 (new_facts ~~ prevss))
   in
     File.write_list path lines
   end
