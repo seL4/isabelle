@@ -162,7 +162,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val name_tabs = build_name_tables nickname_of_thm facts
 
-    fun do_fact (j, ((name, (parents, ((_, stature), th))), prevs)) =
+    fun do_fact (j, (name, (parents, ((_, stature), th)))) =
       if in_range range j then
         let
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
@@ -205,9 +205,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
 
     val new_facts =
       new_facts |> attach_parents_to_facts old_facts |> map (`(nickname_of_thm o snd o snd))
-    val hd_prevs = map (nickname_of_thm o snd) (the_list (try List.last old_facts))
-    val prevss = hd_prevs :: map (single o fst) new_facts |> split_last |> fst
-    val lines = map do_fact (tag_list 1 (new_facts ~~ prevss))
+    val lines = map do_fact (tag_list 1 new_facts)
   in
     File.write_list path lines
   end
@@ -243,7 +241,8 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
               val suggs =
                 old_facts
                 |> filter_accessible_from th
-                |> mepo_or_mash_suggested_facts ctxt params max_suggs hyp_ts concl_t
+                |> mepo_or_mash_suggested_facts ctxt (theory_of_thm th) params max_suggs hyp_ts
+                  concl_t
                 |> map (nickname_of_thm o snd)
             in
               encode_str name ^ ": " ^ encode_strs suggs ^ "\n"
@@ -261,18 +260,18 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
 
 val generate_mepo_suggestions =
   generate_mepo_or_mash_suggestions
-    (fn ctxt => fn params => fn max_suggs => fn hyp_ts => fn concl_t =>
+    (fn ctxt => fn _ => fn params => fn max_suggs => fn hyp_ts => fn concl_t =>
        not (Config.get ctxt Sledgehammer_MaSh.duplicates) ? Sledgehammer_Fact.drop_duplicate_facts
        #> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t)
 
 fun generate_mash_suggestions ctxt params =
   (Sledgehammer_MaSh.mash_unlearn ctxt params;
    generate_mepo_or_mash_suggestions
-     (fn ctxt => fn params as {provers = prover :: _, ...} => fn max_suggs => fn hyp_ts =>
+     (fn ctxt => fn thy => fn params as {provers = prover :: _, ...} => fn max_suggs => fn hyp_ts =>
           fn concl_t =>
         tap (Sledgehammer_MaSh.mash_learn_facts ctxt params prover true 2 false
           Sledgehammer_Util.one_year)
-        #> Sledgehammer_MaSh.mash_suggested_facts ctxt params max_suggs hyp_ts concl_t
+        #> Sledgehammer_MaSh.mash_suggested_facts ctxt thy params max_suggs hyp_ts concl_t
         #> fst) ctxt params)
 
 fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_name =

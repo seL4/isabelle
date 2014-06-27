@@ -67,8 +67,8 @@ sig
   val weight_facts_steeply : 'a list -> ('a * real) list
   val find_mash_suggestions : Proof.context -> int -> string list -> ('b * thm) list ->
     ('b * thm) list -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
-  val mash_suggested_facts : Proof.context -> params -> int -> term list -> term -> raw_fact list ->
-    fact list * fact list
+  val mash_suggested_facts : Proof.context -> theory -> params -> int -> term list -> term ->
+    raw_fact list -> fact list * fact list
   val mash_learn_proof : Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
   val mash_learn_facts : Proof.context -> params -> string -> bool -> int -> bool -> Time.time ->
     raw_fact list -> string
@@ -1289,9 +1289,8 @@ fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     (mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess, unknown)
   end
 
-fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_suggs hyp_ts concl_t facts =
+fun mash_suggested_facts ctxt thy ({debug, overlord, ...} : params) max_suggs hyp_ts concl_t facts =
   let
-    val thy = Proof_Context.theory_of ctxt
     val thy_name = Context.theory_name thy
     val engine = the_mash_engine ()
 
@@ -1682,6 +1681,8 @@ fun relevant_facts ctxt (params as {verbose, overlord, learn, fact_filter, timeo
     [("", [])]
   else
     let
+      val thy = Proof_Context.theory_of ctxt
+
       fun maybe_launch_thread min_num_facts_to_learn =
         if not (Async_Manager.has_running_threads MaShN) andalso
            Time.toSeconds timeout >= min_secs_for_learning then
@@ -1747,7 +1748,8 @@ fun relevant_facts ctxt (params as {verbose, overlord, learn, fact_filter, timeo
          |> weight_facts_steeply, [])
 
       fun mash () =
-        mash_suggested_facts ctxt params (generous_max_suggestions max_facts) hyp_ts concl_t facts
+        mash_suggested_facts ctxt thy params (generous_max_suggestions max_facts) hyp_ts concl_t
+          facts
         |>> weight_facts_steeply
 
       val mess =
