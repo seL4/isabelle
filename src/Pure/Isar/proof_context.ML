@@ -161,7 +161,7 @@ sig
   val generic_revert_abbrev: string -> string -> Context.generic -> Context.generic
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
-  val pretty_binds: Proof.context -> Pretty.T list
+  val pretty_term_bindings: Proof.context -> Pretty.T list
   val pretty_local_facts: Proof.context -> bool -> Pretty.T list
   val print_local_facts: Proof.context -> bool -> unit
   val pretty_cases: Proof.context -> Pretty.T list
@@ -1257,7 +1257,7 @@ val print_abbrevs = Pretty.writeln_chunks o pretty_abbrevs true;
 
 (* term bindings *)
 
-fun pretty_binds ctxt =
+fun pretty_term_bindings ctxt =
   let
     val binds = Variable.binds_of ctxt;
     fun prt_bind (xi, (T, t)) = pretty_term_abbrev ctxt (Logic.mk_equals (Var (xi, T), t));
@@ -1408,7 +1408,7 @@ fun pretty_context ctxt =
     verb single (K pretty_thy) @
     pretty_ctxt ctxt @
     verb (pretty_abbrevs false) (K ctxt) @
-    verb pretty_binds (K ctxt) @
+    verb pretty_term_bindings (K ctxt) @
     verb (pretty_local_facts ctxt) (K true) @
     verb pretty_cases (K ctxt) @
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @

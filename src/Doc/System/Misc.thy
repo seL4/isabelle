@@ -318,25 +318,6 @@ text {* The @{tool_def env} tool is a direct wrapper for the standard
 *}
 
 
-section {* Getting logic images *}
-
-text {* The @{tool_def findlogics} tool traverses all directories
-  specified in @{setting ISABELLE_PATH}, looking for Isabelle logic
-  images. Its usage is:
-\begin{ttbox}
-Usage: isabelle findlogics
-
-  Collect heap file names from ISABELLE_PATH.
-\end{ttbox}
-
-  The base names of all files found on the path are printed --- sorted
-  and with duplicates removed. Also note that lookup in @{setting
-  ISABELLE_PATH} includes the current values of @{setting ML_SYSTEM}
-  and @{setting ML_PLATFORM}. Thus switching to another ML compiler
-  may change the set of logic images available.
-*}
-
-
 section {* Inspecting the settings environment \label{sec:tool-getenv} *}
 
 text {* The Isabelle settings environment --- as provided by the
@@ -470,26 +451,6 @@ Usage: isabelle tty [OPTIONS]
   bare-bones ML system, which is occasionally useful for debugging of
   the Isar infrastructure itself.  Invoking @{ML Isar.loop}~@{verbatim
   "();"} in ML will return to the Isar toplevel.  *}
-
-
-section {* Remove awkward symbol names from theory sources *}
-
-text {*
-  The @{tool_def unsymbolize} tool tunes Isabelle theory sources to
-  improve readability for plain ASCII output (e.g.\ in email
-  communication).  Most notably, @{tool unsymbolize} replaces awkward
-  arrow symbols such as @{verbatim "\\"}@{verbatim "<Longrightarrow>"}
-  by @{verbatim "==>"}.
-\begin{ttbox}
-Usage: isabelle unsymbolize [FILES|DIRS...]
-
-  Recursively find .thy/.ML files, removing unreadable symbol names.
-  Note: this is an ad-hoc script; there is no systematic way to replace
-  symbols independently of the inner syntax of a theory!
-
-  Renames old versions of FILES by appending "~~".
-\end{ttbox}
-*}
 
 
 section {* Output the version identifier of the Isabelle distribution *}

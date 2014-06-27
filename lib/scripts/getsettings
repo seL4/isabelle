@@ -16,6 +16,11 @@ if [ -x /usr/bin/gnutar ]; then
   function tar() { /usr/bin/gnutar "$@"; }
 fi
 
+#sane environment defaults (notably on Mac OS X)
+if [ "$ISABELLE_APP" = true -a -x /usr/libexec/path_helper ]; then
+  eval $(/usr/libexec/path_helper -s)
+fi
+
 #Cygwin vs. POSIX
 if [ "$OSTYPE" = cygwin ]
 then

@@ -70,7 +70,7 @@ val _ =
 
 val _ =
   register "terms" "term bindings of proof context"
-    (Pretty.string_of o Pretty.chunks o Proof_Context.pretty_binds o Toplevel.context_of);
+    (Pretty.string_of o Pretty.chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of);
 
 val _ =
   register "theorems" "theorems of local theory or proof context"

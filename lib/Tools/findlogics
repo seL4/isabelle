@@ -2,7 +2,7 @@
 #
 # Author: Markus Wenzel, TU Muenchen
 #
-# DESCRIPTION: collect heap names from ISABELLE_PATH
+# DESCRIPTION: collect heap names from ISABELLE_PATH -- Proof General legacy
 
 
 PRG=$(basename "$0")

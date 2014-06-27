@@ -85,10 +85,9 @@ theory Pure
     "print_interps" "print_dependencies" "print_attributes"
     "print_simpset" "print_rules" "print_trans_rules" "print_methods"
     "print_antiquotations" "print_ML_antiquotations" "thy_deps"
-    "locale_deps" "class_deps" "thm_deps" "print_binds" "print_facts"
-    "print_cases" "print_statement" "thm" "prf" "full_prf" "prop"
-    "term" "typ" "print_codesetup" "unused_thms"
-    :: diag
+    "locale_deps" "class_deps" "thm_deps" "print_binds" "print_term_bindings"
+    "print_facts" "print_cases" "print_statement" "thm" "prf" "full_prf"
+    "prop" "term" "typ" "print_codesetup" "unused_thms" :: diag
   and "cd" :: control
   and "pwd" :: diag
   and "use_thy" "remove_thy" "kill_thy" :: control

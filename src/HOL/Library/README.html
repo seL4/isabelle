@@ -23,12 +23,6 @@ clashes with existing developments.
 
 <dl>
 
-<dt><strong>Files</strong>
-
-<dd>Avoid unnecessary scattering of theories over several files.  Use
-new-style theories only, as old ones tend to clutter the file space
-with separate <tt>.thy</tt> and <tt>.ML</tt> files.
-
 <dt><strong>Examples</strong>
 
 <dd>Theories should be as ``generic'' as is sensible.  Unused (or
@@ -54,54 +48,12 @@ avoid unreadable abbreviations.  The general naming convention is to
 separate word constituents by underscores, as in <tt>foo_bar</tt> or
 <tt>Foo_Bar</tt> (this looks best in LaTeX output).
 
-<p>
-
-Note that syntax is <em>global</em>; qualified names lose syntax on
-output.  Do not use ``exotic'' symbols for syntax (such as
-<tt>\&lt;oplus&gt;</tt>), but leave these for user applications.
-
 <dt><strong>Global context declarations</strong>
 
 <dd>Only items introduced in the present theory should be declared
 globally (e.g. as Simplifier rules).  Note that adding and deleting
 rules from parent theories may result in strange behavior later,
 depending on the user's arrangement of import lists.
-
-<dt><strong>Mathematical symbols</strong>
-
-<dd>Non-ASCII symbols should be used as appropriate, with some
-care. In particular, avoid unreadable arrows: <tt>==&gt;</tt> should
-be preferred over <tt>\&lt;Longrightarrow&gt;</tt>. Use <tt>isabelle
-unsymbolize</tt> to clean up the sources.
-
-<p>
-
-The following ASCII symbols of HOL should be generally avoided:
-<tt>@</tt>, <tt>!</tt>, <tt>?</tt>, <tt>?!</tt>, <tt>%</tt>, better
-use <tt>SOME</tt>, <tt>ALL</tt> (or <tt>\&lt;forall&gt;</tt>),
-<tt>EX</tt> (or <tt>\&lt;exists&gt;</tt>), <tt>EX!</tt> (or
-<tt>\&lt;exists&gt;!</tt>), <tt>\&lt;lambda&gt;</tt>, respectively.
-Note that bracket notation <tt>[|&nbsp;|]</tt> looks bad in LaTeX
-output.
-
-<p>
-
-Some additional mathematical symbols are quite suitable for both
-readable sources and the output document:
-<tt>\&lt;Inter&gt;</tt>,
-<tt>\&lt;Union&gt;</tt>,
-<tt>\&lt;and&gt;</tt>,
-<tt>\&lt;in&gt;</tt>,
-<tt>\&lt;inter&gt;</tt>,
-<tt>\&lt;le&gt;</tt>,
-<tt>\&lt;not&gt;</tt>,
-<tt>\&lt;noteq&gt;</tt>,
-<tt>\&lt;notin&gt;</tt>,
-<tt>\&lt;or&gt;</tt>,
-<tt>\&lt;subset&gt;</tt>,
-<tt>\&lt;subseteq&gt;</tt>,
-<tt>\&lt;times&gt;</tt>,
-<tt>\&lt;union&gt;</tt>.
 
 <dt><strong>Spacing</strong>
 
@@ -111,10 +63,8 @@ particular, spacing and line breaks are directly taken from source
 text.  Incidentally, output looks very good if common type-setting
 conventions are observed: put a single space <em>after</em> each
 punctuation character ("<tt>,</tt>", "<tt>.</tt>", etc.), but none
-before it; do not extra spaces inside of parentheses, unless the
-delimiters are composed of multiple symbols (as in
-<tt>[|&nbsp;|]</tt>); do not attempt to simulate table markup with
-spaces, avoid ``hanging'' indentations.
+before it; do not extra spaces inside of parentheses; do not attempt
+to simulate table markup with spaces, avoid ``hanging'' indentations.
 
 </dl>
 
