@@ -472,26 +472,6 @@ Usage: isabelle tty [OPTIONS]
   "();"} in ML will return to the Isar toplevel.  *}
 
 
-section {* Remove awkward symbol names from theory sources *}
-
-text {*
-  The @{tool_def unsymbolize} tool tunes Isabelle theory sources to
-  improve readability for plain ASCII output (e.g.\ in email
-  communication).  Most notably, @{tool unsymbolize} replaces awkward
-  arrow symbols such as @{verbatim "\\"}@{verbatim "<Longrightarrow>"}
-  by @{verbatim "==>"}.
-\begin{ttbox}
-Usage: isabelle unsymbolize [FILES|DIRS...]
-
-  Recursively find .thy/.ML files, removing unreadable symbol names.
-  Note: this is an ad-hoc script; there is no systematic way to replace
-  symbols independently of the inner syntax of a theory!
-
-  Renames old versions of FILES by appending "~~".
-\end{ttbox}
-*}
-
-
 section {* Output the version identifier of the Isabelle distribution *}
 
 text {*
