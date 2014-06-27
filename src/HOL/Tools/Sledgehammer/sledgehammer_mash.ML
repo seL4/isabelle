@@ -1255,8 +1255,8 @@ fun maximal_wrt_access_graph access_G facts =
 fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
 val chained_feature_factor = 0.5 (* FUDGE *)
-val extra_feature_factor = 0.05 (* FUDGE *)
-val num_extra_feature_facts = 0 (* FUDGE *)
+val extra_feature_factor = 0.1 (* FUDGE *)
+val num_extra_feature_facts = 10 (* FUDGE *)
 
 (* FUDGE *)
 fun weight_of_proximity_fact rank =
@@ -1683,8 +1683,8 @@ val max_facts_to_learn_before_query = 100
    and Try. *)
 val min_secs_for_learning = 15
 
-fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...}) prover max_facts
-    ({add, only, ...} : fact_override) hyp_ts concl_t facts =
+fun relevant_facts ctxt (params as {verbose, overlord, learn, fact_filter, timeout, ...}) prover
+    max_facts ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
   else if only then
@@ -1697,9 +1697,12 @@ fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...})
         if not (Async_Manager.has_running_threads MaShN) andalso
            Time.toSeconds timeout >= min_secs_for_learning then
           let val timeout = time_mult learn_timeout_slack timeout in
-            Output.urgent_message ("Started MaShing through at least " ^
-              string_of_int min_num_facts_to_learn ^ " fact" ^ plural_s min_num_facts_to_learn ^
-              " in the background.");
+            (if verbose then
+               Output.urgent_message ("Started MaShing through at least " ^
+                 string_of_int min_num_facts_to_learn ^ " fact" ^ plural_s min_num_facts_to_learn ^
+                 " in the background.")
+             else
+               ());
             launch_thread timeout
               (fn () => (true, mash_learn_facts ctxt params prover true 2 false timeout facts))
           end
