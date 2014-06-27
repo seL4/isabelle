@@ -42,17 +42,19 @@ fun send (Message_Channel {send, ...}) = send;
 fun shutdown (Message_Channel {shutdown, ...}) = shutdown ();
 
 fun flush channel = ignore (try System_Channel.flush channel);
+val flush_timeout = SOME (seconds 0.02);
 
 fun message_output mbox channel =
   let
-    fun loop receive =
-      (case receive mbox of
-        SOME NONE => flush channel
-      | SOME (SOME msg) =>
-         (output_message channel msg;
-          loop (Mailbox.receive_timeout (seconds 0.02)))
-      | NONE => (flush channel; loop (SOME o Mailbox.receive)));
-  in fn () => loop (SOME o Mailbox.receive) end;
+    fun continue timeout =
+      (case Mailbox.receive timeout mbox of
+        [] => (flush channel; continue NONE)
+      | msgs => received timeout msgs)
+    and received _ (NONE :: _) = flush channel
+      | received timeout (SOME msg :: rest) =
+          (output_message channel msg; received flush_timeout rest)
+      | received timeout [] = continue timeout;
+  in fn () => continue NONE end;
 
 fun make channel =
   if Multithreading.available then

@@ -2,14 +2,11 @@
     Module:     PIDE
     Author:     Makarius
 
-Message exchange via mailbox, with non-blocking send (due to unbounded
-queueing) and potentially blocking receive.
+Message exchange via mailbox, with multiple senders (non-blocking,
+unbounded buffering) and single receiver (bulk messages).
 */
 
 package isabelle
-
-
-import scala.collection.immutable.Queue
 
 
 object Mailbox
@@ -20,18 +17,15 @@ object Mailbox
 
 class Mailbox[A] private()
 {
-  private val mailbox = Synchronized(Queue.empty[A])
-  override def toString: String = mailbox.value.mkString("Mailbox(", ",", ")")
+  private val mailbox = Synchronized(List.empty[A])
+  override def toString: String = mailbox.value.reverse.mkString("Mailbox(", ",", ")")
 
-  def send(msg: A): Unit =
-    mailbox.change(_.enqueue(msg))
+  def send(msg: A): Unit = mailbox.change(msg :: _)
 
-  def receive: A =
-    mailbox.guarded_access(_.dequeueOption)
-
-  def receive_timeout(timeout: Time): Option[A] =
-    mailbox.timed_access(_ => Some(Time.now() + timeout), _.dequeueOption)
+  def receive(timeout: Option[Time]): List[A] =
+    (mailbox.timed_access(_ => timeout.map(t => Time.now() + t),
+      { case Nil => None case msgs => Some((msgs, Nil)) }) getOrElse Nil).reverse
 
   def await_empty: Unit =
-    mailbox.guarded_access(queue => if (queue.isEmpty) Some(((), queue)) else None)
+    mailbox.guarded_access({ case Nil => Some(((), Nil)) case _ => None })
 }

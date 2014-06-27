@@ -1935,7 +1935,7 @@ ML {*
 
 text {* \medskip See @{file "~~/src/Pure/Concurrent/mailbox.ML"} how
   to implement a mailbox as synchronized variable over a purely
-  functional queue. *}
+  functional list. *}
 
 
 section {* Managed evaluation *}
