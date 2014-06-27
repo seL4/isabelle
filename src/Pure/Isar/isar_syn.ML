@@ -897,9 +897,18 @@ val _ =
     (Parse_Spec.xthms1 >> Isar_Cmd.thm_deps);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_binds"} "print term bindings of proof context"
+  Outer_Syntax.improper_command @{command_spec "print_binds"}
+    "print term bindings of proof context -- Proof General legacy"
     (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_binds o Toplevel.context_of)));
+      Toplevel.keep
+        (Pretty.writeln_chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of)));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "print_term_bindings"}
+    "print term bindings of proof context"
+    (Scan.succeed (Toplevel.unknown_context o
+      Toplevel.keep
+        (Pretty.writeln_chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_facts"} "print facts of proof context"

@@ -17,7 +17,7 @@ text {*
     @{command_def "thm_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "unused_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_facts"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_binds"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_term_bindings"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   @{rail \<open>
@@ -63,8 +63,8 @@ text {*
   current context, both named and unnamed ones; the ``@{text "!"}''
   option indicates extra verbosity.
   
-  \item @{command "print_binds"} prints all term abbreviations
-  present in the context.
+  \item @{command "print_term_bindings"} prints all term bindings that
+  are present in the context.
 
   \item @{command "find_theorems"}~@{text criteria} retrieves facts
   from the theory or proof context matching all of given search

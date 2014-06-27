@@ -205,6 +205,9 @@ primitive Thm.assume_hyps.
 (only makes sense in practice, if outer syntax is delimited
 differently).
 
+* Command 'print_term_bindings' supersedes 'print_binds' for clarity,
+but the latter is retained some time as Proof General legacy.
+
 
 *** HOL ***
 

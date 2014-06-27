@@ -960,8 +960,8 @@ text {*
   The \emph{Query} panel in \emph{Print Context} mode prints information from
   the theory or proof context, or proof state. See also the Isar commands
   @{command_ref print_context}, @{command_ref print_cases}, @{command_ref
-  print_binds}, @{command_ref print_theorems}, @{command_ref print_state} in
-  \cite{isabelle-isar-ref}.
+  print_term_bindings}, @{command_ref print_theorems},
+  @{command_ref print_state} in \cite{isabelle-isar-ref}.
 *}
 
 
