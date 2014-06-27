@@ -13,17 +13,14 @@ sig
 
   exception METIS_RECONSTRUCT of string * string
 
-  val hol_clause_of_metis :
-    Proof.context -> type_enc -> int Symtab.table
-    -> (string * term) list * (string * term) list -> Metis_Thm.thm -> term
+  val hol_clause_of_metis : Proof.context -> type_enc -> int Symtab.table ->
+    (string * term) list * (string * term) list -> Metis_Thm.thm -> term
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
-  val replay_one_inference :
-    Proof.context -> type_enc
-    -> (string * term) list * (string * term) list -> int Symtab.table
-    -> Metis_Thm.thm * Metis_Proof.inference -> (Metis_Thm.thm * thm) list
-    -> (Metis_Thm.thm * thm) list
-  val discharge_skolem_premises :
-    Proof.context -> (thm * term) option list -> thm -> thm
+  val replay_one_inference : Proof.context -> type_enc ->
+    (string * term) list * (string * term) list -> int Symtab.table ->
+    Metis_Thm.thm * Metis_Proof.inference -> (Metis_Thm.thm * thm) list ->
+    (Metis_Thm.thm * thm) list
+  val discharge_skolem_premises : Proof.context -> (thm * term) option list -> thm -> thm
 end;
 
 structure Metis_Reconstruct : METIS_RECONSTRUCT =
@@ -39,9 +36,10 @@ exception METIS_RECONSTRUCT of string * string
 val meta_not_not = @{thms not_not[THEN eq_reflection]}
 
 fun atp_name_of_metis type_enc s =
-  case find_first (fn (_, (f, _)) => f type_enc = s) metis_name_table of
+  (case find_first (fn (_, (f, _)) => f type_enc = s) metis_name_table of
     SOME ((s, _), (_, swap)) => (s, swap)
-  | _ => (s, false)
+  | _ => (s, false))
+
 fun atp_term_of_metis type_enc (Metis_Term.Fn (s, tms)) =
     let val (s, swap) = atp_name_of_metis type_enc (Metis_Name.toString s) in
       ATerm ((s, []), tms |> map (atp_term_of_metis type_enc) |> swap ? rev)
@@ -55,6 +53,7 @@ fun hol_term_of_metis ctxt type_enc sym_tab =
 fun atp_literal_of_metis type_enc (pos, atom) =
   atom |> Metis_Term.Fn |> atp_term_of_metis type_enc
        |> AAtom |> not pos ? mk_anot
+
 fun atp_clause_of_metis _ [] = AAtom (ATerm ((tptp_false, []), []))
   | atp_clause_of_metis type_enc lits =
     lits |> map (atp_literal_of_metis type_enc) |> mk_aconns AOr
@@ -71,16 +70,15 @@ fun hol_clause_of_metis ctxt type_enc sym_tab concealed =
   #> singleton (polish_hol_terms ctxt concealed)
 
 fun hol_terms_of_metis ctxt type_enc concealed sym_tab fol_tms =
-  let val ts = map (hol_term_of_metis ctxt type_enc sym_tab) fol_tms
-      val _ = trace_msg ctxt (fn () => "  calling type inference:")
-      val _ = app (fn t => trace_msg ctxt
-                                     (fn () => Syntax.string_of_term ctxt t)) ts
-      val ts' = ts |> polish_hol_terms ctxt concealed
-      val _ = app (fn t => trace_msg ctxt
-                    (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
-                              " of type " ^ Syntax.string_of_typ ctxt (type_of t)))
-                  ts'
-  in  ts'  end;
+  let
+    val ts = map (hol_term_of_metis ctxt type_enc sym_tab) fol_tms
+    val _ = trace_msg ctxt (fn () => "  calling type inference:")
+    val _ = app (fn t => trace_msg ctxt (fn () => Syntax.string_of_term ctxt t)) ts
+    val ts' = ts |> polish_hol_terms ctxt concealed
+    val _ = app (fn t => trace_msg ctxt
+                  (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
+                            " of type " ^ Syntax.string_of_typ ctxt (type_of t))) ts'
+  in ts' end
 
 (* ------------------------------------------------------------------------- *)
 (* FOL step Inference Rules                                                  *)
@@ -88,10 +86,9 @@ fun hol_terms_of_metis ctxt type_enc concealed sym_tab fol_tms =
 
 fun lookth th_pairs fth =
   the (AList.lookup (uncurry Metis_Thm.equal) th_pairs fth)
-  handle Option.Option =>
-         raise Fail ("Failed to find Metis theorem " ^ Metis_Thm.toString fth)
+  handle Option.Option => raise Fail ("Failed to find Metis theorem " ^ Metis_Thm.toString fth)
 
-fun cterm_incr_types thy idx = cterm_of thy o (map_types (Logic.incr_tvar idx));
+fun cterm_incr_types thy idx = cterm_of thy o (map_types (Logic.incr_tvar idx))
 
 (* INFERENCE RULE: AXIOM *)
 
@@ -104,16 +101,17 @@ val axiom_inference = Thm.incr_indexes 1 oo lookth
 val EXCLUDED_MIDDLE = @{lemma "P ==> ~ P ==> False" by (rule notE)}
 
 fun inst_excluded_middle thy i_atom =
-  let val th = EXCLUDED_MIDDLE
-      val [vx] = Term.add_vars (prop_of th) []
-      val substs = [(cterm_of thy (Var vx), cterm_of thy i_atom)]
-  in  cterm_instantiate substs th  end;
+  let
+    val th = EXCLUDED_MIDDLE
+    val [vx] = Term.add_vars (prop_of th) []
+    val substs = [(cterm_of thy (Var vx), cterm_of thy i_atom)]
+  in
+    cterm_instantiate substs th
+  end
 
 fun assume_inference ctxt type_enc concealed sym_tab atom =
-  inst_excluded_middle
-      (Proof_Context.theory_of ctxt)
-      (singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab)
-                 (Metis_Term.Fn atom))
+  inst_excluded_middle (Proof_Context.theory_of ctxt)
+    (singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) (Metis_Term.Fn atom))
 
 (* INFERENCE RULE: INSTANTIATE (SUBST). Type instantiations are ignored. Trying
    to reconstruct them admits new possibilities of errors, e.g. concerning
@@ -121,45 +119,52 @@ fun assume_inference ctxt type_enc concealed sym_tab atom =
    can be inferred from terms. *)
 
 fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
-  let val thy = Proof_Context.theory_of ctxt
-      val i_th = lookth th_pairs th
-      val i_th_vars = Term.add_vars (prop_of i_th) []
-      fun find_var x = the (List.find (fn ((a,_),_) => a=x) i_th_vars)
-      fun subst_translation (x,y) =
-        let val v = find_var x
-            (* We call "polish_hol_terms" below. *)
-            val t = hol_term_of_metis ctxt type_enc sym_tab y
-        in  SOME (cterm_of thy (Var v), t)  end
-        handle Option.Option =>
-               (trace_msg ctxt (fn () => "\"find_var\" failed for " ^ x ^
-                                         " in " ^ Display.string_of_thm ctxt i_th);
-                NONE)
-             | TYPE _ =>
-               (trace_msg ctxt (fn () => "\"hol_term_of_metis\" failed for " ^ x ^
-                                         " in " ^ Display.string_of_thm ctxt i_th);
-                NONE)
-      fun remove_typeinst (a, t) =
-        let val a = Metis_Name.toString a in
-          case unprefix_and_unascii schematic_var_prefix a of
-            SOME b => SOME (b, t)
-          | NONE =>
-            case unprefix_and_unascii tvar_prefix a of
-              SOME _ => NONE (* type instantiations are forbidden *)
-            | NONE => SOME (a, t) (* internal Metis var? *)
-        end
-      val _ = trace_msg ctxt (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
-      val substs = map_filter remove_typeinst (Metis_Subst.toList fsubst)
-      val (vars, tms) =
-        ListPair.unzip (map_filter subst_translation substs)
-        ||> polish_hol_terms ctxt concealed
-      val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
-      val substs' = ListPair.zip (vars, map ctm_of tms)
-      val _ = trace_msg ctxt (fn () =>
-        cat_lines ("subst_translations:" ::
-          (substs' |> map (fn (x, y) =>
-            Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
-            Syntax.string_of_term ctxt (term_of y)))));
-  in cterm_instantiate substs' i_th end
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val i_th = lookth th_pairs th
+    val i_th_vars = Term.add_vars (prop_of i_th) []
+
+    fun find_var x = the (List.find (fn ((a,_),_) => a=x) i_th_vars)
+    fun subst_translation (x,y) =
+      let
+        val v = find_var x
+        (* We call "polish_hol_terms" below. *)
+        val t = hol_term_of_metis ctxt type_enc sym_tab y
+      in
+        SOME (cterm_of thy (Var v), t)
+      end
+      handle Option.Option =>
+             (trace_msg ctxt (fn () =>
+                "\"find_var\" failed for " ^ x ^ " in " ^ Display.string_of_thm ctxt i_th);
+              NONE)
+           | TYPE _ =>
+             (trace_msg ctxt (fn () =>
+                "\"hol_term_of_metis\" failed for " ^ x ^ " in " ^ Display.string_of_thm ctxt i_th);
+              NONE)
+    fun remove_typeinst (a, t) =
+      let val a = Metis_Name.toString a in
+        (case unprefix_and_unascii schematic_var_prefix a of
+          SOME b => SOME (b, t)
+        | NONE =>
+          (case unprefix_and_unascii tvar_prefix a of
+            SOME _ => NONE (* type instantiations are forbidden *)
+          | NONE => SOME (a, t) (* internal Metis var? *)))
+      end
+    val _ = trace_msg ctxt (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
+    val substs = map_filter remove_typeinst (Metis_Subst.toList fsubst)
+    val (vars, tms) =
+      ListPair.unzip (map_filter subst_translation substs)
+      ||> polish_hol_terms ctxt concealed
+    val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
+    val substs' = ListPair.zip (vars, map ctm_of tms)
+    val _ = trace_msg ctxt (fn () =>
+      cat_lines ("subst_translations:" ::
+        (substs' |> map (fn (x, y) =>
+          Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
+          Syntax.string_of_term ctxt (term_of y)))))
+  in
+    cterm_instantiate substs' i_th
+  end
   handle THM (msg, _, _) => raise METIS_RECONSTRUCT ("inst_inference", msg)
        | ERROR msg => raise METIS_RECONSTRUCT ("inst_inference", msg)
 
@@ -167,10 +172,13 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
 
 (*Increment the indexes of only the type variables*)
 fun incr_type_indexes inc th =
-  let val tvs = Term.add_tvars (Thm.full_prop_of th) []
-      and thy = Thm.theory_of_thm th
-      fun inc_tvar ((a,i),s) = pairself (ctyp_of thy) (TVar ((a,i),s), TVar ((a,i+inc),s))
-  in Thm.instantiate (map inc_tvar tvs, []) th end;
+  let
+    val tvs = Term.add_tvars (Thm.full_prop_of th) []
+    val thy = Thm.theory_of_thm th
+    fun inc_tvar ((a, i), s) = pairself (ctyp_of thy) (TVar ((a, i), s), TVar ((a, i + inc), s))
+  in
+    Thm.instantiate (map inc_tvar tvs, []) th
+  end
 
 (* Like RSN, but we rename apart only the type variables. Vars here typically
    have an index of 1, and the use of RSN would increase this typically to 3.
@@ -179,7 +187,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
   let
     val tha = incr_type_indexes (1 + Thm.maxidx_of thb) tha
     fun res (tha, thb) =
-      case Thm.bicompose {flatten = true, match = false, incremented = true}
+      (case Thm.bicompose {flatten = true, match = false, incremented = true}
             (false, tha, nprems_of tha) i thb
            |> Seq.list_of |> distinct Thm.eq_thm of
         [th] => th
@@ -192,7 +200,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
             raise THM ("resolve_inc_tyvars: unique result expected", i, [tha, thb])
           else
             res (tha', thb')
-        end
+        end)
   in
     res (tha, thb)
     handle TERM z =>
@@ -243,7 +251,7 @@ fun make_last i th =
   let val n = nprems_of th in
     if i >= 1 andalso i <= n then Thm.permute_prems (i - 1) 1 th
     else raise THM ("select_literal", i, [th])
-  end;
+  end
 
 (* Maps a rule that ends "... ==> P ==> False" to "... ==> ~ P" while avoiding
    to create double negations. The "select" wrapper is a trick to ensure that
@@ -282,12 +290,12 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
           0 => (trace_msg ctxt (fn () => "Failed to find literal in \"th1\""); i_th1)
         | j1 =>
           (trace_msg ctxt (fn () => "  index th1: " ^ string_of_int j1);
-           case index_of_literal i_atom (prems_of i_th2) of
+           (case index_of_literal i_atom (prems_of i_th2) of
              0 => (trace_msg ctxt (fn () => "Failed to find literal in \"th2\""); i_th2)
            | j2 =>
              (trace_msg ctxt (fn () => "  index th2: " ^ string_of_int j2);
               resolve_inc_tyvars ctxt (select_literal ctxt j1 i_th1) j2 i_th2
-              handle TERM (s, _) => raise METIS_RECONSTRUCT ("resolve_inference", s))))
+              handle TERM (s, _) => raise METIS_RECONSTRUCT ("resolve_inference", s)))))
       end
   end
 
@@ -368,12 +376,14 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
       val _ = trace_msg ctxt (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
       val eq_terms = map (pairself (cterm_of thy))
         (ListPair.zip (Misc_Legacy.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
-  in  cterm_instantiate eq_terms subst'  end;
+  in
+    cterm_instantiate eq_terms subst'
+  end
 
 val factor = Seq.hd o distinct_subgoals_tac
 
 fun one_step ctxt type_enc concealed sym_tab th_pairs p =
-  case p of
+  (case p of
     (fol_th, Metis_Proof.Axiom _) => axiom_inference th_pairs fol_th |> factor
   | (_, Metis_Proof.Assume f_atom) => assume_inference ctxt type_enc concealed sym_tab f_atom
   | (_, Metis_Proof.Metis_Subst (f_subst, f_th1)) =>
@@ -382,7 +392,7 @@ fun one_step ctxt type_enc concealed sym_tab th_pairs p =
     resolve_inference ctxt type_enc concealed sym_tab th_pairs f_atom f_th1 f_th2 |> factor
   | (_, Metis_Proof.Refl f_tm) => refl_inference ctxt type_enc concealed sym_tab f_tm
   | (_, Metis_Proof.Equality (f_lit, f_p, f_r)) =>
-    equality_inference ctxt type_enc concealed sym_tab f_lit f_p f_r
+    equality_inference ctxt type_enc concealed sym_tab f_lit f_p f_r)
 
 fun flexflex_first_order th =
   (case Thm.tpairs_of th of
@@ -629,6 +639,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
   else
     let
       val thy = Proof_Context.theory_of ctxt
+
       fun match_term p =
         let
           val (tyenv, tenv) =
@@ -643,33 +654,33 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                          #> pairself (Envir.subst_term_types tyenv))
           val tysubst = tyenv |> Vartab.dest
         in (tysubst, tsubst) end
+
       fun subst_info_of_prem subgoal_no prem =
-        case prem of
+        (case prem of
           _ $ (Const (@{const_name Meson.skolem}, _) $ (_ $ t $ num)) =>
           let val ax_no = HOLogic.dest_nat num in
             (ax_no, (subgoal_no,
                      match_term (nth axioms ax_no |> the |> snd, t)))
           end
-        | _ => raise TERM ("discharge_skolem_premises: Malformed premise",
-                           [prem])
+        | _ => raise TERM ("discharge_skolem_premises: Malformed premise", [prem]))
+
       fun cluster_of_var_name skolem s =
-        case try Meson_Clausify.cluster_of_zapped_var_name s of
+        (case try Meson_Clausify.cluster_of_zapped_var_name s of
           NONE => NONE
         | SOME ((ax_no, (cluster_no, _)), skolem') =>
-          if skolem' = skolem andalso cluster_no > 0 then
-            SOME (ax_no, cluster_no)
-          else
-            NONE
+          if skolem' = skolem andalso cluster_no > 0 then SOME (ax_no, cluster_no) else NONE)
+
       fun clusters_in_term skolem t =
         Term.add_var_names t [] |> map_filter (cluster_of_var_name skolem o fst)
+
       fun deps_of_term_subst (var, t) =
-        case clusters_in_term false var of
+        (case clusters_in_term false var of
           [] => NONE
         | [(ax_no, cluster_no)] =>
           SOME ((ax_no, cluster_no),
-                clusters_in_term true t
-                |> cluster_no > 1 ? cons (ax_no, cluster_no - 1))
-        | _ => raise TERM ("discharge_skolem_premises: Expected Var", [var])
+            clusters_in_term true t |> cluster_no > 1 ? cons (ax_no, cluster_no - 1))
+        | _ => raise TERM ("discharge_skolem_premises: Expected Var", [var]))
+
       val prems = Logic.strip_imp_prems (prop_of prems_imp_false)
       val substs = prems |> map2 subst_info_of_prem (1 upto length prems)
                          |> sort (int_ord o pairself fst)
@@ -705,6 +716,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
            |> filter (fn (((_, (cluster_no, _)), skolem), _) =>
                          cluster_no = 0 andalso skolem)
            |> sort shuffle_ord |> map (fst o snd)
+
 (* for debugging only:
       fun string_of_subst_info (ax_no, (subgoal_no, (tysubst, tsubst))) =
         "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
@@ -717,26 +729,24 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
                        cat_lines (map string_of_subst_info substs))
 *)
-      fun cut_and_ex_tac axiom =
-        cut_tac axiom 1
-        THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
+
+      fun cut_and_ex_tac axiom = cut_tac axiom 1 THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
       fun rotation_of_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
+
       val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm prems_imp_false)) ctxt
     in
       Goal.prove ctxt' [] [] @{prop False}
-          (K (DETERM (EVERY (map (cut_and_ex_tac o fst o the o nth axioms o fst
-                                  o fst) ax_counts)
-                      THEN rename_tac outer_param_names 1
-                      THEN copy_prems_tac (map snd ax_counts) [] 1)
-              THEN release_clusters_tac thy ax_counts substs ordered_clusters 1
-              THEN match_tac [prems_imp_false] 1
-              THEN ALLGOALS (fn i =>
-                       rtac @{thm Meson.skolem_COMBK_I} i
-                       THEN rotate_tac (rotation_of_subgoal i) i
-                       THEN PRIMITIVE (unify_first_prem_with_concl thy i)
-                       THEN assume_tac i
-                       THEN flexflex_tac)))
+        (K (DETERM (EVERY (map (cut_and_ex_tac o fst o the o nth axioms o fst o fst) ax_counts)
+              THEN rename_tac outer_param_names 1
+              THEN copy_prems_tac (map snd ax_counts) [] 1)
+            THEN release_clusters_tac thy ax_counts substs ordered_clusters 1
+            THEN match_tac [prems_imp_false] 1
+            THEN ALLGOALS (fn i => rtac @{thm Meson.skolem_COMBK_I} i
+              THEN rotate_tac (rotation_of_subgoal i) i
+              THEN PRIMITIVE (unify_first_prem_with_concl thy i)
+              THEN assume_tac i
+              THEN flexflex_tac)))
       handle ERROR msg =>
         cat_error msg
           "Cannot replay Metis proof in Isabelle: error when discharging Skolem assumptions"

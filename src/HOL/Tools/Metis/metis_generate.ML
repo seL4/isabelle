@@ -78,13 +78,14 @@ fun conceal_old_skolem_terms i old_skolems t =
             val (old_skolems, s) =
               if i = ~1 then
                 (old_skolems, @{const_name undefined})
-              else case AList.find (op aconv) old_skolems t of
-                s :: _ => (old_skolems, s)
-              | [] =>
-                let
-                  val s = old_skolem_const_name i (length old_skolems)
-                                                (length (Term.add_tvarsT T []))
-                in ((s, t) :: old_skolems, s) end
+              else
+                (case AList.find (op aconv) old_skolems t of
+                  s :: _ => (old_skolems, s)
+                | [] =>
+                  let
+                    val s =
+                      old_skolem_const_name i (length old_skolems) (length (Term.add_tvarsT T []))
+                  in ((s, t) :: old_skolems, s) end)
           in (old_skolems, Const (s, T)) end
         | aux old_skolems (t1 $ t2) =
           let
@@ -102,25 +103,24 @@ fun conceal_old_skolem_terms i old_skolems t =
 
 fun reveal_old_skolem_terms old_skolems =
   map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix old_skolem_const_prefix s then
-                   AList.lookup (op =) old_skolems s |> the
-                   |> map_types (map_type_tvar (K dummyT))
-                 else
-                   t
-               | t => t)
+      if String.isPrefix old_skolem_const_prefix s then
+        AList.lookup (op =) old_skolems s |> the
+        |> map_types (map_type_tvar (K dummyT))
+      else
+        t
+    | t => t)
 
 fun reveal_lam_lifted lifted =
   map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix lam_lifted_prefix s then
-                   case AList.lookup (op =) lifted s of
-                     SOME t =>
-                     Const (@{const_name Metis.lambda}, dummyT)
-                     $ map_types (map_type_tvar (K dummyT))
-                                 (reveal_lam_lifted lifted t)
-                   | NONE => t
-                 else
-                   t
-               | t => t)
+      if String.isPrefix lam_lifted_prefix s then
+        (case AList.lookup (op =) lifted s of
+          SOME t =>
+          Const (@{const_name Metis.lambda}, dummyT)
+          $ map_types (map_type_tvar (K dummyT)) (reveal_lam_lifted lifted t)
+        | NONE => t)
+      else
+        t
+    | t => t)
 
 
 (* ------------------------------------------------------------------------- *)
@@ -170,23 +170,24 @@ fun metis_axiom_of_atp ctxt type_enc clauses (Formula ((ident, _), _, phi, _, _)
       else if String.isPrefix conjecture_prefix ident then
         NONE
       else if String.isPrefix helper_prefix ident then
-        case (String.isSuffix typed_helper_suffix ident, space_explode "_" ident) of
+        (case (String.isSuffix typed_helper_suffix ident, space_explode "_" ident) of
           (needs_fairly_sound, _ :: const :: j :: _) =>
           nth (AList.lookup (op =) helper_table (const, needs_fairly_sound) |> the)
             (the (Int.fromString j) - 1)
           |> snd |> prepare_helper ctxt
           |> Isa_Raw |> some
-        | _ => raise Fail ("malformed helper identifier " ^ quote ident)
-      else case try (unprefix fact_prefix) ident of
-        SOME s =>
-        let val s = s |> space_explode "_" |> tl |> space_implode "_" in
-          case Int.fromString s of
-            SOME j => Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some
-          | NONE =>
-            if String.isPrefix lam_fact_prefix (unascii_of s) then Isa_Lambda_Lifted |> some
-            else raise Fail ("malformed fact identifier " ^ quote ident)
-        end
-      | NONE => TrueI |> Isa_Raw |> some
+        | _ => raise Fail ("malformed helper identifier " ^ quote ident))
+      else
+        (case try (unprefix fact_prefix) ident of
+          SOME s =>
+          let val s = s |> space_explode "_" |> tl |> space_implode "_" in
+            (case Int.fromString s of
+              SOME j => Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some
+            | NONE =>
+              if String.isPrefix lam_fact_prefix (unascii_of s) then Isa_Lambda_Lifted |> some
+              else raise Fail ("malformed fact identifier " ^ quote ident))
+          end
+        | NONE => some (Isa_Raw TrueI))
     end
   | metis_axiom_of_atp _ _ _ _ = raise Fail "not CNF -- expected formula"
 
@@ -237,6 +238,8 @@ fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     val axioms = atp_problem
       |> maps (map_filter (metis_axiom_of_atp ctxt type_enc clauses) o snd) |> rev
     fun ord_info () = atp_problem_term_order_info atp_problem
-  in (sym_tab, axioms, ord_info, (lifted, old_skolems)) end
+  in
+    (sym_tab, axioms, ord_info, (lifted, old_skolems))
+  end
 
 end;

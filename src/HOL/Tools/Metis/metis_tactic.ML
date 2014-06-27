@@ -46,7 +46,7 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
    "t => t". Type tag idempotence is also handled this way. *)
 fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
   let val thy = Proof_Context.theory_of ctxt in
-    case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
+    (case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
       let
         val ct = cterm_of thy t
@@ -55,7 +55,7 @@ fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
     | Const (@{const_name disj}, _) $ t1 $ t2 =>
       (if can HOLogic.dest_not t1 then t2 else t1)
       |> HOLogic.mk_Trueprop |> cterm_of thy |> Thm.trivial
-    | _ => raise Fail "expected reflexive or trivial clause"
+    | _ => raise Fail "expected reflexive or trivial clause")
   end
   |> Meson.make_meta_clause
 
@@ -82,21 +82,22 @@ fun introduce_lam_wrappers ctxt th =
       fun conv first ctxt ct =
         if Meson_Clausify.is_quasi_lambda_free (term_of ct) then
           Thm.reflexive ct
-        else case term_of ct of
-          Abs (_, _, u) =>
-          if first then
-            case add_vars_and_frees u [] of
-              [] =>
+        else
+          (case term_of ct of
+            Abs (_, _, u) =>
+            if first then
+              (case add_vars_and_frees u [] of
+                [] =>
+                Conv.abs_conv (conv false o snd) ctxt ct
+                |> (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
+              | v :: _ =>
+                Abs (Name.uu, fastype_of v, abstract_over (v, term_of ct)) $ v
+                |> cterm_of thy
+                |> Conv.comb_conv (conv true ctxt))
+            else
               Conv.abs_conv (conv false o snd) ctxt ct
-              |> (fn th => Meson.first_order_resolve th @{thm Metis.eq_lambdaI})
-            | v :: _ =>
-              Abs (Name.uu, fastype_of v, abstract_over (v, term_of ct)) $ v
-              |> cterm_of thy
-              |> Conv.comb_conv (conv true ctxt)
-          else
-            Conv.abs_conv (conv false o snd) ctxt ct
-        | Const (@{const_name Meson.skolem}, _) $ _ => Thm.reflexive ct
-        | _ => Conv.comb_conv (conv true ctxt) ct
+          | Const (@{const_name Meson.skolem}, _) $ _ => Thm.reflexive ct
+          | _ => Conv.comb_conv (conv true ctxt) ct)
       val eq_th = conv true ctxt (cprop_of th)
       (* We replace the equation's left-hand side with a beta-equivalent term
          so that "Thm.equal_elim" works below. *)
@@ -126,9 +127,9 @@ fun kbo_advisory_simp_ordering ord_info =
     fun weight (m, _) =
       AList.lookup (op =) ord_info (Metis_Name.toString m) |> the_default 1
     fun precedence p =
-      case int_ord (pairself weight p) of
+      (case int_ord (pairself weight p) of
         EQUAL => #precedence Metis_KnuthBendixOrder.default p
-      | ord => ord
+      | ord => ord)
   in {weight = weight, precedence = precedence} end
 
 fun metis_call type_enc lam_trans =
