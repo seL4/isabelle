@@ -1339,8 +1339,7 @@ type monotonicity_info =
 
 (* These types witness that the type classes they belong to allow infinite
    models and hence that any types with these type classes is monotonic. *)
-val known_infinite_types =
-  [@{typ nat}, HOLogic.intT, HOLogic.realT, @{typ "nat => bool"}]
+val known_infinite_types = [@{typ nat}, HOLogic.intT, HOLogic.realT, @{typ "nat => bool"}]
 
 fun is_type_kind_of_surely_infinite ctxt strictness cached_Ts T =
   strictness <> Strict andalso is_type_surely_infinite ctxt true cached_Ts T
@@ -1350,18 +1349,15 @@ fun is_type_kind_of_surely_infinite ctxt strictness cached_Ts T =
    proofs. On the other hand, all HOL infinite types can be given the same
    models in first-order logic (via Loewenheim-Skolem). *)
 
-fun should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
-                             maybe_nonmono_Ts}
-                       (Nonmono_Types (strictness, _)) T =
+fun should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts, maybe_nonmono_Ts}
+      (Nonmono_Types (strictness, _)) T =
     let val thy = Proof_Context.theory_of ctxt in
       (exists (type_intersect thy T) maybe_nonmono_Ts andalso
        not (exists (type_instance thy T) surely_infinite_Ts orelse
             (not (member (type_equiv thy) maybe_finite_Ts T) andalso
-             is_type_kind_of_surely_infinite ctxt strictness surely_infinite_Ts
-                                             T)))
+             is_type_kind_of_surely_infinite ctxt strictness surely_infinite_Ts T)))
     end
-  | should_encode_type _ _ level _ =
-    (level = All_Types orelse level = Undercover_Types)
+  | should_encode_type _ _ level _ = (level = All_Types orelse level = Undercover_Types)
 
 fun should_guard_type ctxt mono (Guards (_, level)) should_guard_var T =
     should_guard_var () andalso should_encode_type ctxt mono level T
@@ -1954,8 +1950,7 @@ fun always_guard_var_in_formula _ _ _ _ _ _ = true
 
 fun should_generate_tag_bound_decl _ _ _ (SOME true) _ = false
   | should_generate_tag_bound_decl ctxt mono (Tags (_, level)) _ T =
-    not (is_type_level_uniform level) andalso
-    should_encode_type ctxt mono level T
+    not (is_type_level_uniform level) andalso should_encode_type ctxt mono level T
   | should_generate_tag_bound_decl _ _ _ _ _ = false
 
 fun mk_aterm type_enc name T_args args =
