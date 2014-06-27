@@ -2495,8 +2495,8 @@ text {* \blankline *}
     next
       fix R
       show "rel_fn R =
-            (BNF_Util.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn fst))\<inverse>\<inverse> OO
-             BNF_Util.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn snd)"
+            (BNF_Def.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn fst))\<inverse>\<inverse> OO
+             BNF_Def.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn snd)"
         unfolding Grp_def fun_eq_iff relcompp.simps conversep.simps
         apply transfer
         unfolding rel_fun_def subset_iff image_iff

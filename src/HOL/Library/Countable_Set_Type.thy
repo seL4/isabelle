@@ -11,7 +11,7 @@ theory Countable_Set_Type
 imports Countable_Set Cardinal_Notations
 begin
 
-abbreviation "Grp \<equiv> BNF_Util.Grp"
+abbreviation "Grp \<equiv> BNF_Def.Grp"
 
 
 subsection{* Cardinal stuff *}

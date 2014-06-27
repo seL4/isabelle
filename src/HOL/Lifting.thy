@@ -163,7 +163,7 @@ lemma Quotient_alt_def4:
 
 lemma Quotient_alt_def5:
   "Quotient R Abs Rep T \<longleftrightarrow>
-    T \<le> BNF_Util.Grp UNIV Abs \<and> BNF_Util.Grp UNIV Rep \<le> T\<inverse>\<inverse> \<and> R = T OO T\<inverse>\<inverse>"
+    T \<le> BNF_Def.Grp UNIV Abs \<and> BNF_Def.Grp UNIV Rep \<le> T\<inverse>\<inverse> \<and> R = T OO T\<inverse>\<inverse>"
   unfolding Quotient_alt_def4 Grp_def by blast
 
 lemma fun_quotient:

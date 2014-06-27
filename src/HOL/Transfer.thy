@@ -230,7 +230,7 @@ subsection {* Equality restricted by a predicate *}
 definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
   where "eq_onp R = (\<lambda>x y. R x \<and> x = y)"
 
-lemma eq_onp_Grp: "eq_onp P = BNF_Util.Grp (Collect P) id" 
+lemma eq_onp_Grp: "eq_onp P = BNF_Def.Grp (Collect P) id" 
 unfolding eq_onp_def Grp_def by auto 
 
 lemma eq_onp_to_eq:
