@@ -404,8 +404,8 @@ fun k_nearest_neighbors dffreq num_facts depss feat_facts max_suggs visible_fact
 
     val overlaps_sqr = Array.tabulate (num_facts, rpair 0.0)
 
-    fun inc_overlap j v =
-      let val ov = snd (Array.sub (overlaps_sqr, j)) in
+    fun inc_overlap v j =
+      let val (_, ov) = Array.sub (overlaps_sqr, j) in
         Array.update (overlaps_sqr, j, (j, v + ov))
       end
 
@@ -413,9 +413,8 @@ fun k_nearest_neighbors dffreq num_facts depss feat_facts max_suggs visible_fact
       let
         val sw = sw0 * tfidf s
         val w2 = sw * sw
-        fun do_th j = if j < num_facts then inc_overlap j w2 else ()
       in
-        List.app do_th (Array.sub (feat_facts, s))
+        List.app (inc_overlap w2) (Array.sub (feat_facts, s))
       end
 
     val _ = List.app do_feat goal_feats
