@@ -96,12 +96,9 @@ text %mlantiq {*
 subsection {* Toplevel transitions \label{sec:toplevel-transition} *}
 
 text {*
-  An Isar toplevel transition consists of a partial function on the
-  toplevel state, with additional information for diagnostics and
-  error reporting: there are fields for command name, source position,
-  optional source text, as well as flags for interactive-only commands
-  (which issue a warning in batch-mode), printing of result state,
-  etc.
+  An Isar toplevel transition consists of a partial function on the toplevel
+  state, with additional information for diagnostics and error reporting:
+  there are fields for command name, source position, and other meta-data.
 
   The operational part is represented as the sequential union of a
   list of partial functions, which are tried in turn until the first
@@ -145,8 +142,9 @@ text %mlref {*
   \item @{ML Toplevel.theory_to_proof}~@{text "tr"} adjoins a global
   goal function, which turns a theory into a proof state.  The theory
   may be changed before entering the proof; the generic Isar goal
-  setup includes an argument that specifies how to apply the proven
-  result to the theory, when the proof is finished.
+  setup includes an @{verbatim after_qed} argument that specifies how to
+  apply the proven result to the enclosing context, when the proof
+  is finished.
 
   \item @{ML Toplevel.proof}~@{text "tr"} adjoins a deterministic
   proof command, with a singleton result.

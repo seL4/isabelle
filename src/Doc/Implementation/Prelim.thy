@@ -310,7 +310,7 @@ text {* The main purpose of theory and proof contexts is to manage
   of the three kinds of contexts: theory, proof, generic.
 
   \paragraph{Theory data} declarations need to implement the following
-  SML signature:
+  ML signature:
 
   \medskip
   \begin{tabular}{ll}
@@ -336,7 +336,7 @@ text {* The main purpose of theory and proof contexts is to manage
   chain of diamonds would cause an exponential blowup!
 
   \paragraph{Proof context data} declarations need to implement the
-  following SML signature:
+  following ML signature:
 
   \medskip
   \begin{tabular}{ll}
