@@ -450,7 +450,7 @@ proof (cases "finite s")
     by (induct s rule: finite_induct) auto
 next
   case False then show ?thesis using assms
-    by (metis Reals_0 setsum_infinite)
+    by (metis Reals_0 setsum.infinite)
 qed
 
 lemma setprod_in_Reals: assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>" shows "setprod f s \<in> \<real>"
@@ -459,7 +459,7 @@ proof (cases "finite s")
     by (induct s rule: finite_induct) auto
 next
   case False then show ?thesis using assms
-    by (metis Reals_1 setprod_infinite)
+    by (metis Reals_1 setprod.infinite)
 qed
 
 lemma Reals_induct [case_names of_real, induct set: Reals]:

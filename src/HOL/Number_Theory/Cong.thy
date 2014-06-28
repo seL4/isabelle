@@ -805,7 +805,7 @@ proof -
     proof -
       from fin a have "?x = (SUM j:{i}. u j * b j) +
           (SUM j:A-{i}. u j * b j)"
-        by (subst setsum_Un_disjoint [symmetric], auto intro: setsum_cong)
+        by (subst setsum.union_disjoint [symmetric], auto intro: setsum.cong)
       then have "[?x = u i * b i + (SUM j:A-{i}. u j * b j)] (mod m i)"
         by auto
       also have "[u i * b i + (SUM j:A-{i}. u j * b j) =

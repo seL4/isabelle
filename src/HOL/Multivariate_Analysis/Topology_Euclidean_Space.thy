@@ -7173,7 +7173,7 @@ proof (rule dim_unique)
     then have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) \<in> span d"
       by (simp add: span_setsum span_clauses)
     also have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i)"
-      by (rule setsum_mono_zero_cong_left [OF finite_Basis d]) (auto simp add: x)
+      by (rule setsum.mono_neutral_cong_left [OF finite_Basis d]) (auto simp add: x)
     finally show "x \<in> span d"
       unfolding euclidean_representation .
   qed

@@ -4525,7 +4525,7 @@ next
   moreover
   have "Suc (card A - Suc k) = card A - k" using Suc.prems by simp
   then have "(card A - k) * \<Prod>{Suc (card A - k)..card A} = \<Prod>{Suc (card A - Suc k)..card A}"
-    by (subst setprod_insert[symmetric]) (simp add: atLeastAtMost_insertL)+
+    by (subst setprod.insert[symmetric]) (simp add: atLeastAtMost_insertL)+
   ultimately show ?case
     by (simp add: card_image inj_Cons card_UN_disjoint Suc.hyps algebra_simps)
 qed

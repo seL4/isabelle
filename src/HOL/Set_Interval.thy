@@ -1378,14 +1378,14 @@ not provide all lemmas available for @{term"{m..<n}"} also in the
 special form for @{term"{..<n}"}. *}
 
 text{* This congruence rule should be used for sums over intervals as
-the standard theorem @{text[source]setsum_cong} does not work well
+the standard theorem @{text[source]setsum.cong} does not work well
 with the simplifier who adds the unsimplified premise @{term"x:B"} to
 the context. *}
 
 lemma setsum_ivl_cong:
  "\<lbrakk>a = c; b = d; !!x. \<lbrakk> c \<le> x; x < d \<rbrakk> \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow>
  setsum f {a..<b} = setsum g {c..<d}"
-by(rule setsum_cong, simp_all)
+by(rule setsum.cong, simp_all)
 
 (* FIXME why are the following simp rules but the corresponding eqns
 on intervals are not? *)
@@ -1437,13 +1437,13 @@ lemma setsum_ub_add_nat: assumes "(m::nat) \<le> n + 1"
   shows "setsum f {m..n + p} = setsum f {m..n} + setsum f {n + 1..n + p}"
 proof-
   have "{m .. n+p} = {m..n} \<union> {n+1..n+p}" using `m \<le> n+1` by auto
-  thus ?thesis by (auto simp: ivl_disj_int setsum_Un_disjoint
+  thus ?thesis by (auto simp: ivl_disj_int setsum.union_disjoint
     atLeastSucAtMost_greaterThanAtMost)
 qed
 
 lemma setsum_add_nat_ivl: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
   setsum f {m..<n} + setsum f {n..<p} = setsum f {m..<p::nat}"
-by (simp add:setsum_Un_disjoint[symmetric] ivl_disj_int ivl_disj_un)
+by (simp add:setsum.union_disjoint[symmetric] ivl_disj_int ivl_disj_un)
 
 lemma setsum_diff_nat_ivl:
 fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
@@ -1458,70 +1458,6 @@ lemma setsum_natinterval_difff:
   shows  "setsum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =
           (if m <= n then f m - f(n + 1) else 0)"
 by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
-
-lemma setsum_restrict_set':
-  "finite A \<Longrightarrow> setsum f {x \<in> A. x \<in> B} = (\<Sum>x\<in>A. if x \<in> B then f x else 0)"
-  by (simp add: setsum_restrict_set [symmetric] Int_def)
-
-lemma setsum_restrict_set'':
-  "finite A \<Longrightarrow> setsum f {x \<in> A. P x} = (\<Sum>x\<in>A. if P x  then f x else 0)"
-  by (simp add: setsum_restrict_set' [of A f "{x. P x}", simplified mem_Collect_eq])
-
-lemma setsum_setsum_restrict:
-  "finite S \<Longrightarrow> finite T \<Longrightarrow>
-    setsum (\<lambda>x. setsum (\<lambda>y. f x y) {y. y \<in> T \<and> R x y}) S = setsum (\<lambda>y. setsum (\<lambda>x. f x y) {x. x \<in> S \<and> R x y}) T"
-  by (simp add: setsum_restrict_set'') (rule setsum_commute)
-
-lemma setsum_image_gen: assumes fS: "finite S"
-  shows "setsum g S = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
-proof-
-  { fix x assume "x \<in> S" then have "{y. y\<in> f`S \<and> f x = y} = {f x}" by auto }
-  hence "setsum g S = setsum (\<lambda>x. setsum (\<lambda>y. g x) {y. y\<in> f`S \<and> f x = y}) S"
-    by simp
-  also have "\<dots> = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
-    by (rule setsum_setsum_restrict[OF fS finite_imageI[OF fS]])
-  finally show ?thesis .
-qed
-
-lemma setsum_le_included:
-  fixes f :: "'a \<Rightarrow> 'b::ordered_comm_monoid_add"
-  assumes "finite s" "finite t"
-  and "\<forall>y\<in>t. 0 \<le> g y" "(\<forall>x\<in>s. \<exists>y\<in>t. i y = x \<and> f x \<le> g y)"
-  shows "setsum f s \<le> setsum g t"
-proof -
-  have "setsum f s \<le> setsum (\<lambda>y. setsum g {x. x\<in>t \<and> i x = y}) s"
-  proof (rule setsum_mono)
-    fix y assume "y \<in> s"
-    with assms obtain z where z: "z \<in> t" "y = i z" "f y \<le> g z" by auto
-    with assms show "f y \<le> setsum g {x \<in> t. i x = y}" (is "?A y \<le> ?B y")
-      using order_trans[of "?A (i z)" "setsum g {z}" "?B (i z)", intro]
-      by (auto intro!: setsum_mono2)
-  qed
-  also have "... \<le> setsum (\<lambda>y. setsum g {x. x\<in>t \<and> i x = y}) (i ` t)"
-    using assms(2-4) by (auto intro!: setsum_mono2 setsum_nonneg)
-  also have "... \<le> setsum g t"
-    using assms by (auto simp: setsum_image_gen[symmetric])
-  finally show ?thesis .
-qed
-
-lemma setsum_multicount_gen:
-  assumes "finite s" "finite t" "\<forall>j\<in>t. (card {i\<in>s. R i j} = k j)"
-  shows "setsum (\<lambda>i. (card {j\<in>t. R i j})) s = setsum k t" (is "?l = ?r")
-proof-
-  have "?l = setsum (\<lambda>i. setsum (\<lambda>x.1) {j\<in>t. R i j}) s" by auto
-  also have "\<dots> = ?r" unfolding setsum_setsum_restrict[OF assms(1-2)]
-    using assms(3) by auto
-  finally show ?thesis .
-qed
-
-lemma setsum_multicount:
-  assumes "finite S" "finite T" "\<forall>j\<in>T. (card {i\<in>S. R i j} = k)"
-  shows "setsum (\<lambda>i. card {j\<in>T. R i j}) S = k * card T" (is "?l = ?r")
-proof-
-  have "?l = setsum (\<lambda>i. k) T" by(rule setsum_multicount_gen)(auto simp:assms)
-  also have "\<dots> = ?r" by(simp add: mult_commute)
-  finally show ?thesis by auto
-qed
 
 lemma setsum_nat_group: "(\<Sum>m<n::nat. setsum f {m * k ..< m*k + k}) = setsum f {..< n * k}"
   apply (subgoal_tac "k = 0 | 0 < k", auto)
@@ -1587,11 +1523,11 @@ using assms by (induct n) (auto simp: le_Suc_eq)
 
 lemma nested_setsum_swap:
      "(\<Sum>i = 0..n. (\<Sum>j = 0..<i. a i j)) = (\<Sum>j = 0..<n. \<Sum>i = Suc j..n. a i j)"
-  by (induction n) (auto simp: setsum_addf)
+  by (induction n) (auto simp: setsum.distrib)
 
 lemma nested_setsum_swap':
      "(\<Sum>i\<le>n. (\<Sum>j<i. a i j)) = (\<Sum>j<n. \<Sum>i = Suc j..n. a i j)"
-  by (induction n) (auto simp: setsum_addf)
+  by (induction n) (auto simp: setsum.distrib)
 
 lemma setsum_zero_power [simp]:
   fixes c :: "nat \<Rightarrow> 'a::division_ring"
@@ -1642,7 +1578,7 @@ proof cases
   have
     "(\<Sum>i\<in>{..<n}. a+?I i*d) =
      ((\<Sum>i\<in>{..<n}. a) + (\<Sum>i\<in>{..<n}. ?I i*d))"
-    by (rule setsum_addf)
+    by (rule setsum.distrib)
   also from ngt1 have "\<dots> = ?n*a + (\<Sum>i\<in>{..<n}. ?I i*d)" by simp
   also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
     unfolding One_nat_def
@@ -1789,17 +1725,6 @@ next
   case False
   then show ?thesis
     by auto
-qed
-
-lemma setprod_power_distrib:
-  fixes f :: "'a \<Rightarrow> 'b::comm_semiring_1"
-  shows "setprod f A ^ n = setprod (\<lambda>x. (f x)^n) A"
-proof (cases "finite A") 
-  case True then show ?thesis 
-    by (induct A rule: finite_induct) (auto simp add: power_mult_distrib)
-next
-  case False then show ?thesis 
-    by (metis setprod_infinite power_one)
 qed
 
 end

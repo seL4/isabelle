@@ -252,7 +252,7 @@ lemma Bnor_prod_power [rule_format]:
    apply (simplesubst BnorRset.simps)  --{*multiple redexes*}
    apply (unfold Let_def, auto)
   apply (simp add: Bnor_fin Bnor_mem_zle_swap)
-  apply (subst setprod_insert)
+  apply (subst setprod.insert)
     apply (rule_tac [2] Bnor_prod_power_aux)
      apply (unfold inj_on_def)
      apply (simp_all add: mult_ac Bnor_fin Bnor_mem_zle_swap)

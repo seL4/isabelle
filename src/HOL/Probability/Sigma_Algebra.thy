@@ -847,7 +847,7 @@ proof -
     by auto
   thus ?thesis
     unfolding indicator_def
-    by (simp add: if_distrib setsum_cases[OF `finite P`])
+    by (simp add: if_distrib setsum.If_cases[OF `finite P`])
 qed
 
 definition disjointed :: "(nat \<Rightarrow> 'a set) \<Rightarrow> nat \<Rightarrow> 'a set "

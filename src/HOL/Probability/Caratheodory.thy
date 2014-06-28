@@ -22,7 +22,7 @@ proof -
   have g_def: "g = (\<lambda>m. (\<Sum>n. f (m,n)))"
     using assms by (simp add: fun_eq_iff)
   have reindex: "\<And>B. (\<Sum>x\<in>B. f (prod_decode x)) = setsum f (prod_decode ` B)"
-    by (simp add: setsum_reindex[OF inj_prod_decode] comp_def)
+    by (simp add: setsum.reindex[OF inj_prod_decode] comp_def)
   { fix n
     let ?M = "\<lambda>f. Suc (Max (f ` prod_decode ` {..<n}))"
     { fix a b x assume "x < n" and [symmetric]: "(a, b) = prod_decode x"
@@ -40,7 +40,7 @@ proof -
       by (auto intro!: setsum_mono3 simp: pos) }
   ultimately
   show ?thesis unfolding g_def using pos
-    by (auto intro!: SUP_eq  simp: setsum_cartesian_product reindex SUP_upper2
+    by (auto intro!: SUP_eq  simp: setsum.cartesian_product reindex SUP_upper2
                      setsum_nonneg suminf_ereal_eq_SUP SUP_pair
                      SUP_ereal_setsum[symmetric] incseq_setsumI setsum_nonneg)
 qed
@@ -712,7 +712,7 @@ proof -
   with `volume M f` have "f (\<Union>(A`I)) = (\<Sum>a\<in>A`I. f a)"
     unfolding volume_def by blast
   also have "\<dots> = (\<Sum>i\<in>I. f (A i))"
-  proof (subst setsum_reindex_nonzero)
+  proof (subst setsum.reindex_nontrivial)
     fix i j assume "i \<in> I" "j \<in> I" "i \<noteq> j" "A i = A j"
     with `disjoint_family_on A I` have "A i = {}"
       by (auto simp: disjoint_family_on_def)
@@ -753,7 +753,7 @@ proof -
     fix D assume D: "D \<subseteq> M" "finite D" "disjoint D"
     assume "\<Union>C = \<Union>D"
     have "(\<Sum>d\<in>D. \<mu> d) = (\<Sum>d\<in>D. \<Sum>c\<in>C. \<mu> (c \<inter> d))"
-    proof (intro setsum_cong refl)
+    proof (intro setsum.cong refl)
       fix d assume "d \<in> D"
       have Un_eq_d: "(\<Union>c\<in>C. c \<inter> d) = d"
         using `d \<in> D` `\<Union>C = \<Union>D` by auto
@@ -775,7 +775,7 @@ proof -
     assume "\<Union>C = \<Union>D"
     with split_sum[OF C D] split_sum[OF D C]
     have "(\<Sum>d\<in>D. \<mu> d) = (\<Sum>c\<in>C. \<mu> c)"
-      by (simp, subst setsum_commute, simp add: ac_simps) }
+      by (simp, subst setsum.commute, simp add: ac_simps) }
   note sum_eq = this
 
   { fix C assume C: "C \<subseteq> M" "finite C" "disjoint C"
@@ -810,7 +810,7 @@ proof -
     also have "\<dots> = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c) + (\<Sum>c\<in>Ca \<inter> Cb. \<mu> c)"
       using C_Int_cases volume_empty[OF `volume M \<mu>`] by (elim disjE) simp_all
     also have "\<dots> = (\<Sum>c\<in>Ca. \<mu> c) + (\<Sum>c\<in>Cb. \<mu> c)"
-      using Ca Cb by (simp add: setsum_Un_Int)
+      using Ca Cb by (simp add: setsum.union_inter)
     also have "\<dots> = \<mu>' a + \<mu>' b"
       using Ca Cb by (simp add: \<mu>')
     finally show "\<mu>' (a \<union> b) = \<mu>' a + \<mu>' b"
@@ -863,7 +863,7 @@ proof -
         by (simp add: sums_iff)
     qed
     also have "\<dots> = (\<Sum>c\<in>C. \<mu> c)"
-      using F'(2) by (subst (2) F') (simp add: setsum_reindex)
+      using F'(2) by (subst (2) F') (simp add: setsum.reindex)
     finally show "\<mu> (\<Union>C) = (\<Sum>c\<in>C. \<mu> c)" .
   next
     show "\<mu> {} = 0"
@@ -983,7 +983,7 @@ proof -
       by (intro suminf_setsum_ereal positiveD2[OF pos] G.Int G.finite_Union)
          (auto intro: generated_ringI_Basic)
     also have "\<dots> = (\<Sum>c\<in>C'. \<mu>_r c)"
-      using eq V C' by (auto intro!: setsum_cong)
+      using eq V C' by (auto intro!: setsum.cong)
     also have "\<dots> = \<mu>_r (\<Union>C')"
       using C' Un_A
       by (subst volume_finite_additive[symmetric, OF V(1)])

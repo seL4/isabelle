@@ -375,6 +375,75 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 * Theory reorganizations:
   * Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
 
+* Consolidated some facts about big group operators:
+
+    setsum_0' ~> setsum.neutral
+    setsum_0 ~> setsum.neutral_const
+    setsum_addf ~> setsum.distrib
+    setsum_cartesian_product ~> setsum.cartesian_product
+    setsum_cases ~> setsum.If_cases
+    setsum_commute ~> setsum.commute
+    setsum_cong ~> setsum.cong
+    setsum_delta ~> setsum.delta
+    setsum_delta' ~> setsum.delta'
+    setsum_diff1' ~> setsum.remove
+    setsum_empty ~> setsum.empty
+    setsum_infinite ~> setsum.infinite
+    setsum_insert ~> setsum.insert
+    setsum_inter_restrict'' ~> setsum.inter_filter
+    setsum_mono_zero_cong_left ~> setsum.mono_neutral_cong_left
+    setsum_mono_zero_cong_right ~> setsum.mono_neutral_cong_right
+    setsum_mono_zero_left ~> setsum.mono_neutral_left
+    setsum_mono_zero_right ~> setsum.mono_neutral_right
+    setsum_reindex ~> setsum.reindex
+    setsum_reindex_cong ~> setsum.reindex_cong
+    setsum_reindex_nonzero ~> setsum.reindex_nontrivial
+    setsum_restrict_set ~> setsum.inter_restrict
+    setsum_Plus ~> setsum.Plus
+    setsum_setsum_restrict ~> setsum.commute_restrict
+    setsum_Sigma ~> setsum.Sigma
+    setsum_subset_diff ~> setsum.subset_diff
+    setsum_Un_disjoint ~> setsum.union_disjoint
+    setsum_UN_disjoint ~> setsum.UNION_disjoint
+    setsum_Un_Int ~> setsum.union_inter
+    setsum_Union_disjoint ~> setsum.Union_disjoint
+    setsum_UNION_zero ~> setsum.Union_comp
+    setsum_Un_zero ~> setsum.union_inter_neutral
+    strong_setprod_cong ~> setprod.strong_cong
+    strong_setsum_cong ~> setsum.strong_cong
+    setprod_1' ~> setprod.neutral
+    setprod_1 ~> setprod.neutral_const
+    setprod_cartesian_product ~> setprod.cartesian_product
+    setprod_cong ~> setprod.cong
+    setprod_delta ~> setprod.delta
+    setprod_delta' ~> setprod.delta'
+    setprod_empty ~> setprod.empty
+    setprod_infinite ~> setprod.infinite
+    setprod_insert ~> setprod.insert
+    setprod_mono_one_cong_left ~> setprod.mono_neutral_cong_left
+    setprod_mono_one_cong_right ~> setprod.mono_neutral_cong_right
+    setprod_mono_one_left ~> setprod.mono_neutral_left
+    setprod_mono_one_right ~> setprod.mono_neutral_right
+    setprod_reindex ~> setprod.reindex
+    setprod_reindex_cong ~> setprod.reindex_cong
+    setprod_reindex_nonzero ~> setprod.reindex_nontrivial
+    setprod_Sigma ~> setprod.Sigma
+    setprod_subset_diff ~> setprod.subset_diff
+    setprod_timesf ~> setprod.distrib
+    setprod_Un2 ~> setprod.union_diff2
+    setprod_Un_disjoint ~> setprod.union_disjoint
+    setprod_UN_disjoint ~> setprod.UNION_disjoint
+    setprod_Un_Int ~> setprod.union_inter
+    setprod_Union_disjoint ~> setprod.Union_disjoint
+    setprod_Un_one ~> setprod.union_inter_neutral
+
+  Dropped setsum_cong2 (simple variant of setsum.cong).
+  Dropped setsum_inter_restrict' (simple variant of setsum.inter_restrict)
+  Dropped setsum_reindex_id, setprod_reindex_id
+    (simple variants of setsum.reindex [symmetric], setprod.reindex [symmetric]).
+
+  INCOMPATIBILITY.
+
 * New internal SAT solver "cdclite" that produces models and proof traces.
   This solver replaces the internal SAT solvers "enumerate" and "dpll".
   Applications that explicitly used one of these two SAT solvers should

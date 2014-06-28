@@ -322,12 +322,12 @@ next
       using J  `I \<noteq> {}` by (subst mu_G_spec[OF _ _ _ refl]) (auto simp: emeasure_PiM Pi_iff)
     also have "\<dots> = (\<Prod>j\<in>J \<union> {i \<in> I. emeasure (M i) (space (M i)) \<noteq> 1}.
       if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j)))"
-      using J `I \<noteq> {}` by (intro setprod_mono_one_right) (auto simp: M.emeasure_space_1)
+      using J `I \<noteq> {}` by (intro setprod.mono_neutral_right) (auto simp: M.emeasure_space_1)
     finally show "\<mu> (emb I J (Pi\<^sub>E J X)) = \<dots>" .
   next
     let ?F = "\<lambda>j. if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j))"
     have "(\<Prod>j\<in>J \<union> {i \<in> I. emeasure (M i) (space (M i)) \<noteq> 1}. ?F j) = (\<Prod>j\<in>J. ?F j)"
-      using X `I \<noteq> {}` by (intro setprod_mono_one_right) (auto simp: M.emeasure_space_1)
+      using X `I \<noteq> {}` by (intro setprod.mono_neutral_right) (auto simp: M.emeasure_space_1)
     then show "(\<Prod>j\<in>J \<union> {i \<in> I. emeasure (M i) (space (M i)) \<noteq> 1}. ?F j) =
       emeasure (Pi\<^sub>M J M) (Pi\<^sub>E J X)"
       using X by (auto simp add: emeasure_PiM) 
@@ -560,12 +560,12 @@ proof (rule PiM_eq)
   also have "emeasure S ?F = (\<Prod>j\<in>(op + i) -` J. emeasure M (E (i + j)))"
     using J by (intro emeasure_PiM_emb) (simp_all add: finite_vimageI inj_on_def)
   also have "\<dots> = (\<Prod>j\<in>J - (J \<inter> {..<i}). emeasure M (E j))"
-    by (rule strong_setprod_reindex_cong[where f="\<lambda>x. x - i"])
+    by (rule setprod.reindex_cong [of "\<lambda>x. x - i"])
        (auto simp: image_iff Bex_def not_less nat_eq_diff_eq ac_simps cong: conj_cong intro!: inj_onI)
   also have "emeasure S ?E = (\<Prod>j\<in>J \<inter> {..<i}. emeasure M (E j))"
     using J by (intro emeasure_PiM_emb) simp_all
   also have "(\<Prod>j\<in>J \<inter> {..<i}. emeasure M (E j)) * (\<Prod>j\<in>J - (J \<inter> {..<i}). emeasure M (E j)) = (\<Prod>j\<in>J. emeasure M (E j))"
-    by (subst mult_commute) (auto simp: J setprod_subset_diff[symmetric])
+    by (subst mult_commute) (auto simp: J setprod.subset_diff[symmetric])
   finally show "emeasure ?D ?X = (\<Prod>j\<in>J. emeasure M (E j))" .
 qed simp_all
 
@@ -591,7 +591,7 @@ proof (rule PiM_eq)
   also have "emeasure S ?F = (\<Prod>j\<in>Suc -` J. emeasure M (E (Suc j)))"
     using J by (intro emeasure_PiM_emb) (simp_all add: finite_vimageI)
   also have "\<dots> = (\<Prod>j\<in>J - {0}. emeasure M (E j))"
-    by (rule strong_setprod_reindex_cong[where f="\<lambda>x. x - 1"])
+    by (rule setprod.reindex_cong [of "\<lambda>x. x - 1"])
        (auto simp: image_iff Bex_def not_less nat_eq_diff_eq ac_simps cong: conj_cong intro!: inj_onI)
   also have "emeasure M ?E * (\<Prod>j\<in>J - {0}. emeasure M (E j)) = (\<Prod>j\<in>J. emeasure M (E j))"
     by (auto simp: M.emeasure_space_1 setprod.remove J)

@@ -237,7 +237,7 @@ proof -
     have "?s sums y" using sums_if'[OF `f sums y`] .
     from this[unfolded sums_def, THEN LIMSEQ_Suc]
     have "(\<lambda> n. if even n then f (n div 2) else 0) sums y"
-      by (simp add: lessThan_Suc_eq_insert_0 image_iff setsum_reindex if_eq sums_def cong del: if_cong)
+      by (simp add: lessThan_Suc_eq_insert_0 image_iff setsum.reindex if_eq sums_def cong del: if_cong)
   }
   from sums_add[OF g_sums this] show ?thesis unfolding if_sum .
 qed
@@ -478,7 +478,7 @@ lemma lemma_termdiff2:
   apply (subst sumr_diff_mult_const2)
   apply simp
   apply (simp only: lemma_termdiff1 setsum_right_distrib)
-  apply (rule setsum_cong [OF refl])
+  apply (rule setsum.cong [OF refl])
   apply (simp add: less_iff_Suc_add)
   apply (clarify)
   apply (simp add: setsum_right_distrib lemma_realpow_diff_sumr2 mult_ac
@@ -1071,7 +1071,7 @@ next
   also have "(\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n-i))) +
              (\<Sum>i\<le>Suc n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i))) =
              (\<Sum>i\<le>Suc n. real (Suc n) *\<^sub>R (S x i * S y (Suc n-i)))"
-    by (simp only: setsum_addf [symmetric] scaleR_left_distrib [symmetric]
+    by (simp only: setsum.distrib [symmetric] scaleR_left_distrib [symmetric]
                    real_of_nat_add [symmetric]) simp
   also have "\<dots> = real (Suc n) *\<^sub>R (\<Sum>i\<le>Suc n. S x i * S y (Suc n-i))"
     by (simp only: scaleR_right.setsum)

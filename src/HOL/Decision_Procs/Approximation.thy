@@ -34,7 +34,7 @@ proof -
   show ?thesis
     unfolding setsum_right_distrib shift_pow uminus_add_conv_diff [symmetric] setsum_negf[symmetric]
     setsum_head_upt_Suc[OF zero_less_Suc]
-    setsum_reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
+    setsum.reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
 qed
 
 lemma horner_schema:
@@ -747,7 +747,7 @@ proof (cases "real x = 0")
     also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then -1 ^ (i div 2) / (real (fact i)) * x ^ i else 0)"
       unfolding sum_split_even_odd atLeast0LessThan ..
     also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then -1 ^ (i div 2) / (real (fact i)) else 0) * x ^ i)"
-      by (rule setsum_cong2) auto
+      by (rule setsum.cong) auto
     finally show ?thesis by assumption
   qed } note morph_to_if_power = this
 
@@ -862,7 +862,7 @@ proof (cases "real x = 0")
       also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then 0 else -1 ^ ((i - Suc 0) div 2) / (real (fact i)) * x ^ i)"
         unfolding sum_split_even_odd atLeast0LessThan ..
       also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then 0 else -1 ^ ((i - Suc 0) div 2) / (real (fact i))) * x ^ i)"
-        by (rule setsum_cong2) auto
+        by (rule setsum.cong) auto
       finally show ?thesis by assumption
     qed } note setsum_morph = this
 

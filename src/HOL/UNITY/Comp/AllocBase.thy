@@ -51,12 +51,12 @@ done
 
 (** setsum **)
 
-declare setsum_cong [cong]
+declare setsum.cong [cong]
 
 lemma bag_of_sublist_lemma:
      "(\<Sum>i\<in> A Int lessThan k. {#if i<k then f i else g i#}) =  
       (\<Sum>i\<in> A Int lessThan k. {#f i#})"
-by (rule setsum_cong, auto)
+by (rule setsum.cong, auto)
 
 lemma bag_of_sublist:
      "bag_of (sublist l A) =  
@@ -72,7 +72,7 @@ lemma bag_of_sublist_Un_Int:
       bag_of (sublist l A) + bag_of (sublist l B)"
 apply (subgoal_tac "A Int B Int {..<length l} =
                     (A Int {..<length l}) Int (B Int {..<length l}) ")
-apply (simp add: bag_of_sublist Int_Un_distrib2 setsum_Un_Int, blast)
+apply (simp add: bag_of_sublist Int_Un_distrib2 setsum.union_inter, blast)
 done
 
 lemma bag_of_sublist_Un_disjoint:
@@ -87,7 +87,7 @@ lemma bag_of_sublist_UN_disjoint [rule_format]:
           (\<Sum>i\<in>I. bag_of (sublist l (A i)))"
 apply (simp del: UN_simps 
             add: UN_simps [symmetric] add: bag_of_sublist)
-apply (subst setsum_UN_disjoint, auto)
+apply (subst setsum.UNION_disjoint, auto)
 done
 
 end

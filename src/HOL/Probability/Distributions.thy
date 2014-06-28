@@ -126,7 +126,7 @@ proof -
     qed
   qed auto
   also have "\<dots> = ereal (1 - (\<Sum>n\<le>k. (a^n * exp (-a)) / fact n))"
-    by (auto simp: power_0_left if_distrib[where f="\<lambda>x. x / a" for a] setsum_cases)
+    by (auto simp: power_0_left if_distrib[where f="\<lambda>x. x / a" for a] setsum.If_cases)
   finally show ?thesis
     by (cases "?I") (auto simp: field_simps)
 qed

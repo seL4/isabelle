@@ -89,7 +89,7 @@ proof cases
     then have b: "set_of N = {a} Un (set_of N - {a})"
       by auto
     then show ?thesis
-      by (subst (1) b, subst setprod_Un_disjoint, auto)
+      by (subst (1) b, subst setprod.union_disjoint, auto)
   next
     assume "a ~: set_of N" 
     then show ?thesis by auto
@@ -458,18 +458,18 @@ lemma multiplicity_product_aux_nat: "(k::nat) > 0 \<Longrightarrow> l > 0 \<Long
   apply (simp only: prime_factors_altdef_nat)
   apply auto
   apply (subst power_add)
-  apply (subst setprod_timesf)
+  apply (subst setprod.distrib)
   apply (rule arg_cong2 [where f = "\<lambda>x y. x*y"])
   apply (subgoal_tac "prime_factors k Un prime_factors l = prime_factors k Un 
       (prime_factors l - prime_factors k)")
   apply (erule ssubst)
-  apply (subst setprod_Un_disjoint)
+  apply (subst setprod.union_disjoint)
   apply auto
   apply (metis One_nat_def nat_mult_1_right prime_factorization_nat setprod.neutral_const)
   apply (subgoal_tac "prime_factors k Un prime_factors l = prime_factors l Un 
       (prime_factors k - prime_factors l)")
   apply (erule ssubst)
-  apply (subst setprod_Un_disjoint)
+  apply (subst setprod.union_disjoint)
   apply auto
   apply (subgoal_tac "(\<Prod>p\<in>prime_factors k - prime_factors l. p ^ multiplicity p l) = 
       (\<Prod>p\<in>prime_factors k - prime_factors l. 1)")
@@ -545,11 +545,11 @@ lemma multiplicity_setprod_int: "p >= 0 \<Longrightarrow> finite S \<Longrightar
     [where f = "%x. nat(int(nat(f x)))", 
       transferred direction: nat "op <= (0::int)"])
   apply auto
-  apply (subst (asm) setprod_cong)
+  apply (subst (asm) setprod.cong)
   apply (rule refl)
   apply (rule if_P)
   apply auto
-  apply (rule setsum_cong)
+  apply (rule setsum.cong)
   apply auto
   done
 
@@ -566,10 +566,10 @@ lemma multiplicity_prod_prime_powers_nat:
   prefer 5 apply (rule refl)
   apply (rule refl)
   apply auto
-  apply (subst setprod_mono_one_right)
+  apply (subst setprod.mono_neutral_right)
   apply assumption
   prefer 3
-  apply (rule setprod_cong)
+  apply (rule setprod.cong)
   apply (rule refl)
   apply auto
 done

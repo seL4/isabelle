@@ -364,7 +364,7 @@ locale finite_product_prob_space = finite_product_sigma_finite M I + product_pro
 sublocale finite_product_prob_space \<subseteq> prob_space "\<Pi>\<^sub>M i\<in>I. M i"
 proof
   show "emeasure (\<Pi>\<^sub>M i\<in>I. M i) (space (\<Pi>\<^sub>M i\<in>I. M i)) = 1"
-    by (simp add: measure_times M.emeasure_space_1 setprod_1 space_PiM)
+    by (simp add: measure_times M.emeasure_space_1 setprod.neutral_const space_PiM)
 qed
 
 lemma (in finite_product_prob_space) prob_times:
@@ -915,7 +915,7 @@ proof -
   from X have "setsum f (X`space M) = prob (\<Union>i\<in>X`space M. X -` {i} \<inter> space M)"
     by (subst finite_measure_finite_Union)
        (auto simp add: disjoint_family_on_def simple_distributed_measure simple_distributed_simple_function simple_functionD
-             intro!: setsum_cong arg_cong[where f="prob"])
+             intro!: setsum.cong arg_cong[where f="prob"])
   also have "\<dots> = prob (space M)"
     by (auto intro!: arg_cong[where f=prob])
   finally show ?thesis
@@ -943,7 +943,7 @@ proof -
     Pxy[THEN simple_distributed, THEN distributed_real_AE]
   show ?thesis
     unfolding AE_count_space
-    apply (auto simp add: nn_integral_count_space_finite * intro!: setsum_cong split: split_max)
+    apply (auto simp add: nn_integral_count_space_finite * intro!: setsum.cong split: split_max)
     done
 qed
 

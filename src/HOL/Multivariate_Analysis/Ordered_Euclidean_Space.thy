@@ -48,7 +48,7 @@ qed (force intro!: cInf_lower cSup_upper
 
 lemma inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i = inf (x \<bullet> i) (y \<bullet> i)"
   and inner_Basis_sup_left: "i \<in> Basis \<Longrightarrow> sup x y \<bullet> i = sup (x \<bullet> i) (y \<bullet> i)"
-  by (simp_all add: eucl_inf eucl_sup inner_setsum_left inner_Basis if_distrib setsum_delta
+  by (simp_all add: eucl_inf eucl_sup inner_setsum_left inner_Basis if_distrib comm_monoid_add_class.setsum.delta
       cong: if_cong)
 
 lemma inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x:X. f x) \<bullet> i = (INF x:X. f x \<bullet> i)"
@@ -119,7 +119,7 @@ proof atomize_elim
   hence "Inf ?proj = x \<bullet> b"
     by (auto intro!: conditionally_complete_lattice_class.cInf_eq_minimum simp del: Inf_class.Inf_image_eq)
   hence "x \<bullet> b = Inf X \<bullet> b"
-    by (auto simp: eucl_Inf Inf_class.INF_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis` setsum_delta
+    by (auto simp: eucl_Inf Inf_class.INF_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis` setsum.delta
       simp del: Inf_class.Inf_image_eq
       cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Inf X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> x \<bullet> b \<le> y \<bullet> b)" by blast
@@ -142,7 +142,7 @@ proof atomize_elim
   hence "Sup ?proj = x \<bullet> b"
     by (auto intro!: cSup_eq_maximum simp del: Sup_image_eq)
   hence "x \<bullet> b = Sup X \<bullet> b"
-    by (auto simp: eucl_Sup[where 'a='a] SUP_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis` setsum_delta
+    by (auto simp: eucl_Sup[where 'a='a] SUP_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis` setsum.delta
       simp del: Sup_image_eq cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Sup X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> y \<bullet> b \<le> x \<bullet> b)" by blast
 qed

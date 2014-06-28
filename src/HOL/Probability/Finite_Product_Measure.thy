@@ -636,12 +636,12 @@ proof (induct I arbitrary: A rule: finite_induct)
       by (auto simp: prod_emb_iff PiE_def Pi_iff split: split_if_asm) blast+
     also have "emeasure (Pi\<^sub>M I M) (\<Pi>\<^sub>E j\<in>I. if j \<in> J-{i} then E j else space (M j)) =
       (\<Prod> j\<in>I. if j \<in> J-{i} then emeasure (M j) (E j) else emeasure (M j) (space (M j)))"
-      using E by (subst insert) (auto intro!: setprod_cong)
+      using E by (subst insert) (auto intro!: setprod.cong)
     also have "(\<Prod>j\<in>I. if j \<in> J - {i} then emeasure (M j) (E j) else emeasure (M j) (space (M j))) *
        emeasure (M i) (if i \<in> J then E i else space (M i)) = (\<Prod>j\<in>insert i I. ?f J E j)"
-      using insert by (auto simp: mult_commute intro!: arg_cong2[where f="op *"] setprod_cong)
+      using insert by (auto simp: mult_commute intro!: arg_cong2[where f="op *"] setprod.cong)
     also have "\<dots> = (\<Prod>j\<in>J \<union> ?I. ?f J E j)"
-      using insert(1,2) J E by (intro setprod_mono_one_right) auto
+      using insert(1,2) J E by (intro setprod.mono_neutral_right) auto
     finally show "?\<mu> ?p = \<dots>" .
 
     show "prod_emb (insert i I) M J (Pi\<^sub>E J E) \<in> Pow (\<Pi>\<^sub>E i\<in>insert i I. space (M i))"
@@ -653,7 +653,7 @@ proof (induct I arbitrary: A rule: finite_induct)
     show "(insert i I \<noteq> {} \<or> insert i I = {}) \<and> finite (insert i I) \<and>
       insert i I \<subseteq> insert i I \<and> A \<in> (\<Pi> j\<in>insert i I. sets (M j))"
       using insert by auto
-  qed (auto intro!: setprod_cong)
+  qed (auto intro!: setprod.cong)
   with insert show ?case
     by (subst (asm) prod_emb_PiE_same_index) (auto intro!: sets.sets_into_space)
 qed simp
@@ -764,7 +764,7 @@ proof -
       using `finite J` `finite I` F unfolding X
       by (simp add: J.emeasure_pair_measure_Times I.measure_times J.measure_times)
     also have "\<dots> = (\<Prod>i\<in>I \<union> J. emeasure (M i) (F i))"
-      using `finite J` `finite I` `I \<inter> J = {}`  by (simp add: setprod_Un_one)
+      using `finite J` `finite I` `I \<inter> J = {}`  by (simp add: setprod.union_inter_neutral)
     also have "\<dots> = emeasure ?P (Pi\<^sub>E (I \<union> J) F)"
       using `finite J` `finite I` F unfolding A
       by (intro IJ.measure_times[symmetric]) auto
@@ -849,7 +849,7 @@ using assms proof induct
   note `finite I`[intro, simp]
   interpret I: finite_product_sigma_finite M I by default auto
   have *: "\<And>x y. (\<Prod>j\<in>I. f j (if j = i then y else x j)) = (\<Prod>j\<in>I. f j (x j))"
-    using insert by (auto intro!: setprod_cong)
+    using insert by (auto intro!: setprod.cong)
   have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow> (\<lambda>x. (\<Prod>i\<in>J. f i (x i))) \<in> borel_measurable (Pi\<^sub>M J M)"
     using sets.sets_into_space insert
     by (intro borel_measurable_ereal_setprod

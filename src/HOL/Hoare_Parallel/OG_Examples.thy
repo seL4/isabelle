@@ -534,9 +534,9 @@ lemma Example_2: "0<n \<Longrightarrow>
  COEND 
  \<lbrace>\<acute>x=n\<rbrace>"
 apply oghoare
-apply (simp_all cong del: strong_setsum_cong)
+apply (simp_all cong del: setsum.strong_cong)
 apply (tactic {* ALLGOALS (clarify_tac @{context}) *})
-apply (simp_all cong del: strong_setsum_cong)
+apply (simp_all cong del: setsum.strong_cong)
    apply(erule (1) Example2_lemma2)
   apply(erule (1) Example2_lemma2)
  apply(erule (1) Example2_lemma2)

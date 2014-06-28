@@ -110,7 +110,8 @@ lemma ZN_setsum [transfer_rule]:
   apply (intro rel_funI)
   apply (erule (1) bi_unique_rel_set_lemma)
   apply (simp add: setsum.reindex int_setsum ZN_def rel_fun_def)
-  apply (rule setsum_cong2, simp)
+  apply (rule setsum.cong)
+  apply simp_all
   done
 
 text {* For derived operations, we can use the @{text "transfer_prover"}

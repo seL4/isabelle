@@ -761,12 +761,39 @@ next
     done
 qed
 
+
+subsubsection {* Generalized sum over a set *}
+
+lemma setsum_zero_power [simp]:
+  fixes c :: "nat \<Rightarrow> 'a::division_ring"
+  shows "(\<Sum>i\<in>A. c i * 0^i) = (if finite A \<and> 0 \<in> A then c 0 else 0)"
+apply (cases "finite A")
+  by (induction A rule: finite_induct) auto
+
+lemma setsum_zero_power' [simp]:
+  fixes c :: "nat \<Rightarrow> 'a::field"
+  shows "(\<Sum>i\<in>A. c i * 0^i / d i) = (if finite A \<and> 0 \<in> A then c 0 / d 0 else 0)"
+  using setsum_zero_power [of "\<lambda>i. c i / d i" A]
+  by auto
+
+
 subsubsection {* Generalized product over a set *}
 
 lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{comm_monoid_mult})) = y^(card A)"
 apply (erule finite_induct)
 apply auto
 done
+
+lemma setprod_power_distrib:
+  fixes f :: "'a \<Rightarrow> 'b::comm_semiring_1"
+  shows "setprod f A ^ n = setprod (\<lambda>x. (f x) ^ n) A"
+proof (cases "finite A") 
+  case True then show ?thesis 
+    by (induct A rule: finite_induct) (auto simp add: power_mult_distrib)
+next
+  case False then show ?thesis 
+    by simp
+qed
 
 lemma setprod_gen_delta:
   assumes fS: "finite S"
@@ -784,14 +811,14 @@ proof-
     have dj: "?A \<inter> ?B = {}" by simp
     from fS have fAB: "finite ?A" "finite ?B" by auto  
     have fA0:"setprod ?f ?A = setprod (\<lambda>i. c) ?A"
-      apply (rule setprod_cong) by auto
+      apply (rule setprod.cong) by auto
     have cA: "card ?A = card S - 1" using fS a by auto
     have fA1: "setprod ?f ?A = c ^ card ?A"  unfolding fA0 apply (rule setprod_constant) using fS by auto
     have "setprod ?f ?A * setprod ?f ?B = setprod ?f S"
-      using setprod_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
+      using setprod.union_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
       by simp
     then have ?thesis using a cA
-      by (simp add: fA1 field_simps cong add: setprod_cong cong del: if_weak_cong)}
+      by (simp add: fA1 field_simps cong add: setprod.cong cong del: if_weak_cong)}
   ultimately show ?thesis by blast
 qed
 

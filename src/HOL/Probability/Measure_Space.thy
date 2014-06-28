@@ -51,7 +51,7 @@ proof -
   have **: "\<And>n. f n * indicator (A n) x = (if n = i then f n else 0 :: ereal)"
     using `x \<in> A i` assms unfolding disjoint_family_on_def indicator_def by auto
   then have "\<And>n. (\<Sum>j<n. f j * indicator (A j) x) = (if i < n then f i else 0 :: ereal)"
-    by (auto simp: setsum_cases)
+    by (auto simp: setsum.If_cases)
   moreover have "(SUP n. if i < n then f i else 0) = (f i :: ereal)"
   proof (rule SUP_eqI)
     fix y :: ereal assume "\<And>n. n \<in> UNIV \<Longrightarrow> (if i < n then f i else 0) \<le> y"
@@ -287,7 +287,7 @@ proof (rule countably_additiveI)
   from fin_not_0 have "(\<Sum>i. \<mu> (F i)) = (\<Sum>i | \<mu> (F i) \<noteq> 0. \<mu> (F i))"
     by (rule suminf_finite) auto
   also have "\<dots> = (\<Sum>i | F i \<noteq> {}. \<mu> (F i))"
-    using fin_not_empty F_subset by (rule setsum_mono_zero_left) auto
+    using fin_not_empty F_subset by (rule setsum.mono_neutral_left) auto
   also have "\<dots> = \<mu> (\<Union>i\<in>{i. F i \<noteq> {}}. F i)"
     using `positive M \<mu>` `additive M \<mu>` fin_not_empty disj_not_empty F by (intro additive_sum) auto
   also have "\<dots> = \<mu> (\<Union>i. F i)"
@@ -668,7 +668,7 @@ proof (rule measure_eqI)
   then have "emeasure M X = (\<Sum>a\<in>X. emeasure M {a})"
     using `finite A` by (subst emeasure_eq_setsum_singleton) (auto dest: finite_subset)
   also have "\<dots> = (\<Sum>a\<in>X. emeasure N {a})"
-    using X eq by (auto intro!: setsum_cong)
+    using X eq by (auto intro!: setsum.cong)
   also have "\<dots> = emeasure N X"
     using X `finite A` by (subst emeasure_eq_setsum_singleton) (auto dest: finite_subset)
   finally show "emeasure M X = emeasure N X" .

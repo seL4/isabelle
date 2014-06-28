@@ -319,7 +319,7 @@ proof(auto simp: m_st_def le_st_def lookup_def split: if_splits)
   have "(\<Sum>y\<in>?Y. m_ivl(?g y)) = (\<Sum>y\<in>(?Y-?X) \<union> (?Y\<inter>?X). m_ivl(?g y))"
     by (metis Un_Diff_Int)
   also have "\<dots> = (\<Sum>y\<in>?Y-?X. m_ivl(?g y)) + (\<Sum>y\<in>?Y\<inter>?X. m_ivl(?g y))"
-    by(subst setsum_Un_disjoint) auto
+    by(subst setsum.union_disjoint) auto
   also have "(\<Sum>y\<in>?Y-?X. m_ivl(?g y)) = 0" using 0 by simp
   also have "0 + (\<Sum>y\<in>?Y\<inter>?X. m_ivl(?g y)) = (\<Sum>y\<in>?Y\<inter>?X. m_ivl(?g y))" by simp
   also have "\<dots> \<le> (\<Sum>y\<in>?Y\<inter>?X. m_ivl(?f y))"

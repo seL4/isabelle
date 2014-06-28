@@ -200,7 +200,7 @@ next
     then have card: "card ({1 :: nat .. 2} \<inter> - {x. x = 1}) = 1"
       by simp
     then have "setsum ?u {1 .. 2} = 1"
-      using setsum_cases[of "{(1 :: nat) .. 2}" "\<lambda> x. x = 1" "\<lambda> x. \<mu>" "\<lambda> x. 1 - \<mu>"]
+      using setsum.If_cases[of "{(1 :: nat) .. 2}" "\<lambda> x. x = 1" "\<lambda> x. \<mu>" "\<lambda> x. 1 - \<mu>"]
       by auto
     with asm[rule_format, of "2" ?u ?x] have s: "(\<Sum>j \<in> {1..2}. ?u j *\<^sub>R ?x j) \<in> s"
       using mu xy by auto
@@ -270,7 +270,7 @@ proof safe
     by simp
   show "(\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s"
    using sum[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]] as *
-   by (auto simp: assms setsum_cases if_distrib if_distrib_arg)
+   by (auto simp: assms setsum.If_cases if_distrib if_distrib_arg)
 qed (erule_tac x=s in allE, erule_tac x=u in allE, auto)
 
 

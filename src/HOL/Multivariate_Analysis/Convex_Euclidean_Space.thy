@@ -121,9 +121,9 @@ proof -
     by (auto intro: finite_subset[OF assms])
   have ***: "\<And>i. i \<in> Basis \<Longrightarrow> (\<Sum>i\<in>d. f i *\<^sub>R i) \<bullet> i = (\<Sum>x\<in>d. if x = i then f x else 0)"
     using d
-    by (auto intro!: setsum_cong simp: inner_Basis inner_setsum_left)
+    by (auto intro!: setsum.cong simp: inner_Basis inner_setsum_left)
   show ?thesis
-    unfolding euclidean_eq_iff[where 'a='a] by (auto simp: setsum_delta[OF **] ***)
+    unfolding euclidean_eq_iff[where 'a='a] by (auto simp: setsum.delta[OF **] ***)
 qed
 
 lemma independent_substdbasis: "d \<subseteq> Basis \<Longrightarrow> independent d"
@@ -324,7 +324,7 @@ lemma setsum_delta_notmem:
     and "setsum (\<lambda>y. if (x = y) then P x else Q y) s = setsum Q s"
     and "setsum (\<lambda>y. if (y = x) then P y else Q y) s = setsum Q s"
     and "setsum (\<lambda>y. if (x = y) then P y else Q y) s = setsum Q s"
-  apply (rule_tac [!] setsum_cong2)
+  apply (rule_tac [!] setsum.cong)
   using assms
   apply auto
   done
@@ -337,11 +337,11 @@ proof -
   have *: "\<And>x y. (if y = x then f x else (0::real)) *\<^sub>R x = (if x=y then (f x) *\<^sub>R x else 0)"
     by auto
   show ?thesis
-    unfolding * using setsum_delta[OF assms, of y "\<lambda>x. f x *\<^sub>R x"] by auto
+    unfolding * using setsum.delta[OF assms, of y "\<lambda>x. f x *\<^sub>R x"] by auto
 qed
 
 lemma if_smult: "(if P then x else (y::real)) *\<^sub>R v = (if P then x *\<^sub>R v else y *\<^sub>R v)"
-  by auto
+  by (fact if_distrib)
 
 lemma dist_triangle_eq:
   fixes x y z :: "'a::real_inner"
@@ -578,8 +578,8 @@ next
         setsum ua s = 1 \<and> (\<Sum>v\<in>s. ua v *\<^sub>R v) = u *\<^sub>R x + v *\<^sub>R y"
       apply (rule_tac x="sx \<union> sy" in exI)
       apply (rule_tac x="\<lambda>a. (if a\<in>sx then u * ux a else 0) + (if a\<in>sy then v * uy a else 0)" in exI)
-      unfolding scaleR_left_distrib setsum_addf if_smult scaleR_zero_left
-        ** setsum_restrict_set[OF xy, symmetric]
+      unfolding scaleR_left_distrib setsum.distrib if_smult scaleR_zero_left
+        ** setsum.inter_restrict[OF xy, symmetric]
       unfolding scaleR_scaleR[symmetric] Real_Vector_Spaces.scaleR_right.setsum [symmetric]
         and setsum_right_distrib[symmetric]
       unfolding x y
@@ -616,7 +616,7 @@ next
   assume "finite t" "\<not> (\<forall>x. (x \<in> t) = (x \<in> {}))" "setsum u t = 1" "(\<Sum>v\<in>t. u v *\<^sub>R v) = x"
   then show "\<exists>u. setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
     apply (rule_tac x="\<lambda>x. if x\<in>t then u x else 0" in exI)
-    unfolding if_smult scaleR_zero_left and setsum_restrict_set[OF assms, symmetric] and *
+    unfolding if_smult scaleR_zero_left and setsum.inter_restrict[OF assms, symmetric] and *
     apply auto
     done
 qed
@@ -673,9 +673,9 @@ proof -
         apply (rule_tac x="\<lambda>x. (if x=a then v else 0) + u x" in exI)
         unfolding setsum_clauses(2)[OF fin]
         apply simp
-        unfolding scaleR_left_distrib and setsum_addf
+        unfolding scaleR_left_distrib and setsum.distrib
         unfolding vu and * and scaleR_zero_left
-        apply (auto simp add: setsum_delta[OF fin])
+        apply (auto simp add: setsum.delta[OF fin])
         done
     next
       case False
@@ -685,8 +685,8 @@ proof -
       from False show ?thesis
         apply (rule_tac x="\<lambda>x. if x=a then v else u x" in exI)
         unfolding setsum_clauses(2)[OF fin] and * using vu
-        using setsum_cong2[of s "\<lambda>x. u x *\<^sub>R x" "\<lambda>x. if x = a then v *\<^sub>R x else u x *\<^sub>R x", OF **(2)]
-        using setsum_cong2[of s u "\<lambda>x. if x = a then v else u x", OF **(1)]
+        using setsum.cong [of s _ "\<lambda>x. u x *\<^sub>R x" "\<lambda>x. if x = a then v *\<^sub>R x else u x *\<^sub>R x", OF _ **(2)]
+        using setsum.cong [of s _ u "\<lambda>x. if x = a then v else u x", OF _ **(1)]
         apply auto
         done
     qed
@@ -777,7 +777,7 @@ proof -
     apply (rule conjI) using as(1) apply simp
     apply (erule conjI)
     using as(1)
-    apply (simp add: setsum_reindex[unfolded inj_on_def] scaleR_right_diff_distrib
+    apply (simp add: setsum.reindex[unfolded inj_on_def] scaleR_right_diff_distrib
       setsum_subtractf scaleR_left.setsum[symmetric] setsum_diff1 scaleR_left_diff_distrib)
     unfolding as
     apply simp
@@ -797,7 +797,7 @@ proof (rule, rule, erule exE, erule conjE)
     unfolding span_explicit by auto
   def f \<equiv> "(\<lambda>x. x + a) ` t"
   have f: "finite f" "f \<subseteq> s" "(\<Sum>v\<in>f. u (v - a) *\<^sub>R (v - a)) = y - a"
-    unfolding f_def using obt by (auto simp add: setsum_reindex[unfolded inj_on_def])
+    unfolding f_def using obt by (auto simp add: setsum.reindex[unfolded inj_on_def])
   have *: "f \<inter> {a} = {}" "f \<inter> - {a} = f"
     using f(2) assms by auto
   show "\<exists>sa u. finite sa \<and> sa \<noteq> {} \<and> sa \<subseteq> insert a s \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = y"
@@ -805,7 +805,7 @@ proof (rule, rule, erule exE, erule conjE)
     apply (rule_tac x = "\<lambda>x. if x=a then 1 - setsum (\<lambda>x. u (x - a)) f else u (x - a)" in exI)
     using assms and f
     unfolding setsum_clauses(2)[OF f(1)] and if_smult
-    unfolding setsum_cases[OF f(1), of "\<lambda>x. x = a"]
+    unfolding setsum.If_cases[OF f(1), of "\<lambda>x. x = a"]
     apply (auto simp add: setsum_subtractf scaleR_left.setsum algebra_simps *)
     done
 qed
@@ -1284,7 +1284,7 @@ proof
     unfolding affine_dependent_explicit by auto
   then show ?rhs
     apply (rule_tac x="\<lambda>x. if x\<in>t then u x else 0" in exI)
-    apply auto unfolding * and setsum_restrict_set[OF assms, symmetric]
+    apply auto unfolding * and setsum.inter_restrict[OF assms, symmetric]
     unfolding Int_absorb1[OF `t\<subseteq>s`]
     apply auto
     done
@@ -1708,8 +1708,8 @@ next
     apply (rule, rule)
     defer
     apply rule
-    unfolding * and setsum_cases[OF finite_atLeastAtMost[of 1 "k1 + k2"]] and
-      setsum_reindex[OF inj] and o_def Collect_mem_eq
+    unfolding * and setsum.If_cases[OF finite_atLeastAtMost[of 1 "k1 + k2"]] and
+      setsum.reindex[OF inj] and o_def Collect_mem_eq
     unfolding scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] setsum_right_distrib[symmetric]
   proof -
     fix i
@@ -1744,7 +1744,7 @@ proof (rule hull_unique, auto simp add: convex_def[of ?set])
   then show "\<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>x\<in>s. u x *\<^sub>R x) = x"
     apply (rule_tac x="\<lambda>y. if x=y then 1 else 0" in exI)
     apply auto
-    unfolding setsum_delta'[OF assms] and setsum_delta''[OF assms]
+    unfolding setsum.delta'[OF assms] and setsum_delta''[OF assms]
     apply auto
     done
 next
@@ -1761,11 +1761,11 @@ next
   }
   moreover
   have "(\<Sum>x\<in>s. u * ux x + v * uy x) = 1"
-    unfolding setsum_addf and setsum_right_distrib[symmetric] and ux(2) uy(2)
+    unfolding setsum.distrib and setsum_right_distrib[symmetric] and ux(2) uy(2)
     using uv(3) by auto
   moreover
   have "(\<Sum>x\<in>s. (u * ux x + v * uy x) *\<^sub>R x) = u *\<^sub>R (\<Sum>x\<in>s. ux x *\<^sub>R x) + v *\<^sub>R (\<Sum>x\<in>s. uy x *\<^sub>R x)"
-    unfolding scaleR_left_distrib and setsum_addf and scaleR_scaleR[symmetric]
+    unfolding scaleR_left_distrib and setsum.distrib and scaleR_scaleR[symmetric]
       and scaleR_right.setsum [symmetric]
     by auto
   ultimately
@@ -1877,8 +1877,8 @@ proof -
       unfolding setsum_image_gen[OF *(1), of "\<lambda>x. u (f x) *\<^sub>R f x" f]
         and setsum_image_gen[OF *(1), of "\<lambda>x. u (f x)" f]
       unfolding f
-      using setsum_cong2[of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x)" "\<lambda>v. u v *\<^sub>R v"]
-      using setsum_cong2 [of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x))" u]
+      using setsum.cong [of s s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x)" "\<lambda>v. u v *\<^sub>R v"]
+      using setsum.cong [of s s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x))" u]
       unfolding obt(4,5)
       by auto
     ultimately
@@ -1938,7 +1938,7 @@ next
     by auto
   show ?lhs
     apply (rule_tac x = "\<lambda>x. (if a = x then v else 0) + u x" in exI)
-    unfolding scaleR_left_distrib and setsum_addf and setsum_delta''[OF fin] and setsum_delta'[OF fin]
+    unfolding scaleR_left_distrib and setsum.distrib and setsum_delta''[OF fin] and setsum.delta'[OF fin]
     unfolding setsum_clauses(2)[OF assms]
     using uv and uv(2)[THEN bspec[where x=a]] and `a\<in>s`
     apply auto
@@ -1953,9 +1953,9 @@ next
   moreover
   have "(\<Sum>x\<in>s. if a = x then v else u x) = setsum u s"
     and "(\<Sum>x\<in>s. (if a = x then v else u x) *\<^sub>R x) = (\<Sum>x\<in>s. u x *\<^sub>R x)"
-    apply (rule_tac setsum_cong2)
+    apply (rule_tac setsum.cong) apply rule
     defer
-    apply (rule_tac setsum_cong2)
+    apply (rule_tac setsum.cong) apply rule
     using `a \<notin> s`
     apply auto
     done
@@ -2088,7 +2088,7 @@ proof -
   then have "finite (insert a t)" and "insert a t \<subseteq> insert a s"
     by auto
   moreover have *: "\<And>P Q. (\<Sum>x\<in>t. (if x = a then P x else Q x)) = (\<Sum>x\<in>t. Q x)"
-    apply (rule setsum_cong2)
+    apply (rule setsum.cong)
     using `a\<notin>s` `t\<subseteq>s`
     apply auto
     done
@@ -2106,15 +2106,15 @@ proof -
     apply auto
     done
   moreover have *: "\<And>P Q. (\<Sum>x\<in>t. (if x = a then P x else Q x) *\<^sub>R x) = (\<Sum>x\<in>t. Q x *\<^sub>R x)"
-    apply (rule setsum_cong2)
+    apply (rule setsum.cong)
     using `a\<notin>s` `t\<subseteq>s`
     apply auto
     done
   have "(\<Sum>x\<in>t. u (x - a)) *\<^sub>R a = (\<Sum>v\<in>t. u (v - a) *\<^sub>R v)"
     unfolding scaleR_left.setsum
-    unfolding t_def and setsum_reindex[OF inj] and o_def
+    unfolding t_def and setsum.reindex[OF inj] and o_def
     using obt(5)
-    by (auto simp add: setsum_addf scaleR_right_distrib)
+    by (auto simp add: setsum.distrib scaleR_right_distrib)
   then have "(\<Sum>v\<in>insert a t. (if v = a then - (\<Sum>x\<in>t. u (x - a)) else u (v - a)) *\<^sub>R v) = 0"
     unfolding setsum_clauses(2)[OF fin]
     using `a\<notin>s` `t\<subseteq>s`
@@ -2250,7 +2250,7 @@ proof (rule, rule)
         apply auto
         done
       then have "setsum w s > 0"
-        unfolding setsum_diff1'[OF obt(1) `v\<in>s`]
+        unfolding setsum.remove[OF obt(1) `v\<in>s`]
         using as[THEN bspec[where x=v]] and `v\<in>s`
         using `w v \<noteq> 0`
         by auto
@@ -2293,11 +2293,11 @@ proof (rule, rule)
       using Min_in[OF _ `i\<noteq>{}`] and obt(1) unfolding i_def t_def by auto
     then have a: "a \<in> s" "u a + t * w a = 0" by auto
     have *: "\<And>f. setsum f (s - {a}) = setsum f s - ((f a)::'b::ab_group_add)"
-      unfolding setsum_diff1'[OF obt(1) `a\<in>s`] by auto
+      unfolding setsum.remove[OF obt(1) `a\<in>s`] by auto
     have "(\<Sum>v\<in>s. u v + t * w v) = 1"
-      unfolding setsum_addf wv(1) setsum_right_distrib[symmetric] obt(5) by auto
+      unfolding setsum.distrib wv(1) setsum_right_distrib[symmetric] obt(5) by auto
     moreover have "(\<Sum>v\<in>s. u v *\<^sub>R v + (t * w v) *\<^sub>R v) - (u a *\<^sub>R a + (t * w a) *\<^sub>R a) = y"
-      unfolding setsum_addf obt(6) scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] wv(4)
+      unfolding setsum.distrib obt(6) scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] wv(4)
       using a(2) [THEN eq_neg_iff_add_eq_0 [THEN iffD2]] by simp
     ultimately have "?P (n - 1)"
       apply (rule_tac x="(s - {a})" in exI)
@@ -3762,10 +3762,10 @@ proof (rule, rule)
     have *: "inj_on (\<lambda>v. v + (y - a)) t"
       unfolding inj_on_def by auto
     have "(\<Sum>v\<in>(\<lambda>v. v + (y - a)) ` t. u (v - (y - a))) = 1"
-      unfolding setsum_reindex[OF *] o_def using obt(4) by auto
+      unfolding setsum.reindex[OF *] o_def using obt(4) by auto
     moreover have "(\<Sum>v\<in>(\<lambda>v. v + (y - a)) ` t. u (v - (y - a)) *\<^sub>R v) = y"
-      unfolding setsum_reindex[OF *] o_def using obt(4,5)
-      by (simp add: setsum_addf setsum_subtractf scaleR_left.setsum[symmetric] scaleR_right_distrib)
+      unfolding setsum.reindex[OF *] o_def using obt(4,5)
+      by (simp add: setsum.distrib setsum_subtractf scaleR_left.setsum[symmetric] scaleR_right_distrib)
     ultimately
     show "\<exists>sa u. finite sa \<and> (\<forall>x\<in>sa. x \<in> s) \<and> (\<forall>x\<in>sa. 0 \<le> u x) \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = y"
       apply (rule_tac x="(\<lambda>v. v + (y - a)) ` t" in exI)
@@ -4776,7 +4776,7 @@ proof -
     by blast
   then show ?thesis
     apply (rule_tac x="\<lambda>v. if v\<in>s then u v else 0" in exI)
-    unfolding if_smult scaleR_zero_left and setsum_restrict_set[OF assms(1), symmetric]
+    unfolding if_smult scaleR_zero_left and setsum.inter_restrict[OF assms(1), symmetric]
     apply (auto simp add: Int_absorb1)
     done
 qed
@@ -4789,8 +4789,8 @@ proof -
   have *: "\<And>x. (if f x < 0 then f x else 0) + (if 0 < f x then f x else 0) = f x"
     by auto
   show ?thesis
-    unfolding real_add_eq_0_iff[symmetric] and setsum_restrict_set''[OF assms(1)]
-      and setsum_addf[symmetric] and *
+    unfolding real_add_eq_0_iff[symmetric] and setsum.inter_filter[OF assms(1)]
+      and setsum.distrib[symmetric] and *
     using assms(2)
     apply assumption
     done
@@ -4805,8 +4805,8 @@ proof -
   have *: "\<And>x. (if 0 < g x then f x else 0) + (if g x < 0 then f x else 0) = f x"
     using assms(3) by auto
   show ?thesis
-    unfolding eq_neg_iff_add_eq_0 and setsum_restrict_set''[OF assms(1)]
-      and setsum_addf[symmetric] and *
+    unfolding eq_neg_iff_add_eq_0 and setsum.inter_filter[OF assms(1)]
+      and setsum.distrib[symmetric] and *
     using assms(2)
     apply assumption
     done
@@ -4837,7 +4837,7 @@ proof -
         apply auto
         done
       then show ?thesis
-        unfolding setsum_delta[OF assms(1)] using uv(2) and `u v < 0` and uv(1) by auto
+        unfolding setsum.delta[OF assms(1)] using uv(2) and `u v < 0` and uv(1) by auto
     qed
   qed (insert setsum_nonneg_eq_0_iff[of _ u, OF fin(1)] uv(2-3), auto)
 
@@ -4850,14 +4850,14 @@ proof -
   moreover have "setsum u ({x \<in> c. 0 < u x} \<union> {x \<in> c. u x < 0}) = setsum u c"
     "(\<Sum>x\<in>{x \<in> c. 0 < u x} \<union> {x \<in> c. u x < 0}. u x *\<^sub>R x) = (\<Sum>x\<in>c. u x *\<^sub>R x)"
     using assms(1)
-    apply (rule_tac[!] setsum_mono_zero_left)
+    apply (rule_tac[!] setsum.mono_neutral_left)
     apply auto
     done
   then have "setsum u {x \<in> c. 0 < u x} = - setsum u {x \<in> c. 0 > u x}"
     "(\<Sum>x\<in>{x \<in> c. 0 < u x}. u x *\<^sub>R x) = - (\<Sum>x\<in>{x \<in> c. 0 > u x}. u x *\<^sub>R x)"
     unfolding eq_neg_iff_add_eq_0
     using uv(1,4)
-    by (auto simp add: setsum_Un_zero[OF fin, symmetric])
+    by (auto simp add: setsum.union_inter_neutral[OF fin, symmetric])
   moreover have "\<forall>x\<in>{v \<in> c. u v < 0}. 0 \<le> inverse (setsum u {x \<in> c. 0 < u x}) * - u x"
     apply rule
     apply (rule mult_nonneg_nonneg)
@@ -5773,7 +5773,7 @@ proof
 qed
 
 lemma inner_setsum_Basis[simp]: "i \<in> Basis \<Longrightarrow> (\<Sum>Basis) \<bullet> i = 1"
-  by (simp add: inner_setsum_left setsum_cases inner_Basis)
+  by (simp add: inner_setsum_left setsum.If_cases inner_Basis)
 
 lemma convex_set_plus:
   assumes "convex s" and "convex t" shows "convex (s + t)"
@@ -5806,7 +5806,7 @@ lemma set_setsum_eq:
   apply (rule_tac x="fun_upd f x a" in exI)
   apply simp
   apply (rule_tac f="\<lambda>x. a + x" in arg_cong)
-  apply (rule setsum_cong [OF refl])
+  apply (rule setsum.cong [OF refl])
   apply clarsimp
   apply (fast intro: set_plus_intro)
   done
@@ -5820,10 +5820,10 @@ lemma box_eq_set_setsum_Basis:
   apply (subgoal_tac "(\<Sum>x\<in>Basis. f x \<bullet> i) = f i \<bullet> i")
   apply (drule (1) bspec)
   apply clarsimp
-  apply (frule setsum_diff1' [OF finite_Basis])
+  apply (frule setsum.remove [OF finite_Basis])
   apply (erule trans)
   apply simp
-  apply (rule setsum_0')
+  apply (rule setsum.neutral)
   apply clarsimp
   apply (frule_tac x=i in bspec, assumption)
   apply (drule_tac x=x in bspec, assumption)
@@ -5860,7 +5860,7 @@ lemma unit_interval_convex_hull:
   (is "?int = convex hull ?points")
 proof -
   have One[simp]: "\<And>i. i \<in> Basis \<Longrightarrow> One \<bullet> i = 1"
-    by (simp add: One_def inner_setsum_left setsum_cases inner_Basis)
+    by (simp add: One_def inner_setsum_left setsum.If_cases inner_Basis)
   have "?int = {x. \<forall>i\<in>Basis. x \<bullet> i \<in> cbox 0 1}"
     by (auto simp: cbox_def)
   also have "\<dots> = (\<Sum>i\<in>Basis. (\<lambda>x. x *\<^sub>R i) ` cbox 0 1)"
@@ -6154,7 +6154,7 @@ proof
       unfolding c_def convex_hull_set_setsum
       apply (subst convex_hull_linear_image [symmetric])
       apply (simp add: linear_iff scaleR_add_left)
-      apply (rule setsum_cong [OF refl])
+      apply (rule setsum.cong [OF refl])
       apply (rule image_cong [OF _ refl])
       apply (rule convex_hull_eq_real_cbox)
       apply (cut_tac `0 < d`, simp)
@@ -6625,7 +6625,7 @@ proof -
       by auto
     then have **: "setsum u ?D = setsum (op \<bullet> x) ?D"
       apply -
-      apply (rule setsum_cong2)
+      apply (rule setsum.cong)
       using assms
       apply auto
       done
@@ -6694,13 +6694,13 @@ proof -
       by (auto simp: SOME_Basis inner_Basis inner_simps)
     then have *: "setsum (op \<bullet> (x + (e / 2) *\<^sub>R (SOME i. i\<in>Basis))) Basis =
       setsum (\<lambda>i. x\<bullet>i + (if (SOME i. i\<in>Basis) = i then e/2 else 0)) Basis"
-      apply (rule_tac setsum_cong)
+      apply (rule_tac setsum.cong)
       apply auto
       done
     have "setsum (op \<bullet> x) Basis < setsum (op \<bullet> (x + (e / 2) *\<^sub>R (SOME i. i\<in>Basis))) Basis"
-      unfolding * setsum_addf
+      unfolding * setsum.distrib
       using `e > 0` DIM_positive[where 'a='a]
-      apply (subst setsum_delta')
+      apply (subst setsum.delta')
       apply (auto simp: SOME_Basis)
       done
     also have "\<dots> \<le> 1"
@@ -6744,7 +6744,7 @@ next
       then show "y \<bullet> i \<le> x \<bullet> i + ?d" by auto
     qed
     also have "\<dots> \<le> 1"
-      unfolding setsum_addf setsum_constant real_eq_of_nat
+      unfolding setsum.distrib setsum_constant real_eq_of_nat
       by (auto simp add: Suc_le_eq)
     finally show "(\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> setsum (op \<bullet> y) Basis \<le> 1"
     proof safe
@@ -6774,7 +6774,7 @@ proof -
     assume i: "i \<in> Basis"
     have "?a \<bullet> i = inverse (2 * real DIM('a))"
       by (rule trans[of _ "setsum (\<lambda>j. if i = j then inverse (2 * real DIM('a)) else 0) ?D"])
-         (simp_all add: setsum_cases i) }
+         (simp_all add: setsum.If_cases i) }
   note ** = this
   show ?thesis
     apply (rule that[of ?a])
@@ -6786,7 +6786,8 @@ proof -
       unfolding **[OF i] by (auto simp add: Suc_le_eq DIM_positive)
   next
     have "setsum (op \<bullet> ?a) ?D = setsum (\<lambda>i. inverse (2 * real DIM('a))) ?D"
-      apply (rule setsum_cong2, rule **)
+      apply (rule setsum.cong)
+      apply rule
       apply auto
       done
     also have "\<dots> < 1"
@@ -6859,16 +6860,16 @@ proof -
           using a d by (auto simp: inner_simps inner_Basis)
         then have *: "setsum (op \<bullet> (x + (e / 2) *\<^sub>R a)) d =
           setsum (\<lambda>i. x\<bullet>i + (if a = i then e/2 else 0)) d"
-          using d by (intro setsum_cong) auto
+          using d by (intro setsum.cong) auto
         have "a \<in> Basis"
           using `a \<in> d` d by auto
         then have h1: "(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> (x + (e / 2) *\<^sub>R a) \<bullet> i = 0)"
           using x0 d `a\<in>d` by (auto simp add: inner_add_left inner_Basis)
         have "setsum (op \<bullet> x) d < setsum (op \<bullet> (x + (e / 2) *\<^sub>R a)) d"
-          unfolding * setsum_addf
+          unfolding * setsum.distrib
           using `e > 0` `a \<in> d`
           using `finite d`
-          by (auto simp add: setsum_delta')
+          by (auto simp add: setsum.delta')
         also have "\<dots> \<le> 1"
           using ** h1 as[rule_format, of "x + (e / 2) *\<^sub>R a"]
           by auto
@@ -6927,7 +6928,7 @@ proof -
           then show "y \<bullet> i \<le> x \<bullet> i + ?d" by auto
         qed
         also have "\<dots> \<le> 1"
-          unfolding setsum_addf setsum_constant real_eq_of_nat
+          unfolding setsum.distrib setsum_constant real_eq_of_nat
           using `0 < card d`
           by auto
         finally show "setsum (op \<bullet> y) d \<le> 1" .
@@ -6976,10 +6977,10 @@ proof -
     have "?a \<bullet> i = inverse (2 * real (card d))"
       apply (rule trans[of _ "setsum (\<lambda>j. if i = j then inverse (2 * real (card d)) else 0) ?D"])
       unfolding inner_setsum_left
-      apply (rule setsum_cong2)
-      using `i \<in> d` `finite d` setsum_delta'[of d i "(\<lambda>k. inverse (2 * real (card d)))"]
+      apply (rule setsum.cong)
+      using `i \<in> d` `finite d` setsum.delta'[of d i "(\<lambda>k. inverse (2 * real (card d)))"]
         d1 assms(2)
-      by (auto simp: inner_simps inner_Basis set_rev_mp[OF _ assms(2)])
+      by (auto simp: inner_Basis set_rev_mp[OF _ assms(2)])
   }
   note ** = this
   show ?thesis
@@ -6995,7 +6996,7 @@ proof -
     finally show "0 < ?a \<bullet> i" by auto
   next
     have "setsum (op \<bullet> ?a) ?D = setsum (\<lambda>i. inverse (2 * real (card d))) ?D"
-      by (rule setsum_cong2) (rule **)
+      by (rule setsum.cong) (rule refl, rule **)
     also have "\<dots> < 1"
       unfolding setsum_constant real_eq_of_nat divide_real_def[symmetric]
       by (auto simp add: field_simps)
@@ -8395,13 +8396,13 @@ proof -
       assume "x \<in> S i"
       def c \<equiv> "\<lambda>j. if j = i then 1::real else 0"
       then have *: "setsum c I = 1"
-        using `finite I` `i \<in> I` setsum_delta[of I i "\<lambda>j::'a. 1::real"]
+        using `finite I` `i \<in> I` setsum.delta[of I i "\<lambda>j::'a. 1::real"]
         by auto
       def s \<equiv> "\<lambda>j. if j = i then x else p j"
       then have "\<forall>j. c j *\<^sub>R s j = (if j = i then x else 0)"
         using c_def by (auto simp add: algebra_simps)
       then have "x = setsum (\<lambda>i. c i *\<^sub>R s i) I"
-        using s_def c_def `finite I` `i \<in> I` setsum_delta[of I i "\<lambda>j::'a. x"]
+        using s_def c_def `finite I` `i \<in> I` setsum.delta[of I i "\<lambda>j::'a. x"]
         by auto
       then have "x \<in> ?rhs"
         apply auto
@@ -8434,7 +8435,7 @@ proof -
     moreover have "setsum (\<lambda>i. v * d i) I = v * setsum d I"
       by (simp add: setsum_right_distrib)
     ultimately have sum1: "setsum e I = 1"
-      using e_def xc yc uv by (simp add: setsum_addf)
+      using e_def xc yc uv by (simp add: setsum.distrib)
     def q \<equiv> "\<lambda>i. if e i = 0 then p i else (u * c i / e i) *\<^sub>R s i + (v * d i / e i) *\<^sub>R t i"
     {
       fix i
@@ -8477,7 +8478,7 @@ proof -
     then have *: "\<forall>i\<in>I. (u * c i) *\<^sub>R s i + (v * d i) *\<^sub>R t i = e i *\<^sub>R q i"
       by auto
     have "u *\<^sub>R x + v *\<^sub>R y = setsum (\<lambda>i. (u * c i) *\<^sub>R s i + (v * d i) *\<^sub>R t i) I"
-      using xc yc by (simp add: algebra_simps scaleR_right.setsum setsum_addf)
+      using xc yc by (simp add: algebra_simps scaleR_right.setsum setsum.distrib)
     also have "\<dots> = setsum (\<lambda>i. e i *\<^sub>R q i) I"
       using * by auto
     finally have "u *\<^sub>R x + v *\<^sub>R y = setsum (\<lambda>i. (e i) *\<^sub>R (q i)) I"

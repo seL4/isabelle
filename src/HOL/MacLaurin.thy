@@ -87,7 +87,7 @@ proof -
       + (B * (t^n / real(fact n)))))"
 
   have g2: "g 0 = 0 & g h = 0"
-    by (simp add: m f_h g_def lessThan_Suc_eq_insert_0 image_iff diff_0 setsum_reindex)
+    by (simp add: m f_h g_def lessThan_Suc_eq_insert_0 image_iff diff_0 setsum.reindex)
 
   def difg \<equiv> "(%m t. diff m t -
     (setsum (%p. (diff (m + p) 0 / real (fact p)) * (t ^ p)) {..<n-m}
@@ -101,7 +101,7 @@ proof -
     using diff_Suc m unfolding difg_def by (rule Maclaurin_lemma2)
 
   have difg_eq_0: "\<forall>m<n. difg m 0 = 0"
-    by (auto simp: difg_def m Suc_diff_le lessThan_Suc_eq_insert_0 image_iff setsum_reindex)
+    by (auto simp: difg_def m Suc_diff_le lessThan_Suc_eq_insert_0 image_iff setsum.reindex)
 
   have isCont_difg: "\<And>m x. \<lbrakk>m < n; 0 \<le> x; x \<le> h\<rbrakk> \<Longrightarrow> isCont (difg m) x"
     by (rule DERIV_isCont [OF difg_Suc [rule_format]]) simp
@@ -225,7 +225,7 @@ proof -
     by (auto simp add: power_mult_distrib[symmetric])
   moreover
   have "(SUM m<n. -1 ^ m * diff m 0 * (- h) ^ m / real (fact m)) = (SUM m<n. diff m 0 * h ^ m / real (fact m))"
-    by (auto intro: setsum_cong simp add: power_mult_distrib[symmetric])
+    by (auto intro: setsum.cong simp add: power_mult_distrib[symmetric])
   ultimately have " h < - t \<and>
     - t < 0 \<and>
     f h =
@@ -419,13 +419,13 @@ apply safe
 apply (simp (no_asm))
 apply (simp (no_asm) add: sin_expansion_lemma)
 apply (force intro!: derivative_eq_intros)
-apply (subst (asm) setsum_0', clarify, case_tac "x", simp, simp)
+apply (subst (asm) setsum.neutral, clarify, case_tac "x", simp, simp)
 apply (cases n, simp, simp)
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule setsum_cong[OF refl])
+apply (rule setsum.cong[OF refl])
 apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
 done
 
@@ -450,7 +450,7 @@ apply (simp (no_asm) add: sin_expansion_lemma)
 apply (force intro!: derivative_eq_intros)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule setsum_cong[OF refl])
+apply (rule setsum.cong[OF refl])
 apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
 done
 
@@ -467,7 +467,7 @@ apply (simp (no_asm) add: sin_expansion_lemma)
 apply (force intro!: derivative_eq_intros)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule setsum_cong[OF refl])
+apply (rule setsum.cong[OF refl])
 apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
 done
 
@@ -497,7 +497,7 @@ apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule setsum_cong[OF refl])
+apply (rule setsum.cong[OF refl])
 apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
 done
 
@@ -513,7 +513,7 @@ apply simp
 apply (simp (no_asm) add: cos_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule setsum_cong[OF refl])
+apply (rule setsum.cong[OF refl])
 apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
 done
 
@@ -529,7 +529,7 @@ apply simp
 apply (simp (no_asm) add: cos_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
-apply (rule setsum_cong[OF refl])
+apply (rule setsum.cong[OF refl])
 apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
 done
 
@@ -572,7 +572,7 @@ proof -
     unfolding sin_coeff_def
     apply (subst t2)
     apply (rule sin_bound_lemma)
-    apply (rule setsum_cong[OF refl])
+    apply (rule setsum.cong[OF refl])
     apply (subst diff_m_0, simp)
     apply (auto intro: mult_right_mono [where b=1, simplified] mult_right_mono
                 simp add: est mult_ac divide_inverse power_abs [symmetric] abs_mult)

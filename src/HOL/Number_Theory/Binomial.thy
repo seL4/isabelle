@@ -173,7 +173,7 @@ next
   also have
       "\<dots> = a^(n+1) + b^(n+1) + 
             (\<Sum>k=1..n. of_nat(n+1 choose k) * a^k * b^(n+1-k))"
-    by (auto simp add: field_simps setsum_addf [symmetric] choose_reduce_nat)
+    by (auto simp add: field_simps setsum.distrib [symmetric] choose_reduce_nat)
   also have "\<dots> = (\<Sum>k=0..n+1. of_nat (n+1 choose k) * a^k * b^(n+1-k))"
     using decomp by (simp add: field_simps)
   finally show "?P (Suc n)" by simp
@@ -263,13 +263,13 @@ next
   have *: "finite {1 .. n}" "0 \<notin> {1 .. n}" by auto
   have eq: "insert 0 {1 .. n} = {0..n}" by auto
   have **: "(\<Prod>n\<in>{1\<Colon>nat..n}. a + of_nat n) = (\<Prod>n\<in>{0\<Colon>nat..n - 1}. a + 1 + of_nat n)"
-    apply (rule setprod_reindex_cong [where f = Suc])
+    apply (rule setprod.reindex_cong [where l = Suc])
     using False
     apply (auto simp add: fun_eq_iff field_simps)
     done
   show ?thesis
     apply (simp add: pochhammer_def)
-    unfolding setprod_insert [OF *, unfolded eq]
+    unfolding setprod.insert [OF *, unfolded eq]
     using ** apply (simp add: field_simps)
     done
 qed
@@ -278,7 +278,7 @@ lemma pochhammer_fact: "of_nat (fact n) = pochhammer 1 n"
   unfolding fact_altdef_nat
   apply (cases n)
    apply (simp_all add: of_nat_setprod pochhammer_Suc_setprod)
-  apply (rule setprod_reindex_cong[where f=Suc])
+  apply (rule setprod.reindex_cong [where l = Suc])
     apply (auto simp add: fun_eq_iff)
   done
 
@@ -347,7 +347,7 @@ next
     using setprod_constant[where A="{0 .. h}" and y="- 1 :: 'a"]
     by auto
   show ?thesis
-    unfolding Suc pochhammer_Suc_setprod eq setprod_timesf[symmetric]
+    unfolding Suc pochhammer_Suc_setprod eq setprod.distrib[symmetric]
     by (rule setprod.reindex_bij_witness[where i="op - h" and j="op - h"])
        (auto simp: of_nat_diff)
 qed
@@ -390,7 +390,7 @@ next
     by auto
   from False show ?thesis
     by (simp add: pochhammer_def gbinomial_def field_simps
-      eq setprod_timesf[symmetric])
+      eq setprod.distrib[symmetric])
 qed
 
 lemma binomial_fact_lemma: "k \<le> n \<Longrightarrow> fact k * fact (n - k) * (n choose k) = fact n"
@@ -459,10 +459,10 @@ proof -
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a]
         gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
       apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h
-        of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
-      unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
+        of_nat_setprod setprod.distrib[symmetric] eq' del: One_nat_def power_Suc)
+      unfolding setprod.union_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
       unfolding mult_assoc[symmetric]
-      unfolding setprod_timesf[symmetric]
+      unfolding setprod.distrib[symmetric]
       apply simp
       apply (intro setprod.reindex_bij_witness[where i="op - n" and j="op - n"])
       apply (auto simp: of_nat_diff)
@@ -520,7 +520,7 @@ proof (cases k)
 next
   case (Suc h)
   have eq0: "(\<Prod>i\<in>{1..k}. (a + 1) - of_nat i) = (\<Prod>i\<in>{0..h}. a - of_nat i)"
-    apply (rule strong_setprod_reindex_cong[where f = Suc])
+    apply (rule setprod.reindex_cong [where l = Suc])
       using Suc
       apply auto
     done
@@ -573,7 +573,7 @@ proof (cases "0 < k")
     by (auto simp: gr0_conv_Suc lessThan_Suc_atMost atLeast0AtMost)
   also have "\<dots> = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
     using `k \<le> n` unfolding fact_eq_rev_setprod_nat of_nat_setprod
-    by (auto simp add: setprod_dividef intro!: setprod_cong of_nat_diff[symmetric])
+    by (auto simp add: setprod_dividef intro!: setprod.cong of_nat_diff[symmetric])
   finally show ?thesis .
 next
   case False
@@ -702,15 +702,15 @@ proof -
   also have "\<dots> = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (\<Sum>_\<in>\<Inter>I. -1 ^ (card I + 1)))" (is "_ = nat ?rhs")
     by(subst setsum_right_distrib) simp
   also have "?rhs = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. -1 ^ (card I + 1))"
-    using assms by(subst setsum_Sigma)(auto)
+    using assms by(subst setsum.Sigma)(auto)
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:UNIV. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). -1 ^ (card I + 1))"
-    by(rule setsum_reindex_cong[where f="\<lambda>(x, y). (y, x)"])(auto intro: inj_onI simp add: split_beta)
+    by (rule setsum.reindex_cong [where l = "\<lambda>(x, y). (y, x)"]) (auto intro: inj_onI simp add: split_beta)
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:\<Union>A. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). -1 ^ (card I + 1))"
-    using assms by(auto intro!: setsum_mono_zero_cong_right finite_SigmaI2 intro: finite_subset[where B="\<Union>A"])
+    using assms by(auto intro!: setsum.mono_neutral_cong_right finite_SigmaI2 intro: finite_subset[where B="\<Union>A"])
   also have "\<dots> = (\<Sum>x\<in>\<Union>A. (\<Sum>I|I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I. -1 ^ (card I + 1)))" 
-    using assms by(subst setsum_Sigma) auto
+    using assms by(subst setsum.Sigma) auto
   also have "\<dots> = (\<Sum>_\<in>\<Union>A. 1)" (is "setsum ?lhs _ = _")
-  proof(rule setsum_cong[OF refl])
+  proof(rule setsum.cong[OF refl])
     fix x
     assume x: "x \<in> \<Union>A"
     def K \<equiv> "{X \<in> A. x \<in> X}"
@@ -723,13 +723,13 @@ proof -
         simp add: card_gt_0_iff[folded Suc_le_eq]
         dest: finite_subset intro: card_mono)
     ultimately have "?lhs x = (\<Sum>(i, I)\<in>(SIGMA i:{1..card A}. ?I i). -1 ^ (i + 1))"
-      by(rule setsum_reindex_cong[where f=snd]) fastforce
+      by (rule setsum.reindex_cong [where l = snd]) fastforce
     also have "\<dots> = (\<Sum>i=1..card A. (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. -1 ^ (i + 1)))"
-      using assms by(subst setsum_Sigma) auto
+      using assms by(subst setsum.Sigma) auto
     also have "\<dots> = (\<Sum>i=1..card A. -1 ^ (i + 1) * (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1))"
       by(subst setsum_right_distrib) simp
     also have "\<dots> = (\<Sum>i=1..card K. -1 ^ (i + 1) * (\<Sum>I|I \<subseteq> K \<and> card I = i. 1))" (is "_ = ?rhs")
-    proof(rule setsum_mono_zero_cong_right[rule_format])
+    proof(rule setsum.mono_neutral_cong_right[rule_format])
       show "{1..card K} \<subseteq> {1..card A}" using `finite A`
         by(auto simp add: K_def intro: card_mono)
     next
@@ -746,7 +746,7 @@ proof -
       fix i
       have "(\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1) = (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)"
         (is "?lhs = ?rhs")
-        by(rule setsum_cong)(auto simp add: K_def)
+        by(rule setsum.cong)(auto simp add: K_def)
       thus "-1 ^ (i + 1) * ?lhs = -1 ^ (i + 1) * ?rhs" by simp
     qed simp
     also have "{I. I \<subseteq> K \<and> card I = 0} = {{}}" using assms

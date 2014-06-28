@@ -841,7 +841,7 @@ proof
     by auto
   from bchoice[OF this] * assms show "\<forall>i\<in>A. f i = 0"
     using setsum_nonneg_eq_0_iff[of A "\<lambda>i. real (f i)"] by auto
-qed (rule setsum_0')
+qed (rule setsum.neutral)
 
 lemma setsum_ereal_right_distrib:
   fixes f :: "'a \<Rightarrow> ereal"
@@ -957,7 +957,7 @@ lemma suminf_add_ereal:
     and "\<And>i. 0 \<le> g i"
   shows "(\<Sum>i. f i + g i) = suminf f + suminf g"
   apply (subst (1 2 3) suminf_ereal_eq_SUP)
-  unfolding setsum_addf
+  unfolding setsum.distrib
   apply (intro assms ereal_add_nonneg_nonneg SUP_ereal_add_pos incseq_setsumI setsum_nonneg ballI)+
   done
 
@@ -1237,7 +1237,7 @@ proof -
     have "(\<Sum>i<n. f (i + k)) = (\<Sum>i<n. (f \<circ> (\<lambda>i. i + k)) i)"
       by simp
     also have "\<dots> = (\<Sum>i\<in>(\<lambda>i. i + k) ` {..<n}. f i)"
-      by (subst setsum_reindex) auto
+      by (subst setsum.reindex) auto
     also have "\<dots> \<le> setsum f {..<n + k}"
       by (intro setsum_mono3) (auto simp: f)
     finally show "(\<Sum>i<n. f (i + k)) \<le> setsum f {..<n + k}" .

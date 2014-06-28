@@ -552,7 +552,8 @@ apply (subgoal_tac "(\<lambda>x. SUM y : A x. (l x y) * h(k x y)) =
  apply (erule ssubst)
  apply (erule bigo_setsum3)
 apply (rule ext)
-apply (rule setsum_cong2)
+apply (rule setsum.cong)
+apply (rule refl)
 by (metis abs_of_nonneg zero_le_mult_iff)
 
 lemma bigo_setsum6: "f =o g +o O(h) \<Longrightarrow> \<forall>x y. 0 <= l x y \<Longrightarrow>

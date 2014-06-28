@@ -239,12 +239,13 @@ lemma C_card_eq_D_plus_E: "card C = card D + card E"
   by (auto simp add: C_eq card_Un_disjoint D_E_disj finite_D finite_E)
 
 lemma C_prod_eq_D_times_E: "setprod id E * setprod id D = setprod id C"
-  by (metis C_eq D_E_disj finite_D finite_E inf_commute setprod_Un_disjoint sup_commute)
+  by (metis C_eq D_E_disj finite_D finite_E inf_commute setprod.union_disjoint sup_commute)
 
 lemma C_B_zcong_prod: "[setprod id C = setprod id B] (mod p)"
   apply (auto simp add: C_def)
   apply (insert finite_B SR_B_inj)
-  apply (frule_tac f = "\<lambda>x. x mod int p" in setprod_reindex_id [symmetric], auto)
+  apply (drule setprod.reindex [of "\<lambda>x. x mod int p" B id])
+  apply auto
   apply (rule cong_setprod_int)
   apply (auto simp add: cong_int_def)
   done
@@ -291,14 +292,14 @@ lemma F_Un_D_eq_A: "F \<union> D = A"
   by (auto simp add: card_seteq)
 
 lemma prod_D_F_eq_prod_A: "(setprod id D) * (setprod id F) = setprod id A"
-  by (metis F_D_disj F_Un_D_eq_A Int_commute Un_commute finite_D finite_F setprod_Un_disjoint)
+  by (metis F_D_disj F_Un_D_eq_A Int_commute Un_commute finite_D finite_F setprod.union_disjoint)
 
 lemma prod_F_zcong: "[setprod id F = ((-1) ^ (card E)) * (setprod id E)] (mod p)"
 proof -
   have FE: "setprod id F = setprod (op - p) E"
     apply (auto simp add: F_def)
     apply (insert finite_E inj_on_pminusx_E)
-    apply (frule setprod_reindex_id, auto)
+    apply (drule setprod.reindex, auto)
     done
   then have "\<forall>x \<in> E. [(p-x) mod p = - x](mod p)"
     by (metis cong_int_def minus_mod_self1 mod_mod_trivial)
@@ -324,7 +325,7 @@ theorem pre_gauss_lemma:
   "[a ^ nat((int p - 1) div 2) = (-1) ^ (card E)] (mod p)"
 proof -
   have "[setprod id A = setprod id F * setprod id D](mod p)"
-    by (auto simp add: prod_D_F_eq_prod_A mult_commute cong del:setprod_cong)
+    by (auto simp add: prod_D_F_eq_prod_A mult_commute cong del:setprod.cong)
   then have "[setprod id A = ((-1)^(card E) * setprod id E) * setprod id D] (mod p)"
     apply (rule cong_trans_int)
     apply (metis cong_scalar_int prod_F_zcong)
@@ -338,7 +339,7 @@ proof -
     by (simp add: B_def)
   then have "[setprod id A = ((-1)^(card E) * (setprod (\<lambda>x. x * a) A))]
     (mod p)"
-    by (simp add:finite_A inj_on_xa_A setprod_reindex_id[symmetric] cong del:setprod_cong)
+    by (simp add: inj_on_xa_A setprod.reindex)
   moreover have "setprod (\<lambda>x. x * a) A =
     setprod (\<lambda>x. a) A * setprod id A"
     using finite_A by (induct set: finite) auto
@@ -360,7 +361,7 @@ proof -
     done
   then have "[setprod id A * (-1)^(card E) = setprod id A * a^(card A)](mod p)"
     apply (rule cong_trans_int)
-    apply (simp add: aux cong del:setprod_cong)
+    apply (simp add: aux cong del:setprod.cong)
     done
   with A_prod_relprime have "[-1 ^ card E = a ^ card A](mod p)"
     by (metis cong_mult_lcancel_int)

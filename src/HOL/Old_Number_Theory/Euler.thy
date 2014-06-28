@@ -180,7 +180,7 @@ lemma Union_SetS_setprod_prop1:
 proof -
   from assms have "[\<Prod>(Union (SetS a p)) = setprod (setprod (%x. x)) (SetS a p)] (mod p)"
     by (auto simp add: SetS_finite SetS_elems_finite
-      MultInvPair_prop1c setprod_Union_disjoint)
+      MultInvPair_prop1c setprod.Union_disjoint)
   also have "[setprod (setprod (%x. x)) (SetS a p) = 
       setprod (%x. a) (SetS a p)] (mod p)"
     by (rule setprod_same_function_zcong)

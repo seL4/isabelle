@@ -72,9 +72,9 @@ lemma simple_function_indicator_representation:
 proof -
   have "?r = (\<Sum>y \<in> f ` space M.
     (if y = f x then y * indicator (f -` {y} \<inter> space M) x else 0))"
-    by (auto intro!: setsum_cong2)
+    by (auto intro!: setsum.cong)
   also have "... =  f x *  indicator (f -` {f x} \<inter> space M) x"
-    using assms by (auto dest: simple_functionD simp: setsum_delta)
+    using assms by (auto dest: simple_functionD simp: setsum.delta)
   also have "... = f x" using x by (auto simp: indicator_def)
   finally show ?thesis by auto
 qed
@@ -552,7 +552,7 @@ proof -
     (\<Sum>y\<in>f`space M. y * (\<Sum>z\<in>g`space M. 
       if \<exists>x\<in>space M. y = f x \<and> z = g x then emeasure M {x\<in>space M. g x = z} else 0))"
     unfolding simple_integral_def
-  proof (safe intro!: setsum_cong ereal_left_mult_cong)
+  proof (safe intro!: setsum.cong ereal_left_mult_cong)
     fix y assume y: "y \<in> space M" "f y \<noteq> 0"
     have [simp]: "g ` space M \<inter> {z. \<exists>x\<in>space M. f y = f x \<and> z = g x} = 
         {z. \<exists>x\<in>space M. f y = f x \<and> z = g x}"
@@ -565,17 +565,17 @@ proof -
       by (rule rev_finite_subset) auto
     then show "emeasure M (f -` {f y} \<inter> space M) =
       (\<Sum>z\<in>g ` space M. if \<exists>x\<in>space M. f y = f x \<and> z = g x then emeasure M {x \<in> space M. g x = z} else 0)"
-      apply (simp add: setsum_cases)
+      apply (simp add: setsum.If_cases)
       apply (subst setsum_emeasure)
       apply (auto simp: disjoint_family_on_def eq)
       done
   qed
   also have "\<dots> = (\<Sum>y\<in>f`space M. (\<Sum>z\<in>g`space M. 
       if \<exists>x\<in>space M. y = f x \<and> z = g x then y * emeasure M {x\<in>space M. g x = z} else 0))"
-    by (auto intro!: setsum_cong simp: setsum_ereal_right_distrib emeasure_nonneg)
+    by (auto intro!: setsum.cong simp: setsum_ereal_right_distrib emeasure_nonneg)
   also have "\<dots> = ?r"
-    by (subst setsum_commute)
-       (auto intro!: setsum_cong simp: setsum_cases scaleR_setsum_right[symmetric] eq)
+    by (subst setsum.commute)
+       (auto intro!: setsum.cong simp: setsum.If_cases scaleR_setsum_right[symmetric] eq)
   finally show "integral\<^sup>S M f = ?r" .
 qed
 
@@ -588,7 +588,7 @@ proof -
     by (intro simple_function_partition) (auto intro: f g)
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, g x))`space M. fst y * emeasure M {x\<in>space M. (f x, g x) = y}) +
     (\<Sum>y\<in>(\<lambda>x. (f x, g x))`space M. snd y * emeasure M {x\<in>space M. (f x, g x) = y})"
-    using assms(2,4) by (auto intro!: setsum_cong ereal_left_distrib simp: setsum_addf[symmetric])
+    using assms(2,4) by (auto intro!: setsum.cong ereal_left_distrib simp: setsum.distrib[symmetric])
   also have "(\<Sum>y\<in>(\<lambda>x. (f x, g x))`space M. fst y * emeasure M {x\<in>space M. (f x, g x) = y}) = (\<integral>\<^sup>Sx. f x \<partial>M)"
     by (intro simple_function_partition[symmetric]) (auto intro: f g)
   also have "(\<Sum>y\<in>(\<lambda>x. (f x, g x))`space M. snd y * emeasure M {x\<in>space M. (f x, g x) = y}) = (\<integral>\<^sup>Sx. g x \<partial>M)"
@@ -686,14 +686,14 @@ proof -
     using assms by (intro simple_function_partition) auto
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, indicator A x::ereal))`space M.
     if snd y = 1 then fst y * emeasure M (f -` {fst y} \<inter> space M \<inter> A) else 0)"
-    by (auto simp: indicator_def split: split_if_asm intro!: arg_cong2[where f="op *"] arg_cong2[where f=emeasure] setsum_cong)
+    by (auto simp: indicator_def split: split_if_asm intro!: arg_cong2[where f="op *"] arg_cong2[where f=emeasure] setsum.cong)
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, 1::ereal))`A. fst y * emeasure M (f -` {fst y} \<inter> space M \<inter> A))"
-    using assms by (subst setsum_cases) (auto intro!: simple_functionD(1) simp: eq)
+    using assms by (subst setsum.If_cases) (auto intro!: simple_functionD(1) simp: eq)
   also have "\<dots> = (\<Sum>y\<in>fst`(\<lambda>x. (f x, 1::ereal))`A. y * emeasure M (f -` {y} \<inter> space M \<inter> A))"
-    by (subst setsum_reindex[where f=fst]) (auto simp: inj_on_def)
+    by (subst setsum.reindex [of fst]) (auto simp: inj_on_def)
   also have "\<dots> = (\<Sum>x \<in> f ` space M. x * emeasure M (f -` {x} \<inter> space M \<inter> A))"
     using A[THEN sets.sets_into_space]
-    by (intro setsum_mono_zero_cong_left simple_functionD f) (auto simp: image_comp comp_def eq2)
+    by (intro setsum.mono_neutral_cong_left simple_functionD f) (auto simp: image_comp comp_def eq2)
   finally show ?thesis .
 qed
 
@@ -929,7 +929,7 @@ proof (rule ereal_le_mult_one_interval)
   next
     show "integral\<^sup>S M u = (\<Sum>i\<in>u ` space M. SUP n. i * (emeasure M) (?B' i n))"
       using measure_conv u_range B_u unfolding simple_integral_def
-      by (auto intro!: setsum_cong SUP_ereal_cmult [symmetric])
+      by (auto intro!: setsum.cong SUP_ereal_cmult [symmetric])
   qed
   moreover
   have "a * (SUP i. integral\<^sup>S M (?uB i)) \<le> ?S"
@@ -1615,19 +1615,19 @@ proof -
   have *: "(\<integral>\<^sup>+x. max 0 (f x) \<partial>count_space A) =
     (\<integral>\<^sup>+ x. (\<Sum>a|a\<in>A \<and> 0 < f a. f a * indicator {a} x) \<partial>count_space A)"
     by (auto intro!: nn_integral_cong
-             simp add: indicator_def if_distrib setsum_cases[OF A] max_def le_less)
+             simp add: indicator_def if_distrib setsum.If_cases[OF A] max_def le_less)
   also have "\<dots> = (\<Sum>a|a\<in>A \<and> 0 < f a. \<integral>\<^sup>+ x. f a * indicator {a} x \<partial>count_space A)"
     by (subst nn_integral_setsum)
        (simp_all add: AE_count_space ereal_zero_le_0_iff less_imp_le)
   also have "\<dots> = (\<Sum>a|a\<in>A \<and> 0 < f a. f a)"
-    by (auto intro!: setsum_cong simp: nn_integral_cmult_indicator one_ereal_def[symmetric])
+    by (auto intro!: setsum.cong simp: nn_integral_cmult_indicator one_ereal_def[symmetric])
   finally show ?thesis by (simp add: nn_integral_max_0)
 qed
 
 lemma nn_integral_count_space_finite:
     "finite A \<Longrightarrow> (\<integral>\<^sup>+x. f x \<partial>count_space A) = (\<Sum>a\<in>A. max 0 (f a))"
   by (subst nn_integral_max_0[symmetric])
-     (auto intro!: setsum_mono_zero_left simp: nn_integral_count_space less_le)
+     (auto intro!: setsum.mono_neutral_left simp: nn_integral_count_space less_le)
 
 lemma emeasure_UN_countable:
   assumes sets: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets M" and I: "countable I" 
@@ -1636,7 +1636,7 @@ lemma emeasure_UN_countable:
 proof cases
   assume "finite I" with sets disj show ?thesis
     by (subst setsum_emeasure[symmetric])
-       (auto intro!: setsum_cong simp add: max_def subset_eq nn_integral_count_space_finite emeasure_nonneg)
+       (auto intro!: setsum.cong simp add: max_def subset_eq nn_integral_count_space_finite emeasure_nonneg)
 next
   assume f: "\<not> finite I"
   then have [intro]: "I \<noteq> {}" by auto
@@ -1786,7 +1786,7 @@ lemma simple_integral_restrict_space:
   using simple_function_restrict_space_ereal[THEN iffD1, OF \<Omega>, THEN simple_functionD(1)]
   by (auto simp add: space_restrict_space emeasure_restrict_space[OF \<Omega>(1)] le_infI2 simple_integral_def
            split: split_indicator split_indicator_asm
-           intro!: setsum_mono_zero_cong_left ereal_left_mult_cong arg_cong2[where f=emeasure])
+           intro!: setsum.mono_neutral_cong_left ereal_left_mult_cong arg_cong2[where f=emeasure])
 
 lemma one_not_less_zero[simp]: "\<not> 1 < (0::ereal)"
   by (simp add: zero_ereal_def one_ereal_def) 
@@ -2097,12 +2097,12 @@ qed
 
 lemma emeasure_point_measure_finite:
   "finite A \<Longrightarrow> (\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> X \<subseteq> A \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a\<in>X. f a)"
-  by (subst emeasure_point_measure) (auto dest: finite_subset intro!: setsum_mono_zero_left simp: less_le)
+  by (subst emeasure_point_measure) (auto dest: finite_subset intro!: setsum.mono_neutral_left simp: less_le)
 
 lemma emeasure_point_measure_finite2:
   "X \<subseteq> A \<Longrightarrow> finite X \<Longrightarrow> (\<And>i. i \<in> X \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a\<in>X. f a)"
   by (subst emeasure_point_measure)
-     (auto dest: finite_subset intro!: setsum_mono_zero_left simp: less_le)
+     (auto dest: finite_subset intro!: setsum.mono_neutral_left simp: less_le)
 
 lemma null_sets_point_measure_iff:
   "X \<in> null_sets (point_measure A f) \<longleftrightarrow> X \<subseteq> A \<and> (\<forall>x\<in>X. f x \<le> 0)"
@@ -2121,7 +2121,7 @@ lemma nn_integral_point_measure:
   apply (subst nn_integral_density)
   apply (simp_all add: AE_count_space nn_integral_density)
   apply (subst nn_integral_count_space )
-  apply (auto intro!: setsum_cong simp: max_def ereal_zero_less_0_iff)
+  apply (auto intro!: setsum.cong simp: max_def ereal_zero_less_0_iff)
   apply (rule finite_subset)
   prefer 2
   apply assumption
@@ -2131,7 +2131,7 @@ lemma nn_integral_point_measure:
 lemma nn_integral_point_measure_finite:
   "finite A \<Longrightarrow> (\<And>a. a \<in> A \<Longrightarrow> 0 \<le> f a) \<Longrightarrow> (\<And>a. a \<in> A \<Longrightarrow> 0 \<le> g a) \<Longrightarrow>
     integral\<^sup>N (point_measure A f) g = (\<Sum>a\<in>A. f a * g a)"
-  by (subst nn_integral_point_measure) (auto intro!: setsum_mono_zero_left simp: less_le)
+  by (subst nn_integral_point_measure) (auto intro!: setsum.mono_neutral_left simp: less_le)
 
 subsubsection {* Uniform measure *}
 

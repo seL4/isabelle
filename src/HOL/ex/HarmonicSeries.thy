@@ -196,7 +196,7 @@ next
           "finite {1..(2::nat)^M}" and "finite {(2::nat)^M+1..(2::nat)^(Suc M)}"
           by auto
         ultimately show ?thesis
-          by (auto intro: setsum_Un_disjoint)
+          by (auto intro: setsum.union_disjoint)
       qed
       moreover
       {

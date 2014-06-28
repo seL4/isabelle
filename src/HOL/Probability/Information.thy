@@ -19,7 +19,7 @@ lemma log_less: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x < y \<Longrig
 
 lemma setsum_cartesian_product':
   "(\<Sum>x\<in>A \<times> B. f x) = (\<Sum>x\<in>A. setsum (\<lambda>y. f (x, y)) B)"
-  unfolding setsum_cartesian_product by simp
+  unfolding setsum.cartesian_product by simp
 
 lemma split_pairs:
   "((A, B) = X) \<longleftrightarrow> (fst X = A \<and> snd X = B)" and
@@ -735,8 +735,8 @@ proof (subst mutual_information_distr[OF _ _ simple_distributed[OF X] simple_dis
     by auto
   with fin show "(\<integral> x. ?f x \<partial>(count_space (X ` space M) \<Otimes>\<^sub>M count_space (Y ` space M))) =
     (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / (Px x * Py y)))"
-    by (auto simp add: pair_measure_count_space lebesgue_integral_count_space_finite setsum_cases split_beta'
-             intro!: setsum_cong)
+    by (auto simp add: pair_measure_count_space lebesgue_integral_count_space_finite setsum.If_cases split_beta'
+             intro!: setsum.cong)
 qed
 
 lemma (in information_space)
@@ -748,7 +748,7 @@ lemma (in information_space)
 proof (subst mutual_information_simple_distributed[OF Px Py Pxy])
   have "(\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / (Px x * Py y))) =
     (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. 0)"
-    by (intro setsum_cong) (auto simp: ae)
+    by (intro setsum.cong) (auto simp: ae)
   then show "(\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M.
     Pxy (x, y) * log b (Pxy (x, y) / (Px x * Py y))) = 0" by simp
 qed
@@ -1488,7 +1488,7 @@ proof (subst conditional_mutual_information_generic_eq[OF _ _ _ _
   have "(\<lambda>(x, y, z). ?i x y z) = (\<lambda>x. if x \<in> (\<lambda>x. (X x, Y x, Z x)) ` space M then ?j (fst x) (fst (snd x)) (snd (snd x)) else 0)"
     by (auto intro!: ext)
   then show "(\<integral> (x, y, z). ?i x y z \<partial>?P) = (\<Sum>(x, y, z)\<in>(\<lambda>x. (X x, Y x, Z x)) ` space M. ?j x y z)"
-    by (auto intro!: setsum_cong simp add: `?P = ?C` lebesgue_integral_count_space_finite simple_distributed_finite setsum_cases split_beta')
+    by (auto intro!: setsum.cong simp add: `?P = ?C` lebesgue_integral_count_space_finite simple_distributed_finite setsum.If_cases split_beta')
 qed
 
 lemma (in information_space) conditional_mutual_information_nonneg:
@@ -1640,7 +1640,7 @@ proof (subst conditional_entropy_generic_eq[OF _ _
     by auto
   from Y show "- (\<integral> (x, y). ?f (x, y) * log b (?f (x, y) / Py y) \<partial>?P) =
     - (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / Py y))"
-    by (auto intro!: setsum_cong simp add: `?P = ?C` lebesgue_integral_count_space_finite simple_distributed_finite eq setsum_cases split_beta')
+    by (auto intro!: setsum.cong simp add: `?P = ?C` lebesgue_integral_count_space_finite simple_distributed_finite eq setsum.If_cases split_beta')
 qed
 
 lemma (in information_space) conditional_mutual_information_eq_conditional_entropy:
@@ -1671,7 +1671,7 @@ proof -
   then show ?thesis
     apply (subst conditional_mutual_information_eq[OF Py Pxy Pxy Pxxy])
     apply (subst conditional_entropy_eq[OF Py Pxy])
-    apply (auto intro!: setsum_cong simp: Pxxy_eq setsum_negf[symmetric] eq setsum_reindex[OF inj]
+    apply (auto intro!: setsum.cong simp: Pxxy_eq setsum_negf[symmetric] eq setsum.reindex[OF inj]
                 log_simps zero_less_mult_iff zero_le_mult_iff field_simps mult_less_0_iff AE_count_space)
     using Py[THEN simple_distributed, THEN distributed_real_AE] Pxy[THEN simple_distributed, THEN distributed_real_AE]
   apply (auto simp add: not_le[symmetric] AE_count_space)
@@ -1857,13 +1857,13 @@ proof -
   have "\<H>(\<lambda>x. (X x, Y x)) = - (\<Sum>x\<in>(\<lambda>x. (X x, Y x)) ` space M. ?f x * log b (?f x))"
     using XY by (rule entropy_simple_distributed)
   also have "\<dots> = - (\<Sum>x\<in>(\<lambda>(x, y). (y, x)) ` (\<lambda>x. (X x, Y x)) ` space M. ?g x * log b (?g x))"
-    by (subst (2) setsum_reindex) (auto simp: inj_on_def intro!: setsum_cong arg_cong[where f="\<lambda>A. prob A * log b (prob A)"])
+    by (subst (2) setsum.reindex) (auto simp: inj_on_def intro!: setsum.cong arg_cong[where f="\<lambda>A. prob A * log b (prob A)"])
   also have "\<dots> = - (\<Sum>x\<in>(\<lambda>x. (Y x, X x)) ` space M. ?h x * log b (?h x))"
-    by (auto intro!: setsum_cong)
+    by (auto intro!: setsum.cong)
   also have "\<dots> = entropy b (count_space (Y ` space M) \<Otimes>\<^sub>M count_space (X ` space M)) (\<lambda>x. (Y x, X x))"
     by (subst entropy_distr[OF simple_distributed_joint[OF YX]])
        (auto simp: pair_measure_count_space sigma_finite_measure_count_space_finite lebesgue_integral_count_space_finite
-             cong del: setsum_cong  intro!: setsum_mono_zero_left)
+             cong del: setsum.cong  intro!: setsum.mono_neutral_left)
   finally have "\<H>(\<lambda>x. (X x, Y x)) = entropy b (count_space (Y ` space M) \<Otimes>\<^sub>M count_space (X ` space M)) (\<lambda>x. (Y x, X x))" .
   then show ?thesis
     unfolding conditional_entropy_eq_entropy_simple[OF Y X] by simp
@@ -1882,8 +1882,8 @@ proof -
     apply (subst entropy_simple_distributed[OF simple_distributedI[OF simple_function_Pair[OF fX X] refl]])
     apply (subst entropy_simple_distributed[OF simple_distributedI[OF X refl]])
     unfolding eq
-    apply (subst setsum_reindex[OF inj])
-    apply (auto intro!: setsum_cong arg_cong[where f="\<lambda>A. prob A * log b (prob A)"])
+    apply (subst setsum.reindex[OF inj])
+    apply (auto intro!: setsum.cong arg_cong[where f="\<lambda>A. prob A * log b (prob A)"])
     done
 qed
 
@@ -1908,7 +1908,7 @@ next
     unfolding o_assoc
     apply (subst entropy_simple_distributed[OF simple_distributedI[OF X refl]])
     apply (subst entropy_simple_distributed[OF simple_distributedI[OF simple_function_compose[OF X]], where f="\<lambda>x. prob (X -` {x} \<inter> space M)"])
-    apply (auto intro!: setsum_cong arg_cong[where f=prob] image_eqI simp: the_inv_into_f_f[OF inj] comp_def)
+    apply (auto intro!: setsum.cong arg_cong[where f=prob] image_eqI simp: the_inv_into_f_f[OF inj] comp_def)
     done
   also have "... \<le> \<H>(f \<circ> X)"
     using entropy_data_processing[OF sf] .

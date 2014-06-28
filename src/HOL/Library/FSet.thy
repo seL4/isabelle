@@ -1002,7 +1002,7 @@ lemmas size_fset_overloaded_simps[simp] =
 
 lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = size_fset (g \<circ> f)"
   unfolding size_fset_def fimage_def
-  by (auto simp: Abs_fset_inverse setsum_reindex_cong[OF subset_inj_on[OF _ top_greatest]])
+  by (auto simp: Abs_fset_inverse setsum.reindex_cong[OF subset_inj_on[OF _ top_greatest]])
 
 setup {*
 BNF_LFP_Size.register_size_global @{type_name fset} @{const_name size_fset}

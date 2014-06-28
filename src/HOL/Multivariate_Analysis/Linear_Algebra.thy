@@ -166,8 +166,8 @@ lemma setsum_group:
   assumes fS: "finite S" and fT: "finite T" and fST: "f ` S \<subseteq> T"
   shows "setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) T = setsum g S"
   apply (subst setsum_image_gen[OF fS, of g f])
-  apply (rule setsum_mono_zero_right[OF fT fST])
-  apply (auto intro: setsum_0')
+  apply (rule setsum.mono_neutral_right[OF fT fST])
+  apply (auto intro: setsum.neutral)
   done
 
 lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
@@ -370,13 +370,13 @@ proof -
     apply (auto simp add: bilinear_def)
     done
   also have "\<dots> = setsum (\<lambda>x. setsum (\<lambda>y. h (f x) (g y)) T) S"
-    apply (rule setsum_cong, simp)
+    apply (rule setsum.cong, simp)
     apply (rule linear_setsum[unfolded o_def])
     using bh fT
     apply (auto simp add: bilinear_def)
     done
   finally show ?thesis
-    unfolding setsum_cartesian_product .
+    unfolding setsum.cartesian_product .
 qed
 
 
@@ -1090,7 +1090,7 @@ proof -
       assume xS: "x \<notin> S"
       have th00: "(\<Sum>v\<in>S. (if v = x then c else u v) *\<^sub>R v) = y"
         unfolding u[symmetric]
-        apply (rule setsum_cong2)
+        apply (rule setsum.cong)
         using xS
         apply auto
         done
@@ -1123,7 +1123,7 @@ proof -
       using fS aS
       apply simp
       apply (subst (2) ua[symmetric])
-      apply (rule setsum_cong2)
+      apply (rule setsum.cong)
       apply auto
       done
     with th0 have ?rhs by fast
@@ -1174,7 +1174,7 @@ proof -
       unfolding span_explicit by blast
     let ?u = "\<lambda>x. if x \<in> S' then u x else 0"
     have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = setsum (\<lambda>v. u v *\<^sub>R v) S'"
-      using SS' fS by (auto intro!: setsum_mono_zero_cong_right)
+      using SS' fS by (auto intro!: setsum.mono_neutral_cong_right)
     then have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = y" by (metis u)
     then have "y \<in> ?rhs" by auto
   }
@@ -1428,14 +1428,14 @@ proof -
   have "(\<Sum>x\<in>P. norm (f x)) \<le> (\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>)"
     by (rule setsum_mono) (rule norm_le_l1)
   also have "(\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>) = (\<Sum>b\<in>Basis. \<Sum>x\<in>P. \<bar>f x \<bullet> b\<bar>)"
-    by (rule setsum_commute)
+    by (rule setsum.commute)
   also have "\<dots> \<le> of_nat (card (Basis :: 'n set)) * (2 * e)"
   proof (rule setsum_bounded)
     fix i :: 'n
     assume i: "i \<in> Basis"
     have "norm (\<Sum>x\<in>P. \<bar>f x \<bullet> i\<bar>) \<le>
       norm ((\<Sum>x\<in>P \<inter> - {x. f x \<bullet> i < 0}. f x) \<bullet> i) + norm ((\<Sum>x\<in>P \<inter> {x. f x \<bullet> i < 0}. f x) \<bullet> i)"
-      by (simp add: abs_real_def setsum_cases[OF fP] setsum_negf norm_triangle_ineq4 inner_setsum_left
+      by (simp add: abs_real_def setsum.If_cases[OF fP] setsum_negf norm_triangle_ineq4 inner_setsum_left
         del: real_norm_def)
     also have "\<dots> \<le> e + e"
       unfolding real_norm_def
@@ -1538,7 +1538,7 @@ proof (clarify intro!: exI[of _ "\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i
     unfolding bilinear_setsum[OF bh finite_Basis finite_Basis] ..
   finally have th: "norm (h x y) = \<dots>" .
   show "norm (h x y) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)) * norm x * norm y"
-    apply (auto simp add: setsum_left_distrib th setsum_cartesian_product)
+    apply (auto simp add: setsum_left_distrib th setsum.cartesian_product)
     apply (rule setsum_norm_le)
     apply simp
     apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh]
@@ -1958,9 +1958,9 @@ next
     have "orthogonal ?a y"
       unfolding orthogonal_def
       unfolding inner_diff inner_setsum_left right_minus_eq
-      unfolding setsum_diff1' [OF `finite C` `y \<in> C`]
+      unfolding setsum.remove [OF `finite C` `y \<in> C`]
       apply (clarsimp simp add: inner_commute[of y a])
-      apply (rule setsum_0')
+      apply (rule setsum.neutral)
       apply clarsimp
       apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
       using `y \<in> C` by auto
@@ -2052,7 +2052,7 @@ proof -
         unfolding setsum_clauses(2)[OF fth]
         apply simp unfolding inner_simps
         apply (clarsimp simp add: inner_add inner_setsum_left)
-        apply (rule setsum_0', rule ballI)
+        apply (rule setsum.neutral, rule ballI)
         unfolding inner_commute
         apply (auto simp add: x field_simps
           intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -2806,8 +2806,8 @@ lemma infnorm_le_norm: "infnorm x \<le> norm x"
   by (simp add: Basis_le_norm infnorm_Max)
 
 lemma (in euclidean_space) euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (x \<bullet> b) * (y \<bullet> b))"
-  by (subst (1 2) euclidean_representation[symmetric])
-    (simp add: inner_setsum_left inner_setsum_right setsum_cases inner_Basis ac_simps if_distrib)
+  by (subst (1 2) euclidean_representation [symmetric])
+    (simp add: inner_setsum_right inner_Basis ac_simps)
 
 lemma norm_le_infnorm:
   fixes x :: "'a::euclidean_space"

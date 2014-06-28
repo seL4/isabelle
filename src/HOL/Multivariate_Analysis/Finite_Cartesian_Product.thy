@@ -435,7 +435,7 @@ instance proof
     by (simp add: inner_commute)
   show "inner (x + y) z = inner x z + inner y z"
     unfolding inner_vec_def
-    by (simp add: inner_add_left setsum_addf)
+    by (simp add: inner_add_left setsum.distrib)
   show "inner (scaleR r x) y = r * inner x y"
     unfolding inner_vec_def
     by (simp add: setsum_right_distrib)
@@ -470,17 +470,17 @@ lemma inner_axis_axis:
   unfolding inner_vec_def
   apply (cases "i = j")
   apply clarsimp
-  apply (subst setsum_diff1' [where a=j], simp_all)
-  apply (rule setsum_0', simp add: axis_def)
-  apply (rule setsum_0', simp add: axis_def)
+  apply (subst setsum.remove [of _ j], simp_all)
+  apply (rule setsum.neutral, simp add: axis_def)
+  apply (rule setsum.neutral, simp add: axis_def)
   done
 
 lemma setsum_single:
   assumes "finite A" and "k \<in> A" and "f k = y"
   assumes "\<And>i. i \<in> A \<Longrightarrow> i \<noteq> k \<Longrightarrow> f i = 0"
   shows "(\<Sum>i\<in>A. f i) = y"
-  apply (subst setsum_diff1' [OF assms(1,2)])
-  apply (simp add: setsum_0' assms(3,4))
+  apply (subst setsum.remove [OF assms(1,2)])
+  apply (simp add: setsum.neutral assms(3,4))
   done
 
 lemma inner_axis: "inner x (axis i y) = inner (x $ i) y"

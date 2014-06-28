@@ -641,7 +641,8 @@ lemma bigo_setsum5: "f =o O(h) \<Longrightarrow> \<forall>x y. 0 \<le> l x y \<L
   apply (erule ssubst)
   apply (erule bigo_setsum3)
   apply (rule ext)
-  apply (rule setsum_cong2)
+  apply (rule setsum.cong)
+  apply (rule refl)
   apply (subst abs_of_nonneg)
   apply auto
   done

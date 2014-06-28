@@ -357,7 +357,7 @@ proof cases
     have "((\<lambda>x. f i x * (\<Prod>i\<in>I. f i x)) has_derivative ?P) (at x within s)"
       using insert by (intro has_derivative_mult) auto
     also have "?P = (\<lambda>y. \<Sum>i'\<in>insert i I. f' i' y * (\<Prod>j\<in>insert i I - {i'}. f j x))"
-      using insert(1,2) by (auto simp add: setsum_right_distrib insert_Diff_if intro!: ext setsum_cong)
+      using insert(1,2) by (auto simp add: setsum_right_distrib insert_Diff_if intro!: ext setsum.cong)
     finally show ?case
       using insert by simp
   qed simp  

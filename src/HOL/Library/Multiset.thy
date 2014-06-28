@@ -612,7 +612,7 @@ done
 
 lemma size_multiset_union [simp]:
   "size_multiset f (M + N::'a multiset) = size_multiset f M + size_multiset f N"
-apply (simp add: size_multiset_def setsum_Un_nat setsum_addf setsum_wcount_Int wcount_union)
+apply (simp add: size_multiset_def setsum_Un_nat setsum.distrib setsum_wcount_Int wcount_union)
 apply (subst Int_commute)
 apply (simp add: setsum_wcount_Int)
 done
@@ -2287,10 +2287,10 @@ proof (intro ext multiset_eqI)
   hence "?B = {b. h2 b = c \<and> ?As b \<noteq> {}}" by (auto simp add: setsum_gt_0_iff)
   hence A: "?A = \<Union> {?As b | b.  b \<in> ?B}" by auto
   have "setsum (count f) ?A = setsum (setsum (count f)) {?As b | b.  b \<in> ?B}"
-    unfolding A by transfer (intro setsum_Union_disjoint, auto simp: multiset_def)
+    unfolding A by transfer (intro setsum.Union_disjoint [simplified], auto simp: multiset_def setsum.Union_disjoint)
   also have "... = setsum (setsum (count f)) (?As ` ?B)" unfolding 0 ..
   also have "... = setsum (setsum (count f) o ?As) ?B"
-    by(intro setsum_reindex) (auto simp add: setsum_gt_0_iff inj_on_def)
+    by (intro setsum.reindex) (auto simp add: setsum_gt_0_iff inj_on_def)
   also have "... = setsum (\<lambda> b. setsum (count f) (?As b)) ?B" unfolding comp_def ..
   finally have "setsum (count f) ?A = setsum (\<lambda> b. setsum (count f) (?As b)) ?B" .
   thus "count (mmap (h2 \<circ> h1) f) c = count ((mmap h2 \<circ> mmap h1) f) c"
@@ -2300,7 +2300,7 @@ qed
 lemma mmap_cong:
 assumes "\<And>a. a \<in># M \<Longrightarrow> f a = g a"
 shows "mmap f M = mmap g M"
-using assms by transfer (auto intro!: setsum_cong)
+using assms by transfer (auto intro!: setsum.cong)
 
 context
 begin
@@ -2458,7 +2458,7 @@ proof-
   (*  *)
   let ?ct1 = "N1 o e1"  let ?ct2 = "N2 o e2"
   have ss: "setsum ?ct1 {..<Suc n1} = setsum ?ct2 {..<Suc n2}"
-  unfolding setsum_reindex[OF e1_inj, symmetric] setsum_reindex[OF e2_inj, symmetric]
+  unfolding setsum.reindex[OF e1_inj, symmetric] setsum.reindex[OF e2_inj, symmetric]
   e1_surj e2_surj using ss .
   obtain ct where
   ct1: "\<And> i1. i1 \<le> n1 \<Longrightarrow> setsum (\<lambda> i2. ct i1 i2) {..<Suc n2} = ?ct1 i1" and
@@ -2490,8 +2490,8 @@ proof-
     hence f1b1: "f1 b1 \<le> n1" using f1 unfolding bij_betw_def
     by (metis image_eqI lessThan_iff less_Suc_eq_le)
     have "(\<Sum>b2\<in>B2. M (u b1 b2)) = (\<Sum>i2<Suc n2. ct (f1 b1) (f2 (e2 i2)))"
-    unfolding e2_surj[symmetric] setsum_reindex[OF e2_inj]
-    unfolding M_def comp_def apply(intro setsum_cong) apply force
+    unfolding e2_surj[symmetric] setsum.reindex[OF e2_inj]
+    unfolding M_def comp_def apply(intro setsum.cong) apply force
     by (metis e2_surj b1 h1 h2 imageI)
     also have "... = N1 b1" using b1 ct1[OF f1b1] by simp
     finally show "(\<Sum>b2\<in>B2. M (u b1 b2)) = N1 b1" .
@@ -2500,8 +2500,8 @@ proof-
     hence f2b2: "f2 b2 \<le> n2" using f2 unfolding bij_betw_def
     by (metis image_eqI lessThan_iff less_Suc_eq_le)
     have "(\<Sum>b1\<in>B1. M (u b1 b2)) = (\<Sum>i1<Suc n1. ct (f1 (e1 i1)) (f2 b2))"
-    unfolding e1_surj[symmetric] setsum_reindex[OF e1_inj]
-    unfolding M_def comp_def apply(intro setsum_cong) apply force
+    unfolding e1_surj[symmetric] setsum.reindex[OF e1_inj]
+    unfolding M_def comp_def apply(intro setsum.cong) apply force
     by (metis e1_surj b2 h1 h2 imageI)
     also have "... = N2 b2" using b2 ct2[OF f2b2] by simp
     finally show "(\<Sum>b1\<in>B1. M (u b1 b2)) = N2 b2" .
@@ -2610,7 +2610,7 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
   have set1_disj: "\<And> c c'. c \<noteq> c' \<Longrightarrow> set1 c \<inter> set1 c' = {}"
     unfolding set1_def by auto
   have setsum_set1: "\<And> c. setsum (count N1) (set1 c) = count P c"
-    unfolding P1 set1_def by transfer (auto intro: setsum_cong)
+    unfolding P1 set1_def by transfer (auto intro: setsum.cong)
 
   def set2 \<equiv> "\<lambda> c. {b2 \<in> set_of N2. f2 b2 = c}"
   have set2[simp]: "\<And> c b2. b2 \<in> set2 c \<Longrightarrow> f2 b2 = c" unfolding set2_def by auto
@@ -2625,7 +2625,7 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
   have set2_disj: "\<And> c c'. c \<noteq> c' \<Longrightarrow> set2 c \<inter> set2 c' = {}"
     unfolding set2_def by auto
   have setsum_set2: "\<And> c. setsum (count N2) (set2 c) = count P c"
-    unfolding P2 set2_def by transfer (auto intro: setsum_cong)
+    unfolding P2 set2_def by transfer (auto intro: setsum.cong)
 
   have ss: "\<And> c. c \<in> set_of P \<Longrightarrow> setsum (count N1) (set1 c) = setsum (count N2) (set2 c)"
     unfolding setsum_set1 setsum_set2 ..
@@ -2746,9 +2746,9 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
         have c: "c \<in> set_of P" and b1: "b1 \<in> set1 c"
           unfolding set1_def c_def P1 using True by (auto simp: comp_eq_dest[OF set_of_mmap])
         with sM(1) have "setsum (count M) ?K = setsum (count M) {a. p1 a = b1 \<and> a \<in> SET}"
-          by transfer (force intro: setsum_mono_zero_cong_left split: split_if_asm)
+          by transfer (force intro: setsum.mono_neutral_cong_left split: split_if_asm)
         also have "... = setsum (count M) ((\<lambda> b2. u c b1 b2) ` (set2 c))"
-          apply(rule setsum_cong) using c b1 proof safe
+          apply(rule setsum.cong) using c b1 proof safe
           fix a assume p1a: "p1 a \<in> set1 c" and "c \<in> set_of P" and "a \<in> SET"
           hence ac: "a \<in> sset c" using p1_rev by auto
           hence "a = u c (p1 a) (p2 a)" using c by auto
@@ -2756,10 +2756,10 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
           ultimately show "a \<in> u c (p1 a) ` set2 c" by auto
         qed auto
         also have "... = setsum (\<lambda> b2. count M (u c b1 b2)) (set2 c)"
-          unfolding comp_def[symmetric] apply(rule setsum_reindex)
+          unfolding comp_def[symmetric] apply(rule setsum.reindex)
           using inj unfolding inj_on_def inj2_def using b1 c u(3) by blast
         also have "... = count N1 b1" unfolding ss1[OF c b1, symmetric]
-          apply(rule setsum_cong[OF refl]) apply (transfer fixing: Ms u c b1 set2)
+          apply(rule setsum.cong[OF refl]) apply (transfer fixing: Ms u c b1 set2)
           using True h_u[OF c b1] set2_def u(2,3)[OF c b1] u_SET[OF c b1] by fastforce
         finally show ?thesis .
       qed
@@ -2781,9 +2781,9 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
         have c: "c \<in> set_of P" and b2: "b2 \<in> set2 c"
           unfolding set2_def c_def P2 using True by (auto simp: comp_eq_dest[OF set_of_mmap])
         with sM(1) have "setsum (count M) ?K = setsum (count M) {a. p2 a = b2 \<and> a \<in> SET}"
-          by transfer (force intro: setsum_mono_zero_cong_left split: split_if_asm)
+          by transfer (force intro: setsum.mono_neutral_cong_left split: split_if_asm)
         also have "... = setsum (count M) ((\<lambda> b1. u c b1 b2) ` (set1 c))"
-          apply(rule setsum_cong) using c b2 proof safe
+          apply(rule setsum.cong) using c b2 proof safe
           fix a assume p2a: "p2 a \<in> set2 c" and "c \<in> set_of P" and "a \<in> SET"
           hence ac: "a \<in> sset c" using p2_rev by auto
           hence "a = u c (p1 a) (p2 a)" using c by auto
@@ -2791,11 +2791,11 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
           ultimately show "a \<in> (\<lambda>x. u c x (p2 a)) ` set1 c" by auto
         qed auto
         also have "... = setsum (count M o (\<lambda> b1. u c b1 b2)) (set1 c)"
-          apply(rule setsum_reindex)
+          apply(rule setsum.reindex)
           using inj unfolding inj_on_def inj2_def using b2 c u(2) by blast
         also have "... = setsum (\<lambda> b1. count M (u c b1 b2)) (set1 c)" by simp
         also have "... = count N2 b2" unfolding ss2[OF c b2, symmetric] comp_def
-          apply(rule setsum_cong[OF refl]) apply (transfer fixing: Ms u c b2 set1)
+          apply(rule setsum.cong[OF refl]) apply (transfer fixing: Ms u c b2 set1)
           using True h_u1[OF c _ b2] u(2,3)[OF c _ b2] u_SET[OF c _ b2] set1_def by fastforce
         finally show ?thesis .
       qed
@@ -2855,7 +2855,7 @@ proof (intro multiset_eqI, transfer fixing: f)
   assume "M1 \<in> multiset" "M2 \<in> multiset"
   hence "setsum M1 {a. f a = x \<and> 0 < M1 a} = setsum M1 {a. f a = x \<and> 0 < M1 a + M2 a}"
         "setsum M2 {a. f a = x \<and> 0 < M2 a} = setsum M2 {a. f a = x \<and> 0 < M1 a + M2 a}"
-    by (auto simp: multiset_def intro!: setsum_mono_zero_cong_left)
+    by (auto simp: multiset_def intro!: setsum.mono_neutral_cong_left)
   then show "(\<Sum>a | f a = x \<and> 0 < M1 a + M2 a. M1 a + M2 a) =
        setsum M1 {a. f a = x \<and> 0 < M1 a} +
        setsum M2 {a. f a = x \<and> 0 < M2 a}"
@@ -2897,7 +2897,7 @@ proof -
     by (metis (lifting, full_types) mem_Collect_eq neq0_conv setsum.neutral)
   have 0: "\<And> b. 0 < setsum (count M) (A b) \<longleftrightarrow> (\<exists> a \<in> A b. count M a > 0)"
   apply safe
-    apply (metis less_not_refl setsum_gt_0_iff setsum_infinite)
+    apply (metis less_not_refl setsum_gt_0_iff setsum.infinite)
     by (metis A_def finite_Collect_conjI finite_Collect_mem setsum_gt_0_iff)
   hence AB: "A ` ?B = {A b | b. \<exists> a \<in> A b. count M a > 0}" by auto
 

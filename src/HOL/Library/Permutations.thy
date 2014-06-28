@@ -955,7 +955,7 @@ proof -
     using image_inverse_permutations by blast
   have th2: "?rhs = setsum (f \<circ> inv) ?S"
     by (simp add: o_def)
-  from setsum_reindex[OF th0, of f] show ?thesis unfolding th1 th2 .
+  from setsum.reindex[OF th0, of f] show ?thesis unfolding th1 th2 .
 qed
 
 lemma setum_permutations_compose_left:
@@ -979,7 +979,7 @@ proof -
   qed
   have th3: "(op \<circ> q) ` ?S = ?S"
     using image_compose_permutations_left[OF q] by auto
-  from setsum_reindex[OF th1, of f] show ?thesis unfolding th0 th1 th3 .
+  from setsum.reindex[OF th1, of f] show ?thesis unfolding th0 th1 th3 .
 qed
 
 lemma sum_permutations_compose_right:
@@ -1003,7 +1003,7 @@ proof -
   qed
   have th3: "(\<lambda>p. p \<circ> q) ` ?S = ?S"
     using image_compose_permutations_right[OF q] by auto
-  from setsum_reindex[OF th1, of f]
+  from setsum.reindex[OF th1, of f]
   show ?thesis unfolding th0 th1 th3 .
 qed
 
@@ -1024,10 +1024,10 @@ proof -
     by blast
   show ?thesis
     unfolding permutes_insert
-    unfolding setsum_cartesian_product
+    unfolding setsum.cartesian_product
     unfolding th1[symmetric]
     unfolding th0
-  proof (rule setsum_reindex)
+  proof (rule setsum.reindex)
     let ?f = "(\<lambda>(b, y). Fun.swap a b id \<circ> y)"
     let ?P = "{p. p permutes S}"
     {

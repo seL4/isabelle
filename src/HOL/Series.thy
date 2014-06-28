@@ -75,7 +75,7 @@ proof -
     next
       assume [simp]: "N \<noteq> {}"
       show ?thesis
-      proof (safe intro!: setsum_mono_zero_right f)
+      proof (safe intro!: setsum.mono_neutral_right f)
         fix i assume "i \<in> N"
         then have "i \<le> Max N" by simp
         then show "i < n + Suc (Max N)" by simp
@@ -225,7 +225,7 @@ proof -
   have "f sums (s + f 0) \<longleftrightarrow> (\<lambda>i. \<Sum>j<Suc i. f j) ----> s + f 0"
     by (subst LIMSEQ_Suc_iff) (simp add: sums_def)
   also have "\<dots> \<longleftrightarrow> (\<lambda>i. (\<Sum>j<i. f (Suc j)) + f 0) ----> s + f 0"
-    by (simp add: ac_simps setsum_reindex image_iff lessThan_Suc_eq_insert_0)
+    by (simp add: ac_simps setsum.reindex image_iff lessThan_Suc_eq_insert_0)
   also have "\<dots> \<longleftrightarrow> (\<lambda>n. f (Suc n)) sums s"
   proof
     assume "(\<lambda>i. (\<Sum>j<i. f (Suc j)) + f 0) ----> s + f 0"
@@ -241,7 +241,7 @@ context
 begin
 
 lemma sums_add: "f sums a \<Longrightarrow> g sums b \<Longrightarrow> (\<lambda>n. f n + g n) sums (a + b)"
-  unfolding sums_def by (simp add: setsum_addf tendsto_add)
+  unfolding sums_def by (simp add: setsum.distrib tendsto_add)
 
 lemma summable_add: "summable f \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. f n + g n)"
   unfolding summable_def by (auto intro: sums_add)
@@ -568,7 +568,7 @@ text {*
 lemma setsum_triangle_reindex:
   fixes n :: nat
   shows "(\<Sum>(i,j)\<in>{(i,j). i+j < n}. f i j) = (\<Sum>k<n. \<Sum>i\<le>k. f i (k - i))"
-  apply (simp add: setsum_Sigma)
+  apply (simp add: setsum.Sigma)
   apply (rule setsum.reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
   apply auto
   done
@@ -597,12 +597,12 @@ proof -
   have "(\<lambda>n. (\<Sum>k<n. a k) * (\<Sum>k<n. b k)) ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
     by (intro tendsto_mult summable_LIMSEQ summable_norm_cancel [OF a] summable_norm_cancel [OF b])
   hence 1: "(\<lambda>n. setsum ?g (?S1 n)) ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
-    by (simp only: setsum_product setsum_Sigma [rule_format] finite_lessThan)
+    by (simp only: setsum_product setsum.Sigma [rule_format] finite_lessThan)
 
   have "(\<lambda>n. (\<Sum>k<n. norm (a k)) * (\<Sum>k<n. norm (b k))) ----> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
     using a b by (intro tendsto_mult summable_LIMSEQ)
   hence "(\<lambda>n. setsum ?f (?S1 n)) ----> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
-    by (simp only: setsum_product setsum_Sigma [rule_format] finite_lessThan)
+    by (simp only: setsum_product setsum.Sigma [rule_format] finite_lessThan)
   hence "convergent (\<lambda>n. setsum ?f (?S1 n))"
     by (rule convergentI)
   hence Cauchy: "Cauchy (\<lambda>n. setsum ?f (?S1 n))"

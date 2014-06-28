@@ -202,7 +202,7 @@ proof -
     also from Suc.hyps have "... = Suc (n + d') * \<Prod>{n + 1..n + d'}" 
       unfolding div_mult1_eq[of _ "fact (n + d')"] by (simp add: fact_mod)
     also have "... = \<Prod>{n + 1..n + Suc d'}"
-      by (simp add: atLeastAtMostSuc_conv setprod_insert)
+      by (simp add: atLeastAtMostSuc_conv setprod.insert)
     finally show ?case .
   qed
   from this `m = n + d` show ?thesis by simp
@@ -314,7 +314,7 @@ lemma fact_div_fact_le_pow:
   assumes "r \<le> n" shows "fact n div fact (n - r) \<le> n ^ r"
 proof -
   have "\<And>r. r \<le> n \<Longrightarrow> \<Prod>{n - r..n} = (n - r) * \<Prod>{Suc (n - r)..n}"
-    by (subst setprod_insert[symmetric]) (auto simp: atLeastAtMost_insertL)
+    by (subst setprod.insert[symmetric]) (auto simp: atLeastAtMost_insertL)
   with assms show ?thesis
     by (induct r rule: nat.induct) (auto simp add: fact_div_fact Suc_diff_Suc mult_le_mono)
 qed

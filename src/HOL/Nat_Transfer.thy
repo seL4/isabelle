@@ -194,9 +194,9 @@ text {* setsum and setprod *}
 lemma transfer_nat_int_sum_prod:
     "setsum f A = setsum (%x. f (nat x)) (int ` A)"
     "setprod f A = setprod (%x. f (nat x)) (int ` A)"
-  apply (subst setsum_reindex)
+  apply (subst setsum.reindex)
   apply (unfold inj_on_def, auto)
-  apply (subst setprod_reindex)
+  apply (subst setprod.reindex)
   apply (unfold inj_on_def o_def, auto)
 done
 
@@ -237,7 +237,7 @@ done
 *)
 
 (* Making A = B in this lemma doesn't work. Why not?
-   Also, why aren't setsum_cong and setprod_cong enough,
+   Also, why aren't setsum.cong and setprod.cong enough,
    with the previously mentioned rule turned on? *)
 
 lemma transfer_nat_int_sum_prod_cong:
@@ -246,9 +246,9 @@ lemma transfer_nat_int_sum_prod_cong:
     "A = B \<Longrightarrow> nat_set B \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x = g x) \<Longrightarrow>
       setprod f A = setprod g B"
   unfolding nat_set_def
-  apply (subst setsum_cong, assumption)
+  apply (subst setsum.cong, assumption)
   apply auto [2]
-  apply (subst setprod_cong, assumption, auto)
+  apply (subst setprod.cong, assumption, auto)
 done
 
 declare transfer_morphism_nat_int [transfer add
@@ -399,11 +399,11 @@ text {* setsum and setprod *}
 lemma transfer_int_nat_sum_prod:
     "nat_set A \<Longrightarrow> setsum f A = setsum (%x. f (int x)) (nat ` A)"
     "nat_set A \<Longrightarrow> setprod f A = setprod (%x. f (int x)) (nat ` A)"
-  apply (subst setsum_reindex)
+  apply (subst setsum.reindex)
   apply (unfold inj_on_def nat_set_def, auto simp add: eq_nat_nat_iff)
-  apply (subst setprod_reindex)
+  apply (subst setprod.reindex)
   apply (unfold inj_on_def nat_set_def o_def, auto simp add: eq_nat_nat_iff
-            cong: setprod_cong)
+            cong: setprod.cong)
 done
 
 (* this handles the case where the *range* of f is int *)
@@ -413,11 +413,11 @@ lemma transfer_int_nat_sum_prod2:
       setprod f A = int(setprod (%x. nat (f x)) A)"
   unfolding is_nat_def
   apply (subst int_setsum, auto)
-  apply (subst int_setprod, auto simp add: cong: setprod_cong)
+  apply (subst int_setprod, auto simp add: cong: setprod.cong)
 done
 
 declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_sum_prod transfer_int_nat_sum_prod2
-  cong: setsum_cong setprod_cong]
+  cong: setsum.cong setprod.cong]
 
 end

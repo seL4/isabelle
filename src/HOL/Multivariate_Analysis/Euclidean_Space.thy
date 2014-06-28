@@ -56,7 +56,7 @@ lemma (in euclidean_space) SOME_Basis: "(SOME i. i \<in> Basis) \<in> Basis"
 
 lemma (in euclidean_space) inner_setsum_left_Basis[simp]:
     "b \<in> Basis \<Longrightarrow> inner (\<Sum>i\<in>Basis. f i *\<^sub>R i) b = f b"
-  by (simp add: inner_setsum_left inner_Basis if_distrib setsum_cases)
+  by (simp add: inner_setsum_left inner_Basis if_distrib comm_monoid_add_class.setsum.If_cases)
 
 lemma (in euclidean_space) euclidean_eqI:
   assumes b: "\<And>b. b \<in> Basis \<Longrightarrow> inner x b = inner y b" shows "x = y"
@@ -166,7 +166,7 @@ proof -
     by (auto intro!: inj_onI Pair_inject)
   thus ?thesis
     unfolding Basis_prod_def
-    by (subst setsum_Un_disjoint) (auto simp: Basis_prod_def setsum_reindex)
+    by (subst setsum.union_disjoint) (auto simp: Basis_prod_def setsum.reindex)
 qed
 
 instance proof

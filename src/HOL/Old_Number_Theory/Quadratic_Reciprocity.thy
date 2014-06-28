@@ -24,20 +24,20 @@ proof -
   also have "setsum (%x. a * x) = setsum (%x. x * a)"
     by (auto simp add: mult_commute)
   also have "setsum (%x. x * a) A = setsum id B"
-    by (simp add: B_def setsum_reindex_id[OF inj_on_xa_A])
+    by (simp add: B_def setsum.reindex [OF inj_on_xa_A])
   also have "... = setsum (%x. p * (x div p) + StandardRes p x) B"
     by (auto simp add: StandardRes_def zmod_zdiv_equality)
   also have "... = setsum (%x. p * (x div p)) B + setsum (StandardRes p) B"
-    by (rule setsum_addf)
+    by (rule setsum.distrib)
   also have "setsum (StandardRes p) B = setsum id C"
-    by (auto simp add: C_def setsum_reindex_id[OF SR_B_inj])
+    by (auto simp add: C_def setsum.reindex [OF SR_B_inj])
   also from C_eq have "... = setsum id (D \<union> E)"
     by auto
   also from finite_D finite_E have "... = setsum id D + setsum id E"
-    by (rule setsum_Un_disjoint) (auto simp add: D_def E_def)
+    by (rule setsum.union_disjoint) (auto simp add: D_def E_def)
   also have "setsum (%x. p * (x div p)) B =
       setsum ((%x. p * (x div p)) o (%x. (x * a))) A"
-    by (auto simp add: B_def setsum_reindex inj_on_xa_A)
+    by (auto simp add: B_def setsum.reindex inj_on_xa_A)
   also have "... = setsum (%x. p * ((x * a) div p)) A"
     by (auto simp add: o_def)
   also from finite_A have "setsum (%x. p * ((x * a) div p)) A =
@@ -53,12 +53,12 @@ proof -
     by (simp add: Un_commute)
   also from F_D_disj finite_D finite_F
   have "... = setsum id D + setsum id F"
-    by (auto simp add: Int_commute intro: setsum_Un_disjoint)
+    by (auto simp add: Int_commute intro: setsum.union_disjoint)
   also from F_def have "F = (%x. (p - x)) ` E"
     by auto
   also from finite_E inj_on_pminusx_E have "setsum id ((%x. (p - x)) ` E) =
       setsum (%x. (p - x)) E"
-    by (auto simp add: setsum_reindex)
+    by (auto simp add: setsum.reindex)
   also from finite_E have "setsum (op - p) E = setsum (%x. p) E - setsum id E"
     by (auto simp add: setsum_subtractf id_def)
   also from finite_E have "setsum (%x. p) E = p * int(card E)"
@@ -527,7 +527,7 @@ proof -
   ultimately have "int(card (S1)) = setsum (%j. int(card (f1 j))) P_set"
     by auto
   also have "... = setsum (%j. q * j div p) P_set"
-    using aux3a by(fastforce intro: setsum_cong)
+    using aux3a by(fastforce intro: setsum.cong)
   finally show ?thesis .
 qed
 
@@ -551,7 +551,7 @@ proof -
   ultimately have "int(card (S2)) = setsum (%j. int(card (f2 j))) Q_set"
     by auto
   also have "... = setsum (%j. p * j div q) Q_set"
-    using aux3b by(fastforce intro: setsum_cong)
+    using aux3b by(fastforce intro: setsum.cong)
   finally show ?thesis .
 qed
 

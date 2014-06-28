@@ -40,7 +40,7 @@ proof (rule measure_eqI_generator_eq)
     by simp
   also have "\<dots> = (\<Prod> i\<in>K. emeasure (M i) (if i \<in> J then E i else space (M i)))"
     using `finite K` `J \<subseteq> K`
-    by (intro setprod_mono_one_left) (auto simp: M.emeasure_space_1)
+    by (intro setprod.mono_neutral_left) (auto simp: M.emeasure_space_1)
   also have "\<dots> = emeasure (Pi\<^sub>M K M) (\<Pi>\<^sub>E i\<in>K. if i \<in> J then E i else space (M i))"
     using E by (simp add: K.measure_times)
   also have "(\<Pi>\<^sub>E i\<in>K. if i \<in> J then E i else space (M i)) = (\<lambda>f. restrict f J) -` Pi\<^sub>E J E \<inter> (\<Pi>\<^sub>E i\<in>K. space (M i))"

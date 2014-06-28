@@ -353,7 +353,7 @@ proof -
         also have "\<dots> < ereal (1 * real ?a)" unfolding less_ereal.simps
         proof (rule mult_strict_right_mono)
           have "(\<Sum>i\<in>{1..n}. 2 powr - real i) = (\<Sum>i\<in>{1..<Suc n}. (1/2) ^ i)"
-            by (rule setsum_cong)
+            by (rule setsum.cong)
                (auto simp: powr_realpow[symmetric] powr_minus powr_divide inverse_eq_divide)
           also have "{1..<Suc n} = {..<Suc n} - {0}" by auto
           also have "setsum (op ^ (1 / 2::real)) ({..<Suc n} - {0}) =

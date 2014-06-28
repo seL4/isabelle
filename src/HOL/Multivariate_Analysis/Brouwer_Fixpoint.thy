@@ -64,13 +64,13 @@ lemma atMost_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
   apply auto
   done
 
-lemma setsum_Un_disjoint':
+lemma setsum_union_disjoint':
   assumes "finite A"
     and "finite B"
     and "A \<inter> B = {}"
     and "A \<union> B = C"
   shows "setsum g C = setsum g A + setsum g B"
-  using setsum_Un_disjoint[OF assms(1-3)] and assms(4) by auto
+  using setsum.union_disjoint[OF assms(1-3)] and assms(4) by auto
 
 lemma pointwise_minimal_pointwise_maximal:
   fixes s :: "(nat \<Rightarrow> nat) set"
@@ -151,19 +151,19 @@ lemma kuhn_counting_lemma:
   shows "odd (card {s\<in>S. compo s})"
 proof -
   have "(\<Sum>s | s \<in> S \<and> \<not> compo s. nF s) + (\<Sum>s | s \<in> S \<and> compo s. nF s) = (\<Sum>s\<in>S. nF s)"
-    by (subst setsum_Un_disjoint[symmetric]) (auto intro!: setsum_cong)
+    by (subst setsum.union_disjoint[symmetric]) (auto intro!: setsum.cong)
   also have "\<dots> = (\<Sum>s\<in>S. card {f \<in> {f\<in>F. compo' f \<and> bnd f}. face f s}) +
                   (\<Sum>s\<in>S. card {f \<in> {f\<in>F. compo' f \<and> \<not> bnd f}. face f s})"
-    unfolding setsum_addf[symmetric]
+    unfolding setsum.distrib[symmetric]
     by (subst card_Un_disjoint[symmetric])
-       (auto simp: nF_def intro!: setsum_cong arg_cong[where f=card])
+       (auto simp: nF_def intro!: setsum.cong arg_cong[where f=card])
   also have "\<dots> = 1 * card {f\<in>F. compo' f \<and> bnd f} + 2 * card {f\<in>F. compo' f \<and> \<not> bnd f}"
     using assms(4,5) by (fastforce intro!: arg_cong2[where f="op +"] setsum_multicount)
   finally have "odd ((\<Sum>s | s \<in> S \<and> \<not> compo s. nF s) + card {s\<in>S. compo s})"
     using assms(6,8) by simp
   moreover have "(\<Sum>s | s \<in> S \<and> \<not> compo s. nF s) =
     (\<Sum>s | s \<in> S \<and> \<not> compo s \<and> nF s = 0. nF s) + (\<Sum>s | s \<in> S \<and> \<not> compo s \<and> nF s = 2. nF s)"
-    using assms(7) by (subst setsum_Un_disjoint[symmetric]) (fastforce intro!: setsum_cong)+
+    using assms(7) by (subst setsum.union_disjoint[symmetric]) (fastforce intro!: setsum.cong)+
   ultimately show ?thesis
     by auto
 qed
