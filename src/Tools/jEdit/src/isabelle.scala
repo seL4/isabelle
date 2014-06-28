@@ -255,8 +255,7 @@ object Isabelle
 
   def complete(view: View, word_only: Boolean)
   {
-    if (!Completion_Popup.Text_Area.action(view.getTextArea, word_only))
-      CompleteWord.completeWord(view)
+    Completion_Popup.Text_Area.action(view.getTextArea, word_only)
   }
 
 
