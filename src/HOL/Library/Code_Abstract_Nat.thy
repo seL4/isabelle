@@ -38,9 +38,11 @@ text {*
   applying the following transformation rule:
 *}
 
-lemma Suc_if_eq: "(\<And>n. f (Suc n) \<equiv> h n) \<Longrightarrow> f 0 \<equiv> g \<Longrightarrow>
-  f n \<equiv> if n = 0 then g else h (n - 1)"
-  by (rule eq_reflection) (cases n, simp_all)
+lemma Suc_if_eq:
+  assumes "\<And>n. f (Suc n) \<equiv> h n"
+  assumes "f 0 \<equiv> g"
+  shows "f n \<equiv> if n = 0 then g else h (n - 1)"
+  by (rule eq_reflection) (cases n, insert assms, simp_all)
 
 text {*
   The rule above is built into a preprocessor that is plugged into
@@ -56,9 +58,8 @@ fun remove_suc ctxt thms =
     val vname = singleton (Name.variant_list (map fst
       (fold (Term.add_var_names o Thm.full_prop_of) thms []))) "n";
     val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));
-    fun lhs_of th = snd (Thm.dest_comb
-      (fst (Thm.dest_comb (cprop_of th))));
-    fun rhs_of th = snd (Thm.dest_comb (cprop_of th));
+    val lhs_of = snd o Thm.dest_comb o fst o Thm.dest_comb o cprop_of;
+    val rhs_of = snd o Thm.dest_comb o cprop_of;
     fun find_vars ct = (case term_of ct of
         (Const (@{const_name Suc}, _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
       | _ $ _ =>
@@ -69,26 +70,26 @@ fun remove_suc ctxt thms =
         end
       | _ => []);
     val eqs = maps
-      (fn th => map (pair th) (find_vars (lhs_of th))) thms;
-    fun mk_thms (th, (ct, cv')) =
+      (fn thm => map (pair thm) (find_vars (lhs_of thm))) thms;
+    fun mk_thms (thm, (ct, cv')) =
       let
-        val th' =
+        val thm' =
           Thm.implies_elim
            (Conv.fconv_rule (Thm.beta_conversion true)
              (Drule.instantiate'
                [SOME (ctyp_of_term ct)] [SOME (Thm.lambda cv ct),
-                 SOME (Thm.lambda cv' (rhs_of th)), NONE, SOME cv']
-               @{thm Suc_if_eq})) (Thm.forall_intr cv' th)
+                 SOME (Thm.lambda cv' (rhs_of thm)), NONE, SOME cv']
+               @{thm Suc_if_eq})) (Thm.forall_intr cv' thm)
       in
-        case map_filter (fn th'' =>
-            SOME (th'', singleton
-              (Variable.trade (K (fn [th'''] => [th''' RS th']))
-                (Variable.global_thm_context th'')) th'')
+        case map_filter (fn thm'' =>
+            SOME (thm'', singleton
+              (Variable.trade (K (fn [thm'''] => [thm''' RS thm']))
+                (Variable.global_thm_context thm'')) thm'')
           handle THM _ => NONE) thms of
             [] => NONE
-          | thps =>
-              let val (ths1, ths2) = split_list thps
-              in SOME (subtract Thm.eq_thm (th :: ths1) thms @ ths2) end
+          | thmps =>
+              let val (thms1, thms2) = split_list thmps
+              in SOME (subtract Thm.eq_thm (thm :: thms1) thms @ thms2) end
       end
   in get_first mk_thms eqs end;
 
