@@ -52,6 +52,8 @@ text {*
 setup {*
 let
 
+val Suc_if_eq = Thm.incr_indexes 1 @{thm Suc_if_eq};
+
 fun remove_suc ctxt thms =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -79,7 +81,7 @@ fun remove_suc ctxt thms =
              (Drule.instantiate'
                [SOME (ctyp_of_term ct)] [SOME (Thm.lambda cv ct),
                  SOME (Thm.lambda cv' (rhs_of thm)), NONE, SOME cv']
-               @{thm Suc_if_eq})) (Thm.forall_intr cv' thm)
+               Suc_if_eq)) (Thm.forall_intr cv' thm)
       in
         case map_filter (fn thm'' =>
             SOME (thm'', singleton
