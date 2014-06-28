@@ -97,7 +97,7 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
   successor states.  The underlying sequence implementation is lazy
   both in head and tail, and is purely functional in \emph{not}
   supporting memoing.\footnote{The lack of memoing and the strict
-  nature of SML requires some care when working with low-level
+  nature of ML requires some care when working with low-level
   sequence operations, to avoid duplicate or premature evaluation of
   results.  It also means that modified runtime behavior, such as
   timeout, is very hard to achieve for general tactics.}
