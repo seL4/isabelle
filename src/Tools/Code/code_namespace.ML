@@ -355,7 +355,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
       end;
     fun add_edge_acyclic_error error_msg dep gr =
       Code_Symbol.Graph.add_edge_acyclic dep gr
-        handle Graph.CYCLES _ => error (error_msg ())
+        handle Code_Symbol.Graph.CYCLES _ => error (error_msg ())
     fun add_dep sym sym' =
       let
         val (name_fragments, _) = prep_sym sym;
