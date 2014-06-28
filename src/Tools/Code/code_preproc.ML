@@ -32,6 +32,11 @@ sig
   val static_value: { ctxt: Proof.context, lift_postproc: ((term -> term) -> 'a -> 'b), consts: string list }
     -> ({ algebra: code_algebra, eqngr: code_graph } -> Proof.context -> term -> 'a)
     -> Proof.context -> term -> 'b
+
+  val trace_none: Context.generic -> Context.generic
+  val trace_all: Context.generic -> Context.generic
+  val trace_only: string list -> Context.generic -> Context.generic
+  val trace_only_ext: string list -> Context.generic -> Context.generic
 end
 
 structure Code_Preproc : CODE_PREPROC =
@@ -268,6 +273,41 @@ fun pretty ctxt eqngr =
   end;
 
 
+(** simplifier tracing **)
+
+structure Trace_Switch = Generic_Data
+(
+  type T = string list option;
+  val empty = SOME [];
+  val extend = I;
+  fun merge (NONE, d2) = NONE
+    | merge (d1, NONE) = NONE
+    | merge (SOME cs1, SOME cs2) = SOME (Library.merge (op =) (cs1, cs2));
+);
+
+val trace_none = Trace_Switch.put (SOME []);
+
+val trace_all = Trace_Switch.put NONE;
+
+fun gen_trace_only prep_const raw_cs context =
+  let
+    val cs = map (prep_const (Context.theory_of context)) raw_cs;
+  in Trace_Switch.put (SOME cs) context end;
+
+val trace_only = gen_trace_only (K I);
+val trace_only_ext = gen_trace_only Code.read_const;
+
+fun switch_trace c ctxt =
+  let
+    val d = Trace_Switch.get (Context.Proof ctxt);
+    val switch = case d of NONE => true | SOME cs => member (op =) cs c;
+    val _ = if switch
+      then tracing ("Preprocessing function equations for "
+        ^ Code.string_of_const (Proof_Context.theory_of ctxt) c)
+      else ();
+  in Config.put simp_trace switch ctxt end;
+
+
 (** the Waisenhaus algorithm **)
 
 (* auxiliary *)
@@ -321,7 +361,7 @@ fun obtain_eqns ctxt eqngr c =
         val thy = Proof_Context.theory_of ctxt;
         val functrans = (map (fn (_, (_, f)) => f ctxt)
           o #functrans o the_thmproc) thy;
-        val cert = Code.get_cert ctxt functrans c;
+        val cert = Code.get_cert (switch_trace c ctxt) functrans c;
         val (lhs, rhss) =
           Code.typargs_deps_of_cert thy cert;
       in ((lhs, rhss), cert) end;

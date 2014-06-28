@@ -891,7 +891,7 @@ fun pretty_cert thy (cert as Nothing _) =
 end;
 
 
-(* code certificate access *)
+(* code certificate access with preprocessing *)
 
 fun retrieve_raw thy c =
   Symtab.lookup ((the_functions o the_exec) thy) c
@@ -918,7 +918,7 @@ fun preprocess conv ctxt =
   end;
 
 fun cert_of_eqns_preprocess ctxt functrans c =
-  perhaps (perhaps_loop (perhaps_apply functrans))
+  (perhaps o perhaps_loop o perhaps_apply) functrans
   #> (map o apfst) (preprocess eqn_conv ctxt)
   #> cert_of_eqns ctxt c;
 
