@@ -66,8 +66,8 @@ sig
   val get_type_of_constr_or_abstr: theory -> string -> (string * bool) option
   val is_constr: theory -> string -> bool
   val is_abstr: theory -> string -> bool
-  val get_cert: theory -> { functrans: ((thm * bool) list -> (thm * bool) list option) list,
-    ss: simpset } -> string -> cert
+  val get_cert: Proof.context -> ((thm * bool) list -> (thm * bool) list option) list
+    -> string -> cert
   val get_case_scheme: theory -> string -> (int * (int * string option list)) option
   val get_case_cong: theory -> string -> thm option
   val undefineds: theory -> string list
@@ -922,9 +922,9 @@ fun cert_of_eqns_preprocess ctxt functrans c =
   #> (map o apfst) (preprocess eqn_conv ctxt)
   #> cert_of_eqns ctxt c;
 
-fun get_cert thy { functrans, ss } c =
+fun get_cert ctxt functrans c =
   let
-    val ctxt = thy |> Proof_Context.init_global |> put_simpset ss;
+    val thy = Proof_Context.theory_of ctxt;
   in
     case retrieve_raw thy c of
       Default (_, eqns_lazy) => Lazy.force eqns_lazy

@@ -321,7 +321,7 @@ fun obtain_eqns ctxt eqngr c =
         val thy = Proof_Context.theory_of ctxt;
         val functrans = (map (fn (_, (_, f)) => f ctxt)
           o #functrans o the_thmproc) thy;
-        val cert = Code.get_cert thy { functrans = functrans, ss = simpset_of ctxt } c; (*FIXME*)
+        val cert = Code.get_cert ctxt functrans c;
         val (lhs, rhss) =
           Code.typargs_deps_of_cert thy cert;
       in ((lhs, rhss), cert) end;
