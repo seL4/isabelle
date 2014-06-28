@@ -1265,7 +1265,7 @@ text {*
   information, notably the context (\secref{sec:completion-context}).
 
   \item The system option @{system_option_ref jedit_completion_immediate}
-  (disabled by default) controls whether replacement text should be inserted
+  (enabled by default) controls whether replacement text should be inserted
   immediately without popup, regardless of @{system_option
   jedit_completion_delay}. This aggressive mode of completion is restricted to
   Isabelle symbols and their abbreviations (\secref{sec:symbols}).

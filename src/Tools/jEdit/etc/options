@@ -48,7 +48,7 @@ public option jedit_completion_context : bool = true
 public option jedit_completion_delay : real = 0.5
   -- "delay for completion popup (seconds)"
 
-public option jedit_completion_immediate : bool = false
+public option jedit_completion_immediate : bool = true
   -- "insert uniquely completed abbreviation immediately into buffer"
 
 public option jedit_completion_path_ignore : string = "*~:*.marks:*.orig:*.rej:.DS_Store"
