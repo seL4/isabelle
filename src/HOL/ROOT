@@ -665,7 +665,6 @@ session "HOL-TPTP" in TPTP = HOL +
   theories
     ATP_Theory_Export
     MaSh_Eval
-    MaSh_Export
     TPTP_Interpret
     THF_Arith
     TPTP_Proof_Reconstruction

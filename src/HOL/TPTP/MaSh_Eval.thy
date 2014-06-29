@@ -5,7 +5,7 @@
 header {* MaSh Evaluation Driver *}
 
 theory MaSh_Eval
-imports Complex_Main
+imports MaSh_Export
 begin
 
 ML_file "mash_eval.ML"

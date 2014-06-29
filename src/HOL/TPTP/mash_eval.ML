@@ -125,13 +125,12 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
               in
                 Config.put atp_dest_dir dir
                 #> Config.put atp_problem_prefix (prob_prefix ^ "__")
-                #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
+                #> Config.put SMT2_Config.debug_files (dir ^ "/" ^ prob_prefix)
               end
             | set_file_name _ NONE = I
 
           fun prove method suggs =
-            if not (member (op =) methods method) orelse
-               (null facts andalso method <> IsarN) then
+            if not (member (op =) methods method) orelse (null facts andalso method <> IsarN) then
               (str_of_method method ^ "Skipped", 0)
             else
               let
@@ -146,8 +145,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
                   |> take (the max_facts)
                   |> map fact_of_raw_fact
                 val ctxt = ctxt |> set_file_name method prob_dir_name
-                val res as {outcome, ...} =
-                  run_prover_for_mash ctxt params prover name facts goal
+                val res as {outcome, ...} = run_prover_for_mash ctxt params prover name facts goal
                 val ok = if is_none outcome then 1 else 0
               in
                 (str_of_result method facts res, ok)
@@ -170,9 +168,8 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
         zeros
 
     fun total_of method ok n =
-      str_of_method method ^ string_of_int ok ^ " (" ^
-      Real.fmt (StringCvt.FIX (SOME 1))
-               (100.0 * Real.fromInt ok / Real.fromInt (Int.max (1, n))) ^ "%)"
+      str_of_method method ^ string_of_int ok ^ " (" ^ Real.fmt (StringCvt.FIX (SOME 1))
+        (100.0 * Real.fromInt ok / Real.fromInt (Int.max (1, n))) ^ "%)"
 
     val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
