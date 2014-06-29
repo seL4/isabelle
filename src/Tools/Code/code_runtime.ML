@@ -32,7 +32,7 @@ sig
     -> string option -> theory -> theory
   datatype truth = Holds
   val put_truth: (unit -> truth) -> Proof.context -> Proof.context
-  val trace: bool Unsynchronized.ref
+  val trace: bool Config.T
   val polyml_as_definition: (binding * typ) list -> Path.T list -> theory -> theory
 end;
 
@@ -65,10 +65,10 @@ val _ = Theory.setup
   #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]);
        (*avoid further pervasive infix names*)
 
-val trace = Unsynchronized.ref false;
+val trace = Attrib.setup_config_bool @{binding "code_runtime_trace"} (K false);
 
-fun exec verbose code =
-  (if ! trace then tracing code else ();
+fun exec ctxt verbose code =
+  (if Config.get ctxt trace then tracing code else ();
   ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") verbose code));
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
@@ -78,7 +78,7 @@ fun value ctxt (get, put, put_ml) (prelude, value) =
       ^ " (fn () => " ^ value ^ ")) (ML_Context.the_generic_context ())))");
     val ctxt' = ctxt
       |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
-      |> Context.proof_map (exec false code);
+      |> Context.proof_map (exec ctxt false code);
   in get ctxt' () end;
 
 
@@ -112,7 +112,7 @@ fun partiality_as_none e = SOME (Exn.release e)
 fun dynamic_value_exn cookie ctxt some_target postproc t args =
   let
     val _ = reject_vars ctxt t;
-    val _ = if ! trace
+    val _ = if Config.get ctxt trace
       then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term ctxt t))
       else ()
     fun evaluator program _ vs_ty_t deps =
@@ -313,7 +313,7 @@ fun add_eval_const (const, const') = Code_Target.set_printings (Constant
 fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name NONE thy =
       thy
       |> Code_Target.add_reserved target module_name
-      |> Context.theory_map (exec true code)
+      |> Context.theory_map (exec (Proof_Context.init_global thy (*FIXME*)) true code)
       |> fold (add_eval_tyco o apsnd Code_Printer.str) tyco_map
       |> fold (add_eval_constr o apsnd Code_Printer.str) constr_map
       |> fold (add_eval_const o apsnd Code_Printer.str) const_map

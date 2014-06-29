@@ -22,7 +22,7 @@ sig
   val same: Univ * Univ -> bool
 
   val put_result: (unit -> Univ list -> Univ list) -> Proof.context -> Proof.context
-  val trace: bool Unsynchronized.ref
+  val trace: bool Config.T
 
   val add_const_alias: thm -> theory -> theory
 end;
@@ -32,8 +32,8 @@ struct
 
 (* generic non-sense *)
 
-val trace = Unsynchronized.ref false;
-fun traced f x = if !trace then (tracing (f x); x) else x;
+val trace = Attrib.setup_config_bool @{binding "nbe_trace"} (K false);
+fun traced ctxt f x = if Config.get ctxt trace then (tracing (f x); x) else x;
 
 
 (** certificates and oracle for "trivial type classes" **)
@@ -263,9 +263,10 @@ fun nbe_default v = "w_" ^ v;
 fun nbe_apps t [] = t
   | nbe_apps t ts = name_apps `$$` [t, ml_list (rev ts)];
 fun nbe_apps_local idx_of i c ts = nbe_fun idx_of i c `$` ml_list (rev ts);
-fun nbe_apps_constr idx_of c ts =
+fun nbe_apps_constr ctxt idx_of c ts =
   let
-    val c' = if !trace then string_of_int (idx_of c) ^ " (*" ^ Code_Symbol.default_base c ^ "*)"
+    val c' = if Config.get ctxt trace
+      then string_of_int (idx_of c) ^ " (*" ^ Code_Symbol.default_base c ^ "*)"
       else string_of_int (idx_of c);
   in name_const `$` ("(" ^ c' ^ ", " ^ ml_list (rev ts) ^ ")") end;
 
@@ -282,7 +283,7 @@ open Basic_Code_Thingol;
 
 (* code generation *)
 
-fun assemble_eqnss idx_of deps eqnss =
+fun assemble_eqnss ctxt idx_of deps eqnss =
   let
     fun prep_eqns (c, (vs, eqns)) =
       let
@@ -301,7 +302,7 @@ fun assemble_eqnss idx_of deps eqnss =
             end else nbe_apps (nbe_abss num_args (nbe_fun idx_of 0 sym)) ts'
         | NONE => if member (op =) deps sym
             then nbe_apps (nbe_fun idx_of 0 sym) ts'
-            else nbe_apps_constr idx_of sym ts'
+            else nbe_apps_constr ctxt idx_of sym ts'
       end
     and assemble_classrels classrels =
       fold_rev (fn classrel => assemble_constapp (Class_Relation classrel) [] o single) classrels
@@ -358,7 +359,8 @@ fun assemble_eqnss idx_of deps eqnss =
         val match_cont = if Code_Symbol.is_value sym then NONE
           else SOME (nbe_apps_local idx_of (i + 1) sym (dicts @ default_args));
         val assemble_arg = assemble_iterm
-          (fn sym' => fn dss => fn ts => nbe_apps_constr idx_of sym' ((maps o map) (K "_") dss @ ts)) NONE;
+          (fn sym' => fn dss => fn ts => nbe_apps_constr ctxt idx_of sym' ((maps o map) (K "_")
+            dss @ ts)) NONE;
         val assemble_rhs = assemble_iterm assemble_constapp match_cont;
         val (samepairs, args') = subst_nonlin_vars args;
         val s_args = map assemble_arg args';
@@ -379,7 +381,7 @@ fun assemble_eqnss idx_of deps eqnss =
         val eqns' = map_index (assemble_eqn sym dicts default_args) eqns
           @ (if Code_Symbol.is_value sym then [] else [(nbe_fun idx_of (length eqns) sym,
             [([ml_list (rev (dicts @ default_args))],
-              nbe_apps_constr idx_of sym (dicts @ default_args))])]);
+              nbe_apps_constr ctxt idx_of sym (dicts @ default_args))])]);
       in (eqns', nbe_abss num_args (nbe_fun idx_of 0 sym)) end;
 
     val (fun_vars, fun_vals) = map_split assemble_eqns eqnss';
@@ -398,11 +400,11 @@ fun compile_eqnss ctxt nbe_program raw_deps [] = []
           |> map (fn dep => (dep, snd (Code_Symbol.Graph.get_node nbe_program dep)))
           |> AList.lookup (op =)
           |> (fn f => the o f);
-        val s = assemble_eqnss idx_of deps eqnss;
+        val s = assemble_eqnss ctxt idx_of deps eqnss;
         val cs = map fst eqnss;
       in
         s
-        |> traced (fn s => "\n--- code to be evaluated:\n" ^ s)
+        |> traced ctxt (fn s => "\n--- code to be evaluated:\n" ^ s)
         |> pair ""
         |> Code_Runtime.value ctxt univs_cookie
         |> (fn f => f deps_vals)
@@ -549,11 +551,11 @@ fun eval_term (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typscheme, 
   in
     compile_term ctxt nbe_program deps (vs, t)
     |> term_of_univ ctxt idx_tab
-    |> traced (fn t => "Normalized:\n" ^ string_of_term t)
+    |> traced ctxt (fn t => "Normalized:\n" ^ string_of_term t)
     |> type_infer
-    |> traced (fn t => "Types inferred:\n" ^ string_of_term t)
+    |> traced ctxt (fn t => "Types inferred:\n" ^ string_of_term t)
     |> check_tvars
-    |> traced (fn _ => "---\n")
+    |> traced ctxt (fn _ => "---\n")
   end;
 
 
