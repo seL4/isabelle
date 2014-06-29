@@ -40,6 +40,11 @@ open Sledgehammer_MaSh
 fun in_range (from, to) j =
   j >= from andalso (to = NONE orelse j <= the to)
 
+fun encode_feature (names, weight) =
+  encode_str names ^ (if Real.== (weight, 1.0) then "" else "=" ^ Real.toString weight)
+
+val encode_features = map encode_feature #> space_implode " "
+
 (* The suggested weights do not make much sense. *)
 fun extract_suggestion sugg =
   (case space_explode "=" sugg of

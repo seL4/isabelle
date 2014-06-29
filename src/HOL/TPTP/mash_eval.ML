@@ -47,7 +47,9 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
     val zeros = [0, 0, 0, 0, 0, 0]
     val report_path = report_file_name |> Path.explode
     val _ = File.write report_path ""
+
     fun print s = File.append report_path (s ^ "\n")
+
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} = default_params thy []
     val prover = hd provers
     val max_suggs = generous_max_suggestions (the max_facts)
@@ -59,18 +61,21 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
                   mesh_isar_lines, mesh_prover_lines] =
       map lines_of file_names
     val num_lines = fold (Integer.max o length) lines 0
+
     fun pad lines = lines @ replicate (num_lines - length lines) ""
+
     val lines =
       pad mepo_lines ~~ pad mash_isar_lines ~~ pad mash_prover_lines ~~
       pad mesh_isar_lines ~~ pad mesh_prover_lines
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
     val name_tabs = build_name_tables nickname_of_thm facts
+
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_str (j, s) = s ^ "@" ^ string_of_int j
     val str_of_method = enclose "  " ": "
-    fun str_of_result method facts ({outcome, run_time, used_facts, ...}
-                                     : prover_result) =
+
+    fun str_of_result method facts ({outcome, run_time, used_facts, ...} : prover_result) =
       let val facts = facts |> map (fst o fst) in
         str_of_method method ^
         (if is_none outcome then
@@ -89,8 +94,9 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
                   |> map index_str
                   |> space_implode " "))
       end
-    fun solve_goal (j, ((((mepo_line, mash_isar_line), mash_prover_line),
-                         mesh_isar_line), mesh_prover_line)) =
+
+    fun solve_goal (j, ((((mepo_line, mash_isar_line), mash_prover_line), mesh_isar_line),
+        mesh_prover_line)) =
       if in_range range j then
         let
           val get_suggs = extract_suggestions ##> (take max_suggs #> map fst)
@@ -111,18 +117,18 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
           val isar_deps = these (isar_dependencies_of name_tabs th)
           val facts = facts |> filter (fn (_, th') => thm_less (th', th))
+
           (* adapted from "mirabelle_sledgehammer.ML" *)
           fun set_file_name method (SOME dir) =
               let
-                val prob_prefix =
-                  "goal_" ^ string_of_int j ^ "__" ^ encode_str name ^ "__" ^
-                  method
+                val prob_prefix = "goal_" ^ string_of_int j ^ "__" ^ encode_str name ^ "__" ^ method
               in
                 Config.put atp_dest_dir dir
                 #> Config.put atp_problem_prefix (prob_prefix ^ "__")
                 #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
               end
             | set_file_name _ NONE = I
+
           fun prove method suggs =
             if not (member (op =) methods method) orelse
                (null facts andalso method <> IsarN) then
@@ -131,6 +137,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
               let
                 fun nickify ((_, stature), th) =
                   ((K (encode_str (nickname_of_thm th)), stature), th)
+
                 val facts =
                   suggs
                   |> find_suggested_facts ctxt facts
@@ -142,7 +149,10 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
                 val res as {outcome, ...} =
                   run_prover_for_mash ctxt params prover name facts goal
                 val ok = if is_none outcome then 1 else 0
-              in (str_of_result method facts res, ok) end
+              in
+                (str_of_result method facts res, ok)
+              end
+
           val ress =
             [fn () => prove MePoN mepo_suggs,
              fn () => prove MaSh_IsarN mash_isar_suggs,
@@ -158,10 +168,12 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
         end
       else
         zeros
+
     fun total_of method ok n =
       str_of_method method ^ string_of_int ok ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
                (100.0 * Real.fromInt ok / Real.fromInt (Int.max (1, n))) ^ "%)"
+
     val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
       ["prover = " ^ prover,
@@ -175,8 +187,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
     val _ = print ("Options: " ^ commas options);
     val oks = Par_List.map solve_goal (tag_list 1 lines)
     val n = length oks
-    val [mepo_ok, mash_isar_ok, mash_prover_ok, mesh_isar_ok, mesh_prover_ok,
-         isar_ok] =
+    val [mepo_ok, mash_isar_ok, mash_prover_ok, mesh_isar_ok, mesh_prover_ok, isar_ok] =
       if n = 0 then zeros else map Integer.sum (map_transpose I oks)
   in
     ["Successes (of " ^ string_of_int n ^ " goals)",
