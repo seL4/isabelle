@@ -142,8 +142,7 @@ fun unalias_raw_param (name, value) =
     if value <> ["false"] then
       param'
     else
-      error ("Parameter " ^ quote name ^ " cannot be set to \"false\" \
-             \(cf. " ^ quote name' ^ ").")
+      error ("Parameter " ^ quote name ^ " cannot be set to \"false\" (cf. " ^ quote name' ^ ").")
   | NONE =>
     (case AList.lookup (op =) negated_alias_params name of
       SOME name' => (name',
@@ -378,18 +377,15 @@ fun hammer_away override_params subcommand opt_i fact_override state =
     else if subcommand = supported_proversN then
       supported_provers ctxt
     else if subcommand = kill_allN then
-      (kill_provers ();
-       kill_learners ctxt (get_params Normal thy override_params))
+      (kill_provers (); kill_learners ())
     else if subcommand = running_proversN then
       running_provers ()
     else if subcommand = unlearnN then
-      mash_unlearn ctxt (get_params Normal thy override_params)
+      mash_unlearn ()
     else if subcommand = learn_isarN orelse subcommand = learn_proverN orelse
             subcommand = relearn_isarN orelse subcommand = relearn_proverN then
-      (if subcommand = relearn_isarN orelse subcommand = relearn_proverN then
-         mash_unlearn ctxt (get_params Normal thy override_params)
-       else
-         ();
+      (if subcommand = relearn_isarN orelse subcommand = relearn_proverN then mash_unlearn ()
+       else ();
        mash_learn ctxt
            (* TODO: Use MaSh mode instead and have the special defaults hardcoded in "get_params" *)
            (get_params Normal thy
@@ -426,15 +422,14 @@ val parse_key = Scan.repeat1 (Parse.typ_group || parse_query_bang) >> implode_pa
 val parse_value = Scan.repeat1 (Parse.xname || Parse.float_number || parse_query_bang)
 val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
-val parse_fact_refs =
-  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)
+val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)
 val parse_fact_override_chunk =
   (Args.add |-- Args.colon |-- parse_fact_refs >> add_fact_override)
   || (Args.del |-- Args.colon |-- parse_fact_refs >> del_fact_override)
   || (parse_fact_refs >> only_fact_override)
 val parse_fact_override =
   Scan.optional (Args.parens (Scan.repeat parse_fact_override_chunk >> merge_fact_overrides))
-                no_fact_override
+    no_fact_override
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "sledgehammer"}
