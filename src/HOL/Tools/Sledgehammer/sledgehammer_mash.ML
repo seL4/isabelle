@@ -33,19 +33,16 @@ sig
   val decode_str : string -> string
   val decode_strs : string -> string list
   val encode_features : (string * real) list -> string
-  val extract_suggestions : string -> string * (string * real) list
 
   datatype mash_engine =
-    MaSh_Py
-  | MaSh_SML_kNN
-  | MaSh_SML_kNN_Ext
-  | MaSh_SML_NB
-  | MaSh_SML_NB_Ext
+    MaSh_kNN
+  | MaSh_kNN_Ext
+  | MaSh_NB
+  | MaSh_NB_Ext
 
   val is_mash_enabled : unit -> bool
   val the_mash_engine : unit -> mash_engine
 
-  val mash_unlearn : Proof.context -> params -> unit
   val nickname_of_thm : thm -> string
   val find_suggested_facts : Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
   val mesh_facts : ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list -> 'a list
@@ -69,18 +66,20 @@ sig
     ('b * thm) list -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
   val mash_suggested_facts : Proof.context -> theory -> params -> int -> term list -> term ->
     raw_fact list -> fact list * fact list
+
+  val mash_unlearn : unit -> unit
   val mash_learn_proof : Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
-  val mash_learn_facts : Proof.context -> params -> string -> bool -> int -> bool -> Time.time ->
+  val mash_learn_facts : Proof.context -> params -> string -> int -> bool -> Time.time ->
     raw_fact list -> string
   val mash_learn : Proof.context -> params -> fact_override -> thm list -> bool -> unit
 
-  val mash_can_suggest_facts : Proof.context -> bool -> bool
+  val mash_can_suggest_facts : Proof.context -> bool
   val generous_max_suggestions : int -> int
   val mepo_weight : real
   val mash_weight : real
   val relevant_facts : Proof.context -> params -> string -> int -> fact_override -> term list ->
     term -> raw_fact list -> (string * fact list) list
-  val kill_learners : Proof.context -> params -> unit
+  val kill_learners : unit -> unit
   val running_learners : unit -> unit
 end;
 
@@ -140,84 +139,28 @@ fun wipe_out_mash_state_dir () =
   end
 
 datatype mash_engine =
-  MaSh_Py
-| MaSh_SML_kNN
-| MaSh_SML_kNN_Ext
-| MaSh_SML_NB
-| MaSh_SML_NB_Ext
+  MaSh_kNN
+| MaSh_kNN_Ext
+| MaSh_NB
+| MaSh_NB_Ext
 
 fun mash_engine () =
   let val flag1 = Options.default_string @{system_option MaSh} in
     (case if flag1 <> "none" (* default *) then flag1 else getenv "MASH" of
-      "yes" => SOME MaSh_SML_NB
-    | "py" => SOME MaSh_Py
-    | "sml" => SOME MaSh_SML_NB
-    | "sml_knn" => SOME MaSh_SML_kNN
-    | "sml_knn_ext" => SOME MaSh_SML_kNN_Ext
-    | "sml_nb" => SOME MaSh_SML_NB
-    | "sml_nb_ext" => SOME MaSh_SML_NB_Ext
+      "yes" => SOME MaSh_NB
+    | "sml" => SOME MaSh_NB
+    | "knn" => SOME MaSh_kNN
+    | "knn_ext" => SOME MaSh_kNN_Ext
+    | "nb" => SOME MaSh_NB
+    | "nb_ext" => SOME MaSh_NB_Ext
     | _ => NONE)
   end
 
 val is_mash_enabled = is_some o mash_engine
-val the_mash_engine = the_default MaSh_SML_NB o mash_engine
+val the_mash_engine = the_default MaSh_NB o mash_engine
 
 
-(*** Low-level communication with the Python version of MaSh ***)
-
-val save_models_arg = "--saveModels"
-val shutdown_server_arg = "--shutdownServer"
-
-fun wipe_out_file file = ignore (try (File.rm o Path.explode) file)
-
-fun write_file banner (xs, f) path =
-  (case banner of SOME s => File.write path s | NONE => ();
-   xs |> chunk_list 500 |> List.app (File.append path o implode o map f))
-  handle IO.Io _ => ()
-
-fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
-  let
-    val (temp_dir, serial) =
-      if overlord then (getenv "ISABELLE_HOME_USER", "")
-      else (getenv "ISABELLE_TMP", serial_string ())
-    val log_file = temp_dir ^ "/mash_log" ^ serial
-    val err_file = temp_dir ^ "/mash_err" ^ serial
-    val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
-    val sugg_path = Path.explode sugg_file
-    val cmd_file = temp_dir ^ "/mash_commands" ^ serial
-    val cmd_path = Path.explode cmd_file
-    val model_dir = File.shell_path (mash_state_dir ())
-
-    val command =
-      "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; \
-      \PYTHONDONTWRITEBYTECODE=y ./mash.py\
-      \ --quiet\
-      \ --port=$MASH_PORT\
-      \ --outputDir " ^ model_dir ^
-      " --modelFile=" ^ model_dir ^ "/model.pickle\
-      \ --dictsFile=" ^ model_dir ^ "/dict.pickle\
-      \ --log " ^ log_file ^
-      " --inputFile " ^ cmd_file ^
-      " --predictions " ^ sugg_file ^
-      (if extra_args = [] then "" else " " ^ space_implode " " extra_args) ^ " >& " ^ err_file ^
-      (if background then " &" else "")
-
-    fun run_on () =
-      (Isabelle_System.bash command
-       |> tap (fn _ =>
-         (case try File.read (Path.explode err_file) |> the_default "" of
-           "" => trace_msg ctxt (K "Done")
-         | s => warning ("MaSh error: " ^ elide_string 1000 s)));
-       read_suggs (fn () => try File.read_lines sugg_path |> these))
-
-    fun clean_up () =
-      if overlord then () else List.app wipe_out_file [err_file, sugg_file, cmd_file]
-  in
-    write_file (SOME "") ([], K "") sugg_path;
-    write_file (SOME "") write_cmds cmd_path;
-    trace_msg ctxt (fn () => "Running " ^ command);
-    with_cleanup clean_up run_on ()
-  end
+(*** Maintenance of the persistent, string-based state ***)
 
 fun meta_char c =
   if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse c = #")" orelse
@@ -246,70 +189,10 @@ fun encode_feature (names, weight) =
 
 val encode_features = map encode_feature #> space_implode " "
 
-fun str_of_learn (name, parents, feats, deps) =
-  "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^ encode_strs feats ^ "; " ^
-  encode_strs deps ^ "\n"
 
-fun str_of_relearn (name, deps) = "p " ^ encode_str name ^ ": " ^ encode_strs deps ^ "\n"
+(*** Isabelle-agnostic machine learning ***)
 
-fun str_of_query max_suggs (learns, parents, feats) =
-  implode (map str_of_learn learns) ^
-  "? " ^ string_of_int max_suggs ^ " # " ^ encode_strs parents ^ "; " ^ encode_features feats ^ "\n"
-
-(* The suggested weights do not make much sense. *)
-fun extract_suggestion sugg =
-  (case space_explode "=" sugg of
-    [name, weight] => SOME (decode_str name, Real.fromString weight |> the_default 1.0)
-  | [name] => SOME (decode_str name, 1.0)
-  | _ => NONE)
-
-fun extract_suggestions line =
-  (case space_explode ":" line of
-    [goal, suggs] => (decode_str goal, map_filter extract_suggestion (space_explode " " suggs))
-  | _ => ("", []))
-
-structure MaSh_Py =
-struct
-
-fun shutdown ctxt overlord =
-  (trace_msg ctxt (K "MaSh_Py shutdown");
-   run_mash_tool ctxt overlord [shutdown_server_arg] false ([], K "") (K ()))
-
-fun save ctxt overlord =
-  (trace_msg ctxt (K "MaSh_Py save");
-   run_mash_tool ctxt overlord [save_models_arg] true ([], K "") (K ()))
-
-fun unlearn ctxt overlord =
-  (trace_msg ctxt (K "MaSh_Py unlearn");
-   shutdown ctxt overlord;
-   wipe_out_mash_state_dir ())
-
-fun learn _ _ _ [] = ()
-  | learn ctxt overlord save learns =
-    (trace_msg ctxt (fn () =>
-       "MaSh_Py learn {" ^ elide_string 1000 (space_implode " " (map #1 learns)) ^ "}");
-     run_mash_tool ctxt overlord ([] |> save ? cons save_models_arg) false (learns, str_of_learn)
-       (K ()))
-
-fun relearn _ _ _ [] = ()
-  | relearn ctxt overlord save relearns =
-    (trace_msg ctxt (fn () => "MaSh_Py relearn " ^
-       elide_string 1000 (space_implode " " (map #1 relearns)));
-     run_mash_tool ctxt overlord ([] |> save ? cons save_models_arg) false
-       (relearns, str_of_relearn) (K ()))
-
-fun query ctxt overlord max_suggs (query as (_, _, feats)) =
-  (trace_msg ctxt (fn () => "MaSh_Py query " ^ encode_features feats);
-   run_mash_tool ctxt overlord [] false ([query], str_of_query max_suggs) (fn suggs =>
-     (case suggs () of [] => [] | suggs => snd (extract_suggestions (List.last suggs))))
-   handle List.Empty => [])
-
-end;
-
-
-(*** Standard ML version of MaSh ***)
-
-structure MaSh_SML =
+structure MaSh =
 struct
 
 fun heap cmp bnd al a =
@@ -542,25 +425,6 @@ fun naive_bayes (tfreq, sfreq, dffreq) num_facts max_suggs visible_facts goal_fe
   end
 
 (* experimental *)
-fun naive_bayes_py ctxt overlord num_facts depss featss max_suggs goal_feats =
-  let
-    fun name_of_fact j = "f" ^ string_of_int j
-    fun fact_of_name s = the (Int.fromString (unprefix "f" s))
-    fun name_of_feature j = "F" ^ string_of_int j
-    fun parents_of j = if j = 0 then [] else [name_of_fact (j - 1)]
-
-    val learns = map (fn j => (name_of_fact j, parents_of j,
-      map name_of_feature (Vector.sub (featss, j)),
-      map name_of_fact (Vector.sub (depss, j)))) (0 upto num_facts - 1)
-    val parents' = parents_of num_facts
-  in
-    MaSh_Py.unlearn ctxt overlord;
-    OS.Process.sleep (seconds 2.0); (* hack *)
-    MaSh_Py.query ctxt overlord max_suggs (learns, parents', goal_feats)
-    |> map (apfst fact_of_name)
-  end
-
-(* experimental *)
 fun external_tool tool max_suggs learns goal_feats =
   let
     val ser = string_of_int (serial ()) (* poor person's attempt at thread-safety *)
@@ -600,17 +464,17 @@ val k_nearest_neighbors_ext =
 val naive_bayes_ext = external_tool "predict/nbayes"
 
 fun query_external ctxt engine max_suggs learns goal_feats =
-  (trace_msg ctxt (fn () => "MaSh_SML query external " ^ encode_features goal_feats);
+  (trace_msg ctxt (fn () => "MaSh query external " ^ encode_features goal_feats);
    (case engine of
-     MaSh_SML_kNN_Ext => k_nearest_neighbors_ext max_suggs learns goal_feats
-   | MaSh_SML_NB_Ext => naive_bayes_ext max_suggs learns goal_feats))
+     MaSh_kNN_Ext => k_nearest_neighbors_ext max_suggs learns goal_feats
+   | MaSh_NB_Ext => naive_bayes_ext max_suggs learns goal_feats))
 
 fun query_internal ctxt engine num_facts num_feats (fact_names, featss, depss)
     (freqs as (_, _, dffreq)) visible_facts max_suggs goal_feats int_goal_feats =
-  (trace_msg ctxt (fn () => "MaSh_SML query internal " ^ encode_features goal_feats ^ " from {" ^
+  (trace_msg ctxt (fn () => "MaSh query internal " ^ encode_features goal_feats ^ " from {" ^
      elide_string 1000 (space_implode " " (Vector.foldr (op ::) [] fact_names)) ^ "}");
    (case engine of
-     MaSh_SML_kNN =>
+     MaSh_kNN =>
      let
        val feat_facts = Array.array (num_feats, [])
        val _ =
@@ -620,7 +484,7 @@ fun query_internal ctxt engine num_facts num_feats (fact_names, featss, depss)
      in
        k_nearest_neighbors dffreq num_facts depss feat_facts max_suggs visible_facts int_goal_feats
      end
-   | MaSh_SML_NB => naive_bayes freqs num_facts max_suggs visible_facts int_goal_feats)
+   | MaSh_NB => naive_bayes freqs num_facts max_suggs visible_facts int_goal_feats)
    |> map (curry Vector.sub fact_names o fst))
 
 end;
@@ -698,7 +562,7 @@ fun recompute_ffds_freqs_from_learns learns ((num_facts, fact_tab), (num_feats, 
       Vector.fromList (map (map_filter (Symtab.lookup fact_tab) o #3) learns)]
   in
     ((fact_names, featss, depss),
-     MaSh_SML.learn_facts freqs0 num_facts0 num_facts num_feats depss featss)
+     MaSh.learn_facts freqs0 num_facts0 num_facts num_feats depss featss)
   end
 
 fun reorder_learns (num_facts, fact_tab) learns =
@@ -734,7 +598,7 @@ fun extract_node line =
     | _ => NONE)
   | _ => NONE)
 
-fun load_state ctxt overlord (time_state as (memory_time, _)) =
+fun load_state ctxt (time_state as (memory_time, _)) =
   let val path = mash_state_file () in
     (case try OS.FileSys.modTime (Path.implode path) of
       NONE => time_state
@@ -758,11 +622,7 @@ fun load_state ctxt overlord (time_state as (memory_time, _)) =
                  EQUAL =>
                  try_graph ctxt "loading state" empty_G_etc
                    (fn () => fold extract_line_and_add_node node_lines empty_G_etc)
-               | LESS =>
-                 (* cannot parse old file *)
-                 (if the_mash_engine () = MaSh_Py then MaSh_Py.unlearn ctxt overlord
-                  else wipe_out_mash_state_dir ();
-                  empty_G_etc)
+               | LESS => (wipe_out_mash_state_dir (); empty_G_etc) (* cannot parse old file *)
                | GREATER => raise FILE_VERSION_TOO_NEW ())
 
              val (ffds, freqs) =
@@ -794,7 +654,9 @@ fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
           SOME names => (NONE, fold (append_entry o Graph.get_entry access_G) names [])
         | NONE => (SOME (version ^ "\n"), Graph.fold append_entry access_G []))
     in
-      write_file banner (entries, str_of_entry) path;
+      (case banner of SOME s => File.write path s | NONE => ();
+       entries |> chunk_list 500 |> List.app (File.append path o implode o map str_of_entry))
+      handle IO.Io _ => ();
       trace_msg ctxt (fn () =>
         "Saved fact graph (" ^ graph_info access_G ^
         (case dirty_facts of
@@ -808,24 +670,18 @@ val global_state = Synchronized.var "Sledgehammer_MaSh.global_state" (Time.zeroT
 
 in
 
-fun map_state ctxt overlord f =
-  Synchronized.change global_state (load_state ctxt overlord ##> f #> save_state ctxt)
+fun map_state ctxt f =
+  Synchronized.change global_state (load_state ctxt ##> f #> save_state ctxt)
   handle FILE_VERSION_TOO_NEW () => ()
 
-fun peek_state ctxt overlord f =
-  Synchronized.change_result global_state (perhaps (try (load_state ctxt overlord)) #> `snd #>> f)
+fun peek_state ctxt =
+  Synchronized.change_result global_state (perhaps (try (load_state ctxt)) #> `snd)
 
-fun clear_state ctxt overlord =
-  (* "MaSh_Py.unlearn" also removes the state file *)
+fun clear_state () =
   Synchronized.change global_state (fn _ =>
-    (if the_mash_engine () = MaSh_Py then MaSh_Py.unlearn ctxt overlord
-     else wipe_out_mash_state_dir ();
-     (Time.zeroTime, empty_state)))
+    (wipe_out_mash_state_dir (); (Time.zeroTime, empty_state)))
 
 end
-
-fun mash_unlearn ctxt ({overlord, ...} : params) =
-  (clear_state ctxt overlord; Output.urgent_message "Reset MaSh.")
 
 
 (*** Isabelle helpers ***)
@@ -1284,7 +1140,7 @@ fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     (mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess, unknown)
   end
 
-fun mash_suggested_facts ctxt thy ({debug, overlord, ...} : params) max_suggs hyp_ts concl_t facts =
+fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl_t facts =
   let
     val thy_name = Context.theory_name thy
     val engine = the_mash_engine ()
@@ -1323,49 +1179,39 @@ fun mash_suggested_facts ctxt thy ({debug, overlord, ...} : params) max_suggs hy
         (parents, feats)
       end
 
-    val ((access_G, ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs), py_suggs) =
-      peek_state ctxt overlord (fn {access_G, xtabs, ffds, freqs, ...} =>
-        ((access_G, xtabs, ffds, freqs),
-         if Graph.is_empty access_G then
-           (trace_msg ctxt (K "Nothing has been learned yet"); [])
-         else if engine = MaSh_Py then
-           let val (parents, feats) = query_args access_G in
-             MaSh_Py.query ctxt overlord max_suggs ([], parents, feats)
-             |> map fst
-           end
-         else
-           []))
+    val {access_G, xtabs = ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs, ...} =
+      peek_state ctxt
 
-    val sml_suggs =
-      if engine = MaSh_Py then
-        []
-      else
-        let
-          val (parents, goal_feats) = query_args access_G
-          val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
-        in
-          if engine = MaSh_SML_kNN_Ext orelse engine = MaSh_SML_NB_Ext then
-            let
-              val learns =
-                Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
-            in
-              MaSh_SML.query_external ctxt engine max_suggs learns goal_feats
-            end
-          else
-            let
-              val int_goal_feats =
-                map_filter (fn (s, w) => Option.map (rpair w) (Symtab.lookup feat_tab s)) goal_feats
-            in
-              MaSh_SML.query_internal ctxt engine num_facts num_feats ffds freqs visible_facts
-                max_suggs goal_feats int_goal_feats
-            end
-        end
+    val suggs =
+      let
+        val (parents, goal_feats) = query_args access_G
+        val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
+      in
+        if engine = MaSh_kNN_Ext orelse engine = MaSh_NB_Ext then
+          let
+            val learns =
+              Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
+          in
+            MaSh.query_external ctxt engine max_suggs learns goal_feats
+          end
+        else
+          let
+            val int_goal_feats =
+              map_filter (fn (s, w) => Option.map (rpair w) (Symtab.lookup feat_tab s)) goal_feats
+          in
+            MaSh.query_internal ctxt engine num_facts num_feats ffds freqs visible_facts max_suggs
+              goal_feats int_goal_feats
+          end
+      end
 
     val unknown = filter_out (is_fact_in_graph access_G o snd) facts
   in
-    find_mash_suggestions ctxt max_suggs (py_suggs @ sml_suggs) facts chained unknown
+    find_mash_suggestions ctxt max_suggs suggs facts chained unknown
     |> pairself (map fact_of_raw_fact)
   end
+
+fun mash_unlearn () =
+  (clear_state (); Output.urgent_message "Reset MaSh.")
 
 fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (access_G, (fact_xtab, feat_xtab)) =
   let
@@ -1413,35 +1259,30 @@ fun launch_thread timeout task =
 fun learned_proof_name () =
   Date.fmt ".%Y%m%d.%H%M%S." (Date.fromTimeLocal (Time.now ())) ^ serial_string ()
 
-fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
+fun mash_learn_proof ctxt ({timeout, ...} : params) t facts used_ths =
   if not (null used_ths) andalso is_mash_enabled () then
     launch_thread timeout (fn () =>
       let
         val thy = Proof_Context.theory_of ctxt
         val feats = features_of ctxt thy (Local, General) [t]
       in
-        map_state ctxt overlord
-          (fn state as {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
+        map_state ctxt
+          (fn {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
              let
                val parents = maximal_wrt_access_graph access_G facts
                val deps = used_ths
                  |> filter (is_fact_in_graph access_G)
                  |> map nickname_of_thm
-             in
-               if the_mash_engine () = MaSh_Py then
-                 (MaSh_Py.learn ctxt overlord true [("", parents, feats, deps)]; state)
-               else
-                 let
-                   val name = learned_proof_name ()
-                   val (access_G', xtabs', rev_learns) =
-                     add_node Automatic_Proof name parents feats deps (access_G, xtabs, [])
 
-                   val (ffds', freqs') =
-                     recompute_ffds_freqs_from_learns (rev rev_learns) xtabs' num_facts0 ffds freqs
-                 in
-                   {access_G = access_G', xtabs = xtabs', ffds = ffds', freqs = freqs',
-                    dirty_facts = Option.map (cons name) dirty_facts}
-                 end
+               val name = learned_proof_name ()
+               val (access_G', xtabs', rev_learns) =
+                 add_node Automatic_Proof name parents feats deps (access_G, xtabs, [])
+
+               val (ffds', freqs') =
+                 recompute_ffds_freqs_from_learns (rev rev_learns) xtabs' num_facts0 ffds freqs
+             in
+               {access_G = access_G', xtabs = xtabs', ffds = ffds', freqs = freqs',
+                dirty_facts = Option.map (cons name) dirty_facts}
              end);
         (true, "")
       end)
@@ -1453,14 +1294,13 @@ fun sendback sub = Active.sendback_markup [Markup.padding_command] (sledgehammer
 val commit_timeout = seconds 30.0
 
 (* The timeout is understood in a very relaxed fashion. *)
-fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover save auto_level
-    run_prover learn_timeout facts =
+fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level run_prover
+    learn_timeout facts =
   let
     val timer = Timer.startRealTimer ()
     fun next_commit_time () = Time.+ (Timer.checkRealTimer timer, commit_timeout)
 
-    val engine = the_mash_engine ()
-    val {access_G, ...} = peek_state ctxt overlord I
+    val {access_G, ...} = peek_state ctxt
     val is_in_access_G = is_fact_in_graph access_G o snd
     val no_new_facts = forall is_in_access_G facts
   in
@@ -1511,18 +1351,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
                 else
                   recompute_ffds_freqs_from_access_G access_G xtabs
             in
-              if engine = MaSh_Py then
-                (MaSh_Py.learn ctxt overlord (save andalso null relearns) learns;
-                 MaSh_Py.relearn ctxt overlord save relearns)
-              else
-                ();
               {access_G = access_G, xtabs = xtabs, ffds = ffds', freqs = freqs',
                dirty_facts = dirty_facts}
             end
 
         fun commit last learns relearns flops =
           (if debug andalso auto_level = 0 then Output.urgent_message "Committing..." else ();
-           map_state ctxt overlord (do_commit (rev learns) relearns flops);
+           map_state ctxt (do_commit (rev learns) relearns flops);
            if not last andalso auto_level = 0 then
              let val num_proofs = length learns + length relearns in
                Output.urgent_message ("Learned " ^ string_of_int num_proofs ^ " " ^
@@ -1633,7 +1468,7 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
     val prover = hd provers
 
     fun learn auto_level run_prover =
-      mash_learn_facts ctxt params prover true auto_level run_prover one_year facts
+      mash_learn_facts ctxt params prover auto_level run_prover one_year facts
       |> Output.urgent_message
   in
     if run_prover then
@@ -1650,8 +1485,8 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
        learn 0 false)
   end
 
-fun mash_can_suggest_facts ctxt overlord =
-  not (Graph.is_empty (#access_G (peek_state ctxt overlord I)))
+fun mash_can_suggest_facts ctxt =
+  not (Graph.is_empty (#access_G (peek_state ctxt)))
 
 (* Generate more suggestions than requested, because some might be thrown out later for various
    reasons (e.g., duplicates). *)
@@ -1666,7 +1501,7 @@ val max_facts_to_learn_before_query = 100
    and Try. *)
 val min_secs_for_learning = 15
 
-fun relevant_facts ctxt (params as {verbose, overlord, learn, fact_filter, timeout, ...}) prover
+fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) prover
     max_facts ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
@@ -1689,42 +1524,41 @@ fun relevant_facts ctxt (params as {verbose, overlord, learn, fact_filter, timeo
              else
                ());
             launch_thread timeout
-              (fn () => (true, mash_learn_facts ctxt params prover true 2 false timeout facts))
+              (fn () => (true, mash_learn_facts ctxt params prover 2 false timeout facts))
           end
         else
           ()
 
       fun maybe_learn () =
-        if is_mash_enabled () andalso learn then
+        if learn then
           let
-            val {access_G, xtabs = ((num_facts0, _), _), ...} = peek_state ctxt overlord I
+            val {access_G, xtabs = ((num_facts0, _), _), ...} = peek_state ctxt
             val is_in_access_G = is_fact_in_graph access_G o snd
             val min_num_facts_to_learn = length facts - num_facts0
           in
             if min_num_facts_to_learn <= max_facts_to_learn_before_query then
               (case length (filter_out is_in_access_G facts) of
-                0 => false
+                0 => ()
               | num_facts_to_learn =>
                 if num_facts_to_learn <= max_facts_to_learn_before_query then
-                  (mash_learn_facts ctxt params prover false 2 false timeout facts
-                   |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s));
-                   true)
+                  mash_learn_facts ctxt params prover 2 false timeout facts
+                  |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s))
                 else
-                  (maybe_launch_thread num_facts_to_learn; false))
+                  maybe_launch_thread num_facts_to_learn)
             else
-              (maybe_launch_thread min_num_facts_to_learn; false)
+              maybe_launch_thread min_num_facts_to_learn
           end
         else
-          false
+          ()
 
-      val (save, effective_fact_filter) =
+      val effective_fact_filter =
         (case fact_filter of
-          SOME ff => (ff <> mepoN andalso maybe_learn (), ff)
+          SOME ff => ff
         | NONE =>
           if is_mash_enabled () then
-            (maybe_learn (), if mash_can_suggest_facts ctxt overlord then meshN else mepoN)
+            (maybe_learn (); if mash_can_suggest_facts ctxt then meshN else mepoN)
           else
-            (false, mepoN))
+            mepoN)
 
       val unique_facts = drop_duplicate_facts facts
       val add_ths = Attrib.eval_thms ctxt add
@@ -1754,7 +1588,6 @@ fun relevant_facts ctxt (params as {verbose, overlord, learn, fact_filter, timeo
            |> Par_List.map (apsnd (fn f => f ()))
       val mesh = mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess |> add_and_take
     in
-      if the_mash_engine () = MaSh_Py andalso save then MaSh_Py.save ctxt overlord else ();
       (case (fact_filter, mess) of
         (NONE, [(_, (mepo, _)), (_, (mash, _))]) =>
         [(meshN, mesh), (mepoN, mepo |> map fst |> add_and_take),
@@ -1762,9 +1595,7 @@ fun relevant_facts ctxt (params as {verbose, overlord, learn, fact_filter, timeo
       | _ => [(effective_fact_filter, mesh)])
     end
 
-fun kill_learners ctxt ({overlord, ...} : params) =
-  (Async_Manager.kill_threads MaShN "learner";
-   if the_mash_engine () = MaSh_Py then MaSh_Py.shutdown ctxt overlord else ())
+fun kill_learners () = Async_Manager.kill_threads MaShN "learner"
 
 fun running_learners () = Async_Manager.running_threads MaShN "learner"
 

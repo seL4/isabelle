@@ -9,6 +9,9 @@ signature MASH_EXPORT =
 sig
   type params = Sledgehammer_Prover.params
 
+  val in_range : int * int option -> int -> bool
+  val extract_suggestions : string -> string * (string * real) list
+
   val generate_accessibility : Proof.context -> theory list -> string -> unit
   val generate_features : Proof.context -> theory list -> string -> unit
   val generate_isar_dependencies : Proof.context -> int * int option -> theory list -> string ->
@@ -36,6 +39,18 @@ open Sledgehammer_MaSh
 
 fun in_range (from, to) j =
   j >= from andalso (to = NONE orelse j <= the to)
+
+(* The suggested weights do not make much sense. *)
+fun extract_suggestion sugg =
+  (case space_explode "=" sugg of
+    [name, weight] => SOME (decode_str name, Real.fromString weight |> the_default 1.0)
+  | [name] => SOME (decode_str name, 1.0)
+  | _ => NONE)
+
+fun extract_suggestions line =
+  (case space_explode ":" line of
+    [goal, suggs] => (decode_str goal, map_filter extract_suggestion (space_explode " " suggs))
+  | _ => ("", []))
 
 fun has_thm_thy th thy =
   Context.theory_name thy = Context.theory_name (theory_of_thm th)
@@ -265,11 +280,11 @@ val generate_mepo_suggestions =
        #> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t)
 
 fun generate_mash_suggestions ctxt params =
-  (Sledgehammer_MaSh.mash_unlearn ctxt params;
+  (Sledgehammer_MaSh.mash_unlearn ();
    generate_mepo_or_mash_suggestions
      (fn ctxt => fn thy => fn params as {provers = prover :: _, ...} => fn max_suggs => fn hyp_ts =>
           fn concl_t =>
-        tap (Sledgehammer_MaSh.mash_learn_facts ctxt params prover true 2 false
+        tap (Sledgehammer_MaSh.mash_learn_facts ctxt params prover 2 false
           Sledgehammer_Util.one_year)
         #> Sledgehammer_MaSh.mash_suggested_facts ctxt thy params max_suggs hyp_ts concl_t
         #> fst) ctxt params)

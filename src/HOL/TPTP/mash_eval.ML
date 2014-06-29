@@ -29,6 +29,7 @@ open Sledgehammer_MaSh
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Commands
+open MaSh_Export
 
 val prefix = Library.prefix
 
@@ -37,9 +38,6 @@ val MaSh_ProverN = MaShN ^ "-Prover"
 val MeSh_IsarN = MeShN ^ "-Isar"
 val MeSh_ProverN = MeShN ^ "-Prover"
 val IsarN = "Isar"
-
-fun in_range (from, to) j =
-  j >= from andalso (to = NONE orelse j <= the to)
 
 fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_name
     mash_isar_file_name mash_prover_file_name mesh_isar_file_name mesh_prover_file_name

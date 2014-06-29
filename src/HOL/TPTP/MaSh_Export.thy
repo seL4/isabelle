@@ -46,22 +46,22 @@ else
   ()
 *}
 
-ML {* Options.put_default @{system_option MaSh} "sml_nb" *}
+ML {* Options.put_default @{system_option MaSh} "nb" *}
 
 ML {*
 if do_it then
   generate_mash_suggestions @{context} params (range, step) thys max_suggestions
-    (prefix ^ "mash_sml_nb_suggestions")
+    (prefix ^ "mash_nb_suggestions")
 else
   ()
 *}
 
-ML {* Options.put_default @{system_option MaSh} "sml_knn" *}
+ML {* Options.put_default @{system_option MaSh} "knn" *}
 
 ML {*
 if do_it then
   generate_mash_suggestions @{context} params (range, step) thys max_suggestions
-    (prefix ^ "mash_sml_knn_suggestions")
+    (prefix ^ "mash_knn_suggestions")
 else
   ()
 *}

@@ -1,8 +1,0 @@
-# -*- shell-script -*- :mode=shellscript:
-
-ISABELLE_SLEDGEHAMMER_MASH="$COMPONENT"
-
-# MASH=yes
-if [ -z "$MASH_PORT" ]; then
-  MASH_PORT=9255
-fi

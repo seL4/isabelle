@@ -433,9 +433,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
         and increase performance and reliability.
       - MaSh and MeSh are now used by default together with the traditional
         MePo (Meng-Paulson) relevance filter. To disable MaSh, set the "MaSh"
-        system option in Plugin Options / Isabelle / General to "none". Other
-        allowed values include "sml" (for the default SML engine) and "py"
-        (for the old Python engine).
+        system option in Plugin Options / Isabelle / General to "none".
   - New option:
       smt_proofs
   - Renamed options:
