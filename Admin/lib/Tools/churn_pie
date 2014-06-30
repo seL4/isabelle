@@ -2,7 +2,7 @@
 #
 # Author: Florian Haftmann, TU Muenchen
 #
-# DESCRIPTION: pie chart with mercurial churn statistics for specified aliases file
+# DESCRIPTION: pie chart with Mercurial churn statistics
 
 ALIAS="${1:-$ISABELLE_HOME/Admin/user-aliases}"
 shift
