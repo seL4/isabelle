@@ -178,6 +178,8 @@ but the latter is retained some time as Proof General legacy.
 
 *** HOL ***
 
+* Qualified String.implode and String.explode.  INCOMPATIBILITY.
+
 * Command and antiquotation ''value'' are hardcoded against nbe and
 ML now.  Minor INCOMPATIBILITY.
 

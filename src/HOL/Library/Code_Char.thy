@@ -40,18 +40,15 @@ code_reserved OCaml
 code_reserved Scala
   char
 
-definition implode :: "string \<Rightarrow> String.literal" where
-  "implode = STR"
-
 code_reserved SML String
 
 code_printing
-  constant implode \<rightharpoonup>
+  constant String.implode \<rightharpoonup>
     (SML) "String.implode"
     and (OCaml) "!(let l = _ in let res = String.create (List.length l) in let rec imp i = function | [] -> res | c :: l -> String.set res i c; imp (i + 1) l in imp 0 l)"
     and (Haskell) "_"
     and (Scala) "!(\"\" ++/ _)"
-| constant explode \<rightharpoonup>
+| constant String.explode \<rightharpoonup>
     (SML) "String.explode"
     and (OCaml) "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (String.get s i :: l) in exp (String.length s - 1) [])"
     and (Haskell) "_"

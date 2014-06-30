@@ -546,7 +546,7 @@ subsection {* Code generator setup *}
 subsubsection {* Logical intermediate layer *}
 
 definition raise' :: "String.literal \<Rightarrow> 'a Heap" where
-  [code del]: "raise' s = raise (explode s)"
+  [code del]: "raise' s = raise (String.explode s)"
 
 lemma [code_abbrev]: "raise' (STR s) = raise s"
   unfolding raise'_def by (simp add: STR_inverse)

@@ -104,7 +104,7 @@ instance list :: (countable) countable
 text {* Further *}
 
 instance String.literal :: countable
-  by (rule countable_classI [of "to_nat o explode"])
+  by (rule countable_classI [of "to_nat o String.explode"])
     (auto simp add: explode_inject)
 
 text {* Functions *}

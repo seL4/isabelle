@@ -358,6 +358,10 @@ typedef literal = "UNIV :: string set"
 
 setup_lifting (no_code) type_definition_literal
 
+definition implode :: "string \<Rightarrow> String.literal"
+where
+  "implode = STR"
+
 instantiation literal :: size
 begin
 
@@ -439,5 +443,7 @@ code_printing constant Code.abort \<rightharpoonup>
     and (Scala) "!{/ sys.error((_));/  ((_)).apply(())/ }"
 
 hide_type (open) literal
+
+hide_const (open) implode explode
 
 end

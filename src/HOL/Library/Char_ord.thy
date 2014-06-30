@@ -113,11 +113,11 @@ end
 end
 
 lemma less_literal_code [code]: 
-  "op < = (\<lambda>xs ys. ord.lexordp op < (explode xs) (explode ys))"
+  "op < = (\<lambda>xs ys. ord.lexordp op < (String.explode xs) (String.explode ys))"
 by(simp add: less_literal.rep_eq fun_eq_iff)
 
 lemma less_eq_literal_code [code]:
-  "op \<le> = (\<lambda>xs ys. ord.lexordp_eq op < (explode xs) (explode ys))"
+  "op \<le> = (\<lambda>xs ys. ord.lexordp_eq op < (String.explode xs) (String.explode ys))"
 by(simp add: less_eq_literal.rep_eq fun_eq_iff)
 
 lifting_update literal.lifting
