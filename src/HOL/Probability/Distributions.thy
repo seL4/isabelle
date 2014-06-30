@@ -56,26 +56,6 @@ proof -
     by (simp add: field_simps eq)
 qed
 
-lemma measure_lebesgue_Icc: "measure lebesgue {a .. b} = (if a \<le> b then b - a else 0)"
-  by (auto simp: measure_def)
-
-lemma integral_power:
-  "a \<le> b \<Longrightarrow> (\<integral>x. x^k * indicator {a..b} x \<partial>lborel) = (b^Suc k - a^Suc k) / Suc k"
-proof (subst integral_FTC_atLeastAtMost)
-  fix x show "DERIV (\<lambda>x. x^Suc k / Suc k) x :> x^k"
-    by (intro derivative_eq_intros) auto
-qed (auto simp: field_simps)
-
-lemma has_bochner_integral_nn_integral:
-  assumes "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
-  assumes "(\<integral>\<^sup>+x. f x \<partial>M) = ereal x"
-  shows "has_bochner_integral M f x"
-  unfolding has_bochner_integral_iff
-proof
-  show "integrable M f"
-    using assms by (rule integrableI_nn_integral_finite)
-qed (auto simp: assms integral_eq_nn_integral)
-
 lemma (in prob_space) distributed_AE2:
   assumes [measurable]: "distributed M N X f" "Measurable.pred N P"
   shows "(AE x in M. P (X x)) \<longleftrightarrow> (AE x in N. 0 < f x \<longrightarrow> P x)"
@@ -104,8 +84,8 @@ proof -
     by (intro nn_integral_multc[symmetric]) auto
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (?f k x) * indicator {0 .. a} x \<partial>lborel)"
     by (intro nn_integral_cong) (simp add: field_simps)
-  also have "\<dots> = ereal (?F k a) - (?F k 0)"
-  proof (rule nn_integral_FTC_atLeastAtMost)
+  also have "\<dots> = ereal (?F k a - ?F k 0)"
+  proof (rule nn_integral_FTC_Icc)
     fix x assume "x \<in> {0..a}"
     show "DERIV (?F k) x :> ?f k x"
     proof(induction k)
@@ -782,9 +762,7 @@ lemma (in prob_space) uniform_distributed_iff:
     uniform_distributed_bounds[of X a b]
     uniform_distributed_measure[of X a b]
     distributed_measurable[of M lborel X]
-  by (auto intro!: uniform_distrI_borel_atLeastAtMost 
-              simp: one_ereal_def emeasure_eq_measure
-              simp del: measure_lborel)
+  by (auto intro!: uniform_distrI_borel_atLeastAtMost)
 
 lemma (in prob_space) uniform_distributed_expectation:
   fixes a b :: real
@@ -798,7 +776,7 @@ proof (subst distributed_integral[OF D, of "\<lambda>x. x", symmetric])
     (\<integral> x. (x / measure lborel {a .. b}) * indicator {a .. b} x \<partial>lborel)"
     by (intro integral_cong) auto
   also have "(\<integral> x. (x / measure lborel {a .. b}) * indicator {a .. b} x \<partial>lborel) = (a + b) / 2"
-  proof (subst integral_FTC_atLeastAtMost)
+  proof (subst integral_FTC_Icc_real)
     fix x
     show "DERIV (\<lambda>x. x\<^sup>2 / (2 * measure lborel {a..b})) x :> x / measure lborel {a..b}"
       using uniform_distributed_params[OF D]
@@ -827,7 +805,7 @@ proof (subst distributed_variance)
   have "(\<integral>x. x\<^sup>2 * (?D x) \<partial>lborel) = (\<integral>x. x\<^sup>2 * (indicator {a - ?\<mu> .. b - ?\<mu>} x) / measure lborel {a .. b} \<partial>lborel)"
     by (intro integral_cong) (auto split: split_indicator)
   also have "\<dots> = (b - a)\<^sup>2 / 12"
-    by (simp add: integral_power measure_lebesgue_Icc uniform_distributed_expectation[OF D])
+    by (simp add: integral_power uniform_distributed_expectation[OF D])
        (simp add: eval_nat_numeral field_simps )
   finally show "(\<integral>x. x\<^sup>2 * ?D x \<partial>lborel) = (b - a)\<^sup>2 / 12" .
 qed fact

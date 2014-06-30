@@ -825,6 +825,9 @@ lemma euclidean_dist_l2:
 
 subsection {* Boxes *}
 
+abbreviation One :: "'a::euclidean_space"
+  where "One \<equiv> \<Sum>Basis"
+
 definition (in euclidean_space) eucl_less (infix "<e" 50)
   where "eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
 
@@ -846,6 +849,12 @@ lemma box_real[simp]:
   fixes a b:: real
   shows "box a b = {a <..< b}" "cbox a b = {a .. b}"
   by auto
+
+lemma box_Int_box:
+  fixes a :: "'a::euclidean_space"
+  shows "box a b \<inter> box c d =
+    box (\<Sum>i\<in>Basis. max (a\<bullet>i) (c\<bullet>i) *\<^sub>R i) (\<Sum>i\<in>Basis. min (b\<bullet>i) (d\<bullet>i) *\<^sub>R i)"
+  unfolding set_eq_iff and Int_iff and mem_box by auto
 
 lemma rational_boxes:
   fixes x :: "'a\<Colon>euclidean_space"
@@ -1140,6 +1149,24 @@ proof -
   show ?th2 unfolding * by (intro **) auto
   show ?th3 unfolding * by (intro **) auto
   show ?th4 unfolding * by (intro **) auto
+qed
+
+lemma UN_box_eq_UNIV: "(\<Union>i::nat. box (- (real i *\<^sub>R One)) (real i *\<^sub>R One)) = UNIV"
+proof -
+  { fix x b :: 'a assume [simp]: "b \<in> Basis"
+    have "\<bar>x \<bullet> b\<bar> \<le> real (natceiling \<bar>x \<bullet> b\<bar>)"
+      by (rule real_natceiling_ge)
+    also have "\<dots> \<le> real (natceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)))"
+      by (auto intro!: natceiling_mono)
+    also have "\<dots> < real (natceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
+      by simp
+    finally have "\<bar>x \<bullet> b\<bar> < real (natceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)" . }
+  then have "\<And>x::'a. \<exists>n::nat. \<forall>b\<in>Basis. \<bar>x \<bullet> b\<bar> < real n"
+    by auto
+  moreover have "\<And>x b::'a. \<And>n::nat.  \<bar>x \<bullet> b\<bar> < real n \<longleftrightarrow> - real n < x \<bullet> b \<and> x \<bullet> b < real n"
+    by auto
+  ultimately show ?thesis
+    by (auto simp: box_def inner_setsum_left inner_Basis setsum.If_cases)
 qed
 
 text {* Intervals in general, including infinite and mixtures of open and closed. *}
@@ -4587,6 +4614,43 @@ lemma continuous_within_eps_delta:
 lemma continuous_at_eps_delta:
   "continuous (at x) f \<longleftrightarrow> (\<forall>e > 0. \<exists>d > 0. \<forall>x'. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
   using continuous_within_eps_delta [of x UNIV f] by simp
+
+lemma continuous_at_right_real_increasing:
+  assumes nondecF: "\<And> x y. x \<le> y \<Longrightarrow> f x \<le> ((f y) :: real)"
+  shows "(continuous (at_right (a :: real)) f) = (\<forall>e > 0. \<exists>delta > 0. f (a + delta) - f a < e)"
+  apply (auto simp add: continuous_within_eps_delta dist_real_def greaterThan_def)
+  apply (drule_tac x = e in spec, auto)
+  apply (drule_tac x = "a + d / 2" in spec)
+  apply (subst (asm) abs_of_nonneg)
+  apply (auto intro: nondecF simp add: field_simps)
+  apply (rule_tac x = "d / 2" in exI)
+  apply (auto simp add: field_simps)
+  apply (drule_tac x = e in spec, auto)
+  apply (rule_tac x = delta in exI, auto)
+  apply (subst abs_of_nonneg)
+  apply (auto intro: nondecF simp add: field_simps)
+  apply (rule le_less_trans)
+  prefer 2 apply assumption
+by (rule nondecF, auto)
+
+lemma continuous_at_left_real_increasing:
+  assumes nondecF: "\<And> x y. x \<le> y \<Longrightarrow> f x \<le> ((f y) :: real)"
+  shows "(continuous (at_left (a :: real)) f) = (\<forall>e > 0. \<exists>delta > 0. f a - f (a - delta) < e)"
+  apply (auto simp add: continuous_within_eps_delta dist_real_def lessThan_def)
+  apply (drule_tac x = e in spec, auto)
+  apply (drule_tac x = "a - d / 2" in spec)
+  apply (subst (asm) abs_of_nonpos)
+  apply (auto intro: nondecF simp add: field_simps)
+  apply (rule_tac x = "d / 2" in exI)
+  apply (auto simp add: field_simps)
+  apply (drule_tac x = e in spec, auto)
+  apply (rule_tac x = delta in exI, auto)
+  apply (subst abs_of_nonpos)
+  apply (auto intro: nondecF simp add: field_simps)
+  apply (rule less_le_trans)
+  apply assumption
+  apply auto
+by (rule nondecF, auto)
 
 text{* Versions in terms of open balls. *}
 

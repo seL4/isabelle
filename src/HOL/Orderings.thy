@@ -319,6 +319,10 @@ lemma linorder_cases [case_names less equal greater]:
   "(x < y \<Longrightarrow> P) \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> (y < x \<Longrightarrow> P) \<Longrightarrow> P"
 using less_linear by blast
 
+lemma linorder_wlog[case_names le sym]:
+  "(\<And>a b. a \<le> b \<Longrightarrow> P a b) \<Longrightarrow> (\<And>a b. P b a \<Longrightarrow> P a b) \<Longrightarrow> P a b"
+  by (cases rule: le_cases[of a b]) blast+
+
 lemma not_less: "\<not> x < y \<longleftrightarrow> y \<le> x"
 apply (simp add: less_le)
 using linear apply (blast intro: antisym)
@@ -359,7 +363,6 @@ unfolding not_less .
 (*FIXME inappropriate name (or delete altogether)*)
 lemma not_leE: "\<not> y \<le> x \<Longrightarrow> x < y"
 unfolding not_le .
-
 
 text {* Dual order *}
 

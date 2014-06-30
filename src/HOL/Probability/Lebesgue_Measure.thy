@@ -1,573 +1,608 @@
 (*  Title:      HOL/Probability/Lebesgue_Measure.thy
     Author:     Johannes Hölzl, TU München
     Author:     Robert Himmelmann, TU München
+    Author:     Jeremy Avigad
+    Author:     Luke Serafin
 *)
 
 header {* Lebsegue measure *}
 
 theory Lebesgue_Measure
-  imports Finite_Product_Measure Bochner_Integration
+  imports Finite_Product_Measure Bochner_Integration Caratheodory
 begin
 
-lemma absolutely_integrable_on_indicator[simp]:
-  fixes A :: "'a::ordered_euclidean_space set"
-  shows "((indicator A :: _ \<Rightarrow> real) absolutely_integrable_on X) \<longleftrightarrow>
-    (indicator A :: _ \<Rightarrow> real) integrable_on X"
-  unfolding absolutely_integrable_on_def by simp
+subsection {* Every right continuous and nondecreasing function gives rise to a measure *}
 
-lemma has_integral_indicator_UNIV:
-  fixes s A :: "'a::ordered_euclidean_space set" and x :: real
-  shows "((indicator (s \<inter> A) :: 'a\<Rightarrow>real) has_integral x) UNIV = ((indicator s :: _\<Rightarrow>real) has_integral x) A"
-proof -
-  have "(\<lambda>x. if x \<in> A then indicator s x else 0) = (indicator (s \<inter> A) :: _\<Rightarrow>real)"
-    by (auto simp: fun_eq_iff indicator_def)
-  then show ?thesis
-    unfolding has_integral_restrict_univ[where s=A, symmetric] by simp
-qed
+definition interval_measure :: "(real \<Rightarrow> real) \<Rightarrow> real measure" where
+  "interval_measure F = extend_measure UNIV {(a, b). a \<le> b} (\<lambda>(a, b). {a <.. b}) (\<lambda>(a, b). ereal (F b - F a))"
 
-lemma
-  fixes s a :: "'a::ordered_euclidean_space set"
-  shows integral_indicator_UNIV:
-    "integral UNIV (indicator (s \<inter> A) :: 'a\<Rightarrow>real) = integral A (indicator s :: _\<Rightarrow>real)"
-  and integrable_indicator_UNIV:
-    "(indicator (s \<inter> A) :: 'a\<Rightarrow>real) integrable_on UNIV \<longleftrightarrow> (indicator s :: 'a\<Rightarrow>real) integrable_on A"
-  unfolding integral_def integrable_on_def has_integral_indicator_UNIV by auto
-
-subsection {* Standard Cubes *}
-
-definition cube :: "nat \<Rightarrow> 'a::ordered_euclidean_space set" where
-  "cube n \<equiv> {\<Sum>i\<in>Basis. - n *\<^sub>R i .. \<Sum>i\<in>Basis. n *\<^sub>R i}"
-
-lemma borel_cube[intro]: "cube n \<in> sets borel"
-  unfolding cube_def by auto
-
-lemma cube_closed[intro]: "closed (cube n)"
-  unfolding cube_def by auto
-
-lemma cube_subset[intro]: "n \<le> N \<Longrightarrow> cube n \<subseteq> cube N"
-  by (fastforce simp: eucl_le[where 'a='a] cube_def setsum_negf)
-
-lemma cube_subset_iff: "cube n \<subseteq> cube N \<longleftrightarrow> n \<le> N"
-  unfolding cube_def subset_box by (simp add: setsum_negf ex_in_conv eucl_le[where 'a='a])
-
-lemma ball_subset_cube: "ball (0::'a::ordered_euclidean_space) (real n) \<subseteq> cube n"
-  apply (simp add: cube_def subset_eq mem_box setsum_negf eucl_le[where 'a='a])
-proof safe
-  fix x i :: 'a assume x: "x \<in> ball 0 (real n)" and i: "i \<in> Basis" 
-  thus "- real n \<le> x \<bullet> i" "real n \<ge> x \<bullet> i"
-    using Basis_le_norm[OF i, of x] by(auto simp: dist_norm)
-qed
-
-lemma mem_big_cube: obtains n where "x \<in> cube n"
-proof -
-  from reals_Archimedean2[of "norm x"] guess n ..
-  with ball_subset_cube[unfolded subset_eq, of n]
-  show ?thesis
-    by (intro that[where n=n]) (auto simp add: dist_norm)
-qed
-
-lemma cube_subset_Suc[intro]: "cube n \<subseteq> cube (Suc n)"
-  unfolding cube_def cbox_interval[symmetric] subset_box by (simp add: setsum_negf)
-
-lemma has_integral_interval_cube:
-  fixes a b :: "'a::ordered_euclidean_space"
-  shows "(indicator {a .. b} has_integral content ({a .. b} \<inter> cube n)) (cube n)"
-    (is "(?I has_integral content ?R) (cube n)")
-proof -
-  have [simp]: "(\<lambda>x. if x \<in> cube n then ?I x else 0) = indicator ?R"
-    by (auto simp: indicator_def cube_def fun_eq_iff eucl_le[where 'a='a])
-  have "(?I has_integral content ?R) (cube n) \<longleftrightarrow> (indicator ?R has_integral content ?R) UNIV"
-    unfolding has_integral_restrict_univ[where s="cube n", symmetric] by simp
-  also have "\<dots> \<longleftrightarrow> ((\<lambda>x. 1::real) has_integral content ?R *\<^sub>R 1) ?R"
-    unfolding indicator_def [abs_def] has_integral_restrict_univ real_scaleR_def mult_1_right ..
-  also have "((\<lambda>x. 1) has_integral content ?R *\<^sub>R 1) ?R"
-    unfolding cube_def inter_interval cbox_interval[symmetric] by (rule has_integral_const)
-  finally show ?thesis .
-qed
-
-subsection {* Lebesgue measure *}
-
-definition lebesgue :: "'a::ordered_euclidean_space measure" where
-  "lebesgue = measure_of UNIV {A. \<forall>n. (indicator A :: 'a \<Rightarrow> real) integrable_on cube n}
-    (\<lambda>A. SUP n. ereal (integral (cube n) (indicator A)))"
-
-lemma space_lebesgue[simp]: "space lebesgue = UNIV"
-  unfolding lebesgue_def by simp
-
-lemma lebesgueI: "(\<And>n. (indicator A :: _ \<Rightarrow> real) integrable_on cube n) \<Longrightarrow> A \<in> sets lebesgue"
-  unfolding lebesgue_def by simp
-
-lemma sigma_algebra_lebesgue:
-  defines "leb \<equiv> {A. \<forall>n. (indicator A :: 'a::ordered_euclidean_space \<Rightarrow> real) integrable_on cube n}"
-  shows "sigma_algebra UNIV leb"
-proof (safe intro!: sigma_algebra_iff2[THEN iffD2])
-  fix A assume A: "A \<in> leb"
-  moreover have "indicator (UNIV - A) = (\<lambda>x. 1 - indicator A x :: real)"
-    by (auto simp: fun_eq_iff indicator_def)
-  ultimately show "UNIV - A \<in> leb"
-    using A by (auto intro!: integrable_sub simp: cube_def leb_def)
-next
-  fix n show "{} \<in> leb"
-    by (auto simp: cube_def indicator_def[abs_def] leb_def)
-next
-  fix A :: "nat \<Rightarrow> _" assume A: "range A \<subseteq> leb"
-  have "\<forall>n. (indicator (\<Union>i. A i) :: _ \<Rightarrow> real) integrable_on cube n" (is "\<forall>n. ?g integrable_on _")
-  proof (intro dominated_convergence[where g="?g"] ballI allI)
-    fix k n show "(indicator (\<Union>i<k. A i) :: _ \<Rightarrow> real) integrable_on cube n"
-    proof (induct k)
-      case (Suc k)
-      have *: "(\<Union> i<Suc k. A i) = (\<Union> i<k. A i) \<union> A k"
-        unfolding lessThan_Suc UN_insert by auto
-      have *: "(\<lambda>x. max (indicator (\<Union> i<k. A i) x) (indicator (A k) x) :: real) =
-          indicator (\<Union> i<Suc k. A i)" (is "(\<lambda>x. max (?f x) (?g x)) = _")
-        by (auto simp: fun_eq_iff * indicator_def)
-      show ?case
-        using absolutely_integrable_max[of ?f "cube n" ?g] A Suc
-        by (simp add: * leb_def subset_eq)
-    qed auto
-  qed (auto intro: LIMSEQ_indicator_UN simp: cube_def)
-  then show "(\<Union>i. A i) \<in> leb" by (auto simp: leb_def)
-qed simp
-
-lemma sets_lebesgue: "sets lebesgue = {A. \<forall>n. (indicator A :: _ \<Rightarrow> real) integrable_on cube n}"
-  unfolding lebesgue_def sigma_algebra.sets_measure_of_eq[OF sigma_algebra_lebesgue] ..
-
-lemma lebesgueD: "A \<in> sets lebesgue \<Longrightarrow> (indicator A :: _ \<Rightarrow> real) integrable_on cube n"
-  unfolding sets_lebesgue by simp
-
-lemma emeasure_lebesgue:
-  assumes "A \<in> sets lebesgue"
-  shows "emeasure lebesgue A = (SUP n. ereal (integral (cube n) (indicator A)))"
-    (is "_ = ?\<mu> A")
-proof (rule emeasure_measure_of[OF lebesgue_def])
-  have *: "indicator {} = (\<lambda>x. 0 :: real)" by (simp add: fun_eq_iff)
-  show "positive (sets lebesgue) ?\<mu>"
-  proof (unfold positive_def, intro conjI ballI)
-    show "?\<mu> {} = 0" by (simp add: integral_0 *)
-    fix A :: "'a set" assume "A \<in> sets lebesgue" then show "0 \<le> ?\<mu> A"
-      by (auto intro!: SUP_upper2 Integration.integral_nonneg simp: sets_lebesgue)
-  qed
-next
-  show "countably_additive (sets lebesgue) ?\<mu>"
-  proof (intro countably_additive_def[THEN iffD2] allI impI)
-    fix A :: "nat \<Rightarrow> 'a set" assume rA: "range A \<subseteq> sets lebesgue" "disjoint_family A"
-    then have A[simp, intro]: "\<And>i n. (indicator (A i) :: _ \<Rightarrow> real) integrable_on cube n"
-      by (auto dest: lebesgueD)
-    let ?m = "\<lambda>n i. integral (cube n) (indicator (A i) :: _\<Rightarrow>real)"
-    let ?M = "\<lambda>n I. integral (cube n) (indicator (\<Union>i\<in>I. A i) :: _\<Rightarrow>real)"
-    have nn[simp, intro]: "\<And>i n. 0 \<le> ?m n i" by (auto intro!: Integration.integral_nonneg)
-    assume "(\<Union>i. A i) \<in> sets lebesgue"
-    then have UN_A[simp, intro]: "\<And>i n. (indicator (\<Union>i. A i) :: _ \<Rightarrow> real) integrable_on cube n"
-      by (auto simp: sets_lebesgue)
-    show "(\<Sum>n. ?\<mu> (A n)) = ?\<mu> (\<Union>i. A i)"
-    proof (subst suminf_SUP_eq, safe intro!: incseq_SucI) 
-      fix i n show "ereal (?m n i) \<le> ereal (?m (Suc n) i)"
-        using cube_subset[of n "Suc n"] by (auto intro!: integral_subset_le incseq_SucI)
+lemma emeasure_interval_measure_Ioc:
+  assumes "a \<le> b"
+  assumes mono_F: "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y"
+  assumes right_cont_F : "\<And>a. continuous (at_right a) F" 
+  shows "emeasure (interval_measure F) {a <.. b} = F b - F a"
+proof (rule extend_measure_caratheodory_pair[OF interval_measure_def `a \<le> b`])
+  show "semiring_of_sets UNIV {{a<..b} |a b :: real. a \<le> b}"
+  proof (unfold_locales, safe)
+    fix a b c d :: real assume *: "a \<le> b" "c \<le> d"
+    then show "\<exists>C\<subseteq>{{a<..b} |a b. a \<le> b}. finite C \<and> disjoint C \<and> {a<..b} - {c<..d} = \<Union>C"
+    proof cases
+      let ?C = "{{a<..b}}"
+      assume "b < c \<or> d \<le> a \<or> d \<le> c"
+      with * have "?C \<subseteq> {{a<..b} |a b. a \<le> b} \<and> finite ?C \<and> disjoint ?C \<and> {a<..b} - {c<..d} = \<Union>?C"
+        by (auto simp add: disjoint_def)
+      thus ?thesis ..
     next
-      fix i n show "0 \<le> ereal (?m n i)"
-        using rA unfolding lebesgue_def
-        by (auto intro!: SUP_upper2 integral_nonneg)
-    next
-      show "(SUP n. \<Sum>i. ereal (?m n i)) = (SUP n. ereal (?M n UNIV))"
-      proof (intro arg_cong[where f="SUPREMUM UNIV"] ext sums_unique[symmetric] sums_ereal[THEN iffD2] sums_def[THEN iffD2])
-        fix n
-        have "\<And>m. (UNION {..<m} A) \<in> sets lebesgue" using rA by auto
-        from lebesgueD[OF this]
-        have "(\<lambda>m. ?M n {..< m}) ----> ?M n UNIV"
-          (is "(\<lambda>m. integral _ (?A m)) ----> ?I")
-          by (intro dominated_convergence(2)[where f="?A" and h="\<lambda>x. 1::real"])
-             (auto intro: LIMSEQ_indicator_UN simp: cube_def)
-        moreover
-        { fix m have *: "(\<Sum>x<m. ?m n x) = ?M n {..< m}"
-          proof (induct m)
-            case (Suc m)
-            have "(\<Union>i<m. A i) \<in> sets lebesgue" using rA by auto
-            then have "(indicator (\<Union>i<m. A i) :: _\<Rightarrow>real) integrable_on (cube n)"
-              by (auto dest!: lebesgueD)
-            moreover
-            have "(\<Union>i<m. A i) \<inter> A m = {}"
-              using rA(2)[unfolded disjoint_family_on_def, THEN bspec, of m]
-              by auto
-            then have "\<And>x. indicator (\<Union>i<Suc m. A i) x =
-              indicator (\<Union>i<m. A i) x + (indicator (A m) x :: real)"
-              by (auto simp: indicator_add lessThan_Suc ac_simps)
-            ultimately show ?case
-              using Suc A by (simp add: Integration.integral_add[symmetric])
-          qed auto }
-        ultimately show "(\<lambda>m. \<Sum>x<m. ?m n x) ----> ?M n UNIV"
-          by (simp add: atLeast0LessThan)
-      qed
+      let ?C = "{{a<..c}, {d<..b}}"
+      assume "\<not> (b < c \<or> d \<le> a \<or> d \<le> c)"
+      with * have "?C \<subseteq> {{a<..b} |a b. a \<le> b} \<and> finite ?C \<and> disjoint ?C \<and> {a<..b} - {c<..d} = \<Union>?C"
+        by (auto simp add: disjoint_def Ioc_inj) (metis linear)+
+      thus ?thesis ..
     qed
-  qed
-qed (auto, fact)
-
-lemma lebesgueI_borel[intro, simp]:
-  fixes s::"'a::ordered_euclidean_space set"
-  assumes "s \<in> sets borel" shows "s \<in> sets lebesgue"
-proof -
-  have "s \<in> sigma_sets (space lebesgue) (range (\<lambda>(a, b). {a .. (b :: 'a\<Colon>ordered_euclidean_space)}))"
-    using assms by (simp add: borel_eq_atLeastAtMost)
-  also have "\<dots> \<subseteq> sets lebesgue"
-  proof (safe intro!: sets.sigma_sets_subset lebesgueI)
-    fix n :: nat and a b :: 'a
-    show "(indicator {a..b} :: 'a\<Rightarrow>real) integrable_on cube n"
-      unfolding integrable_on_def using has_integral_interval_cube[of a b] by auto
-  qed
-  finally show ?thesis .
-qed
-
-lemma borel_measurable_lebesgueI:
-  "f \<in> borel_measurable borel \<Longrightarrow> f \<in> borel_measurable lebesgue"
-  unfolding measurable_def by simp
-
-lemma lebesgueI_negligible[dest]: fixes s::"'a::ordered_euclidean_space set"
-  assumes "negligible s" shows "s \<in> sets lebesgue"
-  using assms by (force simp: cbox_interval[symmetric] cube_def integrable_on_def negligible_def intro!: lebesgueI)
-
-lemma lmeasure_eq_0:
-  fixes S :: "'a::ordered_euclidean_space set"
-  assumes "negligible S" shows "emeasure lebesgue S = 0"
-proof -
-  have "\<And>n. integral (cube n) (indicator S :: 'a\<Rightarrow>real) = 0"
-    unfolding lebesgue_integral_def using assms
-    by (intro integral_unique some1_equality ex_ex1I)
-       (auto simp: cube_def negligible_def cbox_interval[symmetric])
-  then show ?thesis
-    using assms by (simp add: emeasure_lebesgue lebesgueI_negligible)
-qed
-
-lemma lmeasure_iff_LIMSEQ:
-  assumes A: "A \<in> sets lebesgue" and "0 \<le> m"
-  shows "emeasure lebesgue A = ereal m \<longleftrightarrow> (\<lambda>n. integral (cube n) (indicator A :: _ \<Rightarrow> real)) ----> m"
-proof (subst emeasure_lebesgue[OF A], intro SUP_eq_LIMSEQ)
-  show "mono (\<lambda>n. integral (cube n) (indicator A::_=>real))"
-    using cube_subset assms by (intro monoI integral_subset_le) (auto dest!: lebesgueD)
-qed
-
-lemma lmeasure_finite_has_integral:
-  fixes s :: "'a::ordered_euclidean_space set"
-  assumes "s \<in> sets lebesgue" "emeasure lebesgue s = ereal m"
-  shows "(indicator s has_integral m) UNIV"
-proof -
-  let ?I = "indicator :: 'a set \<Rightarrow> 'a \<Rightarrow> real"
-  have "0 \<le> m"
-    using emeasure_nonneg[of lebesgue s] `emeasure lebesgue s = ereal m` by simp
-  have **: "(?I s) integrable_on UNIV \<and> (\<lambda>k. integral UNIV (?I (s \<inter> cube k))) ----> integral UNIV (?I s)"
-  proof (intro monotone_convergence_increasing allI ballI)
-    have LIMSEQ: "(\<lambda>n. integral (cube n) (?I s)) ----> m"
-      using assms(2) unfolding lmeasure_iff_LIMSEQ[OF assms(1) `0 \<le> m`] .
-    { fix n have "integral (cube n) (?I s) \<le> m"
-        using cube_subset assms
-        by (intro incseq_le[where L=m] LIMSEQ incseq_def[THEN iffD2] integral_subset_le allI impI)
-           (auto dest!: lebesgueD) }
-    moreover
-    { fix n have "0 \<le> integral (cube n) (?I s)"
-      using assms by (auto dest!: lebesgueD intro!: Integration.integral_nonneg) }
-    ultimately
-    show "bounded {integral UNIV (?I (s \<inter> cube k)) |k. True}"
-      unfolding bounded_def
-      apply (rule_tac exI[of _ 0])
-      apply (rule_tac exI[of _ m])
-      by (auto simp: dist_real_def integral_indicator_UNIV)
-    fix k show "?I (s \<inter> cube k) integrable_on UNIV"
-      unfolding integrable_indicator_UNIV using assms by (auto dest!: lebesgueD)
-    fix x show "?I (s \<inter> cube k) x \<le> ?I (s \<inter> cube (Suc k)) x"
-      using cube_subset[of k "Suc k"] by (auto simp: indicator_def)
-  next
-    fix x :: 'a
-    from mem_big_cube obtain k where k: "x \<in> cube k" .
-    { fix n have "?I (s \<inter> cube (n + k)) x = ?I s x"
-      using k cube_subset[of k "n + k"] by (auto simp: indicator_def) }
-    note * = this
-    show "(\<lambda>k. ?I (s \<inter> cube k) x) ----> ?I s x"
-      by (rule LIMSEQ_offset[where k=k]) (auto simp: *)
-  qed
-  note ** = conjunctD2[OF this]
-  have m: "m = integral UNIV (?I s)"
-    apply (intro LIMSEQ_unique[OF _ **(2)])
-    using assms(2) unfolding lmeasure_iff_LIMSEQ[OF assms(1) `0 \<le> m`] integral_indicator_UNIV .
-  show ?thesis
-    unfolding m by (intro integrable_integral **)
-qed
-
-lemma lmeasure_finite_integrable: assumes s: "s \<in> sets lebesgue" and "emeasure lebesgue s \<noteq> \<infinity>"
-  shows "(indicator s :: _ \<Rightarrow> real) integrable_on UNIV"
-proof (cases "emeasure lebesgue s")
-  case (real m)
-  with lmeasure_finite_has_integral[OF `s \<in> sets lebesgue` this] emeasure_nonneg[of lebesgue s]
-  show ?thesis unfolding integrable_on_def by auto
-qed (insert assms emeasure_nonneg[of lebesgue s], auto)
-
-lemma has_integral_lebesgue: assumes "((indicator s :: _\<Rightarrow>real) has_integral m) UNIV"
-  shows "s \<in> sets lebesgue"
-proof (intro lebesgueI)
-  let ?I = "indicator :: 'a set \<Rightarrow> 'a \<Rightarrow> real"
-  fix n show "(?I s) integrable_on cube n" unfolding cube_def
-  proof (intro integrable_on_subinterval)
-    show "(?I s) integrable_on UNIV"
-      unfolding integrable_on_def using assms by auto
-  qed auto
-qed
-
-lemma has_integral_lmeasure: assumes "((indicator s :: _\<Rightarrow>real) has_integral m) UNIV"
-  shows "emeasure lebesgue s = ereal m"
-proof (intro lmeasure_iff_LIMSEQ[THEN iffD2])
-  let ?I = "indicator :: 'a set \<Rightarrow> 'a \<Rightarrow> real"
-  show "s \<in> sets lebesgue" using has_integral_lebesgue[OF assms] .
-  show "0 \<le> m" using assms by (rule has_integral_nonneg) auto
-  have "(\<lambda>n. integral UNIV (?I (s \<inter> cube n))) ----> integral UNIV (?I s)"
-  proof (intro dominated_convergence(2) ballI)
-    show "(?I s) integrable_on UNIV" unfolding integrable_on_def using assms by auto
-    fix n show "?I (s \<inter> cube n) integrable_on UNIV"
-      unfolding integrable_indicator_UNIV using `s \<in> sets lebesgue` by (auto dest: lebesgueD)
-    fix x show "norm (?I (s \<inter> cube n) x) \<le> ?I s x" by (auto simp: indicator_def)
-  next
-    fix x :: 'a
-    from mem_big_cube obtain k where k: "x \<in> cube k" .
-    { fix n have "?I (s \<inter> cube (n + k)) x = ?I s x"
-      using k cube_subset[of k "n + k"] by (auto simp: indicator_def) }
-    note * = this
-    show "(\<lambda>k. ?I (s \<inter> cube k) x) ----> ?I s x"
-      by (rule LIMSEQ_offset[where k=k]) (auto simp: *)
-  qed
-  then show "(\<lambda>n. integral (cube n) (?I s)) ----> m"
-    unfolding integral_unique[OF assms] integral_indicator_UNIV by simp
-qed
-
-lemma has_integral_iff_lmeasure:
-  "(indicator A has_integral m) UNIV \<longleftrightarrow> (A \<in> sets lebesgue \<and> emeasure lebesgue A = ereal m)"
-proof
-  assume "(indicator A has_integral m) UNIV"
-  with has_integral_lmeasure[OF this] has_integral_lebesgue[OF this]
-  show "A \<in> sets lebesgue \<and> emeasure lebesgue A = ereal m"
-    by (auto intro: has_integral_nonneg)
+  qed (auto simp: Ioc_inj, metis linear)
+  
 next
-  assume "A \<in> sets lebesgue \<and> emeasure lebesgue A = ereal m"
-  then show "(indicator A has_integral m) UNIV" by (intro lmeasure_finite_has_integral) auto
-qed
+  fix l r :: "nat \<Rightarrow> real" and a b :: real
+  assume l_r[simp]: "\<And>n. l n \<le> r n" and "a \<le> b" and disj: "disjoint_family (\<lambda>n. {l n<..r n})" 
+  assume lr_eq_ab: "(\<Union>i. {l i<..r i}) = {a<..b}"
 
-lemma lmeasure_eq_integral: assumes "(indicator s::_\<Rightarrow>real) integrable_on UNIV"
-  shows "emeasure lebesgue s = ereal (integral UNIV (indicator s))"
-  using assms unfolding integrable_on_def
-proof safe
-  fix y :: real assume "(indicator s has_integral y) UNIV"
-  from this[unfolded has_integral_iff_lmeasure] integral_unique[OF this]
-  show "emeasure lebesgue s = ereal (integral UNIV (indicator s))" by simp
-qed
+  have [intro, simp]: "\<And>a b. a \<le> b \<Longrightarrow> 0 \<le> F b - F a"
+    by (auto intro!: l_r mono_F simp: diff_le_iff)
 
-lemma lebesgue_simple_function_indicator:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> ereal"
-  assumes f:"simple_function lebesgue f"
-  shows "f = (\<lambda>x. (\<Sum>y \<in> f ` UNIV. y * indicator (f -` {y}) x))"
-  by (rule, subst simple_function_indicator_representation[OF f]) auto
+  { fix S :: "nat set" assume "finite S"
+    moreover note `a \<le> b`
+    moreover have "\<And>i. i \<in> S \<Longrightarrow> {l i <.. r i} \<subseteq> {a <.. b}"
+      unfolding lr_eq_ab[symmetric] by auto
+    ultimately have "(\<Sum>i\<in>S. F (r i) - F (l i)) \<le> F b - F a"
+    proof (induction S arbitrary: a rule: finite_psubset_induct)
+      case (psubset S)
+      show ?case
+      proof cases
+        assume "\<exists>i\<in>S. l i < r i"
+        with `finite S` have "Min (l ` {i\<in>S. l i < r i}) \<in> l ` {i\<in>S. l i < r i}"
+          by (intro Min_in) auto
+        then obtain m where m: "m \<in> S" "l m < r m" "l m = Min (l ` {i\<in>S. l i < r i})"
+          by fastforce
 
-lemma integral_eq_lmeasure:
-  "(indicator s::_\<Rightarrow>real) integrable_on UNIV \<Longrightarrow> integral UNIV (indicator s) = real (emeasure lebesgue s)"
-  by (subst lmeasure_eq_integral) (auto intro!: integral_nonneg)
-
-lemma lmeasure_finite: assumes "(indicator s::_\<Rightarrow>real) integrable_on UNIV" shows "emeasure lebesgue s \<noteq> \<infinity>"
-  using lmeasure_eq_integral[OF assms] by auto
-
-lemma negligible_iff_lebesgue_null_sets:
-  "negligible A \<longleftrightarrow> A \<in> null_sets lebesgue"
-proof
-  assume "negligible A"
-  from this[THEN lebesgueI_negligible] this[THEN lmeasure_eq_0]
-  show "A \<in> null_sets lebesgue" by auto
-next
-  assume A: "A \<in> null_sets lebesgue"
-  then have *:"((indicator A) has_integral (0::real)) UNIV" using lmeasure_finite_has_integral[of A]
-    by (auto simp: null_sets_def)
-  show "negligible A" unfolding negligible_def
-  proof (intro allI)
-    fix a b :: 'a
-    have integrable: "(indicator A :: _\<Rightarrow>real) integrable_on cbox a b"
-      by (intro integrable_on_subcbox has_integral_integrable) (auto intro: *)
-    then have "integral (cbox a b) (indicator A) \<le> (integral UNIV (indicator A) :: real)"
-      using * by (auto intro!: integral_subset_le)
-    moreover have "(0::real) \<le> integral (cbox a b) (indicator A)"
-      using integrable by (auto intro!: integral_nonneg)
-    ultimately have "integral (cbox a b) (indicator A) = (0::real)"
-      using integral_unique[OF *] by auto
-    then show "(indicator A has_integral (0::real)) (cbox a b)"
-      using integrable_integral[OF integrable] by simp
-  qed
-qed
-
-lemma lmeasure_UNIV[intro]: "emeasure lebesgue (UNIV::'a::ordered_euclidean_space set) = \<infinity>"
-proof (simp add: emeasure_lebesgue, intro SUP_PInfty bexI)
-  fix n :: nat
-  have "indicator UNIV = (\<lambda>x::'a. 1 :: real)" by auto
-  moreover
-  { have "real n \<le> (2 * real n) ^ DIM('a)"
-    proof (cases n)
-      case 0 then show ?thesis by auto
-    next
-      case (Suc n')
-      have "real n \<le> (2 * real n)^1" by auto
-      also have "(2 * real n)^1 \<le> (2 * real n) ^ DIM('a)"
-        using Suc DIM_positive[where 'a='a] 
-        by (intro power_increasing) (auto simp: real_of_nat_Suc simp del: DIM_positive)
-      finally show ?thesis .
+        have "(\<Sum>i\<in>S. F (r i) - F (l i)) = (F (r m) - F (l m)) + (\<Sum>i\<in>S - {m}. F (r i) - F (l i))"
+          using m psubset by (intro setsum.remove) auto
+        also have "(\<Sum>i\<in>S - {m}. F (r i) - F (l i)) \<le> F b - F (r m)"
+        proof (intro psubset.IH)
+          show "S - {m} \<subset> S"
+            using `m\<in>S` by auto
+          show "r m \<le> b"
+            using psubset.prems(2)[OF `m\<in>S`] `l m < r m` by auto
+        next
+          fix i assume "i \<in> S - {m}"
+          then have i: "i \<in> S" "i \<noteq> m" by auto
+          { assume i': "l i < r i" "l i < r m"
+            moreover with `finite S` i m have "l m \<le> l i"
+              by auto
+            ultimately have "{l i <.. r i} \<inter> {l m <.. r m} \<noteq> {}"
+              by auto
+            then have False
+              using disjoint_family_onD[OF disj, of i m] i by auto }
+          then have "l i \<noteq> r i \<Longrightarrow> r m \<le> l i"
+            unfolding not_less[symmetric] using l_r[of i] by auto
+          then show "{l i <.. r i} \<subseteq> {r m <.. b}"
+            using psubset.prems(2)[OF `i\<in>S`] by auto
+        qed
+        also have "F (r m) - F (l m) \<le> F (r m) - F a"
+          using psubset.prems(2)[OF `m \<in> S`] `l m < r m`
+          by (auto simp add: Ioc_subset_iff intro!: mono_F)
+        finally show ?case
+          by (auto intro: add_mono)
+      qed (simp add: `a \<le> b` less_le)
     qed }
-  ultimately show "ereal (real n) \<le> ereal (integral (cube n) (indicator UNIV::'a\<Rightarrow>real))"
-    using integral_const DIM_positive[where 'a='a]
-    by (auto simp: cube_def content_cbox_cases setprod_constant setsum_negf cbox_interval[symmetric])
-qed simp
+  note claim1 = this
 
-lemma lmeasure_complete: "A \<subseteq> B \<Longrightarrow> B \<in> null_sets lebesgue \<Longrightarrow> A \<in> null_sets lebesgue"
-  unfolding negligible_iff_lebesgue_null_sets[symmetric] by (auto simp: negligible_subset)
+  (* second key induction: a lower bound on the measures of any finite collection of Ai's
+     that cover an interval {u..v} *)
 
-lemma
-  fixes a b ::"'a::ordered_euclidean_space"
-  shows lmeasure_atLeastAtMost[simp]: "emeasure lebesgue {a..b} = ereal (content {a..b})"
-proof -
-  have "(indicator (UNIV \<inter> {a..b})::_\<Rightarrow>real) integrable_on UNIV"
-    unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def [abs_def] cbox_interval[symmetric])
-  from lmeasure_eq_integral[OF this] show ?thesis unfolding integral_indicator_UNIV
-    by (simp add: indicator_def [abs_def] cbox_interval[symmetric])
-qed
+  { fix S u v and l r :: "nat \<Rightarrow> real"
+    assume "finite S" "\<And>i. i\<in>S \<Longrightarrow> l i < r i" "{u..v} \<subseteq> (\<Union>i\<in>S. {l i<..< r i})"
+    then have "F v - F u \<le> (\<Sum>i\<in>S. F (r i) - F (l i))"
+    proof (induction arbitrary: v u rule: finite_psubset_induct)
+      case (psubset S)
+      show ?case
+      proof cases
+        assume "S = {}" then show ?case
+          using psubset by (simp add: mono_F)
+      next
+        assume "S \<noteq> {}"
+        then obtain j where "j \<in> S"
+          by auto
 
-lemma
-  fixes a b ::"'a::ordered_euclidean_space"
-  shows lmeasure_cbox[simp]: "emeasure lebesgue (cbox a b) = ereal (content (cbox a b))"
-proof -
-  have "(indicator (UNIV \<inter> {a..b})::_\<Rightarrow>real) integrable_on UNIV"
-    unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def [abs_def] cbox_interval[symmetric])
-  from lmeasure_eq_integral[OF this] show ?thesis unfolding integral_indicator_UNIV
-    by (simp add: indicator_def [abs_def] cbox_interval[symmetric])
-qed
+        let ?R = "r j < u \<or> l j > v \<or> (\<exists>i\<in>S-{j}. l i \<le> l j \<and> r j \<le> r i)"
+        show ?case
+        proof cases
+          assume "?R"
+          with `j \<in> S` psubset.prems have "{u..v} \<subseteq> (\<Union>i\<in>S-{j}. {l i<..< r i})"
+            apply (auto simp: subset_eq Ball_def)
+            apply (metis Diff_iff less_le_trans leD linear singletonD)
+            apply (metis Diff_iff less_le_trans leD linear singletonD)
+            apply (metis order_trans less_le_not_le linear)
+            done
+          with `j \<in> S` have "F v - F u \<le> (\<Sum>i\<in>S - {j}. F (r i) - F (l i))"
+            by (intro psubset) auto
+          also have "\<dots> \<le> (\<Sum>i\<in>S. F (r i) - F (l i))"
+            using psubset.prems
+            by (intro setsum_mono2 psubset) (auto intro: less_imp_le)
+          finally show ?thesis .
+        next
+          assume "\<not> ?R"
+          then have j: "u \<le> r j" "l j \<le> v" "\<And>i. i \<in> S - {j} \<Longrightarrow> r i < r j \<or> l i > l j"
+            by (auto simp: not_less)
+          let ?S1 = "{i \<in> S. l i < l j}"
+          let ?S2 = "{i \<in> S. r i > r j}"
 
-lemma lmeasure_singleton[simp]:
-  fixes a :: "'a::ordered_euclidean_space" shows "emeasure lebesgue {a} = 0"
-  using lmeasure_atLeastAtMost[of a a] by simp
+          have "(\<Sum>i\<in>S. F (r i) - F (l i)) \<ge> (\<Sum>i\<in>?S1 \<union> ?S2 \<union> {j}. F (r i) - F (l i))"
+            using `j \<in> S` `finite S` psubset.prems j
+            by (intro setsum_mono2) (auto intro: less_imp_le)
+          also have "(\<Sum>i\<in>?S1 \<union> ?S2 \<union> {j}. F (r i) - F (l i)) =
+            (\<Sum>i\<in>?S1. F (r i) - F (l i)) + (\<Sum>i\<in>?S2 . F (r i) - F (l i)) + (F (r j) - F (l j))"
+            using psubset(1) psubset.prems(1) j
+            apply (subst setsum.union_disjoint)
+            apply simp_all
+            apply (subst setsum.union_disjoint)
+            apply auto
+            apply (metis less_le_not_le)
+            done
+          also (xtrans) have "(\<Sum>i\<in>?S1. F (r i) - F (l i)) \<ge> F (l j) - F u"
+            using `j \<in> S` `finite S` psubset.prems j
+            apply (intro psubset.IH psubset)
+            apply (auto simp: subset_eq Ball_def)
+            apply (metis less_le_trans not_le)
+            done
+          also (xtrans) have "(\<Sum>i\<in>?S2. F (r i) - F (l i)) \<ge> F v - F (r j)"
+            using `j \<in> S` `finite S` psubset.prems j
+            apply (intro psubset.IH psubset)
+            apply (auto simp: subset_eq Ball_def)
+            apply (metis le_less_trans not_le)
+            done
+          finally (xtrans) show ?case
+            by (auto simp: add_mono)
+        qed
+      qed
+    qed }
+  note claim2 = this
 
-lemma AE_lebesgue_singleton:
-  fixes a :: "'a::ordered_euclidean_space" shows "AE x in lebesgue. x \<noteq> a"
-  by (rule AE_I[where N="{a}"]) auto
+  (* now prove the inequality going the other way *)
 
-declare content_real[simp]
+  { fix epsilon :: real assume egt0: "epsilon > 0"
+    have "\<forall>i. \<exists>d. d > 0 &  F (r i + d) < F (r i) + epsilon / 2^(i+2)"
+    proof 
+      fix i
+      note right_cont_F [of "r i"]
+      thus "\<exists>d. d > 0 \<and> F (r i + d) < F (r i) + epsilon / 2^(i+2)"
+        apply -
+        apply (subst (asm) continuous_at_right_real_increasing)
+        apply (rule mono_F, assumption)
+        apply (drule_tac x = "epsilon / 2 ^ (i + 2)" in spec)
+        apply (erule impE)
+        using egt0 by (auto simp add: field_simps)
+    qed
+    then obtain delta where 
+        deltai_gt0: "\<And>i. delta i > 0" and
+        deltai_prop: "\<And>i. F (r i + delta i) < F (r i) + epsilon / 2^(i+2)"
+      by metis
+    have "\<exists>a' > a. F a' - F a < epsilon / 2"
+      apply (insert right_cont_F [of a])
+      apply (subst (asm) continuous_at_right_real_increasing)
+      using mono_F apply force
+      apply (drule_tac x = "epsilon / 2" in spec)
+      using egt0 apply (auto simp add: field_simps)
+      by (metis add_less_cancel_left comm_monoid_add_class.add.right_neutral 
+        comm_semiring_1_class.normalizing_semiring_rules(24) mult_2 mult_2_right)
+    then obtain a' where a'lea [arith]: "a' > a" and 
+      a_prop: "F a' - F a < epsilon / 2"
+      by auto
+    def S' \<equiv> "{i. l i < r i}"
+    obtain S :: "nat set" where 
+      "S \<subseteq> S'" and finS: "finite S" and 
+      Sprop: "{a'..b} \<subseteq> (\<Union>i \<in> S. {l i<..<r i + delta i})"
+    proof (rule compactE_image)
+      show "compact {a'..b}"
+        by (rule compact_Icc)
+      show "\<forall>i \<in> S'. open ({l i<..<r i + delta i})" by auto
+      have "{a'..b} \<subseteq> {a <.. b}"
+        by auto
+      also have "{a <.. b} = (\<Union>i\<in>S'. {l i<..r i})"
+        unfolding lr_eq_ab[symmetric] by (fastforce simp add: S'_def intro: less_le_trans)
+      also have "\<dots> \<subseteq> (\<Union>i \<in> S'. {l i<..<r i + delta i})"
+        apply (intro UN_mono)
+        apply (auto simp: S'_def)
+        apply (cut_tac i=i in deltai_gt0)
+        apply simp
+        done
+      finally show "{a'..b} \<subseteq> (\<Union>i \<in> S'. {l i<..<r i + delta i})" .
+    qed
+    with S'_def have Sprop2: "\<And>i. i \<in> S \<Longrightarrow> l i < r i" by auto
+    from finS have "\<exists>n. \<forall>i \<in> S. i \<le> n" 
+      by (subst finite_nat_set_iff_bounded_le [symmetric])
+    then obtain n where Sbound [rule_format]: "\<forall>i \<in> S. i \<le> n" ..
+    have "F b - F a' \<le> (\<Sum>i\<in>S. F (r i + delta i) - F (l i))"
+      apply (rule claim2 [rule_format])
+      using finS Sprop apply auto
+      apply (frule Sprop2)
+      apply (subgoal_tac "delta i > 0")
+      apply arith
+      by (rule deltai_gt0)
+    also have "... \<le> (SUM i : S. F(r i) - F(l i) + epsilon / 2^(i+2))"
+      apply (rule setsum_mono)
+      apply simp
+      apply (rule order_trans)
+      apply (rule less_imp_le)
+      apply (rule deltai_prop)
+      by auto
+    also have "... = (SUM i : S. F(r i) - F(l i)) + 
+        (epsilon / 4) * (SUM i : S. (1 / 2)^i)" (is "_ = ?t + _")
+      by (subst setsum.distrib) (simp add: field_simps setsum_right_distrib)
+    also have "... \<le> ?t + (epsilon / 4) * (\<Sum> i < Suc n. (1 / 2)^i)"
+      apply (rule add_left_mono)
+      apply (rule mult_left_mono)
+      apply (rule setsum_mono2)
+      using egt0 apply auto 
+      by (frule Sbound, auto)
+    also have "... \<le> ?t + (epsilon / 2)"
+      apply (rule add_left_mono)
+      apply (subst geometric_sum)
+      apply auto
+      apply (rule mult_left_mono)
+      using egt0 apply auto
+      done
+    finally have aux2: "F b - F a' \<le> (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon / 2"
+      by simp
 
-lemma
-  fixes a b :: real
-  shows lmeasure_real_greaterThanAtMost[simp]:
-    "emeasure lebesgue {a <.. b} = ereal (if a \<le> b then b - a else 0)"
-proof -
-  have "emeasure lebesgue {a <.. b} = emeasure lebesgue {a .. b}"
-    using AE_lebesgue_singleton[of a]
-    by (intro emeasure_eq_AE) auto
-  then show ?thesis by auto
-qed
+    have "F b - F a = (F b - F a') + (F a' - F a)"
+      by auto
+    also have "... \<le> (F b - F a') + epsilon / 2"
+      using a_prop by (intro add_left_mono) simp
+    also have "... \<le> (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon / 2 + epsilon / 2"
+      apply (intro add_right_mono)
+      apply (rule aux2)
+      done
+    also have "... = (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon"
+      by auto
+    also have "... \<le> (\<Sum>i\<le>n. F (r i) - F (l i)) + epsilon"
+      using finS Sbound Sprop by (auto intro!: add_right_mono setsum_mono3)
+    finally have "ereal (F b - F a) \<le> (\<Sum>i\<le>n. ereal (F (r i) - F (l i))) + epsilon"
+      by simp
+    then have "ereal (F b - F a) \<le> (\<Sum>i. ereal (F (r i) - F (l i))) + (epsilon :: real)"
+      apply (rule_tac order_trans)
+      prefer 2
+      apply (rule add_mono[where c="ereal epsilon"])
+      apply (rule suminf_upper[of _ "Suc n"])
+      apply (auto simp add: lessThan_Suc_atMost)
+      done }
+  hence "ereal (F b - F a) \<le> (\<Sum>i. ereal (F (r i) - F (l i)))"
+    by (auto intro: ereal_le_epsilon2)
+  moreover
+  have "(\<Sum>i. ereal (F (r i) - F (l i))) \<le> ereal (F b - F a)"
+    by (auto simp add: claim1 intro!: suminf_bound)
+  ultimately show "(\<Sum>n. ereal (F (r n) - F (l n))) = ereal (F b - F a)"
+    by simp
+qed (auto simp: Ioc_inj diff_le_iff mono_F)
 
-lemma
-  fixes a b :: real
-  shows lmeasure_real_atLeastLessThan[simp]:
-    "emeasure lebesgue {a ..< b} = ereal (if a \<le> b then b - a else 0)"
-proof -
-  have "emeasure lebesgue {a ..< b} = emeasure lebesgue {a .. b}"
-    using AE_lebesgue_singleton[of b]
-    by (intro emeasure_eq_AE) auto
-  then show ?thesis by auto
-qed
+lemma measure_interval_measure_Ioc:
+  assumes "a \<le> b"
+  assumes mono_F: "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y"
+  assumes right_cont_F : "\<And>a. continuous (at_right a) F" 
+  shows "measure (interval_measure F) {a <.. b} = F b - F a"
+  unfolding measure_def
+  apply (subst emeasure_interval_measure_Ioc)
+  apply fact+
+  apply simp
+  done
 
-lemma
-  fixes a b :: real
-  shows lmeasure_real_greaterThanLessThan[simp]:
-    "emeasure lebesgue {a <..< b} = ereal (if a \<le> b then b - a else 0)"
-proof -
-  have "emeasure lebesgue {a <..< b} = emeasure lebesgue {a .. b}"
-    using AE_lebesgue_singleton[of a] AE_lebesgue_singleton[of b]
-    by (intro emeasure_eq_AE) auto
-  then show ?thesis by auto
-qed
+lemma emeasure_interval_measure_Ioc_eq:
+  "(\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y) \<Longrightarrow> (\<And>a. continuous (at_right a) F) \<Longrightarrow>
+    emeasure (interval_measure F) {a <.. b} = (if a \<le> b then F b - F a else 0)"
+  using emeasure_interval_measure_Ioc[of a b F] by auto
+
+lemma sets_interval_measure [simp]: "sets (interval_measure F) = sets borel"
+  apply (simp add: sets_extend_measure interval_measure_def borel_sigma_sets_Ioc)
+  apply (rule sigma_sets_eqI)
+  apply auto
+  apply (case_tac "a \<le> ba")
+  apply (auto intro: sigma_sets.Empty)
+  done
+
+lemma space_interval_measure [simp]: "space (interval_measure F) = UNIV"
+  by (simp add: interval_measure_def space_extend_measure)
+
+lemma emeasure_interval_measure_Icc:
+  assumes "a \<le> b"
+  assumes mono_F: "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y"
+  assumes cont_F : "continuous_on UNIV F" 
+  shows "emeasure (interval_measure F) {a .. b} = F b - F a"
+proof (rule tendsto_unique)
+  { fix a b :: real assume "a \<le> b" then have "emeasure (interval_measure F) {a <.. b} = F b - F a"
+      using cont_F
+      by (subst emeasure_interval_measure_Ioc)
+         (auto intro: mono_F continuous_within_subset simp: continuous_on_eq_continuous_within) }
+  note * = this
+
+  let ?F = "interval_measure F"
+  show "((\<lambda>a. F b - F a) ---> emeasure ?F {a..b}) (at_left a)"
+  proof (rule tendsto_at_left_sequentially)
+    show "a - 1 < a" by simp
+    fix X assume "\<And>n. X n < a" "incseq X" "X ----> a"
+    with `a \<le> b` have "(\<lambda>n. emeasure ?F {X n<..b}) ----> emeasure ?F (\<Inter>n. {X n <..b})"
+      apply (intro Lim_emeasure_decseq)
+      apply (auto simp: decseq_def incseq_def emeasure_interval_measure_Ioc *)
+      apply force
+      apply (subst (asm ) *)
+      apply (auto intro: less_le_trans less_imp_le)
+      done
+    also have "(\<Inter>n. {X n <..b}) = {a..b}"
+      using `\<And>n. X n < a`
+      apply auto
+      apply (rule LIMSEQ_le_const2[OF `X ----> a`])
+      apply (auto intro: less_imp_le)
+      apply (auto intro: less_le_trans)
+      done
+    also have "(\<lambda>n. emeasure ?F {X n<..b}) = (\<lambda>n. F b - F (X n))"
+      using `\<And>n. X n < a` `a \<le> b` by (subst *) (auto intro: less_imp_le less_le_trans)
+    finally show "(\<lambda>n. F b - F (X n)) ----> emeasure ?F {a..b}" .
+  qed
+  show "((\<lambda>a. ereal (F b - F a)) ---> F b - F a) (at_left a)"
+    using cont_F
+    by (intro lim_ereal[THEN iffD2] tendsto_intros )
+       (auto simp: continuous_on_def intro: tendsto_within_subset)
+qed (rule trivial_limit_at_left_real)
+  
+lemma sigma_finite_interval_measure:
+  assumes mono_F: "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y"
+  assumes right_cont_F : "\<And>a. continuous (at_right a) F" 
+  shows "sigma_finite_measure (interval_measure F)"
+  apply unfold_locales
+  apply (intro exI[of _ "(\<lambda>(a, b). {a <.. b}) ` (\<rat> \<times> \<rat>)"])
+  apply (auto intro!: Rats_no_top_le Rats_no_bot_less countable_rat simp: emeasure_interval_measure_Ioc_eq[OF assms])
+  done
 
 subsection {* Lebesgue-Borel measure *}
 
-definition "lborel = measure_of UNIV (sets borel) (emeasure lebesgue)"
+definition lborel :: "('a :: euclidean_space) measure" where
+  "lborel = distr (\<Pi>\<^sub>M b\<in>Basis. interval_measure (\<lambda>x. x)) borel (\<lambda>f. \<Sum>b\<in>Basis. f b *\<^sub>R b)"
+
+lemma 
+  shows sets_lborel[simp]: "sets lborel = sets borel"
+    and space_lborel[simp]: "space lborel = space borel"
+    and measurable_lborel1[simp]: "measurable M lborel = measurable M borel"
+    and measurable_lborel2[simp]: "measurable lborel M = measurable borel M"
+  by (simp_all add: lborel_def)
+
+context
+begin
+
+interpretation sigma_finite_measure "interval_measure (\<lambda>x. x)"
+  by (rule sigma_finite_interval_measure) auto
+interpretation finite_product_sigma_finite "\<lambda>_. interval_measure (\<lambda>x. x)" Basis
+  proof qed simp
+
+lemma lborel_eq_real: "lborel = interval_measure (\<lambda>x. x)"
+  unfolding lborel_def Basis_real_def
+  using distr_id[of "interval_measure (\<lambda>x. x)"]
+  by (subst distr_component[symmetric])
+     (simp_all add: distr_distr comp_def del: distr_id cong: distr_cong)
+
+lemma lborel_eq: "lborel = distr (\<Pi>\<^sub>M b\<in>Basis. lborel) borel (\<lambda>f. \<Sum>b\<in>Basis. f b *\<^sub>R b)"
+  by (subst lborel_def) (simp add: lborel_eq_real)
+
+lemma nn_integral_lborel_setprod:
+  assumes [measurable]: "\<And>b. b \<in> Basis \<Longrightarrow> f b \<in> borel_measurable borel"
+  assumes nn[simp]: "\<And>b x. b \<in> Basis \<Longrightarrow> 0 \<le> f b x"
+  shows "(\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. f b (x \<bullet> b)) \<partial>lborel) = (\<Prod>b\<in>Basis. (\<integral>\<^sup>+x. f b x \<partial>lborel))"
+  by (simp add: lborel_def nn_integral_distr product_nn_integral_setprod
+                product_nn_integral_singleton)
+
+lemma emeasure_lborel_Icc[simp]: 
+  fixes l u :: real
+  assumes [simp]: "l \<le> u"
+  shows "emeasure lborel {l .. u} = u - l"
+proof -
+  have "((\<lambda>f. f 1) -` {l..u} \<inter> space (Pi\<^sub>M {1} (\<lambda>b. interval_measure (\<lambda>x. x)))) = {1::real} \<rightarrow>\<^sub>E {l..u}"
+    by (auto simp: space_PiM)
+  then show ?thesis
+    by (simp add: lborel_def emeasure_distr emeasure_PiM emeasure_interval_measure_Icc continuous_on_id)
+qed
+
+lemma emeasure_lborel_Icc_eq: "emeasure lborel {l .. u} = ereal (if l \<le> u then u - l else 0)"
+  by simp
+
+lemma emeasure_lborel_cbox[simp]:
+  assumes [simp]: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
+  shows "emeasure lborel (cbox l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
+proof -
+  have "(\<lambda>x. \<Prod>b\<in>Basis. indicator {l\<bullet>b .. u\<bullet>b} (x \<bullet> b) :: ereal) = indicator (cbox l u)"
+    by (auto simp: fun_eq_iff cbox_def setprod_ereal_0 split: split_indicator)
+  then have "emeasure lborel (cbox l u) = (\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. indicator {l\<bullet>b .. u\<bullet>b} (x \<bullet> b)) \<partial>lborel)"
+    by simp
+  also have "\<dots> = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
+    by (subst nn_integral_lborel_setprod) (simp_all add: setprod_ereal inner_diff_left)
+  finally show ?thesis .
+qed
+
+lemma AE_lborel_singleton: "AE x in lborel::'a::euclidean_space measure. x \<noteq> c"
+  using AE_discrete_difference[of "{c::'a}" lborel] emeasure_lborel_cbox[of c c]
+  by (auto simp del: emeasure_lborel_cbox simp add: cbox_sing setprod_constant)
+
+lemma emeasure_lborel_Ioo[simp]:
+  assumes [simp]: "l \<le> u"
+  shows "emeasure lborel {l <..< u} = ereal (u - l)"
+proof -
+  have "emeasure lborel {l <..< u} = emeasure lborel {l .. u}"
+    using AE_lborel_singleton[of u] AE_lborel_singleton[of l] by (intro emeasure_eq_AE) auto
+  then show ?thesis
+    by simp
+qed
+
+lemma emeasure_lborel_Ioc[simp]:
+  assumes [simp]: "l \<le> u"
+  shows "emeasure lborel {l <.. u} = ereal (u - l)"
+proof -
+  have "emeasure lborel {l <.. u} = emeasure lborel {l .. u}"
+    using AE_lborel_singleton[of u] AE_lborel_singleton[of l] by (intro emeasure_eq_AE) auto
+  then show ?thesis
+    by simp
+qed
+
+lemma emeasure_lborel_Ico[simp]:
+  assumes [simp]: "l \<le> u"
+  shows "emeasure lborel {l ..< u} = ereal (u - l)"
+proof -
+  have "emeasure lborel {l ..< u} = emeasure lborel {l .. u}"
+    using AE_lborel_singleton[of u] AE_lborel_singleton[of l] by (intro emeasure_eq_AE) auto
+  then show ?thesis
+    by simp
+qed
+
+lemma emeasure_lborel_box[simp]:
+  assumes [simp]: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
+  shows "emeasure lborel (box l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
+proof -
+  have "(\<lambda>x. \<Prod>b\<in>Basis. indicator {l\<bullet>b <..< u\<bullet>b} (x \<bullet> b) :: ereal) = indicator (box l u)"
+    by (auto simp: fun_eq_iff box_def setprod_ereal_0 split: split_indicator)
+  then have "emeasure lborel (box l u) = (\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. indicator {l\<bullet>b <..< u\<bullet>b} (x \<bullet> b)) \<partial>lborel)"
+    by simp
+  also have "\<dots> = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
+    by (subst nn_integral_lborel_setprod) (simp_all add: setprod_ereal inner_diff_left)
+  finally show ?thesis .
+qed
+
+lemma emeasure_lborel_cbox_eq:
+  "emeasure lborel (cbox l u) = (if \<forall>b\<in>Basis. l \<bullet> b \<le> u \<bullet> b then \<Prod>b\<in>Basis. (u - l) \<bullet> b else 0)"
+  using box_eq_empty(2)[THEN iffD2, of u l] by (auto simp: not_le)
+
+lemma emeasure_lborel_box_eq:
+  "emeasure lborel (box l u) = (if \<forall>b\<in>Basis. l \<bullet> b \<le> u \<bullet> b then \<Prod>b\<in>Basis. (u - l) \<bullet> b else 0)"
+  using box_eq_empty(1)[THEN iffD2, of u l] by (auto simp: not_le dest!: less_imp_le) force
 
 lemma
-  shows space_lborel[simp]: "space lborel = UNIV"
-  and sets_lborel[simp]: "sets lborel = sets borel"
-  and measurable_lborel1[simp]: "measurable lborel = measurable borel"
-  and measurable_lborel2[simp]: "measurable A lborel = measurable A borel"
-  using sets.sigma_sets_eq[of borel]
-  by (auto simp add: lborel_def measurable_def[abs_def])
+  fixes l u :: real
+  assumes [simp]: "l \<le> u"
+  shows measure_lborel_Icc[simp]: "measure lborel {l .. u} = u - l"
+    and measure_lborel_Ico[simp]: "measure lborel {l ..< u} = u - l"
+    and measure_lborel_Ioc[simp]: "measure lborel {l <.. u} = u - l"
+    and measure_lborel_Ioo[simp]: "measure lborel {l <..< u} = u - l"
+  by (simp_all add: measure_def)
 
-(* TODO: switch these rules! *)
-lemma emeasure_lborel[simp]: "A \<in> sets borel \<Longrightarrow> emeasure lborel A = emeasure lebesgue A"
-  by (rule emeasure_measure_of[OF lborel_def])
-     (auto simp: positive_def emeasure_nonneg countably_additive_def intro!: suminf_emeasure)
+lemma 
+  assumes [simp]: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
+  shows measure_lborel_box[simp]: "measure lborel (box l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
+    and measure_lborel_cbox[simp]: "measure lborel (cbox l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
+  by (simp_all add: measure_def)
 
-lemma measure_lborel[simp]: "A \<in> sets borel \<Longrightarrow> measure lborel A = measure lebesgue A"
-  unfolding measure_def by simp
-
-interpretation lborel: sigma_finite_measure lborel
-proof (default, intro conjI exI[of _ "\<lambda>n. cube n"])
-  show "range cube \<subseteq> sets lborel" by (auto intro: borel_closed)
-  { fix x :: 'a have "\<exists>n. x\<in>cube n" using mem_big_cube by auto }
-  then show "(\<Union>i. cube i) = (space lborel :: 'a set)" using mem_big_cube by auto
-  show "\<forall>i. emeasure lborel (cube i) \<noteq> \<infinity>" by (simp add: cube_def)
-qed
-
-interpretation lebesgue: sigma_finite_measure lebesgue
+lemma sigma_finite_lborel: "sigma_finite_measure lborel"
 proof
-  from lborel.sigma_finite guess A :: "nat \<Rightarrow> 'a set" ..
-  then show "\<exists>A::nat \<Rightarrow> 'a set. range A \<subseteq> sets lebesgue \<and> (\<Union>i. A i) = space lebesgue \<and> (\<forall>i. emeasure lebesgue (A i) \<noteq> \<infinity>)"
-    by (intro exI[of _ A]) (auto simp: subset_eq)
+  show "\<exists>A::'a set set. countable A \<and> A \<subseteq> sets lborel \<and> \<Union>A = space lborel \<and> (\<forall>a\<in>A. emeasure lborel a \<noteq> \<infinity>)"
+    by (intro exI[of _ "range (\<lambda>n::nat. box (- real n *\<^sub>R One) (real n *\<^sub>R One))"])
+       (auto simp: emeasure_lborel_cbox_eq UN_box_eq_UNIV)
 qed
 
-interpretation lborel_pair: pair_sigma_finite lborel lborel ..
+end
 
-lemma Int_stable_atLeastAtMost:
-  fixes x::"'a::ordered_euclidean_space"
-  shows "Int_stable (range (\<lambda>(a, b::'a). {a..b}))"
-  by (auto simp: inter_interval Int_stable_def cbox_interval[symmetric])
+lemma emeasure_lborel_UNIV: "emeasure lborel (UNIV::'a::euclidean_space set) = \<infinity>"
+  unfolding UN_box_eq_UNIV[symmetric]
+  apply (subst SUP_emeasure_incseq[symmetric])
+  apply (auto simp: incseq_def subset_box inner_add_left setprod_constant intro!: SUP_PInfty)
+  apply (rule_tac x="Suc n" in exI)
+  apply (rule order_trans[OF _ self_le_power])
+  apply (auto simp: card_gt_0_iff real_of_nat_Suc)
+  done
+
+lemma emeasure_lborel_singleton[simp]: "emeasure lborel {x} = 0"
+  using emeasure_lborel_cbox[of x x] nonempty_Basis
+  by (auto simp del: emeasure_lborel_cbox nonempty_Basis simp add: cbox_sing)
+
+lemma emeasure_lborel_countable:
+  fixes A :: "'a::euclidean_space set"
+  assumes "countable A"
+  shows "emeasure lborel A = 0"
+proof -
+  have "A \<subseteq> (\<Union>i. {from_nat_into A i})" using from_nat_into_surj assms by force
+  moreover have "emeasure lborel (\<Union>i. {from_nat_into A i}) = 0"
+    by (rule emeasure_UN_eq_0) auto
+  ultimately have "emeasure lborel A \<le> 0" using emeasure_mono
+    by (metis assms bot.extremum_unique emeasure_empty image_eq_UN range_from_nat_into sets.empty_sets)
+  thus ?thesis by (auto simp add: emeasure_le_0_iff)
+qed
+
+subsection {* Affine transformation on the Lebesgue-Borel *}
 
 lemma lborel_eqI:
-  fixes M :: "'a::ordered_euclidean_space measure"
-  assumes emeasure_eq: "\<And>a b. emeasure M {a .. b} = content {a .. b}"
+  fixes M :: "'a::euclidean_space measure"
+  assumes emeasure_eq: "\<And>l u. (\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b) \<Longrightarrow> emeasure M (box l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
   assumes sets_eq: "sets M = sets borel"
   shows "lborel = M"
-proof (rule measure_eqI_generator_eq[OF Int_stable_atLeastAtMost])
-  let ?P = "\<Pi>\<^sub>M i\<in>{..<DIM('a::ordered_euclidean_space)}. lborel"
-  let ?E = "range (\<lambda>(a, b). {a..b} :: 'a set)"
+proof (rule measure_eqI_generator_eq)
+  let ?E = "range (\<lambda>(a, b). box a b::'a set)"
+  show "Int_stable ?E"
+    by (auto simp: Int_stable_def box_Int_box)
+
   show "?E \<subseteq> Pow UNIV" "sets lborel = sigma_sets UNIV ?E" "sets M = sigma_sets UNIV ?E"
-    by (simp_all add: borel_eq_atLeastAtMost sets_eq)
+    by (simp_all add: borel_eq_box sets_eq)
 
-  show "range cube \<subseteq> ?E" unfolding cube_def [abs_def] by auto
-  { fix x :: 'a have "\<exists>n. x \<in> cube n" using mem_big_cube[of x] by fastforce }
-  then show "(\<Union>i. cube i :: 'a set) = UNIV" by auto
+  let ?A = "\<lambda>n::nat. box (- (real n *\<^sub>R One)) (real n *\<^sub>R One) :: 'a set"
+  show "range ?A \<subseteq> ?E" "(\<Union>i. ?A i) = UNIV"
+    unfolding UN_box_eq_UNIV by auto
 
-  { fix i show "emeasure lborel (cube i) \<noteq> \<infinity>" unfolding cube_def by auto }
+  { fix i show "emeasure lborel (?A i) \<noteq> \<infinity>" by auto }
   { fix X assume "X \<in> ?E" then show "emeasure lborel X = emeasure M X"
-      by (auto simp: emeasure_eq) }
+      apply (auto simp: emeasure_eq emeasure_lborel_box_eq )
+      apply (subst box_eq_empty(1)[THEN iffD2])
+      apply (auto intro: less_imp_le simp: not_le)
+      done }
 qed
 
-
-(* GENEREALIZE to euclidean_spaces *)
-lemma lborel_real_affine:
-  fixes c :: real assumes "c \<noteq> 0"
-  shows "lborel = density (distr lborel borel (\<lambda>x. t + c * x)) (\<lambda>_. \<bar>c\<bar>)" (is "_ = ?D")
+lemma lborel_affine:
+  fixes t :: "'a::euclidean_space" assumes "c \<noteq> 0"
+  shows "lborel = density (distr lborel borel (\<lambda>x. t + c *\<^sub>R x)) (\<lambda>_. \<bar>c\<bar>^DIM('a))" (is "_ = ?D")
 proof (rule lborel_eqI)
-  fix a b show "emeasure ?D {a..b} = content {a .. b}"
+  let ?B = "Basis :: 'a set"
+  fix l u assume le: "\<And>b. b \<in> ?B \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
+  show "emeasure ?D (box l u) = (\<Prod>b\<in>?B. (u - l) \<bullet> b)"
   proof cases
     assume "0 < c"
-    then have "(\<lambda>x. t + c * x) -` {a..b} = {(a - t) / c .. (b - t) / c}"
-      by (auto simp: field_simps)
+    then have "(\<lambda>x. t + c *\<^sub>R x) -` box l u = box ((l - t) /\<^sub>R c) ((u - t) /\<^sub>R c)"
+      by (auto simp: field_simps box_def inner_simps)
     with `0 < c` show ?thesis
-      by (cases "a \<le> b")
-         (auto simp: field_simps emeasure_density nn_integral_distr nn_integral_cmult
+      using le
+      by (auto simp: field_simps emeasure_density nn_integral_distr nn_integral_cmult
+                     emeasure_lborel_box_eq inner_simps setprod_dividef setprod_constant
                      borel_measurable_indicator' emeasure_distr)
   next
     assume "\<not> 0 < c" with `c \<noteq> 0` have "c < 0" by auto
-    then have *: "(\<lambda>x. t + c * x) -` {a..b} = {(b - t) / c .. (a - t) / c}"
-      by (auto simp: field_simps)
-    with `c < 0` show ?thesis
-      by (cases "a \<le> b")
-         (auto simp: field_simps emeasure_density nn_integral_distr
-                     nn_integral_cmult borel_measurable_indicator' emeasure_distr)
+    then have "box ((u - t) /\<^sub>R c) ((l - t) /\<^sub>R c) = (\<lambda>x. t + c *\<^sub>R x) -` box l u"
+      by (auto simp: field_simps box_def inner_simps)
+    then have "\<And>x. indicator (box l u) (t + c *\<^sub>R x) = (indicator (box ((u - t) /\<^sub>R c) ((l - t) /\<^sub>R c)) x :: ereal)"
+      by (auto split: split_indicator)
+    moreover
+    { have "(- c) ^ card ?B * (\<Prod>x\<in>?B. l \<bullet> x - u \<bullet> x) = 
+         (-1 * c) ^ card ?B * (\<Prod>x\<in>?B. -1 * (u \<bullet> x - l \<bullet> x))"
+         by simp
+      also have "\<dots> = (-1 * -1)^card ?B * c ^ card ?B * (\<Prod>x\<in>?B. u \<bullet> x - l \<bullet> x)"
+        unfolding setprod.distrib power_mult_distrib by (simp add: setprod_constant)
+      finally have "(- c) ^ card ?B * (\<Prod>x\<in>?B. l \<bullet> x - u \<bullet> x) = c ^ card ?B * (\<Prod>b\<in>?B. u \<bullet> b - l \<bullet> b)"
+        by simp }
+    ultimately show ?thesis
+      using `c < 0` le
+      by (auto simp: field_simps emeasure_density nn_integral_distr nn_integral_cmult
+                     emeasure_lborel_box_eq inner_simps setprod_dividef setprod_constant
+                     borel_measurable_indicator' emeasure_distr)
   qed
 qed simp
+
+lemma lborel_real_affine:
+  "c \<noteq> 0 \<Longrightarrow> lborel = density (distr lborel borel (\<lambda>x. t + c * x)) (\<lambda>_. \<bar>c\<bar>)"
+  using lborel_affine[of c t] by simp
+
+lemma AE_borel_affine: 
+  fixes P :: "real \<Rightarrow> bool"
+  shows "c \<noteq> 0 \<Longrightarrow> Measurable.pred borel P \<Longrightarrow> AE x in lborel. P x \<Longrightarrow> AE x in lborel. P (t + c * x)"
+  by (subst lborel_real_affine[where t="- t / c" and c="1 / c"])
+     (simp_all add: AE_density AE_distr_iff field_simps)
 
 lemma nn_integral_real_affine:
   fixes c :: real assumes [measurable]: "f \<in> borel_measurable borel" and c: "c \<noteq> 0"
@@ -576,7 +611,7 @@ lemma nn_integral_real_affine:
      (simp add: nn_integral_density nn_integral_distr nn_integral_cmult)
 
 lemma lborel_integrable_real_affine:
-  fixes f :: "real \<Rightarrow> _ :: {banach, second_countable_topology}"
+  fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
   assumes f: "integrable lborel f"
   shows "c \<noteq> 0 \<Longrightarrow> integrable lborel (\<lambda>x. f (t + c * x))"
   using f f[THEN borel_measurable_integrable] unfolding integrable_iff_bounded
@@ -596,7 +631,8 @@ lemma lborel_integral_real_affine:
 proof cases
   assume f[measurable]: "integrable lborel f" then show ?thesis
     using c f f[THEN borel_measurable_integrable] f[THEN lborel_integrable_real_affine, of c t]
-    by (subst lborel_real_affine[OF c, of t]) (simp add: integral_density integral_distr)
+    by (subst lborel_real_affine[OF c, of t])
+       (simp add: integral_density integral_distr)
 next
   assume "\<not> integrable lborel f" with c show ?thesis
     by (simp add: lborel_integrable_real_affine_iff not_integrable_integral_eq)
@@ -607,12 +643,6 @@ lemma divideR_right:
   shows "r \<noteq> 0 \<Longrightarrow> y = x /\<^sub>R r \<longleftrightarrow> r *\<^sub>R y = x"
   using scaleR_cancel_left[of r y "x /\<^sub>R r"] by simp
 
-lemma integrable_on_cmult_iff2:
-  fixes c :: real
-  shows "(\<lambda>x. c * f x) integrable_on s \<longleftrightarrow> c = 0 \<or> f integrable_on s"
-  using integrable_cmul[of "\<lambda>x. c * f x" s "1 / c"] integrable_cmul[of f s c]
-  by (cases "c = 0") auto
-
 lemma lborel_has_bochner_integral_real_affine_iff:
   fixes x :: "'a :: {banach, second_countable_topology}"
   shows "c \<noteq> 0 \<Longrightarrow>
@@ -621,62 +651,160 @@ lemma lborel_has_bochner_integral_real_affine_iff:
   unfolding has_bochner_integral_iff lborel_integrable_real_affine_iff
   by (simp_all add: lborel_integral_real_affine[symmetric] divideR_right cong: conj_cong)
 
-subsection {* Lebesgue integrable implies Gauge integrable *}
+interpretation lborel!: sigma_finite_measure lborel
+  by (rule sigma_finite_lborel)
 
-lemma has_integral_scaleR_left: 
-  "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x *\<^sub>R c) has_integral (y *\<^sub>R c)) s"
-  using has_integral_linear[OF _ bounded_linear_scaleR_left] by (simp add: comp_def)
+interpretation lborel_pair: pair_sigma_finite lborel lborel ..
 
-lemma has_integral_mult_left:
-  fixes c :: "_ :: {real_normed_algebra}"
-  shows "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) s"
-  using has_integral_linear[OF _ bounded_linear_mult_left] by (simp add: comp_def)
+(* FIXME: conversion in measurable prover *)
+lemma lborelD_Collect[measurable (raw)]: "{x\<in>space borel. P x} \<in> sets borel \<Longrightarrow> {x\<in>space lborel. P x} \<in> sets lborel" by simp
+lemma lborelD[measurable (raw)]: "A \<in> sets borel \<Longrightarrow> A \<in> sets lborel" by simp
 
-(* GENERALIZE Integration.dominated_convergence, then generalize the following theorems *)
-lemma has_integral_dominated_convergence:
-  fixes f :: "nat \<Rightarrow> 'n::ordered_euclidean_space \<Rightarrow> real"
-  assumes "\<And>k. (f k has_integral y k) s" "h integrable_on s"
-    "\<And>k. \<forall>x\<in>s. norm (f k x) \<le> h x" "\<forall>x\<in>s. (\<lambda>k. f k x) ----> g x"
-    and x: "y ----> x"
-  shows "(g has_integral x) s"
+subsection {* Equivalence Lebesgue integral on @{const lborel} and HK-integral *}
+
+lemma has_integral_measure_lborel:
+  fixes A :: "'a::euclidean_space set"
+  assumes A[measurable]: "A \<in> sets borel" and finite: "emeasure lborel A < \<infinity>"
+  shows "((\<lambda>x. 1) has_integral measure lborel A) A"
 proof -
-  have int_f: "\<And>k. (f k) integrable_on s"
-    using assms by (auto simp: integrable_on_def)
-  have "(g has_integral (integral s g)) s"
-    by (intro integrable_integral dominated_convergence[OF int_f assms(2)]) fact+
-  moreover have "integral s g = x"
-  proof (rule LIMSEQ_unique)
-    show "(\<lambda>i. integral s (f i)) ----> x"
-      using integral_unique[OF assms(1)] x by simp
-    show "(\<lambda>i. integral s (f i)) ----> integral s g"
-      by (intro dominated_convergence[OF int_f assms(2)]) fact+
+  { fix l u :: 'a
+    have "((\<lambda>x. 1) has_integral measure lborel (box l u)) (box l u)"
+    proof cases
+      assume "\<forall>b\<in>Basis. l \<bullet> b \<le> u \<bullet> b"
+      then show ?thesis
+        apply simp
+        apply (subst has_integral_restrict[symmetric, OF box_subset_cbox])
+        apply (subst has_integral_spike_interior_eq[where g="\<lambda>_. 1"])
+        using has_integral_const[of "1::real" l u]
+        apply (simp_all add: inner_diff_left[symmetric] content_cbox_cases)
+        done
+    next
+      assume "\<not> (\<forall>b\<in>Basis. l \<bullet> b \<le> u \<bullet> b)"
+      then have "box l u = {}"
+        unfolding box_eq_empty by (auto simp: not_le intro: less_imp_le)
+      then show ?thesis
+        by simp
+    qed }
+  note has_integral_box = this
+
+  { fix a b :: 'a let ?M = "\<lambda>A. measure lborel (A \<inter> box a b)"
+    have "Int_stable  (range (\<lambda>(a, b). box a b))"
+      by (auto simp: Int_stable_def box_Int_box)
+    moreover have "(range (\<lambda>(a, b). box a b)) \<subseteq> Pow UNIV"
+      by auto
+    moreover have "A \<in> sigma_sets UNIV (range (\<lambda>(a, b). box a b))"
+       using A unfolding borel_eq_box by simp
+    ultimately have "((\<lambda>x. 1) has_integral ?M A) (A \<inter> box a b)"
+    proof (induction rule: sigma_sets_induct_disjoint)
+      case (basic A) then show ?case
+        by (auto simp: box_Int_box has_integral_box)
+    next
+      case empty then show ?case
+        by simp
+    next
+      case (compl A)
+      then have [measurable]: "A \<in> sets borel"
+        by (simp add: borel_eq_box)
+
+      have "((\<lambda>x. 1) has_integral ?M (box a b)) (box a b)"
+        by (simp add: has_integral_box)
+      moreover have "((\<lambda>x. if x \<in> A \<inter> box a b then 1 else 0) has_integral ?M A) (box a b)"
+        by (subst has_integral_restrict) (auto intro: compl)
+      ultimately have "((\<lambda>x. 1 - (if x \<in> A \<inter> box a b then 1 else 0)) has_integral ?M (box a b) - ?M A) (box a b)"
+        by (rule has_integral_sub)
+      then have "((\<lambda>x. (if x \<in> (UNIV - A) \<inter> box a b then 1 else 0)) has_integral ?M (box a b) - ?M A) (box a b)"
+        by (rule has_integral_eq_eq[THEN iffD1, rotated 1]) auto
+      then have "((\<lambda>x. 1) has_integral ?M (box a b) - ?M A) ((UNIV - A) \<inter> box a b)"
+        by (subst (asm) has_integral_restrict) auto
+      also have "?M (box a b) - ?M A = ?M (UNIV - A)"
+        by (subst measure_Diff[symmetric]) (auto simp: emeasure_lborel_box_eq Diff_Int_distrib2)
+      finally show ?case .
+    next
+      case (union F)
+      then have [measurable]: "\<And>i. F i \<in> sets borel"
+        by (simp add: borel_eq_box subset_eq)
+      have "((\<lambda>x. if x \<in> UNION UNIV F \<inter> box a b then 1 else 0) has_integral ?M (\<Union>i. F i)) (box a b)"
+      proof (rule has_integral_monotone_convergence_increasing)
+        let ?f = "\<lambda>k x. \<Sum>i<k. if x \<in> F i \<inter> box a b then 1 else 0 :: real"
+        show "\<And>k. (?f k has_integral (\<Sum>i<k. ?M (F i))) (box a b)"
+          using union.IH by (auto intro!: has_integral_setsum simp del: Int_iff)
+        show "\<And>k x. ?f k x \<le> ?f (Suc k) x"
+          by (intro setsum_mono2) auto
+        from union(1) have *: "\<And>x i j. x \<in> F i \<Longrightarrow> x \<in> F j \<longleftrightarrow> j = i"
+          by (auto simp add: disjoint_family_on_def)
+        show "\<And>x. (\<lambda>k. ?f k x) ----> (if x \<in> UNION UNIV F \<inter> box a b then 1 else 0)"
+          apply (auto simp: * setsum.If_cases Iio_Int_singleton)
+          apply (rule_tac k="Suc xa" in LIMSEQ_offset)
+          apply (simp add: tendsto_const)
+          done
+        have *: "emeasure lborel ((\<Union>x. F x) \<inter> box a b) \<le> emeasure lborel (box a b)"
+          by (intro emeasure_mono) auto
+
+        with union(1) show "(\<lambda>k. \<Sum>i<k. ?M (F i)) ----> ?M (\<Union>i. F i)"
+          unfolding sums_def[symmetric] UN_extend_simps
+          by (intro measure_UNION) (auto simp: disjoint_family_on_def emeasure_lborel_box_eq)
+      qed
+      then show ?case
+        by (subst (asm) has_integral_restrict) auto
+    qed }
+  note * = this
+
+  show ?thesis
+  proof (rule has_integral_monotone_convergence_increasing)
+    let ?B = "\<lambda>n::nat. box (- real n *\<^sub>R One) (real n *\<^sub>R One) :: 'a set"
+    let ?f = "\<lambda>n::nat. \<lambda>x. if x \<in> A \<inter> ?B n then 1 else 0 :: real"
+    let ?M = "\<lambda>n. measure lborel (A \<inter> ?B n)"
+
+    show "\<And>n::nat. (?f n has_integral ?M n) A"
+      using * by (subst has_integral_restrict) simp_all
+    show "\<And>k x. ?f k x \<le> ?f (Suc k) x"
+      by (auto simp: box_def)
+    { fix x assume "x \<in> A"
+      moreover have "(\<lambda>k. indicator (A \<inter> ?B k) x :: real) ----> indicator (\<Union>k::nat. A \<inter> ?B k) x"
+        by (intro LIMSEQ_indicator_incseq) (auto simp: incseq_def box_def)
+      ultimately show "(\<lambda>k. if x \<in> A \<inter> ?B k then 1 else 0::real) ----> 1"
+        by (simp add: indicator_def UN_box_eq_UNIV) }
+
+    have "(\<lambda>n. emeasure lborel (A \<inter> ?B n)) ----> emeasure lborel (\<Union>n::nat. A \<inter> ?B n)"
+      by (intro Lim_emeasure_incseq) (auto simp: incseq_def box_def)
+    also have "(\<lambda>n. emeasure lborel (A \<inter> ?B n)) = (\<lambda>n. measure lborel (A \<inter> ?B n))"
+    proof (intro ext emeasure_eq_ereal_measure)
+      fix n have "emeasure lborel (A \<inter> ?B n) \<le> emeasure lborel (?B n)"
+        by (intro emeasure_mono) auto
+      then show "emeasure lborel (A \<inter> ?B n) \<noteq> \<infinity>"
+        by auto
+    qed
+    finally show "(\<lambda>n. measure lborel (A \<inter> ?B n)) ----> measure lborel A"
+      using emeasure_eq_ereal_measure[of lborel A] finite
+      by (simp add: UN_box_eq_UNIV)
   qed
-  ultimately show ?thesis
-    by simp
 qed
 
 lemma nn_integral_has_integral:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> real"
-  assumes f: "f \<in> borel_measurable lebesgue" "\<And>x. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>lebesgue) = ereal r"
+  fixes f::"'a::euclidean_space \<Rightarrow> real"
+  assumes f: "f \<in> borel_measurable borel" "\<And>x. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>lborel) = ereal r"
   shows "(f has_integral r) UNIV"
 using f proof (induct arbitrary: r rule: borel_measurable_induct_real)
-  case (set A) then show ?case
-    by (auto simp add: ereal_indicator has_integral_iff_lmeasure)
+  case (set A)
+  moreover then have "((\<lambda>x. 1) has_integral measure lborel A) A"
+    by (intro has_integral_measure_lborel) (auto simp: ereal_indicator)
+  ultimately show ?case
+    by (simp add: ereal_indicator measure_def) (simp add: indicator_def)
 next
   case (mult g c)
-  then have "ereal c * (\<integral>\<^sup>+ x. g x \<partial>lebesgue) = ereal r"
+  then have "ereal c * (\<integral>\<^sup>+ x. g x \<partial>lborel) = ereal r"
     by (subst nn_integral_cmult[symmetric]) auto
-  then obtain r' where "(c = 0 \<and> r = 0) \<or> ((\<integral>\<^sup>+ x. ereal (g x) \<partial>lebesgue) = ereal r' \<and> r = c * r')"
-    by (cases "\<integral>\<^sup>+ x. ereal (g x) \<partial>lebesgue") (auto split: split_if_asm)
+  then obtain r' where "(c = 0 \<and> r = 0) \<or> ((\<integral>\<^sup>+ x. ereal (g x) \<partial>lborel) = ereal r' \<and> r = c * r')"
+    by (cases "\<integral>\<^sup>+ x. ereal (g x) \<partial>lborel") (auto split: split_if_asm)
   with mult show ?case
     by (auto intro!: has_integral_cmult_real)
 next
   case (add g h)
   moreover
-  then have "(\<integral>\<^sup>+ x. h x + g x \<partial>lebesgue) = (\<integral>\<^sup>+ x. h x \<partial>lebesgue) + (\<integral>\<^sup>+ x. g x \<partial>lebesgue)"
+  then have "(\<integral>\<^sup>+ x. h x + g x \<partial>lborel) = (\<integral>\<^sup>+ x. h x \<partial>lborel) + (\<integral>\<^sup>+ x. g x \<partial>lborel)"
     unfolding plus_ereal.simps[symmetric] by (subst nn_integral_add) auto
-  with add obtain a b where "(\<integral>\<^sup>+ x. h x \<partial>lebesgue) = ereal a" "(\<integral>\<^sup>+ x. g x \<partial>lebesgue) = ereal b" "r = a + b"
-    by (cases "\<integral>\<^sup>+ x. h x \<partial>lebesgue" "\<integral>\<^sup>+ x. g x \<partial>lebesgue" rule: ereal2_cases) auto
+  with add obtain a b where "(\<integral>\<^sup>+ x. h x \<partial>lborel) = ereal a" "(\<integral>\<^sup>+ x. g x \<partial>lborel) = ereal b" "r = a + b"
+    by (cases "\<integral>\<^sup>+ x. h x \<partial>lborel" "\<integral>\<^sup>+ x. g x \<partial>lborel" rule: ereal2_cases) auto
   ultimately show ?case
     by (auto intro!: has_integral_add)
 next
@@ -693,16 +821,16 @@ next
   note U_le_f = this
   
   { fix i
-    have "(\<integral>\<^sup>+x. ereal (U i x) \<partial>lebesgue) \<le> (\<integral>\<^sup>+x. ereal (f x) \<partial>lebesgue)"
+    have "(\<integral>\<^sup>+x. ereal (U i x) \<partial>lborel) \<le> (\<integral>\<^sup>+x. ereal (f x) \<partial>lborel)"
       using U_le_f by (intro nn_integral_mono) simp
-    then obtain p where "(\<integral>\<^sup>+x. U i x \<partial>lebesgue) = ereal p" "p \<le> r"
-      using seq(6) by (cases "\<integral>\<^sup>+x. U i x \<partial>lebesgue") auto
+    then obtain p where "(\<integral>\<^sup>+x. U i x \<partial>lborel) = ereal p" "p \<le> r"
+      using seq(6) by (cases "\<integral>\<^sup>+x. U i x \<partial>lborel") auto
     moreover then have "0 \<le> p"
       by (metis ereal_less_eq(5) nn_integral_nonneg)
     moreover note seq
-    ultimately have "\<exists>p. (\<integral>\<^sup>+x. U i x \<partial>lebesgue) = ereal p \<and> 0 \<le> p \<and> p \<le> r \<and> (U i has_integral p) UNIV"
+    ultimately have "\<exists>p. (\<integral>\<^sup>+x. U i x \<partial>lborel) = ereal p \<and> 0 \<le> p \<and> p \<le> r \<and> (U i has_integral p) UNIV"
       by auto }
-  then obtain p where p: "\<And>i. (\<integral>\<^sup>+x. ereal (U i x) \<partial>lebesgue) = ereal (p i)"
+  then obtain p where p: "\<And>i. (\<integral>\<^sup>+x. ereal (U i x) \<partial>lborel) = ereal (p i)"
     and bnd: "\<And>i. p i \<le> r" "\<And>i. 0 \<le> p i"
     and U_int: "\<And>i.(U i has_integral (p i)) UNIV" by metis
 
@@ -717,7 +845,7 @@ next
     show "\<forall>x\<in>UNIV. (\<lambda>k. U k x) ----> f x"
       using seq by auto
   qed
-  moreover have "(\<lambda>i. (\<integral>\<^sup>+x. U i x \<partial>lebesgue)) ----> (\<integral>\<^sup>+x. f x \<partial>lebesgue)"
+  moreover have "(\<lambda>i. (\<integral>\<^sup>+x. U i x \<partial>lborel)) ----> (\<integral>\<^sup>+x. f x \<partial>lborel)"
     using seq U_le_f by (intro nn_integral_dominated_convergence[where w=f]) auto
   ultimately have "integral UNIV f = r"
     by (auto simp add: int_eq p seq intro: LIMSEQ_unique)
@@ -725,23 +853,135 @@ next
     by (simp add: has_integral_integral)
 qed
 
-lemma has_integral_integrable_lebesgue_nonneg:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> real"
-  assumes f: "integrable lebesgue f" "\<And>x. 0 \<le> f x"
-  shows "(f has_integral integral\<^sup>L lebesgue f) UNIV"
-proof (rule nn_integral_has_integral)
-  show "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lebesgue) = ereal (integral\<^sup>L lebesgue f)"
-    using f by (intro nn_integral_eq_integral) auto
-qed (insert f, auto)
+lemma nn_integral_lborel_eq_integral:
+  fixes f::"'a::euclidean_space \<Rightarrow> real"
+  assumes f: "f \<in> borel_measurable borel" "\<And>x. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>lborel) < \<infinity>"
+  shows "(\<integral>\<^sup>+x. f x \<partial>lborel) = integral UNIV f"
+proof -
+  from f(3) obtain r where r: "(\<integral>\<^sup>+x. f x \<partial>lborel) = ereal r"
+    by (cases "\<integral>\<^sup>+x. f x \<partial>lborel") auto
+  then show ?thesis
+    using nn_integral_has_integral[OF f(1,2) r] by (simp add: integral_unique)
+qed
 
-lemma has_integral_lebesgue_integral_lebesgue:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> real"
-  assumes f: "integrable lebesgue f"
-  shows "(f has_integral (integral\<^sup>L lebesgue f)) UNIV"
+lemma nn_integral_integrable_on:
+  fixes f::"'a::euclidean_space \<Rightarrow> real"
+  assumes f: "f \<in> borel_measurable borel" "\<And>x. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>lborel) < \<infinity>"
+  shows "f integrable_on UNIV"
+proof -
+  from f(3) obtain r where r: "(\<integral>\<^sup>+x. f x \<partial>lborel) = ereal r"
+    by (cases "\<integral>\<^sup>+x. f x \<partial>lborel") auto
+  then show ?thesis
+    by (intro has_integral_integrable[where i=r] nn_integral_has_integral[where r=r] f)
+qed
+
+lemma nn_integral_has_integral_lborel: 
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes f_borel: "f \<in> borel_measurable borel" and nonneg: "\<And>x. 0 \<le> f x"
+  assumes I: "(f has_integral I) UNIV"
+  shows "integral\<^sup>N lborel f = I"
+proof -
+  from f_borel have "(\<lambda>x. ereal (f x)) \<in> borel_measurable lborel" by auto
+  from borel_measurable_implies_simple_function_sequence'[OF this] guess F . note F = this
+  let ?B = "\<lambda>i::nat. box (- (real i *\<^sub>R One)) (real i *\<^sub>R One) :: 'a set"
+
+  note F(1)[THEN borel_measurable_simple_function, measurable]
+
+  { fix i x have "real (F i x) \<le> f x"
+      using F(3,5) F(4)[of x, symmetric] nonneg
+      unfolding real_le_ereal_iff
+      by (auto simp: image_iff eq_commute[of \<infinity>] max_def intro: SUP_upper split: split_if_asm) }
+  note F_le_f = this
+  let ?F = "\<lambda>i x. F i x * indicator (?B i) x"
+  have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lborel) = (SUP i. integral\<^sup>N lborel (\<lambda>x. ?F i x))"
+  proof (subst nn_integral_monotone_convergence_SUP[symmetric])
+    { fix x
+      obtain j where j: "x \<in> ?B j"
+        using UN_box_eq_UNIV by auto
+
+      have "ereal (f x) = (SUP i. F i x)"
+        using F(4)[of x] nonneg[of x] by (simp add: max_def)
+      also have "\<dots> = (SUP i. ?F i x)"
+      proof (rule SUP_eq)
+        fix i show "\<exists>j\<in>UNIV. F i x \<le> ?F j x"
+          using j F(2)
+          by (intro bexI[of _ "max i j"])
+             (auto split: split_max split_indicator simp: incseq_def le_fun_def box_def)
+      qed (auto intro!: F split: split_indicator)
+      finally have "ereal (f x) =  (SUP i. ?F i x)" . }
+    then show "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lborel) = (\<integral>\<^sup>+ x. (SUP i. ?F i x) \<partial>lborel)"
+      by simp
+  qed (insert F, auto simp: incseq_def le_fun_def box_def split: split_indicator)
+  also have "\<dots> \<le> ereal I"
+  proof (rule SUP_least)
+    fix i :: nat
+    have finite_F: "(\<integral>\<^sup>+ x. ereal (real (F i x) * indicator (?B i) x) \<partial>lborel) < \<infinity>"
+    proof (rule nn_integral_bound_simple_function)
+      have "emeasure lborel {x \<in> space lborel. ereal (real (F i x) * indicator (?B i) x) \<noteq> 0} \<le>
+        emeasure lborel (?B i)"
+        by (intro emeasure_mono)  (auto split: split_indicator)
+      then show "emeasure lborel {x \<in> space lborel. ereal (real (F i x) * indicator (?B i) x) \<noteq> 0} < \<infinity>"  
+        by auto
+    qed (auto split: split_indicator
+              intro!: real_of_ereal_pos F simple_function_compose1[where g="real"] simple_function_ereal)
+
+    have int_F: "(\<lambda>x. real (F i x) * indicator (?B i) x) integrable_on UNIV"
+      using F(5) finite_F
+      by (intro nn_integral_integrable_on) (auto split: split_indicator intro: real_of_ereal_pos)
+    
+    have "(\<integral>\<^sup>+ x. F i x * indicator (?B i) x \<partial>lborel) = 
+      (\<integral>\<^sup>+ x. ereal (real (F i x) * indicator (?B i) x) \<partial>lborel)"
+      using F(3,5)
+      by (intro nn_integral_cong) (auto simp: image_iff ereal_real eq_commute split: split_indicator)
+    also have "\<dots> = ereal (integral UNIV (\<lambda>x. real (F i x) * indicator (?B i) x))"
+      using F
+      by (intro nn_integral_lborel_eq_integral[OF _ _ finite_F])
+         (auto split: split_indicator intro: real_of_ereal_pos)
+    also have "\<dots> \<le> ereal I"
+      by (auto intro!: has_integral_le[OF integrable_integral[OF int_F] I] nonneg F_le_f
+          split: split_indicator )
+    finally show "(\<integral>\<^sup>+ x. F i x * indicator (?B i) x \<partial>lborel) \<le> ereal I" .
+  qed
+  finally have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lborel) < \<infinity>"
+    by auto
+  from nn_integral_lborel_eq_integral[OF assms(1,2) this] I show ?thesis
+    by (simp add: integral_unique)
+qed
+
+lemma has_integral_iff_emeasure_lborel:
+  fixes A :: "'a::euclidean_space set"
+  assumes A[measurable]: "A \<in> sets borel"
+  shows "((\<lambda>x. 1) has_integral r) A \<longleftrightarrow> emeasure lborel A = ereal r"
+proof cases
+  assume emeasure_A: "emeasure lborel A = \<infinity>"
+  have "\<not> (\<lambda>x. 1::real) integrable_on A"
+  proof
+    assume int: "(\<lambda>x. 1::real) integrable_on A"
+    then have "(indicator A::'a \<Rightarrow> real) integrable_on UNIV"
+      unfolding indicator_def[abs_def] integrable_restrict_univ .
+    then obtain r where "((indicator A::'a\<Rightarrow>real) has_integral r) UNIV"
+      by auto
+    from nn_integral_has_integral_lborel[OF _ _ this] emeasure_A show False
+      by (simp add: ereal_indicator)
+  qed
+  with emeasure_A show ?thesis
+    by auto
+next
+  assume "emeasure lborel A \<noteq> \<infinity>"
+  moreover then have "((\<lambda>x. 1) has_integral measure lborel A) A"
+    by (simp add: has_integral_measure_lborel)
+  ultimately show ?thesis
+    by (auto simp: emeasure_eq_ereal_measure has_integral_unique)
+qed
+
+lemma has_integral_integral_real:
+  fixes f::"'a::euclidean_space \<Rightarrow> real"
+  assumes f: "integrable lborel f"
+  shows "(f has_integral (integral\<^sup>L lborel f)) UNIV"
 using f proof induct
   case (base A c) then show ?case
-    by (auto intro!: has_integral_mult_left simp: has_integral_iff_lmeasure)
-       (simp add: emeasure_eq_ereal_measure)
+    by (auto intro!: has_integral_mult_left simp: )
+       (simp add: emeasure_eq_ereal_measure indicator_def has_integral_measure_lborel)
 next
   case (add f g) then show ?case
     by (auto intro!: has_integral_add)
@@ -749,306 +989,46 @@ next
   case (lim f s)
   show ?case
   proof (rule has_integral_dominated_convergence)
-    show "\<And>i. (s i has_integral integral\<^sup>L lebesgue (s i)) UNIV" by fact
+    show "\<And>i. (s i has_integral integral\<^sup>L lborel (s i)) UNIV" by fact
     show "(\<lambda>x. norm (2 * f x)) integrable_on UNIV"
-      using lim by (intro has_integral_integrable[OF has_integral_integrable_lebesgue_nonneg]) auto
+      using `integrable lborel f`
+      by (intro nn_integral_integrable_on)
+         (auto simp: integrable_iff_bounded abs_mult times_ereal.simps(1)[symmetric] nn_integral_cmult
+               simp del: times_ereal.simps)
     show "\<And>k. \<forall>x\<in>UNIV. norm (s k x) \<le> norm (2 * f x)"
       using lim by (auto simp add: abs_mult)
     show "\<forall>x\<in>UNIV. (\<lambda>k. s k x) ----> f x"
       using lim by auto
-    show "(\<lambda>k. integral\<^sup>L lebesgue (s k)) ----> integral\<^sup>L lebesgue f"
-      using lim by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"]) auto
+    show "(\<lambda>k. integral\<^sup>L lborel (s k)) ----> integral\<^sup>L lborel f"
+      using lim lim(1)[THEN borel_measurable_integrable]
+      by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"]) auto
   qed
 qed
 
-lemma lebesgue_nn_integral_eq_borel:
-  assumes f: "f \<in> borel_measurable borel"
-  shows "integral\<^sup>N lebesgue f = integral\<^sup>N lborel f"
-proof -
-  from f have "integral\<^sup>N lebesgue (\<lambda>x. max 0 (f x)) = integral\<^sup>N lborel (\<lambda>x. max 0 (f x))"
-    by (auto intro!: nn_integral_subalgebra[symmetric])
-  then show ?thesis unfolding nn_integral_max_0 .
-qed
+context
+  fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+begin
 
-lemma lebesgue_integral_eq_borel:
-  fixes f :: "_ \<Rightarrow> _::{banach, second_countable_topology}"
-  assumes "f \<in> borel_measurable borel"
-  shows "integrable lebesgue f \<longleftrightarrow> integrable lborel f" (is ?P)
-    and "integral\<^sup>L lebesgue f = integral\<^sup>L lborel f" (is ?I)
-proof -
-  have "sets lborel \<subseteq> sets lebesgue" by auto
-  from integral_subalgebra[of f lborel, OF _ this _ _]
-       integrable_subalgebra[of f lborel, OF _ this _ _] assms
-  show ?P ?I by auto
-qed
-
-lemma has_integral_lebesgue_integral:
-  fixes f::"'a::ordered_euclidean_space => real"
-  assumes f:"integrable lborel f"
+lemma has_integral_integral_lborel:
+  assumes f: "integrable lborel f"
   shows "(f has_integral (integral\<^sup>L lborel f)) UNIV"
 proof -
-  have borel: "f \<in> borel_measurable borel"
-    using f unfolding integrable_iff_bounded by auto
-  from f show ?thesis
-    using has_integral_lebesgue_integral_lebesgue[of f]
-    unfolding lebesgue_integral_eq_borel[OF borel] by simp
-qed
-
-lemma nn_integral_bound_simple_function:
-  assumes bnd: "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> f x" "\<And>x. x \<in> space M \<Longrightarrow> f x < \<infinity>"
-  assumes f[measurable]: "simple_function M f"
-  assumes supp: "emeasure M {x\<in>space M. f x \<noteq> 0} < \<infinity>"
-  shows "nn_integral M f < \<infinity>"
-proof cases
-  assume "space M = {}"
-  then have "nn_integral M f = (\<integral>\<^sup>+x. 0 \<partial>M)"
-    by (intro nn_integral_cong) auto
-  then show ?thesis by simp
-next
-  assume "space M \<noteq> {}"
-  with simple_functionD(1)[OF f] bnd have bnd: "0 \<le> Max (f`space M) \<and> Max (f`space M) < \<infinity>"
-    by (subst Max_less_iff) (auto simp: Max_ge_iff)
-  
-  have "nn_integral M f \<le> (\<integral>\<^sup>+x. Max (f`space M) * indicator {x\<in>space M. f x \<noteq> 0} x \<partial>M)"
-  proof (rule nn_integral_mono)
-    fix x assume "x \<in> space M"
-    with f show "f x \<le> Max (f ` space M) * indicator {x \<in> space M. f x \<noteq> 0} x"
-      by (auto split: split_indicator intro!: Max_ge simple_functionD)
-  qed
-  also have "\<dots> < \<infinity>"
-    using bnd supp by (subst nn_integral_cmult) auto
+  have "((\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) has_integral (\<Sum>b\<in>Basis. integral\<^sup>L lborel (\<lambda>x. f x \<bullet> b) *\<^sub>R b)) UNIV"
+    using f by (intro has_integral_setsum finite_Basis ballI has_integral_scaleR_left has_integral_integral_real) auto
+  also have eq_f: "(\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) = f"
+    by (simp add: fun_eq_iff euclidean_representation)
+  also have "(\<Sum>b\<in>Basis. integral\<^sup>L lborel (\<lambda>x. f x \<bullet> b) *\<^sub>R b) = integral\<^sup>L lborel f"
+    using f by (subst (2) eq_f[symmetric]) simp
   finally show ?thesis .
 qed
 
+lemma integrable_on_lborel: "integrable lborel f \<Longrightarrow> f integrable_on UNIV"
+  using has_integral_integral_lborel by (auto intro: has_integral_integrable)
+  
+lemma integral_lborel: "integrable lborel f \<Longrightarrow> integral UNIV f = (\<integral>x. f x \<partial>lborel)"
+  using has_integral_integral_lborel by auto
 
-lemma
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
-  assumes f_borel: "f \<in> borel_measurable lebesgue" and nonneg: "\<And>x. 0 \<le> f x"
-  assumes I: "(f has_integral I) UNIV"
-  shows integrable_has_integral_lebesgue_nonneg: "integrable lebesgue f"
-    and integral_has_integral_lebesgue_nonneg: "integral\<^sup>L lebesgue f = I"
-proof -
-  from f_borel have "(\<lambda>x. ereal (f x)) \<in> borel_measurable lebesgue" by auto
-  from borel_measurable_implies_simple_function_sequence'[OF this] guess F . note F = this
-
-  have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lebesgue) = (SUP i. integral\<^sup>N lebesgue (F i))"
-    using F
-    by (subst nn_integral_monotone_convergence_SUP[symmetric])
-       (simp_all add: nn_integral_max_0 borel_measurable_simple_function)
-  also have "\<dots> \<le> ereal I"
-  proof (rule SUP_least)
-    fix i :: nat
-
-    { fix z
-      from F(4)[of z] have "F i z \<le> ereal (f z)"
-        by (metis SUP_upper UNIV_I ereal_max_0 max.absorb2 nonneg)
-      with F(5)[of i z] have "real (F i z) \<le> f z"
-        by (cases "F i z") simp_all }
-    note F_bound = this
-
-    { fix x :: ereal assume x: "x \<noteq> 0" "x \<in> range (F i)"
-      with F(3,5)[of i] have [simp]: "real x \<noteq> 0"
-        by (metis image_iff order_eq_iff real_of_ereal_le_0)
-      let ?s = "(\<lambda>n z. real x * indicator (F i -` {x} \<inter> cube n) z) :: nat \<Rightarrow> 'a \<Rightarrow> real"
-      have "(\<lambda>z::'a. real x * indicator (F i -` {x}) z) integrable_on UNIV"
-      proof (rule dominated_convergence(1))
-        fix n :: nat
-        have "(\<lambda>z. indicator (F i -` {x} \<inter> cube n) z :: real) integrable_on cube n"
-          using x F(1)[of i]
-          by (intro lebesgueD) (auto simp: simple_function_def)
-        then have cube: "?s n integrable_on cube n"
-          by (simp add: integrable_on_cmult_iff)
-        show "?s n integrable_on UNIV"
-          by (rule integrable_on_superset[OF _ _ cube]) auto
-      next
-        show "f integrable_on UNIV"
-          unfolding integrable_on_def using I by auto
-      next
-        fix n from F_bound show "\<forall>x\<in>UNIV. norm (?s n x) \<le> f x"
-          using nonneg F(5) by (auto split: split_indicator)
-      next
-        show "\<forall>z\<in>UNIV. (\<lambda>n. ?s n z) ----> real x * indicator (F i -` {x}) z"
-        proof
-          fix z :: 'a
-          from mem_big_cube[of z] guess j .
-          then have x: "eventually (\<lambda>n. ?s n z = real x * indicator (F i -` {x}) z) sequentially"
-            by (auto intro!: eventually_sequentiallyI[where c=j] dest!: cube_subset split: split_indicator)
-          then show "(\<lambda>n. ?s n z) ----> real x * indicator (F i -` {x}) z"
-            by (rule Lim_eventually)
-        qed
-      qed
-      then have "(indicator (F i -` {x}) :: 'a \<Rightarrow> real) integrable_on UNIV"
-        by (simp add: integrable_on_cmult_iff) }
-    note F_finite = lmeasure_finite[OF this]
-
-    have F_eq: "\<And>x. F i x = ereal (norm (real (F i x)))"
-      using F(3,5) by (auto simp: fun_eq_iff ereal_real image_iff eq_commute)
-    have F_eq2: "\<And>x. F i x = ereal (real (F i x))"
-      using F(3,5) by (auto simp: fun_eq_iff ereal_real image_iff eq_commute)
-
-    have int: "integrable lebesgue (\<lambda>x. real (F i x))"
-      unfolding integrable_iff_bounded
-    proof
-      have "(\<integral>\<^sup>+x. F i x \<partial>lebesgue) < \<infinity>"
-      proof (rule nn_integral_bound_simple_function)
-        fix x::'a assume "x \<in> space lebesgue" then show "0 \<le> F i x" "F i x < \<infinity>"
-          using F by (auto simp: image_iff eq_commute)
-      next
-        have eq: "{x \<in> space lebesgue. F i x \<noteq> 0} = (\<Union>x\<in>F i ` space lebesgue - {0}. F i -` {x} \<inter> space lebesgue)"
-          by auto
-        show "emeasure lebesgue {x \<in> space lebesgue. F i x \<noteq> 0} < \<infinity>"
-          unfolding eq using simple_functionD[OF F(1)]
-          by (subst setsum_emeasure[symmetric])
-             (auto simp: disjoint_family_on_def setsum_Pinfty F_finite)
-      qed fact
-      with F_eq show "(\<integral>\<^sup>+x. norm (real (F i x)) \<partial>lebesgue) < \<infinity>" by simp
-    qed (insert F(1), auto intro!: borel_measurable_real_of_ereal dest: borel_measurable_simple_function)
-    then have "((\<lambda>x. real (F i x)) has_integral integral\<^sup>L lebesgue (\<lambda>x. real (F i x))) UNIV"
-      by (rule has_integral_lebesgue_integral_lebesgue)
-    from this I have "integral\<^sup>L lebesgue (\<lambda>x. real (F i x)) \<le> I"
-      by (rule has_integral_le) (intro ballI F_bound)
-    moreover have "integral\<^sup>N lebesgue (F i) = integral\<^sup>L lebesgue (\<lambda>x. real (F i x))"
-      using int F by (subst nn_integral_eq_integral[symmetric])  (auto simp: F_eq2[symmetric] real_of_ereal_pos)
-    ultimately show "integral\<^sup>N lebesgue (F i) \<le> ereal I"
-      by simp
-  qed
-  finally show "integrable lebesgue f"
-    using f_borel by (auto simp: integrable_iff_bounded nonneg)
-  from has_integral_lebesgue_integral_lebesgue[OF this] I
-  show "integral\<^sup>L lebesgue f = I"
-    by (metis has_integral_unique)
-qed
-
-lemma has_integral_iff_has_bochner_integral_lebesgue_nonneg:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
-  shows "f \<in> borel_measurable lebesgue \<Longrightarrow> (\<And>x. 0 \<le> f x) \<Longrightarrow>
-    (f has_integral I) UNIV \<longleftrightarrow> has_bochner_integral lebesgue f I"
-  by (metis has_bochner_integral_iff has_integral_unique has_integral_lebesgue_integral_lebesgue
-            integrable_has_integral_lebesgue_nonneg)
-
-lemma
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
-  assumes "f \<in> borel_measurable borel" "\<And>x. 0 \<le> f x" "(f has_integral I) UNIV"
-  shows integrable_has_integral_nonneg: "integrable lborel f"
-    and integral_has_integral_nonneg: "integral\<^sup>L lborel f = I"
-  by (metis assms borel_measurable_lebesgueI integrable_has_integral_lebesgue_nonneg lebesgue_integral_eq_borel(1))
-     (metis assms borel_measurable_lebesgueI has_integral_lebesgue_integral has_integral_unique integrable_has_integral_lebesgue_nonneg lebesgue_integral_eq_borel(1))
-
-subsection {* Equivalence between product spaces and euclidean spaces *}
-
-definition e2p :: "'a::ordered_euclidean_space \<Rightarrow> ('a \<Rightarrow> real)" where
-  "e2p x = (\<lambda>i\<in>Basis. x \<bullet> i)"
-
-definition p2e :: "('a \<Rightarrow> real) \<Rightarrow> 'a::ordered_euclidean_space" where
-  "p2e x = (\<Sum>i\<in>Basis. x i *\<^sub>R i)"
-
-lemma e2p_p2e[simp]:
-  "x \<in> extensional Basis \<Longrightarrow> e2p (p2e x::'a::ordered_euclidean_space) = x"
-  by (auto simp: fun_eq_iff extensional_def p2e_def e2p_def)
-
-lemma p2e_e2p[simp]:
-  "p2e (e2p x) = (x::'a::ordered_euclidean_space)"
-  by (auto simp: euclidean_eq_iff[where 'a='a] p2e_def e2p_def)
-
-interpretation lborel_product: product_sigma_finite "\<lambda>x. lborel::real measure"
-  by default
-
-interpretation lborel_space: finite_product_sigma_finite "\<lambda>x. lborel::real measure" "Basis"
-  by default auto
-
-lemma sets_product_borel:
-  assumes I: "finite I"
-  shows "sets (\<Pi>\<^sub>M i\<in>I. lborel) = sigma_sets (\<Pi>\<^sub>E i\<in>I. UNIV) { \<Pi>\<^sub>E i\<in>I. {..< x i :: real} | x. True}" (is "_ = ?G")
-proof (subst sigma_prod_algebra_sigma_eq[where S="\<lambda>_ i::nat. {..<real i}" and E="\<lambda>_. range lessThan", OF I])
-  show "sigma_sets (space (Pi\<^sub>M I (\<lambda>i. lborel))) {Pi\<^sub>E I F |F. \<forall>i\<in>I. F i \<in> range lessThan} = ?G"
-    by (intro arg_cong2[where f=sigma_sets]) (auto simp: space_PiM image_iff bchoice_iff)
-qed (auto simp: borel_eq_lessThan eucl_lessThan reals_Archimedean2)
-
-lemma measurable_e2p[measurable]:
-  "e2p \<in> measurable (borel::'a::ordered_euclidean_space measure) (\<Pi>\<^sub>M (i::'a)\<in>Basis. (lborel :: real measure))"
-proof (rule measurable_sigma_sets[OF sets_product_borel])
-  fix A :: "('a \<Rightarrow> real) set" assume "A \<in> {\<Pi>\<^sub>E (i::'a)\<in>Basis. {..<x i} |x. True} "
-  then obtain x where  "A = (\<Pi>\<^sub>E (i::'a)\<in>Basis. {..<x i})" by auto
-  then have "e2p -` A = {y :: 'a. eucl_less y (\<Sum>i\<in>Basis. x i *\<^sub>R i)}"
-    using DIM_positive by (auto simp add: set_eq_iff e2p_def eucl_less_def)
-  then show "e2p -` A \<inter> space (borel::'a measure) \<in> sets borel" by simp
-qed (auto simp: e2p_def)
-
-(* FIXME: conversion in measurable prover *)
-lemma lborelD_Collect[measurable (raw)]: "{x\<in>space borel. P x} \<in> sets borel \<Longrightarrow> {x\<in>space lborel. P x} \<in> sets lborel" by simp
-lemma lborelD[measurable (raw)]: "A \<in> sets borel \<Longrightarrow> A \<in> sets lborel" by simp
-
-lemma measurable_p2e[measurable]:
-  "p2e \<in> measurable (\<Pi>\<^sub>M (i::'a)\<in>Basis. (lborel :: real measure))
-    (borel :: 'a::ordered_euclidean_space measure)"
-  (is "p2e \<in> measurable ?P _")
-proof (safe intro!: borel_measurable_iff_halfspace_le[THEN iffD2])
-  fix x and i :: 'a
-  let ?A = "{w \<in> space ?P. (p2e w :: 'a) \<bullet> i \<le> x}"
-  assume "i \<in> Basis"
-  then have "?A = (\<Pi>\<^sub>E j\<in>Basis. if i = j then {.. x} else UNIV)"
-    using DIM_positive by (auto simp: space_PiM p2e_def PiE_def split: split_if_asm)
-  then show "?A \<in> sets ?P"
-    by auto
-qed
-
-lemma lborel_eq_lborel_space:
-  "(lborel :: 'a measure) = distr (\<Pi>\<^sub>M (i::'a::ordered_euclidean_space)\<in>Basis. lborel) borel p2e"
-  (is "?B = ?D")
-proof (rule lborel_eqI)
-  show "sets ?D = sets borel" by simp
-  let ?P = "(\<Pi>\<^sub>M (i::'a)\<in>Basis. lborel)"
-  fix a b :: 'a
-  have *: "p2e -` {a .. b} \<inter> space ?P = (\<Pi>\<^sub>E i\<in>Basis. {a \<bullet> i .. b \<bullet> i})"
-    by (auto simp: eucl_le[where 'a='a] p2e_def space_PiM PiE_def Pi_iff)
-  have "emeasure ?P (p2e -` {a..b} \<inter> space ?P) = content {a..b}"
-  proof cases
-    assume "{a..b} \<noteq> {}"
-    then have "a \<le> b"
-      by (simp add: eucl_le[where 'a='a])
-    then have "emeasure lborel {a..b} = (\<Prod>x\<in>Basis. emeasure lborel {a \<bullet> x .. b \<bullet> x})"
-      by (auto simp: eucl_le[where 'a='a] content_closed_interval
-               intro!: setprod_ereal[symmetric])
-    also have "\<dots> = emeasure ?P (p2e -` {a..b} \<inter> space ?P)"
-      unfolding * by (subst lborel_space.measure_times) auto
-    finally show ?thesis by simp
-  qed simp
-  then show "emeasure ?D {a .. b} = content {a .. b}"
-    by (simp add: emeasure_distr measurable_p2e)
-qed
-
-lemma borel_fubini_positiv_integral:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> ereal"
-  assumes f: "f \<in> borel_measurable borel"
-  shows "integral\<^sup>N lborel f = \<integral>\<^sup>+x. f (p2e x) \<partial>(\<Pi>\<^sub>M (i::'a)\<in>Basis. lborel)"
-  by (subst lborel_eq_lborel_space) (simp add: nn_integral_distr measurable_p2e f)
-
-lemma borel_fubini_integrable:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> _::{banach, second_countable_topology}"
-  shows "integrable lborel f \<longleftrightarrow> integrable (\<Pi>\<^sub>M (i::'a)\<in>Basis. lborel) (\<lambda>x. f (p2e x))"
-  unfolding integrable_iff_bounded
-proof (intro conj_cong[symmetric])
-  show "((\<lambda>x. f (p2e x)) \<in> borel_measurable (Pi\<^sub>M Basis (\<lambda>i. lborel))) = (f \<in> borel_measurable lborel)"
-  proof
-    assume "((\<lambda>x. f (p2e x)) \<in> borel_measurable (Pi\<^sub>M Basis (\<lambda>i. lborel)))"
-    then have "(\<lambda>x. f (p2e (e2p x))) \<in> borel_measurable borel"
-      by measurable
-    then show "f \<in> borel_measurable lborel"
-      by simp
-  qed simp
-qed (simp add: borel_fubini_positiv_integral)
-
-lemma borel_fubini:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> _::{banach, second_countable_topology}"
-  shows "f \<in> borel_measurable borel \<Longrightarrow>
-    integral\<^sup>L lborel f = \<integral>x. f (p2e x) \<partial>((\<Pi>\<^sub>M (i::'a)\<in>Basis. lborel))"
-  by (subst lborel_eq_lborel_space) (simp add: integral_distr)
-
-lemma integrable_on_borel_integrable:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
-  shows "f \<in> borel_measurable borel \<Longrightarrow> (\<And>x. 0 \<le> f x) \<Longrightarrow> f integrable_on UNIV \<Longrightarrow> integrable lborel f"
-  by (metis borel_measurable_lebesgueI integrable_has_integral_nonneg integrable_on_def
-            lebesgue_integral_eq_borel(1))
+end
 
 subsection {* Fundamental Theorem of Calculus for the Lebesgue integral *}
 
@@ -1060,14 +1040,14 @@ proof -
   then have "emeasure lborel A \<le> emeasure lborel (cbox a b)"
     by (intro emeasure_mono) auto
   then show ?thesis
-    by auto
+    by (auto simp: emeasure_lborel_cbox_eq)
 qed
 
 lemma emeasure_compact_finite: "compact A \<Longrightarrow> emeasure lborel A < \<infinity>"
   using emeasure_bounded_finite[of A] by (auto intro: compact_imp_bounded)
 
 lemma borel_integrable_compact:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes "compact S" "continuous_on S f"
   shows "integrable lborel (\<lambda>x. indicator S x *\<^sub>R f x)"
 proof cases
@@ -1103,34 +1083,6 @@ proof -
     by (auto simp: mult_commute)
 qed
 
-lemma has_field_derivative_subset:
-  "(f has_field_derivative y) (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_field_derivative y) (at x within t)"
-  unfolding has_field_derivative_def by (rule has_derivative_subset)
-
-lemma integral_FTC_atLeastAtMost:
-  fixes a b :: real
-  assumes "a \<le> b"
-    and F: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> DERIV F x :> f x"
-    and f: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> isCont f x"
-  shows "integral\<^sup>L lborel (\<lambda>x. f x * indicator {a .. b} x) = F b - F a"
-proof -
-  let ?f = "\<lambda>x. f x * indicator {a .. b} x"
-  have "(?f has_integral (\<integral>x. ?f x \<partial>lborel)) UNIV"
-    using borel_integrable_atLeastAtMost[OF f]
-    by (rule has_integral_lebesgue_integral)
-  moreover
-  have "(f has_integral F b - F a) {a .. b}"
-    by (intro fundamental_theorem_of_calculus)
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric]
-             intro: has_field_derivative_subset[OF F] assms(1))
-  then have "(?f has_integral F b - F a) {a .. b}"
-    by (subst has_integral_eq_eq[where g=f]) auto
-  then have "(?f has_integral F b - F a) UNIV"
-    by (intro has_integral_on_superset[where t=UNIV and s="{a..b}"]) auto
-  ultimately show "integral\<^sup>L lborel ?f = F b - F a"
-    by (rule has_integral_unique)
-qed
-
 text {*
 
 For the positive integral we replace continuity with Borel-measurability. 
@@ -1139,37 +1091,76 @@ For the positive integral we replace continuity with Borel-measurability.
 
 lemma
   fixes f :: "real \<Rightarrow> real"
-  assumes f_borel: "f \<in> borel_measurable borel"
+  assumes [measurable]: "f \<in> borel_measurable borel"
   assumes f: "\<And>x. x \<in> {a..b} \<Longrightarrow> DERIV F x :> f x" "\<And>x. x \<in> {a..b} \<Longrightarrow> 0 \<le> f x" and "a \<le> b"
-  shows integral_FTC_Icc_nonneg: "(\<integral>x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a" (is ?eq)
+  shows nn_integral_FTC_Icc: "(\<integral>\<^sup>+x. ereal (f x) * indicator {a .. b} x \<partial>lborel) = F b - F a" (is ?nn)
+    and has_bochner_integral_FTC_Icc_nonneg:
+      "has_bochner_integral lborel (\<lambda>x. f x * indicator {a .. b} x) (F b - F a)" (is ?has)
+    and integral_FTC_Icc_nonneg: "(\<integral>x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a" (is ?eq)
     and integrable_FTC_Icc_nonneg: "integrable lborel (\<lambda>x. f x * indicator {a .. b} x)" (is ?int)
 proof -
-  have i: "(f has_integral F b - F a) {a..b}"
+  have *: "(\<lambda>x. f x * indicator {a..b} x) \<in> borel_measurable borel" "\<And>x. 0 \<le> f x * indicator {a..b} x"
+    using f(2) by (auto split: split_indicator)
+    
+  have "(f has_integral F b - F a) {a..b}"
     by (intro fundamental_theorem_of_calculus)
        (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric]
              intro: has_field_derivative_subset[OF f(1)] `a \<le> b`)
-  have i: "((\<lambda>x. f x * indicator {a..b} x) has_integral F b - F a) {a..b}"
-    by (rule has_integral_eq[OF _ i]) auto
-  have i: "((\<lambda>x. f x * indicator {a..b} x) has_integral F b - F a) UNIV"
-    by (rule has_integral_on_superset[OF _ _ i]) auto
-  from i f f_borel show ?eq
-    by (intro integral_has_integral_nonneg) (auto split: split_indicator)
-  from i f f_borel show ?int
-    by (intro integrable_has_integral_nonneg) (auto split: split_indicator)
+  then have i: "((\<lambda>x. f x * indicator {a .. b} x) has_integral F b - F a) UNIV"
+    unfolding indicator_def if_distrib[where f="\<lambda>x. a * x" for a]
+    by (simp cong del: if_cong del: atLeastAtMost_iff)
+  then have nn: "(\<integral>\<^sup>+x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a"
+    by (rule nn_integral_has_integral_lborel[OF *])
+  then show ?has
+    by (rule has_bochner_integral_nn_integral[rotated 2]) (simp_all add: *)
+  then show ?eq ?int
+    unfolding has_bochner_integral_iff by auto
+  from nn show ?nn
+    by (simp add: ereal_mult_indicator)
 qed
 
-lemma nn_integral_FTC_atLeastAtMost:
-  assumes "f \<in> borel_measurable borel" "\<And>x. x \<in> {a..b} \<Longrightarrow> DERIV F x :> f x" "\<And>x. x \<in> {a..b} \<Longrightarrow> 0 \<le> f x" "a \<le> b"
-  shows "(\<integral>\<^sup>+x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a"
+lemma
+  fixes f :: "real \<Rightarrow> 'a :: euclidean_space"
+  assumes "a \<le> b"
+  assumes "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> (F has_vector_derivative f x) (at x within {a .. b})"
+  assumes cont: "continuous_on {a .. b} f"
+  shows has_bochner_integral_FTC_Icc:
+      "has_bochner_integral lborel (\<lambda>x. indicator {a .. b} x *\<^sub>R f x) (F b - F a)" (is ?has)
+    and integral_FTC_Icc: "(\<integral>x. indicator {a .. b} x *\<^sub>R f x \<partial>lborel) = F b - F a" (is ?eq)
 proof -
-  have "integrable lborel (\<lambda>x. f x * indicator {a .. b} x)"
-    by (rule integrable_FTC_Icc_nonneg) fact+
-  then have "(\<integral>\<^sup>+x. f x * indicator {a .. b} x \<partial>lborel) = (\<integral>x. f x * indicator {a .. b} x \<partial>lborel)"
-    using assms by (intro nn_integral_eq_integral) (auto simp: indicator_def)
-  also have "(\<integral>x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a"
-    by (rule integral_FTC_Icc_nonneg) fact+
-  finally show ?thesis
-    unfolding ereal_indicator[symmetric] by simp
+  let ?f = "\<lambda>x. indicator {a .. b} x *\<^sub>R f x"
+  have int: "integrable lborel ?f"
+    using borel_integrable_compact[OF _ cont] by auto
+  have "(f has_integral F b - F a) {a..b}"
+    using assms(1,2) by (intro fundamental_theorem_of_calculus) auto
+  moreover 
+  have "(f has_integral integral\<^sup>L lborel ?f) {a..b}"
+    using has_integral_integral_lborel[OF int]
+    unfolding indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a]
+    by (simp cong del: if_cong del: atLeastAtMost_iff)
+  ultimately show ?eq
+    by (auto dest: has_integral_unique)
+  then show ?has
+    using int by (auto simp: has_bochner_integral_iff)
+qed
+
+lemma
+  fixes f :: "real \<Rightarrow> real"
+  assumes "a \<le> b"
+  assumes deriv: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> DERIV F x :> f x"
+  assumes cont: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> isCont f x"
+  shows has_bochner_integral_FTC_Icc_real:
+      "has_bochner_integral lborel (\<lambda>x. f x * indicator {a .. b} x) (F b - F a)" (is ?has)
+    and integral_FTC_Icc_real: "(\<integral>x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a" (is ?eq)
+proof -
+  have 1: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> (F has_vector_derivative f x) (at x within {a .. b})"
+    unfolding has_field_derivative_iff_has_vector_derivative[symmetric]
+    using deriv by (auto intro: DERIV_subset)
+  have 2: "continuous_on {a .. b} f"
+    using cont by (intro continuous_at_imp_continuous_on) auto
+  show ?has ?eq
+    using has_bochner_integral_FTC_Icc[OF `a \<le> b` 1 2] integral_FTC_Icc[OF `a \<le> b` 1 2]
+    by (auto simp: mult_commute)
 qed
 
 lemma nn_integral_FTC_atLeast:
@@ -1206,7 +1197,7 @@ proof -
       using nonneg by (auto split: split_indicator)
   qed
   also have "\<dots> = (SUP i::nat. ereal (F (a + real i) - F a))"
-    by (subst nn_integral_FTC_atLeastAtMost[OF f_borel f nonneg]) auto
+    by (subst nn_integral_FTC_Icc[OF f_borel f nonneg]) auto
   also have "\<dots> = T - F a"
   proof (rule SUP_Lim_ereal)
     show "incseq (\<lambda>n. ereal (F (a + real n) - F a))"
@@ -1227,6 +1218,13 @@ proof -
   qed
   finally show ?thesis .
 qed
+
+lemma integral_power:
+  "a \<le> b \<Longrightarrow> (\<integral>x. x^k * indicator {a..b} x \<partial>lborel) = (b^Suc k - a^Suc k) / Suc k"
+proof (subst integral_FTC_Icc_real)
+  fix x show "DERIV (\<lambda>x. x^Suc k / Suc k) x :> x^k"
+    by (intro derivative_eq_intros) auto
+qed (auto simp: field_simps)
 
 subsection {* Integration by parts *}
 
@@ -1251,7 +1249,7 @@ lemma integral_by_parts:
             =  F b * G b - F a * G a - \<integral>x. (f x * G x) * indicator {a .. b} x \<partial>lborel" 
 proof-
   have 0: "(\<integral>x. (F x * g x + f x * G x) * indicator {a .. b} x \<partial>lborel) = F b * G b - F a * G a"
-    by (rule integral_FTC_atLeastAtMost, auto intro!: derivative_eq_intros continuous_intros) 
+    by (rule integral_FTC_Icc_real, auto intro!: derivative_eq_intros continuous_intros) 
       (auto intro!: DERIV_isCont)
 
   have "(\<integral>x. (F x * g x + f x * G x) * indicator {a .. b} x \<partial>lborel) =
@@ -1273,12 +1271,6 @@ lemma integral_by_parts':
   shows "(\<integral>x. indicator {a .. b} x *\<^sub>R (F x * g x) \<partial>lborel)
             =  F b * G b - F a * G a - \<integral>x. indicator {a .. b} x *\<^sub>R (f x * G x) \<partial>lborel" 
   using integral_by_parts[OF assms] by (simp add: mult_ac)
-
-lemma AE_borel_affine: 
-  fixes P :: "real \<Rightarrow> bool"
-  shows "c \<noteq> 0 \<Longrightarrow> Measurable.pred borel P \<Longrightarrow> AE x in lborel. P x \<Longrightarrow> AE x in lborel. P (t + c * x)"
-  by (subst lborel_real_affine[where t="- t / c" and c="1 / c"])
-     (simp_all add: AE_density AE_distr_iff field_simps)
 
 lemma has_bochner_integral_even_function:
   fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
@@ -1324,3 +1316,4 @@ proof -
 qed
 
 end
+

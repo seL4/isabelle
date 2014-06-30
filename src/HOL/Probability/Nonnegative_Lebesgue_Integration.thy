@@ -1187,6 +1187,32 @@ proof cases
   qed simp
 qed simp
 
+lemma nn_integral_bound_simple_function:
+  assumes bnd: "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> f x" "\<And>x. x \<in> space M \<Longrightarrow> f x < \<infinity>"
+  assumes f[measurable]: "simple_function M f"
+  assumes supp: "emeasure M {x\<in>space M. f x \<noteq> 0} < \<infinity>"
+  shows "nn_integral M f < \<infinity>"
+proof cases
+  assume "space M = {}"
+  then have "nn_integral M f = (\<integral>\<^sup>+x. 0 \<partial>M)"
+    by (intro nn_integral_cong) auto
+  then show ?thesis by simp
+next
+  assume "space M \<noteq> {}"
+  with simple_functionD(1)[OF f] bnd have bnd: "0 \<le> Max (f`space M) \<and> Max (f`space M) < \<infinity>"
+    by (subst Max_less_iff) (auto simp: Max_ge_iff)
+  
+  have "nn_integral M f \<le> (\<integral>\<^sup>+x. Max (f`space M) * indicator {x\<in>space M. f x \<noteq> 0} x \<partial>M)"
+  proof (rule nn_integral_mono)
+    fix x assume "x \<in> space M"
+    with f show "f x \<le> Max (f ` space M) * indicator {x \<in> space M. f x \<noteq> 0} x"
+      by (auto split: split_indicator intro!: Max_ge simple_functionD)
+  qed
+  also have "\<dots> < \<infinity>"
+    using bnd supp by (subst nn_integral_cmult) auto
+  finally show ?thesis .
+qed
+
 lemma nn_integral_Markov_inequality:
   assumes u: "u \<in> borel_measurable M" "AE x in M. 0 \<le> u x" and "A \<in> sets M" and c: "0 \<le> c"
   shows "(emeasure M) ({x\<in>space M. 1 \<le> c * u x} \<inter> A) \<le> c * (\<integral>\<^sup>+ x. u x * indicator A x \<partial>M)"

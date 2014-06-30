@@ -998,4 +998,77 @@ proof -
     by (intro exI[of _ \<mu>']) (auto intro: generated_ringI_Basic)
 qed
 
+lemma extend_measure_caratheodory:
+  fixes G :: "'i \<Rightarrow> 'a set"
+  assumes M: "M = extend_measure \<Omega> I G \<mu>"
+  assumes "i \<in> I"
+  assumes "semiring_of_sets \<Omega> (G ` I)"
+  assumes empty: "\<And>i. i \<in> I \<Longrightarrow> G i = {} \<Longrightarrow> \<mu> i = 0"
+  assumes inj: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> G i = G j \<Longrightarrow> \<mu> i = \<mu> j"
+  assumes nonneg: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> \<mu> i"
+  assumes add: "\<And>A::nat \<Rightarrow> 'i. \<And>j. A \<in> UNIV \<rightarrow> I \<Longrightarrow> j \<in> I \<Longrightarrow> disjoint_family (G \<circ> A) \<Longrightarrow>
+    (\<Union>i. G (A i)) = G j \<Longrightarrow> (\<Sum>n. \<mu> (A n)) = \<mu> j"
+  shows "emeasure M (G i) = \<mu> i"
+proof -
+  interpret semiring_of_sets \<Omega> "G ` I"
+    by fact
+  have "\<forall>g\<in>G`I. \<exists>i\<in>I. g = G i"
+    by auto
+  then obtain sel where sel: "\<And>g. g \<in> G ` I \<Longrightarrow> sel g \<in> I" "\<And>g. g \<in> G ` I \<Longrightarrow> G (sel g) = g"
+    by metis
+
+  have "\<exists>\<mu>'. (\<forall>s\<in>G ` I. \<mu>' s = \<mu> (sel s)) \<and> measure_space \<Omega> (sigma_sets \<Omega> (G ` I)) \<mu>'"
+  proof (rule caratheodory)
+    show "positive (G ` I) (\<lambda>s. \<mu> (sel s))"
+      by (auto simp: positive_def intro!: empty sel nonneg)
+    show "countably_additive (G ` I) (\<lambda>s. \<mu> (sel s))"
+    proof (rule countably_additiveI)
+      fix A :: "nat \<Rightarrow> 'a set" assume "range A \<subseteq> G ` I" "disjoint_family A" "(\<Union>i. A i) \<in> G ` I"
+      then show "(\<Sum>i. \<mu> (sel (A i))) = \<mu> (sel (\<Union>i. A i))"
+        by (intro add) (auto simp: sel image_subset_iff_funcset comp_def Pi_iff intro!: sel)
+    qed
+  qed
+  then obtain \<mu>' where \<mu>': "\<forall>s\<in>G ` I. \<mu>' s = \<mu> (sel s)" "measure_space \<Omega> (sigma_sets \<Omega> (G ` I)) \<mu>'"
+    by metis
+
+  show ?thesis
+  proof (rule emeasure_extend_measure[OF M])
+    { fix i assume "i \<in> I" then show "\<mu>' (G i) = \<mu> i"
+      using \<mu>' by (auto intro!: inj sel) }
+    show "G ` I \<subseteq> Pow \<Omega>"
+      by fact
+    then show "positive (sets M) \<mu>'" "countably_additive (sets M) \<mu>'"
+      using \<mu>' by (simp_all add: M sets_extend_measure measure_space_def)
+  qed fact
+qed
+  
+lemma extend_measure_caratheodory_pair:
+  fixes G :: "'i \<Rightarrow> 'j \<Rightarrow> 'a set"
+  assumes M: "M = extend_measure \<Omega> {(a, b). P a b} (\<lambda>(a, b). G a b) (\<lambda>(a, b). \<mu> a b)"
+  assumes "P i j"
+  assumes semiring: "semiring_of_sets \<Omega> {G a b | a b. P a b}"
+  assumes empty: "\<And>i j. P i j \<Longrightarrow> G i j = {} \<Longrightarrow> \<mu> i j = 0"
+  assumes inj: "\<And>i j k l. P i j \<Longrightarrow> P k l \<Longrightarrow> G i j = G k l \<Longrightarrow> \<mu> i j = \<mu> k l"
+  assumes nonneg: "\<And>i j. P i j \<Longrightarrow> 0 \<le> \<mu> i j"
+  assumes add: "\<And>A::nat \<Rightarrow> 'i. \<And>B::nat \<Rightarrow> 'j. \<And>j k.
+    (\<And>n. P (A n) (B n)) \<Longrightarrow> P j k \<Longrightarrow> disjoint_family (\<lambda>n. G (A n) (B n)) \<Longrightarrow>
+    (\<Union>i. G (A i) (B i)) = G j k \<Longrightarrow> (\<Sum>n. \<mu> (A n) (B n)) = \<mu> j k"
+  shows "emeasure M (G i j) = \<mu> i j"
+proof -
+  have "emeasure M ((\<lambda>(a, b). G a b) (i, j)) = (\<lambda>(a, b). \<mu> a b) (i, j)"
+  proof (rule extend_measure_caratheodory[OF M])
+    show "semiring_of_sets \<Omega> ((\<lambda>(a, b). G a b) ` {(a, b). P a b})"
+      using semiring by (simp add: image_def conj_commute)
+  next
+    fix A :: "nat \<Rightarrow> ('i \<times> 'j)" and j assume "A \<in> UNIV \<rightarrow> {(a, b). P a b}" "j \<in> {(a, b). P a b}"
+      "disjoint_family ((\<lambda>(a, b). G a b) \<circ> A)"
+      "(\<Union>i. case A i of (a, b) \<Rightarrow> G a b) = (case j of (a, b) \<Rightarrow> G a b)"
+    then show "(\<Sum>n. case A n of (a, b) \<Rightarrow> \<mu> a b) = (case j of (a, b) \<Rightarrow> \<mu> a b)"
+      using add[of "\<lambda>i. fst (A i)" "\<lambda>i. snd (A i)" "fst j" "snd j"]
+      by (simp add: split_beta' comp_def Pi_iff)
+  qed (auto split: prod.splits intro: assms)
+  then show ?thesis by simp
+qed
+
+
 end

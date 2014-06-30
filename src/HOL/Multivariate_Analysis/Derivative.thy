@@ -1926,6 +1926,10 @@ lemma has_field_derivative_iff_has_vector_derivative:
   "(f has_field_derivative y) F \<longleftrightarrow> (f has_vector_derivative y) F"
   unfolding has_vector_derivative_def has_field_derivative_def real_scaleR_def mult_commute_abs ..
 
+lemma has_field_derivative_subset:
+  "(f has_field_derivative y) (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_field_derivative y) (at x within t)"
+  unfolding has_field_derivative_def by (rule has_derivative_subset)
+
 lemma has_vector_derivative_const[simp, derivative_intros]: "((\<lambda>x. c) has_vector_derivative 0) net"
   by (auto simp: has_vector_derivative_def)
 

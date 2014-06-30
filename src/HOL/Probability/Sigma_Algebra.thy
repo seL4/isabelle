@@ -796,6 +796,9 @@ abbreviation
 lemma range_subsetD: "range f \<subseteq> B \<Longrightarrow> f i \<in> B"
   by blast
 
+lemma disjoint_family_onD: "disjoint_family_on A I \<Longrightarrow> i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> i \<noteq> j \<Longrightarrow> A i \<inter> A j = {}"
+  by (auto simp: disjoint_family_on_def)
+
 lemma Int_Diff_disjoint: "A \<inter> B \<inter> (A - B) = {}"
   by blast
 

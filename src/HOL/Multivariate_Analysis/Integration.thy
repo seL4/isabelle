@@ -216,9 +216,6 @@ qed
 
 subsection {* Some useful lemmas about intervals. *}
 
-abbreviation One :: "'a::euclidean_space"
-  where "One \<equiv> \<Sum>Basis"
-
 lemma empty_as_interval: "{} = cbox One (0::'a::euclidean_space)"
   using nonempty_Basis
   by (fastforce simp add: set_eq_iff mem_box)
@@ -2708,6 +2705,15 @@ proof -
     qed
   qed
 qed
+
+lemma has_integral_scaleR_left: 
+  "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x *\<^sub>R c) has_integral (y *\<^sub>R c)) s"
+  using has_integral_linear[OF _ bounded_linear_scaleR_left] by (simp add: comp_def)
+
+lemma has_integral_mult_left:
+  fixes c :: "_ :: {real_normed_algebra}"
+  shows "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) s"
+  using has_integral_linear[OF _ bounded_linear_mult_left] by (simp add: comp_def)
 
 lemma has_integral_cmul: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) s"
   unfolding o_def[symmetric]
@@ -10961,6 +10967,30 @@ proof -
     done
 qed
 
+lemma has_integral_monotone_convergence_increasing:
+  fixes f :: "nat \<Rightarrow> 'a::euclidean_space \<Rightarrow> real"
+  assumes f: "\<And>k. (f k has_integral x k) s"
+  assumes "\<And>k x. x \<in> s \<Longrightarrow> f k x \<le> f (Suc k) x"
+  assumes "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>k. f k x) ----> g x"
+  assumes "x ----> x'"
+  shows "(g has_integral x') s"
+proof -
+  have x_eq: "x = (\<lambda>i. integral s (f i))"
+    by (simp add: integral_unique[OF f])
+  then have x: "{integral s (f k) |k. True} = range x"
+    by auto
+
+  have "g integrable_on s \<and> (\<lambda>k. integral s (f k)) ----> integral s g"
+  proof (intro monotone_convergence_increasing allI ballI assms)
+    show "bounded {integral s (f k) |k. True}"
+      unfolding x by (rule convergent_imp_bounded) fact
+  qed (auto intro: f)
+  moreover then have "integral s g = x'"
+    by (intro LIMSEQ_unique[OF _ `x ----> x'`]) (simp add: x_eq)
+  ultimately show ?thesis
+    by (simp add: has_integral_integral)
+qed
+
 lemma monotone_convergence_decreasing:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<forall>k. (f k) integrable_on s"
@@ -12383,6 +12413,8 @@ qed auto
 
 subsection {* Dominated convergence *}
 
+(* GENERALIZE the following theorems *)
+
 lemma dominated_convergence:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<And>k. (f k) integrable_on s" "h integrable_on s"
@@ -12655,6 +12687,28 @@ proof -
       qed (insert n, auto)
     qed
   qed
+qed
+
+lemma has_integral_dominated_convergence:
+  fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
+  assumes "\<And>k. (f k has_integral y k) s" "h integrable_on s"
+    "\<And>k. \<forall>x\<in>s. norm (f k x) \<le> h x" "\<forall>x\<in>s. (\<lambda>k. f k x) ----> g x"
+    and x: "y ----> x"
+  shows "(g has_integral x) s"
+proof -
+  have int_f: "\<And>k. (f k) integrable_on s"
+    using assms by (auto simp: integrable_on_def)
+  have "(g has_integral (integral s g)) s"
+    by (intro integrable_integral dominated_convergence[OF int_f assms(2)]) fact+
+  moreover have "integral s g = x"
+  proof (rule LIMSEQ_unique)
+    show "(\<lambda>i. integral s (f i)) ----> x"
+      using integral_unique[OF assms(1)] x by simp
+    show "(\<lambda>i. integral s (f i)) ----> integral s g"
+      by (intro dominated_convergence[OF int_f assms(2)]) fact+
+  qed
+  ultimately show ?thesis
+    by simp
 qed
 
 end

@@ -439,6 +439,27 @@ lemma convergent_ereal:
   using tendsto_iff_Liminf_eq_Limsup[of sequentially]
   by (auto simp: convergent_def)
 
+lemma limsup_le_liminf_real:
+  fixes X :: "nat \<Rightarrow> real" and L :: real
+  assumes 1: "limsup X \<le> L" and 2: "L \<le> liminf X"
+  shows "X ----> L"
+proof -
+  from 1 2 have "limsup X \<le> liminf X" by auto
+  hence 3: "limsup X = liminf X"  
+    apply (subst eq_iff, rule conjI)
+    by (rule Liminf_le_Limsup, auto)
+  hence 4: "convergent (\<lambda>n. ereal (X n))"
+    by (subst convergent_ereal)
+  hence "limsup X = lim (\<lambda>n. ereal(X n))"
+    by (rule convergent_limsup_cl)
+  also from 1 2 3 have "limsup X = L" by auto
+  finally have "lim (\<lambda>n. ereal(X n)) = L" ..
+  hence "(\<lambda>n. ereal (X n)) ----> L"
+    apply (elim subst)
+    by (subst convergent_LIMSEQ_iff [symmetric], rule 4) 
+  thus ?thesis by simp
+qed
+
 lemma liminf_PInfty:
   fixes X :: "nat \<Rightarrow> ereal"
   shows "X ----> \<infinity> \<longleftrightarrow> liminf X = \<infinity>"
@@ -572,38 +593,52 @@ proof -
     unfolding continuous_at_open by blast
 qed
 
+lemma nhds_ereal: "nhds (ereal r) = filtermap ereal (nhds r)"
+  by (simp add: filtermap_nhds_open_map open_ereal continuous_at_of_ereal)
+
+lemma at_ereal: "at (ereal r) = filtermap ereal (at r)"
+  by (simp add: filter_eq_iff eventually_at_filter nhds_ereal eventually_filtermap)
+
+lemma at_left_ereal: "at_left (ereal r) = filtermap ereal (at_left r)"
+  by (simp add: filter_eq_iff eventually_at_filter nhds_ereal eventually_filtermap)
+
+lemma at_right_ereal: "at_right (ereal r) = filtermap ereal (at_right r)"
+  by (simp add: filter_eq_iff eventually_at_filter nhds_ereal eventually_filtermap)
+
+lemma
+  shows at_left_PInf: "at_left \<infinity> = filtermap ereal at_top"
+    and at_right_MInf: "at_right (-\<infinity>) = filtermap ereal at_bot"
+  unfolding filter_eq_iff eventually_filtermap eventually_at_top_dense eventually_at_bot_dense
+    eventually_at_left[OF ereal_less(5)] eventually_at_right[OF ereal_less(6)]
+  by (auto simp add: ereal_all_split ereal_ex_split)
+
+lemma ereal_tendsto_simps1:
+  "((f \<circ> real) ---> y) (at_left (ereal x)) \<longleftrightarrow> (f ---> y) (at_left x)"
+  "((f \<circ> real) ---> y) (at_right (ereal x)) \<longleftrightarrow> (f ---> y) (at_right x)"
+  "((f \<circ> real) ---> y) (at_left (\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_top"
+  "((f \<circ> real) ---> y) (at_right (-\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_bot"
+  unfolding tendsto_compose_filtermap at_left_ereal at_right_ereal at_left_PInf at_right_MInf
+  by (auto simp: filtermap_filtermap filtermap_ident)
+
+lemma ereal_tendsto_simps2:
+  "((ereal \<circ> f) ---> ereal a) F \<longleftrightarrow> (f ---> a) F"
+  "((ereal \<circ> f) ---> \<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_top)"
+  "((ereal \<circ> f) ---> -\<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_bot)"
+  unfolding tendsto_PInfty filterlim_at_top_dense tendsto_MInfty filterlim_at_bot_dense
+  using lim_ereal by (simp_all add: comp_def)
+
+lemmas ereal_tendsto_simps = ereal_tendsto_simps1 ereal_tendsto_simps2
+
 lemma continuous_at_iff_ereal:
   fixes f :: "'a::t2_space \<Rightarrow> real"
-  shows "continuous (at x0) f \<longleftrightarrow> continuous (at x0) (ereal \<circ> f)"
-proof -
-  {
-    assume "continuous (at x0) f"
-    then have "continuous (at x0) (ereal \<circ> f)"
-      using continuous_at_ereal continuous_at_compose[of x0 f ereal]
-      by auto
-  }
-  moreover
-  {
-    assume "continuous (at x0) (ereal \<circ> f)"
-    then have "continuous (at x0) (real \<circ> (ereal \<circ> f))"
-      using continuous_at_of_ereal
-      by (intro continuous_at_compose[of x0 "ereal \<circ> f"]) auto
-    moreover have "real \<circ> (ereal \<circ> f) = f"
-      using real_ereal_id by (simp add: o_assoc)
-    ultimately have "continuous (at x0) f"
-      by auto
-  }
-  ultimately show ?thesis
-    by auto
-qed
-
+  shows "continuous (at x0 within s) f \<longleftrightarrow> continuous (at x0 within s) (ereal \<circ> f)"
+  unfolding continuous_within comp_def lim_ereal ..
 
 lemma continuous_on_iff_ereal:
   fixes f :: "'a::t2_space => real"
   assumes "open A"
   shows "continuous_on A f \<longleftrightarrow> continuous_on A (ereal \<circ> f)"
-  using continuous_at_iff_ereal assms
-  by (auto simp add: continuous_on_eq_continuous_at cong del: continuous_on_cong)
+  unfolding continuous_on_def comp_def lim_ereal ..
 
 lemma continuous_on_real: "continuous_on (UNIV - {\<infinity>, -\<infinity>::ereal}) real"
   using continuous_at_of_ereal continuous_on_eq_continuous_at open_image_ereal
@@ -611,7 +646,7 @@ lemma continuous_on_real: "continuous_on (UNIV - {\<infinity>, -\<infinity>::ere
 
 lemma continuous_on_iff_real:
   fixes f :: "'a::t2_space \<Rightarrow> ereal"
-  assumes "\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
+  assumes *: "\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
   shows "continuous_on A f \<longleftrightarrow> continuous_on A (real \<circ> f)"
 proof -
   have "f ` A \<subseteq> UNIV - {\<infinity>, -\<infinity>}"

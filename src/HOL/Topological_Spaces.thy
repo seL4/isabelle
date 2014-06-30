@@ -102,6 +102,42 @@ lemma open_Compl [continuous_intros, intro]: "closed S \<Longrightarrow> open (-
 lemma closed_Compl [continuous_intros, intro]: "open S \<Longrightarrow> closed (- S)"
   unfolding open_closed .
 
+lemma open_Collect_neg: "closed {x. P x} \<Longrightarrow> open {x. \<not> P x}"
+  unfolding Collect_neg_eq by (rule open_Compl)
+
+lemma open_Collect_conj: assumes "open {x. P x}" "open {x. Q x}" shows "open {x. P x \<and> Q x}"
+  using open_Int[OF assms] by (simp add: Int_def)
+
+lemma open_Collect_disj: assumes "open {x. P x}" "open {x. Q x}" shows "open {x. P x \<or> Q x}"
+  using open_Un[OF assms] by (simp add: Un_def)
+
+lemma open_Collect_ex: "(\<And>i. open {x. P i x}) \<Longrightarrow> open {x. \<exists>i. P i x}"
+  using open_UN[of UNIV "\<lambda>i. {x. P i x}"] unfolding Collect_ex_eq by simp 
+
+lemma open_Collect_imp: "closed {x. P x} \<Longrightarrow> open {x. Q x} \<Longrightarrow> open {x. P x \<longrightarrow> Q x}"
+  unfolding imp_conv_disj by (intro open_Collect_disj open_Collect_neg)
+
+lemma open_Collect_const: "open {x. P}"
+  by (cases P) auto
+
+lemma closed_Collect_neg: "open {x. P x} \<Longrightarrow> closed {x. \<not> P x}"
+  unfolding Collect_neg_eq by (rule closed_Compl)
+
+lemma closed_Collect_conj: assumes "closed {x. P x}" "closed {x. Q x}" shows "closed {x. P x \<and> Q x}"
+  using closed_Int[OF assms] by (simp add: Int_def)
+
+lemma closed_Collect_disj: assumes "closed {x. P x}" "closed {x. Q x}" shows "closed {x. P x \<or> Q x}"
+  using closed_Un[OF assms] by (simp add: Un_def)
+
+lemma closed_Collect_all: "(\<And>i. closed {x. P i x}) \<Longrightarrow> closed {x. \<forall>i. P i x}"
+  using closed_INT[of UNIV "\<lambda>i. {x. P i x}"] unfolding Collect_all_eq by simp 
+
+lemma closed_Collect_imp: "open {x. P x} \<Longrightarrow> closed {x. Q x} \<Longrightarrow> closed {x. P x \<longrightarrow> Q x}"
+  unfolding imp_conv_disj by (intro closed_Collect_disj closed_Collect_neg)
+
+lemma closed_Collect_const: "closed {x. P}"
+  by (cases P) auto
+
 end
 
 subsection{* Hausdorff and other separation properties *}
@@ -373,6 +409,12 @@ lemma eventually_elim2:
   assumes "\<And>i. P i \<Longrightarrow> Q i \<Longrightarrow> R i"
   shows "eventually (\<lambda>i. R i) F"
   using assms by (auto elim!: eventually_rev_mp)
+
+lemma not_eventually_impI: "eventually P F \<Longrightarrow> \<not> eventually Q F \<Longrightarrow> \<not> eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
+  by (auto intro: eventually_mp)
+
+lemma not_eventuallyD: "\<not> eventually P F \<Longrightarrow> \<exists>x. \<not> P x"
+  by (metis always_eventually)
 
 lemma eventually_subst:
   assumes "eventually (\<lambda>n. P n = Q n) F"
@@ -965,6 +1007,16 @@ lemma filterlim_mono_eventually:
   apply fact
   done
 
+lemma filtermap_mono_strong: "inj f \<Longrightarrow> filtermap f F \<le> filtermap f G \<longleftrightarrow> F \<le> G"
+  apply (auto intro!: filtermap_mono) []
+  apply (auto simp: le_filter_def eventually_filtermap)
+  apply (erule_tac x="\<lambda>x. P (inv f x)" in allE)
+  apply auto
+  done
+
+lemma filtermap_eq_strong: "inj f \<Longrightarrow> filtermap f F = filtermap f G \<longleftrightarrow> F = G"
+  by (simp add: filtermap_mono_strong eq_iff)
+
 lemma filterlim_principal:
   "(LIM x F. f x :> principal S) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> S) F)"
   unfolding filterlim_def eventually_filtermap le_principal ..
@@ -983,6 +1035,13 @@ lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambd
 lemma filterlim_sup:
   "filterlim f F F1 \<Longrightarrow> filterlim f F F2 \<Longrightarrow> filterlim f F (sup F1 F2)"
   unfolding filterlim_def filtermap_sup by auto
+
+lemma eventually_sequentially_Suc: "eventually (\<lambda>i. P (Suc i)) sequentially \<longleftrightarrow> eventually P sequentially"
+  unfolding eventually_sequentially by (metis Suc_le_D Suc_le_mono le_Suc_eq)
+
+lemma filterlim_sequentially_Suc:
+  "(LIM x sequentially. f (Suc x) :> F) \<longleftrightarrow> (LIM x sequentially. f x :> F)"
+  unfolding filterlim_iff by (subst eventually_sequentially_Suc) simp
 
 lemma filterlim_Suc: "filterlim Suc sequentially sequentially"
   by (simp add: filterlim_iff eventually_sequentially) (metis le_Suc_eq)
@@ -1259,6 +1318,23 @@ lemma filterlim_at_bot:
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x \<le> Z) F)"
   by (auto simp: filterlim_iff eventually_at_bot_linorder elim!: eventually_elim1)
 
+lemma filterlim_at_bot_dense:
+  fixes f :: "'a \<Rightarrow> ('b::{dense_linorder, no_bot})"
+  shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x < Z) F)"
+proof (auto simp add: filterlim_at_bot[of f F])
+  fix Z :: 'b
+  from lt_ex [of Z] obtain Z' where 1: "Z' < Z" ..
+  assume "\<forall>Z. eventually (\<lambda>x. f x \<le> Z) F"
+  hence "eventually (\<lambda>x. f x \<le> Z') F" by auto
+  thus "eventually (\<lambda>x. f x < Z) F"
+    apply (rule eventually_mono[rotated])
+    using 1 by auto
+  next 
+    fix Z :: 'b 
+    show "\<forall>Z. eventually (\<lambda>x. f x < Z) F \<Longrightarrow> eventually (\<lambda>x. f x \<le> Z) F"
+      by (drule spec [of _ Z], erule eventually_mono[rotated], auto simp add: less_imp_le)
+qed
+
 lemma filterlim_at_bot_le:
   fixes f :: "'a \<Rightarrow> ('b::linorder)" and c :: "'b"
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z\<le>c. eventually (\<lambda>x. Z \<ge> f x) F)"
@@ -1342,6 +1418,11 @@ next
   then show "\<exists>S. open S \<and> top \<in> S \<and> (\<forall>xa\<in>S. P xa)"
     by (intro exI[of _ "{b <..}"]) auto
 qed
+
+lemma tendsto_at_within_iff_tendsto_nhds:
+  "(g ---> g l) (at l within S) \<longleftrightarrow> (g ---> g l) (inf (nhds l) (principal S))"
+  unfolding tendsto_def eventually_at_filter eventually_inf_principal
+  by (intro ext all_cong imp_cong) (auto elim!: eventually_elim1)
 
 subsection {* Limits on sequences *}
 
@@ -1742,6 +1823,12 @@ lemma (in first_countable_topology) eventually_nhds_iff_sequentially:
   "eventually P (nhds a) \<longleftrightarrow> (\<forall>f. f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
   using eventually_nhds_within_iff_sequentially[of P a UNIV] by simp
 
+lemma tendsto_at_iff_sequentially:
+  fixes f :: "'a :: first_countable_topology \<Rightarrow> _"
+  shows "(f ---> a) (at x within s) \<longleftrightarrow> (\<forall>X. (\<forall>i. X i \<in> s - {x}) \<longrightarrow> X ----> x \<longrightarrow> ((f \<circ> X) ----> a))"
+  unfolding filterlim_def[of _ "nhds a"] le_filter_def eventually_filtermap at_within_def eventually_nhds_within_iff_sequentially comp_def
+  by metis
+
 subsection {* Function limit at a point *}
 
 abbreviation
@@ -1805,6 +1892,9 @@ lemma LIM_compose_eventually:
   shows "(\<lambda>x. g (f x)) -- a --> c"
   using g f inj by (rule tendsto_compose_eventually)
 
+lemma tendsto_compose_filtermap: "((g \<circ> f) ---> T) F \<longleftrightarrow> (g ---> T) (filtermap f F)"
+  by (simp add: filterlim_def filtermap_filtermap comp_def)
+
 subsubsection {* Relation of LIM and LIMSEQ *}
 
 lemma (in first_countable_topology) sequentially_imp_eventually_within:
@@ -1840,34 +1930,27 @@ lemma sequentially_imp_eventually_at_left:
   assumes *: "\<And>f. (\<And>n. b < f n) \<Longrightarrow> (\<And>n. f n < a) \<Longrightarrow> incseq f \<Longrightarrow> f ----> a \<Longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
   shows "eventually P (at_left a)"
 proof (safe intro!: sequentially_imp_eventually_within)
-  fix X assume X: "\<forall>n. X n \<in> {..<a} \<and> X n \<noteq> a" "X ----> a"
+  fix X assume X: "\<forall>n. X n \<in> {..< a} \<and> X n \<noteq> a" "X ----> a"
   show "eventually (\<lambda>n. P (X n)) sequentially"
   proof (rule ccontr)
-
-    assume "\<not> eventually (\<lambda>n. P (X n)) sequentially"
-    from not_eventually_sequentiallyD[OF this]
-    obtain r where "subseq r" "\<And>n. \<not> P (X (r n))"
-      by auto
-    with X have "(X \<circ> r) ----> a"
-      by (auto intro: LIMSEQ_subseq_LIMSEQ)
-    from order_tendstoD(1)[OF this] obtain s' where s': "\<And>b i. b < a \<Longrightarrow> s' b \<le> i \<Longrightarrow> b < X (r i)"
-      unfolding eventually_sequentially comp_def by metis
-    def s \<equiv> "rec_nat (s' b) (\<lambda>_ i. max (s' (X (r i))) (Suc i))"
-    then have [simp]: "s 0 = s' b" "\<And>n. s (Suc n) = max (s' (X (r (s n)))) (Suc (s n))"
-      by auto
-    have "eventually (\<lambda>n. P (((X \<circ> r) \<circ> s) n)) sequentially"
-    proof (rule *)
-      from X show inc: "incseq (X \<circ> r \<circ> s)"
-        unfolding incseq_Suc_iff comp_def by (intro allI s'[THEN less_imp_le]) auto
-      { fix n show "b < (X \<circ> r \<circ> s) n"
-          using inc[THEN incseqD, of 0 n] s'[OF b order_refl] by simp }
-      { fix n show "(X \<circ> r \<circ> s) n < a"
-          using X by simp }
-      from `(X \<circ> r) ----> a` show "(X \<circ> r \<circ> s) ----> a"
-        by (rule LIMSEQ_subseq_LIMSEQ) (auto simp: subseq_Suc_iff)
+    assume neg: "\<not> eventually (\<lambda>n. P (X n)) sequentially"
+    have "\<exists>s. \<forall>n. (\<not> P (X (s n)) \<and> b < X (s n)) \<and> (X (s n) \<le> X (s (Suc n)) \<and> Suc (s n) \<le> s (Suc n))"
+    proof (rule dependent_nat_choice)
+      have "\<not> eventually (\<lambda>n. b < X n \<longrightarrow> P (X n)) sequentially"
+        by (intro not_eventually_impI neg order_tendstoD(1) [OF X(2) b])
+      then show "\<exists>x. \<not> P (X x) \<and> b < X x"
+        by (auto dest!: not_eventuallyD)
+    next
+      fix x n
+      have "\<not> eventually (\<lambda>n. Suc x \<le> n \<longrightarrow> b < X n \<longrightarrow> X x < X n \<longrightarrow> P (X n)) sequentially"
+        using X by (intro not_eventually_impI order_tendstoD(1)[OF X(2)] eventually_ge_at_top neg) auto
+      then show "\<exists>n. (\<not> P (X n) \<and> b < X n) \<and> (X x \<le> X n \<and> Suc x \<le> n)"
+        by (auto dest!: not_eventuallyD)
     qed
-    with `\<And>n. \<not> P (X (r n))` show False
-      by auto
+    then guess s ..
+    then have "\<And>n. b < X (s n)" "\<And>n. X (s n) < a" "incseq (\<lambda>n. X (s n))" "(\<lambda>n. X (s n)) ----> a" "\<And>n. \<not> P (X (s n))"
+      using X by (auto simp: subseq_Suc_iff Suc_le_eq incseq_Suc_iff intro!: LIMSEQ_subseq_LIMSEQ[OF `X ----> a`, unfolded comp_def])
+    from *[OF this(1,2,3,4)] this(5) show False by auto
   qed
 qed
 
@@ -1878,6 +1961,44 @@ lemma tendsto_at_left_sequentially:
   shows "(X ---> L) (at_left a)"
   using assms unfolding tendsto_def [where l=L]
   by (simp add: sequentially_imp_eventually_at_left)
+
+lemma sequentially_imp_eventually_at_right:
+  fixes a :: "'a :: {dense_linorder, linorder_topology, first_countable_topology}"
+  assumes b[simp]: "a < b"
+  assumes *: "\<And>f. (\<And>n. a < f n) \<Longrightarrow> (\<And>n. f n < b) \<Longrightarrow> decseq f \<Longrightarrow> f ----> a \<Longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
+  shows "eventually P (at_right a)"
+proof (safe intro!: sequentially_imp_eventually_within)
+  fix X assume X: "\<forall>n. X n \<in> {a <..} \<and> X n \<noteq> a" "X ----> a"
+  show "eventually (\<lambda>n. P (X n)) sequentially"
+  proof (rule ccontr)
+    assume neg: "\<not> eventually (\<lambda>n. P (X n)) sequentially"
+    have "\<exists>s. \<forall>n. (\<not> P (X (s n)) \<and> X (s n) < b) \<and> (X (s (Suc n)) \<le> X (s n) \<and> Suc (s n) \<le> s (Suc n))"
+    proof (rule dependent_nat_choice)
+      have "\<not> eventually (\<lambda>n. X n < b \<longrightarrow> P (X n)) sequentially"
+        by (intro not_eventually_impI neg order_tendstoD(2) [OF X(2) b])
+      then show "\<exists>x. \<not> P (X x) \<and> X x < b"
+        by (auto dest!: not_eventuallyD)
+    next
+      fix x n
+      have "\<not> eventually (\<lambda>n. Suc x \<le> n \<longrightarrow> X n < b \<longrightarrow> X n < X x \<longrightarrow> P (X n)) sequentially"
+        using X by (intro not_eventually_impI order_tendstoD(2)[OF X(2)] eventually_ge_at_top neg) auto
+      then show "\<exists>n. (\<not> P (X n) \<and> X n < b) \<and> (X n \<le> X x \<and> Suc x \<le> n)"
+        by (auto dest!: not_eventuallyD)
+    qed
+    then guess s ..
+    then have "\<And>n. a < X (s n)" "\<And>n. X (s n) < b" "decseq (\<lambda>n. X (s n))" "(\<lambda>n. X (s n)) ----> a" "\<And>n. \<not> P (X (s n))"
+      using X by (auto simp: subseq_Suc_iff Suc_le_eq decseq_Suc_iff intro!: LIMSEQ_subseq_LIMSEQ[OF `X ----> a`, unfolded comp_def])
+    from *[OF this(1,2,3,4)] this(5) show False by auto
+  qed
+qed
+
+lemma tendsto_at_right_sequentially:
+  fixes a :: "_ :: {dense_linorder, linorder_topology, first_countable_topology}"
+  assumes "a < b"
+  assumes *: "\<And>S. (\<And>n. a < S n) \<Longrightarrow> (\<And>n. S n < b) \<Longrightarrow> decseq S \<Longrightarrow> S ----> a \<Longrightarrow> (\<lambda>n. X (S n)) ----> L"
+  shows "(X ---> L) (at_right a)"
+  using assms unfolding tendsto_def [where l=L]
+  by (simp add: sequentially_imp_eventually_at_right)
 
 subsection {* Continuity *}
 
@@ -2072,6 +2193,21 @@ lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f ---> l) F \<Longr
 lemma continuous_within_compose3:
   "isCont g (f x) \<Longrightarrow> continuous (at x within s) f \<Longrightarrow> continuous (at x within s) (\<lambda>x. g (f x))"
   using continuous_within_compose2[of x s f g] by (simp add: continuous_at_within)
+
+lemma filtermap_nhds_open_map:
+  assumes cont: "isCont f a" and open_map: "\<And>S. open S \<Longrightarrow> open (f`S)"
+  shows "filtermap f (nhds a) = nhds (f a)"
+  unfolding filter_eq_iff
+proof safe
+  fix P assume "eventually P (filtermap f (nhds a))"
+  then guess S unfolding eventually_filtermap eventually_nhds ..
+  then show "eventually P (nhds (f a))"
+    unfolding eventually_nhds by (intro exI[of _ "f`S"]) (auto intro!: open_map)
+qed (metis filterlim_iff tendsto_at_iff_tendsto_nhds isCont_def eventually_filtermap cont)
+
+lemma continuous_at_split: 
+  "continuous (at (x::'a::linorder_topology)) f = (continuous (at_left x) f \<and> continuous (at_right x) f)"
+  by (simp add: continuous_within filterlim_at_split)
 
 subsubsection{* Open-cover compactness *}
 
@@ -2300,7 +2436,6 @@ lemma continuous_attains_inf:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
   shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s. f x \<le> f y)"
   using compact_attains_inf[of "f ` s"] compact_continuous_image[of s f] by auto
-
 
 subsection {* Connectedness *}
 

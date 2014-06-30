@@ -343,14 +343,13 @@ qed
 
 sublocale pair_sigma_finite \<subseteq> P: sigma_finite_measure "M1 \<Otimes>\<^sub>M M2"
 proof
-  from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
-  show "\<exists>F::nat \<Rightarrow> ('a \<times> 'b) set. range F \<subseteq> sets (M1 \<Otimes>\<^sub>M M2) \<and> (\<Union>i. F i) = space (M1 \<Otimes>\<^sub>M M2) \<and> (\<forall>i. emeasure (M1 \<Otimes>\<^sub>M M2) (F i) \<noteq> \<infinity>)"
-  proof (rule exI[of _ F], intro conjI)
-    show "range F \<subseteq> sets (M1 \<Otimes>\<^sub>M M2)" using F by (auto simp: pair_measure_def)
-    show "(\<Union>i. F i) = space (M1 \<Otimes>\<^sub>M M2)"
-      using F by (auto simp: space_pair_measure)
-    show "\<forall>i. emeasure (M1 \<Otimes>\<^sub>M M2) (F i) \<noteq> \<infinity>" using F by auto
-  qed
+  from M1.sigma_finite_countable guess F1 ..
+  moreover from M2.sigma_finite_countable guess F2 ..
+  ultimately show
+    "\<exists>A. countable A \<and> A \<subseteq> sets (M1 \<Otimes>\<^sub>M M2) \<and> \<Union>A = space (M1 \<Otimes>\<^sub>M M2) \<and> (\<forall>a\<in>A. emeasure (M1 \<Otimes>\<^sub>M M2) a \<noteq> \<infinity>)"
+    by (intro exI[of _ "(\<lambda>(a, b). a \<times> b) ` (F1 \<times> F2)"] conjI)
+       (auto simp: M2.emeasure_pair_measure_Times space_pair_measure set_eq_iff subset_eq
+             dest: sets.sets_into_space)
 qed
 
 lemma sigma_finite_pair_measure:
@@ -644,15 +643,13 @@ lemma sigma_finite_measure_distr:
   shows "sigma_finite_measure M"
 proof -
   interpret sigma_finite_measure "distr M N f" by fact
-  from sigma_finite_disjoint guess A . note A = this
+  from sigma_finite_countable guess A .. note A = this
   show ?thesis
-  proof (unfold_locales, intro conjI exI allI)
-    show "range (\<lambda>i. f -` A i \<inter> space M) \<subseteq> sets M"
-      using A f by auto
-    show "(\<Union>i. f -` A i \<inter> space M) = space M"
-      using A(1) A(2)[symmetric] f by (auto simp: measurable_def Pi_def)
-    fix i show "emeasure M (f -` A i \<inter> space M) \<noteq> \<infinity>"
-      using f A(1,2) A(3)[of i] by (simp add: emeasure_distr subset_eq)
+  proof
+    show "\<exists>A. countable A \<and> A \<subseteq> sets M \<and> \<Union>A = space M \<and> (\<forall>a\<in>A. emeasure M a \<noteq> \<infinity>)"
+      using A f
+      by (intro exI[of _ "(\<lambda>a. f -` a \<inter> space M) ` A"])
+         (auto simp: emeasure_distr set_eq_iff subset_eq intro: measurable_space)
   qed
 qed
 
@@ -825,7 +822,7 @@ lemma borel_prod':
       ('a::second_countable_topology \<times> 'b::second_countable_topology) measure)"
 proof (rule measure_eqI[OF borel_prod])
   interpret sigma_finite_measure "borel :: 'b measure"
-      by (default) (auto simp: borel_def emeasure_sigma intro!: exI[of _ "\<lambda>_. UNIV"])
+    proof qed (intro exI[of _ "{UNIV}"], auto simp: borel_def emeasure_sigma)
   fix X :: "('a \<times> 'b) set" assume asm: "X \<in> sets (borel \<Otimes>\<^sub>M borel)"
   have "UNIV \<times> UNIV \<in> sets (borel \<Otimes>\<^sub>M borel :: ('a \<times> 'b) measure)" 
       by (simp add: borel_prod)

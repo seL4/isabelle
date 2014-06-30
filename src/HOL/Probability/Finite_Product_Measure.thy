@@ -8,6 +8,10 @@ theory Finite_Product_Measure
 imports Binary_Product_Measure
 begin
 
+lemma PiE_choice: "(\<exists>f\<in>PiE I F. \<forall>i\<in>I. P i (f i)) \<longleftrightarrow> (\<forall>i\<in>I. \<exists>x\<in>F i. P i x)"
+  by (auto simp: Bex_def PiE_iff Ball_def dest!: choice_iff'[THEN iffD1])
+     (force intro: exI[of _ "restrict f I" for f])
+
 lemma split_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
   by auto
 
@@ -661,28 +665,19 @@ qed simp
 lemma (in product_sigma_finite) sigma_finite: 
   assumes "finite I"
   shows "sigma_finite_measure (PiM I M)"
-proof -
+proof
   interpret finite_product_sigma_finite M I by default fact
 
-  from sigma_finite_pairs guess F :: "'i \<Rightarrow> nat \<Rightarrow> 'a set" ..
-  then have F: "\<And>j. j \<in> I \<Longrightarrow> range (F j) \<subseteq> sets (M j)"
-    "incseq (\<lambda>k. \<Pi>\<^sub>E j \<in> I. F j k)"
-    "(\<Union>k. \<Pi>\<^sub>E j \<in> I. F j k) = space (Pi\<^sub>M I M)"
-    "\<And>k. \<And>j. j \<in> I \<Longrightarrow> emeasure (M j) (F j k) \<noteq> \<infinity>"
-    by blast+
-  let ?F = "\<lambda>k. \<Pi>\<^sub>E j \<in> I. F j k"
-
-  show ?thesis
-  proof (unfold_locales, intro exI[of _ ?F] conjI allI)
-    show "range ?F \<subseteq> sets (Pi\<^sub>M I M)" using F(1) `finite I` by auto
-  next
-    from F(3) show "(\<Union>i. ?F i) = space (Pi\<^sub>M I M)" by simp
-  next
-    fix j
-    from F `finite I` setprod_PInf[of I, OF emeasure_nonneg, of M]
-    show "emeasure (\<Pi>\<^sub>M i\<in>I. M i) (?F j) \<noteq> \<infinity>"
-      by (subst emeasure_PiM) auto
-  qed
+  obtain F where F: "\<And>j. countable (F j)" "\<And>j f. f \<in> F j \<Longrightarrow> f \<in> sets (M j)"
+    "\<And>j f. f \<in> F j \<Longrightarrow> emeasure (M j) f \<noteq> \<infinity>" and
+    in_space: "\<And>j. space (M j) = (\<Union>F j)"
+    using sigma_finite_countable by (metis subset_eq)
+  moreover have "(\<Union>(PiE I ` PiE I F)) = space (Pi\<^sub>M I M)"
+    using in_space by (auto simp: space_PiM PiE_iff intro!: PiE_choice[THEN iffD2])
+  ultimately show "\<exists>A. countable A \<and> A \<subseteq> sets (Pi\<^sub>M I M) \<and> \<Union>A = space (Pi\<^sub>M I M) \<and> (\<forall>a\<in>A. emeasure (Pi\<^sub>M I M) a \<noteq> \<infinity>)"
+    by (intro exI[of _ "PiE I ` PiE I F"])
+       (auto intro!: countable_PiE sets_PiM_I_finite
+             simp: PiE_iff emeasure_PiM finite_index setprod_PInf emeasure_nonneg)
 qed
 
 sublocale finite_product_sigma_finite \<subseteq> sigma_finite_measure "Pi\<^sub>M I M"

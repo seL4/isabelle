@@ -315,7 +315,7 @@ proof -
           using J J_mono K_sets `n \<ge> 1`
           by (simp only: emeasure_eq_measure)
             (auto dest!: bspec[where x=n]
-            simp: extensional_restrict emeasure_eq_measure prod_emb_iff
+            simp: extensional_restrict emeasure_eq_measure prod_emb_iff simp del: limP_finite
             intro!: measure_Diff[symmetric] set_mp[OF K_B])
         also have subs: "Z n - Y n \<subseteq> (\<Union> i\<in>{1..n}. (Z i - Z' i))" using Z' Z `n \<ge> 1`
           unfolding Y_def by (force simp: decseq_def)
@@ -332,9 +332,7 @@ proof -
           have "\<mu>G (Z i - Z' i) = \<mu>G (prod_emb I (\<lambda>_. borel) (J i) (B i - K i))"
             unfolding Z'_def Z_eq by simp
           also have "\<dots> = P (J i) (B i - K i)"
-            apply (subst mu_G_eq) using J K_sets apply auto
-            apply (subst limP_finite) apply auto
-            done
+            using J K_sets by (subst mu_G_eq) auto
           also have "\<dots> = P (J i) (B i) - P (J i) (K i)"
             apply (subst emeasure_Diff) using K_sets J `K _ \<subseteq> B _` apply (auto simp: proj_sets)
             done
@@ -585,7 +583,7 @@ proof cases
   moreover have "emb I {} {\<lambda>x. undefined} = space (lim\<^sub>B I P)"
     by (auto simp: space_PiM prod_emb_def)
   moreover have "{\<lambda>x. undefined} = space (lim\<^sub>B {} P)"
-    by (auto simp: space_PiM prod_emb_def)
+    by (auto simp: space_PiM prod_emb_def simp del: limP_finite)
   ultimately show ?thesis
     by (simp add: P.emeasure_space_1 limP_finite emeasure_space_1 del: space_limP)
 next

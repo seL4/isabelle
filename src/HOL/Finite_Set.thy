@@ -1512,6 +1512,22 @@ qed
 lemma card_UNIV_unit [simp]: "card (UNIV :: unit set) = 1"
   unfolding UNIV_unit by simp
 
+lemma infinite_arbitrarily_large:
+  assumes "\<not> finite A"
+  shows "\<exists>B. finite B \<and> card B = n \<and> B \<subseteq> A"
+proof (induction n)
+  case 0 show ?case by (intro exI[of _ "{}"]) auto
+next 
+  case (Suc n)
+  then guess B .. note B = this
+  with `\<not> finite A` have "A \<noteq> B" by auto
+  with B have "B \<subset> A" by auto
+  hence "\<exists>x. x \<in> A - B" by (elim psubset_imp_ex_mem)
+  then guess x .. note x = this
+  with B have "finite (insert x B) \<and> card (insert x B) = Suc n \<and> insert x B \<subseteq> A"
+    by auto
+  thus "\<exists>B. finite B \<and> card B = Suc n \<and> B \<subseteq> A" ..
+qed
 
 subsubsection {* Cardinality of image *}
 

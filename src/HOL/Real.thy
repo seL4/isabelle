@@ -1429,6 +1429,12 @@ proof -
   ultimately show ?thesis by fast
 qed
 
+lemma of_rat_dense:
+  fixes x y :: real
+  assumes "x < y"
+  shows "\<exists>q :: rat. x < of_rat q \<and> of_rat q < y"
+using Rats_dense_in_real [OF `x < y`]
+by (auto elim: Rats_cases)
 
 
 subsection{*Numerals and Arithmetic*}
@@ -1444,7 +1450,7 @@ lemma real_numeral [simp]:
   "real (- numeral v :: int) = - numeral v"
 by (simp_all add: real_of_int_def)
 
-lemma real_of_nat_numeral [simp]:
+lemma  real_of_nat_numeral [simp]:
   "real (numeral v :: nat) = numeral v"
 by (simp add: real_of_nat_def)
 
@@ -1995,8 +2001,14 @@ lemma natceiling_subtract [simp]: "natceiling(x - real a) = natceiling x - a"
   unfolding natceiling_def real_of_int_of_nat_eq [symmetric] ceiling_subtract
   by simp
 
-lemma Rats_unbounded: "\<exists> q \<in> \<rat>. (x :: real) \<le> q"
+lemma Rats_no_top_le: "\<exists> q \<in> \<rat>. (x :: real) \<le> q"
   by (auto intro!: bexI[of _ "of_nat (natceiling x)"]) (metis real_natceiling_ge real_of_nat_def)
+
+lemma Rats_no_bot_less: "\<exists> q \<in> \<rat>. q < (x :: real)"
+  apply (auto intro!: bexI[of _ "of_int (floor x - 1)"])
+  apply (rule less_le_trans[OF _ of_int_floor_le])
+  apply simp
+  done
 
 subsection {* Exponentiation with floor *}
 

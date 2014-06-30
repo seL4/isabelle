@@ -5855,8 +5855,7 @@ next
 qed
 
 lemma unit_interval_convex_hull:
-  defines "One \<equiv> \<Sum>Basis"
-  shows "cbox (0::'a::euclidean_space) One = convex hull {x. \<forall>i\<in>Basis. (x\<bullet>i = 0) \<or> (x\<bullet>i = 1)}"
+  "cbox (0::'a::euclidean_space) One = convex hull {x. \<forall>i\<in>Basis. (x\<bullet>i = 0) \<or> (x\<bullet>i = 1)}"
   (is "?int = convex hull ?points")
 proof -
   have One[simp]: "\<And>i. i \<in> Basis \<Longrightarrow> One \<bullet> i = 1"

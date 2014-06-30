@@ -1820,6 +1820,26 @@ proof (cases "a \<le> b", rule compactI)
 qed simp
 
 
+lemma continuous_image_closed_interval:
+  fixes a b and f :: "real \<Rightarrow> real"
+  defines "S \<equiv> {a..b}"
+  assumes "a \<le> b" and f: "continuous_on S f"
+  shows "\<exists>c d. f`S = {c..d} \<and> c \<le> d"
+proof -
+  have S: "compact S" "S \<noteq> {}"
+    using `a \<le> b` by (auto simp: S_def)
+  obtain c where "c \<in> S" "\<forall>d\<in>S. f d \<le> f c"
+    using continuous_attains_sup[OF S f] by auto
+  moreover obtain d where "d \<in> S" "\<forall>c\<in>S. f d \<le> f c"
+    using continuous_attains_inf[OF S f] by auto
+  moreover have "connected (f`S)"
+    using connected_continuous_image[OF f] connected_Icc by (auto simp: S_def)
+  ultimately have "f ` S = {f d .. f c} \<and> f d \<le> f c"
+    by (auto simp: connected_iff_interval)
+  then show ?thesis
+    by auto
+qed
+
 subsection {* Boundedness of continuous functions *}
 
 text{*By bisection, function continuous on closed interval is bounded above*}

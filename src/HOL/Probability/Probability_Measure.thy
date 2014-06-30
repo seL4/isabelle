@@ -29,6 +29,9 @@ abbreviation (in prob_space) "random_variable M' X \<equiv> X \<in> measurable M
 abbreviation (in prob_space) "expectation \<equiv> integral\<^sup>L M"
 abbreviation (in prob_space) "variance X \<equiv> integral\<^sup>L M (\<lambda>x. (X x - expectation X)\<^sup>2)"
 
+lemma (in prob_space) finite_measure [simp]: "finite_measure M"
+  by unfold_locales
+
 lemma (in prob_space) prob_space_distr:
   assumes f: "f \<in> measurable M M'" shows "prob_space (distr M M' f)"
 proof (rule prob_spaceI)
@@ -343,6 +346,10 @@ lemma (in prob_space) variance_eq:
 
 lemma (in prob_space) variance_positive: "0 \<le> variance (X::'a \<Rightarrow> real)"
   by (intro integral_nonneg_AE) (auto intro!: integral_nonneg_AE)
+
+lemma (in prob_space) variance_mean_zero:
+  "expectation X = 0 \<Longrightarrow> variance X = expectation (\<lambda>x. (X x)^2)"
+  by simp
 
 locale pair_prob_space = pair_sigma_finite M1 M2 + M1: prob_space M1 + M2: prob_space M2 for M1 M2
 
@@ -988,7 +995,7 @@ lemma distributedI_borel_atMost:
     and M_eq: "\<And>a. emeasure M {x\<in>space M. X x \<le> a} = ereal (g a)"
   shows "distributed M lborel X f"
 proof (rule distributedI_real)
-  show "sets lborel = sigma_sets (space lborel) (range atMost)"
+  show "sets (lborel::real measure) = sigma_sets (space lborel) (range atMost)"
     by (simp add: borel_eq_atMost)
   show "Int_stable (range atMost :: real set set)"
     by (auto simp: Int_stable_def)

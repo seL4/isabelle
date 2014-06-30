@@ -991,26 +991,23 @@ proof
     using fin by (auto elim!: AE_Ball_mp)
 next
   assume AE: "AE x in M. f x \<noteq> \<infinity>"
-  from sigma_finite guess Q .. note Q = this
+  from sigma_finite guess Q . note Q = this
   def A \<equiv> "\<lambda>i. f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. ereal(of_nat (Suc n))}) \<inter> space M"
   { fix i j have "A i \<inter> Q j \<in> sets M"
     unfolding A_def using f Q
     apply (rule_tac sets.Int)
     by (cases i) (auto intro: measurable_sets[OF f(1)]) }
   note A_in_sets = this
-  let ?A = "\<lambda>n. case prod_decode n of (i,j) \<Rightarrow> A i \<inter> Q j"
+
   show "sigma_finite_measure ?N"
-  proof (default, intro exI conjI subsetI allI)
-    fix x assume "x \<in> range ?A"
-    then obtain n where n: "x = ?A n" by auto
-    then show "x \<in> sets ?N" using A_in_sets by (cases "prod_decode n") auto
+  proof (default, intro exI conjI ballI)
+    show "countable (range (\<lambda>(i, j). A i \<inter> Q j))"
+      by auto
+    show "range (\<lambda>(i, j). A i \<inter> Q j) \<subseteq> sets (density M f)"
+      using A_in_sets by auto
   next
-    have "(\<Union>i. ?A i) = (\<Union>i j. A i \<inter> Q j)"
-    proof safe
-      fix x i j assume "x \<in> A i" "x \<in> Q j"
-      then show "x \<in> (\<Union>i. case prod_decode i of (i, j) \<Rightarrow> A i \<inter> Q j)"
-        by (intro UN_I[of "prod_encode (i,j)"]) auto
-    qed auto
+    have "\<Union>range (\<lambda>(i, j). A i \<inter> Q j) = (\<Union>i j. A i \<inter> Q j)"
+      by auto
     also have "\<dots> = (\<Union>i. A i) \<inter> space M" using Q by auto
     also have "(\<Union>i. A i) = space M"
     proof safe
@@ -1027,10 +1024,10 @@ next
           unfolding A_def by (auto intro!: exI[of _ "Suc 0"])
       qed
     qed (auto simp: A_def)
-    finally show "(\<Union>i. ?A i) = space ?N" by simp
+    finally show "\<Union>range (\<lambda>(i, j). A i \<inter> Q j) = space ?N" by simp
   next
-    fix n obtain i j where
-      [simp]: "prod_decode n = (i, j)" by (cases "prod_decode n") auto
+    fix X assume "X \<in> range (\<lambda>(i, j). A i \<inter> Q j)"
+    then obtain i j where [simp]:"X = A i \<inter> Q j" by auto
     have "(\<integral>\<^sup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<noteq> \<infinity>"
     proof (cases i)
       case 0
@@ -1048,7 +1045,7 @@ next
         using Q by (auto simp: real_eq_of_nat[symmetric])
       finally show ?thesis by simp
     qed
-    then show "emeasure ?N (?A n) \<noteq> \<infinity>"
+    then show "emeasure ?N X \<noteq> \<infinity>"
       using A_in_sets Q f by (auto simp: emeasure_density)
   qed
 qed
@@ -1164,20 +1161,22 @@ proof (rule RN_deriv_unique)
   let ?M' = "distr M M' T" and ?N' = "distr N M' T"
   interpret M': sigma_finite_measure ?M'
   proof
-    from sigma_finite guess F .. note F = this
-    show "\<exists>A::nat \<Rightarrow> 'b set. range A \<subseteq> sets ?M' \<and> (\<Union>i. A i) = space ?M' \<and> (\<forall>i. emeasure ?M' (A i) \<noteq> \<infinity>)"
-    proof (intro exI conjI allI)
-      show *: "range (\<lambda>i. T' -` F i \<inter> space ?M') \<subseteq> sets ?M'"
+    from sigma_finite_countable guess F .. note F = this
+    show "\<exists>A. countable A \<and> A \<subseteq> sets (distr M M' T) \<and> \<Union>A = space (distr M M' T) \<and> (\<forall>a\<in>A. emeasure (distr M M' T) a \<noteq> \<infinity>)"
+    proof (intro exI conjI ballI)
+      show *: "(\<lambda>A. T' -` A \<inter> space ?M') ` F \<subseteq> sets ?M'"
         using F T' by (auto simp: measurable_def)
-      show "(\<Union>i. T' -` F i \<inter> space ?M') = space ?M'"
-        using F T' by (force simp: measurable_def)
-      fix i
-      have "T' -` F i \<inter> space M' \<in> sets M'" using * by auto
+      show "\<Union>((\<lambda>A. T' -` A \<inter> space ?M')`F) = space ?M'"
+        using F T'[THEN measurable_space] by (auto simp: set_eq_iff)
+    next
+      fix X assume "X \<in> (\<lambda>A. T' -` A \<inter> space ?M')`F"
+      then obtain A where [simp]: "X = T' -` A \<inter> space ?M'" and "A \<in> F" by auto
+      have "X \<in> sets M'" using F T' `A\<in>F` by auto
       moreover
-      have Fi: "F i \<in> sets M" using F by auto
-      ultimately show "emeasure ?M' (T' -` F i \<inter> space ?M') \<noteq> \<infinity>"
-        using F T T' by (simp add: emeasure_distr)
-    qed
+      have Fi: "A \<in> sets M" using F `A\<in>F` by auto
+      ultimately show "emeasure ?M' X \<noteq> \<infinity>"
+        using F T T' `A\<in>F` by (simp add: emeasure_distr)
+    qed (insert F, auto)
   qed
   have "(RN_deriv ?M' ?N') \<circ> T \<in> borel_measurable M"
     using T ac by measurable

@@ -80,6 +80,12 @@ lemma ereal_cases[cases type: ereal]:
 lemmas ereal2_cases = ereal_cases[case_product ereal_cases]
 lemmas ereal3_cases = ereal2_cases[case_product ereal_cases]
 
+lemma ereal_all_split: "\<And>P. (\<forall>x::ereal. P x) \<longleftrightarrow> P \<infinity> \<and> (\<forall>x. P (ereal x)) \<and> P (-\<infinity>)"
+  by (metis ereal_cases)
+
+lemma ereal_ex_split: "\<And>P. (\<exists>x::ereal. P x) \<longleftrightarrow> P \<infinity> \<or> (\<exists>x. P (ereal x)) \<or> P (-\<infinity>)"
+  by (metis ereal_cases)
+
 lemma ereal_uminus_eq_iff[simp]:
   fixes a b :: ereal
   shows "-a = -b \<longleftrightarrow> a = b"
@@ -2120,7 +2126,6 @@ proof -
   show thesis
     by auto
 qed
-
 
 subsubsection {* Convergent sequences *}
 

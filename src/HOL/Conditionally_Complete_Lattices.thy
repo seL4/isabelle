@@ -354,6 +354,10 @@ lemma SUP_sup_distrib: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longri
   by (intro antisym le_supI cSUP_least cSUP_upper2)
      (auto intro: le_supI1 le_supI2 cSUP_least cSUP_upper le_supI)
 
+lemma cInf_le_cSup:
+  "A \<noteq> {} \<Longrightarrow> bdd_above A \<Longrightarrow> bdd_below A \<Longrightarrow> Inf A \<le> Sup A"
+  by (auto intro!: cSup_upper2[of "SOME a. a \<in> A"] intro: someI cInf_lower)
+
 end
 
 instance complete_lattice \<subseteq> conditionally_complete_lattice
@@ -447,20 +451,20 @@ lemma cInf_eq_Min: "finite (X::'a::conditionally_complete_linorder set) \<Longri
 lemma cSup_lessThan[simp]: "Sup {..<x::'a::{conditionally_complete_linorder, no_bot, dense_linorder}} = x"
   by (auto intro!: cSup_eq_non_empty intro: dense_le)
 
-lemma cSup_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Sup {y<..<x::'a::{conditionally_complete_linorder, no_bot, dense_linorder}} = x"
-  by (auto intro!: cSup_eq intro: dense_le_bounded)
+lemma cSup_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Sup {y<..<x::'a::{conditionally_complete_linorder, dense_linorder}} = x"
+  by (auto intro!: cSup_eq_non_empty intro: dense_le_bounded)
 
-lemma cSup_atLeastLessThan[simp]: "y < x \<Longrightarrow> Sup {y..<x::'a::{conditionally_complete_linorder, no_bot, dense_linorder}} = x"
-  by (auto intro!: cSup_eq intro: dense_le_bounded)
+lemma cSup_atLeastLessThan[simp]: "y < x \<Longrightarrow> Sup {y..<x::'a::{conditionally_complete_linorder, dense_linorder}} = x"
+  by (auto intro!: cSup_eq_non_empty intro: dense_le_bounded)
 
 lemma cInf_greaterThan[simp]: "Inf {x::'a::{conditionally_complete_linorder, no_top, dense_linorder} <..} = x"
-  by (auto intro!: cInf_eq intro: dense_ge)
+  by (auto intro!: cInf_eq_non_empty intro: dense_ge)
 
-lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{conditionally_complete_linorder, no_top, dense_linorder}} = y"
-  by (auto intro!: cInf_eq intro: dense_ge_bounded)
+lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{conditionally_complete_linorder, dense_linorder}} = y"
+  by (auto intro!: cInf_eq_non_empty intro: dense_ge_bounded)
 
-lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditionally_complete_linorder, no_top, dense_linorder}} = y"
-  by (auto intro!: cInf_eq intro: dense_ge_bounded)
+lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditionally_complete_linorder, dense_linorder}} = y"
+  by (auto intro!: cInf_eq_non_empty intro: dense_ge_bounded)
 
 class linear_continuum = conditionally_complete_linorder + dense_linorder +
   assumes UNIV_not_singleton: "\<exists>a b::'a. a \<noteq> b"

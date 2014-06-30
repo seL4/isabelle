@@ -1648,6 +1648,13 @@ next
     by simp
 qed
   
+lemma has_bochner_integral_nn_integral:
+  assumes "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
+  assumes "(\<integral>\<^sup>+x. f x \<partial>M) = ereal x"
+  shows "has_bochner_integral M f x"
+  unfolding has_bochner_integral_iff
+  using assms by (auto simp: assms integral_eq_nn_integral intro: integrableI_nn_integral_finite)
+
 lemma integrableI_simple_bochner_integrable:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   shows "simple_bochner_integrable M f \<Longrightarrow> integrable M f"

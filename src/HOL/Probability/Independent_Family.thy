@@ -903,6 +903,12 @@ proof
   qed
 qed
 
+lemma (in prob_space) indep_vars_compose2:
+  assumes "indep_vars M' X I"
+  assumes rv: "\<And>i. i \<in> I \<Longrightarrow> Y i \<in> measurable (M' i) (N i)"
+  shows "indep_vars N (\<lambda>i x. Y i (X i x)) I"
+  using indep_vars_compose [OF assms] by (simp add: comp_def)
+
 lemma (in prob_space) indep_var_compose:
   assumes "indep_var M1 X1 M2 X2" "Y1 \<in> measurable M1 N1" "Y2 \<in> measurable M2 N2"
   shows "indep_var N1 (Y1 \<circ> X1) N2 (Y2 \<circ> X2)"
