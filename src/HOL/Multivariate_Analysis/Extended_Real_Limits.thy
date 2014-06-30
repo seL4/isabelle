@@ -8,7 +8,7 @@
 header {* Limits on the Extended real number line *}
 
 theory Extended_Real_Limits
-  imports Topology_Euclidean_Space "~~/src/HOL/Library/Extended_Real"
+  imports Topology_Euclidean_Space "~~/src/HOL/Library/Extended_Real" "~~/src/HOL/Library/Indicator_Function"
 begin
 
 lemma convergent_limsup_cl:
@@ -1424,5 +1424,19 @@ next
   then show "?P x0"
     by auto
 qed
+
+subsection "Relate extended reals and the indicator function"
+
+lemma ereal_indicator: "ereal (indicator A x) = indicator A x"
+  by (auto simp: indicator_def one_ereal_def)
+
+lemma ereal_mult_indicator: "ereal (x * indicator A y) = ereal x * indicator A y"
+  by (simp split: split_indicator)
+
+lemma ereal_indicator_mult: "ereal (indicator A y * x) = indicator A y * ereal x"
+  by (simp split: split_indicator)
+
+lemma ereal_indicator_nonneg[simp, intro]: "0 \<le> (indicator A x ::ereal)"
+  unfolding indicator_def by auto
 
 end

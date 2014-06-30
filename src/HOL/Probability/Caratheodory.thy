@@ -640,8 +640,7 @@ qed
 
 lemma measure_down:
   "measure_space \<Omega> N \<mu> \<Longrightarrow> sigma_algebra \<Omega> M \<Longrightarrow> M \<subseteq> N \<Longrightarrow> measure_space \<Omega> M \<mu>"
-  by (simp add: measure_space_def positive_def countably_additive_def)
-     blast
+  by (auto simp add: measure_space_def positive_def countably_additive_def subset_eq)
 
 subsection {* Caratheodory's theorem *}
 

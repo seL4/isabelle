@@ -8,40 +8,10 @@ header {* Measure spaces and their properties *}
 
 theory Measure_Space
 imports
-  Measurable
-  "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits"
+  Measurable Multivariate_Analysis
 begin
 
-lemma sums_def2:
-  "f sums x \<longleftrightarrow> (\<lambda>n. (\<Sum>i\<le>n. f i)) ----> x"
-  unfolding sums_def
-  apply (subst LIMSEQ_Suc_iff[symmetric])
-  unfolding lessThan_Suc_atMost ..
-
 subsection "Relate extended reals and the indicator function"
-
-lemma ereal_indicator: "ereal (indicator A x) = indicator A x"
-  by (auto simp: indicator_def one_ereal_def)
-
-lemma ereal_mult_indicator: "ereal (x * indicator A y) = ereal x * indicator A y"
-  by (simp split: split_indicator)
-
-lemma ereal_indicator_pos[simp,intro]: "0 \<le> (indicator A x ::ereal)"
-  unfolding indicator_def by auto
-
-lemma LIMSEQ_indicator_UN:
-  "(\<lambda>k. indicator (\<Union> i<k. A i) x) ----> (indicator (\<Union>i. A i) x :: real)"
-proof cases
-  assume "\<exists>i. x \<in> A i" then guess i .. note i = this
-  then have *: "\<And>n. (indicator (\<Union> i<n + Suc i. A i) x :: real) = 1"
-    "(indicator (\<Union> i. A i) x :: real) = 1" by (auto simp: indicator_def)
-  show ?thesis
-    apply (rule LIMSEQ_offset[of _ "Suc i"]) unfolding * by auto
-qed (auto simp: indicator_def)
-
-lemma indicator_add:
-  "A \<inter> B = {} \<Longrightarrow> (indicator A x::_::monoid_add) + indicator B x = indicator (A \<union> B) x"
-  unfolding indicator_def by auto
 
 lemma suminf_cmult_indicator:
   fixes f :: "nat \<Rightarrow> ereal"
@@ -319,19 +289,19 @@ proof safe
 next
   assume cont: "\<forall>A. range A \<subseteq> M \<longrightarrow> incseq A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow> (\<lambda>i. f (A i)) ----> f (\<Union>i. A i)"
   fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> M" "disjoint_family A" "(\<Union>i. A i) \<in> M"
-  have *: "(\<Union>n. (\<Union>i\<le>n. A i)) = (\<Union>i. A i)" by auto
-  have "(\<lambda>n. f (\<Union>i\<le>n. A i)) ----> f (\<Union>i. A i)"
+  have *: "(\<Union>n. (\<Union>i<n. A i)) = (\<Union>i. A i)" by auto
+  have "(\<lambda>n. f (\<Union>i<n. A i)) ----> f (\<Union>i. A i)"
   proof (unfold *[symmetric], intro cont[rule_format])
-    show "range (\<lambda>i. \<Union> i\<le>i. A i) \<subseteq> M" "(\<Union>i. \<Union> i\<le>i. A i) \<in> M"
+    show "range (\<lambda>i. \<Union> i<i. A i) \<subseteq> M" "(\<Union>i. \<Union> i<i. A i) \<in> M"
       using A * by auto
   qed (force intro!: incseq_SucI)
-  moreover have "\<And>n. f (\<Union>i\<le>n. A i) = (\<Sum>i\<le>n. f (A i))"
+  moreover have "\<And>n. f (\<Union>i<n. A i) = (\<Sum>i<n. f (A i))"
     using A
     by (intro additive_sum[OF f, of _ A, symmetric])
        (auto intro: disjoint_family_on_mono[where B=UNIV])
   ultimately
   have "(\<lambda>i. f (A i)) sums f (\<Union>i. A i)"
-    unfolding sums_def2 by simp
+    unfolding sums_def by simp
   from sums_unique[OF this]
   show "(\<Sum>i. f (A i)) = f (\<Union>i. A i)" by simp
 qed
