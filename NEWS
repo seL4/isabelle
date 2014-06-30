@@ -894,6 +894,10 @@ the Isabelle environment to avoid dynamic path lookup.  Rare
 incompatibility for old tools that do not use the $ISABELLE_PROCESS
 settings variable yet.
 
+* Former "isabelle tty" has been superseded by "isabelle console",
+with implicit build like "isabelle jedit", and without the mostly
+obsolete Isar TTY loop.
+
 * Removed obsolete "isabelle unsymbolize".  Note that the usual format
 for email communication is the Unicode rendering of Isabelle symbols,
 as produced by Isabelle/jEdit, for example.

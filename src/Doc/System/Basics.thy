@@ -249,8 +249,8 @@ text {*
   load if none is given explicitely by the user.  The default value is
   @{verbatim HOL}.
   
-  \item[@{setting_def ISABELLE_LINE_EDITOR}] specifies the default
-  line editor for the @{tool_ref tty} interface.
+  \item[@{setting_def ISABELLE_LINE_EDITOR}] specifies the
+  line editor for the @{tool_ref console} interface.
 
   \item[@{setting_def ISABELLE_LATEX}, @{setting_def
   ISABELLE_PDFLATEX}, @{setting_def ISABELLE_BIBTEX}] refer to {\LaTeX}
@@ -350,7 +350,7 @@ init_components "$HOME/my_component_store" "some_catalog_file"
 *}
 
 
-section {* The raw Isabelle process *}
+section {* The raw Isabelle process \label{sec:isabelle-process} *}
 
 text {*
   The @{executable_def "isabelle_process"} executable runs bare-bones

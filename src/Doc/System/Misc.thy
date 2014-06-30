@@ -230,6 +230,47 @@ Usage: isabelle components [OPTIONS] [COMPONENTS ...]
 *}
 
 
+section {* Raw ML console *}
+
+text {*
+  The @{tool_def console} tool runs the Isabelle process with raw ML console:
+\begin{ttbox}
+Usage: isabelle console [OPTIONS]
+
+  Options are:
+    -d DIR       include session directory
+    -l NAME      logic session name (default ISABELLE_LOGIC)
+    -m MODE      add print mode for output
+    -n           no build of session image on startup
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           system build mode for session image
+
+  Run Isabelle process with raw ML console and line editor
+  (default ISABELLE_LINE_EDITOR).
+\end{ttbox}
+
+  The @{verbatim "-l"} option specifies the logic session name. By default,
+  its heap image is checked and built on demand, but the option @{verbatim
+  "-n"} skips that.
+
+  Options @{verbatim "-d"}, @{verbatim "-o"}, @{verbatim "-s"} are passed
+  directly to @{tool build} (\secref{sec:tool-build}).
+
+  Options @{verbatim "-m"}, @{verbatim "-o"} are passed directly to the
+  underlying Isabelle process (\secref{sec:isabelle-process}).
+
+  The Isabelle process is run through the line editor that is specified via
+  the settings variable @{setting ISABELLE_LINE_EDITOR} (e.g.\
+  @{executable_def rlwrap} for GNU readline); the fall-back is to use plain
+  standard input/output.
+
+  Interaction works via the raw ML toplevel loop: this is neither
+  Isabelle/Isar nor Isabelle/ML within the usual formal context. Some useful
+  ML commands at this stage are @{ML cd}, @{ML pwd}, @{ML use}, @{ML use_thy},
+  @{ML use_thys}.
+*}
+
+
 section {* Displaying documents \label{sec:tool-display} *}
 
 text {* The @{tool_def display} tool displays documents in DVI or PDF
@@ -418,39 +459,6 @@ Usage: isabelle logo [OPTIONS] XYZ
   \medskip Implementors of Isabelle tools and applications are
   encouraged to make derived Isabelle logos for their own projects
   using this template.  *}
-
-
-section {* Plain TTY interaction \label{sec:tool-tty} *}
-
-text {*
-  The @{tool_def tty} tool runs the Isabelle process interactively
-  within a plain terminal session:
-\begin{ttbox}
-Usage: isabelle tty [OPTIONS]
-
-  Options are:
-    -l NAME      logic image name (default ISABELLE_LOGIC)
-    -m MODE      add print mode for output
-    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p NAME      line editor program name (default ISABELLE_LINE_EDITOR)
-
-  Run Isabelle process with plain tty interaction and line editor.
-\end{ttbox}
-
-  The @{verbatim "-l"} option specifies the logic image.  The
-  @{verbatim "-m"} option specifies additional print modes.  The
-  @{verbatim "-p"} option specifies an alternative line editor (such
-  as the @{executable_def rlwrap} wrapper for GNU readline); the
-  fall-back is to use raw standard input.
-
-  \medskip Option @{verbatim "-o"} allows to override Isabelle system
-  options for this process, see also \secref{sec:system-options}.
-
-  Regular interaction works via the standard Isabelle/Isar toplevel
-  loop.  The Isar command @{command exit} drops out into the
-  bare-bones ML system, which is occasionally useful for debugging of
-  the Isar infrastructure itself.  Invoking @{ML Isar.loop}~@{verbatim
-  "();"} in ML will return to the Isar toplevel.  *}
 
 
 section {* Output the version identifier of the Isabelle distribution *}

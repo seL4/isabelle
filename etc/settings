@@ -26,9 +26,7 @@ unset XMODIFIERS
 ### Interactive sessions (cf. isabelle tty)
 ###
 
-ISABELLE_LINE_EDITOR=""
-[ -z "$ISABELLE_LINE_EDITOR" ] && ISABELLE_LINE_EDITOR="$(type -p rlwrap)"
-[ -z "$ISABELLE_LINE_EDITOR" ] && ISABELLE_LINE_EDITOR="$(type -p ledit)"
+ISABELLE_LINE_EDITOR="rlwrap"
 
 
 ###

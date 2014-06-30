@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: run Isabelle process with raw ML console and line editor
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS]"
+  echo
+  echo "  Options are:"
+  echo "    -d DIR       include session directory"
+  echo "    -l NAME      logic session name (default ISABELLE_LOGIC=\"$ISABELLE_LOGIC\")"
+  echo "    -m MODE      add print mode for output"
+  echo "    -n           no build of session image on startup"
+  echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
+  echo "    -s           system build mode for session image"
+  echo
+  echo "  Run Isabelle process with raw ML console and line editor"
+  echo "  (ISABELLE_LINE_EDITOR=\"$ISABELLE_LINE_EDITOR\")."
+  echo
+  exit 1
+}
+
+
+## process command line
+
+# options
+
+declare -a ISABELLE_OPTIONS=()
+declare -a BUILD_OPTIONS=()
+
+LOGIC="$ISABELLE_LOGIC"
+DO_BUILD="true"
+
+while getopts "d:l:m:no:s" OPT
+do
+  case "$OPT" in
+    d)
+      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="-d"
+      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="$OPTARG"
+      ;;
+    l)
+      LOGIC="$OPTARG"
+      ;;
+    m)
+      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-m"
+      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTARG"
+      ;;
+    n)
+      DO_BUILD="false"
+      ;;
+    o)
+      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-o"
+      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTARG"
+      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="-o"
+      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="$OPTARG"
+      ;;
+    s)
+      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="-s"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 0 ] && { echo "Bad args: $*"; usage; }
+
+
+## main
+
+if [ "$DO_BUILD" = true ]
+then
+  "$ISABELLE_TOOL" build -b -n "${BUILD_OPTIONS[@]}" "$LOGIC" >/dev/null 2>/dev/null ||
+  {
+    echo "Build started for Isabelle/$LOGIC"
+    "$ISABELLE_TOOL" build -b "${BUILD_OPTIONS[@]}" "$LOGIC" || exit "$?"
+  }
+fi
+
+if type -p "$ISABELLE_LINE_EDITOR" > /dev/null
+then
+  exec "$ISABELLE_LINE_EDITOR" "$ISABELLE_PROCESS" "${ISABELLE_OPTIONS[@]}" -- "$LOGIC"
+else
+  echo "### No line editor: \"$ISABELLE_LINE_EDITOR\""
+  exec "$ISABELLE_PROCESS" "${ISABELLE_OPTIONS[@]}" -- "$LOGIC"
+fi
