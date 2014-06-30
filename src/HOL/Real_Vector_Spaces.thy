@@ -1466,18 +1466,31 @@ qed
 
 subsection {* Filters and Limits on Metric Space *}
 
-lemma eventually_nhds_metric:
-  fixes a :: "'a :: metric_space"
-  shows "eventually P (nhds a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. dist x a < d \<longrightarrow> P x)"
-unfolding eventually_nhds open_dist
-apply safe
-apply fast
-apply (rule_tac x="{x. dist x a < d}" in exI, simp)
-apply clarsimp
-apply (rule_tac x="d - dist x a" in exI, clarsimp)
-apply (simp only: less_diff_eq)
-apply (erule le_less_trans [OF dist_triangle])
-done
+lemma (in metric_space) nhds_metric: "nhds x = (INF e:{0 <..}. principal {y. dist y x < e})"
+  unfolding nhds_def
+proof (safe intro!: INF_eq)
+  fix S assume "open S" "x \<in> S"
+  then obtain e where "{y. dist y x < e} \<subseteq> S" "0 < e"
+    by (auto simp: open_dist subset_eq)
+  then show "\<exists>e\<in>{0<..}. principal {y. dist y x < e} \<le> principal S"
+    by auto
+qed (auto intro!: exI[of _ "{y. dist x y < e}" for e] open_ball simp: dist_commute)
+
+lemma (in metric_space) tendsto_iff:
+  "(f ---> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
+  unfolding nhds_metric filterlim_INF filterlim_principal by auto
+
+lemma (in metric_space) tendstoI: "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F) \<Longrightarrow> (f ---> l) F"
+  by (auto simp: tendsto_iff)
+
+lemma (in metric_space) tendstoD: "(f ---> l) F \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F"
+  by (auto simp: tendsto_iff)
+
+lemma (in metric_space) eventually_nhds_metric:
+  "eventually P (nhds a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. dist x a < d \<longrightarrow> P x)"
+  unfolding nhds_metric
+  by (subst eventually_INF_base)
+     (auto simp: eventually_principal Bex_def subset_eq intro: exI[of _ "min a b" for a b])
 
 lemma eventually_at:
   fixes a :: "'a :: metric_space"
@@ -1492,34 +1505,6 @@ lemma eventually_at_le:
   apply (rule_tac x="d / 2" in exI)
   apply auto
   done
-
-lemma tendstoI:
-  fixes l :: "'a :: metric_space"
-  assumes "\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F"
-  shows "(f ---> l) F"
-  apply (rule topological_tendstoI)
-  apply (simp add: open_dist)
-  apply (drule (1) bspec, clarify)
-  apply (drule assms)
-  apply (erule eventually_elim1, simp)
-  done
-
-lemma tendstoD:
-  fixes l :: "'a :: metric_space"
-  shows "(f ---> l) F \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F"
-  apply (drule_tac S="{x. dist x l < e}" in topological_tendstoD)
-  apply (clarsimp simp add: open_dist)
-  apply (rule_tac x="e - dist x l" in exI, clarsimp)
-  apply (simp only: less_diff_eq)
-  apply (erule le_less_trans [OF dist_triangle])
-  apply simp
-  apply simp
-  done
-
-lemma tendsto_iff:
-  fixes l :: "'a :: metric_space"
-  shows "(f ---> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
-  using tendstoI tendstoD by fast
 
 lemma metric_tendsto_imp_tendsto:
   fixes a :: "'a :: metric_space" and b :: "'b :: metric_space"
@@ -1786,49 +1771,31 @@ lemma tendsto_at_topI_sequentially:
   fixes f :: "real \<Rightarrow> 'b::first_countable_topology"
   assumes *: "\<And>X. filterlim X at_top sequentially \<Longrightarrow> (\<lambda>n. f (X n)) ----> y"
   shows "(f ---> y) at_top"
-  unfolding filterlim_iff
-proof safe
-  fix P assume "eventually P (nhds y)"
-  then have seq: "\<And>f. f ----> y \<Longrightarrow> eventually (\<lambda>x. P (f x)) at_top"
-    unfolding eventually_nhds_iff_sequentially by simp
+proof -
+  from nhds_countable[of y] guess A . note A = this
 
-  show "eventually (\<lambda>x. P (f x)) at_top"
+  have "\<forall>m. \<exists>k. \<forall>x\<ge>k. f x \<in> A m"
   proof (rule ccontr)
-    assume "\<not> eventually (\<lambda>x. P (f x)) at_top"
-    then have "\<And>X. \<exists>x>X. \<not> P (f x)"
-      unfolding eventually_at_top_dense by simp
-    then obtain r where not_P: "\<And>x. \<not> P (f (r x))" and r: "\<And>x. x < r x"
-      by metis
-    
-    def s \<equiv> "rec_nat (r 0) (\<lambda>_ x. r (x + 1))"
-    then have [simp]: "s 0 = r 0" "\<And>n. s (Suc n) = r (s n + 1)"
+    assume "\<not> (\<forall>m. \<exists>k. \<forall>x\<ge>k. f x \<in> A m)"
+    then obtain m where "\<And>k. \<exists>x\<ge>k. f x \<notin> A m"
       by auto
-
-    { fix n have "n < s n" using r
-        by (induct n) (auto simp add: real_of_nat_Suc intro: less_trans add_strict_right_mono) }
-    note s_subseq = this
-
-    have "mono s"
-    proof (rule incseq_SucI)
-      fix n show "s n \<le> s (Suc n)"
-        using r[of "s n + 1"] by simp
-    qed
-
-    have "filterlim s at_top sequentially"
-      unfolding filterlim_at_top_gt[where c=0] eventually_sequentially
-    proof (safe intro!: exI)
-      fix Z :: real and n assume "0 < Z" "natceiling Z \<le> n"
-      with real_natceiling_ge[of Z] `n < s n`
-      show "Z \<le> s n"
-        by auto
-    qed
-    moreover then have "eventually (\<lambda>x. P (f (s x))) sequentially"
-      by (rule seq[OF *])
-    then obtain n where "P (f (s n))"
-      by (auto simp: eventually_sequentially)
-    then show False
-      using not_P by (cases n) auto
+    then have "\<exists>X. \<forall>n. (f (X n) \<notin> A m) \<and> max n (X n) + 1 \<le> X (Suc n)"
+      by (intro dependent_nat_choice) (auto simp del: max.bounded_iff)
+    then obtain X where X: "\<And>n. f (X n) \<notin> A m" "\<And>n. max n (X n) + 1 \<le> X (Suc n)"
+      by auto
+    { fix n have "1 \<le> n \<longrightarrow> real n \<le> X n"
+        using X[of "n - 1"] by auto }
+    then have "filterlim X at_top sequentially"
+      by (force intro!: filterlim_at_top_mono[OF filterlim_real_sequentially]
+                simp: eventually_sequentially)
+    from topological_tendstoD[OF *[OF this] A(2, 3), of m] X(1) show False
+      by auto
   qed
+  then obtain k where "\<And>m x. k m \<le> x \<Longrightarrow> f x \<in> A m"
+    by metis
+  then show ?thesis
+    unfolding at_top_def A
+    by (intro filterlim_base[where i=k]) auto
 qed
 
 lemma tendsto_at_topI_sequentially_real:

@@ -175,6 +175,12 @@ lemma lessThan_strict_subset_iff:
   shows "{..<m} < {..<n} \<longleftrightarrow> m < n"
   by (metis leD lessThan_subset_iff linorder_linear not_less_iff_gr_or_eq psubset_eq)
 
+lemma (in linorder) Ici_subset_Ioi_iff: "{a ..} \<subseteq> {b <..} \<longleftrightarrow> b < a"
+  by auto
+
+lemma (in linorder) Iic_subset_Iio_iff: "{.. a} \<subseteq> {..< b} \<longleftrightarrow> a < b"
+  by auto
+
 subsection {*Two-sided intervals*}
 
 context ord

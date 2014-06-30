@@ -4616,41 +4616,31 @@ lemma continuous_at_eps_delta:
   using continuous_within_eps_delta [of x UNIV f] by simp
 
 lemma continuous_at_right_real_increasing:
-  assumes nondecF: "\<And> x y. x \<le> y \<Longrightarrow> f x \<le> ((f y) :: real)"
-  shows "(continuous (at_right (a :: real)) f) = (\<forall>e > 0. \<exists>delta > 0. f (a + delta) - f a < e)"
-  apply (auto simp add: continuous_within_eps_delta dist_real_def greaterThan_def)
-  apply (drule_tac x = e in spec, auto)
-  apply (drule_tac x = "a + d / 2" in spec)
-  apply (subst (asm) abs_of_nonneg)
-  apply (auto intro: nondecF simp add: field_simps)
-  apply (rule_tac x = "d / 2" in exI)
-  apply (auto simp add: field_simps)
-  apply (drule_tac x = e in spec, auto)
-  apply (rule_tac x = delta in exI, auto)
-  apply (subst abs_of_nonneg)
-  apply (auto intro: nondecF simp add: field_simps)
-  apply (rule le_less_trans)
-  prefer 2 apply assumption
-by (rule nondecF, auto)
+  fixes f :: "real \<Rightarrow> real"
+  assumes nondecF: "\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y"
+  shows "continuous (at_right a) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. f (a + d) - f a < e)"
+  apply (simp add: greaterThan_def dist_real_def continuous_within Lim_within_le)
+  apply (intro all_cong ex_cong)
+  apply safe
+  apply (erule_tac x="a + d" in allE)
+  apply simp
+  apply (simp add: nondecF field_simps)
+  apply (drule nondecF)
+  apply simp
+  done
 
 lemma continuous_at_left_real_increasing:
   assumes nondecF: "\<And> x y. x \<le> y \<Longrightarrow> f x \<le> ((f y) :: real)"
   shows "(continuous (at_left (a :: real)) f) = (\<forall>e > 0. \<exists>delta > 0. f a - f (a - delta) < e)"
-  apply (auto simp add: continuous_within_eps_delta dist_real_def lessThan_def)
-  apply (drule_tac x = e in spec, auto)
-  apply (drule_tac x = "a - d / 2" in spec)
-  apply (subst (asm) abs_of_nonpos)
-  apply (auto intro: nondecF simp add: field_simps)
-  apply (rule_tac x = "d / 2" in exI)
-  apply (auto simp add: field_simps)
-  apply (drule_tac x = e in spec, auto)
-  apply (rule_tac x = delta in exI, auto)
-  apply (subst abs_of_nonpos)
-  apply (auto intro: nondecF simp add: field_simps)
-  apply (rule less_le_trans)
-  apply assumption
-  apply auto
-by (rule nondecF, auto)
+  apply (simp add: lessThan_def dist_real_def continuous_within Lim_within_le)
+  apply (intro all_cong ex_cong)
+  apply safe
+  apply (erule_tac x="a - d" in allE)
+  apply simp
+  apply (simp add: nondecF field_simps)
+  apply (cut_tac x="a - d" and y="x" in nondecF)
+  apply simp_all
+  done
 
 text{* Versions in terms of open balls. *}
 

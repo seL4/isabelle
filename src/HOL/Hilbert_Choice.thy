@@ -99,14 +99,14 @@ lemma bchoice_iff': "(\<forall>x\<in>S. P x \<longrightarrow> (\<exists>y. Q x y
 by (fast elim: someI)
 
 lemma dependent_nat_choice:
-  assumes  1: "\<exists>x. P x" and 
-           2: "\<And>x n. P x \<Longrightarrow> \<exists>y. P y \<and> Q n x y"
-  shows "\<exists>f. \<forall>n. P (f n) \<and> Q n (f n) (f (Suc n))"
+  assumes  1: "\<exists>x. P 0 x" and 
+           2: "\<And>x n. P n x \<Longrightarrow> \<exists>y. P (Suc n) y \<and> Q n x y"
+  shows "\<exists>f. \<forall>n. P n (f n) \<and> Q n (f n) (f (Suc n))"
 proof (intro exI allI conjI)
-  fix n def f \<equiv> "rec_nat (SOME x. P x) (\<lambda>n x. SOME y. P y \<and> Q n x y)"
-  then have "P (f 0)" "\<And>n. P (f n) \<Longrightarrow> P (f (Suc n)) \<and> Q n (f n) (f (Suc n))"
+  fix n def f \<equiv> "rec_nat (SOME x. P 0 x) (\<lambda>n x. SOME y. P (Suc n) y \<and> Q n x y)"
+  have "P 0 (f 0)" "\<And>n. P n (f n) \<Longrightarrow> P (Suc n) (f (Suc n)) \<and> Q n (f n) (f (Suc n))"
     using someI_ex[OF 1] someI_ex[OF 2] by (simp_all add: f_def)
-  then show "P (f n)" "Q n (f n) (f (Suc n))"
+  then show "P n (f n)" "Q n (f n) (f (Suc n))"
     by (induct n) auto
 qed
 

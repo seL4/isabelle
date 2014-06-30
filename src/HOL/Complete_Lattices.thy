@@ -415,6 +415,15 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma INF_inf_const1:
+  "I \<noteq> {} \<Longrightarrow> (INF i:I. inf x (f i)) = inf x (INF i:I. f i)"
+  by (intro antisym INF_greatest inf_mono order_refl INF_lower)
+     (auto intro: INF_lower2 le_infI2 intro!: INF_mono)
+
+lemma INF_inf_const2:
+  "I \<noteq> {} \<Longrightarrow> (INF i:I. inf (f i) x) = inf (INF i:I. f i) x"
+  using INF_inf_const1[of I x f] by (simp add: inf_commute)
+
 lemma INF_constant:
   "(\<Sqinter>y\<in>A. c) = (if A = {} then \<top> else c)"
   by simp
