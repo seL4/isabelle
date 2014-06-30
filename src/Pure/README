@@ -3,18 +3,14 @@
 
 
 This directory contains the ML source files for Pure Isabelle, which
-is the basis for all object-logics.  The Isabelle/Pure image may be
-compiled in batch mode like this:
+is the basis for all object-logics.  Building the Isabelle/Pure heap
+image in batch mode works as for any other session:
 
-  isabelle make Pure
+  isabelle build -b Pure
 
-Developers may want to produce a RAW image that merely consists of the
-ML compiler with the compatibility setup of ML-Systems/ preloaded:
+To explore the bootstrap of Pure interactively, the raw ML console can
+be used like this:
 
-  isabelle make RAW
-
-Now the Pure session may be compiled interactively as follows:
-
-  isabelle tty -l RAW
+  isabelle console -l RAW
   use "ROOT.ML";
 
