@@ -9,7 +9,7 @@ theory Arith2
 imports Main
 begin
 
-definition "cd" :: "[nat, nat, nat] => bool"
+definition cd :: "[nat, nat, nat] => bool"
   where "cd x m n \<longleftrightarrow> x dvd m & x dvd n"
 
 definition gcd :: "[nat, nat] => nat"

@@ -85,7 +85,7 @@ lemma diamond_par_beta: "diamond par_beta"
 subsection {* Complete developments *}
 
 fun
-  "cd" :: "dB => dB"
+  cd :: "dB => dB"
 where
   "cd (Var n) = Var n"
 | "cd (Var n \<degree> t) = Var n \<degree> cd t"

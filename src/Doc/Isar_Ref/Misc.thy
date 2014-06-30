@@ -112,39 +112,4 @@ text {*
   \end{description}
 *}
 
-
-section {* System commands *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "cd"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
-    @{command_def "pwd"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
-    @{command_def "use_thy"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
-  \end{matharray}
-
-  @{rail \<open>
-    (@@{command cd} | @@{command use_thy}) @{syntax name}
-  \<close>}
-
-  \begin{description}
-
-  \item @{command "cd"}~@{text path} changes the current directory
-  of the Isabelle process.
-
-  \item @{command "pwd"} prints the current working directory.
-
-  \item @{command "use_thy"}~@{text A} preloads theory @{text A}.
-  These system commands are scarcely used when working interactively,
-  since loading of theories is done automatically as required.
-
-  \end{description}
-
-  %FIXME proper place (!?)
-  Isabelle file specification may contain path variables (e.g.\
-  @{verbatim "$ISABELLE_HOME"}) that are expanded accordingly.  Note
-  that @{verbatim "~"} abbreviates @{verbatim "$USER_HOME"}, and
-  @{verbatim "~~"} abbreviates @{verbatim "$ISABELLE_HOME"}.  The
-  general syntax for path specifications follows POSIX conventions.
-*}
-
 end

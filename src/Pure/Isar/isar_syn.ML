@@ -965,14 +965,6 @@ val _ =
 (** system commands (for interactive mode only) **)
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "cd"} "change current working directory"
-    (Parse.path >> (fn name => Toplevel.imperative (fn () => File.cd (Path.explode name))));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "pwd"} "print current working directory"
-    (Scan.succeed (Toplevel.imperative (fn () => writeln (Path.print (File.pwd ())))));
-
-val _ =
   Outer_Syntax.improper_command @{command_spec "use_thy"} "use theory file"
     (Parse.position Parse.name >>
       (fn name => Toplevel.imperative (fn () => Thy_Info.use_thy name)));
