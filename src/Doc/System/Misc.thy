@@ -309,41 +309,6 @@ Usage: isabelle doc [DOC ...]
 *}
 
 
-section {* Proof General / Emacs *}
-
-text {* The @{tool_def emacs} tool invokes a version of Emacs and
-  Proof General\footnote{@{url "http://proofgeneral.inf.ed.ac.uk/"}} within the
-  regular Isabelle settings environment (\secref{sec:settings}).  This
-  is more convenient than starting Emacs separately, loading the Proof
-  General LISP files, and then attempting to start Isabelle with
-  dynamic @{setting PATH} lookup etc., although it might fail if a
-  different version of Proof General is already part of the Emacs
-  installation of the operating system.
-
-  The actual interface script is part of the Proof General
-  distribution; its usage depends on the particular version.  There
-  are some options available, such as @{verbatim "-l"} for passing the
-  logic image to be used by default, or @{verbatim "-m"} to tune the
-  standard print mode of the prover process.  The following Isabelle
-  settings are particularly important for Proof General:
-
-  \begin{description}
-
-  \item[@{setting_def PROOFGENERAL_HOME}] points to the main
-  installation directory of the Proof General distribution.  This is
-  implicitly provided for versions of Proof General that are
-  distributed as Isabelle component, see also \secref{sec:components};
-  otherwise it needs to be configured manually.
-
-  \item[@{setting_def PROOFGENERAL_OPTIONS}] is implicitly prefixed to
-  the command line of any invocation of the Proof General @{verbatim
-  interface} script.  This allows to provide persistent default
-  options for the invocation of \texttt{isabelle emacs}.
-
-  \end{description}
-*}
-
-
 section {* Shell commands within the settings environment \label{sec:tool-env} *}
 
 text {* The @{tool_def env} tool is a direct wrapper for the standard

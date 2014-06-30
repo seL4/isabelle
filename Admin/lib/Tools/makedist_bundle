@@ -96,7 +96,7 @@ do
             COMPONENT="$REPLY"
             COMPONENT_DIR="$ISABELLE_TARGET/contrib/$COMPONENT"
             case "$COMPONENT" in
-              jedit_build* | ProofGeneral*) ;;
+              jedit_build*) ;;
               *)
                 echo "  component $COMPONENT"
                 CONTRIB="$ARCHIVE_DIR/contrib/${COMPONENT}.tar.gz"

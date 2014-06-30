@@ -872,6 +872,12 @@ purposes.
 
 *** System ***
 
+* Proof General with its traditional helper scripts is now an optional
+Isabelle component, e.g. ProofGeneral-4.2-2 from the Isabelle
+component repository http://isabelle.in.tum.de/components/.  See also
+the "system" manual for general explanations about add-on components,
+notably those that are not bundled with the normal release.
+
 * Session ROOT specifications require explicit 'document_files' for
 robust dependencies on LaTeX sources.  Only these explicitly given
 files are copied to the document output directory, before document
