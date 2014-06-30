@@ -23,7 +23,7 @@ unset XMODIFIERS
 
 
 ###
-### Interactive sessions (cf. isabelle tty)
+### Interactive sessions (cf. isabelle console)
 ###
 
 ISABELLE_LINE_EDITOR="rlwrap"
