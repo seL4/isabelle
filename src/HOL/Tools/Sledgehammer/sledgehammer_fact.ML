@@ -488,6 +488,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
         if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
+            Long_Name.is_hidden (Facts.intern facts name0) orelse
             (not generous andalso is_blacklisted_or_something name0)) then
           accum
         else
@@ -500,7 +501,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
                 NONE => false
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths'))
           in
-            snd (fold_rev (fn th => fn (j, accum as (uni_accum, multi_accum)) =>
+            snd (fold_rev (fn th => fn (j, accum) =>
               (j - 1,
                if not (member Thm.eq_thm_prop add_ths th) andalso
                   (is_likely_tautology_too_meta_or_too_technical th orelse
@@ -508,21 +509,26 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
                  accum
                else
                  let
-                   val new =
-                     (((fn () =>
-                           if name0 = "" then
-                             backquote_thm ctxt th
-                           else
-                             [Facts.extern ctxt facts name0,
-                              Name_Space.extern ctxt full_space name0]
-                             |> find_first check_thms
-                             |> the_default name0
-                             |> make_name reserved multi j),
-                        stature_of_thm global assms chained css name0 th),
-                      th)
+                   fun get_name () =
+                     if name0 = "" then
+                       backquote_thm ctxt th
+                     else
+                       let val short_name = Facts.extern ctxt facts name0 in
+                         if check_thms short_name then
+                           short_name
+                         else
+                           let val long_name = Name_Space.extern ctxt full_space name0 in
+                             if check_thms long_name then
+                               long_name
+                             else
+                               name0
+                           end
+                       end
+                       |> make_name reserved multi j
+                   val stature = stature_of_thm global assms chained css name0 th
+                   val new = ((get_name, stature), th)
                  in
-                   if multi then (uni_accum, new :: multi_accum)
-                   else (new :: uni_accum, multi_accum)
+                   (if multi then apsnd else apfst) (cons new) accum
                  end)) ths (n, accum))
           end)
   in
