@@ -948,6 +948,13 @@ The inductive theorems are as follows:
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
+\item[@{text "t."}\hthm{rel\_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct pred]"}\rm:] ~ \\
+@{thm list.rel_induct[no_vars]}
+
+\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel\_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
+prove $m$ properties simultaneously.
+
 \item[@{text "t."}\hthm{rec} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]}
