@@ -9,14 +9,8 @@ signature MASH_EVAL =
 sig
   type params = Sledgehammer_Prover.params
 
-  val MePoN : string
-  val MaSh_IsarN : string
-  val MaSh_ProverN : string
-  val MeSh_IsarN : string
-  val MeSh_ProverN : string
-  val IsarN : string
-  val evaluate_mash_suggestions : Proof.context -> params -> int * int option -> string list ->
-    string option -> string -> string -> string -> string -> string -> string -> unit
+  val evaluate_mash_suggestions : Proof.context -> params -> int * int option -> string option ->
+    string list -> string -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
@@ -33,15 +27,7 @@ open MaSh_Export
 
 val prefix = Library.prefix
 
-val MaSh_IsarN = MaShN ^ "-Isar"
-val MaSh_ProverN = MaShN ^ "-Prover"
-val MeSh_IsarN = MeShN ^ "-Isar"
-val MeSh_ProverN = MeShN ^ "-Prover"
-val IsarN = "Isar"
-
-fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_name
-    mash_isar_file_name mash_prover_file_name mesh_isar_file_name mesh_prover_file_name
-    report_file_name =
+fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_file_name =
   let
     val thy = Proof_Context.theory_of ctxt
     val zeros = [0, 0, 0, 0, 0, 0]
@@ -53,20 +39,19 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} = default_params thy []
     val prover = hd provers
     val max_suggs = generous_max_suggestions (the max_facts)
+
+    val method_of_file_name =
+      perhaps (try (unsuffix "_suggestions")) o List.last o space_explode "/"
+
+    val methods = "isar" :: map method_of_file_name file_names
     val lines_of = Path.explode #> try File.read_lines #> these
-    val file_names =
-      [mepo_file_name, mash_isar_file_name, mash_prover_file_name,
-       mesh_isar_file_name, mesh_prover_file_name]
-    val lines as [mepo_lines, mash_isar_lines, mash_prover_lines,
-                  mesh_isar_lines, mesh_prover_lines] =
-      map lines_of file_names
-    val num_lines = fold (Integer.max o length) lines 0
+    val liness0 = map lines_of file_names
+    val num_lines = fold (Integer.max o length) liness0 0
 
     fun pad lines = lines @ replicate (num_lines - length lines) ""
 
-    val lines =
-      pad mepo_lines ~~ pad mash_isar_lines ~~ pad mash_prover_lines ~~
-      pad mesh_isar_lines ~~ pad mesh_prover_lines
+    val liness = map pad liness0
+
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
     val name_tabs = build_name_tables nickname_of_thm facts
@@ -95,19 +80,12 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
                   |> space_implode " "))
       end
 
-    fun solve_goal (j, ((((mepo_line, mash_isar_line), mash_prover_line), mesh_isar_line),
-        mesh_prover_line)) =
+    fun solve_goal (j, lines) =
       if in_range range j then
         let
           val get_suggs = extract_suggestions ##> (take max_suggs #> map fst)
-          val (name1, mepo_suggs) = get_suggs mepo_line
-          val (name2, mash_isar_suggs) = get_suggs mash_isar_line
-          val (name3, mash_prover_suggs) = get_suggs mash_prover_line
-          val (name4, mesh_isar_suggs) = get_suggs mesh_isar_line
-          val (name5, mesh_prover_suggs) = get_suggs mesh_prover_line
-          val [name] =
-            [name1, name2, name3, name4, name5]
-            |> filter (curry (op <>) "") |> distinct (op =)
+          val (names, suggss0) = split_list (map get_suggs lines)
+          val [name] = names |> filter (curry (op <>) "") |> distinct (op =)
             handle General.Match => error "Input files out of sync."
           val th =
             case find_first (fn (_, th) => nickname_of_thm th = name) facts of
@@ -116,6 +94,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
           val isar_deps = these (isar_dependencies_of name_tabs th)
+          val suggss = isar_deps :: suggss0
           val facts = facts |> filter (fn (_, th') => thm_less (th', th))
 
           (* adapted from "mirabelle_sledgehammer.ML" *)
@@ -130,7 +109,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
             | set_file_name _ NONE = I
 
           fun prove method suggs =
-            if not (member (op =) methods method) orelse (null facts andalso method <> IsarN) then
+            if null facts then
               (str_of_method method ^ "Skipped", 0)
             else
               let
@@ -151,14 +130,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
                 (str_of_result method facts res, ok)
               end
 
-          val ress =
-            [fn () => prove MePoN mepo_suggs,
-             fn () => prove MaSh_IsarN mash_isar_suggs,
-             fn () => prove MaSh_ProverN mash_prover_suggs,
-             fn () => prove MeSh_IsarN mesh_isar_suggs,
-             fn () => prove MeSh_ProverN mesh_prover_suggs,
-             fn () => prove IsarN isar_deps]
-            |> (* Par_List. *) map (fn f => f ())
+          val ress = map2 prove methods suggss
         in
           "Goal " ^ string_of_int j ^ ": " ^ name :: map fst ress
           |> cat_lines |> print;
@@ -166,10 +138,6 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
         end
       else
         zeros
-
-    fun total_of method ok n =
-      str_of_method method ^ string_of_int ok ^ " (" ^ Real.fmt (StringCvt.FIX (SOME 1))
-        (100.0 * Real.fromInt ok / Real.fromInt (Int.max (1, n))) ^ "%)"
 
     val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
@@ -182,18 +150,17 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name mepo_file_
        "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]
     val _ = print " * * *";
     val _ = print ("Options: " ^ commas options);
-    val oks = Par_List.map solve_goal (tag_list 1 lines)
+    val oks = Par_List.map solve_goal (tag_list 1 liness)
     val n = length oks
-    val [mepo_ok, mash_isar_ok, mash_prover_ok, mesh_isar_ok, mesh_prover_ok, isar_ok] =
-      if n = 0 then zeros else map Integer.sum (map_transpose I oks)
+
+    fun total_of method ok =
+      str_of_method method ^ string_of_int ok ^ " (" ^ Real.fmt (StringCvt.FIX (SOME 1))
+        (100.0 * Real.fromInt ok / Real.fromInt (Int.max (1, n))) ^ "%)"
+
+    val oks' = if n = 0 then zeros else map Integer.sum (map_transpose I oks)
   in
-    ["Successes (of " ^ string_of_int n ^ " goals)",
-     total_of MePoN mepo_ok n,
-     total_of MaSh_IsarN mash_isar_ok n,
-     total_of MaSh_ProverN mash_prover_ok n,
-     total_of MeSh_IsarN mesh_isar_ok n,
-     total_of MeSh_ProverN mesh_prover_ok n,
-     total_of IsarN isar_ok n]
+    "Successes (of " ^ string_of_int n ^ " goals)" ::
+    map2 total_of methods oks'
     |> cat_lines |> print
   end
 

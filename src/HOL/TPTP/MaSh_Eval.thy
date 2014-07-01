@@ -11,11 +11,8 @@ begin
 ML_file "mash_eval.ML"
 
 sledgehammer_params
-  [provers = spass, max_facts = 32, strict, dont_slice, type_enc = mono_native,
-   lam_trans = lifting, timeout = 15, dont_preplay, minimize]
-
-declare [[sledgehammer_fact_duplicates = true]]
-declare [[sledgehammer_instantiate_inducts = false]]
+  [provers = e, max_facts = 64, strict, dont_slice, type_enc = poly_guards??,
+   lam_trans = combs, timeout = 30, dont_preplay, minimize]
 
 ML {*
 Multithreading.max_threads_value ()
@@ -43,15 +40,13 @@ else
 
 ML {*
 if do_it then
-  evaluate_mash_suggestions @{context} params range
-      [MePoN, MaSh_IsarN, MaSh_ProverN, MeSh_IsarN, MeSh_ProverN, IsarN]
-      (SOME prob_dir)
-      (prefix ^ "mepo_suggestions")
-      (prefix ^ "mash_suggestions")
-      (prefix ^ "mash_prover_suggestions")
-      (prefix ^ "mesh_suggestions")
-      (prefix ^ "mesh_prover_suggestions")
-      (prefix ^ "mash_eval")
+  evaluate_mash_suggestions @{context} params range (SOME prob_dir)
+    [prefix ^ "mepo_suggestions",
+     prefix ^ "mash_suggestions",
+     prefix ^ "mash_prover_suggestions",
+     prefix ^ "mesh_suggestions",
+     prefix ^ "mesh_prover_suggestions"]
+    (prefix ^ "mash_eval")
 else
   ()
 *}
