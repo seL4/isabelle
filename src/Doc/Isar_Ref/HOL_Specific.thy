@@ -1065,14 +1065,16 @@ text {*
   produces a type constructor @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} depending on
   those type arguments.
 
-  The axiomatization can be considered a ``definition'' in the sense
-  of the particular set-theoretic interpretation of HOL
-  \cite{pitts93}, where the universe of types is required to be
-  downwards-closed wrt.\ arbitrary non-empty subsets.  Thus genuinely
-  new types introduced by @{command "typedef"} stay within the range
-  of HOL models by construction.  Note that @{command_ref
-  type_synonym} from Isabelle/Pure merely introduces syntactic
-  abbreviations, without any logical significance.
+  The axiomatization can be considered a ``definition'' in the sense of the
+  particular set-theoretic interpretation of HOL \cite{pitts93}, where the
+  universe of types is required to be downwards-closed wrt.\ arbitrary
+  non-empty subsets. Thus genuinely new types introduced by @{command
+  "typedef"} stay within the range of HOL models by construction.
+
+  In contrast, the command @{command_ref type_synonym} from Isabelle/Pure
+  merely introduces syntactic abbreviations, without any logical
+  significance. Thus it is more faithful to the idea of a genuine type
+  definition, but less powerful in practice.
 
   @{rail \<open>
     @@{command (HOL) typedef} abs_type '=' rep_set
@@ -1084,12 +1086,12 @@ text {*
 
   \begin{description}
 
-  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"}
-  axiomatizes a type definition in the background theory of the
-  current context, depending on a non-emptiness result of the set
-  @{text A} that needs to be proven here.  The set @{text A} may
-  contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} as specified on the LHS,
-  but no term variables.
+  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} produces an
+  axiomatization (\secref{sec:basic-spec}) for a type definition in the
+  background theory of the current context, depending on a non-emptiness
+  result of the set @{text A} that needs to be proven here. The set @{text
+  A} may contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} as specified on the
+  LHS, but no term variables.
 
   Even though a local theory specification, the newly introduced type
   constructor cannot depend on parameters or assumptions of the

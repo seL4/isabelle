@@ -300,10 +300,15 @@ text {*
   once and for all, which prevents additional specifications being
   issued later on.
   
-  Note that axiomatic specifications are only appropriate when
-  declaring a new logical system; axiomatic specifications are
-  restricted to global theory contexts.  Normal applications should
-  only use definitional mechanisms!
+  Axiomatic specifications are required when declaring a new logical system
+  within Isabelle/Pure, but in an application environment like
+  Isabelle/HOL the user normally stays within definitional mechanisms
+  provided by the logic and its libraries.
+
+  Axiomatization is restricted to a global theory context. Despite the
+  possibility to mark some constants as specified by a particular
+  axiomatization, the dependency tracking may be insufficient and disrupt
+  the well-formedness of an otherwise definitional theory.
 
   \item @{command "definition"}~@{text "c \<WHERE> eq"} produces an
   internal definition @{text "c \<equiv> t"} according to the specification
