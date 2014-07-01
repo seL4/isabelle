@@ -34,17 +34,18 @@ sig
   val decode_strs : string -> string list
 
   datatype mash_engine =
-    MaSh_kNN
-  | MaSh_kNN_Ext
-  | MaSh_NB
+    MaSh_NB
+  | MaSh_kNN
+  | MaSh_NB_kNN
   | MaSh_NB_Ext
+  | MaSh_kNN_Ext
 
   val is_mash_enabled : unit -> bool
   val the_mash_engine : unit -> mash_engine
 
+  val mesh_facts : ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list -> 'a list
   val nickname_of_thm : thm -> string
   val find_suggested_facts : Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
-  val mesh_facts : ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list -> 'a list
   val crude_thm_ord : thm * thm -> order
   val thm_less : thm * thm -> bool
   val goal_of_thm : theory -> thm -> thm
@@ -138,35 +139,69 @@ fun wipe_out_mash_state_dir () =
   end
 
 datatype mash_engine =
-  MaSh_kNN
-| MaSh_kNN_Ext
-| MaSh_NB
+  MaSh_NB
+| MaSh_kNN
+| MaSh_NB_kNN
 | MaSh_NB_Ext
+| MaSh_kNN_Ext
 
 fun mash_engine () =
   let val flag1 = Options.default_string @{system_option MaSh} in
     (case if flag1 <> "none" (* default *) then flag1 else getenv "MASH" of
-      "yes" => SOME MaSh_NB
-    | "sml" => SOME MaSh_NB
-    | "knn" => SOME MaSh_kNN
-    | "knn_ext" => SOME MaSh_kNN_Ext
+      "yes" => SOME MaSh_NB_kNN
+    | "sml" => SOME MaSh_NB_kNN
     | "nb" => SOME MaSh_NB
+    | "knn" => SOME MaSh_kNN
+    | "nb_knn" => SOME MaSh_NB_kNN
     | "nb_ext" => SOME MaSh_NB_Ext
-    | _ => NONE)
+    | "knn_ext" => SOME MaSh_kNN_Ext
+    | engine => (warning ("Unknown MaSh engine: " ^ quote engine ^ "."); NONE))
   end
 
 val is_mash_enabled = is_some o mash_engine
-val the_mash_engine = the_default MaSh_NB o mash_engine
+val the_mash_engine = the_default MaSh_NB_kNN o mash_engine
 
+fun scaled_avg [] = 0
+  | scaled_avg xs = Real.ceil (100000000.0 * fold (curry (op +)) xs 0.0) div length xs
 
-(*** Isabelle-agnostic machine learning ***)
+fun avg [] = 0.0
+  | avg xs = fold (curry (op +)) xs 0.0 / Real.fromInt (length xs)
 
-structure MaSh =
-struct
+fun normalize_scores _ [] = []
+  | normalize_scores max_facts xs =
+    map (apsnd (curry Real.* (1.0 / avg (map snd (take max_facts xs))))) xs
 
-fun heap cmp bnd al a =
+fun mesh_facts fact_eq max_facts [(_, (sels, unks))] =
+    distinct fact_eq (map fst (take max_facts sels) @ take (max_facts - length sels) unks)
+  | mesh_facts fact_eq max_facts mess =
+    let
+      val mess = mess |> map (apsnd (apfst (normalize_scores max_facts)))
+
+      fun score_in fact (global_weight, (sels, unks)) =
+        let val score_at = try (nth sels) #> Option.map (fn (_, score) => global_weight * score) in
+          (case find_index (curry fact_eq fact o fst) sels of
+            ~1 => if member fact_eq unks fact then NONE else SOME 0.0
+          | rank => score_at rank)
+        end
+
+      fun weight_of fact = mess |> map_filter (score_in fact) |> scaled_avg
+    in
+      fold (union fact_eq o map fst o take max_facts o fst o snd) mess []
+      |> map (`weight_of) |> sort (int_ord o pairself fst o swap)
+      |> map snd |> take max_facts
+    end
+
+fun smooth_weight_of_fact rank = Math.pow (1.3, 15.5 - 0.2 * Real.fromInt rank) + 15.0 (* FUDGE *)
+fun steep_weight_of_fact rank = Math.pow (0.62, log2 (Real.fromInt (rank + 1))) (* FUDGE *)
+
+fun weight_facts_smoothly facts = facts ~~ map smooth_weight_of_fact (0 upto length facts - 1)
+fun weight_facts_steeply facts = facts ~~ map steep_weight_of_fact (0 upto length facts - 1)
+
+fun rev_sort_array_prefix cmp bnd a =
   let
     exception BOTTOM of int
+
+    val al = Array.length a
 
     fun maxson l i =
       let val i31 = i + i + i + 1 in
@@ -231,85 +266,23 @@ fun heap cmp bnd al a =
       ()
   end
 
-val number_of_nearest_neighbors = 10 (* FUDGE *)
+fun rev_sort_list_prefix cmp bnd xs =
+  let val ary = Array.fromList xs in
+    rev_sort_array_prefix cmp bnd ary;
+    Array.foldr (op ::) [] ary
+  end
+
+
+(*** Isabelle-agnostic machine learning ***)
+
+structure MaSh =
+struct
 
 fun select_visible_facts big_number recommends =
   List.app (fn at =>
     let val (j, ov) = Array.sub (recommends, at) in
       Array.update (recommends, at, (j, big_number + ov))
     end)
-
-fun k_nearest_neighbors dffreq num_facts depss feat_facts max_suggs visible_facts goal_feats =
-  let
-    exception EXIT of unit
-
-    val ln_afreq = Math.ln (Real.fromInt num_facts)
-    fun tfidf feat = ln_afreq - Math.ln (Real.fromInt (Vector.sub (dffreq, feat)))
-
-    val overlaps_sqr = Array.tabulate (num_facts, rpair 0.0)
-
-    fun do_feat (s, sw0) =
-      let
-        val sw = sw0 * tfidf s
-        val w2 = sw * sw
-
-        fun inc_overlap j =
-          let val (_, ov) = Array.sub (overlaps_sqr, j) in
-            Array.update (overlaps_sqr, j, (j, w2 + ov))
-          end
-      in
-        List.app inc_overlap (Array.sub (feat_facts, s))
-      end
-
-    val _ = List.app do_feat goal_feats
-    val _ = heap (Real.compare o pairself snd) num_facts num_facts overlaps_sqr
-    val no_recommends = Unsynchronized.ref 0
-    val recommends = Array.tabulate (num_facts, rpair 0.0)
-    val age = Unsynchronized.ref 500000000.0
-
-    fun inc_recommend j v =
-      let val (_, ov) = Array.sub (recommends, j) in
-        if ov <= 0.0 then
-          (no_recommends := !no_recommends + 1; Array.update (recommends, j, (j, !age + ov)))
-        else if ov < !age + 1000.0 then
-          Array.update (recommends, j, (j, v + ov))
-        else
-          ()
-      end
-
-    val k = Unsynchronized.ref 0
-    fun do_k k =
-      if k >= num_facts then
-        raise EXIT ()
-      else
-        let
-          val (j, o2) = Array.sub (overlaps_sqr, num_facts - k - 1)
-          val o1 = Math.sqrt o2
-          val _ = inc_recommend j o1
-          val ds = Vector.sub (depss, j)
-          val l = Real.fromInt (length ds)
-        in
-          List.app (fn d => inc_recommend d (o1 / l)) ds
-        end
-
-    fun while1 () =
-      if !k = number_of_nearest_neighbors then () else (do_k (!k); k := !k + 1; while1 ())
-      handle EXIT () => ()
-
-    fun while2 () =
-      if !no_recommends >= max_suggs then ()
-      else (do_k (!k); k := !k + 1; age := !age - 10000.0; while2 ())
-      handle EXIT () => ()
-
-    fun ret acc at =
-      if at = num_facts then acc else ret (Array.sub (recommends, at) :: acc) (at + 1)
-  in
-    while1 ();
-    while2 ();
-    select_visible_facts 1000000000.0 recommends visible_facts;
-    heap (Real.compare o pairself snd) max_suggs num_facts recommends;
-    ret [] (Integer.max 0 (num_facts - max_suggs))
-  end
 
 fun wider_array_of_vector init vec =
   let val ary = Array.array init in
@@ -389,8 +362,86 @@ fun naive_bayes (tfreq, sfreq, dffreq) num_facts max_suggs visible_facts goal_fe
       if at = num_facts then acc else ret (at + 1) (Array.sub (posterior, at) :: acc)
   in
     select_visible_facts 100000.0 posterior visible_facts;
-    heap (Real.compare o pairself snd) max_suggs num_facts posterior;
+    rev_sort_array_prefix (Real.compare o pairself snd) max_suggs posterior;
     ret (Integer.max 0 (num_facts - max_suggs)) []
+  end
+
+val number_of_nearest_neighbors = 10 (* FUDGE *)
+
+fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visible_facts goal_feats =
+  let
+    exception EXIT of unit
+
+    val ln_afreq = Math.ln (Real.fromInt num_facts)
+    fun tfidf feat = ln_afreq - Math.ln (Real.fromInt (Vector.sub (dffreq, feat)))
+
+    val overlaps_sqr = Array.tabulate (num_facts, rpair 0.0)
+
+    val feat_facts = Array.array (num_feats, [])
+    val _ = Vector.foldl (fn (feats, fact) =>
+      (List.app (map_array_at feat_facts (cons fact)) feats; fact + 1)) 0 featss
+
+    fun do_feat (s, sw0) =
+      let
+        val sw = sw0 * tfidf s
+        val w2 = sw * sw
+
+        fun inc_overlap j =
+          let val (_, ov) = Array.sub (overlaps_sqr, j) in
+            Array.update (overlaps_sqr, j, (j, w2 + ov))
+          end
+      in
+        List.app inc_overlap (Array.sub (feat_facts, s))
+      end
+
+    val _ = List.app do_feat goal_feats
+    val _ = rev_sort_array_prefix (Real.compare o pairself snd) num_facts overlaps_sqr
+    val no_recommends = Unsynchronized.ref 0
+    val recommends = Array.tabulate (num_facts, rpair 0.0)
+    val age = Unsynchronized.ref 500000000.0
+
+    fun inc_recommend v j =
+      let val (_, ov) = Array.sub (recommends, j) in
+        if ov <= 0.0 then
+          (no_recommends := !no_recommends + 1; Array.update (recommends, j, (j, !age + ov)))
+        else if ov < !age + 1000.0 then
+          Array.update (recommends, j, (j, v + ov))
+        else
+          ()
+      end
+
+    val k = Unsynchronized.ref 0
+    fun do_k k =
+      if k >= num_facts then
+        raise EXIT ()
+      else
+        let
+          val (j, o2) = Array.sub (overlaps_sqr, num_facts - k - 1)
+          val o1 = Math.sqrt o2
+          val _ = inc_recommend o1 j
+          val ds = Vector.sub (depss, j)
+          val l = Real.fromInt (length ds)
+        in
+          List.app (inc_recommend (o1 / l)) ds
+        end
+
+    fun while1 () =
+      if !k = number_of_nearest_neighbors then () else (do_k (!k); k := !k + 1; while1 ())
+      handle EXIT () => ()
+
+    fun while2 () =
+      if !no_recommends >= max_suggs then ()
+      else (do_k (!k); k := !k + 1; age := !age - 10000.0; while2 ())
+      handle EXIT () => ()
+
+    fun ret acc at =
+      if at = num_facts then acc else ret (Array.sub (recommends, at) :: acc) (at + 1)
+  in
+    while1 ();
+    while2 ();
+    select_visible_facts 1000000000.0 recommends visible_facts;
+    rev_sort_array_prefix (Real.compare o pairself snd) max_suggs recommends;
+    ret [] (Integer.max 0 (num_facts - max_suggs))
   end
 
 (* experimental *)
@@ -435,26 +486,35 @@ val naive_bayes_ext = external_tool "predict/nbayes"
 fun query_external ctxt engine max_suggs learns goal_feats =
   (trace_msg ctxt (fn () => "MaSh query external " ^ commas (map fst goal_feats));
    (case engine of
-     MaSh_kNN_Ext => k_nearest_neighbors_ext max_suggs learns goal_feats
-   | MaSh_NB_Ext => naive_bayes_ext max_suggs learns goal_feats))
+     MaSh_NB_Ext => naive_bayes_ext max_suggs learns goal_feats
+   | MaSh_kNN_Ext => k_nearest_neighbors_ext max_suggs learns goal_feats))
 
 fun query_internal ctxt engine num_facts num_feats (fact_names, featss, depss)
     (freqs as (_, _, dffreq)) visible_facts max_suggs goal_feats int_goal_feats =
-  (trace_msg ctxt (fn () => "MaSh query internal " ^ commas (map fst goal_feats) ^ " from {" ^
-     elide_string 1000 (space_implode " " (Vector.foldr (op ::) [] fact_names)) ^ "}");
-   (case engine of
-     MaSh_kNN =>
-     let
-       val feat_facts = Array.array (num_feats, [])
-       val _ =
-         Vector.foldl (fn (feats, fact) =>
-             (List.app (map_array_at feat_facts (cons fact)) feats; fact + 1))
-           0 featss
-     in
-       k_nearest_neighbors dffreq num_facts depss feat_facts max_suggs visible_facts int_goal_feats
-     end
-   | MaSh_NB => naive_bayes freqs num_facts max_suggs visible_facts int_goal_feats)
-   |> map (curry Vector.sub fact_names o fst))
+  let
+    fun nb () =
+      naive_bayes freqs num_facts max_suggs visible_facts int_goal_feats
+      |> map fst
+    fun knn () =
+      k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visible_facts
+        int_goal_feats
+      |> map fst
+  in
+    (trace_msg ctxt (fn () => "MaSh query internal " ^ commas (map fst goal_feats) ^ " from {" ^
+       elide_string 1000 (space_implode " " (Vector.foldr (op ::) [] fact_names)) ^ "}");
+     (case engine of
+       MaSh_NB => nb ()
+     | MaSh_kNN => knn ()
+     | MaSh_NB_kNN =>
+       let
+         val mess =
+           [(0.5 (* FUDGE *), (weight_facts_steeply (nb ()), [])),
+            (0.5 (* FUDGE *), (weight_facts_steeply (knn ()), []))]
+       in
+         mesh_facts (op =) max_suggs mess
+       end)
+     |> map (curry Vector.sub fact_names))
+   end
 
 end;
 
@@ -481,7 +541,7 @@ val encode_str = String.translate meta_char
 val decode_str = String.explode #> unmeta_chars []
 
 val encode_strs = map encode_str #> space_implode " "
-val decode_strs = space_explode " " #> filter_out (curry (op =) "") #> map decode_str
+val decode_strs = space_explode " " #> map decode_str
 
 datatype proof_kind = Isar_Proof | Automatic_Proof | Isar_Proof_wegen_Prover_Flop
 
@@ -705,36 +765,6 @@ fun find_suggested_facts ctxt facts =
       Symtab.lookup tab nick
       |> tap (fn NONE => trace_msg ctxt (fn () => "Cannot find " ^ quote nick) | _ => ())
   in map_filter lookup end
-
-fun scaled_avg [] = 0
-  | scaled_avg xs = Real.ceil (100000000.0 * fold (curry (op +)) xs 0.0) div length xs
-
-fun avg [] = 0.0
-  | avg xs = fold (curry (op +)) xs 0.0 / Real.fromInt (length xs)
-
-fun normalize_scores _ [] = []
-  | normalize_scores max_facts xs =
-    map (apsnd (curry Real.* (1.0 / avg (map snd (take max_facts xs))))) xs
-
-fun mesh_facts fact_eq max_facts [(_, (sels, unks))] =
-    distinct fact_eq (map fst (take max_facts sels) @ take (max_facts - length sels) unks)
-  | mesh_facts fact_eq max_facts mess =
-    let
-      val mess = mess |> map (apsnd (apfst (normalize_scores max_facts)))
-
-      fun score_in fact (global_weight, (sels, unks)) =
-        let val score_at = try (nth sels) #> Option.map (fn (_, score) => global_weight * score) in
-          (case find_index (curry fact_eq fact o fst) sels of
-            ~1 => if member fact_eq unks fact then NONE else SOME 0.0
-          | rank => score_at rank)
-        end
-
-      fun weight_of fact = mess |> map_filter (score_in fact) |> scaled_avg
-    in
-      fold (union fact_eq o map fst o take max_facts o fst o snd) mess []
-      |> map (`weight_of) |> sort (int_ord o swap o pairself fst)
-      |> map snd |> take max_facts
-    end
 
 fun free_feature_of s = "f" ^ s
 fun thy_feature_of s = "y" ^ s
@@ -1088,29 +1118,19 @@ fun maximal_wrt_graph G keys =
     find_maxes Symtab.empty ([], Graph.maximals G)
   end
 
-fun maximal_wrt_access_graph access_G facts =
-  map (nickname_of_thm o snd) facts
-  |> maximal_wrt_graph access_G
+fun maximal_wrt_access_graph _ [] = []
+  | maximal_wrt_access_graph access_G ((fact as (_, th)) :: facts) =
+    let val thy = theory_of_thm th in
+      fact :: filter_out (fn (_, th') => Theory.subthy (theory_of_thm th', thy)) facts
+      |> map (nickname_of_thm o snd)
+      |> maximal_wrt_graph access_G
+    end
 
 fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
 val chained_feature_factor = 0.5 (* FUDGE *)
 val extra_feature_factor = 0.1 (* FUDGE *)
 val num_extra_feature_facts = 10 (* FUDGE *)
-
-(* FUDGE *)
-fun weight_of_proximity_fact rank =
-  Math.pow (1.3, 15.5 - 0.2 * Real.fromInt rank) + 15.0
-
-fun weight_facts_smoothly facts =
-  facts ~~ map weight_of_proximity_fact (0 upto length facts - 1)
-
-(* FUDGE *)
-fun steep_weight_of_fact rank =
-  Math.pow (0.62, log2 (Real.fromInt (rank + 1)))
-
-fun weight_facts_steeply facts =
-  facts ~~ map steep_weight_of_fact (0 upto length facts - 1)
 
 val max_proximity_facts = 100
 
@@ -1136,8 +1156,11 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
     val thy_name = Context.theory_name thy
     val engine = the_mash_engine ()
 
-    val facts = facts |> sort (crude_thm_ord o pairself snd o swap)
-    val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
+    val facts = facts
+      |> rev_sort_list_prefix (crude_thm_ord o pairself snd)
+        (Int.max (num_extra_feature_facts, max_proximity_facts))
+
+    val chained = filter (fn ((_, (scope, _)), _) => scope = Chained) facts
 
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
@@ -1147,53 +1170,44 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
       |> features_of ctxt (theory_of_thm th) stature
       |> map (rpair (weight * factor))
 
-    fun query_args access_G =
-      let
-        val parents = maximal_wrt_access_graph access_G facts
-
-        val goal_feats = features_of ctxt thy (Local, General) (concl_t :: hyp_ts)
-        val chained_feats = chained
-          |> map (rpair 1.0)
-          |> map (chained_or_extra_features_of chained_feature_factor)
-          |> rpair [] |-> fold (union (eq_fst (op =)))
-        val extra_feats =
-          facts
-          |> take (Int.max (0, num_extra_feature_facts - length chained))
-          |> filter fact_has_right_theory
-          |> weight_facts_steeply
-          |> map (chained_or_extra_features_of extra_feature_factor)
-          |> rpair [] |-> fold (union (eq_fst (op =)))
-        val feats =
-          fold (union (eq_fst (op =))) [chained_feats, extra_feats] (map (rpair 1.0) goal_feats)
-          |> debug ? sort (Real.compare o swap o pairself snd)
-      in
-        (parents, feats)
-      end
-
     val {access_G, xtabs = ((num_facts, fact_tab), (num_feats, feat_tab)), ffds, freqs, ...} =
       peek_state ctxt
 
+    val goal_feats0 = features_of ctxt thy (Local, General) (concl_t :: hyp_ts)
+    val chained_feats = chained
+      |> map (rpair 1.0)
+      |> map (chained_or_extra_features_of chained_feature_factor)
+      |> rpair [] |-> fold (union (eq_fst (op =)))
+    val extra_feats = facts
+      |> take (Int.max (0, num_extra_feature_facts - length chained))
+      |> filter fact_has_right_theory
+      |> weight_facts_steeply
+      |> map (chained_or_extra_features_of extra_feature_factor)
+      |> rpair [] |-> fold (union (eq_fst (op =)))
+
+    val goal_feats =
+      fold (union (eq_fst (op =))) [chained_feats, extra_feats] (map (rpair 1.0) goal_feats0)
+      |> debug ? sort (Real.compare o swap o pairself snd)
+
+    val parents = maximal_wrt_access_graph access_G facts
+    val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
+
     val suggs =
-      let
-        val (parents, goal_feats) = query_args access_G
-        val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
-      in
-        if engine = MaSh_kNN_Ext orelse engine = MaSh_NB_Ext then
-          let
-            val learns =
-              Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
-          in
-            MaSh.query_external ctxt engine max_suggs learns goal_feats
-          end
-        else
-          let
-            val int_goal_feats =
-              map_filter (fn (s, w) => Option.map (rpair w) (Symtab.lookup feat_tab s)) goal_feats
-          in
-            MaSh.query_internal ctxt engine num_facts num_feats ffds freqs visible_facts max_suggs
-              goal_feats int_goal_feats
-          end
-      end
+      if engine = MaSh_NB_Ext orelse engine = MaSh_kNN_Ext then
+        let
+          val learns =
+            Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
+        in
+          MaSh.query_external ctxt engine max_suggs learns goal_feats
+        end
+      else
+        let
+          val int_goal_feats =
+            map_filter (fn (s, w) => Option.map (rpair w) (Symtab.lookup feat_tab s)) goal_feats
+        in
+          MaSh.query_internal ctxt engine num_facts num_feats ffds freqs visible_facts max_suggs
+            goal_feats int_goal_feats
+        end
 
     val unknown = filter_out (is_fact_in_graph access_G o snd) facts
   in
@@ -1256,6 +1270,7 @@ fun mash_learn_proof ctxt ({timeout, ...} : params) t facts used_ths =
       let
         val thy = Proof_Context.theory_of ctxt
         val feats = features_of ctxt thy (Local, General) [t]
+        val facts = rev_sort_list_prefix (crude_thm_ord o pairself snd) 1 facts
       in
         map_state ctxt
           (fn {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
@@ -1587,7 +1602,6 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
     end
 
 fun kill_learners () = Async_Manager.kill_threads MaShN "learner"
-
 fun running_learners () = Async_Manager.running_threads MaShN "learner"
 
 end;

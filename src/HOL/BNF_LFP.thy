@@ -1,3 +1,4 @@
+
 (*  Title:      HOL/BNF_LFP.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Lorenz Panny, TU Muenchen
@@ -193,5 +194,6 @@ ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 
 hide_fact (open) id_transfer
+
 
 end

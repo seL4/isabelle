@@ -24,7 +24,7 @@ sig
     theory list -> int -> string -> unit
   val generate_mepo_suggestions : Proof.context -> params -> (int * int option) * int ->
     theory list -> int -> string -> unit
-  val generate_mash_suggestions : Proof.context -> params -> (int * int option) * int ->
+  val generate_mash_suggestions : string -> Proof.context -> params -> (int * int option) * int ->
     theory list -> int -> string -> unit
   val generate_mesh_suggestions : int -> string -> string -> string -> unit
 end;
@@ -284,15 +284,16 @@ val generate_mepo_suggestions =
        not (Config.get ctxt Sledgehammer_MaSh.duplicates) ? Sledgehammer_Fact.drop_duplicate_facts
        #> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t)
 
-fun generate_mash_suggestions ctxt params =
-  (Sledgehammer_MaSh.mash_unlearn ();
+fun generate_mash_suggestions engine =
+  (Options.put_default @{system_option MaSh} engine;
+   Sledgehammer_MaSh.mash_unlearn ();
    generate_mepo_or_mash_suggestions
      (fn ctxt => fn thy => fn params as {provers = prover :: _, ...} => fn max_suggs => fn hyp_ts =>
           fn concl_t =>
         tap (Sledgehammer_MaSh.mash_learn_facts ctxt params prover 2 false
           Sledgehammer_Util.one_year)
         #> Sledgehammer_MaSh.mash_suggested_facts ctxt thy params max_suggs hyp_ts concl_t
-        #> fst) ctxt params)
+        #> fst))
 
 fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_name =
   let

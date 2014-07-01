@@ -89,6 +89,9 @@ unfolding sum_set_defs by simp+
 lemma Inl_Inr_False: "(Inl x = Inr y) = False"
   by simp
 
+lemma Inr_Inl_False: "(Inr x = Inl y) = False"
+  by simp
+
 lemma spec2: "\<forall>x y. P x y \<Longrightarrow> P x y"
 by blast
 
