@@ -6,41 +6,44 @@ theory Tree
 imports Main
 begin
 
-datatype 'a tree = Leaf | Node "'a tree" 'a "'a tree"
+datatype_new 'a tree = Leaf | Node (left: "'a tree") (val: 'a) (right: "'a tree")
+  where
+    "left Leaf = Leaf"
+  | "right Leaf = Leaf"
 
-fun set_tree :: "'a tree \<Rightarrow> 'a set" where
-"set_tree Leaf = {}" |
-"set_tree (Node l x r) = insert x (set_tree l \<union> set_tree r)"
+lemma neq_Leaf_iff: "(t \<noteq> Leaf) = (\<exists>l a r. t = Node l a r)"
+by (cases t) auto
 
 fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
 "subtrees Leaf = {Leaf}" |
 "subtrees (Node l a r) = insert (Node l a r) (subtrees l \<union> subtrees r)"
 
+lemma set_treeE: "a \<in> set_tree t \<Longrightarrow> \<exists>l r. Node l a r \<in> subtrees t"
+  by (induction t)(auto)
+
+lemma Node_notin_subtrees_if[simp]:
+  "a \<notin> set_tree t \<Longrightarrow> Node l a r \<notin> subtrees t"
+  by (induction t) auto
+
+lemma in_set_tree_if:
+  "Node l a r \<in> subtrees t \<Longrightarrow> a \<in> set_tree t"
+  by (metis Node_notin_subtrees_if)
+
 fun inorder :: "'a tree \<Rightarrow> 'a list" where
 "inorder Leaf = []" |
 "inorder (Node l x r) = inorder l @ [x] @ inorder r"
 
-text{* Binary Search Tree predicate: *}
-fun bst :: "'a::linorder tree \<Rightarrow> bool" where
-"bst Leaf = True" |
-"bst (Node l a r) =
-  (bst l & bst r & (\<forall>x \<in> set_tree l. x < a)  & (\<forall>x \<in> set_tree r. a < x))"
+lemma set_inorder[simp]: "set (inorder t) = set_tree t"
+  by (induction t) auto
 
-lemma neq_Leaf_iff: "(t \<noteq> Leaf) = (\<exists>l a r. t = Node l a r)"
-by (cases t) auto
+subsection {* Binary Search Tree predicate *}
 
-lemma set_inorder[simp]: "set(inorder t) = set_tree t"
-by (induction t) auto
+inductive bst :: "'a::linorder tree \<Rightarrow> bool" where
+Leaf[intro!, simp]: "bst Leaf" |
+Node: "bst l \<Longrightarrow> bst r \<Longrightarrow> (\<And>x. x \<in> set_tree l \<Longrightarrow> x < a) \<Longrightarrow> (\<And>x. x \<in> set_tree r \<Longrightarrow> a < x) \<Longrightarrow>
+    bst (Node l a r)"
 
-lemma set_treeE: "a : set_tree t \<Longrightarrow> \<exists>l r. Node l a r \<in> subtrees t"
-by(induction t)(auto)
-
-lemma Node_notin_subtrees_if[simp]:
-  "a \<notin> set_tree t \<Longrightarrow> Node l a r \<notin> subtrees t"
-by (induction t) auto
-
-lemma in_set_tree_if:
-  "Node l a r \<in> subtrees t \<Longrightarrow> a \<in> set_tree t"
-by (metis Node_notin_subtrees_if)
+lemma bst_imp_sorted: "bst t \<Longrightarrow> sorted (inorder t)"
+  by (induction rule: bst.induct) (auto simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
 
 end
