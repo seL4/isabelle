@@ -541,7 +541,7 @@ val encode_str = String.translate meta_char
 val decode_str = String.explode #> unmeta_chars []
 
 val encode_strs = map encode_str #> space_implode " "
-val decode_strs = space_explode " " #> filter_out (curry (op =) "") #> map decode_str
+val decode_strs = space_explode " " #> map decode_str
 
 datatype proof_kind = Isar_Proof | Automatic_Proof | Isar_Proof_wegen_Prover_Flop
 
