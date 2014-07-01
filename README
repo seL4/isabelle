@@ -17,19 +17,15 @@ Installation
    Some technical background information may be found in the Isabelle
    System Manual (directory doc).
 
-User interfaces
+User interface
 
    Isabelle/jEdit is an advanced Prover IDE based on jEdit and
-   Isabelle/Scala.  It provides a metaphor of continuous proof
-   checking of a versioned collection of theory sources, with
-   instantaneous feedback in real-time and rich semantic markup
-   associated with the formal text.
-
-   The classic Isabelle user interface is Proof General by David
-   Aspinall and others.  It is a generic Emacs interface for proof
-   assistants, including Isabelle.  Its main feature is script
-   management, with stepwise proof scripting and partial locking of
-   the editor buffer.
+   Isabelle/Scala.  It is the main example application of the
+   Isabelle/PIDE framework, and the default user interface of
+   Isabelle.  It provides a metaphor of continuous proof checking of a
+   versioned collection of theory sources, with instantaneous feedback
+   in real-time and rich semantic markup associated with the formal
+   text.
 
 Other sources of information
 
