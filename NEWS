@@ -205,6 +205,13 @@ src/HOL/Decision_Procs/Approximation.  Minor INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
+* Revisions to HOL/Number_Theory
+  - consolidated the proofs of the binomial theorem
+  - the function fib is again of type nat=>nat and not overloaded
+  - no more references to Old_Number_Theory in the HOL libraries (except the AFP)
+
+INCOMPATIBILITY.
+
 * Swapped orientation of facts image_comp and vimage_comp:
 
   image_compose ~> image_comp [symmetric]

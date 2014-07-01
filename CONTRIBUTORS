@@ -32,6 +32,9 @@ Contributions to Isabelle2014
   Permanent interpretation inside theory, locale and class targets
   with mixin definitions.
 
+* Spring 2014: Lawrence C Paulson, Cambridge
+  Theory Complex_Basic_Analysis. Tidying up Number_Theory vs Old_Number_Theory
+
 * Winter 2013 and Spring 2014: Makarius Wenzel, Université Paris-Sud / LRI
   Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
 
