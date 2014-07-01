@@ -26,7 +26,7 @@ Checklist for official releases
 
 - check funny base directory, e.g. "Test 中国";
 
-- check scalable fonts, e.g. src/Doc/ProgProve (NOTE: T1 encoding
+- check scalable fonts, e.g. src/Doc/Prog_Prove (NOTE: T1 encoding
   requires cm-super fonts, which are usually available on MacTeX or
   Cygwin, but not on Ubuntu/Debian);
 
@@ -68,7 +68,7 @@ Repository fork
 Packaging
 =========
 
-- fully-automated packaging (requires Mac OS X with gnutar):
+- fully-automated packaging (requires Mac OS X with gnutar, avoid Mavericks):
 
   hg up -r DISTNAME && Admin/Release/build -l -r DISTNAME /home/isabelle/dist
 
