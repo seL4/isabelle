@@ -762,6 +762,62 @@ INCOMPATIBILITY.
     INCOMPATIBILITY: use box instead of greaterThanLessThan or
     explicit set-comprehensions with eucl_less for other (half-)open
     intervals.
+  - removed dependencies on type class ordered_euclidean_space with
+    introduction of "cbox" on euclidean_space
+    - renamed theorems:
+        interval ~> box
+        mem_interval ~> mem_box
+        interval_eq_empty ~> box_eq_empty
+        interval_ne_empty ~> box_ne_empty
+        interval_sing(1) ~> cbox_sing
+        interval_sing(2) ~> box_sing
+        subset_interval_imp ~> subset_box_imp
+        subset_interval ~> subset_box
+        open_interval ~> open_box
+        closed_interval ~> closed_cbox
+        interior_closed_interval ~> interior_cbox
+        bounded_closed_interval ~> bounded_cbox
+        compact_interval ~> compact_cbox
+        bounded_subset_closed_interval_symmetric ~> bounded_subset_cbox_symmetric
+        bounded_subset_closed_interval ~> bounded_subset_cbox
+        mem_interval_componentwiseI ~> mem_box_componentwiseI
+        convex_box ~> convex_prod
+        rel_interior_real_interval ~> rel_interior_real_box
+        convex_interval ~> convex_box
+        convex_hull_eq_real_interval ~> convex_hull_eq_real_cbox
+        frechet_derivative_within_closed_interval ~> frechet_derivative_within_cbox
+        content_closed_interval' ~> content_cbox'
+        elementary_subset_interval ~> elementary_subset_box
+        diameter_closed_interval ~> diameter_cbox
+        frontier_closed_interval ~> frontier_cbox
+        frontier_open_interval ~> frontier_box
+        bounded_subset_open_interval_symmetric ~> bounded_subset_box_symmetric
+        closure_open_interval ~> closure_box
+        open_closed_interval_convex ~> open_cbox_convex
+        open_interval_midpoint ~> box_midpoint
+        content_image_affinity_interval ~> content_image_affinity_cbox
+        is_interval_interval ~> is_interval_cbox + is_interval_box + is_interval_closed_interval
+        bounded_interval ~> bounded_closed_interval + bounded_boxes
+
+    - respective theorems for intervals over the reals:
+        content_closed_interval + content_cbox
+        has_integral + has_integral_real
+        fine_division_exists + fine_division_exists_real
+        has_integral_null + has_integral_null_real
+        tagged_division_union_interval + tagged_division_union_interval_real
+        has_integral_const + has_integral_const_real
+        integral_const + integral_const_real
+        has_integral_bound + has_integral_bound_real
+        integrable_continuous + integrable_continuous_real
+        integrable_subinterval + integrable_subinterval_real
+        has_integral_reflect_lemma + has_integral_reflect_lemma_real
+        integrable_reflect + integrable_reflect_real
+        integral_reflect + integral_reflect_real
+        image_affinity_interval + image_affinity_cbox
+        image_smult_interval + image_smult_cbox
+        integrable_const + integrable_const_ivl
+        integrable_on_subinterval + integrable_on_subcbox
+
   - renamed theorems:
     derivative_linear         ~>  has_derivative_bounded_linear
     derivative_is_linear      ~>  has_derivative_linear
