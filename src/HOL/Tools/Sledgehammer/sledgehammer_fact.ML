@@ -84,6 +84,7 @@ val backquote =
 val risky_defs = @{thms Bit0_def Bit1_def}
 
 fun is_rec_eq lhs = Term.exists_subterm (curry (op =) (head_of lhs))
+
 fun is_rec_def (@{const Trueprop} $ t) = is_rec_def t
   | is_rec_def (@{const Pure.imp} $ _ $ t2) = is_rec_def t2
   | is_rec_def (Const (@{const_name Pure.eq}, _) $ t1 $ t2) = is_rec_eq t1 t2
@@ -114,6 +115,7 @@ fun normalize_vars t =
               ~1 => (TVar ((Name.uu, nT), S), ((z :: knownT, nT + 1), accum))
             | j => (TVar ((Name.uu, nT - j - 1), S), ((knownT, nT), accum))))
       | normT (T as TFree _) = pair T
+
     fun norm (t $ u) = norm t ##>> norm u #>> op $
       | norm (Const (s, T)) = normT T #>> curry Const s
       | norm (Var (z as (_, T))) =
@@ -164,6 +166,7 @@ fun fact_of_ref ctxt reserved chained css (xthm as (xref, args)) =
     val bracket =
       map (enclose "[" "]" o Pretty.str_of o Args.pretty_src ctxt) args
       |> implode
+
     fun nth_name j =
       (case xref of
         Facts.Fact s => backquote s ^ bracket
@@ -173,12 +176,15 @@ fun fact_of_ref ctxt reserved chained css (xthm as (xref, args)) =
       | Facts.Named ((name, _), SOME intervals) =>
         make_name reserved true
           (nth (maps (explode_interval (length ths)) intervals) j) name ^ bracket)
+
     fun add_nth th (j, rest) =
       let val name = nth_name j in
         (j + 1, ((name, stature_of_thm false [] chained css name th), th)
                 :: rest)
       end
-  in (0, []) |> fold add_nth ths |> snd end
+  in
+    (0, []) |> fold add_nth ths |> snd
+  end
 
 (* Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages. *)
@@ -222,6 +228,7 @@ fun is_technical_const (s, _) =
 
 (* FIXME: make more reliable *)
 val sep_class_sep = Long_Name.separator ^ "class" ^ Long_Name.separator
+
 fun is_low_level_class_const (s, _) =
   s = @{const_name equal_class.equal} orelse String.isSubstring sep_class_sep s
 
@@ -250,6 +257,7 @@ fun is_likely_tautology_too_meta_or_too_technical th =
         not (member (op =) atp_widely_irrelevant_consts s)
       | is_interesting_subterm (Free _) = true
       | is_interesting_subterm _ = false
+
     fun interest_of_bool t =
       if exists_Const (is_technical_const orf is_low_level_class_const orf
                        type_has_top_sort o snd) t then
@@ -259,6 +267,7 @@ fun is_likely_tautology_too_meta_or_too_technical th =
         Boring
       else
         Interesting
+
     fun interest_of_prop _ (@{const Trueprop} $ t) = interest_of_bool t
       | interest_of_prop Ts (@{const Pure.imp} $ t $ u) =
         combine_interests (interest_of_prop Ts t) (interest_of_prop Ts u)
@@ -269,6 +278,7 @@ fun is_likely_tautology_too_meta_or_too_technical th =
       | interest_of_prop _ (Const (@{const_name Pure.eq}, _) $ t $ u) =
         combine_interests (interest_of_bool t) (interest_of_bool u)
       | interest_of_prop _ _ = Deal_Breaker
+
     val t = prop_of th
   in
     (interest_of_prop [] t <> Interesting andalso
@@ -277,11 +287,9 @@ fun is_likely_tautology_too_meta_or_too_technical th =
   end
 
 fun is_blacklisted_or_something ctxt ho_atp =
-  let
-    val blist = multi_base_blacklist ctxt ho_atp
-    fun is_blisted name =
-      is_package_def name orelse exists (fn s => String.isSuffix s name) blist
-  in is_blisted end
+  let val blist = multi_base_blacklist ctxt ho_atp in
+    fn name => is_package_def name orelse exists (fn s => String.isSuffix s name) blist
+  end
 
 (* This is a terrible hack. Free variables are sometimes coded as "M__" when
    they are displayed as "M" and we want to avoid clashes with these. But
@@ -316,6 +324,7 @@ fun clasimpset_rule_table_of ctxt =
       let
         fun add stature th =
           Termtab.update (normalize_vars (prop_of th), stature)
+
         val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} =
           ctxt |> claset_of |> Classical.rep_cs
         val intros = Item_Net.content safeIs @ Item_Net.content hazIs
@@ -331,18 +340,18 @@ fun clasimpset_rule_table_of ctxt =
                 |> filter_out (member Thm.eq_thm_prop risky_defs)
                 |> List.partition (is_rec_def o prop_of)
         val spec_intros =
-          specs |> filter (member (op =) [Spec_Rules.Inductive,
-                                          Spec_Rules.Co_Inductive] o fst)
+          specs |> filter (member (op =) [Spec_Rules.Inductive, Spec_Rules.Co_Inductive] o fst)
                 |> maps (snd o snd)
       in
-        Termtab.empty |> fold (add Simp o snd) simps
-                      |> fold (add Rec_Def) rec_defs
-                      |> fold (add Non_Rec_Def) nonrec_defs
+        Termtab.empty
+        |> fold (add Simp o snd) simps
+        |> fold (add Rec_Def) rec_defs
+        |> fold (add Non_Rec_Def) nonrec_defs
 (* Add once it is used:
-                      |> fold (add Elim) elims
+        |> fold (add Elim) elims
 *)
-                      |> fold (add Intro) intros
-                      |> fold (add Inductive) spec_intros
+        |> fold (add Intro) intros
+        |> fold (add Inductive) spec_intros
       end
   end
 
@@ -359,9 +368,8 @@ fun normalize_eq (@{const Trueprop} $ (t as (t0 as Const (@{const_name HOL.eq}, 
 fun if_thm_before th th' =
   if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
 
-(* Hack: Conflate the facts about a class as seen from the outside with the
-   corresponding low-level facts, so that MaSh can learn from the low-level
-   proofs. *)
+(* Hack: Conflate the facts about a class as seen from the outside with the corresponding low-level
+   facts, so that MaSh can learn from the low-level proofs. *)
 fun un_class_ify s =
   (case first_field "_class" s of
     SOME (pref, suf) => [s, pref ^ suf]
@@ -407,6 +415,7 @@ fun instantiate_induct_rule ctxt concl_prop p_name ((name, stature), th) ind_x =
     fun varify_noninducts (t as Free (s, T)) =
         if (s, T) = ind_x orelse can dest_funT T then t else Var ((s, 0), T)
       | varify_noninducts t = t
+
     val p_inst =
       concl_prop |> map_aterms varify_noninducts |> close_form
                  |> lambda (Free ind_x)
@@ -455,23 +464,25 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
     val is_too_complex =
-      if generous orelse
-         fact_count global_facts >= max_facts_for_complex_check then
+      if generous orelse fact_count global_facts >= max_facts_for_complex_check then
         K false
       else
         is_too_complex
     val local_facts = Proof_Context.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static true [global_facts]
     val assms = Assumption.all_assms_of ctxt
+
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
+
     val unnamed_locals =
       union Thm.eq_thm_prop (Facts.props local_facts) chained
       |> filter is_good_unnamed_local |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     val is_blacklisted_or_something = is_blacklisted_or_something ctxt ho_atp
+
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) => fn accum =>
         if name0 <> "" andalso
@@ -483,6 +494,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
           let
             val n = length ths
             val multi = n > 1
+
             fun check_thms a =
               (case try (Proof_Context.get_thms ctxt) a of
                 NONE => false
@@ -522,8 +534,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
           |> op @
   end
 
-fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
-                     concl_t =
+fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts concl_t =
   if only andalso null add then
     []
   else
