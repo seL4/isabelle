@@ -383,7 +383,7 @@ fun run_atp mode name
                     val atp_proof =
                       atp_proof
                       |> termify_atp_proof ctxt name format type_enc pool lifted sym_tab
-                      |> introduce_spass_skolem
+                      |> spass ? introduce_spass_skolem
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,
