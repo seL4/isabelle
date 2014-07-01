@@ -1,41 +1,10 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2014 (August 2014)
+---------------------------------
 
 *** General ***
-
-* Document antiquotation @{url} produces markup for the given URL,
-which results in an active hyperlink within the text.
-
-* Document antiquotation @{file_unchecked} is like @{file}, but does
-not check existence within the file-system.
-
-* Discontinued legacy_isub_isup, which was a temporary Isabelle/ML
-workaround in Isabelle2013-1.  The prover process no longer accepts
-old identifier syntax with \<^isub> or \<^isup>.
-
-* Syntax of document antiquotation @{rail} now uses \<newline> instead
-of "\\", to avoid the optical illusion of escaped backslash within
-string token.  Minor INCOMPATIBILITY.
-
-* Lexical syntax (inner and outer) supports text cartouches with
-arbitrary nesting, and without escapes of quotes etc.  The Prover IDE
-supports input via ` (backquote).
-
-* The outer syntax categories "text" (for formal comments and document
-markup commands) and "altstring" (for literal fact references) allow
-cartouches as well, in addition to the traditional mix of quotations.
-
-* More static checking of proof methods, which allows the system to
-form a closure over the concrete syntax.  Method arguments should be
-processed in the original proof context as far as possible, before
-operating on the goal state.  In any case, the standard discipline for
-subgoal-addressing needs to be observed: no subgoals or a subgoal
-number that is out of range produces an empty result sequence, not an
-exception.  Potential INCOMPATIBILITY for non-conformant tactical
-proof tools.
 
 * Support for official Standard ML within the Isabelle context.
 Command 'SML_file' reads and evaluates the given Standard ML file.
@@ -46,16 +15,57 @@ and 'SML_export' allow to exchange toplevel bindings between the two
 separate environments.  See also ~~/src/Tools/SML/Examples.thy for
 some examples.
 
-* Updated and extended manuals: "codegen", "datatypes",
-"implementation", "jedit", "system".
+* More static checking of proof methods, which allows the system to
+form a closure over the concrete syntax.  Method arguments should be
+processed in the original proof context as far as possible, before
+operating on the goal state.  In any case, the standard discipline for
+subgoal-addressing needs to be observed: no subgoals or a subgoal
+number that is out of range produces an empty result sequence, not an
+exception.  Potential INCOMPATIBILITY for non-conformant tactical
+proof tools.
+
+* Lexical syntax (inner and outer) supports text cartouches with
+arbitrary nesting, and without escapes of quotes etc.  The Prover IDE
+supports input via ` (backquote).
+
+* The outer syntax categories "text" (for formal comments and document
+markup commands) and "altstring" (for literal fact references) allow
+cartouches as well, in addition to the traditional mix of quotations.
+
+* Syntax of document antiquotation @{rail} now uses \<newline> instead
+of "\\", to avoid the optical illusion of escaped backslash within
+string token.  General renovation of its syntax using text cartouces.
+Minor INCOMPATIBILITY.
+
+* Discontinued legacy_isub_isup, which was a temporary workaround for
+Isabelle/ML in Isabelle2013-1.  The prover process no longer accepts
+old identifier syntax with \<^isub> or \<^isup>.  Potential
+INCOMPATIBILITY.
+
+* Document antiquotation @{url} produces markup for the given URL,
+which results in an active hyperlink within the text.
+
+* Document antiquotation @{file_unchecked} is like @{file}, but does
+not check existence within the file-system.
+
+* Updated and extended manuals: codegen, datatypes, implementation,
+isar-ref, jedit, system.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Document panel: simplied interaction where every single mouse click
-(re)opens document via desktop environment or as jEdit buffer.
+* Improved Document panel: simplied interaction where every single
+mouse click (re)opens document via desktop environment or as jEdit
+buffer.
 
-* Support for Navigator plugin (with toolbar buttons).
+* Support for Navigator plugin (with toolbar buttons), with connection
+to PIDE hyperlinks.
+
+* Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
+Open text buffers take precedence over copies within the file-system.
+
+* Improved support for Isabelle/ML, with jEdit mode "isabelle-ml" for
+auxiliary ML files.
 
 * Improved syntactic and semantic completion mechanism, with simple
 templates, completion language context, name-space completion,
@@ -72,12 +82,6 @@ caret".
 * Integrated spell-checker for document text, comments etc. with
 completion popup and context-menu.
 
-* Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
-Open text buffers take precedence over copies within the file-system.
-
-* Improved support for Isabelle/ML, with jEdit mode "isabelle-ml" for
-auxiliary ML files.
-
 * More general "Query" panel supersedes "Find" panel, with GUI access
 to commands 'find_theorems' and 'find_consts', as well as print
 operations for the context.  Minor incompatibility in keyboard
@@ -91,10 +95,6 @@ General") allows to specify additional print modes for the prover
 process, without requiring old-fashioned command-line invocation of
 "isabelle jedit -m MODE".
 
-* New Simplifier Trace panel provides an interactive view of the
-simplification process, enabled by the "simplifier_trace" attribute
-within the context.
-
 * More support for remote files (e.g. http) using standard Java
 networking operations instead of jEdit virtual file-systems.
 
@@ -104,6 +104,11 @@ more robust treatment of threads and interrupts.
 * Improved management of dockable windows: clarified keyboard focus
 and window placement wrt. main editor view; optional menu item to
 "Detach" a copy where this makes sense.
+
+* New Simplifier Trace panel provides an interactive view of the
+simplification process, enabled by the "simplifier_trace" attribute
+within the context.
+
 
 
 *** Pure ***
@@ -139,12 +144,12 @@ the auxiliary aliases are deleted.
 * Low-level type-class commands 'classes', 'classrel', 'arities' have
 been discontinued to avoid the danger of non-trivial axiomatization
 that is not immediately visible.  INCOMPATIBILITY, use regular
-'instance' with proof.  The required OFCLASS(...) theorem might be
-postulated via 'axiomatization' beforehand, or the proof finished
-trivially if the underlying class definition is made vacuous (without
-any assumptions).  See also Isabelle/ML operations
-Axclass.axiomatize_class, Axclass.axiomatize_classrel,
-Axclass.axiomatize_arity.
+'instance' command with proof.  The required OFCLASS(...) theorem
+might be postulated via 'axiomatization' beforehand, or the proof
+finished trivially if the underlying class definition is made vacuous
+(without any assumptions).  See also Isabelle/ML operations
+Axclass.class_axiomatization, Axclass.classrel_axiomatization,
+Axclass.arity_axiomatization.
 
 * Attributes "where" and "of" allow an optional context of local
 variables ('for' declaration): these variables become schematic in the
@@ -167,10 +172,10 @@ primitive Thm.assume_hyps.
 
 * Inner syntax token language allows regular quoted strings "..."
 (only makes sense in practice, if outer syntax is delimited
-differently).
+differently, e.g. via cartouches).
 
-* Code generator preprocessor: explicit control of simp tracing
-on a per-constant basis.  See attribute "code_preproc".
+* Code generator preprocessor: explicit control of simp tracing on a
+per-constant basis.  See attribute "code_preproc".
 
 * Command 'print_term_bindings' supersedes 'print_binds' for clarity,
 but the latter is retained some time as Proof General legacy.
@@ -180,63 +185,68 @@ but the latter is retained some time as Proof General legacy.
 
 * Qualified String.implode and String.explode.  INCOMPATIBILITY.
 
-* Command and antiquotation ''value'' are hardcoded against nbe and
-ML now.  Minor INCOMPATIBILITY.
+* Command and antiquotation "value" are now hardcoded against nbe and
+ML.  Minor INCOMPATIBILITY.
 
-* Separate command ''approximate'' for approximative computation
-in Decision_Procs/Approximation.  Minor INCOMPATIBILITY.
+* Separate command "approximate" for approximative computation in
+src/HOL/Decision_Procs/Approximation.  Minor INCOMPATIBILITY.
 
 * Adjustion of INF and SUP operations:
-  * Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
-  * Consolidated theorem names containing INFI and SUPR: have INF
-  and SUP instead uniformly.
-  * More aggressive normalization of expressions involving INF and Inf
-  or SUP and Sup.
-  * INF_image and SUP_image do not unfold composition.
-  * Dropped facts INF_comp, SUP_comp.
-  * Default congruence rules strong_INF_cong and strong_SUP_cong,
-  with simplifier implication in premises.  Generalize and replace
-  former INT_cong, SUP_cong
+  - Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
+  - Consolidated theorem names containing INFI and SUPR: have INF and
+    SUP instead uniformly.
+  - More aggressive normalization of expressions involving INF and Inf
+    or SUP and Sup.
+  - INF_image and SUP_image do not unfold composition.
+  - Dropped facts INF_comp, SUP_comp.
+  - Default congruence rules strong_INF_cong and strong_SUP_cong, with
+    simplifier implication in premises.  Generalize and replace former
+    INT_cong, SUP_cong
+
 INCOMPATIBILITY.
 
 * Swapped orientation of facts image_comp and vimage_comp:
+
   image_compose ~> image_comp [symmetric]
   image_comp ~> image_comp [symmetric]
   vimage_compose ~> vimage_comp [symmetric]
   vimage_comp ~> vimage_comp [symmetric]
-  INCOMPATIBILITY.
 
-* Simplifier: Enhanced solver of preconditions of rewrite rules
-  can now deal with conjunctions.
-  For help with converting proofs, the old behaviour of the simplifier
-  can be restored like this:  declare/using [[simp_legacy_precond]]
-  This configuration option will disappear again in the future.
+INCOMPATIBILITY.
+
+* Simplifier: Enhanced solver of preconditions of rewrite rules can
+now deal with conjunctions.  For help with converting proofs, the old
+behaviour of the simplifier can be restored like this: declare/using
+[[simp_legacy_precond]].  This configuration option will disappear
+again in the future.  INCOMPATIBILITY.
 
 * HOL-Word:
-  * Abandoned fact collection "word_arith_alts", which is a
-  duplicate of "word_arith_wis".
-  * Dropped first (duplicated) element in fact collections
-  "sint_word_ariths", "word_arith_alts", "uint_word_ariths",
-  "uint_word_arith_bintrs".
+  - Abandoned fact collection "word_arith_alts", which is a duplicate
+    of "word_arith_wis".
+  - Dropped first (duplicated) element in fact collections
+    "sint_word_ariths", "word_arith_alts", "uint_word_ariths",
+    "uint_word_arith_bintrs".
 
-* Code generator: enforce case of identifiers only for strict
-target language requirements.  INCOMPATIBILITY.
+* Code generator: enforce case of identifiers only for strict target
+language requirements.  INCOMPATIBILITY.
 
 * Code generator: explicit proof contexts in many ML interfaces.
 INCOMPATIBILITY.
 
-* Code generator: minimize exported identifiers by default.
-Minor INCOMPATIBILITY.
+* Code generator: minimize exported identifiers by default.  Minor
+INCOMPATIBILITY.
 
-* Code generation for SML and OCaml: dropped arcane "no_signatures" option.
-Minor INCOMPATIBILITY.
+* Code generation for SML and OCaml: dropped arcane "no_signatures"
+option.  Minor INCOMPATIBILITY.
 
 * Simproc "finite_Collect" is no longer enabled by default, due to
 spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 
-* Moved new (co)datatype package and its dependencies from "HOL-BNF" to "HOL".
-  The "bnf", "wrap_free_constructors", "datatype_new", "codatatype",
-  "primcorec", and "primcorecursive" commands are now part of "Main".
+* Moved new (co)datatype package and its dependencies from session
+  "HOL-BNF" to "HOL".  The commands 'bnf', 'wrap_free_constructors',
+  'datatype_new', 'codatatype', 'primcorec', 'primcorecursive' are now
+  part of theory "Main".
+
   Theory renamings:
     FunDef.thy ~> Fun_Def.thy (and Fun_Def_Base.thy)
     Library/Wfrec.thy ~> Wfrec.thy
@@ -260,58 +270,63 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     BNF/More_BNFs.thy ~> Library/More_BNFs.thy
     BNF/Countable_Type.thy ~> Library/Countable_Set_Type.thy
     BNF/Examples/* ~> BNF_Examples/*
+
   New theories:
     Wellorder_Extension.thy (split from Zorn.thy)
     Library/Cardinal_Notations.thy
     Library/BNF_Axomatization.thy
     BNF_Examples/Misc_Primcorec.thy
     BNF_Examples/Stream_Processor.thy
+
   Discontinued theories:
     BNF/BNF.thy
     BNF/Equiv_Relations_More.thy
-  INCOMPATIBILITY.
+
+INCOMPATIBILITY.
 
 * New (co)datatype package:
-  * "primcorec" is fully implemented.
-  * "datatype_new" generates size functions ("size_xxx" and "size") as
-    required by "fun".
-  * BNFs are integrated with the Lifting tool and new-style (co)datatypes
-    with Transfer.
-  * Renamed commands:
+  - Command 'primcorec' is fully implemented.
+  - Command 'datatype_new' generates size functions ("size_xxx" and
+    "size") as required by 'fun'.
+  - BNFs are integrated with the Lifting tool and new-style
+    (co)datatypes with Transfer.
+  - Renamed commands:
       datatype_new_compat ~> datatype_compat
       primrec_new ~> primrec
       wrap_free_constructors ~> free_constructors
     INCOMPATIBILITY.
-  * The generated constants "xxx_case" and "xxx_rec" have been renamed
+  - The generated constants "xxx_case" and "xxx_rec" have been renamed
     "case_xxx" and "rec_xxx" (e.g., "prod_case" ~> "case_prod").
     INCOMPATIBILITY.
-  * The constant "xxx_(un)fold" and related theorems are no longer generated.
-    Use "xxx_(co)rec" or define "xxx_(un)fold" manually using "prim(co)rec".
+  - The constant "xxx_(un)fold" and related theorems are no longer
+    generated.  Use "xxx_(co)rec" or define "xxx_(un)fold" manually
+    using "prim(co)rec".
     INCOMPATIBILITY.
-  * No discriminators are generated for nullary constructors by default,
-    eliminating the need for the odd "=:" syntax.
+  - No discriminators are generated for nullary constructors by
+    default, eliminating the need for the odd "=:" syntax.
     INCOMPATIBILITY.
-  * No discriminators or selectors are generated by default by
+  - No discriminators or selectors are generated by default by
     "datatype_new", unless custom names are specified or the new
     "discs_sels" option is passed.
     INCOMPATIBILITY.
 
 * Old datatype package:
-  * The generated theorems "xxx.cases" and "xxx.recs" have been renamed
-    "xxx.case" and "xxx.rec" (e.g., "sum.cases" -> "sum.case").
-    INCOMPATIBILITY.
-  * The generated constants "xxx_case", "xxx_rec", and "xxx_size" have been
-    renamed "case_xxx", "rec_xxx", and "size_xxx" (e.g., "prod_case" ~>
-    "case_prod").
-    INCOMPATIBILITY.
+  - The generated theorems "xxx.cases" and "xxx.recs" have been
+    renamed "xxx.case" and "xxx.rec" (e.g., "sum.cases" ->
+    "sum.case").  INCOMPATIBILITY.
+  - The generated constants "xxx_case", "xxx_rec", and "xxx_size" have
+    been renamed "case_xxx", "rec_xxx", and "size_xxx" (e.g.,
+    "prod_case" ~> "case_prod").  INCOMPATIBILITY.
 
-* The types "'a list" and "'a option", their set and map functions, their
-  relators, and their selectors are now produced using the new BNF-based
-  datatype package.
+* The types "'a list" and "'a option", their set and map functions,
+  their relators, and their selectors are now produced using the new
+  BNF-based datatype package.
+
   Renamed constants:
     Option.set ~> set_option
     Option.map ~> map_option
     option_rel ~> rel_option
+
   Renamed theorems:
     set_def ~> set_rec[abs_def]
     map_def ~> map_rec[abs_def]
@@ -323,7 +338,8 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     hd.simps ~> list.sel(1)
     tl.simps ~> list.sel(2-3)
     the.simps ~> option.sel
-  INCOMPATIBILITY.
+
+INCOMPATIBILITY.
 
 * The following map functions and relators have been renamed:
     sum_map ~> map_sum
@@ -333,16 +349,18 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     fun_rel ~> rel_fun
     set_rel ~> rel_set
     filter_rel ~> rel_filter
-    fset_rel ~> rel_fset (in "Library/FSet.thy")
-    cset_rel ~> rel_cset (in "Library/Countable_Set_Type.thy")
-    vset ~> rel_vset (in "Library/Quotient_Set.thy")
+    fset_rel ~> rel_fset (in "src/HOL/Library/FSet.thy")
+    cset_rel ~> rel_cset (in "src/HOL/Library/Countable_Set_Type.thy")
+    vset ~> rel_vset (in "src/HOL/Library/Quotient_Set.thy")
 
-* New theories:
-    Cardinals/Ordinal_Arithmetic.thy
-    Library/Tree
+INCOMPATIBILITY.
 
-* Theory reorganizations:
-  * Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
+* New theory src/HOL/Cardinals/Ordinal_Arithmetic.thy.
+
+* New theory src/HOL/Library/Tree.thy.
+
+* Theory reorganization:
+  Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
 
 * Consolidated some facts about big group operators:
 
@@ -411,41 +429,41 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   Dropped setsum_reindex_id, setprod_reindex_id
     (simple variants of setsum.reindex [symmetric], setprod.reindex [symmetric]).
 
-  INCOMPATIBILITY.
+INCOMPATIBILITY.
 
-* New internal SAT solver "cdclite" that produces models and proof traces.
-  This solver replaces the internal SAT solvers "enumerate" and "dpll".
-  Applications that explicitly used one of these two SAT solvers should
-  use "cdclite" instead. In addition, "cdclite" is now the default SAT
-  solver for the "sat" and "satx" proof methods and corresponding tactics;
-  the old default can be restored using
-  "declare [[sat_solver = zchaff_with_proofs]]". Minor INCOMPATIBILITY.
+* New internal SAT solver "cdclite" that produces models and proof
+traces.  This solver replaces the internal SAT solvers "enumerate" and
+"dpll".  Applications that explicitly used one of these two SAT
+solvers should use "cdclite" instead. In addition, "cdclite" is now
+the default SAT solver for the "sat" and "satx" proof methods and
+corresponding tactics; the old default can be restored using "declare
+[[sat_solver = zchaff_with_proofs]]".  Minor INCOMPATIBILITY.
 
-* SMT module:
-  * A new version of the SMT module, temporarily called "SMT2", uses SMT-LIB 2
-    and supports recent versions of Z3 (e.g., 4.3). The new proof method is
-    called "smt2". CVC3 and CVC4 are also supported as oracles. Yices is no
-    longer supported, because no version of the solver can handle both
-    SMT-LIB 2 and quantifiers.
+* SMT module: A new version of the SMT module, temporarily called
+"SMT2", uses SMT-LIB 2 and supports recent versions of Z3 (e.g.,
+4.3). The new proof method is called "smt2". CVC3 and CVC4 are also
+supported as oracles. Yices is no longer supported, because no version
+of the solver can handle both SMT-LIB 2 and quantifiers.
 
 * Sledgehammer:
   - Z3 can now produce Isar proofs.
   - MaSh overhaul:
-      - New SML-based learning engines eliminate the dependency on Python
-        and increase performance and reliability.
-      - MaSh and MeSh are now used by default together with the traditional
-        MePo (Meng-Paulson) relevance filter. To disable MaSh, set the "MaSh"
-        system option in Plugin Options / Isabelle / General to "none".
+    . New SML-based learning engines eliminate the dependency on
+      Python and increase performance and reliability.
+    . MaSh and MeSh are now used by default together with the
+      traditional MePo (Meng-Paulson) relevance filter. To disable
+      MaSh, set the "MaSh" system option in Isabelle/jEdit Plugin
+      Options / Isabelle / General to "none".
   - New option:
       smt_proofs
   - Renamed options:
       isar_compress ~> compress
       isar_try0 ~> try0
-    INCOMPATIBILITY.
 
-* Metis:
-  - Removed legacy proof method 'metisFT'. Use 'metis (full_types)' instead.
-    INCOMPATIBILITY.
+INCOMPATIBILITY.
+
+* Metis: Removed legacy proof method 'metisFT'. Use 'metis
+(full_types)' instead. INCOMPATIBILITY.
 
 * Try0: Added 'algebra' and 'meson' to the set of proof methods.
 
@@ -467,7 +485,7 @@ with the given constants.
 
 * Abolished slightly odd global lattice interpretation for min/max.
 
-Fact consolidations:
+  Fact consolidations:
     min_max.inf_assoc ~> min.assoc
     min_max.inf_commute ~> min.commute
     min_max.inf_left_commute ~> min.left_commute
@@ -513,18 +531,18 @@ For min_max.inf_sup_aci, prefer (one of) min.commute, min.assoc,
 min.left_commute, min.left_idem, max.commute, max.assoc,
 max.left_commute, max.left_idem directly.
 
-For min_max.inf_sup_ord, prefer (one of) min.cobounded1, min.cobounded2,
-max.cobounded1m max.cobounded2 directly.
+For min_max.inf_sup_ord, prefer (one of) min.cobounded1,
+min.cobounded2, max.cobounded1m max.cobounded2 directly.
 
 For min_ac or max_ac, prefer more general collection ac_simps.
 
 INCOMPATBILITY.
 
-* Word library: bit representations prefer type bool over type bit.
+* HOL-Word: bit representations prefer type bool over type bit.
 INCOMPATIBILITY.
 
-* Theorem disambiguation Inf_le_Sup (on finite sets) ~> Inf_fin_le_Sup_fin.
-INCOMPATIBILITY.
+* Theorem disambiguation Inf_le_Sup (on finite sets) ~>
+Inf_fin_le_Sup_fin.  INCOMPATIBILITY.
 
 * Code generations are provided for make, fields, extend and truncate
 operations on records.
@@ -534,21 +552,25 @@ INCOMPATIBILITY.
 
 * Fact generalization and consolidation:
     neq_one_mod_two, mod_2_not_eq_zero_eq_one_int ~> not_mod_2_eq_0_eq_1
+
 INCOMPATIBILITY.
 
-* Purely algebraic definition of even.  Fact generalization and consolidation:
+* Purely algebraic definition of even.  Fact generalization and
+  consolidation:
     nat_even_iff_2_dvd, int_even_iff_2_dvd ~> even_iff_2_dvd
     even_zero_(nat|int) ~> even_zero
+
 INCOMPATIBILITY.
 
 * Abolished neg_numeral.
-  * Canonical representation for minus one is "- 1".
-  * Canonical representation for other negative numbers is "- (numeral _)".
-  * When devising rule sets for number calculation, consider the
+  - Canonical representation for minus one is "- 1".
+  - Canonical representation for other negative numbers is "- (numeral _)".
+  - When devising rule sets for number calculation, consider the
     following canonical cases: 0, 1, numeral _, - 1, - numeral _.
-  * HOLogic.dest_number also recognizes numerals in non-canonical forms
+  - HOLogic.dest_number also recognizes numerals in non-canonical forms
     like "numeral One", "- numeral One", "- 0" and even "- ... - _".
-  * Syntax for negative numerals is mere input syntax.
+  - Syntax for negative numerals is mere input syntax.
+
 INCOMPATIBILITY.
 
 * Elimination of fact duplicates:
@@ -556,6 +578,7 @@ INCOMPATIBILITY.
     diff_eq_0_iff_eq ~> right_minus_eq
     nat_infinite ~> infinite_UNIV_nat
     int_infinite ~> infinite_UNIV_int
+
 INCOMPATIBILITY.
 
 * Fact name consolidation:
@@ -564,6 +587,7 @@ INCOMPATIBILITY.
     le_minus_self_iff ~> less_eq_neg_nonpos
     neg_less_nonneg ~> neg_less_pos
     less_minus_self_iff ~> less_neg_neg [simp]
+
 INCOMPATIBILITY.
 
 * More simplification rules on unary and binary minus:
@@ -571,9 +595,9 @@ add_diff_cancel, add_diff_cancel_left, add_le_same_cancel1,
 add_le_same_cancel2, add_less_same_cancel1, add_less_same_cancel2,
 add_minus_cancel, diff_add_cancel, le_add_same_cancel1,
 le_add_same_cancel2, less_add_same_cancel1, less_add_same_cancel2,
-minus_add_cancel, uminus_add_conv_diff.  These correspondingly
-have been taken away from fact collections algebra_simps and
-field_simps.  INCOMPATIBILITY.
+minus_add_cancel, uminus_add_conv_diff.  These correspondingly have
+been taken away from fact collections algebra_simps and field_simps.
+INCOMPATIBILITY.
 
 To restore proofs, the following patterns are helpful:
 
@@ -588,18 +612,18 @@ Consider simplification with algebra_simps or field_simps;
 or the brute way with
 "simp add: diff_conv_add_uminus del: add_uminus_conv_diff".
 
-* SUP and INF generalized to conditionally_complete_lattice
+* SUP and INF generalized to conditionally_complete_lattice.
 
 * Theory Lubs moved HOL image to HOL-Library. It is replaced by
-Conditionally_Complete_Lattices.   INCOMPATIBILITY.
+Conditionally_Complete_Lattices.  INCOMPATIBILITY.
 
-* Introduce bdd_above and bdd_below in Conditionally_Complete_Lattices, use them
-instead of explicitly stating boundedness of sets.
+* Introduce bdd_above and bdd_below in theory
+Conditionally_Complete_Lattices, use them instead of explicitly
+stating boundedness of sets.
 
-* ccpo.admissible quantifies only over non-empty chains to allow
-more syntax-directed proof rules; the case of the empty chain
-shows up as additional case in fixpoint induction proofs.
-INCOMPATIBILITY
+* ccpo.admissible quantifies only over non-empty chains to allow more
+syntax-directed proof rules; the case of the empty chain shows up as
+additional case in fixpoint induction proofs.  INCOMPATIBILITY.
 
 * Removed and renamed theorems in Series:
   summable_le         ~>  suminf_le
@@ -617,10 +641,13 @@ INCOMPATIBILITY
   removed series_zero, replaced by sums_finite
 
   removed auxiliary lemmas:
+
     sumr_offset, sumr_offset2, sumr_offset3, sumr_offset4, sumr_group,
-    half, le_Suc_ex_iff, lemma_realpow_diff_sumr, real_setsum_nat_ivl_bounded,
-    summable_le2, ratio_test_lemma2, sumr_minus_one_realpow_zerom,
-    sumr_one_lb_realpow_zero, summable_convergent_sumr_iff, sumr_diff_mult_const
+    half, le_Suc_ex_iff, lemma_realpow_diff_sumr,
+    real_setsum_nat_ivl_bounded, summable_le2, ratio_test_lemma2,
+    sumr_minus_one_realpow_zerom, sumr_one_lb_realpow_zero,
+    summable_convergent_sumr_iff, sumr_diff_mult_const
+
 INCOMPATIBILITY.
 
 * Replace (F)DERIV syntax by has_derivative:
@@ -632,10 +659,10 @@ INCOMPATIBILITY.
 
   - removed constant isDiff
 
-  - "DERIV f x : f'" and "FDERIV f x : f'" syntax is only available as input
-    syntax.
+  - "DERIV f x : f'" and "FDERIV f x : f'" syntax is only available as
+    input syntax.
 
-  - "DERIV f x : s : f'" and "FDERIV f x : s : f'" syntax removed
+  - "DERIV f x : s : f'" and "FDERIV f x : s : f'" syntax removed.
 
   - Renamed FDERIV_... lemmas to has_derivative_...
 
@@ -643,8 +670,9 @@ INCOMPATIBILITY.
 
   - removed DERIV_intros, has_derivative_eq_intros
 
-  - introduced derivative_intros and deriative_eq_intros which includes now rules for
-    DERIV, has_derivative and has_vector_derivative.
+  - introduced derivative_intros and deriative_eq_intros which
+    includes now rules for DERIV, has_derivative and
+    has_vector_derivative.
 
   - Other renamings:
     differentiable_def        ~>  real_differentiable_def
@@ -654,24 +682,27 @@ INCOMPATIBILITY.
     isDiff_der                ~>  differentiable_def
     deriv_fderiv              ~>  has_field_derivative_def
     deriv_def                 ~>  DERIV_def
+
 INCOMPATIBILITY.
 
-* Include more theorems in continuous_intros. Remove the continuous_on_intros,
-  isCont_intros collections, these facts are now in continuous_intros.
+* Include more theorems in continuous_intros. Remove the
+continuous_on_intros, isCont_intros collections, these facts are now
+in continuous_intros.
 
-* Theorems about complex numbers are now stated only using Re and Im, the Complex
-  constructor is not used anymore. It is possible to use primcorec to defined the
-  behaviour of a complex-valued function.
+* Theorems about complex numbers are now stated only using Re and Im,
+the Complex constructor is not used anymore. It is possible to use
+primcorec to defined the behaviour of a complex-valued function.
 
-  Removed theorems about the Complex constructor from the simpset, they are
-  available as the lemma collection legacy_Complex_simps. This especially
-  removes
+Removed theorems about the Complex constructor from the simpset, they
+are available as the lemma collection legacy_Complex_simps. This
+especially removes
+
     i_complex_of_real: "ii * complex_of_real r = Complex 0 r".
 
-  Instead the reverse direction is supported with
+Instead the reverse direction is supported with
     Complex_eq: "Complex a b = a + \<i> * b"
 
-  Moved csqrt from Fundamental_Algebra_Theorem to Complex.
+Moved csqrt from Fundamental_Algebra_Theorem to Complex.
 
   Renamings:
     Re/Im                  ~>  complex.sel
@@ -701,36 +732,37 @@ INCOMPATIBILITY.
     complex_inverse_def
     complex_scaleR_def
 
+INCOMPATIBILITY.
+
 * Removed solvers remote_cvc3 and remote_z3. Use cvc3 and z3 instead.
 
 * Nitpick:
-  - Fixed soundness bug whereby mutually recursive datatypes could take
-    infinite values.
-  - Fixed soundness bug with low-level number functions such as "Abs_Integ" and
-    "Rep_Integ".
+  - Fixed soundness bug whereby mutually recursive datatypes could
+    take infinite values.
+  - Fixed soundness bug with low-level number functions such as
+    "Abs_Integ" and "Rep_Integ".
   - Removed "std" option.
   - Renamed "show_datatypes" to "show_types" and "hide_datatypes" to
     "hide_types".
 
 * HOL-Multivariate_Analysis:
-  - type class ordered_real_vector for ordered vector spaces
-  - new theory Complex_Basic_Analysis defining complex derivatives,
+  - Type class ordered_real_vector for ordered vector spaces.
+  - New theory Complex_Basic_Analysis defining complex derivatives,
     holomorphic functions, etc., ported from HOL Light's canal.ml.
-  - changed order of ordered_euclidean_space to be compatible with
+  - Changed order of ordered_euclidean_space to be compatible with
     pointwise ordering on products. Therefore instance of
     conditionally_complete_lattice and ordered_real_vector.
     INCOMPATIBILITY: use box instead of greaterThanLessThan or
-    explicit set-comprehensions with eucl_less for other (half-) open
+    explicit set-comprehensions with eucl_less for other (half-)open
     intervals.
-
   - renamed theorems:
     derivative_linear         ~>  has_derivative_bounded_linear
     derivative_is_linear      ~>  has_derivative_linear
     bounded_linear_imp_linear ~>  bounded_linear.linear
 
 * HOL-Probability:
-  - replaced the Lebesgue integral on real numbers by the more general Bochner
-    integral for functions into a real-normed vector space.
+  - replaced the Lebesgue integral on real numbers by the more general
+    Bochner integral for functions into a real-normed vector space.
 
     integral_zero               ~>  integral_zero / integrable_zero
     integral_minus              ~>  integral_minus / integrable_minus
@@ -793,15 +825,17 @@ INCOMPATIBILITY.
 
   - Renamed positive_integral to nn_integral:
 
-    * Renamed all lemmas "*positive_integral*" to *nn_integral*"
+    . Renamed all lemmas "*positive_integral*" to *nn_integral*"
       positive_integral_positive ~> nn_integral_nonneg
 
-    * Renamed abbreviation integral\<^sup>P to integral\<^sup>N.
+    . Renamed abbreviation integral\<^sup>P to integral\<^sup>N.
 
-  - Formalized properties about exponentially, Erlang, and normal distributed
-    random variables.
+  - Formalized properties about exponentially, Erlang, and normal
+    distributed random variables.
 
-* Library/Kleene-Algebra was removed because AFP/Kleene_Algebra subsumes it.
+* Removed theory src/HOL/Library/Kleene_Algebra.thy; it is subsumed by
+session Kleene_Algebra in AFP.
+
 
 *** Scala ***
 
@@ -811,6 +845,9 @@ order of reports given by the prover: later markup is usually more
 specific and may override results accumulated so far.  The elements
 guard is mandatory and checked precisely.  Subtle INCOMPATIBILITY.
 
+* Substantial reworking of internal PIDE protocol communication
+channels.  INCOMPATIBILITY.
+
 
 *** ML ***
 
@@ -818,8 +855,8 @@ guard is mandatory and checked precisely.  Subtle INCOMPATIBILITY.
 structure Runtime.  Minor INCOMPATIBILITY.
 
 * Discontinued old Toplevel.debug in favour of system option
-"ML_exception_trace", which may be also declared within the context via
-"declare [[ML_exception_trace = true]]".  Minor INCOMPATIBILITY.
+"ML_exception_trace", which may be also declared within the context
+via "declare [[ML_exception_trace = true]]".  Minor INCOMPATIBILITY.
 
 * Renamed configuration option "ML_trace" to "ML_source_trace". Minor
 INCOMPATIBILITY.
@@ -878,21 +915,6 @@ component repository http://isabelle.in.tum.de/components/.  See also
 the "system" manual for general explanations about add-on components,
 notably those that are not bundled with the normal release.
 
-* Session ROOT specifications require explicit 'document_files' for
-robust dependencies on LaTeX sources.  Only these explicitly given
-files are copied to the document output directory, before document
-processing is started.
-
-* Simplified "isabelle display" tool.  Settings variables DVI_VIEWER
-and PDF_VIEWER now refer to the actual programs, not shell
-command-lines.  Discontinued option -c: invocation may be asynchronous
-via desktop environment, without any special precautions.  Potential
-INCOMPATIBILITY with ambitious private settings.
-
-* Improved 'display_drafts' concerning desktop integration and
-repeated invocation in PIDE front-end: re-use single file
-$ISABELLE_HOME_USER/tmp/drafts.pdf and corresponding views.
-
 * The raw Isabelle process executable has been renamed from
 "isabelle-process" to "isabelle_process", which conforms to common
 shell naming conventions, and allows to define a shell function within
@@ -904,15 +926,30 @@ settings variable yet.
 with implicit build like "isabelle jedit", and without the mostly
 obsolete Isar TTY loop.
 
+* Simplified "isabelle display" tool.  Settings variables DVI_VIEWER
+and PDF_VIEWER now refer to the actual programs, not shell
+command-lines.  Discontinued option -c: invocation may be asynchronous
+via desktop environment, without any special precautions.  Potential
+INCOMPATIBILITY with ambitious private settings.
+
 * Removed obsolete "isabelle unsymbolize".  Note that the usual format
 for email communication is the Unicode rendering of Isabelle symbols,
 as produced by Isabelle/jEdit, for example.
 
-* Retired the now unused Isabelle tool "wwwfind". Similar
-functionality may be integrated into PIDE/jEdit at a later point.
+* Removed obsolete tool "wwwfind". Similar functionality may be
+integrated into Isabelle/jEdit eventually.
+
+* Improved 'display_drafts' concerning desktop integration and
+repeated invocation in PIDE front-end: re-use single file
+$ISABELLE_HOME_USER/tmp/drafts.pdf and corresponding views.
 
 * Windows: support for regular TeX installation (e.g. MiKTeX) instead
 of TeX Live from Cygwin.
+
+* Session ROOT specifications require explicit 'document_files' for
+robust dependencies on LaTeX sources.  Only these explicitly given
+files are copied to the document output directory, before document
+processing is started.
 
 
 

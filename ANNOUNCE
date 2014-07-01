@@ -1,27 +1,36 @@
-Subject: Announcing Isabelle2013-2
+Subject: Announcing Isabelle2014
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2013-2 is now available.
+Isabelle2014 is now available.
 
-This version supersedes Isabelle2013-1, which in turn consolidated
-Isabelle2013 and introduced numerous improvements.  See the NEWS file
-in the distribution for more details.  Some highlights are:
+This version significantly improves upon Isabelle2013-2, see the NEWS
+file in the distribution for more details.  Some highlights are:
 
-* Significantly improved Isabelle/jEdit Prover IDE.
+* Improved Isabelle/jEdit Prover IDE: navigation, completion,
+  spell-checking, Query panel, Simplifier Trace panel.
 
-* Consolidated multi-platform support: Linux, Windows, Mac OS X.
+* Support for auxiliary files within the Prover IDE.
 
-* Added and updated manuals: datatypes, implementation, isar-ref, jedit.
+* Support for official Standard ML within the Prover IDE,
+  independently of Isabelle theory and proof development.
 
-* New Spec_Check tool: Quickcheck for Isabelle/ML.
+* HOL: BNF datatypes and codatatypes within theory Main, with numerous
+  add-on tools.
 
-* HOL library enhancements: Complex_Main, HOL-Library,
-  HOL-Multivariate_Analysis.
+* HOL tool enhancements: Nitpick, Sledgehammer.
 
-* HOL tool enhancements: Codegenerator, Function, Lifting, Transfer,
-  Nitpick, Sledgehammer.
+* HOL: numerous library enhancements: Main, HOL-Multivariate_Analysis,
+  HOL-Probability.
 
-* HOL-BNF: significantly improved BNF-based (co)datatype package.
+* HOL: internal SAT solver "cdclite" with models and proof traces.
+
+* HOL: updated SMT module, with support for SMT-LIB 2 and recent
+  versions of Z3, as well as CVC3, CVC4.
+
+* Updated and extended manuals: codegen, datatypes, implementation,
+  isar-ref, jedit, system.
+
+* System integration: improved support of LateX on Windows platform.
 
 
 You may get Isabelle2013-2 from the following mirror sites:

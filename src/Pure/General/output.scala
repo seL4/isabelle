@@ -1,4 +1,5 @@
-/*  Title:      Pure/General/output.ML
+/*  Title:      Pure/General/output.scala
+    Module:     PIDE
     Author:     Makarius
 
 Isabelle channels for diagnostic output.
