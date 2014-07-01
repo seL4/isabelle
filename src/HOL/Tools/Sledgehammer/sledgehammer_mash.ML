@@ -148,18 +148,18 @@ datatype mash_engine =
 fun mash_engine () =
   let val flag1 = Options.default_string @{system_option MaSh} in
     (case if flag1 <> "none" (* default *) then flag1 else getenv "MASH" of
-      "yes" => SOME MaSh_NB
-    | "sml" => SOME MaSh_NB
+      "yes" => SOME MaSh_NB_kNN
+    | "sml" => SOME MaSh_NB_kNN
     | "nb" => SOME MaSh_NB
     | "knn" => SOME MaSh_kNN
     | "nb_knn" => SOME MaSh_NB_kNN
     | "nb_ext" => SOME MaSh_NB_Ext
     | "knn_ext" => SOME MaSh_kNN_Ext
-    | _ => NONE)
+    | engine => (warning ("Unknown MaSh engine: " ^ quote engine ^ "."); NONE))
   end
 
 val is_mash_enabled = is_some o mash_engine
-val the_mash_engine = the_default MaSh_NB o mash_engine
+val the_mash_engine = the_default MaSh_NB_kNN o mash_engine
 
 fun scaled_avg [] = 0
   | scaled_avg xs = Real.ceil (100000000.0 * fold (curry (op +)) xs 0.0) div length xs
