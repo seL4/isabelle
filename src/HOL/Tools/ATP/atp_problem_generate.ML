@@ -749,9 +749,11 @@ fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =
 
 fun concealed_bound_name j = atp_weak_prefix ^ string_of_int j
 fun conceal_bounds Ts t =
-  subst_bounds (map_index (Free o apfst concealed_bound_name) Ts, t)
+  subst_bounds (map (Free o apfst concealed_bound_name)
+                    (0 upto length Ts - 1 ~~ Ts), t)
 fun reveal_bounds Ts =
-  subst_atomic (map_index (fn (j, T) => (Free (concealed_bound_name j, T), Bound j)) Ts)
+  subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
+                    (0 upto length Ts - 1 ~~ Ts))
 
 fun do_introduce_combinators ctxt Ts t =
   let val thy = Proof_Context.theory_of ctxt in
@@ -1325,7 +1327,7 @@ fun type_arg_cover thy pos s ary =
       if forall null footprint then
         []
       else
-        map_index I footprint
+        0 upto length footprint - 1 ~~ footprint
         |> sort (rev_order o list_ord Term_Ord.indexname_ord o pairself snd)
         |> cover []
     end
@@ -1876,7 +1878,7 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
     val conjs =
       map (pair prem_role) hyp_ts @ [(Conjecture, s_not_prop concl_t)]
       |> map (apsnd freeze_term)
-      |> map_index (uncurry (pair o rpair (Local, General) o string_of_int))
+      |> map2 (pair o rpair (Local, General) o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
       |> presimp ? pairself (map (apsnd (apsnd (presimp_prop ctxt type_enc))))
@@ -1928,7 +1930,7 @@ fun is_var_undercover_in_term thy name pos tm accum =
           val cover = type_arg_cover thy pos s ary
         in
           exists (fn (j, tm) => tm = var andalso member (op =) cover j)
-            (0 upto ary - 1 ~~ tms) orelse
+                 (0 upto ary - 1 ~~ tms) orelse
           exists is_undercover tms
         end
       | is_undercover _ = true
@@ -1982,7 +1984,7 @@ and atp_term_of_iterm ctxt mono type_enc pos =
               val ary = length args
               fun arg_site j = if is_tptp_equal s then Eq_Arg pos else Arg (s, j, ary)
             in
-              map_index (uncurry (term o arg_site)) args
+              map2 (fn j => term (arg_site j)) (0 upto ary - 1) args
               |> mk_aterm type_enc name T_args
             end
           | IVar (name, _) =>
@@ -2100,7 +2102,7 @@ fun lines_of_free_types type_enc (facts : ifact list) =
   if is_type_enc_polymorphic type_enc then
     let
       val type_classes = (polymorphism_of_type_enc type_enc = Type_Class_Polymorphic)
-      fun line (j, (cl, T)) =
+      fun line j (cl, T) =
         if type_classes then
           Class_Memb (class_memb_prefix ^ string_of_int j, [],
             native_atp_type_of_typ type_enc false 0 T, `make_class cl)
@@ -2111,7 +2113,7 @@ fun lines_of_free_types type_enc (facts : ifact list) =
         fold (union (op =)) (map #atomic_types facts) []
         |> class_membs_of_types type_enc add_sorts_on_tfree
     in
-      map_index line membs
+      map2 line (0 upto length membs - 1) membs
     end
   else
     []
@@ -2312,7 +2314,8 @@ fun decl_line_of_sym ctxt mono type_enc s (s', T_args, T, pred_sym, ary, _) =
 
 fun honor_conj_sym_role in_conj = (if in_conj then Hypothesis else Axiom, I)
 
-fun line_of_guards_sym_decl ctxt mono type_enc n s j (s', T_args, T, _, ary, in_conj) =
+fun line_of_guards_sym_decl ctxt mono type_enc n s j
+                            (s', T_args, T, _, ary, in_conj) =
   let
     val thy = Proof_Context.theory_of ctxt
     val (role, maybe_negate) = honor_conj_sym_role in_conj
@@ -2325,7 +2328,7 @@ fun line_of_guards_sym_decl ctxt mono type_enc n s j (s', T_args, T, _, ary, in_
         All_Types => if null T_args then replicate ary NONE else map SOME arg_Ts
       | Undercover_Types =>
         let val cover = type_arg_cover thy NONE s ary in
-          map_index (uncurry (fn j => if member (op =) cover j then SOME else K NONE)) arg_Ts
+          map2 (fn j => if member (op =) cover j then SOME else K NONE) (0 upto ary - 1) arg_Ts
         end
       | _ => replicate ary NONE)
   in
@@ -2369,7 +2372,7 @@ fun lines_of_tags_sym_decl ctxt mono type_enc n s
       let
         val cover = type_arg_cover thy NONE s ary
         fun maybe_tag (j, arg_T) = member (op =) cover j ? tag_with arg_T
-        val bounds = map2 maybe_tag (0 upto ary - 1 ~~ arg_Ts) bounds
+        val bounds = bounds |> map2 maybe_tag (0 upto ary - 1 ~~ arg_Ts)
       in formula (cst bounds) end
     else
       formula (cst bounds)
@@ -2396,14 +2399,14 @@ fun lines_of_sym_decls ctxt mono type_enc (s, decls) =
       val n = length decls
       val decls = decls |> filter (should_encode_type ctxt mono level o result_type_of_decl)
     in
-      map_index (uncurry (line_of_guards_sym_decl ctxt mono type_enc n s)) decls
+      (0 upto length decls - 1, decls) |-> map2 (line_of_guards_sym_decl ctxt mono type_enc n s)
     end
   | Tags (_, level) =>
     if is_type_level_uniform level then
       []
     else
       let val n = length decls in
-        maps (lines_of_tags_sym_decl ctxt mono type_enc n s) (0 upto n - 1 ~~ decls)
+        (0 upto n - 1 ~~ decls) |> maps (lines_of_tags_sym_decl ctxt mono type_enc n s)
       end)
 
 fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
@@ -2600,7 +2603,6 @@ fun generate_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
     val completish = (mode = Sledgehammer_Completish)
-
     (* Forcing explicit applications is expensive for polymorphic encodings,
        because it takes only one existential variable ranging over "'a => 'b" to
        ruin everything. Hence we do it only if there are few facts (which is
@@ -2612,45 +2614,32 @@ fun generate_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried
         if is_type_enc_polymorphic type_enc then Min_App_Op else Sufficient_App_Op
       else
         Sufficient_App_Op_And_Predicator
-
     val lam_trans =
       if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
       else lam_trans
-
     val (classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
       translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
-
     val (_, sym_tab0) = sym_table_of_facts ctxt type_enc app_op_level conjs facts
+    val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
     val ctrss = all_ctrss_of_datatypes ctxt
-
     fun firstorderize in_helper =
       firstorderize_fact thy ctrss type_enc (uncurried_aliases andalso not in_helper) completish
         sym_tab0
-
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val (ho_stuff, sym_tab) =
       sym_table_of_facts ctxt type_enc Min_App_Op conjs facts
-    val helpers =
-      sym_tab |> helper_facts_of_sym_table ctxt format type_enc completish
-              |> map (firstorderize true)
-
-    val all_facts = helpers @ conjs @ facts
-    val mono = mononotonicity_info_of_facts ctxt type_enc completish all_facts
-    val mono_Ts = monotonic_types_of_facts ctxt mono type_enc all_facts
-
     val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
       uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc uncurried_aliases sym_tab0 sym_tab
     val (_, sym_tab) =
       (ho_stuff, sym_tab)
       |> fold (add_iterm_syms_to_sym_table ctxt Min_App_Op false false)
               uncurried_alias_eq_tms
+    val helpers =
+      sym_tab |> helper_facts_of_sym_table ctxt format type_enc completish
+              |> map (firstorderize true)
+    val all_facts = helpers @ conjs @ facts
+    val mono_Ts = monotonic_types_of_facts ctxt mono type_enc all_facts
     val datatypes = datatypes_of_sym_table ctxt ctrss format type_enc uncurried_aliases sym_tab
-
-    val num_facts = length facts
-    val freshen = mode <> Exporter andalso mode <> Translator
-    val pos = mode <> Exporter
-    val rank_of = rank_of_fact_num num_facts
-
     val class_decl_lines = decl_lines_of_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
@@ -2658,18 +2647,22 @@ fun generate_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried
       |> lines_of_sym_decl_table ctxt mono type_enc mono_Ts
     val datatype_decl_lines = map decl_line_of_datatype datatypes
     val decl_lines = class_decl_lines @ sym_decl_lines @ datatype_decl_lines
+    val num_facts = length facts
+    val freshen = mode <> Exporter andalso mode <> Translator
+    val pos = mode <> Exporter
+    val rank_of = rank_of_fact_num num_facts
     val fact_lines =
-      map_index (line_of_fact ctxt fact_prefix ascii_of I freshen pos mono type_enc rank_of) facts
+      map (line_of_fact ctxt fact_prefix ascii_of I freshen pos mono type_enc rank_of)
+        (0 upto num_facts - 1 ~~ facts)
     val subclass_lines = maps (lines_of_subclass_pair type_enc) subclass_pairs
     val tcon_lines = map (line_of_tcon_clause type_enc) tcon_clauses
     val helper_lines =
-      map_index (line_of_fact ctxt helper_prefix I (K "") false true mono type_enc (K default_rank))
-        helpers
+      0 upto length helpers - 1 ~~ helpers
+      |> map (line_of_fact ctxt helper_prefix I (K "") false true mono type_enc (K default_rank))
     val free_type_lines = lines_of_free_types type_enc (facts @ conjs)
     val conj_lines = map (line_of_conjecture ctxt mono type_enc) conjs
-
     (* Reordering these might confuse the proof reconstruction code. *)
-    val (problem, pool) =
+    val problem =
       [(explicit_declsN, decl_lines),
        (uncurried_alias_eqsN, uncurried_alias_eq_lines),
        (factsN, fact_lines),
@@ -2678,13 +2671,14 @@ fun generate_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried
        (helpersN, helper_lines),
        (free_typesN, free_type_lines),
        (conjsN, conj_lines)]
+    val problem =
+      problem
       |> (case format of
            CNF => ensure_cnf_problem
          | CNF_UEQ => filter_cnf_ueq_problem
          | FOF => I
          | _ => declare_undeclared_in_problem implicit_declsN)
-      |> nice_atp_problem readable_names format
-
+    val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) = min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
   in
     (problem, Option.map snd pool |> the_default Symtab.empty, lifted,
@@ -2721,7 +2715,7 @@ fun atp_problem_selection_weights problem =
           fact_min_weight + (fact_max_weight - fact_min_weight) * Real.fromInt j
                             / Real.fromInt num_facts
       in
-        map_index (apfst weight_of) facts
+        map weight_of (0 upto num_facts - 1) ~~ facts
         |> fold (uncurry add_line_weights)
       end
     val get = these o AList.lookup (op =) problem
