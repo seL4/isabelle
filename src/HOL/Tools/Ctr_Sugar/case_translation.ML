@@ -540,7 +540,8 @@ fun dest_case ctxt d used t =
 
 fun encode_clause recur S T (pat, rhs) =
   fold (fn x as (_, U) => fn t =>
-    Const (@{const_name case_abs}, (U --> T) --> T) $ Term.absfree x t)
+    let val T = fastype_of t;
+    in Const (@{const_name case_abs}, (U --> T) --> T) $ Term.absfree x t end)
       (Term.add_frees pat [])
       (Const (@{const_name case_elem}, S --> T --> S --> T) $ pat $ recur rhs);
 
