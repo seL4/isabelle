@@ -315,35 +315,6 @@ text {*
 *}
 
 
-subsection {* Printing limits *}
-
-text {*
-  \begin{mldecls}
-    @{index_ML Pretty.margin_default: "int Unsynchronized.ref"} \\
-  \end{mldecls}
-
-  \begin{tabular}{rcll}
-    @{attribute_def ML_print_depth} & : & @{text attribute} & default 10 \\ %FIXME move?
-  \end{tabular}
-
-  \begin{description}
-
-  \item @{ML Pretty.margin_default} indicates the global default for
-  the right margin of the built-in pretty printer, with initial value
-  76.  Note that user-interfaces typically control margins
-  automatically when resizing windows, or even bypass the formatting
-  engine of Isabelle/ML altogether and do it within the front end via
-  Isabelle/Scala.
-
-  \item @{attribute ML_print_depth} limits the printing depth of the
-  ML toplevel pretty printer; the precise effect depends on the ML
-  compiler and run-time system.  Typically the limit should be less
-  than 10.  Bigger values such as 100--1000 are useful for debugging.
-
-  \end{description}
-*}
-
-
 section {* Mixfix annotations \label{sec:mixfix} *}
 
 text {* Mixfix annotations specify concrete \emph{inner syntax} of

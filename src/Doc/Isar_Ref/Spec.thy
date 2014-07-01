@@ -1010,6 +1010,11 @@ text {*
     @{command_def "local_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "attribute_setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
+  \begin{tabular}{rcll}
+    @{attribute_def ML_print_depth} & : & @{text attribute} & default 10 \\
+    @{attribute_def ML_source_trace} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def ML_exception_trace} & : & @{text attribute} & default @{text false} \\
+  \end{tabular}
 
   @{rail \<open>
     (@@{command SML_file} | @@{command ML_file}) @{syntax name}
@@ -1090,6 +1095,33 @@ text {*
         (fn th: thm => fn context: Context.generic =>
           let val context' = context
           in context' end)) *}
+
+text {*
+  \begin{description}
+
+  \item @{attribute ML_print_depth} controls the printing depth of the ML
+  toplevel pretty printer; the precise effect depends on the ML compiler and
+  run-time system. Typically the limit should be less than 10. Bigger values
+  such as 100--1000 are occasionally useful for debugging.
+
+  \item @{attribute ML_source_trace} indicates whether the source text that
+  is given to the ML compiler should be output: it shows the raw Standard ML
+  after expansion of Isabelle/ML antiquotations.
+
+  \item @{attribute ML_exception_trace} indicates whether the ML run-time
+  system should print a detailed stack trace on exceptions. The result is
+  dependent on the particular ML compiler version. Note that after Poly/ML
+  5.3 some optimizations in the run-time systems may hinder exception
+  traces.
+
+  The boundary for the exception trace is the current Isar command
+  transactions. It is occasionally better to insert the combinator @{ML
+  Runtime.exn_trace} into ML code for debugging
+  \cite{isabelle-implementation}, closer to the point where it actually
+  happens.
+
+  \end{description}
+*}
 
 
 section {* Primitive specification elements *}
