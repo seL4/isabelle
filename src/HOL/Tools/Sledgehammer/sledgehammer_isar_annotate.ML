@@ -70,11 +70,10 @@ fun match_types ctxt t1 t2 =
     val thy = Proof_Context.theory_of ctxt
     val get_types = post_fold_term_type (K cons) []
   in
-    fold (Sign.typ_match thy) (get_types t1 ~~ get_types t2) Vartab.empty
-    handle Type.TYPE_MATCH => raise Fail "Sledgehammer_Isar_Annotate: match_types"
+    fold (perhaps o try o Sign.typ_match thy) (get_types t1 ~~ get_types t2) Vartab.empty
   end
 
-fun handle_trivial_tfrees ctxt (t', subst) =
+fun handle_trivial_tfrees ctxt t' subst =
   let
     val add_tfree_names = snd #> snd #> fold_atyps (fn TFree (x, _) => cons x | _ => I)
 
@@ -181,10 +180,10 @@ fun annotate_types_in_term ctxt t =
   let
     val t' = generalize_types ctxt t
     val subst = match_types ctxt t' t
-    val (t', subst) = (t', subst) |> handle_trivial_tfrees ctxt
-    val typing_spots = t' |> typing_spot_table |> reverse_greedy |> sort int_ord
+    val (t'', subst') = handle_trivial_tfrees ctxt t' subst
+    val typing_spots = t'' |> typing_spot_table |> reverse_greedy |> sort int_ord
   in
-    introduce_annotations subst typing_spots t t'
+    introduce_annotations subst' typing_spots t t''
   end
 
 end;

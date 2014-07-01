@@ -196,8 +196,11 @@ fun string_of_facts facts =
   (facts |> map (fst o fst) |> space_implode " ") ^ "."
 
 fun string_of_factss factss =
-  if forall (null o snd) factss then "Found no relevant facts."
-  else cat_lines (map (fn (filter, facts) => quote filter ^ ": " ^ string_of_facts facts) factss)
+  if forall (null o snd) factss then
+    "Found no relevant facts."
+  else
+    cat_lines (map (fn (filter, facts) =>
+      (if filter = "" then "" else quote filter ^ ": ") ^ string_of_facts facts) factss)
 
 fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...}) mode
     output_result i (fact_override as {only, ...}) minimize_command state =

@@ -46,32 +46,74 @@ else
   ()
 *}
 
-ML {* Options.put_default @{system_option MaSh} "nb" *}
-
 ML {*
 if do_it then
-  generate_mash_suggestions @{context} params (range, step) thys max_suggestions
+  generate_mash_suggestions "nb" @{context} params (range, step) thys max_suggestions
     (prefix ^ "mash_nb_suggestions")
 else
   ()
 *}
 
-ML {* Options.put_default @{system_option MaSh} "knn" *}
-
 ML {*
 if do_it then
-  generate_mash_suggestions @{context} params (range, step) thys max_suggestions
+  generate_mash_suggestions "knn" @{context} params (range, step) thys max_suggestions
     (prefix ^ "mash_knn_suggestions")
 else
   ()
 *}
 
-ML {* Options.put_default @{system_option MaSh} "py" *}
+ML {*
+if do_it then
+  generate_mepo_suggestions @{context} params (range, step) thys max_suggestions
+    (prefix ^ "mepo_suggestions")
+else
+  ()
+*}
 
 ML {*
 if do_it then
-  generate_mash_suggestions @{context} params (range, step) thys max_suggestions
-    (prefix ^ "mash_py_suggestions")
+  generate_mesh_suggestions max_suggestions (prefix ^ "mash_nb_suggestions")
+    (prefix ^ "mepo_suggestions") (prefix ^ "mesh_nb_suggestions")
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  generate_mesh_suggestions max_suggestions (prefix ^ "mash_knn_suggestions")
+    (prefix ^ "mepo_suggestions") (prefix ^ "mesh_knn_suggestions")
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  generate_prover_dependencies @{context} params range thys
+    (prefix ^ "mash_nb_prover_dependencies")
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  generate_prover_dependencies @{context} params range thys
+    (prefix ^ "mash_knn_prover_dependencies")
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  generate_mesh_suggestions max_suggestions (prefix ^ "mash_nb_prover_suggestions")
+    (prefix ^ "mepo_suggestions") (prefix ^ "mesh_nb_prover_suggestions")
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  generate_mesh_suggestions max_suggestions (prefix ^ "mash_knn_prover_suggestions")
+    (prefix ^ "mepo_suggestions") (prefix ^ "mesh_knn_prover_suggestions")
 else
   ()
 *}
@@ -107,39 +149,8 @@ else
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params (range, step) thys max_suggestions
-    (prefix ^ "mepo_suggestions")
-else
-  ()
-*}
-
-ML {*
-if do_it then
-  generate_mesh_suggestions max_suggestions (prefix ^ "mash_suggestions")
-    (prefix ^ "mepo_suggestions") (prefix ^ "mesh_suggestions")
-else
-  ()
-*}
-
-ML {*
-if do_it then
-  generate_prover_dependencies @{context} params range thys (prefix ^ "mash_prover_dependencies")
-else
-  ()
-*}
-
-ML {*
-if do_it then
   generate_prover_commands @{context} params (range, step) thys max_suggestions
     (prefix ^ "mash_prover_commands")
-else
-  ()
-*}
-
-ML {*
-if do_it then
-  generate_mesh_suggestions max_suggestions (prefix ^ "mash_prover_suggestions")
-    (prefix ^ "mepo_suggestions") (prefix ^ "mesh_prover_suggestions")
 else
   ()
 *}

@@ -76,6 +76,7 @@ fun is_proof_method_direct (Metis_Method _) = true
   | is_proof_method_direct Meson_Method = true
   | is_proof_method_direct SMT2_Method = true
   | is_proof_method_direct Simp_Method = true
+  | is_proof_method_direct Simp_Size_Method = true
   | is_proof_method_direct _ = false
 
 fun maybe_paren s = s |> not (Symbol_Pos.is_identifier s) ? enclose "(" ")"
@@ -103,7 +104,7 @@ fun string_of_proof_method ctxt ss meth =
     maybe_paren (space_implode " " (meth_s :: ss))
   end
 
-val silence_unifier = Try0.silence_methods false
+val silence_methods = Try0.silence_methods false
 
 fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
@@ -113,22 +114,22 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
       Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
         (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
     end
-  | Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
+  | Meson_Method => Meson_Tactic.meson_general_tac (silence_methods ctxt) global_facts
   | SMT2_Method =>
     let val ctxt = Config.put SMT2_Config.verbose false ctxt in
       SMT2_Solver.smt2_tac ctxt global_facts
     end
-  | Simp_Method => Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
+  | Simp_Method => Simplifier.asm_full_simp_tac (silence_methods ctxt addsimps global_facts)
+  | Simp_Size_Method =>
+    Simplifier.asm_full_simp_tac (silence_methods ctxt addsimps @{thms size_ne_size_imp_ne})
   | _ =>
     Method.insert_tac global_facts THEN'
     (case meth of
       SATx_Method => SAT.satx_tac ctxt
     | Blast_Method => blast_tac ctxt
-    | Simp_Size_Method =>
-      Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
-    | Auto_Method => K (Clasimp.auto_tac (silence_unifier ctxt))
-    | Fastforce_Method => Clasimp.fast_force_tac (silence_unifier ctxt)
-    | Force_Method => Clasimp.force_tac (silence_unifier ctxt)
+    | Auto_Method => K (Clasimp.auto_tac (silence_methods ctxt))
+    | Fastforce_Method => Clasimp.fast_force_tac (silence_methods ctxt)
+    | Force_Method => Clasimp.force_tac (silence_methods ctxt)
     | Linarith_Method =>
       let val ctxt = Config.put Lin_Arith.verbose false ctxt in Lin_Arith.tac ctxt end
     | Presburger_Method => Cooper.tac true [] [] ctxt
