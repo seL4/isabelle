@@ -9,13 +9,11 @@ header{*The Detects Relation*}
 
 theory Detects imports FP SubstAx begin
 
-consts
-   op_Detects  :: "['a set, 'a set] => 'a program set"  (infixl "Detects" 60)
-   op_Equality :: "['a set, 'a set] => 'a set"          (infixl "<==>" 60)
-   
-defs
-  Detects_def:  "A Detects B == (Always (-A \<union> B)) \<inter> (B LeadsTo A)"
-  Equality_def: "A <==> B == (-A \<union> B) \<inter> (A \<union> -B)"
+definition Detects :: "['a set, 'a set] => 'a program set"  (infixl "Detects" 60)
+  where "A Detects B = (Always (-A \<union> B)) \<inter> (B LeadsTo A)"
+
+definition Equality :: "['a set, 'a set] => 'a set"  (infixl "<==>" 60)
+  where "A <==> B = (-A \<union> B) \<inter> (A \<union> -B)"
 
 
 (* Corollary from Sectiom 3.6.4 *)
