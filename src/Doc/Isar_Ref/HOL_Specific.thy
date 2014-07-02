@@ -1087,7 +1087,7 @@ text {*
   \begin{description}
 
   \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} produces an
-  axiomatization (\secref{sec:basic-spec}) for a type definition in the
+  axiomatization (\secref{sec:axiomatizations}) for a type definition in the
   background theory of the current context, depending on a non-emptiness
   result of the set @{text A} that needs to be proven here. The set @{text
   A} may contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} as specified on the
@@ -1132,16 +1132,6 @@ text {*
   respectively.
 
   \end{description}
-
-  \begin{warn}
-  If you introduce a new type axiomatically, i.e.\ via @{command_ref
-  typedecl} and @{command_ref axiomatization}, the minimum requirement
-  is that it has a non-empty model, to avoid immediate collapse of the
-  HOL logic.  Moreover, one needs to demonstrate that the
-  interpretation of such free-form axiomatizations can coexist with
-  that of the regular @{command_def typedef} scheme, and any extension
-  that other people might have introduced elsewhere.
-  \end{warn}
 *}
 
 subsubsection {* Examples *}

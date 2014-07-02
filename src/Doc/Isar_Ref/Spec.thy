@@ -257,11 +257,10 @@ lemma "x = x"
   including trace by metis
 
 
-section {* Basic specification elements \label{sec:basic-spec} *}
+section {* Term definitions \label{sec:term-definitions} *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "axiomatization"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
     @{command_def "definition"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{attribute_def "defn"} & : & @{text attribute} \\
     @{command_def "print_defn_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
@@ -269,14 +268,12 @@ text {*
     @{command_def "print_abbrevs"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
   \end{matharray}
 
-  These specification mechanisms provide a slightly more abstract view
-  than the underlying primitives of @{command "consts"}, @{command
-  "defs"} (see \secref{sec:consts}), and raw axioms.  In particular,
-  type-inference covers the whole specification as usual.
+  Term definitions may either happen within the logic (as equational axioms
+  of a certain form, see also see \secref{sec:consts}), or outside of it as
+  rewrite system on abstract syntax. The second form is called
+  ``abbreviation''.
 
   @{rail \<open>
-    @@{command axiomatization} @{syntax "fixes"}? (@'where' specs)?
-    ;
     @@{command definition} @{syntax target}? \<newline>
       (decl @'where')? @{syntax thmdecl}? @{syntax prop}
     ;
@@ -284,32 +281,11 @@ text {*
       (decl @'where')? @{syntax prop}
     ;
 
-    @{syntax_def "fixes"}: ((@{syntax name} ('::' @{syntax type})?
-      @{syntax mixfix}? | @{syntax vars}) + @'and')
-    ;
-    specs: (@{syntax thmdecl}? @{syntax props} + @'and')
-    ;
     decl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
   \<close>}
 
   \begin{description}
   
-  \item @{command "axiomatization"}~@{text "c\<^sub>1 \<dots> c\<^sub>m \<WHERE> \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
-  introduces several constants simultaneously and states axiomatic
-  properties for these.  The constants are marked as being specified
-  once and for all, which prevents additional specifications being
-  issued later on.
-  
-  Axiomatic specifications are required when declaring a new logical system
-  within Isabelle/Pure, but in an application environment like
-  Isabelle/HOL the user normally stays within definitional mechanisms
-  provided by the logic and its libraries.
-
-  Axiomatization is restricted to a global theory context. Despite the
-  possibility to mark some constants as specified by a particular
-  axiomatization, the dependency tracking may be insufficient and disrupt
-  the well-formedness of an otherwise definitional theory.
-
   \item @{command "definition"}~@{text "c \<WHERE> eq"} produces an
   internal definition @{text "c \<equiv> t"} according to the specification
   given as @{text eq}, which is then turned into a proven fact.  The
@@ -347,6 +323,48 @@ text {*
   \item @{command "print_abbrevs"} prints all constant abbreviations
   of the current context.
   
+  \end{description}
+*}
+
+
+section {* Axiomatizations \label{sec:axiomatizations} *}
+
+text {*
+  \begin{matharray}{rcll}
+    @{command_def "axiomatization"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{command axiomatization} @{syntax "fixes"}? (@'where' specs)?
+    ;
+
+    @{syntax_def "fixes"}: ((@{syntax name} ('::' @{syntax type})?
+      @{syntax mixfix}? | @{syntax vars}) + @'and')
+    ;
+    specs: (@{syntax thmdecl}? @{syntax props} + @'and')
+  \<close>}
+
+  \begin{description}
+
+  \item @{command "axiomatization"}~@{text "c\<^sub>1 \<dots> c\<^sub>m \<WHERE> \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
+  introduces several constants simultaneously and states axiomatic
+  properties for these. The constants are marked as being specified once and
+  for all, which prevents additional specifications for the same constants
+  later on, but it is always possible do emit axiomatizations without
+  referring to particular constants. Note that lack of precise dependency
+  tracking of axiomatizations may disrupt the well-formedness of an
+  otherwise definitional theory.
+
+  Axiomatization is restricted to a global theory context: support for local
+  theory targets \secref{sec:target} would introduce an extra dimension of
+  uncertainty what the written specifications really are, and make it
+  infeasible to argue why they are correct.
+
+  Axiomatic specifications are required when declaring a new logical system
+  within Isabelle/Pure, but in an application environment like Isabelle/HOL
+  the user normally stays within definitional mechanisms provided by the
+  logic and its libraries.
+
   \end{description}
 *}
 
@@ -563,7 +581,7 @@ text {*
   Both @{element "assumes"} and @{element "defines"} elements
   contribute to the locale specification.  When defining an operation
   derived from the parameters, @{command "definition"}
-  (\secref{sec:basic-spec}) is usually more appropriate.
+  (\secref{sec:term-definitions}) is usually more appropriate.
   
   Note that ``@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}'' patterns given
   in the syntax of @{element "assumes"} and @{element "defines"} above
@@ -1161,7 +1179,7 @@ text {*
 *}
 
 
-subsection {* Types and type abbreviations \label{sec:types-pure} *}
+subsection {* Types \label{sec:types-pure} *}
 
 text {*
   \begin{matharray}{rcll}
@@ -1177,11 +1195,10 @@ text {*
 
   \begin{description}
 
-  \item @{command "type_synonym"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>"}
-  introduces a \emph{type synonym} @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} for the
-  existing type @{text "\<tau>"}.  Unlike actual type definitions, as are
-  available in Isabelle/HOL for example, type synonyms are merely
-  syntactic abbreviations without any logical significance.
+  \item @{command "type_synonym"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>"} introduces a
+  \emph{type synonym} @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} for the existing type @{text
+  "\<tau>"}. Unlike the semantic type definitions in Isabelle/HOL, type synonyms
+  are merely syntactic abbreviations without any logical significance.
   Internally, type synonyms are fully expanded.
   
   \item @{command "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} declares a new
@@ -1190,6 +1207,18 @@ text {*
   the axiomatic type-class instance @{text "t :: (s, \<dots>, s)s"}.
 
   \end{description}
+
+  \begin{warn}
+  If you introduce a new type axiomatically, i.e.\ via @{command_ref
+  typedecl} and @{command_ref axiomatization}
+  (\secref{sec:axiomatizations}), the minimum requirement is that it has a
+  non-empty model, to avoid immediate collapse of the logical environment.
+  Moreover, one needs to demonstrate that the interpretation of such
+  free-form axiomatizations can coexist with other axiomatization schemes
+  for types, notably @{command_def typedef} in Isabelle/HOL
+  (\secref{sec:hol-typedef}), or any other extension that people might have
+  introduced elsewhere.
+  \end{warn}
 *}
 
 
