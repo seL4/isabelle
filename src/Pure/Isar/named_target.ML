@@ -42,6 +42,11 @@ fun is_theory lthy =
     SOME ("", _) => true
   | _ => false;
 
+fun target_of lthy =
+  case get_data lthy of
+    NONE => error "Not in a named target"
+  | SOME (target, _) => target;
+
 fun locale_name_of NONE = NONE
   | locale_name_of (SOME ("", _)) = NONE
   | locale_name_of (SOME (locale, _)) = SOME locale;
@@ -182,7 +187,7 @@ fun switch NONE (Context.Theory thy) =
   | switch NONE (Context.Proof lthy) =
       (Context.Proof o Local_Theory.restore, lthy)
   | switch (SOME name) (Context.Proof lthy) =
-      (Context.Proof o init (the (locale_of lthy)) o exit,
+      (Context.Proof o init (target_of lthy) o exit,
         (begin name o exit o Local_Theory.assert_nonbrittle) lthy);
 
 end;
