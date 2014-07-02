@@ -187,6 +187,9 @@ lemma case_prod_map_prod: "case_prod h (map_prod f g x) = case_prod (\<lambda>l 
 lemma prod_inj_map: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (map_prod f g)"
   by (simp add: inj_on_def)
 
+lemma eq_ifI: "(P \<longrightarrow> t = u1) \<Longrightarrow> (\<not> P \<longrightarrow> t = u2) \<Longrightarrow> t = (if P then u1 else u2)"
+  by simp
+
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp_size.ML"

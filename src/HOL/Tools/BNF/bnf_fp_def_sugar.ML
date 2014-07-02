@@ -27,8 +27,8 @@ sig
 
   type gfp_sugar_thms =
     ((thm list * thm) list * (Args.src list * Args.src list))
-    * (thm list list * Args.src list)
-    * (thm list list * Args.src list)
+    * thm list list
+    * thm list list
     * (thm list list * Args.src list)
     * (thm list list list * Args.src list)
 
@@ -96,6 +96,8 @@ open BNF_FP_Def_Sugar_Tactics
 open BNF_LFP_Size
 
 val EqN = "Eq_";
+
+val corec_codeN = "corec_code";
 val disc_map_iffN = "disc_map_iff";
 val sel_mapN = "sel_map";
 val sel_setN = "sel_set";
@@ -278,18 +280,18 @@ val transfer_lfp_sugar_thms =
 
 type gfp_sugar_thms =
   ((thm list * thm) list * (Args.src list * Args.src list))
-  * (thm list list * Args.src list)
-  * (thm list list * Args.src list)
+  * thm list list
+  * thm list list
   * (thm list list * Args.src list)
   * (thm list list list * Args.src list);
 
 fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs_pair),
-    (corecss, corec_attrs), (disc_corecss, disc_corec_attrs),
-    (disc_corec_iffss, disc_corec_iff_attrs), (sel_corecsss, sel_corec_attrs)) =
+    corecss, disc_corecss, (disc_corec_iffss, disc_corec_iff_attrs),
+    (sel_corecsss, sel_corec_attrs)) =
   ((map (apfst (map (Morphism.thm phi)) o apsnd (Morphism.thm phi)) coinducts_pairs,
     coinduct_attrs_pair),
-   (map (map (Morphism.thm phi)) corecss, corec_attrs),
-   (map (map (Morphism.thm phi)) disc_corecss, disc_corec_attrs),
+   map (map (Morphism.thm phi)) corecss,
+   map (map (Morphism.thm phi)) disc_corecss,
    (map (map (Morphism.thm phi)) disc_corec_iffss, disc_corec_iff_attrs),
    (map (map (map (Morphism.thm phi))) sel_corecsss, sel_corec_attrs)) : gfp_sugar_thms;
 
@@ -962,8 +964,8 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
     val sel_corec_thmsss = mk_sel_corec_thms corec_thmss;
   in
     ((coinduct_thms_pairs, mk_coinduct_attrs fpTs ctr_sugars mss),
-     (corec_thmss, code_nitpicksimp_attrs),
-     (disc_corec_thmss, []),
+     corec_thmss,
+     disc_corec_thmss,
      (disc_corec_iff_thmss, simp_attrs),
      (sel_corec_thmsss, simp_attrs))
   end;
@@ -1629,13 +1631,25 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       let
         val (([(coinduct_thms, coinduct_thm), (strong_coinduct_thms, strong_coinduct_thm)],
               (coinduct_attrs, common_coinduct_attrs)),
-             (corec_thmss, corec_attrs), (disc_corec_thmss, disc_corec_attrs),
+             corec_thmss, disc_corec_thmss,
              (disc_corec_iff_thmss, disc_corec_iff_attrs), (sel_corec_thmsss, sel_corec_attrs)) =
           derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types) xtor_co_induct
             dtor_injects dtor_ctors xtor_co_rec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss
             ns abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
             (Proof_Context.export lthy' no_defs_lthy) lthy;
 
+        fun distinct_prems ctxt th =
+          Goal.prove ctxt [] []
+            (th |> Thm.prop_of |> Logic.strip_horn |>> distinct (op aconv) |> Logic.list_implies)
+            (fn _ => HEADGOAL (cut_tac th THEN' atac) THEN ALLGOALS eq_assume_tac);
+
+        fun eq_ifIN _ [thm] = thm
+          | eq_ifIN ctxt (thm :: thms) =
+              distinct_prems ctxt (@{thm eq_ifI} OF
+                (map (unfold_thms ctxt @{thms atomize_imp[of _ "t = u" for t u]})
+                  [thm, eq_ifIN ctxt thms]));
+
+        val corec_code_thms = map (eq_ifIN lthy) corec_thmss
         val sel_corec_thmss = map flat sel_corec_thmsss;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
@@ -1675,8 +1689,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val notes =
           [(coinductN, map single coinduct_thms,
             fn T_name => coinduct_attrs @ [coinduct_type_attr T_name]),
-           (corecN, corec_thmss, K corec_attrs),
-           (disc_corecN, disc_corec_thmss, K disc_corec_attrs),
+           (corecN, corec_thmss, K []),
+           (corec_codeN, map single corec_code_thms, K code_nitpicksimp_attrs),
+           (disc_corecN, disc_corec_thmss, K []),
            (disc_corec_iffN, disc_corec_iff_thmss, K disc_corec_iff_attrs),
            (rel_coinductN, rel_coinduct_thmss, K (rel_coinduct_attrs @ [coinduct_pred_attr ""])),
            (sel_corecN, sel_corec_thmss, K sel_corec_attrs),

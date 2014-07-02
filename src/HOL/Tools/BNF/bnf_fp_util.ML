@@ -610,7 +610,7 @@ fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_fold
       map (fn thm => thm OF (passive @ active) RS @{thm ext}) map_cong0s;
     val map_cong1s = mk_map_congs map_cong_passive_args1 map_cong_active_args1;
     val map_cong2s = mk_map_congs map_cong_passive_args2 map_cong_active_args2;
-    
+
     fun mk_rewrites map_congs = map2 (fn sym_map_comp => fn map_cong =>
       mk_trans sym_map_comp map_cong RS rewrite_comp_comp) sym_map_comps map_congs;
     val rewrite1s = mk_rewrites map_cong1s;

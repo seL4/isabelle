@@ -267,7 +267,7 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
               dtor_injects dtor_ctors xtor_co_rec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss
               mss ns fp_abs_inverses abs_inverses (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss
               ctr_sugars co_recs co_rec_defs (Proof_Context.export lthy no_defs_lthy) lthy
-            |> `(fn ((coinduct_thms_pairs, _), (corec_thmss, _), (disc_corec_thmss, _), _,
+            |> `(fn ((coinduct_thms_pairs, _), corec_thmss, disc_corec_thmss, _,
                      (sel_corec_thmsss, _)) =>
               (map snd coinduct_thms_pairs, map fst coinduct_thms_pairs, corec_thmss,
                disc_corec_thmss, sel_corec_thmsss))
