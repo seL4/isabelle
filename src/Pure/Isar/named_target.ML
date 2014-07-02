@@ -13,6 +13,7 @@ sig
   val class_of: local_theory -> string option
   val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
+  val theory_like_init: (local_theory -> local_theory) -> theory -> local_theory
   val begin: xstring * Position.T -> theory -> local_theory
   val exit: local_theory -> theory
   val switch: (xstring * Position.T) option -> Context.generic
@@ -150,7 +151,7 @@ fun init_context ("", _) = Proof_Context.init_global
   | init_context (locale, false) = Locale.init locale
   | init_context (class, true) = Class.init class;
 
-fun init target thy =
+fun gen_init before_exit target thy =
   let
     val name_data = make_name_data thy target;
     val naming = Sign.naming_of thy
@@ -159,7 +160,7 @@ fun init target thy =
     thy
     |> Sign.change_begin
     |> init_context name_data
-    |> Data.put (SOME name_data)
+    |> is_none before_exit ? Data.put (SOME name_data)
     |> Local_Theory.init naming
        {define = Generic_Target.define (foundation name_data),
         notes = Generic_Target.notes (notes name_data),
@@ -167,10 +168,15 @@ fun init target thy =
         declaration = declaration name_data,
         subscription = subscription name_data,
         pretty = pretty name_data,
-        exit = Local_Theory.target_of #> Sign.change_end_local}
+        exit = the_default I before_exit
+          #> Local_Theory.target_of #> Sign.change_end_local}
   end;
 
+val init = gen_init NONE
+
 val theory_init = init "";
+
+fun theory_like_init before_exit = gen_init (SOME before_exit) "";
 
 
 (* toplevel interaction *)
