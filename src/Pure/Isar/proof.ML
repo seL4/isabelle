@@ -748,11 +748,11 @@ end;
 
 local
 
-fun gen_invoke_case prep_att ((name, pos), xs, raw_atts) state =
+fun gen_invoke_case internal prep_att ((name, pos), xs, raw_atts) state =
   let
     val atts = map (prep_att (context_of state)) raw_atts;
     val (asms, state') = state |> map_context_result (fn ctxt =>
-      ctxt |> Proof_Context.apply_case (Proof_Context.check_case ctxt (name, pos) xs));
+      ctxt |> Proof_Context.apply_case (Proof_Context.check_case ctxt internal (name, pos) xs));
     val assumptions =
       asms |> map (fn (b, ts) => ((Binding.set_pos pos b, atts), map (rpair []) ts));
   in
@@ -764,8 +764,8 @@ fun gen_invoke_case prep_att ((name, pos), xs, raw_atts) state =
 
 in
 
-val invoke_case = gen_invoke_case (K I);
-val invoke_case_cmd = gen_invoke_case Attrib.attribute_cmd;
+val invoke_case = gen_invoke_case true (K I);
+val invoke_case_cmd = gen_invoke_case false Attrib.attribute_cmd;
 
 end;
 

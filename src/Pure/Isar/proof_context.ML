@@ -143,7 +143,8 @@ sig
   val dest_cases: Proof.context -> (string * (Rule_Cases.T * bool)) list
   val update_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (binding * term list) list * Proof.context
-  val check_case: Proof.context -> string * Position.T -> binding option list -> Rule_Cases.T
+  val check_case: Proof.context -> bool ->
+    string * Position.T -> binding option list -> Rule_Cases.T
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
   val generic_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
@@ -1005,17 +1006,21 @@ fun declare_var (x, opt_T, mx) ctxt =
   let val T = (case opt_T of SOME T => T | NONE => Mixfix.mixfixT mx)
   in ((x, T, mx), ctxt |> Variable.declare_constraints (Free (x, T))) end;
 
+fun check_var internal b =
+  let
+    val x = Variable.check_name b;
+    val check = if internal then Name.reject_skolem else Name.reject_internal;
+    val _ =
+      if can check (x, []) andalso Symbol_Pos.is_identifier x then ()
+      else error ("Bad name: " ^ Binding.print b);
+  in x end;
+
 local
 
 fun prep_vars prep_typ internal =
   fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
-      val x = Variable.check_name b;
-      val check_name = if internal then Name.reject_skolem else Name.reject_internal;
-      val _ =
-        if can check_name (x, []) andalso Symbol_Pos.is_identifier x then ()
-        else error ("Bad name: " ^ Binding.print b);
-
+      val x = check_var internal b;
       fun cond_tvars T =
         if internal then T
         else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
@@ -1204,12 +1209,13 @@ fun case_result c ctxt =
 
 val apply_case = apfst fst oo case_result;
 
-fun check_case ctxt (name, pos) fxs =
+fun check_case ctxt internal (name, pos) fxs =
   let
     val (_, ((Rule_Cases.Case {fixes, assumes, binds, cases}, is_proper), _)) =
       Name_Space.check (Context.Proof ctxt) (cases_of ctxt) (name, pos);
     val _ = if is_proper then () else Context_Position.report ctxt pos Markup.improper;
 
+    val _ = List.app (fn NONE => () | SOME b => ignore (check_var internal b)) fxs;
     fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
       | replace [] ys = ys
       | replace (_ :: _) [] =
