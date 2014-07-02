@@ -1766,6 +1766,9 @@ used to prove $m$ properties simultaneously.
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
 
+\item[@{text "t."}\hthm{corec\_code} @{text "[code]"}\rm:] ~ \\
+@{thm llist.corec_code[no_vars]}
+
 \item[@{text "t."}\hthm{disc\_corec}\rm:] ~ \\
 @{thm llist.disc_corec(1)[no_vars]} \\
 @{thm llist.disc_corec(2)[no_vars]}
