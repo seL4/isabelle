@@ -1588,6 +1588,35 @@ lemma poly_mod_minus_left [simp]:
   shows "(- x) mod y = - (x mod y)"
   using mod_smult_left [of "- 1::'a"] by simp
 
+lemma pdivmod_rel_add_left:
+  assumes "pdivmod_rel x y q r"
+  assumes "pdivmod_rel x' y q' r'"
+  shows "pdivmod_rel (x + x') y (q + q') (r + r')"
+  using assms unfolding pdivmod_rel_def
+  by (auto simp add: distrib degree_add_less)
+
+lemma poly_div_add_left:
+  fixes x y z :: "'a::field poly"
+  shows "(x + y) div z = x div z + y div z"
+  using pdivmod_rel_add_left [OF pdivmod_rel pdivmod_rel]
+  by (rule div_poly_eq)
+
+lemma poly_mod_add_left:
+  fixes x y z :: "'a::field poly"
+  shows "(x + y) mod z = x mod z + y mod z"
+  using pdivmod_rel_add_left [OF pdivmod_rel pdivmod_rel]
+  by (rule mod_poly_eq)
+
+lemma poly_div_diff_left:
+  fixes x y z :: "'a::field poly"
+  shows "(x - y) div z = x div z - y div z"
+  by (simp only: diff_conv_add_uminus poly_div_add_left poly_div_minus_left)
+
+lemma poly_mod_diff_left:
+  fixes x y z :: "'a::field poly"
+  shows "(x - y) mod z = x mod z - y mod z"
+  by (simp only: diff_conv_add_uminus poly_mod_add_left poly_mod_minus_left)
+
 lemma pdivmod_rel_smult_right:
   "\<lbrakk>a \<noteq> 0; pdivmod_rel x y q r\<rbrakk>
     \<Longrightarrow> pdivmod_rel x (smult a y) (smult (inverse a) q) r"
