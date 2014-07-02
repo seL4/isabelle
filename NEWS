@@ -1,5 +1,5 @@
-Isabelle NEWS -- history user-relevant changes
-==============================================
+Isabelle NEWS -- history of user-relevant changes
+=================================================
 
 New in Isabelle2014 (August 2014)
 ---------------------------------
@@ -34,7 +34,7 @@ cartouches as well, in addition to the traditional mix of quotations.
 
 * Syntax of document antiquotation @{rail} now uses \<newline> instead
 of "\\", to avoid the optical illusion of escaped backslash within
-string token.  General renovation of its syntax using text cartouces.
+string token.  General renovation of its syntax using text cartouches.
 Minor INCOMPATIBILITY.
 
 * Discontinued legacy_isub_isup, which was a temporary workaround for
