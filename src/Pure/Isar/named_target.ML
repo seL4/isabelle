@@ -13,7 +13,10 @@ sig
   val class_of: local_theory -> string option
   val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
-  val context_cmd: xstring * Position.T -> theory -> local_theory
+  val begin: xstring * Position.T -> theory -> local_theory
+  val exit: local_theory -> theory
+  val switch: (xstring * Position.T) option -> Context.generic
+    -> (local_theory -> Context.generic) * local_theory
 end;
 
 structure Named_Target: NAMED_TARGET =
@@ -164,7 +167,22 @@ fun init target thy =
 
 val theory_init = init "";
 
-fun context_cmd ("-", _) thy = theory_init thy
-  | context_cmd target thy = init (Locale.check thy target) thy;
+
+(* toplevel interaction *)
+
+fun begin ("-", _) thy = theory_init thy
+  | begin target thy = init (Locale.check thy target) thy;
+
+val exit = Local_Theory.assert_bottom true #> Local_Theory.exit_global;
+
+fun switch NONE (Context.Theory thy) =
+      (Context.Theory o exit, theory_init thy)
+  | switch (SOME name) (Context.Theory thy) =
+      (Context.Theory o exit, begin name thy)
+  | switch NONE (Context.Proof lthy) =
+      (Context.Proof o Local_Theory.restore, lthy)
+  | switch (SOME name) (Context.Proof lthy) =
+      (Context.Proof o init (the (locale_of lthy)) o exit,
+        (begin name o exit o Local_Theory.assert_nonbrittle) lthy);
 
 end;

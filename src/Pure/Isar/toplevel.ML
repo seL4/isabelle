@@ -103,22 +103,6 @@ struct
 exception UNDEF = Runtime.UNDEF;
 
 
-(* named target wrappers *)
-
-val named_init = Named_Target.context_cmd;
-val named_exit = Local_Theory.assert_bottom true #> Local_Theory.exit_global;
-
-fun named_begin NONE (Context.Theory thy) =
-      (Context.Theory o named_exit, named_init ("-", Position.none) thy)
-  | named_begin (SOME loc) (Context.Theory thy) =
-      (Context.Theory o named_exit, named_init loc thy)
-  | named_begin NONE (Context.Proof lthy) =
-      (Context.Proof o Local_Theory.restore, lthy)
-  | named_begin (SOME loc) (Context.Proof lthy) =
-      (Context.Proof o Named_Target.init (the (Named_Target.locale_of lthy)) o named_exit,
-        (named_init loc o named_exit o Local_Theory.assert_nonbrittle) lthy);
-
-
 (* datatype node *)
 
 datatype node =
@@ -413,7 +397,7 @@ fun begin_local_theory begin f = transaction (fn _ =>
   (fn Theory (Context.Theory thy, _) =>
         let
           val lthy = f thy;
-          val gthy = if begin then Context.Proof lthy else Context.Theory (named_exit lthy);
+          val gthy = if begin then Context.Proof lthy else Context.Theory (Named_Target.exit lthy);
           val _ =
             if begin then
               Pretty.writeln (Pretty.mark Markup.state (Pretty.chunks (Local_Theory.pretty lthy)))
@@ -422,7 +406,7 @@ fun begin_local_theory begin f = transaction (fn _ =>
     | _ => raise UNDEF));
 
 val end_local_theory = transaction (fn _ =>
-  (fn Theory (Context.Proof lthy, _) => Theory (Context.Theory (named_exit lthy), SOME lthy)
+  (fn Theory (Context.Proof lthy, _) => Theory (Context.Theory (Named_Target.exit lthy), SOME lthy)
     | _ => raise UNDEF));
 
 fun open_target f = transaction (fn _ =>
@@ -450,7 +434,7 @@ local
 fun local_theory_presentation loc f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
-          val (finish, lthy) = named_begin loc gthy;
+          val (finish, lthy) = Named_Target.switch loc gthy;
           val lthy' = lthy
             |> Local_Theory.new_group
             |> f int
@@ -506,7 +490,7 @@ in
 
 fun local_theory_to_proof' loc f = begin_proof
   (fn int => fn gthy =>
-    let val (finish, lthy) = named_begin loc gthy
+    let val (finish, lthy) = Named_Target.switch loc gthy
     in (finish o Local_Theory.reset_group, f int (Local_Theory.new_group lthy)) end);
 
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);

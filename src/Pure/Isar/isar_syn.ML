@@ -423,7 +423,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "context"} "begin local theory context"
     ((Parse.position Parse.xname >> (fn name =>
-        Toplevel.begin_local_theory true (Named_Target.context_cmd name)) ||
+        Toplevel.begin_local_theory true (Named_Target.begin name)) ||
       Scan.optional Parse_Spec.includes [] -- Scan.repeat Parse_Spec.context_element
         >> (fn (incls, elems) => Toplevel.open_target (Bundle.context_cmd incls elems)))
       --| Parse.begin);
