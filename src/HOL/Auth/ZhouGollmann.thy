@@ -367,6 +367,7 @@ lemma sub_K_implies_NRR:
          A \<notin> bad;  evs \<in> zg |]
      ==> Gets A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
 apply clarify
+apply hypsubst_thin
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule zg.induct)

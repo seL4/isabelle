@@ -135,11 +135,16 @@ proof(induction b arbitrary: S bv)
 next
   case (Not b) thus ?case by simp
 next
-  case (And b1 b2) thus ?case by(fastforce simp: in_gamma_join_UpI)
+  case (And b1 b2) thus ?case
+    apply hypsubst_thin
+    apply (fastforce simp: in_gamma_join_UpI)
+    done
 next
   case (Less e1 e2) thus ?case
-    by (auto split: prod.split)
-       (metis afilter_sound filter_less' aval''_sound Less)
+    apply hypsubst_thin
+    apply (auto split: prod.split)
+    apply (metis afilter_sound filter_less' aval''_sound Less)
+    done
 qed
 
 

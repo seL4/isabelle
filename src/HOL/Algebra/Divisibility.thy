@@ -1655,6 +1655,7 @@ lemma (in monoid) factors_mult:
 using assms
 unfolding factors_def
 apply (safe, force)
+apply hypsubst_thin
 apply (induct fa)
  apply simp
 apply (simp add: m_assoc)

@@ -661,7 +661,7 @@ lemma zless_imp_succ_zadd_lemma:
 apply (simp add: zless_def znegative_def zdiff_def int_def)
 apply (auto dest!: less_imp_succ_add simp add: zadd zminus int_of_def)
 apply (rule_tac x = k in bexI)
-apply (erule add_left_cancel, auto)
+apply (erule_tac i="succ (?v)" in add_left_cancel, auto)
 done
 
 lemma zless_imp_succ_zadd:
@@ -703,6 +703,7 @@ apply (rule_tac x = "x1#+x2" in exI)
 apply (rule_tac x = "y1#+y2" in exI)
 apply (auto simp add: add_lt_mono)
 apply (rule sym)
+apply hypsubst_thin
 apply (erule add_left_cancel)+
 apply auto
 done

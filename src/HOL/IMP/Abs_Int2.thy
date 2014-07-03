@@ -132,8 +132,10 @@ next
     by simp (metis And(1) And(2) in_gamma_sup_UpI)
 next
   case (Less e1 e2) thus ?case
-    by(auto split: prod.split)
-      (metis (lifting) inv_aval'_correct aval''_correct inv_less')
+    apply hypsubst_thin
+    apply (auto split: prod.split)
+    apply (metis (lifting) inv_aval'_correct aval''_correct inv_less')
+    done
 qed
 
 definition "step' = Step

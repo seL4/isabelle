@@ -313,7 +313,7 @@ lemma add_set_lemma4:
      "[|A \<in> preal; B \<in> preal; y \<in> add_set A B|] ==> \<exists>u \<in> add_set A B. y < u"
 apply (auto simp add: add_set_def)
 apply (frule preal_exists_greater [of A], auto) 
-apply (rule_tac x="u + y" in exI)
+apply (rule_tac x="u + ya" in exI)
 apply (auto intro: add_strict_left_mono)
 done
 
@@ -439,7 +439,7 @@ lemma mult_set_lemma4:
      "[|A \<in> preal; B \<in> preal; y \<in> mult_set A B|] ==> \<exists>u \<in> mult_set A B. y < u"
 apply (auto simp add: mult_set_def)
 apply (frule preal_exists_greater [of A], auto) 
-apply (rule_tac x="u * y" in exI)
+apply (rule_tac x="u * ya" in exI)
 apply (auto intro: preal_imp_pos [of A] preal_imp_pos [of B] 
                    mult_strict_right_mono)
 done
@@ -1590,7 +1590,7 @@ lemma real_of_preal_trichotomy:
       "\<exists>m. (x::real) = real_of_preal m | x = 0 | x = -(real_of_preal m)"
 apply (simp add: real_of_preal_def real_zero_def, cases x)
 apply (auto simp add: real_minus add_ac)
-apply (cut_tac x = x and y = y in linorder_less_linear)
+apply (cut_tac x = xa and y = y in linorder_less_linear)
 apply (auto dest!: less_add_left_Ex simp add: add_assoc [symmetric])
 done
 

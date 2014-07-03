@@ -440,8 +440,8 @@ apply (rule impI)
 apply (case_tac a)
 apply (case_tac "absorb j a")
 apply auto
-apply (rename_tac a)
-apply (case_tac "absorb j (Some a)",auto)
+apply (rename_tac a')
+apply (case_tac "absorb j (Some a')",auto)
 apply (erule conforms_NormI)
 done
 

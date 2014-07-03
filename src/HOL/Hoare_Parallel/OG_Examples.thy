@@ -443,7 +443,7 @@ apply(simp_all (*asm_lr*) only:length_0_conv [THEN sym])
 apply (simp_all (*asm_lr*) del:length_0_conv length_greater_0_conv add: nth_list_update mod_lemma)
 --{* 9 subgoals left *}
 apply (force simp add:less_Suc_eq)
-apply(drule sym)
+apply(hypsubst_thin, drule sym)
 apply (force simp add:less_Suc_eq)+
 done
 

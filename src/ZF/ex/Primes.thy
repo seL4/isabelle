@@ -71,7 +71,7 @@ by (auto simp add: divides_def mult_assoc)
 
 lemma dvd_mult_right: "[|(i#*j) dvd k; j \<in> nat|] ==> j dvd k"
 apply (simp add: divides_def, clarify)
-apply (rule_tac x = "i#*k" in bexI)
+apply (rule_tac x = "i#*ka" in bexI)
 apply (simp add: mult_ac)
 apply (rule mult_type)
 done

@@ -166,8 +166,10 @@ next
   case (And b1 b2) thus ?case by (auto simp: in_rep_join_UpI)
 next
   case (Less e1 e2) thus ?case
-    by (auto split: prod.split)
-       (metis afilter_sound filter_less' aval'_sound Less)
+    apply hypsubst_thin
+    apply (auto split: prod.split)
+    apply (metis afilter_sound filter_less' aval'_sound Less)
+    done
 qed
 
 fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where

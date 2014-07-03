@@ -595,7 +595,7 @@ lemma takefill_append:
 
 lemma takefill_same': 
   "l = length xs ==> takefill fill l xs = xs"
-  by clarify (induct xs, auto)
+  by (induct xs arbitrary: l, auto)
  
 lemmas takefill_same [simp] = takefill_same' [OF refl]
 

@@ -5272,7 +5272,7 @@ proof
   from ee' have tt': "Inum (a#bs) (Add e (C j)) = Inum (a#bs) (Add e' (C j))" by simp
   
   from \<sigma>_cong[OF lp tt', where c="c"] px have px':"?sp c e' j" by simp
-  from ecRo jD px' cc'  show ?rhs apply auto 
+  from ecRo jD px' show ?rhs apply (auto simp: cc')
     by (rule_tac x="(e', c')" in bexI,simp_all)
   (rule_tac x="j" in bexI, simp_all add: cc'[symmetric])
 next
@@ -5286,7 +5286,7 @@ next
     and cc':"c = c'" by blast
   from ee' have tt': "Inum (a#bs) (Add e (C j)) = Inum (a#bs) (Add e' (C j))" by simp
   from \<sigma>_cong[OF lp tt', where c="c"] px have px':"?sp c e' j" by simp
-  from ecRo jD px' cc'  show ?lhs apply auto 
+  from ecRo jD px' show ?lhs apply (auto simp: cc')
     by (rule_tac x="(e', c')" in bexI,simp_all)
   (rule_tac x="j" in bexI, simp_all add: cc'[symmetric])
 qed

@@ -239,7 +239,7 @@ proof -
   ultimately
   have "{dc \<in> dc_crypto. payer dc = Some i \<and> inversion dc = xs} =
     {(Some i, zs), (Some i, map Not zs)}"
-    using `i < n`
+    using `i < n` [[ hypsubst_thin = true ]]
   proof (safe, simp_all add:dc_crypto payer_def)
     fix b assume [simp]: "length b = n"
       and *: "inversion (Some i, b) = xs" and "b \<noteq> zs"

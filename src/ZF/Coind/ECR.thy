@@ -100,6 +100,7 @@ lemma consistency_fix:
    <cl,t> \<in> HasTyRel"
 apply (unfold hastyenv_def)
 apply (erule elab_fixE, safe)
+apply hypsubst_thin
 apply (rule subst, assumption) 
 apply (rule_tac te="te_owr(te, f, t_fun(t1, t2))" in htr_closCI)
 apply simp_all

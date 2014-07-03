@@ -5,7 +5,7 @@
 header {* General Stream domain *}
 
 theory Stream
-imports HOLCF "~~/src/HOL/Library/Extended_Nat"
+imports "../HOLCF" "~~/src/HOL/Library/Extended_Nat"
 begin
 
 default_sort pcpo
@@ -792,8 +792,8 @@ apply (cases "#x",auto)
   apply (drule ex_sconc, simp)
  apply (rule someI2_ex, auto)
   apply (simp add: i_rt_Suc_forw)
-  apply (rule_tac x="a && x" in exI, auto)
- apply (case_tac "xa=UU",auto)
+  apply (rule_tac x="a && xa" in exI, auto)
+ apply (case_tac "xaa=UU",auto)
  apply (drule stream_exhaust_eq [THEN iffD1],auto)
  apply (drule streams_prefix_lemma1,simp+)
 apply (simp add: sconc_def)

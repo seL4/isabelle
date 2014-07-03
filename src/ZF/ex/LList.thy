@@ -173,7 +173,7 @@ lemma equal_llist_implies_leq:
 apply (rule_tac X = "{<l,l>. l \<in> llist (A) }" in lleq.coinduct)
 apply blast
 apply safe
-apply (erule_tac a=l in llist.cases, fast+)
+apply (erule_tac a=la in llist.cases, fast+)
 done
 
 

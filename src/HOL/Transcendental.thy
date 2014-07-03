@@ -3046,6 +3046,7 @@ lemma lemma_tan_total1: "\<exists>x. -(pi/2) < x & x < (pi/2) & tan x = y"
 
 lemma tan_total: "EX! x. -(pi/2) < x & x < (pi/2) & tan x = y"
   apply (cut_tac y = y in lemma_tan_total1, auto)
+  apply hypsubst_thin
   apply (cut_tac x = xa and y = y in linorder_less_linear, auto)
   apply (subgoal_tac [2] "\<exists>z. y < z & z < xa & DERIV tan z :> 0")
   apply (subgoal_tac "\<exists>z. xa < z & z < y & DERIV tan z :> 0")

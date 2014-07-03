@@ -3176,6 +3176,12 @@ lemma msb_shift:
                      of_bl_rep_False [where n=1 and bs="[]", simplified])
   done
 
+lemma zip_replicate:
+  "n \<ge> length ys \<Longrightarrow> zip (replicate n x) ys = map (\<lambda>y. (x, y)) ys" 
+  apply (induct ys arbitrary: n, simp_all)
+  apply (case_tac n, simp_all)
+  done
+
 lemma align_lem_or [rule_format] :
   "ALL x m. length x = n + m --> length y = n + m --> 
     drop m x = replicate n False --> take m y = replicate m False --> 
@@ -3185,9 +3191,8 @@ lemma align_lem_or [rule_format] :
   apply clarsimp
   apply (case_tac x, force)
   apply (case_tac m, auto)
-  apply (drule sym)
-  apply auto
-  apply (induct_tac list, auto)
+  apply (drule_tac t="length ?xs" in sym)
+  apply (clarsimp simp: map2_def zip_replicate o_def)
   done
 
 lemma align_lem_and [rule_format] :
@@ -3199,9 +3204,8 @@ lemma align_lem_and [rule_format] :
   apply clarsimp
   apply (case_tac x, force)
   apply (case_tac m, auto)
-  apply (drule sym)
-  apply auto
-  apply (induct_tac list, auto)
+  apply (drule_tac t="length ?xs" in sym)
+  apply (clarsimp simp: map2_def zip_replicate o_def map_replicate_const)
   done
 
 lemma aligned_bl_add_size [OF refl]:
@@ -3676,6 +3680,7 @@ lemma word_split_bl':
   apply safe
    defer
    apply (clarsimp split: prod.splits)
+   apply hypsubst_thin
    apply (drule word_ubin.norm_Rep [THEN ssubst])
    apply (drule split_bintrunc)
    apply (simp add : of_bl_def bl2bin_drop word_size

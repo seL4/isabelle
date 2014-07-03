@@ -138,6 +138,7 @@ lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
                           [\<Prod>x = a] (mod p)"
   apply (auto simp add: SetS_def MultInvPair_def)
   apply (frule StandardRes_SRStar_prop1a)
+  apply hypsubst_thin
   apply (subgoal_tac "StandardRes p x \<noteq> StandardRes p (a * MultInv p x)")
   apply (auto simp add: StandardRes_prop2 MultInvPair_distinct)
   apply (frule_tac m = p and x = x and y = "(a * MultInv p x)" in 

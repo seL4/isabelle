@@ -461,7 +461,7 @@ lemma dvd_neg_div: "y dvd x \<Longrightarrow> -x div y = - (x div y)"
 apply (case_tac "y = 0") apply simp
 apply (auto simp add: dvd_def)
 apply (subgoal_tac "-(y * k) = y * - k")
- apply (erule ssubst)
+ apply (simp only:)
  apply (erule div_mult_self1_is_id)
 apply simp
 done
@@ -470,8 +470,7 @@ lemma dvd_div_neg: "y dvd x \<Longrightarrow> x div -y = - (x div y)"
 apply (case_tac "y = 0") apply simp
 apply (auto simp add: dvd_def)
 apply (subgoal_tac "y * k = -y * -k")
- apply (erule ssubst)
- apply (rule div_mult_self1_is_id)
+ apply (erule ssubst, rule div_mult_self1_is_id)
  apply simp
 apply simp
 done

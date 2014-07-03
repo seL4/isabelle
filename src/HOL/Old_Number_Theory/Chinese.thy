@@ -174,7 +174,7 @@ lemma unique_xi_sol:
      apply (rule_tac [!] funprod_zgcd)
      apply safe
      apply simp_all
-   apply (subgoal_tac "i<n")
+   apply (subgoal_tac "ia<n")
     prefer 2
     apply arith
    apply (case_tac [2] i)
