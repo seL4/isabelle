@@ -127,6 +127,7 @@ sig
   val rel_coinductN: string
   val rel_inductN: string
   val rel_injectN: string
+  val rel_introsN: string
   val rel_distinctN: string
   val rvN: string
   val sel_corecN: string
@@ -406,6 +407,7 @@ val distinctN = "distinct"
 val rel_distinctN = relN ^ "_" ^ distinctN
 val injectN = "inject"
 val rel_injectN = relN ^ "_" ^ injectN
+val rel_introsN = relN ^ "_intros"
 val rel_coinductN = relN ^ "_" ^ coinductN
 val dtor_rel_coinductN = dtorN ^ "_" ^ rel_coinductN
 val rel_inductN = relN ^ "_" ^ inductN

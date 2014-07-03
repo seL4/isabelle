@@ -1503,6 +1503,15 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
                 mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
 
+              fun mk_rel_intro_thm thm =
+                let
+                  fun impl thm = rotate_prems (~1) (impl (rotate_prems 1 (conjI RS thm)))
+                    handle THM _ => thm
+                in
+                  impl (thm RS iffD2)
+                  handle THM _ => thm
+                end;
+
               fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
                 mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
                   cxIn cyIn;
@@ -1512,6 +1521,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
 
               val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
+              val rel_intro_thms = map mk_rel_intro_thm rel_inject_thms;
+
               val half_rel_distinct_thmss =
                 map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
               val other_half_rel_distinct_thmss =
@@ -1534,6 +1545,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                  (mapN, map_thms, code_nitpicksimp_attrs @ simp_attrs),
                  (rel_distinctN, rel_distinct_thms, simp_attrs),
                  (rel_injectN, rel_inject_thms, simp_attrs),
+                 (rel_introsN, rel_intro_thms, []),
                  (setN, set_thms, code_nitpicksimp_attrs @ simp_attrs),
                  (sel_mapN, sel_map_thms, []),
                  (sel_setN, sel_set_thms, []),
