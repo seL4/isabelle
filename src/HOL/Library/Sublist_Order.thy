@@ -48,21 +48,21 @@ next
 qed
 
 lemmas less_eq_list_induct [consumes 1, case_names empty drop take] =
-  list_hembeq.induct [of "op =", folded less_eq_list_def]
-lemmas less_eq_list_drop = list_hembeq.list_hembeq_Cons [of "op =", folded less_eq_list_def]
+  list_emb.induct [of "op =", folded less_eq_list_def]
+lemmas less_eq_list_drop = list_emb.list_emb_Cons [of "op =", folded less_eq_list_def]
 lemmas le_list_Cons2_iff [simp, code] = sublisteq_Cons2_iff [folded less_eq_list_def]
 lemmas le_list_map = sublisteq_map [folded less_eq_list_def]
 lemmas le_list_filter = sublisteq_filter [folded less_eq_list_def]
-lemmas le_list_length = list_hembeq_length [of "op =", folded less_eq_list_def]
+lemmas le_list_length = list_emb_length [of "op =", folded less_eq_list_def]
 
 lemma less_list_length: "xs < ys \<Longrightarrow> length xs < length ys"
-  by (metis list_hembeq_length sublisteq_same_length le_neq_implies_less less_list_def less_eq_list_def)
+  by (metis list_emb_length sublisteq_same_length le_neq_implies_less less_list_def less_eq_list_def)
 
 lemma less_list_empty [simp]: "[] < xs \<longleftrightarrow> xs \<noteq> []"
-  by (metis less_eq_list_def list_hembeq_Nil order_less_le)
+  by (metis less_eq_list_def list_emb_Nil order_less_le)
 
 lemma less_list_below_empty [simp]: "xs < [] \<longleftrightarrow> False"
-  by (metis list_hembeq_Nil less_eq_list_def less_list_def)
+  by (metis list_emb_Nil less_eq_list_def less_list_def)
 
 lemma less_list_drop: "xs < ys \<Longrightarrow> xs < x # ys"
   by (unfold less_le less_eq_list_def) (auto)
