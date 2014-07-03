@@ -428,115 +428,115 @@ lemma suffix_lists: "suffix xs ys \<Longrightarrow> ys \<in> lists A \<Longright
 
 subsection {* Homeomorphic embedding on lists *}
 
-inductive list_hembeq :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+inductive list_emb :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   for P :: "('a \<Rightarrow> 'a \<Rightarrow> bool)"
 where
-  list_hembeq_Nil [intro, simp]: "list_hembeq P [] ys"
-| list_hembeq_Cons [intro] : "list_hembeq P xs ys \<Longrightarrow> list_hembeq P xs (y#ys)"
-| list_hembeq_Cons2 [intro]: "P\<^sup>=\<^sup>= x y \<Longrightarrow> list_hembeq P xs ys \<Longrightarrow> list_hembeq P (x#xs) (y#ys)"
+  list_emb_Nil [intro, simp]: "list_emb P [] ys"
+| list_emb_Cons [intro] : "list_emb P xs ys \<Longrightarrow> list_emb P xs (y#ys)"
+| list_emb_Cons2 [intro]: "P\<^sup>=\<^sup>= x y \<Longrightarrow> list_emb P xs ys \<Longrightarrow> list_emb P (x#xs) (y#ys)"
 
-lemma list_hembeq_Nil2 [simp]:
-  assumes "list_hembeq P xs []" shows "xs = []"
-  using assms by (cases rule: list_hembeq.cases) auto
+lemma list_emb_Nil2 [simp]:
+  assumes "list_emb P xs []" shows "xs = []"
+  using assms by (cases rule: list_emb.cases) auto
 
-lemma list_hembeq_refl [simp, intro!]:
-  "list_hembeq P xs xs"
+lemma list_emb_refl [simp, intro!]:
+  "list_emb P xs xs"
   by (induct xs) auto
 
-lemma list_hembeq_Cons_Nil [simp]: "list_hembeq P (x#xs) [] = False"
+lemma list_emb_Cons_Nil [simp]: "list_emb P (x#xs) [] = False"
 proof -
-  { assume "list_hembeq P (x#xs) []"
-    from list_hembeq_Nil2 [OF this] have False by simp
+  { assume "list_emb P (x#xs) []"
+    from list_emb_Nil2 [OF this] have False by simp
   } moreover {
     assume False
-    then have "list_hembeq P (x#xs) []" by simp
+    then have "list_emb P (x#xs) []" by simp
   } ultimately show ?thesis by blast
 qed
 
-lemma list_hembeq_append2 [intro]: "list_hembeq P xs ys \<Longrightarrow> list_hembeq P xs (zs @ ys)"
+lemma list_emb_append2 [intro]: "list_emb P xs ys \<Longrightarrow> list_emb P xs (zs @ ys)"
   by (induct zs) auto
 
-lemma list_hembeq_prefix [intro]:
-  assumes "list_hembeq P xs ys" shows "list_hembeq P xs (ys @ zs)"
+lemma list_emb_prefix [intro]:
+  assumes "list_emb P xs ys" shows "list_emb P xs (ys @ zs)"
   using assms
   by (induct arbitrary: zs) auto
 
-lemma list_hembeq_ConsD:
-  assumes "list_hembeq P (x#xs) ys"
-  shows "\<exists>us v vs. ys = us @ v # vs \<and> P\<^sup>=\<^sup>= x v \<and> list_hembeq P xs vs"
+lemma list_emb_ConsD:
+  assumes "list_emb P (x#xs) ys"
+  shows "\<exists>us v vs. ys = us @ v # vs \<and> P\<^sup>=\<^sup>= x v \<and> list_emb P xs vs"
 using assms
 proof (induct x \<equiv> "x # xs" ys arbitrary: x xs)
-  case list_hembeq_Cons
+  case list_emb_Cons
   then show ?case by (metis append_Cons)
 next
-  case (list_hembeq_Cons2 x y xs ys)
+  case (list_emb_Cons2 x y xs ys)
   then show ?case by blast
 qed
 
-lemma list_hembeq_appendD:
-  assumes "list_hembeq P (xs @ ys) zs"
-  shows "\<exists>us vs. zs = us @ vs \<and> list_hembeq P xs us \<and> list_hembeq P ys vs"
+lemma list_emb_appendD:
+  assumes "list_emb P (xs @ ys) zs"
+  shows "\<exists>us vs. zs = us @ vs \<and> list_emb P xs us \<and> list_emb P ys vs"
 using assms
 proof (induction xs arbitrary: ys zs)
   case Nil then show ?case by auto
 next
   case (Cons x xs)
   then obtain us v vs where
-    zs: "zs = us @ v # vs" and p: "P\<^sup>=\<^sup>= x v" and lh: "list_hembeq P (xs @ ys) vs"
-    by (auto dest: list_hembeq_ConsD)
+    zs: "zs = us @ v # vs" and p: "P\<^sup>=\<^sup>= x v" and lh: "list_emb P (xs @ ys) vs"
+    by (auto dest: list_emb_ConsD)
   obtain sk\<^sub>0 :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" and sk\<^sub>1 :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    sk: "\<forall>x\<^sub>0 x\<^sub>1. \<not> list_hembeq P (xs @ x\<^sub>0) x\<^sub>1 \<or> sk\<^sub>0 x\<^sub>0 x\<^sub>1 @ sk\<^sub>1 x\<^sub>0 x\<^sub>1 = x\<^sub>1 \<and> list_hembeq P xs (sk\<^sub>0 x\<^sub>0 x\<^sub>1) \<and> list_hembeq P x\<^sub>0 (sk\<^sub>1 x\<^sub>0 x\<^sub>1)"
+    sk: "\<forall>x\<^sub>0 x\<^sub>1. \<not> list_emb P (xs @ x\<^sub>0) x\<^sub>1 \<or> sk\<^sub>0 x\<^sub>0 x\<^sub>1 @ sk\<^sub>1 x\<^sub>0 x\<^sub>1 = x\<^sub>1 \<and> list_emb P xs (sk\<^sub>0 x\<^sub>0 x\<^sub>1) \<and> list_emb P x\<^sub>0 (sk\<^sub>1 x\<^sub>0 x\<^sub>1)"
     using Cons(1) by (metis (no_types))
-  hence "\<forall>x\<^sub>2. list_hembeq P (x # xs) (x\<^sub>2 @ v # sk\<^sub>0 ys vs)" using p lh by auto
+  hence "\<forall>x\<^sub>2. list_emb P (x # xs) (x\<^sub>2 @ v # sk\<^sub>0 ys vs)" using p lh by auto
   thus ?case using lh zs sk by (metis (no_types) append_Cons append_assoc)
 qed
 
-lemma list_hembeq_suffix:
-  assumes "list_hembeq P xs ys" and "suffix ys zs"
-  shows "list_hembeq P xs zs"
-  using assms(2) and list_hembeq_append2 [OF assms(1)] by (auto simp: suffix_def)
+lemma list_emb_suffix:
+  assumes "list_emb P xs ys" and "suffix ys zs"
+  shows "list_emb P xs zs"
+  using assms(2) and list_emb_append2 [OF assms(1)] by (auto simp: suffix_def)
 
-lemma list_hembeq_suffixeq:
-  assumes "list_hembeq P xs ys" and "suffixeq ys zs"
-  shows "list_hembeq P xs zs"
-  using assms and list_hembeq_suffix unfolding suffixeq_suffix_reflclp_conv by auto
+lemma list_emb_suffixeq:
+  assumes "list_emb P xs ys" and "suffixeq ys zs"
+  shows "list_emb P xs zs"
+  using assms and list_emb_suffix unfolding suffixeq_suffix_reflclp_conv by auto
 
-lemma list_hembeq_length: "list_hembeq P xs ys \<Longrightarrow> length xs \<le> length ys"
-  by (induct rule: list_hembeq.induct) auto
+lemma list_emb_length: "list_emb P xs ys \<Longrightarrow> length xs \<le> length ys"
+  by (induct rule: list_emb.induct) auto
 
-lemma list_hembeq_trans:
+lemma list_emb_trans:
   assumes "\<And>x y z. \<lbrakk>x \<in> A; y \<in> A; z \<in> A; P x y; P y z\<rbrakk> \<Longrightarrow> P x z"
   shows "\<And>xs ys zs. \<lbrakk>xs \<in> lists A; ys \<in> lists A; zs \<in> lists A;
-    list_hembeq P xs ys; list_hembeq P ys zs\<rbrakk> \<Longrightarrow> list_hembeq P xs zs"
+    list_emb P xs ys; list_emb P ys zs\<rbrakk> \<Longrightarrow> list_emb P xs zs"
 proof -
   fix xs ys zs
-  assume "list_hembeq P xs ys" and "list_hembeq P ys zs"
+  assume "list_emb P xs ys" and "list_emb P ys zs"
     and "xs \<in> lists A" and "ys \<in> lists A" and "zs \<in> lists A"
-  then show "list_hembeq P xs zs"
+  then show "list_emb P xs zs"
   proof (induction arbitrary: zs)
-    case list_hembeq_Nil show ?case by blast
+    case list_emb_Nil show ?case by blast
   next
-    case (list_hembeq_Cons xs ys y)
-    from list_hembeq_ConsD [OF `list_hembeq P (y#ys) zs`] obtain us v vs
-      where zs: "zs = us @ v # vs" and "P\<^sup>=\<^sup>= y v" and "list_hembeq P ys vs" by blast
-    then have "list_hembeq P ys (v#vs)" by blast
-    then have "list_hembeq P ys zs" unfolding zs by (rule list_hembeq_append2)
-    from list_hembeq_Cons.IH [OF this] and list_hembeq_Cons.prems show ?case by simp
+    case (list_emb_Cons xs ys y)
+    from list_emb_ConsD [OF `list_emb P (y#ys) zs`] obtain us v vs
+      where zs: "zs = us @ v # vs" and "P\<^sup>=\<^sup>= y v" and "list_emb P ys vs" by blast
+    then have "list_emb P ys (v#vs)" by blast
+    then have "list_emb P ys zs" unfolding zs by (rule list_emb_append2)
+    from list_emb_Cons.IH [OF this] and list_emb_Cons.prems show ?case by simp
   next
-    case (list_hembeq_Cons2 x y xs ys)
-    from list_hembeq_ConsD [OF `list_hembeq P (y#ys) zs`] obtain us v vs
-      where zs: "zs = us @ v # vs" and "P\<^sup>=\<^sup>= y v" and "list_hembeq P ys vs" by blast
-    with list_hembeq_Cons2 have "list_hembeq P xs vs" by simp
+    case (list_emb_Cons2 x y xs ys)
+    from list_emb_ConsD [OF `list_emb P (y#ys) zs`] obtain us v vs
+      where zs: "zs = us @ v # vs" and "P\<^sup>=\<^sup>= y v" and "list_emb P ys vs" by blast
+    with list_emb_Cons2 have "list_emb P xs vs" by simp
     moreover have "P\<^sup>=\<^sup>= x v"
     proof -
       from zs and `zs \<in> lists A` have "v \<in> A" by auto
-      moreover have "x \<in> A" and "y \<in> A" using list_hembeq_Cons2 by simp_all
+      moreover have "x \<in> A" and "y \<in> A" using list_emb_Cons2 by simp_all
       ultimately show ?thesis
         using `P\<^sup>=\<^sup>= x y` and `P\<^sup>=\<^sup>= y v` and assms
         by blast
     qed
-    ultimately have "list_hembeq P (x#xs) (v#vs)" by blast
-    then show ?case unfolding zs by (rule list_hembeq_append2)
+    ultimately have "list_emb P (x#xs) (v#vs)" by blast
+    then show ?case unfolding zs by (rule list_emb_append2)
   qed
 qed
 
@@ -544,24 +544,24 @@ qed
 subsection {* Sublists (special case of homeomorphic embedding) *}
 
 abbreviation sublisteq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-  where "sublisteq xs ys \<equiv> list_hembeq (op =) xs ys"
+  where "sublisteq xs ys \<equiv> list_emb (op =) xs ys"
 
 lemma sublisteq_Cons2: "sublisteq xs ys \<Longrightarrow> sublisteq (x#xs) (x#ys)" by auto
 
 lemma sublisteq_same_length:
   assumes "sublisteq xs ys" and "length xs = length ys" shows "xs = ys"
-  using assms by (induct) (auto dest: list_hembeq_length)
+  using assms by (induct) (auto dest: list_emb_length)
 
 lemma not_sublisteq_length [simp]: "length ys < length xs \<Longrightarrow> \<not> sublisteq xs ys"
-  by (metis list_hembeq_length linorder_not_less)
+  by (metis list_emb_length linorder_not_less)
 
 lemma [code]:
-  "list_hembeq P [] ys \<longleftrightarrow> True"
-  "list_hembeq P (x#xs) [] \<longleftrightarrow> False"
+  "list_emb P [] ys \<longleftrightarrow> True"
+  "list_emb P (x#xs) [] \<longleftrightarrow> False"
   by (simp_all)
 
 lemma sublisteq_Cons': "sublisteq (x#xs) ys \<Longrightarrow> sublisteq xs ys"
-  by (induct xs, simp, blast dest: list_hembeq_ConsD)
+  by (induct xs, simp, blast dest: list_emb_ConsD)
 
 lemma sublisteq_Cons2':
   assumes "sublisteq (x#xs) (x#ys)" shows "sublisteq xs ys"
@@ -574,7 +574,7 @@ lemma sublisteq_Cons2_neq:
 
 lemma sublisteq_Cons2_iff [simp, code]:
   "sublisteq (x#xs) (y#ys) = (if x = y then sublisteq xs ys else sublisteq (x#xs) ys)"
-  by (metis list_hembeq_Cons sublisteq_Cons2 sublisteq_Cons2' sublisteq_Cons2_neq)
+  by (metis list_emb_Cons sublisteq_Cons2 sublisteq_Cons2' sublisteq_Cons2_neq)
 
 lemma sublisteq_append': "sublisteq (zs @ xs) (zs @ ys) \<longleftrightarrow> sublisteq xs ys"
   by (induct zs) simp_all
@@ -586,29 +586,29 @@ lemma sublisteq_antisym:
   shows "xs = ys"
 using assms
 proof (induct)
-  case list_hembeq_Nil
-  from list_hembeq_Nil2 [OF this] show ?case by simp
+  case list_emb_Nil
+  from list_emb_Nil2 [OF this] show ?case by simp
 next
-  case list_hembeq_Cons2
+  case list_emb_Cons2
   thus ?case by simp
 next
-  case list_hembeq_Cons
+  case list_emb_Cons
   hence False using sublisteq_Cons' by fastforce
   thus ?case ..
 qed
 
 lemma sublisteq_trans: "sublisteq xs ys \<Longrightarrow> sublisteq ys zs \<Longrightarrow> sublisteq xs zs"
-  by (rule list_hembeq_trans [of UNIV "op ="]) auto
+  by (rule list_emb_trans [of UNIV "op ="]) auto
 
 lemma sublisteq_append_le_same_iff: "sublisteq (xs @ ys) ys \<longleftrightarrow> xs = []"
-  by (auto dest: list_hembeq_length)
+  by (auto dest: list_emb_length)
 
-lemma list_hembeq_append_mono:
-  "\<lbrakk> list_hembeq P xs xs'; list_hembeq P ys ys' \<rbrakk> \<Longrightarrow> list_hembeq P (xs@ys) (xs'@ys')"
-  apply (induct rule: list_hembeq.induct)
-    apply (metis eq_Nil_appendI list_hembeq_append2)
-   apply (metis append_Cons list_hembeq_Cons)
-  apply (metis append_Cons list_hembeq_Cons2)
+lemma list_emb_append_mono:
+  "\<lbrakk> list_emb P xs xs'; list_emb P ys ys' \<rbrakk> \<Longrightarrow> list_emb P (xs@ys) (xs'@ys')"
+  apply (induct rule: list_emb.induct)
+    apply (metis eq_Nil_appendI list_emb_append2)
+   apply (metis append_Cons list_emb_Cons)
+  apply (metis append_Cons list_emb_Cons2)
   done
 
 
@@ -620,34 +620,34 @@ proof
   { fix xs' ys' xs ys zs :: "'a list" assume "sublisteq xs' ys'"
     then have "xs' = xs @ zs & ys' = ys @ zs \<longrightarrow> sublisteq xs ys"
     proof (induct arbitrary: xs ys zs)
-      case list_hembeq_Nil show ?case by simp
+      case list_emb_Nil show ?case by simp
     next
-      case (list_hembeq_Cons xs' ys' x)
-      { assume "ys=[]" then have ?case using list_hembeq_Cons(1) by auto }
+      case (list_emb_Cons xs' ys' x)
+      { assume "ys=[]" then have ?case using list_emb_Cons(1) by auto }
       moreover
       { fix us assume "ys = x#us"
-        then have ?case using list_hembeq_Cons(2) by(simp add: list_hembeq.list_hembeq_Cons) }
+        then have ?case using list_emb_Cons(2) by(simp add: list_emb.list_emb_Cons) }
       ultimately show ?case by (auto simp:Cons_eq_append_conv)
     next
-      case (list_hembeq_Cons2 x y xs' ys')
-      { assume "xs=[]" then have ?case using list_hembeq_Cons2(1) by auto }
+      case (list_emb_Cons2 x y xs' ys')
+      { assume "xs=[]" then have ?case using list_emb_Cons2(1) by auto }
       moreover
-      { fix us vs assume "xs=x#us" "ys=x#vs" then have ?case using list_hembeq_Cons2 by auto}
+      { fix us vs assume "xs=x#us" "ys=x#vs" then have ?case using list_emb_Cons2 by auto}
       moreover
-      { fix us assume "xs=x#us" "ys=[]" then have ?case using list_hembeq_Cons2(2) by bestsimp }
+      { fix us assume "xs=x#us" "ys=[]" then have ?case using list_emb_Cons2(2) by bestsimp }
       ultimately show ?case using `op =\<^sup>=\<^sup>= x y` by (auto simp: Cons_eq_append_conv)
     qed }
   moreover assume ?l
   ultimately show ?r by blast
 next
-  assume ?r then show ?l by (metis list_hembeq_append_mono sublisteq_refl)
+  assume ?r then show ?l by (metis list_emb_append_mono sublisteq_refl)
 qed
 
 lemma sublisteq_drop_many: "sublisteq xs ys \<Longrightarrow> sublisteq xs (zs @ ys)"
   by (induct zs) auto
 
 lemma sublisteq_rev_drop_many: "sublisteq xs ys \<Longrightarrow> sublisteq xs (ys @ zs)"
-  by (metis append_Nil2 list_hembeq_Nil list_hembeq_append_mono)
+  by (metis append_Nil2 list_emb_Nil list_emb_append_mono)
 
 
 subsection {* Relation to standard list operations *}
@@ -668,19 +668,19 @@ proof
   assume ?L
   then show ?R
   proof (induct)
-    case list_hembeq_Nil show ?case by (metis sublist_empty)
+    case list_emb_Nil show ?case by (metis sublist_empty)
   next
-    case (list_hembeq_Cons xs ys x)
+    case (list_emb_Cons xs ys x)
     then obtain N where "xs = sublist ys N" by blast
     then have "xs = sublist (x#ys) (Suc ` N)"
       by (clarsimp simp add:sublist_Cons inj_image_mem_iff)
     then show ?case by blast
   next
-    case (list_hembeq_Cons2 x y xs ys)
+    case (list_emb_Cons2 x y xs ys)
     then obtain N where "xs = sublist ys N" by blast
     then have "x#xs = sublist (x#ys) (insert 0 (Suc ` N))"
       by (clarsimp simp add:sublist_Cons inj_image_mem_iff)
-    moreover from list_hembeq_Cons2 have "x = y" by simp
+    moreover from list_emb_Cons2 have "x = y" by simp
     ultimately show ?case by blast
   qed
 next
