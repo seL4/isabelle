@@ -433,15 +433,16 @@ inductive list_emb :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a
 where
   list_emb_Nil [intro, simp]: "list_emb P [] ys"
 | list_emb_Cons [intro] : "list_emb P xs ys \<Longrightarrow> list_emb P xs (y#ys)"
-| list_emb_Cons2 [intro]: "P\<^sup>=\<^sup>= x y \<Longrightarrow> list_emb P xs ys \<Longrightarrow> list_emb P (x#xs) (y#ys)"
+| list_emb_Cons2 [intro]: "P x y \<Longrightarrow> list_emb P xs ys \<Longrightarrow> list_emb P (x#xs) (y#ys)"
 
 lemma list_emb_Nil2 [simp]:
   assumes "list_emb P xs []" shows "xs = []"
   using assms by (cases rule: list_emb.cases) auto
 
-lemma list_emb_refl [simp, intro!]:
-  "list_emb P xs xs"
-  by (induct xs) auto
+lemma list_emb_refl:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> P x x"
+  shows "list_emb P xs xs"
+  using assms by (induct xs) auto
 
 lemma list_emb_Cons_Nil [simp]: "list_emb P (x#xs) [] = False"
 proof -
@@ -463,7 +464,7 @@ lemma list_emb_prefix [intro]:
 
 lemma list_emb_ConsD:
   assumes "list_emb P (x#xs) ys"
-  shows "\<exists>us v vs. ys = us @ v # vs \<and> P\<^sup>=\<^sup>= x v \<and> list_emb P xs vs"
+  shows "\<exists>us v vs. ys = us @ v # vs \<and> P x v \<and> list_emb P xs vs"
 using assms
 proof (induct x \<equiv> "x # xs" ys arbitrary: x xs)
   case list_emb_Cons
@@ -482,7 +483,7 @@ proof (induction xs arbitrary: ys zs)
 next
   case (Cons x xs)
   then obtain us v vs where
-    zs: "zs = us @ v # vs" and p: "P\<^sup>=\<^sup>= x v" and lh: "list_emb P (xs @ ys) vs"
+    zs: "zs = us @ v # vs" and p: "P x v" and lh: "list_emb P (xs @ ys) vs"
     by (auto dest: list_emb_ConsD)
   obtain sk\<^sub>0 :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" and sk\<^sub>1 :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
     sk: "\<forall>x\<^sub>0 x\<^sub>1. \<not> list_emb P (xs @ x\<^sub>0) x\<^sub>1 \<or> sk\<^sub>0 x\<^sub>0 x\<^sub>1 @ sk\<^sub>1 x\<^sub>0 x\<^sub>1 = x\<^sub>1 \<and> list_emb P xs (sk\<^sub>0 x\<^sub>0 x\<^sub>1) \<and> list_emb P x\<^sub>0 (sk\<^sub>1 x\<^sub>0 x\<^sub>1)"
@@ -518,21 +519,21 @@ proof -
   next
     case (list_emb_Cons xs ys y)
     from list_emb_ConsD [OF `list_emb P (y#ys) zs`] obtain us v vs
-      where zs: "zs = us @ v # vs" and "P\<^sup>=\<^sup>= y v" and "list_emb P ys vs" by blast
+      where zs: "zs = us @ v # vs" and "P y v" and "list_emb P ys vs" by blast
     then have "list_emb P ys (v#vs)" by blast
     then have "list_emb P ys zs" unfolding zs by (rule list_emb_append2)
     from list_emb_Cons.IH [OF this] and list_emb_Cons.prems show ?case by simp
   next
     case (list_emb_Cons2 x y xs ys)
     from list_emb_ConsD [OF `list_emb P (y#ys) zs`] obtain us v vs
-      where zs: "zs = us @ v # vs" and "P\<^sup>=\<^sup>= y v" and "list_emb P ys vs" by blast
+      where zs: "zs = us @ v # vs" and "P y v" and "list_emb P ys vs" by blast
     with list_emb_Cons2 have "list_emb P xs vs" by simp
-    moreover have "P\<^sup>=\<^sup>= x v"
+    moreover have "P x v"
     proof -
       from zs and `zs \<in> lists A` have "v \<in> A" by auto
       moreover have "x \<in> A" and "y \<in> A" using list_emb_Cons2 by simp_all
       ultimately show ?thesis
-        using `P\<^sup>=\<^sup>= x y` and `P\<^sup>=\<^sup>= y v` and assms
+        using `P x y` and `P y v` and assms
         by blast
     qed
     ultimately have "list_emb P (x#xs) (v#vs)" by blast
@@ -635,7 +636,7 @@ proof
       { fix us vs assume "xs=x#us" "ys=x#vs" then have ?case using list_emb_Cons2 by auto}
       moreover
       { fix us assume "xs=x#us" "ys=[]" then have ?case using list_emb_Cons2(2) by bestsimp }
-      ultimately show ?case using `op =\<^sup>=\<^sup>= x y` by (auto simp: Cons_eq_append_conv)
+      ultimately show ?case using `op = x y` by (auto simp: Cons_eq_append_conv)
     qed }
   moreover assume ?l
   ultimately show ?r by blast
