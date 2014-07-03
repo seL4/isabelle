@@ -877,6 +877,10 @@ a set function, the map function, or the relator:
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
 
+\item[@{text "t."}\hthm{rel\_intros}\rm:] ~ \\
+@{thm list.rel_intros(1)[no_vars]} \\
+@{thm list.rel_intros(2)[no_vars]}
+
 \item[@{text "t."}\hthm{rel\_distinct} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_distinct(1)[no_vars]} \\
 @{thm list.rel_distinct(2)[no_vars]}
