@@ -13,9 +13,9 @@ text {*
   is transformed by a sequence of transitions (commands) within a theory body.
   This is a pure value with pure functions acting on it in a timeless and
   stateless manner. Historically, the sequence of transitions was wrapped up
-  as sequential command loop, such that commands are applied sequentially
-  one-by-one. In contemporary Isabelle/Isar, processing toplevel commands
-  usually works in parallel in multi-threaded Isabelle/ML.
+  as sequential command loop, such that commands are applied one-by-one. In
+  contemporary Isabelle/Isar, processing toplevel commands usually works in
+  parallel in multi-threaded Isabelle/ML \cite{Wenzel:2009,Wenzel:2013:ITP}.
 *}
 
 
@@ -28,10 +28,10 @@ text {*
   commands such as @{command definition}, or state a @{command theorem} to be
   proven. A proof state accepts a rich collection of Isar proof commands for
   structured proof composition, or unstructured proof scripts. When the proof
-  is concluded we get back to the theory, which is then updated by defining
-  the resulting fact. Further theory declarations or theorem statements with
-  proofs may follow, until we eventually conclude the theory development by
-  issuing @{command end} to get back to the empty toplevel.
+  is concluded we get back to the (local) theory, which is then updated by
+  defining the resulting fact. Further theory declarations or theorem
+  statements with proofs may follow, until we eventually conclude the theory
+  development by issuing @{command end} to get back to the empty toplevel.
 *}
 
 text %mlref {*
@@ -41,8 +41,6 @@ text %mlref {*
   @{index_ML Toplevel.is_toplevel: "Toplevel.state -> bool"} \\
   @{index_ML Toplevel.theory_of: "Toplevel.state -> theory"} \\
   @{index_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\
-  @{index_ML Toplevel.timing: "bool Unsynchronized.ref"} \\
-  @{index_ML Toplevel.profiling: "int Unsynchronized.ref"} \\
   \end{mldecls}
 
   \begin{description}
@@ -59,19 +57,11 @@ text %mlref {*
   toplevel state.
 
   \item @{ML Toplevel.theory_of}~@{text "state"} selects the
-  background theory of @{text "state"}, raises @{ML Toplevel.UNDEF}
+  background theory of @{text "state"}, it raises @{ML Toplevel.UNDEF}
   for an empty toplevel state.
 
   \item @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
-  state if available, otherwise raises @{ML Toplevel.UNDEF}.
-
-  \item @{ML "Toplevel.timing := true"} makes the toplevel print timing
-  information for each Isar command being executed.
-
-  \item @{ML Toplevel.profiling}~@{ML_text ":="}~@{text "n"} controls
-  low-level profiling of the underlying ML runtime system.  For
-  Poly/ML, @{text "n = 1"} means time and @{text "n = 2"} space
-  profiling.
+  state if available, otherwise it raises @{ML Toplevel.UNDEF}.
 
   \end{description}
 *}
@@ -104,15 +94,14 @@ text {*
   list of partial functions, which are tried in turn until the first
   one succeeds.  This acts like an outer case-expression for various
   alternative state transitions.  For example, \isakeyword{qed} works
-  differently for a local proofs vs.\ the global ending of the main
+  differently for a local proofs vs.\ the global ending of an outermost
   proof.
 
-  Toplevel transitions are composed via transition transformers.
-  Internally, Isar commands are put together from an empty transition
-  extended by name and source position.  It is then left to the
-  individual command parser to turn the given concrete syntax into a
-  suitable transition transformer that adjoins actual operations on a
-  theory or proof state etc.
+  Transitions are composed via transition transformers. Internally, Isar
+  commands are put together from an empty transition extended by name and
+  source position. It is then left to the individual command parser to turn
+  the given concrete syntax into a suitable transition transformer that
+  adjoins actual operations on a theory or proof state.
 *}
 
 text %mlref {*
@@ -154,8 +143,8 @@ text %mlref {*
   list).
 
   \item @{ML Toplevel.end_proof}~@{text "tr"} adjoins a concluding
-  proof command, that returns the resulting theory, after storing the
-  resulting facts in the context etc.
+  proof command, that returns the resulting theory, after applying the
+  resulting facts to the target context.
 
   \end{description}
 *}
@@ -175,7 +164,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML use_thy: "string -> unit"} \\
-  @{index_ML use_thys: "string list -> unit"} \\
+  @{index_ML use_thys: "string list -> unit"} \\[0.5ex]
   @{index_ML Thy_Info.get_theory: "string -> theory"} \\
   @{index_ML Thy_Info.remove_thy: "string -> unit"} \\
   @{index_ML Thy_Info.register_thy: "theory -> unit"} \\
@@ -184,14 +173,16 @@ text %mlref {*
   \begin{description}
 
   \item @{ML use_thy}~@{text A} ensures that theory @{text A} is fully
-  up-to-date wrt.\ the external file store, reloading outdated ancestors as
-  required.
+  up-to-date wrt.\ the external file store; outdated ancestors are reloaded on
+  demand.
 
   \item @{ML use_thys} is similar to @{ML use_thy}, but handles several
   theories simultaneously. Thus it acts like processing the import header of a
   theory, without performing the merge of the result. By loading a whole
   sub-graph of theories, the intrinsic parallelism can be exploited by the
   system to speedup loading.
+
+  This variant is used by default in @{tool build} \cite{isabelle-sys}.
 
   \item @{ML Thy_Info.get_theory}~@{text A} retrieves the theory value
   presently associated with name @{text A}. Note that the result might be
@@ -202,7 +193,7 @@ text %mlref {*
 
   \item @{ML Thy_Info.register_thy}~@{text "text thy"} registers an existing
   theory value with the theory loader database and updates source version
-  information according to the current file-system state.
+  information according to the file store.
 
   \end{description}
 *}
