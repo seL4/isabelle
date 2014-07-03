@@ -435,6 +435,14 @@ where
 | list_emb_Cons [intro] : "list_emb P xs ys \<Longrightarrow> list_emb P xs (y#ys)"
 | list_emb_Cons2 [intro]: "P x y \<Longrightarrow> list_emb P xs ys \<Longrightarrow> list_emb P (x#xs) (y#ys)"
 
+lemma list_emb_mono:                         
+  assumes "\<And>x y. P x y \<longrightarrow> Q x y"
+  shows "list_emb P xs ys \<longrightarrow> list_emb Q xs ys"
+proof                                        
+  assume "list_emb P xs ys"                    
+  then show "list_emb Q xs ys" by (induct) (auto simp: assms)
+qed 
+
 lemma list_emb_Nil2 [simp]:
   assumes "list_emb P xs []" shows "xs = []"
   using assms by (cases rule: list_emb.cases) auto
