@@ -514,40 +514,42 @@ lemma list_emb_length: "list_emb P xs ys \<Longrightarrow> length xs \<le> lengt
   by (induct rule: list_emb.induct) auto
 
 lemma list_emb_trans:
-  assumes "\<And>x y z. \<lbrakk>x \<in> A; y \<in> A; z \<in> A; P x y; P y z\<rbrakk> \<Longrightarrow> P x z"
-  shows "\<And>xs ys zs. \<lbrakk>xs \<in> lists A; ys \<in> lists A; zs \<in> lists A;
-    list_emb P xs ys; list_emb P ys zs\<rbrakk> \<Longrightarrow> list_emb P xs zs"
+  assumes "\<And>x y z. \<lbrakk>x \<in> set xs; y \<in> set ys; z \<in> set zs; P x y; P y z\<rbrakk> \<Longrightarrow> P x z"
+  shows "\<lbrakk>list_emb P xs ys; list_emb P ys zs\<rbrakk> \<Longrightarrow> list_emb P xs zs"
 proof -
-  fix xs ys zs
   assume "list_emb P xs ys" and "list_emb P ys zs"
-    and "xs \<in> lists A" and "ys \<in> lists A" and "zs \<in> lists A"
-  then show "list_emb P xs zs"
+  then show "list_emb P xs zs" using assms
   proof (induction arbitrary: zs)
     case list_emb_Nil show ?case by blast
   next
     case (list_emb_Cons xs ys y)
     from list_emb_ConsD [OF `list_emb P (y#ys) zs`] obtain us v vs
-      where zs: "zs = us @ v # vs" and "P y v" and "list_emb P ys vs" by blast
+      where zs: "zs = us @ v # vs" and "P\<^sup>=\<^sup>= y v" and "list_emb P ys vs" by blast
     then have "list_emb P ys (v#vs)" by blast
     then have "list_emb P ys zs" unfolding zs by (rule list_emb_append2)
-    from list_emb_Cons.IH [OF this] and list_emb_Cons.prems show ?case by simp
+    from list_emb_Cons.IH [OF this] and list_emb_Cons.prems show ?case by auto
   next
     case (list_emb_Cons2 x y xs ys)
     from list_emb_ConsD [OF `list_emb P (y#ys) zs`] obtain us v vs
       where zs: "zs = us @ v # vs" and "P y v" and "list_emb P ys vs" by blast
-    with list_emb_Cons2 have "list_emb P xs vs" by simp
+    with list_emb_Cons2 have "list_emb P xs vs" by auto
     moreover have "P x v"
     proof -
-      from zs and `zs \<in> lists A` have "v \<in> A" by auto
-      moreover have "x \<in> A" and "y \<in> A" using list_emb_Cons2 by simp_all
+      from zs have "v \<in> set zs" by auto
+      moreover have "x \<in> set (x#xs)" and "y \<in> set (y#ys)" by simp_all
       ultimately show ?thesis
-        using `P x y` and `P y v` and assms
+        using `P x y` and `P y v` and list_emb_Cons2
         by blast
     qed
     ultimately have "list_emb P (x#xs) (v#vs)" by blast
     then show ?case unfolding zs by (rule list_emb_append2)
   qed
 qed
+
+lemma list_emb_set:
+  assumes "list_emb P xs ys" and "x \<in> set xs"
+  obtains y where "y \<in> set ys" and "P x y"
+  using assms by (induct) auto
 
 
 subsection {* Sublists (special case of homeomorphic embedding) *}
@@ -607,7 +609,7 @@ next
 qed
 
 lemma sublisteq_trans: "sublisteq xs ys \<Longrightarrow> sublisteq ys zs \<Longrightarrow> sublisteq xs zs"
-  by (rule list_emb_trans [of UNIV "op ="]) auto
+  by (rule list_emb_trans [of _ _ _ "op ="]) auto
 
 lemma sublisteq_append_le_same_iff: "sublisteq (xs @ ys) ys \<longleftrightarrow> xs = []"
   by (auto dest: list_emb_length)
