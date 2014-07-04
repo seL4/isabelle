@@ -262,7 +262,8 @@ fun check_overloading ctxt overloaded (c, T) =
     else if Type.raw_instance (declT, T') then
       error (message true "imposes additional sort constraints on the constant declaration")
     else if overloaded then ()
-    else warning (message false "is strictly less general than the declared type")
+    else
+      error (message false "is strictly less general than the declared type (overloading required)")
   end;
 
 

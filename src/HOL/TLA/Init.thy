@@ -34,6 +34,8 @@ translations
 
 defs
   Init_def:    "sigma |= Init F  ==  (first_world sigma) |= F"
+
+defs (overloaded)
   fw_temp_def: "first_world == %sigma. sigma"
   fw_stp_def:  "first_world == st1"
   fw_act_def:  "first_world == %sigma. (st1 sigma, st2 sigma)"
