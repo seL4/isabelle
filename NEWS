@@ -51,6 +51,18 @@ not check existence within the file-system.
 * Updated and extended manuals: codegen, datatypes, implementation,
 isar-ref, jedit, system.
 
+* Standard tactics and proof methods such as "clarsimp", "auto" and
+"safe" now preserve equality hypotheses "x = expr" where x is a free
+variable.  Locale assumptions and chained facts containing "x"
+continue to be useful.  The new method "hypsubst_thin" and the
+configuration option "hypsubst_thin" (within the attribute name space)
+restore the previous behavior.
+
+INCOMPATIBILITY, especially where induction is done after these
+methods or when the names of free and bound variables clash.  As first
+approximation, old proofs may be repaired by "using [[hypsubst_thin =
+true]]" in the critical spot.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
