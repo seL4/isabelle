@@ -25,8 +25,8 @@ file in the distribution for more details.  Some highlights are:
 * HOL: updated SMT module, with support for SMT-LIB 2 and recent
   versions of Z3, as well as CVC3, CVC4.
 
-* HOL: numerous library enhancements: Main, HOL-Multivariate_Analysis,
-  HOL-Probability.
+* HOL: numerous library enhancements: main HOL, HOL-Word,
+  HOL-Multivariate_Analysis, HOL-Probability.
 
 * System integration: improved support of LateX on Windows platform.
 
