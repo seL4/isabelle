@@ -15,6 +15,16 @@ and 'SML_export' allow to exchange toplevel bindings between the two
 separate environments.  See also ~~/src/Tools/SML/Examples.thy for
 some examples.
 
+* Standard tactics and proof methods such as "clarsimp", "auto" and
+"safe" now preserve equality hypotheses "x = expr" where x is a free
+variable.  Locale assumptions and chained facts containing "x"
+continue to be useful.  The new method "hypsubst_thin" and the
+configuration option "hypsubst_thin" (within the attribute name space)
+restore the previous behavior.  INCOMPATIBILITY, especially where
+induction is done after these methods or when the names of free and
+bound variables clash.  As first approximation, old proofs may be
+repaired by "using [[hypsubst_thin = true]]" in the critical spot.
+
 * More static checking of proof methods, which allows the system to
 form a closure over the concrete syntax.  Method arguments should be
 processed in the original proof context as far as possible, before
@@ -50,18 +60,6 @@ not check existence within the file-system.
 
 * Updated and extended manuals: codegen, datatypes, implementation,
 isar-ref, jedit, system.
-
-* Standard tactics and proof methods such as "clarsimp", "auto" and
-"safe" now preserve equality hypotheses "x = expr" where x is a free
-variable.  Locale assumptions and chained facts containing "x"
-continue to be useful.  The new method "hypsubst_thin" and the
-configuration option "hypsubst_thin" (within the attribute name space)
-restore the previous behavior.
-
-INCOMPATIBILITY, especially where induction is done after these
-methods or when the names of free and bound variables clash.  As first
-approximation, old proofs may be repaired by "using [[hypsubst_thin =
-true]]" in the critical spot.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
@@ -122,8 +120,17 @@ simplification process, enabled by the "simplifier_trace" attribute
 within the context.
 
 
-
 *** Pure ***
+
+* Low-level type-class commands 'classes', 'classrel', 'arities' have
+been discontinued to avoid the danger of non-trivial axiomatization
+that is not immediately visible.  INCOMPATIBILITY, use regular
+'instance' command with proof.  The required OFCLASS(...) theorem
+might be postulated via 'axiomatization' beforehand, or the proof
+finished trivially if the underlying class definition is made vacuous
+(without any assumptions).  See also Isabelle/ML operations
+Axclass.class_axiomatization, Axclass.classrel_axiomatization,
+Axclass.arity_axiomatization.
 
 * Basic constants of Pure use more conventional names and are always
 qualified.  Rare INCOMPATIBILITY, but with potentially serious
@@ -153,16 +160,6 @@ Thus ML antiquotations like @{const_name Pure.eq} may be used already.
 Later the application is moved to the current Isabelle version, and
 the auxiliary aliases are deleted.
 
-* Low-level type-class commands 'classes', 'classrel', 'arities' have
-been discontinued to avoid the danger of non-trivial axiomatization
-that is not immediately visible.  INCOMPATIBILITY, use regular
-'instance' command with proof.  The required OFCLASS(...) theorem
-might be postulated via 'axiomatization' beforehand, or the proof
-finished trivially if the underlying class definition is made vacuous
-(without any assumptions).  See also Isabelle/ML operations
-Axclass.class_axiomatization, Axclass.classrel_axiomatization,
-Axclass.arity_axiomatization.
-
 * Attributes "where" and "of" allow an optional context of local
 variables ('for' declaration): these variables become schematic in the
 instantiated theorem.
@@ -186,22 +183,45 @@ primitive Thm.assume_hyps.
 (only makes sense in practice, if outer syntax is delimited
 differently, e.g. via cartouches).
 
-* Code generator preprocessor: explicit control of simp tracing on a
-per-constant basis.  See attribute "code_preproc".
-
 * Command 'print_term_bindings' supersedes 'print_binds' for clarity,
 but the latter is retained some time as Proof General legacy.
+
+* Code generator preprocessor: explicit control of simp tracing on a
+per-constant basis.  See attribute "code_preproc".
 
 
 *** HOL ***
 
-* Qualified String.implode and String.explode.  INCOMPATIBILITY.
+* Code generator: enforce case of identifiers only for strict target
+language requirements.  INCOMPATIBILITY.
+
+* Code generator: explicit proof contexts in many ML interfaces.
+INCOMPATIBILITY.
+
+* Code generator: minimize exported identifiers by default.  Minor
+INCOMPATIBILITY.
+
+* Code generation for SML and OCaml: dropped arcane "no_signatures"
+option.  Minor INCOMPATIBILITY.
+
+* "declare [[code abort: ...]]" replaces "code_abort ...".
+INCOMPATIBILITY.
+
+* "declare [[code drop: ...]]" drops all code equations associated
+with the given constants.
+
+* Code generations are provided for make, fields, extend and truncate
+operations on records.
 
 * Command and antiquotation "value" are now hardcoded against nbe and
 ML.  Minor INCOMPATIBILITY.
 
-* Separate command "approximate" for approximative computation in
-src/HOL/Decision_Procs/Approximation.  Minor INCOMPATIBILITY.
+* Renamed command 'enriched_type' to 'functor'. INCOMPATIBILITY.
+
+* The symbol "\<newline>" may be used within char or string literals
+to represent (Char Nibble0 NibbleA), i.e. ASCII newline.
+
+* Qualified String.implode and String.explode.  INCOMPATIBILITY.
 
 * Adjustion of INF and SUP operations:
   - Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
@@ -214,13 +234,6 @@ src/HOL/Decision_Procs/Approximation.  Minor INCOMPATIBILITY.
   - Default congruence rules strong_INF_cong and strong_SUP_cong, with
     simplifier implication in premises.  Generalize and replace former
     INT_cong, SUP_cong
-
-INCOMPATIBILITY.
-
-* Revisions to HOL/Number_Theory
-  - consolidated the proofs of the binomial theorem
-  - the function fib is again of type nat=>nat and not overloaded
-  - no more references to Old_Number_Theory in the HOL libraries (except the AFP)
 
 INCOMPATIBILITY.
 
@@ -238,25 +251,6 @@ now deal with conjunctions.  For help with converting proofs, the old
 behaviour of the simplifier can be restored like this: declare/using
 [[simp_legacy_precond]].  This configuration option will disappear
 again in the future.  INCOMPATIBILITY.
-
-* HOL-Word:
-  - Abandoned fact collection "word_arith_alts", which is a duplicate
-    of "word_arith_wis".
-  - Dropped first (duplicated) element in fact collections
-    "sint_word_ariths", "word_arith_alts", "uint_word_ariths",
-    "uint_word_arith_bintrs".
-
-* Code generator: enforce case of identifiers only for strict target
-language requirements.  INCOMPATIBILITY.
-
-* Code generator: explicit proof contexts in many ML interfaces.
-INCOMPATIBILITY.
-
-* Code generator: minimize exported identifiers by default.  Minor
-INCOMPATIBILITY.
-
-* Code generation for SML and OCaml: dropped arcane "no_signatures"
-option.  Minor INCOMPATIBILITY.
 
 * Simproc "finite_Collect" is no longer enabled by default, due to
 spurious crashes and other surprises.  Potential INCOMPATIBILITY.
@@ -374,12 +368,8 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* New theory src/HOL/Cardinals/Ordinal_Arithmetic.thy.
-
-* New theory src/HOL/Library/Tree.thy.
-
-* Theory reorganization:
-  Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
+* Theory reorganization: split of Big_Operators.thy into
+Groups_Big.thy and Lattices_Big.thy.
 
 * Consolidated some facts about big group operators:
 
@@ -486,21 +476,10 @@ INCOMPATIBILITY.
 
 * Try0: Added 'algebra' and 'meson' to the set of proof methods.
 
-* Command renaming: enriched_type ~> functor. INCOMPATIBILITY.
-
-* The symbol "\<newline>" may be used within char or string literals
-to represent (Char Nibble0 NibbleA), i.e. ASCII newline.
-
 * Activation of Z3 now works via "z3_non_commercial" system option
 (without requiring restart), instead of former settings variable
 "Z3_NON_COMMERCIAL".  The option can be edited in Isabelle/jEdit menu
 Plugin Options / Isabelle / General.
-
-* "declare [[code abort: ...]]" replaces "code_abort ...".
-INCOMPATIBILITY.
-
-* "declare [[code drop: ...]]" drops all code equations associated
-with the given constants.
 
 * Abolished slightly odd global lattice interpretation for min/max.
 
@@ -557,14 +536,8 @@ For min_ac or max_ac, prefer more general collection ac_simps.
 
 INCOMPATBILITY.
 
-* HOL-Word: bit representations prefer type bool over type bit.
-INCOMPATIBILITY.
-
 * Theorem disambiguation Inf_le_Sup (on finite sets) ~>
 Inf_fin_le_Sup_fin.  INCOMPATIBILITY.
-
-* Code generations are provided for make, fields, extend and truncate
-operations on records.
 
 * Qualified constant names Wellfounded.acc, Wellfounded.accp.
 INCOMPATIBILITY.
@@ -632,9 +605,6 @@ or the brute way with
 "simp add: diff_conv_add_uminus del: add_uminus_conv_diff".
 
 * SUP and INF generalized to conditionally_complete_lattice.
-
-* Theory Lubs moved HOL image to HOL-Library. It is replaced by
-Conditionally_Complete_Lattices.  INCOMPATIBILITY.
 
 * Introduce bdd_above and bdd_below in theory
 Conditionally_Complete_Lattices, use them instead of explicitly
@@ -763,6 +733,34 @@ INCOMPATIBILITY.
   - Removed "std" option.
   - Renamed "show_datatypes" to "show_types" and "hide_datatypes" to
     "hide_types".
+
+* Theory Lubs moved HOL image to HOL-Library. It is replaced by
+Conditionally_Complete_Lattices.  INCOMPATIBILITY.
+
+* HOL-Library: new theory src/HOL/Library/Tree.thy.
+
+* HOL-Library: removed theory src/HOL/Library/Kleene_Algebra.thy; it
+is subsumed by session Kleene_Algebra in AFP.
+
+* HOL-Cardinals: new theory src/HOL/Cardinals/Ordinal_Arithmetic.thy.
+
+* HOL-Word: bit representations prefer type bool over type bit.
+INCOMPATIBILITY.
+
+* HOL-Word:
+  - Abandoned fact collection "word_arith_alts", which is a duplicate
+    of "word_arith_wis".
+  - Dropped first (duplicated) element in fact collections
+    "sint_word_ariths", "word_arith_alts", "uint_word_ariths",
+    "uint_word_arith_bintrs".
+
+* HOL-Number_Theory:
+  - consolidated the proofs of the binomial theorem
+  - the function fib is again of type nat => nat and not overloaded
+  - no more references to Old_Number_Theory in the HOL libraries
+    (except the AFP)
+
+INCOMPATIBILITY.
 
 * HOL-Multivariate_Analysis:
   - Type class ordered_real_vector for ordered vector spaces.
@@ -908,8 +906,9 @@ INCOMPATIBILITY.
   - Formalized properties about exponentially, Erlang, and normal
     distributed random variables.
 
-* Removed theory src/HOL/Library/Kleene_Algebra.thy; it is subsumed by
-session Kleene_Algebra in AFP.
+* HOL-Decision_Procs: Separate command 'approximate' for approximative
+computation in src/HOL/Decision_Procs/Approximation.  Minor
+INCOMPATIBILITY.
 
 
 *** Scala ***
@@ -926,6 +925,25 @@ channels.  INCOMPATIBILITY.
 
 *** ML ***
 
+* Subtle change of semantics of Thm.eq_thm: theory stamps are not
+compared (according to Thm.thm_ord), but assumed to be covered by the
+current background theory.  Thus equivalent data produced in different
+branches of the theory graph usually coincides (e.g. relevant for
+theory merge).  Note that the softer Thm.eq_thm_prop is often more
+appropriate than Thm.eq_thm.
+
+* Proper context for basic Simplifier operations: rewrite_rule,
+rewrite_goals_rule, rewrite_goals_tac etc. INCOMPATIBILITY, need to
+pass runtime Proof.context (and ensure that the simplified entity
+actually belongs to it).
+
+* Proper context discipline for read_instantiate and instantiate_tac:
+variables that are meant to become schematic need to be given as
+fixed, and are generalized by the explicit context of local variables.
+This corresponds to Isar attributes "where" and "of" with 'for'
+declaration.  INCOMPATIBILITY, also due to potential change of indices
+of schematic variables.
+
 * Moved ML_Compiler.exn_trace and other operations on exceptions to
 structure Runtime.  Minor INCOMPATIBILITY.
 
@@ -941,29 +959,10 @@ depth of the ML compiler within the context.  The old print_depth in
 ML is still available as default_print_depth, but rarely used.  Minor
 INCOMPATIBILITY.
 
-* Proper context discipline for read_instantiate and instantiate_tac:
-variables that are meant to become schematic need to be given as
-fixed, and are generalized by the explicit context of local variables.
-This corresponds to Isar attributes "where" and "of" with 'for'
-declaration.  INCOMPATIBILITY, also due to potential change of indices
-of schematic variables.
-
 * Toplevel function "use" refers to raw ML bootstrap environment,
 without Isar context nor antiquotations.  Potential INCOMPATIBILITY.
 Note that 'ML_file' is the canonical command to load ML files into the
 formal context.
-
-* Proper context for basic Simplifier operations: rewrite_rule,
-rewrite_goals_rule, rewrite_goals_tac etc. INCOMPATIBILITY, need to
-pass runtime Proof.context (and ensure that the simplified entity
-actually belongs to it).
-
-* Subtle change of semantics of Thm.eq_thm: theory stamps are not
-compared (according to Thm.thm_ord), but assumed to be covered by the
-current background theory.  Thus equivalent data produced in different
-branches of the theory graph usually coincides (e.g. relevant for
-theory merge).  Note that the softer Thm.eq_thm_prop is often more
-appropriate than Thm.eq_thm.
 
 * Simplified programming interface to define ML antiquotations, see
 structure ML_Antiquotation.  Minor INCOMPATIBILITY.
@@ -985,17 +984,17 @@ purposes.
 *** System ***
 
 * Proof General with its traditional helper scripts is now an optional
-Isabelle component, e.g. ProofGeneral-4.2-2 from the Isabelle
-component repository http://isabelle.in.tum.de/components/.  See also
-the "system" manual for general explanations about add-on components,
-notably those that are not bundled with the normal release.
+Isabelle component, e.g. see ProofGeneral-4.2-2 from the Isabelle
+component repository http://isabelle.in.tum.de/components/.  Note that
+the "system" manual provides general explanations about add-on
+components, especially those that are not bundled with the release.
 
 * The raw Isabelle process executable has been renamed from
 "isabelle-process" to "isabelle_process", which conforms to common
 shell naming conventions, and allows to define a shell function within
 the Isabelle environment to avoid dynamic path lookup.  Rare
-incompatibility for old tools that do not use the $ISABELLE_PROCESS
-settings variable yet.
+incompatibility for old tools that do not use the ISABELLE_PROCESS
+settings variable.
 
 * Former "isabelle tty" has been superseded by "isabelle console",
 with implicit build like "isabelle jedit", and without the mostly
@@ -1018,13 +1017,13 @@ integrated into Isabelle/jEdit eventually.
 repeated invocation in PIDE front-end: re-use single file
 $ISABELLE_HOME_USER/tmp/drafts.pdf and corresponding views.
 
-* Windows: support for regular TeX installation (e.g. MiKTeX) instead
-of TeX Live from Cygwin.
-
 * Session ROOT specifications require explicit 'document_files' for
 robust dependencies on LaTeX sources.  Only these explicitly given
 files are copied to the document output directory, before document
 processing is started.
+
+* Windows: support for regular TeX installation (e.g. MiKTeX) instead
+of TeX Live from Cygwin.
 
 
 

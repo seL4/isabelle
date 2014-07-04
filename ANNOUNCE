@@ -9,7 +9,8 @@ file in the distribution for more details.  Some highlights are:
 * Improved Isabelle/jEdit Prover IDE: navigation, completion,
   spell-checking, Query panel, Simplifier Trace panel.
 
-* Support for auxiliary files within the Prover IDE.
+* Support for auxiliary files within the Prover IDE, notably
+  Isabelle/ML.
 
 * Support for official Standard ML within the Prover IDE,
   independently of Isabelle theory and proof development.
@@ -19,18 +20,18 @@ file in the distribution for more details.  Some highlights are:
 
 * HOL tool enhancements: Nitpick, Sledgehammer.
 
-* HOL: numerous library enhancements: Main, HOL-Multivariate_Analysis,
-  HOL-Probability.
-
 * HOL: internal SAT solver "cdclite" with models and proof traces.
 
 * HOL: updated SMT module, with support for SMT-LIB 2 and recent
   versions of Z3, as well as CVC3, CVC4.
 
-* Updated and extended manuals: codegen, datatypes, implementation,
-  isar-ref, jedit, system.
+* HOL: numerous library enhancements: Main, HOL-Multivariate_Analysis,
+  HOL-Probability.
 
 * System integration: improved support of LateX on Windows platform.
+
+* Updated and extended manuals: codegen, datatypes, implementation,
+  isar-ref, jedit, system.
 
 
 You may get Isabelle2013-2 from the following mirror sites:
