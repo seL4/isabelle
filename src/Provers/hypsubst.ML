@@ -48,7 +48,7 @@ signature HYPSUBST =
 sig
   val bound_hyp_subst_tac    : Proof.context -> int -> tactic
   val hyp_subst_tac_thin     : bool -> Proof.context -> int -> tactic
-  val hyp_subst_thins        : bool Config.T
+  val hyp_subst_thin         : bool Config.T
   val hyp_subst_tac          : Proof.context -> int -> tactic
   val blast_hyp_subst_tac    : bool -> int -> tactic
   val stac                   : thm -> int -> tactic
@@ -228,11 +228,11 @@ fun hyp_subst_tac_thin thin ctxt =
     gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac false,
     if thin then thin_free_eq_tac else K no_tac];
 
-val (hyp_subst_thins, hyp_subst_thins_setup) = Attrib.config_bool
+val (hyp_subst_thin, hyp_subst_thin_setup) = Attrib.config_bool
     @{binding hypsubst_thin} (K false);
 
 fun hyp_subst_tac ctxt = hyp_subst_tac_thin
-    (Config.get ctxt hyp_subst_thins) ctxt
+    (Config.get ctxt hyp_subst_thin) ctxt
 
 (*Substitutes for Bound variables only -- this is always safe*)
 fun bound_hyp_subst_tac ctxt =
@@ -306,7 +306,7 @@ val hypsubst_setup =
     (Scan.succeed (fn ctxt => SIMPLE_METHOD'
         (CHANGED_PROP o hyp_subst_tac_thin true ctxt)))
     "substitution using an assumption, eliminating assumptions" #>
-  hyp_subst_thins_setup #>
+  hyp_subst_thin_setup #>
   Method.setup @{binding simplesubst} (Attrib.thm >> (fn th => K (SIMPLE_METHOD' (stac th))))
     "simple substitution";
 
