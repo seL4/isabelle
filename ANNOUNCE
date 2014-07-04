@@ -28,7 +28,7 @@ file in the distribution for more details.  Some highlights are:
 * HOL: numerous library enhancements: main HOL, HOL-Word,
   HOL-Multivariate_Analysis, HOL-Probability.
 
-* System integration: improved support of LateX on Windows platform.
+* System integration: improved support of LaTeX on Windows platform.
 
 * Updated and extended manuals: codegen, datatypes, implementation,
   isar-ref, jedit, system.
