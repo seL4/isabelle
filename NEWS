@@ -223,29 +223,6 @@ to represent (Char Nibble0 NibbleA), i.e. ASCII newline.
 
 * Qualified String.implode and String.explode.  INCOMPATIBILITY.
 
-* Adjustion of INF and SUP operations:
-  - Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
-  - Consolidated theorem names containing INFI and SUPR: have INF and
-    SUP instead uniformly.
-  - More aggressive normalization of expressions involving INF and Inf
-    or SUP and Sup.
-  - INF_image and SUP_image do not unfold composition.
-  - Dropped facts INF_comp, SUP_comp.
-  - Default congruence rules strong_INF_cong and strong_SUP_cong, with
-    simplifier implication in premises.  Generalize and replace former
-    INT_cong, SUP_cong
-
-INCOMPATIBILITY.
-
-* Swapped orientation of facts image_comp and vimage_comp:
-
-  image_compose ~> image_comp [symmetric]
-  image_comp ~> image_comp [symmetric]
-  vimage_compose ~> vimage_comp [symmetric]
-  vimage_comp ~> vimage_comp [symmetric]
-
-INCOMPATIBILITY.
-
 * Simplifier: Enhanced solver of preconditions of rewrite rules can
 now deal with conjunctions.  For help with converting proofs, the old
 behaviour of the simplifier can be restored like this: declare/using
@@ -368,6 +345,83 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
+* New internal SAT solver "cdclite" that produces models and proof
+traces.  This solver replaces the internal SAT solvers "enumerate" and
+"dpll".  Applications that explicitly used one of these two SAT
+solvers should use "cdclite" instead. In addition, "cdclite" is now
+the default SAT solver for the "sat" and "satx" proof methods and
+corresponding tactics; the old default can be restored using "declare
+[[sat_solver = zchaff_with_proofs]]".  Minor INCOMPATIBILITY.
+
+* SMT module: A new version of the SMT module, temporarily called
+"SMT2", uses SMT-LIB 2 and supports recent versions of Z3 (e.g.,
+4.3). The new proof method is called "smt2". CVC3 and CVC4 are also
+supported as oracles. Yices is no longer supported, because no version
+of the solver can handle both SMT-LIB 2 and quantifiers.
+
+* Activation of Z3 now works via "z3_non_commercial" system option
+(without requiring restart), instead of former settings variable
+"Z3_NON_COMMERCIAL".  The option can be edited in Isabelle/jEdit menu
+Plugin Options / Isabelle / General.
+
+* Sledgehammer:
+  - Z3 can now produce Isar proofs.
+  - MaSh overhaul:
+    . New SML-based learning engines eliminate the dependency on
+      Python and increase performance and reliability.
+    . MaSh and MeSh are now used by default together with the
+      traditional MePo (Meng-Paulson) relevance filter. To disable
+      MaSh, set the "MaSh" system option in Isabelle/jEdit Plugin
+      Options / Isabelle / General to "none".
+  - New option:
+      smt_proofs
+  - Renamed options:
+      isar_compress ~> compress
+      isar_try0 ~> try0
+
+INCOMPATIBILITY.
+
+* Removed solvers remote_cvc3 and remote_z3. Use cvc3 and z3 instead.
+
+* Nitpick:
+  - Fixed soundness bug whereby mutually recursive datatypes could
+    take infinite values.
+  - Fixed soundness bug with low-level number functions such as
+    "Abs_Integ" and "Rep_Integ".
+  - Removed "std" option.
+  - Renamed "show_datatypes" to "show_types" and "hide_datatypes" to
+    "hide_types".
+
+* Metis: Removed legacy proof method 'metisFT'. Use 'metis
+(full_types)' instead. INCOMPATIBILITY.
+
+* Try0: Added 'algebra' and 'meson' to the set of proof methods.
+
+* Adjustion of INF and SUP operations:
+  - Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
+  - Consolidated theorem names containing INFI and SUPR: have INF and
+    SUP instead uniformly.
+  - More aggressive normalization of expressions involving INF and Inf
+    or SUP and Sup.
+  - INF_image and SUP_image do not unfold composition.
+  - Dropped facts INF_comp, SUP_comp.
+  - Default congruence rules strong_INF_cong and strong_SUP_cong, with
+    simplifier implication in premises.  Generalize and replace former
+    INT_cong, SUP_cong
+
+INCOMPATIBILITY.
+
+* SUP and INF generalized to conditionally_complete_lattice.
+
+* Swapped orientation of facts image_comp and vimage_comp:
+
+  image_compose ~> image_comp [symmetric]
+  image_comp ~> image_comp [symmetric]
+  vimage_compose ~> vimage_comp [symmetric]
+  vimage_comp ~> vimage_comp [symmetric]
+
+INCOMPATIBILITY.
+
 * Theory reorganization: split of Big_Operators.thy into
 Groups_Big.thy and Lattices_Big.thy.
 
@@ -439,47 +493,6 @@ Groups_Big.thy and Lattices_Big.thy.
     (simple variants of setsum.reindex [symmetric], setprod.reindex [symmetric]).
 
 INCOMPATIBILITY.
-
-* New internal SAT solver "cdclite" that produces models and proof
-traces.  This solver replaces the internal SAT solvers "enumerate" and
-"dpll".  Applications that explicitly used one of these two SAT
-solvers should use "cdclite" instead. In addition, "cdclite" is now
-the default SAT solver for the "sat" and "satx" proof methods and
-corresponding tactics; the old default can be restored using "declare
-[[sat_solver = zchaff_with_proofs]]".  Minor INCOMPATIBILITY.
-
-* SMT module: A new version of the SMT module, temporarily called
-"SMT2", uses SMT-LIB 2 and supports recent versions of Z3 (e.g.,
-4.3). The new proof method is called "smt2". CVC3 and CVC4 are also
-supported as oracles. Yices is no longer supported, because no version
-of the solver can handle both SMT-LIB 2 and quantifiers.
-
-* Sledgehammer:
-  - Z3 can now produce Isar proofs.
-  - MaSh overhaul:
-    . New SML-based learning engines eliminate the dependency on
-      Python and increase performance and reliability.
-    . MaSh and MeSh are now used by default together with the
-      traditional MePo (Meng-Paulson) relevance filter. To disable
-      MaSh, set the "MaSh" system option in Isabelle/jEdit Plugin
-      Options / Isabelle / General to "none".
-  - New option:
-      smt_proofs
-  - Renamed options:
-      isar_compress ~> compress
-      isar_try0 ~> try0
-
-INCOMPATIBILITY.
-
-* Metis: Removed legacy proof method 'metisFT'. Use 'metis
-(full_types)' instead. INCOMPATIBILITY.
-
-* Try0: Added 'algebra' and 'meson' to the set of proof methods.
-
-* Activation of Z3 now works via "z3_non_commercial" system option
-(without requiring restart), instead of former settings variable
-"Z3_NON_COMMERCIAL".  The option can be edited in Isabelle/jEdit menu
-Plugin Options / Isabelle / General.
 
 * Abolished slightly odd global lattice interpretation for min/max.
 
@@ -604,8 +617,6 @@ Consider simplification with algebra_simps or field_simps;
 or the brute way with
 "simp add: diff_conv_add_uminus del: add_uminus_conv_diff".
 
-* SUP and INF generalized to conditionally_complete_lattice.
-
 * Introduce bdd_above and bdd_below in theory
 Conditionally_Complete_Lattices, use them instead of explicitly
 stating boundedness of sets.
@@ -722,17 +733,6 @@ Moved csqrt from Fundamental_Algebra_Theorem to Complex.
     complex_scaleR_def
 
 INCOMPATIBILITY.
-
-* Removed solvers remote_cvc3 and remote_z3. Use cvc3 and z3 instead.
-
-* Nitpick:
-  - Fixed soundness bug whereby mutually recursive datatypes could
-    take infinite values.
-  - Fixed soundness bug with low-level number functions such as
-    "Abs_Integ" and "Rep_Integ".
-  - Removed "std" option.
-  - Renamed "show_datatypes" to "show_types" and "hide_datatypes" to
-    "hide_types".
 
 * Theory Lubs moved HOL image to HOL-Library. It is replaced by
 Conditionally_Complete_Lattices.  INCOMPATIBILITY.
