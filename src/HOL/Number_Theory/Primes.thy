@@ -106,7 +106,7 @@ lemma prime_dvd_mult_eq_int [simp]:
 lemma not_prime_eq_prod_nat: "(n::nat) > 1 \<Longrightarrow> ~ prime n \<Longrightarrow>
     EX m k. n = m * k & 1 < m & m < n & 1 < k & k < n"
   unfolding prime_nat_def dvd_def apply auto
-  by (metis mult_commute linorder_neq_iff linorder_not_le mult_1
+  by (metis mult.commute linorder_neq_iff linorder_not_le mult_1
       n_less_n_mult_m one_le_mult_iff less_imp_le_nat)
 
 lemma prime_dvd_power_nat: "prime p \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
@@ -209,7 +209,7 @@ proof-
       from coprime_dvd_mult_nat[OF pnb pab] have ?thesis by blast }
     moreover
     { assume pb: "p dvd b"
-      have pnba: "p^n dvd b*a" using pab by (simp add: mult_commute)
+      have pnba: "p^n dvd b*a" using pab by (simp add: mult.commute)
       from coprime_common_divisor_nat [OF ab, of p] pb p have "\<not> p dvd a"
         by auto
       with p have "coprime a p"
@@ -323,7 +323,7 @@ next
   moreover 
   {assume px: "p dvd y"
     then obtain d where d: "y = p*d" unfolding dvd_def by blast
-    from Suc.prems d  have "p*d*x = p^Suc k" by (simp add: mult_commute)
+    from Suc.prems d  have "p*d*x = p^Suc k" by (simp add: mult.commute)
     hence th: "d*x = p^k" using p0 by simp
     from Suc.hyps[OF th] obtain i j where ij: "d = p^i" "x = p^j" by blast
     with d have "y = p^Suc i" by simp 
@@ -355,7 +355,7 @@ lemma divides_primepow:
   shows "d dvd p^k \<longleftrightarrow> (\<exists> i. i \<le> k \<and> d = p ^i)"
 proof
   assume H: "d dvd p^k" then obtain e where e: "d*e = p^k" 
-    unfolding dvd_def  apply (auto simp add: mult_commute) by blast
+    unfolding dvd_def  apply (auto simp add: mult.commute) by blast
   from prime_power_mult[OF p e] obtain i j where ij: "d = p^i" "e=p^j" by blast
   from e ij have "p^(i + j) = p^k" by (simp add: power_add)
   hence "i + j = k" using p prime_gt_1_nat power_inject_exp[of p "i+j" k] by simp 

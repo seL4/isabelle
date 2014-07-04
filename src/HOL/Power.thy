@@ -53,7 +53,7 @@ lemma power_one_right [simp]:
 
 lemma power_commutes:
   "a ^ n * a = a * a ^ n"
-  by (induct n) (simp_all add: mult_assoc)
+  by (induct n) (simp_all add: mult.assoc)
 
 lemma power_Suc2:
   "a ^ Suc n = a ^ n * a"
@@ -71,11 +71,11 @@ lemma power2_eq_square: "a\<^sup>2 = a * a"
   by (simp add: numeral_2_eq_2)
 
 lemma power3_eq_cube: "a ^ 3 = a * a * a"
-  by (simp add: numeral_3_eq_3 mult_assoc)
+  by (simp add: numeral_3_eq_3 mult.assoc)
 
 lemma power_even_eq:
   "a ^ (2 * n) = (a ^ n)\<^sup>2"
-  by (subst mult_commute) (simp add: power_mult)
+  by (subst mult.commute) (simp add: power_mult)
 
 lemma power_odd_eq:
   "a ^ Suc (2*n) = a * (a ^ n)\<^sup>2"
@@ -88,7 +88,7 @@ lemma power_numeral_even:
 lemma power_numeral_odd:
   "z ^ numeral (Num.Bit1 w) = (let w = z ^ (numeral w) in z * w * w)"
   unfolding numeral_Bit1 One_nat_def add_Suc_right add_0_right
-  unfolding power_Suc power_add Let_def mult_assoc ..
+  unfolding power_Suc power_add Let_def mult.assoc ..
 
 lemma funpow_times_power:
   "(times x ^^ f x) = times (x ^ f x)"
@@ -100,7 +100,7 @@ next
   with Suc have "n = g x" by simp
   with Suc have "times x ^^ g x = times (x ^ g x)" by simp
   moreover from Suc g_def have "f x = g x + 1" by simp
-  ultimately show ?case by (simp add: power_add funpow_add fun_eq_iff mult_assoc)
+  ultimately show ?case by (simp add: power_add funpow_add fun_eq_iff mult.assoc)
 qed
 
 end
@@ -197,7 +197,7 @@ proof (induct n)
   case 0 show ?case by simp
 next
   case (Suc n) then show ?case
-    by (simp del: power_Suc add: power_Suc2 mult_assoc)
+    by (simp del: power_Suc add: power_Suc2 mult.assoc)
 qed
 
 lemma power_minus_Bit0:
@@ -626,7 +626,7 @@ lemma power2_sum:
 lemma power2_diff:
   fixes x y :: "'a::comm_ring_1"
   shows "(x - y)\<^sup>2 = x\<^sup>2 + y\<^sup>2 - 2 * x * y"
-  by (simp add: ring_distribs power2_eq_square mult_2) (rule mult_commute)
+  by (simp add: ring_distribs power2_eq_square mult_2) (rule mult.commute)
 
 lemma power_0_Suc [simp]:
   "(0::'a::{power, semiring_0}) ^ Suc n = 0"

@@ -60,7 +60,7 @@ text {* \medskip Toward Law 6.111 of Concrete Mathematics *}
 lemma coprime_fib_Suc_nat: "coprime (fib (n::nat)) (fib (Suc n))"
   apply (induct n rule: fib.induct)
   apply auto
-  apply (metis gcd_add1_nat nat_add_commute)
+  apply (metis gcd_add1_nat add.commute)
   done
 
 lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
@@ -68,7 +68,7 @@ lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
   apply (cases m)
   apply (auto simp add: fib_add)
   apply (subst gcd_commute_nat)
-  apply (subst mult_commute)
+  apply (subst mult.commute)
   apply (metis coprime_fib_Suc_nat gcd_add_mult_nat gcd_mult_cancel_nat gcd_nat.commute)
   done
 

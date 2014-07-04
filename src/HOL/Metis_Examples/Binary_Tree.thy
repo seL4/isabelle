@@ -66,7 +66,7 @@ proof (induct t)
   qed
 next
   case (Br a t1 t2) thus ?case
-    by (metis n_leaves.simps(2) nat_add_commute reflect.simps(2))
+    by (metis n_leaves.simps(2) add.commute reflect.simps(2))
 qed
 
 lemma n_nodes_reflect: "n_nodes (reflect t) = n_nodes t"
@@ -74,7 +74,7 @@ proof (induct t)
   case Lf thus ?case by (metis reflect.simps(1))
 next
   case (Br a t1 t2) thus ?case
-    by (metis add_commute n_nodes.simps(2) reflect.simps(2))
+    by (metis add.commute n_nodes.simps(2) reflect.simps(2))
 qed
 
 lemma depth_reflect: "depth (reflect t) = depth t"

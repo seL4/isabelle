@@ -3283,7 +3283,7 @@ proof -
       by (auto intro!:arg_cong[where f=norm] simp add: algebra_simps)
     also have "\<dots> < d"
       using as[unfolded dist_norm] and `e > 0`
-      by (auto simp add:pos_divide_less_eq[OF `e > 0`] mult_commute)
+      by (auto simp add:pos_divide_less_eq[OF `e > 0`] mult.commute)
     finally have "y \<in> S"
       apply (subst *)
       apply (rule assms(1)[unfolded convex_alt,rule_format])
@@ -5923,7 +5923,7 @@ proof -
         by (auto simp: inner_simps)
       then have "1 \<ge> inverse d * (x \<bullet> i - y \<bullet> i)" "1 \<ge> inverse d * (y \<bullet> i - x \<bullet> i)"
         apply (rule_tac[!] mult_left_le_imp_le[OF _ assms])
-        unfolding mult_assoc[symmetric]
+        unfolding mult.assoc[symmetric]
         using assms
         by (auto simp add: field_simps)
       then have "inverse d * (x \<bullet> i * 2) \<le> 2 + inverse d * (y \<bullet> i * 2)"
@@ -6493,7 +6493,7 @@ proof -
       by (auto intro!:arg_cong[where f=norm] simp add: algebra_simps)
     also have "\<dots> < d"
       using as[unfolded dist_norm] and `e > 0`
-      by (auto simp add:pos_divide_less_eq[OF `e > 0`] mult_commute)
+      by (auto simp add:pos_divide_less_eq[OF `e > 0`] mult.commute)
     finally show "y \<in> s"
       apply (subst *)
       apply (rule assms(1)[unfolded convex_alt,rule_format])

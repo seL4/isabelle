@@ -112,7 +112,7 @@ proof -
   from mod_div_equality have *: "of_nat n = of_nat (n div 2 * 2 + n mod 2)" by simp
   show ?thesis
     by (simp add: Let_def divmod_nat_div_mod of_nat_add [symmetric])
-      (simp add: * mult_commute of_nat_mult add_commute)
+      (simp add: * mult.commute of_nat_mult add.commute)
 qed
 
 declare of_nat_code_if [code]

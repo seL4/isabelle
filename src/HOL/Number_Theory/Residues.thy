@@ -65,7 +65,7 @@ lemma cring: "cring R"
   apply (rule comm_monoid)
   apply (unfold R_def residue_ring_def, auto)
   apply (subst mod_add_eq [symmetric])
-  apply (subst mult_commute)
+  apply (subst mult.commute)
   apply (subst mod_mult_right_eq [symmetric])
   apply (simp add: field_simps)
   done
@@ -105,7 +105,7 @@ lemma res_units_eq: "Units R = { x. 0 < x & x < m & coprime x m}"
   apply auto
   apply (metis invertible_coprime_int)
   apply (subst (asm) coprime_iff_invertible'_int)
-  apply (auto simp add: cong_int_def mult_commute)
+  apply (auto simp add: cong_int_def mult.commute)
   done
 
 lemma res_neg_eq: "\<ominus> x = (- x) mod m"
@@ -120,7 +120,7 @@ lemma res_neg_eq: "\<ominus> x = (- x) mod m"
   apply auto
   apply (subgoal_tac "y mod m = - x mod m")
   apply simp
-  apply (metis minus_add_cancel mod_mult_self1 mult_commute)
+  apply (metis minus_add_cancel mod_mult_self1 mult.commute)
   done
 
 lemma finite [iff]: "finite (carrier R)"
@@ -159,7 +159,7 @@ lemma pow_cong: "(x mod m) (^) n = x^n mod m"
   apply (insert m_gt_one)
   apply (induct n)
   apply (auto simp add: nat_pow_def one_cong)
-  apply (metis mult_commute mult_cong)
+  apply (metis mult.commute mult_cong)
   done
 
 lemma neg_cong: "\<ominus> (x mod m) = (- x) mod m"
@@ -196,7 +196,7 @@ lemmas res_to_cong_simps = add_cong mult_cong pow_cong one_cong
 
 lemma one_eq_neg_one: "\<one> = \<ominus> \<one> \<Longrightarrow> m = 2"
   apply (simp add: res_one_eq res_neg_eq)
-  apply (metis add_commute add_diff_cancel mod_mod_trivial one_add_one uminus_add_conv_diff
+  apply (metis add.commute add_diff_cancel mod_mod_trivial one_add_one uminus_add_conv_diff
             zero_neq_one zmod_zminus1_eq_if)
   done
 

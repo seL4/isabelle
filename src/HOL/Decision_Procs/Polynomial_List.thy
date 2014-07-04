@@ -121,7 +121,7 @@ proof (induct b arbitrary: a)
   thus ?case by auto
 next
   case (Cons b bs a)
-  thus ?case by (cases a) (simp_all add: add_commute)
+  thus ?case by (cases a) (simp_all add: add.commute)
 qed
 
 lemma (in comm_semiring_0) padd_assoc: "\<forall>b c. (a +++ b) +++ c = a +++ (b +++ c)"
@@ -192,13 +192,13 @@ lemma (in semiring_0) poly_add_rzero[simp]: "poly (a +++ []) x = poly a x"
   by simp
 
 lemma (in comm_semiring_0) poly_mult_assoc: "poly ((a *** b) *** c) x = poly (a *** (b *** c)) x"
-  by (simp add: poly_mult mult_assoc)
+  by (simp add: poly_mult mult.assoc)
 
 lemma (in semiring_0) poly_mult_Nil2[simp]: "poly (p *** []) x = 0"
   by (induct p) auto
 
 lemma (in comm_semiring_1) poly_exp_add: "poly (p %^ (n + d)) x = poly( p %^ n *** p %^ d) x"
-  by (induct n) (auto simp add: poly_mult mult_assoc)
+  by (induct n) (auto simp add: poly_mult mult.assoc)
 
 subsection{*Key Property: if @{term "f(a) = 0"} then @{term "(x - a)"} divides
  @{term "p(x)"} *}
@@ -445,7 +445,7 @@ lemma (in idom) poly_exp_eq_zero[simp]:
 lemma (in comm_ring_1) poly_prime_eq_zero[simp]: "poly [a,1] \<noteq> poly []"
   apply (simp add: fun_eq)
   apply (rule_tac x = "minus one a" in exI)
-  apply (simp add: add_commute [of a])
+  apply (simp add: add.commute [of a])
   done
 
 lemma (in idom) poly_exp_prime_eq_zero: "poly ([a, 1] %^ n) \<noteq> poly []"
@@ -517,7 +517,7 @@ lemma (in comm_semiring_1) poly_divides_refl[simp]: "p divides p"
 lemma (in comm_semiring_1) poly_divides_trans: "p divides q \<Longrightarrow> q divides r \<Longrightarrow> p divides r"
   apply (simp add: divides_def, safe)
   apply (rule_tac x = "pmult qa qaa" in exI)
-  apply (auto simp add: poly_mult fun_eq mult_assoc)
+  apply (auto simp add: poly_mult fun_eq mult.assoc)
   done
 
 lemma (in comm_semiring_1) poly_divides_exp: "m \<le> n \<Longrightarrow> (p %^ m) divides (p %^ n)"

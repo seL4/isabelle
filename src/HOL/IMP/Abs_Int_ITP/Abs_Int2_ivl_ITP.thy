@@ -208,7 +208,7 @@ proof
 next
   case goal2 thus ?case
     by(auto simp add: filter_plus_ivl_def)
-      (metis gamma_minus_ivl add_diff_cancel add_commute)+
+      (metis gamma_minus_ivl add_diff_cancel add.commute)+
 next
   case goal3 thus ?case
     by(cases a1, cases a2,

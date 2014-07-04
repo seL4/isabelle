@@ -29,7 +29,7 @@ begin
 text {* @{const div} and @{const mod} *}
 
 lemma mod_div_equality2: "b * (a div b) + a mod b = a"
-  unfolding mult_commute [of b]
+  unfolding mult.commute [of b]
   by (rule mod_div_equality)
 
 lemma mod_div_equality': "a mod b + a div b * b = a"
@@ -51,7 +51,7 @@ lemma mod_0 [simp]: "0 mod a = 0"
 lemma div_mult_self2 [simp]:
   assumes "b \<noteq> 0"
   shows "(a + b * c) div b = c + a div b"
-  using assms div_mult_self1 [of b a c] by (simp add: mult_commute)
+  using assms div_mult_self1 [of b a c] by (simp add: mult.commute)
 
 lemma div_mult_self3 [simp]:
   assumes "b \<noteq> 0"
@@ -74,7 +74,7 @@ next
     "\<dots> = (c + a div b) * b + (a + c * b) mod b"
       by (simp add: algebra_simps)
   finally have "a = a div b * b + (a + c * b) mod b"
-    by (simp add: add_commute [of a] add_assoc distrib_right)
+    by (simp add: add.commute [of a] add.assoc distrib_right)
   then have "a div b * b + (a + c * b) mod b = a div b * b + a mod b"
     by (simp add: mod_div_equality)
   then show ?thesis by simp
@@ -82,7 +82,7 @@ qed
 
 lemma mod_mult_self2 [simp]: 
   "(a + b * c) mod b = a mod b"
-  by (simp add: mult_commute [of b])
+  by (simp add: mult.commute [of b])
 
 lemma mod_mult_self3 [simp]:
   "(c * b + a) mod b = a mod b"
@@ -123,16 +123,16 @@ lemma div_self [simp]: "a \<noteq> 0 \<Longrightarrow> a div a = 1"
 lemma div_add_self1 [simp]:
   assumes "b \<noteq> 0"
   shows "(b + a) div b = a div b + 1"
-  using assms div_mult_self1 [of b a 1] by (simp add: add_commute)
+  using assms div_mult_self1 [of b a 1] by (simp add: add.commute)
 
 lemma div_add_self2 [simp]:
   assumes "b \<noteq> 0"
   shows "(a + b) div b = a div b + 1"
-  using assms div_add_self1 [of b a] by (simp add: add_commute)
+  using assms div_add_self1 [of b a] by (simp add: add.commute)
 
 lemma mod_add_self1 [simp]:
   "(b + a) mod b = a mod b"
-  using mod_mult_self1 [of a 1 b] by (simp add: add_commute)
+  using mod_mult_self1 [of a 1 b] by (simp add: add.commute)
 
 lemma mod_add_self2 [simp]:
   "(a + b) mod b = a mod b"
@@ -153,7 +153,7 @@ lemma dvd_eq_mod_eq_0 [code]: "a dvd b \<longleftrightarrow> b mod a = 0"
 proof
   assume "b mod a = 0"
   with mod_div_equality [of b a] have "b div a * a = b" by simp
-  then have "b = a * (b div a)" unfolding mult_commute ..
+  then have "b = a * (b div a)" unfolding mult.commute ..
   then have "\<exists>c. b = a * c" ..
   then show "a dvd b" unfolding dvd_def .
 next
@@ -161,7 +161,7 @@ next
   then have "\<exists>c. b = a * c" unfolding dvd_def .
   then obtain c where "b = a * c" ..
   then have "b mod a = a * c mod a" by simp
-  then have "b mod a = c * a mod a" by (simp add: mult_commute)
+  then have "b mod a = c * a mod a" by (simp add: mult.commute)
   then show "b mod a = 0" by simp
 qed
 
@@ -197,12 +197,12 @@ lemma dvd_div_mult_self: "a dvd b \<Longrightarrow> (b div a) * a = b"
 by (subst (2) mod_div_equality [of b a, symmetric]) (simp add:dvd_imp_mod_0)
 
 lemma dvd_mult_div_cancel: "a dvd b \<Longrightarrow> a * (b div a) = b"
-by (drule dvd_div_mult_self) (simp add: mult_commute)
+by (drule dvd_div_mult_self) (simp add: mult.commute)
 
 lemma dvd_div_mult: "a dvd b \<Longrightarrow> (b div a) * c = b * c div a"
 apply (cases "a = 0")
  apply simp
-apply (auto simp: dvd_def mult_assoc)
+apply (auto simp: dvd_def mult.assoc)
 done
 
 lemma div_dvd_div[simp]:
@@ -211,8 +211,8 @@ apply (cases "a = 0")
  apply simp
 apply (unfold dvd_def)
 apply auto
- apply(blast intro:mult_assoc[symmetric])
-apply(fastforce simp add: mult_assoc)
+ apply(blast intro:mult.assoc[symmetric])
+apply(fastforce simp add: mult.assoc)
 done
 
 lemma dvd_mod_imp_dvd: "[| k dvd m mod n;  k dvd n |] ==> k dvd m"
@@ -332,7 +332,7 @@ lemma div_mult_div_if_dvd:
   apply (cases "y = 0", simp)
   apply (cases "z = 0", simp)
   apply (auto elim!: dvdE simp add: algebra_simps)
-  apply (subst mult_assoc [symmetric])
+  apply (subst mult.assoc [symmetric])
   apply (simp add: no_zero_divisors)
   done
 
@@ -342,12 +342,12 @@ lemma div_mult_swap:
 proof -
   from assms have "b div c * (a div 1) = b * a div (c * 1)"
     by (simp only: div_mult_div_if_dvd one_dvd)
-  then show ?thesis by (simp add: mult_commute)
+  then show ?thesis by (simp add: mult.commute)
 qed
    
 lemma div_mult_mult2 [simp]:
   "c \<noteq> 0 \<Longrightarrow> (a * c) div (b * c) = a div b"
-  by (drule div_mult_mult1) (simp add: mult_commute)
+  by (drule div_mult_mult1) (simp add: mult.commute)
 
 lemma div_mult_mult1_if [simp]:
   "(c * a) div (c * b) = (if c = 0 then 0 else a div b)"
@@ -368,7 +368,7 @@ qed
   
 lemma mod_mult_mult2:
   "(a * c) mod (b * c) = (a mod b) * c"
-  using mod_mult_mult1 [of c a b] by (simp add: mult_commute)
+  using mod_mult_mult1 [of c a b] by (simp add: mult.commute)
 
 lemma mult_mod_left: "(a mod b) * c = (a * c) mod (b * c)"
   by (fact mod_mult_mult2 [symmetric])
@@ -405,7 +405,7 @@ qed
 lemma dvd_div_div_eq_mult:
   assumes "a \<noteq> 0" "c \<noteq> 0" and "a dvd b" "c dvd d"
   shows "b div a = d div c \<longleftrightarrow> b * c = a * d"
-  using assms by (auto simp add: mult_commute [of _ a] dvd_div_mult_self dvd_div_eq_mult div_mult_swap intro: sym)
+  using assms by (auto simp add: mult.commute [of _ a] dvd_div_mult_self dvd_div_eq_mult div_mult_swap intro: sym)
 
 end
 
@@ -1065,7 +1065,7 @@ lemma div_mult2_eq: "a div (b * c) = (a div b) div (c::nat)"
 by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_nat_unique])
 
 lemma mod_mult2_eq: "a mod (b * c) = b * (a div b mod c) + a mod (b::nat)"
-by (auto simp add: mult_commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_nat_unique])
+by (auto simp add: mult.commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_nat_unique])
 
 
 subsubsection {* Further Facts about Quotient and Remainder *}
@@ -1692,7 +1692,7 @@ proof
   fix a b :: int
   show "a div b * b + a mod b = a"
     using divmod_int_rel_div_mod [of a b]
-    unfolding divmod_int_rel_def by (simp add: mult_commute)
+    unfolding divmod_int_rel_def by (simp add: mult.commute)
 next
   fix a b c :: int
   assume "b \<noteq> 0"
@@ -2022,7 +2022,7 @@ apply (subgoal_tac "b*q < b* (q' + 1) ")
 apply (subgoal_tac "b*q = r' - r + b'*q'")
  prefer 2 apply simp
 apply (simp (no_asm_simp) add: distrib_left)
-apply (subst add_commute, rule add_less_le_mono, arith)
+apply (subst add.commute, rule add_less_le_mono, arith)
 apply (rule mult_right_mono, auto)
 done
 
@@ -2314,7 +2314,7 @@ lemma zdiv_numeral_Bit1 [simp]:
   "numeral (Num.Bit1 v) div numeral (Num.Bit0 w) =  
     (numeral v div (numeral w :: int))"
   unfolding numeral.simps
-  unfolding mult_2 [symmetric] add_commute [of _ 1]
+  unfolding mult_2 [symmetric] add.commute [of _ 1]
   by (rule pos_zdiv_mult_2, simp)
 
 lemma pos_zmod_mult_2:
@@ -2342,7 +2342,7 @@ lemma zmod_numeral_Bit1 [simp]:
   "numeral (Num.Bit1 v) mod numeral (Num.Bit0 w) =
     2 * (numeral v mod numeral w) + (1::int)"
   unfolding numeral_Bit1 [of v] numeral_Bit0 [of w]
-  unfolding mult_2 [symmetric] add_commute [of _ 1]
+  unfolding mult_2 [symmetric] add.commute [of _ 1]
   by (rule pos_zmod_mult_2, simp)
 
 lemma zdiv_eq_0_iff:

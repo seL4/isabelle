@@ -410,7 +410,7 @@ lemma gcd_mult_cancel_nat: "coprime k n \<Longrightarrow> gcd ((k::nat) * m) n =
   apply (rule_tac n = k in coprime_dvd_mult_nat)
   apply (simp add: gcd_assoc_nat)
   apply (simp add: gcd_commute_nat)
-  apply (simp_all add: mult_commute)
+  apply (simp_all add: mult.commute)
 done
 
 lemma gcd_mult_cancel_int:
@@ -432,9 +432,9 @@ next
   with `coprime a d` have "a dvd b" by (simp add: coprime_dvd_mult_iff_nat)
   from `?lhs` have "b dvd a * c" by (auto intro: dvdI dest: sym)
   with `coprime b c` have "b dvd a" by (simp add: coprime_dvd_mult_iff_nat)
-  from `?lhs` have "c dvd d * b" by (auto intro: dvdI dest: sym simp add: mult_commute)
+  from `?lhs` have "c dvd d * b" by (auto intro: dvdI dest: sym simp add: mult.commute)
   with `coprime b c` have "c dvd d" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
-  from `?lhs` have "d dvd c * a" by (auto intro: dvdI dest: sym simp add: mult_commute)
+  from `?lhs` have "d dvd c * a" by (auto intro: dvdI dest: sym simp add: mult.commute)
   with `coprime a d` have "d dvd c" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
   from `a dvd b` `b dvd a` have "a = b" by (rule Nat.dvd.antisym)
   moreover from `c dvd d` `d dvd c` have "c = d" by (rule Nat.dvd.antisym)
@@ -456,7 +456,7 @@ done
 
 lemma gcd_add2_nat [simp]: "gcd (m::nat) (m + n) = gcd m n"
   apply (subst (1 2) gcd_commute_nat)
-  apply (subst add_commute)
+  apply (subst add.commute)
   apply simp
 done
 
@@ -496,16 +496,16 @@ lemma gcd_red_int: "gcd (x::int) y = gcd y (x mod y)"
 done
 
 lemma gcd_add1_int [simp]: "gcd ((m::int) + n) n = gcd m n"
-by (metis gcd_red_int mod_add_self1 add_commute)
+by (metis gcd_red_int mod_add_self1 add.commute)
 
 lemma gcd_add2_int [simp]: "gcd m ((m::int) + n) = gcd m n"
-by (metis gcd_add1_int gcd_commute_int add_commute)
+by (metis gcd_add1_int gcd_commute_int add.commute)
 
 lemma gcd_add_mult_nat: "gcd (m::nat) (k * m + n) = gcd m n"
 by (metis mod_mult_self3 gcd_commute_nat gcd_red_nat)
 
 lemma gcd_add_mult_int: "gcd (m::int) (k * m + n) = gcd m n"
-by (metis gcd_commute_int gcd_red_int mod_mult_self1 add_commute)
+by (metis gcd_commute_int gcd_red_int mod_mult_self1 add.commute)
 
 
 (* to do: differences, and all variations of addition rules
@@ -778,7 +778,7 @@ proof (cases)
     by (auto simp:div_gcd_coprime_nat)
   hence "gcd ((a div gcd a b)^n * (gcd a b)^n)
       ((b div gcd a b)^n * (gcd a b)^n) = (gcd a b)^n"
-    apply (subst (1 2) mult_commute)
+    apply (subst (1 2) mult.commute)
     apply (subst gcd_mult_distrib_nat [symmetric])
     apply simp
     done
@@ -820,10 +820,10 @@ proof-
     from ab'(1) have "a' dvd a"  unfolding dvd_def by blast
     with dc have th0: "a' dvd b*c" using dvd_trans[of a' a "b*c"] by simp
     from dc ab'(1,2) have "a'*?g dvd (b'*?g) *c" by auto
-    hence "?g*a' dvd ?g * (b' * c)" by (simp add: mult_assoc)
+    hence "?g*a' dvd ?g * (b' * c)" by (simp add: mult.assoc)
     with z have th_1: "a' dvd b' * c" by auto
     from coprime_dvd_mult_nat[OF ab'(3)] th_1
-    have thc: "a' dvd c" by (subst (asm) mult_commute, blast)
+    have thc: "a' dvd c" by (subst (asm) mult.commute, blast)
     from ab' have "a = ?g*a'" by algebra
     with thb thc have ?thesis by blast }
   ultimately show ?thesis by blast
@@ -844,10 +844,10 @@ proof-
     with dc have th0: "a' dvd b*c"
       using dvd_trans[of a' a "b*c"] by simp
     from dc ab'(1,2) have "a'*?g dvd (b'*?g) *c" by auto
-    hence "?g*a' dvd ?g * (b' * c)" by (simp add: mult_assoc)
+    hence "?g*a' dvd ?g * (b' * c)" by (simp add: mult.assoc)
     with z have th_1: "a' dvd b' * c" by auto
     from coprime_dvd_mult_int[OF ab'(3)] th_1
-    have thc: "a' dvd c" by (subst (asm) mult_commute, blast)
+    have thc: "a' dvd c" by (subst (asm) mult.commute, blast)
     from ab' have "a = ?g*a'" by algebra
     with thb thc have ?thesis by blast }
   ultimately show ?thesis by blast
@@ -869,13 +869,13 @@ proof-
     from ab have "(a' * ?g) ^ n dvd (b' * ?g)^n"
       by (simp add: ab'(1,2)[symmetric])
     hence "?g^n*a'^n dvd ?g^n *b'^n"
-      by (simp only: power_mult_distrib mult_commute)
+      by (simp only: power_mult_distrib mult.commute)
     with zn z n have th0:"a'^n dvd b'^n" by auto
     have "a' dvd a'^n" by (simp add: m)
     with th0 have "a' dvd b'^n" using dvd_trans[of a' "a'^n" "b'^n"] by simp
-    hence th1: "a' dvd b'^m * b'" by (simp add: m mult_commute)
+    hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute)
     from coprime_dvd_mult_nat[OF coprime_exp_nat [OF ab'(3), of m]] th1
-    have "a' dvd b'" by (subst (asm) mult_commute, blast)
+    have "a' dvd b'" by (subst (asm) mult.commute, blast)
     hence "a'*?g dvd b'*?g" by simp
     with ab'(1,2)  have ?thesis by simp }
   ultimately show ?thesis by blast
@@ -897,14 +897,14 @@ proof-
     from ab have "(a' * ?g) ^ n dvd (b' * ?g)^n"
       by (simp add: ab'(1,2)[symmetric])
     hence "?g^n*a'^n dvd ?g^n *b'^n"
-      by (simp only: power_mult_distrib mult_commute)
+      by (simp only: power_mult_distrib mult.commute)
     with zn z n have th0:"a'^n dvd b'^n" by auto
     have "a' dvd a'^n" by (simp add: m)
     with th0 have "a' dvd b'^n"
       using dvd_trans[of a' "a'^n" "b'^n"] by simp
-    hence th1: "a' dvd b'^m * b'" by (simp add: m mult_commute)
+    hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute)
     from coprime_dvd_mult_int[OF coprime_exp_int [OF ab'(3), of m]] th1
-    have "a' dvd b'" by (subst (asm) mult_commute, blast)
+    have "a' dvd b'" by (subst (asm) mult.commute, blast)
     hence "a'*?g dvd b'*?g" by simp
     with ab'(1,2)  have ?thesis by simp }
   ultimately show ?thesis by blast
@@ -922,7 +922,7 @@ lemma divides_mult_nat:
 proof-
   from mr nr obtain m' n' where m': "r = m*m'" and n': "r = n*n'"
     unfolding dvd_def by blast
-  from mr n' have "m dvd n'*n" by (simp add: mult_commute)
+  from mr n' have "m dvd n'*n" by (simp add: mult.commute)
   hence "m dvd n'" using coprime_dvd_mult_iff_nat[OF mn] by simp
   then obtain k where k: "n' = m*k" unfolding dvd_def by blast
   from n' k show ?thesis unfolding dvd_def by auto
@@ -934,7 +934,7 @@ lemma divides_mult_int:
 proof-
   from mr nr obtain m' n' where m': "r = m*m'" and n': "r = n*n'"
     unfolding dvd_def by blast
-  from mr n' have "m dvd n'*n" by (simp add: mult_commute)
+  from mr n' have "m dvd n'*n" by (simp add: mult.commute)
   hence "m dvd n'" using coprime_dvd_mult_iff_int[OF mn] by simp
   then obtain k where k: "n' = m*k" unfolding dvd_def by blast
   from n' k show ?thesis unfolding dvd_def by auto
@@ -1218,14 +1218,14 @@ proof-
           from H (3) have "d + (b - 1) * (b*x) = d + (b - 1) * (a*y + d)"
             by simp
           hence "d + (b - 1) * a * y + (b - 1) * d = d + (b - 1) * b * x"
-            by (simp only: mult_assoc distrib_left)
+            by (simp only: mult.assoc distrib_left)
           hence "a * ((b - 1) * y) + d * (b - 1 + 1) = d + x*b*(b - 1)"
             by algebra
           hence "a * ((b - 1) * y) = d + x*b*(b - 1) - d*b" using bp by simp
           hence "a * ((b - 1) * y) = d + (x*b*(b - 1) - d*b)"
             by (simp only: diff_add_assoc[OF dble, of d, symmetric])
           hence "a * ((b - 1) * y) = b*(x*(b - 1) - d) + d"
-            by (simp only: diff_mult_distrib2 add_commute mult_ac)
+            by (simp only: diff_mult_distrib2 add.commute mult_ac)
           hence ?thesis using H(1,2)
             apply -
             apply (rule exI[where x=d], simp)
@@ -1674,7 +1674,7 @@ lemma mult_inj_if_coprime_nat:
 apply(auto simp add:inj_on_def)
 apply (metis coprime_dvd_mult_iff_nat dvd.neq_le_trans dvd_triv_left)
 apply (metis gcd_semilattice_nat.inf_commute coprime_dvd_mult_iff_nat
-             dvd.neq_le_trans dvd_triv_right mult_commute)
+             dvd.neq_le_trans dvd_triv_right mult.commute)
 done
 
 text{* Nitpick: *}

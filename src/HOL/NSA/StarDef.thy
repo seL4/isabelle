@@ -766,16 +766,16 @@ by transfer (rule refl)
 subsection {* Ordered group classes *}
 
 instance star :: (semigroup_add) semigroup_add
-by (intro_classes, transfer, rule add_assoc)
+by (intro_classes, transfer, rule add.assoc)
 
 instance star :: (ab_semigroup_add) ab_semigroup_add
-by (intro_classes, transfer, rule add_commute)
+by (intro_classes, transfer, rule add.commute)
 
 instance star :: (semigroup_mult) semigroup_mult
-by (intro_classes, transfer, rule mult_assoc)
+by (intro_classes, transfer, rule mult.assoc)
 
 instance star :: (ab_semigroup_mult) ab_semigroup_mult
-by (intro_classes, transfer, rule mult_commute)
+by (intro_classes, transfer, rule mult.commute)
 
 instance star :: (comm_monoid_add) comm_monoid_add
 by (intro_classes, transfer, rule comm_monoid_add_class.add_0)

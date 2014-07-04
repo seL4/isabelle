@@ -41,14 +41,14 @@ fun times_rat_raw where
   "times_rat_raw (a :: int, b :: int) (c, d) = (a * c, b * d)"
 
 quotient_definition
-  "(op *) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is times_rat_raw by (auto simp add: mult_assoc mult_left_commute)
+  "(op *) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is times_rat_raw by (auto simp add: mult.assoc mult.left_commute)
 
 fun plus_rat_raw where
   "plus_rat_raw (a :: int, b :: int) (c, d) = (a * d + c * b, b * d)"
 
 quotient_definition
   "(op +) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is plus_rat_raw 
-  by (auto simp add: mult_commute mult_left_commute int_distrib(2))
+  by (auto simp add: mult.commute mult.left_commute int_distrib(2))
 
 fun uminus_rat_raw where
   "uminus_rat_raw (a :: int, b :: int) = (-a, b)"
@@ -78,13 +78,13 @@ proof -
     have "a * f * b * f * d * d \<le> e * b * b * f * d * d" using le nz(2)
       by (metis linorder_le_cases mult_right_mono mult_right_mono_neg)
     then have "c * f * f * d * (b * b) \<le> e * f * d * d * (b * b)" using eq
-      by (metis (no_types) mult_assoc mult_commute)
+      by (metis (no_types) mult.assoc mult.commute)
     then have "c * f * f * d \<le> e * f * d * d" using b2
       by (metis leD linorder_le_less_linear mult_strict_right_mono)
     then have "c * f * f * d * h * h \<le> e * f * d * d * h * h" using nz(4)
       by (metis linorder_le_cases mult_right_mono mult_right_mono_neg)
     then have "c * h * (d * h) * (f * f) \<le> g * d * (d * h) * (f * f)" using eq
-      by (metis (no_types) mult_assoc mult_commute)
+      by (metis (no_types) mult.assoc mult.commute)
     then have "c * h * (d * h) \<le> g * d * (d * h)" using f2
       by (metis leD linorder_le_less_linear mult_strict_right_mono)
   }
@@ -128,7 +128,7 @@ instance proof
   show "1 * a = a"
     by partiality_descending auto
   show "a + b + c = a + (b + c)"
-    by partiality_descending (auto simp add: mult_commute distrib_left)
+    by partiality_descending (auto simp add: mult.commute distrib_left)
   show "a + b = b + a"
     by partiality_descending auto
   show "0 + a = a"
@@ -138,7 +138,7 @@ instance proof
   show "a - b = a + - b"
     by (simp add: minus_rat_def)
   show "(a + b) * c = a * c + b * c"
-    by partiality_descending (auto simp add: mult_commute distrib_left)
+    by partiality_descending (auto simp add: mult.commute distrib_left)
   show "(0 :: rat) \<noteq> (1 :: rat)"
     by partiality_descending auto
 qed
@@ -167,7 +167,7 @@ fun rat_inverse_raw where
   "rat_inverse_raw (a :: int, b :: int) = (if a = 0 then (0, 1) else (b, a))"
 
 quotient_definition
-  "inverse :: rat \<Rightarrow> rat" is rat_inverse_raw by (force simp add: mult_commute)
+  "inverse :: rat \<Rightarrow> rat" is rat_inverse_raw by (force simp add: mult.commute)
 
 definition
   divide_rat_def: "q / r = q * inverse (r::rat)"
@@ -194,7 +194,7 @@ instance proof
   {
     assume "q \<le> r" and "r \<le> s"
     then show "q \<le> s"
-    proof (partiality_descending, auto simp add: mult_assoc[symmetric])
+    proof (partiality_descending, auto simp add: mult.assoc[symmetric])
       fix a b c d e f :: int
       assume nz: "b \<noteq> 0" "d \<noteq> 0" "f \<noteq> 0"
       then have d2: "d * d > 0"
@@ -220,9 +220,9 @@ instance proof
     show "q \<le> q" by partiality_descending auto
     show "(q < r) = (q \<le> r \<and> \<not> r \<le> q)"
       unfolding less_rat_def
-      by partiality_descending (auto simp add: le_less mult_commute)
+      by partiality_descending (auto simp add: le_less mult.commute)
     show "q \<le> r \<or> r \<le> q"
-      by partiality_descending (auto simp add: mult_commute linorder_linear)
+      by partiality_descending (auto simp add: mult.commute linorder_linear)
   }
 qed
 
@@ -232,25 +232,25 @@ instance rat :: archimedean_field
 proof
   fix q r s :: rat
   show "q \<le> r ==> s + q \<le> s + r"
-  proof (partiality_descending, auto simp add: algebra_simps, simp add: mult_assoc[symmetric])
+  proof (partiality_descending, auto simp add: algebra_simps, simp add: mult.assoc[symmetric])
     fix a b c d e :: int
     assume "e \<noteq> 0"
     then have e2: "e * e > 0"
       by (metis linorder_neqE_linordered_idom mult_eq_0_iff not_square_less_zero)
       assume "a * b * d * d \<le> b * b * c * d"
       then show "a * b * d * d * e * e * e * e \<le> b * b * c * d * e * e * e * e"
-        using e2 by (metis comm_mult_left_mono mult_commute linorder_le_cases
+        using e2 by (metis comm_mult_left_mono mult.commute linorder_le_cases
           mult_left_mono_neg)
     qed
   show "q < r ==> 0 < s ==> s * q < s * r" unfolding less_rat_def
-    proof (partiality_descending, auto simp add: algebra_simps, simp add: mult_assoc[symmetric])
+    proof (partiality_descending, auto simp add: algebra_simps, simp add: mult.assoc[symmetric])
     fix a b c d e f :: int
     assume a: "e \<noteq> 0" "f \<noteq> 0" "0 \<le> e * f" "a * b * d * d \<le> b * b * c * d"
     have "a * b * d * d * (e * f) \<le> b * b * c * d * (e * f)" using a
       by (simp add: mult_right_mono)
     then show "a * b * d * d * e * f * f * f \<le> b * b * c * d * e * f * f * f"
-      by (simp add: mult_assoc[symmetric]) (metis a(3) comm_mult_left_mono
-        mult_commute mult_left_mono_neg zero_le_mult_iff)
+      by (simp add: mult.assoc[symmetric]) (metis a(3) comm_mult_left_mono
+        mult.commute mult_left_mono_neg zero_le_mult_iff)
   qed
   show "\<exists>z. r \<le> of_int z"
     unfolding of_int_rat
@@ -258,7 +258,7 @@ proof
     fix a b :: int
     assume "b \<noteq> 0"
     then have "a * b \<le> (a div b + 1) * b * b"
-      by (metis mult_commute div_mult_self1_is_id less_int_def linorder_le_cases zdiv_mono1 zdiv_mono1_neg zle_add1_eq_le)
+      by (metis mult.commute div_mult_self1_is_id less_int_def linorder_le_cases zdiv_mono1 zdiv_mono1_neg zle_add1_eq_le)
     then show "\<exists>z\<Colon>int. a * b \<le> z * b * b" by auto
   qed
 qed

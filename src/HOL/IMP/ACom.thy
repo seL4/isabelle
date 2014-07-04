@@ -104,7 +104,7 @@ lemma anno_annotate[simp]: "p < asize c \<Longrightarrow> anno (annotate f c) p 
 apply(induction c arbitrary: f p)
 apply (auto simp: anno_def nth_append nth_Cons numeral_eq_Suc shift_def
             split: nat.split)
-  apply (metis add_Suc_right add_diff_inverse nat_add_commute)
+  apply (metis add_Suc_right add_diff_inverse add.commute)
  apply(rule_tac f=f in arg_cong)
  apply arith
 apply (metis less_Suc_eq)

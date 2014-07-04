@@ -118,7 +118,7 @@ proof
   show "scaleR (a + b) x = scaleR a x + scaleR b x"
     by (simp add: complex_eq_iff distrib_right)
   show "scaleR a (scaleR b x) = scaleR (a * b) x"
-    by (simp add: complex_eq_iff mult_assoc)
+    by (simp add: complex_eq_iff mult.assoc)
   show "scaleR 1 x = x"
     by (simp add: complex_eq_iff)
   show "scaleR a x * y = scaleR a (x * y)"
@@ -190,7 +190,7 @@ lemma divide_i [simp]: "x / ii = - ii * x"
   by (simp add: divide_complex_def)
 
 lemma complex_i_mult_minus [simp]: "ii * (ii * x) = - x"
-  by (simp add: mult_assoc [symmetric])
+  by (simp add: mult.assoc [symmetric])
 
 lemma complex_i_not_zero [simp]: "ii \<noteq> 0"
   by (simp add: complex_eq_iff)
@@ -298,14 +298,14 @@ lemma complex_abs_le_norm: "\<bar>Re z\<bar> + \<bar>Im z\<bar> \<le> sqrt 2 * n
   apply (rule abs_sqrt_wlog [where x="Re z"])
   apply (rule abs_sqrt_wlog [where x="Im z"])
   apply (rule power2_le_imp_le)
-  apply (simp_all add: power2_sum add_commute sum_squares_bound real_sqrt_mult [symmetric])
+  apply (simp_all add: power2_sum add.commute sum_squares_bound real_sqrt_mult [symmetric])
   done
 
 
 text {* Properties of complex signum. *}
 
 lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
-  by (simp add: sgn_div_norm divide_inverse scaleR_conv_of_real mult_commute)
+  by (simp add: sgn_div_norm divide_inverse scaleR_conv_of_real mult.commute)
 
 lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
   by (simp add: complex_sgn_def divide_inverse)
@@ -703,7 +703,7 @@ lemma Im_exp: "Im (exp z) = exp (Re z) * sin (Im z)"
 
 lemma complex_expi_Ex: "\<exists>a r. z = complex_of_real r * expi a"
 apply (insert rcis_Ex [of z])
-apply (auto simp add: expi_def rcis_def mult_assoc [symmetric])
+apply (auto simp add: expi_def rcis_def mult.assoc [symmetric])
 apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
 done
 

@@ -225,8 +225,8 @@ lemma add_eq_conv_diff:
 (* shorter: by (simp add: multiset_eq_iff) fastforce *)
 proof
   assume ?rhs then show ?lhs
-  by (auto simp add: add_assoc add_commute [of "{#b#}"])
-    (drule sym, simp add: add_assoc [symmetric])
+  by (auto simp add: add.assoc add.commute [of "{#b#}"])
+    (drule sym, simp add: add.assoc [symmetric])
 next
   assume ?lhs
   show ?rhs
@@ -1494,9 +1494,9 @@ next
     case (Suc i')
     with Cons show ?thesis
       apply simp
-      apply (subst add_assoc)
-      apply (subst add_commute [of "{#v#}" "{#x#}"])
-      apply (subst add_assoc [symmetric])
+      apply (subst add.assoc)
+      apply (subst add.commute [of "{#v#}" "{#x#}"])
+      apply (subst add.assoc [symmetric])
       apply simp
       apply (rule mset_le_multiset_union_diff_commute)
       apply (simp add: mset_le_single nth_mem_multiset_of)
@@ -1597,7 +1597,7 @@ proof
           with wf_hyp have "\<forall>M \<in> ?W. M + {#x#} \<in> ?W" by blast
           moreover from add have "M0 + K \<in> ?W" by simp
           ultimately have "(M0 + K) + {#x#} \<in> ?W" ..
-          then show "M0 + (K + {#x#}) \<in> ?W" by (simp only: add_assoc)
+          then show "M0 + (K + {#x#}) \<in> ?W" by (simp only: add.assoc)
         qed
         then show "N \<in> ?W" by (simp only: N)
       qed
@@ -1652,7 +1652,7 @@ apply (case_tac "a :# K")
  apply (rule_tac x = I in exI)
  apply (simp (no_asm))
  apply (rule_tac x = "(K - {#a#}) + Ka" in exI)
- apply (simp (no_asm_simp) add: add_assoc [symmetric])
+ apply (simp (no_asm_simp) add: add.assoc [symmetric])
  apply (drule_tac f = "\<lambda>M. M - {#a#}" and x="?S + ?T" in arg_cong)
  apply (simp add: diff_union_single_conv)
  apply (simp (no_asm_use) add: trans_def)
@@ -1695,7 +1695,7 @@ apply (subgoal_tac
     (I + {# x :# K. (x, a) \<in> r #}) + J') \<in> mult r")
  prefer 2
  apply force
-apply (simp (no_asm_use) add: add_assoc [symmetric] mult_def)
+apply (simp (no_asm_use) add: add.assoc [symmetric] mult_def)
 apply (erule trancl_trans)
 apply (rule r_into_trancl)
 apply (simp add: mult1_def set_of_def)
@@ -1760,7 +1760,7 @@ apply (unfold mult1_def)
 apply auto
 apply (rule_tac x = a in exI)
 apply (rule_tac x = "C + M0" in exI)
-apply (simp add: add_assoc)
+apply (simp add: add.assoc)
 done
 
 lemma union_less_mono2: "B \<subset># D ==> C + B \<subset># C + (D::'a::order multiset)"
@@ -1771,8 +1771,8 @@ apply (blast intro: mult1_union trancl_trans)
 done
 
 lemma union_less_mono1: "B \<subset># D ==> B + C \<subset># D + (C::'a::order multiset)"
-apply (subst add_commute [of B C])
-apply (subst add_commute [of D C])
+apply (subst add.commute [of B C])
+apply (subst add.commute [of D C])
 apply (erule union_less_mono2)
 done
 
@@ -1941,13 +1941,13 @@ subsection {* Legacy theorem bindings *}
 lemmas multi_count_eq = multiset_eq_iff [symmetric]
 
 lemma union_commute: "M + N = N + (M::'a multiset)"
-  by (fact add_commute)
+  by (fact add.commute)
 
 lemma union_assoc: "(M + N) + K = M + (N + (K::'a multiset))"
-  by (fact add_assoc)
+  by (fact add.assoc)
 
 lemma union_lcomm: "M + (N + K) = N + (M + (K::'a multiset))"
-  by (fact add_left_commute)
+  by (fact add.left_commute)
 
 lemmas union_ac = union_assoc union_commute union_lcomm
 

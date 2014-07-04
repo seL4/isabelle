@@ -271,11 +271,11 @@ proof -
   then have "p dvd a \<or> p dvd b"
     by (metis prime prime_dvd_mult_eq_int)
   then show "(\<exists>x. a = x * int p) \<or> (\<exists>x. b = x * int p)"
-    by (metis dvd_def mult_commute)
+    by (metis dvd_def mult.commute)
 next
   assume "UNIV = {uu. EX x. uu = x * int p}"
   then obtain x where "1 = x * int p" by best
-  then have "\<bar>int p * x\<bar> = 1" by (simp add: mult_commute)
+  then have "\<bar>int p * x\<bar> = 1" by (simp add: mult.commute)
   then show False
     by (metis abs_of_nat int_1 of_nat_eq_iff abs_zmult_eq_1 one_not_prime_nat prime)
 qed

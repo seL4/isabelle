@@ -133,7 +133,7 @@ lemma NSDERIVD3:
 apply (auto simp add: nsderiv_def)
 apply (rule ccontr, drule_tac x = h in bspec)
 apply (drule_tac [2] c = h in approx_mult1)
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD] simp add: mult_assoc)
+apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD] simp add: mult.assoc)
 done
 
 text{*Differentiability implies continuity
@@ -143,15 +143,15 @@ apply (auto simp add: nsderiv_def isNSCont_NSLIM_iff NSLIM_def)
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule hypreal_not_eq_minus_iff [THEN iffD1])
 apply (drule_tac x = "xa - star_of x" in bspec)
- prefer 2 apply (simp add: add_assoc [symmetric])
-apply (auto simp add: mem_infmal_iff [symmetric] add_commute)
+ prefer 2 apply (simp add: add.assoc [symmetric])
+apply (auto simp add: mem_infmal_iff [symmetric] add.commute)
 apply (drule_tac c = "xa - star_of x" in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mult_assoc nonzero_mult_divide_cancel_right)
+            simp add: mult.assoc nonzero_mult_divide_cancel_right)
 apply (drule_tac x3=D in
            HFinite_star_of [THEN [2] Infinitesimal_HFinite_mult,
              THEN mem_infmal_iff [THEN iffD1]])
-apply (auto simp add: mult_commute
+apply (auto simp add: mult.commute
             intro: approx_trans approx_minus_iff [THEN iffD2])
 done
 
@@ -189,7 +189,7 @@ lemma lemma_nsderiv2:
       ==> x - y \<approx> 0"
 apply (simp add: nonzero_divide_eq_eq)
 apply (auto intro!: Infinitesimal_HFinite_mult2 HFinite_add
-            simp add: mult_assoc mem_infmal_iff [symmetric])
+            simp add: mult.assoc mem_infmal_iff [symmetric])
 apply (erule Infinitesimal_subset_HFinite [THEN subsetD])
 done
 
@@ -206,14 +206,14 @@ apply (drule_tac D = Db in lemma_nsderiv2, assumption+)
 apply (drule_tac
      approx_minus_iff [THEN iffD2, THEN bex_Infinitesimal_iff2 [THEN iffD2]])
 apply (auto intro!: approx_add_mono1
-            simp add: distrib_right distrib_left mult_commute add_assoc)
+            simp add: distrib_right distrib_left mult.commute add.assoc)
 apply (rule_tac b1 = "star_of Db * star_of (f x)"
-         in add_commute [THEN subst])
+         in add.commute [THEN subst])
 apply (auto intro!: Infinitesimal_add_approx_self2 [THEN approx_sym]
                     Infinitesimal_add Infinitesimal_mult
                     Infinitesimal_star_of_mult
                     Infinitesimal_star_of_mult2
-          simp add: add_assoc [symmetric])
+          simp add: add.assoc [symmetric])
 done
 
 text{*Multiplying by a constant*}
@@ -309,7 +309,7 @@ lemma lemma_chain: "(z::'a::real_normed_field star) \<noteq> 0 ==> x*y = (x*inve
 proof -
   assume z: "z \<noteq> 0"
   have "x * y = x * (inverse z * z) * y" by (simp add: z)
-  thus ?thesis by (simp add: mult_assoc)
+  thus ?thesis by (simp add: mult.assoc)
 qed
 
 text{*This proof uses both definitions of differentiability.*}
@@ -373,7 +373,7 @@ qed
 subsubsection {* Equivalence of NS and Standard definitions *}
 
 lemma divideR_eq_divide: "x /\<^sub>R y = x / y"
-by (simp add: divide_inverse mult_commute)
+by (simp add: divide_inverse mult.commute)
 
 text{*Now equivalence between NSDERIV and DERIV*}
 lemma NSDERIV_DERIV_iff: "(NSDERIV f x :> D) = (DERIV f x :> D)"
@@ -403,7 +403,7 @@ by (simp add: NSDERIV_DERIV_iff DERIV_quotient del: power_Suc)
 lemma CARAT_NSDERIV: "NSDERIV f x :> l ==>
       \<exists>g. (\<forall>z. f z - f x = g z * (z-x)) & isNSCont g x & g x = l"
 by (auto simp add: NSDERIV_DERIV_iff isNSCont_isCont_iff CARAT_DERIV
-                   mult_commute)
+                   mult.commute)
 
 lemma hypreal_eq_minus_iff3: "(x = y + z) = (x + -z = (y::hypreal))"
 by auto

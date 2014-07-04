@@ -51,7 +51,7 @@ proof
     assume ab: "a * b = 0"
     hence "0 = inverse a * (a * b) * inverse b" by simp
     also have "\<dots> = (inverse a * a) * (b * inverse b)"
-      by (simp only: mult_assoc)
+      by (simp only: mult.assoc)
     also have "\<dots> = 1" using a b by simp
     finally show False by simp
   qed
@@ -81,7 +81,7 @@ lemma inverse_unique:
 proof -
   have "a \<noteq> 0" using ab by (cases "a = 0") simp_all
   moreover have "inverse a * (a * b) = inverse a" by (simp add: ab)
-  ultimately show ?thesis by (simp add: mult_assoc [symmetric])
+  ultimately show ?thesis by (simp add: mult.assoc [symmetric])
 qed
 
 lemma nonzero_inverse_minus_eq:
@@ -110,7 +110,7 @@ lemma nonzero_inverse_mult_distrib:
   shows "inverse (a * b) = inverse b * inverse a"
 proof -
   have "a * (b * inverse b) * inverse a = 1" using assms by simp
-  hence "a * b * (inverse b * inverse a) = 1" by (simp only: mult_assoc)
+  hence "a * b * (inverse b * inverse a) = 1" by (simp only: mult.assoc)
   thus ?thesis by (rule inverse_unique)
 qed
 
@@ -126,7 +126,7 @@ lemma right_inverse_eq: "b \<noteq> 0 \<Longrightarrow> a / b = 1 \<longleftrigh
 proof
   assume neq: "b \<noteq> 0"
   {
-    hence "a = (a / b) * b" by (simp add: divide_inverse mult_assoc)
+    hence "a = (a / b) * b" by (simp add: divide_inverse mult.assoc)
     also assume "a / b = 1"
     finally show "a = b" by simp
   next
@@ -154,7 +154,7 @@ lemma divide_1 [simp]: "a / 1 = a"
   by (simp add: divide_inverse)
 
 lemma times_divide_eq_right [simp]: "a * (b / c) = (a * b) / c"
-  by (simp add: divide_inverse mult_assoc)
+  by (simp add: divide_inverse mult.assoc)
 
 lemma minus_divide_left: "- (a / b) = (-a) / b"
   by (simp add: divide_inverse)
@@ -175,7 +175,7 @@ lemma nonzero_eq_divide_eq [field_simps]: "c \<noteq> 0 \<Longrightarrow> a = b 
 proof -
   assume [simp]: "c \<noteq> 0"
   have "a = b / c \<longleftrightarrow> a * c = (b / c) * c" by simp
-  also have "... \<longleftrightarrow> a * c = b" by (simp add: divide_inverse mult_assoc)
+  also have "... \<longleftrightarrow> a * c = b" by (simp add: divide_inverse mult.assoc)
   finally show ?thesis .
 qed
 
@@ -183,7 +183,7 @@ lemma nonzero_divide_eq_eq [field_simps]: "c \<noteq> 0 \<Longrightarrow> b / c 
 proof -
   assume [simp]: "c \<noteq> 0"
   have "b / c = a \<longleftrightarrow> (b / c) * c = a * c" by simp
-  also have "... \<longleftrightarrow> b = a * c" by (simp add: divide_inverse mult_assoc) 
+  also have "... \<longleftrightarrow> b = a * c" by (simp add: divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -194,10 +194,10 @@ lemma nonzero_neg_divide_eq_eq2 [field_simps]: "b \<noteq> 0 \<Longrightarrow> c
   using nonzero_neg_divide_eq_eq[of b a c] by auto
 
 lemma divide_eq_imp: "c \<noteq> 0 \<Longrightarrow> b = a * c \<Longrightarrow> b / c = a"
-  by (simp add: divide_inverse mult_assoc)
+  by (simp add: divide_inverse mult.assoc)
 
 lemma eq_divide_imp: "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b / c"
-  by (drule sym) (simp add: divide_inverse mult_assoc)
+  by (drule sym) (simp add: divide_inverse mult.assoc)
 
 lemma add_divide_eq_iff [field_simps]:
   "z \<noteq> 0 \<Longrightarrow> x + y / z = (x * z + y) / z"
@@ -298,7 +298,7 @@ proof
   fix a :: 'a
   assume "a \<noteq> 0"
   thus "inverse a * a = 1" by (rule field_inverse)
-  thus "a * inverse a = 1" by (simp only: mult_commute)
+  thus "a * inverse a = 1" by (simp only: mult.commute)
 next
   fix a b :: 'a
   show "a / b = a * inverse b" by (rule field_divide_inverse)
@@ -325,7 +325,7 @@ qed
 
 lemma nonzero_mult_divide_mult_cancel_right [simp]:
   "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (a * c) / (b * c) = a / b"
-by (simp add: mult_commute [of _ c])
+by (simp add: mult.commute [of _ c])
 
 lemma times_divide_eq_left [simp]: "(b / c) * a = (b * a) / c"
   by (simp add: divide_inverse mult_ac)
@@ -346,7 +346,7 @@ proof -
   also have "\<dots> = (x * z + y * w) / (y * z)"
     by (simp only: add_divide_distrib)
   finally show ?thesis
-    by (simp only: mult_commute)
+    by (simp only: mult.commute)
 qed
 
 text{*Special Cancellation Simprules for Division*}
@@ -406,7 +406,7 @@ qed
 
 lemma inverse_divide [simp]:
   "inverse (a / b) = b / a"
-  by (simp add: divide_inverse mult_commute)
+  by (simp add: divide_inverse mult.commute)
 
 
 text {* Calculations with fractions *}
@@ -433,7 +433,7 @@ lemma divide_divide_eq_right [simp]:
 
 lemma divide_divide_eq_left [simp]:
   "(a / b) / c = a / (b * c)"
-  by (simp add: divide_inverse mult_assoc)
+  by (simp add: divide_inverse mult.assoc)
 
 lemma divide_divide_times_eq:
   "(x / y) / (z / w) = (x * w) / (y * z)"
@@ -538,7 +538,7 @@ proof (rule classical)
     by (simp add: apos invle less_imp_le mult_left_mono)
   hence "(a * inverse a) * b \<le> (a * inverse b) * b"
     by (simp add: bpos less_imp_le mult_right_mono)
-  thus "b \<le> a"  by (simp add: mult_assoc apos bpos less_imp_not_eq2)
+  thus "b \<le> a"  by (simp add: mult.assoc apos bpos less_imp_not_eq2)
 qed
 
 lemma inverse_positive_imp_positive:
@@ -669,7 +669,7 @@ proof -
   hence "(a \<le> b/c) = (a*c \<le> (b/c)*c)"
     by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
   also have "... = (a*c \<le> b)"
-    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
+    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -679,7 +679,7 @@ proof -
   hence "(a \<le> b/c) = ((b/c)*c \<le> a*c)"
     by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
   also have "... = (b \<le> a*c)"
-    by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
+    by (simp add: less_imp_not_eq [OF less] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -689,7 +689,7 @@ proof -
   hence "(a < b/c) = (a*c < (b/c)*c)"
     by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
   also have "... = (a*c < b)"
-    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
+    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -699,7 +699,7 @@ proof -
   hence "(a < b/c) = ((b/c)*c < a*c)"
     by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
   also have "... = (b < a*c)"
-    by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
+    by (simp add: less_imp_not_eq [OF less] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -709,7 +709,7 @@ proof -
   hence "(b/c < a) = ((b/c)*c < a*c)"
     by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
   also have "... = (b < a*c)"
-    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
+    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -719,7 +719,7 @@ proof -
   hence "(b/c < a) = (a*c < (b/c)*c)"
     by (simp add: mult_less_cancel_right_disj less_not_sym [OF less] del: times_divide_eq)
   also have "... = (a*c < b)"
-    by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
+    by (simp add: less_imp_not_eq [OF less] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -729,7 +729,7 @@ proof -
   hence "(b/c \<le> a) = ((b/c)*c \<le> a*c)"
     by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
   also have "... = (b \<le> a*c)"
-    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
+    by (simp add: less_imp_not_eq2 [OF less] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -739,7 +739,7 @@ proof -
   hence "(b/c \<le> a) = (a*c \<le> (b/c)*c)"
     by (simp add: mult_le_cancel_right less_not_sym [OF less] del: times_divide_eq)
   also have "... = (a*c \<le> b)"
-    by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
+    by (simp add: less_imp_not_eq [OF less] divide_inverse mult.assoc) 
   finally show ?thesis .
 qed
 
@@ -1049,7 +1049,7 @@ done
 lemma divide_left_mono_neg: "a <= b 
     ==> c <= 0 ==> 0 < a * b ==> c / a <= c / b"
   apply (drule divide_left_mono [of _ _ "- c"])
-  apply (auto simp add: mult_commute)
+  apply (auto simp add: mult.commute)
 done
 
 lemma inverse_le_iff: "inverse a \<le> inverse b \<longleftrightarrow> (0 < a * b \<longrightarrow> b \<le> a) \<and> (a * b \<le> 0 \<longrightarrow> a \<le> b)"

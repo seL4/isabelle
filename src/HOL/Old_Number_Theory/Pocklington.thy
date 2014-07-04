@@ -120,7 +120,7 @@ qed
 
 lemma cong_mult_rcancel: assumes an: "coprime a n" and axy:"[x*a = y*a] (mod n)"
   shows "[x = y] (mod n)"
-  using cong_mult_lcancel[OF an axy[unfolded mult_commute[of _a]]] .
+  using cong_mult_lcancel[OF an axy[unfolded mult.commute[of _a]]] .
 
 lemma cong_refl: "[x = x] (mod n)" by (simp add: modeq_def)
 
@@ -177,13 +177,13 @@ lemma cong_mult_lcancel_eq: assumes an: "coprime a n"
 proof
   assume H: "?rhs" from cong_mult[OF cong_refl[of a n] H] show ?lhs .
 next
-  assume H: "?lhs" hence H': "[x*a = y*a] (mod n)" by (simp add: mult_commute)
+  assume H: "?lhs" hence H': "[x*a = y*a] (mod n)" by (simp add: mult.commute)
   from cong_mult_rcancel[OF an H'] show ?rhs  .
 qed
 
 lemma cong_mult_rcancel_eq: assumes an: "coprime a n"
   shows "[x * a = y * a] (mod n) \<longleftrightarrow> [x = y] (mod n)"
-using cong_mult_lcancel_eq[OF an, of x y] by (simp add: mult_commute)
+using cong_mult_lcancel_eq[OF an, of x y] by (simp add: mult.commute)
 
 lemma cong_add_lcancel_eq: "[a + x = a + y] (mod n) \<longleftrightarrow> [x = y] (mod n)"
   by (simp add: nat_mod)
@@ -358,7 +358,7 @@ proof-
   also have "\<dots> = m mod a" by (simp add: mod_mult2_eq)
   finally have th1: "[?w = m] (mod a)" by (simp add: modeq_def)
   from xq12(2) have "?w mod b = ((n + q2 * b) mod (a*b)) mod b" by simp
-  also have "\<dots> = ((n + q2 * b) mod (b*a)) mod b" by (simp add: mult_commute)
+  also have "\<dots> = ((n + q2 * b) mod (b*a)) mod b" by (simp add: mult.commute)
   also have "\<dots> = n mod b" by (simp add: mod_mult2_eq)
   finally have th2: "[?w = n] (mod b)" by (simp add: modeq_def)
   {fix y assume H: "y < a*b" "[y = m] (mod a)" "[y = n] (mod b)"
@@ -638,7 +638,7 @@ proof-
       also have "[(\<Prod>i\<in>?S. ?h i) = ?P] (mod n)"
         using eq0 fS an by (simp add: setprod_def modeq_def)
       finally show "[?P*a^ (\<phi> n) = ?P*1] (mod n)"
-        unfolding cardfS mult_commute[of ?P "a^ (card ?S)"]
+        unfolding cardfS mult.commute[of ?P "a^ (card ?S)"]
           nproduct_cmul[OF fS, symmetric] mult_1_right by simp
     qed
     from cong_mult_lcancel[OF nP Paphi] have ?thesis . }
@@ -856,7 +856,7 @@ next
     from H have onz: "?o \<noteq> 0" by (simp add: ord_eq_0)
     hence op: "?o > 0" by simp
     from mod_div_equality[of d "ord n a"] lh
-    have "[a^(?o*?q + ?r) = 1] (mod n)" by (simp add: modeq_def mult_commute)
+    have "[a^(?o*?q + ?r) = 1] (mod n)" by (simp add: modeq_def mult.commute)
     hence "[(a^?o)^?q * (a^?r) = 1] (mod n)"
       by (simp add: modeq_def power_mult[symmetric] power_add[symmetric])
     hence th: "[a^?r = 1] (mod n)"
@@ -964,7 +964,7 @@ proof-
         from H[rule_format, of d] h d have "d = 1" by blast}
       moreover
       {assume h: "e\<^sup>2 \<le> n"
-        from e have "e dvd n" unfolding dvd_def by (simp add: mult_commute)
+        from e have "e dvd n" unfolding dvd_def by (simp add: mult.commute)
         with H[rule_format, of e] h have "e=1" by simp
         with e have "d = n" by simp}
       ultimately have "d=1 \<or> d=n"  by blast}
@@ -1231,7 +1231,7 @@ proof-
     from prime_ge_2[OF p(1)] have p01: "p \<noteq> 0" "p \<noteq> 1" "p =Suc(p - 1)" by arith+
     from div_mult1_eq[of r q p] p(2)
     have eq1: "r* (q div p) = (n - 1) div p"
-      unfolding qrn[symmetric] dvd_eq_mod_eq_0 by (simp add: mult_commute)
+      unfolding qrn[symmetric] dvd_eq_mod_eq_0 by (simp add: mult.commute)
     have ath: "\<And>a (b::nat). a <= b \<Longrightarrow> a \<noteq> 0 ==> 1 <= a \<and> 1 <= b" by arith
     from n0 have n00: "n \<noteq> 0" by arith
     from mod_le[OF n00]
@@ -1246,7 +1246,7 @@ proof-
       with eq0 have "a^ (n - 1) = (n*s)^p"
         by (simp add: power_mult[symmetric])
       hence "1 = (n*s)^(Suc (p - 1)) mod n" using bqn p01 by simp
-      also have "\<dots> = 0" by (simp add: mult_assoc)
+      also have "\<dots> = 0" by (simp add: mult.assoc)
       finally have False by simp }
       then have th11: "a ^ ((n - 1) div p) mod n \<noteq> 0" by auto
     have th1: "[a ^ ((n - 1) div p) mod n = a ^ ((n - 1) div p)] (mod n)"

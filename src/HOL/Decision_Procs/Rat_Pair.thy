@@ -464,7 +464,7 @@ proof -
 qed
 
 lemma Nmul_commute: "isnormNum x \<Longrightarrow> isnormNum y \<Longrightarrow> x *\<^sub>N y = y *\<^sub>N x"
-  by (simp add: Nmul_def split_def Let_def gcd_commute_int mult_commute)
+  by (simp add: Nmul_def split_def Let_def gcd_commute_int mult.commute)
 
 lemma Nmul_assoc:
   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"

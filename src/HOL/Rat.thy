@@ -76,7 +76,7 @@ proof -
     by (simp add: dvd_div_mult_self)
   with `b \<noteq> 0` have "?b \<noteq> 0" by auto
   from `q = Fract a b` `b \<noteq> 0` `?b \<noteq> 0` have q: "q = Fract ?a ?b"
-    by (simp add: eq_rat dvd_div_mult mult_commute [of a])
+    by (simp add: eq_rat dvd_div_mult mult.commute [of a])
   from `b \<noteq> 0` have coprime: "coprime ?a ?b"
     by (auto intro: div_gcd_coprime_int)
   show C proof (cases "b > 0")
@@ -156,7 +156,7 @@ lemma mult_rat_cancel:
 
 lift_definition inverse_rat :: "rat \<Rightarrow> rat"
   is "\<lambda>x. if fst x = 0 then (0, 1) else (snd x, fst x)"
-  by (auto simp add: mult_commute)
+  by (auto simp add: mult.commute)
 
 lemma inverse_rat [simp]: "inverse (Fract a b) = Fract b a"
   by transfer simp
@@ -254,7 +254,7 @@ next
   moreover have "b div gcd a b * gcd a b = b"
     by (rule dvd_div_mult_self) simp
   ultimately have "b div gcd a b \<noteq> 0" by auto
-  with False show ?thesis by (simp add: eq_rat dvd_div_mult mult_commute [of a])
+  with False show ?thesis by (simp add: eq_rat dvd_div_mult mult.commute [of a])
 qed
 
 definition normalize :: "int \<times> int \<Rightarrow> int \<times> int" where
@@ -274,7 +274,7 @@ proof -
     with assms show "p * s = q * r" by (auto simp add: mult_ac sgn_times sgn_0_0)
   qed
   from assms show ?thesis
-    by (auto simp add: normalize_def Let_def dvd_div_div_eq_mult mult_commute sgn_times split: if_splits intro: aux)
+    by (auto simp add: normalize_def Let_def dvd_div_div_eq_mult mult.commute sgn_times split: if_splits intro: aux)
 qed
 
 lemma normalize_eq: "normalize (a, b) = (p, q) \<Longrightarrow> Fract p q = Fract a b"

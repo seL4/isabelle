@@ -114,12 +114,12 @@ next
     assume "m \<le> n"
     with `0 < m` have "m dvd fact n" by (rule Suc)
     then have "m dvd (fact n * Suc n)" by (rule dvd_mult2)
-    then show ?thesis by (simp add: mult_commute)
+    then show ?thesis by (simp add: mult.commute)
   next
     assume "m = Suc n"
     then have "m dvd (fact n * Suc n)"
       by (auto intro: dvdI simp: mult_ac)
-    then show ?thesis by (simp add: mult_commute)
+    then show ?thesis by (simp add: mult.commute)
   qed
 qed
 

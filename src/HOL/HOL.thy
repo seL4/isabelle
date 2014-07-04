@@ -977,10 +977,10 @@ lemma conj_left_absorb: "(A & (A & B)) = (A & B)"
   by blast
 
 lemma eq_ac:
-  shows eq_commute: "(a=b) = (b=a)"
-    and eq_left_commute: "(P=(Q=R)) = (Q=(P=R))"
-    and eq_assoc: "((P=Q)=R) = (P=(Q=R))" by (iprover, blast+)
-lemma neq_commute: "(a~=b) = (b~=a)" by iprover
+  shows eq_commute: "a = b \<longleftrightarrow> b = a"
+    and iff_left_commute: "(P \<longleftrightarrow> (Q \<longleftrightarrow> R)) \<longleftrightarrow> (Q \<longleftrightarrow> (P \<longleftrightarrow> R))"
+    and iff_assoc: "((P \<longleftrightarrow> Q) \<longleftrightarrow> R) \<longleftrightarrow> (P \<longleftrightarrow> (Q \<longleftrightarrow> R))" by (iprover, blast+)
+lemma neq_commute: "a \<noteq> b \<longleftrightarrow> b \<noteq> a" by iprover
 
 lemma conj_comms:
   shows conj_commute: "(P&Q) = (Q&P)"

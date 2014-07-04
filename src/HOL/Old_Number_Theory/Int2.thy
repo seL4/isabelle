@@ -269,7 +269,7 @@ lemma aux___2: "[|2 < p; zprime p; ~([k = 0](mod p));
 
 lemma aux___3: "[j * k = a] (mod p) ==> [(MultInv p j) * j * k =
      (MultInv p j) * a] (mod p)"
-  by (auto simp add: mult_assoc zcong_scalar2)
+  by (auto simp add: mult.assoc zcong_scalar2)
 
 lemma aux___4: "[|2 < p; zprime p; ~([j = 0](mod p));
     [(MultInv p j) * j * k = (MultInv p j) * a] (mod p) |]

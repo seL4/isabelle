@@ -865,7 +865,7 @@ proof -
     proof (subst nn_integral_FTC_atLeast)
       have "((\<lambda>a. - (exp (- (a\<^sup>2 * (1 + s\<^sup>2))) / (2 + 2 * s\<^sup>2))) ---> (- (0 / (2 + 2 * s\<^sup>2)))) at_top"
         apply (intro tendsto_intros filterlim_compose[OF exp_at_bot] filterlim_compose[OF filterlim_uminus_at_bot_at_top])
-        apply (subst mult_commute)         
+        apply (subst mult.commute)         
         apply (auto intro!: filterlim_tendsto_pos_mult_at_top
                             filterlim_at_top_mult_at_top[OF filterlim_ident filterlim_ident] 
                     simp: add_pos_nonneg  power2_eq_square add_nonneg_eq_0_iff)

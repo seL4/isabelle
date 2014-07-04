@@ -106,7 +106,7 @@ lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
   apply (case_tac m)
    apply simp 
   apply (simp add: fib_add)
-  apply (simp add: add_commute gcd_non_0 [OF fib_Suc_gr_0])
+  apply (simp add: add.commute gcd_non_0 [OF fib_Suc_gr_0])
   apply (simp add: gcd_non_0 [OF fib_Suc_gr_0, symmetric])
   apply (simp add: gcd_fib_Suc_eq_1 gcd_mult_cancel)
   done

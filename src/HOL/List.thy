@@ -3846,7 +3846,7 @@ text{* Courtesy of Matthias Daum: *}
 lemma append_replicate_commute:
   "replicate n x @ replicate k x = replicate k x @ replicate n x"
 apply (simp add: replicate_add [THEN sym])
-apply (simp add: add_commute)
+apply (simp add: add.commute)
 done
 
 text{* Courtesy of Andreas Lochbihler: *}
@@ -4192,14 +4192,14 @@ done
 lemma sublist_shift_lemma:
      "map fst [p<-zip xs [i..<i + length xs] . snd p : A] =
       map fst [p<-zip xs [0..<length xs] . snd p + i : A]"
-by (induct xs rule: rev_induct) (simp_all add: add_commute)
+by (induct xs rule: rev_induct) (simp_all add: add.commute)
 
 lemma sublist_append:
      "sublist (l @ l') A = sublist l A @ sublist l' {j. j + length l : A}"
 apply (unfold sublist_def)
 apply (induct l' rule: rev_induct, simp)
 apply (simp add: upt_add_eq_append[of 0] sublist_shift_lemma)
-apply (simp add: add_commute)
+apply (simp add: add.commute)
 done
 
 lemma sublist_Cons:

@@ -254,8 +254,8 @@ lemma numeral_code [code]:
 lemma one_plus_numeral_commute: "1 + numeral x = numeral x + 1"
   apply (induct x)
   apply simp
-  apply (simp add: add_assoc [symmetric], simp add: add_assoc)
-  apply (simp add: add_assoc [symmetric], simp add: add_assoc)
+  apply (simp add: add.assoc [symmetric], simp add: add.assoc)
+  apply (simp add: add.assoc [symmetric], simp add: add.assoc)
   done
 
 lemma numeral_inc: "numeral (inc x) = numeral x + 1"
@@ -264,7 +264,7 @@ proof (induct x)
   have "numeral x + (1 + numeral x) + 1 = numeral x + (numeral x + 1) + 1"
     by (simp only: one_plus_numeral_commute)
   with Bit1 show ?case
-    by (simp add: add_assoc)
+    by (simp add: add.assoc)
 qed simp_all
 
 declare numeral.simps [simp del]
@@ -350,7 +350,7 @@ begin
 
 lemma numeral_add: "numeral (m + n) = numeral m + numeral n"
   by (induct n rule: num_induct)
-     (simp_all only: numeral_One add_One add_inc numeral_inc add_assoc)
+     (simp_all only: numeral_One add_One add_inc numeral_inc add.assoc)
 
 lemma numeral_plus_numeral: "numeral m + numeral n = numeral (m + n)"
   by (rule numeral_add [symmetric])
@@ -397,20 +397,20 @@ lemma is_num_add_commute:
   apply simp
   apply (rule_tac a=x in add_left_imp_eq)
   apply (rule_tac a=x in add_right_imp_eq)
-  apply (simp add: add_assoc)
-  apply (simp add: add_assoc [symmetric], simp add: add_assoc)
+  apply (simp add: add.assoc)
+  apply (simp add: add.assoc [symmetric], simp add: add.assoc)
   apply (rule_tac a=x in add_left_imp_eq)
   apply (rule_tac a=x in add_right_imp_eq)
-  apply (simp add: add_assoc)
-  apply (simp add: add_assoc, simp add: add_assoc [symmetric])
+  apply (simp add: add.assoc)
+  apply (simp add: add.assoc, simp add: add.assoc [symmetric])
   done
 
 lemma is_num_add_left_commute:
   "\<lbrakk>is_num x; is_num y\<rbrakk> \<Longrightarrow> x + (y + z) = y + (x + z)"
-  by (simp only: add_assoc [symmetric] is_num_add_commute)
+  by (simp only: add.assoc [symmetric] is_num_add_commute)
 
 lemmas is_num_normalize =
-  add_assoc is_num_add_commute is_num_add_left_commute
+  add.assoc is_num_add_commute is_num_add_left_commute
   is_num.intros is_num_numeral
   minus_add
 
@@ -1172,7 +1172,7 @@ lemmas more_arith_simps =
   minus_zero left_minus right_minus
   mult_1_left mult_1_right
   mult_minus_left mult_minus_right
-  minus_add_distrib minus_minus mult_assoc
+  minus_add_distrib minus_minus mult.assoc
 
 lemmas of_nat_simps =
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
@@ -1225,20 +1225,20 @@ subsubsection {* Simplification of arithmetic when nested to the right. *}
 
 lemma add_numeral_left [simp]:
   "numeral v + (numeral w + z) = (numeral(v + w) + z)"
-  by (simp_all add: add_assoc [symmetric])
+  by (simp_all add: add.assoc [symmetric])
 
 lemma add_neg_numeral_left [simp]:
   "numeral v + (- numeral w + y) = (sub v w + y)"
   "- numeral v + (numeral w + y) = (sub w v + y)"
   "- numeral v + (- numeral w + y) = (- numeral(v + w) + y)"
-  by (simp_all add: add_assoc [symmetric])
+  by (simp_all add: add.assoc [symmetric])
 
 lemma mult_numeral_left [simp]:
   "numeral v * (numeral w * z) = (numeral(v * w) * z :: 'a::semiring_numeral)"
   "- numeral v * (numeral w * y) = (- numeral(v * w) * y :: 'b::ring_1)"
   "numeral v * (- numeral w * y) = (- numeral(v * w) * y :: 'b::ring_1)"
   "- numeral v * (- numeral w * y) = (numeral(v * w) * y :: 'b::ring_1)"
-  by (simp_all add: mult_assoc [symmetric])
+  by (simp_all add: mult.assoc [symmetric])
 
 hide_const (open) One Bit0 Bit1 BitM inc pow sqr sub dbl dbl_inc dbl_dec
 

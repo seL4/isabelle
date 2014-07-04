@@ -31,14 +31,14 @@ text{*
 @{thm[display] add_2_eq_Suc'[no_vars]}
 \rulename{add_2_eq_Suc'}
 
-@{thm[display] add_assoc[no_vars]}
-\rulename{add_assoc}
+@{thm[display] add.assoc[no_vars]}
+\rulename{add.assoc}
 
-@{thm[display] add_commute[no_vars]}
-\rulename{add_commute}
+@{thm[display] add.commute[no_vars]}
+\rulename{add.commute}
 
-@{thm[display] add_left_commute[no_vars]}
-\rulename{add_left_commute}
+@{thm[display] add.left_commute[no_vars]}
+\rulename{add.left_commute}
 
 these form add_ac; similarly there is mult_ac
 *}

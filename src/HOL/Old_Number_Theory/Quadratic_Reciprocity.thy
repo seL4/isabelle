@@ -22,7 +22,7 @@ proof -
   from finite_A have "a * setsum id A = setsum (%x. a * x) A"
     by (auto simp add: setsum_const_mult id_def)
   also have "setsum (%x. a * x) = setsum (%x. x * a)"
-    by (auto simp add: mult_commute)
+    by (auto simp add: mult.commute)
   also have "setsum (%x. x * a) A = setsum id B"
     by (simp add: B_def setsum.reindex [OF inj_on_xa_A])
   also have "... = setsum (%x. p * (x div p) + StandardRes p x) B"

@@ -614,7 +614,7 @@ proof -
     using f by (intro simple_function_partition) auto
   also have "\<dots> = c * integral\<^sup>S M f"
     using f unfolding simple_integral_def
-    by (subst setsum_ereal_right_distrib) (auto simp: emeasure_nonneg mult_assoc Int_def conj_commute)
+    by (subst setsum_ereal_right_distrib) (auto simp: emeasure_nonneg mult.assoc Int_def conj_commute)
   finally show ?thesis .
 qed
 
@@ -1129,7 +1129,7 @@ qed
 lemma nn_integral_multc:
   assumes "f \<in> borel_measurable M" "0 \<le> c"
   shows "(\<integral>\<^sup>+ x. f x * c \<partial>M) = integral\<^sup>N M f * c"
-  unfolding mult_commute[of _ c] nn_integral_cmult[OF assms] by simp
+  unfolding mult.commute[of _ c] nn_integral_cmult[OF assms] by simp
 
 lemma nn_integral_indicator[simp]:
   "A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+ x. indicator A x\<partial>M) = (emeasure M) A"

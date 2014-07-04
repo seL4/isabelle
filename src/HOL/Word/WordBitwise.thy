@@ -306,7 +306,7 @@ next
 
   show ?case
     using Cons
-    apply (simp add: trans [OF of_bl_append add_commute]
+    apply (simp add: trans [OF of_bl_append add.commute]
                      rbl_mul_simps rbl_word_plus'
                      Cons.hyps distrib_right mult_bit
                      shiftl rbl_shiftl)

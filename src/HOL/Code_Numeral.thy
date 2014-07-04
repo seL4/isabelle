@@ -494,7 +494,7 @@ proof -
     show "k = integer_of_int (int_of_integer k)" by simp
   qed
   moreover have "2 * (j div 2) = j - j mod 2"
-    by (simp add: zmult_div_cancel mult_commute)
+    by (simp add: zmult_div_cancel mult.commute)
   ultimately show ?thesis
     by (auto simp add: split_def Let_def mod_integer_def nat_of_integer_def not_le
       nat_add_distrib [symmetric] Suc_nat_eq_nat_zadd1)

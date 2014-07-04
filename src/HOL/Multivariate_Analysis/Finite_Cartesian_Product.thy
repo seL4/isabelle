@@ -95,10 +95,10 @@ lemma vector_uminus_component [simp]: "(- x)$i = - (x$i)"
   unfolding uminus_vec_def by simp
 
 instance vec :: (semigroup_add, finite) semigroup_add
-  by default (simp add: vec_eq_iff add_assoc)
+  by default (simp add: vec_eq_iff add.assoc)
 
 instance vec :: (ab_semigroup_add, finite) ab_semigroup_add
-  by default (simp add: vec_eq_iff add_commute)
+  by default (simp add: vec_eq_iff add.commute)
 
 instance vec :: (monoid_add, finite) monoid_add
   by default (simp_all add: vec_eq_iff)

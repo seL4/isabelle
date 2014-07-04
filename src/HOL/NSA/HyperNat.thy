@@ -124,7 +124,7 @@ apply (insert add_le_less_mono [OF _ zero_less_one, of 0], auto)
 done
 
 lemma hypnat_add_self_not_less: "~ (x + y < (x::hypnat))"
-by (simp add: linorder_not_le [symmetric] add_commute [of x]) 
+by (simp add: linorder_not_le [symmetric] add.commute [of x]) 
 
 lemma hypnat_diff_split:
     "P(a - b::hypnat) = ((a<b --> P 0) & (ALL d. a = b + d --> P d))"
@@ -164,9 +164,9 @@ by transfer simp
 lemma of_nat_eq_add [rule_format]:
      "\<forall>d::hypnat. of_nat m = of_nat n + d --> d \<in> range of_nat"
 apply (induct n) 
-apply (auto simp add: add_assoc) 
+apply (auto simp add: add.assoc) 
 apply (case_tac x) 
-apply (auto simp add: add_commute [of 1]) 
+apply (auto simp add: add.commute [of 1]) 
 done
 
 lemma Nats_diff [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> (a-b :: hypnat) \<in> Nats"

@@ -558,7 +558,7 @@ lemma differentiable_scaleR [simp, derivative_intros]:
 lemma has_derivative_imp_has_field_derivative:
   "(f has_derivative D) F \<Longrightarrow> (\<And>x. x * D' = D x) \<Longrightarrow> (f has_field_derivative D') F"
   unfolding has_field_derivative_def 
-  by (rule has_derivative_eq_rhs[of f D]) (simp_all add: fun_eq_iff mult_commute)
+  by (rule has_derivative_eq_rhs[of f D]) (simp_all add: fun_eq_iff mult.commute)
 
 lemma has_field_derivative_imp_has_derivative: "(f has_field_derivative D) F \<Longrightarrow> (f has_derivative op * D) F"
   by (simp add: has_field_derivative_def)
@@ -587,7 +587,7 @@ proof safe
   then obtain f' where *: "(f has_derivative f') (at x within s)"
     unfolding differentiable_def by auto
   then obtain c where "f' = (op * c)"
-    by (metis real_bounded_linear has_derivative_bounded_linear mult_commute fun_eq_iff)
+    by (metis real_bounded_linear has_derivative_bounded_linear mult.commute fun_eq_iff)
   with * show "\<exists>D. (f has_real_derivative D) (at x within s)"
     unfolding has_field_derivative_def by auto
 qed (auto simp: differentiable_def has_field_derivative_def)
@@ -610,7 +610,7 @@ lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) -
   done
 
 lemma mult_commute_abs: "(\<lambda>x. x * c) = op * (c::'a::ab_semigroup_mult)"
-  by (simp add: fun_eq_iff mult_commute)
+  by (simp add: fun_eq_iff mult.commute)
 
 subsection {* Derivatives *}
 
@@ -732,7 +732,7 @@ lemma DERIV_quotient:
   "(f has_field_derivative d) (at x within s) \<Longrightarrow>
   (g has_field_derivative e) (at x within s)\<Longrightarrow> g x \<noteq> 0 \<Longrightarrow> 
   ((\<lambda>y. f y / g y) has_field_derivative (d * g x - (e * f x)) / (g x ^ Suc (Suc 0))) (at x within s)"
-  by (drule (2) DERIV_divide) (simp add: mult_commute)
+  by (drule (2) DERIV_divide) (simp add: mult.commute)
 
 lemma DERIV_power_Suc:
   "(f has_field_derivative D) (at x within s) \<Longrightarrow>
@@ -765,7 +765,7 @@ text {* Standard version *}
 lemma DERIV_chain:
   "DERIV f (g x) :> Da \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow> 
   (f o g has_field_derivative Da * Db) (at x within s)"
-  by (drule (1) DERIV_chain', simp add: o_def mult_commute)
+  by (drule (1) DERIV_chain', simp add: o_def mult.commute)
 
 lemma DERIV_image_chain: 
   "(f has_field_derivative Da) (at (g x) within (g ` s)) \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow>
@@ -779,7 +779,7 @@ lemma DERIV_chain_s:
       and "DERIV f x :> f'" 
       and "f x \<in> s"
     shows "DERIV (\<lambda>x. g(f x)) x :> f' * g'(f x)"
-  by (metis (full_types) DERIV_chain' mult_commute assms)
+  by (metis (full_types) DERIV_chain' mult.commute assms)
 
 lemma DERIV_chain3: (*HAS_COMPLEX_DERIVATIVE_CHAIN_UNIV*)
   assumes "(\<And>x. DERIV g x :> g'(x))"
@@ -800,7 +800,7 @@ apply (rule iffI)
 apply (drule_tac k="- a" in LIM_offset)
 apply simp
 apply (drule_tac k="a" in LIM_offset)
-apply (simp add: add_commute)
+apply (simp add: add.commute)
 done
 
 lemma DERIV_iff2: "(DERIV f x :> D) \<longleftrightarrow> (\<lambda>z. (f z - f x) / (z - x)) --x --> D"
@@ -1215,7 +1215,7 @@ lemma DERIV_const_ratio_const2:
   fixes f :: "real => real"
   shows "[|a \<noteq> b; \<forall>x. DERIV f x :> k |] ==> (f(b) - f(a))/(b-a) = k"
 apply (rule_tac c1 = "b-a" in mult_right_cancel [THEN iffD1])
-apply (auto dest!: DERIV_const_ratio_const simp add: mult_assoc)
+apply (auto dest!: DERIV_const_ratio_const simp add: mult.assoc)
 done
 
 lemma real_average_minus_first [simp]: "((a + b) /2 - a) = (b-a)/(2::real)"
@@ -1248,7 +1248,7 @@ next
   hence "(b-a) * ((v b - v a) / (b-a)) = (b-a) * k" by simp
   moreover have " (v ((b + a) / 2) - v a) / ((b + a) / 2 - a) = k"
     by (rule DERIV_const_ratio_const2 [OF _ der], simp add: neq)
-  ultimately show ?thesis using neq by (force simp add: add_commute)
+  ultimately show ?thesis using neq by (force simp add: add.commute)
 qed
 
 (* A function with positive derivative is increasing. 

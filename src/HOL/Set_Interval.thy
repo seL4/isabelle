@@ -1480,7 +1480,7 @@ by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
 lemma setsum_nat_group: "(\<Sum>m<n::nat. setsum f {m * k ..< m*k + k}) = setsum f {..< n * k}"
   apply (subgoal_tac "k = 0 | 0 < k", auto)
   apply (induct "n")
-  apply (simp_all add: setsum_add_nat_ivl add_commute atLeast0LessThan[symmetric])
+  apply (simp_all add: setsum_add_nat_ivl add.commute atLeast0LessThan[symmetric])
   done
 
 subsection{* Shifting bounds *}
@@ -1524,14 +1524,14 @@ next
     by (rule IH)
   also have "f 0 + (\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) =
              f 0 + ((\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)))"
-    by (rule add_assoc)
+    by (rule add.assoc)
   also have "(\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) = (\<Sum>i\<le>Suc n. f (Suc i))"
     by (rule setsum_atMost_Suc [symmetric])
   finally show ?case .
 qed
 
 lemma setsum_last_plus: fixes n::nat shows "m <= n \<Longrightarrow> (\<Sum>i = m..n. f i) = f n + (\<Sum>i = m..<n. f i)"
-  by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost add_commute)
+  by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost add.commute)
 
 lemma setsum_Suc_diff:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
@@ -1608,7 +1608,7 @@ proof cases
   also from ngt1
   have "2*?n*a + d*2*(\<Sum>i\<in>{1..n - 1}. ?I i) = (2*?n*a + d*?I (n - 1)*?I n)"
     by (simp only: mult_ac gauss_sum [of "n - 1"], unfold One_nat_def)
-       (simp add:  mult_ac trans [OF add_commute of_nat_Suc [symmetric]])
+       (simp add:  mult_ac trans [OF add.commute of_nat_Suc [symmetric]])
   finally show ?thesis
     unfolding mult_2 by (simp add: algebra_simps)
 next

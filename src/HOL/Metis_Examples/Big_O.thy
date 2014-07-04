@@ -309,7 +309,7 @@ apply (rule allI)
 apply (erule_tac x = x in allE)+
 apply (subgoal_tac "c * ca * abs (f x * g x) = (c * abs(f x)) * (ca * abs (g x))")
  apply (metis (no_types) abs_ge_zero abs_mult mult_mono')
-by (metis mult_assoc mult_left_commute abs_of_pos mult_left_commute abs_mult)
+by (metis mult.assoc mult.left_commute abs_of_pos mult.left_commute abs_mult)
 
 lemma bigo_mult2 [intro]: "f *o O(g) <= O(f * g)"
 by (metis bigo_mult bigo_refl set_times_mono3 subset_trans)
@@ -421,7 +421,7 @@ by (rule bigo_elt_subset, rule bigo_const_mult1)
 
 lemma bigo_const_mult3: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow> f : O(\<lambda>x. c * f x)"
 apply (simp add: bigo_def)
-by (metis (no_types) abs_mult mult_assoc mult_1 order_refl left_inverse)
+by (metis (no_types) abs_mult mult.assoc mult_1 order_refl left_inverse)
 
 lemma bigo_const_mult4:
 "(c\<Colon>'a\<Colon>linordered_field) \<noteq> 0 \<Longrightarrow> O(f) \<le> O(\<lambda>x. c * f x)"
@@ -444,7 +444,7 @@ lemma bigo_const_mult5 [simp]: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Lon
   apply (rule_tac [2] ext)
    prefer 2
    apply simp
-  apply (simp add: mult_assoc [symmetric] abs_mult)
+  apply (simp add: mult.assoc [symmetric] abs_mult)
   (* couldn't get this proof without the step above *)
 proof -
   fix g :: "'b \<Rightarrow> 'a" and d :: 'a
@@ -530,7 +530,7 @@ apply (rule bigo_setsum1)
  apply (rule abs_ge_zero)
 apply (unfold bigo_def)
 apply (auto simp add: abs_mult)
-by (metis abs_ge_zero mult_left_commute mult_left_mono)
+by (metis abs_ge_zero mult.left_commute mult_left_mono)
 
 lemma bigo_setsum4: "f =o g +o O(h) \<Longrightarrow>
     (\<lambda>x. SUM y : A x. l x y * f(k x y)) =o
@@ -710,6 +710,6 @@ by (auto simp add: func_plus fun_diff_def algebra_simps
 lemma bigo_lesso5: "f <o g =o O(h) \<Longrightarrow> \<exists>C. \<forall>x. f x <= g x + C * abs (h x)"
 apply (simp only: lesso_def bigo_alt_def)
 apply clarsimp
-by (metis add_commute diff_le_eq)
+by (metis add.commute diff_le_eq)
 
 end

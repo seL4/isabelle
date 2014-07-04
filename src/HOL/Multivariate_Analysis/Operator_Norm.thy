@@ -48,7 +48,7 @@ proof -
     using f.nonneg_bounded by auto
   then have "\<forall>x. norm (f x) / norm x \<le> b"
     by (clarify, case_tac "x = 0",
-      simp_all add: f.zero pos_divide_le_eq mult_commute)
+      simp_all add: f.zero pos_divide_le_eq mult.commute)
   then have "bdd_above (range (\<lambda>x. norm (f x) / norm x))"
     unfolding bdd_above_def by fast
   with UNIV_I show ?thesis
@@ -110,7 +110,7 @@ next
   also have "onorm f * norm (g x) \<le> onorm f * (onorm g * norm x)"
     by (rule mult_left_mono [OF onorm [OF g] onorm_pos_le [OF f]])
   finally show "norm ((f \<circ> g) x) \<le> onorm f * onorm g * norm x"
-    by (simp add: mult_assoc)
+    by (simp add: mult.assoc)
 qed
 
 lemma onorm_scaleR_lemma:
@@ -124,7 +124,7 @@ next
   have "\<bar>r\<bar> * norm (f x) \<le> \<bar>r\<bar> * (onorm f * norm x)"
     by (intro mult_left_mono onorm abs_ge_zero f)
   then show "norm (r *\<^sub>R f x) \<le> \<bar>r\<bar> * onorm f * norm x"
-    by (simp only: norm_scaleR mult_assoc)
+    by (simp only: norm_scaleR mult.assoc)
 qed
 
 lemma onorm_scaleR:
@@ -142,7 +142,7 @@ proof (cases "r = 0")
     then have "onorm (\<lambda>x. inverse r *\<^sub>R r *\<^sub>R f x) \<le> \<bar>inverse r\<bar> * onorm (\<lambda>x. r *\<^sub>R f x)"
       by (rule onorm_scaleR_lemma)
     with `r \<noteq> 0` show "\<bar>r\<bar> * onorm f \<le> onorm (\<lambda>x. r *\<^sub>R f x)"
-      by (simp add: inverse_eq_divide pos_le_divide_eq mult_commute)
+      by (simp add: inverse_eq_divide pos_le_divide_eq mult.commute)
   qed
 qed (simp add: onorm_zero)
 

@@ -844,7 +844,7 @@ proof -
     hence "1 \<le> real m * inverse ?S" using assms False powr_realpow[of 2 "nat (-e)"]
       by (auto simp: powr_minus)
     hence "1 * ?S \<le> real m * inverse ?S * ?S" by (rule mult_right_mono, auto)
-    hence "?S \<le> real m" unfolding mult_assoc by auto
+    hence "?S \<le> real m" unfolding mult.assoc by auto
     hence "?S \<le> m" unfolding real_of_int_le_iff[symmetric] by auto
     from this bitlen_bounds[OF `0 < m`, THEN conjunct2]
     have "nat (-e) < (nat (bitlen m))" unfolding power_strict_increasing_iff[OF `1 < 2`, symmetric] by (rule order_le_less_trans)

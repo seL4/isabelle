@@ -137,7 +137,7 @@ apply (rule_tac ?s1.0 = "Norm (hp1, (os1, lvars1, C, S,
 apply (simp only: append_assoc)
 apply (erule thin_rl, erule thin_rl)
 apply (drule_tac x="pre @ instrs0" in spec)
-apply (simp add: add_assoc)
+apply (simp add: add.assoc)
 done
 
 lemma progression_refl: 
@@ -196,7 +196,7 @@ apply blast
 apply simp
 apply (erule thin_rl, erule thin_rl)
 apply (drule_tac x="pre @ instr # instrs0" in spec)
-apply (simp add: add_assoc)
+apply (simp add: add.assoc)
 done
 
 

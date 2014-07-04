@@ -428,7 +428,7 @@ lemma split0:
   apply (simp add: Let_def split_def field_simps)
   apply (simp add: Let_def split_def field_simps)
   apply (simp add: Let_def split_def field_simps)
-  apply (simp add: Let_def split_def mult_assoc distrib_left[symmetric])
+  apply (simp add: Let_def split_def mult.assoc distrib_left[symmetric])
   apply (simp add: Let_def split_def field_simps)
   apply (simp add: Let_def split_def field_simps)
   done
@@ -1686,7 +1686,7 @@ next
       assume xz: "x < -?e / ?c"
       then have "?c * x < - ?e"
         using pos_less_divide_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
@@ -1701,7 +1701,7 @@ next
       assume xz: "x < -?e / ?c"
       then have "?c * x > - ?e"
         using neg_less_divide_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
@@ -1734,7 +1734,7 @@ next
       assume xz: "x < -?e / ?c"
       then have "?c * x < - ?e"
         using pos_less_divide_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
@@ -1749,7 +1749,7 @@ next
       assume xz: "x < -?e / ?c"
       then have "?c * x > - ?e"
         using neg_less_divide_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
@@ -1783,7 +1783,7 @@ next
       assume xz: "x < -?e / ?c"
       then have "?c * x < - ?e"
         using pos_less_divide_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e < 0" by simp
       then have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
         using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto
@@ -1797,7 +1797,7 @@ next
       assume xz: "x < -?e / ?c"
       then have "?c * x > - ?e"
         using neg_less_divide_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
@@ -1830,7 +1830,7 @@ next
       assume xz: "x < -?e / ?c"
       then have "?c * x < - ?e"
         using pos_less_divide_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
@@ -1846,7 +1846,7 @@ next
       assume xz: "x < -?e / ?c"
       then have "?c * x > - ?e"
         using neg_less_divide_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
@@ -1899,7 +1899,7 @@ next
       assume xz: "x > -?e / ?c"
       then have "?c * x > - ?e"
         using pos_divide_less_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Eq (CNP 0 c e)))"
@@ -1914,7 +1914,7 @@ next
       assume xz: "x > -?e / ?c"
       then have "?c * x < - ?e"
         using neg_divide_less_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e < 0" by simp
       then have "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Eq (CNP 0 c e)))"
         using tmbound0_I[OF nbe, where b="y" and b'="x"] eqs by auto
@@ -1944,7 +1944,7 @@ next
       assume xz: "x > -?e / ?c"
       then have "?c * x > - ?e"
         using pos_divide_less_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (NEq (CNP 0 c e)))"
@@ -1959,7 +1959,7 @@ next
       assume xz: "x > -?e / ?c"
       then have "?c * x < - ?e"
         using neg_divide_less_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then have "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (NEq (CNP 0 c e)))"
@@ -1992,7 +1992,7 @@ next
       assume xz: "x > -?e / ?c"
       then have "?c * x > - ?e"
         using pos_divide_less_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Lt (CNP 0 c e)))"
@@ -2007,7 +2007,7 @@ next
       assume xz: "x > -?e / ?c"
       then have "?c * x < - ?e"
         using neg_divide_less_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then have "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Lt (CNP 0 c e)))"
@@ -2040,7 +2040,7 @@ next
       assume xz: "x > -?e / ?c"
       then have "?c * x > - ?e"
         using pos_divide_less_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e > 0"
         by simp
       then have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Le (CNP 0 c e)))"
@@ -2055,7 +2055,7 @@ next
       assume xz: "x > -?e / ?c"
       then have "?c * x < - ?e"
         using neg_divide_less_eq[OF cp, where a="x" and b="-?e"]
-        by (simp add: mult_commute)
+        by (simp add: mult.commute)
       then have "?c * x + ?e < 0"
         by simp
       then have "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Le (CNP 0 c e)))"
@@ -2144,7 +2144,7 @@ proof -
       (Ipoly vs c > 0 \<and> Ipoly vs c * x \<ge> - Itm vs (x#bs) s)" by blast
   then have "x \<ge> (- Itm vs (x#bs) s) / Ipoly vs c"
     using divide_le_eq[of "- Itm vs (x#bs) s" "Ipoly vs c" x]
-    by (auto simp add: mult_commute)
+    by (auto simp add: mult.commute)
   then show ?thesis
     using csU by auto
 qed
@@ -2188,7 +2188,7 @@ proof-
     by blast
   then have "x \<le> (- Itm vs (x#bs) s) / Ipoly vs c"
     using le_divide_eq[of x "- Itm vs (x#bs) s" "Ipoly vs c"]
-    by (auto simp add: mult_commute)
+    by (auto simp add: mult.commute)
   then show ?thesis
     using csU by auto
 qed
@@ -3811,7 +3811,7 @@ proof -
       from msubst2[OF lp nn nn'(1), of x bs ] H(3) nn'
       have "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and>
           Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p"
-        by (simp add: add_divide_distrib diff_divide_distrib mult_minus2_left mult_commute)
+        by (simp add: add_divide_distrib diff_divide_distrib mult_minus2_left mult.commute)
     }
     moreover
     {
@@ -3828,7 +3828,7 @@ proof -
         using H(3,4) by (simp_all add: polymul_norm n2)
       from msubst2[OF lp nn, of x bs ] H(3,4,5)
       have "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))"
-        by (simp add: diff_divide_distrib add_divide_distrib mult_minus2_left mult_commute)
+        by (simp add: diff_divide_distrib add_divide_distrib mult_minus2_left mult.commute)
     }
     ultimately show ?thesis by blast
   qed

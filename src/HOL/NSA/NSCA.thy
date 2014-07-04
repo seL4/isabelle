@@ -137,7 +137,7 @@ by (auto_tac (claset(),simpset() addsimps [Infinitesimal_hcmod_iff]));
 lemma approx_SComplex_mult_cancel_zero:
      "[| a \<in> SComplex; a \<noteq> 0; a*x @= 0 |] ==> x @= 0"
 apply (drule Standard_inverse [THEN Standard_subset_HFinite [THEN subsetD]])
-apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
+apply (auto dest: approx_mult2 simp add: mult.assoc [symmetric])
 done
 
 lemma approx_mult_SComplex1: "[| a \<in> SComplex; x @= 0 |] ==> x*a @= 0"
@@ -153,7 +153,7 @@ by (blast intro: approx_SComplex_mult_cancel_zero approx_mult_SComplex2)
 lemma approx_SComplex_mult_cancel:
      "[| a \<in> SComplex; a \<noteq> 0; a* w @= a*z |] ==> w @= z"
 apply (drule Standard_inverse [THEN Standard_subset_HFinite [THEN subsetD]])
-apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
+apply (auto dest: approx_mult2 simp add: mult.assoc [symmetric])
 done
 
 lemma approx_SComplex_mult_cancel_iff1 [simp]:

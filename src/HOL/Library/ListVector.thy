@@ -94,7 +94,7 @@ apply(case_tac ys)
 apply(simp)
 apply(case_tac zs)
  apply(simp)
-apply(simp add: add_assoc)
+apply(simp add: add.assoc)
 done
 
 subsection "Inner product"
@@ -146,7 +146,7 @@ apply(induct xs arbitrary: ys)
 apply simp
 apply(case_tac ys)
 apply (simp)
-apply (simp add: distrib_left mult_assoc)
+apply (simp add: distrib_left mult.assoc)
 done
 
 end

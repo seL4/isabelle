@@ -88,7 +88,7 @@ text {* Expanding on the previous lemma and lemma @{text "div_sum"}. *}
 lemma three_divs_1:
   fixes D :: "nat \<Rightarrow> nat"
   shows "3 dvd (\<Sum>x<nd. D x * (10^x - 1))"
-  by (subst nat_mult_commute, rule div_sum) (simp add: three_divs_0 [simplified])
+  by (subst mult.commute, rule div_sum) (simp add: three_divs_0 [simplified])
 
 text {* Using lemmas @{text "digit_diff_split"} and 
 @{text "three_divs_1"} we now prove the following lemma. 

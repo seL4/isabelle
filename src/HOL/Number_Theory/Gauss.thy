@@ -260,11 +260,11 @@ proof (auto simp add: F_eq D_eq)
   fix y::int and z::int
   assume "p - (y*a) mod p = (z*a) mod p"
   then have "[(y*a) mod p + (z*a) mod p = 0] (mod p)"
-    by (metis add_commute diff_eq_eq dvd_refl cong_int_def dvd_eq_mod_eq_0 mod_0)
+    by (metis add.commute diff_eq_eq dvd_refl cong_int_def dvd_eq_mod_eq_0 mod_0)
   moreover have "[y * a = (y*a) mod p] (mod p)"
     by (metis cong_int_def mod_mod_trivial)
   ultimately have "[a * (y + z) = 0] (mod p)"
-    by (metis cong_int_def mod_add_left_eq mod_add_right_eq mult_commute ring_class.ring_distribs(1))
+    by (metis cong_int_def mod_add_left_eq mod_add_right_eq mult.commute ring_class.ring_distribs(1))
   with p_prime a_nonzero p_a_relprime
   have a: "[y + z = 0] (mod p)"
     by (metis cong_prime_prod_zero_int)
@@ -319,19 +319,19 @@ qed
 subsection {* Gauss' Lemma *}
 
 lemma aux: "setprod id A * -1 ^ card E * a ^ card A * -1 ^ card E = setprod id A * a ^ card A"
-by (metis (no_types) minus_minus mult_commute mult_left_commute power_minus power_one)
+by (metis (no_types) minus_minus mult.commute mult.left_commute power_minus power_one)
 
 theorem pre_gauss_lemma:
   "[a ^ nat((int p - 1) div 2) = (-1) ^ (card E)] (mod p)"
 proof -
   have "[setprod id A = setprod id F * setprod id D](mod p)"
-    by (auto simp add: prod_D_F_eq_prod_A mult_commute cong del:setprod.cong)
+    by (auto simp add: prod_D_F_eq_prod_A mult.commute cong del:setprod.cong)
   then have "[setprod id A = ((-1)^(card E) * setprod id E) * setprod id D] (mod p)"
     apply (rule cong_trans_int)
     apply (metis cong_scalar_int prod_F_zcong)
     done
   then have "[setprod id A = ((-1)^(card E) * setprod id C)] (mod p)"
-    by (metis C_prod_eq_D_times_E mult_commute mult_left_commute)
+    by (metis C_prod_eq_D_times_E mult.commute mult.left_commute)
   then have "[setprod id A = ((-1)^(card E) * setprod id B)] (mod p)"
     by (rule cong_trans_int) (metis C_B_zcong_prod cong_scalar2_int)
   then have "[setprod id A = ((-1)^(card E) *
@@ -349,7 +349,7 @@ proof -
   then have "[setprod id A = ((-1)^(card E) * a^(card A) *
       setprod id A)](mod p)"
     apply (rule cong_trans_int)
-    apply (simp add: cong_scalar2_int cong_scalar_int finite_A setprod_constant mult_assoc)
+    apply (simp add: cong_scalar2_int cong_scalar_int finite_A setprod_constant mult.assoc)
     done
   then have a: "[setprod id A * (-1)^(card E) =
       ((-1)^(card E) * a^(card A) * setprod id A * (-1)^(card E))](mod p)"
@@ -357,7 +357,7 @@ proof -
   then have "[setprod id A * (-1)^(card E) = setprod id A *
       (-1)^(card E) * a^(card A) * (-1)^(card E)](mod p)"
     apply (rule cong_trans_int)
-    apply (simp add: a mult_commute mult_left_commute)
+    apply (simp add: a mult.commute mult.left_commute)
     done
   then have "[setprod id A * (-1)^(card E) = setprod id A * a^(card A)](mod p)"
     apply (rule cong_trans_int)

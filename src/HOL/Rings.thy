@@ -144,7 +144,7 @@ lemma dvd_trans:
 proof -
   from assms obtain v where "b = a * v" by (auto elim!: dvdE)
   moreover from assms obtain w where "c = b * w" by (auto elim!: dvdE)
-  ultimately have "c = a * (v * w)" by (simp add: mult_assoc)
+  ultimately have "c = a * (v * w)" by (simp add: mult.assoc)
   then show ?thesis ..
 qed
 
@@ -160,10 +160,10 @@ lemma one_dvd [simp]: "1 dvd a"
 by (auto intro!: dvdI)
 
 lemma dvd_mult[simp]: "a dvd c \<Longrightarrow> a dvd (b * c)"
-by (auto intro!: mult_left_commute dvdI elim!: dvdE)
+by (auto intro!: mult.left_commute dvdI elim!: dvdE)
 
 lemma dvd_mult2[simp]: "a dvd b \<Longrightarrow> a dvd (b * c)"
-  apply (subst mult_commute)
+  apply (subst mult.commute)
   apply (erule dvd_mult)
   done
 
@@ -185,7 +185,7 @@ proof -
 qed
 
 lemma dvd_mult_left: "a * b dvd c \<Longrightarrow> a dvd c"
-by (simp add: dvd_def mult_assoc, blast)
+by (simp add: dvd_def mult.assoc, blast)
 
 lemma dvd_mult_right: "a * b dvd c \<Longrightarrow> b dvd c"
   unfolding mult_ac [of a] by (rule dvd_mult_left)
@@ -684,7 +684,7 @@ proof
   fix a b c :: 'a
   assume "a \<le> b" "0 \<le> c"
   thus "c * a \<le> c * b" by (rule comm_mult_left_mono)
-  thus "a * c \<le> b * c" by (simp only: mult_commute)
+  thus "a * c \<le> b * c" by (simp only: mult.commute)
 qed
 
 end
@@ -707,7 +707,7 @@ proof
   fix a b c :: 'a
   assume "a < b" "0 < c"
   thus "c * a < c * b" by (rule comm_mult_strict_left_mono)
-  thus "a * c < b * c" by (simp only: mult_commute)
+  thus "a * c < b * c" by (simp only: mult.commute)
 qed
 
 subclass ordered_cancel_comm_semiring

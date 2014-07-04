@@ -81,10 +81,10 @@ lemma uminus_Pair [simp, code]: "- (a, b) = (- a, - b)"
 subsection {* Class instances *}
 
 instance prod :: (semigroup_add, semigroup_add) semigroup_add
-  by default (simp add: prod_eq_iff add_assoc)
+  by default (simp add: prod_eq_iff add.assoc)
 
 instance prod :: (ab_semigroup_add, ab_semigroup_add) ab_semigroup_add
-  by default (simp add: prod_eq_iff add_commute)
+  by default (simp add: prod_eq_iff add.commute)
 
 instance prod :: (monoid_add, monoid_add) monoid_add
   by default (simp_all add: prod_eq_iff)

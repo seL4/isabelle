@@ -93,7 +93,7 @@ lemma zgcd_zmult_zdvd_zgcd:
   apply (simp add: zgcd_greatest_iff)
   apply (rule_tac n = k in zrelprime_zdvd_zmult)
    prefer 2
-   apply (simp add: mult_commute)
+   apply (simp add: mult.commute)
   apply (metis zgcd_1 zgcd_commute zgcd_left_commute)
   done
 
@@ -142,7 +142,7 @@ lemma zcong_zmult:
     "[a = b] (mod m) ==> [c = d] (mod m) ==> [a * c = b * d] (mod m)"
   apply (rule_tac b = "b * c" in zcong_trans)
    apply (unfold zcong_def)
-  apply (metis right_diff_distrib dvd_mult mult_commute)
+  apply (metis right_diff_distrib dvd_mult mult.commute)
   apply (metis right_diff_distrib dvd_mult)
   done
 
@@ -165,7 +165,7 @@ lemma zcong_square:
     apply (rule_tac [3] s = "a * a - 1 + p * (1 - a)" in subst)
      prefer 4
      apply (simp add: zdvd_reduce)
-    apply (simp_all add: left_diff_distrib mult_commute right_diff_distrib)
+    apply (simp_all add: left_diff_distrib mult.commute right_diff_distrib)
   done
 
 lemma zcong_cancel:
@@ -188,7 +188,7 @@ lemma zcong_cancel:
 lemma zcong_cancel2:
   "0 \<le> m ==>
     zgcd k m = 1 ==> [k * a = k * b] (mod m) = [a = b] (mod m)"
-  by (simp add: mult_commute zcong_cancel)
+  by (simp add: mult.commute zcong_cancel)
 
 lemma zcong_zgcd_zmult_zmod:
   "[a = b] (mod m) ==> [a = b] (mod n) ==> zgcd m n = 1
@@ -197,9 +197,9 @@ lemma zcong_zgcd_zmult_zmod:
   apply (subgoal_tac "m dvd n * ka")
    apply (subgoal_tac "m dvd ka")
     apply (case_tac [2] "0 \<le> ka")
-  apply (metis dvd_mult_div_cancel dvd_refl dvd_mult_left mult_commute zrelprime_zdvd_zmult)
-  apply (metis abs_dvd_iff abs_of_nonneg add_0 zgcd_0_left zgcd_commute zgcd_zadd_zmult zgcd_zdvd_zgcd_zmult zgcd_zmult_distrib2_abs mult_1_right mult_commute)
-  apply (metis mult_le_0_iff  zdvd_mono zdvd_mult_cancel dvd_triv_left zero_le_mult_iff order_antisym linorder_linear order_refl mult_commute zrelprime_zdvd_zmult)
+  apply (metis dvd_mult_div_cancel dvd_refl dvd_mult_left mult.commute zrelprime_zdvd_zmult)
+  apply (metis abs_dvd_iff abs_of_nonneg add_0 zgcd_0_left zgcd_commute zgcd_zadd_zmult zgcd_zdvd_zgcd_zmult zgcd_zmult_distrib2_abs mult_1_right mult.commute)
+  apply (metis mult_le_0_iff  zdvd_mono zdvd_mult_cancel dvd_triv_left zero_le_mult_iff order_antisym linorder_linear order_refl mult.commute zrelprime_zdvd_zmult)
   apply (metis dvd_triv_left)
   done
 
@@ -208,7 +208,7 @@ lemma zcong_zless_imp_eq:
     a < m ==> 0 \<le> b ==> b < m ==> [a = b] (mod m) ==> a = b"
   apply (unfold zcong_def dvd_def, auto)
   apply (drule_tac f = "\<lambda>z. z mod m" in arg_cong)
-  apply (metis diff_add_cancel mod_pos_pos_trivial add_0 add_commute zmod_eq_0_iff mod_add_right_eq)
+  apply (metis diff_add_cancel mod_pos_pos_trivial add_0 add.commute zmod_eq_0_iff mod_add_right_eq)
   done
 
 lemma zcong_square_zless:
@@ -261,7 +261,7 @@ lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (rule_tac m = m in zcong_zmod_aux)
   apply (rule trans)
    apply (rule_tac [2] k = m and m = "a div m - b div m" in zdvd_reduce)
-  apply (simp add: add_commute)
+  apply (simp add: add.commute)
   done
 
 lemma zcong_zmod_eq: "0 < m ==> [a = b] (mod m) = (a mod m = b mod m)"
@@ -341,14 +341,14 @@ text {* \medskip @{term xzgcd} linear *}
 lemma xzgcda_linear_aux1:
   "(a - r * b) * m + (c - r * d) * (n::int) =
    (a * m + c * n) - r * (b * m + d * n)"
-  by (simp add: left_diff_distrib distrib_left mult_assoc)
+  by (simp add: left_diff_distrib distrib_left mult.assoc)
 
 lemma xzgcda_linear_aux2:
   "r' = s' * m + t' * n ==> r = s * m + t * n
     ==> (r' mod r) = (s' - (r' div r) * s) * m + (t' - (r' div r) * t) * (n::int)"
   apply (rule trans)
    apply (rule_tac [2] xzgcda_linear_aux1 [symmetric])
-  apply (simp add: eq_diff_eq mult_commute)
+  apply (simp add: eq_diff_eq mult.commute)
   done
 
 lemma order_le_neq_implies_less: "(x::'a::order) \<le> y ==> x \<noteq> y ==> x < y"
@@ -391,7 +391,7 @@ lemma zcong_lineq_ex:
    prefer 2
    apply simp
   apply (unfold zcong_def)
-  apply (simp (no_asm) add: mult_commute)
+  apply (simp (no_asm) add: mult.commute)
   done
 
 lemma zcong_lineq_unique:
@@ -407,7 +407,7 @@ lemma zcong_lineq_unique:
   apply (cut_tac a = a and n = n in zcong_lineq_ex, auto)
   apply (rule_tac x = "x * b mod n" in exI, safe)
     apply (simp_all (no_asm_simp))
-  apply (metis zcong_scalar zcong_zmod mod_mult_right_eq mult_1 mult_assoc)
+  apply (metis zcong_scalar zcong_zmod mod_mult_right_eq mult_1 mult.assoc)
   done
 
 end

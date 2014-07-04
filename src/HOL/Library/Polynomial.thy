@@ -624,9 +624,9 @@ lemma coeff_add [simp]:
 instance proof
   fix p q r :: "'a poly"
   show "(p + q) + r = p + (q + r)"
-    by (simp add: poly_eq_iff add_assoc)
+    by (simp add: poly_eq_iff add.assoc)
   show "p + q = q + p"
-    by (simp add: poly_eq_iff add_commute)
+    by (simp add: poly_eq_iff add.commute)
   show "0 + p = p"
     by (simp add: poly_eq_iff)
 qed
@@ -713,7 +713,7 @@ lemma degree_add_eq_right:
 lemma degree_add_eq_left:
   "degree q < degree p \<Longrightarrow> degree (p + q) = degree p"
   using degree_add_eq_right [of q p]
-  by (simp add: add_commute)
+  by (simp add: add.commute)
 
 lemma degree_minus [simp]: "degree (- p) = degree p"
   unfolding degree_def by simp
@@ -824,7 +824,7 @@ lemma degree_smult_le: "degree (smult a p) \<le> degree p"
   by (rule degree_le, simp add: coeff_eq_0)
 
 lemma smult_smult [simp]: "smult a (smult b p) = smult (a * b) p"
-  by (rule poly_eqI, simp add: mult_assoc)
+  by (rule poly_eqI, simp add: mult.assoc)
 
 lemma smult_0_right [simp]: "smult a 0 = 0"
   by (rule poly_eqI, simp)

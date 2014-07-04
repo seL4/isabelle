@@ -213,7 +213,7 @@ lemma lem:
     prefer 2
     apply (erule allE, erule impE, rule refl, erule spec)
     apply simp
-    apply (simp only: foldl_conv_fold add_commute fold_plus_listsum_rev)
+    apply (simp only: foldl_conv_fold add.commute fold_plus_listsum_rev)
     apply (fastforce simp add: listsum_map_remove1)
   apply clarify
   apply (subgoal_tac "\<exists>y::name. y \<sharp> (x, u, z)")
@@ -235,7 +235,7 @@ lemma lem:
    prefer 2
    apply blast
   apply simp
-  apply (simp only: foldl_conv_fold add_commute fold_plus_listsum_rev)
+  apply (simp only: foldl_conv_fold add.commute fold_plus_listsum_rev)
   apply (fastforce simp add: listsum_map_remove1)
   done
 

@@ -275,11 +275,11 @@ lemma cong_mult_rcancel_nat:
 
 lemma cong_mult_lcancel_nat:
     "coprime k (m::nat) \<Longrightarrow> [k * a = k * b ] (mod m) = [a = b] (mod m)"
-  by (simp add: mult_commute cong_mult_rcancel_nat)
+  by (simp add: mult.commute cong_mult_rcancel_nat)
 
 lemma cong_mult_lcancel_int:
     "coprime k (m::int) \<Longrightarrow> [k * a = k * b] (mod m) = [a = b] (mod m)"
-  by (simp add: mult_commute cong_mult_rcancel_int)
+  by (simp add: mult.commute cong_mult_rcancel_int)
 
 (* was zcong_zgcd_zmult_zmod *)
 lemma coprime_cong_mult_int:
@@ -321,7 +321,7 @@ proof (rule iffI)
   proof (cases "b \<le> a")
     case True
     then show ?rhs using eqm
-      by (metis cong_altdef_nat dvd_def le_add_diff_inverse add_0_right mult_0 mult_commute)
+      by (metis cong_altdef_nat dvd_def le_add_diff_inverse add_0_right mult_0 mult.commute)
   next
     case False
     then show ?rhs using eqm 
@@ -333,7 +333,7 @@ proof (rule iffI)
 next
   assume ?rhs
   then show ?lhs
-    by (metis cong_nat_def mod_mult_self2 nat_mult_commute)
+    by (metis cong_nat_def mod_mult_self2 mult.commute)
 qed
 
 lemma cong_gcd_eq_int: "[(a::int) = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
@@ -467,18 +467,18 @@ lemma cong_to_1'_nat: "[(a::nat) = 1] (mod n) \<longleftrightarrow>
   apply force
   apply (cases "a = 0", simp add: cong_0_1_nat)
   apply (rule iffI)
-  apply (metis cong_to_1_nat dvd_def monoid_mult_class.mult.right_neutral mult_commute mult_eq_if)
+  apply (metis cong_to_1_nat dvd_def monoid_mult_class.mult.right_neutral mult.commute mult_eq_if)
   apply (metis cong_add_lcancel_0_nat cong_mult_self_nat)
   done
 
 lemma cong_le_nat: "(y::nat) <= x \<Longrightarrow> [x = y] (mod n) \<longleftrightarrow> (\<exists>q. x = q * n + y)"
-  by (metis cong_altdef_nat Nat.le_imp_diff_is_add dvd_def nat_mult_commute)
+  by (metis cong_altdef_nat Nat.le_imp_diff_is_add dvd_def mult.commute)
 
 lemma cong_solve_nat: "(a::nat) \<noteq> 0 \<Longrightarrow> EX x. [a * x = gcd a n] (mod n)"
   apply (cases "n = 0")
   apply force
   apply (frule bezout_nat [of a n], auto)
-  by (metis cong_add_rcancel_0_nat cong_mult_self_nat mult_commute)
+  by (metis cong_add_rcancel_0_nat cong_mult_self_nat mult.commute)
 
 lemma cong_solve_int: "(a::int) \<noteq> 0 \<Longrightarrow> EX x. [a * x = gcd a n] (mod n)"
   apply (cases "n = 0")
@@ -487,7 +487,7 @@ lemma cong_solve_int: "(a::int) \<noteq> 0 \<Longrightarrow> EX x. [a * x = gcd 
   apply (rule_tac x = "-1" in exI)
   apply auto
   apply (insert bezout_int [of a n], auto)
-  by (metis cong_iff_lin_int mult_commute)
+  by (metis cong_iff_lin_int mult.commute)
 
 lemma cong_solve_dvd_nat:
   assumes a: "(a::nat) \<noteq> 0" and b: "gcd a n dvd d"
@@ -603,9 +603,9 @@ proof -
   from cong_solve_coprime_nat [OF b] obtain x2 where two: "[m2 * x2 = 1] (mod m1)"
     by auto
   have "[m1 * x1 = 0] (mod m1)"
-    by (subst mult_commute, rule cong_mult_self_nat)
+    by (subst mult.commute, rule cong_mult_self_nat)
   moreover have "[m2 * x2 = 0] (mod m2)"
-    by (subst mult_commute, rule cong_mult_self_nat)
+    by (subst mult.commute, rule cong_mult_self_nat)
   moreover note one two
   ultimately show ?thesis by blast
 qed
@@ -622,9 +622,9 @@ proof -
   from cong_solve_coprime_int [OF b] obtain x2 where two: "[m2 * x2 = 1] (mod m1)"
     by auto
   have "[m1 * x1 = 0] (mod m1)"
-    by (subst mult_commute, rule cong_mult_self_int)
+    by (subst mult.commute, rule cong_mult_self_int)
   moreover have "[m2 * x2 = 0] (mod m2)"
-    by (subst mult_commute, rule cong_mult_self_int)
+    by (subst mult.commute, rule cong_mult_self_int)
   moreover note one two
   ultimately show ?thesis by blast
 qed
@@ -729,7 +729,7 @@ proof -
     apply (rule cong_trans_nat)
     prefer 2
     apply (rule `[y = u2] (mod m2)`)
-    apply (subst mult_commute)
+    apply (subst mult.commute)
     apply (rule cong_modulus_mult_nat)
     apply (rule cong_mod_nat)
     using nz apply auto
@@ -778,7 +778,7 @@ proof (rule finite_set_choice, rule fin, rule ballI)
     by auto
   moreover have "[(PROD j : A - {i}. m j) * x = 0]
     (mod (PROD j : A - {i}. m j))"
-    by (subst mult_commute, rule cong_mult_self_nat)
+    by (subst mult.commute, rule cong_mult_self_nat)
   ultimately show "\<exists>a. [a = 1] (mod m i) \<and> [a = 0]
       (mod setprod m (A - {i}))"
     by blast
@@ -835,7 +835,7 @@ lemma coprime_cong_prod_nat [rule_format]: "finite A \<Longrightarrow>
          [x = y] (mod (PROD i:A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (metis coprime_cong_mult_nat nat_mult_commute setprod_coprime_nat)
+  apply (metis coprime_cong_mult_nat mult.commute setprod_coprime_nat)
   done
 
 lemma chinese_remainder_unique_nat:

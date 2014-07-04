@@ -1416,7 +1416,7 @@ proof -
         moreover note feven[unfolded feven_def]
           (* FIXME: why does by(rule feven[unfolded feven_def]) not work? *)
         ultimately have "P (2 * (n div 2)) kvs" by -
-        thus ?thesis using True by (metis div_mod_equality' minus_nat.diff_0 nat_mult_commute)
+        thus ?thesis using True by (metis div_mod_equality' minus_nat.diff_0 mult.commute)
       next
         case False note ge0
         moreover from "1.prems" have n2: "n div 2 \<le> length kvs" by simp
@@ -1462,7 +1462,7 @@ proof -
         moreover note geven[unfolded geven_def]
         ultimately have "Q (2 * (n div 2)) kvs" by -
         thus ?thesis using True 
-          by(metis div_mod_equality' minus_nat.diff_0 nat_mult_commute)
+          by(metis div_mod_equality' minus_nat.diff_0 mult.commute)
       next
         case False note ge0
         moreover from "2.prems" have n2: "n div 2 \<le> length kvs" by simp

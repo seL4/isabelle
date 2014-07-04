@@ -211,7 +211,7 @@ lemma (in monoid) nat_pow_mult:
 
 lemma (in monoid) nat_pow_pow:
   "x \<in> carrier G ==> (x (^) n) (^) m = x (^) (n * m::nat)"
-  by (induct m) (simp, simp add: nat_pow_mult add_commute)
+  by (induct m) (simp, simp add: nat_pow_mult add.commute)
 
 
 (* Jacobson defines submonoid here. *)

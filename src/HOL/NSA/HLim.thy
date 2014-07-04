@@ -95,7 +95,7 @@ qed
 
 lemma NSLIM_zero_cancel: "(%x. f(x) - l) -- x --NS> 0 ==> f -- x --NS> l"
 apply (drule_tac g = "%x. l" and m = l in NSLIM_add)
-apply (auto simp add: add_assoc)
+apply (auto simp add: add.assoc)
 done
 
 lemma NSLIM_const_not_eq:
@@ -243,10 +243,10 @@ apply (drule_tac x = "star_of a + x" in spec)
 apply (drule_tac [2] x = "- star_of a + x" in spec, safe, simp)
 apply (erule mem_infmal_iff [THEN iffD2, THEN Infinitesimal_add_approx_self [THEN approx_sym]])
 apply (erule_tac [3] approx_minus_iff2 [THEN iffD1])
- prefer 2 apply (simp add: add_commute)
+ prefer 2 apply (simp add: add.commute)
 apply (rule_tac x = x in star_cases)
 apply (rule_tac [2] x = x in star_cases)
-apply (auto simp add: starfun star_of_def star_n_minus star_n_add add_assoc star_n_zero_num)
+apply (auto simp add: starfun star_of_def star_n_minus star_n_add add.assoc star_n_zero_num)
 done
 
 lemma NSLIM_isCont_iff: "(f -- a --NS> f a) = ((%h. f(a + h)) -- 0 --NS> f a)"

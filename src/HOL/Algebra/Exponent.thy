@@ -80,7 +80,7 @@ done
 lemma div_combine:
   fixes p::nat
   shows "[| prime p; ~ (p ^ (Suc r) dvd n);  p^(a+r) dvd n*k |] ==> p ^ a dvd k"
-by (metis add_Suc nat_add_commute prime_power_dvd_cases)
+by (metis add_Suc add.commute prime_power_dvd_cases)
 
 (*Lemma for power_dvd_bound*)
 lemma Suc_le_power: "Suc 0 < p ==> Suc n <= p^n"
@@ -185,7 +185,7 @@ done
 text{*Main Combinatorial Argument*}
 
 lemma gcd_mult': fixes a::nat shows "gcd b (a * b) = b"
-by (simp add: mult_commute[of a b]) 
+by (simp add: mult.commute[of a b]) 
 
 lemma le_extend_mult: "[| c > 0; a <= b |] ==> a <= b * (c::nat)"
 apply (rule_tac P = "%x. x <= b * c" in subst)
@@ -201,7 +201,7 @@ apply (drule contrapos_nn [OF _ leI, THEN notnotD], assumption)
 apply (drule less_imp_le [of a])
 apply (drule le_imp_power_dvd)
 apply (drule_tac b = "p ^ r" in dvd_trans, assumption)
-apply (metis diff_is_0_eq dvd_diffD1 gcd_dvd2_nat gcd_mult' gr0I le_extend_mult less_diff_conv nat_dvd_not_less nat_mult_commute not_add_less2 xt1(10))
+apply (metis diff_is_0_eq dvd_diffD1 gcd_dvd2_nat gcd_mult' gr0I le_extend_mult less_diff_conv nat_dvd_not_less mult.commute not_add_less2 xt1(10))
 done
 
 lemma p_fac_forw: "[| (m::nat) > 0; k>0; k < p^a; (p^r) dvd (p^a)* m - k |]  

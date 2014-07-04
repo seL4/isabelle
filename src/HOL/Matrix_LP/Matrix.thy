@@ -1508,7 +1508,7 @@ proof
   show "A + B + C = A + (B + C)"    
     apply (simp add: plus_matrix_def)
     apply (rule combine_matrix_assoc[simplified associative_def, THEN spec, THEN spec, THEN spec])
-    apply (simp_all add: add_assoc)
+    apply (simp_all add: add.assoc)
     done
   show "0 + A = A"
     apply (simp add: plus_matrix_def)
@@ -1528,7 +1528,7 @@ proof
   show "A + B = B + A"
     apply (simp add: plus_matrix_def)
     apply (rule combine_matrix_commute[simplified commutative_def, THEN spec, THEN spec])
-    apply (simp_all add: add_commute)
+    apply (simp_all add: add.commute)
     done
   show "0 + A = A"
     apply (simp add: plus_matrix_def)
@@ -1689,7 +1689,7 @@ by (simp add: nrows)
 lemma transpose_matrix_mult: "transpose_matrix ((A::('a::comm_ring) matrix)*B) = (transpose_matrix B) * (transpose_matrix A)"
 apply (simp add: times_matrix_def)
 apply (subst transpose_mult_matrix)
-apply (simp_all add: mult_commute)
+apply (simp_all add: mult.commute)
 done
 
 lemma transpose_matrix_add: "transpose_matrix ((A::('a::monoid_add) matrix)+B) = transpose_matrix A + transpose_matrix B"
@@ -1731,7 +1731,7 @@ proof -
     apply (insert assms)
     apply (frule right_inverse_matrix_dim)
     by (simp add: right_inverse_matrix_def)
-  also have "\<dots> = (Y * A) * X" by (simp add: mult_assoc)
+  also have "\<dots> = (Y * A) * X" by (simp add: mult.assoc)
   also have "\<dots> = X" 
     apply (insert assms)
     apply (frule left_inverse_matrix_dim)

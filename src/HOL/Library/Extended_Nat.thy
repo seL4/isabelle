@@ -175,7 +175,7 @@ lemma iadd_Suc: "eSuc m + n = eSuc (m + n)"
   by (simp_all add: eSuc_plus_1 add_ac)
 
 lemma iadd_Suc_right: "m + eSuc n = eSuc (m + n)"
-  by (simp only: add_commute[of m] iadd_Suc)
+  by (simp only: add.commute[of m] iadd_Suc)
 
 lemma iadd_is_0: "(m + n = (0::enat)) = (m = 0 \<and> n = 0)"
   by (cases m, cases n, simp_all add: zero_enat_def)

@@ -61,7 +61,7 @@ proof (induct n)
   also have "... = y * ((x - y) * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x ^ n)"
     by (simp only: Suc)
   also have "... = (x - y) * (y * (\<Sum>p<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x ^ n)"
-    by (simp only: mult_left_commute)
+    by (simp only: mult.left_commute)
   also have "... = (x - y) * (\<Sum>p<Suc (Suc n). x ^ p * y ^ (Suc n - p))"
     by (simp add: field_simps Suc_diff_le setsum_left_distrib setsum_right_distrib)
   finally show ?case .
@@ -128,7 +128,7 @@ proof -
     also have "\<dots> = K * norm (z ^ n) * (inverse (norm (x ^ n)) * norm (x ^ n))"
       by (simp add: x_neq_0)
     also have "\<dots> = K * norm (z ^ n) * inverse (norm (x ^ n)) * norm (x ^ n)"
-      by (simp only: mult_assoc)
+      by (simp only: mult.assoc)
     finally show "norm (norm (f n * z ^ n)) \<le>
                   K * norm (z ^ n) * inverse (norm (x ^ n))"
       by (simp add: mult_le_cancel_right x_neq_0)
@@ -145,7 +145,7 @@ proof -
     thus "summable (\<lambda>n. K * norm (z ^ n) * inverse (norm (x ^ n)))"
       using x_neq_0
       by (simp add: norm_mult nonzero_norm_inverse power_mult_distrib
-                    power_inverse norm_power mult_assoc)
+                    power_inverse norm_power mult.assoc)
   qed
   ultimately show "summable (\<lambda>n. norm (f n * z ^ n))"
     by (rule summable_comparison_test)
@@ -469,10 +469,10 @@ lemma lemma_termdiff2:
           (z + h) ^ q * z ^ (n - 2 - q))" (is "?lhs = ?rhs")
   apply (subgoal_tac "h * ?lhs = h * ?rhs", simp add: h)
   apply (simp add: right_diff_distrib diff_divide_distrib h)
-  apply (simp add: mult_assoc [symmetric])
+  apply (simp add: mult.assoc [symmetric])
   apply (cases "n", simp)
   apply (simp add: lemma_realpow_diff_sumr2 h
-                   right_diff_distrib [symmetric] mult_assoc
+                   right_diff_distrib [symmetric] mult.assoc
               del: power_Suc setsum_lessThan_Suc of_nat_Suc)
   apply (subst lemma_realpow_rev_sumr)
   apply (subst sumr_diff_mult_const2)
@@ -483,7 +483,7 @@ lemma lemma_termdiff2:
   apply (clarify)
   apply (simp add: setsum_right_distrib lemma_realpow_diff_sumr2 mult_ac
               del: setsum_lessThan_Suc power_Suc)
-  apply (subst mult_assoc [symmetric], subst power_add [symmetric])
+  apply (subst mult.assoc [symmetric], subst power_add [symmetric])
   apply (simp add: mult_ac)
   done
 
@@ -508,7 +508,7 @@ proof -
   have "norm (((z + h) ^ n - z ^ n) / h - of_nat n * z ^ (n - Suc 0)) =
         norm (\<Sum>p<n - Suc 0. \<Sum>q<n - Suc 0 - p.
           (z + h) ^ q * z ^ (n - 2 - q)) * norm h"
-    by (metis (lifting, no_types) lemma_termdiff2 [OF 1] mult_commute norm_mult)
+    by (metis (lifting, no_types) lemma_termdiff2 [OF 1] mult.commute norm_mult)
   also have "\<dots> \<le> of_nat n * (of_nat (n - Suc 0) * K ^ (n - 2)) * norm h"
   proof (rule mult_right_mono [OF _ norm_ge_zero])
     from norm_ge_zero 2 have K: "0 \<le> K"
@@ -530,7 +530,7 @@ proof -
       done
   qed
   also have "\<dots> = of_nat n * of_nat (n - Suc 0) * K ^ (n - 2) * norm h"
-    by (simp only: mult_assoc)
+    by (simp only: mult.assoc)
   finally show ?thesis .
 qed
 
@@ -638,9 +638,9 @@ proof -
       by (rule order_le_less_trans)
     show "norm (c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))
           \<le> norm (c n) * of_nat n * of_nat (n - Suc 0) * r ^ (n - 2) * norm h"
-      apply (simp only: norm_mult mult_assoc)
+      apply (simp only: norm_mult mult.assoc)
       apply (rule mult_left_mono [OF _ norm_ge_zero])
-      apply (simp add: mult_assoc [symmetric])
+      apply (simp add: mult.assoc [symmetric])
       apply (metis h lemma_termdiff3 less_eq_real_def r1 xh)
       done
   qed
@@ -797,7 +797,7 @@ proof (rule LIM_I)
     also have "\<dots> \<le> ?diff_part + \<bar> (\<Sum>n. ?diff (n + ?N) x) - (\<Sum> n. f' x0 (n + ?N)) \<bar>"
       unfolding suminf_split_initial_segment[OF all_smbl, where k="?N"]
       unfolding suminf_diff[OF div_shft_smbl ign[OF `summable (f' x0)`]]
-      apply (subst (5) add_commute)
+      apply (subst (5) add.commute)
       by (rule abs_triangle_ineq)
     also have "\<dots> \<le> ?diff_part + ?L_part + ?f'_part"
       using abs_triangle_ineq4 by auto
@@ -877,7 +877,7 @@ proof -
               unfolding abs_mult[symmetric] by auto
           qed
           also have "\<dots> = \<bar>f n * real (Suc n) * R' ^ n\<bar> * \<bar>x - y\<bar>"
-            unfolding abs_mult mult_assoc[symmetric] by algebra
+            unfolding abs_mult mult.assoc[symmetric] by algebra
           finally show ?thesis .
         qed
       }
@@ -900,7 +900,7 @@ proof -
             unfolding real_norm_def abs_mult
             by (rule mult_right_mono) (auto simp add: le[unfolded mult_1_right])
         qed (rule powser_insidea[OF converges[OF `R' \<in> {-R <..< R}`] `norm x < norm R'`])
-        from this[THEN summable_mult2[where c=x], unfolded mult_assoc, unfolded mult_commute]
+        from this[THEN summable_mult2[where c=x], unfolded mult.assoc, unfolded mult.commute]
         show "summable (?f x)" by auto
       }
       show "summable (?f' x0)"
@@ -984,7 +984,7 @@ lemma exp_converges: "(\<lambda>n. x ^ n /\<^sub>R real (fact n)) sums exp x"
 
 lemma exp_fdiffs:
       "diffs (\<lambda>n. inverse(real (fact n))) = (\<lambda>n. inverse(real (fact n)))"
-  by (simp add: diffs_def mult_assoc [symmetric] real_of_nat_def of_nat_mult
+  by (simp add: diffs_def mult.assoc [symmetric] real_of_nat_def of_nat_mult
         del: mult_Suc of_nat_Suc)
 
 lemma diffs_of_real: "diffs (\<lambda>n. of_real (f n)) = (\<lambda>n. of_real (diffs f n))"
@@ -1132,7 +1132,7 @@ lemma abs_exp_cancel [simp]: "\<bar>exp x::real\<bar> = exp x"
   by simp
 
 lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
-  by (induct n) (auto simp add: real_of_nat_Suc distrib_left exp_add mult_commute)
+  by (induct n) (auto simp add: real_of_nat_Suc distrib_left exp_add mult.commute)
 
 text {* Strict monotonicity of exponential. *}
 
@@ -1824,7 +1824,7 @@ lemma powr_powr: "(x powr a) powr b = x powr (a * b)"
   by (simp add: powr_def)
 
 lemma powr_powr_swap: "(x powr a) powr b = (x powr b) powr a"
-  by (simp add: powr_powr mult_commute)
+  by (simp add: powr_powr mult.commute)
 
 lemma powr_minus: "x powr (-a) = inverse (x powr a)"
   by (simp add: powr_def exp_minus [symmetric])
@@ -2006,7 +2006,7 @@ lemma ln_root: "\<lbrakk> n > 0; b > 0 \<rbrakk> \<Longrightarrow> ln (root n b)
 by(simp add: root_powr_inverse ln_powr)
 
 lemma ln_sqrt: "0 < x \<Longrightarrow> ln (sqrt x) = ln x / 2"
-  by (simp add: ln_powr powr_numeral ln_powr[symmetric] mult_commute)
+  by (simp add: ln_powr powr_numeral ln_powr[symmetric] mult.commute)
 
 lemma log_root: "\<lbrakk> n > 0; a > 0 \<rbrakk> \<Longrightarrow> log b (root n a) =  log b a / n"
 by(simp add: log_def ln_root)
@@ -2078,7 +2078,7 @@ lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x
   unfolding powr_def exp_inj_iff by simp
 
 lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
-  by (metis less_eq_real_def ln_less_self mult_imp_le_div_pos ln_powr mult_commute 
+  by (metis less_eq_real_def ln_less_self mult_imp_le_div_pos ln_powr mult.commute 
             order.strict_trans2 powr_gt_zero zero_less_one)
 
 lemma ln_powr_bound2:
@@ -2339,7 +2339,7 @@ proof -
 qed
 
 lemma sin_cos_squared_add2 [simp]: "(cos x)\<^sup>2 + (sin x)\<^sup>2 = 1"
-  by (subst add_commute, rule sin_cos_squared_add)
+  by (subst add.commute, rule sin_cos_squared_add)
 
 lemma sin_cos_squared_add3 [simp]: "cos x * cos x + sin x * sin x = 1"
   using sin_cos_squared_add2 [unfolded power2_eq_square] .
@@ -2422,13 +2422,13 @@ lemma sin_diff: "sin (x - y) = sin x * cos y - cos x * sin y"
   using sin_add [of x "- y"] by simp
 
 lemma sin_diff2: "sin (x - y) = cos y * sin x - sin y * cos x"
-  by (simp add: sin_diff mult_commute)
+  by (simp add: sin_diff mult.commute)
 
 lemma cos_diff: "cos (x - y) = cos x * cos y + sin x * sin y"
   using cos_add [of x "- y"] by simp
 
 lemma cos_diff2: "cos (x - y) = cos y * cos x + sin y * sin x"
-  by (simp add: cos_diff mult_commute)
+  by (simp add: cos_diff mult.commute)
 
 lemma sin_double [simp]: "sin(2 * x) = 2* sin x * cos x"
   using sin_add [where x=x and y=x] by simp
@@ -2567,7 +2567,7 @@ proof -
     note *** = this
     have [simp]: "\<And>x y::real. 0 < x - y \<longleftrightarrow> y < x" by arith
     from ** show ?thesis by (rule sumr_pos_lt_pair)
-      (simp add: divide_inverse mult_assoc [symmetric] ***)
+      (simp add: divide_inverse mult.assoc [symmetric] ***)
   qed
   ultimately have "0 < (\<Sum>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
     by (rule order_less_trans)
@@ -2681,13 +2681,13 @@ lemma cos_npi [simp]: "cos (real n * pi) = -1 ^ n"
   by (induct n) (auto simp add: real_of_nat_Suc distrib_right)
 
 lemma cos_npi2 [simp]: "cos (pi * real n) = -1 ^ n"
-  by (metis cos_npi mult_commute)
+  by (metis cos_npi mult.commute)
 
 lemma sin_npi [simp]: "sin (real (n::nat) * pi) = 0"
   by (induct n) (auto simp add: real_of_nat_Suc distrib_right)
 
 lemma sin_npi2 [simp]: "sin (pi * real (n::nat)) = 0"
-  by (simp add: mult_commute [of pi])
+  by (simp add: mult.commute [of pi])
 
 lemma cos_two_pi [simp]: "cos (2 * pi) = 1"
   by (simp add: cos_double)
@@ -2785,7 +2785,7 @@ apply simp
 apply (cut_tac y="-y" in cos_total, simp) apply simp
 apply (erule ex1E)
 apply (rule_tac a = "x - (pi/2)" in ex1I)
-apply (simp (no_asm) add: add_assoc)
+apply (simp (no_asm) add: add.assoc)
 apply (rotate_tac 3)
 apply (drule_tac x = "xa + pi/2" in spec, safe, simp_all add: cos_add)
 done
@@ -3023,7 +3023,7 @@ lemma lemma_tan_total: "0 < y ==> \<exists>x. 0 < x & x < pi/2 & y < tan x"
   apply (auto simp add: divide_inverse)
   apply (rule mult_pos_pos)
   apply (subgoal_tac [3] "0 < sin e & 0 < cos e")
-  apply (auto intro: cos_gt_zero sin_gt_zero2 simp add: mult_commute)
+  apply (auto intro: cos_gt_zero sin_gt_zero2 simp add: mult.commute)
   done
 
 lemma tan_total_pos: "0 \<le> y ==> \<exists>x. 0 \<le> x & x < pi/2 & tan x = y"
@@ -3321,7 +3321,7 @@ lemma tan_sec: "cos x \<noteq> 0 ==> 1 + (tan x)\<^sup>2 = (inverse (cos x))\<^s
   apply (rule_tac c1 = "(cos x)\<^sup>2" in mult_right_cancel [THEN iffD1])
   apply (auto dest: field_power_not_zero
           simp add: power_mult_distrib distrib_right power_divide tan_def
-                    mult_assoc power_inverse [symmetric])
+                    mult.assoc power_inverse [symmetric])
   done
 
 lemma arctan_less_iff: "arctan x < arctan y \<longleftrightarrow> x < y"
@@ -3559,11 +3559,11 @@ proof -
     by (auto simp add: algebra_simps sin_add)
   thus ?thesis
     by (simp add: real_of_nat_Suc distrib_right add_divide_distrib
-                  mult_commute [of pi])
+                  mult.commute [of pi])
 qed
 
 lemma cos_2npi [simp]: "cos (2 * real (n::nat) * pi) = 1"
-  by (simp add: cos_double mult_assoc power_add [symmetric] numeral_2_eq_2)
+  by (simp add: cos_double mult.assoc power_add [symmetric] numeral_2_eq_2)
 
 lemma cos_3over2_pi [simp]: "cos (3 / 2 * pi) = 0"
   apply (subgoal_tac "cos (pi + pi/2) = 0", simp)
@@ -3571,7 +3571,7 @@ lemma cos_3over2_pi [simp]: "cos (3 / 2 * pi) = 0"
   done
 
 lemma sin_2npi [simp]: "sin (2 * real (n::nat) * pi) = 0"
-  by (auto simp add: mult_assoc)
+  by (auto simp add: mult.assoc)
 
 lemma sin_3over2_pi [simp]: "sin (3 / 2 * pi) = - 1"
   apply (subgoal_tac "sin (pi + pi/2) = - 1", simp)
@@ -3771,14 +3771,14 @@ proof -
     next
       fix x :: real
       assume "(\<lambda> n. if even n then f (n div 2) else 0) sums x"
-      from LIMSEQ_linear[OF this[unfolded sums_def] pos2, unfolded sum_split_even_odd[unfolded mult_commute]]
+      from LIMSEQ_linear[OF this[unfolded sums_def] pos2, unfolded sum_split_even_odd[unfolded mult.commute]]
       show "f sums x" unfolding sums_def by auto
     qed
     hence "op sums f = op sums (\<lambda> n. if even n then f (n div 2) else 0)" ..
   } note sums_even = this
 
   have Int_eq: "(\<Sum>n. ?f n * real (Suc n) * x^n) = ?Int"
-    unfolding if_eq mult_commute[of _ 2] suminf_def sums_even[of "\<lambda> n. -1 ^ n * x ^ (2 * n)", symmetric]
+    unfolding if_eq mult.commute[of _ 2] suminf_def sums_even[of "\<lambda> n. -1 ^ n * x ^ (2 * n)", symmetric]
     by auto
 
   {
@@ -3858,7 +3858,7 @@ proof -
             hence "(\<lambda> n. (- (x\<^sup>2)) ^ n) sums (1 / (1 - (- (x\<^sup>2))))"
               unfolding real_norm_def[symmetric] by (rule geometric_sums)
             hence "(?c' x) sums (1 / (1 - (- (x\<^sup>2))))"
-              unfolding power_mult_distrib[symmetric] power_mult nat_mult_commute[of _ 2] by auto
+              unfolding power_mult_distrib[symmetric] power_mult mult.commute[of _ 2] by auto
             hence suminf_c'_eq_geom: "inverse (1 + x\<^sup>2) = suminf (?c' x)"
               using sums_unique unfolding inverse_eq_divide by auto
             have "DERIV (\<lambda> x. suminf (?c x)) x :> (inverse (1 + x\<^sup>2))"

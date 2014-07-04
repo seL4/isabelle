@@ -412,7 +412,7 @@ lift_definition uminus_real :: "real \<Rightarrow> real" is "\<lambda>X n. - X n
 
 lift_definition times_real :: "real \<Rightarrow> real \<Rightarrow> real" is "\<lambda>X Y n. X n * Y n"
   unfolding realrel_def mult_diff_mult
-  by (subst (4) mult_commute, simp only: cauchy_mult vanishes_add
+  by (subst (4) mult.commute, simp only: cauchy_mult vanishes_add
     vanishes_mult_bounded cauchy_imp_bounded simp_thms)
 
 lift_definition inverse_real :: "real \<Rightarrow> real"
@@ -812,7 +812,7 @@ proof -
 
   have twos: "\<And>y r :: rat. 0 < r \<Longrightarrow> \<exists>n. y / 2 ^ n < r"
     apply (simp add: divide_less_eq)
-    apply (subst mult_commute)
+    apply (subst mult.commute)
     apply (frule_tac y=y in ex_less_of_nat_mult)
     apply clarify
     apply (rule_tac x=n in exI)

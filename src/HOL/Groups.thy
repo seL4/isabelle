@@ -158,6 +158,8 @@ sublocale add!: semigroup plus
 
 end
 
+hide_fact add_assoc
+
 class ab_semigroup_add = semigroup_add +
   assumes add_commute [algebra_simps, field_simps]: "a + b = b + a"
 begin
@@ -165,13 +167,15 @@ begin
 sublocale add!: abel_semigroup plus
   by default (fact add_commute)
 
-lemmas add_left_commute [algebra_simps, field_simps] = add.left_commute
+declare add.left_commute [algebra_simps, field_simps]
 
-theorems add_ac = add_assoc add_commute add_left_commute
+theorems add_ac = add.assoc add.commute add.left_commute
 
 end
 
-theorems add_ac = add_assoc add_commute add_left_commute
+hide_fact add_commute
+
+theorems add_ac = add.assoc add.commute add.left_commute
 
 class semigroup_mult = times +
   assumes mult_assoc [algebra_simps, field_simps]: "(a * b) * c = a * (b * c)"
@@ -182,6 +186,8 @@ sublocale mult!: semigroup times
 
 end
 
+hide_fact mult_assoc
+
 class ab_semigroup_mult = semigroup_mult +
   assumes mult_commute [algebra_simps, field_simps]: "a * b = b * a"
 begin
@@ -189,13 +195,15 @@ begin
 sublocale mult!: abel_semigroup times
   by default (fact mult_commute)
 
-lemmas mult_left_commute [algebra_simps, field_simps] = mult.left_commute
+declare mult.left_commute [algebra_simps, field_simps]
 
-theorems mult_ac = mult_assoc mult_commute mult_left_commute
+theorems mult_ac = mult.assoc mult.commute mult.left_commute
 
 end
 
-theorems mult_ac = mult_assoc mult_commute mult_left_commute
+hide_fact mult_commute
+
+theorems mult_ac = mult.assoc mult.commute mult.left_commute
 
 class monoid_add = zero + semigroup_add +
   assumes add_0_left: "0 + a = a"
@@ -325,7 +333,7 @@ proof
 next
   fix a b c :: 'a
   assume "b + a = c + a"
-  then have "a + b = a + c" by (simp only: add_commute)
+  then have "a + b = a + c" by (simp only: add.commute)
   then show "b = c" by (rule add_imp_eq)
 qed
 
@@ -349,7 +357,7 @@ lemma minus_unique:
   assumes "a + b = 0" shows "- a = b"
 proof -
   have "- a = - a + (a + b)" using assms by simp
-  also have "\<dots> = b" by (simp add: add_assoc [symmetric])
+  also have "\<dots> = b" by (simp add: add.assoc [symmetric])
   finally show ?thesis .
 qed
 
@@ -381,36 +389,36 @@ proof
   fix a b c :: 'a
   assume "a + b = a + c"
   then have "- a + a + b = - a + a + c"
-    unfolding add_assoc by simp
+    unfolding add.assoc by simp
   then show "b = c" by simp
 next
   fix a b c :: 'a
   assume "b + a = c + a"
   then have "b + a + - a = c + a  + - a" by simp
-  then show "b = c" unfolding add_assoc by simp
+  then show "b = c" unfolding add.assoc by simp
 qed
 
 lemma minus_add_cancel [simp]:
   "- a + (a + b) = b"
-  by (simp add: add_assoc [symmetric])
+  by (simp add: add.assoc [symmetric])
 
 lemma add_minus_cancel [simp]:
   "a + (- a + b) = b"
-  by (simp add: add_assoc [symmetric])
+  by (simp add: add.assoc [symmetric])
 
 lemma diff_add_cancel [simp]:
   "a - b + b = a"
-  by (simp only: diff_conv_add_uminus add_assoc) simp
+  by (simp only: diff_conv_add_uminus add.assoc) simp
 
 lemma add_diff_cancel [simp]:
   "a + b - b = a"
-  by (simp only: diff_conv_add_uminus add_assoc) simp
+  by (simp only: diff_conv_add_uminus add.assoc) simp
 
 lemma minus_add:
   "- (a + b) = - b + - a"
 proof -
   have "(a + b) + (- b + - a) = 0"
-    by (simp only: add_assoc add_minus_cancel) simp
+    by (simp only: add.assoc add_minus_cancel) simp
   then show "- (a + b) = - b + - a"
     by (rule minus_unique)
 qed
@@ -419,7 +427,7 @@ lemma right_minus_eq [simp]:
   "a - b = 0 \<longleftrightarrow> a = b"
 proof
   assume "a - b = 0"
-  have "a = (a - b) + b" by (simp add: add_assoc)
+  have "a = (a - b) + b" by (simp add: add.assoc)
   also have "\<dots> = b" using `a - b = 0` by simp
   finally show "a = b" .
 next
@@ -484,7 +492,7 @@ proof
 next
   assume "a + b = 0"
   moreover have "a + (b + - b) = (a + b) + - b"
-    by (simp only: add_assoc)
+    by (simp only: add.assoc)
   ultimately show "a = - b" by simp
 qed
 
@@ -502,15 +510,15 @@ lemma add_eq_0_iff:
 
 lemma minus_diff_eq [simp]:
   "- (a - b) = b - a"
-  by (simp only: neg_eq_iff_add_eq_0 diff_conv_add_uminus add_assoc minus_add_cancel) simp
+  by (simp only: neg_eq_iff_add_eq_0 diff_conv_add_uminus add.assoc minus_add_cancel) simp
 
 lemma add_diff_eq [algebra_simps, field_simps]:
   "a + (b - c) = (a + b) - c"
-  by (simp only: diff_conv_add_uminus add_assoc)
+  by (simp only: diff_conv_add_uminus add.assoc)
 
 lemma diff_add_eq_diff_diff_swap:
   "a - (b + c) = a - c - b"
-  by (simp only: diff_conv_add_uminus add_assoc minus_add)
+  by (simp only: diff_conv_add_uminus add.assoc minus_add)
 
 lemma diff_eq_eq [algebra_simps, field_simps]:
   "a - b = c \<longleftrightarrow> a = c + b"
@@ -522,7 +530,7 @@ lemma eq_diff_eq [algebra_simps, field_simps]:
 
 lemma diff_diff_eq2 [algebra_simps, field_simps]:
   "a - (b - c) = (a + c) - b"
-  by (simp only: diff_conv_add_uminus add_assoc) simp
+  by (simp only: diff_conv_add_uminus add.assoc) simp
 
 lemma diff_eq_diff_eq:
   "a - b = c - d \<Longrightarrow> a = b \<longleftrightarrow> c = d"
@@ -543,13 +551,13 @@ proof
   fix a b c :: 'a
   assume "a + b = a + c"
   then have "- a + a + b = - a + a + c"
-    by (simp only: add_assoc)
+    by (simp only: add.assoc)
   then show "b = c" by simp
 qed
 
 lemma uminus_add_conv_diff [simp]:
   "- a + b = b - a"
-  by (simp add: add_commute)
+  by (simp add: add.commute)
 
 lemma minus_add_distrib [simp]:
   "- (a + b) = - a + - b"
@@ -595,13 +603,13 @@ begin
 
 lemma add_right_mono:
   "a \<le> b \<Longrightarrow> a + c \<le> b + c"
-by (simp add: add_commute [of _ c] add_left_mono)
+by (simp add: add.commute [of _ c] add_left_mono)
 
 text {* non-strict, in both arguments *}
 lemma add_mono:
   "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c \<le> b + d"
   apply (erule add_right_mono [THEN order_trans])
-  apply (simp add: add_commute add_left_mono)
+  apply (simp add: add.commute add_left_mono)
   done
 
 end
@@ -616,7 +624,7 @@ by (auto simp add: less_le add_left_mono)
 
 lemma add_strict_right_mono:
   "a < b \<Longrightarrow> a + c < b + c"
-by (simp add: add_commute [of _ c] add_strict_left_mono)
+by (simp add: add.commute [of _ c] add_strict_left_mono)
 
 text{*Strict monotonicity in both arguments*}
 lemma add_strict_mono:
@@ -665,7 +673,7 @@ qed
 lemma add_less_imp_less_right:
   "a + c < b + c \<Longrightarrow> a < b"
 apply (rule add_less_imp_less_left [of c])
-apply (simp add: add_commute)  
+apply (simp add: add.commute)  
 done
 
 lemma add_less_cancel_left [simp]:
@@ -682,7 +690,7 @@ lemma add_le_cancel_left [simp]:
 
 lemma add_le_cancel_right [simp]:
   "a + c \<le> b + c \<longleftrightarrow> a \<le> b"
-  by (simp add: add_commute [of a c] add_commute [of b c])
+  by (simp add: add.commute [of a c] add.commute [of b c])
 
 lemma add_le_imp_le_right:
   "a + c \<le> b + c \<Longrightarrow> a \<le> b"
@@ -721,45 +729,45 @@ lemma add_diff_inverse:
 
 lemma add_diff_assoc:
   "c + (b - a) = c + b - a"
-  using `a \<le> b` by (auto simp add: le_iff_add add_left_commute [of c])
+  using `a \<le> b` by (auto simp add: le_iff_add add.left_commute [of c])
 
 lemma add_diff_assoc2:
   "b - a + c = b + c - a"
-  using `a \<le> b` by (auto simp add: le_iff_add add_assoc)
+  using `a \<le> b` by (auto simp add: le_iff_add add.assoc)
 
 lemma diff_add_assoc:
   "c + b - a = c + (b - a)"
-  using `a \<le> b` by (simp add: add_commute add_diff_assoc)
+  using `a \<le> b` by (simp add: add.commute add_diff_assoc)
 
 lemma diff_add_assoc2:
   "b + c - a = b - a + c"
-  using `a \<le> b`by (simp add: add_commute add_diff_assoc)
+  using `a \<le> b`by (simp add: add.commute add_diff_assoc)
 
 lemma diff_diff_right:
   "c - (b - a) = c + a - b"
-  by (simp add: add_diff_inverse add_diff_cancel_left [of a c "b - a", symmetric] add_commute)
+  by (simp add: add_diff_inverse add_diff_cancel_left [of a c "b - a", symmetric] add.commute)
 
 lemma diff_add:
   "b - a + a = b"
-  by (simp add: add_commute add_diff_inverse)
+  by (simp add: add.commute add_diff_inverse)
 
 lemma le_add_diff:
   "c \<le> b + c - a"
-  by (auto simp add: add_commute diff_add_assoc2 le_iff_add)
+  by (auto simp add: add.commute diff_add_assoc2 le_iff_add)
 
 lemma le_imp_diff_is_add:
   "a \<le> b \<Longrightarrow> b - a = c \<longleftrightarrow> b = c + a"
-  by (auto simp add: add_commute add_diff_inverse)
+  by (auto simp add: add.commute add_diff_inverse)
 
 lemma le_diff_conv2:
   "c \<le> b - a \<longleftrightarrow> c + a \<le> b" (is "?P \<longleftrightarrow> ?Q")
 proof
   assume ?P
   then have "c + a \<le> b - a + a" by (rule add_right_mono)
-  then show ?Q by (simp add: add_diff_inverse add_commute)
+  then show ?Q by (simp add: add_diff_inverse add.commute)
 next
   assume ?Q
-  then have "a + c \<le> a + (b - a)" by (simp add: add_diff_inverse add_commute)
+  then have "a + c \<le> a + (b - a)" by (simp add: add_diff_inverse add.commute)
   then show ?P by simp
 qed
 
@@ -860,7 +868,7 @@ lemma add_increasing:
 
 lemma add_increasing2:
   "0 \<le> c \<Longrightarrow> b \<le> a \<Longrightarrow> b \<le> a + c"
-  by (simp add: add_increasing add_commute [of a])
+  by (simp add: add_increasing add.commute [of a])
 
 lemma add_strict_increasing:
   "0 < a \<Longrightarrow> b \<le> c \<Longrightarrow> b < a + c"
@@ -883,7 +891,7 @@ proof
   fix a b c :: 'a
   assume "c + a \<le> c + b"
   hence "(-c) + (c + a) \<le> (-c) + (c + b)" by (rule add_left_mono)
-  hence "((-c) + c) + a \<le> ((-c) + c) + b" by (simp only: add_assoc)
+  hence "((-c) + c) + a \<le> ((-c) + c) + b" by (simp only: add.assoc)
   thus "a \<le> b" by simp
 qed
 

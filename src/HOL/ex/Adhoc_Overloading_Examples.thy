@@ -211,7 +211,7 @@ interpretation perm_permute: permute permute_perm
   apply default
   unfolding permute_perm_def
   apply simp
-  apply (simp only: diff_conv_add_uminus minus_add add_assoc)
+  apply (simp only: diff_conv_add_uminus minus_add add.assoc)
   done
 
 text {*Permuting functions.*}

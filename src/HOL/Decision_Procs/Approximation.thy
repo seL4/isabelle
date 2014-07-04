@@ -247,7 +247,7 @@ proof (induct n)
         unfolding real_sqrt_mult[of _ "2 powr (?E mod 2)"] real_sqrt_abs2 by auto
       also have "\<dots> < 2 powr (?E div 2) * 2 powr 1"
         by (rule mult_strict_left_mono, auto intro: E_mod_pow)
-      also have "\<dots> = 2 powr (?E div 2 + 1)" unfolding add_commute[of _ 1] powr_add[symmetric]
+      also have "\<dots> = 2 powr (?E div 2 + 1)" unfolding add.commute[of _ 1] powr_add[symmetric]
         by simp
       finally show ?thesis by auto
     qed
@@ -386,8 +386,8 @@ proof -
 
   { have "(x * lb_arctan_horner prec n 1 (x*x)) \<le> ?S n"
       using bounds(1) `0 \<le> real x`
-      unfolding power_add power_one_right mult_assoc[symmetric] setsum_left_distrib[symmetric]
-      unfolding mult_commute[where 'a=real] mult_commute[of _ "2::nat"] power_mult power2_eq_square[of "real x"]
+      unfolding power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric]
+      unfolding mult.commute[where 'a=real] mult.commute[of _ "2::nat"] power_mult power2_eq_square[of "real x"]
       by (auto intro!: mult_left_mono)
     also have "\<dots> \<le> arctan x" using arctan_bounds ..
     finally have "(x * lb_arctan_horner prec n 1 (x*x)) \<le> arctan x" . }
@@ -395,8 +395,8 @@ proof -
   { have "arctan x \<le> ?S (Suc n)" using arctan_bounds ..
     also have "\<dots> \<le> (x * ub_arctan_horner prec (Suc n) 1 (x*x))"
       using bounds(2)[of "Suc n"] `0 \<le> real x`
-      unfolding power_add power_one_right mult_assoc[symmetric] setsum_left_distrib[symmetric]
-      unfolding mult_commute[where 'a=real] mult_commute[of _ "2::nat"] power_mult power2_eq_square[of "real x"]
+      unfolding power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric]
+      unfolding mult.commute[where 'a=real] mult.commute[of _ "2::nat"] power_mult power2_eq_square[of "real x"]
       by (auto intro!: mult_left_mono)
     finally have "arctan x \<le> (x * ub_arctan_horner prec (Suc n) 1 (x*x))" . }
   ultimately show ?thesis by auto
@@ -842,8 +842,8 @@ proof -
   from horner_bounds[where lb="lb_sin_cos_aux prec" and ub="ub_sin_cos_aux prec" and j'=0,
     OF `0 \<le> real (x * x)` f_eq lb_sin_cos_aux.simps ub_sin_cos_aux.simps]
   show "?lb" and "?ub" using `0 \<le> real x`
-    unfolding power_add power_one_right mult_assoc[symmetric] setsum_left_distrib[symmetric]
-    unfolding mult_commute[where 'a=real]
+    unfolding power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric]
+    unfolding mult.commute[where 'a=real]
     by (auto intro!: mult_left_mono simp add: power_mult power2_eq_square[of "real x"])
 qed
 
@@ -1597,7 +1597,7 @@ proof -
   { fix n have "?a (Suc n) \<le> ?a n" unfolding inverse_eq_divide[symmetric]
     proof (rule mult_mono)
       show "0 \<le> x ^ Suc (Suc n)" by (auto simp add: `0 \<le> x`)
-      have "x ^ Suc (Suc n) \<le> x ^ Suc n * 1" unfolding power_Suc2 mult_assoc[symmetric]
+      have "x ^ Suc (Suc n) \<le> x ^ Suc n * 1" unfolding power_Suc2 mult.assoc[symmetric]
         by (rule mult_left_mono, fact less_imp_le[OF `x < 1`], auto simp: `0 \<le> x`)
       thus "x ^ Suc (Suc n) \<le> x ^ Suc n" by auto
     qed auto }
@@ -1615,7 +1615,7 @@ proof -
 
   let "?s n" = "-1^n * (1 / real (1 + n)) * (real x)^(Suc n)"
 
-  have "?lb \<le> setsum ?s {0 ..< 2 * ev}" unfolding power_Suc2 mult_assoc[symmetric] times_float.rep_eq setsum_left_distrib[symmetric] unfolding mult_commute[of "real x"] ev
+  have "?lb \<le> setsum ?s {0 ..< 2 * ev}" unfolding power_Suc2 mult.assoc[symmetric] times_float.rep_eq setsum_left_distrib[symmetric] unfolding mult.commute[of "real x"] ev
     using horner_bounds(1)[where G="\<lambda> i k. Suc k" and F="\<lambda>x. x" and f="\<lambda>x. x" and lb="\<lambda>n i k x. lb_ln_horner prec n k x" and ub="\<lambda>n i k x. ub_ln_horner prec n k x" and j'=1 and n="2*ev",
       OF `0 \<le> real x` refl lb_ln_horner.simps ub_ln_horner.simps] `0 \<le> real x`
     by (rule mult_right_mono)
@@ -1623,7 +1623,7 @@ proof -
   finally show "?lb \<le> ?ln" .
 
   have "?ln \<le> setsum ?s {0 ..< 2 * od + 1}" using ln_bounds(2)[OF `0 \<le> real x` `real x < 1`] by auto
-  also have "\<dots> \<le> ?ub" unfolding power_Suc2 mult_assoc[symmetric] times_float.rep_eq setsum_left_distrib[symmetric] unfolding mult_commute[of "real x"] od
+  also have "\<dots> \<le> ?ub" unfolding power_Suc2 mult.assoc[symmetric] times_float.rep_eq setsum_left_distrib[symmetric] unfolding mult.commute[of "real x"] od
     using horner_bounds(2)[where G="\<lambda> i k. Suc k" and F="\<lambda>x. x" and f="\<lambda>x. x" and lb="\<lambda>n i k x. lb_ln_horner prec n k x" and ub="\<lambda>n i k x. ub_ln_horner prec n k x" and j'=1 and n="2*od+1",
       OF `0 \<le> real x` refl lb_ln_horner.simps ub_ln_horner.simps] `0 \<le> real x`
     by (rule mult_right_mono)
@@ -2961,7 +2961,7 @@ next
                inverse (real (\<Prod> j \<in> {k..<k+Suc n}. j)) * ?f (Suc n) t * (xs!x - c)^Suc n" (is "_ = ?T")
         unfolding funpow_Suc C_def[symmetric] setsum_move0 setprod_head_Suc
         by (auto simp add: algebra_simps)
-          (simp only: mult_left_commute [of _ "inverse (real k)"] setsum_right_distrib [symmetric])
+          (simp only: mult.left_commute [of _ "inverse (real k)"] setsum_right_distrib [symmetric])
       finally have "?T \<in> {l .. u}" .
     }
     thus ?thesis using DERIV by blast

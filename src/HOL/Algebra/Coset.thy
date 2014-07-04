@@ -815,7 +815,7 @@ theorem (in group) lagrange:
      "\<lbrakk>finite(carrier G); subgroup H G\<rbrakk>
       \<Longrightarrow> card(rcosets H) * card(H) = order(G)"
 apply (simp (no_asm_simp) add: order_def rcosets_part_G [symmetric])
-apply (subst mult_commute)
+apply (subst mult.commute)
 apply (rule card_partition)
    apply (simp add: rcosets_subset_PowG [THEN finite_subset])
   apply (simp add: rcosets_part_G)

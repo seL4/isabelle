@@ -227,7 +227,7 @@ val minus_from_mult_simps =
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val mult_minus_simps =
-    [@{thm mult_assoc}, @{thm minus_mult_right}, @{thm minus_mult_commute}];
+    [@{thm mult.assoc}, @{thm minus_mult_right}, @{thm minus_mult_commute}];
 
 val norm_ss1 =
   simpset_of (put_simpset num_ss @{context}
@@ -719,7 +719,7 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm diff_conv_add_uminus}, @{thm "minus_divide_left"},
            @{thm "add_divide_distrib"} RS sym,
            @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
-           Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult_commute}))))   
+           Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult.commute}))))   
            (@{thm field_divide_inverse} RS sym)]
 
 val field_comp_ss =

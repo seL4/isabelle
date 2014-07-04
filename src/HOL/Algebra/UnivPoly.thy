@@ -1353,7 +1353,7 @@ proof (induct m)
   case 0 from R show ?case by simp
 next
   case Suc with R show ?case
-    by (simp del: monom_mult add: monom_mult [THEN sym] add_commute)
+    by (simp del: monom_mult add: monom_mult [THEN sym] add.commute)
 qed
 
 lemma (in ring_hom_cring) hom_pow [simp]:

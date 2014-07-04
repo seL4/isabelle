@@ -52,7 +52,7 @@ apply(rule Parallel)
    apply force
   apply(erule le_less_trans2) 
   apply(case_tac t,simp+)
-  apply (simp add:add_commute)
+  apply (simp add:add.commute)
   apply(simp add: add_le_mono)
 apply(rule Basic)
    apply simp
@@ -61,7 +61,7 @@ apply(rule Basic)
     apply simp
    apply(erule le_less_trans2)
    apply(case_tac t,simp+)
-   apply (simp add:add_commute)
+   apply (simp add:add.commute)
    apply(rule add_le_mono, auto)
 done
 

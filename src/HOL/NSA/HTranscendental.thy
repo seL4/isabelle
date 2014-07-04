@@ -254,7 +254,7 @@ apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 apply (drule_tac x = x in bspec, auto)
 apply (drule_tac c = x in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD] 
-            simp add: mult_assoc)
+            simp add: mult.assoc)
 apply (rule approx_add_right_cancel [where d="-1"])
 apply (rule approx_sym [THEN [2] approx_trans2])
 apply (auto simp add: mem_infmal_iff)
@@ -424,7 +424,7 @@ apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 apply (drule bspec [where x = x], auto)
 apply (drule approx_mult1 [where c = x])
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-           simp add: mult_assoc)
+           simp add: mult.assoc)
 done
 
 lemma HFinite_cos [simp]: "sumhr (0, whn, %n. cos_coeff n * x ^ n) \<in> HFinite"
@@ -448,7 +448,7 @@ apply (drule bspec [where x = x])
 apply auto
 apply (drule approx_mult1 [where c = x])
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mult_assoc)
+            simp add: mult.assoc)
 apply (rule approx_add_right_cancel [where d = "-1"])
 apply simp
 done
@@ -463,7 +463,7 @@ apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 apply (drule bspec [where x = x], auto)
 apply (drule approx_mult1 [where c = x])
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-             simp add: mult_assoc)
+             simp add: mult.assoc)
 done
 
 lemma STAR_sin_cos_Infinitesimal_mult:
@@ -481,7 +481,7 @@ lemma lemma_split_hypreal_of_real:
      "N \<in> HNatInfinite  
       ==> hypreal_of_real a =  
           hypreal_of_hypnat N * (inverse(hypreal_of_hypnat N) * hypreal_of_real a)"
-by (simp add: mult_assoc [symmetric] zero_less_HNatInfinite)
+by (simp add: mult.assoc [symmetric] zero_less_HNatInfinite)
 
 lemma STAR_sin_Infinitesimal_divide:
      "[|x \<in> Infinitesimal; x \<noteq> 0 |] ==> ( *f* sin) x/x @= 1"
@@ -535,7 +535,7 @@ lemma STAR_sin_pi_divide_HNatInfinite_approx_pi2:
       ==> hypreal_of_hypnat n *  
           ( *f* sin) (hypreal_of_real pi/(hypreal_of_hypnat n))  
           @= hypreal_of_real pi"
-apply (rule mult_commute [THEN subst])
+apply (rule mult.commute [THEN subst])
 apply (erule STAR_sin_pi_divide_HNatInfinite_approx_pi)
 done
 
@@ -564,7 +564,7 @@ apply (rule_tac f1 = sin in starfun_o2 [THEN subst])
 apply (auto simp add: starfun_mult [symmetric] starfunNat_real_of_nat divide_inverse)
 apply (rule_tac f1 = inverse in starfun_o2 [THEN subst])
 apply (auto dest: STAR_sin_pi_divide_HNatInfinite_approx_pi 
-            simp add: starfunNat_real_of_nat mult_commute divide_inverse)
+            simp add: starfunNat_real_of_nat mult.commute divide_inverse)
 done
 
 lemma NSLIMSEQ_cos_one: "(%n. cos (pi / real n))----NS> 1"
@@ -587,7 +587,7 @@ lemma STAR_cos_Infinitesimal_approx:
      "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - x\<^sup>2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto simp add: Infinitesimal_approx_minus [symmetric] 
-            add_assoc [symmetric] numeral_2_eq_2)
+            add.assoc [symmetric] numeral_2_eq_2)
 done
 
 lemma STAR_cos_Infinitesimal_approx2:

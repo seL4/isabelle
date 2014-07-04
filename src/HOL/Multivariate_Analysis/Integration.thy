@@ -4926,7 +4926,7 @@ lemma dsum_bound:
   apply (rule order_trans[OF mult_left_mono])
   apply (rule assms)
   apply (rule setsum_abs_ge_zero)
-  apply (subst mult_commute)
+  apply (subst mult.commute)
   apply (rule mult_left_mono)
   apply (rule order_trans[of _ "setsum content p"])
   apply (rule eq_refl)
@@ -4961,7 +4961,7 @@ next
     apply (rule mult_left_mono[OF _ abs_ge_zero, of _ e])
     defer
     unfolding setsum_left_distrib[symmetric]
-    apply (subst mult_commute)
+    apply (subst mult.commute)
     apply (rule mult_left_mono)
     apply (rule order_trans[of _ "setsum (content \<circ> snd) p"])
     apply (rule eq_refl)
@@ -6072,7 +6072,7 @@ next
       proof -
         case goal1
         then show ?case
-          apply (subst mult_commute, subst pos_le_divide_eq[symmetric])
+          apply (subst mult.commute, subst pos_le_divide_eq[symmetric])
           using d(2)[rule_format,of "q i" i]
           using q[rule_format]
           apply (auto simp add: field_simps)
@@ -8349,7 +8349,7 @@ proof -
       then show "norm (f c) * norm (c - t) < e / 3"
         using False
         apply -
-        apply (subst mult_commute)
+        apply (subst mult.commute)
         apply (subst pos_less_divide_eq[symmetric])
         apply auto
         done
@@ -11081,7 +11081,7 @@ proof -
     show ?case
       apply (rule le_less_trans[OF norm_triangle_sub[of ig sg]])
       apply (subst real_sum_of_halves[of e,symmetric])
-      unfolding add_assoc[symmetric]
+      unfolding add.assoc[symmetric]
       apply (rule add_le_less_mono)
       defer
       apply (subst norm_minus_commute)

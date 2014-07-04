@@ -1753,7 +1753,7 @@ lemma udvd_incr2_K:
    prefer 2 
    apply (insert uint_range' [of s])[1]
    apply arith
-  apply (drule add_commute [THEN xtr1])
+  apply (drule add.commute [THEN xtr1])
   apply (simp add: diff_less_eq [symmetric])
   apply (drule less_le_mult)
    apply arith
@@ -2161,7 +2161,7 @@ lemma thd1:
   "a div b * b \<le> (a::nat)"
   using gt_or_eq_0 [of b]
   apply (rule disjE)
-   apply (erule xtr4 [OF thd mult_commute])
+   apply (erule xtr4 [OF thd mult.commute])
   apply clarsimp
   done
 
@@ -2921,7 +2921,7 @@ lemma shiftr_div_2n: "uint (shiftr w n) = uint w div 2 ^ n"
   apply (unfold shiftr_def)
   apply (induct "n")
    apply simp
-  apply (simp add: shiftr1_div_2 mult_commute
+  apply (simp add: shiftr1_div_2 mult.commute
                    zdiv_zmult2_eq [symmetric])
   done
 
@@ -2929,7 +2929,7 @@ lemma sshiftr_div_2n: "sint (sshiftr w n) = sint w div 2 ^ n"
   apply (unfold sshiftr_def)
   apply (induct "n")
    apply simp
-  apply (simp add: sshiftr1_div_2 mult_commute
+  apply (simp add: sshiftr1_div_2 mult.commute
                    zdiv_zmult2_eq [symmetric])
   done
 
@@ -3731,7 +3731,7 @@ lemma test_bit_split':
   apply (clarsimp simp: word_ubin.eq_norm nth_bintr word_size split: prod.splits)
   apply (drule bin_nth_split)
   apply safe
-       apply (simp_all add: add_commute)
+       apply (simp_all add: add.commute)
    apply (erule bin_nth_uint_imp)+
   done
 
@@ -3895,7 +3895,7 @@ lemma test_bit_rcat:
 
 lemma foldl_eq_foldr:
   "foldl op + x xs = foldr op + (x # xs) (0 :: 'a :: comm_monoid_add)" 
-  by (induct xs arbitrary: x) (auto simp add : add_assoc)
+  by (induct xs arbitrary: x) (auto simp add : add.assoc)
 
 lemmas test_bit_cong = arg_cong [where f = "test_bit", THEN fun_cong]
 
@@ -3935,7 +3935,7 @@ lemmas length_word_rsplit_exp_size' = refl [THEN length_word_rsplit_exp_size]
 
 (* alternative proof of word_rcat_rsplit *)
 lemmas tdle = iffD2 [OF split_div_lemma refl, THEN conjunct1] 
-lemmas dtle = xtr4 [OF tdle mult_commute]
+lemmas dtle = xtr4 [OF tdle mult.commute]
 
 lemma word_rcat_rsplit: "word_rcat (word_rsplit w) = w"
   apply (rule word_eqI)
@@ -3959,7 +3959,7 @@ lemma msrevs:
   fixes n::nat
   shows "0 < n \<Longrightarrow> (k * n + m) div n = m div n + k"
   and   "(k * n + m) mod n = m mod n"
-  by (auto simp: add_commute)
+  by (auto simp: add.commute)
 
 lemma word_rsplit_rcat_size [OF refl]:
   "word_rcat (ws :: 'a :: len word list) = frcw \<Longrightarrow> 

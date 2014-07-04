@@ -141,7 +141,7 @@ proof -
             then show "0 \<le> inverse \<parallel>x\<parallel>" by (rule order_less_imp_le)
           qed
           also have "\<dots> = c * (\<parallel>x\<parallel> * inverse \<parallel>x\<parallel>)"
-            by (rule Groups.mult_assoc)
+            by (rule Groups.mult.assoc)
           also
           from gt have "\<parallel>x\<parallel> \<noteq> 0" by simp
           then have "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by simp 

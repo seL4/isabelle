@@ -751,11 +751,11 @@ proof has reached this point:
 Now we wish to apply a commutative law:
 \begin{isabelle}
 ?m\ *\ ?n\ =\ ?n\ *\ ?m%
-\rulename{mult_commute}
+\rulename{mult.commute}
 \end{isabelle}
 Isabelle rejects our first attempt:
 \begin{isabelle}
-apply (simp add: mult_commute)
+apply (simp add: mult.commute)
 \end{isabelle}
 The simplifier notices the danger of looping and refuses to apply the
 rule.%
@@ -764,9 +764,9 @@ smaller under a specified ordering; here, \isa{x\ *\ y}
 is already smaller than
 \isa{y\ *\ x}.}
 %
-The \isa{subst} method applies \isa{mult_commute} exactly once.  
+The \isa{subst} method applies \isa{mult.commute} exactly once.  
 \begin{isabelle}
-\isacommand{apply}\ (subst\ mult_commute)\isanewline
+\isacommand{apply}\ (subst\ mult.commute)\isanewline
 \ 1.\ \isasymlbrakk P\ x\ y\ z;\ Suc\ x\ <\ y\isasymrbrakk \
 \isasymLongrightarrow \ f\ z\ =\ y\ *\ x%
 \end{isabelle}
@@ -775,7 +775,7 @@ As we wanted, \isa{x\ *\ y} has become \isa{y\ *\ x}.
 \medskip
 This use of the \methdx{subst} method has the same effect as the command
 \begin{isabelle}
-\isacommand{apply}\ (rule\ mult_commute [THEN ssubst])
+\isacommand{apply}\ (rule\ mult.commute [THEN ssubst])
 \end{isabelle}
 The attribute \isa{THEN}, which combines two rules, is described in 
 {\S}\ref{sec:THEN} below. The \methdx{subst} method is more powerful than
@@ -1986,9 +1986,9 @@ attribute such as
 %  exercise worth including? E.g. find a difference between the two ways
 %  of substituting.
 %\begin{exercise}
-%In {\S}\ref{sec:subst} the method \isa{subst\ mult_commute} was applied.  How
+%In {\S}\ref{sec:subst} the method \isa{subst\ mult.commute} was applied.  How
 %can we achieve the same effect using \isa{THEN} with the rule \isa{ssubst}?
-%% answer  rule (mult_commute [THEN ssubst])
+%% answer  rule (mult.commute [THEN ssubst])
 %\end{exercise}
 
 \subsection{Modifying a Theorem using {\tt\slshape OF}}

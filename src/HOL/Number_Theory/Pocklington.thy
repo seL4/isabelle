@@ -264,7 +264,7 @@ proof-
           mod_div_equality[of "(n - 1)" m, symmetric]
         by (simp add:power_add[symmetric] cong_nat_def th3 del: One_nat_def)
       have th1: "[a ^ ((n - 1) mod m) = 1] (mod n)"
-        by (metis cong_mult_rcancel_nat nat_mult_commute th2 yn)
+        by (metis cong_mult_rcancel_nat mult.commute th2 yn)
       from m(4)[rule_format, OF th0] nm1
         less_trans[OF mod_less_divisor[OF m(1), of "n - 1"] m(2)] th1
       have False by blast }
@@ -385,7 +385,7 @@ next
     from H have onz: "?o \<noteq> 0" by (simp add: ord_eq_0)
     hence op: "?o > 0" by simp
     from mod_div_equality[of d "ord n a"] lh
-    have "[a^(?o*?q + ?r) = 1] (mod n)" by (simp add: cong_nat_def mult_commute)
+    have "[a^(?o*?q + ?r) = 1] (mod n)" by (simp add: cong_nat_def mult.commute)
     hence "[(a^?o)^?q * (a^?r) = 1] (mod n)"
       by (simp add: cong_nat_def power_mult[symmetric] power_add[symmetric])
     hence th: "[a^?r = 1] (mod n)"
@@ -493,7 +493,7 @@ proof -
         from H[rule_format, of d] h d have "d = 1" by blast}
       moreover
       {assume h: "e\<^sup>2 \<le> n"
-        from e have "e dvd n" unfolding dvd_def by (simp add: mult_commute)
+        from e have "e dvd n" unfolding dvd_def by (simp add: mult.commute)
         with H[rule_format, of e] h have "e=1" by simp
         with e have "d = n" by simp}
       ultimately have "d=1 \<or> d=n"  by blast}
@@ -552,7 +552,7 @@ proof -
   hence "a ^ (r * q) + p * 0 = 1 + p * (l*k)" by (simp add: mult_ac)
   hence odq: "ord p (a^r) dvd q"
     unfolding ord_divides[symmetric] power_mult[symmetric]
-    by (metis an cong_dvd_modulus_nat mult_commute nqr pn) 
+    by (metis an cong_dvd_modulus_nat mult.commute nqr pn) 
   from odq[unfolded dvd_def] obtain d where d: "q = ord p (a^r) * d" by blast
   {assume d1: "d \<noteq> 1"
     obtain P where P: "prime P" "P dvd d"
@@ -564,9 +564,9 @@ proof -
       by (metis zero_not_prime_nat) 
     from P(2) obtain t where t: "d = P*t" unfolding dvd_def by blast
     from d s t P0  have s': "ord p (a^r) * t = s"
-      by (metis mult_commute mult_cancel1 nat_mult_assoc) 
+      by (metis mult.commute mult_cancel1 mult.assoc) 
     have "ord p (a^r) * t*r = r * ord p (a^r) * t"
-      by (metis mult_assoc mult_commute)
+      by (metis mult.assoc mult.commute)
     hence exps: "a^(ord p (a^r) * t*r) = ((a ^ r) ^ ord p (a^r)) ^ t"
       by (simp only: power_mult)
     then have th: "[((a ^ r) ^ ord p (a^r)) ^ t= 1] (mod p)"
@@ -597,7 +597,7 @@ proof -
     by (metis p01(1)) 
   from p0 d have "p + q * 0 = 1 + q * d" by simp
   then show ?thesis
-    by (metis cong_iff_lin_nat mult_commute)
+    by (metis cong_iff_lin_nat mult.commute)
 qed
 
 theorem pocklington:
@@ -767,7 +767,7 @@ proof-
       by auto
     from div_mult1_eq[of r q p] p(2)
     have eq1: "r* (q div p) = (n - 1) div p"
-      unfolding qrn[symmetric] dvd_eq_mod_eq_0 by (simp add: mult_commute)
+      unfolding qrn[symmetric] dvd_eq_mod_eq_0 by (simp add: mult.commute)
     have ath: "\<And>a (b::nat). a <= b \<Longrightarrow> a \<noteq> 0 ==> 1 <= a \<and> 1 <= b" by arith
     {assume "a ^ ((n - 1) div p) mod n = 0"
       then obtain s where s: "a ^ ((n - 1) div p) = n*s"
@@ -779,7 +779,7 @@ proof-
       with eq0 have "a^ (n - 1) = (n*s)^p"
         by (simp add: power_mult[symmetric])
       hence "1 = (n*s)^(Suc (p - 1)) mod n" using bqn p01 by simp
-      also have "\<dots> = 0" by (simp add: mult_assoc)
+      also have "\<dots> = 0" by (simp add: mult.assoc)
       finally have False by simp }
       then have th11: "a ^ ((n - 1) div p) mod n \<noteq> 0" by auto
     have th1: "[a ^ ((n - 1) div p) mod n = a ^ ((n - 1) div p)] (mod n)"

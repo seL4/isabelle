@@ -108,7 +108,7 @@ lemma set_plus_rearrange:
   done
 
 lemma set_plus_rearrange2: "(a::'a::semigroup_add) +o (b +o C) = (a + b) +o C"
-  by (auto simp add: elt_set_plus_def add_assoc)
+  by (auto simp add: elt_set_plus_def add.assoc)
 
 lemma set_plus_rearrange3: "((a::'a::semigroup_add) +o B) + C = a +o (B + C)"
   apply (auto simp add: elt_set_plus_def set_plus_def)
@@ -216,7 +216,7 @@ lemma set_times_rearrange:
 
 lemma set_times_rearrange2:
   "(a::'a::semigroup_mult) *o (b *o C) = (a * b) *o C"
-  by (auto simp add: elt_set_times_def mult_assoc)
+  by (auto simp add: elt_set_times_def mult.assoc)
 
 lemma set_times_rearrange3:
   "((a::'a::semigroup_mult) *o B) * C = a *o (B * C)"

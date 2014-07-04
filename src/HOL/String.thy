@@ -269,7 +269,7 @@ declare nat_of_char_simps [code]
 lemma nibble_of_nat_of_char_div_16:
   "nibble_of_nat (nat_of_char c div 16) = (case c of Char x y \<Rightarrow> x)"
   by (cases c)
-    (simp add: nat_of_char_def add_commute nat_of_nibble_less_16)
+    (simp add: nat_of_char_def add.commute nat_of_nibble_less_16)
 
 lemma nibble_of_nat_nat_of_char:
   "nibble_of_nat (nat_of_char c) = (case c of Char x y \<Rightarrow> y)"
@@ -279,7 +279,7 @@ proof (cases c)
     by (simp add: nibble_of_nat_mod_16)
   then have "nibble_of_nat (nat_of_nibble y + nat_of_nibble x * 16) = y"
     by (simp only: nibble_of_nat_mod_16)
-  with Char show ?thesis by (simp add: nat_of_char_def add_commute)
+  with Char show ?thesis by (simp add: nat_of_char_def add.commute)
 qed
 
 code_datatype Char -- {* drop case certificate for char *}
@@ -303,7 +303,7 @@ proof -
   have "n mod 256 = 16 * (n div 16 mod 16) + n mod 16" by simp
   then show ?thesis
     by (simp add: char_of_nat_def enum_char_product_enum_nibble card_UNIV_nibble
-      card_UNIV_length_enum [symmetric] nibble_of_nat_def product_nth add_commute)
+      card_UNIV_length_enum [symmetric] nibble_of_nat_def product_nth add.commute)
 qed
 
 lemma char_of_nat_of_char [simp]:

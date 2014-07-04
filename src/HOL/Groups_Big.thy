@@ -958,7 +958,7 @@ lemma setsum_multicount:
   shows "setsum (\<lambda>i. card {j\<in>T. R i j}) S = k * card T" (is "?l = ?r")
 proof-
   have "?l = setsum (\<lambda>i. k) T" by (rule setsum_multicount_gen) (auto simp: assms)
-  also have "\<dots> = ?r" by (simp add: mult_commute)
+  also have "\<dots> = ?r" by (simp add: mult.commute)
   finally show ?thesis by auto
 qed
 

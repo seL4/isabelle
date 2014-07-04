@@ -210,7 +210,7 @@ next
     have "(\<Sum>j \<in> {1..2}. ?u j *\<^sub>R ?x j) = \<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y"
       by auto
     then have "(1 - \<mu>) *\<^sub>R y + \<mu> *\<^sub>R x \<in> s"
-      using s by (auto simp:add_commute)
+      using s by (auto simp:add.commute)
   }
   then show "convex s"
     unfolding convex_alt by auto
@@ -525,7 +525,7 @@ next
       using a_nonneg a1 asms by blast
     have "f (\<Sum> j \<in> insert i s. a j *\<^sub>R y j) = f ((\<Sum> j \<in> s. a j *\<^sub>R y j) + a i *\<^sub>R y i)"
       using setsum.insert[of s i "\<lambda> j. a j *\<^sub>R y j", OF `finite s` `i \<notin> s`] asms
-      by (auto simp only:add_commute)
+      by (auto simp only:add.commute)
     also have "\<dots> = f (((1 - a i) * inverse (1 - a i)) *\<^sub>R (\<Sum> j \<in> s. a j *\<^sub>R y j) + a i *\<^sub>R y i)"
       using i0 by auto
     also have "\<dots> = f ((1 - a i) *\<^sub>R (\<Sum> j \<in> s. (a j * inverse (1 - a i)) *\<^sub>R y j) + a i *\<^sub>R y i)"
@@ -535,7 +535,7 @@ next
       by (auto simp: divide_inverse)
     also have "\<dots> \<le> (1 - a i) *\<^sub>R f ((\<Sum> j \<in> s. ?a j *\<^sub>R y j)) + a i * f (y i)"
       using conv[of "y i" "(\<Sum> j \<in> s. ?a j *\<^sub>R y j)" "a i", OF yai(1) asum yai(2) ai1]
-      by (auto simp add:add_commute)
+      by (auto simp add:add.commute)
     also have "\<dots> \<le> (1 - a i) * (\<Sum> j \<in> s. ?a j * f (y j)) + a i * f (y i)"
       using add_right_mono[OF mult_left_mono[of _ _ "1 - a i",
         OF asum_le less_imp_le[OF i0]], of "a i * f (y i)"] by simp
@@ -768,7 +768,7 @@ proof -
     by auto
   then have f''0: "\<And>z::real. z > 0 \<Longrightarrow>
     DERIV (\<lambda> z. - 1 / (ln b * z)) z :> 1 / (ln b * z * z)"
-    unfolding inverse_eq_divide by (auto simp add: mult_assoc)
+    unfolding inverse_eq_divide by (auto simp add: mult.assoc)
   have f''_ge0: "\<And>z::real. z > 0 \<Longrightarrow> 1 / (ln b * z * z) \<ge> 0"
     using `b > 1` by (auto intro!:less_imp_le)
   from f''_ge0_imp_convex[OF pos_is_convex,

@@ -252,7 +252,7 @@ proof
   assume "q \<noteq> 0"
   then show "inverse q * q = 1"
     by (cases q rule: Fract_cases_nonzero)
-      (simp_all add: fract_expand eq_fract mult_commute)
+      (simp_all add: fract_expand eq_fract mult.commute)
 next
   fix q r :: "'a fract"
   show "q / r = q * inverse r" by (simp add: divide_fract_def)
@@ -398,7 +398,7 @@ next
     by (simp only: less_fract_def)
   show "q \<le> r \<or> r \<le> q"
     by (induct q, induct r)
-       (simp add: mult_commute, rule linorder_linear)
+       (simp add: mult.commute, rule linorder_linear)
 qed
 
 end

@@ -64,11 +64,11 @@ also provable by simp (re-orients)
 text {*
 the subst method
 
-@{thm[display] mult_commute}
-\rulename{mult_commute}
+@{thm[display] mult.commute}
+\rulename{mult.commute}
 
 this would fail:
-apply (simp add: mult_commute) 
+apply (simp add: mult.commute) 
 *}
 
 
@@ -76,7 +76,7 @@ lemma "\<lbrakk>P x y z; Suc x < y\<rbrakk> \<Longrightarrow> f z = x*y"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 *}
-apply (subst mult_commute) 
+apply (subst mult.commute) 
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 *}
@@ -84,7 +84,7 @@ oops
 
 (*exercise involving THEN*)
 lemma "\<lbrakk>P x y z; Suc x < y\<rbrakk> \<Longrightarrow> f z = x*y"
-apply (rule mult_commute [THEN ssubst]) 
+apply (rule mult.commute [THEN ssubst]) 
 oops
 
 

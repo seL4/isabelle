@@ -425,7 +425,7 @@ proof -
       unfolding linear_setsum[OF lf]
       by (simp add: linear_cmul[OF lf])
     finally show "f x \<bullet> y = x \<bullet> ?w"
-      by (simp add: inner_setsum_left inner_setsum_right mult_commute)
+      by (simp add: inner_setsum_left inner_setsum_right mult.commute)
   qed
   then show ?thesis
     unfolding adjoint_def choice_iff
@@ -848,7 +848,7 @@ proof -
         from h have "(x + y) \<in> span_induct_alt_help S"
           apply (induct rule: span_induct_alt_help.induct)
           apply simp
-          unfolding add_assoc
+          unfolding add.assoc
           apply (rule span_induct_alt_help_S)
           apply assumption
           apply simp
@@ -1083,7 +1083,7 @@ proof -
       also have "\<dots> = (\<Sum>v\<in>S. u v *\<^sub>R v) + c *\<^sub>R x"
         by (simp add: setsum.remove [OF fS xS] algebra_simps)
       also have "\<dots> = c*\<^sub>R x + y"
-        by (simp add: add_commute u)
+        by (simp add: add.commute u)
       finally have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = c*\<^sub>R x + y" .
       then show ?thesis using th0 by blast
     next
@@ -1095,7 +1095,7 @@ proof -
         apply auto
         done
       show ?thesis using fS xS th0
-        by (simp add: th00 add_commute cong del: if_weak_cong)
+        by (simp add: th00 add.commute cong del: if_weak_cong)
     qed
     then show "?h (c*\<^sub>R x + y)"
       by fast
@@ -1472,7 +1472,7 @@ proof
       from Basis_le_norm[OF i, of x]
       show "norm (?g i) \<le> norm (f i) * norm x"
         unfolding norm_scaleR
-        apply (subst mult_commute)
+        apply (subst mult.commute)
         apply (rule mult_mono)
         apply (auto simp add: field_simps)
         done
@@ -1494,7 +1494,7 @@ proof
     have "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
       using `linear f` by (rule linear_bounded)
     then show "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
-      by (simp add: mult_commute)
+      by (simp add: mult.commute)
   qed
 next
   assume "bounded_linear f"
@@ -1511,7 +1511,7 @@ proof -
     using lf unfolding linear_conv_bounded_linear
     by (rule bounded_linear.pos_bounded)
   then show ?thesis
-    by (simp only: mult_commute)
+    by (simp only: mult.commute)
 qed
 
 lemma bounded_linearI':

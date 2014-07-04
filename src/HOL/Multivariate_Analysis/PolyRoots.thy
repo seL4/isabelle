@@ -21,7 +21,7 @@ lemma setsum_gp0:
  shows   "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
 using setsum_gp_basic[of x n]
 apply (simp add: real_of_nat_def)
-by (metis eq_iff_diff_eq_0 mult_commute nonzero_eq_divide_eq)
+by (metis eq_iff_diff_eq_0 mult.commute nonzero_eq_divide_eq)
 
 lemma setsum_power_shift:
   fixes x :: "'a::{comm_ring,monoid_mult}"
@@ -41,7 +41,7 @@ lemma setsum_gp_multiplied:
   shows "(1 - x) * (\<Sum>i=m..n. x^i) = x^m - x^Suc n"
 proof -
   have  "(1 - x) * (\<Sum>i=m..n. x^i) = x^m * (1 - x) * (\<Sum>i\<le>n-m. x^i)"
-    by (metis ab_semigroup_mult_class.mult_ac(1) assms mult_commute setsum_power_shift)
+    by (metis ab_semigroup_mult_class.mult_ac(1) assms mult.commute setsum_power_shift)
   also have "... =x^m * (1 - x^Suc(n-m))"
     by (metis ab_semigroup_mult_class.mult_ac(1) setsum_gp_basic)
   also have "... = x^m - x^Suc n"
@@ -58,7 +58,7 @@ lemma setsum_gp:
                 else (x^m - x^Suc n) / (1 - x))"
 using setsum_gp_multiplied [of m n x] 
 apply (auto simp: real_of_nat_def)
-by (metis eq_iff_diff_eq_0 mult_commute nonzero_divide_eq_eq)
+by (metis eq_iff_diff_eq_0 mult.commute nonzero_divide_eq_eq)
 
 lemma setsum_gp_offset:
   fixes x :: "'a::{comm_ring,division_ring_inverse_zero}"
@@ -133,7 +133,7 @@ lemma polyfun_extremal_lemma:
 proof (induction n)
   case 0
   show ?case 
-    by (rule exI [where x="norm (c 0) / e"]) (auto simp: mult_commute pos_divide_le_eq assms)
+    by (rule exI [where x="norm (c 0) / e"]) (auto simp: mult.commute pos_divide_le_eq assms)
 next
   case (Suc n)
   then obtain M where M: "\<forall>z. M \<le> norm z \<longrightarrow> norm (\<Sum>i\<le>n. c i * z^i) \<le> e * norm z ^ Suc n" ..
@@ -144,7 +144,7 @@ next
     then have norm1: "0 < norm z" "M \<le> norm z" "(e + norm (c (Suc n))) / e \<le> norm z"
       by auto
     then have norm2: "(e + norm (c (Suc n))) \<le> e * norm z"  "(norm z * norm z ^ n) > 0"
-      apply (metis assms less_divide_eq mult_commute not_le) 
+      apply (metis assms less_divide_eq mult.commute not_le) 
       using norm1 apply (metis mult_pos_pos zero_less_power)
       done
     have "e * (norm z * norm z ^ n) + norm (c (Suc n) * (z * z ^ n)) =
@@ -162,7 +162,7 @@ next
 qed
 
 lemma norm_lemma_xy: "\<lbrakk>abs b + 1 \<le> norm(y) - a; norm(x) \<le> a\<rbrakk> \<Longrightarrow> b \<le> norm(x + y)"
-  by (metis abs_add_one_not_less_self add_commute diff_le_eq dual_order.trans le_less_linear 
+  by (metis abs_add_one_not_less_self add.commute diff_le_eq dual_order.trans le_less_linear 
          norm_diff_ineq)
 
 lemma polyfun_extremal:

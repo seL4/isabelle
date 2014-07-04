@@ -103,7 +103,7 @@ proof -
   from mod_div_equality have *: "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
   show ?thesis
     by (simp add: Let_def divmod_int_mod_div of_int_add [symmetric])
-      (simp add: * mult_commute)
+      (simp add: * mult.commute)
 qed
 
 declare of_int_code_if [code]

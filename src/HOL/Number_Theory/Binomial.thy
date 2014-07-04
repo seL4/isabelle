@@ -33,7 +33,7 @@ lemma binomial_Suc_Suc [simp]: "(Suc n choose Suc k) = (n choose k) + (n choose 
 lemma choose_reduce_nat: 
   "0 < (n::nat) \<Longrightarrow> 0 < k \<Longrightarrow>
     (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
-  by (metis Suc_diff_1 binomial.simps(2) nat_add_commute neq0_conv)
+  by (metis Suc_diff_1 binomial.simps(2) add.commute neq0_conv)
 
 lemma binomial_eq_0: "n < k \<Longrightarrow> n choose k = 0"
   by (induct n arbitrary: k) auto
@@ -356,7 +356,7 @@ lemma pochhammer_minus':
   assumes kn: "k \<le> n"
   shows "pochhammer (b - of_nat k + 1) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (- b) k"
   unfolding pochhammer_minus[OF kn, where b=b]
-  unfolding mult_assoc[symmetric]
+  unfolding mult.assoc[symmetric]
   unfolding power_add[symmetric]
   by simp
 
@@ -461,7 +461,7 @@ proof -
       apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h
         of_nat_setprod setprod.distrib[symmetric] eq' del: One_nat_def power_Suc)
       unfolding setprod.union_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
-      unfolding mult_assoc[symmetric]
+      unfolding mult.assoc[symmetric]
       unfolding setprod.distrib[symmetric]
       apply simp
       apply (intro setprod.reindex_bij_witness[where i="op - n" and j="op - n"])
@@ -494,7 +494,7 @@ qed
 
 lemma gbinomial_mult_1':
     "(a gchoose n) * a = of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"
-  by (simp add: mult_commute gbinomial_mult_1)
+  by (simp add: mult.commute gbinomial_mult_1)
 
 lemma gbinomial_Suc:
     "a gchoose (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0 .. k}) / of_nat (fact (Suc k))"
@@ -509,7 +509,7 @@ lemma gbinomial_mult_fact':
   "((a::'a::field_char_0) gchoose (Suc k)) * (of_nat (fact (Suc k)) :: 'a) =
     (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
   using gbinomial_mult_fact[of k a]
-  by (subst mult_commute)
+  by (subst mult.commute)
 
 
 lemma gbinomial_Suc_Suc:
@@ -531,8 +531,8 @@ next
     unfolding gbinomial_mult_fact'
     apply (subst fact_Suc)
     unfolding of_nat_mult
-    apply (subst mult_commute)
-    unfolding mult_assoc
+    apply (subst mult.commute)
+    unfolding mult.assoc
     unfolding gbinomial_mult_fact
     apply (simp add: field_simps)
     done
@@ -597,7 +597,7 @@ proof -
     from assms have "n * i \<ge> i * k" by simp
     then have "n * k - n * i \<le> n * k - i * k" by arith
     then have "n * (k - i) \<le> (n - i) * k"
-      by (simp add: diff_mult_distrib2 nat_mult_commute)
+      by (simp add: diff_mult_distrib2 mult.commute)
     then have "of_nat n * of_nat (k - i) \<le> of_nat (n - i) * (of_nat k :: 'a)"
       unfolding of_nat_mult[symmetric] of_nat_le_iff .
     with assms show "of_nat n / of_nat k \<le> of_nat (n - i) / (of_nat (k - i) :: 'a)"
@@ -634,20 +634,20 @@ proof -
   also have "... = fact (m+r+k) div (fact r * (fact k * fact m))"
     apply (subst div_mult_div_if_dvd)
     apply (auto simp: fact_fact_dvd_fact)
-    apply (metis ab_semigroup_add_class.add_ac(1) add_commute fact_fact_dvd_fact)
+    apply (metis ab_semigroup_add_class.add_ac(1) add.commute fact_fact_dvd_fact)
     done
   also have "... = (fact (m+r+k) * fact (m+r)) div (fact r * (fact k * fact m) * fact (m+r))"
     apply (subst div_mult_div_if_dvd [symmetric])
     apply (auto simp: fact_fact_dvd_fact)
-    apply (metis dvd_trans dvd.dual_order.refl fact_fact_dvd_fact mult_dvd_mono mult_left_commute)
+    apply (metis dvd_trans dvd.dual_order.refl fact_fact_dvd_fact mult_dvd_mono mult.left_commute)
     done
   also have "... = (fact (m+r+k) div (fact k * fact (m+r)) * (fact (m+r) div (fact r * fact m)))"
     apply (subst div_mult_div_if_dvd)
     apply (auto simp: fact_fact_dvd_fact)
-    apply(metis mult_left_commute)
+    apply(metis mult.left_commute)
     done
   finally show ?thesis
-    by (simp add: binomial_altdef_nat mult_commute)
+    by (simp add: binomial_altdef_nat mult.commute)
 qed
 
 lemma choose_mult:

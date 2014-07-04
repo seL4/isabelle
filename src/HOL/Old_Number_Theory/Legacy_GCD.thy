@@ -161,7 +161,7 @@ lemma gcd_mult_cancel: "gcd k n = 1 ==> gcd (k * m) n = gcd m n"
     apply (rule_tac n = k in relprime_dvd_mult)
      apply (simp add: gcd_assoc)
      apply (simp add: gcd_commute)
-    apply (simp_all add: mult_commute)
+    apply (simp_all add: mult.commute)
   done
 
 
@@ -173,19 +173,19 @@ lemma gcd_add1 [simp, algebra]: "gcd (m + n) n = gcd m n"
 lemma gcd_add2 [simp, algebra]: "gcd m (m + n) = gcd m n"
 proof -
   have "gcd m (m + n) = gcd (m + n) m" by (rule gcd_commute)
-  also have "... = gcd (n + m) m" by (simp add: add_commute)
+  also have "... = gcd (n + m) m" by (simp add: add.commute)
   also have "... = gcd n m" by simp
   also have  "... = gcd m n" by (rule gcd_commute)
   finally show ?thesis .
 qed
 
 lemma gcd_add2' [simp, algebra]: "gcd m (n + m) = gcd m n"
-  apply (subst add_commute)
+  apply (subst add.commute)
   apply (rule gcd_add2)
   done
 
 lemma gcd_add_mult[algebra]: "gcd m (k * m + n) = gcd m n"
-  by (induct k) (simp_all add: add_assoc)
+  by (induct k) (simp_all add: add.assoc)
 
 lemma gcd_dvd_prod: "gcd m n dvd m * n" 
   using mult_dvd_mono [of 1] by auto
@@ -351,7 +351,7 @@ proof-
           hence "a * ((b - 1) * y) = d + (x*b*(b - 1) - d*b)" 
             by (simp only: diff_add_assoc[OF dble, of d, symmetric])
           hence "a * ((b - 1) * y) = b*(x*(b - 1) - d) + d"
-            by (simp only: diff_mult_distrib2 add_commute mult_ac)
+            by (simp only: diff_mult_distrib2 add.commute mult_ac)
           hence ?thesis using H(1,2)
             apply -
             apply (rule exI[where x=d], simp)
@@ -374,7 +374,7 @@ proof-
   hence "a * x * k - b * y*k = d*k \<or> b * x * k - a * y*k = d*k" 
     by (algebra add: diff_mult_distrib)
   hence "a * (x * k) - b * (y*k) = ?g \<or> b * (x * k) - a * (y*k) = ?g" 
-    by (simp add: k mult_assoc)
+    by (simp add: k mult.assoc)
   thus ?thesis by blast
 qed
 
@@ -392,7 +392,7 @@ proof-
 qed
 
 lemma gcd_mult_distrib: "gcd(a * c) (b * c) = c * gcd a b"
-by(simp add: gcd_mult_distrib2 mult_commute)
+by(simp add: gcd_mult_distrib2 mult.commute)
 
 lemma gcd_bezout: "(\<exists>x y. a * x - b * y = d \<or> b * x - a * y = d) \<longleftrightarrow> gcd a b dvd d"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -405,7 +405,7 @@ proof-
     hence "a * x*k - b * y*k = ?g*k \<or> b * x * k - a * y*k = ?g*k" 
       by (simp only: diff_mult_distrib)
     hence "a * (x*k) - b * (y*k) = d \<or> b * (x * k) - a * (y*k) = d"
-      by (simp add: k[symmetric] mult_assoc)
+      by (simp add: k[symmetric] mult.assoc)
     hence ?lhs by blast}
   moreover
   {fix x y assume H: "a * x - b * y = d \<or> b * x - a * y = d"
@@ -426,7 +426,7 @@ proof-
 qed
 
 lemma gcd_mult': "gcd b (a * b) = b"
-by (simp add: mult_commute[of a b]) 
+by (simp add: mult.commute[of a b]) 
 
 lemma gcd_add: "gcd(a + b) b = gcd a b" 
   "gcd(b + a) b = gcd a b" "gcd a (a + b) = gcd a b" "gcd a (b + a) = gcd a b"

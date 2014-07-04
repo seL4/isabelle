@@ -643,7 +643,7 @@ proof (induct I arbitrary: A rule: finite_induct)
       using E by (subst insert) (auto intro!: setprod.cong)
     also have "(\<Prod>j\<in>I. if j \<in> J - {i} then emeasure (M j) (E j) else emeasure (M j) (space (M j))) *
        emeasure (M i) (if i \<in> J then E i else space (M i)) = (\<Prod>j\<in>insert i I. ?f J E j)"
-      using insert by (auto simp: mult_commute intro!: arg_cong2[where f="op *"] setprod.cong)
+      using insert by (auto simp: mult.commute intro!: arg_cong2[where f="op *"] setprod.cong)
     also have "\<dots> = (\<Prod>j\<in>J \<union> ?I. ?f J E j)"
       using insert(1,2) J E by (intro setprod.mono_neutral_right) auto
     finally show "?\<mu> ?p = \<dots>" .

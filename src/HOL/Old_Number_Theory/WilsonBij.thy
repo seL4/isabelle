@@ -207,7 +207,7 @@ lemma reciP_uniq: "zprime p ==> uniqP (reciR p)"
 
 lemma reciP_sym: "zprime p ==> symP (reciR p)"
   apply (unfold reciR_def symP_def)
-  apply (simp add: mult_commute)
+  apply (simp add: mult.commute)
   apply auto
   done
 
@@ -234,7 +234,7 @@ lemma bijER_zcong_prod_1:
     apply (subst setprod.insert)
       apply (auto simp add: fin_bijER)
   apply (subgoal_tac "zcong ((a * b) * \<Prod>A) (1 * 1) p")
-   apply (simp add: mult_assoc)
+   apply (simp add: mult.assoc)
   apply (rule zcong_zmult)
    apply auto
   done

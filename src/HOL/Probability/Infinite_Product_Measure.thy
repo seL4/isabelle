@@ -565,7 +565,7 @@ proof (rule PiM_eq)
   also have "emeasure S ?E = (\<Prod>j\<in>J \<inter> {..<i}. emeasure M (E j))"
     using J by (intro emeasure_PiM_emb) simp_all
   also have "(\<Prod>j\<in>J \<inter> {..<i}. emeasure M (E j)) * (\<Prod>j\<in>J - (J \<inter> {..<i}). emeasure M (E j)) = (\<Prod>j\<in>J. emeasure M (E j))"
-    by (subst mult_commute) (auto simp: J setprod.subset_diff[symmetric])
+    by (subst mult.commute) (auto simp: J setprod.subset_diff[symmetric])
   finally show "emeasure ?D ?X = (\<Prod>j\<in>J. emeasure M (E j))" .
 qed simp_all
 

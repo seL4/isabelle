@@ -61,7 +61,7 @@ definition
   less_sat_def: "x < y \<longleftrightarrow> nat_of x < nat_of y"
 
 instance
-by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min.coboundedI1 nat_mult_commute)
+by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min.coboundedI1 mult.commute)
 
 end
 
@@ -117,14 +117,14 @@ instance proof
       case True thus ?thesis by (simp add: sat_eq_iff)
     next
       case False with `a \<noteq> 0` show ?thesis
-        by (simp add: sat_eq_iff nat_mult_min_left nat_mult_min_right mult_assoc min.assoc min.absorb2)
+        by (simp add: sat_eq_iff nat_mult_min_left nat_mult_min_right mult.assoc min.assoc min.absorb2)
     qed
   qed
 next
   fix a :: "('a::len) sat"
   show "1 * a = a"
     apply (simp add: sat_eq_iff)
-    apply (metis One_nat_def len_gt_0 less_Suc0 less_zeroE linorder_not_less min.absorb_iff1 min_nat_of_len_of nat_mult_1_right nat_mult_commute)
+    apply (metis One_nat_def len_gt_0 less_Suc0 less_zeroE linorder_not_less min.absorb_iff1 min_nat_of_len_of nat_mult_1_right mult.commute)
     done
 next
   fix a b c :: "('a::len) sat"
@@ -143,7 +143,7 @@ instantiation sat :: (len) ordered_comm_semiring
 begin
 
 instance
-by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min.coboundedI1 nat_mult_commute)
+by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min.coboundedI1 mult.commute)
 
 end
 

@@ -1301,7 +1301,7 @@ lemma (in prob_space)
 unfolding indep_var_def
 proof -
   have *: "(\<lambda>\<omega>. X1 \<omega> * X2 \<omega>) = (\<lambda>\<omega>. \<Prod>i\<in>UNIV. (case_bool X1 X2 i \<omega>))"
-    by (simp add: UNIV_bool mult_commute)
+    by (simp add: UNIV_bool mult.commute)
   have **: "(\<lambda> _. borel) = case_bool borel borel"
     by (rule ext, metis (full_types) bool.simps(3) bool.simps(4))
   show ?eq
@@ -1310,7 +1310,7 @@ proof -
     apply (auto)
     apply (subst **, subst indep_var_def [symmetric], rule assms)
     apply (simp split: bool.split add: assms)
-    by (simp add: UNIV_bool mult_commute)
+    by (simp add: UNIV_bool mult.commute)
   show ?int
     apply (subst *)
     apply (rule indep_vars_integrable)

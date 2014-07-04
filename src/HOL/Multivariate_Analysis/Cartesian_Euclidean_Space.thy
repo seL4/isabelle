@@ -183,13 +183,13 @@ lemmas vector_component =
 subsection {* Some frequently useful arithmetic lemmas over vectors. *}
 
 instance vec :: (semigroup_mult, finite) semigroup_mult
-  by default (vector mult_assoc)
+  by default (vector mult.assoc)
 
 instance vec :: (monoid_mult, finite) monoid_mult
   by default vector+
 
 instance vec :: (ab_semigroup_mult, finite) ab_semigroup_mult
-  by default (vector mult_commute)
+  by default (vector mult.commute)
 
 instance vec :: (comm_monoid_mult, finite) comm_monoid_mult
   by default vector
@@ -254,7 +254,7 @@ instance vec :: (comm_ring_1, finite) comm_ring_1 ..
 instance vec :: (ring_char_0, finite) ring_char_0 ..
 
 lemma vector_smult_assoc: "a *s (b *s x) = ((a::'a::semigroup_mult) * b) *s x"
-  by (vector mult_assoc)
+  by (vector mult.assoc)
 lemma vector_sadd_rdistrib: "((a::'a::semiring) + b) *s x = a *s x + b *s x"
   by (vector field_simps)
 lemma vector_add_ldistrib: "(c::'a::semiring) *s (x + y) = c *s x + c *s y"
@@ -380,14 +380,14 @@ lemma matrix_mul_rid:
   done
 
 lemma matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
-  apply (vector matrix_matrix_mult_def setsum_right_distrib setsum_left_distrib mult_assoc)
+  apply (vector matrix_matrix_mult_def setsum_right_distrib setsum_left_distrib mult.assoc)
   apply (subst setsum.commute)
   apply simp
   done
 
 lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply (vector matrix_matrix_mult_def matrix_vector_mult_def
-    setsum_right_distrib setsum_left_distrib mult_assoc)
+    setsum_right_distrib setsum_left_distrib mult.assoc)
   apply (subst setsum.commute)
   apply simp
   done
@@ -399,7 +399,7 @@ lemma matrix_vector_mul_lid: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
 
 lemma matrix_transpose_mul:
     "transpose(A ** B) = transpose B ** transpose (A::'a::comm_semiring_1^_^_)"
-  by (simp add: matrix_matrix_mult_def transpose_def vec_eq_iff mult_commute)
+  by (simp add: matrix_matrix_mult_def transpose_def vec_eq_iff mult.commute)
 
 lemma matrix_eq:
   fixes A B :: "'a::semiring_1 ^ 'n ^ 'm"
@@ -452,7 +452,7 @@ lemma matrix_mult_dot: "A *v x = (\<chi> i. A$i \<bullet> x)"
 
 lemma matrix_mult_vsum:
   "(A::'a::comm_semiring_1^'n^'m) *v x = setsum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
-  by (simp add: matrix_vector_mult_def vec_eq_iff column_def mult_commute)
+  by (simp add: matrix_vector_mult_def vec_eq_iff column_def mult.commute)
 
 lemma vector_componentwise:
   "(x::'a::ring_1^'n) = (\<chi> j. \<Sum>i\<in>UNIV. (x$i) * (axis i 1 :: 'a^'n) $ j)"
@@ -498,7 +498,7 @@ lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
 lemma matrix_works:
   assumes lf: "linear f"
   shows "matrix f *v x = f (x::real ^ 'n)"
-  apply (simp add: matrix_def matrix_vector_mult_def vec_eq_iff mult_commute)
+  apply (simp add: matrix_def matrix_vector_mult_def vec_eq_iff mult.commute)
   apply clarify
   apply (rule linear_componentwise[OF lf, symmetric])
   done
@@ -518,7 +518,7 @@ lemma matrix_compose:
 
 lemma matrix_vector_column:
   "(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
-  by (simp add: matrix_vector_mult_def transpose_def vec_eq_iff mult_commute)
+  by (simp add: matrix_vector_mult_def transpose_def vec_eq_iff mult.commute)
 
 lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
   apply (rule adjoint_unique)

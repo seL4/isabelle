@@ -146,14 +146,14 @@ lemma nmod2: "n mod (2::int) = 0 | n mod 2 = 1" by arith
 
 lemma emep1:
   "even n ==> even d ==> 0 <= d ==> (n + 1) mod (d :: int) = (n mod d) + 1"
-  apply (simp add: add_commute)
+  apply (simp add: add.commute)
   apply (safe dest!: even_equiv_def [THEN iffD1])
   apply (subst pos_zmod_mult_2)
    apply arith
   apply (simp add: mod_mult_mult1)
  done
 
-lemmas eme1p = emep1 [simplified add_commute]
+lemmas eme1p = emep1 [simplified add.commute]
 
 lemma le_diff_eq': "(a \<le> c - b) = (b + a \<le> (c::int))" by arith
 
@@ -187,9 +187,9 @@ lemma axxdiv2:
 lemmas iszero_minus = trans [THEN trans,
   OF iszero_def neg_equal_0_iff_equal iszero_def [symmetric]]
 
-lemmas zadd_diff_inverse = trans [OF diff_add_cancel [symmetric] add_commute]
+lemmas zadd_diff_inverse = trans [OF diff_add_cancel [symmetric] add.commute]
 
-lemmas add_diff_cancel2 = add_commute [THEN diff_eq_eq [THEN iffD2]]
+lemmas add_diff_cancel2 = add.commute [THEN diff_eq_eq [THEN iffD2]]
 
 lemmas rdmods [symmetric] = mod_minus_eq
   mod_diff_left_eq mod_diff_right_eq mod_add_left_eq
@@ -296,13 +296,13 @@ lemma pl_pl_rels:
   "a + b = c + d ==> 
    a >= c & b <= d | a <= c & b >= (d :: nat)" by arith
 
-lemmas pl_pl_rels' = add_commute [THEN [2] trans, THEN pl_pl_rels]
+lemmas pl_pl_rels' = add.commute [THEN [2] trans, THEN pl_pl_rels]
 
 lemma minus_eq: "(m - k = m) = (k = 0 | m = (0 :: nat))"  by arith
 
 lemma pl_pl_mm: "(a :: nat) + b = c + d ==> a - c = d - b"  by arith
 
-lemmas pl_pl_mm' = add_commute [THEN [2] trans, THEN pl_pl_mm]
+lemmas pl_pl_mm' = add.commute [THEN [2] trans, THEN pl_pl_mm]
 
 lemmas dme = box_equals [OF div_mod_equality add_0_right add_0_right]
 lemmas dtle = xtr3 [OF dme [symmetric] le_add1]
@@ -341,7 +341,7 @@ lemma diff_mod_le: "(a::nat) < d ==> b dvd d ==> a - a mod b <= d - b"
    apply clarsimp
   apply clarify
   apply (cases "b > 0")
-   apply (drule mult_commute [THEN xtr1])
+   apply (drule mult.commute [THEN xtr1])
    apply (frule (1) td_gal_lt [THEN iffD1])
    apply (clarsimp simp: le_simps)
    apply (rule mult_div_cancel [THEN [2] xtr4])

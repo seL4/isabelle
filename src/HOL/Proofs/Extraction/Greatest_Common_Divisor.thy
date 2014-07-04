@@ -39,7 +39,7 @@ proof (induct m rule: nat_wf_ind)
       by iprover
     have mn: "Suc m < n" by (rule 1)
     from h1 h1' h2' Suc have "k * (m1 * q + r1) = n" 
-      by (simp add: add_mult_distrib2 nat_mult_assoc [symmetric])
+      by (simp add: add_mult_distrib2 mult.assoc [symmetric])
     moreover have "\<And>l l1 l2. l * l1 = n \<Longrightarrow> l * l2 = Suc m \<Longrightarrow> l \<le> k"
     proof -
       fix l l1 l2

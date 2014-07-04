@@ -57,7 +57,7 @@ begin
 
 lemma scale_left_commute:
   "scale a (scale b x) = scale b (scale a x)"
-by (simp add: mult_commute)
+by (simp add: mult.commute)
 
 lemma scale_zero_left [simp]: "scale 0 x = 0"
   and scale_minus_left [simp]: "scale (- a) x = - (scale a x)"
@@ -255,7 +255,7 @@ lemma of_real_diff [simp]: "of_real (x - y) = of_real x - of_real y"
 by (simp add: of_real_def scaleR_left_diff_distrib)
 
 lemma of_real_mult [simp]: "of_real (x * y) = of_real x * of_real y"
-by (simp add: of_real_def mult_commute)
+by (simp add: of_real_def mult.commute)
 
 lemma of_real_setsum[simp]: "of_real (setsum f s) = (\<Sum>x\<in>s. of_real (f x))"
   by (induct s rule: infinite_finite_induct) auto
@@ -1171,7 +1171,7 @@ unfolding of_real_def by (simp only: sgn_scaleR sgn_one)
 lemma sgn_mult:
   fixes x y :: "'a::real_normed_div_algebra"
   shows "sgn (x * y) = sgn x * sgn y"
-by (simp add: sgn_div_norm norm_mult mult_commute)
+by (simp add: sgn_div_norm norm_mult mult.commute)
 
 lemma real_sgn_eq: "sgn (x::real) = x / \<bar>x\<bar>"
 by (simp add: sgn_div_norm divide_inverse)
@@ -1387,7 +1387,7 @@ proof -
       also have "\<dots> \<le> (norm x * Kg) * Kf"
         using g Kf [THEN order_less_imp_le] by (rule mult_right_mono)
       also have "(norm x * Kg) * Kf = norm x * (Kg * Kf)"
-        by (rule mult_assoc)
+        by (rule mult.assoc)
       finally show "norm (f (g x)) \<le> norm x * (Kg * Kf)" .
     qed
   qed

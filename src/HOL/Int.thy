@@ -567,7 +567,7 @@ lemma odd_less_0_iff:
   "(1 + z + z < 0) = (z < (0::int))"
 proof (cases z)
   case (nonneg n)
-  thus ?thesis by (simp add: linorder_not_less add_assoc add_increasing
+  thus ?thesis by (simp add: linorder_not_less add.assoc add_increasing
                              le_imp_0_less [THEN order_less_imp_le])  
 next
   case (neg n)
@@ -585,7 +585,7 @@ proof (cases z)
   case (nonneg n)
   have le: "0 \<le> z+z" by (simp add: nonneg add_increasing) 
   thus ?thesis using  le_imp_0_less [OF le]
-    by (auto simp add: add_assoc) 
+    by (auto simp add: add.assoc) 
 next
   case (neg n)
   show ?thesis
@@ -594,7 +594,7 @@ next
     have "(0::int) < 1 + (int n + int n)"
       by (simp add: le_imp_0_less add_increasing) 
     also have "... = - (1 + z + z)" 
-      by (simp add: neg add_assoc [symmetric]) 
+      by (simp add: neg add.assoc [symmetric]) 
     also have "... = 0" by (simp add: eq) 
     finally have "0<0" ..
     thus False by blast
@@ -1079,7 +1079,7 @@ qed
 lemma zmult_eq_1_iff: "(m*n = (1::int)) = ((m = 1 & n = 1) | (m = -1 & n = -1))"
 apply (rule iffI) 
  apply (frule pos_zmult_eq_1_iff_lemma)
- apply (simp add: mult_commute [of m]) 
+ apply (simp add: mult.commute [of m]) 
  apply (frule pos_zmult_eq_1_iff_lemma, auto) 
 done
 
@@ -1238,7 +1238,7 @@ subsection {* The divides relation *}
 lemma zdvd_antisym_nonneg:
     "0 <= m ==> 0 <= n ==> m dvd n ==> n dvd m ==> m = (n::int)"
   apply (simp add: dvd_def, auto)
-  apply (auto simp add: mult_assoc zero_le_mult_iff zmult_eq_1_iff)
+  apply (auto simp add: mult.assoc zero_le_mult_iff zmult_eq_1_iff)
   done
 
 lemma zdvd_antisym_abs: assumes "(a::int) dvd b" and "b dvd a" 
@@ -1251,7 +1251,7 @@ next
   from `b dvd a` obtain k' where k':"a = b*k'" unfolding dvd_def by blast 
   from k k' have "a = a*k*k'" by simp
   with mult_cancel_left1[where c="a" and b="k*k'"]
-  have kk':"k*k' = 1" using `a\<noteq>0` by (simp add: mult_assoc)
+  have kk':"k*k' = 1" using `a\<noteq>0` by (simp add: mult.assoc)
   hence "k = 1 \<and> k' = 1 \<or> k = -1 \<and> k' = -1" by (simp add: zmult_eq_1_iff)
   thus ?thesis using k k' by auto
 qed
@@ -1301,7 +1301,7 @@ lemma zdvd_mult_cancel: assumes d:"k * m dvd k * n" and kz:"k \<noteq> (0::int)"
 proof-
   from d obtain h where h: "k*n = k*m * h" unfolding dvd_def by blast
   {assume "n \<noteq> m*h" hence "k* n \<noteq> k* (m*h)" using kz by simp
-    with h have False by (simp add: mult_assoc)}
+    with h have False by (simp add: mult.assoc)}
   hence "n = m * h" by blast
   thus ?thesis by simp
 qed

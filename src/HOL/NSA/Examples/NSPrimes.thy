@@ -274,7 +274,7 @@ apply auto
 apply (subgoal_tac "k \<notin> hypnat_of_nat ` {p. prime p}")
 apply (force simp add: starprime_def, safe)
 apply (drule_tac x = x in bspec, auto)
-apply (metis add_commute hdvd_diff hdvd_one_eq_one hypnat_diff_add_inverse2 hypnat_one_not_prime)
+apply (metis add.commute hdvd_diff hdvd_one_eq_one hypnat_diff_add_inverse2 hypnat_one_not_prime)
 done
 
 end

@@ -230,7 +230,7 @@ lemma fact_mono_int_aux [rule_format]: "k >= (0::int) \<Longrightarrow>
   apply auto
   apply (induct k rule: int_ge_induct)
   apply auto
-  apply (subst add_assoc [symmetric])
+  apply (subst add.assoc [symmetric])
   apply (subst fact_plus_one_int)
   apply auto
   apply (erule order_trans)

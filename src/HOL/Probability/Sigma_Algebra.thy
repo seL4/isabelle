@@ -830,11 +830,11 @@ proof -
       case 0 show ?case by simp
     next
       case (Suc m) thus ?case
-        by (metis Suc_eq_plus1 assms nat_add_commute nat_add_left_commute subset_trans)
+        by (metis Suc_eq_plus1 assms add.commute add.left_commute subset_trans)
     qed
   }
   hence "!!m n. m < n \<Longrightarrow> A m \<subseteq> A n"
-    by (metis add_commute le_add_diff_inverse nat_less_le)
+    by (metis add.commute le_add_diff_inverse nat_less_le)
   thus ?thesis
     by (auto simp add: disjoint_family_on_def)
       (metis insert_absorb insert_subset le_SucE le_antisym not_leE)

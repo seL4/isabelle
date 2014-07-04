@@ -92,7 +92,7 @@ lemma gcd_mult_add: "(0::nat) < n \<Longrightarrow> gcd (n * k + m) n = gcd m n"
 proof -
   assume "0 < n"
   then have "gcd (n * k + m) n = gcd n (m mod n)"
-    by (simp add: gcd_non_0_nat add_commute)
+    by (simp add: gcd_non_0_nat add.commute)
   also from `0 < n` have "\<dots> = gcd m n"
     by (simp add: gcd_non_0_nat)
   finally show ?thesis .

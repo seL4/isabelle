@@ -68,7 +68,7 @@ subsection {* Prime list and product *}
 
 lemma prod_append: "prod (xs @ ys) = prod xs * prod ys"
   apply (induct xs)
-   apply (simp_all add: mult_assoc)
+   apply (simp_all add: mult.assoc)
   done
 
 lemma prod_xy_prod:

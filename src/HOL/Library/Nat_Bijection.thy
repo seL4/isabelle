@@ -61,7 +61,7 @@ lemma prod_decode_triangle_add:
   "prod_decode (triangle k + m) = prod_decode_aux k m"
 apply (induct k arbitrary: m)
 apply (simp add: prod_decode_def)
-apply (simp only: triangle_Suc add_assoc)
+apply (simp only: triangle_Suc add.assoc)
 apply (subst prod_decode_aux.simps, simp)
 done
 
@@ -304,7 +304,7 @@ apply (cases "finite A")
 apply (erule finite_induct, simp)
 apply (case_tac x)
 apply (simp add: even_nat_Suc_div_2 even_set_encode_iff vimage_Suc_insert_0)
-apply (simp add: finite_vimageI add_commute vimage_Suc_insert_Suc)
+apply (simp add: finite_vimageI add.commute vimage_Suc_insert_Suc)
 apply (simp add: set_encode_def finite_vimage_Suc_iff)
 done
 
@@ -334,7 +334,7 @@ lemma set_decode_plus_power_2:
   "n \<notin> set_decode z \<Longrightarrow> set_decode (2 ^ n + z) = insert n (set_decode z)"
  apply (induct n arbitrary: z, simp_all)
   apply (rule set_eqI, induct_tac x, simp, simp add: even_nat_Suc_div_2)
- apply (rule set_eqI, induct_tac x, simp, simp add: add_commute)
+ apply (rule set_eqI, induct_tac x, simp, simp add: add.commute)
 done
 
 lemma finite_set_decode [simp]: "finite (set_decode n)"
@@ -377,7 +377,7 @@ proof -
       by (metis finite_set_decode set_decode_inverse)
   thus ?thesis using assms
     apply auto
-    apply (simp add: set_encode_def nat_add_commute setsum.subset_diff)
+    apply (simp add: set_encode_def add.commute setsum.subset_diff)
     done
   qed
   thus ?thesis

@@ -22,7 +22,7 @@ text{*Changing the quantified variable. Install earlier?*}
 lemma all_shift: "(\<forall>x::'a::comm_ring_1. P x) = (\<forall>x. P (x-a))";
 apply auto 
 apply (drule_tac x="x+a" in spec) 
-apply (simp add: add_assoc) 
+apply (simp add: add.assoc) 
 done
 
 lemma complex_add_minus_iff [simp]: "(x + - a = (0::complex)) = (x=a)"
@@ -142,7 +142,7 @@ apply (induct n)
 apply (drule_tac [2] DERIV_ident [THEN DERIV_mult])
 apply (auto simp add: distrib_right real_of_nat_Suc)
 apply (case_tac "n")
-apply (auto simp add: mult_ac add_commute)
+apply (auto simp add: mult_ac add.commute)
 done
 
 text{*Nonstandard version*}

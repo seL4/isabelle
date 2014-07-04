@@ -193,7 +193,7 @@ permanent_interpretation
 proof
   case goal1 thus ?case
     by(auto simp add: filter_plus_ivl_def)
-      (metis rep_minus_ivl add_diff_cancel add_commute)+
+      (metis rep_minus_ivl add_diff_cancel add.commute)+
 next
   case goal2 thus ?case
     by(cases a1, cases a2,

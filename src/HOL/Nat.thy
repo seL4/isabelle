@@ -244,10 +244,10 @@ lemma mult_0_right [simp]: "(m::nat) * 0 = 0"
   by (induct m) simp_all
 
 lemma mult_Suc_right [simp]: "m * Suc n = m + (m * n)"
-  by (induct m) (simp_all add: add_left_commute)
+  by (induct m) (simp_all add: add.left_commute)
 
 lemma add_mult_distrib: "(m + n) * k = (m * k) + ((n * k)::nat)"
-  by (induct m) (simp_all add: add_assoc)
+  by (induct m) (simp_all add: add.assoc)
 
 instance proof
   fix n m q :: nat
@@ -263,20 +263,15 @@ end
 
 subsubsection {* Addition *}
 
-lemma nat_add_assoc: "(m + n) + k = m + ((n + k)::nat)"
-  by (rule add_assoc)
+lemma nat_add_left_cancel:
+  fixes k m n :: nat
+  shows "k + m = k + n \<longleftrightarrow> m = n"
+  by (fact add_left_cancel)
 
-lemma nat_add_commute: "m + n = n + (m::nat)"
-  by (rule add_commute)
-
-lemma nat_add_left_commute: "x + (y + z) = y + ((x + z)::nat)"
-  by (rule add_left_commute)
-
-lemma nat_add_left_cancel [simp]: "(k + m = k + n) = (m = (n::nat))"
-  by (rule add_left_cancel)
-
-lemma nat_add_right_cancel [simp]: "(m + k = n + k) = (m=(n::nat))"
-  by (rule add_right_cancel)
+lemma nat_add_right_cancel:
+  fixes k m n :: nat
+  shows "m + k = n + k \<longleftrightarrow> m = n"
+  by (fact add_right_cancel)
 
 text {* Reasoning about @{text "m + 0 = 0"}, etc. *}
 
@@ -315,31 +310,31 @@ lemma Suc_eq_plus1_left: "Suc n = 1 + n"
 subsubsection {* Difference *}
 
 lemma diff_self_eq_0 [simp]: "(m\<Colon>nat) - m = 0"
-  by (induct m) simp_all
+  by (fact diff_cancel)
 
 lemma diff_diff_left: "(i::nat) - j - k = i - (j + k)"
-  by (induct i j rule: diff_induct) simp_all
+  by (fact diff_diff_add)
 
 lemma Suc_diff_diff [simp]: "(Suc m - n) - Suc k = m - n - k"
   by (simp add: diff_diff_left)
 
 lemma diff_commute: "(i::nat) - j - k = i - k - j"
-  by (simp add: diff_diff_left add_commute)
+  by (fact diff_right_commute)
 
 lemma diff_add_inverse: "(n + m) - n = (m::nat)"
-  by (induct n) simp_all
+  by (fact add_diff_cancel_left')
 
 lemma diff_add_inverse2: "(m + n) - n = (m::nat)"
-  by (simp add: diff_add_inverse add_commute [of m n])
+  by (fact add_diff_cancel_right')
 
 lemma diff_cancel: "(k + m) - (k + n) = m - (n::nat)"
-  by (induct k) simp_all
+  by (fact comm_monoid_diff_class.add_diff_cancel_left)
 
 lemma diff_cancel2: "(m + k) - (n + k) = m - (n::nat)"
-  by (simp add: diff_cancel add_commute)
+  by (fact add_diff_cancel_right)
 
 lemma diff_add_0: "n - (n + m) = (0::nat)"
-  by (induct n) simp_all
+  by (fact diff_add_zero)
 
 lemma diff_Suc_1 [simp]: "Suc n - 1 = n"
   unfolding One_nat_def by simp
@@ -350,20 +345,14 @@ lemma diff_mult_distrib: "((m::nat) - n) * k = (m * k) - (n * k)"
 by (induct m n rule: diff_induct) (simp_all add: diff_cancel)
 
 lemma diff_mult_distrib2: "k * ((m::nat) - n) = (k * m) - (k * n)"
-by (simp add: diff_mult_distrib mult_commute [of k])
+by (simp add: diff_mult_distrib mult.commute [of k])
   -- {* NOT added as rewrites, since sometimes they are used from right-to-left *}
 
 
 subsubsection {* Multiplication *}
 
-lemma nat_mult_assoc: "(m * n) * k = m * ((n * k)::nat)"
-  by (rule mult_assoc)
-
-lemma nat_mult_commute: "m * n = n * (m::nat)"
-  by (rule mult_commute)
-
 lemma add_mult_distrib2: "k * (m + n) = (k * m) + ((k * n)::nat)"
-  by (rule distrib_left)
+  by (fact distrib_left)
 
 lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
   by (induct m) auto
@@ -402,7 +391,7 @@ proof -
 qed
 
 lemma mult_cancel2 [simp]: "(m * k = n * k) = (m = n | (k = (0::nat)))"
-  by (simp add: mult_commute)
+  by (simp add: mult.commute)
 
 lemma Suc_mult_cancel1: "(Suc k * m = Suc k * n) = (m = n)"
   by (subst mult_cancel1) simp
@@ -950,7 +939,7 @@ proof -
   next
     case (Suc k)
     have "0 + i < Suc k + i" by (rule add_less_mono1) simp
-    hence "i < Suc (i + k)" by (simp add: add_commute)
+    hence "i < Suc (i + k)" by (simp add: add.commute)
     from trans[OF this lessI Suc step]
     show ?case by simp
   qed
@@ -1036,7 +1025,7 @@ lemma le_add2: "n \<le> ((m + n)::nat)"
 by (insert add_right_mono [of 0 m n], simp)
 
 lemma le_add1: "n \<le> ((n + m)::nat)"
-by (simp add: add_commute, rule le_add2)
+by (simp add: add.commute, rule le_add2)
 
 lemma less_add_Suc1: "i < Suc (i + m)"
 by (rule le_less_trans, rule le_add1, rule lessI)
@@ -1071,7 +1060,7 @@ apply (erule less_irrefl [THEN notE])
 done
 
 lemma not_add_less2 [iff]: "~ (j + i < (i::nat))"
-by (simp add: add_commute)
+by (simp add: add.commute)
 
 lemma add_leD1: "m + k \<le> n ==> m \<le> (n::nat)"
 apply (rule order_trans [of _ "m+k"])
@@ -1079,7 +1068,7 @@ apply (simp_all add: le_add1)
 done
 
 lemma add_leD2: "m + k \<le> n ==> k \<le> (n::nat)"
-apply (simp add: add_commute)
+apply (simp add: add.commute)
 apply (erule add_leD1)
 done
 
@@ -1103,7 +1092,7 @@ lemma le_add_diff_inverse [simp]: "n \<le> m ==> n + (m - n) = (m::nat)"
 by (simp add: add_diff_inverse linorder_not_less)
 
 lemma le_add_diff_inverse2 [simp]: "n \<le> m ==> (m - n) + n = (m::nat)"
-by (simp add: add_commute)
+by (simp add: add.commute)
 
 lemma Suc_diff_le: "n \<le> m ==> Suc m - n = Suc (m - n)"
 by (induct m n rule: diff_induct) simp_all
@@ -1135,7 +1124,7 @@ lemma diff_add_assoc: "k \<le> (j::nat) ==> (i + j) - k = i + (j - k)"
 by (induct j k rule: diff_induct) simp_all
 
 lemma diff_add_assoc2: "k \<le> (j::nat) ==> (j + i) - k = (j - k) + i"
-by (simp add: add_commute diff_add_assoc)
+by (simp add: add.commute diff_add_assoc)
 
 lemma le_imp_diff_is_add: "i \<le> (j::nat) ==> (j - i = k) = (j = k + i)"
 by (auto simp add: diff_add_inverse2)
@@ -1233,7 +1222,7 @@ lemma mult_less_cancel2 [simp]: "((m::nat) * k < n * k) = (0 < k & m < n)"
   done
 
 lemma mult_less_cancel1 [simp]: "(k * (m::nat) < k * n) = (0 < k & m < n)"
-by (simp add: mult_commute [of k])
+by (simp add: mult.commute [of k])
 
 lemma mult_le_cancel1 [simp]: "(k * (m::nat) \<le> k * n) = (0 < k --> m \<le> n)"
 by (simp add: linorder_not_less [symmetric], auto)
@@ -1435,7 +1424,7 @@ next
     by (induct n) simp_all
   from this [of 0] have "of_nat_aux (\<lambda>i. i + 1) n 1 = of_nat_aux (\<lambda>i. i + 1) n 0 + 1"
     by simp
-  with Suc show ?case by (simp add: add_commute)
+  with Suc show ?case by (simp add: add.commute)
 qed
 
 end
@@ -1693,13 +1682,13 @@ lemma le_diff_conv: "(j-k \<le> (i::nat)) = (j \<le> i+k)"
 by arith
 
 lemma le_diff_conv2: "k \<le> j ==> (i \<le> j-k) = (i+k \<le> (j::nat))"
-by arith
+  by (fact le_diff_conv2) -- {* FIXME delete *}
 
 lemma diff_diff_cancel [simp]: "i \<le> (n::nat) ==> n - (n - i) = i"
 by arith
 
 lemma le_add_diff: "k \<le> (n::nat) ==> m \<le> n + m - k"
-by arith
+  by (fact le_add_diff) -- {* FIXME delete *}
 
 (*Replaces the previous diff_less and le_diff_less, which had the stronger
   second premise n\<le>m*)
@@ -1847,7 +1836,7 @@ by (simp add: dvd_def)
 
 lemma dvd_antisym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
   unfolding dvd_def
-  by (force dest: mult_eq_self_implies_10 simp add: mult_assoc)
+  by (force dest: mult_eq_self_implies_10 simp add: mult.assoc)
 
 text {* @{term "op dvd"} is a partial order *}
 
@@ -1890,7 +1879,7 @@ lemma dvd_mult_cancel1: "0<m ==> (m*n dvd m) = (n = (1::nat))"
   done
 
 lemma dvd_mult_cancel2: "0<m ==> (n*m dvd m) = (n = (1::nat))"
-  apply (subst mult_commute)
+  apply (subst mult.commute)
   apply (erule dvd_mult_cancel1)
   done
 
@@ -1940,7 +1929,7 @@ lemma dvd_plus_eq_left:
   fixes m n q :: nat
   assumes "m dvd q"
   shows "m dvd n + q \<longleftrightarrow> m dvd n"
-  using assms by (simp add: dvd_plus_eq_right add_commute [of n])
+  using assms by (simp add: dvd_plus_eq_right add.commute [of n])
 
 lemma less_eq_dvd_minus:
   fixes m n :: nat
@@ -1949,7 +1938,7 @@ lemma less_eq_dvd_minus:
 proof -
   from assms have "n = m + (n - m)" by simp
   then obtain q where "n = m + q" ..
-  then show ?thesis by (simp add: dvd_reduce add_commute [of m])
+  then show ?thesis by (simp add: dvd_reduce add.commute [of m])
 qed
 
 lemma dvd_minus_self:
@@ -1966,7 +1955,7 @@ proof -
     by (auto elim: dvd_plusE)
   also from assms have "\<dots> \<longleftrightarrow> m dvd r * m + n - q" by simp
   also from assms have "\<dots> \<longleftrightarrow> m dvd (r * m - q) + n" by simp
-  also have "\<dots> \<longleftrightarrow> m dvd n + (r * m - q)" by (simp add: add_commute)
+  also have "\<dots> \<longleftrightarrow> m dvd n + (r * m - q)" by (simp add: add.commute)
   finally show ?thesis .
 qed
 

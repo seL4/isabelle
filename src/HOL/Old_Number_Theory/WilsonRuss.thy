@@ -256,7 +256,7 @@ lemma wset_zcong_prod_1 [rule_format]:
       apply (subgoal_tac [5]
         "zcong (a * inv p a * (\<Prod>x\<in>wset (a - 1) p. x)) (1 * 1) p")
        prefer 5
-       apply (simp add: mult_assoc)
+       apply (simp add: mult.assoc)
       apply (rule_tac [5] zcong_zmult)
        apply (rule_tac [5] inv_is_inv)
          apply (tactic "clarify_tac @{context} 4")

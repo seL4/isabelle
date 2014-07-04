@@ -430,7 +430,7 @@ apply (drule InfinitesimalD)
 apply (drule_tac x="r / \<bar>star_of a\<bar>" in bspec)
 apply (simp add: Reals_eq_Standard)
 apply simp
-apply (simp add: hnorm_scaleR pos_less_divide_eq mult_commute)
+apply (simp add: hnorm_scaleR pos_less_divide_eq mult.commute)
 done
 
 lemma Compl_HFinite: "- HFinite = HInfinite"
@@ -473,11 +473,11 @@ by (auto dest: add_less_le_mono)
 lemma HInfinite_add_ge_zero:
      "[|(x::hypreal) \<in> HInfinite; 0 \<le> y; 0 \<le> x|] ==> (x + y): HInfinite"
 by (auto intro!: hypreal_add_zero_less_le_mono
-       simp add: abs_if add_commute add_nonneg_nonneg HInfinite_def)
+       simp add: abs_if add.commute add_nonneg_nonneg HInfinite_def)
 
 lemma HInfinite_add_ge_zero2:
      "[|(x::hypreal) \<in> HInfinite; 0 \<le> y; 0 \<le> x|] ==> (y + x): HInfinite"
-by (auto intro!: HInfinite_add_ge_zero simp add: add_commute)
+by (auto intro!: HInfinite_add_ge_zero simp add: add.commute)
 
 lemma HInfinite_add_gt_zero:
      "[|(x::hypreal) \<in> HInfinite; 0 < y; 0 < x|] ==> (x + y): HInfinite"
@@ -621,13 +621,13 @@ lemma approx_minus_iff: " (x @= y) = (x - y @= 0)"
 by (simp add: approx_def)
 
 lemma approx_minus_iff2: " (x @= y) = (-y + x @= 0)"
-by (simp add: approx_def add_commute)
+by (simp add: approx_def add.commute)
 
 lemma approx_refl [iff]: "x @= x"
 by (simp add: approx_def Infinitesimal_def)
 
 lemma hypreal_minus_distrib1: "-(y + -(x::'a::ab_group_add)) = x + -y"
-by (simp add: add_commute)
+by (simp add: add.commute)
 
 lemma approx_sym: "x @= y ==> y @= x"
 apply (simp add: approx_def)
@@ -688,7 +688,7 @@ qed
 lemma approx_minus: "a @= b ==> -a @= -b"
 apply (rule approx_minus_iff [THEN iffD2, THEN approx_sym])
 apply (drule approx_minus_iff [THEN iffD1])
-apply (simp add: add_commute)
+apply (simp add: add.commute)
 done
 
 lemma approx_minus2: "-a @= -b ==> a @= b"
@@ -746,17 +746,17 @@ by (force simp add: bex_Infinitesimal_iff [symmetric])
 lemma Infinitesimal_add_approx: "[| y \<in> Infinitesimal; x + y = z |] ==> x @= z"
 apply (rule bex_Infinitesimal_iff [THEN iffD1])
 apply (drule Infinitesimal_minus_iff [THEN iffD2])
-apply (auto simp add: add_assoc [symmetric])
+apply (auto simp add: add.assoc [symmetric])
 done
 
 lemma Infinitesimal_add_approx_self: "y \<in> Infinitesimal ==> x @= x + y"
 apply (rule bex_Infinitesimal_iff [THEN iffD1])
 apply (drule Infinitesimal_minus_iff [THEN iffD2])
-apply (auto simp add: add_assoc [symmetric])
+apply (auto simp add: add.assoc [symmetric])
 done
 
 lemma Infinitesimal_add_approx_self2: "y \<in> Infinitesimal ==> x @= y + x"
-by (auto dest: Infinitesimal_add_approx_self simp add: add_commute)
+by (auto dest: Infinitesimal_add_approx_self simp add: add.commute)
 
 lemma Infinitesimal_add_minus_approx_self: "y \<in> Infinitesimal ==> x @= x + -y"
 by (blast intro!: Infinitesimal_add_approx_self Infinitesimal_minus_iff [THEN iffD2])
@@ -770,7 +770,7 @@ lemma Infinitesimal_add_right_cancel:
      "[| y \<in> Infinitesimal; x @= z + y|] ==> x @= z"
 apply (drule_tac x = z in Infinitesimal_add_approx_self2 [THEN approx_sym])
 apply (erule approx_trans3 [THEN approx_sym])
-apply (simp add: add_commute)
+apply (simp add: add.commute)
 apply (erule approx_sym)
 done
 
@@ -781,7 +781,7 @@ done
 
 lemma approx_add_right_cancel: "b + d @= c + d ==> b @= c"
 apply (rule approx_add_left_cancel)
-apply (simp add: add_commute)
+apply (simp add: add.commute)
 done
 
 lemma approx_add_mono1: "b @= c ==> d + b @= d + c"
@@ -790,19 +790,19 @@ apply (simp add: approx_minus_iff [symmetric] add_ac)
 done
 
 lemma approx_add_mono2: "b @= c ==> b + a @= c + a"
-by (simp add: add_commute approx_add_mono1)
+by (simp add: add.commute approx_add_mono1)
 
 lemma approx_add_left_iff [simp]: "(a + b @= a + c) = (b @= c)"
 by (fast elim: approx_add_left_cancel approx_add_mono1)
 
 lemma approx_add_right_iff [simp]: "(b + a @= c + a) = (b @= c)"
-by (simp add: add_commute)
+by (simp add: add.commute)
 
 lemma approx_HFinite: "[| x \<in> HFinite; x @= y |] ==> y \<in> HFinite"
 apply (drule bex_Infinitesimal_iff2 [THEN iffD2], safe)
 apply (drule Infinitesimal_subset_HFinite [THEN subsetD, THEN HFinite_minus_iff [THEN iffD2]])
 apply (drule HFinite_add)
-apply (auto simp add: add_assoc)
+apply (auto simp add: add.assoc)
 done
 
 lemma approx_star_of_HFinite: "x @= star_of D ==> x \<in> HFinite"
@@ -851,7 +851,7 @@ by (blast intro!: approx_mult_HFinite approx_star_of_HFinite HFinite_star_of)
 lemma approx_SReal_mult_cancel_zero:
      "[| (a::hypreal) \<in> Reals; a \<noteq> 0; a*x @= 0 |] ==> x @= 0"
 apply (drule Reals_inverse [THEN SReal_subset_HFinite [THEN subsetD]])
-apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
+apply (auto dest: approx_mult2 simp add: mult.assoc [symmetric])
 done
 
 lemma approx_mult_SReal1: "[| (a::hypreal) \<in> Reals; x @= 0 |] ==> x*a @= 0"
@@ -867,7 +867,7 @@ by (blast intro: approx_SReal_mult_cancel_zero approx_mult_SReal2)
 lemma approx_SReal_mult_cancel:
      "[| (a::hypreal) \<in> Reals; a \<noteq> 0; a* w @= a*z |] ==> w @= z"
 apply (drule Reals_inverse [THEN SReal_subset_HFinite [THEN subsetD]])
-apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
+apply (auto dest: approx_mult2 simp add: mult.assoc [symmetric])
 done
 
 lemma approx_SReal_mult_cancel_iff1 [simp]:
@@ -991,7 +991,7 @@ lemma Infinitesimal_ratio:
   shows "[| y \<noteq> 0;  y \<in> Infinitesimal;  x/y \<in> HFinite |]
          ==> x \<in> Infinitesimal"
 apply (drule Infinitesimal_HFinite_mult2, assumption)
-apply (simp add: divide_inverse mult_assoc)
+apply (simp add: divide_inverse mult.assoc)
 done
 
 lemma Infinitesimal_SReal_divide:
@@ -1161,7 +1161,7 @@ by (auto dest: order_less_trans intro: order_less_imp_le intro!: isUbI setleI)
 
 lemma lemma_minus_le_zero: "t \<le> t + -r ==> r \<le> (0::hypreal)"
 apply (drule_tac c = "-t" in add_left_mono)
-apply (auto simp add: add_assoc [symmetric])
+apply (auto simp add: add.assoc [symmetric])
 done
 
 lemma lemma_st_part_le2:
@@ -1352,7 +1352,7 @@ apply (frule_tac x = x in not_Infinitesimal_not_zero2)
 apply (drule HFinite_inverse2)+
 apply (drule approx_mult2, assumption, auto)
 apply (drule_tac c = "inverse x" in approx_mult1, assumption)
-apply (auto intro: approx_sym simp add: mult_assoc)
+apply (auto intro: approx_sym simp add: mult.assoc)
 done
 
 (*Used for NSLIM_inverse, NSLIMSEQ_inverse*)
@@ -1372,7 +1372,7 @@ lemma inverse_add_Infinitesimal_approx2:
   shows
      "[| x \<in> HFinite - Infinitesimal;
          h \<in> Infinitesimal |] ==> inverse(h + x) @= inverse x"
-apply (rule add_commute [THEN subst])
+apply (rule add.commute [THEN subst])
 apply (blast intro: inverse_add_Infinitesimal_approx)
 done
 
@@ -1392,7 +1392,7 @@ lemma Infinitesimal_square_iff:
 apply (auto intro: Infinitesimal_mult)
 apply (rule ccontr, frule Infinitesimal_inverse_HFinite)
 apply (frule not_Infinitesimal_not_zero)
-apply (auto dest: Infinitesimal_HFinite_mult simp add: mult_assoc)
+apply (auto dest: Infinitesimal_HFinite_mult simp add: mult.assoc)
 done
 declare Infinitesimal_square_iff [symmetric, simp]
 
@@ -1414,7 +1414,7 @@ lemma approx_HFinite_mult_cancel:
 apply safe
 apply (frule HFinite_inverse, assumption)
 apply (drule not_Infinitesimal_not_zero)
-apply (auto dest: approx_mult2 simp add: mult_assoc [symmetric])
+apply (auto dest: approx_mult2 simp add: mult.assoc [symmetric])
 done
 
 lemma approx_HFinite_mult_cancel_iff1:
@@ -1432,7 +1432,7 @@ done
 lemma HInfinite_HFinite_add:
      "[| x \<in> HInfinite; y \<in> HFinite |] ==> x + y \<in> HInfinite"
 apply (rule_tac y = "-y" in HInfinite_HFinite_add_cancel)
-apply (auto simp add: add_assoc HFinite_minus_iff)
+apply (auto simp add: add.assoc HFinite_minus_iff)
 done
 
 lemma HInfinite_ge_HInfinite:
@@ -1454,7 +1454,7 @@ apply (rule ccontr, drule HFinite_HInfinite_iff [THEN iffD2])
 apply (frule HFinite_Infinitesimal_not_zero)
 apply (drule HFinite_not_Infinitesimal_inverse)
 apply (safe, drule HFinite_mult)
-apply (auto simp add: mult_assoc HFinite_HInfinite_iff)
+apply (auto simp add: mult.assoc HFinite_HInfinite_iff)
 done
 
 lemma HInfinite_HFinite_not_Infinitesimal_mult2:
@@ -1466,7 +1466,7 @@ apply (frule HFinite_Infinitesimal_not_zero)
 apply (drule HFinite_not_Infinitesimal_inverse)
 apply (safe, drule_tac x="inverse y" in HFinite_mult)
 apply assumption
-apply (auto simp add: mult_assoc [symmetric] HFinite_HInfinite_iff)
+apply (auto simp add: mult.assoc [symmetric] HFinite_HInfinite_iff)
 done
 
 lemma HInfinite_gt_SReal:
@@ -1634,7 +1634,7 @@ done
 lemma Infinitesimal_add_hrabs_hypreal_of_real_less2:
      "[| x \<in> Infinitesimal;  abs(hypreal_of_real r) < hypreal_of_real y |]
       ==> abs (x + hypreal_of_real r) < hypreal_of_real y"
-apply (rule add_commute [THEN subst])
+apply (rule add.commute [THEN subst])
 apply (erule Infinitesimal_add_hrabs_hypreal_of_real_less, assumption)
 done
 
@@ -1684,14 +1684,14 @@ done
 lemma Infinitesimal_square_cancel2 [simp]:
      "(x::hypreal)*x + y*y \<in> Infinitesimal ==> y*y \<in> Infinitesimal"
 apply (rule Infinitesimal_square_cancel)
-apply (rule add_commute [THEN subst])
+apply (rule add.commute [THEN subst])
 apply (simp (no_asm))
 done
 
 lemma HFinite_square_cancel2 [simp]:
   "(x::hypreal)*x + y*y \<in> HFinite ==> y*y \<in> HFinite"
 apply (rule HFinite_square_cancel)
-apply (rule add_commute [THEN subst])
+apply (rule add.commute [THEN subst])
 apply (simp (no_asm))
 done
 
@@ -2143,7 +2143,7 @@ apply (simp add: inverse_eq_divide)
 apply (subst pos_less_divide_eq, assumption)
 apply (subst pos_less_divide_eq)
  apply (simp add: real_of_nat_Suc_gt_zero)
-apply (simp add: mult_commute)
+apply (simp add: mult.commute)
 done
 
 lemma finite_inverse_real_of_posnat_gt_real:

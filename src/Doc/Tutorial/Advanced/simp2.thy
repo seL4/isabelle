@@ -130,7 +130,7 @@ form.  (This means there are no subterms of the form $(\lambda x. M)(N)$.)
 Each occurrence of an unknown is of the form
 $\Var{f}~x@1~\dots~x@n$, where the $x@i$ are distinct bound
 variables. Thus all ordinary rewrite rules, where all unknowns are
-of base type, for example @{thm add_assoc}, are acceptable: if an unknown is
+of base type, for example @{thm add.assoc}, are acceptable: if an unknown is
 of base type, it cannot have any arguments. Additionally, the rule
 @{text"(\<forall>x. ?P x \<and> ?Q x) = ((\<forall>x. ?P x) \<and> (\<forall>x. ?Q x))"} is also acceptable, in
 both directions: all arguments of the unknowns @{text"?P"} and

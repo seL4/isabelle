@@ -1407,7 +1407,7 @@ proof-
   then obtain s m where smU: "(s,m) \<in> set (uset p)" and mx: "real m * x \<ge> ?N a s" by blast
   from uset_l[OF lp] smU have mp: "real m > 0" by auto
   from pos_divide_le_eq[OF mp, where a="x" and b="?N a s", symmetric] mx have "x \<ge> ?N a s / real m" 
-    by (auto simp add: mult_commute)
+    by (auto simp add: mult.commute)
   thus ?thesis using smU by auto
 qed
 
@@ -1423,7 +1423,7 @@ proof-
   then obtain s m where smU: "(s,m) \<in> set (uset p)" and mx: "real m * x \<le> ?N a s" by blast
   from uset_l[OF lp] smU have mp: "real m > 0" by auto
   from pos_le_divide_eq[OF mp, where a="x" and b="?N a s", symmetric] mx have "x \<le> ?N a s / real m" 
-    by (auto simp add: mult_commute)
+    by (auto simp add: mult.commute)
   thus ?thesis using smU by auto
 qed
 
@@ -1674,7 +1674,7 @@ proof
       with uset_l[OF lp] have tnb: "numbound0 t" and np:"real n > 0" and snb: "numbound0 s" and mp:"real m > 0"
         by auto
       let ?st = "Add (Mul m t) (Mul n s)"
-      from np mp have mnp: "real (2*n*m) > 0" by (simp add: mult_commute)
+      from np mp have mnp: "real (2*n*m) > 0" by (simp add: mult.commute)
       from tnb snb have st_nb: "numbound0 ?st" by simp
       have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
         using mnp mp np by (simp add: algebra_simps add_divide_distrib)
@@ -1690,7 +1690,7 @@ next
     and px:"?I x (usubst p (Add (Mul l t) (Mul k s), 2*k*l))"
     with uset_l[OF lp] have tnb: "numbound0 t" and np:"real k > 0" and snb: "numbound0 s" and mp:"real l > 0" by auto
     let ?st = "Add (Mul l t) (Mul k s)"
-    from np mp have mnp: "real (2*k*l) > 0" by (simp add: mult_commute)
+    from np mp have mnp: "real (2*k*l) > 0" by (simp add: mult.commute)
     from tnb snb have st_nb: "numbound0 ?st" by simp
     from usubst_I[OF lp mnp st_nb, where bs="bs"] px have "?E" by auto}
   ultimately show "?E" by blast
@@ -1729,7 +1729,7 @@ proof(auto)
          (set U \<times> set U)"using mnz nnz th  
     apply (auto simp add: th add_divide_distrib algebra_simps split_def image_def)
     by (rule_tac x="(s,m)" in bexI,simp_all) 
-  (rule_tac x="(t,n)" in bexI,simp_all add: mult_commute)
+  (rule_tac x="(t,n)" in bexI,simp_all add: mult.commute)
 next
   fix t n s m
   assume tnU: "(t,n) \<in> set U" and smU:"(s,m) \<in> set U" 
@@ -1778,7 +1778,7 @@ proof
     and snb: "numbound0 s" and mp:"m > 0"  by auto
   let ?st= "Add (Mul m t) (Mul n s)"
   from np mp have mnp: "real (2*n*m) > 0" 
-      by (simp add: mult_commute real_of_int_mult[symmetric] del: real_of_int_mult)
+      by (simp add: mult.commute real_of_int_mult[symmetric] del: real_of_int_mult)
     from tnb snb have stnb: "numbound0 ?st" by simp
   have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
    using mp np by (simp add: algebra_simps add_divide_distrib)
@@ -1806,7 +1806,7 @@ next
     and snb: "numbound0 s" and mp:"m > 0"  by auto
   let ?st= "Add (Mul m t) (Mul n s)"
   from np mp have mnp: "real (2*n*m) > 0" 
-      by (simp add: mult_commute real_of_int_mult[symmetric] del: real_of_int_mult)
+      by (simp add: mult.commute real_of_int_mult[symmetric] del: real_of_int_mult)
     from tnb snb have stnb: "numbound0 ?st" by simp
   have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
    using mp np by (simp add: algebra_simps add_divide_distrib)

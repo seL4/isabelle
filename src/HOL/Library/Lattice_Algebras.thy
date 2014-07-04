@@ -13,7 +13,7 @@ lemma add_inf_distrib_left: "a + inf b c = inf (a + b) (a + c)"
   apply (rule antisym)
   apply (simp_all add: le_infI)
   apply (rule add_le_imp_le_left [of "uminus a"])
-  apply (simp only: add_assoc [symmetric], simp add: diff_le_eq add.commute)
+  apply (simp only: add.assoc [symmetric], simp add: diff_le_eq add.commute)
   done
 
 lemma add_inf_distrib_right: "inf a b + c = inf (a + c) (b + c)"
@@ -21,7 +21,7 @@ proof -
   have "c + inf a b = inf (c + a) (c + b)"
     by (simp add: add_inf_distrib_left)
   then show ?thesis
-    by (simp add: add_commute)
+    by (simp add: add.commute)
 qed
 
 end
@@ -32,10 +32,10 @@ begin
 lemma add_sup_distrib_left: "a + sup b c = sup (a + b) (a + c)"
   apply (rule antisym)
   apply (rule add_le_imp_le_left [of "uminus a"])
-  apply (simp only: add_assoc [symmetric], simp)
+  apply (simp only: add.assoc [symmetric], simp)
   apply (simp add: le_diff_eq add.commute)
   apply (rule le_supI)
-  apply (rule add_le_imp_le_left [of "a"], simp only: add_assoc[symmetric], simp)+
+  apply (rule add_le_imp_le_left [of "a"], simp only: add.assoc[symmetric], simp)+
   done
 
 lemma add_sup_distrib_right: "sup a b + c = sup (a + c) (b + c)"
@@ -43,7 +43,7 @@ proof -
   have "c + sup a b = sup (c+a) (c+b)"
     by (simp add: add_sup_distrib_left)
   then show ?thesis
-    by (simp add: add_commute)
+    by (simp add: add.commute)
 qed
 
 end
@@ -151,7 +151,7 @@ proof
   then show ?r
     apply -
     apply (rule add_le_imp_le_right[of _ "uminus b" _])
-    apply (simp add: add_assoc)
+    apply (simp add: add.assoc)
     done
 next
   assume ?r
@@ -243,7 +243,7 @@ proof
   then have "a + a + - a = - a"
     by simp
   then have "a + (a + - a) = - a"
-    by (simp only: add_assoc)
+    by (simp only: add.assoc)
   then have a: "- a = a"
     by simp
   show "a = 0"
@@ -309,7 +309,7 @@ lemma le_minus_self_iff: "a \<le> - a \<longleftrightarrow> a \<le> 0"
 proof -
   from add_le_cancel_left [of "uminus a" "plus a a" zero]
   have "a \<le> - a \<longleftrightarrow> a + a \<le> 0"
-    by (simp add: add_assoc[symmetric])
+    by (simp add: add.assoc[symmetric])
   then show ?thesis
     by simp
 qed
@@ -318,7 +318,7 @@ lemma minus_le_self_iff: "- a \<le> a \<longleftrightarrow> 0 \<le> a"
 proof -
   from add_le_cancel_left [of "uminus a" zero "plus a a"]
   have "- a \<le> a \<longleftrightarrow> 0 \<le> a + a"
-    by (simp add: add_assoc[symmetric])
+    by (simp add: add.assoc[symmetric])
   then show ?thesis
     by simp
 qed

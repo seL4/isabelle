@@ -222,7 +222,7 @@ lemma real_root_mult_exp: "root (m * n) x = root m (root n x)"
            simp: sgn_zero_iff sgn_mult power_mult[symmetric] abs_mult power_mult_distrib abs_sgn_eq)
 
 lemma real_root_commute: "root m (root n x) = root n (root m x)"
-  by (simp add: real_root_mult_exp [symmetric] mult_commute)
+  by (simp add: real_root_mult_exp [symmetric] mult.commute)
 
 text {* Monotonicity in first argument *}
 
@@ -432,7 +432,7 @@ proof -
   from n obtain m where m: "n = 2 * m"
     unfolding even_mult_two_ex ..
   from m have "sqrt (2 ^ n) = sqrt ((2 ^ m)\<^sup>2)"
-    by (simp only: power_mult[symmetric] mult_commute)
+    by (simp only: power_mult[symmetric] mult.commute)
   then show ?thesis
     using m by simp
 qed
@@ -512,7 +512,7 @@ next
   proof (rule right_inverse_eq [THEN iffD1, THEN sym]) 
     show "sqrt x / x \<noteq> 0" by (simp add: divide_inverse nneg nz) 
     show "inverse (sqrt x) / (sqrt x / x) = 1"
-      by (simp add: divide_inverse mult_assoc [symmetric] 
+      by (simp add: divide_inverse mult.assoc [symmetric] 
                   power2_eq_square [symmetric] real_inv_sqrt_pow2 pos nz) 
   qed
 qed
@@ -603,7 +603,7 @@ lemma real_sqrt_sum_squares_triangle_ineq:
   "sqrt ((a + c)\<^sup>2 + (b + d)\<^sup>2) \<le> sqrt (a\<^sup>2 + b\<^sup>2) + sqrt (c\<^sup>2 + d\<^sup>2)"
 apply (rule power2_le_imp_le, simp)
 apply (simp add: power2_sum)
-apply (simp only: mult_assoc distrib_left [symmetric])
+apply (simp only: mult.assoc distrib_left [symmetric])
 apply (rule mult_left_mono)
 apply (rule power2_le_imp_le)
 apply (simp add: power2_sum power_mult_distrib)

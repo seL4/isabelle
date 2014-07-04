@@ -743,7 +743,7 @@ proof (elim has_bochner_integral.cases)
   finally have s_fin: "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) < \<infinity>" .
 
   have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (norm (f x - s i x)) + ereal (norm (s i x)) \<partial>M)"
-    by (auto intro!: nn_integral_mono) (metis add_commute norm_triangle_sub)
+    by (auto intro!: nn_integral_mono) (metis add.commute norm_triangle_sub)
   also have "\<dots> = (\<integral>\<^sup>+x. norm (f x - s i x) \<partial>M) + (\<integral>\<^sup>+x. norm (s i x) \<partial>M)"
     by (rule nn_integral_add) auto
   also have "\<dots> < \<infinity>"
@@ -779,7 +779,7 @@ using assms proof
            (auto intro: s simple_bochner_integrable_compose2)
       also have "\<dots> \<le> (\<integral>\<^sup>+x. ereal (norm (f x - s n x)) + norm (f x) \<partial>M)"
         by (auto intro!: nn_integral_mono)
-           (metis add_commute norm_minus_commute norm_triangle_sub)
+           (metis add.commute norm_minus_commute norm_triangle_sub)
       also have "\<dots> = ?t n" 
         by (rule nn_integral_add) auto
       finally show "norm (?s n) \<le> ?t n" .

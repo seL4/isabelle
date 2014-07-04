@@ -127,7 +127,7 @@ lemma DERIV_within_iff:
   "(f has_field_derivative D) (at a within s) \<longleftrightarrow> ((\<lambda>z. (f z - f a) / (z - a)) ---> D) (at a within s)"
 proof -
   have 1: "\<And>w y. ~(w = a) ==> y / (w - a) - D = (y - (w - a)*D)/(w - a)"
-    by (metis divide_diff_eq_iff eq_iff_diff_eq_0 mult_commute)
+    by (metis divide_diff_eq_iff eq_iff_diff_eq_0 mult.commute)
   show ?thesis
     apply (simp add: has_field_derivative_def has_derivative_within bounded_linear_mult_right)
     apply (simp add: LIM_zero_iff [where l = D, symmetric])

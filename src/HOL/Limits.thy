@@ -702,7 +702,7 @@ proof -
       by (intro mult_mono' order_refl norm_g norm_ge_zero
                 mult_nonneg_nonneg K elim)
     also have "\<dots> = norm (f x) * (B * K)"
-      by (rule mult_assoc)
+      by (rule mult.assoc)
     finally show "norm (f x ** g x) \<le> norm (f x) * (B * K)" .
   qed
   with f show ?thesis
@@ -716,7 +716,7 @@ lemma (in bounded_bilinear) flip:
   apply (rule add_left)
   apply (rule scaleR_right)
   apply (rule scaleR_left)
-  apply (subst mult_commute)
+  apply (subst mult.commute)
   using bounded by fast
 
 lemma (in bounded_bilinear) Bfun_prod_Zfun:
@@ -1273,7 +1273,7 @@ by (simp add: LIMSEQ_iff)
 
 lemma LIMSEQ_linear: "\<lbrakk> X ----> x ; l > 0 \<rbrakk> \<Longrightarrow> (\<lambda> n. X (n * l)) ----> x"
   unfolding tendsto_def eventually_sequentially
-  by (metis div_le_dividend div_mult_self1_is_m le_trans nat_mult_commute)
+  by (metis div_le_dividend div_mult_self1_is_m le_trans mult.commute)
 
 lemma Bseq_inverse_lemma:
   fixes x :: "'a::real_normed_div_algebra"
@@ -1530,7 +1530,7 @@ lemma LIM_offset:
 lemma LIM_offset_zero:
   fixes a :: "'a::real_normed_vector"
   shows "f -- a --> L \<Longrightarrow> (\<lambda>h. f (a + h)) -- 0 --> L"
-by (drule_tac k="a" in LIM_offset, simp add: add_commute)
+by (drule_tac k="a" in LIM_offset, simp add: add.commute)
 
 lemma LIM_offset_zero_cancel:
   fixes a :: "'a::real_normed_vector"

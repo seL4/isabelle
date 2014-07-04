@@ -20,7 +20,7 @@ shows the most important operations, together with the priorities of the
 infix symbols. Algebraic properties are organized using type classes
 around algebraic concepts such as rings and fields;
 a property such as the commutativity of addition is a single theorem 
-(\isa{add_commute}) that applies to all numeric types.
+(\isa{add.commute}) that applies to all numeric types.
 
 \index{linear arithmetic}%
 Many theorems involving numeric types can be proved automatically by
@@ -441,11 +441,11 @@ following equations sorts the terms and groups them to the right, making
 the two expressions identical.
 \begin{isabelle}
 a\ +\ b\ +\ c\ =\ a\ +\ (b\ +\ c)
-\rulenamedx{add_assoc}\isanewline
+\rulenamedx{add.assoc}\isanewline
 a\ +\ b\ =\ b\ +\ a%
-\rulenamedx{add_commute}\isanewline
+\rulenamedx{add.commute}\isanewline
 a\ +\ (b\ +\ c)\ =\ b\ +\ (a\ +\ c)
-\rulename{add_left_commute}
+\rulename{add.left_commute}
 \end{isabelle}
 The name \isa{add_ac}\index{*add_ac (theorems)} 
 refers to the list of all three theorems; similarly

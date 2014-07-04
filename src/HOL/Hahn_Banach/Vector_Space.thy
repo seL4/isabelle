@@ -209,9 +209,9 @@ lemma add_left_cancel:
 proof
   from y have "y = 0 + y" by simp
   also from x y have "\<dots> = (- x + x) + y" by simp
-  also from x y have "\<dots> = - x + (x + y)" by (simp add: add_assoc)
+  also from x y have "\<dots> = - x + (x + y)" by (simp add: add.assoc)
   also assume "x + y = x + z"
-  also from x z have "- x + (x + z) = - x + x + z" by (simp add: add_assoc)
+  also from x z have "- x + (x + z) = - x + x + z" by (simp add: add.assoc)
   also from x z have "\<dots> = z" by simp
   finally show "y = z" .
 next
@@ -228,7 +228,7 @@ lemma add_assoc_cong:
   by (simp only: add_assoc [symmetric])
 
 lemma mult_left_commute: "x \<in> V \<Longrightarrow> a \<cdot> b \<cdot> x = b \<cdot> a \<cdot> x"
-  by (simp add: mult_commute mult_assoc2)
+  by (simp add: mult.commute mult_assoc2)
 
 lemma mult_zero_uniq:
   assumes x: "x \<in> V"  "x \<noteq> 0" and ax: "a \<cdot> x = 0"

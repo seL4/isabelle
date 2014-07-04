@@ -108,7 +108,7 @@ qed
 
 declare nat_mult_dvd_cancel_disj[presburger]
 lemma nat_mult_dvd_cancel_disj'[presburger]: 
-  "(m\<Colon>nat)*k dvd n*k \<longleftrightarrow> k = 0 \<or> m dvd n" unfolding mult_commute[of m k] mult_commute[of n k] by presburger 
+  "(m\<Colon>nat)*k dvd n*k \<longleftrightarrow> k = 0 \<or> m dvd n" unfolding mult.commute[of m k] mult.commute[of n k] by presburger 
 
 lemma divides_mul_l: "(a::nat) dvd b ==> (c * a) dvd (c * b)"
   by presburger
@@ -120,7 +120,7 @@ lemma divides_cases: "(n::nat) dvd m ==> m = 0 \<or> m = n \<or> 2 * n <= m"
 lemma divides_div_not: "(x::nat) = (q * n) + r \<Longrightarrow> 0 < r \<Longrightarrow> r < n ==> ~(n dvd x)"
 proof(auto simp add: dvd_def)
   fix k assume H: "0 < r" "r < n" "q * n + r = n * k"
-  from H(3) have r: "r = n* (k -q)" by(simp add: diff_mult_distrib2 mult_commute)
+  from H(3) have r: "r = n* (k -q)" by(simp add: diff_mult_distrib2 mult.commute)
   {assume "k - q = 0" with r H(1) have False by simp}
   moreover
   {assume "k - q \<noteq> 0" with r have "r \<ge> n" by auto
@@ -186,7 +186,7 @@ lemma coprime_bezout: "coprime a b \<longleftrightarrow> (\<exists>x y. a * x - 
 using coprime_def gcd_bezout by auto
 
 lemma coprime_divprod: "d dvd a * b  \<Longrightarrow> coprime d a \<Longrightarrow> d dvd b"
-  using relprime_dvd_mult_iff[of d a b] by (auto simp add: coprime_def mult_commute)
+  using relprime_dvd_mult_iff[of d a b] by (auto simp add: coprime_def mult.commute)
 
 lemma coprime_1[simp]: "coprime a 1" by (simp add: coprime_def)
 lemma coprime_1'[simp]: "coprime 1 a" by (simp add: coprime_def)
@@ -205,7 +205,7 @@ proof-
     from bezout_gcd_strong[OF az, of b] 
     obtain x y where xy: "a*x = b*y + ?g" by blast
     from xy a b have "?g * a'*x = ?g * (b'*y + 1)" by (simp add: algebra_simps)
-    hence "?g * (a'*x) = ?g * (b'*y + 1)" by (simp add: mult_assoc)
+    hence "?g * (a'*x) = ?g * (b'*y + 1)" by (simp add: mult.assoc)
     hence "a'*x = (b'*y + 1)"
       by (simp only: nat_mult_eq_cancel1[OF z']) 
     hence "a'*x - b'*y = 1" by simp
@@ -296,7 +296,7 @@ proof-
       using z by auto 
     then have "a^n * x - b^n * y = ?g^n \<or> b^n * x - a^n * y = ?g^n"
       using z ab'' by (simp only: power_mult_distrib[symmetric] 
-        diff_mult_distrib2 mult_assoc[symmetric])
+        diff_mult_distrib2 mult.assoc[symmetric])
     hence  ?thesis by blast }
   ultimately show ?thesis by blast
 qed
@@ -334,7 +334,7 @@ proof-
     from ab'(1) have "a' dvd a"  unfolding dvd_def by blast  
     with dc have th0: "a' dvd b*c" using dvd_trans[of a' a "b*c"] by simp
     from dc ab'(1,2) have "a'*?g dvd (b'*?g) *c" by auto
-    hence "?g*a' dvd ?g * (b' * c)" by (simp add: mult_assoc)
+    hence "?g*a' dvd ?g * (b' * c)" by (simp add: mult.assoc)
     with z have th_1: "a' dvd b'*c" by simp
     from coprime_divprod[OF th_1 ab'(3)] have thc: "a' dvd c" . 
     from ab' have "a = ?g*a'" by algebra
@@ -355,11 +355,11 @@ proof-
     from gcd_coprime_exists[OF z] 
     obtain a' b' where ab': "a = a' * ?g" "b = b' * ?g" "coprime a' b'" by blast
     from ab have "(a' * ?g) ^ n dvd (b' * ?g)^n" by (simp add: ab'(1,2)[symmetric])
-    hence "?g^n*a'^n dvd ?g^n *b'^n" by (simp only: power_mult_distrib mult_commute)
+    hence "?g^n*a'^n dvd ?g^n *b'^n" by (simp only: power_mult_distrib mult.commute)
     with zn z n have th0:"a'^n dvd b'^n" by (auto simp add: nat_power_eq_0_iff)
     have "a' dvd a'^n" by (simp add: m)
     with th0 have "a' dvd b'^n" using dvd_trans[of a' "a'^n" "b'^n"] by simp
-    hence th1: "a' dvd b'^m * b'" by (simp add: m mult_commute)
+    hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute)
     from coprime_divprod[OF th1 coprime_exp[OF ab'(3), of m]]
     have "a' dvd b'" .
     hence "a'*?g dvd b'*?g" by simp
@@ -372,7 +372,7 @@ lemma divides_mul: assumes mr: "m dvd r" and nr: "n dvd r" and mn:"coprime m n"
 proof-
   from mr nr obtain m' n' where m': "r = m*m'" and n': "r = n*n'"
     unfolding dvd_def by blast
-  from mr n' have "m dvd n'*n" by (simp add: mult_commute)
+  from mr n' have "m dvd n'*n" by (simp add: mult.commute)
   hence "m dvd n'" using relprime_dvd_mult_iff[OF mn[unfolded coprime_def]] by simp
   then obtain k where k: "n' = m*k" unfolding dvd_def by blast
   from n' k show ?thesis unfolding dvd_def by auto
@@ -609,7 +609,7 @@ proof-
     have "p dvd a \<or> p dvd b" .
     moreover
     {assume pa: "p dvd a"
-      have pnba: "p^n dvd b*a" using pab by (simp add: mult_commute)
+      have pnba: "p^n dvd b*a" using pab by (simp add: mult.commute)
       from coprime_prime[OF ab, of p] p pa have "\<not> p dvd b" by blast
       with prime_coprime[OF p, of b] b 
       have cpb: "coprime b p" using coprime_commute by blast 
@@ -618,7 +618,7 @@ proof-
       from coprime_divprod[OF pnba pnb] have ?thesis by blast }
     moreover
     {assume pb: "p dvd b"
-      have pnba: "p^n dvd b*a" using pab by (simp add: mult_commute)
+      have pnba: "p^n dvd b*a" using pab by (simp add: mult.commute)
       from coprime_prime[OF ab, of p] p pb have "\<not> p dvd a" by blast
       with prime_coprime[OF p, of a] a
       have cpb: "coprime a p" using coprime_commute by blast 
@@ -632,7 +632,7 @@ qed
 lemma nat_mult_eq_one: "(n::nat) * m = 1 \<longleftrightarrow> n = 1 \<and> m = 1" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume H: "?lhs"
-  hence "n dvd 1" "m dvd 1" unfolding dvd_def by (auto simp add: mult_commute)
+  hence "n dvd 1" "m dvd 1" unfolding dvd_def by (auto simp add: mult.commute)
   thus ?rhs by auto
 next
   assume ?rhs then show ?lhs by auto
@@ -705,7 +705,7 @@ proof(induct c arbitrary: a b rule: nat_less_induct)
       from coprime_lmul2 [OF H(2)[unfolded k coprime_commute[of "p^n*k" a]]]
       have kb: "coprime k a" by (simp add: coprime_commute) 
       from H(3) l k pn0 n have kbln: "k * a = l ^ n" 
-        by (simp add: power_mult_distrib mult_commute)
+        by (simp add: power_mult_distrib mult.commute)
       from H(1)[rule_format, OF lc kb kbln]
       obtain r s where rs: "k = r ^n" "a = s^n" by blast
       from k rs(1) have "b = (p*r)^n" by (simp add: power_mult_distrib)
@@ -772,7 +772,7 @@ next
   moreover 
   {assume px: "p dvd y"
     then obtain d where d: "y = p*d" unfolding dvd_def by blast
-    from Suc.prems d  have "p*d*x = p^Suc k" by (simp add: mult_commute)
+    from Suc.prems d  have "p*d*x = p^Suc k" by (simp add: mult.commute)
     hence th: "d*x = p^k" using p0 by simp
     from Suc.hyps[OF th] obtain i j where ij: "d = p^i" "x = p^j" by blast
     with d have "y = p^Suc i" by simp 
@@ -800,7 +800,7 @@ lemma divides_primepow: assumes p: "prime p"
   shows "d dvd p^k \<longleftrightarrow> (\<exists> i. i \<le> k \<and> d = p ^i)"
 proof
   assume H: "d dvd p^k" then obtain e where e: "d*e = p^k" 
-    unfolding dvd_def  apply (auto simp add: mult_commute) by blast
+    unfolding dvd_def  apply (auto simp add: mult.commute) by blast
   from prime_power_mult[OF p e] obtain i j where ij: "d = p^i" "e=p^j" by blast
   from prime_ge_2[OF p] have p1: "p > 1" by arith
   from e ij have "p^(i + j) = p^k" by (simp add: power_add)

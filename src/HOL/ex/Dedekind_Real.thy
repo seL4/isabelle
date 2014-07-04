@@ -229,7 +229,7 @@ subsection{*Properties of Addition*}
 lemma preal_add_commute: "(x::preal) + y = y + x"
 apply (unfold preal_add_def add_set_def)
 apply (rule_tac f = Abs_preal in arg_cong)
-apply (force simp add: add_commute)
+apply (force simp add: add.commute)
 done
 
 text{*Lemmas for proving that addition of two positive reals gives
@@ -344,7 +344,7 @@ text{*Proofs essentially same as for addition*}
 lemma preal_mult_commute: "(x::preal) * y = y * x"
 apply (unfold preal_mult_def mult_set_def)
 apply (rule_tac f = Abs_preal in arg_cong)
-apply (force simp add: mult_commute)
+apply (force simp add: mult.commute)
 done
 
 text{*Multiplication of two positive reals gives a positive real.*}
@@ -420,7 +420,7 @@ proof (unfold mult_set_def, clarify)
     show "\<exists>y'\<in>B. z = (z/y) * y'"
     proof
       show "z = (z/y)*y"
-        by (simp add: divide_inverse mult_commute [of y] mult_assoc
+        by (simp add: divide_inverse mult.commute [of y] mult.assoc
                       order_less_imp_not_eq2)
       show "y \<in> B" by fact
     qed
@@ -501,7 +501,7 @@ proof (induct z)
         show "\<exists>v'\<in>A. x = (x / v) * v'"
         proof
           show "x = (x/v)*v"
-            by (simp add: divide_inverse mult_assoc vpos
+            by (simp add: divide_inverse mult.assoc vpos
                           order_less_imp_not_eq2)
           show "v \<in> A" by fact
         qed
@@ -550,7 +550,7 @@ proof
   have cpos: "0 < ?c"
     by (simp add: zero_less_divide_iff zero_less_mult_iff pos_add_strict)
   show "a * d + b * e = ?c * (d + e)"
-    by (simp add: divide_inverse mult_assoc order_less_imp_not_eq2)
+    by (simp add: divide_inverse mult.assoc order_less_imp_not_eq2)
   show "?c \<in> Rep_preal w"
   proof (cases rule: linorder_le_cases)
     assume "a \<le> b"
@@ -777,7 +777,7 @@ proof -
     qed
     hence "y < r" by simp
     with ypos have  dless: "?d < (r * ?d)/y"
-      by (simp add: pos_less_divide_eq mult_commute [of ?d]
+      by (simp add: pos_less_divide_eq mult.commute [of ?d]
                     mult_strict_right_mono dpos)
     have "r + ?d < r*x"
     proof -
@@ -826,10 +826,10 @@ proof -
     show "x/u < x/r" using xpos upos rpos
       by (simp add: divide_inverse mult_less_cancel_left rless) 
     show "inverse (x / r) \<notin> Rep_preal R" using notin
-      by (simp add: divide_inverse mult_commute) 
+      by (simp add: divide_inverse mult.commute) 
     show "u \<in> Rep_preal R" by (rule u) 
     show "x = x / u * u" using upos 
-      by (simp add: divide_inverse mult_commute) 
+      by (simp add: divide_inverse mult.commute) 
   qed
 qed
 
@@ -1284,9 +1284,9 @@ subsection {* Addition and Subtraction *}
 lemma real_add_congruent2_lemma:
      "[|a + ba = aa + b; ab + bc = ac + bb|]
       ==> a + ab + (ba + bc) = aa + ac + (b + (bb::preal))"
-apply (simp add: add_assoc)
-apply (rule add_left_commute [of ab, THEN ssubst])
-apply (simp add: add_assoc [symmetric])
+apply (simp add: add.assoc)
+apply (rule add.left_commute [of ab, THEN ssubst])
+apply (simp add: add.assoc [symmetric])
 apply (simp add: add_ac)
 done
 
@@ -1305,7 +1305,7 @@ qed
 lemma real_minus: "- Abs_Real(realrel``{(x,y)}) = Abs_Real(realrel `` {(y,x)})"
 proof -
   have "(\<lambda>(x,y). {Abs_Real (realrel``{(y,x)})}) respects realrel"
-    by (auto simp add: congruent_def add_commute) 
+    by (auto simp add: congruent_def add.commute) 
   thus ?thesis
     by (simp add: real_minus_def UN_equiv_class [OF equiv_realrel])
 qed
@@ -1314,13 +1314,13 @@ instance real :: ab_group_add
 proof
   fix x y z :: real
   show "(x + y) + z = x + (y + z)"
-    by (cases x, cases y, cases z, simp add: real_add add_assoc)
+    by (cases x, cases y, cases z, simp add: real_add add.assoc)
   show "x + y = y + x"
-    by (cases x, cases y, simp add: real_add add_commute)
+    by (cases x, cases y, simp add: real_add add.commute)
   show "0 + x = x"
     by (cases x, simp add: real_add real_zero_def add_ac)
   show "- x + x = 0"
-    by (cases x, simp add: real_minus real_add real_zero_def add_commute)
+    by (cases x, simp add: real_minus real_add real_zero_def add.commute)
   show "x - y = x + - y"
     by (simp add: real_diff_def)
 qed
@@ -1332,9 +1332,9 @@ lemma real_mult_congruent2_lemma:
      "!!(x1::preal). [| x1 + y2 = x2 + y1 |] ==>
           x * x1 + y * y1 + (x * y2 + y * x2) =
           x * x2 + y * y2 + (x * y1 + y * x1)"
-apply (simp add: add_left_commute add_assoc [symmetric])
-apply (simp add: add_assoc distrib_left [symmetric])
-apply (simp add: add_commute)
+apply (simp add: add.left_commute add.assoc [symmetric])
+apply (simp add: add.assoc distrib_left [symmetric])
+apply (simp add: add.commute)
 done
 
 lemma real_mult_congruent2:
@@ -1343,7 +1343,7 @@ lemma real_mult_congruent2:
           { Abs_Real (realrel``{(x1*x2 + y1*y2, x1*y2+y1*x2)}) }) p2) p1)
      respects2 realrel"
 apply (rule congruent2_commuteI [OF equiv_realrel], clarify)
-apply (simp add: mult_commute add_commute)
+apply (simp add: mult.commute add.commute)
 apply (auto simp add: real_mult_congruent2_lemma)
 done
 
@@ -1393,7 +1393,7 @@ qed
 subsection {* Inverse and Division *}
 
 lemma real_zero_iff: "Abs_Real (realrel `` {(x, x)}) = 0"
-by (simp add: real_zero_def add_commute)
+by (simp add: real_zero_def add.commute)
 
 text{*Instead of using an existential quantifier and constructing the inverse
 within the proof, we could define the inverse explicitly.*}
@@ -1416,8 +1416,8 @@ apply (simp add: real_inverse_def)
 apply (drule real_mult_inverse_left_ex, safe)
 apply (rule theI, assumption, rename_tac z)
 apply (subgoal_tac "(z * x) * y = z * (x * y)")
-apply (simp add: mult_commute)
-apply (rule mult_assoc)
+apply (simp add: mult.commute)
+apply (rule mult.assoc)
 done
 
 
@@ -1510,7 +1510,7 @@ lemma real_le_eq_diff: "(x \<le> y) = (x-y \<le> (0::real))"
 apply (cases x, cases y) 
 apply (auto simp add: real_le real_zero_def real_diff_def real_add real_minus
                       add_ac)
-apply (simp_all add: add_assoc [symmetric])
+apply (simp_all add: add.assoc [symmetric])
 done
 
 lemma real_add_left_mono: 
@@ -1591,7 +1591,7 @@ lemma real_of_preal_trichotomy:
 apply (simp add: real_of_preal_def real_zero_def, cases x)
 apply (auto simp add: real_minus add_ac)
 apply (cut_tac x = xa and y = y in linorder_less_linear)
-apply (auto dest!: less_add_left_Ex simp add: add_assoc [symmetric])
+apply (auto dest!: less_add_left_Ex simp add: add.assoc [symmetric])
 done
 
 lemma real_of_preal_leD:

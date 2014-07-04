@@ -1080,7 +1080,7 @@ proof -
       by (auto intro: continuous_at_imp_continuous_on)
   qed simp
   then show ?thesis
-    by (auto simp: mult_commute)
+    by (auto simp: mult.commute)
 qed
 
 text {*
@@ -1160,7 +1160,7 @@ proof -
     using cont by (intro continuous_at_imp_continuous_on) auto
   show ?has ?eq
     using has_bochner_integral_FTC_Icc[OF `a \<le> b` 1 2] integral_FTC_Icc[OF `a \<le> b` 1 2]
-    by (auto simp: mult_commute)
+    by (auto simp: mult.commute)
 qed
 
 lemma nn_integral_FTC_atLeast:

@@ -98,7 +98,7 @@ lemma trace_sub: "trace ((A::'a::comm_ring_1^'n^'n) - B) = trace A - trace B"
 lemma trace_mul_sym: "trace ((A::'a::comm_semiring_1^'n^'m) ** B) = trace (B**A)"
   apply (simp add: trace_def matrix_matrix_mult_def)
   apply (subst setsum.commute)
-  apply (simp add: mult_commute)
+  apply (simp add: mult.commute)
   done
 
 text {* Definition of determinant. *}
@@ -294,7 +294,7 @@ lemma det_permute_rows:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes p: "p permutes (UNIV :: 'n::finite set)"
   shows "det (\<chi> i. A$p i :: 'a^'n^'n) = of_int (sign p) * det A"
-  apply (simp add: det_def setsum_right_distrib mult_assoc[symmetric])
+  apply (simp add: det_def setsum_right_distrib mult.assoc[symmetric])
   apply (subst sum_permutations_compose_right[OF p])
 proof (rule setsum.cong)
   let ?U = "UNIV :: 'n set"
@@ -318,7 +318,7 @@ proof (rule setsum.cong)
     by blast
   show "of_int (sign (q \<circ> p)) * setprod (\<lambda>i. A$ p i$ (q \<circ> p) i) ?U =
     of_int (sign p) * of_int (sign q) * setprod (\<lambda>i. A$i$q i) ?U"
-    by (simp only: thp sign_compose[OF qp pp] mult_commute of_int_mult)
+    by (simp only: thp sign_compose[OF qp pp] mult.commute of_int_mult)
 qed rule
 
 lemma det_permute_columns:
@@ -819,7 +819,7 @@ proof -
         unfolding permutation_permutes by auto
       have th00: "of_int (sign p) * of_int (sign p) = (1::'a)"
         "\<And>a. of_int (sign p) * (of_int (sign p) * a) = a"
-        unfolding mult_assoc[symmetric]
+        unfolding mult.assoc[symmetric]
         unfolding of_int_mult[symmetric]
         by (simp_all add: sign_idempotent)
       have ths: "?s q = ?s p * ?s (q \<circ> inv p)"
@@ -891,7 +891,7 @@ proof -
       by blast
     have *: "\<And>(a::real^'n) b. a + b = 0 \<Longrightarrow> -a = b"
       apply (drule_tac f="op + (- a)" in cong[OF refl])
-      apply (simp only: ab_left_minus add_assoc[symmetric])
+      apply (simp only: ab_left_minus add.assoc[symmetric])
       apply simp
       done
     from c ci
@@ -958,7 +958,7 @@ proof -
     apply (subst U)
     unfolding setsum.insert[OF fUk kUk]
     apply (subst th00)
-    unfolding add_assoc
+    unfolding add.assoc
     apply (subst det_row_add)
     unfolding thd0
     unfolding det_row_mul
@@ -1278,10 +1278,10 @@ lemma setprod_neutral_const: "setprod f {(1::nat)..1} = f 1"
   by (fact setprod_singleton_nat_seg)
 
 lemma setprod_2: "setprod f {(1::nat)..2} = f 1 * f 2"
-  by (simp add: eval_nat_numeral setprod_numseg mult_commute)
+  by (simp add: eval_nat_numeral setprod_numseg mult.commute)
 
 lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3"
-  by (simp add: eval_nat_numeral setprod_numseg mult_commute)
+  by (simp add: eval_nat_numeral setprod_numseg mult.commute)
 
 lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
   by (simp add: det_def sign_id)

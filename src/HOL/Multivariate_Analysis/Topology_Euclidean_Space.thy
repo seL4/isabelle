@@ -2725,7 +2725,7 @@ lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<
 
 lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>y\<in>S. dist a y \<le> e)"
   unfolding bounded_def
-  by auto (metis add_commute add_le_cancel_right dist_commute dist_triangle_le)
+  by auto (metis add.commute add_le_cancel_right dist_commute dist_triangle_le)
 
 lemma bounded_iff: "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. norm x \<le> a)"
   unfolding bounded_any_center [where a=0]
@@ -2859,7 +2859,7 @@ proof -
   then show ?thesis
     unfolding bounded_pos
     apply (rule_tac x="b*B" in exI)
-    using b B by (auto simp add: mult_commute)
+    using b B by (auto simp add: mult.commute)
 qed
 
 lemma bounded_scaling:
@@ -2901,7 +2901,7 @@ lemma bounded_imp_bdd_above: "bounded S \<Longrightarrow> bdd_above (S :: real s
 
 lemma bounded_imp_bdd_below: "bounded S \<Longrightarrow> bdd_below (S :: real set)"
   by (auto simp: bounded_def bdd_below_def dist_real_def)
-     (metis abs_le_D1 add_commute diff_le_eq)
+     (metis abs_le_D1 add.commute diff_le_eq)
 
 (* TODO: remove the following lemmas about Inf and Sup, is now in conditionally complete lattice *)
 
@@ -6801,7 +6801,7 @@ next
     then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
       unfolding image_iff Bex_def mem_box
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      apply (auto simp add: pos_le_divide_eq pos_divide_le_eq mult_commute diff_le_iff inner_distrib inner_diff_left)
+      apply (auto simp add: pos_le_divide_eq pos_divide_le_eq mult.commute diff_le_iff inner_distrib inner_diff_left)
       done
   }
   moreover
@@ -6811,7 +6811,7 @@ next
     then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
       unfolding image_iff Bex_def mem_box
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      apply (auto simp add: neg_le_divide_eq neg_divide_le_eq mult_commute diff_le_iff inner_distrib inner_diff_left)
+      apply (auto simp add: neg_le_divide_eq neg_divide_le_eq mult.commute diff_le_iff inner_distrib inner_diff_left)
       done
   }
   ultimately show ?thesis using False by (auto simp: cbox_def)
@@ -7175,7 +7175,7 @@ next
       then show "norm (f b) / norm b * norm x \<le> norm (f x)"
         using b[THEN bspec[where x="(norm a / norm x) *\<^sub>R x"]]
         unfolding f.scaleR and ba using `x\<noteq>0` `a\<noteq>0`
-        by (auto simp add: mult_commute pos_le_divide_eq pos_divide_le_eq)
+        by (auto simp add: mult.commute pos_le_divide_eq pos_divide_le_eq)
     qed
   }
   ultimately show ?thesis by auto
@@ -7406,7 +7406,7 @@ proof -
     proof (cases "d = 0")
       case True
       have *: "\<And>x. ((1 - c) * x \<le> 0) = (x \<le> 0)" using `1 - c > 0`
-        by (metis mult_zero_left mult_commute real_mult_le_cancel_iff1)
+        by (metis mult_zero_left mult.commute real_mult_le_cancel_iff1)
       from True have "\<And>n. z n = z0" using cf_z2[of 0] and c unfolding z_def
         by (simp add: *)
       then show ?thesis using `e>0` by auto
@@ -7431,12 +7431,12 @@ proof -
         have "dist (z m) (z n) \<le> c ^ n * d * (1 - c ^ (m - n)) / (1 - c)"
           using cf_z2[of n "m - n"] and `m>n`
           unfolding pos_le_divide_eq[OF `1-c>0`]
-          by (auto simp add: mult_commute dist_commute)
+          by (auto simp add: mult.commute dist_commute)
         also have "\<dots> \<le> c ^ N * d * (1 - c ^ (m - n)) / (1 - c)"
           using mult_right_mono[OF * order_less_imp_le[OF **]]
-          unfolding mult_assoc by auto
+          unfolding mult.assoc by auto
         also have "\<dots> < (e * (1 - c) / d) * d * (1 - c ^ (m - n)) / (1 - c)"
-          using mult_strict_right_mono[OF N **] unfolding mult_assoc by auto
+          using mult_strict_right_mono[OF N **] unfolding mult.assoc by auto
         also have "\<dots> = e * (1 - c ^ (m - n))"
           using c and `d>0` and `1 - c > 0` by auto
         also have "\<dots> \<le> e" using c and `1 - c ^ (m - n) > 0` and `e>0`

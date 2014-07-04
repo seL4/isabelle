@@ -136,7 +136,7 @@ proof
     by (simp add: real_sqrt_mult_distrib)
   then show "norm (a *\<^sub>R x) = \<bar>a\<bar> * norm x"
     unfolding norm_eq_sqrt_inner
-    by (simp add: power2_eq_square mult_assoc)
+    by (simp add: power2_eq_square mult.assoc)
 qed
 
 end
@@ -209,11 +209,11 @@ definition inner_real_def [simp]: "inner = op *"
 instance proof
   fix x y z r :: real
   show "inner x y = inner y x"
-    unfolding inner_real_def by (rule mult_commute)
+    unfolding inner_real_def by (rule mult.commute)
   show "inner (x + y) z = inner x z + inner y z"
     unfolding inner_real_def by (rule distrib_right)
   show "inner (scaleR r x) y = r * inner x y"
-    unfolding inner_real_def real_scaleR_def by (rule mult_assoc)
+    unfolding inner_real_def real_scaleR_def by (rule mult.assoc)
   show "0 \<le> inner x x"
     unfolding inner_real_def by simp
   show "inner x x = 0 \<longleftrightarrow> x = 0"
@@ -233,7 +233,7 @@ definition inner_complex_def:
 instance proof
   fix x y z :: complex and r :: real
   show "inner x y = inner y x"
-    unfolding inner_complex_def by (simp add: mult_commute)
+    unfolding inner_complex_def by (simp add: mult.commute)
   show "inner (x + y) z = inner x z + inner y z"
     unfolding inner_complex_def by (simp add: distrib_right)
   show "inner (scaleR r x) y = r * inner x y"

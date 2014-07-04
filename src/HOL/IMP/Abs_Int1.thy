@@ -109,7 +109,7 @@ definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>s
 "m_s S X = (\<Sum> x \<in> X. m(fun S x))"
 
 lemma m_s_h: "finite X \<Longrightarrow> m_s S X \<le> h * card X"
-by(simp add: m_s_def) (metis nat_mult_commute of_nat_id setsum_bounded[OF h])
+by(simp add: m_s_def) (metis mult.commute of_nat_id setsum_bounded[OF h])
 
 definition m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>o") where
 "m_o opt X = (case opt of None \<Rightarrow> h * card X + 1 | Some S \<Rightarrow> m_s S X)"

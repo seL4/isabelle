@@ -510,9 +510,9 @@ proof (cases "z = x")
 next
   case False
   then have "inverse (z - x) * (f z - f x - f' x * (z - x)) = (f z - f x) / (z - x) - f' x"
-    apply (subst mult_commute)
+    apply (subst mult.commute)
     apply (simp add: left_diff_distrib)
-    apply (simp add: mult_assoc divide_inverse)
+    apply (simp add: mult.assoc divide_inverse)
     apply (simp add: ring_distribs)
     done
   moreover from False `\<bar>z - x\<bar> < s` have "\<bar>(f z - f x) / (z - x) - f' x\<bar> < e / 2"

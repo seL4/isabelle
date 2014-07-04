@@ -66,7 +66,7 @@ lemma convolution_emeasure_3:
   apply (subst nn_integral_indicator[symmetric], simp)
   apply (subst nn_integral_convolution, 
         auto intro!: borel_measurable_indicator borel_measurable_indicator' convolution_finite)+
-  by (rule nn_integral_cong)+ (auto simp: semigroup_add_class.add_assoc)
+  by (rule nn_integral_cong)+ (auto simp: semigroup_add_class.add.assoc)
 
 lemma convolution_emeasure_3':
   assumes [simp, measurable]:"A \<in> sets borel"
@@ -96,7 +96,7 @@ proof (rule measure_eqI)
   have "emeasure (M \<star> N) A = \<integral>\<^sup>+x. \<integral>\<^sup>+y. indicator A (x + y) \<partial>N \<partial>M" by (auto intro!: convolution_emeasure')
   also have "... = \<integral>\<^sup>+x. \<integral>\<^sup>+y. (\<lambda>(x,y). indicator A (x + y)) (x, y) \<partial>N \<partial>M" by (auto intro!: nn_integral_cong)
   also have "... = \<integral>\<^sup>+y. \<integral>\<^sup>+x. (\<lambda>(x,y). indicator A (x + y)) (x, y) \<partial>M \<partial>N" by (rule Fubini[symmetric]) simp
-  also have "... = emeasure (N \<star> M) A" by (auto intro!: nn_integral_cong simp: add_commute convolution_emeasure')
+  also have "... = emeasure (N \<star> M) A" by (auto intro!: nn_integral_cong simp: add.commute convolution_emeasure')
   finally show "emeasure (M \<star> N) A = emeasure (N \<star> M) A" by simp
 qed
 

@@ -148,7 +148,7 @@ lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
                    b = "x * (a * MultInv p x)" and
                    c = "a * (x * MultInv p x)" in  zcong_trans, force)
   apply (frule_tac p = p and x = x in MultInv_prop2, auto)
-apply (metis StandardRes_SRStar_prop3 mult_1_right mult_commute zcong_sym zcong_zmult_prop1)
+apply (metis StandardRes_SRStar_prop3 mult_1_right mult.commute zcong_sym zcong_zmult_prop1)
   apply (auto simp add: mult_ac)
   done
 

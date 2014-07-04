@@ -50,7 +50,7 @@ lemma numbers_of_marks_replicate_True [simp]:
 
 lemma in_numbers_of_marks_eq:
   "m \<in> numbers_of_marks n bs \<longleftrightarrow> m \<in> {n..<n + length bs} \<and> bs ! (m - n)"
-  by (simp add: numbers_of_marks_def in_set_enumerate_eq image_iff add_commute)
+  by (simp add: numbers_of_marks_def in_set_enumerate_eq image_iff add.commute)
 
 lemma sorted_list_of_set_numbers_of_marks:
   "sorted_list_of_set (numbers_of_marks n bs) = map fst (filter snd (enumerate n bs))"
@@ -141,7 +141,7 @@ proof -
         by (simp add: div_mod_equality' [symmetric])
     }
     then have "w dvd v + w + r + (w - v mod w) \<longleftrightarrow> w dvd m + w + r + (w - m mod w)"
-      by (simp add: add_assoc add_left_commute [of m] add_left_commute [of v]
+      by (simp add: add.assoc add.left_commute [of m] add.left_commute [of v]
         dvd_plus_eq_left dvd_plus_eq_right)
     moreover from q have "Suc q = m + w + r" by (simp add: w_def)
     moreover from q have "Suc (Suc q) = v + w + r" by (simp add: v_def w_def)

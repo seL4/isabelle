@@ -25,7 +25,7 @@ lemma diff_le_eq':
 lemma emep1:
   fixes n d :: int
   shows "even n \<Longrightarrow> even d \<Longrightarrow> 0 \<le> d \<Longrightarrow> (n + 1) mod d = (n mod d) + 1"
-  by (auto simp add: pos_zmod_mult_2 add_commute even_equiv_def)
+  by (auto simp add: pos_zmod_mult_2 add.commute even_equiv_def)
 
 lemma int_mod_ge:
   "a < n \<Longrightarrow> 0 < (n :: int) \<Longrightarrow> a \<le> a mod n"
@@ -63,7 +63,7 @@ lemma p1mod22k':
 lemma p1mod22k:
   fixes b :: int
   shows "(2 * b + 1) mod (2 * 2 ^ n) = 2 * (b mod 2 ^ n) + 1"
-  by (simp add: p1mod22k' add_commute)
+  by (simp add: p1mod22k' add.commute)
 
 lemma int_mod_lem: 
   "(0 :: int) < n ==> (0 <= b & b < n) = (b mod n = b)"

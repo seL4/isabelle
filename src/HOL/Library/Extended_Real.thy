@@ -701,7 +701,7 @@ lemma ereal_mult_strict_right_mono:
 lemma ereal_mult_strict_left_mono:
   "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c < (\<infinity>::ereal) \<Longrightarrow> c * a < c * b"
   using ereal_mult_strict_right_mono
-  by (simp add: mult_commute[of c])
+  by (simp add: mult.commute[of c])
 
 lemma ereal_mult_right_mono:
   fixes a b c :: ereal
@@ -717,7 +717,7 @@ lemma ereal_mult_left_mono:
   fixes a b c :: ereal
   shows "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
   using ereal_mult_right_mono
-  by (simp add: mult_commute[of c])
+  by (simp add: mult.commute[of c])
 
 lemma zero_less_one_ereal[simp]: "0 \<le> (1::ereal)"
   by (simp add: one_ereal_def zero_ereal_def)
