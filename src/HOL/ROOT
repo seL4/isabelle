@@ -521,6 +521,7 @@ session "HOL-ex" in ex = HOL +
     "~~/src/HOL/Library/Transitive_Closure_Table"
     Cartouche_Examples
   theories
+    Adhoc_Overloading_Examples
     Iff_Oracle
     Coercion_Examples
     Higher_Order_Logic

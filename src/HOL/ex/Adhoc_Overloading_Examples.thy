@@ -127,7 +127,8 @@ lemma perms_inv:
   apply (rule perms_imp_bij [OF f])
   apply (rule MOST_mono [OF perms_imp_MOST_eq [OF f]])
   apply (erule subst, rule inv_f_f)
-  by (rule bij_is_inj [OF perms_imp_bij [OF f]])
+  apply (rule bij_is_inj [OF perms_imp_bij [OF f]])
+  done
 
 lemma bij_Rep_perm: "bij (Rep_perm p)"
   using Rep_perm [of p] unfolding perms_def by simp
@@ -207,7 +208,11 @@ adhoc_overloading
   PERMUTE permute_perm
 
 interpretation perm_permute: permute permute_perm
-  by (default) (simp add: diff_minus minus_add add_assoc permute_perm_def)+
+  apply default
+  unfolding permute_perm_def
+  apply simp
+  apply (simp only: diff_conv_add_uminus minus_add add_assoc)
+  done
 
 text {*Permuting functions.*}
 locale fun_permute =
