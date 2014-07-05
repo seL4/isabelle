@@ -10,9 +10,10 @@ Contributions to Isabelle2014
   Preserve equality hypotheses in "clarify" and friends. New
   "hypsubst_thin" method configuration option.
 
-* June 2014: Florian Haftmann, TUM
-  Consolidation and generalization of facts concerning products
-  (resp. sums) on finite sets.
+* Summer 2014: Florian Haftmann, TUM
+  Consolidation and generalization of facts concerning (abelian)
+  semigroups and monoids, particularly products (resp. sums) on
+  finite sets.
 
 * June 2014: Florian Haftmann, TUM
   Internal reorganisation of the local theory / named target stack.
