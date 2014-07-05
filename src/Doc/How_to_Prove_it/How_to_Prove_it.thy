@@ -113,10 +113,10 @@ realm of linear arithmetic.
 
 Because @{thm[source]algebra_simps} multiplies out, terms can explode.
 If one merely wants to bring sums or products into a canonical order
-it suffices to rewrite with @{thm [source] add_ac} or @{thm [source] mult_ac}: *}
+it suffices to rewrite with @{thm [source] ac_simps}: *}
 
 lemma fixes f :: "int \<Rightarrow> int" shows "f(x*y*z) - f(z*x*y) = 0"
-by(simp add: mult_ac)
+by(simp add: ac_simps)
 
 text{* The lemmas @{thm[source]algebra_simps} take care of addition, subtraction
 and multiplication (algebraic structures up to rings) but ignore division (fields).

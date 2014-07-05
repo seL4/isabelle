@@ -227,10 +227,10 @@ apply clarsimp
 apply (case_tac "d * x - a * b * y = Suc 0 ", simp_all)
 apply (rule_tac x="x" in exI)
 apply (rule_tac x="a*y" in exI)
-apply (simp add: mult_ac)
+apply (simp add: ac_simps)
 apply (rule_tac x="a*x" in exI)
 apply (rule_tac x="y" in exI)
-apply (simp add: mult_ac)
+apply (simp add: ac_simps)
 done
 
 lemma coprime_rmul2: "coprime d (a * b) \<Longrightarrow> coprime d a"
@@ -239,10 +239,10 @@ apply clarsimp
 apply (case_tac "d * x - a * b * y = Suc 0 ", simp_all)
 apply (rule_tac x="x" in exI)
 apply (rule_tac x="b*y" in exI)
-apply (simp add: mult_ac)
+apply (simp add: ac_simps)
 apply (rule_tac x="b*x" in exI)
 apply (rule_tac x="y" in exI)
-apply (simp add: mult_ac)
+apply (simp add: ac_simps)
 done
 lemma coprime_mul_eq: "coprime d (a * b) \<longleftrightarrow> coprime d a \<and>  coprime d b"
   using coprime_rmul2[of d a b] coprime_lmul2[of d a b] coprime_mul[of d a b] 
@@ -288,7 +288,7 @@ proof-
   moreover
   {assume z: "?g \<noteq> 0"
     from gcd_dvd1[of a b] gcd_dvd2[of a b] obtain a' b' where
-      ab': "a = a'*?g" "b = b'*?g" unfolding dvd_def by (auto simp add: mult_ac)
+      ab': "a = a'*?g" "b = b'*?g" unfolding dvd_def by (auto simp add: ac_simps)
     hence ab'': "?g*a' = a" "?g * b' = b" by algebra+
     from coprime_exp_imp[OF gcd_coprime[OF z ab'], unfolded coprime_bezout, of n]
     obtain x y where "a'^n * x - b'^n * y = 1 \<or> b'^n * x - a'^n * y = 1"  by blast

@@ -657,7 +657,7 @@ lemma card_Set [code]:
 lemma setsum_Set [code]:
   "setsum f (Set xs) = fold_keys (plus o f) xs 0"
 proof -
-  have "comp_fun_commute (\<lambda>x. op + (f x))" by default (auto simp: add_ac)
+  have "comp_fun_commute (\<lambda>x. op + (f x))" by default (auto simp: ac_simps)
   then show ?thesis 
     by (auto simp add: setsum.eq_fold finite_fold_fold_keys o_def)
 qed

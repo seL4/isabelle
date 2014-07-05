@@ -574,7 +574,7 @@ proof -
     apply (rule setsum.cong[OF refl])
     apply (subst diff_m_0, simp)
     apply (auto intro: mult_right_mono [where b=1, simplified] mult_right_mono
-                simp add: est mult_ac divide_inverse power_abs [symmetric] abs_mult)
+                simp add: est ac_simps divide_inverse power_abs [symmetric] abs_mult)
     done
 qed
 

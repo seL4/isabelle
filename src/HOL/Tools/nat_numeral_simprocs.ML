@@ -167,10 +167,10 @@ struct
   val norm_ss1 =
     simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
       addsimps numeral_syms @ add_0s @ mult_1s @
-        [@{thm Suc_eq_plus1_left}] @ @{thms add_ac})
+        [@{thm Suc_eq_plus1_left}] @ @{thms ac_simps})
   val norm_ss2 =
     simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
-      addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac})
+      addsimps bin_simps @ @{thms ac_simps} @ @{thms ac_simps})
   fun norm_tac ctxt = 
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
@@ -239,10 +239,10 @@ struct
 
   val norm_ss1 =
     simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
-      addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1}] @ @{thms add_ac})
+      addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1}] @ @{thms ac_simps})
   val norm_ss2 =
     simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
-      addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac})
+      addsimps bin_simps @ @{thms ac_simps} @ @{thms ac_simps})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
@@ -270,10 +270,10 @@ struct
 
   val norm_ss1 =
     simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
-      addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1_left}] @ @{thms add_ac})
+      addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1_left}] @ @{thms ac_simps})
   val norm_ss2 =
     simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
-      addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac})
+      addsimps bin_simps @ @{thms ac_simps} @ @{thms ac_simps})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
@@ -363,7 +363,7 @@ struct
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss =
     simpset_of (put_simpset HOL_basic_ss @{context}
-      addsimps mult_1s @ @{thms mult_ac})
+      addsimps mult_1s @ @{thms ac_simps})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   val simplify_meta_eq  = cancel_simplify_meta_eq

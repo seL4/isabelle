@@ -136,7 +136,7 @@ lemma borel_measurable_restrict_space_iff:
   shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
     (\<lambda>x. indicator \<Omega> x *\<^sub>R f x) \<in> borel_measurable M"
   by (subst measurable_restrict_space_iff)
-     (auto simp: indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a] mult_ac cong del: if_cong)
+     (auto simp: indicator_def if_distrib[where f="\<lambda>x. x *\<^sub>R a" for a] ac_simps cong del: if_cong)
 
 lemma cbox_borel[measurable]: "cbox a b \<in> sets borel"
   by (auto intro: borel_closed)

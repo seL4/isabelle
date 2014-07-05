@@ -19,8 +19,7 @@ val nT = HOLogic.natT;
   val nat_arith = [@{thm diff_nat_numeral}];
 
   val comp_arith = [@{thm "Let_def"}, @{thm "if_False"}, @{thm "if_True"}, @{thm "add_0"},
-                 @{thm "add_Suc"}, @{thm add_numeral_left}, @{thm mult_numeral_left(1)},
-                 @{thm "Suc_eq_plus1"}] @
+                 @{thm "add_Suc"}, @{thm add_numeral_left}, @{thm mult_numeral_left(1)}] @
                  (map (fn th => th RS sym) [@{thm "numeral_1_eq_1"}])
                  @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps} 
   val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"}, 
@@ -81,7 +80,7 @@ fun mir_tac ctxt q =
                                   @{thm div_0}, @{thm mod_0},
                                   @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
                                   @{thm "Suc_eq_plus1"}]
-                        addsimps @{thms add_ac}
+                        addsimps @{thms add.assoc add.commute add.left_commute}
                         addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
     val simpset0 = put_simpset HOL_basic_ss ctxt
       addsimps [mod_div_equality', @{thm Suc_eq_plus1}]

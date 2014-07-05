@@ -34,7 +34,7 @@ lemma mod_div_equality2: "b * (a div b) + a mod b = a"
 
 lemma mod_div_equality': "a mod b + a div b * b = a"
   using mod_div_equality [of a b]
-  by (simp only: add_ac)
+  by (simp only: ac_simps)
 
 lemma div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
   by (simp add: mod_div_equality)
@@ -228,7 +228,7 @@ proof -
   have "(a + b) mod c = (a div c * c + a mod c + b) mod c"
     by (simp only: mod_div_equality)
   also have "\<dots> = (a mod c + b + a div c * c) mod c"
-    by (simp only: add_ac)
+    by (simp only: ac_simps)
   also have "\<dots> = (a mod c + b) mod c"
     by (rule mod_mult_self1)
   finally show ?thesis .
@@ -239,7 +239,7 @@ proof -
   have "(a + b) mod c = (a + (b div c * c + b mod c)) mod c"
     by (simp only: mod_div_equality)
   also have "\<dots> = (a + b mod c + b div c * c) mod c"
-    by (simp only: add_ac)
+    by (simp only: ac_simps)
   also have "\<dots> = (a + b mod c) mod c"
     by (rule mod_mult_self1)
   finally show ?thesis .
@@ -321,7 +321,7 @@ proof -
   also have "\<dots> = (a mod (c * k) + a div (c * k) * k * c) mod c"
     by (simp only: mod_mult_self1)
   also have "\<dots> = (a div (c * k) * (c * k) + a mod (c * k)) mod c"
-    by (simp only: add_ac mult_ac)
+    by (simp only: ac_simps ac_simps)
   also have "\<dots> = a mod c"
     by (simp only: mod_div_equality)
   finally show ?thesis .
@@ -421,7 +421,7 @@ proof -
   have "(- a) mod b = (- (a div b * b + a mod b)) mod b"
     by (simp only: mod_div_equality)
   also have "\<dots> = (- (a mod b) + - (a div b) * b) mod b"
-    by (simp only: minus_add_distrib minus_mult_left add_ac)
+    by (simp add: ac_simps)
   also have "\<dots> = (- (a mod b)) mod b"
     by (rule mod_mult_self1)
   finally show ?thesis .
@@ -957,7 +957,7 @@ structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
   val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
-    (@{thm add_0_left} :: @{thm add_0_right} :: @{thms add_ac}))
+    (@{thm add_0_left} :: @{thm add_0_right} :: @{thms ac_simps}))
 )
 *}
 
@@ -1059,7 +1059,7 @@ lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
 lemma divmod_nat_rel_mult2_eq:
   "divmod_nat_rel a b (q, r)
    \<Longrightarrow> divmod_nat_rel a (b * c) (q div c, b *(q mod c) + r)"
-by (auto simp add: mult_ac divmod_nat_rel_def add_mult_distrib2 [symmetric] mod_lemma)
+by (auto simp add: mult.commute mult.left_commute divmod_nat_rel_def add_mult_distrib2 [symmetric] mod_lemma)
 
 lemma div_mult2_eq: "a div (b * c) = (a div b) div (c::nat)"
 by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_nat_unique])
@@ -1147,11 +1147,15 @@ by (auto simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 lemmas mod_eq_0D [dest!] = mod_eq_0_iff [THEN iffD1]
 
 (*Loses information, namely we also have r<d provided d is nonzero*)
-lemma mod_eqD: "(m mod d = r) ==> \<exists>q::nat. m = r + q*d"
-  apply (cut_tac a = m in mod_div_equality)
-  apply (simp only: add_ac)
-  apply (blast intro: sym)
-  done
+lemma mod_eqD:
+  fixes m d r q :: nat
+  assumes "m mod d = r"
+  shows "\<exists>q. m = r + q * d"
+proof -
+  from mod_div_equality obtain q where "q * d + m mod d = m" by blast
+  with assms have "m = r + q * d" by simp
+  then show ?thesis ..
+qed
 
 lemma split_div:
  "P(n div k :: nat) =
@@ -1175,7 +1179,7 @@ proof
         with n j P show "P i" by simp
       next
         assume "i \<noteq> 0"
-        with not0 n j P show "P i" by(simp add:add_ac)
+        with not0 n j P show "P i" by(simp add:ac_simps)
       qed
     qed
   qed
@@ -1209,7 +1213,7 @@ proof
 next
   assume P: ?lhs
   then have "divmod_nat_rel m n (q, m - n * q)"
-    unfolding divmod_nat_rel_def by (auto simp add: mult_ac)
+    unfolding divmod_nat_rel_def by (auto simp add: ac_simps)
   with divmod_nat_rel_unique divmod_nat_rel [of m n]
   have "(q, m - n * q) = (m div n, m mod n)" by auto
   then show ?rhs by simp
@@ -1239,7 +1243,7 @@ proof
     proof (simp, intro allI impI)
       fix i j
       assume "n = k*i + j" "j < k"
-      thus "P j" using not0 P by(simp add:add_ac mult_ac)
+      thus "P j" using not0 P by(simp add:ac_simps ac_simps)
     qed
   qed
 next
@@ -1417,7 +1421,7 @@ qed
 
   (* Potential use of algebra : Equality modulo n*)
 lemma mod_mult_self3 [simp]: "(k*n + m) mod n = m mod (n::nat)"
-by (simp add: mult_ac add_ac)
+by (simp add: ac_simps ac_simps)
 
 lemma mod_mult_self4 [simp]: "Suc (k*n + m) mod n = Suc m mod n"
 proof -
@@ -1614,7 +1618,7 @@ theorem posDivAlg_correct:
   apply (case_tac "a < b")
   apply simp_all
   apply (erule splitE)
-  apply (auto simp add: distrib_left Let_def mult_ac mult_2_right)
+  apply (auto simp add: distrib_left Let_def ac_simps mult_2_right)
   done
 
 
@@ -1644,7 +1648,7 @@ lemma negDivAlg_correct:
   apply (case_tac "a + b < (0\<Colon>int)")
   apply simp_all
   apply (erule splitE)
-  apply (auto simp add: distrib_left Let_def mult_ac mult_2_right)
+  apply (auto simp add: distrib_left Let_def ac_simps mult_2_right)
   done
 
 
@@ -1744,7 +1748,7 @@ structure Cancel_Div_Mod_Int = Cancel_Div_Mod
   val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac 
-    (@{thm diff_conv_add_uminus} :: @{thms add_0s} @ @{thms add_ac}))
+    (@{thm diff_conv_add_uminus} :: @{thms add_0s} @ @{thms ac_simps}))
 )
 *}
 
@@ -2072,7 +2076,7 @@ text{*proving (a*b) div c = a * (b div c) + a * (b mod c) *}
 lemma zmult1_lemma:
      "[| divmod_int_rel b c (q, r) |]  
       ==> divmod_int_rel (a * b) c (a*q + a*r div c, a*r mod c)"
-by (auto simp add: split_ifs divmod_int_rel_def linorder_neq_iff distrib_left mult_ac)
+by (auto simp add: split_ifs divmod_int_rel_def linorder_neq_iff distrib_left ac_simps)
 
 lemma zdiv_zmult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)"
 apply (case_tac "c = 0", simp)
@@ -2176,7 +2180,7 @@ done
 
 lemma zmult2_lemma: "[| divmod_int_rel a b (q, r); 0 < c |]  
       ==> divmod_int_rel a (b * c) (q div c, b*(q mod c) + r)"
-by (auto simp add: mult_ac divmod_int_rel_def linorder_neq_iff
+by (auto simp add: mult.assoc divmod_int_rel_def linorder_neq_iff
                    zero_less_mult_iff distrib_left [symmetric] 
                    zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4 mult_less_0_iff split: split_if_asm)
 

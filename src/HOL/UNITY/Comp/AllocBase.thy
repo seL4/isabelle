@@ -39,7 +39,7 @@ done
 (** bag_of **)
 
 lemma bag_of_append [simp]: "bag_of (l@l') = bag_of l + bag_of l'"
-  by (induct l) (simp_all add: add_ac)
+  by (induct l) (simp_all add: ac_simps)
 
 lemma mono_bag_of: "mono (bag_of :: 'a list => ('a::order) multiset)"
 apply (rule monoI)
@@ -63,7 +63,7 @@ lemma bag_of_sublist:
       (\<Sum>i\<in> A Int lessThan (length l). {# l!i #})"
 apply (rule_tac xs = l in rev_induct, simp)
 apply (simp add: sublist_append Int_insert_right lessThan_Suc nth_append 
-                 bag_of_sublist_lemma add_ac)
+                 bag_of_sublist_lemma ac_simps)
 done
 
 

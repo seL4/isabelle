@@ -118,7 +118,7 @@ lemma One_rat_def: "1 = Fract 1 1"
 
 lift_definition plus_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat"
   is "\<lambda>x y. (fst x * snd y + fst y * snd x, snd x * snd y)"
-  by (clarsimp, simp add: distrib_right, simp add: mult_ac)
+  by (clarsimp, simp add: distrib_right, simp add: ac_simps)
 
 lemma add_rat [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
@@ -144,7 +144,7 @@ lemma diff_rat [simp]:
 
 lift_definition times_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat"
   is "\<lambda>x y. (fst x * fst y, snd x * snd y)"
-  by (simp add: mult_ac)
+  by (simp add: ac_simps)
 
 lemma mult_rat [simp]: "Fract a b * Fract c d = Fract (a * c) (b * d)"
   by transfer simp
@@ -271,7 +271,7 @@ proof -
   proof -
     assume "p * gcd r s = sgn (q * s) * r * gcd p q" and "q * gcd r s = sgn (q * s) * s * gcd p q"
     then have "(p * gcd r s) * (sgn (q * s) * s * gcd p q) = (q * gcd r s) * (sgn (q * s) * r * gcd p q)" by simp
-    with assms show "p * s = q * r" by (auto simp add: mult_ac sgn_times sgn_0_0)
+    with assms show "p * s = q * r" by (auto simp add: ac_simps sgn_times sgn_0_0)
   qed
   from assms show ?thesis
     by (auto simp add: normalize_def Let_def dvd_div_div_eq_mult mult.commute sgn_times split: if_splits intro: aux)
@@ -413,7 +413,7 @@ proof (clarsimp)
   hence "a * d * b * d = c * b * b * d"
     by simp
   hence "a * b * d\<^sup>2 = c * d * b\<^sup>2"
-    unfolding power2_eq_square by (simp add: mult_ac)
+    unfolding power2_eq_square by (simp add: ac_simps)
   hence "0 < a * b * d\<^sup>2 \<longleftrightarrow> 0 < c * d * b\<^sup>2"
     by simp
   thus "0 < a * b \<longleftrightarrow> 0 < c * d"
@@ -434,7 +434,7 @@ done
 
 lemma positive_mult:
   "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x * y)"
-by transfer (drule (1) mult_pos_pos, simp add: mult_ac)
+by transfer (drule (1) mult_pos_pos, simp add: ac_simps)
 
 lemma positive_minus:
   "\<not> positive x \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> positive (- x)"
@@ -676,7 +676,7 @@ lemma of_rat_diff: "of_rat (a - b) = of_rat a - of_rat b"
 
 lemma of_rat_mult: "of_rat (a * b) = of_rat a * of_rat b"
 apply transfer
-apply (simp add: divide_inverse nonzero_inverse_mult_distrib mult_ac)
+apply (simp add: divide_inverse nonzero_inverse_mult_distrib ac_simps)
 done
 
 lemma nonzero_of_rat_inverse:

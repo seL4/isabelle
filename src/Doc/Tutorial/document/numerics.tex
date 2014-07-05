@@ -447,9 +447,9 @@ a\ +\ b\ =\ b\ +\ a%
 a\ +\ (b\ +\ c)\ =\ b\ +\ (a\ +\ c)
 \rulename{add.left_commute}
 \end{isabelle}
-The name \isa{add_ac}\index{*add_ac (theorems)} 
+The name \isa{ac_simps}\index{*ac_simps (theorems)} 
 refers to the list of all three theorems; similarly
-there is \isa{mult_ac}.\index{*mult_ac (theorems)} 
+there is \isa{ac_simps}.\index{*ac_simps (theorems)} 
 They are all proved for semirings and therefore hold for all numeric types.
 
 Here is an example of the sorting effect.  Start
@@ -459,9 +459,9 @@ with this goal, which involves type \isa{nat}.
 f\ (n\ *\ m\ +\ i\ +\ k\ *\ j\ *\ l)
 \end{isabelle}
 %
-Simplify using  \isa{add_ac} and \isa{mult_ac}.
+Simplify using  \isa{ac_simps} and \isa{ac_simps}.
 \begin{isabelle}
-\isacommand{apply}\ (simp\ add:\ add_ac\ mult_ac)
+\isacommand{apply}\ (simp\ add:\ ac_simps\ ac_simps)
 \end{isabelle}
 %
 Here is the resulting subgoal.

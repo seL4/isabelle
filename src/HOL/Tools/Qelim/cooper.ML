@@ -76,7 +76,7 @@ val zdvd1_eq = @{thm "zdvd1_eq"};
 val presburger_ss = simpset_of (@{context} addsimps [zdvd1_eq]);
 val lin_ss =
   simpset_of (put_simpset presburger_ss @{context}
-    addsimps (@{thm dvd_eq_mod_eq_0} :: zdvd1_eq :: @{thms add_ac [where 'a=int]}));
+    addsimps (@{thm dvd_eq_mod_eq_0} :: zdvd1_eq :: @{thms ac_simps [where 'a=int]}));
 
 val iT = HOLogic.intT
 val bT = HOLogic.boolT;
@@ -826,7 +826,7 @@ val div_mod_ss =
     @ [@{thm "mod_self"}, @{thm "mod_by_0"}, @{thm "div_by_0"},
        @{thm "div_0"}, @{thm "mod_0"}, @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, 
        @{thm "mod_1"}, @{thm "Suc_eq_plus1"}]
-    @ @{thms add_ac}
+    @ @{thms ac_simps}
    addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}])
 val splits_ss =
   simpset_of (put_simpset comp_ss @{context}

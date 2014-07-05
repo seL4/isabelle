@@ -110,7 +110,7 @@ begin
 
 lemma power_mult_distrib [field_simps]:
   "(a * b) ^ n = (a ^ n) * (b ^ n)"
-  by (induct n) (simp_all add: mult_ac)
+  by (induct n) (simp_all add: ac_simps)
 
 end
 
@@ -562,7 +562,7 @@ proof (induct n)
 next
   case (Suc n)
   have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)"
-    by (simp add: mult_ac power_add power2_eq_square)
+    by (simp add: ac_simps power_add power2_eq_square)
   thus ?case
     by (simp del: power_Suc add: Suc mult_less_0_iff mult_neg_neg)
 qed
@@ -580,7 +580,7 @@ proof (induct n)
 next
   case (Suc n)
     have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
-      by (simp add: mult_ac power_add power2_eq_square)
+      by (simp add: ac_simps power_add power2_eq_square)
     thus ?case
       by (simp add: Suc zero_le_mult_iff)
 qed

@@ -474,9 +474,9 @@ lemma inverse_Real:
 instance proof
   fix a b c :: real
   show "a + b = b + a"
-    by transfer (simp add: add_ac realrel_def)
+    by transfer (simp add: ac_simps realrel_def)
   show "(a + b) + c = a + (b + c)"
-    by transfer (simp add: add_ac realrel_def)
+    by transfer (simp add: ac_simps realrel_def)
   show "0 + a = a"
     by transfer (simp add: realrel_def)
   show "- a + a = 0"
@@ -484,11 +484,11 @@ instance proof
   show "a - b = a + - b"
     by (rule minus_real_def)
   show "(a * b) * c = a * (b * c)"
-    by transfer (simp add: mult_ac realrel_def)
+    by transfer (simp add: ac_simps realrel_def)
   show "a * b = b * a"
-    by transfer (simp add: mult_ac realrel_def)
+    by transfer (simp add: ac_simps realrel_def)
   show "1 * a = a"
-    by transfer (simp add: mult_ac realrel_def)
+    by transfer (simp add: ac_simps realrel_def)
   show "(a + b) * c = a * c + b * c"
     by transfer (simp add: distrib_right realrel_def)
   show "(0\<Colon>real) \<noteq> (1\<Colon>real)"
@@ -707,7 +707,7 @@ lemma le_Real:
   shows "Real X \<le> Real Y = (\<forall>r>0. \<exists>k. \<forall>n\<ge>k. X n \<le> Y n + r)"
 unfolding not_less [symmetric, where 'a=real] less_real_def
 apply (simp add: diff_Real not_positive_Real X Y)
-apply (simp add: diff_le_eq add_ac)
+apply (simp add: diff_le_eq ac_simps)
 done
 
 lemma le_RealI:

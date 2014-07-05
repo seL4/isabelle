@@ -783,7 +783,7 @@ lemma rbl_add:
   apply (case_tac binb rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] "ba")
-     apply (auto simp: rbl_succ bin_to_bl_aux_alt Let_def add_ac)
+     apply (auto simp: rbl_succ bin_to_bl_aux_alt Let_def ac_simps)
   done
 
 lemma rbl_add_app2: 
@@ -1021,7 +1021,7 @@ lemma bin_nth_rsplit [rule_format] :
    apply (erule allE)
    apply (erule (1) impE)
    apply (drule bin_nth_split, erule conjE, erule allE,
-          erule trans, simp add : add_ac)+
+          erule trans, simp add : ac_simps)+
   done
 
 lemma bin_rsplit_all:

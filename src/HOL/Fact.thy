@@ -256,14 +256,10 @@ lemma fact_less_mono_int_aux: "k >= 0 \<Longrightarrow> (0::int) < m \<Longright
   apply (induct k rule: int_ge_induct)
   apply (simp add: fact_plus_one_int)
   apply (subst (2) fact_reduce_int)
-  apply (auto simp add: add_ac)
+  apply (auto simp add: ac_simps)
   apply (erule order_less_le_trans)
-  apply (subst mult_le_cancel_right1)
   apply auto
-  apply (subgoal_tac "fact (i + (1 + m)) >= 0")
-  apply force
-  apply (rule fact_ge_zero_int)
-done
+  done
 
 lemma fact_less_mono_int: "(0::int) < m \<Longrightarrow> m < n \<Longrightarrow> fact m < fact n"
   apply (insert fact_less_mono_int_aux [of "n - (m + 1)" "m"])

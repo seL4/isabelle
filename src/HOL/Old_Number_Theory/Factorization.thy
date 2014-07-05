@@ -188,7 +188,7 @@ lemma perm_primel [rule_format]: "xs <~~> ys ==> primel xs --> primel ys"
 
 lemma perm_prod: "xs <~~> ys ==> prod xs = prod ys"
   apply (induct set: perm)
-     apply (simp_all add: mult_ac)
+     apply (simp_all add: ac_simps)
   done
 
 lemma perm_subst_oinsert: "xs <~~> ys ==> oinsert a xs <~~> oinsert a ys"

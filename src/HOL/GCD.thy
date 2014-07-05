@@ -1225,7 +1225,7 @@ proof-
           hence "a * ((b - 1) * y) = d + (x*b*(b - 1) - d*b)"
             by (simp only: diff_add_assoc[OF dble, of d, symmetric])
           hence "a * ((b - 1) * y) = b*(x*(b - 1) - d) + d"
-            by (simp only: diff_mult_distrib2 add.commute mult_ac)
+            by (simp only: diff_mult_distrib2 add.commute ac_simps)
           hence ?thesis using H(1,2)
             apply -
             apply (rule exI[where x=d], simp)
@@ -1312,20 +1312,20 @@ next
   from pos_k k_m have pos_p: "p > 0" by auto
   from pos_k k_n have pos_q: "q > 0" by auto
   have "k * k * gcd q p = k * gcd (k * q) (k * p)"
-    by (simp add: mult_ac gcd_mult_distrib_nat)
+    by (simp add: ac_simps gcd_mult_distrib_nat)
   also have "\<dots> = k * gcd (m * p * q) (n * q * p)"
     by (simp add: k_m [symmetric] k_n [symmetric])
   also have "\<dots> = k * p * q * gcd m n"
-    by (simp add: mult_ac gcd_mult_distrib_nat)
+    by (simp add: ac_simps gcd_mult_distrib_nat)
   finally have "(m * p) * (n * q) * gcd q p = k * p * q * gcd m n"
     by (simp only: k_m [symmetric] k_n [symmetric])
   then have "p * q * m * n * gcd q p = p * q * k * gcd m n"
-    by (simp add: mult_ac)
+    by (simp add: ac_simps)
   with pos_p pos_q have "m * n * gcd q p = k * gcd m n"
     by simp
   with prod_gcd_lcm_nat [of m n]
   have "lcm m n * gcd q p * gcd m n = k * gcd m n"
-    by (simp add: mult_ac)
+    by (simp add: ac_simps)
   with pos_gcd have "lcm m n * gcd q p = k" by auto
   then show ?thesis using dvd_def by auto
 qed
@@ -1353,7 +1353,7 @@ next
     have "gcd m n dvd n" by simp
     then obtain k where "n = gcd m n * k" using dvd_def by auto
     then have "m * n div gcd m n = m * (gcd m n * k) div gcd m n"
-      by (simp add: mult_ac)
+      by (simp add: ac_simps)
     also have "\<dots> = m * k" using mpos npos gcd_zero_nat by simp
     finally show ?thesis by (simp add: lcm_nat_def)
   qed

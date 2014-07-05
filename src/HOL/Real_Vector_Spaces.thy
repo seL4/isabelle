@@ -897,7 +897,7 @@ proof (induction I rule: infinite_finite_induct)
   also have "norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) \<le> (\<Sum>i\<in>I. norm (z i - w i))"
     using insert by auto
   finally show ?case
-    by (auto simp add: add_ac mult_right_mono mult_left_mono)
+    by (auto simp add: ac_simps mult_right_mono mult_left_mono)
 qed simp_all
 
 lemma norm_power_diff: 
@@ -1159,7 +1159,7 @@ by (simp add: sgn_div_norm)
 
 lemma sgn_scaleR:
   "sgn (scaleR r x) = scaleR (sgn r) (sgn(x::'a::real_normed_vector))"
-by (simp add: sgn_div_norm mult_ac)
+by (simp add: sgn_div_norm ac_simps)
 
 lemma sgn_one [simp]: "sgn (1::'a::real_normed_algebra_1) = 1"
 by (simp add: sgn_div_norm)
@@ -1308,7 +1308,7 @@ apply (cut_tac bounded, safe)
 apply (rule_tac K="norm b * K" in bounded_linear_intro)
 apply (rule add_left)
 apply (rule scaleR_left)
-apply (simp add: mult_ac)
+apply (simp add: ac_simps)
 done
 
 lemma bounded_linear_right:
@@ -1317,7 +1317,7 @@ apply (cut_tac bounded, safe)
 apply (rule_tac K="norm a * K" in bounded_linear_intro)
 apply (rule add_right)
 apply (rule scaleR_right)
-apply (simp add: mult_ac)
+apply (simp add: ac_simps)
 done
 
 lemma prod_diff_prod:

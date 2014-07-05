@@ -162,7 +162,7 @@ next
         case True then have "mono (times q)" by (rule mono_times_nat)
         then have "q * Max {m. m * m \<le> n} = Max (times q ` {m. m * m \<le> n})"
           using sqrt_aux [of n] by (auto simp add: power2_eq_square intro: mono_Max_commute)
-        then have "Max {m. m * m \<le> n} * q = Max (times q ` {m. m * m \<le> n})" by (simp add: mult_ac)
+        then have "Max {m. m * m \<le> n} * q = Max (times q ` {m. m * m \<le> n})" by (simp add: ac_simps)
         then show ?thesis apply simp
           apply (subst Max_le_iff)
           apply auto

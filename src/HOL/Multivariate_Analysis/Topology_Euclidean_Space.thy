@@ -2844,7 +2844,7 @@ proof -
   from assms(1) obtain b where b: "b > 0" "\<forall>x\<in>S. norm x \<le> b"
     unfolding bounded_pos by auto
   from assms(2) obtain B where B: "B > 0" "\<forall>x. norm (f x) \<le> B * norm x"
-    using bounded_linear.pos_bounded by (auto simp add: mult_ac)
+    using bounded_linear.pos_bounded by (auto simp add: ac_simps)
   {
     fix x
     assume "x \<in> S"

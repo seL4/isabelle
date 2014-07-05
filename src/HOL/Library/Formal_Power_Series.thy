@@ -558,7 +558,7 @@ proof -
   then have "ln y * real k + ln x > 0"
     by simp
   then have "exp (real k * ln y + ln x) > exp 0"
-    by (simp add: mult_ac)
+    by (simp add: ac_simps)
   then have "y ^ k * x > 1"
     unfolding exp_zero exp_add exp_real_of_nat_mult exp_ln [OF xp] exp_ln [OF yp]
     by simp
@@ -724,7 +724,7 @@ proof -
   from f0 have if0: "inverse f $ 0 \<noteq> 0" by simp
   from inverse_mult_eq_1[OF f0] inverse_mult_eq_1[OF if0]
   have "inverse f * f = inverse f * inverse (inverse f)"
-    by (simp add: mult_ac)
+    by (simp add: ac_simps)
   then show ?thesis
     using f0 unfolding mult_cancel_left by simp
 qed
@@ -736,7 +736,7 @@ lemma fps_inverse_unique:
 proof -
   from inverse_mult_eq_1[OF f0] fg
   have th0: "inverse f * f = g * f"
-    by (simp add: mult_ac)
+    by (simp add: ac_simps)
   then show ?thesis
     using f0
     unfolding mult_cancel_right
@@ -1400,7 +1400,7 @@ proof -
     using fps_divide_X_minus1_setsum_lemma[of a, symmetric] th0
     by (simp add: fps_divide_def mult.assoc)
   also have "\<dots> = (inverse ?X * ?X) * Abs_fps (\<lambda>n::nat. setsum (op $ a) {0..n}) "
-    by (simp add: mult_ac)
+    by (simp add: ac_simps)
   finally show ?thesis
     by (simp add: inverse_mult_eq_1[OF th0])
 qed
@@ -2074,7 +2074,7 @@ proof -
           apply (rule eq_divide_imp')
           using r00
           apply (simp del: of_nat_Suc)
-          apply (simp add: mult_ac)
+          apply (simp add: ac_simps)
           done
         then have "a$n = ?r $n"
           apply (simp del: of_nat_Suc)
@@ -2128,7 +2128,7 @@ proof -
   have "fps_deriv (?r ^ Suc k) = fps_deriv a"
     by simp
   then have "fps_deriv ?r * ?w = fps_deriv a"
-    by (simp add: fps_deriv_power mult_ac del: power_Suc)
+    by (simp add: fps_deriv_power ac_simps del: power_Suc)
   then have "?iw * fps_deriv ?r * ?w = ?iw * fps_deriv a"
     by simp
   then have "fps_deriv ?r * (?iw * ?w) = fps_deriv a / ?w"
@@ -2294,7 +2294,7 @@ proof -
       setsum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (setsum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}" .
 
     have "(((fps_deriv a) oo b) * (fps_deriv b))$n = setsum (\<lambda>i. (fps_deriv b)$ (n - i) * ((fps_deriv a) oo b)$i) {0..n}"
-      unfolding fps_mult_nth by (simp add: mult_ac)
+      unfolding fps_mult_nth by (simp add: ac_simps)
     also have "\<dots> = setsum (\<lambda>i. setsum (\<lambda>j. of_nat (n - i +1) * b$(n - i + 1) * of_nat (j + 1) * a$(j+1) * (b^j)$i) {0..n}) {0..n}"
       unfolding fps_deriv_nth fps_compose_nth setsum_right_distrib mult.assoc
       apply (rule setsum.cong)
@@ -3532,7 +3532,7 @@ lemma eq_fps_sin:
   apply (subst minus_divide_left)
   apply (subst eq_divide_iff)
   apply (simp del: of_nat_add of_nat_Suc)
-  apply (simp only: mult_ac)
+  apply (simp only: ac_simps)
   done
 
 lemma eq_fps_cos:
@@ -3550,7 +3550,7 @@ lemma eq_fps_cos:
   apply (subst minus_divide_left)
   apply (subst eq_divide_iff)
   apply (simp del: of_nat_add of_nat_Suc)
-  apply (simp only: mult_ac)
+  apply (simp only: ac_simps)
   done
 
 lemma mult_nth_0 [simp]: "(a * b) $ 0 = a $ 0 * b $ 0"
@@ -3655,7 +3655,7 @@ lemma fps_tan_Eii:
 
 lemma fps_demoivre: "(fps_cos a + fps_const ii * fps_sin a)^n = fps_cos (of_nat n * a) + fps_const ii * fps_sin (of_nat n * a)"
   unfolding Eii_sin_cos[symmetric] E_power_mult
-  by (simp add: mult_ac)
+  by (simp add: ac_simps)
 
 
 subsection {* Hypergeometric series *}

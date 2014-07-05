@@ -1592,7 +1592,7 @@ lemma no_ulen_sub: "((x :: 'a :: len0 word) >= x - y) = (uint y <= uint x)"
 lemma no_olen_add':
   fixes x :: "'a::len0 word"
   shows "(x \<le> y + x) = (uint y + uint x < 2 ^ len_of TYPE('a))"
-  by (simp add: add_ac no_olen_add)
+  by (simp add: ac_simps no_olen_add)
 
 lemmas olen_add_eqv = trans [OF no_olen_add no_olen_add' [symmetric]]
 
@@ -1906,7 +1906,7 @@ lemma Abs_fnat_hom_mult:
 
 lemma Abs_fnat_hom_Suc:
   "word_succ (of_nat a) = of_nat (Suc a)"
-  by (simp add: word_of_nat wi_hom_succ add_ac)
+  by (simp add: word_of_nat wi_hom_succ ac_simps)
 
 lemma Abs_fnat_hom_0: "(0::'a::len word) = of_nat 0"
   by simp

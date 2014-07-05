@@ -232,7 +232,7 @@ val mult_minus_simps =
 val norm_ss1 =
   simpset_of (put_simpset num_ss @{context}
     addsimps numeral_syms @ add_0s @ mult_1s @
-    diff_simps @ minus_simps @ @{thms add_ac})
+    diff_simps @ minus_simps @ @{thms ac_simps})
 
 val norm_ss2 =
   simpset_of (put_simpset num_ss @{context}
@@ -240,7 +240,7 @@ val norm_ss2 =
 
 val norm_ss3 =
   simpset_of (put_simpset num_ss @{context}
-    addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac minus_mult_commute})
+    addsimps minus_from_mult_simps @ @{thms ac_simps} @ @{thms ac_simps minus_mult_commute})
 
 structure CancelNumeralsCommon =
 struct
@@ -361,7 +361,7 @@ fun field_combine_numerals ctxt ct = FieldCombineNumerals.proc ctxt (term_of ct)
 
 structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
-  val assoc_ss = simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms mult_ac minus_mult_commute})
+  val assoc_ss = simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms ac_simps minus_mult_commute})
   val eq_reflection = eq_reflection
   val is_numeral = can HOLogic.dest_number
 end;
@@ -381,7 +381,7 @@ struct
   val norm_ss2 =
     simpset_of (put_simpset HOL_basic_ss @{context} addsimps simps @ mult_minus_simps)
   val norm_ss3 =
-    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms mult_ac minus_mult_commute})
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms ac_simps minus_mult_commute})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
@@ -513,7 +513,7 @@ struct
   val find_first = find_first_t []
   val trans_tac = trans_tac
   val norm_ss =
-    simpset_of (put_simpset HOL_basic_ss @{context} addsimps mult_1s @ @{thms mult_ac minus_mult_commute})
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps mult_1s @ @{thms ac_simps minus_mult_commute})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   val simplify_meta_eq  = cancel_simplify_meta_eq 

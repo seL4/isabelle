@@ -51,7 +51,7 @@ proof -
   have "(x div z) * z \<le> (x div z) * z" by simp
   then have "(x div z) * z \<le> (x div z) * z + x mod z" using modth by arith 
   also have "\<dots> = x"
-    by (auto simp add: zmod_zdiv_equality [symmetric] mult_ac)
+    by (auto simp add: zmod_zdiv_equality [symmetric] ac_simps)
   also note `x < y * z`
   finally show ?thesis
     apply (auto simp add: mult_less_cancel_right)
@@ -115,7 +115,7 @@ lemma zcong_zmult_prop1: "[a = b](mod m) ==> ([c = a * d](mod m) =
 
 lemma zcong_zmult_prop2: "[a = b](mod m) ==>
     ([c = d * a](mod m) = [c = d * b] (mod m))"
-  by (auto simp add: mult_ac zcong_zmult_prop1)
+  by (auto simp add: ac_simps zcong_zmult_prop1)
 
 lemma zcong_zmult_prop3: "[| zprime p; ~[x = 0] (mod p);
     ~[y = 0] (mod p) |] ==> ~[x * y = 0] (mod p)"
@@ -198,7 +198,7 @@ qed
 
 lemma MultInv_prop2a: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==>
     [(MultInv p x) * x = 1] (mod p)"
-  by (auto simp add: MultInv_prop2 mult_ac)
+  by (auto simp add: MultInv_prop2 ac_simps)
 
 lemma aux_1: "2 < p ==> ((nat p) - 2) = (nat (p - 2))"
   by (simp add: nat_diff_distrib)
@@ -227,7 +227,7 @@ lemma aux__2: "[| 2 < p; zprime p; ~([x = 0](mod p))|] ==>
   apply (insert MultInv_prop2 [of p "MultInv p x"], auto)
   apply (drule MultInv_prop2, auto)
   apply (drule_tac k = x in zcong_scalar2, auto)
-  apply (auto simp add: mult_ac)
+  apply (auto simp add: ac_simps)
   done
 
 lemma MultInv_prop4: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==>
@@ -244,10 +244,10 @@ lemma MultInv_prop5: "[| 2 < p; zprime p; ~([x = 0](mod p));
     m = p and k = x in zcong_scalar)
   apply (insert MultInv_prop2 [of p x], simp)
   apply (auto simp only: zcong_sym [of "MultInv p x * x"])
-  apply (auto simp add: mult_ac)
+  apply (auto simp add: ac_simps)
   apply (drule zcong_trans, auto)
   apply (drule_tac a = "x * MultInv p y" and k = y in zcong_scalar, auto)
-  apply (insert MultInv_prop2a [of p y], auto simp add: mult_ac)
+  apply (insert MultInv_prop2a [of p y], auto simp add: ac_simps)
   apply (insert zcong_zmult_prop2 [of "y * MultInv p y" 1 p y x])
   apply (auto simp add: zcong_sym)
   done
@@ -264,7 +264,7 @@ lemma aux___2: "[|2 < p; zprime p; ~([k = 0](mod p));
     [j * k = a * MultInv p k * k] (mod p) |] ==> [j * k = a] (mod p)"
   apply (insert MultInv_prop2a [of p k] zcong_zmult_prop2
     [of "MultInv p k * k" 1 p "j * k" a])
-  apply (auto simp add: mult_ac)
+  apply (auto simp add: ac_simps)
   done
 
 lemma aux___3: "[j * k = a] (mod p) ==> [(MultInv p j) * j * k =
@@ -276,7 +276,7 @@ lemma aux___4: "[|2 < p; zprime p; ~([j = 0](mod p));
        ==> [k = a * (MultInv p j)] (mod p)"
   apply (insert MultInv_prop2a [of p j] zcong_zmult_prop1
     [of "MultInv p j * j" 1 p "MultInv p j * a" k])
-  apply (auto simp add: mult_ac zcong_sym)
+  apply (auto simp add: ac_simps zcong_sym)
   done
 
 lemma MultInv_zcong_prop2: "[| 2 < p; zprime p; ~([k = 0](mod p));

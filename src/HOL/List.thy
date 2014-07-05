@@ -2104,13 +2104,13 @@ lemma butlast_take:
 by (simp add: butlast_conv_take min.absorb1 min.absorb2)
 
 lemma butlast_drop: "butlast (drop n xs) = drop n (butlast xs)"
-by (simp add: butlast_conv_take drop_take add_ac)
+by (simp add: butlast_conv_take drop_take ac_simps)
 
 lemma take_butlast: "n < length xs ==> take n (butlast xs) = take n xs"
 by (simp add: butlast_conv_take min.absorb1)
 
 lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
-by (simp add: butlast_conv_take drop_take add_ac)
+by (simp add: butlast_conv_take drop_take ac_simps)
 
 lemma hd_drop_conv_nth: "n < length xs \<Longrightarrow> hd(drop n xs) = xs!n"
 by(simp add: hd_conv_nth)
@@ -3471,7 +3471,7 @@ lemma (in monoid_add) listsum_append [simp]:
 
 lemma (in comm_monoid_add) listsum_rev [simp]:
   "listsum (rev xs) = listsum xs"
-  by (simp add: listsum_def foldr_fold fold_rev fun_eq_iff add_ac)
+  by (simp add: listsum_def foldr_fold fold_rev fun_eq_iff ac_simps)
 
 lemma (in monoid_add) fold_plus_listsum_rev:
   "fold plus xs = plus (listsum (rev xs))"

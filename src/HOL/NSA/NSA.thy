@@ -776,7 +776,7 @@ done
 
 lemma approx_add_left_cancel: "d + b  @= d + c ==> b @= c"
 apply (drule approx_minus_iff [THEN iffD1])
-apply (simp add: approx_minus_iff [symmetric] add_ac)
+apply (simp add: approx_minus_iff [symmetric] ac_simps)
 done
 
 lemma approx_add_right_cancel: "b + d @= c + d ==> b @= c"
@@ -786,7 +786,7 @@ done
 
 lemma approx_add_mono1: "b @= c ==> d + b @= d + c"
 apply (rule approx_minus_iff [THEN iffD2])
-apply (simp add: approx_minus_iff [symmetric] add_ac)
+apply (simp add: approx_minus_iff [symmetric] ac_simps)
 done
 
 lemma approx_add_mono2: "b @= c ==> b + a @= c + a"
@@ -1714,25 +1714,25 @@ done
 lemma Infinitesimal_sum_square_cancel2 [simp]:
      "(y::hypreal)*y + x*x + z*z \<in> Infinitesimal ==> x*x \<in> Infinitesimal"
 apply (rule Infinitesimal_sum_square_cancel)
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma HFinite_sum_square_cancel2 [simp]:
      "(y::hypreal)*y + x*x + z*z \<in> HFinite ==> x*x \<in> HFinite"
 apply (rule HFinite_sum_square_cancel)
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma Infinitesimal_sum_square_cancel3 [simp]:
      "(z::hypreal)*z + y*y + x*x \<in> Infinitesimal ==> x*x \<in> Infinitesimal"
 apply (rule Infinitesimal_sum_square_cancel)
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma HFinite_sum_square_cancel3 [simp]:
      "(z::hypreal)*z + y*y + x*x \<in> HFinite ==> x*x \<in> HFinite"
 apply (rule HFinite_sum_square_cancel)
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma monad_hrabs_less:

@@ -285,7 +285,7 @@ proof (unfold add_set_def, clarify)
   show "\<exists>x' \<in> A. \<exists>y'\<in>B. z = x' + y'"
   proof (intro bexI)
     show "z = x*?f + y*?f"
-      by (simp add: distrib_right [symmetric] divide_inverse mult_ac
+      by (simp add: distrib_right [symmetric] divide_inverse ac_simps
           order_less_imp_not_eq2)
   next
     show "y * ?f \<in> B"
@@ -326,7 +326,7 @@ done
 
 lemma preal_add_assoc: "((x::preal) + y) + z = x + (y + z)"
 apply (simp add: preal_add_def mem_add_set Rep_preal)
-apply (force simp add: add_set_def add_ac)
+apply (force simp add: add_set_def ac_simps)
 done
 
 instance preal :: ab_semigroup_add
@@ -454,7 +454,7 @@ done
 
 lemma preal_mult_assoc: "((x::preal) * y) * z = x * (y * z)"
 apply (simp add: preal_mult_def mem_mult_set Rep_preal)
-apply (force simp add: mult_set_def mult_ac)
+apply (force simp add: mult_set_def ac_simps)
 done
 
 instance preal :: ab_semigroup_mult
@@ -713,7 +713,7 @@ proof (induct u, induct y)
   have frle: "Fract a b \<le> Fract ?k 1 * (Fract c d)" 
   proof -
     have "?thesis = ((a * d * b * d) \<le> c * b * (a * d * b * d))"
-      by (simp add: order_less_imp_not_eq2 mult_ac) 
+      by (simp add: order_less_imp_not_eq2 ac_simps) 
     moreover
     have "(1 * (a * d * b * d)) \<le> c * b * (a * d * b * d)"
       by (rule mult_mono, 
@@ -961,7 +961,7 @@ apply (auto simp add: diff_set_def)
 apply (drule Rep_preal [THEN preal_exists_greater], clarify) 
 apply (cut_tac a="x+y" and b=u in add_eq_exists, clarify)  
 apply (rule_tac x="y+xa" in exI) 
-apply (auto simp add: add_ac)
+apply (auto simp add: ac_simps)
 done
 
 lemma mem_diff_set:
@@ -1032,7 +1032,7 @@ proof -
   proof (intro exI conjI)
     show "r \<in> Rep_preal R" by (rule r)
     show "r + e \<notin> Rep_preal R" by (rule notin)
-    show "r + e + y \<in> Rep_preal S" using xe eq by (simp add: add_ac)
+    show "r + e + y \<in> Rep_preal S" using xe eq by (simp add: ac_simps)
     show "x = r + y" by (simp add: eq)
     show "0 < r + e" using epos preal_imp_pos [OF Rep_preal r]
       by simp
@@ -1236,11 +1236,11 @@ lemma preal_trans_lemma:
     and "x + y2 = x2 + y"
   shows "x1 + y2 = x2 + (y1::preal)"
 proof -
-  have "(x1 + y2) + x = (x + y2) + x1" by (simp add: add_ac)
+  have "(x1 + y2) + x = (x + y2) + x1" by (simp add: ac_simps)
   also have "... = (x2 + y) + x1"  by (simp add: assms)
-  also have "... = x2 + (x1 + y)"  by (simp add: add_ac)
+  also have "... = x2 + (x1 + y)"  by (simp add: ac_simps)
   also have "... = x2 + (x + y1)"  by (simp add: assms)
-  also have "... = (x2 + y1) + x"  by (simp add: add_ac)
+  also have "... = (x2 + y1) + x"  by (simp add: ac_simps)
   finally have "(x1 + y2) + x = (x2 + y1) + x" .
   thus ?thesis by (rule add_right_imp_eq)
 qed
@@ -1287,7 +1287,7 @@ lemma real_add_congruent2_lemma:
 apply (simp add: add.assoc)
 apply (rule add.left_commute [of ab, THEN ssubst])
 apply (simp add: add.assoc [symmetric])
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma real_add:
@@ -1318,7 +1318,7 @@ proof
   show "x + y = y + x"
     by (cases x, cases y, simp add: real_add add.commute)
   show "0 + x = x"
-    by (cases x, simp add: real_add real_zero_def add_ac)
+    by (cases x, simp add: real_add real_zero_def ac_simps)
   show "- x + x = 0"
     by (cases x, simp add: real_minus real_add real_zero_def add.commute)
   show "x - y = x + - y"
@@ -1354,7 +1354,7 @@ by (simp add: real_mult_def UN_UN_split_split_eq
          UN_equiv_class2 [OF equiv_realrel equiv_realrel real_mult_congruent2])
 
 lemma real_mult_commute: "(z::real) * w = w * z"
-by (cases z, cases w, simp add: real_mult add_ac mult_ac)
+by (cases z, cases w, simp add: real_mult ac_simps ac_simps)
 
 lemma real_mult_assoc: "((z1::real) * z2) * z3 = z1 * (z2 * z3)"
 apply (cases z1, cases z2, cases z3)
@@ -1456,7 +1456,7 @@ lemma real_le_lemma:
   shows "x1 + y2 \<le> x2 + (y1::preal)"
 proof -
   have "(x1+v1) + (u2+y2) = (u1+y1) + (x2+v2)" by (simp add: assms)
-  hence "(x1+y2) + (u2+v1) = (x2+y1) + (u1+v2)" by (simp add: add_ac)
+  hence "(x1+y2) + (u2+v1) = (x2+y1) + (u1+v2)" by (simp add: ac_simps)
   also have "... \<le> (x2+y1) + (u2+v1)" by (simp add: assms)
   finally show ?thesis by simp
 qed
@@ -1477,10 +1477,10 @@ lemma real_trans_lemma:
     and "x2 + v2 = u2 + y2"
   shows "x + v' \<le> u' + (y::preal)"
 proof -
-  have "(x+v') + (u+v) = (x+v) + (u+v')" by (simp add: add_ac)
+  have "(x+v') + (u+v) = (x+v) + (u+v')" by (simp add: ac_simps)
   also have "... \<le> (u+y) + (u+v')" by (simp add: assms)
   also have "... \<le> (u+y) + (u'+v)" by (simp add: assms)
-  also have "... = (u'+y) + (u+v)"  by (simp add: add_ac)
+  also have "... = (u'+y) + (u+v)"  by (simp add: ac_simps)
   finally show ?thesis by simp
 qed
 
@@ -1500,7 +1500,7 @@ qed (assumption | rule real_le_refl real_le_trans real_le_antisym)+
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma real_le_linear: "(z::real) \<le> w | w \<le> z"
 apply (cases z, cases w)
-apply (auto simp add: real_le real_zero_def add_ac)
+apply (auto simp add: real_le real_zero_def ac_simps)
 done
 
 instance real :: linorder
@@ -1509,7 +1509,7 @@ instance real :: linorder
 lemma real_le_eq_diff: "(x \<le> y) = (x-y \<le> (0::real))"
 apply (cases x, cases y) 
 apply (auto simp add: real_le real_zero_def real_diff_def real_add real_minus
-                      add_ac)
+                      ac_simps)
 apply (simp_all add: add.assoc [symmetric])
 done
 
@@ -1589,7 +1589,7 @@ text{*Gleason prop 9-4.4 p 127*}
 lemma real_of_preal_trichotomy:
       "\<exists>m. (x::real) = real_of_preal m | x = 0 | x = -(real_of_preal m)"
 apply (simp add: real_of_preal_def real_zero_def, cases x)
-apply (auto simp add: real_minus add_ac)
+apply (auto simp add: real_minus ac_simps)
 apply (cut_tac x = xa and y = y in linorder_less_linear)
 apply (auto dest!: less_add_left_Ex simp add: add.assoc [symmetric])
 done
@@ -1616,9 +1616,9 @@ by (simp add: linorder_not_less [symmetric])
 lemma real_of_preal_zero_less: "0 < real_of_preal m"
 apply (insert preal_self_less_add_left [of 1 m])
 apply (auto simp add: real_zero_def real_of_preal_def
-                      real_less_def real_le_def add_ac)
+                      real_less_def real_le_def ac_simps)
 apply (rule_tac x="m + 1" in exI, rule_tac x="1" in exI)
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma real_of_preal_minus_less_zero: "- real_of_preal m < 0"

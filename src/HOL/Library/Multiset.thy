@@ -717,7 +717,7 @@ proof -
     by (blast dest: multi_member_split)
   have "A + {#b#} = A + {#b#} + {#c#} - {#c#}" by simp
   then have "A + {#b#} = A + {#c#} + {#b#} - {#c#}" 
-    by (simp add: add_ac)
+    by (simp add: ac_simps)
   then show ?thesis using B by simp
 qed
 
@@ -817,7 +817,7 @@ proof (induct M)
 next
   case (add M x)
   have "M + {#x#} + N = (M + N) + {#x#}"
-    by (simp add: add_ac)
+    by (simp add: ac_simps)
   with add show ?case by (simp add: fold_mset_insert fold_mset_fun_left_comm)
 qed
 
@@ -851,7 +851,7 @@ definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Righ
 lemma comp_fun_commute_mset_image:
   "comp_fun_commute (plus o single o f)"
 proof
-qed (simp add: add_ac fun_eq_iff)
+qed (simp add: ac_simps fun_eq_iff)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"
   by (simp add: image_mset_def)
@@ -868,7 +868,7 @@ lemma image_mset_union [simp]:
 proof -
   interpret comp_fun_commute "plus o single o f"
     by (fact comp_fun_commute_mset_image)
-  show ?thesis by (induct N) (simp_all add: image_mset_def add_ac)
+  show ?thesis by (induct N) (simp_all add: image_mset_def ac_simps)
 qed
 
 corollary image_mset_insert:
@@ -956,7 +956,7 @@ lemma size_multiset_of [simp]: "size (multiset_of xs) = length xs"
 
 lemma multiset_of_append [simp]:
   "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
-  by (induct xs arbitrary: ys) (auto simp: add_ac)
+  by (induct xs arbitrary: ys) (auto simp: ac_simps)
 
 lemma multiset_of_filter:
   "multiset_of (filter P xs) = {#x :# multiset_of xs. P x #}"
@@ -1008,7 +1008,7 @@ done
 
 lemma multiset_of_compl_union [simp]:
   "multiset_of [x\<leftarrow>xs. P x] + multiset_of [x\<leftarrow>xs. \<not>P x] = multiset_of xs"
-  by (induct xs) (auto simp: add_ac)
+  by (induct xs) (auto simp: ac_simps)
 
 lemma count_multiset_of_length_filter:
   "count (multiset_of xs) x = length (filter (\<lambda>y. x = y) xs)"
@@ -1552,7 +1552,7 @@ proof (unfold mult1_def)
     next
       fix K'
       assume "M0' = K' + {#a#}"
-      with N have n: "N = K' + K + {#a#}" by (simp add: add_ac)
+      with N have n: "N = K' + K + {#a#}" by (simp add: ac_simps)
 
       assume "M0 = K' + {#a'#}"
       with r have "?R (K' + K) M0" by blast
@@ -1701,7 +1701,7 @@ apply (rule r_into_trancl)
 apply (simp add: mult1_def set_of_def)
 apply (rule_tac x = a in exI)
 apply (rule_tac x = "I + J'" in exI)
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma one_step_implies_mult:
@@ -1840,14 +1840,14 @@ next
       "{#x#} + X = A + ({#y#}+Z) 
       \<and> {#y#} + Y = B + ({#y#}+Z)
       \<and> ((set_of A, set_of B) \<in> max_strict \<or> (B = {#} \<and> A = {#}))"
-      by (auto simp: add_ac)
+      by (auto simp: ac_simps)
     thus ?case by (intro exI)
   next
     assume A: "(x, y) \<in> pair_less"
     let ?A' = "{#x#} + A" and ?B' = "{#y#} + B"
     have "{#x#} + X = ?A' + Z"
       "{#y#} + Y = ?B' + Z"
-      by (auto simp add: add_ac)
+      by (auto simp add: ac_simps)
     moreover have 
       "(set_of ?A', set_of ?B') \<in> max_strict"
       using 1 A unfolding max_strict_def 
@@ -1880,12 +1880,12 @@ proof -
       assume [simp]: "A' = {#} \<and> B' = {#}"
       show ?thesis by (rule smsI) (auto intro: max)
     qed
-    thus "(Z + A, Z' + B) \<in> ms_strict" by (simp add:add_ac)
+    thus "(Z + A, Z' + B) \<in> ms_strict" by (simp add:ac_simps)
     thus "(Z + A, Z' + B) \<in> ms_weak" by (simp add: ms_weak_def)
   }
   from mx_or_empty
   have "(Z'' + A', Z'' + B') \<in> ms_weak" by (rule wmsI)
-  thus "(Z + {#}, Z' + {#}) \<in> ms_weak" by (simp add:add_ac)
+  thus "(Z + {#}, Z' + {#}) \<in> ms_weak" by (simp add:ac_simps)
 qed
 
 lemma empty_neutral: "{#} + x = x" "x + {#} = x"
@@ -1914,7 +1914,7 @@ let
 
   val regroup_munion_conv =
       Function_Lib.regroup_conv @{const_abbrev Mempty} @{const_name plus}
-        (map (fn t => t RS eq_reflection) (@{thms add_ac} @ @{thms empty_neutral}))
+        (map (fn t => t RS eq_reflection) (@{thms ac_simps} @ @{thms empty_neutral}))
 
   fun unfold_pwleq_tac i =
     (rtac @{thm pw_leq_step} i THEN (fn st => unfold_pwleq_tac (i + 1) st))

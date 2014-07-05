@@ -388,7 +388,7 @@ proof-
     by (auto simp add: int_distrib)
   then have "((p - 1) * q) div 2 < (((q - 1) * p) + (2 * p)) div 2"
     apply (rule_tac x = "((p - 1) * q)" in even_div_2_l)
-    by (auto simp add: even3, auto simp add: mult_ac)
+    by (auto simp add: even3, auto simp add: ac_simps)
   also have "((p - 1) * q) div 2 = q * ((p - 1) div 2)"
     by (auto simp add: even1 even_prod_div_2)
   also have "(((q - 1) * p) + (2 * p)) div 2 = (((q - 1) div 2) * p) + p"
@@ -557,11 +557,11 @@ qed
 
 lemma S1_carda: "int (card(S1)) =
     setsum (%j. (j * q) div p) P_set"
-  by (auto simp add: S1_card mult_ac)
+  by (auto simp add: S1_card ac_simps)
 
 lemma S2_carda: "int (card(S2)) =
     setsum (%j. (j * p) div q) Q_set"
-  by (auto simp add: S2_card mult_ac)
+  by (auto simp add: S2_card ac_simps)
 
 lemma pq_sum_prop: "(setsum (%j. (j * p) div q) Q_set) +
     (setsum (%j. (j * q) div p) P_set) = ((p - 1) div 2) * ((q - 1) div 2)"

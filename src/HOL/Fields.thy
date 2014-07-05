@@ -310,7 +310,7 @@ text{*There is no slick version using division by zero.*}
 lemma inverse_add:
   "[| a \<noteq> 0;  b \<noteq> 0 |]
    ==> inverse a + inverse b = (a + b) * inverse a * inverse b"
-by (simp add: division_ring_inverse_add mult_ac)
+by (simp add: division_ring_inverse_add ac_simps)
 
 lemma nonzero_mult_divide_mult_cancel_left [simp]:
 assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" shows "(c*a)/(c*b) = a/b"
@@ -318,7 +318,7 @@ proof -
   have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
     by (simp add: divide_inverse nonzero_inverse_mult_distrib)
   also have "... =  a * inverse b * (inverse c * c)"
-    by (simp only: mult_ac)
+    by (simp only: ac_simps)
   also have "... =  a * inverse b" by simp
     finally show ?thesis by (simp add: divide_inverse)
 qed
@@ -328,7 +328,7 @@ lemma nonzero_mult_divide_mult_cancel_right [simp]:
 by (simp add: mult.commute [of _ c])
 
 lemma times_divide_eq_left [simp]: "(b / c) * a = (b * a) / c"
-  by (simp add: divide_inverse mult_ac)
+  by (simp add: divide_inverse ac_simps)
 
 text{*It's not obvious whether @{text times_divide_eq} should be
   simprules or not. Their effect is to gather terms into one big
@@ -369,11 +369,11 @@ using nonzero_mult_divide_mult_cancel_left [of b a 1] by simp
 
 lemma nonzero_mult_divide_mult_cancel_left2 [simp]:
   "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (c * a) / (b * c) = a / b"
-using nonzero_mult_divide_mult_cancel_left [of b c a] by (simp add: mult_ac)
+using nonzero_mult_divide_mult_cancel_left [of b c a] by (simp add: ac_simps)
 
 lemma nonzero_mult_divide_mult_cancel_right2 [simp]:
   "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (a * c) / (c * b) = a / b"
-using nonzero_mult_divide_mult_cancel_right [of b c a] by (simp add: mult_ac)
+using nonzero_mult_divide_mult_cancel_right [of b c a] by (simp add: ac_simps)
 
 lemma diff_frac_eq:
   "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y - w / z = (x * z - w * y) / (y * z)"
@@ -398,7 +398,7 @@ lemma inverse_mult_distrib [simp]:
   "inverse (a * b) = inverse a * inverse b"
 proof cases
   assume "a \<noteq> 0 & b \<noteq> 0" 
-  thus ?thesis by (simp add: nonzero_inverse_mult_distrib mult_ac)
+  thus ?thesis by (simp add: nonzero_inverse_mult_distrib ac_simps)
 next
   assume "~ (a \<noteq> 0 & b \<noteq> 0)" 
   thus ?thesis by force
@@ -429,7 +429,7 @@ done
 
 lemma divide_divide_eq_right [simp]:
   "a / (b / c) = (a * c) / b"
-  by (simp add: divide_inverse mult_ac)
+  by (simp add: divide_inverse ac_simps)
 
 lemma divide_divide_eq_left [simp]:
   "(a / b) / c = a / (b * c)"

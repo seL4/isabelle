@@ -1542,10 +1542,10 @@ next
   have th': "(real ?nt)*(real x) = real (?nt * x)" by simp
   have "?I x (Floor t) = ?I x (Floor (CN 0 ?nt ?at))" using th2 by simp
   also have "\<dots> = real (floor ((real ?nt)* real(x) + ?I x ?at))" by simp
-  also have "\<dots> = real (floor (?I x ?at + real (?nt* x)))" by (simp add: add_ac)
+  also have "\<dots> = real (floor (?I x ?at + real (?nt* x)))" by (simp add: ac_simps)
   also have "\<dots> = real (floor (?I x ?at) + (?nt* x))" 
     using floor_add[where x="?I x ?at" and a="?nt* x"] by simp 
-  also have "\<dots> = real (?nt)*(real x) + real (floor (?I x ?at))" by (simp add: add_ac)
+  also have "\<dots> = real (?nt)*(real x) + real (floor (?I x ?at))" by (simp add: ac_simps)
   finally have "?I x (Floor t) = ?I x (CN 0 n a)" using th by simp
   with na show ?case by simp
 qed
@@ -1733,7 +1733,7 @@ proof(induct p rule: zlfm.induct)
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Lt a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Lt a) = (real (?c * i) + (?N ?r) < 0)" using Ia by (simp add: Let_def split_def)
-    also from cn cnz have "\<dots> = (?I (?l (Lt a)))" by (simp only: split_int_less_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def add_ac, arith)
+    also from cn cnz have "\<dots> = (?I (?l (Lt a)))" by (simp only: split_int_less_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def ac_simps, arith)
     finally have ?case using l by simp}
   ultimately show ?case by blast
 next
@@ -1758,7 +1758,7 @@ next
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Le a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Le a) = (real (?c * i) + (?N ?r) \<le> 0)" using Ia by (simp add: Let_def split_def)
-    also from cn cnz have "\<dots> = (?I (?l (Le a)))" by (simp only: split_int_le_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def add_ac, arith)
+    also from cn cnz have "\<dots> = (?I (?l (Le a)))" by (simp only: split_int_le_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def ac_simps, arith)
     finally have ?case using l by simp}
   ultimately show ?case by blast
 next
@@ -1783,7 +1783,7 @@ next
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Gt a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Gt a) = (real (?c * i) + (?N ?r) > 0)" using Ia by (simp add: Let_def split_def)
-    also from cn cnz have "\<dots> = (?I (?l (Gt a)))" by (simp only: split_int_gt_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def add_ac, arith)
+    also from cn cnz have "\<dots> = (?I (?l (Gt a)))" by (simp only: split_int_gt_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def ac_simps, arith)
     finally have ?case using l by simp}
   ultimately show ?case by blast
 next
@@ -1808,7 +1808,7 @@ next
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Ge a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Ge a) = (real (?c * i) + (?N ?r) \<ge> 0)" using Ia by (simp add: Let_def split_def)
-    also from cn cnz have "\<dots> = (?I (?l (Ge a)))" by (simp only: split_int_ge_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def add_ac, arith)
+    also from cn cnz have "\<dots> = (?I (?l (Ge a)))" by (simp only: split_int_ge_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def ac_simps, arith)
     finally have ?case using l by simp}
   ultimately show ?case by blast
 next
@@ -1886,10 +1886,10 @@ next
       by (simp only: rdvd_abs1[where d="j" and t="real (?c*i) + ?N ?r", symmetric]) simp
     also have "\<dots> = ((abs j) dvd (floor ((?N ?r) + real (?c*i))) \<and> 
        (real (floor ((?N ?r) + real (?c*i))) = (real (?c*i) + (?N ?r))))" 
-      by(simp only: int_rdvd_real[where i="abs j" and x="real (?c*i) + (?N ?r)"]) (simp only: add_ac)
+      by(simp only: int_rdvd_real[where i="abs j" and x="real (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (Dvd j a)))" using cp cnz jnz  
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]  
-        del: real_of_int_mult) (auto simp add: add_ac)
+        del: real_of_int_mult) (auto simp add: ac_simps)
     finally have ?case using l jnz  by simp }
   moreover
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
@@ -1900,11 +1900,11 @@ next
       by (simp only: rdvd_abs1[where d="j" and t="real (?c*i) + ?N ?r", symmetric]) simp
     also have "\<dots> = ((abs j) dvd (floor ((?N ?r) + real (?c*i))) \<and> 
        (real (floor ((?N ?r) + real (?c*i))) = (real (?c*i) + (?N ?r))))" 
-      by(simp only: int_rdvd_real[where i="abs j" and x="real (?c*i) + (?N ?r)"]) (simp only: add_ac)
+      by(simp only: int_rdvd_real[where i="abs j" and x="real (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (Dvd j a)))" using cn cnz jnz
       using rdvd_minus [where d="abs j" and t="real (?c*i + floor (?N ?r))", simplified, symmetric]
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]  
-        del: real_of_int_mult) (auto simp add: add_ac)
+        del: real_of_int_mult) (auto simp add: ac_simps)
     finally have ?case using l jnz by blast }
   ultimately show ?case by blast
 next
@@ -1932,10 +1932,10 @@ next
       by (simp only: rdvd_abs1[where d="j" and t="real (?c*i) + ?N ?r", symmetric]) simp
     also have "\<dots> = (\<not> ((abs j) dvd (floor ((?N ?r) + real (?c*i))) \<and> 
        (real (floor ((?N ?r) + real (?c*i))) = (real (?c*i) + (?N ?r)))))" 
-      by(simp only: int_rdvd_real[where i="abs j" and x="real (?c*i) + (?N ?r)"]) (simp only: add_ac)
+      by(simp only: int_rdvd_real[where i="abs j" and x="real (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (NDvd j a)))" using cp cnz jnz  
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]  
-        del: real_of_int_mult) (auto simp add: add_ac)
+        del: real_of_int_mult) (auto simp add: ac_simps)
     finally have ?case using l jnz  by simp }
   moreover
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" and jnz: "j\<noteq>0" hence l: "?L (?l (NDvd j a))" 
@@ -1946,11 +1946,11 @@ next
       by (simp only: rdvd_abs1[where d="j" and t="real (?c*i) + ?N ?r", symmetric]) simp
     also have "\<dots> = (\<not> ((abs j) dvd (floor ((?N ?r) + real (?c*i))) \<and> 
        (real (floor ((?N ?r) + real (?c*i))) = (real (?c*i) + (?N ?r)))))" 
-      by(simp only: int_rdvd_real[where i="abs j" and x="real (?c*i) + (?N ?r)"]) (simp only: add_ac)
+      by(simp only: int_rdvd_real[where i="abs j" and x="real (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (NDvd j a)))" using cn cnz jnz
       using rdvd_minus [where d="abs j" and t="real (?c*i + floor (?N ?r))", simplified, symmetric]
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]  
-        del: real_of_int_mult) (auto simp add: add_ac)
+        del: real_of_int_mult) (auto simp add: ac_simps)
     finally have ?case using l jnz by blast }
   ultimately show ?case by blast
 qed auto
@@ -4159,7 +4159,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (Eq (CN 0 c e))"
@@ -4176,7 +4176,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (NEq (CN 0 c e))"
@@ -4193,7 +4193,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     with xz have "?P ?z x (Lt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"]  by simp }
@@ -4209,7 +4209,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     with xz have "?P ?z x (Le (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4225,7 +4225,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     with xz have "?P ?z x (Gt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4241,7 +4241,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     with xz have "?P ?z x (Ge (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4267,7 +4267,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (Eq (CN 0 c e))"
@@ -4284,7 +4284,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (NEq (CN 0 c e))"
@@ -4301,7 +4301,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Lt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4317,7 +4317,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Le (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4333,7 +4333,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Gt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4349,7 +4349,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Ge (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"]   by simp }
@@ -4829,9 +4829,9 @@ lemma splitex:
   shows "(Ifm bs (E p)) = (\<exists> (i::int). Ifm (real i#bs) (E (And (And (Ge(CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))) (exsplit p))))" (is "?lhs = ?rhs")
 proof-
   have "?rhs = (\<exists> (i::int). \<exists> x. 0\<le> x \<and> x < 1 \<and> Ifm (x#(real i)#bs) (exsplit p))"
-    by (simp add: myless[of _ "1"] myless[of _ "0"] add_ac)
+    by (simp add: myless[of _ "1"] myless[of _ "0"] ac_simps)
   also have "\<dots> = (\<exists> (i::int). \<exists> x. 0\<le> x \<and> x < 1 \<and> Ifm ((real i + x) #bs) p)"
-    by (simp only: exsplit[OF qf] add_ac)
+    by (simp only: exsplit[OF qf] ac_simps)
   also have "\<dots> = (\<exists> x. Ifm (x#bs) p)" 
     by (simp only: real_ex_int_real01[where P="\<lambda> x. Ifm (x#bs) p"])
   finally show ?thesis by simp

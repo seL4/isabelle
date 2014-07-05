@@ -60,7 +60,7 @@ lemma times_int_raw_fst:
   apply(hypsubst_thin)
   apply(rename_tac u v w x y z)
   apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
-  apply(simp add: mult_ac)
+  apply(simp add: ac_simps)
   apply(simp add: add_mult_distrib [symmetric])
 done
 
@@ -73,7 +73,7 @@ lemma times_int_raw_snd:
   apply(hypsubst_thin)
   apply(rename_tac u v w x y z)
   apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
-  apply(simp add: mult_ac)
+  apply(simp add: ac_simps)
   apply(simp add: add_mult_distrib [symmetric])
 done
 

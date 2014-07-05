@@ -169,10 +169,10 @@ lemma eSuc_plus_1:
 lemma plus_1_eSuc:
   "1 + q = eSuc q"
   "q + 1 = eSuc q"
-  by (simp_all add: eSuc_plus_1 add_ac)
+  by (simp_all add: eSuc_plus_1 ac_simps)
 
 lemma iadd_Suc: "eSuc m + n = eSuc (m + n)"
-  by (simp_all add: eSuc_plus_1 add_ac)
+  by (simp_all add: eSuc_plus_1 ac_simps)
 
 lemma iadd_Suc_right: "m + eSuc n = eSuc (m + n)"
   by (simp only: add.commute[of m] iadd_Suc)
@@ -523,7 +523,7 @@ struct
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss =
     simpset_of (put_simpset HOL_basic_ss @{context}
-      addsimps @{thms add_ac add_0_left add_0_right})
+      addsimps @{thms ac_simps add_0_left add_0_right})
   fun norm_tac ctxt = ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   fun simplify_meta_eq ctxt cancel_th th =
     Arith_Data.simplify_meta_eq [] ctxt

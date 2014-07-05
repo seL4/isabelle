@@ -527,7 +527,7 @@ apply (frule STAR_sin_Infinitesimal_divide
                    pi_divide_HNatInfinite_not_zero])
 apply (auto)
 apply (rule approx_SReal_mult_cancel [of "inverse (hypreal_of_real pi)"])
-apply (auto intro: Reals_inverse simp add: divide_inverse mult_ac)
+apply (auto intro: Reals_inverse simp add: divide_inverse ac_simps)
 done
 
 lemma STAR_sin_pi_divide_HNatInfinite_approx_pi2:

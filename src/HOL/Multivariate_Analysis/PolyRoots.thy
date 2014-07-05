@@ -41,9 +41,9 @@ lemma setsum_gp_multiplied:
   shows "(1 - x) * (\<Sum>i=m..n. x^i) = x^m - x^Suc n"
 proof -
   have  "(1 - x) * (\<Sum>i=m..n. x^i) = x^m * (1 - x) * (\<Sum>i\<le>n-m. x^i)"
-    by (metis ab_semigroup_mult_class.mult_ac(1) assms mult.commute setsum_power_shift)
+    by (metis mult.assoc mult.commute assms setsum_power_shift)
   also have "... =x^m * (1 - x^Suc(n-m))"
-    by (metis ab_semigroup_mult_class.mult_ac(1) setsum_gp_basic)
+    by (metis mult.assoc setsum_gp_basic)
   also have "... = x^m - x^Suc n"
     using assms
     by (simp add: algebra_simps) (metis le_add_diff_inverse power_add)
@@ -78,9 +78,9 @@ proof -
         (\<Sum>i\<le>n. a i * (x^i - y^i))"
     by (simp add: algebra_simps setsum_subtractf [symmetric])
   also have "... = (\<Sum>i\<le>n. a i * (x - y) * (\<Sum>j<i. y^(i - Suc j) * x^j))"
-    by (simp add: power_diff_sumr2 mult_ac)
+    by (simp add: power_diff_sumr2 ac_simps)
   also have "... = (x - y) * (\<Sum>i\<le>n. (\<Sum>j<i. a i * y^(i - Suc j) * x^j))"
-    by (simp add: setsum_right_distrib mult_ac)
+    by (simp add: setsum_right_distrib ac_simps)
   also have "... = (x - y) * (\<Sum>j<n. (\<Sum>i=Suc j..n. a i * y^(i - Suc j) * x^j))"
     by (simp add: nested_setsum_swap')
   finally show ?thesis .

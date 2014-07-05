@@ -142,7 +142,7 @@ apply (induct n)
 apply (drule_tac [2] DERIV_ident [THEN DERIV_mult])
 apply (auto simp add: distrib_right real_of_nat_Suc)
 apply (case_tac "n")
-apply (auto simp add: mult_ac add.commute)
+apply (auto simp add: ac_simps add.commute)
 done
 
 text{*Nonstandard version*}

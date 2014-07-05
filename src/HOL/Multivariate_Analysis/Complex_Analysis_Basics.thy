@@ -1019,7 +1019,7 @@ proof -
                    (of_nat (Suc n) * (f (Suc n) u * (z-u) ^ n)) +
                    (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
                    (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
-          by (simp only: fact_Suc of_nat_mult mult_ac) simp
+          by (simp only: fact_Suc of_nat_mult ac_simps) simp
         also have "... = f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)"
           by (simp add: algebra_simps)
         finally show ?thesis
@@ -1116,7 +1116,7 @@ proof -
              (\<Sum>i = 0..n.
                  f (Suc (Suc i)) u * ((z-u) ^ Suc i) / of_nat (fact (Suc i))  - 
                  f (Suc i) u * (z-u) ^ i / of_nat (fact i))"
-      by (simp only: diff_divide_distrib fact_cancel mult_ac)
+      by (simp only: diff_divide_distrib fact_cancel ac_simps)
     also have "... = f (Suc 0) u -
              (f (Suc (Suc n)) u * (z-u) ^ Suc n - of_nat (Suc n) * (z-u) ^ n * f (Suc n) u) /
              of_nat (fact (Suc n)) +
@@ -1132,7 +1132,7 @@ proof -
       apply (intro derivative_eq_intros)+
       apply (force intro: u assms)
       apply (rule refl)+
-      apply (auto simp: mult_ac)
+      apply (auto simp: ac_simps)
       done
   }
   then show ?thesis

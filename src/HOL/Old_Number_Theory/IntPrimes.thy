@@ -253,7 +253,7 @@ lemma zgcd_zcong_zgcd:
 
 lemma zcong_zmod_aux:
      "a - b = (m::int) * (a div m - b div m) + (a mod m - b mod m)"
-  by(simp add: right_diff_distrib add_diff_eq eq_diff_eq add_ac)
+  by(simp add: right_diff_distrib add_diff_eq eq_diff_eq ac_simps)
 
 lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (unfold zcong_def)

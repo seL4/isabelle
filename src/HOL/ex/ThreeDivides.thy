@@ -80,7 +80,7 @@ next
   hence "?thr dvd (10^(n+1) - 10)" by (simp add: nat_distrib)
   ultimately
   have"?thr dvd ((10^(n+1) - 10) + 9)"
-    by (simp only: add_ac) (rule dvd_add)
+    by (simp only: ac_simps) (rule dvd_add)
   thus ?case by simp
 qed
 
@@ -194,7 +194,7 @@ next
       "m = 10*(\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x) + c" by simp
     also have
       "\<dots> = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^(x+1)) + c"
-      by (subst setsum_right_distrib) (simp add: mult_ac)
+      by (subst setsum_right_distrib) (simp add: ac_simps)
     also have
       "\<dots> = (\<Sum>x<nd. m div 10^(Suc x) mod 10 * 10^(Suc x)) + c"
       by (simp add: div_mult2_eq[symmetric])

@@ -481,10 +481,10 @@ lemma lemma_termdiff2:
   apply (rule setsum.cong [OF refl])
   apply (simp add: less_iff_Suc_add)
   apply (clarify)
-  apply (simp add: setsum_right_distrib lemma_realpow_diff_sumr2 mult_ac
+  apply (simp add: setsum_right_distrib lemma_realpow_diff_sumr2 ac_simps
               del: setsum_lessThan_Suc power_Suc)
   apply (subst mult.assoc [symmetric], subst power_add [symmetric])
-  apply (simp add: mult_ac)
+  apply (simp add: ac_simps)
   done
 
 lemma real_setsum_nat_ivl_bounded2:
@@ -958,7 +958,7 @@ proof -
     hence "norm (x * S n) \<le> real (Suc n) * r * norm (S n)"
       by (rule order_trans [OF norm_mult_ineq])
     hence "norm (x * S n) / real (Suc n) \<le> r * norm (S n)"
-      by (simp add: pos_divide_le_eq mult_ac)
+      by (simp add: pos_divide_le_eq ac_simps)
     thus "norm (S (Suc n)) \<le> r * norm (S n)"
       by (simp add: S_Suc inverse_eq_divide)
   qed
@@ -1058,7 +1058,7 @@ next
     by (rule distrib_right)
   also have "\<dots> = (\<Sum>i\<le>n. (x * S x i) * S y (n-i))
                 + (\<Sum>i\<le>n. S x i * (y * S y (n-i)))"
-    by (simp only: setsum_right_distrib mult_ac)
+    by (simp only: setsum_right_distrib ac_simps)
   also have "\<dots> = (\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n-i)))
                 + (\<Sum>i\<le>n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i)))"
     by (simp add: times_S Suc_diff_le)
@@ -1431,7 +1431,7 @@ proof -
       by (rule mult_mono)
         (rule mult_mono, simp_all add: power_le_one a b)
     hence "inverse (fact (n + 2)) * x ^ (n + 2) \<le> (x\<^sup>2/2) * ((1/2)^n)"
-      unfolding power_add by (simp add: mult_ac del: fact_Suc) }
+      unfolding power_add by (simp add: ac_simps del: fact_Suc) }
   note aux1 = this
   have "(\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n) sums (x\<^sup>2 / 2 * (1 / (1 - 1 / 2)))"
     by (intro sums_mult geometric_sums, simp)
@@ -2476,7 +2476,7 @@ lemma sin_paired:
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. sin_coeff k * x ^ k) sums sin x"
     by (rule sin_converges [THEN sums_group], simp)
-  thus ?thesis unfolding One_nat_def sin_coeff_def by (simp add: mult_ac)
+  thus ?thesis unfolding One_nat_def sin_coeff_def by (simp add: ac_simps)
 qed
 
 lemma sin_gt_zero:
@@ -2512,7 +2512,7 @@ lemma cos_paired: "(\<lambda>n. -1 ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sum
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. cos_coeff k * x ^ k) sums cos x"
     by (rule cos_converges [THEN sums_group], simp)
-  thus ?thesis unfolding cos_coeff_def by (simp add: mult_ac)
+  thus ?thesis unfolding cos_coeff_def by (simp add: ac_simps)
 qed
 
 lemmas realpow_num_eq_if = power_eq_if
@@ -2533,7 +2533,7 @@ apply (frule sums_unique)
 apply (drule sums_summable)
 apply simp
 apply (erule suminf_pos)
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma cos_two_less_zero [simp]:

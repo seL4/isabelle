@@ -33,7 +33,7 @@ proof
     from eq have "p dvd m\<^sup>2" ..
     with `prime p` show "p dvd m" by (rule prime_dvd_power_nat)
     then obtain k where "m = p * k" ..
-    with eq have "p * n\<^sup>2 = p\<^sup>2 * k\<^sup>2" by (auto simp add: power2_eq_square mult_ac)
+    with eq have "p * n\<^sup>2 = p\<^sup>2 * k\<^sup>2" by (auto simp add: power2_eq_square ac_simps)
     with p have "n\<^sup>2 = p * k\<^sup>2" by (simp add: power2_eq_square)
     then have "p dvd n\<^sup>2" ..
     with `prime p` show "p dvd n" by (rule prime_dvd_power_nat)
@@ -73,7 +73,7 @@ proof
   then have "p dvd m\<^sup>2" ..
   with `prime p` have dvd_m: "p dvd m" by (rule prime_dvd_power_nat)
   then obtain k where "m = p * k" ..
-  with eq have "p * n\<^sup>2 = p\<^sup>2 * k\<^sup>2" by (auto simp add: power2_eq_square mult_ac)
+  with eq have "p * n\<^sup>2 = p\<^sup>2 * k\<^sup>2" by (auto simp add: power2_eq_square ac_simps)
   with p have "n\<^sup>2 = p * k\<^sup>2" by (simp add: power2_eq_square)
   then have "p dvd n\<^sup>2" ..
   with `prime p` have "p dvd n" by (rule prime_dvd_power_nat)

@@ -40,14 +40,14 @@ text{*
 @{thm[display] add.left_commute[no_vars]}
 \rulename{add.left_commute}
 
-these form add_ac; similarly there is mult_ac
+these form ac_simps; similarly there is ac_simps
 *}
 
 lemma "Suc(i + j*l*k + m*n) = f (n*m + i + k*j*l)"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 *};
-apply (simp add: add_ac mult_ac)
+apply (simp add: ac_simps ac_simps)
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 *};

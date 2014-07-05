@@ -67,7 +67,7 @@ lemma bigo_elt_subset [intro]: "f \<in> O(g) \<Longrightarrow> O(f) \<le> O(g)"
   apply (drule_tac x = "xa" in spec)+
   apply (subgoal_tac "ca * abs (f xa) \<le> ca * (c * abs (g xa))")
   apply (erule order_trans)
-  apply (simp add: mult_ac)
+  apply (simp add: ac_simps)
   apply (rule mult_left_mono, assumption)
   apply (rule order_less_imp_le, assumption)
   done
@@ -287,7 +287,7 @@ lemma bigo_mult [intro]: "O(f)*O(g) \<subseteq> O(f * g)"
   apply (rule mult_mono)
   apply assumption+
   apply auto
-  apply (simp add: mult_ac abs_mult)
+  apply (simp add: ac_simps abs_mult)
   done
 
 lemma bigo_mult2 [intro]: "f *o O(g) \<subseteq> O(f * g)"
@@ -296,7 +296,7 @@ lemma bigo_mult2 [intro]: "f *o O(g) \<subseteq> O(f * g)"
   apply auto
   apply (drule_tac x = x in spec)
   apply (subgoal_tac "abs (f x) * abs (b x) \<le> abs (f x) * (c * abs (g x))")
-  apply (force simp add: mult_ac)
+  apply (force simp add: ac_simps)
   apply (rule mult_left_mono, assumption)
   apply (rule abs_ge_zero)
   done
@@ -328,7 +328,7 @@ proof
   also have "(\<lambda>x. 1 / f x) * (f * g) = g"
     apply (simp add: func_times)
     apply (rule ext)
-    apply (simp add: assms nonzero_divide_eq_eq mult_ac)
+    apply (simp add: assms nonzero_divide_eq_eq ac_simps)
     done
   finally have "(\<lambda>x. (1::'b) / f x) * h \<in> O(g)" .
   then have "f * ((\<lambda>x. (1::'b) / f x) * h) \<in> f *o O(g)"
@@ -336,7 +336,7 @@ proof
   also have "f * ((\<lambda>x. (1::'b) / f x) * h) = h"
     apply (simp add: func_times)
     apply (rule ext)
-    apply (simp add: assms nonzero_divide_eq_eq mult_ac)
+    apply (simp add: assms nonzero_divide_eq_eq ac_simps)
     done
   finally show "h \<in> f *o O(g)" .
 qed
@@ -432,7 +432,7 @@ lemma bigo_add_commute_imp: "f \<in> g +o O(h) \<Longrightarrow> g \<in> f +o O(
   apply (rule bigo_minus)
   apply (subst set_minus_plus)
   apply assumption
-  apply (simp add: add_ac)
+  apply (simp add: ac_simps)
   done
 
 lemma bigo_add_commute: "f \<in> g +o O(h) \<longleftrightarrow> g \<in> f +o O(h)"
@@ -441,7 +441,7 @@ lemma bigo_add_commute: "f \<in> g +o O(h) \<longleftrightarrow> g \<in> f +o O(
   done
 
 lemma bigo_const1: "(\<lambda>x. c) \<in> O(\<lambda>x. 1)"
-  by (auto simp add: bigo_def mult_ac)
+  by (auto simp add: bigo_def ac_simps)
 
 lemma bigo_const2 [intro]: "O(\<lambda>x. c) \<subseteq> O(\<lambda>x. 1)"
   apply (rule bigo_elt_subset)
@@ -536,7 +536,7 @@ lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) \<subseteq> O(f)"
   apply (rule mult_left_mono)
   apply (erule spec)
   apply simp
-  apply(simp add: mult_ac)
+  apply(simp add: ac_simps)
   done
 
 lemma bigo_const_mult7 [intro]: "f =o O(g) \<Longrightarrow> (\<lambda>x. c * f x) =o O(g)"

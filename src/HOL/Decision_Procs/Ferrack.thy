@@ -1059,7 +1059,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (Eq (CN 0 c e))"
@@ -1076,7 +1076,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (NEq (CN 0 c e))"
@@ -1093,7 +1093,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     with xz have "?P ?z x (Lt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"]  by simp }
@@ -1109,7 +1109,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     with xz have "?P ?z x (Le (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -1125,7 +1125,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     with xz have "?P ?z x (Gt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -1141,7 +1141,7 @@ next
   {fix x
     assume xz: "x < ?z"
     hence "(real c * x < - ?e)" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] mult_ac) 
+      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps) 
     hence "real c * x + ?e < 0" by arith
     with xz have "?P ?z x (Ge (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -1167,7 +1167,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (Eq (CN 0 c e))"
@@ -1184,7 +1184,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (NEq (CN 0 c e))"
@@ -1201,7 +1201,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Lt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -1217,7 +1217,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Le (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -1233,7 +1233,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Gt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -1249,7 +1249,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: ac_simps)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Ge (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"]   by simp }

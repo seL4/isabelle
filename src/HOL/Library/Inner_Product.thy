@@ -280,7 +280,7 @@ lemma GDERIV_DERIV_compose:
      \<Longrightarrow> GDERIV (\<lambda>x. g (f x)) x :> scaleR dg df"
   unfolding gderiv_def has_field_derivative_def
   apply (drule (1) has_derivative_compose)
-  apply (simp add: mult_ac)
+  apply (simp add: ac_simps)
   done
 
 lemma has_derivative_subst: "\<lbrakk>FDERIV f x :> df; df = d\<rbrakk> \<Longrightarrow> FDERIV f x :> d"
@@ -313,7 +313,7 @@ lemma GDERIV_scaleR:
   unfolding gderiv_def has_field_derivative_def inner_add_right inner_scaleR_right
   apply (rule has_derivative_subst)
   apply (erule (1) has_derivative_scaleR)
-  apply (simp add: mult_ac)
+  apply (simp add: ac_simps)
   done
 
 lemma GDERIV_mult:
@@ -322,7 +322,7 @@ lemma GDERIV_mult:
   unfolding gderiv_def
   apply (rule has_derivative_subst)
   apply (erule (1) has_derivative_mult)
-  apply (simp add: inner_add mult_ac)
+  apply (simp add: inner_add ac_simps)
   done
 
 lemma GDERIV_inverse:

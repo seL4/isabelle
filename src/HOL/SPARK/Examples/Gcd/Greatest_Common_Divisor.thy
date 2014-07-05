@@ -26,7 +26,7 @@ spark_vc procedure_g_c_d_11
 proof -
   from `0 \<le> c` `0 < d` `c - c sdiv d * d = 0`
   have "d dvd c"
-    by (auto simp add: sdiv_pos_pos dvd_def mult_ac)
+    by (auto simp add: sdiv_pos_pos dvd_def ac_simps)
   with `0 < d` `gcd c d = gcd m n` show ?C1
     by simp
 qed

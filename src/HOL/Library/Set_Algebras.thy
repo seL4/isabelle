@@ -100,11 +100,11 @@ lemma set_plus_intro2 [intro]: "b \<in> C \<Longrightarrow> a + b \<in> a +o C"
 
 lemma set_plus_rearrange:
   "((a::'a::comm_monoid_add) +o C) + (b +o D) = (a + b) +o (C + D)"
-  apply (auto simp add: elt_set_plus_def set_plus_def add_ac)
+  apply (auto simp add: elt_set_plus_def set_plus_def ac_simps)
    apply (rule_tac x = "ba + bb" in exI)
-  apply (auto simp add: add_ac)
+  apply (auto simp add: ac_simps)
   apply (rule_tac x = "aa + a" in exI)
-  apply (auto simp add: add_ac)
+  apply (auto simp add: ac_simps)
   done
 
 lemma set_plus_rearrange2: "(a::'a::semigroup_add) +o (b +o C) = (a + b) +o C"
@@ -112,19 +112,19 @@ lemma set_plus_rearrange2: "(a::'a::semigroup_add) +o (b +o C) = (a + b) +o C"
 
 lemma set_plus_rearrange3: "((a::'a::semigroup_add) +o B) + C = a +o (B + C)"
   apply (auto simp add: elt_set_plus_def set_plus_def)
-   apply (blast intro: add_ac)
+   apply (blast intro: ac_simps)
   apply (rule_tac x = "a + aa" in exI)
   apply (rule conjI)
    apply (rule_tac x = "aa" in bexI)
     apply auto
   apply (rule_tac x = "ba" in bexI)
-   apply (auto simp add: add_ac)
+   apply (auto simp add: ac_simps)
   done
 
 theorem set_plus_rearrange4: "C + ((a::'a::comm_monoid_add) +o D) = a +o (C + D)"
-  apply (auto simp add: elt_set_plus_def set_plus_def add_ac)
+  apply (auto simp add: elt_set_plus_def set_plus_def ac_simps)
    apply (rule_tac x = "aa + ba" in exI)
-   apply (auto simp add: add_ac)
+   apply (auto simp add: ac_simps)
   done
 
 theorems set_plus_rearranges = set_plus_rearrange set_plus_rearrange2
@@ -140,7 +140,7 @@ lemma set_plus_mono3 [intro]: "a \<in> C \<Longrightarrow> a +o D \<subseteq> C 
   by (auto simp add: elt_set_plus_def set_plus_def)
 
 lemma set_plus_mono4 [intro]: "(a::'a::comm_monoid_add) \<in> C \<Longrightarrow> a +o D \<subseteq> D + C"
-  by (auto simp add: elt_set_plus_def set_plus_def add_ac)
+  by (auto simp add: elt_set_plus_def set_plus_def ac_simps)
 
 lemma set_plus_mono5: "a \<in> C \<Longrightarrow> B \<subseteq> D \<Longrightarrow> a +o B \<subseteq> C + D"
   apply (subgoal_tac "a +o B \<subseteq> a +o D")
@@ -178,17 +178,17 @@ lemma set_zero_plus2: "(0::'a::comm_monoid_add) \<in> A \<Longrightarrow> B \<su
   apply (auto simp add: set_plus_def)
   apply (rule_tac x = 0 in bexI)
    apply (rule_tac x = x in bexI)
-    apply (auto simp add: add_ac)
+    apply (auto simp add: ac_simps)
   done
 
 lemma set_plus_imp_minus: "(a::'a::ab_group_add) : b +o C \<Longrightarrow> (a - b) \<in> C"
-  by (auto simp add: elt_set_plus_def add_ac)
+  by (auto simp add: elt_set_plus_def ac_simps)
 
 lemma set_minus_imp_plus: "(a::'a::ab_group_add) - b : C \<Longrightarrow> a \<in> b +o C"
-  apply (auto simp add: elt_set_plus_def add_ac)
+  apply (auto simp add: elt_set_plus_def ac_simps)
   apply (subgoal_tac "a = (a + - b) + b")
    apply (rule bexI, assumption)
-  apply (auto simp add: add_ac)
+  apply (auto simp add: ac_simps)
   done
 
 lemma set_minus_plus: "(a::'a::ab_group_add) - b \<in> C \<longleftrightarrow> a \<in> b +o C"
@@ -209,9 +209,9 @@ lemma set_times_rearrange:
   "((a::'a::comm_monoid_mult) *o C) * (b *o D) = (a * b) *o (C * D)"
   apply (auto simp add: elt_set_times_def set_times_def)
    apply (rule_tac x = "ba * bb" in exI)
-   apply (auto simp add: mult_ac)
+   apply (auto simp add: ac_simps)
   apply (rule_tac x = "aa * a" in exI)
-  apply (auto simp add: mult_ac)
+  apply (auto simp add: ac_simps)
   done
 
 lemma set_times_rearrange2:
@@ -221,20 +221,20 @@ lemma set_times_rearrange2:
 lemma set_times_rearrange3:
   "((a::'a::semigroup_mult) *o B) * C = a *o (B * C)"
   apply (auto simp add: elt_set_times_def set_times_def)
-   apply (blast intro: mult_ac)
+   apply (blast intro: ac_simps)
   apply (rule_tac x = "a * aa" in exI)
   apply (rule conjI)
    apply (rule_tac x = "aa" in bexI)
     apply auto
   apply (rule_tac x = "ba" in bexI)
-   apply (auto simp add: mult_ac)
+   apply (auto simp add: ac_simps)
   done
 
 theorem set_times_rearrange4:
   "C * ((a::'a::comm_monoid_mult) *o D) = a *o (C * D)"
-  apply (auto simp add: elt_set_times_def set_times_def mult_ac)
+  apply (auto simp add: elt_set_times_def set_times_def ac_simps)
    apply (rule_tac x = "aa * ba" in exI)
-   apply (auto simp add: mult_ac)
+   apply (auto simp add: ac_simps)
   done
 
 theorems set_times_rearranges = set_times_rearrange set_times_rearrange2
@@ -250,7 +250,7 @@ lemma set_times_mono3 [intro]: "a \<in> C \<Longrightarrow> a *o D \<subseteq> C
   by (auto simp add: elt_set_times_def set_times_def)
 
 lemma set_times_mono4 [intro]: "(a::'a::comm_monoid_mult) : C \<Longrightarrow> a *o D \<subseteq> D * C"
-  by (auto simp add: elt_set_times_def set_times_def mult_ac)
+  by (auto simp add: elt_set_times_def set_times_def ac_simps)
 
 lemma set_times_mono5: "a \<in> C \<Longrightarrow> B \<subseteq> D \<Longrightarrow> a *o B \<subseteq> C * D"
   apply (subgoal_tac "a *o B \<subseteq> a *o D")

@@ -92,7 +92,7 @@ proof -
         from m have "0 < m" by simp
         moreover note n
         moreover from False n nmk k have "Suc 0 < k" by auto
-        moreover from nmk have "k * m = n" by (simp only: mult_ac)
+        moreover from nmk have "k * m = n" by (simp only: ac_simps)
         ultimately have mn: "m < n" by (rule prod_mn_less_k)
         with kn A nmk show ?thesis by iprover
       qed
@@ -118,7 +118,7 @@ next
   next
     assume "m = Suc n"
     then have "m dvd (fact n * Suc n)"
-      by (auto intro: dvdI simp: mult_ac)
+      by (auto intro: dvdI simp: ac_simps)
     then show ?thesis by (simp add: mult.commute)
   qed
 qed

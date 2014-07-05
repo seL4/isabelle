@@ -301,7 +301,7 @@ qed
 lemma bigo_mult [intro]: "O(f) * O(g) <= O(f * g)"
 apply (rule subsetI)
 apply (subst bigo_def)
-apply (auto simp del: abs_mult mult_ac
+apply (auto simp del: abs_mult ac_simps
             simp add: bigo_alt_def set_times_def func_times)
 (* sledgehammer *)
 apply (rule_tac x = "c * ca" in exI)
@@ -334,7 +334,7 @@ proof -
       by (rule bigo_mult2)
     also have "(\<lambda>x. 1 / f x) * (f * g) = g"
       apply (simp add: func_times)
-      by (metis (lifting, no_types) a ext mult_ac(2) nonzero_divide_eq_eq)
+      by (metis (lifting, no_types) a ext mult.commute nonzero_divide_eq_eq)
     finally have "(\<lambda>x. (1\<Colon>'b) / f x) * h : O(g)".
     then have "f * ((\<lambda>x. (1\<Colon>'b) / f x) * h) : f *o O(g)"
       by auto
@@ -396,7 +396,7 @@ lemma bigo_add_commute: "(f : g +o O(h)) = (g : f +o O(h))"
 by (metis bigo_add_commute_imp)
 
 lemma bigo_const1: "(\<lambda>x. c) : O(\<lambda>x. 1)"
-by (auto simp add: bigo_def mult_ac)
+by (auto simp add: bigo_def ac_simps)
 
 lemma bigo_const2 [intro]: "O(\<lambda>x. c) \<le> O(\<lambda>x. 1)"
 by (metis bigo_const1 bigo_elt_subset)
@@ -462,13 +462,13 @@ proof -
   hence "\<exists>(v\<Colon>'a) (u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^sub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^sub>7 (u * v))\<bar>)"
     by (metis comm_mult_left_mono)
   thus "\<exists>ca\<Colon>'a. \<forall>x\<Colon>'b. \<bar>inverse c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
-    using A2 F4 by (metis ab_semigroup_mult_class.mult_ac(1) comm_mult_left_mono)
+    using A2 F4 by (metis mult.assoc comm_mult_left_mono)
 qed
 
 lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) <= O(f)"
   apply (auto intro!: subsetI
     simp add: bigo_def elt_set_times_def func_times
-    simp del: abs_mult mult_ac)
+    simp del: abs_mult ac_simps)
 (* sledgehammer *)
   apply (rule_tac x = "ca * (abs c)" in exI)
   apply (rule allI)
@@ -478,7 +478,7 @@ lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) <= O(f)"
   apply (rule mult_left_mono)
   apply (erule spec)
   apply simp
-  apply (simp add: mult_ac)
+  apply (simp add: ac_simps)
 done
 
 lemma bigo_const_mult7 [intro]: "f =o O(g) \<Longrightarrow> (\<lambda>x. c * f x) =o O(g)"

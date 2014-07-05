@@ -161,7 +161,7 @@ next
     by (rule distrib)
   also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
                   (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k+1))"
-    by (auto simp add: setsum_right_distrib mult_ac)
+    by (auto simp add: setsum_right_distrib ac_simps)
   also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n+1-k)) +
                   (\<Sum>k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n+1-k))"
     by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps  
@@ -634,7 +634,7 @@ proof -
   also have "... = fact (m+r+k) div (fact r * (fact k * fact m))"
     apply (subst div_mult_div_if_dvd)
     apply (auto simp: fact_fact_dvd_fact)
-    apply (metis ab_semigroup_add_class.add_ac(1) add.commute fact_fact_dvd_fact)
+    apply (metis ac_simps add.commute fact_fact_dvd_fact)
     done
   also have "... = (fact (m+r+k) * fact (m+r)) div (fact r * (fact k * fact m) * fact (m+r))"
     apply (subst div_mult_div_if_dvd [symmetric])
@@ -758,7 +758,7 @@ proof -
     also have "\<dots> = - (\<Sum>i = 0..card K. -1 ^ i * int (card K choose i)) + 1"
       by(subst setsum_right_distrib[symmetric]) simp
     also have "\<dots> =  - ((-1 + 1) ^ card K) + 1"
-      by(subst binomial_ring)(simp add: mult_ac)
+      by(subst binomial_ring)(simp add: ac_simps)
     also have "\<dots> = 1" using x K by(auto simp add: K_def card_gt_0_iff)
     finally show "?lhs x = 1" .
   qed

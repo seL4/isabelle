@@ -185,7 +185,7 @@ lemma periodic_finite_ex:
 proof
   assume ?LHS
   then obtain x where P: "P x" ..
-  have "x mod d = x - (x div d)*d" by(simp add:zmod_zdiv_equality mult_ac eq_diff_eq)
+  have "x mod d = x - (x div d)*d" by(simp add:zmod_zdiv_equality ac_simps eq_diff_eq)
   hence Pmod: "P x = P(x mod d)" using modd by simp
   show ?RHS
   proof (cases)
@@ -307,7 +307,7 @@ next
   {fix x
     have "P x \<longrightarrow> P (x + i * d)" using step.hyps by blast
     also have "\<dots> \<longrightarrow> P(x + (i + 1) * d)" using plus[THEN spec, of "x + i * d"]
-      by (simp add:int_distrib add_ac)
+      by (simp add:int_distrib ac_simps)
     ultimately have "P x \<longrightarrow> P(x + (i + 1) * d)" by blast}
   thus ?case ..
 qed

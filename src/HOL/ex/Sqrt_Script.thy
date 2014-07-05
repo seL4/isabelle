@@ -36,7 +36,7 @@ lemma reduction: "prime (p::nat) \<Longrightarrow>
   done
 
 lemma rearrange: "(j::nat) * (p * j) = k * k \<Longrightarrow> k * k = p * (j * j)"
-  by (simp add: mult_ac)
+  by (simp add: ac_simps)
 
 lemma prime_not_square:
     "prime (p::nat) \<Longrightarrow> (\<And>k. 0 < k \<Longrightarrow> m * m \<noteq> p * (k * k))"

@@ -147,7 +147,7 @@ begin
 lemma of_nat_eq: "of_nat k = Abs (int k mod n)"
 apply (induct k)
 apply (simp add: zero_def)
-apply (simp add: Rep_simps add_def one_def zmod_simps add_ac)
+apply (simp add: Rep_simps add_def one_def zmod_simps ac_simps)
 done
 
 lemma of_int_eq: "of_int z = Abs (z mod n)"

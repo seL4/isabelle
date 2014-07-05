@@ -115,7 +115,7 @@ lemma (in group) surj_const_mult: "a : (carrier G) ==>
   apply (rule_tac x = "(m_inv G a) \<otimes> x" in bexI)
   apply auto
 (* auto should get this. I suppose we need "comm_monoid_simprules"
-   for mult_ac rewriting. *)
+   for ac_simps rewriting. *)
   apply (subst m_assoc [symmetric])
   apply auto
   done

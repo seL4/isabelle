@@ -1075,10 +1075,10 @@ done
 lemma add_leE: "(m::nat) + k \<le> n ==> (m \<le> n ==> k \<le> n ==> R) ==> R"
 by (blast dest: add_leD1 add_leD2)
 
-text {* needs @{text "!!k"} for @{text add_ac} to work *}
+text {* needs @{text "!!k"} for @{text ac_simps} to work *}
 lemma less_add_eq_less: "!!k::nat. k < l ==> m + l = k + n ==> m < n"
 by (force simp del: add_Suc_right
-    simp add: less_iff_Suc_add add_Suc_right [symmetric] add_ac)
+    simp add: less_iff_Suc_add add_Suc_right [symmetric] ac_simps)
 
 
 subsubsection {* More results about difference *}
@@ -1405,10 +1405,10 @@ lemma of_nat_1 [simp]: "of_nat 1 = 1"
   by (simp add: of_nat_def)
 
 lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
-  by (induct m) (simp_all add: add_ac)
+  by (induct m) (simp_all add: ac_simps)
 
 lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
-  by (induct m) (simp_all add: add_ac distrib_right)
+  by (induct m) (simp_all add: ac_simps distrib_right)
 
 primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
   "of_nat_aux inc 0 i = i"
@@ -1869,7 +1869,7 @@ lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
 lemma dvd_mult_cancel: "!!k::nat. [| k*m dvd k*n; 0<k |] ==> m dvd n"
   unfolding dvd_def
   apply (erule exE)
-  apply (simp add: mult_ac)
+  apply (simp add: ac_simps)
   done
 
 lemma dvd_mult_cancel1: "0<m ==> (m*n dvd m) = (n = (1::nat))"

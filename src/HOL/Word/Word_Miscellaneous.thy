@@ -331,7 +331,7 @@ lemma given_quot_alt: "f > (0 :: nat) ==> (l * f + f - Suc 0) div f = l"
    prefer 2
    apply (erule asm_rl)
   apply (rule_tac f="%n. n div f" in arg_cong)
-  apply (simp add : mult_ac)
+  apply (simp add : ac_simps)
   done
     
 lemma diff_mod_le: "(a::nat) < d ==> b dvd d ==> a - a mod b <= d - b"

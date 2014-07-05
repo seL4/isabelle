@@ -732,7 +732,7 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
     {
       fix w
       have "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w / ?a0) < 1"
-        using qr[rule_format, of w] a00 by (simp add: divide_inverse mult_ac)
+        using qr[rule_format, of w] a00 by (simp add: divide_inverse ac_simps)
       also have "\<dots> \<longleftrightarrow> cmod (poly q w) < cmod ?a0"
         using a00 unfolding norm_divide by (simp add: field_simps)
       finally have "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w) < cmod ?a0" .
@@ -980,7 +980,7 @@ proof (induct n arbitrary: p q rule: nat_less_induct)
                 have "p = [:- a, 1:] ^ (Suc ?op) * u"
                   apply (subst s)
                   apply (subst u)
-                  apply (simp only: power_Suc mult_ac)
+                  apply (simp only: power_Suc ac_simps)
                   done
                 with ap(2)[unfolded dvd_def] have False
                   by blast
@@ -1010,7 +1010,7 @@ proof (induct n arbitrary: p q rule: nat_less_induct)
               apply (subst mult.assoc [where a=u])
               apply (subst mult.assoc [where b=u, symmetric])
               apply (subst u [symmetric])
-              apply (simp add: mult_ac power_add [symmetric])
+              apply (simp add: ac_simps power_add [symmetric])
               done
             then have ?ths
               unfolding dvd_def by blast

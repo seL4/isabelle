@@ -1020,7 +1020,7 @@ proof-
   from n nqr have aqr0: "a ^ (q * r) \<noteq> 0" using a0 by simp
   hence "(a ^ (q * r) - 1) + 1  = a ^ (q * r)" by simp
   with k l have "a ^ (q * r) = p*l*k + 1" by simp
-  hence "a ^ (r * q) + p * 0 = 1 + p * (l*k)" by (simp add: mult_ac)
+  hence "a ^ (r * q) + p * 0 = 1 + p * (l*k)" by (simp add: ac_simps)
   hence odq: "ord p (a^r) dvd q"
     unfolding ord_divides[symmetric] power_mult[symmetric] nat_mod  by blast
   from odq[unfolded dvd_def] obtain d where d: "q = ord p (a^r) * d" by blast

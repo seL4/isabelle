@@ -1270,7 +1270,7 @@ lemma integral_by_parts':
   assumes "!!x. DERIV G x :> g x"
   shows "(\<integral>x. indicator {a .. b} x *\<^sub>R (F x * g x) \<partial>lborel)
             =  F b * G b - F a * G a - \<integral>x. indicator {a .. b} x *\<^sub>R (f x * G x) \<partial>lborel" 
-  using integral_by_parts[OF assms] by (simp add: mult_ac)
+  using integral_by_parts[OF assms] by (simp add: ac_simps)
 
 lemma has_bochner_integral_even_function:
   fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"

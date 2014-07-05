@@ -47,7 +47,7 @@ proof
     then have "(y - z) * (w - x) = 0" by (simp add: algebra_simps)
     then have "y - z = 0 \<or> w - x = 0" by (rule divisors_zero)
     then show "w = x \<or> y = z" by auto
-  qed (auto simp add: add_ac)
+  qed (auto simp add: ac_simps)
 qed
 
 instance nat :: comm_semiring_1_cancel_crossproduct

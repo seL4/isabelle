@@ -1578,7 +1578,7 @@ proof
     have "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
       using `bilinear h` by (rule bilinear_bounded)
     then show "\<exists>K. \<forall>x y. norm (h x y) \<le> norm x * norm y * K"
-      by (simp add: mult_ac)
+      by (simp add: ac_simps)
   qed
 next
   assume "bounded_bilinear h"
@@ -1597,7 +1597,7 @@ proof -
     using bh [unfolded bilinear_conv_bounded_bilinear]
     by (rule bounded_bilinear.pos_bounded)
   then show ?thesis
-    by (simp only: mult_ac)
+    by (simp only: ac_simps)
 qed
 
 

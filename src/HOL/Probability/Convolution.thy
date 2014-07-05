@@ -41,7 +41,7 @@ lemma convolution_emeasure:
   assumes [simp]: "space M = space N" "space N = space borel"
   shows "emeasure (M \<star> N) A = \<integral>\<^sup>+x. (emeasure N {a. a + x \<in> A}) \<partial>M "
   using assms by (auto intro!: nn_integral_cong simp del: nn_integral_indicator simp: nn_integral_convolution 
-    nn_integral_indicator[symmetric] ab_semigroup_add_class.add_ac split:split_indicator)
+    nn_integral_indicator [symmetric] ac_simps split:split_indicator)
 
 lemma convolution_emeasure':
   assumes [simp]:"A \<in> sets borel"

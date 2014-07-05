@@ -31,11 +31,11 @@ proof (rule transI, unfold split_paired_all)
   fix a b a' b' a'' b'' :: 'a
   assume A: "((a, b), (a', b')) \<in> fractrel"
   assume B: "((a', b'), (a'', b'')) \<in> fractrel"
-  have "b' * (a * b'') = b'' * (a * b')" by (simp add: mult_ac)
+  have "b' * (a * b'') = b'' * (a * b')" by (simp add: ac_simps)
   also from A have "a * b' = a' * b" by auto
-  also have "b'' * (a' * b) = b * (a' * b'')" by (simp add: mult_ac)
+  also have "b'' * (a' * b) = b * (a' * b'')" by (simp add: ac_simps)
   also from B have "a' * b'' = a'' * b'" by auto
-  also have "b * (a'' * b') = b' * (a'' * b)" by (simp add: mult_ac)
+  also have "b * (a'' * b') = b' * (a'' * b)" by (simp add: ac_simps)
   finally have "b' * (a * b'') = b' * (a'' * b)" .
   moreover from B have "b' \<noteq> 0" by auto
   ultimately have "a * b'' = a'' * b" by simp
@@ -288,7 +288,7 @@ proof (clarsimp simp add: congruent2_def)
           ((a * d) * (b * d) * (x * x) \<le> (c * b) * (b * d) * (x * x))"
         by (simp add: mult_le_cancel_right)
       also have "... = ?le (a * x) (b * x) c d"
-        by (simp add: mult_ac)
+        by (simp add: ac_simps)
       finally show ?thesis .
     qed
   } note le_factor = this
@@ -299,11 +299,11 @@ proof (clarsimp simp add: congruent2_def)
   then have "?le a b c d = ?le (a * ?D') (b * ?D') c d"
     by (rule le_factor)
   also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')"
-    by (simp add: mult_ac)
+    by (simp add: ac_simps)
   also have "... = ((a' * b) * ?D * ?D' * d * d' \<le> (c' * d) * ?D * ?D' * b * b')"
     by (simp only: eq1 eq2)
   also have "... = ?le (a' * ?D) (b' * ?D) c' d'"
-    by (simp add: mult_ac)
+    by (simp add: ac_simps)
   also from D have "... = ?le a' b' c' d'"
     by (rule le_factor [symmetric])
   finally show "?le a b c d = ?le a' b' c' d'" .
@@ -328,7 +328,7 @@ lemma less_fract [simp]:
   assumes "b \<noteq> 0"
     and "d \<noteq> 0"
   shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
-  by (simp add: less_fract_def less_le_not_le mult_ac assms)
+  by (simp add: less_fract_def less_le_not_le ac_simps assms)
 
 instance
 proof
@@ -351,7 +351,7 @@ proof
         with ff show ?thesis by (simp add: mult_le_cancel_right)
       qed
       also have "... = (c * f) * (d * f) * (b * b)"
-        by (simp only: mult_ac)
+        by (simp only: ac_simps)
       also have "... \<le> (e * d) * (d * f) * (b * b)"
       proof -
         from neq 2 have "(c * f) * (d * f) \<le> (e * d) * (d * f)"
@@ -359,7 +359,7 @@ proof
         with bb show ?thesis by (simp add: mult_le_cancel_right)
       qed
       finally have "(a * f) * (b * f) * (d * d) \<le> e * b * (b * f) * (d * d)"
-        by (simp only: mult_ac)
+        by (simp only: ac_simps)
       with dd have "(a * f) * (b * f) \<le> (e * b) * (b * f)"
         by (simp add: mult_le_cancel_right)
       with neq show ?thesis by simp
@@ -382,7 +382,7 @@ next
       proof -
         from neq 2 have "(c * b) * (d * b) \<le> (a * d) * (d * b)"
           by simp
-        then show ?thesis by (simp only: mult_ac)
+        then show ?thesis by (simp only: ac_simps)
       qed
       finally have "(a * d) * (b * d) = (c * b) * (b * d)" .
       moreover from neq have "b * d \<noteq> 0" by simp
@@ -469,7 +469,7 @@ next
       ultimately have "(a * d) * (b * d) * ?E * ?F < (c * b) * (b * d) * ?E * ?F"
         by (simp add: mult_less_cancel_right)
       with neq show ?thesis
-        by (simp add: mult_ac)
+        by (simp add: ac_simps)
     qed
   qed
 qed

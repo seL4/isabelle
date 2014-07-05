@@ -518,11 +518,11 @@ lemma nonneg_int_cases:
 
 lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
   -- {* Unfold all @{text let}s involving constants *}
-  unfolding Let_def ..
+  by (fact Let_numeral) -- {* FIXME drop *}
 
 lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
   -- {* Unfold all @{text let}s involving constants *}
-  unfolding Let_def ..
+  by (fact Let_neg_numeral) -- {* FIXME drop *}
 
 text {* Unfold @{text min} and @{text max} on numerals. *}
 
@@ -559,7 +559,7 @@ lemma le_imp_0_less:
 proof -
   have "0 \<le> z" by fact
   also have "... < z + 1" by (rule less_add_one)
-  also have "... = 1 + z" by (simp add: add_ac)
+  also have "... = 1 + z" by (simp add: ac_simps)
   finally show "0 < 1 + z" .
 qed
 

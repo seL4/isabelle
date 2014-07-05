@@ -290,7 +290,7 @@ lemma Idl_subset_eq_dvd: "Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z
   apply (subst int_Idl_subset_ideal, subst int_Idl, simp)
   apply (rule, clarify)
   apply (simp add: dvd_def)
-  apply (simp add: dvd_def mult_ac)
+  apply (simp add: dvd_def ac_simps)
   done
 
 lemma dvds_eq_Idl: "l dvd k \<and> k dvd l \<longleftrightarrow> Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l}"

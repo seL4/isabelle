@@ -19,13 +19,13 @@ structure Group_Cancel: GROUP_CANCEL =
 struct
 
 val add1 = @{lemma "(A::'a::comm_monoid_add) == k + a ==> A + b == k + (a + b)"
-      by (simp only: add_ac)}
+      by (simp only: ac_simps)}
 val add2 = @{lemma "(B::'a::comm_monoid_add) == k + b ==> a + B == k + (a + b)"
-      by (simp only: add_ac)}
+      by (simp only: ac_simps)}
 val sub1 = @{lemma "(A::'a::ab_group_add) == k + a ==> A - b == k + (a - b)"
       by (simp only: add_diff_eq)}
 val sub2 = @{lemma "(B::'a::ab_group_add) == k + b ==> a - B == - k + (a - b)"
-      by (simp only: minus_add diff_conv_add_uminus add_ac)}
+      by (simp only: minus_add diff_conv_add_uminus ac_simps)}
 val neg1 = @{lemma "(A::'a::ab_group_add) == k + a ==> - A == - k + - a"
       by (simp only: minus_add_distrib)}
 val rule0 = @{lemma "(a::'a::comm_monoid_add) == a + 0"

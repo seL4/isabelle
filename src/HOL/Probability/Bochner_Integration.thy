@@ -475,7 +475,7 @@ proof -
     by (subst simple_bochner_integral_partition[OF f(1), where g="\<lambda>x. ereal (f x)" and v=real])
        (auto intro: f simple_function_compose1 elim: simple_bochner_integrable.cases
              intro!: setsum.cong ereal_cong_mult
-             simp: setsum_ereal[symmetric] times_ereal.simps(1)[symmetric] mult_ac
+             simp: setsum_ereal[symmetric] times_ereal.simps(1)[symmetric] ac_simps
              simp del: setsum_ereal times_ereal.simps(1))
   also have "\<dots> = (\<integral>\<^sup>+x. f x \<partial>M)"
     using f
@@ -631,7 +631,7 @@ proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.case
       (is "eventually (\<lambda>i. ?f i \<le> ?g i) sequentially")
     proof (intro always_eventually allI)
       fix i have "?f i \<le> (\<integral>\<^sup>+ x. ereal K * norm (f x - s i x) \<partial>M)"
-        using K by (intro nn_integral_mono) (auto simp: mult_ac)
+        using K by (intro nn_integral_mono) (auto simp: ac_simps)
       also have "\<dots> = ?g i"
         using K by (intro nn_integral_cmult) auto
       finally show "?f i \<le> ?g i" .

@@ -476,7 +476,7 @@ proof (rule setsum.cong)
   also have "\<dots> = (c*s a k) $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk"
     by (simp add: field_simps)
   also have "\<dots> = c* (a k $ p k * setprod (\<lambda>i. ?g i $ p i) ?Uk)"
-    unfolding th1 by (simp add: mult_ac)
+    unfolding th1 by (simp add: ac_simps)
   also have "\<dots> = c* (setprod (\<lambda>i. ?g i $ p i) (insert k ?Uk))"
     unfolding setprod.insert[OF th3] by simp
   finally have "setprod (\<lambda>i. ?f i $ p i) ?U = c* (setprod (\<lambda>i. ?g i $ p i) ?U)"
@@ -824,7 +824,7 @@ proof -
         by (simp_all add: sign_idempotent)
       have ths: "?s q = ?s p * ?s (q \<circ> inv p)"
         using pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
-        by (simp add:  th00 mult_ac sign_idempotent sign_compose)
+        by (simp add:  th00 ac_simps sign_idempotent sign_compose)
       have th001: "setprod (\<lambda>i. B$i$ q (inv p i)) ?U = setprod ((\<lambda>i. B$i$ q (inv p i)) \<circ> p) ?U"
         by (rule setprod_permute[OF p])
       have thp: "setprod (\<lambda>i. (\<chi> i. A$i$p i *s B$p i :: 'a^'n^'n) $i $ q i) ?U =

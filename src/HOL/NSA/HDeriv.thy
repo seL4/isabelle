@@ -171,7 +171,7 @@ lemma NSDERIV_add: "[| NSDERIV f x :> Da;  NSDERIV g x :> Db |]
 apply (auto simp add: NSDERIV_NSLIM_iff NSLIM_def)
 apply (auto simp add: add_divide_distrib diff_divide_distrib dest!: spec)
 apply (drule_tac b = "star_of Da" and d = "star_of Db" in approx_add)
-apply (auto simp add: add_ac algebra_simps)
+apply (auto simp add: ac_simps algebra_simps)
 done
 
 text{*Product of functions - Proof is trivial but tedious
@@ -180,7 +180,7 @@ text{*Product of functions - Proof is trivial but tedious
 lemma lemma_nsderiv1:
   fixes a b c d :: "'a::comm_ring star"
   shows "(a*b) - (c*d) = (b*(a - c)) + (c*(b - d))"
-by (simp add: right_diff_distrib mult_ac)
+by (simp add: right_diff_distrib ac_simps)
 
 lemma lemma_nsderiv2:
   fixes x y z :: "'a::real_normed_field star"

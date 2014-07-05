@@ -16,9 +16,9 @@ structure Nat_Arith: NAT_ARITH =
 struct
 
 val add1 = @{lemma "(A::'a::comm_monoid_add) == k + a ==> A + b == k + (a + b)"
-      by (simp only: add_ac)}
+      by (simp only: ac_simps)}
 val add2 = @{lemma "(B::'a::comm_monoid_add) == k + b ==> a + B == k + (a + b)"
-      by (simp only: add_ac)}
+      by (simp only: ac_simps)}
 val suc1 = @{lemma "A == k + a ==> Suc A == k + Suc a"
       by (simp only: add_Suc_right)}
 val rule0 = @{lemma "(a::'a::comm_monoid_add) == a + 0"

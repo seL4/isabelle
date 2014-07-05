@@ -1409,22 +1409,22 @@ by(rule setsum.cong, simp_all)
 on intervals are not? *)
 
 lemma setsum_atMost_Suc[simp]: "(\<Sum>i \<le> Suc n. f i) = (\<Sum>i \<le> n. f i) + f(Suc n)"
-by (simp add:atMost_Suc add_ac)
+by (simp add:atMost_Suc ac_simps)
 
 lemma setsum_lessThan_Suc[simp]: "(\<Sum>i < Suc n. f i) = (\<Sum>i < n. f i) + f n"
-by (simp add:lessThan_Suc add_ac)
+by (simp add:lessThan_Suc ac_simps)
 
 lemma setsum_cl_ivl_Suc[simp]:
   "setsum f {m..Suc n} = (if Suc n < m then 0 else setsum f {m..n} + f(Suc n))"
-by (auto simp:add_ac atLeastAtMostSuc_conv)
+by (auto simp:ac_simps atLeastAtMostSuc_conv)
 
 lemma setsum_op_ivl_Suc[simp]:
   "setsum f {m..<Suc n} = (if n < m then 0 else setsum f {m..<n} + f(n))"
-by (auto simp:add_ac atLeastLessThanSuc)
+by (auto simp:ac_simps atLeastLessThanSuc)
 (*
 lemma setsum_cl_ivl_add_one_nat: "(n::nat) <= m + 1 ==>
     (\<Sum>i=n..m+1. f i) = (\<Sum>i=n..m. f i) + f(m + 1)"
-by (auto simp:add_ac atLeastAtMostSuc_conv)
+by (auto simp:ac_simps atLeastAtMostSuc_conv)
 *)
 
 lemma setsum_head:
@@ -1468,7 +1468,7 @@ fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
 shows "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
   setsum f {m..<p} - setsum f {m..<n} = setsum f {n..<p}"
 using setsum_add_nat_ivl [of m n p f,symmetric]
-apply (simp add: add_ac)
+apply (simp add: ac_simps)
 done
 
 lemma setsum_natinterval_difff:
@@ -1600,15 +1600,15 @@ proof cases
   also from ngt1 have "\<dots> = ?n*a + (\<Sum>i\<in>{..<n}. ?I i*d)" by simp
   also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
     unfolding One_nat_def
-    by (simp add: setsum_right_distrib atLeast0LessThan[symmetric] setsum_shift_lb_Suc0_0_upt mult_ac)
+    by (simp add: setsum_right_distrib atLeast0LessThan[symmetric] setsum_shift_lb_Suc0_0_upt ac_simps)
   also have "2*\<dots> = 2*?n*a + d*2*(\<Sum>i\<in>{1..<n}. ?I i)"
     by (simp add: algebra_simps)
   also from ngt1 have "{1..<n} = {1..n - 1}"
     by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost)
   also from ngt1
   have "2*?n*a + d*2*(\<Sum>i\<in>{1..n - 1}. ?I i) = (2*?n*a + d*?I (n - 1)*?I n)"
-    by (simp only: mult_ac gauss_sum [of "n - 1"], unfold One_nat_def)
-       (simp add:  mult_ac trans [OF add.commute of_nat_Suc [symmetric]])
+    by (simp only: mult.assoc gauss_sum [of "n - 1"], unfold One_nat_def)
+      (simp add:  mult.commute trans [OF add.commute of_nat_Suc [symmetric]])
   finally show ?thesis
     unfolding mult_2 by (simp add: algebra_simps)
 next

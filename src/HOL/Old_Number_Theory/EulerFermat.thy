@@ -255,7 +255,7 @@ lemma Bnor_prod_power [rule_format]:
   apply (subst setprod.insert)
     apply (rule_tac [2] Bnor_prod_power_aux)
      apply (unfold inj_on_def)
-     apply (simp_all add: mult_ac Bnor_fin Bnor_mem_zle_swap)
+     apply (simp_all add: ac_simps Bnor_fin Bnor_mem_zle_swap)
   done
 
 

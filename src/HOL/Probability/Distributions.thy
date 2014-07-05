@@ -33,7 +33,7 @@ proof safe
     by (auto simp add: field_simps)
 
   have eq: "\<And>x. ereal \<bar>c\<bar> * (f x / ereal \<bar>c\<bar>) = f x"
-    using c by (simp add: divide_ereal_def mult_ac one_ereal_def[symmetric])
+    using c by (simp add: divide_ereal_def ac_simps one_ereal_def[symmetric])
     
   have "density lborel f = distr M lborel X"
     using f by (simp add: distributed_def)
@@ -49,7 +49,7 @@ lemma (in prob_space) distributed_affineI:
   shows "distributed M lborel X f"
 proof -
   have eq: "\<And>x. f x * ereal \<bar>c\<bar> / ereal \<bar>c\<bar> = f x"
-    using c by (simp add: divide_ereal_def mult_ac one_ereal_def[symmetric])
+    using c by (simp add: divide_ereal_def ac_simps one_ereal_def[symmetric])
 
   show ?thesis
     using distributed_affine[OF f c, where t=t] c

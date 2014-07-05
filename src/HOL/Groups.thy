@@ -169,13 +169,9 @@ sublocale add!: abel_semigroup plus
 
 declare add.left_commute [algebra_simps, field_simps]
 
-theorems add_ac = add.assoc add.commute add.left_commute
-
 end
 
 hide_fact add_commute
-
-theorems add_ac = add.assoc add.commute add.left_commute
 
 class semigroup_mult = times +
   assumes mult_assoc [algebra_simps, field_simps]: "(a * b) * c = a * (b * c)"
@@ -197,13 +193,9 @@ sublocale mult!: abel_semigroup times
 
 declare mult.left_commute [algebra_simps, field_simps]
 
-theorems mult_ac = mult.assoc mult.commute mult.left_commute
-
 end
 
 hide_fact mult_commute
-
-theorems mult_ac = mult.assoc mult.commute mult.left_commute
 
 class monoid_add = zero + semigroup_add +
   assumes add_0_left: "0 + a = a"

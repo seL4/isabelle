@@ -418,7 +418,7 @@ lemma matrix_vector_mul_component: "((A::real^_^_) *v x)$k = (A$k) \<bullet> x"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
-  apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def setsum_left_distrib setsum_right_distrib mult_ac)
+  apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def setsum_left_distrib setsum_right_distrib ac_simps)
   apply (subst setsum.commute)
   apply simp
   done
@@ -525,7 +525,7 @@ lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. 
   apply (simp add: transpose_def inner_vec_def matrix_vector_mult_def
     setsum_left_distrib setsum_right_distrib)
   apply (subst setsum.commute)
-  apply (auto simp add: mult_ac)
+  apply (auto simp add: ac_simps)
   done
 
 lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
@@ -1221,7 +1221,7 @@ lemma setsum_2: "setsum f (UNIV::2 set) = f 1 + f 2"
   unfolding UNIV_2 by simp
 
 lemma setsum_3: "setsum f (UNIV::3 set) = f 1 + f 2 + f 3"
-  unfolding UNIV_3 by (simp add: add_ac)
+  unfolding UNIV_3 by (simp add: ac_simps)
 
 instantiation num1 :: cart_one
 begin

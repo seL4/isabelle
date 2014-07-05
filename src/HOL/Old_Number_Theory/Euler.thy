@@ -67,7 +67,7 @@ proof
   then have "[j * j = (a * MultInv p j) * j] (mod p)"
     by (auto simp add: zcong_scalar)
   then have a:"[j * j = a * (MultInv p j * j)] (mod p)"
-    by (auto simp add: mult_ac)
+    by (auto simp add: ac_simps)
   have "[j * j = a] (mod p)"
   proof -
     from assms(1,2,4) have "[MultInv p j * j = 1] (mod p)"
@@ -149,7 +149,7 @@ lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
                    c = "a * (x * MultInv p x)" in  zcong_trans, force)
   apply (frule_tac p = p and x = x in MultInv_prop2, auto)
 apply (metis StandardRes_SRStar_prop3 mult_1_right mult.commute zcong_sym zcong_zmult_prop1)
-  apply (auto simp add: mult_ac)
+  apply (auto simp add: ac_simps)
   done
 
 lemma aux1: "[| 0 < x; (x::int) < a; x \<noteq> (a - 1) |] ==> x < a - 1"

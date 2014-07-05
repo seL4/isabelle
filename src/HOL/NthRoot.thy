@@ -527,7 +527,7 @@ lemma real_div_sqrt: "0 \<le> x \<Longrightarrow> x / sqrt x = sqrt x"
 lemma real_divide_square_eq [simp]: "(((r::real) * a) / (r * r)) = a / r"
 apply (simp add: divide_inverse)
 apply (case_tac "r=0")
-apply (auto simp add: mult_ac)
+apply (auto simp add: ac_simps)
 done
 
 lemma lemma_real_divide_sqrt_less: "0 < u ==> u / sqrt 2 < u"

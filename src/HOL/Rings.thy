@@ -21,7 +21,7 @@ begin
 text{*For the @{text combine_numerals} simproc*}
 lemma combine_common_factor:
   "a * e + (b * e + c) = (a + b) * e + c"
-by (simp add: distrib_right add_ac)
+by (simp add: distrib_right ac_simps)
 
 end
 
@@ -55,9 +55,9 @@ subclass semiring
 proof
   fix a b c :: 'a
   show "(a + b) * c = a * c + b * c" by (simp add: distrib)
-  have "a * (b + c) = (b + c) * a" by (simp add: mult_ac)
+  have "a * (b + c) = (b + c) * a" by (simp add: ac_simps)
   also have "... = b * a + c * a" by (simp only: distrib)
-  also have "... = a * b + a * c" by (simp add: mult_ac)
+  also have "... = a * b + a * c" by (simp add: ac_simps)
   finally show "a * (b + c) = a * b + a * c" by blast
 qed
 
@@ -180,7 +180,7 @@ lemma mult_dvd_mono:
 proof -
   from `a dvd b` obtain b' where "b = a * b'" ..
   moreover from `c dvd d` obtain d' where "d = c * d'" ..
-  ultimately have "b * d = (a * c) * (b' * d')" by (simp add: mult_ac)
+  ultimately have "b * d = (a * c) * (b' * d')" by (simp add: ac_simps)
   then show ?thesis ..
 qed
 
@@ -188,7 +188,7 @@ lemma dvd_mult_left: "a * b dvd c \<Longrightarrow> a dvd c"
 by (simp add: dvd_def mult.assoc, blast)
 
 lemma dvd_mult_right: "a * b dvd c \<Longrightarrow> b dvd c"
-  unfolding mult_ac [of a] by (rule dvd_mult_left)
+  unfolding mult.commute [of a] by (rule dvd_mult_left)
 
 lemma dvd_0_left: "0 dvd a \<Longrightarrow> a = 0"
 by simp
@@ -437,7 +437,7 @@ lemma dvd_mult_cancel_right [simp]:
   "a * c dvd b * c \<longleftrightarrow> c = 0 \<or> a dvd b"
 proof -
   have "a * c dvd b * c \<longleftrightarrow> (\<exists>k. b * c = (a * k) * c)"
-    unfolding dvd_def by (simp add: mult_ac)
+    unfolding dvd_def by (simp add: ac_simps)
   also have "(\<exists>k. b * c = (a * k) * c) \<longleftrightarrow> c = 0 \<or> a dvd b"
     unfolding dvd_def by simp
   finally show ?thesis .
@@ -447,7 +447,7 @@ lemma dvd_mult_cancel_left [simp]:
   "c * a dvd c * b \<longleftrightarrow> c = 0 \<or> a dvd b"
 proof -
   have "c * a dvd c * b \<longleftrightarrow> (\<exists>k. b * c = (a * k) * c)"
-    unfolding dvd_def by (simp add: mult_ac)
+    unfolding dvd_def by (simp add: ac_simps)
   also have "(\<exists>k. b * c = (a * k) * c) \<longleftrightarrow> c = 0 \<or> a dvd b"
     unfolding dvd_def by simp
   finally show ?thesis .

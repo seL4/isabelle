@@ -40,7 +40,7 @@ lemma abelian_group: "abelian_group R"
   apply (insert m_gt_one)
   apply (rule abelian_groupI)
   apply (unfold R_def residue_ring_def)
-  apply (auto simp add: mod_add_right_eq [symmetric] add_ac)
+  apply (auto simp add: mod_add_right_eq [symmetric] ac_simps)
   apply (case_tac "x = 0")
   apply force
   apply (subgoal_tac "(x + (m - x)) mod m = 0")
@@ -56,7 +56,7 @@ lemma comm_monoid: "comm_monoid R"
   apply (subgoal_tac "x * y mod m * z mod m = z * (x * y mod m) mod m")
   apply (erule ssubst)
   apply (subst mod_mult_right_eq [symmetric])+
-  apply (simp_all only: mult_ac)
+  apply (simp_all only: ac_simps)
   done
 
 lemma cring: "cring R"

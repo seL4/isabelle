@@ -681,7 +681,7 @@ lemma DERIV_cmult:
 
 lemma DERIV_cmult_right:
   "(f has_field_derivative D) (at x within s) ==> ((\<lambda>x. f x * c) has_field_derivative D * c) (at x within s)"
-  using DERIV_cmult by (force simp add: mult_ac)
+  using DERIV_cmult by (force simp add: ac_simps)
 
 lemma DERIV_cmult_Id [simp]: "(op * c has_field_derivative c) (at x within s)"
   by (cut_tac c = c and x = x in DERIV_ident [THEN DERIV_cmult], simp)
@@ -717,7 +717,7 @@ text {* Derivative of inverse *}
 lemma DERIV_inverse_fun:
   "(f has_field_derivative d) (at x within s) \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow>
   ((\<lambda>x. inverse (f x)) has_field_derivative (- (d * inverse(f x ^ Suc (Suc 0))))) (at x within s)"
-  by (drule (1) DERIV_inverse') (simp add: mult_ac nonzero_inverse_mult_distrib)
+  by (drule (1) DERIV_inverse') (simp add: ac_simps nonzero_inverse_mult_distrib)
 
 text {* Derivative of quotient *}
 
@@ -1479,7 +1479,7 @@ proof -
   ultimately have "(b - a) * (g'c * (f b - f a) - f'c * (g b - g a)) = 0" by auto
   with alb have "g'c * (f b - f a) - f'c * (g b - g a) = 0" by simp
   hence "g'c * (f b - f a) = f'c * (g b - g a)" by simp
-  hence "(f b - f a) * g'c = (g b - g a) * f'c" by (simp add: mult_ac)
+  hence "(f b - f a) * g'c = (g b - g a) * f'c" by (simp add: ac_simps)
 
   with g'cdef f'cdef cint show ?thesis by auto
 qed
