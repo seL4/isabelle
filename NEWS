@@ -221,29 +221,6 @@ ML.  Minor INCOMPATIBILITY.
 * The symbol "\<newline>" may be used within char or string literals
 to represent (Char Nibble0 NibbleA), i.e. ASCII newline.
 
-* Reduced name variants for rules on associativity and commutativity:
-
-    add_assoc ~> add.assoc
-    add_commute ~> add.commute
-    add_left_commute ~> add.left_commute
-    mult_assoc ~> mult.assoc
-    mult_commute ~> mult.commute
-    mult_left_commute ~> mult.left_commute
-    nat_add_assoc ~> add.assoc
-    nat_add_commute ~> add.commute
-    nat_add_left_commute ~> add.left_commute
-    nat_mult_assoc ~> mult.assoc
-    nat_mult_commute ~> mult.commute
-    eq_assoc ~> iff_assoc
-    eq_left_commute ~> iff_left_commute
-
-INCOMPATIBILITY.
-
-* Removed collections add_ac and mult_ac.  Prefer ac_simps instead,
-or specify rules (add|mult).(assoc|commute|left_commute) individually.
-
-INCOMPATIBILITY.
-
 * Qualified String.implode and String.explode.  INCOMPATIBILITY.
 
 * Simplifier: Enhanced solver of preconditions of rewrite rules can
@@ -598,6 +575,29 @@ INCOMPATIBILITY.
   - HOLogic.dest_number also recognizes numerals in non-canonical forms
     like "numeral One", "- numeral One", "- 0" and even "- ... - _".
   - Syntax for negative numerals is mere input syntax.
+
+INCOMPATIBILITY.
+
+* Reduced name variants for rules on associativity and commutativity:
+
+    add_assoc ~> add.assoc
+    add_commute ~> add.commute
+    add_left_commute ~> add.left_commute
+    mult_assoc ~> mult.assoc
+    mult_commute ~> mult.commute
+    mult_left_commute ~> mult.left_commute
+    nat_add_assoc ~> add.assoc
+    nat_add_commute ~> add.commute
+    nat_add_left_commute ~> add.left_commute
+    nat_mult_assoc ~> mult.assoc
+    nat_mult_commute ~> mult.commute
+    eq_assoc ~> iff_assoc
+    eq_left_commute ~> iff_left_commute
+
+INCOMPATIBILITY.
+
+* Removed collections add_ac and mult_ac.  Prefer ac_simps instead,
+or specify rules (add|mult).(assoc|commute|left_commute) individually.
 
 INCOMPATIBILITY.
 
