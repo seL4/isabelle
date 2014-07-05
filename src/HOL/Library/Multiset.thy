@@ -1206,10 +1206,6 @@ lemma setsum_unfold_msetsum:
   "setsum f A = msetsum (image_mset f (multiset_of_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
-abbreviation msetsum_image :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
-where
-  "msetsum_image f M \<equiv> msetsum (image_mset f M)"
-
 end
 
 syntax
@@ -1218,14 +1214,14 @@ syntax
 
 syntax (xsymbols)
   "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add" 
-      ("(3\<Sum>_:#_. _)" [0, 51, 10] 10)
+      ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
 
 syntax (HTML output)
   "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add" 
       ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
 
 translations
-  "SUM i :# A. b" == "CONST msetsum_image (\<lambda>i. b) A"
+  "SUM i :# A. b" == "CONST msetsum (CONST image_mset (\<lambda>i. b) A)"
 
 context comm_monoid_mult
 begin
@@ -1262,10 +1258,6 @@ lemma msetprod_multiplicity:
   "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_of M)"
   by (simp add: Multiset.fold_def setprod.eq_fold msetprod.eq_fold funpow_times_power comp_def)
 
-abbreviation msetprod_image :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
-where
-  "msetprod_image f M \<equiv> msetprod (image_mset f M)"
-
 end
 
 syntax
@@ -1281,7 +1273,7 @@ syntax (HTML output)
       ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
 
 translations
-  "PROD i :# A. b" == "CONST msetprod_image (\<lambda>i. b) A"
+  "PROD i :# A. b" == "CONST msetprod (CONST image_mset (\<lambda>i. b) A)"
 
 lemma (in comm_semiring_1) dvd_msetprod:
   assumes "x \<in># A"
