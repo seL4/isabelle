@@ -31,11 +31,6 @@ consts
 
   (*** Bisimulations for pre-order and equality ***)
   po          ::       "['a,'a]=>o"           (infixl "[=" 50)
-  SIM         ::       "[i,i,i set]=>o"
-  POgen       ::       "i set => i set"
-  EQgen       ::       "i set => i set"
-  PO          ::       "i set"
-  EQ          ::       "i set"
 
   (*** Term Formers ***)
   true        ::       "i"
@@ -45,11 +40,6 @@ consts
   "case"      ::       "[i,i,i,[i,i]=>i,(i=>i)=>i]=>i"
   "apply"     ::       "[i,i]=>i"             (infixl "`" 56)
   bot         ::       "i"
-  "fix"       ::       "(i=>i)=>i"
-
-  (*** Defined Predicates ***)
-  Trm         ::       "i => o"
-  Dvg         ::       "i => o"
 
   (******* EVALUATION SEMANTICS *******)
 
@@ -89,23 +79,31 @@ axiomatization where
   bot_def:         "bot == (lam x. x`x)`(lam x. x`x)" and
   apply_def:     "f ` t == case(f,bot,bot,%x y. bot,%u. u(t))"
 
-defs
-  fix_def:      "fix(f) == (lam x. f(x`x))`(lam x. f(x`x))"
+definition "fix" :: "(i=>i)=>i"
+  where "fix(f) == (lam x. f(x`x))`(lam x. f(x`x))"
 
   (*  The pre-order ([=) is defined as a simulation, and behavioural equivalence (=) *)
   (*  as a bisimulation.  They can both be expressed as (bi)simulations up to        *)
   (*  behavioural equivalence (ie the relations PO and EQ defined below).            *)
 
-  SIM_def:
+definition SIM :: "[i,i,i set]=>o"
+  where
   "SIM(t,t',R) ==  (t=true & t'=true) | (t=false & t'=false) |
                   (EX a a' b b'. t=<a,b> & t'=<a',b'> & <a,a'> : R & <b,b'> : R) |
                   (EX f f'. t=lam x. f(x) & t'=lam x. f'(x) & (ALL x.<f(x),f'(x)> : R))"
 
-  POgen_def:  "POgen(R) == {p. EX t t'. p=<t,t'> & (t = bot | SIM(t,t',R))}"
-  EQgen_def:  "EQgen(R) == {p. EX t t'. p=<t,t'> & (t = bot & t' = bot | SIM(t,t',R))}"
+definition POgen :: "i set => i set"
+  where "POgen(R) == {p. EX t t'. p=<t,t'> & (t = bot | SIM(t,t',R))}"
 
-  PO_def:    "PO == gfp(POgen)"
-  EQ_def:    "EQ == gfp(EQgen)"
+definition EQgen :: "i set => i set"
+  where "EQgen(R) == {p. EX t t'. p=<t,t'> & (t = bot & t' = bot | SIM(t,t',R))}"
+
+definition PO :: "i set"
+  where "PO == gfp(POgen)"
+
+definition EQ :: "i set"
+  where "EQ == gfp(EQgen)"
+
 
   (*** Rules ***)
 
@@ -146,9 +144,11 @@ axiomatization where
 
   (*** Definitions of Termination and Divergence ***)
 
-defs
-  Dvg_def:  "Dvg(t) == t = bot"
-  Trm_def:  "Trm(t) == ~ Dvg(t)"
+definition Dvg :: "i => o"
+  where "Dvg(t) == t = bot"
+
+definition Trm :: "i => o"
+  where "Trm(t) == ~ Dvg(t)"
 
 text {*
 Would be interesting to build a similar theory for a typed programming language:

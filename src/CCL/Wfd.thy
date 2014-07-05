@@ -9,29 +9,23 @@ theory Wfd
 imports Trancl Type Hered
 begin
 
-consts
-      (*** Predicates ***)
-  Wfd        ::       "[i set] => o"
-      (*** Relations ***)
-  wf         ::       "[i set] => i set"
-  wmap       ::       "[i=>i,i set] => i set"
-  lex        ::       "[i set,i set] => i set"      (infixl "**" 70)
-  NatPR      ::       "i set"
-  ListPR     ::       "i set => i set"
+definition Wfd :: "[i set] => o"
+  where "Wfd(R) == ALL P.(ALL x.(ALL y.<y,x> : R --> y:P) --> x:P) --> (ALL a. a:P)"
 
-defs
+definition wf :: "[i set] => i set"
+  where "wf(R) == {x. x:R & Wfd(R)}"
 
-  Wfd_def:
-  "Wfd(R) == ALL P.(ALL x.(ALL y.<y,x> : R --> y:P) --> x:P) --> (ALL a. a:P)"
+definition wmap :: "[i=>i,i set] => i set"
+  where "wmap(f,R) == {p. EX x y. p=<x,y>  &  <f(x),f(y)> : R}"
 
-  wf_def:         "wf(R) == {x. x:R & Wfd(R)}"
+definition lex :: "[i set,i set] => i set"      (infixl "**" 70)
+  where "ra**rb == {p. EX a a' b b'. p = <<a,b>,<a',b'>> & (<a,a'> : ra | (a=a' & <b,b'> : rb))}"
 
-  wmap_def:       "wmap(f,R) == {p. EX x y. p=<x,y>  &  <f(x),f(y)> : R}"
-  lex_def:
-  "ra**rb == {p. EX a a' b b'. p = <<a,b>,<a',b'>> & (<a,a'> : ra | (a=a' & <b,b'> : rb))}"
+definition NatPR :: "i set"
+  where "NatPR == {p. EX x:Nat. p=<x,succ(x)>}"
 
-  NatPR_def:      "NatPR == {p. EX x:Nat. p=<x,succ(x)>}"
-  ListPR_def:     "ListPR(A) == {p. EX h:A. EX t:List(A). p=<t,h$t>}"
+definition ListPR :: "i set => i set"
+  where "ListPR(A) == {p. EX h:A. EX t:List(A). p=<t,h$t>}"
 
 
 lemma wfd_induct:
