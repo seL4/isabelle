@@ -237,6 +237,13 @@ to represent (Char Nibble0 NibbleA), i.e. ASCII newline.
     eq_assoc ~> iff_assoc
     eq_left_commute ~> iff_left_commute
 
+INCOMPATIBILITY.
+
+* Removed collections add_ac and mult_ac.  Prefer ac_simps instead,
+or specify rules (add|mult).(assoc|commute|left_commute) individually.
+
+INCOMPATIBILITY.
+
 * Qualified String.implode and String.explode.  INCOMPATIBILITY.
 
 * Simplifier: Enhanced solver of preconditions of rewrite rules can
