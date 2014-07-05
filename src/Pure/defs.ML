@@ -142,7 +142,7 @@ fun acyclic ctxt (c, args) (d, Us) =
   err ctxt (c, args) (d, Us) "Circular" "";
 
 fun wellformed ctxt defs (c, args) (d, Us) =
-  forall is_TVar Us orelse
+  plain_args Us orelse
   (case find_first (fn (Ts, _) => not (disjoint_args (Ts, Us))) (restricts_of defs d) of
     SOME (Ts, description) =>
       err ctxt (c, args) (d, Us) "Malformed"
