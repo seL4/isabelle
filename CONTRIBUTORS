@@ -7,8 +7,8 @@ Contributions to Isabelle2014
 -----------------------------
 
 * July 2014: Thomas Sewell, NICTA
-  Preserve equality hypotheses in clarify and friends. New hypsubst_thin
-  method and [[hypsubst_thin]] setting.
+  Preserve equality hypotheses in "clarify" and friends. New
+  "hypsubst_thin" method configuration option.
 
 * June 2014: Florian Haftmann, TUM
   Consolidation and generalization of facts concerning products
