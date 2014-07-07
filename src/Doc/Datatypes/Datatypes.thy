@@ -877,13 +877,16 @@ a set function, the map function, or the relator:
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
 
+\item[@{text "t."}\hthm{rel\_distinct} @{text "[simp]"}\rm:] ~ \\
+@{thm list.rel_distinct(1)[no_vars]} \\
+@{thm list.rel_distinct(2)[no_vars]}
+
 \item[@{text "t."}\hthm{rel\_intros}\rm:] ~ \\
 @{thm list.rel_intros(1)[no_vars]} \\
 @{thm list.rel_intros(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_distinct} @{text "[simp]"}\rm:] ~ \\
-@{thm list.rel_distinct(1)[no_vars]} \\
-@{thm list.rel_distinct(2)[no_vars]}
+\item[@{text "t."}\hthm{rel\_cases} @{text "[consumes 1, case_names t\<^sub>1 \<dots> t\<^sub>m, cases pred]"}\rm:] ~ \\
+@{thm list.rel_cases[no_vars]}
 
 \end{description}
 \end{indentblock}
