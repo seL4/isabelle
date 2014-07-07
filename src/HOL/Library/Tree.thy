@@ -14,6 +14,9 @@ datatype_new 'a tree = Leaf | Node (left: "'a tree") (val: 'a) (right: "'a tree"
 lemma neq_Leaf_iff: "(t \<noteq> Leaf) = (\<exists>l a r. t = Node l a r)"
   by (cases t) auto
 
+lemma set_tree_Node2: "set_tree(Node l x r) = insert x (set_tree l \<union> set_tree r)"
+by auto
+
 fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
   "subtrees Leaf = {Leaf}" |
   "subtrees (Node l a r) = insert (Node l a r) (subtrees l \<union> subtrees r)"
