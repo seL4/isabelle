@@ -130,8 +130,8 @@ fun mk_disc_map_iff_tac ctxt ct exhaust discs maps =
     ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
       REPEAT_DETERM o hyp_subst_tac ctxt) THEN
     unfold_thms_tac ctxt maps THEN
-    unfold_thms_tac ctxt (map (fn thm => thm RS @{thm iffD2[OF eq_False]}
-      handle THM _ => thm RS @{thm iffD2[OF eq_True]}) discs) THEN
+    unfold_thms_tac ctxt (map (fn thm => thm RS eqFalseI
+      handle THM _ => thm RS eqTrueI) discs) THEN
     ALLGOALS (rtac refl ORELSE' rtac TrueI);
 
 fun solve_prem_prem_tac ctxt =
@@ -219,8 +219,8 @@ fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_dist
       hyp_subst_tac ctxt) THEN
   unfold_thms_tac ctxt (injects @ rel_injects @ @{thms conj_imp_eq_imp_imp simp_thms(6)
     True_implies_equals conj_imp_eq_imp_imp} @
-    map (fn thm => iffD2 OF [@{thm eq_False}, thm]) (distincts @ rel_distincts) @
-    map (fn thm => thm RS @{thm eqTrueI}) rel_injects) THEN
+    map (fn thm => thm RS eqFalseI) (distincts @ rel_distincts) @
+    map (fn thm => thm RS eqTrueI) rel_injects) THEN
   TRYALL (atac ORELSE' etac FalseE ORELSE' (REPEAT_DETERM o dtac @{thm meta_spec} THEN'
     REPEAT_DETERM o (dtac @{thm meta_mp} THEN' rtac refl) THEN' Goal.assume_rule_tac ctxt));
 
@@ -234,7 +234,7 @@ fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss 
         arg_cong2}) RS iffD1)) THEN'
         atac THEN' atac THEN' hyp_subst_tac ctxt THEN' dtac assm THEN'
         REPEAT_DETERM o etac conjE))) 1 THEN
-      unfold_thms_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @ sels
+      unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @ sels
         @ simp_thms') THEN
       unfold_thms_tac ctxt (dtor_ctor :: rel_pre_def :: abs_inverse :: ctor_inject ::
         abs_inject :: ctor_defs @ nesting_rel_eqs @ simp_thms' @ @{thms BNF_Comp.id_bnf_comp_def
@@ -264,7 +264,7 @@ fun mk_sel_map_tac ctxt ct exhaust discs maps sels =
   TRYALL Goal.conjunction_tac THEN
     ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
       REPEAT_DETERM o hyp_subst_tac ctxt) THEN
-    unfold_thms_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
+    unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @
       @{thms not_True_eq_False not_False_eq_True}) THEN
     TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
     unfold_thms_tac ctxt (maps @ sels) THEN
@@ -274,7 +274,7 @@ fun mk_sel_set_tac ctxt ct exhaust discs sels sets =
   TRYALL Goal.conjunction_tac THEN
     ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
       REPEAT_DETERM o hyp_subst_tac ctxt) THEN
-    unfold_thms_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
+    unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @
       @{thms not_True_eq_False not_False_eq_True}) THEN
     TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
     unfold_thms_tac ctxt (sels @ sets) THEN
@@ -289,7 +289,7 @@ fun mk_set_empty_tac ctxt ct exhaust sets discs =
   ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
     REPEAT_DETERM o hyp_subst_tac ctxt) THEN
   unfold_thms_tac ctxt (sets @ map_filter (fn thm =>
-    SOME (thm RS @{thm iffD2[OF eq_False]}) handle THM _ => NONE) discs) THEN
+    SOME (thm RS eqFalseI) handle THM _ => NONE) discs) THEN
   ALLGOALS (rtac refl ORELSE' etac FalseE);
 
 end;

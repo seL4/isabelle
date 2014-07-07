@@ -639,7 +639,7 @@ fun mk_strong_coinduct_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
       let
         val eq = iffD2 OF [rel_eq RS @{thm predicate2_eqD}, refl];
         val mono = rel_mono OF (replicate m @{thm order_refl} @ replicate n @{thm eq_subset});
-      in mk_vimage2p (eq RS (mono RS @{thm predicate2D})) RS @{thm eqTrueI} end;
+      in mk_vimage2p (eq RS (mono RS @{thm predicate2D})) RS eqTrueI end;
     val unfolds = map2 mk_unfold rel_eqs rel_monos @ @{thms sup_fun_def sup_bool_def
       imp_disjL all_conj_distrib subst_eq_imp simp_thms(18,21,35)};
   in
