@@ -217,7 +217,7 @@ fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_dist
   HEADGOAL (rtac (cterm_instantiate_pos [SOME ct1] exhaust) THEN_ALL_NEW
     rtac (cterm_instantiate_pos [SOME ct2] exhaust) THEN_ALL_NEW
       hyp_subst_tac ctxt) THEN
-  Local_Defs.unfold_tac ctxt (injects @ rel_injects @ @{thms conj_imp_eq_imp_imp simp_thms(6)
+  unfold_thms_tac ctxt (injects @ rel_injects @ @{thms conj_imp_eq_imp_imp simp_thms(6)
     True_implies_equals conj_imp_eq_imp_imp} @
     map (fn thm => iffD2 OF [@{thm eq_False}, thm]) (distincts @ rel_distincts) @
     map (fn thm => thm RS @{thm eqTrueI}) rel_injects) THEN
@@ -234,9 +234,9 @@ fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss 
         arg_cong2}) RS iffD1)) THEN'
         atac THEN' atac THEN' hyp_subst_tac ctxt THEN' dtac assm THEN'
         REPEAT_DETERM o etac conjE))) 1 THEN
-      Local_Defs.unfold_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @ sels
+      unfold_thms_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @ sels
         @ simp_thms') THEN
-      Local_Defs.unfold_tac ctxt (dtor_ctor :: rel_pre_def :: abs_inverse :: ctor_inject ::
+      unfold_thms_tac ctxt (dtor_ctor :: rel_pre_def :: abs_inverse :: ctor_inject ::
         abs_inject :: ctor_defs @ nesting_rel_eqs @ simp_thms' @ @{thms BNF_Comp.id_bnf_comp_def
         rel_sum_simps rel_prod_apply vimage2p_def Inl_Inr_False iffD2[OF eq_False Inr_not_Inl]
         sum.inject prod.inject}) THEN
@@ -264,20 +264,20 @@ fun mk_sel_map_tac ctxt ct exhaust discs maps sels =
   TRYALL Goal.conjunction_tac THEN
     ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
       REPEAT_DETERM o hyp_subst_tac ctxt) THEN
-    Local_Defs.unfold_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
+    unfold_thms_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
       @{thms not_True_eq_False not_False_eq_True}) THEN
     TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
-    Local_Defs.unfold_tac ctxt (maps @ sels) THEN
+    unfold_thms_tac ctxt (maps @ sels) THEN
     ALLGOALS (rtac refl);
 
 fun mk_sel_set_tac ctxt ct exhaust discs sels sets =
   TRYALL Goal.conjunction_tac THEN
     ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
       REPEAT_DETERM o hyp_subst_tac ctxt) THEN
-    Local_Defs.unfold_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
+    unfold_thms_tac ctxt ((discs RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
       @{thms not_True_eq_False not_False_eq_True}) THEN
     TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
-    Local_Defs.unfold_tac ctxt (sels @ sets) THEN
+    unfold_thms_tac ctxt (sels @ sets) THEN
     ALLGOALS (
       REPEAT o (resolve_tac @{thms UnI1 UnI2 imageI} ORELSE'
         eresolve_tac @{thms UN_I UN_I[rotated] imageE} ORELSE'
