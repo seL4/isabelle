@@ -299,7 +299,7 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
         val i = find_index (fn T => x = T) Xs;
         val TUrec =
           (case find_first (fn f => body_fun_type (fastype_of f) = TU) recs of
-            NONE => 
+            NONE =>
               force_rec i TU
                 (TU |> is_none b_opt ? substT (map2 mk_co_productT fpTs Xs ~~ Xs)) (nth co_recs i)
           | SOME f => f);
@@ -368,7 +368,7 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
       fold2 (fn TU => fn b => fn ((recs, defs), lthy) =>
         mk_rec (SOME b) recs lthy TU |>> (fn (f, d) => (f :: recs, d :: defs)))
       resTs (map (Binding.suffix_name ("_" ^ recN)) bs) (([], []), lthy)
-      |>> apfst rev o apsnd rev;
+      |>> map_prod rev rev;
     val ((raw_co_recs, raw_co_rec_defs), (lthy, raw_lthy)) = lthy
       |> mk_recs
       ||> `Local_Theory.restore;

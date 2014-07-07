@@ -744,7 +744,7 @@ fun dissect_coeqn lthy has_call fun_names sequentials
     val eqn = drop_all eqn0
       handle TERM _ => primcorec_error_eqn "malformed function equation" eqn0;
     val (prems, concl) = Logic.strip_horn eqn
-      |> apfst (map HOLogic.dest_Trueprop) o apsnd HOLogic.dest_Trueprop
+      |> map_prod (map HOLogic.dest_Trueprop) HOLogic.dest_Trueprop
         handle TERM _ => primcorec_error_eqn "malformed function equation" eqn;
 
     val head = concl
@@ -900,7 +900,7 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
         #> maps (uncurry (map o pair)
           #> map (fn ((fun_args, c, x, a), (_, c', y, a')) =>
               ((c, c', a orelse a'), (x, s_not (s_conjs y)))
-            ||> apfst (map HOLogic.mk_Trueprop) o apsnd HOLogic.mk_Trueprop
+            ||> map_prod (map HOLogic.mk_Trueprop) HOLogic.mk_Trueprop
             ||> Logic.list_implies
             ||> curry Logic.list_all (map dest_Free fun_args))));
   in

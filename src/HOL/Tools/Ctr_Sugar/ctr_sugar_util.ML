@@ -8,6 +8,8 @@ Library for wrapping existing freely generated type's constructors.
 
 signature CTR_SUGAR_UTIL =
 sig
+  val map_prod: ('a -> 'b) -> ('c -> 'd) -> 'a * 'c -> 'b * 'd
+
   val map3: ('a -> 'b -> 'c -> 'd) -> 'a list -> 'b list -> 'c list -> 'd list
   val map4: ('a -> 'b -> 'c -> 'd -> 'e) -> 'a list -> 'b list -> 'c list -> 'd list -> 'e list
   val map5: ('a -> 'b -> 'c -> 'd -> 'e -> 'f) ->
@@ -82,6 +84,8 @@ end;
 
 structure Ctr_Sugar_Util : CTR_SUGAR_UTIL =
 struct
+
+fun map_prod f g (x, y) = (f x, g y)
 
 fun map3 _ [] [] [] = []
   | map3 f (x1::x1s) (x2::x2s) (x3::x3s) = f x1 x2 x3 :: map3 f x1s x2s x3s

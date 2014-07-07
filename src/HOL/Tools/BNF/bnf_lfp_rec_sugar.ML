@@ -342,8 +342,8 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
       val fun_name_ctr_pos_list =
         map (fn (x :: _) => (#fun_name x, length (#left_args x))) funs_data;
       val get_ctr_pos = try (the o AList.lookup (op =) fun_name_ctr_pos_list) #> the_default ~1;
-      val mutual_calls = map (apfst (nth ctr_args) o apsnd (nth args o fst)) mutual_calls';
-      val nested_calls = map (apfst (nth ctr_args) o apsnd (nth args o fst)) nested_calls';
+      val mutual_calls = map (map_prod (nth ctr_args) (nth args o fst)) mutual_calls';
+      val nested_calls = map (map_prod (nth ctr_args) (nth args o fst)) nested_calls';
     in
       t
       |> subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
