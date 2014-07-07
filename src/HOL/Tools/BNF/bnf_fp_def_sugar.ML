@@ -111,6 +111,9 @@ structure Data = Generic_Data
   fun merge data : T = Symtab.merge (K true) data;
 );
 
+fun choose_relator Rs AB = find_first
+  (fastype_of #> binder_types #> (fn [T1, T2] => AB = (T1, T2))) Rs;
+
 fun fp_sugar_of ctxt =
   Symtab.lookup (Data.get (Context.Proof ctxt))
   #> Option.map (transfer_fp_sugar ctxt);
@@ -472,12 +475,9 @@ fun derive_rel_induct_thm_for_types lthy fpA_Ts ns As Bs mss ctrAss ctrAs_Tsss c
       ||>> mk_Freesss "a" ctrAs_Tsss
       ||>> mk_Freesss "b" ctrBs_Tsss;
 
-    fun choose_relator AB = the (find_first
-      (fastype_of #> binder_types #> (fn [T1, T2] => AB = (T1, T2))) (Rs @ IRs));
-
     val premises =
       let
-        fun build_the_rel A B = build_rel lthy fpA_Ts choose_relator (A, B);
+        fun build_the_rel A B = build_rel lthy fpA_Ts (the o choose_relator (Rs @ IRs)) (A, B);
         fun build_rel_app a b = build_the_rel (fastype_of a) (fastype_of b) $ a $ b;
 
         fun mk_prem ctrA ctrB argAs argBs =
@@ -489,8 +489,8 @@ fun derive_rel_induct_thm_for_types lthy fpA_Ts ns As Bs mss ctrAss ctrAs_Tsss c
         flat (map4 (map4 mk_prem) ctrAss ctrBss ctrAsss ctrBsss)
       end;
 
-    val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-      (map2 mk_leq (map (build_rel lthy [] choose_relator) (fpA_Ts ~~ fpB_Ts)) IRs));
+    val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
+      (map (build_rel lthy [] (the o choose_relator (Rs @ IRs))) (fpA_Ts ~~ fpB_Ts)) IRs));
 
     val rel_induct0_thm = Goal.prove_sorry lthy [] premises goal
       (fn {context = ctxt, prems = prems} =>
@@ -725,12 +725,9 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_in
          (mk_discss fpBs Bs, mk_selsss fpBs Bs))
       end;
 
-    fun choose_relator AB = the (find_first
-      (fastype_of #> binder_types #> (fn [T1, T2] => AB = (T1, T2))) (Rs @ IRs));
-
     val premises =
       let
-        fun build_the_rel A B = build_rel lthy fpA_Ts choose_relator (A, B);
+        fun build_the_rel A B = build_rel lthy fpA_Ts (the o choose_relator (Rs @ IRs)) (A, B);
 
         fun build_rel_app selA_t selB_t =
           (build_the_rel (fastype_of selA_t) (fastype_of selB_t )) $ selA_t $ selB_t
@@ -755,8 +752,8 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_in
         map8 mk_prem IRs fpAs fpBs ns discA_tss selA_tsss discB_tss selB_tsss
       end;
 
-    val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-      (map2 mk_leq IRs (map (build_rel lthy [] choose_relator) (fpA_Ts ~~ fpB_Ts))));
+    val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
+      IRs (map (build_rel lthy [] (the o choose_relator (Rs @ IRs))) (fpA_Ts ~~ fpB_Ts))));
 
     val rel_coinduct0_thm = Goal.prove_sorry lthy [] premises goal
       (fn {context = ctxt, prems = prems} =>
@@ -1259,7 +1256,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           end;
 
         fun derive_maps_sets_rels (ctr_sugar as {case_cong, discs, selss, ctrs, exhaust, disc_thmss,
-          sel_thmss, ...} : ctr_sugar, lthy) =
+          sel_thmss, injects, distincts, ...} : ctr_sugar, lthy) =
           if live = 0 then
             ((([], [], [], []), ctr_sugar), lthy)
           else
@@ -1314,14 +1311,93 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
               val sets = map (mk_set (snd (Term.dest_Type fpT))) (sets_of_bnf fp_bnf);
 
-              val (disc_map_iff_thms, sel_map_thms, sel_set_thms) =
+              val set_empty_thms =
+                let
+                  val ctr_argT_namess = map ((fn Ts => fold Term.add_tfree_namesT Ts []) o
+                    binder_types o fastype_of) ctrs;
+                  val setTs = map (HOLogic.dest_setT o range_type o fastype_of) sets;
+                  val setT_names = map (fn T => the_single (Term.add_tfree_namesT T [])) setTs;
+
+                  fun mk_set_empty_goal disc set T =
+                    Logic.mk_implies (HOLogic.mk_Trueprop (disc $ u),
+                      mk_Trueprop_eq (set $ u, HOLogic.mk_set T []));
+
+                  val goals =
+                    if null discs then
+                      []
+                    else
+                      map_filter I (flat
+                        (map2 (fn names => fn disc =>
+                          map3 (fn name => fn setT => fn set =>
+                            if member (op =) names name then NONE
+                            else SOME (mk_set_empty_goal disc set setT))
+                          setT_names setTs sets)
+                        ctr_argT_namess discs));
+                in
+                  if null goals then
+                    []
+                  else
+                    Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                      (fn {context = ctxt, prems = _} =>
+                        mk_set_empty_tac ctxt (certify ctxt u) exhaust set_thms (flat disc_thmss))
+                      |> Conjunction.elim_balanced (length goals)
+                      |> Proof_Context.export names_lthy lthy
+                end;
+
+              val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
+
+              fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
+                fold_thms lthy ctr_defs'
+                  (unfold_thms lthy (pre_rel_def :: abs_inverse ::
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
+                       @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]})
+                     (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
+                |> postproc
+                |> singleton (Proof_Context.export names_lthy no_defs_lthy);
+
+              fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
+                mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
+
+              fun mk_rel_intro_thm thm =
+                let
+                  fun impl thm = rotate_prems (~1) (impl (rotate_prems 1 (conjI RS thm)))
+                    handle THM _ => thm
+                in
+                  impl (thm RS iffD2)
+                  handle THM _ => thm
+                end;
+
+              fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
+                mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
+                  cxIn cyIn;
+
+              fun mk_other_half_rel_distinct_thm thm =
+                flip_rels lthy live thm
+                RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
+
+              val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
+              val rel_intro_thms = map mk_rel_intro_thm rel_inject_thms;
+
+              val half_rel_distinct_thmss =
+                map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
+              val other_half_rel_distinct_thmss =
+                map (map mk_other_half_rel_distinct_thm) half_rel_distinct_thmss;
+              val (rel_distinct_thms, _) =
+                join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
+
+              val rel_eq_thms =
+                map (fn th => th RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms @
+                map2 (fn th => fn 0 => th RS @{thm eq_True[THEN iffD2]} | _ => th)
+                  rel_inject_thms ms;
+
+              val (disc_map_iff_thms, sel_map_thms, sel_set_thms, (rel_cases_thm, rel_cases_attrs)) =
                 let
                   val (((Ds, As), Bs), names_lthy) = lthy
                     |> mk_TFrees (dead_of_bnf fp_bnf)
                     ||>> mk_TFrees (live_of_bnf fp_bnf)
                     ||>> mk_TFrees (live_of_bnf fp_bnf);
                   val TA as Type (_, ADs) = mk_T_of_bnf Ds As fp_bnf;
-                  val Type (_, BDs) = mk_T_of_bnf Ds Bs fp_bnf;
+                  val TB as Type (_, BDs) = mk_T_of_bnf Ds Bs fp_bnf;
                   val fTs = map2 (curry op -->) As Bs;
                   val ((fs, ta), names_lthy) = names_lthy
                     |> mk_Frees "f" fTs
@@ -1330,6 +1406,60 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   val discsA = map (mk_disc_or_sel ADs) discs;
                   val selssA = map (map (mk_disc_or_sel ADs)) selss;
                   val disc_sel_pairs = flat (map2 (map o pair) discsA selssA);
+
+                  val (rel_cases_thm, rel_cases_attrs) =
+                    let
+                      val rel = mk_rel_of_bnf Ds As Bs fp_bnf;
+                      val (((thesis, Rs), tb), names_lthy) =  names_lthy
+                        |> yield_singleton (mk_Frees "thesis") HOLogic.boolT
+                        |>> HOLogic.mk_Trueprop
+                        ||>> mk_Frees "R" (map2 mk_pred2T As Bs)
+                        ||>> yield_singleton (mk_Frees "b") TB;
+
+                      val _ = apfst HOLogic.mk_Trueprop;
+                      val rel_Rs_a_b = list_comb (rel, Rs) $ ta $ tb;
+                      val ctrAs = map (mk_ctr ADs) ctrs;
+                      val ctrBs = map (mk_ctr BDs) ctrs;
+
+                      fun mk_assms ctrA ctrB ctxt =
+                        let
+                          val argA_Ts = binder_types (fastype_of ctrA);
+                          val argB_Ts = binder_types (fastype_of ctrB);
+                          val ((argAs, argBs), names_ctxt) =  ctxt
+                            |> mk_Frees "x" argA_Ts
+                            ||>> mk_Frees "y" argB_Ts;
+                          val ctrA_args = list_comb (ctrA, argAs);
+                          val ctrB_args = list_comb (ctrB, argBs);
+                          fun build_the_rel A B =
+                            build_rel lthy [] (the o choose_relator Rs) (A, B);
+                          fun build_rel_app a b =
+                            build_the_rel (fastype_of a) (fastype_of b) $ a $ b;
+                        in
+                          (fold_rev Logic.all (argAs @ argBs) (Logic.list_implies
+                             (mk_Trueprop_eq (ta, ctrA_args) ::
+                                mk_Trueprop_eq (tb, ctrB_args) ::
+                                  map2 (HOLogic.mk_Trueprop oo build_rel_app) argAs argBs,
+                              thesis)),
+                           names_ctxt)
+                        end;
+
+                      val (assms, names_lthy) = fold_map2 mk_assms ctrAs ctrBs names_lthy;
+                      val goal = Logic.list_implies (HOLogic.mk_Trueprop rel_Rs_a_b :: assms,
+                        thesis);
+                      val thm = Goal.prove_sorry lthy [] [] goal
+                          (fn {context = ctxt, prems = _} =>
+                            mk_rel_cases_tac ctxt (certify ctxt ta) (certify ctxt tb) exhaust
+                              injects rel_inject_thms distincts rel_distinct_thms)
+                        |> singleton (Proof_Context.export names_lthy lthy)
+                        |> Thm.close_derivation;
+
+                      val ctr_names = quasi_unambiguous_case_names ((map name_of_ctr) ctrAs);
+                      val case_names_attr = Attrib.internal (K (Rule_Cases.case_names ctr_names));
+                      val consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
+                      val cases_pred_attr = Attrib.internal o K o Induct.cases_pred;
+                    in
+                      (thm, [consumes_attr, case_names_attr, cases_pred_attr ""])
+                    end;
 
                   val disc_map_iff_thms =
                     let
@@ -1453,87 +1583,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                           |> Proof_Context.export names_lthy lthy
                     end;
                 in
-                  (disc_map_iff_thms, sel_map_thms, sel_set_thms)
+                  (disc_map_iff_thms, sel_map_thms, sel_set_thms, (rel_cases_thm, rel_cases_attrs))
                 end;
-
-              val set_empty_thms =
-                let
-                  val ctr_argT_namess = map ((fn Ts => fold Term.add_tfree_namesT Ts []) o
-                    binder_types o fastype_of) ctrs;
-                  val setTs = map (HOLogic.dest_setT o range_type o fastype_of) sets;
-                  val setT_names = map (fn T => the_single (Term.add_tfree_namesT T [])) setTs;
-
-                  fun mk_set_empty_goal disc set T =
-                    Logic.mk_implies (HOLogic.mk_Trueprop (disc $ u),
-                      mk_Trueprop_eq (set $ u, HOLogic.mk_set T []));
-
-                  val goals =
-                    if null discs then
-                      []
-                    else
-                      map_filter I (flat
-                        (map2 (fn names => fn disc =>
-                          map3 (fn name => fn setT => fn set =>
-                            if member (op =) names name then NONE
-                            else SOME (mk_set_empty_goal disc set setT))
-                          setT_names setTs sets)
-                        ctr_argT_namess discs));
-                in
-                  if null goals then
-                    []
-                  else
-                    Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                      (fn {context = ctxt, prems = _} =>
-                        mk_set_empty_tac ctxt (certify ctxt u) exhaust set_thms (flat disc_thmss))
-                      |> Conjunction.elim_balanced (length goals)
-                      |> Proof_Context.export names_lthy lthy
-                end;
-
-              val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
-
-              fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
-                fold_thms lthy ctr_defs'
-                  (unfold_thms lthy (pre_rel_def :: abs_inverse ::
-                       (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
-                       @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]})
-                     (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
-                |> postproc
-                |> singleton (Proof_Context.export names_lthy no_defs_lthy);
-
-              fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
-                mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
-
-              fun mk_rel_intro_thm thm =
-                let
-                  fun impl thm = rotate_prems (~1) (impl (rotate_prems 1 (conjI RS thm)))
-                    handle THM _ => thm
-                in
-                  impl (thm RS iffD2)
-                  handle THM _ => thm
-                end;
-
-              fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
-                mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
-                  cxIn cyIn;
-
-              fun mk_other_half_rel_distinct_thm thm =
-                flip_rels lthy live thm
-                RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
-
-              val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
-              val rel_intro_thms = map mk_rel_intro_thm rel_inject_thms;
-
-              val half_rel_distinct_thmss =
-                map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
-              val other_half_rel_distinct_thmss =
-                map (map mk_other_half_rel_distinct_thm) half_rel_distinct_thmss;
-              val (rel_distinct_thms, _) =
-                join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
-
-              val rel_eq_thms =
-                map (fn th => th RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms @
-                map2 (fn th => fn 0 => th RS @{thm eq_True[THEN iffD2]} | _ => th)
-                  rel_inject_thms ms;
 
               val anonymous_notes =
                 [([case_cong], fundefcong_attrs),
@@ -1543,6 +1594,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val notes =
                 [(disc_map_iffN, disc_map_iff_thms, simp_attrs),
                  (mapN, map_thms, code_nitpicksimp_attrs @ simp_attrs),
+                 (rel_casesN, [rel_cases_thm], rel_cases_attrs),
                  (rel_distinctN, rel_distinct_thms, simp_attrs),
                  (rel_injectN, rel_inject_thms, simp_attrs),
                  (rel_introsN, rel_intro_thms, []),

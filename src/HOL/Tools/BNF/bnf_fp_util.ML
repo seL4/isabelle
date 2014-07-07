@@ -124,6 +124,7 @@ sig
   val morN: string
   val nchotomyN: string
   val recN: string
+  val rel_casesN: string
   val rel_coinductN: string
   val rel_inductN: string
   val rel_injectN: string
@@ -406,6 +407,7 @@ val disc_corec_iffN = discN ^ "_" ^ corecN ^ iffN
 val distinctN = "distinct"
 val rel_distinctN = relN ^ "_" ^ distinctN
 val injectN = "inject"
+val rel_casesN = relN ^ "_cases"
 val rel_injectN = relN ^ "_" ^ injectN
 val rel_introsN = relN ^ "_intros"
 val rel_coinductN = relN ^ "_" ^ coinductN

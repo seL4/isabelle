@@ -54,7 +54,7 @@ fun if_P_or_not_P_OF pos thm = thm RS (if pos then @{thm if_P} else @{thm if_not
 
 fun mk_nchotomy_tac n exhaust =
   HEADGOAL (rtac allI THEN' rtac exhaust THEN'
-   EVERY' (maps (fn k => [rtac (mk_disjIN n k), REPEAT_DETERM o rtac exI, atac]) (1 upto n)));
+    EVERY' (maps (fn k => [rtac (mk_disjIN n k), REPEAT_DETERM o rtac exI, atac]) (1 upto n)));
 
 fun mk_unique_disc_def_tac m uexhaust =
   HEADGOAL (EVERY' [rtac iffI, rtac uexhaust, REPEAT_DETERM_N m o rtac exI, atac, rtac refl]);

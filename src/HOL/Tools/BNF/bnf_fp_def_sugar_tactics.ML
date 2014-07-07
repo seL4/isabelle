@@ -26,6 +26,8 @@ sig
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
+  val mk_rel_cases_tac:  Proof.context -> cterm -> cterm -> thm -> thm list -> thm list ->
+    thm list -> thm list -> tactic
   val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
     thm list list -> thm list list -> thm list list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> tactic
@@ -210,6 +212,17 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
     EVERY' (map10 (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
+
+fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts =
+  HEADGOAL (rtac (cterm_instantiate_pos [SOME ct1] exhaust) THEN_ALL_NEW
+    rtac (cterm_instantiate_pos [SOME ct2] exhaust) THEN_ALL_NEW
+      hyp_subst_tac ctxt) THEN
+  Local_Defs.unfold_tac ctxt (injects @ rel_injects @ @{thms conj_imp_eq_imp_imp simp_thms(6)
+    True_implies_equals conj_imp_eq_imp_imp} @
+    map (fn thm => iffD2 OF [@{thm eq_False}, thm]) (distincts @ rel_distincts) @
+    map (fn thm => thm RS @{thm eqTrueI}) rel_injects) THEN
+  TRYALL (atac ORELSE' etac FalseE ORELSE' (REPEAT_DETERM o dtac @{thm meta_spec} THEN'
+    REPEAT_DETERM o (dtac @{thm meta_mp} THEN' rtac refl) THEN' Goal.assume_rule_tac ctxt));
 
 fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss ctor_defss
   dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses nesting_rel_eqs =
