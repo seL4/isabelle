@@ -180,7 +180,6 @@ fun quasi_unambiguous_case_names names =
     map (fn (base, full) => if member (op =) dups base then underscore full else base) ps
   end;
 
-val id_def = @{thm id_def};
 val mp_conj = @{thm mp_conj};
 
 val fundefcong_attrs = @{attributes [fundef_cong]};
@@ -461,8 +460,8 @@ fun mk_induct_attrs ctrss =
     [induct_case_names_attr]
   end;
 
-fun derive_rel_induct_thm_for_types lthy fpA_Ts ns As Bs mss ctrAss ctrAs_Tsss ctr_sugars
-    ctor_rel_induct ctor_defss ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs =
+fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhausts ctor_rel_induct
+    ctor_defss ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs =
   let
     val B_ify = typ_subst_nonatomic (As ~~ Bs)
     val fpB_Ts = map B_ify fpA_Ts;
@@ -494,9 +493,8 @@ fun derive_rel_induct_thm_for_types lthy fpA_Ts ns As Bs mss ctrAss ctrAs_Tsss c
 
     val rel_induct0_thm = Goal.prove_sorry lthy [] premises goal
       (fn {context = ctxt, prems = prems} =>
-          mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (certify ctxt) IRs)
-            (map #exhaust ctr_sugars) ctor_defss ctor_injects pre_rel_defs abs_inverses
-            live_nesting_rel_eqs)
+          mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (certify ctxt) IRs) exhausts ctor_defss
+            ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs)
       |> singleton (Proof_Context.export names_lthy lthy)
       |> Thm.close_derivation;
   in
@@ -656,12 +654,11 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
      (rec_thmss, code_nitpicksimp_attrs @ simp_attrs))
   end;
 
-fun mk_coinduct_attrs fpTs ctr_sugars mss =
+fun mk_coinduct_attributes fpTs ctrss discss mss =
   let
     val nn = length fpTs;
     val fp_b_names = map base_name_of_typ fpTs;
-    val ctrss = map #ctrs ctr_sugars;
-    val discss = map #discs ctr_sugars;
+
     fun mk_coinduct_concls ms discs ctrs =
       let
         fun mk_disc_concl disc = [name_of_disc disc];
@@ -672,6 +669,7 @@ fun mk_coinduct_attrs fpTs ctr_sugars mss =
       in
         flat (map2 append disc_concls ctr_concls)
       end;
+
     val coinduct_cases = quasi_unambiguous_case_names (map (prefix EqN) fp_b_names);
     val coinduct_conclss =
       map3 (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
@@ -693,8 +691,9 @@ fun mk_coinduct_attrs fpTs ctr_sugars mss =
     (coinduct_attrs, common_coinduct_attrs)
   end;
 
-fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_inverses abs_injects
-  ctor_injects dtor_ctors rel_pre_defs ctor_defss dtor_rel_coinduct live_nesting_rel_eqs =
+fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr_sugar list)
+    abs_inverses abs_injects ctor_injects dtor_ctors rel_pre_defs ctor_defss dtor_rel_coinduct
+    live_nesting_rel_eqs =
   let
     val fpB_Ts = map (typ_subst_nonatomic (As ~~ Bs)) fpA_Ts;
 
@@ -766,7 +765,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss ctr_sugars abs_in
   in
     (postproc_co_induct lthy (length fpA_Ts) @{thm predicate2D} @{thm predicate2D_conj}
        rel_coinduct0_thm,
-     mk_coinduct_attrs fpA_Ts ctr_sugars mss)
+     mk_coinduct_attributes fpA_Ts (map #ctrs ctr_sugars) (map #discs ctr_sugars) mss)
   end;
 
 fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss), _))
@@ -960,7 +959,8 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
 
     val sel_corec_thmsss = mk_sel_corec_thms corec_thmss;
   in
-    ((coinduct_thms_pairs, mk_coinduct_attrs fpTs ctr_sugars mss),
+    ((coinduct_thms_pairs,
+      mk_coinduct_attributes fpTs (map #ctrs ctr_sugars) (map #discs ctr_sugars) mss),
      corec_thmss,
      disc_corec_thmss,
      (disc_corec_iff_thmss, simp_attrs),
@@ -1655,9 +1655,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           else
             let
               val ((rel_induct_thms, common_rel_induct_thm), rel_induct_attrs) =
-                derive_rel_induct_thm_for_types lthy fpTs ns As Bs mss ctrss ctr_Tsss ctr_sugars
-                  rel_xtor_co_induct_thm ctr_defss ctor_injects pre_rel_defs abs_inverses
-                  (map rel_eq_of_bnf live_nesting_bnfs);
+                derive_rel_induct_thms_for_types lthy fpTs As Bs ctrss ctr_Tsss
+                  (map #exhaust ctr_sugars) rel_xtor_co_induct_thm ctr_defss ctor_injects
+                  pre_rel_defs abs_inverses (map rel_eq_of_bnf live_nesting_bnfs);
             in
               ((map single rel_induct_thms, single common_rel_induct_thm),
                (rel_induct_attrs, rel_induct_attrs))
