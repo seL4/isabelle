@@ -1835,9 +1835,9 @@ done
 lemma list_update_swap:
   "i \<noteq> i' \<Longrightarrow> xs [i := x, i' := x'] = xs [i' := x', i := x]"
 apply (induct xs arbitrary: i i')
-apply simp
+ apply simp
 apply (case_tac i, case_tac i')
-apply auto
+  apply auto
 apply (case_tac i')
 apply auto
 done
@@ -3277,6 +3277,17 @@ by(auto simp: distinct_conv_nth)
 lemma set_update_distinct: "\<lbrakk> distinct xs;  n < length xs \<rbrakk> \<Longrightarrow>
   set(xs[n := x]) = insert x (set xs - {xs!n})"
 by(auto simp: set_eq_iff in_set_conv_nth nth_list_update nth_eq_iff_index_eq)
+
+lemma distinct_swap[simp]: "\<lbrakk> i < size xs; j < size xs \<rbrakk> \<Longrightarrow>
+  distinct(xs[i := xs!j, j := xs!i]) = distinct xs"
+apply (simp add: distinct_conv_nth nth_list_update)
+apply safe
+apply metis+
+done
+
+lemma set_swap[simp]:
+  "\<lbrakk> i < size xs; j < size xs \<rbrakk> \<Longrightarrow> set(xs[i := xs!j, j := xs!i]) = set xs"
+by(simp add: set_conv_nth nth_list_update) metis
 
 lemma distinct_card: "distinct xs ==> card (set xs) = size xs"
 by (induct xs) auto
