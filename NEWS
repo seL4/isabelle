@@ -367,7 +367,7 @@ Plugin Options / Isabelle / General.
 * Sledgehammer:
   - Z3 can now produce Isar proofs.
   - MaSh overhaul:
-    . New SML-based learning engines eliminate the dependency on
+    . New SML-based learning algorithms eliminate the dependency on
       Python and increase performance and reliability.
     . MaSh and MeSh are now used by default together with the
       traditional MePo (Meng-Paulson) relevance filter. To disable

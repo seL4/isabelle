@@ -36,4 +36,4 @@ public option z3_non_commercial : string = "unknown"
   -- "status of Z3 activation for non-commercial use (yes, no, unknown)"
 
 public option MaSh : string = "sml"
-  -- "machine learning engine to use by Sledgehammer (nb_knn, nb, knn, none)"
+  -- "machine learning algorithm to use by Sledgehammer (nb_knn, nb, knn, none)"

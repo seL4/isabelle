@@ -284,8 +284,8 @@ val generate_mepo_suggestions =
        not (Config.get ctxt Sledgehammer_MaSh.duplicates) ? Sledgehammer_Fact.drop_duplicate_facts
        #> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t)
 
-fun generate_mash_suggestions engine =
-  (Options.put_default @{system_option MaSh} engine;
+fun generate_mash_suggestions algorithm =
+  (Options.put_default @{system_option MaSh} algorithm;
    Sledgehammer_MaSh.mash_unlearn ();
    generate_mepo_or_mash_suggestions
      (fn ctxt => fn thy => fn params as {provers = prover :: _, ...} => fn max_suggs => fn hyp_ts =>

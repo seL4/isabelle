@@ -1056,7 +1056,7 @@ Specifies the relevance filter to use. The following filters are available:
 The traditional memoryless MePo relevance filter.
 
 \item[\labelitemi] \textbf{\textit{mash}:}
-The MaSh machine learner. Three learning engines are provided:
+The MaSh machine learner. Three learning algorithms are provided:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{nb}} is an implementation of naive Bayes.
@@ -1072,20 +1072,21 @@ neighbors.
 In addition, the special value \textit{none} is used to disable machine learning by
 default (cf.\ \textit{smart} below).
 
-The default engine is \textit{nb\_knn}. The engine can be selected by setting
-\texttt{MASH} to the name of the desired engine---either in the environment in
-which Isabelle is launched, in your
+The default algorithm is \textit{nb\_knn}. The algorithm can be selected by
+setting \texttt{MASH}---either in the environment in which Isabelle is launched,
+in your
 \texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak etc/\allowbreak settings}
 file, or via the ``MaSh'' option under ``Plugins > Plugin Options > Isabelle >
-General'' in Isabelle/jEdit. Persistent data for both engines is stored in the
-directory \texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak mash}.
+General'' in Isabelle/jEdit. Persistent data for both algorithms is stored in
+the directory \texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak
+mash}.
 
 \item[\labelitemi] \textbf{\textit{mesh}:} The MeSh filter, which combines the
 rankings from MePo and MaSh.
 
 \item[\labelitemi] \textbf{\textit{smart}:} A combination of MePo, MaSh, and
-MeSh. If the learning engine is set to be \textit{none}, \textit{smart} behaves
-like MePo.
+MeSh. If the learning algorithm is set to be \textit{none}, \textit{smart}
+behaves like MePo.
 \end{enum}
 
 \opdefault{max\_facts}{smart\_int}{smart}

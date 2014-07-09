@@ -33,7 +33,7 @@ sig
   val decode_str : string -> string
   val decode_strs : string -> string list
 
-  datatype mash_engine =
+  datatype mash_algorithm =
     MaSh_NB
   | MaSh_kNN
   | MaSh_NB_kNN
@@ -41,7 +41,7 @@ sig
   | MaSh_kNN_Ext
 
   val is_mash_enabled : unit -> bool
-  val the_mash_engine : unit -> mash_engine
+  val the_mash_algorithm : unit -> mash_algorithm
 
   val mesh_facts : ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list -> 'a list
   val nickname_of_thm : thm -> string
@@ -138,14 +138,14 @@ fun wipe_out_mash_state_dir () =
     ()
   end
 
-datatype mash_engine =
+datatype mash_algorithm =
   MaSh_NB
 | MaSh_kNN
 | MaSh_NB_kNN
 | MaSh_NB_Ext
 | MaSh_kNN_Ext
 
-fun mash_engine () =
+fun mash_algorithm () =
   let val flag1 = Options.default_string @{system_option MaSh} in
     (case if flag1 <> "none" (* default *) then flag1 else getenv "MASH" of
       "yes" => SOME MaSh_NB_kNN
@@ -155,11 +155,11 @@ fun mash_engine () =
     | "nb_knn" => SOME MaSh_NB_kNN
     | "nb_ext" => SOME MaSh_NB_Ext
     | "knn_ext" => SOME MaSh_kNN_Ext
-    | engine => (warning ("Unknown MaSh engine: " ^ quote engine ^ "."); NONE))
+    | algorithm => (warning ("Unknown MaSh algorithm: " ^ quote algorithm ^ "."); NONE))
   end
 
-val is_mash_enabled = is_some o mash_engine
-val the_mash_engine = the_default MaSh_NB_kNN o mash_engine
+val is_mash_enabled = is_some o mash_algorithm
+val the_mash_algorithm = the_default MaSh_NB_kNN o mash_algorithm
 
 fun scaled_avg [] = 0
   | scaled_avg xs = Real.ceil (100000000.0 * fold (curry (op +)) xs 0.0) div length xs
@@ -481,13 +481,13 @@ val k_nearest_neighbors_ext =
   external_tool ("newknn/knn" ^ " " ^ string_of_int number_of_nearest_neighbors)
 val naive_bayes_ext = external_tool "predict/nbayes"
 
-fun query_external ctxt engine max_suggs learns goal_feats =
+fun query_external ctxt algorithm max_suggs learns goal_feats =
   (trace_msg ctxt (fn () => "MaSh query external " ^ commas (map fst goal_feats));
-   (case engine of
+   (case algorithm of
      MaSh_NB_Ext => naive_bayes_ext max_suggs learns goal_feats
    | MaSh_kNN_Ext => k_nearest_neighbors_ext max_suggs learns goal_feats))
 
-fun query_internal ctxt engine num_facts num_feats (fact_names, featss, depss)
+fun query_internal ctxt algorithm num_facts num_feats (fact_names, featss, depss)
     (freqs as (_, _, dffreq)) visible_facts max_suggs goal_feats int_goal_feats =
   let
     fun nb () =
@@ -500,7 +500,7 @@ fun query_internal ctxt engine num_facts num_feats (fact_names, featss, depss)
   in
     (trace_msg ctxt (fn () => "MaSh query internal " ^ commas (map fst goal_feats) ^ " from {" ^
        elide_string 1000 (space_implode " " (Vector.foldr (op ::) [] fact_names)) ^ "}");
-     (case engine of
+     (case algorithm of
        MaSh_NB => nb ()
      | MaSh_kNN => knn ()
      | MaSh_NB_kNN =>
@@ -1152,7 +1152,7 @@ fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
 fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl_t facts =
   let
     val thy_name = Context.theory_name thy
-    val engine = the_mash_engine ()
+    val algorithm = the_mash_algorithm ()
 
     val facts = facts
       |> rev_sort_list_prefix (crude_thm_ord o pairself snd)
@@ -1191,19 +1191,19 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
     val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
 
     val suggs =
-      if engine = MaSh_NB_Ext orelse engine = MaSh_kNN_Ext then
+      if algorithm = MaSh_NB_Ext orelse algorithm = MaSh_kNN_Ext then
         let
           val learns =
             Graph.schedule (fn _ => fn (fact, (_, feats, deps)) => (fact, feats, deps)) access_G
         in
-          MaSh.query_external ctxt engine max_suggs learns goal_feats
+          MaSh.query_external ctxt algorithm max_suggs learns goal_feats
         end
       else
         let
           val int_goal_feats =
             map_filter (fn (s, w) => Option.map (rpair w) (Symtab.lookup feat_tab s)) goal_feats
         in
-          MaSh.query_internal ctxt engine num_facts num_feats ffds freqs visible_facts max_suggs
+          MaSh.query_internal ctxt algorithm num_facts num_feats ffds freqs visible_facts max_suggs
             goal_feats int_goal_feats
         end
 
