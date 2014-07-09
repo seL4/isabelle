@@ -722,7 +722,8 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
       end;
 
     fun maybe_restore lthy_old lthy =
-      lthy |> not (pointer_eq (lthy_old, lthy)) ? Local_Theory.restore;
+      lthy |> not (Theory.eq_thy (pairself Proof_Context.theory_of (lthy_old, lthy)))
+        ? Local_Theory.restore;
 
     val map_bind_def =
       (fn () => def_qualify (if Binding.is_empty map_b then mk_prefix_binding mapN else map_b),
