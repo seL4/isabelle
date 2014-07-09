@@ -1452,7 +1452,7 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
              max_ary = max_ary, types = types, in_conj = in_conj}
           val fun_var_Ts' = fun_var_Ts |> can dest_funT T ? insert_type thy I T
         in
-          if bool_vars' = bool_vars andalso pointer_eq (fun_var_Ts', fun_var_Ts) then accum
+          if bool_vars' = bool_vars andalso fun_var_Ts' = fun_var_Ts then accum
           else ((bool_vars', fun_var_Ts'), Symtab.map (K repair_min_ary) sym_tab)
         end
       else
@@ -1477,7 +1477,7 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                    val min_ary =
                      if (app_op_level = Sufficient_App_Op orelse
                          app_op_level = Sufficient_App_Op_And_Predicator)
-                        andalso not (pointer_eq (types', types)) then
+                        andalso types' <> types then
                        fold (consider_var_ary T) fun_var_Ts min_ary
                      else
                        min_ary
