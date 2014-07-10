@@ -505,7 +505,7 @@ fun translate ctxt smt_options comments ithms =
       |> rpair ctxt1
       |-> Lambda_Lifting.lift_lambdas NONE is_binder
       |-> (fn (ts', defs) => fn ctxt' =>
-          map mk_trigger defs @ ts'
+          ts' @ map mk_trigger defs
           |> intro_explicit_application ctxt' funcs
           |> pair ctxt')
 
