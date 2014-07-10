@@ -29,6 +29,7 @@ sig
     context: Proof.context,
     typs: typ Symtab.table,
     terms: term Symtab.table,
+    ll_defs: term list,
     rewrite_rules: thm list,
     assms: (int * thm) list }
 
@@ -72,6 +73,7 @@ type replay_data = {
   context: Proof.context,
   typs: typ Symtab.table,
   terms: term Symtab.table,
+  ll_defs: term list,
   rewrite_rules: thm list,
   assms: (int * thm) list }
 
@@ -118,7 +120,7 @@ fun sign_of logic dtyps (_, typs, terms) = {
   dtyps = dtyps,
   funcs = Termtab.fold (fn (_, (n, SOME ss)) => cons (n,ss) | _ => I) terms []}
 
-fun replay_data_of ctxt rules assms (_, typs, terms) =
+fun replay_data_of ctxt ll_defs rules assms (_, typs, terms) =
   let
     fun add_typ (T, (n, _)) = Symtab.update (n, T)
     val typs' = Typtab.fold add_typ typs Symtab.empty
@@ -126,7 +128,8 @@ fun replay_data_of ctxt rules assms (_, typs, terms) =
     fun add_fun (t, (n, _)) = Symtab.update (n, t)
     val terms' = Termtab.fold add_fun terms Symtab.empty
   in
-    {context=ctxt, typs=typs', terms=terms', rewrite_rules=rules, assms=assms}
+    {context = ctxt, typs = typs', terms = terms', ll_defs = ll_defs, rewrite_rules = rules,
+     assms = assms}
   end
 
 
@@ -499,15 +502,13 @@ fun translate ctxt smt_options comments ithms =
           |> (fn t => @{const trigger} $ t $ eq)
       | mk_trigger t = t
 
-    val (ctxt2, ts3) =
+    val (ctxt2, (ts3, ll_defs)) =
       ts2
       |> eta_expand ctxt1 funcs
       |> rpair ctxt1
       |-> Lambda_Lifting.lift_lambdas NONE is_binder
-      |-> (fn (ts', defs) => fn ctxt' =>
-          ts' @ map mk_trigger defs
-          |> intro_explicit_application ctxt' funcs
-          |> pair ctxt')
+      |-> (fn (ts', ll_defs) => fn ctxt' =>
+          (ctxt', (intro_explicit_application ctxt' funcs (map mk_trigger ll_defs @ ts'), ll_defs)))
 
     val ((rewrite_rules, builtin), ts4) = folify ctxt2 ts3
       |>> apfst (cons fun_app_eq)
@@ -515,7 +516,7 @@ fun translate ctxt smt_options comments ithms =
     (ts4, tr_context)
     |-> intermediate logic dtyps (builtin SMT2_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize smt_options comments)
-    ||> replay_data_of ctxt2 rewrite_rules ithms
+    ||> replay_data_of ctxt2 ll_defs rewrite_rules ithms
   end
 
 end;

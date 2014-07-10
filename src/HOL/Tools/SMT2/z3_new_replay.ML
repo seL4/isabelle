@@ -174,8 +174,8 @@ fun discharge rules outer_ctxt inner_ctxt =
   #> discharge_assms outer_ctxt (make_discharge_rules rules)
 
 fun parse_proof outer_ctxt
-    ({context = ctxt, typs, terms, rewrite_rules, assms} : SMT2_Translate.replay_data) xfacts prems
-    concl output =
+    ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT2_Translate.replay_data)
+    xfacts prems concl output =
   let
     val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
     val ((iidths, _), _) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
@@ -197,12 +197,12 @@ fun parse_proof outer_ctxt
       map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids @ map (apsnd (fst o fst)) fact_ids
   in
     {outcome = NONE, fact_ids = fact_ids,
-     atp_proof = fn () => Z3_New_Isar.atp_proof_of_z3_proof ctxt rewrite_rules prems concl
+     atp_proof = fn () => Z3_New_Isar.atp_proof_of_z3_proof ctxt ll_defs rewrite_rules prems concl
        fact_helper_ts prem_ids conjecture_id fact_helper_ids steps}
   end
 
 fun replay outer_ctxt
-    ({context=ctxt, typs, terms, rewrite_rules, assms} : SMT2_Translate.replay_data) output =
+    ({context = ctxt, typs, terms, rewrite_rules, assms, ...} : SMT2_Translate.replay_data) output =
   let
     val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
     val ((_, rules), (ctxt3, assumed)) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2

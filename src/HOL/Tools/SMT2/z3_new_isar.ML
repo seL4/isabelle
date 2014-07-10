@@ -6,7 +6,7 @@ Z3 proofs as generic ATP proofs for Isar proof reconstruction.
 
 signature Z3_NEW_ISAR =
 sig
-  val atp_proof_of_z3_proof: Proof.context -> thm list -> term list -> term ->
+  val atp_proof_of_z3_proof: Proof.context -> term list -> thm list -> term list -> term ->
     (string * term) list -> int list -> int -> (int * string) list -> Z3_New_Proof.z3_step list ->
     (term, string) ATP_Proof.atp_step list
 end;
@@ -92,10 +92,24 @@ fun push_skolem_all_under_iff t =
     t0 $ HOLogic.list_all (qs, t1) $ HOLogic.list_all (qs, t2)
   | _ => t)
 
-fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids conjecture_id
-    fact_helper_ids proof =
+fun unlift_term ll_defs =
+  let
+    val lifted = map (ATP_Util.extract_lambda_def dest_Free o ATP_Util.hol_open_form I) ll_defs
+
+    fun un_free (t as Free (s, _)) =
+       (case AList.lookup (op =) lifted s of
+         SOME t => un_term t
+       | NONE => t)
+     | un_free t = t
+    and un_term t = map_aterms un_free t
+  in un_term end
+
+fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids
+    conjecture_id fact_helper_ids proof =
   let
     val thy = Proof_Context.theory_of ctxt
+
+    val unlift_term = unlift_term ll_defs
 
     fun steps_of (Z3_New_Proof.Z3_Step {id, rule, prems, concl, ...}) =
       let
@@ -106,6 +120,7 @@ fun atp_proof_of_z3_proof ctxt rewrite_rules hyp_ts concl_t fact_helper_ts prem_
           |> Raw_Simplifier.rewrite_term thy rewrite_rules []
           |> Object_Logic.atomize_term thy
           |> simplify_bool
+          |> not (null ll_defs) ? unlift_term
           |> unskolemize_names
           |> push_skolem_all_under_iff
           |> HOLogic.mk_Trueprop

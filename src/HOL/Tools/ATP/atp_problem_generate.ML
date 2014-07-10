@@ -1804,15 +1804,6 @@ fun add_type_ctrs_in_term thy =
 fun type_ctrs_of_terms thy ts =
   Symtab.keys (fold (add_type_ctrs_in_term thy) ts Symtab.empty)
 
-fun extract_lambda_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
-    let val (head, args) = strip_comb t in
-      (head |> dest_Const |> fst,
-       fold_rev (fn t as Var ((s, _), T) =>
-                    (fn u => Abs (s, T, abstract_over (t, u)))
-                  | _ => raise Fail "expected \"Var\"") args u)
-    end
-  | extract_lambda_def _ = raise Fail "malformed lifted lambda"
-
 fun trans_lams_of_string ctxt type_enc lam_trans =
   if lam_trans = no_lamsN then
     rpair []
@@ -1865,8 +1856,7 @@ fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
   | s_not_prop (@{const Pure.imp} $ t $ @{prop False}) = t
   | s_not_prop t = @{const Pure.imp} $ t $ @{prop False}
 
-fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
-                       concl_t facts =
+fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val trans_lams = trans_lams_of_string ctxt type_enc lam_trans
@@ -1894,7 +1884,7 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
     val facts =
       facts |> map_filter (fn (name, (_, t)) => make_fact ctxt format type_enc true (name, t))
             |> pull_and_reorder_definitions
-    val lifted = lam_facts |> map (extract_lambda_def o snd o snd)
+    val lifted = lam_facts |> map (extract_lambda_def dest_Const o snd o snd)
     val lam_facts = lam_facts |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
     val subs = tfree_classes_of_terms all_ts

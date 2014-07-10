@@ -49,6 +49,7 @@ sig
   val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val strip_subgoal : thm -> int -> Proof.context -> (string * typ) list * term list * term
+  val extract_lambda_def : (term -> string * typ) -> term -> string * term
   val short_thm_name : Proof.context -> thm -> string
 end;
 
@@ -424,6 +425,15 @@ fun strip_subgoal goal i ctxt =
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
   in (rev params, hyp_ts, concl_t) end
+
+fun extract_lambda_def dest_head (Const (@{const_name HOL.eq}, _) $ t $ u) =
+    let val (head, args) = strip_comb t in
+      (head |> dest_head |> fst,
+       fold_rev (fn t as Var ((s, _), T) =>
+                    (fn u => Abs (s, T, abstract_over (t, u)))
+                  | _ => raise Fail "expected \"Var\"") args u)
+    end
+  | extract_lambda_def _ _ = raise Fail "malformed lifted lambda"
 
 fun short_thm_name ctxt th =
   let
