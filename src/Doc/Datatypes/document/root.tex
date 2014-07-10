@@ -15,6 +15,13 @@
 \usepackage{pdfsetup}
 \usepackage{railsetup}
 \usepackage{framed}
+\usepackage{regexpatch}
+
+\makeatletter
+\xpatchcmd{\chaptermark}{\MakeUppercase}{}{}{}%
+\xpatchcmd{\sectionmark}{\MakeUppercase}{}{}{}%
+\xpatchcmd*{\tableofcontents}{\MakeUppercase}{}{}{}%
+\makeatother
 
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
@@ -69,11 +76,9 @@ Dmitriy Traytel \\
 \begin{abstract}
 \noindent
 This tutorial describes the new package for defining datatypes and codatatypes
-in Isabelle/HOL. The package provides four main commands:
-\keyw{datatype\_new}, \keyw{codatatype}, \keyw{primrec\_new},
-and \keyw{primcorec}. The commands suffixed by
-\keyw{\_new} are intended to subsume, and eventually replace, the corresponding
-commands from the old datatype package.
+in Isabelle/HOL. The package provides four main commands: \keyw{datatype_new},
+\keyw{codatatype}, \keyw{primrec}, and \keyw{primcorec}. The first command is
+expected to eventually replace the old \keyw{datatype} command.
 \end{abstract}
 
 \tableofcontents

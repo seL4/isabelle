@@ -87,12 +87,13 @@ the theory @{theory BNF_Axiomatization}, located in the directory
 The package, like its predecessor, fully adheres to the LCF philosophy
 \cite{mgordon79}: The characteristic theorems associated with the specified
 (co)datatypes are derived rather than introduced axiomatically.%
-\footnote{If the @{text quick_and_dirty} option is enabled, some of the
-internal constructions and most of the internal proof obligations are skipped.}
-The package's metatheory is described in a pair of papers
-\cite{traytel-et-al-2012,blanchette-et-al-wit}. The central notion is that of a
-\emph{bounded natural functor} (BNF)---a well-behaved type constructor for which
-nested (co)recursion is supported.
+\footnote{However, some of the
+internal constructions and most of the internal proof obligations are skipped
+if the @{text quick_and_dirty} option is enabled.}
+The package is described in number of papers
+\cite{traytel-et-al-2012,blanchette-et-al-wit,blanchette-et-al-2014-impl,panny-et-al-2014}.
+The central notion is that of a \emph{bounded natural functor} (BNF)---a
+well-behaved type constructor for which nested (co)recursion is supported.
 
 This tutorial is organized as follows:
 
@@ -468,7 +469,7 @@ subsection {* Command Syntax
   \label{ssec:datatype-command-syntax} *}
 
 
-subsubsection {* \keyw{datatype\_new}
+subsubsection {* \keyw{datatype_new}
   \label{sssec:datatype-new} *}
 
 text {*
@@ -574,7 +575,7 @@ constructors as long as they share the same type.
 *}
 
 
-subsubsection {* \keyw{datatype\_compat}
+subsubsection {* \keyw{datatype_compat}
   \label{sssec:datatype-compat} *}
 
 text {*
@@ -626,7 +627,7 @@ some third-party extensions.
 \end{itemize}
 
 An alternative to @{command datatype_compat} is to use the old package's
-\keyw{rep\_\allowbreak datatype} command. The associated proof obligations must then be
+\keyw{rep_\allowbreak datatype} command. The associated proof obligations must then be
 discharged manually.
 *}
 
@@ -700,7 +701,7 @@ are properties of datatypes related to their inductive nature.
 
 \noindent
 The full list of named theorems can be obtained as usual by entering the
-command \keyw{print\_theorems} immediately after the datatype definition.
+command \keyw{print_theorems} immediately after the datatype definition.
 This list normally excludes low-level theorems that reveal internal
 constructions. To make these accessible, add the line
 *}
@@ -769,16 +770,16 @@ The next subgroup is concerned with the case combinator:
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]}
 
-\item[@{text "t."}\hthm{case\_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{case_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{weak_case_cong} @{text "[cong]"}\rm:] ~ \\
 @{thm list.weak_case_cong[no_vars]}
 
 \item[@{text "t."}\hthm{split}\rm:] ~ \\
 @{thm list.split[no_vars]}
 
-\item[@{text "t."}\hthm{split\_asm}\rm:] ~ \\
+\item[@{text "t."}\hthm{split_asm}\rm:] ~ \\
 @{thm list.split_asm[no_vars]}
 
 \item[@{text "t."}\hthm{splits} = @{text "split split_asm"}]
@@ -808,29 +809,29 @@ The third subgroup revolves around discriminators and selectors:
 @{thm list.collapse(1)[no_vars]} \\
 @{thm list.collapse(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_exclude} @{text "[dest]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc_exclude} @{text "[dest]"}\rm:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
 proper discriminator. Had the datatype been introduced with a second
 discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 @{prop "null list \<Longrightarrow> \<not> nonnull list"} \\
 @{prop "nonnull list \<Longrightarrow> \<not> null list"}
 
-\item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 @{thm list.disc_exhaust[no_vars]}
 
-\item[@{text "t."}\hthm{sel\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{sel_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 @{thm list.sel_exhaust[no_vars]}
 
 \item[@{text "t."}\hthm{expand}\rm:] ~ \\
 @{thm list.expand[no_vars]}
 
-\item[@{text "t."}\hthm{sel\_split}\rm:] ~ \\
+\item[@{text "t."}\hthm{sel_split}\rm:] ~ \\
 @{thm list.sel_split[no_vars]}
 
-\item[@{text "t."}\hthm{sel\_split\_asm}\rm:] ~ \\
+\item[@{text "t."}\hthm{sel_split_asm}\rm:] ~ \\
 @{thm list.sel_split_asm[no_vars]}
 
-\item[@{text "t."}\hthm{case\_eq\_if}\rm:] ~ \\
+\item[@{text "t."}\hthm{case_eq_if}\rm:] ~ \\
 @{thm list.case_eq_if[no_vars]}
 
 \end{description}
@@ -857,35 +858,35 @@ a set function, the map function, or the relator:
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]}
 
-\item[@{text "t."}\hthm{set\_empty}\rm:] ~ \\
+\item[@{text "t."}\hthm{set_empty}\rm:] ~ \\
 @{thm list.set_empty[no_vars]}
 
-\item[@{text "t."}\hthm{sel\_set}\rm:] ~ \\
+\item[@{text "t."}\hthm{sel_set}\rm:] ~ \\
 @{thm list.sel_set[no_vars]}
 
 \item[@{text "t."}\hthm{map} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_map\_iff} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc_map_iff} @{text "[simp]"}\rm:] ~ \\
 @{thm list.disc_map_iff[no_vars]}
 
-\item[@{text "t."}\hthm{sel\_map}\rm:] ~ \\
+\item[@{text "t."}\hthm{sel_map}\rm:] ~ \\
 @{thm list.sel_map[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_inject} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_inject} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_distinct} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_distinct} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_distinct(1)[no_vars]} \\
 @{thm list.rel_distinct(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_intros}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_intros}\rm:] ~ \\
 @{thm list.rel_intros(1)[no_vars]} \\
 @{thm list.rel_intros(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_cases} @{text "[consumes 1, case_names t\<^sub>1 \<dots> t\<^sub>m, cases pred]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_cases} @{text "[consumes 1, case_names t\<^sub>1 \<dots> t\<^sub>m, cases pred]"}\rm:] ~ \\
 @{thm list.rel_cases[no_vars]}
 
 \end{description}
@@ -901,37 +902,37 @@ the map function, and the relator:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{set\_map}\rm:] ~ \\
+\item[@{text "t."}\hthm{set_map}\rm:] ~ \\
 @{thm list.set_map[no_vars]}
 
-\item[@{text "t."}\hthm{map\_comp}\rm:] ~ \\
+\item[@{text "t."}\hthm{map_comp}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
 
-\item[@{text "t."}\hthm{map\_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{map_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.map_cong[no_vars]}
 
-\item[@{text "t."}\hthm{map\_id}\rm:] ~ \\
+\item[@{text "t."}\hthm{map_id}\rm:] ~ \\
 @{thm list.map_id[no_vars]}
 
-\item[@{text "t."}\hthm{map\_id0}\rm:] ~ \\
+\item[@{text "t."}\hthm{map_id0}\rm:] ~ \\
 @{thm list.map_id0[no_vars]}
 
-\item[@{text "t."}\hthm{map\_ident}\rm:] ~ \\
+\item[@{text "t."}\hthm{map_ident}\rm:] ~ \\
 @{thm list.map_ident[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_compp}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_compp}\rm:] ~ \\
 @{thm list.rel_compp[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_conversep}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_conversep}\rm:] ~ \\
 @{thm list.rel_conversep[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_eq}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_eq}\rm:] ~ \\
 @{thm list.rel_eq[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_flip}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_flip}\rm:] ~ \\
 @{thm list.rel_flip[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_mono}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_mono}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]}
 
 \end{description}
@@ -955,10 +956,10 @@ The inductive theorems are as follows:
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{rel\_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct pred]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct pred]"}\rm:] ~ \\
 @{thm list.rel_induct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel\_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
@@ -966,7 +967,7 @@ prove $m$ properties simultaneously.
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rec\_o\_map}\rm:] ~ \\
+\item[@{text "t."}\hthm{rec_o_map}\rm:] ~ \\
 @{thm list.rec_o_map[no_vars]}
 
 \item[@{text "t."}\hthm{size} @{text "[simp, code]"}\rm:] ~ \\
@@ -975,7 +976,7 @@ prove $m$ properties simultaneously.
 @{thm list.size(3)[no_vars]} \\
 @{thm list.size(4)[no_vars]}
 
-\item[@{text "t."}\hthm{size\_o\_map}\rm:] ~ \\
+\item[@{text "t."}\hthm{size_o_map}\rm:] ~ \\
 @{thm list.size_o_map[no_vars]}
 
 \end{description}
@@ -1155,7 +1156,7 @@ text {*
 \noindent
 Pattern matching is only available for the argument on which the recursion takes
 place. Fortunately, it is easy to generate pattern-maching equations using the
-\keyw{simps\_of\_case} command provided by the theory
+\keyw{simps_of_case} command provided by the theory
 \verb|~~/src/HOL/|\allowbreak\verb|Library/|\allowbreak\verb|Simps_Case_Conv|.
 *}
 
@@ -1569,7 +1570,7 @@ subsubsection {* Simple Corecursion
   \label{sssec:codatatype-simple-corecursion} *}
 
 text {*
-Noncorecursive codatatypes coincide with the corresponding datatypes, so they
+Non-corecursive codatatypes coincide with the corresponding datatypes, so they
 are rarely used in practice. \emph{Corecursive codatatypes} have the same syntax
 as recursive datatypes, except for the command name. For example, here is the
 definition of lazy lists:
@@ -1748,8 +1749,8 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 @{thm llist.coinduct[no_vars]}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t."}\hthm{strong\_coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t."}\hthm{strong\_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
+  @{text "t."}\hthm{strong_coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t."}\hthm{strong_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
 \end{tabular}] ~ \\
 @{thm llist.strong_coinduct[no_vars]}
 
@@ -1762,9 +1763,10 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 
 \item[\begin{tabular}{@ {}l@ {}}
   @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m, case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"} \\
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong\_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong\_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m, case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"} \\
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
 \end{tabular}] ~ \\
 Given $m > 1$ mutually corecursive codatatypes, these coinduction rules can be
 used to prove $m$ properties simultaneously.
@@ -1773,18 +1775,18 @@ used to prove $m$ properties simultaneously.
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{corec\_code} @{text "[code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{corec_code} @{text "[code]"}\rm:] ~ \\
 @{thm llist.corec_code[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_corec}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc_corec}\rm:] ~ \\
 @{thm llist.disc_corec(1)[no_vars]} \\
 @{thm llist.disc_corec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_corec\_iff} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc_corec_iff} @{text "[simp]"}\rm:] ~ \\
 @{thm llist.disc_corec_iff(1)[no_vars]} \\
 @{thm llist.disc_corec_iff(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sel\_corec} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{sel_corec} @{text "[simp]"}\rm:] ~ \\
 @{thm llist.sel_corec(1)[no_vars]} \\
 @{thm llist.sel_corec(2)[no_vars]}
 
@@ -1811,7 +1813,7 @@ section {* Defining Corecursive Functions
 text {*
 Corecursive functions can be specified using the @{command primcorec} and
 \keyw{prim\-corec\-ursive} commands, which support primitive corecursion, or
-using the more general \keyw{partial\_function} command. Here, the focus is on
+using the more general \keyw{partial_function} command. Here, the focus is on
 the first two. More examples can be found in the directory
 \verb|~~/src/HOL/BNF_Examples|.
 
@@ -1913,7 +1915,7 @@ appear around constructors that guard corecursive calls:
 text {*
 \noindent
 Pattern matching is not supported by @{command primcorec}. Fortunately, it is
-easy to generate pattern-maching equations using the \keyw{simps\_of\_case}
+easy to generate pattern-maching equations using the \keyw{simps_of_case}
 command provided by the theory \verb|~~/src/HOL/Library/Simps_Case_Conv|.
 *}
 
@@ -2455,9 +2457,6 @@ set function, and relator.
 text {* \blankline *}
 
     lift_definition map_fn :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn" is "op \<circ>" .
-
-text {* \blankline *}
-
     lift_definition set_fn :: "('d, 'a) fn \<Rightarrow> 'a set" is range .
 
 text {* \blankline *}
@@ -2527,7 +2526,7 @@ text {* \blankline *}
 
 text {*
 \noindent
-Using \keyw{print\_theorems} and @{keyword print_bnfs}, we can contemplate and
+Using \keyw{print_theorems} and @{keyword print_bnfs}, we can contemplate and
 show the world what we have achieved.
 
 This particular example does not need any nonemptiness witness, because the
@@ -2537,16 +2536,18 @@ necessary. See \verb|~~/src/HOL/Basic_BNFs.thy|,
 for further examples of BNF registration, some of which feature custom
 witnesses.
 
-The next example declares a BNF axiomatically. The @{command bnf_axiomatization} command
-introduces a type @{text "('a, 'b, 'c) F"}, three set constants, a map
-function, a relator, and a nonemptiness witness that depends only on
+The next example declares a BNF axiomatically. This can be convenient for
+reasoning abstractly about an arbitrary BNF. The @{command bnf_axiomatization}
+command below introduces a type @{text "('a, 'b, 'c) F"}, three set constants,
+a map function, a relator, and a nonemptiness witness that depends only on
 @{typ 'a}. (The type @{text "'a \<Rightarrow> ('a, 'b, 'c) F"} of
 the witness can be read as an implication: If we have a witness for @{typ 'a},
 we can construct a witness for @{text "('a, 'b, 'c) F"}.) The BNF
 properties are postulated as axioms.
 *}
 
-    bnf_axiomatization (setA: 'a, setB: 'b, setC: 'c) F [wits: "'a \<Rightarrow> ('a, 'b, 'c) F"]
+    bnf_axiomatization (setA: 'a, setB: 'b, setC: 'c) F
+      [wits: "'a \<Rightarrow> ('a, 'b, 'c) F"]
 
 text {* \blankline *}
 
@@ -2588,7 +2589,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 *}
 
 
-subsubsection {* \keyw{bnf\_axiomatization}
+subsubsection {* \keyw{bnf_axiomatization}
   \label{sssec:bnf-axiomatization} *}
 
 text {*
@@ -2597,8 +2598,8 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command bnf_axiomatization} target? @{syntax tyargs}? name @{syntax wit_types}? \<newline>
-    mixfix? @{syntax map_rel}?
+  @@{command bnf_axiomatization} target? @{syntax tyargs}? name \<newline>
+    @{syntax wit_types}? mixfix? @{syntax map_rel}?
   ;
   @{syntax_def wit_types}: '[' 'wits' ':' types ']'
 \<close>}
@@ -2625,11 +2626,11 @@ is identical to the left-hand side of a @{command datatype_new} or
 The command is useful to reason abstractly about BNFs. The axioms are safe
 because there exists BNFs of arbitrary large arities. Applications must import
 the theory @{theory BNF_Axiomatization}, located in the directory
-\verb|~~/src/HOL/Library|, to use this functionality.
+\verb|~~/src/|\allowbreak\verb|HOL/Library|, to use this functionality.
 *}
 
 
-subsubsection {* \keyw{print\_bnfs}
+subsubsection {* \keyw{print_bnfs}
   \label{sssec:print-bnfs} *}
 
 text {*
@@ -2675,7 +2676,7 @@ subsection {* Command Syntax
   \label{ssec:ctors-command-syntax} *}
 
 
-subsubsection {* \keyw{free\_constructors}
+subsubsection {* \keyw{free_constructors}
   \label{sssec:free-constructors} *}
 
 text {*
@@ -2710,9 +2711,9 @@ A constructor is specified by an optional name for the discriminator, the
 constructor itself (as a term), and a list of optional names for the selectors.
 
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
-For technical reasons, the @{text "[fundef_cong]"} attribute is not set on the
-generated @{text case_cong} theorem. It can be added manually using
-\keyw{declare}.
+For bootstrapping reasons, the generally useful @{text "[fundef_cong]"}
+attribute is not set on the generated @{text case_cong} theorem. It can be
+added manually using \keyw{declare}.
 *}
 
 
