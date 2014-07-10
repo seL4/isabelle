@@ -472,15 +472,15 @@ fun class_pairs thy tycons cls =
 
 (* Proving one (tycon, class) membership may require proving others, so
    iterate. *)
-fun all_class_pairs _ _ [] = ([], [])
-  | all_class_pairs thy tycons cls =
+fun all_class_pairs _ _ _ [] = ([], [])
+  | all_class_pairs thy tycons old_cls cls =
     let
-      fun maybe_insert_class s =
-        (s <> class_of_types andalso not (member (op =) cls s)) ? insert (op =) s
+      val old_cls' = cls @ old_cls
+      fun maybe_insert_class s = not (member (op =) old_cls' s) ? insert (op =) s
+
       val pairs = class_pairs thy tycons cls
-      val new_cls =
-        [] |> fold (fold (fold (fold maybe_insert_class) o snd) o snd) pairs
-      val (cls', pairs') = all_class_pairs thy tycons new_cls
+      val new_cls = fold (fold (fold (fold maybe_insert_class) o snd) o snd) pairs []
+      val (cls', pairs') = all_class_pairs thy tycons old_cls' new_cls
     in (cls' @ cls, union (op =) pairs' pairs) end
 
 fun tcon_clause _ _ [] = []
@@ -498,7 +498,7 @@ fun tcon_clause _ _ [] = []
       tcon_clause (cl :: seen) n ((tcons, ars) :: rest)
 
 fun make_tcon_clauses thy tycons =
-  all_class_pairs thy tycons ##> tcon_clause [] 1
+  all_class_pairs thy tycons [] ##> tcon_clause [] 1
 
 
 (** Isabelle class relations **)
