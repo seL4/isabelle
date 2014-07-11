@@ -99,30 +99,20 @@ where
   "find_first f [] = None"
 | "find_first f (x # xs) = (case f x of Some y => Some y | None => find_first f xs)"
 
-consts cps_of_set :: "'a set => ('a => term list option) => term list option"
+axiomatization cps_of_set :: "'a set => ('a => term list option) => term list option"
+where cps_of_set_code [code]: "cps_of_set (set xs) f = find_first f xs"
 
-lemma
-  [code]: "cps_of_set (set xs) f = find_first f xs"
-sorry
+axiomatization pos_cps_of_set :: "'a set => ('a => (bool * term list) option) => natural => (bool * term list) option"
+where pos_cps_of_set_code [code]: "pos_cps_of_set (set xs) f i = find_first f xs"
 
-consts pos_cps_of_set :: "'a set => ('a => (bool * term list) option) => natural => (bool * term list) option"
-consts neg_cps_of_set :: "'a set => ('a Quickcheck_Exhaustive.unknown => term list Quickcheck_Exhaustive.three_valued) => natural => term list Quickcheck_Exhaustive.three_valued"
-
-lemma
-  [code]: "pos_cps_of_set (set xs) f i = find_first f xs"
-sorry
-
-consts find_first' :: "('b Quickcheck_Exhaustive.unknown => 'a Quickcheck_Exhaustive.three_valued)
+axiomatization find_first' :: "('b Quickcheck_Exhaustive.unknown => 'a Quickcheck_Exhaustive.three_valued)
     => 'b list => 'a Quickcheck_Exhaustive.three_valued"
-
-lemma [code]:
+where find_first'_code [code]:
   "find_first' f [] = Quickcheck_Exhaustive.No_value"
   "find_first' f (x # xs) = (case f (Quickcheck_Exhaustive.Known x) of Quickcheck_Exhaustive.No_value => find_first' f xs | Quickcheck_Exhaustive.Value x => Quickcheck_Exhaustive.Value x | Quickcheck_Exhaustive.Unknown_value => (case find_first' f xs of Quickcheck_Exhaustive.Value x => Quickcheck_Exhaustive.Value x | _ => Quickcheck_Exhaustive.Unknown_value))"
-sorry
 
-lemma
-  [code]: "neg_cps_of_set (set xs) f i = find_first' f xs"
-sorry
+axiomatization neg_cps_of_set :: "'a set => ('a Quickcheck_Exhaustive.unknown => term list Quickcheck_Exhaustive.three_valued) => natural => term list Quickcheck_Exhaustive.three_valued"
+where neg_cps_of_set_code [code]: "neg_cps_of_set (set xs) f i = find_first' f xs"
 
 setup {*
 let

@@ -466,12 +466,4 @@ quickcheck_params[finite_types = false, default_type = ["int", "non_distrib_latt
 
 hide_type non_distrib_lattice flat_complete_lattice bot top
 
-lemma "\<lbrakk> inf x z = inf y z; sup x z = sup y z \<rbrakk> \<Longrightarrow> x = y" 
-quickcheck[exhaustive, expect=counterexample]
-oops
-
-lemma "Inf {} = bot"
-quickcheck[exhaustive, expect=counterexample]
-oops
-
 end
