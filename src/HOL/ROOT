@@ -52,6 +52,7 @@ session "HOL-Library" (main) in Library = HOL +
     (*legacy tools*)
     Refute
     Old_Recdef
+    Quickcheck_Types
   theories [condition = ISABELLE_FULL_TEST]
     Sum_of_Squares_Remote
   document_files "root.bib" "root.tex"
