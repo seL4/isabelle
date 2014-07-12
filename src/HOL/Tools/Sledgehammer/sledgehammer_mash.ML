@@ -583,16 +583,19 @@ fun graph_info G =
   string_of_int (fold (Integer.add o length o snd) (Graph.dest G) 0) ^ " edge(s), " ^
   string_of_int (length (Graph.maximals G)) ^ " maximal"
 
+type ffds = string vector * int list vector * int list vector
+type freqs = int vector * int Inttab.table vector * int vector
+
 type mash_state =
   {access_G : (proof_kind * string list * string list) Graph.T,
    xtabs : xtab * xtab,
-   ffds : string vector * int list vector * int list vector,
-   freqs : int vector * int Inttab.table vector * int vector,
+   ffds : ffds,
+   freqs : freqs,
    dirty_facts : string list option}
 
 val empty_xtabs = (empty_xtab, empty_xtab)
-val empty_ffds = (Vector.fromList [], Vector.fromList [], Vector.fromList [])
-val empty_freqs = (Vector.fromList [], Vector.fromList [], Vector.fromList [])
+val empty_ffds = (Vector.fromList [], Vector.fromList [], Vector.fromList []) : ffds
+val empty_freqs = (Vector.fromList [], Vector.fromList [], Vector.fromList []) : freqs
 
 val empty_state =
   {access_G = Graph.empty,
@@ -601,8 +604,8 @@ val empty_state =
    freqs = empty_freqs,
    dirty_facts = SOME []} : mash_state
 
-fun recompute_ffds_freqs_from_learns learns ((num_facts, fact_tab), (num_feats, feat_tab))
-    num_facts0 (fact_names0, featss0, depss0) freqs0 =
+fun recompute_ffds_freqs_from_learns (learns : (string * string list * string list) list)
+    ((num_facts, fact_tab), (num_feats, feat_tab)) num_facts0 (fact_names0, featss0, depss0) freqs0 =
   let
     val fact_names = Vector.concat [fact_names0, Vector.fromList (map #1 learns)]
     val featss = Vector.concat [featss0,
