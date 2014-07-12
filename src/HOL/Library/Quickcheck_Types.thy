@@ -4,7 +4,7 @@
 *)
 
 theory Quickcheck_Types
-imports Main
+imports "../Main"
 begin
 
 text {*
@@ -113,8 +113,7 @@ begin
 
 definition "bot = Bot"
 
-instance proof
-qed (simp add: bot_bot_def)
+instance ..
 
 end
 
@@ -123,8 +122,7 @@ begin
 
 definition "top = Value top"
 
-instance proof
-qed (simp add: top_bot_def less_eq_bot_def split: bot.split)
+instance ..
 
 end
 
@@ -152,7 +150,8 @@ qed (auto simp add: sup_bot_def less_eq_bot_def split: bot.splits)
 
 end
 
-instance bot :: (lattice) bounded_lattice_bot ..
+instance bot :: (lattice) bounded_lattice_bot
+by(intro_classes)(simp add: bot_bot_def)
 
 section {* Values extended by a top element *}
 
@@ -213,8 +212,7 @@ begin
 
 definition "top = Top"
 
-instance proof
-qed (simp add: top_top_def)
+instance ..
 
 end
 
@@ -223,8 +221,7 @@ begin
 
 definition "bot = Value bot"
 
-instance proof
-qed (simp add: bot_top_def less_eq_top_def split: top.split)
+instance ..
 
 end
 
@@ -252,7 +249,8 @@ qed (auto simp add: sup_top_def less_eq_top_def split: top.splits)
 
 end
 
-instance top :: (lattice) bounded_lattice_top ..
+instance top :: (lattice) bounded_lattice_top
+by(intro_classes)(simp add: top_top_def)
 
 
 datatype 'a flat_complete_lattice = Value 'a | Bot | Top
@@ -294,8 +292,7 @@ begin
 
 definition "bot = Bot"
 
-instance proof
-qed (simp add: bot_flat_complete_lattice_def)
+instance ..
 
 end
 
@@ -304,8 +301,7 @@ begin
 
 definition "top = Top"
 
-instance proof
-qed (auto simp add: less_eq_flat_complete_lattice_def top_flat_complete_lattice_def split: flat_complete_lattice.splits)
+instance ..
 
 end
 
@@ -454,13 +450,19 @@ next
   ultimately show "Sup A <= z"
     unfolding Sup_flat_complete_lattice_def
     by auto
+next
+  show "Inf {} = (top :: 'a flat_complete_lattice)"
+    by(simp add: Inf_flat_complete_lattice_def top_flat_complete_lattice_def)
+next
+  show "Sup {} = (bot :: 'a flat_complete_lattice)"
+    by(simp add: Sup_flat_complete_lattice_def bot_flat_complete_lattice_def)
 qed
 
 end
 
 section {* Quickcheck configuration *}
 
-quickcheck_params[finite_types = false, default_type = ["int", "non_distrib_lattice", "int bot", "int top", "int flat_complete_lattice"]]
+quickcheck_params[finite_types = false, default_type = ["int", "non_distrib_lattice", "int bot", "int top", "Enum.finite_4 flat_complete_lattice"]]
 
 hide_type non_distrib_lattice flat_complete_lattice bot top
 
