@@ -62,10 +62,15 @@ fun read_tptp_file thy postproc file_name =
   end
 
 
-(** Nitpick (alias Nitrox) **)
+(** Nitpick **)
 
 fun aptrueprop f ((t0 as @{const Trueprop}) $ t1) = t0 $ f t1
   | aptrueprop f t = f t
+
+fun is_legitimate_tptp_def (@{const Trueprop} $ t) = is_legitimate_tptp_def t
+  | is_legitimate_tptp_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
+    (is_Const t orelse is_Free t) andalso not (exists_subterm (curry (op =) t) u)
+  | is_legitimate_tptp_def _ = false
 
 fun nitpick_tptp_file thy timeout file_name =
   let
@@ -74,7 +79,7 @@ fun nitpick_tptp_file thy timeout file_name =
     val (defs, pseudo_defs) =
       defs |> map (ATP_Util.abs_extensionalize_term ctxt
                    #> aptrueprop (hol_open_form I))
-           |> List.partition (ATP_Util.is_legitimate_tptp_def
+           |> List.partition (is_legitimate_tptp_def
                               o perhaps (try HOLogic.dest_Trueprop)
                               o ATP_Util.unextensionalize_def)
     val nondefs = pseudo_defs @ nondefs

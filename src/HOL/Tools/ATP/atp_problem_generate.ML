@@ -1275,30 +1275,17 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
     {name = name, stature = stature, role = role, iformula = iformula, atomic_types = atomic_Ts}
   end
 
-fun is_format_with_defs (THF _) = true
-  | is_format_with_defs _ = false
-
-fun make_fact ctxt format type_enc iff_for_eq ((name, stature as (_, status)), t) =
-  let
-    val role =
-      if is_format_with_defs format andalso status = Non_Rec_Def andalso
-         is_legitimate_tptp_def t then
-        Definition
-      else
-        Axiom
-  in
-    (case make_formula ctxt format type_enc iff_for_eq name stature role t of
-      formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
-      if s = tptp_true then NONE else SOME formula
-    | formula => SOME formula)
-  end
+fun make_fact ctxt format type_enc iff_for_eq ((name, stature), t) =
+  (case make_formula ctxt format type_enc iff_for_eq name stature Axiom t of
+    formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
+    if s = tptp_true then NONE else SOME formula
+  | formula => SOME formula)
 
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (role, t)) =>
-    let
-      val role' = if role <> Conjecture andalso is_legitimate_tptp_def t then Definition else role
-      val t' = t |> role' = Conjecture ? s_not
-    in make_formula ctxt format type_enc true name stature role' t' end)
+    let val t' = t |> role = Conjecture ? s_not in
+      make_formula ctxt format type_enc true name stature role t'
+    end)
 
 (** Finite and infinite type inference **)
 

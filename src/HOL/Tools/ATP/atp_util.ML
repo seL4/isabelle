@@ -45,7 +45,6 @@ sig
   val cong_extensionalize_term : theory -> term -> term
   val abs_extensionalize_term : Proof.context -> term -> term
   val unextensionalize_def : term -> term
-  val is_legitimate_tptp_def : term -> bool
   val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val strip_subgoal : thm -> int -> Proof.context -> (string * typ) list * term list * term
@@ -381,12 +380,6 @@ fun unextensionalize_def t =
          t
      | _ => t)
   | _ => t
-
-fun is_legitimate_tptp_def (@{const Trueprop} $ t) = is_legitimate_tptp_def t
-  | is_legitimate_tptp_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
-    (is_Const t orelse is_Free t) andalso
-    not (exists_subterm (curry (op =) t) u)
-  | is_legitimate_tptp_def _ = false
 
 (* Converts an elim-rule into an equivalent theorem that does not have the
    predicate variable. Leaves other theorems unchanged. We simply instantiate

@@ -190,8 +190,6 @@ val agsyhol = (agsyholN, fn () => agsyhol_config)
 
 (* Alt-Ergo *)
 
-val alt_ergo_tff1 = TFF Polymorphic
-
 val alt_ergo_config : atp_config =
   {exec = K (["WHY3_HOME"], ["why3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
@@ -205,7 +203,7 @@ val alt_ergo_config : atp_config =
    prem_role = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(1.0, (((100, ""), alt_ergo_tff1, "poly_native", liftingN, false), ""))],
+     [(1.0, (((100, ""), TFF Polymorphic, "poly_native", liftingN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -593,8 +591,6 @@ val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 (* Zipperposition*)
 
-val zipperposition_tff1 = TFF Polymorphic
-
 val zipperposition_config : atp_config =
   {exec = K (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
@@ -605,7 +601,7 @@ val zipperposition_config : atp_config =
    prem_role = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(1.0, (((100, ""), alt_ergo_tff1, "poly_native", liftingN, false), ""))],
+     [(1.0, (((100, ""), TFF Polymorphic, "poly_native", liftingN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 

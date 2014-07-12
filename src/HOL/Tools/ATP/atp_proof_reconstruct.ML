@@ -132,8 +132,7 @@ fun typ_of_atp_type ctxt (ty as AType ((a, clss), tys)) =
           Type_Infer.param 0 ("'" ^ perhaps (unprefix_and_unascii tvar_prefix) a,
             (if null clss then @{sort type} else map class_of_atp_class clss))))
   end
-  | typ_of_atp_type ctxt (ty as AFun (a, tys)) =
-    (typ_of_atp_type ctxt a) --> (typ_of_atp_type ctxt tys)
+  | typ_of_atp_type ctxt (AFun (a, tys)) = typ_of_atp_type ctxt a --> typ_of_atp_type ctxt tys
 
 fun atp_type_of_atp_term (ATerm ((s, _), us)) = AType ((s, []), map atp_type_of_atp_term us)
 
@@ -253,7 +252,7 @@ fun term_of_atp_ho ctxt textual sym_tab =
           (case unprefix_and_unascii const_prefix s of
             SOME s' =>
             let
-              val ((s', s''), mangled_us) = s' |> unmangled_const |>> `invert_const
+              val ((s', _), mangled_us) = s' |> unmangled_const |>> `invert_const
               val num_ty_args = length us - the_default 0 (Symtab.lookup sym_tab s)
               val (type_us, term_us) = chop num_ty_args us |>> append mangled_us
               val term_ts = map (do_term NONE) term_us
@@ -475,25 +474,11 @@ val resolve_conjectures = map_filter resolve_conjecture
 fun is_axiom_used_in_proof pred =
   exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
 
-fun add_non_rec_defs facts =
-  fold (fn fact as (_, (_, status)) => status = Non_Rec_Def ? insert (op =) fact) facts
-
 val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
-val leo2_unfold_def_rule = "unfold_def"
 
 fun add_fact ctxt facts ((_, ss), _, _, rule, deps) =
-  (if rule = leo2_extcnf_equal_neg_rule then
+  (if member (op =) [agsyhol_core_rule, leo2_extcnf_equal_neg_rule, satallax_core_rule] rule then
      insert (op =) (short_thm_name ctxt ext, (Global, General))
-   else if rule = leo2_unfold_def_rule then
-     (* LEO 1.3.3 does not record definitions properly, leading to missing dependencies in the TSTP
-        proof. Remove the next line once this is fixed. *)
-     add_non_rec_defs facts
-   else if rule = agsyhol_core_rule orelse rule = satallax_core_rule then
-     (fn [] =>
-         (* agsyHOL and Satallax don't include definitions in their unsatisfiable cores, so we
-            assume the worst and include them all here. *)
-         [(short_thm_name ctxt ext, (Global, General))] |> add_non_rec_defs facts
-       | facts => facts)
    else
      I)
   #> (if null deps then union (op =) (resolve_facts facts ss) else I)
