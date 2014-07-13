@@ -765,8 +765,10 @@ fun dissect_coeqn lthy has_call fun_names sequentials
         matchedsss
       |>> single
     else if member (op =) sels head then
-      ([dissect_coeqn_sel lthy fun_names basic_ctr_specss eqn_pos NONE NONE eqn0 of_spec_opt concl],
-       matchedsss)
+      (null prems orelse
+       primcorec_error_eqn "premise(s) in selector formula" eqn;
+       ([dissect_coeqn_sel lthy fun_names basic_ctr_specss eqn_pos NONE NONE eqn0 of_spec_opt
+           concl], matchedsss))
     else if is_some rhs_opt andalso
         is_Free head andalso member (op =) fun_names (fst (dest_Free head)) then
       if member (op =) ctrs (head_of (unfold_lets_splits (the rhs_opt))) then
