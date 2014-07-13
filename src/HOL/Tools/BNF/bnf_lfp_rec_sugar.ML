@@ -284,7 +284,8 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
             | NONE =>
               let val (g, g_args) = strip_comb g' in
                 (case try (get_ctr_pos o fst o dest_Free) g of
-                  SOME ctr_pos =>
+                  SOME ~1 => subst_rec ()
+                | SOME ctr_pos =>
                   (length g_args >= ctr_pos orelse
                    raise PRIMREC ("too few arguments in recursive call", [t]);
                    (case AList.lookup (op =) mutual_calls y of
