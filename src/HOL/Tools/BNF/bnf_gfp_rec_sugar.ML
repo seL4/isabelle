@@ -938,7 +938,7 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
           prems = maps (s_not_conj o #prems) disc_eqns,
           auto_gen = true,
           ctr_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
-          code_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
+          code_rhs_opt = Option.map #code_rhs_opt sel_eqn_opt |> the_default NONE,
           eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 100000 (* FIXME *),
           user_eqn = undef_const};
       in
