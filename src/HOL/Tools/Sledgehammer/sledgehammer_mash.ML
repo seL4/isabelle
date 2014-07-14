@@ -126,17 +126,8 @@ val empty_xtab = (0, Symtab.empty)
 fun add_to_xtab key (next, tab) = (next + 1, Symtab.update_new (key, next) tab)
 fun maybe_add_to_xtab key = perhaps (try (add_to_xtab key))
 
-fun mash_state_dir () =
-  Path.expand (Path.explode "$ISABELLE_HOME_USER/mash" |> tap Isabelle_System.mkdir)
-
-fun mash_state_file () = Path.append (mash_state_dir ()) (Path.explode "state")
-
-fun wipe_out_mash_state_dir () =
-  let val path = mash_state_dir () in
-    try (File.fold_dir (fn file => fn _ => try File.rm (Path.append path (Path.basic file))) path)
-      NONE;
-    ()
-  end
+fun state_file () = Path.expand (Path.explode "$ISABELLE_HOME_USER/mash_state")
+val remove_state_file = try File.rm o state_file
 
 datatype mash_algorithm =
   MaSh_NB
@@ -504,13 +495,9 @@ fun query_internal ctxt algorithm num_facts num_feats (fact_names, featss, depss
        MaSh_NB => nb ()
      | MaSh_kNN => knn ()
      | MaSh_NB_kNN =>
-       let
-         val mess =
-           [(0.5 (* FUDGE *), (weight_facts_steeply (nb ()), [])),
-            (0.5 (* FUDGE *), (weight_facts_steeply (knn ()), []))]
-       in
-         mesh_facts (op =) max_suggs mess
-       end)
+       mesh_facts (op =) max_suggs
+         [(0.5 (* FUDGE *), (weight_facts_steeply (nb ()), [])),
+          (0.5 (* FUDGE *), (weight_facts_steeply (knn ()), []))])
      |> map (curry Vector.sub fact_names))
    end
 
@@ -651,7 +638,7 @@ fun extract_node line =
   | _ => NONE)
 
 fun load_state ctxt (time_state as (memory_time, _)) =
-  let val path = mash_state_file () in
+  let val path = state_file () in
     (case try OS.FileSys.modTime (Path.implode path) of
       NONE => time_state
     | SOME disk_time =>
@@ -674,7 +661,7 @@ fun load_state ctxt (time_state as (memory_time, _)) =
                  EQUAL =>
                  try_graph ctxt "loading state" empty_G_etc
                    (fn () => fold extract_line_and_add_node node_lines empty_G_etc)
-               | LESS => (wipe_out_mash_state_dir (); empty_G_etc) (* cannot parse old file *)
+               | LESS => (remove_state_file (); empty_G_etc) (* cannot parse old file *)
                | GREATER => raise FILE_VERSION_TOO_NEW ())
 
              val (ffds, freqs) =
@@ -696,7 +683,7 @@ fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
       fun append_entry (name, ((kind, feats, deps), (parents, _))) =
         cons (kind, name, Graph.Keys.dest parents, feats, deps)
 
-      val path = mash_state_file ()
+      val path = state_file ()
       val dirty_facts' =
         (case try OS.FileSys.modTime (Path.implode path) of
           NONE => NONE
@@ -730,8 +717,7 @@ fun peek_state ctxt =
   Synchronized.change_result global_state (perhaps (try (load_state ctxt)) #> `snd)
 
 fun clear_state () =
-  Synchronized.change global_state (fn _ =>
-    (wipe_out_mash_state_dir (); (Time.zeroTime, empty_state)))
+  Synchronized.change global_state (fn _ => (remove_state_file (); (Time.zeroTime, empty_state)))
 
 end
 
@@ -865,10 +851,8 @@ fun term_features_of ctxt thy_name term_max_depth type_max_depth ts =
         in
           map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs
         end
-      | pattify_type _ (TFree (_, S)) =
-        maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
-      | pattify_type _ (TVar (_, S)) =
-        maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
+      | pattify_type _ (TFree (_, S)) = maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
+      | pattify_type _ (TVar (_, S)) = maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
 
     fun add_type_pat depth T =
       union (op =) (map type_feature_of (pattify_type depth T))
@@ -1216,8 +1200,7 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
     |> pairself (map fact_of_raw_fact)
   end
 
-fun mash_unlearn () =
-  (clear_state (); Output.urgent_message "Reset MaSh.")
+fun mash_unlearn () = (clear_state (); Output.urgent_message "Reset MaSh.")
 
 fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (access_G, (fact_xtab, feat_xtab)) =
   let
