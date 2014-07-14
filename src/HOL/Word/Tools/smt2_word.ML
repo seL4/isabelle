@@ -12,8 +12,10 @@ open Word_Lib
 
 (* SMT-LIB logic *)
 
+(* "QF_AUFBV" is too restricted for Isabelle's problems, which contain aritmetic and quantifiers.
+   Better set the logic to "" and make at least Z3 happy. *)
 fun smtlib_logic ts =
-  if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts then SOME "QF_AUFBV" else NONE
+  if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts then SOME "" else NONE
 
 
 (* SMT-LIB builtins *)

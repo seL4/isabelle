@@ -77,7 +77,11 @@ fun choose_logic ctxt ts =
   let
     fun choose [] = "AUFLIA"
       | choose ((_, f) :: fs) = (case f ts of SOME s => s | NONE => choose fs)
-  in "(set-logic " ^ choose (Logics.get (Context.Proof ctxt)) ^ ")\n" end
+  in
+    (case choose (Logics.get (Context.Proof ctxt)) of
+      "" => "" (* for default Z3 logic, a subset of everything *)
+    | logic => "(set-logic " ^ logic ^ ")\n")
+  end
 
 
 (** serialization **)
