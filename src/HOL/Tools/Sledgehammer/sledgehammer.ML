@@ -243,7 +243,8 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
                 0 |> fold (Integer.max o default_max_facts_of_prover ctxt) provers
                   |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor))
             val _ = spying spy (fn () => (state, i, "All",
-              "Filtering " ^ string_of_int (length all_facts) ^ " facts"));
+              "Filtering " ^ string_of_int (length all_facts) ^ " facts (MaSh algorithm: " ^
+              str_of_mash_algorithm (the_mash_algorithm ()) ^ ")"));
           in
             all_facts
             |> relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t

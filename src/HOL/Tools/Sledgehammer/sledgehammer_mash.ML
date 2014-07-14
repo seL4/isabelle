@@ -42,6 +42,7 @@ sig
 
   val is_mash_enabled : unit -> bool
   val the_mash_algorithm : unit -> mash_algorithm
+  val str_of_mash_algorithm : mash_algorithm -> string
 
   val mesh_facts : ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list -> 'a list
   val nickname_of_thm : thm -> string
@@ -153,6 +154,12 @@ fun mash_algorithm () =
 
 val is_mash_enabled = is_some o mash_algorithm
 val the_mash_algorithm = the_default MaSh_NB_kNN o mash_algorithm
+
+fun str_of_mash_algorithm MaSh_NB = "nb"
+  | str_of_mash_algorithm MaSh_kNN = "knn"
+  | str_of_mash_algorithm MaSh_NB_kNN = "nb_knn"
+  | str_of_mash_algorithm MaSh_NB_Ext = "nb_ext"
+  | str_of_mash_algorithm MaSh_kNN_Ext = "knn_ext"
 
 fun scaled_avg [] = 0
   | scaled_avg xs = Real.ceil (100000000.0 * fold (curry (op +)) xs 0.0) div length xs
