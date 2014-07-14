@@ -1390,7 +1390,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 map2 (fn th => fn 0 => th RS @{thm eq_True[THEN iffD2]} | _ => th)
                   rel_inject_thms ms;
 
-              val (disc_map_iff_thms, sel_map_thms, sel_set_thms, (rel_cases_thm, rel_cases_attrs)) =
+              val (disc_map_iff_thms, sel_map_thms, sel_set_thms (* FIXME: , (rel_cases_thm, rel_cases_attrs) *)) =
                 let
                   val (((Ds, As), Bs), names_lthy) = lthy
                     |> mk_TFrees (dead_of_bnf fp_bnf)
@@ -1407,6 +1407,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   val selssA = map (map (mk_disc_or_sel ADs)) selss;
                   val disc_sel_pairs = flat (map2 (map o pair) discsA selssA);
 
+(* FIXME:
                   val (rel_cases_thm, rel_cases_attrs) =
                     let
                       val rel = mk_rel_of_bnf Ds As Bs fp_bnf;
@@ -1460,6 +1461,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     in
                       (thm, [consumes_attr, case_names_attr, cases_pred_attr ""])
                     end;
+*)
 
                   val disc_map_iff_thms =
                     let
@@ -1583,7 +1585,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                           |> Proof_Context.export names_lthy lthy
                     end;
                 in
-                  (disc_map_iff_thms, sel_map_thms, sel_set_thms, (rel_cases_thm, rel_cases_attrs))
+                  (disc_map_iff_thms, sel_map_thms, sel_set_thms (* FIXME: , (rel_cases_thm, rel_cases_attrs) *))
                 end;
 
               val anonymous_notes =
@@ -1594,7 +1596,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val notes =
                 [(disc_map_iffN, disc_map_iff_thms, simp_attrs),
                  (mapN, map_thms, code_nitpicksimp_attrs @ simp_attrs),
-                 (rel_casesN, [rel_cases_thm], rel_cases_attrs),
+(* FIXME:                 (rel_casesN, [rel_cases_thm], rel_cases_attrs), *)
                  (rel_distinctN, rel_distinct_thms, simp_attrs),
                  (rel_injectN, rel_inject_thms, simp_attrs),
                  (rel_introsN, rel_intro_thms, []),

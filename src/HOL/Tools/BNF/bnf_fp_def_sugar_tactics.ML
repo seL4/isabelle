@@ -127,12 +127,12 @@ fun mk_disc_corec_iff_tac case_splits' corecs discs ctxt =
 
 fun mk_disc_map_iff_tac ctxt ct exhaust discs maps =
   TRYALL Goal.conjunction_tac THEN
-    ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
-      REPEAT_DETERM o hyp_subst_tac ctxt) THEN
-    unfold_thms_tac ctxt maps THEN
-    unfold_thms_tac ctxt (map (fn thm => thm RS eqFalseI
-      handle THM _ => thm RS eqTrueI) discs) THEN
-    ALLGOALS (rtac refl ORELSE' rtac TrueI);
+  ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
+    REPEAT_DETERM o hyp_subst_tac ctxt) THEN
+  unfold_thms_tac ctxt maps THEN
+  unfold_thms_tac ctxt (map (fn thm => thm RS eqFalseI
+    handle THM _ => thm RS eqTrueI) discs) THEN
+  ALLGOALS (rtac refl ORELSE' rtac TrueI);
 
 fun solve_prem_prem_tac ctxt =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'
@@ -225,7 +225,7 @@ fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_dist
     REPEAT_DETERM o (dtac @{thm meta_mp} THEN' rtac refl) THEN' Goal.assume_rule_tac ctxt));
 
 fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss ctor_defss
-  dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses nesting_rel_eqs =
+    dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses nesting_rel_eqs =
   rtac dtor_rel_coinduct 1 THEN
   EVERY (map11 (fn ct => fn assm => fn exhaust => fn discs => fn sels => fn ctor_defs =>
     fn dtor_ctor => fn ctor_inject => fn abs_inject => fn rel_pre_def => fn abs_inverse =>
@@ -278,8 +278,7 @@ fun mk_sel_set_tac ctxt ct exhaust discs sels sets =
       @{thms not_True_eq_False not_False_eq_True}) THEN
     TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
     unfold_thms_tac ctxt (sels @ sets) THEN
-    ALLGOALS (
-      REPEAT o (resolve_tac @{thms UnI1 UnI2 imageI} ORELSE'
+    ALLGOALS (REPEAT o (resolve_tac @{thms UnI1 UnI2 imageI} ORELSE'
         eresolve_tac @{thms UN_I UN_I[rotated] imageE} ORELSE'
         hyp_subst_tac ctxt) THEN'
       (rtac @{thm singletonI} ORELSE' atac));
