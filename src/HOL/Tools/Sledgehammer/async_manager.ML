@@ -11,9 +11,8 @@ Central manager for asynchronous diagnosis tool threads.
 signature ASYNC_MANAGER =
 sig
   val break_into_chunks : string -> string list
-  val thread :
-    string -> Time.time -> Time.time -> string * string
-    -> (unit -> bool * string) -> unit
+  val thread : string -> Time.time -> Time.time -> string * string -> (unit -> bool * string) ->
+    unit
   val kill_threads : string -> string -> unit
   val has_running_threads : string -> bool
   val running_threads : string -> string -> unit
@@ -23,19 +22,11 @@ end;
 structure Async_Manager : ASYNC_MANAGER =
 struct
 
-(** preferences **)
-
 val message_store_limit = 20
 val message_display_limit = 10
 
-
-(** thread management **)
-
 fun implode_message (workers, work) =
   space_implode " " (Try.serial_commas "and" workers) ^ work
-
-
-(* data structures over threads *)
 
 structure Thread_Heap = Heap
 (
@@ -46,9 +37,6 @@ structure Thread_Heap = Heap
 fun lookup_thread xs = AList.lookup Thread.equal xs
 fun delete_thread xs = AList.delete Thread.equal xs
 fun update_thread xs = AList.update Thread.equal xs
-
-
-(* state of thread manager *)
 
 type state =
   {manager: Thread.thread option,
@@ -64,11 +52,7 @@ fun make_state manager timeout_heap active canceling messages store : state =
   {manager = manager, timeout_heap = timeout_heap, active = active,
    canceling = canceling, messages = messages, store = store}
 
-val global_state = Synchronized.var "async_manager"
-  (make_state NONE Thread_Heap.empty [] [] [] [])
-
-
-(* unregister thread *)
+val global_state = Synchronized.var "async_manager" (make_state NONE Thread_Heap.empty [] [] [] [])
 
 fun unregister (urgent, message) thread =
   Synchronized.change global_state
@@ -88,9 +72,6 @@ fun unregister (urgent, message) thread =
         in make_state manager timeout_heap active' canceling' messages' store' end
     | NONE => state))
 
-
-(* main manager thread -- only one may exist *)
-
 val min_wait_time = seconds 0.3
 val max_wait_time = seconds 10.0
 
@@ -104,8 +85,8 @@ fun replace_all bef aft =
           aux (String.sub (s, 0) :: seen) (String.extract (s, 1, NONE))
   in aux [] end
 
-(* This is a workaround for Proof General's off-by-a-few sendback display bug,
-   whereby "pr" in "proof" is not highlighted. *)
+(* This is a workaround for Proof General's off-by-a-few sendback display bug, whereby "pr" in
+   "proof" is not highlighted. *)
 val break_into_chunks = space_explode "\000" o replace_all "\n\n" "\000"
 
 fun print_new_messages () =
@@ -168,9 +149,6 @@ fun check_thread_manager () = Synchronized.change global_state
       end))
     in make_state manager timeout_heap active canceling messages store end)
 
-
-(* register thread *)
-
 fun register tool birth_time death_time desc thread =
  (Synchronized.change global_state
     (fn {manager, timeout_heap, active, canceling, messages, store} =>
@@ -181,7 +159,6 @@ fun register tool birth_time death_time desc thread =
       in state' end);
   check_thread_manager ())
 
-
 fun thread tool birth_time death_time desc f =
   (Runtime.thread true
        (fn () =>
@@ -190,11 +167,6 @@ fun thread tool birth_time death_time desc f =
              val _ = register tool birth_time death_time desc self
            in unregister (f ()) self end);
    ())
-
-
-(** user commands **)
-
-(* kill threads *)
 
 fun kill_threads tool das_wort_worker = Synchronized.change global_state
   (fn {manager, timeout_heap, active, canceling, messages, store} =>
@@ -209,14 +181,10 @@ fun kill_threads tool das_wort_worker = Synchronized.change global_state
         else Output.urgent_message ("Interrupted active " ^ das_wort_worker ^ "s.")
     in state' end)
 
-
-(* running threads *)
-
-fun seconds time = string_of_int (Time.toSeconds time) ^ " s"
+fun str_of_time time = string_of_int (Time.toSeconds time) ^ " s"
 
 fun has_running_threads tool =
-  exists (fn (_, (tool', _, _, _)) => tool' = tool)
-         (#active (Synchronized.value global_state))
+  exists (fn (_, (tool', _, _, _)) => tool' = tool) (#active (Synchronized.value global_state))
 
 fun running_threads tool das_wort_worker =
   let
@@ -224,25 +192,24 @@ fun running_threads tool das_wort_worker =
     val now = Time.now ()
     fun running_info (_, (tool', birth_time, death_time, desc)) =
       if tool' = tool then
-        SOME ("Running: " ^ seconds (Time.- (now, birth_time)) ^ " -- " ^
-              seconds (Time.- (death_time, now)) ^ " to live:\n" ^
-              op ^ desc)
+        SOME ("Running: " ^ str_of_time (Time.- (now, birth_time)) ^ " -- " ^
+              str_of_time (Time.- (death_time, now)) ^ " to live:\n" ^ op ^ desc)
       else
         NONE
     fun canceling_info (_, (tool', death_time, desc)) =
       if tool' = tool then
         SOME ("Trying to interrupt " ^ das_wort_worker ^ " since " ^
-              seconds (Time.- (now, death_time)) ^ ":\n" ^ op ^ desc)
+              str_of_time (Time.- (now, death_time)) ^ ":\n" ^ op ^ desc)
       else
         NONE
     val running =
       case map_filter running_info active of
         [] => ["No " ^ das_wort_worker ^ "s running."]
-      | ss => "Running " ^ das_wort_worker ^ "s " :: ss
+      | ss => "Running " ^ das_wort_worker ^ "s" :: ss
     val interrupting =
       case map_filter canceling_info canceling of
         [] => []
-      | ss => "Interrupting " ^ das_wort_worker ^ "s " :: ss
+      | ss => "Interrupting " ^ das_wort_worker ^ "s" :: ss
   in Output.urgent_message (space_implode "\n\n" (running @ interrupting)) end
 
 fun thread_messages tool das_wort_worker opt_limit =
