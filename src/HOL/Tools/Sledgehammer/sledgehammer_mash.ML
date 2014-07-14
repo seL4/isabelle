@@ -1477,8 +1477,7 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
        learn 0 false)
   end
 
-fun mash_can_suggest_facts ctxt =
-  not (Graph.is_empty (#access_G (peek_state ctxt)))
+fun mash_can_suggest_facts ctxt = not (Graph.is_empty (#access_G (peek_state ctxt)))
 
 (* Generate more suggestions than requested, because some might be thrown out later for various
    reasons (e.g., duplicates). *)
@@ -1505,14 +1504,14 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
     let
       val thy = Proof_Context.theory_of ctxt
 
-      fun maybe_launch_thread min_num_facts_to_learn =
+      fun maybe_launch_thread exact min_num_facts_to_learn =
         if not (Async_Manager.has_running_threads MaShN) andalso
            Time.toSeconds timeout >= min_secs_for_learning then
           let val timeout = time_mult learn_timeout_slack timeout in
             (if verbose then
-               Output.urgent_message ("Started MaShing through at least " ^
-                 string_of_int min_num_facts_to_learn ^ " fact" ^ plural_s min_num_facts_to_learn ^
-                 " in the background.")
+               Output.urgent_message ("Started MaShing through " ^
+                 (if exact then "" else "at least ") ^ string_of_int min_num_facts_to_learn ^
+                 " fact" ^ plural_s min_num_facts_to_learn ^ " in the background.")
              else
                ());
             launch_thread timeout
@@ -1521,36 +1520,33 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
         else
           ()
 
-      fun maybe_learn () =
-        if learn then
-          let
-            val {access_G, xtabs = ((num_facts0, _), _), ...} = peek_state ctxt
-            val is_in_access_G = is_fact_in_graph access_G o snd
-            val min_num_facts_to_learn = length facts - num_facts0
-          in
-            if min_num_facts_to_learn <= max_facts_to_learn_before_query then
-              (case length (filter_out is_in_access_G facts) of
-                0 => ()
-              | num_facts_to_learn =>
-                if num_facts_to_learn <= max_facts_to_learn_before_query then
-                  mash_learn_facts ctxt params prover 2 false timeout facts
-                  |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s))
-                else
-                  maybe_launch_thread num_facts_to_learn)
-            else
-              maybe_launch_thread min_num_facts_to_learn
-          end
-        else
-          ()
+      fun please_learn () =
+        let
+          val {access_G, xtabs = ((num_facts0, _), _), ...} = peek_state ctxt
+          val is_in_access_G = is_fact_in_graph access_G o snd
+          val min_num_facts_to_learn = length facts - num_facts0
+        in
+          if min_num_facts_to_learn <= max_facts_to_learn_before_query then
+            (case length (filter_out is_in_access_G facts) of
+              0 => ()
+            | num_facts_to_learn =>
+              if num_facts_to_learn <= max_facts_to_learn_before_query then
+                mash_learn_facts ctxt params prover 2 false timeout facts
+                |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s))
+              else
+                maybe_launch_thread true num_facts_to_learn)
+          else
+            maybe_launch_thread false min_num_facts_to_learn
+        end
+
+      val mash_enabled = is_mash_enabled ()
+      val _ =
+        if learn andalso mash_enabled andalso fact_filter <> SOME mepoN then please_learn () else ()
 
       val effective_fact_filter =
         (case fact_filter of
           SOME ff => ff
-        | NONE =>
-          if is_mash_enabled () then
-            (maybe_learn (); if mash_can_suggest_facts ctxt then meshN else mepoN)
-          else
-            mepoN)
+        | NONE => if mash_enabled andalso mash_can_suggest_facts ctxt then meshN else mepoN)
 
       val unique_facts = drop_duplicate_facts facts
       val add_ths = Attrib.eval_thms ctxt add
