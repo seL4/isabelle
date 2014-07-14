@@ -126,8 +126,11 @@ ISABELLE_GHC="/usr/bin/ghc"
     args = (['-o', 'timeout=%s' % timeout] if timeout is not None else []) + list(cmdargs)
 
     # invoke build tool
-    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'build', '-s', '-v', *args,
+    (return_code, log1) = env.run_process('%s/bin/isabelle' % isabelle_home, 'jedit', '-bf',
             USER_HOME=home_user_dir)
+    (return_code, log2) = env.run_process('%s/bin/isabelle' % isabelle_home, 'build', '-s', '-v', *args,
+            USER_HOME=home_user_dir)
+    log = log1 + log2
 
     # collect report
     return (return_code == 0, extract_isabelle_run_summary(log),
