@@ -477,9 +477,9 @@ fun external_tool tool max_suggs learns goal_feats =
      forkexec max_suggs)
   end
 
-val k_nearest_neighbors_ext =
-  external_tool ("newknn/knn" ^ " " ^ string_of_int initial_number_of_nearest_neighbors)
-val naive_bayes_ext = external_tool "predict/nbayes"
+fun k_nearest_neighbors_ext max_suggs =
+  external_tool ("newknn/knn" ^ " " ^ string_of_int initial_number_of_nearest_neighbors) max_suggs
+fun naive_bayes_ext max_suggs = external_tool "predict/nbayes" max_suggs
 
 fun query_external ctxt algorithm max_suggs learns goal_feats =
   (trace_msg ctxt (fn () => "MaSh query external " ^ commas (map fst goal_feats));
