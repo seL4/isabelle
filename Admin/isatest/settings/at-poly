@@ -8,6 +8,8 @@ init_components /home/isabelle/contrib "$HOME/admin/components/main"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 500"
 
+ISABELLE_GHC=/usr/bin/ghc
+
 ISABELLE_HOME_USER=~/isabelle-at-poly
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
