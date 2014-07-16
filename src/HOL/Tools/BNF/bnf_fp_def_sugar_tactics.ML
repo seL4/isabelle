@@ -221,8 +221,11 @@ fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_dist
     True_implies_equals conj_imp_eq_imp_imp} @
     map (fn thm => thm RS eqFalseI) (distincts @ rel_distincts) @
     map (fn thm => thm RS eqTrueI) rel_injects) THEN
-  TRYALL (atac ORELSE' etac FalseE ORELSE' (REPEAT_DETERM o dtac @{thm meta_spec} THEN'
-    REPEAT_DETERM o (dtac @{thm meta_mp} THEN' rtac refl) THEN' Goal.assume_rule_tac ctxt));
+  TRYALL (atac ORELSE' etac FalseE ORELSE'
+    (REPEAT_DETERM o dtac @{thm meta_spec} THEN'
+     TRY o filter_prems_tac
+       (forall (curry (op <>) (HOLogic.mk_Trueprop @{term False})) o Logic.strip_imp_prems) THEN'
+     REPEAT_DETERM o (dtac @{thm meta_mp} THEN' rtac refl) THEN' Goal.assume_rule_tac ctxt));
 
 fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss ctor_defss
     dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses nesting_rel_eqs =
