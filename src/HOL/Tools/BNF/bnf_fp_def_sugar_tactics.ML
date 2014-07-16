@@ -33,6 +33,8 @@ sig
     thm list -> thm list -> thm list -> tactic
   val mk_rel_induct0_tac: Proof.context -> thm -> thm list -> cterm list -> thm list ->
     thm list list -> thm list -> thm list -> thm list -> thm list -> tactic
+  val mk_rel_sel_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> tactic
   val mk_sel_map_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_sel_set_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_set_empty_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
@@ -262,6 +264,16 @@ fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss cto
           Inr_Inl_False  sum.inject prod.inject}) THEN
         TRYALL (etac FalseE ORELSE' (REPEAT_DETERM o etac conjE) THEN' atac))
     cterms exhausts ctor_defss ctor_injects rel_pre_list_defs Abs_inverses);
+
+fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_distincts =
+  HEADGOAL (rtac (cterm_instantiate_pos [SOME ct1] exhaust) THEN_ALL_NEW
+    rtac (cterm_instantiate_pos [SOME ct2] exhaust) THEN_ALL_NEW
+      hyp_subst_tac ctxt) THEN
+  Local_Defs.unfold_tac ctxt (sels @ rel_injects @ @{thms simp_thms(6,7,8,11,12,15,16,21,22,24)} @
+    ((discs @ distincts) RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
+    (rel_injects RL @{thms iffD2[OF eq_True]}) @
+    (rel_distincts RL @{thms iffD2[OF eq_False]})) THEN
+  TRYALL (resolve_tac [TrueI, refl]);
 
 fun mk_sel_map_tac ctxt ct exhaust discs maps sels =
   TRYALL Goal.conjunction_tac THEN
