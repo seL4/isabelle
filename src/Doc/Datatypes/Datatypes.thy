@@ -890,6 +890,9 @@ a set function, the map function, or the relator:
 %\item[@{text "t."}\hthm{rel_cases} @{text "[consumes 1, case_names t\<^sub>1 \<dots> t\<^sub>m, cases pred]"}\rm:] ~ \\
 %{thm list.rel_cases[no_vars]}
 
+\item[@{text "t."}\hthm{rel_sel}\rm:] ~ \\
+@{thm list.rel_sel[no_vars]}
+
 \end{description}
 \end{indentblock}
 
