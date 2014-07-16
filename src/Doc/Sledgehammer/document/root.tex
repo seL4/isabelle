@@ -1064,15 +1064,14 @@ The MaSh machine learner. Three learning algorithms are provided:
 \item[\labelitemi] \textbf{\textit{knn}} is an implementation of $k$-nearest
 neighbors.
 
-\item[\labelitemi] \textbf{\textit{nb\_knn}} (also called \textbf{\textit{yes}}
-and \textbf{\textit{sml}}) is a combination of naive Bayes and $k$-nearest
-neighbors.
+\item[\labelitemi] \textbf{\textit{nb\_knn}} (also called \textbf{\textit{yes}})
+is a combination of naive Bayes and $k$-nearest neighbors.
 \end{enum}
 
 In addition, the special value \textit{none} is used to disable machine learning by
 default (cf.\ \textit{smart} below).
 
-The default algorithm is \textit{nb\_knn}. The algorithm can be selected by
+The default algorithm is \textit{none}. The algorithm can be selected by
 setting \texttt{MASH}---either in the environment in which Isabelle is launched,
 in your
 \texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak etc/\allowbreak settings}
@@ -1084,9 +1083,9 @@ mash}.
 \item[\labelitemi] \textbf{\textit{mesh}:} The MeSh filter, which combines the
 rankings from MePo and MaSh.
 
-\item[\labelitemi] \textbf{\textit{smart}:} A combination of MePo, MaSh, and
-MeSh. If the learning algorithm is set to be \textit{none}, \textit{smart}
-behaves like MePo.
+\item[\labelitemi] \textbf{\textit{smart}:}
+If the learning algorithm is set to be \textit{none} (the default), \textit{smart}
+behaves like MePo; otherwise, it combines MePo, MaSh, and MeSh.
 \end{enum}
 
 \opdefault{max\_facts}{smart\_int}{smart}
