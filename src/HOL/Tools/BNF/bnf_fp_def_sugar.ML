@@ -477,20 +477,17 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
 
     val premises =
       let
-        fun build_the_rel A B = build_rel lthy fpA_Ts (the o choose_relator (Rs @ IRs)) (A, B);
-        fun build_rel_app a b = build_the_rel (fastype_of a) (fastype_of b) $ a $ b;
-
         fun mk_prem ctrA ctrB argAs argBs =
           fold_rev Logic.all (argAs @ argBs) (fold_rev (curry Logic.mk_implies)
-            (map2 (HOLogic.mk_Trueprop oo build_rel_app) argAs argBs)
-            (HOLogic.mk_Trueprop
-              (build_rel_app (Term.list_comb (ctrA, argAs)) (Term.list_comb (ctrB, argBs)))));
+            (map2 (HOLogic.mk_Trueprop oo build_rel_app names_lthy (Rs @ IRs) fpA_Ts) argAs argBs)
+            (HOLogic.mk_Trueprop (build_rel_app names_lthy (Rs @ IRs) fpA_Ts
+              (Term.list_comb (ctrA, argAs)) (Term.list_comb (ctrB, argBs)))));
       in
         flat (map4 (map4 mk_prem) ctrAss ctrBss ctrAsss ctrBsss)
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
-      (map (build_rel lthy [] (the o choose_relator (Rs @ IRs))) (fpA_Ts ~~ fpB_Ts)) IRs));
+      (map2 (build_the_rel lthy (Rs @ IRs) []) fpA_Ts fpB_Ts) IRs));
 
     val rel_induct0_thm = Goal.prove_sorry lthy [] premises goal
       (fn {context = ctxt, prems = prems} =>
@@ -727,18 +724,15 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
 
     val premises =
       let
-        fun build_the_rel A B = build_rel lthy fpA_Ts (the o choose_relator (Rs @ IRs)) (A, B);
-
-        fun build_rel_app selA_t selB_t =
-          (build_the_rel (fastype_of selA_t) (fastype_of selB_t )) $ selA_t $ selB_t
-
         fun mk_prem_ctr_concls n k discA_t selA_ts discB_t selB_ts =
           (if k = n then [] else [HOLogic.mk_eq (discA_t, discB_t)]) @
           (case (selA_ts, selB_ts) of
             ([], []) => []
           | (_ :: _, _ :: _) =>
-            [Library.foldr HOLogic.mk_imp (if n = 1 then [] else [discA_t, discB_t],
-              Library.foldr1 HOLogic.mk_conj (map2 build_rel_app selA_ts selB_ts))]);
+            [Library.foldr HOLogic.mk_imp
+              (if n = 1 then [] else [discA_t, discB_t],
+               Library.foldr1 HOLogic.mk_conj
+                 (map2 (build_rel_app lthy (Rs @ IRs) fpA_Ts) selA_ts selB_ts))]);
 
         fun mk_prem_concl n discA_ts selA_tss discB_ts selB_tss =
           Library.foldr1 HOLogic.mk_conj (flat (map5 (mk_prem_ctr_concls n)
@@ -753,7 +747,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
-      IRs (map (build_rel lthy [] (the o choose_relator (Rs @ IRs))) (fpA_Ts ~~ fpB_Ts))));
+      IRs (map2 (build_the_rel lthy (Rs @ IRs) []) fpA_Ts fpB_Ts)));
 
     val rel_coinduct0_thm = Goal.prove_sorry lthy [] premises goal
       (fn {context = ctxt, prems = prems} =>
@@ -1343,6 +1337,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                         mk_set_empty_tac ctxt (certify ctxt u) exhaust set_thms (flat disc_thmss))
                       |> Conjunction.elim_balanced (length goals)
                       |> Proof_Context.export names_lthy lthy
+                      |> map Thm.close_derivation
                 end;
 
               val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
@@ -1463,15 +1458,12 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                             ||>> mk_Frees "y" argB_Ts;
                           val ctrA_args = list_comb (ctrA, argAs);
                           val ctrB_args = list_comb (ctrB, argBs);
-                          fun build_the_rel A B =
-                            build_rel lthy [] (the o choose_relator Rs) (A, B);
-                          fun build_rel_app a b =
-                            build_the_rel (fastype_of a) (fastype_of b) $ a $ b;
                         in
                           (fold_rev Logic.all (argAs @ argBs) (Logic.list_implies
                              (mk_Trueprop_eq (ta, ctrA_args) ::
                                 mk_Trueprop_eq (tb, ctrB_args) ::
-                                  map2 (HOLogic.mk_Trueprop oo build_rel_app) argAs argBs,
+                                  map2 (HOLogic.mk_Trueprop oo build_rel_app lthy Rs [])
+                                    argAs argBs,
                               thesis)),
                            names_ctxt)
                         end;
