@@ -10,6 +10,7 @@ datatype_new 'a tree = Leaf | Node (left: "'a tree") (val: 'a) (right: "'a tree"
   where
     "left Leaf = Leaf"
   | "right Leaf = Leaf"
+datatype_compat tree
 
 lemma neq_Leaf_iff: "(t \<noteq> Leaf) = (\<exists>l a r. t = Node l a r)"
   by (cases t) auto
