@@ -223,7 +223,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           val bd' = @{term natLeq};
           val bd_bd' = HOLogic.mk_prod (bd, bd');
           val ordIso = Const (@{const_name ordIso}, HOLogic.mk_setT (fastype_of bd_bd'));
-          val goal = HOLogic.mk_Trueprop (HOLogic.mk_mem (bd_bd', ordIso));
+          val goal = mk_Trueprop_mem (bd_bd', ordIso);
         in
           (bd', SOME (Goal.prove_sorry lthy [] [] goal (K bd_ordIso_natLeq_tac)
             |> Thm.close_derivation))
@@ -811,7 +811,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
           val Abs_bdT_inj = mk_Abs_inj_thm Abs_bdT_inject;
           val Abs_bdT_bij = mk_Abs_bij_thm lthy Abs_bdT_inj Abs_bdT_cases;
-      
+
           val bd_ordIso = @{thm dir_image} OF [Abs_bdT_inj, bd_Card_order_of_bnf bnf];
           val bd_card_order =
             @{thm card_order_dir_image} OF [Abs_bdT_bij, bd_card_order_of_bnf bnf];
@@ -862,7 +862,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       (#map_unfolds unfold_set @ flat (#set_unfoldss unfold_set) @ #rel_unfolds unfold_set);
 
     val bnf'' = bnf' |> morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy' unfolds));
-    
+
     val map_def = map_def_of_bnf bnf'';
     val set_defs = set_defs_of_bnf bnf'';
     val rel_def = rel_def_of_bnf bnf'';

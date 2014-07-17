@@ -53,6 +53,7 @@ sig
 
   val mk_IfN: typ -> term list -> term list -> term
   val mk_Trueprop_eq: term * term -> term
+  val mk_Trueprop_mem: term * term -> term
 
   val rapp: term -> term -> term
 
@@ -201,6 +202,7 @@ fun mk_IfN _ _ [t] = t
     Const (@{const_name If}, HOLogic.boolT --> T --> T --> T) $ c $ t $ mk_IfN T cs ts;
 
 val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+val mk_Trueprop_mem = HOLogic.mk_Trueprop o HOLogic.mk_mem;
 
 fun rapp u t = betapply (t, u);
 

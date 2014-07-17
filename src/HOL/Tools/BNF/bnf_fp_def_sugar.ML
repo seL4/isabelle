@@ -574,7 +574,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
 
         fun mk_prem_prem xs (xysets, (j, x)) =
           close_prem_prem xs (Logic.list_implies (map (fn (x', (y, set)) =>
-              HOLogic.mk_Trueprop (HOLogic.mk_mem (y, set $ x'))) xysets,
+              mk_Trueprop_mem (y, set $ x')) xysets,
             HOLogic.mk_Trueprop (nth ps (j - 1) $ x)));
 
         fun mk_raw_prem phi ctr ctr_Ts ctrXs_Ts =
@@ -1564,7 +1564,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                                     let
                                       val X = HOLogic.dest_setT (range_type (fastype_of set));
                                       val (x, ctxt') = yield_singleton (mk_Frees "x") X ctxt;
-                                      val assm = HOLogic.mk_Trueprop (HOLogic.mk_mem (x, set $ a));
+                                      val assm = mk_Trueprop_mem (x, set $ a);
                                     in
                                       travese_nested_types x ctxt'
                                       |>> map (Logic.mk_implies o pair assm)
@@ -1575,13 +1575,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                                 end)
                             | T =>
                               if T = A then
-                                ([HOLogic.mk_Trueprop (HOLogic.mk_mem (t, setA $ ta))], ctxt)
+                                ([mk_Trueprop_mem (t, setA $ ta)], ctxt)
                               else
                                 ([], ctxt));
 
                           val (concls, ctxt') =
                             if sel_rangeT = A then
-                              ([HOLogic.mk_Trueprop (HOLogic.mk_mem (selA $ ta, setA $ ta))], ctxt)
+                              ([mk_Trueprop_mem (selA $ ta, setA $ ta)], ctxt)
                             else
                               travese_nested_types (selA $ ta) names_lthy;
                         in

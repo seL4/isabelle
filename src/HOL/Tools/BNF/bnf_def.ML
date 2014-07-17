@@ -981,8 +981,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
     fun mk_map_cong_prem x z set f f_copy =
       Logic.all z (Logic.mk_implies
-        (HOLogic.mk_Trueprop (HOLogic.mk_mem (z, set $ x)),
-        mk_Trueprop_eq (f $ z, f_copy $ z)));
+        (mk_Trueprop_mem (z, set $ x), mk_Trueprop_eq (f $ z, f_copy $ z)));
 
     val map_cong0_goal =
       let
@@ -1044,7 +1043,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               else @{term False});
           in
             fold_rev Logic.all (z :: xs)
-              (Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_mem (z, set_wit)), concl))
+              (Logic.mk_implies (mk_Trueprop_mem (z, set_wit), concl))
           end;
       in
         map wit_goal (0 upto live - 1)

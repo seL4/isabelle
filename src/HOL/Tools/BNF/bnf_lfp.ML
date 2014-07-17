@@ -272,7 +272,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       let
         val alg_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         fun mk_prem x set B = HOLogic.mk_Trueprop (mk_leq (set $ x) B);
-        fun mk_concl s x B = HOLogic.mk_Trueprop (HOLogic.mk_mem (s $ x, B));
+        fun mk_concl s x B = mk_Trueprop_mem (s $ x, B);
         val premss = map2 ((fn x => fn sets => map2 (mk_prem x) (drop m sets) Bs)) xFs setssAs;
         val concls = map3 mk_concl ss xFs Bs;
         val goals = map2 (fn prems => fn concl =>
@@ -790,7 +790,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val mor_select_thm =
       let
-        val i_prem = HOLogic.mk_Trueprop (HOLogic.mk_mem (iidx, II));
+        val i_prem = mk_Trueprop_mem (iidx, II);
         val mor_prem = HOLogic.mk_Trueprop (mk_mor select_Bs select_ss active_UNIVs ss Asuc_fs);
         val prems = [i_prem, mor_prem];
         val concl = HOLogic.mk_Trueprop
@@ -1208,7 +1208,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           let
             fun mk_IH phi set z =
               let
-                val prem = HOLogic.mk_Trueprop (HOLogic.mk_mem (z, set $ x));
+                val prem = mk_Trueprop_mem (z, set $ x);
                 val concl = HOLogic.mk_Trueprop (phi $ z);
               in
                 Logic.all z (Logic.mk_implies (prem, concl))
@@ -1247,8 +1247,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           let
             fun mk_IH phi set set' z1 z2 =
               let
-                val prem1 = HOLogic.mk_Trueprop (HOLogic.mk_mem (z1, (set $ x)));
-                val prem2 = HOLogic.mk_Trueprop (HOLogic.mk_mem (z2, (set' $ y)));
+                val prem1 = mk_Trueprop_mem (z1, (set $ x));
+                val prem2 = mk_Trueprop_mem (z2, (set' $ y));
                 val concl = HOLogic.mk_Trueprop (phi $ z1 $ z2);
               in
                 fold_rev Logic.all [z1, z2] (Logic.list_implies ([prem1, prem2], concl))
@@ -1383,44 +1383,44 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               val (sum_bd0T_params, sum_bd0T_params') = `(map TFree) (Term.add_tfreesT sum_bd0T []);
 
               val sbd0T_bind = mk_internal_b (sum_bdTN ^ "0");
-    
+
               val ((sbd0T_name, (sbd0T_glob_info, sbd0T_loc_info)), lthy) =
                 typedef (sbd0T_bind, sum_bd0T_params', NoSyn)
                   (HOLogic.mk_UNIV sum_bd0T) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
-    
+
               val sbd0T = Type (sbd0T_name, sum_bd0T_params);
               val Abs_sbd0T = Const (#Abs_name sbd0T_glob_info, sum_bd0T --> sbd0T);
-    
+
               val sbd0_bind = mk_internal_b (sum_bdN ^ "0");
               val sbd0_def_bind = (Thm.def_binding sbd0_bind, []);
-    
+
               val sbd0_spec = mk_dir_image sum_bd0 Abs_sbd0T;
-    
+
               val ((sbd0_free, (_, sbd0_def_free)), (lthy, lthy_old)) =
                 lthy
                 |> Local_Theory.define ((sbd0_bind, NoSyn), (sbd0_def_bind, sbd0_spec))
                 ||> `Local_Theory.restore;
-    
+
               val phi = Proof_Context.export_morphism lthy_old lthy;
-    
+
               val sbd0_def = Morphism.thm phi sbd0_def_free RS meta_eq_to_obj_eq;
               val sbd0 = Const (fst (Term.dest_Const (Morphism.term phi sbd0_free)),
                 mk_relT (`I sbd0T));
-    
+
               val Abs_sbd0T_inj = mk_Abs_inj_thm (#Abs_inject sbd0T_loc_info);
               val Abs_sbd0T_bij = mk_Abs_bij_thm lthy Abs_sbd0T_inj (#Abs_cases sbd0T_loc_info);
-    
+
               val sum_Cinfinite = mk_sum_Cinfinite bd0_Cinfinites;
               val sum_Card_order = sum_Cinfinite RS conjunct2;
               val sum_card_order = mk_sum_card_order bd0_card_orders;
-    
+
               val sbd0_ordIso = @{thm ssubst_Pair_rhs} OF
                 [@{thm dir_image} OF [Abs_sbd0T_inj, sum_Card_order], sbd0_def];
               val sbd0_Cinfinite = @{thm Cinfinite_cong} OF [sbd0_ordIso, sum_Cinfinite];
-    
+
               val sbd0_card_order = @{thm iffD2[OF arg_cong[of _ _ card_order]]} OF
                 [sbd0_def, @{thm card_order_dir_image} OF [Abs_sbd0T_bij, sum_card_order]];
-    
+
               fun mk_set_sbd0 i bd0_Card_order bd0s =
                 map (fn thm => @{thm ordLeq_ordIso_trans} OF
                   [bd0_Card_order RS mk_ordLeq_csum n i thm, sbd0_ordIso]) bd0s;
