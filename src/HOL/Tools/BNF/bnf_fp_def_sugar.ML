@@ -1556,7 +1556,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                           fun travese_nested_types t ctxt =
                             (case fastype_of t of
                               Type (type_name, xs) =>
-                              (case bnf_of lthy type_name of
+                              (case bnf_of ctxt type_name of
                                 NONE => ([], ctxt)
                               | SOME bnf =>
                                 let
@@ -1583,7 +1583,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                             if sel_rangeT = A then
                               ([mk_Trueprop_mem (selA $ ta, setA $ ta)], ctxt)
                             else
-                              travese_nested_types (selA $ ta) names_lthy;
+                              travese_nested_types (selA $ ta) ctxt;
                         in
                           if exists_subtype_in [A] sel_rangeT then
                             if is_refl_bool prem then
