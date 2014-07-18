@@ -5,7 +5,7 @@ init_components /home/isabelle/contrib "$HOME/admin/components/main"
 # to be retired:
 # JINJATHREADS_OPTIONS="-M 1 -q 0 -p 0"
 
-ISABELLE_GHC=/usr/bin/ghc
+ISABELLE_GHC=/opt/local/bin/ghc
 
 ISABELLE_HOME_USER=~/afp/isabelle-afp-poly
 
