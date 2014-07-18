@@ -84,7 +84,7 @@ lemma inf_bot_right_2:
   quickcheck[expect = counterexample]
   oops
 
-lemma inf_bot_right [simp]:
+lemma sup_bot_right [simp]:
   "(x :: 'a :: bounded_lattice_bot) \<squnion> \<bottom> = \<bottom>"
   quickcheck[expect = counterexample]
   oops
@@ -94,7 +94,7 @@ lemma sup_bot_left [simp]:
   quickcheck[expect = no_counterexample]
   by (rule sup_absorb2) simp
 
-lemma sup_bot_right [simp]:
+lemma sup_bot_right_2 [simp]:
   "(x :: 'a :: bounded_lattice_bot) \<squnion> \<bottom> = x"
   quickcheck[expect = no_counterexample]
   by (rule sup_absorb1) simp
