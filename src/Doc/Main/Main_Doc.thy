@@ -612,12 +612,12 @@ Functions and Relations & @{text"\<circ>"} & 55 & left\\
 &@{text"`"} & 90 & right\\
 &@{text"O"} & 75 & right\\
 &@{text"``"} & 90 & right\\
+&@{text"^^"} & 80 & right\\
 \hline
 Numbers & @{text"+"}, @{text"-"} & 65 & left \\
 &@{text"*"}, @{text"/"} & 70 & left \\
 &@{text"div"}, @{text"mod"} & 70 & left\\
 &@{text"^"} & 80 & right\\
-&@{text"^^"} & 80 & right\\
 &@{text"dvd"} & 50 \\
 \hline
 Lists & @{text"#"}, @{text"@"} & 65 & right\\
