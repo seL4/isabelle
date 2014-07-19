@@ -90,7 +90,7 @@ The package, like its predecessor, fully adheres to the LCF philosophy
 \footnote{However, some of the
 internal constructions and most of the internal proof obligations are skipped
 if the @{text quick_and_dirty} option is enabled.}
-The package is described in number of papers
+The package is described in a number of papers
 \cite{traytel-et-al-2012,blanchette-et-al-wit,blanchette-et-al-2014-impl,panny-et-al-2014}.
 The central notion is that of a \emph{bounded natural functor} (BNF)---a
 well-behaved type constructor for which nested (co)recursion is supported.
@@ -2628,7 +2628,7 @@ is identical to the left-hand side of a @{command datatype_new} or
 @{command codatatype} definition.
 
 The command is useful to reason abstractly about BNFs. The axioms are safe
-because there exists BNFs of arbitrary large arities. Applications must import
+because there exist BNFs of arbitrary large arities. Applications must import
 the theory @{theory BNF_Axiomatization}, located in the directory
 \verb|~~/src/|\allowbreak\verb|HOL/Library|, to use this functionality.
 *}
