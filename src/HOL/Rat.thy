@@ -957,13 +957,11 @@ lemma Frct_code_post [code_post]:
   "Frct (a, 0) = 0"
   "Frct (1, 1) = 1"
   "Frct (numeral k, 1) = numeral k"
-  "Frct (- numeral k, 1) = - numeral k"
   "Frct (1, numeral k) = 1 / numeral k"
-  "Frct (1, - numeral k) = 1 / - numeral k"
   "Frct (numeral k, numeral l) = numeral k / numeral l"
-  "Frct (numeral k, - numeral l) = numeral k / - numeral l"
-  "Frct (- numeral k, numeral l) = - numeral k / numeral l"
-  "Frct (- numeral k, - numeral l) = - numeral k / - numeral l"
+  "Frct (- a, b) = - Frct (a, b)"
+  "Frct (a, - b) = - Frct (a, b)"
+  "- (- Frct q) = Frct q"
   by (simp_all add: Fract_of_int_quotient)
 
 
