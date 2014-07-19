@@ -278,7 +278,7 @@ fun rev_sort_list_prefix cmp bnd xs =
 structure MaSh =
 struct
 
-fun select_visible_facts big_number recommends =
+fun select_visible_facts (big_number : real) recommends =
   List.app (fn at =>
     let val (j, ov) = Array.sub (recommends, at) in
       Array.update (recommends, at, (j, big_number + ov))
