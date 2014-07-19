@@ -1235,6 +1235,20 @@ by (induct xs rule: rev_induct) auto
 
 lemmas rev_cases = rev_exhaust
 
+lemma rev_nonempty_induct [consumes 1, case_names single snoc]:
+  assumes "xs \<noteq> []"
+  and single: "\<And>x. P [x]"
+  and snoc': "\<And>x xs. xs \<noteq> [] \<Longrightarrow> P xs \<Longrightarrow> P (xs@[x])"
+  shows "P xs"
+using `xs \<noteq> []` proof (induct xs rule: rev_induct)
+  case (snoc x xs) then show ?case
+  proof (cases xs)
+    case Nil thus ?thesis by (simp add: single)
+  next
+    case Cons with snoc show ?thesis by (fastforce intro!: snoc')
+  qed
+qed simp
+
 lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
 by(rule rev_cases[of xs]) auto
 
