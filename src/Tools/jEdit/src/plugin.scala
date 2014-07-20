@@ -191,54 +191,61 @@ class Plugin extends EBPlugin
       PIDE.init_models()
     }
 
+  private val delay_load_active = Synchronized(false)
+  private def delay_load_activated(): Boolean =
+    delay_load_active.guarded_access(a => Some((!a, true)))
+
   private lazy val delay_load =
     Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
-      if (Isabelle.continuous_checking) {
-        val view = jEdit.getActiveView()
+      if (Isabelle.continuous_checking && delay_load_activated()) {
+        try {
+          val view = jEdit.getActiveView()
 
-        val buffers = JEdit_Lib.jedit_buffers().toList
-        if (buffers.forall(_.isLoaded)) {
-          def loaded_buffer(name: String): Boolean =
-            buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
+          val buffers = JEdit_Lib.jedit_buffers().toList
+          if (buffers.forall(_.isLoaded)) {
+            def loaded_buffer(name: String): Boolean =
+              buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
 
-          val thys =
-            for {
-              buffer <- buffers
-              model <- PIDE.document_model(buffer)
-              if model.is_theory
-            } yield (model.node_name, Position.none)
+            val thys =
+              for {
+                buffer <- buffers
+                model <- PIDE.document_model(buffer)
+                if model.is_theory
+              } yield (model.node_name, Position.none)
 
-          val thy_info = new Thy_Info(PIDE.resources)
-          // FIXME avoid I/O in Swing thread!?!
-          val files = thy_info.dependencies("", thys).deps.map(_.name.node).
-            filter(file => !loaded_buffer(file) && PIDE.resources.check_file(view, file))
+            val thy_info = new Thy_Info(PIDE.resources)
+            // FIXME avoid I/O in Swing thread!?!
+            val files = thy_info.dependencies("", thys).deps.map(_.name.node).
+              filter(file => !loaded_buffer(file) && PIDE.resources.check_file(view, file))
 
-          if (!files.isEmpty) {
-            if (PIDE.options.bool("jedit_auto_load")) {
-              files.foreach(file => jEdit.openFile(null: View, file))
-            }
-            else {
-              val files_list = new ListView(files.sorted)
-              for (i <- 0 until files.length)
-                files_list.selection.indices += i
+            if (!files.isEmpty) {
+              if (PIDE.options.bool("jedit_auto_load")) {
+                files.foreach(file => jEdit.openFile(null: View, file))
+              }
+              else {
+                val files_list = new ListView(files.sorted)
+                for (i <- 0 until files.length)
+                  files_list.selection.indices += i
 
-              val answer =
-                GUI.confirm_dialog(view,
-                  "Auto loading of required files",
-                  JOptionPane.YES_NO_OPTION,
-                  "The following files are required to resolve theory imports.",
-                  "Reload selected files now?",
-                  new ScrollPane(files_list),
-                  new Isabelle.Continuous_Checking)
-              if (answer == 0) {
-                files.foreach(file =>
-                  if (files_list.selection.items.contains(file))
-                    jEdit.openFile(null: View, file))
+                val answer =
+                  GUI.confirm_dialog(view,
+                    "Auto loading of required files",
+                    JOptionPane.YES_NO_OPTION,
+                    "The following files are required to resolve theory imports.",
+                    "Reload selected files now?",
+                    new ScrollPane(files_list),
+                    new Isabelle.Continuous_Checking)
+                if (answer == 0) {
+                  files.foreach(file =>
+                    if (files_list.selection.items.contains(file))
+                      jEdit.openFile(null: View, file))
+                }
               }
             }
           }
         }
+        finally { delay_load_active.change(_ => false) }
       }
     }
 
