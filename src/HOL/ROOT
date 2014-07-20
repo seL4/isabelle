@@ -887,8 +887,8 @@ session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
     Quickcheck_Lattice_Examples
     Completeness
     Quickcheck_Interfaces
-    Hotel_Example
   theories [condition = ISABELLE_GHC]
+    Hotel_Example
     Quickcheck_Narrowing_Examples
 
 session "HOL-Quickcheck_Benchmark" in Quickcheck_Benchmark = HOL +
