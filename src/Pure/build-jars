@@ -86,6 +86,7 @@ declare -a SOURCES=(
   Tools/check_source.scala
   Tools/build.scala
   Tools/build_doc.scala
+  Tools/build_console.scala
   Tools/doc.scala
   Tools/keywords.scala
   Tools/main.scala

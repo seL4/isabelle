@@ -31,17 +31,18 @@ function usage()
 # options
 
 declare -a ISABELLE_OPTIONS=()
-declare -a BUILD_OPTIONS=()
 
+declare -a INCLUDE_DIRS=()
 LOGIC="$ISABELLE_LOGIC"
-DO_BUILD="true"
+NO_BUILD="false"
+declare -a BUILD_OPTIONS=()
+SYSTEM_MODE="false"
 
 while getopts "d:l:m:no:s" OPT
 do
   case "$OPT" in
     d)
-      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="-d"
-      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="$OPTARG"
+      INCLUDE_DIRS["${#INCLUDE_DIRS[@]}"]="$OPTARG"
       ;;
     l)
       LOGIC="$OPTARG"
@@ -51,16 +52,15 @@ do
       ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTARG"
       ;;
     n)
-      DO_BUILD="false"
+      NO_BUILD="true"
       ;;
     o)
       ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-o"
       ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTARG"
-      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="-o"
       BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="$OPTARG"
       ;;
     s)
-      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="-s"
+      SYSTEM_MODE="true"
       ;;
     \?)
       usage
@@ -78,14 +78,13 @@ shift $(($OPTIND - 1))
 
 ## main
 
-if [ "$DO_BUILD" = true ]
-then
-  "$ISABELLE_TOOL" build -b -n "${BUILD_OPTIONS[@]}" "$LOGIC" >/dev/null 2>/dev/null ||
-  {
-    echo "Build started for Isabelle/$LOGIC"
-    "$ISABELLE_TOOL" build -b "${BUILD_OPTIONS[@]}" "$LOGIC" || exit "$?"
-  }
-fi
+isabelle_admin_build jars || exit $?
+
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
+
+"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Console \
+  "$LOGIC" "$NO_BUILD" "$SYSTEM_MODE" \
+  "${INCLUDE_DIRS[@]}" $'\n' "${BUILD_OPTIONS[@]}" || exit "$?"
 
 if type -p "$ISABELLE_LINE_EDITOR" > /dev/null
 then
