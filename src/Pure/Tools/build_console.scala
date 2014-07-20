@@ -40,8 +40,11 @@ object Build_Console
           session ::
           Properties.Value.Boolean(no_build) ::
           Properties.Value.Boolean(system_mode) ::
-          Command_Line.Chunks(dirs, build_options) =>
-            val options = (Options.init() /: build_options)(_ + _)
+          options_file ::
+          Command_Line.Chunks(dirs, system_options) =>
+            val options = (Options.init() /: system_options)(_ + _)
+            File.write(Path.explode(options_file), YXML.string_of_body(options.encode))
+
             val progress = new Build.Console_Progress()
             progress.interrupt_handler {
               build_console(options, progress,

@@ -27,6 +27,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -I           startup Isar interaction mode"
+  echo "    -O           system options from given YXML file"
   echo "    -P           startup Proof General interaction mode"
   echo "    -S           secure mode -- disallow critical operations"
   echo "    -T ADDR      startup process wrapper, with socket address"
@@ -58,6 +59,7 @@ function fail()
 # options
 
 ISAR=""
+OPTIONS_FILE=""
 PROOFGENERAL=""
 SECURE=""
 WRAPPER_SOCKET=""
@@ -69,11 +71,14 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IPST:W:e:m:o:qrw" OPT
+while getopts "IO:PST:W:e:m:o:qrw" OPT
 do
   case "$OPT" in
     I)
       ISAR=true
+      ;;
+    O)
+      OPTIONS_FILE="$OPTARG"
       ;;
     P)
       PROOFGENERAL=true
@@ -220,8 +225,15 @@ elif [ -n "$WRAPPER_FIFOS" ]; then
   MLTEXT="$MLTEXT; Isabelle_Process.init_fifos \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
 else
   ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
-  "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" -- "${SYSTEM_OPTIONS[@]}" || \
-    fail "Failed to retrieve Isabelle system options"
+  if [ -n "$OPTIONS_FILE" ]; then
+    [ "${#SYSTEM_OPTIONS[@]}" -gt 0 ] && \
+      fail "Cannot provide options file and options on command-line"
+    mv "$OPTIONS_FILE" "$ISABELLE_PROCESS_OPTIONS" ||
+      fail "Failed to move options file \"$OPTIONS_FILE\""
+  else
+    "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" -- "${SYSTEM_OPTIONS[@]}" || \
+      fail "Failed to retrieve Isabelle system options"
+  fi
   if [ "$INPUT" != RAW_ML_SYSTEM -a "$INPUT" != RAW ]; then
     MLTEXT="Exn.capture_exit 2 Options.load_default (); $MLTEXT"
   fi

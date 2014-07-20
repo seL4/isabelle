@@ -363,6 +363,7 @@ Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
     -I           startup Isar interaction mode
+    -O           system options from given YXML file
     -P           startup Proof General interaction mode
     -S           secure mode -- disallow critical operations
     -T ADDR      startup process wrapper, with socket address
@@ -396,7 +397,7 @@ subsubsection {* Options *}
 
 text {*
   If the input heap file does not have write permission bits set, or
-  the @{verbatim "-r"} option is given explicitely, then the session
+  the @{verbatim "-r"} option is given explicitly, then the session
   started will be read-only.  That is, the ML world cannot be
   committed back into the image file.  Otherwise, a writable session
   enables commits into either the input file, or into another output
@@ -431,6 +432,9 @@ text {*
 
   \medskip Option @{verbatim "-o"} allows to override Isabelle system
   options for this process, see also \secref{sec:system-options}.
+  Alternatively, option @{verbatim "-O"} specifies the full environment of
+  system options as a file in YXML format (according to the Isabelle/Scala
+  function @{verbatim isabelle.Options.encode}).
 
   \medskip The @{verbatim "-I"} option makes Isabelle enter Isar
   interaction mode on startup, instead of the primitive ML top-level.

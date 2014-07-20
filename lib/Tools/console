@@ -35,7 +35,7 @@ declare -a ISABELLE_OPTIONS=()
 declare -a INCLUDE_DIRS=()
 LOGIC="$ISABELLE_LOGIC"
 NO_BUILD="false"
-declare -a BUILD_OPTIONS=()
+declare -a SYSTEM_OPTIONS=()
 SYSTEM_MODE="false"
 
 while getopts "d:l:m:no:s" OPT
@@ -55,9 +55,7 @@ do
       NO_BUILD="true"
       ;;
     o)
-      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-o"
-      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTARG"
-      BUILD_OPTIONS["${#BUILD_OPTIONS[@]}"]="$OPTARG"
+      SYSTEM_OPTIONS["${#SYSTEM_OPTIONS[@]}"]="$OPTARG"
       ;;
     s)
       SYSTEM_MODE="true"
@@ -82,9 +80,17 @@ isabelle_admin_build jars || exit $?
 
 declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
+OPTIONS_FILE="$ISABELLE_TMP_PREFIX/options$$"
+
 "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Console \
-  "$LOGIC" "$NO_BUILD" "$SYSTEM_MODE" \
-  "${INCLUDE_DIRS[@]}" $'\n' "${BUILD_OPTIONS[@]}" || exit "$?"
+  "$LOGIC" "$NO_BUILD" "$SYSTEM_MODE" "$OPTIONS_FILE" \
+  "${INCLUDE_DIRS[@]}" $'\n' "${SYSTEM_OPTIONS[@]}" || {
+  rm -f "$OPTIONS_FILE"
+  exit "$?"
+}
+
+ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-O"
+ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTIONS_FILE"
 
 if type -p "$ISABELLE_LINE_EDITOR" > /dev/null
 then
