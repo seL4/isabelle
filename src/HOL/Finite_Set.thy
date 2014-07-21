@@ -733,6 +733,11 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma fold_set_union_disj:
+  assumes "finite A" "finite B" "A \<inter> B = {}"
+  shows "Finite_Set.fold f z (A \<union> B) = Finite_Set.fold f (Finite_Set.fold f z A) B"
+using assms(2,1,3) by induction simp_all
+
 end
 
 text{* Other properties of @{const fold}: *}
