@@ -11,6 +11,7 @@ package isabelle
 
 import scala.collection.immutable.SortedMap
 import scala.util.parsing.combinator.RegexParsers
+import scala.util.matching.Regex
 import scala.math.Ordering
 
 
@@ -219,6 +220,9 @@ object Completion
   {
     override val whiteSpace = "".r
 
+    private val symbol_regex: Regex = """\\<\^?[A-Za-z0-9_']+>""".r
+    def is_symbol(s: CharSequence): Boolean = symbol_regex.pattern.matcher(s).matches
+
     private def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
     private def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}\^?<\\""".r
     private def escape: Parser[String] = """[a-zA-Z0-9_']+\\""".r
@@ -347,7 +351,10 @@ final class Completion private(
             case (a, _) :: _ =>
               val ok =
                 if (a == Completion.antiquote) language_context.antiquotes
-                else language_context.symbols || Completion.default_abbrs.exists(_._1 == a)
+                else
+                  language_context.symbols ||
+                  Completion.default_abbrs.exists(_._1 == a) ||
+                  Completion.Word_Parsers.is_symbol(a)
               if (ok) Some((a, abbrevs))
               else None
           }
