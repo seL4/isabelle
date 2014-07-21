@@ -6883,6 +6883,11 @@ lemma listsum_transfer[transfer_rule]:
   unfolding listsum_def[abs_def]
   by transfer_prover
 
+lemma rtrancl_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A" "bi_total A"
+  shows "(rel_set (rel_prod A A) ===> rel_set (rel_prod A A)) rtrancl rtrancl"
+unfolding rtrancl_def by transfer_prover
+
 end
 
 end

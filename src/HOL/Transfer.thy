@@ -536,6 +536,45 @@ lemma eq_onp_transfer [transfer_rule]:
   shows "((A ===> op=) ===> A ===> A ===> op=) eq_onp eq_onp"
 unfolding eq_onp_def[abs_def] by transfer_prover
 
+lemma rtranclp_parametric [transfer_rule]:
+  assumes "bi_unique A" "bi_total A"
+  shows "((A ===> A ===> op =) ===> A ===> A ===> op =) rtranclp rtranclp"
+proof(rule rel_funI iffI)+
+  fix R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and R' x y x' y'
+  assume R: "(A ===> A ===> op =) R R'" and "A x x'"
+  {
+    assume "R\<^sup>*\<^sup>* x y" "A y y'"
+    thus "R'\<^sup>*\<^sup>* x' y'"
+    proof(induction arbitrary: y')
+      case base
+      with `bi_unique A` `A x x'` have "x' = y'" by(rule bi_uniqueDr)
+      thus ?case by simp
+    next
+      case (step y z z')
+      from `bi_total A` obtain y' where "A y y'" unfolding bi_total_def by blast
+      hence "R'\<^sup>*\<^sup>* x' y'" by(rule step.IH)
+      moreover from R `A y y'` `A z z'` `R y z`
+      have "R' y' z'" by(auto dest: rel_funD)
+      ultimately show ?case ..
+    qed
+  next
+    assume "R'\<^sup>*\<^sup>* x' y'" "A y y'"
+    thus "R\<^sup>*\<^sup>* x y"
+    proof(induction arbitrary: y)
+      case base
+      with `bi_unique A` `A x x'` have "x = y" by(rule bi_uniqueDl)
+      thus ?case by simp
+    next
+      case (step y' z' z)
+      from `bi_total A` obtain y where "A y y'" unfolding bi_total_def by blast
+      hence "R\<^sup>*\<^sup>* x y" by(rule step.IH)
+      moreover from R `A y y'` `A z z'` `R' y' z'`
+      have "R y z" by(auto dest: rel_funD)
+      ultimately show ?case ..
+    qed
+  }
+qed
+
 end
 
 end

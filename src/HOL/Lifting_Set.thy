@@ -266,6 +266,12 @@ lemma vimage_parametric [transfer_rule]:
   shows "((A ===> B) ===> rel_set B ===> rel_set A) vimage vimage"
   unfolding vimage_def[abs_def] by transfer_prover
 
+lemma Image_parametric [transfer_rule]:
+  assumes "bi_unique A"
+  shows "(rel_set (rel_prod A B) ===> rel_set A ===> rel_set B) op `` op ``"
+by(intro rel_funI rel_setI)
+  (force dest: rel_setD1 bi_uniqueDr[OF assms], force dest: rel_setD2 bi_uniqueDl[OF assms])
+
 end
 
 lemma (in comm_monoid_set) F_parametric [transfer_rule]:
