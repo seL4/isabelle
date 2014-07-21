@@ -48,6 +48,11 @@ object Active
                   Swing_Thread.later { Graphview_Dockable(view, snapshot, graph) }
                 }
 
+              case XML.Elem(Markup(Markup.SIMP_TRACE_PANEL, _), _) =>
+                Swing_Thread.later {
+                  view.getDockableWindowManager.showDockableWindow("isabelle-simplifier-trace")
+                }
+
               case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
                 props match {
                   case Position.Id(id) =>
@@ -59,9 +64,6 @@ object Active
                     else text_area.setSelectedText(text)
                 }
                 text_area.requestFocus
-
-              case Simplifier_Trace.Active(serial, answer) =>
-                Simplifier_Trace.send_reply(PIDE.session, serial, answer)
 
               case Protocol.Dialog(id, serial, result) =>
                 model.session.dialog_result(id, serial, result)

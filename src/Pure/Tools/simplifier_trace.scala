@@ -65,7 +65,6 @@ object Simplifier_Trace
       val continue_passive = Answer("continue_passive", "Continue (without asking)")
       val continue_disable = Answer("continue_disable", "Continue (without any trace)")
 
-      val default = skip
       val all = List(continue, continue_trace, continue_passive, continue_disable, skip)
     }
 
@@ -74,26 +73,11 @@ object Simplifier_Trace
       val exit = Answer("exit", "Exit")
       val redo = Answer("redo", "Redo")
 
-      val default = exit
       val all = List(redo, exit)
     }
   }
 
   val all_answers: List[Answer] = Answer.step.all ::: Answer.hint_fail.all
-
-  object Active
-  {
-    def unapply(tree: XML.Tree): Option[(Long, Answer)] =
-      tree match {
-        case XML.Elem(Markup(Markup.SIMP_TRACE, props), _) =>
-          (props, props) match {
-            case (Markup.Serial(serial), Markup.Name(name)) =>
-              all_answers.find(_.name == name).map((serial, _))
-            case _ => None
-          }
-        case _ => None
-      }
-  }
 
 
   /* GUI interaction */
@@ -110,7 +94,7 @@ object Simplifier_Trace
   private object Clear_Memory
   case class Reply(session: Session, serial: Long, answer: Answer)
 
-  case class Question(data: Item.Data, answers: List[Answer], default_answer: Answer)
+  case class Question(data: Item.Data, answers: List[Answer])
 
   case class Context(
     last_serial: Long = 0L,
@@ -207,7 +191,7 @@ object Simplifier_Trace
                         case Some(answer) if data.memory =>
                           do_reply(session, serial, answer)
                         case _ =>
-                          new_context += Question(data, Answer.step.all, Answer.step.default)
+                          new_context += Question(data, Answer.step.all)
                       }
 
                     case Markup.SIMP_TRACE_HINT =>
@@ -215,11 +199,10 @@ object Simplifier_Trace
                         case Success(false) =>
                           results.get(data.parent) match {
                             case Some(Item(Markup.SIMP_TRACE_STEP, _)) =>
-                              new_context +=
-                                Question(data, Answer.hint_fail.all, Answer.hint_fail.default)
+                              new_context += Question(data, Answer.hint_fail.all)
                             case _ =>
                               // unknown, better send a default reply
-                              do_reply(session, data.serial, Answer.hint_fail.default)
+                              do_reply(session, data.serial, Answer.hint_fail.exit)
                           }
                         case _ =>
                       }
@@ -263,8 +246,7 @@ object Simplifier_Trace
             // current results.
 
             val items =
-              (for { (_, Item(_, data)) <- results.iterator }
-                yield data).toList
+              results.iterator.collect { case (_, Item(_, data)) => data }.toList
 
             slot.fulfill(Trace(items))
 
@@ -281,7 +263,7 @@ object Simplifier_Trace
 
           case Reply(session, serial, answer) =>
             find_question(serial) match {
-              case Some((id, Question(data, _, _))) =>
+              case Some((id, Question(data, _))) =>
                 if (data.markup == Markup.SIMP_TRACE_STEP && data.memory)
                 {
                   val index = Index.of_data(data)

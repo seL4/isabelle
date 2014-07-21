@@ -185,6 +185,7 @@ sig
   val use_theories_result: string -> bool -> Properties.T
   val print_operationsN: string
   val print_operations: Properties.T
+  val simp_trace_panelN: string
   val simp_trace_logN: string
   val simp_trace_stepN: string
   val simp_trace_recurseN: string
@@ -585,6 +586,8 @@ val print_operations = [(functionN, print_operationsN)];
 
 
 (* simplifier trace *)
+
+val simp_trace_panelN = "simp_trace_panel";
 
 val simp_trace_logN = "simp_trace_log";
 val simp_trace_stepN = "simp_trace_step";

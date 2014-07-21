@@ -11,6 +11,7 @@ package isabelle
 
 import scala.collection.immutable.SortedMap
 import scala.util.parsing.combinator.RegexParsers
+import scala.util.matching.Regex
 import scala.math.Ordering
 
 
@@ -219,6 +220,9 @@ object Completion
   {
     override val whiteSpace = "".r
 
+    private val symbol_regex: Regex = """\\<\^?[A-Za-z0-9_']+>""".r
+    def is_symbol(s: CharSequence): Boolean = symbol_regex.pattern.matcher(s).matches
+
     private def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
     private def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}\^?<\\""".r
     private def escape: Parser[String] = """[a-zA-Z0-9_']+\\""".r
@@ -230,16 +234,6 @@ object Completion
 
     def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
     def is_word_char(c: Char): Boolean = Symbol.is_ascii_letdig(c) || c == '.'
-
-    def extend_word(text: CharSequence, offset: Text.Offset): Text.Offset =
-    {
-      val n = text.length
-      var i = offset
-      while (i < n && is_word_char(text.charAt(i))) i += 1
-      if (i < n && text.charAt(i) == '>' && read_symbol(text.subSequence(0, i + 1)).isDefined)
-        i + 1
-      else i
-    }
 
     def read_symbol(in: CharSequence): Option[String] =
     {
@@ -341,7 +335,6 @@ final class Completion private(
     start: Text.Offset,
     text: CharSequence,
     caret: Int,
-    extend_word: Boolean,
     language_context: Completion.Language_Context): Option[Completion.Result] =
   {
     def decode(s: String): String = if (do_decode) Symbol.decode(s) else s
@@ -358,8 +351,11 @@ final class Completion private(
             case (a, _) :: _ =>
               val ok =
                 if (a == Completion.antiquote) language_context.antiquotes
-                else language_context.symbols || Completion.default_abbrs.exists(_._1 == a)
-              if (ok) Some(((a, abbrevs), caret))
+                else
+                  language_context.symbols ||
+                  Completion.default_abbrs.exists(_._1 == a) ||
+                  Completion.Word_Parsers.is_symbol(a)
+              if (ok) Some((a, abbrevs))
               else None
           }
         case _ => None
@@ -369,17 +365,10 @@ final class Completion private(
     val words_result =
       if (abbrevs_result.isDefined) None
       else {
-        val end =
-          if (extend_word) Completion.Word_Parsers.extend_word(text, caret)
-          else caret
         val result =
-          Completion.Word_Parsers.read_symbol(text.subSequence(0, end)) match {
+          Completion.Word_Parsers.read_symbol(text.subSequence(0, caret)) match {
             case Some(symbol) => Some((symbol, ""))
-            case None =>
-              val word_context =
-                end < length && Completion.Word_Parsers.is_word_char(text.charAt(end))
-              if (word_context) None
-              else Completion.Word_Parsers.read_word(explicit, text.subSequence(0, end))
+            case None => Completion.Word_Parsers.read_word(explicit, text.subSequence(0, caret))
           }
         result.map(
           {
@@ -397,13 +386,13 @@ final class Completion private(
                     if ok
                     completion <- words_map.get_list(complete_word)
                   } yield (complete_word, completion)
-              (((full_word, completions), end))
+              ((full_word, completions))
           })
       }
 
     (abbrevs_result orElse words_result) match {
-      case Some(((original, completions), end)) if !completions.isEmpty =>
-        val range = Text.Range(- original.length, 0) + end + start
+      case Some((original, completions)) if !completions.isEmpty =>
+        val range = Text.Range(- original.length, 0) + caret + start
         val immediate =
           explicit ||
             (!Completion.Word_Parsers.is_word(original) &&
