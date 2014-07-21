@@ -464,7 +464,6 @@ object Markup
 
   /* simplifier trace */
 
-  val SIMP_TRACE = "simp_trace"
   val SIMP_TRACE_PANEL = "simp_trace_panel"
 
   val SIMP_TRACE_LOG = "simp_trace_log"
