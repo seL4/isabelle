@@ -6,6 +6,7 @@ Interactive Simplifier trace.
 
 signature SIMPLIFIER_TRACE =
 sig
+  val see_panel: unit -> unit
   val add_term_breakpoint: term -> Context.generic -> Context.generic
   val add_thm_breakpoint: thm -> Context.generic -> Context.generic
 end
@@ -184,6 +185,14 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
 
 
 (** tracing output **)
+
+fun see_panel () =
+  let
+    val ((bg1, bg2), en) =
+      YXML.output_markup_elem
+        (Active.make_markup Markup.simp_trace_panelN {implicit = false, properties = []})
+  in writeln ("See " ^ bg1 ^ bg2 ^ "simplifier trace" ^ en) end
+
 
 fun send_request (result_id, content) =
   let
