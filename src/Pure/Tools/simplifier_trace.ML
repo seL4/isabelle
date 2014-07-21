@@ -419,7 +419,7 @@ val _ = Theory.setup
   (Attrib.setup @{binding simp_break}
     (Scan.repeat Args.term_pattern >> breakpoint)
     "declaration of a simplifier breakpoint" #>
-   Attrib.setup @{binding simplifier_trace} (Scan.lift config_parser)
+   Attrib.setup @{binding simp_trace_new} (Scan.lift config_parser)
     "simplifier trace configuration")
 
 end

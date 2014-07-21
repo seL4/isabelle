@@ -395,10 +395,12 @@ text {* The Simplifier performs conditional and unconditional
 subsection {* Simplification methods \label{sec:simp-meth} *}
 
 text {*
-  \begin{matharray}{rcl}
+  \begin{tabular}{rcll}
     @{method_def simp} & : & @{text method} \\
     @{method_def simp_all} & : & @{text method} \\
-  \end{matharray}
+    @{attribute_def simp_depth_limit} & : & @{text attribute} & default @{text 100} \\
+  \end{tabular}
+  \medskip
 
   @{rail \<open>
     (@@{method simp} | @@{method simp_all}) opt? (@{syntax simpmod} * )
@@ -462,6 +464,9 @@ text {*
 
   The proof method fails if all subgoals remain unchanged after
   simplification.
+
+  \item @{attribute simp_depth_limit} limits the number of recursive
+  invocations of the Simplifier during conditional rewriting.
 
   \end{description}
 
@@ -586,7 +591,7 @@ lemma "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightar
   apply simp
   oops
 
-text {* See also \secref{sec:simp-config} for options to enable
+text {* See also \secref{sec:simp-trace} for options to enable
   Simplifier trace mode, which often helps to diagnose problems with
   rewrite systems.
 *}
@@ -859,24 +864,31 @@ text {* Another application of ordered rewriting uses the derived rule
   reorientation and mutual simplification fail to apply.  *}
 
 
-subsection {* Configuration options \label{sec:simp-config} *}
+subsection {* Simplifier tracing and debugging \label{sec:simp-trace} *}
 
 text {*
   \begin{tabular}{rcll}
-    @{attribute_def simp_depth_limit} & : & @{text attribute} & default @{text 100} \\
     @{attribute_def simp_trace} & : & @{text attribute} & default @{text false} \\
     @{attribute_def simp_trace_depth_limit} & : & @{text attribute} & default @{text 1} \\
     @{attribute_def simp_debug} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def simp_trace_new} & : & @{text attribute} \\
+    @{attribute_def simp_break} & : & @{text attribute} \\
   \end{tabular}
   \medskip
 
-  These configurations options control further aspects of the Simplifier.
-  See also \secref{sec:config}.
+  @{rail \<open>
+    @@{attribute simp_trace_new} ('interactive')? \<newline>
+      ('mode' '=' ('full' | 'normal'))? \<newline>
+      ('depth' '=' @{syntax nat})?
+    ;
+
+    @@{attribute simp_break} (@{syntax term}*)
+  \<close>}
+
+  These attributes and configurations options control various aspects of
+  Simplifier tracing and debugging.
 
   \begin{description}
-
-  \item @{attribute simp_depth_limit} limits the number of recursive
-  invocations of the Simplifier during conditional rewriting.
 
   \item @{attribute simp_trace} makes the Simplifier output internal
   operations.  This includes rewrite steps, but also bookkeeping like
@@ -890,57 +902,30 @@ text {*
   information about internal operations.  This includes any attempted
   invocation of simplification procedures.
 
+  \item @{attribute simp_trace_new} controls Simplifier tracing within
+  Isabelle/PIDE applications, notably Isabelle/jEdit \cite{isabelle-jedit}.
+  This provides a hierarchical representation of the rewriting steps
+  performed by the Simplifier.
+
+  Users can configure the behaviour by specifying breakpoints, verbosity and
+  enabling or disabling the interactive mode. In normal verbosity (the
+  default), only rule applications matching a breakpoint will be shown to
+  the user. In full verbosity, all rule applications will be logged.
+  Interactive mode interrupts the normal flow of the Simplifier and defers
+  the decision how to continue to the user via some GUI dialog.
+
+  \item @{attribute simp_break} declares term or theorem breakpoints for
+  @{attribute simp_trace_new} as described above. Term breakpoints are
+  patterns which are checked for matches on the redex of a rule application.
+  Theorem breakpoints trigger when the corresponding theorem is applied in a
+  rewrite step. For example:
+
   \end{description}
 *}
 
-subsection {* Simplifier trace \label{sec:simplifier-trace} *}
-
-text {*
-  The new visual tracing facility is available in Isabelle/jEdit and
-  provides a hierarchical representation of the rewriting steps
-  performed by the simplifier.  It is intended to supersede the old
-  textual tracing in a future release.
-
-  Users can configure the behaviour of the new tracing by specifying
-  breakpoints, verbosity and enabling or disabling the interactive
-  mode.  In normal verbosity (the default), only rule applications
-  matching a breakpoint will be shown to the user.  In full verbosity,
-  all rule applications will be logged.
-
-  There are two kinds of breakpoints: term and theorem breakpoints.
-  Term breakpoints are patterns which are checked for matches on the
-  redex of a rule application.  Theorem breakpoints trigger when the
-  corresponding theorem is applied in a rewrite step.
-
-  In addition to that, the interactive mode interrupts the normal flow
-  of the simplifier and defers the decision how to continue to the
-  user.
-
-  \begin{matharray}{rcl}
-    @{attribute simplifier_trace} & : & @{text attribute} \\
-    @{attribute simp_break} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail \<open>
-    @@{attribute simplifier_trace} ('interactive')? \<newline>
-      ('mode' '=' ('full' | 'normal'))? \<newline>
-      ('depth' '=' @{syntax nat})?
-    ;
-
-    @@{attribute simp_break} (@{syntax term}*);
-  \<close>}
-
-  The @{attribute simp_break} option can be used to declare both term
-  and theorems, for example:
-*}
-
-declare conjI[simp_break]
+declare conjI [simp_break]
 declare [[simp_break "?x \<and> ?y"]]
 
-text{*
-  The other options behave in a similar way as for the old trace (see
-  \secref{sec:simp-config}).
-*}
 
 subsection {* Simplification procedures \label{sec:simproc} *}
 

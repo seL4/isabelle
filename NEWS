@@ -116,7 +116,7 @@ and window placement wrt. main editor view; optional menu item to
 "Detach" a copy where this makes sense.
 
 * New Simplifier Trace panel provides an interactive view of the
-simplification process, enabled by the "simplifier_trace" attribute
+simplification process, enabled by the "simp_trace_new" attribute
 within the context.
 
 
