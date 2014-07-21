@@ -893,6 +893,54 @@ text {*
   \end{description}
 *}
 
+subsection {* Simplifier trace \label{sec:simplifier-trace} *}
+
+text {*
+  The new visual tracing facility is available in Isabelle/jEdit and
+  provides a hierarchical representation of the rewriting steps
+  performed by the simplifier.  It is intended to supersede the old
+  textual tracing in a future release.
+
+  Users can configure the behaviour of the new tracing by specifying
+  breakpoints, verbosity and enabling or disabling the interactive
+  mode.  In normal verbosity (the default), only rule applications
+  matching a breakpoint will be shown to the user.  In full verbosity,
+  all rule applications will be logged.
+
+  There are two kinds of breakpoints: term and theorem breakpoints.
+  Term breakpoints are patterns which are checked for matches on the
+  redex of a rule application.  Theorem breakpoints trigger when the
+  corresponding theorem is applied in a rewrite step.
+
+  In addition to that, the interactive mode interrupts the normal flow
+  of the simplifier and defers the decision how to continue to the
+  user.
+
+  \begin{matharray}{rcl}
+    @{attribute simplifier_trace} & : & @{text attribute} \\
+    @{attribute simp_break} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail \<open>
+    @@{attribute simplifier_trace} ('interactive')? \<newline>
+      ('mode' '=' ('full' | 'normal'))? \<newline>
+      ('depth' '=' @{syntax nat})?
+    ;
+
+    @@{attribute simp_break} (@{syntax term}*);
+  \<close>}
+
+  The @{attribute simp_break} option can be used to declare both term
+  and theorems, for example:
+*}
+
+declare conjI[simp_break]
+declare [[simp_break "?x \<and> ?y"]]
+
+text{*
+  The other options behave in a similar way as for the old trace (see
+  \secref{sec:simp-config}).
+*}
 
 subsection {* Simplification procedures \label{sec:simproc} *}
 
