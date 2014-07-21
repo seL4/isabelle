@@ -29,50 +29,38 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private var current_results = Command.Results.empty
   private var current_id = 0L
   private var do_update = true
-  private var do_auto_reply = false
 
 
   private val text_area = new Pretty_Text_Area(view)
   set_content(text_area)
 
-  private def get_content(snapshot: Document.Snapshot, question: Simplifier_Trace.Question): XML.Tree =
+  private def update_contents()
   {
-    val data = question.data
 
-    def make_button(answer: Simplifier_Trace.Answer): XML.Tree =
-      XML.Wrapped_Elem(
-        Markup(Markup.SIMP_TRACE, Markup.Serial(data.serial) ::: Markup.Name(answer.name)),
-        Nil,
-        List(XML.Text(answer.string))
-      )
-
-    def make_block(body: XML.Body): XML.Body =
-      List(Pretty.Block(0, body))
-
-    val all = Pretty.separate(
-      XML.Text(data.text) ::
-      data.content :::
-      make_block(Library.separate(XML.Text(", "), question.answers map make_button))
-    )
-
-    XML.Elem(Markup(Markup.TEXT_FOLD, Nil), List(Pretty.block(all)))
-  }
-
-  private def set_context(snapshot: Document.Snapshot, context: Simplifier_Trace.Context)
-  {
     Swing_Thread.require {}
-    val questions = context.questions.values
-    if (do_auto_reply && !questions.isEmpty)
-    {
-      questions.foreach(q => Simplifier_Trace.send_reply(PIDE.session, q.data.serial, q.default_answer))
-      handle_update(do_update)
+
+    val snapshot = current_snapshot
+    val context = Simplifier_Trace.handle_results(PIDE.session, current_id, current_results)
+
+    answers.contents.clear()
+    context.questions.values.toList match {
+      case q :: _ =>
+        val data = q.data
+        val content = Pretty.separate(XML.Text(data.text) :: data.content)
+        text_area.update(snapshot, Command.Results.empty, content)
+        q.answers.foreach { answer =>
+          answers.contents += new Button(answer.string) {
+            reactions += {
+              case ButtonClicked(_) =>
+                Simplifier_Trace.send_reply(PIDE.session, data.serial, answer)
+            }
+          }
+        }
+      case Nil =>
+        text_area.update(snapshot, Command.Results.empty, Nil)
     }
-    else
-    {
-      val contents = Pretty.separate(questions.map(get_content(snapshot, _))(collection.breakOut))
-      text_area.update(snapshot, Command.Results.empty, contents)
-      do_paint()
-    }
+
+    do_paint()
   }
 
   private def show_trace()
@@ -86,14 +74,6 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     Swing_Thread.later {
       text_area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
     }
-  }
-
-  private def update_contents()
-  {
-    set_context(
-      current_snapshot,
-      Simplifier_Trace.handle_results(PIDE.session, current_id, current_results)
-    )
   }
 
   private def handle_resize()
@@ -195,15 +175,6 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
       }
     },
     new Separator(Orientation.Vertical),
-    new CheckBox("Auto reply") {
-      selected = do_auto_reply
-      reactions += {
-        case ButtonClicked(_) =>
-          do_auto_reply = this.selected
-          handle_update(do_update)
-      }
-    },
-    new Separator(Orientation.Vertical),
     new Button("Show trace") {
       reactions += {
         case ButtonClicked(_) =>
@@ -218,5 +189,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     }
   )
 
+  private val answers = new Wrap_Panel(Wrap_Panel.Alignment.Left)()
+
   add(controls.peer, BorderLayout.NORTH)
+  add(answers.peer, BorderLayout.SOUTH)
 }

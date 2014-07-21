@@ -60,9 +60,6 @@ object Active
                 }
                 text_area.requestFocus
 
-              case Simplifier_Trace.Active(serial, answer) =>
-                Simplifier_Trace.send_reply(PIDE.session, serial, answer)
-
               case Protocol.Dialog(id, serial, result) =>
                 model.session.dialog_result(id, serial, result)
 
