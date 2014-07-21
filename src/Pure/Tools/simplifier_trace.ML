@@ -60,36 +60,43 @@ structure Data = Generic_Data
      breakpoints = merge_breakpoints (breakpoints1, breakpoints2)}: T
 )
 
-fun map_breakpoints f_term f_thm =
+val get_data = Data.get o Context.Proof
+val put_data = Context.proof_map o Data.put
+
+val get_breakpoints = #breakpoints o get_data
+
+fun map_breakpoints f =
   Data.map
-    (fn {max_depth, mode, interactive, parent, memory, breakpoints = (term_bs, thm_bs)} =>
+    (fn {max_depth, mode, interactive, parent, memory, breakpoints} =>
       {max_depth = max_depth,
        mode = mode,
        interactive = interactive,
        memory = memory,
        parent = parent,
-       breakpoints = (f_term term_bs, f_thm thm_bs)})
+       breakpoints = f breakpoints})
 
 fun add_term_breakpoint term =
-  map_breakpoints (Item_Net.update term) I
+  map_breakpoints (apfst (Item_Net.update term))
 
 fun add_thm_breakpoint thm context =
   let
     val rrules = mk_rrules (Context.proof_of context) [thm]
   in
-    map_breakpoints I (fold Item_Net.update rrules) context
+    map_breakpoints (apsnd (fold Item_Net.update rrules)) context
   end
 
-fun is_breakpoint (term, rrule) context =
+fun check_breakpoint (term, rrule) ctxt =
   let
-    val {breakpoints, ...} = Data.get context
+    val thy = Proof_Context.theory_of ctxt
+    val (term_bs, thm_bs) = get_breakpoints ctxt
 
-    fun matches pattern = Pattern.matches (Context.theory_of context) (pattern, term)
-    val term_matches = filter matches (Item_Net.retrieve_matching (fst breakpoints) term)
+    val term_matches =
+      filter (fn pat => Pattern.matches thy (pat, term))
+        (Item_Net.retrieve_matching term_bs term)
 
-    val {thm = thm, ...} = rrule
-    val thm_matches = exists (eq_rrule o pair rrule)
-      (Item_Net.retrieve_matching (snd breakpoints) (Thm.full_prop_of thm))
+    val thm_matches =
+      exists (eq_rrule o pair rrule)
+        (Item_Net.retrieve_matching thm_bs (Thm.full_prop_of (#thm rrule)))
   in
     (term_matches, thm_matches)
   end
@@ -146,7 +153,7 @@ fun empty_payload () : payload =
 
 fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
   let
-    val {mode, interactive, memory, parent, ...} = Data.get (Context.Proof ctxt)
+    val {mode, interactive, memory, parent, ...} = get_data ctxt
 
     val eligible =
       (case mode of
@@ -195,7 +202,7 @@ type data = {term: term, thm: thm, unconditional: bool, ctxt: Proof.context, rru
 
 fun step ({term, thm, unconditional, ctxt, rrule}: data) =
   let
-    val (matching_terms, thm_triggered) = is_breakpoint (term, rrule) (Context.Proof ctxt)
+    val (matching_terms, thm_triggered) = check_breakpoint (term, rrule) ctxt
 
     val {name, ...} = rrule
     val term_triggered = not (null matching_terms)
@@ -232,21 +239,19 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
         {props = [], pretty = pretty}
       end
 
-    val {max_depth, mode, interactive, memory, breakpoints, ...} =
-      Data.get (Context.Proof ctxt)
+    val {max_depth, mode, interactive, memory, breakpoints, ...} = get_data ctxt
 
     fun mk_promise result =
       let
         val result_id = #1 result
 
-        fun put mode' interactive' = Data.put
+        fun put mode' interactive' = put_data
           {max_depth = max_depth,
            mode = mode',
            interactive = interactive',
            memory = memory,
            parent = result_id,
-           breakpoints = breakpoints} (Context.Proof ctxt) |>
-          Context.the_proof
+           breakpoints = breakpoints} ctxt
 
         fun to_response "skip" = NONE
           | to_response "continue" = SOME (put mode true)
@@ -273,22 +278,20 @@ fun recurse text depth term ctxt =
       {props = [],
        pretty = Syntax.pretty_term ctxt term}
 
-    val {max_depth, mode, interactive, memory, breakpoints, ...} =
-      Data.get (Context.Proof ctxt)
+    val {max_depth, mode, interactive, memory, breakpoints, ...} = get_data ctxt
 
-    fun put result_id = Data.put
+    fun put result_id = put_data
       {max_depth = max_depth,
        mode = if depth >= max_depth then Disabled else mode,
        interactive = interactive,
        memory = memory,
        parent = result_id,
-       breakpoints = breakpoints} (Context.Proof ctxt)
-
-    val context' =
-      (case mk_generic_result Markup.simp_trace_recurseN text true payload ctxt of
-        NONE => put 0
-      | SOME res => (output_result res; put (#1 res)))
-  in Context.the_proof context' end
+       breakpoints = breakpoints} ctxt
+  in
+    (case mk_generic_result Markup.simp_trace_recurseN text true payload ctxt of
+      NONE => put 0
+    | SOME res => (output_result res; put (#1 res)))
+  end
 
 fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
   let
@@ -314,7 +317,7 @@ fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
         {props = [(successN, "false")], pretty = pretty}
       end
 
-    val {interactive, ...} = Data.get (Context.Proof ctxt)
+    val {interactive, ...} = get_data ctxt
 
     fun mk_promise result =
       let
