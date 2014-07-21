@@ -9,7 +9,7 @@ ML_PLATFORM="x86-darwin"
 ML_HOME="/home/polyml/polyml-5.5.0/$ML_PLATFORM"
 ML_OPTIONS="-H 500"
 
-#ISABELLE_GHC=/opt/local/bin/ghc
+ISABELLE_GHC=ghc
 
 ISABELLE_HOME_USER=~/isabelle-mac-poly-M2
 
