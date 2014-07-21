@@ -6,7 +6,6 @@ Interactive Simplifier trace.
 
 signature SIMPLIFIER_TRACE =
 sig
-  val see_panel: unit -> unit
   val add_term_breakpoint: term -> Context.generic -> Context.generic
   val add_thm_breakpoint: thm -> Context.generic -> Context.generic
 end
@@ -191,7 +190,7 @@ fun see_panel () =
     val ((bg1, bg2), en) =
       YXML.output_markup_elem
         (Active.make_markup Markup.simp_trace_panelN {implicit = false, properties = []})
-  in writeln ("See " ^ bg1 ^ bg2 ^ "simplifier trace" ^ en) end
+  in "See " ^ bg1 ^ bg2 ^ "simplifier trace" ^ en end
 
 
 fun send_request (result_id, content) =
@@ -299,7 +298,10 @@ fun recurse text depth term ctxt =
   in
     (case mk_generic_result Markup.simp_trace_recurseN text true payload ctxt of
       NONE => put 0
-    | SOME res => (output_result res; put (#1 res)))
+    | SOME res =>
+       (if depth = 1 then writeln (see_panel ()) else ();
+        output_result res;
+        put (#1 res)))
   end
 
 fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
