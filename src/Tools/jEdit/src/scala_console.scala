@@ -59,28 +59,29 @@ class Scala_Console extends Shell("Scala")
 
   /* global state -- owned by Swing thread */
 
-  private var interpreters = Map.empty[Console, Interpreter]
+  @volatile private var interpreters = Map.empty[Console, Interpreter]
 
-  private var global_console: Console = null
-  private var global_out: Output = null
-  private var global_err: Output = null
+  @volatile private var global_console: Console = null
+  @volatile private var global_out: Output = null
+  @volatile private var global_err: Output = null
 
   private val console_stream = new OutputStream
   {
-    val buf = new StringBuffer
+    val buf = new StringBuilder
     override def flush()
     {
-      val s = buf.synchronized { val s = buf.toString; buf.setLength(0); s }
+      val s = buf.synchronized { val s = buf.toString; buf.clear; s }
       val str = UTF8.decode_permissive(s)
       Swing_Thread.later {
         if (global_out == null) System.out.print(str)
         else global_out.writeAttrs(null, str)
       }
+      Thread.sleep(10)  // FIXME adhoc delay to avoid loosing output
     }
     override def close() { flush () }
     def write(byte: Int) {
       val c = byte.toChar
-      buf.append(c)
+      buf.synchronized { buf.append(c) }
       if (c == '\n') flush()
     }
   }
