@@ -64,7 +64,8 @@ val _ =
   register "context" "context of local theory target" Toplevel.pretty_context;
 
 val _ =
-  register "cases" "cases of proof context" (Proof_Context.pretty_cases o Toplevel.context_of);
+  register "cases" "cases of proof context"
+    (Proof_Context.pretty_cases o Toplevel.context_of);
 
 val _ =
   register "terms" "term bindings of proof context"
@@ -72,7 +73,7 @@ val _ =
 
 val _ =
   register "theorems" "theorems of local theory or proof context"
-    (single o Isar_Cmd.pretty_theorems false);
+    (Isar_Cmd.pretty_theorems false);
 
 val _ =
   register "state" "proof state" Toplevel.pretty_state;

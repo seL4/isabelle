@@ -35,7 +35,7 @@ sig
   val ml_diag: bool -> Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
   val diag_state: Proof.context -> Toplevel.state
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
-  val pretty_theorems: bool -> Toplevel.state -> Pretty.T
+  val pretty_theorems: bool -> Toplevel.state -> Pretty.T list
   val thy_deps: Toplevel.transition -> Toplevel.transition
   val locale_deps: Toplevel.transition -> Toplevel.transition
   val class_deps: Toplevel.transition -> Toplevel.transition
@@ -262,7 +262,7 @@ val _ = Theory.setup
 
 fun pretty_theorems verbose st =
   if Toplevel.is_proof st then
-    Pretty.chunks (Proof_Context.pretty_local_facts (Toplevel.context_of st) verbose)
+    Proof_Context.pretty_local_facts (Toplevel.context_of st) verbose
   else
     let
       val thy = Toplevel.theory_of st;
