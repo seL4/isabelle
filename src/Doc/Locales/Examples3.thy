@@ -1,7 +1,7 @@
 theory Examples3
 imports Examples
 begin
-text {* \vspace{-5ex} *}
+
 subsection {* Third Version: Local Interpretation
   \label{sec:local-interpretation} *}
 

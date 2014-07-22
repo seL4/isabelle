@@ -1,7 +1,6 @@
 theory Examples2
 imports Examples
 begin
-text {* \vspace{-5ex} *}
   interpretation %visible int: partial_order "op \<le> :: [int, int] \<Rightarrow> bool"
     where "int.less x y = (x < y)"
   proof -

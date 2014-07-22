@@ -1,7 +1,7 @@
 theory Examples1
 imports Examples
 begin
-text {* \vspace{-5ex} *}
+
 section {* Use of Locales in Theories and Proofs
   \label{sec:interpretation} *}
 
