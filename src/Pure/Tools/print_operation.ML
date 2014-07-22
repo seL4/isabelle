@@ -7,7 +7,7 @@ Print operations as asynchronous query.
 
 signature PRINT_OPERATION =
 sig
-  val register: string -> string -> (Toplevel.state -> string) -> unit
+  val register: string -> string -> (Toplevel.state -> Pretty.T list) -> unit
 end;
 
 structure Print_Operation: PRINT_OPERATION =
@@ -19,7 +19,7 @@ local
 
 val print_operations =
   Synchronized.var "print_operations"
-    ([]: (string * (string * (Toplevel.state -> string))) list);
+    ([]: (string * (string * (Toplevel.state -> Pretty.T list))) list);
 
 fun report () =
   Output.try_protocol_message Markup.print_operations
@@ -47,13 +47,13 @@ fun register name description pr =
 val _ =
   Query_Operation.register "print_operation" (fn {state, args, output_result} =>
     let
-      val [name] = args;
-      val pr =
+      val _ = Toplevel.context_of state handle Toplevel.UNDEF => error "Unknown context";
+      fun err s = Pretty.mark_str (Markup.bad, s);
+      fun print name =
         (case AList.lookup (op =) (Synchronized.value print_operations) name of
-          SOME (_, pr) => pr
-        | NONE => error ("Unknown print operation: " ^ quote name));
-      val result = pr state handle Toplevel.UNDEF => error "Unknown context";
-    in output_result result end);
+          SOME (_, pr) => (pr state handle Toplevel.UNDEF => [err "Unknown context"])
+        | NONE => [err ("Unknown print operation: " ^ quote name)]);
+    in output_result (Pretty.string_of (Pretty.chunks (maps print args))) end);
 
 end;
 
@@ -61,24 +61,21 @@ end;
 (* common print operations *)
 
 val _ =
-  register "context" "context of local theory target"
-    (Pretty.string_of o Pretty.chunks o Toplevel.pretty_context);
+  register "context" "context of local theory target" Toplevel.pretty_context;
 
 val _ =
-  register "cases" "cases of proof context"
-    (Pretty.string_of o Pretty.chunks o Proof_Context.pretty_cases o Toplevel.context_of);
+  register "cases" "cases of proof context" (Proof_Context.pretty_cases o Toplevel.context_of);
 
 val _ =
   register "terms" "term bindings of proof context"
-    (Pretty.string_of o Pretty.chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of);
+    (Proof_Context.pretty_term_bindings o Toplevel.context_of);
 
 val _ =
   register "theorems" "theorems of local theory or proof context"
-    (Pretty.string_of o Isar_Cmd.pretty_theorems false);
+    (single o Isar_Cmd.pretty_theorems false);
 
 val _ =
-  register "state" "proof state"
-    (Pretty.string_of o Pretty.chunks o Toplevel.pretty_state);
+  register "state" "proof state" Toplevel.pretty_state;
 
 end;
 

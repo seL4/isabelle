@@ -184,6 +184,40 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private val print_operation = new Query_Dockable.Operation(view)
   {
+    /* items */
+
+    private class Item(val name: String, description: String, sel: Boolean)
+    {
+      val checkbox = new CheckBox(name) {
+        tooltip = "Print " + description
+        selected = sel
+        reactions += { case ButtonClicked(_) => apply_query() }
+      }
+    }
+
+    private var _items: List[Item] = Nil
+
+    private def selected_items(): List[String] =
+      for (item <- _items if item.checkbox.selected) yield item.name
+
+    private def update_items(): List[Item] =
+    {
+      val old_items = _items
+      def was_selected(name: String): Boolean =
+        old_items.find(item => item.name == name) match {
+          case None => false
+          case Some(item) => item.checkbox.selected
+        }
+
+      _items =
+        Print_Operation.print_operations(PIDE.session).map(
+          {
+            case (name, description) => new Item(name, description, was_selected(name))
+          })
+      _items
+    }
+
+
     /* query */
 
     private val process_indicator = new Process_Indicator
@@ -196,50 +230,13 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private def apply_query()
     {
-      query_operation.apply_query(List(selector.selection.item))
+      query_operation.apply_query(selected_items())
     }
 
     private val query_label = new Label("Print:")
     def query: JComponent = apply_button.peer
 
-
-    /* items */
-
-    case class Item(name: String, description: String)
-
-    class Renderer(old_renderer: ListView.Renderer[String], items: List[Item])
-      extends ListView.Renderer[String]
-    {
-      def componentFor(list: ListView[_],
-        selected: Boolean, focused: Boolean, item: String, index: Int) =
-      {
-        val component = old_renderer.componentFor(list, selected, focused, item, index)
-        try { component.tooltip = items(index).description }
-        catch { case _: IndexOutOfBoundsException => }
-        component
-      }
-    }
-
-    private var selector_item: Option[String] = None
-    private var selector = new ComboBox[String](Nil)
-
-    private def set_selector()
-    {
-      val items = Print_Operation.print_operations(PIDE.session).map(p => Item(p._1, p._2))
-
-      selector =
-        new ComboBox(items.map(_.name)) {
-          selector_item.foreach(item => selection.item = item)
-          listenTo(selection)
-          reactions += {
-            case SelectionChanged(_) =>
-              selector_item = Some(selection.item)
-              apply_query()
-          }
-        }
-      selector.renderer = new Renderer(selector.renderer, items)
-    }
-    set_selector()
+    update_items()
 
 
     /* GUI page */
@@ -259,10 +256,11 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     def select
     {
-      set_selector()
       control_panel.contents.clear
+      control_panel.contents += query_label
+      update_items().foreach(item => control_panel.contents += item.checkbox)
       control_panel.contents ++=
-        List(query_label, selector, process_indicator.component, apply_button,
+        List(process_indicator.component, apply_button,
           pretty_text_area.search_label, pretty_text_area.search_field, zoom)
     }
 
