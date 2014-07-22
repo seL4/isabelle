@@ -1225,6 +1225,12 @@ text {*
   situations, to tell that some language keywords should be excluded from
   further completion attempts. For example, @{verbatim ":"} within accepted
   Isar syntax looses its meaning as abbreviation for symbol @{text "\<in>"}.
+
+  \medskip The completion context is \emph{ignored} for built-in templates and
+  symbols in their explicit form ``@{verbatim "\<foobar>"}''; see also
+  \secref{sec:completion-varieties}. This allows to complete within broken
+  input that escapes its normal semantic context, e.g.\ antiquotations or
+  string literals in ML, which do not allow arbitrary backslash sequences.
 *}
 
 
