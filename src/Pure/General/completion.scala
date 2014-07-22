@@ -365,6 +365,8 @@ final class Completion private(
     val words_result =
       if (abbrevs_result.isDefined) None
       else {
+        val word_context =
+          caret < length && Completion.Word_Parsers.is_word_char(text.charAt(caret))
         val result =
           Completion.Word_Parsers.read_symbol(text.subSequence(0, caret)) match {
             case Some(symbol) => Some((symbol, ""))
@@ -381,7 +383,7 @@ final class Completion private(
                   for {
                     complete_word <- complete_words
                     ok =
-                      if (is_keyword(complete_word)) language_context.is_outer
+                      if (is_keyword(complete_word)) !word_context && language_context.is_outer
                       else language_context.symbols
                     if ok
                     completion <- words_map.get_list(complete_word)
