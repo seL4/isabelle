@@ -553,17 +553,20 @@ text {*
   The \emph{Console} plugin manages various shells (command interpreters),
   e.g.\ \emph{BeanShell}, which is the official jEdit scripting language, and
   the cross-platform \emph{System} shell. Thus the console provides similar
-  functionality than the special Emacs buffers @{verbatim "*scratch*"} and
+  functionality than the Emacs buffers @{verbatim "*scratch*"} and
   @{verbatim "*shell*"}.
 
   Isabelle/jEdit extends the repertoire of the console by \emph{Scala}, which
   is the regular Scala toplevel loop running inside the same JVM process as
   Isabelle/jEdit itself. This means the Scala command interpreter has access
-  to the JVM name space and state of the running Prover IDE application: the
-  main entry points are @{verbatim view} (the current editor view of jEdit)
-  and @{verbatim PIDE} (the Isabelle/jEdit plugin object). For example, the
-  Scala expression @{verbatim "PIDE.snapshot(view)"} makes a PIDE document
-  snapshot of the current buffer within the current editor view.
+  to the JVM name space and state of the running Prover IDE application. The
+  default environment imports the full content of packages @{verbatim
+  "isabelle"} and @{verbatim "isabelle.jedit"}.
+
+  For example, @{verbatim PIDE} refers to the Isabelle/jEdit plugin object,
+  and @{verbatim view} to the current editor view of jEdit. The Scala
+  expression @{verbatim "PIDE.snapshot(view)"} makes a PIDE document snapshot
+  of the current buffer within the current editor view.
 
   This helps to explore Isabelle/Scala functionality interactively. Some care
   is required to avoid interference with the internals of the running

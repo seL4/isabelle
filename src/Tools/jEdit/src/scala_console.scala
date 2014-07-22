@@ -153,7 +153,7 @@ class Scala_Console extends Shell("Scala")
       case Start(console) =>
         interp.bind("view", "org.gjt.sp.jedit.View", console.getView)
         interp.bind("console", "console.Console", console)
-        interp.interpret("import isabelle.jedit.PIDE")
+        interp.interpret("import isabelle._; import isabelle.jedit._")
         true
 
       case Execute(console, out, err, command) =>
