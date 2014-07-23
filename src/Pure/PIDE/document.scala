@@ -296,8 +296,11 @@ object Document
     def apply(name: Node.Name): Node =
       graph.default_node(name, Node.empty).get_node(name)
 
-    def is_maximal(name: Node.Name): Boolean =
-      graph.default_node(name, Node.empty).is_maximal(name)
+    def is_hidden(name: Node.Name): Boolean =
+    {
+      val graph1 = graph.default_node(name, Node.empty)
+      graph1.is_maximal(name) && graph1.get_node(name).is_empty
+    }
 
     def + (entry: (Node.Name, Node)): Nodes =
     {

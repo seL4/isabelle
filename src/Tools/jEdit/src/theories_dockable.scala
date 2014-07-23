@@ -195,23 +195,25 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     GUI_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
+    val nodes = snapshot.version.nodes
 
     val iterator =
       restriction match {
-        case Some(names) => names.iterator.map(name => (name, snapshot.version.nodes(name)))
-        case None => snapshot.version.nodes.iterator
+        case Some(names) => names.iterator.map(name => (name, nodes(name)))
+        case None => nodes.iterator
       }
     val nodes_status1 =
       (nodes_status /: iterator)({ case (status, (name, node)) =>
-          if (!name.is_theory || PIDE.resources.loaded_theories(name.theory)) status
-          else if (snapshot.version.nodes.is_maximal(name) && node.is_empty) status - name
+          if (!name.is_theory || PIDE.resources.loaded_theories(name.theory) || node.is_empty)
+            status
           else status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
 
-    if (nodes_status != nodes_status1) {
-      nodes_status = nodes_status1
-      status.listData =
-        snapshot.version.nodes.topological_order.filter(
-          (name: Document.Node.Name) => nodes_status.isDefinedAt(name))
+    val nodes_status2 =
+      nodes_status1 -- nodes_status1.keysIterator.filter(nodes.is_hidden(_))
+
+    if (nodes_status != nodes_status2) {
+      nodes_status = nodes_status2
+      status.listData = nodes.topological_order.filter(nodes_status.isDefinedAt(_))
     }
   }
 
