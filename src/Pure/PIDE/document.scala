@@ -293,9 +293,6 @@ object Document
 
   final class Nodes private(graph: Graph[Node.Name, Node])
   {
-    def get_name(s: String): Option[Node.Name] =
-      graph.keys_iterator.find(name => name.node == s)
-
     def apply(name: Node.Name): Node =
       graph.default_node(name, Node.empty).get_node(name)
 
@@ -307,7 +304,10 @@ object Document
         (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
       val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))
       val graph3 = (graph2 /: imports)((g, dep) => g.add_edge(dep, name))
-      new Nodes(graph3.map_node(name, _ => node))
+      new Nodes(
+        if (graph3.is_maximal(name) && node.is_empty) graph3.del_node(name)
+        else graph3.map_node(name, _ => node)
+      )
     }
 
     def iterator: Iterator[(Node.Name, Node)] =

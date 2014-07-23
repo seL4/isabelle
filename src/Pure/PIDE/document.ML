@@ -223,7 +223,13 @@ fun edit_nodes (name, node_edit) (Version nodes) =
     | Perspective perspective => update_node name (set_perspective perspective) nodes);
 
 fun put_node (name, node) (Version nodes) =
-  Version (update_node name (K node) nodes);
+  let
+    val nodes1 = update_node name (K node) nodes;
+    val nodes2 =
+      if String_Graph.is_maximal nodes1 name andalso is_empty_node node
+      then String_Graph.del_node name nodes1
+      else nodes1;
+  in Version nodes2 end;
 
 end;
 
