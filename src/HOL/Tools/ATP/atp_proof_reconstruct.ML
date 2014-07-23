@@ -50,7 +50,7 @@ sig
     ATP_Problem_Generate.type_enc -> string Symtab.table -> (string * term) list ->
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
   val repair_waldmeister_endgame : (term, 'a) atp_step list -> (term, 'a) atp_step list
-  val infer_formula_types : Proof.context -> term -> term
+  val infer_formula_types : Proof.context -> term list -> term list
   val introduce_spass_skolem : (term, string) atp_step list -> (term, string) atp_step list
   val factify_atp_proof : (string * 'a) list -> term list -> term -> (term, string) atp_step list ->
     (term, string) atp_step list
@@ -530,9 +530,12 @@ fun repair_name "$true" = "c_True"
     else
       s
 
+fun set_var_index j = map_aterms (fn Var ((s, _), T) => Var ((s, j), T) | t => t)
+
 fun infer_formula_types ctxt =
-  Type.constraint HOLogic.boolT
-  #> Syntax.check_term (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
+  map_index (uncurry (fn j => set_var_index j #> Type.constraint HOLogic.boolT))
+  #> Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
+  #> map (set_var_index 0)
 
 val combinator_table =
   [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def [abs_def]}),
@@ -571,8 +574,6 @@ fun termify_line _ _ _ _ _ (_, Type_Role, _, _, _) = NONE
         |> prop_of_atp ctxt format type_enc true sym_tab
         |> uncombine_term thy
         |> unlift_term lifted
-        |> infer_formula_types ctxt
-        |> HOLogic.mk_Trueprop
     in
       SOME (name, role, t, rule, deps)
     end
@@ -591,10 +592,14 @@ fun repair_waldmeister_endgame proof =
     repair_body proof
   end
 
+fun map_proof_terms f (lines : ('a * 'b * 'c * 'd * 'e) list) =
+  map2 (fn c => fn (a, b, _, d, e) => (a, b, c, d, e)) (f (map #3 lines)) lines
+
 fun termify_atp_proof ctxt local_prover format type_enc pool lifted sym_tab =
   nasty_atp_proof pool
   #> map_term_names_in_atp_proof repair_name
   #> map_filter (termify_line ctxt format type_enc lifted sym_tab)
+  #> map_proof_terms (infer_formula_types ctxt #> map HOLogic.mk_Trueprop)
   #> local_prover = waldmeisterN ? repair_waldmeister_endgame
 
 fun take_distinct_vars seen ((t as Var _) :: ts) =
