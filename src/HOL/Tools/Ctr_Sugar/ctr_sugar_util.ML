@@ -237,8 +237,9 @@ fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
 
 fun substitute_noted_thm noted =
-  let val tab = fold (fold (Thmtab.default o `I) o snd) noted Thmtab.empty in
-    Morphism.thm_morphism "Ctr_Sugar_Util.substitute_noted_thm" (perhaps (Thmtab.lookup tab))
+  let val tab = fold (fold (Termtab.default o `Thm.full_prop_of) o snd) noted Termtab.empty in
+    Morphism.thm_morphism "Ctr_Sugar_Util.substitute_noted_thm"
+      (perhaps (Termtab.lookup tab o Thm.full_prop_of))
   end
 
 (* The standard binding stands for a name generated following the canonical convention (e.g.,
