@@ -487,7 +487,7 @@ object Thy_Syntax
 
             nodes += (name -> node2)
         }
-        (doc_edits.toList, Document.Version.make(Some(syntax), nodes))
+        (doc_edits.toList.filterNot(_._2.is_void), Document.Version.make(Some(syntax), nodes))
       }
 
     Session.Change(previous, doc_blobs, syntax_changed, deps_changed, doc_edits, version)
