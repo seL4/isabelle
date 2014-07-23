@@ -878,9 +878,10 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
     val notes = (map_b, map_def) :: (rel_b, rel_def) :: (set_bs ~~ set_defs)
       |> map (fn (b, def) => ((b, []), [([def], [])]))
-    val lthy'' = lthy' |> Local_Theory.notes notes |> snd
+
+    val (noted, lthy'') = lthy' |> Local_Theory.notes notes
   in
-    ((bnf'', (all_deads, absT_info)), lthy'')
+    ((morph_bnf (substitute_noted_thm noted) bnf'', (all_deads, absT_info)), lthy'')
   end;
 
 exception BAD_DEAD of typ * typ;

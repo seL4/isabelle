@@ -752,7 +752,6 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
 
-
     val bnf_map_def = Morphism.thm phi raw_map_def;
     val bnf_set_defs = map (Morphism.thm phi) raw_set_defs;
     val bnf_bd_def = Morphism.thm phi raw_bd_def;
