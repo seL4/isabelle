@@ -146,24 +146,25 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
     val context = ML_Context.the_generic_context ();
     val thy = Context.theory_of context;
     val Command {pos, ...} = cmd;
+    val command_name = quote (Markup.markup Markup.keyword1 name);
     val _ =
       (case try (Thy_Header.the_keyword thy) name of
         SOME spec =>
           if Option.map #1 spec = SOME (Keyword.kind_files_of kind) then ()
           else error ("Inconsistent outer syntax keyword declaration " ^
-            quote name ^ Position.here pos)
+            command_name ^ Position.here pos)
       | NONE =>
           if Context.theory_name thy = Context.PureN
           then Keyword.define (name, SOME kind)
-          else error ("Undeclared outer syntax command " ^ quote name ^ Position.here pos));
+          else error ("Undeclared outer syntax command " ^ command_name ^ Position.here pos));
     val _ = Context_Position.report_generic context pos (command_markup true (name, cmd));
   in
     Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
      (if not (Symtab.defined commands name) then ()
       else if ! batch_mode then
-        error ("Attempt to redefine outer syntax command " ^ quote name)
+        error ("Attempt to redefine outer syntax command " ^ command_name)
       else
-        warning ("Redefining outer syntax command " ^ quote name ^
+        warning ("Redefining outer syntax command " ^ command_name ^
           Position.here (Position.thread_data ()));
       Symtab.update (name, cmd) commands)))
   end);
