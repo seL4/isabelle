@@ -9,12 +9,15 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.awt.Frame
+
 import scala.swing.CheckBox
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
+import org.gjt.sp.jedit.options.PluginOptions
 
 
 object Isabelle
@@ -313,6 +316,15 @@ object Isabelle
       spell_checker.reset()
       JEdit_Lib.jedit_views().foreach(_.repaint())
     }
+  }
+
+
+  /* plugin options */
+
+  def plugin_options(frame: Frame)
+  {
+    GUI_Thread.require {}
+    new org.gjt.sp.jedit.options.PluginOptions(frame, "plugin.isabelle.jedit.Plugin")
   }
 }
 

@@ -184,6 +184,9 @@ text {* Both jEdit and Isabelle have distinctive management of
   settings variable @{setting ISABELLE_BUILD_OPTIONS} to change defaults for
   batch builds without affecting Isabelle/jEdit.
 
+  The jEdit action @{action_def isabelle.options} opens the options dialog for
+  the Isabelle plugin; it can be mapped to editor GUI elements as usual.
+
   \medskip Options are usually loaded on startup and saved on shutdown of
   Isabelle/jEdit. Editing the machine-generated @{file_unchecked
   "$ISABELLE_HOME_USER/jedit/properties"} or @{file_unchecked

@@ -122,4 +122,9 @@
 	    isabelle.jedit.Isabelle.reset_dictionary();
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.options">
+	  <CODE>
+	    isabelle.jedit.Isabelle.plugin_options(view);
+	  </CODE>
+	</ACTION>
 </ACTIONS>

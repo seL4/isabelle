@@ -216,6 +216,7 @@ isabelle.include-word.label=Include word
 isabelle.include-word-permanently.label=Include word permanently
 isabelle.exclude-word.label=Exclude word
 isabelle.exclude-word-permanently.label=Exclude word permanently
+isabelle.options.label=Isabelle options
 isabelle.reset-words.label=Reset non-permanent words
 isabelle.reset-continuous-checking.label=Reset continuous checking
 isabelle.reset-font-size.label=Reset font size
