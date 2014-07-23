@@ -149,7 +149,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
     val opt_snapshot =
-      Swing_Thread.now {
+      GUI_Thread.now {
         Document_Model(buffer) match {
           case Some(model) if model.is_theory => Some(model.snapshot)
           case _ => None

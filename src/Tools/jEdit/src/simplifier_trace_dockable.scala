@@ -20,9 +20,9 @@ import org.gjt.sp.jedit.View
 
 class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.require {}
+  GUI_Thread.require {}
 
-  /* component state -- owned by Swing thread */
+  /* component state -- owned by GUI thread */
 
   private var current_snapshot = Document.State.init.snapshot()
   private var current_command = Command.empty
@@ -37,7 +37,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private def update_contents()
   {
 
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val snapshot = current_snapshot
     val context = Simplifier_Trace.handle_results(PIDE.session, current_id, current_results)
@@ -71,7 +71,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def do_paint()
   {
-    Swing_Thread.later {
+    GUI_Thread.later {
       text_area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
     }
   }
@@ -111,21 +111,21 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        Swing_Thread.later { handle_resize() }
+        GUI_Thread.later { handle_resize() }
 
       case changed: Session.Commands_Changed =>
-        Swing_Thread.later { handle_update(do_update) }
+        GUI_Thread.later { handle_update(do_update) }
 
       case Session.Caret_Focus =>
-        Swing_Thread.later { handle_update(do_update) }
+        GUI_Thread.later { handle_update(do_update) }
 
       case Simplifier_Trace.Event =>
-        Swing_Thread.later { handle_update(do_update) }
+        GUI_Thread.later { handle_update(do_update) }
     }
 
   override def init()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
@@ -136,7 +136,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   override def exit()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
@@ -149,7 +149,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   /* resize */
 
   private val delay_resize =
-    Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }

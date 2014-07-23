@@ -136,7 +136,7 @@ private object Simplifier_Trace_Window
 class Simplifier_Trace_Window(
   view: View, snapshot: Document.Snapshot, trace: Simplifier_Trace.Trace) extends Frame
 {
-  Swing_Thread.require {}
+  GUI_Thread.require {}
 
   private val pretty_text_area = new Pretty_Text_Area(view)
   private val zoom = new Font_Info.Zoom_Box { def changed = do_paint() }
@@ -167,7 +167,7 @@ class Simplifier_Trace_Window(
 
   def do_paint()
   {
-    Swing_Thread.later {
+    GUI_Thread.later {
       pretty_text_area.resize(
         Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
     }
@@ -182,7 +182,7 @@ class Simplifier_Trace_Window(
   /* resize */
 
   private val delay_resize =
-    Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
 
   peer.addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }

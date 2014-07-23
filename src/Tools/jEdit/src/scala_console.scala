@@ -57,7 +57,7 @@ class Scala_Console extends Shell("Scala")
   }
 
 
-  /* global state -- owned by Swing thread */
+  /* global state -- owned by GUI thread */
 
   @volatile private var interpreters = Map.empty[Console, Interpreter]
 
@@ -72,7 +72,7 @@ class Scala_Console extends Shell("Scala")
     {
       val s = buf.synchronized { val s = buf.toString; buf.clear; s }
       val str = UTF8.decode_permissive(s)
-      Swing_Thread.later {
+      GUI_Thread.later {
         if (global_out == null) System.out.print(str)
         else global_out.writeAttrs(null, str)
       }
@@ -124,7 +124,7 @@ class Scala_Console extends Shell("Scala")
   private def report_error(str: String)
   {
     if (global_console == null || global_err == null) System.err.println(str)
-    else Swing_Thread.later { global_err.print(global_console.getErrorColor, str) }
+    else GUI_Thread.later { global_err.print(global_console.getErrorColor, str) }
   }
 
 
@@ -167,7 +167,7 @@ class Scala_Console extends Shell("Scala")
             running.change(_ => None)
             Thread.interrupted()
           }
-          Swing_Thread.later {
+          GUI_Thread.later {
             if (err != null) err.commandDone()
             out.commandDone()
           }

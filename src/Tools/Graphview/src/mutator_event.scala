@@ -28,8 +28,8 @@ object Mutator_Event
   {
     private val receivers = new mutable.ListBuffer[Receiver]
 
-    def += (r: Receiver) { Swing_Thread.require {}; receivers += r }
-    def -= (r: Receiver) { Swing_Thread.require {}; receivers -= r }
-    def event(x: Message) { Swing_Thread.require {}; receivers.foreach(r => r(x)) }
+    def += (r: Receiver) { GUI_Thread.require {}; receivers += r }
+    def -= (r: Receiver) { GUI_Thread.require {}; receivers -= r }
+    def event(x: Message) { GUI_Thread.require {}; receivers.foreach(r => r(x)) }
   }
 }

@@ -68,7 +68,7 @@ class Pretty_Text_Area(
 {
   text_area =>
 
-  Swing_Thread.require {}
+  GUI_Thread.require {}
 
   private var current_font_info: Font_Info = Font_Info.main()
   private var current_body: XML.Body = Nil
@@ -83,13 +83,13 @@ class Pretty_Text_Area(
       get_search_pattern _, caret_visible = false, enable_hovering = true)
 
   private var current_search_pattern: Option[Regex] = None
-  def get_search_pattern(): Option[Regex] = Swing_Thread.require { current_search_pattern }
+  def get_search_pattern(): Option[Regex] = GUI_Thread.require { current_search_pattern }
 
   def get_background(): Option[Color] = None
 
   def refresh()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val font = current_font_info.font
     getPainter.setFont(font)
@@ -137,7 +137,7 @@ class Pretty_Text_Area(
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
           Exn.Interrupt.expose()
 
-          Swing_Thread.later {
+          GUI_Thread.later {
             current_rendering = rendering
             JEdit_Lib.buffer_edit(getBuffer) {
               rich_text_area.active_reset()
@@ -154,7 +154,7 @@ class Pretty_Text_Area(
 
   def resize(font_info: Font_Info)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     current_font_info = font_info
     refresh()
@@ -162,7 +162,7 @@ class Pretty_Text_Area(
 
   def update(base_snapshot: Document.Snapshot, base_results: Command.Results, body: XML.Body)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     require(!base_snapshot.is_outdated)
 
     current_base_snapshot = base_snapshot
@@ -173,7 +173,7 @@ class Pretty_Text_Area(
 
   def detach
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
   }
 
@@ -191,7 +191,7 @@ class Pretty_Text_Area(
     Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search")
       {
         private val input_delay =
-          Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
+          GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
             search_action(this)
           }
         getDocument.addDocumentListener(new DocumentListener {

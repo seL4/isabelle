@@ -22,15 +22,15 @@ class JEdit_Editor extends Editor[View]
 
   override def session: Session = PIDE.session
 
-  // owned by Swing thread
+  // owned by GUI thread
   private var removed_nodes = Set.empty[Document.Node.Name]
 
   def remove_node(name: Document.Node.Name): Unit =
-    Swing_Thread.require { removed_nodes += name }
+    GUI_Thread.require { removed_nodes += name }
 
   override def flush()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val doc_blobs = PIDE.document_blobs()
     val models = PIDE.document_models()
@@ -45,7 +45,7 @@ class JEdit_Editor extends Editor[View]
   }
 
   private val delay_flush =
-    Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
+    GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
 
   def invoke(): Unit = delay_flush.invoke()
 
@@ -53,17 +53,17 @@ class JEdit_Editor extends Editor[View]
   /* current situation */
 
   override def current_context: View =
-    Swing_Thread.require { jEdit.getActiveView() }
+    GUI_Thread.require { jEdit.getActiveView() }
 
   override def current_node(view: View): Option[Document.Node.Name] =
-    Swing_Thread.require { PIDE.document_model(view.getBuffer).map(_.node_name) }
+    GUI_Thread.require { PIDE.document_model(view.getBuffer).map(_.node_name) }
 
   override def current_node_snapshot(view: View): Option[Document.Snapshot] =
-    Swing_Thread.require { PIDE.document_model(view.getBuffer).map(_.snapshot()) }
+    GUI_Thread.require { PIDE.document_model(view.getBuffer).map(_.snapshot()) }
 
   override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
@@ -77,7 +77,7 @@ class JEdit_Editor extends Editor[View]
 
   override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val text_area = view.getTextArea
     val buffer = view.getBuffer
@@ -138,7 +138,7 @@ class JEdit_Editor extends Editor[View]
 
   def goto_file(view: View, name: String, line: Int = 0, column: Int = 0)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     push_position(view)
 

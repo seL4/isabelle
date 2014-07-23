@@ -1,8 +1,8 @@
-/*  Title:      Pure/GUI/swing_thread.scala
+/*  Title:      Pure/GUI/gui_thread.scala
     Module:     PIDE-GUI
     Author:     Makarius
 
-Evaluation within the AWT/Swing thread.
+Evaluation within the GUI thread: implementation for AWT/Swing.
 */
 
 package isabelle
@@ -11,7 +11,7 @@ package isabelle
 import javax.swing.SwingUtilities
 
 
-object Swing_Thread
+object GUI_Thread
 {
   /* context check */
 

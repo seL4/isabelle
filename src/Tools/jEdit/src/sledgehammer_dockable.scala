@@ -55,14 +55,14 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private def handle_resize()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     pretty_text_area.resize(
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
   }
 
   private val delay_resize =
-    Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
@@ -135,7 +135,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val main =
     Session.Consumer[Session.Global_Options](getClass.getName) {
-      case _: Session.Global_Options => Swing_Thread.later { update_provers(); handle_resize() }
+      case _: Session.Global_Options => GUI_Thread.later { update_provers(); handle_resize() }
     }
 
   override def init()

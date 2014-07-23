@@ -20,7 +20,7 @@ import org.gjt.sp.jedit.View
 
 object Info_Dockable
 {
-  /* implicit arguments -- owned by Swing thread */
+  /* implicit arguments -- owned by GUI thread */
 
   private var implicit_snapshot = Document.Snapshot.init
   private var implicit_results = Command.Results.empty
@@ -28,7 +28,7 @@ object Info_Dockable
 
   private def set_implicit(snapshot: Document.Snapshot, results: Command.Results, info: XML.Body)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     implicit_snapshot = snapshot
     implicit_results = results
@@ -48,7 +48,7 @@ object Info_Dockable
 
 class Info_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  /* component state -- owned by Swing thread */
+  /* component state -- owned by GUI thread */
 
   private val snapshot = Info_Dockable.implicit_snapshot
   private val results = Info_Dockable.implicit_results
@@ -72,7 +72,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private def handle_resize()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     pretty_text_area.resize(
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
@@ -82,7 +82,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   /* resize */
 
   private val delay_resize =
-    Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
@@ -97,7 +97,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val main =
     Session.Consumer[Session.Global_Options](getClass.getName) {
-      case _: Session.Global_Options => Swing_Thread.later { handle_resize() }
+      case _: Session.Global_Options => GUI_Thread.later { handle_resize() }
     }
 
   override def init()

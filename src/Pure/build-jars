@@ -42,10 +42,10 @@ declare -a SOURCES=(
   General/xz_file.scala
   GUI/color_value.scala
   GUI/gui.scala
+  GUI/gui_thread.scala
   GUI/html5_panel.scala
   GUI/jfx_thread.scala
   GUI/popup.scala
-  GUI/swing_thread.scala
   GUI/system_dialog.scala
   GUI/wrap_panel.scala
   Isar/keyword.scala

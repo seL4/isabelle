@@ -18,7 +18,7 @@ import scala.swing.event.ButtonClicked
 
 class System_Dialog extends Build.Progress
 {
-  /* GUI state -- owned by Swing thread */
+  /* component state -- owned by GUI thread */
 
   private var _title = "Isabelle"
   private var _window: Option[Window] = None
@@ -26,7 +26,7 @@ class System_Dialog extends Build.Progress
 
   private def check_window(): Window =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     _window match {
       case Some(window) => window
@@ -48,7 +48,7 @@ class System_Dialog extends Build.Progress
 
   private def conclude()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     require(_return_code.isDefined)
 
     _window match {
@@ -142,7 +142,7 @@ class System_Dialog extends Build.Progress
     /* exit */
 
     val delay_exit =
-      Swing_Thread.delay_first(Time.seconds(1.0))
+      GUI_Thread.delay_first(Time.seconds(1.0))
       {
         if (can_auto_close) conclude()
         else {
@@ -160,13 +160,13 @@ class System_Dialog extends Build.Progress
   /* progress operations */
 
   def title(txt: String): Unit =
-    Swing_Thread.later {
+    GUI_Thread.later {
       _title = txt
       _window.foreach(window => window.title = txt)
     }
 
   def return_code(rc: Int): Unit =
-    Swing_Thread.later {
+    GUI_Thread.later {
       _return_code = Some(rc)
       _window match {
         case None => conclude()
@@ -175,7 +175,7 @@ class System_Dialog extends Build.Progress
     }
 
   override def echo(txt: String): Unit =
-    Swing_Thread.later {
+    GUI_Thread.later {
       val window = check_window()
       window.text.append(txt + "\n")
       val vertical = window.scroll_text.peer.getVerticalScrollBar

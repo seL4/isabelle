@@ -153,7 +153,7 @@ object Isabelle
 
   def continuous_checking_=(b: Boolean)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     if (continuous_checking != b) {
       PIDE.options.bool(CONTINUOUS_CHECKING) = b
@@ -179,7 +179,7 @@ object Isabelle
 
   private def node_required_update(view: View, toggle: Boolean = false, set: Boolean = false)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     PIDE.document_model(view.getBuffer) match {
       case Some(model) =>
         model.node_required = (if (toggle) !model.node_required else set)

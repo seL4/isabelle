@@ -25,7 +25,7 @@ class Raw_Output_Dockable(view: View, position: String) extends Dockable(view, p
   private val main =
     Session.Consumer[Prover.Output](getClass.getName) {
       case output: Prover.Output =>
-        Swing_Thread.later {
+        GUI_Thread.later {
           text_area.append(XML.content(output.message))
           if (!output.is_stdout && !output.is_stderr) text_area.append("\n")
         }

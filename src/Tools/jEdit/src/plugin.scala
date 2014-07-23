@@ -90,7 +90,7 @@ object PIDE
 
   def exit_models(buffers: List[Buffer])
   {
-    Swing_Thread.now {
+    GUI_Thread.now {
       PIDE.editor.flush()
       buffers.foreach(buffer =>
         JEdit_Lib.buffer_lock(buffer) {
@@ -102,7 +102,7 @@ object PIDE
 
   def init_models()
   {
-    Swing_Thread.now {
+    GUI_Thread.now {
       PIDE.editor.flush()
 
       for {
@@ -128,7 +128,7 @@ object PIDE
   }
 
   def init_view(buffer: Buffer, text_area: JEditTextArea): Unit =
-    Swing_Thread.now {
+    GUI_Thread.now {
       JEdit_Lib.buffer_lock(buffer) {
         document_model(buffer) match {
           case Some(model) => Document_View.init(model, text_area)
@@ -138,7 +138,7 @@ object PIDE
     }
 
   def exit_view(buffer: Buffer, text_area: JEditTextArea): Unit =
-    Swing_Thread.now {
+    GUI_Thread.now {
       JEdit_Lib.buffer_lock(buffer) {
         Document_View.exit(text_area)
       }
@@ -147,7 +147,7 @@ object PIDE
 
   /* current document content */
 
-  def snapshot(view: View): Document.Snapshot = Swing_Thread.now
+  def snapshot(view: View): Document.Snapshot = GUI_Thread.now
   {
     val buffer = view.getBuffer
     document_model(buffer) match {
@@ -156,7 +156,7 @@ object PIDE
     }
   }
 
-  def rendering(view: View): Rendering = Swing_Thread.now
+  def rendering(view: View): Rendering = GUI_Thread.now
   {
     val text_area = view.getTextArea
     document_view(text_area) match {
@@ -186,7 +186,7 @@ class Plugin extends EBPlugin
   /* theory files */
 
   private lazy val delay_init =
-    Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
+    GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
       PIDE.init_models()
     }
@@ -196,7 +196,7 @@ class Plugin extends EBPlugin
     delay_load_active.guarded_access(a => Some((!a, true)))
 
   private lazy val delay_load =
-    Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
+    GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
       if (Isabelle.continuous_checking && delay_load_activated()) {
         try {
@@ -215,7 +215,7 @@ class Plugin extends EBPlugin
               } yield (model.node_name, Position.none)
 
             val thy_info = new Thy_Info(PIDE.resources)
-            // FIXME avoid I/O in Swing thread!?!
+            // FIXME avoid I/O on GUI thread!?!
             val files = thy_info.dependencies("", thys).deps.map(_.name.node).
               filter(file => !loaded_buffer(file) && PIDE.resources.check_file(view, file))
 
@@ -255,7 +255,7 @@ class Plugin extends EBPlugin
   private val session_phase =
     Session.Consumer[Session.Phase](getClass.getName) {
       case Session.Inactive | Session.Failed =>
-        Swing_Thread.later {
+        GUI_Thread.later {
           GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
             "Isabelle Syslog", GUI.scrollable_text(PIDE.session.syslog_content()))
         }
@@ -277,7 +277,7 @@ class Plugin extends EBPlugin
 
   override def handleMessage(message: EBMessage)
   {
-    Swing_Thread.assert {}
+    GUI_Thread.assert {}
 
     if (PIDE.startup_failure.isDefined && !PIDE.startup_notified) {
       message match {

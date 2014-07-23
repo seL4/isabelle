@@ -25,10 +25,10 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main =
     Session.Consumer[Prover.Message](getClass.getName) {
       case input: Prover.Input =>
-        Swing_Thread.later { text_area.append(input.toString + "\n\n") }
+        GUI_Thread.later { text_area.append(input.toString + "\n\n") }
 
       case output: Prover.Output =>
-        Swing_Thread.later { text_area.append(output.message.toString + "\n\n") }
+        GUI_Thread.later { text_area.append(output.message.toString + "\n\n") }
     }
 
   override def init() { PIDE.session.all_messages += main }

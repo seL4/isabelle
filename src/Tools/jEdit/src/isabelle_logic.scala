@@ -29,7 +29,7 @@ object Isabelle_Logic
 
   def logic_selector(autosave: Boolean): Option_Component =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val entries =
       new Logic_Entry("", "default (" + jedit_logic() + ")") ::

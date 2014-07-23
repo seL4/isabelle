@@ -28,7 +28,7 @@ class Query_Operation[Editor_Context](
   private val instance = Document_ID.make().toString
 
 
-  /* implicit state -- owned by Swing thread */
+  /* implicit state -- owned by GUI thread */
 
   @volatile private var current_location: Option[Command] = None
   @volatile private var current_query: List[String] = Nil
@@ -62,7 +62,7 @@ class Query_Operation[Editor_Context](
 
   private def content_update()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
 
     /* snapshot */
@@ -167,11 +167,11 @@ class Query_Operation[Editor_Context](
   /* query operations */
 
   def cancel_query(): Unit =
-    Swing_Thread.require { editor.session.cancel_exec(current_exec_id) }
+    GUI_Thread.require { editor.session.cancel_exec(current_exec_id) }
 
   def apply_query(query: List[String])
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     editor.current_node_snapshot(editor_context) match {
       case Some(snapshot) =>
@@ -196,7 +196,7 @@ class Query_Operation[Editor_Context](
 
   def locate_query()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     for {
       command <- current_location
@@ -216,7 +216,7 @@ class Query_Operation[Editor_Context](
           if current_update_pending ||
             (current_status != Query_Operation.Status.FINISHED &&
               changed.commands.contains(command)) =>
-            Swing_Thread.later { content_update() }
+            GUI_Thread.later { content_update() }
           case _ =>
         }
     }

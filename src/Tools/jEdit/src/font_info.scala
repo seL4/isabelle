@@ -42,7 +42,7 @@ object Font_Info
   {
     private def change_size(change: Float => Float)
     {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
 
       val size0 = main_size()
       val size = restrict_size(change(size0)).round
@@ -54,9 +54,9 @@ object Font_Info
       }
     }
 
-    // owned by Swing thread
+    // owned by GUI thread
     private var steps = 0
-    private val delay = Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
+    private val delay = GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
     {
       change_size(size =>
         {

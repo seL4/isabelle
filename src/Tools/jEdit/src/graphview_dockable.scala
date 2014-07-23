@@ -20,7 +20,7 @@ import scala.swing.TextArea
 
 object Graphview_Dockable
 {
-  /* implicit arguments -- owned by Swing thread */
+  /* implicit arguments -- owned by GUI thread */
 
   private var implicit_snapshot = Document.Snapshot.init
 
@@ -29,7 +29,7 @@ object Graphview_Dockable
 
   private def set_implicit(snapshot: Document.Snapshot, graph: Exn.Result[graphview.Model.Graph])
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     implicit_snapshot = snapshot
     implicit_graph = graph

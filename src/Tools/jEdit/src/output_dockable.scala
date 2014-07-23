@@ -20,7 +20,7 @@ import org.gjt.sp.jedit.View
 
 class Output_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  /* component state -- owned by Swing thread */
+  /* component state -- owned by GUI thread */
 
   private var do_update = true
   private var current_snapshot = Document.Snapshot.init
@@ -41,7 +41,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def handle_resize()
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     pretty_text_area.resize(
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
@@ -49,7 +49,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def handle_update(follow: Boolean, restriction: Option[Set[Command]])
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val (new_snapshot, new_command, new_results) =
       PIDE.editor.current_node_snapshot(view) match {
@@ -88,14 +88,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        Swing_Thread.later { handle_resize() }
+        GUI_Thread.later { handle_resize() }
 
       case changed: Session.Commands_Changed =>
         val restriction = if (changed.assignment) None else Some(changed.commands)
-        Swing_Thread.later { handle_update(do_update, restriction) }
+        GUI_Thread.later { handle_update(do_update, restriction) }
 
       case Session.Caret_Focus =>
-        Swing_Thread.later { handle_update(do_update, None) }
+        GUI_Thread.later { handle_update(do_update, None) }
     }
 
   override def init()
@@ -118,7 +118,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* resize */
 
   private val delay_resize =
-    Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }

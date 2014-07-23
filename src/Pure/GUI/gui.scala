@@ -89,7 +89,7 @@ object GUI
   private def simple_dialog(kind: Int, default_title: String,
     parent: Component, title: String, message: Seq[Any])
   {
-    Swing_Thread.now {
+    GUI_Thread.now {
       val java_message = message map { case x: scala.swing.Component => x.peer case x => x }
       JOptionPane.showMessageDialog(parent,
         java_message.toArray.asInstanceOf[Array[AnyRef]],
@@ -107,7 +107,7 @@ object GUI
     simple_dialog(JOptionPane.ERROR_MESSAGE, "Error", parent, title, message)
 
   def confirm_dialog(parent: Component, title: String, option_type: Int, message: Any*): Int =
-    Swing_Thread.now {
+    GUI_Thread.now {
       val java_message = message map { case x: scala.swing.Component => x.peer case x => x }
       JOptionPane.showConfirmDialog(parent,
         java_message.toArray.asInstanceOf[Array[AnyRef]], title,

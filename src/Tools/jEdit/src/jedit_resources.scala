@@ -62,7 +62,7 @@ class JEdit_Resources(
 
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
-    Swing_Thread.now {
+    GUI_Thread.now {
       JEdit_Lib.jedit_buffer(name) match {
         case Some(buffer) =>
           JEdit_Lib.buffer_lock(buffer) { Some(f(JEdit_Lib.buffer_reader(buffer))) }
@@ -113,7 +113,7 @@ class JEdit_Resources(
 
   override def commit(change: Session.Change)
   {
-    if (change.syntax_changed) Swing_Thread.later { jEdit.propertiesChanged() }
+    if (change.syntax_changed) GUI_Thread.later { jEdit.propertiesChanged() }
   }
 }
 

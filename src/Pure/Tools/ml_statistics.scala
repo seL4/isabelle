@@ -131,7 +131,7 @@ final class ML_Statistics private(val name: String, val stats: List[Properties.T
 
   def show_standard_frames(): Unit =
     ML_Statistics.standard_fields.map(chart(_)).foreach(c =>
-      Swing_Thread.later {
+      GUI_Thread.later {
         new Frame {
           iconImage = GUI.isabelle_image()
           title = name

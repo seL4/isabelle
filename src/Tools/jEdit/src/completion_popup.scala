@@ -52,7 +52,7 @@ object Completion_Popup
 
     def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] =
     {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
       text_area.getClientProperty(key) match {
         case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
         case _ => None
@@ -78,7 +78,7 @@ object Completion_Popup
 
     def exit(text_area: JEditTextArea)
     {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
       apply(text_area) match {
         case None =>
         case Some(text_area_completion) =>
@@ -98,7 +98,7 @@ object Completion_Popup
 
     def dismissed(text_area: TextArea): Boolean =
     {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
       apply(text_area) match {
         case Some(text_area_completion) => text_area_completion.dismissed()
         case None => false
@@ -108,7 +108,7 @@ object Completion_Popup
 
   class Text_Area private(text_area: JEditTextArea)
   {
-    // owned by Swing thread
+    // owned by GUI thread
     private var completion_popup: Option[Completion_Popup] = None
 
     def active_range: Option[Text.Range] =
@@ -255,7 +255,7 @@ object Completion_Popup
 
     private def insert(item: Completion.Item)
     {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
 
       val buffer = text_area.getBuffer
       val range = item.range
@@ -425,7 +425,7 @@ object Completion_Popup
 
     def input(evt: KeyEvent)
     {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
 
       if (PIDE.options.bool("jedit_completion")) {
         if (!evt.isConsumed) {
@@ -449,7 +449,7 @@ object Completion_Popup
     }
 
     private val input_delay =
-      Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
+      GUI_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
         action()
       }
 
@@ -458,7 +458,7 @@ object Completion_Popup
 
     def dismissed(): Boolean =
     {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
 
       completion_popup match {
         case Some(completion) =>
@@ -504,7 +504,7 @@ object Completion_Popup
     // see https://forums.oracle.com/thread/1361677
     if (GUI.is_macos_laf) text_field.setCaret(new DefaultCaret)
 
-    // owned by Swing thread
+    // owned by GUI thread
     private var completion_popup: Option[Completion_Popup] = None
 
 
@@ -527,7 +527,7 @@ object Completion_Popup
 
     private def insert(item: Completion.Item)
     {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
 
       val range = item.range
       if (text_field.isEditable) {
@@ -606,7 +606,7 @@ object Completion_Popup
     }
 
     private val process_delay =
-      Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
+      GUI_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
         action()
       }
 
@@ -642,7 +642,7 @@ class Completion_Popup private(
 {
   completion =>
 
-  Swing_Thread.require {}
+  GUI_Thread.require {}
 
   require(!items.isEmpty)
   val multi = items.length > 1

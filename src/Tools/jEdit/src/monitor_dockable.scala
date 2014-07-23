@@ -22,13 +22,13 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private val rev_stats = Synchronized(Nil: List[Properties.T])
 
 
-  /* chart data -- owned by Swing thread */
+  /* chart data -- owned by GUI thread */
 
   private val chart = ML_Statistics.empty.chart(null, Nil)
   private val data = chart.getXYPlot.getDataset.asInstanceOf[XYSeriesCollection]
 
   private val delay_update =
-    Swing_Thread.delay_first(PIDE.options.seconds("editor_chart_delay")) {
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_chart_delay")) {
       ML_Statistics("", rev_stats.value.reverse)
         .update_data(data, ML_Statistics.workers_fields._2) // FIXME selectable fields
     }

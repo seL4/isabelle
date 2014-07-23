@@ -42,7 +42,7 @@ object Token_Markup
 
   def edit_control_style(text_area: TextArea, control: String)
   {
-    Swing_Thread.assert {}
+    GUI_Thread.assert {}
 
     val buffer = text_area.getBuffer
 

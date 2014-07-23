@@ -51,7 +51,7 @@ final class Task_Statistics private(val name: String, val tasks: List[Properties
   }
 
   def show_frame(bins: Int = 100): Unit =
-    Swing_Thread.later {
+    GUI_Thread.later {
       new Frame {
         iconImage = GUI.isabelle_image()
         title = name

@@ -27,7 +27,7 @@ object Document_View
 
   def apply(text_area: TextArea): Option[Document_View] =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     text_area.getClientProperty(key) match {
       case doc_view: Document_View => Some(doc_view)
       case _ => None
@@ -36,7 +36,7 @@ object Document_View
 
   def exit(text_area: JEditTextArea)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     apply(text_area) match {
       case None =>
       case Some(doc_view) =>
@@ -71,7 +71,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   def perspective(snapshot: Document.Snapshot): Text.Perspective =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val active_command =
     {
@@ -125,7 +125,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       rich_text_area.robust_body(()) {
-        Swing_Thread.assert {}
+        GUI_Thread.assert {}
 
         val gutter = text_area.getGutter
         val width = GutterOptionPane.getSelectionAreaWidth
@@ -173,7 +173,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   /* caret handling */
 
   private val delay_caret_update =
-    Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
+    GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
       session.caret_focus.post(Session.Caret_Focus)
     }
 
@@ -187,7 +187,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private object overview extends Text_Overview(this)
   {
     val delay_repaint =
-      Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { repaint() }
+      GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { repaint() }
   }
 
 
@@ -200,7 +200,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
       case changed: Session.Commands_Changed =>
         val buffer = model.buffer
-        Swing_Thread.later {
+        GUI_Thread.later {
           JEdit_Lib.buffer_lock(buffer) {
             if (model.buffer == text_area.getBuffer) {
               val snapshot = model.snapshot()

@@ -25,19 +25,19 @@ object Pretty_Tooltip
 {
   /* tooltip hierarchy */
 
-  // owned by Swing thread
+  // owned by GUI thread
   private var stack: List[Pretty_Tooltip] = Nil
 
   private def hierarchy(tip: Pretty_Tooltip): Option[(List[Pretty_Tooltip], List[Pretty_Tooltip])] =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     if (stack.contains(tip)) Some(stack.span(_ != tip))
     else None
   }
 
   private def descendant(parent: JComponent): Option[Pretty_Tooltip] =
-    Swing_Thread.require { stack.find(tip => tip.original_parent == parent) }
+    GUI_Thread.require { stack.find(tip => tip.original_parent == parent) }
 
   def apply(
     view: View,
@@ -47,7 +47,7 @@ object Pretty_Tooltip
     results: Command.Results,
     info: Text.Info[XML.Body])
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     stack match {
       case top :: _ if top.results == results && top.info == info =>
@@ -71,13 +71,13 @@ object Pretty_Tooltip
   }
 
 
-  /* pending event and active state */  // owned by Swing thread
+  /* pending event and active state */  // owned by GUI thread
 
   private var pending: Option[() => Unit] = None
   private var active = true
 
   private val pending_delay =
-    Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
+    GUI_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
       pending match {
         case Some(body) => pending = None; body()
         case None =>
@@ -85,7 +85,7 @@ object Pretty_Tooltip
     }
 
   def invoke(body: () => Unit): Unit =
-    Swing_Thread.require {
+    GUI_Thread.require {
       if (active) {
         pending = Some(body)
         pending_delay.invoke()
@@ -93,18 +93,18 @@ object Pretty_Tooltip
     }
 
   def revoke(): Unit =
-    Swing_Thread.require {
+    GUI_Thread.require {
       pending = None
       pending_delay.revoke()
     }
 
   private lazy val reactivate_delay =
-    Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
+    GUI_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
       active = true
     }
 
   private def deactivate(): Unit =
-    Swing_Thread.require {
+    GUI_Thread.require {
       revoke()
       active = false
       reactivate_delay.invoke()
@@ -113,7 +113,7 @@ object Pretty_Tooltip
 
   /* dismiss */
 
-  private lazy val focus_delay = Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
+  private lazy val focus_delay = GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
   {
     dismiss_unfocused()
   }
@@ -173,7 +173,7 @@ class Pretty_Tooltip private(
 {
   tip =>
 
-  Swing_Thread.require {}
+  GUI_Thread.require {}
 
 
   /* controls */

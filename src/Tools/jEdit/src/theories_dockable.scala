@@ -73,7 +73,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def handle_phase(phase: Session.Phase)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     session_phase.text = " " + phase_text(phase) + " "
   }
 
@@ -87,7 +87,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   add(controls.peer, BorderLayout.NORTH)
 
 
-  /* component state -- owned by Swing thread */
+  /* component state -- owned by GUI thread */
 
   private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
   private var nodes_required: Set[Document.Node.Name] = Set.empty
@@ -192,7 +192,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
 
@@ -220,10 +220,10 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case phase: Session.Phase =>
-        Swing_Thread.later { handle_phase(phase) }
+        GUI_Thread.later { handle_phase(phase) }
 
       case _: Session.Global_Options =>
-        Swing_Thread.later {
+        GUI_Thread.later {
           continuous_checking.load()
           logic.load ()
           update_nodes_required()
@@ -231,7 +231,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         }
 
       case changed: Session.Commands_Changed =>
-        Swing_Thread.later { handle_update(Some(changed.nodes)) }
+        GUI_Thread.later { handle_update(Some(changed.nodes)) }
     }
 
   override def init()

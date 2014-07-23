@@ -145,13 +145,13 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   add(controls.peer, BorderLayout.NORTH)
 
 
-  /* component state -- owned by Swing thread */
+  /* component state -- owned by GUI thread */
 
   private var nodes_timing = Map.empty[Document.Node.Name, Protocol.Node_Timing]
 
   private def make_entries(): List[Entry] =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val name =
       Document_View(view.getTextArea) match {
@@ -174,7 +174,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
 
@@ -204,7 +204,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main =
     Session.Consumer[Session.Commands_Changed](getClass.getName) {
       case changed =>
-        Swing_Thread.later { handle_update(Some(changed.nodes)) }
+        GUI_Thread.later { handle_update(Some(changed.nodes)) }
     }
 
   override def init()

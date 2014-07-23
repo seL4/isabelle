@@ -16,7 +16,7 @@ object Active
 {
   def action(view: View, text: String, elem: XML.Elem)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     Document_View(view.getTextArea) match {
       case Some(doc_view) =>
@@ -45,11 +45,11 @@ object Active
                       isabelle.graphview.Model.decode_graph(body)
                         .transitive_reduction_acyclic
                     }
-                  Swing_Thread.later { Graphview_Dockable(view, snapshot, graph) }
+                  GUI_Thread.later { Graphview_Dockable(view, snapshot, graph) }
                 }
 
               case XML.Elem(Markup(Markup.SIMP_TRACE_PANEL, _), _) =>
-                Swing_Thread.later {
+                GUI_Thread.later {
                   view.getDockableWindowManager.showDockableWindow("isabelle-simplifier-trace")
                 }
 

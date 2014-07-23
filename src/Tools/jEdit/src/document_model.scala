@@ -25,7 +25,7 @@ object Document_Model
 
   def apply(buffer: Buffer): Option[Document_Model] =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     buffer.getProperty(key) match {
       case model: Document_Model => Some(model)
       case _ => None
@@ -34,7 +34,7 @@ object Document_Model
 
   def exit(buffer: Buffer)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     apply(buffer) match {
       case None =>
       case Some(model) =>
@@ -46,7 +46,7 @@ object Document_Model
 
   def init(session: Session, buffer: Buffer, node_name: Document.Node.Name): Document_Model =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     apply(buffer).map(_.deactivate)
     val model = new Document_Model(session, buffer, node_name)
     buffer.setProperty(key, model)
@@ -65,7 +65,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   def node_header(): Document.Node.Header =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     if (is_theory) {
       JEdit_Lib.buffer_lock(buffer) {
@@ -83,12 +83,12 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* perspective */
 
-  // owned by Swing thread
+  // owned by GUI thread
   private var _node_required = false
   def node_required: Boolean = _node_required
   def node_required_=(b: Boolean)
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
     if (_node_required != b && is_theory) {
       _node_required = b
       PIDE.options_changed()
@@ -98,7 +98,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   def node_perspective(doc_blobs: Document.Blobs): (Boolean, Document.Node.Perspective_Text) =
   {
-    Swing_Thread.require {}
+    GUI_Thread.require {}
 
     if (Isabelle.continuous_checking && is_theory) {
       val snapshot = this.snapshot()
@@ -135,12 +135,12 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* blob */
 
-  private var _blob: Option[(Bytes, Symbol.Text_Chunk)] = None  // owned by Swing thread
+  private var _blob: Option[(Bytes, Symbol.Text_Chunk)] = None  // owned by GUI thread
 
-  private def reset_blob(): Unit = Swing_Thread.require { _blob = None }
+  private def reset_blob(): Unit = GUI_Thread.require { _blob = None }
 
   def get_blob(): Option[Document.Blob] =
-    Swing_Thread.require {
+    GUI_Thread.require {
       if (is_theory) None
       else {
         val (bytes, chunk) =
@@ -184,7 +184,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* pending edits */
 
-  private object pending_edits  // owned by Swing thread
+  private object pending_edits  // owned by GUI thread
   {
     private var pending_clear = false
     private val pending = new mutable.ListBuffer[Text.Edit]
@@ -221,10 +221,10 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   }
 
   def snapshot(): Document.Snapshot =
-    Swing_Thread.require { session.snapshot(node_name, pending_edits.snapshot()) }
+    GUI_Thread.require { session.snapshot(node_name, pending_edits.snapshot()) }
 
   def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
-    Swing_Thread.require { pending_edits.flushed_edits(doc_blobs) }
+    GUI_Thread.require { pending_edits.flushed_edits(doc_blobs) }
 
 
   /* buffer listener */

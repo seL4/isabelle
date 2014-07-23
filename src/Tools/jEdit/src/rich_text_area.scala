@@ -43,7 +43,7 @@ class Rich_Text_Area(
   def robust_body[A](default: A)(body: => A): A =
   {
     try {
-      Swing_Thread.require {}
+      GUI_Thread.require {}
       if (buffer == text_area.getBuffer) body
       else {
         Log.log(Log.ERROR, this, ERROR("Implicit change of text area buffer"))
@@ -143,7 +143,7 @@ class Rich_Text_Area(
     def reset { update(None) }
   }
 
-  // owned by Swing thread
+  // owned by GUI thread
 
   private val highlight_area =
     new Active_Area[Color]((r: Rendering) => r.highlight _, None)
