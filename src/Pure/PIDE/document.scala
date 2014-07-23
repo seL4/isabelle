@@ -296,6 +296,9 @@ object Document
     def apply(name: Node.Name): Node =
       graph.default_node(name, Node.empty).get_node(name)
 
+    def is_maximal(name: Node.Name): Boolean =
+      graph.default_node(name, Node.empty).is_maximal(name)
+
     def + (entry: (Node.Name, Node)): Nodes =
     {
       val (name, node) = entry
