@@ -167,8 +167,15 @@ object Document
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
     case class Perspective[A, B](required: Boolean, visible: B, overlays: Overlays) extends Edit[A, B]
+
+
+    /* perspective */
+
     type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
     type Perspective_Command = Perspective[Command.Edit, Command.Perspective]
+
+    val empty_perspective_text: Perspective_Text =
+      Perspective(false, Text.Perspective.empty, Overlays.empty)
 
 
     /* commands */

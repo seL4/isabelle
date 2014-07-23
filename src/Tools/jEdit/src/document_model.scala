@@ -96,9 +96,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     }
   }
 
-  val empty_perspective: Document.Node.Perspective_Text =
-    Document.Node.Perspective(false, Text.Perspective.empty, Document.Node.Overlays.empty)
-
   def node_perspective(doc_blobs: Document.Blobs): (Boolean, Document.Node.Perspective_Text) =
   {
     Swing_Thread.require {}
@@ -132,7 +129,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           Text.Perspective(document_view_ranges ::: load_ranges),
           PIDE.editor.node_overlays(node_name)))
     }
-    else (false, empty_perspective)
+    else (false, Document.Node.empty_perspective_text)
   }
 
 
@@ -191,7 +188,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     private var pending_clear = false
     private val pending = new mutable.ListBuffer[Text.Edit]
-    private var last_perspective = empty_perspective
+    private var last_perspective = Document.Node.empty_perspective_text
 
     def is_pending(): Boolean = pending_clear || !pending.isEmpty
     def snapshot(): List[Text.Edit] = pending.toList
