@@ -54,6 +54,8 @@ Checklist for official releases
 - check "Handler catches all exceptions", using
   PolyML.Compiler.reportExhaustiveHandlers := true;
 
+- Mac OS X: check app bundle with Retina display;
+
 
 Repository fork
 ===============

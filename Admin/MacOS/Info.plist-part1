@@ -28,6 +28,8 @@
 <string></string>
 <key>LSApplicationCategoryType</key>
 <string>public.app-category.developer-tools</string>
+<key>NSHighResolutionCapable</key>
+<string>true</string>
 <key>JVMRuntime</key>
 <string>jdk</string>
 <key>JVMMainClassName</key>
