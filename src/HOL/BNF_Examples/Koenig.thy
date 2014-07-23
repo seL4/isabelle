@@ -6,7 +6,7 @@
 Koenig's lemma.
 *)
 
-header {* Koenig's lemma *}
+header {* Koenig's Lemma *}
 
 theory Koenig
 imports TreeFI Stream

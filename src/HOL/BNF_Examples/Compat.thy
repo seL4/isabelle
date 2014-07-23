@@ -1,3 +1,12 @@
+(*  Title:      HOL/BNF_Examples/Compat.thy
+    Author:     Jasmin Blanchette, TU Muenchen
+    Copyright   2014
+
+Tests for compatibility with the old datatype package.
+*)
+
+header {* Tests for Compatibility with the Old Datatype Package *}
+
 theory Compat
 imports Main
 begin

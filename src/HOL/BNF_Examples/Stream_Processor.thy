@@ -3,10 +3,10 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2014
 
-Stream processors---a syntactic representation of continuous functions on streams
+Stream processors---a syntactic representation of continuous functions on streams.
 *)
 
-header {* Stream Processors *}
+header {* Stream Processors---A Syntactic Representation of Continuous Functions on Streams *}
 
 theory Stream_Processor
 imports Stream "~~/src/HOL/Library/BNF_Axiomatization"
