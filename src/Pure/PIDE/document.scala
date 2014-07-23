@@ -87,7 +87,7 @@ object Document
     sealed case class Header(
       imports: List[Name],
       keywords: Thy_Header.Keywords,
-      errors: List[String] = Nil)
+      errors: List[String])
     {
       def error(msg: String): Header = copy(errors = errors ::: List(msg))
 
@@ -95,9 +95,8 @@ object Document
         copy(errors = errors.map(msg1 => Library.cat_message(msg1, msg2)))
     }
 
+    val no_header = Header(Nil, Nil, Nil)
     def bad_header(msg: String): Header = Header(Nil, Nil, List(msg))
-
-    val no_header = bad_header("No theory header")
 
     object Name
     {
@@ -171,11 +170,16 @@ object Document
     type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
     type Perspective_Command = Perspective[Command.Edit, Command.Perspective]
 
-    val empty_perspective_text: Perspective_Text =
+    val no_perspective_text: Perspective_Text =
       Perspective(false, Text.Perspective.empty, Overlays.empty)
 
-    val empty_perspective_command: Perspective_Command =
+    val no_perspective_command: Perspective_Command =
       Perspective(false, Command.Perspective.empty, Overlays.empty)
+
+    def is_no_perspective_command(perspective: Perspective_Command): Boolean =
+      !perspective.required &&
+      perspective.visible.is_empty &&
+      perspective.overlays.is_empty
 
 
     /* commands */
@@ -237,10 +241,19 @@ object Document
 
   final class Node private(
     val get_blob: Option[Document.Blob] = None,
-    val header: Node.Header = Node.bad_header("Bad theory header"),
-    val perspective: Node.Perspective_Command = Node.empty_perspective_command,
+    val header: Node.Header = Node.no_header,
+    val perspective: Node.Perspective_Command = Node.no_perspective_command,
     _commands: Node.Commands = Node.Commands.empty)
   {
+    def is_empty: Boolean =
+      get_blob.isEmpty &&
+      header == Node.no_header &&
+      Node.is_no_perspective_command(perspective) &&
+      commands.isEmpty
+
+    def commands: Linear_Set[Command] = _commands.commands
+    def load_commands: List[Command] = _commands.load_commands
+
     def clear: Node = new Node(header = header)
 
     def init_blob(blob: Document.Blob): Node = new Node(Some(blob.unchanged))
@@ -255,9 +268,6 @@ object Document
       perspective.required == other_perspective.required &&
       perspective.visible.same(other_perspective.visible) &&
       perspective.overlays == other_perspective.overlays
-
-    def commands: Linear_Set[Command] = _commands.commands
-    def load_commands: List[Command] = _commands.load_commands
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this

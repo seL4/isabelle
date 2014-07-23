@@ -314,6 +314,8 @@ object Command
 
   sealed case class Perspective(commands: List[Command])  // visible commands in canonical order
   {
+    def is_empty: Boolean = commands.isEmpty
+
     def same(that: Perspective): Boolean =
     {
       val cmds1 = this.commands

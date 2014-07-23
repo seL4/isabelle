@@ -72,10 +72,22 @@ fun make_perspective (required, command_ids, overlays) : perspective =
   visible_last = try List.last command_ids,
   overlays = Inttab.make_list overlays};
 
-val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["No theory header"]);
+val no_header = ("", Thy_Header.make ("", Position.none) [] [], []);
 val no_perspective = make_perspective (false, [], []);
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
+
+fun is_no_perspective ({required, visible, visible_last, overlays}: perspective) =
+  not required andalso
+  Inttab.is_empty visible andalso
+  is_none visible_last andalso
+  Inttab.is_empty overlays;
+
+fun is_empty_node (Node {header, perspective, entries, result}) =
+  header = no_header andalso
+  is_no_perspective perspective andalso
+  Entries.is_empty entries andalso
+  is_none result;
 
 
 (* basic components *)

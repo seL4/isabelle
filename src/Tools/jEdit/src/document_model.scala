@@ -129,7 +129,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           Text.Perspective(document_view_ranges ::: load_ranges),
           PIDE.editor.node_overlays(node_name)))
     }
-    else (false, Document.Node.empty_perspective_text)
+    else (false, Document.Node.no_perspective_text)
   }
 
 
@@ -188,7 +188,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     private var pending_clear = false
     private val pending = new mutable.ListBuffer[Text.Edit]
-    private var last_perspective = Document.Node.empty_perspective_text
+    private var last_perspective = Document.Node.no_perspective_text
 
     def is_pending(): Boolean = pending_clear || !pending.isEmpty
     def snapshot(): List[Text.Edit] = pending.toList

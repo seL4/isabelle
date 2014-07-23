@@ -89,19 +89,22 @@ class Resources(
   def check_thy_reader(qualifier: String, name: Document.Node.Name, reader: Reader[Char])
     : Document.Node.Header =
   {
-    try {
-      val header = Thy_Header.read(reader).decode_symbols
+    if (reader.source.length > 0) {
+      try {
+        val header = Thy_Header.read(reader).decode_symbols
 
-      val base_name = Long_Name.base_name(name.theory)
-      val name1 = header.name
-      if (base_name != name1)
-        error("Bad file name " + Resources.thy_path(Path.basic(base_name)) +
-          " for theory " + quote(name1))
+        val base_name = Long_Name.base_name(name.theory)
+        val name1 = header.name
+        if (base_name != name1)
+          error("Bad file name " + Resources.thy_path(Path.basic(base_name)) +
+            " for theory " + quote(name1))
 
-      val imports = header.imports.map(import_name(qualifier, name, _))
-      Document.Node.Header(imports, header.keywords, Nil)
+        val imports = header.imports.map(import_name(qualifier, name, _))
+        Document.Node.Header(imports, header.keywords, Nil)
+      }
+      catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
     }
-    catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
+    else Document.Node.no_header
   }
 
   def check_thy(qualifier: String, name: Document.Node.Name): Document.Node.Header =

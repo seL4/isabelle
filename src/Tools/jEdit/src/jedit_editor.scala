@@ -38,7 +38,7 @@ class JEdit_Editor extends Editor[View]
     val removed = removed_nodes; removed_nodes = Set.empty
     val removed_perspective =
       (removed -- models.iterator.map(_.node_name)).toList.map(
-        name => (name, Document.Node.empty_perspective_text))
+        name => (name, Document.Node.no_perspective_text))
 
     val edits = models.flatMap(_.flushed_edits(doc_blobs)) ::: removed_perspective
     if (!edits.isEmpty) session.update(doc_blobs, edits)
