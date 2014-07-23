@@ -156,6 +156,12 @@ object Document
           case _ =>
         }
       }
+
+      def is_void: Boolean =
+        this match {
+          case Edits(Nil) => true
+          case _ => false
+        }
     }
     case class Clear[A, B]() extends Edit[A, B]
     case class Blob[A, B](blob: Document.Blob) extends Edit[A, B]
