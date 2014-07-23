@@ -212,9 +212,8 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 (* E *)
 
-fun is_e_at_least_1_3 () = string_ord (getenv "E_VERSION", "1.3") <> LESS
-fun is_e_at_least_1_6 () = string_ord (getenv "E_VERSION", "1.6") <> LESS
 fun is_e_at_least_1_8 () = string_ord (getenv "E_VERSION", "1.8") <> LESS
+fun is_e_at_least_1_9 () = string_ord (getenv "E_VERSION", "1.9") <> LESS
 
 val e_smartN = "smart"
 val e_autoN = "auto"
@@ -286,29 +285,19 @@ fun e_term_order_info_arguments false false _ = ""
        else "")
     end
 
-fun effective_e_selection_heuristic ctxt =
-  if is_e_at_least_1_3 () then Config.get ctxt e_selection_heuristic
-  else e_autoN
-
-fun e_kbo () = if is_e_at_least_1_3 () then "KBO6" else "KBO"
-
 val e_config : atp_config =
   {exec = (fn () => (["E_HOME"],
-     if is_e_at_least_1_8 () then ["eprover"] else ["eproof_ram", "eproof"])),
+     if is_e_at_least_1_9 () then ["eprover"] else ["eproof_ram", "eproof"])),
    arguments = fn ctxt => fn full_proof => fn heuristic => fn timeout => fn file_name =>
      fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
        (if is_e_at_least_1_8 () then "--auto-schedule " else "") ^
        "--tstp-in --tstp-out --silent " ^
        e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
        e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
-       "--term-ordering=" ^ (if is_lpo then "LPO4" else e_kbo ()) ^ " " ^
+       "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
-       (if is_e_at_least_1_8 () then
-          " --proof-object=1"
-        else
-          " --output-level=5" ^
-          (if is_e_at_least_1_6 () then " --pcl-shell-level=" ^ (if full_proof then "0" else "2")
-           else "")) ^
+       (if is_e_at_least_1_9 () then " --proof-object=3"
+        else " --output-level=5 --pcl-shell-level=" ^ (if full_proof then "0" else "2")) ^
        " " ^ file_name,
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
@@ -319,7 +308,7 @@ val e_config : atp_config =
      known_szs_status_failures,
    prem_role = Conjecture,
    best_slices = fn ctxt =>
-     let val heuristic = effective_e_selection_heuristic ctxt in
+     let val heuristic = Config.get ctxt e_selection_heuristic in
        (* FUDGE *)
        if heuristic = e_smartN then
          [(0.15, (((128, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
