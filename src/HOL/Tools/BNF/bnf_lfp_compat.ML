@@ -163,7 +163,8 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
   in
     lthy
     |> Local_Theory.raw_theory register_interpret
-    |> Local_Theory.notes all_notes |> snd
+    |> Local_Theory.notes all_notes
+    |> snd
   end;
 
 val _ =

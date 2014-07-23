@@ -163,7 +163,7 @@ fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs live_
          co_rec_thms = nth co_rec_thmss kk, disc_co_recs = nth disc_co_recss kk,
          sel_co_recss = nth sel_co_recsss kk, rel_injects = nth rel_injectss kk,
          rel_distincts = nth rel_distinctss kk}
-        |> morph_fp_sugar (substitute_noted_thm noted)) Ts
+        |> morph_fp_sugar (substitute_noted_thm noted)) Ts;
   in
     register_fp_sugars fp_sugars
   end;
@@ -601,11 +601,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
             mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' fp_abs_inverses
               abs_inverses fp_nesting_set_maps pre_set_defss)
-          |> singleton (Proof_Context.export names_lthy lthy)
-          (* for "datatype_realizer.ML": *)
-          |> Thm.name_derivation (fst (dest_Type (hd fpTs)) ^ Long_Name.separator ^
-            (if nn > 1 then space_implode "_" (tl fp_b_names) ^ Long_Name.separator else "") ^
-            inductN);
+          |> singleton (Proof_Context.export names_lthy lthy);
       in
         `(conj_dests nn) thm
       end;
@@ -1702,7 +1698,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           (if nn > 1 then
              [(inductN, [induct_thm], induct_attrs),
               (rel_inductN, common_rel_induct_thms, common_rel_induct_attrs)]
-           else [])
+           else
+             [])
           |> massage_simple_notes fp_common_name;
 
         val notes =
@@ -1715,6 +1712,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         lthy
         |> Spec_Rules.add Spec_Rules.Equational (recs, flat rec_thmss)
         |> Local_Theory.notes (common_notes @ notes)
+        (* for "datatype_realizer.ML": *)
+        |>> name_noted_thms
+          (fst (dest_Type (hd fpTs)) ^ (implode (map (prefix "_") (tl fp_b_names)))) inductN
         |-> register_as_fp_sugars fpTs fpBTs Xs Least_FP pre_bnfs absT_infos fp_nesting_bnfs
           live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs mapss [induct_thm]
           (map single induct_thms) rec_thmss (replicate nn []) (replicate nn []) rel_injectss

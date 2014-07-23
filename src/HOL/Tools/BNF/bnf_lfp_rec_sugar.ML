@@ -481,8 +481,8 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
               mk_primrec_tac lthy' num_extra_args fp_nesting_map_ident0s fp_nesting_map_comps
                 def_thms rec_thm
               |> K |> Goal.prove_sorry lthy' [] [] user_eqn
-              (* for code extraction from proof terms: *)
               |> singleton (Proof_Context.export lthy' lthy)
+              (* for code extraction from proof terms: *)
               |> Thm.name_derivation (Sign.full_name thy (Binding.name fun_name) ^
                 Long_Name.separator ^ simpsN ^
                 (if js = [0] then "" else "_" ^ string_of_int (j + 1))))

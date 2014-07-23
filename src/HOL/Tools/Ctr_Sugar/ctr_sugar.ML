@@ -629,14 +629,9 @@ fun prepare_free_constructors prep_term
 
     val goalss = [exhaust_goal] :: inject_goalss @ half_distinct_goalss;
 
-    fun after_qed thmss lthy =
+    fun after_qed ([exhaust_thm] :: thmss) lthy =
       let
-        val ([exhaust_thm0], (inject_thmss, half_distinct_thmss)) = (hd thmss, chop n (tl thmss));
-        (* for "datatype_realizer.ML": *)
-        val exhaust_thm =
-          Thm.name_derivation (fcT_name ^ Long_Name.separator ^ exhaustN) exhaust_thm0;
-
-        val inject_thms = flat inject_thmss;
+        val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;
 
         val rho_As = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
 
@@ -1011,7 +1006,9 @@ fun prepare_free_constructors prep_term
                      (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
                      (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
                   I)
-          |> Local_Theory.notes (anonymous_notes @ notes);
+          |> Local_Theory.notes (anonymous_notes @ notes)
+          (* for "datatype_realizer.ML": *)
+          |>> name_noted_thms fcT_name exhaustN;
 
         val ctr_sugar =
           {ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,

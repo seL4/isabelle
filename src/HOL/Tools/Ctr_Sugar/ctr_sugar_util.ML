@@ -68,6 +68,7 @@ sig
   val certifyT: Proof.context -> typ -> ctyp
   val certify: Proof.context -> term -> cterm
 
+  val name_noted_thms: string -> string -> (string * thm list) list -> (string * thm list) list
   val substitute_noted_thm: (string * thm list) list -> morphism
 
   val standard_binding: binding
@@ -233,14 +234,23 @@ fun cterm_instantiate_pos cts thm =
 fun unfold_thms ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
 
 (*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
-fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
-fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
+val certifyT = Thm.ctyp_of o Proof_Context.theory_of;
+val certify = Thm.cterm_of o Proof_Context.theory_of;
+
+fun name_noted_thms _ _ [] = []
+  | name_noted_thms qualifier base ((local_name, thms) :: noted) =
+    if Long_Name.base_name local_name = base then
+      (local_name,
+       map_index (uncurry (fn j => Thm.name_derivation (qualifier ^ Long_Name.separator ^ base ^
+         (if can the_single thms then "" else "_" ^ string_of_int (j + 1))))) thms) :: noted
+    else
+      ((local_name, thms) :: name_noted_thms qualifier base noted);
 
 fun substitute_noted_thm noted =
   let val tab = fold (fold (Termtab.default o `Thm.full_prop_of) o snd) noted Termtab.empty in
     Morphism.thm_morphism "Ctr_Sugar_Util.substitute_noted_thm"
       (perhaps (Termtab.lookup tab o Thm.full_prop_of) o Drule.zero_var_indexes)
-  end
+  end;
 
 (* The standard binding stands for a name generated following the canonical convention (e.g.,
    "is_Nil" from "Nil"). In contrast, the empty binding is either the standard binding or no
