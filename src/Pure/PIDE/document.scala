@@ -82,9 +82,6 @@ object Document
 
   object Node
   {
-    val empty: Node = new Node()
-
-
     /* header and name */
 
     sealed case class Header(
@@ -177,6 +174,9 @@ object Document
     val empty_perspective_text: Perspective_Text =
       Perspective(false, Text.Perspective.empty, Overlays.empty)
 
+    val empty_perspective_command: Perspective_Command =
+      Perspective(false, Command.Perspective.empty, Overlays.empty)
+
 
     /* commands */
 
@@ -231,13 +231,14 @@ object Document
         else Iterator.empty
       }
     }
+
+    val empty: Node = new Node()
   }
 
   final class Node private(
     val get_blob: Option[Document.Blob] = None,
     val header: Node.Header = Node.bad_header("Bad theory header"),
-    val perspective: Node.Perspective_Command =
-      Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
+    val perspective: Node.Perspective_Command = Node.empty_perspective_command,
     _commands: Node.Commands = Node.Commands.empty)
   {
     def clear: Node = new Node(header = header)
