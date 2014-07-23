@@ -150,7 +150,7 @@ fun register_fp_sugars (fp_sugars as {fp, ...} :: _) =
 
 fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs live_nesting_bnfs fp_res
     ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss common_co_inducts co_inductss
-    co_rec_thmss disc_co_recss sel_co_recsss rel_injectss rel_distinctss =
+    co_rec_thmss disc_co_recss sel_co_recsss rel_injectss rel_distinctss noted =
   let
     val fp_sugars =
       map_index (fn (kk, T) =>
@@ -162,7 +162,8 @@ fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs live_
          common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
          co_rec_thms = nth co_rec_thmss kk, disc_co_recs = nth disc_co_recss kk,
          sel_co_recss = nth sel_co_recsss kk, rel_injects = nth rel_injectss kk,
-         rel_distincts = nth rel_distinctss kk}) Ts
+         rel_distincts = nth rel_distinctss kk}
+        |> morph_fp_sugar (substitute_noted_thm noted)) Ts
   in
     register_fp_sugars fp_sugars
   end;
@@ -1251,7 +1252,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           end;
 
         fun derive_maps_sets_rels (ctr_sugar as {case_cong, discs, selss, ctrs, exhaust, disc_thmss,
-          sel_thmss, injects, distincts, ...} : ctr_sugar, lthy) =
+            sel_thmss, injects, distincts, ...} : ctr_sugar, lthy) =
           if live = 0 then
             ((([], [], [], []), ctr_sugar), lthy)
           else
@@ -1630,15 +1631,19 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                  (sel_setN, sel_set_thms, []),
                  (set_emptyN, set_empty_thms, [])]
                 |> massage_simple_notes fp_b_name;
+
+              val (noted, lthy') =
+                lthy
+                |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) map_thms)
+                |> fp = Least_FP
+                  ? Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_eq_thms)
+                |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) set_thms)
+                |> Local_Theory.notes (anonymous_notes @ notes);
+
+              val subst = Morphism.thm (substitute_noted_thm noted);
             in
-              (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),
-               lthy
-               |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) map_thms)
-               |> fp = Least_FP
-                 ? Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_eq_thms)
-               |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) set_thms)
-               |> Local_Theory.notes (anonymous_notes @ notes)
-               |> snd)
+              (((map subst map_thms, map subst rel_inject_thms, map subst rel_distinct_thms,
+                 map (map subst) set_thmss), ctr_sugar), lthy')
             end;
 
         fun mk_binding pre = Binding.qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
@@ -1709,8 +1714,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         lthy
         |> Spec_Rules.add Spec_Rules.Equational (recs, flat rec_thmss)
-        |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_as_fp_sugars fpTs fpBTs Xs Least_FP pre_bnfs absT_infos fp_nesting_bnfs
+        |> Local_Theory.notes (common_notes @ notes)
+        |-> register_as_fp_sugars fpTs fpBTs Xs Least_FP pre_bnfs absT_infos fp_nesting_bnfs
           live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs mapss [induct_thm]
           (map single induct_thms) rec_thmss (replicate nn []) (replicate nn []) rel_injectss
           rel_distinctss
@@ -1791,11 +1796,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           |> massage_multi_notes;
       in
         lthy
-        (* TODO: code theorems *)
         |> fold (curry (Spec_Rules.add Spec_Rules.Equational) corecs)
           [flat sel_corec_thmss, flat corec_thmss]
-        |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_as_fp_sugars fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos fp_nesting_bnfs
+        |> Local_Theory.notes (common_notes @ notes)
+        |-> register_as_fp_sugars fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos fp_nesting_bnfs
           live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars corecs corec_defs mapss
           [coinduct_thm, strong_coinduct_thm] (transpose [coinduct_thms, strong_coinduct_thms])
           corec_thmss disc_corec_thmss sel_corec_thmsss rel_injectss rel_distinctss

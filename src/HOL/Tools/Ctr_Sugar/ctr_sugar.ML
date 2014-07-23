@@ -1011,7 +1011,7 @@ fun prepare_free_constructors prep_term
                      (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
                      (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
                   I)
-          |> Local_Theory.notes (anonymous_notes @ notes)
+          |> Local_Theory.notes (anonymous_notes @ notes);
 
         val ctr_sugar =
           {ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,

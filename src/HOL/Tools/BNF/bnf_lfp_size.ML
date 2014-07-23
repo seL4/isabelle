@@ -354,14 +354,19 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
        (sizeN, size_thmss, code_nitpicksimp_simp_attrs),
        (size_o_mapN, size_o_map_thmss, [])]
       |> massage_multi_notes;
+
+    val (noted, lthy3) =
+      lthy2
+      |> Spec_Rules.add Spec_Rules.Equational (size_consts, size_simps)
+      |> Local_Theory.notes notes;
+
+    val phi0 = substitute_noted_thm noted;
   in
-    lthy2
-    |> Local_Theory.notes notes |> snd
-    |> Spec_Rules.add Spec_Rules.Equational (size_consts, size_simps)
+    lthy3
     |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => Data.map (fold2 (fn T_name => fn Const (size_name, _) =>
            Symtab.update (T_name, (size_name,
-             pairself (map (Morphism.thm phi)) (size_simps, flat size_o_map_thmss))))
+             pairself (map (Morphism.thm (phi0 $> phi))) (size_simps, flat size_o_map_thmss))))
          T_names size_consts))
   end;
 

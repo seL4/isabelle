@@ -21,6 +21,7 @@ consts
   case_cons :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   case_elem :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b"
   case_abs :: "('c \<Rightarrow> 'b) \<Rightarrow> 'b"
+
 declare [[coercion_args case_guard - + -]]
 declare [[coercion_args case_cons - -]]
 declare [[coercion_args case_abs -]]

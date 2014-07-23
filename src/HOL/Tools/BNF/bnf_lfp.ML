@@ -1752,67 +1752,72 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           ctor_Irel_thms, Ibnf_common_notes @ Ibnf_notes, lthy)
       end;
 
-      val ctor_fold_o_Imap_thms = mk_xtor_un_fold_o_map_thms Least_FP false m ctor_fold_unique_thm
-        ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_fold_thms) sym_map_comps map_cong0s;
-      val ctor_rec_o_Imap_thms = mk_xtor_un_fold_o_map_thms Least_FP true m ctor_rec_unique_thm
-        ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_rec_thms) sym_map_comps map_cong0s;
+    val ctor_fold_o_Imap_thms = mk_xtor_un_fold_o_map_thms Least_FP false m ctor_fold_unique_thm
+      ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_fold_thms) sym_map_comps map_cong0s;
+    val ctor_rec_o_Imap_thms = mk_xtor_un_fold_o_map_thms Least_FP true m ctor_rec_unique_thm
+      ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_rec_thms) sym_map_comps map_cong0s;
 
-      val Irels = if m = 0 then map HOLogic.eq_const Ts
-        else map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
-      val Irel_induct_thm =
-        mk_rel_xtor_co_induct_thm Least_FP rels activeIphis Irels Iphis xFs yFs ctors ctor's
-          (fn {context = ctxt, prems = IHs} => mk_rel_induct_tac ctxt IHs m ctor_induct2_thm ks
-             ctor_Irel_thms rel_mono_strongs) lthy;
+    val Irels = if m = 0 then map HOLogic.eq_const Ts
+      else map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
+    val Irel_induct_thm =
+      mk_rel_xtor_co_induct_thm Least_FP rels activeIphis Irels Iphis xFs yFs ctors ctor's
+        (fn {context = ctxt, prems = IHs} => mk_rel_induct_tac ctxt IHs m ctor_induct2_thm ks
+           ctor_Irel_thms rel_mono_strongs) lthy;
 
-      val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
-      val ctor_fold_transfer_thms =
-        mk_un_fold_transfer_thms Least_FP rels activephis Irels Iphis
-          (mk_folds passiveAs activeAs) (mk_folds passiveBs activeBs)
-          (fn {context = ctxt, prems = _} => mk_fold_transfer_tac ctxt m Irel_induct_thm
-            (map map_transfer_of_bnf bnfs) ctor_fold_thms)
-          lthy;
+    val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
+    val ctor_fold_transfer_thms =
+      mk_un_fold_transfer_thms Least_FP rels activephis Irels Iphis
+        (mk_folds passiveAs activeAs) (mk_folds passiveBs activeBs)
+        (fn {context = ctxt, prems = _} => mk_fold_transfer_tac ctxt m Irel_induct_thm
+          (map map_transfer_of_bnf bnfs) ctor_fold_thms)
+        lthy;
 
-      val timer = time (timer "relator induction");
+    val timer = time (timer "relator induction");
 
-      val common_notes =
-        [(ctor_inductN, [ctor_induct_thm]),
-        (ctor_induct2N, [ctor_induct2_thm]),
-        (ctor_fold_transferN, ctor_fold_transfer_thms),
-        (ctor_rel_inductN, [Irel_induct_thm])]
-        |> map (fn (thmN, thms) =>
-          ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
+    val common_notes =
+      [(ctor_inductN, [ctor_induct_thm]),
+      (ctor_induct2N, [ctor_induct2_thm]),
+      (ctor_fold_transferN, ctor_fold_transfer_thms),
+      (ctor_rel_inductN, [Irel_induct_thm])]
+      |> map (fn (thmN, thms) =>
+        ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
-      val notes =
-        [(ctor_dtorN, ctor_dtor_thms),
-        (ctor_exhaustN, ctor_exhaust_thms),
-        (ctor_foldN, ctor_fold_thms),
-        (ctor_fold_uniqueN, ctor_fold_unique_thms),
-        (ctor_rec_uniqueN, ctor_rec_unique_thms),
-        (ctor_fold_o_mapN, ctor_fold_o_Imap_thms),
-        (ctor_rec_o_mapN, ctor_rec_o_Imap_thms),
-        (ctor_injectN, ctor_inject_thms),
-        (ctor_recN, ctor_rec_thms),
-        (dtor_ctorN, dtor_ctor_thms),
-        (dtor_exhaustN, dtor_exhaust_thms),
-        (dtor_injectN, dtor_inject_thms)]
-        |> map (apsnd (map single))
-        |> maps (fn (thmN, thmss) =>
-          map2 (fn b => fn thms =>
-            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
-          bs thmss);
+    val notes =
+      [(ctor_dtorN, ctor_dtor_thms),
+      (ctor_exhaustN, ctor_exhaust_thms),
+      (ctor_foldN, ctor_fold_thms),
+      (ctor_fold_uniqueN, ctor_fold_unique_thms),
+      (ctor_rec_uniqueN, ctor_rec_unique_thms),
+      (ctor_fold_o_mapN, ctor_fold_o_Imap_thms),
+      (ctor_rec_o_mapN, ctor_rec_o_Imap_thms),
+      (ctor_injectN, ctor_inject_thms),
+      (ctor_recN, ctor_rec_thms),
+      (dtor_ctorN, dtor_ctor_thms),
+      (dtor_exhaustN, dtor_exhaust_thms),
+      (dtor_injectN, dtor_inject_thms)]
+      |> map (apsnd (map single))
+      |> maps (fn (thmN, thmss) =>
+        map2 (fn b => fn thms =>
+          ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
+        bs thmss);
 
     (*FIXME: once the package exports all the necessary high-level characteristic theorems,
        those should not only be concealed but rather not noted at all*)
     val maybe_conceal_notes = note_all = false ? map (apfst (apfst Binding.conceal));
+
+    val (noted, lthy') =
+      lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Ibnf_notes));
+
+    val fp_res =
+      {Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_co_recs = recs,
+       xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms,
+       ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
+       xtor_map_thms = ctor_Imap_thms, xtor_set_thmss = ctor_Iset_thmss',
+       xtor_rel_thms = ctor_Irel_thms, xtor_co_rec_thms = ctor_rec_thms,
+       xtor_co_rec_o_map_thms = ctor_rec_o_Imap_thms, rel_xtor_co_induct_thm = Irel_induct_thm}
+      |> morph_fp_result (substitute_noted_thm noted);
   in
-    timer;
-    ({Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_co_recs = recs,
-      xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
-      ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
-      xtor_map_thms = ctor_Imap_thms, xtor_set_thmss = ctor_Iset_thmss',
-      xtor_rel_thms = ctor_Irel_thms, xtor_co_rec_thms = ctor_rec_thms,
-      xtor_co_rec_o_map_thms = ctor_rec_o_Imap_thms, rel_xtor_co_induct_thm = Irel_induct_thm},
-     lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Ibnf_notes)) |> snd)
+    timer; (fp_res, lthy')
   end;
 
 val _ =

@@ -2467,64 +2467,69 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_common_notes @ Jbnf_notes, lthy)
       end;
 
-      val dtor_unfold_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
-        dtor_unfold_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_unfold_thms)
-        sym_map_comps map_cong0s;
-      val dtor_corec_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP true m
-        dtor_corec_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_corec_thms)
-        sym_map_comps map_cong0s;
+    val dtor_unfold_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
+      dtor_unfold_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_unfold_thms)
+      sym_map_comps map_cong0s;
+    val dtor_corec_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP true m
+      dtor_corec_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_corec_thms)
+      sym_map_comps map_cong0s;
 
-      val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
+    val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
 
-      val dtor_unfold_transfer_thms =
-        mk_un_fold_transfer_thms Greatest_FP rels activephis
-          (if m = 0 then map HOLogic.eq_const Ts
-            else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs) Jphis
-          (mk_unfolds passiveAs activeAs) (mk_unfolds passiveBs activeBs)
-          (fn {context = ctxt, prems = _} => mk_unfold_transfer_tac ctxt m Jrel_coinduct_thm
-            (map map_transfer_of_bnf bnfs) dtor_unfold_thms)
-          lthy;
+    val dtor_unfold_transfer_thms =
+      mk_un_fold_transfer_thms Greatest_FP rels activephis
+        (if m = 0 then map HOLogic.eq_const Ts
+          else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs) Jphis
+        (mk_unfolds passiveAs activeAs) (mk_unfolds passiveBs activeBs)
+        (fn {context = ctxt, prems = _} => mk_unfold_transfer_tac ctxt m Jrel_coinduct_thm
+          (map map_transfer_of_bnf bnfs) dtor_unfold_thms)
+        lthy;
 
-      val timer = time (timer "relator coinduction");
+    val timer = time (timer "relator coinduction");
 
-      val common_notes =
-        [(dtor_coinductN, [dtor_coinduct_thm]),
-        (dtor_rel_coinductN, [Jrel_coinduct_thm]),
-        (dtor_unfold_transferN, dtor_unfold_transfer_thms)]
-        |> map (fn (thmN, thms) =>
-          ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
+    val common_notes =
+      [(dtor_coinductN, [dtor_coinduct_thm]),
+      (dtor_rel_coinductN, [Jrel_coinduct_thm]),
+      (dtor_unfold_transferN, dtor_unfold_transfer_thms)]
+      |> map (fn (thmN, thms) =>
+        ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
-      val notes =
-        [(ctor_dtorN, ctor_dtor_thms),
-        (ctor_exhaustN, ctor_exhaust_thms),
-        (ctor_injectN, ctor_inject_thms),
-        (dtor_corecN, dtor_corec_thms),
-        (dtor_ctorN, dtor_ctor_thms),
-        (dtor_exhaustN, dtor_exhaust_thms),
-        (dtor_injectN, dtor_inject_thms),
-        (dtor_unfoldN, dtor_unfold_thms),
-        (dtor_unfold_uniqueN, dtor_unfold_unique_thms),
-        (dtor_corec_uniqueN, dtor_corec_unique_thms),
-        (dtor_unfold_o_mapN, dtor_unfold_o_Jmap_thms),
-        (dtor_corec_o_mapN, dtor_corec_o_Jmap_thms)]
-        |> map (apsnd (map single))
-        |> maps (fn (thmN, thmss) =>
-          map2 (fn b => fn thms =>
-            ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
-          bs thmss);
+    val notes =
+      [(ctor_dtorN, ctor_dtor_thms),
+      (ctor_exhaustN, ctor_exhaust_thms),
+      (ctor_injectN, ctor_inject_thms),
+      (dtor_corecN, dtor_corec_thms),
+      (dtor_ctorN, dtor_ctor_thms),
+      (dtor_exhaustN, dtor_exhaust_thms),
+      (dtor_injectN, dtor_inject_thms),
+      (dtor_unfoldN, dtor_unfold_thms),
+      (dtor_unfold_uniqueN, dtor_unfold_unique_thms),
+      (dtor_corec_uniqueN, dtor_corec_unique_thms),
+      (dtor_unfold_o_mapN, dtor_unfold_o_Jmap_thms),
+      (dtor_corec_o_mapN, dtor_corec_o_Jmap_thms)]
+      |> map (apsnd (map single))
+      |> maps (fn (thmN, thmss) =>
+        map2 (fn b => fn thms =>
+          ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
+        bs thmss);
 
     (*FIXME: once the package exports all the necessary high-level characteristic theorems,
        those should not only be concealed but rather not noted at all*)
     val maybe_conceal_notes = note_all = false ? map (apfst (apfst Binding.conceal));
+
+    val (noted, lthy') =
+      lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Jbnf_notes));
+
+    val fp_res =
+      {Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, xtor_co_recs = corecs,
+       xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms,
+       ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
+       xtor_map_thms = dtor_Jmap_thms, xtor_set_thmss = dtor_Jset_thmss',
+       xtor_rel_thms = dtor_Jrel_thms, xtor_co_rec_thms = dtor_corec_thms,
+       xtor_co_rec_o_map_thms = dtor_corec_o_Jmap_thms, rel_xtor_co_induct_thm = Jrel_coinduct_thm}
+      |> morph_fp_result (substitute_noted_thm noted);
   in
-    timer;
-    ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, xtor_co_recs = corecs,
-      xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms,
-      ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
-      xtor_map_thms = dtor_Jmap_thms, xtor_set_thmss = dtor_Jset_thmss',
-      xtor_rel_thms = dtor_Jrel_thms, xtor_co_rec_thms = dtor_corec_thms,
-      xtor_co_rec_o_map_thms = dtor_corec_o_Jmap_thms, rel_xtor_co_induct_thm = Jrel_coinduct_thm},
-     lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Jbnf_notes)) |> snd)
+    timer; (fp_res, lthy')
   end;
 
 val _ =
