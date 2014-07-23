@@ -68,6 +68,8 @@ sig
   val certifyT: Proof.context -> typ -> ctyp
   val certify: Proof.context -> term -> cterm
 
+  val substitute_noted_thm: (string * thm list) list -> morphism
+
   val standard_binding: binding
   val parse_binding_colon: binding parser
   val parse_opt_binding_colon: binding parser
@@ -233,6 +235,11 @@ fun unfold_thms ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thm
 (*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
 fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
+
+fun substitute_noted_thm noted =
+  let val tab = fold (fold (Thmtab.default o `I) o snd) noted Thmtab.empty in
+    Morphism.thm_morphism "Ctr_Sugar_Util.substitute_noted_thm" (perhaps (Thmtab.lookup tab))
+  end
 
 (* The standard binding stands for a name generated following the canonical convention (e.g.,
    "is_Nil" from "Nil"). In contrast, the empty binding is either the standard binding or no

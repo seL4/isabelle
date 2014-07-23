@@ -190,6 +190,8 @@ fun default_register_ctr_sugar_global key ctr_sugar thy =
 
 val isN = "is_";
 val unN = "un_";
+val notN = "not_";
+
 fun mk_unN 1 1 suf = unN ^ suf
   | mk_unN _ l suf = unN ^ suf ^ string_of_int l;
 
@@ -260,9 +262,6 @@ fun name_of_const what t =
   | _ => error ("Cannot extract name of " ^ what));
 
 val name_of_ctr = name_of_const "constructor";
-
-val notN = "not_";
-val isN = "is_";
 
 fun name_of_disc t =
   (case head_of t of
@@ -994,6 +993,26 @@ fun prepare_free_constructors prep_term
           |> map (fn (thmN, thms, attrs) =>
             ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
 
+        val (noted, lthy') =
+          lthy
+          |> Spec_Rules.add Spec_Rules.Equational ([casex], case_thms)
+          |> fold (Spec_Rules.add Spec_Rules.Equational)
+            (AList.group (eq_list (op aconv)) (map (`(single o lhs_head_of)) all_sel_thms))
+          |> fold (Spec_Rules.add Spec_Rules.Equational)
+            (filter_out (null o snd) (map single discs ~~ nontriv_disc_eq_thmss))
+          |> Local_Theory.declaration {syntax = false, pervasive = true}
+               (fn phi => Case_Translation.register
+                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
+          |> Local_Theory.background_theory (fold (fold Code.del_eqn) [disc_defs, sel_defs])
+          |> not no_code ?
+             Local_Theory.declaration {syntax = false, pervasive = false}
+               (fn phi => Context.mapping
+                  (add_ctr_code fcT_name (map (Morphism.typ phi) As)
+                     (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
+                     (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
+                  I)
+          |> Local_Theory.notes (anonymous_notes @ notes)
+
         val ctr_sugar =
           {ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
            nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
@@ -1003,28 +1022,10 @@ fun prepare_free_constructors prep_term
            disc_excludesss = disc_exclude_thmsss, disc_exhausts = disc_exhaust_thms,
            sel_exhausts = sel_exhaust_thms, collapses = all_collapse_thms, expands = expand_thms,
            sel_splits = sel_split_thms, sel_split_asms = sel_split_asm_thms,
-           case_eq_ifs = case_eq_if_thms};
+           case_eq_ifs = case_eq_if_thms}
+          |> morph_ctr_sugar (substitute_noted_thm noted);
       in
-        (ctr_sugar,
-         lthy
-         |> Spec_Rules.add Spec_Rules.Equational ([casex], case_thms)
-         |> fold (Spec_Rules.add Spec_Rules.Equational)
-           (AList.group (eq_list (op aconv)) (map (`(single o lhs_head_of)) all_sel_thms))
-         |> fold (Spec_Rules.add Spec_Rules.Equational)
-           (filter_out (null o snd) (map single discs ~~ nontriv_disc_eq_thmss))
-         |> Local_Theory.declaration {syntax = false, pervasive = true}
-              (fn phi => Case_Translation.register
-                 (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
-         |> Local_Theory.background_theory (fold (fold Code.del_eqn) [disc_defs, sel_defs])
-         |> not no_code ?
-            Local_Theory.declaration {syntax = false, pervasive = false}
-              (fn phi => Context.mapping
-                (add_ctr_code fcT_name (map (Morphism.typ phi) As)
-                  (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
-                  (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
-                I)
-         |> Local_Theory.notes (anonymous_notes @ notes) |> snd
-         |> register_ctr_sugar fcT_name ctr_sugar)
+        (ctr_sugar, lthy' |> register_ctr_sugar fcT_name ctr_sugar)
       end;
   in
     (goalss, after_qed, lthy')
