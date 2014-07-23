@@ -2,7 +2,7 @@
     Module:     PIDE-GUI
     Author:     Makarius
 
-Evaluation within the GUI thread: implementation for AWT/Swing.
+Evaluation within the GUI thread (for AWT/Swing).
 */
 
 package isabelle

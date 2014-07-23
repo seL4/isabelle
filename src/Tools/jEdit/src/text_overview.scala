@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/text_overview.scala
     Author:     Makarius
 
-Swing component for text status overview.
+GUI component for text status overview.
 */
 
 package isabelle.jedit
