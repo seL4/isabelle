@@ -296,7 +296,14 @@ class Plugin extends EBPlugin
           PIDE.session.start("Isabelle", Isabelle_Logic.session_args())
 
         case msg: BufferUpdate
-        if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
+        if msg.getWhat == BufferUpdate.LOADED ||
+          msg.getWhat == BufferUpdate.PROPERTIES_CHANGED ||
+          msg.getWhat == BufferUpdate.CLOSING =>
+
+          if (msg.getWhat == BufferUpdate.CLOSING) {
+            val buffer = msg.getBuffer
+            if (buffer != null) PIDE.editor.remove_node(PIDE.resources.node_name(msg.getBuffer))
+          }
           if (PIDE.session.is_ready) {
             delay_init.invoke()
             delay_load.invoke()

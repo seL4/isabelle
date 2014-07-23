@@ -22,12 +22,25 @@ class JEdit_Editor extends Editor[View]
 
   override def session: Session = PIDE.session
 
+  // owned by Swing thread
+  private var removed_nodes = Set.empty[Document.Node.Name]
+
+  def remove_node(name: Document.Node.Name): Unit =
+    Swing_Thread.require { removed_nodes += name }
+
   override def flush()
   {
     Swing_Thread.require {}
 
     val doc_blobs = PIDE.document_blobs()
-    val edits = PIDE.document_models().flatMap(_.flushed_edits(doc_blobs))
+    val models = PIDE.document_models()
+
+    val removed = removed_nodes; removed_nodes = Set.empty
+    val removed_perspective =
+      (removed -- models.iterator.map(_.node_name)).toList.map(
+        name => (name, Document.Node.empty_perspective_text))
+
+    val edits = models.flatMap(_.flushed_edits(doc_blobs)) ::: removed_perspective
     if (!edits.isEmpty) session.update(doc_blobs, edits)
   }
 
