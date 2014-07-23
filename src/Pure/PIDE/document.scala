@@ -363,12 +363,12 @@ object Document
     val init: Change = new Change()
 
     def make(previous: Future[Version], edits: List[Edit_Text], version: Future[Version]): Change =
-      new Change(Some(previous), edits, version)
+      new Change(Some(previous), edits.reverse, version)
   }
 
   final class Change private(
     val previous: Option[Future[Version]] = Some(Future.value(Version.init)),
-    val edits: List[Edit_Text] = Nil,
+    val rev_edits: List[Edit_Text] = Nil,
     val version: Future[Version] = Future.value(Version.init))
   {
     def is_finished: Boolean =
@@ -717,10 +717,24 @@ object Document
       val stable = recent_stable
       val latest = history.tip
 
-      // FIXME proper treatment of removed nodes
+
+      /* pending edits and unstable changes */
+
+      val rev_pending_changes =
+        for {
+          change <- history.undo_list.takeWhile(_ != stable)
+          (a, edits) <- change.rev_edits
+          if a == name
+        } yield edits
+
+      val is_cleared = rev_pending_changes.exists({ case Node.Clear() => true case _ => false })
       val edits =
-        (pending_edits /: history.undo_list.takeWhile(_ != stable))((edits, change) =>
-            (for ((a, Node.Edits(es)) <- change.edits if a == name) yield es).flatten ::: edits)
+        if (is_cleared) Nil
+        else
+          (pending_edits /: rev_pending_changes)({
+            case (edits, Node.Edits(es)) => es ::: edits
+            case (edits, _) => edits
+          })
       lazy val reverse_edits = edits.reverse
 
       new Snapshot
@@ -734,10 +748,13 @@ object Document
 
         /* local node content */
 
-        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-        def convert(range: Text.Range) = (range /: edits)((r, edit) => edit.convert(r))
-        def revert(range: Text.Range) = (range /: reverse_edits)((r, edit) => edit.revert(r))
+        def convert(offset: Text.Offset) =
+          if (is_cleared) 0 else (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Text.Offset) =
+          if (is_cleared) 0 else (offset /: reverse_edits)((i, edit) => edit.revert(i))
+
+        def convert(range: Text.Range) = range.map(convert(_))
+        def revert(range: Text.Range) = range.map(revert(_))
 
         val node_name = name
         val node = version.nodes(name)

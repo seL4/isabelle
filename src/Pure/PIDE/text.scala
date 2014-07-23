@@ -154,8 +154,6 @@ object Text
 
     def convert(i: Offset): Offset = transform(is_insert, i)
     def revert(i: Offset): Offset = transform(!is_insert, i)
-    def convert(range: Range): Range = range.map(convert)
-    def revert(range: Range): Range = range.map(revert)
 
 
     /* edit strings */
