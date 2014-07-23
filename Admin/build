@@ -74,7 +74,8 @@ function build_jars ()
 
 ## main
 
-#FIXME workaround for scalac 2.11.0
+#FIXME workarounds for scalac 2.11.0
+export CYGWIN="nodosfilewarning"
 function stty() { :; }
 export -f stty
 

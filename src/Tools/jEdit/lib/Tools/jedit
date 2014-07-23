@@ -307,7 +307,8 @@ then
 
   cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
   (
-    #FIXME workaround for scalac 2.11.0
+    #FIXME workarounds for scalac 2.11.0
+    export CYGWIN="nodosfilewarning"
     function stty() { :; }
     export -f stty
 
