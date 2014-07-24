@@ -197,7 +197,7 @@ fun steep_weight_of_fact rank = Math.pow (0.62, log2 (Real.fromInt (rank + 1))) 
 fun weight_facts_smoothly facts = facts ~~ map smooth_weight_of_fact (0 upto length facts - 1)
 fun weight_facts_steeply facts = facts ~~ map steep_weight_of_fact (0 upto length facts - 1)
 
-fun rev_sort_array_prefix cmp bnd a =
+fun sort_array_suffix cmp needed a =
   let
     exception BOTTOM of int
 
@@ -246,7 +246,7 @@ fun rev_sort_array_prefix cmp bnd a =
     fun for i = if i < 0 then () else (trickle al i (Array.sub (a, i)); for (i - 1))
 
     fun for2 i =
-      if i < Integer.max 2 (al - bnd) then
+      if i < Integer.max 2 (al - needed) then
         ()
       else
         let val e = Array.sub (a, i) in
@@ -266,10 +266,10 @@ fun rev_sort_array_prefix cmp bnd a =
       ()
   end
 
-fun rev_sort_list_prefix cmp bnd xs =
+fun rev_sort_list_prefix cmp needed xs =
   let val ary = Array.fromList xs in
-    rev_sort_array_prefix cmp bnd ary;
-    Array.foldr (op ::) [] ary
+    sort_array_suffix cmp needed ary;
+    Array.foldl (op ::) [] ary
   end
 
 
@@ -363,7 +363,7 @@ fun naive_bayes (tfreq, sfreq, dffreq) num_facts max_suggs visible_facts goal_fe
       if at = num_facts then acc else ret (at + 1) (Array.sub (posterior, at) :: acc)
   in
     select_visible_facts 100000.0 posterior visible_facts;
-    rev_sort_array_prefix (Real.compare o pairself snd) max_suggs posterior;
+    sort_array_suffix (Real.compare o pairself snd) max_suggs posterior;
     ret (Integer.max 0 (num_facts - max_suggs)) []
   end
 
@@ -396,7 +396,7 @@ fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visibl
       end
 
     val _ = List.app do_feat goal_feats
-    val _ = rev_sort_array_prefix (Real.compare o pairself snd) num_facts overlaps_sqr
+    val _ = sort_array_suffix (Real.compare o pairself snd) num_facts overlaps_sqr
     val no_recommends = Unsynchronized.ref 0
     val recommends = Array.tabulate (num_facts, rpair 0.0)
     val age = Unsynchronized.ref 500000000.0
@@ -438,7 +438,7 @@ fun k_nearest_neighbors dffreq num_facts num_feats depss featss max_suggs visibl
     while1 ();
     while2 ();
     select_visible_facts 1000000000.0 recommends visible_facts;
-    rev_sort_array_prefix (Real.compare o pairself snd) max_suggs recommends;
+    sort_array_suffix (Real.compare o pairself snd) max_suggs recommends;
     ret [] (Integer.max 0 (num_facts - max_suggs))
   end
 
@@ -1126,7 +1126,7 @@ val chained_feature_factor = 0.5 (* FUDGE *)
 val extra_feature_factor = 0.1 (* FUDGE *)
 val num_extra_feature_facts = 10 (* FUDGE *)
 
-val max_proximity_facts = 100
+val max_proximity_facts = 100 (* FUDGE *)
 
 fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
   let
