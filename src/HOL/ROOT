@@ -38,6 +38,7 @@ session "HOL-Library" (main) in Library = HOL +
     Product_Lexorder
     Product_Order
     Finite_Lattice
+    Quickcheck_Types
     (*data refinements and dependent applications*)
     AList_Mapping
     Code_Binary_Nat
@@ -52,7 +53,6 @@ session "HOL-Library" (main) in Library = HOL +
     (*legacy tools*)
     Refute
     Old_Recdef
-    Quickcheck_Types
   theories [condition = ISABELLE_FULL_TEST]
     Sum_of_Squares_Remote
   document_files "root.bib" "root.tex"
