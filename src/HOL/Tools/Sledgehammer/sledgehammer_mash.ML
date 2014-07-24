@@ -699,7 +699,7 @@ fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
       val dirty_facts' =
         (case try OS.FileSys.modTime (Path.implode path) of
           NONE => NONE
-        | SOME disk_time => if Time.< (disk_time, memory_time) then dirty_facts else NONE)
+        | SOME disk_time => if Time.<= (disk_time, memory_time) then dirty_facts else NONE)
       val (banner, entries) =
         (case dirty_facts' of
           SOME names => (NONE, fold (append_entry o Graph.get_entry access_G) names [])
