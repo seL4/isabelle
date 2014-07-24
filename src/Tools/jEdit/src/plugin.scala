@@ -309,6 +309,13 @@ class Plugin extends EBPlugin
         case msg: EditorStarted =>
           PIDE.session.start("Isabelle", Isabelle_Logic.session_args())
 
+          if (Distribution.is_identified && !Distribution.is_official) {
+            GUI.warning_dialog(jEdit.getActiveView, "Isabelle release candidate for testing",
+              "This is " + Distribution.version +".",
+              "It is for testing only, not for production use.")
+          }
+
+
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED ||
           msg.getWhat == BufferUpdate.PROPERTIES_CHANGED ||

@@ -23,6 +23,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [VERSION]"
   echo
   echo "  Options are:"
+  echo "    -O           official release (not release-candidate)"
   echo "    -d DIR       global directory prefix (default: \"$DISTPREFIX\")"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
   echo "    -r RELEASE   proper release with name"
@@ -53,12 +54,16 @@ function check_number()
 
 # options
 
+OFFICIAL_RELEASE="false"
 JOBS=""
 RELEASE=""
 
 while getopts "d:j:r:" OPT
 do
   case "$OPT" in
+    O)
+      OFFICIAL_RELEASE="true"
+      ;;
     d)
       DISTPREFIX="$OPTARG"
       ;;
@@ -143,14 +148,23 @@ if [ -z "$RELEASE" ]; then
     echo "This is a snapshot of Isabelle/${IDENT} from the repository."
     echo
   } >ANNOUNCE
-else
-  perl -pi -e "s,val is_official = false,val is_official = true,g" src/Pure/ROOT.ML
 fi
+
+if [ -n "$RELEASE" -a "$OFFICIAL_RELEASE" = true ]; then
+  IS_OFFICIAL="true"
+else
+  IS_OFFICIAL="false"
+fi
+
+perl -pi \
+  -e "s,val is_identified = false,val is_identified = true,g" \
+  -e "s,val is_official = false,val is_official = ${IS_OFFICIAL},g" \
+  src/Pure/ROOT.ML src/Pure/ROOT.scala
 
 perl -pi -e "s,ISABELLE_ID=\"\",ISABELLE_ID=\"$IDENT\",g" lib/scripts/getsettings
 perl -pi -e "s,ISABELLE_IDENTIFIER=\"\",ISABELLE_IDENTIFIER=\"$DISTNAME\",g" lib/scripts/getsettings
 perl -pi -e "s,{ISABELLE},$DISTNAME,g" lib/html/library_index_header.template
-perl -pi -e "s,unidentified repository version,$DISTVERSION,g" src/Pure/ROOT.ML lib/Tools/version
+perl -pi -e "s,unidentified repository version,$DISTVERSION,g" src/Pure/ROOT.ML src/Pure/ROOT.scala lib/Tools/version
 perl -pi -e "s,some unidentified repository version of Isabelle,$DISTVERSION,g" README
 
 mkdir -p contrib
