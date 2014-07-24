@@ -46,7 +46,7 @@ open String_Redirect
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_isar_trace} (K false)
 
-val e_skolemize_rules = ["skolemize", "shift_quantors"]
+val e_skolemize_rule = "skolemize"
 val spass_pirate_datatype_rule = "DT"
 val vampire_skolemisation_rule = "skolemisation"
 (* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
@@ -54,7 +54,7 @@ val z3_skolemize_rule = "sk"
 val z3_th_lemma_rule = "th-lemma"
 
 val skolemize_rules =
-  e_skolemize_rules @ [spass_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule]
+  [e_skolemize_rule, spass_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
 val is_arith_rule = String.isPrefix z3_th_lemma_rule
