@@ -68,13 +68,11 @@ fun label_of_clause [(num, _)] = raw_label_of_num num
 fun add_fact_of_dependencies [(_, ss as _ :: _)] = apsnd (union (op =) ss)
   | add_fact_of_dependencies names = apfst (insert (op =) (label_of_clause names))
 
-fun is_True_prop t = t aconv @{prop True}
-
 fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
     if role = Conjecture orelse role = Negated_Conjecture then line :: lines
-    else if is_True_prop t then map (replace_dependencies_in_line (name, [])) lines
+    else if t aconv @{prop True} then map (replace_dependencies_in_line (name, [])) lines
     else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then line :: lines
     else if role = Axiom then lines (* axioms (facts) need no proof lines *)
     else map (replace_dependencies_in_line (name, [])) lines
@@ -83,18 +81,16 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
 fun add_lines_pass2 res _ [] = rev res
   | add_lines_pass2 res prev_t ((line as (name, role, t, rule, deps)) :: lines) =
     let
-      val is_last_line = null lines
-
-      fun looks_interesting () =
-        not (is_True_prop t) andalso not (t aconv prev_t) andalso null (Term.add_tvars t []) andalso
-        length deps >= 2 andalso not (can the_single lines)
+      fun looks_boring () =
+        t aconv @{prop True} orelse t aconv @{prop False} orelse t aconv prev_t orelse
+        length deps < 2
 
       fun is_skolemizing_line (_, _, _, rule', deps') =
         is_skolemize_rule rule' andalso member (op =) deps' name
       fun is_before_skolemize_rule () = exists is_skolemizing_line lines
     in
       if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
-         is_datatype_rule rule orelse is_last_line orelse looks_interesting () orelse
+         is_datatype_rule rule orelse null lines orelse not (looks_boring ()) orelse
          is_before_skolemize_rule () then
         add_lines_pass2 (line :: res) t lines
       else
