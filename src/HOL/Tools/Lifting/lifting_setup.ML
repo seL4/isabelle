@@ -234,7 +234,7 @@ fun lifting_bundle qty_full_name qinfo lthy =
 fun setup_lifting_infr gen_code quot_thm opt_reflp_thm lthy =
   let
     val _ = quot_thm_sanity_check lthy quot_thm
-    val (_, qtyp) = quot_thm_rty_qty quot_thm
+    val (_, qty) = quot_thm_rty_qty quot_thm
     val (pcrel_def, lthy) = define_pcrel (quot_thm_crel quot_thm) lthy
     (**)
     val pcrel_def = Option.map (Morphism.thm (Local_Theory.target_morphism lthy)) pcrel_def
@@ -246,7 +246,7 @@ fun setup_lifting_infr gen_code quot_thm opt_reflp_thm lthy =
       SOME pcrel_def => SOME { pcrel_def = pcrel_def, pcr_cr_eq = the pcr_cr_eq }
       | NONE => NONE
     val quotients = { quot_thm = quot_thm, pcr_info = pcr_info }
-    val qty_full_name = (fst o dest_Type) qtyp  
+    val qty_full_name = (fst o dest_Type) qty
     fun quot_info phi = Lifting_Info.transform_quotient phi quotients
     val reflexivity_rule_attr = Attrib.internal (K Lifting_Info.add_reflexivity_rule_attribute)
     val lthy = case opt_reflp_thm of
@@ -256,11 +256,14 @@ fun setup_lifting_infr gen_code quot_thm opt_reflp_thm lthy =
         |> define_code_constr gen_code quot_thm
       | NONE => lthy
         |> define_abs_type gen_code quot_thm
+    fun declare_no_code qty =  Local_Theory.declaration {syntax = false, pervasive = true}
+        (fn phi => Lifting_Info.add_no_code_type (Morphism.typ phi qty |> Tname))
   in
     lthy
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Lifting_Info.update_quotients qty_full_name (quot_info phi))
       |> lifting_bundle qty_full_name quotients
+      |> (if not gen_code then declare_no_code qty else I)
   end
 
 local

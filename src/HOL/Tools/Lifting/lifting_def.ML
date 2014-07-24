@@ -401,6 +401,22 @@ local
   val register_code_eq_attribute = Thm.declaration_attribute
     (fn thm => Context.mapping (register_encoded_code_eq thm) I)
   val register_code_eq_attrib = Attrib.internal (K register_code_eq_attribute)
+
+  fun no_no_code ctxt (rty, qty) =
+    if same_type_constrs (rty, qty) then
+      forall (no_no_code ctxt) (Targs rty ~~ Targs qty)
+    else
+      if is_Type qty then
+        if Lifting_Info.is_no_code_type ctxt (Tname qty) then false
+        else 
+          let 
+            val (rty', rtyq) = Lifting_Term.instantiate_rtys ctxt (rty, qty)
+            val (rty's, rtyqs) = (Targs rty', Targs rtyq)
+          in
+            forall (no_no_code ctxt) (rty's ~~ rtyqs)
+          end
+      else
+        true
 in
 
 fun register_code_eq abs_eq_thm opt_rep_eq_thm (rty, qty) lthy =
@@ -408,8 +424,10 @@ fun register_code_eq abs_eq_thm opt_rep_eq_thm (rty, qty) lthy =
     val thy = Proof_Context.theory_of lthy
     val encoded_code_eq = encode_code_eq thy abs_eq_thm opt_rep_eq_thm (rty, qty)
   in
-    (snd oo Local_Theory.note) ((Binding.empty, [register_code_eq_attrib]), 
-      [encoded_code_eq]) lthy
+    if no_no_code lthy (rty, qty) then 
+      (snd oo Local_Theory.note) ((Binding.empty, [register_code_eq_attrib]), [encoded_code_eq]) lthy
+    else
+      lthy
   end
 end
             

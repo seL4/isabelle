@@ -34,10 +34,14 @@ sig
     pos_distr_rules: thm list, neg_distr_rules: thm list}
   val lookup_relator_distr_data: Proof.context -> string -> relator_distr_data option
 
+  val add_no_code_type: string -> Context.generic -> Context.generic
+  val is_no_code_type: Proof.context -> string -> bool
+
   val get_quot_maps           : Proof.context -> quot_map Symtab.table
   val get_quotients           : Proof.context -> quotient Symtab.table
   val get_relator_distr_data  : Proof.context -> relator_distr_data Symtab.table
   val get_restore_data        : Proof.context -> restore_data Symtab.table
+  val get_no_code_types       : Proof.context -> unit Symtab.table
 
   val setup: theory -> theory
 end
@@ -82,52 +86,61 @@ structure Data = Generic_Data
       quotients : quotient Symtab.table,
       reflexivity_rules : thm Item_Net.T,
       relator_distr_data : relator_distr_data Symtab.table,
-      restore_data : restore_data Symtab.table
+      restore_data : restore_data Symtab.table,
+      no_code_types : unit Symtab.table
     }
   val empty =
     { quot_maps = Symtab.empty,
       quotients = Symtab.empty,
       reflexivity_rules = Thm.full_rules,
       relator_distr_data = Symtab.empty,
-      restore_data = Symtab.empty
+      restore_data = Symtab.empty,
+      no_code_types = Symtab.empty
     }
   val extend = I
   fun merge
     ( { quot_maps = qm1, quotients = q1, reflexivity_rules = rr1, relator_distr_data = rdd1, 
-        restore_data = rd1 },
+        restore_data = rd1, no_code_types = nct1 },
       { quot_maps = qm2, quotients = q2, reflexivity_rules = rr2, relator_distr_data = rdd2,
-        restore_data = rd2 } ) =
+        restore_data = rd2, no_code_types = nct2 } ) =
     { quot_maps = Symtab.merge (K true) (qm1, qm2),
       quotients = Symtab.merge (K true) (q1, q2),
       reflexivity_rules = Item_Net.merge (rr1, rr2),
       relator_distr_data = Symtab.merge (K true) (rdd1, rdd2),
-      restore_data = Symtab.join join_restore_data (rd1, rd2) }
+      restore_data = Symtab.join join_restore_data (rd1, rd2),
+      no_code_types = Symtab.merge (K true) (nct1, nct2)
+    }
 )
 
-fun map_data f1 f2 f3 f4 f5
-  { quot_maps, quotients, reflexivity_rules, relator_distr_data, restore_data } =
+fun map_data f1 f2 f3 f4 f5 f6
+  { quot_maps, quotients, reflexivity_rules, relator_distr_data, restore_data, no_code_types } =
   { quot_maps = f1 quot_maps,
     quotients = f2 quotients,
     reflexivity_rules = f3 reflexivity_rules,
     relator_distr_data = f4 relator_distr_data,
-    restore_data = f5 restore_data }
+    restore_data = f5 restore_data,
+    no_code_types = f6 no_code_types
+  }
 
-fun map_quot_maps           f = map_data f I I I I
-fun map_quotients           f = map_data I f I I I
-fun map_reflexivity_rules   f = map_data I I f I I
-fun map_relator_distr_data  f = map_data I I I f I
-fun map_restore_data        f = map_data I I I I f
+fun map_quot_maps           f = map_data f I I I I I
+fun map_quotients           f = map_data I f I I I I
+fun map_reflexivity_rules   f = map_data I I f I I I
+fun map_relator_distr_data  f = map_data I I I f I I
+fun map_restore_data        f = map_data I I I I f I
+fun map_no_code_types       f = map_data I I I I I f
   
 val get_quot_maps'           = #quot_maps o Data.get
 val get_quotients'           = #quotients o Data.get
 val get_reflexivity_rules'   = #reflexivity_rules o Data.get
 val get_relator_distr_data'  = #relator_distr_data o Data.get
 val get_restore_data'        = #restore_data o Data.get
+val get_no_code_types'       = #no_code_types o Data.get
 
 fun get_quot_maps          ctxt = get_quot_maps' (Context.Proof ctxt)
 fun get_quotients          ctxt = get_quotients' (Context.Proof ctxt)
 fun get_relator_distr_data ctxt = get_relator_distr_data' (Context.Proof ctxt)
 fun get_restore_data       ctxt = get_restore_data' (Context.Proof ctxt)
+fun get_no_code_types      ctxt = get_no_code_types' (Context.Proof ctxt)
 
 (* info about Quotient map theorems *)
 
@@ -499,6 +512,13 @@ val relator_distr_attribute_setup =
      (@{binding relator_distr_raw}, get_distr_rules_raw)
   #> Global_Theory.add_thms_dynamic
      (@{binding relator_mono_raw}, get_mono_rules_raw)
+
+(* no_code types *)
+
+fun add_no_code_type type_name ctxt = 
+  Data.map (map_no_code_types (Symtab.update (type_name, ()))) ctxt;
+
+fun is_no_code_type ctxt type_name = (Symtab.defined o get_no_code_types) ctxt type_name
 
 (* theory setup *)
 

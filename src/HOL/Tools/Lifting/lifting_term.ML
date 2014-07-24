@@ -11,6 +11,8 @@ sig
   exception MERGE_TRANSFER_REL of Pretty.T
   exception CHECK_RTY of typ * typ
 
+  val instantiate_rtys: Proof.context -> typ * typ -> typ * typ
+
   val prove_quot_thm: Proof.context -> typ * typ -> thm
 
   val abs_fun: Proof.context -> typ * typ -> term
