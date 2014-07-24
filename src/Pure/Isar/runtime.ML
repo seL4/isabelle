@@ -166,10 +166,10 @@ fun toplevel_program body =
 (*Proof General legacy*)
 fun thread interrupts body =
   Thread.fork
-    (((fn () => body () handle exn => if Exn.is_interrupt exn then () else reraise exn)
-        |> debugging NONE
-        |> toplevel_error
-          (fn exn => Output.urgent_message ("## INTERNAL ERROR ##\n" ^ exn_message exn))),
+    (fn () =>
+      debugging NONE body () handle exn =>
+        if Exn.is_interrupt exn then ()
+        else Output.urgent_message ("## INTERNAL ERROR ##\n" ^ exn_message exn),
       Simple_Thread.attributes interrupts);
 
 end;
