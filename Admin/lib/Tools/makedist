@@ -157,8 +157,8 @@ else
 fi
 
 perl -pi \
-  -e "s,val is_identified = false,val is_identified = true,g" \
-  -e "s,val is_official = false,val is_official = ${IS_OFFICIAL},g" \
+  -e "s,val is_identified = false,val is_identified = true,g;" \
+  -e "s,val is_official = false,val is_official = ${IS_OFFICIAL},g;" \
   src/Pure/ROOT.ML src/Pure/ROOT.scala
 
 perl -pi -e "s,ISABELLE_ID=\"\",ISABELLE_ID=\"$IDENT\",g" lib/scripts/getsettings
