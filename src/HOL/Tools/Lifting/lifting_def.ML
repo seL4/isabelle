@@ -39,6 +39,20 @@ fun mono_eq_prover ctxt prop =
       handle ERROR _ => NONE
   end
 
+fun try_prove_refl_rel ctxt rel =
+  let
+    fun mk_ge_eq x =
+      let
+        val T = fastype_of x
+      in
+        Const (@{const_name "less_eq"}, T --> T --> HOLogic.boolT) $ 
+          (Const (@{const_name HOL.eq}, T)) $ x
+      end;
+    val goal = HOLogic.mk_Trueprop (mk_ge_eq rel);
+  in
+     mono_eq_prover ctxt goal
+  end;
+
 fun try_prove_reflexivity ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -177,6 +191,9 @@ fun get_binder_types_by_rel (Const (@{const_name "rel_fun"}, _) $ _ $ S) (Type (
 fun get_body_type_by_rel (Const (@{const_name "rel_fun"}, _) $ _ $ S) (Type ("fun", [_, U]), Type ("fun", [_, V])) = 
     get_body_type_by_rel S (U, V)
   | get_body_type_by_rel _ (U, V)  = (U, V)
+
+fun get_binder_rels (Const (@{const_name "rel_fun"}, _) $ R $ S) = R :: get_binder_rels S
+  | get_binder_rels _ = []
 
 fun force_rty_type ctxt rty rhs = 
   let
@@ -319,11 +336,11 @@ fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
         |> (fn x => x RS (@{thm Quotient_rel_abs2} OF [quot_ret_thm]))
       end
     
-    val prems = prems_of abs_eq_with_assms
-    val indexed_prems = map_index (apfst (fn x => x + 1)) prems
-    val indexed_assms = map (apsnd (try_prove_reflexivity ctxt)) indexed_prems
-    val proved_assms = map (apsnd the) (filter (is_some o snd) indexed_assms)
-    val abs_eq = fold_rev (fn (i, assms) => fn thm => assms RSN (i, thm)) proved_assms abs_eq_with_assms
+    val prem_rels = get_binder_rels (quot_thm_rel quot_thm);
+    val proved_assms = prem_rels |> map (try_prove_refl_rel ctxt) 
+      |> map_index (apfst (fn x => x + 1)) |> filter (is_some o snd) |> map (apsnd the) 
+      |> map (apsnd (fn assm => assm RS @{thm ge_eq_refl}))
+    val abs_eq = fold_rev (fn (i, assm) => fn thm => assm RSN (i, thm)) proved_assms abs_eq_with_assms
   in
     simplify_code_eq ctxt abs_eq
   end
