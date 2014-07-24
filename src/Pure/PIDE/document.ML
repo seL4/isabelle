@@ -296,12 +296,7 @@ fun delete_version version_id versions =
 
 fun define_blob digest text =
   map_state (fn (versions, blobs, commands, execution) =>
-    let
-      val sha1_digest = SHA1.digest text;
-      val _ =
-        digest = SHA1.rep sha1_digest orelse
-          error ("Ill-defined blob: bad SHA1 digest " ^ digest ^ " vs. " ^ SHA1.rep sha1_digest);
-      val blobs' = Symtab.update (digest, (sha1_digest, split_lines text)) blobs;
+    let val blobs' = Symtab.update (digest, (SHA1.fake digest, split_lines text)) blobs
     in (versions, blobs', commands, execution) end);
 
 fun the_blob (State {blobs, ...}) digest =

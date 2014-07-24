@@ -65,5 +65,7 @@ object SHA1
   def digest(bytes: Bytes): Digest = bytes.sha1_digest
 
   def digest(string: String): Digest = digest(Bytes(string))
+
+  def fake(rep: String): Digest = new Digest(rep)
 }
 

@@ -46,4 +46,6 @@ datatype digest = Digest of string;
 val digest = Digest o digest_string;
 fun rep (Digest s) = s;
 
+val fake = Digest;
+
 end;
