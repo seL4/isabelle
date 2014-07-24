@@ -382,14 +382,18 @@ local
       Conjunction.intr_balanced [abs_eq, (the_default TrueI opt_rep_eq), mk_type rty, mk_type qty]
     end
   
+  exception DECODE
+    
   fun decode_code_eq thm =
-    let
-      val [abs_eq, rep_eq, rty, qty] = Conjunction.elim_balanced 4 thm
-      val opt_rep_eq = if Thm.eq_thm_prop (rep_eq, TrueI) then NONE else SOME rep_eq
-      fun dest_type typ = typ |> Drule.dest_term |> term_of |> Logic.dest_type
-    in
-      (abs_eq, opt_rep_eq, (dest_type rty, dest_type qty)) 
-    end
+    if nprems_of thm > 0 then raise DECODE 
+    else
+      let
+        val [abs_eq, rep_eq, rty, qty] = Conjunction.elim_balanced 4 thm
+        val opt_rep_eq = if Thm.eq_thm_prop (rep_eq, TrueI) then NONE else SOME rep_eq
+        fun dest_type typ = typ |> Drule.dest_term |> term_of |> Logic.dest_type
+      in
+        (abs_eq, opt_rep_eq, (dest_type rty, dest_type qty)) 
+      end
   
   fun register_encoded_code_eq thm thy =
     let
@@ -397,6 +401,7 @@ local
     in
       register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy
     end
+    handle DECODE => thy
   
   val register_code_eq_attribute = Thm.declaration_attribute
     (fn thm => Context.mapping (register_encoded_code_eq thm) I)
