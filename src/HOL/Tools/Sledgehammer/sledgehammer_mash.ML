@@ -555,7 +555,7 @@ fun add_node kind name parents feats deps (access_G, (fact_xtab, feat_xtab), lea
   ((Graph.new_node (name, (kind, feats, deps)) access_G
     handle Graph.DUP _ => Graph.map_node name (K (kind, feats, deps)) access_G)
    |> fold (add_edge_to name) parents,
-  (add_to_xtab name fact_xtab, fold maybe_add_to_xtab feats feat_xtab),
+  (maybe_add_to_xtab name fact_xtab, fold maybe_add_to_xtab feats feat_xtab),
   (name, feats, deps) :: learns)
 
 fun try_graph ctxt when def f =
@@ -1221,7 +1221,7 @@ fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (access_G, (fact_xt
     val (parents, access_G) = ([], access_G) |> fold maybe_learn_from parents
     val (deps, _) = ([], access_G) |> fold maybe_learn_from deps
 
-    val fact_xtab = add_to_xtab name fact_xtab
+    val fact_xtab = maybe_add_to_xtab name fact_xtab
     val feat_xtab = fold maybe_add_to_xtab feats feat_xtab
   in
     ((name, parents, feats, deps), (access_G, (fact_xtab, feat_xtab)))
@@ -1331,13 +1331,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
             let
               val was_empty = Graph.is_empty access_G
 
-              val (learns, (access_G, xtabs)) =
+              val (learns, (access_G', xtabs')) =
                 fold_map (learn_wrt_access_graph ctxt) learns (access_G, xtabs)
-              val (relearns, access_G) =
-                fold_map (relearn_wrt_access_graph ctxt) relearns access_G
+              val (relearns, access_G'') =
+                fold_map (relearn_wrt_access_graph ctxt) relearns access_G'
 
-              val access_G = access_G |> fold flop_wrt_access_graph flops
-              val dirty_facts =
+              val access_G''' = access_G'' |> fold flop_wrt_access_graph flops
+              val dirty_facts' =
                 (case (was_empty, dirty_facts) of
                   (false, SOME names) => SOME (map #1 learns @ map #1 relearns @ names)
                 | _ => NONE)
@@ -1345,13 +1345,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
               val (ffds', freqs') =
                 if null relearns then
                   recompute_ffds_freqs_from_learns
-                    (map (fn (name, _, feats, deps) => (name, feats, deps)) learns) xtabs num_facts0
+                    (map (fn (name, _, feats, deps) => (name, feats, deps)) learns) xtabs' num_facts0
                     ffds freqs
                 else
-                  recompute_ffds_freqs_from_access_G access_G xtabs
+                  recompute_ffds_freqs_from_access_G access_G''' xtabs'
             in
-              {access_G = access_G, xtabs = xtabs, ffds = ffds', freqs = freqs',
-               dirty_facts = dirty_facts}
+              {access_G = access_G''', xtabs = xtabs', ffds = ffds', freqs = freqs',
+               dirty_facts = dirty_facts'}
             end
 
         fun commit last learns relearns flops =
@@ -1585,7 +1585,8 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
     in
       (case (fact_filter, mess) of
         (NONE, [(_, (mepo, _)), (_, (mash, _))]) =>
-        [(meshN, mesh), (mepoN, mepo |> map fst |> add_and_take),
+        [(meshN, mesh),
+         (mepoN, mepo |> map fst |> add_and_take),
          (mashN, mash |> map fst |> add_and_take)]
       | _ => [(effective_fact_filter, mesh)])
     end
