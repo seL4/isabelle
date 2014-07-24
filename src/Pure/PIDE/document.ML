@@ -72,7 +72,7 @@ fun make_perspective (required, command_ids, overlays) : perspective =
   visible_last = try List.last command_ids,
   overlays = Inttab.make_list overlays};
 
-val no_header = ("", Thy_Header.make ("", Position.none) [] [], []);
+val no_header: node_header = ("", Thy_Header.make ("", Position.none) [] [], []);
 val no_perspective = make_perspective (false, [], []);
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
