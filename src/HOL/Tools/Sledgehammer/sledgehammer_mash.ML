@@ -551,12 +551,15 @@ fun add_edge_to name parent =
   Graph.default_node (parent, (Isar_Proof, [], []))
   #> Graph.add_edge (parent, name)
 
-fun add_node kind name parents feats deps (access_G, (fact_xtab, feat_xtab), learns) =
-  ((Graph.new_node (name, (kind, feats, deps)) access_G
-    handle Graph.DUP _ => Graph.map_node name (K (kind, feats, deps)) access_G)
-   |> fold (add_edge_to name) parents,
-  (maybe_add_to_xtab name fact_xtab, fold maybe_add_to_xtab feats feat_xtab),
-  (name, feats, deps) :: learns)
+fun add_node kind name parents feats deps (accum as (access_G, (fact_xtab, feat_xtab), learns)) =
+  let val fact_xtab' = add_to_xtab name fact_xtab in
+    ((Graph.new_node (name, (kind, feats, deps)) access_G
+      handle Graph.DUP _ => Graph.map_node name (K (kind, feats, deps)) access_G)
+     |> fold (add_edge_to name) parents,
+     (fact_xtab', fold maybe_add_to_xtab feats feat_xtab),
+     (name, feats, deps) :: learns)
+  end
+  handle Symtab.DUP _ => accum (* robustness (in case the state file violates the invariant) *)
 
 fun try_graph ctxt when def f =
   f ()
@@ -1211,7 +1214,8 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
 
 fun mash_unlearn () = (clear_state (); Output.urgent_message "Reset MaSh.")
 
-fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (access_G, (fact_xtab, feat_xtab)) =
+fun learn_wrt_access_graph ctxt (name, parents, feats, deps)
+    (accum as (access_G, (fact_xtab, feat_xtab))) =
   let
     fun maybe_learn_from from (accum as (parents, access_G)) =
       try_graph ctxt "updating graph" accum (fn () =>
@@ -1221,11 +1225,12 @@ fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (access_G, (fact_xt
     val (parents, access_G) = ([], access_G) |> fold maybe_learn_from parents
     val (deps, _) = ([], access_G) |> fold maybe_learn_from deps
 
-    val fact_xtab = maybe_add_to_xtab name fact_xtab
+    val fact_xtab = add_to_xtab name fact_xtab
     val feat_xtab = fold maybe_add_to_xtab feats feat_xtab
   in
-    ((name, parents, feats, deps), (access_G, (fact_xtab, feat_xtab)))
+    (SOME (name, parents, feats, deps), (access_G, (fact_xtab, feat_xtab)))
   end
+  handle Symtab.DUP _ => (NONE, accum) (* facts sometimes have the same name, confusingly *)
 
 fun relearn_wrt_access_graph ctxt (name, deps) access_G =
   let
@@ -1333,6 +1338,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
 
               val (learns, (access_G', xtabs')) =
                 fold_map (learn_wrt_access_graph ctxt) learns (access_G, xtabs)
+                |>> map_filter I
               val (relearns, access_G'') =
                 fold_map (relearn_wrt_access_graph ctxt) relearns access_G'
 
