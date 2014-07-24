@@ -302,7 +302,8 @@ fun parse_dependency x =
   (parse_inference_source >> snd
    || scan_general_id --| skip_term >> single) x
 and parse_dependencies x =
-  (Scan.repeat (Scan.option ($$ ",") |-- parse_dependency) >> flat) x
+  (Scan.repeat (Scan.option ($$ ",") |-- parse_dependency)
+   >> (flat #> filter_out (curry (op =) "theory"))) x
 and parse_file_source x =
   (Scan.this_string "file" |-- $$ "(" |-- scan_general_id
    -- Scan.option ($$ "," |-- scan_general_id
@@ -676,7 +677,7 @@ fun core_of_agsyhol_proof s =
     _ :: proof_term :: _ => SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
   | _ => NONE)
 
-fun atp_proof_of_tstplike_proof local_prover _ "" = []
+fun atp_proof_of_tstplike_proof _ _ "" = []
   | atp_proof_of_tstplike_proof local_prover problem tstp =
     (case core_of_agsyhol_proof tstp of
       SOME facts => facts |> map (core_inference agsyhol_core_rule)
