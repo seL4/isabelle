@@ -1,8 +1,8 @@
-/*  Title:      Pure/package.scala
+/*  Title:      Pure/ROOT.scala
     Module:     PIDE
     Author:     Makarius
 
-Toplevel isabelle package.
+Root of isabelle package.
 */
 
 package object isabelle extends isabelle.Basic_Library
