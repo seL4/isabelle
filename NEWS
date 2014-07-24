@@ -64,7 +64,7 @@ isar-ref, jedit, system.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Improved Document panel: simplied interaction where every single
+* Improved Document panel: simplified interaction where every single
 mouse click (re)opens document via desktop environment or as jEdit
 buffer.
 
@@ -596,7 +596,7 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Fact collections add_ac and mult_ac are considered old-fashined.
+* Fact collections add_ac and mult_ac are considered old-fashioned.
 Prefer ac_simps instead, or specify rules
 (add|mult).(assoc|commute|left_commute) individually.
 
@@ -1046,7 +1046,6 @@ processing is started.
 
 * Windows: support for regular TeX installation (e.g. MiKTeX) instead
 of TeX Live from Cygwin.
-
 
 
 New in Isabelle2013-2 (December 2013)

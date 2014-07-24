@@ -4,7 +4,7 @@
 *)
 
 theory Quickcheck_Types
-imports "../Main"
+imports Main
 begin
 
 text {*

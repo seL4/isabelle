@@ -16,6 +16,14 @@ declare -a SOURCES=(
   Concurrent/mailbox.scala
   Concurrent/simple_thread.scala
   Concurrent/synchronized.scala
+  GUI/color_value.scala
+  GUI/gui.scala
+  GUI/gui_thread.scala
+  GUI/html5_panel.scala
+  GUI/jfx_thread.scala
+  GUI/popup.scala
+  GUI/system_dialog.scala
+  GUI/wrap_panel.scala
   General/antiquote.scala
   General/bytes.scala
   General/completion.scala
@@ -36,18 +44,10 @@ declare -a SOURCES=(
   General/symbol.scala
   General/time.scala
   General/timing.scala
-  General/url.scala
   General/untyped.scala
+  General/url.scala
   General/word.scala
   General/xz_file.scala
-  GUI/color_value.scala
-  GUI/gui.scala
-  GUI/gui_thread.scala
-  GUI/html5_panel.scala
-  GUI/jfx_thread.scala
-  GUI/popup.scala
-  GUI/system_dialog.scala
-  GUI/wrap_panel.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
   Isar/parse.scala
@@ -67,6 +67,7 @@ declare -a SOURCES=(
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala
+  ROOT.scala
   System/command_line.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
@@ -83,10 +84,10 @@ declare -a SOURCES=(
   Thy/thy_header.scala
   Thy/thy_info.scala
   Thy/thy_syntax.scala
-  Tools/check_source.scala
   Tools/build.scala
-  Tools/build_doc.scala
   Tools/build_console.scala
+  Tools/build_doc.scala
+  Tools/check_source.scala
   Tools/doc.scala
   Tools/keywords.scala
   Tools/main.scala
@@ -95,7 +96,6 @@ declare -a SOURCES=(
   Tools/simplifier_trace.scala
   Tools/task_statistics.scala
   library.scala
-  package.scala
   term.scala
   term_xml.scala
   "../Tools/Graphview/src/graph_panel.scala"

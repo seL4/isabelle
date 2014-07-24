@@ -6,7 +6,7 @@
 header {* Proving completeness of exhaustive generators *}
 
 theory Completeness
-imports "../Main"
+imports Main
 begin
 
 subsection {* Preliminaries *}

@@ -26,7 +26,7 @@ val session_finished = Unsynchronized.ref false;
 fun name () = "Isabelle/" ^ #name (! session);
 
 fun welcome () =
-  if Distribution.is_official then
+  if Distribution.is_identified then
     "Welcome to " ^ name () ^ " (" ^ Distribution.version ^ ")"
   else "Unofficial version of " ^ name () ^ " (" ^ Distribution.version ^ ")";
 

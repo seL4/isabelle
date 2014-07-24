@@ -5,6 +5,7 @@
 structure Distribution =     (*filled-in by makedist*)
 struct
   val version = "unidentified repository version";
+  val is_identified = false;
   val is_official = false;
 end;
 
