@@ -596,10 +596,9 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Removed collections add_ac and mult_ac.  Prefer ac_simps instead,
-or specify rules (add|mult).(assoc|commute|left_commute) individually.
-
-INCOMPATIBILITY.
+* Fact collections add_ac and mult_ac are considered old-fashined.
+Prefer ac_simps instead, or specify rules
+(add|mult).(assoc|commute|left_commute) individually.
 
 * Elimination of fact duplicates:
     equals_zero_I ~> minus_unique
