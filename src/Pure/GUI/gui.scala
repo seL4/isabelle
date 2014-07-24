@@ -97,13 +97,13 @@ object GUI
     }
   }
 
-  def dialog(parent: Component, title: String, message: Any*) =
+  def dialog(parent: Component, title: String, message: Any*): Unit =
     simple_dialog(JOptionPane.PLAIN_MESSAGE, null, parent, title, message)
 
-  def warning_dialog(parent: Component, title: String, message: Any*) =
+  def warning_dialog(parent: Component, title: String, message: Any*): Unit =
     simple_dialog(JOptionPane.WARNING_MESSAGE, "Warning", parent, title, message)
 
-  def error_dialog(parent: Component, title: String, message: Any*) =
+  def error_dialog(parent: Component, title: String, message: Any*): Unit =
     simple_dialog(JOptionPane.ERROR_MESSAGE, "Error", parent, title, message)
 
   def confirm_dialog(parent: Component, title: String, option_type: Int, message: Any*): Int =
