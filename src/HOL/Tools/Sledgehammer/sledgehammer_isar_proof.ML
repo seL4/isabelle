@@ -121,16 +121,16 @@ fun comment_isar_proof comment_of = map_isar_steps (comment_isar_step comment_of
 
 fun chain_qs_lfs NONE lfs = ([], lfs)
   | chain_qs_lfs (SOME l0) lfs =
-    if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
+    if member (op =) lfs l0 then ([Then], remove (op =) l0 lfs) else ([], lfs)
+
 fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment)) =
     let val (qs', lfs) = chain_qs_lfs lbl lfs in
       Prove (qs' @ qs, xs, l, t, map chain_isar_proof subs, (lfs, gfs), meths, comment)
     end
   | chain_isar_step _ step = step
 and chain_isar_steps _ [] = []
-  | chain_isar_steps (prev as SOME _) (i :: is) =
+  | chain_isar_steps prev (i :: is) =
     chain_isar_step prev i :: chain_isar_steps (label_of_isar_step i) is
-  | chain_isar_steps _ (i :: is) = i :: chain_isar_steps (label_of_isar_step i) is
 and chain_isar_proof (Proof (fix, assms, steps)) =
   Proof (fix, assms, chain_isar_steps (try (List.last #> fst) assms) steps)
 
