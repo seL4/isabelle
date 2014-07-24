@@ -562,6 +562,9 @@ class Session(val resources: Resources)
             if (global_state.value.is_assigned(change.previous))
               handle_change(change)
             else postponed_changes.store(change)
+
+          case bad =>
+            if (verbose) Output.warning("Ignoring bad message: " + bad.toString)
         }
         true
         //}}}
