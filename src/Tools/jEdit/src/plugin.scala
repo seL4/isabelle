@@ -263,6 +263,20 @@ class Plugin extends EBPlugin
       case Session.Ready =>
         PIDE.session.update_options(PIDE.options.value)
         PIDE.init_models()
+
+        if (!Isabelle.continuous_checking) {
+          GUI_Thread.later {
+            val answer =
+              GUI.confirm_dialog(jEdit.getActiveView,
+                "Continuous checking of PIDE document",
+                JOptionPane.YES_NO_OPTION,
+                "Continuous checking is presently disabled:",
+                "editor buffers will remain inactive!",
+                "Enable continuous checking now?")
+            if (answer == 0) Isabelle.continuous_checking = true
+          }
+        }
+
         delay_load.invoke()
 
       case Session.Shutdown =>
