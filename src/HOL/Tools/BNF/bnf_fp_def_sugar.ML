@@ -228,6 +228,9 @@ fun mk_xtor_co_recs thy fp fpTs Cs ts0 =
     map (Term.subst_TVars rho) ts0
   end;
 
+fun mk_set Ts t =
+  subst_nonatomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
+
 fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
   | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
   | unzip_recT _ T = [T];
@@ -528,7 +531,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
 
     val us = map2 (curry Free) us' fpTs;
 
-    fun mk_sets_nested bnf =
+    fun mk_sets bnf =
       let
         val Type (T_name, Us) = T_of_bnf bnf;
         val lives = lives_of_bnf bnf;
@@ -541,19 +544,14 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
         (T_name, map mk_set Us)
       end;
 
-    val setss_nested = map mk_sets_nested fp_nesting_bnfs;
+    val setss_fp_nesting = map mk_sets fp_nesting_bnfs;
 
     val (induct_thms, induct_thm) =
       let
-        fun mk_set Ts t =
-          let val Type (_, Ts0) = domain_type (fastype_of t) in
-            Term.subst_atomic_types (Ts0 ~~ Ts) t
-          end;
-
         fun mk_raw_prem_prems _ (x as Free (_, Type _)) (X as TFree _) =
             [([], (find_index (curry (op =) X) Xs + 1, x))]
           | mk_raw_prem_prems names_lthy (x as Free (s, Type (T_name, Ts0))) (Type (_, Xs_Ts0)) =
-            (case AList.lookup (op =) setss_nested T_name of
+            (case AList.lookup (op =) setss_fp_nesting T_name of
               NONE => []
             | SOME raw_sets0 =>
               let
@@ -1297,9 +1295,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val map_thms = map2 mk_map_thm ctr_defs' cxIns;
               val set_thmss = map mk_set_thms fp_set_thms;
               val set_thms = flat set_thmss;
-
-              fun mk_set Ts t =
-                subst_nonatomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
               val sets = map (mk_set (snd (Term.dest_Type fpT))) (sets_of_bnf fp_bnf);
 
