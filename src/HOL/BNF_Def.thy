@@ -53,21 +53,21 @@ definition vimage2p where
 lemma collect_comp: "collect F \<circ> g = collect ((\<lambda>f. f \<circ> g) ` F)"
   by (rule ext) (auto simp only: comp_apply collect_def)
 
-definition convol ("<_ , _>") where
-"<f , g> \<equiv> %a. (f a, g a)"
+definition convol ("\<langle>(_,/ _)\<rangle>") where
+"\<langle>f, g\<rangle> \<equiv> \<lambda>a. (f a, g a)"
 
 lemma fst_convol:
-"fst \<circ> <f , g> = f"
+"fst \<circ> \<langle>f, g\<rangle> = f"
 apply(rule ext)
 unfolding convol_def by simp
 
 lemma snd_convol:
-"snd \<circ> <f , g> = g"
+"snd \<circ> \<langle>f, g\<rangle> = g"
 apply(rule ext)
 unfolding convol_def by simp
 
 lemma convol_mem_GrpI:
-"x \<in> A \<Longrightarrow> <id , g> x \<in> (Collect (split (Grp A g)))"
+"x \<in> A \<Longrightarrow> \<langle>id, g\<rangle> x \<in> (Collect (split (Grp A g)))"
 unfolding convol_def Grp_def by auto
 
 definition csquare where
@@ -182,7 +182,7 @@ lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
 lemma rel_fun_iff_leq_vimage2p: "(rel_fun R S) f g = (R \<le> vimage2p f g S)"
   unfolding rel_fun_def vimage2p_def by auto
 
-lemma convol_image_vimage2p: "<f \<circ> fst, g \<circ> snd> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
+lemma convol_image_vimage2p: "\<langle>f \<circ> fst, g \<circ> snd\<rangle> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
   unfolding vimage2p_def convol_def by auto
 
 lemma vimage2p_Grp: "vimage2p f g P = Grp UNIV f OO P OO (Grp UNIV g)\<inverse>\<inverse>"

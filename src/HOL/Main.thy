@@ -26,7 +26,7 @@ no_notation
   csum (infixr "+c" 65) and
   cprod (infixr "*c" 80) and
   cexp (infixr "^c" 90) and
-  convol ("<_ , _>")
+  convol ("\<langle>(_,/ _)\<rangle>")
 
 hide_const (open)
   czero cinfinite cfinite csum cone ctwo Csum cprod cexp

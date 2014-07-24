@@ -41,23 +41,23 @@ unfolding underS_def Field_def by auto
 lemma FieldI2: "(i, j) \<in> R \<Longrightarrow> j \<in> Field R"
 unfolding Field_def by auto
 
-lemma fst_convol': "fst (<f, g> x) = f x"
+lemma fst_convol': "fst (\<langle>f, g\<rangle> x) = f x"
 using fst_convol unfolding convol_def by simp
 
-lemma snd_convol': "snd (<f, g> x) = g x"
+lemma snd_convol': "snd (\<langle>f, g\<rangle> x) = g x"
 using snd_convol unfolding convol_def by simp
 
-lemma convol_expand_snd: "fst o f = g \<Longrightarrow>  <g, snd o f> = f"
+lemma convol_expand_snd: "fst o f = g \<Longrightarrow> \<langle>g, snd o f\<rangle> = f"
 unfolding convol_def by auto
 
 lemma convol_expand_snd':
   assumes "(fst o f = g)"
-  shows "h = snd o f \<longleftrightarrow> <g, h> = f"
+  shows "h = snd o f \<longleftrightarrow> \<langle>g, h\<rangle> = f"
 proof -
-  from assms have *: "<g, snd o f> = f" by (rule convol_expand_snd)
-  then have "h = snd o f \<longleftrightarrow> h = snd o <g, snd o f>" by simp
+  from assms have *: "\<langle>g, snd o f\<rangle> = f" by (rule convol_expand_snd)
+  then have "h = snd o f \<longleftrightarrow> h = snd o \<langle>g, snd o f\<rangle>" by simp
   moreover have "\<dots> \<longleftrightarrow> h = snd o f" by (simp add: snd_convol)
-  moreover have "\<dots> \<longleftrightarrow> <g, h> = f" by (subst (2) *[symmetric]) (auto simp: convol_def fun_eq_iff)
+  moreover have "\<dots> \<longleftrightarrow> \<langle>g, h\<rangle> = f" by (subst (2) *[symmetric]) (auto simp: convol_def fun_eq_iff)
   ultimately show ?thesis by simp
 qed
 lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B"

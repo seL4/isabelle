@@ -113,13 +113,13 @@ lemma rewriteL_comp_comp: "\<lbrakk>f \<circ> g = l\<rbrakk> \<Longrightarrow> f
 lemma rewriteL_comp_comp2: "\<lbrakk>f \<circ> g = l1 \<circ> l2; l2 \<circ> h = r\<rbrakk> \<Longrightarrow> f \<circ> (g \<circ> h) = l1 \<circ> r"
   unfolding comp_def fun_eq_iff by auto
 
-lemma convol_o: "<f, g> \<circ> h = <f \<circ> h, g \<circ> h>"
+lemma convol_o: "\<langle>f, g\<rangle> \<circ> h = \<langle>f \<circ> h, g \<circ> h\<rangle>"
   unfolding convol_def by auto
 
-lemma map_prod_o_convol: "map_prod h1 h2 \<circ> <f, g> = <h1 \<circ> f, h2 \<circ> g>"
+lemma map_prod_o_convol: "map_prod h1 h2 \<circ> \<langle>f, g\<rangle> = \<langle>h1 \<circ> f, h2 \<circ> g\<rangle>"
   unfolding convol_def by auto
 
-lemma map_prod_o_convol_id: "(map_prod f id \<circ> <id , g>) x = <id \<circ> f , g> x"
+lemma map_prod_o_convol_id: "(map_prod f id \<circ> \<langle>id, g\<rangle>) x = \<langle>id \<circ> f, g\<rangle> x"
   unfolding map_prod_o_convol id_comp comp_id ..
 
 lemma o_case_sum: "h \<circ> case_sum f g = case_sum (h \<circ> f) (h \<circ> g)"

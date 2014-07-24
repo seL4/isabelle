@@ -11,11 +11,11 @@ theory Prelim
 imports "~~/src/HOL/Library/FSet"
 begin
 
-notation BNF_Def.convol ("<_ , _>")
+notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
 
 declare fset_to_fset[simp]
 
-lemma fst_snd_convol_o[simp]: "<fst o s, snd o s> = s"
+lemma fst_snd_convol_o[simp]: "\<langle>fst o s, snd o s\<rangle> = s"
 apply(rule ext) by (simp add: convol_def)
 
 abbreviation sm_abbrev (infix "\<oplus>" 60)

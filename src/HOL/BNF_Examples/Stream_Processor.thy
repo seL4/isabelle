@@ -152,10 +152,10 @@ section {* Generalization to an Arbitrary BNF as Codomain *}
 
 bnf_axiomatization ('a, 'b) F for map: F
 
-notation BNF_Def.convol ("<_ , _>")
+notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
 
 definition \<theta> :: "('p,'a) F * 'b \<Rightarrow> ('p,'a * 'b) F" where
-  "\<theta> xb = F id <id, \<lambda> a. (snd xb)> (fst xb)"
+  "\<theta> xb = F id \<langle>id, \<lambda> a. (snd xb)\<rangle> (fst xb)"
 
 (* The strength laws for \<theta>: *)
 lemma \<theta>_natural: "F id (map_prod f g) o \<theta> = \<theta> o map_prod (F id f) g"
