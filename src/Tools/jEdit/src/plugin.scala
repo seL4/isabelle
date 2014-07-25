@@ -310,7 +310,7 @@ class Plugin extends EBPlugin
           PIDE.session.start("Isabelle", Isabelle_Logic.session_args())
 
           if (Distribution.is_identified && !Distribution.is_official) {
-            GUI.warning_dialog(jEdit.getActiveView, "Isabelle release candidate for testing",
+            GUI.warning_dialog(jEdit.getActiveView, "Isabelle version for testing",
               "This is " + Distribution.version +".",
               "It is for testing only, not for production use.")
           }
