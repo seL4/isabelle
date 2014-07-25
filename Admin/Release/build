@@ -18,6 +18,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] DIR [VERSION]"
   echo
   echo "  Options are:"
+  echo "    -O           official release (not release-candidate)"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
   echo "    -l           build library"
   echo "    -r RELEASE   proper release with name"
@@ -46,13 +47,17 @@ function check_number()
 
 # options
 
+OFFICIAL_RELEASE=""
 JOBS=""
 LIBRARY=""
 RELEASE=""
 
-while getopts "j:lr:" OPT
+while getopts "Oj:lr:" OPT
 do
   case "$OPT" in
+    O)
+      OFFICIAL_RELEASE="-O"
+      ;;
     j)
       check_number "$OPTARG"
       JOBS="-j $OPTARG"
@@ -98,10 +103,10 @@ ISABELLE_PLATFORM_FAMILY="$("$ISABELLE_TOOL" getenv -b ISABELLE_PLATFORM_FAMILY)
 
 if [ -z "$RELEASE" ]; then
   DISTNAME="Isabelle_$(env LC_ALL=C date "+%d-%b-%Y")"
-  "$ISABELLE_TOOL" makedist -d "$BASE_DIR" $JOBS
+  "$ISABELLE_TOOL" makedist -d "$BASE_DIR" $JOBS $OFFICIAL_RELEASE
 else
   DISTNAME="$RELEASE"
-  "$ISABELLE_TOOL" makedist -d "$BASE_DIR" $JOBS -r "$RELEASE"
+  "$ISABELLE_TOOL" makedist -d "$BASE_DIR" $JOBS $OFFICIAL_RELEASE -r "$RELEASE"
 fi
 [ "$?" = 0 ] || exit "$?"
 

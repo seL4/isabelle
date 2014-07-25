@@ -58,7 +58,7 @@ OFFICIAL_RELEASE="false"
 JOBS=""
 RELEASE=""
 
-while getopts "d:j:r:" OPT
+while getopts "Od:j:r:" OPT
 do
   case "$OPT" in
     O)
