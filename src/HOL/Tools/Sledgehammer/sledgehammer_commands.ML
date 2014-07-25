@@ -203,10 +203,9 @@ fun remotify_prover_if_not_installed ctxt name =
   if is_prover_supported ctxt name andalso is_prover_installed ctxt name then SOME name
   else remotify_prover_if_supported_and_not_already_remote ctxt name
 
-(* The first ATP of the list is used by Auto Sledgehammer. Because of the low
-   timeout, it makes sense to put E first. *)
+(* The first ATP of the list is used by Auto Sledgehammer. *)
 fun default_provers_param_value mode ctxt =
-  [eN, spassN, z3N, e_sineN, vampireN]
+  [eN, spassN, z3N, vampireN, e_sineN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
   |> take (Multithreading.max_threads_value () - (if mode = Try then 1 else 0))
