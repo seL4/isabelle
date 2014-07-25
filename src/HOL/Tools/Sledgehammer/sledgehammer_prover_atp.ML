@@ -143,6 +143,7 @@ fun run_atp mode name
     val {exec, arguments, proof_delims, known_failures, prem_role, best_slices, best_max_mono_iters,
       best_max_new_mono_instances, ...} = get_atp thy name ()
 
+    val full_proofs = isar_proofs |> the_default (mode = Minimize)
     val local_name = perhaps (try (unprefix remote_prefix)) name
     val waldmeister_new = (local_name = waldmeister_newN)
     val spass = (local_name = spassN orelse local_name = spass_pirateN)
@@ -162,7 +163,7 @@ fun run_atp mode name
         Path.append (Path.explode dest_dir) problem_file_name
       else
         error ("No such directory: " ^ quote dest_dir ^ ".")
-    val exec = exec ()
+    val exec = exec full_proofs
     val command0 =
       (case find_first (fn var => getenv var <> "") (fst exec) of
         SOME var =>
@@ -276,9 +277,8 @@ fun run_atp mode name
             fun ord_info () = atp_problem_term_order_info atp_problem
 
             val ord = effective_term_order ctxt name
-            val full_proof = isar_proofs |> the_default (mode = Minimize)
             val args =
-              arguments ctxt full_proof extra slice_timeout (File.shell_path prob_path)
+              arguments ctxt full_proofs extra slice_timeout (File.shell_path prob_path)
                 (ord, ord_info, sel_weights)
             val command =
               "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^ ")"

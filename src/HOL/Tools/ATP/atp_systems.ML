@@ -14,11 +14,9 @@ sig
 
   type slice_spec = (int * string) * atp_format * string * string * bool
   type atp_config =
-    {exec : unit -> string list * string list,
-     arguments :
-       Proof.context -> bool -> string -> Time.time -> string
-       -> term_order * (unit -> (string * int) list)
-          * (unit -> (string * real) list) -> string,
+    {exec : bool -> string list * string list,
+     arguments : Proof.context -> bool -> string -> Time.time -> string ->
+       term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string,
      proof_delims : (string * string) list,
      known_failures : (atp_failure * string) list,
      prem_role : atp_formula_role,
@@ -48,10 +46,9 @@ sig
   val spass_H2NuVS0Red2 : string
   val spass_H2SOS : string
   val spass_extra_options : string Config.T
-  val remote_atp :
-    string -> string -> string list -> (string * string) list
-    -> (atp_failure * string) list -> atp_formula_role
-    -> (Proof.context -> slice_spec * string) -> string * (unit -> atp_config)
+  val remote_atp : string -> string -> string list -> (string * string) list ->
+    (atp_failure * string) list -> atp_formula_role -> (Proof.context -> slice_spec * string) ->
+    string * (unit -> atp_config)
   val add_atp : string * (unit -> atp_config) -> theory -> theory
   val get_atp : theory -> string -> (unit -> atp_config)
   val supported_atps : theory -> string list
@@ -76,11 +73,9 @@ val default_max_new_mono_instances = 100 (* FUDGE *)
 type slice_spec = (int * string) * atp_format * string * string * bool
 
 type atp_config =
-  {exec : unit -> string list * string list,
-   arguments :
-     Proof.context -> bool -> string -> Time.time -> string
-     -> term_order * (unit -> (string * int) list)
-        * (unit -> (string * real) list) -> string,
+  {exec : bool -> string list * string list,
+   arguments : Proof.context -> bool -> string -> Time.time -> string ->
+     term_order * (unit -> (string * int) list) * (unit -> (string * real) list) -> string,
    proof_delims : (string * string) list,
    known_failures : (atp_failure * string) list,
    prem_role : atp_formula_role,
@@ -213,7 +208,6 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 (* E *)
 
 fun is_e_at_least_1_8 () = string_ord (getenv "E_VERSION", "1.8") <> LESS
-fun is_e_at_least_1_9 () = string_ord (getenv "E_VERSION", "1.9") <> LESS
 
 val e_smartN = "smart"
 val e_autoN = "auto"
@@ -286,9 +280,10 @@ fun e_term_order_info_arguments false false _ = ""
     end
 
 val e_config : atp_config =
-  {exec = (fn () => (["E_HOME"],
-     if is_e_at_least_1_9 () then ["eprover"] else ["eproof_ram", "eproof"])),
-   arguments = fn ctxt => fn full_proof => fn heuristic => fn timeout => fn file_name =>
+  {exec = fn full_proofs => (["E_HOME"],
+     if full_proofs orelse not (is_e_at_least_1_8 ()) then ["eproof_ram", "eproof"]
+     else ["eprover"]),
+   arguments = fn ctxt => fn full_proofs => fn heuristic => fn timeout => fn file_name =>
      fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
        (if is_e_at_least_1_8 () then "--auto-schedule " else "") ^
        "--tstp-in --tstp-out --silent " ^
@@ -296,8 +291,10 @@ val e_config : atp_config =
        e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
        "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
-       (if is_e_at_least_1_9 () then " --proof-object=3"
-        else " --output-level=5 --pcl-shell-level=" ^ (if full_proof then "0" else "2")) ^
+       (if full_proofs orelse not (is_e_at_least_1_8 ()) then
+          " --output-level=5 --pcl-shell-level=" ^ (if full_proofs then "0" else "2")
+        else
+          " --proof-object=1") ^
        " " ^ file_name,
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
@@ -511,20 +508,20 @@ val vampire_tff0 = TFF Monomorphic
 
 val vampire_config : atp_config =
   {exec = K (["VAMPIRE_HOME"], ["vampire"]),
-   arguments = fn _ => fn full_proof => fn sos => fn timeout => fn file_name =>
+   arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn file_name =>
        fn _ =>
        "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
        " --proof tptp --output_axiom_names on" ^
        (if is_vampire_at_least_1_8 () then
           (* Cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
-          (if full_proof then
+          (if full_proofs then
              " --forced_options splitting=off:equality_proxy=off:general_splitting=off\
              \:inequality_splitting=0:naming=0"
            else
              "")
         else
           "") ^
-       " --thanks \"Andrei and Krystof\" --input_file " ^ file_name
+       " --thanks \"Andrei et al.\" --input_file " ^ file_name
        |> sos = sosN ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
@@ -766,7 +763,7 @@ val supported_atps = Symtab.keys o Data.get
 
 fun is_atp_installed thy name =
   let val {exec, ...} = get_atp thy name () in
-    exists (fn var => getenv var <> "") (fst (exec ()))
+    exists (fn var => getenv var <> "") (fst (exec false))
   end
 
 fun refresh_systems_on_tptp () =
