@@ -233,13 +233,13 @@ fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_dist
 fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss ctor_defss
     dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses nesting_rel_eqs =
   rtac dtor_rel_coinduct 1 THEN
-  EVERY (map11 (fn ct => fn assm => fn exhaust => fn discs => fn sels => fn ctor_defs =>
-    fn dtor_ctor => fn ctor_inject => fn abs_inject => fn rel_pre_def => fn abs_inverse =>
-      rtac exhaust THEN_ALL_NEW (rtac exhaust THEN_ALL_NEW
-        (dtac (rotate_prems (~1)
-          (cterm_instantiate_pos [NONE, NONE, NONE, NONE, SOME ct] @{thm arg_cong2} RS iffD1)) THEN'
-        atac THEN' atac THEN' hyp_subst_tac ctxt THEN' dtac assm THEN'
-        REPEAT_DETERM o etac conjE)) 1 THEN
+   EVERY (map11 (fn ct => fn assm => fn exhaust => fn discs => fn sels => fn ctor_defs =>
+     fn dtor_ctor => fn ctor_inject => fn abs_inject => fn rel_pre_def => fn abs_inverse =>
+      (rtac exhaust THEN_ALL_NEW (rtac exhaust THEN_ALL_NEW
+         (dtac (rotate_prems (~1) (cterm_instantiate_pos [NONE, NONE, NONE, NONE, SOME ct]
+            @{thm arg_cong2} RS iffD1)) THEN'
+          atac THEN' atac THEN' hyp_subst_tac ctxt THEN' dtac assm THEN'
+          REPEAT_DETERM o etac conjE))) 1 THEN
       unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @ sels @ simp_thms') THEN
       unfold_thms_tac ctxt (dtor_ctor :: rel_pre_def :: abs_inverse :: ctor_inject ::
         abs_inject :: ctor_defs @ nesting_rel_eqs @ simp_thms' @ @{thms BNF_Comp.id_bnf_comp_def
