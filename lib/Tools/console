@@ -80,6 +80,7 @@ isabelle_admin_build jars || exit $?
 
 declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
+mkdir -p "$ISABELLE_TMP_PREFIX" || exit $?
 OPTIONS_FILE="$ISABELLE_TMP_PREFIX/options$$"
 
 "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Console \
