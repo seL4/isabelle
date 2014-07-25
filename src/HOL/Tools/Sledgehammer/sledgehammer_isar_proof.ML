@@ -218,8 +218,6 @@ fun string_of_isar_proof ctxt0 i n proof =
       |> Config.put show_sorts false
       |> Config.put show_consts false
 
-    val register_fixes = map Free #> fold Variable.auto_fixes
-
     fun add_str s' = apfst (suffix s')
 
     fun of_indent ind = replicate_string (ind * indent_size) " "
@@ -246,7 +244,7 @@ fun string_of_isar_proof ctxt0 i n proof =
             |> with_vanilla_print_mode (Syntax.unparse_term ctxt #> Pretty.string_of)
             |> simplify_spaces
             |> maybe_quote),
-       ctxt |> Variable.auto_fixes term)
+       ctxt |> perhaps (try (Variable.auto_fixes term)))
 
     fun using_facts [] [] = ""
       | using_facts ls ss = enclose "using " " " (space_implode " " (map string_of_label ls @ ss))
@@ -266,7 +264,7 @@ fun string_of_isar_proof ctxt0 i n proof =
       maybe_quote (simplify_spaces (with_vanilla_print_mode (Syntax.string_of_typ ctxt) T))
 
     fun add_frees xs (s, ctxt) =
-      (s ^ space_implode " and " (map of_free xs), ctxt |> register_fixes xs)
+      (s ^ space_implode " and " (map of_free xs), ctxt |> fold Variable.auto_fixes (map Free xs))
 
     fun add_fix _ [] = I
       | add_fix ind xs = add_str (of_indent ind ^ "fix ") #> add_frees xs #> add_str "\n"
