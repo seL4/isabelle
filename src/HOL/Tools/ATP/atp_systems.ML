@@ -261,9 +261,9 @@ fun e_selection_weight_arguments ctxt heuristic sel_weights =
      |> implode) ^
     "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
-    \FIFOWeight(PreferProcessed))'"
+    \FIFOWeight(PreferProcessed))' "
   else
-    "-xAuto"
+    "-xAuto "
 
 val e_ord_weights =
   map (fn (s, w) => s ^ ":" ^ string_of_int w) #> space_implode ","
@@ -273,10 +273,8 @@ fun e_ord_precedence [_] = ""
 fun e_term_order_info_arguments false false _ = ""
   | e_term_order_info_arguments gen_weights gen_prec ord_info =
     let val ord_info = ord_info () in
-      (if gen_weights then "--order-weights='" ^ e_ord_weights ord_info ^ "' "
-       else "") ^
-      (if gen_prec then "--precedence='" ^ e_ord_precedence ord_info ^ "' "
-       else "")
+      (if gen_weights then "--order-weights='" ^ e_ord_weights ord_info ^ "' " else "") ^
+      (if gen_prec then "--precedence='" ^ e_ord_precedence ord_info ^ "' " else "")
     end
 
 val e_config : atp_config =
@@ -287,8 +285,8 @@ val e_config : atp_config =
      fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
        (if is_e_at_least_1_8 () then "--auto-schedule " else "") ^
        "--tstp-in --tstp-out --silent " ^
-       e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
-       e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
+       e_selection_weight_arguments ctxt heuristic sel_weights ^
+       e_term_order_info_arguments gen_weights gen_prec ord_info ^
        "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
        (if full_proofs orelse not (is_e_at_least_1_8 ()) then
