@@ -51,12 +51,11 @@ fun run_atp ctxt format problem =
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob")
     val atp = atp_of_format format
-    val {exec, arguments, proof_delims, known_failures, ...} =
-      get_atp thy atp ()
+    val {exec, arguments, proof_delims, known_failures, ...} = get_atp thy atp ()
     val ord = effective_term_order ctxt atp
     val _ = problem |> lines_of_atp_problem format ord (K [])
                     |> File.write_list prob_file
-    val exec = exec ()
+    val exec = exec false
     val path = getenv (List.last (fst exec)) ^ "/" ^ List.last (snd exec)
     val command =
       File.shell_path (Path.explode path) ^ " " ^
