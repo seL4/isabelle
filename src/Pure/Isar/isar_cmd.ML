@@ -154,11 +154,12 @@ fun oracle (name, pos) source =
 (* old-style defs *)
 
 fun add_defs ((unchecked, overloaded), args) thy =
+ (legacy_feature "Old 'defs' command -- use 'definition' (with 'overloading') instead";
   thy |>
     (if unchecked then Global_Theory.add_defs_unchecked_cmd else Global_Theory.add_defs_cmd)
       overloaded
       (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute_cmd_global thy) srcs)) args)
-  |> snd;
+  |> snd);
 
 
 (* declarations *)
