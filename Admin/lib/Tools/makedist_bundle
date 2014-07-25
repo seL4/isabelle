@@ -261,7 +261,12 @@ then
         cd "$TMP"
 
         APP_TEMPLATE="$ISABELLE_HOME/Admin/MacOS"
-        APP="${ISABELLE_NAME}.app"
+        APP="dmg/${ISABELLE_NAME}.app"
+
+        mkdir -p "dmg/.background"
+        cp "$APP_TEMPLATE/dmg/background.png" "dmg/.background/"
+        cp "$APP_TEMPLATE/dmg/DS_Store" "dmg/.DS_Store"
+        ln -s /Applications "dmg/."
 
         for NAME in Java MacOS PlugIns Resources
         do
@@ -299,7 +304,9 @@ then
         ln -sf "Contents/Resources/$ISABELLE_NAME" "$APP/Isabelle"
 
         rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
-        hdiutil create -srcfolder "$APP" "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
+
+        cd dmg
+        hdiutil create -srcfolder . -volname "$ISABELLE_NAME" "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
       )
       ;;
     windows)
