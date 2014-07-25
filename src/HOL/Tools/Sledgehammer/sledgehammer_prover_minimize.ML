@@ -130,7 +130,7 @@ fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,
-      preplay_timeout, ...} : params)
+      minimize, preplay_timeout, ...} : params)
     silent (prover : prover) timeout i n state goal facts =
   let
     val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^
@@ -144,7 +144,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
        max_facts = SOME (length facts), fact_thresholds = (1.01, 1.01),
        max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,
        isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
-       slice = false, minimize = SOME false, timeout = timeout, preplay_timeout = preplay_timeout,
+       slice = false, minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
        expect = ""}
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
