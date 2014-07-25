@@ -121,7 +121,8 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
     end
   | Simp_Method => Simplifier.asm_full_simp_tac (silence_methods ctxt addsimps global_facts)
   | Simp_Size_Method =>
-    Simplifier.asm_full_simp_tac (silence_methods ctxt addsimps @{thms size_ne_size_imp_ne})
+    Simplifier.asm_full_simp_tac
+      (silence_methods ctxt addsimps (@{thm size_ne_size_imp_ne} :: global_facts))
   | _ =>
     Method.insert_tac global_facts THEN'
     (case meth of
