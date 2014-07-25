@@ -306,7 +306,7 @@ then
         rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
 
         cd dmg
-        hdiutil create -srcfolder . -volname "$ISABELLE_NAME" "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
+        hdiutil create -srcfolder . -volname Isabelle "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
       )
       ;;
     windows)
