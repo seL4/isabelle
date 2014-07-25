@@ -36,6 +36,7 @@ sig
   val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
+  val influence_proof_method : Proof.context -> proof_method -> thm list -> bool
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome * play_outcome -> order
   val one_line_proof_text : Proof.context -> int -> one_line_params -> string
@@ -135,6 +136,16 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
       let val ctxt = Config.put Lin_Arith.verbose false ctxt in Lin_Arith.tac ctxt end
     | Presburger_Method => Cooper.tac true [] [] ctxt
     | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
+
+val simp_based_methods =
+  [Simp_Method, Simp_Size_Method, Auto_Method, Fastforce_Method, Force_Method]
+
+fun influence_proof_method ctxt meth ths =
+  not (member (op =) simp_based_methods meth) orelse
+  let val ctxt' = silence_methods ctxt in
+    (* unfortunate pointer comparison -- but it's always safe to consider a theorem useful *)
+    not (pointer_eq (ctxt' addsimps ths, ctxt'))
+  end
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
   | string_of_play_outcome (Play_Timed_Out time) =

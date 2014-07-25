@@ -21,6 +21,7 @@ end;
 structure Sledgehammer_Isar_Minimize : SLEDGEHAMMER_ISAR_MINIMIZE =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
@@ -35,10 +36,12 @@ fun keep_fastest_method_of_isar_step preplay_data
 val slack = seconds 0.025
 
 fun minimize_isar_step_dependencies ctxt preplay_data
-      (step as Prove (qs, xs, l, t, subproofs, (lfs0, gfs0), meths as meth :: _, comment)) =
+      (step as Prove (qs, xs, l, t, subproofs, (lfs0, gfs00), meths as meth :: _, comment)) =
     (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
       Played time =>
       let
+        val gfs0 = filter (influence_proof_method ctxt meth o thms_of_name ctxt) gfs00
+
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)
 
         fun minimize_facts _ min_facts [] time = (min_facts, time)
