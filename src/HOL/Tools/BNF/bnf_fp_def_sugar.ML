@@ -1,6 +1,7 @@
 (*  Title:      HOL/Tools/BNF/bnf_fp_def_sugar.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012, 2013
+    Author:     Martin Desharnais, TU Muenchen
+    Copyright   2012, 2013, 2014
 
 Sugared datatype and codatatype constructions.
 *)

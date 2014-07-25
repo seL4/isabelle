@@ -1,7 +1,8 @@
 (*  Title:      HOL/Tools/BNF/bnf_fp_util.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012, 2013
+    Author:     Martin Desharnais, TU Muenchen
+    Copyright   2012, 2013, 2014
 
 Shared library for the datatype and codatatype constructions.
 *)
