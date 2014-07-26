@@ -184,11 +184,9 @@ find . -print | xargs chmod -f u+rw
 
 export CLASSPATH="$ISABELLE_CLASSPATH"
 
-./bin/isabelle env ISABELLE_SCALA_BUILD_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -optimise" \
-  ./Admin/build all || fail "Failed to build distribution"
+./Admin/build all || fail "Failed to build distribution"
 
-./bin/isabelle env ISABELLE_SCALA_BUILD_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -optimise" \
-  ./bin/isabelle jedit -b || fail "Failed to build Isabelle/jEdit"
+./bin/isabelle jedit -b || fail "Failed to build Isabelle/jEdit"
 
 cp -a src src.orig
 env ISABELLE_IDENTIFIER="${DISTNAME}-build" \
