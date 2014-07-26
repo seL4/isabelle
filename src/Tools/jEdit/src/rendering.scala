@@ -610,7 +610,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
   def output_messages(results: Command.Results): List[XML.Tree] =
-    results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
+  {
+    val (states, other) =
+      results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
+        .partition(Protocol.is_state(_))
+    states ::: other
+  }
 
 
   /* text background */
