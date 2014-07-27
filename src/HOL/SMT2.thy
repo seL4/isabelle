@@ -13,15 +13,15 @@ subsection {* Triggers for quantifier instantiation *}
 
 text {*
 Some SMT solvers support patterns as a quantifier instantiation
-heuristics.  Patterns may either be positive terms (tagged by "pat")
+heuristics. Patterns may either be positive terms (tagged by "pat")
 triggering quantifier instantiations -- when the solver finds a
 term matching a positive pattern, it instantiates the corresponding
 quantifier accordingly -- or negative terms (tagged by "nopat")
-inhibiting quantifier instantiations.  A list of patterns
+inhibiting quantifier instantiations. A list of patterns
 of the same kind is called a multipattern, and all patterns in a
 multipattern are considered conjunctively for quantifier instantiation.
 A list of multipatterns is called a trigger, and their multipatterns
-act disjunctively during quantifier instantiation.  Each multipattern
+act disjunctively during quantifier instantiation. Each multipattern
 should mention at least all quantified variables of the preceding
 quantifier block.
 *}
@@ -46,7 +46,7 @@ subsection {* Higher-order encoding *}
 
 text {*
 Application is made explicit for constants occurring with varying
-numbers of arguments.  This is achieved by the introduction of the
+numbers of arguments. This is achieved by the introduction of the
 following constant.
 *}
 
@@ -54,7 +54,7 @@ definition fun_app :: "'a \<Rightarrow> 'a" where "fun_app f = f"
 
 text {*
 Some solvers support a theory of arrays which can be used to encode
-higher-order functions.  The following set of lemmas specifies the
+higher-order functions. The following set of lemmas specifies the
 properties of such (extensional) arrays.
 *}
 
@@ -65,26 +65,6 @@ subsection {* Normalization *}
 
 lemma case_bool_if[abs_def]: "case_bool x y P = (if P then x else y)"
   by simp
-
-lemma nat_int': "\<forall>n. nat (int n) = n" by simp
-lemma int_nat_nneg: "\<forall>i. i \<ge> 0 \<longrightarrow> int (nat i) = i" by simp
-lemma int_nat_neg: "\<forall>i. i < 0 \<longrightarrow> int (nat i) = 0" by simp
-
-lemma nat_zero_as_int: "0 = nat 0" by simp
-lemma nat_one_as_int: "1 = nat 1" by simp
-lemma nat_numeral_as_int: "numeral = (\<lambda>i. nat (numeral i))" by simp
-lemma nat_less_as_int: "op < = (\<lambda>a b. int a < int b)" by simp
-lemma nat_leq_as_int: "op \<le> = (\<lambda>a b. int a <= int b)" by simp
-lemma Suc_as_int: "Suc = (\<lambda>a. nat (int a + 1))" by (rule ext) simp
-lemma nat_plus_as_int: "op + = (\<lambda>a b. nat (int a + int b))" by (rule ext)+ simp
-lemma nat_minus_as_int: "op - = (\<lambda>a b. nat (int a - int b))" by (rule ext)+ simp
-lemma nat_times_as_int: "op * = (\<lambda>a b. nat (int a * int b))" by (simp add: nat_mult_distrib)
-lemma nat_div_as_int: "op div = (\<lambda>a b. nat (int a div int b))" by (simp add: nat_div_distrib)
-lemma nat_mod_as_int: "op mod = (\<lambda>a b. nat (int a mod int b))" by (simp add: nat_mod_distrib)
-
-lemma int_Suc: "int (Suc n) = int n + 1" by simp
-lemma int_plus: "int (n + m) = int n + int m" by (rule of_nat_add)
-lemma int_minus: "int (n - m) = int (nat (int n - int m))" by auto
 
 lemmas Ex1_def_raw = Ex1_def[abs_def]
 lemmas Ball_def_raw = Ball_def[abs_def]
@@ -154,15 +134,14 @@ The current configuration can be printed by the command
 *}
 
 
-
 subsection {* General configuration options *}
 
 text {*
 The option @{text smt2_solver} can be used to change the target SMT
-solver.  The possible values can be obtained from the @{text smt2_status}
+solver. The possible values can be obtained from the @{text smt2_status}
 command.
 
-Due to licensing restrictions, Z3 is not enabled by default.  Z3 is free
+Due to licensing restrictions, Z3 is not enabled by default. Z3 is free
 for non-commercial applications and can be enabled by setting Isabelle
 system option @{text z3_non_commercial} to @{text yes}.
 *}
@@ -170,15 +149,14 @@ system option @{text z3_non_commercial} to @{text yes}.
 declare [[smt2_solver = z3]]
 
 text {*
-Since SMT solvers are potentially non-terminating, there is a timeout
-(given in seconds) to restrict their runtime.  A value greater than
-120 (seconds) is in most cases not advisable.
+Since SMT solvers are potentially nonterminating, there is a timeout
+(given in seconds) to restrict their runtime.
 *}
 
 declare [[smt2_timeout = 20]]
 
 text {*
-SMT solvers apply randomized heuristics.  In case a problem is not
+SMT solvers apply randomized heuristics. In case a problem is not
 solvable by an SMT solver, changing the following option might help.
 *}
 
@@ -186,16 +164,16 @@ declare [[smt2_random_seed = 1]]
 
 text {*
 In general, the binding to SMT solvers runs as an oracle, i.e, the SMT
-solvers are fully trusted without additional checks.  The following
+solvers are fully trusted without additional checks. The following
 option can cause the SMT solver to run in proof-producing mode, giving
-a checkable certificate.  This is currently only implemented for Z3.
+a checkable certificate. This is currently only implemented for Z3.
 *}
 
 declare [[smt2_oracle = false]]
 
 text {*
 Each SMT solver provides several commandline options to tweak its
-behaviour.  They can be passed to the solver by setting the following
+behaviour. They can be passed to the solver by setting the following
 options.
 *}
 
@@ -207,14 +185,14 @@ text {*
 The SMT method provides an inference mechanism to detect simple triggers
 in quantified formulas, which might increase the number of problems
 solvable by SMT solvers (note: triggers guide quantifier instantiations
-in the SMT solver).  To turn it on, set the following option.
+in the SMT solver). To turn it on, set the following option.
 *}
 
 declare [[smt2_infer_triggers = false]]
 
 text {*
 Enable the following option to use built-in support for div/mod, datatypes,
-and records in Z3.  Currently, this is implemented only in oracle mode.
+and records in Z3. Currently, this is implemented only in oracle mode.
 *}
 
 declare [[z3_new_extensions = false]]
@@ -227,9 +205,9 @@ By setting the option @{text smt2_certificates} to the name of a file,
 all following applications of an SMT solver a cached in that file.
 Any further application of the same SMT solver (using the very same
 configuration) re-uses the cached certificate instead of invoking the
-solver.  An empty string disables caching certificates.
+solver. An empty string disables caching certificates.
 
-The filename should be given as an explicit path.  It is good
+The filename should be given as an explicit path. It is good
 practice to use the name of the current theory (with ending
 @{text ".certs"} instead of @{text ".thy"}) as the certificates file.
 Certificate files should be used at most once in a certain theory context,
@@ -241,7 +219,7 @@ declare [[smt2_certificates = ""]]
 text {*
 The option @{text smt2_read_only_certificates} controls whether only
 stored certificates are should be used or invocation of an SMT solver
-is allowed.  When set to @{text true}, no SMT solver will ever be
+is allowed. When set to @{text true}, no SMT solver will ever be
 invoked and only the existing certificates found in the configured
 cache are used;  when set to @{text false} and there is no cached
 certificate for some proposition, then the configured SMT solver is
@@ -251,11 +229,10 @@ invoked.
 declare [[smt2_read_only_certificates = false]]
 
 
-
 subsection {* Tracing *}
 
 text {*
-The SMT method, when applied, traces important information.  To
+The SMT method, when applied, traces important information. To
 make it entirely silent, set the following option to @{text false}.
 *}
 
@@ -273,7 +250,7 @@ declare [[smt2_trace = false]]
 subsection {* Schematic rules for Z3 proof reconstruction *}
 
 text {*
-Several prof rules of Z3 are not very well documented.  There are two
+Several prof rules of Z3 are not very well documented. There are two
 lemma groups which can turn failing Z3 proof reconstruction attempts
 into succeeding ones: the facts in @{text z3_rule} are tried prior to
 any implemented reconstruction procedure for all uncertain Z3 proof

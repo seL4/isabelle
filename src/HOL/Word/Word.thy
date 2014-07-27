@@ -4760,4 +4760,3 @@ ML_file "Tools/smt2_word.ML"
 hide_const (open) Word
 
 end
-

@@ -393,27 +393,6 @@ lemma "x * y \<le> (0 :: int) \<Longrightarrow> x \<le> 0 \<or> y \<le> 0"
   by smt (* smt2 FIXME: "th-lemma" tactic fails *)
 
 
-subsection {* Linear arithmetic for natural numbers *}
-
-lemma "2 * (x::nat) ~= 1" by smt2
-
-lemma "a < 3 \<Longrightarrow> (7::nat) > 2 * a" by smt2
-
-lemma "let x = (1::nat) + y in x - y > 0 * x" by smt2
-
-lemma
-  "let x = (1::nat) + y in
-   let P = (if x > 0 then True else False) in
-   False \<or> P = (x - 1 = y) \<or> (\<not>P \<longrightarrow> False)"
-  by smt2
-
-lemma "int (nat \<bar>x::int\<bar>) = \<bar>x\<bar>" by smt2
-
-definition prime_nat :: "nat \<Rightarrow> bool" where
-  "prime_nat p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
-lemma "prime_nat (4*m + 1) \<Longrightarrow> m \<ge> (1::nat)" by (smt2 prime_nat_def)
-
-
 section {* Pairs *}
 
 lemma "fst (x, y) = a \<Longrightarrow> x = a"
@@ -444,30 +423,28 @@ lemma
 
 lemma True using let_rsp by smt2
 lemma "le = op \<le> \<Longrightarrow> le (3::int) 42" by smt2
-lemma "map (\<lambda>i::nat. i + 1) [0, 1] = [1, 2]" by (smt2 list.map)
+lemma "map (\<lambda>i::int. i + 1) [0, 1] = [1, 2]" by (smt2 list.map)
 lemma "(ALL x. P x) \<or> ~ All P" by smt2
 
-fun dec_10 :: "nat \<Rightarrow> nat" where
+fun dec_10 :: "int \<Rightarrow> int" where
   "dec_10 n = (if n < 10 then n else dec_10 (n - 10))"
 
 lemma "dec_10 (4 * dec_10 4) = 6" by (smt2 dec_10.simps)
 
 axiomatization
-  eval_dioph :: "int list \<Rightarrow> nat list \<Rightarrow> int"
+  eval_dioph :: "int list \<Rightarrow> int list \<Rightarrow> int"
 where
-  eval_dioph_mod:
-  "eval_dioph ks xs mod int n = eval_dioph ks (map (\<lambda>x. x mod n) xs) mod int n"
+  eval_dioph_mod: "eval_dioph ks xs mod n = eval_dioph ks (map (\<lambda>x. x mod n) xs) mod n"
 and
   eval_dioph_div_mult:
-  "eval_dioph ks (map (\<lambda>x. x div n) xs) * int n +
+  "eval_dioph ks (map (\<lambda>x. x div n) xs) * n +
    eval_dioph ks (map (\<lambda>x. x mod n) xs) = eval_dioph ks xs"
 
 lemma
   "(eval_dioph ks xs = l) =
    (eval_dioph ks (map (\<lambda>x. x mod 2) xs) mod 2 = l mod 2 \<and>
-    eval_dioph ks (map (\<lambda>x. x div 2) xs) =
-      (l - eval_dioph ks (map (\<lambda>x. x mod 2) xs)) div 2)"
-  using [[smt2_oracle=true]] (*FIXME*)
+    eval_dioph ks (map (\<lambda>x. x div 2) xs) = (l - eval_dioph ks (map (\<lambda>x. x mod 2) xs)) div 2)"
+  using [[smt2_oracle = true]] (*FIXME*)
   using [[z3_new_extensions]]
   by (smt2 eval_dioph_mod[where n=2] eval_dioph_div_mult[where n=2])
 
