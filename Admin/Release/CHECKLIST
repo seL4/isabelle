@@ -32,8 +32,6 @@ Checklist for official releases
 
 - diff NEWS wrt. last official release, which is read-only;
 
-- update https://bitbucket.org/isabelle_project/isabelle-release/wiki/Home
-
 - update https://bitbucket.org/isabelle_project/isabelle-website
 
 - maintain doc/Contents;
