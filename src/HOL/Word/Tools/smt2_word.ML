@@ -12,7 +12,7 @@ open Word_Lib
 
 (* SMT-LIB logic *)
 
-(* "QF_AUFBV" is too restricted for Isabelle's problems, which contain aritmetic and quantifiers.
+(* "QF_AUFBV" is too restrictive for Isabelle's problems, which contain aritmetic and quantifiers.
    Better set the logic to "" and make at least Z3 happy. *)
 fun smtlib_logic ts =
   if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts then SOME "" else NONE
@@ -38,9 +38,7 @@ local
   fun if_fixed pred m n T ts =
     let val (Us, U) = Term.strip_type T
     in
-      if pred (U, Us) then
-        SOME (n, length Us, ts, Term.list_comb o pair (Const (m, T)))
-      else NONE
+      if pred (U, Us) then SOME (n, length Us, ts, Term.list_comb o pair (Const (m, T))) else NONE
     end
 
   fun if_fixed_all m = if_fixed (forall (can dest_wordT) o (op ::)) m
@@ -50,12 +48,7 @@ local
     let val (m, _) = Term.dest_Const t
     in SMT2_Builtin.add_builtin_fun smtlib2C (Term.dest_Const t, K (f m n)) end
 
-  fun hd2 xs = hd (tl xs)
-
-  fun mk_nat i = @{const nat} $ HOLogic.mk_number @{typ nat} i
-
-  fun dest_nat (@{const nat} $ n) = snd (HOLogic.dest_number n)
-    | dest_nat t = raise TERM ("not a natural number", [t])
+  val mk_nat = HOLogic.mk_number @{typ nat}
 
   fun mk_shift c [t, u] = Const c $ t $ mk_nat (snd (HOLogic.dest_number u))
     | mk_shift c ts = raise TERM ("bad arguments", Const c :: ts)
@@ -63,7 +56,7 @@ local
   fun shift m n T ts =
     let val U = Term.domain_type T
     in
-      (case (can dest_wordT U, try (dest_nat o hd2) ts) of
+      (case (can dest_wordT U, try (snd o HOLogic.dest_number o hd o tl) ts) of
         (true, SOME i) =>
           SOME (n, 2, [hd ts, HOLogic.mk_number U i], mk_shift (m, T))
       | _ => NONE)   (* FIXME: also support non-numerical shifts *)
@@ -74,7 +67,7 @@ local
   fun extract m n T ts =
     let val U = Term.range_type (Term.range_type T)
     in
-      (case (try (dest_nat o hd) ts, try dest_wordT U) of
+      (case (try (snd o HOLogic.dest_number o hd) ts, try dest_wordT U) of
         (SOME lb, SOME i) =>
           SOME (index2 n (i + lb - 1) lb, 1, tl ts, mk_extract (m, T) lb)
       | _ => NONE)
@@ -97,7 +90,7 @@ local
   fun rotate m n T ts =
     let val U = Term.domain_type (Term.range_type T)
     in
-      (case (can dest_wordT U, try (dest_nat o hd) ts) of
+      (case (can dest_wordT U, try (snd o HOLogic.dest_number o hd) ts) of
         (true, SOME i) => SOME (index1 n i, 1, tl ts, mk_rotate (m, T) i)
       | _ => NONE)
     end
