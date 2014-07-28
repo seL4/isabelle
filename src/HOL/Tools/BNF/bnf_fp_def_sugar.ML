@@ -1467,7 +1467,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                       val thm = Goal.prove_sorry lthy [] [] goal
                           (fn {context = ctxt, prems = _} =>
                             mk_rel_cases_tac ctxt (certify ctxt ta) (certify ctxt tb) exhaust
-                              injects rel_inject_thms distincts rel_distinct_thms)
+                              injects rel_inject_thms distincts rel_distinct_thms
+                              (map rel_eq_of_bnf live_nesting_bnfs))
                         |> singleton (Proof_Context.export names_lthy lthy)
                         |> Thm.close_derivation;
 
