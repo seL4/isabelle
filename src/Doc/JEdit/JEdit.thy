@@ -1662,11 +1662,11 @@ text {*
   \textbf{Workaround:} Copy/paste complete command text from
   elsewhere, or disable continuous checking temporarily.
 
-  \item \textbf{Problem:} No way to delete document nodes from the overall
+  \item \textbf{Problem:} No direct support to remove document nodes from the
   collection of theories.
 
-  \textbf{Workaround:} Ignore unused files.  Restart whole
-  Isabelle/jEdit session in worst-case situation.
+  \textbf{Workaround:} Clear the buffer content of unused files and close
+  \emph{without} saving changes.
 
   \item \textbf{Problem:} Keyboard shortcuts @{verbatim "C+PLUS"} and
   @{verbatim "C+MINUS"} for adjusting the editor font size depend on

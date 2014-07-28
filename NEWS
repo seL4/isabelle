@@ -108,6 +108,9 @@ process, without requiring old-fashioned command-line invocation of
 * More support for remote files (e.g. http) using standard Java
 networking operations instead of jEdit virtual file-systems.
 
+* Empty editors buffers that are no longer required (e.g.\ via theory
+imports) are automatically removed from the document model.
+
 * Improved Console/Scala plugin: more uniform scala.Console output,
 more robust treatment of threads and interrupts.
 
