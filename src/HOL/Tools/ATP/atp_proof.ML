@@ -2,6 +2,7 @@
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Mathias Fleury, ENS Rennes
 
 Abstract representation of ATP proofs and TSTP/SPASS syntax.
 *)
@@ -295,7 +296,7 @@ datatype source =
 
 val dummy_phi = AAtom (ATerm (("", []), []))
 val dummy_inference = Inference_Source ("", [])
-val dummy_atype = AType(("", []), [])
+val dummy_atype = AType (("", []), [])
 
 (* "skip_term" is there to cope with Waldmeister nonsense such as "theory(equality)". *)
 fun parse_dependency x =
@@ -459,16 +460,17 @@ fun role_of_tptp_string "axiom" = Axiom
   | role_of_tptp_string "type" = Type_Role
   | role_of_tptp_string _ = Unknown
 
-val tptp_binary_op_list = [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if,
-                             tptp_iff, tptp_not_iff, tptp_equal, tptp_app]
+val tptp_binary_ops =
+  [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff,
+   tptp_equal, tptp_app]
 
 fun parse_binary_op x =
-  (foldl1 (op ||) (map Scan.this_string tptp_binary_op_list)
-    >> (fn c => if c = tptp_equal then "equal" else c)) x
+  (foldl1 (op ||) (map Scan.this_string tptp_binary_ops)
+   >> (fn c => if c = tptp_equal then "equal" else c)) x
 
 fun parse_thf0_type x =
   (($$ "(" |-- parse_thf0_type --| $$ ")" || scan_general_id >> (fn t => AType ((t, []), [])))
-     -- Scan.option ($$ tptp_fun_type |-- parse_thf0_type)
+   -- Scan.option ($$ tptp_fun_type |-- parse_thf0_type)
   >> (fn (a, NONE) => a
        | (a, SOME b) => AFun (a, b))) x
 

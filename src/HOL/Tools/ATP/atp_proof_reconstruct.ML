@@ -116,25 +116,33 @@ fun class_of_atp_class cls =
 (* Type variables are given the basic sort "HOL.type". Some will later be constrained by information
    from type literals, or by type inference. *)
 fun typ_of_atp_type ctxt (ty as AType ((a, clss), tys)) =
-  let val Ts = map (typ_of_atp_type ctxt) tys in
-    (case unprefix_and_unascii type_const_prefix a of
-      SOME b => Type (invert_const b, Ts)
-    | NONE =>
-      if not (null tys) then
-        raise ATP_TYPE [ty] (* only "tconst"s have type arguments *)
-      else
-        (case unprefix_and_unascii tfree_prefix a of
-          SOME b => make_tfree ctxt b
-        | NONE =>
-          (* The term could be an Isabelle variable or a variable from the ATP, say "X1" or "_5018".
-             Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
-             forces us to use a type parameter in all cases. *)
-          Type_Infer.param 0 ("'" ^ perhaps (unprefix_and_unascii tvar_prefix) a,
-            (if null clss then @{sort type} else map class_of_atp_class clss))))
-  end
-  | typ_of_atp_type ctxt (AFun (a, tys)) = typ_of_atp_type ctxt a --> typ_of_atp_type ctxt tys
+    let val Ts = map (typ_of_atp_type ctxt) tys in
+      (case unprefix_and_unascii type_const_prefix a of
+        SOME b => Type (invert_const b, Ts)
+      | NONE =>
+        if not (null tys) then
+          raise ATP_TYPE [ty] (* only "tconst"s have type arguments *)
+        else
+          (case unprefix_and_unascii tfree_prefix a of
+            SOME b => make_tfree ctxt b
+          | NONE =>
+            (* The term could be an Isabelle variable or a variable from the ATP, say "X1" or "_5018".
+               Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
+               forces us to use a type parameter in all cases. *)
+            Type_Infer.param 0 ("'" ^ perhaps (unprefix_and_unascii tvar_prefix) a,
+              (if null clss then @{sort type} else map class_of_atp_class clss))))
+    end
+  | typ_of_atp_type ctxt (AFun (ty1, ty2)) = typ_of_atp_type ctxt ty1 --> typ_of_atp_type ctxt ty2
 
-fun atp_type_of_atp_term (ATerm ((s, _), us)) = AType ((s, []), map atp_type_of_atp_term us)
+fun atp_type_of_atp_term (ATerm ((s, _), us)) =
+  let val tys = map atp_type_of_atp_term us in
+    if s = tptp_fun_type then
+      (case tys of
+        [ty1, ty2] => AFun (ty1, ty2)
+      | _ => raise ATP_TYPE tys)
+    else
+      AType ((s, []), tys)
+  end
 
 fun typ_of_atp_term ctxt = typ_of_atp_type ctxt o atp_type_of_atp_term
 
