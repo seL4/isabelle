@@ -65,8 +65,8 @@ fun update_steps updates steps =
         update_proof proof (update_subproofs subproofs updates)
     and update_proof proof (proofs, []) = (proof :: proofs, [])
       | update_proof (Proof (fix, assms, steps)) (proofs, updates) =
-        let val (steps, updates) = update_steps steps updates in
-          (Proof (fix, assms, steps) :: proofs, updates)
+        let val (steps', updates') = update_steps steps updates in
+          (Proof (fix, assms, steps') :: proofs, updates')
         end
   in
     fst (update_steps steps (rev updates))

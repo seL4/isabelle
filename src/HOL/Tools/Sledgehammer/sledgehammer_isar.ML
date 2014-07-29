@@ -108,7 +108,7 @@ val basic_arith_methods = [Linarith_Method, Presburger_Method, Algebra_Method]
 val arith_methods = basic_arith_methods @ simp_based_methods @ basic_systematic_methods
 val datatype_methods = [Simp_Method, Simp_Size_Method]
 val systematic_methods0 = basic_systematic_methods @ basic_arith_methods @ simp_based_methods @
-  [Metis_Method (SOME no_typesN, NONE)]
+  [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods = simp_based_methods @ basic_systematic_methods @ basic_arith_methods
 val skolem_methods = basic_systematic_methods
 

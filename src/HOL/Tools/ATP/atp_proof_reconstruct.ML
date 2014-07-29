@@ -50,7 +50,7 @@ sig
     ATP_Problem_Generate.type_enc -> string Symtab.table -> (string * term) list ->
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
   val repair_waldmeister_endgame : (term, 'a) atp_step list -> (term, 'a) atp_step list
-  val infer_formula_types : Proof.context -> term list -> term list
+  val infer_formulas_types : Proof.context -> term list -> term list
   val introduce_spass_skolem : (term, string) atp_step list -> (term, string) atp_step list
   val factify_atp_proof : (string * 'a) list -> term list -> term -> (term, string) atp_step list ->
     (term, string) atp_step list
@@ -196,7 +196,6 @@ fun loose_aconv (Free (s, _), Free (s', _)) = s = s'
 
 val spass_skolem_prefix = "sk" (* "skc" or "skf" *)
 val vampire_skolem_prefix = "sK"
-
 
 fun var_index_of_textual textual = if textual then 0 else 1
 
@@ -380,7 +379,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
               val term_ts =
                 map (do_term [] NONE) us
                 (* SPASS (3.8ds) and Vampire (2.6) pass arguments to Skolem functions in reverse
-                   order, which is incompatible with the new Metis skolemizer. *)
+                   order, which is incompatible with "metis"'s new skolemizer. *)
                 |> exists (fn pre => String.isPrefix pre s)
                   [spass_skolem_prefix, vampire_skolem_prefix] ? rev
               val ts = term_ts @ extra_ts
@@ -538,9 +537,9 @@ fun repair_name "$true" = "c_True"
     else
       s
 
-fun set_var_index j = map_aterms (fn Var ((s, _), T) => Var ((s, j), T) | t => t)
+fun set_var_index j = map_aterms (fn Var ((s, 0), T) => Var ((s, j), T) | t => t)
 
-fun infer_formula_types ctxt =
+fun infer_formulas_types ctxt =
   map_index (uncurry (fn j => set_var_index j #> Type.constraint HOLogic.boolT))
   #> Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
   #> map (set_var_index 0)
@@ -607,7 +606,7 @@ fun termify_atp_proof ctxt local_prover format type_enc pool lifted sym_tab =
   nasty_atp_proof pool
   #> map_term_names_in_atp_proof repair_name
   #> map_filter (termify_line ctxt format type_enc lifted sym_tab)
-  #> map_proof_terms (infer_formula_types ctxt #> map HOLogic.mk_Trueprop)
+  #> map_proof_terms (infer_formulas_types ctxt #> map HOLogic.mk_Trueprop)
   #> local_prover = waldmeisterN ? repair_waldmeister_endgame
 
 fun take_distinct_vars seen ((t as Var _) :: ts) =

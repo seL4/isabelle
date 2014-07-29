@@ -181,7 +181,7 @@ fun termify_line ctxt (name, role, AAtom u, rule, deps) =
     val thy = Proof_Context.theory_of ctxt
     val t = u
       |> atp_to_trm
-      |> singleton (infer_formula_types ctxt)
+      |> singleton (infer_formulas_types ctxt)
       |> HOLogic.mk_Trueprop
   in
     (name, role, t, rule, deps)
