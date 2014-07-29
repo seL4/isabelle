@@ -1,6 +1,7 @@
 (*  Title:      HOL/BNF_Comp.thy
     Author:     Dmitriy Traytel, TU Muenchen
-    Copyright   2012
+    Author:     Jasmin Blanchette, TU Muenchen
+    Copyright   2012, 2013, 2014
 
 Composition of bounded natural functors.
 *)

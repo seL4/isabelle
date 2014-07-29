@@ -2,7 +2,8 @@
     Author:     Lorenz Panny, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012, 2013
+    Author:     Martin Desharnais, TU Muenchen
+    Copyright   2012, 2013, 2014
 
 Shared fixed point operations on bounded natural functors.
 *)

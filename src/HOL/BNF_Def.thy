@@ -1,7 +1,7 @@
 (*  Title:      HOL/BNF_Def.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012
+    Copyright   2012, 2013, 2014
 
 Definition of bounded natural functors.
 *)

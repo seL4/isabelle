@@ -1,9 +1,8 @@
-
 (*  Title:      HOL/BNF_LFP.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Lorenz Panny, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012, 2013
+    Copyright   2012, 2013, 2014
 
 Least fixed point operation on bounded natural functors.
 *)
