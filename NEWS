@@ -859,6 +859,13 @@ INCOMPATIBILITY.
     bounded_linear_imp_linear ~>  bounded_linear.linear
 
 * HOL-Probability:
+  - Renamed positive_integral to nn_integral:
+
+    . Renamed all lemmas "*positive_integral*" to *nn_integral*"
+      positive_integral_positive ~> nn_integral_nonneg
+
+    . Renamed abbreviation integral\<^sup>P to integral\<^sup>N.
+
   - replaced the Lebesgue integral on real numbers by the more general
     Bochner integral for functions into a real-normed vector space.
 
@@ -873,14 +880,14 @@ INCOMPATIBILITY.
     integrable_nonneg           ~>  integrableI_nonneg
     integral_positive           ~>  integral_nonneg_AE
     integrable_abs_iff          ~>  integrable_abs_cancel
-    positive_integral_lim_INF   ~>  positive_integral_liminf
+    positive_integral_lim_INF   ~>  nn_integral_liminf
     lebesgue_real_affine        ~>  lborel_real_affine
     borel_integral_has_integral ~>  has_integral_lebesgue_integral
     integral_indicator          ~>
          integral_real_indicator / integrable_real_indicator
-    positive_integral_fst       ~>  positive_integral_fst'
-    positive_integral_fst_measurable ~> positive_integral_fst
-    positive_integral_snd_measurable ~> positive_integral_snd
+    positive_integral_fst       ~>  nn_integral_fst'
+    positive_integral_fst_measurable ~> nn_integral_fst
+    positive_integral_snd_measurable ~> nn_integral_snd
 
     integrable_fst_measurable   ~>
          integral_fst / integrable_fst / AE_integrable_fst
@@ -906,7 +913,7 @@ INCOMPATIBILITY.
          integrable_has_integral_lebesgue_nonneg
 
     lebesgue_integral_real_affine  ~>
-         positive_integral_real_affine
+         nn_integral_real_affine
 
     has_integral_iff_positive_integral_lborel  ~>
          integral_has_integral_nonneg / integrable_has_integral_nonneg
@@ -920,13 +927,6 @@ INCOMPATIBILITY.
     lebesgue_integral_cmult_nonneg
     integral_cmul_indicator
     integral_real
-
-  - Renamed positive_integral to nn_integral:
-
-    . Renamed all lemmas "*positive_integral*" to *nn_integral*"
-      positive_integral_positive ~> nn_integral_nonneg
-
-    . Renamed abbreviation integral\<^sup>P to integral\<^sup>N.
 
   - Formalized properties about exponentially, Erlang, and normal
     distributed random variables.
