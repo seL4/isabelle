@@ -184,9 +184,9 @@ fun proof_banner mode name =
   | _ => "Try this")
 
 fun bunch_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
-  [Metis_Method (if needs_full_types then SOME full_typesN else NONE, NONE),
-   Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Meson_Method, Blast_Method,
-   Linarith_Method, Presburger_Method] @
+  [Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Meson_Method,
+   Metis_Method (if needs_full_types then SOME full_typesN else NONE, NONE),
+   Force_Method, Linarith_Method, Presburger_Method] @
   (if needs_full_types then
      [Metis_Method (SOME really_full_type_enc, NONE),
       Metis_Method (SOME full_typesN, SOME desperate_lam_trans),
