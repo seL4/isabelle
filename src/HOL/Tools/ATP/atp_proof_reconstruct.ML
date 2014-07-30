@@ -569,25 +569,26 @@ val combinator_table =
 
 fun uncombine_term thy =
   let
-    fun aux (t1 $ t2) = betapply (pairself aux (t1, t2))
-      | aux (Abs (s, T, t')) = Abs (s, T, aux t')
-      | aux (t as Const (x as (s, _))) =
+    fun uncomb (t1 $ t2) = betapply (uncomb t1, uncomb t2)
+      | uncomb (Abs (s, T, t)) = Abs (s, T, uncomb t)
+      | uncomb (t as Const (x as (s, _))) =
         (case AList.lookup (op =) combinator_table s of
           SOME thm => thm |> prop_of |> specialize_type thy x |> Logic.dest_equals |> snd
         | NONE => t)
-      | aux t = t
-  in aux end
+      | uncomb t = t
+  in uncomb end
 
-fun unlift_term lifted =
-  map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix lam_lifted_prefix s then
-                   (* FIXME: do something about the types *)
-                   (case AList.lookup (op =) lifted s of
-                     SOME t => unlift_term lifted t
-                   | NONE => t)
-                 else
-                   t
-               | t => t)
+fun unlift_aterm lifted (t as Const (s, _)) =
+    if String.isPrefix lam_lifted_prefix s then
+      (* FIXME: do something about the types *)
+      (case AList.lookup (op =) lifted s of
+        SOME t' => unlift_term lifted t'
+      | NONE => t)
+    else
+      t
+  | unlift_aterm _ t = t
+and unlift_term lifted =
+  map_aterms (unlift_aterm lifted)
 
 fun termify_line _ _ _ _ _ (_, Type_Role, _, _, _) = NONE
   | termify_line ctxt format type_enc lifted sym_tab (name, role, u, rule, deps) =
@@ -595,8 +596,8 @@ fun termify_line _ _ _ _ _ (_, Type_Role, _, _, _) = NONE
       val thy = Proof_Context.theory_of ctxt
       val t = u
         |> prop_of_atp ctxt format type_enc true sym_tab
-        |> uncombine_term thy
         |> unlift_term lifted
+        |> uncombine_term thy
     in
       SOME (name, role, t, rule, deps)
     end
