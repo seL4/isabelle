@@ -30,7 +30,7 @@ fun parse_satallax_tstp_information x =
   ((Symbol.scan_ascii_id || ($$ "$" |-- Symbol.scan_ascii_id))
   -- Scan.option ( $$ "(" |-- Scan.option (Symbol.scan_ascii_id --| $$ ",")
   -- ((Scan.option (($$ "[" |-- (Scan.option ((scan_general_id
-         -- Scan.repeat ($$ "," |-- scan_general_id)) >> uncurry cons) --| $$ "]"))
+         -- Scan.repeat ($$ "," |-- scan_general_id)) >> (op ::)) --| $$ "]"))
          || (skip_term >> K "") >> (fn x => SOME [x]))
        >> (fn (SOME x) => x | NONE => NONE)) --| $$ ")"))) x
 
@@ -39,12 +39,12 @@ fun parse_prem x =
 
 fun parse_prems x =
   (($$ "[" |-- parse_prem -- Scan.repeat ($$ "," |-- parse_prem) --| $$ "]")
-     >> uncurry cons) x
+     >> (op ::)) x
 
 fun parse_tstp_satallax_extra_arguments x =
   ($$ "," |-- scan_general_id -- (($$ "(" |-- Symbol.scan_ascii_id --| $$ "," )
   -- ($$ "[" |-- Scan.option ((parse_satallax_tstp_information
-  -- Scan.repeat ($$ "," |-- parse_satallax_tstp_information)) >> uncurry cons)
+  -- Scan.repeat ($$ "," |-- parse_satallax_tstp_information)) >> (op ::))
   --| $$ "]") --
   (Scan.optional ($$ "," |-- parse_prems) [] -- Scan.optional ($$ "," |-- parse_prems) []
     >> (fn (x, []) => x | (_, x) => x))
@@ -57,7 +57,6 @@ fun parse_tstp_thf0_satallax_line x =
   -- parse_thf0_formula -- Scan.option parse_tstp_satallax_extra_arguments --| $$ ")" --| $$ ".")
   || (Scan.this_string "tab_inh" |-- skip_term --| $$ ".")
      >> K dummy_satallax_step) x
-
 
 datatype satallax_step = Satallax_Step of {
   id: string,
@@ -106,19 +105,23 @@ fun seperate_dependices dependencies =
   end
 
 fun create_grouped_goal_assumption rule new_goals generated_assumptions =
-  if length new_goals = length generated_assumptions then
-    new_goals ~~ (map single generated_assumptions)
-  else if 2 * length new_goals = length generated_assumptions then
-    let
-      fun group_by_pair (new_goal :: new_goals) (assumpt1 :: assumpt2 :: generated_assumptions) =
-          (new_goal, [assumpt1, assumpt2]) :: group_by_pair new_goals generated_assumptions
-        | group_by_pair [] [] = []
-    in
-      group_by_pair new_goals generated_assumptions
-    end
-  else
-    raise Fail ("the rule " ^ rule ^" is not supported in the reconstruction.")
-
+  let
+    val number_of_new_goals = length new_goals
+    val number_of_new_assms = length generated_assumptions
+  in
+    if number_of_new_goals = number_of_new_assms then
+      new_goals ~~ (map single generated_assumptions)
+    else if 2 * number_of_new_goals = number_of_new_assms then
+      let
+        fun group_by_pair (new_goal :: new_goals) (assumpt1 :: assumpt2 :: generated_assumptions) =
+            (new_goal, [assumpt1, assumpt2]) :: group_by_pair new_goals generated_assumptions
+          | group_by_pair [] [] = []
+      in
+        group_by_pair new_goals generated_assumptions
+      end
+    else
+      raise Fail ("the rule " ^ rule ^" is not supported in the reconstruction.")
+  end
 fun to_satallax_step (((id, role), formula), (SOME (_,((rule, l), used_rules)))) =
     let
       val (used_assumptions, new_goals, generated_assumptions) = seperate_dependices used_rules
@@ -173,9 +176,9 @@ fun find_assumptions_to_inline ths (assm :: assms) to_inline no_inline =
       | SOME (_, th) =>
         let
           val simplified_ths_with_inlined_assumption =
-              (case List.partition (curry tptp_term_equal th o remove_not_not) ths of
-                ([], ths) => ATerm ((tptp_not, [dummy_atype]), [th]) :: ths
-              | (_, _) => [])
+            (case List.partition (curry tptp_term_equal th o remove_not_not) ths of
+              ([], ths) => ATerm ((tptp_not, [dummy_atype]), [th]) :: ths
+            | (_, _) => [])
         in
           find_assumptions_to_inline simplified_ths_with_inlined_assumption assms to_inline no_inline
         end))
@@ -189,7 +192,6 @@ fun inline_if_needed_and_simplify th assms to_inline no_inline =
       ATerm (("$false", _), _) => a
     | ATerm (("~", _ ), [ATerm (("$true", _), _)]) => a
     | _ => ATerm ((tptp_or, [dummy_atype]), [a, b]))) l)
-
 
 fun get_conclusion (Satallax_Step {theorem = AAtom theorem, ...}) = theorem
 
@@ -208,7 +210,7 @@ fun transform_inline_assumption hypotheses_step proof_sketch =
     fun inline_in_step (Linear_Part {node as Satallax_Step {generated_goal_assumptions,
           used_assumptions, rule, ...}, succs}) =
         if generated_goal_assumptions = [] then
-            Linear_Part {node = node, succs = []}
+          Linear_Part {node = node, succs = []}
         else
           let
             (*one singel goal is created, two hypothesis can be created, for the "and" rule:
@@ -230,8 +232,8 @@ fun transform_inline_assumption hypotheses_step proof_sketch =
     fun inline_contradictory_assumptions (Linear_Part {node as Satallax_Step{id, theorem, ...},
        succs}) (to_inline, no_inline) =
       let
-        val (succs, inliner) = fold_map inline_contradictory_assumptions
-                                        succs (to_inline, (id, theorem) :: no_inline)
+        val (succs, inliner) = fold_map inline_contradictory_assumptions succs 
+          (to_inline, (id, theorem) :: no_inline)
       in
         (Linear_Part {node = node, succs = succs}, inliner)
       end
@@ -239,8 +241,8 @@ fun transform_inline_assumption hypotheses_step proof_sketch =
         theorem = AAtom theorem, assumptions, rule, generated_goal_assumptions,
         used_assumptions, detailed_eigen}, deps}) (to_inline, no_inline) =
       let
-        val (dep', (to_inline', no_inline')) = fold_map inline_contradictory_assumptions
-                                                        deps (to_inline, no_inline)
+        val (dep', (to_inline', no_inline')) = fold_map inline_contradictory_assumptions deps 
+          (to_inline, no_inline)
         val to_inline'' =
           map (fn s => (s, get_conclusion (find_proof_step hypotheses_step s)))
             (List.filter (fn s => nth_string s 0 = "h")
@@ -292,16 +294,16 @@ fun create_satallax_proof_graph (hypotheses_step, proof_sketch) =
   end
 
 val satallax_known_theorems = ["eq_ind", "eq_trans2", "eq_trans3", "eq_neg_neg_id", "eq_true",
-    "eq_and_nor", "eq_or_nand", "eq_or_imp", "eq_and_imp", "eq_imp_or", "eq_iff", "eq_sym_eq",
-    "eq_forall_nexists", "eq_exists_nforall", "eq_leib1", "eq_leib2", "eq_leib3", "eq_leib4",
-    "eq_eta", "SinhE", "eq_forall_Seps", "eq_SPi_Seps", "eq_exists_Seps"]
+  "eq_and_nor", "eq_or_nand", "eq_or_imp", "eq_and_imp", "eq_imp_or", "eq_iff", "eq_sym_eq",
+  "eq_forall_nexists", "eq_exists_nforall", "eq_leib1", "eq_leib2", "eq_leib3", "eq_leib4",
+  "eq_eta", "SinhE", "eq_forall_Seps", "eq_SPi_Seps", "eq_exists_Seps"]
 val is_special_satallax_rule = member (op =) satallax_known_theorems
 
 fun terms_to_upper_case var (AAbs (((var', ty), b), ts)) =
-     let
-       val bdy = terms_to_upper_case var b
-       val ts' = map (terms_to_upper_case var) ts
-     in
+    let
+      val bdy = terms_to_upper_case var b
+      val ts' = map (terms_to_upper_case var) ts
+    in
       AAbs (((((var = var' ? String.implode o (map Char.toUpper) o String.explode) var'), ty),
         bdy), ts')
     end
@@ -364,7 +366,7 @@ fun transform_to_standard_atp_step already_transformed proof =
 fun remove_unused_dependency steps =
   let
     fun find_all_ids [] = []
-     | find_all_ids (((id, _), _, _, _, _) :: steps) = id :: find_all_ids steps
+      | find_all_ids (((id, _), _, _, _, _) :: steps) = id :: find_all_ids steps
     fun keep_only_used used_ids steps =
       let
         fun remove_unused (((id, ids), role, theorem, rule, deps) :: steps) =
@@ -377,26 +379,25 @@ fun remove_unused_dependency steps =
     keep_only_used (find_all_ids steps) steps
   end
 
-
 fun parse_proof local_name problem =
-    strip_spaces_except_between_idents
-    #> raw_explode
-    #>
-      (if local_name <> satallaxN then
-        (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-          (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line local_name problem) >> flat)))
-           #> fst)
-      else
-        (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-          (Scan.finite Symbol.stopper (Scan.repeat1 (parse_tstp_thf0_satallax_line))))
-            #> fst
-            #> rev
-            #> map to_satallax_step
-            #> seperate_assumptions_and_steps
-            #> create_satallax_proof_graph
-            #> add_quantifier_in_tree_part [] []
-            #> transform_to_standard_atp_step []
-            #> remove_unused_dependency))
+  strip_spaces_except_between_idents
+  #> raw_explode
+  #>
+    (if local_name <> satallaxN then
+      (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
+        (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line local_name problem) >> flat)))
+         #> fst)
+    else
+      (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
+        (Scan.finite Symbol.stopper (Scan.repeat1 (parse_tstp_thf0_satallax_line))))
+        #> fst
+        #> rev
+        #> map to_satallax_step
+        #> seperate_assumptions_and_steps
+        #> create_satallax_proof_graph
+        #> add_quantifier_in_tree_part [] []
+        #> transform_to_standard_atp_step []
+        #> remove_unused_dependency))
 
 fun atp_proof_of_tstplike_proof _ _ "" = []
   | atp_proof_of_tstplike_proof local_prover problem tstp =

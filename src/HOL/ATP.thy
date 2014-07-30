@@ -6,7 +6,7 @@
 header {* Automatic Theorem Provers (ATPs) *}
 
 theory ATP
-imports Meson Hilbert_Choice
+imports Meson
 begin
 
 subsection {* ATP problems and proofs *}

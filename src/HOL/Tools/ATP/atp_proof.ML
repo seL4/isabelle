@@ -90,18 +90,17 @@ sig
 
   val skip_term: string list -> string * string list
   val parse_thf0_formula :string list ->
-      ('a, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term,
-       'c) ATP_Problem.atp_formula *
-      string list
-  val dummy_atype :  string ATP_Problem.atp_type
-  val role_of_tptp_string:  string -> ATP_Problem.atp_formula_role
+    ('a, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term, 'c) ATP_Problem.atp_formula *
+    string list
+  val dummy_atype : string ATP_Problem.atp_type
+  val role_of_tptp_string: string -> ATP_Problem.atp_formula_role
   val parse_line: string -> ('a * string ATP_Problem.atp_problem_line list) list ->
-              string list -> ((string * string list) * ATP_Problem.atp_formula_role *
-               (string, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term,
-                'c) ATP_Problem.atp_formula
-               * string * (string * 'd list) list) list * string list
+    string list -> ((string * string list) * ATP_Problem.atp_formula_role *
+    (string, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term,
+      'c) ATP_Problem.atp_formula
+    * string * (string * 'd list) list) list * string list
   val core_inference :   'a -> 'b -> ('b * 'b list) * ATP_Problem.atp_formula_role *
-              ('c, 'd, (string, 'e) ATP_Problem.atp_term, 'f) ATP_Problem.atp_formula * 'a * 'g list
+      ('c, 'd, (string, 'e) ATP_Problem.atp_term, 'f) ATP_Problem.atp_formula * 'a * 'g list
   val vampire_step_name_ord : (string * 'a) * (string * 'a) -> order
   val core_of_agsyhol_proof :  string -> string list option
 end;
@@ -478,8 +477,8 @@ val tptp_binary_ops =
   [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff,
    tptp_equal, tptp_app]
 
-fun parse_one_in_list list =
-  foldl1 (op ||) (map Scan.this_string list)
+fun parse_one_in_list xs =
+  foldl1 (op ||) (map Scan.this_string xs)
 
 fun parse_binary_op x =
   (parse_one_in_list tptp_binary_ops

@@ -22,6 +22,8 @@ sig
   val veriT_step_prefix : string
   val veriT_input_rule: string
   val veriT_rewrite_rule : string
+  val veriT_tmp_skolemize_rule : string
+  val veriT_tmp_ite_elim_rule : string
 end;
 
 structure VeriT_Proof: VERIT_PROOF =
@@ -84,6 +86,14 @@ fun replace_bound_var_by_free_var (q $ Abs (var, ty, u)) free_var =
   | replace_bound_var_by_free_var (u $ v) free_vars = replace_bound_var_by_free_var u free_vars $
      replace_bound_var_by_free_var v free_vars
   | replace_bound_var_by_free_var u _ = u
+
+fun replace_bound_all_by_ex ((q as Const (_, typ)) $ Abs (var, ty, u)) free_var =
+    (case List.find (fn v => String.isPrefix v var) free_var of
+      NONE => q $ Abs (var, ty, replace_bound_all_by_ex u free_var)
+    | SOME _ => Const (@{const_name "HOL.Ex"}, typ) $ Abs (var, ty, replace_bound_all_by_ex u free_var))
+  | replace_bound_all_by_ex (u $ v) free_vars = replace_bound_all_by_ex u free_vars $
+     replace_bound_all_by_ex v free_vars
+  | replace_bound_all_by_ex u _ = u
 
 fun find_type_in_formula (Abs(v, ty, u)) var_name =
     if String.isPrefix var_name v then SOME ty else find_type_in_formula u var_name
@@ -195,7 +205,7 @@ fun parse_proof_step cx =
     #> fix_subproof_steps
     ##> to_node
     #> (fn (subproof, (step, cx)) => (subproof @ [step], cx))
-    #> (fn (steps, cx) => fold_map update_step_and_cx steps cx)
+    #> uncurry (fold_map update_step_and_cx)
   end
 
 
@@ -236,8 +246,8 @@ fun find_in_which_step_defined var (VeriT_Node {id, bounds, ...} :: l) =
 
 (*Yes every case is possible: the introduced var is not on a special size of the equality sign.*)
 fun find_ite_var_in_term (Const ("HOL.If", _) $ _ $
-      (Const ("HOL.eq", _) $ Free (var1, _) $ Free (var2, _) ) $
-      (Const ("HOL.eq", _) $ Free (var3, _) $ Free (var4, _) )) =
+      (Const (@{const_name "HOL.eq"}, _) $ Free (var1, _) $ Free (var2, _) ) $
+      (Const (@{const_name "HOL.eq"}, _) $ Free (var3, _) $ Free (var4, _) )) =
     let
       fun get_number_of_ite_transformed_var var =
         perhaps (try (unprefix "ite")) var
@@ -278,7 +288,7 @@ fun find_ite_var_in_term (Const ("HOL.If", _) $ _ $
 
 
 fun correct_veriT_step steps (st as VeriT_Node {id, rule, prems, concl, bounds}) =
-  if rule = "tmp_ite_elim" then
+  if rule = veriT_tmp_ite_elim_rule then
     if bounds = [] then
       (*if the introduced var has already been defined,
         adding the definition as a dependency*)
@@ -325,7 +335,7 @@ fun parse typs funs lines ctxt =
     val smtlib2_lines_without_at =
       remove_all_at (map SMTLIB2.parse (seperate_into_steps lines))
     val (u, env) = apfst flat (fold_map (fn l => fn cx => parse_proof_step cx l)
-                             smtlib2_lines_without_at (empty_context ctxt typs funs))
+      smtlib2_lines_without_at (empty_context ctxt typs funs))
     val t = correct_veriT_steps u
     fun node_to_step (VeriT_Node {id, rule, prems, concl, bounds, ...}) =
       mk_step id rule prems concl bounds

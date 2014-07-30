@@ -27,7 +27,6 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
     conjecture_id fact_helper_ids proof =
   let
     val thy = Proof_Context.theory_of ctxt
-
     fun steps_of (VeriT_Proof.VeriT_Step {id, rule, prems, concl, ...}) =
       let
         val concl' = postprocess_step_conclusion concl thy rewrite_rules ll_defs
@@ -45,6 +44,8 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
             [(name0, role0, concl0, rule, []),
              ((id, []), Plain, concl', veriT_rewrite_rule,
               name0 :: normalizing_prems ctxt concl0)] end
+        else if rule = veriT_tmp_ite_elim_rule then
+          [standard_step Lemma]
         else
           [standard_step Plain]
       end

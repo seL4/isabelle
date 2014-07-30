@@ -59,7 +59,7 @@ fun unlift_term ll_defs =
     and un_term t = map_aterms un_free t
   in un_term end
 
-(* It is not entirely clear if this is necessary for abstractions variables. *)
+(* It is not entirely clear why this should be necessary, especially for abstractions variables. *)
 val unskolemize_names =
   Term.map_abs_vars (perhaps (try Name.dest_skolem))
   #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))

@@ -105,7 +105,7 @@ val veriT: SMT2_Solver.solver_config = {
   smt_options = [],
   default_max_relevant = 120 (* FUDGE *),
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat"
-              "warning : proof_done: status is still open"),
+    "warning : proof_done: status is still open"),
   parse_proof = SOME VeriT_Proof_Parse.parse_proof,
   replay = NONE }
 

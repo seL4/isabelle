@@ -66,7 +66,7 @@ val skolemize_rules =
     zipperposition_cnf_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
-val is_arith_rule = (String.isPrefix z3_th_lemma_rule) orf (member (op =) veriT_arith_rules)
+val is_arith_rule = String.isPrefix z3_th_lemma_rule orf member (op =) veriT_arith_rules
 val is_datatype_rule = String.isPrefix spass_pirate_datatype_rule
 
 fun raw_label_of_num num = (num, 0)
@@ -84,8 +84,7 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
       line :: lines
     else if t aconv @{prop True} then
       map (replace_dependencies_in_line (name, [])) lines
-    else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule
-        orelse is_skolemize_rule rule then
+    else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then
       line :: lines
     else if role = Axiom then
       lines (* axioms (facts) need no proof lines *)
