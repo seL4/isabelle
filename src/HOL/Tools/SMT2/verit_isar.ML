@@ -30,21 +30,20 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
 
     fun steps_of (VeriT_Proof.VeriT_Step {id, rule, prems, concl, ...}) =
       let
-        val sid = string_of_int id
         val concl' = postprocess_step_conclusion concl thy rewrite_rules ll_defs
         fun standard_step role =
-          ((sid, []), role, concl', rule,
+          ((id, []), role, concl', rule,
            map (fn id => (id, [])) prems)
       in
         if rule = veriT_input_rule then
           let
-            val ss = the_list (AList.lookup (op =) fact_helper_ids id)
-            val name0 = (sid ^ "a", ss)
-            val (role0, concl0) = distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids
-              fact_helper_ts hyp_ts concl_t concl ||> unskolemize_names
+            val ss = the_list (AList.lookup (op =) fact_helper_ids (the (Int.fromString id)))
+            val name0 = (id ^ "a", ss)
+            val (role0, concl0) = distinguish_conjecture_and_hypothesis ss (the (Int.fromString id))
+              conjecture_id prem_ids fact_helper_ts hyp_ts concl_t concl ||> unskolemize_names
           in
             [(name0, role0, concl0, rule, []),
-             ((sid, []), Plain, concl', veriT_rewrite_rule,
+             ((id, []), Plain, concl', veriT_rewrite_rule,
               name0 :: normalizing_prems ctxt concl0)] end
         else
           [standard_step Plain]

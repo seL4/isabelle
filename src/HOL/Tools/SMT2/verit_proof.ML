@@ -9,7 +9,7 @@ signature VERIT_PROOF =
 sig
   (*proofs*)
   datatype veriT_step = VeriT_Step of {
-    id: int,
+    id: string,
     rule: string,
     prems: string list,
     concl: term,
@@ -30,7 +30,7 @@ struct
 open SMTLIB2_Proof
 
 datatype veriT_node = VeriT_Node of {
-  id: int,
+  id: string,
   rule: string,
   prems: string list,
   concl: term,
@@ -41,7 +41,7 @@ fun mk_node id rule prems concl bounds =
 
 (*two structures needed*)
 datatype veriT_step = VeriT_Step of {
-  id: int,
+  id: string,
   rule: string,
   prems: string list,
   concl: term,
@@ -57,15 +57,12 @@ val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
 val veriT_tmp_skolemize = "tmp_skolemize"
 val veriT_alpha_conv = "tmp_alphaconv"
 
-fun mk_string_id id = veriT_step_prefix ^ (string_of_int id)
-
 (* proof parser *)
 
 fun node_of p cx =
   ([], cx)
   ||>> with_fresh_names (term_of p)
-  ||>> next_id
-  |>> (fn ((prems, (t, ns)), id) => mk_node id veriT_input_rule prems t ns)
+  |>> (fn (_, (t, ns)) => (t, ns))
 
 (*in order to get Z3-style quantification*)
 fun fix_quantification (SMTLIB2.S (SMTLIB2.Sym "forall" :: l)) =
@@ -115,7 +112,7 @@ fun update_step_and_cx (st as VeriT_Node {id, rule, prems, concl, bounds}) cx =
     (st, cx)
 
 (*FIXME: using a reference would be better to know th numbers of the steps to add*)
-fun fix_subproof_steps number_of_steps ((((id, rule), prems), subproof), ((step_concl, bounds),
+fun fix_subproof_steps ((((id_of_father_step, rule), prems), subproof), ((step_concl, bounds),
     cx)) =
   let
     fun mk_prop_of_term concl = (fastype_of concl = @{typ "bool"} ?
@@ -123,29 +120,32 @@ fun fix_subproof_steps number_of_steps ((((id, rule), prems), subproof), ((step_
     fun inline_assumption assumption assumption_id (st as VeriT_Node {id, rule, prems, concl,
         bounds}) =
       if List.find (curry (op =) assumption_id) prems <> NONE then
-        mk_node (id + number_of_steps) rule (filter_out (curry (op =) assumption_id) prems)
-          (Const ("Pure.imp", @{typ "prop"} --> @{typ "prop"} --> @{typ "prop"})
-          $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
+        let 
+          val prems' = filter_out (curry (op =) assumption_id) prems
+        in
+          mk_node id rule (filter_out (curry (op =) assumption_id) prems')
+            (Const (@{const_name "Pure.imp"}, @{typ "prop"} --> @{typ "prop"} --> @{typ "prop"})
+            $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
+        end
       else
         st
-    fun find_input_steps_and_inline [] last_step_number = ([], last_step_number)
-      | find_input_steps_and_inline (VeriT_Node {id = id', rule, prems, concl, bounds} :: steps)
-          last_step_number =
+    fun find_input_steps_and_inline [] last_step = ([], last_step)
+      | find_input_steps_and_inline (VeriT_Node {id = id', rule, prems, concl, bounds} :: steps) 
+          last_step =
         if rule = veriT_input_rule then
-          find_input_steps_and_inline (map (inline_assumption concl (mk_string_id id')) steps)
-            last_step_number
+          find_input_steps_and_inline (map (inline_assumption concl id') steps) last_step
         else
-          apfst (cons (mk_node (id' + id + number_of_steps) rule prems concl bounds))
-            (find_input_steps_and_inline steps (id' + id + number_of_steps))
-    val (subproof', last_step_number) = find_input_steps_and_inline subproof ~1
+          apfst (cons (mk_node (id_of_father_step ^ id') rule prems concl bounds))
+            (find_input_steps_and_inline steps (id_of_father_step ^ id'))
+    val (subproof', last_step_id) = find_input_steps_and_inline subproof "~1"
     val prems' =
-      if last_step_number = ~1 then prems
+      if last_step_id = "~1" then prems
       else
         (case prems of
-          NONE => SOME [mk_string_id last_step_number]
-        | SOME l => SOME (string_of_int last_step_number :: l))
+          NONE => SOME [last_step_id]
+        | SOME l => SOME (last_step_id :: l))
   in
-    (subproof', (((((id, rule), prems'), step_concl), bounds), cx))
+    (subproof', (((((id_of_father_step, rule), prems'), step_concl), bounds), cx))
   end
 
 (*
@@ -154,21 +154,21 @@ or
 (set id subproof (set ...) :conclusion (...)).
 *)
 
-fun parse_proof_step number_of_steps cx =
+fun parse_proof_step cx =
   let
     fun rotate_pair (a, (b, c)) = ((a, b), c)
     fun get_id (SMTLIB2.S [SMTLIB2.Sym "set", SMTLIB2.Sym id, SMTLIB2.S l]) = (id, l)
       | get_id t = raise Fail ("unrecognized VeriT Proof" ^ PolyML.makestring t)
-    fun change_id_to_number x = (unprefix veriT_step_prefix #> Int.fromString #> the) x
+    fun unprefix_id x = (*unprefix veriT_step_prefix*) x
     fun parse_rule (SMTLIB2.Sym rule :: l) = (rule, l)
     fun parse_source (SMTLIB2.Key "clauses" :: SMTLIB2.S source ::l) =
         (SOME (map (fn (SMTLIB2.Sym id) => id) source), l)
       | parse_source l = (NONE, l)
-    fun parse_subproof cx ((subproof_step as SMTLIB2.S (SMTLIB2.Sym "set" :: _)) :: l) =
-        let val (subproof_steps, cx') = parse_proof_step number_of_steps cx subproof_step in
-          apfst (apfst (curry (op @) subproof_steps)) (parse_subproof cx' l)
+    fun parse_subproof cx id_of_father_step ((subproof_step as SMTLIB2.S (SMTLIB2.Sym "set" :: _)) :: l) =
+        let val (subproof_steps, cx') = parse_proof_step cx subproof_step in
+          apfst (apfst (curry (op @) subproof_steps)) (parse_subproof cx' id_of_father_step l)
         end
-      | parse_subproof cx l = (([], cx), l)
+      | parse_subproof cx _ l = (([], cx), l)
     fun skip_args (SMTLIB2.Key "args" :: SMTLIB2.S _ :: l) = l
       | skip_args l = l
     fun parse_conclusion (SMTLIB2.Key "conclusion" :: SMTLIB2.S concl :: []) = concl
@@ -180,23 +180,22 @@ fun parse_proof_step number_of_steps cx =
           (the_default [] prems) concl bounds, cx)
   in
     get_id
-    #>> change_id_to_number
+    #>> unprefix_id
     ##> parse_rule
     #> rotate_pair
     ##> parse_source
     #> rotate_pair
     ##> skip_args
-    ##> parse_subproof cx
+    #> (fn (((id, rule), prems), sub) => (((id, rule), prems), parse_subproof cx id sub))
     #> rotate_pair
     ##> parse_conclusion
     ##> map fix_quantification
     #> (fn ((((id, rule), prems), (subproof, cx)), terms) =>
          (((((id, rule), prems), subproof), fold_map (fn t => fn cx => node_of t cx) terms cx)))
-    ##> apfst ((map (fn (VeriT_Node {concl, bounds,...}) => (concl, bounds))))
     (*the conclusion is the empty list, ie no false is written, we have to add it.*)
     ##> (apfst (fn [] => (@{const False}, [])
                  | concls => make_or_from_clausification concls))
-    #> fix_subproof_steps number_of_steps
+    #> fix_subproof_steps
     ##> to_node
     #> (fn (subproof, (step, cx)) => (subproof @ [step], cx))
     #> (fn (steps, cx) => fold_map update_step_and_cx steps cx)
@@ -281,7 +280,7 @@ fun find_ite_var_in_term (Const ("HOL.If", _) $ _ $
   | find_ite_var_in_term _ = NONE
 
 
-fun correct_veriT_step num_of_steps steps (st as VeriT_Node {id, rule, prems, concl, bounds}) =
+fun correct_veriT_step steps (st as VeriT_Node {id, rule, prems, concl, bounds}) =
   if rule = "tmp_ite_elim" then
     if bounds = [] then
       (*if the introduced var has already been defined,
@@ -290,23 +289,14 @@ fun correct_veriT_step num_of_steps steps (st as VeriT_Node {id, rule, prems, co
         val SOME var = find_ite_var_in_term concl
         val new_dep = find_in_which_step_defined var steps
       in
-        VeriT_Node {id = id, rule = rule, prems = (mk_string_id new_dep) :: prems,
-          concl = concl, bounds = bounds}
+        VeriT_Node {id = id, rule = rule, prems = new_dep :: prems, concl = concl, bounds = bounds}
       end
     else
       (*some new variables are created*)
       let
         val concl' = replace_bound_var_by_free_var concl bounds
       in
-      (*FIXME: horrible hackish method, but seems somehow to work. The difference is in the way
-      sledgehammer reconstructs: without an empty dependency, the skolemization is not done at all.
-      But if there is, a new step is added:
-         {fix sk ....}
-         hence "..sk.."
-         thus "(if ..)"
-      last step does not work: the step before is buggy. Without it, the proof work.*)
-        mk_node id veriT_tmp_skolemize (if null prems then [mk_string_id (~num_of_steps - id)]
-          else prems) concl' []
+        mk_node id veriT_tmp_skolemize prems concl' []
       end
   else
     st
@@ -320,7 +310,7 @@ fun remove_alpha_conversion _ [] = []
       fun find_predecessor prem = perhaps (Symtab.lookup replace_table) prem
     in
       if rule = veriT_alpha_conv then
-        remove_alpha_conversion (Symtab.update (mk_string_id id, find_predecessor (hd prems))
+        remove_alpha_conversion (Symtab.update (id, find_predecessor (hd prems))
           replace_table) steps
       else
         VeriT_Node {id = id, rule = rule, prems = correct_dependency prems,
@@ -329,7 +319,7 @@ fun remove_alpha_conversion _ [] = []
 
 fun correct_veriT_steps steps =
   steps
-  |> map (correct_veriT_step (1 + length steps) steps)
+  |> map (correct_veriT_step steps)
   |> remove_alpha_conversion Symtab.empty
 
 (* overall proof parser *)
@@ -337,7 +327,7 @@ fun parse typs funs lines ctxt =
   let
     val smtlib2_lines_without_at =
       remove_all_at (map SMTLIB2.parse (seperate_into_steps lines))
-    val (u, env) = apfst flat (fold_map (fn l => fn cx => parse_proof_step (length lines) cx l)
+    val (u, env) = apfst flat (fold_map (fn l => fn cx => parse_proof_step cx l)
                              smtlib2_lines_without_at (empty_context ctxt typs funs))
     val t = correct_veriT_steps u
     fun node_to_step (VeriT_Node {id, rule, prems, concl, bounds, ...}) =

@@ -32,7 +32,7 @@ fun find_and_add_missing_dependances steps assms ll_offset =
           let
             val ((prems, iidths), (id', replaced')) = prems_to_theorem_number ths id replaced
           in
-            ((perhaps (try (unprefix veriT_step_prefix)) x :: prems, iidths), (id', replaced'))
+            ((x :: prems, iidths), (id', replaced'))
           end
         | SOME th =>
           (case Option.map snd (List.find (fst #> curry (op =) x) replaced) of
@@ -68,7 +68,7 @@ fun find_and_add_missing_dependances steps assms ll_offset =
 
 fun add_missing_steps iidths =
   let
-    fun add_single_step (_, (id, th)) = VeriT_Proof.VeriT_Step {id = id, rule = "input",
+    fun add_single_step (_, (id, th)) = VeriT_Proof.VeriT_Step {id = string_of_int id, rule = "input",
       prems = [], concl = prop_of th, fixes = []}
   in map add_single_step iidths end
 
