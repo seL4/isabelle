@@ -41,7 +41,7 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
             val ss = the_list (AList.lookup (op =) fact_helper_ids id)
             val name0 = (sid ^ "a", ss)
             val (role0, concl0) = distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids
-              fact_helper_ts hyp_ts concl_t concl
+              fact_helper_ts hyp_ts concl_t concl ||> unskolemize_names
           in
             [(name0, role0, concl0, rule, []),
              ((sid, []), Plain, concl', veriT_rewrite_rule,

@@ -23,13 +23,14 @@ open ATP_Proof_Reconstruct
 open VeriT_Isar
 open VeriT_Proof
 
-fun find_and_add_missing_dependances steps assms conjecture_id =
+fun find_and_add_missing_dependances steps assms ll_offset =
   let
     fun prems_to_theorem_number [] id repl = (([], []), (id, repl))
       | prems_to_theorem_number (x :: ths) id replaced =
         (case Int.fromString (perhaps (try (unprefix SMTLIB2_Interface.assert_prefix)) x) of
           NONE =>
-          let val ((prems, iidths), (id', replaced')) = prems_to_theorem_number ths id replaced
+          let
+            val ((prems, iidths), (id', replaced')) = prems_to_theorem_number ths id replaced
           in
             ((perhaps (try (unprefix veriT_step_prefix)) x :: prems, iidths), (id', replaced'))
           end
@@ -37,13 +38,17 @@ fun find_and_add_missing_dependances steps assms conjecture_id =
           (case Option.map snd (List.find (fst #> curry (op =) x) replaced) of
             NONE =>
             let
-              val id' = if th = conjecture_id then 0 else id - conjecture_id
+              val id' = if th = ll_offset then 0 else id - ll_offset (* 0: for the conjecture*)
               val ((prems, iidths), (id'', replaced')) = prems_to_theorem_number ths
-                                                          (if th = 0 then id + 1 else id)
+                                                          (if th <> ll_offset then id + 1 else id)
                                                           ((x, string_of_int id') :: replaced)
-            in ((string_of_int id' :: prems, (th, (id', th)) :: iidths), (id'', replaced')) end
+            in
+              ((string_of_int id' :: prems, (th, (id', th - ll_offset)) :: iidths),
+               (id'', replaced'))
+            end
           | SOME x =>
-            let val ((prems, iidths), (id', replaced')) = prems_to_theorem_number ths id replaced
+            let
+              val ((prems, iidths), (id', replaced')) = prems_to_theorem_number ths id replaced
             in ((x :: prems, iidths), (id', replaced')) end))
     fun update_step (VeriT_Proof.VeriT_Step {prems, id = id0, rule = rule0,
         concl = concl0, fixes = fixes0}) (id, replaced) =
@@ -71,16 +76,15 @@ fun parse_proof _
     ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT2_Translate.replay_data)
     xfacts prems concl output =
   let
-    val conjecture_i = length ll_defs
     val (steps, _) = VeriT_Proof.parse typs terms output ctxt
-    val (iidths, steps'') = find_and_add_missing_dependances steps assms conjecture_i
+    val (iidths, steps'') = find_and_add_missing_dependances steps assms (length ll_defs)
     val steps' = add_missing_steps iidths @ steps''
     fun id_of_index i = the_default ~1 (Option.map fst (AList.lookup (op =) iidths i))
 
     val prems_i = 1
     val facts_i = prems_i + length prems
-
-    val conjecture_id = id_of_index conjecture_i
+    val conjecture_i = 0
+    val ll_offset = id_of_index conjecture_i
     val prem_ids = map id_of_index (prems_i upto facts_i - 1)
     val helper_ids = map_filter (try (fn (~1, idth) => idth)) iidths
 
@@ -94,7 +98,7 @@ fun parse_proof _
   in
     {outcome = NONE, fact_ids = fact_ids,
      atp_proof = fn () => atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules prems concl
-       fact_helper_ts prem_ids conjecture_id fact_helper_ids steps'}
+       fact_helper_ts prem_ids ll_offset fact_helper_ids steps'}
   end
 
 end;

@@ -13,6 +13,7 @@ sig
   val normalizing_prems : Proof.context -> term -> (string * string list) list
   val distinguish_conjecture_and_hypothesis : ''a list -> ''b -> ''b -> ''b list ->
     (''a * 'c) list -> 'c list -> 'c -> 'c -> ATP_Problem.atp_formula_role * 'c
+  val unskolemize_names: term -> term
 end;
 
 structure SMTLIB2_Isar: SMTLIB2_ISAR =
@@ -63,6 +64,11 @@ fun unlift_term ll_defs =
     and un_term t = map_aterms un_free t
   in un_term end
 
+(* It is not entirely clear if this is necessary for abstractions variables. *)
+val unskolemize_names =
+  Term.map_abs_vars (perhaps (try Name.dest_skolem))
+  #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
+
 fun postprocess_step_conclusion concl thy rewrite_rules ll_defs =
   concl
   |> Raw_Simplifier.rewrite_term thy rewrite_rules []
@@ -72,6 +78,7 @@ fun postprocess_step_conclusion concl thy rewrite_rules ll_defs =
   |> unskolemize_names
   |> push_skolem_all_under_iff
   |> HOLogic.mk_Trueprop
+  |> unskolemize_names
 
 fun normalizing_prems ctxt concl0 =
   SMT2_Normalize.case_bool_entry :: SMT2_Normalize.special_quant_table @
