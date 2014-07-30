@@ -956,14 +956,13 @@ The inductive theorems are as follows:
 \item[@{text "t."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct t]"}\rm:] ~ \\
 @{thm list.induct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
-Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
-prove $m$ properties simultaneously.
-
 \item[@{text "t."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct pred]"}\rm:] ~ \\
 @{thm list.rel_induct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm: \\
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm: \\
+\end{tabular}] ~ \\
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
@@ -1774,6 +1773,13 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 \end{tabular}] ~ \\
 Given $m > 1$ mutually corecursive codatatypes, these coinduction rules can be
 used to prove $m$ properties simultaneously.
+
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{set_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n,"} \\
+  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{set_induct} @{text "["}}@{text "induct set: set\<^sub>j_t\<^sub>1, \<dots>, induct set: set\<^sub>j_t\<^sub>m]"}\rm: \\
+\end{tabular}] ~ \\
+@{thm llist.set_induct[no_vars]} \\
+If $m = 1$, the attribute @{text "[consumes 1]"} is generated as well.
 
 \item[@{text "t."}\hthm{corec}\rm:] ~ \\
 @{thm llist.corec(1)[no_vars]} \\
