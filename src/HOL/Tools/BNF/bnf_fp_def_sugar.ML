@@ -1237,7 +1237,14 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
             val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss;
 
-            val sel_default_eqs = map (prepare_term lthy) raw_sel_default_eqs;
+            val sel_Tss = map (map (curry (op -->) fpT)) ctr_Tss;
+            val sel_bTs =
+              flat sel_bindingss ~~ flat sel_Tss
+              |> filter_out (Binding.is_empty o fst)
+              |> distinct (Binding.eq_name o pairself fst);
+            val sel_default_lthy = fake_local_theory_for_sel_defaults sel_bTs lthy;
+
+            val sel_default_eqs = map (prepare_term sel_default_lthy) raw_sel_default_eqs;
 
             fun ctr_spec_of disc_b ctr0 sel_bs = ((disc_b, ctr0), sel_bs);
             val ctr_specs = map3 ctr_spec_of disc_bindings ctrs0 sel_bindingss;

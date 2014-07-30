@@ -62,6 +62,7 @@ sig
   val ctr_of_ctr_spec: ('c, 'a) ctr_spec -> 'c
   val args_of_ctr_spec: ('c, 'a) ctr_spec -> 'a list
 
+  val fake_local_theory_for_sel_defaults: (binding * typ) list -> Proof.context -> Proof.context
   val free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (((bool * bool) * binding) * (term, binding) ctr_spec list) * term list -> local_theory ->
     ctr_sugar * local_theory
@@ -334,6 +335,12 @@ fun extract_sel_default ctxt t =
       malformed ()
   end;
 
+(* Ideally, we would enrich the context with constants rather than free variables. *)
+fun fake_local_theory_for_sel_defaults sel_bTs =
+  Proof_Context.allow_dummies
+  #> Proof_Context.add_fixes (map (fn (b, T) => (b, SOME T, NoSyn)) sel_bTs)
+  #> snd;
+
 type ('c, 'a) ctr_spec = (binding * 'c) * 'a list;
 
 fun disc_of_ctr_spec ((disc, _), _) = disc;
@@ -507,30 +514,35 @@ fun prepare_free_constructors prep_term
         (true, [], [], [], [], [], lthy')
       else
         let
-          val sel_bindings = flat sel_bindingss;
-          val uniq_sel_bindings = distinct Binding.eq_name sel_bindings;
-          val all_sels_distinct = (length uniq_sel_bindings = length sel_bindings);
+          val all_sel_bindings = flat sel_bindingss;
+          val num_all_sel_bindings = length all_sel_bindings;
+          val uniq_sel_bindings = distinct Binding.eq_name all_sel_bindings;
+          val all_sels_distinct = (length uniq_sel_bindings = num_all_sel_bindings);
 
           val sel_binding_index =
-            if all_sels_distinct then 1 upto length sel_bindings
-            else map (fn b => find_index (curry Binding.eq_name b) uniq_sel_bindings) sel_bindings;
+            if all_sels_distinct then
+              1 upto num_all_sel_bindings
+            else
+              map (fn b => find_index (curry Binding.eq_name b) uniq_sel_bindings) all_sel_bindings;
 
-          val all_proto_sels = flat (map3 (fn k => fn xs => map (fn x => (k, (xs, x)))) ks xss xss);
+          val all_proto_sels = flat (map3 (fn k => fn xs => map (pair k o pair xs)) ks xss xss);
           val sel_infos =
             AList.group (op =) (sel_binding_index ~~ all_proto_sels)
             |> sort (int_ord o pairself fst)
             |> map snd |> curry (op ~~) uniq_sel_bindings;
           val sel_bindings = map fst sel_infos;
-          val sel_Ts = map (curry (op -->) fcT o fastype_of o snd o snd o hd o snd) sel_infos;
-
-          val sel_default_lthy = no_defs_lthy
-            |> Proof_Context.allow_dummies
-            |> Proof_Context.add_fixes
-              (map2 (fn b => fn T => (b, SOME T, NoSyn)) sel_bindings sel_Ts)
-            |> snd;
 
           val sel_defaults =
-            map (extract_sel_default sel_default_lthy o prep_term sel_default_lthy) sel_default_eqs;
+            if null sel_default_eqs then
+              []
+            else
+              let
+                val sel_Ts = map (curry (op -->) fcT o fastype_of o snd o snd o hd o snd) sel_infos;
+                val fake_lthy =
+                  fake_local_theory_for_sel_defaults (sel_bindings ~~ sel_Ts) no_defs_lthy;
+              in
+                map (extract_sel_default fake_lthy o prep_term fake_lthy) sel_default_eqs
+              end;
 
           fun disc_free b = Free (Binding.name_of b, mk_pred1T fcT);
 
