@@ -118,7 +118,7 @@ fun read _ [] rest tss = (rest, tss)
       read l cs None ((S (rev ts1) :: ts2) :: tss)
   | read l ("#" :: "x" :: cs) None (ts :: tss) =
       token read_hex l cs ts tss
-  | read l ("#" :: cs) None (ts :: tss) =
+  | read l ("#" :: "b" :: cs) None (ts :: tss) =
       token read_bin l cs ts tss
   | read l (":" :: cs) None (ts :: tss) =
       token (read_sym Key) l cs ts tss

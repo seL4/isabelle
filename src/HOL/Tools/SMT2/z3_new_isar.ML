@@ -18,6 +18,7 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
+open SMTLIB2_Isar
 
 val z3_apply_def_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Apply_Def
 val z3_hypothesis_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Hypothesis
@@ -62,69 +63,16 @@ fun inline_z3_hypotheses _ _ [] = []
           end
       end
 
-fun simplify_bool ((all as Const (@{const_name All}, _)) $ Abs (s, T, t)) =
-    let val t' = simplify_bool t in
-      if loose_bvar1 (t', 0) then all $ Abs (s, T, t') else t'
-    end
-  | simplify_bool (@{const Not} $ t) = s_not (simplify_bool t)
-  | simplify_bool (@{const conj} $ t $ u) = s_conj (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const disj} $ t $ u) = s_disj (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const implies} $ t $ u) = s_imp (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_bool t, simplify_bool u)
-  | simplify_bool (t as Const (@{const_name HOL.eq}, _) $ u $ v) =
-    if u aconv v then @{const True} else t
-  | simplify_bool (t $ u) = simplify_bool t $ simplify_bool u
-  | simplify_bool (Abs (s, T, t)) = Abs (s, T, simplify_bool t)
-  | simplify_bool t = t
-
-(* It is not entirely clear why this should be necessary, especially for abstractions variables. *)
-val unskolemize_names =
-  Term.map_abs_vars (perhaps (try Name.dest_skolem))
-  #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
-
-fun strip_alls (Const (@{const_name All}, _) $ Abs (s, T, body)) = strip_alls body |>> cons (s, T)
-  | strip_alls t = ([], t)
-
-fun push_skolem_all_under_iff t =
-  (case strip_alls t of
-    (qs as _ :: _,
-     (t0 as Const (@{const_name HOL.eq}, _)) $ (t1 as Const (@{const_name Ex}, _) $ _) $ t2) =>
-    t0 $ HOLogic.list_all (qs, t1) $ HOLogic.list_all (qs, t2)
-  | _ => t)
-
-fun unlift_term ll_defs =
-  let
-    val lifted = map (ATP_Util.extract_lambda_def dest_Free o ATP_Util.hol_open_form I) ll_defs
-
-    fun un_free (t as Free (s, _)) =
-       (case AList.lookup (op =) lifted s of
-         SOME t => un_term t
-       | NONE => t)
-     | un_free t = t
-    and un_term t = map_aterms un_free t
-  in un_term end
-
 fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids
     conjecture_id fact_helper_ids proof =
   let
     val thy = Proof_Context.theory_of ctxt
 
-    val unlift_term = unlift_term ll_defs
-
     fun steps_of (Z3_New_Proof.Z3_Step {id, rule, prems, concl, ...}) =
       let
         val sid = string_of_int id
 
-        val concl' =
-          concl
-          |> Raw_Simplifier.rewrite_term thy rewrite_rules []
-          |> Object_Logic.atomize_term thy
-          |> simplify_bool
-          |> not (null ll_defs) ? unlift_term
-          |> unskolemize_names
-          |> push_skolem_all_under_iff
-          |> HOLogic.mk_Trueprop
-
+        val concl' = postprocess_step_conclusion concl thy rewrite_rules ll_defs
         fun standard_step role =
           ((sid, []), role, concl', Z3_New_Proof.string_of_rule rule,
            map (fn id => (string_of_int id, [])) prems)
@@ -136,30 +84,15 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
             val name0 = (sid ^ "a", ss)
 
             val (role0, concl0) =
-              (case ss of
-                [s] => (Axiom, the (AList.lookup (op =) fact_helper_ts s))
-              | _ =>
-                if id = conjecture_id then
-                  (Conjecture, concl_t)
-                else
-                  (Hypothesis,
-                   (case find_index (curry (op =) id) prem_ids of
-                     ~1 => concl
-                   | i => nth hyp_ts i)))
+              distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts
+              hyp_ts concl_t concl
 
-            val normalize_prems =
-              SMT2_Normalize.case_bool_entry :: SMT2_Normalize.special_quant_table @
-              SMT2_Normalize.abs_min_max_table
-              |> map_filter (fn (c, th) =>
-                if exists_Const (curry (op =) c o fst) concl0 then
-                  let val s = short_thm_name ctxt th in SOME (s, [s]) end
-                else
-                  NONE)
+            val normalizing_prems = normalize_prems ctxt concl0
           in
             (if role0 = Axiom then []
              else [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, [])]) @
             [((sid, []), Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
-              name0 :: normalize_prems)]
+              name0 :: normalizing_prems)]
           end
         | Z3_New_Proof.Rewrite => [standard_step Lemma]
         | Z3_New_Proof.Rewrite_Star => [standard_step Lemma]

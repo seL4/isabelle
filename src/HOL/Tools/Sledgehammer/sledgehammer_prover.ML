@@ -258,6 +258,7 @@ fun play_one_line_proof mode verbose timeout pairs state i preferred (meths as m
 
 val canonical_isar_supported_prover = eN
 val z3N = "z3"
+val veriT_newN = "veriT"
 
 fun isar_supported_prover_of thy name =
   if is_atp thy name orelse name = z3N then name
