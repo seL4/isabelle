@@ -232,11 +232,25 @@ fun term_of_atp_ho ctxt textual sym_tab =
         then error "Isar proof reconstruction failed because the ATP proof \
                      \contains unparsable material."
         else if s = tptp_equal then
-          let val ts = map (do_term NONE) us in
-            if textual andalso length ts = 2 andalso loose_aconv (hd ts, List.last ts) then
-              @{const True}
+          let
+            val ts = map (do_term NONE) us
+            fun equal_term ts =
+                list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}), ts)
+          in
+            if textual then
+              (case ts of
+                [fst, lst] =>
+                if loose_aconv (fst, lst) then
+                  @{const True}
+                else if Term.aconv_untyped (lst, @{const True}) then
+                  fst
+                else if Term.aconv_untyped (fst, @{const True}) then
+                  lst
+                else
+                  equal_term ts
+              | _ => equal_term ts)
             else
-              list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}), ts)
+              equal_term ts
           end
         else if not (null us) then
           let
