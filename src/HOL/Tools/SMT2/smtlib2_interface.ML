@@ -49,7 +49,7 @@ val setup_builtins =
     (@{const If ('a)}, "ite"),
     (@{const less (int)}, "<"),
     (@{const less_eq (int)}, "<="),
-    (@{const uminus (int)}, "~"),
+    (@{const uminus (int)}, "-"),
     (@{const plus (int)}, "+"),
     (@{const minus (int)}, "-")] #>
   SMT2_Builtin.add_builtin_fun smtlib2C
