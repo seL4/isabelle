@@ -30,7 +30,7 @@ fun parse_satallax_tstp_information x =
   ((Symbol.scan_ascii_id || ($$ "$" |-- Symbol.scan_ascii_id))
   -- Scan.option ( $$ "(" |-- Scan.option (Symbol.scan_ascii_id --| $$ ",")
   -- ((Scan.option (($$ "[" |-- (Scan.option ((scan_general_id
-         -- Scan.repeat ($$ "," |-- scan_general_id)) >> (op ::)) --| $$ "]"))
+         -- Scan.repeat ($$ "," |-- scan_general_id)) >> op ::) --| $$ "]"))
          || (skip_term >> K "") >> (fn x => SOME [x]))
        >> (fn (SOME x) => x | NONE => NONE)) --| $$ ")"))) x
 
@@ -39,12 +39,12 @@ fun parse_prem x =
 
 fun parse_prems x =
   (($$ "[" |-- parse_prem -- Scan.repeat ($$ "," |-- parse_prem) --| $$ "]")
-     >> (op ::)) x
+     >> op ::) x
 
 fun parse_tstp_satallax_extra_arguments x =
   ($$ "," |-- scan_general_id -- (($$ "(" |-- Symbol.scan_ascii_id --| $$ "," )
   -- ($$ "[" |-- Scan.option ((parse_satallax_tstp_information
-  -- Scan.repeat ($$ "," |-- parse_satallax_tstp_information)) >> (op ::))
+  -- Scan.repeat ($$ "," |-- parse_satallax_tstp_information)) >> op ::)
   --| $$ "]") --
   (Scan.optional ($$ "," |-- parse_prems) [] -- Scan.optional ($$ "," |-- parse_prems) []
     >> (fn (x, []) => x | (_, x) => x))

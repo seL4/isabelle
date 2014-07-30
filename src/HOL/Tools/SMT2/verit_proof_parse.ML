@@ -68,8 +68,8 @@ fun find_and_add_missing_dependances steps assms ll_offset =
 
 fun add_missing_steps iidths =
   let
-    fun add_single_step (_, (id, th)) = VeriT_Proof.VeriT_Step {id = string_of_int id, rule = "input",
-      prems = [], concl = prop_of th, fixes = []}
+    fun add_single_step (_, (id, th)) = VeriT_Proof.VeriT_Step {id = string_of_int id,
+      rule = veriT_input_rule, prems = [], concl = prop_of th, fixes = []}
   in map add_single_step iidths end
 
 fun parse_proof _

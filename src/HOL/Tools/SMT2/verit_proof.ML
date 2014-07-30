@@ -63,7 +63,7 @@ val veriT_alpha_conv_rule = "tmp_alphaconv"
 fun node_of p cx =
   ([], cx)
   ||>> with_fresh_names (term_of p)
-  |>> (fn (_, (t, ns)) => (t, ns))
+  |>> snd
 
 (*in order to get Z3-style quantification*)
 fun fix_quantification (SMTLIB2.S (SMTLIB2.Sym "forall" :: l)) =
@@ -86,14 +86,6 @@ fun replace_bound_var_by_free_var (q $ Abs (var, ty, u)) free_var =
   | replace_bound_var_by_free_var (u $ v) free_vars = replace_bound_var_by_free_var u free_vars $
      replace_bound_var_by_free_var v free_vars
   | replace_bound_var_by_free_var u _ = u
-
-fun replace_bound_all_by_ex ((q as Const (_, typ)) $ Abs (var, ty, u)) free_var =
-    (case List.find (fn v => String.isPrefix v var) free_var of
-      NONE => q $ Abs (var, ty, replace_bound_all_by_ex u free_var)
-    | SOME _ => Const (@{const_name "HOL.Ex"}, typ) $ Abs (var, ty, replace_bound_all_by_ex u free_var))
-  | replace_bound_all_by_ex (u $ v) free_vars = replace_bound_all_by_ex u free_vars $
-     replace_bound_all_by_ex v free_vars
-  | replace_bound_all_by_ex u _ = u
 
 fun find_type_in_formula (Abs(v, ty, u)) var_name =
     if String.isPrefix var_name v then SOME ty else find_type_in_formula u var_name
@@ -129,7 +121,7 @@ fun fix_subproof_steps ((((id_of_father_step, rule), prems), subproof), ((step_c
     fun inline_assumption assumption assumption_id (st as VeriT_Node {id, rule, prems, concl,
         bounds}) =
       if List.find (curry (op =) assumption_id) prems <> NONE then
-        let 
+        let
           val prems' = filter_out (curry (op =) assumption_id) prems
         in
           mk_node id rule (filter_out (curry (op =) assumption_id) prems')
@@ -139,16 +131,16 @@ fun fix_subproof_steps ((((id_of_father_step, rule), prems), subproof), ((step_c
       else
         st
     fun find_input_steps_and_inline [] last_step = ([], last_step)
-      | find_input_steps_and_inline (VeriT_Node {id = id', rule, prems, concl, bounds} :: steps) 
+      | find_input_steps_and_inline (VeriT_Node {id = id', rule, prems, concl, bounds} :: steps)
           last_step =
         if rule = veriT_input_rule then
           find_input_steps_and_inline (map (inline_assumption concl id') steps) last_step
         else
           apfst (cons (mk_node (id_of_father_step ^ id') rule prems concl bounds))
             (find_input_steps_and_inline steps (id_of_father_step ^ id'))
-    val (subproof', last_step_id) = find_input_steps_and_inline subproof "~1"
+    val (subproof', last_step_id) = find_input_steps_and_inline subproof ""
     val prems' =
-      if last_step_id = "~1" then prems
+      if last_step_id = "" then prems
       else
         (case prems of
           NONE => SOME [last_step_id]
@@ -205,7 +197,7 @@ fun parse_proof_step cx =
     #> fix_subproof_steps
     ##> to_node
     #> (fn (subproof, (step, cx)) => (subproof @ [step], cx))
-    #> uncurry (fold_map update_step_and_cx)
+    #-> (fold_map update_step_and_cx)
   end
 
 
@@ -293,10 +285,12 @@ fun correct_veriT_step steps (st as VeriT_Node {id, rule, prems, concl, bounds})
       (*if the introduced var has already been defined,
         adding the definition as a dependency*)
       let
-        val SOME var = find_ite_var_in_term concl
-        val new_dep = find_in_which_step_defined var steps
+        val new_prems =
+          (case find_ite_var_in_term concl of
+            NONE => prems
+          | SOME var => find_in_which_step_defined var steps :: prems)
       in
-        VeriT_Node {id = id, rule = rule, prems = new_dep :: prems, concl = concl, bounds = bounds}
+        VeriT_Node {id = id, rule = rule, prems = new_prems, concl = concl, bounds = bounds}
       end
     else
       (*some new variables are created*)
