@@ -68,7 +68,6 @@ sig
   val remote_prefix : string
 
   val agsyhol_core_rule : string
-  val satallax_core_rule : string
   val spass_input_rule : string
   val spass_pre_skolemize_rule : string
   val spass_skolemize_rule : string
@@ -85,10 +84,26 @@ sig
   val scan_general_id : string list -> string * string list
   val parse_formula : string list ->
     (string, string atp_type, (string, string atp_type) atp_term, string) atp_formula * string list
-  val atp_proof_of_tstplike_proof : string -> string atp_problem -> string -> string atp_proof
   val clean_up_atp_proof_dependencies : string atp_proof -> string atp_proof
   val map_term_names_in_atp_proof : (string -> string) -> string atp_proof -> string atp_proof
   val nasty_atp_proof : string Symtab.table -> string atp_proof -> string atp_proof
+
+  val skip_term: string list -> string * string list
+  val parse_thf0_formula :string list ->
+      ('a, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term,
+       'c) ATP_Problem.atp_formula *
+      string list
+  val dummy_atype :  string ATP_Problem.atp_type
+  val role_of_tptp_string:  string -> ATP_Problem.atp_formula_role
+  val parse_line: string -> ('a * string ATP_Problem.atp_problem_line list) list ->
+              string list -> ((string * string list) * ATP_Problem.atp_formula_role *
+               (string, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term,
+                'c) ATP_Problem.atp_formula
+               * string * (string * 'd list) list) list * string list
+  val core_inference :   'a -> 'b -> ('b * 'b list) * ATP_Problem.atp_formula_role *
+              ('c, 'd, (string, 'e) ATP_Problem.atp_term, 'f) ATP_Problem.atp_formula * 'a * 'g list
+  val vampire_step_name_ord : (string * 'a) * (string * 'a) -> order
+  val core_of_agsyhol_proof :  string -> string list option
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -123,7 +138,6 @@ val zipperpositionN = "zipperposition"
 val remote_prefix = "remote_"
 
 val agsyhol_core_rule = "__agsyhol_core" (* arbitrary *)
-val satallax_core_rule = "__satallax_core" (* arbitrary *)
 val spass_input_rule = "Inp"
 val spass_pre_skolemize_rule = "__Sko0" (* arbitrary *)
 val spass_skolemize_rule = "__Sko" (* arbitrary *)
@@ -278,7 +292,7 @@ val skip_term =
   let
     fun skip _ accum [] = (accum, [])
       | skip n accum (ss as s :: ss') =
-        if s = "," andalso n = 0 then
+        if (s = "," orelse s = ".") andalso n = 0 then
           (accum, ss)
         else if member (op =) [")", "]"] s then
           if n = 0 then (accum, ss) else skip (n - 1) (s :: accum) ss'
@@ -649,10 +663,6 @@ fun parse_spass_pirate_line x =
 
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
-(* Syntax: <name> *)
-fun parse_satallax_core_line x =
-  (scan_general_id --| Scan.option ($$ " ") >> (single o core_inference satallax_core_rule)) x
-
 (* Syntax: SZS core <name> ... <name> *)
 fun parse_z3_tptp_core_line x =
   (Scan.this_string "SZS core" |-- Scan.repeat ($$ " " |-- scan_general_id)
@@ -660,34 +670,16 @@ fun parse_z3_tptp_core_line x =
 
 fun parse_line local_name problem =
   if local_name = leo2N then parse_tstp_thf0_line problem
-  else if local_name = satallaxN then parse_satallax_core_line
   else if local_name = spassN then parse_spass_line
   else if local_name = spass_pirateN then parse_spass_pirate_line
   else if local_name = z3_tptpN then parse_z3_tptp_core_line
   else parse_tstp_line problem
-
-fun parse_proof local_name problem =
-  strip_spaces_except_between_idents
-  #> raw_explode
-  #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-       (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line local_name problem) >> flat)))
-  #> fst
 
 fun core_of_agsyhol_proof s =
   (case split_lines s of
     "The transformed problem consists of the following conjectures:" :: conj ::
     _ :: proof_term :: _ => SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
   | _ => NONE)
-
-fun atp_proof_of_tstplike_proof _ _ "" = []
-  | atp_proof_of_tstplike_proof local_prover problem tstp =
-    (case core_of_agsyhol_proof tstp of
-      SOME facts => facts |> map (core_inference agsyhol_core_rule)
-    | NONE =>
-      tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-      |> parse_proof local_prover problem
-      |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o pairself #1)))
-      |> local_prover = zipperpositionN ? rev)
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =

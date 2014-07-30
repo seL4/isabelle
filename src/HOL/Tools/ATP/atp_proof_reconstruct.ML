@@ -498,7 +498,7 @@ fun is_axiom_used_in_proof pred =
 val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
 
 fun add_fact ctxt facts ((_, ss), _, _, rule, deps) =
-  (if member (op =) [agsyhol_core_rule, leo2_extcnf_equal_neg_rule, satallax_core_rule] rule then
+  (if member (op =) [agsyhol_core_rule, leo2_extcnf_equal_neg_rule] rule then
      insert (op =) (short_thm_name ctxt ext, (Global, General))
    else
      I)

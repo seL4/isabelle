@@ -431,9 +431,9 @@ val satallax_thf0 = THF (Monomorphic, THF_Without_Choice)
 val satallax_config : atp_config =
   {exec = K (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "-p hocore -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
+       "-p tstp -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims =
-     [("% Higher-Order Unsat Core BEGIN", "% Higher-Order Unsat Core END")],
+     [("% SZS output start Proof", "% SZS output end Proof")],
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
    best_slices =

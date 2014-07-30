@@ -170,7 +170,7 @@ fun find_assumptions_to_inline ths (assm :: assms) to_inline no_inline =
   | find_assumptions_to_inline ths [] _ _ = ths
 
 fun inline_if_needed_and_simplify th assms to_inline no_inline =
-    (case find_assumptions_to_inline [] assms to_inline no_inline of
+    (case find_assumptions_to_inline [th] assms to_inline no_inline of
       [] => ATerm (("$true", [dummy_atype]), [])
   | l => foldl1 (fn (a, b) => ATerm ((tptp_or, [dummy_atype]), [a, b])) l)
 
@@ -315,7 +315,7 @@ fun parse_proof local_name problem =
           (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line local_name problem) >> flat)))
            #> fst)
       else
-        (Scan.error (!! (fn f => raise UNRECOGNIZED_ATP_PROOF ())
+        (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
           (Scan.finite Symbol.stopper (Scan.repeat1 (parse_tstp_thf0_satallax_line))))
           #> fst
           #> rev
