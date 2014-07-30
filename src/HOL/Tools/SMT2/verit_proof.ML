@@ -306,7 +306,7 @@ fun correct_veriT_step num_of_steps steps (st as VeriT_Node {id, rule, prems, co
          {fix sk ....}
          hence "..sk.."
          thus "(if ..)"
-      last step does not work: the step before is buggy. Without the proof work.*)
+      last step does not work: the step before is buggy. Without it, the proof work.*)
         mk_node id veriT_tmp_skolemize (if null prems then [mk_string_id (~num_of_steps - id)]
           else prems) concl' []
       end

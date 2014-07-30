@@ -269,6 +269,8 @@ fun term_of_atp_ho ctxt textual sym_tab =
         else if s = tptp_not then HOLogic.Not
         else if s = tptp_ho_forall then HOLogic.all_const dummyT
         else if s = tptp_ho_exists then HOLogic.exists_const dummyT
+        else if s = tptp_hilbert_choice then HOLogic.choice_const dummyT
+        else if s = tptp_hilbert_the then @{term "The"}
         else
           (case unprefix_and_unascii const_prefix s of
             SOME s' =>

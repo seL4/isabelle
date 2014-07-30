@@ -76,6 +76,8 @@ sig
   val tptp_ho_exists : string
   val tptp_choice : string
   val tptp_ho_choice : string
+  val tptp_hilbert_choice : string
+  val tptp_hilbert_the : string
   val tptp_not : string
   val tptp_and : string
   val tptp_not_and : string
@@ -239,6 +241,8 @@ val tptp_if = "<="
 val tptp_iff = "<=>"
 val tptp_not_iff = "<~>"
 val tptp_app = "@"
+val tptp_hilbert_choice = "@+"
+val tptp_hilbert_the = "@-"
 val tptp_not_infix = "!"
 val tptp_equal = "="
 val tptp_not_equal = "!="

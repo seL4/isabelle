@@ -478,9 +478,18 @@ val tptp_binary_ops =
   [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff,
    tptp_equal, tptp_app]
 
+fun parse_one_in_list list =
+  foldl1 (op ||) (map Scan.this_string list)
+
 fun parse_binary_op x =
-  (foldl1 (op ||) (map Scan.this_string tptp_binary_ops)
+  (parse_one_in_list tptp_binary_ops
    >> (fn c => if c = tptp_equal then "equal" else c)) x
+
+val parse_fo_quantifier =
+   parse_one_in_list [tptp_forall, tptp_exists, tptp_lambda, tptp_hilbert_choice, tptp_hilbert_the]
+
+val parse_ho_quantifier =
+   parse_one_in_list [tptp_ho_forall, tptp_ho_exists, tptp_hilbert_choice, tptp_hilbert_the]
 
 fun parse_thf0_type x =
   (($$ "(" |-- parse_thf0_type --| $$ ")" || scan_general_id >> (fn t => AType ((t, []), [])))
@@ -491,6 +500,8 @@ fun parse_thf0_type x =
 fun mk_ho_of_fo_quant q =
   if q = tptp_forall then tptp_ho_forall
   else if q = tptp_exists then tptp_ho_exists
+  else if q = tptp_hilbert_choice then tptp_hilbert_choice
+  else if q = tptp_hilbert_the then tptp_hilbert_the
   else raise Fail ("unrecognized quantification: " ^ q)
 
 fun remove_thf_app (ATerm ((x, ty), arg)) =
@@ -508,8 +519,7 @@ fun parse_thf0_typed_var x =
    || $$ "(" |-- parse_thf0_typed_var --| $$ ")") x
 
 fun parse_simple_thf0_term x =
-  ((Scan.this_string tptp_forall || Scan.this_string tptp_exists || Scan.this_string tptp_lambda)
-        -- ($$ "[" |-- parse_thf0_typed_var --| $$ "]" --| $$ ":") -- parse_thf0_term
+  (parse_fo_quantifier -- ($$ "[" |-- parse_thf0_typed_var --| $$ "]" --| $$ ":") -- parse_thf0_term
       >> (fn ((q, ys), t) =>
           fold_rev
             (fn (var, ty) => fn r =>
@@ -521,7 +531,7 @@ fun parse_simple_thf0_term x =
             ys t)
   || Scan.this_string tptp_not |-- parse_thf0_term >> mk_app (mk_simple_aterm tptp_not)
   || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var, typ) => ATerm ((var, [typ]), []))
-  || (Scan.this_string tptp_ho_forall || Scan.this_string tptp_ho_exists) >> mk_simple_aterm
+  || parse_ho_quantifier >> mk_simple_aterm
   || $$ "(" |-- parse_thf0_term --| $$ ")"
   || scan_general_id >> mk_simple_aterm) x
 and parse_thf0_term x =
