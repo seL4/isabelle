@@ -10,10 +10,9 @@ sig
   val simplify_bool: term -> term
   val unlift_term: term list -> term -> term
   val postprocess_step_conclusion: term -> theory -> thm list -> term list -> term
-  val normalize_prems : Proof.context -> term -> (string * string list) list
+  val normalizing_prems : Proof.context -> term -> (string * string list) list
   val distinguish_conjecture_and_hypothesis : ''a list -> ''b -> ''b -> ''b list ->
     (''a * 'c) list -> 'c list -> 'c -> 'c -> ATP_Problem.atp_formula_role * 'c
-
 end;
 
 structure SMTLIB2_Isar: SMTLIB2_ISAR =
@@ -74,7 +73,7 @@ fun postprocess_step_conclusion concl thy rewrite_rules ll_defs =
   |> push_skolem_all_under_iff
   |> HOLogic.mk_Trueprop
 
-fun normalize_prems ctxt concl0 =
+fun normalizing_prems ctxt concl0 =
   SMT2_Normalize.case_bool_entry :: SMT2_Normalize.special_quant_table @
   SMT2_Normalize.abs_min_max_table
   |> map_filter (fn (c, th) =>

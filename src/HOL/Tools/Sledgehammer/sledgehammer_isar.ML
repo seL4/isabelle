@@ -50,6 +50,7 @@ val e_skolemize_rule = "skolemize"
 val leo2_extcnf_combined_rule = "extcnf_combined"
 val spass_pirate_datatype_rule = "DT"
 val vampire_skolemisation_rule = "skolemisation"
+val veriT_skomelisation_rule = "tmp_skolemize"
 (* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
 val z3_skolemize_rule = "sk"
 val z3_th_lemma_rule = "th-lemma"

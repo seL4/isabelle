@@ -31,7 +31,7 @@ fun find_and_add_missing_dependances steps assms conjecture_id =
           NONE =>
           let val ((prems, iidths), (id', replaced')) = prems_to_theorem_number ths id replaced
           in
-            ((perhaps (try (unprefix verit_step_prefix)) x :: prems, iidths), (id', replaced'))
+            ((perhaps (try (unprefix veriT_step_prefix)) x :: prems, iidths), (id', replaced'))
           end
         | SOME th =>
           (case Option.map snd (List.find (fst #> curry (op =) x) replaced) of

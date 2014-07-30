@@ -36,18 +36,16 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
           ((sid, []), role, concl', rule,
            map (fn id => (id, [])) prems)
       in
-        if rule = verit_proof_input_rule then
+        if rule = veriT_input_rule then
           let
             val ss = the_list (AList.lookup (op =) fact_helper_ids id)
             val name0 = (sid ^ "a", ss)
             val (role0, concl0) = distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids
               fact_helper_ts hyp_ts concl_t concl
-
-            val normalizing_prems = normalize_prems ctxt concl0
           in
             [(name0, role0, concl0, rule, []),
-             ((sid, []), Plain, concl', verit_rewrite,
-              name0 :: normalizing_prems)] end
+             ((sid, []), Plain, concl', veriT_rewrite_rule,
+              name0 :: normalizing_prems ctxt concl0)] end
         else
           [standard_step Plain]
       end
