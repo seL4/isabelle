@@ -52,6 +52,8 @@ val satallax_skolemize_rule = "tab_ex"
 val spass_pirate_datatype_rule = "DT"
 val vampire_skolemisation_rule = "skolemisation"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
+val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
+val veriT_skolemize_rules = [veriT_tmp_ite_elim_rule, veriT_tmp_skolemize_rule]
 val veriT_simp_arith_rule = "simp_arith"
 val veriT_la_generic_rule = "la_generic"
 val veriT_arith_rules = [veriT_simp_arith_rule, veriT_la_generic_rule]
@@ -62,8 +64,7 @@ val zipperposition_cnf_rule = "cnf"
 
 val skolemize_rules =
   [e_skolemize_rule, leo2_extcnf_combined_rule, satallax_skolemize_rule, spass_skolemize_rule,
-    vampire_skolemisation_rule, veriT_tmp_skolemize_rule, z3_skolemize_rule,
-    zipperposition_cnf_rule]
+    vampire_skolemisation_rule, z3_skolemize_rule, zipperposition_cnf_rule] @ veriT_skolemize_rules
 
 val is_skolemize_rule = member (op =) skolemize_rules
 val is_arith_rule = String.isPrefix z3_th_lemma_rule orf member (op =) veriT_arith_rules

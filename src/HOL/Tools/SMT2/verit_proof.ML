@@ -303,7 +303,7 @@ fun correct_veriT_step steps (st as VeriT_Node {id, rule, prems, concl, bounds})
       let
         val concl' = replace_bound_var_by_free_var concl bounds
       in
-        mk_node id veriT_tmp_skolemize_rule prems concl' []
+        mk_node id rule prems concl' []
       end
   else
     st
