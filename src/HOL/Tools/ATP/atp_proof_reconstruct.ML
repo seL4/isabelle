@@ -239,13 +239,13 @@ fun term_of_atp_ho ctxt textual sym_tab =
           in
             if textual then
               (case ts of
-                [fst, lst] =>
-                if loose_aconv (fst, lst) then
+                [t1, t2] =>
+                if loose_aconv (t1, t2) then
                   @{const True}
-                else if Term.aconv_untyped (lst, @{const True}) then
-                  fst
-                else if Term.aconv_untyped (fst, @{const True}) then
-                  lst
+                else if Term.aconv_untyped (t2, @{const True}) then
+                  t1
+                else if Term.aconv_untyped (t1, @{const True}) then
+                  t2
                 else
                   equal_term ts
               | _ => equal_term ts)

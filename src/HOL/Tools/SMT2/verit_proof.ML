@@ -39,7 +39,6 @@ datatype veriT_node = VeriT_Node of {
 fun mk_node id rule prems concl bounds =
   VeriT_Node {id = id, rule = rule, prems = prems, concl = concl, bounds = bounds}
 
-(*two structures needed*)
 datatype veriT_step = VeriT_Step of {
   id: string,
   rule: string,
@@ -54,8 +53,8 @@ val veriT_step_prefix = ".c"
 val veriT_input_rule = "input"
 val veriT_rewrite_rule = "__rewrite" (*arbitrary*)
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
-val veriT_tmp_skolemize = "tmp_skolemize"
-val veriT_alpha_conv = "tmp_alphaconv"
+val veriT_tmp_skolemize_rule = "tmp_skolemize"
+val veriT_alpha_conv_rule = "tmp_alphaconv"
 
 (* proof parser *)
 
@@ -102,7 +101,7 @@ fun add_bound_variables_to_ctxt cx bounds concl =
 fun update_step_and_cx (st as VeriT_Node {id, rule, prems, concl, bounds}) cx =
   if rule = veriT_tmp_ite_elim_rule then
     (mk_node id rule prems concl bounds, add_bound_variables_to_ctxt cx bounds concl)
-  else if rule = veriT_tmp_skolemize then
+  else if rule = veriT_tmp_skolemize_rule then
     let
       val concl' = replace_bound_var_by_free_var concl bounds
     in
@@ -159,7 +158,6 @@ fun parse_proof_step cx =
     fun rotate_pair (a, (b, c)) = ((a, b), c)
     fun get_id (SMTLIB2.S [SMTLIB2.Sym "set", SMTLIB2.Sym id, SMTLIB2.S l]) = (id, l)
       | get_id t = raise Fail ("unrecognized VeriT Proof" ^ PolyML.makestring t)
-    fun unprefix_id x = (*unprefix veriT_step_prefix*) x
     fun parse_rule (SMTLIB2.Sym rule :: l) = (rule, l)
     fun parse_source (SMTLIB2.Key "clauses" :: SMTLIB2.S source ::l) =
         (SOME (map (fn (SMTLIB2.Sym id) => id) source), l)
@@ -177,10 +175,9 @@ fun parse_proof_step cx =
         (HOLogic.mk_disj (perhaps (try HOLogic.dest_Trueprop) concl1,
         perhaps (try HOLogic.dest_Trueprop) concl2), bounds1 @ bounds2)) l
     fun to_node (((((id, rule), prems), concl), bounds), cx) = (mk_node id rule
-          (the_default [] prems) concl bounds, cx)
+      (the_default [] prems) concl bounds, cx)
   in
     get_id
-    #>> unprefix_id
     ##> parse_rule
     #> rotate_pair
     ##> parse_source
@@ -217,7 +214,7 @@ fun seperate_into_steps lines =
           if m + n = 0 then
             [actual_lines ^ line] :: seperate l "" 0
           else seperate l (actual_lines ^ line) (m + n)
-      end
+        end
       | seperate [] _ 0 = []
   in
     seperate lines "" 0
@@ -296,7 +293,7 @@ fun correct_veriT_step steps (st as VeriT_Node {id, rule, prems, concl, bounds})
       let
         val concl' = replace_bound_var_by_free_var concl bounds
       in
-        mk_node id veriT_tmp_skolemize prems concl' []
+        mk_node id veriT_tmp_skolemize_rule prems concl' []
       end
   else
     st
@@ -309,7 +306,7 @@ fun remove_alpha_conversion _ [] = []
         map (fn x => perhaps (Symtab.lookup replace_table) x) prems
       fun find_predecessor prem = perhaps (Symtab.lookup replace_table) prem
     in
-      if rule = veriT_alpha_conv then
+      if rule = veriT_alpha_conv_rule then
         remove_alpha_conversion (Symtab.update (id, find_predecessor (hd prems))
           replace_table) steps
       else

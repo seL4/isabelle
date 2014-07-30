@@ -61,9 +61,9 @@ val z3_th_lemma_rule = "th-lemma"
 val zipperposition_cnf_rule = "cnf"
 
 val skolemize_rules =
-  [e_skolemize_rule, spass_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule,
-zipperposition_cnf_rule, leo2_extcnf_combined_rule, veriT_tmp_skolemize_rule,
-satallax_skolemize_rule]
+  [e_skolemize_rule, leo2_extcnf_combined_rule, satallax_skolemize_rule, spass_skolemize_rule,
+    vampire_skolemisation_rule, veriT_tmp_skolemize_rule, z3_skolemize_rule,
+    zipperposition_cnf_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
 val is_arith_rule = (String.isPrefix z3_th_lemma_rule) orf (member (op =) veriT_arith_rules)

@@ -39,9 +39,9 @@ fun find_and_add_missing_dependances steps assms ll_offset =
             NONE =>
             let
               val id' = if th = ll_offset then 0 else id - ll_offset (* 0: for the conjecture*)
-              val ((prems, iidths), (id'', replaced')) = prems_to_theorem_number ths
-                                                          (if th <> ll_offset then id + 1 else id)
-                                                          ((x, string_of_int id') :: replaced)
+              val ((prems, iidths), (id'', replaced')) =
+                prems_to_theorem_number ths (if th <> ll_offset then id + 1 else id)
+                  ((x, string_of_int id') :: replaced)
             in
               ((string_of_int id' :: prems, (th, (id', th - ll_offset)) :: iidths),
                (id'', replaced'))
