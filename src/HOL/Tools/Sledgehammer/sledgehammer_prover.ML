@@ -182,14 +182,15 @@ fun proof_banner mode name =
   | _ => "Try this")
 
 fun bunch_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
+  [Metis_Method (if needs_full_types then SOME full_typesN else NONE, NONE),
+   Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Meson_Method, Blast_Method,
+   Linarith_Method, Presburger_Method] @
   (if needs_full_types then
-     [Metis_Method (SOME full_typesN, NONE),
-      Metis_Method (SOME really_full_type_enc, NONE),
+     [Metis_Method (SOME really_full_type_enc, NONE),
       Metis_Method (SOME full_typesN, SOME desperate_lam_trans),
       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]
    else
-     [Metis_Method (NONE, NONE),
-      Metis_Method (SOME full_typesN, NONE),
+     [Metis_Method (SOME full_typesN, NONE),
       Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]) @
   (if smt_proofs then [SMT2_Method] else [])
@@ -234,18 +235,11 @@ fun play_one_line_proof mode verbose timeout pairs state i preferred (meths as m
       let
         val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
         val ths = pairs |> sort_wrt (fst o fst) |> map snd
+
         fun play [] [] = (get_preferred meths, Play_Failed)
           | play timed_outs [] = (get_preferred timed_outs, Play_Timed_Out timeout)
           | play timed_out (meth :: meths) =
-            let
-              val _ =
-                if verbose then
-                  Output.urgent_message ("Trying \"" ^ string_of_proof_method ctxt [] meth ^
-                    "\" for " ^ string_of_time timeout ^ "...")
-                else
-                  ()
-              val timer = Timer.startRealTimer ()
-            in
+            let val timer = Timer.startRealTimer () in
               (case timed_proof_method timeout ths meth state i of
                 SOME (SOME _) => (meth, Played (Timer.checkRealTimer timer))
               | _ => play timed_out meths)
