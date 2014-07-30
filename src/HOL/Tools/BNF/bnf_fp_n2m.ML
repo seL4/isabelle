@@ -463,7 +463,8 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
         xtor_rel_thms = of_fp_res #xtor_rel_thms (*too general types and terms*),
         xtor_co_rec_thms = xtor_co_rec_thms,
         xtor_co_rec_o_map_thms = fp_rec_o_maps (*theorems about old constants*),
-        rel_xtor_co_induct_thm = rel_xtor_co_induct_thm}
+        rel_xtor_co_induct_thm = rel_xtor_co_induct_thm,
+        dtor_set_induct_thms = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in
     (fp_res, lthy)

@@ -1659,12 +1659,12 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     (*register new codatatypes as BNFs*)
     val (timer, Jbnfs, (dtor_Jmap_o_thms, dtor_Jmap_thms), dtor_Jset_thmss',
-      dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_notes, lthy) =
+      dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_notes, dtor_Jset_induct_thms, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
         map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids),
         replicate n [], map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs,
-        mk_Jrel_DEADID_coinduct_thm (), [], lthy)
+        mk_Jrel_DEADID_coinduct_thm (), [], [], lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val gTs = map2 (curry op -->) passiveBs passiveCs;
@@ -2464,7 +2464,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             bs thmss)
       in
         (timer, Jbnfs, (Jmap_thms, dtor_Jmap_thms), dtor_Jset_thmss',
-          dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_common_notes @ Jbnf_notes, lthy)
+          dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_common_notes @ Jbnf_notes, dtor_Jset_induct_thms,
+          lthy)
       end;
 
     val dtor_unfold_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
@@ -2526,7 +2527,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
        ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
        xtor_map_thms = dtor_Jmap_thms, xtor_set_thmss = dtor_Jset_thmss',
        xtor_rel_thms = dtor_Jrel_thms, xtor_co_rec_thms = dtor_corec_thms,
-       xtor_co_rec_o_map_thms = dtor_corec_o_Jmap_thms, rel_xtor_co_induct_thm = Jrel_coinduct_thm}
+       xtor_co_rec_o_map_thms = dtor_corec_o_Jmap_thms, rel_xtor_co_induct_thm = Jrel_coinduct_thm,
+       dtor_set_induct_thms = dtor_Jset_induct_thms}
       |> morph_fp_result (substitute_noted_thm noted);
   in
     timer; (fp_res, lthy')

@@ -255,12 +255,6 @@ fun mk_case Ts T t =
 fun mk_disc_or_sel Ts t =
   subst_nonatomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
-fun name_of_const what t =
-  (case head_of t of
-    Const (s, _) => s
-  | Free (s, _) => s
-  | _ => error ("Cannot extract name of " ^ what));
-
 val name_of_ctr = name_of_const "constructor";
 
 fun name_of_disc t =

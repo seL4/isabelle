@@ -39,6 +39,8 @@ sig
     (string * sort) list * Proof.context
   val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
 
+  val name_of_const: string -> term -> string
+
   val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
   val subst_nonatomic_types: (typ * typ) list -> term -> term
 
@@ -176,6 +178,12 @@ fun variant_types ss Ss ctxt =
 fun variant_tfrees ss =
   apfst (map TFree) o
     variant_types (map (ensure_prefix "'") ss) (replicate (length ss) @{sort type});
+
+fun name_of_const what t =
+  (case head_of t of
+    Const (s, _) => s
+  | Free (s, _) => s
+  | _ => error ("Cannot extract name of " ^ what));
 
 (*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
 fun typ_subst_nonatomic [] = I
