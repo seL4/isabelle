@@ -47,11 +47,6 @@ fun push_skolem_all_under_iff t =
     t0 $ HOLogic.list_all (qs, t1) $ HOLogic.list_all (qs, t2)
   | _ => t)
 
-(* It is not entirely clear why this should be necessary, especially for abstractions variables. *)
-val unskolemize_names =
-  Term.map_abs_vars (perhaps (try Name.dest_skolem))
-  #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
-
 fun unlift_term ll_defs =
   let
     val lifted = map (ATP_Util.extract_lambda_def dest_Free o ATP_Util.hol_open_form I) ll_defs

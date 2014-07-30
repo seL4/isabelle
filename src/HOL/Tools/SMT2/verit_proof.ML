@@ -29,8 +29,6 @@ struct
 
 open SMTLIB2_Proof
 
-(* proof rules *)
-
 datatype veriT_node = VeriT_Node of {
   id: int,
   rule: string,
