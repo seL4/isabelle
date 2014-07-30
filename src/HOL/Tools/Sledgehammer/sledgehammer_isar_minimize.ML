@@ -40,7 +40,7 @@ fun minimize_isar_step_dependencies ctxt preplay_data
     (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
       Played time =>
       let
-        val gfs0 = filter (influence_proof_method ctxt meth o thms_of_name ctxt) gfs00
+        val gfs0 = filter (thms_influence_proof_method ctxt meth o thms_of_name ctxt) gfs00
 
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)
 

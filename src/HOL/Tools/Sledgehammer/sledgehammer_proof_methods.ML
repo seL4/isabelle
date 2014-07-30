@@ -36,7 +36,7 @@ sig
   val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
-  val influence_proof_method : Proof.context -> proof_method -> thm list -> bool
+  val thms_influence_proof_method : Proof.context -> proof_method -> thm list -> bool
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome * play_outcome -> order
   val one_line_proof_text : Proof.context -> int -> one_line_params -> string
@@ -140,7 +140,7 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
 val simp_based_methods =
   [Simp_Method, Simp_Size_Method, Auto_Method, Fastforce_Method, Force_Method]
 
-fun influence_proof_method ctxt meth ths =
+fun thms_influence_proof_method ctxt meth ths =
   not (member (op =) simp_based_methods meth) orelse
   let val ctxt' = silence_methods ctxt in
     (* unfortunate pointer comparison -- but it's always safe to consider a theorem useful *)
