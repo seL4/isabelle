@@ -78,8 +78,8 @@ sig
   val is_fact_chained : (('a * stature) * 'b) -> bool
   val filter_used_facts : bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
-  val play_one_line_proof : mode -> bool -> Time.time -> ((string * 'a) * thm) list ->
-    Proof.state -> int -> proof_method -> proof_method list -> proof_method * play_outcome
+  val play_one_line_proof : mode -> Time.time -> ((string * 'a) * thm) list -> Proof.state -> int ->
+    proof_method -> proof_method list -> proof_method * play_outcome
   val isar_supported_prover_of : theory -> string -> string
   val choose_minimize_command : theory -> params -> ((string * string list) list -> string -> 'a) ->
     string -> proof_method * play_outcome -> 'a
@@ -104,6 +104,8 @@ open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Fact
 open Sledgehammer_Proof_Methods
+open Sledgehammer_Isar_Proof
+open Sledgehammer_Isar_Preplay
 
 (* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
@@ -206,47 +208,37 @@ fun extract_proof_method ({type_enc, lam_trans, ...} : params)
     in (metisN, override_params) end
   | extract_proof_method _ SMT2_Method = (smtN, [])
 
-(* based on "Mirabelle.can_apply" and generalized *)
-fun timed_apply timeout tac state i =
+fun preplay_methods timeout facts meths state i =
   let
-    val {context = ctxt, facts, goal} = Proof.goal state
-    val full_tac = Method.insert_tac facts i THEN tac ctxt i
+    val {context = ctxt, facts = chained, goal} = Proof.goal state
+    val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
+    val step =
+      Prove ([], [], ("", 0), Logic.list_implies (map prop_of chained @ hyp_ts, concl_t), [],
+        ([], facts), meths, "")
   in
-    TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal
+    preplay_isar_step ctxt timeout [] step
   end
-
-fun timed_proof_method timeout ths meth =
-  timed_apply timeout (fn ctxt => tac_of_proof_method ctxt ([], ths) meth)
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 
 fun filter_used_facts keep_chained used =
   filter ((member (op =) used o fst) orf (if keep_chained then is_fact_chained else K false))
 
-fun play_one_line_proof mode verbose timeout pairs state i preferred (meths as meth :: _) =
+fun play_one_line_proof mode timeout used_facts state i preferred (meths as meth :: _) =
   let
-    val ctxt = Proof.context_of state
-
-    fun get_preferred meths = if member (op =) meths preferred then preferred else meth
+    fun dont_know () =
+      (if member (op =) meths preferred then preferred else meth, Play_Timed_Out Time.zeroTime)
   in
     if timeout = Time.zeroTime then
-      (get_preferred meths, Play_Timed_Out Time.zeroTime)
+      dont_know ()
     else
       let
         val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
-        val ths = pairs |> sort_wrt (fst o fst) |> map snd
-
-        fun play [] [] = (get_preferred meths, Play_Failed)
-          | play timed_outs [] = (get_preferred timed_outs, Play_Timed_Out timeout)
-          | play timed_out (meth :: meths) =
-            let val timer = Timer.startRealTimer () in
-              (case timed_proof_method timeout ths meth state i of
-                SOME (SOME _) => (meth, Played (Timer.checkRealTimer timer))
-              | _ => play timed_out meths)
-            end
-            handle TimeLimit.TimeOut => play (meth :: timed_out) meths
+        val gfs = used_facts |> map (fst o fst) |> sort string_ord
       in
-        play [] meths
+        (case preplay_methods timeout gfs meths state i of
+          res :: _ => res
+        | [] => dont_know ())
       end
   end
 

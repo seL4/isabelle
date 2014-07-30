@@ -196,10 +196,12 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
       (case outcome of
         NONE =>
         (Lazy.lazy (fn () =>
-           play_one_line_proof mode verbose preplay_timeout used_named_facts state subgoal
-             SMT2_Method (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
+           play_one_line_proof mode preplay_timeout used_named_facts state subgoal SMT2_Method
+             (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
          fn preplay =>
             let
+              val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
+
               fun isar_params () =
                 (verbose, (NONE, NONE), preplay_timeout, compress, try0, minimize, atp_proof (),
                  goal)

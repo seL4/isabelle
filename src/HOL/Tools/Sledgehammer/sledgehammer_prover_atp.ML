@@ -368,8 +368,7 @@ fun run_atp mode name
           (used_facts,
            Lazy.lazy (fn () =>
              let val used_pairs = used_from |> filter_used_facts false used_facts in
-               play_one_line_proof mode verbose preplay_timeout used_pairs state subgoal (hd meths)
-                 meths
+               play_one_line_proof mode preplay_timeout used_pairs state subgoal (hd meths) meths
              end),
            fn preplay =>
               let
