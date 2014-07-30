@@ -97,7 +97,7 @@ val default_default_params =
    ("smt_proofs", "smart"),
    ("slice", "true"),
    ("minimize", "smart"),
-   ("preplay_timeout", "2")]
+   ("preplay_timeout", "1")]
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
