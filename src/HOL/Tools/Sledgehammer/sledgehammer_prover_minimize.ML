@@ -20,8 +20,6 @@ sig
   val get_prover : Proof.context -> mode -> string -> prover
 
   val binary_min_facts : int Config.T
-  val auto_minimize_min_facts : int Config.T
-  val auto_minimize_max_time : real Config.T
   val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
     Proof.state -> thm -> (proof_method * play_outcome) Lazy.lazy option ->
     ((string * stature) * thm list) list ->
@@ -180,11 +178,6 @@ fun new_timeout timeout run_time =
    actually needed, we heuristically set the threshold to 10 facts. *)
 val binary_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts} (K 20)
-val auto_minimize_min_facts =
-  Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
-      (fn generic => Config.get_generic generic binary_min_facts)
-val auto_minimize_max_time =
-  Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_time} (K 5.0)
 
 fun linear_minimize test timeout result xs =
   let
@@ -317,42 +310,22 @@ fun maybe_minimize ctxt mode do_learn name (params as {verbose, isar_proofs, min
   else
     let
       val thy = Proof_Context.theory_of ctxt
-      val num_facts = length used_facts
 
-      val ((perhaps_minimize, (minimize_name, params)), preplay) =
+      val (minimize_name, params) =
         if mode = Normal then
-          if num_facts >= Config.get ctxt auto_minimize_min_facts then
-            ((true, (name, params)), preplay)
-          else
-            let
-              fun can_min_fast_enough time =
-                0.001
-                * Real.fromInt ((num_facts + 1) * Time.toMilliseconds time)
-                <= Config.get ctxt auto_minimize_max_time
-              fun prover_fast_enough () = can_min_fast_enough run_time
-            in
-              (case Lazy.force preplay of
-                 (meth as Metis_Method _, Played timeout) =>
-                 if isar_proofs = SOME true then
-                   (* Cheat: Assume the selected ATP is as fast as "metis" for the goal it proved
-                      itself. *)
-                   (can_min_fast_enough timeout, (isar_supported_prover_of thy name, params))
-                 else if can_min_fast_enough timeout then
-                   (true, extract_proof_method params meth
-                          ||> (fn override_params =>
-                                  adjust_proof_method_params override_params params))
-                 else
-                   (prover_fast_enough (), (name, params))
-               | (SMT2_Method, Played timeout) =>
-                 (* Cheat: Assume the original prover is as fast as "smt" for the goal it proved
-                    itself. *)
-                 (can_min_fast_enough timeout, (name, params))
-               | _ => (prover_fast_enough (), (name, params)),
-               preplay)
-            end
+          (case Lazy.force preplay of
+            (meth as Metis_Method _, Played _) =>
+            if isar_proofs = SOME true then
+              (* Cheat: Assume the selected ATP is as fast as "metis" for the goal it proved
+                 itself. *)
+              (isar_supported_prover_of thy name, params)
+            else
+              extract_proof_method params meth
+              ||> (fn override_params => adjust_proof_method_params override_params params)
+          | _ => (name, params))
         else
-          ((false, (name, params)), preplay)
-      val minimize = minimize |> the_default perhaps_minimize
+          (name, params)
+
       val (used_facts, (preplay, message, _)) =
         if minimize then
           minimize_facts do_learn minimize_name params

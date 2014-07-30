@@ -388,7 +388,7 @@ fun run_atp mode name
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,
-                     minimize <> SOME false, atp_proof, goal)
+                     minimize, atp_proof, goal)
                   end
 
                 val one_line_params =

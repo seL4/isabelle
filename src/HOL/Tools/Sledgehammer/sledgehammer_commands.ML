@@ -96,7 +96,7 @@ val default_default_params =
    ("try0", "true"),
    ("smt_proofs", "smart"),
    ("slice", "true"),
-   ("minimize", "smart"),
+   ("minimize", "true"),
    ("preplay_timeout", "1")]
 
 val alias_params =
@@ -299,7 +299,7 @@ fun extract_params mode default_params override_params =
     val try0 = lookup_bool "try0"
     val smt_proofs = lookup_option lookup_bool "smt_proofs"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
-    val minimize = if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
+    val minimize = mode <> Auto_Try andalso lookup_bool "minimize"
     val timeout = lookup_time "timeout"
     val preplay_timeout = if mode = Auto_Try then Time.zeroTime else lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
@@ -391,8 +391,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
                 ([("timeout", [string_of_real default_learn_prover_timeout]),
                   ("slice", ["false"])] @
                  override_params @
-                 [("minimize", ["true"]),
-                  ("preplay_timeout", ["0"])]))
+                 [("preplay_timeout", ["0"])]))
            fact_override (#facts (Proof.goal state))
            (subcommand = learn_proverN orelse subcommand = relearn_proverN))
     else if subcommand = running_learnersN then
@@ -465,7 +464,6 @@ val _ =
             ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
               [("isar_proofs", [isar_proofs_arg]),
                ("blocking", ["true"]),
-               ("minimize", ["true"]),
                ("debug", ["false"]),
                ("verbose", ["false"]),
                ("overlord", ["false"])])

@@ -40,7 +40,7 @@ sig
      try0 : bool,
      smt_proofs : bool option,
      slice : bool,
-     minimize : bool option,
+     minimize : bool,
      timeout : Time.time,
      preplay_timeout : Time.time,
      expect : string}
@@ -147,7 +147,7 @@ type params =
    try0 : bool,
    smt_proofs : bool option,
    slice : bool,
-   minimize : bool option,
+   minimize : bool,
    timeout : Time.time,
    preplay_timeout : Time.time,
    expect : string}

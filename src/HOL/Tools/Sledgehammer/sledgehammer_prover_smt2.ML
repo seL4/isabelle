@@ -201,8 +201,8 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
          fn preplay =>
             let
               fun isar_params () =
-                (verbose, (NONE, NONE), preplay_timeout, compress, try0, minimize <> SOME false,
-                 atp_proof (), goal)
+                (verbose, (NONE, NONE), preplay_timeout, compress, try0, minimize, atp_proof (),
+                 goal)
 
               val one_line_params =
                 (preplay, proof_banner mode name, used_facts,
