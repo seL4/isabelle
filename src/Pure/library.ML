@@ -266,6 +266,7 @@ exception ERROR of string;
 fun error msg = raise ERROR msg;
 
 fun cat_error "" msg = error msg
+  | cat_error msg "" = error msg
   | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
 
 fun assert_all pred list msg =

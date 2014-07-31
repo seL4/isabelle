@@ -82,7 +82,7 @@ object Exn
     }
     else if (exn.getClass == runtime_exception) {
       val msg = exn.getMessage
-      Some(if (msg == null) "Error" else msg)
+      Some(if (msg == null || msg == "") "Error" else msg)
     }
     else if (exn.isInstanceOf[RuntimeException]) Some(exn.toString)
     else None

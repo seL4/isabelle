@@ -25,6 +25,7 @@ object Library
 
   def cat_message(msg1: String, msg2: String): String =
     if (msg1 == "") msg2
+    else if (msg2 == "") msg1
     else msg1 + "\n" + msg2
 
   def cat_error(msg1: String, msg2: String): Nothing =
