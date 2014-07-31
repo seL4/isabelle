@@ -725,7 +725,7 @@ text %mlantiq {*
   \item @{text "@{make_string}"} inlines a function to print arbitrary values
   similar to the ML toplevel. The result is compiler dependent and may fall
   back on "?" in certain situations. The value of configuration option
-  @{attribute_ref ML_print_depth} is used implicitly at compile-time.
+  @{attribute_ref ML_print_depth} determines further details of output.
 
   \item @{text "@{print f}"} uses the ML function @{text "f: string ->
   unit"} to output the result of @{text "@{make_string}"} above,
