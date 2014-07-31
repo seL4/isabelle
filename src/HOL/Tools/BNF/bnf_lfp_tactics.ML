@@ -582,17 +582,17 @@ fun mk_mcong_tac ctxt induct_tac set_setsss map_cong0s ctor_maps =
     (induct_tac THEN' EVERY' (map3 mk_map_cong0 ctor_maps map_cong0s set_setsss)) 1
   end;
 
-fun mk_le_rel_OO_tac ctxt m induct ctor_nchotomys ctor_Irels rel_mono_strongs rel_OOs =
+fun mk_le_rel_OO_tac ctxt m induct ctor_nchotomys ctor_Irels rel_mono_strongs le_rel_OOs =
   EVERY' (rtac induct ::
-  map4 (fn nchotomy => fn Irel => fn rel_mono => fn rel_OO =>
+  map4 (fn nchotomy => fn Irel => fn rel_mono => fn le_rel_OO =>
     EVERY' [rtac impI, etac (nchotomy RS @{thm nchotomy_relcomppE}),
       REPEAT_DETERM_N 2 o dtac (Irel RS iffD1), rtac (Irel RS iffD2),
-      rtac rel_mono, rtac (rel_OO RS @{thm predicate2_eqD} RS iffD2),
+      rtac rel_mono, rtac (le_rel_OO RS @{thm predicate2D}),
       rtac @{thm relcomppI}, atac, atac,
       REPEAT_DETERM_N m o EVERY' [rtac ballI, rtac ballI, rtac impI, atac],
-      REPEAT_DETERM_N (length rel_OOs) o
+      REPEAT_DETERM_N (length le_rel_OOs) o
         EVERY' [rtac ballI, rtac ballI, Goal.assume_rule_tac ctxt]])
-  ctor_nchotomys ctor_Irels rel_mono_strongs rel_OOs) 1;
+  ctor_nchotomys ctor_Irels rel_mono_strongs le_rel_OOs) 1;
 
 (* BNF tactics *)
 

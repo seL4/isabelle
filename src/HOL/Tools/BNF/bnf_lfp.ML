@@ -168,7 +168,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val map_ids = map map_id_of_bnf bnfs;
     val set_mapss = map set_map_of_bnf bnfs;
     val rel_mono_strongs = map rel_mono_strong_of_bnf bnfs;
-    val rel_OOs = map rel_OO_of_bnf bnfs;
+    val le_rel_OOs = map le_rel_OO_of_bnf bnfs;
 
     val timer = time (timer "Extracted terms & thms");
 
@@ -1691,7 +1691,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           in
             Goal.prove_sorry lthy [] [] goal
               (fn {context = ctxt, prems = _} => mk_le_rel_OO_tac ctxt m induct ctor_nchotomy_thms
-                ctor_Irel_thms rel_mono_strongs rel_OOs)
+                ctor_Irel_thms rel_mono_strongs le_rel_OOs)
             |> Thm.close_derivation
             |> singleton (Proof_Context.export names_lthy lthy)
           end;

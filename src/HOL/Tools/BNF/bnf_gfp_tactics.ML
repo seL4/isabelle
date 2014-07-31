@@ -277,21 +277,21 @@ fun mk_bis_converse_tac m bis_rel rel_congs rel_converseps =
         REPEAT_DETERM o etac allE,
         rtac @{thm conversepI}, etac mp, etac @{thm converseD}]) (rel_congs ~~ rel_converseps)] 1;
 
-fun mk_bis_O_tac ctxt m bis_rel rel_congs rel_OOs =
+fun mk_bis_O_tac ctxt m bis_rel rel_congs le_rel_OOs =
   EVERY' [rtac (bis_rel RS iffD2), REPEAT_DETERM o dtac (bis_rel RS iffD1),
     REPEAT_DETERM o etac conjE, rtac conjI,
     CONJ_WRAP' (K (EVERY' [etac @{thm relcomp_subset_Sigma}, atac])) rel_congs,
-    CONJ_WRAP' (fn (rel_cong, rel_OO) =>
+    CONJ_WRAP' (fn (rel_cong, le_rel_OO) =>
       EVERY' [rtac allI, rtac allI, rtac impI,
         rtac (rel_cong RS @{thm eq_refl} RS @{thm predicate2D}),
         REPEAT_DETERM_N m o rtac @{thm eq_OO},
         REPEAT_DETERM_N (length rel_congs) o rtac @{thm relcompp_in_rel},
-        rtac (rel_OO RS sym RS @{thm eq_refl} RS @{thm predicate2D}),
+        rtac (le_rel_OO RS @{thm predicate2D}),
         etac @{thm relcompE},
         REPEAT_DETERM o dtac prod_injectD,
         etac conjE, hyp_subst_tac ctxt,
         REPEAT_DETERM o etac allE, rtac @{thm relcomppI},
-        etac mp, atac, etac mp, atac]) (rel_congs ~~ rel_OOs)] 1;
+        etac mp, atac, etac mp, atac]) (rel_congs ~~ le_rel_OOs)] 1;
 
 fun mk_bis_Gr_tac ctxt bis_rel rel_Grps mor_images morEs coalg_ins =
   unfold_thms_tac ctxt (bis_rel :: @{thm eq_alt} :: @{thm in_rel_Gr} :: rel_Grps) THEN
@@ -898,14 +898,14 @@ fun mk_set_bd_tac sbd_Cinfinite col_bd =
   EVERY' (map rtac [@{thm UNION_Cinfinite_bound}, ordIso_ordLeq_trans, @{thm card_of_nat},
     @{thm natLeq_ordLeq_cinfinite}, sbd_Cinfinite, ballI, col_bd, sbd_Cinfinite]) 1;
 
-fun mk_le_rel_OO_tac coinduct rel_Jrels rel_OOs =
-  EVERY' (rtac coinduct :: map2 (fn rel_Jrel => fn rel_OO =>
+fun mk_le_rel_OO_tac coinduct rel_Jrels le_rel_OOs =
+  EVERY' (rtac coinduct :: map2 (fn rel_Jrel => fn le_rel_OO =>
     let val Jrel_imp_rel = rel_Jrel RS iffD1;
     in
-      EVERY' [rtac (rel_OO RS sym RS @{thm eq_refl} RS @{thm predicate2D}), etac @{thm relcomppE},
+      EVERY' [rtac (le_rel_OO RS @{thm predicate2D}), etac @{thm relcomppE},
       rtac @{thm relcomppI}, etac Jrel_imp_rel, etac Jrel_imp_rel]
     end)
-  rel_Jrels rel_OOs) 1;
+  rel_Jrels le_rel_OOs) 1;
 
 fun mk_wit_tac ctxt n dtor_ctors dtor_set wit coind_wits =
   ALLGOALS (TRY o (eresolve_tac coind_wits THEN' rtac refl)) THEN

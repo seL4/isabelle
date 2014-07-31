@@ -223,7 +223,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val rel_congs = map rel_cong_of_bnf bnfs;
     val rel_converseps = map rel_conversep_of_bnf bnfs;
     val rel_Grps = map rel_Grp_of_bnf bnfs;
-    val rel_OOs = map rel_OO_of_bnf bnfs;
+    val le_rel_OOs = map le_rel_OO_of_bnf bnfs;
     val in_rels = map in_rel_of_bnf bnfs;
 
     val timer = time (timer "Extracted terms & thms");
@@ -589,7 +589,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           HOLogic.mk_Trueprop (mk_bis Bs ss B''s s''s (map2 (curry mk_rel_comp) Rs R's));
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (K (mk_bis_O_tac lthy m bis_rel_thm rel_congs rel_OOs))
+          (K (mk_bis_O_tac lthy m bis_rel_thm rel_congs le_rel_OOs))
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;
@@ -2260,7 +2260,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj goals);
           in
             Goal.prove_sorry lthy [] [] goal
-              (K (mk_le_rel_OO_tac Jrel_coinduct_thm dtor_Jrel_thms rel_OOs))
+              (K (mk_le_rel_OO_tac Jrel_coinduct_thm dtor_Jrel_thms le_rel_OOs))
             |> Thm.close_derivation
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
