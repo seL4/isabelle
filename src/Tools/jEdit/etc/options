@@ -42,6 +42,12 @@ section "Completion"
 public option jedit_completion : bool = true
   -- "enable completion popup"
 
+public option jedit_completion_select_enter : bool = false
+  -- "select completion item via ENTER"
+
+public option jedit_completion_select_tab : bool = true
+  -- "select completion item via TAB"
+
 public option jedit_completion_context : bool = true
   -- "use semantic language context for completion"
 

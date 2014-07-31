@@ -1298,20 +1298,21 @@ text {*
   A \emph{completion popup} is a minimally invasive GUI component over the
   text area that offers a selection of completion items to be inserted into
   the text, e.g.\ by mouse clicks. Items are sorted dynamically, according to
-  the frequency of selection, with persistent history. The popup interprets
-  special keys @{verbatim TAB}, @{verbatim ESCAPE}, @{verbatim UP}, @{verbatim
-  DOWN}, @{verbatim PAGE_UP}, @{verbatim PAGE_DOWN}, but all other key events
-  are passed to the underlying text area. This allows to ignore unwanted
-  completions most of the time and continue typing quickly. Thus the popup
-  serves as a mechanism of confirmation of proposed items, but the default is
-  to continue without completion.
+  the frequency of selection, with persistent history. The popup may interpret
+  special keys @{verbatim ENTER}, @{verbatim TAB}, @{verbatim ESCAPE},
+  @{verbatim UP}, @{verbatim DOWN}, @{verbatim PAGE_UP}, @{verbatim
+  PAGE_DOWN}, but all other key events are passed to the underlying text area.
+  This allows to ignore unwanted completions most of the time and continue
+  typing quickly. Thus the popup serves as a mechanism of confirmation of
+  proposed items, but the default is to continue without completion.
 
   The meaning of special keys is as follows:
 
   \medskip
   \begin{tabular}{ll}
   \textbf{key} & \textbf{action} \\\hline
-  @{verbatim "TAB"} & select completion \\
+  @{verbatim "ENTER"} & select completion (if @{system_option jedit_completion_select_enter}) \\
+  @{verbatim "TAB"} & select completion (if @{system_option jedit_completion_select_tab}) \\
   @{verbatim "ESCAPE"} & dismiss popup \\
   @{verbatim "UP"} & move up one item \\
   @{verbatim "DOWN"} & move down one item \\
@@ -1384,6 +1385,11 @@ text {*
   \item @{system_option_def jedit_completion} guards implicit completion via
   regular jEdit key events (\secref{sec:completion-input}): it allows to
   disable implicit completion altogether.
+
+  \item @{system_option_def jedit_completion_select_enter} and
+  @{system_option_def jedit_completion_select_tab} enable keys to select a
+  completion item from the popup (\secref{sec:completion-popup}). Note that a
+  regular mouse click on the list of items is always possible.
 
   \item @{system_option_def jedit_completion_context} specifies whether the
   language context provided by the prover should be used at all. Disabling

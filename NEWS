@@ -85,6 +85,9 @@ file-name completion, spell-checker completion.
 handling and propagation to enclosing text area -- avoid loosing
 keystrokes with slow / remote graphics displays.
 
+* Completion popup supports both ENTER and TAB (default) to select an
+item, depending on Isabelle options.
+
 * Refined insertion of completion items wrt. jEdit text: multiple
 selections, rectangular selections, rectangular selection as "tall
 caret".
