@@ -93,7 +93,8 @@ fun begin_env visible =
   ML_Lex.tokenize
     ("structure Isabelle =\nstruct\n\
      \val ML_context = Context_Position.set_visible " ^ Bool.toString visible ^
-     " (ML_Context.the_local_context ());\n");
+     " (ML_Context.the_local_context ());\n\
+     \val ML_print_depth = ML_Options.get_print_depth ();\n");
 
 val end_env = ML_Lex.tokenize "end;";
 val reset_env = ML_Lex.tokenize "structure Isabelle = struct end";

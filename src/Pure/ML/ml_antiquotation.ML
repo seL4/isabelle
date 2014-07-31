@@ -19,7 +19,7 @@ struct
 
 (* unique names *)
 
-val init_context = ML_Syntax.reserved |> Name.declare "ML_context";
+val init_context = ML_Syntax.reserved |> fold Name.declare ["ML_context", "ML_print_depth"];
 
 structure Names = Proof_Data
 (
