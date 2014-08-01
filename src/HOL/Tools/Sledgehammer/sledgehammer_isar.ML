@@ -116,15 +116,16 @@ type isar_params =
   * (term, string) atp_step list * thm
 
 val basic_systematic_methods = [Metis_Method (NONE, NONE), Meson_Method, Blast_Method, SATx_Method]
-val simp_based_methods = [Auto_Method, Simp_Method, Force_Method]
+val basic_simp_based_methods = [Auto_Method, Simp_Method, Force_Method]
 val basic_arith_methods = [Linarith_Method, Presburger_Method, Algebra_Method]
 
-val arith_methods = basic_arith_methods @ simp_based_methods @ basic_systematic_methods
+val arith_methods = basic_arith_methods @ basic_simp_based_methods @ basic_systematic_methods
 val datatype_methods = [Simp_Method, Simp_Size_Method]
-val systematic_methods0 = basic_systematic_methods @ basic_arith_methods @ simp_based_methods @
+val systematic_methods =
+  basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
   [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
-val rewrite_methods = simp_based_methods @ basic_systematic_methods @ basic_arith_methods
-val skolem_methods = basic_systematic_methods
+val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
+val skolem_methods = Auto_Choice_Method :: basic_systematic_methods
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
@@ -136,7 +137,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val (verbose, alt_metis_args, preplay_timeout, compress, try0, minimize, atp_proof, goal) =
           isar_params ()
 
-        val systematic_methods = insert (op =) (Metis_Method alt_metis_args) systematic_methods0
+        val systematic_methods' = insert (op =) (Metis_Method alt_metis_args) systematic_methods
 
         fun massage_methods (meths as meth :: _) =
           if not try0 then [meth]
@@ -228,7 +229,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                    (the_list predecessor, []), massage_methods systematic_methods, ""))
+                    (the_list predecessor, []), massage_methods systematic_methods', ""))
                 else
                   I)
             |> rev
@@ -244,7 +245,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 (if skolem then skolem_methods
                  else if is_arith_rule rule then arith_methods
                  else if is_datatype_rule rule then datatype_methods
-                 else systematic_methods)
+                 else systematic_methods')
                 |> massage_methods
 
               fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths, "")
@@ -275,7 +276,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  (the_list predecessor, []), massage_methods systematic_methods, "")
+                  (the_list predecessor, []), massage_methods systematic_methods', "")
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
