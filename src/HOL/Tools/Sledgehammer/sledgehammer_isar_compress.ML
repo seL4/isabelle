@@ -53,10 +53,10 @@ fun update_steps updates steps =
            updates as Prove (qs', xs', l', t', subproofs', facts', meths', comment') :: updates') =
         (if l = l' then
            update_subproofs subproofs' updates'
-           |>> (fn subproofs' => Prove (qs', xs', l', t', subproofs', facts', meths', comment'))
+           |>> (fn subproofs'' => Prove (qs', xs', l', t', subproofs'', facts', meths', comment'))
          else
            update_subproofs subproofs updates
-           |>> (fn subproofs => Prove (qs, xs, l, t, subproofs, facts, meths, comment)))
+           |>> (fn subproofs' => Prove (qs, xs, l, t, subproofs', facts, meths, comment)))
         |>> (fn step => step :: steps)
       | update_step step (steps, updates) = (step :: steps, updates)
     and update_subproofs [] updates = ([], updates)
@@ -64,9 +64,9 @@ fun update_steps updates steps =
       | update_subproofs (proof :: subproofs) updates =
         update_proof proof (update_subproofs subproofs updates)
     and update_proof proof (proofs, []) = (proof :: proofs, [])
-      | update_proof (Proof (fix, assms, steps)) (proofs, updates) =
+      | update_proof (Proof (xs, assms, steps)) (proofs, updates) =
         let val (steps', updates') = update_steps steps updates in
-          (Proof (fix, assms, steps') :: proofs, updates')
+          (Proof (xs, assms, steps') :: proofs, updates')
         end
   in
     fst (update_steps steps (rev updates))
@@ -87,14 +87,14 @@ fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
     (hopeful @ hopeless, hopeless)
   end
 
-fun merge_steps preplay_data (Prove ([], fix1, l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
-      (Prove (qs2, fix2, l2, t, subproofs2, (lfs2, gfs2), meths2, comment2)) =
+fun merge_steps preplay_data (Prove ([], xs1, l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
+      (Prove (qs2, xs2, l2, t, subproofs2, (lfs2, gfs2), meths2, comment2)) =
   let
     val (meths, hopeless) = merge_methods preplay_data (l1, meths1) (l2, meths2)
     val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
     val gfs = union (op =) gfs1 gfs2
   in
-    (Prove (qs2, if member (op =) qs2 Show then [] else union (op =) fix1 fix2, l2, t,
+    (Prove (qs2, inter (op =) (Term.add_frees t []) (xs1 @ xs2), l2, t,
        subproofs1 @ subproofs2, (lfs, gfs), meths, comment1 ^ comment2), hopeless)
   end
 
@@ -153,10 +153,10 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
         | _ => preplay_timeout)
 
       (* elimination of trivial, one-step subproofs *)
-      fun elim_one_subproof time (step as Prove (qs, fix, l, t, _, (lfs, gfs), meths, comment)) subs
+      fun elim_one_subproof time (step as Prove (qs, xs, l, t, _, (lfs, gfs), meths, comment)) subs
           nontriv_subs =
         if null subs orelse not (compress_further ()) then
-          Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), (lfs, gfs), meths, comment)
+          Prove (qs, xs, l, t, List.revAppend (nontriv_subs, subs), (lfs, gfs), meths, comment)
         else
           (case subs of
             (sub as Proof (_, assms, [Prove (_, _, l', _, [], (lfs', gfs'), meths', _)])) :: subs =>
@@ -167,7 +167,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
               val gfs'' = union (op =) gfs' gfs
               val (meths'' as _ :: _, hopeless) =
                 merge_methods (!preplay_data) (l', meths') (l, meths)
-              val step'' = Prove (qs, fix, l, t, subs'', (lfs'', gfs''), meths'', comment)
+              val step'' = Prove (qs, xs, l, t, subs'', (lfs'', gfs''), meths'', comment)
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = adjust_merge_timeout preplay_timeout (Time.+ (time, reference_time l'))
@@ -263,8 +263,8 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
          can be eliminated. In the best case, this once again leads to a proof whose proof steps do
          not have subproofs. Applying this approach recursively will result in a flat proof in the
          best cast. *)
-      fun compress_proof (proof as (Proof (fix, assms, steps))) =
-        if compress_further () then Proof (fix, assms, compress_steps steps) else proof
+      fun compress_proof (proof as (Proof (xs, assms, steps))) =
+        if compress_further () then Proof (xs, assms, compress_steps steps) else proof
       and compress_steps steps =
         (* bottom-up: compress innermost proofs first *)
         steps |> map (fn step => step |> compress_further () ? compress_sub_levels)
