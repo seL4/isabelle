@@ -7,14 +7,14 @@ Z3 proofs: parsing and abstract syntax tree.
 signature Z3_NEW_PROOF =
 sig
   (*proof rules*)
-  datatype z3_rule = True_Axiom | Asserted | Goal | Modus_Ponens | Reflexivity |
-    Symmetry | Transitivity | Transitivity_Star | Monotonicity | Quant_Intro |
-    Distributivity | And_Elim | Not_Or_Elim | Rewrite | Rewrite_Star |
-    Pull_Quant | Pull_Quant_Star | Push_Quant | Elim_Unused_Vars |
-    Dest_Eq_Res | Quant_Inst | Hypothesis | Lemma | Unit_Resolution |
-    Iff_True | Iff_False | Commutativity | Def_Axiom | Intro_Def | Apply_Def |
-    Iff_Oeq | Nnf_Pos | Nnf_Neg | Nnf_Star | Cnf_Star | Skolemize |
-    Modus_Ponens_Oeq | Th_Lemma of string
+  datatype z3_rule =
+    True_Axiom | Asserted | Goal | Modus_Ponens | Reflexivity | Symmetry | Transitivity |
+    Transitivity_Star | Monotonicity | Quant_Intro | Distributivity | And_Elim | Not_Or_Elim |
+    Rewrite | Rewrite_Star | Pull_Quant | Pull_Quant_Star | Push_Quant | Elim_Unused_Vars |
+    Dest_Eq_Res | Quant_Inst | Hypothesis | Lemma | Unit_Resolution | Iff_True | Iff_False |
+    Commutativity | Def_Axiom | Intro_Def | Apply_Def | Iff_Oeq | Nnf_Pos | Nnf_Neg | Nnf_Star |
+    Cnf_Star | Skolemize | Modus_Ponens_Oeq | Th_Lemma of string
+
   val is_assumption: z3_rule -> bool
   val string_of_rule: z3_rule -> string
 
@@ -40,16 +40,14 @@ open SMTLIB2_Proof
 
 (* proof rules *)
 
-datatype z3_rule = True_Axiom | Asserted | Goal | Modus_Ponens | Reflexivity |
-  Symmetry | Transitivity | Transitivity_Star | Monotonicity | Quant_Intro |
-  Distributivity | And_Elim | Not_Or_Elim | Rewrite | Rewrite_Star |
-  Pull_Quant | Pull_Quant_Star | Push_Quant | Elim_Unused_Vars | Dest_Eq_Res |
-  Quant_Inst | Hypothesis | Lemma | Unit_Resolution | Iff_True | Iff_False |
-  Commutativity | Def_Axiom | Intro_Def | Apply_Def | Iff_Oeq | Nnf_Pos |
-  Nnf_Neg | Nnf_Star | Cnf_Star | Skolemize | Modus_Ponens_Oeq |
-  Th_Lemma of string
-  (* TODO: some proof rules come with further information
-     that is currently dropped by the parser *)
+datatype z3_rule =
+  True_Axiom | Asserted | Goal | Modus_Ponens | Reflexivity | Symmetry | Transitivity |
+  Transitivity_Star | Monotonicity | Quant_Intro | Distributivity | And_Elim | Not_Or_Elim |
+  Rewrite | Rewrite_Star | Pull_Quant | Pull_Quant_Star | Push_Quant | Elim_Unused_Vars |
+  Dest_Eq_Res | Quant_Inst | Hypothesis | Lemma | Unit_Resolution | Iff_True | Iff_False |
+  Commutativity | Def_Axiom | Intro_Def | Apply_Def | Iff_Oeq | Nnf_Pos | Nnf_Neg | Nnf_Star |
+  Cnf_Star | Skolemize | Modus_Ponens_Oeq | Th_Lemma of string
+  (* some proof rules include further information that is currently dropped by the parser *)
 
 val rule_names = Symtab.make [
   ("true-axiom", True_Axiom),
@@ -118,7 +116,7 @@ datatype z3_node = Z3_Node of {
   bounds: string list}
 
 fun mk_node id rule prems concl bounds =
-  Z3_Node {id=id, rule=rule, prems=prems, concl=concl, bounds=bounds}
+  Z3_Node {id = id, rule = rule, prems = prems, concl = concl, bounds = bounds}
 
 datatype z3_step = Z3_Step of {
   id: int,
@@ -129,8 +127,8 @@ datatype z3_step = Z3_Step of {
   is_fix_step: bool}
 
 fun mk_step id rule prems concl fixes is_fix_step =
-  Z3_Step {id=id, rule=rule, prems=prems, concl=concl, fixes=fixes,
-    is_fix_step=is_fix_step}
+  Z3_Step {id = id, rule = rule, prems = prems, concl = concl, fixes = fixes,
+    is_fix_step = is_fix_step}
 
 
 (* proof parser *)
@@ -188,10 +186,8 @@ fun parse_proof typs funs lines ctxt =
     val ts = dest_seq (SMTLIB2.parse lines)
     val (node, cx) = parse' ts (empty_context ctxt typs funs)
   in (node, ctxt_of cx) end
-  handle SMTLIB2.PARSE (l, msg) =>
-           error ("parsing error at line " ^ string_of_int l ^ ": " ^ msg)
-       | SMTLIB2_PARSE (msg, t) =>
-           error (msg ^ ": " ^ SMTLIB2.str_of t)
+  handle SMTLIB2.PARSE (l, msg) => error ("parsing error at line " ^ string_of_int l ^ ": " ^ msg)
+       | SMTLIB2_PARSE (msg, t) => error (msg ^ ": " ^ SMTLIB2.str_of t)
 
 
 (* handling of bound variables *)
@@ -253,7 +249,7 @@ fun dest_all i (Const (@{const_name Pure.all}, _) $ (a as Abs (_, T, _))) =
 
 fun dest_alls t = dest_all (Term.maxidx_of_term t + 1) t
 
-fun match_rule ctxt env (Z3_Node {bounds=bs', concl=t', ...}) bs t =
+fun match_rule ctxt env (Z3_Node {bounds = bs', concl = t', ...}) bs t =
   let
     val t'' = singleton (Variable.polymorphic ctxt) t'
     val (i, obj) = dest_alls (subst_types ctxt env bs t)
