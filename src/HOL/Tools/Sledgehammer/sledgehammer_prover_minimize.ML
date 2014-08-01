@@ -48,59 +48,17 @@ open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT2
 
-fun run_proof_method mode name (params as {timeout, type_enc, lam_trans, ...})
-    minimize_command
-    ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...} : prover_problem) =
-  let
-    val meth =
-      if name = metisN then Metis_Method (type_enc, lam_trans)
-      else if name = smtN then SMT2_Method
-      else raise Fail ("unknown proof_method: " ^ quote name)
-    val used_facts = facts |> map fst
-  in
-    (case play_one_line_proof (if mode = Minimize then Normal else mode) timeout facts state subgoal
-        meth [meth] of
-      play as (_, Played time) =>
-      {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
-       preplay = Lazy.value play,
-       message = fn play =>
-          let
-            val ctxt = Proof.context_of state
-            val (_, override_params) = extract_proof_method params meth
-            val one_line_params =
-              (play, proof_banner mode name, used_facts, minimize_command override_params name,
-               subgoal, subgoal_count)
-            val num_chained = length (#facts (Proof.goal state))
-          in
-            one_line_proof_text ctxt num_chained one_line_params
-          end,
-       message_tail = ""}
-    | play =>
-      let
-        val failure = (case play of (_, Play_Failed) => GaveUp | _ => TimedOut)
-      in
-        {outcome = SOME failure, used_facts = [], used_from = [],
-         run_time = Time.zeroTime, preplay = Lazy.value play,
-         message = fn _ => string_of_atp_failure failure, message_tail = ""}
-      end)
-  end
-
 fun is_prover_supported ctxt =
   let val thy = Proof_Context.theory_of ctxt in
-    is_proof_method orf is_atp thy orf is_smt2_prover ctxt
+    is_atp thy orf is_smt2_prover ctxt
   end
 
 fun is_prover_installed ctxt =
-  is_proof_method orf is_smt2_prover ctxt orf
-  is_atp_installed (Proof_Context.theory_of ctxt)
-
-val proof_method_default_max_facts = 20
+  is_smt2_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
 
 fun default_max_facts_of_prover ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_proof_method name then
-      proof_method_default_max_facts
-    else if is_atp thy name then
+    if is_atp thy name then
       fold (Integer.max o fst o #1 o fst o snd) (#best_slices (get_atp thy name ()) ctxt) 0
     else if is_smt2_prover ctxt name then
       SMT2_Solver.default_max_relevant ctxt name
@@ -110,8 +68,7 @@ fun default_max_facts_of_prover ctxt name =
 
 fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_proof_method name then run_proof_method mode name
-    else if is_atp thy name then run_atp mode name
+    if is_atp thy name then run_atp mode name
     else if is_smt2_prover ctxt name then run_smt2_solver mode name
     else error ("No such prover: " ^ name ^ ".")
   end
@@ -278,30 +235,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
       (NONE, (Lazy.value (Metis_Method (NONE, NONE), Play_Failed), fn _ => "Error: " ^ msg, ""))
   end
 
-fun adjust_proof_method_params override_params
-    ({debug, verbose, overlord, spy, blocking, provers, type_enc, strict, lam_trans,
-      uncurried_aliases, learn, fact_filter, max_facts, fact_thresholds, max_mono_iters,
-      max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, slice, minimize, timeout,
-      preplay_timeout, expect} : params) =
-  let
-    fun lookup_override name default_value =
-      (case AList.lookup (op =) override_params name of
-        SOME [s] => SOME s
-      | _ => default_value)
-    (* Only those options that proof_methods are interested in are considered here. *)
-    val type_enc = lookup_override "type_enc" type_enc
-    val lam_trans = lookup_override "lam_trans" lam_trans
-  in
-    {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = blocking,
-     provers = provers, type_enc = type_enc, strict = strict, lam_trans = lam_trans,
-     uncurried_aliases = uncurried_aliases, learn = learn, fact_filter = fact_filter,
-     max_facts = max_facts, fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
-     max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     compress = compress, try0 = try0, smt_proofs = smt_proofs, slice = slice, minimize = minimize,
-     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
-  end
-
-fun maybe_minimize ctxt mode do_learn name (params as {verbose, isar_proofs, minimize, ...})
+fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
     ({state, goal, subgoal, subgoal_count, ...} : prover_problem)
     (result as {outcome, used_facts, used_from, run_time, preplay, message, message_tail} :
      prover_result) =
@@ -309,26 +243,9 @@ fun maybe_minimize ctxt mode do_learn name (params as {verbose, isar_proofs, min
     result
   else
     let
-      val thy = Proof_Context.theory_of ctxt
-
-      val (minimize_name, params) =
-        if mode = Normal then
-          (case Lazy.force preplay of
-            (meth as Metis_Method _, Played _) =>
-            if isar_proofs = SOME true then
-              (* Cheat: Assume the selected ATP is as fast as "metis" for the goal it proved
-                 itself. *)
-              (isar_supported_prover_of thy name, params)
-            else
-              extract_proof_method params meth
-              ||> (fn override_params => adjust_proof_method_params override_params params)
-          | _ => (name, params))
-        else
-          (name, params)
-
       val (used_facts, (preplay, message, _)) =
         if minimize then
-          minimize_facts do_learn minimize_name params
+          minimize_facts do_learn name params
             (not verbose orelse (mode <> Normal andalso mode <> MaSh)) subgoal subgoal_count state
             goal (SOME preplay) (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
@@ -344,7 +261,7 @@ fun maybe_minimize ctxt mode do_learn name (params as {verbose, isar_proofs, min
 
 fun get_minimizing_prover ctxt mode do_learn name params minimize_command problem =
   get_prover ctxt mode name params minimize_command problem
-  |> maybe_minimize ctxt mode do_learn name params problem
+  |> maybe_minimize mode do_learn name params problem
 
 fun run_minimize (params as {provers, ...}) do_learn i refs state =
   let

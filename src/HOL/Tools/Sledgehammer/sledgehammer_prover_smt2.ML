@@ -207,8 +207,7 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
                  goal)
 
               val one_line_params =
-                (preplay, proof_banner mode name, used_facts,
-                 choose_minimize_command thy params minimize_command name preplay, subgoal,
+                (preplay, proof_banner mode name, used_facts, minimize_command [] name, subgoal,
                  subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in

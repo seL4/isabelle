@@ -68,11 +68,8 @@ sig
 
   val SledgehammerN : string
   val str_of_mode : mode -> string
-  val smtN : string
   val overlord_file_location_of_prover : string -> string * string
   val proof_banner : mode -> string -> string
-  val extract_proof_method : params -> proof_method -> string * (string * string list) list
-  val is_proof_method : string -> bool
   val is_atp : theory -> string -> bool
   val bunch_of_proof_methods : bool -> bool -> string -> proof_method list
   val is_fact_chained : (('a * stature) * 'b) -> bool
@@ -80,9 +77,6 @@ sig
     ((''a * stature) * 'b) list
   val play_one_line_proof : mode -> Time.time -> ((string * 'a) * thm) list -> Proof.state -> int ->
     proof_method -> proof_method list -> proof_method * play_outcome
-  val isar_supported_prover_of : theory -> string -> string
-  val choose_minimize_command : theory -> params -> ((string * string list) list -> string -> 'a) ->
-    string -> proof_method * play_outcome -> 'a
   val repair_monomorph_context : int option -> int -> int option -> int -> Proof.context ->
     Proof.context
 
@@ -119,11 +113,6 @@ fun str_of_mode Auto_Try = "Auto Try"
   | str_of_mode MaSh = "MaSh"
   | str_of_mode Auto_Minimize = "Auto_Minimize"
   | str_of_mode Minimize = "Minimize"
-
-val smtN = "smt"
-
-val proof_method_names = [metisN, smtN]
-val is_proof_method = member (op =) proof_method_names
 
 val is_atp = member (op =) o supported_atps
 
@@ -197,17 +186,6 @@ fun bunch_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]) @
   (if smt_proofs then [SMT2_Method] else [])
 
-fun extract_proof_method ({type_enc, lam_trans, ...} : params)
-      (Metis_Method (type_enc', lam_trans')) =
-    let
-      val override_params =
-        (if is_none type_enc' andalso is_none type_enc then []
-         else [("type_enc", [hd (unalias_type_enc (type_enc' |> the_default partial_typesN))])]) @
-        (if is_none lam_trans' andalso is_none lam_trans then []
-         else [("lam_trans", [lam_trans' |> the_default default_metis_lam_trans])])
-    in (metisN, override_params) end
-  | extract_proof_method _ SMT2_Method = (smtN, [])
-
 fun preplay_methods timeout facts meths state i =
   let
     val {context = ctxt, facts = chained, goal} = Proof.goal state
@@ -242,26 +220,6 @@ fun play_one_line_proof mode timeout used_facts state i preferred (meths as meth
       end
   end
 
-val canonical_isar_supported_prover = eN
-val z3N = "z3"
-
-fun isar_supported_prover_of thy name =
-  if is_atp thy name orelse name = z3N then name
-  else if is_atp_installed thy canonical_isar_supported_prover then canonical_isar_supported_prover
-  else name
-
-(* FIXME: See the analogous logic in the function "maybe_minimize" in
-   "sledgehammer_prover_minimize.ML". *)
-fun choose_minimize_command thy (params as {isar_proofs, ...}) minimize_command name preplay =
-  let
-    val maybe_isar_name = name |> isar_proofs = SOME true ? isar_supported_prover_of thy
-    val (min_name, override_params) =
-      (case preplay of
-        (meth as Metis_Method _, Played _) =>
-        if isar_proofs = SOME true then (maybe_isar_name, []) else extract_proof_method params meth
-      | _ => (maybe_isar_name, []))
-  in minimize_command override_params min_name end
-
 val max_fact_instances = 10 (* FUDGE *)
 
 fun repair_monomorph_context max_iters best_max_iters max_new_instances best_max_new_instances =
@@ -274,7 +232,6 @@ fun supported_provers ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val (remote_provers, local_provers) =
-      proof_method_names @
       sort_strings (supported_atps thy) @
       sort_strings (SMT2_Config.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)

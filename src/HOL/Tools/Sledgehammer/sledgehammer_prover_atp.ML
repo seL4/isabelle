@@ -132,9 +132,9 @@ val atp_timeout_slack = seconds 1.0
 val atp_important_message_keep_quotient = 25
 
 fun run_atp mode name
-    (params as {debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases,
-       fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0,
-       smt_proofs, slice, minimize, timeout, preplay_timeout, ...})
+    ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, fact_filter,
+     max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs,
+     slice, minimize, timeout, preplay_timeout, ...} : params)
     minimize_command
     ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
@@ -391,8 +391,7 @@ fun run_atp mode name
                   end
 
                 val one_line_params =
-                  (preplay, proof_banner mode name, used_facts,
-                   choose_minimize_command thy params minimize_command name preplay, subgoal,
+                  (preplay, proof_banner mode name, used_facts, minimize_command [] name, subgoal,
                    subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in

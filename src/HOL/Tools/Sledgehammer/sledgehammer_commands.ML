@@ -318,8 +318,6 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
-val default_minimize_prover = metisN
-
 fun is_raw_param_relevant_for_minimize (name, _) = not (member (op =) params_not_for_minimize name)
 
 fun string_of_raw_param (key, values) =
@@ -338,7 +336,7 @@ fun minimize_command override_params i more_override_params prover_name fact_nam
       more_override_params
       |> filter is_raw_param_relevant_for_minimize
       |> map nice_string_of_raw_param
-      |> (if prover_name = default_minimize_prover then I else cons prover_name)
+      |> cons prover_name
       |> space_implode ", "
   in
     sledgehammerN ^ " " ^ minN ^ (if params = "" then "" else enclose " [" "]" params) ^
@@ -365,8 +363,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       let
         val ctxt = ctxt |> Config.put instantiate_inducts false
         val i = the_default 1 opt_i
-        val params =
-          get_params Minimize thy (("provers", [default_minimize_prover]) :: override_params)
+        val params = get_params Minimize thy override_params
         val goal = prop_of (#goal (Proof.goal state))
         val facts = nearly_all_facts ctxt false fact_override Symtab.empty Termtab.empty [] [] goal
         val learn = mash_learn_proof ctxt params goal facts

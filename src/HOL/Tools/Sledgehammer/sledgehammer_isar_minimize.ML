@@ -12,6 +12,7 @@ sig
   type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
   val keep_fastest_method_of_isar_step : isar_preplay_data -> isar_step -> isar_step
+  val minimized_isar_step : Proof.context -> Time.time -> isar_step -> Time.time * isar_step
   val minimize_isar_step_dependencies : Proof.context -> isar_preplay_data Unsynchronized.ref ->
     isar_step -> isar_step
   val postprocess_isar_proof_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof ->
