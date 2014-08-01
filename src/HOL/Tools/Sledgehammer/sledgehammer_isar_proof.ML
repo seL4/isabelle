@@ -46,6 +46,7 @@ sig
   val kill_useless_labels_in_isar_proof : isar_proof -> isar_proof
   val relabel_isar_proof_canonically : isar_proof -> isar_proof
   val relabel_isar_proof_nicely : isar_proof -> isar_proof
+  val rename_bound_vars_in_isar_proof : isar_proof -> isar_proof
 
   val string_of_isar_proof : Proof.context -> int -> int -> isar_proof -> string
 end;
@@ -204,6 +205,34 @@ val relabel_isar_proof_nicely =
       |> (fn ((assms, steps), _) => Proof (fix, assms, steps))
   in
     relabel_proof [] 0
+  end
+
+val Type (listT_name, _) = HOLogic.listT dummyT
+
+fun var_name_of_typ (Type (@{type_name fun}, [_, T])) =
+    if body_type T = HOLogic.boolT then "p" else "f"
+  | var_name_of_typ (Type (@{type_name set}, [T])) =
+    Name.desymbolize (SOME true) (var_name_of_typ T)
+  | var_name_of_typ (Type (s, _)) =
+    if s = listT_name then "xs"
+    else String.extract (Name.desymbolize (SOME false) (Long_Name.base_name s), 0, SOME 1)
+  | var_name_of_typ (TFree (s, _)) =
+    String.extract (Name.desymbolize (SOME false) (perhaps (try (unprefix "'")) s), 0, SOME 1)
+  | var_name_of_typ (TVar ((s, _), T)) = var_name_of_typ (TFree (s, T))
+
+fun rename_bound_vars (t $ u) = rename_bound_vars t $ rename_bound_vars u
+  | rename_bound_vars (Abs (_, T, t)) = Abs (var_name_of_typ T, T, rename_bound_vars t)
+  | rename_bound_vars t = t
+
+val rename_bound_vars_in_isar_proof =
+  let
+    fun rename_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) =
+        Prove (qs, xs, l, rename_bound_vars t, map rename_proof subs, facts, meths, comment)
+      | rename_step step = step
+    and rename_proof (Proof (fix, assms, steps)) =
+      Proof (fix, map (apsnd rename_bound_vars) assms, map rename_step steps)
+  in
+    rename_proof
   end
 
 val indent_size = 2
