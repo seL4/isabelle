@@ -9,10 +9,10 @@ signature SLEDGEHAMMER_TACTICS =
 sig
   type fact_override = Sledgehammer_Fact.fact_override
 
-  val sledgehammer_with_metis_tac :
-    Proof.context -> (string * string) list -> fact_override -> int -> tactic
-  val sledgehammer_as_oracle_tac :
-    Proof.context -> (string * string) list -> fact_override -> int -> tactic
+  val sledgehammer_with_metis_tac : Proof.context -> (string * string) list -> fact_override ->
+    int -> tactic
+  val sledgehammer_as_oracle_tac : Proof.context -> (string * string) list -> fact_override ->
+    int -> tactic
 end;
 
 structure Sledgehammer_Tactics : SLEDGEHAMMER_TACTICS =
@@ -48,7 +48,7 @@ fun run_prover override_params fact_override i n ctxt goal =
       {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
        factss = [("", facts)]}
   in
-    (case prover params (K (K (K ""))) problem of
+    (case prover params problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
     | _ => NONE)
     handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
