@@ -50,8 +50,10 @@ CODE_EXPR=$(echo "$1" | perl -pe 's/\\/\\\\/g; s/"/\\\"/g')
 
 ## invoke code generation
 
-FORMAL_CMD="Toplevel.program (fn () => (use_thy thyname; ML_Context.eval_text_in \
-  (SOME (Proof_Context.init_global (Thy_Info.get_theory thyname))) false Position.none ml_cmd)) \
+FORMAL_CMD="Runtime.toplevel_program (fn () => (use_thy thyname; ML_Context.eval_source_in \
+    (SOME (Proof_Context.init_global (Thy_Info.get_theory thyname))) \
+    ML_Compiler.flags \
+    {delimited=true, text=ml_cmd, pos=Position.none})) \
   handle _ => exit 1;"
 
 ACTUAL_CMD="val thyname = \"$THYNAME\"; \
