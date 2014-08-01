@@ -81,7 +81,7 @@ fun with_bindings bs f cx =
 fun next_id ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
   (id, mk_context ctxt (id + 1) syms typs funs extra)
 
-fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
+fun with_fresh_names f ({ctxt, id, syms, typs, funs, ...}: ('a, 'b) context) =
   let
     fun bind (_, v as (_, T)) t = Logic.all_const T $ Term.absfree v t
 

@@ -72,7 +72,7 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
       let
         val sid = string_of_int id
 
-        val concl' = postprocess_step_conclusion concl thy rewrite_rules ll_defs
+        val concl' = postprocess_step_conclusion thy rewrite_rules ll_defs concl
         fun standard_step role =
           ((sid, []), role, concl', Z3_New_Proof.string_of_rule rule,
            map (fn id => (string_of_int id, [])) prems)

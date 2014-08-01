@@ -29,7 +29,7 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
     val thy = Proof_Context.theory_of ctxt
     fun steps_of (VeriT_Proof.VeriT_Step {id, rule, prems, concl, ...}) =
       let
-        val concl' = postprocess_step_conclusion concl thy rewrite_rules ll_defs
+        val concl' = postprocess_step_conclusion thy rewrite_rules ll_defs concl
         fun standard_step role = ((id, []), role, concl', rule, map (fn id => (id, [])) prems)
       in
         if rule = veriT_input_rule then

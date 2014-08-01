@@ -9,7 +9,7 @@ signature SMTLIB2_ISAR =
 sig
   val simplify_bool: term -> term
   val unlift_term: term list -> term -> term
-  val postprocess_step_conclusion: term -> theory -> thm list -> term list -> term
+  val postprocess_step_conclusion: theory -> thm list -> term list -> term -> term
   val normalizing_prems : Proof.context -> term -> (string * string list) list
   val distinguish_conjecture_and_hypothesis : ''a list -> ''b -> ''b -> ''b list ->
     (''a * 'c) list -> 'c list -> 'c -> 'c -> (ATP_Problem.atp_formula_role * 'c) option
@@ -57,14 +57,13 @@ val unskolemize_names =
   Term.map_abs_vars (perhaps (try Name.dest_skolem))
   #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
 
-fun postprocess_step_conclusion concl thy rewrite_rules ll_defs =
-  concl
-  |> Raw_Simplifier.rewrite_term thy rewrite_rules []
-  |> Object_Logic.atomize_term thy
-  |> simplify_bool
-  |> not (null ll_defs) ? unlift_term ll_defs
-  |> unskolemize_names
-  |> HOLogic.mk_Trueprop
+fun postprocess_step_conclusion thy rewrite_rules ll_defs =
+  Raw_Simplifier.rewrite_term thy rewrite_rules []
+  #> Object_Logic.atomize_term thy
+  #> simplify_bool
+  #> not (null ll_defs) ? unlift_term ll_defs
+  #> unskolemize_names
+  #> HOLogic.mk_Trueprop
 
 fun normalizing_prems ctxt concl0 =
   SMT2_Normalize.case_bool_entry :: SMT2_Normalize.special_quant_table @
