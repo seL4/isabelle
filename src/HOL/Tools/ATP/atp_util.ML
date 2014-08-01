@@ -77,31 +77,29 @@ fun stringN_of_int 0 _ = ""
   | stringN_of_int k n =
     stringN_of_int (k - 1) (n div 10) ^ string_of_int (n mod 10)
 
+fun is_spaceish c = Char.isSpace c orelse c = #"\127" (* DEL -- no idea where these come from *)
+
 fun strip_spaces skip_comments is_evil =
   let
     fun strip_c_style_comment [] accum = accum
-      | strip_c_style_comment (#"*" :: #"/" :: cs) accum =
-        strip_spaces_in_list true cs accum
+      | strip_c_style_comment (#"*" :: #"/" :: cs) accum = strip_spaces_in_list true cs accum
       | strip_c_style_comment (_ :: cs) accum = strip_c_style_comment cs accum
     and strip_spaces_in_list _ [] accum = accum
       | strip_spaces_in_list true (#"%" :: cs) accum =
-        strip_spaces_in_list true (cs |> take_prefix (not_equal #"\n") |> snd)
-                             accum
-      | strip_spaces_in_list true (#"/" :: #"*" :: cs) accum =
-        strip_c_style_comment cs accum
-      | strip_spaces_in_list _ [c1] accum =
-        accum |> not (Char.isSpace c1) ? cons c1
+        strip_spaces_in_list true (cs |> take_prefix (not_equal #"\n") |> snd) accum
+      | strip_spaces_in_list true (#"/" :: #"*" :: cs) accum = strip_c_style_comment cs accum
+      | strip_spaces_in_list _ [c1] accum = accum |> not (is_spaceish c1) ? cons c1
       | strip_spaces_in_list skip_comments (cs as [_, _]) accum =
         accum |> fold (strip_spaces_in_list skip_comments o single) cs
       | strip_spaces_in_list skip_comments (c1 :: c2 :: c3 :: cs) accum =
-        if Char.isSpace c1 then
+        if is_spaceish c1 then
           strip_spaces_in_list skip_comments (c2 :: c3 :: cs) accum
-        else if Char.isSpace c2 then
-          if Char.isSpace c3 then
+        else if is_spaceish c2 then
+          if is_spaceish c3 then
             strip_spaces_in_list skip_comments (c1 :: c3 :: cs) accum
           else
             strip_spaces_in_list skip_comments (c3 :: cs)
-                (c1 :: accum |> forall is_evil [c1, c3] ? cons #" ")
+              (c1 :: accum |> forall is_evil [c1, c3] ? cons #" ")
         else
           strip_spaces_in_list skip_comments (c2 :: c3 :: cs) (cons c1 accum)
   in
