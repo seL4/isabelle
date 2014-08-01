@@ -53,7 +53,6 @@ val spass_pirate_datatype_rule = "DT"
 val vampire_skolemisation_rule = "skolemisation"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
-val veriT_skolemize_rules = [veriT_tmp_ite_elim_rule, veriT_tmp_skolemize_rule]
 val veriT_simp_arith_rule = "simp_arith"
 val veriT_la_generic_rule = "la_generic"
 val veriT_arith_rules = [veriT_simp_arith_rule, veriT_la_generic_rule]
@@ -62,9 +61,12 @@ val z3_skolemize_rule = "sk"
 val z3_th_lemma_rule = "th-lemma"
 val zipperposition_cnf_rule = "cnf"
 
+(* Unfortunately, LEO-II's "extcnf_combined" rule captures clausification in general and not only
+   skolemization. *)
 val skolemize_rules =
   [e_skolemize_rule, leo2_extcnf_combined_rule, satallax_skolemize_rule, spass_skolemize_rule,
-    vampire_skolemisation_rule, z3_skolemize_rule, zipperposition_cnf_rule] @ veriT_skolemize_rules
+   vampire_skolemisation_rule, veriT_tmp_ite_elim_rule, veriT_tmp_skolemize_rule, z3_skolemize_rule,
+   zipperposition_cnf_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
 val is_arith_rule = String.isPrefix z3_th_lemma_rule orf member (op =) veriT_arith_rules
@@ -125,7 +127,7 @@ val systematic_methods =
   basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
   [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
-val skolem_methods = Auto_Choice_Method :: basic_systematic_methods
+val skolem_methods = basic_systematic_methods @ [Auto_Choice_Method]
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
@@ -255,16 +257,23 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 (case gamma of
                   [g] =>
                   if skolem andalso is_clause_tainted g then
-                    let val subproof = Proof (skolems_of ctxt (prop_of_clause g), [], rev accum) in
-                      isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
-                    end
+                    (case skolems_of ctxt (prop_of_clause g) of
+                      [] => steps_of_rest (prove [] deps)
+                    | skos =>
+                      let val subproof = Proof (skos, [], rev accum) in
+                        isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
+                      end)
                   else
                     steps_of_rest (prove [] deps)
                 | _ => steps_of_rest (prove [] deps))
               else
                 steps_of_rest
-                  (if skolem then Prove ([], skolems_of ctxt t, l, t, [], deps, meths, "")
-                   else prove [] deps)
+                  (if skolem then
+                     (case skolems_of ctxt t of
+                       [] => prove [] deps
+                     | skos => Prove ([], skos, l, t, [], deps, meths, ""))
+                   else
+                     prove [] deps)
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
             let
