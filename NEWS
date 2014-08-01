@@ -4,6 +4,13 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* Sledgehammer:
+  - Minimization is now always enabled by default.
+    Removed subcommand:
+      min
+
 
 
 New in Isabelle2014 (August 2014)
