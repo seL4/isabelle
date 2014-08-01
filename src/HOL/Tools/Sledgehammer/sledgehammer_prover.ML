@@ -163,8 +163,7 @@ fun proof_banner mode name =
 
 fun bunches_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
   [[Simp_Method, Auto_Method, Blast_Method, Linarith_Method],
-   [Fastforce_Method, Meson_Method,
-    Metis_Method (if needs_full_types then SOME full_typesN else NONE, NONE),
+   [Meson_Method, Metis_Method (if needs_full_types then SOME full_typesN else NONE, NONE),
     Force_Method, Presburger_Method],
     (if needs_full_types then
        [Metis_Method (NONE, NONE),
