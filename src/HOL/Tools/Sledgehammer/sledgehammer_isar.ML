@@ -127,7 +127,7 @@ val rewrite_methods = simp_based_methods @ basic_systematic_methods @ basic_arit
 val skolem_methods = basic_systematic_methods
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
-    (one_line_params as ((_, one_line_play), banner, used_facts, subgoal, subgoal_count)) =
+    (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
   let
     val _ = if debug then Output.urgent_message "Constructing Isar proof..." else ()
 
@@ -351,7 +351,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                (case isar_proof of
                  Proof (_, _, [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)]) =>
                  let val used_facts' = filter (member (op =) gfs o fst) used_facts in
-                   ((meth, play_outcome), banner, used_facts', subgoal, subgoal_count)
+                   ((used_facts', (meth, play_outcome)), banner, subgoal, subgoal_count)
                  end)
              else
                one_line_params) ^
@@ -387,7 +387,7 @@ fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   | Play_Failed => true)
 
 fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
-    (one_line_params as (preplay, _, _, _, _)) =
+    (one_line_params as ((_, preplay), _, _, _)) =
   (if isar_proofs = SOME true orelse
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea smt_proofs preplay) then
      isar_proof_text ctxt debug isar_proofs smt_proofs isar_params

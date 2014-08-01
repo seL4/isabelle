@@ -30,7 +30,7 @@ sig
     Play_Failed
 
   type one_line_params =
-    (proof_method * play_outcome) * string * (string * stature) list * int * int
+    ((string * stature) list * (proof_method * play_outcome)) * string * int * int
 
   val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
@@ -68,7 +68,8 @@ datatype play_outcome =
   Play_Timed_Out of Time.time |
   Play_Failed
 
-type one_line_params = (proof_method * play_outcome) * string * (string * stature) list * int * int
+type one_line_params =
+  ((string * stature) list * (proof_method * play_outcome)) * string * int * int
 
 fun is_proof_method_direct (Metis_Method _) = true
   | is_proof_method_direct Meson_Method = true
@@ -182,7 +183,7 @@ fun split_used_facts facts =
   |> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text ctxt num_chained
-    ((meth, play), banner, used_facts, subgoal, subgoal_count) =
+    ((used_facts, (meth, play)), banner, subgoal, subgoal_count) =
   let val (chained, extra) = split_used_facts used_facts in
     map fst extra
     |> proof_method_command ctxt meth subgoal subgoal_count (map fst chained) num_chained

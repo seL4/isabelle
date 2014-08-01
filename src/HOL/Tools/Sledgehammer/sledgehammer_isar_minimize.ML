@@ -43,15 +43,15 @@ fun minimized_isar_step ctxt time
 
     fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)
 
-    fun minimize_facts _ min_facts [] time = (min_facts, time)
-      | minimize_facts mk_step min_facts (fact :: facts) time =
+    fun minimize_half _ min_facts [] time = (min_facts, time)
+      | minimize_half mk_step min_facts (fact :: facts) time =
         (case preplay_isar_step_for_method ctxt (Time.+ (time, slack)) meth
             (mk_step (min_facts @ facts)) of
-          Played time' => minimize_facts mk_step min_facts facts time'
-        | _ => minimize_facts mk_step (fact :: min_facts) facts time)
+          Played time' => minimize_half mk_step min_facts facts time'
+        | _ => minimize_half mk_step (fact :: min_facts) facts time)
 
-    val (min_lfs, time') = minimize_facts (fn lfs => mk_step_lfs_gfs lfs gfs0) [] lfs0 time
-    val (min_gfs, time'') = minimize_facts (mk_step_lfs_gfs min_lfs) [] gfs0 time'
+    val (min_lfs, time') = minimize_half (fn lfs => mk_step_lfs_gfs lfs gfs0) [] lfs0 time
+    val (min_gfs, time'') = minimize_half (mk_step_lfs_gfs min_lfs) [] gfs0 time'
   in
     (time'', mk_step_lfs_gfs min_lfs min_gfs)
   end

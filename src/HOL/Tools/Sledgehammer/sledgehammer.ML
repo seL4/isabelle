@@ -61,15 +61,16 @@ fun prover_description verbose name num_facts =
 fun play_one_line_proof mode timeout used_facts state i (preferred, methss as (meth :: _) :: _) =
   let
     fun dont_know () =
-      (if exists (fn meths => member (op =) meths preferred) methss then preferred else meth,
-       Play_Timed_Out Time.zeroTime)
+      (used_facts,
+       (if exists (fn meths => member (op =) meths preferred) methss then preferred else meth,
+        Play_Timed_Out Time.zeroTime))
   in
     if timeout = Time.zeroTime then
       dont_know ()
     else
       let
         val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
-        val facts = used_facts |> map (fst o fst) |> sort string_ord
+        val fact_names = used_facts |> map fst |> sort string_ord
 
         val {context = ctxt, facts = chained, goal} = Proof.goal state
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
@@ -77,9 +78,9 @@ fun play_one_line_proof mode timeout used_facts state i (preferred, methss as (m
 
         fun try_methss [] = dont_know ()
           | try_methss (meths :: methss) =
-            let val step = Prove ([], [], ("", 0), goal_t, [], ([], facts), meths, "") in
+            let val step = Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "") in
               (case preplay_isar_step ctxt timeout [] step of
-                (res as (_, Played _)) :: _ => res
+                (res as (_, Played _)) :: _ => (used_facts, res)
               | _ => try_methss methss)
             end
       in
@@ -157,12 +158,11 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
           print_used_facts used_facts used_from
         | _ => ())
       |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
-      |> (fn {outcome, used_facts, used_from, preferred_methss, message, ...} =>
+      |> (fn {outcome, used_facts, preferred_methss, message, ...} =>
         (if outcome = SOME ATP_Proof.TimedOut then timeoutN
          else if is_some outcome then noneN
          else someN,
-         fn () => message (play_one_line_proof mode preplay_timeout
-           (filter_used_facts false used_facts used_from) state subgoal
+         fn () => message (play_one_line_proof mode preplay_timeout used_facts state subgoal
            preferred_methss)))
 
     fun go () =

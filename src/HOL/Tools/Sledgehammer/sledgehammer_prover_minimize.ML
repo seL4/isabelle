@@ -22,7 +22,8 @@ sig
   val binary_min_facts : int Config.T
   val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
     Proof.state -> thm -> ((string * stature) * thm list) list ->
-    ((string * stature) * thm list) list option * ((proof_method * play_outcome) -> string)
+    ((string * stature) * thm list) list option
+    * (((string * stature) list * (proof_method * play_outcome)) -> string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
 end;
 

@@ -208,8 +208,7 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
                  (verbose, (NONE, NONE), preplay_timeout, compress, try0, minimize, atp_proof (),
                   goal)
 
-               val one_line_params =
-                 (preplay, proof_banner mode name, used_facts, subgoal, subgoal_count)
+               val one_line_params = (preplay, proof_banner mode name, subgoal, subgoal_count)
                val num_chained = length (#facts (Proof.goal state))
              in
                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
