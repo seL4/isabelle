@@ -21,9 +21,11 @@ sig
 
   val veriT_step_prefix : string
   val veriT_input_rule: string
+  val veriT_la_generic_rule : string
   val veriT_rewrite_rule : string
-  val veriT_tmp_skolemize_rule : string
+  val veriT_simp_arith_rule : string
   val veriT_tmp_ite_elim_rule : string
+  val veriT_tmp_skolemize_rule : string
 end;
 
 structure VeriT_Proof: VERIT_PROOF =
@@ -52,11 +54,13 @@ fun mk_step id rule prems concl fixes =
   VeriT_Step {id = id, rule = rule, prems = prems, concl = concl, fixes = fixes}
 
 val veriT_step_prefix = ".c"
+val veriT_alpha_conv_rule = "tmp_alphaconv"
 val veriT_input_rule = "input"
-val veriT_rewrite_rule = "__rewrite" (*arbitrary*)
+val veriT_la_generic_rule = "la_generic"
+val veriT_rewrite_rule = "__rewrite" (* arbitrary *)
+val veriT_simp_arith_rule = "simp_arith"
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
-val veriT_alpha_conv_rule = "tmp_alphaconv"
 
 (* proof parser *)
 
@@ -66,18 +70,18 @@ fun node_of p cx =
   |>> snd
 
 (*in order to get Z3-style quantification*)
-fun fix_quantification (SMTLIB2.S (SMTLIB2.Sym "forall" :: l)) =
-    let val (quantified_vars, t) = split_last (map fix_quantification l)
+fun repair_quantification (SMTLIB2.S (SMTLIB2.Sym "forall" :: l)) =
+    let val (quantified_vars, t) = split_last (map repair_quantification l)
     in
       SMTLIB2.S (SMTLIB2.Sym "forall" :: SMTLIB2.S quantified_vars :: t :: [])
     end
-  | fix_quantification (SMTLIB2.S (SMTLIB2.Sym "exists" :: l)) =
-    let val (quantified_vars, t) = split_last (map fix_quantification l)
+  | repair_quantification (SMTLIB2.S (SMTLIB2.Sym "exists" :: l)) =
+    let val (quantified_vars, t) = split_last (map repair_quantification l)
     in
       SMTLIB2.S (SMTLIB2.Sym "exists" :: SMTLIB2.S quantified_vars :: t :: [])
     end
-  | fix_quantification (SMTLIB2.S l) = SMTLIB2.S (map fix_quantification l)
-  | fix_quantification x = x
+  | repair_quantification (SMTLIB2.S l) = SMTLIB2.S (map repair_quantification l)
+  | repair_quantification x = x
 
 fun replace_bound_var_by_free_var (q $ Abs (var, ty, u)) free_var =
     (case List.find (fn v => String.isPrefix v var) free_var of
@@ -188,20 +192,15 @@ fun parse_proof_step cx =
     #> (fn (((id, rule), prems), sub) => (((id, rule), prems), parse_subproof cx id sub))
     #> rotate_pair
     ##> parse_conclusion
-    ##> map fix_quantification
+    ##> map repair_quantification
     #> (fn ((((id, rule), prems), (subproof, cx)), terms) =>
          (((((id, rule), prems), subproof), fold_map (fn t => fn cx => node_of t cx) terms cx)))
-    (*the conclusion is the empty list, ie no false is written, we have to add it.*)
-    ##> (apfst (fn [] => (@{const False}, [])
-                 | concls => make_or_from_clausification concls))
+    ##> apfst (fn [] => (@{const False}, []) | concls => make_or_from_clausification concls)
     #> fix_subproof_steps
     ##> to_node
     #> (fn (subproof, (step, cx)) => (subproof @ [step], cx))
-    #-> (fold_map update_step_and_cx)
+    #-> fold_map update_step_and_cx
   end
-
-
-(*function related to parsing and general transformation*)
 
 (*subproofs are written on multiple lines: SMTLIB can not parse then, because parentheses are
 unbalanced on each line*)
@@ -222,9 +221,8 @@ fun seperate_into_steps lines =
     seperate lines "" 0
   end
 
- (*VeriT adds @ before every variable.*)
-fun remove_all_at (SMTLIB2.Sym v :: l) =
-    SMTLIB2.Sym (if nth_string v 0 = "@" then String.extract (v, 1, NONE) else v) :: remove_all_at l
+ (* VeriT adds @ before every variable. *)
+fun remove_all_at (SMTLIB2.Sym v :: l) = SMTLIB2.Sym (perhaps (try (unprefix "@")) v) :: remove_all_at l
   | remove_all_at (SMTLIB2.S l :: l') = SMTLIB2.S (remove_all_at l) :: remove_all_at l'
   | remove_all_at (SMTLIB2.Key v :: l) = SMTLIB2.Key v :: remove_all_at l
   | remove_all_at (v :: l) = v :: remove_all_at l
@@ -278,12 +276,10 @@ fun find_ite_var_in_term (Const ("HOL.If", _) $ _ $
   | find_ite_var_in_term (Abs (_, _, body)) = find_ite_var_in_term body
   | find_ite_var_in_term _ = NONE
 
-
 fun correct_veriT_step steps (st as VeriT_Node {id, rule, prems, concl, bounds}) =
   if rule = veriT_tmp_ite_elim_rule then
     if bounds = [] then
-      (*if the introduced var has already been defined,
-        adding the definition as a dependency*)
+      (*if the introduced var has already been defined, adding the definition as a dependency*)
       let
         val new_prems =
           (case find_ite_var_in_term concl of
@@ -302,7 +298,6 @@ fun correct_veriT_step steps (st as VeriT_Node {id, rule, prems, concl, bounds})
   else
     st
 
-(*remove alpha conversion step, that just renames the variables*)
 fun remove_alpha_conversion _ [] = []
   | remove_alpha_conversion replace_table (VeriT_Node {id, rule, prems, concl, bounds} :: steps) =
     let
@@ -323,7 +318,6 @@ fun correct_veriT_steps steps =
   |> map (correct_veriT_step steps)
   |> remove_alpha_conversion Symtab.empty
 
-(* overall proof parser *)
 fun parse typs funs lines ctxt =
   let
     val smtlib2_lines_without_at =

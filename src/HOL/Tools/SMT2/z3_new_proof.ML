@@ -100,7 +100,7 @@ fun rule_of_string name =
     SOME rule => rule
   | NONE => error ("unknown Z3 proof rule " ^ quote name))
 
-fun string_of_rule (Th_Lemma kind) = "th-lemma " ^ kind
+fun string_of_rule (Th_Lemma kind) = "th-lemma" ^ (if kind = "" then "" else " " ^ kind)
   | string_of_rule r =
       let fun eq_rule (s, r') = if r = r' then SOME s else NONE
       in the (Symtab.get_first eq_rule rule_names) end

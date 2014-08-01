@@ -56,7 +56,7 @@ val veriT_simp_arith_rule = "simp_arith"
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
 val z3_skolemize_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Skolemize
-val z3_th_lemma_rule = "th-lemma"
+val z3_th_lemma_rule_prefix = Z3_New_Proof.string_of_rule (Z3_New_Proof.Th_Lemma "")
 val zipperposition_cnf_rule = "cnf"
 
 val skolemize_rules =
@@ -66,7 +66,7 @@ val skolemize_rules =
 
 val is_skolemize_rule = member (op =) skolemize_rules
 fun is_arith_rule rule =
-  String.isPrefix z3_th_lemma_rule rule orelse rule = veriT_simp_arith_rule orelse
+  String.isPrefix z3_th_lemma_rule_prefix rule orelse rule = veriT_simp_arith_rule orelse
   rule = veriT_la_generic_rule
 val is_datatype_rule = String.isPrefix spass_pirate_datatype_rule
 
