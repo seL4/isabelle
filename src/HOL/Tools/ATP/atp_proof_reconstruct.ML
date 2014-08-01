@@ -30,6 +30,7 @@ sig
 
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
+  val rename_bound_vars : term -> term
   val type_enc_aliases : (string * string list) list
   val unalias_type_enc : string -> string list
   val term_of_atp : Proof.context -> ATP_Problem.atp_format -> ATP_Problem_Generate.type_enc ->
@@ -100,6 +101,24 @@ fun make_tfree ctxt w =
   let val ww = "'" ^ w in
     TFree (ww, the_default @{sort type} (Variable.def_sort ctxt (ww, ~1)))
   end
+
+fun single_letter upper s =
+  let val s' = if String.isPrefix "o" s orelse String.isPrefix "O" s then "z" else s in
+    String.extract (Name.desymbolize (SOME upper) (Long_Name.base_name s'), 0, SOME 1)
+  end
+
+fun var_name_of_typ (Type (@{type_name fun}, [_, T])) =
+    if body_type T = HOLogic.boolT then "p" else "f"
+  | var_name_of_typ (Type (@{type_name set}, [T])) = single_letter true (var_name_of_typ T)
+  | var_name_of_typ (Type (s, Ts)) =
+    if String.isSuffix "list" s then var_name_of_typ (the_single Ts) ^ "s"
+    else single_letter false (Long_Name.base_name s)
+  | var_name_of_typ (TFree (s, _)) = single_letter false (perhaps (try (unprefix "'")) s)
+  | var_name_of_typ (TVar ((s, _), T)) = var_name_of_typ (TFree (s, T))
+
+fun rename_bound_vars (t $ u) = rename_bound_vars t $ rename_bound_vars u
+  | rename_bound_vars (Abs (_, T, t)) = Abs (var_name_of_typ T, T, rename_bound_vars t)
+  | rename_bound_vars t = t
 
 exception ATP_CLASS of string list
 exception ATP_TYPE of string atp_type list

@@ -210,18 +210,20 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
-        fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> close_form
+        val close_form_etc = rename_bound_vars o close_form
+
+        fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> close_form_etc
           | prop_of_clause names =
             let
-              val lits = map (HOLogic.dest_Trueprop o snd)
-                (map_filter (Symtab.lookup steps o fst) names)
+              val lits =
+                map (HOLogic.dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
             in
               (case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
                 s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs), Library.foldr1 s_disj pos)
               | _ => fold (curry s_disj) lits @{term False})
             end
-            |> HOLogic.mk_Trueprop |> close_form
+            |> HOLogic.mk_Trueprop |> close_form_etc
 
         fun maybe_show outer c = (outer andalso eq_set (op =) (c, conjs)) ? cons Show
 
@@ -350,8 +352,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           ||> (comment_isar_proof comment_of
                #> chain_isar_proof
                #> kill_useless_labels_in_isar_proof
-               #> relabel_isar_proof_nicely
-               #> rename_bound_vars_in_isar_proof)
+               #> relabel_isar_proof_nicely)
       in
         (case add_isar_steps (steps_of_isar_proof isar_proof) 0 of
           1 =>
