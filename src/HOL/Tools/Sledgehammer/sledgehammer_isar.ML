@@ -89,7 +89,8 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
       line :: lines
     else if role = Axiom then
       lines (* axioms (facts) need no proof lines *)
-    else map (replace_dependencies_in_line (name, [])) lines
+    else
+      map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
 
 fun add_lines_pass2 res _ [] = rev res
@@ -210,7 +211,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
-        val finish_off = simplify_bool #> close_form #> rename_bound_vars
+        val finish_off = close_form #> rename_bound_vars
 
         fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> finish_off
           | prop_of_clause names =

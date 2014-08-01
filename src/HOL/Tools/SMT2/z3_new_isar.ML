@@ -94,7 +94,7 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
           Z3_New_Proof.Asserted =>
           let val ss = the_list (AList.lookup (op =) fact_helper_ids id) in
             (case distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts
-                hyp_ts concl_t concl of
+                hyp_ts concl_t of
               NONE => []
             | SOME (role0, concl00) =>
               let

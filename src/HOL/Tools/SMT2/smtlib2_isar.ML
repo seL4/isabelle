@@ -11,15 +11,16 @@ sig
   val postprocess_step_conclusion: theory -> thm list -> term list -> term -> term
   val normalizing_prems : Proof.context -> term -> (string * string list) list
   val distinguish_conjecture_and_hypothesis : ''a list -> ''b -> ''b -> ''b list ->
-    (''a * 'c) list -> 'c list -> 'c -> 'c -> (ATP_Problem.atp_formula_role * 'c) option
+    (''a * 'c) list -> 'c list -> 'c -> (ATP_Problem.atp_formula_role * 'c) option
   val unskolemize_names: term -> term
 end;
 
 structure SMTLIB2_Isar: SMTLIB2_ISAR =
 struct
 
-open ATP_Problem
 open ATP_Util
+open ATP_Problem
+open ATP_Proof_Reconstruct
 
 fun unlift_term ll_defs =
   let
@@ -42,6 +43,7 @@ fun postprocess_step_conclusion thy rewrite_rules ll_defs =
   Raw_Simplifier.rewrite_term thy rewrite_rules []
   #> Object_Logic.atomize_term thy
   #> not (null ll_defs) ? unlift_term ll_defs
+  #> simplify_bool
   #> unskolemize_names
   #> HOLogic.mk_Trueprop
 
@@ -54,8 +56,8 @@ fun normalizing_prems ctxt concl0 =
     else
       NONE)
 
-fun distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts hyp_ts concl_t
-    t =
+fun distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts hyp_ts
+    concl_t =
   (case ss of
     [s] => SOME (Axiom, the (AList.lookup (op =) fact_helper_ts s))
   | _ =>

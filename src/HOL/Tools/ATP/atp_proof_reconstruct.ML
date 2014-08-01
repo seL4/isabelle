@@ -107,13 +107,20 @@ fun simplify_bool ((all as Const (@{const_name All}, _)) $ Abs (s, T, t)) =
     let val t' = simplify_bool t in
       if loose_bvar1 (t', 0) then all $ Abs (s, T, t') else t'
     end
-  | simplify_bool (@{const Not} $ t) = s_not (simplify_bool t)
-  | simplify_bool (@{const conj} $ t $ u) = s_conj (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const disj} $ t $ u) = s_disj (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const implies} $ t $ u) = s_imp (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_bool t, simplify_bool u)
-  | simplify_bool (t as Const (@{const_name HOL.eq}, _) $ u $ v) =
-    if u aconv v then @{const True} else t
+  | simplify_bool (Const (@{const_name Not}, _) $ t) = s_not (simplify_bool t)
+  | simplify_bool (Const (@{const_name conj}, _) $ t $ u) =
+    s_conj (simplify_bool t, simplify_bool u)
+  | simplify_bool (Const (@{const_name disj}, _) $ t $ u) =
+    s_disj (simplify_bool t, simplify_bool u)
+  | simplify_bool (Const (@{const_name implies}, _) $ t $ u) =
+    s_imp (simplify_bool t, simplify_bool u)
+  | simplify_bool ((t as Const (@{const_name HOL.eq}, _)) $ u $ v) =
+    (case (u, v) of
+      (Const (@{const_name True}, _), _) => v
+    | (u, Const (@{const_name True}, _)) => u
+    | (Const (@{const_name False}, _), v) => s_not v
+    | (u, Const (@{const_name False}, _)) => s_not u
+    | _ => if u aconv v then @{const True} else t $ simplify_bool u $ simplify_bool v)
   | simplify_bool (t $ u) = simplify_bool t $ simplify_bool u
   | simplify_bool (Abs (s, T, t)) = Abs (s, T, simplify_bool t)
   | simplify_bool t = t
@@ -246,47 +253,27 @@ fun quantify_over_var textual quant_of var_s var_T t =
 
 
 (* Higher-order translation. Variables are typed (although we don't use that information). Lambdas
-   are typed.
-
-  The code is similar to term_of_atp_fo. *)
-fun term_of_atp_ho ctxt textual sym_tab =
+   are typed. The code is similar to "term_of_atp_fo". *)
+fun term_of_atp_ho ctxt sym_tab =
   let
     val thy = Proof_Context.theory_of ctxt
-    val var_index = var_index_of_textual textual
+    val var_index = var_index_of_textual true
 
     fun do_term opt_T u =
       (case u of
         AAbs(((var, ty), term), []) =>
         let
           val typ = typ_of_atp_type ctxt ty
-          val var_name = repair_var_name textual var
+          val var_name = repair_var_name true var
           val tm = do_term NONE term
-        in quantify_over_var textual lambda' var_name typ tm end
+        in quantify_over_var true lambda' var_name typ tm end
       | ATerm ((s, tys), us) =>
         if s = ""
         then error "Isar proof reconstruction failed because the ATP proof \
                      \contains unparsable material."
         else if s = tptp_equal then
-          let
-            val ts = map (do_term NONE) us
-            fun equal_term ts =
-                list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}), ts)
-          in
-            if textual then
-              (case ts of
-                [t1, t2] =>
-                if loose_aconv (t1, t2) then
-                  @{const True}
-                else if Term.aconv_untyped (t2, @{const True}) then
-                  t1
-                else if Term.aconv_untyped (t1, @{const True}) then
-                  t2
-                else
-                  equal_term ts
-              | _ => equal_term ts)
-            else
-              equal_term ts
-          end
+          list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}),
+            map (do_term NONE) us)
         else if not (null us) then
           let
             val args = List.map (do_term NONE) us
@@ -297,10 +284,10 @@ fun term_of_atp_ho ctxt textual sym_tab =
         else if s = tptp_and then HOLogic.conj
         else if s = tptp_implies then HOLogic.imp
         else if s = tptp_iff orelse s = tptp_equal then HOLogic.eq_const dummyT
-        else if s = tptp_not_iff orelse s = tptp_not_equal then @{term "% P Q. Q ~= P"}
-        else if s = tptp_if then @{term "% P Q. Q --> P"}
-        else if s = tptp_not_and then @{term "% P Q. ~ (P & Q)"}
-        else if s = tptp_not_or then @{term "% P Q. ~ (P | Q)"}
+        else if s = tptp_not_iff orelse s = tptp_not_equal then @{term "%P Q. Q ~= P"}
+        else if s = tptp_if then @{term "%P Q. Q --> P"}
+        else if s = tptp_not_and then @{term "%P Q. ~ (P & Q)"}
+        else if s = tptp_not_or then @{term "%P Q. ~ (P | Q)"}
         else if s = tptp_not then HOLogic.Not
         else if s = tptp_ho_forall then HOLogic.all_const dummyT
         else if s = tptp_ho_exists then HOLogic.exists_const dummyT
@@ -317,7 +304,7 @@ fun term_of_atp_ho ctxt textual sym_tab =
               val Ts = map (typ_of_atp_type ctxt) tys @ map (typ_of_atp_term ctxt) type_us
               val T =
                 (if not (null Ts) andalso robust_const_num_type_args thy s' = length Ts then
-                   if textual then try (Sign.const_instance thy) (s', Ts) else NONE
+                   try (Sign.const_instance thy) (s', Ts)
                  else
                    NONE)
                 |> (fn SOME T => T
@@ -343,10 +330,8 @@ fun term_of_atp_ho ctxt textual sym_tab =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
                 | NONE =>
-                  if textual andalso not (is_tptp_variable s) then
-                    Free (s |> textual ? (repair_var_name_raw #> fresh_up), T)
-                  else
-                    Var ((repair_var_name textual s, var_index), T))
+                  if not (is_tptp_variable s) then Free (s |> repair_var_name_raw |> fresh_up, T)
+                  else Var ((repair_var_name true s, var_index), T))
             in list_comb (t, ts) end))
   in do_term end
 
@@ -369,12 +354,8 @@ fun term_of_atp_fo ctxt textual sym_tab =
         else if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information *)
         else if s = tptp_equal then
-          let val ts = map (do_term [] NONE) us in
-            if textual andalso length ts = 2 andalso loose_aconv (hd ts, List.last ts) then
-              @{const True}
-            else
-              list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}), ts)
-          end
+          list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}),
+            map (do_term [] NONE) us)
         else
           (case unprefix_and_unascii const_prefix s of
             SOME s' =>
@@ -452,12 +433,10 @@ fun term_of_atp_fo ctxt textual sym_tab =
   in do_term [] end
 
 fun term_of_atp ctxt (ATP_Problem.THF _) type_enc =
-    if ATP_Problem_Generate.is_type_enc_higher_order type_enc
-    then term_of_atp_ho ctxt
+    if ATP_Problem_Generate.is_type_enc_higher_order type_enc then K (term_of_atp_ho ctxt)
     else error "Unsupported Isar reconstruction."
   | term_of_atp ctxt _ type_enc =
-    if not (ATP_Problem_Generate.is_type_enc_higher_order type_enc)
-    then term_of_atp_fo ctxt
+    if not (ATP_Problem_Generate.is_type_enc_higher_order type_enc) then term_of_atp_fo ctxt
     else error "Unsupported Isar reconstruction."
 
 fun term_of_atom ctxt format type_enc textual sym_tab pos (u as ATerm ((s, _), _)) =
@@ -633,6 +612,7 @@ fun termify_line _ _ _ _ _ (_, Type_Role, _, _, _) = NONE
         |> prop_of_atp ctxt format type_enc true sym_tab
         |> unlift_term lifted
         |> uncombine_term thy
+        |> simplify_bool
     in
       SOME (name, role, t, rule, deps)
     end

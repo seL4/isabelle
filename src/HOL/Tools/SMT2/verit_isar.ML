@@ -35,7 +35,7 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
         if rule = veriT_input_rule then
           let val ss = the_list (AList.lookup (op =) fact_helper_ids (the (Int.fromString id))) in
             (case distinguish_conjecture_and_hypothesis ss (the (Int.fromString id))
-                conjecture_id prem_ids fact_helper_ts hyp_ts concl_t concl of
+                conjecture_id prem_ids fact_helper_ts hyp_ts concl_t of
               NONE => []
             | SOME (role0, concl00) =>
               let

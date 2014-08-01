@@ -98,7 +98,7 @@ fun merge_steps preplay_data (Prove ([], xs1, l1, _, subproofs1, (lfs1, gfs1), m
        subproofs1 @ subproofs2, (lfs, gfs), meths, comment1 ^ comment2), hopeless)
   end
 
-val merge_slack_time = seconds 0.005
+val merge_slack_time = seconds 0.01
 val merge_slack_factor = 1.5
 
 fun adjust_merge_timeout max time =
@@ -117,7 +117,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
       val (compress_further, decrement_step_count) =
         let
           val number_of_steps = add_isar_steps (steps_of_isar_proof proof) 0
-          val target_number_of_steps = Real.round (Real.fromInt number_of_steps / compress)
+          val target_number_of_steps = Real.ceil (Real.fromInt number_of_steps / compress)
           val delta = Unsynchronized.ref (number_of_steps - target_number_of_steps)
         in
           (fn () => !delta > 0, fn () => delta := !delta - 1)
@@ -273,8 +273,9 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
         if compress_further () then Proof (xs, assms, compress_steps steps) else proof
       and compress_steps steps =
         (* bottom-up: compress innermost proofs first *)
-        steps |> map (fn step => step |> compress_further () ? compress_sub_levels)
-              |> compress_further () ? compress_top_level
+        steps
+        |> map (fn step => step |> compress_further () ? compress_sub_levels)
+        |> compress_further () ? compress_top_level
       and compress_sub_levels (Prove (qs, xs, l, t, subproofs, facts, meths, comment)) =
           (* compress subproofs *)
           Prove (qs, xs, l, t, map compress_proof subproofs, facts, meths, comment)
