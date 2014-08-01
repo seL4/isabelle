@@ -7,7 +7,6 @@ General tools for Isar proof reconstruction.
 
 signature SMTLIB2_ISAR =
 sig
-  val simplify_bool: term -> term
   val unlift_term: term list -> term -> term
   val postprocess_step_conclusion: theory -> thm list -> term list -> term -> term
   val normalizing_prems : Proof.context -> term -> (string * string list) list
@@ -21,24 +20,6 @@ struct
 
 open ATP_Problem
 open ATP_Util
-
-fun simplify_bool ((all as Const (@{const_name All}, _)) $ Abs (s, T, t)) =
-    let val t' = simplify_bool t in
-      if loose_bvar1 (t', 0) then all $ Abs (s, T, t') else t'
-    end
-  | simplify_bool (@{const Not} $ t) = s_not (simplify_bool t)
-  | simplify_bool (@{const conj} $ t $ u) = s_conj (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const disj} $ t $ u) = s_disj (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const implies} $ t $ u) = s_imp (simplify_bool t, simplify_bool u)
-  | simplify_bool (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_bool t, simplify_bool u)
-  | simplify_bool (t as Const (@{const_name HOL.eq}, _) $ u $ v) =
-    if u aconv v then @{const True} else t
-  | simplify_bool (t $ u) = simplify_bool t $ simplify_bool u
-  | simplify_bool (Abs (s, T, t)) = Abs (s, T, simplify_bool t)
-  | simplify_bool t = t
-
-fun strip_alls (Const (@{const_name All}, _) $ Abs (s, T, body)) = strip_alls body |>> cons (s, T)
-  | strip_alls t = ([], t)
 
 fun unlift_term ll_defs =
   let
@@ -60,7 +41,6 @@ val unskolemize_names =
 fun postprocess_step_conclusion thy rewrite_rules ll_defs =
   Raw_Simplifier.rewrite_term thy rewrite_rules []
   #> Object_Logic.atomize_term thy
-  #> simplify_bool
   #> not (null ll_defs) ? unlift_term ll_defs
   #> unskolemize_names
   #> HOLogic.mk_Trueprop

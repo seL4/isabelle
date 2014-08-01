@@ -30,6 +30,7 @@ sig
 
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
+  val simplify_bool : term -> term
   val rename_bound_vars : term -> term
   val type_enc_aliases : (string * string list) list
   val unalias_type_enc : string -> string list
@@ -101,6 +102,21 @@ fun make_tfree ctxt w =
   let val ww = "'" ^ w in
     TFree (ww, the_default @{sort type} (Variable.def_sort ctxt (ww, ~1)))
   end
+
+fun simplify_bool ((all as Const (@{const_name All}, _)) $ Abs (s, T, t)) =
+    let val t' = simplify_bool t in
+      if loose_bvar1 (t', 0) then all $ Abs (s, T, t') else t'
+    end
+  | simplify_bool (@{const Not} $ t) = s_not (simplify_bool t)
+  | simplify_bool (@{const conj} $ t $ u) = s_conj (simplify_bool t, simplify_bool u)
+  | simplify_bool (@{const disj} $ t $ u) = s_disj (simplify_bool t, simplify_bool u)
+  | simplify_bool (@{const implies} $ t $ u) = s_imp (simplify_bool t, simplify_bool u)
+  | simplify_bool (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_bool t, simplify_bool u)
+  | simplify_bool (t as Const (@{const_name HOL.eq}, _) $ u $ v) =
+    if u aconv v then @{const True} else t
+  | simplify_bool (t $ u) = simplify_bool t $ simplify_bool u
+  | simplify_bool (Abs (s, T, t)) = Abs (s, T, simplify_bool t)
+  | simplify_bool t = t
 
 fun single_letter upper s =
   let val s' = if String.isPrefix "o" s orelse String.isPrefix "O" s then "z" else s in

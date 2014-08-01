@@ -210,9 +210,9 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
-        val close_form_etc = rename_bound_vars o close_form
+        val finish_off = simplify_bool #> close_form #> rename_bound_vars
 
-        fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> close_form_etc
+        fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> finish_off
           | prop_of_clause names =
             let
               val lits =
@@ -223,7 +223,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs), Library.foldr1 s_disj pos)
               | _ => fold (curry s_disj) lits @{term False})
             end
-            |> HOLogic.mk_Trueprop |> close_form_etc
+            |> HOLogic.mk_Trueprop |> finish_off
 
         fun maybe_show outer c = (outer andalso eq_set (op =) (c, conjs)) ? cons Show
 
