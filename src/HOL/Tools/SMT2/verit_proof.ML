@@ -62,7 +62,7 @@ val veriT_alpha_conv_rule = "tmp_alphaconv"
 
 fun node_of p cx =
   ([], cx)
-  ||>> with_fresh_names (term_of p)
+  ||>> `(with_fresh_names (term_of p))
   |>> snd
 
 (*in order to get Z3-style quantification*)

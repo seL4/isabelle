@@ -159,7 +159,7 @@ fun node_of p cx =
       in
         cx
         |> fold_map node_of ps
-        ||>> with_fresh_names (term_of p)
+        ||>> `(with_fresh_names (term_of p))
         ||>> next_id
         |>> (fn ((prems, (t, ns)), id) => mk_node id r prems t ns)
       end
