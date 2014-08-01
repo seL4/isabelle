@@ -40,13 +40,6 @@ fun simplify_bool ((all as Const (@{const_name All}, _)) $ Abs (s, T, t)) =
 fun strip_alls (Const (@{const_name All}, _) $ Abs (s, T, body)) = strip_alls body |>> cons (s, T)
   | strip_alls t = ([], t)
 
-fun push_skolem_all_under_iff t =
-  (case strip_alls t of
-    (qs as _ :: _,
-     (t0 as Const (@{const_name HOL.eq}, _)) $ (t1 as Const (@{const_name Ex}, _) $ _) $ t2) =>
-    t0 $ HOLogic.list_all (qs, t1) $ HOLogic.list_all (qs, t2)
-  | _ => t)
-
 fun unlift_term ll_defs =
   let
     val lifted = map (ATP_Util.extract_lambda_def dest_Free o ATP_Util.hol_open_form I) ll_defs
@@ -71,7 +64,6 @@ fun postprocess_step_conclusion concl thy rewrite_rules ll_defs =
   |> simplify_bool
   |> not (null ll_defs) ? unlift_term ll_defs
   |> unskolemize_names
-  |> push_skolem_all_under_iff
   |> HOLogic.mk_Trueprop
   |> unskolemize_names
 
