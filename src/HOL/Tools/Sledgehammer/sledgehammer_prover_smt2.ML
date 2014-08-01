@@ -197,7 +197,7 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
         NONE =>
         let
           val preferred_methss =
-            (SMT2_Method, bunches_of_proof_methods (smt_proofs <> SOME false) false liftingN)
+            (SMT2_Method, bunches_of_proof_methods try0 (smt_proofs <> SOME false) false liftingN)
         in
           (preferred_methss,
            fn preplay =>

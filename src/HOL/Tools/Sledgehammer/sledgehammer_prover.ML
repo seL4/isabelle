@@ -67,7 +67,7 @@ sig
   val overlord_file_location_of_prover : string -> string * string
   val proof_banner : mode -> string -> string
   val is_atp : theory -> string -> bool
-  val bunches_of_proof_methods : bool -> bool -> string -> proof_method list list
+  val bunches_of_proof_methods : bool -> bool -> bool -> string -> proof_method list list
   val is_fact_chained : (('a * stature) * 'b) -> bool
   val filter_used_facts : bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
@@ -161,19 +161,22 @@ fun proof_banner mode name =
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | _ => "Try this")
 
-fun bunches_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
-  [[Simp_Method, Auto_Method, Blast_Method, Linarith_Method],
-   [Meson_Method, Metis_Method (if needs_full_types then SOME full_typesN else NONE, NONE),
-    Force_Method, Presburger_Method],
-    (if needs_full_types then
-       [Metis_Method (NONE, NONE),
-        Metis_Method (SOME really_full_type_enc, NONE),
-        Metis_Method (SOME full_typesN, SOME desperate_lam_trans),
-        Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]
-     else
-       [Metis_Method (SOME full_typesN, NONE),
-        Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
-        Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)])] @
+fun bunches_of_proof_methods try0 smt_proofs needs_full_types desperate_lam_trans =
+  (if try0 then
+    [[Simp_Method, Auto_Method, Blast_Method, Linarith_Method],
+     [Meson_Method, Force_Method, Presburger_Method]]
+   else
+     []) @
+  [[Metis_Method (if needs_full_types then SOME full_typesN else NONE, NONE)],
+   (if needs_full_types then
+      [Metis_Method (NONE, NONE),
+       Metis_Method (SOME really_full_type_enc, NONE),
+       Metis_Method (SOME full_typesN, SOME desperate_lam_trans),
+       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]
+    else
+      [Metis_Method (SOME full_typesN, NONE),
+       Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
+       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)])] @
   (if smt_proofs then [[SMT2_Method]] else [])
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
