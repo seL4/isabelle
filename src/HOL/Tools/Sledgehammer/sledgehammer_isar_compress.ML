@@ -203,7 +203,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
 
           fun try_eliminate i l labels steps =
             let
-              val (steps_before, (cand as Prove (_, _, _, _, _, (lfs, _), _, _)) :: steps_after) =
+              val (steps_before, (cand as Prove (_, xs, _, _, _, (lfs, _), _, _)) :: steps_after) =
                 chop i steps
               val succs = collect_successors steps_after labels
               val (succs', hopelesses) = split_list (map (merge_steps (!preplay_data) cand) succs)
@@ -236,12 +236,17 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
             else
               (case pop_next_candidate candidates of
                 (NONE, _) => steps (* no more candidates for elimination *)
-              | (SOME (l, _), candidates') =>
+              | (SOME (l, (num_xs, _)), candidates') =>
                 (case find_index (curry (op =) (SOME l) o label_of_isar_step) steps of
                   ~1 => steps
                 | i =>
-                  let val successors = get_successors l in
-                    if length successors > compress_degree then
+                  let
+                    val successors = get_successors l
+                    val num_successors = length successors
+                  in
+                    (* Careful with "obtain", so we don't "obtain" twice the same variable after a
+                       merge. *)
+                    if num_successors > (if num_xs > 0 then 1 else compress_degree) then
                       steps
                     else
                       steps
