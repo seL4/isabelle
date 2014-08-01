@@ -974,8 +974,8 @@ fun isar_dependencies_of name_tabs th =
   thms_in_proof max_dependencies (SOME name_tabs) th
   |> Option.map (fn deps =>
     if deps = [typedef_dep] orelse deps = [class_some_dep] orelse
-       exists (member (op =) fundef_ths) deps orelse exists (member (op =) typedef_ths) deps orelse
-       is_size_def deps th then
+        exists (member (op =) fundef_ths) deps orelse exists (member (op =) typedef_ths) deps orelse
+        is_size_def deps th then
       []
     else
       deps)
@@ -1378,7 +1378,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
             let
               val name = nickname_of_thm th
               val feats = features_of ctxt (theory_of_thm th) stature [prop_of th]
-              val deps = deps_of status th |> these
+              val deps = these (deps_of status th)
               val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
               val (learns, next_commit) =
