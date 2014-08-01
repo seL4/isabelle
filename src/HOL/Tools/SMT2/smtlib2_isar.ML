@@ -65,7 +65,6 @@ fun postprocess_step_conclusion concl thy rewrite_rules ll_defs =
   |> not (null ll_defs) ? unlift_term ll_defs
   |> unskolemize_names
   |> HOLogic.mk_Trueprop
-  |> unskolemize_names
 
 fun normalizing_prems ctxt concl0 =
   SMT2_Normalize.case_bool_entry :: SMT2_Normalize.special_quant_table @

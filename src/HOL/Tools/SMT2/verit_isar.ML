@@ -42,7 +42,7 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
                 val name0 = (id ^ "a", ss)
                 val concl0 = unskolemize_names concl00
               in
-                [(name0, role0, unskolemize_names concl0, rule, []),
+                [(name0, role0, concl0, rule, []),
                  ((id, []), Plain, concl', veriT_rewrite_rule,
                   name0 :: normalizing_prems ctxt concl0)]
               end)

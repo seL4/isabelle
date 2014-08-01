@@ -83,8 +83,11 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
             (case distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts
                 hyp_ts concl_t concl of
               NONE => []
-            | SOME (role0, concl0) =>
-              let val name0 = (sid ^ "a", ss) in
+            | SOME (role0, concl00) =>
+              let
+                val name0 = (sid ^ "a", ss)
+                val concl0 = unskolemize_names concl00
+              in
                 (if role0 = Axiom then []
                  else [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, [])]) @
                 [((sid, []), Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
