@@ -101,7 +101,10 @@ fun fold_body_thm max_thms outer_name (map_plain_name, map_inclass_name) body =
           else (false, false)
       in
         if anonymous then
-          app_body (if enter_class then map_inclass_name else map_name) (Future.join body) accum
+          (case Future.peek body of
+            SOME (Exn.Res the_body) =>
+            app_body (if enter_class then map_inclass_name else map_name) the_body accum
+          | NONE => accum)
         else
           (case map_name name of
             SOME name' =>
