@@ -102,7 +102,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
        factss = [("", facts)]}
-    val result as {outcome, used_facts, run_time, ...} = prover params (K (K (K ""))) problem
+    val result as {outcome, used_facts, run_time, ...} = prover params problem
   in
     print silent (fn () =>
       (case outcome of
@@ -253,8 +253,8 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
       | NONE => result)
     end
 
-fun get_minimizing_prover ctxt mode do_learn name params minimize_command problem =
-  get_prover ctxt mode name params minimize_command problem
+fun get_minimizing_prover ctxt mode do_learn name params problem =
+  get_prover ctxt mode name params problem
   |> maybe_minimize mode do_learn name params problem
 
 fun run_minimize (params as {provers, ...}) do_learn i refs state =

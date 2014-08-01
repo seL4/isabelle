@@ -179,7 +179,7 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
 
 fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress, try0, smt_proofs,
       minimize, preplay_timeout, ...})
-    minimize_command ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
+    ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -209,8 +209,7 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
                   goal)
 
                val one_line_params =
-                 (preplay, proof_banner mode name, used_facts, minimize_command [] name, subgoal,
-                  subgoal_count)
+                 (preplay, proof_banner mode name, used_facts, subgoal, subgoal_count)
                val num_chained = length (#facts (Proof.goal state))
              in
                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params

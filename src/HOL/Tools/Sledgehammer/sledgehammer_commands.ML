@@ -31,7 +31,6 @@ open Sledgehammer
 val z3N = "z3"
 
 val runN = "run"
-val minN = "min"
 val messagesN = "messages"
 val supported_proversN = "supported_provers"
 val kill_allN = "kill_all"
@@ -118,9 +117,6 @@ val negated_alias_params =
    ("dont_minimize", "minimize"),
    ("dont_try0", "try0"),
    ("no_smt_proofs", "smt_proofs")]
-
-val params_not_for_minimize =
-  ["provers", "blocking", "fact_filter", "max_facts", "fact_thresholds", "slice", "minimize"];
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -318,31 +314,6 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
-fun is_raw_param_relevant_for_minimize (name, _) = not (member (op =) params_not_for_minimize name)
-
-fun string_of_raw_param (key, values) =
-  key ^ (case implode_param values of "" => "" | value => " = " ^ value)
-
-fun nice_string_of_raw_param (p as (key, ["false"])) =
-    (case AList.find (op =) negated_alias_params key of
-       [neg] => neg
-     | _ => string_of_raw_param p)
-  | nice_string_of_raw_param p = string_of_raw_param p
-
-fun minimize_command override_params i more_override_params prover_name fact_names =
-  let
-    val params =
-      (override_params |> filter_out (AList.defined (op =) more_override_params o fst)) @
-      more_override_params
-      |> filter is_raw_param_relevant_for_minimize
-      |> map nice_string_of_raw_param
-      |> cons prover_name
-      |> space_implode ", "
-  in
-    sledgehammerN ^ " " ^ minN ^ (if params = "" then "" else enclose " [" "]" params) ^
-    " (" ^ space_implode " " fact_names ^ ")" ^ (if i = 1 then "" else " " ^ string_of_int i)
-  end
-
 val default_learn_prover_timeout = 2.0
 
 fun hammer_away override_params subcommand opt_i fact_override state =
@@ -355,19 +326,9 @@ fun hammer_away override_params subcommand opt_i fact_override state =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params Normal thy override_params) Normal NONE i fact_override
-          (minimize_command override_params i) state
-        |> K ()
+        ignore (run_sledgehammer (get_params Normal thy override_params) Normal NONE i fact_override
+          state)
       end
-    else if subcommand = minN then
-      let
-        val ctxt = ctxt |> Config.put instantiate_inducts false
-        val i = the_default 1 opt_i
-        val params = get_params Minimize thy override_params
-        val goal = prop_of (#goal (Proof.goal state))
-        val facts = nearly_all_facts ctxt false fact_override Symtab.empty Termtab.empty [] [] goal
-        val learn = mash_learn_proof ctxt params goal facts
-      in run_minimize params learn i (#add fact_override) state end
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = supported_proversN then
@@ -403,7 +364,8 @@ fun sledgehammer_trans (((subcommand, params), fact_override), opt_i) =
   Toplevel.unknown_proof o
   Toplevel.keep (hammer_away params subcommand opt_i fact_override o Toplevel.proof_of)
 
-fun string_of_raw_param (name, value) = name ^ " = " ^ implode_param value
+fun string_of_raw_param (key, values) =
+  key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
 fun sledgehammer_params_trans params =
   Toplevel.theory (fold set_default_raw_param params #> tap (fn thy =>
@@ -442,8 +404,7 @@ fun try_sledgehammer auto state =
     val mode = if auto then Auto_Try else Try
     val i = 1
   in
-    run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override (minimize_command [] i)
-      state
+    run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override state
   end
 
 val _ = Try.tool_setup (sledgehammerN, (40, @{system_option auto_sledgehammer}, try_sledgehammer))
@@ -452,23 +413,23 @@ val _ =
   Query_Operation.register sledgehammerN (fn {state = st, args, output_result} =>
     (case try Toplevel.proof_of st of
       SOME state =>
-        let
-          val thy = Proof.theory_of state
-          val ctxt = Proof.context_of state
-          val [provers_arg, isar_proofs_arg] = args
+      let
+        val thy = Proof.theory_of state
+        val ctxt = Proof.context_of state
+        val [provers_arg, isar_proofs_arg] = args
 
-          val override_params =
-            ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
-              [("isar_proofs", [isar_proofs_arg]),
-               ("blocking", ["true"]),
-               ("debug", ["false"]),
-               ("verbose", ["false"]),
-               ("overlord", ["false"])])
-            |> map (normalize_raw_param ctxt)
-
-          val _ = run_sledgehammer (get_params Normal thy override_params) Normal
-            (SOME output_result) 1 no_fact_override (minimize_command override_params 1) state
-        in () end
+        val override_params =
+          ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
+            [("isar_proofs", [isar_proofs_arg]),
+             ("blocking", ["true"]),
+             ("debug", ["false"]),
+             ("verbose", ["false"]),
+             ("overlord", ["false"])])
+          |> map (normalize_raw_param ctxt)
+      in
+        ignore (run_sledgehammer (get_params Normal thy override_params) Normal
+          (SOME output_result) 1 no_fact_override state)
+      end
     | NONE => error "Unknown proof context"))
 
 end;

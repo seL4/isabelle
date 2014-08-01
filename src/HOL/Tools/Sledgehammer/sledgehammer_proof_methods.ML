@@ -29,9 +29,8 @@ sig
     Play_Timed_Out of Time.time |
     Play_Failed
 
-  type minimize_command = string list -> string
   type one_line_params =
-    (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
+    (proof_method * play_outcome) * string * (string * stature) list * int * int
 
   val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
@@ -69,9 +68,7 @@ datatype play_outcome =
   Play_Timed_Out of Time.time |
   Play_Failed
 
-type minimize_command = string list -> string
-type one_line_params =
-  (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
+type one_line_params = (proof_method * play_outcome) * string * (string * stature) list * int * int
 
 fun is_proof_method_direct (Metis_Method _) = true
   | is_proof_method_direct Meson_Method = true
@@ -179,29 +176,18 @@ fun try_command_line banner play command =
     (s |> s <> "" ? enclose " (" ")") ^ "."
   end
 
-fun minimize_line _ [] = ""
-  | minimize_line minimize_command ss =
-    (case minimize_command ss of
-      "" => ""
-    | command => "\nTo minimize: " ^ Active.sendback_markup [Markup.padding_command] command ^ ".")
-
 fun split_used_facts facts =
   facts
   |> List.partition (fn (_, (sc, _)) => sc = Chained)
   |> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text ctxt num_chained
-    ((meth, play), banner, used_facts, minimize_command, subgoal, subgoal_count) =
-  let
-    val (chained, extra) = split_used_facts used_facts
-
-    val try_line =
-      map fst extra
-      |> proof_method_command ctxt meth subgoal subgoal_count (map fst chained) num_chained
-      |> (if play = Play_Failed then enclose "One-line proof reconstruction failed: " "."
-          else try_command_line banner play)
-  in
-    try_line ^ minimize_line minimize_command (map fst (extra @ chained))
+    ((meth, play), banner, used_facts, subgoal, subgoal_count) =
+  let val (chained, extra) = split_used_facts used_facts in
+    map fst extra
+    |> proof_method_command ctxt meth subgoal subgoal_count (map fst chained) num_chained
+    |> (if play = Play_Failed then enclose "One-line proof reconstruction failed: " "."
+        else try_command_line banner play)
   end
 
 end;

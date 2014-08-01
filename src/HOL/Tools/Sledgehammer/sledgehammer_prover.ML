@@ -14,7 +14,6 @@ sig
   type fact = Sledgehammer_Fact.fact
   type proof_method = Sledgehammer_Proof_Methods.proof_method
   type play_outcome = Sledgehammer_Proof_Methods.play_outcome
-  type minimize_command = Sledgehammer_Proof_Methods.minimize_command
 
   datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 
@@ -62,9 +61,7 @@ sig
      message : proof_method * play_outcome -> string,
      message_tail : string}
 
-  type prover =
-    params -> ((string * string list) list -> string -> minimize_command) -> prover_problem ->
-    prover_result
+  type prover = params -> prover_problem -> prover_result
 
   val SledgehammerN : string
   val str_of_mode : mode -> string
@@ -156,9 +153,7 @@ type prover_result =
    message : proof_method * play_outcome -> string,
    message_tail : string}
 
-type prover =
-  params -> ((string * string list) list -> string -> minimize_command)
-  -> prover_problem -> prover_result
+type prover = params -> prover_problem -> prover_result
 
 fun overlord_file_location_of_prover prover = (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
 

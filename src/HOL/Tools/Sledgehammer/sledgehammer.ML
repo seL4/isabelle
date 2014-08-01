@@ -10,7 +10,6 @@ signature SLEDGEHAMMER =
 sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
-  type minimize_command = Sledgehammer_Proof_Methods.minimize_command
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
 
@@ -21,8 +20,7 @@ sig
 
   val string_of_factss : (string * fact list) list -> string
   val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
-    ((string * string list) list -> string -> minimize_command) -> Proof.state ->
-    bool * (string * Proof.state)
+    Proof.state -> bool * (string * Proof.state)
 end;
 
 structure Sledgehammer : SLEDGEHAMMER =
@@ -90,7 +88,7 @@ fun play_one_line_proof mode timeout used_facts state i (preferred, methss as (m
   end
 
 fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout, preplay_timeout,
-      expect, ...}) mode output_result minimize_command only learn
+      expect, ...}) mode output_result only learn
     {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
   let
     val ctxt = Proof.context_of state
@@ -154,7 +152,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
 
     fun really_go () =
       problem
-      |> get_minimizing_prover ctxt mode learn name params minimize_command
+      |> get_minimizing_prover ctxt mode learn name params
       |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
           print_used_facts used_facts used_from
         | _ => ())
@@ -235,7 +233,7 @@ fun string_of_factss factss =
       (if filter = "" then "" else quote filter ^ ": ") ^ string_of_facts facts) factss)
 
 fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...}) mode
-    output_result i (fact_override as {only, ...}) minimize_command state =
+    output_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set."
   else
@@ -292,7 +290,7 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
                factss = factss}
             val learn = mash_learn_proof ctxt params (prop_of goal) all_facts
-            val launch = launch_prover params mode output_result minimize_command only learn
+            val launch = launch_prover params mode output_result only learn
           in
             if mode = Auto_Try then
               (unknownN, state)
