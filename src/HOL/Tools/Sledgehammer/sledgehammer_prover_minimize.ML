@@ -21,11 +21,9 @@ sig
 
   val binary_min_facts : int Config.T
   val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
-    Proof.state -> thm -> (proof_method * play_outcome) Lazy.lazy option ->
-    ((string * stature) * thm list) list ->
+    Proof.state -> thm -> ((string * stature) * thm list) list ->
     ((string * stature) * thm list) list option
-      * ((proof_method * play_outcome) Lazy.lazy * ((proof_method * play_outcome) -> string)
-         * string)
+     * (((proof_method * play_outcome) -> string) * string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
 
   val run_minimize : params -> (thm list -> unit) -> int -> (Facts.ref * Attrib.src list) list ->
@@ -104,8 +102,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
        factss = [("", facts)]}
-    val result as {outcome, used_facts, run_time, ...} =
-      prover params (K (K (K ""))) problem
+    val result as {outcome, used_facts, run_time, ...} = prover params (K (K (K ""))) problem
   in
     print silent (fn () =>
       (case outcome of
@@ -194,7 +191,7 @@ fun binary_minimize test timeout result xs =
   end
 
 fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent i n state goal
-    preplay0 facts =
+    facts =
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
@@ -212,7 +209,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
          val min =
            if length facts >= Config.get ctxt binary_min_facts then binary_minimize
            else linear_minimize
-         val (min_facts, {preplay, message, message_tail, ...}) =
+         val (min_facts, {message, message_tail, ...}) =
            min test (new_timeout timeout run_time) result facts
        in
          print silent (fn () => cat_lines
@@ -221,41 +218,38 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
                  0 => ""
                | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
          (if learn then do_learn (maps snd min_facts) else ());
-         (SOME min_facts,
-          (if is_some preplay0 andalso length min_facts = length facts then the preplay0
-           else preplay,
-           message, message_tail))
+         (SOME min_facts, (message, message_tail))
        end
-     | {outcome = SOME TimedOut, preplay, ...} =>
-       (NONE, (preplay, fn _ =>
+     | {outcome = SOME TimedOut, ...} =>
+       (NONE, (fn _ =>
           "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
           \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\").", ""))
-     | {preplay, message, ...} => (NONE, (preplay, prefix "Prover error: " o message, ""))))
-    handle ERROR msg =>
-      (NONE, (Lazy.value (Metis_Method (NONE, NONE), Play_Failed), fn _ => "Error: " ^ msg, ""))
+     | {message, ...} => (NONE, (prefix "Prover error: " o message, ""))))
+    handle ERROR msg => (NONE, (fn _ => "Error: " ^ msg, ""))
   end
 
 fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
     ({state, goal, subgoal, subgoal_count, ...} : prover_problem)
-    (result as {outcome, used_facts, used_from, run_time, preplay, message, message_tail} :
-     prover_result) =
+    (result as {outcome, used_facts, used_from, preferred_methss, run_time, message, message_tail}
+     : prover_result) =
   if is_some outcome orelse null used_facts then
     result
   else
     let
-      val (used_facts, (preplay, message, _)) =
+      val (used_facts, (message, _)) =
         if minimize then
           minimize_facts do_learn name params
             (not verbose orelse (mode <> Normal andalso mode <> MaSh)) subgoal subgoal_count state
-            goal (SOME preplay) (filter_used_facts true used_facts (map (apsnd single) used_from))
+            goal (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
         else
-          (SOME used_facts, (preplay, message, ""))
+          (SOME used_facts, (message, ""))
     in
       (case used_facts of
         SOME used_facts =>
-        {outcome = NONE, used_facts = used_facts, used_from = used_from, run_time = run_time,
-         preplay = preplay, message = message, message_tail = message_tail}
+        {outcome = NONE, used_facts = used_facts, used_from = used_from,
+         preferred_methss = preferred_methss, run_time = run_time, message = message,
+         message_tail = message_tail}
       | NONE => result)
     end
 
@@ -278,9 +272,10 @@ fun run_minimize (params as {provers, ...}) do_learn i refs state =
         [] => error "No prover is set."
       | prover :: _ =>
         (kill_provers ();
-         minimize_facts do_learn prover params false i n state goal NONE facts
-         |> (fn (_, (preplay, message, message_tail)) =>
-                Output.urgent_message (message (Lazy.force preplay) ^ message_tail)))))
+         minimize_facts do_learn prover params false i n state goal facts
+         |> (fn (_, (message, message_tail)) =>
+           Output.urgent_message (message (Metis_Method (NONE, NONE),
+             Play_Timed_Out Time.zeroTime) ^ message_tail)))))
   end
 
 end;

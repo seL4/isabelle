@@ -355,21 +355,18 @@ fun run_atp mode name
       else
         ""
 
-    val (used_facts, preplay, message, message_tail) =
+    val (used_facts, preferred_methss, message, message_tail) =
       (case outcome of
         NONE =>
         let
           val used_facts = used_facts_in_atp_proof ctxt (map fst used_from) atp_proof
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
-          val meths =
-            bunch_of_proof_methods (smt_proofs <> SOME false) needs_full_types
+          val preferred_methss =
+            bunches_of_proof_methods (smt_proofs <> SOME false) needs_full_types
               (if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN)
+            |> `(hd o hd)
         in
-          (used_facts,
-           Lazy.lazy (fn () =>
-             let val used_pairs = used_from |> filter_used_facts false used_facts in
-               play_one_line_proof mode preplay_timeout used_pairs state subgoal (hd meths) meths
-             end),
+          (used_facts, preferred_methss,
            fn preplay =>
               let
                 val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
@@ -404,11 +401,11 @@ fun run_atp mode name
               ""))
         end
       | SOME failure =>
-        ([], Lazy.value (Metis_Method (NONE, NONE), Play_Failed),
-         fn _ => string_of_atp_failure failure, ""))
+        ([], (Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure, ""))
   in
-    {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
-     preplay = preplay, message = message, message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = used_from,
+     preferred_methss = preferred_methss, run_time = run_time, message = message,
+     message_tail = message_tail}
   end
 
 end;

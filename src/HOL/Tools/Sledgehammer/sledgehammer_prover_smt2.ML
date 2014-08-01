@@ -192,34 +192,36 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
     val used_facts = map fst used_named_facts
     val outcome = Option.map failure_of_smt2_failure outcome
 
-    val (preplay, message, message_tail) =
+    val (preferred_methss, message, message_tail) =
       (case outcome of
         NONE =>
-        (Lazy.lazy (fn () =>
-           play_one_line_proof mode preplay_timeout used_named_facts state subgoal SMT2_Method
-             (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
-         fn preplay =>
-            let
-              val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
+        let
+          val preferred_methss =
+            (SMT2_Method, bunches_of_proof_methods (smt_proofs <> SOME false) false liftingN)
+        in
+          (preferred_methss,
+           fn preplay =>
+             let
+               val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
 
-              fun isar_params () =
-                (verbose, (NONE, NONE), preplay_timeout, compress, try0, minimize, atp_proof (),
-                 goal)
+               fun isar_params () =
+                 (verbose, (NONE, NONE), preplay_timeout, compress, try0, minimize, atp_proof (),
+                  goal)
 
-              val one_line_params =
-                (preplay, proof_banner mode name, used_facts, minimize_command [] name, subgoal,
-                 subgoal_count)
-              val num_chained = length (#facts (Proof.goal state))
-            in
-              proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
-            end,
-         if verbose then "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "." else "")
-      | SOME failure =>
-        (Lazy.value (Metis_Method (NONE, NONE), Play_Failed),
-         fn _ => string_of_atp_failure failure, ""))
+               val one_line_params =
+                 (preplay, proof_banner mode name, used_facts, minimize_command [] name, subgoal,
+                  subgoal_count)
+               val num_chained = length (#facts (Proof.goal state))
+             in
+               proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
+             end,
+           if verbose then "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "." else "")
+        end
+      | SOME failure => ((Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure, ""))
   in
-    {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
-     preplay = preplay, message = message, message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = used_from,
+     preferred_methss = preferred_methss, run_time = run_time, message = message,
+     message_tail = message_tail}
   end
 
 end;

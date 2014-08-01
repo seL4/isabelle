@@ -41,25 +41,26 @@ open Sledgehammer_Isar_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
 
-fun par_list_map_filter_with_timeout get_time timeout0 f xs =
-  let
-    val next_timeout = Unsynchronized.ref timeout0
+fun par_list_map_filter_with_timeout _ _ _ [] = []
+  | par_list_map_filter_with_timeout get_time timeout0 f xs =
+    let
+      val next_timeout = Unsynchronized.ref timeout0
 
-    fun apply_f x =
-      let val timeout = !next_timeout in
-        if timeout = Time.zeroTime then
-          NONE
-        else
-          let val y = f timeout x in
-            (case get_time y of
-              SOME time => next_timeout := time
-            | _ => ());
-            SOME y
-          end
-      end
-  in
-    map_filter I (Par_List.map apply_f xs)
-  end
+      fun apply_f x =
+        let val timeout = !next_timeout in
+          if timeout = Time.zeroTime then
+            NONE
+          else
+            let val y = f timeout x in
+              (case get_time y of
+                SOME time => next_timeout := time
+              | _ => ());
+              SOME y
+            end
+        end
+    in
+      map_filter I (Par_List.map apply_f xs)
+    end
 
 fun enrich_context_with_local_facts proof ctxt =
   let
