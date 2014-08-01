@@ -94,22 +94,27 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
   | add_line_pass1 line lines = line :: lines
 
 fun add_lines_pass2 res _ [] = rev res
-  | add_lines_pass2 res prev_t ((line as (name, role, t, rule, deps)) :: lines) =
+  | add_lines_pass2 res (prev as (prev_name, prev_norm_t))
+      ((line as (name, role, t, rule, deps)) :: lines) =
     let
+      val norm_t = t |> role = Conjecture ? (HOLogic.dest_Trueprop #> s_not #> HOLogic.mk_Trueprop)
+
       fun looks_boring () =
-        t aconv @{prop True} orelse t aconv @{prop False} orelse t aconv prev_t orelse
+        t aconv @{prop True} orelse t aconv @{prop False} orelse norm_t aconv prev_norm_t orelse
         length deps < 2
 
       fun is_skolemizing_line (_, _, _, rule', deps') =
         is_skolemize_rule rule' andalso member (op =) deps' name
+
       fun is_before_skolemize_rule () = exists is_skolemizing_line lines
     in
-      if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
-         is_datatype_rule rule orelse null lines orelse not (looks_boring ()) orelse
-         is_before_skolemize_rule () then
-        add_lines_pass2 (line :: res) t lines
+      if (Term.aconv_untyped (prev_norm_t, norm_t) andalso member (op =) deps prev_name) orelse
+          (role = Plain andalso not (is_skolemize_rule rule) andalso
+           not (is_arith_rule rule) andalso not (is_datatype_rule rule) andalso
+           not (null lines) andalso looks_boring () andalso not (is_before_skolemize_rule ())) then
+        add_lines_pass2 res prev (map (replace_dependencies_in_line (name, deps)) lines)
       else
-        add_lines_pass2 res prev_t (map (replace_dependencies_in_line (name, deps)) lines)
+        add_lines_pass2 (line :: res) (name, norm_t) lines
     end
 
 type isar_params =
@@ -160,7 +165,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         val atp_proof =
           fold_rev add_line_pass1 atp_proof []
-          |> add_lines_pass2 [] Term.dummy
+          |> add_lines_pass2 [] (("", []), Term.dummy)
 
         val conjs =
           map_filter (fn (name, role, _, _, _) =>
