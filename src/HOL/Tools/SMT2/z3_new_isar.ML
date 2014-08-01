@@ -63,6 +63,17 @@ fun inline_z3_hypotheses _ _ [] = []
           end
       end
 
+fun dest_alls (Const (@{const_name Pure.all}, _) $ Abs (abs as (_, T, _))) =
+    let val (s', t') = Term.dest_abs abs in
+      dest_alls t' |>> cons (s', T)
+    end
+  | dest_alls t = ([], t)
+
+val reorder_foralls =
+  dest_alls
+  #>> sort_wrt fst
+  #-> fold_rev (Logic.all o Free);
+
 fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids
     conjecture_id fact_helper_ids proof =
   let
@@ -72,7 +83,9 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
       let
         val sid = string_of_int id
 
-        val concl' = postprocess_step_conclusion thy rewrite_rules ll_defs concl
+        val concl' = concl
+          |> reorder_foralls (* crucial for skolemization steps *)
+          |> postprocess_step_conclusion thy rewrite_rules ll_defs
         fun standard_step role =
           ((sid, []), role, concl', Z3_New_Proof.string_of_rule rule,
            map (fn id => (string_of_int id, [])) prems)
