@@ -34,6 +34,7 @@ open Sledgehammer_Fact
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
+open Sledgehammer_Isar_Minimize
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
@@ -78,9 +79,22 @@ fun play_one_line_proof mode timeout used_facts state i (preferred, methss as (m
 
         fun try_methss [] = dont_know ()
           | try_methss (meths :: methss) =
-            let val step = Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "") in
-              (case preplay_isar_step ctxt timeout [] step of
-                (res as (_, Played _)) :: _ => (used_facts, res)
+            let
+              fun mk_step fact_names meths =
+                Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "")
+            in
+              (case preplay_isar_step ctxt timeout [] (mk_step fact_names meths) of
+                (res as (Metis_Method _, Played _)) :: _ =>
+                (used_facts, res) (* if a fact is needed by an ATP, it will be needed by "metis" *)
+              | (meth, Played time) :: _ =>
+                let
+                  val (time', used_names') =
+                    minimized_isar_step ctxt time (mk_step fact_names [meth])
+                    ||> (facts_of_isar_step #> snd)
+                  val used_facts' = filter (member (op =) used_names' o fst) used_facts
+                in
+                  (used_facts', (meth, Played time'))
+                end
               | _ => try_methss methss)
             end
       in
