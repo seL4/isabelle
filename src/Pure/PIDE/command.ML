@@ -382,7 +382,7 @@ val _ =
   print_function "Execution.print"
     (fn {args, exec_id, ...} =>
       if null args then
-        SOME {delay = NONE, pri = 1, persistent = false, strict = true,
+        SOME {delay = NONE, pri = 1, persistent = false, strict = false,
           print_fn = fn _ => fn _ => Execution.fork_prints exec_id}
       else NONE);
 
