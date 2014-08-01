@@ -50,7 +50,7 @@ val separator = "-----"
 
 (*FIXME sensible to have Mirabelle-level Sledgehammer defaults?*)
 (*defaults used in this Mirabelle action*)
-val preplay_timeout_default = "3"
+val preplay_timeout_default = "1"
 val lam_trans_default = "smart"
 val uncurried_aliases_default = "smart"
 val fact_filter_default = "smart"
@@ -421,7 +421,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         Config.put Sledgehammer_Prover_ATP.atp_dest_dir dir
         #> Config.put Sledgehammer_Prover_ATP.atp_problem_prefix
           ("prob_" ^ str0 (Position.line_of pos) ^ "__")
-        #> Config.put SMT_Config.debug_files
+        #> Config.put SMT2_Config.debug_files
           (dir ^ "/" ^ Name.desymbolize (SOME false) (ATP_Util.timestamp ()) ^ "_"
           ^ serial_string ())
       | set_file_name NONE = I
@@ -435,7 +435,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                   term_order |> the_default I)
             #> (Option.map (Config.put ATP_Systems.force_sos)
                   force_sos |> the_default I))
-    val params as {max_facts, ...} =
+    val params as {max_facts, preplay_timeout, ...} =
       Sledgehammer_Commands.default_params thy
          ([("verbose", "true"),
            ("fact_filter", fact_filter),
@@ -460,11 +460,9 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], used_from = [],
-        run_time = Time.zeroTime,
-        preplay = Lazy.value (Sledgehammer_Proof_Methods.Metis_Method (NONE, NONE),
-          Sledgehammer_Proof_Methods.Play_Failed),
-        message = K "", message_tail = ""}, ~1)
-    val ({outcome, used_facts, run_time, preplay, message, message_tail, ...}
+        preferred_methss = (Sledgehammer_Proof_Methods.Auto_Method, []), run_time = Time.zeroTime,
+        message = K ""}, ~1)
+    val ({outcome, used_facts, preferred_methss, run_time, message, ...}
          : Sledgehammer_Prover.prover_result,
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
@@ -488,11 +486,12 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         val problem =
           {comment = "", state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st, factss = factss}
-      in prover params (K (K (K ""))) problem end)) ()
+      in prover params problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
-    val msg = message (Lazy.force preplay) ^ message_tail
+    val msg = message (fn () => Sledgehammer.play_one_line_proof preplay_timeout used_facts st' i
+      preferred_methss)
   in
     (case outcome of
       NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
@@ -578,6 +577,9 @@ fun run_minimize args meth named_thms id ({pre = st, log, ...} : Mirabelle.run_a
   let
     val thy = Proof.theory_of st
     val {goal, ...} = Proof.goal st
+    val i = 1
+    val preferred_methss =
+      (Sledgehammer_Proof_Methods.Auto_Method, [[Sledgehammer_Proof_Methods.Auto_Method]]) (* wrong *)
     val n0 = length (these (!named_thms))
     val prover_name = get_prover_name thy args
     val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
@@ -593,7 +595,7 @@ fun run_minimize args meth named_thms id ({pre = st, log, ...} : Mirabelle.run_a
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
     val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
-    val params = Sledgehammer_Commands.default_params thy
+    val params as {preplay_timeout, ...} = Sledgehammer_Commands.default_params thy
      ([("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),
@@ -608,9 +610,9 @@ fun run_minimize args meth named_thms id ({pre = st, log, ...} : Mirabelle.run_a
       Sledgehammer_Prover_Minimize.minimize_facts (K ()) prover_name params true 1
         (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
-    val (used_facts, (preplay, message, message_tail)) =
-      minimize st goal NONE (these (!named_thms))
-    val msg = message (Lazy.force preplay) ^ message_tail
+    val (used_facts, message) = minimize st goal (these (!named_thms))
+    val msg = message (fn () => Sledgehammer.play_one_line_proof preplay_timeout
+      (map fst (these used_facts)) st i preferred_methss)
   in
     (case used_facts of
       SOME named_thms' =>
@@ -655,9 +657,9 @@ fun run_proof_method trivial full m name meth named_thms id
           ORELSE' sledge_tac 0.2 ATP_Proof.eN "poly_guards??"
           ORELSE' sledge_tac 0.2 ATP_Proof.spassN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Proof.z3_tptpN "poly_tags??"
-          ORELSE' SMT_Solver.smt_tac ctxt thms
+          ORELSE' SMT2_Solver.smt2_tac ctxt thms
         else if !meth = "smt" then
-          SMT_Solver.smt_tac ctxt thms
+          SMT2_Solver.smt2_tac ctxt thms
         else if full then
           Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
             ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
