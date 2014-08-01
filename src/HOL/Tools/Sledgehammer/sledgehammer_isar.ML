@@ -51,13 +51,11 @@ val leo2_extcnf_forall_neg_rule = "extcnf_forall_neg"
 val satallax_skolemize_rule = "tab_ex"
 val spass_pirate_datatype_rule = "DT"
 val vampire_skolemisation_rule = "skolemisation"
-val veriT_tmp_skolemize_rule = "tmp_skolemize"
-val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
-val veriT_simp_arith_rule = "simp_arith"
 val veriT_la_generic_rule = "la_generic"
-val veriT_arith_rules = [veriT_simp_arith_rule, veriT_la_generic_rule]
-(* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
-val z3_skolemize_rule = "sk"
+val veriT_simp_arith_rule = "simp_arith"
+val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
+val veriT_tmp_skolemize_rule = "tmp_skolemize"
+val z3_skolemize_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Skolemize
 val z3_th_lemma_rule = "th-lemma"
 val zipperposition_cnf_rule = "cnf"
 
@@ -67,7 +65,9 @@ val skolemize_rules =
    zipperposition_cnf_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
-val is_arith_rule = String.isPrefix z3_th_lemma_rule orf member (op =) veriT_arith_rules
+fun is_arith_rule rule =
+  String.isPrefix z3_th_lemma_rule rule orelse rule = veriT_simp_arith_rule orelse
+  rule = veriT_la_generic_rule
 val is_datatype_rule = String.isPrefix spass_pirate_datatype_rule
 
 fun raw_label_of_num num = (num, 0)
