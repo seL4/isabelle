@@ -453,8 +453,8 @@ solutions:
 
 \begin{enum}
 \item[\labelitemi] Try the \textit{isar\_proofs} option (\S\ref{output-format}) to
-obtain a step-by-step Isar proof. Since the steps are fairly small, \textit{metis}
-and the other Isabelle proof methods are more likely to be able to replay them.
+obtain a step-by-step Isar proof. Since the steps are fairly small, Isabelle's
+proof methods are more likely to be able to replay them.
 
 \item[\labelitemi] Try the \textit{smt2} proof method instead of \textit{metis}.
 It is usually stronger, but you need to either have Z3 available to replay the
@@ -962,15 +962,8 @@ It is generally a good idea to run several provers in parallel. Running E,
 SPASS, and Vampire for 5~seconds yields a similar success rate to running the
 most effective of these for 120~seconds \cite{boehme-nipkow-2010}.
 
-In addition to the local and remote provers, the Isabelle proof methods
-\textit{metis} and \textit{smt2} can be specified as \textbf{\textit{metis}}
-and \textbf{\textit{smt}}, respectively. They are generally not recommended
-for proof search but occasionally arise in Sledgehammer-generated
-minimization commands (e.g.,
-``\textbf{sledgehammer} \textit{min} [\textit{prover} = \textit{metis}]'').
-
-For the \textit{min} subcommand, the default prover is \textit{metis}. If
-several provers are set, the first one is used.
+For the \textit{min} subcommand, the first prover is used if several are
+specified.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
@@ -1321,8 +1314,8 @@ Specifies whether standard proof methods such as \textit{auto} and
 The collection of methods is roughly the same as for the \textbf{try0} command.
 
 \opsmart{smt\_proofs}{no\_smt\_proofs}
-Specifies whether the \textit{smt2} proof method should be tried as an
-alternative to \textit{metis}.  If the option is set to \textit{smart} (the
+Specifies whether the \textit{smt2} proof method should be tried in addition to
+Isabelle's other proof methods. If the option is set to \textit{smart} (the
 default), the \textit{smt2} method is used for one-line proofs but not in Isar
 proofs.
 \end{enum}
