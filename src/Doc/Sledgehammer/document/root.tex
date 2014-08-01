@@ -447,36 +447,15 @@ iterations $j + 1$, $j + 2$, etc. To give them even more weight, try
 \point{Why does Metis fail to reconstruct the proof?}
 
 There are many reasons. If Metis runs seemingly forever, that is a sign that the
-proof is too difficult for it. Metis's search is complete, so it should
-eventually find it, but that's little consolation. There are several possible
-solutions:
-
-\begin{enum}
-\item[\labelitemi] Try the \textit{isar\_proofs} option (\S\ref{output-format}) to
-obtain a step-by-step Isar proof. Since the steps are fairly small, Isabelle's
-proof methods are more likely to be able to replay them.
-
-\item[\labelitemi] Try the \textit{smt2} proof method instead of \textit{metis}.
-It is usually stronger, but you need to either have Z3 available to replay the
-proofs, trust the SMT solver, or use certificates. See the documentation in the
-\textit{SMT2} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT2.thy}) for details.
-
-\item[\labelitemi] Try the \textit{blast} or \textit{auto} proof methods, passing
-the necessary facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
-\textit{elim}{:}, \textit{dest}{:}, or \textit{simp}{:}, as appropriate.
-\end{enum}
+proof is too difficult for it. Metis's search is complete for first-order logic
+with equality, so if the proof was found by an ATP such as E, SPASS, or Vampire,
+Metis should eventually find it, but that's little consolation.
 
 In some rare cases, \textit{metis} fails fairly quickly, and you get the error
-message
-
-\prew
-\slshape
-One-line proof reconstruction failed.
-\postw
-
-This message indicates that Sledgehammer determined that the goal is provable,
-but the proof is, for technical reasons, beyond \textit{metis}'s power. You can
-then try again with the \textit{strict} option (\S\ref{problem-encoding}).
+message ``One-line proof reconstruction failed.'' This indicates that
+Sledgehammer determined that the goal is provable, but the proof is, for
+technical reasons, beyond \textit{metis}'s power. You can then try again with
+the \textit{strict} option (\S\ref{problem-encoding}).
 
 If the goal is actually unprovable and you did not specify an unsound encoding
 using \textit{type\_enc} (\S\ref{problem-encoding}), this is a bug, and you are
@@ -611,10 +590,6 @@ In the general syntax, the \qty{subcommand} may be any of the following:
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{run} (the default):} Runs Sledgehammer on
 subgoal number \qty{num} (1 by default), with the given options and facts.
-
-\item[\labelitemi] \textbf{\textit{min}:} Attempts to minimize the facts
-specified in the \qty{facts\_override} argument to obtain a simpler proof
-involving fewer facts. The options and goal number are as for \textit{run}.
 
 \item[\labelitemi] \textbf{\textit{messages}:} Redisplays recent messages issued
 by Sledgehammer. This allows you to examine results that might have been lost
@@ -961,9 +936,6 @@ processor cores available.
 It is generally a good idea to run several provers in parallel. Running E,
 SPASS, and Vampire for 5~seconds yields a similar success rate to running the
 most effective of these for 120~seconds \cite{boehme-nipkow-2010}.
-
-For the \textit{min} subcommand, the first prover is used if several are
-specified.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
