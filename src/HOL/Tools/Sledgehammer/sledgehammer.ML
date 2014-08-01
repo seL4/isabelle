@@ -10,6 +10,8 @@ signature SLEDGEHAMMER =
 sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
+  type proof_method = Sledgehammer_Proof_Methods.proof_method
+  type play_outcome = Sledgehammer_Proof_Methods.play_outcome
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
 
@@ -18,6 +20,8 @@ sig
   val timeoutN : string
   val unknownN : string
 
+  val play_one_line_proof : Time.time -> (string * 'a) list -> Proof.state -> int ->
+    proof_method * proof_method list list -> (string * 'a) list * (proof_method * play_outcome)
   val string_of_factss : (string * fact list) list -> string
   val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
     Proof.state -> bool * (string * Proof.state)
@@ -59,7 +63,7 @@ fun prover_description verbose name num_facts =
   (quote name,
    if verbose then " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts else "")
 
-fun play_one_line_proof mode timeout used_facts state i (preferred, methss as (meth :: _) :: _) =
+fun play_one_line_proof timeout used_facts state i (preferred, methss as (meth :: _) :: _) =
   let
     fun dont_know () =
       (used_facts,
@@ -70,7 +74,6 @@ fun play_one_line_proof mode timeout used_facts state i (preferred, methss as (m
       dont_know ()
     else
       let
-        val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
         val fact_names = used_facts |> map fst |> sort string_ord
 
         val {context = ctxt, facts = chained, goal} = Proof.goal state
@@ -176,7 +179,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
         (if outcome = SOME ATP_Proof.TimedOut then timeoutN
          else if is_some outcome then noneN
          else someN,
-         fn () => message (fn () => play_one_line_proof mode preplay_timeout used_facts state subgoal
+         fn () => message (fn () => play_one_line_proof preplay_timeout used_facts state subgoal
            preferred_methss)))
 
     fun go () =
