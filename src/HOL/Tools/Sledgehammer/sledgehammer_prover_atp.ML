@@ -127,8 +127,7 @@ fun suffix_of_mode Auto_Try = "_try"
    the only ATP that does not honor its time limit. *)
 val atp_timeout_slack = seconds 1.0
 
-(* Important messages are important but not so important that users want to see
-   them each time. *)
+(* Important messages are important but not so important that users want to see them each time. *)
 val atp_important_message_keep_quotient = 25
 
 fun run_atp mode name
@@ -354,7 +353,7 @@ fun run_atp mode name
       else
         ""
 
-    val (used_facts, preferred_methss, message, message_tail) =
+    val (used_facts, preferred_methss, message) =
       (case outcome of
         NONE =>
         let
@@ -390,20 +389,19 @@ fun run_atp mode name
                   (preplay, proof_banner mode name, used_facts, subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
-              end,
-           (if verbose then "\nATP real CPU time: " ^ string_of_time run_time ^ "." else "") ^
-           (if important_message <> "" then
-              "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
-            else
-              ""))
+                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
+                  one_line_params ^
+                (if important_message <> "" then
+                   "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
+                 else
+                   "")
+              end)
         end
       | SOME failure =>
-        ([], (Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure, ""))
+        ([], (Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure))
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
-     preferred_methss = preferred_methss, run_time = run_time, message = message,
-     message_tail = message_tail}
+     preferred_methss = preferred_methss, run_time = run_time, message = message}
   end
 
 end;

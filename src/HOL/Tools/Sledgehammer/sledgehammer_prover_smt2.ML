@@ -192,7 +192,7 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
     val used_facts = map fst used_named_facts
     val outcome = Option.map failure_of_smt2_failure outcome
 
-    val (preferred_methss, message, message_tail) =
+    val (preferred_methss, message) =
       (case outcome of
         NONE =>
         let
@@ -212,15 +212,14 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
                  (preplay, proof_banner mode name, used_facts, subgoal, subgoal_count)
                val num_chained = length (#facts (Proof.goal state))
              in
-               proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
-             end,
-           if verbose then "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "." else "")
+               proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
+                 one_line_params
+             end)
         end
-      | SOME failure => ((Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure, ""))
+      | SOME failure => ((Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure))
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
-     preferred_methss = preferred_methss, run_time = run_time, message = message,
-     message_tail = message_tail}
+     preferred_methss = preferred_methss, run_time = run_time, message = message}
   end
 
 end;

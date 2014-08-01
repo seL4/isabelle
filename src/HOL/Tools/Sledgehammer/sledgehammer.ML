@@ -157,13 +157,13 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
           print_used_facts used_facts used_from
         | _ => ())
       |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
-      |> (fn {outcome, used_facts, used_from, preferred_methss, message, message_tail, ...} =>
+      |> (fn {outcome, used_facts, used_from, preferred_methss, message, ...} =>
         (if outcome = SOME ATP_Proof.TimedOut then timeoutN
          else if is_some outcome then noneN
          else someN,
          fn () => message (play_one_line_proof mode preplay_timeout
            (filter_used_facts false used_facts used_from) state subgoal
-           preferred_methss) ^ message_tail))
+           preferred_methss)))
 
     fun go () =
       let

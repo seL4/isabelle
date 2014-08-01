@@ -22,12 +22,8 @@ sig
   val binary_min_facts : int Config.T
   val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
     Proof.state -> thm -> ((string * stature) * thm list) list ->
-    ((string * stature) * thm list) list option
-     * (((proof_method * play_outcome) -> string) * string)
+    ((string * stature) * thm list) list option * ((proof_method * play_outcome) -> string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
-
-  val run_minimize : params -> (thm list -> unit) -> int -> (Facts.ref * Attrib.src list) list ->
-    Proof.state -> unit
 end;
 
 structure Sledgehammer_Prover_Minimize : SLEDGEHAMMER_PROVER_MINIMIZE =
@@ -209,8 +205,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
          val min =
            if length facts >= Config.get ctxt binary_min_facts then binary_minimize
            else linear_minimize
-         val (min_facts, {message, message_tail, ...}) =
-           min test (new_timeout timeout run_time) result facts
+         val (min_facts, {message, ...}) = min test (new_timeout timeout run_time) result facts
        in
          print silent (fn () => cat_lines
              ["Minimized to " ^ n_facts (map fst min_facts)] ^
@@ -218,64 +213,42 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
                  0 => ""
                | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
          (if learn then do_learn (maps snd min_facts) else ());
-         (SOME min_facts, (message, message_tail))
+         (SOME min_facts, message)
        end
      | {outcome = SOME TimedOut, ...} =>
-       (NONE, (fn _ =>
+       (NONE, fn _ =>
           "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
-          \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\").", ""))
-     | {message, ...} => (NONE, (prefix "Prover error: " o message, ""))))
-    handle ERROR msg => (NONE, (fn _ => "Error: " ^ msg, ""))
+          \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\").")
+     | {message, ...} => (NONE, (prefix "Prover error: " o message))))
+    handle ERROR msg => (NONE, fn _ => "Error: " ^ msg)
   end
 
 fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
     ({state, goal, subgoal, subgoal_count, ...} : prover_problem)
-    (result as {outcome, used_facts, used_from, preferred_methss, run_time, message, message_tail}
+    (result as {outcome, used_facts, used_from, preferred_methss, run_time, message}
      : prover_result) =
   if is_some outcome orelse null used_facts then
     result
   else
     let
-      val (used_facts, (message, _)) =
+      val (used_facts, message) =
         if minimize then
           minimize_facts do_learn name params
             (not verbose orelse (mode <> Normal andalso mode <> MaSh)) subgoal subgoal_count state
             goal (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
         else
-          (SOME used_facts, (message, ""))
+          (SOME used_facts, message)
     in
       (case used_facts of
         SOME used_facts =>
         {outcome = NONE, used_facts = used_facts, used_from = used_from,
-         preferred_methss = preferred_methss, run_time = run_time, message = message,
-         message_tail = message_tail}
+         preferred_methss = preferred_methss, run_time = run_time, message = message}
       | NONE => result)
     end
 
 fun get_minimizing_prover ctxt mode do_learn name params problem =
   get_prover ctxt mode name params problem
   |> maybe_minimize mode do_learn name params problem
-
-fun run_minimize (params as {provers, ...}) do_learn i refs state =
-  let
-    val ctxt = Proof.context_of state
-    val {goal, facts = chained_ths, ...} = Proof.goal state
-    val reserved = reserved_isar_keyword_table ()
-    val css = clasimpset_rule_table_of ctxt
-    val facts = refs |> maps (map (apsnd single) o fact_of_ref ctxt reserved chained_ths css)
-  in
-    (case subgoal_count state of
-      0 => Output.urgent_message "No subgoal!"
-    | n =>
-      (case provers of
-        [] => error "No prover is set."
-      | prover :: _ =>
-        (kill_provers ();
-         minimize_facts do_learn prover params false i n state goal facts
-         |> (fn (_, (message, message_tail)) =>
-           Output.urgent_message (message (Metis_Method (NONE, NONE),
-             Play_Timed_Out Time.zeroTime) ^ message_tail)))))
-  end
 
 end;

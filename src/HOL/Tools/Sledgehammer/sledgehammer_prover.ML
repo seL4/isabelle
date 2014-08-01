@@ -58,8 +58,7 @@ sig
      used_from : fact list,
      preferred_methss : proof_method * proof_method list list,
      run_time : Time.time,
-     message : proof_method * play_outcome -> string,
-     message_tail : string}
+     message : proof_method * play_outcome -> string}
 
   type prover = params -> prover_problem -> prover_result
 
@@ -150,8 +149,7 @@ type prover_result =
    used_from : fact list,
    preferred_methss : proof_method * proof_method list list,
    run_time : Time.time,
-   message : proof_method * play_outcome -> string,
-   message_tail : string}
+   message : proof_method * play_outcome -> string}
 
 type prover = params -> prover_problem -> prover_result
 
