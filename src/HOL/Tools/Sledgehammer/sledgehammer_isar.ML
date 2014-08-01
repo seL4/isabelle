@@ -109,7 +109,7 @@ fun add_lines_pass2 res _ [] = rev res
          is_before_skolemize_rule () then
         add_lines_pass2 (line :: res) t lines
       else
-        add_lines_pass2 res t (map (replace_dependencies_in_line (name, deps)) lines)
+        add_lines_pass2 res prev_t (map (replace_dependencies_in_line (name, deps)) lines)
     end
 
 type isar_params =
@@ -159,8 +159,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
 
         val atp_proof =
-          atp_proof
-          |> rpair [] |-> fold_rev add_line_pass1
+          fold_rev add_line_pass1 atp_proof []
           |> add_lines_pass2 [] Term.dummy
 
         val conjs =
