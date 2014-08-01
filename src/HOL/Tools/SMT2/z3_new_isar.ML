@@ -79,19 +79,17 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
       in
         (case rule of
           Z3_New_Proof.Asserted =>
-          let
-            val ss = the_list (AList.lookup (op =) fact_helper_ids id)
-            val name0 = (sid ^ "a", ss)
-
-            val (role0, concl0) =
-              distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts
-              hyp_ts concl_t concl
-
-          in
-            (if role0 = Axiom then []
-             else [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, [])]) @
-            [((sid, []), Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
-              name0 :: normalizing_prems ctxt concl0)]
+          let val ss = the_list (AList.lookup (op =) fact_helper_ids id) in
+            (case distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts
+                hyp_ts concl_t concl of
+              NONE => []
+            | SOME (role0, concl0) =>
+              let val name0 = (sid ^ "a", ss) in
+                (if role0 = Axiom then []
+                 else [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, [])]) @
+                [((sid, []), Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
+                  name0 :: normalizing_prems ctxt concl0)]
+              end)
           end
         | Z3_New_Proof.Rewrite => [standard_step Lemma]
         | Z3_New_Proof.Rewrite_Star => [standard_step Lemma]
