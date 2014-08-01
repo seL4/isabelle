@@ -77,8 +77,7 @@ fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
   | explode_interval max (Facts.From i) = i upto i + max - 1
   | explode_interval _ (Facts.Single i) = [i]
 
-val backquote =
-  raw_explode #> map (fn "`" => "\\`" | s => s) #> implode #> enclose "`" "`"
+val backquote = raw_explode #> map (fn "`" => "\\`" | s => s) #> implode #> enclose "`" "`"
 
 (* unfolding these can yield really huge terms *)
 val risky_defs = @{thms Bit0_def Bit1_def}

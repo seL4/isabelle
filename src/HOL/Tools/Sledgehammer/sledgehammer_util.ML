@@ -142,9 +142,9 @@ fun with_vanilla_print_mode f x =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN) (print_mode_value ())) f x
 
 fun hackish_string_of_term ctxt =
-  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
+  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> unyxml #> simplify_spaces
 
-val spying_version = "c"
+val spying_version = "d"
 
 fun spying false _ = ()
   | spying true f =
