@@ -385,7 +385,7 @@ fun run_atp mode name
                      minimize, atp_proof, goal)
                   end
 
-                val one_line_params = (preplay, proof_banner mode name, subgoal, subgoal_count)
+                val one_line_params = (preplay (), proof_banner mode name, subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
                 proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained

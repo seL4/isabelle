@@ -23,7 +23,7 @@ sig
   val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
     Proof.state -> thm -> ((string * stature) * thm list) list ->
     ((string * stature) * thm list) list option
-    * (((string * stature) list * (proof_method * play_outcome)) -> string)
+    * ((unit -> (string * stature) list * (proof_method * play_outcome)) -> string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
 end;
 
@@ -209,10 +209,10 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
          val (min_facts, {message, ...}) = min test (new_timeout timeout run_time) result facts
        in
          print silent (fn () => cat_lines
-             ["Minimized to " ^ n_facts (map fst min_facts)] ^
-              (case min_facts |> filter is_fact_chained |> length of
-                 0 => ""
-               | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
+           ["Minimized to " ^ n_facts (map fst min_facts)] ^
+            (case min_facts |> filter is_fact_chained |> length of
+              0 => ""
+            | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
          (if learn then do_learn (maps snd min_facts) else ());
          (SOME min_facts, message)
        end

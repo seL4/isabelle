@@ -176,7 +176,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
         (if outcome = SOME ATP_Proof.TimedOut then timeoutN
          else if is_some outcome then noneN
          else someN,
-         fn () => message (play_one_line_proof mode preplay_timeout used_facts state subgoal
+         fn () => message (fn () => play_one_line_proof mode preplay_timeout used_facts state subgoal
            preferred_methss)))
 
     fun go () =
