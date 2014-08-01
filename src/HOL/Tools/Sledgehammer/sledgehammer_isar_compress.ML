@@ -192,8 +192,9 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
 
       fun compress_top_level steps =
         let
-          fun cand_key (l, t_size) = (length (get_successors l), t_size)
-          val cand_ord = prod_ord int_ord (int_ord o swap) o pairself cand_key
+          val cand_key = apfst (length o get_successors)
+          val cand_ord =
+            prod_ord int_ord (prod_ord (int_ord o swap) (int_ord o swap)) o pairself cand_key
 
           fun pop_next_candidate [] = (NONE, [])
             | pop_next_candidate (cands as (cand :: cands')) =
@@ -248,7 +249,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
                       |> compression_loop candidates'
                   end))
 
-          fun add_cand (Prove (_, _, l, t, _, _, _, _)) = cons (l, size_of_term t)
+          fun add_cand (Prove (_, xs, l, t, _, _, _, _)) = cons (l, (length xs, size_of_term t))
             | add_cand _ = I
 
           (* the very last step is not a candidate *)
