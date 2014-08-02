@@ -204,7 +204,7 @@ fun reset_state tr st0 = Toplevel.setmp_thread_position tr (fn () =>
   in
     (case res of
       NONE => st0
-    | SOME st => (warning (Toplevel.type_error tr st0 ^ " -- resetting state"); st))
+    | SOME st => (Output.error_message (Toplevel.type_error tr st0 ^ " -- using reset state"); st))
   end) ();
 
 fun run int tr st =
