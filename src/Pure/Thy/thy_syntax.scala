@@ -490,6 +490,6 @@ object Thy_Syntax
         (doc_edits.toList.filterNot(_._2.is_void), Document.Version.make(Some(syntax), nodes))
       }
 
-    Session.Change(previous, doc_blobs, syntax_changed, deps_changed, doc_edits, version)
+    Session.Change(previous, syntax_changed, deps_changed, doc_edits, version)
   }
 }
