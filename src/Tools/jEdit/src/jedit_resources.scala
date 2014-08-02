@@ -49,7 +49,8 @@ class JEdit_Resources(
   override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand
-    if (dir == "" || path.is_absolute) Isabelle_System.platform_path(path)
+    if (dir == "" || path.is_absolute)
+      MiscUtilities.resolveSymlinks(Isabelle_System.platform_path(path))
     else if (path.is_current) dir
     else {
       val vfs = VFSManager.getVFSForPath(dir)
