@@ -60,7 +60,7 @@ proof -
   have aux: "\<And>a b xs. (a, b) \<in> set xs \<Longrightarrow> a \<in> fst ` set xs"
     by (auto simp add: image_def intro!: bexI)
   show ?thesis apply transfer
-  by (auto intro!: map_of_eqI) (auto dest!: map_of_eq_dom intro: aux)
+    by (auto intro!: map_of_eqI) (auto dest!: map_of_eq_dom intro: aux)
 qed
 
 lemma [code nbe]:
