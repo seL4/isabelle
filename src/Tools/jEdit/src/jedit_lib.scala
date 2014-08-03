@@ -295,7 +295,7 @@ object JEdit_Lib
       def string_width(s: String): Double =
         painter.getFont.getStringBounds(s, painter.getFontRenderContext).getWidth
 
-      val unit = string_width(Pretty.space)
+      val unit = string_width(Pretty.space) max 1.0
       val average = string_width("mix") / (3 * unit)
       def apply(s: String): Double = if (s == "\n") 1.0 else string_width(s) / unit
     }
