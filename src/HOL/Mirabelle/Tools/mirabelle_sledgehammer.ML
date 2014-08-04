@@ -23,7 +23,7 @@ val max_relevantK = "max_relevant" (*=NUM: max. relevant clauses to use*)
 val max_callsK = "max_calls" (*=NUM: max. no. of calls to sledgehammer*)
 val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstructed proof*)
 val isar_proofsK = "isar_proofs" (*: enable Isar proof generation*)
-val sh_minimizeK = "sh_minimize" (*: instruct sledgehammer to run its minimizer*)
+val minimizeK = "minimize" (*: instruct sledgehammer to run its minimizer*)
 
 val check_trivialK = "check_trivial" (*: check if goals are "trivial" (false by default)*)
 val fact_filterK = "fact_filter" (*=STRING: fact filter*)
@@ -349,7 +349,7 @@ datatype sh_result =
 
 fun run_sh prover_name fact_filter type_enc strict max_facts slice
       lam_trans uncurried_aliases e_selection_heuristic term_order force_sos
-      hard_timeout timeout preplay_timeout isar_proofsLST sh_minimizeLST
+      hard_timeout timeout preplay_timeout isar_proofsLST minimizeLST
       max_new_mono_instancesLST max_mono_itersLST dir pos st =
   let
     val thy = Proof.theory_of st
@@ -373,7 +373,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                   term_order |> the_default I)
             #> (Option.map (Config.put ATP_Systems.force_sos)
                   force_sos |> the_default I))
-    val params as {max_facts, preplay_timeout, ...} =
+    val params as {max_facts, minimize, preplay_timeout, ...} =
       Sledgehammer_Commands.default_params thy
          ([("verbose", "true"),
            ("fact_filter", fact_filter),
@@ -386,7 +386,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
            ("timeout", string_of_int timeout),
            ("preplay_timeout", preplay_timeout)]
           |> isar_proofsLST
-          |> sh_minimizeLST (*don't confuse the two minimization flags*)
+          |> minimizeLST (*don't confuse the two minimization flags*)
           |> max_new_mono_instancesLST
           |> max_mono_itersLST)
     val default_max_facts =
@@ -428,8 +428,8 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
-    val msg = message (fn () => Sledgehammer.play_one_line_proof preplay_timeout used_facts st' i
-      preferred_methss)
+    val msg = message (fn () => Sledgehammer.play_one_line_proof minimize preplay_timeout used_facts
+      st' i preferred_methss)
   in
     (case outcome of
       NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
@@ -471,7 +471,7 @@ fun run_sledgehammer trivial args proof_method named_thms id
     val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
       |> the_default preplay_timeout_default
     val isar_proofsLST = available_parameter args isar_proofsK "isar_proofs"
-    val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
+    val minimizeLST = available_parameter args minimizeK "minimize"
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
     val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
@@ -479,7 +479,7 @@ fun run_sledgehammer trivial args proof_method named_thms id
     val (msg, result) =
       run_sh prover_name fact_filter type_enc strict max_facts slice lam_trans
         uncurried_aliases e_selection_heuristic term_order force_sos
-        hard_timeout timeout preplay_timeout isar_proofsLST sh_minimizeLST
+        hard_timeout timeout preplay_timeout isar_proofsLST minimizeLST
         max_new_mono_instancesLST max_mono_itersLST dir pos st
   in
     (case result of
