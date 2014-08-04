@@ -73,7 +73,7 @@ fun get_prover ctxt mode name =
 fun n_facts names =
   let val n = length names in
     string_of_int n ^ " fact" ^ plural_s n ^
-    (if n > 0 then ": " ^ (names |> map fst |> space_implode " ") else "")
+    (if n > 0 then ": " ^ (names |> map fst |> sort string_ord |> space_implode " ") else "")
   end
 
 fun print silent f = if silent then () else Output.urgent_message (f ())
@@ -160,7 +160,7 @@ fun binary_minimize test timeout result xs =
           (case test timeout (sup @ l0) of
             result as {outcome = NONE, used_facts, ...} =>
             min depth result (filter_used_facts true used_facts sup)
-                      (filter_used_facts true used_facts l0)
+              (filter_used_facts true used_facts l0)
           | _ =>
             (case test timeout (sup @ r0) of
               result as {outcome = NONE, used_facts, ...} =>
@@ -243,7 +243,7 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
     in
       (case used_facts of
         SOME used_facts =>
-        {outcome = NONE, used_facts = used_facts, used_from = used_from,
+        {outcome = NONE, used_facts = sort_wrt fst used_facts, used_from = used_from,
          preferred_methss = preferred_methss, run_time = run_time, message = message}
       | NONE => result)
     end
