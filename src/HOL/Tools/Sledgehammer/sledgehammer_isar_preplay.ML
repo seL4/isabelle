@@ -41,14 +41,14 @@ open Sledgehammer_Isar_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
 
-fun par_list_map_filter_with_timeout _ _ _ [] = []
-  | par_list_map_filter_with_timeout get_time timeout0 f xs =
+fun par_list_map_filter_with_timeout _ _ _ _ [] = []
+  | par_list_map_filter_with_timeout get_time min_timeout timeout0 f xs =
     let
       val next_timeout = Unsynchronized.ref timeout0
 
       fun apply_f x =
         let val timeout = !next_timeout in
-          if timeout = Time.zeroTime then
+          if Time.<= (timeout, min_timeout) then
             NONE
           else
             let val y = f timeout x in
@@ -161,6 +161,8 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
 fun preplay_isar_step_for_method ctxt timeout meth =
   try (raw_preplay_step_for_method ctxt timeout meth) #> the_default Play_Failed
 
+val min_preplay_timeout = seconds 0.002
+
 fun preplay_isar_step ctxt timeout0 hopeless step =
   let
     fun preplay timeout meth = (meth, preplay_isar_step_for_method ctxt timeout meth step)
@@ -169,7 +171,7 @@ fun preplay_isar_step ctxt timeout0 hopeless step =
 
     val meths = proof_methods_of_isar_step step |> subtract (op =) hopeless
   in
-    par_list_map_filter_with_timeout get_time timeout0 preplay meths
+    par_list_map_filter_with_timeout get_time min_preplay_timeout timeout0 preplay meths
     |> sort (play_outcome_ord o pairself snd)
   end
 
