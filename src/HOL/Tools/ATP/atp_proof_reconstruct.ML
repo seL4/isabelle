@@ -740,7 +740,7 @@ fun introduce_spass_skolem [] = []
 
 fun factify_atp_proof facts hyp_ts concl_t atp_proof =
   let
-    fun factify_step ((num, ss), _, t, rule, deps) =
+    fun factify_step ((num, ss), role, t, rule, deps) =
       let
         val (ss', role', t') =
           (case resolve_conjectures ss of
@@ -748,7 +748,7 @@ fun factify_atp_proof facts hyp_ts concl_t atp_proof =
             if j = length hyp_ts then ([], Conjecture, concl_t) else ([], Hypothesis, nth hyp_ts j)
           | _ =>
             (case resolve_facts facts ss of
-              [] => (ss, Plain, t)
+              [] => (ss, if role = Lemma then Lemma else Plain, t)
             | facts => (map fst facts, Axiom, t)))
       in
         ((num, ss'), role', t', rule, deps)

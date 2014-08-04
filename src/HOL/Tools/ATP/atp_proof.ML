@@ -305,7 +305,8 @@ val skip_term =
 
 datatype source =
   File_Source of string * string option |
-  Inference_Source of string * string list
+  Inference_Source of string * string list |
+  Introduced_Source of string
 
 val dummy_phi = AAtom (ATerm (("", []), []))
 val dummy_inference = Inference_Source ("", [])
@@ -326,13 +327,13 @@ and parse_inference_source x =
   (Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
    --| skip_term --| $$ "," --| skip_term --| $$ "," --| $$ "["
    -- parse_dependencies --| $$ "]" --| $$ ")") x
-and skip_introduced x =
-  (Scan.this_string "introduced" |-- $$ "(" |-- skip_term
-   -- Scan.repeat ($$ "," |-- skip_term) --| $$ ")") x
+and parse_introduced_source x =
+  (Scan.this_string "introduced" |-- $$ "(" |-- scan_general_id
+   --| Scan.option ($$ "," |-- skip_term) --| $$ ")") x
 and parse_source x =
   (parse_file_source >> File_Source
    || parse_inference_source >> Inference_Source
-   || skip_introduced >> K dummy_inference (* for Vampire *)
+   || parse_introduced_source >> Introduced_Source
    || scan_general_id >> (fn s => Inference_Source ("", [s])) (* for E *)
    || skip_term >> K dummy_inference) x
 
@@ -571,11 +572,12 @@ fun parse_tstp_line problem =
     |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
     -- (parse_formula || skip_term >> K dummy_phi) -- parse_tstp_extra_arguments
     --| $$ ")" --| $$ "."
-   >> (fn (((num, role), phi), deps) =>
+   >> (fn (((num, role0), phi), src) =>
           let
-            val ((name, phi), rule, deps) =
+            val role = role_of_tptp_string role0
+            val ((name, phi), role', rule, deps) =
               (* Waldmeister isn't exactly helping. *)
-              (case deps of
+              (case src of
                 File_Source (_, SOME s) =>
                 (if s = waldmeister_conjecture_name then
                    (case find_formula_in_problem (mk_anot phi) problem of
@@ -588,13 +590,15 @@ fun parse_tstp_line problem =
                  else
                    ((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]),
                     phi),
-                 "", [])
+                 role, "", [])
               | File_Source _ =>
-                (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
-              | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
-            fun mk_step () = (name, role_of_tptp_string role, phi, rule, map (rpair []) deps)
+                (((num, map fst (find_formula_in_problem phi problem)), phi), role, "", [])
+              | Inference_Source (rule, deps) => (((num, []), phi), role, rule, deps)
+              | Introduced_Source rule => (((num, []), phi), Lemma, rule, []))
+
+            fun mk_step () = (name, role', phi, rule, map (rpair []) deps)
           in
-            [(case role_of_tptp_string role of
+            [(case role' of
                Definition =>
                (case phi of
                  AAtom (ATerm (("equal", _), _)) =>

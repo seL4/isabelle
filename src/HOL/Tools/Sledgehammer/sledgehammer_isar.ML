@@ -46,6 +46,7 @@ open String_Redirect
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_isar_trace} (K false)
 
+val e_definition_rule = "definition"
 val e_skolemize_rule = "skolemize"
 val leo2_extcnf_forall_neg_rule = "extcnf_forall_neg"
 val satallax_skolemize_rule = "tab_ex"
@@ -60,9 +61,9 @@ val z3_th_lemma_rule_prefix = Z3_New_Proof.string_of_rule (Z3_New_Proof.Th_Lemma
 val zipperposition_cnf_rule = "cnf"
 
 val skolemize_rules =
-  [e_skolemize_rule, leo2_extcnf_forall_neg_rule, satallax_skolemize_rule, spass_skolemize_rule,
-   vampire_skolemisation_rule, veriT_tmp_ite_elim_rule, veriT_tmp_skolemize_rule, z3_skolemize_rule,
-   zipperposition_cnf_rule]
+  [e_definition_rule, e_skolemize_rule, leo2_extcnf_forall_neg_rule, satallax_skolemize_rule,
+   spass_skolemize_rule, vampire_skolemisation_rule, veriT_tmp_ite_elim_rule,
+   veriT_tmp_skolemize_rule, z3_skolemize_rule, zipperposition_cnf_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
 fun is_arith_rule rule =
