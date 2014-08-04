@@ -610,15 +610,13 @@ fun parse_tstp_line problem =
 
 (**** PARSING OF SPASS OUTPUT ****)
 
-(* SPASS returns clause references of the form "x.y". We ignore "y", whose role
-   is not clear anyway. *)
+(* SPASS returns clause references of the form "x.y". We ignore "y". *)
 val parse_dot_name = scan_general_id --| $$ "." --| scan_general_id
 
 val parse_spass_annotations =
   Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name --| Scan.option ($$ ","))) []
 
-(* It is not clear why some literals are followed by sequences of stars and/or
-   pluses. We ignore them. *)
+(* We ignore the stars and the pluses that follow literals. *)
 fun parse_decorated_atom x =
   (parse_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")) x
 
@@ -627,7 +625,7 @@ fun mk_horn ([], []) = AAtom (ATerm (("c_False", []), []))
   | mk_horn (neg_lits, []) = mk_anot (foldr1 (uncurry (mk_aconn AAnd)) neg_lits)
   | mk_horn (neg_lits, pos_lits) =
     mk_aconn AImplies (foldr1 (uncurry (mk_aconn AAnd)) neg_lits)
-                      (foldr1 (uncurry (mk_aconn AOr)) pos_lits)
+      (foldr1 (uncurry (mk_aconn AOr)) pos_lits)
 
 fun parse_horn_clause x =
   (Scan.repeat parse_decorated_atom --| $$ "|" --| $$ "|"
