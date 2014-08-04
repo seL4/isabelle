@@ -1272,13 +1272,16 @@ however, when they succeed they are usually faster and more intelligible than
 one-line proofs. If the option is set to \textit{smart} (the default), Isar
 proofs are only generated when no working one-line proof is available.
 
-\opdefault{compress}{int}{\upshape 10}
+\opdefault{compress}{int}{smart}
 Specifies the granularity of the generated Isar proofs if \textit{isar\_proofs}
 is explicitly enabled. A value of $n$ indicates that each Isar proof step should
-correspond to a group of up to $n$ consecutive proof steps in the ATP proof.
+correspond to a group of up to $n$ consecutive proof steps in the ATP proof. If
+the option is set to \textit{smart} (the default), the compression factor is 10
+if the \textit{isar\_proofs} option is explicitly enabled; otherwise, it is
+$\infty$.
 
 \optrueonly{dont\_compress}
-Alias for ``\textit{compress} = 0''.
+Alias for ``\textit{compress} = 1''.
 
 \optrue{try0}{dont\_try0}
 Specifies whether standard proof methods such as \textit{auto} and
