@@ -179,13 +179,9 @@ fun try_command_line banner play command =
     (s |> s <> "" ? enclose " (" ")") ^ "."
   end
 
-fun split_used_facts facts =
-  facts
-  |> List.partition (fn (_, (sc, _)) => sc = Chained)
-
 fun one_line_proof_text ctxt num_chained
     ((used_facts, (meth, play)), banner, subgoal, subgoal_count) =
-  let val (chained, extra) = split_used_facts used_facts in
+  let val (chained, extra) = List.partition (fn (_, (sc, _)) => sc = Chained) used_facts in
     map fst extra
     |> proof_method_command ctxt meth subgoal subgoal_count (map fst chained) num_chained
     |> (if play = Play_Failed then enclose "One-line proof reconstruction failed: " "."

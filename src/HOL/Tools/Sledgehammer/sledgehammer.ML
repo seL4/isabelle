@@ -84,8 +84,9 @@ fun play_one_line_proof minimize timeout used_facts state i
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
         val goal_t = Logic.list_implies (map prop_of chained @ hyp_ts, concl_t)
 
-        fun try_methss [] = dont_know ()
-          | try_methss (meths :: methss) =
+        fun try_methss [] [] = dont_know ()
+          | try_methss ress [] = (used_facts, hd (sort (play_outcome_ord o pairself snd) ress))
+          | try_methss ress (meths :: methss) =
             let
               fun mk_step fact_names meths =
                 Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "")
@@ -104,10 +105,10 @@ fun play_one_line_proof minimize timeout used_facts state i
                   in
                     (used_facts', (meth, Played time'))
                   end
-              | _ => try_methss methss)
+              | ress' => try_methss (ress' @ ress) methss)
             end
       in
-        try_methss methss
+        try_methss [] methss
       end
   end
 
