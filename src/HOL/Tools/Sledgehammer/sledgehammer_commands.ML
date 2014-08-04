@@ -91,7 +91,7 @@ val default_default_params =
    ("max_mono_iters", "smart"),
    ("max_new_mono_instances", "smart"),
    ("isar_proofs", "smart"),
-   ("compress", "10"),
+   ("compress", "smart"),
    ("try0", "true"),
    ("smt_proofs", "smart"),
    ("slice", "true"),
@@ -101,7 +101,7 @@ val default_default_params =
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
    ("dont_preplay", ("preplay_timeout", ["0"])),
-   ("dont_compress", ("compress", ["0"])),
+   ("dont_compress", ("compress", ["1"])),
    ("isar_proof", ("isar_proofs", [])) (* legacy *)]
 val negated_alias_params =
   [("no_debug", "debug"),
@@ -291,7 +291,7 @@ fun extract_params mode default_params override_params =
     val max_new_mono_instances =
       lookup_option lookup_int "max_new_mono_instances"
     val isar_proofs = lookup_option lookup_bool "isar_proofs"
-    val compress = Real.max (1.0, lookup_real "compress")
+    val compress = Option.map (curry Real.max 1.0) (lookup_option lookup_real "compress")
     val try0 = lookup_bool "try0"
     val smt_proofs = lookup_option lookup_bool "smt_proofs"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"

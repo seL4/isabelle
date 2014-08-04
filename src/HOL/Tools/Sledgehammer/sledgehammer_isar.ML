@@ -16,7 +16,7 @@ sig
   val trace : bool Config.T
 
   type isar_params =
-    bool * (string option * string option) * Time.time * real * bool * bool
+    bool * (string option * string option) * Time.time * real option * bool * bool
     * (term, string) atp_step list * thm
 
   val proof_text : Proof.context -> bool -> bool option -> bool option -> (unit -> isar_params) ->
@@ -124,7 +124,7 @@ fun add_lines_pass2 res [] = rev res
     end
 
 type isar_params =
-  bool * (string option * string option) * Time.time * real * bool * bool
+  bool * (string option * string option) * Time.time * real option * bool * bool
   * (term, string) atp_step list * thm
 
 val basic_systematic_methods = [Metis_Method (NONE, NONE), Meson_Method, Blast_Method, SATx_Method]
@@ -161,7 +161,10 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val ctxt = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
 
         val do_preplay = preplay_timeout <> Time.zeroTime
-        val compress = if isar_proofs = NONE andalso do_preplay then 1000.0 else compress
+        val compress =
+          (case compress of
+            NONE => if isar_proofs = NONE andalso do_preplay then 1000.0 else 10.0
+          | SOME n => n)
 
         fun is_fixed ctxt = Variable.is_declared ctxt orf Name.is_skolem
         fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
