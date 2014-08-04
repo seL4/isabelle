@@ -378,7 +378,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                  end)
              else
                one_line_params) ^
-          (if isar_proofs = SOME true then "\n(No structured proof available -- proof too simple.)"
+          (if isar_proofs = SOME true then "\n(No Isar proof available.)"
            else "")
         | num_steps =>
           let
@@ -387,7 +387,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               (if do_preplay then [string_of_play_outcome play_outcome] else [])
           in
             one_line_proof_text ctxt 0 one_line_params ^
-            "\n\nStructured proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
+            "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
             Active.sendback_markup [Markup.padding_command]
               (string_of_isar_proof ctxt subgoal subgoal_count isar_proof)
           end)
