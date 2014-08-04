@@ -189,7 +189,7 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress,
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
       smt2_filter_loop name params state goal subgoal factss
     val used_named_facts = map snd fact_ids
-    val used_facts = map fst used_named_facts
+    val used_facts = sort_wrt fst (map fst used_named_facts)
     val outcome = Option.map failure_of_smt2_failure outcome
 
     val (preferred_methss, message) =

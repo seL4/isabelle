@@ -93,8 +93,8 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
       map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
 
-fun normalize role t =
-  t |> role = Conjecture ? (HOLogic.dest_Trueprop #> s_not #> HOLogic.mk_Trueprop)
+fun normalize role =
+  role = Conjecture ? (HOLogic.dest_Trueprop #> s_not #> HOLogic.mk_Trueprop)
 
 fun add_lines_pass2 res [] = rev res
   | add_lines_pass2 res ((line as (name, role, t, rule, deps)) :: lines) =
@@ -242,7 +242,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                    (the_list predecessor, []), massage_methods systematic_methods', ""))
+                    sort_facts (the_list predecessor, []), massage_methods systematic_methods', ""))
                 else
                   I)
             |> rev
@@ -253,7 +253,9 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val rule = rule_of_clause_id id
               val skolem = is_skolemize_rule rule
 
-              val deps = fold add_fact_of_dependencies gamma ([], [])
+              val deps = ([], [])
+                |> fold add_fact_of_dependencies gamma
+                |> sort_facts
               val meths =
                 (if skolem then skolem_methods
                  else if is_arith_rule rule then arith_methods
@@ -296,7 +298,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  (the_list predecessor, []), massage_methods systematic_methods', "")
+                  sort_facts (the_list predecessor, []), massage_methods systematic_methods', "")
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end

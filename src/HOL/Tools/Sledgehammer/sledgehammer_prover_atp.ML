@@ -294,19 +294,21 @@ fun run_atp mode name
               |>> (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I)
               |> fst |> split_time
               |> (fn accum as (output, _) =>
-                     (accum,
-                      extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
-                      |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name) atp_problem
-                      handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
+                (accum,
+                 extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
+                 |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name)
+                   atp_problem
+                 handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
               handle TimeLimit.TimeOut => (("", slice_timeout), ([], SOME TimedOut))
 
             val outcome =
               (case outcome of
                 NONE =>
-                (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof
-                      |> Option.map (sort string_ord) of
+                (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof of
                   SOME facts =>
-                  let val failure = UnsoundProof (is_type_enc_sound type_enc, facts) in
+                  let
+                    val failure = UnsoundProof (is_type_enc_sound type_enc, sort string_ord facts)
+                  in
                     if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
                   end
                 | NONE => NONE)
@@ -357,7 +359,7 @@ fun run_atp mode name
       (case outcome of
         NONE =>
         let
-          val used_facts = used_facts_in_atp_proof ctxt (map fst used_from) atp_proof
+          val used_facts = sort_wrt fst (used_facts_in_atp_proof ctxt (map fst used_from) atp_proof)
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val preferred_methss =
             bunches_of_proof_methods try0 (smt_proofs <> SOME false) needs_full_types

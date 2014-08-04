@@ -182,7 +182,6 @@ fun try_command_line banner play command =
 fun split_used_facts facts =
   facts
   |> List.partition (fn (_, (sc, _)) => sc = Chained)
-  |> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text ctxt num_chained
     ((used_facts, (meth, play)), banner, subgoal, subgoal_count) =

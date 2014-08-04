@@ -26,9 +26,9 @@ sig
 
   val label_ord : label * label -> order
   val string_of_label : label -> string
+  val sort_facts : facts -> facts
 
   val steps_of_isar_proof : isar_proof -> isar_step list
-
   val label_of_isar_step : isar_step -> label option
   val facts_of_isar_step : isar_step -> facts
   val proof_methods_of_isar_step : isar_step -> proof_method list
@@ -75,9 +75,23 @@ and isar_step =
 
 val no_label = ("", ~1)
 
-val label_ord = pairself swap #> prod_ord int_ord fast_string_ord
+(* cf. "label_ord" below *)
+val assume_prefix = "a"
+val have_prefix = "f"
+
+fun label_ord ((s1, i1), (s2, i2)) =
+  (case int_ord (pairself String.size (s1, s2)) of
+    EQUAL =>
+    (case string_ord (s1, s2) of
+      EQUAL => int_ord (i1, i2)
+    | ord => ord (* "assume" before "have" *))
+  | ord => ord)
 
 fun string_of_label (s, num) = s ^ string_of_int num
+
+(* Put the nearest local label first, since it's the most likely to be replaced by a "hence".
+   (Some preplaying proof methods, e.g. "blast", react poorly to fact reorderings.) *)
+fun sort_facts (lfs, gfs) = (sort (label_ord o swap) lfs, sort string_ord gfs)
 
 fun steps_of_isar_proof (Proof (_, _, steps)) = steps
 
@@ -173,9 +187,6 @@ fun relabel_isar_proof_canonically proof =
   in
     fst (relabel_proof proof (0, []))
   end
-
-val assume_prefix = "a"
-val have_prefix = "f"
 
 val relabel_isar_proof_nicely =
   let
@@ -290,18 +301,17 @@ fun string_of_isar_proof ctxt0 i n proof =
     and add_step_pre ind qs subs (s, ctxt) =
       (s ^ of_subproofs ind ctxt qs subs ^ of_indent ind, ctxt)
     and add_step ind (Let (t1, t2)) =
-        add_str (of_indent ind ^ "let ")
-        #> add_term t1 #> add_str " = " #> add_term t2 #> add_str "\n"
+        add_str (of_indent ind ^ "let ") #> add_term t1 #> add_str " = " #> add_term t2
+        #> add_str "\n"
       | add_step ind (Prove (qs, xs, l, t, subs, (ls, ss), meth :: _, comment)) =
         add_step_pre ind qs subs
         #> (case xs of
-             [] => add_str (of_have qs (length subs) ^ " ")
-           | _ => add_str (of_obtain qs (length subs) ^ " ") #> add_frees xs #> add_str " where ")
+            [] => add_str (of_have qs (length subs) ^ " ")
+          | _ => add_str (of_obtain qs (length subs) ^ " ") #> add_frees xs #> add_str " where ")
         #> add_str (of_label l)
         #> add_term t
-        #> add_str (" " ^
-             of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
-             (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
+        #> add_str (" " ^ of_method ls ss meth ^
+          (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
       ("", ctxt)

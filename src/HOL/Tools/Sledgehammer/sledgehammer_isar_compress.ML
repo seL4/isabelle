@@ -95,7 +95,8 @@ fun merge_steps preplay_data (Prove ([], xs1, l1, _, subproofs1, (lfs1, gfs1), m
     val gfs = union (op =) gfs1 gfs2
   in
     (Prove (qs2, inter (op =) (Term.add_frees t []) (xs1 @ xs2), l2, t,
-       subproofs1 @ subproofs2, (lfs, gfs), meths, comment1 ^ comment2), hopeless)
+       subproofs1 @ subproofs2, sort_facts (lfs, gfs), meths, comment1 ^ comment2),
+     hopeless)
   end
 
 val merge_slack_time = seconds 0.01
@@ -203,7 +204,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
 
           fun try_eliminate i l labels steps =
             let
-              val (steps_before, (cand as Prove (_, xs, _, _, _, (lfs, _), _, _)) :: steps_after) =
+              val (steps_before, (cand as Prove (_, _, _, _, _, (lfs, _), _, _)) :: steps_after) =
                 chop i steps
               val succs = collect_successors steps_after labels
               val (succs', hopelesses) = split_list (map (merge_steps (!preplay_data) cand) succs)

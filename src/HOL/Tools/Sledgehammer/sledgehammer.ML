@@ -78,7 +78,7 @@ fun play_one_line_proof minimize timeout used_facts state i
       dont_know ()
     else
       let
-        val fact_names = used_facts |> map fst |> sort string_ord
+        val fact_names = map fst used_facts
 
         val {context = ctxt, facts = chained, goal} = Proof.goal state
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
