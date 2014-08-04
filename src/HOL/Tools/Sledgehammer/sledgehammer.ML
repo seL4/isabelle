@@ -20,7 +20,7 @@ sig
   val timeoutN : string
   val unknownN : string
 
-  val play_one_line_proof : Time.time -> (string * 'a) list -> Proof.state -> int ->
+  val play_one_line_proof : bool -> Time.time -> (string * 'a) list -> Proof.state -> int ->
     proof_method * proof_method list list -> (string * 'a) list * (proof_method * play_outcome)
   val string_of_factss : (string * fact list) list -> string
   val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
@@ -63,7 +63,11 @@ fun prover_description verbose name num_facts =
   (quote name,
    if verbose then " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts else "")
 
-fun play_one_line_proof timeout used_facts state i (preferred, methss as (meth :: _) :: _) =
+fun is_metis_method (Metis_Method _) = true
+  | is_metis_method _ = false
+
+fun play_one_line_proof minimize timeout used_facts state i
+    (preferred, methss as (meth :: _) :: _) =
   let
     fun dont_know () =
       (used_facts,
@@ -87,17 +91,19 @@ fun play_one_line_proof timeout used_facts state i (preferred, methss as (meth :
                 Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "")
             in
               (case preplay_isar_step ctxt timeout [] (mk_step fact_names meths) of
-                (res as (Metis_Method _, Played _)) :: _ =>
-                (used_facts, res) (* if a fact is needed by an ATP, it will be needed by "metis" *)
-              | (meth, Played time) :: _ =>
-                let
-                  val (time', used_names') =
-                    minimized_isar_step ctxt time (mk_step fact_names [meth])
-                    ||> (facts_of_isar_step #> snd)
-                  val used_facts' = filter (member (op =) used_names' o fst) used_facts
-                in
-                  (used_facts', (meth, Played time'))
-                end
+                (res as (meth, Played time)) :: _ =>
+                (* if a fact is needed by an ATP, it will be needed by "metis" *)
+                if not minimize orelse is_metis_method meth then
+                  (used_facts, res)
+                else
+                  let
+                    val (time', used_names') =
+                      minimized_isar_step ctxt time (mk_step fact_names [meth])
+                      ||> (facts_of_isar_step #> snd)
+                    val used_facts' = filter (member (op =) used_names' o fst) used_facts
+                  in
+                    (used_facts', (meth, Played time'))
+                  end
               | _ => try_methss methss)
             end
       in
@@ -105,8 +111,8 @@ fun play_one_line_proof timeout used_facts state i (preferred, methss as (meth :
       end
   end
 
-fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout, preplay_timeout,
-      expect, ...}) mode output_result only learn
+fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize, timeout,
+      preplay_timeout, expect, ...}) mode output_result only learn
     {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
   let
     val ctxt = Proof.context_of state
@@ -179,8 +185,8 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
         (if outcome = SOME ATP_Proof.TimedOut then timeoutN
          else if is_some outcome then noneN
          else someN,
-         fn () => message (fn () => play_one_line_proof preplay_timeout used_facts state subgoal
-           preferred_methss)))
+         fn () => message (fn () => play_one_line_proof minimize preplay_timeout used_facts state
+           subgoal preferred_methss)))
 
     fun go () =
       let
