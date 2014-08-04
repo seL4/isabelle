@@ -41,7 +41,8 @@ fun minimized_isar_step ctxt time
   let
     val gfs0 = filter (thms_influence_proof_method ctxt meth o thms_of_name ctxt) gfs00
 
-    fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)
+    fun mk_step_lfs_gfs lfs gfs =
+      Prove (qs, xs, l, t, subproofs, sort_facts (lfs, gfs), meths, comment)
 
     fun minimize_half _ min_facts [] time = (min_facts, time)
       | minimize_half mk_step min_facts (fact :: facts) time =
