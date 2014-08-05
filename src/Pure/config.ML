@@ -130,13 +130,10 @@ fun declare_generic global (name, pos) default =
     fun map_value f (context as Context.Proof ctxt) =
           let val context' = update_value f context in
             if global andalso
-              Context_Position.is_visible ctxt andalso
+              Context_Position.is_really_visible ctxt andalso
               print_value (get_value (Context.Theory (Context.theory_of context'))) <>
                 print_value (get_value context')
-            then
-             (if Context_Position.is_visible ctxt then
-                warning ("Ignoring local change of global option " ^ quote name)
-              else (); context)
+            then (warning ("Ignoring local change of global option " ^ quote name); context)
             else context'
           end
       | map_value f context = update_value f context;
