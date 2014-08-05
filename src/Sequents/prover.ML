@@ -78,11 +78,13 @@ fun add_rule which th context = context |> Pack.map (fn Pack rules =>
   Pack (rules |> which (fn ths =>
     if member Thm.eq_thm_prop ths th then
       let
-        val ctxt = Context.proof_of context;
         val _ =
-          if Context_Position.is_visible ctxt then
-            warning ("Ignoring duplicate theorems:\n" ^ Display.string_of_thm ctxt th)
-          else ();
+          (case context of
+            Context.Proof ctxt =>
+              if Context_Position.is_really_visible ctxt then
+                warning ("Ignoring duplicate theorems:\n" ^ Display.string_of_thm ctxt th)
+              else ()
+          | _ => ());
       in ths end
     else sort_rules (th :: ths))));
 

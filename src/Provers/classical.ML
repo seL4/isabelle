@@ -309,7 +309,7 @@ fun make_elim context th =
   else Tactic.make_elim th;
 
 fun warn_thm (SOME (Context.Proof ctxt)) msg th =
-      if Context_Position.is_visible ctxt
+      if Context_Position.is_really_visible ctxt
       then warning (msg ^ Display.string_of_thm ctxt th) else ()
   | warn_thm _ _ _ = ();
 
