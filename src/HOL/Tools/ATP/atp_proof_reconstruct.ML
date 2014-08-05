@@ -200,25 +200,10 @@ fun add_type_constraint false (cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint false (cl, TVar (ix, _)) = add_var (ix, cl)
   | add_type_constraint _ _ = I
 
-fun repair_var_name_raw s =
-  let
-    fun subscript_name s n = s ^ nat_subscript n
-    val s = s |> String.map Char.toLower
-  in
-    (case space_explode "_" s of
-      [_] =>
-      (case take_suffix Char.isDigit (String.explode s) of
-        (cs1 as _ :: _, cs2 as _ :: _) =>
-        subscript_name (String.implode cs1) (the (Int.fromString (String.implode cs2)))
-      | (_, _) => s)
-    | [s1, s2] => (case Int.fromString s2 of SOME n => subscript_name s1 n | NONE => s)
-    | _ => s)
-  end
-
-fun repair_var_name textual s =
+fun repair_var_name s =
   (case unprefix_and_unascii schematic_var_prefix s of
-    SOME s => s
-  | NONE => s |> textual ? repair_var_name_raw)
+    SOME s' => s'
+  | NONE => s)
 
 (* The number of type arguments of a constant, zero if it's monomorphic. For (instances of) Skolem
    pseudoconstants, this information is encoded in the constant name. *)
@@ -259,7 +244,7 @@ fun term_of_atp_ho ctxt sym_tab =
         AAbs (((var, ty), term), []) =>
         let
           val typ = typ_of_atp_type ctxt ty
-          val var_name = repair_var_name true var
+          val var_name = repair_var_name var
           val tm = do_term NONE term
         in quantify_over_var true lambda' var_name typ tm end
       | ATerm ((s, tys), us) =>
@@ -325,8 +310,8 @@ fun term_of_atp_ho ctxt sym_tab =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
                 | NONE =>
-                  if not (is_tptp_variable s) then Free (s |> repair_var_name_raw |> fresh_up, T)
-                  else Var ((repair_var_name true s, var_index), T))
+                  if not (is_tptp_variable s) then Free (s |> fresh_up, T)
+                  else Var ((repair_var_name s, var_index), T))
             in list_comb (t, ts) end))
   in do_term end
 
@@ -421,9 +406,9 @@ fun term_of_atp_fo ctxt textual sym_tab =
                   SOME s => Free (s, T)
                 | NONE =>
                   if textual andalso not (is_tptp_variable s) then
-                    Free (s |> textual ? (repair_var_name_raw #> fresh_up), T)
+                    Free (s |> textual ? fresh_up, T)
                   else
-                    Var ((repair_var_name textual s, var_index), T))
+                    Var ((repair_var_name s, var_index), T))
             in list_comb (t, ts) end))
   in do_term [] end
 
@@ -468,7 +453,7 @@ fun prop_of_atp ctxt format type_enc textual sym_tab phi =
         do_formula pos (AQuant (q, xs, phi'))
         (* FIXME: TFF *)
         #>> quantify_over_var textual (case q of AForall => forall_of | AExists => exists_of)
-          (repair_var_name textual s) dummyT
+          (repair_var_name s) dummyT
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1
