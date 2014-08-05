@@ -107,8 +107,7 @@ fun add_lines_pass2 res [] = rev res
             Term.aconv_untyped (normalize prev_role prev_t, norm_t))
           res
 
-      fun looks_boring () =
-        t aconv @{prop True} orelse t aconv @{prop False} orelse length deps < 2
+      fun looks_boring () = t aconv @{prop False} orelse length deps < 2
 
       fun is_skolemizing_line (_, _, _, rule', deps') =
         is_skolemize_rule rule' andalso member (op =) deps' name
@@ -358,13 +357,6 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                (keep_fastest_method_of_isar_step (!preplay_data)
                 #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
-          (* It's not clear whether this is worth the trouble (and if so, "compress" has an
-             unnatural semantics): *)
-(*
-          |> minimize
-               ? (compress_isar_proof ctxt compress preplay_timeout preplay_data
-                  #> tap (trace_isar_proof "Compressed again"))
-*)
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
           ||> (comment_isar_proof comment_of
                #> chain_isar_proof

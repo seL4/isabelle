@@ -53,7 +53,7 @@ sig
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
   val repair_waldmeister_endgame : (term, 'a) atp_step list -> (term, 'a) atp_step list
   val infer_formulas_types : Proof.context -> term list -> term list
-  val introduce_spass_skolem : (term, string) atp_step list -> (term, string) atp_step list
+  val introduce_spass_skolems : (term, string) atp_step list -> (term, string) atp_step list
   val factify_atp_proof : (string * 'a) list -> term list -> term -> (term, string) atp_step list ->
     (term, string) atp_step list
 end;
@@ -232,10 +232,6 @@ fun robust_const_num_type_args thy s =
 
 fun slack_fastype_of t = fastype_of t handle TERM _ => Type_Infer.anyT @{sort type}
 
-(* Cope with "tt(X) = X" atoms, where "X" is existentially quantified. *)
-fun loose_aconv (Free (s, _), Free (s', _)) = s = s'
-  | loose_aconv (t, t') = t aconv t'
-
 val spass_skolem_prefix = "sk" (* "skc" or "skf" *)
 val vampire_skolem_prefix = "sK"
 
@@ -250,7 +246,6 @@ fun quantify_over_var textual quant_of var_s var_T t =
         Var (x, the_default T (AList.lookup (op =) normTs x))
       | norm_var_types t = t
   in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
-
 
 (* Higher-order translation. Variables are typed (although we don't use that information). Lambdas
    are typed. The code is similar to "term_of_atp_fo". *)
@@ -685,58 +680,52 @@ fun unskolemize_term skos t =
     |> HOLogic.mk_Trueprop
   end
 
-fun introduce_spass_skolem [] = []
-  | introduce_spass_skolem (proof as (_, _, _, rule1, _) :: _) =
-    if rule1 = spass_input_rule then
+fun introduce_spass_skolems proof =
+  let
+    fun add_sko (Free (s, _)) = String.isPrefix spass_skolem_prefix s ? insert (op =) s
+      | add_sko _ = I
+
+    (* union-find would be faster *)
+    fun add_cycle [] = I
+      | add_cycle ss =
+        fold (fn s => Graph.default_node (s, ())) ss
+        #> fold Graph.add_edge (ss ~~ tl ss @ [hd ss])
+
+    val (input_steps, other_steps) = List.partition (null o #5) proof
+
+    val skoss = map (fn (_, _, t, _, _) => Term.fold_aterms add_sko t []) input_steps
+    val skoss_input_steps = filter_out (null o fst) (skoss ~~ input_steps)
+    val groups = Graph.strong_conn (fold add_cycle skoss Graph.empty)
+
+    fun step_name_of_group skos = (implode skos, [])
+    fun in_group group = member (op =) group o hd
+    fun group_of sko = the (find_first (fn group => in_group group sko) groups)
+
+    fun new_steps (skoss_steps : (string list * (term, 'a) atp_step) list) group =
       let
-        fun add_sko (Free (s, _)) = String.isPrefix spass_skolem_prefix s ? insert (op =) s
-          | add_sko _ = I
-
-        (* union-find would be faster *)
-        fun add_cycle [] = I
-          | add_cycle ss =
-            fold (fn s => Graph.default_node (s, ())) ss
-            #> fold Graph.add_edge (ss ~~ tl ss @ [hd ss])
-
-        val (input_steps, other_steps) = List.partition (null o #5) proof
-
-        val skoss = map (fn (_, _, t, _, _) => Term.fold_aterms add_sko t []) input_steps
-        val skoss_input_steps = filter_out (null o fst) (skoss ~~ input_steps)
-        val groups = Graph.strong_conn (fold add_cycle skoss Graph.empty)
-
-        fun step_name_of_group skos = (implode skos, [])
-        fun in_group group = member (op =) group o hd
-        fun group_of sko = the (find_first (fn group => in_group group sko) groups)
-
-        fun new_steps (skoss_steps : (string list * (term, 'a) atp_step) list) group =
-          let
-            val name = step_name_of_group group
-            val name0 = name |>> prefix "0"
-            val t =
-              skoss_steps
-              |> map (snd #> #3 #> HOLogic.dest_Trueprop)
-              |> Library.foldr1 s_conj
-              |> HOLogic.mk_Trueprop
-            val skos = fold (union (op =) o fst) skoss_steps []
-            val deps = map (snd #> #1) skoss_steps
-          in
-            [(name0, Unknown, unskolemize_term skos t, spass_pre_skolemize_rule, deps),
-             (name, Unknown, t, spass_skolemize_rule, [name0])]
-          end
-
-        val sko_steps =
-          maps (fn group => new_steps (filter (in_group group o fst) skoss_input_steps) group)
-            groups
-
-        val old_news =
-          map (fn (skos, (name, _, _, _, _)) => (name, [step_name_of_group (group_of skos)]))
-            skoss_input_steps
-        val repair_deps = fold replace_dependencies_in_line old_news
+        val name = step_name_of_group group
+        val name0 = name |>> prefix "0"
+        val t = skoss_steps
+          |> map (snd #> #3 #> HOLogic.dest_Trueprop)
+          |> Library.foldr1 s_conj
+          |> HOLogic.mk_Trueprop
+        val skos = fold (union (op =) o fst) skoss_steps []
+        val deps = map (snd #> #1) skoss_steps
       in
-        input_steps @ sko_steps @ map repair_deps other_steps
+        [(name0, Unknown, unskolemize_term skos t, spass_pre_skolemize_rule, deps),
+         (name, Unknown, t, spass_skolemize_rule, [name0])]
       end
-  else
-    proof
+
+    val sko_steps =
+      maps (fn group => new_steps (filter (in_group group o fst) skoss_input_steps) group) groups
+
+    val old_news =
+      map (fn (skos, (name, _, _, _, _)) => (name, [step_name_of_group (group_of skos)]))
+        skoss_input_steps
+    val repair_deps = fold replace_dependencies_in_line old_news
+  in
+    input_steps @ sko_steps @ map repair_deps other_steps
+  end
 
 fun factify_atp_proof facts hyp_ts concl_t atp_proof =
   let
