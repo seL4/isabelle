@@ -176,7 +176,6 @@ class Session(val resources: Resources)
   /* tuning parameters */
 
   def output_delay: Time = Time.seconds(0.1)  // prover output (markup, common messages)
-  def message_delay: Time = Time.seconds(0.1)  // prover input/output messages
   def prune_delay: Time = Time.seconds(60.0)  // prune history -- delete old versions
   def prune_size: Int = 0  // size of retained history
   def syslog_limit: Int = 100
