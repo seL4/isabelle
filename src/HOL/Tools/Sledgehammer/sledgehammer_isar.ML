@@ -361,7 +361,8 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           ||> (comment_isar_proof comment_of
                #> chain_isar_proof
                #> kill_useless_labels_in_isar_proof
-               #> relabel_isar_proof_nicely)
+               #> relabel_isar_proof_nicely
+               #> rationalize_obtains_in_isar_proofs ctxt)
       in
         (case add_isar_steps (steps_of_isar_proof isar_proof) 0 of
           1 =>

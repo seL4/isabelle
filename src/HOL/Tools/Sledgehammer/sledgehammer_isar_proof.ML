@@ -46,6 +46,7 @@ sig
   val kill_useless_labels_in_isar_proof : isar_proof -> isar_proof
   val relabel_isar_proof_canonically : isar_proof -> isar_proof
   val relabel_isar_proof_nicely : isar_proof -> isar_proof
+  val rationalize_obtains_in_isar_proofs : Proof.context -> isar_proof -> isar_proof
 
   val string_of_isar_proof : Proof.context -> int -> int -> isar_proof -> string
 end;
@@ -215,6 +216,33 @@ val relabel_isar_proof_nicely =
       |> (fn ((assms, steps), _) => Proof (fix, assms, steps))
   in
     relabel_proof [] 0
+  end
+
+fun rationalize_obtains_in_isar_proofs ctxt =
+  let
+    fun rename_obtains xs (subst, ctxt) =
+      let
+        val Ts = map snd xs
+        val new_names0 = map (prefix "some_" o var_name_of_typ o body_type) Ts
+        val (new_names, ctxt') = Variable.variant_fixes new_names0 ctxt
+        val ys = map2 pair new_names Ts
+      in
+        (ys, ((map Free xs ~~ map Free ys) @ subst, ctxt'))
+      end
+
+    fun rationalize_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) subst_ctxt =
+        let
+          val (xs', subst_ctxt' as (subst', _)) = rename_obtains xs subst_ctxt
+          val t' = subst_atomic subst' t
+          val subs' = map (rationalize_proof subst_ctxt') subs
+        in
+          (Prove (qs, xs', l, t', subs', facts, meths, comment), subst_ctxt')
+        end
+    and rationalize_proof (subst_ctxt as (subst, _)) (Proof (fix, assms, steps)) =
+      Proof (fix, map (apsnd (subst_atomic subst)) assms,
+        fst (fold_map rationalize_step steps subst_ctxt))
+  in
+    rationalize_proof ([], ctxt)
   end
 
 val indent_size = 2

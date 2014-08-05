@@ -31,6 +31,7 @@ sig
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
   val simplify_bool : term -> term
+  val var_name_of_typ : typ -> string
   val rename_bound_vars : term -> term
   val type_enc_aliases : (string * string list) list
   val unalias_type_enc : string -> string list
