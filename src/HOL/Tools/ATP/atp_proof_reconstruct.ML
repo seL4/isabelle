@@ -224,13 +224,19 @@ fun var_index_of_textual textual = if textual then 0 else 1
 
 fun quantify_over_var textual quant_of var_s var_T t =
   let
-    val vars = ((var_s, var_index_of_textual textual), var_T) ::
-                 filter (fn ((s, _), _) => s = var_s) (Term.add_vars t [])
+    val vars =
+      ((var_s, var_index_of_textual textual), var_T) ::
+      filter (fn ((s, _), _) => s = var_s) (Term.add_vars t [])
     val normTs = vars |> AList.group (op =) |> map (apsnd hd)
     fun norm_var_types (Var (x, T)) =
         Var (x, the_default T (AList.lookup (op =) normTs x))
       | norm_var_types t = t
   in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
+
+(* This assumes that distinct names are mapped to distinct names by "Variable.variant_frees". This
+   does not hold in general but should hold for ATP-generated Skolem function names, since these end
+   with a digit and "variant_frees" appends letters. *)
+fun fresh_up ctxt s = fst (hd (Variable.variant_frees ctxt [] [(s, ())]))
 
 (* Higher-order translation. Variables are typed (although we don't use that information). Lambdas
    are typed. The code is similar to "term_of_atp_fo". *)
@@ -295,8 +301,6 @@ fun term_of_atp_ho ctxt sym_tab =
             in list_comb (t, term_ts) end
           | NONE => (* a free or schematic variable *)
             let
-              fun fresh_up s =
-                [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
               val ts = map (do_term NONE) us
               val T =
                 (case opt_T of
@@ -310,7 +314,7 @@ fun term_of_atp_ho ctxt sym_tab =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
                 | NONE =>
-                  if not (is_tptp_variable s) then Free (s |> fresh_up, T)
+                  if not (is_tptp_variable s) then Free (fresh_up ctxt s, T)
                   else Var ((repair_var_name s, var_index), T))
             in list_comb (t, ts) end))
   in do_term end
@@ -382,12 +386,6 @@ fun term_of_atp_fo ctxt textual sym_tab =
             end
           | NONE => (* a free or schematic variable *)
             let
-              (* This assumes that distinct names are mapped to distinct names by
-                 "Variable.variant_frees". This does not hold in general but should hold for
-                 ATP-generated Skolem function names, since these end with a digit and
-                 "variant_frees" appends letters. *)
-              fun fresh_up s = [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
-
               val term_ts =
                 map (do_term [] NONE) us
                 (* SPASS (3.8ds) and Vampire (2.6) pass arguments to Skolem functions in reverse
@@ -406,7 +404,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
                   SOME s => Free (s, T)
                 | NONE =>
                   if textual andalso not (is_tptp_variable s) then
-                    Free (s |> textual ? fresh_up, T)
+                    Free (s |> textual ? fresh_up ctxt, T)
                   else
                     Var ((repair_var_name s, var_index), T))
             in list_comb (t, ts) end))
