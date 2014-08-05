@@ -232,8 +232,8 @@ object Isabelle
     s: String)
   {
     if (!snapshot.is_outdated) {
-      snapshot.state.find_command(snapshot.version, id) match {
-        case Some((node, command)) =>
+      (snapshot.state.find_command(snapshot.version, id), PIDE.document_model(buffer)) match {
+        case (Some((node, command)), Some(model)) if command.node_name == model.node_name =>
           node.command_start(command) match {
             case Some(start) =>
               JEdit_Lib.buffer_edit(buffer) {
@@ -248,7 +248,7 @@ object Isabelle
               }
             case None =>
           }
-        case None =>
+        case _ =>
       }
     }
   }
