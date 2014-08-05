@@ -347,10 +347,11 @@ fun method ctxt =
   let val table = get_methods ctxt
   in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
 
-fun method_closure ctxt src0 =
+fun method_closure ctxt0 src0 =
   let
-    val (src1, meth) = check_src ctxt src0;
+    val (src1, meth) = check_src ctxt0 src0;
     val src2 = Args.init_assignable src1;
+    val ctxt = Context_Position.not_really ctxt0;
     val _ = Seq.pull (apply (method ctxt src2) ctxt [] (Goal.protect 0 Drule.dummy_thm));
   in Args.closure src2 end;
 
