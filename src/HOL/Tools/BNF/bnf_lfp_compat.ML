@@ -80,10 +80,27 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
     val (orig_descr' :: nested_descrs, _) =
       Datatype_Aux.unfold_datatypes lthy orig_descr all_infos orig_descr nn_fp;
 
+    fun cliquify_descr [] = []
+      | cliquify_descr [entry] = [[entry]]
+      | cliquify_descr (full_descr as (_, (T_name1, _, _)) :: _) =
+        let
+          val nn =
+            if member (op =) fpT_names T_name1 then
+              nn_fp
+            else
+              (case Symtab.lookup all_infos T_name1 of
+                SOME {descr, ...} =>
+                length (filter_out (fn (_, (_, Us, _)) => exists Datatype_Aux.is_rec_type Us) descr)
+              | NONE => raise Fail "unknown old-style datatype");
+        in
+          chop nn full_descr ||> cliquify_descr |> op ::
+        end;
+
     (* put nested types before the types that nest them, as needed for N2M *)
     val descrs = burrow reindex_desc (orig_descr' :: rev nested_descrs);
     val (cliques, descr) =
-      split_list (flat (map_index (fn (i, descr) => map (pair i) descr) descrs));
+      split_list (flat (map_index (fn (i, descr) => map (pair i) descr)
+        (maps cliquify_descr descrs)));
 
     val dest_dtyp = Datatype_Aux.typ_of_dtyp descr;
 
