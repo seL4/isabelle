@@ -391,6 +391,7 @@ class Plugin extends EBPlugin
 
       PIDE.session = new Session(resources) {
         override def output_delay = PIDE.options.seconds("editor_output_delay")
+        override def prune_delay = PIDE.options.seconds("editor_prune_delay")
         override def reparse_limit = PIDE.options.int("editor_reparse_limit")
       }
 
