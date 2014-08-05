@@ -123,5 +123,9 @@ val _ =
           | Exn.Exn exn => (Runtime.exn_error_message exn; false));
     in Output.protocol_message (Markup.use_theories_result id ok) [] end);
 
+val _ =
+  Isabelle_Process.protocol_command "ML_System.share_common_data"
+    (fn [] => ML_System.share_common_data ());
+
 end;
 
