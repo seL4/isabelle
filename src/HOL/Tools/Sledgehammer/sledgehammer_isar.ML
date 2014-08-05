@@ -94,12 +94,12 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
       map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
 
-fun normalize role =
-  role = Conjecture ? (HOLogic.dest_Trueprop #> s_not #> HOLogic.mk_Trueprop)
-
 fun add_lines_pass2 res [] = rev res
   | add_lines_pass2 res ((line as (name, role, t, rule, deps)) :: lines) =
     let
+      fun normalize role =
+        role = Conjecture ? (HOLogic.dest_Trueprop #> s_not #> HOLogic.mk_Trueprop)
+
       val norm_t = normalize role t
       val is_duplicate =
         exists (fn (prev_name, prev_role, prev_t, _, _) =>
@@ -146,7 +146,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
     fun generate_proof_text () =
       let
-        val (verbose, alt_metis_args, preplay_timeout, compress, try0, minimize, atp_proof, goal) =
+        val (verbose, alt_metis_args, preplay_timeout, compress, try0, minimize, atp_proof0, goal) =
           isar_params ()
 
         val systematic_methods' = insert (op =) (Metis_Method alt_metis_args) systematic_methods
@@ -173,7 +173,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
 
         val atp_proof =
-          fold_rev add_line_pass1 atp_proof []
+          fold_rev add_line_pass1 atp_proof0 []
           |> add_lines_pass2 []
 
         val conjs =
@@ -197,7 +197,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val (lems, _) =
           fold_map add_lemma (map_filter (get_role (curry (op =) Lemma)) atp_proof) ctxt
 
-        val bot = atp_proof |> List.last |> #1
+        val bot = #1 (List.last atp_proof)
 
         val refute_graph =
           atp_proof
