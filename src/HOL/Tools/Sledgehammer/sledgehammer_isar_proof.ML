@@ -218,12 +218,14 @@ val relabel_isar_proof_nicely =
     relabel_proof [] 0
   end
 
+fun stutter_single_letter s = String.extract (s, 0, SOME 1) ^ s
+
 fun rationalize_obtains_in_isar_proofs ctxt =
   let
     fun rename_obtains xs (subst, ctxt) =
       let
         val Ts = map snd xs
-        val new_names0 = map (prefix "some_" o var_name_of_typ o body_type) Ts
+        val new_names0 = map (stutter_single_letter o var_name_of_typ o body_type) Ts
         val (new_names, ctxt') = Variable.variant_fixes new_names0 ctxt
         val ys = map2 pair new_names Ts
       in
