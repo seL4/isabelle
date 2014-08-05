@@ -184,4 +184,45 @@ datatype_new d5' = D nat | is_E: E int
 datatype_new d5'' = is_D: D nat | E int
 datatype_new d5''' = is_D: D nat | is_E: E int
 
+datatype_compat simple
+datatype_compat simple'
+datatype_compat simple''
+datatype_compat mylist
+datatype_compat some_passive
+datatype_compat I1 I2
+datatype_compat tree forest
+datatype_compat tree' branch
+datatype_compat bin_rose_tree
+datatype_compat exp trm factor
+datatype_compat ftree
+datatype_compat nofail1
+datatype_compat kk1 kk2 kk3
+datatype_compat t1 t2 t3
+datatype_compat t1' t2' t3'
+datatype_compat k1 k2 k3 k4
+datatype_compat tt1 tt2 tt3 tt4
+datatype_compat deadbar
+datatype_compat deadbar_option
+datatype_compat bar
+datatype_compat foo
+datatype_compat deadfoo
+datatype_compat dead_foo
+datatype_compat use_dead_foo
+datatype_compat d1
+datatype_compat d1'
+datatype_compat d2
+datatype_compat d2'
+datatype_compat d3
+datatype_compat d3'
+datatype_compat d3''
+datatype_compat d3'''
+datatype_compat d4
+datatype_compat d4'
+datatype_compat d4''
+datatype_compat d4'''
+datatype_compat d5
+datatype_compat d5'
+datatype_compat d5''
+datatype_compat d5'''
+
 end
