@@ -270,15 +270,9 @@ fun interpret_type config thy type_map thf_ty =
             Type_Ind => @{typ ind}
           | Type_Bool => HOLogic.boolT
           | Type_Type => raise MISINTERPRET_TYPE ("No type interpretation", thf_ty)
-         (*FIXME these types are currently unsupported, so they're treated as
-         individuals*)
-          | Type_Int =>
-              interpret_type config thy type_map (Defined_type Type_Ind)
-          | Type_Rat =>
-              interpret_type config thy type_map (Defined_type Type_Ind)
-          | Type_Real =>
-              interpret_type config thy type_map (Defined_type Type_Ind)
-          )
+          | Type_Int => @{typ int}
+          | Type_Rat => @{typ rat}
+          | Type_Real => @{typ real})
      | Sum_type _ =>
          raise MISINTERPRET_TYPE (*FIXME*)
           ("No type interpretation (sum type)", thf_ty)
