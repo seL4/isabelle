@@ -1315,8 +1315,7 @@ next
     then have "finite {x. poly k x = 0}" using `k \<noteq> 0` by (rule Suc.hyps)
     then have "finite (insert a {x. poly k x = 0})" by simp
     then show "finite {x. poly p x = 0}"
-      by (simp add: k uminus_add_conv_diff Collect_disj_eq
-               del: mult_pCons_left)
+      by (simp add: k Collect_disj_eq del: mult_pCons_left)
   qed
 qed
 
