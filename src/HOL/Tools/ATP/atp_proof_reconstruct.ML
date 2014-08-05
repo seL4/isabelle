@@ -256,7 +256,7 @@ fun term_of_atp_ho ctxt sym_tab =
 
     fun do_term opt_T u =
       (case u of
-        AAbs(((var, ty), term), []) =>
+        AAbs (((var, ty), term), []) =>
         let
           val typ = typ_of_atp_type ctxt ty
           val var_name = repair_var_name true var
@@ -642,12 +642,12 @@ fun take_distinct_vars seen ((t as Var _) :: ts) =
 
 fun unskolemize_term skos t =
   let
-    val is_sko = member (op =) skos
+    val is_skolem = member (op =) skos
 
     fun find_args args (t $ u) = find_args (u :: args) t #> find_args [] u
       | find_args _ (Abs (_, _, t)) = find_args [] t
       | find_args args (Free (s, _)) =
-        if is_sko s then
+        if is_skolem s then
           let val new = take_distinct_vars [] args in
             (fn [] => new | old => if length new < length old then new else old)
           end
@@ -660,7 +660,7 @@ fun unskolemize_term skos t =
 
     fun fix_skos args (t $ u) = fix_skos (fix_skos [] u :: args) t
       | fix_skos args (t as Free (s, T)) =
-        if is_sko s then list_comb (Free (s, funpow num_alls body_type T), drop num_alls args)
+        if is_skolem s then list_comb (Free (s, funpow num_alls body_type T), drop num_alls args)
         else list_comb (t, args)
       | fix_skos [] (Abs (s, T, t)) = Abs (s, T, fix_skos [] t)
       | fix_skos [] t = t
@@ -668,10 +668,10 @@ fun unskolemize_term skos t =
 
     val t' = fix_skos [] t
 
-    fun add_sko (t as Free (s, _)) = is_sko s ? insert (op aconv) t
-      | add_sko _ = I
+    fun add_skolem (t as Free (s, _)) = is_skolem s ? insert (op aconv) t
+      | add_skolem _ = I
 
-    val exs = Term.fold_aterms add_sko t' []
+    val exs = Term.fold_aterms add_skolem t' []
   in
     t'
     |> HOLogic.dest_Trueprop
@@ -680,10 +680,31 @@ fun unskolemize_term skos t =
     |> HOLogic.mk_Trueprop
   end
 
+fun rename_skolem_args t =
+  let
+    fun add_skolem_args (Abs (_, _, t)) = add_skolem_args t
+      | add_skolem_args t =
+        (case strip_comb t of
+          (Free (s, _), args as _ :: _) =>
+          if String.isPrefix spass_skolem_prefix s then
+            insert (op =) (s, fst (take_prefix is_Var args))
+          else
+            fold add_skolem_args args
+        | (u, args as _ :: _) => fold add_skolem_args (u :: args)
+        | _ => I)
+
+    fun subst_of_skolem (sk, args) =
+      map_index (fn (j, Var (z, T)) => (z, Var ((sk ^ "_" ^ string_of_int j, 0), T))) args
+
+    val subst = maps subst_of_skolem (add_skolem_args t [])
+  in
+    subst_vars ([], subst) t
+  end
+
 fun introduce_spass_skolems proof =
   let
-    fun add_sko (Free (s, _)) = String.isPrefix spass_skolem_prefix s ? insert (op =) s
-      | add_sko _ = I
+    fun add_skolem (Free (s, _)) = String.isPrefix spass_skolem_prefix s ? insert (op =) s
+      | add_skolem _ = I
 
     (* union-find would be faster *)
     fun add_cycle [] = I
@@ -693,7 +714,7 @@ fun introduce_spass_skolems proof =
 
     val (input_steps, other_steps) = List.partition (null o #5) proof
 
-    val skoss = map (fn (_, _, t, _, _) => Term.fold_aterms add_sko t []) input_steps
+    val skoss = map (fn (_, _, t, _, _) => Term.fold_aterms add_skolem t []) input_steps
     val skoss_input_steps = filter_out (null o fst) (skoss ~~ input_steps)
     val groups = Graph.strong_conn (fold add_cycle skoss Graph.empty)
 
@@ -705,10 +726,13 @@ fun introduce_spass_skolems proof =
       let
         val name = step_name_of_group group
         val name0 = name |>> prefix "0"
-        val t = skoss_steps
-          |> map (snd #> #3 #> HOLogic.dest_Trueprop)
-          |> Library.foldr1 s_conj
-          |> HOLogic.mk_Trueprop
+        val t =
+          (case map (snd #> #3) skoss_steps of
+            [t] => t
+          | ts => ts
+            |> map (HOLogic.dest_Trueprop #> rename_skolem_args)
+            |> Library.foldr1 s_conj
+            |> HOLogic.mk_Trueprop)
         val skos = fold (union (op =) o fst) skoss_steps []
         val deps = map (snd #> #1) skoss_steps
       in
