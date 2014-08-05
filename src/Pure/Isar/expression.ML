@@ -865,8 +865,8 @@ val read_interpretation =
 
 (* generic interpretation machinery *)
 
-fun meta_rewrite eqns ctxt =
-  (map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def) (maps snd eqns), ctxt);
+fun meta_rewrite ctxt eqns =
+  map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def) (maps snd eqns);
 
 fun note_eqns_register note activate deps witss eqns attrss export export' ctxt =
   let
@@ -874,7 +874,7 @@ fun note_eqns_register note activate deps witss eqns attrss export export' ctxt 
       (attrs, [([Morphism.thm (export' $> export) eqn], [])])) attrss eqns;
     val (eqns', ctxt') = ctxt
       |> note Thm.lemmaK facts
-      |-> meta_rewrite;
+      |> (fn (eqns, ctxt') => (meta_rewrite ctxt' eqns, ctxt'));
     val dep_morphs =
       map2 (fn (dep, morph) => fn wits =>
           (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)))
