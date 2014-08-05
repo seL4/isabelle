@@ -69,7 +69,7 @@ text {* These are the only cases we'll care about, probably. *}
 lemma has_derivative_within: "(f has_derivative f') (at x within s) \<longleftrightarrow>
     bounded_linear f' \<and> ((\<lambda>y. (1 / norm(y - x)) *\<^sub>R (f y - (f x + f' (y - x)))) ---> 0) (at x within s)"
   unfolding has_derivative_def Lim
-  by (auto simp add: netlimit_within inverse_eq_divide field_simps)
+  by (auto simp add: netlimit_within field_simps)
 
 lemma has_derivative_at: "(f has_derivative f') (at x) \<longleftrightarrow>
     bounded_linear f' \<and> ((\<lambda>y. (1 / (norm(y - x))) *\<^sub>R (f y - (f x + f' (y - x)))) ---> 0) (at x)"
@@ -1773,9 +1773,9 @@ proof -
         apply (rule lem3[rule_format])+
         done
       obtain N where N: "\<forall>h. norm (f' N x h - g' x h) \<le> 1 * norm h"
-        using assms(3) `x \<in> s` by (fast intro: zero_less_one order_refl)
+        using assms(3) `x \<in> s` by (fast intro: zero_less_one)
       have "bounded_linear (f' N x)"
-        using assms(2) `x \<in> s` by (fast dest: has_derivative_bounded_linear)
+        using assms(2) `x \<in> s` by fast
       from bounded_linear.bounded [OF this]
       obtain K where K: "\<forall>h. norm (f' N x h) \<le> norm h * K" ..
       {

@@ -1125,7 +1125,7 @@ proof (rule summable_def[THEN iffD2])
   note fin = this
   have "(\<lambda>i. ereal (real (f i))) sums (\<Sum>i. ereal (real (f i)))"
     using f
-    by (auto intro!: summable_ereal_pos summable_sums simp: ereal_le_real_iff zero_ereal_def)
+    by (auto intro!: summable_ereal_pos simp: ereal_le_real_iff zero_ereal_def)
   also have "\<dots> = ereal r"
     using fin r by (auto simp: ereal_real)
   finally show "\<exists>r. (\<lambda>i. real (f i)) sums r"
@@ -1252,7 +1252,8 @@ lemma min_Liminf_at:
   apply (cut_tac A="ball x xa - {x}" and B="{x}" and M=f in INF_union)
   apply (drule sym)
   apply auto
-  by (metis INF_absorb centre_in_ball)
+  apply (metis INF_absorb centre_in_ball)
+  done
 
 
 lemma suminf_ereal_offset_le:

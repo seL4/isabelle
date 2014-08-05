@@ -74,7 +74,7 @@ proof -
   have c: "inv (a \<otimes> b) \<otimes> a \<in> carrier G" by simp
 
   have "(inv (a \<otimes> b) \<otimes> a) \<otimes> b = inv (a \<otimes> b) \<otimes> (a \<otimes> b)" by (simp add: m_assoc)
-  also have "\<dots> = \<one>" by (simp add: Units_l_inv)
+  also have "\<dots> = \<one>" by simp
   finally have li: "(inv (a \<otimes> b) \<otimes> a) \<otimes> b = \<one>" .
 
   have "\<one> = inv a \<otimes> a" by (simp add: Units_l_inv[symmetric])
@@ -83,7 +83,7 @@ proof -
        by (simp add: Units_r_inv[OF abunit, symmetric] del: Units_r_inv)
   also have "\<dots> = ((inv a \<otimes> a) \<otimes> b) \<otimes> inv (a \<otimes> b) \<otimes> a"
     by (simp add: m_assoc del: Units_l_inv)
-  also have "\<dots> = b \<otimes> inv (a \<otimes> b) \<otimes> a" by (simp add: Units_l_inv)
+  also have "\<dots> = b \<otimes> inv (a \<otimes> b) \<otimes> a" by simp
   also have "\<dots> = b \<otimes> (inv (a \<otimes> b) \<otimes> a)" by (simp add: m_assoc)
   finally have ri: "b \<otimes> (inv (a \<otimes> b) \<otimes> a) = \<one> " by simp
 
@@ -327,7 +327,7 @@ using uunit bcarr
 unfolding a
 apply (intro associatedI)
  apply (rule dividesI[of "inv u"], simp)
- apply (simp add: m_assoc Units_closed Units_r_inv)
+ apply (simp add: m_assoc Units_closed)
 apply fast
 done
 
@@ -1764,7 +1764,7 @@ proof
   note [simp] = acarr Units_closed[OF uunit] Units_inv_closed[OF uunit]
 
   have "a = a \<otimes> \<one>" by simp
-  also have "\<dots> = a \<otimes> (u \<otimes> inv u)" by (simp add: Units_r_inv uunit)
+  also have "\<dots> = a \<otimes> (u \<otimes> inv u)" by (simp add: uunit)
   also have "\<dots> = a' \<otimes> inv u" by (simp add: m_assoc[symmetric] a'[symmetric])
   finally
        have a: "a = a' \<otimes> inv u" .
@@ -2646,7 +2646,7 @@ proof -
     hence yb: "fmset G ys \<le> fmset G bs" by (rule divides_fmsubset) fact+
 
     from ya yb csmset
-    have "fmset G ys \<le> fmset G cs" by (simp add: mset_le_def multiset_inter_count)
+    have "fmset G ys \<le> fmset G cs" by (simp add: mset_le_def)
     thus "y divides c" by (rule fmsubset_divides) fact+
   qed
 
@@ -3208,7 +3208,7 @@ proof -
           and nyx: "\<not> y \<sim> x"
           by - (fast elim: properfactorE2)+
       hence "\<exists>z. z \<in> carrier G \<and> x = y \<otimes> z"
-          by (fast elim: dividesE)
+          by fast
 
       from this obtain z
           where zcarr: "z \<in> carrier G"
@@ -3327,7 +3327,7 @@ next
       and afs': "wfactors G as' a"
     hence ahdvda: "ah divides a"
       by (intro wfactors_dividesI[of "ah#as" "a"], simp+)
-    hence "\<exists>a'\<in> carrier G. a = ah \<otimes> a'" by (fast elim: dividesE)
+    hence "\<exists>a'\<in> carrier G. a = ah \<otimes> a'" by fast
     from this obtain a'
       where a'carr: "a' \<in> carrier G"
       and a: "a = ah \<otimes> a'"
@@ -3360,7 +3360,7 @@ next
       have asicarr[simp]: "as'!i \<in> carrier G" by (unfold set_conv_nth, force)
     note carr = carr asicarr
 
-    from ahdvd have "\<exists>x \<in> carrier G. as'!i = ah \<otimes> x" by (fast elim: dividesE)
+    from ahdvd have "\<exists>x \<in> carrier G. as'!i = ah \<otimes> x" by fast
     from this obtain x where "x \<in> carrier G" and asi: "as'!i = ah \<otimes> x" by auto
 
     with carr irrasi[simplified asi]
@@ -3454,7 +3454,7 @@ next
     next
       show "ah # take i as' @ drop (Suc i) as' [\<sim>] as' ! i # take i as' @ drop (Suc i) as'"
       apply (simp add: list_all2_append)
-      apply (simp add: asiah[symmetric] ahcarr asicarr)
+      apply (simp add: asiah[symmetric])
       done
     qed
 
@@ -3463,12 +3463,12 @@ next
     also have "essentially_equal G (as' ! i # take i as' @ drop (Suc i) as')
       (take i as' @ as' ! i # drop (Suc i) as')"
       apply (intro essentially_equalI)
-      apply (subgoal_tac "as' ! i # take i as' @ drop (Suc i) as' <~~> 
+       apply (subgoal_tac "as' ! i # take i as' @ drop (Suc i) as' <~~> 
         take i as' @ as' ! i # drop (Suc i) as'")
-  apply simp
+        apply simp
        apply (rule perm_append_Cons)
       apply simp
-    done
+      done
     finally
       have "essentially_equal G (ah # as) (take i as' @ as' ! i # drop (Suc i) as')" by simp
     then show "essentially_equal G (ah # as) as'" by (subst as', assumption)
@@ -3617,7 +3617,7 @@ proof -
     also from ccarr acarr cunit
         have "\<dots> = a \<otimes> (c \<otimes> inv c)" by (fast intro: m_assoc)
     also from ccarr cunit
-        have "\<dots> = a \<otimes> \<one>" by (simp add: Units_r_inv)
+        have "\<dots> = a \<otimes> \<one>" by simp
     also from acarr
         have "\<dots> = a" by simp
     finally have "a = b \<otimes> inv c" by simp
@@ -3706,7 +3706,7 @@ theorem factorial_condition_two: (* Jacobson theorem 2.22 *)
   shows "(divisor_chain_condition_monoid G \<and> gcd_condition_monoid G) = factorial_monoid G"
 apply rule
 proof clarify
-    assume dcc: "divisor_chain_condition_monoid G"
+  assume dcc: "divisor_chain_condition_monoid G"
      and gc: "gcd_condition_monoid G"
   interpret divisor_chain_condition_monoid "G" by (rule dcc)
   interpret gcd_condition_monoid "G" by (rule gc)
