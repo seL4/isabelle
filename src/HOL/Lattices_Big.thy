@@ -633,6 +633,16 @@ lemma Max_gr_iff:
 
 end
 
+lemma Max_eq_if:
+  assumes "finite A"  "finite B"  "\<forall>a\<in>A. \<exists>b\<in>B. a \<le> b"  "\<forall>b\<in>B. \<exists>a\<in>A. b \<le> a"
+  shows "Max A = Max B"
+proof cases
+  assume "A = {}" thus ?thesis using assms by simp
+next
+  assume "A \<noteq> {}" thus ?thesis using assms
+    by(blast intro: antisym Max_in Max_ge_iff[THEN iffD2])
+qed
+
 lemma Min_antimono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Min N \<le> Min M"
