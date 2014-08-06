@@ -429,10 +429,11 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
               rewrite_comp_comp)
           type_definitions bnfs);
 
-        fun mk_Rep_o_Abs thm = thm RS @{thm type_copy_Rep_o_Abs} RS rewrite_comp_comp;
+        fun mk_Rep_o_Abs thm = (thm RS @{thm type_copy_Rep_o_Abs})
+          |> (fn thm => [thm, thm RS rewrite_comp_comp]);
 
-        val fp_Rep_o_Abss = map mk_Rep_o_Abs fp_type_definitions;
-        val Rep_o_Abss = map mk_Rep_o_Abs type_definitions;
+        val fp_Rep_o_Abss = maps mk_Rep_o_Abs fp_type_definitions;
+        val Rep_o_Abss = maps mk_Rep_o_Abs type_definitions;
 
         fun tac {context = ctxt, prems = _} =
           unfold_thms_tac ctxt (flat [rec_thms, raw_co_rec_defs, pre_map_defs, fp_pre_map_defs,
