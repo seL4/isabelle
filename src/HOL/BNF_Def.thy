@@ -159,6 +159,11 @@ lemma case_sum_o_inj:
 "case_sum f g \<circ> Inr = g"
 by auto
 
+lemma map_sum_o_inj:
+"map_sum f g o Inl = Inl o f"
+"map_sum f g o Inr = Inr o g"
+by auto
+
 lemma card_order_csum_cone_cexp_def:
   "card_order r \<Longrightarrow> ( |A1| +c cone) ^c r = |Func UNIV (Inl ` A1 \<union> {Inr ()})|"
   unfolding cexp_def cone_def Field_csum Field_card_of by (auto dest: Field_card_order)
