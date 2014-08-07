@@ -213,6 +213,7 @@ Because @{text list}, @{const Nil}, @{const Cons}, etc.\ are already predefined,
 \input{MyList.thy}\end{alltt}
 \caption{A Theory of Lists}
 \label{fig:MyList}
+\index{comment}
 \end{figure}
 
 \subsubsection{Structural Induction for Lists}
