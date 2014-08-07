@@ -534,7 +534,7 @@ fun run_proof_method trivial full name meth named_thms id
           timeout |> Time.toReal |> curry Real.* time_slice |> Time.fromReal
         fun sledge_tac time_slice prover type_enc =
           Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-            (override_params prover type_enc (my_timeout time_slice)) fact_override
+            (override_params prover type_enc (my_timeout time_slice)) fact_override []
       in
         if !meth = "sledgehammer_tac" then
           sledge_tac 0.2 ATP_Proof.vampireN "mono_native"
