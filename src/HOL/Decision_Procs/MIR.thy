@@ -2612,7 +2612,7 @@ next
     {assume H: "\<not> real (x-d) + ?e > 0" 
       let ?v="Neg e"
       have vb: "?v \<in> set (\<beta> (Gt (CN 0 c e)))" by simp
-      from 7(5)[simplified simp_thms Inum.simps \<beta>.simps set_simps bex_simps numbound0_I[OF bn,where b="a" and b'="real x" and bs="bs"]] 
+      from 7(5)[simplified simp_thms Inum.simps \<beta>.simps list.set bex_simps numbound0_I[OF bn,where b="a" and b'="real x" and bs="bs"]] 
       have nob: "\<not> (\<exists> j\<in> {1 ..d}. real x =  - ?e + real j)" by auto 
       from H p have "real x + ?e > 0 \<and> real x + ?e \<le> real d" by (simp add: c1)
       hence "real (x + floor ?e) > real (0::int) \<and> real (x + floor ?e) \<le> real d"
@@ -2638,7 +2638,7 @@ next
     {assume H: "\<not> real (x-d) + ?e \<ge> 0" 
       let ?v="Sub (C -1) e"
       have vb: "?v \<in> set (\<beta> (Ge (CN 0 c e)))" by simp
-      from 8(5)[simplified simp_thms Inum.simps \<beta>.simps set_simps bex_simps numbound0_I[OF bn,where b="a" and b'="real x" and bs="bs"]] 
+      from 8(5)[simplified simp_thms Inum.simps \<beta>.simps list.set bex_simps numbound0_I[OF bn,where b="a" and b'="real x" and bs="bs"]] 
       have nob: "\<not> (\<exists> j\<in> {1 ..d}. real x =  - ?e - 1 + real j)" by auto 
       from H p have "real x + ?e \<ge> 0 \<and> real x + ?e < real d" by (simp add: c1)
       hence "real (x + floor ?e) \<ge> real (0::int) \<and> real (x + floor ?e) < real d"
@@ -3394,7 +3394,7 @@ proof(induct t rule: rsplit0.induct)
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). (?f(p,n,s)) ` {0 .. n})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). (?f(p,n,s)) ` {n .. 0})))"
-    by (simp only: set_map set_upto set_simps)
+    by (simp only: set_map set_upto list.set)
   also have "\<dots> =   
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un 
@@ -3548,7 +3548,7 @@ next
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). (?f(p,n,s)) ` {0 .. n})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). (?f(p,n,s)) ` {n .. 0})))"
-    by (simp only: set_map set_upto set_simps)
+    by (simp only: set_map set_upto list.set)
   also have "\<dots> =   
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un 

@@ -642,7 +642,7 @@ next
   with init all_ref_present have q_is_new: "q \<notin> set (p#refs)"
     by (auto elim!: effect_refE intro!: Ref.noteq_I)
   from refs_of_p refs_of_q q_is_new have a3: "\<forall>qrs prs. refs_of' h2 q qrs \<and> refs_of' h2 p prs \<longrightarrow> set prs \<inter> set qrs = {}"
-    by (fastforce simp only: set_simps dest: refs_of'_is_fun)
+    by (fastforce simp only: list.set dest: refs_of'_is_fun)
   from rev'_invariant [OF effect_rev' a1 a2 a3] have "list_of h3 (Ref.get h3 v) (List.rev xs)" 
     unfolding list_of'_def by auto
   with lookup show ?thesis
