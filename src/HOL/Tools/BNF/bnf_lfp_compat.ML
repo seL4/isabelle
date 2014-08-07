@@ -90,7 +90,7 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
             else
               (case Symtab.lookup all_infos T_name1 of
                 SOME {descr, ...} =>
-                length (filter_out (fn (_, (_, Us, _)) => exists Datatype_Aux.is_rec_type Us) descr)
+                length (filter_out (exists Datatype_Aux.is_rec_type o #2 o snd) descr)
               | NONE => raise Fail "unknown old-style datatype");
         in
           chop nn full_descr ||> cliquify_descr |> op ::
