@@ -86,6 +86,7 @@ lower_word                = {lower_alpha}{alpha_numeric}*;
 upper_word                = {upper_alpha}{alpha_numeric}*;
 dollar_dollar_word        = {ddollar}{lower_word};
 dollar_word               = {dollar}{lower_word};
+dollar_underscore         = {dollar}_;
 
 distinct_object           = {double_quote}{do_char}+{double_quote};
 
@@ -177,6 +178,7 @@ eol                       = ("\013\010"|"\010"|"\013");
 
 {lower_word}   => (col:=yypos-(!eolpos); T.LOWER_WORD(yytext,!linep,!col));
 {dollar_word}  => (col:=yypos-(!eolpos); T.DOLLAR_WORD(yytext,!linep,!col));
+{dollar_underscore}  => (col:=yypos-(!eolpos); T.DOLLAR_WORD(yytext,!linep,!col));
 {dollar_dollar_word}  => (col:=yypos-(!eolpos); T.DOLLAR_DOLLAR_WORD(yytext,!linep,!col));
 
 "+"           => (col:=yypos-(!eolpos); T.PLUS(!linep,!col));

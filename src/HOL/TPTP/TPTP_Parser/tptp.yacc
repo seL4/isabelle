@@ -491,7 +491,7 @@ tff_monotype : tff_atomic_type                (( tff_atomic_type ))
 tff_unitary_type : tff_atomic_type               (( tff_atomic_type ))
                  | LPAREN tff_xprod_type RPAREN  (( tff_xprod_type ))
 
-tff_atomic_type : atomic_word   (( Atom_type atomic_word ))
+tff_atomic_type : atomic_word   (( Atom_type (atomic_word, []) ))
                 | defined_type  (( Defined_type defined_type ))
                 | atomic_word LPAREN tff_type_arguments RPAREN (( Fmla_type (Fmla (Uninterpreted atomic_word, (map Type_fmla tff_type_arguments))) ))
                 | variable_ (( Fmla_type (Pred (Interpreted_ExtraLogic Apply, [Term_Var variable_])) ))
@@ -634,6 +634,7 @@ defined_type : atomic_defined_word ((
   | "$real" => Type_Real
   | "$rat" => Type_Rat
   | "$int" => Type_Int
+  | "$_" => Type_Dummy
   | thing => raise UNRECOGNISED_SYMBOL ("defined_type", thing)
 ))
 
@@ -747,6 +748,7 @@ defined_functor : atomic_defined_word ((
   | "$real" => TypeSymbol Type_Real
   | "$rat" => TypeSymbol Type_Rat
   | "$tType" => TypeSymbol Type_Type
+  | "$_" => TypeSymbol Type_Dummy
 
   | "$true" => Interpreted_Logic True
   | "$false" => Interpreted_Logic False

@@ -8,11 +8,11 @@ signature TPTP_INTERPRET =
 sig
   (*Signature extension: typing information for variables and constants*)
   type var_types = (string * typ option) list
-  type const_map = (string * term) list
+  type const_map = (string * (term * int list)) list
 
   (*Mapping from TPTP types to Isabelle/HOL types. This map works over all
   base types. The map must be total wrt TPTP types.*)
-  type type_map = (TPTP_Syntax.tptp_type * typ) list
+  type type_map = (string * (string * int)) list
 
   (*A parsed annotated formula is represented as a 5-tuple consisting of
   the formula's label, its role, the TPTP formula, its Isabelle/HOL meaning, and
@@ -35,7 +35,7 @@ sig
      problem_name : TPTP_Problem_Name.problem_name option}
 
   (*Generates a fresh Isabelle/HOL type for interpreting a TPTP type in a theory.*)
-  val declare_type : config -> (TPTP_Syntax.tptp_type * string) -> type_map ->
+  val declare_type : config -> string * (string * int) -> type_map ->
     theory -> type_map * theory
 
   (*Map TPTP types to Isabelle/HOL types*)
@@ -132,9 +132,9 @@ type config =
 
 (** Signatures and other type abbrevations **)
 
-type const_map = (string * term) list
+type const_map = (string * (term * int list)) list
 type var_types = (string * typ option) list
-type type_map = (TPTP_Syntax.tptp_type * typ) list
+type type_map = (string * (string * int)) list
 type tptp_formula_meaning =
   string * TPTP_Syntax.role * term * TPTP_Proof.source_info option
 type tptp_general_meaning =
@@ -189,17 +189,19 @@ fun type_exists config thy ty_name =
 (*Returns updated theory and the name of the final type's name -- i.e. if the
 original name is already taken then the function looks for an available
 alternative. It also returns an updated type_map if one has been passed to it.*)
-fun declare_type (config : config) (thf_type, type_name) ty_map thy =
+fun declare_type (config : config) (thf_type, (type_name, arity)) ty_map thy =
   if type_exists config thy type_name then
-    raise MISINTERPRET_TYPE ("Type already exists", Atom_type type_name)
+    raise MISINTERPRET_TYPE ("Type already exists", Atom_type (type_name, []))
   else
     let
       val binding = mk_binding config type_name
       val final_fqn = Sign.full_name thy binding
+      val tyargs =
+        List.tabulate (arity, rpair @{sort type} o prefix "'" o string_of_int)
       val thy' =
-        Typedecl.typedecl_global (mk_binding config type_name, [], NoSyn) thy
+        Typedecl.typedecl_global (mk_binding config type_name, tyargs, NoSyn) thy
         |> snd
-      val typ_map_entry = (thf_type, (Type (final_fqn, [])))
+      val typ_map_entry = (thf_type, (final_fqn, arity))
       val ty_map' = typ_map_entry :: ty_map
     in (ty_map', thy') end
 
@@ -217,42 +219,56 @@ fun declare_constant config const_name ty thy =
     raise MISINTERPRET_TERM
      ("Const already declared", Term_Func (Uninterpreted const_name, []))
   else
-    Theory.specify_const
-     ((mk_binding config const_name, ty), NoSyn) thy
-
-fun declare_const_ifnot config const_name ty thy =
-  if const_exists config thy const_name then
-    (Sign.mk_const thy ((Sign.full_name thy (mk_binding config const_name)), []), thy)
-  else declare_constant config const_name ty thy
+    Theory.specify_const ((mk_binding config const_name, ty), NoSyn) thy
 
 
 (** Interpretation functions **)
 
-(*Types in THF are encoded as formulas. This function translates them to type form.*)
-(*FIXME possibly incomplete hack*)
-fun fmlatype_to_type (Atom (THF_Atom_term (Term_Func (TypeSymbol typ, [])))) =
+(*Types in TFF/THF are encoded as formulas. These functions translate them to type form.*)
+
+fun termtype_to_type (Term_Func (TypeSymbol typ, [])) =
       Defined_type typ
-  | fmlatype_to_type (Atom (THF_Atom_term (Term_Func (Uninterpreted str, [])))) =
-      Atom_type str
+  | termtype_to_type (Term_Func (Uninterpreted str, tms)) =
+      Atom_type (str, map termtype_to_type tms)
+  | termtype_to_type (Term_Var str) = Var_type str
+
+(*FIXME possibly incomplete hack*)
+fun fmlatype_to_type (Atom (THF_Atom_term tm)) = termtype_to_type tm
   | fmlatype_to_type (Type_fmla (Fn_type (ty1, ty2))) =
       let
         val ty1' = case ty1 of
             Fn_type _ => fmlatype_to_type (Type_fmla ty1)
           | Fmla_type ty1 => fmlatype_to_type ty1
+          | _ => ty1
         val ty2' = case ty2 of
             Fn_type _ => fmlatype_to_type (Type_fmla ty2)
           | Fmla_type ty2 => fmlatype_to_type ty2
+          | _ => ty2
       in Fn_type (ty1', ty2') end
+  | fmlatype_to_type (Type_fmla ty) = ty
+  | fmlatype_to_type (Fmla (Uninterpreted str, fmla)) =
+      Atom_type (str, map fmlatype_to_type fmla)
+  | fmlatype_to_type (Quant (Dep_Prod, _, fmla)) = fmlatype_to_type fmla
+  | fmlatype_to_type (Pred (Interpreted_ExtraLogic Apply, [tm])) =
+      termtype_to_type tm
+
+fun tfree_name_of_var_type str = "'" ^ Name.desymbolize (SOME false) str
+fun tfree_of_var_type str = TFree (tfree_name_of_var_type str, @{sort type})
 
 fun interpret_type config thy type_map thf_ty =
   let
-    fun lookup_type ty_map thf_ty =
-      (case AList.lookup (op =) ty_map thf_ty of
+    fun lookup_type ty_map ary str =
+      (case AList.lookup (op =) ty_map str of
           NONE =>
-            raise MISINTERPRET_TYPE
+            raise MISINTERPRET_SYMBOL
               ("Could not find the interpretation of this TPTP type in the \
-               \mapping to Isabelle/HOL", thf_ty)
-        | SOME ty => ty)
+               \mapping to Isabelle/HOL", Uninterpreted str)
+        | SOME (str', ary') =>
+            if ary' = ary then
+              str'
+            else
+              raise MISINTERPRET_SYMBOL ("TPTP type used with wrong arity",
+                Uninterpreted str))
   in
     case thf_ty of
        Prod_type (thf_ty1, thf_ty2) =>
@@ -263,8 +279,10 @@ fun interpret_type config thy type_map thf_ty =
          Type (@{type_name fun},
           [interpret_type config thy type_map thf_ty1,
            interpret_type config thy type_map thf_ty2])
-     | Atom_type _ =>
-         lookup_type type_map thf_ty
+     | Atom_type (str, thf_tys) =>
+         Type (lookup_type type_map (length thf_tys) str,
+           map (interpret_type config thy type_map) thf_tys)
+     | Var_type str => tfree_of_var_type str
      | Defined_type tptp_base_type =>
          (case tptp_base_type of
             Type_Ind => @{typ ind}
@@ -272,7 +290,8 @@ fun interpret_type config thy type_map thf_ty =
           | Type_Type => raise MISINTERPRET_TYPE ("No type interpretation", thf_ty)
           | Type_Int => @{typ int}
           | Type_Rat => @{typ rat}
-          | Type_Real => @{typ real})
+          | Type_Real => @{typ real}
+          | Type_Dummy => dummyT)
      | Sum_type _ =>
          raise MISINTERPRET_TYPE (*FIXME*)
           ("No type interpretation (sum type)", thf_ty)
@@ -284,19 +303,15 @@ fun interpret_type config thy type_map thf_ty =
           ("No type interpretation (subtype)", thf_ty)
   end
 
-fun the_const config thy language const_map_payload str =
-  if language = THF then
-    (case AList.lookup (op =) const_map_payload str of
-        NONE => raise MISINTERPRET_TERM
-          ("Could not find the interpretation of this constant in the \
-            \mapping to Isabelle/HOL", Term_Func (Uninterpreted str, []))
-      | SOME t => t)
-  else
-    if const_exists config thy str then
-       Sign.mk_const thy ((Sign.full_name thy (mk_binding config str)), [])
-    else raise MISINTERPRET_TERM
-          ("Could not find the interpretation of this constant in the \
-            \mapping to Isabelle/HOL", Term_Func (Uninterpreted str, []))
+fun permute_type_args perm Ts = map (nth Ts) perm
+
+fun the_const thy const_map str tyargs =
+  (case AList.lookup (op =) const_map str of
+      SOME (Const (s, _), tyarg_perm) =>
+      Sign.mk_const thy (s, permute_type_args tyarg_perm tyargs)
+    | _ => raise MISINTERPRET_TERM
+        ("Could not find the interpretation of this constant in the \
+          \mapping to Isabelle/HOL", Term_Func (Uninterpreted str, [])))
 
 (*Eta-expands n-ary function.
  "str" is the name of an Isabelle/HOL constant*)
@@ -340,18 +355,24 @@ fun arity_of interpreted_symbol = case interpreted_symbol of
   | Is_Int => 1
   | Is_Rat => 1
   | Distinct => 1
-  | Apply=> 2
+  | Apply => 2
 
-fun interpret_symbol config language const_map symb thy =
+fun type_arity_of_symbol thy config (Uninterpreted n) =
+    let val s = full_name thy config n in
+      length (Sign.const_typargs thy (s, Sign.the_const_type thy s))
+    end
+  | type_arity_of_symbol _ _ _ = 0
+
+fun interpret_symbol config const_map symb tyargs thy =
   case symb of
      Uninterpreted n =>
        (*Constant would have been added to the map at the time of
        declaration*)
-       the_const config thy language const_map n
+       the_const thy const_map n tyargs
    | Interpreted_ExtraLogic interpreted_symbol =>
        (*FIXME not interpreting*)
        Sign.mk_const thy ((Sign.full_name thy (mk_binding config
-          (string_of_interpreted_symbol interpreted_symbol))), [])
+          (string_of_interpreted_symbol interpreted_symbol))), tyargs)
    | Interpreted_Logic logic_symbol =>
        (case logic_symbol of
           Equals => HOLogic.eq_const dummyT
@@ -421,16 +442,14 @@ fun type_atoms_to_thy config formula_level type_map tptp_atom_value thy =
         in
           case symb of
              Uninterpreted const_name =>
-               declare_const_ifnot config const_name
-                (mk_fun_type (replicate (length tptp_ts) ind_type) value_type I) thy'
-               |> snd
+               perhaps (try (snd o declare_constant config const_name
+                (mk_fun_type (replicate (length tptp_ts) ind_type) value_type I))) thy'
            | _ => thy'
         end
     | Atom_App _ => thy
     | Atom_Arity (const_name, n_args) =>
-        declare_const_ifnot config const_name
-         (mk_fun_type (replicate n_args ind_type) value_type I) thy
-        |> snd
+        perhaps (try (snd o declare_constant config const_name
+         (mk_fun_type (replicate n_args ind_type) value_type I))) thy
   end
 
 (*FIXME only used until interpretation is implemented*)
@@ -493,24 +512,32 @@ fun interpret_term formula_level config language const_map var_types type_map
                (interpret_term formula_level config language const_map
                 var_types type_map (hd tptp_ts)))
            | _ =>
-              (*apply symb to tptp_ts*)
-              if is_prod_typed thy' config symb then
-                let
-                  val (t, thy'') =
-                    mtimes'
-                      (fold_map (interpret_term false config language const_map
-                       var_types type_map) (tl tptp_ts) thy')
-                      (interpret_term false config language const_map
-                       var_types type_map (hd tptp_ts))
-                in (interpret_symbol config language const_map symb thy' $ t, thy'')
-                end
-              else
-                (
-                mapply'
-                  (fold_map (interpret_term false config language const_map
-                   var_types type_map) tptp_ts thy')
-                  (`(interpret_symbol config language const_map symb))
-                )
+              let
+                val typ_arity = type_arity_of_symbol thy config symb
+                val (tptp_type_args, tptp_term_args) = chop typ_arity tptp_ts
+                val tyargs =
+                  map (interpret_type config thy type_map o termtype_to_type)
+                    tptp_type_args
+              in
+                (*apply symb to tptp_ts*)
+                if is_prod_typed thy' config symb then
+                  let
+                    val (t, thy'') =
+                      mtimes'
+                        (fold_map (interpret_term false config language const_map
+                         var_types type_map) (tl tptp_term_args) thy')
+                        (interpret_term false config language const_map
+                         var_types type_map (hd tptp_term_args))
+                  in (interpret_symbol config const_map symb tyargs thy' $ t, thy'')
+                  end
+                else
+                  (
+                  mapply'
+                    (fold_map (interpret_term false config language const_map
+                     var_types type_map) tptp_term_args thy')
+                    (`(interpret_symbol config const_map symb tyargs))
+                  )
+              end
        end
   | Term_Var n =>
      (if language = THF orelse language = TFF then
@@ -537,14 +564,12 @@ fun interpret_term formula_level config language const_map var_types type_map
   | Term_Num (number_kind, num) =>
       let
         (*FIXME hack*)
-        val ind_type = interpret_type config thy type_map (Defined_type Type_Ind)
-        val prefix = case number_kind of
-            Int_num => "intn_"
-          | Real_num => "realn_"
-          | Rat_num => "ratn_"
-      (*FIXME hack -- for Int_num should be
-       HOLogic.mk_number @{typ "int"} (the (Int.fromString num))*)
-      in declare_const_ifnot config (prefix ^ num) ind_type thy end
+        val tptp_type = case number_kind of
+            Int_num => Type_Int
+          | Real_num => Type_Real
+          | Rat_num => Type_Rat
+        val T = interpret_type config thy type_map (Defined_type tptp_type)
+      in (HOLogic.mk_number T (the (Int.fromString num)), thy) end
   | Term_Distinct_Object str =>
       declare_constant config ("do_" ^ str)
         (interpret_type config thy type_map (Defined_type Type_Ind)) thy
@@ -571,11 +596,9 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
                  (Atom_Arity (const_name, length tptp_formulas)) thy'
             in
               (if is_prod_typed thy' config symbol then
-                 mtimes thy' args (interpret_symbol config language
-                  const_map symbol thy')
+                 mtimes thy' args (interpret_symbol config const_map symbol [] thy')
                else
-                mapply args
-                 (interpret_symbol config language const_map symbol thy'),
+                mapply args (interpret_symbol config const_map symbol [] thy'),
               thy')
             end
         | _ =>
@@ -587,11 +610,9 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
                  tptp_formulas thy
             in
               (if is_prod_typed thy' config symbol then
-                 mtimes thy' args (interpret_symbol config language
-                  const_map symbol thy')
+                 mtimes thy' args (interpret_symbol config const_map symbol [] thy')
                else
-                 mapply args
-                  (interpret_symbol config language const_map symbol thy'),
+                 mapply args (interpret_symbol config const_map symbol [] thy'),
                thy')
             end)
     | Sequent _ =>
@@ -663,12 +684,12 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
         (case tptp_atom of
           TFF_Typed_Atom (symbol, tptp_type_opt) =>
             (*FIXME ignoring type info*)
-            (interpret_symbol config language const_map symbol thy, thy)
+            (interpret_symbol config const_map symbol [] thy, thy)
         | THF_Atom_term tptp_term =>
             interpret_term true config language const_map var_types
              type_map tptp_term thy
         | THF_Atom_conn_term symbol =>
-            (interpret_symbol config language const_map symbol thy, thy))
+            (interpret_symbol config const_map symbol [] thy, thy))
     | Type_fmla _ =>
          raise MISINTERPRET_FORMULA
           ("Cannot interpret types as formulas", tptp_fmla)
@@ -678,19 +699,30 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
 
 (*Extract the type from a typing*)
 local
+  fun type_vars_of_fmlatype (Quant (Dep_Prod, varlist, fmla)) =
+      map fst varlist @ type_vars_of_fmlatype fmla
+    | type_vars_of_fmlatype _ = []
+
   fun extract_type tptp_type =
     case tptp_type of
-        Fmla_type typ => fmlatype_to_type typ
-      | _ => tptp_type
+        Fmla_type fmla => (type_vars_of_fmlatype fmla, fmlatype_to_type fmla)
+      | _ => ([], tptp_type)
 in
   fun typeof_typing (THF_typing (_, tptp_type)) = extract_type tptp_type
   fun typeof_tff_typing (Atom (TFF_Typed_Atom (_, SOME tptp_type))) =
     extract_type tptp_type
 end
+
 fun nameof_typing
   (THF_typing
      ((Atom (THF_Atom_term (Term_Func (Uninterpreted str, [])))), _)) = str
 fun nameof_tff_typing (Atom (TFF_Typed_Atom (Uninterpreted str, _))) = str
+
+fun strip_prod_type (Prod_type (ty1, ty2)) = ty1 :: strip_prod_type ty2
+  | strip_prod_type ty = [ty]
+
+fun dest_fn_type (Fn_type (ty1, ty2)) = (strip_prod_type ty1, ty2)
+  | dest_fn_type ty = ([], ty)
 
 fun resolve_include_path path_prefixes path_suffix =
   case find_first (fn prefix => File.exists (Path.append prefix path_suffix))
@@ -698,6 +730,15 @@ fun resolve_include_path path_prefixes path_suffix =
     SOME prefix => Path.append prefix path_suffix
   | NONE =>
     error ("Cannot find include file " ^ quote (Path.implode path_suffix))
+
+(* Ideally, to be in sync with TFF1, we should perform full type skolemization here.
+   But the problems originating from HOL systems are restricted to top-level
+   universal quantification for types. *)
+fun remove_leading_type_quantifiers (Quant (Forall, varlist, tptp_fmla)) =
+    (case filter_out (curry (op =) (SOME (Defined_type Type_Type)) o snd) varlist of
+      [] => remove_leading_type_quantifiers tptp_fmla
+    | varlist' => Quant (Forall, varlist', tptp_fmla))
+  | remove_leading_type_quantifiers tptp_fmla = tptp_fmla
 
 fun interpret_line config inc_list type_map const_map path_prefixes line thy =
   case line of
@@ -719,7 +760,7 @@ fun interpret_line config inc_list type_map const_map path_prefixes line thy =
          case role of
            Role_Type =>
              let
-               val (tptp_ty, name) =
+               val ((tptp_type_vars, tptp_ty), name) =
                  if lang = THF then
                    (typeof_typing tptp_formula (*assuming tptp_formula is a typing*),
                     nameof_typing tptp_formula (*and that the LHS is a (atom) name*))
@@ -727,22 +768,15 @@ fun interpret_line config inc_list type_map const_map path_prefixes line thy =
                    (typeof_tff_typing tptp_formula,
                     nameof_tff_typing tptp_formula)
              in
-               case tptp_ty of
-                 Defined_type Type_Type => (*add new type*)
+               case dest_fn_type tptp_ty of
+                 (tptp_binders, Defined_type Type_Type) => (*add new type*)
                    (*generate an Isabelle/HOL type to interpret this TPTP type,
                    and add it to both the Isabelle/HOL theory and to the type_map*)
                     let
                       val (type_map', thy') =
-                        declare_type
-                         config
-                         (Atom_type name, name)
-                         type_map
-                         thy
-                    in ((type_map',
-                         const_map,
-                         []),
-                        thy')
-                    end
+                        declare_type config
+                          (name, (name, length tptp_binders)) type_map thy
+                    in ((type_map', const_map, []), thy') end
 
                | _ => (*declaration of constant*)
                   (*Here we populate the map from constants to the Isabelle/HOL
@@ -752,7 +786,7 @@ fun interpret_line config inc_list type_map const_map path_prefixes line thy =
                     (*make sure that the theory contains all the types appearing
                     in this constant's signature. Exception is thrown if encounter
                     an undeclared types.*)
-                    val (t, thy') =
+                    val (t as Const (name', _), thy') =
                       let
                         fun analyse_type thy thf_ty =
                            if #cautious config then
@@ -760,13 +794,13 @@ fun interpret_line config inc_list type_map const_map path_prefixes line thy =
                                Fn_type (thf_ty1, thf_ty2) =>
                                  (analyse_type thy thf_ty1;
                                  analyse_type thy thf_ty2)
-                             | Atom_type ty_name =>
+                             | Atom_type (ty_name, _) =>
                                  if type_exists config thy ty_name then ()
                                  else
                                   raise MISINTERPRET_TYPE
                                    ("Type (in signature of " ^
                                       name ^ ") has not been declared",
-                                     Atom_type ty_name)
+                                     Atom_type (ty_name, []))
                              | _ => ()
                            else () (*skip test if we're not being cautious.*)
                       in
@@ -778,7 +812,19 @@ fun interpret_line config inc_list type_map const_map path_prefixes line thy =
                     use "::". Note that here we use a constant's name rather
                     than the possibly- new one, since all references in the
                     theory will be to this name.*)
-                    val const_map' = ((name, t) :: const_map)
+
+                    val tf_tyargs = map tfree_of_var_type tptp_type_vars
+                    val isa_tyargs = Sign.const_typargs thy' (name', ty)
+                    val _ =
+                      if length isa_tyargs < length tf_tyargs then
+                        raise MISINTERPRET_SYMBOL
+                          ("Cannot handle phantom types for constant",
+                           Uninterpreted name)
+                      else
+                        ()
+                    val tyarg_perm =
+                      map (fn T => find_index (curry (op =) T) tf_tyargs) isa_tyargs
+                    val const_map' = ((name, (t, tyarg_perm)) :: const_map)
                   in ((type_map,(*type_map unchanged, since a constant's
                                   declaration shouldn't include any new types.*)
                        const_map',(*typing table of constant was extended*)
@@ -792,7 +838,7 @@ fun interpret_line config inc_list type_map const_map path_prefixes line thy =
                (*gather interpreted term, and the map of types occurring in that term*)
                val (t, thy') =
                  interpret_formula config lang
-                  const_map [] type_map tptp_formula thy
+                  const_map [] type_map (remove_leading_type_quantifiers tptp_formula) thy
                  |>> HOLogic.mk_Trueprop
                (*type_maps grow monotonically, so return the newest value (type_mapped);
                there's no need to unify it with the type_map parameter.*)
