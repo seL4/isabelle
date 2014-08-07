@@ -57,9 +57,8 @@ val simp_thms' = @{thms simp_thms(6,7,8,11,12,15,16,22,24)};
 
 val sumprod_thms_map = @{thms id_apply map_prod_simp prod.case sum.case map_sum.simps};
 val sumprod_thms_set =
-  @{thms UN_empty UN_insert Un_empty_left Un_empty_right Un_iff UN_simps(10) UN_iff
-      Union_Un_distrib image_iff o_apply map_prod_simp
-      mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
+  @{thms UN_empty UN_insert UN_simps(10) UN_iff Un_empty_left Un_empty_right Un_iff Union_Un_distrib
+      image_iff o_apply map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
 val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_apply prod.inject id_apply conj_assoc};
 
 fun hhf_concl_conv cv ctxt ct =

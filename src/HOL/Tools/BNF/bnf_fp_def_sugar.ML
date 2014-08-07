@@ -1382,19 +1382,23 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                          else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans))))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-              fun mk_set_thm fp_set_thm ctr_def' cxIn =
+
+              fun mk_set0_thm fp_set_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (pre_set_defs @ fp_nesting_set_maps @ live_nesting_set_maps @
                        (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_set @
-                       abs_inverses)
+                       @{thms UN_Un sup_assoc[THEN sym]} @ abs_inverses)
                      (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-              fun mk_set_thms fp_set_thm = map2 (mk_set_thm fp_set_thm) ctr_defs' cxIns;
+              fun mk_set0_thms fp_set_thm = map2 (mk_set0_thm fp_set_thm) ctr_defs' cxIns;
 
               val map_thms = map2 mk_map_thm ctr_defs' cxIns;
-              val set_thmss = map mk_set_thms fp_set_thms;
-              val set_thms = flat set_thmss;
+              val set0_thmss = map mk_set0_thms fp_set_thms;
+              val set0_thms = flat set0_thmss;
+              val set_thms = set0_thms
+                |> map (unfold_thms lthy @{thms insert_is_Un[THEN sym] Un_empty_left
+                  Un_insert_left});
 
               val sets = map (mk_set (snd (Term.dest_Type fpT))) (sets_of_bnf fp_bnf);
 
@@ -1426,7 +1430,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   else
                     Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                       (fn {context = ctxt, prems = _} =>
-                        mk_set_empty_tac ctxt (certify ctxt u) exhaust set_thms (flat disc_thmss))
+                        mk_set_empty_tac ctxt (certify ctxt u) exhaust set0_thms (flat disc_thmss))
                       |> Conjunction.elim_balanced (length goals)
                       |> Proof_Context.export names_lthy lthy
                       |> map Thm.close_derivation
@@ -1695,7 +1699,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                           (fn {context = ctxt, prems = _} =>
                             mk_sel_set_tac ctxt (certify ctxt ta) exhaust (flat disc_thmss)
-                              (flat sel_thmss) set_thms)
+                              (flat sel_thmss) set0_thms)
                           |> Conjunction.elim_balanced (length goals)
                           |> Proof_Context.export names_lthy lthy
                     end;
@@ -1728,13 +1732,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) map_thms)
                 |> fp = Least_FP
                   ? Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_eq_thms)
-                |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) set_thms)
+                |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) set0_thms)
                 |> Local_Theory.notes (anonymous_notes @ notes);
 
               val subst = Morphism.thm (substitute_noted_thm noted);
             in
               (((map subst map_thms, map subst rel_inject_thms, map subst rel_distinct_thms,
-                 map (map subst) set_thmss), ctr_sugar), lthy')
+                 map (map subst) set0_thmss), ctr_sugar), lthy')
             end;
 
         fun mk_binding pre = Binding.qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
