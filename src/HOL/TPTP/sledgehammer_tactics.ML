@@ -10,9 +10,9 @@ sig
   type fact_override = Sledgehammer_Fact.fact_override
 
   val sledgehammer_with_metis_tac : Proof.context -> (string * string) list -> fact_override ->
-    int -> tactic
+    thm list -> int -> tactic
   val sledgehammer_as_oracle_tac : Proof.context -> (string * string) list -> fact_override ->
-    int -> tactic
+    thm list -> int -> tactic
 end;
 
 structure Sledgehammer_Tactics : SLEDGEHAMMER_TACTICS =
@@ -26,7 +26,7 @@ open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer_Commands
 
-fun run_prover override_params fact_override i n ctxt goal =
+fun run_prover override_params fact_override chained i n ctxt goal =
   let
     val thy = Proof_Context.theory_of ctxt
     val mode = Normal
@@ -39,10 +39,9 @@ fun run_prover override_params fact_override i n ctxt goal =
     val reserved = reserved_isar_keyword_table ()
     val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      nearly_all_facts ctxt ho_atp fact_override reserved css_table [] hyp_ts concl_t
-      |> relevant_facts ctxt params name
-             (the_default default_max_facts max_facts) fact_override hyp_ts
-             concl_t
+      nearly_all_facts ctxt ho_atp fact_override reserved css_table chained hyp_ts concl_t
+      |> relevant_facts ctxt params name (the_default default_max_facts max_facts) fact_override
+        hyp_ts concl_t
       |> hd |> snd
     val problem =
       {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
@@ -54,22 +53,24 @@ fun run_prover override_params fact_override i n ctxt goal =
     handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
   end
 
-fun sledgehammer_with_metis_tac ctxt override_params fact_override i th =
+fun sledgehammer_with_metis_tac ctxt override_params fact_override chained i th =
   let val override_params = override_params @ [("preplay_timeout", "0")] in
-    case run_prover override_params fact_override i i ctxt th of
+    (case run_prover override_params fact_override chained i i ctxt th of
       SOME facts =>
       Metis_Tactic.metis_tac [] ATP_Problem_Generate.combs_or_liftingN ctxt
-          (maps (thms_of_name ctxt) facts) i th
-    | NONE => Seq.empty
+        (maps (thms_of_name ctxt) facts) i th
+    | NONE => Seq.empty)
   end
 
-fun sledgehammer_as_oracle_tac ctxt override_params fact_override i th =
+fun sledgehammer_as_oracle_tac ctxt override_params fact_override chained i th =
   let
     val override_params =
       override_params @
       [("preplay_timeout", "0"),
        ("minimize", "false")]
-    val xs = run_prover override_params fact_override i i ctxt th
-  in if is_some xs then ALLGOALS Skip_Proof.cheat_tac th else Seq.empty end
+    val xs = run_prover override_params fact_override chained i i ctxt th
+  in
+    if is_some xs then ALLGOALS Skip_Proof.cheat_tac th else Seq.empty
+  end
 
 end;
