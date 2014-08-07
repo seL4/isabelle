@@ -973,8 +973,6 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
                 hyp_subst_tac ctxt,
                 dtac (in_Jrel RS iffD1),
                 dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
-                TRY o
-                  EVERY' [dtac (Thm.permute_prems 0 1 @{thm ssubst_mem}), atac, hyp_subst_tac ctxt],
                 REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
             (rev (active_set_map0s ~~ in_Jrels))])
         (dtor_sets ~~ passive_set_map0s),

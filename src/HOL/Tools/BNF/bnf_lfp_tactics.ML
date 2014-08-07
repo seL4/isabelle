@@ -682,8 +682,6 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
                   @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
                 hyp_subst_tac ctxt,
                 dtac (in_Irel RS iffD1), dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
-                TRY o
-                  EVERY' [dtac (Thm.permute_prems 0 1 @{thm ssubst_mem}), atac, hyp_subst_tac ctxt],
                 REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
             (rev (active_set_map0s ~~ in_Irels))])
         (ctor_sets ~~ passive_set_map0s),
