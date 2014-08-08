@@ -33,6 +33,12 @@ object ML_Statistics
 
   /* standard fields */
 
+  val tasks_fields =
+    ("Future tasks", List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive"))
+
+  val workers_fields =
+    ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
+
   val GC_fields = ("GCs", List("partial_GCs", "full_GCs"))
 
   val heap_fields =
@@ -47,15 +53,9 @@ object ML_Statistics
 
   val speed_fields = ("Speed", List("speed_CPU", "speed_GC"))
 
-  val tasks_fields =
-    ("Future tasks", List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive"))
-
-  val workers_fields =
-    ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
-
   val standard_fields =
-    List(GC_fields, heap_fields, threads_fields, time_fields, speed_fields,
-      tasks_fields, workers_fields)
+    List(tasks_fields, workers_fields, GC_fields, heap_fields, threads_fields,
+      time_fields, speed_fields)
 }
 
 final class ML_Statistics private(val name: String, val stats: List[Properties.T])

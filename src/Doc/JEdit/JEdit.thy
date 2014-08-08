@@ -1595,14 +1595,14 @@ text {* Managed evaluation of commands within PIDE documents includes
   @{system_option_ref jedit_timing_threshold}, which can be configured in
   \emph{Plugin Options~/ Isabelle~/ General}.
 
-  \medskip The \emph{Monitor} panel provides a general impression of
-  recent activity of the farm of worker threads in Isabelle/ML.  Its
-  display is continuously updated according to @{system_option_ref
-  editor_chart_delay}.  Note that the painting of the chart takes
-  considerable runtime itself --- on the Java Virtual Machine that
-  runs Isabelle/Scala, not Isabelle/ML.  Internally, the
-  Isabelle/Scala module @{verbatim isabelle.ML_Statistics} provides
-  further access to statistics of Isabelle/ML.  *}
+  \medskip The \emph{Monitor} panel visualizes various data collections about
+  recent activity of the Isabelle/ML task farm and the underlying ML runtime
+  system. The display is continuously updated according to @{system_option_ref
+  editor_chart_delay}. Note that the painting of the chart takes considerable
+  runtime itself --- on the Java Virtual Machine that runs Isabelle/Scala, not
+  Isabelle/ML. Internally, the Isabelle/Scala module @{verbatim
+  isabelle.ML_Statistics} provides further access to statistics of
+  Isabelle/ML. *}
 
 
 section {* Low-level output *}
