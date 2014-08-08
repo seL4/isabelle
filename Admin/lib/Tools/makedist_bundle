@@ -212,6 +212,7 @@ case "$PLATFORM_FAMILY" in
     ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.ini"
 
     cp "$TMP/windows_app/Isabelle.exe" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe"
+    cp "$ISABELLE_HOME/Admin/Windows/WinRun4J/manifest.xml" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe.manifest"
     cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" "$ISABELLE_TARGET"
 
