@@ -389,7 +389,7 @@ as follows:
 \begin{array}{r@ {}c@ {}l@ {\quad}l}
 @{text"(0 + Suc 0"} & \leq & @{text"Suc 0 + x)"}  & \stackrel{(1)}{=} \\
 @{text"(Suc 0"}     & \leq & @{text"Suc 0 + x)"}  & \stackrel{(2)}{=} \\
-@{text"(Suc 0"}     & \leq & @{text"Suc (0 + x)"} & \stackrel{(3)}{=} \\
+@{text"(Suc 0"}     & \leq & @{text"Suc (0 + x))"} & \stackrel{(3)}{=} \\
 @{text"(0"}         & \leq & @{text"0 + x)"}      & \stackrel{(4)}{=} \\[1ex]
  & @{const True}
 \end{array}
