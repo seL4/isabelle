@@ -48,7 +48,7 @@ type perspective =
  {required: bool,  (*required node*)
   visible: Inttab.set,  (*visible commands*)
   visible_last: Document_ID.command option,  (*last visible command*)
-  overlays: (string * string list) list Inttab.table};  (*command id -> print function with args*)
+  overlays: (string * string list) list Inttab.table};  (*command id -> print functions with args*)
 
 structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord);
 
