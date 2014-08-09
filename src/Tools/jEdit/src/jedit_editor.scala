@@ -110,16 +110,16 @@ class JEdit_Editor extends Editor[View]
 
   /* overlays */
 
-  private var overlays = Document.Overlays.empty
+  private val overlays = Synchronized(Document.Overlays.empty)
 
   override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
-    synchronized { overlays(name) }
+    overlays.value(name)
 
   override def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
-    synchronized { overlays = overlays.insert(command, fn, args) }
+    overlays.change(_.insert(command, fn, args))
 
   override def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
-    synchronized { overlays = overlays.remove(command, fn, args) }
+    overlays.change(_.remove(command, fn, args))
 
 
   /* navigation */
