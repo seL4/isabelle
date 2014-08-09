@@ -263,7 +263,7 @@ fun term_of_atp_ho ctxt sym_tab =
             map (do_term NONE) us)
         else if not (null us) then
           let
-            val args = List.map (do_term NONE) us
+            val args = map (do_term NONE) us
             val opt_T' = SOME (map slack_fastype_of args ---> the_default dummyT opt_T)
             val func = do_term opt_T' (ATerm ((s, tys), []))
           in foldl1 (op $) (func :: args) end

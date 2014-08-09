@@ -2909,7 +2909,7 @@ fun set_printer ctxt model T intr assignment =
           Node xs => xs
         | _       => raise REFUTE ("set_printer",
           "interpretation for set type is a leaf"))
-      val elements = List.mapPartial (fn (arg, result) =>
+      val elements = map_filter (fn (arg, result) =>
         case result of
           Leaf [fmTrue, (* fmFalse *) _] =>
           if Prop_Logic.eval assignment fmTrue then
