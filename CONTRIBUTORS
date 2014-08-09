@@ -15,12 +15,12 @@ Contributions to Isabelle2014
   semigroups and monoids, particularly products (resp. sums) on
   finite sets.
 
-* June 2014: Florian Haftmann, TUM
-  Internal reorganisation of the local theory / named target stack.
-
 * Summer 2014: Mathias Fleury, ENS Rennes, and Albert Steckermeier, TUM
   Work on exotic automatic theorem provers for Sledgehammer (LEO-II,
   veriT, Waldmeister, etc.).
+
+* June 2014: Florian Haftmann, TUM
+  Internal reorganisation of the local theory / named target stack.
 
 * June 2014: Sudeep Kanav, TUM, Jeremy Avigad, CMU, and Johannes Hölzl, TUM
   Various properties of exponentially, Erlang, and normal distributed
