@@ -32,7 +32,6 @@ sig
   exception ERROR of string
   val error: string -> 'a
   val cat_error: string -> string -> 'a
-  val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
 
   (*pairs*)
   val pair: 'a -> 'b -> 'a * 'b
@@ -268,12 +267,6 @@ fun error msg = raise ERROR msg;
 fun cat_error "" msg = error msg
   | cat_error msg "" = error msg
   | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
-
-fun assert_all pred list msg =
-  let
-    fun ass [] = ()
-      | ass (x :: xs) = if pred x then ass xs else error (msg x);
-  in ass list end;
 
 
 (* pairs *)
