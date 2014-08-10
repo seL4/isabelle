@@ -448,7 +448,7 @@ fun activate_facts export dep context =
   let
     val thy = Context.theory_of context;
     val activate =
-      activate_notes Element.init
+      activate_notes Element.init'
         (Morphism.transfer_morphism o Context.theory_of) context export;
   in
     roundup thy activate (the_default Morphism.identity export) dep (Idents.get context, context)
@@ -460,7 +460,7 @@ fun init name thy =
     val context = Context.Proof (Proof_Context.init_global thy);
     val marked = Idents.get context;
     val (marked', context') = (empty_idents, context)
-      |> activate_all name thy Element.init (Morphism.transfer_morphism o Context.theory_of);
+      |> activate_all name thy Element.init' (Morphism.transfer_morphism o Context.theory_of);
   in
     context'
     |> Idents.put (merge_idents (marked, marked'))

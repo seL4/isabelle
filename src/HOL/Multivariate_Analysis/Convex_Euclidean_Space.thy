@@ -1502,7 +1502,7 @@ proof
       by (intro convex_linear_vimage convex_translation convex_convex_hull,
         simp add: linear_iff)
     also have "?S = {y. (x, y) \<in> convex hull (s \<times> t)}"
-      by (auto simp add: uminus_add_conv_diff image_def Bex_def)
+      by (auto simp add: image_def Bex_def)
     finally show "convex {y. (x, y) \<in> convex hull (s \<times> t)}" .
   next
     show "convex {x. \<forall>y\<in>convex hull t. (x, y) \<in> convex hull (s \<times> t)}"
@@ -1512,7 +1512,7 @@ proof
       by (intro convex_linear_vimage convex_translation convex_convex_hull,
         simp add: linear_iff)
       also have "?S = {x. (x, y) \<in> convex hull (s \<times> t)}"
-        by (auto simp add: uminus_add_conv_diff image_def Bex_def)
+        by (auto simp add: image_def Bex_def)
       finally show "convex {x. (x, y) \<in> convex hull (s \<times> t)}" .
     qed
   qed
@@ -5504,12 +5504,12 @@ proof -
     using homeomorphic_convex_compact_lemma[of "(\<lambda>x. ?d *\<^sub>R -a + ?d *\<^sub>R x) ` s",
       OF convex_affinity compact_affinity]
     using assms(1,2)
-    by (auto simp add: uminus_add_conv_diff scaleR_right_diff_distrib)
+    by (auto simp add: scaleR_right_diff_distrib)
   then show ?thesis
     apply (rule_tac homeomorphic_trans[OF _ homeomorphic_balls(2)[of 1 _ ?n]])
     apply (rule homeomorphic_trans[OF homeomorphic_affinity[of "?d" s "?d *\<^sub>R -a"]])
     using `d>0` `e>0`
-    apply (auto simp add: uminus_add_conv_diff scaleR_right_diff_distrib)
+    apply (auto simp add: scaleR_right_diff_distrib)
     done
 qed
 
@@ -5808,7 +5808,7 @@ lemma set_setsum_eq:
   apply (rule_tac f="\<lambda>x. a + x" in arg_cong)
   apply (rule setsum.cong [OF refl])
   apply clarsimp
-  apply (fast intro: set_plus_intro)
+  apply fast
   done
 
 lemma box_eq_set_setsum_Basis:
@@ -5895,7 +5895,7 @@ proof -
     apply (rule image_eqI[where x="{i. i\<in>Basis \<and> x\<bullet>i = 1}"])
     using as
     apply (subst euclidean_eq_iff)
-    apply (auto simp: inner_setsum_left_Basis)
+    apply auto
     done
 qed auto
 
@@ -6430,7 +6430,7 @@ next
         apply (subst (asm) euclidean_eq_iff)
         using i
         apply (erule_tac x=i in ballE)
-        apply (auto simp add:field_simps inner_simps)
+        apply (auto simp add: field_simps inner_simps)
         done
       finally show "x \<bullet> i =
         ((1 - norm (a - x) / norm (a - b)) *\<^sub>R a + (norm (a - x) / norm (a - b)) *\<^sub>R b) \<bullet> i"
@@ -8138,8 +8138,7 @@ lemma convex_rel_open_linear_image:
     and "convex S"
     and "rel_open S"
   shows "convex (f ` S) \<and> rel_open (f ` S)"
-  by (metis assms convex_linear_image rel_interior_convex_linear_image
-    linear_conv_bounded_linear rel_open_def)
+  by (metis assms convex_linear_image rel_interior_convex_linear_image rel_open_def)
 
 lemma convex_rel_open_linear_preimage:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"

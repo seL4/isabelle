@@ -610,8 +610,7 @@ next
     by (auto intro: exI[where x="m*2^nat (e+p)"]
              simp add: ac_simps powr_add[symmetric] r powr_realpow)
   with `\<not> p + e < 0` show ?thesis
-    by transfer
-       (auto simp add: round_down_def field_simps powr_add powr_minus inverse_eq_divide)
+    by transfer (auto simp add: round_down_def field_simps powr_add powr_minus)
 qed
 hide_fact (open) compute_float_down
 
@@ -682,8 +681,7 @@ next
     by (auto simp add: ac_simps powr_add[symmetric] r1 powr_realpow
       intro: exI[where x="m*2^nat (e+p)"])
   then show ?thesis using `\<not> p + e < 0`
-    by transfer
-       (simp add: round_up_def floor_divide_eq_div field_simps powr_add powr_minus inverse_eq_divide)
+    by transfer (simp add: round_up_def floor_divide_eq_div field_simps powr_add powr_minus)
 qed
 hide_fact (open) compute_float_up
 
@@ -840,7 +838,7 @@ proof -
     have "(1::int) < 2" by simp
     case False let ?S = "2^(nat (-e))"
     have "inverse (2 ^ nat (- e)) = 2 powr e" using assms False powr_realpow[of 2 "nat (-e)"]
-      by (auto simp: powr_minus field_simps inverse_eq_divide)
+      by (auto simp: powr_minus field_simps)
     hence "1 \<le> real m * inverse ?S" using assms False powr_realpow[of 2 "nat (-e)"]
       by (auto simp: powr_minus)
     hence "1 * ?S \<le> real m * inverse ?S * ?S" by (rule mult_right_mono, auto)
@@ -940,7 +938,7 @@ next
     have "int y * 2 ^ nat (- l) = y'" by (simp add: y'_def int_mult int_power)
     moreover have "real x * real (2::int) powr real l / real y = x / real y'"
       using `\<not> 0 \<le> l`
-      by (simp add: powr_realpow[symmetric] powr_minus y'_def field_simps inverse_eq_divide)
+      by (simp add: powr_realpow[symmetric] powr_minus y'_def field_simps)
     ultimately show ?thesis
       unfolding normfloat_def
       using ceil_divide_floor_conv[of y' x] `\<not> 0 \<le> l` `y' \<noteq> 0` `y \<noteq> 0`
@@ -993,7 +991,7 @@ proof -
     using rat_precision_pos[OF assms] by (rule power_aux)
   finally show ?thesis
     apply (transfer fixing: n x y)
-    apply (simp add: round_up_def field_simps powr_minus inverse_eq_divide powr1)
+    apply (simp add: round_up_def field_simps powr_minus powr1)
     unfolding int_of_reals real_of_int_less_iff
     apply (simp add: ceiling_less_eq)
     done
@@ -1415,7 +1413,7 @@ proof -
     by (simp add: powr_divide2[symmetric] powr_add powr_minus inverse_eq_divide)
   also have "\<dots> = 2 powr (log 2 x - (real \<lfloor>log 2 x\<rfloor>) - 1)"
     using `0 < x`
-    by (auto simp: inverse_eq_divide field_simps powr_add powr_divide2[symmetric])
+    by (auto simp: field_simps powr_add powr_divide2[symmetric])
   also have "\<dots> < 2 powr 0"
     using real_of_int_floor_add_one_gt
     unfolding neg_less_iff_less

@@ -356,14 +356,14 @@ final class Command private(
 
   /* blobs */
 
-  def blobs_changed(doc_blobs: Document.Blobs): Boolean =
-    blobs.exists({ case Exn.Res((name, _)) => doc_blobs.changed(name) case _ => false })
-
   def blobs_names: List[Document.Node.Name] =
     for (Exn.Res((name, _)) <- blobs) yield name
 
-  def blobs_digests: List[SHA1.Digest] =
-    for (Exn.Res((_, Some((digest, _)))) <- blobs) yield digest
+  def blobs_defined: List[(Document.Node.Name, SHA1.Digest)] =
+    for (Exn.Res((name, Some((digest, _)))) <- blobs) yield (name, digest)
+
+  def blobs_changed(doc_blobs: Document.Blobs): Boolean =
+    blobs.exists({ case Exn.Res((name, _)) => doc_blobs.changed(name) case _ => false })
 
 
   /* source chunks */

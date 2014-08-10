@@ -275,7 +275,9 @@ fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arit
                    Sign.typ_instance thy (U, T'))
                      (Symtab.lookup_list set_arities s')
                  then
-                   (warning ("Ignoring conversion rule for operator " ^ s'); tab)
+                   (if Context_Position.is_really_visible ctxt then
+                     warning ("Ignoring conversion rule for operator " ^ s')
+                    else (); tab)
                  else
                    {to_set_simps = thm :: to_set_simps,
                     to_pred_simps =
@@ -289,8 +291,14 @@ fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arit
        | _ => raise Malformed "equation between predicates expected")
   | _ => raise Malformed "equation expected")
   handle Malformed msg =>
-    (warning ("Ignoring malformed set / predicate conversion rule: " ^ msg ^
-      "\n" ^ Display.string_of_thm (Context.proof_of context) thm); tab);
+    let
+      val ctxt = Context.proof_of context
+      val _ =
+        if Context_Position.is_really_visible ctxt then
+          warning ("Ignoring malformed set / predicate conversion rule: " ^ msg ^
+            "\n" ^ Display.string_of_thm ctxt thm)
+        else ();
+    in tab end;
 
 val pred_set_conv_att = Thm.declaration_attribute
   (fn thm => fn ctxt => Data.map (add ctxt thm) ctxt);

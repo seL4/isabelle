@@ -7307,27 +7307,27 @@ subsection {* Affine transformations of intervals *}
 
 lemma real_affinity_le:
  "0 < (m::'a::linordered_field) \<Longrightarrow> (m * x + c \<le> y \<longleftrightarrow> x \<le> inverse(m) * y + -(c / m))"
-  by (simp add: field_simps inverse_eq_divide)
+  by (simp add: field_simps)
 
 lemma real_le_affinity:
  "0 < (m::'a::linordered_field) \<Longrightarrow> (y \<le> m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) \<le> x)"
-  by (simp add: field_simps inverse_eq_divide)
+  by (simp add: field_simps)
 
 lemma real_affinity_lt:
  "0 < (m::'a::linordered_field) \<Longrightarrow> (m * x + c < y \<longleftrightarrow> x < inverse(m) * y + -(c / m))"
-  by (simp add: field_simps inverse_eq_divide)
+  by (simp add: field_simps)
 
 lemma real_lt_affinity:
  "0 < (m::'a::linordered_field) \<Longrightarrow> (y < m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) < x)"
-  by (simp add: field_simps inverse_eq_divide)
+  by (simp add: field_simps)
 
 lemma real_affinity_eq:
  "(m::'a::linordered_field) \<noteq> 0 \<Longrightarrow> (m * x + c = y \<longleftrightarrow> x = inverse(m) * y + -(c / m))"
-  by (simp add: field_simps inverse_eq_divide)
+  by (simp add: field_simps)
 
 lemma real_eq_affinity:
  "(m::'a::linordered_field) \<noteq> 0 \<Longrightarrow> (y = m * x + c  \<longleftrightarrow> inverse(m) * y + -(c / m) = x)"
-  by (simp add: field_simps inverse_eq_divide)
+  by (simp add: field_simps)
 
 
 subsection {* Banach fixed point theorem (not really topological...) *}

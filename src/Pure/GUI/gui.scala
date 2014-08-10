@@ -12,7 +12,7 @@ import java.lang.{ClassLoader, ClassNotFoundException, NoSuchMethodException}
 import java.awt.{Image, Component, Container, Toolkit, Window, Font, KeyboardFocusManager}
 import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
 import java.awt.geom.AffineTransform
-import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow,
+import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow, JDialog,
   JButton, JTextField}
 
 import scala.collection.convert.WrapAsJava
@@ -208,8 +208,9 @@ object GUI
 
   def layered_pane(component: Component): Option[JLayeredPane] =
     parent_window(component) match {
-      case Some(window: JWindow) => Some(window.getLayeredPane)
-      case Some(frame: JFrame) => Some(frame.getLayeredPane)
+      case Some(w: JWindow) => Some(w.getLayeredPane)
+      case Some(w: JFrame) => Some(w.getLayeredPane)
+      case Some(w: JDialog) => Some(w.getLayeredPane)
       case _ => None
     }
 

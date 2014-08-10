@@ -137,17 +137,17 @@ in
 end
 *} "lift trivial vector statements to real arith statements"
 
-lemma vec_0[simp]: "vec 0 = 0" by (vector zero_vec_def)
-lemma vec_1[simp]: "vec 1 = 1" by (vector one_vec_def)
+lemma vec_0[simp]: "vec 0 = 0" by vector
+lemma vec_1[simp]: "vec 1 = 1" by vector
 
 lemma vec_inj[simp]: "vec x = vec y \<longleftrightarrow> x = y" by vector
 
 lemma vec_in_image_vec: "vec x \<in> (vec ` S) \<longleftrightarrow> x \<in> S" by auto
 
-lemma vec_add: "vec(x + y) = vec x + vec y"  by (vector vec_def)
-lemma vec_sub: "vec(x - y) = vec x - vec y" by (vector vec_def)
-lemma vec_cmul: "vec(c * x) = c *s vec x " by (vector vec_def)
-lemma vec_neg: "vec(- x) = - vec x " by (vector vec_def)
+lemma vec_add: "vec(x + y) = vec x + vec y"  by vector
+lemma vec_sub: "vec(x - y) = vec x - vec y" by vector
+lemma vec_cmul: "vec(c * x) = c *s vec x " by vector
+lemma vec_neg: "vec(- x) = - vec x " by vector
 
 lemma vec_setsum:
   assumes "finite S"
@@ -164,7 +164,7 @@ qed
 text{* Obvious "component-pushing". *}
 
 lemma vec_component [simp]: "vec x $ i = x"
-  by (vector vec_def)
+  by vector
 
 lemma vector_mult_component [simp]: "(x * y)$i = x$i * y$i"
   by vector
@@ -330,7 +330,7 @@ lemma setsum_norm_allsubsets_bound_cart:
   assumes fP: "finite P" and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (setsum f Q) \<le> e"
   shows "setsum (\<lambda>x. norm (f x)) P \<le> 2 * real CARD('n) *  e"
   using setsum_norm_allsubsets_bound[OF assms]
-  by (simp add: DIM_cart Basis_real_def)
+  by simp
 
 subsection {* Matrix operations *}
 

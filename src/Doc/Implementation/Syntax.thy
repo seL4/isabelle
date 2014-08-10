@@ -99,7 +99,7 @@ text %mlref {*
   If particular type-constraints are required for some of the arguments, the
   read operations needs to be split into its parse and check phases. Then it
   is possible to use @{ML Type.constraint} on the intermediate pre-terms
-  \secref{sec:term-check}.
+  (\secref{sec:term-check}).
 
   \item @{ML Syntax.read_props}~@{text "ctxt strs"} parses and checks a
   simultaneous list of source strings as terms of the logic, with an implicit

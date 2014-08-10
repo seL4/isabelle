@@ -28,7 +28,7 @@ sig
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
   val mk_rel_cases_tac:  Proof.context -> cterm -> cterm -> thm -> thm list -> thm list ->
-    thm list -> thm list -> tactic
+    thm list -> thm list -> thm list -> tactic
   val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
     thm list list -> thm list list -> thm list list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> tactic
@@ -217,11 +217,11 @@ fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inver
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
 
-fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts =
+fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts rel_eqs=
   HEADGOAL (rtac (cterm_instantiate_pos [SOME ct1] exhaust) THEN_ALL_NEW
     rtac (cterm_instantiate_pos [SOME ct2] exhaust) THEN_ALL_NEW
       hyp_subst_tac ctxt) THEN
-  unfold_thms_tac ctxt (injects @ rel_injects @ @{thms conj_imp_eq_imp_imp simp_thms(6)
+  unfold_thms_tac ctxt (rel_eqs @ injects @ rel_injects @ @{thms conj_imp_eq_imp_imp simp_thms(6)
     True_implies_equals conj_imp_eq_imp_imp} @
     map (fn thm => thm RS eqFalseI) (distincts @ rel_distincts) @
     map (fn thm => thm RS eqTrueI) rel_injects) THEN
@@ -261,7 +261,7 @@ fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss cto
         unfold_thms_tac ctxt (ctor_inject :: rel_pre_list_def :: ctor_defs @ nesting_rel_eqs @
           @{thms BNF_Comp.id_bnf_comp_def vimage2p_def}) THEN
         TRYALL (hyp_subst_tac ctxt) THEN
-        unfold_tac ctxt (Abs_inverse :: @{thms rel_sum_simps rel_prod_apply Inl_Inr_False
+        unfold_thms_tac ctxt (Abs_inverse :: @{thms rel_sum_simps rel_prod_apply Inl_Inr_False
           Inr_Inl_False  sum.inject prod.inject}) THEN
         TRYALL (etac FalseE ORELSE' (REPEAT_DETERM o etac conjE) THEN' atac))
     cterms exhausts ctor_defss ctor_injects rel_pre_list_defs Abs_inverses);
@@ -270,7 +270,7 @@ fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_dis
   HEADGOAL (rtac (cterm_instantiate_pos [SOME ct1] exhaust) THEN_ALL_NEW
     rtac (cterm_instantiate_pos [SOME ct2] exhaust) THEN_ALL_NEW
       hyp_subst_tac ctxt) THEN
-  Local_Defs.unfold_tac ctxt (sels @ rel_injects @ @{thms simp_thms(6,7,8,11,12,15,16,21,22,24)} @
+  unfold_thms_tac ctxt (sels @ rel_injects @ @{thms simp_thms(6,7,8,11,12,15,16,21,22,24)} @
     ((discs @ distincts) RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
     (rel_injects RL @{thms iffD2[OF eq_True]}) @
     (rel_distincts RL @{thms iffD2[OF eq_False]})) THEN

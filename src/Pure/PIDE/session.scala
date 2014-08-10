@@ -47,7 +47,6 @@ object Session
 
   sealed case class Change(
     previous: Document.Version,
-    doc_blobs: Document.Blobs,
     syntax_changed: Boolean,
     deps_changed: Boolean,
     doc_edits: List[Document.Edit_Command],
@@ -177,8 +176,7 @@ class Session(val resources: Resources)
   /* tuning parameters */
 
   def output_delay: Time = Time.seconds(0.1)  // prover output (markup, common messages)
-  def message_delay: Time = Time.seconds(0.1)  // prover input/output messages
-  def prune_delay: Time = Time.seconds(60.0)  // prune history -- delete old versions
+  def prune_delay: Time = Time.seconds(60.0)  // prune history (delete old versions)
   def prune_size: Int = 0  // size of retained history
   def syslog_limit: Int = 100
   def reparse_limit: Int = 0
@@ -380,15 +378,15 @@ class Session(val resources: Resources)
       def id_command(command: Command)
       {
         for {
-          digest <- command.blobs_digests
+          (name, digest) <- command.blobs_defined
           if !global_state.value.defined_blob(digest)
         } {
-          change.doc_blobs.get(digest) match {
+          change.version.nodes(name).get_blob match {
             case Some(blob) =>
               global_state.change(_.define_blob(digest))
               prover.get.define_blob(digest, blob.bytes)
             case None =>
-              Output.error_message("Missing blob for SHA1 digest " + digest)
+              Output.error_message("Missing blob " + quote(name.toString))
           }
         }
 

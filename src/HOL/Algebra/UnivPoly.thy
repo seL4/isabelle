@@ -528,7 +528,7 @@ proof (rule up_eqI)
     case 0 with R show ?thesis by simp
   next
     case Suc with R show ?thesis
-      using R.finsum_Suc2 by (simp del: R.finsum_Suc add: R.r_null Pi_def)
+      using R.finsum_Suc2 by (simp del: R.finsum_Suc add: Pi_def)
   qed
 qed (simp_all add: R)
 

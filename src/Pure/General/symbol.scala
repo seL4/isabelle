@@ -203,6 +203,8 @@ object Symbol
         case _ => false
       }
 
+    override def toString: String = "Text_Chunk" + range.toString
+
     def decode(symbol_offset: Offset): Text.Offset = index.decode(symbol_offset)
     def decode(symbol_range: Range): Text.Range = index.decode(symbol_range)
     def incorporate(symbol_range: Range): Option[Text.Range] =

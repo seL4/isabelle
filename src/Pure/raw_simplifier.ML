@@ -385,7 +385,7 @@ fun map_theory_simpset f thy =
     val thy' = Proof_Context.theory_of ctxt';
   in Context.theory_map (Simpset.map (K (simpset_of ctxt'))) thy' end;
 
-fun map_ss f = Context.mapping (map_theory_simpset f) f;
+fun map_ss f = Context.mapping (map_theory_simpset (f o Context_Position.not_really)) f;
 
 val clear_simpset =
   map_simpset (fn Simpset ({depth, ...}, {mk_rews, termless, subgoal_tac, solvers, ...}) =>
@@ -428,7 +428,7 @@ val simp_trace_raw =
 val simp_trace = Config.bool simp_trace_raw;
 
 fun cond_warning ctxt msg =
-  if Context_Position.is_visible ctxt then warning (msg ()) else ();
+  if Context_Position.is_really_visible ctxt then warning (msg ()) else ();
 
 fun cond_tracing' ctxt flag msg =
   if Config.get ctxt flag then
@@ -592,6 +592,7 @@ fun ctxt delsimps thms =
 
 fun add_simp thm ctxt = ctxt addsimps [thm];
 fun del_simp thm ctxt = ctxt delsimps [thm];
+
 
 (* congs *)
 

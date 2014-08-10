@@ -204,7 +204,7 @@ fun reset_state tr st0 = Toplevel.setmp_thread_position tr (fn () =>
   in
     (case res of
       NONE => st0
-    | SOME st => (warning (Toplevel.type_error tr st0 ^ " -- resetting state"); st))
+    | SOME st => (Output.error_message (Toplevel.type_error tr st0 ^ " -- using reset state"); st))
   end) ();
 
 fun run int tr st =
@@ -382,7 +382,7 @@ val _ =
   print_function "Execution.print"
     (fn {args, exec_id, ...} =>
       if null args then
-        SOME {delay = NONE, pri = 1, persistent = false, strict = true,
+        SOME {delay = NONE, pri = 1, persistent = false, strict = false,
           print_fn = fn _ => fn _ => Execution.fork_prints exec_id}
       else NONE);
 

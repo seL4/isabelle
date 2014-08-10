@@ -249,7 +249,7 @@ apply (induct k)
 apply (simp (no_asm))
 (*induction step*)
 apply (subgoal_tac "(Suc (j+k) choose Suc k) > 0")
- prefer 2 apply (simp add: zero_less_binomial_iff, clarify)
+ prefer 2 apply (simp, clarify)
 apply (subgoal_tac "exponent p ((Suc (j+k) choose Suc k) * Suc k) = 
                     exponent p (Suc k)")
  txt{*First, use the assumed equation.  We simplify the LHS to
@@ -260,7 +260,7 @@ txt{*Establishing the equation requires first applying
    @{text Suc_times_binomial_eq} ...*}
 apply (simp del: bad_Sucs add: Suc_times_binomial_eq [symmetric])
 txt{*...then @{text exponent_mult_add} and the quantified premise.*}
-apply (simp del: bad_Sucs add: zero_less_binomial_iff exponent_mult_add)
+apply (simp del: bad_Sucs add: exponent_mult_add)
 done
 
 (*The lemma above, with two changes of variables*)

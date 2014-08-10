@@ -58,10 +58,6 @@ object Document
 
   final class Blobs private(blobs: Map[Node.Name, Blob])
   {
-    private lazy val digests: Map[SHA1.Digest, Blob] =
-      for ((_, blob) <- blobs) yield (blob.bytes.sha1_digest, blob)
-
-    def get(digest: SHA1.Digest): Option[Blob] = digests.get(digest)
     def get(name: Node.Name): Option[Blob] = blobs.get(name)
 
     def changed(name: Node.Name): Boolean =
@@ -648,7 +644,7 @@ object Document
         (_, node) <- version.nodes.iterator
         command <- node.commands.iterator
       } {
-        for (digest <- command.blobs_digests; if !blobs1.contains(digest))
+        for ((_, digest) <- command.blobs_defined; if !blobs1.contains(digest))
           blobs1 += digest
 
         if (!commands1.isDefinedAt(command.id))

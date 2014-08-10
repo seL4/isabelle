@@ -2,7 +2,7 @@
     Author:     Makarius
 
 One-shot query operations via asynchronous print functions and temporary
-document overlay.
+document overlays.
 *)
 
 signature QUERY_OPERATION =

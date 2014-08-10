@@ -343,7 +343,7 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
                 using Basis_le_norm[OF k, of "?z - y"] unfolding dist_norm by auto
               then have "y\<bullet>k < a\<bullet>k"
                 using e[THEN conjunct1] k
-                by (auto simp add: field_simps abs_less_iff as inner_Basis inner_simps)
+                by (auto simp add: field_simps abs_less_iff as inner_simps)
               then have "y \<notin> i"
                 unfolding ab mem_box by (auto intro!: bexI[OF _ k])
               then show False using yi by auto
@@ -12092,7 +12092,7 @@ proof (cases "finite I")
     by (induct I) (auto intro!: bounded_linear_add bounded_linear_zero)
 next
   case False
-  then show ?thesis by (simp add: bounded_linear_zero)
+  then show ?thesis by simp
 qed
 
 lemma absolutely_integrable_vector_abs:

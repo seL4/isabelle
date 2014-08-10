@@ -27,8 +27,10 @@ primrec seqseq where
 
 lemma subseq_seqseq[intro, simp]: "subseq (seqseq n)"
 proof (induct n)
-  case (Suc n) thus ?case by (subst seqseq.simps) (auto simp: subseq_reduce intro!: subseq_o)
-qed (simp add: subseq_def)
+  case 0 thus ?case by (simp add: subseq_def)
+next
+  case (Suc n) thus ?case by (subst seqseq.simps) (auto intro!: subseq_o)
+qed
 
 lemma seqseq_holds:
   "P n (seqseq (Suc n))"

@@ -117,6 +117,9 @@ public option editor_input_delay : real = 0.3
 public option editor_output_delay : real = 0.1
   -- "delay for prover output (markup, common messages etc.)"
 
+public option editor_prune_delay : real = 60.0
+  -- "delay to prune history (delete old versions)"
+
 public option editor_update_delay : real = 0.5
   -- "delay for physical GUI updates"
 

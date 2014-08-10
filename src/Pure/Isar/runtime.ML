@@ -99,6 +99,7 @@ fun exn_messages_ids e =
               TERMINATE => "Exit"
             | TimeLimit.TimeOut => "Timeout"
             | TOPLEVEL_ERROR => "Error"
+            | ERROR "" => "Error"
             | ERROR msg => msg
             | Fail msg => raised exn "Fail" [msg]
             | THEORY (msg, thys) =>

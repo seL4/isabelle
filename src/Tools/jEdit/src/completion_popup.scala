@@ -702,7 +702,10 @@ class Completion_Popup private(
         {
           if (!e.isConsumed) {
             e.getKeyCode match {
-              case KeyEvent.VK_TAB =>
+              case KeyEvent.VK_ENTER if PIDE.options.bool("jedit_completion_select_enter") =>
+                if (complete_selected()) e.consume
+                hide_popup()
+              case KeyEvent.VK_TAB if PIDE.options.bool("jedit_completion_select_tab") =>
                 if (complete_selected()) e.consume
                 hide_popup()
               case KeyEvent.VK_ESCAPE =>

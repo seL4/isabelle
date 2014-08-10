@@ -808,7 +808,7 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
       then have tw: "cmod ?w \<le> cmod w"
         using t(1) by (simp add: norm_mult)
       from t inv0 have "t * (cmod w ^ (k + 1) * m) < 1"
-        by (simp add: inverse_eq_divide field_simps)
+        by (simp add: field_simps)
       with zero_less_power[OF t(1), of k] have th30: "t^k * (t* (cmod w ^ (k + 1) * m)) < t^k * 1"
         by (metis comm_mult_strict_left_mono)
       have "cmod (?w^k * ?w * poly s ?w) = t^k * (t* (cmod w ^ (k + 1) * cmod (poly s ?w)))"

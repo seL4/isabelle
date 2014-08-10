@@ -15,8 +15,6 @@ Checklist for official releases
 
 - test "#!/usr/bin/env isabelle_scala_script";
 
-- check HTML header of library;
-
 - check sources:
     isabelle java isabelle.Check_Source '~~' '$AFP_BASE'
 
@@ -40,6 +38,8 @@ Checklist for official releases
     ROOTS
     lib/html/library_index_content.template
 
+- check HTML header of library;
+
 - test separate compilation of Isabelle/Scala PIDE sources:
     Admin/build jars_test
 
@@ -53,6 +53,8 @@ Checklist for official releases
   PolyML.Compiler.reportExhaustiveHandlers := true;
 
 - Mac OS X: check app bundle with Retina display;
+
+- Windows: check dpi scaling with high-definition display;
 
 
 Repository fork

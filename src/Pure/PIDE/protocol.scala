@@ -145,8 +145,8 @@ object Protocol
       val status = Status.merge(states.iterator.map(_.protocol_status))
 
       if (status.is_running) running += 1
-      else if (status.is_warned) warned += 1
       else if (status.is_failed) failed += 1
+      else if (status.is_warned) warned += 1
       else if (status.is_finished) finished += 1
       else unprocessed += 1
     }

@@ -69,31 +69,31 @@ let
   (*recT and rec_params should agree for all mutually recursive components*)
   val rec_hds = map head_of rec_tms;
 
-  val dummy = assert_all is_Const rec_hds
-          (fn t => "Recursive set not previously declared as constant: " ^
-                   Syntax.string_of_term ctxt t);
+  val dummy = rec_hds |> forall (fn t => is_Const t orelse
+      error ("Recursive set not previously declared as constant: " ^
+                   Syntax.string_of_term ctxt t));
 
   (*Now we know they are all Consts, so get their names, type and params*)
   val rec_names = map (#1 o dest_Const) rec_hds
   and (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
 
   val rec_base_names = map Long_Name.base_name rec_names;
-  val dummy = assert_all Symbol_Pos.is_identifier rec_base_names
-    (fn a => "Base name of recursive set not an identifier: " ^ a);
+  val dummy = rec_base_names |> forall (fn a => Symbol_Pos.is_identifier a orelse
+    error ("Base name of recursive set not an identifier: " ^ a));
 
   local (*Checking the introduction rules*)
     val intr_sets = map (#2 o Ind_Syntax.rule_concl_msg thy) intr_tms;
     fun intr_ok set =
         case head_of set of Const(a,recT) => member (op =) rec_names a | _ => false;
   in
-    val dummy =  assert_all intr_ok intr_sets
-       (fn t => "Conclusion of rule does not name a recursive set: " ^
-                Syntax.string_of_term ctxt t);
+    val dummy = intr_sets |> forall (fn t => intr_ok t orelse
+      error ("Conclusion of rule does not name a recursive set: " ^
+                Syntax.string_of_term ctxt t));
   end;
 
-  val dummy = assert_all is_Free rec_params
-      (fn t => "Param in recursion term not a free variable: " ^
-               Syntax.string_of_term ctxt t);
+  val dummy = rec_params |> forall (fn t => is_Free t orelse
+      error ("Param in recursion term not a free variable: " ^
+               Syntax.string_of_term ctxt t));
 
   (*** Construct the fixedpoint definition ***)
   val mk_variant = singleton (Name.variant_list (List.foldr Misc_Legacy.add_term_names [] intr_tms));

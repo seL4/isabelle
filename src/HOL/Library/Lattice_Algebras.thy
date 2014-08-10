@@ -396,7 +396,7 @@ proof
   proof -
     have g: "\<bar>a\<bar> + \<bar>b\<bar> = sup (a + b) (sup (- a - b) (sup (- a + b) (a + (- b))))"
       (is "_=sup ?m ?n")
-      by (simp add: abs_lattice add_sup_inf_distribs sup_aci ac_simps)
+      by (simp add: abs_lattice add_sup_inf_distribs ac_simps)
     have a: "a + b \<le> sup ?m ?n"
       by simp
     have b: "- a - b \<le> ?n"
@@ -410,7 +410,7 @@ proof
     from a d e have "\<bar>a + b\<bar> \<le> sup ?m ?n"
       apply -
       apply (drule abs_leI)
-      apply (simp_all only: algebra_simps ac_simps minus_add)
+      apply (simp_all only: algebra_simps minus_add)
       apply (metis add_uminus_conv_diff d sup_commute uminus_add_conv_diff)
       done
     with g[symmetric] show ?thesis by simp

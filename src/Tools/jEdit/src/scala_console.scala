@@ -201,6 +201,7 @@ class Scala_Console extends Shell("Scala")
   {
     out.print(null,
      "This shell evaluates Isabelle/Scala expressions.\n\n" +
+     "The contents of package isabelle and isabelle.jedit are imported.\n" +
      "The following special toplevel bindings are provided:\n" +
      "  view    -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
      "  console -- jEdit Console plugin\n" +
