@@ -12,7 +12,7 @@ sig
   val del_thm: string -> thm -> Context.generic -> Context.generic
   val add: string -> attribute
   val del: string -> attribute
-  val declare: binding -> string -> theory -> string * theory
+  val declare: binding -> string -> local_theory -> string * local_theory
 end;
 
 structure Named_Theorems: NAMED_THEOREMS =
@@ -59,27 +59,34 @@ val del = Thm.declaration_attribute o del_thm;
 
 (* declaration *)
 
-fun declare binding descr thy =
+fun declare binding descr lthy =
   let
-    (* FIXME proper result from Global_Theory.add_thms_dynamic *)
-    val naming = Name_Space.naming_of (Context.Theory thy);
-    val name = Name_Space.full_name naming binding;
-
-    val thy' = thy
-      |> Global_Theory.add_thms_dynamic (binding, fn context => content context name);
-
+    val name = Name_Space.full_name (Local_Theory.naming_of lthy) binding;
     val description =
       "declaration of " ^ (if descr = "" then Binding.name_of binding ^ " rules" else descr);
-    val thy'' = thy'
-      |> Context.theory_map (new_entry name)
-      |> Attrib.setup binding (Attrib.add_del (add name) (del name)) description;
-  in (name, thy'') end;
+    val lthy' = lthy
+      |> Local_Theory.background_theory
+        (Global_Theory.add_thms_dynamic (binding, fn context => content context name) #>
+         Attrib.setup binding (Attrib.add_del (add name) (del name)) description #>
+         Context.theory_map (new_entry name))
+      |> Local_Theory.map_contexts (K (Context.proof_map (new_entry name)))
+      |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi => fn context =>
+          let
+            val binding' = Morphism.binding phi binding;
+            val context' =
+              context |> Context.mapping
+                (Global_Theory.alias_fact binding' name)
+                (fn ctxt =>
+                  if Facts.defined (Proof_Context.facts_of ctxt) name
+                  then Proof_Context.fact_alias binding' name ctxt
+                  else ctxt);
+          in context' end);
+  in (name, lthy') end;
 
 val _ =
-  Outer_Syntax.command @{command_spec "named_theorems"}
+  Outer_Syntax.local_theory @{command_spec "named_theorems"}
     "declare named collection of theorems"
-    (Parse.binding -- Scan.optional Parse.text ""
-      >> (fn (binding, descr) => Toplevel.theory (snd o declare binding descr)));
+    (Parse.binding -- Scan.optional Parse.text "" >> (fn (b, descr) => snd o declare b descr));
 
 
 (* ML antiquotation *)
