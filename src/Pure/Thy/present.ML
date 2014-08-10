@@ -330,9 +330,7 @@ fun finish () =
         val _ =
           Isabelle_System.isabelle_tool "latex"
             ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex")));
-        val _ =
-          if null doc_files then Isabelle_System.copy_dir document_path doc_dir
-          else List.app (fn file => Isabelle_System.copy_file_base file doc_dir) doc_files;
+        val _ = List.app (fn file => Isabelle_System.copy_file_base file doc_dir) doc_files;
         val _ =
           (case opt_graphs of
             NONE => ()
@@ -359,12 +357,6 @@ fun finish () =
       (case doc_output of
         NONE => []
       | SOME path => map (document_job path false) documents);
-
-    val _ =
-      if not (null jobs) andalso null doc_files then
-        Output.physical_stderr ("### Legacy feature! Document preparation for session " ^ quote name ^
-          " without 'document_files'\n")
-      else ();
 
     val _ = jobs |> Par_List.map (fn job => job ()) |> List.app (op |>);
   in
