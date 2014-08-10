@@ -48,8 +48,14 @@ object Active
                   GUI_Thread.later { Graphview_Dockable(view, snapshot, graph) }
                 }
 
-              case XML.Elem(Markup(Markup.SIMP_TRACE_PANEL, _), _) =>
+              case XML.Elem(Markup(Markup.SIMP_TRACE_PANEL, props), _) =>
+                val link =
+                  props match {
+                    case Position.Id(id) => PIDE.editor.hyperlink_command_id(snapshot, id)
+                    case _ => None
+                  }
                 GUI_Thread.later {
+                  link.foreach(_.follow(view))
                   view.getDockableWindowManager.showDockableWindow("isabelle-simplifier-trace")
                 }
 

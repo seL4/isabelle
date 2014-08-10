@@ -246,7 +246,7 @@ class JEdit_Editor extends Editor[View]
   def hyperlink_command_id(
     snapshot: Document.Snapshot,
     id: Document_ID.Generic,
-    offset: Symbol.Offset): Option[Hyperlink] =
+    offset: Symbol.Offset = 0): Option[Hyperlink] =
   {
     snapshot.state.find_command(snapshot.version, id) match {
       case Some((node, command)) => hyperlink_command(snapshot, command, offset)
