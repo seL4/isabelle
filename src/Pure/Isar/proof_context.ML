@@ -154,6 +154,7 @@ sig
   val class_alias: binding -> class -> Proof.context -> Proof.context
   val type_alias: binding -> string -> Proof.context -> Proof.context
   val const_alias: binding -> string -> Proof.context -> Proof.context
+  val fact_alias: binding -> string -> Proof.context -> Proof.context
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
@@ -1084,6 +1085,7 @@ end;
 fun class_alias b c ctxt = (map_tsig o apfst) (Type.class_alias (naming_of ctxt) b c) ctxt;
 fun type_alias b c ctxt = (map_tsig o apfst) (Type.type_alias (naming_of ctxt) b c) ctxt;
 fun const_alias b c ctxt = (map_consts o apfst) (Consts.alias (naming_of ctxt) b c) ctxt;
+fun fact_alias b c ctxt = map_facts (Facts.alias (naming_of ctxt) b c) ctxt;
 
 
 (* local constants *)

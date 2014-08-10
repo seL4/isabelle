@@ -10,6 +10,7 @@ sig
   val check_fact: theory -> xstring * Position.T -> string
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
+  val alias_fact: binding -> string -> theory -> theory
   val hide_fact: bool -> string -> theory -> theory
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
@@ -59,6 +60,9 @@ val facts_of = Data.get;
 fun check_fact thy = Facts.check (Context.Theory thy) (facts_of thy);
 val intern_fact = Facts.intern o facts_of;
 val defined_fact = Facts.defined o facts_of;
+
+fun alias_fact binding name thy =
+  Data.map (Facts.alias (Sign.naming_of thy) binding name) thy;
 
 fun hide_fact fully name = Data.map (Facts.hide fully name);
 
