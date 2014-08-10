@@ -99,6 +99,7 @@ theory Pure
   and "realizability" :: thy_decl == ""
   and "extract_type" "extract" :: thy_decl
   and "find_theorems" "find_consts" :: diag
+  and "named_theorems" :: thy_decl
   and "ProofGeneral.process_pgip" "ProofGeneral.pr" "ProofGeneral.undo"
     "ProofGeneral.restart" "ProofGeneral.kill_proof" "ProofGeneral.inform_file_processed"
     "ProofGeneral.inform_file_retracted" :: control
@@ -115,6 +116,7 @@ ML_file "Tools/find_theorems.ML"
 ML_file "Tools/find_consts.ML"
 ML_file "Tools/proof_general_pure.ML"
 ML_file "Tools/simplifier_trace.ML"
+ML_file "Tools/named_theorems.ML"
 
 
 section {* Basic attributes *}
