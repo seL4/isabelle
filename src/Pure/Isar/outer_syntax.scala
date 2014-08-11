@@ -124,17 +124,15 @@ final class Outer_Syntax private(
 
   /* token language */
 
-  def scan(input: Reader[Char]): List[Token] =
+  def scan(input: CharSequence): List[Token] =
   {
+    var in: Reader[Char] = new CharSequenceReader(input)
     Token.Parsers.parseAll(
-        Token.Parsers.rep(Token.Parsers.token(lexicon, is_command)), input) match {
+        Token.Parsers.rep(Token.Parsers.token(lexicon, is_command)), in) match {
       case Token.Parsers.Success(tokens, _) => tokens
-      case _ => error("Unexpected failure of tokenizing input:\n" + input.source.toString)
+      case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
     }
   }
-
-  def scan(input: CharSequence): List[Token] =
-    scan(new CharSequenceReader(input))
 
   def scan_line(input: CharSequence, context: Scan.Line_Context): (List[Token], Scan.Line_Context) =
   {
