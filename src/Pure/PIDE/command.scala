@@ -250,39 +250,18 @@ object Command
 
   /* make commands */
 
-  def name(span: List[Token]): String =
-    span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
-
-  private def source_span(span: List[Token]): (String, List[Token]) =
-  {
-    val source: String =
-      span match {
-        case List(tok) => tok.source
-        case _ => span.map(_.source).mkString
-      }
-
-    val span1 = new mutable.ListBuffer[Token]
-    var i = 0
-    for (Token(kind, s) <- span) {
-      val n = s.length
-      val s1 = source.substring(i, i + n)
-      span1 += Token(kind, s1)
-      i += n
-    }
-    (source, span1.toList)
-  }
-
   def apply(
     id: Document_ID.Command,
     node_name: Document.Node.Name,
     blobs: List[Blob],
-    span: List[Token]): Command =
+    span: Thy_Syntax.Span): Command =
   {
-    val (source, span1) = source_span(span)
+    val (source, span1) = span.compact_source
     new Command(id, node_name, blobs, span1, source, Results.empty, Markup_Tree.empty)
   }
 
-  val empty: Command = Command(Document_ID.none, Document.Node.Name.empty, Nil, Nil)
+  val empty: Command =
+    Command(Document_ID.none, Document.Node.Name.empty, Nil, Thy_Syntax.empty_span)
 
   def unparsed(
     id: Document_ID.Command,
@@ -290,8 +269,8 @@ object Command
     results: Results,
     markup: Markup_Tree): Command =
   {
-    val (source1, span) = source_span(List(Token(Token.Kind.UNPARSED, source)))
-    new Command(id, Document.Node.Name.empty, Nil, span, source1, results, markup)
+    val (source1, span1) = Thy_Syntax.unparsed_span(source).compact_source
+    new Command(id, Document.Node.Name.empty, Nil, span1, source1, results, markup)
   }
 
   def unparsed(source: String): Command =
@@ -333,7 +312,7 @@ final class Command private(
     val id: Document_ID.Command,
     val node_name: Document.Node.Name,
     val blobs: List[Command.Blob],
-    val span: List[Token],
+    val span: Thy_Syntax.Span,
     val source: String,
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
@@ -341,14 +320,15 @@ final class Command private(
   /* classification */
 
   def is_undefined: Boolean = id == Document_ID.none
-  val is_unparsed: Boolean = span.exists(_.is_unparsed)
-  val is_unfinished: Boolean = span.exists(_.is_unfinished)
+  val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
+  val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
 
-  val is_ignored: Boolean = !span.exists(_.is_proper)
-  val is_malformed: Boolean = !is_ignored && (!span.head.is_command || span.exists(_.is_error))
-  def is_command: Boolean = !is_ignored && !is_malformed
+  def is_command: Boolean = span.kind.isInstanceOf[Thy_Syntax.Command_Span]
+  def is_ignored: Boolean = span.kind == Thy_Syntax.Ignored_Span
+  def is_malformed: Boolean = span.kind == Thy_Syntax.Malformed_Span
 
-  def name: String = Command.name(span)
+  def name: String =
+    span.kind match { case Thy_Syntax.Command_Span(name) => name case _ => "" }
 
   override def toString =
     id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")
@@ -379,7 +359,8 @@ final class Command private(
   def range: Text.Range = chunk.range
 
   val proper_range: Text.Range =
-    Text.Range(0, (length /: span.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
+    Text.Range(0,
+      (length /: span.content.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 

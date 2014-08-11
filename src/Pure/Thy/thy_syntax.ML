@@ -9,7 +9,7 @@ sig
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
   val reports_of_tokens: Token.T list -> bool * Position.report_text list
   val present_token: Token.T -> Output.output
-  datatype span_kind = Command of string * Position.T | Ignored | Malformed
+  datatype span_kind = Command_Span of string * Position.T | Ignored_Span | Malformed_Span
   datatype span = Span of span_kind * Token.T list
   val span_kind: span -> span_kind
   val span_content: span -> Token.T list
@@ -69,9 +69,7 @@ end;
 
 (** spans **)
 
-(* type span *)
-
-datatype span_kind = Command of string * Position.T | Ignored | Malformed;
+datatype span_kind = Command_Span of string * Position.T | Ignored_Span | Malformed_Span;
 datatype span = Span of span_kind * Token.T list;
 
 fun span_kind (Span (k, _)) = k;
@@ -84,27 +82,29 @@ val present_span = implode o map present_token o span_content;
 
 local
 
-fun make_span toks =
-  if not (null toks) andalso Token.is_command (hd toks) then
-    Span (Command (Token.content_of (hd toks), Token.pos_of (hd toks)), toks)
-  else if forall Token.is_improper toks then Span (Ignored, toks)
-  else Span (Malformed, toks);
+fun ship span =
+  let
+    val kind =
+      if not (null span) andalso Token.is_command (hd span) then
+        Command_Span (Token.content_of (hd span), Token.pos_of (hd span))
+      else if forall Token.is_improper span then Ignored_Span
+      else Malformed_Span;
+  in cons (Span (kind, span)) end;
 
-fun flush (result, span, improper) =
+fun flush (result, content, improper) =
   result
-  |> not (null span) ? cons (rev span)
-  |> not (null improper) ? cons (rev improper);
+  |> not (null content) ? ship (rev content)
+  |> not (null improper) ? ship (rev improper);
 
-fun parse tok (result, span, improper) =
-  if Token.is_command tok then (flush (result, span, improper), [tok], [])
-  else if Token.is_improper tok then (result, span, tok :: improper)
-  else (result, tok :: (improper @ span), []);
+fun parse tok (result, content, improper) =
+  if Token.is_command tok then (flush (result, content, improper), [tok], [])
+  else if Token.is_improper tok then (result, content, tok :: improper)
+  else (result, tok :: (improper @ content), []);
 
 in
 
 fun parse_spans toks =
-  fold parse toks ([], [], [])
-  |> flush |> rev |> map make_span;
+  fold parse toks ([], [], []) |> flush |> rev;
 
 end;
 
@@ -137,7 +137,7 @@ in
 
 fun resolve_files read_files span =
   (case span of
-    Span (Command (cmd, pos), toks) =>
+    Span (Command_Span (cmd, pos), toks) =>
       if Keyword.is_theory_load cmd then
         (case find_file (clean_tokens toks) of
           NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.here pos)
@@ -146,7 +146,7 @@ fun resolve_files read_files span =
               val toks' = toks |> map_index (fn (j, tok) =>
                 if i = j then Token.put_files (read_files cmd path) tok
                 else tok);
-            in Span (Command (cmd, pos), toks') end)
+            in Span (Command_Span (cmd, pos), toks') end)
       else span
   | _ => span);
 
@@ -174,9 +174,9 @@ fun last_element (Element (a, NONE)) = a
 
 (* scanning spans *)
 
-val eof = Span (Command ("", Position.none), []);
+val eof = Span (Command_Span ("", Position.none), []);
 
-fun is_eof (Span (Command ("", _), _)) = true
+fun is_eof (Span (Command_Span ("", _), _)) = true
   | is_eof _ = false;
 
 val not_eof = not o is_eof;
@@ -189,10 +189,10 @@ val stopper = Scan.stopper (K eof) is_eof;
 local
 
 fun command_with pred =
-  Scan.one (fn (Span (Command (name, _), _)) => pred name | _ => false);
+  Scan.one (fn (Span (Command_Span (name, _), _)) => pred name | _ => false);
 
 val proof_atom =
-  Scan.one (fn (Span (Command (name, _), _)) => Keyword.is_proof_body name | _ => true) >> atom;
+  Scan.one (fn (Span (Command_Span (name, _), _)) => Keyword.is_proof_body name | _ => true) >> atom;
 
 fun proof_element x = (command_with Keyword.is_proof_goal -- proof_rest >> element || proof_atom) x
 and proof_rest x = (Scan.repeat proof_element -- command_with Keyword.is_qed) x;

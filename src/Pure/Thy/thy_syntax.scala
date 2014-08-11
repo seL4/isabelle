@@ -13,23 +13,69 @@ import scala.annotation.tailrec
 
 object Thy_Syntax
 {
-  /** parse spans **/
+  /** spans **/
 
-  def parse_spans(toks: List[Token]): List[List[Token]] =
+  sealed abstract class Span_Kind
+  case class Command_Span(name: String) extends Span_Kind
+  case object Ignored_Span extends Span_Kind
+  case object Malformed_Span extends Span_Kind
+
+  sealed case class Span(kind: Span_Kind, content: List[Token])
   {
-    val result = new mutable.ListBuffer[List[Token]]
-    val span = new mutable.ListBuffer[Token]
+    def compact_source: (String, Span) =
+    {
+      val source: String =
+        content match {
+          case List(tok) => tok.source
+          case toks => toks.map(_.source).mkString
+        }
+
+      val content1 = new mutable.ListBuffer[Token]
+      var i = 0
+      for (Token(kind, s) <- content) {
+        val n = s.length
+        val s1 = source.substring(i, i + n)
+        content1 += Token(kind, s1)
+        i += n
+      }
+      (source, Span(kind, content1.toList))
+    }
+  }
+
+  val empty_span: Span = Span(Ignored_Span, Nil)
+
+  def unparsed_span(source: String): Span =
+    Span(Malformed_Span, List(Token(Token.Kind.UNPARSED, source)))
+
+
+  /* parse */
+
+  def parse_spans(toks: List[Token]): List[Span] =
+  {
+    val result = new mutable.ListBuffer[Span]
+    val content = new mutable.ListBuffer[Token]
     val improper = new mutable.ListBuffer[Token]
+
+    def ship(span: List[Token])
+    {
+      val kind =
+        if (!span.isEmpty && span.head.is_command && !span.exists(_.is_error))
+          Command_Span(span.head.source)
+        else if (span.forall(_.is_improper)) Ignored_Span
+        else Malformed_Span
+      result += Span(kind, span)
+    }
 
     def flush()
     {
-      if (!span.isEmpty) { result += span.toList; span.clear }
-      if (!improper.isEmpty) { result += improper.toList; improper.clear }
+      if (!content.isEmpty) { ship(content.toList); content.clear }
+      if (!improper.isEmpty) { ship(improper.toList); improper.clear }
     }
+
     for (tok <- toks) {
-      if (tok.is_command) { flush(); span += tok }
+      if (tok.is_command) { flush(); content += tok }
       else if (tok.is_improper) improper += tok
-      else { span ++= improper; improper.clear; span += tok }
+      else { content ++= improper; improper.clear; content += tok }
     }
     flush()
 
@@ -185,23 +231,27 @@ object Thy_Syntax
     }
   }
 
-  def span_files(syntax: Prover.Syntax, span: List[Token]): List[String] =
-    syntax.load(span) match {
-      case Some(exts) =>
-        find_file(span) match {
-          case Some(file) =>
-            if (exts.isEmpty) List(file)
-            else exts.map(ext => file + "." + ext)
+  def span_files(syntax: Prover.Syntax, span: Span): List[String] =
+    span.kind match {
+      case Command_Span(name) =>
+        syntax.load_command(name) match {
+          case Some(exts) =>
+            find_file(span.content) match {
+              case Some(file) =>
+                if (exts.isEmpty) List(file)
+                else exts.map(ext => file + "." + ext)
+              case None => Nil
+            }
           case None => Nil
         }
-      case None => Nil
+      case _ => Nil
     }
 
   def resolve_files(
       resources: Resources,
       syntax: Prover.Syntax,
       node_name: Document.Node.Name,
-      span: List[Token],
+      span: Span,
       get_blob: Document.Node.Name => Option[Document.Blob])
     : List[Command.Blob] =
   {
@@ -219,8 +269,8 @@ object Thy_Syntax
 
   @tailrec private def chop_common(
       cmds: List[Command],
-      blobs_spans: List[(List[Command.Blob], List[Token])])
-    : (List[Command], List[(List[Command.Blob], List[Token])]) =
+      blobs_spans: List[(List[Command.Blob], Span)])
+    : (List[Command], List[(List[Command.Blob], Span)]) =
   {
     (cmds, blobs_spans) match {
       case (cmd :: cmds, (blobs, span) :: rest) if cmd.blobs == blobs && cmd.span == span =>

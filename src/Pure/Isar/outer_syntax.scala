@@ -57,8 +57,8 @@ final class Outer_Syntax private(
   def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
   def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
 
-  def load(span: List[Token]): Option[List[String]] =
-    keywords.get(Command.name(span)) match {
+  def load_command(name: String): Option[List[String]] =
+    keywords.get(name) match {
       case Some((Keyword.THY_LOAD, exts)) => Some(exts)
       case _ => None
     }
