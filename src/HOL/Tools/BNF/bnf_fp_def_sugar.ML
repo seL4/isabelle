@@ -1842,7 +1842,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             (Proof_Context.export lthy' no_defs_lthy) lthy;
 
         fun distinct_prems ctxt th =
-          Goal.prove ctxt [] []
+          Goal.prove (*no sorry*) ctxt [] []
             (th |> Thm.prop_of |> Logic.strip_horn |>> distinct (op aconv) |> Logic.list_implies)
             (fn _ => HEADGOAL (cut_tac th THEN' atac) THEN ALLGOALS eq_assume_tac);
 
@@ -1852,7 +1852,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 (map (unfold_thms ctxt @{thms atomize_imp[of _ "t = u" for t u]})
                   [thm, eq_ifIN ctxt thms]));
 
-        val corec_code_thms = map (eq_ifIN lthy) corec_thmss
+        val corec_code_thms = map (eq_ifIN lthy) corec_thmss;
         val sel_corec_thmss = map flat sel_corec_thmsss;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;

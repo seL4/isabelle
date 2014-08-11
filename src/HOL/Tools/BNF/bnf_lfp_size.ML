@@ -69,10 +69,11 @@ val rec_o_map_simp_thms =
 fun mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
     ctor_rec_o_map =
   unfold_thms_tac ctxt [rec_def] THEN
-  HEADGOAL (rtac (ctor_rec_o_map RS trans)) THEN
-  PRIMITIVE (Conv.fconv_rule Thm.eta_long_conversion) THEN
-  HEADGOAL (asm_simp_tac (ss_only (pre_map_defs @
-    distinct Thm.eq_thm_prop (live_nesting_map_ident0s @ abs_inverses) @ rec_o_map_simp_thms) ctxt));
+  HEADGOAL (rtac (ctor_rec_o_map RS trans) THEN'
+    CONVERSION Thm.eta_long_conversion THEN'
+    asm_simp_tac (ss_only (pre_map_defs @
+      distinct Thm.eq_thm_prop (live_nesting_map_ident0s @ abs_inverses) @
+      rec_o_map_simp_thms) ctxt));
 
 val size_o_map_simp_thms = @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
@@ -303,7 +304,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
               curry HOLogic.mk_eq) rec_o_map_lhss rec_o_map_rhss;
           val rec_o_map_thms =
             map3 (fn goal => fn rec_def => fn ctor_rec_o_map =>
-                Goal.prove lthy2 [] [] goal (fn {context = ctxt, ...} =>
+                Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
                   mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
                     ctor_rec_o_map)
                 |> Thm.close_derivation)
@@ -333,7 +334,7 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
              in terms of "map", which is not the end of the world. *)
           val size_o_map_thmss =
             map3 (fn goal => fn size_def => the_list o try (fn rec_o_map =>
-                Goal.prove lthy2 [] [] goal (fn {context = ctxt, ...} =>
+                Goal.prove (*no sorry*) lthy2 [] [] goal (fn {context = ctxt, ...} =>
                   mk_size_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
                 |> Thm.close_derivation))
               size_o_map_goals size_defs rec_o_map_thms
