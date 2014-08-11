@@ -83,6 +83,7 @@ declare -a SOURCES=(
   Thy/present.scala
   Thy/thy_header.scala
   Thy/thy_info.scala
+  Thy/thy_structure.scala
   Thy/thy_syntax.scala
   Tools/build.scala
   Tools/build_console.scala

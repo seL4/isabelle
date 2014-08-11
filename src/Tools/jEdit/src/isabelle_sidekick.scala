@@ -95,13 +95,11 @@ class Isabelle_Sidekick_Structure(
     node_name: Buffer => Option[Document.Node.Name])
   extends Isabelle_Sidekick(name)
 {
-  import Thy_Syntax.Structure
-
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
-    def make_tree(offset: Text.Offset, entry: Structure.Entry): List[DefaultMutableTreeNode] =
+    def make_tree(offset: Text.Offset, entry: Thy_Structure.Entry): List[DefaultMutableTreeNode] =
       entry match {
-        case Structure.Block(name, body) =>
+        case Thy_Structure.Block(name, body) =>
           val node =
             new DefaultMutableTreeNode(
               new Isabelle_Sidekick.Asset(Library.first_line(name), offset, offset + entry.length))
@@ -111,7 +109,7 @@ class Isabelle_Sidekick_Structure(
               i + e.length
             })
           List(node)
-        case Structure.Atom(command)
+        case Thy_Structure.Atom(command)
         if command.is_command && syntax.heading_level(command).isEmpty =>
           val node =
             new DefaultMutableTreeNode(
@@ -123,7 +121,7 @@ class Isabelle_Sidekick_Structure(
     node_name(buffer) match {
       case Some(name) =>
         val text = JEdit_Lib.buffer_text(buffer)
-        val structure = Structure.parse(syntax, name, text)
+        val structure = Thy_Structure.parse(syntax, name, text)
         make_tree(0, structure) foreach (node => data.root.add(node))
         true
       case None => false
