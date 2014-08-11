@@ -186,6 +186,9 @@ final class Outer_Syntax private(
     result.toList
   }
 
+  def parse_spans(input: CharSequence): List[Command_Span.Span] =
+    parse_spans(scan(input))
+
 
   /* language context */
 
