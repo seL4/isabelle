@@ -325,13 +325,11 @@ final class Command private(
 
   def is_command: Boolean = span.kind.isInstanceOf[Thy_Syntax.Command_Span]
   def is_ignored: Boolean = span.kind == Thy_Syntax.Ignored_Span
-  def is_malformed: Boolean = span.kind == Thy_Syntax.Malformed_Span
 
   def name: String =
     span.kind match { case Thy_Syntax.Command_Span(name) => name case _ => "" }
 
-  override def toString =
-    id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")
+  override def toString = id + "/" + span.kind.toString
 
 
   /* blobs */

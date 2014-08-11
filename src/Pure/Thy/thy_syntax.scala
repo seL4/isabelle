@@ -15,7 +15,14 @@ object Thy_Syntax
 {
   /** spans **/
 
-  sealed abstract class Span_Kind
+  sealed abstract class Span_Kind {
+    override def toString: String =
+      this match {
+        case Command_Span(name) => if (name != "") name else "<command>"
+        case Ignored_Span => "<ignored>"
+        case Malformed_Span => "<malformed>"
+      }
+  }
   case class Command_Span(name: String) extends Span_Kind
   case object Ignored_Span extends Span_Kind
   case object Malformed_Span extends Span_Kind
