@@ -332,8 +332,8 @@ object Thy_Syntax
     val visible = perspective.commands.toSet
 
     def next_invisible_command(cmds: Linear_Set[Command], from: Command): Command =
-      cmds.iterator(from).dropWhile(cmd => !cmd.is_command || visible(cmd))
-        .find(_.is_command) getOrElse cmds.last
+      cmds.iterator(from).dropWhile(cmd => !cmd.is_proper || visible(cmd))
+        .find(_.is_proper) getOrElse cmds.last
 
     @tailrec def recover(cmds: Linear_Set[Command]): Linear_Set[Command] =
       cmds.find(_.is_unparsed) match {

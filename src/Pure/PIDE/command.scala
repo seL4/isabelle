@@ -317,19 +317,19 @@ final class Command private(
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
 {
-  /* classification */
-
-  def is_undefined: Boolean = id == Document_ID.none
-  val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
-  val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
-
-  def is_command: Boolean = span.kind.isInstanceOf[Thy_Syntax.Command_Span]
-  def is_ignored: Boolean = span.kind == Thy_Syntax.Ignored_Span
+  /* name and classification */
 
   def name: String =
     span.kind match { case Thy_Syntax.Command_Span(name) => name case _ => "" }
 
   override def toString = id + "/" + span.kind.toString
+
+  def is_proper: Boolean = span.kind.isInstanceOf[Thy_Syntax.Command_Span]
+  def is_ignored: Boolean = span.kind == Thy_Syntax.Ignored_Span
+
+  def is_undefined: Boolean = id == Document_ID.none
+  val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
+  val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
 
 
   /* blobs */

@@ -110,7 +110,7 @@ class Isabelle_Sidekick_Structure(
             })
           List(node)
         case Thy_Structure.Atom(command)
-        if command.is_command && syntax.heading_level(command).isEmpty =>
+        if command.is_proper && syntax.heading_level(command).isEmpty =>
           val node =
             new DefaultMutableTreeNode(
               new Isabelle_Sidekick.Asset(command.name, offset, offset + entry.length))
