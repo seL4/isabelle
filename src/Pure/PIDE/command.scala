@@ -254,14 +254,14 @@ object Command
     id: Document_ID.Command,
     node_name: Document.Node.Name,
     blobs: List[Blob],
-    span: Thy_Syntax.Span): Command =
+    span: Command_Span.Span): Command =
   {
     val (source, span1) = span.compact_source
     new Command(id, node_name, blobs, span1, source, Results.empty, Markup_Tree.empty)
   }
 
   val empty: Command =
-    Command(Document_ID.none, Document.Node.Name.empty, Nil, Thy_Syntax.empty_span)
+    Command(Document_ID.none, Document.Node.Name.empty, Nil, Command_Span.empty)
 
   def unparsed(
     id: Document_ID.Command,
@@ -269,7 +269,7 @@ object Command
     results: Results,
     markup: Markup_Tree): Command =
   {
-    val (source1, span1) = Thy_Syntax.unparsed_span(source).compact_source
+    val (source1, span1) = Command_Span.unparsed(source).compact_source
     new Command(id, Document.Node.Name.empty, Nil, span1, source1, results, markup)
   }
 
@@ -312,7 +312,7 @@ final class Command private(
     val id: Document_ID.Command,
     val node_name: Document.Node.Name,
     val blobs: List[Command.Blob],
-    val span: Thy_Syntax.Span,
+    val span: Command_Span.Span,
     val source: String,
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
@@ -320,12 +320,12 @@ final class Command private(
   /* name and classification */
 
   def name: String =
-    span.kind match { case Thy_Syntax.Command_Span(name) => name case _ => "" }
+    span.kind match { case Command_Span.Command_Span(name) => name case _ => "" }
 
   override def toString = id + "/" + span.kind.toString
 
-  def is_proper: Boolean = span.kind.isInstanceOf[Thy_Syntax.Command_Span]
-  def is_ignored: Boolean = span.kind == Thy_Syntax.Ignored_Span
+  def is_proper: Boolean = span.kind.isInstanceOf[Command_Span.Command_Span]
+  def is_ignored: Boolean = span.kind == Command_Span.Ignored_Span
 
   def is_undefined: Boolean = id == Document_ID.none
   val is_unparsed: Boolean = span.content.exists(_.is_unparsed)

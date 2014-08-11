@@ -15,6 +15,7 @@ object Prover
   {
     def add_keywords(keywords: Thy_Header.Keywords): Syntax
     def scan(input: CharSequence): List[Token]
+    def parse_spans(toks: List[Token]): List[Command_Span.Span]
     def load_command(name: String): Option[List[String]]
     def load_commands_in(text: String): Boolean
   }

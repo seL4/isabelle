@@ -54,6 +54,7 @@ declare -a SOURCES=(
   Isar/token.scala
   ML/ml_lex.scala
   PIDE/command.scala
+  PIDE/command_span.scala
   PIDE/document.scala
   PIDE/document_id.scala
   PIDE/editor.scala

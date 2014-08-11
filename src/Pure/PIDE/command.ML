@@ -121,9 +121,9 @@ fun blob_file src_path lines digest file_node =
   in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
 
 fun resolve_files master_dir blobs toks =
-  (case Thy_Syntax.parse_spans toks of
+  (case Outer_Syntax.parse_spans toks of
     [span] => span
-      |> Thy_Syntax.resolve_files (fn cmd => fn (path, pos) =>
+      |> Command_Span.resolve_files (fn cmd => fn (path, pos) =>
         let
           fun make_file src_path (Exn.Res (file_node, NONE)) =
                 Exn.interruptible_capture (fn () =>
@@ -140,7 +140,7 @@ fun resolve_files master_dir blobs toks =
             map2 make_file src_paths blobs
           else error ("Misalignment of inlined files" ^ Position.here pos)
         end)
-      |> Thy_Syntax.span_content
+      |> Command_Span.content
   | _ => toks);
 
 in

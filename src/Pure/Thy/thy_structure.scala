@@ -63,7 +63,7 @@ object Thy_Structure
 
     /* result structure */
 
-    val spans = Thy_Syntax.parse_spans(syntax.scan(text))
+    val spans = syntax.parse_spans(syntax.scan(text))
     spans.foreach(span => add(Command(Document_ID.none, node_name, Nil, span)))
     result()
   }

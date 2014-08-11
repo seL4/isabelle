@@ -152,6 +152,41 @@ final class Outer_Syntax private(
   }
 
 
+  /* parse_spans */
+
+  def parse_spans(toks: List[Token]): List[Command_Span.Span] =
+  {
+    val result = new mutable.ListBuffer[Command_Span.Span]
+    val content = new mutable.ListBuffer[Token]
+    val improper = new mutable.ListBuffer[Token]
+
+    def ship(span: List[Token])
+    {
+      val kind =
+        if (!span.isEmpty && span.head.is_command && !span.exists(_.is_error))
+          Command_Span.Command_Span(span.head.source)
+        else if (span.forall(_.is_improper)) Command_Span.Ignored_Span
+        else Command_Span.Malformed_Span
+      result += Command_Span.Span(kind, span)
+    }
+
+    def flush()
+    {
+      if (!content.isEmpty) { ship(content.toList); content.clear }
+      if (!improper.isEmpty) { ship(improper.toList); improper.clear }
+    }
+
+    for (tok <- toks) {
+      if (tok.is_command) { flush(); content += tok }
+      else if (tok.is_improper) improper += tok
+      else { content ++= improper; improper.clear; content += tok }
+    }
+    flush()
+
+    result.toList
+  }
+
+
   /* language context */
 
   def set_language_context(context: Completion.Language_Context): Outer_Syntax =

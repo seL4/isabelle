@@ -132,7 +132,7 @@ fun begin_theory master_dir {name, imports, keywords} parents =
 fun excursion master_dir last_timing init elements =
   let
     fun prepare_span span =
-      Thy_Syntax.span_content span
+      Command_Span.content span
       |> Command.read init master_dir []
       |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
 
@@ -157,8 +157,8 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
     val _ = Thy_Header.define_keywords header;
 
     val lexs = Keyword.get_lexicons ();
-    val toks = Thy_Syntax.parse_tokens lexs text_pos text;
-    val spans = Thy_Syntax.parse_spans toks;
+    val toks = Outer_Syntax.parse_tokens lexs text_pos text;
+    val spans = Outer_Syntax.parse_spans toks;
     val elements = Thy_Syntax.parse_elements spans;
 
     fun init () =
