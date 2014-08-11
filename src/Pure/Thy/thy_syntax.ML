@@ -85,8 +85,8 @@ local
 fun ship span =
   let
     val kind =
-      if not (null span) andalso Token.is_command (hd span) then
-        Command_Span (Token.content_of (hd span), Token.pos_of (hd span))
+      if not (null span) andalso Token.is_command (hd span) andalso not (exists Token.is_error span)
+      then Command_Span (Token.content_of (hd span), Token.pos_of (hd span))
       else if forall Token.is_improper span then Ignored_Span
       else Malformed_Span;
   in cons (Span (kind, span)) end;
