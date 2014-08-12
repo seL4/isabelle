@@ -198,7 +198,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
           end
         | (c as Const (@{const_name case_prod}, _), arg :: args) =>
           massage_rec bound_Ts
-            (unfold_lets_splits (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
+            (unfold_splits_lets (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
         | (Const (c, _), args as _ :: _ :: _) =>
           (case try strip_fun_type (Sign.the_const_type thy c) of
             SOME (gen_branch_Ts, gen_body_fun_T) =>
@@ -694,14 +694,6 @@ fun dissect_coeqn_ctr lthy fun_names sequentials (basic_ctr_specss : basic_corec
         handle ListPair.UnequalLengths =>
           primcorec_error_eqn "partially applied constructor in right-hand side" rhs;
 
-(*
-val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} concl ^ "\nto\n    \<cdot> " ^
- (is_some eqn_data_disc_opt ? K (Syntax.string_of_term @{context} disc_concl ^ "\n    \<cdot> ")) "" ^
- space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) sel_concls) ^
- "\nfor premise(s)\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) prems));
-*)
-
     val eqns_data_sel =
       map (dissect_coeqn_sel lthy fun_names basic_ctr_specss eqn_pos
         (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt eqn0 (SOME ctr)) sel_concls;
@@ -890,11 +882,6 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
       | currys Ts t = t $ mk_tuple1_balanced (List.rev Ts) (map Bound (length Ts - 1 downto 0))
           |> fold_rev (Term.abs o pair Name.uu) Ts;
 
-(*
-val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (map (Syntax.string_of_term lthy) corec_args));
-*)
-
     val excludess' =
       disc_eqnss
       |> map (map (fn x => (#fun_args x, #ctr_no x, #prems x, #auto_gen x))
@@ -1006,10 +993,6 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
       |> map2 (curry (op |>)) (map (map (fn {ctr, sels, ...} =>
         (ctr, map (K []) sels))) basic_ctr_specss);
 
-(*
-val _ = tracing ("callssss = " ^ @{make_string} callssss);
-*)
-
     val ((n2m, corec_specs', _, coinduct_thm, strong_coinduct_thm, coinduct_thms,
           strong_coinduct_thms), lthy') =
       corec_specs_of bs arg_Ts res_Ts frees callssss lthy;
@@ -1050,11 +1033,6 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
         SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
       else
         tac_opt;
-
-(*
-val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (maps (map (Syntax.string_of_term lthy o snd)) excludess'));
-*)
 
     val excludess'' = map3 (fn tac_opt => fn sequential => map (fn (j, goal) =>
         (j, (Option.map (Goal.prove_sorry lthy [] [] goal #> Thm.close_derivation)
