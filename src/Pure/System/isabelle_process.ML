@@ -1,8 +1,7 @@
 (*  Title:      Pure/System/isabelle_process.ML
     Author:     Makarius
 
-Isabelle process wrapper, based on private fifos for maximum
-robustness and performance, or local socket for maximum portability.
+Isabelle process wrapper.
 *)
 
 signature ISABELLE_PROCESS =

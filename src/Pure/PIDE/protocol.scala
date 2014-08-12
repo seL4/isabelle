@@ -347,8 +347,25 @@ object Protocol
 }
 
 
-trait Protocol extends Prover
+trait Protocol
 {
+  /* text */
+
+  def encode(s: String): String
+  def decode(s: String): String
+
+  object Encode
+  {
+    val string: XML.Encode.T[String] = (s => XML.Encode.string(encode(s)))
+  }
+
+
+  /* protocol commands */
+
+  def protocol_command_bytes(name: String, args: Bytes*): Unit
+  def protocol_command(name: String, args: String*): Unit
+
+
   /* options */
 
   def options(opts: Options): Unit =
