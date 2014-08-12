@@ -21,7 +21,7 @@ object XML
 
   type Attributes = Properties.T
 
-  sealed abstract class Tree { override def toString = string_of_tree(this) }
+  sealed abstract class Tree { override def toString: String = string_of_tree(this) }
   case class Elem(markup: Markup, body: List[Tree]) extends Tree
   {
     def name: String = markup.name
@@ -150,12 +150,17 @@ object XML
     private def trim_bytes(s: String): String = new String(s.toCharArray)
 
     private def cache_string(x: String): String =
-      lookup(x) match {
-        case Some(y) => y
-        case None =>
-          val z = trim_bytes(x)
-          if (z.length > max_string) z else store(z)
-      }
+      if (x == "true") "true"
+      else if (x == "false") "false"
+      else if (x == "0.0") "0.0"
+      else if (Library.is_small_int(x)) Library.signed_string_of_int(Integer.parseInt(x))
+      else
+        lookup(x) match {
+          case Some(y) => y
+          case None =>
+            val z = trim_bytes(x)
+            if (z.length > max_string) z else store(z)
+        }
     private def cache_props(x: Properties.T): Properties.T =
       if (x.isEmpty) x
       else
@@ -214,9 +219,9 @@ object XML
 
     /* atomic values */
 
-    def long_atom(i: Long): String = i.toString
+    def long_atom(i: Long): String = Library.signed_string_of_long(i)
 
-    def int_atom(i: Int): String = i.toString
+    def int_atom(i: Int): String = Library.signed_string_of_int(i)
 
     def bool_atom(b: Boolean): String = if (b) "1" else "0"
 

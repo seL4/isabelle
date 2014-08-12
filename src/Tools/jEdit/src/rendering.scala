@@ -378,6 +378,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   PIDE.editor.hyperlink_source_file(name, line, offset)
                 case Position.Def_Id_Offset(id, offset) =>
                   PIDE.editor.hyperlink_command_id(snapshot, id, offset)
+                case Position.Def_Id(id) =>
+                  PIDE.editor.hyperlink_command_id(snapshot, id)
                 case _ => None
               }
             opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
@@ -390,6 +392,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   PIDE.editor.hyperlink_source_file(name, line, offset)
                 case Position.Id_Offset(id, offset) =>
                   PIDE.editor.hyperlink_command_id(snapshot, id, offset)
+                case Position.Id(id) =>
+                  PIDE.editor.hyperlink_command_id(snapshot, id)
                 case _ => None
               }
             opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))

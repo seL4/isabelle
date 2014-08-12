@@ -32,6 +32,33 @@ object Library
     error(cat_message(msg1, msg2))
 
 
+  /* integers */
+
+  private val small_int = 10000
+  private lazy val small_int_table =
+  {
+    val array = new Array[String](small_int)
+    for (i <- 0 until small_int) array(i) = i.toString
+    array
+  }
+
+  def is_small_int(s: String): Boolean =
+  {
+    val len = s.length
+    1 <= len && len <= 4 &&
+    s.forall(c => '0' <= c && c <= '9') &&
+    (len == 1 || s(0) != '0')
+  }
+
+  def signed_string_of_long(i: Long): String =
+    if (0 <= i && i < small_int) small_int_table(i.toInt)
+    else i.toString
+
+  def signed_string_of_int(i: Int): String =
+    if (0 <= i && i < small_int) small_int_table(i)
+    else i.toString
+
+
   /* separated chunks */
 
   def separate[A](s: A, list: List[A]): List[A] =

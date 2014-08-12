@@ -54,7 +54,7 @@ object Position
 
   object Range
   {
-    def apply(range: Symbol.Range): T = Offset(range.start) ::: Offset(range.stop)
+    def apply(range: Symbol.Range): T = Offset(range.start) ::: End_Offset(range.stop)
     def unapply(pos: T): Option[Symbol.Range] =
       (pos, pos) match {
         case (Offset(start), End_Offset(stop)) if start <= stop => Some(Text.Range(start, stop))
@@ -81,17 +81,17 @@ object Position
       }
   }
 
-  object Reported
+  object Identified
   {
-    def unapply(pos: T): Option[(Long, Symbol.Text_Chunk.Name, Symbol.Range)] =
-      (pos, pos) match {
-        case (Id(id), Range(range)) =>
+    def unapply(pos: T): Option[(Long, Symbol.Text_Chunk.Name)] =
+      pos match {
+        case Id(id) =>
           val chunk_name =
             pos match {
               case File(name) => Symbol.Text_Chunk.File(name)
               case _ => Symbol.Text_Chunk.Default
             }
-          Some((id, chunk_name, range))
+          Some((id, chunk_name))
         case _ => None
       }
   }

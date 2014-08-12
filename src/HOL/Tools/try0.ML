@@ -48,12 +48,12 @@ fun apply_generic timeout_opt name command pre post apply st =
       NONE
   end;
 
-val parse_method =
-  enclose "(" ")"
-  #> Outer_Syntax.scan Position.start
-  #> filter Token.is_proper
-  #> Scan.read Token.stopper Method.parse
-  #> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
+fun parse_method s =
+  enclose "(" ")" s
+  |> Outer_Syntax.scan (Keyword.get_lexicons ()) Position.start
+  |> filter Token.is_proper
+  |> Scan.read Token.stopper Method.parse
+  |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
 
 fun apply_named_method_on_first_goal ctxt =
   parse_method

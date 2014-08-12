@@ -153,9 +153,9 @@ fun properties_of (Pos ((i, j, k), props)) =
 
 val def_properties_of = properties_of #> map (fn (x, y) => ("def_" ^ x, y));
 
-fun entity_properties_of def id pos =
-  if def then (Markup.defN, Markup.print_int id) :: properties_of pos
-  else (Markup.refN, Markup.print_int id) :: def_properties_of pos;
+fun entity_properties_of def serial pos =
+  if def then (Markup.defN, Markup.print_int serial) :: properties_of pos
+  else (Markup.refN, Markup.print_int serial) :: def_properties_of pos;
 
 fun default_properties default props =
   if exists (member (op =) Markup.position_properties o #1) props then props

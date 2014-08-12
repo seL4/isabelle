@@ -57,8 +57,8 @@ final class Outer_Syntax private(
   def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
   def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
 
-  def load(span: List[Token]): Option[List[String]] =
-    keywords.get(Command.name(span)) match {
+  def load_command(name: String): Option[List[String]] =
+    keywords.get(name) match {
       case Some((Keyword.THY_LOAD, exts)) => Some(exts)
       case _ => None
     }
@@ -124,17 +124,15 @@ final class Outer_Syntax private(
 
   /* token language */
 
-  def scan(input: Reader[Char]): List[Token] =
+  def scan(input: CharSequence): List[Token] =
   {
+    var in: Reader[Char] = new CharSequenceReader(input)
     Token.Parsers.parseAll(
-        Token.Parsers.rep(Token.Parsers.token(lexicon, is_command)), input) match {
+        Token.Parsers.rep(Token.Parsers.token(lexicon, is_command)), in) match {
       case Token.Parsers.Success(tokens, _) => tokens
-      case _ => error("Unexpected failure of tokenizing input:\n" + input.source.toString)
+      case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
     }
   }
-
-  def scan(input: CharSequence): List[Token] =
-    scan(new CharSequenceReader(input))
 
   def scan_line(input: CharSequence, context: Scan.Line_Context): (List[Token], Scan.Line_Context) =
   {
@@ -150,6 +148,47 @@ final class Outer_Syntax private(
     }
     (toks.toList, ctxt)
   }
+
+
+  /* parse_spans */
+
+  def parse_spans(toks: List[Token]): List[Command_Span.Span] =
+  {
+    val result = new mutable.ListBuffer[Command_Span.Span]
+    val content = new mutable.ListBuffer[Token]
+    val improper = new mutable.ListBuffer[Token]
+
+    def ship(span: List[Token])
+    {
+      val kind =
+        if (!span.isEmpty && span.head.is_command && !span.exists(_.is_error)) {
+          val name = span.head.source
+          val pos = Position.Range(Text.Range(0, Symbol.iterator(name).length) + 1)
+          Command_Span.Command_Span(name, pos)
+        }
+        else if (span.forall(_.is_improper)) Command_Span.Ignored_Span
+        else Command_Span.Malformed_Span
+      result += Command_Span.Span(kind, span)
+    }
+
+    def flush()
+    {
+      if (!content.isEmpty) { ship(content.toList); content.clear }
+      if (!improper.isEmpty) { ship(improper.toList); improper.clear }
+    }
+
+    for (tok <- toks) {
+      if (tok.is_command) { flush(); content += tok }
+      else if (tok.is_improper) improper += tok
+      else { content ++= improper; improper.clear; content += tok }
+    }
+    flush()
+
+    result.toList
+  }
+
+  def parse_spans(input: CharSequence): List[Command_Span.Span] =
+    parse_spans(scan(input))
 
 
   /* language context */

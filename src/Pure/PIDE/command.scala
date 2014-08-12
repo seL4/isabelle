@@ -189,8 +189,7 @@ object Command
               def bad(): Unit = Output.warning("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(
-                    Markup(name, atts @ Position.Reported(id, chunk_name, symbol_range)), args) =>
+                case XML.Elem(Markup(name, atts @ Position.Identified(id, chunk_name)), args) =>
 
                   val target =
                     if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
@@ -198,8 +197,8 @@ object Command
                     else if (chunk_name == Symbol.Text_Chunk.Default) other_id(id)
                     else None
 
-                  target match {
-                    case Some((target_name, target_chunk)) =>
+                  (target, atts) match {
+                    case (Some((target_name, target_chunk)), Position.Range(symbol_range)) =>
                       target_chunk.incorporate(symbol_range) match {
                         case Some(range) =>
                           val props = Position.purge(atts)
@@ -207,7 +206,7 @@ object Command
                           state.add_markup(false, target_name, info)
                         case None => bad(); state
                       }
-                    case None =>
+                    case _ =>
                       // silently ignore excessive reports
                       state
                   }
@@ -232,7 +231,8 @@ object Command
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
-                  range <- Protocol.message_positions(self_id, chunk_name, chunk, message)
+                  range <- Protocol.message_positions(
+                    self_id, command.position, chunk_name, chunk, message)
                 } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
               }
               st
@@ -250,39 +250,18 @@ object Command
 
   /* make commands */
 
-  def name(span: List[Token]): String =
-    span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
-
-  private def source_span(span: List[Token]): (String, List[Token]) =
-  {
-    val source: String =
-      span match {
-        case List(tok) => tok.source
-        case _ => span.map(_.source).mkString
-      }
-
-    val span1 = new mutable.ListBuffer[Token]
-    var i = 0
-    for (Token(kind, s) <- span) {
-      val n = s.length
-      val s1 = source.substring(i, i + n)
-      span1 += Token(kind, s1)
-      i += n
-    }
-    (source, span1.toList)
-  }
-
   def apply(
     id: Document_ID.Command,
     node_name: Document.Node.Name,
     blobs: List[Blob],
-    span: List[Token]): Command =
+    span: Command_Span.Span): Command =
   {
-    val (source, span1) = source_span(span)
+    val (source, span1) = span.compact_source
     new Command(id, node_name, blobs, span1, source, Results.empty, Markup_Tree.empty)
   }
 
-  val empty: Command = Command(Document_ID.none, Document.Node.Name.empty, Nil, Nil)
+  val empty: Command =
+    Command(Document_ID.none, Document.Node.Name.empty, Nil, Command_Span.empty)
 
   def unparsed(
     id: Document_ID.Command,
@@ -290,8 +269,8 @@ object Command
     results: Results,
     markup: Markup_Tree): Command =
   {
-    val (source1, span) = source_span(List(Token(Token.Kind.UNPARSED, source)))
-    new Command(id, Document.Node.Name.empty, Nil, span, source1, results, markup)
+    val (source1, span1) = Command_Span.unparsed(source).compact_source
+    new Command(id, Document.Node.Name.empty, Nil, span1, source1, results, markup)
   }
 
   def unparsed(source: String): Command =
@@ -333,25 +312,30 @@ final class Command private(
     val id: Document_ID.Command,
     val node_name: Document.Node.Name,
     val blobs: List[Command.Blob],
-    val span: List[Token],
+    val span: Command_Span.Span,
     val source: String,
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
 {
+  /* name */
+
+  def name: String =
+    span.kind match { case Command_Span.Command_Span(name, _) => name case _ => "" }
+
+  def position: Position.T =
+    span.kind match { case Command_Span.Command_Span(_, pos) => pos case _ => Position.none }
+
+  override def toString: String = id + "/" + span.kind.toString
+
+
   /* classification */
 
+  def is_proper: Boolean = span.kind.isInstanceOf[Command_Span.Command_Span]
+  def is_ignored: Boolean = span.kind == Command_Span.Ignored_Span
+
   def is_undefined: Boolean = id == Document_ID.none
-  val is_unparsed: Boolean = span.exists(_.is_unparsed)
-  val is_unfinished: Boolean = span.exists(_.is_unfinished)
-
-  val is_ignored: Boolean = !span.exists(_.is_proper)
-  val is_malformed: Boolean = !is_ignored && (!span.head.is_command || span.exists(_.is_error))
-  def is_command: Boolean = !is_ignored && !is_malformed
-
-  def name: String = Command.name(span)
-
-  override def toString =
-    id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")
+  val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
+  val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
 
 
   /* blobs */
@@ -379,7 +363,8 @@ final class Command private(
   def range: Text.Range = chunk.range
 
   val proper_range: Text.Range =
-    Text.Range(0, (length /: span.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
+    Text.Range(0,
+      (length /: span.content.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 

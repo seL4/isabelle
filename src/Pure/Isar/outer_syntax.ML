@@ -31,8 +31,10 @@ sig
     (local_theory -> Proof.state) parser -> unit
   val help_outer_syntax: string list -> unit
   val print_outer_syntax: unit -> unit
-  val scan: Position.T -> string -> Token.T list
-  val parse: Position.T -> string -> Toplevel.transition list
+  val scan: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
+  val parse: (Scan.lexicon * Scan.lexicon) * outer_syntax ->
+    Position.T -> string -> Toplevel.transition list
+  val parse_spans: Token.T list -> Command_Span.span list
   type isar
   val isar: TextIO.instream -> bool -> isar
   val side_comments: Token.T list -> Token.T list
@@ -256,18 +258,49 @@ fun toplevel_source term do_recover cmd src =
 
 (* off-line scanning/parsing *)
 
-fun scan pos str =
+fun scan lexs pos =
+  Source.of_string #>
+  Symbol.source #>
+  Token.source {do_recover = SOME false} (K lexs) pos #>
+  Source.exhaust;
+
+fun parse (lexs, syntax) pos str =
   Source.of_string str
   |> Symbol.source
-  |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
+  |> Token.source {do_recover = SOME false} (K lexs) pos
+  |> toplevel_source false NONE (K (lookup_commands syntax))
   |> Source.exhaust;
 
-fun parse pos str =
-  Source.of_string str
-  |> Symbol.source
-  |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
-  |> toplevel_source false NONE lookup_commands_dynamic
-  |> Source.exhaust;
+
+(* parse spans *)
+
+local
+
+fun ship span =
+  let
+    val kind =
+      if not (null span) andalso Token.is_command (hd span) andalso not (exists Token.is_error span)
+      then Command_Span.Command_Span (Token.content_of (hd span), Token.pos_of (hd span))
+      else if forall Token.is_improper span then Command_Span.Ignored_Span
+      else Command_Span.Malformed_Span;
+  in cons (Command_Span.Span (kind, span)) end;
+
+fun flush (result, content, improper) =
+  result
+  |> not (null content) ? ship (rev content)
+  |> not (null improper) ? ship (rev improper);
+
+fun parse tok (result, content, improper) =
+  if Token.is_command tok then (flush (result, content, improper), [tok], [])
+  else if Token.is_improper tok then (result, content, tok :: improper)
+  else (result, tok :: (improper @ content), []);
+
+in
+
+fun parse_spans toks =
+  fold parse toks ([], [], []) |> flush |> rev;
+
+end;
 
 
 (* interactive source of toplevel transformers *)

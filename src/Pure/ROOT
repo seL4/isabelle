@@ -160,6 +160,7 @@ session Pure =
     "ML/ml_syntax.ML"
     "PIDE/active.ML"
     "PIDE/command.ML"
+    "PIDE/command_span.ML"
     "PIDE/document.ML"
     "PIDE/document_id.ML"
     "PIDE/execution.ML"
