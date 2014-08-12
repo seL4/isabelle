@@ -20,7 +20,7 @@ declare -a SOURCES=(
   GUI/gui.scala
   GUI/gui_thread.scala
   GUI/html5_panel.scala
-  GUI/jfx_thread.scala
+  GUI/jfx_gui.scala
   GUI/popup.scala
   GUI/system_dialog.scala
   GUI/wrap_panel.scala
@@ -72,7 +72,6 @@ declare -a SOURCES=(
   System/command_line.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
-  System/isabelle_font.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
   System/options.scala
