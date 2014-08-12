@@ -642,14 +642,14 @@ fun radixstring (base, zerochar, num) =
 
 local
   val zero = ord "0";
-  val small = 10000: int;
-  val small_table = Vector.tabulate (small, Int.toString);
+  val small_int = 10000: int;
+  val small_int_table = Vector.tabulate (small_int, Int.toString);
 in
 
 fun string_of_int i =
   if i < 0 then Int.toString i
   else if i < 10 then chr (zero + i)
-  else if i < small then Vector.sub (small_table, i)
+  else if i < small_int then Vector.sub (small_int_table, i)
   else Int.toString i;
 
 end;

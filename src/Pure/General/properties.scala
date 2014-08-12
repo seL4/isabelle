@@ -27,7 +27,7 @@ object Properties
 
     object Int
     {
-      def apply(x: scala.Int): java.lang.String = x.toString
+      def apply(x: scala.Int): java.lang.String = Library.signed_string_of_int(x)
       def unapply(s: java.lang.String): Option[scala.Int] =
         try { Some(Integer.parseInt(s)) }
         catch { case _: NumberFormatException => None }
@@ -35,7 +35,7 @@ object Properties
 
     object Long
     {
-      def apply(x: scala.Long): java.lang.String = x.toString
+      def apply(x: scala.Long): java.lang.String = Library.signed_string_of_long(x)
       def unapply(s: java.lang.String): Option[scala.Long] =
         try { Some(java.lang.Long.parseLong(s)) }
         catch { case _: NumberFormatException => None }
