@@ -161,8 +161,11 @@ final class Outer_Syntax private(
     def ship(span: List[Token])
     {
       val kind =
-        if (!span.isEmpty && span.head.is_command && !span.exists(_.is_error))
-          Command_Span.Command_Span(span.head.source)
+        if (!span.isEmpty && span.head.is_command && !span.exists(_.is_error)) {
+          val name = span.head.source
+          val pos = Position.Range(Text.Range(0, Symbol.iterator(name).length))
+          Command_Span.Command_Span(name, pos)
+        }
         else if (span.forall(_.is_improper)) Command_Span.Ignored_Span
         else Command_Span.Malformed_Span
       result += Command_Span.Span(kind, span)

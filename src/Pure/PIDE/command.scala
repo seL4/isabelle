@@ -317,12 +317,18 @@ final class Command private(
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
 {
-  /* name and classification */
+  /* name */
 
   def name: String =
-    span.kind match { case Command_Span.Command_Span(name) => name case _ => "" }
+    span.kind match { case Command_Span.Command_Span(name, _) => name case _ => "" }
+
+  def position: Position.T =
+    span.kind match { case Command_Span.Command_Span(_, pos) => pos case _ => Position.none }
 
   override def toString = id + "/" + span.kind.toString
+
+
+  /* classification */
 
   def is_proper: Boolean = span.kind.isInstanceOf[Command_Span.Command_Span]
   def is_ignored: Boolean = span.kind == Command_Span.Ignored_Span

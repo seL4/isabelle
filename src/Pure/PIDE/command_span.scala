@@ -15,12 +15,12 @@ object Command_Span
   sealed abstract class Kind {
     override def toString: String =
       this match {
-        case Command_Span(name) => if (name != "") name else "<command>"
+        case Command_Span(name, _) => if (name != "") name else "<command>"
         case Ignored_Span => "<ignored>"
         case Malformed_Span => "<malformed>"
       }
   }
-  case class Command_Span(name: String) extends Kind
+  case class Command_Span(name: String, pos: Position.T) extends Kind
   case object Ignored_Span extends Kind
   case object Malformed_Span extends Kind
 
@@ -70,7 +70,7 @@ object Command_Span
 
   def span_files(syntax: Prover.Syntax, span: Span): List[String] =
     span.kind match {
-      case Command_Span(name) =>
+      case Command_Span(name, _) =>
         syntax.load_command(name) match {
           case Some(exts) =>
             find_file(span.content) match {
