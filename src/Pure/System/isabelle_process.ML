@@ -108,8 +108,12 @@ fun init_channels channel =
     fun standard_message props name body =
       if forall (fn s => s = "") body then ()
       else
-        message name
-          (fold_rev Properties.put props (Position.properties_of (Position.thread_data ()))) body;
+        let
+          val props' =
+            (case (Properties.defined props Markup.idN, Position.get_id (Position.thread_data ())) of
+              (false, SOME id') => props @ [(Markup.idN, id')]
+            | _ => props);
+        in message name props' body end;
   in
     Output.status_fn := standard_message [] Markup.statusN;
     Output.report_fn := standard_message [] Markup.reportN;
