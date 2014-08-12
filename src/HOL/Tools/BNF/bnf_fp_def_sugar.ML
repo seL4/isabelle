@@ -509,10 +509,10 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
       (map2 (build_the_rel lthy (Rs @ IRs) []) fpA_Ts fpB_Ts) IRs));
 
-    val rel_induct0_thm = Goal.prove_sorry lthy [] premises goal
-      (fn {context = ctxt, prems} =>
-          mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (certify ctxt) IRs) exhausts ctor_defss
-            ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs)
+    val rel_induct0_thm =
+      Goal.prove_sorry lthy [] premises goal (fn {context = ctxt, prems} =>
+        mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (certify ctxt) IRs) exhausts ctor_defss
+          ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs)
       |> singleton (Proof_Context.export names_lthy lthy)
       |> Thm.close_derivation;
   in
@@ -760,12 +760,12 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
       IRs (map2 (build_the_rel lthy (Rs @ IRs) []) fpA_Ts fpB_Ts)));
 
-    val rel_coinduct0_thm = Goal.prove_sorry lthy [] premises goal
-      (fn {context = ctxt, prems} =>
-          mk_rel_coinduct0_tac ctxt dtor_rel_coinduct (map (certify ctxt) IRs) prems
-            (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars)
-            (map (flat o #sel_thmss) ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects
-            rel_pre_defs abs_inverses live_nesting_rel_eqs)
+    val rel_coinduct0_thm =
+      Goal.prove_sorry lthy [] premises goal (fn {context = ctxt, prems} =>
+        mk_rel_coinduct0_tac ctxt dtor_rel_coinduct (map (certify ctxt) IRs) prems
+          (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars)
+          (map (flat o #sel_thmss) ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects
+          rel_pre_defs abs_inverses live_nesting_rel_eqs)
       |> singleton (Proof_Context.export names_lthy lthy)
       |> Thm.close_derivation;
   in
@@ -843,10 +843,11 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
           |>> apfst (apsnd (Library.foldr1 HOLogic.mk_conj))
           |>> apsnd flat;
 
-        val thm =  Goal.prove_sorry lthy [] premises (HOLogic.mk_Trueprop conclusion)
-          (fn {context = ctxt, prems} =>
-             mk_set_induct0_tac ctxt (map (certify ctxt'') Ps) prems dtor_set_inducts exhausts
-              set_pre_defs ctor_defs dtor_ctors Abs_pre_inverses)
+        val thm =
+          Goal.prove_sorry lthy [] premises (HOLogic.mk_Trueprop conclusion)
+            (fn {context = ctxt, prems} =>
+               mk_set_induct0_tac ctxt (map (certify ctxt'') Ps) prems dtor_set_inducts exhausts
+                 set_pre_defs ctor_defs dtor_ctors Abs_pre_inverses)
           |> singleton (Proof_Context.export ctxt'' ctxt)
           |> Thm.close_derivation;
 
@@ -1275,6 +1276,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         disc_bindings), sel_bindingss), raw_sel_default_eqs) no_defs_lthy =
       let
         val fp_b_name = Binding.name_of fp_b;
+        val fpBT = B_ify fpT;
 
         val ctr_absT = domain_type (fastype_of ctor);
 
@@ -1397,7 +1399,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                          else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans))))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-
               fun mk_set0_thm fp_set_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (pre_set_defs @ fp_nesting_set_maps @ live_nesting_set_maps @
@@ -1446,9 +1447,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                       (fn {context = ctxt, prems = _} =>
                         mk_set_empty_tac ctxt (certify ctxt u) exhaust set0_thms (flat disc_thmss))
-                      |> Conjunction.elim_balanced (length goals)
-                      |> Proof_Context.export names_lthy lthy
-                      |> map Thm.close_derivation
+                    |> Conjunction.elim_balanced (length goals)
+                    |> Proof_Context.export names_lthy lthy
+                    |> map Thm.close_derivation
                 end;
 
               val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
@@ -1498,28 +1499,23 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   rel_inject_thms ms;
 
               val (disc_map_iff_thms, sel_map_thms, sel_set_thms, rel_sel_thms, set_intros_thms,
-                  (set_cases_thms, set_cases_attrss), (rel_cases_thm, rel_cases_attrs)) =
+                   (set_cases_thms, set_cases_attrss), (rel_cases_thm, rel_cases_attrs)) =
                 let
-                  val (((Ds, As), Bs), names_lthy) = lthy
-                    |> mk_TFrees (dead_of_bnf fp_bnf)
-                    ||>> mk_TFrees (live_of_bnf fp_bnf)
-                    ||>> mk_TFrees (live_of_bnf fp_bnf);
-                  val TA as Type (_, ADs) = mk_T_of_bnf Ds As fp_bnf;
-                  val TB as Type (_, BDs) = mk_T_of_bnf Ds Bs fp_bnf;
-                  val fTs = map2 (curry op -->) As Bs;
-                  val rel = mk_rel_of_bnf Ds As Bs fp_bnf;
+                  val live_AsBs = filter (op <>) (As ~~ Bs);
+                  val fTs = map (op -->) live_AsBs;
+                  val rel = mk_rel live As Bs (rel_of_bnf fp_bnf);
                   val (((((fs, Rs), ta), tb), thesis), names_lthy) = names_lthy
                     |> mk_Frees "f" fTs
-                    ||>> mk_Frees "R" (map2 mk_pred2T As Bs)
-                    ||>> yield_singleton (mk_Frees "a") TA
-                    ||>> yield_singleton (mk_Frees "b") TB
+                    ||>> mk_Frees "R" (map (uncurry mk_pred2T) live_AsBs)
+                    ||>> yield_singleton (mk_Frees "a") fpT
+                    ||>> yield_singleton (mk_Frees "b") fpBT
                     ||>> apfst HOLogic.mk_Trueprop o
                       yield_singleton (mk_Frees "thesis") HOLogic.boolT;
-                  val map_term = mk_map_of_bnf Ds As Bs fp_bnf;
-                  val ctrAs = map (mk_ctr ADs) ctrs;
-                  val setAs = map (mk_set ADs) (sets_of_bnf fp_bnf);
-                  val discAs = map (mk_disc_or_sel ADs) discs;
-                  val selAss = map (map (mk_disc_or_sel ADs)) selss;
+                  val map_term = mk_map live As Bs (map_of_bnf fp_bnf);
+                  val ctrAs = map (mk_ctr As) ctrs;
+                  val setAs = map (mk_set As) (sets_of_bnf fp_bnf);
+                  val discAs = map (mk_disc_or_sel As) discs;
+                  val selAss = map (map (mk_disc_or_sel As)) selss;
                   val discAs_selAss = flat (map2 (map o pair) discAs selAss);
 
                   val (set_cases_thms, set_cases_attrss) =
@@ -1630,8 +1626,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
                   val rel_sel_thms =
                     let
-                      val discBs = map (mk_disc_or_sel BDs) discs;
-                      val selBss = map (map (mk_disc_or_sel BDs)) selss;
+                      val discBs = map (mk_disc_or_sel Bs) discs;
+                      val selBss = map (map (mk_disc_or_sel Bs)) selss;
                       val n = length discAs;
 
                       fun mk_rhs n k discA selAs discB selBs =
@@ -1657,15 +1653,15 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                             mk_rel_sel_tac ctxt (certify ctxt ta) (certify ctxt tb) exhaust
                               (flat disc_thmss) (flat sel_thmss) rel_inject_thms distincts
                               rel_distinct_thms)
-                          |> Conjunction.elim_balanced (length goals)
-                          |> Proof_Context.export names_lthy lthy
-                          |> map Thm.close_derivation
+                        |> Conjunction.elim_balanced (length goals)
+                        |> Proof_Context.export names_lthy lthy
+                        |> map Thm.close_derivation
                     end;
 
                   val (rel_cases_thm, rel_cases_attrs) =
                     let
                       val rel_Rs_a_b = list_comb (rel, Rs) $ ta $ tb;
-                      val ctrBs = map (mk_ctr BDs) ctrs;
+                      val ctrBs = map (mk_ctr Bs) ctrs;
 
                       fun mk_assms ctrA ctrB ctxt =
                         let
@@ -1687,9 +1683,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                         end;
 
                       val (assms, names_lthy) = fold_map2 mk_assms ctrAs ctrBs names_lthy;
-                      val goal = Logic.list_implies (HOLogic.mk_Trueprop rel_Rs_a_b :: assms,
-                        thesis);
-                      val thm = Goal.prove_sorry lthy [] [] goal
+                      val goal =
+                        Logic.list_implies (HOLogic.mk_Trueprop rel_Rs_a_b :: assms, thesis);
+                      val thm =
+                        Goal.prove_sorry lthy [] [] goal
                           (fn {context = ctxt, prems = _} =>
                             mk_rel_cases_tac ctxt (certify ctxt ta) (certify ctxt tb) exhaust
                               injects rel_inject_thms distincts rel_distinct_thms
@@ -1707,7 +1704,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
                   val disc_map_iff_thms =
                     let
-                      val discsB = map (mk_disc_or_sel BDs) discs;
+                      val discsB = map (mk_disc_or_sel Bs) discs;
                       val discsA_t = map (fn disc1 => Term.betapply (disc1, ta)) discAs;
 
                       fun mk_goal (discA_t, discB) =
@@ -1726,9 +1723,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                           (fn {context = ctxt, prems = _} =>
                             mk_disc_map_iff_tac ctxt (certify ctxt ta) exhaust (flat disc_thmss)
                               map_thms)
-                          |> Conjunction.elim_balanced (length goals)
-                          |> Proof_Context.export names_lthy lthy
-                          |> map Thm.close_derivation
+                        |> Conjunction.elim_balanced (length goals)
+                        |> Proof_Context.export names_lthy lthy
+                        |> map Thm.close_derivation
                     end;
 
                   val sel_map_thms =
@@ -1736,14 +1733,15 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                       fun mk_goal (discA, selA) =
                         let
                           val prem = Term.betapply (discA, ta);
-                          val selB = mk_disc_or_sel BDs selA;
+                          val selB = mk_disc_or_sel Bs selA;
                           val lhs = selB $ (Term.list_comb (map_term, fs) $ ta);
                           val lhsT = fastype_of lhs;
-                          val map_rhsT = map_atyps (perhaps (AList.lookup (op =) (Bs ~~ As))) lhsT;
+                          val map_rhsT =
+                            map_atyps (perhaps (AList.lookup (op =) (map swap live_AsBs))) lhsT;
                           val map_rhs = build_map lthy []
-                            (the o (AList.lookup (op =) ((As ~~ Bs) ~~ fs))) (map_rhsT, lhsT);
+                            (the o (AList.lookup (op =) (live_AsBs ~~ fs))) (map_rhsT, lhsT);
                           val rhs = (case map_rhs of
-                            Const (@{const_name id}, _) => selA $ ta
+                              Const (@{const_name id}, _) => selA $ ta
                             | _ => map_rhs $ (selA $ ta));
                           val concl = mk_Trueprop_eq (lhs, rhs);
                         in
@@ -1759,9 +1757,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                           (fn {context = ctxt, prems = _} =>
                             mk_sel_map_tac ctxt (certify ctxt ta) exhaust (flat disc_thmss)
                               map_thms (flat sel_thmss))
-                          |> Conjunction.elim_balanced (length goals)
-                          |> Proof_Context.export names_lthy lthy
-                          |> map Thm.close_derivation
+                        |> Conjunction.elim_balanced (length goals)
+                        |> Proof_Context.export names_lthy lthy
+                        |> map Thm.close_derivation
                     end;
 
                   val sel_set_thms =
@@ -1821,11 +1819,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                       else
                         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                           (fn {context = ctxt, prems = _} =>
-                            mk_sel_set_tac ctxt (certify ctxt ta) exhaust (flat disc_thmss)
-                              (flat sel_thmss) set0_thms)
-                          |> Conjunction.elim_balanced (length goals)
-                          |> Proof_Context.export names_lthy lthy
-                          |> map Thm.close_derivation
+                             mk_sel_set_tac ctxt (certify ctxt ta) exhaust (flat disc_thmss)
+                               (flat sel_thmss) set0_thms)
+                        |> Conjunction.elim_balanced (length goals)
+                        |> Proof_Context.export names_lthy lthy
+                        |> map Thm.close_derivation
                     end;
                 in
                   (disc_map_iff_thms, sel_map_thms, sel_set_thms, rel_sel_thms, set_intros_thms,
