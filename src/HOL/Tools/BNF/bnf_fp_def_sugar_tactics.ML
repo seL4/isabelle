@@ -39,6 +39,7 @@ sig
     thm list -> thm list -> tactic
   val mk_sel_map_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_sel_set_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
+  val mk_set_cases_tac: Proof.context -> cterm -> thm list -> thm -> thm list -> tactic
   val mk_set_empty_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_set_induct0_tac: Proof.context -> cterm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> thm list -> tactic
@@ -302,6 +303,14 @@ fun mk_sel_set_tac ctxt ct exhaust discs sels sets =
         hyp_subst_tac ctxt) THEN'
       (rtac @{thm singletonI} ORELSE' atac));
 
+fun mk_set_cases_tac ctxt ct assms exhaust sets =
+  HEADGOAL (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW hyp_subst_tac ctxt) THEN
+  unfold_thms_tac ctxt sets THEN
+  REPEAT_DETERM (HEADGOAL
+    (eresolve_tac @{thms FalseE emptyE singletonE UnE UN_E insertE} ORELSE'
+     hyp_subst_tac ctxt ORELSE'
+     SELECT_GOAL (SOLVE (HEADGOAL (eresolve_tac assms THEN' REPEAT_DETERM o atac)))));
+
 fun mk_set_empty_tac ctxt ct exhaust sets discs =
   TRYALL Goal.conjunction_tac THEN
   ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
@@ -314,8 +323,8 @@ fun mk_set_intros_tac ctxt sets =
   TRYALL Goal.conjunction_tac THEN
   unfold_thms_tac ctxt sets THEN
   TRYALL (REPEAT o
-    (resolve_tac @{thms UnI1 UnI2} ORELSE' eresolve_tac @{thms UN_I UN_I[rotated]}) THEN'
-    (rtac @{thm singletonI} ORELSE' atac));
+    (resolve_tac @{thms UnI1 UnI2} ORELSE'
+     eresolve_tac @{thms UN_I UN_I[rotated]}) THEN' (rtac @{thm singletonI} ORELSE' atac));
 
 fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs ctor_defs dtor_ctors
     Abs_pre_inverses =
