@@ -7,6 +7,9 @@ General prover operations.
 package isabelle
 
 
+import java.io.BufferedReader
+
+
 object Prover
 {
   /* syntax */
@@ -17,6 +20,18 @@ object Prover
     def parse_spans(input: CharSequence): List[Command_Span.Span]
     def load_command(name: String): Option[List[String]]
     def load_commands_in(text: String): Boolean
+  }
+
+
+  /* underlying system process */
+
+  trait System_Process
+  {
+    def channel: System_Channel
+    def stdout: BufferedReader
+    def stderr: BufferedReader
+    def terminate: Unit
+    def join: Int
   }
 
 

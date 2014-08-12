@@ -15,12 +15,31 @@ class Isabelle_Process(
   receiver: Prover.Message => Unit = Console.println(_),
   prover_args: List[String] = Nil)
 {
+  /* system process -- default implementation */
+
+  protected val system_process: Prover.System_Process =
+  {
+    val system_channel = System_Channel()
+    try {
+      val cmdline =
+        Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
+          (system_channel.prover_args ::: prover_args)
+      val process =
+        new Isabelle_System.Managed_Process(null, null, false, cmdline: _*) with
+          Prover.System_Process { def channel = system_channel }
+      process.stdin.close
+      process
+    }
+    catch { case exn @ ERROR(_) => system_channel.accepted(); throw(exn) }
+  }
+
+
   /* text and tree data */
 
   def encode(s: String): String = Symbol.encode(s)
   def decode(s: String): String = Symbol.decode(s)
 
-  val xml_cache = new XML.Cache()
+  val xml_cache: XML.Cache = new XML.Cache()
 
 
   /* output */
@@ -37,7 +56,7 @@ class Isabelle_Process(
 
   private def output(kind: String, props: Properties.T, body: XML.Body)
   {
-    if (kind == Markup.INIT) system_channel.accepted()
+    if (kind == Markup.INIT) system_process.channel.accepted()
 
     val main = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
     val reports = Protocol.message_reports(props, body)
@@ -53,25 +72,15 @@ class Isabelle_Process(
 
   /** process manager **/
 
-  def command_line(channel: System_Channel, args: List[String]): List[String] =
-    Isabelle_System.getenv_strict("ISABELLE_PROCESS") :: (channel.isabelle_args ::: args)
-
-  private val system_channel = System_Channel()
-
-  private val process =
-    try {
-      val cmdline = command_line(system_channel, prover_args)
-      new Isabelle_System.Managed_Process(null, null, false, cmdline: _*)
-    }
-    catch { case e: IOException => system_channel.accepted(); throw(e) }
-
   private val (_, process_result) =
-    Simple_Thread.future("process_result") { process.join }
+    Simple_Thread.future("process_result") { system_process.join }
 
   private def terminate_process()
   {
-    try { process.terminate }
-    catch { case e: IOException => system_output("Failed to terminate Isabelle: " + e.getMessage) }
+    try { system_process.terminate }
+    catch {
+      case exn @ ERROR(_) => system_output("Failed to terminate prover process: " + exn.getMessage)
+    }
   }
 
   private val process_manager = Simple_Thread.fork("process_manager")
@@ -80,10 +89,10 @@ class Isabelle_Process(
     {
       var finished: Option[Boolean] = None
       val result = new StringBuilder(100)
-      while (finished.isEmpty && (process.stderr.ready || !process_result.is_finished)) {
-        while (finished.isEmpty && process.stderr.ready) {
+      while (finished.isEmpty && (system_process.stderr.ready || !process_result.is_finished)) {
+        while (finished.isEmpty && system_process.stderr.ready) {
           try {
-            val c = process.stderr.read
+            val c = system_process.stderr.read
             if (c == 2) finished = Some(true)
             else result += c.toChar
           }
@@ -95,14 +104,13 @@ class Isabelle_Process(
     }
     if (startup_errors != "") system_output(startup_errors)
 
-    process.stdin.close
     if (startup_failed) {
       terminate_process()
       process_result.join
       exit_message(127)
     }
     else {
-      val (command_stream, message_stream) = system_channel.rendezvous()
+      val (command_stream, message_stream) = system_process.channel.rendezvous()
 
       command_input_init(command_stream)
       val stdout = physical_output(false)
@@ -116,7 +124,7 @@ class Isabelle_Process(
       system_output("process_manager terminated")
       exit_message(rc)
     }
-    system_channel.accepted()
+    system_process.channel.accepted()
   }
 
 
@@ -124,16 +132,10 @@ class Isabelle_Process(
 
   def join() { process_manager.join() }
 
-  def interrupt()
-  {
-    try { process.interrupt }
-    catch { case e: IOException => system_output("Failed to interrupt Isabelle: " + e.getMessage) }
-  }
-
   def terminate()
   {
     command_input_close()
-    system_output("Terminating Isabelle process")
+    system_output("Terminating prover process")
     terminate_process()
   }
 
@@ -176,8 +178,8 @@ class Isabelle_Process(
   private def physical_output(err: Boolean): Thread =
   {
     val (name, reader, markup) =
-      if (err) ("standard_error", process.stderr, Markup.STDERR)
-      else ("standard_output", process.stdout, Markup.STDOUT)
+      if (err) ("standard_error", system_process.stderr, Markup.STDERR)
+      else ("standard_output", system_process.stdout, Markup.STDOUT)
 
     Simple_Thread.fork(name) {
       try {
