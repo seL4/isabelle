@@ -858,6 +858,9 @@ a set function, the map function, or the relator:
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]}
 
+\item[@{text "t."}\hthm{set_cases}\rm:] ~ \\
+@{thm list.set_cases[no_vars]}
+
 \item[@{text "t."}\hthm{set_empty}\rm:] ~ \\
 @{thm list.set_empty[no_vars]}
 
