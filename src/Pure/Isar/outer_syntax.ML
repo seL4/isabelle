@@ -31,9 +31,9 @@ sig
     (local_theory -> Proof.state) parser -> unit
   val help_outer_syntax: string list -> unit
   val print_outer_syntax: unit -> unit
-  val scan: Position.T -> string -> Token.T list
-  val parse: Position.T -> string -> Toplevel.transition list
-  val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
+  val scan: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
+  val parse: (Scan.lexicon * Scan.lexicon) * outer_syntax ->
+    Position.T -> string -> Toplevel.transition list
   val parse_spans: Token.T list -> Command_Span.span list
   type isar
   val isar: TextIO.instream -> bool -> isar
@@ -258,24 +258,18 @@ fun toplevel_source term do_recover cmd src =
 
 (* off-line scanning/parsing *)
 
-fun scan pos str =
-  Source.of_string str
-  |> Symbol.source
-  |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
-  |> Source.exhaust;
-
-fun parse pos str =
-  Source.of_string str
-  |> Symbol.source
-  |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
-  |> toplevel_source false NONE lookup_commands_dynamic
-  |> Source.exhaust;
-
-fun parse_tokens lexs pos =
+fun scan lexs pos =
   Source.of_string #>
   Symbol.source #>
   Token.source {do_recover = SOME false} (K lexs) pos #>
   Source.exhaust;
+
+fun parse (lexs, syntax) pos str =
+  Source.of_string str
+  |> Symbol.source
+  |> Token.source {do_recover = SOME false} (K lexs) pos
+  |> toplevel_source false NONE (K (lookup_commands syntax))
+  |> Source.exhaust;
 
 
 (* parse spans *)

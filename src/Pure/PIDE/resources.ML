@@ -157,7 +157,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
     val _ = Thy_Header.define_keywords header;
 
     val lexs = Keyword.get_lexicons ();
-    val toks = Outer_Syntax.parse_tokens lexs text_pos text;
+    val toks = Outer_Syntax.scan lexs text_pos text;
     val spans = Outer_Syntax.parse_spans toks;
     val elements = Thy_Syntax.parse_elements spans;
 

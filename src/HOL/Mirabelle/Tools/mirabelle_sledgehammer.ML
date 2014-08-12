@@ -525,7 +525,7 @@ fun run_proof_method trivial full name meth named_thms id
     fun do_method named_thms ctxt =
       let
         val ref_of_str =
-          suffix ";" #> Outer_Syntax.scan Position.none #> Parse_Spec.xthm
+          suffix ";" #> Outer_Syntax.scan (Keyword.get_lexicons ()) Position.none #> Parse_Spec.xthm
           #> fst
         val thms = named_thms |> maps snd
         val facts = named_thms |> map (ref_of_str o fst o fst)
@@ -551,7 +551,7 @@ fun run_proof_method trivial full name meth named_thms id
           let
             val (type_encs, lam_trans) =
               !meth
-              |> Outer_Syntax.scan Position.start
+              |> Outer_Syntax.scan (Keyword.get_lexicons ()) Position.start
               |> filter Token.is_proper |> tl
               |> Metis_Tactic.parse_metis_options |> fst
               |>> the_default [ATP_Proof_Reconstruct.partial_typesN]
