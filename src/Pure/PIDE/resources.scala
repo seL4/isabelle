@@ -126,6 +126,6 @@ class Resources(
   /* prover process */
 
   def start_prover(receiver: Prover.Message => Unit, name: String, args: List[String]): Prover =
-    new Isabelle_Process(receiver, args)
+    Isabelle_Process(receiver, args)
 }
 

@@ -27,7 +27,6 @@ object Prover
 
   trait System_Process
   {
-    def channel: System_Channel
     def stdout: BufferedReader
     def stderr: BufferedReader
     def terminate: Unit
@@ -85,6 +84,7 @@ object Prover
 
 abstract class Prover(
   receiver: Prover.Message => Unit,
+  system_channel: System_Channel,
   system_process: Prover.System_Process) extends Protocol
 {
   /* output */
@@ -103,7 +103,7 @@ abstract class Prover(
 
   private def output(kind: String, props: Properties.T, body: XML.Body)
   {
-    if (kind == Markup.INIT) system_process.channel.accepted()
+    if (kind == Markup.INIT) system_channel.accepted()
 
     val main = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
     val reports = Protocol.message_reports(props, body)
@@ -157,7 +157,7 @@ abstract class Prover(
       exit_message(127)
     }
     else {
-      val (command_stream, message_stream) = system_process.channel.rendezvous()
+      val (command_stream, message_stream) = system_channel.rendezvous()
 
       command_input_init(command_stream)
       val stdout = physical_output(false)
@@ -171,7 +171,7 @@ abstract class Prover(
       system_output("process_manager terminated")
       exit_message(rc)
     }
-    system_process.channel.accepted()
+    system_channel.accepted()
   }
 
 
