@@ -38,6 +38,6 @@ sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
   def message: String =
     elapsed.message + " elapsed time, " + cpu.message + " cpu time, " + gc.message + " GC time"
 
-  override def toString = message
+  override def toString: String = message
 }
 

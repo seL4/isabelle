@@ -24,13 +24,13 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   private case class Documentation(name: String, title: String, path: Path)
   {
-    override def toString =
+    override def toString: String =
       "<html><b>" + HTML.encode(name) + "</b>:  " + HTML.encode(title) + "</html>"
   }
 
   private case class Text_File(name: String, path: Path)
   {
-    override def toString = name
+    override def toString: String = name
   }
 
   private val root = new DefaultMutableTreeNode

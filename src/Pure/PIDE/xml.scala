@@ -21,7 +21,7 @@ object XML
 
   type Attributes = Properties.T
 
-  sealed abstract class Tree { override def toString = string_of_tree(this) }
+  sealed abstract class Tree { override def toString: String = string_of_tree(this) }
   case class Elem(markup: Markup, body: List[Tree]) extends Tree
   {
     def name: String = markup.name

@@ -24,7 +24,7 @@ object Isabelle_Logic
 
   private class Logic_Entry(val name: String, val description: String)
   {
-    override def toString = description
+    override def toString: String = description
   }
 
   def logic_selector(autosave: Boolean): Option_Component =

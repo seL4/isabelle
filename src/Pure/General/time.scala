@@ -40,7 +40,7 @@ final class Time private(val ms: Long) extends AnyVal
   def is_zero: Boolean = ms == 0
   def is_relevant: Boolean = ms >= 1
 
-  override def toString = Time.print_seconds(seconds)
+  override def toString: String = Time.print_seconds(seconds)
 
   def message: String = toString + "s"
 }

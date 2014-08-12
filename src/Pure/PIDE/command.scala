@@ -325,7 +325,7 @@ final class Command private(
   def position: Position.T =
     span.kind match { case Command_Span.Command_Span(_, pos) => pos case _ => Position.none }
 
-  override def toString = id + "/" + span.kind.toString
+  override def toString: String = id + "/" + span.kind.toString
 
 
   /* classification */

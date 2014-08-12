@@ -21,7 +21,7 @@ import sidekick.{SideKickParser, SideKickParsedData, IAsset}
 object Isabelle_Sidekick
 {
   def int_to_pos(offset: Text.Offset): Position =
-    new Position { def getOffset = offset; override def toString = offset.toString }
+    new Position { def getOffset = offset; override def toString: String = offset.toString }
 
   class Asset(name: String, start: Text.Offset, end: Text.Offset) extends IAsset
   {
@@ -39,7 +39,7 @@ object Isabelle_Sidekick
     override def setStart(start: Position) = _start = start
     override def getEnd: Position = _end
     override def setEnd(end: Position) = _end = end
-    override def toString = _name
+    override def toString: String = _name
   }
 
   def swing_markup_tree(tree: Markup_Tree, parent: DefaultMutableTreeNode,
@@ -173,7 +173,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
                   new Isabelle_Sidekick.Asset(command.toString, range.start, range.stop) {
                     override def getShortString: String = content
                     override def getLongString: String = info_text
-                    override def toString = quote(content) + " " + range.toString
+                    override def toString: String = quote(content) + " " + range.toString
                   })
               })
         }

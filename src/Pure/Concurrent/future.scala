@@ -37,7 +37,7 @@ trait Future[A]
   def join: A
   def map[B](f: A => B): Future[B] = Future.fork { f(join) }
 
-  override def toString =
+  override def toString: String =
     peek match {
       case None => "<future>"
       case Some(Exn.Exn(_)) => "<failed>"

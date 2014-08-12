@@ -40,7 +40,7 @@ object Text
     if (start > stop)
       error("Bad range: [" + start.toString + ":" + stop.toString + "]")
 
-    override def toString = "[" + start.toString + ":" + stop.toString + "]"
+    override def toString: String = "[" + start.toString + ":" + stop.toString + "]"
 
     def length: Int = stop - start
 
@@ -116,7 +116,7 @@ object Text
         case other: Perspective => ranges == other.ranges
         case _ => false
       }
-    override def toString = ranges.toString
+    override def toString: String = ranges.toString
   }
 
 
@@ -141,7 +141,7 @@ object Text
 
   final class Edit private(val is_insert: Boolean, val start: Offset, val text: String)
   {
-    override def toString =
+    override def toString: String =
       (if (is_insert) "Insert(" else "Remove(") + (start, text).toString + ")"
 
 
