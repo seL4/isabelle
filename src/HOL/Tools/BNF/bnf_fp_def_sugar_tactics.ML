@@ -10,6 +10,7 @@ signature BNF_FP_DEF_SUGAR_TACTICS =
 sig
   val sumprod_thms_map: thm list
   val sumprod_thms_set: thm list
+  val basic_sumprod_thms_set: thm list
   val sumprod_thms_rel: thm list
 
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
@@ -41,6 +42,7 @@ sig
   val mk_set_empty_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_set_induct0_tac: Proof.context -> cterm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> thm list -> tactic
+  val mk_set_intros_tac: Proof.context -> thm list -> tactic
 end;
 
 structure BNF_FP_Def_Sugar_Tactics : BNF_FP_DEF_SUGAR_TACTICS =
@@ -56,9 +58,10 @@ val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
 val simp_thms' = @{thms simp_thms(6,7,8,11,12,15,16,22,24)};
 
 val sumprod_thms_map = @{thms id_apply map_prod_simp prod.case sum.case map_sum.simps};
-val sumprod_thms_set =
-  @{thms UN_empty UN_insert UN_simps(10) UN_iff Un_empty_left Un_empty_right Un_iff Union_Un_distrib
-      image_iff o_apply map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
+val basic_sumprod_thms_set =
+  @{thms UN_empty UN_insert  UN_iff Un_empty_left Un_empty_right Un_iff Union_Un_distrib
+       o_apply map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
+val sumprod_thms_set = @{thms UN_simps(10) image_iff} @ basic_sumprod_thms_set;
 val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_apply prod.inject id_apply conj_assoc};
 
 fun hhf_concl_conv cv ctxt ct =
@@ -306,6 +309,13 @@ fun mk_set_empty_tac ctxt ct exhaust sets discs =
   unfold_thms_tac ctxt (sets @ map_filter (fn thm =>
     SOME (thm RS eqFalseI) handle THM _ => NONE) discs) THEN
   ALLGOALS (rtac refl ORELSE' etac FalseE);
+
+fun mk_set_intros_tac ctxt sets =
+  TRYALL Goal.conjunction_tac THEN
+  unfold_thms_tac ctxt sets THEN
+  TRYALL (REPEAT o
+    (resolve_tac @{thms UnI1 UnI2} ORELSE' eresolve_tac @{thms UN_I UN_I[rotated]}) THEN'
+    (rtac @{thm singletonI} ORELSE' atac));
 
 fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs ctor_defs dtor_ctors
     Abs_pre_inverses =

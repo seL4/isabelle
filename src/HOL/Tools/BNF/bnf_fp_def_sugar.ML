@@ -103,6 +103,7 @@ val disc_map_iffN = "disc_map_iff";
 val sel_mapN = "sel_map";
 val sel_setN = "sel_set";
 val set_emptyN = "set_empty";
+val set_introsN = "set_intros";
 val set_inductN = "set_induct";
 
 structure Data = Generic_Data
@@ -771,7 +772,7 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
   let
     fun mk_prems A Ps ctr_args t ctxt =
       (case fastype_of t of
-        Type (type_name, xs) =>
+        Type (type_name, innerTs) =>
         (case bnf_of ctxt type_name of
           NONE => ([], ctxt)
         | SOME bnf =>
@@ -794,7 +795,7 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
                    ctxt'))
               end;
           in
-            fold_map (seq_assm t o mk_set xs) (sets_of_bnf bnf) ctxt
+            fold_map (seq_assm t o mk_set innerTs) (sets_of_bnf bnf) ctxt
             |>> flat
           end)
       | T =>
@@ -1393,7 +1394,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_set0_thm fp_set_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (pre_set_defs @ fp_nesting_set_maps @ live_nesting_set_maps @
-                       (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_set @
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ basic_sumprod_thms_set @
                        @{thms UN_Un sup_assoc[THEN sym]} @ abs_inverses)
                      (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
@@ -1489,8 +1490,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 map2 (fn th => fn 0 => th RS @{thm eq_True[THEN iffD2]} | _ => th)
                   rel_inject_thms ms;
 
-              val (disc_map_iff_thms, sel_map_thms, sel_set_thms, rel_sel_thms,
-                (rel_cases_thm, rel_cases_attrs)) =
+              val (disc_map_iff_thms, sel_map_thms, sel_set_thms, rel_sel_thms, set_intros_thms,
+                  (rel_cases_thm, rel_cases_attrs)) =
                 let
                   val (((Ds, As), Bs), names_lthy) = lthy
                     |> mk_TFrees (dead_of_bnf fp_bnf)
@@ -1506,9 +1507,55 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     ||>> yield_singleton (mk_Frees "a") TA
                     ||>> yield_singleton (mk_Frees "b") TB;
                   val map_term = mk_map_of_bnf Ds As Bs fp_bnf;
+                  val ctrAs = map (mk_ctr ADs) ctrs;
+                  val setAs = map (mk_set ADs) (sets_of_bnf fp_bnf);
                   val discAs = map (mk_disc_or_sel ADs) discs;
                   val selAss = map (map (mk_disc_or_sel ADs)) selss;
                   val discAs_selAss = flat (map2 (map o pair) discAs selAss);
+
+                  val set_intros_thms =
+                    let
+                      fun mk_goals A setA ctr_args t ctxt =
+                        (case fastype_of t of
+                          Type (type_name, innerTs) =>
+                          (case bnf_of ctxt type_name of
+                            NONE => ([], ctxt)
+                          | SOME bnf =>
+                            apfst flat (fold_map (fn set => fn ctxt =>
+                              let
+                                val X = HOLogic.dest_setT (range_type (fastype_of set));
+                                val (x, ctxt') = yield_singleton (mk_Frees "x") X ctxt;
+                                val assm = mk_Trueprop_mem (x, set $ t);
+                              in
+                                apfst (map (Logic.mk_implies o pair assm))
+                                  (mk_goals A setA ctr_args x ctxt')
+                              end) (map (mk_set innerTs) (sets_of_bnf bnf)) ctxt))
+                        | T =>
+                          (if T = A then [mk_Trueprop_mem (t, setA $ ctr_args)] else [], ctxt));
+
+                      val (goals, names_lthy) =
+                        apfst flat (fold_map (fn set => fn ctxt =>
+                          let
+                            val A = HOLogic.dest_setT (range_type (fastype_of set));
+                          in
+                            apfst flat (fold_map (fn ctr => fn ctxt =>
+                              let
+                                val (args, ctxt') =
+                                  mk_Frees "arg" (binder_types (fastype_of ctr)) ctxt;
+                                val ctr_args = Term.list_comb (ctr, args);
+                              in
+                                apfst flat (fold_map (mk_goals A set ctr_args) args ctxt')
+                              end) ctrAs ctxt)
+                          end) setAs lthy);
+                    in
+                      if null goals then []
+                      else
+                        Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                          (fn {context = ctxt, prems = _} => mk_set_intros_tac ctxt set0_thms)
+                        |> Conjunction.elim_balanced (length goals)
+                        |> Proof_Context.export names_lthy lthy
+                        |> map Thm.close_derivation
+                    end;
 
                   val rel_sel_thms =
                     let
@@ -1541,6 +1588,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                               rel_distinct_thms)
                           |> Conjunction.elim_balanced (length goals)
                           |> Proof_Context.export names_lthy lthy
+                          |> map Thm.close_derivation
                     end;
 
                   val (rel_cases_thm, rel_cases_attrs) =
@@ -1549,7 +1597,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                         (yield_singleton (mk_Frees "thesis") HOLogic.boolT names_lthy);
 
                       val rel_Rs_a_b = list_comb (rel, Rs) $ ta $ tb;
-                      val ctrAs = map (mk_ctr ADs) ctrs;
                       val ctrBs = map (mk_ctr BDs) ctrs;
 
                       fun mk_assms ctrA ctrB ctxt =
@@ -1613,6 +1660,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                               map_thms)
                           |> Conjunction.elim_balanced (length goals)
                           |> Proof_Context.export names_lthy lthy
+                          |> map Thm.close_derivation
                     end;
 
                   val sel_map_thms =
@@ -1645,12 +1693,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                               map_thms (flat sel_thmss))
                           |> Conjunction.elim_balanced (length goals)
                           |> Proof_Context.export names_lthy lthy
+                          |> map Thm.close_derivation
                     end;
 
                   val sel_set_thms =
                     let
-                      val setsA = map (mk_set ADs) (sets_of_bnf fp_bnf);
-
                       fun mk_goal discA selA setA ctxt =
                         let
                           val prem = Term.betapply (discA, ta);
@@ -1659,7 +1706,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
                           fun travese_nested_types t ctxt =
                             (case fastype_of t of
-                              Type (type_name, xs) =>
+                              Type (type_name, innerTs) =>
                               (case bnf_of ctxt type_name of
                                 NONE => ([], ctxt)
                               | SOME bnf =>
@@ -1674,7 +1721,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                                       |>> map (Logic.mk_implies o pair assm)
                                     end;
                                 in
-                                  fold_map (seq_assm t o mk_set xs) (sets_of_bnf bnf) ctxt
+                                  fold_map (seq_assm t o mk_set innerTs) (sets_of_bnf bnf) ctxt
                                   |>> flat
                                 end)
                             | T =>
@@ -1699,7 +1746,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                             ([], ctxt)
                         end;
                       val (goals, names_lthy) = apfst (flat o flat) (fold_map (fn (disc, sel) =>
-                        fold_map (mk_goal disc sel) setsA) discAs_selAss names_lthy);
+                        fold_map (mk_goal disc sel) setAs) discAs_selAss names_lthy);
                     in
                       if null goals then
                         []
@@ -1710,9 +1757,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                               (flat sel_thmss) set0_thms)
                           |> Conjunction.elim_balanced (length goals)
                           |> Proof_Context.export names_lthy lthy
+                          |> map Thm.close_derivation
                     end;
                 in
-                  (disc_map_iff_thms, sel_map_thms, sel_set_thms, rel_sel_thms,
+                  (disc_map_iff_thms, sel_map_thms, sel_set_thms, rel_sel_thms, set_intros_thms,
                     (rel_cases_thm, rel_cases_attrs))
                 end;
 
@@ -1732,7 +1780,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                  (setN, set_thms, K (code_nitpicksimp_attrs @ simp_attrs)),
                  (sel_mapN, sel_map_thms, K []),
                  (sel_setN, sel_set_thms, K []),
-                 (set_emptyN, set_empty_thms, K [])]
+                 (set_emptyN, set_empty_thms, K []),
+                 (set_introsN, set_intros_thms, K [])]
                 |> massage_simple_notes fp_b_name;
 
               val (noted, lthy') =
