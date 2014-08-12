@@ -81,17 +81,17 @@ object Position
       }
   }
 
-  object Reported
+  object Identified
   {
-    def unapply(pos: T): Option[(Long, Symbol.Text_Chunk.Name, Symbol.Range)] =
-      (pos, pos) match {
-        case (Id(id), Range(range)) =>
+    def unapply(pos: T): Option[(Long, Symbol.Text_Chunk.Name)] =
+      pos match {
+        case Id(id) =>
           val chunk_name =
             pos match {
               case File(name) => Symbol.Text_Chunk.File(name)
               case _ => Symbol.Text_Chunk.Default
             }
-          Some((id, chunk_name, range))
+          Some((id, chunk_name))
         case _ => None
       }
   }

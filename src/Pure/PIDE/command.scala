@@ -189,8 +189,7 @@ object Command
               def bad(): Unit = Output.warning("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(
-                    Markup(name, atts @ Position.Reported(id, chunk_name, symbol_range)), args) =>
+                case XML.Elem(Markup(name, atts @ Position.Identified(id, chunk_name)), args) =>
 
                   val target =
                     if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
@@ -198,8 +197,8 @@ object Command
                     else if (chunk_name == Symbol.Text_Chunk.Default) other_id(id)
                     else None
 
-                  target match {
-                    case Some((target_name, target_chunk)) =>
+                  (target, atts) match {
+                    case (Some((target_name, target_chunk)), Position.Range(symbol_range)) =>
                       target_chunk.incorporate(symbol_range) match {
                         case Some(range) =>
                           val props = Position.purge(atts)
@@ -207,7 +206,7 @@ object Command
                           state.add_markup(false, target_name, info)
                         case None => bad(); state
                       }
-                    case None =>
+                    case _ =>
                       // silently ignore excessive reports
                       state
                   }
@@ -232,7 +231,8 @@ object Command
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
-                  range <- Protocol.message_positions(self_id, chunk_name, chunk, message)
+                  range <- Protocol.message_positions(
+                    self_id, command.position, chunk_name, chunk, message)
                 } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
               }
               st

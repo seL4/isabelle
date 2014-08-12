@@ -163,7 +163,7 @@ final class Outer_Syntax private(
       val kind =
         if (!span.isEmpty && span.head.is_command && !span.exists(_.is_error)) {
           val name = span.head.source
-          val pos = Position.Range(Text.Range(0, Symbol.iterator(name).length))
+          val pos = Position.Range(Text.Range(0, Symbol.iterator(name).length) + 1)
           Command_Span.Command_Span(name, pos)
         }
         else if (span.forall(_.is_improper)) Command_Span.Ignored_Span

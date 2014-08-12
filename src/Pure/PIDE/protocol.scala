@@ -312,17 +312,21 @@ object Protocol
 
   def message_positions(
     self_id: Document_ID.Generic => Boolean,
+    command_position: Position.T,
     chunk_name: Symbol.Text_Chunk.Name,
     chunk: Symbol.Text_Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
-        case Position.Reported(id, name, symbol_range)
-        if self_id(id) && name == chunk_name =>
-          chunk.incorporate(symbol_range) match {
-            case Some(range) => set + range
-            case _ => set
+        case Position.Identified(id, name) if self_id(id) && name == chunk_name =>
+          Position.Range.unapply(props) orElse Position.Range.unapply(command_position) match {
+            case Some(symbol_range) =>
+              chunk.incorporate(symbol_range) match {
+                case Some(range) => set + range
+                case _ => set
+              }
+            case None => set
           }
         case _ => set
       }
