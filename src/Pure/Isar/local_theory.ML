@@ -59,6 +59,7 @@ sig
   val subscription: string * morphism -> (morphism * bool) option -> morphism ->
     local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
+  val add_thms_dynamic: binding * (Context.generic -> thm list) -> local_theory -> local_theory
   val set_defsort: sort -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
@@ -273,6 +274,20 @@ fun subscription dep_morph mixin export =
 
 val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
+
+fun add_thms_dynamic (binding, f) lthy =
+  lthy
+  |> background_theory_result (fn thy => thy
+      |> Global_Theory.add_thms_dynamic' (Sign.inherit_naming thy lthy) (binding, f))
+  |-> (fn name =>
+    map_contexts (fn _ => fn ctxt =>
+      Proof_Context.transfer_facts (Proof_Context.theory_of ctxt) ctxt) #>
+    declaration {syntax = false, pervasive = false} (fn phi =>
+      let val binding' = Morphism.binding phi binding in
+        Context.mapping
+          (Global_Theory.alias_fact binding' name)
+          (Proof_Context.fact_alias binding' name)
+      end));
 
 fun set_defsort S =
   declaration {syntax = true, pervasive = false}

@@ -29,6 +29,8 @@ sig
   val add_thms: ((binding * thm) * attribute list) list -> theory -> thm list * theory
   val add_thm: (binding * thm) * attribute list -> theory -> thm * theory
   val add_thmss: ((binding * thm list) * attribute list) list -> theory -> thm list list * theory
+  val add_thms_dynamic': Context.generic -> binding * (Context.generic -> thm list) ->
+    theory -> string * theory
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list
     -> theory -> (string * thm list) list * theory
@@ -157,10 +159,14 @@ val add_thms = gen_add_thms (name_thms true true);
 val add_thm = yield_singleton add_thms;
 
 
-(* add_thms_dynamic *)
+(* dynamic theorems *)
 
-fun add_thms_dynamic (b, f) thy = thy
-  |> Data.map (Facts.add_dynamic (Context.Theory thy) (b, f) #> snd);
+fun add_thms_dynamic' context arg thy =
+  let val (name, facts') = Facts.add_dynamic context arg (Data.get thy)
+  in (name, Data.put facts' thy) end;
+
+fun add_thms_dynamic arg thy =
+  add_thms_dynamic' (Context.Theory thy) arg thy |> snd;
 
 
 (* note_thmss *)

@@ -65,20 +65,10 @@ fun declare binding descr lthy =
     val description =
       "declaration of " ^ (if descr = "" then Binding.name_of binding ^ " rules" else descr);
     val lthy' = lthy
-      |> Local_Theory.background_theory
-        (Global_Theory.add_thms_dynamic (binding, fn context => content context name) #>
-         Context.theory_map (new_entry name))
-      |> Local_Theory.map_contexts (fn _ => fn ctxt =>
-          ctxt
-          |> Context.proof_map (new_entry name)
-          |> Proof_Context.transfer_facts (Proof_Context.theory_of ctxt))
+      |> Local_Theory.background_theory (Context.theory_map (new_entry name))
+      |> Local_Theory.map_contexts (K (Context.proof_map (new_entry name)))
+      |> Local_Theory.add_thms_dynamic (binding, fn context => content context name)
       |> Attrib.local_setup binding (Attrib.add_del (add name) (del name)) description
-      |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi =>
-          let val binding' = Morphism.binding phi binding in
-            Context.mapping
-              (Global_Theory.alias_fact binding' name)
-              (Proof_Context.fact_alias binding' name)
-          end);
   in (name, lthy') end;
 
 val _ =
