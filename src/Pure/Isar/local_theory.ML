@@ -7,6 +7,12 @@ Local theory operations, with abstract target context.
 type local_theory = Proof.context;
 type generic_theory = Context.generic;
 
+structure Attrib =
+struct
+  type src = Args.src;
+  type binding = binding * src list;
+end;
+
 signature LOCAL_THEORY =
 sig
   type operations
@@ -14,6 +20,7 @@ sig
   val restore: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: bool -> local_theory -> local_theory
+  val mark_brittle: local_theory -> local_theory
   val assert_nonbrittle: local_theory -> local_theory
   val open_target: Name_Space.naming -> operations -> (local_theory -> local_theory) ->
     local_theory -> local_theory
@@ -58,10 +65,6 @@ sig
   val class_alias: binding -> class -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
-  val activate: string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
-  val activate_nonbrittle: string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
   val init: Name_Space.naming -> operations -> Proof.context -> local_theory
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
@@ -305,17 +308,6 @@ fun alias global_alias local_alias b name =
 val class_alias = alias Sign.class_alias Proof_Context.class_alias;
 val type_alias = alias Sign.type_alias Proof_Context.type_alias;
 val const_alias = alias Sign.const_alias Proof_Context.const_alias;
-
-
-(* activation of locale fragments *)
-
-fun activate_nonbrittle dep_morph mixin export =
-  map_top (fn (naming, operations, after_close, brittle, target) =>
-    (naming, operations, after_close, brittle,
-      (Context.proof_map ooo Locale.add_registration) dep_morph mixin export target));
-
-fun activate dep_morph mixin export =
-  mark_brittle #> activate_nonbrittle dep_morph mixin export;
 
 
 

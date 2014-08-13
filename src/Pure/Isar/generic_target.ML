@@ -358,6 +358,6 @@ fun locale_const locale prmode ((b, mx), rhs) =
 
 fun locale_dependency locale dep_morph mixin export =
   (Local_Theory.raw_theory ooo Locale.add_dependency locale) dep_morph mixin export
-  #> Local_Theory.activate_nonbrittle dep_morph mixin export;
+  #> Locale.activate_fragment_nonbrittle dep_morph mixin export;
 
 end;

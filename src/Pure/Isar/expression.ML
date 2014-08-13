@@ -924,7 +924,7 @@ fun gen_local_theory_interpretation prep_interpretation activate expression raw_
 fun subscribe_or_activate lthy =
   if Named_Target.is_theory lthy
   then Local_Theory.subscription
-  else Local_Theory.activate;
+  else Locale.activate_fragment;
 
 fun subscribe_locale_only lthy =
   let
@@ -964,7 +964,7 @@ fun permanent_interpretation expression raw_eqns =
     (K Local_Theory.subscription) expression raw_eqns;
 
 fun ephemeral_interpretation x =
-  gen_local_theory_interpretation cert_interpretation (K Local_Theory.activate) x;
+  gen_local_theory_interpretation cert_interpretation (K Locale.activate_fragment) x;
 
 fun interpretation x =
   gen_local_theory_interpretation cert_interpretation subscribe_or_activate x;
