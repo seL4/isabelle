@@ -520,10 +520,10 @@ text {*
   \secref{sec:term-abbrev}.
 
   The optional case names of @{element_ref "obtains"} have a twofold
-  meaning: (1) during the of this claim they refer to the the local
-  context introductions, (2) the resulting rule is annotated
-  accordingly to support symbolic case splits when used with the
-  @{method_ref cases} method (cf.\ \secref{sec:cases-induct}).
+  meaning: (1) in the proof of this claim they refer to the local context
+  introductions, (2) in the resulting rule they become annotations for
+  symbolic case splits, e.g.\ for the @{method_ref cases} method
+  (\secref{sec:cases-induct}).
 *}
 
 
