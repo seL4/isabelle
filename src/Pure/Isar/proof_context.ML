@@ -50,6 +50,7 @@ sig
   val markup_const: Proof.context -> string -> string
   val pretty_const: Proof.context -> string -> Pretty.T
   val transfer: theory -> Proof.context -> Proof.context
+  val transfer_facts: theory -> Proof.context -> Proof.context
   val background_theory: (theory -> theory) -> Proof.context -> Proof.context
   val background_theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val facts_of: Proof.context -> Facts.T
@@ -323,15 +324,18 @@ fun transfer_syntax thy ctxt = ctxt |>
   map_tsig (fn tsig as (local_tsig, global_tsig) =>
     let val thy_tsig = Sign.tsig_of thy in
       if Type.eq_tsig (thy_tsig, global_tsig) then tsig
-      else (Type.merge_tsig (Context.pretty ctxt) (local_tsig, thy_tsig), thy_tsig)
+      else (Type.merge_tsig (Context.pretty ctxt) (local_tsig, thy_tsig), thy_tsig)  (*historic merge order*)
     end) |>
   map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
       if Consts.eq_consts (thy_consts, global_consts) then consts
-      else (Consts.merge (local_consts, thy_consts), thy_consts)
+      else (Consts.merge (local_consts, thy_consts), thy_consts)  (*historic merge order*)
     end);
 
 fun transfer thy = Context.raw_transfer thy #> transfer_syntax thy;
+
+fun transfer_facts thy =
+  map_facts (fn local_facts => Facts.merge (Global_Theory.facts_of thy, local_facts));
 
 fun background_theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
 
