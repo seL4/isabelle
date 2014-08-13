@@ -63,20 +63,20 @@ object Position
       }
   }
 
-  object Id_Offset
+  object Id_Offset0
   {
     def unapply(pos: T): Option[(Long, Symbol.Offset)] =
-      (pos, pos) match {
-        case (Id(id), Offset(offset)) => Some((id, offset))
+      pos match {
+        case Id(id) => Some((id, Offset.unapply(pos) getOrElse 0))
         case _ => None
       }
   }
 
-  object Def_Id_Offset
+  object Def_Id_Offset0
   {
     def unapply(pos: T): Option[(Long, Symbol.Offset)] =
-      (pos, pos) match {
-        case (Def_Id(id), Def_Offset(offset)) => Some((id, offset))
+      pos match {
+        case Def_Id(id) => Some((id, Def_Offset.unapply(pos) getOrElse 0))
         case _ => None
       }
   }
