@@ -115,7 +115,7 @@ fun assert lthy =
 val bottom_of = List.last o Data.get o assert;
 val top_of = hd o Data.get o assert;
 
-fun map_bottom f =
+fun map_top f =
   assert #>
   Data.map (fn {naming, operations, after_close, brittle, target} :: parents =>
     make_lthy (f (naming, operations, after_close, brittle, target)) :: parents);
@@ -163,7 +163,7 @@ fun map_contexts f lthy =
 
 fun mark_brittle lthy =
   if level lthy = 1 then
-    map_bottom (fn (naming, operations, after_close, brittle, target) =>
+    map_top (fn (naming, operations, after_close, brittle, target) =>
       (naming, operations, after_close, true, target)) lthy
   else lthy;
 
@@ -178,7 +178,7 @@ val naming_of = #naming o top_of;
 val full_name = Name_Space.full_name o naming_of;
 
 fun map_naming f =
-  map_bottom (fn (naming, operations, after_close, brittle, target) =>
+  map_top (fn (naming, operations, after_close, brittle, target) =>
     (f naming, operations, after_close, brittle, target));
 
 val conceal = map_naming Name_Space.conceal;
@@ -310,7 +310,7 @@ val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 (* activation of locale fragments *)
 
 fun activate_nonbrittle dep_morph mixin export =
-  map_bottom (fn (naming, operations, after_close, brittle, target) =>
+  map_top (fn (naming, operations, after_close, brittle, target) =>
     (naming, operations, after_close, brittle,
       (Context.proof_map ooo Locale.add_registration) dep_morph mixin export target));
 
