@@ -67,9 +67,9 @@ fun declare binding descr lthy =
     val lthy' = lthy
       |> Local_Theory.background_theory
         (Global_Theory.add_thms_dynamic (binding, fn context => content context name) #>
-         Attrib.setup binding (Attrib.add_del (add name) (del name)) description #>
          Context.theory_map (new_entry name))
       |> Local_Theory.map_contexts (K (Context.proof_map (new_entry name)))
+      |> Attrib.local_setup binding (Attrib.add_del (add name) (del name)) description
       |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi => fn context =>
           let
             val binding' = Morphism.binding phi binding;

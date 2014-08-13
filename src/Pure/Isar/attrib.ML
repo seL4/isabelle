@@ -11,6 +11,10 @@ sig
   val empty_binding: binding
   val is_empty_binding: binding -> bool
   val print_attributes: Proof.context -> unit
+  val define_global: Binding.binding -> (Args.src -> attribute) ->
+    string -> theory -> string * theory
+  val define: Binding.binding -> (Args.src -> attribute) ->
+    string -> local_theory -> string * local_theory
   val check_name_generic: Context.generic -> xstring * Position.T -> string
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> src -> src
@@ -35,6 +39,8 @@ sig
     Context.generic -> (string * thm list) list * Context.generic
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
+  val local_setup: Binding.binding -> attribute context_parser -> string ->
+    local_theory -> local_theory
   val attribute_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
   val internal: (morphism -> attribute) -> src
   val add_del: attribute -> attribute -> attribute context_parser
@@ -74,7 +80,6 @@ struct
 (* source and bindings *)
 
 type src = Args.src;
-
 type binding = binding * src list;
 
 val empty_binding: binding = (Binding.empty, []);
@@ -86,7 +91,7 @@ fun is_empty_binding ((b, srcs): binding) = Binding.is_empty b andalso null srcs
 
 (* theory data *)
 
-structure Attributes = Theory_Data
+structure Attributes = Generic_Data
 (
   type T = ((src -> attribute) * string) Name_Space.table;
   val empty : T = Name_Space.empty_table "attribute";
@@ -94,11 +99,17 @@ structure Attributes = Theory_Data
   fun merge data : T = Name_Space.merge_tables data;
 );
 
-val get_attributes = Attributes.get o Context.theory_of;
+val get_attributes = Attributes.get o Context.Proof;
+
+fun transfer_attributes thy ctxt =
+  let
+    val attribs' =
+      Name_Space.merge_tables (Attributes.get (Context.Theory thy), get_attributes ctxt);
+  in Context.proof_map (Attributes.put attribs') ctxt end;
 
 fun print_attributes ctxt =
   let
-    val attribs = get_attributes (Context.Proof ctxt);
+    val attribs = get_attributes ctxt;
     fun prt_attr (name, (_, "")) = Pretty.mark_str name
       | prt_attr (name, (_, comment)) =
           Pretty.block
@@ -108,20 +119,46 @@ fun print_attributes ctxt =
     |> Pretty.writeln_chunks
   end;
 
-val attribute_space = Name_Space.space_of_table o get_attributes o Context.Proof;
+val attribute_space = Name_Space.space_of_table o get_attributes;
 
-fun add_attribute name att comment thy = thy
-  |> Attributes.map (Name_Space.define (Context.Theory thy) true (name, (att, comment)) #> snd);
+
+(* define *)
+
+fun define_global binding att comment thy =
+  let
+    val context = Context.Theory thy;
+    val (name, attribs') =
+      Name_Space.define context true (binding, (att, comment)) (Attributes.get context);
+  in (name, Context.the_theory (Attributes.put attribs' context)) end;
+
+fun define binding att comment lthy =
+  let
+    val standard_morphism =
+      Local_Theory.standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
+    val att0 = att o Args.transform_values standard_morphism;
+  in
+    lthy
+    |> Local_Theory.background_theory_result (define_global binding att0 comment)
+    |-> (fn name =>
+      Local_Theory.map_contexts
+        (fn _ => fn ctxt => transfer_attributes (Proof_Context.theory_of ctxt) ctxt)
+      #> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
+          let
+            val naming = Name_Space.naming_of context;
+            val binding' = Morphism.binding phi binding;
+          in Attributes.map (Name_Space.alias_table naming binding' name) context end)
+      #> pair name)
+  end;
 
 
 (* check *)
 
-fun check_name_generic context = #1 o Name_Space.check context (get_attributes context);
+fun check_name_generic context = #1 o Name_Space.check context (Attributes.get context);
 val check_name = check_name_generic o Context.Proof;
 
 fun check_src ctxt src =
  (Context_Position.report ctxt (Args.range_of_src src) Markup.language_attribute;
-  #1 (Args.check_src ctxt (get_attributes (Context.Proof ctxt)) src));
+  #1 (Args.check_src ctxt (get_attributes ctxt) src));
 
 
 (* pretty printing *)
@@ -133,7 +170,7 @@ fun pretty_attribs _ [] = []
 (* get attributes *)
 
 fun attribute_generic context =
-  let val table = get_attributes context
+  let val table = Attributes.get context
   in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
 
 val attribute = attribute_generic o Context.Proof;
@@ -171,10 +208,11 @@ fun eval_thms ctxt srcs = ctxt
 
 (* attribute setup *)
 
-fun setup name scan =
-  add_attribute name
-    (fn src => fn (ctxt, th) =>
-      let val (a, ctxt') = Args.syntax_generic scan src ctxt in a (ctxt', th) end);
+fun attribute_syntax scan src (context, th) =
+  let val (a, context') = Args.syntax_generic scan src context in a (context', th) end;
+
+fun setup binding scan comment = define_global binding (attribute_syntax scan) comment #> snd;
+fun local_setup binding scan comment = define binding (attribute_syntax scan) comment #> snd;
 
 fun attribute_setup name source cmt =
   Context.theory_map (ML_Context.expression (#pos source)
