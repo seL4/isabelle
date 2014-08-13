@@ -162,14 +162,13 @@ fun map_contexts f lthy =
 (* brittle context -- implicit for nested structures *)
 
 fun mark_brittle lthy =
-  if level lthy = 1
-  then map_bottom (fn (naming, operations, after_close, brittle, target) =>
-    (naming, operations, after_close, true, target)) lthy
+  if level lthy = 1 then
+    map_bottom (fn (naming, operations, after_close, brittle, target) =>
+      (naming, operations, after_close, true, target)) lthy
   else lthy;
 
 fun assert_nonbrittle lthy =
-  if #brittle (top_of lthy)
-  then error "Brittle local theory context"
+  if #brittle (top_of lthy) then error "Brittle local theory context"
   else lthy;
 
 
