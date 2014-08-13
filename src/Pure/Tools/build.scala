@@ -1,6 +1,6 @@
 /*  Title:      Pure/Tools/build.scala
     Author:     Makarius
-    Options:    :folding=explicit:collapseFolds=1:
+    Options:    :folding=explicit:
 
 Build and manage Isabelle sessions.
 */

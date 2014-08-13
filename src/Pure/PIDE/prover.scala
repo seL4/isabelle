@@ -1,7 +1,8 @@
 /*  Title:      Pure/PIDE/prover.scala
     Author:     Makarius
+    Options:    :folding=explicit:
 
-General prover operations and process wrapping.
+Prover process wrapping.
 */
 
 package isabelle
@@ -87,7 +88,7 @@ abstract class Prover(
   system_channel: System_Channel,
   system_process: Prover.System_Process) extends Protocol
 {
-  /* output */
+  /** receiver output **/
 
   val xml_cache: XML.Cache = new XML.Cache()
 

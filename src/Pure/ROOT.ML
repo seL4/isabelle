@@ -234,7 +234,8 @@ use "Isar/keyword.ML";
 use "Isar/parse.ML";
 use "Isar/args.ML";
 
-(*theory sources*)
+(*theory specifications*)
+use "Isar/local_theory.ML";
 use "Thy/thy_header.ML";
 use "PIDE/command_span.ML";
 use "Thy/thy_syntax.ML";
@@ -264,7 +265,6 @@ use "Isar/obtain.ML";
 
 (*local theories and targets*)
 use "Isar/locale.ML";
-use "Isar/local_theory.ML";
 use "Isar/generic_target.ML";
 use "Isar/overloading.ML";
 use "axclass.ML";

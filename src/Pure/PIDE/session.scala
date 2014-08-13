@@ -1,6 +1,6 @@
 /*  Title:      Pure/PIDE/session.scala
     Author:     Makarius
-    Options:    :folding=explicit:collapseFolds=1:
+    Options:    :folding=explicit:
 
 PIDE editor session, potentially with running prover process.
 */
