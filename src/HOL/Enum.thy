@@ -537,6 +537,9 @@ done
 
 end
 
+instance finite_1 :: "{dense_linorder, wellorder}"
+by intro_classes (simp_all add: less_finite_1_def)
+
 instantiation finite_1 :: complete_lattice
 begin
 
@@ -555,6 +558,41 @@ by intro_classes(simp_all add: INF_def SUP_def)
 
 instance finite_1 :: complete_linorder ..
 
+lemma finite_1_eq: "x = a\<^sub>1"
+by(cases x) simp
+
+simproc_setup finite_1_eq ("x::finite_1") = {*
+  fn _ => fn _ => fn ct => case term_of ct of
+    Const (@{const_name a\<^sub>1}, _) => NONE
+  | _ => SOME (mk_meta_eq @{thm finite_1_eq})
+*}
+
+instantiation finite_1 :: complete_boolean_algebra begin
+definition [simp]: "op - = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "uminus = (\<lambda>_. a\<^sub>1)"
+instance by intro_classes simp_all
+end
+
+instantiation finite_1 :: 
+  "{linordered_ring_strict, linordered_comm_semiring_strict, ordered_comm_ring,
+    ordered_cancel_comm_monoid_diff, comm_monoid_mult, ordered_ring_abs,
+    one, Divides.div, sgn_if, inverse}"
+begin
+definition [simp]: "Groups.zero = a\<^sub>1"
+definition [simp]: "Groups.one = a\<^sub>1"
+definition [simp]: "op + = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "op * = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "op div = (\<lambda>_ _. a\<^sub>1)" 
+definition [simp]: "op mod = (\<lambda>_ _. a\<^sub>1)" 
+definition [simp]: "abs = (\<lambda>_. a\<^sub>1)"
+definition [simp]: "sgn = (\<lambda>_. a\<^sub>1)"
+definition [simp]: "inverse = (\<lambda>_. a\<^sub>1)"
+definition [simp]: "op / = (\<lambda>_ _. a\<^sub>1)"
+
+instance by intro_classes(simp_all add: less_finite_1_def)
+end
+
+declare [[simproc del: finite_1_eq]]
 hide_const (open) a\<^sub>1
 
 datatype finite_2 = a\<^sub>1 | a\<^sub>2
@@ -602,6 +640,9 @@ done
 
 end
 
+instance finite_2 :: wellorder
+by(rule wf_wellorderI)(simp add: less_finite_2_def, intro_classes)
+
 instantiation finite_2 :: complete_lattice
 begin
 
@@ -637,6 +678,26 @@ instance finite_2 :: complete_distrib_lattice
 by(intro_classes)(auto simp add: INF_def SUP_def sup_finite_2_def inf_finite_2_def Inf_finite_2_def Sup_finite_2_def)
 
 instance finite_2 :: complete_linorder ..
+
+instantiation finite_2 :: "{field_inverse_zero, abs_if, ring_div, semiring_div_parity, sgn_if}" begin
+definition [simp]: "0 = a\<^sub>1"
+definition [simp]: "1 = a\<^sub>2"
+definition "x + y = (case (x, y) of (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
+definition "uminus = (\<lambda>x :: finite_2. x)"
+definition "op - = (op + :: finite_2 \<Rightarrow> _)"
+definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
+definition "inverse = (\<lambda>x :: finite_2. x)"
+definition "op / = (op * :: finite_2 \<Rightarrow> _)"
+definition "abs = (\<lambda>x :: finite_2. x)"
+definition "op div = (op / :: finite_2 \<Rightarrow> _)"
+definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
+definition "sgn = (\<lambda>x :: finite_2. x)"
+instance
+by intro_classes
+  (simp_all add: plus_finite_2_def uminus_finite_2_def minus_finite_2_def times_finite_2_def
+       inverse_finite_2_def divide_finite_2_def abs_finite_2_def div_finite_2_def mod_finite_2_def sgn_finite_2_def
+     split: finite_2.splits)
+end
 
 hide_const (open) a\<^sub>1 a\<^sub>2
 
@@ -682,6 +743,13 @@ instance proof (intro_classes)
 qed (auto simp add: less_finite_3_def less_eq_finite_3_def split: finite_3.split_asm)
 
 end
+
+instance finite_3 :: wellorder
+proof(rule wf_wellorderI)
+  have "inv_image less_than (case_finite_3 0 1 2) = {(x, y). x < y}"
+    by(auto simp add: less_finite_3_def split: finite_3.splits)
+  from this[symmetric] show "wf \<dots>" by simp
+qed intro_classes
 
 instantiation finite_3 :: complete_lattice
 begin
@@ -729,6 +797,31 @@ proof
 qed
 
 instance finite_3 :: complete_linorder ..
+
+instantiation finite_3 :: "{field_inverse_zero, abs_if, ring_div, semiring_div, sgn_if}" begin
+definition [simp]: "0 = a\<^sub>1"
+definition [simp]: "1 = a\<^sub>2"
+definition
+  "x + y = (case (x, y) of
+     (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>3) \<Rightarrow> a\<^sub>1 | (a\<^sub>3, a\<^sub>2) \<Rightarrow> a\<^sub>1
+   | (a\<^sub>1, a\<^sub>2) \<Rightarrow> a\<^sub>2 | (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>3) \<Rightarrow> a\<^sub>2
+   | _ \<Rightarrow> a\<^sub>3)"
+definition "- x = (case x of a\<^sub>1 \<Rightarrow> a\<^sub>1 | a\<^sub>2 \<Rightarrow> a\<^sub>3 | a\<^sub>3 \<Rightarrow> a\<^sub>2)"
+definition "x - y = x + (- y :: finite_3)"
+definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>3) \<Rightarrow> a\<^sub>2 | (a\<^sub>2, a\<^sub>3) \<Rightarrow> a\<^sub>3 | (a\<^sub>3, a\<^sub>2) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
+definition "inverse = (\<lambda>x :: finite_3. x)" 
+definition "x / y = x * inverse (y :: finite_3)"
+definition "abs = (\<lambda>x :: finite_3. x)"
+definition "op div = (op / :: finite_3 \<Rightarrow> _)"
+definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>1) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
+definition "sgn = (\<lambda>x. case x of a\<^sub>1 \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
+instance
+by intro_classes
+  (simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def times_finite_3_def
+       inverse_finite_3_def divide_finite_3_def abs_finite_3_def div_finite_3_def mod_finite_3_def sgn_finite_3_def
+       less_finite_3_def
+     split: finite_3.splits)
+end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3
 
@@ -822,6 +915,14 @@ proof
     by(cases a "\<Squnion>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
       (auto simp add: inf_finite_4_def Sup_finite_4_def SUP_def split: finite_4.splits split_if_asm)
 qed
+
+instantiation finite_4 :: complete_boolean_algebra begin
+definition "- x = (case x of a\<^sub>1 \<Rightarrow> a\<^sub>4 | a\<^sub>2 \<Rightarrow> a\<^sub>3 | a\<^sub>3 \<Rightarrow> a\<^sub>2 | a\<^sub>4 \<Rightarrow> a\<^sub>1)"
+definition "x - y = x \<sqinter> - (y :: finite_4)"
+instance
+by intro_classes
+  (simp_all add: inf_finite_4_def sup_finite_4_def uminus_finite_4_def minus_finite_4_def split: finite_4.splits)
+end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4
 
