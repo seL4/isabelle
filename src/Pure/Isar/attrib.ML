@@ -38,6 +38,7 @@ sig
   val generic_notes: string -> (binding * (thm list * src list) list) list ->
     Context.generic -> (string * thm list) list * Context.generic
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
+  val attribute_syntax: attribute context_parser -> Args.src -> attribute
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val local_setup: Binding.binding -> attribute context_parser -> string ->
     local_theory -> local_theory
