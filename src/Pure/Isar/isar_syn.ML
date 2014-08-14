@@ -894,10 +894,6 @@ val _ =
     (Scan.succeed Isar_Cmd.class_deps);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "thm_deps"} "visualize theorem dependencies"
-    (Parse_Spec.xthms1 >> Isar_Cmd.thm_deps);
-
-val _ =
   Outer_Syntax.improper_command @{command_spec "print_binds"}
     "print term bindings of proof context -- Proof General legacy"
     (Scan.succeed (Toplevel.unknown_context o
@@ -955,11 +951,6 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "print_codesetup"} "print code generator setup"
     (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Code.print_codesetup o Toplevel.theory_of)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "unused_thms"} "find unused theorems"
-    (Scan.option ((Scan.repeat1 (Scan.unless Parse.minus Parse.name) --| Parse.minus) --
-       Scan.option (Scan.repeat1 (Scan.unless Parse.minus Parse.name))) >> Isar_Cmd.unused_thms);
 
 
 
