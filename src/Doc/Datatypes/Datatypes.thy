@@ -943,6 +943,10 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{rel_flip}\rm:] ~ \\
 @{thm list.rel_flip[no_vars]}
 
+\item[@{text "t."}\hthm{rel_map}\rm:] ~ \\
+@{thm list.rel_map(1)[no_vars]} \\
+@{thm list.rel_map(2)[no_vars]}
+
 \item[@{text "t."}\hthm{rel_mono}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]}
 
