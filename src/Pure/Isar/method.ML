@@ -322,10 +322,10 @@ structure Methods = Generic_Data
 
 val get_methods = Methods.get o Context.Proof;
 
-fun transfer_methods thy ctxt =
+fun transfer_methods ctxt =
   let
-    val meths' =
-      Name_Space.merge_tables (Methods.get (Context.Theory thy), get_methods ctxt);
+    val meths0 = Methods.get (Context.Theory (Proof_Context.theory_of ctxt));
+    val meths' = Name_Space.merge_tables (meths0, get_methods ctxt);
   in Context.proof_map (Methods.put meths') ctxt end;
 
 fun print_methods ctxt =
@@ -351,16 +351,11 @@ fun define_global binding meth comment thy =
   in (name, Context.the_theory (Methods.put meths' context)) end;
 
 fun define binding meth comment lthy =
-  let
-    val standard_morphism =
-      Local_Theory.standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
-    val meth0 = meth o Args.transform_values standard_morphism;
-  in
+  let val meth0 = meth o Args.transform_values (Local_Theory.background_morphism lthy) in
     lthy
     |> Local_Theory.background_theory_result (define_global binding meth0 comment)
     |-> (fn name =>
-      Local_Theory.map_contexts
-        (fn _ => fn ctxt => transfer_methods (Proof_Context.theory_of ctxt) ctxt)
+      Local_Theory.map_contexts (K transfer_methods)
       #> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
           let
             val naming = Name_Space.naming_of context;

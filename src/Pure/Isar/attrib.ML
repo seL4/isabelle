@@ -102,10 +102,10 @@ structure Attributes = Generic_Data
 
 val get_attributes = Attributes.get o Context.Proof;
 
-fun transfer_attributes thy ctxt =
+fun transfer_attributes ctxt =
   let
-    val attribs' =
-      Name_Space.merge_tables (Attributes.get (Context.Theory thy), get_attributes ctxt);
+    val attribs0 = Attributes.get (Context.Theory (Proof_Context.theory_of ctxt));
+    val attribs' = Name_Space.merge_tables (attribs0, get_attributes ctxt);
   in Context.proof_map (Attributes.put attribs') ctxt end;
 
 fun print_attributes ctxt =
@@ -133,16 +133,11 @@ fun define_global binding att comment thy =
   in (name, Context.the_theory (Attributes.put attribs' context)) end;
 
 fun define binding att comment lthy =
-  let
-    val standard_morphism =
-      Local_Theory.standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
-    val att0 = att o Args.transform_values standard_morphism;
-  in
+  let val att0 = att o Args.transform_values (Local_Theory.background_morphism lthy) in
     lthy
     |> Local_Theory.background_theory_result (define_global binding att0 comment)
     |-> (fn name =>
-      Local_Theory.map_contexts
-        (fn _ => fn ctxt => transfer_attributes (Proof_Context.theory_of ctxt) ctxt)
+      Local_Theory.map_contexts (K transfer_attributes)
       #> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
           let
             val naming = Name_Space.naming_of context;

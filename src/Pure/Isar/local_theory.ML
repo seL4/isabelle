@@ -39,6 +39,7 @@ sig
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val background_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val background_theory: (theory -> theory) -> local_theory -> local_theory
+  val background_morphism: local_theory -> morphism
   val target_of: local_theory -> Proof.context
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
@@ -221,6 +222,9 @@ fun background_theory_result f lthy =
     ||> Sign.restore_naming thy);
 
 fun background_theory f = #2 o background_theory_result (f #> pair ());
+
+fun background_morphism lthy =
+  standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
 
 
 (* target contexts *)
