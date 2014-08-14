@@ -51,7 +51,7 @@ sig
   val named_text: (string -> string) -> string parser
   val named_typ: (string -> typ) -> typ parser
   val named_term: (string -> term) -> term parser
-  val named_fact: (string -> thm list) -> thm list parser
+  val named_fact: (string -> string option * thm list) -> thm list parser
   val named_attribute:
     (string * Position.T -> morphism -> attribute) -> (morphism -> attribute) parser
   val typ_abbrev: typ context_parser
@@ -106,7 +106,7 @@ fun pretty_src ctxt src =
       | SOME (Token.Text s) => Pretty.str (quote s)
       | SOME (Token.Typ T) => Syntax.pretty_typ ctxt T
       | SOME (Token.Term t) => Syntax.pretty_term ctxt t
-      | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
+      | SOME (Token.Fact (_, ths)) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
       | _ => Pretty.mark_str (Token.markup arg, Token.unparse arg));
   in Pretty.block (Pretty.breaks (prt_name :: map prt_arg args)) end;
 
@@ -130,7 +130,7 @@ fun map_args f (Src {name, args, output_info}) =
 fun transform_values phi = map_args (Token.map_value
   (fn Token.Typ T => Token.Typ (Morphism.typ phi T)
     | Token.Term t => Token.Term (Morphism.term phi t)
-    | Token.Fact ths => Token.Fact (Morphism.fact phi ths)
+    | Token.Fact (a, ths) => Token.Fact (a, Morphism.fact phi ths)
     | Token.Attribute att => Token.Attribute (Morphism.transform phi att)
     | tok => tok));
 
@@ -212,15 +212,17 @@ fun evaluate mk eval arg =
 val internal_text = value (fn Token.Text s => s);
 val internal_typ = value (fn Token.Typ T => T);
 val internal_term = value (fn Token.Term t => t);
-val internal_fact = value (fn Token.Fact ths => ths);
+val internal_fact = value (fn Token.Fact (_, ths) => ths);
 val internal_attribute = value (fn Token.Attribute att => att);
 
 fun named_text intern = internal_text || named >> evaluate Token.Text (intern o Token.content_of);
 fun named_typ readT = internal_typ || named >> evaluate Token.Typ (readT o Token.inner_syntax_of);
 fun named_term read = internal_term || named >> evaluate Token.Term (read o Token.inner_syntax_of);
 
-fun named_fact get = internal_fact || named >> evaluate Token.Fact (get o Token.content_of) ||
-  alt_string >> evaluate Token.Fact (get o Token.inner_syntax_of);
+fun named_fact get =
+  internal_fact ||
+  named >> evaluate Token.Fact (get o Token.content_of) >> #2 ||
+  alt_string >> evaluate Token.Fact (get o Token.inner_syntax_of) >> #2;
 
 fun named_attribute att =
   internal_attribute ||

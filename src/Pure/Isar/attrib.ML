@@ -38,10 +38,12 @@ sig
   val generic_notes: string -> (binding * (thm list * src list) list) list ->
     Context.generic -> (string * thm list) list * Context.generic
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
+  val attribute_syntax: attribute context_parser -> Args.src -> attribute
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val local_setup: Binding.binding -> attribute context_parser -> string ->
     local_theory -> local_theory
-  val attribute_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
+  val attribute_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
+    local_theory -> local_theory
   val internal: (morphism -> attribute) -> src
   val add_del: attribute -> attribute -> attribute context_parser
   val thm_sel: Facts.interval list parser
@@ -101,10 +103,10 @@ structure Attributes = Generic_Data
 
 val get_attributes = Attributes.get o Context.Proof;
 
-fun transfer_attributes thy ctxt =
+fun transfer_attributes ctxt =
   let
-    val attribs' =
-      Name_Space.merge_tables (Attributes.get (Context.Theory thy), get_attributes ctxt);
+    val attribs0 = Attributes.get (Context.Theory (Proof_Context.theory_of ctxt));
+    val attribs' = Name_Space.merge_tables (attribs0, get_attributes ctxt);
   in Context.proof_map (Attributes.put attribs') ctxt end;
 
 fun print_attributes ctxt =
@@ -131,24 +133,12 @@ fun define_global binding att comment thy =
       Name_Space.define context true (binding, (att, comment)) (Attributes.get context);
   in (name, Context.the_theory (Attributes.put attribs' context)) end;
 
-fun define binding att comment lthy =
-  let
-    val standard_morphism =
-      Local_Theory.standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
-    val att0 = att o Args.transform_values standard_morphism;
-  in
-    lthy
-    |> Local_Theory.background_theory_result (define_global binding att0 comment)
-    |-> (fn name =>
-      Local_Theory.map_contexts
-        (fn _ => fn ctxt => transfer_attributes (Proof_Context.theory_of ctxt) ctxt)
-      #> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
-          let
-            val naming = Name_Space.naming_of context;
-            val binding' = Morphism.binding phi binding;
-          in Attributes.map (Name_Space.alias_table naming binding' name) context end)
-      #> pair name)
-  end;
+fun define binding att comment =
+  Local_Theory.background_theory_result (define_global binding att comment)
+  #-> (fn name =>
+    Local_Theory.map_contexts (K transfer_attributes)
+    #> Local_Theory.generic_alias Attributes.map binding name
+    #> pair name);
 
 
 (* check *)
@@ -215,12 +205,13 @@ fun setup binding scan comment = define_global binding (attribute_syntax scan) c
 fun local_setup binding scan comment = define binding (attribute_syntax scan) comment #> snd;
 
 fun attribute_setup name source cmt =
-  Context.theory_map (ML_Context.expression (#pos source)
+  (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
+    ML_Lex.read_source false source @
+    ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")"))
+  |> ML_Context.expression (#pos source)
     "val (name, scan, comment): binding * attribute context_parser * string"
-    "Context.map_theory (Attrib.setup name scan comment)"
-    (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-      ML_Lex.read_source false source @
-      ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
+    "Context.map_proof (Attrib.local_setup name scan comment)"
+  |> Context.proof_map;
 
 
 (* internal attribute *)
@@ -254,7 +245,9 @@ fun gen_thm pick = Scan.depend (fn context =>
   let
     val get = Proof_Context.get_fact_generic context;
     val get_fact = get o Facts.Fact;
-    fun get_named pos name = get (Facts.Named ((name, pos), NONE));
+    fun get_named is_sel pos name =
+      let val (a, ths) = get (Facts.Named ((name, pos), NONE))
+      in (if is_sel then NONE else a, ths) end;
   in
     Parse.$$$ "[" |-- Args.attribs (check_name_generic context) --| Parse.$$$ "]" >> (fn srcs =>
       let
@@ -264,9 +257,9 @@ fun gen_thm pick = Scan.depend (fn context =>
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
       >> (fn (s, fact) => ("", Facts.Fact s, fact)) ||
-     Scan.ahead (Parse.position fact_name) :|-- (fn (name, pos) =>
-      Args.named_fact (get_named pos) -- Scan.option thm_sel
-        >> (fn (fact, sel) => (name, Facts.Named ((name, pos), sel), fact))))
+     Scan.ahead (Parse.position fact_name -- Scan.option thm_sel) :|-- (fn ((name, pos), sel) =>
+      Args.named_fact (get_named (is_some sel) pos) --| Scan.option thm_sel
+        >> (fn fact => (name, Facts.Named ((name, pos), sel), fact))))
     -- Args.opt_attribs (check_name_generic context) >> (fn ((name, thmref, fact), srcs) =>
       let
         val ths = Facts.select thmref fact;

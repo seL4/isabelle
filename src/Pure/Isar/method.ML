@@ -66,8 +66,12 @@ sig
   val check_name: Proof.context -> xstring * Position.T -> string
   val method: Proof.context -> src -> Proof.context -> method
   val method_cmd: Proof.context -> src -> Proof.context -> method
+  val method_syntax: (Proof.context -> method) context_parser -> Args.src -> Proof.context -> method
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
-  val method_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
+  val local_setup: binding -> (Proof.context -> method) context_parser -> string ->
+    local_theory -> local_theory
+  val method_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
+    local_theory -> local_theory
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
@@ -309,7 +313,7 @@ fun finish_text (NONE, immed) = Basic (finish immed)
 
 (* method definitions *)
 
-structure Methods = Theory_Data
+structure Methods = Generic_Data
 (
   type T = ((src -> Proof.context -> method) * string) Name_Space.table;
   val empty : T = Name_Space.empty_table "method";
@@ -317,7 +321,13 @@ structure Methods = Theory_Data
   fun merge data : T = Name_Space.merge_tables data;
 );
 
-val get_methods = Methods.get o Proof_Context.theory_of;
+val get_methods = Methods.get o Context.Proof;
+
+fun transfer_methods ctxt =
+  let
+    val meths0 = Methods.get (Context.Theory (Proof_Context.theory_of ctxt));
+    val meths' = Name_Space.merge_tables (meths0, get_methods ctxt);
+  in Context.proof_map (Methods.put meths') ctxt end;
 
 fun print_methods ctxt =
   let
@@ -331,8 +341,22 @@ fun print_methods ctxt =
     |> Pretty.writeln_chunks
   end;
 
-fun add_method name meth comment thy = thy
-  |> Methods.map (Name_Space.define (Context.Theory thy) true (name, (meth, comment)) #> snd);
+
+(* define *)
+
+fun define_global binding meth comment thy =
+  let
+    val context = Context.Theory thy;
+    val (name, meths') =
+      Name_Space.define context true (binding, (meth, comment)) (Methods.get context);
+  in (name, Context.the_theory (Methods.put meths' context)) end;
+
+fun define binding meth comment =
+  Local_Theory.background_theory_result (define_global binding meth comment)
+  #-> (fn name =>
+    Local_Theory.map_contexts (K transfer_methods)
+    #> Local_Theory.generic_alias Methods.map binding name
+    #> pair name);
 
 
 (* check *)
@@ -360,17 +384,20 @@ fun method_cmd ctxt = method ctxt o method_closure ctxt;
 
 (* method setup *)
 
-fun setup name scan =
-  add_method name
-    (fn src => fn ctxt => let val (m, ctxt') = Args.syntax scan src ctxt in m ctxt' end);
+fun method_syntax scan src ctxt : method =
+  let val (m, ctxt') = Args.syntax scan src ctxt in m ctxt' end;
+
+fun setup binding scan comment = define_global binding (method_syntax scan) comment #> snd;
+fun local_setup binding scan comment = define binding (method_syntax scan) comment #> snd;
 
 fun method_setup name source cmt =
-  Context.theory_map (ML_Context.expression (#pos source)
+  (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
+    ML_Lex.read_source false source @
+    ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")"))
+  |> ML_Context.expression (#pos source)
     "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
-    "Context.map_theory (Method.setup name scan comment)"
-    (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-      ML_Lex.read_source false source @
-      ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
+    "Context.map_proof (Method.local_setup name scan comment)"
+  |> Context.proof_map;
 
 
 

@@ -4,6 +4,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Commands 'method_setup' and 'attribute_setup' now work within a
+local theory context.
+
+
 *** HOL ***
 
 * Sledgehammer:

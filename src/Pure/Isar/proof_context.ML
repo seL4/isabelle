@@ -121,7 +121,7 @@ sig
     (term list list * (Proof.context -> Proof.context)) * Proof.context
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
-  val get_fact_generic: Context.generic -> Facts.ref -> thm list
+  val get_fact_generic: Context.generic -> Facts.ref -> string option * thm list
   val get_fact: Proof.context -> Facts.ref -> thm list
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
@@ -948,22 +948,27 @@ fun retrieve pick context (Facts.Fact s) =
             [thm] => thm
           | [] => err "Failed to retrieve literal fact"
           | _ => err "Ambiguous specification of literal fact");
-      in pick ("", Position.none) [thm] end
-  | retrieve pick context (Facts.Named ((xname, pos), ivs)) =
+      in pick true ("", Position.none) [thm] end
+  | retrieve pick context (Facts.Named ((xname, pos), sel)) =
       let
         val thy = Context.theory_of context;
-        val (name, thms) =
+        fun immediate thm = {name = xname, static = true, thms = [Thm.transfer thy thm]};
+        val {name, static, thms} =
           (case xname of
-            "" => (xname, [Thm.transfer thy Drule.dummy_thm])
-          | "_" => (xname, [Thm.transfer thy Drule.asm_rl])
+            "" => immediate Drule.dummy_thm
+          | "_" => immediate Drule.asm_rl
           | _ => retrieve_generic context (xname, pos));
-      in pick (name, pos) (Facts.select (Facts.Named ((name, pos), ivs)) thms) end;
+        val thms' = Facts.select (Facts.Named ((name, pos), sel)) thms;
+      in pick (static orelse is_some sel) (name, pos) thms' end;
 
 in
 
-val get_fact_generic = retrieve (K I);
-val get_fact = retrieve (K I) o Context.Proof;
-val get_fact_single = retrieve Facts.the_single o Context.Proof;
+val get_fact_generic =
+  retrieve (fn static => fn (name, _) => fn thms =>
+    (if static then NONE else SOME name, thms));
+
+val get_fact = retrieve (K (K I)) o Context.Proof;
+val get_fact_single = retrieve (K Facts.the_single) o Context.Proof;
 
 fun get_thms ctxt = get_fact ctxt o Facts.named;
 fun get_thm ctxt = get_fact_single ctxt o Facts.named;

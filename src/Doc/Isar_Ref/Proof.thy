@@ -915,7 +915,7 @@ subsection {* Defining proof methods *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "method_setup"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "method_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   @{rail \<open>
@@ -925,7 +925,7 @@ text {*
   \begin{description}
 
   \item @{command "method_setup"}~@{text "name = text description"}
-  defines a proof method in the current theory.  The given @{text
+  defines a proof method in the current context.  The given @{text
   "text"} has to be an ML expression of type
   @{ML_type "(Proof.context -> Proof.method) context_parser"}, cf.\
   basic parsers defined in structure @{ML_structure Args} and @{ML_structure

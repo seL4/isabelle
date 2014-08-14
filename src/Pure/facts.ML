@@ -29,7 +29,8 @@ sig
   val extern: Proof.context -> T -> string -> xstring
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val lookup: Context.generic -> T -> string -> (bool * thm list) option
-  val retrieve: Context.generic -> T -> xstring * Position.T -> string * thm list
+  val retrieve: Context.generic -> T -> xstring * Position.T ->
+    {name: string, static: bool, thms: thm list}
   val defined: T -> string -> bool
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
   val dest_static: bool -> T list -> T -> (string * thm list) list
@@ -176,14 +177,18 @@ fun lookup context facts name =
 fun retrieve context facts (xname, pos) =
   let
     val name = check context facts (xname, pos);
-    val thms =
+    val (static, thms) =
       (case lookup context facts name of
         SOME (static, thms) =>
           (if static then ()
            else Context_Position.report_generic context pos (Markup.dynamic_fact name);
-           thms)
+           (static, thms))
       | NONE => error ("Unknown fact " ^ quote name ^ Position.here pos));
-  in (name, map (Thm.transfer (Context.theory_of context)) thms) end;
+  in
+   {name = name,
+    static = static,
+    thms = map (Thm.transfer (Context.theory_of context)) thms}
+  end;
 
 
 (* static content *)

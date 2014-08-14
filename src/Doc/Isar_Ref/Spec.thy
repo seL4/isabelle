@@ -1031,7 +1031,7 @@ text {*
     @{command_def "ML_command"} & : & @{text "any \<rightarrow>"} \\
     @{command_def "setup"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "local_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "attribute_setup"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "attribute_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
   \begin{tabular}{rcll}
     @{attribute_def ML_print_depth} & : & @{text attribute} & default 10 \\
@@ -1093,7 +1093,7 @@ text {*
   concrete outer syntax, for example.
 
   \item @{command "attribute_setup"}~@{text "name = text description"}
-  defines an attribute in the current theory.  The given @{text
+  defines an attribute in the current context.  The given @{text
   "text"} has to be an ML expression of type
   @{ML_type "attribute context_parser"}, cf.\ basic parsers defined in
   structure @{ML_structure Args} and @{ML_structure Attrib}.

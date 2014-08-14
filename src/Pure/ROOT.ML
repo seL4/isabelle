@@ -310,7 +310,6 @@ use "Thy/thy_info.ML";
 use "PIDE/document.ML";
 
 (*theory and proof operations*)
-use "Thy/thm_deps.ML";
 use "Isar/isar_cmd.ML";
 
 use "subgoal.ML";
