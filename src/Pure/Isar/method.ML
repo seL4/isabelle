@@ -356,11 +356,7 @@ fun define binding meth comment lthy =
     |> Local_Theory.background_theory_result (define_global binding meth0 comment)
     |-> (fn name =>
       Local_Theory.map_contexts (K transfer_methods)
-      #> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
-          let
-            val naming = Name_Space.naming_of context;
-            val binding' = Morphism.binding phi binding;
-          in Methods.map (Name_Space.alias_table naming binding' name) context end)
+      #> Local_Theory.generic_alias Methods.map binding name
       #> pair name)
   end;
 

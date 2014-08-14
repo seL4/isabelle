@@ -64,6 +64,9 @@ sig
   val set_defsort: sort -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
+  val generic_alias:
+    (('a Name_Space.table -> 'a Name_Space.table) -> Context.generic -> Context.generic) ->
+    binding -> string -> local_theory -> local_theory
   val class_alias: binding -> class -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
@@ -168,7 +171,7 @@ fun map_contexts f lthy =
 
 fun mark_brittle lthy =
   if level lthy = 1 then
-    map_top (fn (naming, operations, after_close, brittle, target) =>
+    map_top (fn (naming, operations, after_close, _, target) =>
       (naming, operations, after_close, true, target)) lthy
   else lthy;
 
@@ -258,11 +261,11 @@ fun propagate_ml_env (context as Context.Proof lthy) =
 
 val operations_of = #operations o top_of;
 
-
-(* primitives *)
-
 fun operation f lthy = f (operations_of lthy) lthy;
 fun operation2 f x y = operation (fn ops => f ops x y);
+
+
+(* primitives *)
 
 val pretty = operation #pretty;
 val abbrev = operation2 #abbrev;
@@ -274,7 +277,7 @@ fun subscription dep_morph mixin export =
   assert_bottom true #> operation (fn ops => #subscription ops dep_morph mixin export);
 
 
-(* basic derived operations *)
+(* theorems *)
 
 val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
@@ -292,6 +295,9 @@ fun add_thms_dynamic (binding, f) lthy =
           (Global_Theory.alias_fact binding' name)
           (Proof_Context.fact_alias binding' name)
       end));
+
+
+(* default sort *)
 
 fun set_defsort S =
   declaration {syntax = true, pervasive = false}
@@ -319,14 +325,21 @@ fun notation add mode raw_args lthy =
 
 (* name space aliases *)
 
-fun alias global_alias local_alias b name =
+fun generic_alias app b name =
+  declaration {syntax = false, pervasive = false} (fn phi => fn context =>
+    let
+      val naming = Name_Space.naming_of context;
+      val b' = Morphism.binding phi b;
+    in app (Name_Space.alias_table naming b' name) context end);
+
+fun syntax_alias global_alias local_alias b name =
   declaration {syntax = true, pervasive = false} (fn phi =>
     let val b' = Morphism.binding phi b
     in Context.mapping (global_alias b' name) (local_alias b' name) end);
 
-val class_alias = alias Sign.class_alias Proof_Context.class_alias;
-val type_alias = alias Sign.type_alias Proof_Context.type_alias;
-val const_alias = alias Sign.const_alias Proof_Context.const_alias;
+val class_alias = syntax_alias Sign.class_alias Proof_Context.class_alias;
+val type_alias = syntax_alias Sign.type_alias Proof_Context.type_alias;
+val const_alias = syntax_alias Sign.const_alias Proof_Context.const_alias;
 
 
 
