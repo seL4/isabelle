@@ -1592,7 +1592,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val (dtor_corec_unique_thms, dtor_corec_unique_thm) =
       `split_conj_thm (split_conj_prems n
         (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
-        |> Local_Defs.unfold lthy (@{thms o_case_sum comp_id id_comp comp_assoc[symmetric]
+        |> unfold_thms lthy (@{thms o_case_sum comp_id id_comp comp_assoc[symmetric]
            case_sum_o_inj(1)} @ map_id0s_o_id @ sym_map_comps)
         OF replicate n @{thm arg_cong2[of _ _ _ _ case_sum, OF refl]});
 

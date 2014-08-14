@@ -1197,7 +1197,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val (ctor_rec_unique_thms, ctor_rec_unique_thm) =
       `split_conj_thm (split_conj_prems n
         (mor_UNIV_thm RS iffD2 RS rec_unique_mor_thm)
-        |> Local_Defs.unfold lthy (@{thms convol_o comp_id id_comp comp_assoc fst_convol} @
+        |> unfold_thms lthy (@{thms convol_o comp_id id_comp comp_assoc fst_convol} @
            map_id0s @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ convol, OF refl]});
 
     val timer = time (timer "rec definitions & thms");

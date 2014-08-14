@@ -23,6 +23,7 @@ sig
   val mk_rel_OO_le_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> tactic
   val mk_rel_conversep_tac: thm -> thm -> tactic
   val mk_rel_conversep_le_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> tactic
+  val mk_rel_map0_tac: Proof.context -> int -> thm -> thm -> thm -> thm -> tactic
   val mk_rel_mono_tac: thm list -> thm -> tactic
   val mk_rel_mono_strong_tac: Proof.context -> thm -> thm list -> tactic
 
@@ -117,6 +118,26 @@ fun mk_rel_eq_tac n rel_Grp rel_cong map_id0 =
   else EVERY' [rtac @{thm arg_cong2[of _ _ _ _ "Grp"]},
     rtac @{thm equalityI}, rtac subset_UNIV, rtac subsetI, rtac CollectI,
     CONJ_WRAP' (K (rtac subset_UNIV)) (1 upto n), rtac map_id0])) 1;
+
+fun mk_rel_map0_tac ctxt live rel_compp rel_conversep rel_Grp map_id =
+  if live = 0 then
+    HEADGOAL (Goal.conjunction_tac) THEN
+    unfold_thms_tac ctxt @{thms id_apply} THEN
+    ALLGOALS (rtac refl)
+  else
+    let
+      val ks = 1 upto live;
+    in
+      Goal.conjunction_tac 1 THEN
+      unfold_thms_tac ctxt [rel_compp, rel_conversep, rel_Grp, @{thm vimage2p_Grp}] THEN
+      TRYALL (EVERY' [rtac iffI, rtac @{thm relcomppI}, rtac @{thm GrpI},
+        resolve_tac [map_id, refl], rtac CollectI,
+        CONJ_WRAP' (K (rtac @{thm subset_UNIV})) ks, rtac @{thm relcomppI}, atac,
+        rtac @{thm conversepI}, rtac @{thm GrpI}, resolve_tac [map_id, refl], rtac CollectI,
+        CONJ_WRAP' (K (rtac @{thm subset_UNIV})) ks,
+        REPEAT_DETERM o eresolve_tac @{thms relcomppE conversepE GrpE},
+        dtac (trans OF [sym, map_id]), hyp_subst_tac ctxt, atac])
+    end;
 
 fun mk_rel_mono_tac rel_OO_Grps in_mono =
   let

@@ -471,7 +471,7 @@ fun postproc_co_induct lthy nn prop prop_conj =
   #>> map (fn thm => Thm.permute_prems 0 (~1) (thm RS prop))
   ##> (fn thm => Thm.permute_prems 0 (~nn)
     (if nn = 1 then thm RS prop
-     else funpow nn (fn thm => Local_Defs.unfold lthy @{thms conj_assoc} (thm RS prop_conj)) thm));
+     else funpow nn (fn thm => unfold_thms lthy @{thms conj_assoc} (thm RS prop_conj)) thm));
 
 fun mk_induct_attrs ctrss =
   let
