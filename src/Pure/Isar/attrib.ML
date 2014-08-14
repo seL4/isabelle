@@ -245,7 +245,9 @@ fun gen_thm pick = Scan.depend (fn context =>
   let
     val get = Proof_Context.get_fact_generic context;
     val get_fact = get o Facts.Fact;
-    fun get_named pos name = get (Facts.Named ((name, pos), NONE));
+    fun get_named is_sel pos name =
+      let val (a, ths) = get (Facts.Named ((name, pos), NONE))
+      in (if is_sel then NONE else a, ths) end;
   in
     Parse.$$$ "[" |-- Args.attribs (check_name_generic context) --| Parse.$$$ "]" >> (fn srcs =>
       let
@@ -255,9 +257,9 @@ fun gen_thm pick = Scan.depend (fn context =>
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
       >> (fn (s, fact) => ("", Facts.Fact s, fact)) ||
-     Scan.ahead (Parse.position fact_name) :|-- (fn (name, pos) =>
-      Args.named_fact (get_named pos) -- Scan.option thm_sel
-        >> (fn (fact, sel) => (name, Facts.Named ((name, pos), sel), fact))))
+     Scan.ahead (Parse.position fact_name -- Scan.option thm_sel) :|-- (fn ((name, pos), sel) =>
+      Args.named_fact (get_named (is_some sel) pos) --| Scan.option thm_sel
+        >> (fn fact => (name, Facts.Named ((name, pos), sel), fact))))
     -- Args.opt_attribs (check_name_generic context) >> (fn ((name, thmref, fact), srcs) =>
       let
         val ths = Facts.select thmref fact;

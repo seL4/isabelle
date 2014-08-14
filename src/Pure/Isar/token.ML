@@ -12,7 +12,8 @@ sig
     Error of string | Sync | EOF
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   datatype value =
-    Literal of bool * Markup.T | Text of string | Typ of typ | Term of term | Fact of thm list |
+    Literal of bool * Markup.T | Text of string | Typ of typ | Term of term |
+    Fact of string option * thm list |
     Attribute of morphism -> attribute | Files of file Exn.result list
   type T
   val str_of_kind: kind -> string
@@ -57,7 +58,7 @@ sig
   val mk_text: string -> T
   val mk_typ: typ -> T
   val mk_term: term -> T
-  val mk_fact: thm list -> T
+  val mk_fact: string option * thm list -> T
   val mk_attribute: (morphism -> attribute) -> T
   val init_assignable: T -> T
   val assign: value option -> T -> unit
@@ -91,7 +92,7 @@ datatype value =
   Text of string |
   Typ of typ |
   Term of term |
-  Fact of thm list |
+  Fact of string option * thm list |  (*optional name for dynamic fact, i.e. fact "variable"*)
   Attribute of morphism -> attribute |
   Files of file Exn.result list;
 

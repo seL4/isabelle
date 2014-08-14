@@ -72,7 +72,7 @@ fun hide_fact fully name = Data.map (Facts.hide fully name);
 (* retrieve theorems *)
 
 fun get_thms thy xname =
-  #2 (Facts.retrieve (Context.Theory thy) (facts_of thy) (xname, Position.none));
+  #thms (Facts.retrieve (Context.Theory thy) (facts_of thy) (xname, Position.none));
 
 fun get_thm thy xname =
   Facts.the_single (xname, Position.none) (get_thms thy xname);
