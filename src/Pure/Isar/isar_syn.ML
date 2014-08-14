@@ -329,16 +329,16 @@ val _ =
     (Parse.ML_source >> Isar_Cmd.local_setup);
 
 val _ =
-  Outer_Syntax.command @{command_spec "attribute_setup"} "define attribute in ML"
+  Outer_Syntax.local_theory @{command_spec "attribute_setup"} "define attribute in ML"
     (Parse.position Parse.name --
         Parse.!!! (@{keyword "="} |-- Parse.ML_source -- Scan.optional Parse.text "")
-      >> (fn (name, (txt, cmt)) => Toplevel.theory (Attrib.attribute_setup name txt cmt)));
+      >> (fn (name, (txt, cmt)) => Attrib.attribute_setup name txt cmt));
 
 val _ =
-  Outer_Syntax.command @{command_spec "method_setup"} "define proof method in ML"
+  Outer_Syntax.local_theory @{command_spec "method_setup"} "define proof method in ML"
     (Parse.position Parse.name --
         Parse.!!! (@{keyword "="} |-- Parse.ML_source -- Scan.optional Parse.text "")
-      >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
+      >> (fn (name, (txt, cmt)) => Method.method_setup name txt cmt));
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "declaration"} "generic ML declaration"

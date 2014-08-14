@@ -39,7 +39,6 @@ sig
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val background_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val background_theory: (theory -> theory) -> local_theory -> local_theory
-  val background_morphism: local_theory -> morphism
   val target_of: local_theory -> Proof.context
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
@@ -106,7 +105,8 @@ type lthy =
   target: Proof.context};
 
 fun make_lthy (naming, operations, after_close, brittle, target) : lthy =
-  {naming = naming, operations = operations, after_close = after_close, brittle = brittle, target = target};
+  {naming = naming, operations = operations, after_close = after_close,
+    brittle = brittle, target = target};
 
 
 (* context data *)
@@ -225,9 +225,6 @@ fun background_theory_result f lthy =
     ||> Sign.restore_naming thy);
 
 fun background_theory f = #2 o background_theory_result (f #> pair ());
-
-fun background_morphism lthy =
-  standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
 
 
 (* target contexts *)

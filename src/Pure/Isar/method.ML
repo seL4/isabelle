@@ -70,7 +70,8 @@ sig
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val local_setup: binding -> (Proof.context -> method) context_parser -> string ->
     local_theory -> local_theory
-  val method_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
+  val method_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
+    local_theory -> local_theory
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
@@ -350,15 +351,12 @@ fun define_global binding meth comment thy =
       Name_Space.define context true (binding, (meth, comment)) (Methods.get context);
   in (name, Context.the_theory (Methods.put meths' context)) end;
 
-fun define binding meth comment lthy =
-  let val meth0 = meth o Args.transform_values (Local_Theory.background_morphism lthy) in
-    lthy
-    |> Local_Theory.background_theory_result (define_global binding meth0 comment)
-    |-> (fn name =>
-      Local_Theory.map_contexts (K transfer_methods)
-      #> Local_Theory.generic_alias Methods.map binding name
-      #> pair name)
-  end;
+fun define binding meth comment =
+  Local_Theory.background_theory_result (define_global binding meth comment)
+  #-> (fn name =>
+    Local_Theory.map_contexts (K transfer_methods)
+    #> Local_Theory.generic_alias Methods.map binding name
+    #> pair name);
 
 
 (* check *)
@@ -393,12 +391,13 @@ fun setup binding scan comment = define_global binding (method_syntax scan) comm
 fun local_setup binding scan comment = define binding (method_syntax scan) comment #> snd;
 
 fun method_setup name source cmt =
-  Context.theory_map (ML_Context.expression (#pos source)
+  (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
+    ML_Lex.read_source false source @
+    ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")"))
+  |> ML_Context.expression (#pos source)
     "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
-    "Context.map_theory (Method.setup name scan comment)"
-    (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-      ML_Lex.read_source false source @
-      ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
+    "Context.map_proof (Method.local_setup name scan comment)"
+  |> Context.proof_map;
 
 
 

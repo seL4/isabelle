@@ -42,7 +42,8 @@ sig
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val local_setup: Binding.binding -> attribute context_parser -> string ->
     local_theory -> local_theory
-  val attribute_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
+  val attribute_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
+    local_theory -> local_theory
   val internal: (morphism -> attribute) -> src
   val add_del: attribute -> attribute -> attribute context_parser
   val thm_sel: Facts.interval list parser
@@ -132,15 +133,12 @@ fun define_global binding att comment thy =
       Name_Space.define context true (binding, (att, comment)) (Attributes.get context);
   in (name, Context.the_theory (Attributes.put attribs' context)) end;
 
-fun define binding att comment lthy =
-  let val att0 = att o Args.transform_values (Local_Theory.background_morphism lthy) in
-    lthy
-    |> Local_Theory.background_theory_result (define_global binding att0 comment)
-    |-> (fn name =>
-      Local_Theory.map_contexts (K transfer_attributes)
-      #> Local_Theory.generic_alias Attributes.map binding name
-      #> pair name)
-  end;
+fun define binding att comment =
+  Local_Theory.background_theory_result (define_global binding att comment)
+  #-> (fn name =>
+    Local_Theory.map_contexts (K transfer_attributes)
+    #> Local_Theory.generic_alias Attributes.map binding name
+    #> pair name);
 
 
 (* check *)
@@ -207,12 +205,13 @@ fun setup binding scan comment = define_global binding (attribute_syntax scan) c
 fun local_setup binding scan comment = define binding (attribute_syntax scan) comment #> snd;
 
 fun attribute_setup name source cmt =
-  Context.theory_map (ML_Context.expression (#pos source)
+  (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
+    ML_Lex.read_source false source @
+    ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")"))
+  |> ML_Context.expression (#pos source)
     "val (name, scan, comment): binding * attribute context_parser * string"
-    "Context.map_theory (Attrib.setup name scan comment)"
-    (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-      ML_Lex.read_source false source @
-      ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
+    "Context.map_proof (Attrib.local_setup name scan comment)"
+  |> Context.proof_map;
 
 
 (* internal attribute *)
