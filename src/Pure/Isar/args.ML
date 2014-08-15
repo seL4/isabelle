@@ -43,12 +43,11 @@ sig
   val symbol: string parser
   val liberal_name: string parser
   val var: indexname parser
-  val internal_text: string parser
+  val internal_name: (string * morphism) parser
   val internal_typ: typ parser
   val internal_term: term parser
   val internal_fact: thm list parser
   val internal_attribute: (morphism -> attribute) parser
-  val named_text: (string -> string) -> string parser
   val named_typ: (string -> typ) -> typ parser
   val named_term: (string -> term) -> term parser
   val named_fact: (string -> string option * thm list) -> thm list parser
@@ -97,17 +96,7 @@ fun pretty_src ctxt src =
       (case output_info of
         NONE => Pretty.str name
       | SOME (_, markup) => Pretty.mark_str (markup, name));
-    val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
-    fun prt_arg arg =
-      (case Token.get_value arg of
-        SOME (Token.Literal markup) =>
-          let val x = Token.content_of arg
-          in Pretty.mark_str (Token.keyword_markup markup x, x) end
-      | SOME (Token.Text s) => Pretty.str (quote s)
-      | SOME (Token.Typ T) => Syntax.pretty_typ ctxt T
-      | SOME (Token.Term t) => Syntax.pretty_term ctxt t
-      | SOME (Token.Fact (_, ths)) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
-      | _ => Pretty.mark_str (Token.markup arg, Token.unparse arg));
+    val prt_arg = Token.pretty_value ctxt;
   in Pretty.block (Pretty.breaks (prt_name :: map prt_arg args)) end;
 
 
@@ -127,12 +116,7 @@ fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
 fun map_args f (Src {name, args, output_info}) =
   Src {name = name, args = map f args, output_info = output_info};
 
-fun transform_values phi = map_args (Token.map_value
-  (fn Token.Typ T => Token.Typ (Morphism.typ phi T)
-    | Token.Term t => Token.Term (Morphism.term phi t)
-    | Token.Fact (a, ths) => Token.Fact (a, Morphism.fact phi ths)
-    | Token.Attribute att => Token.Attribute (Morphism.transform phi att)
-    | tok => tok));
+val transform_values = map_args o Token.transform_value;
 
 val init_assignable = map_args Token.init_assignable;
 val closure = map_args Token.closure;
@@ -209,13 +193,12 @@ fun value dest = Scan.some (fn arg =>
 fun evaluate mk eval arg =
   let val x = eval arg in (Token.assign (SOME (mk x)) arg; x) end;
 
-val internal_text = value (fn Token.Text s => s);
+val internal_name = value (fn Token.Name a => a);
 val internal_typ = value (fn Token.Typ T => T);
 val internal_term = value (fn Token.Term t => t);
 val internal_fact = value (fn Token.Fact (_, ths) => ths);
 val internal_attribute = value (fn Token.Attribute att => att);
 
-fun named_text intern = internal_text || named >> evaluate Token.Text (intern o Token.content_of);
 fun named_typ readT = internal_typ || named >> evaluate Token.Typ (readT o Token.inner_syntax_of);
 fun named_term read = internal_term || named >> evaluate Token.Term (read o Token.inner_syntax_of);
 
@@ -267,7 +250,7 @@ fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 fun attribs check =
   let
     fun intern tok = check (Token.content_of tok, Token.pos_of tok);
-    val attrib_name = internal_text || (symbolic || named) >> evaluate Token.Text intern;
+    val attrib_name = internal_name >> #1 || (symbolic || named) >> evaluate Token.name0 intern;
     val attrib = Parse.position attrib_name -- Parse.!!! Parse.args >> uncurry src;
   in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 

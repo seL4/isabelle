@@ -12,9 +12,14 @@ sig
     Error of string | Sync | EOF
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   datatype value =
-    Literal of bool * Markup.T | Text of string | Typ of typ | Term of term |
+    Literal of bool * Markup.T |
+    Name of string * morphism |
+    Typ of typ |
+    Term of term |
     Fact of string option * thm list |
-    Attribute of morphism -> attribute | Files of file Exn.result list
+    Attribute of morphism -> attribute |
+    Files of file Exn.result list
+  val name0: string -> value
   type T
   val str_of_kind: kind -> string
   val pos_of: T -> Position.T
@@ -49,17 +54,19 @@ sig
   val markup: T -> Markup.T
   val unparse: T -> string
   val print: T -> string
+  val pretty_value: Proof.context -> T -> Pretty.T
   val text_of: T -> string * string
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val reports_of_value: T -> Position.report list
-  val mk_text: string -> T
+  val mk_name: string -> T
   val mk_typ: typ -> T
   val mk_term: term -> T
   val mk_fact: string option * thm list -> T
   val mk_attribute: (morphism -> attribute) -> T
+  val transform_value: morphism -> T -> T
   val init_assignable: T -> T
   val assign: value option -> T -> unit
   val closure: T -> T
@@ -89,12 +96,14 @@ type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Pos
 
 datatype value =
   Literal of bool * Markup.T |
-  Text of string |
+  Name of string * morphism |
   Typ of typ |
   Term of term |
   Fact of string option * thm list |  (*optional name for dynamic fact, i.e. fact "variable"*)
   Attribute of morphism -> attribute |
   Files of file Exn.result list;
+
+fun name0 a = Name (a, Morphism.identity);
 
 datatype slot =
   Slot |
@@ -341,15 +350,44 @@ fun reports_of_value tok =
   | _ => []);
 
 
+(* pretty value *)
+
+fun pretty_value ctxt tok =
+  (case get_value tok of
+    SOME (Literal markup) =>
+      let val x = content_of tok
+      in Pretty.mark_str (keyword_markup markup x, x) end
+  | SOME (Name (a, _)) => Pretty.str (quote a)
+  | SOME (Typ T) => Syntax.pretty_typ ctxt T
+  | SOME (Term t) => Syntax.pretty_term ctxt t
+  | SOME (Fact (_, ths)) =>
+      Pretty.enclose "(" ")" (Pretty.breaks (map (Pretty.backquote o Display.pretty_thm ctxt) ths))
+  | _ => Pretty.mark_str (markup tok, unparse tok));
+
+
 (* make values *)
 
 fun mk_value k v = Token ((k, Position.no_range), (InternalValue, k), Value (SOME v));
 
-val mk_text = mk_value "<text>" o Text;
+val mk_name = mk_value "<name>" o name0;
 val mk_typ = mk_value "<typ>" o Typ;
 val mk_term = mk_value "<term>" o Term;
 val mk_fact = mk_value "<fact>" o Fact;
 val mk_attribute = mk_value "<attribute>" o Attribute;
+
+
+(* transform value *)
+
+fun transform_value phi =
+  map_value (fn v =>
+    (case v of
+      Literal _ => v
+    | Name (a, psi) => Name (a, psi $> phi)
+    | Typ T => Typ (Morphism.typ phi T)
+    | Term t => Term (Morphism.term phi t)
+    | Fact (a, ths) => Fact (a, Morphism.fact phi ths)
+    | Attribute att => Attribute (Morphism.transform phi att)
+    | Files _ => v));
 
 
 (* static binding *)
