@@ -6,7 +6,6 @@ Turn elimination rules into atomic expressions in the object logic.
 
 signature ATOMIZE_ELIM =
 sig
-  val declare_atomize_elim : attribute
   val atomize_elim_conv : Proof.context -> conv
   val full_atomize_elim_conv : Proof.context -> conv
   val atomize_elim_tac : Proof.context -> int -> tactic
@@ -15,17 +14,14 @@ end
 structure Atomize_Elim : ATOMIZE_ELIM =
 struct
 
-(* theory data *)
+(* atomize_elim rules *)
 
-structure AtomizeElimData = Named_Thms
-(
-  val name = @{binding atomize_elim};
-  val description = "atomize_elim rewrite rule";
-);
+val named_theorems =
+  Context.>>> (Context.map_theory_result
+   (Named_Target.theory_init #>
+    Named_Theorems.declare @{binding atomize_elim} "atomize_elim rewrite rule" ##>
+    Local_Theory.exit_global));
 
-val _ = Theory.setup AtomizeElimData.setup;
-
-val declare_atomize_elim = AtomizeElimData.add
 
 (* More conversions: *)
 local open Conv in
@@ -58,7 +54,7 @@ fun rearrange_prems_conv pi ct =
 *)
 fun atomize_elim_conv ctxt ct =
     (forall_conv (prems_conv ~1 o Object_Logic.atomize_prems o snd) ctxt
-    then_conv Raw_Simplifier.rewrite ctxt true (AtomizeElimData.get ctxt)
+    then_conv Raw_Simplifier.rewrite ctxt true (Named_Theorems.get ctxt named_theorems)
     then_conv (fn ct' => if can Object_Logic.dest_judgment ct'
                          then all_conv ct'
                          else raise CTERM ("atomize_elim", [ct', ct])))
