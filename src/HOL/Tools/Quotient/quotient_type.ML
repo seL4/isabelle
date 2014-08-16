@@ -206,11 +206,10 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, ge
       |> init_quotient_infr gen_code quotient_thm equiv_thm opt_par_thm
       |> (snd oo Local_Theory.note)
         ((equiv_thm_name,
-          if partial then [] else [Attrib.internal (K Quotient_Info.equiv_rules_add)]),
+          if partial then [] else @{attributes [quot_equiv]}),
           [equiv_thm])
       |> (snd oo Local_Theory.note)
-        ((quotient_thm_name, [Attrib.internal (K Quotient_Info.quotient_rules_add)]),
-          [quotient_thm])
+        ((quotient_thm_name, @{attributes [quot_thm]}), [quotient_thm])
   in
     (quotients, lthy4)
   end

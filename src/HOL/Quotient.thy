@@ -748,8 +748,12 @@ subsection {* ML setup *}
 
 text {* Auxiliary data for the quotient package *}
 
+named_theorems quot_equiv "equivalence relation theorems"
+named_theorems quot_respect "respectfulness theorems"
+named_theorems quot_preserve "preservation theorems"
+named_theorems id_simps "identity simp rules for maps"
+named_theorems quot_thm "quotient theorems"
 ML_file "Tools/Quotient/quotient_info.ML"
-setup Quotient_Info.setup
 
 declare [[mapQ3 "fun" = (rel_fun, fun_quotient3)]]
 
