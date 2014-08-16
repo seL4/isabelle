@@ -25,15 +25,7 @@ class inverse =
 
 text{* Lemmas @{text divide_simps} move division to the outside and eliminates them on (in)equalities. *}
 
-ML {*
-structure Divide_Simps = Named_Thms
-(
-  val name = @{binding divide_simps}
-  val description = "rewrite rules to eliminate divisions"
-)
-*}
-
-setup Divide_Simps.setup
+named_theorems divide_simps "rewrite rules to eliminate divisions"
 
 
 class division_ring = ring_1 + inverse +
