@@ -788,15 +788,7 @@ that are prolific (match too many equality or membership literals) and relate to
 seldom-used facts. Some duplicate other rules.
 *}
 
-ML {*
-structure No_ATPs = Named_Thms
-(
-  val name = @{binding no_atp}
-  val description = "theorems that should be filtered out by Sledgehammer"
-)
-*}
-
-setup {* No_ATPs.setup *}
+named_theorems no_atp "theorems that should be filtered out by Sledgehammer"
 
 
 subsubsection {* Classical Reasoner setup *}
