@@ -919,7 +919,8 @@ text {*
   \end{matharray}
 
   @{rail \<open>
-    @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
+    @@{command method_setup} @{syntax target}?
+      @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
   \begin{description}

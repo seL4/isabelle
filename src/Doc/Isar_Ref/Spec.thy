@@ -1045,7 +1045,8 @@ text {*
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
     ;
-    @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
+    @@{command attribute_setup} @{syntax target}?
+      @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
   \begin{description}
