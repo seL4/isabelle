@@ -131,7 +131,7 @@ fun add_fixdefs
           "The error occurred for the goal statement:\n" ^
           Syntax.string_of_term lthy prop)
         val rules = Named_Theorems.get lthy @{named_theorems cont2cont}
-        val fast_tac = SOLVED' (REPEAT_ALL_NEW (match_tac rules))
+        val fast_tac = SOLVED' (REPEAT_ALL_NEW (match_tac (rev rules)))
         val slow_tac = SOLVED' (simp_tac lthy)
         val tac = fast_tac 1 ORELSE slow_tac 1 ORELSE err
       in

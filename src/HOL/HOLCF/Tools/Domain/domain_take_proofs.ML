@@ -131,11 +131,11 @@ fun add_deflation_thm thm =
 
 val get_rec_tab = Rec_Data.get
 fun get_deflation_thms thy =
-  Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_deflation}
+  rev (Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_deflation})
 
 val map_ID_add = Named_Theorems.add @{named_theorems domain_map_ID}
 fun get_map_ID_thms thy =
-  Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_map_ID}
+  rev (Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_map_ID})
 
 
 (******************************************************************************)

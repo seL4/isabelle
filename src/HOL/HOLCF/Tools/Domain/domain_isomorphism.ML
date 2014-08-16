@@ -151,7 +151,7 @@ fun add_fixdefs
       let
         val prop = mk_trp (mk_cont functional)
         val rules = Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems cont2cont}
-        val tac = REPEAT_ALL_NEW (match_tac rules) 1
+        val tac = REPEAT_ALL_NEW (match_tac (rev rules)) 1
       in
         Goal.prove_global thy [] [] prop (K tac)
       end
@@ -189,7 +189,7 @@ fun defl_of_typ
   let
     val defl_simps =
       Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_defl_simps}
-    val rules = map (Thm.concl_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq) defl_simps
+    val rules = map (Thm.concl_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq) (rev defl_simps)
     val rules' = map (apfst mk_DEFL) tab1 @ map (apfst mk_LIFTDEFL) tab2
     fun proc1 t =
       (case dest_DEFL t of
@@ -632,7 +632,7 @@ fun gen_domain_isomorphism
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps tuple_rules) 1,
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps map_ID_simps) 1,
            REPEAT (etac @{thm conjE} 1),
-           REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
+           REPEAT (resolve_tac (rev isodefl_rules @ prems) 1 ORELSE atac 1)])
       end
     val isodefl_binds = map (Binding.prefix_name "isodefl_") dbinds
     fun conjuncts [] _ = []
