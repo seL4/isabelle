@@ -517,7 +517,7 @@ fun gen_domain_isomorphism
         val DEFL_simps =
           Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_defl_simps}
         fun tac ctxt =
-          rewrite_goals_tac ctxt (map mk_meta_eq DEFL_simps)
+          rewrite_goals_tac ctxt (map mk_meta_eq (rev DEFL_simps))
           THEN TRY (resolve_tac defl_unfold_thms 1)
       in
         Goal.prove_global thy [] [] goal (tac o #context)
@@ -620,7 +620,7 @@ fun gen_domain_isomorphism
         val isodefl_rules =
           @{thms conjI isodefl_ID_DEFL isodefl_LIFTDEFL}
           @ isodefl_abs_rep_thms
-          @ Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_isodefl}
+          @ rev (Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_isodefl})
       in
         Goal.prove_global thy [] assms goal (fn {prems, context = ctxt} =>
          EVERY
@@ -632,7 +632,7 @@ fun gen_domain_isomorphism
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps tuple_rules) 1,
            simp_tac (put_simpset HOL_basic_ss ctxt addsimps map_ID_simps) 1,
            REPEAT (etac @{thm conjE} 1),
-           REPEAT (resolve_tac (rev isodefl_rules @ prems) 1 ORELSE atac 1)])
+           REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
       end
     val isodefl_binds = map (Binding.prefix_name "isodefl_") dbinds
     fun conjuncts [] _ = []
