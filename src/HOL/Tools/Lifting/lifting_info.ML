@@ -277,13 +277,8 @@ fun add_transfer_rules_in_restore_data bundle_name transfer_rules ctxt =
 
 (* theorems that a relator of an eq_onp is an eq_onp of the corresponding predicate *)
 
-structure Relator_Eq_Onp = Named_Thms
-(
-  val name = @{binding relator_eq_onp}
-  val description = "theorems that a relator of an eq_onp is an eq_onp of the corresponding predicate"
-)
-
-fun get_relator_eq_onp_rules ctxt = map safe_mk_meta_eq (Relator_Eq_Onp.get ctxt)
+fun get_relator_eq_onp_rules ctxt =
+  map safe_mk_meta_eq (rev (Named_Theorems.get ctxt @{named_theorems relator_eq_onp}))
 
 (* info about reflexivity rules *)
 
@@ -525,12 +520,13 @@ fun is_no_code_type ctxt type_name = (Symtab.defined o get_no_code_types) ctxt t
 val setup =
   quot_map_attribute_setup
   #> quot_del_attribute_setup
-  #> Relator_Eq_Onp.setup
   #> relator_distr_attribute_setup
 
 (* setup fixed eq_onp rules *)
 
-val _ = Context.>> (fold (Relator_Eq_Onp.add_thm o Transfer.prep_transfer_domain_thm @{context}) 
+val _ = Context.>>
+  (fold (Named_Theorems.add_thm @{named_theorems relator_eq_onp} o
+    Transfer.prep_transfer_domain_thm @{context})
   @{thms composed_equiv_rel_eq_onp composed_equiv_rel_eq_eq_onp})
 
 (* setup fixed reflexivity rules *)
