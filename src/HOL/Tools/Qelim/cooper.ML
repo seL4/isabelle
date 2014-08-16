@@ -863,7 +863,7 @@ fun tac elim add_ths del_ths = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
     val simpset_ctxt =
       put_simpset (fst (get ctxt)) ctxt delsimps del_ths addsimps add_ths
   in
-    Method.insert_tac (Named_Theorems.get ctxt @{named_theorems arith})
+    Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}))
     THEN_ALL_NEW Object_Logic.full_atomize_tac ctxt
     THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
     THEN_ALL_NEW simp_tac simpset_ctxt

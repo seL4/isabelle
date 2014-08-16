@@ -53,7 +53,7 @@ val setup =
     (Scan.succeed (fn ctxt =>
       METHOD (fn facts =>
         HEADGOAL
-        (Method.insert_tac (Named_Theorems.get ctxt @{named_theorems arith} @ facts)
+        (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
           THEN' verbose_arith_tac ctxt))))
     "various arithmetic decision procedures";
 
