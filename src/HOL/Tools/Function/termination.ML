@@ -199,7 +199,7 @@ fun create ctxt chain_tac descent_tac T rel =
     val thy = Proof_Context.theory_of ctxt
     val sk = mk_sum_skel rel
     val Ts = node_types sk T
-    val M = Inttab.make (map_index (apsnd (MeasureFunctions.get_measure_functions ctxt)) Ts)
+    val M = Inttab.make (map_index (apsnd (Measure_Functions.get_measure_functions ctxt)) Ts)
     val chain_cache = Cache.create Term2tab.empty Term2tab.lookup Term2tab.update
       (prove_chain thy chain_tac)
     val descent_cache = Cache.create Term3tab.empty Term3tab.lookup Term3tab.update

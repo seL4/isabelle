@@ -117,8 +117,8 @@ subsection {* Measure functions *}
 inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
 where is_measure_trivial: "is_measure f"
 
+named_theorems measure_function "rules that guide the heuristic generation of measure functions"
 ML_file "Tools/Function/measure_functions.ML"
-setup MeasureFunctions.setup
 
 lemma measure_size[measure_function]: "is_measure size"
 by (rule is_measure_trivial)

@@ -6,7 +6,6 @@ Partial function definitions based on least fixed points in ccpos.
 
 signature PARTIAL_FUNCTION =
 sig
-  val setup: theory -> theory
   val init: string -> term -> term -> thm -> thm -> thm option -> declaration
 
   val mono_tac: Proof.context -> int -> tactic
@@ -52,13 +51,6 @@ fun init mode fixp mono fixp_eq fixp_induct fixp_induct_user phi =
 
 val known_modes = Symtab.keys o Modes.get o Context.Proof;
 val lookup_mode = Symtab.lookup o Modes.get o Context.Proof;
-
-
-structure Mono_Rules = Named_Thms
-(
-  val name = @{binding partial_function_mono};
-  val description = "monotonicity rules for partial function definitions";
-);
 
 
 (*** Automated monotonicity proofs ***)
@@ -109,7 +101,7 @@ val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context=ctxt, ...} =>
 fun mono_tac ctxt =
   K (Local_Defs.unfold_tac ctxt [@{thm curry_def}])
   THEN' (TRY o REPEAT_ALL_NEW
-   (resolve_tac (Mono_Rules.get ctxt)
+   (resolve_tac (rev (Named_Theorems.get ctxt @{named_theorems partial_function_mono}))
      ORELSE' split_cases_tac ctxt));
 
 
@@ -320,8 +312,5 @@ val _ =
   Outer_Syntax.local_theory @{command_spec "partial_function"} "define partial function"
     ((mode -- (Parse.fixes -- (Parse.where_ |-- Parse_Spec.spec)))
       >> (fn (mode, (fixes, spec)) => add_partial_function_cmd mode fixes spec));
-
-
-val setup = Mono_Rules.setup;
 
 end

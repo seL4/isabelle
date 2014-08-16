@@ -182,7 +182,7 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
     val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))
 
     val measure_funs = (* 1: generate measures *)
-      MeasureFunctions.get_measure_functions ctxt domT
+      Measure_Functions.get_measure_functions ctxt domT
 
     val table = (* 2: create table *)
       map (fn t => map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
@@ -212,7 +212,7 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
 fun lexicographic_order_tac quiet ctxt =
   TRY (Function_Common.apply_termination_rule ctxt 1) THEN
   lex_order_tac quiet ctxt
-    (auto_tac (ctxt addsimps Function_Common.Termination_Simps.get ctxt))
+    (auto_tac (ctxt addsimps (Named_Theorems.get ctxt @{named_theorems termination_simp})))
 
 val setup =
   Context.theory_map (Function_Common.set_termination_prover (lexicographic_order_tac false))
