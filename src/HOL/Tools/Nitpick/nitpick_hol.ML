@@ -1927,12 +1927,13 @@ fun pair_for_prop t =
     Const (s, _) => (s, t)
   | t' => raise TERM ("Nitpick_HOL.pair_for_prop", [t, t'])
 
-fun def_table_for get ctxt subst =
-  ctxt |> get |> map (pair_for_prop o subst_atomic subst)
+fun def_table_for ts subst =
+  ts |> map (pair_for_prop o subst_atomic subst)
        |> AList.group (op =) |> Symtab.make
 
 fun const_def_tables ctxt subst ts =
-  (def_table_for (map prop_of o Nitpick_Unfolds.get) ctxt subst,
+  (def_table_for
+    (map prop_of (rev (Named_Theorems.get ctxt @{named_theorems nitpick_unfold}))) subst,
    fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
         (map pair_for_prop ts) Symtab.empty)
 
@@ -1943,14 +1944,15 @@ fun const_nondef_table ts =
 
 fun const_simp_table ctxt =
   def_table_for (map_filter (equationalize_term ctxt "nitpick_simp" o prop_of)
-                 o Nitpick_Simps.get) ctxt
+    (rev (Named_Theorems.get ctxt @{named_theorems nitpick_simp})))
 
 fun const_psimp_table ctxt =
   def_table_for (map_filter (equationalize_term ctxt "nitpick_psimp" o prop_of)
-                 o Nitpick_Psimps.get) ctxt
+    (rev (Named_Theorems.get ctxt @{named_theorems nitpick_psimp})))
 
 fun const_choice_spec_table ctxt subst =
-  map (subst_atomic subst o prop_of) (Nitpick_Choice_Specs.get ctxt)
+  map (subst_atomic subst o prop_of)
+    (rev (Named_Theorems.get ctxt @{named_theorems nitpick_choice_spec}))
   |> const_nondef_table
 
 fun inductive_intro_table ctxt subst def_tables =
@@ -1958,9 +1960,8 @@ fun inductive_intro_table ctxt subst def_tables =
     def_table_for
         (maps (map (unfold_mutually_inductive_preds thy def_tables o prop_of)
                o snd o snd)
-         o filter (fn (cat, _) => cat = Spec_Rules.Inductive orelse
-                                  cat = Spec_Rules.Co_Inductive)
-         o Spec_Rules.get) ctxt subst
+         (filter (fn (cat, _) => cat = Spec_Rules.Inductive orelse
+                                 cat = Spec_Rules.Co_Inductive) (Spec_Rules.get ctxt))) subst
   end
 
 fun ground_theorem_table thy =

@@ -1921,35 +1921,14 @@ quickcheck_params [size = 5, iterations = 50]
 
 subsubsection {* Nitpick setup *}
 
-ML {*
-structure Nitpick_Unfolds = Named_Thms
-(
-  val name = @{binding nitpick_unfold}
-  val description = "alternative definitions of constants as needed by Nitpick"
-)
-structure Nitpick_Simps = Named_Thms
-(
-  val name = @{binding nitpick_simp}
-  val description = "equational specification of constants as needed by Nitpick"
-)
-structure Nitpick_Psimps = Named_Thms
-(
-  val name = @{binding nitpick_psimp}
-  val description = "partial equational specification of constants as needed by Nitpick"
-)
-structure Nitpick_Choice_Specs = Named_Thms
-(
-  val name = @{binding nitpick_choice_spec}
-  val description = "choice specification of constants as needed by Nitpick"
-)
-*}
-
-setup {*
-  Nitpick_Unfolds.setup
-  #> Nitpick_Simps.setup
-  #> Nitpick_Psimps.setup
-  #> Nitpick_Choice_Specs.setup
-*}
+named_theorems nitpick_unfold
+  "alternative definitions of constants as needed by Nitpick"
+named_theorems nitpick_simp
+  "equational specification of constants as needed by Nitpick"
+named_theorems nitpick_psimp
+  "partial equational specification of constants as needed by Nitpick"
+named_theorems nitpick_choice_spec
+  "choice specification of constants as needed by Nitpick"
 
 declare if_bool_eq_conj [nitpick_unfold, no_atp]
         if_bool_eq_disj [no_atp]
