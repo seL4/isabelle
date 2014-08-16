@@ -10,14 +10,7 @@ begin
 
 setup Pure_Thy.old_appl_syntax_setup
 
-ML {*
-  structure Rules = Named_Thms
-  (
-    val name = @{binding rules}
-    val description = "Cube inference rules"
-  )
-*}
-setup Rules.setup
+named_theorems rules "Cube inference rules"
 
 typedecl "term"
 typedecl "context"

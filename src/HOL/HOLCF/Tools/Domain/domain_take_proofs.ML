@@ -123,31 +123,20 @@ structure Rec_Data = Theory_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-structure DeflMapData = Named_Thms
-(
-  val name = @{binding domain_deflation}
-  val description = "theorems like deflation a ==> deflation (foo_map$a)"
-)
-
-structure Map_Id_Data = Named_Thms
-(
-  val name = @{binding domain_map_ID}
-  val description = "theorems like foo_map$ID = ID"
-)
-
 fun add_rec_type (tname, bs) =
     Rec_Data.map (Symtab.insert (K true) (tname, bs))
 
 fun add_deflation_thm thm =
-    Context.theory_map (DeflMapData.add_thm thm)
+    Context.theory_map (Named_Theorems.add_thm @{named_theorems domain_deflation} thm)
 
 val get_rec_tab = Rec_Data.get
-fun get_deflation_thms thy = DeflMapData.get (Proof_Context.init_global thy)
+fun get_deflation_thms thy =
+  Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_deflation}
 
-val map_ID_add = Map_Id_Data.add
-val get_map_ID_thms = Map_Id_Data.get o Proof_Context.init_global
+val map_ID_add = Named_Theorems.add @{named_theorems domain_map_ID}
+fun get_map_ID_thms thy =
+  Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_map_ID}
 
-val _ = Theory.setup (DeflMapData.setup #> Map_Id_Data.setup)
 
 (******************************************************************************)
 (************************** building types and terms **************************)

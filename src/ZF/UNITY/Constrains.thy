@@ -453,6 +453,9 @@ by (auto simp add: Always_eq_includes_reachable)
   used by Always_Int_I) *)
 lemmas Always_thin = thin_rl [of "F \<in> Always(A)"]
 
+(*To allow expansion of the program's definition when appropriate*)
+named_theorems program "program definitions"
+
 ML
 {*
 (*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
@@ -460,13 +463,6 @@ val Always_Int_tac = dtac @{thm Always_Int_I} THEN' assume_tac THEN' etac @{thm 
 
 (*Combines a list of invariance THEOREMS into one.*)
 val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS @{thm Always_Int_I});
-
-(*To allow expansion of the program's definition when appropriate*)
-structure Program_Defs = Named_Thms
-(
-  val name = @{binding program}
-  val description = "program definitions"
-);
 
 (*proves "co" properties when the program is specified*)
 
@@ -481,7 +477,7 @@ fun constrains_tac ctxt =
               (* Three subgoals *)
               rewrite_goal_tac ctxt [@{thm st_set_def}] 3,
               REPEAT (force_tac ctxt 2),
-              full_simp_tac (ctxt addsimps (Program_Defs.get ctxt)) 1,
+              full_simp_tac (ctxt addsimps (Named_Theorems.get ctxt @{named_theorems program})) 1,
               ALLGOALS (clarify_tac ctxt),
               REPEAT (FIRSTGOAL (etac @{thm disjE})),
               ALLGOALS (clarify_tac ctxt),
@@ -494,8 +490,6 @@ fun constrains_tac ctxt =
 fun always_tac ctxt i =
     rtac @{thm AlwaysI} i THEN force_tac ctxt i THEN constrains_tac ctxt i;
 *}
-
-setup Program_Defs.setup
 
 method_setup safety = {*
   Scan.succeed (SIMPLE_METHOD' o constrains_tac) *}

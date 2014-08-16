@@ -483,15 +483,14 @@ end
 
 subsection {* Evaluation *}
 
-ML {*
-structure Eval_Rules =
-  Named_Thms(val name = @{binding eval} val description = "evaluation rules");
+named_theorems eval "evaluation rules"
 
+ML {*
 fun eval_tac ths =
-  Subgoal.FOCUS_PREMS (fn {context, prems, ...} =>
-    DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ Eval_Rules.get context) 1));
+  Subgoal.FOCUS_PREMS (fn {context = ctxt, prems, ...} =>
+    let val eval_rules = Named_Theorems.get ctxt @{named_theorems eval}
+    in DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ rev eval_rules) 1) end)
 *}
-setup Eval_Rules.setup
 
 method_setup eval = {*
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (CHANGED o eval_tac ths ctxt))
