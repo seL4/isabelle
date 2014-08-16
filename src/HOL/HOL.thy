@@ -763,8 +763,6 @@ lemmas [symmetric, rulify] = atomize_all atomize_imp
 
 subsubsection {* Atomizing elimination rules *}
 
-setup AtomizeElim.setup
-
 lemma atomize_exL[atomize_elim]: "(!!x. P x ==> Q) == ((EX x. P x) ==> Q)"
   by rule iprover+
 

@@ -129,7 +129,7 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
     | Blast_Method => blast_tac ctxt
     | Auto_Method => SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt))
     | Auto_Choice_Method =>
-      AtomizeElim.atomize_elim_tac ctxt THEN'
+      Atomize_Elim.atomize_elim_tac ctxt THEN'
       SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt addSIs @{thms choice}))
     | Force_Method => SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt))
     | Linarith_Method =>
