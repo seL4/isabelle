@@ -1305,12 +1305,16 @@ text {*
   \begin{matharray}{rcll}
     @{command_def "lemmas"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "named_theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   @{rail \<open>
     (@@{command lemmas} | @@{command theorems}) @{syntax target}? \<newline>
       (@{syntax thmdef}? @{syntax thmrefs} + @'and')
       (@'for' (@{syntax vars} + @'and'))?
+    ;
+    @@{command named_theorems} @{syntax target}?
+      @{syntax name} @{syntax text}?
   \<close>}
 
   \begin{description}
@@ -1323,6 +1327,12 @@ text {*
 
   \item @{command "theorems"} is the same as @{command "lemmas"}, but
   marks the result as a different kind of facts.
+
+  \item @{command "named_theorems"}~@{text "name description"} declares a
+  dynamic fact within the context. The same @{text name} is used to define
+  an attribute with the usual @{text add}/@{text del} syntax (e.g.\ see
+  \secref{sec:simp-rules}) to maintain the content incrementally, in
+  canonical declaration order of the text structure.
 
   \end{description}
 *}

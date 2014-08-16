@@ -436,32 +436,25 @@ begin
 end
 
 text {* \medskip Apart from explicit arguments, common proof methods
-  typically work with a default configuration provided by the context.
-  As a shortcut to rule management we use a cheap solution via the
-  functor @{ML_functor Named_Thms} (see also @{file
-  "~~/src/Pure/Tools/named_thms.ML"}).  *}
+  typically work with a default configuration provided by the context. As a
+  shortcut to rule management we use a cheap solution via the @{command
+  named_theorems} command to declare a dynamic fact in the context. *}
 
-ML {*
-  structure My_Simps =
-    Named_Thms(
-      val name = @{binding my_simp}
-      val description = "my_simp rule"
-    )
-*}
-setup My_Simps.setup
+named_theorems my_simp
 
-text {* This provides ML access to a list of theorems in canonical
-  declaration order via @{ML My_Simps.get}.  The user can add or
-  delete rules via the attribute @{attribute my_simp}.  The actual
-  proof method is now defined as before, but we append the explicit
-  arguments and the rules from the context.  *}
+text {* The proof method is now defined as before, but we append the
+  explicit arguments and the rules from the context. *}
 
 method_setup my_simp' =
   \<open>Attrib.thms >> (fn thms => fn ctxt =>
-    SIMPLE_METHOD' (fn i =>
-      CHANGED (asm_full_simp_tac
-        (put_simpset HOL_basic_ss ctxt
-          addsimps (thms @ My_Simps.get ctxt)) i)))\<close>
+    let
+      val my_simps = Named_Theorems.get ctxt @{named_theorems my_simp}
+    in
+      SIMPLE_METHOD' (fn i =>
+        CHANGED (asm_full_simp_tac
+          (put_simpset HOL_basic_ss ctxt
+            addsimps (thms @ my_simps)) i))
+    end)\<close>
   "rewrite subgoal by given rules and my_simp rules from the context"
 
 text {*
@@ -500,7 +493,7 @@ text {* \medskip The @{method my_simp} variants defined above are
   theory library, for example.
 
   This is an inherent limitation of the simplistic rule management via
-  functor @{ML_functor Named_Thms}, because it lacks tool-specific
+  @{command named_theorems}, because it lacks tool-specific
   storage and retrieval.  More realistic applications require
   efficient index-structures that organize theorems in a customized
   manner, such as a discrimination net that is indexed by the

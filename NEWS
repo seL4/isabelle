@@ -9,6 +9,11 @@ New in this Isabelle version
 * Commands 'method_setup' and 'attribute_setup' now work within a
 local theory context.
 
+* Command 'named_theorems' declares a dynamic fact within the context,
+together with an attribute to maintain the content incrementally.
+This supersedes functor Named_Thms, but with a subtle change of
+semantics due to external visual order vs. internal reverse order.
+
 
 *** HOL ***
 
