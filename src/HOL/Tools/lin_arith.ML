@@ -796,7 +796,7 @@ val init_arith_data =
 
 (* FIXME !?? *)
 fun add_arith_facts ctxt =
-  Simplifier.add_prems (Arith_Data.get_arith_facts ctxt) ctxt;
+  Simplifier.add_prems (Named_Theorems.get ctxt @{named_theorems arith}) ctxt;
 
 val simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 
@@ -889,7 +889,7 @@ val global_setup =
   Method.setup @{binding linarith}
     (Scan.succeed (fn ctxt =>
       METHOD (fn facts =>
-        HEADGOAL (Method.insert_tac (Arith_Data.get_arith_facts ctxt @ facts)
+        HEADGOAL (Method.insert_tac (Named_Theorems.get ctxt @{named_theorems arith} @ facts)
           THEN' tac ctxt)))) "linear arithmetic" #>
   Arith_Data.add_tactic "linear arithmetic" gen_tac;
 

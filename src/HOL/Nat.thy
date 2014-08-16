@@ -12,6 +12,8 @@ imports Inductive Typedef Fun Fields
 begin
 
 ML_file "~~/src/Tools/rat.ML"
+
+named_theorems arith "arith facts -- only ground formulas"
 ML_file "Tools/arith_data.ML"
 ML_file "~~/src/Provers/Arith/fast_lin_arith.ML"
 
