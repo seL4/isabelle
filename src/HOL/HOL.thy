@@ -1965,29 +1965,12 @@ declare if_bool_eq_conj [nitpick_unfold, no_atp]
 
 subsection {* Preprocessing for the predicate compiler *}
 
-ML {*
-structure Predicate_Compile_Alternative_Defs = Named_Thms
-(
-  val name = @{binding code_pred_def}
-  val description = "alternative definitions of constants for the Predicate Compiler"
-)
-structure Predicate_Compile_Inline_Defs = Named_Thms
-(
-  val name = @{binding code_pred_inline}
-  val description = "inlining definitions for the Predicate Compiler"
-)
-structure Predicate_Compile_Simps = Named_Thms
-(
-  val name = @{binding code_pred_simp}
-  val description = "simplification rules for the optimisations in the Predicate Compiler"
-)
-*}
-
-setup {*
-  Predicate_Compile_Alternative_Defs.setup
-  #> Predicate_Compile_Inline_Defs.setup
-  #> Predicate_Compile_Simps.setup
-*}
+named_theorems code_pred_def
+  "alternative definitions of constants for the Predicate Compiler"
+named_theorems code_pred_inline
+  "inlining definitions for the Predicate Compiler"
+named_theorems code_pred_simp
+  "simplification rules for the optimisations in the Predicate Compiler"
 
 
 subsection {* Legacy tactics and ML bindings *}

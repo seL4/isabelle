@@ -161,8 +161,8 @@ fun split_all_pairs thy th =
 fun inline_equations thy th =
   let
     val ctxt = Proof_Context.init_global thy
-    val inline_defs = Predicate_Compile_Inline_Defs.get ctxt
-    val th' = (Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps inline_defs)) th
+    val inline_defs = Named_Theorems.get ctxt @{named_theorems code_pred_inline}
+    val th' = Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps inline_defs) th
     (*val _ = print_step options
       ("Inlining " ^ (Syntax.string_of_term_global thy (prop_of th))
        ^ "with " ^ (commas (map ((Syntax.string_of_term_global thy) o prop_of) inline_defs))
@@ -208,12 +208,12 @@ fun get_specification options thy t =
           NONE
     fun filter_defs ths = map_filter filtering (map (normalize thy o Thm.transfer thy) ths)
     val spec =
-      (case filter_defs (Predicate_Compile_Alternative_Defs.get ctxt) of
+      (case filter_defs (Named_Theorems.get ctxt @{named_theorems code_pred_def}) of
         [] =>
           (case Spec_Rules.retrieve ctxt t of
             [] => error ("No specification for " ^ Syntax.string_of_term_global thy t)
           | ((_, (_, ths)) :: _) => filter_defs ths)
-      | ths => rev ths)
+      | ths => ths)
     val _ =
       if show_intermediate_results options then
         tracing ("Specification for " ^ (Syntax.string_of_term_global thy t) ^ ":\n" ^
