@@ -499,7 +499,9 @@ object Document
     /*commands with markup produced by other commands (imm_succs)*/
     val commands_redirection: Graph[Document_ID.Command, Unit] = Graph.long,
     /*explicit (linear) history*/
-    val history: History = History.init)
+    val history: History = History.init,
+    /*intermediate state between remove_versions/removed_versions*/
+    val removing_versions: Boolean = false)
   {
     private def fail[A]: A = throw new State.Fail(this)
 
@@ -620,13 +622,14 @@ object Document
       copy(history = history + change)
     }
 
-    def prune_history(retain: Int = 0): (List[Version], State) =
+    def remove_versions(retain: Int = 0): (List[Version], State) =
     {
       history.prune(is_stable, retain) match {
         case Some((dropped, history1)) =>
-          val dropped_versions = dropped.map(change => change.version.get_finished)
-          val state1 = copy(history = history1)
-          (dropped_versions, state1)
+          val old_versions = dropped.map(change => change.version.get_finished)
+          val removing = !old_versions.isEmpty
+          val state1 = copy(history = history1, removing_versions = removing)
+          (old_versions, state1)
         case None => fail
       }
     }
@@ -661,7 +664,8 @@ object Document
         commands = commands1,
         execs = execs1,
         commands_redirection = commands_redirection.restrict(commands1.isDefinedAt(_)),
-        assignments = assignments1)
+        assignments = assignments1,
+        removing_versions = false)
     }
 
     private def command_states_self(version: Version, command: Command)
