@@ -167,7 +167,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val map_id0s = map map_id0_of_bnf bnfs;
     val map_ids = map map_id_of_bnf bnfs;
     val set_mapss = map set_map_of_bnf bnfs;
-    val rel_mono_strongs = map rel_mono_strong_of_bnf bnfs;
+    val rel_mono_strong0s = map rel_mono_strong0_of_bnf bnfs;
     val le_rel_OOs = map le_rel_OO_of_bnf bnfs;
 
     val timer = time (timer "Extracted terms & thms");
@@ -1691,7 +1691,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           in
             Goal.prove_sorry lthy [] [] goal
               (fn {context = ctxt, prems = _} => mk_le_rel_OO_tac ctxt m induct ctor_nchotomy_thms
-                ctor_Irel_thms rel_mono_strongs le_rel_OOs)
+                ctor_Irel_thms rel_mono_strong0s le_rel_OOs)
             |> Thm.close_derivation
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
@@ -1762,7 +1762,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val Irel_induct_thm =
       mk_rel_xtor_co_induct_thm Least_FP rels activeIphis Irels Iphis xFs yFs ctors ctor's
         (fn {context = ctxt, prems = IHs} => mk_rel_induct_tac ctxt IHs m ctor_induct2_thm ks
-           ctor_Irel_thms rel_mono_strongs) lthy;
+           ctor_Irel_thms rel_mono_strong0s) lthy;
 
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
     val ctor_fold_transfer_thms =

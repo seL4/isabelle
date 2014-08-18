@@ -582,7 +582,7 @@ fun mk_mcong_tac ctxt induct_tac set_setsss map_cong0s ctor_maps =
     (induct_tac THEN' EVERY' (map3 mk_map_cong0 ctor_maps map_cong0s set_setsss)) 1
   end;
 
-fun mk_le_rel_OO_tac ctxt m induct ctor_nchotomys ctor_Irels rel_mono_strongs le_rel_OOs =
+fun mk_le_rel_OO_tac ctxt m induct ctor_nchotomys ctor_Irels rel_mono_strong0s le_rel_OOs =
   EVERY' (rtac induct ::
   map4 (fn nchotomy => fn Irel => fn rel_mono => fn le_rel_OO =>
     EVERY' [rtac impI, etac (nchotomy RS @{thm nchotomy_relcomppE}),
@@ -592,7 +592,7 @@ fun mk_le_rel_OO_tac ctxt m induct ctor_nchotomys ctor_Irels rel_mono_strongs le
       REPEAT_DETERM_N m o EVERY' [rtac ballI, rtac ballI, rtac impI, atac],
       REPEAT_DETERM_N (length le_rel_OOs) o
         EVERY' [rtac ballI, rtac ballI, Goal.assume_rule_tac ctxt]])
-  ctor_nchotomys ctor_Irels rel_mono_strongs le_rel_OOs) 1;
+  ctor_nchotomys ctor_Irels rel_mono_strong0s le_rel_OOs) 1;
 
 (* BNF tactics *)
 
@@ -701,19 +701,19 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
     EVERY' [rtac iffI, if_tac, only_if_tac] 1
   end;
 
-fun mk_rel_induct_tac ctxt IHs m ctor_induct2 ks ctor_rels rel_mono_strongs =
+fun mk_rel_induct_tac ctxt IHs m ctor_induct2 ks ctor_rels rel_mono_strong0s =
   let val n = length ks;
   in
     unfold_tac ctxt @{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} THEN
     EVERY' [REPEAT_DETERM o rtac allI, rtac ctor_induct2,
-      EVERY' (map3 (fn IH => fn ctor_rel => fn rel_mono_strong =>
+      EVERY' (map3 (fn IH => fn ctor_rel => fn rel_mono_strong0 =>
         EVERY' [rtac impI, dtac (ctor_rel RS iffD1), rtac (IH RS @{thm spec2} RS mp),
-          etac rel_mono_strong,
+          etac rel_mono_strong0,
           REPEAT_DETERM_N m o rtac @{thm ballI[OF ballI[OF imp_refl]]},
           EVERY' (map (fn j =>
             EVERY' [select_prem_tac n (dtac asm_rl) j, rtac @{thm ballI[OF ballI]},
               Goal.assume_rule_tac ctxt]) ks)])
-      IHs ctor_rels rel_mono_strongs)] 1
+      IHs ctor_rels rel_mono_strong0s)] 1
   end;
 
 fun mk_fold_transfer_tac ctxt m ctor_rel_induct map_transfers folds =

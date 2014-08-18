@@ -25,7 +25,7 @@ sig
   val mk_rel_conversep_le_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> tactic
   val mk_rel_map0_tac: Proof.context -> int -> thm -> thm -> thm -> thm -> tactic
   val mk_rel_mono_tac: thm list -> thm -> tactic
-  val mk_rel_mono_strong_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_rel_mono_strong0_tac: Proof.context -> thm -> thm list -> tactic
 
   val mk_map_transfer_tac: Proof.context -> thm -> thm -> thm list -> thm -> thm -> tactic
 
@@ -211,7 +211,7 @@ fun mk_rel_OO_le_tac ctxt rel_OO_Grps rel_eq map_cong0 map_comp set_maps =
         in_tac @{thm sndOp_in}] 1
   end;
 
-fun mk_rel_mono_strong_tac ctxt in_rel set_maps =
+fun mk_rel_mono_strong0_tac ctxt in_rel set_maps =
   if null set_maps then atac 1
   else
     unfold_tac ctxt [in_rel] THEN
