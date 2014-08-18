@@ -22,13 +22,13 @@ sig
   val mk_case_eq_if_tac: Proof.context -> int -> thm -> thm list -> thm list list ->
     thm list list -> tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
-  val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
+  val mk_exhaust_disc_tac: int -> thm -> thm list -> tactic
+  val mk_exhaust_sel_tac: int -> thm -> thm list -> tactic
   val mk_expand_tac: Proof.context -> int -> int list -> thm -> thm -> thm list ->
     thm list list list -> thm list list list -> tactic
-  val mk_half_disc_exclude_tac: Proof.context -> int -> thm -> thm -> tactic
+  val mk_half_distinct_disc_tac: Proof.context -> int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
-  val mk_other_half_disc_exclude_tac: thm -> tactic
-  val mk_sel_exhaust_tac: int -> thm -> thm list -> tactic
+  val mk_other_half_distinct_disc_tac: thm -> tactic
   val mk_split_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list ->
     thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
@@ -67,21 +67,21 @@ fun mk_alternate_disc_def_tac ctxt k other_disc_def distinct uexhaust =
     (([etac notE, REPEAT_DETERM o rtac exI, atac], [REPEAT_DETERM o rtac exI, atac])
      |> k = 1 ? swap |> op @)));
 
-fun mk_half_disc_exclude_tac ctxt m discD disc' =
+fun mk_half_distinct_disc_tac ctxt m discD disc' =
   HEADGOAL (dtac discD THEN' REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac ctxt THEN'
     rtac disc');
 
-fun mk_other_half_disc_exclude_tac half = HEADGOAL (etac @{thm contrapos_pn} THEN' etac half);
+fun mk_other_half_distinct_disc_tac half = HEADGOAL (etac @{thm contrapos_pn} THEN' etac half);
 
-fun mk_disc_or_sel_exhaust_tac n exhaust destIs =
+fun mk_exhaust_disc_or_sel_tac n exhaust destIs =
   HEADGOAL (rtac exhaust THEN'
     EVERY' (map2 (fn k => fn destI => dtac destI THEN'
       select_prem_tac n (etac meta_mp) k THEN' atac) (1 upto n) destIs));
 
-val mk_disc_exhaust_tac = mk_disc_or_sel_exhaust_tac;
+val mk_exhaust_disc_tac = mk_exhaust_disc_or_sel_tac;
 
-fun mk_sel_exhaust_tac n disc_exhaust collapses =
-  mk_disc_or_sel_exhaust_tac n disc_exhaust collapses ORELSE
+fun mk_exhaust_sel_tac n exhaust_disc collapses =
+  mk_exhaust_disc_or_sel_tac n exhaust_disc collapses ORELSE
   HEADGOAL (etac meta_mp THEN' resolve_tac collapses);
 
 fun mk_collapse_tac ctxt m discD sels =
@@ -92,17 +92,17 @@ fun mk_collapse_tac ctxt m discD sels =
        REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac ctxt THEN'
        SELECT_GOAL (unfold_thms_tac ctxt sels) THEN' rtac refl));
 
-fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss
-    disc_excludesss' =
+fun mk_expand_tac ctxt n ms uexhaust_disc vexhaust_disc uncollapses distinct_discsss
+    distinct_discsss' =
   if ms = [0] then
     HEADGOAL (rtac (@{thm trans_sym} OF (replicate 2 (the_single uncollapses))) THEN'
-      TRY o EVERY' [rtac udisc_exhaust, atac, rtac vdisc_exhaust, atac])
+      TRY o EVERY' [rtac uexhaust_disc, atac, rtac vexhaust_disc, atac])
   else
     let val ks = 1 upto n in
-      HEADGOAL (rtac udisc_exhaust THEN'
-        EVERY' (map5 (fn k => fn m => fn disc_excludess => fn disc_excludess' => fn uuncollapse =>
-          EVERY' [rtac (uuncollapse RS trans) THEN' TRY o atac, rtac sym, rtac vdisc_exhaust,
-            EVERY' (map4 (fn k' => fn disc_excludes => fn disc_excludes' => fn vuncollapse =>
+      HEADGOAL (rtac uexhaust_disc THEN'
+        EVERY' (map5 (fn k => fn m => fn distinct_discss => fn distinct_discss' => fn uuncollapse =>
+          EVERY' [rtac (uuncollapse RS trans) THEN' TRY o atac, rtac sym, rtac vexhaust_disc,
+            EVERY' (map4 (fn k' => fn distinct_discs => fn distinct_discs' => fn vuncollapse =>
               EVERY'
                 (if k' = k then
                    [rtac (vuncollapse RS trans), TRY o atac] @
@@ -113,11 +113,11 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
                        REPEAT_DETERM_N (Int.max (0, m - 1)) o etac conjE,
                        asm_simp_tac (ss_only [] ctxt)])
                  else
-                   [dtac (the_single (if k = n then disc_excludes else disc_excludes')),
+                   [dtac (the_single (if k = n then distinct_discs else distinct_discs')),
                     etac (if k = n then @{thm iff_contradict(1)} else @{thm iff_contradict(2)}),
                     atac, atac]))
-              ks disc_excludess disc_excludess' uncollapses)])
-          ks ms disc_excludesss disc_excludesss' uncollapses))
+              ks distinct_discss distinct_discss' uncollapses)])
+          ks ms distinct_discsss distinct_discsss' uncollapses))
     end;
 
 fun mk_case_same_ctr_tac ctxt injects =

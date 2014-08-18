@@ -1785,10 +1785,10 @@ fun add_ctr_sugar T_name ctr sels exhaust inject sel_defs sel_thms =
   Ctr_Sugar.default_register_ctr_sugar_global T_name
     {ctrs = [ctr], casex = Term.dummy, discs = [], selss = [sels], exhaust = exhaust,
      nchotomy = Drule.dummy_thm, injects = [inject], distincts = [], case_thms = [],
-     case_cong = Drule.dummy_thm, weak_case_cong = Drule.dummy_thm, split = Drule.dummy_thm,
+     case_cong = Drule.dummy_thm, case_cong_weak = Drule.dummy_thm, split = Drule.dummy_thm,
      split_asm = Drule.dummy_thm, disc_defs = [], disc_thmss = [], discIs = [], sel_defs = sel_defs,
-     sel_thmss = [sel_thms], disc_excludesss = [], disc_exhausts = [], sel_exhausts = [],
-     collapses = [], expands = [], sel_splits = [], sel_split_asms = [], case_eq_ifs = []};
+     sel_thmss = [sel_thms], distinct_discsss = [], exhaust_discs = [], exhaust_sels = [],
+     collapses = [], expands = [], split_sels = [], split_sel_asms = [], case_eq_ifs = []};
 
 
 (* definition *)

@@ -138,12 +138,12 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
     val inducts = map (the_single o #co_inducts) fp_sugars;
 
     fun mk_info (kk, {T = Type (T_name0, _), ctr_sugar = {casex, exhaust, nchotomy, injects,
-        distincts, case_thms, case_cong, weak_case_cong, split, split_asm, ...}, ...} : fp_sugar) =
+        distincts, case_thms, case_cong, case_cong_weak, split, split_asm, ...}, ...} : fp_sugar) =
       (T_name0,
        {index = kk, descr = descr, inject = injects, distinct = distincts, induct = induct,
         inducts = inducts, exhaust = exhaust, nchotomy = nchotomy, rec_names = recs,
         rec_rewrites = rec_thms, case_name = fst (dest_Const casex), case_rewrites = case_thms,
-        case_cong = case_cong, weak_case_cong = weak_case_cong, split = split,
+        case_cong = case_cong, case_cong_weak = case_cong_weak, split = split,
         split_asm = split_asm});
 
     val infos = map_index mk_info (take nn_fp fp_sugars);

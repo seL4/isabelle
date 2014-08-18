@@ -49,9 +49,9 @@ next
   with Step prems show "P a s" by simp
 qed
 
-lemmas smap_simps[simp] = stream.sel_map
-lemmas shd_sset = stream.sel_set(1)
-lemmas stl_sset = stream.sel_set(2)
+lemmas smap_simps[simp] = stream.map_sel
+lemmas shd_sset = stream.set_sel(1)
+lemmas stl_sset = stream.set_sel(2)
 
 (* only for the non-mutual case: *)
 theorem sset_induct1[consumes 1, case_names shd stl, induct set: "sset"]:

@@ -395,16 +395,16 @@ fun prove_split_thms (config : Datatype_Aux.config)
     |-> (fn (thms1, thms2) => pair (thms1 ~~ thms2))
   end;
 
-fun prove_weak_case_congs new_type_names case_names descr thy =
+fun prove_case_cong_weaks new_type_names case_names descr thy =
   let
-    fun prove_weak_case_cong t =
+    fun prove_case_cong_weak t =
      Goal.prove_sorry_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
        (fn {prems, ...} => EVERY [rtac (hd prems RS arg_cong) 1]);
 
-    val weak_case_congs =
-      map prove_weak_case_cong (Datatype_Prop.make_weak_case_congs case_names descr thy);
+    val case_cong_weaks =
+      map prove_case_cong_weak (Datatype_Prop.make_case_cong_weaks case_names descr thy);
 
-  in thy |> Datatype_Aux.store_thms "weak_case_cong" new_type_names weak_case_congs end;
+  in thy |> Datatype_Aux.store_thms "case_cong_weak" new_type_names case_cong_weaks end;
 
 
 (* additional theorems for TFL *)
@@ -470,7 +470,7 @@ local
 
 fun make_dt_info descr induct inducts rec_names rec_rewrites
     (index, (((((((((((_, (tname, _, _))), inject), distinct),
-      exhaust), nchotomy), case_name), case_rewrites), case_cong), weak_case_cong),
+      exhaust), nchotomy), case_name), case_rewrites), case_cong), case_cong_weak),
         (split, split_asm))) =
   (tname,
    {index = index,
@@ -486,7 +486,7 @@ fun make_dt_info descr induct inducts rec_names rec_rewrites
     case_name = case_name,
     case_rewrites = case_rewrites,
     case_cong = case_cong,
-    weak_case_cong = weak_case_cong,
+    case_cong_weak = case_cong_weak,
     split = split,
     split_asm = split_asm});
 
@@ -513,8 +513,8 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy2 =
       |> prove_case_thms config new_type_names descr rec_names rec_rewrites;
     val (case_congs, thy7) = thy6
       |> prove_case_congs new_type_names case_names descr nchotomys case_rewrites;
-    val (weak_case_congs, thy8) = thy7
-      |> prove_weak_case_congs new_type_names case_names descr;
+    val (case_cong_weaks, thy8) = thy7
+      |> prove_case_cong_weaks new_type_names case_names descr;
     val (splits, thy9) = thy8
       |> prove_split_thms config new_type_names case_names descr
         inject distinct exhaust case_rewrites;
@@ -524,7 +524,7 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy2 =
       map_index
         (make_dt_info flat_descr induct inducts rec_names rec_rewrites)
         (hd descr ~~ inject ~~ distinct ~~ exhaust ~~ nchotomys ~~
-          case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ splits);
+          case_names ~~ case_rewrites ~~ case_congs ~~ case_cong_weaks ~~ splits);
     val dt_names = map fst dt_infos;
     val prfx = Binding.qualify true (space_implode "_" new_type_names);
     val simps = flat (inject @ distinct @ case_rewrites) @ rec_rewrites;
@@ -553,7 +553,7 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy2 =
         ((Binding.empty, [iff_add]), [(flat inject, [])]),
         ((Binding.empty, [Classical.safe_elim NONE]),
           [(map (fn th => th RS notE) (flat distinct), [])]),
-        ((Binding.empty, [Simplifier.cong_add]), [(weak_case_congs, [])]),
+        ((Binding.empty, [Simplifier.cong_add]), [(case_cong_weaks, [])]),
         ((Binding.empty, [Induct.induct_simp_add]), [(flat (distinct @ inject), [])])] @
           named_rules @ unnamed_rules)
     |> snd

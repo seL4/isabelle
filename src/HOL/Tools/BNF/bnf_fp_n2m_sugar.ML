@@ -257,7 +257,7 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
             fp_bs xtor_co_recs lthy
           |>> split_list;
 
-        val ((common_co_inducts, co_inductss, co_rec_thmss, disc_corec_thmss, sel_corec_thmsss),
+        val ((common_co_inducts, co_inductss, co_rec_thmss, corec_disc_thmss, corec_sel_thmsss),
              fp_sugar_thms) =
           if fp = Least_FP then
             derive_induct_recs_thms_for_types pre_bnfs recs_args_types xtor_co_induct
@@ -272,30 +272,30 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
               dtor_injects dtor_ctors xtor_co_rec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss
               mss ns fp_abs_inverses abs_inverses (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss
               ctr_sugars co_recs co_rec_defs (Proof_Context.export lthy no_defs_lthy) lthy
-            |> `(fn ((coinduct_thms_pairs, _), corec_thmss, disc_corec_thmss, _,
-                     (sel_corec_thmsss, _)) =>
+            |> `(fn ((coinduct_thms_pairs, _), corec_thmss, corec_disc_thmss, _,
+                     (corec_sel_thmsss, _)) =>
               (map snd coinduct_thms_pairs, map fst coinduct_thms_pairs, corec_thmss,
-               disc_corec_thmss, sel_corec_thmsss))
+               corec_disc_thmss, corec_sel_thmsss))
             ||> (fn info => (NONE, SOME info));
 
         val phi = Proof_Context.export_morphism no_defs_lthy no_defs_lthy0;
 
         fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctr_defs ctr_sugar co_rec
-            co_rec_def maps co_inducts co_rec_thms disc_corec_thms sel_corec_thmss
+            co_rec_def maps co_inducts co_rec_thms corec_disc_thms corec_sel_thmss
             ({rel_injects, rel_distincts, ...} : fp_sugar) =
           {T = T, BT = Term.dummyT (*wrong but harmless*), X = X, fp = fp, fp_res = fp_res,
            fp_res_index = kk, pre_bnf = pre_bnf, absT_info = absT_info,
            fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
            ctrXs_Tss = ctrXs_Tss, ctr_defs = ctr_defs, ctr_sugar = ctr_sugar, co_rec = co_rec,
            co_rec_def = co_rec_def, maps = maps, common_co_inducts = common_co_inducts,
-           co_inducts = co_inducts, co_rec_thms = co_rec_thms, disc_co_recs = disc_corec_thms,
-           sel_co_recss = sel_corec_thmss, rel_injects = rel_injects, rel_distincts = rel_distincts}
+           co_inducts = co_inducts, co_rec_thms = co_rec_thms, disc_co_recs = corec_disc_thms,
+           sel_co_recss = corec_sel_thmss, rel_injects = rel_injects, rel_distincts = rel_distincts}
           |> morph_fp_sugar phi;
 
         val target_fp_sugars =
           map16 mk_target_fp_sugar fpTs Xs kks pre_bnfs absT_infos ctrXs_Tsss ctr_defss ctr_sugars
-            co_recs co_rec_defs mapss (transpose co_inductss) co_rec_thmss disc_corec_thmss
-            sel_corec_thmsss fp_sugars0;
+            co_recs co_rec_defs mapss (transpose co_inductss) co_rec_thmss corec_disc_thmss
+            corec_sel_thmsss fp_sugars0;
 
         val n2m_sugar = (target_fp_sugars, fp_sugar_thms);
       in

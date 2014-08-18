@@ -95,7 +95,7 @@ fun case_of_case_rewrite case_rewrite =
   head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of case_rewrite))));
 
 fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case_cong,
-    weak_case_cong, split, split_asm, ...} : Datatype_Aux.info) =
+    case_cong_weak, split, split_asm, ...} : Datatype_Aux.info) =
   {ctrs = ctrs_of_exhaust exhaust,
    casex = case_of_case_rewrite (hd case_rewrites),
    discs = [],
@@ -106,7 +106,7 @@ fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case
    distincts = distinct,
    case_thms = case_rewrites,
    case_cong = case_cong,
-   weak_case_cong = weak_case_cong,
+   case_cong_weak = case_cong_weak,
    split = split,
    split_asm = split_asm,
    disc_defs = [],
@@ -114,13 +114,13 @@ fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case
    discIs = [],
    sel_defs = [],
    sel_thmss = [],
-   disc_excludesss = [],
-   disc_exhausts = [],
-   sel_exhausts = [],
+   distinct_discsss = [],
+   exhaust_discs = [],
+   exhaust_sels = [],
    collapses = [],
    expands = [],
-   sel_splits = [],
-   sel_split_asms = [],
+   split_sels = [],
+   split_sel_asms = [],
    case_eq_ifs = []};
 
 fun register dt_infos =

@@ -190,7 +190,7 @@ fun is_package_def s =
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 fun multi_base_blacklist ctxt ho_atp =
   ["defs", "select_defs", "update_defs", "split", "splits", "split_asm", "ext_cases", "eq.simps",
-   "eq.refl", "nchotomy", "case_cong", "weak_case_cong", "nat_of_char_simps", "nibble.simps",
+   "eq.refl", "nchotomy", "case_cong", "case_cong_weak", "nat_of_char_simps", "nibble.simps",
    "nibble.distinct"]
   |> not (ho_atp orelse Config.get ctxt instantiate_inducts) ? append ["induct", "inducts"]
   |> map (prefix Long_Name.separator)

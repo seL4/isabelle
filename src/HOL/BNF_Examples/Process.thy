@@ -29,7 +29,7 @@ declare
 (* Constructors versus discriminators *)
 theorem isAction_isChoice:
 "isAction p \<or> isChoice p"
-by (rule process.disc_exhaust) auto
+by (rule process.exhaust_disc) auto
 
 theorem not_isAction_isChoice: "\<not> (isAction p \<and> isChoice p)"
 by (cases rule: process.exhaust[of p]) auto
@@ -54,7 +54,7 @@ theorem process_strong_coind[elim, consumes 1, case_names iss Action Choice]:
   Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> (\<phi> p p' \<or> p = p') \<and> (\<phi> q q' \<or> q = q')"
   shows "p = p'"
   using assms
-  by (coinduct rule: process.strong_coinduct) (metis process.collapse(1,2) process.disc(3))
+  by (coinduct rule: process.coinduct_strong) (metis process.collapse(1,2) process.disc(3))
 
 
 subsection {* Coiteration (unfold) *}

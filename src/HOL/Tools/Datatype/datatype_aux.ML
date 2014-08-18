@@ -27,7 +27,7 @@ sig
     case_name : string,
     case_rewrites : thm list,
     case_cong : thm,
-    weak_case_cong : thm,
+    case_cong_weak : thm,
     split : thm,
     split_asm: thm}
 end
@@ -195,7 +195,7 @@ type info =
    case_name : string,
    case_rewrites : thm list,
    case_cong : thm,
-   weak_case_cong : thm,
+   case_cong_weak : thm,
    split : thm,
    split_asm: thm};
 

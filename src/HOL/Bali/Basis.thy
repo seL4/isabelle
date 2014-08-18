@@ -13,7 +13,7 @@ ML {* fun strip_tac i = REPEAT (resolve_tac [impI, allI] i) *}
 
 declare split_if_asm  [split] option.split [split] option.split_asm [split]
 setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
-declare if_weak_cong [cong del] option.weak_case_cong [cong del]
+declare if_weak_cong [cong del] option.case_cong_weak [cong del]
 declare length_Suc_conv [iff]
 
 lemma Collect_split_eq: "{p. P (split f p)} = {(a,b). P (f a b)}"

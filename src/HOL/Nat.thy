@@ -132,9 +132,9 @@ hide_fact
   nat.collapse
   nat.expand
   nat.sel
-  nat.sel_exhaust
-  nat.sel_split
-  nat.sel_split_asm
+  nat.exhaust_sel
+  nat.split_sel
+  nat.split_sel_asm
 
 lemma nat_exhaust [case_names 0 Suc, cases type: nat]:
   -- {* for backward compatibility -- names of variables differ *}
