@@ -831,6 +831,8 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 \item[@{text "t."}\hthm{split_sel_asm}\rm:] ~ \\
 @{thm list.split_sel_asm[no_vars]}
 
+\item[@{text "t."}\hthm{split_sels} = @{text "split_sel split_sel_asm"}]
+
 \item[@{text "t."}\hthm{case_eq_if}\rm:] ~ \\
 @{thm list.case_eq_if[no_vars]}
 

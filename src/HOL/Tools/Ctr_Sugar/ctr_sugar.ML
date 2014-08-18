@@ -216,6 +216,7 @@ val split_asmN = "split_asm";
 val split_selN = "split_sel";
 val split_sel_asmN = "split_sel_asm";
 val splitsN = "splits";
+val split_selsN = "split_sels";
 val case_cong_weak_thmsN = "case_cong_weak";
 
 val cong_attrs = @{attributes [cong]};
@@ -987,7 +988,8 @@ fun prepare_free_constructors prep_term
            (split_sel_asmN, split_sel_asm_thms, []),
            (splitN, [split_thm], []),
            (split_asmN, [split_asm_thm], []),
-           (splitsN, [split_thm, split_asm_thm], [])]
+           (splitsN, [split_thm, split_asm_thm], []),
+           (split_selsN, split_sel_thms @ split_sel_asm_thms, [])]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
