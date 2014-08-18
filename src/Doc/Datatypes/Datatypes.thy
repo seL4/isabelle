@@ -913,6 +913,9 @@ the map function, and the relator:
 \begin{indentblock}
 \begin{description}
 
+\item[@{text "t."}\hthm{inj_map}\rm:] ~ \\
+@{thm list.inj_map[no_vars]}
+
 \item[@{text "t."}\hthm{set_map}\rm:] ~ \\
 @{thm list.set_map[no_vars]}
 
