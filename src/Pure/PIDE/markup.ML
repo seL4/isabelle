@@ -156,6 +156,7 @@ sig
   val tracingN: string
   val warningN: string
   val errorN: string
+  val systemN: string
   val protocolN: string
   val legacyN: string val legacy: T
   val promptN: string val prompt: T
@@ -527,6 +528,7 @@ val writelnN = "writeln";
 val tracingN = "tracing";
 val warningN = "warning";
 val errorN = "error";
+val systemN = "system";
 val protocolN = "protocol";
 
 val (legacyN, legacy) = markup_elem "legacy";

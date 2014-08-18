@@ -52,6 +52,8 @@ object Session
     doc_edits: List[Document.Edit_Command],
     version: Document.Version)
 
+  case object Change_Flush
+
 
   /* events */
 
@@ -320,11 +322,10 @@ class Session(val resources: Resources)
 
     def store(change: Session.Change): Unit = synchronized { postponed ::= change }
 
-    def flush(): Unit = synchronized {
-      val state = global_state.value
+    def flush(state: Document.State): List[Session.Change] = synchronized {
       val (assigned, unassigned) = postponed.partition(change => state.is_assigned(change.previous))
       postponed = unassigned
-      assigned.reverseIterator.foreach(change => manager.send(change))
+      assigned.reverse
     }
   }
 
@@ -448,9 +449,9 @@ class Session(val resources: Resources)
                     try {
                       val cmds = global_state.change_result(_.assign(id, update))
                       change_buffer.invoke(true, cmds)
+                      manager.send(Session.Change_Flush)
                     }
                     catch { case _: Document.State.Fail => bad_output() }
-                    postponed_changes.flush()
                   case _ => bad_output()
                 }
                 delay_prune.invoke()
@@ -460,6 +461,7 @@ class Session(val resources: Resources)
                   case Protocol.Removed(removed) =>
                     try {
                       global_state.change(_.removed_versions(removed))
+                      manager.send(Session.Change_Flush)
                     }
                     catch { case _: Document.State.Fail => bad_output() }
                   case _ => bad_output()
@@ -532,7 +534,7 @@ class Session(val resources: Resources)
 
           case Prune_History =>
             if (prover.defined) {
-              val old_versions = global_state.change_result(_.prune_history(prune_size))
+              val old_versions = global_state.change_result(_.remove_versions(prune_size))
               if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
             }
 
@@ -557,9 +559,15 @@ class Session(val resources: Resources)
             prover.get.protocol_command(name, args:_*)
 
           case change: Session.Change if prover.defined =>
-            if (global_state.value.is_assigned(change.previous))
+            val state = global_state.value
+            if (!state.removing_versions && state.is_assigned(change.previous))
               handle_change(change)
             else postponed_changes.store(change)
+
+          case Session.Change_Flush if prover.defined =>
+            val state = global_state.value
+            if (!state.removing_versions)
+              postponed_changes.flush(state).foreach(handle_change(_))
 
           case bad =>
             if (verbose) Output.warning("Ignoring bad message: " + bad.toString)

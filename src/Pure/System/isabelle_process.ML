@@ -124,6 +124,7 @@ fun init_channels channel =
     Output.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
     Output.error_message_fn :=
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
+    Output.system_message_fn := message Markup.systemN [];
     Output.protocol_message_fn := message Markup.protocolN;
     Output.urgent_message_fn := ! Output.writeln_fn;
     Output.prompt_fn := ignore;
@@ -140,7 +141,8 @@ local
 
 fun recover crash =
   (Synchronized.change crashes (cons crash);
-    warning "Recovering from Isabelle process crash -- see also Isabelle_Process.crashes");
+    Output.physical_stderr
+      "Recovered from Isabelle process crash -- see also Isabelle_Process.crashes\n");
 
 fun read_chunk channel len =
   let
@@ -170,10 +172,10 @@ in
 fun loop channel =
   let val continue =
     (case read_command channel of
-      [] => (Output.error_message "Isabelle process: no input"; true)
+      [] => (Output.system_message "Isabelle process: no input"; true)
     | name :: args => (task_context (fn () => run_command name args); true))
     handle Runtime.TERMINATE => false
-      | exn => (Runtime.exn_error_message exn handle crash => recover crash; true);
+      | exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
   in
     if continue then loop channel
     else (Future.shutdown (); Execution.reset (); ())

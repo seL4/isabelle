@@ -29,6 +29,7 @@ sig
   val urgent_message: string -> unit
   val error_message': serial * string -> unit
   val error_message: string -> unit
+  val system_message: string -> unit
   val prompt: string -> unit
   val status: string -> unit
   val report: string list -> unit
@@ -45,6 +46,7 @@ sig
   val tracing_fn: (output list -> unit) Unsynchronized.ref
   val warning_fn: (output list -> unit) Unsynchronized.ref
   val error_message_fn: (serial * output list -> unit) Unsynchronized.ref
+  val system_message_fn: (output list -> unit) Unsynchronized.ref
   val prompt_fn: (output -> unit) Unsynchronized.ref
   val status_fn: (output list -> unit) Unsynchronized.ref
   val report_fn: (output list -> unit) Unsynchronized.ref
@@ -101,6 +103,7 @@ val tracing_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
 val warning_fn = Unsynchronized.ref (physical_writeln o prefix_lines "### " o implode);
 val error_message_fn =
   Unsynchronized.ref (fn (_: serial, ss) => physical_writeln (prefix_lines "*** " (implode ss)));
+val system_message_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
 val prompt_fn = Unsynchronized.ref physical_stdout;  (*Proof General legacy*)
 val status_fn = Unsynchronized.ref (fn _: output list => ());
 val report_fn = Unsynchronized.ref (fn _: output list => ());
@@ -115,6 +118,7 @@ fun tracing s = ! tracing_fn [output s];
 fun warning s = ! warning_fn [output s];
 fun error_message' (i, s) = ! error_message_fn (i, [output s]);
 fun error_message s = error_message' (serial (), s);
+fun system_message s = ! system_message_fn [output s];
 fun prompt s = ! prompt_fn (output s);
 fun status s = ! status_fn [output s];
 fun report ss = ! report_fn (map output ss);
