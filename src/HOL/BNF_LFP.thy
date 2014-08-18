@@ -193,8 +193,6 @@ ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 
-datatype_new 'a l = N | C 'a "'a l"
-
 hide_fact (open) id_transfer
 
 end
