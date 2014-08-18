@@ -922,11 +922,14 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{set_map}\rm:] ~ \\
 @{thm list.set_map[no_vars]}
 
-\item[@{text "t."}\hthm{map_comp}\rm:] ~ \\
+\item[@{text "t."}\hthm{map_comg0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
 
 \item[@{text "t."}\hthm{map_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.map_cong[no_vars]}
+
+\item[@{text "t."}\hthm{map_cong_simp}\rm:] ~ \\
+@{thm list.map_cong_simp[no_vars]}
 
 \item[@{text "t."}\hthm{map_id}\rm:] ~ \\
 @{thm list.map_id[no_vars]}
