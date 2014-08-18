@@ -1574,9 +1574,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                             |> singleton (Proof_Context.export names_lthy lthy)
                             |> Thm.close_derivation
                             |> rotate_prems ~1;
+
+                          val consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
+                          val cases_set_attr =
+                            Attrib.internal (K (Induct.cases_pred (name_of_set set)));
                         in
-                          (thm, [](* TODO: [@{attributes [elim?]},
-                            Attrib.internal (K (Induct.cases_pred (name_of_set set)))] *))
+                          (* TODO: @{attributes [elim?]} *)
+                          (thm, [consumes_attr, cases_set_attr])
                         end) setAs)
                     end;
 
