@@ -984,12 +984,12 @@ fun prepare_free_constructors prep_term
            (injectN, inject_thms, iff_attrs @ inductsimp_attrs),
            (nchotomyN, [nchotomy_thm], []),
            (selN, all_sel_thms, code_nitpicksimp_simp_attrs),
-           (split_selN, split_sel_thms, []),
-           (split_sel_asmN, split_sel_asm_thms, []),
            (splitN, [split_thm], []),
            (split_asmN, [split_asm_thm], []),
-           (splitsN, [split_thm, split_asm_thm], []),
-           (split_selsN, split_sel_thms @ split_sel_asm_thms, [])]
+           (split_selN, split_sel_thms, []),
+           (split_sel_asmN, split_sel_asm_thms, []),
+           (split_selsN, split_sel_thms @ split_sel_asm_thms, []),
+           (splitsN, [split_thm, split_asm_thm], [])]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
