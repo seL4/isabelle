@@ -11,6 +11,7 @@ signature BNF_DEF_TACTICS =
 sig
   val mk_collect_set_map_tac: thm list -> tactic
   val mk_in_mono_tac: int -> tactic
+  val mk_inj_map_strong_tac: Proof.context -> thm -> thm list -> thm -> tactic
   val mk_inj_map_tac: int -> thm -> thm -> thm -> thm -> tactic
   val mk_map_id: thm -> thm
   val mk_map_ident: Proof.context -> thm -> thm
@@ -68,6 +69,17 @@ fun mk_inj_map_tac n map_id map_comp map_cong0 map_cong =
     HEADGOAL (rtac @{thm injI} THEN' etac (map_cong' RS box_equals) THEN'
       REPEAT_DETERM_N 2 o (rtac (box_equals OF [map_cong0', map_comp RS sym, map_id]) THEN'
         REPEAT_DETERM_N n o atac))
+  end;
+
+fun mk_inj_map_strong_tac ctxt rel_eq rel_maps rel_mono_strong =
+  let
+    val rel_eq' = rel_eq RS @{thm predicate2_eqD};
+    val rel_maps' = map (fn thm => thm RS iffD1) rel_maps;
+  in
+    HEADGOAL (dtac (rel_eq' RS iffD2) THEN' rtac (rel_eq' RS iffD1)) THEN
+    EVERY (map (HEADGOAL o dtac) rel_maps') THEN
+    HEADGOAL (etac rel_mono_strong) THEN
+    TRYALL (Goal.assume_rule_tac ctxt)
   end;
 
 fun mk_collect_set_map_tac set_map0s =
@@ -197,7 +209,7 @@ fun mk_rel_OO_le_tac ctxt rel_OO_Grps rel_eq map_cong0 map_comp set_maps =
         REPEAT_DETERM_N n o rtac @{thm fst_fstOp},
         in_tac @{thm fstOp_in},
         rtac @{thm GrpI}, rtac trans, rtac map_comp, rtac map_cong0,
-        REPEAT_DETERM_N n o EVERY' [rtac trans, rtac o_apply, 
+        REPEAT_DETERM_N n o EVERY' [rtac trans, rtac o_apply,
           rtac ballE, rtac subst,
           rtac @{thm csquare_def}, rtac @{thm csquare_fstOp_sndOp}, atac, etac notE,
           etac set_mp, atac],
@@ -252,10 +264,10 @@ fun mk_in_bd_tac ctxt live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_ma
     let
       val bd'_Cinfinite = bd_Cinfinite RS @{thm Cinfinite_csum1};
       val inserts =
-        map (fn set_bd => 
+        map (fn set_bd =>
           iffD2 OF [@{thm card_of_ordLeq}, @{thm ordLeq_ordIso_trans} OF
             [set_bd, bd_Card_order RS @{thm card_of_Field_ordIso} RS @{thm ordIso_symmetric}]])
-        set_bds;        
+        set_bds;
     in
       EVERY' [rtac (Drule.rotate_prems 1 ctrans), rtac @{thm cprod_cinfinite_bound},
         rtac (ctrans OF @{thms ordLeq_csum2 ordLeq_cexp2}), rtac @{thm card_of_Card_order},
