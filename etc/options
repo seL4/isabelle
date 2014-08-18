@@ -138,6 +138,9 @@ public option editor_continuous_checking : bool = true
 option editor_execution_delay : real = 0.02
   -- "delay for start of execution process after document update (seconds)"
 
+option editor_syslog_limit : int = 100
+  -- "maximum amount of buffered syslog messages"
+
 
 section "Miscellaneous Tools"
 

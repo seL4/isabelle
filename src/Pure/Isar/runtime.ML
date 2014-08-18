@@ -16,6 +16,7 @@ sig
   val exn_messages: exn -> (serial * string) list
   val exn_message: exn -> string
   val exn_error_message: exn -> unit
+  val exn_system_message: exn -> unit
   val exn_trace: (unit -> 'a) -> 'a
   val debugging: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val controlled_execution: Context.generic option -> ('a -> 'b) -> 'a -> 'b
@@ -135,6 +136,7 @@ fun exn_message exn =
   | msgs => cat_lines (map snd msgs));
 
 val exn_error_message = Output.error_message o exn_message;
+val exn_system_message = Output.system_message o exn_message;
 fun exn_trace e = print_exception_trace exn_message e;
 
 
