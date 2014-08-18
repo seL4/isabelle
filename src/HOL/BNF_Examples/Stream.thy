@@ -27,39 +27,14 @@ lemma smember_code[code, simp]: "smember x (y ## s) = (if x = y then True else s
 
 hide_const (open) smember
 
-(* TODO: Provide by the package*)
-theorem sset_induct:
-  assumes Base: "\<And>s. P (shd s) s" and Step: "\<And>s y. \<lbrakk>y \<in> sset (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s"
-  shows "\<forall>y \<in> sset s. P y s"
-proof (rule stream.dtor_set_induct)
-  fix a :: 'a and s :: "'a stream"
-  assume "a \<in> set1_pre_stream (dtor_stream s)"
-  then have "a = shd s"
-    by (cases "dtor_stream s")
-      (auto simp: BNF_Comp.id_bnf_comp_def shd_def fsts_def set1_pre_stream_def stream.dtor_ctor SCons_def
-        split: stream.splits)
-  with Base show "P a s" by simp
-next
-  fix a :: 'a and s' :: "'a stream"  and s :: "'a stream"
-  assume "s' \<in> set2_pre_stream (dtor_stream s)" and prems: "a \<in> sset s'" "P a s'"
-  then have "s' = stl s"
-    by (cases "dtor_stream s")
-      (auto simp: BNF_Comp.id_bnf_comp_def stl_def snds_def set2_pre_stream_def stream.dtor_ctor SCons_def
-        split: stream.splits)
-  with Step prems show "P a s" by simp
-qed
-
 lemmas smap_simps[simp] = stream.map_sel
 lemmas shd_sset = stream.set_sel(1)
 lemmas stl_sset = stream.set_sel(2)
 
-(* only for the non-mutual case: *)
-theorem sset_induct1[consumes 1, case_names shd stl, induct set: "sset"]:
-  assumes "y \<in> sset s" and "\<And>s. P (shd s) s"
-  and "\<And>s y. \<lbrakk>y \<in> sset (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s"
+theorem sset_induct[consumes 1, case_names shd stl, induct set: sset]:
+  assumes "y \<in> sset s" and "\<And>s. P (shd s) s" and "\<And>s y. \<lbrakk>y \<in> sset (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s"
   shows "P y s"
-  using assms sset_induct by blast
-(* end TODO *)
+using assms by induct (metis stream.sel(1), auto)
 
 
 subsection {* prepend list to stream *}
@@ -456,7 +431,7 @@ proof safe
   thus "x \<in> ?R" by (auto simp: sset_range dest!: nth_mem)
 next
   fix x xs assume "xs \<in> sset s" ?P "x \<in> set xs" thus "x \<in> ?L"
-    by (induct rule: sset_induct1)
+    by (induct rule: sset_induct)
       (metis UnI1 flat_unfold shift.simps(1) sset_shift,
        metis UnI2 flat_unfold shd_sset stl_sset sset_shift)
 qed
