@@ -234,7 +234,7 @@ fun check_shyps sorts raw_th =
 fun is_dummy thm =
   (case try Logic.dest_term (Thm.concl_of thm) of
     NONE => false
-  | SOME t => Term.is_dummy_pattern t);
+  | SOME t => Term.is_dummy_pattern (Term.head_of t));
 
 fun plain_prop_of raw_thm =
   let
