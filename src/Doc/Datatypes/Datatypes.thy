@@ -535,7 +535,7 @@ the usual parenthesized mixfix notation, and \synt{typefree} denotes fixed type
 variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
-names of the set functions (@{text set1_t}, \ldots, @{text setM_t}). Type
+names of the set functions (@{text set\<^sub>1_t}, \ldots, @{text set\<^sub>m_t}). Type
 arguments can be marked as dead by entering ``@{text dead}'' in front of the
 type variable (e.g., ``@{text "(dead 'a)"}''); otherwise, they are live or dead
 (and a set function is generated or not) depending on where they occur in the
@@ -647,13 +647,13 @@ following auxiliary constants are introduced:
 Case combinator: &
   @{text t.case_t} (rendered using the familiar @{text case}--@{text of} syntax) \\
 Discriminators: &
-  @{text "t.is_C\<^sub>1"}$, \ldots, $@{text "t.is_C\<^sub>n"} \\
+  @{text t.is_C\<^sub>1}$, \ldots, $@{text t.is_C\<^sub>n} \\
 Selectors: &
   @{text t.un_C\<^sub>11}$, \ldots, $@{text t.un_C\<^sub>1k\<^sub>1} \\
 & \quad\vdots \\
 & @{text t.un_C\<^sub>n1}$, \ldots, $@{text t.un_C\<^sub>nk\<^sub>n} \\
 Set functions: &
-  @{text t.set1_t}, \ldots, @{text t.setm_t} \\
+  @{text t.set\<^sub>1_t}, \ldots, @{text t.set\<^sub>m_t} \\
 Map function: &
   @{text t.map_t} \\
 Relator: &
@@ -860,7 +860,7 @@ a set function, the map function, or the relator:
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]}
 
-\item[@{text "t."}\hthm{set_cases}\rm:] ~ \\
+\item[@{text "t."}\hthm{set_cases} @{text "[consumes 1, cases set: set\<^sub>i_t]"}\rm:] ~ \\
 @{thm list.set_cases[no_vars]}
 
 \item[@{text "t."}\hthm{set_empty}\rm:] ~ \\
