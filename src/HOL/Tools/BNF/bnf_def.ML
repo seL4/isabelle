@@ -74,6 +74,7 @@ sig
   val rel_conversep_of_bnf: bnf -> thm
   val rel_mono_of_bnf: bnf -> thm
   val rel_mono_strong0_of_bnf: bnf -> thm
+  val rel_mono_strong_of_bnf: bnf -> thm
   val rel_eq_of_bnf: bnf -> thm
   val rel_flip_of_bnf: bnf -> thm
   val set_bd_of_bnf: bnf -> thm list
@@ -235,6 +236,7 @@ type facts = {
   rel_map: thm list lazy,
   rel_mono: thm lazy,
   rel_mono_strong0: thm lazy,
+  rel_mono_strong: thm lazy,
   rel_Grp: thm lazy,
   rel_conversep: thm lazy,
   rel_OO: thm lazy
@@ -242,7 +244,7 @@ type facts = {
 
 fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong in_mono in_rel
     inj_map map_comp map_cong map_id map_ident0 map_ident map_transfer rel_eq rel_flip set_map
-    rel_cong rel_map rel_mono rel_mono_strong0 rel_Grp rel_conversep rel_OO = {
+    rel_cong rel_map rel_mono rel_mono_strong0 rel_mono_strong rel_Grp rel_conversep rel_OO = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
   bd_Cnotzero = bd_Cnotzero,
@@ -265,6 +267,7 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_con
   rel_map = rel_map,
   rel_mono = rel_mono,
   rel_mono_strong0 = rel_mono_strong0,
+  rel_mono_strong = rel_mono_strong,
   rel_Grp = rel_Grp,
   rel_conversep = rel_conversep,
   rel_OO = rel_OO};
@@ -292,6 +295,7 @@ fun map_facts f {
   rel_map,
   rel_mono,
   rel_mono_strong0,
+  rel_mono_strong,
   rel_Grp,
   rel_conversep,
   rel_OO} =
@@ -317,6 +321,7 @@ fun map_facts f {
     rel_map = Lazy.map (map f) rel_map,
     rel_mono = Lazy.map f rel_mono,
     rel_mono_strong0 = Lazy.map f rel_mono_strong0,
+    rel_mono_strong = Lazy.map f rel_mono_strong,
     rel_Grp = Lazy.map f rel_Grp,
     rel_conversep = Lazy.map f rel_conversep,
     rel_OO = Lazy.map f rel_OO};
@@ -446,6 +451,7 @@ val set_map_of_bnf = map Lazy.force o #set_map o #facts o rep_bnf;
 val rel_cong_of_bnf = Lazy.force o #rel_cong o #facts o rep_bnf;
 val rel_mono_of_bnf = Lazy.force o #rel_mono o #facts o rep_bnf;
 val rel_mono_strong0_of_bnf = Lazy.force o #rel_mono_strong0 o #facts o rep_bnf;
+val rel_mono_strong_of_bnf = Lazy.force o #rel_mono_strong o #facts o rep_bnf;
 val rel_Grp_of_bnf = Lazy.force o #rel_Grp o #facts o rep_bnf;
 val rel_conversep_of_bnf = Lazy.force o #rel_conversep o #facts o rep_bnf;
 val rel_OO_of_bnf = Lazy.force o #rel_OO o #facts o rep_bnf;
@@ -616,6 +622,7 @@ val rel_conversepN = "rel_conversep";
 val rel_mapN = "rel_map"
 val rel_monoN = "rel_mono"
 val rel_mono_strong0N = "rel_mono_strong0"
+val rel_mono_strongN = "rel_mono_strong"
 val rel_comppN = "rel_compp";
 val rel_compp_GrpN = "rel_compp_Grp";
 
@@ -656,6 +663,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (map_comp0N, [#map_comp0 axioms]),
            (map_transferN, [Lazy.force (#map_transfer facts)]),
            (rel_mono_strong0N, [Lazy.force (#rel_mono_strong0 facts)]),
+           (rel_mono_strongN, [Lazy.force (#rel_mono_strong facts)]),
            (set_map0N, #set_map0 axioms),
            (set_bdN, #set_bd axioms)] @
           (witNs ~~ wit_thmss_of_bnf bnf)
@@ -1319,6 +1327,10 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         val rel_mono_strong0 = Lazy.lazy mk_rel_mono_strong0;
 
+        fun mk_rel_mono_strong () = Object_Logic.rulify lthy (Lazy.force rel_mono_strong0)
+
+        val rel_mono_strong = Lazy.lazy mk_rel_mono_strong;
+
         fun mk_rel_map () =
           let
             fun mk_goal lhs rhs =
@@ -1368,7 +1380,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong
           in_mono in_rel inj_map map_comp map_cong map_id map_ident0 map_ident map_transfer rel_eq
-          rel_flip set_map rel_cong rel_map rel_mono rel_mono_strong0 rel_Grp rel_conversep rel_OO;
+          rel_flip set_map rel_cong rel_map rel_mono rel_mono_strong0 rel_mono_strong rel_Grp
+          rel_conversep rel_OO;
 
         val wits = map2 mk_witness bnf_wits wit_thms;
 
