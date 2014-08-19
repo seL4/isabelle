@@ -932,15 +932,13 @@ val cases_setup =
           (cases_tac ctxt (not no_simp) insts opt_rule facts)))))
     "case analysis on types or predicates/sets";
 
-fun gen_induct_setup binding itac =
+fun gen_induct_setup binding tac =
   Method.setup binding
     (Scan.lift (Args.mode no_simpN) --
       (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
         (arbitrary -- taking -- Scan.option induct_rule)) >>
-      (fn (no_simp, (insts, ((arbitrary, taking), opt_rule))) => fn ctxt =>
-        RAW_METHOD_CASES (fn facts =>
-          Seq.DETERM
-            (HEADGOAL (itac ctxt (not no_simp) insts arbitrary taking opt_rule facts)))))
+      (fn (no_simp, (insts, ((arbitrary, taking), opt_rule))) => fn ctxt => fn facts =>
+        Seq.DETERM (HEADGOAL (tac ctxt (not no_simp) insts arbitrary taking opt_rule facts))))
     "induction on types or predicates/sets";
 
 val induct_setup = gen_induct_setup @{binding induct} induct_tac;
@@ -948,9 +946,8 @@ val induct_setup = gen_induct_setup @{binding induct} induct_tac;
 val coinduct_setup =
   Method.setup @{binding coinduct}
     (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule >>
-      (fn ((insts, taking), opt_rule) => fn ctxt =>
-        RAW_METHOD_CASES (fn facts =>
-          Seq.DETERM (HEADGOAL (coinduct_tac ctxt insts taking opt_rule facts)))))
+      (fn ((insts, taking), opt_rule) => fn ctxt => fn facts =>
+        Seq.DETERM (HEADGOAL (coinduct_tac ctxt insts taking opt_rule facts))))
     "coinduction on types or predicates/sets";
 
 end;

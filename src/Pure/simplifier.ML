@@ -374,7 +374,7 @@ fun method_setup more_mods =
   Method.setup @{binding simp_all}
     (simp_method more_mods (fn ctxt => fn tac => fn facts =>
       ALLGOALS (Method.insert_tac facts) THEN
-        (CHANGED_PROP o PARALLEL_GOALS o ALLGOALS o tac) ctxt))
+        (CHANGED_PROP o PARALLEL_ALLGOALS o tac) ctxt))
     "simplification (all goals)";
 
 fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn ctxt0 =>

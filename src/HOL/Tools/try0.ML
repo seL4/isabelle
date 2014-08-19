@@ -59,7 +59,7 @@ fun apply_named_method_on_first_goal ctxt =
   parse_method
   #> Method.method_cmd ctxt
   #> Method.Basic
-  #> (fn m => Method.Select_Goals (Method.no_combinator_info, 1, m))
+  #> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
   #> Proof.refine;
 
 fun add_attr_text (NONE, _) s = s

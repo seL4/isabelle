@@ -6,10 +6,7 @@ Isar proof methods.
 
 signature METHOD =
 sig
-  type method
-  val apply: (Proof.context -> method) -> Proof.context -> thm list -> cases_tactic
-  val RAW_METHOD_CASES: (thm list -> cases_tactic) -> method
-  val RAW_METHOD: (thm list -> tactic) -> method
+  type method = thm list -> cases_tactic
   val METHOD_CASES: (thm list -> cases_tactic) -> method
   val METHOD: (thm list -> tactic) -> method
   val fail: method
@@ -47,14 +44,12 @@ sig
   type src = Args.src
   type combinator_info
   val no_combinator_info: combinator_info
+  datatype combinator = Then | Orelse | Try | Repeat1 | Select_Goals of int
   datatype text =
     Source of src |
     Basic of Proof.context -> method |
-    Then of combinator_info * text list |
-    Orelse of combinator_info * text list |
-    Try of combinator_info * text |
-    Repeat1 of combinator_info * text |
-    Select_Goals of combinator_info * int * text
+    Combinator of combinator_info * combinator * text list
+  val map_source: (src -> src) -> text -> text
   val primitive_text: (Proof.context -> thm -> thm) -> text
   val succeed_text: text
   val default_text: text
@@ -64,14 +59,16 @@ sig
   val finish_text: text option * bool -> text
   val print_methods: Proof.context -> unit
   val check_name: Proof.context -> xstring * Position.T -> string
-  val method: Proof.context -> src -> Proof.context -> method
-  val method_cmd: Proof.context -> src -> Proof.context -> method
   val method_syntax: (Proof.context -> method) context_parser -> Args.src -> Proof.context -> method
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val local_setup: binding -> (Proof.context -> method) context_parser -> string ->
     local_theory -> local_theory
   val method_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
     local_theory -> local_theory
+  val method: Proof.context -> src -> Proof.context -> method
+  val method_closure: Proof.context -> src -> src
+  val method_cmd: Proof.context -> src -> Proof.context -> method
+  val evaluate: text -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
@@ -88,20 +85,12 @@ struct
 
 (** proof methods **)
 
-(* datatype method *)
+(* method *)
 
-datatype method = Meth of thm list -> cases_tactic;
+type method = thm list -> cases_tactic;
 
-fun apply meth ctxt = let val Meth m = meth ctxt in m end;
-
-val RAW_METHOD_CASES = Meth;
-
-fun RAW_METHOD tac = RAW_METHOD_CASES (NO_CASES o tac);
-
-fun METHOD_CASES tac = RAW_METHOD_CASES (fn facts =>
-  Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts));
-
-fun METHOD tac = RAW_METHOD (fn facts => ALLGOALS Goal.conjunction_tac THEN tac facts);
+fun METHOD_CASES tac facts = Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
+fun METHOD tac facts = NO_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
@@ -154,7 +143,7 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.fold_tac ctxt t
 fun atomize false ctxt =
       SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_tac ctxt)
   | atomize true ctxt =
-      RAW_METHOD (K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt)));
+      NO_CASES o K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt));
 
 
 (* this -- resolve facts directly *)
@@ -277,7 +266,7 @@ fun ml_tactic source ctxt =
   in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (ML_Tactic.get ctxt') end;
 
 fun tactic source ctxt = METHOD (ml_tactic source ctxt);
-fun raw_tactic source ctxt = RAW_METHOD (ml_tactic source ctxt);
+fun raw_tactic source ctxt = NO_CASES o ml_tactic source ctxt;
 
 
 
@@ -291,14 +280,16 @@ datatype combinator_info = Combinator_Info of {keywords: Position.T list};
 fun combinator_info keywords = Combinator_Info {keywords = keywords};
 val no_combinator_info = combinator_info [];
 
+datatype combinator = Then | Orelse | Try | Repeat1 | Select_Goals of int;
+
 datatype text =
   Source of src |
   Basic of Proof.context -> method |
-  Then of combinator_info * text list |
-  Orelse of combinator_info * text list |
-  Try of combinator_info * text |
-  Repeat1 of combinator_info * text |
-  Select_Goals of combinator_info * int * text;
+  Combinator of combinator_info * combinator * text list;
+
+fun map_source f (Source src) = Source (f src)
+  | map_source _ (Basic meth) = Basic meth
+  | map_source f (Combinator (info, comb, txts)) = Combinator (info, comb, map (map_source f) txts);
 
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
@@ -308,7 +299,8 @@ val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
 
 fun finish_text (NONE, immed) = Basic (finish immed)
-  | finish_text (SOME txt, immed) = Then (no_combinator_info, [txt, Basic (finish immed)]);
+  | finish_text (SOME txt, immed) =
+      Combinator (no_combinator_info, Then, [txt, Basic (finish immed)]);
 
 
 (* method definitions *)
@@ -365,23 +357,6 @@ fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ct
 fun check_src ctxt src = Args.check_src ctxt (get_methods ctxt) src;
 
 
-(* get methods *)
-
-fun method ctxt =
-  let val table = get_methods ctxt
-  in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
-
-fun method_closure ctxt0 src0 =
-  let
-    val (src1, meth) = check_src ctxt0 src0;
-    val src2 = Args.init_assignable src1;
-    val ctxt = Context_Position.not_really ctxt0;
-    val _ = Seq.pull (apply (method ctxt src2) ctxt [] (Goal.protect 0 Drule.dummy_thm));
-  in Args.closure src2 end;
-
-fun method_cmd ctxt = method ctxt o method_closure ctxt;
-
-
 (* method setup *)
 
 fun method_syntax scan src ctxt : method =
@@ -398,6 +373,67 @@ fun method_setup name source cmt =
     "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
     "Context.map_proof (Method.local_setup name scan comment)"
   |> Context.proof_map;
+
+
+(* prepare methods *)
+
+fun method ctxt =
+  let val table = get_methods ctxt
+  in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
+
+fun method_closure ctxt0 src0 =
+  let
+    val (src1, meth) = check_src ctxt0 src0;
+    val src2 = Args.init_assignable src1;
+    val ctxt = Context_Position.not_really ctxt0;
+    val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
+  in Args.closure src2 end;
+
+fun method_cmd ctxt = method ctxt o method_closure ctxt;
+
+
+(* evaluate method text *)
+
+local
+
+fun APPEND_CASES (meth: cases_tactic) (cases, st) =
+  meth st |> Seq.map (fn (cases', st') => (cases @ cases', st'));
+
+fun BYPASS_CASES (tac: tactic) (cases, st) =
+  tac st |> Seq.map (pair cases);
+
+val op THEN = Seq.THEN;
+
+fun SELECT_GOALS n method =
+  BYPASS_CASES
+    (ALLGOALS Goal.conjunction_tac THEN PRIMITIVE (Goal.restrict 1 n) THEN Goal.conjunction_tac 1)
+  THEN method
+  THEN BYPASS_CASES (PRIMITIVE (Goal.unrestrict 1));
+
+fun COMBINATOR1 comb [meth] = comb meth
+  | COMBINATOR1 _ _ = raise Fail "Method combinator requires exactly one argument";
+
+fun combinator Then = Seq.EVERY
+  | combinator Orelse = Seq.FIRST
+  | combinator Try = COMBINATOR1 Seq.TRY
+  | combinator Repeat1 = COMBINATOR1 Seq.REPEAT1
+  | combinator (Select_Goals n) = COMBINATOR1 (SELECT_GOALS n);
+
+in
+
+fun evaluate text ctxt =
+  let
+    fun eval (Basic meth) = APPEND_CASES o meth ctxt
+      | eval (Source src) = APPEND_CASES o method_cmd ctxt src ctxt
+      | eval (Combinator (_, c, txts)) =
+          let
+            val comb = combinator c;
+            val meths = map eval txts;
+          in fn facts => comb (map (fn meth => meth facts) meths) end;
+    val meth = eval text;
+  in fn facts => fn st => meth facts ([], st) end;
+
+end;
 
 
 
@@ -446,16 +482,8 @@ local
 
 fun keyword_positions (Source _) = []
   | keyword_positions (Basic _) = []
-  | keyword_positions (Then (Combinator_Info {keywords}, texts)) =
-      keywords @ maps keyword_positions texts
-  | keyword_positions (Orelse (Combinator_Info {keywords}, texts)) =
-      keywords @ maps keyword_positions texts
-  | keyword_positions (Try (Combinator_Info {keywords}, text)) =
-      keywords @ keyword_positions text
-  | keyword_positions (Repeat1 (Combinator_Info {keywords}, text)) =
-      keywords @ keyword_positions text
-  | keyword_positions (Select_Goals (Combinator_Info {keywords}, _, text)) =
-      keywords @ keyword_positions text;
+  | keyword_positions (Combinator (Combinator_Info {keywords}, _, texts)) =
+      keywords @ maps keyword_positions texts;
 
 in
 
@@ -483,23 +511,23 @@ fun meth4 x =
   Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
 and meth3 x =
  (meth4 -- Parse.position (Parse.$$$ "?")
-    >> (fn (m, (_, pos)) => Try (combinator_info [pos], m)) ||
+    >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Try, [m])) ||
   meth4 -- Parse.position (Parse.$$$ "+")
-    >> (fn (m, (_, pos)) => Repeat1 (combinator_info [pos], m)) ||
+    >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Repeat1, [m])) ||
   meth4 --
     (Parse.position (Parse.$$$ "[") -- Scan.optional Parse.nat 1 -- Parse.position (Parse.$$$ "]"))
     >> (fn (m, (((_, pos1), n), (_, pos2))) =>
-        Select_Goals (combinator_info [pos1, pos2], n, m)) ||
+        Combinator (combinator_info [pos1, pos2], Select_Goals n, [m])) ||
   meth4) x
 and meth2 x =
  (Parse.position Parse.xname -- Parse.args1 is_symid_meth >> (Source o uncurry Args.src) ||
   meth3) x
 and meth1 x =
   (Parse.enum1_positions "," meth2
-    >> (fn ([m], _) => m | (ms, ps) => Then (combinator_info ps, ms))) x
+    >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Then, ms))) x
 and meth0 x =
   (Parse.enum1_positions "|" meth1
-    >> (fn ([m], _) => m | (ms, ps) => Orelse (combinator_info ps, ms))) x;
+    >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Orelse, ms))) x;
 
 in
 
@@ -553,8 +581,6 @@ val fold = fold_meth;
 
 end;
 
-val RAW_METHOD_CASES = Method.RAW_METHOD_CASES;
-val RAW_METHOD = Method.RAW_METHOD;
 val METHOD_CASES = Method.METHOD_CASES;
 val METHOD = Method.METHOD;
 val SIMPLE_METHOD = Method.SIMPLE_METHOD;

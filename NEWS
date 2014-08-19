@@ -52,6 +52,12 @@ semantics due to external visual order vs. internal reverse order.
       min
 
 
+*** ML ***
+
+* Tactical PARALLEL_ALLGOALS is the most common way to refer to
+PARALLEL_GOALS.
+
+
 
 New in Isabelle2014 (August 2014)
 ---------------------------------
