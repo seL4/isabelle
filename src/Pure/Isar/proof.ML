@@ -395,26 +395,27 @@ fun goal_cases st =
   Rule_Cases.make_common
     (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
 
-fun apply_method current_context method state =
-  let
-    val (goal_ctxt, (_, {statement, messages = _, using, goal, before_qed, after_qed})) =
-      find_goal state;
-    val ctxt = if current_context then context_of state else goal_ctxt;
-  in
-    method ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
+fun apply_method meth state =
+  #2 (#2 (find_goal state))
+  |> (fn {statement, messages = _, using, goal, before_qed, after_qed} =>
+    meth using goal
+    |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
           (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases goal') #>
            Proof_Context.update_cases true meth_cases)
-          (K (statement, [], using, goal', before_qed, after_qed)) I)
-  end;
+          (K (statement, [], using, goal', before_qed, after_qed)) I));
 
 in
 
-fun refine text state = apply_method true (Method.evaluate (context_of state) text) state;
-fun refine_end text state = apply_method false (Method.evaluate (context_of state) text) state;
+fun refine text state =
+  apply_method (Method.evaluate text (context_of state) (context_of state)) state;
 
-fun refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
+fun refine_end text state =
+  apply_method (Method.evaluate text (context_of state) (#1 (find_goal state))) state;
+
+fun refine_insert ths =
+  Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
 

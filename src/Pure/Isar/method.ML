@@ -69,7 +69,7 @@ sig
     local_theory -> local_theory
   val method_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
     local_theory -> local_theory
-  val evaluate: Proof.context -> text -> Proof.context -> method
+  val evaluate: text -> Proof.context -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
@@ -413,7 +413,7 @@ fun combinator1 comb meth ctxt facts = comb (meth ctxt facts);
 
 in
 
-fun evaluate static_ctxt text =
+fun evaluate text static_ctxt =
   let
     fun eval (Basic meth) = APPEND_CASES oo meth
       | eval (Source src) = APPEND_CASES oo method_cmd static_ctxt src
