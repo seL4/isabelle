@@ -49,6 +49,7 @@ sig
     Source of src |
     Basic of Proof.context -> method |
     Combinator of combinator_info * combinator * text list
+  val map_source: (src -> src) -> text -> text
   val primitive_text: (Proof.context -> thm -> thm) -> text
   val succeed_text: text
   val default_text: text
@@ -58,14 +59,15 @@ sig
   val finish_text: text option * bool -> text
   val print_methods: Proof.context -> unit
   val check_name: Proof.context -> xstring * Position.T -> string
-  val method: Proof.context -> src -> Proof.context -> method
-  val method_cmd: Proof.context -> src -> Proof.context -> method
   val method_syntax: (Proof.context -> method) context_parser -> Args.src -> Proof.context -> method
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val local_setup: binding -> (Proof.context -> method) context_parser -> string ->
     local_theory -> local_theory
   val method_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
     local_theory -> local_theory
+  val method: Proof.context -> src -> Proof.context -> method
+  val method_closure: Proof.context -> src -> src
+  val method_cmd: Proof.context -> src -> Proof.context -> method
   val evaluate: text -> Proof.context -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
@@ -83,7 +85,7 @@ struct
 
 (** proof methods **)
 
-(* datatype method *)
+(* method *)
 
 type method = thm list -> cases_tactic;
 
@@ -285,6 +287,10 @@ datatype text =
   Basic of Proof.context -> method |
   Combinator of combinator_info * combinator * text list;
 
+fun map_source f (Source src) = Source (f src)
+  | map_source _ (Basic meth) = Basic meth
+  | map_source f (Combinator (info, comb, txts)) = Combinator (info, comb, map (map_source f) txts);
+
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
 val default_text = Source (Args.src ("default", Position.none) []);
@@ -351,23 +357,6 @@ fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ct
 fun check_src ctxt src = Args.check_src ctxt (get_methods ctxt) src;
 
 
-(* get methods *)
-
-fun method ctxt =
-  let val table = get_methods ctxt
-  in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
-
-fun method_closure ctxt0 src0 =
-  let
-    val (src1, meth) = check_src ctxt0 src0;
-    val src2 = Args.init_assignable src1;
-    val ctxt = Context_Position.not_really ctxt0;
-    val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
-  in Args.closure src2 end;
-
-fun method_cmd ctxt = method ctxt o method_closure ctxt;
-
-
 (* method setup *)
 
 fun method_syntax scan src ctxt : method =
@@ -384,6 +373,23 @@ fun method_setup name source cmt =
     "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
     "Context.map_proof (Method.local_setup name scan comment)"
   |> Context.proof_map;
+
+
+(* prepare methods *)
+
+fun method ctxt =
+  let val table = get_methods ctxt
+  in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
+
+fun method_closure ctxt0 src0 =
+  let
+    val (src1, meth) = check_src ctxt0 src0;
+    val src2 = Args.init_assignable src1;
+    val ctxt = Context_Position.not_really ctxt0;
+    val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
+  in Args.closure src2 end;
+
+fun method_cmd ctxt = method ctxt o method_closure ctxt;
 
 
 (* evaluate method text *)
