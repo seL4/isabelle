@@ -974,7 +974,7 @@ fun distinctness_formula T =
 fun zero_const T = Const (@{const_name zero_class.zero}, T)
 fun suc_const T = Const (@{const_name Suc}, T --> T)
 
-fun uncached_data_type_constrs ({thy, ctxt, ...} : hol_context) (T as Type (s, _)) =
+fun uncached_data_type_constrs ({ctxt, ...} : hol_context) (T as Type (s, _)) =
     if is_interpreted_type s then
       []
     else
