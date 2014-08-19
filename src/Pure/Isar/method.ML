@@ -44,14 +44,11 @@ sig
   type src = Args.src
   type combinator_info
   val no_combinator_info: combinator_info
+  datatype combinator = Then | Orelse | Try | Repeat1 | Select_Goals of int
   datatype text =
     Source of src |
     Basic of Proof.context -> method |
-    Then of combinator_info * text list |
-    Orelse of combinator_info * text list |
-    Try of combinator_info * text |
-    Repeat1 of combinator_info * text |
-    Select_Goals of combinator_info * int * text
+    Combinator of combinator_info * combinator * text list
   val primitive_text: (Proof.context -> thm -> thm) -> text
   val succeed_text: text
   val default_text: text
@@ -281,14 +278,12 @@ datatype combinator_info = Combinator_Info of {keywords: Position.T list};
 fun combinator_info keywords = Combinator_Info {keywords = keywords};
 val no_combinator_info = combinator_info [];
 
+datatype combinator = Then | Orelse | Try | Repeat1 | Select_Goals of int;
+
 datatype text =
   Source of src |
   Basic of Proof.context -> method |
-  Then of combinator_info * text list |
-  Orelse of combinator_info * text list |
-  Try of combinator_info * text |
-  Repeat1 of combinator_info * text |
-  Select_Goals of combinator_info * int * text;
+  Combinator of combinator_info * combinator * text list;
 
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
@@ -298,7 +293,8 @@ val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
 
 fun finish_text (NONE, immed) = Basic (finish immed)
-  | finish_text (SOME txt, immed) = Then (no_combinator_info, [txt, Basic (finish immed)]);
+  | finish_text (SOME txt, immed) =
+      Combinator (no_combinator_info, Then, [txt, Basic (finish immed)]);
 
 
 (* method definitions *)
@@ -408,8 +404,14 @@ fun SELECT_GOALS n method =
   THEN method
   THEN BYPASS_CASES (PRIMITIVE (Goal.unrestrict 1));
 
-fun combinator comb meths ctxt facts = comb (map (fn meth => meth ctxt facts) meths);
-fun combinator1 comb meth ctxt facts = comb (meth ctxt facts);
+fun COMBINATOR1 comb [meth] = comb meth
+  | COMBINATOR1 _ _ = raise Fail "Method combinator requires exactly one argument";
+
+fun combinator Then = Seq.EVERY
+  | combinator Orelse = Seq.FIRST
+  | combinator Try = COMBINATOR1 Seq.TRY
+  | combinator Repeat1 = COMBINATOR1 Seq.REPEAT1
+  | combinator (Select_Goals n) = COMBINATOR1 (SELECT_GOALS n);
 
 in
 
@@ -417,11 +419,11 @@ fun evaluate text static_ctxt =
   let
     fun eval (Basic meth) = APPEND_CASES oo meth
       | eval (Source src) = APPEND_CASES oo method_cmd static_ctxt src
-      | eval (Then (_, txts)) = combinator Seq.EVERY (map eval txts)
-      | eval (Orelse (_, txts)) = combinator Seq.FIRST (map eval txts)
-      | eval (Try (_, txt)) = combinator1 Seq.TRY (eval txt)
-      | eval (Repeat1 (_, txt)) = combinator1 Seq.REPEAT1 (eval txt)
-      | eval (Select_Goals (_, n, txt)) = combinator1 (SELECT_GOALS n) (eval txt);
+      | eval (Combinator (_, c, txts)) =
+          let
+            val comb = combinator c;
+            val meths = map eval txts
+          in fn ctxt => fn facts => comb (map (fn meth => meth ctxt facts) meths) end;
     val meth = eval text;
   in fn ctxt => fn facts => fn st => meth ctxt facts ([], st) end;
 
@@ -474,16 +476,8 @@ local
 
 fun keyword_positions (Source _) = []
   | keyword_positions (Basic _) = []
-  | keyword_positions (Then (Combinator_Info {keywords}, texts)) =
-      keywords @ maps keyword_positions texts
-  | keyword_positions (Orelse (Combinator_Info {keywords}, texts)) =
-      keywords @ maps keyword_positions texts
-  | keyword_positions (Try (Combinator_Info {keywords}, text)) =
-      keywords @ keyword_positions text
-  | keyword_positions (Repeat1 (Combinator_Info {keywords}, text)) =
-      keywords @ keyword_positions text
-  | keyword_positions (Select_Goals (Combinator_Info {keywords}, _, text)) =
-      keywords @ keyword_positions text;
+  | keyword_positions (Combinator (Combinator_Info {keywords}, _, texts)) =
+      keywords @ maps keyword_positions texts;
 
 in
 
@@ -511,23 +505,23 @@ fun meth4 x =
   Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
 and meth3 x =
  (meth4 -- Parse.position (Parse.$$$ "?")
-    >> (fn (m, (_, pos)) => Try (combinator_info [pos], m)) ||
+    >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Try, [m])) ||
   meth4 -- Parse.position (Parse.$$$ "+")
-    >> (fn (m, (_, pos)) => Repeat1 (combinator_info [pos], m)) ||
+    >> (fn (m, (_, pos)) => Combinator (combinator_info [pos], Repeat1, [m])) ||
   meth4 --
     (Parse.position (Parse.$$$ "[") -- Scan.optional Parse.nat 1 -- Parse.position (Parse.$$$ "]"))
     >> (fn (m, (((_, pos1), n), (_, pos2))) =>
-        Select_Goals (combinator_info [pos1, pos2], n, m)) ||
+        Combinator (combinator_info [pos1, pos2], Select_Goals n, [m])) ||
   meth4) x
 and meth2 x =
  (Parse.position Parse.xname -- Parse.args1 is_symid_meth >> (Source o uncurry Args.src) ||
   meth3) x
 and meth1 x =
   (Parse.enum1_positions "," meth2
-    >> (fn ([m], _) => m | (ms, ps) => Then (combinator_info ps, ms))) x
+    >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Then, ms))) x
 and meth0 x =
   (Parse.enum1_positions "|" meth1
-    >> (fn ([m], _) => m | (ms, ps) => Orelse (combinator_info ps, ms))) x;
+    >> (fn ([m], _) => m | (ms, ps) => Combinator (combinator_info ps, Orelse, ms))) x;
 
 in
 
