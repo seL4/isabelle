@@ -69,6 +69,7 @@ sig
     local_theory -> local_theory
   val method_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
     local_theory -> local_theory
+  val evaluate: Proof.context -> text -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
@@ -387,6 +388,44 @@ fun method_setup name source cmt =
     "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
     "Context.map_proof (Method.local_setup name scan comment)"
   |> Context.proof_map;
+
+
+(* evaluate method text *)
+
+local
+
+fun APPEND_CASES (meth: cases_tactic) (cases, st) =
+  meth st |> Seq.map (fn (cases', st') => (cases @ cases', st'));
+
+fun BYPASS_CASES (tac: tactic) (cases, st) =
+  tac st |> Seq.map (pair cases);
+
+val op THEN = Seq.THEN;
+
+fun SELECT_GOALS n method =
+  BYPASS_CASES
+    (ALLGOALS Goal.conjunction_tac THEN PRIMITIVE (Goal.restrict 1 n) THEN Goal.conjunction_tac 1)
+  THEN method
+  THEN BYPASS_CASES (PRIMITIVE (Goal.unrestrict 1));
+
+fun combinator comb meths ctxt facts = comb (map (fn meth => meth ctxt facts) meths);
+fun combinator1 comb meth ctxt facts = comb (meth ctxt facts);
+
+in
+
+fun evaluate static_ctxt text =
+  let
+    fun eval (Basic meth) = APPEND_CASES oo meth
+      | eval (Source src) = APPEND_CASES oo method_cmd static_ctxt src
+      | eval (Then (_, txts)) = combinator Seq.EVERY (map eval txts)
+      | eval (Orelse (_, txts)) = combinator Seq.FIRST (map eval txts)
+      | eval (Try (_, txt)) = combinator1 Seq.TRY (eval txt)
+      | eval (Repeat1 (_, txt)) = combinator1 Seq.REPEAT1 (eval txt)
+      | eval (Select_Goals (_, n, txt)) = combinator1 (SELECT_GOALS n) (eval txt);
+    val meth = eval text;
+  in fn ctxt => fn facts => fn st => meth ctxt facts ([], st) end;
+
+end;
 
 
 

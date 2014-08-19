@@ -409,33 +409,11 @@ fun apply_method current_context method state =
           (K (statement, [], using, goal', before_qed, after_qed)) I)
   end;
 
-fun select_goals n meth state =
-  ALLGOALS Goal.conjunction_tac (#2 (#2 (get_goal state)))
-  |> Seq.maps (fn goal =>
-    state
-    |> Seq.lift provide_goal ((PRIMITIVE (Goal.restrict 1 n) THEN Goal.conjunction_tac 1) goal)
-    |> Seq.maps meth
-    |> Seq.maps (fn state' => state'
-      |> Seq.lift provide_goal (PRIMITIVE (Goal.unrestrict 1) (#2 (#2 (get_goal state')))))
-    |> Seq.maps (apply_method true (K Method.succeed)));
-
-fun apply_text current_context text state =
-  let
-    val ctxt = context_of state;
-
-    fun eval (Method.Basic m) = apply_method current_context m
-      | eval (Method.Source src) = apply_method current_context (Method.method_cmd ctxt src)
-      | eval (Method.Then (_, txts)) = Seq.EVERY (map eval txts)
-      | eval (Method.Orelse (_, txts)) = Seq.FIRST (map eval txts)
-      | eval (Method.Try (_, txt)) = Seq.TRY (eval txt)
-      | eval (Method.Repeat1 (_, txt)) = Seq.REPEAT1 (eval txt)
-      | eval (Method.Select_Goals (_, n, txt)) = select_goals n (eval txt);
-  in eval text state end;
-
 in
 
-val refine = apply_text true;
-val refine_end = apply_text false;
+fun refine text state = apply_method true (Method.evaluate (context_of state) text) state;
+fun refine_end text state = apply_method false (Method.evaluate (context_of state) text) state;
+
 fun refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
