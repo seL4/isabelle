@@ -23,15 +23,15 @@ sig
   val generator_test_goal_terms :
     generator -> Proof.context -> bool -> (string * typ) list
       -> (term * term list) list -> Quickcheck.result list
-  type instantiation = Datatype.config -> Datatype.descr -> (string * sort) list
+  type instantiation = Datatype_Aux.config -> Datatype_Aux.descr -> (string * sort) list
      -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
   val ensure_sort :
     (((sort * sort) * sort) *
       ((theory -> string list -> Datatype_Aux.descr * (string * sort) list * string list
         * string * (string list * string list) * (typ list * typ list)) * instantiation))
-    -> Datatype.config -> string list -> theory -> theory
+    -> Datatype_Aux.config -> string list -> theory -> theory
   val ensure_common_sort_datatype :
-    (sort * instantiation) -> Datatype.config -> string list -> theory -> theory
+    (sort * instantiation) -> Datatype_Aux.config -> string list -> theory -> theory
   val datatype_interpretation : (sort * instantiation) -> theory -> theory
   val gen_mk_parametric_generator_expr :
    (((Proof.context -> term * term list -> term) * term) * typ)
@@ -387,7 +387,7 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
 
 (** ensuring sort constraints **)
 
-type instantiation = Datatype.config -> Datatype.descr -> (string * sort) list
+type instantiation = Datatype_Aux.config -> Datatype_Aux.descr -> (string * sort) list
   -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
 
 fun perhaps_constrain thy insts raw_vs =
@@ -419,9 +419,9 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
   end;
 
 fun ensure_common_sort_datatype (sort, instantiate) =
-  ensure_sort (((@{sort typerep}, @{sort term_of}), sort), (Datatype.the_descr, instantiate))
+  ensure_sort (((@{sort typerep}, @{sort term_of}), sort), (Datatype_Data.the_descr, instantiate))
 
-val datatype_interpretation = Datatype.interpretation o ensure_common_sort_datatype
+val datatype_interpretation = Datatype_Data.interpretation o ensure_common_sort_datatype
   
 (** generic parametric compilation **)
 

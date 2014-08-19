@@ -198,7 +198,7 @@ fun mk_full_equations functerms =
   
 fun contains_recursive_type_under_function_types xs =
   exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
-    (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype.DtRec _) => true | _ => false)))) xs
+    (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype_Aux.DtRec _) => true | _ => false)))) xs
     
 fun instantiate_datatype (name, constprfx, sort, mk_equations, mk_T, argnames)
     config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
@@ -254,7 +254,7 @@ fun mk_test_term lookup mk_closure mk_if mk_let none_t return ctxt =
   let
     val cnstrs = flat (maps
       (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
-      (Symtab.dest (Datatype.get_all (Proof_Context.theory_of ctxt))))
+      (Symtab.dest (Datatype_Data.get_all (Proof_Context.theory_of ctxt))))
     fun is_constrt (Const (s, T), ts) = (case (AList.lookup (op =) cnstrs s, body_type T) of
         (SOME (i, Tname), Type (Tname', _)) => length ts = i andalso Tname = Tname'
       | _ => false)
@@ -537,19 +537,19 @@ val setup_exhaustive_datatype_interpretation =
   Quickcheck_Common.datatype_interpretation (@{sort exhaustive}, instantiate_exhaustive_datatype)
 
 val setup_bounded_forall_datatype_interpretation =
-  Datatype.interpretation (Quickcheck_Common.ensure_sort
+  Datatype_Data.interpretation (Quickcheck_Common.ensure_sort
     (((@{sort type}, @{sort type}), @{sort bounded_forall}),
-    (Datatype.the_descr, instantiate_bounded_forall_datatype)))
+    (Datatype_Data.the_descr, instantiate_bounded_forall_datatype)))
 
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 
 val setup =
   Quickcheck_Common.datatype_interpretation (@{sort full_exhaustive}, instantiate_full_exhaustive_datatype)
-(* #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+(* #> Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
-  #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+  #> Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort fast_exhaustive}), instantiate_fast_exhaustive_datatype))
-  #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+  #> Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))*)
   #> Context.theory_map (Quickcheck.add_tester ("exhaustive", (active, test_goals)))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))

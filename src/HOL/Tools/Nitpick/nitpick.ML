@@ -416,17 +416,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                    \in the problem.")
       else
         ()
-    val _ =
-      if mode = Normal andalso
-         exists (fn Type (@{type_name Datatype.node}, _) => true | _ => false)
-                all_Ts then
-        print_nt (K ("Warning: The problem involves directly or indirectly the \
-                     \internal type " ^ quote @{type_name Datatype.node} ^
-                     ". This type is very Nitpick-unfriendly, and its presence \
-                     \usually indicates either a failure of abstraction or a \
-                     \quirk in Nitpick."))
-      else
-        ()
     val (mono_Ts, nonmono_Ts) = List.partition is_type_monotonic all_Ts
     val _ =
       if verbose andalso not unique_scope then

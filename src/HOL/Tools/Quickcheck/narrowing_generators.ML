@@ -175,7 +175,7 @@ fun mk_equations descr vs narrowings =
     
 fun contains_recursive_type_under_function_types xs =
   exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
-    (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype.DtRec _) => true | _ => false)))) xs
+    (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype_Aux.DtRec _) => true | _ => false)))) xs
 
 fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
