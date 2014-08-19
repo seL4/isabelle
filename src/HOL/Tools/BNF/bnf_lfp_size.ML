@@ -64,7 +64,8 @@ fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
 
 val rec_o_map_simp_thms =
-  @{thms o_def id_def case_prod_app case_sum_map_sum case_prod_map_prod BNF_Comp.id_bnf_comp_def};
+  @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum case_prod_map_prod
+      BNF_Comp.id_bnf_comp_def};
 
 fun mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
     ctor_rec_o_map =
@@ -72,8 +73,8 @@ fun mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inve
   HEADGOAL (rtac (ctor_rec_o_map RS trans) THEN'
     CONVERSION Thm.eta_long_conversion THEN'
     asm_simp_tac (ss_only (pre_map_defs @
-      distinct Thm.eq_thm_prop (live_nesting_map_ident0s @ abs_inverses) @
-      rec_o_map_simp_thms) ctxt));
+        distinct Thm.eq_thm_prop (live_nesting_map_ident0s @ abs_inverses) @ rec_o_map_simp_thms)
+      ctxt));
 
 val size_o_map_simp_thms = @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
