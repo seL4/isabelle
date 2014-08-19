@@ -13,6 +13,7 @@ sig
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
   val PARALLEL_CHOICE: tactic list -> tactic
   val PARALLEL_GOALS: tactic -> tactic
+  val PARALLEL_ALLGOALS: (int -> tactic) -> tactic
 end;
 
 signature GOAL =
@@ -383,6 +384,8 @@ fun PARALLEL_GOALS tac =
       handle FAILED () => Seq.empty);
 
 end;
+
+val PARALLEL_ALLGOALS = PARALLEL_GOALS o ALLGOALS;
 
 end;
 

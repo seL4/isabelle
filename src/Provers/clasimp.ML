@@ -146,7 +146,7 @@ fun mk_auto_tac ctxt m n =
       ORELSE'
       (CHANGED o nodup_depth_tac (addss ctxt) n);  (* slower but more general *)
   in
-    PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac ctxt)) THEN
+    PARALLEL_ALLGOALS (Simplifier.asm_full_simp_tac ctxt) THEN
     TRY (Classical.safe_tac ctxt) THEN
     REPEAT_DETERM (FIRSTGOAL main_tac) THEN
     TRY (Classical.safe_tac (addSss ctxt)) THEN
