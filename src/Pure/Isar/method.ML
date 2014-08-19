@@ -6,10 +6,7 @@ Isar proof methods.
 
 signature METHOD =
 sig
-  type method
-  val apply: (Proof.context -> method) -> Proof.context -> thm list -> cases_tactic
-  val RAW_METHOD_CASES: (thm list -> cases_tactic) -> method
-  val RAW_METHOD: (thm list -> tactic) -> method
+  type method = thm list -> cases_tactic
   val METHOD_CASES: (thm list -> cases_tactic) -> method
   val METHOD: (thm list -> tactic) -> method
   val fail: method
@@ -90,18 +87,10 @@ struct
 
 (* datatype method *)
 
-datatype method = Meth of thm list -> cases_tactic;
+type method = thm list -> cases_tactic;
 
-fun apply meth ctxt = let val Meth m = meth ctxt in m end;
-
-val RAW_METHOD_CASES = Meth;
-
-fun RAW_METHOD tac = RAW_METHOD_CASES (NO_CASES o tac);
-
-fun METHOD_CASES tac = RAW_METHOD_CASES (fn facts =>
-  Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts));
-
-fun METHOD tac = RAW_METHOD (fn facts => ALLGOALS Goal.conjunction_tac THEN tac facts);
+fun METHOD_CASES tac facts = Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
+fun METHOD tac facts = NO_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
@@ -154,7 +143,7 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.fold_tac ctxt t
 fun atomize false ctxt =
       SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_tac ctxt)
   | atomize true ctxt =
-      RAW_METHOD (K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt)));
+      NO_CASES o K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt));
 
 
 (* this -- resolve facts directly *)
@@ -277,7 +266,7 @@ fun ml_tactic source ctxt =
   in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (ML_Tactic.get ctxt') end;
 
 fun tactic source ctxt = METHOD (ml_tactic source ctxt);
-fun raw_tactic source ctxt = RAW_METHOD (ml_tactic source ctxt);
+fun raw_tactic source ctxt = NO_CASES o ml_tactic source ctxt;
 
 
 
@@ -376,7 +365,7 @@ fun method_closure ctxt0 src0 =
     val (src1, meth) = check_src ctxt0 src0;
     val src2 = Args.init_assignable src1;
     val ctxt = Context_Position.not_really ctxt0;
-    val _ = Seq.pull (apply (method ctxt src2) ctxt [] (Goal.protect 0 Drule.dummy_thm));
+    val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
   in Args.closure src2 end;
 
 fun method_cmd ctxt = method ctxt o method_closure ctxt;
@@ -553,8 +542,6 @@ val fold = fold_meth;
 
 end;
 
-val RAW_METHOD_CASES = Method.RAW_METHOD_CASES;
-val RAW_METHOD = Method.RAW_METHOD;
 val METHOD_CASES = Method.METHOD_CASES;
 val METHOD = Method.METHOD;
 val SIMPLE_METHOD = Method.SIMPLE_METHOD;

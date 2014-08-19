@@ -401,7 +401,7 @@ fun apply_method current_context method state =
       find_goal state;
     val ctxt = if current_context then context_of state else goal_ctxt;
   in
-    Method.apply method ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
+    method ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
           (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases goal') #>
@@ -892,9 +892,9 @@ fun implicit_vars props =
   in map (Logic.mk_term o Var) vars end;
 
 fun refine_terms n =
-  refine (Method.Basic (K (RAW_METHOD
-    (K (HEADGOAL (PRECISE_CONJUNCTS n
-      (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI))))))))))
+  refine (Method.Basic (K (NO_CASES o
+    K (HEADGOAL (PRECISE_CONJUNCTS n
+      (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI)))))))))
   #> Seq.hd;
 
 in
