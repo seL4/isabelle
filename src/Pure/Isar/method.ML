@@ -68,7 +68,7 @@ sig
   val method: Proof.context -> src -> Proof.context -> method
   val method_closure: Proof.context -> src -> src
   val method_cmd: Proof.context -> src -> Proof.context -> method
-  val evaluate: text -> Proof.context -> Proof.context -> method
+  val evaluate: text -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
@@ -421,17 +421,17 @@ fun combinator Then = Seq.EVERY
 
 in
 
-fun evaluate text static_ctxt =
+fun evaluate text ctxt =
   let
-    fun eval (Basic meth) = APPEND_CASES oo meth
-      | eval (Source src) = APPEND_CASES oo method_cmd static_ctxt src
+    fun eval (Basic meth) = APPEND_CASES o meth ctxt
+      | eval (Source src) = APPEND_CASES o method_cmd ctxt src ctxt
       | eval (Combinator (_, c, txts)) =
           let
             val comb = combinator c;
-            val meths = map eval txts
-          in fn ctxt => fn facts => comb (map (fn meth => meth ctxt facts) meths) end;
+            val meths = map eval txts;
+          in fn facts => comb (map (fn meth => meth facts) meths) end;
     val meth = eval text;
-  in fn ctxt => fn facts => fn st => meth ctxt facts ([], st) end;
+  in fn facts => fn st => meth facts ([], st) end;
 
 end;
 
