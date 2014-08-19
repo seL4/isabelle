@@ -1,19 +1,11 @@
-(*  Title:      HOL/Library/Quickcheck_Types.thy
+(*  Title:      HOL/Library/Lattice_Constructions.thy
     Author:     Lukas Bulwahn
     Copyright   2010 TU Muenchen
 *)
 
-theory Quickcheck_Types
+theory Lattice_Constructions
 imports Main
 begin
-
-text {*
-This theory provides some default types for the quickcheck execution.
-In most cases, the default type @{typ "int"} meets the sort constraints
-of the proposition.
-But for the type classes bot and top, the type @{typ "int"} is insufficient.
-Hence, we provide other types than @{typ "int"} as further default types.  
-*}
 
 subsection {* Values extended by a bottom element *}
 
@@ -213,6 +205,7 @@ end
 instance top :: (lattice) bounded_lattice_top
 by(intro_classes)(simp add: top_top_def)
 
+subsection {* Values extended by a top and a bottom element *}
 
 datatype 'a flat_complete_lattice = Value 'a | Bot | Top
 
@@ -420,11 +413,5 @@ next
 qed
 
 end
-
-section {* Quickcheck configuration *}
-
-quickcheck_params[finite_types = false, default_type = ["int", "int bot", "int top", "Enum.finite_4 flat_complete_lattice"]]
-
-hide_type flat_complete_lattice bot top
 
 end

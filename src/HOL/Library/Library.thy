@@ -32,6 +32,7 @@ imports
   IArray
   Lattice_Algebras
   Lattice_Syntax
+  Lattice_Constructions
   ListVector
   Lubs_Glbs
   Mapping

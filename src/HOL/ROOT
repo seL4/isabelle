@@ -38,7 +38,6 @@ session "HOL-Library" (main) in Library = HOL +
     Product_Lexorder
     Product_Order
     Finite_Lattice
-    Quickcheck_Types
     (*data refinements and dependent applications*)
     AList_Mapping
     Code_Binary_Nat
