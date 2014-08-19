@@ -255,6 +255,7 @@ fun use s =
 (** bootstrap phase 2: towards Pure.thy and final ML toplevel setup *)
 
 (*basic proof engine*)
+use "par_tactical.ML";
 use "Isar/proof_display.ML";
 use "Isar/attrib.ML";
 use "Isar/context_rules.ML";

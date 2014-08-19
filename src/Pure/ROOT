@@ -233,6 +233,7 @@ session Pure =
     "morphism.ML"
     "name.ML"
     "net.ML"
+    "par_tactical.ML"
     "pattern.ML"
     "primitive_defs.ML"
     "proofterm.ML"

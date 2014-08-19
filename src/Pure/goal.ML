@@ -11,9 +11,6 @@ sig
   val PREFER_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
-  val PARALLEL_CHOICE: tactic list -> tactic
-  val PARALLEL_GOALS: tactic -> tactic
-  val PARALLEL_ALLGOALS: (int -> tactic) -> tactic
 end;
 
 signature GOAL =
@@ -340,52 +337,6 @@ fun assume_rule_tac ctxt = norm_hhf_tac ctxt THEN' CSUBGOAL (fn (goal, i) =>
     val tacs = Rs |> map (fn R =>
       etac (Raw_Simplifier.norm_hhf ctxt (Thm.trivial R)) THEN_ALL_NEW assume_tac);
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
-
-
-
-(** parallel tacticals **)
-
-(* parallel choice of single results *)
-
-fun PARALLEL_CHOICE tacs st =
-  (case Par_List.get_some (fn tac => SINGLE tac st) tacs of
-    NONE => Seq.empty
-  | SOME st' => Seq.single st');
-
-
-(* parallel refinement of non-schematic goal by single results *)
-
-local
-
-exception FAILED of unit;
-
-fun retrofit st' =
-  rotate_prems ~1 #>
-  Thm.bicompose {flatten = false, match = false, incremented = false}
-      (false, conclude st', Thm.nprems_of st') 1;
-
-in
-
-fun PARALLEL_GOALS tac =
-  Thm.adjust_maxidx_thm ~1 #>
-  (fn st =>
-    if not (Multithreading.enabled ()) orelse Thm.maxidx_of st >= 0 orelse Thm.nprems_of st <= 1
-    then DETERM tac st
-    else
-      let
-        fun try_tac g =
-          (case SINGLE tac g of
-            NONE => raise FAILED ()
-          | SOME g' => g');
-
-        val goals = Drule.strip_imp_prems (Thm.cprop_of st);
-        val results = Par_List.map (try_tac o init) goals;
-      in EVERY (map retrofit (rev results)) st end
-      handle FAILED () => Seq.empty);
-
-end;
-
-val PARALLEL_ALLGOALS = PARALLEL_GOALS o ALLGOALS;
 
 end;
 
