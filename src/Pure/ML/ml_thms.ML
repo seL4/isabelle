@@ -6,7 +6,7 @@ Attribute source and theorem values within ML.
 
 signature ML_THMS =
 sig
-  val the_attributes: Proof.context -> int -> Args.src list
+  val the_attributes: Proof.context -> int -> Token.src list
   val the_thmss: Proof.context -> thm list list
   val get_stored_thms: unit -> thm list
   val get_stored_thm: unit -> thm
@@ -25,7 +25,7 @@ type thms = (string * bool) * thm list;  (*name, single, value*)
 
 structure Data = Proof_Data
 (
-  type T = Args.src list Inttab.table * thms list;
+  type T = Token.src list Inttab.table * thms list;
   fun init _ = (Inttab.empty, []);
 );
 

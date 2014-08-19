@@ -9,8 +9,7 @@ type generic_theory = Context.generic;
 
 structure Attrib =
 struct
-  type src = Args.src;
-  type binding = binding * src list;
+  type binding = binding * Token.src list;
 end;
 
 signature LOCAL_THEORY =
@@ -49,9 +48,9 @@ sig
   val define_internal: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val note: Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
-  val notes: (Attrib.binding * (thm list * Attrib.src list) list) list ->
+  val notes: (Attrib.binding * (thm list * Token.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
-  val notes_kind: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
+  val notes_kind: string -> (Attrib.binding * (thm list * Token.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
@@ -87,7 +86,7 @@ type operations =
  {define: bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
   notes: string ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    (Attrib.binding * (thm list * Token.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory,
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,

@@ -18,7 +18,7 @@ sig
   val check_option: Proof.context -> xstring * Position.T -> string
   val print_antiquotations: Proof.context -> unit
   val antiquotation: binding -> 'a context_parser ->
-    ({source: Args.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) ->
+    ({source: Token.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) ->
       theory -> theory
   val boolean: string -> bool
   val integer: string -> int
@@ -30,9 +30,9 @@ sig
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
-  val str_of_source: Args.src -> string
+  val str_of_source: Token.src -> string
   val maybe_pretty_source: (Proof.context -> 'a -> Pretty.T) -> Proof.context ->
-    Args.src -> 'a list -> Pretty.T list
+    Token.src -> 'a list -> Pretty.T list
   val output: Proof.context -> Pretty.T list -> string
   val verb_text: string -> string
 end;
@@ -67,7 +67,7 @@ val wrap = Wrappers.get #> fold (fn wrapper => fn f => wrapper f);
 structure Antiquotations = Theory_Data
 (
   type T =
-    (Args.src -> Toplevel.state -> Proof.context -> string) Name_Space.table *
+    (Token.src -> Toplevel.state -> Proof.context -> string) Name_Space.table *
       (string -> Proof.context -> Proof.context) Name_Space.table;
   val empty : T =
     (Name_Space.empty_table Markup.document_antiquotationN,
@@ -91,7 +91,7 @@ fun check_command ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_ant
 fun check_option ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt));
 
 fun command src state ctxt =
-  let val (src', f) = Args.check_src ctxt (#1 (get_antiquotations ctxt)) src
+  let val (src', f) = Token.check_src ctxt (#1 (get_antiquotations ctxt)) src
   in f src' state ctxt end;
 
 fun option ((xname, pos), s) ctxt =
@@ -114,7 +114,7 @@ fun print_antiquotations ctxt =
 fun antiquotation name scan body =
   add_command name
     (fn src => fn state => fn ctxt =>
-      let val (x, ctxt') = Args.syntax scan src ctxt
+      let val (x, ctxt') = Token.syntax scan src ctxt
       in body {source = src, state = state, context = ctxt'} x end);
 
 
@@ -151,7 +151,7 @@ in
 val antiq =
   Parse.!!!
     (Parse.position Parse.liberal_name -- properties -- Parse.args --| Scan.ahead Parse.eof)
-  >> (fn ((name, props), args) => (props, Args.src name args));
+  >> (fn ((name, props), args) => (props, Token.src name args));
 
 end;
 
@@ -534,7 +534,7 @@ fun pretty_theory ctxt (name, pos) =
 
 (* default output *)
 
-val str_of_source = space_implode " " o Args.unparse_src;
+val str_of_source = space_implode " " o Token.unparse_src;
 
 fun maybe_pretty_source pretty ctxt src xs =
   map (pretty ctxt) xs  (*always pretty in order to exhibit errors!*)
@@ -624,7 +624,7 @@ val _ = Theory.setup
       Scan.lift (Parse.position (Args.$$$ "by") -- Method.parse -- Scan.option Method.parse))
     (fn {source, context = ctxt, ...} => fn ((prop_token, prop), (((_, by_pos), m1), m2)) =>
       let
-        val prop_src = Args.src (Args.name_of_src source) [prop_token];
+        val prop_src = Token.src (Token.name_of_src source) [prop_token];
 
         val reports = (by_pos, Markup.keyword1) :: maps Method.reports_of (m1 :: the_list m2);
         val _ = Context_Position.reports ctxt reports;

@@ -14,10 +14,10 @@ sig
   val sym_del: attribute
   val symmetric: attribute
   val also: thm list option -> bool -> Proof.state -> Proof.state Seq.result Seq.seq
-  val also_cmd: (Facts.ref * Attrib.src list) list option ->
+  val also_cmd: (Facts.ref * Token.src list) list option ->
     bool -> Proof.state -> Proof.state Seq.result Seq.seq
   val finally: thm list option -> bool -> Proof.state -> Proof.state Seq.result Seq.seq
-  val finally_cmd: (Facts.ref * Attrib.src list) list option -> bool ->
+  val finally_cmd: (Facts.ref * Token.src list) list option -> bool ->
     Proof.state -> Proof.state Seq.result Seq.seq
   val moreover: bool -> Proof.state -> Proof.state
   val ultimately: bool -> Proof.state -> Proof.state

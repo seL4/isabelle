@@ -14,15 +14,15 @@ sig
   type fact = (string * stature) * thm
 
   type fact_override =
-    {add : (Facts.ref * Attrib.src list) list,
-     del : (Facts.ref * Attrib.src list) list,
+    {add : (Facts.ref * Token.src list) list,
+     del : (Facts.ref * Token.src list) list,
      only : bool}
 
   val instantiate_inducts : bool Config.T
   val no_fact_override : fact_override
 
   val fact_of_ref : Proof.context -> unit Symtab.table -> thm list -> status Termtab.table ->
-    Facts.ref * Attrib.src list -> ((string * stature) * thm) list
+    Facts.ref * Token.src list -> ((string * stature) * thm) list
   val backquote_thm : Proof.context -> thm -> string
   val is_blacklisted_or_something : Proof.context -> bool -> string -> bool
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
@@ -50,8 +50,8 @@ type raw_fact = ((unit -> string) * stature) * thm
 type fact = (string * stature) * thm
 
 type fact_override =
-  {add : (Facts.ref * Attrib.src list) list,
-   del : (Facts.ref * Attrib.src list) list,
+  {add : (Facts.ref * Token.src list) list,
+   del : (Facts.ref * Token.src list) list,
    only : bool}
 
 (* gracefully handle huge background theories *)
@@ -159,7 +159,7 @@ fun stature_of_thm global assms chained css name th =
 fun fact_of_ref ctxt reserved chained css (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
-    val bracket = implode (map (enclose "[" "]" o Pretty.str_of o Args.pretty_src ctxt) args)
+    val bracket = implode (map (enclose "[" "]" o Pretty.str_of o Token.pretty_src ctxt) args)
 
     fun nth_name j =
       (case xref of

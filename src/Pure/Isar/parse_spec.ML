@@ -6,17 +6,17 @@ Parsers for complex specifications.
 
 signature PARSE_SPEC =
 sig
-  val attribs: Attrib.src list parser
-  val opt_attribs: Attrib.src list parser
+  val attribs: Token.src list parser
+  val opt_attribs: Token.src list parser
   val thm_name: string -> Attrib.binding parser
   val opt_thm_name: string -> Attrib.binding parser
   val spec: (Attrib.binding * string) parser
   val specs: (Attrib.binding * string list) parser
   val alt_specs: (Attrib.binding * string) list parser
   val where_alt_specs: (Attrib.binding * string) list parser
-  val xthm: (Facts.ref * Attrib.src list) parser
-  val xthms1: (Facts.ref * Attrib.src list) list parser
-  val name_facts: (Attrib.binding * (Facts.ref * Attrib.src list) list) list parser
+  val xthm: (Facts.ref * Token.src list) parser
+  val xthms1: (Facts.ref * Token.src list) list parser
+  val name_facts: (Attrib.binding * (Facts.ref * Token.src list) list) list parser
   val constdecl: (binding * string option * mixfix) parser
   val constdef: ((binding * string option * mixfix) option * (Attrib.binding * string)) parser
   val includes: (xstring * Position.T) list parser
@@ -37,7 +37,7 @@ struct
 
 (* theorem specifications *)
 
-val attrib = Parse.position Parse.liberal_name -- Parse.!!! Parse.args >> uncurry Args.src;
+val attrib = Parse.position Parse.liberal_name -- Parse.!!! Parse.args >> uncurry Token.src;
 val attribs = Parse.$$$ "[" |-- Parse.list attrib --| Parse.$$$ "]";
 val opt_attribs = Scan.optional attribs [];
 

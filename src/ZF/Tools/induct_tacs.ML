@@ -12,8 +12,8 @@ sig
   val induct_tac: Proof.context -> string -> int -> tactic
   val exhaust_tac: Proof.context -> string -> int -> tactic
   val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
-  val rep_datatype: Facts.ref * Attrib.src list -> Facts.ref * Attrib.src list ->
-    (Facts.ref * Attrib.src list) list -> (Facts.ref * Attrib.src list) list -> theory -> theory
+  val rep_datatype: Facts.ref * Token.src list -> Facts.ref * Token.src list ->
+    (Facts.ref * Token.src list) list -> (Facts.ref * Token.src list) list -> theory -> theory
   val setup: theory -> theory
 end;
 

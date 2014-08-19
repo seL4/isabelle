@@ -41,15 +41,14 @@ sig
   val set_tactic: (thm list -> tactic) -> Proof.context -> Proof.context
   val tactic: Symbol_Pos.source -> Proof.context -> method
   val raw_tactic: Symbol_Pos.source -> Proof.context -> method
-  type src = Args.src
   type combinator_info
   val no_combinator_info: combinator_info
   datatype combinator = Then | Orelse | Try | Repeat1 | Select_Goals of int
   datatype text =
-    Source of src |
+    Source of Token.src |
     Basic of Proof.context -> method |
     Combinator of combinator_info * combinator * text list
-  val map_source: (src -> src) -> text -> text
+  val map_source: (Token.src -> Token.src) -> text -> text
   val primitive_text: (Proof.context -> thm -> thm) -> text
   val succeed_text: text
   val default_text: text
@@ -59,15 +58,16 @@ sig
   val finish_text: text option * bool -> text
   val print_methods: Proof.context -> unit
   val check_name: Proof.context -> xstring * Position.T -> string
-  val method_syntax: (Proof.context -> method) context_parser -> Args.src -> Proof.context -> method
+  val method_syntax: (Proof.context -> method) context_parser ->
+    Token.src -> Proof.context -> method
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val local_setup: binding -> (Proof.context -> method) context_parser -> string ->
     local_theory -> local_theory
   val method_setup: bstring * Position.T -> Symbol_Pos.source -> string ->
     local_theory -> local_theory
-  val method: Proof.context -> src -> Proof.context -> method
-  val method_closure: Proof.context -> src -> src
-  val method_cmd: Proof.context -> src -> Proof.context -> method
+  val method: Proof.context -> Token.src -> Proof.context -> method
+  val method_closure: Proof.context -> Token.src -> Token.src
+  val method_cmd: Proof.context -> Token.src -> Proof.context -> method
   val evaluate: text -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
@@ -274,8 +274,6 @@ fun raw_tactic source ctxt = NO_CASES o ml_tactic source ctxt;
 
 (* method text *)
 
-type src = Args.src;
-
 datatype combinator_info = Combinator_Info of {keywords: Position.T list};
 fun combinator_info keywords = Combinator_Info {keywords = keywords};
 val no_combinator_info = combinator_info [];
@@ -283,7 +281,7 @@ val no_combinator_info = combinator_info [];
 datatype combinator = Then | Orelse | Try | Repeat1 | Select_Goals of int;
 
 datatype text =
-  Source of src |
+  Source of Token.src |
   Basic of Proof.context -> method |
   Combinator of combinator_info * combinator * text list;
 
@@ -293,7 +291,7 @@ fun map_source f (Source src) = Source (f src)
 
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
-val default_text = Source (Args.src ("default", Position.none) []);
+val default_text = Source (Token.src ("default", Position.none) []);
 val this_text = Basic (K this);
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
@@ -307,7 +305,7 @@ fun finish_text (NONE, immed) = Basic (finish immed)
 
 structure Methods = Generic_Data
 (
-  type T = ((src -> Proof.context -> method) * string) Name_Space.table;
+  type T = ((Token.src -> Proof.context -> method) * string) Name_Space.table;
   val empty : T = Name_Space.empty_table "method";
   val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
@@ -354,13 +352,13 @@ fun define binding meth comment =
 (* check *)
 
 fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ctxt);
-fun check_src ctxt src = Args.check_src ctxt (get_methods ctxt) src;
+fun check_src ctxt src = Token.check_src ctxt (get_methods ctxt) src;
 
 
 (* method setup *)
 
 fun method_syntax scan src ctxt : method =
-  let val (m, ctxt') = Args.syntax scan src ctxt in m ctxt' end;
+  let val (m, ctxt') = Token.syntax scan src ctxt in m ctxt' end;
 
 fun setup binding scan comment = define_global binding (method_syntax scan) comment #> snd;
 fun local_setup binding scan comment = define binding (method_syntax scan) comment #> snd;
@@ -379,15 +377,15 @@ fun method_setup name source cmt =
 
 fun method ctxt =
   let val table = get_methods ctxt
-  in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
+  in fn src => #1 (Name_Space.get table (#1 (Token.name_of_src src))) src end;
 
 fun method_closure ctxt0 src0 =
   let
     val (src1, meth) = check_src ctxt0 src0;
-    val src2 = Args.init_assignable src1;
+    val src2 = Token.init_assignable_src src1;
     val ctxt = Context_Position.not_really ctxt0;
     val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
-  in Args.closure src2 end;
+  in Token.closure_src src2 end;
 
 fun method_cmd ctxt = method ctxt o method_closure ctxt;
 
@@ -505,9 +503,9 @@ fun is_symid_meth s =
 local
 
 fun meth4 x =
- (Parse.position Parse.xname >> (fn name => Source (Args.src name [])) ||
+ (Parse.position Parse.xname >> (fn name => Source (Token.src name [])) ||
   Scan.ahead Parse.cartouche |-- Parse.not_eof >> (fn tok =>
-    Source (Args.src ("cartouche", Token.pos_of tok) [tok])) ||
+    Source (Token.src ("cartouche", Token.pos_of tok) [tok])) ||
   Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
 and meth3 x =
  (meth4 -- Parse.position (Parse.$$$ "?")
@@ -520,7 +518,7 @@ and meth3 x =
         Combinator (combinator_info [pos1, pos2], Select_Goals n, [m])) ||
   meth4) x
 and meth2 x =
- (Parse.position Parse.xname -- Parse.args1 is_symid_meth >> (Source o uncurry Args.src) ||
+ (Parse.position Parse.xname -- Parse.args1 is_symid_meth >> (Source o uncurry Token.src) ||
   meth3) x
 and meth1 x =
   (Parse.enum1_positions "," meth2

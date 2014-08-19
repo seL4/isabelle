@@ -14,7 +14,7 @@ sig
   val exec: (unit -> unit) -> Context.generic -> Context.generic
   val check_antiquotation: Proof.context -> xstring * Position.T -> string
   type decl = Proof.context -> string * string
-  val add_antiquotation: binding -> (Args.src -> Proof.context -> decl * Proof.context) ->
+  val add_antiquotation: binding -> (Token.src -> Proof.context -> decl * Proof.context) ->
     theory -> theory
   val print_antiquotations: Proof.context -> unit
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
@@ -55,7 +55,7 @@ fun exec (e: unit -> unit) context =
 type decl = Proof.context -> string * string;  (*final context -> ML env, ML body*)
 structure Antiquotations = Theory_Data
 (
-  type T = (Args.src -> Proof.context -> decl * Proof.context) Name_Space.table;
+  type T = (Token.src -> Proof.context -> decl * Proof.context) Name_Space.table;
   val empty : T = Name_Space.empty_table Markup.ML_antiquotationN;
   val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
@@ -75,7 +75,7 @@ fun print_antiquotations ctxt =
   |> Pretty.writeln;
 
 fun apply_antiquotation src ctxt =
-  let val (src', f) = Args.check_src ctxt (get_antiquotations ctxt) src
+  let val (src', f) = Token.check_src ctxt (get_antiquotations ctxt) src
   in f src' ctxt end;
 
 
@@ -85,7 +85,7 @@ local
 
 val antiq =
   Parse.!!! (Parse.position Parse.xname -- Parse.args --| Scan.ahead Parse.eof)
-  >> uncurry Args.src;
+  >> uncurry Token.src;
 
 val begin_env0 = ML_Lex.tokenize "structure Isabelle =\nstruct\n";
 

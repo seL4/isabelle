@@ -29,9 +29,9 @@ sig
     ((binding * term) * attribute list) list ->
     thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
   val add_inductive: string list * string ->
-    ((binding * string) * Attrib.src list) list ->
-    (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list *
-    (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list ->
+    ((binding * string) * Token.src list) list ->
+    (Facts.ref * Token.src list) list * (Facts.ref * Token.src list) list *
+    (Facts.ref * Token.src list) list * (Facts.ref * Token.src list) list ->
     theory -> theory * inductive_result
 end;
 

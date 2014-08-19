@@ -223,7 +223,7 @@ fun lifting_bundle qty_full_name qinfo lthy =
     val dummy_thm = Thm.transfer thy Drule.dummy_thm
     val pointer = Outer_Syntax.scan (Keyword.get_lexicons ()) Position.none bundle_name
     val restore_lifting_att = 
-      ([dummy_thm], [Args.src ("Lifting.lifting_restore_internal", Position.none) pointer])
+      ([dummy_thm], [Token.src ("Lifting.lifting_restore_internal", Position.none) pointer])
   in
     lthy 
       |> Local_Theory.declaration {syntax = false, pervasive = true}
@@ -969,7 +969,7 @@ fun pointer_of_bundle_name bundle_name ctxt =
     case bundle of
       [(_, [arg_src])] => 
         let
-          val (name, _) = Args.syntax (Scan.lift Args.name) arg_src ctxt
+          val (name, _) = Token.syntax (Scan.lift Args.name) arg_src ctxt
             handle ERROR _ => error "The provided bundle is not a lifting bundle."
         in name end
       | _ => error "The provided bundle is not a lifting bundle."

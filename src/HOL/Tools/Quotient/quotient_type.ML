@@ -13,7 +13,7 @@ sig
     ((binding * binding) option * bool * thm option) -> Proof.context -> Proof.state
 
   val quotient_type_cmd: ((((((bool * string list) * binding) * mixfix) * string) * (bool * string)) *
-    (binding * binding) option) * (Facts.ref * Args.src list) option -> Proof.context -> Proof.state
+    (binding * binding) option) * (Facts.ref * Token.src list) option -> Proof.context -> Proof.state
 end;
 
 structure Quotient_Type: QUOTIENT_TYPE =

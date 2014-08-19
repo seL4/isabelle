@@ -61,18 +61,18 @@ sig
   val chain: state -> state
   val chain_facts: thm list -> state -> state
   val note_thmss: (Thm.binding * (thm list * attribute list) list) list -> state -> state
-  val note_thmss_cmd: (Attrib.binding * (Facts.ref * Attrib.src list) list) list -> state -> state
+  val note_thmss_cmd: (Attrib.binding * (Facts.ref * Token.src list) list) list -> state -> state
   val from_thmss: ((thm list * attribute list) list) list -> state -> state
-  val from_thmss_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val from_thmss_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val with_thmss: ((thm list * attribute list) list) list -> state -> state
-  val with_thmss_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val with_thmss_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val using: ((thm list * attribute list) list) list -> state -> state
-  val using_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val using_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val unfolding: ((thm list * attribute list) list) list -> state -> state
-  val unfolding_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val unfolding_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val invoke_case: (string * Position.T) * binding option list * attribute list ->
     state -> state
-  val invoke_case_cmd: (string * Position.T) * binding option list * Attrib.src list ->
+  val invoke_case_cmd: (string * Position.T) * binding option list * Token.src list ->
     state -> state
   val begin_block: state -> state
   val next_block: state -> state

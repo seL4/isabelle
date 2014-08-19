@@ -21,17 +21,17 @@ sig
   val nesting_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
 
   type lfp_sugar_thms =
-    (thm list * thm * Args.src list) * (thm list list * Args.src list)
+    (thm list * thm * Token.src list) * (thm list list * Token.src list)
 
   val morph_lfp_sugar_thms: morphism -> lfp_sugar_thms -> lfp_sugar_thms
   val transfer_lfp_sugar_thms: Proof.context -> lfp_sugar_thms -> lfp_sugar_thms
 
   type gfp_sugar_thms =
-    ((thm list * thm) list * (Args.src list * Args.src list))
+    ((thm list * thm) list * (Token.src list * Token.src list))
     * thm list list
     * thm list list
-    * (thm list list * Args.src list)
-    * (thm list list list * Args.src list)
+    * (thm list list * Token.src list)
+    * (thm list list list * Token.src list)
 
   val morph_gfp_sugar_thms: morphism -> gfp_sugar_thms -> gfp_sugar_thms
   val transfer_gfp_sugar_thms: Proof.context -> gfp_sugar_thms -> gfp_sugar_thms
@@ -304,7 +304,7 @@ fun nesting_bnfs ctxt ctr_Tsss Us =
 fun indexify proj xs f p = f (find_index (curry (op =) (proj p)) xs) p;
 
 type lfp_sugar_thms =
-  (thm list * thm * Args.src list) * (thm list list * Args.src list);
+  (thm list * thm * Token.src list) * (thm list list * Token.src list);
 
 fun morph_lfp_sugar_thms phi ((inducts, induct, induct_attrs), (recss, rec_attrs)) =
   ((map (Morphism.thm phi) inducts, Morphism.thm phi induct, induct_attrs),
@@ -315,11 +315,11 @@ val transfer_lfp_sugar_thms =
   morph_lfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 type gfp_sugar_thms =
-  ((thm list * thm) list * (Args.src list * Args.src list))
+  ((thm list * thm) list * (Token.src list * Token.src list))
   * thm list list
   * thm list list
-  * (thm list list * Args.src list)
-  * (thm list list list * Args.src list);
+  * (thm list list * Token.src list)
+  * (thm list list list * Token.src list);
 
 fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs_pair),
     corecss, corec_discss, (corec_disc_iffss, corec_disc_iff_attrs),

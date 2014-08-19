@@ -12,7 +12,7 @@ type info =
   defname : string,
     (* contains no logical entities: invariant under morphisms: *)
   add_simps : (binding -> binding) -> string -> (binding -> binding) ->
-    Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+    Token.src list -> thm list -> local_theory -> thm list * local_theory,
   fnames : string list,
   case_names : string list,
   fs : term list,
@@ -37,7 +37,7 @@ type info =
   defname : string,
     (* contains no logical entities: invariant under morphisms: *)
   add_simps : (binding -> binding) -> string -> (binding -> binding) ->
-    Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+    Token.src list -> thm list -> local_theory -> thm list * local_theory,
   fnames : string list,
   case_names : string list,
   fs : term list,

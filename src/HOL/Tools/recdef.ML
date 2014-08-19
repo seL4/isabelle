@@ -15,17 +15,17 @@ sig
   val cong_del: attribute
   val wf_add: attribute
   val wf_del: attribute
-  val add_recdef: bool -> xstring -> string -> ((binding * string) * Attrib.src list) list ->
-    Attrib.src option -> theory -> theory
+  val add_recdef: bool -> xstring -> string -> ((binding * string) * Token.src list) list ->
+    Token.src option -> theory -> theory
       * {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val add_recdef_i: bool -> xstring -> term -> ((binding * term) * attribute list) list ->
     theory -> theory * {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val defer_recdef: xstring -> string list -> (Facts.ref * Attrib.src list) list
+  val defer_recdef: xstring -> string list -> (Facts.ref * Token.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> thm list -> theory -> theory * {induct_rules: thm}
-  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> bool ->
+  val recdef_tc: bstring * Token.src list -> xstring -> int option -> bool ->
     local_theory -> Proof.state
-  val recdef_tc_i: bstring * Attrib.src list -> string -> int option -> bool ->
+  val recdef_tc_i: bstring * Token.src list -> string -> int option -> bool ->
     local_theory -> Proof.state
   val setup: theory -> theory
 end;
@@ -164,7 +164,7 @@ fun prepare_hints thy opt_src =
     val ctxt =
       (case opt_src of
         NONE => ctxt0
-      | SOME src => #2 (Args.syntax (Method.sections recdef_modifiers) src ctxt0));
+      | SOME src => #2 (Token.syntax (Method.sections recdef_modifiers) src ctxt0));
     val {simps, congs, wfs} = get_hints ctxt;
     val ctxt' = ctxt addsimps simps |> Simplifier.del_cong @{thm imp_cong};
   in (ctxt', rev (map snd congs), wfs) end;
@@ -292,7 +292,7 @@ val setup =
 val hints =
   @{keyword "("} |--
     Parse.!!! (Parse.position @{keyword "hints"} -- Parse.args --| @{keyword ")"})
-  >> uncurry Args.src;
+  >> uncurry Token.src;
 
 val recdef_decl =
   Scan.optional

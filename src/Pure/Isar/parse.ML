@@ -6,8 +6,6 @@ Generic parsers for Isabelle/Isar outer syntax.
 
 signature PARSE =
 sig
-  type 'a parser = Token.T list -> 'a * Token.T list
-  type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic * Token.T list)
   val group: (unit -> string) -> (Token.T list -> 'a) -> Token.T list -> 'a
   val !!! : (Token.T list -> 'a) -> Token.T list -> 'a
   val !!!! : (Token.T list -> 'a) -> Token.T list -> 'a
@@ -113,10 +111,6 @@ end;
 
 structure Parse: PARSE =
 struct
-
-type 'a parser = Token.T list -> 'a * Token.T list;
-type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic * Token.T list);
-
 
 (** error handling **)
 
@@ -440,7 +434,4 @@ fun args1 is_symid = #2 (arguments is_symid) false;
 end;
 
 end;
-
-type 'a parser = 'a Parse.parser;
-type 'a context_parser = 'a Parse.context_parser;
 

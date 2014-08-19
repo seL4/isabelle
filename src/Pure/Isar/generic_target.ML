@@ -23,9 +23,9 @@ sig
     bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val notes:
-    (string -> (Attrib.binding * (thm list * Args.src list) list) list ->
-      (Attrib.binding * (thm list * Args.src list) list) list -> local_theory -> local_theory) ->
-    string -> (Attrib.binding * (thm list * Args.src list) list) list -> local_theory ->
+    (string -> (Attrib.binding * (thm list * Token.src list) list) list ->
+      (Attrib.binding * (thm list * Token.src list) list) list -> local_theory -> local_theory) ->
+    string -> (Attrib.binding * (thm list * Token.src list) list) list -> local_theory ->
     (string * thm list) list * local_theory
   val abbrev: (string * bool -> binding * mixfix -> term ->
       term list * term list -> local_theory -> local_theory) ->
@@ -35,8 +35,8 @@ sig
   val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
   val theory_notes: string ->
-    (Attrib.binding * (thm list * Args.src list) list) list ->
-    (Attrib.binding * (thm list * Args.src list) list) list ->
+    (Attrib.binding * (thm list * Token.src list) list) list ->
+    (Attrib.binding * (thm list * Token.src list) list) list ->
     local_theory -> local_theory
   val theory_declaration: declaration -> local_theory -> local_theory
   val theory_abbrev: Syntax.mode -> (binding * mixfix) -> term -> term list * term list ->
@@ -46,8 +46,8 @@ sig
 
   (* locale operations *)
   val locale_notes: string -> string ->
-    (Attrib.binding * (thm list * Args.src list) list) list ->
-    (Attrib.binding * (thm list * Args.src list) list) list ->
+    (Attrib.binding * (thm list * Token.src list) list) list ->
+    (Attrib.binding * (thm list * Token.src list) list) list ->
     local_theory -> local_theory
   val locale_target_declaration: string -> bool -> declaration -> local_theory -> local_theory
   val locale_declaration: string -> {syntax: bool, pervasive: bool} -> declaration ->

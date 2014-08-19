@@ -13,7 +13,8 @@ sig
     (binding * mixfix) -> typ -> term -> thm -> thm list -> local_theory -> local_theory
 
   val lift_def_cmd:
-    (binding * string option * mixfix) * string * (Facts.ref * Args.src list) list -> local_theory -> Proof.state
+    (binding * string option * mixfix) * string * (Facts.ref * Token.src list) list ->
+    local_theory -> Proof.state
 
   val can_generate_code_cert: thm -> bool
 end

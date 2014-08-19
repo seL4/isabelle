@@ -20,7 +20,7 @@ sig
   val add_inductive: bool -> bool ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
+    (Attrib.binding * string) list -> (Facts.ref * Token.src list) list ->
     local_theory -> Inductive.inductive_result * local_theory
   val mono_add: attribute
   val mono_del: attribute

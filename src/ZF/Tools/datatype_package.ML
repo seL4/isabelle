@@ -32,8 +32,8 @@ sig
   val add_datatype_i: term * term list -> Ind_Syntax.constructor_spec list list ->
     thm list * thm list * thm list -> theory -> theory * inductive_result * datatype_result
   val add_datatype: string * string list -> (string * string list * mixfix) list list ->
-    (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list *
-    (Facts.ref * Attrib.src list) list -> theory -> theory * inductive_result * datatype_result
+    (Facts.ref * Token.src list) list * (Facts.ref * Token.src list) list *
+    (Facts.ref * Token.src list) list -> theory -> theory * inductive_result * datatype_result
 end;
 
 functor Add_datatype_def_Fun

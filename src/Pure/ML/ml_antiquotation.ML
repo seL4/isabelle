@@ -8,7 +8,7 @@ signature ML_ANTIQUOTATION =
 sig
   val variant: string -> Proof.context -> string * Proof.context
   val declaration: binding -> 'a context_parser ->
-    (Args.src -> 'a -> Proof.context -> ML_Context.decl * Proof.context) ->
+    (Token.src -> 'a -> Proof.context -> ML_Context.decl * Proof.context) ->
     theory -> theory
   val inline: binding -> string context_parser -> theory -> theory
   val value: binding -> string context_parser -> theory -> theory
@@ -40,7 +40,7 @@ fun variant a ctxt =
 fun declaration name scan body =
   ML_Context.add_antiquotation name
     (fn src => fn orig_ctxt =>
-      let val (x, _) = Args.syntax scan src orig_ctxt
+      let val (x, _) = Token.syntax scan src orig_ctxt
       in body src x orig_ctxt end);
 
 fun inline name scan =
@@ -62,7 +62,7 @@ val _ = Theory.setup
     (fn src => fn () => fn ctxt =>
       let
         val (a, ctxt') = variant "position" ctxt;
-        val (_, pos) = Args.name_of_src src;
+        val (_, pos) = Token.name_of_src src;
         val env = "val " ^ a ^ " = " ^ ML_Syntax.print_position pos ^ ";\n";
         val body = "Isabelle." ^ a;
       in (K (env, body), ctxt') end) #>

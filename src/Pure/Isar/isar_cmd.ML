@@ -16,7 +16,7 @@ sig
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val oracle: bstring * Position.T -> Symbol_Pos.source -> theory -> theory
-  val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
+  val add_defs: (bool * bool) * ((binding * string) * Token.src list) list -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} ->
     Symbol_Pos.source -> local_theory -> local_theory
   val simproc_setup: string * Position.T -> string list -> Symbol_Pos.source ->
@@ -39,11 +39,11 @@ sig
   val thy_deps: Toplevel.transition -> Toplevel.transition
   val locale_deps: Toplevel.transition -> Toplevel.transition
   val class_deps: Toplevel.transition -> Toplevel.transition
-  val print_stmts: string list * (Facts.ref * Attrib.src list) list
+  val print_stmts: string list * (Facts.ref * Token.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_thms: string list * (Facts.ref * Attrib.src list) list
+  val print_thms: string list * (Facts.ref * Token.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_prfs: bool -> string list * (Facts.ref * Attrib.src list) list option
+  val print_prfs: bool -> string list * (Facts.ref * Token.src list) list option
     -> Toplevel.transition -> Toplevel.transition
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition

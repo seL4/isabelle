@@ -34,7 +34,7 @@ sig
     term option * term list ->
     thm option * thm option -> thm list ->
     declaration list ->
-    (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list ->
+    (string * (Attrib.binding * (thm list * Token.src list) list) list) list ->
     (string * morphism) list -> theory -> theory
   val intern: theory -> xstring -> string
   val check: theory -> xstring * Position.T -> string
@@ -49,7 +49,7 @@ sig
   val specification_of: theory -> string -> term option * term list
 
   (* Storing results *)
-  val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
+  val add_thmss: string -> string -> (Attrib.binding * (thm list * Token.src list) list) list ->
     Proof.context -> Proof.context
   val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
@@ -127,7 +127,7 @@ datatype locale = Loc of {
   (** dynamic part **)
   syntax_decls: (declaration * serial) list,
     (* syntax declarations *)
-  notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * serial) list,
+  notes: ((string * (Attrib.binding * (thm list * Token.src list) list) list) * serial) list,
     (* theorem declarations *)
   dependencies: ((string * (morphism * morphism)) * serial) list
     (* locale dependencies (sublocale relation) in reverse order *),

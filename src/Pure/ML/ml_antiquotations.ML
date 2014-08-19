@@ -64,7 +64,7 @@ val _ = Theory.setup
     (Scan.lift (Scan.optional Args.name "Output.writeln"))
       (fn src => fn output => fn ctxt =>
         let
-          val (_, pos) = Args.name_of_src src;
+          val (_, pos) = Token.name_of_src src;
           val (a, ctxt') = ML_Antiquotation.variant "output" ctxt;
           val env =
             "val " ^ a ^ ": string -> unit =\n\
