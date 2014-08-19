@@ -15,45 +15,6 @@ But for the type classes bot and top, the type @{typ "int"} is insufficient.
 Hence, we provide other types than @{typ "int"} as further default types.  
 *}
 
-subsection {* A non-distributive lattice *}
-
-datatype non_distrib_lattice = Zero | A | B | C | One
-
-instantiation non_distrib_lattice :: order
-begin
-
-definition less_eq_non_distrib_lattice
-where
-  "a <= b = (case a of Zero => True | A => (b = A) \<or> (b = One) | B => (b = B) \<or> (b = One) | C => (b = C) \<or> (b = One) | One => (b = One))"
-
-definition less_non_distrib_lattice
-where
-  "a < b = (case a of Zero => (b \<noteq> Zero) | A => (b = One) | B => (b = One) | C => (b = One) | One => False)"
-
-instance proof
-qed (auto simp add: less_eq_non_distrib_lattice_def less_non_distrib_lattice_def split: non_distrib_lattice.split non_distrib_lattice.split_asm)
-
-end
-
-instantiation non_distrib_lattice :: lattice
-begin
-
-
-definition sup_non_distrib_lattice
-where
-  "sup a b = (if a = b then a else (if a = Zero then b else (if b = Zero then a else One)))"
-
-definition inf_non_distrib_lattice
-where
-  "inf a b = (if a = b then a else (if a = One then b else (if b = One then a else Zero)))"
-
-instance proof
-qed (auto simp add: inf_non_distrib_lattice_def sup_non_distrib_lattice_def less_eq_non_distrib_lattice_def split: split_if non_distrib_lattice.split non_distrib_lattice.split_asm)
-
-end
-
-hide_const Zero A B C One
-
 subsection {* Values extended by a bottom element *}
 
 datatype 'a bot = Value 'a | Bot
@@ -462,8 +423,8 @@ end
 
 section {* Quickcheck configuration *}
 
-quickcheck_params[finite_types = false, default_type = ["int", "non_distrib_lattice", "int bot", "int top", "Enum.finite_4 flat_complete_lattice"]]
+quickcheck_params[finite_types = false, default_type = ["int", "int bot", "int top", "Enum.finite_4 flat_complete_lattice"]]
 
-hide_type non_distrib_lattice flat_complete_lattice bot top
+hide_type flat_complete_lattice bot top
 
 end
