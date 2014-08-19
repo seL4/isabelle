@@ -2514,12 +2514,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
         bs thmss);
 
-    (*FIXME: once the package exports all the necessary high-level characteristic theorems,
-       those should not only be concealed but rather not noted at all*)
-    val maybe_conceal_notes = note_all = false ? map (apfst (apfst Binding.conceal));
-
-    val (noted, lthy') =
-      lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Jbnf_notes));
+    val lthy' = lthy |> note_all ? snd o Local_Theory.notes (common_notes @ notes @ Jbnf_notes);
 
     val fp_res =
       {Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, xtor_co_recs = corecs,
@@ -2528,8 +2523,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
        xtor_map_thms = dtor_Jmap_thms, xtor_set_thmss = dtor_Jset_thmss',
        xtor_rel_thms = dtor_Jrel_thms, xtor_co_rec_thms = dtor_corec_thms,
        xtor_co_rec_o_map_thms = dtor_corec_o_Jmap_thms, rel_xtor_co_induct_thm = Jrel_coinduct_thm,
-       dtor_set_induct_thms = dtor_Jset_induct_thms}
-      |> morph_fp_result (substitute_noted_thm noted);
+       dtor_set_induct_thms = dtor_Jset_induct_thms};
   in
     timer; (fp_res, lthy')
   end;

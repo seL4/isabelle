@@ -285,12 +285,12 @@ proof (unfold univ_def)
 qed
 
 lemma univ_preserves:
-  assumes ECH: "equiv A r" and RES: "f respects r" and PRES: "\<forall> x \<in> A. f x \<in> B"
+  assumes ECH: "equiv A r" and RES: "f respects r" and PRES: "\<forall>x \<in> A. f x \<in> B"
   shows "\<forall>X \<in> A//r. univ f X \<in> B"
 proof
   fix X assume "X \<in> A//r"
   then obtain x where x: "x \<in> A" and X: "X = proj r x" using ECH proj_image[of r A] by blast
-  hence "univ f X = f x" using assms univ_commute by fastforce
+  hence "univ f X = f x" using ECH RES univ_commute by fastforce
   thus "univ f X \<in> B" using x PRES by simp
 qed
 

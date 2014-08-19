@@ -47,13 +47,13 @@ apply(cases rule: dtree.exhaust[of tr])
 using Node unfolding Node_def
 by (metis Node Node_root_cont finite_cont)
 
-lemma dtree_sel_ctor[simp]:
+lemma dtree_sel_ctr[simp]:
 "root (Node n as) = n"
 "finite as \<Longrightarrow> cont (Node n as) = as"
 unfolding Node_def cont_def by auto
 
-lemmas root_Node = dtree_sel_ctor(1)
-lemmas cont_Node = dtree_sel_ctor(2)
+lemmas root_Node = dtree_sel_ctr(1)
+lemmas cont_Node = dtree_sel_ctr(2)
 
 lemma dtree_cong:
 assumes "root tr = root tr'" and "cont tr = cont tr'"
