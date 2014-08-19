@@ -20,6 +20,7 @@ sig
   val mk_corec_disc_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
+  val mk_ctr_transfer_tac: thm list -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
@@ -95,6 +96,11 @@ fun mk_ctor_iff_dtor_tac ctxt cTs cctor cdtor ctor_dtor dtor_ctor =
       dtac (Drule.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
       SELECT_GOAL (unfold_thms_tac ctxt [th]) THEN'
       atac) [rev cTs, cTs] [cdtor, cctor] [dtor_ctor, ctor_dtor]));
+
+fun mk_ctr_transfer_tac rel_intros =
+  HEADGOAL Goal.conjunction_tac THEN
+  ALLGOALS (REPEAT o (resolve_tac (@{thm rel_funI} :: rel_intros) THEN'
+    REPEAT_DETERM o atac));
 
 fun mk_half_distinct_tac ctxt ctor_inject abs_inject ctr_defs =
   unfold_thms_tac ctxt (ctor_inject :: abs_inject :: @{thms sum.inject} @ ctr_defs) THEN

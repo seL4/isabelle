@@ -98,6 +98,7 @@ open BNF_LFP_Size
 
 val EqN = "Eq_";
 
+val ctr_transferN = "ctr_transfer";
 val corec_codeN = "corec_code";
 val map_disc_iffN = "map_disc_iff";
 val map_selN = "map_sel";
@@ -130,6 +131,18 @@ fun build_the_rel ctxt Rs Ts A B = build_rel ctxt Ts (the o choose_binary_fun Rs
 fun build_rel_app ctxt Rs Ts a b = build_the_rel ctxt Rs Ts (fastype_of a) (fastype_of b) $ a $ b;
 
 val name_of_set = name_of_const "set";
+
+
+fun mk_parametricity_goals ctxt Rs fs gs =
+  let
+    val prems =
+      map (foldr1 (uncurry mk_rel_fun) o
+          uncurry (map2 (build_the_rel ctxt Rs [])) o
+          pairself (fastype_of #> strip_type #> (fn (Ts, T) => Ts @ [T])))
+        (fs ~~ gs);
+  in
+    map3 (fn prem => fn f => fn g => HOLogic.mk_Trueprop (prem $ f $ g)) prems fs gs
+  end
 
 fun fp_sugar_of ctxt =
   Symtab.lookup (Data.get (Context.Proof ctxt))
@@ -1499,11 +1512,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   rel_inject_thms ms;
 
               val (map_disc_iff_thms, map_sel_thms, set_sel_thms, rel_sel_thms, set_intros_thms,
-                   (set_cases_thms, set_cases_attrss), (rel_cases_thm, rel_cases_attrs)) =
+                   ctr_transfer_thms, (set_cases_thms, set_cases_attrss),
+                   (rel_cases_thm, rel_cases_attrs)) =
                 let
                   val live_AsBs = filter (op <>) (As ~~ Bs);
                   val fTs = map (op -->) live_AsBs;
-                  val rel = mk_rel live As Bs (rel_of_bnf fp_bnf);
                   val (((((fs, Rs), ta), tb), thesis), names_lthy) = names_lthy
                     |> mk_Frees "f" fTs
                     ||>> mk_Frees "R" (map (uncurry mk_pred2T) live_AsBs)
@@ -1513,10 +1526,23 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                       yield_singleton (mk_Frees "thesis") HOLogic.boolT;
                   val map_term = mk_map live As Bs (map_of_bnf fp_bnf);
                   val ctrAs = map (mk_ctr As) ctrs;
+                  val ctrBs = map (mk_ctr Bs) ctrs;
+                  val relAsBs = mk_rel live As Bs (rel_of_bnf fp_bnf);
                   val setAs = map (mk_set As) (sets_of_bnf fp_bnf);
                   val discAs = map (mk_disc_or_sel As) discs;
                   val selAss = map (map (mk_disc_or_sel As)) selss;
                   val discAs_selAss = flat (map2 (map o pair) discAs selAss);
+
+                  val ctr_transfer_thms =
+                    let
+                      val goals = mk_parametricity_goals names_lthy Rs ctrAs ctrBs;
+                    in
+                      Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                        (fn {context = ctxt, prems = _} => mk_ctr_transfer_tac rel_intro_thms)
+                      |> Conjunction.elim_balanced (length goals)
+                      |> Proof_Context.export names_lthy lthy
+                      |> map Thm.close_derivation
+                    end;
 
                   val (set_cases_thms, set_cases_attrss) =
                     let
@@ -1664,7 +1690,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
                   val (rel_cases_thm, rel_cases_attrs) =
                     let
-                      val rel_Rs_a_b = list_comb (rel, Rs) $ ta $ tb;
+                      val rel_Rs_a_b = list_comb (relAsBs, Rs) $ ta $ tb;
                       val ctrBs = map (mk_ctr Bs) ctrs;
 
                       fun mk_assms ctrA ctrB ctxt =
@@ -1831,7 +1857,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     end;
                 in
                   (map_disc_iff_thms, map_sel_thms, set_sel_thms, rel_sel_thms, set_intros_thms,
-                    (set_cases_thms, set_cases_attrss), (rel_cases_thm, rel_cases_attrs))
+                    ctr_transfer_thms, (set_cases_thms, set_cases_attrss),
+                    (rel_cases_thm, rel_cases_attrs))
                 end;
 
               val anonymous_notes =
@@ -1840,7 +1867,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
               val notes =
-                [(mapN, map_thms, K (code_nitpicksimp_attrs @ simp_attrs)),
+                [(ctr_transferN, ctr_transfer_thms, K []),
+                 (mapN, map_thms, K (code_nitpicksimp_attrs @ simp_attrs)),
                  (map_disc_iffN, map_disc_iff_thms, K simp_attrs),
                  (map_selN, map_sel_thms, K []),
                  (rel_casesN, [rel_cases_thm], K rel_cases_attrs),
