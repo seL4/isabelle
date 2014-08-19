@@ -782,7 +782,6 @@ session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
   files
     "Boogie_Dijkstra.certs2"
     "Boogie_Max.certs2"
-    "SMT_Examples.certs"
     "SMT_Examples.certs2"
     "SMT_Word_Examples.certs2"
     "VCC_Max.certs2"
