@@ -33,11 +33,13 @@ sig
   val symbol: string parser
   val liberal_name: string parser
   val var: indexname parser
+  val internal_source: Token.src parser
   val internal_name: (string * morphism) parser
   val internal_typ: typ parser
   val internal_term: term parser
   val internal_fact: thm list parser
   val internal_attribute: (morphism -> attribute) parser
+  val named_source: (Token.T -> Token.src) -> Token.src parser
   val named_typ: (string -> typ) -> typ parser
   val named_term: (string -> term) -> term parser
   val named_fact: (string -> string option * thm list) -> thm list parser
@@ -129,13 +131,16 @@ fun value dest = Scan.some (fn arg =>
 fun evaluate mk eval arg =
   let val x = eval arg in (Token.assign (SOME (mk x)) arg; x) end;
 
+val internal_source = value (fn Token.Source src => src);
 val internal_name = value (fn Token.Name a => a);
 val internal_typ = value (fn Token.Typ T => T);
 val internal_term = value (fn Token.Term t => t);
 val internal_fact = value (fn Token.Fact (_, ths) => ths);
 val internal_attribute = value (fn Token.Attribute att => att);
 
-fun named_typ readT = internal_typ || named >> evaluate Token.Typ (readT o Token.inner_syntax_of);
+fun named_source read = internal_source || named >> evaluate Token.Source read;
+
+fun named_typ read = internal_typ || named >> evaluate Token.Typ (read o Token.inner_syntax_of);
 fun named_term read = internal_term || named >> evaluate Token.Term (read o Token.inner_syntax_of);
 
 fun named_fact get =
