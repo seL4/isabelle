@@ -38,9 +38,7 @@ sig
   val erule: Proof.context -> int -> thm list -> method
   val drule: Proof.context -> int -> thm list -> method
   val frule: Proof.context -> int -> thm list -> method
-  val set_tactic: (thm list -> tactic) -> Context.generic -> Context.generic
-  val tactic: Symbol_Pos.source -> Proof.context -> method
-  val raw_tactic: Symbol_Pos.source -> Proof.context -> method
+  val set_tactic: (morphism -> thm list -> tactic) -> Context.generic -> Context.generic
   type combinator_info
   val no_combinator_info: combinator_info
   datatype combinator = Then | Orelse | Try | Repeat1 | Select_Goals of int
@@ -256,7 +254,7 @@ structure Data = Generic_Data
 (
   type T =
     ((Token.src -> Proof.context -> method) * string) Name_Space.table *  (*methods*)
-    (thm list -> tactic) option;  (*ML tactic*)
+    (morphism -> thm list -> tactic) option;  (*ML tactic*)
   val empty : T = (Name_Space.empty_table "method", NONE);
   val extend = I;
   fun merge ((tab, tac), (tab', tac')) : T =
@@ -276,17 +274,19 @@ fun the_tactic context =
     SOME tac => tac
   | NONE => raise Fail "Undefined ML tactic");
 
-fun ml_tactic source ctxt =
-  let
-    val context = Context.Proof ctxt
-    val context' = context |>
-      (ML_Context.expression (#pos source)
-        "fun tactic (facts: thm list) : tactic"
-        "Method.set_tactic tactic" (ML_Lex.read_source false source));
-  in Context.setmp_thread_data (SOME context) (the_tactic context') end;
-
-fun tactic source ctxt = METHOD (ml_tactic source ctxt);
-fun raw_tactic source ctxt = NO_CASES o ml_tactic source ctxt;
+val parse_tactic =
+  Scan.state :|-- (fn context =>
+    Scan.lift (Args.text_declaration (fn source =>
+      let
+        val context' = context |>
+          ML_Context.expression (#pos source)
+            "fun tactic (morphism: morphism) (facts: thm list) : tactic"
+            "Method.set_tactic tactic" (ML_Lex.read_source false source);
+        val tac = the_tactic context';
+      in
+        fn phi =>
+          set_tactic (fn _ => Context.setmp_thread_data (SOME context) (tac phi))
+      end)) >> (fn decl => Morphism.form (the_tactic (Morphism.form decl context))));
 
 
 (* method text *)
@@ -578,9 +578,9 @@ val _ = Theory.setup
   setup @{binding rotate_tac} (Args.goal_spec -- Scan.lift (Scan.optional Parse.int 1) >>
     (fn (quant, i) => K (SIMPLE_METHOD'' quant (rotate_tac i))))
       "rotate assumptions of goal" #>
-  setup @{binding tactic} (Scan.lift Args.text_source_position >> tactic)
+  setup @{binding tactic} (parse_tactic >> (K o METHOD))
     "ML tactic as proof method" #>
-  setup @{binding raw_tactic} (Scan.lift Args.text_source_position >> raw_tactic)
+  setup @{binding raw_tactic} (parse_tactic >> (fn tac => fn _ => NO_CASES o tac))
     "ML tactic as raw proof method");
 
 
