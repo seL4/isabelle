@@ -38,7 +38,7 @@ sig
   val erule: Proof.context -> int -> thm list -> method
   val drule: Proof.context -> int -> thm list -> method
   val frule: Proof.context -> int -> thm list -> method
-  val set_tactic: (thm list -> tactic) -> Proof.context -> Proof.context
+  val set_tactic: (thm list -> tactic) -> Context.generic -> Context.generic
   val tactic: Symbol_Pos.source -> Proof.context -> method
   val raw_tactic: Symbol_Pos.source -> Proof.context -> method
   type combinator_info
@@ -247,30 +247,47 @@ val intros_tac = gen_intros_tac ALLGOALS;
 val try_intros_tac = gen_intros_tac TRYALL;
 
 
-(* ML tactics *)
 
-structure ML_Tactic = Proof_Data
+(** method syntax **)
+
+(* context data *)
+
+structure Data = Generic_Data
 (
-  type T = thm list -> tactic;
-  fun init _ = undefined;
+  type T =
+    ((Token.src -> Proof.context -> method) * string) Name_Space.table *  (*methods*)
+    (thm list -> tactic) option;  (*ML tactic*)
+  val empty : T = (Name_Space.empty_table "method", NONE);
+  val extend = I;
+  fun merge ((tab, tac), (tab', tac')) : T =
+    (Name_Space.merge_tables (tab, tab'), merge_options (tac, tac'));
 );
 
-val set_tactic = ML_Tactic.put;
+val get_methods = fst o Data.get;
+val map_methods = Data.map o apfst;
+
+
+(* ML tactic *)
+
+val set_tactic = Data.map o apsnd o K o SOME;
+
+fun the_tactic context =
+  (case snd (Data.get context) of
+    SOME tac => tac
+  | NONE => raise Fail "Undefined ML tactic");
 
 fun ml_tactic source ctxt =
   let
-    val ctxt' = ctxt |> Context.proof_map
+    val context = Context.Proof ctxt
+    val context' = context |>
       (ML_Context.expression (#pos source)
         "fun tactic (facts: thm list) : tactic"
-        "Context.map_proof (Method.set_tactic tactic)" (ML_Lex.read_source false source));
-  in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (ML_Tactic.get ctxt') end;
+        "Method.set_tactic tactic" (ML_Lex.read_source false source));
+  in Context.setmp_thread_data (SOME context) (the_tactic context') end;
 
 fun tactic source ctxt = METHOD (ml_tactic source ctxt);
 fun raw_tactic source ctxt = NO_CASES o ml_tactic source ctxt;
 
-
-
-(** method syntax **)
 
 (* method text *)
 
@@ -303,25 +320,15 @@ fun finish_text (NONE, immed) = Basic (finish immed)
 
 (* method definitions *)
 
-structure Methods = Generic_Data
-(
-  type T = ((Token.src -> Proof.context -> method) * string) Name_Space.table;
-  val empty : T = Name_Space.empty_table "method";
-  val extend = I;
-  fun merge data : T = Name_Space.merge_tables data;
-);
-
-val get_methods = Methods.get o Context.Proof;
-
 fun transfer_methods ctxt =
   let
-    val meths0 = Methods.get (Context.Theory (Proof_Context.theory_of ctxt));
-    val meths' = Name_Space.merge_tables (meths0, get_methods ctxt);
-  in Context.proof_map (Methods.put meths') ctxt end;
+    val meths0 = get_methods (Context.Theory (Proof_Context.theory_of ctxt));
+    val meths' = Name_Space.merge_tables (meths0, get_methods (Context.Proof ctxt));
+  in Context.proof_map (map_methods (K meths')) ctxt end;
 
 fun print_methods ctxt =
   let
-    val meths = get_methods ctxt;
+    val meths = get_methods (Context.Proof ctxt);
     fun prt_meth (name, (_, "")) = Pretty.mark_str name
       | prt_meth (name, (_, comment)) =
           Pretty.block
@@ -338,21 +345,25 @@ fun define_global binding meth comment thy =
   let
     val context = Context.Theory thy;
     val (name, meths') =
-      Name_Space.define context true (binding, (meth, comment)) (Methods.get context);
-  in (name, Context.the_theory (Methods.put meths' context)) end;
+      Name_Space.define context true (binding, (meth, comment)) (get_methods context);
+  in (name, Context.the_theory (map_methods (K meths') context)) end;
 
 fun define binding meth comment =
   Local_Theory.background_theory_result (define_global binding meth comment)
   #-> (fn name =>
     Local_Theory.map_contexts (K transfer_methods)
-    #> Local_Theory.generic_alias Methods.map binding name
+    #> Local_Theory.generic_alias map_methods binding name
     #> pair name);
 
 
 (* check *)
 
-fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ctxt);
-fun check_src ctxt src = Token.check_src ctxt (get_methods ctxt) src;
+fun check_name ctxt =
+  let val context = Context.Proof ctxt
+  in #1 o Name_Space.check context (get_methods context) end;
+
+fun check_src ctxt src =
+  Token.check_src ctxt (get_methods (Context.Proof ctxt)) src;
 
 
 (* method setup *)
@@ -376,7 +387,7 @@ fun method_setup name source cmt =
 (* prepare methods *)
 
 fun method ctxt =
-  let val table = get_methods ctxt
+  let val table = get_methods (Context.Proof ctxt)
   in fn src => #1 (Name_Space.get table (#1 (Token.name_of_src src))) src end;
 
 fun method_closure ctxt0 src0 =
