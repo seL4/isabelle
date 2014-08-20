@@ -22,6 +22,7 @@ sig
     Term of term |
     Fact of string option * thm list |
     Attribute of morphism -> attribute |
+    Declaration of declaration |
     Files of file Exn.result list
   val name0: string -> value
   val pos_of: T -> Position.T
@@ -163,6 +164,7 @@ and value =
   Term of term |
   Fact of string option * thm list |  (*optional name for dynamic fact, i.e. fact "variable"*)
   Attribute of morphism -> attribute |
+  Declaration of declaration |
   Files of file Exn.result list;
 
 fun name0 a = Name (a, Morphism.identity);
@@ -421,6 +423,7 @@ fun transform phi =
     | Term t => Term (Morphism.term phi t)
     | Fact (a, ths) => Fact (a, Morphism.fact phi ths)
     | Attribute att => Attribute (Morphism.transform phi att)
+    | Declaration decl => Declaration (Morphism.transform phi decl)
     | Files _ => v))
 and transform_src phi = map_args (transform phi);
 

@@ -39,12 +39,14 @@ sig
   val internal_term: term parser
   val internal_fact: thm list parser
   val internal_attribute: (morphism -> attribute) parser
+  val internal_declaration: declaration parser
   val named_source: (Token.T -> Token.src) -> Token.src parser
   val named_typ: (string -> typ) -> typ parser
   val named_term: (string -> term) -> term parser
   val named_fact: (string -> string option * thm list) -> thm list parser
-  val named_attribute:
-    (string * Position.T -> morphism -> attribute) -> (morphism -> attribute) parser
+  val named_attribute: (string * Position.T -> morphism -> attribute) ->
+    (morphism -> attribute) parser
+  val text_declaration: (Symbol_Pos.source -> declaration) -> declaration parser
   val typ_abbrev: typ context_parser
   val typ: typ context_parser
   val term: term context_parser
@@ -137,6 +139,7 @@ val internal_typ = value (fn Token.Typ T => T);
 val internal_term = value (fn Token.Term t => t);
 val internal_fact = value (fn Token.Fact (_, ths) => ths);
 val internal_attribute = value (fn Token.Attribute att => att);
+val internal_declaration = value (fn Token.Declaration decl => decl);
 
 fun named_source read = internal_source || named >> evaluate Token.Source read;
 
@@ -151,6 +154,10 @@ fun named_fact get =
 fun named_attribute att =
   internal_attribute ||
   named >> evaluate Token.Attribute (fn tok => att (Token.content_of tok, Token.pos_of tok));
+
+fun text_declaration read =
+  internal_declaration ||
+  text_token >> evaluate Token.Declaration (read o Token.source_position_of);
 
 
 (* terms and types *)
