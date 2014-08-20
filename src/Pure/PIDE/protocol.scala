@@ -320,7 +320,13 @@ object Protocol
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
         case Position.Identified(id, name) if self_id(id) && name == chunk_name =>
-          Position.Range.unapply(props) orElse Position.Range.unapply(command_position) match {
+          val opt_range =
+            Position.Range.unapply(props) orElse {
+              if (name == Symbol.Text_Chunk.Default)
+                Position.Range.unapply(command_position)
+              else None
+            }
+          opt_range match {
             case Some(symbol_range) =>
               chunk.incorporate(symbol_range) match {
                 case Some(range) => set + range
