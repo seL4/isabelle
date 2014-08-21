@@ -280,7 +280,7 @@ val parse_tactic =
       let
         val context' = context |>
           ML_Context.expression (#pos source)
-            "fun tactic (morphism: morphism) (facts: thm list) : tactic"
+            "fun tactic (morphism: Morphism.morphism) (facts: thm list) : tactic"
             "Method.set_tactic tactic" (ML_Lex.read_source false source);
         val tac = the_tactic context';
       in
