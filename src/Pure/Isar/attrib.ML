@@ -214,7 +214,9 @@ fun attribute_setup name source cmt =
 
 (* internal attribute *)
 
-fun internal att = Token.src ("Pure.attribute", Position.none) [Token.mk_attribute att];
+fun internal att =
+  Token.src ("Pure.attribute", Position.none)
+    [Token.make_value "<attribute>" (Token.Attribute att)];
 
 val _ = Theory.setup
   (setup (Binding.make ("attribute", @{here}))

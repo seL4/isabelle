@@ -66,14 +66,10 @@ sig
   val text_of: T -> string * string
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
+  val make_value: string -> value -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val reports_of_value: T -> Position.report list
-  val mk_name: string -> T
-  val mk_typ: typ -> T
-  val mk_term: term -> T
-  val mk_fact: string option * thm list -> T
-  val mk_attribute: (morphism -> attribute) -> T
   val transform: morphism -> T -> T
   val transform_src: morphism -> src -> src
   val init_assignable: T -> T
@@ -380,6 +376,9 @@ fun put_files [] tok = tok
 
 (* access values *)
 
+fun make_value name v =
+  Token ((name, Position.no_range), (InternalValue, name), Value (SOME v));
+
 fun get_value (Token (_, _, Value v)) = v
   | get_value _ = NONE;
 
@@ -398,17 +397,6 @@ fun reports_of_value tok =
         else []
       end
   | _ => []);
-
-
-(* make values *)
-
-fun mk_value k v = Token ((k, Position.no_range), (InternalValue, k), Value (SOME v));
-
-val mk_name = mk_value "<name>" o name0;
-val mk_typ = mk_value "<typ>" o Typ;
-val mk_term = mk_value "<term>" o Term;
-val mk_fact = mk_value "<fact>" o Fact;
-val mk_attribute = mk_value "<attribute>" o Attribute;
 
 
 (* transform *)
