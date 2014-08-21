@@ -283,7 +283,7 @@ fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss cto
         TRYALL (hyp_subst_tac ctxt) THEN
         unfold_thms_tac ctxt (Abs_inverse :: @{thms rel_sum_simps rel_prod_apply Inl_Inr_False
           Inr_Inl_False  sum.inject prod.inject}) THEN
-        TRYALL (etac FalseE ORELSE' (REPEAT_DETERM o etac conjE) THEN' atac))
+        TRYALL (rtac refl ORELSE' etac FalseE ORELSE' (REPEAT_DETERM o etac conjE) THEN' atac))
     cterms exhausts ctor_defss ctor_injects rel_pre_list_defs Abs_inverses);
 
 fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_distincts =
