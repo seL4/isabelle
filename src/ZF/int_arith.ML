@@ -151,7 +151,7 @@ fun prep_simproc thy (name, pats, proc) =
 
 structure CancelNumeralsCommon =
   struct
-  val mk_sum            = (fn T:typ => mk_sum)
+  val mk_sum            = (fn _ : typ => mk_sum)
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
@@ -236,7 +236,7 @@ structure CombineNumeralsData =
   type coeff            = int
   val iszero            = (fn x => x = 0)
   val add               = op + 
-  val mk_sum            = (fn T:typ => long_mk_sum) (*to work for #2*x $+ #3*x *)
+  val mk_sum            = (fn _ : typ => long_mk_sum) (*to work for #2*x $+ #3*x *)
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
@@ -284,7 +284,7 @@ struct
   type coeff            = int
   val iszero            = (fn x => x = 0)
   val add               = op *
-  val mk_sum            = (fn T:typ => mk_prod)
+  val mk_sum            = (fn _ : typ => mk_prod)
   val dest_sum          = dest_prod
   fun mk_coeff(k,t) = if t=one then mk_numeral k
                       else raise TERM("mk_coeff", [])
