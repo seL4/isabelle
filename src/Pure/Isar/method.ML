@@ -392,7 +392,7 @@ fun method ctxt =
 
 fun method_closure ctxt0 src0 =
   let
-    val (src1, meth) = check_src ctxt0 src0;
+    val (src1, _) = check_src ctxt0 src0;
     val src2 = Token.init_assignable_src src1;
     val ctxt = Context_Position.not_really ctxt0;
     val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
