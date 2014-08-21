@@ -45,10 +45,12 @@ sig
     local_theory -> local_theory
   val internal: (morphism -> attribute) -> Token.src
   val add_del: attribute -> attribute -> attribute context_parser
-  val thm_sel: Facts.interval list parser
   val thm: thm context_parser
   val thms: thm list context_parser
   val multi_thm: thm list context_parser
+  val transform_facts: morphism ->
+    (Attrib.binding * (thm list * Token.src list) list) list ->
+    (Attrib.binding * (thm list * Token.src list) list) list
   val partial_evaluation: Proof.context ->
     (binding * (thm list * Token.src list) list) list ->
     (binding * (thm list * Token.src list) list) list
@@ -232,11 +234,6 @@ fun add_del add del = Scan.lift (Args.add >> K add || Args.del >> K del || Scan.
 
 (** parsing attributed theorems **)
 
-val thm_sel = Parse.$$$ "(" |-- Parse.list1
- (Parse.nat --| Parse.minus -- Parse.nat >> Facts.FromTo ||
-  Parse.nat --| Parse.minus >> Facts.From ||
-  Parse.nat >> Facts.Single) --| Parse.$$$ ")";
-
 local
 
 val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
@@ -257,9 +254,10 @@ fun gen_thm pick = Scan.depend (fn context =>
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
       >> (fn (s, fact) => ("", Facts.Fact s, fact)) ||
-     Scan.ahead (Parse.position fact_name -- Scan.option thm_sel) :|-- (fn ((name, pos), sel) =>
-      Args.named_fact (get_named (is_some sel) pos) --| Scan.option thm_sel
-        >> (fn fact => (name, Facts.Named ((name, pos), sel), fact))))
+     Scan.ahead (Parse.position fact_name -- Scan.option Parse.thm_sel) :|--
+      (fn ((name, pos), sel) =>
+        Args.named_fact (get_named (is_some sel) pos) --| Scan.option Parse.thm_sel
+          >> (fn fact => (name, Facts.Named ((name, pos), sel), fact))))
     -- Args.opt_attribs (check_name_generic context) >> (fn ((name, thmref, fact), srcs) =>
       let
         val ths = Facts.select thmref fact;
@@ -276,6 +274,13 @@ val multi_thm = gen_thm (K I);
 val thms = Scan.repeat multi_thm >> flat;
 
 end;
+
+
+(* transform fact expressions *)
+
+fun transform_facts phi = map (fn ((a, atts), bs) =>
+  ((Morphism.binding phi a, map (Token.transform_src phi) atts),
+    bs |> map (fn (ths, btts) => (Morphism.fact phi ths, map (Token.transform_src phi) btts))));
 
 
 

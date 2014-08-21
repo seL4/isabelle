@@ -309,7 +309,7 @@ val _ =
 val defer_recdef_decl =
   Parse.name -- Scan.repeat1 Parse.prop --
   Scan.optional
-    (@{keyword "("} |-- @{keyword "congs"} |-- Parse.!!! (Parse_Spec.xthms1 --| @{keyword ")"})) []
+    (@{keyword "("} |-- @{keyword "congs"} |-- Parse.!!! (Parse.xthms1 --| @{keyword ")"})) []
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 
 val _ =

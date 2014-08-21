@@ -190,10 +190,10 @@ val setup =
 
 val _ =
   Outer_Syntax.command @{command_spec "rep_datatype"} "represent existing set inductively"
-    ((@{keyword "elimination"} |-- Parse.!!! Parse_Spec.xthm) --
-     (@{keyword "induction"} |-- Parse.!!! Parse_Spec.xthm) --
-     (@{keyword "case_eqns"} |-- Parse.!!! Parse_Spec.xthms1) --
-     Scan.optional (@{keyword "recursor_eqns"} |-- Parse.!!! Parse_Spec.xthms1) []
+    ((@{keyword "elimination"} |-- Parse.!!! Parse.xthm) --
+     (@{keyword "induction"} |-- Parse.!!! Parse.xthm) --
+     (@{keyword "case_eqns"} |-- Parse.!!! Parse.xthms1) --
+     Scan.optional (@{keyword "recursor_eqns"} |-- Parse.!!! Parse.xthms1) []
      >> (fn (((x, y), z), w) => Toplevel.theory (rep_datatype x y z w)));
 
 end;

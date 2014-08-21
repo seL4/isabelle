@@ -107,6 +107,11 @@ sig
   val opt_target: (xstring * Position.T) option parser
   val args: Token.T list parser
   val args1: (string -> bool) -> Token.T list parser
+  val attribs: Token.src list parser
+  val opt_attribs: Token.src list parser
+  val thm_sel: Facts.interval list parser
+  val xthm: (Facts.ref * Token.src list) parser
+  val xthms1: (Facts.ref * Token.src list) list parser
 end;
 
 structure Parse: PARSE =
@@ -432,6 +437,28 @@ val args = #1 (arguments Token.ident_or_symbolic) false;
 fun args1 is_symid = #2 (arguments is_symid) false;
 
 end;
+
+
+(* attributes *)
+
+val attrib = position liberal_name -- !!! args >> uncurry Token.src;
+val attribs = $$$ "[" |-- list attrib --| $$$ "]";
+val opt_attribs = Scan.optional attribs [];
+
+
+(* theorem references *)
+
+val thm_sel = $$$ "(" |-- list1
+ (nat --| minus -- nat >> Facts.FromTo ||
+  nat --| minus >> Facts.From ||
+  nat >> Facts.Single) --| $$$ ")";
+
+val xthm =
+  $$$ "[" |-- attribs --| $$$ "]" >> pair (Facts.named "") ||
+  (literal_fact >> Facts.Fact ||
+    position xname -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
+
+val xthms1 = Scan.repeat1 xthm;
 
 end;
 

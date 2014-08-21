@@ -176,7 +176,7 @@ fun string_of_xthm (xref, args) =
   implode (map (enclose "[" "]" o Pretty.str_of o Token.pretty_src @{context}) args);
 
 val parse_fact_refs =
-  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse_Spec.xthm >> string_of_xthm));
+  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse.xthm >> string_of_xthm));
 
 val parse_attr =
   Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (fn ss => (ss, [], [], []))

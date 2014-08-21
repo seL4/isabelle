@@ -525,7 +525,7 @@ fun run_proof_method trivial full name meth named_thms id
     fun do_method named_thms ctxt =
       let
         val ref_of_str =
-          suffix ";" #> Outer_Syntax.scan (Keyword.get_lexicons ()) Position.none #> Parse_Spec.xthm
+          suffix ";" #> Outer_Syntax.scan (Keyword.get_lexicons ()) Position.none #> Parse.xthm
           #> fst
         val thms = named_thms |> maps snd
         val facts = named_thms |> map (ref_of_str o fst o fst)
