@@ -68,8 +68,8 @@ sig
   val method_cmd: Proof.context -> Token.src -> Proof.context -> method
   val evaluate: text -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
-  val section: modifier parser list -> thm list context_parser
-  val sections: modifier parser list -> thm list list context_parser
+  val section: modifier parser list -> declaration context_parser
+  val sections: modifier parser list -> declaration list context_parser
   type text_range = text * Position.range
   val text: text_range option -> text option
   val position: text_range option -> Position.T
@@ -454,15 +454,40 @@ type modifier = (Proof.context -> Proof.context) * attribute;
 
 local
 
-fun thms ss = Scan.repeat (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm) >> flat;
-fun app (f, att) ths context = fold_map (Thm.apply_attribute att) ths (Context.map_proof f context);
+fun sect modifier = Scan.depend (fn context =>
+  let
+    val ctxt = Context.proof_of context;
+    fun prep_att src =
+      let
+        val src' = Attrib.check_src ctxt src;
+        val _ = List.app (Token.assign NONE) (Token.args_of_src src');
+      in src' end;
+    val parse_thm =
+      Parse.xthm >> (fn (a, bs) => (Proof_Context.get_fact ctxt a, map prep_att bs));
+  in
+    Scan.ahead Parse.not_eof -- modifier -- Scan.repeat (Scan.unless modifier parse_thm) >>
+      (fn ((tok, (init, att)), thms) =>
+        let
+          val decl =
+            (case Token.get_value tok of
+              SOME (Token.Declaration decl) => decl
+            | _ =>
+                let
+                  val facts =
+                    Attrib.partial_evaluation ctxt
+                      [((Binding.empty, [Attrib.internal (K att)]), thms)];
+                  fun decl phi =
+                    Context.mapping I init #>
+                    Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
+                  val _ = Token.assign (SOME (Token.Declaration decl)) tok;
+                in decl end);
+        in (Morphism.form decl context, decl) end)
+  end);
 
 in
 
-fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context (thms ss)) :|--
-  (fn (m, ths) => Scan.succeed (swap (app m ths context))));
-
-fun sections ss = Scan.repeat (section ss);
+val section = sect o Scan.first;
+val sections = Scan.repeat o section;
 
 end;
 
