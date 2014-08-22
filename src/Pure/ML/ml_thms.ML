@@ -37,7 +37,6 @@ val the_thmss = map snd o get_thmss;
 val cons_thms = Data.map o apsnd o cons;
 
 
-
 (* attribute source *)
 
 val _ = Theory.setup
