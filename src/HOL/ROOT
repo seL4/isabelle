@@ -188,6 +188,7 @@ session "HOL-Number_Theory" in Number_Theory = HOL +
     Pocklington
     Gauss
     Number_Theory
+    Euclidean_Algorithm
   document_files
     "root.tex"
 
