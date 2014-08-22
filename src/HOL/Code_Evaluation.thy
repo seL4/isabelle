@@ -128,6 +128,15 @@ code_printing
   constant "term_of \<Colon> integer \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_number/ HOLogic.code'_integerT"
 | constant "term_of \<Colon> String.literal \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_literal"
 
+declare [[code drop: "term_of :: integer \<Rightarrow> _"]]
+
+lemma term_of_integer [unfolded typerep_fun_def typerep_num_def typerep_integer_def, code]:
+  "Code_Evaluation.term_of (i :: integer) =
+   Code_Evaluation.App
+    (Code_Evaluation.Const (STR ''Num.numeral_class.numeral'') (TYPEREP(num \<Rightarrow> integer)))
+    (term_of (num_of_integer i))"
+by(rule term_of_anything[THEN meta_eq_to_obj_eq])
+
 code_reserved Eval HOLogic
 
 
