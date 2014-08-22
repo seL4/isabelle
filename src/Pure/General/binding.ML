@@ -31,6 +31,7 @@ sig
   val conceal: binding -> binding
   val pretty: binding -> Pretty.T
   val print: binding -> string
+  val pp: binding -> Pretty.T
   val bad: binding -> string
   val check: binding -> unit
 end;
@@ -132,6 +133,8 @@ fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
     |> Pretty.quote;
 
 val print = Pretty.str_of o pretty;
+
+val pp = pretty o set_pos Position.none;
 
 
 (* check *)
