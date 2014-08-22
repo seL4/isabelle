@@ -87,8 +87,8 @@ struct
 
 type method = thm list -> cases_tactic;
 
-fun METHOD_CASES tac facts = Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
-fun METHOD tac facts = NO_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
+fun METHOD_CASES tac : method = fn facts => Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
+fun METHOD tac : method = fn facts => NO_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
