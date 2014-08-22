@@ -530,6 +530,17 @@ lemma filter_inter [simp]:
   "Multiset.filter P (M #\<inter> N) = Multiset.filter P M #\<inter> Multiset.filter P N"
   by (rule multiset_eqI) simp
 
+lemma multiset_filter_subset[simp]: "Multiset.filter f M \<le> M"
+  unfolding less_eq_multiset.rep_eq by auto
+
+lemma multiset_filter_mono: assumes "A \<le> B"
+  shows "Multiset.filter f A \<le> Multiset.filter f B"
+proof -
+  from assms[unfolded mset_le_exists_conv]
+  obtain C where B: "B = A + C" by auto
+  show ?thesis unfolding B by auto
+qed
+
 syntax
   "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{# _ :# _./ _#})")
 syntax (xsymbol)
@@ -1324,6 +1335,17 @@ lemma size_eq_mcard:
 lemma mcard_multiset_of:
   "mcard (multiset_of xs) = length xs"
   by (induct xs) simp_all
+
+lemma mcard_mono: assumes "A \<le> B"
+  shows "mcard A \<le> mcard B"
+proof -
+  from assms[unfolded mset_le_exists_conv]
+  obtain C where B: "B = A + C" by auto
+  show ?thesis unfolding B by (induct C, auto)
+qed
+
+lemma mcard_filter_lesseq[simp]: "mcard (Multiset.filter f M) \<le> mcard M"
+  by (rule mcard_mono[OF multiset_filter_subset])
 
 
 subsection {* Alternative representations *}
