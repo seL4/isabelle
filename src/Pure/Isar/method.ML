@@ -474,8 +474,8 @@ fun sect modifier = Scan.depend (fn context =>
             | _ =>
                 let
                   val facts =
-                    Attrib.partial_evaluation ctxt
-                      [((Binding.empty, [Attrib.internal (K att)]), thms)];
+                    Attrib.partial_evaluation ctxt [((Binding.name "dummy", []), thms)]
+                    |> map (fn (_, bs) => ((Binding.empty, [Attrib.internal (K att)]), bs));
                   fun decl phi =
                     Context.mapping I init #>
                     Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
