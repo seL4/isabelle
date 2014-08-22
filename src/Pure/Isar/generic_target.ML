@@ -66,7 +66,7 @@ struct
 (** notes **)
 
 fun standard_facts lthy ctxt =
-  Element.transform_facts (Local_Theory.standard_morphism lthy ctxt);
+  Attrib.transform_facts (Local_Theory.standard_morphism lthy ctxt);
 
 fun standard_notes pred kind facts lthy =
   Local_Theory.map_contexts (fn level => fn ctxt =>

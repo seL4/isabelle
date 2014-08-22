@@ -796,8 +796,8 @@ val opt_gen_code =
 val _ = 
   Outer_Syntax.local_theory @{command_spec "setup_lifting"}
     "setup lifting infrastructure" 
-      (opt_gen_code -- Parse_Spec.xthm -- Scan.option Parse_Spec.xthm 
-      -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse_Spec.xthm) >> 
+      (opt_gen_code -- Parse.xthm -- Scan.option Parse.xthm 
+      -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm) >> 
         (fn (((gen_code, xthm), opt_reflp_xthm), opt_par_xthm) => 
           setup_lifting_cmd gen_code xthm opt_reflp_xthm opt_par_xthm))
 

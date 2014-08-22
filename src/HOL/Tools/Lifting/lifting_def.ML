@@ -700,7 +700,7 @@ fun lift_def_cmd_with_err_handling (raw_var, rhs_raw, par_xthms) lthy =
 val liftdef_parser =
   (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')) >> Parse.triple2)
     --| @{keyword "is"} -- Parse.term -- 
-      Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse_Spec.xthms1) []) >> Parse.triple1
+      Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Parse.triple1
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "lift_definition"}
     "definition for constants over the quotient type"

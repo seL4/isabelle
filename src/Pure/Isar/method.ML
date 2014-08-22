@@ -68,8 +68,8 @@ sig
   val method_cmd: Proof.context -> Token.src -> Proof.context -> method
   val evaluate: text -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
-  val section: modifier parser list -> thm list context_parser
-  val sections: modifier parser list -> thm list list context_parser
+  val section: modifier parser list -> declaration context_parser
+  val sections: modifier parser list -> declaration list context_parser
   type text_range = text * Position.range
   val text: text_range option -> text option
   val position: text_range option -> Position.T
@@ -87,8 +87,8 @@ struct
 
 type method = thm list -> cases_tactic;
 
-fun METHOD_CASES tac facts = Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
-fun METHOD tac facts = NO_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
+fun METHOD_CASES tac : method = fn facts => Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
+fun METHOD tac : method = fn facts => NO_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
@@ -280,7 +280,7 @@ val parse_tactic =
       let
         val context' = context |>
           ML_Context.expression (#pos source)
-            "fun tactic (morphism: morphism) (facts: thm list) : tactic"
+            "fun tactic (morphism: Morphism.morphism) (facts: thm list) : tactic"
             "Method.set_tactic tactic" (ML_Lex.read_source false source);
         val tac = the_tactic context';
       in
@@ -392,7 +392,7 @@ fun method ctxt =
 
 fun method_closure ctxt0 src0 =
   let
-    val (src1, meth) = check_src ctxt0 src0;
+    val (src1, _) = check_src ctxt0 src0;
     val src2 = Token.init_assignable_src src1;
     val ctxt = Context_Position.not_really ctxt0;
     val _ = Seq.pull (method ctxt src2 ctxt [] (Goal.protect 0 Drule.dummy_thm));
@@ -454,15 +454,40 @@ type modifier = (Proof.context -> Proof.context) * attribute;
 
 local
 
-fun thms ss = Scan.repeat (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm) >> flat;
-fun app (f, att) ths context = fold_map (Thm.apply_attribute att) ths (Context.map_proof f context);
+fun sect modifier = Scan.depend (fn context =>
+  let
+    val ctxt = Context.proof_of context;
+    fun prep_att src =
+      let
+        val src' = Attrib.check_src ctxt src;
+        val _ = List.app (Token.assign NONE) (Token.args_of_src src');
+      in src' end;
+    val parse_thm =
+      Parse.xthm >> (fn (a, bs) => (Proof_Context.get_fact ctxt a, map prep_att bs));
+  in
+    Scan.ahead Parse.not_eof -- modifier -- Scan.repeat (Scan.unless modifier parse_thm) >>
+      (fn ((tok, (init, att)), thms) =>
+        let
+          val decl =
+            (case Token.get_value tok of
+              SOME (Token.Declaration decl) => decl
+            | _ =>
+                let
+                  val facts =
+                    Attrib.partial_evaluation ctxt
+                      [((Binding.empty, [Attrib.internal (K att)]), thms)];
+                  fun decl phi =
+                    Context.mapping I init #>
+                    Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
+                  val _ = Token.assign (SOME (Token.Declaration decl)) tok;
+                in decl end);
+        in (Morphism.form decl context, decl) end)
+  end);
 
 in
 
-fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context (thms ss)) :|--
-  (fn (m, ths) => Scan.succeed (swap (app m ths context))));
-
-fun sections ss = Scan.repeat (section ss);
+val section = sect o Scan.first;
+val sections = Scan.repeat o section;
 
 end;
 

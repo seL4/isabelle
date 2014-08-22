@@ -201,7 +201,7 @@ val ultimately = collect true;
 (* outer syntax *)
 
 val calc_args =
-  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse_Spec.xthms1 --| @{keyword ")"})));
+  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse.xthms1 --| @{keyword ")"})));
 
 val _ =
   Outer_Syntax.command @{command_spec "also"} "combine calculation and current facts"

@@ -41,7 +41,7 @@ val cons_thms = Data.map o apsnd o cons;
 (* attribute source *)
 
 val _ = Theory.setup
-  (ML_Antiquotation.declaration @{binding attributes} (Scan.lift Parse_Spec.attribs)
+  (ML_Antiquotation.declaration @{binding attributes} (Scan.lift Parse.attribs)
     (fn _ => fn raw_srcs => fn ctxt =>
       let
         val i = serial ();

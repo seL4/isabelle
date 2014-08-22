@@ -343,7 +343,7 @@ val quotspec_parser =
       Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
         (@{keyword "/"} |-- (partial -- Parse.term))  --
         Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
-          -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse_Spec.xthm)
+          -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm)
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "quotient_type"}
