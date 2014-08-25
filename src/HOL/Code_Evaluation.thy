@@ -131,10 +131,14 @@ code_printing
 declare [[code drop: "term_of :: integer \<Rightarrow> _"]]
 
 lemma term_of_integer [unfolded typerep_fun_def typerep_num_def typerep_integer_def, code]:
-  "Code_Evaluation.term_of (i :: integer) =
-   Code_Evaluation.App
-    (Code_Evaluation.Const (STR ''Num.numeral_class.numeral'') (TYPEREP(num \<Rightarrow> integer)))
-    (term_of (num_of_integer i))"
+  "term_of (i :: integer) =
+  (if i > 0 then 
+     App (Const (STR ''Num.numeral_class.numeral'') (TYPEREP(num \<Rightarrow> integer)))
+      (term_of (num_of_integer i))
+   else if i = 0 then Const (STR ''Groups.zero_class.zero'') TYPEREP(integer)
+   else
+     App (Const (STR ''Groups.uminus_class.uminus'') TYPEREP(integer \<Rightarrow> integer))
+       (term_of (- i)))"
 by(rule term_of_anything[THEN meta_eq_to_obj_eq])
 
 code_reserved Eval HOLogic
