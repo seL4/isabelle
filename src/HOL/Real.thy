@@ -1000,13 +1000,24 @@ abbreviation
 where
   "real_of_rat \<equiv> of_rat"
 
-consts
-  (*overloaded constant for injecting other types into "real"*)
-  real :: "'a => real"
+class real_of =
+  fixes real :: "'a \<Rightarrow> real"
 
-defs (overloaded)
-  real_of_nat_def [code_unfold]: "real == real_of_nat"
-  real_of_int_def [code_unfold]: "real == real_of_int"
+instantiation nat :: real_of
+begin
+
+definition real_nat :: "nat \<Rightarrow> real" where real_of_nat_def [code_unfold]: "real \<equiv> of_nat" 
+
+instance ..
+end
+
+instantiation int :: real_of
+begin
+
+definition real_int :: "int \<Rightarrow> real" where real_of_int_def [code_unfold]: "real \<equiv> of_int" 
+
+instance ..
+end
 
 declare [[coercion_enabled]]
 declare [[coercion "real::nat\<Rightarrow>real"]]

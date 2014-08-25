@@ -15,8 +15,14 @@ typedef float = float
   morphisms real_of_float float_of
   unfolding float_def by auto
 
-defs (overloaded)
+instantiation float :: real_of
+begin
+
+definition real_float :: "float \<Rightarrow> real" where
   real_of_float_def[code_unfold]: "real \<equiv> real_of_float"
+
+instance ..
+end
 
 lemma type_definition_float': "type_definition real float_of float"
   using type_definition_float unfolding real_of_float_def .

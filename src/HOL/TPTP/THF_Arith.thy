@@ -51,7 +51,7 @@ end
 
 overloading real_to_rat \<equiv> "to_rat :: real \<Rightarrow> rat"
 begin
-  definition "real_to_rat (x\<Colon>real) = (inv real x\<Colon>rat)"
+  definition "real_to_rat (x\<Colon>real) = (inv of_rat x\<Colon>rat)"
 end
 
 overloading int_to_real \<equiv> "to_real :: int \<Rightarrow> real"
@@ -85,6 +85,6 @@ lemma to_real_is_rat [intro, simp]: "is_rat (to_real (q\<Colon>rat))"
 by (metis Rats_of_rat rat_to_real_def real_is_rat_def)
 
 lemma inj_of_rat [intro, simp]: "inj (of_rat\<Colon>rat\<Rightarrow>real)"
-by (metis injI of_rat_eq_iff rat_to_real_def)
+by (metis injI of_rat_eq_iff)
 
 end

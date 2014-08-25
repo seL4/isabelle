@@ -91,21 +91,22 @@ lemma ereal_uminus_eq_iff[simp]:
   shows "-a = -b \<longleftrightarrow> a = b"
   by (cases rule: ereal2_cases[of a b]) simp_all
 
-function of_ereal :: "ereal \<Rightarrow> real" where
-  "of_ereal (ereal r) = r"
-| "of_ereal \<infinity> = 0"
-| "of_ereal (-\<infinity>) = 0"
+instantiation ereal :: real_of
+begin
+
+function real_ereal :: "ereal \<Rightarrow> real" where
+  "real_ereal (ereal r) = r"
+| "real_ereal \<infinity> = 0"
+| "real_ereal (-\<infinity>) = 0"
   by (auto intro: ereal_cases)
 termination by default (rule wf_empty)
 
-defs (overloaded)
-  real_of_ereal_def [code_unfold]: "real \<equiv> of_ereal"
+instance ..
+end
 
 lemma real_of_ereal[simp]:
   "real (- x :: ereal) = - (real x)"
-  "real (ereal r) = r"
-  "real (\<infinity>::ereal) = 0"
-  by (cases x) (simp_all add: real_of_ereal_def)
+  by (cases x) simp_all
 
 lemma range_ereal[simp]: "range ereal = UNIV - {\<infinity>, -\<infinity>}"
 proof safe
@@ -216,7 +217,7 @@ end
 instance ereal :: numeral ..
 
 lemma real_of_ereal_0[simp]: "real (0::ereal) = 0"
-  unfolding real_of_ereal_def zero_ereal_def by simp
+  unfolding zero_ereal_def by simp
 
 lemma abs_ereal_zero[simp]: "\<bar>0\<bar> = (0::ereal)"
   unfolding zero_ereal_def abs_ereal.simps by simp
