@@ -3436,6 +3436,9 @@ lemma distinct_length_2_or_more:
 "distinct (a # b # xs) \<longleftrightarrow> (a \<noteq> b \<and> distinct (a # xs) \<and> distinct (b # xs))"
 by force
 
+lemma hd_remdups_adj[simp]: "hd (remdups_adj xs) = hd xs"
+  by (induction xs rule: remdups_adj.induct) simp_all
+
 lemma remdups_adj_Cons: "remdups_adj (x # xs) =
   (case remdups_adj xs of [] \<Rightarrow> [x] | y # xs \<Rightarrow> if x = y then y # xs else x # y # xs)"
   by (induct xs arbitrary: x) (auto split: list.splits)
@@ -3443,6 +3446,13 @@ lemma remdups_adj_Cons: "remdups_adj (x # xs) =
 lemma remdups_adj_append_two: 
   "remdups_adj (xs @ [x,y]) = remdups_adj (xs @ [x]) @ (if x = y then [] else [y])"
   by (induct xs rule: remdups_adj.induct, simp_all)
+
+lemma remdups_adj_adjacent:
+  "Suc i < length (remdups_adj xs) \<Longrightarrow> remdups_adj xs ! i \<noteq> remdups_adj xs ! Suc i"
+proof (induction xs arbitrary: i rule: remdups_adj.induct)
+  case (3 x y xs i)
+  thus ?case by (cases i, cases "x = y") (simp, auto simp: hd_conv_nth[symmetric])
+qed simp_all
 
 lemma remdups_adj_rev[simp]: "remdups_adj (rev xs) = rev (remdups_adj xs)"
   by (induct xs rule: remdups_adj.induct, simp_all add: remdups_adj_append_two)
