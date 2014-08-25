@@ -44,10 +44,10 @@ val _ = Theory.setup
     (fn _ => fn raw_srcs => fn ctxt =>
       let
         val i = serial ();
-        val srcs = map (Attrib.check_src ctxt) raw_srcs;
-        val _ = map (Attrib.attribute ctxt) srcs;
+
         val (a, ctxt') = ctxt
-          |> ML_Antiquotation.variant "attributes" ||> put_attributes (i, srcs);
+          |> ML_Antiquotation.variant "attributes"
+          ||> put_attributes (i, Attrib.check_attribs ctxt raw_srcs);
         val ml =
           ("val " ^ a ^ " = ML_Thms.the_attributes ML_context " ^
             string_of_int i ^ ";\n", "Isabelle." ^ a);
