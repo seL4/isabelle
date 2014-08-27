@@ -49,7 +49,7 @@ sig
   val thms: thm list context_parser
   val multi_thm: thm list context_parser
   val check_attribs: Proof.context -> Token.src list -> Token.src list
-  val read_attribs: Proof.context -> Symbol_Pos.text * Position.T -> Token.src list
+  val read_attribs: Proof.context -> Symbol_Pos.source -> Token.src list
   val transform_facts: morphism ->
     (Attrib.binding * (thm list * Token.src list) list) list ->
     (Attrib.binding * (thm list * Token.src list) list) list
@@ -286,14 +286,14 @@ fun check_attribs ctxt raw_srcs =
     val _ = map (attribute ctxt) srcs;
   in srcs end;
 
-fun read_attribs ctxt (text, pos) =
+fun read_attribs ctxt source =
   let
+    val syms = Symbol_Pos.source_explode source;
     val lex = #1 (Keyword.get_lexicons ());
-    val syms = Symbol_Pos.explode (text, pos);
   in
-    (case Token.read lex Parse.attribs (syms, pos) of
+    (case Token.read lex Parse.attribs (syms, #pos source) of
       [raw_srcs] => check_attribs ctxt raw_srcs
-    | _ => error ("Malformed attributes" ^ Position.here pos))
+    | _ => error ("Malformed attributes" ^ Position.here (#pos source)))
   end;
 
 
