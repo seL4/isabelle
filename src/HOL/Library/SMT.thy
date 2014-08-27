@@ -5,7 +5,7 @@
 header {* Old Version of Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 
 theory SMT
-imports "../Real"
+imports "../Real" "../Word/Word"
 keywords "smt_status" :: diag
 begin
 
@@ -421,6 +421,9 @@ lemma [z3_rule]:  (* for def-axiom *)
 
 ML_file "SMT/smt_real.ML"
 setup SMT_Real.setup
+
+ML_file "SMT/smt_word.ML"
+setup SMT_Word.setup
 
 hide_type (open) pattern
 hide_const fun_app term_true term_false z3div z3mod

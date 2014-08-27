@@ -4753,8 +4753,6 @@ lemma unatSuc:
 declare bin_to_bl_def [simp]
 
 ML_file "Tools/word_lib.ML"
-ML_file "Tools/smt_word.ML"
-setup SMT_Word.setup
 ML_file "Tools/smt2_word.ML"
 
 hide_const (open) Word
