@@ -9,9 +9,9 @@ imports "../Real" "../Word/Word"
 keywords "smt_status" :: diag
 begin
 
-ML_file "Old_SMT/smt_utils.ML"
-ML_file "Old_SMT/smt_failure.ML"
-ML_file "Old_SMT/smt_config.ML"
+ML_file "Old_SMT/old_smt_utils.ML"
+ML_file "Old_SMT/old_smt_failure.ML"
+ML_file "Old_SMT/old_smt_config.ML"
 
 
 subsection {* Triggers for quantifier instantiation *}
@@ -115,34 +115,34 @@ definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
 
 subsection {* Setup *}
 
-ML_file "Old_SMT/smt_builtin.ML"
-ML_file "Old_SMT/smt_datatypes.ML"
-ML_file "Old_SMT/smt_normalize.ML"
-ML_file "Old_SMT/smt_translate.ML"
-ML_file "Old_SMT/smt_solver.ML"
-ML_file "Old_SMT/smtlib_interface.ML"
-ML_file "Old_SMT/z3_interface.ML"
-ML_file "Old_SMT/z3_proof_parser.ML"
-ML_file "Old_SMT/z3_proof_tools.ML"
-ML_file "Old_SMT/z3_proof_literals.ML"
-ML_file "Old_SMT/z3_proof_methods.ML"
+ML_file "Old_SMT/old_smt_builtin.ML"
+ML_file "Old_SMT/old_smt_datatypes.ML"
+ML_file "Old_SMT/old_smt_normalize.ML"
+ML_file "Old_SMT/old_smt_translate.ML"
+ML_file "Old_SMT/old_smt_solver.ML"
+ML_file "Old_SMT/old_smtlib_interface.ML"
+ML_file "Old_SMT/old_z3_interface.ML"
+ML_file "Old_SMT/old_z3_proof_parser.ML"
+ML_file "Old_SMT/old_z3_proof_tools.ML"
+ML_file "Old_SMT/old_z3_proof_literals.ML"
+ML_file "Old_SMT/old_z3_proof_methods.ML"
 named_theorems z3_simp "simplification rules for Z3 proof reconstruction"
-ML_file "Old_SMT/z3_proof_reconstruction.ML"
-ML_file "Old_SMT/z3_model.ML"
-ML_file "Old_SMT/smt_setup_solvers.ML"
+ML_file "Old_SMT/old_z3_proof_reconstruction.ML"
+ML_file "Old_SMT/old_z3_model.ML"
+ML_file "Old_SMT/old_smt_setup_solvers.ML"
 
 setup {*
-  SMT_Config.setup #>
-  SMT_Normalize.setup #>
-  SMTLIB_Interface.setup #>
-  Z3_Interface.setup #>
-  SMT_Setup_Solvers.setup
+  Old_SMT_Config.setup #>
+  Old_SMT_Normalize.setup #>
+  Old_SMTLIB_Interface.setup #>
+  Old_Z3_Interface.setup #>
+  Old_SMT_Setup_Solvers.setup
 *}
 
 method_setup smt = {*
   Scan.optional Attrib.thms [] >>
     (fn thms => fn ctxt =>
-      METHOD (fn facts => HEADGOAL (SMT_Solver.smt_tac ctxt (thms @ facts))))
+      METHOD (fn facts => HEADGOAL (Old_SMT_Solver.smt_tac ctxt (thms @ facts))))
 *} "apply an SMT solver to the current goal"
 
 
@@ -419,11 +419,11 @@ lemma [z3_rule]:  (* for def-axiom *)
   "(if P then Q else \<not>R) \<or> P \<or> R"
   by auto
 
-ML_file "Old_SMT/smt_real.ML"
-setup SMT_Real.setup
+ML_file "Old_SMT/old_smt_real.ML"
+setup Old_SMT_Real.setup
 
-ML_file "Old_SMT/smt_word.ML"
-setup SMT_Word.setup
+ML_file "Old_SMT/old_smt_word.ML"
+setup Old_SMT_Word.setup
 
 hide_type (open) pattern
 hide_const fun_app term_true term_false z3div z3mod

@@ -1,15 +1,15 @@
-(*  Title:      HOL/Library/Old_SMT/smt_word.ML
+(*  Title:      HOL/Library/Old_SMT/old_smt_word.ML
     Author:     Sascha Boehme, TU Muenchen
 
 SMT setup for words.
 *)
 
-signature SMT_WORD =
+signature OLD_SMT_WORD =
 sig
   val setup: theory -> theory
 end
 
-structure SMT_Word: SMT_WORD =
+structure Old_SMT_Word: OLD_SMT_WORD =
 struct
 
 open Word_Lib
@@ -25,7 +25,7 @@ fun smtlib_logic ts =
 (* SMT-LIB builtins *)
 
 local
-  val smtlibC = SMTLIB_Interface.smtlibC
+  val smtlibC = Old_SMTLIB_Interface.smtlibC
 
   val wordT = @{typ "'a::len word"}
 
@@ -53,7 +53,7 @@ local
 
   fun add_word_fun f (t, n) =
     let val (m, _) = Term.dest_Const t
-    in SMT_Builtin.add_builtin_fun smtlibC (Term.dest_Const t, K (f m n)) end
+    in Old_SMT_Builtin.add_builtin_fun smtlibC (Term.dest_Const t, K (f m n)) end
 
   fun hd2 xs = hd (tl xs)
 
@@ -109,7 +109,7 @@ local
 in
 
 val setup_builtins =
-  SMT_Builtin.add_builtin_typ smtlibC (wordT, word_typ, word_num) #>
+  Old_SMT_Builtin.add_builtin_typ smtlibC (wordT, word_typ, word_num) #>
   fold (add_word_fun if_fixed_all) [
     (@{term "uminus :: 'a::len word => _"}, "bvneg"),
     (@{term "plus :: 'a::len word => _"}, "bvadd"),
@@ -145,7 +145,7 @@ end
 
 val setup = 
   Context.theory_map (
-    SMTLIB_Interface.add_logic (20, smtlib_logic) #>
+    Old_SMTLIB_Interface.add_logic (20, smtlib_logic) #>
     setup_builtins)
 
 end

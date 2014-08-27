@@ -1,18 +1,18 @@
-(*  Title:      HOL/Library/Old_SMT/smt_datatypes.ML
+(*  Title:      HOL/Library/Old_SMT/old_smt_datatypes.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Collector functions for common type declarations and their representation
 as algebraic datatypes.
 *)
 
-signature SMT_DATATYPES =
+signature OLD_SMT_DATATYPES =
 sig
   val add_decls: typ ->
     (typ * (term * term list) list) list list * Proof.context ->
     (typ * (term * term list) list) list list * Proof.context
 end
 
-structure SMT_Datatypes: SMT_DATATYPES =
+structure Old_SMT_Datatypes: OLD_SMT_DATATYPES =
 struct
 
 fun mk_selectors T Ts =
@@ -74,7 +74,7 @@ fun add_decls T (declss, ctxt) =
       | add @{typ bool} = I
       | add (T as Type (n, Ts)) = (fn (dss, ctxt1) =>
           if declared declss T orelse declared' dss T then (dss, ctxt1)
-          else if SMT_Builtin.is_builtin_typ_ext ctxt1 T then (dss, ctxt1)
+          else if Old_SMT_Builtin.is_builtin_typ_ext ctxt1 T then (dss, ctxt1)
           else
             (case get_decls T n Ts ctxt1 of
               ([], _) => (dss, ctxt1)

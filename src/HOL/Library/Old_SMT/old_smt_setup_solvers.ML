@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Old_SMT/smt_setup_solvers.ML
+(*  Title:      HOL/Library/Old_SMT/old_smt_setup_solvers.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Setup SMT solvers.
 *)
 
-signature SMT_SETUP_SOLVERS =
+signature OLD_SMT_SETUP_SOLVERS =
 sig
   datatype z3_non_commercial =
     Z3_Non_Commercial_Unknown |
@@ -15,7 +15,7 @@ sig
   val setup: theory -> theory
 end
 
-structure SMT_Setup_Solvers: SMT_SETUP_SOLVERS =
+structure Old_SMT_Setup_Solvers: OLD_SMT_SETUP_SOLVERS =
 struct
 
 (* helper functions *)
@@ -25,12 +25,12 @@ fun make_avail name () = getenv (name ^ "_SOLVER") <> ""
 fun make_command name () = [getenv (name ^ "_SOLVER")]
 
 fun outcome_of unsat sat unknown solver_name line =
-  if String.isPrefix unsat line then SMT_Solver.Unsat
-  else if String.isPrefix sat line then SMT_Solver.Sat
-  else if String.isPrefix unknown line then SMT_Solver.Unknown
-  else raise SMT_Failure.SMT (SMT_Failure.Other_Failure ("Solver " ^
+  if String.isPrefix unsat line then Old_SMT_Solver.Unsat
+  else if String.isPrefix sat line then Old_SMT_Solver.Sat
+  else if String.isPrefix unknown line then Old_SMT_Solver.Unknown
+  else raise Old_SMT_Failure.SMT (Old_SMT_Failure.Other_Failure ("Solver " ^
     quote solver_name ^ " failed. Enable SMT tracing by setting the " ^
-    "configuration option " ^ quote (Config.name_of SMT_Config.trace) ^ " and " ^
+    "configuration option " ^ quote (Config.name_of Old_SMT_Config.trace) ^ " and " ^
     "see the trace for details."))
 
 fun on_first_line test_outcome solver_name lines =
@@ -45,14 +45,14 @@ fun on_first_line test_outcome solver_name lines =
 
 local
   fun cvc3_options ctxt = [
-    "-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
+    "-seed", string_of_int (Config.get ctxt Old_SMT_Config.random_seed),
     "-lang", "smtlib", "-output-lang", "presentation",
-    "-timeout", string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]
+    "-timeout", string_of_int (Real.ceil (Config.get ctxt Old_SMT_Config.timeout))]
 in
 
-val cvc3: SMT_Solver.solver_config = {
+val cvc3: Old_SMT_Solver.solver_config = {
   name = "cvc3",
-  class = K SMTLIB_Interface.smtlibC,
+  class = K Old_SMTLIB_Interface.smtlibC,
   avail = make_avail "CVC3",
   command = make_command "CVC3",
   options = cvc3_options,
@@ -68,15 +68,15 @@ end
 
 (* Yices *)
 
-val yices: SMT_Solver.solver_config = {
+val yices: Old_SMT_Solver.solver_config = {
   name = "yices",
-  class = K SMTLIB_Interface.smtlibC,
+  class = K Old_SMTLIB_Interface.smtlibC,
   avail = make_avail "YICES",
   command = make_command "YICES",
   options = (fn ctxt => [
-    "--rand-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
+    "--rand-seed=" ^ string_of_int (Config.get ctxt Old_SMT_Config.random_seed),
     "--timeout=" ^
-      string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout)),
+      string_of_int (Real.ceil (Config.get ctxt Old_SMT_Config.timeout)),
     "--smtlib"]),
   default_max_relevant = 350 (* FUDGE *),
   supports_filter = false,
@@ -135,19 +135,19 @@ local
   fun z3_make_command name () = if_z3_non_commercial (make_command name)
 
   fun z3_options ctxt =
-    ["-rs:" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
+    ["-rs:" ^ string_of_int (Config.get ctxt Old_SMT_Config.random_seed),
       "MODEL=true",
       "SOFT_TIMEOUT=" ^
-        string_of_int (Real.ceil (1000.0 * Config.get ctxt SMT_Config.timeout)),
+        string_of_int (Real.ceil (1000.0 * Config.get ctxt Old_SMT_Config.timeout)),
       "-smt"]
-    |> not (Config.get ctxt SMT_Config.oracle) ?
+    |> not (Config.get ctxt Old_SMT_Config.oracle) ?
          append ["DISPLAY_PROOF=true", "PROOF_MODE=2"]
 
   fun z3_on_first_or_last_line solver_name lines =
     let
       fun junk l =
         if String.isPrefix "WARNING: Out of allocated virtual memory" l
-        then raise SMT_Failure.SMT SMT_Failure.Out_Of_Memory
+        then raise Old_SMT_Failure.SMT Old_SMT_Failure.Out_Of_Memory
         else
           String.isPrefix "WARNING" l orelse
           String.isPrefix "ERROR" l orelse
@@ -160,15 +160,15 @@ local
       (* Starting with version 4.0, Z3 puts the outcome on the first line of the
          output rather than on the last line. *)
       outcome (fn lines => (hd lines, tl lines))
-      handle SMT_Failure.SMT _ => outcome (swap o split_last)
+      handle Old_SMT_Failure.SMT _ => outcome (swap o split_last)
     end
 
   fun select_class ctxt =
-    if Config.get ctxt z3_with_extensions then Z3_Interface.smtlib_z3C
-    else SMTLIB_Interface.smtlibC
+    if Config.get ctxt z3_with_extensions then Old_Z3_Interface.smtlib_z3C
+    else Old_SMTLIB_Interface.smtlibC
 in
 
-val z3: SMT_Solver.solver_config = {
+val z3: Old_SMT_Solver.solver_config = {
   name = "z3",
   class = select_class,
   avail = make_avail "Z3",
@@ -177,8 +177,8 @@ val z3: SMT_Solver.solver_config = {
   default_max_relevant = 350 (* FUDGE *),
   supports_filter = true,
   outcome = z3_on_first_or_last_line,
-  cex_parser = SOME Z3_Model.parse_counterex,
-  reconstruct = SOME Z3_Proof_Reconstruction.reconstruct }
+  cex_parser = SOME Old_Z3_Model.parse_counterex,
+  reconstruct = SOME Old_Z3_Proof_Reconstruction.reconstruct }
 
 end
 
@@ -186,8 +186,8 @@ end
 (* overall setup *)
 
 val setup =
-  SMT_Solver.add_solver cvc3 #>
-  SMT_Solver.add_solver yices #>
-  SMT_Solver.add_solver z3
+  Old_SMT_Solver.add_solver cvc3 #>
+  Old_SMT_Solver.add_solver yices #>
+  Old_SMT_Solver.add_solver z3
 
 end

@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Old_SMT/z3_proof_parser.ML
+(*  Title:      HOL/Library/Old_SMT/old_z3_proof_parser.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Parser for Z3 proofs.
 *)
 
-signature Z3_PROOF_PARSER =
+signature OLD_Z3_PROOF_PARSER =
 sig
   (*proof rules*)
   datatype rule = True_Axiom | Asserted | Goal | Modus_Ponens | Reflexivity |
@@ -28,7 +28,7 @@ sig
     (int * cterm) list * (int * proof_step) list * string list * Proof.context
 end
 
-structure Z3_Proof_Parser: Z3_PROOF_PARSER =
+structure Old_Z3_Proof_Parser: OLD_Z3_PROOF_PARSER =
 struct
 
 
@@ -111,7 +111,7 @@ fun mk_inst ctxt vars =
     val max = fold (Integer.max o fst) vars 0
     val ns = fst (Variable.variant_fixes (replicate (max + 1) var_prefix) ctxt)
     fun mk (i, v) =
-      (v, SMT_Utils.certify ctxt (Free (nth ns i, #T (Thm.rep_cterm v))))
+      (v, Old_SMT_Utils.certify ctxt (Free (nth ns i, #T (Thm.rep_cterm v))))
   in map mk vars end
 
 fun close ctxt (ct, vars) =
@@ -122,7 +122,7 @@ fun close ctxt (ct, vars) =
 
 
 fun mk_bound ctxt (i, T) =
-  let val ct = SMT_Utils.certify ctxt (Var ((Name.uu, 0), T))
+  let val ct = Old_SMT_Utils.certify ctxt (Var ((Name.uu, 0), T))
   in (ct, [(i, ct)]) end
 
 local
@@ -131,13 +131,13 @@ local
       val cv =
         (case AList.lookup (op =) vars 0 of
           SOME cv => cv
-        | _ => SMT_Utils.certify ctxt (Var ((Name.uu, maxidx_of ct + 1), T)))
+        | _ => Old_SMT_Utils.certify ctxt (Var ((Name.uu, maxidx_of ct + 1), T)))
       fun dec (i, v) = if i = 0 then NONE else SOME (i-1, v)
       val vars' = map_filter dec vars
-    in (Thm.apply (SMT_Utils.instT' cv q) (Thm.lambda cv ct), vars') end
+    in (Thm.apply (Old_SMT_Utils.instT' cv q) (Thm.lambda cv ct), vars') end
 
   fun quant name =
-    SMT_Utils.mk_const_pat @{theory} name (SMT_Utils.destT1 o SMT_Utils.destT1)
+    Old_SMT_Utils.mk_const_pat @{theory} name (Old_SMT_Utils.destT1 o Old_SMT_Utils.destT1)
   val forall = quant @{const_name All}
   val exists = quant @{const_name Ex}
 in
@@ -193,7 +193,7 @@ fun make_context ctxt typs terms =
       |> Symtab.fold (Variable.declare_term o snd) terms
 
     fun cert @{const True} = not_false
-      | cert t = SMT_Utils.certify ctxt' t
+      | cert t = Old_SMT_Utils.certify ctxt' t
 
   in (typs, Symtab.map (K cert) terms, Inttab.empty, [], [], ctxt') end
 
@@ -209,20 +209,20 @@ fun add_decl (n, T) (cx as (_, terms, _, _, _, _)) =
   | NONE => cx |> fresh_name (decl_prefix ^ n)
       |> (fn (m, (typs, terms, exprs, steps, vars, ctxt)) =>
            let
-             val upd = Symtab.update (n, SMT_Utils.certify ctxt (Free (m, T)))
+             val upd = Symtab.update (n, Old_SMT_Utils.certify ctxt (Free (m, T)))
            in (typs, upd terms, exprs, steps, vars, ctxt) end))
 
-fun mk_typ (typs, _, _, _, _, ctxt) (s as Z3_Interface.Sym (n, _)) = 
-  (case Z3_Interface.mk_builtin_typ ctxt s of
+fun mk_typ (typs, _, _, _, _, ctxt) (s as Old_Z3_Interface.Sym (n, _)) = 
+  (case Old_Z3_Interface.mk_builtin_typ ctxt s of
     SOME T => SOME T
   | NONE => Symtab.lookup typs n)
 
 fun mk_num (_, _, _, _, _, ctxt) (i, T) =
-  mk_fun (K (Z3_Interface.mk_builtin_num ctxt i T)) []
+  mk_fun (K (Old_Z3_Interface.mk_builtin_num ctxt i T)) []
 
-fun mk_app (_, terms, _, _, _, ctxt) (s as Z3_Interface.Sym (n, _), es) =
+fun mk_app (_, terms, _, _, _, ctxt) (s as Old_Z3_Interface.Sym (n, _), es) =
   mk_fun (fn cts =>
-    (case Z3_Interface.mk_builtin_fun ctxt s cts of
+    (case Old_Z3_Interface.mk_builtin_fun ctxt s cts of
       SOME ct => SOME ct
     | NONE =>
         Symtab.lookup terms n |> Option.map (Drule.list_comb o rpair cts))) es
@@ -241,7 +241,7 @@ fun add_proof_step k ((r, args), prop) cx =
     val (args', prems) = fold (part o `(lookup_expr cx)) args ([], [])
     val (cts, vss) = split_list args'
     val step = Proof_Step {rule=r, args=rev cts, prems=rev prems,
-      prop = SMT_Utils.mk_cprop ct}
+      prop = Old_SMT_Utils.mk_cprop ct}
     val vars' = fold (union (op =)) (vs :: vss) vars
   in (typs, terms, exprs, (k, step) :: steps, vars', ctxt) end
 
@@ -262,7 +262,7 @@ fun finish (_, _, _, steps, vars, ctxt) =
 
 (** core parser **)
 
-fun parse_exn line_no msg = raise SMT_Failure.SMT (SMT_Failure.Other_Failure
+fun parse_exn line_no msg = raise Old_SMT_Failure.SMT (Old_SMT_Failure.Other_Failure
   ("Z3 proof parser (line " ^ string_of_int line_no ^ "): " ^ msg))
 
 fun scan_exn msg ((line_no, _), _) = parse_exn line_no msg
@@ -324,7 +324,7 @@ val is_char = Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf
 fun name st = (Scan.lift (Scan.many1 is_char) >> implode) st
 
 fun sym st = (name --
-  Scan.optional (bra (seps_by ($$ ":") sym)) [] >> Z3_Interface.Sym) st
+  Scan.optional (bra (seps_by ($$ ":") sym)) [] >> Old_Z3_Interface.Sym) st
 
 fun id st = ($$ "#" |-- nat_num) st
 
@@ -334,7 +334,7 @@ fun id st = ($$ "#" |-- nat_num) st
 fun sort st = Scan.first [
   this "array" |-- bra (sort --| $$ ":" -- sort) >> (op -->),
   par (this "->" |-- seps1 sort) >> ((op --->) o split_last),
-  sym :|-- (fn s as Z3_Interface.Sym (n, _) => lookup_context mk_typ s :|-- (fn
+  sym :|-- (fn s as Old_Z3_Interface.Sym (n, _) => lookup_context mk_typ s :|-- (fn
     SOME T => Scan.succeed T
   | NONE => scan_exn ("unknown sort: " ^ quote n)))] st
 
@@ -345,13 +345,13 @@ fun numb (n as (i, _)) = lookup_context mk_num n :|-- (fn
     SOME n' => Scan.succeed n'
   | NONE => scan_exn ("unknown number: " ^ quote (string_of_int i)))
 
-fun appl (app as (Z3_Interface.Sym (n, _), _)) =
+fun appl (app as (Old_Z3_Interface.Sym (n, _), _)) =
   lookup_context mk_app app :|-- (fn 
       SOME app' => Scan.succeed app'
     | NONE => scan_exn ("unknown function symbol: " ^ quote n))
 
 fun bv_size st = (digits >> (fn sz =>
-  Z3_Interface.Sym ("bv", [Z3_Interface.Sym (sz, [])]))) st
+  Old_Z3_Interface.Sym ("bv", [Old_Z3_Interface.Sym (sz, [])]))) st
 
 fun bv_number_sort st = (bv_size :|-- lookup_context mk_typ :|-- (fn
     SOME cT => Scan.succeed cT
@@ -363,7 +363,7 @@ fun bv_number st =
 fun frac_number st = (
   int_num --| $$ "/" -- int_num --| this "::" -- sort :|-- (fn ((i, j), T) =>
     numb (i, T) -- numb (j, T) :|-- (fn (n, m) =>
-      appl (Z3_Interface.Sym ("/", []), [n, m])))) st
+      appl (Old_Z3_Interface.Sym ("/", []), [n, m])))) st
 
 fun plain_number st = (int_num --| this "::" -- sort :|-- numb) st
 

@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Old_SMT/smt_utils.ML
+(*  Title:      HOL/Library/Old_SMT/old_smt_utils.ML
     Author:     Sascha Boehme, TU Muenchen
 
 General utility functions.
 *)
 
-signature SMT_UTILS =
+signature OLD_SMT_UTILS =
 sig
   (*basic combinators*)
   val repeat: ('a -> 'a option) -> 'a -> 'a
@@ -61,7 +61,7 @@ sig
   val prop_conv: conv -> conv
 end
 
-structure SMT_Utils: SMT_UTILS =
+structure Old_SMT_Utils: OLD_SMT_UTILS =
 struct
 
 (* basic combinators *)

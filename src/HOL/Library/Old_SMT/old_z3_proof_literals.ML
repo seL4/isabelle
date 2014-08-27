@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Old_SMT/z3_proof_literals.ML
+(*  Title:      HOL/Library/Old_SMT/old_z3_proof_literals.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Proof tools related to conjunctions and disjunctions.
 *)
 
-signature Z3_PROOF_LITERALS =
+signature OLD_Z3_PROOF_LITERALS =
 sig
   (*literal table*)
   type littab = thm Termtab.table
@@ -30,7 +30,7 @@ sig
   val prove_conj_disj_eq: cterm -> thm
 end
 
-structure Z3_Proof_Literals: Z3_PROOF_LITERALS =
+structure Old_Z3_Proof_Literals: OLD_Z3_PROOF_LITERALS =
 struct
 
 
@@ -40,10 +40,10 @@ struct
 type littab = thm Termtab.table
 
 fun make_littab thms =
-  fold (Termtab.update o `SMT_Utils.prop_of) thms Termtab.empty
+  fold (Termtab.update o `Old_SMT_Utils.prop_of) thms Termtab.empty
 
-fun insert_lit thm = Termtab.update (`SMT_Utils.prop_of thm)
-fun delete_lit thm = Termtab.delete (SMT_Utils.prop_of thm)
+fun insert_lit thm = Termtab.update (`Old_SMT_Utils.prop_of thm)
+fun delete_lit thm = Termtab.delete (Old_SMT_Utils.prop_of thm)
 fun lookup_lit lits = Termtab.lookup lits
 fun get_first_lit f =
   Termtab.get_first (fn (t, thm) => if f t then SOME thm else NONE)
@@ -91,7 +91,7 @@ val negate = Thm.apply (Thm.cterm_of @{theory} @{const Not})
 (** explosion of conjunctions and disjunctions **)
 
 local
-  val precomp = Z3_Proof_Tools.precompose2
+  val precomp = Old_Z3_Proof_Tools.precompose2
 
   fun destc ct = Thm.dest_binop (Thm.dest_arg ct)
   val dest_conj1 = precomp destc @{thm conjunct1}
@@ -115,7 +115,7 @@ local
     | NONE => NONE)
 
   fun destn ct = [Thm.dest_arg (Thm.dest_arg (Thm.dest_arg ct))]
-  val dneg_rule = Z3_Proof_Tools.precompose destn @{thm notnotD}
+  val dneg_rule = Old_Z3_Proof_Tools.precompose destn @{thm notnotD}
 in
 
 (*
@@ -150,7 +150,7 @@ fun explode_term is_conj =
 (*
   extract a literal by applying previously collected rules
 *)
-fun extract_lit thm rules = fold Z3_Proof_Tools.compose rules thm
+fun extract_lit thm rules = fold Old_Z3_Proof_Tools.compose rules thm
 
 
 (*
@@ -162,9 +162,9 @@ fun explode is_conj full keep_intermediate stop_lits =
     val tab = fold (Termtab.update o rpair ()) stop_lits Termtab.empty
 
     fun explode1 thm =
-      if Termtab.defined tab (SMT_Utils.prop_of thm) then cons thm
+      if Termtab.defined tab (Old_SMT_Utils.prop_of thm) then cons thm
       else
-        (case dest_rules (SMT_Utils.prop_of thm) of
+        (case dest_rules (Old_SMT_Utils.prop_of thm) of
           SOME (rule1, rule2) =>
             explode2 rule1 thm #>
             explode2 rule2 thm #>
@@ -173,13 +173,13 @@ fun explode is_conj full keep_intermediate stop_lits =
 
     and explode2 dest_rule thm =
       if full orelse
-        exists_lit is_conj (Termtab.defined tab) (SMT_Utils.prop_of thm)
-      then explode1 (Z3_Proof_Tools.compose dest_rule thm)
-      else cons (Z3_Proof_Tools.compose dest_rule thm)
+        exists_lit is_conj (Termtab.defined tab) (Old_SMT_Utils.prop_of thm)
+      then explode1 (Old_Z3_Proof_Tools.compose dest_rule thm)
+      else cons (Old_Z3_Proof_Tools.compose dest_rule thm)
 
     fun explode0 thm =
-      if not is_conj andalso is_dneg (SMT_Utils.prop_of thm)
-      then [Z3_Proof_Tools.compose dneg_rule thm]
+      if not is_conj andalso is_dneg (Old_SMT_Utils.prop_of thm)
+      then [Old_Z3_Proof_Tools.compose dneg_rule thm]
       else explode1 thm []
 
   in explode0 end
@@ -196,7 +196,7 @@ local
   fun precomp2 f g thm = (on_cprem 1 f thm, on_cprem 2 g thm, f, g, thm)
   fun comp2 (cv1, cv2, f, g, rule) thm1 thm2 =
     Thm.instantiate ([], [(cv1, on_cprop f thm1), (cv2, on_cprop g thm2)]) rule
-    |> Z3_Proof_Tools.discharge thm1 |> Z3_Proof_Tools.discharge thm2
+    |> Old_Z3_Proof_Tools.discharge thm1 |> Old_Z3_Proof_Tools.discharge thm2
 
   fun d1 ct = Thm.dest_arg ct and d2 ct = Thm.dest_arg (Thm.dest_arg ct)
 
@@ -220,12 +220,12 @@ local
   fun dest_disj (@{const Not} $ (@{const HOL.disj} $ t $ u)) = (neg t, neg u)
     | dest_disj t = raise TERM ("dest_disj", [t])
 
-  val precomp = Z3_Proof_Tools.precompose
+  val precomp = Old_Z3_Proof_Tools.precompose
   val dnegE = precomp (single o d2 o d1) @{thm notnotD}
   val dnegI = precomp (single o d1) @{lemma "P ==> ~~P" by fast}
   fun as_dneg f t = f (@{const Not} $ (@{const Not} $ t))
 
-  val precomp2 = Z3_Proof_Tools.precompose2
+  val precomp2 = Old_Z3_Proof_Tools.precompose2
   fun dni f = apsnd f o Thm.dest_binop o f o d1
   val negIffE = precomp2 (dni d1) @{lemma "~(P = (~Q)) ==> Q = P" by fast}
   val negIffI = precomp2 (dni I) @{lemma "P = Q ==> ~(Q = (~P))" by fast}
@@ -245,16 +245,16 @@ fun join is_conj littab t =
     fun lookup_rule t =
       (case t of
         @{const Not} $ (@{const Not} $ t) =>
-          (Z3_Proof_Tools.compose dnegI, lookup t)
+          (Old_Z3_Proof_Tools.compose dnegI, lookup t)
       | @{const Not} $ (@{const HOL.eq (bool)} $ t $ (@{const Not} $ u)) =>
-          (Z3_Proof_Tools.compose negIffI, lookup (iff_const $ u $ t))
+          (Old_Z3_Proof_Tools.compose negIffI, lookup (iff_const $ u $ t))
       | @{const Not} $ ((eq as Const (@{const_name HOL.eq}, _)) $ t $ u) =>
           let fun rewr lit = lit COMP @{thm not_sym}
           in (rewr, lookup (@{const Not} $ (eq $ u $ t))) end
       | _ =>
           (case as_dneg lookup t of
-            NONE => (Z3_Proof_Tools.compose negIffE, as_negIff lookup t)
-          | x => (Z3_Proof_Tools.compose dnegE, x)))
+            NONE => (Old_Z3_Proof_Tools.compose negIffE, as_negIff lookup t)
+          | x => (Old_Z3_Proof_Tools.compose dnegE, x)))
 
     fun join1 (s, t) =
       (case lookup t of
@@ -289,7 +289,7 @@ local
   val contra_rule = @{lemma "P ==> ~P ==> False" by (rule notE)}
   fun contra_left conj thm =
     let
-      val rules = explode_term conj (SMT_Utils.prop_of thm)
+      val rules = explode_term conj (Old_SMT_Utils.prop_of thm)
       fun contra_lits (t, rs) =
         (case t of
           @{const Not} $ u => Termtab.lookup rules u |> Option.map (pair rs)
@@ -307,7 +307,7 @@ local
   fun contra_right ct = Thm.instantiate ([], [(falseE_v, ct)]) @{thm FalseE}
 in
 fun contradict conj ct =
-  iff_intro (Z3_Proof_Tools.under_assumption (contra_left conj) ct)
+  iff_intro (Old_Z3_Proof_Tools.under_assumption (contra_left conj) ct)
     (contra_right ct)
 end
 
@@ -319,8 +319,8 @@ local
       fun make_tab is_conj thm = make_littab (true_thm :: explode' is_conj thm)
       fun prove is_conj ct tab = join is_conj tab (Thm.term_of ct)
 
-      val thm1 = Z3_Proof_Tools.under_assumption (prove r cr o make_tab l) cl
-      val thm2 = Z3_Proof_Tools.under_assumption (prove l cl o make_tab r) cr
+      val thm1 = Old_Z3_Proof_Tools.under_assumption (prove r cr o make_tab l) cl
+      val thm2 = Old_Z3_Proof_Tools.under_assumption (prove l cl o make_tab r) cr
     in iff_intro thm1 thm2 end
 
   datatype conj_disj = CONJ | DISJ | NCON | NDIS

@@ -1,12 +1,12 @@
-(*  Title:      HOL/Library/Old_SMT/z3_interface.ML
+(*  Title:      HOL/Library/Old_SMT/old_z3_interface.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Interface to Z3 based on a relaxed version of SMT-LIB.
 *)
 
-signature Z3_INTERFACE =
+signature OLD_Z3_INTERFACE =
 sig
-  val smtlib_z3C: SMT_Utils.class
+  val smtlib_z3C: Old_SMT_Utils.class
   val setup: theory -> theory
 
   datatype sym = Sym of string * sym list
@@ -22,10 +22,10 @@ sig
   val is_builtin_theory_term: Proof.context -> term -> bool
 end
 
-structure Z3_Interface: Z3_INTERFACE =
+structure Old_Z3_Interface: OLD_Z3_INTERFACE =
 struct
 
-val smtlib_z3C = SMTLIB_Interface.smtlibC @ ["z3"]
+val smtlib_z3C = Old_SMTLIB_Interface.smtlibC @ ["z3"]
 
 
 
@@ -35,7 +35,7 @@ local
   fun translate_config ctxt =
     let
       val {prefixes, header, is_fol, serialize, ...} =
-        SMTLIB_Interface.translate_config ctxt
+        Old_SMTLIB_Interface.translate_config ctxt
     in
       {prefixes=prefixes, header=header, is_fol=is_fol, serialize=serialize,
         has_datatypes=true}
@@ -69,15 +69,15 @@ local
     else (thms, extra_thms)
 
   val setup_builtins =
-    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const times (int)}, "*") #>
-    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const z3div}, "div") #>
-    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const z3mod}, "mod")
+    Old_SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const times (int)}, "*") #>
+    Old_SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const z3div}, "div") #>
+    Old_SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const z3mod}, "mod")
 in
 
 val setup = Context.theory_map (
   setup_builtins #>
-  SMT_Normalize.add_extra_norm (smtlib_z3C, add_div_mod) #>
-  SMT_Translate.add_config (smtlib_z3C, translate_config))
+  Old_SMT_Normalize.add_extra_norm (smtlib_z3C, add_div_mod) #>
+  Old_SMT_Translate.add_config (smtlib_z3C, translate_config))
 
 end
 
@@ -148,40 +148,40 @@ val disj = Thm.cterm_of @{theory} @{const HOL.disj}
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-val eq = SMT_Utils.mk_const_pat @{theory} @{const_name HOL.eq} SMT_Utils.destT1
-fun mk_eq ct cu = Thm.mk_binop (SMT_Utils.instT' ct eq) ct cu
+val eq = Old_SMT_Utils.mk_const_pat @{theory} @{const_name HOL.eq} Old_SMT_Utils.destT1
+fun mk_eq ct cu = Thm.mk_binop (Old_SMT_Utils.instT' ct eq) ct cu
 
 val if_term =
-  SMT_Utils.mk_const_pat @{theory} @{const_name If}
-    (SMT_Utils.destT1 o SMT_Utils.destT2)
+  Old_SMT_Utils.mk_const_pat @{theory} @{const_name If}
+    (Old_SMT_Utils.destT1 o Old_SMT_Utils.destT2)
 fun mk_if cc ct cu =
-  Thm.mk_binop (Thm.apply (SMT_Utils.instT' ct if_term) cc) ct cu
+  Thm.mk_binop (Thm.apply (Old_SMT_Utils.instT' ct if_term) cc) ct cu
 
 val nil_term =
-  SMT_Utils.mk_const_pat @{theory} @{const_name Nil} SMT_Utils.destT1
+  Old_SMT_Utils.mk_const_pat @{theory} @{const_name Nil} Old_SMT_Utils.destT1
 val cons_term =
-  SMT_Utils.mk_const_pat @{theory} @{const_name Cons} SMT_Utils.destT1
+  Old_SMT_Utils.mk_const_pat @{theory} @{const_name Cons} Old_SMT_Utils.destT1
 fun mk_list cT cts =
-  fold_rev (Thm.mk_binop (SMT_Utils.instT cT cons_term)) cts
-    (SMT_Utils.instT cT nil_term)
+  fold_rev (Thm.mk_binop (Old_SMT_Utils.instT cT cons_term)) cts
+    (Old_SMT_Utils.instT cT nil_term)
 
-val distinct = SMT_Utils.mk_const_pat @{theory} @{const_name distinct}
-  (SMT_Utils.destT1 o SMT_Utils.destT1)
+val distinct = Old_SMT_Utils.mk_const_pat @{theory} @{const_name distinct}
+  (Old_SMT_Utils.destT1 o Old_SMT_Utils.destT1)
 fun mk_distinct [] = mk_true
   | mk_distinct (cts as (ct :: _)) =
-      Thm.apply (SMT_Utils.instT' ct distinct)
+      Thm.apply (Old_SMT_Utils.instT' ct distinct)
         (mk_list (Thm.ctyp_of_term ct) cts)
 
 val access =
-  SMT_Utils.mk_const_pat @{theory} @{const_name fun_app} SMT_Utils.destT1
-fun mk_access array = Thm.apply (SMT_Utils.instT' array access) array
+  Old_SMT_Utils.mk_const_pat @{theory} @{const_name fun_app} Old_SMT_Utils.destT1
+fun mk_access array = Thm.apply (Old_SMT_Utils.instT' array access) array
 
-val update = SMT_Utils.mk_const_pat @{theory} @{const_name fun_upd}
-  (Thm.dest_ctyp o SMT_Utils.destT1)
+val update = Old_SMT_Utils.mk_const_pat @{theory} @{const_name fun_upd}
+  (Thm.dest_ctyp o Old_SMT_Utils.destT1)
 fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
   in
-    Thm.apply (Thm.mk_binop (SMT_Utils.instTs cTs update) array index) value
+    Thm.apply (Thm.mk_binop (Old_SMT_Utils.instTs cTs update) array index) value
   end
 
 val mk_uminus = Thm.apply (Thm.cterm_of @{theory} @{const uminus (int)})
@@ -230,10 +230,10 @@ fun mk_builtin_fun ctxt sym cts =
 (* abstraction *)
 
 fun is_builtin_theory_term ctxt t =
-  if SMT_Builtin.is_builtin_num ctxt t then true
+  if Old_SMT_Builtin.is_builtin_num ctxt t then true
   else
     (case Term.strip_comb t of
-      (Const c, ts) => SMT_Builtin.is_builtin_fun ctxt c ts
+      (Const c, ts) => Old_SMT_Builtin.is_builtin_fun ctxt c ts
     | _ => false)
 
 end

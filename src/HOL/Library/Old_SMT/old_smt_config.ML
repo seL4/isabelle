@@ -1,15 +1,15 @@
-(*  Title:      HOL/Library/Old_SMT/smt_config.ML
+(*  Title:      HOL/Library/Old_SMT/old_smt_config.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Configuration options and diagnostic tools for SMT.
 *)
 
-signature SMT_CONFIG =
+signature OLD_SMT_CONFIG =
 sig
   (*solver*)
   type solver_info = {
     name: string,
-    class: Proof.context -> SMT_Utils.class,
+    class: Proof.context -> Old_SMT_Utils.class,
     avail: unit -> bool,
     options: Proof.context -> string list }
   val add_solver: solver_info -> Context.generic -> Context.generic
@@ -18,7 +18,7 @@ sig
   val available_solvers_of: Proof.context -> string list
   val select_solver: string -> Context.generic -> Context.generic
   val solver_of: Proof.context -> string
-  val solver_class_of: Proof.context -> SMT_Utils.class
+  val solver_class_of: Proof.context -> Old_SMT_Utils.class
   val solver_options_of: Proof.context -> string list
 
   (*options*)
@@ -52,14 +52,14 @@ sig
   val print_setup: Proof.context -> unit
 end
 
-structure SMT_Config: SMT_CONFIG =
+structure Old_SMT_Config: OLD_SMT_CONFIG =
 struct
 
 (* solver *)
 
 type solver_info = {
   name: string,
-  class: Proof.context -> SMT_Utils.class,
+  class: Proof.context -> Old_SMT_Utils.class,
   avail: unit -> bool,
   options: Proof.context -> string list }
 
@@ -178,7 +178,7 @@ fun trace_msg ctxt = cond_trace (Config.get ctxt trace)
 
 fun with_timeout ctxt f x =
   TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f x
-  handle TimeLimit.TimeOut => raise SMT_Failure.SMT SMT_Failure.Time_Out
+  handle TimeLimit.TimeOut => raise Old_SMT_Failure.SMT Old_SMT_Failure.Time_Out
 
 
 (* certificates *)

@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Old_SMT/z3_proof_tools.ML
+(*  Title:      HOL/Library/Old_SMT/old_z3_proof_tools.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Helper functions required for Z3 proof reconstruction.
 *)
 
-signature Z3_PROOF_TOOLS =
+signature OLD_Z3_PROOF_TOOLS =
 sig
   (*modifying terms*)
   val as_meta_eq: cterm -> cterm
@@ -40,7 +40,7 @@ sig
   val make_simpset: Proof.context -> thm list -> simpset
 end
 
-structure Z3_Proof_Tools: Z3_PROOF_TOOLS =
+structure Old_Z3_Proof_Tools: OLD_Z3_PROOF_TOOLS =
 struct
 
 
@@ -48,7 +48,7 @@ struct
 (* modifying terms *)
 
 fun as_meta_eq ct =
-  uncurry SMT_Utils.mk_cequals (Thm.dest_binop (SMT_Utils.dest_cprop ct))
+  uncurry Old_SMT_Utils.mk_cequals (Thm.dest_binop (Old_SMT_Utils.dest_cprop ct))
 
 
 
@@ -87,7 +87,7 @@ end
 (* proof combinators *)
 
 fun under_assumption f ct =
-  let val ct' = SMT_Utils.mk_cprop ct
+  let val ct' = Old_SMT_Utils.mk_cprop ct
   in Thm.implies_intr ct' (f (Thm.assume ct')) end
 
 fun with_conv conv prove ct =
@@ -116,7 +116,7 @@ fun make_hyp_def thm ctxt =
   let
     val (lhs, rhs) = Thm.dest_binop (Thm.cprem_of thm 1)
     val (cf, cvs) = Drule.strip_comb lhs
-    val eq = SMT_Utils.mk_cequals cf (fold_rev Thm.lambda cvs rhs)
+    val eq = Old_SMT_Utils.mk_cequals cf (fold_rev Thm.lambda cvs rhs)
     fun apply cv th =
       Thm.combination th (Thm.reflexive cv)
       |> Conv.fconv_rule (Conv.arg_conv (Thm.beta_conversion false))
@@ -156,8 +156,8 @@ fun fresh_abstraction (_, cvs) ct (cx as (ctxt, tab, idx, beta_norm)) =
     | NONE =>
         let
           val (n, ctxt') = yield_singleton Variable.variant_fixes "x" ctxt
-          val cv = SMT_Utils.certify ctxt'
-            (Free (n, map SMT_Utils.typ_of cvs' ---> SMT_Utils.typ_of ct))
+          val cv = Old_SMT_Utils.certify ctxt'
+            (Free (n, map Old_SMT_Utils.typ_of cvs' ---> Old_SMT_Utils.typ_of ct))
           val cu = Drule.list_comb (cv, cvs')
           val e = (t, (cv, fold_rev Thm.lambda cvs' ct))
           val beta_norm' = beta_norm orelse not (null cvs')
@@ -219,7 +219,7 @@ fun abstract depth (ext_logic, with_theories) =
       | t => (fn cx =>
           if is_atomic t orelse can HOLogic.dest_number t then (ct, cx)
           else if with_theories andalso
-            Z3_Interface.is_builtin_theory_term (context_of cx) t
+            Old_Z3_Interface.is_builtin_theory_term (context_of cx) t
           then abs_args abstr dcvs ct cx
           else if d = 0 then fresh_abstraction dcvs ct cx
           else

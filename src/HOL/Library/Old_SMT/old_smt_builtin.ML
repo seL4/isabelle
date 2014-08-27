@@ -1,16 +1,16 @@
-(*  Title:      HOL/Library/Old_SMT/smt_builtin.ML
+(*  Title:      HOL/Library/Old_SMT/old_smt_builtin.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Tables of types and terms directly supported by SMT solvers.
 *)
 
-signature SMT_BUILTIN =
+signature OLD_SMT_BUILTIN =
 sig
   (*for experiments*)
   val filter_builtins: (typ -> bool) -> Proof.context -> Proof.context
 
   (*built-in types*)
-  val add_builtin_typ: SMT_Utils.class ->
+  val add_builtin_typ: Old_SMT_Utils.class ->
     typ * (typ -> string option) * (typ -> int -> string option) ->
     Context.generic -> Context.generic
   val add_builtin_typ_ext: typ * (typ -> bool) -> Context.generic ->
@@ -26,9 +26,9 @@ sig
   (*built-in functions*)
   type 'a bfun = Proof.context -> typ -> term list -> 'a
   type bfunr = string * int * term list * (term list -> term)
-  val add_builtin_fun: SMT_Utils.class ->
+  val add_builtin_fun: Old_SMT_Utils.class ->
     (string * typ) * bfunr option bfun -> Context.generic -> Context.generic
-  val add_builtin_fun': SMT_Utils.class -> term * string -> Context.generic ->
+  val add_builtin_fun': Old_SMT_Utils.class -> term * string -> Context.generic ->
     Context.generic
   val add_builtin_fun_ext: (string * typ) * term list bfun ->
     Context.generic -> Context.generic
@@ -48,7 +48,7 @@ sig
   val is_builtin_fun_ext: Proof.context -> string * typ -> term list -> bool
 end
 
-structure SMT_Builtin: SMT_BUILTIN =
+structure Old_SMT_Builtin: OLD_SMT_BUILTIN =
 struct
 
 
@@ -56,7 +56,7 @@ struct
 
 datatype ('a, 'b) kind = Ext of 'a | Int of 'b
 
-type ('a, 'b) ttab = ((typ * ('a, 'b) kind) Ord_List.T) SMT_Utils.dict 
+type ('a, 'b) ttab = ((typ * ('a, 'b) kind) Ord_List.T) Old_SMT_Utils.dict 
 
 fun typ_ord ((T, _), (U, _)) =
   let
@@ -69,17 +69,17 @@ fun typ_ord ((T, _), (U, _)) =
   in tord (T, U) end
 
 fun insert_ttab cs T f =
-  SMT_Utils.dict_map_default (cs, [])
+  Old_SMT_Utils.dict_map_default (cs, [])
     (Ord_List.insert typ_ord (perhaps (try Logic.varifyT_global) T, f))
 
 fun merge_ttab ttabp =
-  SMT_Utils.dict_merge (Ord_List.merge typ_ord) ttabp
+  Old_SMT_Utils.dict_merge (Ord_List.merge typ_ord) ttabp
 
 fun lookup_ttab ctxt ttab T =
   let fun match (U, _) = Sign.typ_instance (Proof_Context.theory_of ctxt) (T, U)
   in
     get_first (find_first match)
-      (SMT_Utils.dict_lookup ttab (SMT_Config.solver_class_of ctxt))
+      (Old_SMT_Utils.dict_lookup ttab (Old_SMT_Config.solver_class_of ctxt))
   end
 
 type ('a, 'b) btab = ('a, 'b) ttab Symtab.table
@@ -121,7 +121,7 @@ fun add_builtin_typ cs (T, f, g) =
   Builtins.map (apfst (insert_ttab cs T (Int (f, g))))
 
 fun add_builtin_typ_ext (T, f) =
-  Builtins.map (apfst (insert_ttab SMT_Utils.basicC T (Ext f)))
+  Builtins.map (apfst (insert_ttab Old_SMT_Utils.basicC T (Ext f)))
 
 fun lookup_builtin_typ ctxt =
   lookup_ttab ctxt (fst (Builtins.get (Context.Proof ctxt)))
@@ -170,7 +170,7 @@ fun add_builtin_fun' cs (t, n) =
   in add_builtin_fun cs (c, bfun) end
 
 fun add_builtin_fun_ext ((n, T), f) =
-  Builtins.map (apsnd (insert_btab SMT_Utils.basicC n T (Ext f)))
+  Builtins.map (apsnd (insert_btab Old_SMT_Utils.basicC n T (Ext f)))
 
 fun add_builtin_fun_ext' c = add_builtin_fun_ext (c, fn _ => fn _ => I)
 

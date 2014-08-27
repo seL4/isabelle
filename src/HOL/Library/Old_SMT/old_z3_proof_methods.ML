@@ -1,16 +1,16 @@
-(*  Title:      HOL/Library/Old_SMT/z3_proof_methods.ML
+(*  Title:      HOL/Library/Old_SMT/old_z3_proof_methods.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Proof methods for Z3 proof reconstruction.
 *)
 
-signature Z3_PROOF_METHODS =
+signature OLD_Z3_PROOF_METHODS =
 sig
   val prove_injectivity: Proof.context -> cterm -> thm
   val prove_ite: Proof.context -> cterm -> thm
 end
 
-structure Z3_Proof_Methods: Z3_PROOF_METHODS =
+structure Old_Z3_Proof_Methods: OLD_Z3_PROOF_METHODS =
 struct
 
 
@@ -31,7 +31,7 @@ fun pull_ites_conv ct =
    Conv.binop_conv (Conv.try_conv pull_ites_conv)) ct
 
 fun prove_ite ctxt =
-  Z3_Proof_Tools.by_tac ctxt (
+  Old_Z3_Proof_Tools.by_tac ctxt (
     CONVERSION (Conv.arg_conv (Conv.arg1_conv pull_ites_conv))
     THEN' rtac @{thm refl})
 
@@ -50,24 +50,24 @@ fun mk_inv_into T U =
 
 fun mk_inv_of ctxt ct =
   let
-    val (dT, rT) = Term.dest_funT (SMT_Utils.typ_of ct)
-    val inv = SMT_Utils.certify ctxt (mk_inv_into dT rT)
-    val univ = SMT_Utils.certify ctxt (mk_univ dT)
+    val (dT, rT) = Term.dest_funT (Old_SMT_Utils.typ_of ct)
+    val inv = Old_SMT_Utils.certify ctxt (mk_inv_into dT rT)
+    val univ = Old_SMT_Utils.certify ctxt (mk_univ dT)
   in Thm.mk_binop inv univ ct end
 
 fun mk_inj_prop ctxt ct =
   let
-    val (dT, rT) = Term.dest_funT (SMT_Utils.typ_of ct)
-    val inj = SMT_Utils.certify ctxt (mk_inj_on dT rT)
-    val univ = SMT_Utils.certify ctxt (mk_univ dT)
-  in SMT_Utils.mk_cprop (Thm.mk_binop inj ct univ) end
+    val (dT, rT) = Term.dest_funT (Old_SMT_Utils.typ_of ct)
+    val inj = Old_SMT_Utils.certify ctxt (mk_inj_on dT rT)
+    val univ = Old_SMT_Utils.certify ctxt (mk_univ dT)
+  in Old_SMT_Utils.mk_cprop (Thm.mk_binop inj ct univ) end
 
 
 val disjE = @{lemma "~P | Q ==> P ==> Q" by fast}
 
 fun prove_inj_prop ctxt def lhs =
   let
-    val (ct, ctxt') = SMT_Utils.dest_all_cabs (Thm.rhs_of def) ctxt
+    val (ct, ctxt') = Old_SMT_Utils.dest_all_cabs (Thm.rhs_of def) ctxt
     val rule = disjE OF [Object_Logic.rulify ctxt' (Thm.assume lhs)]
   in
     Goal.init (mk_inj_prop ctxt' (Thm.dest_arg ct))
@@ -78,7 +78,7 @@ fun prove_inj_prop ctxt def lhs =
   end
 
 fun prove_rhs ctxt def lhs =
-  Z3_Proof_Tools.by_tac ctxt (
+  Old_Z3_Proof_Tools.by_tac ctxt (
     CONVERSION (Conv.top_sweep_conv (K (Conv.rewr_conv def)) ctxt)
     THEN' REPEAT_ALL_NEW (match_tac @{thms allI})
     THEN' rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt def lhs]))
@@ -95,10 +95,10 @@ fun expand thm ct =
 fun prove_lhs ctxt rhs =
   let
     val eq = Thm.symmetric (mk_meta_eq (Object_Logic.rulify ctxt (Thm.assume rhs)))
-    val conv = SMT_Utils.binders_conv (K (expand eq)) ctxt
+    val conv = Old_SMT_Utils.binders_conv (K (expand eq)) ctxt
   in
-    Z3_Proof_Tools.by_tac ctxt (
-      CONVERSION (SMT_Utils.prop_conv conv)
+    Old_Z3_Proof_Tools.by_tac ctxt (
+      CONVERSION (Old_SMT_Utils.prop_conv conv)
       THEN' Simplifier.simp_tac (put_simpset HOL_ss ctxt))
   end
 
@@ -106,16 +106,16 @@ fun prove_lhs ctxt rhs =
 fun mk_inv_def ctxt rhs =
   let
     val (ct, ctxt') =
-      SMT_Utils.dest_all_cbinders (SMT_Utils.dest_cprop rhs) ctxt
+      Old_SMT_Utils.dest_all_cbinders (Old_SMT_Utils.dest_cprop rhs) ctxt
     val (cl, cv) = Thm.dest_binop ct
     val (cg, (cargs, cf)) = Drule.strip_comb cl ||> split_last
     val cu = fold_rev Thm.lambda cargs (mk_inv_of ctxt' (Thm.lambda cv cf))
-  in Thm.assume (SMT_Utils.mk_cequals cg cu) end
+  in Thm.assume (Old_SMT_Utils.mk_cequals cg cu) end
 
 fun prove_inj_eq ctxt ct =
   let
     val (lhs, rhs) =
-      pairself SMT_Utils.mk_cprop (Thm.dest_binop (SMT_Utils.dest_cprop ct))
+      pairself Old_SMT_Utils.mk_cprop (Thm.dest_binop (Old_SMT_Utils.dest_cprop ct))
     val lhs_thm = Thm.implies_intr rhs (prove_lhs ctxt rhs lhs)
     val rhs_thm =
       Thm.implies_intr lhs (prove_rhs ctxt (mk_inv_def ctxt rhs) lhs rhs)
@@ -126,22 +126,22 @@ val swap_eq_thm = mk_meta_eq @{thm eq_commute}
 val swap_disj_thm = mk_meta_eq @{thm disj_commute}
 
 fun swap_conv dest eq =
-  SMT_Utils.if_true_conv ((op <) o pairself Term.size_of_term o dest)
+  Old_SMT_Utils.if_true_conv ((op <) o pairself Term.size_of_term o dest)
     (Conv.rewr_conv eq)
 
 val swap_eq_conv = swap_conv HOLogic.dest_eq swap_eq_thm
-val swap_disj_conv = swap_conv SMT_Utils.dest_disj swap_disj_thm
+val swap_disj_conv = swap_conv Old_SMT_Utils.dest_disj swap_disj_thm
 
 fun norm_conv ctxt =
   swap_eq_conv then_conv
-  Conv.arg1_conv (SMT_Utils.binders_conv (K swap_disj_conv) ctxt) then_conv
-  Conv.arg_conv (SMT_Utils.binders_conv (K swap_eq_conv) ctxt)
+  Conv.arg1_conv (Old_SMT_Utils.binders_conv (K swap_disj_conv) ctxt) then_conv
+  Conv.arg_conv (Old_SMT_Utils.binders_conv (K swap_eq_conv) ctxt)
 
 in
 
 fun prove_injectivity ctxt =
-  Z3_Proof_Tools.by_tac ctxt (
-    CONVERSION (SMT_Utils.prop_conv (norm_conv ctxt))
+  Old_Z3_Proof_Tools.by_tac ctxt (
+    CONVERSION (Old_SMT_Utils.prop_conv (norm_conv ctxt))
     THEN' CSUBGOAL (uncurry (rtac o prove_inj_eq ctxt)))
 
 end

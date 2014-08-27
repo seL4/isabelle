@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Old_SMT/smt_failure.ML
+(*  Title:      HOL/Library/Old_SMT/old_smt_failure.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Failures and exception of SMT.
 *)
 
-signature SMT_FAILURE =
+signature OLD_SMT_FAILURE =
 sig
   type counterexample = {
     is_real_cex: bool,
@@ -21,7 +21,7 @@ sig
   exception SMT of failure
 end
 
-structure SMT_Failure: SMT_FAILURE =
+structure Old_SMT_Failure: OLD_SMT_FAILURE =
 struct
 
 type counterexample = {
