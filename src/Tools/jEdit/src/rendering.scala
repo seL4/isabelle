@@ -480,7 +480,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(Text.Info(r, (t1 + t2, info)))
           case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _))) =>
             val kind1 = Word.implode(Word.explode('_', kind))
-            val txt1 = kind1 + " " + quote(name)
+            val txt1 =
+              if (name == "") kind1
+              else kind1 + " " + quote(name)
             val t = prev.info._1
             val txt2 =
               if (kind == Markup.COMMAND && t.elapsed.seconds >= timing_threshold)

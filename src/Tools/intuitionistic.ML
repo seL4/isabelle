@@ -73,18 +73,18 @@ val introN = "intro";
 val elimN = "elim";
 val destN = "dest";
 
-fun modifier name kind kind' att =
+fun modifier name kind kind' att pos =
   Args.$$$ name |-- (kind >> K NONE || kind' |-- Parse.nat --| Args.colon >> SOME)
-    >> (pair (I: Proof.context -> Proof.context) o att);
+    >> (fn arg => Method.modifier (att arg) pos);
 
 val modifiers =
- [modifier destN Args.bang_colon Args.bang Context_Rules.dest_bang,
-  modifier destN Args.colon (Scan.succeed ()) Context_Rules.dest,
-  modifier elimN Args.bang_colon Args.bang Context_Rules.elim_bang,
-  modifier elimN Args.colon (Scan.succeed ()) Context_Rules.elim,
-  modifier introN Args.bang_colon Args.bang Context_Rules.intro_bang,
-  modifier introN Args.colon (Scan.succeed ()) Context_Rules.intro,
-  Args.del -- Args.colon >> K (I, Context_Rules.rule_del)];
+ [modifier destN Args.bang_colon Args.bang Context_Rules.dest_bang @{here},
+  modifier destN Args.colon (Scan.succeed ()) Context_Rules.dest @{here},
+  modifier elimN Args.bang_colon Args.bang Context_Rules.elim_bang @{here},
+  modifier elimN Args.colon (Scan.succeed ()) Context_Rules.elim @{here},
+  modifier introN Args.bang_colon Args.bang Context_Rules.intro_bang @{here},
+  modifier introN Args.colon (Scan.succeed ()) Context_Rules.intro @{here},
+  Args.del -- Args.colon >> K (Method.modifier Context_Rules.rule_del @{here})];
 
 in
 

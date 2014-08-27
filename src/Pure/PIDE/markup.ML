@@ -72,6 +72,7 @@ sig
   val fixedN: string val fixed: string -> T
   val caseN: string val case_: string -> T
   val dynamic_factN: string val dynamic_fact: string -> T
+  val method_modifierN: string
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
   val freeN: string val free: T
@@ -365,7 +366,7 @@ val (wordsN, words) = markup_elem "words";
 val (hiddenN, hidden) = markup_elem "hidden";
 
 
-(* formal entities *)
+(* misc entities *)
 
 val system_optionN = "system_option";
 
@@ -377,6 +378,8 @@ val constantN = "constant";
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (caseN, case_) = markup_string "case" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
+
+val method_modifierN = "method_modifier";
 
 
 (* inner syntax *)
