@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/smt_datatypes.ML
+(*  Title:      HOL/Library/SMT/smt_datatypes.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Collector functions for common type declarations and their representation

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/smt_failure.ML
+(*  Title:      HOL/Library/SMT/smt_failure.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Failures and exception of SMT.

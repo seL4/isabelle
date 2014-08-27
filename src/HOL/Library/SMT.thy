@@ -1,17 +1,17 @@
-(*  Title:      HOL/SMT.thy
+(*  Title:      HOL/Library/SMT.thy
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-header {* Bindings to Satisfiability Modulo Theories (SMT) solvers *}
+header {* Old Version of Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 
 theory SMT
-imports Record
+imports "../Real"
 keywords "smt_status" :: diag
 begin
 
-ML_file "Tools/SMT/smt_utils.ML"
-ML_file "Tools/SMT/smt_failure.ML"
-ML_file "Tools/SMT/smt_config.ML"
+ML_file "SMT/smt_utils.ML"
+ML_file "SMT/smt_failure.ML"
+ML_file "SMT/smt_config.ML"
 
 
 subsection {* Triggers for quantifier instantiation *}
@@ -115,21 +115,21 @@ definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
 
 subsection {* Setup *}
 
-ML_file "Tools/SMT/smt_builtin.ML"
-ML_file "Tools/SMT/smt_datatypes.ML"
-ML_file "Tools/SMT/smt_normalize.ML"
-ML_file "Tools/SMT/smt_translate.ML"
-ML_file "Tools/SMT/smt_solver.ML"
-ML_file "Tools/SMT/smtlib_interface.ML"
-ML_file "Tools/SMT/z3_interface.ML"
-ML_file "Tools/SMT/z3_proof_parser.ML"
-ML_file "Tools/SMT/z3_proof_tools.ML"
-ML_file "Tools/SMT/z3_proof_literals.ML"
-ML_file "Tools/SMT/z3_proof_methods.ML"
+ML_file "SMT/smt_builtin.ML"
+ML_file "SMT/smt_datatypes.ML"
+ML_file "SMT/smt_normalize.ML"
+ML_file "SMT/smt_translate.ML"
+ML_file "SMT/smt_solver.ML"
+ML_file "SMT/smtlib_interface.ML"
+ML_file "SMT/z3_interface.ML"
+ML_file "SMT/z3_proof_parser.ML"
+ML_file "SMT/z3_proof_tools.ML"
+ML_file "SMT/z3_proof_literals.ML"
+ML_file "SMT/z3_proof_methods.ML"
 named_theorems z3_simp "simplification rules for Z3 proof reconstruction"
-ML_file "Tools/SMT/z3_proof_reconstruction.ML"
-ML_file "Tools/SMT/z3_model.ML"
-ML_file "Tools/SMT/smt_setup_solvers.ML"
+ML_file "SMT/z3_proof_reconstruction.ML"
+ML_file "SMT/z3_model.ML"
+ML_file "SMT/smt_setup_solvers.ML"
 
 setup {*
   SMT_Config.setup #>
@@ -418,6 +418,9 @@ lemma [z3_rule]:  (* for def-axiom *)
   "(if P then \<not>Q else R) \<or> \<not>P \<or> Q"
   "(if P then Q else \<not>R) \<or> P \<or> R"
   by auto
+
+ML_file "SMT/smt_real.ML"
+setup SMT_Real.setup
 
 hide_type (open) pattern
 hide_const fun_app term_true term_false z3div z3mod

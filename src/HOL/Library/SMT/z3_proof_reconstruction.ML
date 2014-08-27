@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/z3_proof_reconstruction.ML
+(*  Title:      HOL/Library/SMT/z3_proof_reconstruction.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Proof reconstruction for proofs found by Z3.

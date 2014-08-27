@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/smt_normalize.ML
+(*  Title:      HOL/Library/SMT/smt_normalize.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Normalization steps on theorems required by SMT solvers.

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/smt_real.ML
+(*  Title:      HOL/Library/SMT/smt_real.ML
     Author:     Sascha Boehme, TU Muenchen
 
 SMT setup for reals.

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/smtlib_interface.ML
+(*  Title:      HOL/Library/SMT/smtlib_interface.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Interface to SMT solvers based on the SMT-LIB format.

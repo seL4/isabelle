@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/smt_translate.ML
+(*  Title:      HOL/Library/SMT/smt_translate.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Translate theorems into an SMT intermediate format and serialize them.

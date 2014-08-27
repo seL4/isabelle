@@ -61,6 +61,7 @@ imports
   Reflection
   Saturated
   Set_Algebras
+  SMT
   State_Monad
   Sublist
   Sum_of_Squares

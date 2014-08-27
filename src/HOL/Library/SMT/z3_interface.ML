@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/z3_interface.ML
+(*  Title:      HOL/Library/SMT/z3_interface.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Interface to Z3 based on a relaxed version of SMT-LIB.
