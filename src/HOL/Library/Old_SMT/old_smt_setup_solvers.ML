@@ -20,9 +20,8 @@ struct
 
 (* helper functions *)
 
-fun make_avail name () = getenv (name ^ "_SOLVER") <> ""
-
-fun make_command name () = [getenv (name ^ "_SOLVER")]
+fun make_avail name () = getenv ("OLD_" ^ name ^ "_SOLVER") <> ""
+fun make_command name () = [getenv ("OLD_" ^ name ^ "_SOLVER")]
 
 fun outcome_of unsat sat unknown solver_name line =
   if String.isPrefix unsat line then Old_SMT_Solver.Unsat
