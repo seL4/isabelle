@@ -33,7 +33,10 @@ semantics due to external visual order vs. internal reverse order.
       strong_coinduct ~> coinduct_strong
       weak_case_cong ~> case_cong_weak
     INCOMPATIBILITY.
-  - The rule "set_cases" is registered with the "[cases set]"
+  - The rules "set_empty" have been removed. They are easy
+    consequences of other set rules "by auto".
+    INCOMPATIBILITY.
+  - The rule "set_cases" is now registered with the "[cases set]"
     attribute. This can influence the behavior of the "cases" proof
     method when more than one case rule is applicable (e.g., an
     assumption is of the form "w : set ws" and the method "cases w"

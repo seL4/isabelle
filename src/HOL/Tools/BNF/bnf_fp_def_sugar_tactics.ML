@@ -40,7 +40,6 @@ sig
   val mk_rel_sel_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> thm list -> tactic
   val mk_set_cases_tac: Proof.context -> cterm -> thm list -> thm -> thm list -> tactic
-  val mk_set_empty_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_set_induct0_tac: Proof.context -> cterm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> thm list -> tactic
   val mk_set_intros_tac: Proof.context -> thm list -> tactic
@@ -316,14 +315,6 @@ fun mk_set_cases_tac ctxt ct assms exhaust sets =
     (eresolve_tac @{thms FalseE emptyE singletonE UnE UN_E insertE} ORELSE'
      hyp_subst_tac ctxt ORELSE'
      SELECT_GOAL (SOLVE (HEADGOAL (eresolve_tac assms THEN' REPEAT_DETERM o atac)))));
-
-fun mk_set_empty_tac ctxt ct exhaust sets discs =
-  TRYALL Goal.conjunction_tac THEN
-  ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
-    REPEAT_DETERM o hyp_subst_tac ctxt) THEN
-  unfold_thms_tac ctxt (sets @ map_filter (fn thm =>
-    SOME (thm RS eqFalseI) handle THM _ => NONE) discs) THEN
-  ALLGOALS (rtac refl ORELSE' etac FalseE);
 
 fun mk_set_intros_tac ctxt sets =
   TRYALL Goal.conjunction_tac THEN

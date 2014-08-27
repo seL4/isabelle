@@ -867,9 +867,6 @@ a set function, the map function, or the relator:
 \item[@{text "t."}\hthm{set_cases} @{text "[consumes 1, cases set: set\<^sub>i_t]"}\rm:] ~ \\
 @{thm list.set_cases[no_vars]}
 
-\item[@{text "t."}\hthm{set_empty}\rm:] ~ \\
-@{thm list.set_empty[no_vars]}
-
 \item[@{text "t."}\hthm{set_intros}\rm:] ~ \\
 @{thm list.set_intros(1)[no_vars]} \\
 @{thm list.set_intros(2)[no_vars]}
