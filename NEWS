@@ -60,10 +60,15 @@ semantics due to external visual order vs. internal reverse order.
 * Tactical PARALLEL_ALLGOALS is the most common way to refer to
 PARALLEL_GOALS.
 
-* Old SMT module:
-  - The 'smt' command has been renamed 'old_smt' and moved to
+* Old and new SMT modules:
+  - The old 'smt' command has been renamed 'old_smt' and moved to
     'src/HOL/Library/Old_SMT.thy'. It provided for compatibility, until
-    applications have been ported to use the new 'smt2' command.
+    applications have been ported to use the new 'smt2' command. For the
+    command to work, an older version of Z3 (e.g. Z3 3.2 or 4.0) must be
+    installed, and the environment variable "OLD_Z3_SOLVER" must point to
+    it.
+    INCOMPATIBILITY.
+  - The 'smt2' command has been renamed 'smt'.
     INCOMPATIBILITY.
 
 
