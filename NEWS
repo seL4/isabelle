@@ -63,7 +63,7 @@ PARALLEL_GOALS.
 * Old and new SMT modules:
   - The old 'smt' command has been renamed 'old_smt' and moved to
     'src/HOL/Library/Old_SMT.thy'. It provided for compatibility, until
-    applications have been ported to use the new 'smt2' command. For the
+    applications have been ported to use the new 'smt' command. For the
     command to work, an older version of Z3 (e.g. Z3 3.2 or 4.0) must be
     installed, and the environment variable "OLD_Z3_SOLVER" must point to
     it.
