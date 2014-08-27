@@ -340,7 +340,7 @@ fun string_of_isar_proof ctxt0 i n proof =
           | _ => add_str (of_obtain qs (length subs) ^ " ") #> add_frees xs #> add_str " where ")
         #> add_str (of_label l)
         #> add_term t
-        #> add_str (" " ^ of_method ls ss meth ^
+        #> add_str ("\n" ^ of_indent (ind + 1) ^ of_method ls ss meth ^
           (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
