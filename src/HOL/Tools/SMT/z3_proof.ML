@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/z3_new_proof.ML
+(*  Title:      HOL/Tools/SMT/z3_proof.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Z3 proofs: parsing and abstract syntax tree.
 *)
 
-signature Z3_NEW_PROOF =
+signature Z3_PROOF =
 sig
   (*proof rules*)
   datatype z3_rule =
@@ -32,10 +32,10 @@ sig
     Proof.context -> z3_step list * Proof.context
 end;
 
-structure Z3_New_Proof: Z3_NEW_PROOF =
+structure Z3_Proof: Z3_PROOF =
 struct
 
-open SMTLIB2_Proof
+open SMTLIB_Proof
 
 
 (* proof rules *)
@@ -133,26 +133,26 @@ fun mk_step id rule prems concl fixes is_fix_step =
 
 (* proof parser *)
 
-fun rule_of (SMTLIB2.Sym name) = rule_of_string name
-  | rule_of (SMTLIB2.S (SMTLIB2.Sym "_" :: SMTLIB2.Sym name :: args)) =
+fun rule_of (SMTLIB.Sym name) = rule_of_string name
+  | rule_of (SMTLIB.S (SMTLIB.Sym "_" :: SMTLIB.Sym name :: args)) =
       (case (name, args) of
-        ("th-lemma", SMTLIB2.Sym kind :: _) => Th_Lemma kind
+        ("th-lemma", SMTLIB.Sym kind :: _) => Th_Lemma kind
       | _ => rule_of_string name)
-  | rule_of r = raise SMTLIB2_PARSE ("bad Z3 proof rule format", r)
+  | rule_of r = raise SMTLIB_PARSE ("bad Z3 proof rule format", r)
 
 fun node_of p cx =
   (case p of
-    SMTLIB2.Sym name =>
+    SMTLIB.Sym name =>
       (case lookup_binding cx name of
         Proof node => (node, cx)
       | Tree p' =>
           cx
           |> node_of p'
           |-> (fn node => pair node o update_binding (name, Proof node))
-      | _ => raise SMTLIB2_PARSE ("bad Z3 proof format", p))
-  | SMTLIB2.S [SMTLIB2.Sym "let", SMTLIB2.S bindings, p] =>
+      | _ => raise SMTLIB_PARSE ("bad Z3 proof format", p))
+  | SMTLIB.S [SMTLIB.Sym "let", SMTLIB.S bindings, p] =>
       with_bindings (map dest_binding bindings) (node_of p) cx
-  | SMTLIB2.S (name :: parts) =>
+  | SMTLIB.S (name :: parts) =>
       let
         val (ps, p) = split_last parts
         val r = rule_of name
@@ -163,31 +163,31 @@ fun node_of p cx =
         ||>> next_id
         |>> (fn ((prems, (t, ns)), id) => mk_node id r prems t ns)
       end
-  | _ => raise SMTLIB2_PARSE ("bad Z3 proof format", p))
+  | _ => raise SMTLIB_PARSE ("bad Z3 proof format", p))
 
-fun dest_name (SMTLIB2.Sym name) = name
-  | dest_name t = raise SMTLIB2_PARSE ("bad name", t)
+fun dest_name (SMTLIB.Sym name) = name
+  | dest_name t = raise SMTLIB_PARSE ("bad name", t)
 
-fun dest_seq (SMTLIB2.S ts) = ts
-  | dest_seq t = raise SMTLIB2_PARSE ("bad Z3 proof format", t)
+fun dest_seq (SMTLIB.S ts) = ts
+  | dest_seq t = raise SMTLIB_PARSE ("bad Z3 proof format", t)
 
-fun parse' (SMTLIB2.S (SMTLIB2.Sym "set-logic" :: _) :: ts) cx = parse' ts cx
-  | parse' (SMTLIB2.S [SMTLIB2.Sym "declare-fun", n, tys, ty] :: ts) cx =
+fun parse' (SMTLIB.S (SMTLIB.Sym "set-logic" :: _) :: ts) cx = parse' ts cx
+  | parse' (SMTLIB.S [SMTLIB.Sym "declare-fun", n, tys, ty] :: ts) cx =
       let
         val name = dest_name n
         val Ts = map (type_of cx) (dest_seq tys)
         val T = type_of cx ty
       in parse' ts (declare_fun name (Ts ---> T) cx) end
-  | parse' (SMTLIB2.S [SMTLIB2.Sym "proof", p] :: _) cx = node_of p cx
-  | parse' ts _ = raise SMTLIB2_PARSE ("bad Z3 proof declarations", SMTLIB2.S ts)
+  | parse' (SMTLIB.S [SMTLIB.Sym "proof", p] :: _) cx = node_of p cx
+  | parse' ts _ = raise SMTLIB_PARSE ("bad Z3 proof declarations", SMTLIB.S ts)
 
 fun parse_proof typs funs lines ctxt =
   let
-    val ts = dest_seq (SMTLIB2.parse lines)
+    val ts = dest_seq (SMTLIB.parse lines)
     val (node, cx) = parse' ts (empty_context ctxt typs funs)
   in (node, ctxt_of cx) end
-  handle SMTLIB2.PARSE (l, msg) => error ("parsing error at line " ^ string_of_int l ^ ": " ^ msg)
-       | SMTLIB2_PARSE (msg, t) => error (msg ^ ": " ^ SMTLIB2.str_of t)
+  handle SMTLIB.PARSE (l, msg) => error ("parsing error at line " ^ string_of_int l ^ ": " ^ msg)
+       | SMTLIB_PARSE (msg, t) => error (msg ^ ": " ^ SMTLIB.str_of t)
 
 
 (* handling of bound variables *)

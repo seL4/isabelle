@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/z3_new_replay_util.ML
+(*  Title:      HOL/Tools/SMT/z3_replay_util.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Helper functions required for Z3 proof replay.
 *)
 
-signature Z3_NEW_REPLAY_UTIL =
+signature Z3_REPLAY_UTIL =
 sig
   (*theorem nets*)
   val thm_net_of: ('a -> thm) -> 'a list -> 'a Net.net
@@ -25,7 +25,7 @@ sig
   val make_simpset: Proof.context -> thm list -> simpset
 end;
 
-structure Z3_New_Replay_Util: Z3_NEW_REPLAY_UTIL =
+structure Z3_Replay_Util: Z3_REPLAY_UTIL =
 struct
 
 (* theorem nets *)
@@ -60,7 +60,7 @@ end
 (* proof combinators *)
 
 fun under_assumption f ct =
-  let val ct' = SMT2_Util.mk_cprop ct in Thm.implies_intr ct' (f (Thm.assume ct')) end
+  let val ct' = SMT_Util.mk_cprop ct in Thm.implies_intr ct' (f (Thm.assume ct')) end
 
 fun discharge p pq = Thm.implies_elim pq p
 

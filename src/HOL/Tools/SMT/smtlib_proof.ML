@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT2/smtlib2_proof.ML
+(*  Title:      HOL/Tools/SMT/smtlib_proof.ML
     Author:     Sascha Boehme, TU Muenchen
     Author:     Mathias Fleury, ENS Rennes
     Author:     Jasmin Blanchette, TU Muenchen
@@ -6,9 +6,9 @@
 SMT-LIB-2-style proofs: parsing and abstract syntax tree.
 *)
 
-signature SMTLIB2_PROOF =
+signature SMTLIB_PROOF =
 sig
-  datatype 'b shared = Tree of SMTLIB2.tree | Term of term | Proof of 'b | None
+  datatype 'b shared = Tree of SMTLIB.tree | Term of term | Proof of 'b | None
   type ('a, 'b) context
 
   val mk_context: Proof.context -> int -> 'b shared Symtab.table -> typ Symtab.table ->
@@ -24,27 +24,27 @@ sig
     term * ((string * (string * typ)) list, 'b) context) -> ('c, 'b) context -> (term * string list)
 
   (*type and term parsers*)
-  type type_parser = SMTLIB2.tree * typ list -> typ option
-  type term_parser = SMTLIB2.tree * term list -> term option
+  type type_parser = SMTLIB.tree * typ list -> typ option
+  type term_parser = SMTLIB.tree * term list -> term option
   val add_type_parser: type_parser -> Context.generic -> Context.generic
   val add_term_parser: term_parser -> Context.generic -> Context.generic
 
-  exception SMTLIB2_PARSE of string * SMTLIB2.tree
+  exception SMTLIB_PARSE of string * SMTLIB.tree
 
   val declare_fun: string -> typ -> ((string * typ) list, 'a) context ->
     ((string * typ) list, 'a) context
-  val dest_binding: SMTLIB2.tree -> string * 'a shared
-  val type_of: ('a, 'b) context -> SMTLIB2.tree -> typ
-  val term_of: SMTLIB2.tree -> ((string * (string * typ)) list, 'a) context ->
+  val dest_binding: SMTLIB.tree -> string * 'a shared
+  val type_of: ('a, 'b) context -> SMTLIB.tree -> typ
+  val term_of: SMTLIB.tree -> ((string * (string * typ)) list, 'a) context ->
     term * ((string * (string * typ)) list, 'a) context
 end;
 
-structure SMTLIB2_Proof: SMTLIB2_PROOF =
+structure SMTLIB_Proof: SMTLIB_PROOF =
 struct
 
 (* proof parser context *)
 
-datatype 'b shared = Tree of SMTLIB2.tree | Term of term | Proof of 'b | None
+datatype 'b shared = Tree of SMTLIB.tree | Term of term | Proof of 'b | None
 
 type ('a, 'b) context = {
   ctxt: Proof.context,
@@ -105,8 +105,8 @@ fun lookup_fun ({funs, ...}: ('a, 'b) context) = Symtab.lookup funs
 
 (* core type and term parser *)
 
-fun core_type_parser (SMTLIB2.Sym "Bool", []) = SOME @{typ HOL.bool}
-  | core_type_parser (SMTLIB2.Sym "Int", []) = SOME @{typ Int.int}
+fun core_type_parser (SMTLIB.Sym "Bool", []) = SOME @{typ HOL.bool}
+  | core_type_parser (SMTLIB.Sym "Int", []) = SOME @{typ Int.int}
   | core_type_parser _ = NONE
 
 fun mk_unary n t =
@@ -140,43 +140,43 @@ fun mk_binary_pred n S t1 t2 =
 fun mk_less t1 t2 = mk_binary_pred @{const_name ord_class.less} @{sort linorder} t1 t2
 fun mk_less_eq t1 t2 = mk_binary_pred @{const_name ord_class.less_eq} @{sort linorder} t1 t2
 
-fun core_term_parser (SMTLIB2.Sym "true", _) = SOME @{const HOL.True}
-  | core_term_parser (SMTLIB2.Sym "false", _) = SOME @{const HOL.False}
-  | core_term_parser (SMTLIB2.Sym "not", [t]) = SOME (HOLogic.mk_not t)
-  | core_term_parser (SMTLIB2.Sym "and", t :: ts) = SOME (mk_rassoc (curry HOLogic.mk_conj) t ts)
-  | core_term_parser (SMTLIB2.Sym "or", t :: ts) = SOME (mk_rassoc (curry HOLogic.mk_disj) t ts)
-  | core_term_parser (SMTLIB2.Sym "=>", [t1, t2]) = SOME (HOLogic.mk_imp (t1, t2))
-  | core_term_parser (SMTLIB2.Sym "implies", [t1, t2]) = SOME (HOLogic.mk_imp (t1, t2))
-  | core_term_parser (SMTLIB2.Sym "=", [t1, t2]) = SOME (HOLogic.mk_eq (t1, t2))
-  | core_term_parser (SMTLIB2.Sym "~", [t1, t2]) = SOME (HOLogic.mk_eq (t1, t2))
-  | core_term_parser (SMTLIB2.Sym "ite", [t1, t2, t3]) =
+fun core_term_parser (SMTLIB.Sym "true", _) = SOME @{const HOL.True}
+  | core_term_parser (SMTLIB.Sym "false", _) = SOME @{const HOL.False}
+  | core_term_parser (SMTLIB.Sym "not", [t]) = SOME (HOLogic.mk_not t)
+  | core_term_parser (SMTLIB.Sym "and", t :: ts) = SOME (mk_rassoc (curry HOLogic.mk_conj) t ts)
+  | core_term_parser (SMTLIB.Sym "or", t :: ts) = SOME (mk_rassoc (curry HOLogic.mk_disj) t ts)
+  | core_term_parser (SMTLIB.Sym "=>", [t1, t2]) = SOME (HOLogic.mk_imp (t1, t2))
+  | core_term_parser (SMTLIB.Sym "implies", [t1, t2]) = SOME (HOLogic.mk_imp (t1, t2))
+  | core_term_parser (SMTLIB.Sym "=", [t1, t2]) = SOME (HOLogic.mk_eq (t1, t2))
+  | core_term_parser (SMTLIB.Sym "~", [t1, t2]) = SOME (HOLogic.mk_eq (t1, t2))
+  | core_term_parser (SMTLIB.Sym "ite", [t1, t2, t3]) =
       let
         val T = fastype_of t2
         val c = Const (@{const_name HOL.If}, [@{typ HOL.bool}, T, T] ---> T)
       in SOME (c $ t1 $ t2 $ t3) end
-  | core_term_parser (SMTLIB2.Num i, []) = SOME (HOLogic.mk_number @{typ Int.int} i)
-  | core_term_parser (SMTLIB2.Sym "-", [t]) = SOME (mk_unary @{const_name uminus_class.uminus} t)
-  | core_term_parser (SMTLIB2.Sym "~", [t]) = SOME (mk_unary @{const_name uminus_class.uminus} t)
-  | core_term_parser (SMTLIB2.Sym "+", t :: ts) =
+  | core_term_parser (SMTLIB.Num i, []) = SOME (HOLogic.mk_number @{typ Int.int} i)
+  | core_term_parser (SMTLIB.Sym "-", [t]) = SOME (mk_unary @{const_name uminus_class.uminus} t)
+  | core_term_parser (SMTLIB.Sym "~", [t]) = SOME (mk_unary @{const_name uminus_class.uminus} t)
+  | core_term_parser (SMTLIB.Sym "+", t :: ts) =
       SOME (mk_lassoc' @{const_name plus_class.plus} t ts)
-  | core_term_parser (SMTLIB2.Sym "-", t :: ts) =
+  | core_term_parser (SMTLIB.Sym "-", t :: ts) =
       SOME (mk_lassoc' @{const_name minus_class.minus} t ts)
-  | core_term_parser (SMTLIB2.Sym "*", t :: ts) =
+  | core_term_parser (SMTLIB.Sym "*", t :: ts) =
       SOME (mk_lassoc' @{const_name times_class.times} t ts)
-  | core_term_parser (SMTLIB2.Sym "div", [t1, t2]) = SOME (mk_binary @{const_name z3div} t1 t2)
-  | core_term_parser (SMTLIB2.Sym "mod", [t1, t2]) = SOME (mk_binary @{const_name z3mod} t1 t2)
-  | core_term_parser (SMTLIB2.Sym "<", [t1, t2]) = SOME (mk_less t1 t2)
-  | core_term_parser (SMTLIB2.Sym ">", [t1, t2]) = SOME (mk_less t2 t1)
-  | core_term_parser (SMTLIB2.Sym "<=", [t1, t2]) = SOME (mk_less_eq t1 t2)
-  | core_term_parser (SMTLIB2.Sym ">=", [t1, t2]) = SOME (mk_less_eq t2 t1)
+  | core_term_parser (SMTLIB.Sym "div", [t1, t2]) = SOME (mk_binary @{const_name z3div} t1 t2)
+  | core_term_parser (SMTLIB.Sym "mod", [t1, t2]) = SOME (mk_binary @{const_name z3mod} t1 t2)
+  | core_term_parser (SMTLIB.Sym "<", [t1, t2]) = SOME (mk_less t1 t2)
+  | core_term_parser (SMTLIB.Sym ">", [t1, t2]) = SOME (mk_less t2 t1)
+  | core_term_parser (SMTLIB.Sym "<=", [t1, t2]) = SOME (mk_less_eq t1 t2)
+  | core_term_parser (SMTLIB.Sym ">=", [t1, t2]) = SOME (mk_less_eq t2 t1)
   | core_term_parser _ = NONE
 
 
 (* custom type and term parsers *)
 
-type type_parser = SMTLIB2.tree * typ list -> typ option
+type type_parser = SMTLIB.tree * typ list -> typ option
 
-type term_parser = SMTLIB2.tree * term list -> term option
+type term_parser = SMTLIB.tree * term list -> term option
 
 fun id_ord ((id1, _), (id2, _)) = int_ord (id1, id2)
 
@@ -210,7 +210,7 @@ fun apply_parsers parsers x =
 
 (* type and term parsing *)
 
-exception SMTLIB2_PARSE of string * SMTLIB2.tree
+exception SMTLIB_PARSE of string * SMTLIB.tree
 
 val desymbolize = Name.desymbolize (SOME false) o perhaps (try (unprefix "?"))
 
@@ -229,54 +229,54 @@ fun parse_type cx ty Ts =
     SOME T => T
   | NONE =>
       (case ty of
-        SMTLIB2.Sym name =>
+        SMTLIB.Sym name =>
           (case lookup_typ cx name of
             SOME T => T
-          | NONE => raise SMTLIB2_PARSE ("unknown SMT type", ty))
-      | _ => raise SMTLIB2_PARSE ("bad SMT type format", ty)))
+          | NONE => raise SMTLIB_PARSE ("unknown SMT type", ty))
+      | _ => raise SMTLIB_PARSE ("bad SMT type format", ty)))
 
 fun parse_term t ts cx =
   (case apply_parsers (get_term_parsers (ctxt_of cx)) (t, ts) of
     SOME u => (u, cx)
   | NONE =>
       (case t of
-        SMTLIB2.Sym name =>
+        SMTLIB.Sym name =>
           (case lookup_fun cx name of
             SOME u => (Term.list_comb (u, ts), cx)
           | NONE =>
               if null ts then declare_free name Term.dummyT cx
-              else raise SMTLIB2_PARSE ("bad SMT term", t))
-      | _ => raise SMTLIB2_PARSE ("bad SMT term format", t)))
+              else raise SMTLIB_PARSE ("bad SMT term", t))
+      | _ => raise SMTLIB_PARSE ("bad SMT term format", t)))
 
 fun type_of cx ty =
   (case try (parse_type cx ty) [] of
     SOME T => T
   | NONE =>
       (case ty of
-        SMTLIB2.S (ty' :: tys) => parse_type cx ty' (map (type_of cx) tys)
-      | _ => raise SMTLIB2_PARSE ("bad SMT type", ty)))
+        SMTLIB.S (ty' :: tys) => parse_type cx ty' (map (type_of cx) tys)
+      | _ => raise SMTLIB_PARSE ("bad SMT type", ty)))
 
-fun dest_var cx (SMTLIB2.S [SMTLIB2.Sym name, ty]) = (name, (desymbolize name, type_of cx ty))
-  | dest_var _ v = raise SMTLIB2_PARSE ("bad SMT quantifier variable format", v)
+fun dest_var cx (SMTLIB.S [SMTLIB.Sym name, ty]) = (name, (desymbolize name, type_of cx ty))
+  | dest_var _ v = raise SMTLIB_PARSE ("bad SMT quantifier variable format", v)
 
-fun dest_body (SMTLIB2.S (SMTLIB2.Sym "!" :: body :: _)) = dest_body body
+fun dest_body (SMTLIB.S (SMTLIB.Sym "!" :: body :: _)) = dest_body body
   | dest_body body = body
 
-fun dest_binding (SMTLIB2.S [SMTLIB2.Sym name, t]) = (name, Tree t)
-  | dest_binding b = raise SMTLIB2_PARSE ("bad SMT let binding format", b)
+fun dest_binding (SMTLIB.S [SMTLIB.Sym name, t]) = (name, Tree t)
+  | dest_binding b = raise SMTLIB_PARSE ("bad SMT let binding format", b)
 
 fun term_of t cx =
   (case t of
-    SMTLIB2.S [SMTLIB2.Sym "forall", SMTLIB2.S vars, body] => quant HOLogic.mk_all vars body cx
-  | SMTLIB2.S [SMTLIB2.Sym "exists", SMTLIB2.S vars, body] => quant HOLogic.mk_exists vars body cx
-  | SMTLIB2.S [SMTLIB2.Sym "let", SMTLIB2.S bindings, body] =>
+    SMTLIB.S [SMTLIB.Sym "forall", SMTLIB.S vars, body] => quant HOLogic.mk_all vars body cx
+  | SMTLIB.S [SMTLIB.Sym "exists", SMTLIB.S vars, body] => quant HOLogic.mk_exists vars body cx
+  | SMTLIB.S [SMTLIB.Sym "let", SMTLIB.S bindings, body] =>
       with_bindings (map dest_binding bindings) (term_of body) cx
-  | SMTLIB2.S (SMTLIB2.Sym "!" :: t :: _) => term_of t cx
-  | SMTLIB2.S (f :: args) =>
+  | SMTLIB.S (SMTLIB.Sym "!" :: t :: _) => term_of t cx
+  | SMTLIB.S (f :: args) =>
       cx
       |> fold_map term_of args
       |-> parse_term f
-  | SMTLIB2.Sym name =>
+  | SMTLIB.Sym name =>
       (case lookup_binding cx name of
         Tree u =>
           cx
@@ -284,7 +284,7 @@ fun term_of t cx =
           |-> (fn u' => pair u' o update_binding (name, Term u'))
       | Term u => (u, cx)
       | None => parse_term t [] cx
-      | _ => raise SMTLIB2_PARSE ("bad SMT term format", t))
+      | _ => raise SMTLIB_PARSE ("bad SMT term format", t))
   | _ => parse_term t [] cx)
 
 and quant q vars body cx =

@@ -56,8 +56,8 @@ val veriT_la_generic_rule = "la_generic"
 val veriT_simp_arith_rule = "simp_arith"
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
-val z3_skolemize_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Skolemize
-val z3_th_lemma_rule_prefix = Z3_New_Proof.string_of_rule (Z3_New_Proof.Th_Lemma "")
+val z3_skolemize_rule = Z3_Proof.string_of_rule Z3_Proof.Skolemize
+val z3_th_lemma_rule_prefix = Z3_Proof.string_of_rule (Z3_Proof.Th_Lemma "")
 val zipperposition_cnf_rule = "cnf"
 
 val skolemize_rules =
@@ -153,7 +153,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         fun massage_methods (meths as meth :: _) =
           if not try0 then [meth]
-          else if smt_proofs = SOME true then SMT2_Method :: meths
+          else if smt_proofs = SOME true then SMT_Method :: meths
           else meths
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
@@ -402,7 +402,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
 fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   (case play of
-    Played _ => meth = SMT2_Method andalso smt_proofs <> SOME true
+    Played _ => meth = SMT_Method andalso smt_proofs <> SOME true
   | Play_Timed_Out time => Time.> (time, Time.zeroTime)
   | Play_Failed => true)
 

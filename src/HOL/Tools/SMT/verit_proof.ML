@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT2/verit_proof.ML
+(*  Title:      HOL/Tools/SMT/verit_proof.ML
     Author:     Mathias Fleury, ENS Rennes
     Author:     Sascha Boehme, TU Muenchen
 
@@ -31,7 +31,7 @@ end;
 structure VeriT_Proof: VERIT_PROOF =
 struct
 
-open SMTLIB2_Proof
+open SMTLIB_Proof
 
 datatype veriT_node = VeriT_Node of {
   id: string,
@@ -70,17 +70,17 @@ fun node_of p cx =
   |>> snd
 
 (*in order to get Z3-style quantification*)
-fun repair_quantification (SMTLIB2.S (SMTLIB2.Sym "forall" :: l)) =
+fun repair_quantification (SMTLIB.S (SMTLIB.Sym "forall" :: l)) =
     let val (quantified_vars, t) = split_last (map repair_quantification l)
     in
-      SMTLIB2.S (SMTLIB2.Sym "forall" :: SMTLIB2.S quantified_vars :: t :: [])
+      SMTLIB.S (SMTLIB.Sym "forall" :: SMTLIB.S quantified_vars :: t :: [])
     end
-  | repair_quantification (SMTLIB2.S (SMTLIB2.Sym "exists" :: l)) =
+  | repair_quantification (SMTLIB.S (SMTLIB.Sym "exists" :: l)) =
     let val (quantified_vars, t) = split_last (map repair_quantification l)
     in
-      SMTLIB2.S (SMTLIB2.Sym "exists" :: SMTLIB2.S quantified_vars :: t :: [])
+      SMTLIB.S (SMTLIB.Sym "exists" :: SMTLIB.S quantified_vars :: t :: [])
     end
-  | repair_quantification (SMTLIB2.S l) = SMTLIB2.S (map repair_quantification l)
+  | repair_quantification (SMTLIB.S l) = SMTLIB.S (map repair_quantification l)
   | repair_quantification x = x
 
 fun replace_bound_var_by_free_var (q $ Abs (var, ty, u)) free_var =
@@ -162,20 +162,20 @@ or
 fun parse_proof_step cx =
   let
     fun rotate_pair (a, (b, c)) = ((a, b), c)
-    fun get_id (SMTLIB2.S [SMTLIB2.Sym "set", SMTLIB2.Sym id, SMTLIB2.S l]) = (id, l)
+    fun get_id (SMTLIB.S [SMTLIB.Sym "set", SMTLIB.Sym id, SMTLIB.S l]) = (id, l)
       | get_id t = raise Fail ("unrecognized VeriT Proof" ^ PolyML.makestring t)
-    fun parse_rule (SMTLIB2.Sym rule :: l) = (rule, l)
-    fun parse_source (SMTLIB2.Key "clauses" :: SMTLIB2.S source ::l) =
-        (SOME (map (fn (SMTLIB2.Sym id) => id) source), l)
+    fun parse_rule (SMTLIB.Sym rule :: l) = (rule, l)
+    fun parse_source (SMTLIB.Key "clauses" :: SMTLIB.S source ::l) =
+        (SOME (map (fn (SMTLIB.Sym id) => id) source), l)
       | parse_source l = (NONE, l)
-    fun parse_subproof cx id_of_father_step ((subproof_step as SMTLIB2.S (SMTLIB2.Sym "set" :: _)) :: l) =
+    fun parse_subproof cx id_of_father_step ((subproof_step as SMTLIB.S (SMTLIB.Sym "set" :: _)) :: l) =
         let val (subproof_steps, cx') = parse_proof_step cx subproof_step in
           apfst (apfst (curry (op @) subproof_steps)) (parse_subproof cx' id_of_father_step l)
         end
       | parse_subproof cx _ l = (([], cx), l)
-    fun skip_args (SMTLIB2.Key "args" :: SMTLIB2.S _ :: l) = l
+    fun skip_args (SMTLIB.Key "args" :: SMTLIB.S _ :: l) = l
       | skip_args l = l
-    fun parse_conclusion (SMTLIB2.Key "conclusion" :: SMTLIB2.S concl :: []) = concl
+    fun parse_conclusion (SMTLIB.Key "conclusion" :: SMTLIB.S concl :: []) = concl
     fun make_or_from_clausification l =
       foldl1 (fn ((concl1, bounds1), (concl2, bounds2)) =>
         (HOLogic.mk_disj (perhaps (try HOLogic.dest_Trueprop) concl1,
@@ -222,9 +222,9 @@ fun seperate_into_steps lines =
   end
 
  (* VeriT adds @ before every variable. *)
-fun remove_all_at (SMTLIB2.Sym v :: l) = SMTLIB2.Sym (perhaps (try (unprefix "@")) v) :: remove_all_at l
-  | remove_all_at (SMTLIB2.S l :: l') = SMTLIB2.S (remove_all_at l) :: remove_all_at l'
-  | remove_all_at (SMTLIB2.Key v :: l) = SMTLIB2.Key v :: remove_all_at l
+fun remove_all_at (SMTLIB.Sym v :: l) = SMTLIB.Sym (perhaps (try (unprefix "@")) v) :: remove_all_at l
+  | remove_all_at (SMTLIB.S l :: l') = SMTLIB.S (remove_all_at l) :: remove_all_at l'
+  | remove_all_at (SMTLIB.Key v :: l) = SMTLIB.Key v :: remove_all_at l
   | remove_all_at (v :: l) = v :: remove_all_at l
   | remove_all_at [] = []
 
@@ -320,10 +320,9 @@ fun correct_veriT_steps steps =
 
 fun parse typs funs lines ctxt =
   let
-    val smtlib2_lines_without_at =
-      remove_all_at (map SMTLIB2.parse (seperate_into_steps lines))
+    val smtlib_lines_without_at = remove_all_at (map SMTLIB.parse (seperate_into_steps lines))
     val (u, env) = apfst flat (fold_map (fn l => fn cx => parse_proof_step cx l)
-      smtlib2_lines_without_at (empty_context ctxt typs funs))
+      smtlib_lines_without_at (empty_context ctxt typs funs))
     val t = correct_veriT_steps u
     fun node_to_step (VeriT_Node {id, rule, prems, concl, bounds, ...}) =
       mk_step id rule prems concl bounds

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT2/verit_proof_parse.ML
+(*  Title:      HOL/Tools/SMT/verit_proof_parse.ML
     Author:     Mathias Fleury, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
@@ -8,9 +8,9 @@ VeriT proof parsing.
 signature VERIT_PROOF_PARSE =
 sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
-  val parse_proof: Proof.context -> SMT2_Translate.replay_data ->
+  val parse_proof: Proof.context -> SMT_Translate.replay_data ->
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
-    SMT2_Solver.parsed_proof
+    SMT_Solver.parsed_proof
 end;
 
 structure VeriT_Proof_Parse: VERIT_PROOF_PARSE =
@@ -27,7 +27,7 @@ fun find_and_add_missing_dependances steps assms ll_offset =
   let
     fun prems_to_theorem_number [] id repl = (([], []), (id, repl))
       | prems_to_theorem_number (x :: ths) id replaced =
-        (case Int.fromString (perhaps (try (unprefix SMTLIB2_Interface.assert_prefix)) x) of
+        (case Int.fromString (perhaps (try (unprefix SMTLIB_Interface.assert_prefix)) x) of
           NONE =>
           let
             val ((prems, iidths), (id', replaced')) = prems_to_theorem_number ths id replaced
@@ -73,7 +73,7 @@ fun add_missing_steps iidths =
   in map add_single_step iidths end
 
 fun parse_proof _
-    ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT2_Translate.replay_data)
+    ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
     xfacts prems concl output =
   let
     val (steps, _) = VeriT_Proof.parse typs terms output ctxt

@@ -8,7 +8,7 @@ theory SMT_Tests
 imports Complex_Main
 begin
 
-smt2_status
+smt_status
 
 text {* Most examples are taken from various Isabelle theories and from HOL4. *}
 
@@ -23,7 +23,7 @@ lemma
   "True \<or> False"
   "False \<longrightarrow> True"
   "\<not> (False \<longleftrightarrow> True)"
-  by smt2+
+  by smt+
 
 lemma
   "P \<or> \<not> P"
@@ -62,7 +62,7 @@ lemma
   "\<not> (P \<longleftrightarrow> \<not> P)"
   "(P \<longrightarrow> Q) \<longleftrightarrow> (\<not> Q \<longrightarrow> \<not> P)"
   "P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P"
-  by smt2+
+  by smt+
 
 lemma
   "(if P then Q1 else Q2) \<longleftrightarrow> ((P \<longrightarrow> Q1) \<and> (\<not> P \<longrightarrow> Q2))"
@@ -71,14 +71,14 @@ lemma
   "(if P1 \<and> P2 then Q1 else Q2) \<longleftrightarrow> (if P1 then if P2 then Q1 else Q2 else Q2)"
   "(P1 \<longrightarrow> (if P2 then Q1 else Q2)) \<longleftrightarrow>
    (if P1 \<longrightarrow> P2 then P1 \<longrightarrow> Q1 else P1 \<longrightarrow> Q2)"
-  by smt2+
+  by smt+
 
 lemma
   "case P of True \<Rightarrow> P | False \<Rightarrow> \<not> P"
   "case P of False \<Rightarrow> \<not> P | True \<Rightarrow> P"
   "case \<not> P of True \<Rightarrow> \<not> P | False \<Rightarrow> P"
   "case P of True \<Rightarrow> (Q \<longrightarrow> P) | False \<Rightarrow> (P \<longrightarrow> Q)"
-  by smt2+
+  by smt+
 
 
 section {* First-order logic with equality *}
@@ -91,7 +91,7 @@ lemma
   "x = y \<longrightarrow> g x y = g y x"
   "f (f x) = x \<and> f (f (f (f (f x)))) = x \<longrightarrow> f x = x"
   "((if a then b else c) = d) = ((a \<longrightarrow> (b = d)) \<and> (\<not> a \<longrightarrow> (c = d)))"
-  by smt2+
+  by smt+
 
 lemma
   "\<forall>x. x = x"
@@ -104,11 +104,11 @@ lemma
   "(\<forall>x. P x \<longrightarrow> P (f x)) \<and> P d \<longrightarrow> P (f(f(f(d))))"
   "(\<forall>x y. s x y = s y x) \<longrightarrow> a = a \<and> s a b = s b a"
   "(\<forall>s. q s \<longrightarrow> r s) \<and> \<not> r s \<and> (\<forall>s. \<not> r s \<and> \<not> q s \<longrightarrow> p t \<or> q t) \<longrightarrow> p t \<or> r t"
-  by smt2+
+  by smt+
 
 lemma
   "(\<forall>x. P x) \<and> R \<longleftrightarrow> (\<forall>x. P x \<and> R)"
-  by smt2
+  by smt
 
 lemma
   "\<exists>x. x = x"
@@ -117,7 +117,7 @@ lemma
   "(\<exists>x. P x) \<and> R \<longleftrightarrow> (\<exists>x. P x \<and> R)"
   "(\<exists>x y z. S x z) \<longleftrightarrow> (\<exists>x z. S x z)"
   "\<not> ((\<exists>x. \<not> P x) \<and> ((\<exists>x. P x) \<or> (\<exists>x. P x \<and> Q x)) \<and> \<not> (\<exists>x. P x))"
-  by smt2+
+  by smt+
 
 lemma
   "\<exists>x y. x = y"
@@ -126,7 +126,7 @@ lemma
   "\<exists>x. P x \<longrightarrow> P a \<and> P b"
   "\<exists>x. (\<exists>y. P y) \<longrightarrow> P x"
   "(\<exists>x. Q \<longrightarrow> P x) \<longleftrightarrow> (Q \<longrightarrow> (\<exists>x. P x))"
-  by smt2+
+  by smt+
 
 lemma
   "(\<not> (\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
@@ -134,7 +134,7 @@ lemma
   "(\<forall>x y. R x y = x) \<longrightarrow> (\<exists>y. R x y) = R x c"
   "(if P x then \<not> (\<exists>y. P y) else (\<forall>y. \<not> P y)) \<longrightarrow> P x \<longrightarrow> P y"
   "(\<forall>x y. R x y = x) \<and> (\<forall>x. \<exists>y. R x y) = (\<forall>x. R x c) \<longrightarrow> (\<exists>y. R x y) = R x c"
-  by smt2+
+  by smt+
 
 lemma
   "\<forall>x. \<exists>y. f x y = f x (g x)"
@@ -145,7 +145,7 @@ lemma
   "(\<exists>x. \<forall>y. P x \<longleftrightarrow> P y) \<longrightarrow> ((\<exists>x. P x) \<longleftrightarrow> (\<forall>y. P y))"
   "\<exists>z. P z \<longrightarrow> (\<forall>x. P x)"
   "(\<exists>y. \<forall>x. R x y) \<longrightarrow> (\<forall>x. \<exists>y. R x y)"
-  by smt2+
+  by smt+
 
 lemma
   "(\<exists>!x. P x) \<longrightarrow> (\<exists>x. P x)"
@@ -153,12 +153,12 @@ lemma
   "P a \<longrightarrow> (\<forall>x. P x \<longrightarrow> x = a) \<longrightarrow> (\<exists>!x. P x)"
   "(\<exists>x. P x) \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> x = y) \<longrightarrow> (\<exists>!x. P x)"
   "(\<exists>!x. P x) \<and> (\<forall>x. P x \<and> (\<forall>y. P y \<longrightarrow> y = x) \<longrightarrow> R) \<longrightarrow> R"
-  by smt2+
+  by smt+
 
 lemma
   "(\<forall>x\<in>M. P x) \<and> c \<in> M \<longrightarrow> P c"
   "(\<exists>x\<in>M. P x) \<or> \<not> (P c \<and> c \<in> M)"
-  by smt2+
+  by smt+
 
 lemma
   "let P = True in P"
@@ -169,33 +169,33 @@ lemma
   "(let x = y1; z = y2 in R x z) \<longleftrightarrow> (let z = y2; x = y1 in R x z)"
   "(let x = y1; z = y2 in R x z) \<longleftrightarrow> (let z = y1; x = y2 in R z x)"
   "let P = (\<forall>x. Q x) in if P then P else \<not> P"
-  by smt2+
+  by smt+
 
 lemma
   "a \<noteq> b \<and> a \<noteq> c \<and> b \<noteq> c \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
-  by smt2
+  by smt
 
 lemma
   "(\<forall>x y z. f x y = f x z \<longrightarrow> y = z) \<and> b \<noteq> c \<longrightarrow> f a b \<noteq> f a c"
   "(\<forall>x y z. f x y = f z y \<longrightarrow> x = z) \<and> a \<noteq> d \<longrightarrow> f a b \<noteq> f d b"
-  by smt2+
+  by smt+
 
 
 section {* Guidance for quantifier heuristics: patterns *}
 
 lemma
   assumes "\<forall>x.
-    SMT2.trigger (SMT2.Symb_Cons (SMT2.Symb_Cons (SMT2.pat (f x)) SMT2.Symb_Nil) SMT2.Symb_Nil)
+    SMT.trigger (SMT.Symb_Cons (SMT.Symb_Cons (SMT.pat (f x)) SMT.Symb_Nil) SMT.Symb_Nil)
     (f x = x)"
   shows "f 1 = 1"
-  using assms using [[smt2_trace]] by smt2
+  using assms using [[smt_trace]] by smt
 
 lemma
   assumes "\<forall>x y.
-    SMT2.trigger (SMT2.Symb_Cons (SMT2.Symb_Cons (SMT2.pat (f x))
-      (SMT2.Symb_Cons (SMT2.pat (g y)) SMT2.Symb_Nil)) SMT2.Symb_Nil) (f x = g y)"
+    SMT.trigger (SMT.Symb_Cons (SMT.Symb_Cons (SMT.pat (f x))
+      (SMT.Symb_Cons (SMT.pat (g y)) SMT.Symb_Nil)) SMT.Symb_Nil) (f x = g y)"
   shows "f a = g b"
-  using assms by smt2
+  using assms by smt
 
 
 section {* Meta-logical connectives *}
@@ -219,7 +219,7 @@ lemma
   "(\<And>x y. h x y \<and> h y x) \<Longrightarrow> \<forall>x. h x x"
   "(p \<or> q) \<and> \<not> p \<Longrightarrow> q"
   "(a \<and> b) \<or> (c \<and> d) \<Longrightarrow> (a \<and> b) \<or> (c \<and> d)"
-  by smt2+
+  by smt+
 
 
 section {* Integers *}
@@ -234,7 +234,7 @@ lemma
   "-123 + 345 < (567::int)"
   "(123456789::int) < 2345678901"
   "(-123456789::int) < 2345678901"
-  by smt2+
+  by smt+
 
 lemma
   "(x::int) + 0 = x"
@@ -242,7 +242,7 @@ lemma
   "x + y = y + x"
   "x + (y + z) = (x + y) + z"
   "(x + y = 0) = (x = -y)"
-  by smt2+
+  by smt+
 
 lemma
   "(-1::int) = - 1"
@@ -250,7 +250,7 @@ lemma
   "-(x::int) < 0 \<longleftrightarrow> x > 0"
   "x > 0 \<longrightarrow> -x < 0"
   "x < 0 \<longrightarrow> -x > 0"
-  by smt2+
+  by smt+
 
 lemma
   "(x::int) - 0 = x"
@@ -259,7 +259,7 @@ lemma
   "x - y = -(y - x)"
   "x - y = -y + x"
   "x - y - z = x - (y + z)"
-  by smt2+
+  by smt+
 
 lemma
   "(x::int) * 0 = 0"
@@ -269,7 +269,7 @@ lemma
   "x * -1 = -x"
   "-1 * x = -x"
   "3 * x = x * 3"
-  by smt2+
+  by smt+
 
 lemma
   "(0::int) div 0 = 0"
@@ -296,8 +296,8 @@ lemma
   "(-1::int) div -3 = 0"
   "(-3::int) div -3 = 1"
   "(-5::int) div -3 = 1"
-  using [[z3_new_extensions]]
-  by smt2+
+  using [[z3_extensions]]
+  by smt+
 
 lemma
   "(0::int) mod 0 = 0"
@@ -326,14 +326,14 @@ lemma
   "(-5::int) mod -3 = -2"
   "x mod 3 < 3"
   "(x mod 3 = x) \<longrightarrow> (x < 3)"
-  using [[z3_new_extensions]]
-  by smt2+
+  using [[z3_extensions]]
+  by smt+
 
 lemma
   "(x::int) = x div 1 * 1 + x mod 1"
   "x = x div 3 * 3 + x mod 3"
-  using [[z3_new_extensions]]
-  by smt2+
+  using [[z3_extensions]]
+  by smt+
 
 lemma
   "abs (x::int) \<ge> 0"
@@ -341,7 +341,7 @@ lemma
   "(x \<ge> 0) = (abs x = x)"
   "(x \<le> 0) = (abs x = -x)"
   "abs (abs x) = abs x"
-  by smt2+
+  by smt+
 
 lemma
   "min (x::int) y \<le> x"
@@ -350,7 +350,7 @@ lemma
   "min x y = min y x"
   "x \<ge> 0 \<longrightarrow> min x 0 = 0"
   "min x y \<le> abs (x + y)"
-  by smt2+
+  by smt+
 
 lemma
   "max (x::int) y \<ge> x"
@@ -359,7 +359,7 @@ lemma
   "max x y = max y x"
   "x \<ge> 0 \<longrightarrow> max x 0 = x"
   "max x y \<ge> - abs x - abs y"
-  by smt2+
+  by smt+
 
 lemma
   "0 < (x::int) \<and> x \<le> 1 \<longrightarrow> x = 1"
@@ -374,7 +374,7 @@ lemma
   "x \<le> y \<longrightarrow> y < z \<longrightarrow> x \<le> z"
   "x < y \<longrightarrow> y < z \<longrightarrow> x < z"
   "x < y \<and> y < z \<longrightarrow> \<not> (z < x)"
-  by smt2+
+  by smt+
 
 
 section {* Reals *}
@@ -390,7 +390,7 @@ lemma
   "-123 + 345 < (567::real)"
   "(123456789::real) < 2345678901"
   "(-123456789::real) < 2345678901"
-  by smt2+
+  by smt+
 
 lemma
   "(x::real) + 0 = x"
@@ -398,7 +398,7 @@ lemma
   "x + y = y + x"
   "x + (y + z) = (x + y) + z"
   "(x + y = 0) = (x = -y)"
-  by smt2+
+  by smt+
 
 lemma
   "(-1::real) = - 1"
@@ -406,7 +406,7 @@ lemma
   "-(x::real) < 0 \<longleftrightarrow> x > 0"
   "x > 0 \<longrightarrow> -x < 0"
   "x < 0 \<longrightarrow> -x > 0"
-  by smt2+
+  by smt+
 
 lemma
   "(x::real) - 0 = x"
@@ -415,7 +415,7 @@ lemma
   "x - y = -(y - x)"
   "x - y = -y + x"
   "x - y - z = x - (y + z)"
-  by smt2+
+  by smt+
 
 lemma
   "(x::real) * 0 = 0"
@@ -425,7 +425,7 @@ lemma
   "x * -1 = -x"
   "-1 * x = -x"
   "3 * x = x * 3"
-  by smt2+
+  by smt+
 
 lemma
   "(1/2 :: real) < 1"
@@ -436,16 +436,16 @@ lemma
   "(x::real) / 1 = x"
   "x > 0 \<longrightarrow> x / 3 < x"
   "x < 0 \<longrightarrow> x / 3 > x"
-  using [[z3_new_extensions]]
-  by smt2+
+  using [[z3_extensions]]
+  by smt+
 
 lemma
   "(3::real) * (x / 3) = x"
   "(x * 3) / 3 = x"
   "x > 0 \<longrightarrow> 2 * x / 3 < x"
   "x < 0 \<longrightarrow> 2 * x / 3 > x"
-  using [[z3_new_extensions]]
-  by smt2+
+  using [[z3_extensions]]
+  by smt+
 
 lemma
   "abs (x::real) \<ge> 0"
@@ -453,7 +453,7 @@ lemma
   "(x \<ge> 0) = (abs x = x)"
   "(x \<le> 0) = (abs x = -x)"
   "abs (abs x) = abs x"
-  by smt2+
+  by smt+
 
 lemma
   "min (x::real) y \<le> x"
@@ -462,7 +462,7 @@ lemma
   "min x y = min y x"
   "x \<ge> 0 \<longrightarrow> min x 0 = 0"
   "min x y \<le> abs (x + y)"
-  by smt2+
+  by smt+
 
 lemma
   "max (x::real) y \<ge> x"
@@ -471,7 +471,7 @@ lemma
   "max x y = max y x"
   "x \<ge> 0 \<longrightarrow> max x 0 = x"
   "max x y \<ge> - abs x - abs y"
-  by smt2+
+  by smt+
 
 lemma
   "x \<le> (x::real)"
@@ -484,7 +484,7 @@ lemma
   "x \<le> y \<longrightarrow> y < z \<longrightarrow> x \<le> z"
   "x < y \<longrightarrow> y < z \<longrightarrow> x < z"
   "x < y \<and> y < z \<longrightarrow> \<not> (z < x)"
-  by smt2+
+  by smt+
 
 
 section {* Datatypes, Records, and Typedefs *}
@@ -507,7 +507,7 @@ lemma
   "(fst (x, y) = snd (x, y)) = (x = y)"
   "(fst p = snd p) = (p = (snd p, fst p))"
   using fst_conv snd_conv pair_collapse
-  by smt2+
+  by smt+
 
 lemma
   "[x] \<noteq> Nil"
@@ -520,13 +520,13 @@ lemma
   "hd (tl [x, y, z]) = y"
   "tl (tl [x, y, z]) = [z]"
   using list.sel(1,3) list.simps
-  by smt2+
+  by smt+
 
 lemma
   "fst (hd [(a, b)]) = a"
   "snd (hd [(a, b)]) = b"
   using fst_conv snd_conv pair_collapse list.sel(1,3) list.simps
-  by smt2+
+  by smt+
 
 
 subsubsection {* Records *}
@@ -544,7 +544,7 @@ lemma
   "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
   "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps
-  by smt2+
+  by smt+
 
 lemma
   "cx \<lparr> cx = 3, cy = 4 \<rparr> = 3"
@@ -555,7 +555,7 @@ lemma
   "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr> = p"
   using point.simps
-  by smt2+
+  by smt+
 
 lemma
   "cy (p \<lparr> cx := a \<rparr>) = cy p"
@@ -571,7 +571,7 @@ lemma
   "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps bw_point.simps
-  by smt2+
+  by smt+
 
 lemma
   "cx \<lparr> cx = 3, cy = 4, black = b \<rparr> = 3"
@@ -587,7 +587,7 @@ lemma
   "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
      p \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   using point.simps bw_point.simps
-  sorry (* smt2 FIXME: bad Z3 4.3.x proof *)
+  sorry (* smt FIXME: bad Z3 4.3.x proof *)
 
 lemma
   "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> cx = 3, cy = 4, black = w \<rparr>"
@@ -611,7 +611,7 @@ lemma
   "n0 \<noteq> n1"
   "plus' n1 n1 = n2"
   "plus' n0 n2 = n2"
-  by (smt2 n0_def n1_def n2_def plus'_def Abs_int'_inverse Rep_int'_inverse UNIV_I)+
+  by (smt n0_def n1_def n2_def plus'_def Abs_int'_inverse Rep_int'_inverse UNIV_I)+
 
 
 subsection {* With support by the SMT solver (but without proofs) *}
@@ -632,8 +632,8 @@ lemma
   "(fst (x, y) = snd (x, y)) = (x = y)"
   "(fst p = snd p) = (p = (snd p, fst p))"
   using fst_conv snd_conv pair_collapse
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  using [[smt_oracle, z3_extensions]]
+  by smt+
 
 lemma
   "[x] \<noteq> Nil"
@@ -646,15 +646,15 @@ lemma
   "hd (tl [x, y, z]) = y"
   "tl (tl [x, y, z]) = [z]"
   using list.sel(1,3)
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  using [[smt_oracle, z3_extensions]]
+  by smt+
 
 lemma
   "fst (hd [(a, b)]) = a"
   "snd (hd [(a, b)]) = b"
   using fst_conv snd_conv pair_collapse list.sel(1,3)
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  using [[smt_oracle, z3_extensions]]
+  by smt+
 
 
 subsubsection {* Records *}
@@ -665,8 +665,8 @@ lemma
   "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
   "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  using [[smt_oracle, z3_extensions]]
+  by smt+
 
 lemma
   "cx \<lparr> cx = 3, cy = 4 \<rparr> = 3"
@@ -677,16 +677,16 @@ lemma
   "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr> = p"
   using point.simps
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  using [[smt_oracle, z3_extensions]]
+  by smt+
 
 lemma
   "cy (p \<lparr> cx := a \<rparr>) = cy p"
   "cx (p \<lparr> cy := a \<rparr>) = cx p"
   "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
   using point.simps
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  using [[smt_oracle, z3_extensions]]
+  by smt+
 
 lemma
   "p1 = p2 \<longrightarrow> cx p1 = cx p2"
@@ -696,8 +696,8 @@ lemma
   "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps bw_point.simps
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  using [[smt_oracle, z3_extensions]]
+  by smt+
 
 lemma
   "cx \<lparr> cx = 3, cy = 4, black = b \<rparr> = 3"
@@ -713,8 +713,8 @@ lemma
   "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
      p \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   using point.simps bw_point.simps
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2+
+  using [[smt_oracle, z3_extensions]]
+  by smt+
 
 lemma
   "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> cx = 3, cy = 4, black = w \<rparr>"
@@ -726,8 +726,8 @@ lemma
   "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> =
      p \<lparr> black := True \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
   using point.simps bw_point.simps
-  using [[smt2_oracle, z3_new_extensions]]
-  by smt2
+  using [[smt_oracle, z3_extensions]]
+  by smt
 
 
 subsubsection {* Type definitions *}
@@ -736,8 +736,8 @@ lemma
   "n0 \<noteq> n1"
   "plus' n1 n1 = n2"
   "plus' n0 n2 = n2"
-  using [[smt2_oracle, z3_new_extensions]]
-  by (smt2 n0_def n1_def n2_def plus'_def)+
+  using [[smt_oracle, z3_extensions]]
+  by (smt n0_def n1_def n2_def plus'_def)+
 
 
 section {* Function updates *}
@@ -751,14 +751,14 @@ lemma
   "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
   "i1 \<noteq> i2 \<and>i1 \<noteq> i3 \<and>  i2 \<noteq> i3 \<longrightarrow> (f (i1 := v1, i2 := v2)) i3 = f i3"
   using fun_upd_same fun_upd_apply
-  by smt2+
+  by smt+
 
 
 section {* Sets *}
 
 lemma Empty: "x \<notin> {}" by simp
 
-lemmas smt2_sets = Empty UNIV_I Un_iff Int_iff
+lemmas smt_sets = Empty UNIV_I Un_iff Int_iff
 
 lemma
   "x \<notin> {}"
@@ -776,6 +776,6 @@ lemma
   "x \<in> P \<inter> P \<longleftrightarrow> x \<in> P"
   "x \<in> P \<inter> (Q \<inter> R) \<longleftrightarrow> x \<in> (P \<inter> Q) \<inter> R"
   "{x. x \<in> P} = {y. y \<in> P}"
-  by (smt2 smt2_sets)+
+  by (smt smt_sets)+
 
 end

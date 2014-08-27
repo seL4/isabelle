@@ -92,18 +92,18 @@ fun mk_store m k v =
 fun mk_quant q (Free (x, T)) t = q T $ absfree (x, T) t
   | mk_quant _ t _ = raise TERM ("bad variable", [t])
 
-val patternT = @{typ "SMT2.pattern"}
+val patternT = @{typ "SMT.pattern"}
 
 fun mk_pat t =
-  Const (@{const_name "SMT2.pat"}, Term.fastype_of t --> patternT) $ t
+  Const (@{const_name "SMT.pat"}, Term.fastype_of t --> patternT) $ t
 
 fun mk_pattern [] = raise TERM ("mk_pattern", [])
-  | mk_pattern ts = SMT2_Util.mk_symb_list patternT (map mk_pat ts)
+  | mk_pattern ts = SMT_Util.mk_symb_list patternT (map mk_pat ts)
 
 fun mk_trigger [] t = t
   | mk_trigger pss t =
-      @{term "SMT2.trigger"} $
-        SMT2_Util.mk_symb_list @{typ "SMT2.pattern SMT2.symb_list"} (map mk_pattern pss) $ t
+      @{term "SMT.trigger"} $
+        SMT_Util.mk_symb_list @{typ "SMT.pattern SMT.symb_list"} (map mk_pattern pss) $ t
 
 
 (* parser *)
@@ -247,7 +247,7 @@ val boogie_rules =
   [@{thm fun_upd_same}, @{thm fun_upd_apply}]
 
 fun boogie_tac ctxt axioms =
-  ALLGOALS (SMT2_Solver.smt2_tac ctxt (boogie_rules @ axioms))
+  ALLGOALS (SMT_Solver.smt_tac ctxt (boogie_rules @ axioms))
 
 fun boogie_prove thy lines =
   let

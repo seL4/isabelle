@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT2/verit_isar.ML
+(*  Title:      HOL/Tools/SMT/verit_isar.ML
     Author:     Mathias Fleury, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
@@ -20,7 +20,7 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
-open SMTLIB2_Isar
+open SMTLIB_Isar
 open VeriT_Proof
 
 fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids

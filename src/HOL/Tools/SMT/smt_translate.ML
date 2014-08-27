@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/smt2_translate.ML
+(*  Title:      HOL/Tools/SMT/smt_translate.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Translate theorems into an SMT intermediate format and serialize them.
 *)
 
-signature SMT2_TRANSLATE =
+signature SMT_TRANSLATE =
 sig
   (*intermediate term structure*)
   datatype squant = SForall | SExists
@@ -34,12 +34,12 @@ sig
     assms: (int * thm) list }
 
   (*translation*)
-  val add_config: SMT2_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
+  val add_config: SMT_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
   val translate: Proof.context -> (string * string) list -> string list -> (int * thm) list ->
     string * replay_data
 end;
 
-structure SMT2_Translate: SMT2_TRANSLATE =
+structure SMT_Translate: SMT_TRANSLATE =
 struct
 
 
@@ -139,12 +139,12 @@ fun replay_data_of ctxt ll_defs rules assms (_, typs, terms) =
 
 fun collect_datatypes_and_records (tr_context, ctxt) ts =
   let
-    val (declss, ctxt') = fold (Term.fold_types SMT2_Datatypes.add_decls) ts ([], ctxt)
+    val (declss, ctxt') = fold (Term.fold_types SMT_Datatypes.add_decls) ts ([], ctxt)
 
     fun is_decl_typ T = exists (exists (equal T o fst)) declss
 
     fun add_typ' T proper =
-      (case SMT2_Builtin.dest_builtin_typ ctxt' T of
+      (case SMT_Builtin.dest_builtin_typ ctxt' T of
         SOME n => pair n
       | NONE => add_typ T proper)
 
@@ -176,7 +176,7 @@ local
     in Abs (Name.uu, U, q $ eta I (Term.domain_type U) (Bound 0)) end
 
   fun expf k i T t =
-    let val Ts = drop i (fst (SMT2_Util.dest_funT k T))
+    let val Ts = drop i (fst (SMT_Util.dest_funT k T))
     in
       Term.incr_boundvars (length Ts) t
       |> fold_rev (fn i => fn u => u $ Bound i) (0 upto length Ts - 1)
@@ -207,7 +207,7 @@ fun eta_expand ctxt funcs =
       | expand t =
           (case Term.strip_comb t of
             (u as Const (c as (_, T)), ts) =>
-              (case SMT2_Builtin.dest_builtin ctxt c ts of
+              (case SMT_Builtin.dest_builtin ctxt c ts of
                 SOME (_, k, us, mk) =>
                   if k = length us then mk (map expand us)
                   else if k < length us then chop k (map expand us) |>> mk |> Term.list_comb
@@ -255,7 +255,7 @@ local
   fun apply i t T ts =
     let
       val (ts1, ts2) = chop i ts
-      val (_, U) = SMT2_Util.dest_funT i T
+      val (_, U) = SMT_Util.dest_funT i T
     in fst (fold app ts2 (Term.list_comb (t, ts1), U)) end
 in
 
@@ -268,7 +268,7 @@ fun intro_explicit_application ctxt funcs ts =
       if is_some (Termtab.lookup funcs t) then Term.list_comb (t, ts)
       else apply (the (Termtab.lookup arities' t)) t T ts
 
-    fun in_list T f t = SMT2_Util.mk_symb_list T (map f (SMT2_Util.dest_symb_list t))
+    fun in_list T f t = SMT_Util.mk_symb_list T (map f (SMT_Util.dest_symb_list t))
 
     fun traverse Ts t =
       (case Term.strip_comb t of
@@ -279,7 +279,7 @@ fun intro_explicit_application ctxt funcs ts =
       | (q as Const (@{const_name Let}, _), [u1, u2 as Abs _]) =>
           q $ traverse Ts u1 $ traverse Ts u2
       | (u as Const (c as (_, T)), ts) =>
-          (case SMT2_Builtin.dest_builtin ctxt c ts of
+          (case SMT_Builtin.dest_builtin ctxt c ts of
             SOME (_, k, us, mk) =>
               let
                 val (ts1, ts2) = chop k (map (traverse Ts) us)
@@ -321,13 +321,13 @@ local
     if pat then raise BAD_PATTERN () else @{const If (bool)} $ t $ @{const True} $ @{const False}
 
   fun is_builtin_conn_or_pred ctxt c ts =
-    is_some (SMT2_Builtin.dest_builtin_conn ctxt c ts) orelse
-    is_some (SMT2_Builtin.dest_builtin_pred ctxt c ts)
+    is_some (SMT_Builtin.dest_builtin_conn ctxt c ts) orelse
+    is_some (SMT_Builtin.dest_builtin_pred ctxt c ts)
 in
 
 fun folify ctxt =
   let
-    fun in_list T f t = SMT2_Util.mk_symb_list T (map_filter f (SMT2_Util.dest_symb_list t))
+    fun in_list T f t = SMT_Util.mk_symb_list T (map_filter f (SMT_Util.dest_symb_list t))
 
     fun in_term pat t =
       (case Term.strip_comb t of
@@ -360,10 +360,10 @@ fun folify ctxt =
           if is_quant qn then q $ Abs (n, T, in_trigger u)
           else in_term false t
       | (Const c, ts) =>
-          (case SMT2_Builtin.dest_builtin_conn ctxt c ts of
+          (case SMT_Builtin.dest_builtin_conn ctxt c ts of
             SOME (_, _, us, mk) => mk (map in_form us)
           | NONE =>
-              (case SMT2_Builtin.dest_builtin_pred ctxt c ts of
+              (case SMT_Builtin.dest_builtin_pred ctxt c ts of
                 SOME (_, _, us, mk) => mk (map (in_term false) us)
               | NONE => in_term false t))
       | _ => in_term false t)
@@ -400,7 +400,7 @@ fun dest_pats [] = I
       | _ => raise TERM ("bad multi-pattern", ts))
 
 fun dest_trigger (@{const trigger} $ tl $ t) =
-      (rev (fold (dest_pats o SMT2_Util.dest_symb_list) (SMT2_Util.dest_symb_list tl) []), t)
+      (rev (fold (dest_pats o SMT_Util.dest_symb_list) (SMT_Util.dest_symb_list tl) []), t)
   | dest_trigger t = ([], t)
 
 fun dest_quant qn T t = quantifier qn |> Option.map (fn q =>
@@ -420,7 +420,7 @@ fun intermediate logic dtyps builtin ctxt ts trx =
     fun transT (T as TFree _) = add_typ T true
       | transT (T as TVar _) = (fn _ => raise TYPE ("bad SMT type", [T], []))
       | transT (T as Type _) =
-          (case SMT2_Builtin.dest_builtin_typ ctxt T of
+          (case SMT_Builtin.dest_builtin_typ ctxt T of
             SOME n => pair n
           | NONE => add_typ T true)
 
@@ -445,7 +445,7 @@ fun intermediate logic dtyps builtin ctxt ts trx =
       | _ => raise TERM ("bad SMT term", [t]))
 
     and transs t T ts =
-      let val (Us, U) = SMT2_Util.dest_funT (length ts) T
+      let val (Us, U) = SMT_Util.dest_funT (length ts) T
       in
         fold_map transT Us ##>> transT U #-> (fn Up =>
           add_fun t (SOME Up) ##>> fold_map trans ts #>> SApp)
@@ -459,21 +459,21 @@ fun intermediate logic dtyps builtin ctxt ts trx =
 
 structure Configs = Generic_Data
 (
-  type T = (Proof.context -> config) SMT2_Util.dict
+  type T = (Proof.context -> config) SMT_Util.dict
   val empty = []
   val extend = I
-  fun merge data = SMT2_Util.dict_merge fst data
+  fun merge data = SMT_Util.dict_merge fst data
 )
 
-fun add_config (cs, cfg) = Configs.map (SMT2_Util.dict_update (cs, cfg))
+fun add_config (cs, cfg) = Configs.map (SMT_Util.dict_update (cs, cfg))
 
 fun get_config ctxt =
-  let val cs = SMT2_Config.solver_class_of ctxt
+  let val cs = SMT_Config.solver_class_of ctxt
   in
-    (case SMT2_Util.dict_get (Configs.get (Context.Proof ctxt)) cs of
+    (case SMT_Util.dict_get (Configs.get (Context.Proof ctxt)) cs of
       SOME cfg => cfg ctxt
     | NONE => error ("SMT: no translation configuration found " ^
-        "for solver class " ^ quote (SMT2_Util.string_of_class cs)))
+        "for solver class " ^ quote (SMT_Util.string_of_class cs)))
   end
 
 fun translate ctxt smt_options comments ithms =
@@ -483,7 +483,7 @@ fun translate ctxt smt_options comments ithms =
     fun no_dtyps (tr_context, ctxt) ts =
       ((Termtab.empty, [], tr_context, ctxt), ts)
 
-    val ts1 = map (Envir.beta_eta_contract o SMT2_Util.prop_of o snd) ithms
+    val ts1 = map (Envir.beta_eta_contract o SMT_Util.prop_of o snd) ithms
 
     val ((funcs, dtyps, tr_context, ctxt1), ts2) =
       ((empty_tr_context, ctxt), ts1)
@@ -497,8 +497,8 @@ fun translate ctxt smt_options comments ithms =
       | mk_trigger (eq as (Const (@{const_name HOL.eq}, T) $ lhs $ _)) =
           Term.domain_type T --> @{typ pattern}
           |> (fn T => Const (@{const_name pat}, T) $ lhs)
-          |> SMT2_Util.mk_symb_list @{typ pattern} o single
-          |> SMT2_Util.mk_symb_list @{typ "pattern symb_list"} o single
+          |> SMT_Util.mk_symb_list @{typ pattern} o single
+          |> SMT_Util.mk_symb_list @{typ "pattern symb_list"} o single
           |> (fn t => @{const trigger} $ t $ eq)
       | mk_trigger t = t
 
@@ -514,7 +514,7 @@ fun translate ctxt smt_options comments ithms =
       |>> apfst (cons fun_app_eq)
   in
     (ts4, tr_context)
-    |-> intermediate logic dtyps (builtin SMT2_Builtin.dest_builtin) ctxt2
+    |-> intermediate logic dtyps (builtin SMT_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize smt_options comments)
     ||> replay_data_of ctxt2 ll_defs rewrite_rules ithms
   end

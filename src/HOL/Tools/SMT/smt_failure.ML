@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/smt2_failure.ML
+(*  Title:      HOL/Tools/SMT/smt_failure.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Failures and exception of SMT.
 *)
 
-signature SMT2_FAILURE =
+signature SMT_FAILURE =
 sig
   datatype failure =
     Counterexample of bool |
@@ -16,7 +16,7 @@ sig
   exception SMT of failure
 end;
 
-structure SMT2_Failure: SMT2_FAILURE =
+structure SMT_Failure: SMT_FAILURE =
 struct
 
 datatype failure =

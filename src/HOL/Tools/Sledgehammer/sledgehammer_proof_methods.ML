@@ -12,7 +12,7 @@ sig
   datatype proof_method =
     Metis_Method of string option * string option |
     Meson_Method |
-    SMT2_Method |
+    SMT_Method |
     SATx_Method |
     Blast_Method |
     Simp_Method |
@@ -51,7 +51,7 @@ open ATP_Proof_Reconstruct
 datatype proof_method =
   Metis_Method of string option * string option |
   Meson_Method |
-  SMT2_Method |
+  SMT_Method |
   SATx_Method |
   Blast_Method |
   Simp_Method |
@@ -73,7 +73,7 @@ type one_line_params =
 
 fun is_proof_method_direct (Metis_Method _) = true
   | is_proof_method_direct Meson_Method = true
-  | is_proof_method_direct SMT2_Method = true
+  | is_proof_method_direct SMT_Method = true
   | is_proof_method_direct Simp_Method = true
   | is_proof_method_direct Simp_Size_Method = true
   | is_proof_method_direct _ = false
@@ -88,7 +88,7 @@ fun string_of_proof_method ctxt ss meth =
       | Metis_Method (type_enc_opt, lam_trans_opt) =>
         "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
       | Meson_Method => "meson"
-      | SMT2_Method => "smt2"
+      | SMT_Method => "smt"
       | SATx_Method => "satx"
       | Blast_Method => "blast"
       | Simp_Method => if null ss then "simp" else "simp add:"
@@ -114,9 +114,9 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
         (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
     end
   | Meson_Method => Meson_Tactic.meson_general_tac (silence_methods ctxt) global_facts
-  | SMT2_Method =>
-    let val ctxt = Config.put SMT2_Config.verbose false ctxt in
-      SMT2_Solver.smt2_tac ctxt global_facts
+  | SMT_Method =>
+    let val ctxt = Config.put SMT_Config.verbose false ctxt in
+      SMT_Solver.smt_tac ctxt global_facts
     end
   | Simp_Method => Simplifier.asm_full_simp_tac (silence_methods ctxt addsimps global_facts)
   | Simp_Size_Method =>

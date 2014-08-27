@@ -1,29 +1,29 @@
-(*  Title:      HOL/Tools/SMT2/z3_new_isar.ML
+(*  Title:      HOL/Tools/SMT/z3_isar.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
 Z3 proofs as generic ATP proofs for Isar proof reconstruction.
 *)
 
-signature Z3_NEW_ISAR =
+signature Z3_ISAR =
 sig
   val atp_proof_of_z3_proof: Proof.context -> term list -> thm list -> term list -> term ->
-    (string * term) list -> int list -> int -> (int * string) list -> Z3_New_Proof.z3_step list ->
+    (string * term) list -> int list -> int -> (int * string) list -> Z3_Proof.z3_step list ->
     (term, string) ATP_Proof.atp_step list
 end;
 
-structure Z3_New_Isar: Z3_NEW_ISAR =
+structure Z3_Isar: Z3_ISAR =
 struct
 
 open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
-open SMTLIB2_Isar
+open SMTLIB_Isar
 
-val z3_apply_def_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Apply_Def
-val z3_hypothesis_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Hypothesis
-val z3_intro_def_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Intro_Def
-val z3_lemma_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Lemma
+val z3_apply_def_rule = Z3_Proof.string_of_rule Z3_Proof.Apply_Def
+val z3_hypothesis_rule = Z3_Proof.string_of_rule Z3_Proof.Hypothesis
+val z3_intro_def_rule = Z3_Proof.string_of_rule Z3_Proof.Intro_Def
+val z3_lemma_rule = Z3_Proof.string_of_rule Z3_Proof.Lemma
 
 fun inline_z3_defs _ [] = []
   | inline_z3_defs defs ((name, role, t, rule, deps) :: lines) =
@@ -79,7 +79,7 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
   let
     val thy = Proof_Context.theory_of ctxt
 
-    fun steps_of (Z3_New_Proof.Z3_Step {id, rule, prems, concl, ...}) =
+    fun steps_of (Z3_Proof.Z3_Step {id, rule, prems, concl, ...}) =
       let
         val sid = string_of_int id
 
@@ -87,11 +87,11 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
           |> reorder_foralls (* crucial for skolemization steps *)
           |> postprocess_step_conclusion thy rewrite_rules ll_defs
         fun standard_step role =
-          ((sid, []), role, concl', Z3_New_Proof.string_of_rule rule,
+          ((sid, []), role, concl', Z3_Proof.string_of_rule rule,
            map (fn id => (string_of_int id, [])) prems)
       in
         (case rule of
-          Z3_New_Proof.Asserted =>
+          Z3_Proof.Asserted =>
           let val ss = the_list (AList.lookup (op =) fact_helper_ids id) in
             (case distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_helper_ts
                 hyp_ts concl_t of
@@ -102,15 +102,15 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
                 val concl0 = unskolemize_names concl00
               in
                 (if role0 = Axiom then []
-                 else [(name0, role0, concl0, Z3_New_Proof.string_of_rule rule, [])]) @
-                [((sid, []), Plain, concl', Z3_New_Proof.string_of_rule Z3_New_Proof.Rewrite,
+                 else [(name0, role0, concl0, Z3_Proof.string_of_rule rule, [])]) @
+                [((sid, []), Plain, concl', Z3_Proof.string_of_rule Z3_Proof.Rewrite,
                   name0 :: normalizing_prems ctxt concl0)]
               end)
           end
-        | Z3_New_Proof.Rewrite => [standard_step Lemma]
-        | Z3_New_Proof.Rewrite_Star => [standard_step Lemma]
-        | Z3_New_Proof.Skolemize => [standard_step Lemma]
-        | Z3_New_Proof.Th_Lemma _ => [standard_step Lemma]
+        | Z3_Proof.Rewrite => [standard_step Lemma]
+        | Z3_Proof.Rewrite_Star => [standard_step Lemma]
+        | Z3_Proof.Skolemize => [standard_step Lemma]
+        | Z3_Proof.Th_Lemma _ => [standard_step Lemma]
         | _ => [standard_step Plain])
       end
   in

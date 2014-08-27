@@ -41,22 +41,22 @@ open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
-open Sledgehammer_Prover_SMT2
+open Sledgehammer_Prover_SMT
 
 fun is_prover_supported ctxt =
   let val thy = Proof_Context.theory_of ctxt in
-    is_atp thy orf is_smt2_prover ctxt
+    is_atp thy orf is_smt_prover ctxt
   end
 
 fun is_prover_installed ctxt =
-  is_smt2_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
+  is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
 
 fun default_max_facts_of_prover ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp thy name then
       fold (Integer.max o fst o #1 o fst o snd) (#best_slices (get_atp thy name ()) ctxt) 0
-    else if is_smt2_prover ctxt name then
-      SMT2_Solver.default_max_relevant ctxt name
+    else if is_smt_prover ctxt name then
+      SMT_Solver.default_max_relevant ctxt name
     else
       error ("No such prover: " ^ name ^ ".")
   end
@@ -64,7 +64,7 @@ fun default_max_facts_of_prover ctxt name =
 fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp thy name then run_atp mode name
-    else if is_smt2_prover ctxt name then run_smt2_solver mode name
+    else if is_smt_prover ctxt name then run_smt_solver mode name
     else error ("No such prover: " ^ name ^ ".")
   end
 

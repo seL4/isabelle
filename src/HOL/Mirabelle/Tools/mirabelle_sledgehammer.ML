@@ -359,7 +359,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         Config.put Sledgehammer_Prover_ATP.atp_dest_dir dir
         #> Config.put Sledgehammer_Prover_ATP.atp_problem_prefix
           ("prob_" ^ str0 (Position.line_of pos) ^ "__")
-        #> Config.put SMT2_Config.debug_files
+        #> Config.put SMT_Config.debug_files
           (dir ^ "/" ^ Name.desymbolize (SOME false) (ATP_Util.timestamp ()) ^ "_"
           ^ serial_string ())
       | set_file_name NONE = I
@@ -541,9 +541,9 @@ fun run_proof_method trivial full name meth named_thms id
           ORELSE' sledge_tac 0.2 ATP_Proof.eN "poly_guards??"
           ORELSE' sledge_tac 0.2 ATP_Proof.spassN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Proof.z3_tptpN "poly_tags??"
-          ORELSE' SMT2_Solver.smt2_tac ctxt thms
+          ORELSE' SMT_Solver.smt_tac ctxt thms
         else if !meth = "smt" then
-          SMT2_Solver.smt2_tac ctxt thms
+          SMT_Solver.smt_tac ctxt thms
         else if full then
           Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
             ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms

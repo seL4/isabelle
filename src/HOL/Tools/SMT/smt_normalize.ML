@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/smt2_normalize.ML
+(*  Title:      HOL/Tools/SMT/smt_normalize.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Normalization steps on theorems required by SMT solvers.
 *)
 
-signature SMT2_NORMALIZE =
+signature SMT_NORMALIZE =
 sig
   val drop_fact_warning: Proof.context -> thm -> unit
   val atomize_conv: Proof.context -> conv
@@ -14,15 +14,15 @@ sig
   val abs_min_max_table: (string * thm) list
 
   type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
-  val add_extra_norm: SMT2_Util.class * extra_norm -> Context.generic -> Context.generic
+  val add_extra_norm: SMT_Util.class * extra_norm -> Context.generic -> Context.generic
   val normalize: Proof.context -> thm list -> (int * thm) list
 end;
 
-structure SMT2_Normalize: SMT2_NORMALIZE =
+structure SMT_Normalize: SMT_NORMALIZE =
 struct
 
 fun drop_fact_warning ctxt =
-  SMT2_Config.verbose_msg ctxt (prefix "Warning: dropping assumption: " o
+  SMT_Config.verbose_msg ctxt (prefix "Warning: dropping assumption: " o
     Display.string_of_thm ctxt)
 
 
@@ -31,7 +31,7 @@ fun drop_fact_warning ctxt =
 (** instantiate elimination rules **)
 
 local
-  val (cpfalse, cfalse) = `SMT2_Util.mk_cprop (Thm.cterm_of @{theory} @{const False})
+  val (cpfalse, cfalse) = `SMT_Util.mk_cprop (Thm.cterm_of @{theory} @{const False})
 
   fun inst f ct thm =
     let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))
@@ -70,7 +70,7 @@ fun atomize_conv ctxt ct =
   | _ => Conv.all_conv) ct
 
 val setup_atomize =
-  fold SMT2_Builtin.add_builtin_fun_ext'' [@{const_name Pure.imp}, @{const_name Pure.eq},
+  fold SMT_Builtin.add_builtin_fun_ext'' [@{const_name Pure.imp}, @{const_name Pure.eq},
     @{const_name Pure.all}, @{const_name Trueprop}]
 
 
@@ -92,9 +92,9 @@ local
 in
 
 fun unfold_special_quants_conv ctxt =
-  SMT2_Util.if_exists_conv (is_some o special_quant) (Conv.top_conv special_quant_conv ctxt)
+  SMT_Util.if_exists_conv (is_some o special_quant) (Conv.top_conv special_quant_conv ctxt)
 
-val setup_unfolded_quants = fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) special_quant_table
+val setup_unfolded_quants = fold (SMT_Builtin.add_builtin_fun_ext'' o fst) special_quant_table
 
 end
 
@@ -113,8 +113,8 @@ local
 
   fun proper_trigger t =
     t
-    |> these o try SMT2_Util.dest_symb_list
-    |> map (map_filter dest_trigger o these o try SMT2_Util.dest_symb_list)
+    |> these o try SMT_Util.dest_symb_list
+    |> map (map_filter dest_trigger o these o try SMT_Util.dest_symb_list)
     |> (fn [] => false | bss => forall eq_list bss)
 
   fun proper_quant inside f t =
@@ -132,7 +132,7 @@ local
       "must have the same kind: " ^ Syntax.string_of_term ctxt t)
 
   fun check_trigger_conv ctxt ct =
-    if proper_quant false proper_trigger (SMT2_Util.term_of ct) then Conv.all_conv ct
+    if proper_quant false proper_trigger (SMT_Util.term_of ct) then Conv.all_conv ct
     else check_trigger_error ctxt (Thm.term_of ct)
 
 
@@ -160,7 +160,7 @@ local
   fun is_simp_lhs ctxt t =
     (case Term.strip_comb t of
       (Const c, ts as _ :: _) =>
-        not (SMT2_Builtin.is_builtin_fun_ext ctxt c ts) andalso
+        not (SMT_Builtin.is_builtin_fun_ext ctxt c ts) andalso
         forall (is_constr_pat (Proof_Context.theory_of ctxt)) ts
     | _ => false)
 
@@ -185,11 +185,11 @@ local
             Pattern.matches thy (t', u) andalso not (t aconv u))
         in not (Term.exists_subterm some_match u) end
 
-  val pat = SMT2_Util.mk_const_pat @{theory} @{const_name pat} SMT2_Util.destT1
-  fun mk_pat ct = Thm.apply (SMT2_Util.instT' ct pat) ct
+  val pat = SMT_Util.mk_const_pat @{theory} @{const_name pat} SMT_Util.destT1
+  fun mk_pat ct = Thm.apply (SMT_Util.instT' ct pat) ct
 
   fun mk_clist T =
-    pairself (Thm.cterm_of @{theory}) (SMT2_Util.symb_cons_const T, SMT2_Util.symb_nil_const T)
+    pairself (Thm.cterm_of @{theory}) (SMT_Util.symb_cons_const T, SMT_Util.symb_nil_const T)
   fun mk_list (ccons, cnil) f cts = fold_rev (Thm.mk_binop ccons o f) cts cnil
   val mk_pat_list = mk_list (mk_clist @{typ pattern})
   val mk_mpat_list = mk_list (mk_clist @{typ "pattern symb_list"})
@@ -221,20 +221,20 @@ local
     | has_trigger _ = false
 
   fun try_trigger_conv cv ct =
-    if SMT2_Util.under_quant has_trigger (SMT2_Util.term_of ct) then Conv.all_conv ct
+    if SMT_Util.under_quant has_trigger (SMT_Util.term_of ct) then Conv.all_conv ct
     else Conv.try_conv cv ct
 
   fun infer_trigger_conv ctxt =
-    if Config.get ctxt SMT2_Config.infer_triggers then
-      try_trigger_conv (SMT2_Util.under_quant_conv (infer_trigger_eq_conv ctxt) ctxt)
+    if Config.get ctxt SMT_Config.infer_triggers then
+      try_trigger_conv (SMT_Util.under_quant_conv (infer_trigger_eq_conv ctxt) ctxt)
     else Conv.all_conv
 in
 
 fun trigger_conv ctxt =
-  SMT2_Util.prop_conv (check_trigger_conv ctxt then_conv infer_trigger_conv ctxt)
+  SMT_Util.prop_conv (check_trigger_conv ctxt then_conv infer_trigger_conv ctxt)
 
 val setup_trigger =
-  fold SMT2_Builtin.add_builtin_fun_ext''
+  fold SMT_Builtin.add_builtin_fun_ext''
     [@{const_name pat}, @{const_name nopat}, @{const_name trigger}]
 
 end
@@ -284,14 +284,14 @@ local
     | is_case_bool _ = false
 
   fun unfold_conv _ =
-    SMT2_Util.if_true_conv (is_case_bool o Term.head_of)
+    SMT_Util.if_true_conv (is_case_bool o Term.head_of)
       (expand_head_conv (Conv.rewr_conv @{thm case_bool_if}))
 in
 
 fun rewrite_case_bool_conv ctxt =
-  SMT2_Util.if_exists_conv is_case_bool (Conv.top_conv unfold_conv ctxt)
+  SMT_Util.if_exists_conv is_case_bool (Conv.top_conv unfold_conv ctxt)
 
-val setup_case_bool = SMT2_Builtin.add_builtin_fun_ext'' @{const_name "bool.case_bool"}
+val setup_case_bool = SMT_Builtin.add_builtin_fun_ext'' @{const_name "bool.case_bool"}
 
 end
 
@@ -307,7 +307,7 @@ local
   fun abs_min_max ctxt (Const (n, Type (@{type_name fun}, [T, _]))) =
         (case AList.lookup (op =) abs_min_max_table n of
           NONE => NONE
-        | SOME thm => if SMT2_Builtin.is_builtin_typ_ext ctxt T then SOME thm else NONE)
+        | SOME thm => if SMT_Builtin.is_builtin_typ_ext ctxt T then SOME thm else NONE)
     | abs_min_max _ _ = NONE
 
   fun unfold_amm_conv ctxt ct =
@@ -317,9 +317,9 @@ local
 in
 
 fun unfold_abs_min_max_conv ctxt =
-  SMT2_Util.if_exists_conv (is_some o abs_min_max ctxt) (Conv.top_conv unfold_amm_conv ctxt)
+  SMT_Util.if_exists_conv (is_some o abs_min_max ctxt) (Conv.top_conv unfold_amm_conv ctxt)
 
-val setup_abs_min_max = fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) abs_min_max_table
+val setup_abs_min_max = fold (SMT_Builtin.add_builtin_fun_ext'' o fst) abs_min_max_table
 
 end
 
@@ -338,18 +338,18 @@ local
         true
     | is_irregular_number _ = false
 
-  fun is_strange_number ctxt t = is_irregular_number t andalso SMT2_Builtin.is_builtin_num ctxt t
+  fun is_strange_number ctxt t = is_irregular_number t andalso SMT_Builtin.is_builtin_num ctxt t
 
   val proper_num_ss =
     simpset_of (put_simpset HOL_ss @{context} addsimps @{thms Num.numeral_One minus_zero})
 
   fun norm_num_conv ctxt =
-    SMT2_Util.if_conv (is_strange_number ctxt) (Simplifier.rewrite (put_simpset proper_num_ss ctxt))
+    SMT_Util.if_conv (is_strange_number ctxt) (Simplifier.rewrite (put_simpset proper_num_ss ctxt))
       Conv.no_conv
 in
 
 fun normalize_numerals_conv ctxt =
-  SMT2_Util.if_exists_conv (is_strange_number ctxt) (Conv.top_sweep_conv norm_num_conv ctxt)
+  SMT_Util.if_exists_conv (is_strange_number ctxt) (Conv.top_sweep_conv norm_num_conv ctxt)
 
 end
 
@@ -377,18 +377,18 @@ type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
 
 structure Extra_Norms = Generic_Data
 (
-  type T = extra_norm SMT2_Util.dict
+  type T = extra_norm SMT_Util.dict
   val empty = []
   val extend = I
-  fun merge data = SMT2_Util.dict_merge fst data
+  fun merge data = SMT_Util.dict_merge fst data
 )
 
-fun add_extra_norm (cs, norm) = Extra_Norms.map (SMT2_Util.dict_update (cs, norm))
+fun add_extra_norm (cs, norm) = Extra_Norms.map (SMT_Util.dict_update (cs, norm))
 
 fun apply_extra_norms ctxt ithms =
   let
-    val cs = SMT2_Config.solver_class_of ctxt
-    val es = SMT2_Util.dict_lookup (Extra_Norms.get (Context.Proof ctxt)) cs
+    val cs = SMT_Config.solver_class_of ctxt
+    val es = SMT_Util.dict_lookup (Extra_Norms.get (Context.Proof ctxt)) cs
   in burrow_ids (fold (fn e => e ctxt) es o rpair []) ithms end
 
 local
@@ -404,7 +404,7 @@ local
             if not (ignored n) then Monomorph.add_schematic_consts_of t else I
         | collect _ = I
       and collect_trigger t =
-        let val dest = these o try SMT2_Util.dest_symb_list
+        let val dest = these o try SMT_Util.dest_symb_list
         in fold (fold collect_pat o dest) (dest t) end
       and collect_pat (Const (@{const_name pat}, _) $ t) = collect t
         | collect_pat (Const (@{const_name nopat}, _) $ t) = collect t

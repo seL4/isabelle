@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/smtlib2.ML
+(*  Title:      HOL/Tools/SMT/smtlib.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Parsing and generating SMT-LIB 2.
 *)
 
-signature SMTLIB2 =
+signature SMTLIB =
 sig
   exception PARSE of int * string
   datatype tree = 
@@ -19,7 +19,7 @@ sig
   val str_of: tree -> string
 end;
 
-structure SMTLIB2: SMTLIB2 =
+structure SMTLIB: SMTLIB =
 struct
 
 (* data structures *)

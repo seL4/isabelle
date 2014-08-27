@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/smt2_real.ML
+(*  Title:      HOL/Tools/SMT/smt_real.ML
     Author:     Sascha Boehme, TU Muenchen
 
 SMT setup for reals.
 *)
 
-structure SMT2_Real: sig end =
+structure SMT_Real: sig end =
 struct
 
 
@@ -21,8 +21,8 @@ fun smtlib_logic ts =
 local
   fun real_num _ i = SOME (string_of_int i ^ ".0")
 
-  fun is_linear [t] = SMT2_Util.is_number t
-    | is_linear [t, u] = SMT2_Util.is_number t orelse SMT2_Util.is_number u
+  fun is_linear [t] = SMT_Util.is_number t
+    | is_linear [t, u] = SMT_Util.is_number t orelse SMT_Util.is_number u
     | is_linear _ = false
 
   fun mk_times ts = Term.list_comb (@{const times (real)}, ts)
@@ -31,19 +31,19 @@ local
 in
 
 val setup_builtins =
-  SMT2_Builtin.add_builtin_typ SMTLIB2_Interface.smtlib2C
+  SMT_Builtin.add_builtin_typ SMTLIB_Interface.smtlibC
     (@{typ real}, K (SOME "Real"), real_num) #>
-  fold (SMT2_Builtin.add_builtin_fun' SMTLIB2_Interface.smtlib2C) [
+  fold (SMT_Builtin.add_builtin_fun' SMTLIB_Interface.smtlibC) [
     (@{const less (real)}, "<"),
     (@{const less_eq (real)}, "<="),
     (@{const uminus (real)}, "-"),
     (@{const plus (real)}, "+"),
     (@{const minus (real)}, "-") ] #>
-  SMT2_Builtin.add_builtin_fun SMTLIB2_Interface.smtlib2C
+  SMT_Builtin.add_builtin_fun SMTLIB_Interface.smtlibC
     (Term.dest_Const @{const times (real)}, times) #>
-  SMT2_Builtin.add_builtin_fun' Z3_New_Interface.smtlib2_z3C
+  SMT_Builtin.add_builtin_fun' Z3_Interface.smtlib_z3C
     (@{const times (real)}, "*") #>
-  SMT2_Builtin.add_builtin_fun' Z3_New_Interface.smtlib2_z3C
+  SMT_Builtin.add_builtin_fun' Z3_Interface.smtlib_z3C
     (@{const divide (real)}, "/")
 
 end
@@ -52,8 +52,8 @@ end
 (* Z3 constructors *)
 
 local
-  fun z3_mk_builtin_typ (Z3_New_Interface.Sym ("Real", _)) = SOME @{typ real}
-    | z3_mk_builtin_typ (Z3_New_Interface.Sym ("real", _)) = SOME @{typ real}
+  fun z3_mk_builtin_typ (Z3_Interface.Sym ("Real", _)) = SOME @{typ real}
+    | z3_mk_builtin_typ (Z3_Interface.Sym ("real", _)) = SOME @{typ real}
         (*FIXME: delete*)
     | z3_mk_builtin_typ _ = NONE
 
@@ -73,23 +73,15 @@ local
   val mk_lt = Thm.mk_binop (Thm.cterm_of @{theory} @{const less (real)})
   val mk_le = Thm.mk_binop (Thm.cterm_of @{theory} @{const less_eq (real)})
 
-  fun z3_mk_builtin_fun (Z3_New_Interface.Sym ("-", _)) [ct] = SOME (mk_uminus ct)
-    | z3_mk_builtin_fun (Z3_New_Interface.Sym ("+", _)) cts =
-        SOME (mk_nary add real0 cts)
-    | z3_mk_builtin_fun (Z3_New_Interface.Sym ("-", _)) [ct, cu] =
-        SOME (mk_sub ct cu)
-    | z3_mk_builtin_fun (Z3_New_Interface.Sym ("*", _)) [ct, cu] =
-        SOME (mk_mul ct cu)
-    | z3_mk_builtin_fun (Z3_New_Interface.Sym ("/", _)) [ct, cu] =
-        SOME (mk_div ct cu)
-    | z3_mk_builtin_fun (Z3_New_Interface.Sym ("<", _)) [ct, cu] =
-        SOME (mk_lt ct cu)
-    | z3_mk_builtin_fun (Z3_New_Interface.Sym ("<=", _)) [ct, cu] =
-        SOME (mk_le ct cu)
-    | z3_mk_builtin_fun (Z3_New_Interface.Sym (">", _)) [ct, cu] =
-        SOME (mk_lt cu ct)
-    | z3_mk_builtin_fun (Z3_New_Interface.Sym (">=", _)) [ct, cu] =
-        SOME (mk_le cu ct)
+  fun z3_mk_builtin_fun (Z3_Interface.Sym ("-", _)) [ct] = SOME (mk_uminus ct)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("+", _)) cts = SOME (mk_nary add real0 cts)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("-", _)) [ct, cu] = SOME (mk_sub ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("*", _)) [ct, cu] = SOME (mk_mul ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("/", _)) [ct, cu] = SOME (mk_div ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("<", _)) [ct, cu] = SOME (mk_lt ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("<=", _)) [ct, cu] = SOME (mk_le ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym (">", _)) [ct, cu] = SOME (mk_lt cu ct)
+    | z3_mk_builtin_fun (Z3_Interface.Sym (">=", _)) [ct, cu] = SOME (mk_le cu ct)
     | z3_mk_builtin_fun _ _ = NONE
 in
 
@@ -113,9 +105,9 @@ val real_linarith_proc = Simplifier.simproc_global @{theory} "fast_real_arith" [
 (* setup *)
 
 val _ = Theory.setup (Context.theory_map (
-  SMTLIB2_Interface.add_logic (10, smtlib_logic) #>
+  SMTLIB_Interface.add_logic (10, smtlib_logic) #>
   setup_builtins #>
-  Z3_New_Interface.add_mk_builtins z3_mk_builtins #>
-  Z3_New_Replay_Util.add_simproc real_linarith_proc))
+  Z3_Interface.add_mk_builtins z3_mk_builtins #>
+  Z3_Replay_Util.add_simproc real_linarith_proc))
 
 end;

@@ -1,23 +1,23 @@
-(*  Title:      HOL/Tools/SMT2/smtlib2_interface.ML
+(*  Title:      HOL/Tools/SMT/smtlib_interface.ML
     Author:     Sascha Boehme, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Interface to SMT solvers based on the SMT-LIB 2 format.
 *)
 
-signature SMTLIB2_INTERFACE =
+signature SMTLIB_INTERFACE =
 sig
-  val smtlib2C: SMT2_Util.class
+  val smtlibC: SMT_Util.class
   val add_logic: int * (term list -> string option) -> Context.generic -> Context.generic
-  val translate_config: Proof.context -> SMT2_Translate.config
+  val translate_config: Proof.context -> SMT_Translate.config
   val assert_index_of_name: string -> int
   val assert_prefix : string
 end;
 
-structure SMTLIB2_Interface: SMTLIB2_INTERFACE =
+structure SMTLIB_Interface: SMTLIB_INTERFACE =
 struct
 
-val smtlib2C = ["smtlib2"]
+val smtlibC = ["smtlib"]
 
 
 (* builtins *)
@@ -25,8 +25,8 @@ val smtlib2C = ["smtlib2"]
 local
   fun int_num _ i = SOME (string_of_int i)
 
-  fun is_linear [t] = SMT2_Util.is_number t
-    | is_linear [t, u] = SMT2_Util.is_number t orelse SMT2_Util.is_number u
+  fun is_linear [t] = SMT_Util.is_number t
+    | is_linear [t, u] = SMT_Util.is_number t orelse SMT_Util.is_number u
     | is_linear _ = false
 
   fun times _ _ ts =
@@ -35,10 +35,10 @@ local
 in
 
 val setup_builtins =
-  fold (SMT2_Builtin.add_builtin_typ smtlib2C) [
+  fold (SMT_Builtin.add_builtin_typ smtlibC) [
     (@{typ bool}, K (SOME "Bool"), K (K NONE)),
     (@{typ int}, K (SOME "Int"), int_num)] #>
-  fold (SMT2_Builtin.add_builtin_fun' smtlib2C) [
+  fold (SMT_Builtin.add_builtin_fun' smtlibC) [
     (@{const True}, "true"),
     (@{const False}, "false"),
     (@{const Not}, "not"),
@@ -52,7 +52,7 @@ val setup_builtins =
     (@{const uminus (int)}, "-"),
     (@{const plus (int)}, "+"),
     (@{const minus (int)}, "-")] #>
-  SMT2_Builtin.add_builtin_fun smtlib2C
+  SMT_Builtin.add_builtin_fun smtlibC
     (Term.dest_Const @{const times (int)}, times)
 
 end
@@ -89,34 +89,34 @@ fun choose_logic ctxt ts =
 
 fun var i = "?v" ^ string_of_int i
 
-fun tree_of_sterm l (SMT2_Translate.SVar i) = SMTLIB2.Sym (var (l - i - 1))
-  | tree_of_sterm _ (SMT2_Translate.SApp (n, [])) = SMTLIB2.Sym n
-  | tree_of_sterm l (SMT2_Translate.SApp (n, ts)) =
-      SMTLIB2.S (SMTLIB2.Sym n :: map (tree_of_sterm l) ts)
-  | tree_of_sterm _ (SMT2_Translate.SLet _) =
+fun tree_of_sterm l (SMT_Translate.SVar i) = SMTLIB.Sym (var (l - i - 1))
+  | tree_of_sterm _ (SMT_Translate.SApp (n, [])) = SMTLIB.Sym n
+  | tree_of_sterm l (SMT_Translate.SApp (n, ts)) =
+      SMTLIB.S (SMTLIB.Sym n :: map (tree_of_sterm l) ts)
+  | tree_of_sterm _ (SMT_Translate.SLet _) =
       raise Fail "SMT-LIB: unsupported let expression"
-  | tree_of_sterm l (SMT2_Translate.SQua (q, ss, pats, t)) =
+  | tree_of_sterm l (SMT_Translate.SQua (q, ss, pats, t)) =
       let
         val l' = l + length ss
 
-        fun quant_name SMT2_Translate.SForall = "forall"
-          | quant_name SMT2_Translate.SExists = "exists"
+        fun quant_name SMT_Translate.SForall = "forall"
+          | quant_name SMT_Translate.SExists = "exists"
 
         fun gen_trees_of_pat keyword ps =
-          [SMTLIB2.Key keyword, (case map (tree_of_sterm l') ps of [t] => t | ts => SMTLIB2.S ts)]
-        fun trees_of_pat (SMT2_Translate.SPat ps) = gen_trees_of_pat "pattern" ps
-          | trees_of_pat (SMT2_Translate.SNoPat ps) = gen_trees_of_pat "no-pattern" ps
+          [SMTLIB.Key keyword, (case map (tree_of_sterm l') ps of [t] => t | ts => SMTLIB.S ts)]
+        fun trees_of_pat (SMT_Translate.SPat ps) = gen_trees_of_pat "pattern" ps
+          | trees_of_pat (SMT_Translate.SNoPat ps) = gen_trees_of_pat "no-pattern" ps
         fun tree_of_pats [] t = t
-          | tree_of_pats pats t = SMTLIB2.S (SMTLIB2.Sym "!" :: t :: maps trees_of_pat pats)
+          | tree_of_pats pats t = SMTLIB.S (SMTLIB.Sym "!" :: t :: maps trees_of_pat pats)
 
         val vs = map_index (fn (i, ty) =>
-          SMTLIB2.S [SMTLIB2.Sym (var (l + i)), SMTLIB2.Sym ty]) ss
+          SMTLIB.S [SMTLIB.Sym (var (l + i)), SMTLIB.Sym ty]) ss
 
         val body = t
           |> tree_of_sterm l'
           |> tree_of_pats pats
       in
-        SMTLIB2.S [SMTLIB2.Sym (quant_name q), SMTLIB2.S vs, body]
+        SMTLIB.S [SMTLIB.Sym (quant_name q), SMTLIB.S vs, body]
       end
 
 
@@ -126,7 +126,7 @@ fun sdatatype (name, ctrs) = enclose "(" ")" (space_implode " " (name :: map sct
 
 fun string_of_fun (f, (ss, s)) = f ^ " (" ^ space_implode " " ss ^ ") " ^ s
 
-fun named_sterm s t = SMTLIB2.S [SMTLIB2.Sym "!", t, SMTLIB2.Key "named", SMTLIB2.Sym s]
+fun named_sterm s t = SMTLIB.S [SMTLIB.Sym "!", t, SMTLIB.Key "named", SMTLIB.Sym s]
 
 val assert_prefix = "a"
 
@@ -143,10 +143,9 @@ fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
     else Buffer.add (enclose "(declare-datatypes () (" "))\n"
       (space_implode "\n  " (maps (map sdatatype) dtyps))))
   |> fold (Buffer.add o enclose "(declare-fun " ")\n" o string_of_fun)
-       (sort (fast_string_ord o pairself fst) funcs)
+      (sort (fast_string_ord o pairself fst) funcs)
   |> fold (fn (i, t) => Buffer.add (enclose "(assert " ")\n"
-      (SMTLIB2.str_of (named_sterm (assert_name_of_index i) (tree_of_sterm 0 t)))))
-    (map_index I ts)
+      (SMTLIB.str_of (named_sterm (assert_name_of_index i) (tree_of_sterm 0 t))))) (map_index I ts)
   |> Buffer.add "(check-sat)\n(get-proof)\n"
   |> Buffer.content
 
@@ -159,6 +158,6 @@ fun translate_config ctxt = {
 
 val _ = Theory.setup (Context.theory_map
   (setup_builtins #>
-   SMT2_Translate.add_config (smtlib2C, translate_config)))
+   SMT_Translate.add_config (smtlibC, translate_config)))
 
 end;

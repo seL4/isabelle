@@ -1,12 +1,12 @@
-(*  Title:      HOL/Tools/SMT2/z3_new_interface.ML
+(*  Title:      HOL/Tools/SMT/z3_interface.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Interface to Z3 based on a relaxed version of SMT-LIB.
 *)
 
-signature Z3_NEW_INTERFACE =
+signature Z3_INTERFACE =
 sig
-  val smtlib2_z3C: SMT2_Util.class
+  val smtlib_z3C: SMT_Util.class
 
   datatype sym = Sym of string * sym list
   type mk_builtins = {
@@ -21,10 +21,10 @@ sig
   val is_builtin_theory_term: Proof.context -> term -> bool
 end;
 
-structure Z3_New_Interface: Z3_NEW_INTERFACE =
+structure Z3_Interface: Z3_INTERFACE =
 struct
 
-val smtlib2_z3C = SMTLIB2_Interface.smtlib2C @ ["z3"]
+val smtlib_z3C = SMTLIB_Interface.smtlibC @ ["z3"]
 
 
 (* interface *)
@@ -32,7 +32,7 @@ val smtlib2_z3C = SMTLIB2_Interface.smtlib2C @ ["z3"]
 local
   fun translate_config ctxt =
     {logic = K "", has_datatypes = true,
-     serialize = #serialize (SMTLIB2_Interface.translate_config ctxt)}
+     serialize = #serialize (SMTLIB_Interface.translate_config ctxt)}
 
   fun is_div_mod @{const div (int)} = true
     | is_div_mod @{const mod (int)} = true
@@ -46,15 +46,15 @@ local
     else (thms, extra_thms)
 
   val setup_builtins =
-    SMT2_Builtin.add_builtin_fun' smtlib2_z3C (@{const times (int)}, "*") #>
-    SMT2_Builtin.add_builtin_fun' smtlib2_z3C (@{const z3div}, "div") #>
-    SMT2_Builtin.add_builtin_fun' smtlib2_z3C (@{const z3mod}, "mod")
+    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const times (int)}, "*") #>
+    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const z3div}, "div") #>
+    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const z3mod}, "mod")
 in
 
 val _ = Theory.setup (Context.theory_map (
   setup_builtins #>
-  SMT2_Normalize.add_extra_norm (smtlib2_z3C, add_div_mod) #>
-  SMT2_Translate.add_config (smtlib2_z3C, translate_config)))
+  SMT_Normalize.add_extra_norm (smtlib_z3C, add_div_mod) #>
+  SMT_Translate.add_config (smtlib_z3C, translate_config)))
 
 end
 
@@ -123,21 +123,21 @@ val disj = Thm.cterm_of @{theory} @{const HOL.disj}
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-val eq = SMT2_Util.mk_const_pat @{theory} @{const_name HOL.eq} SMT2_Util.destT1
-fun mk_eq ct cu = Thm.mk_binop (SMT2_Util.instT' ct eq) ct cu
+val eq = SMT_Util.mk_const_pat @{theory} @{const_name HOL.eq} SMT_Util.destT1
+fun mk_eq ct cu = Thm.mk_binop (SMT_Util.instT' ct eq) ct cu
 
 val if_term =
-  SMT2_Util.mk_const_pat @{theory} @{const_name If} (SMT2_Util.destT1 o SMT2_Util.destT2)
-fun mk_if cc ct = Thm.mk_binop (Thm.apply (SMT2_Util.instT' ct if_term) cc) ct
+  SMT_Util.mk_const_pat @{theory} @{const_name If} (SMT_Util.destT1 o SMT_Util.destT2)
+fun mk_if cc ct = Thm.mk_binop (Thm.apply (SMT_Util.instT' ct if_term) cc) ct
 
-val access = SMT2_Util.mk_const_pat @{theory} @{const_name fun_app} SMT2_Util.destT1
-fun mk_access array = Thm.apply (SMT2_Util.instT' array access) array
+val access = SMT_Util.mk_const_pat @{theory} @{const_name fun_app} SMT_Util.destT1
+fun mk_access array = Thm.apply (SMT_Util.instT' array access) array
 
 val update =
-  SMT2_Util.mk_const_pat @{theory} @{const_name fun_upd} (Thm.dest_ctyp o SMT2_Util.destT1)
+  SMT_Util.mk_const_pat @{theory} @{const_name fun_upd} (Thm.dest_ctyp o SMT_Util.destT1)
 fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
-  in Thm.apply (Thm.mk_binop (SMT2_Util.instTs cTs update) array index) value end
+  in Thm.apply (Thm.mk_binop (SMT_Util.instTs cTs update) array index) value end
 
 val mk_uminus = Thm.apply (Thm.cterm_of @{theory} @{const uminus (int)})
 val add = Thm.cterm_of @{theory} @{const plus (int)}
@@ -183,10 +183,10 @@ fun mk_builtin_fun ctxt sym cts =
 (* abstraction *)
 
 fun is_builtin_theory_term ctxt t =
-  if SMT2_Builtin.is_builtin_num ctxt t then true
+  if SMT_Builtin.is_builtin_num ctxt t then true
   else
     (case Term.strip_comb t of
-      (Const c, ts) => SMT2_Builtin.is_builtin_fun ctxt c ts
+      (Const c, ts) => SMT_Builtin.is_builtin_fun ctxt c ts
     | _ => false)
 
 end;

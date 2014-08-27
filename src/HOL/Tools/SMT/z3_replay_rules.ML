@@ -1,15 +1,15 @@
-(*  Title:      HOL/Tools/SMT2/z3_new_replay_rules.ML
+(*  Title:      HOL/Tools/SMT/z3_replay_rules.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Custom rules for Z3 proof replay.
 *)
 
-signature Z3_NEW_REPLAY_RULES =
+signature Z3_REPLAY_RULES =
 sig
   val apply: Proof.context -> cterm -> thm option
 end;
 
-structure Z3_New_Replay_Rules: Z3_NEW_REPLAY_RULES =
+structure Z3_Replay_Rules: Z3_REPLAY_RULES =
 struct
 
 structure Data = Generic_Data
@@ -44,7 +44,7 @@ fun del thm net = Net.delete_term Thm.eq_thm (prep thm) net handle Net.DELETE =>
 val add = Thm.declaration_attribute (Data.map o ins)
 val del = Thm.declaration_attribute (Data.map o del)
 
-val name = Binding.name "z3_new_rule"
+val name = Binding.name "z3_rule"
 
 val description = "declaration of Z3 proof rules"
 

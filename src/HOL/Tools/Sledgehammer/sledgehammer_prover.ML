@@ -177,7 +177,7 @@ fun bunches_of_proof_methods try0 smt_proofs needs_full_types desperate_lam_tran
       [Metis_Method (SOME full_typesN, NONE),
        Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
        Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)])] @
-  (if smt_proofs then [[SMT2_Method]] else [])
+  (if smt_proofs then [[SMT_Method]] else [])
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 
@@ -196,8 +196,7 @@ fun supported_provers ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val (remote_provers, local_provers) =
-      sort_strings (supported_atps thy) @
-      sort_strings (SMT2_Config.available_solvers_of ctxt)
+      sort_strings (supported_atps thy) @ sort_strings (SMT_Config.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in
     Output.urgent_message ("Supported provers: " ^ commas (local_provers @ remote_provers) ^ ".")

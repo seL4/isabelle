@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/SMT2/z3_new_replay_methods.ML
+(*  Title:      HOL/Tools/SMT/z3_replay_methods.ML
     Author:     Sascha Boehme, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Proof methods for replaying Z3 proofs.
 *)
 
-signature Z3_NEW_REPLAY_METHODS =
+signature Z3_REPLAY_METHODS =
 sig
   (*abstraction*)
   type abs_context = int * term Termtab.table
@@ -49,10 +49,10 @@ sig
   val nnf_neg: z3_method
   val mp_oeq: z3_method
   val th_lemma: string -> z3_method
-  val method_for: Z3_New_Proof.z3_rule -> z3_method
+  val method_for: Z3_Proof.z3_rule -> z3_method
 end;
 
-structure Z3_New_Replay_Methods: Z3_NEW_REPLAY_METHODS =
+structure Z3_Replay_Methods: Z3_REPLAY_METHODS =
 struct
 
 type z3_method = Proof.context -> thm list -> term -> thm
@@ -60,13 +60,13 @@ type z3_method = Proof.context -> thm list -> term -> thm
 
 (* utility functions *)
 
-fun trace ctxt f = SMT2_Config.trace_msg ctxt f ()
+fun trace ctxt f = SMT_Config.trace_msg ctxt f ()
 
 fun pretty_thm ctxt thm = Syntax.pretty_term ctxt (Thm.concl_of thm)
 
 fun pretty_goal ctxt msg rule thms t =
   let
-    val full_msg = msg ^ ": " ^ quote (Z3_New_Proof.string_of_rule rule)
+    val full_msg = msg ^ ": " ^ quote (Z3_Proof.string_of_rule rule)
     val assms =
       if null thms then []
       else [Pretty.big_list "assumptions:" (map (pretty_thm ctxt) thms)]
@@ -88,7 +88,7 @@ fun dest_prop (Const (@{const_name Trueprop}, _) $ t) = t
 
 fun dest_thm thm = dest_prop (Thm.concl_of thm)
 
-fun certify_prop ctxt t = SMT2_Util.certify ctxt (as_prop t)
+fun certify_prop ctxt t = SMT_Util.certify ctxt (as_prop t)
 
 fun try_provers ctxt rule [] thms t = replay_rule_error ctxt rule thms t
   | try_provers ctxt rule ((name, prover) :: named_provers) thms t =
@@ -114,12 +114,12 @@ fun match_instantiateT ctxt t thm =
 
 fun match_instantiate ctxt t thm =
   let
-    val cert = SMT2_Util.certify ctxt
+    val cert = SMT_Util.certify ctxt
     val thm' = match_instantiateT ctxt t thm
   in Thm.instantiate ([], gen_certify_inst snd Var cert ctxt thm' t) thm' end
 
 fun apply_rule ctxt t =
-  (case Z3_New_Replay_Rules.apply ctxt (certify_prop ctxt t) of
+  (case Z3_Replay_Rules.apply ctxt (certify_prop ctxt t) of
     SOME thm => thm
   | NONE => raise Fail "apply_rule")
 
@@ -284,7 +284,7 @@ fun true_axiom _ _ _ = @{thm TrueI}
 (* modus ponens *)
 
 fun mp _ [p, p_eq_q] _ = discharge 1 [p_eq_q, p] iffD1
-  | mp ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Modus_Ponens thms t
+  | mp ctxt thms t = replay_rule_error ctxt Z3_Proof.Modus_Ponens thms t
 
 val mp_oeq = mp
 
@@ -297,13 +297,13 @@ fun refl ctxt _ t = match_instantiate ctxt t @{thm refl}
 (* symmetry *)
 
 fun symm _ [thm] _ = thm RS @{thm sym}
-  | symm ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Reflexivity thms t
+  | symm ctxt thms t = replay_rule_error ctxt Z3_Proof.Reflexivity thms t
 
 
 (* transitivity *)
 
 fun trans _ [thm1, thm2] _ = thm1 RSN (1, thm2 RSN (2, @{thm trans}))
-  | trans ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Transitivity thms t
+  | trans ctxt thms t = replay_rule_error ctxt Z3_Proof.Transitivity thms t
 
 
 (* congruence *)
@@ -331,7 +331,7 @@ fun cong_full ctxt thms t = prove ctxt t (fn ctxt' =>
     ORELSE' dresolve_tac cong_dest_rules
     THEN' Classical.fast_tac ctxt'))
 
-fun cong ctxt thms = try_provers ctxt Z3_New_Proof.Monotonicity [
+fun cong ctxt thms = try_provers ctxt Z3_Proof.Monotonicity [
   ("basic", cong_basic ctxt thms),
   ("full", cong_full ctxt thms)] thms
 
@@ -347,7 +347,7 @@ val quant_intro_rules = @{lemma
 
 fun quant_intro ctxt [thm] t =
     prove ctxt t (K (REPEAT_ALL_NEW (resolve_tac (thm :: quant_intro_rules))))
-  | quant_intro ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Quant_Intro thms t
+  | quant_intro ctxt thms t = replay_rule_error ctxt Z3_Proof.Quant_Intro thms t
 
 
 (* distributivity of conjunctions and disjunctions *)
@@ -364,7 +364,7 @@ fun and_elim ctxt [thm] t =
         abstract_lit (dest_prop t) ##>>
         abstract_conj (dest_thm thm) #>>
         apfst single o swap)
-  | and_elim ctxt thms t = replay_rule_error ctxt Z3_New_Proof.And_Elim thms t
+  | and_elim ctxt thms t = replay_rule_error ctxt Z3_Proof.And_Elim thms t
 
 
 (* elimination of negated disjunctions *)
@@ -375,7 +375,7 @@ fun not_or_elim ctxt [thm] t =
         abstract_not abstract_disj (dest_thm thm) #>>
         apfst single o swap)
   | not_or_elim ctxt thms t =
-      replay_rule_error ctxt Z3_New_Proof.Not_Or_Elim thms t
+      replay_rule_error ctxt Z3_Proof.Not_Or_Elim thms t
 
 
 (* rewriting *)
@@ -430,7 +430,7 @@ fun prove_arith_rewrite ctxt t =
   prove_abstract' ctxt t arith_rewrite_tac (
     abstract_eq (abstract_arith ctxt) (dest_prop t))
 
-fun rewrite ctxt _ = try_provers ctxt Z3_New_Proof.Rewrite [
+fun rewrite ctxt _ = try_provers ctxt Z3_Proof.Rewrite [
   ("rules", apply_rule ctxt),
   ("prop_rewrite", prove_prop_rewrite ctxt),
   ("arith_rewrite", focus_eq prove_arith_rewrite ctxt)] []
@@ -511,8 +511,8 @@ fun lemma ctxt (thms as [thm]) t =
          abstract_disj (dest_thm thm') #>> single ##>>
          abstract_disj (dest_prop t))
      end
-     handle LEMMA () => replay_error ctxt "Bad proof state" Z3_New_Proof.Lemma thms t)
-  | lemma ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Lemma thms t
+     handle LEMMA () => replay_error ctxt "Bad proof state" Z3_Proof.Lemma thms t)
+  | lemma ctxt thms t = replay_rule_error ctxt Z3_Proof.Lemma thms t
 
 
 (* unit resolution *)
@@ -537,7 +537,7 @@ fun unit_res ctxt thms t =
 val iff_true_rule = @{lemma "P ==> P = True" by fast}
 
 fun iff_true _ [thm] _ = thm RS iff_true_rule
-  | iff_true ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Iff_True thms t
+  | iff_true ctxt thms t = replay_rule_error ctxt Z3_Proof.Iff_True thms t
 
 
 (* iff-false *)
@@ -545,7 +545,7 @@ fun iff_true _ [thm] _ = thm RS iff_true_rule
 val iff_false_rule = @{lemma "~P ==> P = False" by fast}
 
 fun iff_false _ [thm] _ = thm RS iff_false_rule
-  | iff_false ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Iff_False thms t
+  | iff_false ctxt thms t = replay_rule_error ctxt Z3_Proof.Iff_False thms t
 
 
 (* commutativity *)
@@ -562,7 +562,7 @@ fun def_axiom_disj ctxt t =
         abstract_prop u2 ##>> abstract_prop u1 #>> HOLogic.mk_disj o swap)
   | u => prove_abstract' ctxt t prop_tac (abstract_prop u))
 
-fun def_axiom ctxt _ = try_provers ctxt Z3_New_Proof.Def_Axiom [
+fun def_axiom ctxt _ = try_provers ctxt Z3_Proof.Def_Axiom [
   ("rules", apply_rule ctxt),
   ("disj", def_axiom_disj ctxt)] []
 
@@ -570,7 +570,7 @@ fun def_axiom ctxt _ = try_provers ctxt Z3_New_Proof.Def_Axiom [
 (* application of definitions *)
 
 fun apply_def _ [thm] _ = thm (* TODO: cover also the missing cases *)
-  | apply_def ctxt thms t = replay_rule_error ctxt Z3_New_Proof.Apply_Def thms t
+  | apply_def ctxt thms t = replay_rule_error ctxt Z3_Proof.Apply_Def thms t
 
 
 (* iff-oeq *)
@@ -589,8 +589,8 @@ fun nnf ctxt rule thms = try_provers ctxt rule [
   ("prop", nnf_prop ctxt thms),
   ("quant", quant_intro ctxt [hd thms])] thms
 
-fun nnf_pos ctxt = nnf ctxt Z3_New_Proof.Nnf_Pos
-fun nnf_neg ctxt = nnf ctxt Z3_New_Proof.Nnf_Neg
+fun nnf_pos ctxt = nnf ctxt Z3_Proof.Nnf_Pos
+fun nnf_neg ctxt = nnf ctxt Z3_Proof.Nnf_Neg
 
 
 (* theory lemmas *)
@@ -610,7 +610,7 @@ val _ = Theory.setup (Context.theory_map (add_th_lemma_method ("arith", arith_th
 fun th_lemma name ctxt thms =
   (case Symtab.lookup (get_th_lemma_method ctxt) name of
     SOME method => method ctxt thms
-  | NONE => replay_error ctxt "Bad theory" (Z3_New_Proof.Th_Lemma name) thms)
+  | NONE => replay_error ctxt "Bad theory" (Z3_Proof.Th_Lemma name) thms)
 
 
 (* mapping of rules to methods *)
@@ -618,44 +618,44 @@ fun th_lemma name ctxt thms =
 fun unsupported rule ctxt = replay_error ctxt "Unsupported" rule
 fun assumed rule ctxt = replay_error ctxt "Assumed" rule
 
-fun choose Z3_New_Proof.True_Axiom = true_axiom
-  | choose (r as Z3_New_Proof.Asserted) = assumed r
-  | choose (r as Z3_New_Proof.Goal) = assumed r
-  | choose Z3_New_Proof.Modus_Ponens = mp
-  | choose Z3_New_Proof.Reflexivity = refl
-  | choose Z3_New_Proof.Symmetry = symm
-  | choose Z3_New_Proof.Transitivity = trans
-  | choose (r as Z3_New_Proof.Transitivity_Star) = unsupported r
-  | choose Z3_New_Proof.Monotonicity = cong
-  | choose Z3_New_Proof.Quant_Intro = quant_intro
-  | choose Z3_New_Proof.Distributivity = distrib
-  | choose Z3_New_Proof.And_Elim = and_elim
-  | choose Z3_New_Proof.Not_Or_Elim = not_or_elim
-  | choose Z3_New_Proof.Rewrite = rewrite
-  | choose Z3_New_Proof.Rewrite_Star = rewrite_star
-  | choose Z3_New_Proof.Pull_Quant = pull_quant
-  | choose (r as Z3_New_Proof.Pull_Quant_Star) = unsupported r
-  | choose Z3_New_Proof.Push_Quant = push_quant
-  | choose Z3_New_Proof.Elim_Unused_Vars = elim_unused
-  | choose Z3_New_Proof.Dest_Eq_Res = dest_eq_res
-  | choose Z3_New_Proof.Quant_Inst = quant_inst
-  | choose (r as Z3_New_Proof.Hypothesis) = assumed r
-  | choose Z3_New_Proof.Lemma = lemma
-  | choose Z3_New_Proof.Unit_Resolution = unit_res
-  | choose Z3_New_Proof.Iff_True = iff_true
-  | choose Z3_New_Proof.Iff_False = iff_false
-  | choose Z3_New_Proof.Commutativity = comm
-  | choose Z3_New_Proof.Def_Axiom = def_axiom
-  | choose (r as Z3_New_Proof.Intro_Def) = assumed r
-  | choose Z3_New_Proof.Apply_Def = apply_def
-  | choose Z3_New_Proof.Iff_Oeq = iff_oeq
-  | choose Z3_New_Proof.Nnf_Pos = nnf_pos
-  | choose Z3_New_Proof.Nnf_Neg = nnf_neg
-  | choose (r as Z3_New_Proof.Nnf_Star) = unsupported r
-  | choose (r as Z3_New_Proof.Cnf_Star) = unsupported r
-  | choose (r as Z3_New_Proof.Skolemize) = assumed r
-  | choose Z3_New_Proof.Modus_Ponens_Oeq = mp_oeq
-  | choose (Z3_New_Proof.Th_Lemma name) = th_lemma name
+fun choose Z3_Proof.True_Axiom = true_axiom
+  | choose (r as Z3_Proof.Asserted) = assumed r
+  | choose (r as Z3_Proof.Goal) = assumed r
+  | choose Z3_Proof.Modus_Ponens = mp
+  | choose Z3_Proof.Reflexivity = refl
+  | choose Z3_Proof.Symmetry = symm
+  | choose Z3_Proof.Transitivity = trans
+  | choose (r as Z3_Proof.Transitivity_Star) = unsupported r
+  | choose Z3_Proof.Monotonicity = cong
+  | choose Z3_Proof.Quant_Intro = quant_intro
+  | choose Z3_Proof.Distributivity = distrib
+  | choose Z3_Proof.And_Elim = and_elim
+  | choose Z3_Proof.Not_Or_Elim = not_or_elim
+  | choose Z3_Proof.Rewrite = rewrite
+  | choose Z3_Proof.Rewrite_Star = rewrite_star
+  | choose Z3_Proof.Pull_Quant = pull_quant
+  | choose (r as Z3_Proof.Pull_Quant_Star) = unsupported r
+  | choose Z3_Proof.Push_Quant = push_quant
+  | choose Z3_Proof.Elim_Unused_Vars = elim_unused
+  | choose Z3_Proof.Dest_Eq_Res = dest_eq_res
+  | choose Z3_Proof.Quant_Inst = quant_inst
+  | choose (r as Z3_Proof.Hypothesis) = assumed r
+  | choose Z3_Proof.Lemma = lemma
+  | choose Z3_Proof.Unit_Resolution = unit_res
+  | choose Z3_Proof.Iff_True = iff_true
+  | choose Z3_Proof.Iff_False = iff_false
+  | choose Z3_Proof.Commutativity = comm
+  | choose Z3_Proof.Def_Axiom = def_axiom
+  | choose (r as Z3_Proof.Intro_Def) = assumed r
+  | choose Z3_Proof.Apply_Def = apply_def
+  | choose Z3_Proof.Iff_Oeq = iff_oeq
+  | choose Z3_Proof.Nnf_Pos = nnf_pos
+  | choose Z3_Proof.Nnf_Neg = nnf_neg
+  | choose (r as Z3_Proof.Nnf_Star) = unsupported r
+  | choose (r as Z3_Proof.Cnf_Star) = unsupported r
+  | choose (r as Z3_Proof.Skolemize) = assumed r
+  | choose Z3_Proof.Modus_Ponens_Oeq = mp_oeq
+  | choose (Z3_Proof.Th_Lemma name) = th_lemma name
 
 fun with_tracing rule method ctxt thms t =
   let val _ = trace_goal ctxt rule thms t

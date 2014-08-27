@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/SMT2/smtlib2_isar.ML
+(*  Title:      HOL/Tools/SMT/smtlib_isar.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Mathias Fleury, ENS Rennes
 
 General tools for Isar proof reconstruction.
 *)
 
-signature SMTLIB2_ISAR =
+signature SMTLIB_ISAR =
 sig
   val unlift_term: term list -> term -> term
   val postprocess_step_conclusion: theory -> thm list -> term list -> term -> term
@@ -15,7 +15,7 @@ sig
   val unskolemize_names: term -> term
 end;
 
-structure SMTLIB2_Isar: SMTLIB2_ISAR =
+structure SMTLIB_Isar: SMTLIB_ISAR =
 struct
 
 open ATP_Util
@@ -48,8 +48,8 @@ fun postprocess_step_conclusion thy rewrite_rules ll_defs =
   #> HOLogic.mk_Trueprop
 
 fun normalizing_prems ctxt concl0 =
-  SMT2_Normalize.case_bool_entry :: SMT2_Normalize.special_quant_table @
-  SMT2_Normalize.abs_min_max_table
+  SMT_Normalize.case_bool_entry :: SMT_Normalize.special_quant_table @
+  SMT_Normalize.abs_min_max_table
   |> map_filter (fn (c, th) =>
     if exists_Const (curry (op =) c o fst) concl0 then
       let val s = short_thm_name ctxt th in SOME (s, [s]) end

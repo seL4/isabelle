@@ -1,15 +1,15 @@
-(*  Title:      HOL/Tools/SMT2/smt2_config.ML
+(*  Title:      HOL/Tools/SMT/smt_config.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Configuration options and diagnostic tools for SMT.
 *)
 
-signature SMT2_CONFIG =
+signature SMT_CONFIG =
 sig
   (*solver*)
   type solver_info = {
     name: string,
-    class: Proof.context -> SMT2_Util.class,
+    class: Proof.context -> SMT_Util.class,
     avail: unit -> bool,
     options: Proof.context -> string list }
   val add_solver: solver_info -> Context.generic -> Context.generic
@@ -18,7 +18,7 @@ sig
   val available_solvers_of: Proof.context -> string list
   val select_solver: string -> Context.generic -> Context.generic
   val solver_of: Proof.context -> string
-  val solver_class_of: Proof.context -> SMT2_Util.class
+  val solver_class_of: Proof.context -> SMT_Util.class
   val solver_options_of: Proof.context -> string list
 
   (*options*)
@@ -49,14 +49,14 @@ sig
   val print_setup: Proof.context -> unit
 end;
 
-structure SMT2_Config: SMT2_CONFIG =
+structure SMT_Config: SMT_CONFIG =
 struct
 
 (* solver *)
 
 type solver_info = {
   name: string,
-  class: Proof.context -> SMT2_Util.class,
+  class: Proof.context -> SMT_Util.class,
   avail: unit -> bool,
   options: Proof.context -> string list}
 
@@ -80,7 +80,7 @@ fun add_solver (info as {name, ...} : solver_info) context =
   else
     context
     |> Solvers.map (apfst (Symtab.update (name, (info, []))))
-    |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_new_options"))
+    |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_options"))
         (Scan.lift (@{keyword "="} |-- Args.name) >>
           (Thm.declaration_attribute o K o set_solver_options o pair name))
         ("Additional command line options for SMT solver " ^ quote name))
@@ -139,7 +139,7 @@ fun solver_options_of ctxt =
   in solver_info_of (K []) all_options ctxt end
 
 val setup_solver =
-  Attrib.setup @{binding smt2_solver}
+  Attrib.setup @{binding smt_solver}
     (Scan.lift (@{keyword "="} |-- Args.name) >>
       (Thm.declaration_attribute o K o select_solver))
     "SMT solver configuration"
@@ -147,17 +147,17 @@ val setup_solver =
 
 (* options *)
 
-val oracle = Attrib.setup_config_bool @{binding smt2_oracle} (K true)
-val timeout = Attrib.setup_config_real @{binding smt2_timeout} (K 30.0)
-val random_seed = Attrib.setup_config_int @{binding smt2_random_seed} (K 1)
-val read_only_certificates = Attrib.setup_config_bool @{binding smt2_read_only_certificates} (K false)
-val verbose = Attrib.setup_config_bool @{binding smt2_verbose} (K true)
-val trace = Attrib.setup_config_bool @{binding smt2_trace} (K false)
-val monomorph_limit = Attrib.setup_config_int @{binding smt2_monomorph_limit} (K 10)
-val monomorph_instances = Attrib.setup_config_int @{binding smt2_monomorph_instances} (K 500)
-val infer_triggers = Attrib.setup_config_bool @{binding smt2_infer_triggers} (K false)
-val debug_files = Attrib.setup_config_string @{binding smt2_debug_files} (K "")
-val sat_solver = Attrib.setup_config_string @{binding smt2_sat_solver} (K "cdclite")
+val oracle = Attrib.setup_config_bool @{binding smt_oracle} (K true)
+val timeout = Attrib.setup_config_real @{binding smt_timeout} (K 30.0)
+val random_seed = Attrib.setup_config_int @{binding smt_random_seed} (K 1)
+val read_only_certificates = Attrib.setup_config_bool @{binding smt_read_only_certificates} (K false)
+val verbose = Attrib.setup_config_bool @{binding smt_verbose} (K true)
+val trace = Attrib.setup_config_bool @{binding smt_trace} (K false)
+val monomorph_limit = Attrib.setup_config_int @{binding smt_monomorph_limit} (K 10)
+val monomorph_instances = Attrib.setup_config_int @{binding smt_monomorph_instances} (K 500)
+val infer_triggers = Attrib.setup_config_bool @{binding smt_infer_triggers} (K false)
+val debug_files = Attrib.setup_config_string @{binding smt_debug_files} (K "")
+val sat_solver = Attrib.setup_config_string @{binding smt_sat_solver} (K "cdclite")
 
 
 (* diagnostics *)
@@ -173,7 +173,7 @@ fun trace_msg ctxt = cond_trace (Config.get ctxt trace)
 
 fun with_timeout ctxt f x =
   TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f x
-  handle TimeLimit.TimeOut => raise SMT2_Failure.SMT SMT2_Failure.Time_Out
+  handle TimeLimit.TimeOut => raise SMT_Failure.SMT SMT_Failure.Time_Out
 
 
 (* certificates *)
@@ -200,7 +200,7 @@ fun select_certificates name context = context |> Certificates.put (
 val certificates_of = Certificates.get o Context.Proof
 
 val setup_certificates =
-  Attrib.setup @{binding smt2_certificates}
+  Attrib.setup @{binding smt_certificates}
     (Scan.lift (@{keyword "="} |-- Args.name) >>
       (Thm.declaration_attribute o K o select_certificates))
     "SMT certificates configuration"
@@ -241,7 +241,7 @@ fun print_setup ctxt =
   end
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "smt2_status"}
+  Outer_Syntax.improper_command @{command_spec "smt_status"}
     "show the available SMT solvers, the currently selected SMT solver, \
     \and the values of SMT configuration options"
     (Scan.succeed (Toplevel.keep (print_setup o Toplevel.context_of)))

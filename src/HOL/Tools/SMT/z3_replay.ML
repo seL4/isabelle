@@ -1,19 +1,19 @@
-(*  Title:      HOL/Tools/SMT2/z3_new_replay.ML
+(*  Title:      HOL/Tools/SMT/z3_replay.ML
     Author:     Sascha Boehme, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Z3 proof parsing and replay.
 *)
 
-signature Z3_NEW_REPLAY =
+signature Z3_REPLAY =
 sig
-  val parse_proof: Proof.context -> SMT2_Translate.replay_data ->
+  val parse_proof: Proof.context -> SMT_Translate.replay_data ->
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
-    SMT2_Solver.parsed_proof
-  val replay: Proof.context -> SMT2_Translate.replay_data -> string list -> thm
+    SMT_Solver.parsed_proof
+  val replay: Proof.context -> SMT_Translate.replay_data -> string list -> thm
 end;
 
-structure Z3_New_Replay: Z3_NEW_REPLAY =
+structure Z3_Replay: Z3_REPLAY =
 struct
 
 fun params_of t = Term.strip_qnt_vars @{const_name Pure.all} t
@@ -23,7 +23,7 @@ fun varify ctxt thm =
     val maxidx = Thm.maxidx_of thm + 1
     val vs = params_of (Thm.prop_of thm)
     val vars = map_index (fn (i, (n, T)) => Var ((n, i + maxidx), T)) vs
-  in Drule.forall_elim_list (map (SMT2_Util.certify ctxt) vars) thm end
+  in Drule.forall_elim_list (map (SMT_Util.certify ctxt) vars) thm end
 
 fun add_paramTs names t =
   fold2 (fn n => fn (_, T) => AList.update (op =) (n, T)) names (params_of t)
@@ -31,7 +31,7 @@ fun add_paramTs names t =
 fun new_fixes ctxt nTs =
   let
     val (ns, ctxt') = Variable.variant_fixes (replicate (length nTs) "") ctxt
-    fun mk (n, T) n' = (n, SMT2_Util.certify ctxt' (Free (n', T)))
+    fun mk (n, T) n' = (n, SMT_Util.certify ctxt' (Free (n', T)))
   in (ctxt', Symtab.make (map2 mk nTs ns)) end
 
 fun forall_elim_term ct (Const (@{const_name Pure.all}, _) $ (a as Abs _)) =
@@ -56,17 +56,16 @@ fun under_fixes f ctxt (prems, nthms) names concl =
     val t = apply_fixes_concl env names concl
   in export_fixes env names (f ctxt' (thms1 @ thms2) t) end
 
-fun replay_thm ctxt assumed nthms
-    (Z3_New_Proof.Z3_Step {id, rule, concl, fixes, is_fix_step, ...}) =
-  if Z3_New_Proof.is_assumption rule then
+fun replay_thm ctxt assumed nthms (Z3_Proof.Z3_Step {id, rule, concl, fixes, is_fix_step, ...}) =
+  if Z3_Proof.is_assumption rule then
     (case Inttab.lookup assumed id of
       SOME (_, thm) => thm
-    | NONE => Thm.assume (SMT2_Util.certify ctxt concl))
+    | NONE => Thm.assume (SMT_Util.certify ctxt concl))
   else
-    under_fixes (Z3_New_Replay_Methods.method_for rule) ctxt
+    under_fixes (Z3_Replay_Methods.method_for rule) ctxt
       (if is_fix_step then (map snd nthms, []) else ([], nthms)) fixes concl
 
-fun replay_step ctxt assumed (step as Z3_New_Proof.Z3_Step {id, prems, fixes, ...}) proofs =
+fun replay_step ctxt assumed (step as Z3_Proof.Z3_Step {id, prems, fixes, ...}) proofs =
   let val nthms = map (the o Inttab.lookup proofs) prems
   in Inttab.update (id, (fixes, replay_thm ctxt assumed nthms step)) proofs end
 
@@ -77,27 +76,26 @@ local
   fun rewrite_conv _ [] = Conv.all_conv
     | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)
 
-  val prep_rules = [@{thm Let_def}, remove_trigger, remove_fun_app,
-    Z3_New_Replay_Literals.rewrite_true]
+  val prep_rules = [@{thm Let_def}, remove_trigger, remove_fun_app, Z3_Replay_Literals.rewrite_true]
 
   fun rewrite _ [] = I
     | rewrite ctxt eqs = Conv.fconv_rule (rewrite_conv ctxt eqs)
 
   fun lookup_assm assms_net ct =
-    Z3_New_Replay_Util.net_instances assms_net ct
+    Z3_Replay_Util.net_instances assms_net ct
     |> map (fn ithm as (_, thm) => (ithm, Thm.cprop_of thm aconvc ct))
 in
 
 fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
   let
-    val eqs = map (rewrite ctxt [Z3_New_Replay_Literals.rewrite_true]) rewrite_rules
+    val eqs = map (rewrite ctxt [Z3_Replay_Literals.rewrite_true]) rewrite_rules
     val eqs' = union Thm.eq_thm eqs prep_rules
 
     val assms_net =
       assms
       |> map (apsnd (rewrite ctxt eqs'))
       |> map (apsnd (Conv.fconv_rule Thm.eta_conversion))
-      |> Z3_New_Replay_Util.thm_net_of snd
+      |> Z3_Replay_Util.thm_net_of snd
 
     fun revert_conv ctxt = rewrite_conv ctxt eqs' then_conv Thm.eta_conversion
 
@@ -113,11 +111,11 @@ fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
         val thms' = if exact then thms else th :: thms
       in (((i, (id, th)) :: iidths, thms'), (ctxt', Inttab.update (id, (fixes, thm)) ptab)) end
 
-    fun add (Z3_New_Proof.Z3_Step {id, rule, concl, fixes, ...})
+    fun add (Z3_Proof.Z3_Step {id, rule, concl, fixes, ...})
         (cx as ((iidths, thms), (ctxt, ptab))) =
-      if Z3_New_Proof.is_assumption rule andalso rule <> Z3_New_Proof.Hypothesis then
+      if Z3_Proof.is_assumption rule andalso rule <> Z3_Proof.Hypothesis then
         let
-          val ct = SMT2_Util.certify ctxt concl
+          val ct = SMT_Util.certify ctxt concl
           val thm1 = Thm.trivial ct |> Conv.fconv_rule (Conv.arg1_conv (revert_conv outer_ctxt))
           val thm2 = singleton (Variable.export ctxt outer_ctxt) thm1
         in
@@ -149,8 +147,8 @@ fun discharge_sk_tac i st =
 
 end
 
-fun make_discharge_rules rules = rules @ [@{thm allI}, @{thm refl},
-  @{thm reflexive}, Z3_New_Replay_Literals.true_thm]
+fun make_discharge_rules rules = rules @ [@{thm allI}, @{thm refl}, @{thm reflexive},
+  Z3_Replay_Literals.true_thm]
 
 val intro_def_rules = @{lemma
   "(~ P | P) & (P | ~ P)"
@@ -174,10 +172,10 @@ fun discharge rules outer_ctxt inner_ctxt =
   #> discharge_assms outer_ctxt (make_discharge_rules rules)
 
 fun parse_proof outer_ctxt
-    ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT2_Translate.replay_data)
+    ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
     xfacts prems concl output =
   let
-    val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
+    val (steps, ctxt2) = Z3_Proof.parse typs terms output ctxt
     val ((iidths, _), _) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
 
     fun id_of_index i = the_default ~1 (Option.map fst (AList.lookup (op =) iidths i))
@@ -197,21 +195,21 @@ fun parse_proof outer_ctxt
       map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids @ map (apsnd (fst o fst)) fact_ids
   in
     {outcome = NONE, fact_ids = fact_ids,
-     atp_proof = fn () => Z3_New_Isar.atp_proof_of_z3_proof ctxt ll_defs rewrite_rules prems concl
+     atp_proof = fn () => Z3_Isar.atp_proof_of_z3_proof ctxt ll_defs rewrite_rules prems concl
        fact_helper_ts prem_ids conjecture_id fact_helper_ids steps}
   end
 
 fun replay outer_ctxt
-    ({context = ctxt, typs, terms, rewrite_rules, assms, ...} : SMT2_Translate.replay_data) output =
+    ({context = ctxt, typs, terms, rewrite_rules, assms, ...} : SMT_Translate.replay_data) output =
   let
-    val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
+    val (steps, ctxt2) = Z3_Proof.parse typs terms output ctxt
     val ((_, rules), (ctxt3, assumed)) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
     val ctxt4 =
       ctxt3
-      |> put_simpset (Z3_New_Replay_Util.make_simpset ctxt3 [])
-      |> Config.put SAT.solver (Config.get ctxt3 SMT2_Config.sat_solver)
+      |> put_simpset (Z3_Replay_Util.make_simpset ctxt3 [])
+      |> Config.put SAT.solver (Config.get ctxt3 SMT_Config.sat_solver)
     val proofs = fold (replay_step ctxt4 assumed) steps assumed
-    val (_, Z3_New_Proof.Z3_Step {id, ...}) = split_last steps
+    val (_, Z3_Proof.Z3_Step {id, ...}) = split_last steps
   in
     Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
   end
