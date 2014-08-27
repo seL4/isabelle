@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_solver.ML
+(*  Title:      HOL/Library/Old_SMT/smt_solver.ML
     Author:     Sascha Boehme, TU Muenchen
 
 SMT solvers registry and SMT tactic.

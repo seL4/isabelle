@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/z3_proof_reconstruction.ML
+(*  Title:      HOL/Library/Old_SMT/z3_proof_reconstruction.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Proof reconstruction for proofs found by Z3.
@@ -140,9 +140,9 @@ fun literals_of (Literals (_, lits)) = lits
 (* assumption *)
 
 local
-  val remove_trigger = mk_meta_eq @{thm SMT.trigger_def}
-  val remove_weight = mk_meta_eq @{thm SMT.weight_def}
-  val remove_fun_app = mk_meta_eq @{thm SMT.fun_app_def}
+  val remove_trigger = mk_meta_eq @{thm trigger_def}
+  val remove_weight = mk_meta_eq @{thm weight_def}
+  val remove_fun_app = mk_meta_eq @{thm fun_app_def}
 
   fun rewrite_conv _ [] = Conv.all_conv
     | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)

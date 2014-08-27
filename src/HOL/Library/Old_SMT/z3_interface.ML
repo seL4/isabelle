@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/z3_interface.ML
+(*  Title:      HOL/Library/Old_SMT/z3_interface.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Interface to Z3 based on a relaxed version of SMT-LIB.
@@ -50,7 +50,7 @@ local
       if k = 0 | l = 0 then 0
       else if (0 < k & 0 < l) | (k < 0 & 0 < l) then z3div k l
       else z3div (-k) (-l))"
-    by (simp add: SMT.z3div_def)}
+    by (simp add: z3div_def)}
 
   val mod_by_z3mod = @{lemma
     "ALL k l. k mod l = (

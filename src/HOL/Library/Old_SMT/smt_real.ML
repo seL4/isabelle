@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_real.ML
+(*  Title:      HOL/Library/Old_SMT/smt_real.ML
     Author:     Sascha Boehme, TU Muenchen
 
 SMT setup for reals.
@@ -32,8 +32,7 @@ local
 
   fun mk_times ts = Term.list_comb (@{const times (real)}, ts)
 
-  fun times _ T ts = if is_linear ts then SOME ("*", 2, ts, mk_times) else NONE
-    | times _ _ _  = NONE
+  fun times _ _ ts = if is_linear ts then SOME ("*", 2, ts, mk_times) else NONE
 in
 
 val setup_builtins =

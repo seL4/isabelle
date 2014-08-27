@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_normalize.ML
+(*  Title:      HOL/Library/Old_SMT/smt_normalize.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Normalization steps on theorems required by SMT solvers.
@@ -200,18 +200,18 @@ local
         in not (Term.exists_subterm some_match u) end
 
   val pat =
-    SMT_Utils.mk_const_pat @{theory} @{const_name SMT.pat} SMT_Utils.destT1
+    SMT_Utils.mk_const_pat @{theory} @{const_name pat} SMT_Utils.destT1
   fun mk_pat ct = Thm.apply (SMT_Utils.instT' ct pat) ct
 
   fun mk_clist T = pairself (Thm.cterm_of @{theory})
     (HOLogic.cons_const T, HOLogic.nil_const T)
   fun mk_list (ccons, cnil) f cts = fold_rev (Thm.mk_binop ccons o f) cts cnil
-  val mk_pat_list = mk_list (mk_clist @{typ SMT.pattern})
-  val mk_mpat_list = mk_list (mk_clist @{typ "SMT.pattern list"})  
+  val mk_pat_list = mk_list (mk_clist @{typ pattern})
+  val mk_mpat_list = mk_list (mk_clist @{typ "pattern list"})  
   fun mk_trigger ctss = mk_mpat_list (mk_pat_list mk_pat) ctss
 
   val trigger_eq =
-    mk_meta_eq @{lemma "p = SMT.trigger t p" by (simp add: trigger_def)}
+    mk_meta_eq @{lemma "p = trigger t p" by (simp add: trigger_def)}
 
   fun insert_trigger_conv [] ct = Conv.all_conv ct
     | insert_trigger_conv ctss ct =
@@ -233,7 +233,7 @@ local
 
     in insert_trigger_conv (filter_mpats (get_mpats lhs)) ct end
 
-  fun has_trigger (@{const SMT.trigger} $ _ $ _) = true
+  fun has_trigger (@{const trigger} $ _ $ _) = true
     | has_trigger _ = false
 
   fun try_trigger_conv cv ct =
@@ -254,7 +254,7 @@ fun trigger_conv ctxt =
 
 val setup_trigger =
   fold SMT_Builtin.add_builtin_fun_ext''
-    [@{const_name SMT.pat}, @{const_name SMT.nopat}, @{const_name SMT.trigger}]
+    [@{const_name pat}, @{const_name nopat}, @{const_name trigger}]
 
 end
 
@@ -265,15 +265,15 @@ local
   (*** check weight syntax ***)
 
   val has_no_weight =
-    not o Term.exists_subterm (fn @{const SMT.weight} => true | _ => false)
+    not o Term.exists_subterm (fn @{const weight} => true | _ => false)
 
-  fun is_weight (@{const SMT.weight} $ w $ t) =
+  fun is_weight (@{const weight} $ w $ t) =
         (case try HOLogic.dest_number w of
           SOME (_, i) => i >= 0 andalso has_no_weight t
         | _ => false)
     | is_weight t = has_no_weight t
 
-  fun proper_trigger (@{const SMT.trigger} $ _ $ t) = is_weight t
+  fun proper_trigger (@{const trigger} $ _ $ t) = is_weight t
     | proper_trigger t = is_weight t 
 
   fun check_weight_error ctxt t =
@@ -291,11 +291,11 @@ local
 
   fun under_trigger_conv cv ct =
     (case Thm.term_of ct of
-      @{const SMT.trigger} $ _ $ _ => Conv.arg_conv cv
+      @{const trigger} $ _ $ _ => Conv.arg_conv cv
     | _ => cv) ct
 
   val weight_eq =
-    mk_meta_eq @{lemma "p = SMT.weight i p" by (simp add: weight_def)}
+    mk_meta_eq @{lemma "p = weight i p" by (simp add: weight_def)}
   fun mk_weight_eq w =
     let val cv = Thm.dest_arg1 (Thm.rhs_of weight_eq)
     in
@@ -312,7 +312,7 @@ fun weight_conv weight ctxt =
   SMT_Utils.prop_conv
     (check_weight_conv ctxt then_conv add_weight_conv weight ctxt)
 
-val setup_weight = SMT_Builtin.add_builtin_fun_ext'' @{const_name SMT.weight}
+val setup_weight = SMT_Builtin.add_builtin_fun_ext'' @{const_name weight}
 
 end
 
@@ -605,7 +605,7 @@ local
 
   val schematic_consts_of =
     let
-      fun collect (@{const SMT.trigger} $ p $ t) =
+      fun collect (@{const trigger} $ p $ t) =
             collect_trigger p #> collect t
         | collect (t $ u) = collect t #> collect u
         | collect (Abs (_, _, t)) = collect t
@@ -615,8 +615,8 @@ local
       and collect_trigger t =
         let val dest = these o try HOLogic.dest_list 
         in fold (fold collect_pat o dest) (dest t) end
-      and collect_pat (Const (@{const_name SMT.pat}, _) $ t) = collect t
-        | collect_pat (Const (@{const_name SMT.nopat}, _) $ t) = collect t
+      and collect_pat (Const (@{const_name pat}, _) $ t) = collect t
+        | collect_pat (Const (@{const_name nopat}, _) $ t) = collect t
         | collect_pat _ = I
     in (fn t => collect t Symtab.empty) end
 in

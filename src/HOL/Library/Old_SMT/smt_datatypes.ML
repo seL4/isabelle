@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_datatypes.ML
+(*  Title:      HOL/Library/Old_SMT/smt_datatypes.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Collector functions for common type declarations and their representation
@@ -14,8 +14,6 @@ end
 
 structure SMT_Datatypes: SMT_DATATYPES =
 struct
-
-val lhs_head_of = Term.head_of o fst o Logic.dest_equals o Thm.prop_of
 
 fun mk_selectors T Ts =
   Variable.variant_fixes (replicate (length Ts) "select")

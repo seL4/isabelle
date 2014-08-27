@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/z3_proof_tools.ML
+(*  Title:      HOL/Library/Old_SMT/z3_proof_tools.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Helper functions required for Z3 proof reconstruction.

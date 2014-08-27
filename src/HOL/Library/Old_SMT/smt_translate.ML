@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_translate.ML
+(*  Title:      HOL/Library/Old_SMT/smt_translate.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Translate theorems into an SMT intermediate format and serialize them.
@@ -271,7 +271,7 @@ local
     in find_min 0 (take i (rev Ts)) T end
 
   fun app u (t, T) =
-    (Const (@{const_name SMT.fun_app}, T --> T) $ t $ u, Term.range_type T)
+    (Const (@{const_name fun_app}, T --> T) $ t $ u, Term.range_type T)
 
   fun apply i t T ts =
     let
@@ -311,24 +311,24 @@ fun intro_explicit_application ctxt funcs ts =
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
       | (Abs (n, T, u), ts) => traverses Ts (Abs (n, T, traverse (T::Ts) u)) ts
       | (u, ts) => traverses Ts u ts)
-    and in_trigger Ts ((c as @{const SMT.trigger}) $ p $ t) =
+    and in_trigger Ts ((c as @{const trigger}) $ p $ t) =
           c $ in_pats Ts p $ in_weight Ts t
       | in_trigger Ts t = in_weight Ts t
     and in_pats Ts ps =
-      in_list @{typ "SMT.pattern list"}
-        (in_list @{typ SMT.pattern} (in_pat Ts)) ps
-    and in_pat Ts ((p as Const (@{const_name SMT.pat}, _)) $ t) =
+      in_list @{typ "pattern list"}
+        (in_list @{typ pattern} (in_pat Ts)) ps
+    and in_pat Ts ((p as Const (@{const_name pat}, _)) $ t) =
           p $ traverse Ts t
-      | in_pat Ts ((p as Const (@{const_name SMT.nopat}, _)) $ t) =
+      | in_pat Ts ((p as Const (@{const_name nopat}, _)) $ t) =
           p $ traverse Ts t
       | in_pat _ t = raise TERM ("bad pattern", [t])
-    and in_weight Ts ((c as @{const SMT.weight}) $ w $ t) =
+    and in_weight Ts ((c as @{const weight}) $ w $ t) =
           c $ w $ traverse Ts t
       | in_weight Ts t = traverse Ts t 
     and traverses Ts t ts = Term.list_comb (t, map (traverse Ts) ts)
   in map (traverse []) ts end
 
-val fun_app_eq = mk_meta_eq @{thm SMT.fun_app_def}
+val fun_app_eq = mk_meta_eq @{thm fun_app_def}
 
 end
 
@@ -336,19 +336,19 @@ end
 (** map HOL formulas to FOL formulas (i.e., separate formulas froms terms) **)
 
 local
-  val term_bool = @{lemma "SMT.term_true ~= SMT.term_false"
-    by (simp add: SMT.term_true_def SMT.term_false_def)}
+  val term_bool = @{lemma "term_true ~= term_false"
+    by (simp add: term_true_def term_false_def)}
 
   val is_quant = member (op =) [@{const_name All}, @{const_name Ex}]
 
   val fol_rules = [
     Let_def,
-    mk_meta_eq @{thm SMT.term_true_def},
-    mk_meta_eq @{thm SMT.term_false_def},
+    mk_meta_eq @{thm term_true_def},
+    mk_meta_eq @{thm term_false_def},
     @{lemma "P = True == P" by (rule eq_reflection) simp},
     @{lemma "if P then True else False == P" by (rule eq_reflection) simp}]
 
-  fun as_term t = @{const HOL.eq (bool)} $ t $ @{const SMT.term_true}
+  fun as_term t = @{const HOL.eq (bool)} $ t $ @{const term_true}
 
   exception BAD_PATTERN of unit
 
@@ -356,7 +356,7 @@ local
     if pat then
       raise BAD_PATTERN ()
     else
-      @{const If (bool)} $ t $ @{const SMT.term_true} $ @{const SMT.term_false}
+      @{const If (bool)} $ t $ @{const term_true} $ @{const term_false}
 
   fun is_builtin_conn_or_pred ctxt c ts =
     is_some (SMT_Builtin.dest_builtin_conn ctxt c ts) orelse
@@ -365,7 +365,7 @@ local
   fun builtin b ctxt c ts =
     (case (Const c, ts) of
       (@{const HOL.eq (bool)}, [t, u]) =>
-        if t = @{const SMT.term_true} orelse u = @{const SMT.term_true} then
+        if t = @{const term_true} orelse u = @{const term_true} then
           SMT_Builtin.dest_builtin_eq ctxt t u
         else b ctxt c ts
     | _ => b ctxt c ts)
@@ -377,8 +377,8 @@ fun folify ctxt =
 
     fun in_term pat t =
       (case Term.strip_comb t of
-        (@{const True}, []) => @{const SMT.term_true}
-      | (@{const False}, []) => @{const SMT.term_false}
+        (@{const True}, []) => @{const term_true}
+      | (@{const False}, []) => @{const term_false}
       | (u as Const (@{const_name If}, _), [t1, t2, t3]) =>
           if pat then raise BAD_PATTERN ()
           else u $ in_form t1 $ in_term pat t2 $ in_term pat t3
@@ -389,20 +389,20 @@ fun folify ctxt =
       | (Free c, ts) => Term.list_comb (Free c, map (in_term pat) ts)
       | _ => t)
 
-    and in_weight ((c as @{const SMT.weight}) $ w $ t) = c $ w $ in_form t
+    and in_weight ((c as @{const weight}) $ w $ t) = c $ w $ in_form t
       | in_weight t = in_form t 
 
-    and in_pat ((p as Const (@{const_name SMT.pat}, _)) $ t) =
+    and in_pat ((p as Const (@{const_name pat}, _)) $ t) =
           p $ in_term true t
-      | in_pat ((p as Const (@{const_name SMT.nopat}, _)) $ t) =
+      | in_pat ((p as Const (@{const_name nopat}, _)) $ t) =
           p $ in_term true t
       | in_pat t = raise TERM ("bad pattern", [t])
 
     and in_pats ps =
-      in_list @{typ "SMT.pattern list"}
-        (SOME o in_list @{typ SMT.pattern} (try in_pat)) ps
+      in_list @{typ "pattern list"}
+        (SOME o in_list @{typ pattern} (try in_pat)) ps
 
-    and in_trigger ((c as @{const SMT.trigger}) $ p $ t) =
+    and in_trigger ((c as @{const trigger}) $ p $ t) =
           c $ in_pats p $ in_weight t
       | in_trigger t = in_weight t
 
@@ -441,12 +441,12 @@ fun group_quant qname Ts (t as Const (q, _) $ Abs (_, T, u)) =
       if q = qname then group_quant qname (T :: Ts) u else (Ts, t)
   | group_quant _ Ts t = (Ts, t)
 
-fun dest_weight (@{const SMT.weight} $ w $ t) =
+fun dest_weight (@{const weight} $ w $ t) =
       (SOME (snd (HOLogic.dest_number w)), t)
   | dest_weight t = (NONE, t)
 
-fun dest_pat (Const (@{const_name SMT.pat}, _) $ t) = (t, true)
-  | dest_pat (Const (@{const_name SMT.nopat}, _) $ t) = (t, false)
+fun dest_pat (Const (@{const_name pat}, _) $ t) = (t, true)
+  | dest_pat (Const (@{const_name nopat}, _) $ t) = (t, false)
   | dest_pat t = raise TERM ("bad pattern", [t])
 
 fun dest_pats [] = I
@@ -456,7 +456,7 @@ fun dest_pats [] = I
       | (ps, [false]) => cons (SNoPat ps)
       | _ => raise TERM ("bad multi-pattern", ts))
 
-fun dest_trigger (@{const SMT.trigger} $ tl $ t) =
+fun dest_trigger (@{const trigger} $ tl $ t) =
       (rev (fold (dest_pats o HOLogic.dest_list) (HOLogic.dest_list tl) []), t)
   | dest_trigger t = ([], t)
 
@@ -558,11 +558,11 @@ fun translate ctxt comments ithms =
     fun mk_trigger ((q as Const (@{const_name All}, _)) $ Abs (n, T, t)) =
           q $ Abs (n, T, mk_trigger t)
       | mk_trigger (eq as (Const (@{const_name HOL.eq}, T) $ lhs $ _)) =
-          Term.domain_type T --> @{typ SMT.pattern}
-          |> (fn T => Const (@{const_name SMT.pat}, T) $ lhs)
-          |> HOLogic.mk_list @{typ SMT.pattern} o single
-          |> HOLogic.mk_list @{typ "SMT.pattern list"} o single
-          |> (fn t => @{const SMT.trigger} $ t $ eq)
+          Term.domain_type T --> @{typ pattern}
+          |> (fn T => Const (@{const_name pat}, T) $ lhs)
+          |> HOLogic.mk_list @{typ pattern} o single
+          |> HOLogic.mk_list @{typ "pattern list"} o single
+          |> (fn t => @{const trigger} $ t $ eq)
       | mk_trigger t = t
 
     val (ctxt2, ts3) =

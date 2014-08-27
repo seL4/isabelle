@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_builtin.ML
+(*  Title:      HOL/Library/Old_SMT/smt_builtin.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Tables of types and terms directly supported by SMT solvers.

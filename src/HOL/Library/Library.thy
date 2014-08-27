@@ -40,6 +40,7 @@ imports
   Multiset
   Numeral_Type
   NthRoot_Limits
+  Old_SMT
   OptionalSugar
   Option_ord
   Order_Continuity
@@ -61,7 +62,6 @@ imports
   Reflection
   Saturated
   Set_Algebras
-  SMT
   State_Monad
   Sublist
   Sum_of_Squares

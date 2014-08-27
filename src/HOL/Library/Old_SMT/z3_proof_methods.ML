@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/z3_proof_methods.ML
+(*  Title:      HOL/Library/Old_SMT/z3_proof_methods.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Proof methods for Z3 proof reconstruction.

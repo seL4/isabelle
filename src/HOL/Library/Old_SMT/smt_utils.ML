@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_utils.ML
+(*  Title:      HOL/Library/Old_SMT/smt_utils.ML
     Author:     Sascha Boehme, TU Muenchen
 
 General utility functions.

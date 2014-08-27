@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_setup_solvers.ML
+(*  Title:      HOL/Library/Old_SMT/smt_setup_solvers.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Setup SMT solvers.

@@ -1,17 +1,17 @@
-(*  Title:      HOL/Library/SMT.thy
+(*  Title:      HOL/Library/Old_SMT.thy
     Author:     Sascha Boehme, TU Muenchen
 *)
 
 header {* Old Version of Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 
-theory SMT
+theory Old_SMT
 imports "../Real" "../Word/Word"
 keywords "smt_status" :: diag
 begin
 
-ML_file "SMT/smt_utils.ML"
-ML_file "SMT/smt_failure.ML"
-ML_file "SMT/smt_config.ML"
+ML_file "Old_SMT/smt_utils.ML"
+ML_file "Old_SMT/smt_failure.ML"
+ML_file "Old_SMT/smt_config.ML"
 
 
 subsection {* Triggers for quantifier instantiation *}
@@ -115,21 +115,21 @@ definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
 
 subsection {* Setup *}
 
-ML_file "SMT/smt_builtin.ML"
-ML_file "SMT/smt_datatypes.ML"
-ML_file "SMT/smt_normalize.ML"
-ML_file "SMT/smt_translate.ML"
-ML_file "SMT/smt_solver.ML"
-ML_file "SMT/smtlib_interface.ML"
-ML_file "SMT/z3_interface.ML"
-ML_file "SMT/z3_proof_parser.ML"
-ML_file "SMT/z3_proof_tools.ML"
-ML_file "SMT/z3_proof_literals.ML"
-ML_file "SMT/z3_proof_methods.ML"
+ML_file "Old_SMT/smt_builtin.ML"
+ML_file "Old_SMT/smt_datatypes.ML"
+ML_file "Old_SMT/smt_normalize.ML"
+ML_file "Old_SMT/smt_translate.ML"
+ML_file "Old_SMT/smt_solver.ML"
+ML_file "Old_SMT/smtlib_interface.ML"
+ML_file "Old_SMT/z3_interface.ML"
+ML_file "Old_SMT/z3_proof_parser.ML"
+ML_file "Old_SMT/z3_proof_tools.ML"
+ML_file "Old_SMT/z3_proof_literals.ML"
+ML_file "Old_SMT/z3_proof_methods.ML"
 named_theorems z3_simp "simplification rules for Z3 proof reconstruction"
-ML_file "SMT/z3_proof_reconstruction.ML"
-ML_file "SMT/z3_model.ML"
-ML_file "SMT/smt_setup_solvers.ML"
+ML_file "Old_SMT/z3_proof_reconstruction.ML"
+ML_file "Old_SMT/z3_model.ML"
+ML_file "Old_SMT/smt_setup_solvers.ML"
 
 setup {*
   SMT_Config.setup #>
@@ -419,10 +419,10 @@ lemma [z3_rule]:  (* for def-axiom *)
   "(if P then Q else \<not>R) \<or> P \<or> R"
   by auto
 
-ML_file "SMT/smt_real.ML"
+ML_file "Old_SMT/smt_real.ML"
 setup SMT_Real.setup
 
-ML_file "SMT/smt_word.ML"
+ML_file "Old_SMT/smt_word.ML"
 setup SMT_Word.setup
 
 hide_type (open) pattern

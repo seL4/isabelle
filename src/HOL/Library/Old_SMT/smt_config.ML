@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/SMT/smt_config.ML
+(*  Title:      HOL/Library/Old_SMT/smt_config.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Configuration options and diagnostic tools for SMT.
