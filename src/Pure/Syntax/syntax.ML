@@ -185,10 +185,10 @@ fun parse_token ctxt decode markup parse str =
   let
     fun parse_tree tree =
       let
-        val {delimited, text, pos} = token_source tree;
-        val syms = Symbol_Pos.explode (text, pos);
-        val _ = Context_Position.report ctxt pos (markup delimited);
-      in parse (syms, pos) end;
+        val source = token_source tree;
+        val syms = Symbol_Pos.source_explode source;
+        val _ = Context_Position.report ctxt (#pos source) (markup (#delimited source));
+      in parse (syms, #pos source) end;
   in
     (case YXML.parse_body str handle Fail msg => error msg of
       body as [tree as XML.Elem ((name, _), _)] =>

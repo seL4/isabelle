@@ -86,9 +86,10 @@ sig
   val source: {do_recover: bool option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
-  val read_antiq: Scan.lexicon -> (T list -> 'a * T list) -> Symbol_Pos.T list * Position.T -> 'a
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
+  val read: Scan.lexicon -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a list
+  val read_antiq: Scan.lexicon -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
   val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
@@ -585,27 +586,32 @@ fun source do_recover get_lex pos src =
 end;
 
 
-(* read_antiq *)
-
-fun read_antiq lex scan (syms, pos) =
-  let
-    fun err msg = cat_error msg ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
-      "@{" ^ Symbol_Pos.content syms ^ "}");
-
-    val res =
-      Source.of_list syms
-      |> source' {do_recover = NONE} (K (lex, Scan.empty_lexicon))
-      |> source_proper
-      |> Source.source stopper (Scan.error (Scan.bulk scan)) NONE
-      |> Source.exhaust;
-  in (case res of [x] => x | _ => err "") handle ERROR msg => err msg end;
-
-
 
 (** parsers **)
 
 type 'a parser = T list -> 'a * T list;
 type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list);
+
+
+(* read source *)
+
+fun read lex scan (syms, pos) =
+  Source.of_list syms
+  |> source' {do_recover = NONE} (K (lex, Scan.empty_lexicon))
+  |> source_proper
+  |> Source.source stopper (Scan.error (Scan.bulk scan)) NONE
+  |> Source.exhaust;
+
+fun read_antiq lex scan (syms, pos) =
+  let
+    fun err msg =
+      cat_error msg ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
+        "@{" ^ Symbol_Pos.content syms ^ "}");
+    val res = read lex scan (syms, pos) handle ERROR msg => err msg;
+  in (case res of [x] => x | _ => err "") end;
+
+
+(* wrapped syntax *)
 
 fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) context =
   let

@@ -67,7 +67,8 @@ sig
   val method_closure: Proof.context -> Token.src -> Token.src
   val method_cmd: Proof.context -> Token.src -> Proof.context -> method
   val evaluate: text -> Proof.context -> method
-  type modifier = (Proof.context -> Proof.context) * attribute
+  type modifier = {init: Proof.context -> Proof.context, attribute: attribute, pos: Position.T}
+  val modifier: attribute -> Position.T -> modifier
   val section: modifier parser list -> declaration context_parser
   val sections: modifier parser list -> declaration list context_parser
   type text_range = text * Position.range
@@ -448,13 +449,19 @@ end;
 
 (** concrete syntax **)
 
-(* sections *)
+(* type modifier *)
 
-type modifier = (Proof.context -> Proof.context) * attribute;
+type modifier =
+  {init: Proof.context -> Proof.context, attribute: attribute, pos: Position.T};
+
+fun modifier attribute pos : modifier = {init = I, attribute = attribute, pos = pos};
+
+
+(* sections *)
 
 local
 
-fun sect modifier = Scan.depend (fn context =>
+fun sect (modifier : modifier parser) = Scan.depend (fn context =>
   let
     val ctxt = Context.proof_of context;
     fun prep_att src =
@@ -466,7 +473,7 @@ fun sect modifier = Scan.depend (fn context =>
       Parse.xthm >> (fn (a, bs) => (Proof_Context.get_fact ctxt a, map prep_att bs));
   in
     Scan.ahead Parse.not_eof -- modifier -- Scan.repeat (Scan.unless modifier parse_thm) >>
-      (fn ((tok, (init, att)), thms) =>
+      (fn ((tok, {init, attribute, pos}), thms) =>
         let
           val decl =
             (case Token.get_value tok of
@@ -475,7 +482,11 @@ fun sect modifier = Scan.depend (fn context =>
                 let
                   val facts =
                     Attrib.partial_evaluation ctxt [((Binding.name "dummy", []), thms)]
-                    |> map (fn (_, bs) => ((Binding.empty, [Attrib.internal (K att)]), bs));
+                    |> map (fn (_, bs) => ((Binding.empty, [Attrib.internal (K attribute)]), bs));
+                  val _ =
+                    Context_Position.report ctxt (Token.pos_of tok)
+                      (Markup.entity Markup.method_modifierN ""
+                        |> Markup.properties (Position.def_properties_of pos));
                   fun decl phi =
                     Context.mapping I init #>
                     Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;

@@ -457,9 +457,9 @@ val split_del = Simplifier.attrib del_split;
 (* methods *)
 
 val split_modifiers =
- [Args.$$$ splitN -- Args.colon >> K ((I, split_add): Method.modifier),
-  Args.$$$ splitN -- Args.add -- Args.colon >> K (I, split_add),
-  Args.$$$ splitN -- Args.del -- Args.colon >> K (I, split_del)];
+ [Args.$$$ splitN -- Args.colon >> K (Method.modifier split_add @{here}),
+  Args.$$$ splitN -- Args.add -- Args.colon >> K (Method.modifier split_add @{here}),
+  Args.$$$ splitN -- Args.del -- Args.colon >> K (Method.modifier split_del @{here})];
 
 
 (* theory setup *)

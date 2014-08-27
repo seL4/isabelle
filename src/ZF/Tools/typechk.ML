@@ -115,8 +115,8 @@ val type_solver =
 val typecheck_setup =
   Method.setup @{binding typecheck}
     (Method.sections
-      [Args.add -- Args.colon >> K (I, TC_add),
-       Args.del -- Args.colon >> K (I, TC_del)]
+      [Args.add -- Args.colon >> K (Method.modifier TC_add @{here}),
+       Args.del -- Args.colon >> K (Method.modifier TC_del @{here})]
       >> K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt))))
     "ZF type-checking";
 
