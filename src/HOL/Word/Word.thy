@@ -137,11 +137,11 @@ lemma lens_not_0 [iff]:
 definition source_size :: "('a::len0 word \<Rightarrow> 'b) \<Rightarrow> nat"
 where
   -- "whether a cast (or other) function is to a longer or shorter length"
-  "source_size c = (let arb = undefined ; x = c arb in size arb)"  
+  [code del]: "source_size c = (let arb = undefined; x = c arb in size arb)"
 
 definition target_size :: "('a \<Rightarrow> 'b::len0 word) \<Rightarrow> nat"
 where
-  "target_size c = size (c undefined)"
+  [code del]: "target_size c = size (c undefined)"
 
 definition is_up :: "('a::len0 word \<Rightarrow> 'b::len0 word) \<Rightarrow> bool"
 where
