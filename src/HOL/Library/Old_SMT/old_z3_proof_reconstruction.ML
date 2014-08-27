@@ -52,8 +52,8 @@ fun by_schematic_rule ctxt ct =
   the (Old_Z3_Proof_Tools.net_instance (Old_Z3_Rules.get (Context.Proof ctxt)) ct)
 
 val _ = Theory.setup
- (Attrib.setup @{binding z3_rule} (Attrib.add_del add del) description #>
-  Global_Theory.add_thms_dynamic (@{binding z3_rule}, Net.content o Old_Z3_Rules.get))
+ (Attrib.setup @{binding old_z3_rule} (Attrib.add_del add del) description #>
+  Global_Theory.add_thms_dynamic (@{binding old_z3_rule}, Net.content o Old_Z3_Rules.get))
 
 end
 
@@ -80,7 +80,7 @@ fun try_apply ctxt thms =
       Pretty.big_list ("Z3 found a proof," ^
         " but proof reconstruction failed at the following subgoal:")
         (pretty_goal ctxt thms (Thm.term_of ct)),
-      Pretty.str ("Declaring a rule as [z3_rule] might solve this problem.")])
+      Pretty.str ("Declaring a rule as [old_z3_rule] might solve this problem.")])
 
     fun apply [] ct = error (try_apply_err ct)
       | apply (prover :: provers) ct =
@@ -870,7 +870,7 @@ fun reconstruct outer_ctxt recon output =
       Old_Z3_Proof_Parser.parse ctxt typs terms output
 
     val simpset =
-      Old_Z3_Proof_Tools.make_simpset ctxt1 (Named_Theorems.get ctxt1 @{named_theorems z3_simp})
+      Old_Z3_Proof_Tools.make_simpset ctxt1 (Named_Theorems.get ctxt1 @{named_theorems old_z3_simp})
 
     val ((is, rules), cxp as (ctxt2, _)) =
       add_asserted outer_ctxt rewrite_rules assms asserted ctxt1

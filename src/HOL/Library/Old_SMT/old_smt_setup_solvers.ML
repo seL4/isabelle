@@ -129,7 +129,7 @@ end
 
 
 val z3_with_extensions =
-  Attrib.setup_config_bool @{binding z3_with_extensions} (K false)
+  Attrib.setup_config_bool @{binding old_z3_with_extensions} (K false)
 
 local
   fun z3_make_command name () = if_z3_non_commercial (make_command name)

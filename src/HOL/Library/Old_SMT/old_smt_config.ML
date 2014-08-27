@@ -83,7 +83,7 @@ fun add_solver (info as {name, ...} : solver_info) context =
   else
     context
     |> Solvers.map (apfst (Symtab.update (name, (info, []))))
-    |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_options"))
+    |> Context.map_theory (Attrib.setup (Binding.name ("old_" ^ name ^ "_options"))
         (Scan.lift (@{keyword "="} |-- Args.name) >>
           (Thm.declaration_attribute o K o set_solver_options o pair name))
         ("Additional command line options for SMT solver " ^ quote name))
@@ -142,7 +142,7 @@ fun solver_options_of ctxt =
   in solver_info_of (K []) all_options ctxt end
 
 val setup_solver =
-  Attrib.setup @{binding smt_solver}
+  Attrib.setup @{binding old_smt_solver}
     (Scan.lift (@{keyword "="} |-- Args.name) >>
       (Thm.declaration_attribute o K o select_solver))
     "SMT solver configuration"
@@ -150,19 +150,19 @@ val setup_solver =
 
 (* options *)
 
-val oracle = Attrib.setup_config_bool @{binding smt_oracle} (K true)
-val datatypes = Attrib.setup_config_bool @{binding smt_datatypes} (K false)
-val timeout = Attrib.setup_config_real @{binding smt_timeout} (K 30.0)
-val random_seed = Attrib.setup_config_int @{binding smt_random_seed} (K 1)
-val read_only_certificates = Attrib.setup_config_bool @{binding smt_read_only_certificates} (K false)
-val verbose = Attrib.setup_config_bool @{binding smt_verbose} (K true)
-val trace = Attrib.setup_config_bool @{binding smt_trace} (K false)
-val trace_used_facts = Attrib.setup_config_bool @{binding smt_trace_used_facts} (K false)
-val monomorph_limit = Attrib.setup_config_int @{binding smt_monomorph_limit} (K 10)
-val monomorph_instances = Attrib.setup_config_int @{binding smt_monomorph_instances} (K 500)
-val infer_triggers = Attrib.setup_config_bool @{binding smt_infer_triggers} (K false)
-val filter_only_facts = Attrib.setup_config_bool @{binding smt_filter_only_facts} (K false)
-val debug_files = Attrib.setup_config_string @{binding smt_debug_files} (K "")
+val oracle = Attrib.setup_config_bool @{binding old_smt_oracle} (K true)
+val datatypes = Attrib.setup_config_bool @{binding old_smt_datatypes} (K false)
+val timeout = Attrib.setup_config_real @{binding old_smt_timeout} (K 30.0)
+val random_seed = Attrib.setup_config_int @{binding old_smt_random_seed} (K 1)
+val read_only_certificates = Attrib.setup_config_bool @{binding old_smt_read_only_certificates} (K false)
+val verbose = Attrib.setup_config_bool @{binding old_smt_verbose} (K true)
+val trace = Attrib.setup_config_bool @{binding old_smt_trace} (K false)
+val trace_used_facts = Attrib.setup_config_bool @{binding old_smt_trace_used_facts} (K false)
+val monomorph_limit = Attrib.setup_config_int @{binding old_smt_monomorph_limit} (K 10)
+val monomorph_instances = Attrib.setup_config_int @{binding old_smt_monomorph_instances} (K 500)
+val infer_triggers = Attrib.setup_config_bool @{binding old_smt_infer_triggers} (K false)
+val filter_only_facts = Attrib.setup_config_bool @{binding old_smt_filter_only_facts} (K false)
+val debug_files = Attrib.setup_config_string @{binding old_smt_debug_files} (K "")
 
 
 (* diagnostics *)
@@ -205,7 +205,7 @@ fun select_certificates name context = context |> Certificates.put (
 val certificates_of = Certificates.get o Context.Proof
 
 val setup_certificates =
-  Attrib.setup @{binding smt_certificates}
+  Attrib.setup @{binding old_smt_certificates}
     (Scan.lift (@{keyword "="} |-- Args.name) >>
       (Thm.declaration_attribute o K o select_certificates))
     "SMT certificates configuration"
@@ -246,7 +246,7 @@ fun print_setup ctxt =
   end
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "smt_status"}
+  Outer_Syntax.improper_command @{command_spec "old_smt_status"}
     "show the available SMT solvers, the currently selected SMT solver, \
     \and the values of SMT configuration options"
     (Scan.succeed (Toplevel.keep (print_setup o Toplevel.context_of)))

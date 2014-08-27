@@ -6,7 +6,7 @@ header {* Old Version of Bindings to Satisfiability Modulo Theories (SMT) solver
 
 theory Old_SMT
 imports "../Real" "../Word/Word"
-keywords "smt_status" :: diag
+keywords "old_smt_status" :: diag
 begin
 
 ML_file "Old_SMT/old_smt_utils.ML"
@@ -126,7 +126,7 @@ ML_file "Old_SMT/old_z3_proof_parser.ML"
 ML_file "Old_SMT/old_z3_proof_tools.ML"
 ML_file "Old_SMT/old_z3_proof_literals.ML"
 ML_file "Old_SMT/old_z3_proof_methods.ML"
-named_theorems z3_simp "simplification rules for Z3 proof reconstruction"
+named_theorems old_z3_simp "simplification rules for Z3 proof reconstruction"
 ML_file "Old_SMT/old_z3_proof_reconstruction.ML"
 ML_file "Old_SMT/old_z3_model.ML"
 ML_file "Old_SMT/old_smt_setup_solvers.ML"
@@ -139,7 +139,7 @@ setup {*
   Old_SMT_Setup_Solvers.setup
 *}
 
-method_setup smt = {*
+method_setup old_smt = {*
   Scan.optional Attrib.thms [] >>
     (fn thms => fn ctxt =>
       METHOD (fn facts => HEADGOAL (Old_SMT_Solver.smt_tac ctxt (thms @ facts))))
@@ -150,7 +150,7 @@ subsection {* Configuration *}
 
 text {*
 The current configuration can be printed by the command
-@{text smt_status}, which shows the values of most options.
+@{text old_smt_status}, which shows the values of most options.
 *}
 
 
@@ -158,8 +158,8 @@ The current configuration can be printed by the command
 subsection {* General configuration options *}
 
 text {*
-The option @{text smt_solver} can be used to change the target SMT
-solver.  The possible values can be obtained from the @{text smt_status}
+The option @{text old_smt_solver} can be used to change the target SMT
+solver.  The possible values can be obtained from the @{text old_smt_status}
 command.
 
 Due to licensing restrictions, Yices and Z3 are not installed/enabled
@@ -167,7 +167,7 @@ by default.  Z3 is free for non-commercial applications and can be enabled
 by setting Isabelle system option @{text z3_non_commercial} to @{text yes}.
 *}
 
-declare [[ smt_solver = z3 ]]
+declare [[ old_smt_solver = z3 ]]
 
 text {*
 Since SMT solvers are potentially non-terminating, there is a timeout
@@ -175,14 +175,14 @@ Since SMT solvers are potentially non-terminating, there is a timeout
 120 (seconds) is in most cases not advisable.
 *}
 
-declare [[ smt_timeout = 20 ]]
+declare [[ old_smt_timeout = 20 ]]
 
 text {*
 SMT solvers apply randomized heuristics.  In case a problem is not
 solvable by an SMT solver, changing the following option might help.
 *}
 
-declare [[ smt_random_seed = 1 ]]
+declare [[ old_smt_random_seed = 1 ]]
 
 text {*
 In general, the binding to SMT solvers runs as an oracle, i.e, the SMT
@@ -191,7 +191,7 @@ option can cause the SMT solver to run in proof-producing mode, giving
 a checkable certificate.  This is currently only implemented for Z3.
 *}
 
-declare [[ smt_oracle = false ]]
+declare [[ old_smt_oracle = false ]]
 
 text {*
 Each SMT solver provides several commandline options to tweak its
@@ -199,9 +199,9 @@ behaviour.  They can be passed to the solver by setting the following
 options.
 *}
 
-declare [[ cvc3_options = "" ]]
-declare [[ yices_options = "" ]]
-declare [[ z3_options = "" ]]
+declare [[ old_cvc3_options = "" ]]
+declare [[ old_yices_options = "" ]]
+declare [[ old_z3_options = "" ]]
 
 text {*
 Enable the following option to use built-in support for datatypes and
@@ -209,7 +209,7 @@ records.  Currently, this is only implemented for Z3 running in oracle
 mode.
 *}
 
-declare [[ smt_datatypes = false ]]
+declare [[ old_smt_datatypes = false ]]
 
 text {*
 The SMT method provides an inference mechanism to detect simple triggers
@@ -218,7 +218,7 @@ solvable by SMT solvers (note: triggers guide quantifier instantiations
 in the SMT solver).  To turn it on, set the following option.
 *}
 
-declare [[ smt_infer_triggers = false ]]
+declare [[ old_smt_infer_triggers = false ]]
 
 text {*
 The SMT method monomorphizes the given facts, that is, it tries to
@@ -241,7 +241,7 @@ declare [[ monomorph_max_new_instances = 500 ]]
 subsection {* Certificates *}
 
 text {*
-By setting the option @{text smt_certificates} to the name of a file,
+By setting the option @{text old_smt_certificates} to the name of a file,
 all following applications of an SMT solver a cached in that file.
 Any further application of the same SMT solver (using the very same
 configuration) re-uses the cached certificate instead of invoking the
@@ -254,10 +254,10 @@ Certificate files should be used at most once in a certain theory context,
 to avoid race conditions with other concurrent accesses.
 *}
 
-declare [[ smt_certificates = "" ]]
+declare [[ old_smt_certificates = "" ]]
 
 text {*
-The option @{text smt_read_only_certificates} controls whether only
+The option @{text old_smt_read_only_certificates} controls whether only
 stored certificates are should be used or invocation of an SMT solver
 is allowed.  When set to @{text true}, no SMT solver will ever be
 invoked and only the existing certificates found in the configured
@@ -266,7 +266,7 @@ certificate for some proposition, then the configured SMT solver is
 invoked.
 *}
 
-declare [[ smt_read_only_certificates = false ]]
+declare [[ old_smt_read_only_certificates = false ]]
 
 
 
@@ -277,24 +277,24 @@ The SMT method, when applied, traces important information.  To
 make it entirely silent, set the following option to @{text false}.
 *}
 
-declare [[ smt_verbose = true ]]
+declare [[ old_smt_verbose = true ]]
 
 text {*
 For tracing the generated problem file given to the SMT solver as
 well as the returned result of the solver, the option
-@{text smt_trace} should be set to @{text true}.
+@{text old_smt_trace} should be set to @{text true}.
 *}
 
-declare [[ smt_trace = false ]]
+declare [[ old_smt_trace = false ]]
 
 text {*
 From the set of assumptions given to the SMT solver, those assumptions
 used in the proof are traced when the following option is set to
 @{term true}.  This only works for Z3 when it runs in non-oracle mode
-(see options @{text smt_solver} and @{text smt_oracle} above).
+(see options @{text old_smt_solver} and @{text old_smt_oracle} above).
 *}
 
-declare [[ smt_trace_used_facts = false ]]
+declare [[ old_smt_trace_used_facts = false ]]
 
 
 
@@ -309,12 +309,12 @@ rules;  the facts in @{text z3_simp} are only fed to invocations of
 the simplifier when reconstructing theory-specific proof steps.
 *}
 
-lemmas [z3_rule] =
+lemmas [old_z3_rule] =
   refl eq_commute conj_commute disj_commute simp_thms nnf_simps
   ring_distribs field_simps times_divide_eq_right times_divide_eq_left
   if_True if_False not_not
 
-lemma [z3_rule]:
+lemma [old_z3_rule]:
   "(P \<and> Q) = (\<not>(\<not>P \<or> \<not>Q))"
   "(P \<and> Q) = (\<not>(\<not>Q \<or> \<not>P))"
   "(\<not>P \<and> Q) = (\<not>(P \<or> \<not>Q))"
@@ -325,7 +325,7 @@ lemma [z3_rule]:
   "(\<not>P \<and> \<not>Q) = (\<not>(Q \<or> P))"
   by auto
 
-lemma [z3_rule]:
+lemma [old_z3_rule]:
   "(P \<longrightarrow> Q) = (Q \<or> \<not>P)"
   "(\<not>P \<longrightarrow> Q) = (P \<or> Q)"
   "(\<not>P \<longrightarrow> Q) = (Q \<or> P)"
@@ -335,11 +335,11 @@ lemma [z3_rule]:
   "(P \<longrightarrow> P) = True"
   by auto
 
-lemma [z3_rule]:
+lemma [old_z3_rule]:
   "((P = Q) \<longrightarrow> R) = (R | (Q = (\<not>P)))"
   by auto
 
-lemma [z3_rule]:
+lemma [old_z3_rule]:
   "(\<not>True) = False"
   "(\<not>False) = True"
   "(x = x) = True"
@@ -357,7 +357,7 @@ lemma [z3_rule]:
   "(P \<noteq> Q) = ((\<not>P \<or> \<not>Q) \<and> (P \<or> Q))"
   by auto
 
-lemma [z3_rule]:
+lemma [old_z3_rule]:
   "(if P then P else \<not>P) = True"
   "(if \<not>P then \<not>P else P) = True"
   "(if P then True else False) = P"
@@ -381,7 +381,7 @@ lemma [z3_rule]:
   "(if P then x = y else z = y) = (y = (if P then x else z))"
   by auto
 
-lemma [z3_rule]:
+lemma [old_z3_rule]:
   "0 + (x::int) = x"
   "x + 0 = x"
   "x + x = 2 * x"
@@ -390,7 +390,7 @@ lemma [z3_rule]:
   "x + y = y + x"
   by auto
 
-lemma [z3_rule]:  (* for def-axiom *)
+lemma [old_z3_rule]:  (* for def-axiom *)
   "P = Q \<or> P \<or> Q"
   "P = Q \<or> \<not>P \<or> \<not>Q"
   "(\<not>P) = Q \<or> \<not>P \<or> Q"
