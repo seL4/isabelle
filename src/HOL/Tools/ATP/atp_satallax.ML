@@ -99,7 +99,7 @@ fun seperate_dependices dependencies =
           if state = 1 orelse state = 0 then
             sep_dep l used_assumptions (x :: new_goals) generated_assumptions 1
           else
-            raise Fail ("incorrect Satallax proof" ^ PolyML.makestring l)
+            raise Fail ("incorrect Satallax proof: " ^ @{make_string} l)
   in
     sep_dep dependencies [] [] [] 0
   end
@@ -154,7 +154,7 @@ datatype satallax_proof_graph =
 
 fun find_proof_step ((x as Satallax_Step {id, ...}) :: l) h =
     if h = id then x else find_proof_step l h
-  | find_proof_step [] h = raise Fail ("not_found: " ^ PolyML.makestring h ^ "(probably a parsing \
+  | find_proof_step [] h = raise Fail ("not_found: " ^ @{make_string} h ^ " (probably a parsing \
     \error)")
 
 fun remove_not_not (x as ATerm ((op1, _), [ATerm ((op2, _), [th])])) =
