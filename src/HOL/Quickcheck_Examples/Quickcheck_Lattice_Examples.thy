@@ -4,8 +4,10 @@
 *)
 
 theory Quickcheck_Lattice_Examples
-imports "~~/src/HOL/Library/Quickcheck_Types"
+imports Main
 begin
+
+declare [[quickcheck_finite_type_size=5]]
 
 text {* We show how other default types help to find counterexamples to propositions if
   the standard default type @{typ int} is insufficient. *}

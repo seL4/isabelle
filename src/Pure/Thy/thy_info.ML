@@ -380,7 +380,7 @@ val use_thy = use_thys o single;
 
 fun script_thy pos txt =
   let
-    val trs = Outer_Syntax.parse pos txt;
+    val trs = Outer_Syntax.parse (Outer_Syntax.get_syntax ()) pos txt;
     val end_pos = if null trs then pos else Toplevel.pos_of (List.last trs);
     val end_state = fold (Toplevel.command_exception true) trs Toplevel.toplevel;
   in Toplevel.end_theory end_pos end_state end;

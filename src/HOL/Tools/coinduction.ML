@@ -149,9 +149,8 @@ in
 val setup =
   Method.setup @{binding coinduction}
     (arbitrary -- Scan.option coinduct_rule >>
-      (fn (arbitrary, opt_rule) => fn ctxt =>
-        RAW_METHOD_CASES (fn facts =>
-          Seq.DETERM (coinduction_tac ctxt arbitrary opt_rule facts))))
+      (fn (arbitrary, opt_rule) => fn ctxt => fn facts =>
+        Seq.DETERM (coinduction_tac ctxt arbitrary opt_rule facts)))
     "coinduction on types or predicates/sets";
 
 end;

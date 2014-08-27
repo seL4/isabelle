@@ -537,6 +537,62 @@ done
 
 end
 
+instance finite_1 :: "{dense_linorder, wellorder}"
+by intro_classes (simp_all add: less_finite_1_def)
+
+instantiation finite_1 :: complete_lattice
+begin
+
+definition [simp]: "Inf = (\<lambda>_. a\<^sub>1)"
+definition [simp]: "Sup = (\<lambda>_. a\<^sub>1)"
+definition [simp]: "bot = a\<^sub>1"
+definition [simp]: "top = a\<^sub>1"
+definition [simp]: "inf = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "sup = (\<lambda>_ _. a\<^sub>1)"
+
+instance by intro_classes(simp_all add: less_eq_finite_1_def)
+end
+
+instance finite_1 :: complete_distrib_lattice
+by intro_classes(simp_all add: INF_def SUP_def)
+
+instance finite_1 :: complete_linorder ..
+
+lemma finite_1_eq: "x = a\<^sub>1"
+by(cases x) simp
+
+simproc_setup finite_1_eq ("x::finite_1") = {*
+  fn _ => fn _ => fn ct => case term_of ct of
+    Const (@{const_name a\<^sub>1}, _) => NONE
+  | _ => SOME (mk_meta_eq @{thm finite_1_eq})
+*}
+
+instantiation finite_1 :: complete_boolean_algebra begin
+definition [simp]: "op - = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "uminus = (\<lambda>_. a\<^sub>1)"
+instance by intro_classes simp_all
+end
+
+instantiation finite_1 :: 
+  "{linordered_ring_strict, linordered_comm_semiring_strict, ordered_comm_ring,
+    ordered_cancel_comm_monoid_diff, comm_monoid_mult, ordered_ring_abs,
+    one, Divides.div, sgn_if, inverse}"
+begin
+definition [simp]: "Groups.zero = a\<^sub>1"
+definition [simp]: "Groups.one = a\<^sub>1"
+definition [simp]: "op + = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "op * = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "op div = (\<lambda>_ _. a\<^sub>1)" 
+definition [simp]: "op mod = (\<lambda>_ _. a\<^sub>1)" 
+definition [simp]: "abs = (\<lambda>_. a\<^sub>1)"
+definition [simp]: "sgn = (\<lambda>_. a\<^sub>1)"
+definition [simp]: "inverse = (\<lambda>_. a\<^sub>1)"
+definition [simp]: "op / = (\<lambda>_ _. a\<^sub>1)"
+
+instance by intro_classes(simp_all add: less_finite_1_def)
+end
+
+declare [[simproc del: finite_1_eq]]
 hide_const (open) a\<^sub>1
 
 datatype finite_2 = a\<^sub>1 | a\<^sub>2
@@ -584,6 +640,65 @@ done
 
 end
 
+instance finite_2 :: wellorder
+by(rule wf_wellorderI)(simp add: less_finite_2_def, intro_classes)
+
+instantiation finite_2 :: complete_lattice
+begin
+
+definition "\<Sqinter>A = (if a\<^sub>1 \<in> A then a\<^sub>1 else a\<^sub>2)"
+definition "\<Squnion>A = (if a\<^sub>2 \<in> A then a\<^sub>2 else a\<^sub>1)"
+definition [simp]: "bot = a\<^sub>1"
+definition [simp]: "top = a\<^sub>2"
+definition "x \<sqinter> y = (if x = a\<^sub>1 \<or> y = a\<^sub>1 then a\<^sub>1 else a\<^sub>2)"
+definition "x \<squnion> y = (if x = a\<^sub>2 \<or> y = a\<^sub>2 then a\<^sub>2 else a\<^sub>1)"
+
+lemma neq_finite_2_a\<^sub>1_iff [simp]: "x \<noteq> a\<^sub>1 \<longleftrightarrow> x = a\<^sub>2"
+by(cases x) simp_all
+
+lemma neq_finite_2_a\<^sub>1_iff' [simp]: "a\<^sub>1 \<noteq> x \<longleftrightarrow> x = a\<^sub>2"
+by(cases x) simp_all
+
+lemma neq_finite_2_a\<^sub>2_iff [simp]: "x \<noteq> a\<^sub>2 \<longleftrightarrow> x = a\<^sub>1"
+by(cases x) simp_all
+
+lemma neq_finite_2_a\<^sub>2_iff' [simp]: "a\<^sub>2 \<noteq> x \<longleftrightarrow> x = a\<^sub>1"
+by(cases x) simp_all
+
+instance
+proof
+  fix x :: finite_2 and A
+  assume "x \<in> A"
+  then show "\<Sqinter>A \<le> x" "x \<le> \<Squnion>A"
+    by(case_tac [!] x)(auto simp add: less_eq_finite_2_def less_finite_2_def Inf_finite_2_def Sup_finite_2_def)
+qed(auto simp add: less_eq_finite_2_def less_finite_2_def inf_finite_2_def sup_finite_2_def Inf_finite_2_def Sup_finite_2_def)
+end
+
+instance finite_2 :: complete_distrib_lattice
+by(intro_classes)(auto simp add: INF_def SUP_def sup_finite_2_def inf_finite_2_def Inf_finite_2_def Sup_finite_2_def)
+
+instance finite_2 :: complete_linorder ..
+
+instantiation finite_2 :: "{field_inverse_zero, abs_if, ring_div, semiring_div_parity, sgn_if}" begin
+definition [simp]: "0 = a\<^sub>1"
+definition [simp]: "1 = a\<^sub>2"
+definition "x + y = (case (x, y) of (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
+definition "uminus = (\<lambda>x :: finite_2. x)"
+definition "op - = (op + :: finite_2 \<Rightarrow> _)"
+definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
+definition "inverse = (\<lambda>x :: finite_2. x)"
+definition "op / = (op * :: finite_2 \<Rightarrow> _)"
+definition "abs = (\<lambda>x :: finite_2. x)"
+definition "op div = (op / :: finite_2 \<Rightarrow> _)"
+definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
+definition "sgn = (\<lambda>x :: finite_2. x)"
+instance
+by intro_classes
+  (simp_all add: plus_finite_2_def uminus_finite_2_def minus_finite_2_def times_finite_2_def
+       inverse_finite_2_def divide_finite_2_def abs_finite_2_def div_finite_2_def mod_finite_2_def sgn_finite_2_def
+     split: finite_2.splits)
+end
+
 hide_const (open) a\<^sub>1 a\<^sub>2
 
 datatype finite_3 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3
@@ -629,6 +744,85 @@ qed (auto simp add: less_finite_3_def less_eq_finite_3_def split: finite_3.split
 
 end
 
+instance finite_3 :: wellorder
+proof(rule wf_wellorderI)
+  have "inv_image less_than (case_finite_3 0 1 2) = {(x, y). x < y}"
+    by(auto simp add: less_finite_3_def split: finite_3.splits)
+  from this[symmetric] show "wf \<dots>" by simp
+qed intro_classes
+
+instantiation finite_3 :: complete_lattice
+begin
+
+definition "\<Sqinter>A = (if a\<^sub>1 \<in> A then a\<^sub>1 else if a\<^sub>2 \<in> A then a\<^sub>2 else a\<^sub>3)"
+definition "\<Squnion>A = (if a\<^sub>3 \<in> A then a\<^sub>3 else if a\<^sub>2 \<in> A then a\<^sub>2 else a\<^sub>1)"
+definition [simp]: "bot = a\<^sub>1"
+definition [simp]: "top = a\<^sub>3"
+definition [simp]: "inf = (min :: finite_3 \<Rightarrow> _)"
+definition [simp]: "sup = (max :: finite_3 \<Rightarrow> _)"
+
+instance
+proof
+  fix x :: finite_3 and A
+  assume "x \<in> A"
+  then show "\<Sqinter>A \<le> x" "x \<le> \<Squnion>A"
+    by(case_tac [!] x)(auto simp add: Inf_finite_3_def Sup_finite_3_def less_eq_finite_3_def less_finite_3_def)
+next
+  fix A and z :: finite_3
+  assume "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
+  then show "z \<le> \<Sqinter>A"
+    by(cases z)(auto simp add: Inf_finite_3_def less_eq_finite_3_def less_finite_3_def)
+next
+  fix A and z :: finite_3
+  assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
+  show "\<Squnion>A \<le> z"
+    by(auto simp add: Sup_finite_3_def less_eq_finite_3_def less_finite_3_def dest: *)
+qed(auto simp add: Inf_finite_3_def Sup_finite_3_def)
+end
+
+instance finite_3 :: complete_distrib_lattice
+proof
+  fix a :: finite_3 and B
+  show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
+  proof(cases a "\<Sqinter>B" rule: finite_3.exhaust[case_product finite_3.exhaust])
+    case a\<^sub>2_a\<^sub>3
+    then have "\<And>x. x \<in> B \<Longrightarrow> x = a\<^sub>3"
+      by(case_tac x)(auto simp add: Inf_finite_3_def split: split_if_asm)
+    then show ?thesis using a\<^sub>2_a\<^sub>3
+      by(auto simp add: INF_def Inf_finite_3_def max_def less_eq_finite_3_def less_finite_3_def split: split_if_asm)
+  qed(auto simp add: INF_def Inf_finite_3_def max_def less_finite_3_def less_eq_finite_3_def split: split_if_asm)
+  show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
+    by(cases a "\<Squnion>B" rule: finite_3.exhaust[case_product finite_3.exhaust])
+      (auto simp add: SUP_def Sup_finite_3_def min_def less_finite_3_def less_eq_finite_3_def split: split_if_asm)
+qed
+
+instance finite_3 :: complete_linorder ..
+
+instantiation finite_3 :: "{field_inverse_zero, abs_if, ring_div, semiring_div, sgn_if}" begin
+definition [simp]: "0 = a\<^sub>1"
+definition [simp]: "1 = a\<^sub>2"
+definition
+  "x + y = (case (x, y) of
+     (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>3) \<Rightarrow> a\<^sub>1 | (a\<^sub>3, a\<^sub>2) \<Rightarrow> a\<^sub>1
+   | (a\<^sub>1, a\<^sub>2) \<Rightarrow> a\<^sub>2 | (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>3) \<Rightarrow> a\<^sub>2
+   | _ \<Rightarrow> a\<^sub>3)"
+definition "- x = (case x of a\<^sub>1 \<Rightarrow> a\<^sub>1 | a\<^sub>2 \<Rightarrow> a\<^sub>3 | a\<^sub>3 \<Rightarrow> a\<^sub>2)"
+definition "x - y = x + (- y :: finite_3)"
+definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>3) \<Rightarrow> a\<^sub>2 | (a\<^sub>2, a\<^sub>3) \<Rightarrow> a\<^sub>3 | (a\<^sub>3, a\<^sub>2) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
+definition "inverse = (\<lambda>x :: finite_3. x)" 
+definition "x / y = x * inverse (y :: finite_3)"
+definition "abs = (\<lambda>x :: finite_3. x)"
+definition "op div = (op / :: finite_3 \<Rightarrow> _)"
+definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | (a\<^sub>3, a\<^sub>1) \<Rightarrow> a\<^sub>3 | _ \<Rightarrow> a\<^sub>1)"
+definition "sgn = (\<lambda>x. case x of a\<^sub>1 \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
+instance
+by intro_classes
+  (simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def times_finite_3_def
+       inverse_finite_3_def divide_finite_3_def abs_finite_3_def div_finite_3_def mod_finite_3_def sgn_finite_3_def
+       less_finite_3_def
+     split: finite_3.splits)
+end
+
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3
 
 datatype finite_4 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4
@@ -657,6 +851,77 @@ definition
 instance proof
 qed (simp_all only: enum_finite_4_def enum_all_finite_4_def enum_ex_finite_4_def UNIV_finite_4, simp_all)
 
+end
+
+instantiation finite_4 :: complete_lattice begin
+
+text {* @{term a\<^sub>1} $<$ @{term a\<^sub>2},@{term a\<^sub>3} $<$ @{term a\<^sub>4},
+  but @{term a\<^sub>2} and @{term a\<^sub>3} are incomparable. *}
+
+definition
+  "x < y \<longleftrightarrow> (case (x, y) of
+     (a\<^sub>1, a\<^sub>1) \<Rightarrow> False | (a\<^sub>1, _) \<Rightarrow> True
+   |  (a\<^sub>2, a\<^sub>4) \<Rightarrow> True
+   |  (a\<^sub>3, a\<^sub>4) \<Rightarrow> True  | _ \<Rightarrow> False)"
+
+definition 
+  "x \<le> y \<longleftrightarrow> (case (x, y) of
+     (a\<^sub>1, _) \<Rightarrow> True
+   | (a\<^sub>2, a\<^sub>2) \<Rightarrow> True | (a\<^sub>2, a\<^sub>4) \<Rightarrow> True
+   | (a\<^sub>3, a\<^sub>3) \<Rightarrow> True | (a\<^sub>3, a\<^sub>4) \<Rightarrow> True
+   | (a\<^sub>4, a\<^sub>4) \<Rightarrow> True | _ \<Rightarrow> False)"
+
+definition
+  "\<Sqinter>A = (if a\<^sub>1 \<in> A \<or> a\<^sub>2 \<in> A \<and> a\<^sub>3 \<in> A then a\<^sub>1 else if a\<^sub>2 \<in> A then a\<^sub>2 else if a\<^sub>3 \<in> A then a\<^sub>3 else a\<^sub>4)"
+definition
+  "\<Squnion>A = (if a\<^sub>4 \<in> A \<or> a\<^sub>2 \<in> A \<and> a\<^sub>3 \<in> A then a\<^sub>4 else if a\<^sub>2 \<in> A then a\<^sub>2 else if a\<^sub>3 \<in> A then a\<^sub>3 else a\<^sub>1)"
+definition [simp]: "bot = a\<^sub>1"
+definition [simp]: "top = a\<^sub>4"
+definition
+  "x \<sqinter> y = (case (x, y) of
+     (a\<^sub>1, _) \<Rightarrow> a\<^sub>1 | (_, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>3) \<Rightarrow> a\<^sub>1 | (a\<^sub>3, a\<^sub>2) \<Rightarrow> a\<^sub>1
+   | (a\<^sub>2, _) \<Rightarrow> a\<^sub>2 | (_, a\<^sub>2) \<Rightarrow> a\<^sub>2
+   | (a\<^sub>3, _) \<Rightarrow> a\<^sub>3 | (_, a\<^sub>3) \<Rightarrow> a\<^sub>3
+   | _ \<Rightarrow> a\<^sub>4)"
+definition
+  "x \<squnion> y = (case (x, y) of
+     (a\<^sub>4, _) \<Rightarrow> a\<^sub>4 | (_, a\<^sub>4) \<Rightarrow> a\<^sub>4 | (a\<^sub>2, a\<^sub>3) \<Rightarrow> a\<^sub>4 | (a\<^sub>3, a\<^sub>2) \<Rightarrow> a\<^sub>4
+  | (a\<^sub>2, _) \<Rightarrow> a\<^sub>2 | (_, a\<^sub>2) \<Rightarrow> a\<^sub>2
+  | (a\<^sub>3, _) \<Rightarrow> a\<^sub>3 | (_, a\<^sub>3) \<Rightarrow> a\<^sub>3
+  | _ \<Rightarrow> a\<^sub>1)"
+
+instance
+proof
+  fix A and z :: finite_4
+  assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
+  show "\<Squnion>A \<le> z"
+    by(auto simp add: Sup_finite_4_def less_eq_finite_4_def dest!: * split: finite_4.splits)
+next
+  fix A and z :: finite_4
+  assume *: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
+  show "z \<le> \<Sqinter>A"
+    by(auto simp add: Inf_finite_4_def less_eq_finite_4_def dest!: * split: finite_4.splits)
+qed(auto simp add: less_finite_4_def less_eq_finite_4_def Inf_finite_4_def Sup_finite_4_def inf_finite_4_def sup_finite_4_def split: finite_4.splits)
+
+end
+
+instance finite_4 :: complete_distrib_lattice
+proof
+  fix a :: finite_4 and B
+  show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
+    by(cases a "\<Sqinter>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
+      (auto simp add: sup_finite_4_def Inf_finite_4_def INF_def split: finite_4.splits split_if_asm)
+  show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
+    by(cases a "\<Squnion>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
+      (auto simp add: inf_finite_4_def Sup_finite_4_def SUP_def split: finite_4.splits split_if_asm)
+qed
+
+instantiation finite_4 :: complete_boolean_algebra begin
+definition "- x = (case x of a\<^sub>1 \<Rightarrow> a\<^sub>4 | a\<^sub>2 \<Rightarrow> a\<^sub>3 | a\<^sub>3 \<Rightarrow> a\<^sub>2 | a\<^sub>4 \<Rightarrow> a\<^sub>1)"
+definition "x - y = x \<sqinter> - (y :: finite_4)"
+instance
+by intro_classes
+  (simp_all add: inf_finite_4_def sup_finite_4_def uminus_finite_4_def minus_finite_4_def split: finite_4.splits)
 end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4
@@ -688,6 +953,72 @@ definition
 
 instance proof
 qed (simp_all only: enum_finite_5_def enum_all_finite_5_def enum_ex_finite_5_def UNIV_finite_5, simp_all)
+
+end
+
+instantiation finite_5 :: complete_lattice
+begin
+
+text {* The non-distributive pentagon lattice $N_5$ *}
+
+definition
+  "x < y \<longleftrightarrow> (case (x, y) of
+     (a\<^sub>1, a\<^sub>1) \<Rightarrow> False | (a\<^sub>1, _) \<Rightarrow> True
+   | (a\<^sub>2, a\<^sub>3) \<Rightarrow> True  | (a\<^sub>2, a\<^sub>5) \<Rightarrow> True
+   | (a\<^sub>3, a\<^sub>5) \<Rightarrow> True
+   | (a\<^sub>4, a\<^sub>5) \<Rightarrow> True  | _ \<Rightarrow> False)"
+
+definition
+  "x \<le> y \<longleftrightarrow> (case (x, y) of
+     (a\<^sub>1, _) \<Rightarrow> True
+   | (a\<^sub>2, a\<^sub>2) \<Rightarrow> True | (a\<^sub>2, a\<^sub>3) \<Rightarrow> True | (a\<^sub>2, a\<^sub>5) \<Rightarrow> True
+   | (a\<^sub>3, a\<^sub>3) \<Rightarrow> True | (a\<^sub>3, a\<^sub>5) \<Rightarrow> True
+   | (a\<^sub>4, a\<^sub>4) \<Rightarrow> True | (a\<^sub>4, a\<^sub>5) \<Rightarrow> True
+   | (a\<^sub>5, a\<^sub>5) \<Rightarrow> True | _ \<Rightarrow> False)"
+
+definition
+  "\<Sqinter>A = 
+  (if a\<^sub>1 \<in> A \<or> a\<^sub>4 \<in> A \<and> (a\<^sub>2 \<in> A \<or> a\<^sub>3 \<in> A) then a\<^sub>1
+   else if a\<^sub>2 \<in> A then a\<^sub>2
+   else if a\<^sub>3 \<in> A then a\<^sub>3
+   else if a\<^sub>4 \<in> A then a\<^sub>4
+   else a\<^sub>5)"
+definition
+  "\<Squnion>A = 
+  (if a\<^sub>5 \<in> A \<or> a\<^sub>4 \<in> A \<and> (a\<^sub>2 \<in> A \<or> a\<^sub>3 \<in> A) then a\<^sub>5
+   else if a\<^sub>3 \<in> A then a\<^sub>3
+   else if a\<^sub>2 \<in> A then a\<^sub>2
+   else if a\<^sub>4 \<in> A then a\<^sub>4
+   else a\<^sub>1)"
+definition [simp]: "bot = a\<^sub>1"
+definition [simp]: "top = a\<^sub>5"
+definition
+  "x \<sqinter> y = (case (x, y) of
+     (a\<^sub>1, _) \<Rightarrow> a\<^sub>1 | (_, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>4) \<Rightarrow> a\<^sub>1 | (a\<^sub>4, a\<^sub>2) \<Rightarrow> a\<^sub>1 | (a\<^sub>3, a\<^sub>4) \<Rightarrow> a\<^sub>1 | (a\<^sub>4, a\<^sub>3) \<Rightarrow> a\<^sub>1
+   | (a\<^sub>2, _) \<Rightarrow> a\<^sub>2 | (_, a\<^sub>2) \<Rightarrow> a\<^sub>2
+   | (a\<^sub>3, _) \<Rightarrow> a\<^sub>3 | (_, a\<^sub>3) \<Rightarrow> a\<^sub>3
+   | (a\<^sub>4, _) \<Rightarrow> a\<^sub>4 | (_, a\<^sub>4) \<Rightarrow> a\<^sub>4
+   | _ \<Rightarrow> a\<^sub>5)"
+definition
+  "x \<squnion> y = (case (x, y) of
+     (a\<^sub>5, _) \<Rightarrow> a\<^sub>5 | (_, a\<^sub>5) \<Rightarrow> a\<^sub>5 | (a\<^sub>2, a\<^sub>4) \<Rightarrow> a\<^sub>5 | (a\<^sub>4, a\<^sub>2) \<Rightarrow> a\<^sub>5 | (a\<^sub>3, a\<^sub>4) \<Rightarrow> a\<^sub>5 | (a\<^sub>4, a\<^sub>3) \<Rightarrow> a\<^sub>5
+   | (a\<^sub>3, _) \<Rightarrow> a\<^sub>3 | (_, a\<^sub>3) \<Rightarrow> a\<^sub>3
+   | (a\<^sub>2, _) \<Rightarrow> a\<^sub>2 | (_, a\<^sub>2) \<Rightarrow> a\<^sub>2
+   | (a\<^sub>4, _) \<Rightarrow> a\<^sub>4 | (_, a\<^sub>4) \<Rightarrow> a\<^sub>4
+   | _ \<Rightarrow> a\<^sub>1)"
+
+instance 
+proof intro_classes
+  fix A and z :: finite_5
+  assume *: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
+  show "z \<le> \<Sqinter>A"
+    by(auto simp add: less_eq_finite_5_def Inf_finite_5_def split: finite_5.splits split_if_asm dest!: *)
+next
+  fix A and z :: finite_5
+  assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
+  show "\<Squnion>A \<le> z"
+    by(auto simp add: less_eq_finite_5_def Sup_finite_5_def split: finite_5.splits split_if_asm dest!: *)
+qed(auto simp add: less_eq_finite_5_def less_finite_5_def inf_finite_5_def sup_finite_5_def Inf_finite_5_def Sup_finite_5_def split: finite_5.splits split_if_asm)
 
 end
 

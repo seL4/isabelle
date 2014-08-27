@@ -32,7 +32,6 @@ sig
   exception ERROR of string
   val error: string -> 'a
   val cat_error: string -> string -> 'a
-  val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
 
   (*pairs*)
   val pair: 'a -> 'b -> 'a * 'b
@@ -268,12 +267,6 @@ fun error msg = raise ERROR msg;
 fun cat_error "" msg = error msg
   | cat_error msg "" = error msg
   | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
-
-fun assert_all pred list msg =
-  let
-    fun ass [] = ()
-      | ass (x :: xs) = if pred x then ass xs else error (msg x);
-  in ass list end;
 
 
 (* pairs *)
@@ -649,14 +642,14 @@ fun radixstring (base, zerochar, num) =
 
 local
   val zero = ord "0";
-  val small = 10000: int;
-  val small_table = Vector.tabulate (small, Int.toString);
+  val small_int = 10000: int;
+  val small_int_table = Vector.tabulate (small_int, Int.toString);
 in
 
 fun string_of_int i =
   if i < 0 then Int.toString i
   else if i < 10 then chr (zero + i)
-  else if i < small then Vector.sub (small_table, i)
+  else if i < small_int then Vector.sub (small_int_table, i)
   else Int.toString i;
 
 end;

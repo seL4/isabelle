@@ -9,6 +9,7 @@ imports Ctr_Sugar Set Wellfounded
 begin
 
 ML_file "Tools/Function/function_lib.ML"
+named_theorems termination_simp "simplification rules for termination proofs"
 ML_file "Tools/Function/function_common.ML"
 ML_file "Tools/Function/context_tree.ML"
 setup Function_Ctx_Tree.setup

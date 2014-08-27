@@ -120,15 +120,8 @@ qed
 
 subsection {* Collection of continuity rules *}
 
-ML {*
-structure Cont2ContData = Named_Thms
-(
-  val name = @{binding cont2cont}
-  val description = "continuity intro rule"
-)
-*}
+named_theorems cont2cont "continuity intro rule"
 
-setup Cont2ContData.setup
 
 subsection {* Continuity of basic functions *}
 

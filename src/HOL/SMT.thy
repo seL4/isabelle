@@ -126,6 +126,7 @@ ML_file "Tools/SMT/z3_proof_parser.ML"
 ML_file "Tools/SMT/z3_proof_tools.ML"
 ML_file "Tools/SMT/z3_proof_literals.ML"
 ML_file "Tools/SMT/z3_proof_methods.ML"
+named_theorems z3_simp "simplification rules for Z3 proof reconstruction"
 ML_file "Tools/SMT/z3_proof_reconstruction.ML"
 ML_file "Tools/SMT/z3_model.ML"
 ML_file "Tools/SMT/smt_setup_solvers.ML"
@@ -135,7 +136,6 @@ setup {*
   SMT_Normalize.setup #>
   SMTLIB_Interface.setup #>
   Z3_Interface.setup #>
-  Z3_Proof_Reconstruction.setup #>
   SMT_Setup_Solvers.setup
 *}
 

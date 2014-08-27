@@ -9,17 +9,8 @@ theory Topological_Spaces
 imports Main Conditionally_Complete_Lattices
 begin
 
-ML {*
+named_theorems continuous_intros "structural introduction rules for continuity"
 
-structure Continuous_Intros = Named_Thms
-(
-  val name = @{binding continuous_intros}
-  val description = "Structural introduction rules for continuity"
-)
-
-*}
-
-setup Continuous_Intros.setup
 
 subsection {* Topological space *}
 
@@ -1100,20 +1091,12 @@ definition (in t2_space) Lim :: "'f filter \<Rightarrow> ('f \<Rightarrow> 'a) \
 lemma tendsto_eq_rhs: "(f ---> x) F \<Longrightarrow> x = y \<Longrightarrow> (f ---> y) F"
   by simp
 
-ML {*
-
-structure Tendsto_Intros = Named_Thms
-(
-  val name = @{binding tendsto_intros}
-  val description = "introduction rules for tendsto"
-)
-
-*}
-
+named_theorems tendsto_intros "introduction rules for tendsto"
 setup {*
-  Tendsto_Intros.setup #>
   Global_Theory.add_thms_dynamic (@{binding tendsto_eq_intros},
-    map_filter (try (fn thm => @{thm tendsto_eq_rhs} OF [thm])) o Tendsto_Intros.get o Context.proof_of);
+    fn context =>
+      Named_Theorems.get (Context.proof_of context) @{named_theorems tendsto_intros}
+      |> map_filter (try (fn thm => @{thm tendsto_eq_rhs} OF [thm])))
 *}
 
 lemma (in topological_space) tendsto_def:

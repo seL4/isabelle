@@ -167,8 +167,8 @@ fun prove_strong_ind s avoids ctxt =
     val _ = (case duplicates (op = o pairself fst) avoids of
         [] => ()
       | xs => error ("Duplicate case names: " ^ commas_quote (map fst xs)));
-    val _ = assert_all (null o duplicates op = o snd) avoids
-      (fn (a, _) => error ("Duplicate variable names for case " ^ quote a));
+    val _ = avoids |> forall (fn (a, xs) => null (duplicates (op =) xs) orelse
+      error ("Duplicate variable names for case " ^ quote a));
     val _ = (case subtract (op =) induct_cases (map fst avoids) of
         [] => ()
       | xs => error ("No such case(s) in inductive definition: " ^ commas_quote xs));

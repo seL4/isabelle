@@ -1,22 +1,12 @@
 (*  Title:      Pure/Isar/args.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Parsing with implicit value assignment.  Concrete argument syntax of
+Quasi-inner syntax based on outer tokens: concrete argument syntax of
 attributes, methods etc.
 *)
 
 signature ARGS =
 sig
-  type src
-  val src: xstring * Position.T -> Token.T list -> src
-  val name_of_src: src -> string * Position.T
-  val range_of_src: src -> Position.T
-  val unparse_src: src -> string list
-  val pretty_src: Proof.context -> src -> Pretty.T
-  val check_src: Proof.context -> 'a Name_Space.table -> src -> src * 'a
-  val transform_values: morphism -> src -> src
-  val init_assignable: src -> src
-  val closure: src -> src
   val context: Proof.context context_parser
   val theory: theory context_parser
   val $$$ : string -> string parser
@@ -43,17 +33,20 @@ sig
   val symbol: string parser
   val liberal_name: string parser
   val var: indexname parser
-  val internal_text: string parser
+  val internal_source: Token.src parser
+  val internal_name: (string * morphism) parser
   val internal_typ: typ parser
   val internal_term: term parser
   val internal_fact: thm list parser
   val internal_attribute: (morphism -> attribute) parser
-  val named_text: (string -> string) -> string parser
+  val internal_declaration: declaration parser
+  val named_source: (Token.T -> Token.src) -> Token.src parser
   val named_typ: (string -> typ) -> typ parser
   val named_term: (string -> term) -> term parser
-  val named_fact: (string -> thm list) -> thm list parser
-  val named_attribute:
-    (string * Position.T -> morphism -> attribute) -> (morphism -> attribute) parser
+  val named_fact: (string -> string option * thm list) -> thm list parser
+  val named_attribute: (string * Position.T -> morphism -> attribute) ->
+    (morphism -> attribute) parser
+  val text_declaration: (Symbol_Pos.source -> declaration) -> declaration parser
   val typ_abbrev: typ context_parser
   val typ: typ context_parser
   val term: term context_parser
@@ -63,81 +56,12 @@ sig
   val type_name: {proper: bool, strict: bool} -> string context_parser
   val const: {proper: bool, strict: bool} -> string context_parser
   val goal_spec: ((int -> tactic) -> tactic) context_parser
-  val attribs: (xstring * Position.T -> string) -> src list parser
-  val opt_attribs: (xstring * Position.T -> string) -> src list parser
-  val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
-  val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
+  val attribs: (xstring * Position.T -> string) -> Token.src list parser
+  val opt_attribs: (xstring * Position.T -> string) -> Token.src list parser
 end;
 
 structure Args: ARGS =
 struct
-
-(** datatype src **)
-
-datatype src =
-  Src of
-   {name: string * Position.T,
-    args: Token.T list,
-    output_info: (string * Markup.T) option};
-
-fun src name args = Src {name = name, args = args, output_info = NONE};
-
-fun name_of_src (Src {name, ...}) = name;
-
-fun range_of_src (Src {name = (_, pos), args, ...}) =
-  if null args then pos
-  else Position.set_range (pos, #2 (Token.range_of args));
-
-fun unparse_src (Src {args, ...}) = map Token.unparse args;
-
-fun pretty_src ctxt src =
-  let
-    val Src {name = (name, _), args, output_info} = src;
-    val prt_name =
-      (case output_info of
-        NONE => Pretty.str name
-      | SOME (_, markup) => Pretty.mark_str (markup, name));
-    val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
-    fun prt_arg arg =
-      (case Token.get_value arg of
-        SOME (Token.Literal markup) =>
-          let val x = Token.content_of arg
-          in Pretty.mark_str (Token.keyword_markup markup x, x) end
-      | SOME (Token.Text s) => Pretty.str (quote s)
-      | SOME (Token.Typ T) => Syntax.pretty_typ ctxt T
-      | SOME (Token.Term t) => Syntax.pretty_term ctxt t
-      | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
-      | _ => Pretty.mark_str (Token.markup arg, Token.unparse arg));
-  in Pretty.block (Pretty.breaks (prt_name :: map prt_arg args)) end;
-
-
-(* check *)
-
-fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
-  let
-    val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
-    val space = Name_Space.space_of_table table;
-    val kind = Name_Space.kind_of space;
-    val markup = Name_Space.markup space name;
-  in (Src {name = (name, pos), args = args, output_info = SOME (kind, markup)}, x) end;
-
-
-(* values *)
-
-fun map_args f (Src {name, args, output_info}) =
-  Src {name = name, args = map f args, output_info = output_info};
-
-fun transform_values phi = map_args (Token.map_value
-  (fn Token.Typ T => Token.Typ (Morphism.typ phi T)
-    | Token.Term t => Token.Term (Morphism.term phi t)
-    | Token.Fact ths => Token.Fact (Morphism.fact phi ths)
-    | Token.Attribute att => Token.Attribute (Morphism.transform phi att)
-    | tok => tok));
-
-val init_assignable = map_args Token.init_assignable;
-val closure = map_args Token.closure;
-
-
 
 (** argument scanners **)
 
@@ -209,22 +133,31 @@ fun value dest = Scan.some (fn arg =>
 fun evaluate mk eval arg =
   let val x = eval arg in (Token.assign (SOME (mk x)) arg; x) end;
 
-val internal_text = value (fn Token.Text s => s);
+val internal_source = value (fn Token.Source src => src);
+val internal_name = value (fn Token.Name a => a);
 val internal_typ = value (fn Token.Typ T => T);
 val internal_term = value (fn Token.Term t => t);
-val internal_fact = value (fn Token.Fact ths => ths);
+val internal_fact = value (fn Token.Fact (_, ths) => ths);
 val internal_attribute = value (fn Token.Attribute att => att);
+val internal_declaration = value (fn Token.Declaration decl => decl);
 
-fun named_text intern = internal_text || named >> evaluate Token.Text (intern o Token.content_of);
-fun named_typ readT = internal_typ || named >> evaluate Token.Typ (readT o Token.inner_syntax_of);
+fun named_source read = internal_source || named >> evaluate Token.Source read;
+
+fun named_typ read = internal_typ || named >> evaluate Token.Typ (read o Token.inner_syntax_of);
 fun named_term read = internal_term || named >> evaluate Token.Term (read o Token.inner_syntax_of);
 
-fun named_fact get = internal_fact || named >> evaluate Token.Fact (get o Token.content_of) ||
-  alt_string >> evaluate Token.Fact (get o Token.inner_syntax_of);
+fun named_fact get =
+  internal_fact ||
+  named >> evaluate Token.Fact (get o Token.content_of) >> #2 ||
+  alt_string >> evaluate Token.Fact (get o Token.inner_syntax_of) >> #2;
 
 fun named_attribute att =
   internal_attribute ||
   named >> evaluate Token.Attribute (fn tok => att (Token.content_of tok, Token.pos_of tok));
+
+fun text_declaration read =
+  internal_declaration ||
+  text_token >> evaluate Token.Declaration (read o Token.source_position_of);
 
 
 (* terms and types *)
@@ -265,43 +198,10 @@ fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 fun attribs check =
   let
     fun intern tok = check (Token.content_of tok, Token.pos_of tok);
-    val attrib_name = internal_text || (symbolic || named) >> evaluate Token.Text intern;
-    val attrib = Parse.position attrib_name -- Parse.!!! Parse.args >> uncurry src;
+    val attrib_name = internal_name >> #1 || (symbolic || named) >> evaluate Token.name0 intern;
+    val attrib = Parse.position attrib_name -- Parse.!!! Parse.args >> uncurry Token.src;
   in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 
 fun opt_attribs check = Scan.optional (attribs check) [];
-
-
-
-(** syntax wrapper **)
-
-fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) context =
-  let
-    val args1 = map Token.init_assignable args0;
-    fun reported_text () =
-      if Context_Position.is_visible_generic context then
-        ((pos, Markup.operator) :: maps (Token.reports_of_value o Token.closure) args1)
-        |> map (fn (p, m) => Position.reported_text p m "")
-      else [];
-  in
-    (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (context, args1) of
-      (SOME x, (context', [])) =>
-        let val _ = Output.report (reported_text ())
-        in (x, context') end
-    | (_, (_, args2)) =>
-        let
-          val print_name =
-            (case output_info of
-              NONE => quote name
-            | SOME (kind, markup) => plain_words kind ^ " " ^ quote (Markup.markup markup name));
-          val print_args =
-            if null args2 then "" else ":\n  " ^ space_implode " " (map Token.print args2);
-        in
-          error ("Bad arguments for " ^ print_name ^ Position.here pos ^ print_args ^
-            Markup.markup_report (implode (reported_text ())))
-        end)
-  end;
-
-fun syntax scan src = apsnd Context.the_proof o syntax_generic scan src o Context.Proof;
 
 end;

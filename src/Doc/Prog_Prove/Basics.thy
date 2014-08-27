@@ -73,10 +73,9 @@ Isabelle automatically computes the type of each variable in a term. This is
 called \concept{type inference}.  Despite type inference, it is sometimes
 necessary to attach an explicit \concept{type constraint} (or \concept{type
 annotation}) to a variable or term.  The syntax is @{text "t :: \<tau>"} as in
-\mbox{\noquotes{@{prop[source] "m < (n::nat)"}}}. Type constraints may be
+\mbox{\noquotes{@{term[source] "m + (n::nat)"}}}. Type constraints may be
 needed to
-disambiguate terms involving overloaded functions such as @{text "+"}, @{text
-"*"} and @{text"\<le>"}.
+disambiguate terms involving overloaded functions such as @{text "+"}.
 
 Finally there are the universal quantifier @{text"\<And>"}\index{$4@\isasymAnd} and the implication
 @{text"\<Longrightarrow>"}\index{$3@\isasymLongrightarrow}. They are part of the Isabelle framework, not the logic
@@ -100,7 +99,7 @@ Sometimes we also employ inference rule notation:
 
 Roughly speaking, a \concept{theory} is a named collection of types,
 functions, and theorems, much like a module in a programming language.
-All the Isabelle text that you ever type needs to go into a theory.
+All Isabelle text needs to go into a theory.
 The general format of a theory @{text T} is
 \begin{quote}
 \indexed{\isacom{theory}}{theory} @{text T}\\

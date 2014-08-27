@@ -18,7 +18,7 @@ sig
     Simp_Method |
     Simp_Size_Method |
     Auto_Method |
-    Fastforce_Method |
+    Auto_Choice_Method |
     Force_Method |
     Linarith_Method |
     Presburger_Method |
@@ -29,14 +29,13 @@ sig
     Play_Timed_Out of Time.time |
     Play_Failed
 
-  type minimize_command = string list -> string
   type one_line_params =
-    (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
+    ((string * stature) list * (proof_method * play_outcome)) * string * int * int
 
   val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
-  val influence_proof_method : Proof.context -> proof_method -> thm list -> bool
+  val thms_influence_proof_method : Proof.context -> proof_method -> thm list -> bool
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome * play_outcome -> order
   val one_line_proof_text : Proof.context -> int -> one_line_params -> string
@@ -58,7 +57,7 @@ datatype proof_method =
   Simp_Method |
   Simp_Size_Method |
   Auto_Method |
-  Fastforce_Method |
+  Auto_Choice_Method |
   Force_Method |
   Linarith_Method |
   Presburger_Method |
@@ -69,9 +68,8 @@ datatype play_outcome =
   Play_Timed_Out of Time.time |
   Play_Failed
 
-type minimize_command = string list -> string
 type one_line_params =
-  (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
+  ((string * stature) list * (proof_method * play_outcome)) * string * int * int
 
 fun is_proof_method_direct (Metis_Method _) = true
   | is_proof_method_direct Meson_Method = true
@@ -96,7 +94,7 @@ fun string_of_proof_method ctxt ss meth =
       | Simp_Method => if null ss then "simp" else "simp add:"
       | Simp_Size_Method => "simp add: " ^ short_thm_name ctxt @{thm size_ne_size_imp_ne}
       | Auto_Method => "auto"
-      | Fastforce_Method => "fastforce"
+      | Auto_Choice_Method => "atomize_elim, auto intro!: " ^ short_thm_name ctxt @{thm choice}
       | Force_Method => "force"
       | Linarith_Method => "linarith"
       | Presburger_Method => "presburger"
@@ -129,18 +127,20 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
     (case meth of
       SATx_Method => SAT.satx_tac ctxt
     | Blast_Method => blast_tac ctxt
-    | Auto_Method => K (Clasimp.auto_tac (silence_methods ctxt))
-    | Fastforce_Method => Clasimp.fast_force_tac (silence_methods ctxt)
-    | Force_Method => Clasimp.force_tac (silence_methods ctxt)
+    | Auto_Method => SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt))
+    | Auto_Choice_Method =>
+      Atomize_Elim.atomize_elim_tac ctxt THEN'
+      SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt addSIs @{thms choice}))
+    | Force_Method => SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt))
     | Linarith_Method =>
       let val ctxt = Config.put Lin_Arith.verbose false ctxt in Lin_Arith.tac ctxt end
     | Presburger_Method => Cooper.tac true [] [] ctxt
     | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 
 val simp_based_methods =
-  [Simp_Method, Simp_Size_Method, Auto_Method, Fastforce_Method, Force_Method]
+  [Simp_Method, Simp_Size_Method, Auto_Method, Auto_Choice_Method, Force_Method]
 
-fun influence_proof_method ctxt meth ths =
+fun thms_influence_proof_method ctxt meth ths =
   not (member (op =) simp_based_methods meth) orelse
   let val ctxt' = silence_methods ctxt in
     (* unfortunate pointer comparison -- but it's always safe to consider a theorem useful *)
@@ -179,29 +179,13 @@ fun try_command_line banner play command =
     (s |> s <> "" ? enclose " (" ")") ^ "."
   end
 
-fun minimize_line _ [] = ""
-  | minimize_line minimize_command ss =
-    (case minimize_command ss of
-      "" => ""
-    | command => "\nTo minimize: " ^ Active.sendback_markup [Markup.padding_command] command ^ ".")
-
-fun split_used_facts facts =
-  facts
-  |> List.partition (fn (_, (sc, _)) => sc = Chained)
-  |> pairself (sort_distinct (string_ord o pairself fst))
-
 fun one_line_proof_text ctxt num_chained
-    ((meth, play), banner, used_facts, minimize_command, subgoal, subgoal_count) =
-  let
-    val (chained, extra) = split_used_facts used_facts
-
-    val try_line =
-      map fst extra
-      |> proof_method_command ctxt meth subgoal subgoal_count (map fst chained) num_chained
-      |> (if play = Play_Failed then enclose "One-line proof reconstruction failed: " "."
-          else try_command_line banner play)
-  in
-    try_line ^ minimize_line minimize_command (map fst (extra @ chained))
+    ((used_facts, (meth, play)), banner, subgoal, subgoal_count) =
+  let val (chained, extra) = List.partition (fn (_, (sc, _)) => sc = Chained) used_facts in
+    map fst extra
+    |> proof_method_command ctxt meth subgoal subgoal_count (map fst chained) num_chained
+    |> (if play = Play_Failed then enclose "One-line proof reconstruction failed: " "."
+        else try_command_line banner play)
   end
 
 end;

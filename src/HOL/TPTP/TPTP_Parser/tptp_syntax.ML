@@ -66,7 +66,7 @@ sig
     Forall | Exists | Epsilon | Iota | Lambda | Dep_Prod | Dep_Sum
 
   and tptp_base_type =
-    Type_Ind | Type_Bool | Type_Type | Type_Int | Type_Rat | Type_Real
+    Type_Ind | Type_Bool | Type_Type | Type_Int | Type_Rat | Type_Real | Type_Dummy
 
   and symbol =
       Uninterpreted of string
@@ -111,7 +111,8 @@ sig
   and tptp_type =
       Prod_type of tptp_type * tptp_type
     | Fn_type of tptp_type * tptp_type
-    | Atom_type of string
+    | Atom_type of string * tptp_type list
+    | Var_type of string
     | Defined_type of tptp_base_type
     | Sum_type of tptp_type * tptp_type (*only THF*)
     | Fmla_type of tptp_formula
@@ -140,8 +141,6 @@ sig
   val role_to_string : role -> string
 
   val status_to_string : status_value -> string
-
-  val nameof_tff_atom_type : tptp_type -> string
 
   val pos_of_line : tptp_line -> position
 
@@ -216,7 +215,7 @@ and general_data = (*Bind of variable * formula_data*)
     Forall | Exists | Epsilon | Iota | Lambda | Dep_Prod | Dep_Sum
 
   and tptp_base_type =
-    Type_Ind | Type_Bool | Type_Type | Type_Int | Type_Rat | Type_Real
+    Type_Ind | Type_Bool | Type_Type | Type_Int | Type_Rat | Type_Real | Type_Dummy
 
   and symbol =
       Uninterpreted of string
@@ -261,7 +260,8 @@ and general_data = (*Bind of variable * formula_data*)
   and tptp_type =
       Prod_type of tptp_type * tptp_type
     | Fn_type of tptp_type * tptp_type
-    | Atom_type of string
+    | Atom_type of string * tptp_type list
+    | Var_type of string
     | Defined_type of tptp_base_type
     | Sum_type of tptp_type * tptp_type
     | Fmla_type of tptp_formula
@@ -286,9 +286,6 @@ datatype tptp_line =
 type tptp_problem = tptp_line list
 
 fun debug f x = if Options.default_bool @{system_option ML_exception_trace} then (f x; ()) else ()
-
-fun nameof_tff_atom_type (Atom_type str) = str
-  | nameof_tff_atom_type _ = raise TPTP_SYNTAX "nameof_tff_atom_type called on non-atom type"
 
 fun pos_of_line tptp_line =
   case tptp_line of
@@ -428,6 +425,7 @@ and string_of_tptp_base_type Type_Ind = "$i"
   | string_of_tptp_base_type Type_Int = "$int"
   | string_of_tptp_base_type Type_Rat = "$rat"
   | string_of_tptp_base_type Type_Real = "$real"
+  | string_of_tptp_base_type Type_Dummy = "$_"
 
 and string_of_interpreted_symbol x =
   case x of
@@ -517,7 +515,10 @@ and string_of_tptp_type (Prod_type (tptp_type1, tptp_type2)) =
       string_of_tptp_type tptp_type1 ^ " * " ^ string_of_tptp_type tptp_type2
   | string_of_tptp_type (Fn_type (tptp_type1, tptp_type2)) =
       string_of_tptp_type tptp_type1 ^ " > " ^ string_of_tptp_type tptp_type2
-  | string_of_tptp_type (Atom_type str) = str
+  | string_of_tptp_type (Atom_type (str, [])) = str
+  | string_of_tptp_type (Atom_type (str, tptp_types)) =
+      str ^ "(" ^ commas (map string_of_tptp_type tptp_types) ^ ")"
+  | string_of_tptp_type (Var_type str) = str
   | string_of_tptp_type (Defined_type tptp_base_type) =
       string_of_tptp_base_type tptp_base_type
   | string_of_tptp_type (Sum_type (tptp_type1, tptp_type2)) = ""
@@ -565,6 +566,7 @@ and latex_of_tptp_base_type Type_Ind = "\\\\iota "
   | latex_of_tptp_base_type Type_Int = "\\\\mathsf{int} "
   | latex_of_tptp_base_type Type_Rat = "\\\\mathsf{rat} "
   | latex_of_tptp_base_type Type_Real = "\\\\mathsf{real} "
+  | latex_of_tptp_base_type Type_Dummy = "\\\\mathsf{\\\\_} "
 
 and latex_of_interpreted_symbol x =
   case x of
@@ -687,7 +689,10 @@ and latex_of_tptp_type (Prod_type (tptp_type1, tptp_type2)) =
       latex_of_tptp_type tptp_type1 ^ " \\\\times " ^ latex_of_tptp_type tptp_type2
   | latex_of_tptp_type (Fn_type (tptp_type1, tptp_type2)) =
       latex_of_tptp_type tptp_type1 ^ " \\\\to " ^ latex_of_tptp_type tptp_type2
-  | latex_of_tptp_type (Atom_type str) = "\\\\mathrm{" ^ str ^ "}"
+  | latex_of_tptp_type (Atom_type (str, [])) = "\\\\mathrm{" ^ str ^ "}"
+  | latex_of_tptp_type (Atom_type (str, tptp_types)) =
+    "\\\\mathrm{" ^ str ^ "}(" ^ commas (map latex_of_tptp_type tptp_types) ^ ")"
+  | latex_of_tptp_type (Var_type str) = "\\\\mathrm{" ^ str ^ "}"
   | latex_of_tptp_type (Defined_type tptp_base_type) =
       latex_of_tptp_base_type tptp_base_type
   | latex_of_tptp_type (Sum_type (tptp_type1, tptp_type2)) = ""

@@ -397,17 +397,16 @@ val iprover_eq = (iprover_eqN, fn () => iprover_eq_config)
 
 (* LEO-II *)
 
-(* LEO-II supports definitions, but it performs significantly better on our
-   benchmarks when they are not used. *)
 val leo2_thf0 = THF (Monomorphic, THF_Without_Choice)
 
 val leo2_config : atp_config =
   {exec = K (["LEO2_HOME"], ["leo.opt", "leo"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "--foatp e --atp e=\"$E_HOME\"/eprover \
-       \--atp epclextract=\"$E_HOME\"/epclextract \
-       \--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^
-       file_name,
+   arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn file_name => fn _ =>
+     "--foatp e --atp e=\"$E_HOME\"/eprover \
+     \--atp epclextract=\"$E_HOME\"/epclextract \
+     \--proofoutput 1 --timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^
+     (if full_proofs then "--notReplLeibnizEQ --notReplAndrewsEQ --notUseExtCnfCmbd " else "") ^
+     file_name,
    proof_delims = tstp_proof_delims,
    known_failures =
      [(TimedOut, "CPU time limit exceeded, terminating"),
@@ -431,9 +430,9 @@ val satallax_thf0 = THF (Monomorphic, THF_Without_Choice)
 val satallax_config : atp_config =
   {exec = K (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "-p hocore -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
+       "-p tstp -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims =
-     [("% Higher-Order Unsat Core BEGIN", "% Higher-Order Unsat Core END")],
+     [("% SZS output start Proof", "% SZS output end Proof")],
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
    best_slices =

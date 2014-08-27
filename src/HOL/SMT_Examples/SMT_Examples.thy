@@ -8,9 +8,6 @@ theory SMT_Examples
 imports Complex_Main
 begin
 
-declare [[smt_certificates = "SMT_Examples.certs"]]
-declare [[smt_read_only_certificates = true]]
-
 declare [[smt2_certificates = "SMT_Examples.certs2"]]
 declare [[smt2_read_only_certificates = true]]
 
@@ -382,15 +379,11 @@ lemma
    U + (2 * (1 + p) * (b + e) + (1 + p) * d + d * p) - (1 + p) * (b + d + e)"
   using [[z3_new_extensions]] by smt2
 
-lemma [z3_rule, z3_new_rule]:
+lemma [z3_new_rule]:
   fixes x :: "int"
   assumes "x * y \<le> 0" and "\<not> y \<le> 0" and "\<not> x \<le> 0"
   shows False
   using assms by (metis mult_le_0_iff)
-
-lemma "x * y \<le> (0 :: int) \<Longrightarrow> x \<le> 0 \<or> y \<le> 0"
-  using [[z3_with_extensions]] [[z3_new_extensions]]
-  by smt (* smt2 FIXME: "th-lemma" tactic fails *)
 
 
 section {* Pairs *}

@@ -223,7 +223,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val rel_congs = map rel_cong_of_bnf bnfs;
     val rel_converseps = map rel_conversep_of_bnf bnfs;
     val rel_Grps = map rel_Grp_of_bnf bnfs;
-    val rel_OOs = map rel_OO_of_bnf bnfs;
+    val le_rel_OOs = map le_rel_OO_of_bnf bnfs;
     val in_rels = map in_rel_of_bnf bnfs;
 
     val timer = time (timer "Extracted terms & thms");
@@ -589,7 +589,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           HOLogic.mk_Trueprop (mk_bis Bs ss B''s s''s (map2 (curry mk_rel_comp) Rs R's));
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (K (mk_bis_O_tac lthy m bis_rel_thm rel_congs rel_OOs))
+          (K (mk_bis_O_tac lthy m bis_rel_thm rel_congs le_rel_OOs))
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;
@@ -1592,7 +1592,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val (dtor_corec_unique_thms, dtor_corec_unique_thm) =
       `split_conj_thm (split_conj_prems n
         (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
-        |> Local_Defs.unfold lthy (@{thms o_case_sum comp_id id_comp comp_assoc[symmetric]
+        |> unfold_thms lthy (@{thms o_case_sum comp_id id_comp comp_assoc[symmetric]
            case_sum_o_inj(1)} @ map_id0s_o_id @ sym_map_comps)
         OF replicate n @{thm arg_cong2[of _ _ _ _ case_sum, OF refl]});
 
@@ -1659,12 +1659,12 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     (*register new codatatypes as BNFs*)
     val (timer, Jbnfs, (dtor_Jmap_o_thms, dtor_Jmap_thms), dtor_Jset_thmss',
-      dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_notes, lthy) =
+      dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_notes, dtor_Jset_induct_thms, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
         map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids),
         replicate n [], map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs,
-        mk_Jrel_DEADID_coinduct_thm (), [], lthy)
+        mk_Jrel_DEADID_coinduct_thm (), [], [], lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val gTs = map2 (curry op -->) passiveBs passiveCs;
@@ -2260,7 +2260,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj goals);
           in
             Goal.prove_sorry lthy [] [] goal
-              (K (mk_le_rel_OO_tac Jrel_coinduct_thm dtor_Jrel_thms rel_OOs))
+              (K (mk_le_rel_OO_tac Jrel_coinduct_thm dtor_Jrel_thms le_rel_OOs))
             |> Thm.close_derivation
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
@@ -2464,7 +2464,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             bs thmss)
       in
         (timer, Jbnfs, (Jmap_thms, dtor_Jmap_thms), dtor_Jset_thmss',
-          dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_common_notes @ Jbnf_notes, lthy)
+          dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_common_notes @ Jbnf_notes, dtor_Jset_induct_thms,
+          lthy)
       end;
 
     val dtor_unfold_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
@@ -2513,12 +2514,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
         bs thmss);
 
-    (*FIXME: once the package exports all the necessary high-level characteristic theorems,
-       those should not only be concealed but rather not noted at all*)
-    val maybe_conceal_notes = note_all = false ? map (apfst (apfst Binding.conceal));
-
-    val (noted, lthy') =
-      lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Jbnf_notes));
+    val lthy' = lthy |> note_all ? snd o Local_Theory.notes (common_notes @ notes @ Jbnf_notes);
 
     val fp_res =
       {Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, xtor_co_recs = corecs,
@@ -2526,8 +2522,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
        ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
        xtor_map_thms = dtor_Jmap_thms, xtor_set_thmss = dtor_Jset_thmss',
        xtor_rel_thms = dtor_Jrel_thms, xtor_co_rec_thms = dtor_corec_thms,
-       xtor_co_rec_o_map_thms = dtor_corec_o_Jmap_thms, rel_xtor_co_induct_thm = Jrel_coinduct_thm}
-      |> morph_fp_result (substitute_noted_thm noted);
+       xtor_co_rec_o_map_thms = dtor_corec_o_Jmap_thms, rel_xtor_co_induct_thm = Jrel_coinduct_thm,
+       dtor_set_induct_thms = dtor_Jset_induct_thms};
   in
     timer; (fp_res, lthy')
   end;

@@ -1031,7 +1031,7 @@ text {*
     @{command_def "ML_command"} & : & @{text "any \<rightarrow>"} \\
     @{command_def "setup"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "local_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "attribute_setup"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "attribute_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
   \begin{tabular}{rcll}
     @{attribute_def ML_print_depth} & : & @{text attribute} & default 10 \\
@@ -1045,7 +1045,8 @@ text {*
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
     ;
-    @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
+    @@{command attribute_setup} @{syntax target}?
+      @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
   \begin{description}
@@ -1093,7 +1094,7 @@ text {*
   concrete outer syntax, for example.
 
   \item @{command "attribute_setup"}~@{text "name = text description"}
-  defines an attribute in the current theory.  The given @{text
+  defines an attribute in the current context.  The given @{text
   "text"} has to be an ML expression of type
   @{ML_type "attribute context_parser"}, cf.\ basic parsers defined in
   structure @{ML_structure Args} and @{ML_structure Attrib}.
@@ -1305,12 +1306,16 @@ text {*
   \begin{matharray}{rcll}
     @{command_def "lemmas"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "named_theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   @{rail \<open>
     (@@{command lemmas} | @@{command theorems}) @{syntax target}? \<newline>
       (@{syntax thmdef}? @{syntax thmrefs} + @'and')
       (@'for' (@{syntax vars} + @'and'))?
+    ;
+    @@{command named_theorems} @{syntax target}?
+      @{syntax name} @{syntax text}?
   \<close>}
 
   \begin{description}
@@ -1323,6 +1328,12 @@ text {*
 
   \item @{command "theorems"} is the same as @{command "lemmas"}, but
   marks the result as a different kind of facts.
+
+  \item @{command "named_theorems"}~@{text "name description"} declares a
+  dynamic fact within the context. The same @{text name} is used to define
+  an attribute with the usual @{text add}/@{text del} syntax (e.g.\ see
+  \secref{sec:simp-rules}) to maintain the content incrementally, in
+  canonical declaration order of the text structure.
 
   \end{description}
 *}

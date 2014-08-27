@@ -281,7 +281,7 @@ lemmas simps = prod.inject prod.case prod.rec
 setup {* Sign.parent_path *}
 
 declare prod.case [nitpick_simp del]
-declare prod.weak_case_cong [cong del]
+declare prod.case_cong_weak [cong del]
 
 
 subsubsection {* Tuple syntax *}
@@ -486,7 +486,7 @@ lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
 
 lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
   -- {* Prevents simplification of @{term c}: much faster *}
-  by (fact prod.weak_case_cong)
+  by (fact prod.case_cong_weak)
 
 lemma cond_split_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
   by (simp add: split_eta)

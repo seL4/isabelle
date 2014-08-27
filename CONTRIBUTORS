@@ -3,6 +3,13 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 who is listed as an author in one of the source files of this Isabelle
 distribution.
 
+Contributions to this Isabelle version
+--------------------------------------
+
+* August 2014: Manuel Eberl, TUM
+  Generic euclidean algorithms for gcd et al.
+
+
 Contributions to Isabelle2014
 -----------------------------
 

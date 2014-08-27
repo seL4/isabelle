@@ -167,8 +167,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val map_id0s = map map_id0_of_bnf bnfs;
     val map_ids = map map_id_of_bnf bnfs;
     val set_mapss = map set_map_of_bnf bnfs;
-    val rel_mono_strongs = map rel_mono_strong_of_bnf bnfs;
-    val rel_OOs = map rel_OO_of_bnf bnfs;
+    val rel_mono_strong0s = map rel_mono_strong0_of_bnf bnfs;
+    val le_rel_OOs = map le_rel_OO_of_bnf bnfs;
 
     val timer = time (timer "Extracted terms & thms");
 
@@ -1197,7 +1197,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val (ctor_rec_unique_thms, ctor_rec_unique_thm) =
       `split_conj_thm (split_conj_prems n
         (mor_UNIV_thm RS iffD2 RS rec_unique_mor_thm)
-        |> Local_Defs.unfold lthy (@{thms convol_o comp_id id_comp comp_assoc fst_convol} @
+        |> unfold_thms lthy (@{thms convol_o comp_id id_comp comp_assoc fst_convol} @
            map_id0s @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ convol, OF refl]});
 
     val timer = time (timer "rec definitions & thms");
@@ -1691,7 +1691,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           in
             Goal.prove_sorry lthy [] [] goal
               (fn {context = ctxt, prems = _} => mk_le_rel_OO_tac ctxt m induct ctor_nchotomy_thms
-                ctor_Irel_thms rel_mono_strongs rel_OOs)
+                ctor_Irel_thms rel_mono_strong0s le_rel_OOs)
             |> Thm.close_derivation
             |> singleton (Proof_Context.export names_lthy lthy)
           end;
@@ -1762,7 +1762,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val Irel_induct_thm =
       mk_rel_xtor_co_induct_thm Least_FP rels activeIphis Irels Iphis xFs yFs ctors ctor's
         (fn {context = ctxt, prems = IHs} => mk_rel_induct_tac ctxt IHs m ctor_induct2_thm ks
-           ctor_Irel_thms rel_mono_strongs) lthy;
+           ctor_Irel_thms rel_mono_strong0s) lthy;
 
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
     val ctor_fold_transfer_thms =
@@ -1801,12 +1801,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
         bs thmss);
 
-    (*FIXME: once the package exports all the necessary high-level characteristic theorems,
-       those should not only be concealed but rather not noted at all*)
-    val maybe_conceal_notes = note_all = false ? map (apfst (apfst Binding.conceal));
-
-    val (noted, lthy') =
-      lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Ibnf_notes));
+    val lthy' = lthy |> note_all ? snd o Local_Theory.notes (common_notes @ notes @ Ibnf_notes);
 
     val fp_res =
       {Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_co_recs = recs,
@@ -1814,8 +1809,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
        ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
        xtor_map_thms = ctor_Imap_thms, xtor_set_thmss = ctor_Iset_thmss',
        xtor_rel_thms = ctor_Irel_thms, xtor_co_rec_thms = ctor_rec_thms,
-       xtor_co_rec_o_map_thms = ctor_rec_o_Imap_thms, rel_xtor_co_induct_thm = Irel_induct_thm}
-      |> morph_fp_result (substitute_noted_thm noted);
+       xtor_co_rec_o_map_thms = ctor_rec_o_Imap_thms, rel_xtor_co_induct_thm = Irel_induct_thm,
+       dtor_set_induct_thms = []};
   in
     timer; (fp_res, lthy')
   end;

@@ -33,17 +33,6 @@ sig
   val dest_quotconsts_global: theory -> quotconsts list
   val dest_quotconsts: Proof.context -> quotconsts list
   val print_quotconsts: Proof.context -> unit
-
-  val equiv_rules: Proof.context -> thm list
-  val equiv_rules_add: attribute
-  val rsp_rules: Proof.context -> thm list
-  val rsp_rules_add: attribute
-  val prs_rules: Proof.context -> thm list
-  val prs_rules_add: attribute
-  val id_simps: Proof.context -> thm list
-  val quotient_rules: Proof.context -> thm list
-  val quotient_rules_add: attribute
-  val setup: theory -> theory
 end;
 
 structure Quotient_Info: QUOTIENT_INFO =
@@ -69,16 +58,17 @@ val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
 
 (* FIXME export proper internal update operation!? *)
 
-val quotmaps_attribute_setup =
-  Attrib.setup @{binding mapQ3}
-    ((Args.type_name {proper = true, strict = true} --| Scan.lift @{keyword "="}) --
-      (Scan.lift @{keyword "("} |--
-        Args.const {proper = true, strict = true} --| Scan.lift @{keyword ","} --
-        Attrib.thm --| Scan.lift @{keyword ")"}) >>
-      (fn (tyname, (relname, qthm)) =>
-        let val minfo = {relmap = relname, quot_thm = qthm}
-        in Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo))) end))
-    "declaration of map information"
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding mapQ3}
+      ((Args.type_name {proper = true, strict = true} --| Scan.lift @{keyword "="}) --
+        (Scan.lift @{keyword "("} |--
+          Args.const {proper = true, strict = true} --| Scan.lift @{keyword ","} --
+          Attrib.thm --| Scan.lift @{keyword ")"}) >>
+        (fn (tyname, (relname, qthm)) =>
+          let val minfo = {relmap = relname, quot_thm = qthm}
+          in Thm.declaration_attribute (fn _ => Quotmaps.map (Symtab.update (tyname, minfo))) end))
+      "declaration of map information")
 
 fun print_quotmaps ctxt =
   let
@@ -234,66 +224,6 @@ fun print_quotconsts ctxt =
     |> Pretty.big_list "quotient constants:"
     |> Pretty.writeln
   end
-
-(* equivalence relation theorems *)
-structure Equiv_Rules = Named_Thms
-(
-  val name = @{binding quot_equiv}
-  val description = "equivalence relation theorems"
-)
-
-val equiv_rules = Equiv_Rules.get
-val equiv_rules_add = Equiv_Rules.add
-
-(* respectfulness theorems *)
-structure Rsp_Rules = Named_Thms
-(
-  val name = @{binding quot_respect}
-  val description = "respectfulness theorems"
-)
-
-val rsp_rules = Rsp_Rules.get
-val rsp_rules_add = Rsp_Rules.add
-
-(* preservation theorems *)
-structure Prs_Rules = Named_Thms
-(
-  val name = @{binding quot_preserve}
-  val description = "preservation theorems"
-)
-
-val prs_rules = Prs_Rules.get
-val prs_rules_add = Prs_Rules.add
-
-(* id simplification theorems *)
-structure Id_Simps = Named_Thms
-(
-  val name = @{binding id_simps}
-  val description = "identity simp rules for maps"
-)
-
-val id_simps = Id_Simps.get
-
-(* quotient theorems *)
-structure Quotient_Rules = Named_Thms
-(
-  val name = @{binding quot_thm}
-  val description = "quotient theorems"
-)
-
-val quotient_rules = Quotient_Rules.get
-val quotient_rules_add = Quotient_Rules.add
-
-
-(* theory setup *)
-
-val setup =
-  quotmaps_attribute_setup #>
-  Equiv_Rules.setup #>
-  Rsp_Rules.setup #>
-  Prs_Rules.setup #>
-  Id_Simps.setup #>
-  Quotient_Rules.setup
 
 
 (* outer syntax commands *)

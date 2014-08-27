@@ -69,15 +69,15 @@ type corec_ctr_spec =
    calls: corec_call list,
    discI: thm,
    sel_thms: thm list,
-   disc_excludess: thm list list,
+   distinct_discss: thm list list,
    collapse: thm,
    corec_thm: thm,
-   disc_corec: thm,
-   sel_corecs: thm list};
+   corec_disc: thm,
+   corec_sels: thm list};
 
 type corec_spec =
   {corec: term,
-   disc_exhausts: thm list,
+   exhaust_discs: thm list,
    sel_defs: thm list,
    fp_nesting_maps: thm list,
    fp_nesting_map_ident0s: thm list,
@@ -159,7 +159,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
             (case fastype_of1 (bound_Ts, nth args n) of
               Type (s, Ts) =>
               (case dest_case ctxt s Ts t of
-                SOME ({sel_splits = _ :: _, ...}, conds', branches) =>
+                SOME ({split_sels = _ :: _, ...}, conds', branches) =>
                 fold_rev (uncurry fld) (map (append conds o conjuncts_s) conds' ~~ branches)
               | _ => f conds t)
             | _ => f conds t)
@@ -173,7 +173,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
 
 fun case_of ctxt s =
   (case ctr_sugar_of ctxt s of
-    SOME {casex = Const (s', _), sel_splits = _ :: _, ...} => SOME s'
+    SOME {casex = Const (s', _), split_sels = _ :: _, ...} => SOME s'
   | _ => NONE);
 
 fun massage_let_if_case ctxt has_call massage_leaf =
@@ -198,7 +198,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
           end
         | (c as Const (@{const_name case_prod}, _), arg :: args) =>
           massage_rec bound_Ts
-            (unfold_lets_splits (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
+            (unfold_splits_lets (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
         | (Const (c, _), args as _ :: _ :: _) =>
           (case try strip_fun_type (Sign.the_const_type thy c) of
             SOME (gen_branch_Ts, gen_body_fun_T) =>
@@ -343,8 +343,8 @@ fun fold_rev_corec_code_rhs ctxt f =
 
 fun case_thms_of_term ctxt t =
   let val ctr_sugars = map_filter (Ctr_Sugar.ctr_sugar_of_case ctxt o fst) (Term.add_consts t []) in
-    (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #disc_exhausts ctr_sugars,
-     maps #sel_splits ctr_sugars, maps #sel_split_asms ctr_sugars)
+    (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #exhaust_discs ctr_sugars,
+     maps #split_sels ctr_sugars, maps #split_sel_asms ctr_sugars)
   end;
 
 fun basic_corec_specs_of ctxt res_T =
@@ -444,32 +444,32 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
          else No_Corec) g_i
       | call_of _ [q_i] [g_i, g_i'] _ = Mutual_Corec (q_i, g_i, g_i');
 
-    fun mk_ctr_spec ctr disc sels p_io q_iss f_iss f_Tss discI sel_thms disc_excludess collapse
-        corec_thm disc_corec sel_corecs =
+    fun mk_ctr_spec ctr disc sels p_io q_iss f_iss f_Tss discI sel_thms distinct_discss collapse
+        corec_thm corec_disc corec_sels =
       let val nullary = not (can dest_funT (fastype_of ctr)) in
         {ctr = substA ctr, disc = substA disc, sels = map substA sels, pred = p_io,
          calls = map3 (call_of nullary) q_iss f_iss f_Tss, discI = discI, sel_thms = sel_thms,
-         disc_excludess = disc_excludess, collapse = collapse, corec_thm = corec_thm,
-         disc_corec = disc_corec, sel_corecs = sel_corecs}
+         distinct_discss = distinct_discss, collapse = collapse, corec_thm = corec_thm,
+         corec_disc = corec_disc, corec_sels = corec_sels}
       end;
 
-    fun mk_ctr_specs ({ctrs, discs, selss, discIs, sel_thmss, disc_excludesss, collapses, ...}
-        : ctr_sugar) p_is q_isss f_isss f_Tsss corec_thms disc_corecs sel_corecss =
+    fun mk_ctr_specs ({ctrs, discs, selss, discIs, sel_thmss, distinct_discsss, collapses, ...}
+        : ctr_sugar) p_is q_isss f_isss f_Tsss corec_thms corec_discs corec_selss =
       let val p_ios = map SOME p_is @ [NONE] in
         map14 mk_ctr_spec ctrs discs selss p_ios q_isss f_isss f_Tsss discIs sel_thmss
-          disc_excludesss collapses corec_thms disc_corecs sel_corecss
+          distinct_discsss collapses corec_thms corec_discs corec_selss
       end;
 
-    fun mk_spec ({T, ctr_sugar as {disc_exhausts, sel_defs, ...}, co_rec = corec,
-        co_rec_thms = corec_thms, disc_co_recs = disc_corecs,
-        sel_co_recss = sel_corecss, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
-      {corec = mk_co_rec thy Greatest_FP (substAT T) perm_Cs' corec, disc_exhausts = disc_exhausts,
+    fun mk_spec ({T, ctr_sugar as {exhaust_discs, sel_defs, ...}, co_rec = corec,
+        co_rec_thms = corec_thms, disc_co_recs = corec_discs,
+        sel_co_recss = corec_selss, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
+      {corec = mk_co_rec thy Greatest_FP (substAT T) perm_Cs' corec, exhaust_discs = exhaust_discs,
        sel_defs = sel_defs,
        fp_nesting_maps = maps (map_thms_of_typ lthy o T_of_bnf) fp_nesting_bnfs,
        fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs,
        fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs,
-       ctr_specs = mk_ctr_specs ctr_sugar p_is q_isss f_isss f_Tsss corec_thms disc_corecs
-         sel_corecss};
+       ctr_specs = mk_ctr_specs ctr_sugar p_is q_isss f_isss f_Tsss corec_thms corec_discs
+         corec_selss};
   in
     ((is_some gfp_sugar_thms, map5 mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
       co_induct_of common_coinduct_thms, strong_co_induct_of common_coinduct_thms,
@@ -694,14 +694,6 @@ fun dissect_coeqn_ctr lthy fun_names sequentials (basic_ctr_specss : basic_corec
         handle ListPair.UnequalLengths =>
           primcorec_error_eqn "partially applied constructor in right-hand side" rhs;
 
-(*
-val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} concl ^ "\nto\n    \<cdot> " ^
- (is_some eqn_data_disc_opt ? K (Syntax.string_of_term @{context} disc_concl ^ "\n    \<cdot> ")) "" ^
- space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) sel_concls) ^
- "\nfor premise(s)\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) prems));
-*)
-
     val eqns_data_sel =
       map (dissect_coeqn_sel lthy fun_names basic_ctr_specss eqn_pos
         (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt eqn0 (SOME ctr)) sel_concls;
@@ -890,11 +882,6 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
       | currys Ts t = t $ mk_tuple1_balanced (List.rev Ts) (map Bound (length Ts - 1 downto 0))
           |> fold_rev (Term.abs o pair Name.uu) Ts;
 
-(*
-val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (map (Syntax.string_of_term lthy) corec_args));
-*)
-
     val excludess' =
       disc_eqnss
       |> map (map (fn x => (#fun_args x, #ctr_no x, #prems x, #auto_gen x))
@@ -1006,12 +993,8 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
       |> map2 (curry (op |>)) (map (map (fn {ctr, sels, ...} =>
         (ctr, map (K []) sels))) basic_ctr_specss);
 
-(*
-val _ = tracing ("callssss = " ^ @{make_string} callssss);
-*)
-
-    val ((n2m, corec_specs', _, coinduct_thm, strong_coinduct_thm, coinduct_thms,
-          strong_coinduct_thms), lthy') =
+    val ((n2m, corec_specs', _, coinduct_thm, coinduct_strong_thm, coinduct_thms,
+          coinduct_strong_thms), lthy') =
       corec_specs_of bs arg_Ts res_Ts frees callssss lthy;
     val corec_specs = take actual_nn corec_specs';
     val ctr_specss = map #ctr_specs corec_specs;
@@ -1051,11 +1034,6 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
       else
         tac_opt;
 
-(*
-val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (maps (map (Syntax.string_of_term lthy o snd)) excludess'));
-*)
-
     val excludess'' = map3 (fn tac_opt => fn sequential => map (fn (j, goal) =>
         (j, (Option.map (Goal.prove_sorry lthy [] [] goal #> Thm.close_derivation)
            (exclude_tac tac_opt sequential j), goal))))
@@ -1083,15 +1061,15 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         de_facto_exhaustives disc_eqnss
       |> list_all_fun_args []
     val nchotomy_taut_thmss =
-      map5 (fn tac_opt => fn {disc_exhausts = res_disc_exhausts, ...} =>
+      map5 (fn tac_opt => fn {exhaust_discs = res_exhaust_discs, ...} =>
           fn {code_rhs_opt, ...} :: _ => fn [] => K []
             | [goal] => fn true =>
               let
-                val (_, _, arg_disc_exhausts, _, _) =
+                val (_, _, arg_exhaust_discs, _, _) =
                   case_thms_of_term lthy (the_default Term.dummy code_rhs_opt);
               in
                 [Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                   mk_primcorec_nchotomy_tac ctxt (res_disc_exhausts @ arg_disc_exhausts))
+                   mk_primcorec_nchotomy_tac ctxt (res_exhaust_discs @ arg_exhaust_discs))
                  |> Thm.close_derivation]
               end
             | false =>
@@ -1155,7 +1133,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             []
           else
             let
-              val {disc, disc_corec, ...} = nth ctr_specs ctr_no;
+              val {disc, corec_disc, ...} = nth ctr_specs ctr_no;
               val k = 1 + ctr_no;
               val m = length prems;
               val goal =
@@ -1168,7 +1146,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               if prems = [@{term False}] then
                 []
               else
-                mk_primcorec_disc_tac lthy def_thms disc_corec k m excludesss
+                mk_primcorec_disc_tac lthy def_thms corec_disc k m excludesss
                 |> K |> Goal.prove_sorry lthy [] [] goal
                 |> Thm.close_derivation
                 |> pair (#disc (nth ctr_specs ctr_no))
@@ -1185,8 +1163,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             val ctr_no = find_index (curry (op =) ctr o #ctr) ctr_specs;
             val prems = the_default (maps (s_not_conj o #prems) disc_eqns)
               (find_first (curry (op =) ctr_no o #ctr_no) disc_eqns |> Option.map #prems);
-            val sel_corec = find_index (curry (op =) sel) (#sels ctr_spec)
-              |> nth (#sel_corecs ctr_spec);
+            val corec_sel = find_index (curry (op =) sel) (#sels ctr_spec)
+              |> nth (#corec_sels ctr_spec);
             val k = 1 + ctr_no;
             val m = length prems;
             val goal =
@@ -1196,10 +1174,10 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> HOLogic.mk_Trueprop o HOLogic.mk_eq
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
               |> curry Logic.list_all (map dest_Free fun_args);
-            val (distincts, _, _, sel_splits, sel_split_asms) = case_thms_of_term lthy rhs_term;
+            val (distincts, _, _, split_sels, split_sel_asms) = case_thms_of_term lthy rhs_term;
           in
-            mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms fp_nesting_maps
-              fp_nesting_map_ident0s fp_nesting_map_comps sel_corec k m excludesss
+            mk_primcorec_sel_tac lthy def_thms distincts split_sels split_sel_asms fp_nesting_maps
+              fp_nesting_map_ident0s fp_nesting_map_comps corec_sel k m excludesss
             |> K |> Goal.prove_sorry lthy [] [] goal
             |> Thm.close_derivation
             |> `(is_some code_rhs_opt ? fold_thms lthy sel_defs) (*mildly too aggressive*)
@@ -1328,16 +1306,16 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                     val (raw_goal, goal) = (raw_rhs, rhs)
                       |> pairself (curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
                         #> curry Logic.list_all (map dest_Free fun_args));
-                    val (distincts, discIs, _, sel_splits, sel_split_asms) =
+                    val (distincts, discIs, _, split_sels, split_sel_asms) =
                       case_thms_of_term lthy raw_rhs;
 
-                    val raw_code_thm = mk_primcorec_raw_code_tac lthy distincts discIs sel_splits
-                        sel_split_asms ms ctr_thms
+                    val raw_code_thm = mk_primcorec_raw_code_tac lthy distincts discIs split_sels
+                        split_sel_asms ms ctr_thms
                         (if exhaustive_code then try the_single nchotomys else NONE)
                       |> K |> Goal.prove_sorry lthy [] [] raw_goal
                       |> Thm.close_derivation;
                   in
-                    mk_primcorec_code_tac lthy distincts sel_splits raw_code_thm
+                    mk_primcorec_code_tac lthy distincts split_sels raw_code_thm
                     |> K |> Goal.prove_sorry lthy [] [] goal
                     |> Thm.close_derivation
                     |> single
@@ -1359,14 +1337,14 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             []
           else
             let
-              val {disc, disc_excludess, ...} = nth ctr_specs ctr_no;
+              val {disc, distinct_discss, ...} = nth ctr_specs ctr_no;
               val goal =
                 mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args |> curry betapply disc,
                   mk_conjs prems)
                 |> curry Logic.list_all (map dest_Free fun_args);
             in
               mk_primcorec_disc_iff_tac lthy (map (fst o dest_Free) exhaust_fun_args)
-                (the_single exhaust_thms) disc_thms disc_thmss' (flat disc_excludess)
+                (the_single exhaust_thms) disc_thms disc_thmss' (flat distinct_discss)
               |> K |> Goal.prove_sorry lthy [] [] goal
               |> Thm.close_derivation
               |> fold (fn rule => perhaps (try (fn thm => Meson.first_order_resolve thm rule)))
@@ -1407,7 +1385,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
            (exhaustN, nontriv_exhaust_thmss, []),
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
-           (strong_coinductN, map (if n2m then single else K []) strong_coinduct_thms, [])]
+           (coinduct_strongN, map (if n2m then single else K []) coinduct_strong_thms, [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map2 (fn fun_name => fn thms =>
                 ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]))
@@ -1416,7 +1394,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         val common_notes =
           [(coinductN, if n2m then [coinduct_thm] else [], []),
-           (strong_coinductN, if n2m then [strong_coinduct_thm] else [], [])]
+           (coinduct_strongN, if n2m then [coinduct_strong_thm] else [], [])]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));

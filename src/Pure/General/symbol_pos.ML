@@ -41,6 +41,7 @@ sig
   val implode_range: Position.T -> Position.T -> T list -> text * Position.range
   val explode: text * Position.T -> T list
   type source = {delimited: bool, text: text, pos: Position.T}
+  val source_explode: source -> T list
   val source_content: source -> string * Position.T
   val scan_ident: T list -> T list * T list
   val is_identifier: string -> bool
@@ -260,6 +261,8 @@ fun explode (str, pos) =
 (* full source information *)
 
 type source = {delimited: bool, text: text, pos: Position.T};
+
+fun source_explode {delimited = _, text, pos} = explode (text, pos);
 
 fun source_content {delimited = _, text, pos} =
   let val syms = explode (text, pos) in (content syms, pos) end;

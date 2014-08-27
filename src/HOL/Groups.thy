@@ -8,17 +8,10 @@ theory Groups
 imports Orderings
 begin
 
-subsection {* Fact collections *}
+subsection {* Dynamic facts *}
 
-ML {*
-structure Ac_Simps = Named_Thms
-(
-  val name = @{binding ac_simps}
-  val description = "associativity and commutativity simplification rules"
-)
-*}
+named_theorems ac_simps "associativity and commutativity simplification rules"
 
-setup Ac_Simps.setup
 
 text{* The rewrites accumulated in @{text algebra_simps} deal with the
 classical algebraic structures of groups, rings and family. They simplify
@@ -29,30 +22,15 @@ group and ring equalities but also helps with inequalities.
 Of course it also works for fields, but it knows nothing about multiplicative
 inverses or division. This is catered for by @{text field_simps}. *}
 
-ML {*
-structure Algebra_Simps = Named_Thms
-(
-  val name = @{binding algebra_simps}
-  val description = "algebra simplification rules"
-)
-*}
+named_theorems algebra_simps "algebra simplification rules"
 
-setup Algebra_Simps.setup
 
 text{* Lemmas @{text field_simps} multiply with denominators in (in)equations
 if they can be proved to be non-zero (for equations) or positive/negative
 (for inequations). Can be too aggressive and is therefore separate from the
 more benign @{text algebra_simps}. *}
 
-ML {*
-structure Field_Simps = Named_Thms
-(
-  val name = @{binding field_simps}
-  val description = "algebra simplification rules for fields"
-)
-*}
-
-setup Field_Simps.setup
+named_theorems field_simps "algebra simplification rules for fields"
 
 
 subsection {* Abstract structures *}

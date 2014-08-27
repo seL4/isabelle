@@ -332,21 +332,23 @@ val _ = Theory.setup
 (** method syntax **)
 
 val cong_modifiers =
- [Args.$$$ congN -- Args.colon >> K ((I, cong_add): Method.modifier),
-  Args.$$$ congN -- Args.add -- Args.colon >> K (I, cong_add),
-  Args.$$$ congN -- Args.del -- Args.colon >> K (I, cong_del)];
+ [Args.$$$ congN -- Args.colon >> K (Method.modifier cong_add @{here}),
+  Args.$$$ congN -- Args.add -- Args.colon >> K (Method.modifier cong_add @{here}),
+  Args.$$$ congN -- Args.del -- Args.colon >> K (Method.modifier cong_del @{here})];
 
 val simp_modifiers =
- [Args.$$$ simpN -- Args.colon >> K (I, simp_add),
-  Args.$$$ simpN -- Args.add -- Args.colon >> K (I, simp_add),
-  Args.$$$ simpN -- Args.del -- Args.colon >> K (I, simp_del),
-  Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >> K (Raw_Simplifier.clear_simpset, simp_add)]
+ [Args.$$$ simpN -- Args.colon >> K (Method.modifier simp_add @{here}),
+  Args.$$$ simpN -- Args.add -- Args.colon >> K (Method.modifier simp_add @{here}),
+  Args.$$$ simpN -- Args.del -- Args.colon >> K (Method.modifier simp_del @{here}),
+  Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >>
+    K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = @{here}}]
    @ cong_modifiers;
 
 val simp_modifiers' =
- [Args.add -- Args.colon >> K (I, simp_add),
-  Args.del -- Args.colon >> K (I, simp_del),
-  Args.$$$ onlyN -- Args.colon >> K (Raw_Simplifier.clear_simpset, simp_add)]
+ [Args.add -- Args.colon >> K (Method.modifier simp_add @{here}),
+  Args.del -- Args.colon >> K (Method.modifier simp_del @{here}),
+  Args.$$$ onlyN -- Args.colon >>
+    K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = @{here}}]
    @ cong_modifiers;
 
 val simp_options =
@@ -374,7 +376,7 @@ fun method_setup more_mods =
   Method.setup @{binding simp_all}
     (simp_method more_mods (fn ctxt => fn tac => fn facts =>
       ALLGOALS (Method.insert_tac facts) THEN
-        (CHANGED_PROP o PARALLEL_GOALS o ALLGOALS o tac) ctxt))
+        (CHANGED_PROP o PARALLEL_ALLGOALS o tac) ctxt))
     "simplification (all goals)";
 
 fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn ctxt0 =>

@@ -228,7 +228,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory' @{command_spec "declare"} "declare theorems"
-    (Parse.and_list1 Parse_Spec.xthms1 -- Parse.for_fixes
+    (Parse.and_list1 Parse.xthms1 -- Parse.for_fixes
       >> (fn (facts, fixes) =>
           #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat facts)] fixes));
 
@@ -329,16 +329,16 @@ val _ =
     (Parse.ML_source >> Isar_Cmd.local_setup);
 
 val _ =
-  Outer_Syntax.command @{command_spec "attribute_setup"} "define attribute in ML"
+  Outer_Syntax.local_theory @{command_spec "attribute_setup"} "define attribute in ML"
     (Parse.position Parse.name --
         Parse.!!! (@{keyword "="} |-- Parse.ML_source -- Scan.optional Parse.text "")
-      >> (fn (name, (txt, cmt)) => Toplevel.theory (Attrib.attribute_setup name txt cmt)));
+      >> (fn (name, (txt, cmt)) => Attrib.attribute_setup name txt cmt));
 
 val _ =
-  Outer_Syntax.command @{command_spec "method_setup"} "define proof method in ML"
+  Outer_Syntax.local_theory @{command_spec "method_setup"} "define proof method in ML"
     (Parse.position Parse.name --
         Parse.!!! (@{keyword "="} |-- Parse.ML_source -- Scan.optional Parse.text "")
-      >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
+      >> (fn (name, (txt, cmt)) => Method.method_setup name txt cmt));
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "declaration"} "generic ML declaration"
@@ -398,7 +398,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "bundle"} "define bundle of declarations"
-    ((Parse.binding --| @{keyword "="}) -- Parse_Spec.xthms1 -- Parse.for_fixes
+    ((Parse.binding --| @{keyword "="}) -- Parse.xthms1 -- Parse.for_fixes
       >> (uncurry Bundle.bundle_cmd));
 
 val _ =
@@ -567,7 +567,7 @@ val _ =
 
 (* facts *)
 
-val facts = Parse.and_list1 Parse_Spec.xthms1;
+val facts = Parse.and_list1 Parse.xthms1;
 
 val _ =
   Outer_Syntax.command @{command_spec "then"} "forward chaining"
@@ -640,7 +640,7 @@ val _ =
     ((@{keyword "("} |--
       Parse.!!! (Parse.position Parse.xname -- Scan.repeat (Parse.maybe Parse.binding)
         --| @{keyword ")"}) ||
-      Parse.position Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> (fn ((c, xs), atts) =>
+      Parse.position Parse.xname >> rpair []) -- Parse.opt_attribs >> (fn ((c, xs), atts) =>
         Toplevel.proof (Proof.invoke_case_cmd (c, xs, atts))));
 
 
@@ -744,7 +744,7 @@ val props_text =
 val _ =
   Outer_Syntax.improper_command @{command_spec "Isabelle.command"} "evaluate nested Isabelle command"
     (props_text :|-- (fn (pos, str) =>
-      (case Outer_Syntax.parse pos str of
+      (case Outer_Syntax.parse (Outer_Syntax.get_syntax ()) pos str of
         [tr] => Scan.succeed (K tr)
       | _ => Scan.fail_with (K (fn () => "exactly one command expected")))
       handle ERROR msg => Scan.fail_with (K (fn () => msg))));
@@ -894,10 +894,6 @@ val _ =
     (Scan.succeed Isar_Cmd.class_deps);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "thm_deps"} "visualize theorem dependencies"
-    (Parse_Spec.xthms1 >> Isar_Cmd.thm_deps);
-
-val _ =
   Outer_Syntax.improper_command @{command_spec "print_binds"}
     "print term bindings of proof context -- Proof General legacy"
     (Scan.succeed (Toplevel.unknown_context o
@@ -924,19 +920,19 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_statement"}
     "print theorems as long statements"
-    (opt_modes -- Parse_Spec.xthms1 >> Isar_Cmd.print_stmts);
+    (opt_modes -- Parse.xthms1 >> Isar_Cmd.print_stmts);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "thm"} "print theorems"
-    (opt_modes -- Parse_Spec.xthms1 >> Isar_Cmd.print_thms);
+    (opt_modes -- Parse.xthms1 >> Isar_Cmd.print_thms);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "prf"} "print proof terms of theorems"
-    (opt_modes -- Scan.option Parse_Spec.xthms1 >> Isar_Cmd.print_prfs false);
+    (opt_modes -- Scan.option Parse.xthms1 >> Isar_Cmd.print_prfs false);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "full_prf"} "print full proof terms of theorems"
-    (opt_modes -- Scan.option Parse_Spec.xthms1 >> Isar_Cmd.print_prfs true);
+    (opt_modes -- Scan.option Parse.xthms1 >> Isar_Cmd.print_prfs true);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "prop"} "read and print proposition"
@@ -955,11 +951,6 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "print_codesetup"} "print code generator setup"
     (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Code.print_codesetup o Toplevel.theory_of)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "unused_thms"} "find unused theorems"
-    (Scan.option ((Scan.repeat1 (Scan.unless Parse.minus Parse.name) --| Parse.minus) --
-       Scan.option (Scan.repeat1 (Scan.unless Parse.minus Parse.name))) >> Isar_Cmd.unused_thms);
 
 
 

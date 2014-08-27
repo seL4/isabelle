@@ -54,8 +54,8 @@ val exhaust_inst_as_projs_tac = PRIMITIVE oo exhaust_inst_as_projs;
 fun distinct_in_prems_tac distincts =
   eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac;
 
-fun mk_primcorec_nchotomy_tac ctxt disc_exhausts =
-  HEADGOAL (Method.insert_tac disc_exhausts THEN' clean_blast_tac ctxt);
+fun mk_primcorec_nchotomy_tac ctxt exhaust_discs =
+  HEADGOAL (Method.insert_tac exhaust_discs THEN' clean_blast_tac ctxt);
 
 fun mk_primcorec_exhaust_tac ctxt frees n nchotomy =
   let val ks = 1 upto n in
@@ -105,11 +105,11 @@ fun cases_tac ctxt k m excludesss =
 fun prelude_tac ctxt defs thm =
   unfold_thms_tac ctxt defs THEN HEADGOAL (rtac thm) THEN unfold_thms_tac ctxt unfold_lets;
 
-fun mk_primcorec_disc_tac ctxt defs disc_corec k m excludesss =
-  prelude_tac ctxt defs disc_corec THEN cases_tac ctxt k m excludesss;
+fun mk_primcorec_disc_tac ctxt defs corec_disc k m excludesss =
+  prelude_tac ctxt defs corec_disc THEN cases_tac ctxt k m excludesss;
 
 fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_discss
-    disc_excludes =
+    distinct_discs =
   HEADGOAL (rtac iffI THEN'
     rtac fun_exhaust THEN'
     K (exhaust_inst_as_projs_tac ctxt fun_exhaust_frees) THEN'
@@ -121,7 +121,7 @@ fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_d
             rtac FalseE THEN'
             (rotate_tac 1 THEN' dtac fun_disc' THEN' REPEAT_DETERM o atac ORELSE'
              cut_tac fun_disc') THEN'
-            dresolve_tac disc_excludes THEN' etac notE THEN' atac)
+            dresolve_tac distinct_discs THEN' etac notE THEN' atac)
       fun_discss) THEN'
     (etac FalseE ORELSE'
      resolve_tac (map (unfold_thms ctxt [atomize_conjL]) fun_discs) THEN_MAYBE' atac));

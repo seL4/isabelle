@@ -30,6 +30,7 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open ATP_Waldmeister
+open ATP_Satallax
 open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
@@ -126,15 +127,13 @@ fun suffix_of_mode Auto_Try = "_try"
    the only ATP that does not honor its time limit. *)
 val atp_timeout_slack = seconds 1.0
 
-(* Important messages are important but not so important that users want to see
-   them each time. *)
+(* Important messages are important but not so important that users want to see them each time. *)
 val atp_important_message_keep_quotient = 25
 
 fun run_atp mode name
-    (params as {debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases,
-       fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0,
-       smt_proofs, slice, minimize, timeout, preplay_timeout, ...})
-    minimize_command
+    ({debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases, fact_filter,
+     max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress, try0, smt_proofs,
+     slice, minimize, timeout, preplay_timeout, ...} : params)
     ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -295,19 +294,21 @@ fun run_atp mode name
               |>> (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I)
               |> fst |> split_time
               |> (fn accum as (output, _) =>
-                     (accum,
-                      extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
-                      |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name) atp_problem
-                      handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
+                (accum,
+                 extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
+                 |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name)
+                   atp_problem
+                 handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
               handle TimeLimit.TimeOut => (("", slice_timeout), ([], SOME TimedOut))
 
             val outcome =
               (case outcome of
                 NONE =>
-                (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof
-                      |> Option.map (sort string_ord) of
+                (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof of
                   SOME facts =>
-                  let val failure = UnsoundProof (is_type_enc_sound type_enc, facts) in
+                  let
+                    val failure = UnsoundProof (is_type_enc_sound type_enc, sort string_ord facts)
+                  in
                     if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
                   end
                 | NONE => NONE)
@@ -354,22 +355,18 @@ fun run_atp mode name
       else
         ""
 
-    val (used_facts, preplay, message, message_tail) =
+    val (used_facts, preferred_methss, message) =
       (case outcome of
         NONE =>
         let
-          val used_facts = used_facts_in_atp_proof ctxt (map fst used_from) atp_proof
+          val used_facts = sort_wrt fst (used_facts_in_atp_proof ctxt (map fst used_from) atp_proof)
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
-          val meths =
-            bunch_of_proof_methods (smt_proofs <> SOME false) needs_full_types
-              (if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN)
+          val preferred_methss =
+            (Metis_Method (NONE, NONE),
+             bunches_of_proof_methods try0 (smt_proofs <> SOME false) needs_full_types
+               (if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN))
         in
-          (used_facts,
-           Lazy.lazy (fn () =>
-             let val used_pairs = used_from |> filter_used_facts false used_facts in
-               play_one_line_proof mode verbose preplay_timeout used_pairs state subgoal (hd meths)
-                 meths
-             end),
+          (used_facts, preferred_methss,
            fn preplay =>
               let
                 val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
@@ -383,33 +380,29 @@ fun run_atp mode name
                     val atp_proof =
                       atp_proof
                       |> termify_atp_proof ctxt name format type_enc pool lifted sym_tab
-                      |> spass ? introduce_spass_skolem
+                      |> spass ? introduce_spass_skolems
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,
-                     minimize <> SOME false, atp_proof, goal)
+                     minimize, atp_proof, goal)
                   end
 
-                val one_line_params =
-                  (preplay, proof_banner mode name, used_facts,
-                   choose_minimize_command thy params minimize_command name preplay, subgoal,
-                   subgoal_count)
+                val one_line_params = (preplay (), proof_banner mode name, subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
-              end,
-           (if verbose then "\nATP real CPU time: " ^ string_of_time run_time ^ "." else "") ^
-           (if important_message <> "" then
-              "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
-            else
-              ""))
+                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
+                  one_line_params ^
+                (if important_message <> "" then
+                   "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
+                 else
+                   "")
+              end)
         end
       | SOME failure =>
-        ([], Lazy.value (Metis_Method (NONE, NONE), Play_Failed),
-         fn _ => string_of_atp_failure failure, ""))
+        ([], (Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure))
   in
-    {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
-     preplay = preplay, message = message, message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = used_from,
+     preferred_methss = preferred_methss, run_time = run_time, message = message}
   end
 
 end;

@@ -34,7 +34,7 @@ sig
     term option * term list ->
     thm option * thm option -> thm list ->
     declaration list ->
-    (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list ->
+    (string * (Attrib.binding * (thm list * Token.src list) list) list) list ->
     (string * morphism) list -> theory -> theory
   val intern: theory -> xstring -> string
   val check: theory -> xstring * Position.T -> string
@@ -49,7 +49,7 @@ sig
   val specification_of: theory -> string -> term option * term list
 
   (* Storing results *)
-  val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
+  val add_thmss: string -> string -> (Attrib.binding * (thm list * Token.src list) list) list ->
     Proof.context -> Proof.context
   val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
@@ -70,6 +70,10 @@ sig
   (* Registrations and dependencies *)
   val add_registration: string * morphism -> (morphism * bool) option ->
     morphism -> Context.generic -> Context.generic
+  val activate_fragment: string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
+  val activate_fragment_nonbrittle: string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
   val amend_registration: string * morphism -> morphism * bool ->
     morphism -> Context.generic -> Context.generic
   val registrations_of: Context.generic -> string -> (string * morphism) list
@@ -123,7 +127,7 @@ datatype locale = Loc of {
   (** dynamic part **)
   syntax_decls: (declaration * serial) list,
     (* syntax declarations *)
-  notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * serial) list,
+  notes: ((string * (Attrib.binding * (thm list * Token.src list) list) list) * serial) list,
     (* theorem declarations *)
   dependencies: ((string * (morphism * morphism)) * serial) list
     (* locale dependencies (sublocale relation) in reverse order *),
@@ -514,6 +518,19 @@ fun add_registration (name, base_morph) mixin export context =
   end;
 
 
+(* locale fragments within local theory *)
+
+fun activate_fragment_nonbrittle dep_morph mixin export lthy =
+  let val n = Local_Theory.level lthy in
+    lthy |> Local_Theory.map_contexts (fn level =>
+      level = n - 1 ? Context.proof_map (add_registration dep_morph mixin export))
+  end;
+
+fun activate_fragment dep_morph mixin export =
+  Local_Theory.mark_brittle #> activate_fragment_nonbrittle dep_morph mixin export;
+
+
+
 (*** Dependencies ***)
 
 (* FIXME dead code!?
@@ -561,7 +578,7 @@ fun add_thmss _ _ [] ctxt = ctxt
           (* Registrations *)
           (fn thy =>
             fold_rev (fn (_, morph) =>
-              snd o Attrib.global_notes kind (Element.transform_facts morph facts))
+              snd o Attrib.global_notes kind (Attrib.transform_facts morph facts))
             (registrations_of (Context.Theory thy) loc) thy));
 
 

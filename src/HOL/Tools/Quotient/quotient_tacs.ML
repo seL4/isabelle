@@ -55,14 +55,14 @@ fun atomize_thm ctxt thm =
 (** solvers for equivp and quotient assumptions **)
 
 fun equiv_tac ctxt =
-  REPEAT_ALL_NEW (resolve_tac (Quotient_Info.equiv_rules ctxt))
+  REPEAT_ALL_NEW (resolve_tac (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv})))
 
 val equiv_solver = mk_solver "Equivalence goal solver" equiv_tac
 
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
     [rtac @{thm identity_quotient3},
-     resolve_tac (Quotient_Info.quotient_rules ctxt)]))
+     resolve_tac (rev (Named_Theorems.get ctxt @{named_theorems quot_thm}))]))
 
 val quotient_solver = mk_solver "Quotient goal solver" quotient_tac
 
@@ -144,11 +144,12 @@ fun ball_bex_range_simproc ctxt redex =
 
 fun reflp_get ctxt =
   map_filter (fn th => if prems_of th = [] then SOME (OF1 @{thm equivp_reflp} th) else NONE
-    handle THM _ => NONE) (Quotient_Info.equiv_rules ctxt)
+    handle THM _ => NONE) (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv}))
 
 val eq_imp_rel = @{lemma "equivp R ==> a = b --> R a b" by (simp add: equivp_reflp)}
 
-fun eq_imp_rel_get ctxt = map (OF1 eq_imp_rel) (Quotient_Info.equiv_rules ctxt)
+fun eq_imp_rel_get ctxt =
+  map (OF1 eq_imp_rel) (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv}))
 
 fun regularize_tac ctxt =
   let
@@ -370,7 +371,8 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
 
      (* respectfulness of constants; in particular of a simple relation *)
   | _ $ (Const _) $ (Const _)  (* rel_fun, list_rel, etc but not equality *)
-      => resolve_tac (Quotient_Info.rsp_rules ctxt) THEN_ALL_NEW quotient_tac ctxt
+      => resolve_tac (rev (Named_Theorems.get ctxt @{named_theorems quot_respect}))
+          THEN_ALL_NEW quotient_tac ctxt
 
       (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
       (* observe map_fun *)
@@ -516,20 +518,20 @@ fun lambda_prs_tac ctxt = CONVERSION (lambda_prs_conv ctxt)
 
   4. test for refl
 *)
-fun clean_tac lthy =
+fun clean_tac ctxt =
   let
-    val thy =  Proof_Context.theory_of lthy
+    val thy =  Proof_Context.theory_of ctxt
     val defs = map (Thm.symmetric o #def) (Quotient_Info.dest_quotconsts_global thy)
-    val prs = Quotient_Info.prs_rules lthy
-    val ids = Quotient_Info.id_simps lthy
+    val prs = rev (Named_Theorems.get ctxt @{named_theorems quot_preserve})
+    val ids = rev (Named_Theorems.get ctxt @{named_theorems id_simps})
     val thms =
       @{thms Quotient3_abs_rep Quotient3_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
 
-    val simpset = (mk_minimal_simpset lthy) addsimps thms addSolver quotient_solver
+    val simpset = (mk_minimal_simpset ctxt) addsimps thms addSolver quotient_solver
   in
     EVERY' [
-      map_fun_tac lthy,
-      lambda_prs_tac lthy,
+      map_fun_tac ctxt,
+      lambda_prs_tac ctxt,
       simp_tac simpset,
       TRY o rtac refl]
   end

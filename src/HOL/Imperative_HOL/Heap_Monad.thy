@@ -39,13 +39,7 @@ lemma Heap_eqI:
   "(\<And>h. execute f h = execute g h) \<Longrightarrow> f = g"
     by (cases f, cases g) (auto simp: fun_eq_iff)
 
-ML {* structure Execute_Simps = Named_Thms
-(
-  val name = @{binding execute_simps}
-  val description = "simplification rules for execute"
-) *}
-
-setup Execute_Simps.setup
+named_theorems execute_simps "simplification rules for execute"
 
 lemma execute_Let [execute_simps]:
   "execute (let x = t in f x) = (let x = t in execute (f x))"
@@ -93,13 +87,7 @@ lemma successE:
     and "execute f h \<noteq> None"
   using assms by (simp add: success_def)
 
-ML {* structure Success_Intros = Named_Thms
-(
-  val name = @{binding success_intros}
-  val description = "introduction rules for success"
-) *}
-
-setup Success_Intros.setup
+named_theorems success_intros "introduction rules for success"
 
 lemma success_tapI [success_intros]:
   "success (tap f) h"
@@ -167,19 +155,8 @@ lemma effect_deterministic:
   shows "a = b" and "h' = h''"
   using assms unfolding effect_def by auto
 
-ML {* structure Effect_Intros = Named_Thms
-(
-  val name = @{binding effect_intros}
-  val description = "introduction rules for effect"
-) *}
-
-ML {* structure Effect_Elims = Named_Thms
-(
-  val name = @{binding effect_elims}
-  val description = "elimination rules for effect"
-) *}
-
-setup "Effect_Intros.setup #> Effect_Elims.setup"
+named_theorems effect_intros "introduction rules for effect"
+named_theorems effect_elims "elimination rules for effect"
 
 lemma effect_LetI [effect_intros]:
   assumes "x = t" "effect (f x) h h' r"

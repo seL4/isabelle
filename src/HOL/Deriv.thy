@@ -50,24 +50,17 @@ where
 lemma has_vector_derivative_eq_rhs: "(f has_vector_derivative X) F \<Longrightarrow> X = Y \<Longrightarrow> (f has_vector_derivative Y) F"
   by simp
 
-ML {*
-
-structure Derivative_Intros = Named_Thms
-(
-  val name = @{binding derivative_intros}
-  val description = "structural introduction rules for derivatives"
-)
-
-*}
-
+named_theorems derivative_intros "structural introduction rules for derivatives"
 setup {*
   let
-    val eq_thms = [@{thm has_derivative_eq_rhs}, @{thm DERIV_cong}, @{thm has_vector_derivative_eq_rhs}]
+    val eq_thms = @{thms has_derivative_eq_rhs DERIV_cong has_vector_derivative_eq_rhs}
     fun eq_rule thm = get_first (try (fn eq_thm => eq_thm OF [thm])) eq_thms
   in
-    Derivative_Intros.setup #>
     Global_Theory.add_thms_dynamic
-      (@{binding derivative_eq_intros}, map_filter eq_rule o Derivative_Intros.get o Context.proof_of)
+      (@{binding derivative_eq_intros},
+        fn context =>
+          Named_Theorems.get (Context.proof_of context) @{named_theorems derivative_intros}
+          |> map_filter eq_rule)
   end;
 *}
 

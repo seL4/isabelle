@@ -16,7 +16,7 @@ open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar
 open BNF_LFP_Rec_Sugar
 
-val nested_simps = @{thms id_def split comp_def fst_conv snd_conv};
+val nested_simps = @{thms o_def[abs_def] id_def split fst_conv snd_conv};
 
 fun is_new_datatype ctxt s =
   (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);

@@ -10,14 +10,28 @@ sig
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
     Error of string | Sync | EOF
-  type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
-  datatype value =
-    Literal of bool * Markup.T | Text of string | Typ of typ | Term of term | Fact of thm list |
-    Attribute of morphism -> attribute | Files of file Exn.result list
-  type T
   val str_of_kind: kind -> string
+  type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
+  type T
+  type src
+  datatype value =
+    Source of src |
+    Literal of bool * Markup.T |
+    Name of string * morphism |
+    Typ of typ |
+    Term of term |
+    Fact of string option * thm list |
+    Attribute of morphism -> attribute |
+    Declaration of declaration |
+    Files of file Exn.result list
+  val name0: string -> value
   val pos_of: T -> Position.T
   val range_of: T list -> Position.range
+  val src: xstring * Position.T -> T list -> src
+  val name_of_src: src -> string * Position.T
+  val args_of_src: src -> T list
+  val range_of_src: src -> Position.T
+  val check_src: Proof.context -> 'a Name_Space.table -> src -> src * 'a
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
@@ -47,21 +61,24 @@ sig
   val report: T -> Position.report_text
   val markup: T -> Markup.T
   val unparse: T -> string
+  val unparse_src: src -> string list
   val print: T -> string
   val text_of: T -> string * string
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
+  val make_value: string -> value -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val reports_of_value: T -> Position.report list
-  val mk_text: string -> T
-  val mk_typ: typ -> T
-  val mk_term: term -> T
-  val mk_fact: thm list -> T
-  val mk_attribute: (morphism -> attribute) -> T
+  val transform: morphism -> T -> T
+  val transform_src: morphism -> src -> src
   val init_assignable: T -> T
+  val init_assignable_src: src -> src
   val assign: value option -> T -> unit
   val closure: T -> T
+  val closure_src: src -> src
+  val pretty_value: Proof.context -> T -> Pretty.T
+  val pretty_src: Proof.context -> src -> Pretty.T
   val ident_or_symbolic: string -> bool
   val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
   val source': {do_recover: bool option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
@@ -69,7 +86,12 @@ sig
   val source: {do_recover: bool option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
-  val read_antiq: Scan.lexicon -> (T list -> 'a * T list) -> Symbol_Pos.T list * Position.T -> 'a
+  type 'a parser = T list -> 'a * T list
+  type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
+  val read: Scan.lexicon -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a list
+  val read_antiq: Scan.lexicon -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
+  val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
+  val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
 
 structure Token: TOKEN =
@@ -77,38 +99,12 @@ struct
 
 (** tokens **)
 
-(* token values *)
-
-(*The value slot assigns an (optional) internal value to a token,
-  usually as a side-effect of special scanner setup (see also
-  args.ML).  Note that an assignable ref designates an intermediate
-  state of internalization -- it is NOT meant to persist.*)
-
-type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
-
-datatype value =
-  Literal of bool * Markup.T |
-  Text of string |
-  Typ of typ |
-  Term of term |
-  Fact of thm list |
-  Attribute of morphism -> attribute |
-  Files of file Exn.result list;
-
-datatype slot =
-  Slot |
-  Value of value option |
-  Assignable of value option Unsynchronized.ref;
-
-
-(* datatype token *)
+(* token kind *)
 
 datatype kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
   Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
   Error of string | Sync | EOF;
-
-datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot;
 
 val str_of_kind =
  fn Command => "command"
@@ -135,6 +131,42 @@ val str_of_kind =
 val delimited_kind = member (op =) [String, AltString, Verbatim, Cartouche, Comment];
 
 
+(* datatype token *)
+
+(*The value slot assigns an (optional) internal value to a token,
+  usually as a side-effect of special scanner setup (see also
+  args.ML).  Note that an assignable ref designates an intermediate
+  state of internalization -- it is NOT meant to persist.*)
+
+type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
+
+datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot
+
+and src =
+  Src of
+   {name: string * Position.T,
+    args: T list,
+    output_info: (string * Markup.T) option}
+
+and slot =
+  Slot |
+  Value of value option |
+  Assignable of value option Unsynchronized.ref
+
+and value =
+  Source of src |
+  Literal of bool * Markup.T |
+  Name of string * morphism |
+  Typ of typ |
+  Term of term |
+  Fact of string option * thm list |  (*optional name for dynamic fact, i.e. fact "variable"*)
+  Attribute of morphism -> attribute |
+  Declaration of declaration |
+  Files of file Exn.result list;
+
+fun name0 a = Name (a, Morphism.identity);
+
+
 (* position *)
 
 fun pos_of (Token ((_, (pos, _)), _, _)) = pos;
@@ -144,6 +176,29 @@ fun range_of (toks as tok :: _) =
       let val pos' = end_pos_of (List.last toks)
       in Position.range (pos_of tok) pos' end
   | range_of [] = Position.no_range;
+
+
+(* src *)
+
+fun src name args = Src {name = name, args = args, output_info = NONE};
+
+fun map_args f (Src {name, args, output_info}) =
+  Src {name = name, args = map f args, output_info = output_info};
+
+fun name_of_src (Src {name, ...}) = name;
+fun args_of_src (Src {args, ...}) = args;
+
+fun range_of_src (Src {name = (_, pos), args, ...}) =
+  if null args then pos
+  else Position.set_range (pos, #2 (range_of args));
+
+fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
+  let
+    val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
+    val space = Name_Space.space_of_table table;
+    val kind = Name_Space.kind_of space;
+    val markup = Name_Space.markup space name;
+  in (Src {name = (name, pos), args = args, output_info = SOME (kind, markup)}, x) end;
 
 
 (* control tokens *)
@@ -288,6 +343,8 @@ fun unparse (Token (_, (kind, x), _)) =
   | EOF => ""
   | _ => x);
 
+fun unparse_src (Src {args, ...}) = map unparse args;
+
 fun print tok = Markup.markup (markup tok) (unparse tok);
 
 fun text_of tok =
@@ -320,6 +377,9 @@ fun put_files [] tok = tok
 
 (* access values *)
 
+fun make_value name v =
+  Token ((name, Position.no_range), (InternalValue, name), Value (SOME v));
+
 fun get_value (Token (_, _, Value v)) = v
   | get_value _ = NONE;
 
@@ -340,15 +400,21 @@ fun reports_of_value tok =
   | _ => []);
 
 
-(* make values *)
+(* transform *)
 
-fun mk_value k v = Token ((k, Position.no_range), (InternalValue, k), Value (SOME v));
-
-val mk_text = mk_value "<text>" o Text;
-val mk_typ = mk_value "<typ>" o Typ;
-val mk_term = mk_value "<term>" o Term;
-val mk_fact = mk_value "<fact>" o Fact;
-val mk_attribute = mk_value "<attribute>" o Attribute;
+fun transform phi =
+  map_value (fn v =>
+    (case v of
+      Source src => Source (transform_src phi src)
+    | Literal _ => v
+    | Name (a, psi) => Name (a, psi $> phi)
+    | Typ T => Typ (Morphism.typ phi T)
+    | Term t => Term (Morphism.term phi t)
+    | Fact (a, ths) => Fact (a, Morphism.fact phi ths)
+    | Attribute att => Attribute (Morphism.transform phi att)
+    | Declaration decl => Declaration (Morphism.transform phi decl)
+    | Files _ => v))
+and transform_src phi = map_args (transform phi);
 
 
 (* static binding *)
@@ -358,6 +424,8 @@ fun init_assignable (Token (x, y, Slot)) = Token (x, y, Assignable (Unsynchroniz
   | init_assignable (tok as Token (_, _, Assignable r)) = (r := NONE; tok)
   | init_assignable tok = tok;
 
+val init_assignable_src = map_args init_assignable;
+
 (*2nd stage: assign values as side-effect of scanning*)
 fun assign v (Token (_, _, Assignable r)) = r := v
   | assign _ _ = ();
@@ -366,6 +434,32 @@ fun assign v (Token (_, _, Assignable r)) = r := v
 fun closure (Token (x, y, Assignable (Unsynchronized.ref v))) = Token (x, y, Value v)
   | closure tok = tok;
 
+val closure_src = map_args closure;
+
+
+(* pretty *)
+
+fun pretty_value ctxt tok =
+  (case get_value tok of
+    SOME (Literal markup) =>
+      let val x = content_of tok
+      in Pretty.mark_str (keyword_markup markup x, x) end
+  | SOME (Name (a, _)) => Pretty.str (quote a)
+  | SOME (Typ T) => Syntax.pretty_typ ctxt T
+  | SOME (Term t) => Syntax.pretty_term ctxt t
+  | SOME (Fact (_, ths)) =>
+      Pretty.enclose "(" ")" (Pretty.breaks (map (Pretty.backquote o Display.pretty_thm ctxt) ths))
+  | _ => Pretty.mark_str (markup tok, unparse tok));
+
+fun pretty_src ctxt src =
+  let
+    val Src {name = (name, _), args, output_info} = src;
+    val prt_name =
+      (case output_info of
+        NONE => Pretty.str name
+      | SOME (_, markup) => Pretty.mark_str (markup, name));
+    val prt_arg = pretty_value ctxt;
+  in Pretty.block (Pretty.breaks (prt_name :: map prt_arg args)) end;
 
 
 (** scanners **)
@@ -492,19 +586,64 @@ fun source do_recover get_lex pos src =
 end;
 
 
-(* read_antiq *)
+
+(** parsers **)
+
+type 'a parser = T list -> 'a * T list;
+type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list);
+
+
+(* read source *)
+
+fun read lex scan (syms, pos) =
+  Source.of_list syms
+  |> source' {do_recover = NONE} (K (lex, Scan.empty_lexicon))
+  |> source_proper
+  |> Source.source stopper (Scan.error (Scan.bulk scan)) NONE
+  |> Source.exhaust;
 
 fun read_antiq lex scan (syms, pos) =
   let
-    fun err msg = cat_error msg ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
-      "@{" ^ Symbol_Pos.content syms ^ "}");
+    fun err msg =
+      cat_error msg ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
+        "@{" ^ Symbol_Pos.content syms ^ "}");
+    val res = read lex scan (syms, pos) handle ERROR msg => err msg;
+  in (case res of [x] => x | _ => err "") end;
 
-    val res =
-      Source.of_list syms
-      |> source' {do_recover = NONE} (K (lex, Scan.empty_lexicon))
-      |> source_proper
-      |> Source.source stopper (Scan.error (Scan.bulk scan)) NONE
-      |> Source.exhaust;
-  in (case res of [x] => x | _ => err "") handle ERROR msg => err msg end;
+
+(* wrapped syntax *)
+
+fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) context =
+  let
+    val args1 = map init_assignable args0;
+    fun reported_text () =
+      if Context_Position.is_visible_generic context then
+        ((pos, Markup.operator) :: maps (reports_of_value o closure) args1)
+        |> map (fn (p, m) => Position.reported_text p m "")
+      else [];
+  in
+    (case Scan.error (Scan.finite' stopper (Scan.option scan)) (context, args1) of
+      (SOME x, (context', [])) =>
+        let val _ = Output.report (reported_text ())
+        in (x, context') end
+    | (_, (_, args2)) =>
+        let
+          val print_name =
+            (case output_info of
+              NONE => quote name
+            | SOME (kind, markup) => plain_words kind ^ " " ^ quote (Markup.markup markup name));
+          val print_args =
+            if null args2 then "" else ":\n  " ^ space_implode " " (map print args2);
+        in
+          error ("Bad arguments for " ^ print_name ^ Position.here pos ^ print_args ^
+            Markup.markup_report (implode (reported_text ())))
+        end)
+  end;
+
+fun syntax scan src = apsnd Context.the_proof o syntax_generic scan src o Context.Proof;
 
 end;
+
+type 'a parser = 'a Token.parser;
+type 'a context_parser = 'a Token.context_parser;
+

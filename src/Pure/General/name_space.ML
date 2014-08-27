@@ -14,7 +14,7 @@ sig
   val kind_of: T -> string
   val defined_entry: T -> string -> bool
   val the_entry: T -> string ->
-    {concealed: bool, group: serial option, theory_name: string, pos: Position.T, id: serial}
+    {concealed: bool, group: serial option, theory_name: string, pos: Position.T, serial: serial}
   val entry_ord: T -> string * string -> order
   val markup: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
@@ -92,10 +92,10 @@ type entry =
   group: serial option,
   theory_name: string,
   pos: Position.T,
-  id: serial};
+  serial: serial};
 
-fun entry_markup def kind (name, {pos, id, ...}: entry) =
-  Markup.properties (Position.entity_properties_of def id pos) (Markup.entity kind name);
+fun entry_markup def kind (name, {pos, serial, ...}: entry) =
+  Markup.properties (Position.entity_properties_of def serial pos) (Markup.entity kind name);
 
 fun print_entry_ref kind (name, entry) =
   quote (Markup.markup (entry_markup false kind (name, entry)) name);
@@ -152,7 +152,7 @@ fun the_entry (Name_Space {kind, entries, ...}) name =
     NONE => error (undefined kind name)
   | SOME (_, entry) => entry);
 
-fun entry_ord space = int_ord o pairself (#id o the_entry space);
+fun entry_ord space = int_ord o pairself (#serial o the_entry space);
 
 fun markup (Name_Space {kind, entries, ...}) name =
   (case Change_Table.lookup entries name of
@@ -275,7 +275,7 @@ fun merge
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
     val entries' = (entries1, entries2) |> Change_Table.join
       (fn name => fn ((_, entry1), (_, entry2)) =>
-        if #id entry1 = #id entry2 then raise Change_Table.SAME
+        if #serial entry1 = #serial entry2 then raise Change_Table.SAME
         else err_dup kind' (name, entry1) (name, entry2) Position.none);
   in make_name_space (kind', internals', entries') end;
 
@@ -448,7 +448,7 @@ fun declare context strict binding space =
       group = group,
       theory_name = theory_name,
       pos = pos,
-      id = serial ()};
+      serial = serial ()};
     val space' =
       space |> map_name_space (fn (kind, internals, entries) =>
         let

@@ -80,10 +80,27 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
     val (orig_descr' :: nested_descrs, _) =
       Datatype_Aux.unfold_datatypes lthy orig_descr all_infos orig_descr nn_fp;
 
+    fun cliquify_descr [] = []
+      | cliquify_descr [entry] = [[entry]]
+      | cliquify_descr (full_descr as (_, (T_name1, _, _)) :: _) =
+        let
+          val nn =
+            if member (op =) fpT_names T_name1 then
+              nn_fp
+            else
+              (case Symtab.lookup all_infos T_name1 of
+                SOME {descr, ...} =>
+                length (filter_out (exists Datatype_Aux.is_rec_type o #2 o snd) descr)
+              | NONE => raise Fail "unknown old-style datatype");
+        in
+          chop nn full_descr ||> cliquify_descr |> op ::
+        end;
+
     (* put nested types before the types that nest them, as needed for N2M *)
     val descrs = burrow reindex_desc (orig_descr' :: rev nested_descrs);
     val (cliques, descr) =
-      split_list (flat (map_index (fn (i, descr) => map (pair i) descr) descrs));
+      split_list (flat (map_index (fn (i, descr) => map (pair i) descr)
+        (maps cliquify_descr descrs)));
 
     val dest_dtyp = Datatype_Aux.typ_of_dtyp descr;
 
@@ -121,13 +138,13 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
     val inducts = map (the_single o #co_inducts) fp_sugars;
 
     fun mk_info (kk, {T = Type (T_name0, _), ctr_sugar = {casex, exhaust, nchotomy, injects,
-        distincts, case_thms, case_cong, weak_case_cong, split, split_asm, ...}, ...} : fp_sugar) =
+        distincts, case_thms, case_cong, case_cong_weak, split, split_asm, ...}, ...} : fp_sugar) =
       (T_name0,
        {index = kk, descr = descr, inject = injects, distinct = distincts, induct = induct,
-       inducts = inducts, exhaust = exhaust, nchotomy = nchotomy, rec_names = recs,
-       rec_rewrites = rec_thms, case_name = fst (dest_Const casex), case_rewrites = case_thms,
-       case_cong = case_cong, weak_case_cong = weak_case_cong, split = split,
-       split_asm = split_asm});
+        inducts = inducts, exhaust = exhaust, nchotomy = nchotomy, rec_names = recs,
+        rec_rewrites = rec_thms, case_name = fst (dest_Const casex), case_rewrites = case_thms,
+        case_cong = case_cong, case_cong_weak = case_cong_weak, split = split,
+        split_asm = split_asm});
 
     val infos = map_index mk_info (take nn_fp fp_sugars);
 

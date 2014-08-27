@@ -21,7 +21,7 @@ import sidekick.{SideKickParser, SideKickParsedData, IAsset}
 object Isabelle_Sidekick
 {
   def int_to_pos(offset: Text.Offset): Position =
-    new Position { def getOffset = offset; override def toString = offset.toString }
+    new Position { def getOffset = offset; override def toString: String = offset.toString }
 
   class Asset(name: String, start: Text.Offset, end: Text.Offset) extends IAsset
   {
@@ -39,7 +39,7 @@ object Isabelle_Sidekick
     override def setStart(start: Position) = _start = start
     override def getEnd: Position = _end
     override def setEnd(end: Position) = _end = end
-    override def toString = _name
+    override def toString: String = _name
   }
 
   def swing_markup_tree(tree: Markup_Tree, parent: DefaultMutableTreeNode,
@@ -95,13 +95,11 @@ class Isabelle_Sidekick_Structure(
     node_name: Buffer => Option[Document.Node.Name])
   extends Isabelle_Sidekick(name)
 {
-  import Thy_Syntax.Structure
-
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
-    def make_tree(offset: Text.Offset, entry: Structure.Entry): List[DefaultMutableTreeNode] =
+    def make_tree(offset: Text.Offset, entry: Thy_Structure.Entry): List[DefaultMutableTreeNode] =
       entry match {
-        case Structure.Block(name, body) =>
+        case Thy_Structure.Block(name, body) =>
           val node =
             new DefaultMutableTreeNode(
               new Isabelle_Sidekick.Asset(Library.first_line(name), offset, offset + entry.length))
@@ -111,8 +109,8 @@ class Isabelle_Sidekick_Structure(
               i + e.length
             })
           List(node)
-        case Structure.Atom(command)
-        if command.is_command && syntax.heading_level(command).isEmpty =>
+        case Thy_Structure.Atom(command)
+        if command.is_proper && syntax.heading_level(command).isEmpty =>
           val node =
             new DefaultMutableTreeNode(
               new Isabelle_Sidekick.Asset(command.name, offset, offset + entry.length))
@@ -123,7 +121,7 @@ class Isabelle_Sidekick_Structure(
     node_name(buffer) match {
       case Some(name) =>
         val text = JEdit_Lib.buffer_text(buffer)
-        val structure = Structure.parse(syntax, name, text)
+        val structure = Thy_Structure.parse(syntax, name, text)
         make_tree(0, structure) foreach (node => data.root.add(node))
         true
       case None => false
@@ -175,7 +173,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
                   new Isabelle_Sidekick.Asset(command.toString, range.start, range.stop) {
                     override def getShortString: String = content
                     override def getLongString: String = info_text
-                    override def toString = quote(content) + " " + range.toString
+                    override def toString: String = quote(content) + " " + range.toString
                   })
               })
         }

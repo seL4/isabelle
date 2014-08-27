@@ -18,7 +18,7 @@ sig
   val make_cases : string list -> descr list -> theory -> term list list
   val make_splits : string list -> descr list -> theory -> (term * term) list
   val make_case_combs : string list -> descr list -> theory -> string -> term list
-  val make_weak_case_congs : string list -> descr list -> theory -> term list
+  val make_case_cong_weaks : string list -> descr list -> theory -> term list
   val make_case_congs : string list -> descr list -> theory -> term list
   val make_nchotomys : descr list -> term list
 end;
@@ -330,7 +330,7 @@ fun make_splits case_names descr thy =
 
 (************************* additional rules for TFL ***************************)
 
-fun make_weak_case_congs case_names descr thy =
+fun make_case_cong_weaks case_names descr thy =
   let
     val case_combs = make_case_combs case_names descr thy "f";
 

@@ -279,9 +279,7 @@ val setup_case_cong = Datatype_Data.interpretation (K (fold add_case_cong))
 
 (* setup *)
 
-val setup =
-  setup_case_cong
-  #> Function_Common.Termination_Simps.setup
+val setup = setup_case_cong
 
 val get_congs = Function_Ctx_Tree.get_function_congs
 

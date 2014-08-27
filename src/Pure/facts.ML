@@ -22,13 +22,15 @@ sig
   type T
   val empty: T
   val space_of: T -> Name_Space.T
+  val alias: Name_Space.naming -> binding -> string -> T -> T
   val is_concealed: T -> string -> bool
   val check: Context.generic -> T -> xstring * Position.T -> string
   val intern: T -> xstring -> string
   val extern: Proof.context -> T -> string -> xstring
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val lookup: Context.generic -> T -> string -> (bool * thm list) option
-  val retrieve: Context.generic -> T -> xstring * Position.T -> string * thm list
+  val retrieve: Context.generic -> T -> xstring * Position.T ->
+    {name: string, static: bool, thms: thm list}
   val defined: T -> string -> bool
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
   val dest_static: bool -> T list -> T -> (string * thm list) list
@@ -143,6 +145,9 @@ fun facts_of (Facts {facts, ...}) = facts;
 
 val space_of = Name_Space.space_of_table o facts_of;
 
+fun alias naming binding name (Facts {facts, props}) =
+  make_facts (Name_Space.alias_table naming binding name facts) props;
+
 val is_concealed = Name_Space.is_concealed o space_of;
 
 fun check context facts (xname, pos) =
@@ -156,7 +161,7 @@ fun check context facts (xname, pos) =
 
 val intern = Name_Space.intern o space_of;
 fun extern ctxt = Name_Space.extern ctxt o space_of;
-fun markup_extern ctxt = Name_Space.markup_extern ctxt o space_of
+fun markup_extern ctxt = Name_Space.markup_extern ctxt o space_of;
 
 
 (* retrieve *)
@@ -172,14 +177,18 @@ fun lookup context facts name =
 fun retrieve context facts (xname, pos) =
   let
     val name = check context facts (xname, pos);
-    val thms =
+    val (static, thms) =
       (case lookup context facts name of
         SOME (static, thms) =>
           (if static then ()
            else Context_Position.report_generic context pos (Markup.dynamic_fact name);
-           thms)
+           (static, thms))
       | NONE => error ("Unknown fact " ^ quote name ^ Position.here pos));
-  in (name, map (Thm.transfer (Context.theory_of context)) thms) end;
+  in
+   {name = name,
+    static = static,
+    thms = map (Thm.transfer (Context.theory_of context)) thms}
+  end;
 
 
 (* static content *)

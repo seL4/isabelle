@@ -11,6 +11,7 @@ sig
   val add_logic: int * (term list -> string option) -> Context.generic -> Context.generic
   val translate_config: Proof.context -> SMT2_Translate.config
   val assert_index_of_name: string -> int
+  val assert_prefix : string
 end;
 
 structure SMTLIB2_Interface: SMTLIB2_INTERFACE =
@@ -48,7 +49,7 @@ val setup_builtins =
     (@{const If ('a)}, "ite"),
     (@{const less (int)}, "<"),
     (@{const less_eq (int)}, "<="),
-    (@{const uminus (int)}, "~"),
+    (@{const uminus (int)}, "-"),
     (@{const plus (int)}, "+"),
     (@{const minus (int)}, "-")] #>
   SMT2_Builtin.add_builtin_fun smtlib2C

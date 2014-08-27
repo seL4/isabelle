@@ -48,18 +48,18 @@ fun apply_generic timeout_opt name command pre post apply st =
       NONE
   end;
 
-val parse_method =
-  enclose "(" ")"
-  #> Outer_Syntax.scan Position.start
-  #> filter Token.is_proper
-  #> Scan.read Token.stopper Method.parse
-  #> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
+fun parse_method s =
+  enclose "(" ")" s
+  |> Outer_Syntax.scan (Keyword.get_lexicons ()) Position.start
+  |> filter Token.is_proper
+  |> Scan.read Token.stopper Method.parse
+  |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
 
 fun apply_named_method_on_first_goal ctxt =
   parse_method
   #> Method.method_cmd ctxt
   #> Method.Basic
-  #> (fn m => Method.Select_Goals (Method.no_combinator_info, 1, m))
+  #> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
   #> Proof.refine;
 
 fun add_attr_text (NONE, _) s = s
@@ -173,10 +173,10 @@ fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) = (s1 @ s2, i1 @ i2, e1 @ e2, 
 
 fun string_of_xthm (xref, args) =
   Facts.string_of_ref xref ^
-  implode (map (enclose "[" "]" o Pretty.str_of o Args.pretty_src @{context}) args);
+  implode (map (enclose "[" "]" o Pretty.str_of o Token.pretty_src @{context}) args);
 
 val parse_fact_refs =
-  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse_Spec.xthm >> string_of_xthm));
+  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse.xthm >> string_of_xthm));
 
 val parse_attr =
   Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (fn ss => (ss, [], [], []))

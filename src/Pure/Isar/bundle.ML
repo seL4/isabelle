@@ -6,13 +6,13 @@ Bundled declarations (notes etc.).
 
 signature BUNDLE =
 sig
-  type bundle = (thm list * Args.src list) list
+  type bundle = (thm list * Token.src list) list
   val check: Proof.context -> xstring * Position.T -> string
   val get_bundle: Proof.context -> string -> bundle
   val get_bundle_cmd: Proof.context -> xstring * Position.T -> bundle
-  val bundle: binding * (thm list * Args.src list) list ->
+  val bundle: binding * (thm list * Token.src list) list ->
     (binding * typ option * mixfix) list -> local_theory -> local_theory
-  val bundle_cmd: binding * (Facts.ref * Args.src list) list ->
+  val bundle_cmd: binding * (Facts.ref * Token.src list) list ->
     (binding * string option * mixfix) list -> local_theory -> local_theory
   val includes: string list -> Proof.context -> Proof.context
   val includes_cmd: (xstring * Position.T) list -> Proof.context -> Proof.context
@@ -31,10 +31,10 @@ struct
 
 (* maintain bundles *)
 
-type bundle = (thm list * Args.src list) list;
+type bundle = (thm list * Token.src list) list;
 
 fun transform_bundle phi : bundle -> bundle =
-  map (fn (fact, atts) => (Morphism.fact phi fact, map (Args.transform_values phi) atts));
+  map (fn (fact, atts) => (Morphism.fact phi fact, map (Token.transform_src phi) atts));
 
 structure Data = Generic_Data
 (

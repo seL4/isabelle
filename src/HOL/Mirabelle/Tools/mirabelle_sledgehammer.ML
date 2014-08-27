@@ -15,19 +15,15 @@ struct
 val proverK = "prover" (*=NAME: name of the external prover to call*)
 val prover_timeoutK = "prover_timeout" (*=TIME: timeout for invoked ATP (seconds of process time)*)
 val keepK = "keep" (*=PATH: path where to keep temporary files created by sledgehammer*)
-val minimizeK = "minimize" (*: enable minimization of theorem set found by sledgehammer*)
-                           (*refers to minimization attempted by Mirabelle*)
-val minimize_timeoutK = "minimize_timeout" (*=TIME: timeout for each minimization step (seconds of*)
 
 val proof_methodK = "proof_method" (*=NAME: how to reconstruct proofs (ie. using metis/smt)*)
-val metis_ftK = "metis_ft" (*: apply metis with fully-typed encoding to the theorems found by sledgehammer*)
 
 val max_factsK = "max_facts" (*=NUM: max. relevant clauses to use*)
 val max_relevantK = "max_relevant" (*=NUM: max. relevant clauses to use*)
 val max_callsK = "max_calls" (*=NUM: max. no. of calls to sledgehammer*)
 val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstructed proof*)
 val isar_proofsK = "isar_proofs" (*: enable Isar proof generation*)
-val sh_minimizeK = "sh_minimize" (*: instruct sledgehammer to run its minimizer*)
+val minimizeK = "minimize" (*: instruct sledgehammer to run its minimizer*)
 
 val check_trivialK = "check_trivial" (*: check if goals are "trivial" (false by default)*)
 val fact_filterK = "fact_filter" (*=STRING: fact filter*)
@@ -43,14 +39,13 @@ val max_new_mono_instancesK = "max_new_mono_instances" (*=NUM: max. new monomorp
 val max_mono_itersK = "max_mono_iters" (*=NUM: max. iterations of monomorphiser*)
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
-fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
 fun proof_method_tag meth id = "#" ^ string_of_int id ^ " " ^ (!meth) ^ " (sledgehammer): "
 
 val separator = "-----"
 
 (*FIXME sensible to have Mirabelle-level Sledgehammer defaults?*)
 (*defaults used in this Mirabelle action*)
-val preplay_timeout_default = "3"
+val preplay_timeout_default = "1"
 val lam_trans_default = "smart"
 val uncurried_aliases_default = "smart"
 val fact_filter_default = "smart"
@@ -60,7 +55,6 @@ val max_facts_default = "smart"
 val slice_default = "true"
 val max_calls_default = "10000000"
 val trivial_default = "false"
-val minimize_timeout_default = 5
 
 (*If a key is present in args then augment a list with its pair*)
 (*This is used to avoid fixing default values at the Mirabelle level, and
@@ -93,11 +87,6 @@ datatype re_data = ReData of {
   posns: (Position.T * bool) list
   }
 
-datatype min_data = MinData of {
-  succs: int,
-  ab_ratios: int
-  }
-
 fun make_sh_data
       (calls,success,nontriv_calls,nontriv_success,lemmas,max_lems,time_isa,
        time_prover,time_prover_fail) =
@@ -106,9 +95,6 @@ fun make_sh_data
          time_isa=time_isa, time_prover=time_prover,
          time_prover_fail=time_prover_fail}
 
-fun make_min_data (succs, ab_ratios) =
-  MinData{succs=succs, ab_ratios=ab_ratios}
-
 fun make_re_data (calls,success,nontriv_calls,nontriv_success,proofs,time,
                   timeout,lemmas,posns) =
   ReData{calls=calls, success=success, nontriv_calls=nontriv_calls,
@@ -116,7 +102,6 @@ fun make_re_data (calls,success,nontriv_calls,nontriv_success,proofs,time,
          timeout=timeout, lemmas=lemmas, posns=posns}
 
 val empty_sh_data = make_sh_data (0, 0, 0, 0, 0, 0, 0, 0, 0)
-val empty_min_data = make_min_data (0, 0)
 val empty_re_data = make_re_data (0, 0, 0, 0, 0, 0, 0, (0,0,0), [])
 
 fun tuple_of_sh_data (ShData {calls, success, nontriv_calls, nontriv_success,
@@ -124,55 +109,28 @@ fun tuple_of_sh_data (ShData {calls, success, nontriv_calls, nontriv_success,
   time_prover, time_prover_fail}) = (calls, success, nontriv_calls,
   nontriv_success, lemmas, max_lems, time_isa, time_prover, time_prover_fail)
 
-fun tuple_of_min_data (MinData {succs, ab_ratios}) = (succs, ab_ratios)
-
 fun tuple_of_re_data (ReData {calls, success, nontriv_calls, nontriv_success,
   proofs, time, timeout, lemmas, posns}) = (calls, success, nontriv_calls,
   nontriv_success, proofs, time, timeout, lemmas, posns)
 
-datatype proof_method_mode =
-  Unminimized | Minimized | UnminimizedFT | MinimizedFT
-
 datatype data = Data of {
   sh: sh_data,
-  min: min_data,
-  re_u: re_data, (* proof method with unminimized set of lemmas *)
-  re_m: re_data, (* proof method with minimized set of lemmas *)
-  re_uft: re_data, (* proof method with unminimized set of lemmas and fully-typed *)
-  re_mft: re_data, (* proof method with minimized set of lemmas and fully-typed *)
-  mini: bool   (* with minimization *)
+  re_u: re_data (* proof method with unminimized set of lemmas *)
   }
 
-fun make_data (sh, min, re_u, re_m, re_uft, re_mft, mini) =
-  Data {sh=sh, min=min, re_u=re_u, re_m=re_m, re_uft=re_uft, re_mft=re_mft,
-    mini=mini}
+fun make_data (sh, re_u) = Data {sh=sh, re_u=re_u}
 
-val empty_data = make_data (empty_sh_data, empty_min_data,
-  empty_re_data, empty_re_data, empty_re_data, empty_re_data, false)
+val empty_data = make_data (empty_sh_data, empty_re_data)
 
-fun map_sh_data f (Data {sh, min, re_u, re_m, re_uft, re_mft, mini}) =
+fun map_sh_data f (Data {sh, re_u}) =
   let val sh' = make_sh_data (f (tuple_of_sh_data sh))
-  in make_data (sh', min, re_u, re_m, re_uft, re_mft, mini) end
+  in make_data (sh', re_u) end
 
-fun map_min_data f (Data {sh, min, re_u, re_m, re_uft, re_mft, mini}) =
-  let val min' = make_min_data (f (tuple_of_min_data min))
-  in make_data (sh, min', re_u, re_m, re_uft, re_mft, mini) end
-
-fun map_re_data f m (Data {sh, min, re_u, re_m, re_uft, re_mft, mini}) =
+fun map_re_data f (Data {sh, re_u}) =
   let
-    fun map_me g Unminimized   (u, m, uft, mft) = (g u, m, uft, mft)
-      | map_me g Minimized     (u, m, uft, mft) = (u, g m, uft, mft)
-      | map_me g UnminimizedFT (u, m, uft, mft) = (u, m, g uft, mft)
-      | map_me g MinimizedFT   (u, m, uft, mft) = (u, m, uft, g mft)
-
     val f' = make_re_data o f o tuple_of_re_data
-
-    val (re_u', re_m', re_uft', re_mft') =
-      map_me f' m (re_u, re_m, re_uft, re_mft)
-  in make_data (sh, min, re_u', re_m', re_uft', re_mft', mini) end
-
-fun set_mini mini (Data {sh, min, re_u, re_m, re_uft, re_mft, ...}) =
-  make_data (sh, min, re_u, re_m, re_uft, re_mft, mini)
+    val re_u' = f' re_u
+  in make_data (sh, re_u') end
 
 fun inc_max (n:int) (s,sos,m) = (s+n, sos + n*n, Int.max(m,n));
 
@@ -212,12 +170,6 @@ fun inc_sh_time_prover_fail t = map_sh_data
   (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
     => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail + t))
 
-val inc_min_succs = map_min_data
-  (fn (succs,ab_ratios) => (succs+1, ab_ratios))
-
-fun inc_min_ab_ratios r = map_min_data
-  (fn (succs, ab_ratios) => (succs, ab_ratios+r))
-
 val inc_proof_method_calls = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls + 1, success, nontriv_calls, nontriv_success, proofs, time, timeout, lemmas,posns))
@@ -238,21 +190,21 @@ val inc_proof_method_proofs = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success, proofs + 1, time, timeout, lemmas,posns))
 
-fun inc_proof_method_time m t = map_re_data
+fun inc_proof_method_time t = map_re_data
  (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
-  => (calls, success, nontriv_calls, nontriv_success, proofs, time + t, timeout, lemmas,posns)) m
+  => (calls, success, nontriv_calls, nontriv_success, proofs, time + t, timeout, lemmas,posns))
 
 val inc_proof_method_timeout = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout + 1, lemmas,posns))
 
-fun inc_proof_method_lemmas m n = map_re_data
+fun inc_proof_method_lemmas n = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
-    => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout, inc_max n lemmas, posns)) m
+    => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout, inc_max n lemmas, posns))
 
-fun inc_proof_method_posns m pos = map_re_data
+fun inc_proof_method_posns pos = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
-    => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout, lemmas, pos::posns)) m
+    => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout, lemmas, pos::posns))
 
 val str0 = string_of_int o the_default 0
 
@@ -311,37 +263,23 @@ fun log_re_data log tag sh_calls (re_calls, re_success, re_nontriv_calls,
   else ()
  )
 
-fun log_min_data log (succs, ab_ratios) =
-  (log ("Number of successful minimizations: " ^ string_of_int succs);
-   log ("After/before ratios: " ^ string_of_int ab_ratios)
-  )
-
 in
 
-fun log_data id log (Data {sh, min, re_u, re_m, re_uft, re_mft, mini}) =
+fun log_data id log (Data {sh, re_u}) =
   let
     val ShData {calls=sh_calls, ...} = sh
 
     fun app_if (ReData {calls, ...}) f = if calls > 0 then f () else ()
     fun log_re tag m =
       log_re_data log tag sh_calls (tuple_of_re_data m)
-    fun log_proof_method (tag1, m1) (tag2, m2) = app_if m1 (fn () =>
-      (log_re tag1 m1; log ""; app_if m2 (fn () => log_re tag2 m2)))
+    fun log_proof_method (tag1, m1) = app_if m1 (fn () => (log_re tag1 m1; log ""))
   in
     if sh_calls > 0
     then
      (log ("\n\n\nReport #" ^ string_of_int id ^ ":\n");
       log_sh_data log (tuple_of_sh_data sh);
       log "";
-      if not mini
-      then log_proof_method ("", re_u) ("fully-typed ", re_uft)
-      else
-        app_if re_u (fn () =>
-         (log_proof_method ("unminimized ", re_u) ("unminimized fully-typed ", re_uft);
-          log "";
-          app_if re_m (fn () =>
-            (log_min_data log (tuple_of_min_data min); log "";
-             log_proof_method ("", re_m) ("fully-typed ", re_mft))))))
+      log_proof_method ("", re_u))
     else ()
   end
 
@@ -411,7 +349,7 @@ datatype sh_result =
 
 fun run_sh prover_name fact_filter type_enc strict max_facts slice
       lam_trans uncurried_aliases e_selection_heuristic term_order force_sos
-      hard_timeout timeout preplay_timeout isar_proofsLST sh_minimizeLST
+      hard_timeout timeout preplay_timeout isar_proofsLST minimizeLST
       max_new_mono_instancesLST max_mono_itersLST dir pos st =
   let
     val thy = Proof.theory_of st
@@ -421,7 +359,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         Config.put Sledgehammer_Prover_ATP.atp_dest_dir dir
         #> Config.put Sledgehammer_Prover_ATP.atp_problem_prefix
           ("prob_" ^ str0 (Position.line_of pos) ^ "__")
-        #> Config.put SMT_Config.debug_files
+        #> Config.put SMT2_Config.debug_files
           (dir ^ "/" ^ Name.desymbolize (SOME false) (ATP_Util.timestamp ()) ^ "_"
           ^ serial_string ())
       | set_file_name NONE = I
@@ -435,7 +373,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                   term_order |> the_default I)
             #> (Option.map (Config.put ATP_Systems.force_sos)
                   force_sos |> the_default I))
-    val params as {max_facts, ...} =
+    val params as {max_facts, minimize, preplay_timeout, ...} =
       Sledgehammer_Commands.default_params thy
          ([("verbose", "true"),
            ("fact_filter", fact_filter),
@@ -448,7 +386,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
            ("timeout", string_of_int timeout),
            ("preplay_timeout", preplay_timeout)]
           |> isar_proofsLST
-          |> sh_minimizeLST (*don't confuse the two minimization flags*)
+          |> minimizeLST (*don't confuse the two minimization flags*)
           |> max_new_mono_instancesLST
           |> max_mono_itersLST)
     val default_max_facts =
@@ -460,11 +398,9 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], used_from = [],
-        run_time = Time.zeroTime,
-        preplay = Lazy.value (Sledgehammer_Proof_Methods.Metis_Method (NONE, NONE),
-          Sledgehammer_Proof_Methods.Play_Failed),
-        message = K "", message_tail = ""}, ~1)
-    val ({outcome, used_facts, run_time, preplay, message, message_tail, ...}
+        preferred_methss = (Sledgehammer_Proof_Methods.Auto_Method, []), run_time = Time.zeroTime,
+        message = K ""}, ~1)
+    val ({outcome, used_facts, preferred_methss, run_time, message, ...}
          : Sledgehammer_Prover.prover_result,
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
@@ -488,11 +424,12 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         val problem =
           {comment = "", state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st, factss = factss}
-      in prover params (K (K (K ""))) problem end)) ()
+      in prover params problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
-    val msg = message (Lazy.force preplay) ^ message_tail
+    val msg = message (fn () => Sledgehammer.play_one_line_proof minimize preplay_timeout used_facts
+      st' i preferred_methss)
   in
     (case outcome of
       NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
@@ -534,7 +471,7 @@ fun run_sledgehammer trivial args proof_method named_thms id
     val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
       |> the_default preplay_timeout_default
     val isar_proofsLST = available_parameter args isar_proofsK "isar_proofs"
-    val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
+    val minimizeLST = available_parameter args minimizeK "minimize"
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
     val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
@@ -542,7 +479,7 @@ fun run_sledgehammer trivial args proof_method named_thms id
     val (msg, result) =
       run_sh prover_name fact_filter type_enc strict max_facts slice lam_trans
         uncurried_aliases e_selection_heuristic term_order force_sos
-        hard_timeout timeout preplay_timeout isar_proofsLST sh_minimizeLST
+        hard_timeout timeout preplay_timeout isar_proofsLST minimizeLST
         max_new_mono_instancesLST max_mono_itersLST dir pos st
   in
     (case result of
@@ -574,57 +511,6 @@ fun run_sledgehammer trivial args proof_method named_thms id
 
 end
 
-fun run_minimize args meth named_thms id ({pre = st, log, ...} : Mirabelle.run_args) =
-  let
-    val thy = Proof.theory_of st
-    val {goal, ...} = Proof.goal st
-    val n0 = length (these (!named_thms))
-    val prover_name = get_prover_name thy args
-    val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
-    val strict = AList.lookup (op =) args strictK |> the_default strict_default
-    val timeout =
-      AList.lookup (op =) args minimize_timeoutK
-      |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
-      |> the_default minimize_timeout_default
-    val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
-      |> the_default preplay_timeout_default
-    val isar_proofsLST = available_parameter args isar_proofsK "isar_proofs"
-    val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
-    val max_new_mono_instancesLST =
-      available_parameter args max_new_mono_instancesK max_new_mono_instancesK
-    val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
-    val params = Sledgehammer_Commands.default_params thy
-     ([("provers", prover_name),
-       ("verbose", "true"),
-       ("type_enc", type_enc),
-       ("strict", strict),
-       ("timeout", string_of_int timeout),
-       ("preplay_timeout", preplay_timeout)]
-      |> isar_proofsLST
-      |> sh_minimizeLST (*don't confuse the two minimization flags*)
-      |> max_new_mono_instancesLST
-      |> max_mono_itersLST)
-    val minimize =
-      Sledgehammer_Prover_Minimize.minimize_facts (K ()) prover_name params true 1
-        (Sledgehammer_Util.subgoal_count st)
-    val _ = log separator
-    val (used_facts, (preplay, message, message_tail)) =
-      minimize st goal NONE (these (!named_thms))
-    val msg = message (Lazy.force preplay) ^ message_tail
-  in
-    (case used_facts of
-      SOME named_thms' =>
-        (change_data id inc_min_succs;
-         change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));
-         if length named_thms' = n0
-         then log (minimize_tag id ^ "already minimal")
-         else (meth := proof_method_from_msg args msg;
-               named_thms := SOME named_thms';
-               log (minimize_tag id ^ "succeeded:\n" ^ msg))
-        )
-    | NONE => log (minimize_tag id ^ "failed: " ^ msg))
-  end
-
 fun override_params prover type_enc timeout =
   [("provers", prover),
    ("max_facts", "0"),
@@ -633,13 +519,13 @@ fun override_params prover type_enc timeout =
    ("slice", "false"),
    ("timeout", timeout |> Time.toSeconds |> string_of_int)]
 
-fun run_proof_method trivial full m name meth named_thms id
+fun run_proof_method trivial full name meth named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
     fun do_method named_thms ctxt =
       let
         val ref_of_str =
-          suffix ";" #> Outer_Syntax.scan Position.none #> Parse_Spec.xthm
+          suffix ";" #> Outer_Syntax.scan (Keyword.get_lexicons ()) Position.none #> Parse.xthm
           #> fst
         val thms = named_thms |> maps snd
         val facts = named_thms |> map (ref_of_str o fst o fst)
@@ -648,16 +534,16 @@ fun run_proof_method trivial full m name meth named_thms id
           timeout |> Time.toReal |> curry Real.* time_slice |> Time.fromReal
         fun sledge_tac time_slice prover type_enc =
           Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-            (override_params prover type_enc (my_timeout time_slice)) fact_override
+            (override_params prover type_enc (my_timeout time_slice)) fact_override []
       in
         if !meth = "sledgehammer_tac" then
           sledge_tac 0.2 ATP_Proof.vampireN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Proof.eN "poly_guards??"
           ORELSE' sledge_tac 0.2 ATP_Proof.spassN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Proof.z3_tptpN "poly_tags??"
-          ORELSE' SMT_Solver.smt_tac ctxt thms
+          ORELSE' SMT2_Solver.smt2_tac ctxt thms
         else if !meth = "smt" then
-          SMT_Solver.smt_tac ctxt thms
+          SMT2_Solver.smt2_tac ctxt thms
         else if full then
           Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
             ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
@@ -665,7 +551,7 @@ fun run_proof_method trivial full m name meth named_thms id
           let
             val (type_encs, lam_trans) =
               !meth
-              |> Outer_Syntax.scan Position.start
+              |> Outer_Syntax.scan (Keyword.get_lexicons ()) Position.start
               |> filter Token.is_proper |> tl
               |> Metis_Tactic.parse_metis_options |> fst
               |>> the_default [ATP_Proof_Reconstruct.partial_typesN]
@@ -680,22 +566,22 @@ fun run_proof_method trivial full m name meth named_thms id
       Mirabelle.can_apply timeout (do_method named_thms) st
 
     fun with_time (false, t) = "failed (" ^ string_of_int t ^ ")"
-      | with_time (true, t) = (change_data id (inc_proof_method_success m);
+      | with_time (true, t) = (change_data id inc_proof_method_success;
           if trivial then ()
-          else change_data id (inc_proof_method_nontriv_success m);
-          change_data id (inc_proof_method_lemmas m (length named_thms));
-          change_data id (inc_proof_method_time m t);
-          change_data id (inc_proof_method_posns m (pos, trivial));
-          if name = "proof" then change_data id (inc_proof_method_proofs m) else ();
+          else change_data id inc_proof_method_nontriv_success;
+          change_data id (inc_proof_method_lemmas (length named_thms));
+          change_data id (inc_proof_method_time t);
+          change_data id (inc_proof_method_posns (pos, trivial));
+          if name = "proof" then change_data id inc_proof_method_proofs else ();
           "succeeded (" ^ string_of_int t ^ ")")
     fun timed_method named_thms =
       (with_time (Mirabelle.cpu_time apply_method named_thms), true)
-      handle TimeLimit.TimeOut => (change_data id (inc_proof_method_timeout m); ("timeout", false))
+      handle TimeLimit.TimeOut => (change_data id inc_proof_method_timeout; ("timeout", false))
            | ERROR msg => ("error: " ^ msg, false)
 
     val _ = log separator
-    val _ = change_data id (inc_proof_method_calls m)
-    val _ = if trivial then () else change_data id (inc_proof_method_nontriv_calls m)
+    val _ = change_data id inc_proof_method_calls
+    val _ = if trivial then () else change_data id inc_proof_method_nontriv_calls
   in
     named_thms
     |> timed_method
@@ -724,38 +610,18 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
           val meth = Unsynchronized.ref ""
           val named_thms =
             Unsynchronized.ref (NONE : ((string * stature) * thm list) list option)
-          val minimize = AList.defined (op =) args minimizeK
-          val metis_ft = AList.defined (op =) args metis_ftK
           val trivial =
             if AList.lookup (op =) args check_trivialK |> the_default trivial_default
                             |> Markup.parse_bool then
               Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle TimeLimit.TimeOut => false
             else false
-          fun apply_method m1 m2 =
-            if metis_ft
-            then
-              if not (Mirabelle.catch_result (proof_method_tag meth) false
-                  (run_proof_method trivial false m1 name meth (these (!named_thms))) id st)
-              then
-                (Mirabelle.catch_result (proof_method_tag meth) false
-                  (run_proof_method trivial true m2 name meth (these (!named_thms))) id st; ())
-              else ()
-            else
-              (Mirabelle.catch_result (proof_method_tag meth) false
-                (run_proof_method trivial false m1 name meth (these (!named_thms))) id st; ())
+          fun apply_method () =
+            (Mirabelle.catch_result (proof_method_tag meth) false
+              (run_proof_method trivial false name meth (these (!named_thms))) id st; ())
         in
-          change_data id (set_mini minimize);
           Mirabelle.catch sh_tag (run_sledgehammer trivial args meth named_thms) id st;
-          if is_some (!named_thms)
-          then
-           (apply_method Unminimized UnminimizedFT;
-            if minimize andalso not (null (these (!named_thms)))
-            then
-             (Mirabelle.catch minimize_tag (run_minimize args meth named_thms) id st;
-              apply_method Minimized MinimizedFT)
-            else ())
-          else ()
+          if is_some (!named_thms) then apply_method () else ()
         end
     end
   end

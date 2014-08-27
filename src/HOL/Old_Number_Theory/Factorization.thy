@@ -143,7 +143,7 @@ lemma nondec_oinsert: "nondec xs \<Longrightarrow> nondec (oinsert x xs)"
   apply (induct xs)
    apply simp
    apply (case_tac xs)
-    apply (simp_all cong del: list.weak_case_cong)
+    apply (simp_all cong del: list.case_cong_weak)
   done
 
 lemma nondec_sort: "nondec (sort xs)"

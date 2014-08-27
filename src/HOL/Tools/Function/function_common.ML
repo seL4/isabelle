@@ -12,7 +12,7 @@ type info =
   defname : string,
     (* contains no logical entities: invariant under morphisms: *)
   add_simps : (binding -> binding) -> string -> (binding -> binding) ->
-    Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+    Token.src list -> thm list -> local_theory -> thm list * local_theory,
   fnames : string list,
   case_names : string list,
   fs : term list,
@@ -37,7 +37,7 @@ type info =
   defname : string,
     (* contains no logical entities: invariant under morphisms: *)
   add_simps : (binding -> binding) -> string -> (binding -> binding) ->
-    Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+    Token.src list -> thm list -> local_theory -> thm list * local_theory,
   fnames : string list,
   case_names : string list,
   fs : term list,
@@ -81,7 +81,6 @@ sig
   val import_function_data : term -> Proof.context -> info option
   val import_last_function : Proof.context -> info option
   val add_function_data : info -> Context.generic -> Context.generic
-  structure Termination_Simps: NAMED_THMS
   val set_termination_prover : (Proof.context -> tactic) -> Context.generic -> Context.generic
   val get_termination_prover : Proof.context -> tactic
   val store_termination_rule : thm -> Context.generic -> Context.generic
@@ -222,15 +221,6 @@ fun import_last_function ctxt =
 fun add_function_data (data : info as {fs, termination, ...}) =
   FunctionData.map (fold (fn f => Item_Net.update (f, data)) fs)
   #> store_termination_rule termination
-
-
-(* Simp rules for termination proofs *)
-
-structure Termination_Simps = Named_Thms
-(
-  val name = @{binding termination_simp}
-  val description = "simplification rules for termination proofs"
-)
 
 
 (* Default Termination Prover *)

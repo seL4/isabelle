@@ -261,7 +261,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
    make_body(root_range, Nil, overlapping(root_range))
   }
 
-  override def toString =
+  override def toString: String =
     branches.toList.map(_._2) match {
       case Nil => "Empty"
       case list => list.mkString("Tree(", ",", ")")

@@ -53,7 +53,7 @@ sig
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * string) list ->
-    (Facts.ref * Attrib.src list) list ->
+    (Facts.ref * Token.src list) list ->
     local_theory -> inductive_result * local_theory
   val add_inductive_global: inductive_flags ->
     ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
@@ -76,7 +76,7 @@ sig
     term list -> (binding * mixfix) list ->
     local_theory -> inductive_result * local_theory
   val declare_rules: binding -> bool -> bool -> string list -> term list ->
-    thm list -> binding list -> Attrib.src list list -> (thm * string list * int) list ->
+    thm list -> binding list -> Token.src list list -> (thm * string list * int) list ->
     thm list -> thm -> local_theory -> thm list * thm list * thm list * thm * thm list * local_theory
   val add_ind_def: add_ind_def
   val gen_add_inductive_i: add_ind_def -> inductive_flags ->
@@ -85,7 +85,7 @@ sig
   val gen_add_inductive: add_ind_def -> bool -> bool ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
+    (Attrib.binding * string) list -> (Facts.ref * Token.src list) list ->
     local_theory -> inductive_result * local_theory
   val gen_ind_decl: add_ind_def -> bool -> (local_theory -> local_theory) parser
 end;
@@ -1157,7 +1157,7 @@ val setup =
 fun gen_ind_decl mk_def coind =
   Parse.fixes -- Parse.for_fixes --
   Scan.optional Parse_Spec.where_alt_specs [] --
-  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse_Spec.xthms1) []
+  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.xthms1) []
   >> (fn (((preds, params), specs), monos) =>
       (snd o gen_add_inductive mk_def true coind preds params specs monos));
 

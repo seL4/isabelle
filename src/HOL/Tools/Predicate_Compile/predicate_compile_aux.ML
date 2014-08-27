@@ -1042,7 +1042,7 @@ fun peephole_optimisation thy intro =
   let
     val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val process =
-      rewrite_rule ctxt (Predicate_Compile_Simps.get ctxt)
+      rewrite_rule ctxt (Named_Theorems.get ctxt @{named_theorems code_pred_simp})
     fun process_False intro_t =
       if member (op =) (Logic.strip_imp_prems intro_t) @{prop "False"}
       then NONE else SOME intro_t

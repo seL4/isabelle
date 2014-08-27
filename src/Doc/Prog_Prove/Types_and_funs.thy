@@ -93,8 +93,9 @@ fun lookup :: "('a * 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" where
 text{*
 Note that @{text"\<tau>\<^sub>1 * \<tau>\<^sub>2"} is the type of pairs, also written @{text"\<tau>\<^sub>1 \<times> \<tau>\<^sub>2"}.
 Pairs can be taken apart either by pattern matching (as above) or with the
-projection functions @{const fst} and @{const snd}: @{thm fst_conv} and @{thm snd_conv}. Tuples are simulated by pairs nested to the right: @{term"(a,b,c)"}
-abbreviates @{text"(a, (b, c))"} and @{text "\<tau>\<^sub>1 \<times> \<tau>\<^sub>2 \<times> \<tau>\<^sub>3"} abbreviates
+projection functions @{const fst} and @{const snd}: @{thm fst_conv[of x y]} and @{thm snd_conv[of x y]}.
+Tuples are simulated by pairs nested to the right: @{term"(a,b,c)"}
+is short for @{text"(a, (b, c))"} and @{text "\<tau>\<^sub>1 \<times> \<tau>\<^sub>2 \<times> \<tau>\<^sub>3"} is short for
 @{text "\<tau>\<^sub>1 \<times> (\<tau>\<^sub>2 \<times> \<tau>\<^sub>3)"}.
 
 \subsection{Definitions}
@@ -388,7 +389,7 @@ as follows:
 \begin{array}{r@ {}c@ {}l@ {\quad}l}
 @{text"(0 + Suc 0"} & \leq & @{text"Suc 0 + x)"}  & \stackrel{(1)}{=} \\
 @{text"(Suc 0"}     & \leq & @{text"Suc 0 + x)"}  & \stackrel{(2)}{=} \\
-@{text"(Suc 0"}     & \leq & @{text"Suc (0 + x)"} & \stackrel{(3)}{=} \\
+@{text"(Suc 0"}     & \leq & @{text"Suc (0 + x))"} & \stackrel{(3)}{=} \\
 @{text"(0"}         & \leq & @{text"0 + x)"}      & \stackrel{(4)}{=} \\[1ex]
  & @{const True}
 \end{array}

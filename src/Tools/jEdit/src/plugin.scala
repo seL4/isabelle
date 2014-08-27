@@ -373,7 +373,7 @@ class Plugin extends EBPlugin
 
       PIDE.plugin = this
       Isabelle_System.init()
-      Isabelle_Font.install_fonts()
+      GUI.install_fonts()
 
       PIDE.options.update(Options.init())
       PIDE.completion_history.load()

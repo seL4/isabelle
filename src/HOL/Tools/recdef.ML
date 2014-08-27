@@ -15,17 +15,17 @@ sig
   val cong_del: attribute
   val wf_add: attribute
   val wf_del: attribute
-  val add_recdef: bool -> xstring -> string -> ((binding * string) * Attrib.src list) list ->
-    Attrib.src option -> theory -> theory
+  val add_recdef: bool -> xstring -> string -> ((binding * string) * Token.src list) list ->
+    Token.src option -> theory -> theory
       * {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val add_recdef_i: bool -> xstring -> term -> ((binding * term) * attribute list) list ->
     theory -> theory * {lhs: term, simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val defer_recdef: xstring -> string list -> (Facts.ref * Attrib.src list) list
+  val defer_recdef: xstring -> string list -> (Facts.ref * Token.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> thm list -> theory -> theory * {induct_rules: thm}
-  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> bool ->
+  val recdef_tc: bstring * Token.src list -> xstring -> int option -> bool ->
     local_theory -> Proof.state
-  val recdef_tc_i: bstring * Attrib.src list -> string -> int option -> bool ->
+  val recdef_tc_i: bstring * Token.src list -> string -> int option -> bool ->
     local_theory -> Proof.state
   val setup: theory -> theory
 end;
@@ -143,15 +143,15 @@ val recdef_congN = "recdef_cong";
 val recdef_wfN = "recdef_wf";
 
 val recdef_modifiers =
- [Args.$$$ recdef_simpN -- Args.colon >> K ((I, simp_add): Method.modifier),
-  Args.$$$ recdef_simpN -- Args.add -- Args.colon >> K (I, simp_add),
-  Args.$$$ recdef_simpN -- Args.del -- Args.colon >> K (I, simp_del),
-  Args.$$$ recdef_congN -- Args.colon >> K (I, cong_add),
-  Args.$$$ recdef_congN -- Args.add -- Args.colon >> K (I, cong_add),
-  Args.$$$ recdef_congN -- Args.del -- Args.colon >> K (I, cong_del),
-  Args.$$$ recdef_wfN -- Args.colon >> K (I, wf_add),
-  Args.$$$ recdef_wfN -- Args.add -- Args.colon >> K (I, wf_add),
-  Args.$$$ recdef_wfN -- Args.del -- Args.colon >> K (I, wf_del)] @
+ [Args.$$$ recdef_simpN -- Args.colon >> K (Method.modifier simp_add @{here}),
+  Args.$$$ recdef_simpN -- Args.add -- Args.colon >> K (Method.modifier simp_add @{here}),
+  Args.$$$ recdef_simpN -- Args.del -- Args.colon >> K (Method.modifier simp_del @{here}),
+  Args.$$$ recdef_congN -- Args.colon >> K (Method.modifier cong_add @{here}),
+  Args.$$$ recdef_congN -- Args.add -- Args.colon >> K (Method.modifier cong_add @{here}),
+  Args.$$$ recdef_congN -- Args.del -- Args.colon >> K (Method.modifier cong_del @{here}),
+  Args.$$$ recdef_wfN -- Args.colon >> K (Method.modifier wf_add @{here}),
+  Args.$$$ recdef_wfN -- Args.add -- Args.colon >> K (Method.modifier wf_add @{here}),
+  Args.$$$ recdef_wfN -- Args.del -- Args.colon >> K (Method.modifier wf_del @{here})] @
   Clasimp.clasimp_modifiers;
 
 
@@ -164,7 +164,7 @@ fun prepare_hints thy opt_src =
     val ctxt =
       (case opt_src of
         NONE => ctxt0
-      | SOME src => #2 (Args.syntax (Method.sections recdef_modifiers) src ctxt0));
+      | SOME src => #2 (Token.syntax (Method.sections recdef_modifiers) src ctxt0));
     val {simps, congs, wfs} = get_hints ctxt;
     val ctxt' = ctxt addsimps simps |> Simplifier.del_cong @{thm imp_cong};
   in (ctxt', rev (map snd congs), wfs) end;
@@ -202,7 +202,8 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
       tfl_fn not_permissive ctxt congs wfs name R eqs thy;
     val rules = (map o map) fst (partition_eq (eq_snd (op = : int * int -> bool)) rules_idx);
     val simp_att =
-      if null tcs then [Simplifier.simp_add, Nitpick_Simps.add, Code.add_default_eqn_attribute]
+      if null tcs then [Simplifier.simp_add,
+        Named_Theorems.add @{named_theorems nitpick_simp}, Code.add_default_eqn_attribute]
       else [];
     val ((simps' :: rules', [induct']), thy) =
       thy
@@ -291,7 +292,7 @@ val setup =
 val hints =
   @{keyword "("} |--
     Parse.!!! (Parse.position @{keyword "hints"} -- Parse.args --| @{keyword ")"})
-  >> uncurry Args.src;
+  >> uncurry Token.src;
 
 val recdef_decl =
   Scan.optional
@@ -308,7 +309,7 @@ val _ =
 val defer_recdef_decl =
   Parse.name -- Scan.repeat1 Parse.prop --
   Scan.optional
-    (@{keyword "("} |-- @{keyword "congs"} |-- Parse.!!! (Parse_Spec.xthms1 --| @{keyword ")"})) []
+    (@{keyword "("} |-- @{keyword "congs"} |-- Parse.!!! (Parse.xthms1 --| @{keyword ")"})) []
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 
 val _ =

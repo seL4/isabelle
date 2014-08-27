@@ -162,7 +162,7 @@ lemma eq_set_perm_remdups: "set xs = set ys \<Longrightarrow> remdups xs <~~> re
   apply (case_tac "remdups xs")
    apply simp_all
   apply (subgoal_tac "a \<in> set (remdups ys)")
-   prefer 2 apply (metis set_simps(2) insert_iff set_remdups)
+   prefer 2 apply (metis list.set(2) insert_iff set_remdups)
   apply (drule split_list) apply (elim exE conjE)
   apply (drule_tac x = list in spec) apply (erule impE) prefer 2
    apply (drule_tac x = "ysa @ zs" in spec) apply (erule impE) prefer 2

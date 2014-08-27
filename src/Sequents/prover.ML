@@ -106,8 +106,8 @@ val _ = Theory.setup
 
 fun method tac =
   Method.sections
-   [Args.$$$ "add" -- Args.bang_colon >> K (I, safe_add),
-    Args.$$$ "add" -- Args.colon >> K (I, unsafe_add)]
+   [Args.$$$ "add" -- Args.bang_colon >> K (Method.modifier safe_add @{here}),
+    Args.$$$ "add" -- Args.colon >> K (Method.modifier unsafe_add @{here})]
   >> K (SIMPLE_METHOD' o tac);
 
 

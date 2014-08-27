@@ -344,6 +344,9 @@ lemmas take_con_rules =
 
 subsection {* ML setup *}
 
+named_theorems domain_deflation "theorems like deflation a ==> deflation (foo_map$a)"
+named_theorems domain_map_ID "theorems like foo_map$ID = ID"
+
 ML_file "Tools/Domain/domain_take_proofs.ML"
 ML_file "Tools/cont_consts.ML"
 ML_file "Tools/cont_proc.ML"

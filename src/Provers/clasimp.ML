@@ -146,7 +146,7 @@ fun mk_auto_tac ctxt m n =
       ORELSE'
       (CHANGED o nodup_depth_tac (addss ctxt) n);  (* slower but more general *)
   in
-    PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac ctxt)) THEN
+    PARALLEL_ALLGOALS (Simplifier.asm_full_simp_tac ctxt) THEN
     TRY (Classical.safe_tac ctxt) THEN
     REPEAT_DETERM (FIRSTGOAL main_tac) THEN
     TRY (Classical.safe_tac (addSss ctxt)) THEN
@@ -191,9 +191,9 @@ fun iff_att x = (Scan.lift
 val iffN = "iff";
 
 val iff_modifiers =
- [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K ((I, iff_add): Method.modifier),
-  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (I, iff_add'),
-  Args.$$$ iffN -- Args.del -- Args.colon >> K (I, iff_del)];
+ [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K (Method.modifier iff_add @{here}),
+  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add' @{here}),
+  Args.$$$ iffN -- Args.del -- Args.colon >> K (Method.modifier iff_del @{here})];
 
 val clasimp_modifiers =
   Simplifier.simp_modifiers @ Splitter.split_modifiers @

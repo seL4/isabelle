@@ -39,6 +39,8 @@ lemmas cases = list.case
 
 setup {* Sign.parent_path *}
 
+lemmas set_simps = list.set (* legacy *)
+
 syntax
   -- {* list Enumeration *}
   "_list" :: "args => 'a list"    ("[(_)]")
@@ -54,15 +56,8 @@ primrec last :: "'a list \<Rightarrow> 'a" where
 "last (x # xs) = (if xs = [] then x else last xs)"
 
 primrec butlast :: "'a list \<Rightarrow> 'a list" where
-"butlast []= []" |
+"butlast [] = []" |
 "butlast (x # xs) = (if xs = [] then [] else x # butlast xs)"
-
-declare list.set[simp del, code del]
-
-lemma set_simps[simp, code, code_post]:
-  "set [] = {}"
-  "set (x # xs) = insert x (set xs)"
-by (simp_all add: list.set)
 
 lemma set_rec: "set xs = rec_list {} (\<lambda>x _. insert x) xs"
   by (induct xs) auto
@@ -575,7 +570,7 @@ datatype termlets = If | Case of (typ * int)
 
 fun simproc ctxt redex =
   let
-    val set_Nil_I = @{thm trans} OF [@{thm set_simps(1)}, @{thm empty_def}]
+    val set_Nil_I = @{thm trans} OF [@{thm list.set(1)}, @{thm empty_def}]
     val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
     val inst_Collect_mem_eq = @{lemma "set A = {x. x : set A}" by simp}
     val del_refl_eq = @{lemma "(t = t & P) == P" by simp}
@@ -1255,6 +1250,8 @@ by(rule rev_cases[of xs]) auto
 
 subsubsection {* @{const set} *}
 
+declare list.set[code_post]  --"pretty output"
+
 lemma finite_set [iff]: "finite (set xs)"
 by (induct xs) auto
 
@@ -1404,7 +1401,7 @@ lemma split_list_last_prop_iff:
 
 
 lemma finite_list: "finite A ==> EX xs. set xs = A"
-  by (erule finite_induct) (auto simp add: set_simps(2) [symmetric] simp del: set_simps(2))
+  by (erule finite_induct) (auto simp add: list.set(2)[symmetric] simp del: list.set(2))
 
 lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
@@ -3439,6 +3436,9 @@ lemma distinct_length_2_or_more:
 "distinct (a # b # xs) \<longleftrightarrow> (a \<noteq> b \<and> distinct (a # xs) \<and> distinct (b # xs))"
 by force
 
+lemma hd_remdups_adj[simp]: "hd (remdups_adj xs) = hd xs"
+  by (induction xs rule: remdups_adj.induct) simp_all
+
 lemma remdups_adj_Cons: "remdups_adj (x # xs) =
   (case remdups_adj xs of [] \<Rightarrow> [x] | y # xs \<Rightarrow> if x = y then y # xs else x # y # xs)"
   by (induct xs arbitrary: x) (auto split: list.splits)
@@ -3446,6 +3446,13 @@ lemma remdups_adj_Cons: "remdups_adj (x # xs) =
 lemma remdups_adj_append_two: 
   "remdups_adj (xs @ [x,y]) = remdups_adj (xs @ [x]) @ (if x = y then [] else [y])"
   by (induct xs rule: remdups_adj.induct, simp_all)
+
+lemma remdups_adj_adjacent:
+  "Suc i < length (remdups_adj xs) \<Longrightarrow> remdups_adj xs ! i \<noteq> remdups_adj xs ! Suc i"
+proof (induction xs arbitrary: i rule: remdups_adj.induct)
+  case (3 x y xs i)
+  thus ?case by (cases i, cases "x = y") (simp, auto simp: hd_conv_nth[symmetric])
+qed simp_all
 
 lemma remdups_adj_rev[simp]: "remdups_adj (rev xs) = rev (remdups_adj xs)"
   by (induct xs rule: remdups_adj.induct, simp_all add: remdups_adj_append_two)

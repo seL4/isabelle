@@ -7,9 +7,7 @@ Proof reconstruction for proofs found by Z3.
 signature Z3_PROOF_RECONSTRUCTION =
 sig
   val add_z3_rule: thm -> Context.generic -> Context.generic
-  val reconstruct: Proof.context -> SMT_Translate.recon -> string list ->
-    int list * thm
-  val setup: theory -> theory
+  val reconstruct: Proof.context -> SMT_Translate.recon -> string list -> int list * thm
 end
 
 structure Z3_Proof_Reconstruction: Z3_PROOF_RECONSTRUCTION =
@@ -22,8 +20,6 @@ fun z3_exn msg = raise SMT_Failure.SMT (SMT_Failure.Other_Failure
 
 
 (* net of schematic rules *)
-
-val z3_ruleN = "z3_rule"
 
 local
   val description = "declaration of Z3 proof rules"
@@ -55,9 +51,9 @@ val add_z3_rule = ins
 fun by_schematic_rule ctxt ct =
   the (Z3_Proof_Tools.net_instance (Z3_Rules.get (Context.Proof ctxt)) ct)
 
-val z3_rules_setup =
-  Attrib.setup (Binding.name z3_ruleN) (Attrib.add_del add del) description #>
-  Global_Theory.add_thms_dynamic (Binding.name z3_ruleN, Net.content o Z3_Rules.get)
+val _ = Theory.setup
+ (Attrib.setup @{binding z3_rule} (Attrib.add_del add del) description #>
+  Global_Theory.add_thms_dynamic (@{binding z3_rule}, Net.content o Z3_Rules.get))
 
 end
 
@@ -84,8 +80,7 @@ fun try_apply ctxt thms =
       Pretty.big_list ("Z3 found a proof," ^
         " but proof reconstruction failed at the following subgoal:")
         (pretty_goal ctxt thms (Thm.term_of ct)),
-      Pretty.str ("Adding a rule to the lemma group " ^ quote z3_ruleN ^
-        " might solve this problem.")])
+      Pretty.str ("Declaring a rule as [z3_rule] might solve this problem.")])
 
     fun apply [] ct = error (try_apply_err ct)
       | apply (prover :: provers) ct =
@@ -671,12 +666,6 @@ fun th_lemma ctxt simpset thms = Thm o try_apply ctxt thms [
      * normal forms for polynoms (integer/real arithmetic)
      * quantifier elimination over linear arithmetic
      * ... ? **)
-structure Z3_Simps = Named_Thms
-(
-  val name = @{binding z3_simp}
-  val description = "simplification rules for Z3 proof reconstruction"
-)
-
 local
   fun spec_meta_eq_of thm =
     (case try (fn th => th RS @{thm spec}) thm of
@@ -880,7 +869,8 @@ fun reconstruct outer_ctxt recon output =
     val (asserted, steps, vars, ctxt1) =
       Z3_Proof_Parser.parse ctxt typs terms output
 
-    val simpset = Z3_Proof_Tools.make_simpset ctxt1 (Z3_Simps.get ctxt1)
+    val simpset =
+      Z3_Proof_Tools.make_simpset ctxt1 (Named_Theorems.get ctxt1 @{named_theorems z3_simp})
 
     val ((is, rules), cxp as (ctxt2, _)) =
       add_asserted outer_ctxt rewrite_rules assms asserted ctxt1
@@ -894,7 +884,5 @@ fun reconstruct outer_ctxt recon output =
   end
 
 end
-
-val setup = z3_rules_setup #> Z3_Simps.setup
 
 end

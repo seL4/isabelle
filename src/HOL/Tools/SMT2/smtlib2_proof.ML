@@ -21,8 +21,7 @@ sig
     ('a, 'b) context -> 'c * ('d, 'b) context
   val next_id: ('a, 'b) context -> int * ('a, 'b) context
   val with_fresh_names: (('a list, 'b) context ->
-    term * ((string * (string * typ)) list, 'b) context) -> ('c, 'b) context ->
-    (term * string list) * ('c, 'b) context
+    term * ((string * (string * typ)) list, 'b) context) -> ('c, 'b) context -> (term * string list)
 
   (*type and term parsers*)
   type type_parser = SMTLIB2.tree * typ list -> typ option
@@ -56,7 +55,7 @@ type ('a, 'b) context = {
   extra: 'a}
 
 fun mk_context ctxt id syms typs funs extra: ('a, 'b) context =
-  {ctxt=ctxt, id=id, syms=syms, typs=typs, funs=funs, extra=extra}
+  {ctxt = ctxt, id = id, syms = syms, typs = typs, funs = funs, extra = extra}
 
 fun empty_context ctxt typs funs = mk_context ctxt 1 Symtab.empty typs funs []
 
@@ -82,7 +81,7 @@ fun with_bindings bs f cx =
 fun next_id ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
   (id, mk_context ctxt (id + 1) syms typs funs extra)
 
-fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
+fun with_fresh_names f ({ctxt, id, syms, typs, funs, ...}: ('a, 'b) context) =
   let
     fun bind (_, v as (_, T)) t = Logic.all_const T $ Term.absfree v t
 
@@ -93,11 +92,11 @@ fun with_fresh_names f ({ctxt, id, syms, typs, funs, extra}: ('a, 'b) context) =
       singleton (Proof_Context.standard_term_check_finish ctxt)
     fun infer ctxt t = if needs_infer t then infer_types ctxt t else t
 
-    val (t, {ctxt=ctxt', extra=names, ...}: ((string * (string * typ)) list, 'b) context) =
+    val (t, {ctxt = ctxt', extra = names, ...}: ((string * (string * typ)) list, 'b) context) =
       f (mk_context ctxt id syms typs funs [])
     val t' = infer ctxt' (fold_rev bind names (HOLogic.mk_Trueprop t))
   in
-    ((t', map fst names), mk_context ctxt id syms typs funs extra)
+    (t', map fst names)
   end
 
 fun lookup_typ ({typs, ...}: ('a, 'b) context) = Symtab.lookup typs

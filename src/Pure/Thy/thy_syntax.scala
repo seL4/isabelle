@@ -13,93 +13,6 @@ import scala.annotation.tailrec
 
 object Thy_Syntax
 {
-  /** nested structure **/
-
-  object Structure
-  {
-    sealed abstract class Entry { def length: Int }
-    case class Block(val name: String, val body: List[Entry]) extends Entry
-    {
-      val length: Int = (0 /: body)(_ + _.length)
-    }
-    case class Atom(val command: Command) extends Entry
-    {
-      def length: Int = command.length
-    }
-
-    def parse(syntax: Outer_Syntax, node_name: Document.Node.Name, text: CharSequence): Entry =
-    {
-      /* stack operations */
-
-      def buffer(): mutable.ListBuffer[Entry] = new mutable.ListBuffer[Entry]
-      var stack: List[(Int, String, mutable.ListBuffer[Entry])] =
-        List((0, node_name.toString, buffer()))
-
-      @tailrec def close(level: Int => Boolean)
-      {
-        stack match {
-          case (lev, name, body) :: (_, _, body2) :: rest if level(lev) =>
-            body2 += Block(name, body.toList)
-            stack = stack.tail
-            close(level)
-          case _ =>
-        }
-      }
-
-      def result(): Entry =
-      {
-        close(_ => true)
-        val (_, name, body) = stack.head
-        Block(name, body.toList)
-      }
-
-      def add(command: Command)
-      {
-        syntax.heading_level(command) match {
-          case Some(i) =>
-            close(_ > i)
-            stack = (i + 1, command.source, buffer()) :: stack
-          case None =>
-        }
-        stack.head._3 += Atom(command)
-      }
-
-
-      /* result structure */
-
-      val spans = parse_spans(syntax.scan(text))
-      spans.foreach(span => add(Command(Document_ID.none, node_name, Nil, span)))
-      result()
-    }
-  }
-
-
-
-  /** parse spans **/
-
-  def parse_spans(toks: List[Token]): List[List[Token]] =
-  {
-    val result = new mutable.ListBuffer[List[Token]]
-    val span = new mutable.ListBuffer[Token]
-    val improper = new mutable.ListBuffer[Token]
-
-    def flush()
-    {
-      if (!span.isEmpty) { result += span.toList; span.clear }
-      if (!improper.isEmpty) { result += improper.toList; improper.clear }
-    }
-    for (tok <- toks) {
-      if (tok.is_command) { flush(); span += tok }
-      else if (tok.is_improper) improper += tok
-      else { span ++= improper; improper.clear; span += tok }
-    }
-    flush()
-
-    result.toList
-  }
-
-
-
   /** perspective **/
 
   def command_perspective(
@@ -231,58 +144,12 @@ object Thy_Syntax
   }
 
 
-  /* inlined files */
-
-  private def find_file(tokens: List[Token]): Option[String] =
-  {
-    def clean(toks: List[Token]): List[Token] =
-      toks match {
-        case t :: _ :: ts if t.is_keyword && (t.source == "%" || t.source == "--") => clean(ts)
-        case t :: ts => t :: clean(ts)
-        case Nil => Nil
-      }
-    clean(tokens.filter(_.is_proper)) match {
-      case tok :: toks if tok.is_command => toks.find(_.is_name).map(_.content)
-      case _ => None
-    }
-  }
-
-  def span_files(syntax: Prover.Syntax, span: List[Token]): List[String] =
-    syntax.load(span) match {
-      case Some(exts) =>
-        find_file(span) match {
-          case Some(file) =>
-            if (exts.isEmpty) List(file)
-            else exts.map(ext => file + "." + ext)
-          case None => Nil
-        }
-      case None => Nil
-    }
-
-  def resolve_files(
-      resources: Resources,
-      syntax: Prover.Syntax,
-      node_name: Document.Node.Name,
-      span: List[Token],
-      get_blob: Document.Node.Name => Option[Document.Blob])
-    : List[Command.Blob] =
-  {
-    span_files(syntax, span).map(file_name =>
-      Exn.capture {
-        val name =
-          Document.Node.Name(resources.append(node_name.master_dir, Path.explode(file_name)))
-        val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.chunk)))
-        (name, blob)
-      })
-  }
-
-
   /* reparse range of command spans */
 
   @tailrec private def chop_common(
       cmds: List[Command],
-      blobs_spans: List[(List[Command.Blob], List[Token])])
-    : (List[Command], List[(List[Command.Blob], List[Token])]) =
+      blobs_spans: List[(List[Command.Blob], Command_Span.Span)])
+    : (List[Command], List[(List[Command.Blob], Command_Span.Span)]) =
   {
     (cmds, blobs_spans) match {
       case (cmd :: cmds, (blobs, span) :: rest) if cmd.blobs == blobs && cmd.span == span =>
@@ -301,8 +168,8 @@ object Thy_Syntax
   {
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
-      parse_spans(syntax.scan(cmds0.iterator.map(_.source).mkString)).
-        map(span => (resolve_files(resources, syntax, name, span, get_blob), span))
+      syntax.parse_spans(cmds0.iterator.map(_.source).mkString).
+        map(span => (Command_Span.resolve_files(resources, syntax, name, span, get_blob), span))
 
     val (cmds1, blobs_spans1) = chop_common(cmds0, blobs_spans0)
 
@@ -337,8 +204,8 @@ object Thy_Syntax
     val visible = perspective.commands.toSet
 
     def next_invisible_command(cmds: Linear_Set[Command], from: Command): Command =
-      cmds.iterator(from).dropWhile(cmd => !cmd.is_command || visible(cmd))
-        .find(_.is_command) getOrElse cmds.last
+      cmds.iterator(from).dropWhile(cmd => !cmd.is_proper || visible(cmd))
+        .find(_.is_proper) getOrElse cmds.last
 
     @tailrec def recover(cmds: Linear_Set[Command]): Linear_Set[Command] =
       cmds.find(_.is_unparsed) match {

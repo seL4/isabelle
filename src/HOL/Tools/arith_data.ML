@@ -9,7 +9,6 @@ sig
   val arith_tac: Proof.context -> int -> tactic
   val verbose_arith_tac: Proof.context -> int -> tactic
   val add_tactic: string -> (bool -> Proof.context -> int -> tactic) -> theory -> theory
-  val get_arith_facts: Proof.context -> thm list
 
   val mk_number: typ -> int -> term
   val mk_sum: typ -> term list -> term
@@ -28,15 +27,7 @@ end;
 structure Arith_Data: ARITH_DATA =
 struct
 
-(* slots for plugging in arithmetic facts and tactics *)
-
-structure Arith_Facts = Named_Thms
-(
-  val name = @{binding arith}
-  val description = "arith facts -- only ground formulas"
-);
-
-val get_arith_facts = Arith_Facts.get;
+(* slot for plugging in tactics *)
 
 structure Arith_Tactics = Theory_Data
 (
@@ -58,11 +49,12 @@ val arith_tac = gen_arith_tac false;
 val verbose_arith_tac = gen_arith_tac true;
 
 val setup =
-  Arith_Facts.setup #>
   Method.setup @{binding arith}
     (Scan.succeed (fn ctxt =>
-      METHOD (fn facts => HEADGOAL (Method.insert_tac (get_arith_facts ctxt @ facts)
-        THEN' verbose_arith_tac ctxt))))
+      METHOD (fn facts =>
+        HEADGOAL
+        (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
+          THEN' verbose_arith_tac ctxt))))
     "various arithmetic decision procedures";
 
 

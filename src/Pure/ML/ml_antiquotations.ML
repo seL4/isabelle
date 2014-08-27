@@ -52,6 +52,16 @@ val _ = Theory.setup
           ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 
+(* embedded source *)
+
+val _ = Theory.setup
+ (ML_Antiquotation.value @{binding source}
+    (Scan.lift Args.text_source_position >> (fn {delimited, text, pos} =>
+      "{delimited = " ^ Bool.toString delimited ^
+      ", text = " ^ ML_Syntax.print_string text ^
+      ", pos = " ^ ML_Syntax.print_position pos ^ "}")));
+
+
 (* ML support *)
 
 val _ = Theory.setup
@@ -64,7 +74,7 @@ val _ = Theory.setup
     (Scan.lift (Scan.optional Args.name "Output.writeln"))
       (fn src => fn output => fn ctxt =>
         let
-          val (_, pos) = Args.name_of_src src;
+          val (_, pos) = Token.name_of_src src;
           val (a, ctxt') = ML_Antiquotation.variant "output" ctxt;
           val env =
             "val " ^ a ^ ": string -> unit =\n\

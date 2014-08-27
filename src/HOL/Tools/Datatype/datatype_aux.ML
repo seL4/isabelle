@@ -27,7 +27,7 @@ sig
     case_name : string,
     case_rewrites : thm list,
     case_cong : thm,
-    weak_case_cong : thm,
+    case_cong_weak : thm,
     split : thm,
     split_asm: thm}
 end
@@ -195,7 +195,7 @@ type info =
    case_name : string,
    case_rewrites : thm list,
    case_cong : thm,
-   weak_case_cong : thm,
+   case_cong_weak : thm,
    split : thm,
    split_asm: thm};
 
@@ -311,10 +311,9 @@ fun check_nonempty descr =
               else is_nonempty_dt (i :: is) i
           | arg_nonempty _ = true;
       in exists (forall (arg_nonempty o strip_dtyp) o snd) constrs end
-  in
-    assert_all (fn (i, _) => is_nonempty_dt [i] i) (hd descr)
-      (fn (_, (s, _, _)) => raise Datatype_Empty s)
-  end;
+    val _ = hd descr |> forall (fn (i, (s, _, _)) =>
+      is_nonempty_dt [i] i orelse raise Datatype_Empty s)
+  in () end;
 
 (* unfold a list of mutually recursive datatype specifications *)
 (* all types of the form DtType (dt_name, [..., DtRec _, ...]) *)

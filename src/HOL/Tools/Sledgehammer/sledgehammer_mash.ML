@@ -814,7 +814,7 @@ fun run_prover_for_mash ctxt params prover goal_name facts goal =
       {comment = "Goal: " ^ goal_name, state = Proof.init ctxt, goal = goal, subgoal = 1,
        subgoal_count = 1, factss = [("", facts)]}
   in
-    get_minimizing_prover ctxt MaSh (K ()) prover params (K (K (K ""))) problem
+    get_minimizing_prover ctxt MaSh (K ()) prover params problem
   end
 
 val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
@@ -974,8 +974,8 @@ fun isar_dependencies_of name_tabs th =
   thms_in_proof max_dependencies (SOME name_tabs) th
   |> Option.map (fn deps =>
     if deps = [typedef_dep] orelse deps = [class_some_dep] orelse
-       exists (member (op =) fundef_ths) deps orelse exists (member (op =) typedef_ths) deps orelse
-       is_size_def deps th then
+        exists (member (op =) fundef_ths) deps orelse exists (member (op =) typedef_ths) deps orelse
+        is_size_def deps th then
       []
     else
       deps)
@@ -1378,7 +1378,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
             let
               val name = nickname_of_thm th
               val feats = features_of ctxt (theory_of_thm th) stature [prop_of th]
-              val deps = deps_of status th |> these
+              val deps = these (deps_of status th)
               val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
               val (learns, next_commit) =

@@ -84,8 +84,7 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
               Quotient_Info.update_quotconsts c qcinfo
           | _ => I))
       |> (snd oo Local_Theory.note) 
-        ((rsp_thm_name, [Attrib.internal (K Quotient_Info.rsp_rules_add)]),
-        [rsp_thm])
+        ((rsp_thm_name, @{attributes [quot_respect]}), [rsp_thm])
   in
     (qconst_data, lthy'')
   end

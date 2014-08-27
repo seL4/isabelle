@@ -1,7 +1,7 @@
 (*  Title:      HOL/BNF_Def.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012
+    Copyright   2012, 2013, 2014
 
 Definition of bounded natural functors.
 *)
@@ -157,6 +157,11 @@ by simp
 lemma case_sum_o_inj:
 "case_sum f g \<circ> Inl = f"
 "case_sum f g \<circ> Inr = g"
+by auto
+
+lemma map_sum_o_inj:
+"map_sum f g o Inl = Inl o f"
+"map_sum f g o Inr = Inr o g"
 by auto
 
 lemma card_order_csum_cone_cexp_def:

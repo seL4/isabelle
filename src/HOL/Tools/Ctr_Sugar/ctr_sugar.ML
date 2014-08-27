@@ -18,7 +18,7 @@ sig
      distincts: thm list,
      case_thms: thm list,
      case_cong: thm,
-     weak_case_cong: thm,
+     case_cong_weak: thm,
      split: thm,
      split_asm: thm,
      disc_defs: thm list,
@@ -26,13 +26,13 @@ sig
      discIs: thm list,
      sel_defs: thm list,
      sel_thmss: thm list list,
-     disc_excludesss: thm list list list,
-     disc_exhausts: thm list,
-     sel_exhausts: thm list,
+     distinct_discsss: thm list list list,
+     exhaust_discs: thm list,
+     exhaust_sels: thm list,
      collapses: thm list,
      expands: thm list,
-     sel_splits: thm list,
-     sel_split_asms: thm list,
+     split_sels: thm list,
+     split_sel_asms: thm list,
      case_eq_ifs: thm list};
 
   val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
@@ -90,7 +90,7 @@ type ctr_sugar =
    distincts: thm list,
    case_thms: thm list,
    case_cong: thm,
-   weak_case_cong: thm,
+   case_cong_weak: thm,
    split: thm,
    split_asm: thm,
    disc_defs: thm list,
@@ -98,19 +98,19 @@ type ctr_sugar =
    discIs: thm list,
    sel_defs: thm list,
    sel_thmss: thm list list,
-   disc_excludesss: thm list list list,
-   disc_exhausts: thm list,
-   sel_exhausts: thm list,
+   distinct_discsss: thm list list list,
+   exhaust_discs: thm list,
+   exhaust_sels: thm list,
    collapses: thm list,
    expands: thm list,
-   sel_splits: thm list,
-   sel_split_asms: thm list,
+   split_sels: thm list,
+   split_sel_asms: thm list,
    case_eq_ifs: thm list};
 
 fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
-    case_thms, case_cong, weak_case_cong, split, split_asm, disc_defs, disc_thmss, discIs, sel_defs,
-    sel_thmss, disc_excludesss, disc_exhausts, sel_exhausts, collapses, expands, sel_splits,
-    sel_split_asms, case_eq_ifs} =
+    case_thms, case_cong, case_cong_weak, split, split_asm, disc_defs, disc_thmss, discIs, sel_defs,
+    sel_thmss, distinct_discsss, exhaust_discs, exhaust_sels, collapses, expands, split_sels,
+    split_sel_asms, case_eq_ifs} =
   {ctrs = map (Morphism.term phi) ctrs,
    casex = Morphism.term phi casex,
    discs = map (Morphism.term phi) discs,
@@ -121,7 +121,7 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    distincts = map (Morphism.thm phi) distincts,
    case_thms = map (Morphism.thm phi) case_thms,
    case_cong = Morphism.thm phi case_cong,
-   weak_case_cong = Morphism.thm phi weak_case_cong,
+   case_cong_weak = Morphism.thm phi case_cong_weak,
    split = Morphism.thm phi split,
    split_asm = Morphism.thm phi split_asm,
    disc_defs = map (Morphism.thm phi) disc_defs,
@@ -129,13 +129,13 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    discIs = map (Morphism.thm phi) discIs,
    sel_defs = map (Morphism.thm phi) sel_defs,
    sel_thmss = map (map (Morphism.thm phi)) sel_thmss,
-   disc_excludesss = map (map (map (Morphism.thm phi))) disc_excludesss,
-   disc_exhausts = map (Morphism.thm phi) disc_exhausts,
-   sel_exhausts = map (Morphism.thm phi) sel_exhausts,
+   distinct_discsss = map (map (map (Morphism.thm phi))) distinct_discsss,
+   exhaust_discs = map (Morphism.thm phi) exhaust_discs,
+   exhaust_sels = map (Morphism.thm phi) exhaust_sels,
    collapses = map (Morphism.thm phi) collapses,
    expands = map (Morphism.thm phi) expands,
-   sel_splits = map (Morphism.thm phi) sel_splits,
-   sel_split_asms = map (Morphism.thm phi) sel_split_asms,
+   split_sels = map (Morphism.thm phi) split_sels,
+   split_sel_asms = map (Morphism.thm phi) split_sel_asms,
    case_eq_ifs = map (Morphism.thm phi) case_eq_ifs};
 
 val transfer_ctr_sugar =
@@ -200,23 +200,24 @@ val caseN = "case";
 val case_congN = "case_cong";
 val case_eq_ifN = "case_eq_if";
 val collapseN = "collapse";
-val disc_excludeN = "disc_exclude";
-val disc_exhaustN = "disc_exhaust";
 val discN = "disc";
 val discIN = "discI";
 val distinctN = "distinct";
+val distinct_discN = "distinct_disc";
 val exhaustN = "exhaust";
+val exhaust_discN = "exhaust_disc";
 val expandN = "expand";
 val injectN = "inject";
 val nchotomyN = "nchotomy";
 val selN = "sel";
-val sel_exhaustN = "sel_exhaust";
-val sel_splitN = "sel_split";
-val sel_split_asmN = "sel_split_asm";
+val exhaust_selN = "exhaust_sel";
 val splitN = "split";
-val splitsN = "splits";
 val split_asmN = "split_asm";
-val weak_case_cong_thmsN = "weak_case_cong";
+val split_selN = "split_sel";
+val split_sel_asmN = "split_sel_asm";
+val splitsN = "splits";
+val split_selsN = "split_sels";
+val case_cong_weak_thmsN = "case_cong_weak";
 
 val cong_attrs = @{attributes [cong]};
 val dest_attrs = @{attributes [dest]};
@@ -255,12 +256,6 @@ fun mk_case Ts T t =
 
 fun mk_disc_or_sel Ts t =
   subst_nonatomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
-
-fun name_of_const what t =
-  (case head_of t of
-    Const (s, _) => s
-  | Free (s, _) => s
-  | _ => error ("Cannot extract name of " ^ what));
 
 val name_of_ctr = name_of_const "constructor";
 
@@ -683,7 +678,7 @@ fun prepare_free_constructors prep_term
               ks goals inject_thmss distinct_thmsss
           end;
 
-        val (case_cong_thm, weak_case_cong_thm) =
+        val (case_cong_thm, case_cong_weak_thm) =
           let
             fun mk_prem xctr xs xf xg =
               fold_rev Logic.all xs (Logic.mk_implies (mk_Trueprop_eq (v, xctr),
@@ -739,9 +734,9 @@ fun prepare_free_constructors prep_term
           end;
 
         val (sel_defs, all_sel_thms, sel_thmss, disc_defs, disc_thmss, nontriv_disc_thmss,
-             discI_thms, nontriv_discI_thms, disc_exclude_thms, disc_exclude_thmsss,
-             disc_exhaust_thms, sel_exhaust_thms, all_collapse_thms, safe_collapse_thms,
-             expand_thms, sel_split_thms, sel_split_asm_thms, case_eq_if_thms) =
+             discI_thms, nontriv_discI_thms, distinct_disc_thms, distinct_disc_thmsss,
+             exhaust_disc_thms, exhaust_sel_thms, all_collapse_thms, safe_collapse_thms,
+             expand_thms, split_sel_thms, split_sel_asm_thms, case_eq_if_thms) =
           if no_discs_sels then
             ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
           else
@@ -833,7 +828,7 @@ fun prepare_free_constructors prep_term
                 flat (map2 (fn b => if is_discI_boring b then K [] else single) disc_bindings
                   discI_thms);
 
-              val (disc_exclude_thms, (disc_exclude_thmsss', disc_exclude_thmsss)) =
+              val (distinct_disc_thms, (distinct_disc_thmsss', distinct_disc_thmsss)) =
                 let
                   fun mk_goal [] = []
                     | mk_goal [((_, udisc), (_, udisc'))] =
@@ -849,25 +844,25 @@ fun prepare_free_constructors prep_term
                   val half_goalss = map mk_goal half_pairss;
                   val half_thmss =
                     map3 (fn [] => K (K []) | [goal] => fn [(((m, discD), _), _)] =>
-                        fn disc_thm => [prove (mk_half_disc_exclude_tac lthy m discD disc_thm) goal])
+                        fn disc_thm => [prove (mk_half_distinct_disc_tac lthy m discD disc_thm) goal])
                       half_goalss half_pairss (flat disc_thmss');
 
                   val other_half_goalss = map (mk_goal o map swap) half_pairss;
                   val other_half_thmss =
-                    map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss
+                    map2 (map2 (prove o mk_other_half_distinct_disc_tac)) half_thmss
                       other_half_goalss;
                 in
                   join_halves n half_thmss other_half_thmss ||> `transpose
                   |>> has_alternate_disc_def ? K []
                 end;
 
-              val disc_exhaust_thm =
+              val exhaust_disc_thm =
                 let
                   fun mk_prem udisc = mk_imp_p [HOLogic.mk_Trueprop udisc];
                   val goal = fold_rev Logic.all [p, u] (mk_imp_p (map mk_prem udiscs));
                 in
                   Goal.prove_sorry lthy [] [] goal (fn _ =>
-                    mk_disc_exhaust_tac n exhaust_thm discI_thms)
+                    mk_exhaust_disc_tac n exhaust_thm discI_thms)
                   |> Thm.close_derivation
                 end;
 
@@ -896,13 +891,13 @@ fun prepare_free_constructors prep_term
               val swapped_all_collapse_thms =
                 map2 (fn m => fn thm => if m = 0 then thm else thm RS sym) ms all_collapse_thms;
 
-              val sel_exhaust_thm =
+              val exhaust_sel_thm =
                 let
                   fun mk_prem usel_ctr = mk_imp_p [mk_Trueprop_eq (u, usel_ctr)];
                   val goal = fold_rev Logic.all [p, u] (mk_imp_p (map mk_prem usel_ctrs));
                 in
                   Goal.prove_sorry lthy [] [] goal (fn _ =>
-                    mk_sel_exhaust_tac n disc_exhaust_thm swapped_all_collapse_thms)
+                    mk_exhaust_sel_tac n exhaust_disc_thm swapped_all_collapse_thms)
                   |> Thm.close_derivation
                 end;
 
@@ -925,14 +920,14 @@ fun prepare_free_constructors prep_term
                     map2 (fn thm => fn [] => thm | _ => thm RS sym) all_collapse_thms uselss;
                 in
                   Goal.prove_sorry lthy [] [] goal (fn _ =>
-                    mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
-                      (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
-                      disc_exclude_thmsss')
+                    mk_expand_tac lthy n ms (inst_thm u exhaust_disc_thm)
+                      (inst_thm v exhaust_disc_thm) uncollapse_thms distinct_disc_thmsss
+                      distinct_disc_thmsss')
                   |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
                 end;
 
-              val (sel_split_thm, sel_split_asm_thm) =
+              val (split_sel_thm, split_sel_asm_thm) =
                 let
                   val zss = map (K []) xss;
                   val goal = mk_split_goal usel_ctrs zss usel_fs;
@@ -955,9 +950,9 @@ fun prepare_free_constructors prep_term
                 end;
             in
               (sel_defs, all_sel_thms, sel_thmss, disc_defs, disc_thmss, nontriv_disc_thmss,
-               discI_thms, nontriv_discI_thms, disc_exclude_thms, disc_exclude_thmsss,
-               [disc_exhaust_thm], [sel_exhaust_thm], all_collapse_thms, safe_collapse_thms,
-               [expand_thm], [sel_split_thm], [sel_split_asm_thm], [case_eq_if_thm])
+               discI_thms, nontriv_discI_thms, distinct_disc_thms, distinct_disc_thmsss,
+               [exhaust_disc_thm], [exhaust_sel_thm], all_collapse_thms, safe_collapse_thms,
+               [expand_thm], [split_sel_thm], [split_sel_asm_thm], [case_eq_if_thm])
             end;
 
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
@@ -972,30 +967,29 @@ fun prepare_free_constructors prep_term
            (flat nontriv_disc_eq_thmss, code_nitpicksimp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
-        (* "exhaust" is deliberately put first to avoid apparent circular dependencies in the proof
-           objects, which would confuse MaSh. *)
         val notes =
-          [(exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
-           (caseN, case_thms, code_nitpicksimp_simp_attrs),
+          [(caseN, case_thms, code_nitpicksimp_simp_attrs),
            (case_congN, [case_cong_thm], []),
+           (case_cong_weak_thmsN, [case_cong_weak_thm], cong_attrs),
            (case_eq_ifN, case_eq_if_thms, []),
            (collapseN, safe_collapse_thms, simp_attrs),
            (discN, flat nontriv_disc_thmss, simp_attrs),
            (discIN, nontriv_discI_thms, []),
-           (disc_excludeN, disc_exclude_thms, dest_attrs),
-           (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
            (distinctN, distinct_thms, simp_attrs @ inductsimp_attrs),
+           (distinct_discN, distinct_disc_thms, dest_attrs),
+           (exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
+           (exhaust_discN, exhaust_disc_thms, [exhaust_case_names_attr]),
+           (exhaust_selN, exhaust_sel_thms, [exhaust_case_names_attr]),
            (expandN, expand_thms, []),
            (injectN, inject_thms, iff_attrs @ inductsimp_attrs),
            (nchotomyN, [nchotomy_thm], []),
            (selN, all_sel_thms, code_nitpicksimp_simp_attrs),
-           (sel_exhaustN, sel_exhaust_thms, [exhaust_case_names_attr]),
-           (sel_splitN, sel_split_thms, []),
-           (sel_split_asmN, sel_split_asm_thms, []),
            (splitN, [split_thm], []),
            (split_asmN, [split_asm_thm], []),
-           (splitsN, [split_thm, split_asm_thm], []),
-           (weak_case_cong_thmsN, [weak_case_cong_thm], cong_attrs)]
+           (split_selN, split_sel_thms, []),
+           (split_sel_asmN, split_sel_asm_thms, []),
+           (split_selsN, split_sel_thms @ split_sel_asm_thms, []),
+           (splitsN, [split_thm, split_asm_thm], [])]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
@@ -1025,12 +1019,12 @@ fun prepare_free_constructors prep_term
         val ctr_sugar =
           {ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
            nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
-           case_thms = case_thms, case_cong = case_cong_thm, weak_case_cong = weak_case_cong_thm,
+           case_thms = case_thms, case_cong = case_cong_thm, case_cong_weak = case_cong_weak_thm,
            split = split_thm, split_asm = split_asm_thm, disc_defs = disc_defs,
            disc_thmss = disc_thmss, discIs = discI_thms, sel_defs = sel_defs, sel_thmss = sel_thmss,
-           disc_excludesss = disc_exclude_thmsss, disc_exhausts = disc_exhaust_thms,
-           sel_exhausts = sel_exhaust_thms, collapses = all_collapse_thms, expands = expand_thms,
-           sel_splits = sel_split_thms, sel_split_asms = sel_split_asm_thms,
+           distinct_discsss = distinct_disc_thmsss, exhaust_discs = exhaust_disc_thms,
+           exhaust_sels = exhaust_sel_thms, collapses = all_collapse_thms, expands = expand_thms,
+           split_sels = split_sel_thms, split_sel_asms = split_sel_asm_thms,
            case_eq_ifs = case_eq_if_thms}
           |> morph_ctr_sugar (substitute_noted_thm noted);
       in

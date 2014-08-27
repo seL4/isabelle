@@ -10,7 +10,8 @@ signature SLEDGEHAMMER =
 sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
-  type minimize_command = Sledgehammer_Proof_Methods.minimize_command
+  type proof_method = Sledgehammer_Proof_Methods.proof_method
+  type play_outcome = Sledgehammer_Proof_Methods.play_outcome
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
 
@@ -19,10 +20,11 @@ sig
   val timeoutN : string
   val unknownN : string
 
+  val play_one_line_proof : bool -> Time.time -> (string * 'a) list -> Proof.state -> int ->
+    proof_method * proof_method list list -> (string * 'a) list * (proof_method * play_outcome)
   val string_of_factss : (string * fact list) list -> string
   val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
-    ((string * string list) list -> string -> minimize_command) -> Proof.state ->
-    bool * (string * Proof.state)
+    Proof.state -> bool * (string * Proof.state)
 end;
 
 structure Sledgehammer : SLEDGEHAMMER =
@@ -34,6 +36,9 @@ open ATP_Problem_Generate
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Proof_Methods
+open Sledgehammer_Isar_Proof
+open Sledgehammer_Isar_Preplay
+open Sledgehammer_Isar_Minimize
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
@@ -49,17 +54,61 @@ val ordered_outcome_codes = [someN, unknownN, timeoutN, noneN]
 fun max_outcome_code codes =
   NONE
   |> fold (fn candidate =>
-              fn accum as SOME _ => accum
-               | NONE => if member (op =) codes candidate then SOME candidate else NONE)
-       ordered_outcome_codes
+      fn accum as SOME _ => accum
+       | NONE => if member (op =) codes candidate then SOME candidate else NONE)
+    ordered_outcome_codes
   |> the_default unknownN
 
 fun prover_description verbose name num_facts =
   (quote name,
    if verbose then " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts else "")
 
-fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout, expect, ...}) mode
-    output_result minimize_command only learn
+fun is_metis_method (Metis_Method _) = true
+  | is_metis_method _ = false
+
+fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, methss) =
+  if timeout = Time.zeroTime then
+    (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
+  else
+    let
+      val fact_names = map fst used_facts
+
+      val {context = ctxt, facts = chained, goal} = Proof.goal state
+      val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
+      val goal_t = Logic.list_implies (map prop_of chained @ hyp_ts, concl_t)
+
+      fun try_methss ress [] =
+          (used_facts,
+           (case AList.lookup (op =) ress preferred_meth of
+             SOME play => (preferred_meth, play)
+           | NONE => hd (sort (play_outcome_ord o pairself snd) (rev ress))))
+        | try_methss ress (meths :: methss) =
+          let
+            fun mk_step fact_names meths =
+              Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "")
+          in
+            (case preplay_isar_step ctxt timeout [] (mk_step fact_names meths) of
+              (res as (meth, Played time)) :: _ =>
+              (* if a fact is needed by an ATP, it will be needed by "metis" *)
+              if not minimize orelse is_metis_method meth then
+                (used_facts, res)
+              else
+                let
+                  val (time', used_names') =
+                    minimized_isar_step ctxt time (mk_step fact_names [meth])
+                    ||> (facts_of_isar_step #> snd)
+                  val used_facts' = filter (member (op =) used_names' o fst) used_facts
+                in
+                  (used_facts', (meth, Played time'))
+                end
+            | ress' => try_methss (ress' @ ress) methss)
+          end
+    in
+      try_methss [] methss
+    end
+
+fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize, timeout,
+      preplay_timeout, expect, ...}) mode output_result only learn
     {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
   let
     val ctxt = Proof.context_of state
@@ -75,10 +124,9 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
       {comment = comment, state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count,
        factss = factss
-         |> map (apsnd ((not (is_ho_atp ctxt name)
-                         ? filter_out (fn ((_, (_, Induction)), _) => true
-                                        | _ => false))
-                        #> take num_facts))}
+       |> map (apsnd ((not (is_ho_atp ctxt name)
+           ? filter_out (fn ((_, (_, Induction)), _) => true | _ => false))
+         #> take num_facts))}
 
     fun print_used_facts used_facts used_from =
       tag_list 1 used_from
@@ -115,8 +163,8 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
             |> AList.group (op =)
             |> map (fn (indices, fact_filters) => commas fact_filters ^ ": " ^ indices)
         in
-          "Success: Found proof with " ^ string_of_int num_used_facts ^
-          " of " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
+          "Success: Found proof with " ^ string_of_int num_used_facts ^ " of " ^
+          string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
           (if num_used_facts = 0 then "" else ": " ^ commas filter_infos)
         end
       | spying_str_of_res {outcome = SOME failure, ...} =
@@ -124,16 +172,17 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
 
     fun really_go () =
       problem
-      |> get_minimizing_prover ctxt mode learn name params minimize_command
-      |> verbose
-         ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
-                   print_used_facts used_facts used_from
-                 | _ => ())
+      |> get_minimizing_prover ctxt mode learn name params
+      |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
+          print_used_facts used_facts used_from
+        | _ => ())
       |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
-      |> (fn {outcome, preplay, message, message_tail, ...} =>
-             (if outcome = SOME ATP_Proof.TimedOut then timeoutN
-              else if is_some outcome then noneN
-              else someN, fn () => message (Lazy.force preplay) ^ message_tail))
+      |> (fn {outcome, used_facts, preferred_methss, message, ...} =>
+        (if outcome = SOME ATP_Proof.TimedOut then timeoutN
+         else if is_some outcome then noneN
+         else someN,
+         fn () => message (fn () => play_one_line_proof minimize preplay_timeout used_facts state
+           subgoal preferred_methss)))
 
     fun go () =
       let
@@ -203,7 +252,7 @@ fun string_of_factss factss =
       (if filter = "" then "" else quote filter ^ ": ") ^ string_of_facts facts) factss)
 
 fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...}) mode
-    output_result i (fact_override as {only, ...}) minimize_command state =
+    output_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set."
   else
@@ -260,7 +309,7 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
                factss = factss}
             val learn = mash_learn_proof ctxt params (prop_of goal) all_facts
-            val launch = launch_prover params mode output_result minimize_command only learn
+            val launch = launch_prover params mode output_result only learn
           in
             if mode = Auto_Try then
               (unknownN, state)

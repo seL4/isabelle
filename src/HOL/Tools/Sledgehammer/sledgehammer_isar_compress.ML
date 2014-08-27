@@ -53,10 +53,10 @@ fun update_steps updates steps =
            updates as Prove (qs', xs', l', t', subproofs', facts', meths', comment') :: updates') =
         (if l = l' then
            update_subproofs subproofs' updates'
-           |>> (fn subproofs' => Prove (qs', xs', l', t', subproofs', facts', meths', comment'))
+           |>> (fn subproofs'' => Prove (qs', xs', l', t', subproofs'', facts', meths', comment'))
          else
            update_subproofs subproofs updates
-           |>> (fn subproofs => Prove (qs, xs, l, t, subproofs, facts, meths, comment)))
+           |>> (fn subproofs' => Prove (qs, xs, l, t, subproofs', facts, meths, comment)))
         |>> (fn step => step :: steps)
       | update_step step (steps, updates) = (step :: steps, updates)
     and update_subproofs [] updates = ([], updates)
@@ -64,9 +64,9 @@ fun update_steps updates steps =
       | update_subproofs (proof :: subproofs) updates =
         update_proof proof (update_subproofs subproofs updates)
     and update_proof proof (proofs, []) = (proof :: proofs, [])
-      | update_proof (Proof (fix, assms, steps)) (proofs, updates) =
-        let val (steps, updates) = update_steps steps updates in
-          (Proof (fix, assms, steps) :: proofs, updates)
+      | update_proof (Proof (xs, assms, steps)) (proofs, updates) =
+        let val (steps', updates') = update_steps steps updates in
+          (Proof (xs, assms, steps') :: proofs, updates')
         end
   in
     fst (update_steps steps (rev updates))
@@ -87,18 +87,19 @@ fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
     (hopeful @ hopeless, hopeless)
   end
 
-fun merge_steps preplay_data (Prove ([], fix1, l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
-      (Prove (qs2, fix2, l2, t, subproofs2, (lfs2, gfs2), meths2, comment2)) =
+fun merge_steps preplay_data (Prove ([], xs1, l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
+      (Prove (qs2, xs2, l2, t, subproofs2, (lfs2, gfs2), meths2, comment2)) =
   let
     val (meths, hopeless) = merge_methods preplay_data (l1, meths1) (l2, meths2)
     val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
     val gfs = union (op =) gfs1 gfs2
   in
-    (Prove (qs2, if member (op =) qs2 Show then [] else union (op =) fix1 fix2, l2, t,
-       subproofs1 @ subproofs2, (lfs, gfs), meths, comment1 ^ comment2), hopeless)
+    (Prove (qs2, inter (op =) (Term.add_frees t []) (xs1 @ xs2), l2, t,
+       subproofs1 @ subproofs2, sort_facts (lfs, gfs), meths, comment1 ^ comment2),
+     hopeless)
   end
 
-val merge_slack_time = seconds 0.005
+val merge_slack_time = seconds 0.01
 val merge_slack_factor = 1.5
 
 fun adjust_merge_timeout max time =
@@ -117,7 +118,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
       val (compress_further, decrement_step_count) =
         let
           val number_of_steps = add_isar_steps (steps_of_isar_proof proof) 0
-          val target_number_of_steps = Real.round (Real.fromInt number_of_steps / compress)
+          val target_number_of_steps = Real.ceil (Real.fromInt number_of_steps / compress)
           val delta = Unsynchronized.ref (number_of_steps - target_number_of_steps)
         in
           (fn () => !delta > 0, fn () => delta := !delta - 1)
@@ -153,10 +154,10 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
         | _ => preplay_timeout)
 
       (* elimination of trivial, one-step subproofs *)
-      fun elim_one_subproof time (step as Prove (qs, fix, l, t, _, (lfs, gfs), meths, comment)) subs
+      fun elim_one_subproof time (step as Prove (qs, xs, l, t, _, (lfs, gfs), meths, comment)) subs
           nontriv_subs =
         if null subs orelse not (compress_further ()) then
-          Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), (lfs, gfs), meths, comment)
+          Prove (qs, xs, l, t, List.revAppend (nontriv_subs, subs), (lfs, gfs), meths, comment)
         else
           (case subs of
             (sub as Proof (_, assms, [Prove (_, _, l', _, [], (lfs', gfs'), meths', _)])) :: subs =>
@@ -167,14 +168,14 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
               val gfs'' = union (op =) gfs' gfs
               val (meths'' as _ :: _, hopeless) =
                 merge_methods (!preplay_data) (l', meths') (l, meths)
-              val step'' = Prove (qs, fix, l, t, subs'', (lfs'', gfs''), meths'', comment)
+              val step'' = Prove (qs, xs, l, t, subs'', (lfs'', gfs''), meths'', comment)
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = adjust_merge_timeout preplay_timeout (Time.+ (time, reference_time l'))
             in
               (case preplay_isar_step ctxt timeout hopeless step'' of
                 meths_outcomes as (_, Played time'') :: _ =>
-                (* l' successfully eliminated *)
+                (* "l'" successfully eliminated *)
                 (decrement_step_count ();
                  set_preplay_outcomes_of_isar_step ctxt time'' preplay_data step'' meths_outcomes;
                  map (replace_successor l' [l]) lfs';
@@ -192,8 +193,9 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
 
       fun compress_top_level steps =
         let
-          fun cand_key (l, t_size) = (length (get_successors l), t_size)
-          val cand_ord = prod_ord int_ord (int_ord o swap) o pairself cand_key
+          val cand_key = apfst (length o get_successors)
+          val cand_ord =
+            prod_ord int_ord (prod_ord (int_ord o swap) (int_ord o swap)) o pairself cand_key
 
           fun pop_next_candidate [] = (NONE, [])
             | pop_next_candidate (cands as (cand :: cands')) =
@@ -215,13 +217,12 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
                   val time_slice = time_mult (1.0 / Real.fromInt (length labels)) (reference_time l)
                   val timeouts =
                     map (adjust_merge_timeout preplay_timeout o curry Time.+ time_slice) times0
-                  val meths_outcomess =
-                    map3 (preplay_isar_step ctxt) timeouts hopelesses succs'
+                  val meths_outcomess = map3 (preplay_isar_step ctxt) timeouts hopelesses succs'
                 in
                   (case try (map (fn (_, Played time) :: _ => time)) meths_outcomess of
                     NONE => steps
                   | SOME times =>
-                    (* candidate successfully eliminated *)
+                    (* "l" successfully eliminated *)
                     (decrement_step_count ();
                      map3 (fn time => set_preplay_outcomes_of_isar_step ctxt time preplay_data)
                        times succs' meths_outcomess;
@@ -236,12 +237,17 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
             else
               (case pop_next_candidate candidates of
                 (NONE, _) => steps (* no more candidates for elimination *)
-              | (SOME (l, _), candidates') =>
+              | (SOME (l, (num_xs, _)), candidates') =>
                 (case find_index (curry (op =) (SOME l) o label_of_isar_step) steps of
                   ~1 => steps
                 | i =>
-                  let val successors = get_successors l in
-                    if length successors > compress_degree then
+                  let
+                    val successors = get_successors l
+                    val num_successors = length successors
+                  in
+                    (* Careful with "obtain", so we don't "obtain" twice the same variable after a
+                       merge. *)
+                    if num_successors > (if num_xs > 0 then 1 else compress_degree) then
                       steps
                     else
                       steps
@@ -249,7 +255,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
                       |> compression_loop candidates'
                   end))
 
-          fun add_cand (Prove (_, _, l, t, _, _, _, _)) = cons (l, size_of_term t)
+          fun add_cand (Prove (_, xs, l, t, _, _, _, _)) = cons (l, (length xs, size_of_term t))
             | add_cand _ = I
 
           (* the very last step is not a candidate *)
@@ -264,12 +270,13 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
          can be eliminated. In the best case, this once again leads to a proof whose proof steps do
          not have subproofs. Applying this approach recursively will result in a flat proof in the
          best cast. *)
-      fun compress_proof (proof as (Proof (fix, assms, steps))) =
-        if compress_further () then Proof (fix, assms, compress_steps steps) else proof
+      fun compress_proof (proof as (Proof (xs, assms, steps))) =
+        if compress_further () then Proof (xs, assms, compress_steps steps) else proof
       and compress_steps steps =
         (* bottom-up: compress innermost proofs first *)
-        steps |> map (fn step => step |> compress_further () ? compress_sub_levels)
-              |> compress_further () ? compress_top_level
+        steps
+        |> map (fn step => step |> compress_further () ? compress_sub_levels)
+        |> compress_further () ? compress_top_level
       and compress_sub_levels (Prove (qs, xs, l, t, subproofs, facts, meths, comment)) =
           (* compress subproofs *)
           Prove (qs, xs, l, t, map compress_proof subproofs, facts, meths, comment)

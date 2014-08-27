@@ -763,8 +763,6 @@ lemmas [symmetric, rulify] = atomize_all atomize_imp
 
 subsubsection {* Atomizing elimination rules *}
 
-setup AtomizeElim.setup
-
 lemma atomize_exL[atomize_elim]: "(!!x. P x ==> Q) == ((EX x. P x) ==> Q)"
   by rule iprover+
 
@@ -790,15 +788,7 @@ that are prolific (match too many equality or membership literals) and relate to
 seldom-used facts. Some duplicate other rules.
 *}
 
-ML {*
-structure No_ATPs = Named_Thms
-(
-  val name = @{binding no_atp}
-  val description = "theorems that should be filtered out by Sledgehammer"
-)
-*}
-
-setup {* No_ATPs.setup *}
+named_theorems no_atp "theorems that should be filtered out by Sledgehammer"
 
 
 subsubsection {* Classical Reasoner setup *}
@@ -1931,35 +1921,14 @@ quickcheck_params [size = 5, iterations = 50]
 
 subsubsection {* Nitpick setup *}
 
-ML {*
-structure Nitpick_Unfolds = Named_Thms
-(
-  val name = @{binding nitpick_unfold}
-  val description = "alternative definitions of constants as needed by Nitpick"
-)
-structure Nitpick_Simps = Named_Thms
-(
-  val name = @{binding nitpick_simp}
-  val description = "equational specification of constants as needed by Nitpick"
-)
-structure Nitpick_Psimps = Named_Thms
-(
-  val name = @{binding nitpick_psimp}
-  val description = "partial equational specification of constants as needed by Nitpick"
-)
-structure Nitpick_Choice_Specs = Named_Thms
-(
-  val name = @{binding nitpick_choice_spec}
-  val description = "choice specification of constants as needed by Nitpick"
-)
-*}
-
-setup {*
-  Nitpick_Unfolds.setup
-  #> Nitpick_Simps.setup
-  #> Nitpick_Psimps.setup
-  #> Nitpick_Choice_Specs.setup
-*}
+named_theorems nitpick_unfold
+  "alternative definitions of constants as needed by Nitpick"
+named_theorems nitpick_simp
+  "equational specification of constants as needed by Nitpick"
+named_theorems nitpick_psimp
+  "partial equational specification of constants as needed by Nitpick"
+named_theorems nitpick_choice_spec
+  "choice specification of constants as needed by Nitpick"
 
 declare if_bool_eq_conj [nitpick_unfold, no_atp]
         if_bool_eq_disj [no_atp]
@@ -1967,29 +1936,12 @@ declare if_bool_eq_conj [nitpick_unfold, no_atp]
 
 subsection {* Preprocessing for the predicate compiler *}
 
-ML {*
-structure Predicate_Compile_Alternative_Defs = Named_Thms
-(
-  val name = @{binding code_pred_def}
-  val description = "alternative definitions of constants for the Predicate Compiler"
-)
-structure Predicate_Compile_Inline_Defs = Named_Thms
-(
-  val name = @{binding code_pred_inline}
-  val description = "inlining definitions for the Predicate Compiler"
-)
-structure Predicate_Compile_Simps = Named_Thms
-(
-  val name = @{binding code_pred_simp}
-  val description = "simplification rules for the optimisations in the Predicate Compiler"
-)
-*}
-
-setup {*
-  Predicate_Compile_Alternative_Defs.setup
-  #> Predicate_Compile_Inline_Defs.setup
-  #> Predicate_Compile_Simps.setup
-*}
+named_theorems code_pred_def
+  "alternative definitions of constants for the Predicate Compiler"
+named_theorems code_pred_inline
+  "inlining definitions for the Predicate Compiler"
+named_theorems code_pred_simp
+  "simplification rules for the optimisations in the Predicate Compiler"
 
 
 subsection {* Legacy tactics and ML bindings *}

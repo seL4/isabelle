@@ -203,7 +203,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         fun tac {context = ctxt, prems = _} =
           mk_simplified_set_tac ctxt (collect_set_map_of_bnf outer);
         val set'_eq_set =
-          Goal.prove names_lthy [] [] goal tac
+          Goal.prove (*no sorry*) names_lthy [] [] goal tac
           |> Thm.close_derivation;
         val set' = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of set'_eq_set)));
       in

@@ -25,7 +25,8 @@ sig
      xtor_rel_thms: thm list,
      xtor_co_rec_thms: thm list,
      xtor_co_rec_o_map_thms: thm list,
-     rel_xtor_co_induct_thm: thm}
+     rel_xtor_co_induct_thm: thm,
+     dtor_set_induct_thms: thm list}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
 
@@ -70,7 +71,10 @@ sig
   val caseN: string
   val coN: string
   val coinductN: string
+  val coinduct_strongN: string
   val corecN: string
+  val corec_discN: string
+  val corec_disc_iffN: string
   val ctorN: string
   val ctor_dtorN: string
   val ctor_exhaustN: string
@@ -90,8 +94,6 @@ sig
   val ctor_rel_inductN: string
   val ctor_set_inclN: string
   val ctor_set_set_inclN: string
-  val disc_corecN: string
-  val disc_corec_iffN: string
   val dtorN: string
   val dtor_coinductN: string
   val dtor_corecN: string
@@ -102,13 +104,13 @@ sig
   val dtor_injectN: string
   val dtor_mapN: string
   val dtor_map_coinductN: string
-  val dtor_map_strong_coinductN: string
+  val dtor_map_coinduct_strongN: string
   val dtor_map_uniqueN: string
   val dtor_relN: string
   val dtor_rel_coinductN: string
   val dtor_set_inclN: string
   val dtor_set_set_inclN: string
-  val dtor_strong_coinductN: string
+  val dtor_coinduct_strongN: string
   val dtor_unfoldN: string
   val dtor_unfold_o_mapN: string
   val dtor_unfold_transferN: string
@@ -133,14 +135,13 @@ sig
   val rel_distinctN: string
   val rel_selN: string
   val rvN: string
-  val sel_corecN: string
+  val corec_selN: string
   val set_inclN: string
   val set_set_inclN: string
   val setN: string
   val simpsN: string
   val strTN: string
   val str_initN: string
-  val strong_coinductN: string
   val sum_bdN: string
   val sum_bdTN: string
   val uniqueN: string
@@ -205,7 +206,7 @@ sig
   val mk_xtor_un_fold_o_map_thms: BNF_Util.fp_kind -> bool -> int -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list
 
-  val mk_strong_coinduct_thm: thm -> thm list -> thm list -> (thm -> thm) -> Proof.context -> thm
+  val mk_coinduct_strong_thm: thm -> thm list -> thm list -> (thm -> thm) -> Proof.context -> thm
 
   val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory -> 'a) ->
@@ -237,11 +238,12 @@ type fp_result =
    xtor_rel_thms: thm list,
    xtor_co_rec_thms: thm list,
    xtor_co_rec_o_map_thms: thm list,
-   rel_xtor_co_induct_thm: thm};
+   rel_xtor_co_induct_thm: thm,
+   dtor_set_induct_thms: thm list};
 
 fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_recs, xtor_co_induct,
     dtor_ctors, ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss,
-    xtor_rel_thms, xtor_co_rec_thms, xtor_co_rec_o_map_thms, rel_xtor_co_induct_thm} =
+    xtor_rel_thms, xtor_co_rec_thms, xtor_co_rec_o_map_thms, rel_xtor_co_induct_thm, dtor_set_induct_thms} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
@@ -257,7 +259,8 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_recs, xtor_co_induct,
    xtor_rel_thms = map (Morphism.thm phi) xtor_rel_thms,
    xtor_co_rec_thms = map (Morphism.thm phi) xtor_co_rec_thms,
    xtor_co_rec_o_map_thms = map (Morphism.thm phi) xtor_co_rec_o_map_thms,
-   rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm};
+   rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm,
+   dtor_set_induct_thms = map (Morphism.thm phi) dtor_set_induct_thms}; (* No idea of what this is doing... *)
 
 type fp_sugar =
   {T: typ,
@@ -390,9 +393,9 @@ val ctor_inductN = ctorN ^ "_" ^ inductN
 val ctor_induct2N = ctor_inductN ^ "2"
 val dtor_map_coinductN = dtor_mapN ^ "_" ^ coinductN
 val dtor_coinductN = dtorN ^ "_" ^ coinductN
-val strong_coinductN = "strong_" ^ coinductN
-val dtor_map_strong_coinductN = dtor_mapN ^ "_" ^ strong_coinductN
-val dtor_strong_coinductN = dtorN ^ "_" ^ strong_coinductN
+val coinduct_strongN = coinductN ^ "_strong"
+val dtor_map_coinduct_strongN = dtor_mapN ^ "_" ^ coinduct_strongN
+val dtor_coinduct_strongN = dtorN ^ "_" ^ coinduct_strongN
 val colN = "col"
 val set_inclN = "set_incl"
 val ctor_set_inclN = ctorN ^ "_" ^ set_inclN
@@ -403,9 +406,9 @@ val dtor_set_set_inclN = dtorN ^ "_" ^ set_set_inclN
 
 val caseN = "case"
 val discN = "disc"
-val disc_corecN = discN ^ "_" ^ corecN
+val corec_discN = corecN ^ "_" ^ discN
 val iffN = "_iff"
-val disc_corec_iffN = discN ^ "_" ^ corecN ^ iffN
+val corec_disc_iffN = corec_discN ^ iffN
 val distinctN = "distinct"
 val rel_distinctN = relN ^ "_" ^ distinctN
 val injectN = "inject"
@@ -418,7 +421,7 @@ val dtor_rel_coinductN = dtorN ^ "_" ^ rel_coinductN
 val rel_inductN = relN ^ "_" ^ inductN
 val ctor_rel_inductN = ctorN ^ "_" ^ rel_inductN
 val selN = "sel"
-val sel_corecN = selN ^ "_" ^ corecN
+val corec_selN = corecN ^ "_" ^ selN
 
 fun co_prefix fp = case_fp fp "" "co";
 
@@ -631,7 +634,7 @@ fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_fold
     split_conj_thm (un_fold_unique OF map (case_fp fp I mk_sym) unique_prems)
   end;
 
-fun mk_strong_coinduct_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
+fun mk_coinduct_strong_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
   let
     val n = Thm.nprems_of coind;
     val m = Thm.nprems_of (hd rel_monos) - n;

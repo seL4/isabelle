@@ -6,17 +6,13 @@ Parsers for complex specifications.
 
 signature PARSE_SPEC =
 sig
-  val attribs: Attrib.src list parser
-  val opt_attribs: Attrib.src list parser
   val thm_name: string -> Attrib.binding parser
   val opt_thm_name: string -> Attrib.binding parser
   val spec: (Attrib.binding * string) parser
   val specs: (Attrib.binding * string list) parser
   val alt_specs: (Attrib.binding * string) list parser
   val where_alt_specs: (Attrib.binding * string) list parser
-  val xthm: (Facts.ref * Attrib.src list) parser
-  val xthms1: (Facts.ref * Attrib.src list) list parser
-  val name_facts: (Attrib.binding * (Facts.ref * Attrib.src list) list) list parser
+  val name_facts: (Attrib.binding * (Facts.ref * Token.src list) list) list parser
   val constdecl: (binding * string option * mixfix) parser
   val constdef: ((binding * string option * mixfix) option * (Attrib.binding * string)) parser
   val includes: (xstring * Position.T) list parser
@@ -37,14 +33,11 @@ struct
 
 (* theorem specifications *)
 
-val attrib = Parse.position Parse.liberal_name -- Parse.!!! Parse.args >> uncurry Args.src;
-val attribs = Parse.$$$ "[" |-- Parse.list attrib --| Parse.$$$ "]";
-val opt_attribs = Scan.optional attribs [];
-
-fun thm_name s = Parse.binding -- opt_attribs --| Parse.$$$ s;
+fun thm_name s = Parse.binding -- Parse.opt_attribs --| Parse.$$$ s;
 
 fun opt_thm_name s =
-  Scan.optional ((Parse.binding -- opt_attribs || attribs >> pair Binding.empty) --| Parse.$$$ s)
+  Scan.optional
+    ((Parse.binding -- Parse.opt_attribs || Parse.attribs >> pair Binding.empty) --| Parse.$$$ s)
     Attrib.empty_binding;
 
 val spec = opt_thm_name ":" -- Parse.prop;
@@ -56,14 +49,7 @@ val alt_specs =
 
 val where_alt_specs = Parse.where_ |-- Parse.!!! alt_specs;
 
-val xthm =
-  Parse.$$$ "[" |-- attribs --| Parse.$$$ "]" >> pair (Facts.named "") ||
-  (Parse.literal_fact >> Facts.Fact ||
-    Parse.position Parse.xname -- Scan.option Attrib.thm_sel >> Facts.Named) -- opt_attribs;
-
-val xthms1 = Scan.repeat1 xthm;
-
-val name_facts = Parse.and_list1 (opt_thm_name "=" -- xthms1);
+val name_facts = Parse.and_list1 (opt_thm_name "=" -- Parse.xthms1);
 
 
 (* basic constant specifications *)
@@ -103,7 +89,7 @@ val loc_element =
     >> Element.Assumes ||
   Parse.$$$ "defines" |-- Parse.!!! (Parse.and_list1 (opt_thm_name ":" -- Parse.propp))
     >> Element.Defines ||
-  Parse.$$$ "notes" |-- Parse.!!! (Parse.and_list1 (opt_thm_name "=" -- xthms1))
+  Parse.$$$ "notes" |-- Parse.!!! (Parse.and_list1 (opt_thm_name "=" -- Parse.xthms1))
     >> (curry Element.Notes "");
 
 fun plus1_unless test scan =

@@ -1,9 +1,8 @@
-
 (*  Title:      HOL/BNF_LFP.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Lorenz Panny, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012, 2013
+    Copyright   2012, 2013, 2014
 
 Least fixed point operation on bounded natural functors.
 *)
@@ -18,37 +17,37 @@ keywords
 begin
 
 lemma subset_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> False) \<Longrightarrow> A \<subseteq> {}"
-by blast
+  by blast
 
 lemma image_Collect_subsetI: "(\<And>x. P x \<Longrightarrow> f x \<in> B) \<Longrightarrow> f ` {x. P x} \<subseteq> B"
-by blast
+  by blast
 
 lemma Collect_restrict: "{x. x \<in> X \<and> P x} \<subseteq> X"
-by auto
+  by auto
 
 lemma prop_restrict: "\<lbrakk>x \<in> Z; Z \<subseteq> {x. x \<in> X \<and> P x}\<rbrakk> \<Longrightarrow> P x"
-by auto
+  by auto
 
 lemma underS_I: "\<lbrakk>i \<noteq> j; (i, j) \<in> R\<rbrakk> \<Longrightarrow> i \<in> underS R j"
-unfolding underS_def by simp
+  unfolding underS_def by simp
 
 lemma underS_E: "i \<in> underS R j \<Longrightarrow> i \<noteq> j \<and> (i, j) \<in> R"
-unfolding underS_def by simp
+  unfolding underS_def by simp
 
 lemma underS_Field: "i \<in> underS R j \<Longrightarrow> i \<in> Field R"
-unfolding underS_def Field_def by auto
+  unfolding underS_def Field_def by auto
 
 lemma FieldI2: "(i, j) \<in> R \<Longrightarrow> j \<in> Field R"
-unfolding Field_def by auto
+  unfolding Field_def by auto
 
 lemma fst_convol': "fst (\<langle>f, g\<rangle> x) = f x"
-using fst_convol unfolding convol_def by simp
+  using fst_convol unfolding convol_def by simp
 
 lemma snd_convol': "snd (\<langle>f, g\<rangle> x) = g x"
-using snd_convol unfolding convol_def by simp
+  using snd_convol unfolding convol_def by simp
 
 lemma convol_expand_snd: "fst o f = g \<Longrightarrow> \<langle>g, snd o f\<rangle> = f"
-unfolding convol_def by auto
+  unfolding convol_def by auto
 
 lemma convol_expand_snd':
   assumes "(fst o f = g)"
@@ -60,11 +59,12 @@ proof -
   moreover have "\<dots> \<longleftrightarrow> \<langle>g, h\<rangle> = f" by (subst (2) *[symmetric]) (auto simp: convol_def fun_eq_iff)
   ultimately show ?thesis by simp
 qed
+
 lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B"
-unfolding bij_betw_def by auto
+  unfolding bij_betw_def by auto
 
 lemma bij_betw_imageE: "bij_betw f A B \<Longrightarrow> f ` A = B"
-unfolding bij_betw_def by auto
+  unfolding bij_betw_def by auto
 
 lemma f_the_inv_into_f_bij_betw: "bij_betw f A B \<Longrightarrow>
   (bij_betw f A B \<Longrightarrow> x \<in> B) \<Longrightarrow> f (the_inv_into A f x) = x"
@@ -78,7 +78,7 @@ lemma bij_betwI':
   "\<lbrakk>\<And>x y. \<lbrakk>x \<in> X; y \<in> X\<rbrakk> \<Longrightarrow> (f x = f y) = (x = y);
     \<And>x. x \<in> X \<Longrightarrow> f x \<in> Y;
     \<And>y. y \<in> Y \<Longrightarrow> \<exists>x \<in> X. y = f x\<rbrakk> \<Longrightarrow> bij_betw f X Y"
-unfolding bij_betw_def inj_on_def by blast
+  unfolding bij_betw_def inj_on_def by blast
 
 lemma surj_fun_eq:
   assumes surj_on: "f ` X = UNIV" and eq_on: "\<forall>x \<in> X. (g1 o f) x = (g2 o f) x"

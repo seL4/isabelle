@@ -103,7 +103,7 @@ val o_apply_trans_sym = o_apply RS trans RS sym;
 val ord_eq_le_trans = @{thm ord_eq_le_trans};
 val ordIso_ordLeq_trans = @{thm ordIso_ordLeq_trans};
 val snd_convol_fun_cong_sym = @{thm snd_convol[unfolded convol_def]} RS fun_cong RS sym;
-val sum_weak_case_cong = @{thm sum.weak_case_cong};
+val sum_case_cong_weak = @{thm sum.case_cong_weak};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 val Collect_splitD_set_mp = @{thm Collect_splitD[OF set_mp]};
 val rev_bspec = Drule.rotate_prems 1 bspec;
@@ -277,21 +277,21 @@ fun mk_bis_converse_tac m bis_rel rel_congs rel_converseps =
         REPEAT_DETERM o etac allE,
         rtac @{thm conversepI}, etac mp, etac @{thm converseD}]) (rel_congs ~~ rel_converseps)] 1;
 
-fun mk_bis_O_tac ctxt m bis_rel rel_congs rel_OOs =
+fun mk_bis_O_tac ctxt m bis_rel rel_congs le_rel_OOs =
   EVERY' [rtac (bis_rel RS iffD2), REPEAT_DETERM o dtac (bis_rel RS iffD1),
     REPEAT_DETERM o etac conjE, rtac conjI,
     CONJ_WRAP' (K (EVERY' [etac @{thm relcomp_subset_Sigma}, atac])) rel_congs,
-    CONJ_WRAP' (fn (rel_cong, rel_OO) =>
+    CONJ_WRAP' (fn (rel_cong, le_rel_OO) =>
       EVERY' [rtac allI, rtac allI, rtac impI,
         rtac (rel_cong RS @{thm eq_refl} RS @{thm predicate2D}),
         REPEAT_DETERM_N m o rtac @{thm eq_OO},
         REPEAT_DETERM_N (length rel_congs) o rtac @{thm relcompp_in_rel},
-        rtac (rel_OO RS sym RS @{thm eq_refl} RS @{thm predicate2D}),
+        rtac (le_rel_OO RS @{thm predicate2D}),
         etac @{thm relcompE},
         REPEAT_DETERM o dtac prod_injectD,
         etac conjE, hyp_subst_tac ctxt,
         REPEAT_DETERM o etac allE, rtac @{thm relcomppI},
-        etac mp, atac, etac mp, atac]) (rel_congs ~~ rel_OOs)] 1;
+        etac mp, atac, etac mp, atac]) (rel_congs ~~ le_rel_OOs)] 1;
 
 fun mk_bis_Gr_tac ctxt bis_rel rel_Grps mor_images morEs coalg_ins =
   unfold_thms_tac ctxt (bis_rel :: @{thm eq_alt} :: @{thm in_rel_Gr} :: rel_Grps) THEN
@@ -430,7 +430,7 @@ fun mk_rv_last_tac cTs cts rv_Nils rv_Conss =
         CONJ_WRAP' (fn rv_Cons => EVERY' [REPEAT_DETERM o etac allE, dtac (mk_conjunctN n i),
           CONJ_WRAP' (fn i' => EVERY' [dtac (mk_conjunctN n i'), etac exE, rtac exI,
             rtac (@{thm append_Cons} RS arg_cong RS trans), rtac (rv_Cons RS trans),
-            if n = 1 then K all_tac else etac (sum_weak_case_cong RS trans),
+            if n = 1 then K all_tac else etac (sum_case_cong_weak RS trans),
             rtac (mk_sum_caseN n i RS trans), atac])
           ks])
         rv_Conss)
@@ -565,7 +565,7 @@ fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_d
               rtac (rev_mp OF [rv_last, impI]), etac exE, rtac (isNode_def RS iffD2),
               rtac exI, rtac conjI,
               if n = 1 then rtac refl
-              else etac (sum_weak_case_cong RS trans) THEN' rtac (mk_sum_caseN n i),
+              else etac (sum_case_cong_weak RS trans) THEN' rtac (mk_sum_caseN n i),
               CONJ_WRAP' (fn (set_map0, (set_Lev, set_image_Lev)) =>
                 EVERY' [rtac (set_map0 RS trans), rtac equalityI, rtac @{thm image_subsetI},
                   rtac CollectI, rtac @{thm SuccI}, rtac @{thm UN_I}, rtac UNIV_I, etac set_Lev,
@@ -603,7 +603,7 @@ fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_d
         CONVERSION (Conv.top_conv
           (K (Conv.try_conv (Conv.rewr_conv (rv_Nil RS eq_reflection)))) ctxt),
         if n = 1 then K all_tac
-        else (rtac (sum_weak_case_cong RS trans) THEN'
+        else (rtac (sum_case_cong_weak RS trans) THEN'
           rtac (mk_sum_caseN n i) THEN' rtac (mk_sum_caseN n i RS trans)),
         rtac (map_comp_id RS trans), rtac (map_cong0 OF replicate m refl),
         EVERY' (map3 (fn i' => fn to_sbd_inj => fn from_to_sbd =>
@@ -628,7 +628,7 @@ fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_d
             CONVERSION (Conv.top_conv
               (K (Conv.try_conv (Conv.rewr_conv (rv_Cons RS eq_reflection)))) ctxt),
             if n = 1 then K all_tac
-            else rtac sum_weak_case_cong THEN' rtac (mk_sum_caseN n i' RS trans),
+            else rtac sum_case_cong_weak THEN' rtac (mk_sum_caseN n i' RS trans),
             SELECT_GOAL (unfold_thms_tac ctxt [from_to_sbd]), rtac refl])
         ks to_sbd_injs from_to_sbds)];
   in
@@ -898,14 +898,14 @@ fun mk_set_bd_tac sbd_Cinfinite col_bd =
   EVERY' (map rtac [@{thm UNION_Cinfinite_bound}, ordIso_ordLeq_trans, @{thm card_of_nat},
     @{thm natLeq_ordLeq_cinfinite}, sbd_Cinfinite, ballI, col_bd, sbd_Cinfinite]) 1;
 
-fun mk_le_rel_OO_tac coinduct rel_Jrels rel_OOs =
-  EVERY' (rtac coinduct :: map2 (fn rel_Jrel => fn rel_OO =>
+fun mk_le_rel_OO_tac coinduct rel_Jrels le_rel_OOs =
+  EVERY' (rtac coinduct :: map2 (fn rel_Jrel => fn le_rel_OO =>
     let val Jrel_imp_rel = rel_Jrel RS iffD1;
     in
-      EVERY' [rtac (rel_OO RS sym RS @{thm eq_refl} RS @{thm predicate2D}), etac @{thm relcomppE},
+      EVERY' [rtac (le_rel_OO RS @{thm predicate2D}), etac @{thm relcomppE},
       rtac @{thm relcomppI}, etac Jrel_imp_rel, etac Jrel_imp_rel]
     end)
-  rel_Jrels rel_OOs) 1;
+  rel_Jrels le_rel_OOs) 1;
 
 fun mk_wit_tac ctxt n dtor_ctors dtor_set wit coind_wits =
   ALLGOALS (TRY o (eresolve_tac coind_wits THEN' rtac refl)) THEN
@@ -973,8 +973,6 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
                 hyp_subst_tac ctxt,
                 dtac (in_Jrel RS iffD1),
                 dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
-                TRY o
-                  EVERY' [dtac (Thm.permute_prems 0 1 @{thm ssubst_mem}), atac, hyp_subst_tac ctxt],
                 REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
             (rev (active_set_map0s ~~ in_Jrels))])
         (dtor_sets ~~ passive_set_map0s),

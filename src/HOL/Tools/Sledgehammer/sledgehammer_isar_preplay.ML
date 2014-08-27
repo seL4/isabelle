@@ -41,6 +41,27 @@ open Sledgehammer_Isar_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
 
+fun par_list_map_filter_with_timeout _ _ _ _ [] = []
+  | par_list_map_filter_with_timeout get_time min_timeout timeout0 f xs =
+    let
+      val next_timeout = Unsynchronized.ref timeout0
+
+      fun apply_f x =
+        let val timeout = !next_timeout in
+          if Time.<= (timeout, min_timeout) then
+            NONE
+          else
+            let val y = f timeout x in
+              (case get_time y of
+                SOME time => next_timeout := time
+              | _ => ());
+              SOME y
+            end
+        end
+    in
+      map_filter I (Par_List.map apply_f xs)
+    end
+
 fun enrich_context_with_local_facts proof ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -140,16 +161,18 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
 fun preplay_isar_step_for_method ctxt timeout meth =
   try (raw_preplay_step_for_method ctxt timeout meth) #> the_default Play_Failed
 
-fun preplay_isar_step ctxt timeout hopeless step =
+val min_preplay_timeout = seconds 0.002
+
+fun preplay_isar_step ctxt timeout0 hopeless step =
   let
-    fun try_method meth =
-      (case preplay_isar_step_for_method ctxt timeout meth step of
-        outcome as Played _ => SOME (meth, outcome)
-      | _ => NONE)
+    fun preplay timeout meth = (meth, preplay_isar_step_for_method ctxt timeout meth step)
+    fun get_time (_, Played time) = SOME time
+      | get_time _ = NONE
 
     val meths = proof_methods_of_isar_step step |> subtract (op =) hopeless
   in
-    the_list (Par_List.get_some try_method meths)
+    par_list_map_filter_with_timeout get_time min_preplay_timeout timeout0 preplay meths
+    |> sort (play_outcome_ord o pairself snd)
   end
 
 type isar_preplay_data = (proof_method * play_outcome Lazy.lazy) list Canonical_Label_Tab.table
@@ -181,7 +204,7 @@ fun peek_at_outcome outcome =
   if Lazy.is_finished outcome then Lazy.force outcome else Play_Timed_Out Time.zeroTime
 
 fun get_best_method_outcome force =
-  tap (List.app (K () o Lazy.future Future.default_params o snd)) (* optional parallelism *)
+  tap (List.app (K () o Lazy.future Future.default_params o snd)) (* could be parallelized *)
   #> map (apsnd force)
   #> sort (play_outcome_ord o pairself snd)
   #> hd

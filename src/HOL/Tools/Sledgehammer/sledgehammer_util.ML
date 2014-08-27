@@ -101,7 +101,10 @@ fun fold_body_thm max_thms outer_name (map_plain_name, map_inclass_name) body =
           else (false, false)
       in
         if anonymous then
-          app_body (if enter_class then map_inclass_name else map_name) (Future.join body) accum
+          (case Future.peek body of
+            SOME (Exn.Res the_body) =>
+            app_body (if enter_class then map_inclass_name else map_name) the_body accum
+          | NONE => accum)
         else
           (case map_name name of
             SOME name' =>
@@ -133,7 +136,7 @@ fun thms_of_name ctxt name =
     |> Symbol.source
     |> Token.source {do_recover = SOME false} lex Position.start
     |> Token.source_proper
-    |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
+    |> Source.source Token.stopper (Parse.xthms1 >> get) NONE
     |> Source.exhaust
   end
 
@@ -144,9 +147,9 @@ fun with_vanilla_print_mode f x =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN) (print_mode_value ())) f x
 
 fun hackish_string_of_term ctxt =
-  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
+  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> unyxml #> simplify_spaces
 
-val spying_version = "c"
+val spying_version = "d"
 
 fun spying false _ = ()
   | spying true f =

@@ -28,8 +28,6 @@ sig
   val domain_isomorphism_cmd :
     (string list * binding * mixfix * string * (binding * binding) option) list
       -> theory -> theory
-
-  val setup : theory -> theory
 end
 
 structure Domain_Isomorphism : DOMAIN_ISOMORPHISM =
@@ -40,24 +38,6 @@ val beta_ss =
     addsimps @{thms simp_thms} addsimprocs [@{simproc beta_cfun_proc}])
 
 fun is_cpo thy T = Sign.of_sort thy (T, @{sort cpo})
-
-(******************************************************************************)
-(******************************** theory data *********************************)
-(******************************************************************************)
-
-structure RepData = Named_Thms
-(
-  val name = @{binding domain_defl_simps}
-  val description = "theorems like DEFL('a t) = t_defl$DEFL('a)"
-)
-
-structure IsodeflData = Named_Thms
-(
-  val name = @{binding domain_isodefl}
-  val description = "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
-)
-
-val setup = RepData.setup #> IsodeflData.setup
 
 
 (******************************************************************************)
@@ -170,8 +150,8 @@ fun add_fixdefs
     val cont_thm =
       let
         val prop = mk_trp (mk_cont functional)
-        val rules = Cont2ContData.get (Proof_Context.init_global thy)
-        val tac = REPEAT_ALL_NEW (match_tac rules) 1
+        val rules = Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems cont2cont}
+        val tac = REPEAT_ALL_NEW (match_tac (rev rules)) 1
       in
         Goal.prove_global thy [] [] prop (K tac)
       end
@@ -207,8 +187,9 @@ fun defl_of_typ
     (tab2 : (typ * term) list)
     (T : typ) : term =
   let
-    val defl_simps = RepData.get (Proof_Context.init_global thy)
-    val rules = map (Thm.concl_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq) defl_simps
+    val defl_simps =
+      Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_defl_simps}
+    val rules = map (Thm.concl_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq) (rev defl_simps)
     val rules' = map (apfst mk_DEFL) tab1 @ map (apfst mk_LIFTDEFL) tab2
     fun proc1 t =
       (case dest_DEFL t of
@@ -522,7 +503,8 @@ fun gen_domain_isomorphism
         val ((_, _, _, {DEFL, ...}), thy) =
           Domaindef.add_domaindef spec defl NONE thy
         (* declare domain_defl_simps rules *)
-        val thy = Context.theory_map (RepData.add_thm DEFL) thy
+        val thy =
+          Context.theory_map (Named_Theorems.add_thm @{named_theorems domain_defl_simps} DEFL) thy
       in
         (DEFL, thy)
       end
@@ -532,9 +514,10 @@ fun gen_domain_isomorphism
     fun mk_DEFL_eq_thm (lhsT, rhsT) =
       let
         val goal = mk_eqs (mk_DEFL lhsT, mk_DEFL rhsT)
-        val DEFL_simps = RepData.get (Proof_Context.init_global thy)
+        val DEFL_simps =
+          Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_defl_simps}
         fun tac ctxt =
-          rewrite_goals_tac ctxt (map mk_meta_eq DEFL_simps)
+          rewrite_goals_tac ctxt (map mk_meta_eq (rev DEFL_simps))
           THEN TRY (resolve_tac defl_unfold_thms 1)
       in
         Goal.prove_global thy [] [] goal (tac o #context)
@@ -637,7 +620,7 @@ fun gen_domain_isomorphism
         val isodefl_rules =
           @{thms conjI isodefl_ID_DEFL isodefl_LIFTDEFL}
           @ isodefl_abs_rep_thms
-          @ IsodeflData.get (Proof_Context.init_global thy)
+          @ rev (Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_isodefl})
       in
         Goal.prove_global thy [] assms goal (fn {prems, context = ctxt} =>
          EVERY
@@ -661,7 +644,9 @@ fun gen_domain_isomorphism
     val (isodefl_thms, thy) = thy |>
       (Global_Theory.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (conjuncts isodefl_binds isodefl_thm)
-    val thy = fold (Context.theory_map o IsodeflData.add_thm) isodefl_thms thy
+    val thy =
+      fold (Context.theory_map o Named_Theorems.add_thm @{named_theorems domain_isodefl})
+        isodefl_thms thy
 
     (* prove map_ID theorems *)
     fun prove_map_ID_thm

@@ -985,7 +985,7 @@ next
   have b: "\<And>x' ys'. \<lbrakk>\<not> List.member ys' x'; a # xs \<approx> x' # ys'\<rbrakk> \<Longrightarrow> thesis" by fact
   have c: "xs = [] \<Longrightarrow> thesis" using b 
     apply(simp)
-    by (metis List.set_simps(1) emptyE empty_subsetI)
+    by (metis list.set(1) emptyE empty_subsetI)
   have "\<And>x ys. \<lbrakk>\<not> List.member ys x; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis"
   proof -
     fix x :: 'a

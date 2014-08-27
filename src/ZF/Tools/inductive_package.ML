@@ -29,9 +29,9 @@ sig
     ((binding * term) * attribute list) list ->
     thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
   val add_inductive: string list * string ->
-    ((binding * string) * Attrib.src list) list ->
-    (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list *
-    (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list ->
+    ((binding * string) * Token.src list) list ->
+    (Facts.ref * Token.src list) list * (Facts.ref * Token.src list) list *
+    (Facts.ref * Token.src list) list * (Facts.ref * Token.src list) list ->
     theory -> theory * inductive_result
 end;
 
@@ -586,10 +586,10 @@ val ind_decl =
       ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.term))) --
   (@{keyword "intros"} |--
     Parse.!!! (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop))) --
-  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (@{keyword "con_defs"} |-- Parse.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse_Spec.xthms1) []
+  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.xthms1) [] --
+  Scan.optional (@{keyword "con_defs"} |-- Parse.!!! Parse.xthms1) [] --
+  Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse.xthms1) [] --
+  Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse.xthms1) []
   >> (Toplevel.theory o mk_ind);
 
 val _ =

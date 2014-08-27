@@ -37,6 +37,8 @@ fun on_first_line test_outcome solver_name lines =
     val (l, ls) = split_first (snd (take_prefix (curry (op =) "") lines))
   in (test_outcome solver_name l, ls) end
 
+fun on_first_non_unsupported_line test_outcome solver_name lines =
+  on_first_line test_outcome solver_name (filter (curry (op <>) "unsupported") lines)
 
 (* CVC3 *)
 
@@ -85,6 +87,27 @@ val cvc4: SMT2_Solver.solver_config = {
 
 end
 
+(* veriT *)
+
+val veriT: SMT2_Solver.solver_config = {
+  name = "veriT",
+  class = K SMTLIB2_Interface.smtlib2C,
+  avail = make_avail "VERIT",
+  command = make_command "VERIT",
+  options = (fn ctxt => [
+    "--proof-version=1",
+    "--proof=-",
+    "--proof-prune",
+    "--proof-merge",
+    "--disable-print-success",
+    "--disable-banner",
+    "--max-time=" ^ string_of_int (Real.ceil (Config.get ctxt SMT2_Config.timeout))]),
+  smt_options = [],
+  default_max_relevant = 120 (* FUDGE *),
+  outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat"
+    "warning : proof_done: status is still open"),
+  parse_proof = SOME VeriT_Proof_Parse.parse_proof,
+  replay = NONE }
 
 (* Z3 *)
 
@@ -160,6 +183,7 @@ end
 val _ = Theory.setup (
   SMT2_Solver.add_solver cvc3 #>
   SMT2_Solver.add_solver cvc4 #>
+  SMT2_Solver.add_solver veriT #>
   SMT2_Solver.add_solver z3)
 
 end;

@@ -330,7 +330,9 @@ val case_concl_tagN = "case_conclusion";
 
 fun get_case_concl name (a, b) =
   if a = case_concl_tagN then
-    (case explode_args b of c :: cs => if c = name then SOME cs else NONE)
+    (case explode_args b of
+      c :: cs => if c = name then SOME cs else NONE
+    | [] => NONE)
   else NONE;
 
 fun add_case_concl (name, cs) = Thm.map_tags (fn tags =>

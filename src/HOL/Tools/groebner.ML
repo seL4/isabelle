@@ -924,7 +924,7 @@ fun get_ring_ideal_convs ctxt form =
 
 fun presimplify ctxt add_thms del_thms =
   asm_full_simp_tac (put_simpset HOL_basic_ss ctxt
-    addsimps (Algebra_Simplification.get ctxt)
+    addsimps (Named_Theorems.get ctxt @{named_theorems algebra})
     delsimps del_thms addsimps add_thms);
 
 fun ring_tac add_ths del_ths ctxt =

@@ -29,7 +29,9 @@ Here is the division algorithm in ML:
 
 header{*The Division Operators Div and Mod*}
 
-theory IntDiv_ZF imports IntArith OrderArith begin
+theory IntDiv_ZF
+imports Bin OrderArith
+begin
 
 definition
   quorem :: "[i,i] => o"  where

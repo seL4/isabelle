@@ -9,8 +9,9 @@ imports Complete_Partial_Order Fun_Def_Base Option
 keywords "partial_function" :: thy_decl
 begin
 
+named_theorems partial_function_mono "monotonicity rules for partial function definitions"
 ML_file "Tools/Function/partial_function.ML"
-setup Partial_Function.setup
+
 
 subsection {* Axiomatic setup *}
 

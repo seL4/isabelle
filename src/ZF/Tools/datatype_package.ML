@@ -32,8 +32,8 @@ sig
   val add_datatype_i: term * term list -> Ind_Syntax.constructor_spec list list ->
     thm list * thm list * thm list -> theory -> theory * inductive_result * datatype_result
   val add_datatype: string * string list -> (string * string list * mixfix) list list ->
-    (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list *
-    (Facts.ref * Attrib.src list) list -> theory -> theory * inductive_result * datatype_result
+    (Facts.ref * Token.src list) list * (Facts.ref * Token.src list) list *
+    (Facts.ref * Token.src list) list -> theory -> theory * inductive_result * datatype_result
 end;
 
 functor Add_datatype_def_Fun
@@ -437,9 +437,9 @@ val _ =
     ("define " ^ coind_prefix ^ "datatype")
     ((Scan.optional ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.!!! Parse.term) "") --
       Parse.and_list1 (Parse.term -- (@{keyword "="} |-- Parse.enum1 "|" con_decl)) --
-      Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse_Spec.xthms1) [] --
-      Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse_Spec.xthms1) [] --
-      Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse_Spec.xthms1) []
+      Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.xthms1) [] --
+      Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse.xthms1) [] --
+      Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse.xthms1) []
       >> (Toplevel.theory o mk_datatype));
 
 end;

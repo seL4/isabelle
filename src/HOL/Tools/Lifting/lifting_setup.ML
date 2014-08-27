@@ -221,9 +221,9 @@ fun lifting_bundle qty_full_name qinfo lthy =
 
     val thy = Proof_Context.theory_of lthy
     val dummy_thm = Thm.transfer thy Drule.dummy_thm
-    val pointer = Outer_Syntax.scan Position.none bundle_name
+    val pointer = Outer_Syntax.scan (Keyword.get_lexicons ()) Position.none bundle_name
     val restore_lifting_att = 
-      ([dummy_thm], [Args.src ("Lifting.lifting_restore_internal", Position.none) pointer])
+      ([dummy_thm], [Token.src ("Lifting.lifting_restore_internal", Position.none) pointer])
   in
     lthy 
       |> Local_Theory.declaration {syntax = false, pervasive = true}
@@ -796,8 +796,8 @@ val opt_gen_code =
 val _ = 
   Outer_Syntax.local_theory @{command_spec "setup_lifting"}
     "setup lifting infrastructure" 
-      (opt_gen_code -- Parse_Spec.xthm -- Scan.option Parse_Spec.xthm 
-      -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse_Spec.xthm) >> 
+      (opt_gen_code -- Parse.xthm -- Scan.option Parse.xthm 
+      -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm) >> 
         (fn (((gen_code, xthm), opt_reflp_xthm), opt_par_xthm) => 
           setup_lifting_cmd gen_code xthm opt_reflp_xthm opt_par_xthm))
 
@@ -969,7 +969,7 @@ fun pointer_of_bundle_name bundle_name ctxt =
     case bundle of
       [(_, [arg_src])] => 
         let
-          val (name, _) = Args.syntax (Scan.lift Args.name) arg_src ctxt
+          val (name, _) = Token.syntax (Scan.lift Args.name) arg_src ctxt
             handle ERROR _ => error "The provided bundle is not a lifting bundle."
         in name end
       | _ => error "The provided bundle is not a lifting bundle."

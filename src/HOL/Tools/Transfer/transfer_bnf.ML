@@ -112,8 +112,9 @@ fun prove_relation_side_constraint ctxt bnf constraint_def =
   let
     val old_ctxt = ctxt
     val (goal, ctxt) = generate_relation_constraint_goal ctxt bnf constraint_def
-    val thm = Goal.prove ctxt [] [] goal
+    val thm = Goal.prove_sorry ctxt [] [] goal
       (fn {context = ctxt, prems = _} => side_constraint_tac bnf [constraint_def] ctxt 1)
+      |> Thm.close_derivation
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
   end
@@ -122,8 +123,9 @@ fun prove_relation_bi_constraint ctxt bnf constraint_def side_constraints =
   let
     val old_ctxt = ctxt
     val (goal, ctxt) = generate_relation_constraint_goal ctxt bnf constraint_def
-    val thm = Goal.prove ctxt [] [] goal
+    val thm = Goal.prove_sorry ctxt [] [] goal
       (fn {context = ctxt, prems = _} => bi_constraint_tac constraint_def side_constraints ctxt 1)
+      |> Thm.close_derivation
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
   end
@@ -219,8 +221,9 @@ fun prove_Domainp_rel ctxt bnf pred_def =
     val lhs = mk_Domainp (list_comb (relator, args))
     val rhs = mk_pred pred_def (map mk_Domainp args) T
     val goal = HOLogic.mk_eq (lhs, rhs) |> HOLogic.mk_Trueprop
-    val thm = Goal.prove ctxt [] [] goal
+    val thm = Goal.prove_sorry ctxt [] [] goal
       (fn {context = ctxt, prems = _} => Domainp_tac bnf pred_def ctxt 1)
+      |> Thm.close_derivation
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
   end
@@ -244,8 +247,9 @@ fun prove_rel_eq_onp ctxt bnf pred_def =
     val lhs = list_comb (relator, map mk_eq_onp args)
     val rhs = mk_eq_onp (mk_pred pred_def args T)
     val goal = HOLogic.mk_eq (lhs, rhs) |> HOLogic.mk_Trueprop
-    val thm = Goal.prove ctxt [] [] goal
+    val thm = Goal.prove_sorry ctxt [] [] goal
       (fn {context = ctxt, prems = _} => pred_eq_onp_tac bnf pred_def ctxt 1)
+      |> Thm.close_derivation
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
   end

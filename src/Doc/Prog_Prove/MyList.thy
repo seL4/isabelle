@@ -14,4 +14,6 @@ fun rev :: "'a list => 'a list" where
 
 value "rev(Cons True (Cons False Nil))"
 
+(* a comment *)
+
 end

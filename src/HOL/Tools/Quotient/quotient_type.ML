@@ -13,7 +13,7 @@ sig
     ((binding * binding) option * bool * thm option) -> Proof.context -> Proof.state
 
   val quotient_type_cmd: ((((((bool * string list) * binding) * mixfix) * string) * (bool * string)) *
-    (binding * binding) option) * (Facts.ref * Args.src list) option -> Proof.context -> Proof.state
+    (binding * binding) option) * (Facts.ref * Token.src list) option -> Proof.context -> Proof.state
 end;
 
 structure Quotient_Type: QUOTIENT_TYPE =
@@ -206,11 +206,10 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, ge
       |> init_quotient_infr gen_code quotient_thm equiv_thm opt_par_thm
       |> (snd oo Local_Theory.note)
         ((equiv_thm_name,
-          if partial then [] else [Attrib.internal (K Quotient_Info.equiv_rules_add)]),
+          if partial then [] else @{attributes [quot_equiv]}),
           [equiv_thm])
       |> (snd oo Local_Theory.note)
-        ((quotient_thm_name, [Attrib.internal (K Quotient_Info.quotient_rules_add)]),
-          [quotient_thm])
+        ((quotient_thm_name, @{attributes [quot_thm]}), [quotient_thm])
   in
     (quotients, lthy4)
   end
@@ -344,7 +343,7 @@ val quotspec_parser =
       Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
         (@{keyword "/"} |-- (partial -- Parse.term))  --
         Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
-          -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse_Spec.xthm)
+          -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm)
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "quotient_type"}

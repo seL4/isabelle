@@ -6,7 +6,7 @@ Attribute source and theorem values within ML.
 
 signature ML_THMS =
 sig
-  val the_attributes: Proof.context -> int -> Args.src list
+  val the_attributes: Proof.context -> int -> Token.src list
   val the_thmss: Proof.context -> thm list list
   val get_stored_thms: unit -> thm list
   val get_stored_thm: unit -> thm
@@ -25,7 +25,7 @@ type thms = (string * bool) * thm list;  (*name, single, value*)
 
 structure Data = Proof_Data
 (
-  type T = Args.src list Inttab.table * thms list;
+  type T = Token.src list Inttab.table * thms list;
   fun init _ = (Inttab.empty, []);
 );
 
@@ -37,18 +37,17 @@ val the_thmss = map snd o get_thmss;
 val cons_thms = Data.map o apsnd o cons;
 
 
-
 (* attribute source *)
 
 val _ = Theory.setup
-  (ML_Antiquotation.declaration @{binding attributes} (Scan.lift Parse_Spec.attribs)
+  (ML_Antiquotation.declaration @{binding attributes} (Scan.lift Parse.attribs)
     (fn _ => fn raw_srcs => fn ctxt =>
       let
         val i = serial ();
-        val srcs = map (Attrib.check_src ctxt) raw_srcs;
-        val _ = map (Attrib.attribute ctxt) srcs;
+
         val (a, ctxt') = ctxt
-          |> ML_Antiquotation.variant "attributes" ||> put_attributes (i, srcs);
+          |> ML_Antiquotation.variant "attributes"
+          ||> put_attributes (i, Attrib.check_attribs ctxt raw_srcs);
         val ml =
           ("val " ^ a ^ " = ML_Thms.the_attributes ML_context " ^
             string_of_int i ^ ";\n", "Isabelle." ^ a);

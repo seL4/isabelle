@@ -240,29 +240,26 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
     val co_recs = of_fp_res #xtor_co_recs;
     val ns = map (length o #Ts o #fp_res) fp_sugars;
 
-    fun substT rho (Type (@{type_name fun}, [T, U])) = substT rho T --> substT rho U
-      | substT rho (Type (s, Ts)) = Type (s, map (typ_subst_nonatomic rho) Ts)
-      | substT _ T = T;
-
     val typ_subst_nonatomic_sorted = fold_rev (typ_subst_nonatomic o single);
 
     fun foldT_of_recT recT =
       let
-        val ((FTXs, Xs), TX) = strip_fun_type recT |>> map_split dest_co_algT;
+        val ((FTXs, Ys), TX) = strip_fun_type recT |>> map_split dest_co_algT;
+        val Zs = union op = Xs Ys;
         fun subst (Type (C, Ts as [_, X])) =
-            if C = co_productC andalso member op = Xs X then X else Type (C, map subst Ts)
+            if C = co_productC andalso member op = Zs X then X else Type (C, map subst Ts)
           | subst (Type (C, Ts)) = Type (C, map subst Ts)
           | subst T = T;
       in
-        map2 (mk_co_algT o subst) FTXs Xs ---> TX
+        map2 (mk_co_algT o subst) FTXs Ys ---> TX
       end;
 
-    fun force_rec i TU TU_rec raw_rec =
+    fun force_rec i TU raw_rec =
       let
         val thy = Proof_Context.theory_of lthy;
 
         val approx_rec = raw_rec
-          |> force_typ names_lthy (replicate (nth ns i) dummyT ---> TU_rec);
+          |> force_typ names_lthy (replicate (nth ns i) dummyT ---> TU);
         val subst = Term.typ_subst_atomic fold_thetaAs;
 
         fun mk_fp_absT_repT fp_repT fp_absT = mk_absT thy fp_repT fp_absT ooo mk_repT;
@@ -299,9 +296,7 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
         val i = find_index (fn T => x = T) Xs;
         val TUrec =
           (case find_first (fn f => body_fun_type (fastype_of f) = TU) recs of
-            NONE =>
-              force_rec i TU
-                (TU |> is_none b_opt ? substT (map2 mk_co_productT fpTs Xs ~~ Xs)) (nth co_recs i)
+            NONE => force_rec i TU (nth co_recs i)
           | SOME f => f);
 
         val TUs = binder_fun_types (fastype_of TUrec);
@@ -340,14 +335,21 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
                     let
                       val (TY, (U, X)) = TU |> dest_co_algT ||> dest_co_productT;
                       val T = mk_co_algT TY U;
+                      fun mk_co_proj TU = build_map lthy [] (fn TU =>
+                        let
+                          val ((T1, T2), U) = TU |> co_swap |>> dest_co_productT
+                        in
+                          if T1 = U then co_proj1_const TU
+                          else mk_co_comp (mk_co_proj (co_swap (T1, U)),
+                            co_proj1_const (co_swap (mk_co_productT T1 T2, T1)))
+                        end) TU;
                     in
-                      (case try (force_typ names_lthy T o build_map lthy [] co_proj1_const o dest_funT) T of
-                        SOME f => mk_co_product f
-                          (fst (fst (mk_rec NONE recs lthy (mk_co_algT TY X))))
-                      | NONE => mk_map_co_product
-                          (build_map lthy [] co_proj1_const
-                            (dest_funT (mk_co_algT (dest_co_productT TY |> fst) U)))
-                          (HOLogic.id_const X))
+                      if not (can dest_co_productT TY)
+                      then mk_co_product (mk_co_proj (dest_funT T))
+                        (fst (fst (mk_rec NONE recs lthy (mk_co_algT TY X))))
+                      else mk_map_co_product
+                        (mk_co_proj (co_swap (dest_co_productT TY |> fst, U)))
+                        (HOLogic.id_const X)
                     end)
                 val smap_args = map mk_smap_arg smap_argTs;
               in
@@ -413,8 +415,8 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
           map (fn thm => thm RS rewrite_comp_comp) @{thms map_prod.comp map_sum.comp} @
           @{thms id_apply comp_id id_comp map_prod.comp map_prod.id map_sum.comp map_sum.id};
         val rec_thms = fold_thms @ case_fp fp
-          @{thms fst_convol map_prod_o_convol convol_o}
-          @{thms case_sum_o_inj(1) case_sum_o_map_sum o_case_sum};
+          @{thms fst_convol map_prod_o_convol convol_o fst_comp_map_prod}
+          @{thms case_sum_o_inj(1) case_sum_o_map_sum o_case_sum map_sum_o_inj(1)};
 
         val eq_thm_prop_untyped = Term.aconv_untyped o pairself Thm.full_prop_of;
 
@@ -429,10 +431,11 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
               rewrite_comp_comp)
           type_definitions bnfs);
 
-        fun mk_Rep_o_Abs thm = thm RS @{thm type_copy_Rep_o_Abs} RS rewrite_comp_comp;
+        fun mk_Rep_o_Abs thm = (thm RS @{thm type_copy_Rep_o_Abs})
+          |> (fn thm => [thm, thm RS rewrite_comp_comp]);
 
-        val fp_Rep_o_Abss = map mk_Rep_o_Abs fp_type_definitions;
-        val Rep_o_Abss = map mk_Rep_o_Abs type_definitions;
+        val fp_Rep_o_Abss = maps mk_Rep_o_Abs fp_type_definitions;
+        val Rep_o_Abss = maps mk_Rep_o_Abs type_definitions;
 
         fun tac {context = ctxt, prems = _} =
           unfold_thms_tac ctxt (flat [rec_thms, raw_co_rec_defs, pre_map_defs, fp_pre_map_defs,
@@ -463,7 +466,8 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
         xtor_rel_thms = of_fp_res #xtor_rel_thms (*too general types and terms*),
         xtor_co_rec_thms = xtor_co_rec_thms,
         xtor_co_rec_o_map_thms = fp_rec_o_maps (*theorems about old constants*),
-        rel_xtor_co_induct_thm = rel_xtor_co_induct_thm}
+        rel_xtor_co_induct_thm = rel_xtor_co_induct_thm,
+        dtor_set_induct_thms = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in
     (fp_res, lthy)

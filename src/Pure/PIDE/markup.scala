@@ -169,7 +169,7 @@ object Markup
   val HIDDEN = "hidden"
 
 
-  /* logical entities */
+  /* misc entities */
 
   val CLASS = "class"
   val TYPE_NAME = "type_name"

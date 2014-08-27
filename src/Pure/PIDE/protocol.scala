@@ -312,17 +312,27 @@ object Protocol
 
   def message_positions(
     self_id: Document_ID.Generic => Boolean,
+    command_position: Position.T,
     chunk_name: Symbol.Text_Chunk.Name,
     chunk: Symbol.Text_Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
-        case Position.Reported(id, name, symbol_range)
-        if self_id(id) && name == chunk_name =>
-          chunk.incorporate(symbol_range) match {
-            case Some(range) => set + range
-            case _ => set
+        case Position.Identified(id, name) if self_id(id) && name == chunk_name =>
+          val opt_range =
+            Position.Range.unapply(props) orElse {
+              if (name == Symbol.Text_Chunk.Default)
+                Position.Range.unapply(command_position)
+              else None
+            }
+          opt_range match {
+            case Some(symbol_range) =>
+              chunk.incorporate(symbol_range) match {
+                case Some(range) => set + range
+                case _ => set
+              }
+            case None => set
           }
         case _ => set
       }
@@ -343,8 +353,25 @@ object Protocol
 }
 
 
-trait Protocol extends Prover
+trait Protocol
 {
+  /* text */
+
+  def encode(s: String): String
+  def decode(s: String): String
+
+  object Encode
+  {
+    val string: XML.Encode.T[String] = (s => XML.Encode.string(encode(s)))
+  }
+
+
+  /* protocol commands */
+
+  def protocol_command_bytes(name: String, args: Bytes*): Unit
+  def protocol_command(name: String, args: String*): Unit
+
+
   /* options */
 
   def options(opts: Options): Unit =

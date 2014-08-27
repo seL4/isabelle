@@ -1047,7 +1047,8 @@ fun test_term ctxt (t, eval_terms) =
     val thy = Proof_Context.theory_of ctxt
     val ((((full_constname, constT), vs'), intro), thy1) =
       Predicate_Compile_Aux.define_quickcheck_predicate t' thy
-    val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
+    val thy2 =
+      Context.theory_map (Named_Theorems.add_thm @{named_theorems code_pred_def} intro) thy1
     val thy3 = Predicate_Compile.preprocess preprocess_options (Const (full_constname, constT)) thy2
     val ctxt' = Proof_Context.init_global thy3
     val _ = tracing "Generating prolog program..."

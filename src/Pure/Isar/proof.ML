@@ -61,18 +61,18 @@ sig
   val chain: state -> state
   val chain_facts: thm list -> state -> state
   val note_thmss: (Thm.binding * (thm list * attribute list) list) list -> state -> state
-  val note_thmss_cmd: (Attrib.binding * (Facts.ref * Attrib.src list) list) list -> state -> state
+  val note_thmss_cmd: (Attrib.binding * (Facts.ref * Token.src list) list) list -> state -> state
   val from_thmss: ((thm list * attribute list) list) list -> state -> state
-  val from_thmss_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val from_thmss_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val with_thmss: ((thm list * attribute list) list) list -> state -> state
-  val with_thmss_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val with_thmss_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val using: ((thm list * attribute list) list) list -> state -> state
-  val using_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val using_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val unfolding: ((thm list * attribute list) list) list -> state -> state
-  val unfolding_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
+  val unfolding_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val invoke_case: (string * Position.T) * binding option list * attribute list ->
     state -> state
-  val invoke_case_cmd: (string * Position.T) * binding option list * Attrib.src list ->
+  val invoke_case_cmd: (string * Position.T) * binding option list * Token.src list ->
     state -> state
   val begin_block: state -> state
   val next_block: state -> state
@@ -395,48 +395,24 @@ fun goal_cases st =
   Rule_Cases.make_common
     (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
 
-fun apply_method current_context method state =
-  let
-    val (goal_ctxt, (_, {statement, messages = _, using, goal, before_qed, after_qed})) =
-      find_goal state;
-    val ctxt = if current_context then context_of state else goal_ctxt;
-  in
-    Method.apply method ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
+fun apply_method text ctxt state =
+  #2 (#2 (find_goal state))
+  |> (fn {statement, messages = _, using, goal, before_qed, after_qed} =>
+    Method.evaluate text ctxt using goal
+    |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
           (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases goal') #>
            Proof_Context.update_cases true meth_cases)
-          (K (statement, [], using, goal', before_qed, after_qed)) I)
-  end;
-
-fun select_goals n meth state =
-  ALLGOALS Goal.conjunction_tac (#2 (#2 (get_goal state)))
-  |> Seq.maps (fn goal =>
-    state
-    |> Seq.lift provide_goal ((PRIMITIVE (Goal.restrict 1 n) THEN Goal.conjunction_tac 1) goal)
-    |> Seq.maps meth
-    |> Seq.maps (fn state' => state'
-      |> Seq.lift provide_goal (PRIMITIVE (Goal.unrestrict 1) (#2 (#2 (get_goal state')))))
-    |> Seq.maps (apply_method true (K Method.succeed)));
-
-fun apply_text current_context text state =
-  let
-    val ctxt = context_of state;
-
-    fun eval (Method.Basic m) = apply_method current_context m
-      | eval (Method.Source src) = apply_method current_context (Method.method_cmd ctxt src)
-      | eval (Method.Then (_, txts)) = Seq.EVERY (map eval txts)
-      | eval (Method.Orelse (_, txts)) = Seq.FIRST (map eval txts)
-      | eval (Method.Try (_, txt)) = Seq.TRY (eval txt)
-      | eval (Method.Repeat1 (_, txt)) = Seq.REPEAT1 (eval txt)
-      | eval (Method.Select_Goals (_, n, txt)) = select_goals n (eval txt);
-  in eval text state end;
+          (K (statement, [], using, goal', before_qed, after_qed)) I));
 
 in
 
-val refine = apply_text true;
-val refine_end = apply_text false;
-fun refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
+fun refine text state = apply_method text (context_of state) state;
+fun refine_end text state = apply_method text (#1 (find_goal state)) state;
+
+fun refine_insert ths =
+  Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
 
@@ -892,9 +868,9 @@ fun implicit_vars props =
   in map (Logic.mk_term o Var) vars end;
 
 fun refine_terms n =
-  refine (Method.Basic (K (RAW_METHOD
-    (K (HEADGOAL (PRECISE_CONJUNCTS n
-      (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI))))))))))
+  refine (Method.Basic (K (NO_CASES o
+    K (HEADGOAL (PRECISE_CONJUNCTS n
+      (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI)))))))))
   #> Seq.hd;
 
 in

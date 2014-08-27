@@ -31,7 +31,6 @@ open Sledgehammer
 val z3N = "z3"
 
 val runN = "run"
-val minN = "min"
 val messagesN = "messages"
 val supported_proversN = "supported_provers"
 val kill_allN = "kill_all"
@@ -92,17 +91,17 @@ val default_default_params =
    ("max_mono_iters", "smart"),
    ("max_new_mono_instances", "smart"),
    ("isar_proofs", "smart"),
-   ("compress", "10"),
+   ("compress", "smart"),
    ("try0", "true"),
    ("smt_proofs", "smart"),
    ("slice", "true"),
-   ("minimize", "smart"),
-   ("preplay_timeout", "2")]
+   ("minimize", "true"),
+   ("preplay_timeout", "1")]
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
    ("dont_preplay", ("preplay_timeout", ["0"])),
-   ("dont_compress", ("compress", ["0"])),
+   ("dont_compress", ("compress", ["1"])),
    ("isar_proof", ("isar_proofs", [])) (* legacy *)]
 val negated_alias_params =
   [("no_debug", "debug"),
@@ -118,9 +117,6 @@ val negated_alias_params =
    ("dont_minimize", "minimize"),
    ("dont_try0", "try0"),
    ("no_smt_proofs", "smt_proofs")]
-
-val params_not_for_minimize =
-  ["provers", "blocking", "fact_filter", "max_facts", "fact_thresholds", "slice", "minimize"];
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -295,11 +291,11 @@ fun extract_params mode default_params override_params =
     val max_new_mono_instances =
       lookup_option lookup_int "max_new_mono_instances"
     val isar_proofs = lookup_option lookup_bool "isar_proofs"
-    val compress = Real.max (1.0, lookup_real "compress")
+    val compress = Option.map (curry Real.max 1.0) (lookup_option lookup_real "compress")
     val try0 = lookup_bool "try0"
     val smt_proofs = lookup_option lookup_bool "smt_proofs"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
-    val minimize = if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
+    val minimize = mode <> Auto_Try andalso lookup_bool "minimize"
     val timeout = lookup_time "timeout"
     val preplay_timeout = if mode = Auto_Try then Time.zeroTime else lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
@@ -318,33 +314,6 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
-val default_minimize_prover = metisN
-
-fun is_raw_param_relevant_for_minimize (name, _) = not (member (op =) params_not_for_minimize name)
-
-fun string_of_raw_param (key, values) =
-  key ^ (case implode_param values of "" => "" | value => " = " ^ value)
-
-fun nice_string_of_raw_param (p as (key, ["false"])) =
-    (case AList.find (op =) negated_alias_params key of
-       [neg] => neg
-     | _ => string_of_raw_param p)
-  | nice_string_of_raw_param p = string_of_raw_param p
-
-fun minimize_command override_params i more_override_params prover_name fact_names =
-  let
-    val params =
-      (override_params |> filter_out (AList.defined (op =) more_override_params o fst)) @
-      more_override_params
-      |> filter is_raw_param_relevant_for_minimize
-      |> map nice_string_of_raw_param
-      |> (if prover_name = default_minimize_prover then I else cons prover_name)
-      |> space_implode ", "
-  in
-    sledgehammerN ^ " " ^ minN ^ (if params = "" then "" else enclose " [" "]" params) ^
-    " (" ^ space_implode " " fact_names ^ ")" ^ (if i = 1 then "" else " " ^ string_of_int i)
-  end
-
 val default_learn_prover_timeout = 2.0
 
 fun hammer_away override_params subcommand opt_i fact_override state =
@@ -357,20 +326,9 @@ fun hammer_away override_params subcommand opt_i fact_override state =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params Normal thy override_params) Normal NONE i fact_override
-          (minimize_command override_params i) state
-        |> K ()
+        ignore (run_sledgehammer (get_params Normal thy override_params) Normal NONE i fact_override
+          state)
       end
-    else if subcommand = minN then
-      let
-        val ctxt = ctxt |> Config.put instantiate_inducts false
-        val i = the_default 1 opt_i
-        val params =
-          get_params Minimize thy (("provers", [default_minimize_prover]) :: override_params)
-        val goal = prop_of (#goal (Proof.goal state))
-        val facts = nearly_all_facts ctxt false fact_override Symtab.empty Termtab.empty [] [] goal
-        val learn = mash_learn_proof ctxt params goal facts
-      in run_minimize params learn i (#add fact_override) state end
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = supported_proversN then
@@ -391,8 +349,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
                 ([("timeout", [string_of_real default_learn_prover_timeout]),
                   ("slice", ["false"])] @
                  override_params @
-                 [("minimize", ["true"]),
-                  ("preplay_timeout", ["0"])]))
+                 [("preplay_timeout", ["0"])]))
            fact_override (#facts (Proof.goal state))
            (subcommand = learn_proverN orelse subcommand = relearn_proverN))
     else if subcommand = running_learnersN then
@@ -407,7 +364,8 @@ fun sledgehammer_trans (((subcommand, params), fact_override), opt_i) =
   Toplevel.unknown_proof o
   Toplevel.keep (hammer_away params subcommand opt_i fact_override o Toplevel.proof_of)
 
-fun string_of_raw_param (name, value) = name ^ " = " ^ implode_param value
+fun string_of_raw_param (key, values) =
+  key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
 fun sledgehammer_params_trans params =
   Toplevel.theory (fold set_default_raw_param params #> tap (fn thy =>
@@ -421,7 +379,7 @@ val parse_key = Scan.repeat1 (Parse.typ_group || parse_query_bang) >> implode_pa
 val parse_value = Scan.repeat1 (Parse.xname || Parse.float_number || parse_query_bang)
 val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
-val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)
+val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.xthm)
 val parse_fact_override_chunk =
   (Args.add |-- Args.colon |-- parse_fact_refs >> add_fact_override)
   || (Args.del |-- Args.colon |-- parse_fact_refs >> del_fact_override)
@@ -446,8 +404,7 @@ fun try_sledgehammer auto state =
     val mode = if auto then Auto_Try else Try
     val i = 1
   in
-    run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override (minimize_command [] i)
-      state
+    run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override state
   end
 
 val _ = Try.tool_setup (sledgehammerN, (40, @{system_option auto_sledgehammer}, try_sledgehammer))
@@ -456,24 +413,23 @@ val _ =
   Query_Operation.register sledgehammerN (fn {state = st, args, output_result} =>
     (case try Toplevel.proof_of st of
       SOME state =>
-        let
-          val thy = Proof.theory_of state
-          val ctxt = Proof.context_of state
-          val [provers_arg, isar_proofs_arg] = args
+      let
+        val thy = Proof.theory_of state
+        val ctxt = Proof.context_of state
+        val [provers_arg, isar_proofs_arg] = args
 
-          val override_params =
-            ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
-              [("isar_proofs", [isar_proofs_arg]),
-               ("blocking", ["true"]),
-               ("minimize", ["true"]),
-               ("debug", ["false"]),
-               ("verbose", ["false"]),
-               ("overlord", ["false"])])
-            |> map (normalize_raw_param ctxt)
-
-          val _ = run_sledgehammer (get_params Normal thy override_params) Normal
-            (SOME output_result) 1 no_fact_override (minimize_command override_params 1) state
-        in () end
+        val override_params =
+          ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
+            [("isar_proofs", [isar_proofs_arg]),
+             ("blocking", ["true"]),
+             ("debug", ["false"]),
+             ("verbose", ["false"]),
+             ("overlord", ["false"])])
+          |> map (normalize_raw_param ctxt)
+      in
+        ignore (run_sledgehammer (get_params Normal thy override_params) Normal
+          (SOME output_result) 1 no_fact_override state)
+      end
     | NONE => error "Unknown proof context"))
 
 end;

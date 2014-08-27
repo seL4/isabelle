@@ -928,13 +928,13 @@ end;
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- Args.bang_colon >> K ((I, safe_dest NONE): Method.modifier),
-  Args.$$$ destN -- Args.colon >> K (I, haz_dest NONE),
-  Args.$$$ elimN -- Args.bang_colon >> K (I, safe_elim NONE),
-  Args.$$$ elimN -- Args.colon >> K (I, haz_elim NONE),
-  Args.$$$ introN -- Args.bang_colon >> K (I, safe_intro NONE),
-  Args.$$$ introN -- Args.colon >> K (I, haz_intro NONE),
-  Args.del -- Args.colon >> K (I, rule_del)];
+ [Args.$$$ destN -- Args.bang_colon >> K (Method.modifier (safe_dest NONE) @{here}),
+  Args.$$$ destN -- Args.colon >> K (Method.modifier (haz_dest NONE) @{here}),
+  Args.$$$ elimN -- Args.bang_colon >> K (Method.modifier (safe_elim NONE) @{here}),
+  Args.$$$ elimN -- Args.colon >> K (Method.modifier (haz_elim NONE) @{here}),
+  Args.$$$ introN -- Args.bang_colon >> K (Method.modifier (safe_intro NONE) @{here}),
+  Args.$$$ introN -- Args.colon >> K (Method.modifier (haz_intro NONE) @{here}),
+  Args.del -- Args.colon >> K (Method.modifier rule_del @{here})];
 
 fun cla_method tac = Method.sections cla_modifiers >> K (SIMPLE_METHOD o tac);
 fun cla_method' tac = Method.sections cla_modifiers >> K (SIMPLE_METHOD' o tac);

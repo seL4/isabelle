@@ -38,7 +38,6 @@ session "HOL-Library" (main) in Library = HOL +
     Product_Lexorder
     Product_Order
     Finite_Lattice
-    Quickcheck_Types
     (*data refinements and dependent applications*)
     AList_Mapping
     Code_Binary_Nat
@@ -189,6 +188,7 @@ session "HOL-Number_Theory" in Number_Theory = HOL +
     Pocklington
     Gauss
     Number_Theory
+    Euclidean_Algorithm
   document_files
     "root.tex"
 
@@ -237,6 +237,19 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
     Generate_Target_Nat
     Generate_Efficient_Datastructures
     Generate_Pretty_Char
+    Code_Test
+  theories[condition = ISABELLE_GHC]
+    Code_Test_GHC
+  theories[condition = ISABELLE_MLTON]
+    Code_Test_MLton
+  theories[condition = ISABELLE_OCAMLC]
+    Code_Test_OCaml
+  theories[condition = ISABELLE_POLYML_PATH]
+    Code_Test_PolyML
+  theories[condition = ISABELLE_SCALA]
+    Code_Test_Scala
+  theories[condition = ISABELLE_SMLNJ]
+    Code_Test_SMLNJ
 
 session "HOL-Metis_Examples" in Metis_Examples = HOL +
   description {*
@@ -782,7 +795,6 @@ session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
   files
     "Boogie_Dijkstra.certs2"
     "Boogie_Max.certs2"
-    "SMT_Examples.certs"
     "SMT_Examples.certs2"
     "SMT_Word_Examples.certs2"
     "VCC_Max.certs2"

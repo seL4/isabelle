@@ -1,6 +1,67 @@
 Isabelle NEWS -- history of user-relevant changes
 =================================================
 
+New in this Isabelle version
+----------------------------
+
+*** General ***
+
+* Commands 'method_setup' and 'attribute_setup' now work within a
+local theory context.
+
+* Command 'named_theorems' declares a dynamic fact within the context,
+together with an attribute to maintain the content incrementally.
+This supersedes functor Named_Thms, but with a subtle change of
+semantics due to external visual order vs. internal reverse order.
+
+
+*** HOL ***
+
+* New (co)datatype package:
+  - Renamed theorems:
+      disc_corec ~> corec_disc
+      disc_corec_iff ~> corec_disc_iff
+      disc_exclude ~> distinct_disc
+      disc_exhaust ~> exhaust_disc
+      disc_map_iff ~> map_disc_iff
+      sel_corec ~> corec_sel
+      sel_exhaust ~> exhaust_sel
+      sel_map ~> map_sel
+      sel_set ~> set_sel
+      sel_split ~> split_sel
+      sel_split_asm ~> split_sel_asm
+      strong_coinduct ~> coinduct_strong
+      weak_case_cong ~> case_cong_weak
+    INCOMPATIBILITY.
+  - The rules "set_empty" have been removed. They are easy
+    consequences of other set rules "by auto".
+    INCOMPATIBILITY.
+  - The rule "set_cases" is now registered with the "[cases set]"
+    attribute. This can influence the behavior of the "cases" proof
+    method when more than one case rule is applicable (e.g., an
+    assumption is of the form "w : set ws" and the method "cases w"
+    is invoked). The solution is to specify the case rule explicitly
+    (e.g. "cases w rule: widget.exhaust").
+    INCOMPATIBILITY.
+
+* Old datatype package:
+  - Renamed theorems:
+      weak_case_cong ~> case_cong_weak
+    INCOMPATIBILITY.
+
+* Sledgehammer:
+  - Minimization is now always enabled by default.
+    Removed subcommand:
+      min
+
+
+*** ML ***
+
+* Tactical PARALLEL_ALLGOALS is the most common way to refer to
+PARALLEL_GOALS.
+
+
+
 New in Isabelle2014 (August 2014)
 ---------------------------------
 

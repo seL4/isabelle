@@ -33,16 +33,7 @@ lemma PFalse:
     "\<not> P \<Longrightarrow> (P \<equiv> False)"
   by auto
 
-ML {*
-structure Algebra_Simplification = Named_Thms
-(
-  val name = @{binding algebra}
-  val description = "pre-simplification rules for algebraic methods"
-)
-*}
-
-setup Algebra_Simplification.setup
-
+named_theorems algebra "pre-simplification rules for algebraic methods"
 ML_file "Tools/groebner.ML"
 
 method_setup algebra = {*

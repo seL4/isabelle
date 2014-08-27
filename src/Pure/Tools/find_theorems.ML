@@ -528,7 +528,7 @@ val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
 in
 
 fun read_query pos str =
-  Outer_Syntax.scan pos str
+  Outer_Syntax.scan (Keyword.get_lexicons ()) pos str
   |> filter Token.is_proper
   |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query --| Scan.ahead Parse.eof)))
   |> #1;

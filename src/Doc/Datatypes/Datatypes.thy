@@ -535,7 +535,7 @@ the usual parenthesized mixfix notation, and \synt{typefree} denotes fixed type
 variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
-names of the set functions (@{text set1_t}, \ldots, @{text setM_t}). Type
+names of the set functions (@{text set\<^sub>1_t}, \ldots, @{text set\<^sub>m_t}). Type
 arguments can be marked as dead by entering ``@{text dead}'' in front of the
 type variable (e.g., ``@{text "(dead 'a)"}''); otherwise, they are live or dead
 (and a set function is generated or not) depending on where they occur in the
@@ -647,13 +647,13 @@ following auxiliary constants are introduced:
 Case combinator: &
   @{text t.case_t} (rendered using the familiar @{text case}--@{text of} syntax) \\
 Discriminators: &
-  @{text "t.is_C\<^sub>1"}$, \ldots, $@{text "t.is_C\<^sub>n"} \\
+  @{text t.is_C\<^sub>1}$, \ldots, $@{text t.is_C\<^sub>n} \\
 Selectors: &
   @{text t.un_C\<^sub>11}$, \ldots, $@{text t.un_C\<^sub>1k\<^sub>1} \\
 & \quad\vdots \\
 & @{text t.un_C\<^sub>n1}$, \ldots, $@{text t.un_C\<^sub>nk\<^sub>n} \\
 Set functions: &
-  @{text t.set1_t}, \ldots, @{text t.setm_t} \\
+  @{text t.set\<^sub>1_t}, \ldots, @{text t.set\<^sub>m_t} \\
 Map function: &
   @{text t.map_t} \\
 Relator: &
@@ -773,8 +773,8 @@ The next subgroup is concerned with the case combinator:
 \item[@{text "t."}\hthm{case_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{weak_case_cong} @{text "[cong]"}\rm:] ~ \\
-@{thm list.weak_case_cong[no_vars]}
+\item[@{text "t."}\hthm{case_cong_weak} @{text "[cong]"}\rm:] ~ \\
+@{thm list.case_cong_weak[no_vars]}
 
 \item[@{text "t."}\hthm{split}\rm:] ~ \\
 @{thm list.split[no_vars]}
@@ -809,27 +809,29 @@ The third subgroup revolves around discriminators and selectors:
 @{thm list.collapse(1)[no_vars]} \\
 @{thm list.collapse(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc_exclude} @{text "[dest]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{distinct_disc} @{text "[dest]"}\rm:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
 proper discriminator. Had the datatype been introduced with a second
 discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 @{prop "null list \<Longrightarrow> \<not> nonnull list"} \\
 @{prop "nonnull list \<Longrightarrow> \<not> null list"}
 
-\item[@{text "t."}\hthm{disc_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
-@{thm list.disc_exhaust[no_vars]}
+\item[@{text "t."}\hthm{exhaust_disc} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+@{thm list.exhaust_disc[no_vars]}
 
-\item[@{text "t."}\hthm{sel_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
-@{thm list.sel_exhaust[no_vars]}
+\item[@{text "t."}\hthm{exhaust_sel} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+@{thm list.exhaust_sel[no_vars]}
 
 \item[@{text "t."}\hthm{expand}\rm:] ~ \\
 @{thm list.expand[no_vars]}
 
-\item[@{text "t."}\hthm{sel_split}\rm:] ~ \\
-@{thm list.sel_split[no_vars]}
+\item[@{text "t."}\hthm{split_sel}\rm:] ~ \\
+@{thm list.split_sel[no_vars]}
 
-\item[@{text "t."}\hthm{sel_split_asm}\rm:] ~ \\
-@{thm list.sel_split_asm[no_vars]}
+\item[@{text "t."}\hthm{split_sel_asm}\rm:] ~ \\
+@{thm list.split_sel_asm[no_vars]}
+
+\item[@{text "t."}\hthm{split_sels} = @{text "split_sel split_sel_asm"}]
 
 \item[@{text "t."}\hthm{case_eq_if}\rm:] ~ \\
 @{thm list.case_eq_if[no_vars]}
@@ -854,25 +856,33 @@ a set function, the map function, or the relator:
 \begin{indentblock}
 \begin{description}
 
+\item[@{text "t."}\hthm{ctr_transfer}\rm:] ~ \\
+@{thm list.ctr_transfer(1)[no_vars]} \\
+@{thm list.ctr_transfer(2)[no_vars]}
+
 \item[@{text "t."}\hthm{set} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]}
 
-\item[@{text "t."}\hthm{set_empty}\rm:] ~ \\
-@{thm list.set_empty[no_vars]}
+\item[@{text "t."}\hthm{set_cases} @{text "[consumes 1, cases set: set\<^sub>i_t]"}\rm:] ~ \\
+@{thm list.set_cases[no_vars]}
 
-\item[@{text "t."}\hthm{sel_set}\rm:] ~ \\
-@{thm list.sel_set[no_vars]}
+\item[@{text "t."}\hthm{set_intros}\rm:] ~ \\
+@{thm list.set_intros(1)[no_vars]} \\
+@{thm list.set_intros(2)[no_vars]}
+
+\item[@{text "t."}\hthm{set_sel}\rm:] ~ \\
+@{thm list.set_sel[no_vars]}
 
 \item[@{text "t."}\hthm{map} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc_map_iff} @{text "[simp]"}\rm:] ~ \\
-@{thm list.disc_map_iff[no_vars]}
+\item[@{text "t."}\hthm{map_disc_iff} @{text "[simp]"}\rm:] ~ \\
+@{thm list.map_disc_iff[no_vars]}
 
-\item[@{text "t."}\hthm{sel_map}\rm:] ~ \\
-@{thm list.sel_map[no_vars]}
+\item[@{text "t."}\hthm{map_sel}\rm:] ~ \\
+@{thm list.map_sel[no_vars]}
 
 \item[@{text "t."}\hthm{rel_inject} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
@@ -906,14 +916,23 @@ the map function, and the relator:
 \begin{indentblock}
 \begin{description}
 
+\item[@{text "t."}\hthm{inj_map}\rm:] ~ \\
+@{thm list.inj_map[no_vars]}
+
+\item[@{text "t."}\hthm{inj_map_strong}\rm:] ~ \\
+@{thm list.inj_map_strong[no_vars]}
+
 \item[@{text "t."}\hthm{set_map}\rm:] ~ \\
 @{thm list.set_map[no_vars]}
 
-\item[@{text "t."}\hthm{map_comp}\rm:] ~ \\
+\item[@{text "t."}\hthm{map_comg0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
 
 \item[@{text "t."}\hthm{map_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.map_cong[no_vars]}
+
+\item[@{text "t."}\hthm{map_cong_simp}\rm:] ~ \\
+@{thm list.map_cong_simp[no_vars]}
 
 \item[@{text "t."}\hthm{map_id}\rm:] ~ \\
 @{thm list.map_id[no_vars]}
@@ -936,6 +955,10 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{rel_flip}\rm:] ~ \\
 @{thm list.rel_flip[no_vars]}
 
+\item[@{text "t."}\hthm{rel_map}\rm:] ~ \\
+@{thm list.rel_map(1)[no_vars]} \\
+@{thm list.rel_map(2)[no_vars]}
+
 \item[@{text "t."}\hthm{rel_mono}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]}
 
@@ -956,14 +979,13 @@ The inductive theorems are as follows:
 \item[@{text "t."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct t]"}\rm:] ~ \\
 @{thm list.induct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
-Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
-prove $m$ properties simultaneously.
-
 \item[@{text "t."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct pred]"}\rm:] ~ \\
 @{thm list.rel_induct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm: \\
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm: \\
+\end{tabular}] ~ \\
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
@@ -1753,10 +1775,10 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 @{thm llist.coinduct[no_vars]}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t."}\hthm{strong_coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t."}\hthm{strong_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
+  @{text "t."}\hthm{coinduct_strong} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t."}\hthm{coinduct_strong} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
 \end{tabular}] ~ \\
-@{thm llist.strong_coinduct[no_vars]}
+@{thm llist.coinduct_strong[no_vars]}
 
 \item[\begin{tabular}{@ {}l@ {}}
   @{text "t."}\hthm{rel_coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
@@ -1767,13 +1789,20 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 
 \item[\begin{tabular}{@ {}l@ {}}
   @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m, case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"} \\
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct_strong} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct_strong} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
   @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
   \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
 \end{tabular}] ~ \\
 Given $m > 1$ mutually corecursive codatatypes, these coinduction rules can be
 used to prove $m$ properties simultaneously.
+
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{set_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n,"} \\
+  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{set_induct} @{text "["}}@{text "induct set: set\<^sub>j_t\<^sub>1, \<dots>, induct set: set\<^sub>j_t\<^sub>m]"}\rm: \\
+\end{tabular}] ~ \\
+@{thm llist.set_induct[no_vars]} \\
+If $m = 1$, the attribute @{text "[consumes 1]"} is generated as well.
 
 \item[@{text "t."}\hthm{corec}\rm:] ~ \\
 @{thm llist.corec(1)[no_vars]} \\
@@ -1782,17 +1811,17 @@ used to prove $m$ properties simultaneously.
 \item[@{text "t."}\hthm{corec_code} @{text "[code]"}\rm:] ~ \\
 @{thm llist.corec_code[no_vars]}
 
-\item[@{text "t."}\hthm{disc_corec}\rm:] ~ \\
-@{thm llist.disc_corec(1)[no_vars]} \\
-@{thm llist.disc_corec(2)[no_vars]}
+\item[@{text "t."}\hthm{corec_disc}\rm:] ~ \\
+@{thm llist.corec_disc(1)[no_vars]} \\
+@{thm llist.corec_disc(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc_corec_iff} @{text "[simp]"}\rm:] ~ \\
-@{thm llist.disc_corec_iff(1)[no_vars]} \\
-@{thm llist.disc_corec_iff(2)[no_vars]}
+\item[@{text "t."}\hthm{corec_disc_iff} @{text "[simp]"}\rm:] ~ \\
+@{thm llist.corec_disc_iff(1)[no_vars]} \\
+@{thm llist.corec_disc_iff(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sel_corec} @{text "[simp]"}\rm:] ~ \\
-@{thm llist.sel_corec(1)[no_vars]} \\
-@{thm llist.sel_corec(2)[no_vars]}
+\item[@{text "t."}\hthm{corec_sel} @{text "[simp]"}\rm:] ~ \\
+@{thm llist.corec_sel(1)[no_vars]} \\
+@{thm llist.corec_sel(2)[no_vars]}
 
 \end{description}
 \end{indentblock}
@@ -1803,7 +1832,7 @@ For convenience, @{command codatatype} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.disc_corec_iff}] @{text t.sel_corec} ~ \\
+\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.corec_disc_iff}] @{text t.corec_sel} ~ \\
 @{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
 
 \end{description}
@@ -2125,7 +2154,7 @@ Coinduction rules are generated as
 @{thm [source] iterate\<^sub>i\<^sub>i.coinduct},
 @{thm [source] iterates\<^sub>i\<^sub>i.coinduct}, and
 @{thm [source] iterate\<^sub>i\<^sub>i_iterates\<^sub>i\<^sub>i.coinduct}
-and analogously for @{text strong_coinduct}. These rules and the
+and analogously for @{text coinduct_strong}. These rules and the
 underlying corecursors are generated on a per-need basis and are kept in a cache
 to speed up subsequent definitions.
 *}

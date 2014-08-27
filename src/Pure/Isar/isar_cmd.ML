@@ -16,7 +16,7 @@ sig
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val oracle: bstring * Position.T -> Symbol_Pos.source -> theory -> theory
-  val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
+  val add_defs: (bool * bool) * ((binding * string) * Token.src list) list -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} ->
     Symbol_Pos.source -> local_theory -> local_theory
   val simproc_setup: string * Position.T -> string list -> Symbol_Pos.source ->
@@ -39,14 +39,11 @@ sig
   val thy_deps: Toplevel.transition -> Toplevel.transition
   val locale_deps: Toplevel.transition -> Toplevel.transition
   val class_deps: Toplevel.transition -> Toplevel.transition
-  val thm_deps: (Facts.ref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
-  val unused_thms: (string list * string list option) option ->
-    Toplevel.transition -> Toplevel.transition
-  val print_stmts: string list * (Facts.ref * Attrib.src list) list
+  val print_stmts: string list * (Facts.ref * Token.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_thms: string list * (Facts.ref * Attrib.src list) list
+  val print_thms: string list * (Facts.ref * Token.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_prfs: bool -> string list * (Facts.ref * Attrib.src list) list option
+  val print_prfs: bool -> string list * (Facts.ref * Token.src list) list option
     -> Toplevel.transition -> Toplevel.transition
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
@@ -313,28 +310,6 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
       Graph.fold (cons o entry) classes []
       |> sort (int_ord o pairself #1) |> map #2;
   in Graph_Display.display_graph gr end);
-
-fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  Thm_Deps.thm_deps (Toplevel.theory_of state)
-    (Attrib.eval_thms (Toplevel.context_of state) args));
-
-
-(* find unused theorems *)
-
-fun unused_thms opt_range = Toplevel.keep (fn state =>
-  let
-    val thy = Toplevel.theory_of state;
-    val ctxt = Toplevel.context_of state;
-    fun pretty_thm (a, th) = Proof_Context.pretty_fact ctxt (a, [th]);
-    val get_theory = Context.get_theory thy;
-  in
-    Thm_Deps.unused_thms
-      (case opt_range of
-        NONE => (Theory.parents_of thy, [thy])
-      | SOME (xs, NONE) => (map get_theory xs, [thy])
-      | SOME (xs, SOME ys) => (map get_theory xs, map get_theory ys))
-    |> map pretty_thm |> Pretty.writeln_chunks
-  end);
 
 
 (* print theorems, terms, types etc. *)

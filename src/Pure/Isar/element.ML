@@ -17,18 +17,15 @@ sig
     Constrains of (string * 'typ) list |
     Assumes of (Attrib.binding * ('term * 'term list) list) list |
     Defines of (Attrib.binding * ('term * 'term list)) list |
-    Notes of string * (Attrib.binding * ('fact * Attrib.src list) list) list
+    Notes of string * (Attrib.binding * ('fact * Token.src list) list) list
   type context = (string, string, Facts.ref) ctxt
   type context_i = (typ, term, thm list) ctxt
   val map_ctxt: {binding: binding -> binding, typ: 'typ -> 'a, term: 'term -> 'b,
-    pattern: 'term -> 'b, fact: 'fact -> 'c, attrib: Attrib.src -> Attrib.src} ->
+    pattern: 'term -> 'b, fact: 'fact -> 'c, attrib: Token.src -> Token.src} ->
     ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
-  val map_ctxt_attrib: (Attrib.src -> Attrib.src) ->
+  val map_ctxt_attrib: (Token.src -> Token.src) ->
     ('typ, 'term, 'fact) ctxt -> ('typ, 'term, 'fact) ctxt
   val transform_ctxt: morphism -> context_i -> context_i
-  val transform_facts: morphism ->
-    (Attrib.binding * (thm list * Args.src list) list) list ->
-    (Attrib.binding * (thm list * Args.src list) list) list
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
@@ -78,7 +75,7 @@ datatype ('typ, 'term, 'fact) ctxt =
   Constrains of (string * 'typ) list |
   Assumes of (Attrib.binding * ('term * 'term list) list) list |
   Defines of (Attrib.binding * ('term * 'term list)) list |
-  Notes of string * (Attrib.binding * ('fact * Attrib.src list) list) list;
+  Notes of string * (Attrib.binding * ('fact * Token.src list) list) list;
 
 type context = (string, string, Facts.ref) ctxt;
 type context_i = (typ, term, thm list) ctxt;
@@ -103,10 +100,7 @@ fun transform_ctxt phi = map_ctxt
   term = Morphism.term phi,
   pattern = Morphism.term phi,
   fact = Morphism.fact phi,
-  attrib = Args.transform_values phi};
-
-fun transform_facts phi facts =
-  Notes ("", facts) |> transform_ctxt phi |> (fn Notes (_, facts') => facts');
+  attrib = Token.transform_src phi};
 
 
 
@@ -270,8 +264,8 @@ fun prove_witness ctxt t tac =
 local
 
 val refine_witness =
-  Proof.refine (Method.Basic (K (RAW_METHOD
-    (K (ALLGOALS (CONJUNCTS (ALLGOALS (CONJUNCTS (TRYALL (rtac Drule.protectI))))))))));
+  Proof.refine (Method.Basic (K (NO_CASES o
+    K (ALLGOALS (CONJUNCTS (ALLGOALS (CONJUNCTS (TRYALL (rtac Drule.protectI)))))))));
 
 fun gen_witness_proof proof after_qed wit_propss eq_props =
   let
@@ -509,14 +503,14 @@ fun init' elem context =
 fun activate_i elem ctxt =
   let
     val elem' =
-      (case map_ctxt_attrib Args.init_assignable elem of
+      (case map_ctxt_attrib Token.init_assignable_src elem of
         Defines defs =>
           Defines (defs |> map (fn ((a, atts), (t, ps)) =>
             ((Thm.def_binding_optional (Binding.name (#1 (#1 (Local_Defs.cert_def ctxt t)))) a, atts),
               (t, ps))))
       | e => e);
     val ctxt' = Context.proof_map (init elem') ctxt;
-  in (map_ctxt_attrib Args.closure elem', ctxt') end;
+  in (map_ctxt_attrib Token.closure_src elem', ctxt') end;
 
 fun activate raw_elem ctxt =
   let val elem = raw_elem |> map_ctxt

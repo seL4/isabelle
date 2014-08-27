@@ -16,7 +16,7 @@ sig
   val trace : bool Config.T
 
   type isar_params =
-    bool * (string option * string option) * Time.time * real * bool * bool
+    bool * (string option * string option) * Time.time * real option * bool * bool
     * (term, string) atp_step list * thm
 
   val proof_text : Proof.context -> bool -> bool option -> bool option -> (unit -> isar_params) ->
@@ -46,18 +46,29 @@ open String_Redirect
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_isar_trace} (K false)
 
+val e_definition_rule = "definition"
 val e_skolemize_rule = "skolemize"
+val leo2_extcnf_forall_neg_rule = "extcnf_forall_neg"
+val satallax_skolemize_rule = "tab_ex"
 val spass_pirate_datatype_rule = "DT"
 val vampire_skolemisation_rule = "skolemisation"
-(* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
-val z3_skolemize_rule = "sk"
-val z3_th_lemma_rule = "th-lemma"
+val veriT_la_generic_rule = "la_generic"
+val veriT_simp_arith_rule = "simp_arith"
+val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
+val veriT_tmp_skolemize_rule = "tmp_skolemize"
+val z3_skolemize_rule = Z3_New_Proof.string_of_rule Z3_New_Proof.Skolemize
+val z3_th_lemma_rule_prefix = Z3_New_Proof.string_of_rule (Z3_New_Proof.Th_Lemma "")
+val zipperposition_cnf_rule = "cnf"
 
 val skolemize_rules =
-  [e_skolemize_rule, spass_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule]
+  [e_definition_rule, e_skolemize_rule, leo2_extcnf_forall_neg_rule, satallax_skolemize_rule,
+   spass_skolemize_rule, vampire_skolemisation_rule, veriT_tmp_ite_elim_rule,
+   veriT_tmp_skolemize_rule, z3_skolemize_rule, zipperposition_cnf_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
-val is_arith_rule = String.isPrefix z3_th_lemma_rule
+fun is_arith_rule rule =
+  String.isPrefix z3_th_lemma_rule_prefix rule orelse rule = veriT_simp_arith_rule orelse
+  rule = veriT_la_generic_rule
 val is_datatype_rule = String.isPrefix spass_pirate_datatype_rule
 
 fun raw_label_of_num num = (num, 0)
@@ -71,59 +82,74 @@ fun add_fact_of_dependencies [(_, ss as _ :: _)] = apsnd (union (op =) ss)
 fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
-    if role = Conjecture orelse role = Negated_Conjecture then line :: lines
-    else if t aconv @{prop True} then map (replace_dependencies_in_line (name, [])) lines
-    else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then line :: lines
-    else if role = Axiom then lines (* axioms (facts) need no proof lines *)
-    else map (replace_dependencies_in_line (name, [])) lines
+    if role = Conjecture orelse role = Negated_Conjecture then
+      line :: lines
+    else if t aconv @{prop True} then
+      map (replace_dependencies_in_line (name, [])) lines
+    else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then
+      line :: lines
+    else if role = Axiom then
+      lines (* axioms (facts) need no proof lines *)
+    else
+      map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
 
-fun add_lines_pass2 res _ [] = rev res
-  | add_lines_pass2 res prev_t ((line as (name, role, t, rule, deps)) :: lines) =
+fun add_lines_pass2 res [] = rev res
+  | add_lines_pass2 res ((line as (name, role, t, rule, deps)) :: lines) =
     let
-      fun looks_boring () =
-        t aconv @{prop True} orelse t aconv @{prop False} orelse t aconv prev_t orelse
-        length deps < 2
+      fun normalize role =
+        role = Conjecture ? (HOLogic.dest_Trueprop #> s_not #> HOLogic.mk_Trueprop)
+
+      val norm_t = normalize role t
+      val is_duplicate =
+        exists (fn (prev_name, prev_role, prev_t, _, _) =>
+            member (op =) deps prev_name andalso
+            Term.aconv_untyped (normalize prev_role prev_t, norm_t))
+          res
+
+      fun looks_boring () = t aconv @{prop False} orelse length deps < 2
 
       fun is_skolemizing_line (_, _, _, rule', deps') =
         is_skolemize_rule rule' andalso member (op =) deps' name
+
       fun is_before_skolemize_rule () = exists is_skolemizing_line lines
     in
-      if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
-         is_datatype_rule rule orelse null lines orelse not (looks_boring ()) orelse
-         is_before_skolemize_rule () then
-        add_lines_pass2 (line :: res) t lines
+      if is_duplicate orelse
+          (role = Plain andalso not (is_skolemize_rule rule) andalso
+           not (is_arith_rule rule) andalso not (is_datatype_rule rule) andalso
+           not (null lines) andalso looks_boring () andalso not (is_before_skolemize_rule ())) then
+        add_lines_pass2 res (map (replace_dependencies_in_line (name, deps)) lines)
       else
-        add_lines_pass2 res t (map (replace_dependencies_in_line (name, deps)) lines)
+        add_lines_pass2 (line :: res) lines
     end
 
 type isar_params =
-  bool * (string option * string option) * Time.time * real * bool * bool
+  bool * (string option * string option) * Time.time * real option * bool * bool
   * (term, string) atp_step list * thm
 
 val basic_systematic_methods = [Metis_Method (NONE, NONE), Meson_Method, Blast_Method, SATx_Method]
-val simp_based_methods = [Auto_Method, Simp_Method, Fastforce_Method, Force_Method]
+val basic_simp_based_methods = [Auto_Method, Simp_Method, Force_Method]
 val basic_arith_methods = [Linarith_Method, Presburger_Method, Algebra_Method]
 
-val arith_methods = basic_arith_methods @ simp_based_methods @ basic_systematic_methods
+val arith_methods = basic_arith_methods @ basic_simp_based_methods @ basic_systematic_methods
 val datatype_methods = [Simp_Method, Simp_Size_Method]
-val systematic_methods0 = basic_systematic_methods @ basic_arith_methods @ simp_based_methods @
-  [Metis_Method (SOME no_typesN, NONE)]
-val rewrite_methods = simp_based_methods @ basic_systematic_methods @ basic_arith_methods
-val skolem_methods = basic_systematic_methods
+val systematic_methods =
+  basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
+  [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
+val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
+val skolem_methods = basic_systematic_methods @ [Auto_Choice_Method]
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
-    (one_line_params as ((_, one_line_play), banner, used_facts, minimize_command, subgoal,
-       subgoal_count)) =
+    (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
   let
     val _ = if debug then Output.urgent_message "Constructing Isar proof..." else ()
 
     fun generate_proof_text () =
       let
-        val (verbose, alt_metis_args, preplay_timeout, compress, try0, minimize, atp_proof, goal) =
+        val (verbose, alt_metis_args, preplay_timeout, compress, try0, minimize, atp_proof0, goal) =
           isar_params ()
 
-        val systematic_methods = insert (op =) (Metis_Method alt_metis_args) systematic_methods0
+        val systematic_methods' = insert (op =) (Metis_Method alt_metis_args) systematic_methods
 
         fun massage_methods (meths as meth :: _) =
           if not try0 then [meth]
@@ -135,7 +161,10 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val ctxt = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
 
         val do_preplay = preplay_timeout <> Time.zeroTime
-        val compress = if isar_proofs = NONE andalso do_preplay then 1000.0 else compress
+        val compress =
+          (case compress of
+            NONE => if isar_proofs = NONE andalso do_preplay then 1000.0 else 10.0
+          | SOME n => n)
 
         fun is_fixed ctxt = Variable.is_declared ctxt orf Name.is_skolem
         fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
@@ -144,9 +173,8 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
 
         val atp_proof =
-          atp_proof
-          |> rpair [] |-> fold_rev add_line_pass1
-          |> add_lines_pass2 [] Term.dummy
+          fold_rev add_line_pass1 atp_proof0 []
+          |> add_lines_pass2 []
 
         val conjs =
           map_filter (fn (name, role, _, _, _) =>
@@ -169,7 +197,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val (lems, _) =
           fold_map add_lemma (map_filter (get_role (curry (op =) Lemma)) atp_proof) ctxt
 
-        val bot = atp_proof |> List.last |> #1
+        val bot = #1 (List.last atp_proof)
 
         val refute_graph =
           atp_proof
@@ -196,18 +224,20 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
-        fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> close_form
+        val finish_off = close_form #> rename_bound_vars
+
+        fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> finish_off
           | prop_of_clause names =
             let
-              val lits = map (HOLogic.dest_Trueprop o snd)
-                (map_filter (Symtab.lookup steps o fst) names)
+              val lits =
+                map (HOLogic.dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
             in
               (case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
                 s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs), Library.foldr1 s_disj pos)
               | _ => fold (curry s_disj) lits @{term False})
             end
-            |> HOLogic.mk_Trueprop |> close_form
+            |> HOLogic.mk_Trueprop |> finish_off
 
         fun maybe_show outer c = (outer andalso eq_set (op =) (c, conjs)) ? cons Show
 
@@ -215,7 +245,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                    (the_list predecessor, []), massage_methods systematic_methods, ""))
+                    sort_facts (the_list predecessor, []), massage_methods systematic_methods', ""))
                 else
                   I)
             |> rev
@@ -226,12 +256,14 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val rule = rule_of_clause_id id
               val skolem = is_skolemize_rule rule
 
-              val deps = fold add_fact_of_dependencies gamma ([], [])
+              val deps = ([], [])
+                |> fold add_fact_of_dependencies gamma
+                |> sort_facts
               val meths =
                 (if skolem then skolem_methods
                  else if is_arith_rule rule then arith_methods
                  else if is_datatype_rule rule then datatype_methods
-                 else systematic_methods)
+                 else systematic_methods')
                 |> massage_methods
 
               fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths, "")
@@ -241,16 +273,23 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 (case gamma of
                   [g] =>
                   if skolem andalso is_clause_tainted g then
-                    let val subproof = Proof (skolems_of ctxt (prop_of_clause g), [], rev accum) in
-                      isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
-                    end
+                    (case skolems_of ctxt (prop_of_clause g) of
+                      [] => steps_of_rest (prove [] deps)
+                    | skos =>
+                      let val subproof = Proof (skos, [], rev accum) in
+                        isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
+                      end)
                   else
                     steps_of_rest (prove [] deps)
                 | _ => steps_of_rest (prove [] deps))
               else
                 steps_of_rest
-                  (if skolem then Prove ([], skolems_of ctxt t, l, t, [], deps, meths, "")
-                   else prove [] deps)
+                  (if skolem then
+                     (case skolems_of ctxt t of
+                       [] => prove [] deps
+                     | skos => Prove ([], skos, l, t, [], deps, meths, ""))
+                   else
+                     prove [] deps)
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
             let
@@ -262,7 +301,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  (the_list predecessor, []), massage_methods systematic_methods, "")
+                  sort_facts (the_list predecessor, []), massage_methods systematic_methods', "")
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
@@ -318,18 +357,12 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                (keep_fastest_method_of_isar_step (!preplay_data)
                 #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
-          (* It's not clear whether this is worth the trouble (and if so, "compress" has an
-             unnatural semantics): *)
-(*
-          |> minimize
-               ? (compress_isar_proof ctxt compress preplay_timeout preplay_data
-                  #> tap (trace_isar_proof "Compressed again"))
-*)
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
           ||> (comment_isar_proof comment_of
                #> chain_isar_proof
                #> kill_useless_labels_in_isar_proof
-               #> relabel_isar_proof_nicely)
+               #> relabel_isar_proof_nicely
+               #> rationalize_obtains_in_isar_proofs ctxt)
       in
         (case add_isar_steps (steps_of_isar_proof isar_proof) 0 of
           1 =>
@@ -338,12 +371,11 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                (case isar_proof of
                  Proof (_, _, [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)]) =>
                  let val used_facts' = filter (member (op =) gfs o fst) used_facts in
-                   ((meth, play_outcome), banner, used_facts', minimize_command, subgoal,
-                    subgoal_count)
+                   ((used_facts', (meth, play_outcome)), banner, subgoal, subgoal_count)
                  end)
              else
                one_line_params) ^
-          (if isar_proofs = SOME true then "\n(No structured proof available -- proof too simple.)"
+          (if isar_proofs = SOME true then "\n(No Isar proof available.)"
            else "")
         | num_steps =>
           let
@@ -352,7 +384,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               (if do_preplay then [string_of_play_outcome play_outcome] else [])
           in
             one_line_proof_text ctxt 0 one_line_params ^
-            "\n\nStructured proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
+            "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
             Active.sendback_markup [Markup.padding_command]
               (string_of_isar_proof ctxt subgoal subgoal_count isar_proof)
           end)
@@ -375,7 +407,7 @@ fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   | Play_Failed => true)
 
 fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
-    (one_line_params as (preplay, _, _, _, _, _)) =
+    (one_line_params as ((_, preplay), _, _, _)) =
   (if isar_proofs = SOME true orelse
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea smt_proofs preplay) then
      isar_proof_text ctxt debug isar_proofs smt_proofs isar_params

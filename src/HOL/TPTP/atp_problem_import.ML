@@ -13,7 +13,8 @@ sig
   val refute_tptp_file : theory -> int -> string -> unit
   val can_tac : Proof.context -> tactic -> term -> bool
   val SOLVE_TIMEOUT :  int -> string -> tactic -> tactic
-  val atp_tac : Proof.context -> int -> (string * string) list -> int -> string -> int -> tactic
+  val atp_tac : Proof.context -> int -> (string * string) list -> int -> term list -> string ->
+    int -> tactic
   val smt_solver_tac : string -> Proof.context -> int -> tactic
   val freeze_problem_consts : theory -> term -> term
   val make_conj : term list * term list -> term list -> term
@@ -45,20 +46,18 @@ fun exploded_absolute_path file_name =
 fun read_tptp_file thy postproc file_name =
   let
     fun has_role role (_, role', _, _) = (role' = role)
-    fun get_prop (name, role, P, info) =
-      let val P' = P |> Logic.varify_global |> close_form in
-        (name, P') |> postproc
-      end
+    fun get_prop f (name, _, P, _) = P |> f |> close_form |> pair name |> postproc
+
     val path = exploded_absolute_path file_name
     val ((_, _, problem), thy) =
-      TPTP_Interpret.interpret_file true [Path.dir path, Path.explode "$TPTP"]
-                                    path [] [] thy
-    val (conjs, defs_and_nondefs) =
-      problem |> List.partition (has_role TPTP_Syntax.Role_Conjecture)
-              ||> List.partition (has_role TPTP_Syntax.Role_Definition)
+      TPTP_Interpret.interpret_file true [Path.dir path, Path.explode "$TPTP"] path [] [] thy
+    val (conjs, defs_and_nondefs) = problem
+      |> List.partition (has_role TPTP_Syntax.Role_Conjecture)
+      ||> List.partition (has_role TPTP_Syntax.Role_Definition)
   in
-    (map get_prop conjs, pairself (map get_prop) defs_and_nondefs,
-     thy |> Proof_Context.init_global)
+    (map (get_prop I) conjs,
+     pairself (map (get_prop Logic.varify_global)) defs_and_nondefs,
+     Named_Target.theory_init thy)
   end
 
 
@@ -76,12 +75,10 @@ fun nitpick_tptp_file thy timeout file_name =
   let
     val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy snd file_name
     val thy = Proof_Context.theory_of ctxt
-    val (defs, pseudo_defs) =
-      defs |> map (ATP_Util.abs_extensionalize_term ctxt
-                   #> aptrueprop (hol_open_form I))
-           |> List.partition (is_legitimate_tptp_def
-                              o perhaps (try HOLogic.dest_Trueprop)
-                              o ATP_Util.unextensionalize_def)
+    val (defs, pseudo_defs) = defs
+      |> map (ATP_Util.abs_extensionalize_term ctxt #> aptrueprop (hol_open_form I))
+      |> List.partition (is_legitimate_tptp_def o perhaps (try HOLogic.dest_Trueprop)
+        o ATP_Util.unextensionalize_def)
     val nondefs = pseudo_defs @ nondefs
     val state = Proof.init ctxt
     val params =
@@ -104,8 +101,8 @@ fun nitpick_tptp_file thy timeout file_name =
     val step = 0
     val subst = []
   in
-    Nitpick.pick_nits_in_term state params Nitpick.TPTP i n step subst
-        defs nondefs (case conjs of conj :: _ => conj | [] => @{prop True});
+    Nitpick.pick_nits_in_term state params Nitpick.TPTP i n step subst defs nondefs
+      (case conjs of conj :: _ => conj | [] => @{prop True});
     ()
   end
 
@@ -127,7 +124,7 @@ fun refute_tptp_file thy timeout file_name =
        ("maxvars", "100000")]
   in
     Refute.refute_term ctxt params (defs @ nondefs)
-        (case conjs of conj :: _ => conj | [] => @{prop True})
+      (case conjs of conj :: _ => conj | [] => @{prop True})
     |> print_szs_of_outcome (not (null conjs))
   end
 
@@ -138,17 +135,16 @@ fun can_tac ctxt tactic conj = can (Goal.prove ctxt [] [] conj) (K tactic)
 
 fun SOLVE_TIMEOUT seconds name tac st =
   let
-    val _ = Output.urgent_message ("running " ^ name ^ " for " ^
-                                   string_of_int seconds ^ " s")
+    val _ = Output.urgent_message ("running " ^ name ^ " for " ^ string_of_int seconds ^ " s")
     val result =
-      TimeLimit.timeLimit (Time.fromSeconds seconds)
-        (fn () => SINGLE (SOLVE tac) st) ()
-      handle TimeLimit.TimeOut => NONE
-        | ERROR _ => NONE
+      TimeLimit.timeLimit (Time.fromSeconds seconds) (fn () => SINGLE (SOLVE tac) st) ()
+      handle
+        TimeLimit.TimeOut => NONE
+      | ERROR _ => NONE
   in
-    case result of
+    (case result of
       NONE => (Output.urgent_message ("FAILURE: " ^ name); Seq.empty)
-    | SOME st' => (Output.urgent_message ("SUCCESS: " ^ name); Seq.single st')
+    | SOME st' => (Output.urgent_message ("SUCCESS: " ^ name); Seq.single st'))
   end
 
 fun nitpick_finite_oracle_tac ctxt timeout i th =
@@ -157,6 +153,7 @@ fun nitpick_finite_oracle_tac ctxt timeout i th =
       | is_safe @{typ prop} = true
       | is_safe @{typ bool} = true
       | is_safe _ = false
+
     val conj = Thm.term_of (Thm.cprem_of th i)
   in
     if exists_type (not o is_safe) conj then
@@ -179,40 +176,43 @@ fun nitpick_finite_oracle_tac ctxt timeout i th =
         val step = 0
         val subst = []
         val (outcome, _) =
-          Nitpick.pick_nits_in_term state params Nitpick.Normal i n step subst
-                                    [] [] conj
-      in if outcome = "none" then ALLGOALS Skip_Proof.cheat_tac th else Seq.empty end
+          Nitpick.pick_nits_in_term state params Nitpick.Normal i n step subst [] [] conj
+      in
+        if outcome = "none" then ALLGOALS Skip_Proof.cheat_tac th else Seq.empty
+      end
   end
 
-fun atp_tac ctxt completeness override_params timeout prover =
+fun atp_tac ctxt completeness override_params timeout assms prover =
   let
-    val ctxt =
-      ctxt |> Config.put Sledgehammer_Prover_ATP.atp_completish (completeness > 0)
+    val thy = Proof_Context.theory_of ctxt
+    val assm_ths0 = map (Skip_Proof.make_thm thy) assms
+    val ((assm_name, _), ctxt) = ctxt
+      |> Config.put Sledgehammer_Prover_ATP.atp_completish (completeness > 0)
+      |> Local_Theory.note ((@{binding thms}, []), assm_ths0)
+
     fun ref_of th = (Facts.named (Thm.derivation_name th), [])
+    val ref_of_assms = (Facts.named assm_name, [])
   in
     Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-        ([("debug", if debug then "true" else "false"),
-          ("overlord", if overlord then "true" else "false"),
-          ("provers", prover),
-          ("timeout", string_of_int timeout)] @
-         (if completeness > 0 then
-            [("type_enc",
-              if completeness = 1 then "mono_native" else "poly_tags")]
-          else
-            []) @
-         override_params)
-        {add = map ref_of [ext, @{thm someI}], del = [], only = true}
+      ([("debug", if debug then "true" else "false"),
+        ("overlord", if overlord then "true" else "false"),
+        ("provers", prover),
+        ("timeout", string_of_int timeout)] @
+       (if completeness > 0 then
+          [("type_enc", if completeness = 1 then "mono_native" else "poly_tags")]
+        else
+          []) @
+       override_params)
+      {add = ref_of_assms :: map ref_of [ext, @{thm someI}], del = [], only = true} []
   end
 
-fun sledgehammer_tac demo ctxt timeout i =
+fun sledgehammer_tac demo ctxt timeout assms i =
   let
     val frac = if demo then 16 else 12
     fun slice mult completeness prover =
       SOLVE_TIMEOUT (mult * timeout div frac)
-          (prover ^
-           (if completeness > 0 then "(" ^ string_of_int completeness ^ ")"
-            else ""))
-          (atp_tac ctxt completeness [] (mult * timeout div frac) prover i)
+        (prover ^ (if completeness > 0 then "(" ^ string_of_int completeness ^ ")" else ""))
+        (atp_tac ctxt completeness [] (mult * timeout div frac) assms prover i)
   in
     slice 2 0 ATP_Proof.spassN
     ORELSE slice 2 0 ATP_Proof.vampireN
@@ -235,15 +235,12 @@ fun smt_solver_tac solver ctxt =
     val ctxt = ctxt |> Context.proof_map (SMT_Config.select_solver solver)
   in SMT_Solver.smt_tac ctxt [] end
 
-fun auto_etc_tac ctxt timeout i =
-  SOLVE_TIMEOUT (timeout div 20) "nitpick"
-      (nitpick_finite_oracle_tac ctxt (timeout div 20) i)
-  ORELSE SOLVE_TIMEOUT (timeout div 10) "simp"
-      (asm_full_simp_tac ctxt i)
+fun auto_etc_tac ctxt timeout assms i =
+  SOLVE_TIMEOUT (timeout div 20) "nitpick" (nitpick_finite_oracle_tac ctxt (timeout div 20) i)
+  ORELSE SOLVE_TIMEOUT (timeout div 10) "simp" (asm_full_simp_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 5) "auto+spass"
-      (auto_tac ctxt
-       THEN ALLGOALS (atp_tac ctxt 0 [] (timeout div 5) ATP_Proof.spassN))
+    (auto_tac ctxt THEN ALLGOALS (atp_tac ctxt 0 [] (timeout div 5) assms ATP_Proof.spassN))
   ORELSE SOLVE_TIMEOUT (timeout div 10) "fast" (fast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "z3" (smt_solver_tac "z3" ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 20) "cvc3" (smt_solver_tac "cvc3" ctxt i)
@@ -258,45 +255,44 @@ fun problem_const_prefix thy = Context.theory_name thy ^ Long_Name.separator
    unfold "definitions" of free variables than of constants (cf. PUZ107^5). *)
 fun freeze_problem_consts thy =
   let val is_problem_const = String.isPrefix (problem_const_prefix thy) in
-    map_aterms (fn t as Const (s, T) =>
-                   if is_problem_const s then Free (Long_Name.base_name s, T)
-                   else t
-                 | t => t)
+    map_aterms
+      (fn t as Const (s, T) => if is_problem_const s then Free (Long_Name.base_name s, T) else t
+        | t => t)
   end
 
 fun make_conj (defs, nondefs) conjs =
-  Logic.list_implies (rev defs @ rev nondefs,
-                      case conjs of conj :: _ => conj | [] => @{prop False})
+  Logic.list_implies (rev defs @ rev nondefs, case conjs of conj :: _ => conj | [] => @{prop False})
 
 fun print_szs_of_success conjs success =
   Output.urgent_message ("% SZS status " ^
-                         (if success then
-                            if null conjs then "Unsatisfiable" else "Theorem"
-                          else
-                            "Unknown"))
+    (if success then
+       if null conjs then "Unsatisfiable" else "Theorem"
+     else
+       "Unknown"))
 
 fun sledgehammer_tptp_file thy timeout file_name =
   let
-    val (conjs, assms, ctxt) =
-      read_tptp_file thy (freeze_problem_consts thy o snd) file_name
-    val conj = make_conj assms conjs
+    val (conjs, assms, ctxt) = read_tptp_file thy (freeze_problem_consts thy o snd) file_name
+    val conj = make_conj ([], []) conjs
+    val assms = op @ assms
   in
-    can_tac ctxt (sledgehammer_tac true ctxt timeout 1) conj
+    can_tac ctxt (sledgehammer_tac true ctxt timeout assms 1) conj
     |> print_szs_of_success conjs
   end
 
 fun generic_isabelle_tptp_file demo thy timeout file_name =
   let
-    val (conjs, assms, ctxt) =
-      read_tptp_file thy (freeze_problem_consts thy o snd) file_name
-    val conj = make_conj assms conjs
+    val (conjs, assms, ctxt) = read_tptp_file thy (freeze_problem_consts thy o snd) file_name
+    val conj = make_conj ([], []) conjs
+    val full_conj = make_conj assms conjs
+    val assms = op @ assms
     val (last_hope_atp, last_hope_completeness) =
       if demo then (ATP_Proof.satallaxN, 0) else (ATP_Proof.vampireN, 2)
   in
-    (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) 1) conj orelse
-     can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) 1) conj orelse
+    (can_tac ctxt (auto_etc_tac ctxt (timeout div 2) assms 1) full_conj orelse
+     can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) assms 1) conj orelse
      can_tac ctxt (SOLVE_TIMEOUT timeout (last_hope_atp ^ "(*)")
-         (atp_tac ctxt last_hope_completeness [] timeout last_hope_atp 1)) conj)
+       (atp_tac ctxt last_hope_completeness [] timeout assms last_hope_atp 1)) full_conj)
     |> print_szs_of_success conjs
   end
 
@@ -322,7 +318,8 @@ fun translate_tptp_file thy format_str file_name =
     val uncurried_aliases = false
     val readable_names = true
     val presimp = true
-    val facts = map (apfst (rpair (Global, Non_Rec_Def))) defs @
+    val facts =
+      map (apfst (rpair (Global, Non_Rec_Def))) defs @
       map (apfst (rpair (Global, General))) nondefs
     val (atp_problem, _, _, _) =
       generate_atp_problem ctxt format Hypothesis (type_enc_of_string Strict type_enc) Translator

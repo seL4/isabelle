@@ -51,11 +51,11 @@ sig
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string ->
-    (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    (Attrib.binding * (thm list * Token.src list) list) list ->
     (binding * typ option * mixfix) list ->
     bool -> local_theory -> (string * thm list) list * local_theory
   val theorems_cmd: string ->
-    (Attrib.binding * (Facts.ref * Attrib.src list) list) list ->
+    (Attrib.binding * (Facts.ref * Token.src list) list) list ->
     (binding * string option * mixfix) list ->
     bool -> local_theory -> (string * thm list) list * local_theory
   val theorem: string -> Method.text option ->
@@ -301,7 +301,7 @@ fun gen_theorems prep_fact prep_att prep_vars
 
     val facts' = facts
       |> Attrib.partial_evaluation ctxt'
-      |> Element.transform_facts (Proof_Context.export_morphism ctxt' lthy);
+      |> Attrib.transform_facts (Proof_Context.export_morphism ctxt' lthy);
     val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts';
     val _ = Proof_Display.print_results int (Position.thread_data ()) lthy' ((kind, ""), res);
   in (res, lthy') end;

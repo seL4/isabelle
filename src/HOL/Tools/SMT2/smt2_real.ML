@@ -36,7 +36,7 @@ val setup_builtins =
   fold (SMT2_Builtin.add_builtin_fun' SMTLIB2_Interface.smtlib2C) [
     (@{const less (real)}, "<"),
     (@{const less_eq (real)}, "<="),
-    (@{const uminus (real)}, "~"),
+    (@{const uminus (real)}, "-"),
     (@{const plus (real)}, "+"),
     (@{const minus (real)}, "-") ] #>
   SMT2_Builtin.add_builtin_fun SMTLIB2_Interface.smtlib2C

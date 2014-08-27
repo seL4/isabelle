@@ -76,6 +76,8 @@ sig
   val tptp_ho_exists : string
   val tptp_choice : string
   val tptp_ho_choice : string
+  val tptp_hilbert_choice : string
+  val tptp_hilbert_the : string
   val tptp_not : string
   val tptp_and : string
   val tptp_not_and : string
@@ -239,6 +241,8 @@ val tptp_if = "<="
 val tptp_iff = "<=>"
 val tptp_not_iff = "<~>"
 val tptp_app = "@"
+val tptp_hilbert_choice = "@+"
+val tptp_hilbert_the = "@-"
 val tptp_not_infix = "!"
 val tptp_equal = "="
 val tptp_not_equal = "!="
@@ -533,11 +537,12 @@ fun tptp_string_of_line format (Type_Decl (ident, ty, ary)) =
     " : " ^ string_of_type format ty ^ ").\n"
   | tptp_string_of_line format (Formula ((ident, alt), kind, phi, source, _)) =
     tptp_string_of_format format ^ "(" ^ ident ^ ", " ^
-    tptp_string_of_role kind ^ "," ^ maybe_alt alt ^
-    "\n    (" ^ tptp_string_of_formula format phi ^ ")" ^
+    tptp_string_of_role kind ^ "," ^ "\n    (" ^
+    tptp_string_of_formula format phi ^ ")" ^
     (case source of
-       SOME tm => ", " ^ tptp_string_of_term format tm
-     | NONE => "") ^ ").\n"
+      SOME tm => ", " ^ tptp_string_of_term format tm
+    | NONE => "") ^
+    ")." ^ maybe_alt alt ^ "\n"
 
 fun tptp_lines format =
   maps (fn (_, []) => []
@@ -638,8 +643,7 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
     fun formula pred (Formula ((ident, alt), kind, phi, _, info)) =
         if pred kind then
           let val rank = extract_isabelle_rank info in
-            "formula(" ^ dfg_string_of_formula poly gen_simp info phi ^
-            ", " ^ ident ^
+            "formula(" ^ dfg_string_of_formula poly gen_simp info phi ^ ", " ^ ident ^
             (if rank = default_rank then "" else ", " ^ string_of_int rank) ^
             ")." ^ maybe_alt alt
             |> SOME

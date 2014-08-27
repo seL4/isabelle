@@ -8,7 +8,6 @@ theory SMT_Tests
 imports Complex_Main
 begin
 
-smt_status
 smt2_status
 
 text {* Most examples are taken from various Isabelle theories and from HOL4. *}
@@ -588,7 +587,7 @@ lemma
   "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
      p \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   using point.simps bw_point.simps
-  by smt+ (* smt2 FIXME: bad Z3 4.3.x proof *)
+  sorry (* smt2 FIXME: bad Z3 4.3.x proof *)
 
 lemma
   "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> cx = 3, cy = 4, black = w \<rparr>"

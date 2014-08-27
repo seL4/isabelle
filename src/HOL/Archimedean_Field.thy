@@ -174,6 +174,9 @@ lemma less_floor_iff: "z < floor x \<longleftrightarrow> of_int z + 1 \<le> x"
 lemma floor_le_iff: "floor x \<le> z \<longleftrightarrow> x < of_int z + 1"
   by (simp add: not_less [symmetric] less_floor_iff)
 
+lemma floor_split[arith_split]: "P (floor t) \<longleftrightarrow> (\<forall>i. of_int i \<le> t \<and> t < of_int i + 1 \<longrightarrow> P i)"
+  by (metis floor_correct floor_unique less_floor_iff not_le order_refl)
+
 lemma floor_mono: assumes "x \<le> y" shows "floor x \<le> floor y"
 proof -
   have "of_int (floor x) \<le> x" by (rule of_int_floor_le)
@@ -284,7 +287,6 @@ lemma floor_diff_numeral [simp]:
 
 lemma floor_diff_one [simp]: "floor (x - 1) = floor x - 1"
   using floor_diff_of_int [of x 1] by simp
-
 
 subsection {* Ceiling function *}
 
@@ -425,6 +427,9 @@ lemma ceiling_diff_numeral [simp]:
 
 lemma ceiling_diff_one [simp]: "ceiling (x - 1) = ceiling x - 1"
   using ceiling_diff_of_int [of x 1] by simp
+
+lemma ceiling_split[arith_split]: "P (ceiling t) \<longleftrightarrow> (\<forall>i. of_int i - 1 < t \<and> t \<le> of_int i \<longrightarrow> P i)"
+  by (auto simp add: ceiling_unique ceiling_correct)
 
 lemma ceiling_diff_floor_le_1: "ceiling x - floor x \<le> 1"
 proof -

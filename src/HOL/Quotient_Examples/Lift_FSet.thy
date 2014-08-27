@@ -151,7 +151,7 @@ lemma "ffilter p (ffilter q xs) = ffilter (\<lambda>x. q x \<and> p x) xs"
   using filter_filter [Transfer.transferred] .
 
 lemma "fset (fcons x xs) = insert x (fset xs)"
-  using set_simps(2) [Transfer.transferred] .
+  using list.set(2) [Transfer.transferred] .
 
 lemma "fset (fappend xs ys) = fset xs \<union> fset ys"
   using set_append [Transfer.transferred] .

@@ -50,6 +50,7 @@ sig
   val markup_const: Proof.context -> string -> string
   val pretty_const: Proof.context -> string -> Pretty.T
   val transfer: theory -> Proof.context -> Proof.context
+  val transfer_facts: theory -> Proof.context -> Proof.context
   val background_theory: (theory -> theory) -> Proof.context -> Proof.context
   val background_theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val facts_of: Proof.context -> Facts.T
@@ -120,7 +121,7 @@ sig
     (term list list * (Proof.context -> Proof.context)) * Proof.context
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
-  val get_fact_generic: Context.generic -> Facts.ref -> thm list
+  val get_fact_generic: Context.generic -> Facts.ref -> string option * thm list
   val get_fact: Proof.context -> Facts.ref -> thm list
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
@@ -154,6 +155,7 @@ sig
   val class_alias: binding -> class -> Proof.context -> Proof.context
   val type_alias: binding -> string -> Proof.context -> Proof.context
   val const_alias: binding -> string -> Proof.context -> Proof.context
+  val fact_alias: binding -> string -> Proof.context -> Proof.context
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
@@ -322,15 +324,18 @@ fun transfer_syntax thy ctxt = ctxt |>
   map_tsig (fn tsig as (local_tsig, global_tsig) =>
     let val thy_tsig = Sign.tsig_of thy in
       if Type.eq_tsig (thy_tsig, global_tsig) then tsig
-      else (Type.merge_tsig (Context.pretty ctxt) (local_tsig, thy_tsig), thy_tsig)
+      else (Type.merge_tsig (Context.pretty ctxt) (local_tsig, thy_tsig), thy_tsig)  (*historic merge order*)
     end) |>
   map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
       if Consts.eq_consts (thy_consts, global_consts) then consts
-      else (Consts.merge (local_consts, thy_consts), thy_consts)
+      else (Consts.merge (local_consts, thy_consts), thy_consts)  (*historic merge order*)
     end);
 
 fun transfer thy = Context.raw_transfer thy #> transfer_syntax thy;
+
+fun transfer_facts thy =
+  map_facts (fn local_facts => Facts.merge (Global_Theory.facts_of thy, local_facts));
 
 fun background_theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
 
@@ -943,22 +948,27 @@ fun retrieve pick context (Facts.Fact s) =
             [thm] => thm
           | [] => err "Failed to retrieve literal fact"
           | _ => err "Ambiguous specification of literal fact");
-      in pick ("", Position.none) [thm] end
-  | retrieve pick context (Facts.Named ((xname, pos), ivs)) =
+      in pick true ("", Position.none) [thm] end
+  | retrieve pick context (Facts.Named ((xname, pos), sel)) =
       let
         val thy = Context.theory_of context;
-        val (name, thms) =
+        fun immediate thm = {name = xname, static = true, thms = [Thm.transfer thy thm]};
+        val {name, static, thms} =
           (case xname of
-            "" => (xname, [Thm.transfer thy Drule.dummy_thm])
-          | "_" => (xname, [Thm.transfer thy Drule.asm_rl])
+            "" => immediate Drule.dummy_thm
+          | "_" => immediate Drule.asm_rl
           | _ => retrieve_generic context (xname, pos));
-      in pick (name, pos) (Facts.select (Facts.Named ((name, pos), ivs)) thms) end;
+        val thms' = Facts.select (Facts.Named ((name, pos), sel)) thms;
+      in pick (static orelse is_some sel) (name, pos) thms' end;
 
 in
 
-val get_fact_generic = retrieve (K I);
-val get_fact = retrieve (K I) o Context.Proof;
-val get_fact_single = retrieve Facts.the_single o Context.Proof;
+val get_fact_generic =
+  retrieve (fn static => fn (name, _) => fn thms =>
+    (if static then NONE else SOME name, thms));
+
+val get_fact = retrieve (K (K I)) o Context.Proof;
+val get_fact_single = retrieve (K Facts.the_single) o Context.Proof;
 
 fun get_thms ctxt = get_fact ctxt o Facts.named;
 fun get_thm ctxt = get_fact_single ctxt o Facts.named;
@@ -1084,6 +1094,7 @@ end;
 fun class_alias b c ctxt = (map_tsig o apfst) (Type.class_alias (naming_of ctxt) b c) ctxt;
 fun type_alias b c ctxt = (map_tsig o apfst) (Type.type_alias (naming_of ctxt) b c) ctxt;
 fun const_alias b c ctxt = (map_consts o apfst) (Consts.alias (naming_of ctxt) b c) ctxt;
+fun fact_alias b c ctxt = map_facts (Facts.alias (naming_of ctxt) b c) ctxt;
 
 
 (* local constants *)
@@ -1173,11 +1184,8 @@ fun update_case _ _ ("", _) res = res
       (Name_Space.del_table name cases, index)
   | update_case context is_proper (name, SOME c) (cases, index) =
       let
-        val binding =
-          Binding.make (name, Position.none)
-          |> not is_proper ? Binding.conceal;
-        val (_, cases') = cases
-          |> Name_Space.define context false (binding, ((c, is_proper), index));
+        val binding = Binding.name name |> not is_proper ? Binding.conceal;
+        val (_, cases') = Name_Space.define context false (binding, ((c, is_proper), index)) cases;
         val index' = index + 1;
       in (cases', index') end;
 

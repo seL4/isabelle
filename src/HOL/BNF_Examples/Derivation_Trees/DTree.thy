@@ -47,13 +47,13 @@ apply(cases rule: dtree.exhaust[of tr])
 using Node unfolding Node_def
 by (metis Node Node_root_cont finite_cont)
 
-lemma dtree_sel_ctor[simp]:
+lemma dtree_sel_ctr[simp]:
 "root (Node n as) = n"
 "finite as \<Longrightarrow> cont (Node n as) = as"
 unfolding Node_def cont_def by auto
 
-lemmas root_Node = dtree_sel_ctor(1)
-lemmas cont_Node = dtree_sel_ctor(2)
+lemmas root_Node = dtree_sel_ctr(1)
+lemmas cont_Node = dtree_sel_ctr(2)
 
 lemma dtree_cong:
 assumes "root tr = root tr'" and "cont tr = cont tr'"
@@ -75,7 +75,7 @@ apply(rule Lift[unfolded rel_set_cont]) .
 lemma unfold:
 "root (unfold rt ct b) = rt b"
 "finite (ct b) \<Longrightarrow> cont (unfold rt ct b) = image (id \<oplus> unfold rt ct) (ct b)"
-using dtree.sel_corec[of rt "the_inv fset o image (map_sum id Inr) o ct" b] unfolding unfold_def
+using dtree.corec_sel[of rt "the_inv fset o image (map_sum id Inr) o ct" b] unfolding unfold_def
 apply blast
 unfolding cont_def comp_def
 by (simp add: case_sum_o_inj map_sum.compositionality image_image)
@@ -83,7 +83,7 @@ by (simp add: case_sum_o_inj map_sum.compositionality image_image)
 lemma corec:
 "root (corec rt ct b) = rt b"
 "finite (ct b) \<Longrightarrow> cont (corec rt ct b) = image (id \<oplus> ([[id, corec rt ct]])) (ct b)"
-using dtree.sel_corec[of rt "the_inv fset \<circ> ct" b] unfolding corec_def
+using dtree.corec_sel[of rt "the_inv fset \<circ> ct" b] unfolding corec_def
 unfolding cont_def comp_def id_def
 by simp_all
 

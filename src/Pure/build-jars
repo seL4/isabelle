@@ -20,7 +20,7 @@ declare -a SOURCES=(
   GUI/gui.scala
   GUI/gui_thread.scala
   GUI/html5_panel.scala
-  GUI/jfx_thread.scala
+  GUI/jfx_gui.scala
   GUI/popup.scala
   GUI/system_dialog.scala
   GUI/wrap_panel.scala
@@ -54,6 +54,7 @@ declare -a SOURCES=(
   Isar/token.scala
   ML/ml_lex.scala
   PIDE/command.scala
+  PIDE/command_span.scala
   PIDE/document.scala
   PIDE/document_id.scala
   PIDE/editor.scala
@@ -71,7 +72,6 @@ declare -a SOURCES=(
   System/command_line.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
-  System/isabelle_font.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
   System/options.scala
@@ -83,6 +83,7 @@ declare -a SOURCES=(
   Thy/present.scala
   Thy/thy_header.scala
   Thy/thy_info.scala
+  Thy/thy_structure.scala
   Thy/thy_syntax.scala
   Tools/build.scala
   Tools/build_console.scala

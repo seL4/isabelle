@@ -64,8 +64,9 @@ fun prove_Quotient_map bnf ctxt =
     val T_rel = list_comb (mk_rel_of_bnf Ds As Bs bnf, nth argss' 3)
     val concl = mk_Quotient [R_rel, Abs_map, Rep_map, T_rel] |> HOLogic.mk_Trueprop
     val goal = Logic.list_implies (assms, concl)
-    val thm = Goal.prove ctxt [] [] goal 
+    val thm = Goal.prove_sorry ctxt [] [] goal 
       (fn {context = ctxt, prems = _} => Quotient_tac bnf ctxt 1)
+      |> Thm.close_derivation
   in
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
   end

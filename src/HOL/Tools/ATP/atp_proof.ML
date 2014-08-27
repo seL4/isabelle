@@ -2,6 +2,7 @@
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Mathias Fleury, ENS Rennes
 
 Abstract representation of ATP proofs and TSTP/SPASS syntax.
 *)
@@ -67,7 +68,6 @@ sig
   val remote_prefix : string
 
   val agsyhol_core_rule : string
-  val satallax_core_rule : string
   val spass_input_rule : string
   val spass_pre_skolemize_rule : string
   val spass_skolemize_rule : string
@@ -84,10 +84,25 @@ sig
   val scan_general_id : string list -> string * string list
   val parse_formula : string list ->
     (string, string atp_type, (string, string atp_type) atp_term, string) atp_formula * string list
-  val atp_proof_of_tstplike_proof : string -> string atp_problem -> string -> string atp_proof
   val clean_up_atp_proof_dependencies : string atp_proof -> string atp_proof
   val map_term_names_in_atp_proof : (string -> string) -> string atp_proof -> string atp_proof
   val nasty_atp_proof : string Symtab.table -> string atp_proof -> string atp_proof
+
+  val skip_term: string list -> string * string list
+  val parse_thf0_formula :string list ->
+    ('a, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term, 'c) ATP_Problem.atp_formula *
+    string list
+  val dummy_atype : string ATP_Problem.atp_type
+  val role_of_tptp_string: string -> ATP_Problem.atp_formula_role
+  val parse_line: string -> ('a * string ATP_Problem.atp_problem_line list) list ->
+    string list -> ((string * string list) * ATP_Problem.atp_formula_role *
+    (string, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term,
+      'c) ATP_Problem.atp_formula
+    * string * (string * 'd list) list) list * string list
+  val core_inference : 'a -> 'b -> ('b * 'b list) * ATP_Problem.atp_formula_role *
+    ('c, 'd, (string, 'e) ATP_Problem.atp_term, 'f) ATP_Problem.atp_formula * 'a * 'g list
+  val vampire_step_name_ord : (string * 'a) * (string * 'a) -> order
+  val core_of_agsyhol_proof :  string -> string list option
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -122,7 +137,6 @@ val zipperpositionN = "zipperposition"
 val remote_prefix = "remote_"
 
 val agsyhol_core_rule = "__agsyhol_core" (* arbitrary *)
-val satallax_core_rule = "__satallax_core" (* arbitrary *)
 val spass_input_rule = "Inp"
 val spass_pre_skolemize_rule = "__Sko0" (* arbitrary *)
 val spass_skolemize_rule = "__Sko" (* arbitrary *)
@@ -277,7 +291,7 @@ val skip_term =
   let
     fun skip _ accum [] = (accum, [])
       | skip n accum (ss as s :: ss') =
-        if s = "," andalso n = 0 then
+        if (s = "," orelse s = ".") andalso n = 0 then
           (accum, ss)
         else if member (op =) [")", "]"] s then
           if n = 0 then (accum, ss) else skip (n - 1) (s :: accum) ss'
@@ -291,11 +305,12 @@ val skip_term =
 
 datatype source =
   File_Source of string * string option |
-  Inference_Source of string * string list
+  Inference_Source of string * string list |
+  Introduced_Source of string
 
 val dummy_phi = AAtom (ATerm (("", []), []))
 val dummy_inference = Inference_Source ("", [])
-val dummy_atype = AType(("", []), [])
+val dummy_atype = AType (("", []), [])
 
 (* "skip_term" is there to cope with Waldmeister nonsense such as "theory(equality)". *)
 fun parse_dependency x =
@@ -312,13 +327,13 @@ and parse_inference_source x =
   (Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
    --| skip_term --| $$ "," --| skip_term --| $$ "," --| $$ "["
    -- parse_dependencies --| $$ "]" --| $$ ")") x
-and skip_introduced x =
-  (Scan.this_string "introduced" |-- $$ "(" |-- skip_term
-   -- Scan.repeat ($$ "," |-- skip_term) --| $$ ")") x
+and parse_introduced_source x =
+  (Scan.this_string "introduced" |-- $$ "(" |-- scan_general_id
+   --| Scan.option ($$ "," |-- skip_term) --| $$ ")") x
 and parse_source x =
   (parse_file_source >> File_Source
    || parse_inference_source >> Inference_Source
-   || skip_introduced >> K dummy_inference (* for Vampire *)
+   || parse_introduced_source >> Introduced_Source
    || scan_general_id >> (fn s => Inference_Source ("", [s])) (* for E *)
    || skip_term >> K dummy_inference) x
 
@@ -459,22 +474,34 @@ fun role_of_tptp_string "axiom" = Axiom
   | role_of_tptp_string "type" = Type_Role
   | role_of_tptp_string _ = Unknown
 
-val tptp_binary_op_list = [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if,
-                             tptp_iff, tptp_not_iff, tptp_equal, tptp_app]
+val tptp_binary_ops =
+  [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff,
+   tptp_equal, tptp_app]
+
+fun parse_one_in_list xs =
+  foldl1 (op ||) (map Scan.this_string xs)
 
 fun parse_binary_op x =
-  (foldl1 (op ||) (map Scan.this_string tptp_binary_op_list)
-    >> (fn c => if c = tptp_equal then "equal" else c)) x
+  (parse_one_in_list tptp_binary_ops
+   >> (fn c => if c = tptp_equal then "equal" else c)) x
+
+val parse_fo_quantifier =
+   parse_one_in_list [tptp_forall, tptp_exists, tptp_lambda, tptp_hilbert_choice, tptp_hilbert_the]
+
+val parse_ho_quantifier =
+   parse_one_in_list [tptp_ho_forall, tptp_ho_exists, tptp_hilbert_choice, tptp_hilbert_the]
 
 fun parse_thf0_type x =
   (($$ "(" |-- parse_thf0_type --| $$ ")" || scan_general_id >> (fn t => AType ((t, []), [])))
-     -- Scan.option ($$ tptp_fun_type |-- parse_thf0_type)
+   -- Scan.option ($$ tptp_fun_type |-- parse_thf0_type)
   >> (fn (a, NONE) => a
        | (a, SOME b) => AFun (a, b))) x
 
 fun mk_ho_of_fo_quant q =
   if q = tptp_forall then tptp_ho_forall
   else if q = tptp_exists then tptp_ho_exists
+  else if q = tptp_hilbert_choice then tptp_hilbert_choice
+  else if q = tptp_hilbert_the then tptp_hilbert_the
   else raise Fail ("unrecognized quantification: " ^ q)
 
 fun remove_thf_app (ATerm ((x, ty), arg)) =
@@ -492,8 +519,7 @@ fun parse_thf0_typed_var x =
    || $$ "(" |-- parse_thf0_typed_var --| $$ ")") x
 
 fun parse_simple_thf0_term x =
-  ((Scan.this_string tptp_forall || Scan.this_string tptp_exists || Scan.this_string tptp_lambda)
-        -- ($$ "[" |-- parse_thf0_typed_var --| $$ "]" --| $$ ":") -- parse_thf0_term
+  (parse_fo_quantifier -- ($$ "[" |-- parse_thf0_typed_var --| $$ "]" --| $$ ":") -- parse_thf0_term
       >> (fn ((q, ys), t) =>
           fold_rev
             (fn (var, ty) => fn r =>
@@ -505,7 +531,7 @@ fun parse_simple_thf0_term x =
             ys t)
   || Scan.this_string tptp_not |-- parse_thf0_term >> mk_app (mk_simple_aterm tptp_not)
   || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var, typ) => ATerm ((var, [typ]), []))
-  || (Scan.this_string tptp_ho_forall || Scan.this_string tptp_ho_exists) >> mk_simple_aterm
+  || parse_ho_quantifier >> mk_simple_aterm
   || $$ "(" |-- parse_thf0_term --| $$ ")"
   || scan_general_id >> mk_simple_aterm) x
 and parse_thf0_term x =
@@ -546,11 +572,12 @@ fun parse_tstp_line problem =
     |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
     -- (parse_formula || skip_term >> K dummy_phi) -- parse_tstp_extra_arguments
     --| $$ ")" --| $$ "."
-   >> (fn (((num, role), phi), deps) =>
+   >> (fn (((num, role0), phi), src) =>
           let
-            val ((name, phi), rule, deps) =
+            val role = role_of_tptp_string role0
+            val ((name, phi), role', rule, deps) =
               (* Waldmeister isn't exactly helping. *)
-              (case deps of
+              (case src of
                 File_Source (_, SOME s) =>
                 (if s = waldmeister_conjecture_name then
                    (case find_formula_in_problem (mk_anot phi) problem of
@@ -563,13 +590,15 @@ fun parse_tstp_line problem =
                  else
                    ((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]),
                     phi),
-                 "", [])
+                 role, "", [])
               | File_Source _ =>
-                (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
-              | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
-            fun mk_step () = (name, role_of_tptp_string role, phi, rule, map (rpair []) deps)
+                (((num, map fst (find_formula_in_problem phi problem)), phi), role, "", [])
+              | Inference_Source (rule, deps) => (((num, []), phi), role, rule, deps)
+              | Introduced_Source rule => (((num, []), phi), Lemma, rule, []))
+
+            fun mk_step () = (name, role', phi, rule, map (rpair []) deps)
           in
-            [(case role_of_tptp_string role of
+            [(case role' of
                Definition =>
                (case phi of
                  AAtom (ATerm (("equal", _), _)) =>
@@ -581,15 +610,13 @@ fun parse_tstp_line problem =
 
 (**** PARSING OF SPASS OUTPUT ****)
 
-(* SPASS returns clause references of the form "x.y". We ignore "y", whose role
-   is not clear anyway. *)
+(* SPASS returns clause references of the form "x.y". We ignore "y". *)
 val parse_dot_name = scan_general_id --| $$ "." --| scan_general_id
 
 val parse_spass_annotations =
   Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name --| Scan.option ($$ ","))) []
 
-(* It is not clear why some literals are followed by sequences of stars and/or
-   pluses. We ignore them. *)
+(* We ignore the stars and the pluses that follow literals. *)
 fun parse_decorated_atom x =
   (parse_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")) x
 
@@ -598,7 +625,7 @@ fun mk_horn ([], []) = AAtom (ATerm (("c_False", []), []))
   | mk_horn (neg_lits, []) = mk_anot (foldr1 (uncurry (mk_aconn AAnd)) neg_lits)
   | mk_horn (neg_lits, pos_lits) =
     mk_aconn AImplies (foldr1 (uncurry (mk_aconn AAnd)) neg_lits)
-                      (foldr1 (uncurry (mk_aconn AOr)) pos_lits)
+      (foldr1 (uncurry (mk_aconn AOr)) pos_lits)
 
 fun parse_horn_clause x =
   (Scan.repeat parse_decorated_atom --| $$ "|" --| $$ "|"
@@ -647,10 +674,6 @@ fun parse_spass_pirate_line x =
 
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
-(* Syntax: <name> *)
-fun parse_satallax_core_line x =
-  (scan_general_id --| Scan.option ($$ " ") >> (single o core_inference satallax_core_rule)) x
-
 (* Syntax: SZS core <name> ... <name> *)
 fun parse_z3_tptp_core_line x =
   (Scan.this_string "SZS core" |-- Scan.repeat ($$ " " |-- scan_general_id)
@@ -658,34 +681,16 @@ fun parse_z3_tptp_core_line x =
 
 fun parse_line local_name problem =
   if local_name = leo2N then parse_tstp_thf0_line problem
-  else if local_name = satallaxN then parse_satallax_core_line
   else if local_name = spassN then parse_spass_line
   else if local_name = spass_pirateN then parse_spass_pirate_line
   else if local_name = z3_tptpN then parse_z3_tptp_core_line
   else parse_tstp_line problem
-
-fun parse_proof local_name problem =
-  strip_spaces_except_between_idents
-  #> raw_explode
-  #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-       (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line local_name problem) >> flat)))
-  #> fst
 
 fun core_of_agsyhol_proof s =
   (case split_lines s of
     "The transformed problem consists of the following conjectures:" :: conj ::
     _ :: proof_term :: _ => SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
   | _ => NONE)
-
-fun atp_proof_of_tstplike_proof _ _ "" = []
-  | atp_proof_of_tstplike_proof local_prover problem tstp =
-    (case core_of_agsyhol_proof tstp of
-      SOME facts => facts |> map (core_inference agsyhol_core_rule)
-    | NONE =>
-      tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-      |> parse_proof local_prover problem
-      |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o pairself #1)))
-      |> local_prover = zipperpositionN ? rev)
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =

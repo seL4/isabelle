@@ -35,8 +35,8 @@ fun setup binding style thy =
 fun parse_single ctxt =
   Parse.position Parse.xname -- Parse.args >> (fn (name, args) =>
     let
-      val (src, parse) = Args.check_src ctxt (get_data ctxt) (Args.src name args);
-      val (f, _) = Args.syntax (Scan.lift parse) src ctxt;
+      val (src, parse) = Token.check_src ctxt (get_data ctxt) (Token.src name args);
+      val (f, _) = Token.syntax (Scan.lift parse) src ctxt;
     in f ctxt end);
 
 val parse = Args.context :|-- (fn ctxt => Scan.lift
