@@ -8,11 +8,11 @@ General tools for Isar proof reconstruction.
 signature SMTLIB_ISAR =
 sig
   val unlift_term: term list -> term -> term
-  val postprocess_step_conclusion: theory -> thm list -> term list -> term -> term
+  val postprocess_step_conclusion: Proof.context -> thm list -> term list -> term -> term
   val normalizing_prems : Proof.context -> term -> (string * string list) list
   val distinguish_conjecture_and_hypothesis : ''a list -> ''b -> ''b -> ''b list ->
     (''a * 'c) list -> 'c list -> 'c -> (ATP_Problem.atp_formula_role * 'c) option
-  val unskolemize_names: term -> term
+  val unskolemize_names: Proof.context -> term -> term
 end;
 
 structure SMTLIB_Isar: SMTLIB_ISAR =
@@ -34,18 +34,22 @@ fun unlift_term ll_defs =
     and un_term t = map_aterms un_free t
   in un_term end
 
-(* It is not entirely clear why this should be necessary, especially for abstractions variables. *)
-val unskolemize_names =
+(* Remove the "__" suffix for newly introduced variables (Skolems). It is not clear why "__" is
+   generated also for abstraction variables, but this is repaired here. *)
+fun unskolemize_names ctxt =
   Term.map_abs_vars (perhaps (try Name.dest_skolem))
-  #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
+  #> Term.map_aterms (perhaps (try (fn Free (s, T) =>
+    Free (s |> not (Variable.is_fixed ctxt s) ? Name.dest_skolem, T))))
 
-fun postprocess_step_conclusion thy rewrite_rules ll_defs =
-  Raw_Simplifier.rewrite_term thy rewrite_rules []
-  #> Object_Logic.atomize_term thy
-  #> not (null ll_defs) ? unlift_term ll_defs
-  #> simplify_bool
-  #> unskolemize_names
-  #> HOLogic.mk_Trueprop
+fun postprocess_step_conclusion ctxt rewrite_rules ll_defs =
+  let val thy = Proof_Context.theory_of ctxt in
+    Raw_Simplifier.rewrite_term thy rewrite_rules []
+    #> Object_Logic.atomize_term thy
+    #> not (null ll_defs) ? unlift_term ll_defs
+    #> simplify_bool
+    #> unskolemize_names ctxt
+    #> HOLogic.mk_Trueprop
+  end
 
 fun normalizing_prems ctxt concl0 =
   SMT_Normalize.case_bool_entry :: SMT_Normalize.special_quant_table @

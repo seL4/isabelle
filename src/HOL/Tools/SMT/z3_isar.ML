@@ -77,15 +77,13 @@ val reorder_foralls =
 fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids
     conjecture_id fact_helper_ids proof =
   let
-    val thy = Proof_Context.theory_of ctxt
-
     fun steps_of (Z3_Proof.Z3_Step {id, rule, prems, concl, ...}) =
       let
         val sid = string_of_int id
 
         val concl' = concl
           |> reorder_foralls (* crucial for skolemization steps *)
-          |> postprocess_step_conclusion thy rewrite_rules ll_defs
+          |> postprocess_step_conclusion ctxt rewrite_rules ll_defs
         fun standard_step role =
           ((sid, []), role, concl', Z3_Proof.string_of_rule rule,
            map (fn id => (string_of_int id, [])) prems)
@@ -99,7 +97,7 @@ fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_
             | SOME (role0, concl00) =>
               let
                 val name0 = (sid ^ "a", ss)
-                val concl0 = unskolemize_names concl00
+                val concl0 = unskolemize_names ctxt concl00
               in
                 (if role0 = Axiom then []
                  else [(name0, role0, concl0, Z3_Proof.string_of_rule rule, [])]) @
