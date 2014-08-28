@@ -103,8 +103,6 @@ fun string_of_proof_method ctxt ss meth =
     maybe_paren (space_implode " " (meth_s :: ss))
   end
 
-val silence_methods = Try0.silence_methods false
-
 fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
   (case meth of
@@ -113,23 +111,19 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
       Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
         (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
     end
-  | Meson_Method => Meson_Tactic.meson_general_tac (silence_methods ctxt) global_facts
-  | SMT_Method =>
-    let val ctxt = Config.put SMT_Config.verbose false ctxt in
-      SMT_Solver.smt_tac ctxt global_facts
-    end
-  | Simp_Method => Simplifier.asm_full_simp_tac (silence_methods ctxt addsimps global_facts)
+  | Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
+  | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
+  | Simp_Method => Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
   | Simp_Size_Method =>
-    Simplifier.asm_full_simp_tac
-      (silence_methods ctxt addsimps (@{thm size_ne_size_imp_ne} :: global_facts))
+    Simplifier.asm_full_simp_tac (ctxt addsimps (@{thm size_ne_size_imp_ne} :: global_facts))
   | _ =>
     Method.insert_tac global_facts THEN'
     (case meth of
       SATx_Method => SAT.satx_tac ctxt
     | Blast_Method => blast_tac ctxt
-    | Auto_Method => SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt))
-    | Force_Method => Clasimp.force_tac (silence_methods ctxt)
-    | Skolemize_method => skolem_tac (silence_methods ctxt)
+    | Auto_Method => SELECT_GOAL (Clasimp.auto_tac ctxt)
+    | Force_Method => Clasimp.force_tac ctxt
+    | Skolem_Method => skolem_tac ctxt
     | Linarith_Method =>
       let val ctxt = Config.put Lin_Arith.verbose false ctxt in Lin_Arith.tac ctxt end
     | Presburger_Method => Cooper.tac true [] [] ctxt
@@ -139,10 +133,8 @@ val simp_based_methods = [Simp_Method, Simp_Size_Method, Auto_Method, Force_Meth
 
 fun thms_influence_proof_method ctxt meth ths =
   not (member (op =) simp_based_methods meth) orelse
-  let val ctxt' = silence_methods ctxt in
-    (* unfortunate pointer comparison -- but it's always safe to consider a theorem useful *)
-    not (pointer_eq (ctxt' addsimps ths, ctxt'))
-  end
+  (* unfortunate pointer comparison -- but it's always safe to consider a theorem useful *)
+  not (pointer_eq (ctxt addsimps ths, ctxt))
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
   | string_of_play_outcome (Play_Timed_Out time) =

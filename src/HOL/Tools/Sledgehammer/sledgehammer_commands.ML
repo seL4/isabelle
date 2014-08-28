@@ -316,8 +316,10 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 val default_learn_prover_timeout = 2.0
 
-fun hammer_away override_params subcommand opt_i fact_override state =
+fun hammer_away override_params subcommand opt_i fact_override state0 =
   let
+    val state = state0
+      |> Proof.map_contexts (Try0.silence_methods false #> Config.put SMT_Config.verbose false)
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
