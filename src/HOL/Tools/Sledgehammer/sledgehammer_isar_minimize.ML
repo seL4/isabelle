@@ -15,6 +15,7 @@ sig
   val minimized_isar_step : Proof.context -> Time.time -> isar_step -> Time.time * isar_step
   val minimize_isar_step_dependencies : Proof.context -> isar_preplay_data Unsynchronized.ref ->
     isar_step -> isar_step
+  val postprocess_isar_proof_remove_show_stuttering : isar_proof -> isar_proof
   val postprocess_isar_proof_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof ->
     isar_proof
 end;
@@ -74,6 +75,18 @@ fun minimize_isar_step_dependencies ctxt preplay_data
     | _ => step (* don't touch steps that time out or fail *))
   | minimize_isar_step_dependencies _ _ step = step
 
+fun postprocess_isar_proof_remove_show_stuttering (Proof (fix, assms, steps)) =
+  let
+    fun process_steps [] = []
+      | process_steps (steps as [Prove ([], [], l1, t1, subs1, facts1, meths1, comment1),
+          Prove ([Show], [], l2, t2, _, _, _, comment2)]) =
+        if t1 aconv t2 then [Prove ([Show], [], l2, t2, subs1, facts1, meths1, comment1 ^ comment2)]
+        else steps
+      | process_steps (step :: steps) = step :: process_steps steps
+  in
+    Proof (fix, assms, process_steps steps)
+  end
+
 fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
   let
     fun process_proof (Proof (fix, assms, steps)) =
@@ -92,7 +105,7 @@ fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
           process_used_step step |>> Ord_List.union label_ord used ||> (fn step => step :: accu)
         else
           (used, accu))
-    and process_used_step step = step |> postproc_step |> process_used_step_subproofs
+    and process_used_step step = process_used_step_subproofs (postproc_step step)
     and process_used_step_subproofs (Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)) =
       let
         val (used, subproofs) =

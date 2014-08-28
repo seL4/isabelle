@@ -242,11 +242,12 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
             end
             |> HOLogic.mk_Trueprop |> finish_off
 
-        fun maybe_show outer c = (outer andalso eq_set (op =) (c, conjs)) ? cons Show
+        fun maybe_show outer c = if outer andalso eq_set (op =) (c, conjs) then [Show] else []
 
         fun isar_steps outer predecessor accum [] =
             accum
             |> (if tainted = [] then
+                  (* e.g., trivial, empty proof by Z3 *)
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
                     sort_facts (the_list predecessor, []), massage_methods systematic_methods', ""))
                 else
@@ -269,7 +270,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                  else systematic_methods')
                 |> massage_methods
 
-              fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths, "")
+              fun prove sub facts = Prove (maybe_show outer c, [], l, t, sub, facts, meths, "")
               fun steps_of_rest step = isar_steps outer (SOME l) (step :: accum) infs
             in
               if is_clause_tainted c then
@@ -302,7 +303,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val l = label_of_clause c
               val t = prop_of_clause c
               val step =
-                Prove (maybe_show outer c [], [], l, t,
+                Prove (maybe_show outer c, [], l, t,
                   map isar_case (filter_out (null o snd) cases),
                   sort_facts (the_list predecessor, []), massage_methods systematic_methods', "")
             in
@@ -319,6 +320,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           |> redirect_graph axioms tainted bot
           |> trace ? tap (tracing o prefix "Direct proof: " o string_of_direct_proof)
           |> isar_proof true params assms lems
+          |> postprocess_isar_proof_remove_show_stuttering
           |> postprocess_isar_proof_remove_unreferenced_steps I
           |> relabel_isar_proof_canonically
 
