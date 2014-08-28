@@ -127,7 +127,7 @@ method_setup smt = {*
   Scan.optional Attrib.thms [] >>
     (fn thms => fn ctxt =>
       METHOD (fn facts => HEADGOAL (SMT_Solver.smt_tac ctxt (thms @ facts))))
-*} "apply an SMT solver to the current goal (based on SMT-LIB 2)"
+*} "apply an SMT solver to the current goal"
 
 
 subsection {* Configuration *}

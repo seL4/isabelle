@@ -32,6 +32,7 @@ sig
   type one_line_params =
     ((string * stature) list * (proof_method * play_outcome)) * string * int * int
 
+  val skolemize_tac : Proof.context -> int -> tactic
   val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
