@@ -503,23 +503,24 @@ fun is_vampire_beyond_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") = GR
 
 val vampire_tff0 = TFF Monomorphic
 
+val vampire_basic_options = "--proof tptp --output_axiom_names on --mode casc"
+
+(* cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
+val vampire_full_proof_options =
+  " --forced_options splitting=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:\
+  \naming=0"
+
+val remote_vampire_full_proof_command =
+  "vampire " ^ vampire_basic_options ^ " " ^ vampire_full_proof_options ^ " -t %d %s"
+
 val vampire_config : atp_config =
   {exec = K (["VAMPIRE_HOME"], ["vampire"]),
-   arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn file_name =>
-       fn _ =>
-       "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
-       " --proof tptp --output_axiom_names on" ^
-       (if is_vampire_at_least_1_8 () then
-          (* Cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
-          (if full_proofs then
-             " --forced_options splitting=off:equality_proxy=off:general_splitting=off\
-             \:inequality_splitting=0:naming=0"
-           else
-             "")
-        else
-          "") ^
-       " --thanks \"Andrei et al.\" --input_file " ^ file_name
-       |> sos = sosN ? prefix "--sos on ",
+   arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn file_name => fn _ =>
+     vampire_basic_options ^
+     (if is_vampire_at_least_1_8 () andalso full_proofs then " " ^ vampire_full_proof_options
+      else "") ^
+     " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ file_name
+     |> sos = sosN ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation =======")] @
@@ -542,8 +543,7 @@ val vampire_config : atp_config =
         [(0.333, (((150, meshN), FOF, "poly_guards??", combs_or_liftingN, false), sosN)),
          (0.333, (((500, meshN), FOF, "mono_tags??", combs_or_liftingN, false), sosN)),
          (0.334, (((50, meshN), FOF, "mono_guards??", combs_or_liftingN, false), no_sosN))])
-     |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
-         else I),
+     |> Config.get ctxt force_sos ? (hd #> apfst (K 1.0) #> single),
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
@@ -633,15 +633,14 @@ val remote_spass_pirate = (remote_prefix ^ spass_pirateN, fn () => remote_spass_
 val remote_systems = Synchronized.var "atp_remote_systems" ([] : string list)
 
 fun get_remote_systems () =
-  TimeLimit.timeLimit (seconds 10.0)
-    (fn () =>
-        case Isabelle_System.bash_output
-            "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
-          (output, 0) => split_lines output
-        | (output, _) =>
-          (warning (case extract_known_atp_failure known_perl_failures output of
-                      SOME failure => string_of_atp_failure failure
-                    | NONE => trim_line output ^ "."); [])) ()
+  TimeLimit.timeLimit (seconds 10.0) (fn () =>
+    (case Isabelle_System.bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
+      (output, 0) => split_lines output
+    | (output, _) =>
+      (warning
+         (case extract_known_atp_failure known_perl_failures output of
+           SOME failure => string_of_atp_failure failure
+         | NONE => trim_line output ^ "."); []))) ()
   handle TimeLimit.TimeOut => []
 
 fun find_remote_system name [] systems =
@@ -670,11 +669,11 @@ fun the_remote_system name versions =
 
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
-fun remote_config system_name system_versions proof_delims known_failures
-                  prem_role best_slice : atp_config =
+fun remote_config system_name system_versions proof_delims known_failures prem_role best_slice =
   {exec = K (["ISABELLE_ATP"], ["scripts/remote_atp"]),
-   arguments = fn _ => fn _ => fn command => fn timeout => fn file_name => fn _ =>
-     (if command <> "" then "-c " ^ quote command ^ " " else "") ^
+   arguments = fn _ => fn full_proofs => fn full_proof_command => fn timeout => fn file_name => fn _ =>
+     (if full_proofs andalso full_proof_command <> "" then "-c " ^ quote full_proof_command ^ " "
+      else "") ^
      "-s " ^ the_remote_system system_name system_versions ^ " " ^
      "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
      " " ^ file_name,
@@ -683,22 +682,17 @@ fun remote_config system_name system_versions proof_delims known_failures
    prem_role = prem_role,
    best_slices = fn ctxt => [(1.0, best_slice ctxt)],
    best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
+   best_max_new_mono_instances = default_max_new_mono_instances} : atp_config
 
 fun remotify_config system_name system_versions best_slice
-        ({proof_delims, known_failures, prem_role, ...} : atp_config)
-        : atp_config =
-  remote_config system_name system_versions proof_delims known_failures
-                prem_role best_slice
+    ({proof_delims, known_failures, prem_role, ...} : atp_config) =
+  remote_config system_name system_versions proof_delims known_failures prem_role best_slice
 
-fun remote_atp name system_name system_versions proof_delims known_failures
-               prem_role best_slice =
-  (remote_prefix ^ name,
-   fn () => remote_config system_name system_versions proof_delims
-                          known_failures prem_role best_slice)
+fun remote_atp name system_name system_versions proof_delims known_failures prem_role best_slice =
+  (remote_prefix ^ name, fn () =>
+     remote_config system_name system_versions proof_delims known_failures prem_role best_slice)
 fun remotify_atp (name, config) system_name system_versions best_slice =
-  (remote_prefix ^ name,
-   remotify_config system_name system_versions best_slice o config)
+  (remote_prefix ^ name, remotify_config system_name system_versions best_slice o config)
 
 fun gen_remote_waldmeister name type_enc =
   remote_atp name "Waldmeister" ["710"] tstp_proof_delims
@@ -713,35 +707,35 @@ val explicit_tff0 = TFF Monomorphic
 
 val remote_agsyhol =
   remotify_atp agsyhol "agsyHOL" ["1.0", "1"]
-      (K (((60, ""), agsyhol_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
+    (K (((60, ""), agsyhol_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_e =
   remotify_atp e "EP" ["1.7", "1.6", "1.5", "1"]
-      (K (((750, ""), FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
+    (K (((750, ""), FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
 val remote_iprover =
   remotify_atp iprover "iProver" ["0.99"]
-      (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
+    (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_iprover_eq =
   remotify_atp iprover_eq "iProver-Eq" ["0.8"]
-      (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
+    (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.5.0", "1.4", "1.3", "1.2", "1"]
-      (K (((40, ""), leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
+    (K (((40, ""), leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
 val remote_satallax =
   remotify_atp satallax "Satallax" ["2.7", "2.3", "2"]
-      (K (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
+    (K (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["3.0", "2.6", "2.5", "1.8"]
-      (K (((250, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
+  remotify_atp vampire "Vampire" ["3.0", "2.6", "2.5"]
+    (K (((400, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture
-      (K (((500, ""), FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
+    (K (((500, ""), FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20120808r022", "20080805r029", "20080805r024"]
-      [("refutation.", "end_refutation.")] [] Hypothesis
-      (K (((100, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
+    [("refutation.", "end_refutation.")] [] Hypothesis
+    (K (((100, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Hypothesis
-      (K (((150, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
+    (K (((150, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 val remote_waldmeister_new = gen_remote_waldmeister waldmeister_newN "mono_args"
 
