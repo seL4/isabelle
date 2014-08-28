@@ -33,4 +33,8 @@ ML_file "Tools/Sledgehammer/sledgehammer_mash.ML"
 ML_file "Tools/Sledgehammer/sledgehammer.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_commands.ML"
 
+method_setup skolem = {*
+ Scan.succeed (SIMPLE_METHOD' o Sledgehammer_Proof_Methods.skolem_tac)
+*} "solve skolemization goals"
+
 end

@@ -137,7 +137,7 @@ val systematic_methods =
   basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
   [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
-val skolem_methods = basic_systematic_methods @ [Auto_Choice_Method]
+val skolem_methods = basic_systematic_methods @ [Skolem_Method]
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =

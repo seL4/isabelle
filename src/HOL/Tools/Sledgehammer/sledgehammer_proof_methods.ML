@@ -18,8 +18,8 @@ sig
     Simp_Method |
     Simp_Size_Method |
     Auto_Method |
-    Auto_Choice_Method |
     Force_Method |
+    Skolem_Method |
     Linarith_Method |
     Presburger_Method |
     Algebra_Method
@@ -32,7 +32,7 @@ sig
   type one_line_params =
     ((string * stature) list * (proof_method * play_outcome)) * string * int * int
 
-  val skolemize_tac : Proof.context -> int -> tactic
+  val skolem_tac : Proof.context -> int -> tactic
   val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
@@ -49,6 +49,10 @@ open ATP_Util
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 
+fun skolem_tac ctxt =
+  TRY o Atomize_Elim.atomize_elim_tac ctxt THEN'
+  SELECT_GOAL (Clasimp.auto_tac (ctxt addSIs @{thms choice}) THEN ALLGOALS (blast_tac ctxt))
+
 datatype proof_method =
   Metis_Method of string option * string option |
   Meson_Method |
@@ -58,8 +62,8 @@ datatype proof_method =
   Simp_Method |
   Simp_Size_Method |
   Auto_Method |
-  Auto_Choice_Method |
   Force_Method |
+  Skolem_Method |
   Linarith_Method |
   Presburger_Method |
   Algebra_Method
@@ -95,8 +99,8 @@ fun string_of_proof_method ctxt ss meth =
       | Simp_Method => if null ss then "simp" else "simp add:"
       | Simp_Size_Method => "simp add: " ^ short_thm_name ctxt @{thm size_ne_size_imp_ne}
       | Auto_Method => "auto"
-      | Auto_Choice_Method => "atomize_elim, auto intro!: " ^ short_thm_name ctxt @{thm choice}
       | Force_Method => "force"
+      | Skolem_Method => "skolem"
       | Linarith_Method => "linarith"
       | Presburger_Method => "presburger"
       | Algebra_Method => "algebra")
@@ -129,17 +133,14 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
       SATx_Method => SAT.satx_tac ctxt
     | Blast_Method => blast_tac ctxt
     | Auto_Method => SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt))
-    | Auto_Choice_Method =>
-      Atomize_Elim.atomize_elim_tac ctxt THEN'
-      SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt addSIs @{thms choice}))
-    | Force_Method => SELECT_GOAL (Clasimp.auto_tac (silence_methods ctxt))
+    | Force_Method => Clasimp.force_tac (silence_methods ctxt)
+    | Skolemize_method => skolem_tac (silence_methods ctxt)
     | Linarith_Method =>
       let val ctxt = Config.put Lin_Arith.verbose false ctxt in Lin_Arith.tac ctxt end
     | Presburger_Method => Cooper.tac true [] [] ctxt
     | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 
-val simp_based_methods =
-  [Simp_Method, Simp_Size_Method, Auto_Method, Auto_Choice_Method, Force_Method]
+val simp_based_methods = [Simp_Method, Simp_Size_Method, Auto_Method, Force_Method, Skolem_Method]
 
 fun thms_influence_proof_method ctxt meth ths =
   not (member (op =) simp_based_methods meth) orelse
