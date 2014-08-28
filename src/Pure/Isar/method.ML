@@ -462,38 +462,35 @@ fun modifier attribute pos : modifier = {init = I, attribute = attribute, pos = 
 local
 
 fun sect (modifier : modifier parser) = Scan.depend (fn context =>
-  let
-    val ctxt = Context.proof_of context;
-    fun prep_att src =
+  Scan.ahead Parse.not_eof -- modifier -- Scan.repeat (Scan.unless modifier Parse.xthm) >>
+    (fn ((tok, {init, attribute, pos}), xthms) =>
       let
-        val src' = Attrib.check_src ctxt src;
-        val _ = List.app (Token.assign NONE) (Token.args_of_src src');
-      in src' end;
-    val parse_thm =
-      Parse.xthm >> (fn (a, bs) => (Proof_Context.get_fact ctxt a, map prep_att bs));
-  in
-    Scan.ahead Parse.not_eof -- modifier -- Scan.repeat (Scan.unless modifier parse_thm) >>
-      (fn ((tok, {init, attribute, pos}), thms) =>
-        let
-          val decl =
-            (case Token.get_value tok of
-              SOME (Token.Declaration decl) => decl
-            | _ =>
-                let
-                  val facts =
-                    Attrib.partial_evaluation ctxt [((Binding.name "dummy", []), thms)]
-                    |> map (fn (_, bs) => ((Binding.empty, [Attrib.internal (K attribute)]), bs));
-                  val _ =
-                    Context_Position.report ctxt (Token.pos_of tok)
-                      (Markup.entity Markup.method_modifierN ""
-                        |> Markup.properties (Position.def_properties_of pos));
-                  fun decl phi =
-                    Context.mapping I init #>
-                    Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
-                  val _ = Token.assign (SOME (Token.Declaration decl)) tok;
-                in decl end);
-        in (Morphism.form decl context, decl) end)
-  end);
+        val decl =
+          (case Token.get_value tok of
+            SOME (Token.Declaration decl) => decl
+          | _ =>
+              let
+                val ctxt = Context.proof_of context;
+                fun prep_att src =
+                  let
+                    val src' = Attrib.check_src ctxt src;
+                    val _ = List.app (Token.assign NONE) (Token.args_of_src src');
+                  in src' end;
+                val thms =
+                  map (fn (a, bs) => (Proof_Context.get_fact ctxt a, map prep_att bs)) xthms;
+                val facts =
+                  Attrib.partial_evaluation ctxt [((Binding.name "dummy", []), thms)]
+                  |> map (fn (_, bs) => ((Binding.empty, [Attrib.internal (K attribute)]), bs));
+                val _ =
+                  Context_Position.report ctxt (Token.pos_of tok)
+                    (Markup.entity Markup.method_modifierN ""
+                      |> Markup.properties (Position.def_properties_of pos));
+                fun decl phi =
+                  Context.mapping I init #>
+                  Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
+                val _ = Token.assign (SOME (Token.Declaration decl)) tok;
+              in decl end);
+      in (Morphism.form decl context, decl) end));
 
 in
 
