@@ -247,7 +247,13 @@ fun rationalize_obtains_in_isar_proofs ctxt =
     rationalize_proof ([], ctxt)
   end
 
-val thesis_var = HOLogic.mk_Trueprop (Var ((Auto_Bind.thesisN, 0), HOLogic.boolT))
+val thesis_var = ((Auto_Bind.thesisN, 0), HOLogic.boolT)
+
+fun is_thesis ctxt t =
+  (case Vartab.lookup (Variable.binds_of ctxt) (fst thesis_var) of
+    SOME (_, t') => HOLogic.mk_Trueprop t' aconv t
+  | NONE => false)
+
 val indent_size = 2
 
 fun string_of_isar_proof ctxt0 i n proof =
@@ -343,7 +349,7 @@ fun string_of_isar_proof ctxt0 i n proof =
             #> add_frees xs
             #> add_str (" where\n" ^ of_indent (ind + 1)))
         #> add_str (of_label l)
-        #> add_term (if member (op =) qs Show then thesis_var else t)
+        #> add_term (if is_thesis ctxt t then HOLogic.mk_Trueprop (Var thesis_var) else t)
         #> add_str ("\n" ^ of_indent (ind + 1) ^ of_method ls ss meth ^
           (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
