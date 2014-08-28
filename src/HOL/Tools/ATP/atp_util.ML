@@ -307,7 +307,7 @@ fun close_form t =
       Logic.all_const T $ Abs (s, T, abstract_over (Var ((s, i), T), t')))
     (Term.add_vars t []) t
 
-val hol_close_form_prefix = "ATP.close_form."
+val hol_close_form_prefix = "ATP."
 
 fun hol_close_form t =
   fold (fn ((s, i), T) => fn t' =>

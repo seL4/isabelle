@@ -624,44 +624,60 @@ fun take_distinct_vars seen ((t as Var _) :: ts) =
     if member (op aconv) seen t then rev seen else take_distinct_vars (t :: seen) ts
   | take_distinct_vars seen _ = rev seen
 
-fun unskolemize_term skos t =
+fun unskolemize_term skos =
   let
     val is_skolem = member (op =) skos
 
-    fun find_args args (t $ u) = find_args (u :: args) t #> find_args [] u
-      | find_args _ (Abs (_, _, t)) = find_args [] t
-      | find_args args (Free (s, _)) =
-        if is_skolem s then
-          let val new = take_distinct_vars [] args in
-            (fn [] => new | old => if length new < length old then new else old)
+    fun find_argless_skolem (Free _ $ Var _) = NONE
+      | find_argless_skolem (Free (x as (s, _))) = if is_skolem s then SOME x else NONE
+      | find_argless_skolem (t $ u) =
+        (case find_argless_skolem t of NONE => find_argless_skolem u | sk => sk)
+      | find_argless_skolem (Abs (_, _, t)) = find_argless_skolem t
+      | find_argless_skolem _ = NONE
+
+    fun find_skolem_arg (Free (s, _) $ Var v) = if is_skolem s then SOME v else NONE
+      | find_skolem_arg (t $ u) = (case find_skolem_arg t of NONE => find_skolem_arg u | v => v)
+      | find_skolem_arg (Abs (_, _, t)) = find_skolem_arg t
+      | find_skolem_arg _ = NONE
+
+    fun find_var (Var v) = SOME v
+      | find_var (t $ u) = (case find_var t of NONE => find_var u | v => v)
+      | find_var (Abs (_, _, t)) = find_var t
+      | find_var _ = NONE
+
+    fun find_next_var t =
+      (case find_skolem_arg t of
+        NONE => find_var t
+      | v => v)
+
+    fun kill_skolem_arg (t as Free (s, T) $ Var _) =
+        if is_skolem s then Free (s, range_type T) else t
+      | kill_skolem_arg (t $ u) = kill_skolem_arg t $ kill_skolem_arg u
+      | kill_skolem_arg (Abs (s, T, t)) = Abs (s, T, kill_skolem_arg t)
+      | kill_skolem_arg t = t
+
+    val safe_abstract_over = abstract_over o apsnd (incr_boundvars 1)
+
+    fun unskolem t =
+      (case find_argless_skolem t of
+        SOME (x as (s, T)) =>
+        HOLogic.exists_const T $ Abs (s, T, unskolem (safe_abstract_over (Free x, t)))
+      | NONE =>
+        (case find_next_var t of
+          SOME (v as ((s, _), T)) =>
+          let
+            val (haves, have_nots) =
+              HOLogic.disjuncts t
+              |> List.partition (Term.exists_subterm (curry (op =) (Var v)))
+              |> pairself (fn lits => fold (curry s_disj) lits @{term False})
+          in
+            s_disj (HOLogic.all_const T
+                $ Abs (s, T, unskolem (safe_abstract_over (Var v, kill_skolem_arg haves))),
+              unskolem have_nots)
           end
-        else
-          I
-      | find_args _ _ = I
-
-    val alls = find_args [] t []
-    val num_alls = length alls
-
-    fun fix_skos args (t $ u) = fix_skos (fix_skos [] u :: args) t
-      | fix_skos args (t as Free (s, T)) =
-        if is_skolem s then list_comb (Free (s, funpow num_alls body_type T), drop num_alls args)
-        else list_comb (t, args)
-      | fix_skos [] (Abs (s, T, t)) = Abs (s, T, fix_skos [] t)
-      | fix_skos [] t = t
-      | fix_skos args t = list_comb (fix_skos [] t, args)
-
-    val t' = fix_skos [] t
-
-    fun add_skolem (t as Free (s, _)) = is_skolem s ? insert (op aconv) t
-      | add_skolem _ = I
-
-    val exs = Term.fold_aterms add_skolem t' []
+        | NONE => t))
   in
-    t'
-    |> HOLogic.dest_Trueprop
-    |> fold exists_of exs |> Term.map_abs_vars (K Name.uu)
-    |> fold_rev forall_of alls
-    |> HOLogic.mk_Trueprop
+    HOLogic.mk_Trueprop o unskolem o HOLogic.dest_Trueprop
   end
 
 fun rename_skolem_args t =
