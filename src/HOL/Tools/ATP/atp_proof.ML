@@ -193,7 +193,7 @@ fun string_of_atp_failure Unprovable = "The generated problem is unprovable."
     ". This could be due to inconsistent axioms (including \"sorry\"s) or to \
     \a bug in Sledgehammer. If the problem persists, please contact the \
     \Isabelle developers."
-  | string_of_atp_failure CantConnect = "Cannot connect to remote server."
+  | string_of_atp_failure CantConnect = "Cannot connect to server."
   | string_of_atp_failure TimedOut = "Timed out."
   | string_of_atp_failure Inappropriate =
     "The generated problem lies outside the prover's scope."
