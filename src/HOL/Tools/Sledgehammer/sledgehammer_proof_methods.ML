@@ -32,7 +32,6 @@ sig
   type one_line_params =
     ((string * stature) list * (proof_method * play_outcome)) * string * int * int
 
-  val skolem_tac : Proof.context -> int -> tactic
   val is_proof_method_direct : proof_method -> bool
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
@@ -48,10 +47,6 @@ struct
 open ATP_Util
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
-
-fun skolem_tac ctxt =
-  TRY o Atomize_Elim.atomize_elim_tac ctxt THEN'
-  SELECT_GOAL (Clasimp.auto_tac (ctxt addSIs @{thms choice}) THEN ALLGOALS (blast_tac ctxt))
 
 datatype proof_method =
   Metis_Method of string option * string option |

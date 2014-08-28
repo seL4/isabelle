@@ -110,6 +110,20 @@ proof (intro exI allI conjI)
     by (induct n) auto
 qed
 
+
+subsection {* A skolemization tactic and proof method *}
+
+ML {*
+fun skolem_tac ctxt =
+  Atomize_Elim.atomize_elim_tac ctxt THEN'
+  SELECT_GOAL (Clasimp.auto_tac (ctxt addSIs @{thms choice bchoice}) THEN ALLGOALS (blast_tac ctxt));
+*}
+
+method_setup skolem = {*
+ Scan.succeed (SIMPLE_METHOD' o skolem_tac)
+*} "solve skolemization goals"
+
+
 subsection {*Function Inverse*}
 
 lemma inv_def: "inv f = (%y. SOME x. f x = y)"
@@ -918,4 +932,3 @@ lemma exE_some: "[| Ex P ; c == Eps P |] ==> P c"
 ML_file "Tools/choice_specification.ML"
 
 end
-
