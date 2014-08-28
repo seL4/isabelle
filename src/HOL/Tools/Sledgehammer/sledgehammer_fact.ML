@@ -31,6 +31,7 @@ sig
   val maybe_instantiate_inducts : Proof.context -> term list -> term ->
     (((unit -> string) * 'a) * thm) list -> (((unit -> string) * 'a) * thm) list
   val fact_of_raw_fact : raw_fact -> fact
+  val is_useful_unnamed_local_fact : Proof.context -> thm -> bool
 
   val all_facts : Proof.context -> bool -> bool -> unit Symtab.table -> thm list -> thm list ->
     status Termtab.table -> raw_fact list
@@ -442,6 +443,18 @@ fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
 fun fact_count facts = Facts.fold_static (K (Integer.add 1)) facts 0
 
+fun is_useful_unnamed_local_fact ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val global_facts = Global_Theory.facts_of thy
+    val local_facts = Proof_Context.facts_of ctxt
+    val named_locals = Facts.dest_static true [global_facts] local_facts
+  in
+    fn th =>
+      not (Thm.has_name_hint th) andalso
+      forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
+  end
+
 fun all_facts ctxt generous ho_atp reserved add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -450,16 +463,13 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
       if generous orelse fact_count global_facts >= max_facts_for_complex_check then K false
       else is_too_complex
     val local_facts = Proof_Context.facts_of ctxt
-    val named_locals = local_facts |> Facts.dest_static true [global_facts]
     val assms = Assumption.all_assms_of ctxt
-
-    fun is_good_unnamed_local th =
-      not (Thm.has_name_hint th) andalso
-      forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
-
+    val named_locals = Facts.dest_static true [global_facts] local_facts
     val unnamed_locals =
-      union Thm.eq_thm_prop (Facts.props local_facts) chained
-      |> filter is_good_unnamed_local |> map (pair "" o single)
+      Facts.props local_facts
+      |> filter (is_useful_unnamed_local_fact ctxt)
+      |> map (pair "" o single)
+
     val full_space = Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     val is_blacklisted_or_something = is_blacklisted_or_something ctxt ho_atp
 
