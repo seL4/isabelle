@@ -148,7 +148,7 @@ fun string_of_ext_time (plus, time) =
     (if plus then "> " else "") ^
     (if us < 1000 then signed_string_of_int us ^ " \<mu>s"
      else if us < 1000000 then signed_string_of_int (us div 1000) ^ " ms"
-     else string_of_real (0.1 * Real.fromInt (us div 10000)) ^ " s")
+     else string_of_real (0.1 * Real.fromInt (us div 100000)) ^ " s")
   end
 
 val string_of_time = string_of_ext_time o pair false
