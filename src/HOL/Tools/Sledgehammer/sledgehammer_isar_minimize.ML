@@ -37,12 +37,12 @@ fun keep_fastest_method_of_isar_step preplay_data
 val slack = seconds 0.025
 
 fun minimized_isar_step ctxt time
-    (Prove (qs, xs, l, t, subproofs, (lfs0, gfs00), meths as meth :: _, comment)) =
+    (Prove (qs, xs, l, t, subproofs, (lfs0, gfs00), meth :: _, comment)) =
   let
     val gfs0 = filter (thms_influence_proof_method ctxt meth o thms_of_name ctxt) gfs00
 
     fun mk_step_lfs_gfs lfs gfs =
-      Prove (qs, xs, l, t, subproofs, sort_facts (lfs, gfs), meths, comment)
+      Prove (qs, xs, l, t, subproofs, sort_facts (lfs, gfs), [meth], comment)
 
     fun minimize_half _ min_facts [] time = (min_facts, time)
       | minimize_half mk_step min_facts (fact :: facts) time =
