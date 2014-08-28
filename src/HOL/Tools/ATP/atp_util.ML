@@ -146,9 +146,9 @@ fun maybe_quote y =
 fun string_of_ext_time (plus, time) =
   let val us = Time.toMicroseconds time in
     (if plus then "> " else "") ^
-    (if us < 1000 then signed_string_of_int us ^ " \<mu>s"
+    (if us < 1000 then string_of_real (Real.fromInt (us div 100) / 10.0) ^ " ms"
      else if us < 1000000 then signed_string_of_int (us div 1000) ^ " ms"
-     else string_of_real (0.1 * Real.fromInt (us div 100000)) ^ " s")
+     else string_of_real (Real.fromInt (us div 100000) / 10.0) ^ " s")
   end
 
 val string_of_time = string_of_ext_time o pair false
