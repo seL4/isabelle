@@ -15,7 +15,7 @@ sig
   type proof_method = Sledgehammer_Proof_Methods.proof_method
   type play_outcome = Sledgehammer_Proof_Methods.play_outcome
 
-  datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
+  datatype mode = Auto_Try | Try | Normal | Minimize | MaSh
 
   type params =
     {debug : bool,
@@ -93,18 +93,16 @@ open Metis_Tactic
 open Sledgehammer_Fact
 open Sledgehammer_Proof_Methods
 
-(* Identifier that distinguishes Sledgehammer from other tools that could use
-   "Async_Manager". *)
+(* Identifier that distinguishes Sledgehammer from other tools that could use "Async_Manager". *)
 val SledgehammerN = "Sledgehammer"
 
-datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
+datatype mode = Auto_Try | Try | Normal | Minimize | MaSh
 
 fun str_of_mode Auto_Try = "Auto Try"
   | str_of_mode Try = "Try"
   | str_of_mode Normal = "Normal"
-  | str_of_mode MaSh = "MaSh"
-  | str_of_mode Auto_Minimize = "Auto_Minimize"
   | str_of_mode Minimize = "Minimize"
+  | str_of_mode MaSh = "MaSh"
 
 val is_atp = member (op =) o supported_atps
 

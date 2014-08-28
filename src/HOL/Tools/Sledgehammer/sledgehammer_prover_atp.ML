@@ -120,7 +120,6 @@ fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode Try = "_try"
   | suffix_of_mode Normal = ""
   | suffix_of_mode MaSh = ""
-  | suffix_of_mode Auto_Minimize = "_min"
   | suffix_of_mode Minimize = "_min"
 
 (* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on Linux appears to be
@@ -154,7 +153,7 @@ fun run_atp mode name
       else (Config.get ctxt atp_dest_dir, Config.get ctxt atp_problem_prefix)
     val problem_file_name =
       Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
-                  suffix_of_mode mode ^ "_" ^ string_of_int subgoal)
+        suffix_of_mode mode ^ "_" ^ string_of_int subgoal)
     val prob_path =
       if dest_dir = "" then
         File.tmp_path problem_file_name

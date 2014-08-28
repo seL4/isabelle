@@ -191,7 +191,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
     facts =
   let
     val ctxt = Proof.context_of state
-    val prover = get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
+    val prover = get_prover ctxt Minimize prover_name
     fun test timeout = test_facts params silent prover timeout i n state goal
     val (chained, non_chained) = List.partition is_fact_chained facts
     (* Push chained facts to the back, so that they are less likely to be kicked out by the linear
