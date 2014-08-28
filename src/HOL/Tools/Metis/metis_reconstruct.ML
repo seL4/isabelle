@@ -323,7 +323,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
   let val thy = Proof_Context.theory_of ctxt
       val m_tm = Metis_Term.Fn atom
       val [i_atom, i_tm] = hol_terms_of_metis ctxt type_enc concealed sym_tab [m_tm, fr]
-      val _ = trace_msg ctxt (fn () => "sign of the literal: " ^ Markup.print_bool pos)
+      val _ = trace_msg ctxt (fn () => "sign of the literal: " ^ Bool.toString pos)
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
       fun path_finder_fail tm ps t =
