@@ -337,7 +337,10 @@ fun string_of_isar_proof ctxt0 i n proof =
         add_step_pre ind qs subs
         #> (case xs of
             [] => add_str (of_have qs (length subs) ^ " ")
-          | _ => add_str (of_obtain qs (length subs) ^ " ") #> add_frees xs #> add_str " where ")
+          | _ =>
+            add_str (of_obtain qs (length subs) ^ " ")
+            #> add_frees xs
+            #> add_str (" where\n" ^ of_indent (ind + 1)))
         #> add_str (of_label l)
         #> add_term t
         #> add_str ("\n" ^ of_indent (ind + 1) ^ of_method ls ss meth ^
