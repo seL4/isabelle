@@ -163,7 +163,7 @@ fun parse_proof_step cx =
   let
     fun rotate_pair (a, (b, c)) = ((a, b), c)
     fun get_id (SMTLIB.S [SMTLIB.Sym "set", SMTLIB.Sym id, SMTLIB.S l]) = (id, l)
-      | get_id t = raise Fail ("unrecognized VeriT Proof" ^ PolyML.makestring t)
+      | get_id t = raise Fail ("unrecognized VeriT proof " ^ @{make_string} t)
     fun parse_rule (SMTLIB.Sym rule :: l) = (rule, l)
     fun parse_source (SMTLIB.Key "clauses" :: SMTLIB.S source ::l) =
         (SOME (map (fn (SMTLIB.Sym id) => id) source), l)
