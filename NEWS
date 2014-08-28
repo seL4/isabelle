@@ -55,14 +55,14 @@ semantics due to external visual order vs. internal reverse order.
       min
 
 * Old and new SMT modules:
-  - The old 'smt' command has been renamed 'old_smt' and moved to
+  - The old 'smt' method has been renamed 'old_smt' and moved to
     'src/HOL/Library/Old_SMT.thy'. It provided for compatibility, until
-    applications have been ported to use the new 'smt' command. For the
-    command to work, an older version of Z3 (e.g. Z3 3.2 or 4.0) must be
+    applications have been ported to use the new 'smt' method. For the
+    method to work, an older version of Z3 (e.g. Z3 3.2 or 4.0) must be
     installed, and the environment variable "OLD_Z3_SOLVER" must point to
     it.
     INCOMPATIBILITY.
-  - The 'smt2' command has been renamed 'smt'.
+  - The 'smt2' method has been renamed 'smt'.
     INCOMPATIBILITY.
 
 
