@@ -114,14 +114,14 @@ qed
 subsection {* A skolemization tactic and proof method *}
 
 ML {*
-fun skolem_tac ctxt =
+fun moura_tac ctxt =
   Atomize_Elim.atomize_elim_tac ctxt THEN'
   SELECT_GOAL (Clasimp.auto_tac (ctxt addSIs @{thms choice bchoice}) THEN ALLGOALS (blast_tac ctxt));
 *}
 
-method_setup skolem = {*
- Scan.succeed (SIMPLE_METHOD' o skolem_tac)
-*} "solve skolemization goals"
+method_setup moura = {*
+ Scan.succeed (SIMPLE_METHOD' o moura_tac)
+*} "solve skolemization goals, especially those arising from Z3 proofs"
 
 
 subsection {*Function Inverse*}

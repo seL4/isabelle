@@ -18,8 +18,9 @@ sig
     Simp_Method |
     Simp_Size_Method |
     Auto_Method |
+    Fastforce_Method |
     Force_Method |
-    Skolem_Method |
+    Moura_Method |
     Linarith_Method |
     Presburger_Method |
     Algebra_Method
@@ -57,8 +58,9 @@ datatype proof_method =
   Simp_Method |
   Simp_Size_Method |
   Auto_Method |
+  Fastforce_Method |
   Force_Method |
-  Skolem_Method |
+  Moura_Method |
   Linarith_Method |
   Presburger_Method |
   Algebra_Method
@@ -94,8 +96,9 @@ fun string_of_proof_method ctxt ss meth =
       | Simp_Method => if null ss then "simp" else "simp add:"
       | Simp_Size_Method => "simp add: " ^ short_thm_name ctxt @{thm size_ne_size_imp_ne}
       | Auto_Method => "auto"
+      | Fastforce_Method => "fastforce"
       | Force_Method => "force"
-      | Skolem_Method => "skolem"
+      | Moura_Method => "moura"
       | Linarith_Method => "linarith"
       | Presburger_Method => "presburger"
       | Algebra_Method => "algebra")
@@ -122,14 +125,15 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
       SATx_Method => SAT.satx_tac ctxt
     | Blast_Method => blast_tac ctxt
     | Auto_Method => SELECT_GOAL (Clasimp.auto_tac ctxt)
+    | Fastforce_Method => Clasimp.fast_force_tac ctxt
     | Force_Method => Clasimp.force_tac ctxt
-    | Skolem_Method => skolem_tac ctxt
+    | Moura_Method => moura_tac ctxt
     | Linarith_Method =>
       let val ctxt = Config.put Lin_Arith.verbose false ctxt in Lin_Arith.tac ctxt end
     | Presburger_Method => Cooper.tac true [] [] ctxt
     | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 
-val simp_based_methods = [Simp_Method, Simp_Size_Method, Auto_Method, Force_Method, Skolem_Method]
+val simp_based_methods = [Simp_Method, Simp_Size_Method, Auto_Method, Force_Method, Moura_Method]
 
 fun thms_influence_proof_method ctxt meth ths =
   not (member (op =) simp_based_methods meth) orelse

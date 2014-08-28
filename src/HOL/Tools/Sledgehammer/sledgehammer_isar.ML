@@ -128,7 +128,7 @@ type isar_params =
   * (term, string) atp_step list * thm
 
 val basic_systematic_methods = [Metis_Method (NONE, NONE), Meson_Method, Blast_Method, SATx_Method]
-val basic_simp_based_methods = [Auto_Method, Simp_Method, Force_Method]
+val basic_simp_based_methods = [Auto_Method, Simp_Method, Fastforce_Method, Force_Method]
 val basic_arith_methods = [Linarith_Method, Presburger_Method, Algebra_Method]
 
 val arith_methods = basic_arith_methods @ basic_simp_based_methods @ basic_systematic_methods
@@ -137,7 +137,7 @@ val systematic_methods =
   basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
   [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
-fun skolem_methods_of z3 = (basic_systematic_methods, [Skolem_Method]) |> z3 ? swap |> op @
+fun skolem_methods_of z3 = basic_systematic_methods |> z3 ? cons Moura_Method
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
