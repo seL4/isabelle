@@ -37,12 +37,12 @@ fun keep_fastest_method_of_isar_step preplay_data
 val slack = seconds 0.025
 
 fun minimized_isar_step ctxt time
-    (Prove (qs, xs, l, t, subproofs, (lfs0, gfs00), meth :: _, comment)) =
+    (Prove (qs, xs, l, t, subproofs, (lfs0, gfs00), meths as meth :: _, comment)) =
   let
     val gfs0 = filter (thms_influence_proof_method ctxt meth o thms_of_name ctxt) gfs00
 
     fun mk_step_lfs_gfs lfs gfs =
-      Prove (qs, xs, l, t, subproofs, sort_facts (lfs, gfs), [meth], comment)
+      Prove (qs, xs, l, t, subproofs, sort_facts (lfs, gfs), meths, comment)
 
     fun minimize_half _ min_facts [] time = (min_facts, time)
       | minimize_half mk_step min_facts (fact :: facts) time =
@@ -58,11 +58,17 @@ fun minimized_isar_step ctxt time
   end
 
 fun minimize_isar_step_dependencies ctxt preplay_data
-      (step as Prove (_, _, l, _, _, _, meth :: _, _)) =
+      (step as Prove (_, _, l, _, _, _, meth :: meths, _)) =
     (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
       Played time =>
-      let val (time', step') = minimized_isar_step ctxt time step in
-        set_preplay_outcomes_of_isar_step ctxt time' preplay_data step' [(meth, Played time')];
+      let
+        fun old_data_for_method meth' =
+          (meth', peek_at_outcome (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth'))
+
+        val (time', step') = minimized_isar_step ctxt time step
+      in
+        set_preplay_outcomes_of_isar_step ctxt time' preplay_data step'
+          ((meth, Played time') :: (if step' = step then map old_data_for_method meths else []));
         step'
       end
     | _ => step (* don't touch steps that time out or fail *))

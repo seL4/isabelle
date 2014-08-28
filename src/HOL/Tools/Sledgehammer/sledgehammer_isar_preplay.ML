@@ -17,6 +17,7 @@ sig
 
   type isar_preplay_data
 
+  val peek_at_outcome : play_outcome Lazy.lazy -> play_outcome
   val enrich_context_with_local_facts : isar_proof -> Proof.context -> Proof.context
   val preplay_isar_step_for_method : Proof.context -> Time.time -> proof_method -> isar_step ->
     play_outcome
@@ -40,6 +41,9 @@ open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
+
+fun peek_at_outcome outcome =
+  if Lazy.is_finished outcome then Lazy.force outcome else Play_Timed_Out Time.zeroTime
 
 fun par_list_map_filter_with_timeout _ _ _ _ [] = []
   | par_list_map_filter_with_timeout get_time min_timeout timeout0 f xs =
@@ -199,9 +203,6 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
         (!preplay_data)
     end
   | set_preplay_outcomes_of_isar_step _ _ _ _ _ = ()
-
-fun peek_at_outcome outcome =
-  if Lazy.is_finished outcome then Lazy.force outcome else Play_Timed_Out Time.zeroTime
 
 fun get_best_method_outcome force =
   tap (List.app (K () o Lazy.future Future.default_params o snd)) (* could be parallelized *)
