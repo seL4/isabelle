@@ -166,18 +166,18 @@ text {*
       @@{antiquotation typ} options @{syntax type} |
       @@{antiquotation type} options @{syntax name} |
       @@{antiquotation class} options @{syntax name} |
-      @@{antiquotation text} options @{syntax name}
+      @@{antiquotation text} options @{syntax text}
     ;
     @{syntax antiquotation}:
       @@{antiquotation goals} options |
       @@{antiquotation subgoals} options |
       @@{antiquotation prf} options @{syntax thmrefs} |
       @@{antiquotation full_prf} options @{syntax thmrefs} |
-      @@{antiquotation ML} options @{syntax name} |
-      @@{antiquotation ML_op} options @{syntax name} |
-      @@{antiquotation ML_type} options @{syntax name} |
-      @@{antiquotation ML_structure} options @{syntax name} |
-      @@{antiquotation ML_functor} options @{syntax name} |
+      @@{antiquotation ML} options @{syntax text} |
+      @@{antiquotation ML_op} options @{syntax text} |
+      @@{antiquotation ML_type} options @{syntax text} |
+      @@{antiquotation ML_structure} options @{syntax text} |
+      @@{antiquotation ML_functor} options @{syntax text} |
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation file_unchecked} options @{syntax name} |
       @@{antiquotation url} options @{syntax name}

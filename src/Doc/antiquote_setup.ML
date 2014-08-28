@@ -81,7 +81,7 @@ fun prep_ml source =
   (#1 (Symbol_Pos.source_content source), ML_Lex.read_source false source);
 
 fun index_ml name kind ml = Thy_Output.antiquotation name
-  (Scan.lift (Args.name_source_position -- Scan.option (Args.colon |-- Args.name_source_position)))
+  (Scan.lift (Args.text_source_position -- Scan.option (Args.colon |-- Args.text_source_position)))
   (fn {context = ctxt, ...} => fn (source1, opt_source2) =>
     let
       val (txt1, toks1) = prep_ml source1;
