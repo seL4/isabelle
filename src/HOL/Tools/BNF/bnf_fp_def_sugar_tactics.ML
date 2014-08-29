@@ -13,6 +13,7 @@ sig
   val basic_sumprod_thms_set: thm list
   val sumprod_thms_rel: thm list
 
+  val mk_case_transfer_tac: Proof.context -> thm -> thm list -> tactic
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
     thm list -> thm list -> thm list -> thm list -> thm list list -> thm list list list ->
     thm list list list -> tactic
@@ -83,6 +84,18 @@ fun co_induct_inst_as_projs ctxt k thm =
   end;
 
 val co_induct_inst_as_projs_tac = PRIMITIVE oo co_induct_inst_as_projs;
+
+fun mk_case_transfer_tac ctxt rel_cases cases =
+  let
+    val n = length (tl (prems_of rel_cases));
+  in
+    REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI})) THEN
+    HEADGOAL (etac rel_cases) THEN
+    ALLGOALS (hyp_subst_tac ctxt) THEN
+    unfold_thms_tac ctxt cases THEN
+    ALLGOALS (fn k => (select_prem_tac n (dtac asm_rl) k THEN' rotate_tac ~1) k) THEN
+    ALLGOALS (REPEAT_ALL_NEW (atac ORELSE' rtac refl ORELSE' dtac @{thm rel_funD}))
+  end;
 
 fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
   unfold_thms_tac ctxt (ctor_iff_dtor :: ctr_defs) THEN HEADGOAL (rtac sumEN') THEN
@@ -256,7 +269,7 @@ fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss 
    EVERY (map11 (fn ct => fn assm => fn exhaust => fn discs => fn sels => fn ctor_defs =>
      fn dtor_ctor => fn ctor_inject => fn abs_inject => fn rel_pre_def => fn abs_inverse =>
       (rtac exhaust THEN_ALL_NEW (rtac exhaust THEN_ALL_NEW
-         (dtac (rotate_prems (~1) (cterm_instantiate_pos [NONE, NONE, NONE, NONE, SOME ct]
+         (dtac (rotate_prems ~1 (cterm_instantiate_pos [NONE, NONE, NONE, NONE, SOME ct]
             @{thm arg_cong2} RS iffD1)) THEN'
           atac THEN' atac THEN' hyp_subst_tac ctxt THEN' dtac assm THEN'
           REPEAT_DETERM o etac conjE))) 1 THEN

@@ -563,7 +563,7 @@ fun mk_rel live Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
-fun build_map_or_rel mk const of_bnf dest ctxt simpleTs build_simple =
+fun build_map_or_rel is_rel mk const of_bnf dest ctxt simpleTs build_simple =
   let
     fun build (TU as (T, U)) =
       if exists (curry (op =) T) simpleTs then
@@ -575,18 +575,19 @@ fun build_map_or_rel mk const of_bnf dest ctxt simpleTs build_simple =
           (Type (s, Ts), Type (s', Us)) =>
           if s = s' then
             let
-              val bnf = the (bnf_of ctxt s);
-              val live = live_of_bnf bnf;
-              val mapx = mk live Ts Us (of_bnf bnf);
-              val TUs' = map dest (fst (strip_typeN live (fastype_of mapx)));
-            in Term.list_comb (mapx, map build TUs') end
+              val (live, cst0) =
+                if is_rel andalso s = @{type_name fun} then (2, @{term rel_fun})
+                else let val bnf = the (bnf_of ctxt s) in (live_of_bnf bnf, of_bnf bnf) end;
+              val cst = mk live Ts Us cst0;
+              val TUs' = map dest (fst (strip_typeN live (fastype_of cst)));
+            in Term.list_comb (cst, map build TUs') end
           else
             build_simple TU
         | _ => build_simple TU);
   in build end;
 
-val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT;
-val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T;
+val build_map = build_map_or_rel false mk_map HOLogic.id_const map_of_bnf dest_funT;
+val build_rel = build_map_or_rel true mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T;
 
 fun map_flattened_map_args ctxt s map_args fs =
   let
