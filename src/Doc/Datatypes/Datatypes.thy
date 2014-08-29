@@ -856,6 +856,9 @@ a set function, the map function, or the relator:
 \begin{indentblock}
 \begin{description}
 
+\item[@{text "t."}\hthm{case_transfer}\rm:] ~ \\
+@{thm list.case_transfer[no_vars]}
+
 \item[@{text "t."}\hthm{ctr_transfer}\rm:] ~ \\
 @{thm list.ctr_transfer(1)[no_vars]} \\
 @{thm list.ctr_transfer(2)[no_vars]}
