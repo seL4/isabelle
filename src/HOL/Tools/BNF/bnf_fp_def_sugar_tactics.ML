@@ -22,6 +22,7 @@ sig
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
   val mk_ctr_transfer_tac: thm list -> tactic
+  val mk_disc_transfer_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
@@ -97,6 +98,24 @@ fun mk_case_transfer_tac ctxt rel_cases cases =
     ALLGOALS (REPEAT_ALL_NEW (atac ORELSE' rtac refl ORELSE' dtac @{thm rel_funD}))
   end;
 
+fun mk_ctr_transfer_tac rel_intros =
+  HEADGOAL Goal.conjunction_tac THEN
+  ALLGOALS (REPEAT o (resolve_tac (@{thm rel_funI} :: rel_intros) THEN'
+    REPEAT_DETERM o atac));
+
+fun mk_disc_transfer_tac ctxt rel_sel exhaust_disc distinct_disc=
+  let
+    fun last_disc_tac iffD =
+      HEADGOAL (rtac (rotate_prems ~1 exhaust_disc) THEN' atac THEN'
+      REPEAT_DETERM o (rotate_tac ~1 THEN' dtac (rotate_prems 1 iffD) THEN' atac THEN'
+        rotate_tac ~1 THEN' etac (rotate_prems 1 notE) THEN' eresolve_tac distinct_disc));
+  in
+    HEADGOAL Goal.conjunction_tac THEN
+    REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI} THEN' dtac (rel_sel RS iffD1) THEN'
+      REPEAT_DETERM o (etac conjE) THEN' (atac ORELSE' rtac iffI))) THEN
+    TRY (last_disc_tac iffD2) THEN TRY (last_disc_tac iffD1)
+  end;
+
 fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
   unfold_thms_tac ctxt (ctor_iff_dtor :: ctr_defs) THEN HEADGOAL (rtac sumEN') THEN
   HEADGOAL (EVERY' (maps (fn k => [select_prem_tac n (rotate_tac 1) k,
@@ -108,11 +127,6 @@ fun mk_ctor_iff_dtor_tac ctxt cTs cctor cdtor ctor_dtor dtor_ctor =
       dtac (Drule.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
       SELECT_GOAL (unfold_thms_tac ctxt [th]) THEN'
       atac) [rev cTs, cTs] [cdtor, cctor] [dtor_ctor, ctor_dtor]));
-
-fun mk_ctr_transfer_tac rel_intros =
-  HEADGOAL Goal.conjunction_tac THEN
-  ALLGOALS (REPEAT o (resolve_tac (@{thm rel_funI} :: rel_intros) THEN'
-    REPEAT_DETERM o atac));
 
 fun mk_half_distinct_tac ctxt ctor_inject abs_inject ctr_defs =
   unfold_thms_tac ctxt (ctor_inject :: abs_inject :: @{thms sum.inject} @ ctr_defs) THEN
