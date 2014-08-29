@@ -1724,18 +1724,6 @@ lemma floor_add [simp]: "floor (x + real a) = floor x + a"
 lemma floor_subtract [simp]: "floor (x - real a) = floor x - a"
   by linarith
 
-lemma le_mult_floor:
-  assumes "0 \<le> (a :: real)" and "0 \<le> b"
-  shows "floor a * floor b \<le> floor (a * b)"
-proof -
-  have "real (floor a) \<le> a"
-    and "real (floor b) \<le> b" by auto
-  hence "real (floor a * floor b) \<le> a * b"
-    using assms by (auto intro!: mult_mono)
-  also have "a * b < real (floor (a * b) + 1)" by auto
-  finally show ?thesis unfolding real_of_int_less_iff by simp
-qed
-
 lemma floor_divide_eq_div:
   "floor (real a / real b) = a div b"
 proof cases
@@ -1745,6 +1733,12 @@ proof cases
        (metis add_left_cancel zero_neq_one real_of_int_div_aux real_of_int_inject
               real_of_int_zero_cancel right_inverse_eq div_self mod_div_trivial)
 qed (auto simp: real_of_int_div)
+
+lemma floor_divide_eq_div_numeral[simp]: "\<lfloor>numeral a / numeral b::real\<rfloor> = numeral a div numeral b"
+  using floor_divide_eq_div[of "numeral a" "numeral b"] by simp
+
+lemma floor_minus_divide_eq_div_numeral[simp]: "\<lfloor>- (numeral a / numeral b)::real\<rfloor> = - numeral a div numeral b"
+  using floor_divide_eq_div[of "- numeral a" "numeral b"] by simp
 
 lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int n"
   by linarith
@@ -1798,6 +1792,16 @@ lemma ceiling_add [simp]: "ceiling (x + real a) = ceiling x + a"
 lemma ceiling_subtract [simp]: "ceiling (x - real a) = ceiling x - a"
   by linarith
 
+lemma ceiling_divide_eq_div: "\<lceil>real a / real b\<rceil> = - (- a div b)"
+  unfolding ceiling_def minus_divide_left real_of_int_minus[symmetric] floor_divide_eq_div by simp_all
+
+lemma ceiling_divide_eq_div_numeral [simp]:
+  "\<lceil>numeral a / numeral b :: real\<rceil> = - (- numeral a div numeral b)"
+  using ceiling_divide_eq_div[of "numeral a" "numeral b"] by simp
+
+lemma ceiling_minus_divide_eq_div_numeral [simp]:
+  "\<lceil>- (numeral a / numeral b :: real)\<rceil> = - (numeral a div numeral b)"
+  using ceiling_divide_eq_div[of "- numeral a" "numeral b"] by simp
 
 subsubsection {* Versions for the natural numbers *}
 
@@ -1910,6 +1914,10 @@ proof (rule natfloor_eq)
     using assms
     by (simp add: divide_less_eq natfloor_less_iff distrib_right)
 qed
+
+lemma natfloor_div_numeral[simp]:
+  "natfloor (numeral x / numeral y) = numeral x div numeral y"
+  using natfloor_div_nat[of "numeral x" "numeral y"] by simp
 
 lemma le_mult_natfloor:
   shows "natfloor a * natfloor b \<le> natfloor (a * b)"

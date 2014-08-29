@@ -288,6 +288,19 @@ lemma floor_diff_numeral [simp]:
 lemma floor_diff_one [simp]: "floor (x - 1) = floor x - 1"
   using floor_diff_of_int [of x 1] by simp
 
+lemma le_mult_floor:
+  assumes "0 \<le> a" and "0 \<le> b"
+  shows "floor a * floor b \<le> floor (a * b)"
+proof -
+  have "of_int (floor a) \<le> a"
+    and "of_int (floor b) \<le> b" by (auto intro: of_int_floor_le)
+  hence "of_int (floor a * floor b) \<le> a * b"
+    using assms by (auto intro!: mult_mono)
+  also have "a * b < of_int (floor (a * b) + 1)"  
+    using floor_correct[of "a * b"] by auto
+  finally show ?thesis unfolding of_int_less_iff by simp
+qed
+
 subsection {* Ceiling function *}
 
 definition
