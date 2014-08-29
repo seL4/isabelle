@@ -863,6 +863,10 @@ a set function, the map function, or the relator:
 @{thm list.ctr_transfer(1)[no_vars]} \\
 @{thm list.ctr_transfer(2)[no_vars]}
 
+\item[@{text "t."}\hthm{disc_transfer}\rm:] ~ \\
+@{thm list.disc_transfer(1)[no_vars]} \\
+@{thm list.disc_transfer(2)[no_vars]}
+
 \item[@{text "t."}\hthm{set} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]}
