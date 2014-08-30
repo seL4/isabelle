@@ -262,6 +262,18 @@ lemma multi_member_split:
   "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#}"
   by (rule_tac x = "M - {#x#}" in exI, simp)
 
+lemma multiset_add_sub_el_shuffle: 
+  assumes "c \<in># B" and "b \<noteq> c" 
+  shows "B - {#c#} + {#b#} = B + {#b#} - {#c#}"
+proof -
+  from `c \<in># B` obtain A where B: "B = A + {#c#}" 
+    by (blast dest: multi_member_split)
+  have "A + {#b#} = A + {#b#} + {#c#} - {#c#}" by simp
+  then have "A + {#b#} = A + {#c#} + {#b#} - {#c#}" 
+    by (simp add: ac_simps)
+  then show ?thesis using B by simp
+qed
+
 
 subsubsection {* Pointwise ordering induced by count *}
 
@@ -712,39 +724,18 @@ qed
 
 subsubsection {* Strong induction and subset induction for multisets *}
 
-text {* Well-foundedness of proper subset operator: *}
+text {* Well-foundedness of strict subset relation *}
 
-text {* proper multiset subset *}
-
-definition
-  mset_less_rel :: "('a multiset * 'a multiset) set" where
-  "mset_less_rel = {(A,B). A < B}"
-
-lemma multiset_add_sub_el_shuffle: 
-  assumes "c \<in># B" and "b \<noteq> c" 
-  shows "B - {#c#} + {#b#} = B + {#b#} - {#c#}"
-proof -
-  from `c \<in># B` obtain A where B: "B = A + {#c#}" 
-    by (blast dest: multi_member_split)
-  have "A + {#b#} = A + {#b#} + {#c#} - {#c#}" by simp
-  then have "A + {#b#} = A + {#c#} + {#b#} - {#c#}" 
-    by (simp add: ac_simps)
-  then show ?thesis using B by simp
-qed
-
-lemma wf_mset_less_rel: "wf mset_less_rel"
-apply (unfold mset_less_rel_def)
+lemma wf_less_mset_rel: "wf {(M, N :: 'a multiset). M < N}"
 apply (rule wf_measure [THEN wf_subset, where f1=size])
 apply (clarsimp simp: measure_def inv_image_def mset_less_size)
 done
 
-text {* The induction rules: *}
-
 lemma full_multiset_induct [case_names less]:
 assumes ih: "\<And>B. \<forall>(A::'a multiset). A < B \<longrightarrow> P A \<Longrightarrow> P B"
 shows "P B"
-apply (rule wf_mset_less_rel [THEN wf_induct])
-apply (rule ih, auto simp: mset_less_rel_def)
+apply (rule wf_less_mset_rel [THEN wf_induct])
+apply (rule ih, auto)
 done
 
 lemma multi_subset_induct [consumes 2, case_names empty add]:
