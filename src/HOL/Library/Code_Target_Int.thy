@@ -44,6 +44,10 @@ lemma [code, symmetric, code_post]:
   "1 = int_of_integer 1"
   by transfer simp
 
+lemma [code_post]:
+  "int_of_integer (- 1) = - 1"
+  by simp
+
 lemma [code]:
   "k + l = int_of_integer (of_int k + of_int l)"
   by transfer simp
