@@ -517,7 +517,7 @@ Type @{typ int}
 @{const List.listrel1} & @{term_type_only List.listrel1 "('a*'a)set\<Rightarrow>('a list * 'a list)set"}\\
 @{const List.lists} & @{term_type_only List.lists "'a set\<Rightarrow>'a list set"}\\
 @{const List.listset} & @{term_type_only List.listset "'a set list \<Rightarrow> 'a list set"}\\
-@{const List.listsum} & @{typeof List.listsum}\\
+@{const Groups_List.listsum} & @{typeof Groups_List.listsum}\\
 @{const List.list_all2} & @{typeof List.list_all2}\\
 @{const List.list_update} & @{typeof List.list_update}\\
 @{const List.map} & @{typeof List.map}\\

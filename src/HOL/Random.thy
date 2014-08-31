@@ -4,7 +4,7 @@
 header {* A HOL random engine *}
 
 theory Random
-imports List
+imports List Groups_List
 begin
 
 notation fcomp (infixl "\<circ>>" 60)
