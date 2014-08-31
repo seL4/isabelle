@@ -2127,7 +2127,7 @@ text {*
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) value} modes? @{syntax term}
+    @@{command (HOL) value} ( '[' @{syntax name} ']' )? modes? @{syntax term}
     ;
 
     @@{command (HOL) values} modes? @{syntax nat}? @{syntax term}
@@ -2159,6 +2159,11 @@ text {*
   to the current print mode; see \secref{sec:print-modes}.
   Evaluation is tried first using ML, falling
   back to normalization by evaluation if this fails.
+  Alternatively a specific evaluator can be selected using square
+  brackets; typical evaluators use the current set of code equations
+  to normalize and include @{text simp} for fully symbolic evaluation
+  using the simplifier, @{text nbe} for \emph{normalization by
+  evaluation} and \emph{code} for code generation in SML.
 
   \item @{command (HOL) "values"}~@{text t} enumerates a set
   comprehension by evaluation and prints its values up to the given

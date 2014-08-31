@@ -17,6 +17,10 @@ semantics due to external visual order vs. internal reverse order.
 
 *** HOL ***
 
+* Command and antiquotation "value" provide different evaluation slots (again),
+where the previous strategy (nbe after ML) serves as default.
+Minor INCOMPATIBILITY.
+
 * New (co)datatype package:
   - Renamed theorems:
       disc_corec ~> corec_disc
