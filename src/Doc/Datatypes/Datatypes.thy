@@ -932,6 +932,9 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{set_map}\rm:] ~ \\
 @{thm list.set_map[no_vars]}
 
+\item[@{text "t."}\hthm{set_transfer}\rm:] ~ \\
+@{thm list.set_transfer[no_vars]}
+
 \item[@{text "t."}\hthm{map_comg0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
 
