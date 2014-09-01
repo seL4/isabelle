@@ -54,8 +54,8 @@ open BNF_Util
 open BNF_Tactics
 open BNF_Comp_Tactics
 
-val ID_bnf = the (bnf_of @{context} "BNF_Comp.ID");
-val DEADID_bnf = the (bnf_of @{context} "BNF_Comp.DEADID");
+val ID_bnf = the (bnf_of @{context} "BNF_Composition.ID");
+val DEADID_bnf = the (bnf_of @{context} "BNF_Composition.DEADID");
 
 type comp_cache = (bnf * (typ list * typ list)) Typtab.table;
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_FP_Base.thy
+(*  Title:      HOL/BNF_Fixpoint_Base.thy
     Author:     Lorenz Panny, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
@@ -10,8 +10,8 @@ Shared fixed point operations on bounded natural functors.
 
 header {* Shared Fixed Point Operations on Bounded Natural Functors *}
 
-theory BNF_FP_Base
-imports BNF_Comp Basic_BNFs
+theory BNF_Fixpoint_Base
+imports BNF_Composition Basic_BNFs
 begin
 
 lemma False_imp_eq_True: "(False \<Longrightarrow> Q) \<equiv> Trueprop True"

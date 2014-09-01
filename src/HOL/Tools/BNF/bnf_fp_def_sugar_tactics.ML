@@ -289,9 +289,9 @@ fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss 
           REPEAT_DETERM o etac conjE))) 1 THEN
       unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @ sels @ simp_thms') THEN
       unfold_thms_tac ctxt (dtor_ctor :: rel_pre_def :: abs_inverse :: ctor_inject ::
-        abs_inject :: ctor_defs @ nesting_rel_eqs @ simp_thms' @ @{thms BNF_Comp.id_bnf_comp_def
-        rel_sum_simps rel_prod_apply vimage2p_def Inl_Inr_False iffD2[OF eq_False Inr_not_Inl]
-        sum.inject prod.inject}) THEN
+        abs_inject :: ctor_defs @ nesting_rel_eqs @ simp_thms' @
+        @{thms BNF_Composition.id_bnf_comp_def rel_sum_simps rel_prod_apply vimage2p_def
+        Inl_Inr_False iffD2[OF eq_False Inr_not_Inl] sum.inject prod.inject}) THEN
       REPEAT_DETERM (HEADGOAL ((REPEAT_DETERM o etac conjE) THEN' (REPEAT_DETERM o rtac conjI) THEN'
         (rtac refl ORELSE' atac))))
     cts assms exhausts discss selss ctor_defss dtor_ctors ctor_injects abs_injects rel_pre_defs
@@ -305,7 +305,7 @@ fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss cto
           (rtac (cterm_instantiate_pos (replicate 4 NONE @ [SOME cterm]) @{thm arg_cong2} RS iffD2)
             THEN' atac THEN' atac THEN' TRY o resolve_tac assms))) THEN
         unfold_thms_tac ctxt (ctor_inject :: rel_pre_list_def :: ctor_defs @ nesting_rel_eqs @
-          @{thms BNF_Comp.id_bnf_comp_def vimage2p_def}) THEN
+          @{thms BNF_Composition.id_bnf_comp_def vimage2p_def}) THEN
         TRYALL (hyp_subst_tac ctxt) THEN
         unfold_thms_tac ctxt (Abs_inverse :: @{thms rel_sum_simps rel_prod_apply Inl_Inr_False
           Inr_Inl_False  sum.inject prod.inject}) THEN
@@ -354,7 +354,7 @@ fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs cto
     Abs_pre_inverses =
   let
     val assms_ctor_defs =
-      map (unfold_thms ctxt (@{thm BNF_Comp.id_bnf_comp_def} :: ctor_defs)) assms;
+      map (unfold_thms ctxt (@{thm BNF_Composition.id_bnf_comp_def} :: ctor_defs)) assms;
     val exhausts' = map (fn thm => thm RS @{thm asm_rl[of "P x y" for P x y]}) exhausts
       |> map2 (fn ct => cterm_instantiate_pos [NONE, SOME ct]) cts;
   in
@@ -364,7 +364,7 @@ fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs cto
          cterm_instantiate_pos (replicate 4 NONE @ [SOME ct]) @{thm arg_cong2} RS iffD2) cts)
         THEN' atac THEN' hyp_subst_tac ctxt)) THEN
     unfold_thms_tac ctxt (Abs_pre_inverses @ dtor_ctors @ set_pre_defs @ ctor_defs @
-      @{thms BNF_Comp.id_bnf_comp_def o_apply sum_set_simps prod_set_simps UN_empty UN_insert
+      @{thms BNF_Composition.id_bnf_comp_def o_apply sum_set_simps prod_set_simps UN_empty UN_insert
         Un_empty_left Un_empty_right empty_iff singleton_iff}) THEN
     REPEAT_DETERM (HEADGOAL
       (TRY o etac UnE THEN' TRY o etac @{thm singletonE} THEN' TRY o hyp_subst_tac ctxt THEN'

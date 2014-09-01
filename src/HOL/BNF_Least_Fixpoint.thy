@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_LFP.thy
+(*  Title:      HOL/BNF_Least_Fixpoint.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Lorenz Panny, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
@@ -9,8 +9,8 @@ Least fixed point operation on bounded natural functors.
 
 header {* Least Fixed Point Operation on Bounded Natural Functors *}
 
-theory BNF_LFP
-imports BNF_FP_Base
+theory BNF_Least_Fixpoint
+imports BNF_Fixpoint_Base
 keywords
   "datatype_new" :: thy_decl and
   "datatype_compat" :: thy_decl

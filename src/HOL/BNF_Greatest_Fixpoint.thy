@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_GFP.thy
+(*  Title:      HOL/BNF_Greatest_Fixpoint.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Lorenz Panny, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
@@ -9,8 +9,8 @@ Greatest fixed point operation on bounded natural functors.
 
 header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 
-theory BNF_GFP
-imports BNF_FP_Base String
+theory BNF_Greatest_Fixpoint
+imports BNF_Fixpoint_Base String
 keywords
   "codatatype" :: thy_decl and
   "primcorecursive" :: thy_goal and

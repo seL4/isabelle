@@ -65,7 +65,7 @@ fun mk_unabs_def_unused_0 n =
 
 val rec_o_map_simp_thms =
   @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum case_prod_map_prod
-      BNF_Comp.id_bnf_comp_def};
+      BNF_Composition.id_bnf_comp_def};
 
 fun mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
     ctor_rec_o_map =

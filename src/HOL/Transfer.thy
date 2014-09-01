@@ -6,7 +6,7 @@
 header {* Generic theorem transfer using relations *}
 
 theory Transfer
-imports Hilbert_Choice BNF_FP_Base Metis Option
+imports Hilbert_Choice Metis Option
 begin
 
 (* We include Option here although it's not needed here. 
