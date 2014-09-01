@@ -62,8 +62,7 @@ fun reindex_desc desc =
       map (fn (_, (s, Ds, sDss)) => (s, map perm_dtyp Ds, map (apsnd (map perm_dtyp)) sDss)) desc
   end;
 
-fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref need_co_inducts_recs check_names
-    fpT_names0 lthy =
+fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_names0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -146,8 +145,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref need_co_inducts_re
 
     val ((fp_sugars, (lfp_sugar_thms, _)), lthy') =
       if nn > nn_fp then
-        mutualize_fp_sugars Least_FP need_co_inducts_recs cliques compat_bs Ts callers callssss
-          fp_sugars0 lthy
+        mutualize_fp_sugars Least_FP cliques compat_bs Ts callers callssss fp_sugars0 lthy
       else
         ((fp_sugars0, (NONE, NONE)), lthy);
 
@@ -171,16 +169,9 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref need_co_inducts_re
     (nn, b_names, compat_b_names, lfp_sugar_thms, infos, lthy')
   end;
 
-fun infos_of_new_datatype_mutual_cluster lthy nesting_pref fpT_name =
-  let
-    fun infos_of nesting_pref =
-      #5 (mk_infos_of_mutually_recursive_new_datatypes nesting_pref false subset [fpT_name] lthy);
-  in
-    infos_of nesting_pref
-    handle ERROR _ =>
-      (if nesting_pref = Unfold_Nesting then infos_of Keep_Nesting else [])
-      handle ERROR _ => []
-  end;
+fun infos_of_new_datatype_mutual_cluster lthy fpT_name =
+  #5 (mk_infos_of_mutually_recursive_new_datatypes Keep_Nesting subset [fpT_name] lthy)
+  handle ERROR _ => [];
 
 fun get_all thy nesting_pref =
   let
@@ -188,23 +179,20 @@ fun get_all thy nesting_pref =
     val old_info_tab = Old_Datatype_Data.get_all thy;
     val new_T_names = BNF_FP_Def_Sugar.fp_sugars_of_global thy
       |> map_filter (try (fn {T = Type (s, _), fp_res_index = 0, ...} => s));
-    val new_infos = maps (infos_of_new_datatype_mutual_cluster lthy nesting_pref) new_T_names;
+    val new_infos = maps (infos_of_new_datatype_mutual_cluster lthy) new_T_names;
   in
     fold (if nesting_pref = Keep_Nesting then Symtab.update else Symtab.default) new_infos
       old_info_tab
   end;
 
 fun get_one get_old get_new thy nesting_pref x =
-  let
-    val (get_fst, get_snd) =
-      (get_old thy, get_new thy nesting_pref) |> nesting_pref = Keep_Nesting ? swap
-  in
+  let val (get_fst, get_snd) = (get_old thy, get_new thy) |> nesting_pref = Keep_Nesting ? swap in
     (case get_fst x of NONE => get_snd x | res => res)
   end;
 
-fun get_info_of_new_datatype thy nesting_pref T_name =
+fun get_info_of_new_datatype thy T_name =
   let val lthy = Proof_Context.init_global thy in
-    AList.lookup (op =) (infos_of_new_datatype_mutual_cluster lthy nesting_pref T_name) T_name
+    AList.lookup (op =) (infos_of_new_datatype_mutual_cluster lthy T_name) T_name
   end;
 
 val get_info = get_one Old_Datatype_Data.get_info get_info_of_new_datatype;
@@ -293,7 +281,7 @@ val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: @{attributes [n
 fun datatype_compat fpT_names lthy =
   let
     val (nn, b_names, compat_b_names, lfp_sugar_thms, infos, lthy') =
-      mk_infos_of_mutually_recursive_new_datatypes Unfold_Nesting true eq_set fpT_names lthy;
+      mk_infos_of_mutually_recursive_new_datatypes Unfold_Nesting eq_set fpT_names lthy;
 
     val all_notes =
       (case lfp_sugar_thms of
