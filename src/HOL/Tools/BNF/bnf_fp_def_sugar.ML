@@ -183,7 +183,7 @@ fun register_fp_sugars (fp_sugars as {fp, ...} :: _) =
 
 fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs live_nesting_bnfs fp_res
     ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss common_co_inducts co_inductss
-    co_rec_thmss disc_co_recss sel_co_recsss rel_injectss rel_distinctss noted =
+    co_rec_thmss co_rec_discss co_rec_selsss rel_injectss rel_distinctss noted =
   let
     val fp_sugars =
       map_index (fn (kk, T) =>
@@ -193,8 +193,8 @@ fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs live_
          ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk, ctr_sugar = nth ctr_sugars kk,
          co_rec = nth co_recs kk, co_rec_def = nth co_rec_defs kk, maps = nth mapss kk,
          common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
-         co_rec_thms = nth co_rec_thmss kk, disc_co_recs = nth disc_co_recss kk,
-         sel_co_recss = nth sel_co_recsss kk, rel_injects = nth rel_injectss kk,
+         co_rec_thms = nth co_rec_thmss kk, co_rec_discs = nth co_rec_discss kk,
+         co_rec_selss = nth co_rec_selsss kk, rel_injects = nth rel_injectss kk,
          rel_distincts = nth rel_distinctss kk}
         |> morph_fp_sugar (substitute_noted_thm noted)) Ts;
   in

@@ -50,8 +50,8 @@ sig
      common_co_inducts: thm list,
      co_inducts: thm list,
      co_rec_thms: thm list,
-     disc_co_recs: thm list,
-     sel_co_recss: thm list list,
+     co_rec_discs: thm list,
+     co_rec_selss: thm list list,
      rel_injects: thm list,
      rel_distincts: thm list};
 
@@ -282,14 +282,14 @@ type fp_sugar =
    common_co_inducts: thm list,
    co_inducts: thm list,
    co_rec_thms: thm list,
-   disc_co_recs: thm list,
-   sel_co_recss: thm list list,
+   co_rec_discs: thm list,
+   co_rec_selss: thm list list,
    rel_injects: thm list,
    rel_distincts: thm list};
 
 fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, fp_nesting_bnfs,
     live_nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, co_rec_def, maps, common_co_inducts,
-    co_inducts, co_rec_thms, disc_co_recs, sel_co_recss, rel_injects, rel_distincts} : fp_sugar) =
+    co_inducts, co_rec_thms, co_rec_discs, co_rec_selss, rel_injects, rel_distincts} : fp_sugar) =
   {T = Morphism.typ phi T,
    BT = Morphism.typ phi BT,
    X = Morphism.typ phi X,
@@ -309,8 +309,8 @@ fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info,
    common_co_inducts = map (Morphism.thm phi) common_co_inducts,
    co_inducts = map (Morphism.thm phi) co_inducts,
    co_rec_thms = map (Morphism.thm phi) co_rec_thms,
-   disc_co_recs = map (Morphism.thm phi) disc_co_recs,
-   sel_co_recss = map (map (Morphism.thm phi)) sel_co_recss,
+   co_rec_discs = map (Morphism.thm phi) co_rec_discs,
+   co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss,
    rel_injects = map (Morphism.thm phi) rel_injects,
    rel_distincts = map (Morphism.thm phi) rel_distincts};
 

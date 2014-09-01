@@ -31,7 +31,7 @@ fun get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0 =
     val ((missing_arg_Ts, perm0_kks,
           fp_sugars as {fp_nesting_bnfs, common_co_inducts = [common_induct], ...} :: _,
           (lfp_sugar_thms, _)), lthy) =
-      nested_to_mutual_fps Least_FP bs arg_Ts callers callssss0 lthy0;
+      nested_to_mutual_fps Least_FP true bs arg_Ts callers callssss0 lthy0;
 
     val Ts = map #T fp_sugars;
     val Xs = map #X fp_sugars;
