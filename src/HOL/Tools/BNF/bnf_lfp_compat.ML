@@ -31,14 +31,14 @@ fun reindex_desc desc =
     fun perm_dtyp (Old_Datatype_Aux.DtType (s, Ds)) = Old_Datatype_Aux.DtType (s, map perm_dtyp Ds)
       | perm_dtyp (Old_Datatype_Aux.DtRec kk) =
         Old_Datatype_Aux.DtRec (find_index (curry (op =) kk) kks)
-      | perm_dtyp D = D
+      | perm_dtyp D = D;
   in
     if perm_kks = kks then
       desc
     else
       perm_kks ~~
       map (fn (_, (s, Ds, sDss)) => (s, map perm_dtyp Ds, map (apsnd (map perm_dtyp)) sDss)) desc
-  end
+  end;
 
 (* TODO: graceful failure for local datatypes -- perhaps by making the command global *)
 fun datatype_compat_cmd raw_fpT_names0 lthy =
@@ -177,7 +177,7 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
 
     val register_interpret =
       Old_Datatype_Data.register infos
-      #> Old_Datatype_Data.interpretation_data (Old_Datatype_Aux.default_config, map fst infos)
+      #> Old_Datatype_Data.interpretation_data (Old_Datatype_Aux.default_config, map fst infos);
   in
     lthy
     |> Local_Theory.raw_theory register_interpret
