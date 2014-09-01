@@ -58,20 +58,20 @@ fun typecheck thry t =
  *---------------------------------------------------------------------------*)
 
 fun match_info thy dtco =
-  case (Old_Datatype_Data.get_info thy dtco,
-         Old_Datatype_Data.get_constrs thy dtco) of
-      (SOME { case_name, ... }, SOME constructors) =>
+  case (BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Keep_Nesting dtco,
+         BNF_LFP_Compat.get_constrs thy dtco) of
+      (SOME {case_name, ... }, SOME constructors) =>
         SOME {case_const = Const (case_name, Sign.the_const_type thy case_name), constructors = map Const constructors}
     | _ => NONE;
 
-fun induct_info thy dtco = case Old_Datatype_Data.get_info thy dtco of
+fun induct_info thy dtco = case BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Keep_Nesting dtco of
         NONE => NONE
       | SOME {nchotomy, ...} =>
           SOME {nchotomy = nchotomy,
-                constructors = (map Const o the o Old_Datatype_Data.get_constrs thy) dtco};
+                constructors = (map Const o the o BNF_LFP_Compat.get_constrs thy) dtco};
 
 fun extract_info thy =
- let val infos = map snd (Symtab.dest (Old_Datatype_Data.get_all thy))
+ let val infos = map snd (Symtab.dest (BNF_LFP_Compat.get_all thy BNF_LFP_Compat.Keep_Nesting))
  in {case_congs = map (mk_meta_eq o #case_cong) infos,
      case_rewrites = maps (map mk_meta_eq o #case_rewrites) infos}
  end;
