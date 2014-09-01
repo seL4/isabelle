@@ -9,17 +9,15 @@ after full bootstrap of datatype package.
 
 signature OLD_DATATYPE =
 sig
+  include OLD_DATATYPE_COMMON
+
   val distinct_lemma: thm
-  type spec =
-    (binding * (string * sort) list * mixfix) *
-    (binding * typ list * mixfix) list
   type spec_cmd =
-    (binding * (string * string option) list * mixfix) *
-    (binding * string list * mixfix) list
+    (binding * (string * string option) list * mixfix) * (binding * string list * mixfix) list
   val read_specs: spec_cmd list -> theory -> spec list * Proof.context
   val check_specs: spec list -> theory -> spec list * Proof.context
-  val add_datatype: Old_Datatype_Aux.config -> spec list -> theory -> string list * theory
-  val add_datatype_cmd: Old_Datatype_Aux.config -> spec_cmd list -> theory -> string list * theory
+  val add_datatype: config -> spec list -> theory -> string list * theory
+  val add_datatype_cmd: config -> spec_cmd list -> theory -> string list * theory
   val spec_cmd: spec_cmd parser
 end;
 
@@ -663,8 +661,6 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
 
 (* specifications *)
 
-type spec = (binding * (string * sort) list * mixfix) * (binding * typ list * mixfix) list;
-
 type spec_cmd =
   (binding * (string * string option) list * mixfix) * (binding * string list * mixfix) list;
 
@@ -674,7 +670,7 @@ fun parse_spec ctxt ((b, args, mx), constrs) =
   ((b, map (apsnd (Typedecl.read_constraint ctxt)) args, mx),
     constrs |> map (fn (c, Ts, mx') => (c, map (Syntax.parse_typ ctxt) Ts, mx')));
 
-fun check_specs ctxt (specs: spec list) =
+fun check_specs ctxt (specs: Old_Datatype_Aux.spec list) =
   let
     fun prep_spec ((tname, args, mx), constrs) tys =
       let
@@ -798,5 +794,7 @@ val _ =
   Outer_Syntax.command @{command_spec "datatype"} "define inductive datatypes"
     (Parse.and_list1 spec_cmd
       >> (Toplevel.theory o (snd oo add_datatype_cmd Old_Datatype_Aux.default_config)));
+
+open Old_Datatype_Aux;
 
 end;

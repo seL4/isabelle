@@ -30,6 +30,7 @@ sig
     case_cong_weak : thm,
     split : thm,
     split_asm: thm}
+  type spec = (binding * (string * sort) list * mixfix) * (binding * typ list * mixfix) list
 end
 
 signature OLD_DATATYPE_AUX =
@@ -198,6 +199,8 @@ type info =
    case_cong_weak : thm,
    split : thm,
    split_asm: thm};
+
+type spec = (binding * (string * sort) list * mixfix) * (binding * typ list * mixfix) list;
 
 fun mk_Free s T i = Free (s ^ string_of_int i, T);
 
