@@ -585,7 +585,7 @@ translations
   "f(x:=y)" == "CONST fun_upd f x y"
 
 (* Hint: to define the sum of two functions (or maps), use case_sum.
-         A nice infix syntax could be defined (in Datatype.thy or below) by
+         A nice infix syntax could be defined by
 notation
   case_sum  (infixr "'(+')"80)
 *)

@@ -7,7 +7,7 @@ realizers for induction and case analysis.
 
 signature DATATYPE_REALIZER =
 sig
-  val add_dt_realizers: Datatype.config -> string list -> theory -> theory
+  val add_dt_realizers: Datatype_Aux.config -> string list -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -25,7 +25,7 @@ fun is_unit t = body_type (fastype_of t) = HOLogic.unitT;
 fun tname_of (Type (s, _)) = s
   | tname_of _ = "";
 
-fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is thy =
+fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux.info) is thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val cert = cterm_of thy;
@@ -84,7 +84,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
         in (apfst (fold_rev (Logic.all o Free) frees) (mk_prems (map Free frees) recs), j + 1) end)
           constrs) (descr ~~ recTs) 1)));
 
-    fun mk_proj j [] t = t
+    fun mk_proj _ [] t = t
       | mk_proj j (i :: is) t =
           if null is then t
           else if (j: int) = i then HOLogic.mk_fst t
@@ -159,7 +159,8 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
 
-fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Datatype.info) thy =
+fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Datatype_Aux.info)
+    thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val cert = cterm_of thy;
@@ -232,7 +233,7 @@ fun add_dt_realizers config names thy =
   else
     let
       val _ = Datatype_Aux.message config "Adding realizers for induction and case analysis ...";
-      val infos = map (Datatype.the_info thy) names;
+      val infos = map (Datatype_Data.the_info thy) names;
       val info :: _ = infos;
     in
       thy
@@ -240,6 +241,6 @@ fun add_dt_realizers config names thy =
       |> fold_rev make_casedists infos
     end;
 
-val setup = Datatype.interpretation add_dt_realizers;
+val setup = Datatype_Data.interpretation add_dt_realizers;
 
 end;

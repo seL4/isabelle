@@ -7,6 +7,7 @@ Datatype package bookkeeping.
 signature DATATYPE_DATA =
 sig
   include DATATYPE_COMMON
+
   val get_all : theory -> info Symtab.table
   val get_info : theory -> string -> info option
   val the_info : theory -> string -> info

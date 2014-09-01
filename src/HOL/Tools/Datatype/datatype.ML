@@ -9,7 +9,6 @@ after full bootstrap of datatype package.
 
 signature DATATYPE =
 sig
-  include DATATYPE_DATA
   val distinct_lemma: thm
   type spec =
     (binding * (string * sort) list * mixfix) *
@@ -19,8 +18,8 @@ sig
     (binding * string list * mixfix) list
   val read_specs: spec_cmd list -> theory -> spec list * Proof.context
   val check_specs: spec list -> theory -> spec list * Proof.context
-  val add_datatype: config -> spec list -> theory -> string list * theory
-  val add_datatype_cmd: config -> spec_cmd list -> theory -> string list * theory
+  val add_datatype: Datatype_Aux.config -> spec list -> theory -> string list * theory
+  val add_datatype_cmd: Datatype_Aux.config -> spec_cmd list -> theory -> string list * theory
   val spec_cmd: spec_cmd parser
 end;
 

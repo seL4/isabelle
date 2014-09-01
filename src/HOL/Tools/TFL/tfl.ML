@@ -435,7 +435,7 @@ fun post_definition meta_tflCongs theory ctxt (def, pats) =
        put_simpset HOL_basic_ss ctxt
           addsimps case_rewrites
           |> fold (Simplifier.add_cong o #case_cong_weak o snd)
-              (Symtab.dest (Datatype.get_all theory))
+              (Symtab.dest (Datatype_Data.get_all theory))
      val corollaries' = map (Simplifier.simplify case_simpset) corollaries
      val extract = Rules.CONTEXT_REWRITE_RULE
                      (f, [R], @{thm cut_apply}, meta_tflCongs @ context_congs)
