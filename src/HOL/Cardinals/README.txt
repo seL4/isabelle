@@ -35,7 +35,7 @@ The "major" theories are:
       and *strict embeddings* are defined to be embeddings that are, and respectively
       are not, bijections.
 
--- Constructions_on_Wellorders:
+-- Wellorder_Constructions:
 ----- 1) Defines direct images, restrictions, disjoint unions and 
       bounded squares of well-orders.
 ----- 2) Defines the relations "ordLeq", "ordLess" and "ordIso" 
@@ -203,7 +203,7 @@ Theory Wellorder_Embedding (and BNF_Wellorder_Embedding):
   making impossible to debug theorem instantiations.  
 - At lemma "embed_unique": If we add the attribute "rule format" at lemma, we get an error at qed.
 
-Theory Constructions_on_Wellorders (and BNF_Constructions_on_Wellorders):
+Theory Wellorder_Constructions (and BNF_Wellorder_Constructions):
 - Some of the lemmas in this section are about more general kinds of relations than 
   well-orders, but it is not clear whether they are useful in such more general contexts.
 - Recall that "equiv" does not have the "equiv_on" and "Equiv" versions, 

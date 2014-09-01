@@ -8,12 +8,12 @@ Ordinal arithmetic.
 header {* Ordinal Arithmetic *}
 
 theory Ordinal_Arithmetic
-imports Constructions_on_Wellorders
+imports Wellorder_Constructions
 begin
 
 definition osum :: "'a rel \<Rightarrow> 'b rel \<Rightarrow> ('a + 'b) rel"  (infixr "+o" 70)
 where
-  "r +o r' = map_prod Inl Inl ` r \<union> map_prod Inr Inr ` r' \<union> 
+  "r +o r' = map_prod Inl Inl ` r \<union> map_prod Inr Inr ` r' \<union>
      {(Inl a, Inr a') | a a' . a \<in> Field r \<and> a' \<in> Field r'}"
 
 lemma Field_osum: "Field(r +o r') = Inl ` Field r \<union> Inr ` Field r'"
@@ -175,7 +175,7 @@ lemma Field_oprod: "Field (r *o r') = Field r \<times> Field r'"
 lemma oprod_Refl:"\<lbrakk>Refl r; Refl r'\<rbrakk> \<Longrightarrow> Refl (r *o r')"
   unfolding refl_on_def Field_oprod unfolding oprod_def by auto
 
-lemma oprod_trans: 
+lemma oprod_trans:
   assumes "trans r" "trans r'" "antisym r" "antisym r'"
   shows "trans (r *o r')"
 proof(unfold trans_def, safe)
@@ -309,7 +309,7 @@ proof -
   from assms(3) have r': "Field r' \<noteq> {}" unfolding Field_def by auto
   have minim[simp]: "minim r' (Field r') \<in> Field r'"
     using wo_rel.minim_inField[unfolded wo_rel_def, OF WELL' _ r'] by auto
-  { fix b 
+  { fix b
     assume "(b, minim r' (Field r')) \<in> r'"
     moreover hence "b \<in> Field r'" unfolding Field_def by auto
     hence "(minim r' (Field r'), b) \<in> r'"
@@ -390,7 +390,7 @@ lemma isMaxim_unique[intro]: "\<lbrakk>isMaxim A x; isMaxim A y\<rbrakk> \<Longr
   unfolding isMaxim_def using antisymD[OF ANTISYM, of x y] by auto
 
 lemma maxim_isMaxim: "\<lbrakk>finite A; A \<noteq> {}; A \<subseteq> Field r\<rbrakk> \<Longrightarrow> isMaxim A (maxim A)"
-unfolding maxim_def 
+unfolding maxim_def
 proof (rule theI', rule ex_ex1I[OF _ isMaxim_unique, rotated], assumption+,
   induct A rule: finite_induct)
   case (insert x A)
@@ -494,7 +494,7 @@ lemma FinFuncD: "\<lbrakk>f \<in> FinFunc r s; x \<in> Field s\<rbrakk> \<Longri
 
 locale wo_rel2 =
   fixes r s
-  assumes rWELL: "Well_order r" 
+  assumes rWELL: "Well_order r"
   and     sWELL: "Well_order s"
 begin
 
@@ -539,7 +539,7 @@ lemma max_fun_diff_le_eq:
 
 lemma max_fun_diff_max2:
   assumes ineq: "s.max_fun_diff f g = s.max_fun_diff g h \<longrightarrow>
-    f (s.max_fun_diff f g) \<noteq> h (s.max_fun_diff g h)" and 
+    f (s.max_fun_diff f g) \<noteq> h (s.max_fun_diff g h)" and
     fg: "f \<noteq> g" and gh: "g \<noteq> h" and fh: "f \<noteq> h" and
     f: "f \<in> FINFUNC" and g: "g \<in> FINFUNC" and h: "h \<in> FINFUNC"
   shows "s.max_fun_diff f h = s.max2 (s.max_fun_diff f g) (s.max_fun_diff g h)"
@@ -708,7 +708,7 @@ lemma fun_upd_FINFUNC: "\<lbrakk>f \<in> FINFUNC; x \<in> Field s; y \<in> Field
   by (auto intro: finite_subset[OF support_upd_subset])
 
 lemma fun_upd_same_oexp:
-  assumes "(f, g) \<in> oexp" "f x = g x" "x \<in> Field s" "y \<in> Field r" 
+  assumes "(f, g) \<in> oexp" "f x = g x" "x \<in> Field s" "y \<in> Field r"
   shows   "(f(x := y), g(x := y)) \<in> oexp"
 proof -
   from assms(1) fun_upd_FINFUNC[OF _ assms(3,4)] have fg: "f(x := y) \<in> FINFUNC" "g(x := y) \<in> FINFUNC"
@@ -829,7 +829,7 @@ next
                 thus ?thesis
                 proof (cases "s.maxim (SUPP f) = z \<and> f z = x0")
                   case True
-                  with f have "f(z := r.zero) \<in> G" unfolding G_def by blast 
+                  with f have "f(z := r.zero) \<in> G" unfolding G_def by blast
                   with g0(2) f0z have "(f0(z := r.zero), f(z := r.zero)) \<in> oexp" by auto
                   hence "(f0(z := r.zero, z := x0), f(z := r.zero, z := x0)) \<in> oexp"
                     by (elim fun_upd_same_oexp[OF _ _ zField x0Field]) simp
@@ -922,10 +922,10 @@ lemma Field_ozero[simp]: "Field ozero = {}"
   unfolding ozero_def by simp
 
 lemma iso_ozero_empty[simp]: "r =o ozero = (r = {})"
-  unfolding ozero_def ordIso_def iso_def[abs_def] embed_def bij_betw_def 
+  unfolding ozero_def ordIso_def iso_def[abs_def] embed_def bij_betw_def
   by (auto dest: well_order_on_domain)
 
-lemma ozero_ordLeq: 
+lemma ozero_ordLeq:
 assumes "Well_order r"  shows "ozero \<le>o r"
 using assms unfolding ozero_def ordLeq_def embed_def[abs_def] under_def by auto
 
@@ -959,7 +959,7 @@ proof -
   with f have "bij_betw ?f (Field ?L) (Field ?R)"
     unfolding Field_osum iso_def bij_betw_def image_image image_Un by auto
   moreover from f have "compat ?L ?R ?f"
-    unfolding osum_def iso_iff3[OF r s] compat_def bij_betw_def 
+    unfolding osum_def iso_iff3[OF r s] compat_def bij_betw_def
     by (auto simp: map_prod_imageI)
   ultimately have "iso ?L ?R ?f" by (subst iso_iff3) (auto intro: osum_Well_order r s t)
   thus ?thesis unfolding ordIso_def by (auto intro: osum_Well_order r s t)
@@ -977,7 +977,7 @@ proof -
   with f have "bij_betw ?f (Field ?L) (Field ?R)"
     unfolding Field_osum iso_def bij_betw_def image_image image_Un by auto
   moreover from f have "compat ?L ?R ?f"
-    unfolding osum_def iso_iff3[OF r s] compat_def bij_betw_def 
+    unfolding osum_def iso_iff3[OF r s] compat_def bij_betw_def
     by (auto simp: map_prod_imageI)
   ultimately have "iso ?L ?R ?f" by (subst iso_iff3) (auto intro: osum_Well_order r s t)
   thus ?thesis unfolding ordIso_def by (auto intro: osum_Well_order r s t)
@@ -1269,7 +1269,7 @@ qed
 lemma ozero_oexp: "\<not> (s =o ozero) \<Longrightarrow> ozero ^o s =o ozero"
   unfolding oexp_def[OF ozero_Well_order s] FinFunc_def
   by simp (metis Func_emp2 bot.extremum_uniqueI emptyE well_order_on_domain s subrelI)
-      
+
 lemma oone_oexp: "oone ^o s =o oone" (is "?L =o ?R")
   by (rule oone_ordIso_oexp[OF ordIso_reflexive[OF oone_Well_order] s])
 
@@ -1490,7 +1490,7 @@ proof -
   thus ?thesis unfolding ordLeq_def2 by (fast intro: oexp_Well_order r s)
 qed
 
-lemma FinFunc_osum: 
+lemma FinFunc_osum:
   "fg \<in> FinFunc r (s +o t) = (fg o Inl \<in> FinFunc r s \<and> fg o Inr \<in> FinFunc r t)"
   (is "?L = (?R1 \<and> ?R2)")
 proof safe
@@ -1696,7 +1696,7 @@ next
         unfolding inj_on_def FinFunc_def Func_def Field_oprod rs.Field_oexp rev_curr_def[abs_def]
         by (auto simp: fun_eq_iff) metis
       show "rev_curr ` (FinFunc r (s *o t)) = FinFunc (r ^o s) t" by (rule rev_curr_FinFunc[OF Field])
-    qed               
+    qed
     moreover
     have "compat ?L ?R rev_curr"
     unfolding compat_def proof safe

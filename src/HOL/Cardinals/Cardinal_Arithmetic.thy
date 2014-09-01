@@ -219,7 +219,7 @@ by (rule ordLess_imp_ordLeq[OF Cinfinite_ordLess_cexp[OF assms]])
 lemma czero_cexp: "Cnotzero r \<Longrightarrow> czero ^c r =o czero"
   by (drule Cnotzero_imp_not_empty) (simp add: cexp_def czero_def card_of_empty_ordIso)
 
-lemma Func_singleton: 
+lemma Func_singleton:
 fixes x :: 'b and A :: "'a set"
 shows "|Func A {x}| =o |{x}|"
 proof (rule ordIso_symmetric)

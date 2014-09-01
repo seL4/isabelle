@@ -78,7 +78,7 @@ lemma Osum_Refl:
 assumes FLD: "Field r Int Field r' = {}" and
         REFL: "Refl r" and REFL': "Refl r'"
 shows "Refl (r Osum r')"
-using assms 
+using assms
 unfolding refl_on_def Field_Osum unfolding Osum_def by blast
 
 lemma Osum_trans:

@@ -8,7 +8,7 @@ Cardinal-order relations as needed by bounded natural functors.
 header {* Cardinal-Order Relations as Needed by Bounded Natural Functors *}
 
 theory BNF_Cardinal_Order_Relation
-imports Zorn BNF_Constructions_on_Wellorders
+imports Zorn BNF_Wellorder_Constructions
 begin
 
 text{* In this section, we define cardinal-order relations to be minim well-orders
