@@ -2,7 +2,10 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013, 2014
 
-Compatibility layer with the old datatype package.
+Compatibility layer with the old datatype package. Parly based on:
+
+    Title:      HOL/Tools/Old_Datatype/old_datatype_data.ML
+    Author:     Stefan Berghofer, TU Muenchen
 *)
 
 signature BNF_LFP_COMPAT =
@@ -239,16 +242,18 @@ fun the_descr thy unfold_nesting (T_names0 as T_name01 :: _) =
 
 fun get_constrs thy unfold_nesting T_name =
   try (the_spec thy unfold_nesting) T_name
-  |> Option.map (fn (Ts, ctrs) =>
-      let
-        fun subst (v, S) = TVar ((v, 0), S);
-        fun subst_ty (TFree v) = subst v
-          | subst_ty ty = ty;
-        val dataT = Type (T_name, map subst Ts);
-        fun mk_ctr_typ Ts = map (Term.map_atyps subst_ty) Ts ---> dataT;
-      in
-        map (apsnd mk_ctr_typ) ctrs
-      end);
+  |> Option.map (fn (tfrees, ctrs) =>
+    let
+      fun varify_tfree (s, S) = TVar ((s, 0), S);
+      fun varify_typ (TFree x) = varify_tfree x
+        | varify_typ T = T;
+
+      val dataT = Type (T_name, map varify_tfree tfrees);
+
+      fun mk_ctr_typ Ts = map (Term.map_atyps varify_typ) Ts ---> dataT;
+    in
+      map (apsnd mk_ctr_typ) ctrs
+    end);
 
 fun interpretation f thy = Old_Datatype_Data.interpretation f thy;
 

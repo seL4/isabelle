@@ -193,6 +193,30 @@ ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 
+datatype_new 'a l = N | C 'a "'a l"
+datatype_compat l
+
+datatype_new 'a m = P | D 'a "'a m l"
+and 'a n = Q
+datatype_compat l
+datatype_compat m n
+
+declare [[ML_exception_trace]]
+ML \<open>
+BNF_LFP_Compat.Datatype_Data.get_all @{theory} true
+|> Symtab.dest |> (fn xs => nth xs 4) |> snd |> #descr
+\<close>
+
+ML \<open>
+BNF_LFP_Compat.Datatype_Data.get_info @{theory} true @{type_name m}
+|> the |> #descr
+\<close>
+
+
+ML \<open>
+BNF_FP_Def_Sugar.fp_sugars_of @{context} |> tl |> hd |> #fp_res_index 
+\<close>
+
 hide_fact (open) id_transfer
 
 end
