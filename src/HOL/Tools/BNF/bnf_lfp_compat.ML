@@ -203,7 +203,7 @@ fun get_one get_old get_new thy nesting_pref x =
   end;
 
 fun get_info_of_new_datatype thy nesting_pref T_name =
-  let val lthy = Named_Target.theory_init thy in
+  let val lthy = Proof_Context.init_global thy in
     AList.lookup (op =) (infos_of_new_datatype_mutual_cluster lthy nesting_pref T_name) T_name
   end;
 

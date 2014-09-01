@@ -1,8 +1,8 @@
 theory Complex_Types
-imports SPARK
+imports "../SPARK"
 begin
 
-datatype day = Mon | Tue | Wed | Thu | Fri | Sat | Sun
+datatype_new day = Mon | Tue | Wed | Thu | Fri | Sat | Sun
 
 record two_fields =
   Field1 :: "int \<times> day \<Rightarrow> int"

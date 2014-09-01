@@ -1,6 +1,6 @@
 (*<*)
 theory Reference
-imports SPARK
+imports "../SPARK"
 begin
 
 syntax (my_constrain output)
