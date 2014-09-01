@@ -77,12 +77,14 @@ sig
   val rel_mono_of_bnf: bnf -> thm
   val rel_mono_strong0_of_bnf: bnf -> thm
   val rel_mono_strong_of_bnf: bnf -> thm
+  val rel_transfer_of_bnf: bnf -> thm
   val rel_eq_of_bnf: bnf -> thm
   val rel_flip_of_bnf: bnf -> thm
   val set_bd_of_bnf: bnf -> thm list
   val set_defs_of_bnf: bnf -> thm list
   val set_map0_of_bnf: bnf -> thm list
   val set_map_of_bnf: bnf -> thm list
+  val set_transfer_of_bnf: bnf -> thm list
   val wit_thms_of_bnf: bnf -> thm list
   val wit_thmss_of_bnf: bnf -> thm list list
 
@@ -242,16 +244,17 @@ type facts = {
   rel_mono: thm lazy,
   rel_mono_strong0: thm lazy,
   rel_mono_strong: thm lazy,
-  rel_transfer: thm lazy,
+  set_transfer: thm list lazy,
   rel_Grp: thm lazy,
   rel_conversep: thm lazy,
-  rel_OO: thm lazy
+  rel_OO: thm lazy,
+  rel_transfer: thm lazy
 };
 
 fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong in_mono in_rel
     inj_map inj_map_strong map_comp map_cong map_cong_simp map_id map_ident0 map_ident
     map_transfer rel_eq rel_flip set_map rel_cong rel_map rel_mono rel_mono_strong0 rel_mono_strong
-    rel_transfer rel_Grp rel_conversep rel_OO = {
+    rel_transfer rel_Grp rel_conversep rel_OO set_transfer = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
   bd_Cnotzero = bd_Cnotzero,
@@ -280,7 +283,8 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_con
   rel_transfer = rel_transfer,
   rel_Grp = rel_Grp,
   rel_conversep = rel_conversep,
-  rel_OO = rel_OO};
+  rel_OO = rel_OO,
+  set_transfer = set_transfer};
 
 fun map_facts f {
   bd_Card_order,
@@ -311,7 +315,8 @@ fun map_facts f {
   rel_transfer,
   rel_Grp,
   rel_conversep,
-  rel_OO} =
+  rel_OO,
+  set_transfer} =
   {bd_Card_order = f bd_Card_order,
     bd_Cinfinite = f bd_Cinfinite,
     bd_Cnotzero = f bd_Cnotzero,
@@ -340,7 +345,8 @@ fun map_facts f {
     rel_transfer = Lazy.map f rel_transfer,
     rel_Grp = Lazy.map f rel_Grp,
     rel_conversep = Lazy.map f rel_conversep,
-    rel_OO = Lazy.map f rel_OO};
+    rel_OO = Lazy.map f rel_OO,
+    set_transfer = Lazy.map (map f) set_transfer};
 
 val morph_facts = map_facts o Morphism.thm;
 
@@ -466,6 +472,7 @@ val set_bd_of_bnf = #set_bd o #axioms o rep_bnf;
 val set_defs_of_bnf = #set_defs o #defs o rep_bnf;
 val set_map0_of_bnf = #set_map0 o #axioms o rep_bnf;
 val set_map_of_bnf = map Lazy.force o #set_map o #facts o rep_bnf;
+val set_transfer_of_bnf = Lazy.force o #set_transfer o #facts o rep_bnf;
 val rel_cong_of_bnf = Lazy.force o #rel_cong o #facts o rep_bnf;
 val rel_mono_of_bnf = Lazy.force o #rel_mono o #facts o rep_bnf;
 val rel_mono_strong0_of_bnf = Lazy.force o #rel_mono_strong0 o #facts o rep_bnf;
@@ -640,6 +647,7 @@ val rel_flipN = "rel_flip";
 val set_map0N = "set_map0";
 val set_mapN = "set_map";
 val set_bdN = "set_bd";
+val set_transferN = "set_transfer"
 val rel_GrpN = "rel_Grp";
 val rel_conversepN = "rel_conversep";
 val rel_mapN = "rel_map"
@@ -718,7 +726,8 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (rel_mapN, Lazy.force (#rel_map facts), []),
            (rel_monoN, [Lazy.force (#rel_mono facts)], []),
            (rel_transferN, [Lazy.force (#rel_transfer facts)], []),
-           (set_mapN, map Lazy.force (#set_map facts), [])]
+           (set_mapN, map Lazy.force (#set_map facts), []),
+           (set_transferN, Lazy.force (#set_transfer facts), [])]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((qualify (Binding.qualify true (Binding.name_of bnf_b) (Binding.name thmN)), attrs),
@@ -1436,6 +1445,25 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         val rel_transfer = Lazy.lazy mk_rel_transfer;
 
+        fun mk_set_transfer () =
+          let
+            val rel_sets = map2 (fn A => fn B => mk_rel 1 [A] [B] @{term rel_set}) As' Bs';
+            val rel_Rs = Term.list_comb (rel, Rs);
+            val goals = map4 (fn R => fn rel_set => fn setA => fn setB => HOLogic.mk_Trueprop
+              (mk_rel_fun rel_Rs (rel_set $ R) $ setA $ setB)) Rs rel_sets bnf_sets_As bnf_sets_Bs;
+          in
+            if null goals then []
+            else
+              Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                (fn {context = ctxt, prems = _} =>
+                   mk_set_transfer_tac ctxt (Lazy.force in_rel) (map Lazy.force set_map))
+              |> Conjunction.elim_balanced (length goals)
+              |> Proof_Context.export names_lthy lthy
+              |> map Thm.close_derivation
+          end;
+
+        val set_transfer = Lazy.lazy mk_set_transfer;
+
         fun mk_inj_map_strong () =
           let
             val assms = map5 (fn setA => fn z => fn f => fn z' => fn f' =>
@@ -1465,7 +1493,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong
           in_mono in_rel inj_map inj_map_strong map_comp map_cong map_cong_simp map_id map_ident0
           map_ident map_transfer rel_eq rel_flip set_map rel_cong rel_map rel_mono rel_mono_strong0
-          rel_mono_strong rel_transfer rel_Grp rel_conversep rel_OO;
+          rel_mono_strong rel_transfer rel_Grp rel_conversep rel_OO set_transfer;
 
         val wits = map2 mk_witness bnf_wits wit_thms;
 

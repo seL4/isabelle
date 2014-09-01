@@ -18,6 +18,7 @@ sig
   val mk_map_comp: thm -> thm
   val mk_map_cong_tac: Proof.context -> thm -> tactic
   val mk_set_map: thm -> thm
+  val mk_set_transfer_tac: Proof.context -> thm -> thm list -> tactic
 
   val mk_rel_Grp_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_rel_eq_tac: int -> thm -> thm -> thm -> tactic
@@ -336,5 +337,16 @@ fun mk_in_bd_tac ctxt live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_ma
 fun mk_trivial_wit_tac ctxt wit_defs set_maps =
   unfold_thms_tac ctxt wit_defs THEN HEADGOAL (EVERY' (map (fn thm =>
     dtac (thm RS equalityD1 RS set_mp) THEN' etac imageE THEN' atac) set_maps)) THEN ALLGOALS atac;
+
+fun mk_set_transfer_tac ctxt in_rel set_maps =
+  Goal.conjunction_tac 1 THEN
+  EVERY (map (fn set_map => HEADGOAL (rtac @{thm rel_funI}) THEN
+  REPEAT_DETERM (HEADGOAL (eresolve_tac (Tactic.make_elim (in_rel RS iffD1) ::
+    @{thms exE conjE CollectE}))) THEN
+  HEADGOAL (hyp_subst_tac ctxt THEN' rtac (@{thm iffD2[OF arg_cong2]} OF [set_map, set_map]) THEN'
+    rtac @{thm rel_setI}) THEN
+  REPEAT (HEADGOAL (etac imageE THEN' dtac @{thm set_mp} THEN' atac THEN'
+    REPEAT_DETERM o (eresolve_tac @{thms CollectE case_prodE}) THEN' hyp_subst_tac ctxt THEN'
+    rtac bexI THEN' etac @{thm subst_Pair[OF _ refl]} THEN' etac imageI))) set_maps);
 
 end;

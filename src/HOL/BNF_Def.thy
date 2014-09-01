@@ -210,6 +210,9 @@ lemma convol_image_vimage2p: "\<langle>f \<circ> fst, g \<circ> snd\<rangle> ` C
 lemma vimage2p_Grp: "vimage2p f g P = Grp UNIV f OO P OO (Grp UNIV g)\<inverse>\<inverse>"
   unfolding vimage2p_def Grp_def by auto
 
+lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a) (snd a)"
+  by simp
+
 ML_file "Tools/BNF/bnf_util.ML"
 ML_file "Tools/BNF/bnf_tactics.ML"
 ML_file "Tools/BNF/bnf_def_tactics.ML"
