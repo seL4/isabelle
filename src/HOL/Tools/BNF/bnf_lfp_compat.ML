@@ -175,7 +175,7 @@ fun infos_of_new_datatype_mutual_cluster lthy fpT_name =
 
 fun get_all thy nesting_pref =
   let
-    val lthy = Named_Target.theory_init thy;
+    val lthy = Proof_Context.init_global thy;
     val old_info_tab = Old_Datatype_Data.get_all thy;
     val new_T_names = BNF_FP_Def_Sugar.fp_sugars_of_global thy
       |> map_filter (try (fn {T = Type (s, _), fp_res_index = 0, ...} => s));
