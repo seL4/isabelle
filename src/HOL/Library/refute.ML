@@ -575,10 +575,6 @@ fun unfold_defs thy t =
       | Const (@{const_name Groups.times}, Type ("fun", [@{typ nat},
           Type ("fun", [@{typ nat}, @{typ nat}])])) => t
       | Const (@{const_name append}, _) => t
-(* UNSOUND
-      | Const (@{const_name lfp}, _) => t
-      | Const (@{const_name gfp}, _) => t
-*)
       | Const (@{const_name fst}, _) => t
       | Const (@{const_name snd}, _) => t
       (* simply-typed lambda calculus *)
@@ -765,10 +761,6 @@ fun collect_axioms ctxt t =
         Type ("fun", [@{typ nat}, @{typ nat}])])) =>
           collect_type_axioms T axs
       | Const (@{const_name append}, T) => collect_type_axioms T axs
-(* UNSOUND
-      | Const (@{const_name lfp}, T) => collect_type_axioms T axs
-      | Const (@{const_name gfp}, T) => collect_type_axioms T axs
-*)
       | Const (@{const_name fst}, T) => collect_type_axioms T axs
       | Const (@{const_name snd}, T) => collect_type_axioms T axs
       (* simply-typed lambda calculus *)
@@ -2709,97 +2701,6 @@ fun List_append_interpreter ctxt model args t =
       end
   | _ => NONE;
 
-(* only an optimization: 'lfp' could in principle be interpreted with  *)
-(* interpreters available already (using its definition), but the code *)
-(* below is more efficient                                             *)
-
-fun lfp_interpreter ctxt model args t =
-  case t of
-    Const (@{const_name lfp}, Type ("fun", [Type ("fun",
-      [Type (@{type_name set}, [T]),
-       Type (@{type_name set}, [_])]),
-       Type (@{type_name set}, [_])])) =>
-      let
-        val size_elem = size_of_type ctxt model T
-        (* the universe (i.e. the set that contains every element) *)
-        val i_univ = Node (replicate size_elem TT)
-        (* all sets with elements from type 'T' *)
-        val i_sets = make_constants ctxt model (HOLogic.mk_setT T)
-        (* all functions that map sets to sets *)
-        val i_funs = make_constants ctxt model (Type ("fun",
-          [HOLogic.mk_setT T, HOLogic.mk_setT T]))
-        (* "lfp(f) == Inter({u. f(u) <= u})" *)
-        fun is_subset (Node subs, Node sups) =
-              forall (fn (sub, sup) => (sub = FF) orelse (sup = TT)) (subs ~~ sups)
-          | is_subset (_, _) =
-              raise REFUTE ("lfp_interpreter",
-                "is_subset: interpretation for set is not a node")
-        fun intersection (Node xs, Node ys) =
-              Node (map (fn (x, y) => if x=TT andalso y=TT then TT else FF)
-                (xs ~~ ys))
-          | intersection (_, _) =
-              raise REFUTE ("lfp_interpreter",
-                "intersection: interpretation for set is not a node")
-        fun lfp (Node resultsets) =
-              fold (fn (set, resultset) => fn acc =>
-                if is_subset (resultset, set) then
-                  intersection (acc, set)
-                else
-                  acc) (i_sets ~~ resultsets) i_univ
-          | lfp _ =
-              raise REFUTE ("lfp_interpreter",
-                "lfp: interpretation for function is not a node")
-      in
-        SOME (Node (map lfp i_funs), model, args)
-      end
-  | _ => NONE;
-
-(* only an optimization: 'gfp' could in principle be interpreted with  *)
-(* interpreters available already (using its definition), but the code *)
-(* below is more efficient                                             *)
-
-fun gfp_interpreter ctxt model args t =
-  case t of
-    Const (@{const_name gfp}, Type ("fun", [Type ("fun",
-      [Type (@{type_name set}, [T]),
-       Type (@{type_name set}, [_])]),
-       Type (@{type_name set}, [_])])) =>
-      let
-        val size_elem = size_of_type ctxt model T
-        (* the universe (i.e. the set that contains every element) *)
-        val i_univ = Node (replicate size_elem TT)
-        (* all sets with elements from type 'T' *)
-        val i_sets = make_constants ctxt model (HOLogic.mk_setT T)
-        (* all functions that map sets to sets *)
-        val i_funs = make_constants ctxt model (Type ("fun",
-          [HOLogic.mk_setT T, HOLogic.mk_setT T]))
-        (* "gfp(f) == Union({u. u <= f(u)})" *)
-        fun is_subset (Node subs, Node sups) =
-              forall (fn (sub, sup) => (sub = FF) orelse (sup = TT))
-                (subs ~~ sups)
-          | is_subset (_, _) =
-              raise REFUTE ("gfp_interpreter",
-                "is_subset: interpretation for set is not a node")
-        fun union (Node xs, Node ys) =
-              Node (map (fn (x,y) => if x=TT orelse y=TT then TT else FF)
-                   (xs ~~ ys))
-          | union (_, _) =
-              raise REFUTE ("gfp_interpreter",
-                "union: interpretation for set is not a node")
-        fun gfp (Node resultsets) =
-              fold (fn (set, resultset) => fn acc =>
-                if is_subset (set, resultset) then
-                  union (acc, set)
-                else
-                  acc) (i_sets ~~ resultsets) i_univ
-          | gfp _ =
-              raise REFUTE ("gfp_interpreter",
-                "gfp: interpretation for function is not a node")
-      in
-        SOME (Node (map gfp i_funs), model, args)
-      end
-  | _ => NONE;
-
 (* only an optimization: 'fst' could in principle be interpreted with  *)
 (* interpreters available already (using its definition), but the code *)
 (* below is more efficient                                             *)
@@ -3053,10 +2954,6 @@ val setup =
    add_interpreter "Nat_HOL.minus"      Nat_minus_interpreter #>
    add_interpreter "Nat_HOL.times"      Nat_times_interpreter #>
    add_interpreter "List.append" List_append_interpreter #>
-(* UNSOUND
-   add_interpreter "lfp" lfp_interpreter #>
-   add_interpreter "gfp" gfp_interpreter #>
-*)
    add_interpreter "Product_Type.prod.fst" Product_Type_fst_interpreter #>
    add_interpreter "Product_Type.prod.snd" Product_Type_snd_interpreter #>
    add_printer "stlc" stlc_printer #>
