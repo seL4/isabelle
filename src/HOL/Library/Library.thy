@@ -40,7 +40,6 @@ imports
   Multiset
   Numeral_Type
   NthRoot_Limits
-  Old_SMT
   OptionalSugar
   Option_ord
   Order_Continuity
