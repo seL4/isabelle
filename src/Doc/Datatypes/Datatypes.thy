@@ -972,6 +972,9 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{rel_mono}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]}
 
+\item[@{text "t."}\hthm{rel_transfer}\rm:] ~ \\
+@{thm list.rel_transfer[no_vars]}
+
 \end{description}
 \end{indentblock}
 *}
