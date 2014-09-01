@@ -28,6 +28,8 @@ sig
   val datatype_compat_cmd: string list -> local_theory -> local_theory
   val add_datatype: nesting_preference -> Old_Datatype_Aux.spec list -> theory ->
     string list * theory
+  val add_primrec: (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
+   local_theory -> (term list * thm list) * local_theory
 end;
 
 structure BNF_LFP_Compat : BNF_LFP_COMPAT =
@@ -364,6 +366,8 @@ fun add_datatype nesting_pref old_specs thy =
      |> Named_Target.exit
      |> nesting_pref = Unfold_Nesting ? perhaps (try (datatype_compat_global fpT_names)))
   end;
+
+val add_primrec = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "datatype_compat"}
