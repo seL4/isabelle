@@ -18,8 +18,8 @@ sig
     Old_Datatype_Aux.descr * (string * sort) list * string list * string
     * (string list * string list) * (typ list * typ list)
   val get_constrs: theory -> bool -> string -> (string * typ) list option
-  val interpretation: (Old_Datatype_Aux.config -> string list -> theory -> theory) -> theory ->
-    theory
+  val interpretation: bool -> (Old_Datatype_Aux.config -> string list -> theory -> theory) ->
+    theory -> theory
   val add_datatype: Old_Datatype_Aux.config -> Old_Datatype_Aux.spec list -> theory ->
     string list * theory
   val datatype_compat_cmd: string list -> local_theory -> local_theory
@@ -255,7 +255,23 @@ fun get_constrs thy unfold_nesting T_name =
       map (apsnd mk_ctr_typ) ctrs
     end);
 
-fun interpretation f thy = Old_Datatype_Data.interpretation f thy;
+fun old_interpretation_of unfold_nesting f config T_names thy =
+  if not unfold_nesting orelse exists (is_none o fp_sugar_of_global thy) T_names then
+    f config T_names thy
+  else
+    thy;
+
+fun new_interpretation_of unfold_nesting f fp_sugars thy =
+  let val T_names = map (fst o dest_Type o #T) fp_sugars in
+    if unfold_nesting orelse exists (is_none o Old_Datatype_Data.get_info thy) T_names then
+      f {strict = true, quiet = true} T_names thy
+    else
+      thy
+  end;
+
+fun interpretation unfold_nesting f =
+  Old_Datatype_Data.interpretation (old_interpretation_of unfold_nesting f)
+  #> fp_sugar_interpretation (new_interpretation_of unfold_nesting f);
 
 fun add_datatype config specs thy = ([], thy);
 
