@@ -1154,6 +1154,14 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val recs = map (Morphism.term phi) rec_frees;
     val rec_names = map (fst o dest_Const) recs;
+    fun mk_recs Ts passives actives =
+      let val Tactives = map2 (curry HOLogic.mk_prodT) Ts actives;
+      in 
+        map3 (fn name => fn T => fn active =>
+          Const (name, Library.foldr (op -->)
+            (map2 (curry op -->) (mk_FTs (passives @ Tactives)) actives, T --> active)))
+        rec_names Ts actives
+      end;
     fun mk_rec ss i = Term.list_comb (Const (nth rec_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, nth Ts (i - 1) --> range_type (fastype_of (nth ss (i - 1))))), ss);
     val rec_defs = map (fn def =>
@@ -1764,10 +1772,21 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
     val ctor_fold_transfer_thms =
-      mk_un_fold_transfer_thms Least_FP rels activephis Irels Iphis
+      mk_co_iter_transfer_thms Least_FP rels activephis activephis Irels Iphis
         (mk_folds passiveAs activeAs) (mk_folds passiveBs activeBs)
         (fn {context = ctxt, prems = _} => mk_fold_transfer_tac ctxt m Irel_induct_thm
           (map map_transfer_of_bnf bnfs) ctor_fold_thms)
+        lthy;
+
+    val rec_allAs = passiveAs @ map2 (curry HOLogic.mk_prodT) Ts activeAs;
+    val rec_allBs = passiveBs @ map2 (curry HOLogic.mk_prodT) Ts' activeBs;
+    val rec_rels = map2 (fn Ds => mk_rel_of_bnf Ds rec_allAs rec_allBs) Dss bnfs;
+    val rec_activephis =
+      map2 (fn Irel => mk_rel_prod (Term.list_comb (Irel, Iphis))) Irels activephis;
+    val ctor_rec_transfer_thms =
+      mk_co_iter_transfer_thms Least_FP rec_rels rec_activephis activephis Irels Iphis
+        (mk_recs Ts passiveAs activeAs) (mk_recs Ts' passiveBs activeBs)
+        (fn {context = ctxt, prems = _} => print_tac ctxt "xxx" THEN Skip_Proof.cheat_tac 1)
         lthy;
 
     val timer = time (timer "relator induction");

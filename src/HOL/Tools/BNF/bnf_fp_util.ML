@@ -138,6 +138,8 @@ sig
   val mk_proj: typ -> int -> int -> term
 
   val mk_convol: term * term -> term
+  val mk_rel_prod: term -> term -> term
+  val mk_rel_sum: term -> term -> term
 
   val Inl_const: typ -> typ -> term
   val Inr_const: typ -> typ -> term
@@ -174,9 +176,9 @@ sig
   val mk_rel_xtor_co_induct_thm: BNF_Util.fp_kind -> term list -> term list -> term list ->
     term list -> term list -> term list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm
-  val mk_un_fold_transfer_thms: BNF_Util.fp_kind -> term list -> term list -> term list ->
-    term list -> term list -> term list -> ({prems: thm list, context: Proof.context} -> tactic) ->
-    Proof.context -> thm list
+  val mk_co_iter_transfer_thms: BNF_Util.fp_kind -> term list -> term list -> term list ->
+    term list -> term list -> term list -> term list ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm list
   val mk_xtor_un_fold_o_map_thms: BNF_Util.fp_kind -> bool -> int -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list
 
@@ -376,6 +378,20 @@ fun mk_convol (f, g) =
     val convolT = fTU --> gTU --> gT --> HOLogic.mk_prodT (fU, gU);
   in Const (@{const_name convol}, convolT) $ f $ g end;
 
+fun mk_rel_prod R S =
+  let
+    val ((A1, A2), RT) = `dest_pred2T (fastype_of R);
+    val ((B1, B2), ST) = `dest_pred2T (fastype_of S);
+    val rel_prodT = RT --> ST --> mk_pred2T (HOLogic.mk_prodT (A1, B1)) (HOLogic.mk_prodT (A2, B2));
+  in Const (@{const_name rel_prod}, rel_prodT) $ R $ S end;
+
+fun mk_rel_sum R S =
+  let
+    val ((A1, A2), RT) = `dest_pred2T (fastype_of R);
+    val ((B1, B2), ST) = `dest_pred2T (fastype_of S);
+    val rel_sumT = RT --> ST --> mk_pred2T (mk_sumT (A1, B1)) (mk_sumT (A2, B2));
+  in Const (@{const_name rel_sum}, rel_sumT) $ R $ S end;
+
 fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
 fun mk_Inl RT t = Inl_const (fastype_of t) RT $ t;
 
@@ -498,18 +514,18 @@ fun mk_rel_xtor_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's 
     |> (fn thm => thm OF (replicate (length pre_rels) @{thm allI[OF allI[OF impI]]}))
   end;
 
-fun mk_un_fold_transfer_thms fp pre_rels pre_phis rels phis un_folds un_folds' tac lthy =
+fun mk_co_iter_transfer_thms fp pre_rels pre_iphis pre_ophis rels phis un_folds un_folds' tac lthy =
   let
-    val pre_relphis = map (fn rel => Term.list_comb (rel, phis @ pre_phis)) pre_rels;
+    val pre_relphis = map (fn rel => Term.list_comb (rel, phis @ pre_iphis)) pre_rels;
     val relphis = map (fn rel => Term.list_comb (rel, phis)) rels;
     fun flip f x y = if fp = Greatest_FP then f y x else f x y;
 
-    val arg_rels = map2 (flip mk_rel_fun) pre_relphis pre_phis;
+    val arg_rels = map2 (flip mk_rel_fun) pre_relphis pre_ophis;
     fun mk_transfer relphi pre_phi un_fold un_fold' =
       fold_rev mk_rel_fun arg_rels (flip mk_rel_fun relphi pre_phi) $ un_fold $ un_fold';
-    val transfers = map4 mk_transfer relphis pre_phis un_folds un_folds';
+    val transfers = map4 mk_transfer relphis pre_ophis un_folds un_folds';
 
-    val goal = fold_rev Logic.all (phis @ pre_phis)
+    val goal = fold_rev Logic.all (phis @ pre_ophis)
       (HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj transfers));
   in
     Goal.prove_sorry lthy [] [] goal tac

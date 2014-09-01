@@ -1541,6 +1541,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val corecs = map (Morphism.term phi) corec_frees;
     val corec_names = map (fst o dest_Const) corecs;
+    fun mk_corecs Ts passives actives =
+      let val Tactives = map2 (curry mk_sumT) Ts actives;
+      in
+        map3 (fn name => fn T => fn active =>
+          Const (name, Library.foldr (op -->)
+            (map2 (curry op -->) actives (mk_FTs (passives @ Tactives)), active --> T)))
+        corec_names Ts actives
+      end;
     fun mk_corec ss i = Term.list_comb (Const (nth corec_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, domain_type (fastype_of (nth ss (i - 1))) --> nth Ts (i - 1))), ss);
     val corec_defs = map (fn def =>
@@ -2474,14 +2482,25 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       sym_map_comps map_cong0s;
 
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
+    val Jrels = if m = 0 then map HOLogic.eq_const Ts
+      else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
 
     val dtor_unfold_transfer_thms =
-      mk_un_fold_transfer_thms Greatest_FP rels activephis
-        (if m = 0 then map HOLogic.eq_const Ts
-          else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs) Jphis
+      mk_co_iter_transfer_thms Greatest_FP rels activephis activephis Jrels Jphis
         (mk_unfolds passiveAs activeAs) (mk_unfolds passiveBs activeBs)
         (fn {context = ctxt, prems = _} => mk_unfold_transfer_tac ctxt m Jrel_coinduct_thm
           (map map_transfer_of_bnf bnfs) dtor_unfold_thms)
+        lthy;
+
+    val corec_allAs = passiveAs @ map2 (curry mk_sumT) Ts activeAs;
+    val corec_allBs = passiveBs @ map2 (curry mk_sumT) Ts' activeBs;
+    val corec_rels = map2 (fn Ds => mk_rel_of_bnf Ds corec_allAs corec_allBs) Dss bnfs;
+    val corec_activephis =
+      map2 (fn Jrel => mk_rel_sum (Term.list_comb (Jrel, Jphis))) Jrels activephis;
+    val dtor_corec_transfer_thms =
+      mk_co_iter_transfer_thms Greatest_FP corec_rels corec_activephis activephis Jrels Jphis
+        (mk_corecs Ts passiveAs activeAs) (mk_corecs Ts' passiveBs activeBs)
+        (fn {context = ctxt, prems = _} => print_tac ctxt "xxx" THEN Skip_Proof.cheat_tac 1)
         lthy;
 
     val timer = time (timer "relator coinduction");
