@@ -15,6 +15,7 @@ sig
   val morph_bnf: morphism -> bnf -> bnf
   val morph_bnf_defs: morphism -> bnf -> bnf
   val bnf_of: Proof.context -> string -> bnf option
+  val bnf_of_global: theory -> string -> bnf option
   val bnf_interpretation: (bnf -> theory -> theory) -> theory -> theory
   val register_bnf: string -> bnf -> local_theory -> local_theory
 
@@ -522,9 +523,12 @@ structure Data = Generic_Data
   fun merge data : T = Symtab.merge (K true) data;
 );
 
-fun bnf_of ctxt =
-  Symtab.lookup (Data.get (Context.Proof ctxt))
-  #> Option.map (morph_bnf (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)));
+fun bnf_of_generic context =
+  Option.map (morph_bnf (Morphism.transfer_morphism (Context.theory_of context)))
+  o Symtab.lookup (Data.get context);
+
+val bnf_of = bnf_of_generic o Context.Proof;
+val bnf_of_global = bnf_of_generic o Context.Theory;
 
 
 (* Utilities *)

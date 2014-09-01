@@ -9,7 +9,9 @@ Sugared datatype and codatatype constructions.
 signature BNF_FP_DEF_SUGAR =
 sig
   val fp_sugar_of: Proof.context -> string -> BNF_FP_Util.fp_sugar option
+  val fp_sugar_of_global: theory -> string -> BNF_FP_Util.fp_sugar option
   val fp_sugars_of: Proof.context -> BNF_FP_Util.fp_sugar list
+  val fp_sugars_of_global: theory -> BNF_FP_Util.fp_sugar list
   val fp_sugar_interpretation: (BNF_FP_Util.fp_sugar list -> theory -> theory) -> theory -> theory
   val register_fp_sugars: BNF_FP_Util.fp_sugar list -> local_theory -> local_theory
 
@@ -141,13 +143,17 @@ fun mk_parametricity_goal ctxt Rs t u =
 
 val name_of_set = name_of_const "set";
 
-fun fp_sugar_of ctxt =
-  Symtab.lookup (Data.get (Context.Proof ctxt))
-  #> Option.map (transfer_fp_sugar (Proof_Context.theory_of ctxt));
+fun fp_sugar_of_generic context =
+  Option.map (transfer_fp_sugar (Context.theory_of context)) o Symtab.lookup (Data.get context)
 
-fun fp_sugars_of ctxt =
-  Symtab.fold (cons o transfer_fp_sugar (Proof_Context.theory_of ctxt) o snd)
-    (Data.get (Context.Proof ctxt)) [];
+fun fp_sugars_of_generic context =
+  Symtab.fold (cons o transfer_fp_sugar (Context.theory_of context) o snd) (Data.get context) [];
+
+val fp_sugar_of = fp_sugar_of_generic o Context.Proof;
+val fp_sugar_of_global = fp_sugar_of_generic o Context.Theory;
+
+val fp_sugars_of = fp_sugars_of_generic o Context.Proof;
+val fp_sugars_of_global = fp_sugars_of_generic o Context.Theory;
 
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;

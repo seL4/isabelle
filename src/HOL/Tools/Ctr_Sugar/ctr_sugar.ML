@@ -38,8 +38,11 @@ sig
   val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
   val transfer_ctr_sugar: theory -> ctr_sugar -> ctr_sugar
   val ctr_sugar_of: Proof.context -> string -> ctr_sugar option
+  val ctr_sugar_of_global: theory -> string -> ctr_sugar option
   val ctr_sugars_of: Proof.context -> ctr_sugar list
+  val ctr_sugars_of_global: theory -> ctr_sugar list
   val ctr_sugar_of_case: Proof.context -> string -> ctr_sugar option
+  val ctr_sugar_of_case_global: theory -> string -> ctr_sugar option
   val ctr_sugar_interpretation: (ctr_sugar -> theory -> theory) -> theory -> theory
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
   val default_register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
@@ -148,16 +151,24 @@ structure Data = Generic_Data
   fun merge data : T = Symtab.merge (K true) data;
 );
 
-fun ctr_sugar_of ctxt =
-  Symtab.lookup (Data.get (Context.Proof ctxt))
-  #> Option.map (transfer_ctr_sugar (Proof_Context.theory_of ctxt));
+fun ctr_sugar_of_generic context =
+  Option.map (transfer_ctr_sugar (Context.theory_of context)) o Symtab.lookup (Data.get context);
 
-fun ctr_sugars_of ctxt =
-  Symtab.fold (cons o transfer_ctr_sugar (Proof_Context.theory_of ctxt) o snd)
-    (Data.get (Context.Proof ctxt)) [];
+fun ctr_sugars_of_generic context =
+  Symtab.fold (cons o transfer_ctr_sugar (Context.theory_of context) o snd) (Data.get context) [];
 
-fun ctr_sugar_of_case ctxt s =
-  find_first (fn {casex = Const (s', _), ...} => s' = s | _ => false) (ctr_sugars_of ctxt);
+fun ctr_sugar_of_case_generic context s =
+  find_first (fn {casex = Const (s', _), ...} => s' = s | _ => false)
+    (ctr_sugars_of_generic context);
+
+val ctr_sugar_of = ctr_sugar_of_generic o Context.Proof;
+val ctr_sugar_of_global = ctr_sugar_of_generic o Context.Theory;
+
+val ctr_sugars_of = ctr_sugars_of_generic o Context.Proof;
+val ctr_sugars_of_global = ctr_sugars_of_generic o Context.Theory;
+
+val ctr_sugar_of_case = ctr_sugar_of_case_generic o Context.Proof;
+val ctr_sugar_of_case_global = ctr_sugar_of_case_generic o Context.Theory;
 
 structure Ctr_Sugar_Interpretation = Interpretation
 (
