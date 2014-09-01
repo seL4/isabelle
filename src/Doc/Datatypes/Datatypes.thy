@@ -950,6 +950,9 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{map_ident}\rm:] ~ \\
 @{thm list.map_ident[no_vars]}
 
+\item[@{text "t."}\hthm{map_transfer}\rm:] ~ \\
+@{thm list.map_transfer[no_vars]}
+
 \item[@{text "t."}\hthm{rel_compp}\rm:] ~ \\
 @{thm list.rel_compp[no_vars]}
 
