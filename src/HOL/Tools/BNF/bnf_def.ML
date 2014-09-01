@@ -1045,8 +1045,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
       end;
 
     fun mk_map_cong_prem mk_implies x z set f f_copy =
-      Logic.all z (mk_implies
-        (mk_Trueprop_mem (z, set $ x), mk_Trueprop_eq (f $ z, f_copy $ z)));
+      Logic.all z (mk_implies (mk_Trueprop_mem (z, set $ x), mk_Trueprop_eq (f $ z, f_copy $ z)));
 
     val map_cong0_goal =
       let
@@ -1061,8 +1060,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
       let
         fun mk_goal setA setB f =
           let
-            val set_comp_map =
-              HOLogic.mk_comp (setB, Term.list_comb (bnf_map_AsBs, fs));
+            val set_comp_map = HOLogic.mk_comp (setB, Term.list_comb (bnf_map_AsBs, fs));
             val image_comp_set = HOLogic.mk_comp (mk_image f, setA);
           in
             fold_rev Logic.all fs (mk_Trueprop_eq (set_comp_map, image_comp_set))
@@ -1105,11 +1103,9 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             val z = nth zs i;
             val set_wit = nth bnf_sets_As i $ Term.list_comb (wit, xs);
             val concl = HOLogic.mk_Trueprop
-              (if member (op =) I i then HOLogic.mk_eq (z, nth bs i)
-              else @{term False});
+              (if member (op =) I i then HOLogic.mk_eq (z, nth bs i) else @{term False});
           in
-            fold_rev Logic.all (z :: xs)
-              (Logic.mk_implies (mk_Trueprop_mem (z, set_wit), concl))
+            fold_rev Logic.all (z :: xs) (Logic.mk_implies (mk_Trueprop_mem (z, set_wit), concl))
           end;
       in
         map wit_goal (0 upto live - 1)
@@ -1131,12 +1127,10 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         fun mk_collect_set_map () =
           let
             val defT = mk_bnf_T Ts Calpha --> HOLogic.mk_setT T;
-            val collect_map = HOLogic.mk_comp
-              (mk_collect (map (mk_bnf_t Ts) bnf_sets) defT,
+            val collect_map = HOLogic.mk_comp (mk_collect (map (mk_bnf_t Ts) bnf_sets) defT,
               Term.list_comb (mk_bnf_map As' Ts, hs));
             val image_collect = mk_collect
-              (map2 (fn h => fn set => HOLogic.mk_comp (mk_image h, set)) hs bnf_sets_As)
-              defT;
+              (map2 (fn h => fn set => HOLogic.mk_comp (mk_image h, set)) hs bnf_sets_As) defT;
             (*collect {set1 ... setm} o map f1 ... fm = collect {f1` o set1 ... fm` o setm}*)
             val goal = fold_rev Logic.all hs (mk_Trueprop_eq (collect_map, image_collect));
           in
