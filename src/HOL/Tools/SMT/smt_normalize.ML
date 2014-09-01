@@ -144,7 +144,7 @@ local
     | @{const HOL.implies} $ _ $ _ => dest_cond_eq (Thm.dest_arg ct)
     | _ => raise CTERM ("no equation", [ct]))
 
-  fun get_constrs thy (Type (n, _)) = these (Datatype_Data.get_constrs thy n)
+  fun get_constrs thy (Type (n, _)) = these (Old_Datatype_Data.get_constrs thy n)
     | get_constrs _ _ = []
 
   fun is_constr thy (n, T) =

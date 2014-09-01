@@ -23,9 +23,9 @@ sig
   val setup_bounded_forall_datatype_interpretation : theory -> theory
   val setup: theory -> theory
   
-  val instantiate_full_exhaustive_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
+  val instantiate_full_exhaustive_datatype : Old_Datatype_Aux.config -> Old_Datatype_Aux.descr ->
     (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
-  val instantiate_exhaustive_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
+  val instantiate_exhaustive_datatype : Old_Datatype_Aux.config -> Old_Datatype_Aux.descr ->
     (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
 
 end;
@@ -95,7 +95,7 @@ fun mk_equation_terms generics (descr, vs, Ts) =
   let
     val (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, exhaustives) = generics
     val rhss =
-      Datatype_Aux.interpret_construction descr vs
+      Old_Datatype_Aux.interpret_construction descr vs
         { atyp = mk_call, dtyp = mk_aux_call }
       |> (map o apfst) Type
       |> map (fn (T, cs) => map (mk_consexpr T) cs)
@@ -198,13 +198,13 @@ fun mk_full_equations functerms =
   
 fun contains_recursive_type_under_function_types xs =
   exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
-    (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype_Aux.DtRec _) => true | _ => false)))) xs
+    (case Old_Datatype_Aux.strip_dtyp dT of (_ :: _, Old_Datatype_Aux.DtRec _) => true | _ => false)))) xs
     
 fun instantiate_datatype (name, constprfx, sort, mk_equations, mk_T, argnames)
     config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   if not (contains_recursive_type_under_function_types descr) then
     let
-      val _ = Datatype_Aux.message config ("Creating " ^ name ^ "...")
+      val _ = Old_Datatype_Aux.message config ("Creating " ^ name ^ "...")
       val fullnames = map (prefix (constprfx ^ "_")) (names @ auxnames)
     in
       thy
@@ -215,7 +215,7 @@ fun instantiate_datatype (name, constprfx, sort, mk_equations, mk_T, argnames)
       |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
     end
   else
-    (Datatype_Aux.message config
+    (Old_Datatype_Aux.message config
       ("Creation of " ^ name ^ " failed because the datatype is recursive under a function type");
     thy)
 
@@ -254,7 +254,7 @@ fun mk_test_term lookup mk_closure mk_if mk_let none_t return ctxt =
   let
     val cnstrs = flat (maps
       (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
-      (Symtab.dest (Datatype_Data.get_all (Proof_Context.theory_of ctxt))))
+      (Symtab.dest (Old_Datatype_Data.get_all (Proof_Context.theory_of ctxt))))
     fun is_constrt (Const (s, T), ts) = (case (AList.lookup (op =) cnstrs s, body_type T) of
         (SOME (i, Tname), Type (Tname', _)) => length ts = i andalso Tname = Tname'
       | _ => false)
@@ -537,19 +537,19 @@ val setup_exhaustive_datatype_interpretation =
   Quickcheck_Common.datatype_interpretation (@{sort exhaustive}, instantiate_exhaustive_datatype)
 
 val setup_bounded_forall_datatype_interpretation =
-  Datatype_Data.interpretation (Quickcheck_Common.ensure_sort
+  Old_Datatype_Data.interpretation (Quickcheck_Common.ensure_sort
     (((@{sort type}, @{sort type}), @{sort bounded_forall}),
-    (Datatype_Data.the_descr, instantiate_bounded_forall_datatype)))
+    (Old_Datatype_Data.the_descr, instantiate_bounded_forall_datatype)))
 
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 
 val setup =
   Quickcheck_Common.datatype_interpretation (@{sort full_exhaustive}, instantiate_full_exhaustive_datatype)
-(* #> Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
+(* #> Old_Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
-  #> Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
+  #> Old_Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort fast_exhaustive}), instantiate_fast_exhaustive_datatype))
-  #> Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
+  #> Old_Datatype_Data.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))*)
   #> Context.theory_map (Quickcheck.add_tester ("exhaustive", (active, test_goals)))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))

@@ -38,19 +38,19 @@ fun gen_quickcheck_generator prep_tyco prep_term tyco_raw opt_pred_raw constrs_r
     val vs = map dest_TFree (snd (dest_Type (body_type (fastype_of (hd constrs)))))
     val name = Long_Name.base_name tyco 
     fun mk_dconstrs (Const (s, T)) =
-        (s, map (Datatype_Aux.dtyp_of_typ [(tyco, vs)]) (binder_types T))
+        (s, map (Old_Datatype_Aux.dtyp_of_typ [(tyco, vs)]) (binder_types T))
       | mk_dconstrs t = error (Syntax.string_of_term ctxt t ^
           " is not a valid constructor for quickcheck_generator, which expects a constant.")
     fun the_descr _ _ =
       let
-        val descr = [(0, (tyco, map Datatype_Aux.DtTFree vs, map mk_dconstrs constrs))]
+        val descr = [(0, (tyco, map Old_Datatype_Aux.DtTFree vs, map mk_dconstrs constrs))]
       in
         (descr, vs, [tyco], name, ([name], []), ([Type (tyco, map TFree vs)], []))
       end
     fun ensure_sort (sort, instantiate) =
       Quickcheck_Common.ensure_sort (((@{sort typerep}, @{sort term_of}), sort),
         (the_descr, instantiate))
-      Datatype_Aux.default_config [tyco]
+      Old_Datatype_Aux.default_config [tyco]
   in
     thy
     |> ensure_sort (@{sort full_exhaustive}, Exhaustive_Generators.instantiate_full_exhaustive_datatype)

@@ -162,7 +162,7 @@ fun mk_equations descr vs narrowings =
       in snd (fold mk_apply xs (Ts ---> simpleT, mk_cons c (Ts ---> simpleT))) end
     fun mk_rhs exprs = foldr1 mk_sum exprs
     val rhss =
-      Datatype_Aux.interpret_construction descr vs
+      Old_Datatype_Aux.interpret_construction descr vs
         { atyp = mk_call, dtyp = mk_aux_call }
       |> (map o apfst) Type
       |> map (fn (T, cs) => map (mk_consexpr T) cs)
@@ -175,11 +175,11 @@ fun mk_equations descr vs narrowings =
     
 fun contains_recursive_type_under_function_types xs =
   exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
-    (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype_Aux.DtRec _) => true | _ => false)))) xs
+    (case Old_Datatype_Aux.strip_dtyp dT of (_ :: _, Old_Datatype_Aux.DtRec _) => true | _ => false)))) xs
 
 fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
-    val _ = Datatype_Aux.message config "Creating narrowing generators ...";
+    val _ = Old_Datatype_Aux.message config "Creating narrowing generators ...";
     val narrowingsN = map (prefix (narrowingN ^ "_")) (names @ auxnames);
   in
     if not (contains_recursive_type_under_function_types descr) then

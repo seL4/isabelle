@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Datatype/datatype.ML
+(*  Title:      HOL/Tools/Old_Datatype/old_datatype.ML
     Author:     Stefan Berghofer, TU Muenchen
 
 Datatype package: definitional introduction of datatypes
@@ -7,7 +7,7 @@ of constructors and induction.  Main interface to datatypes
 after full bootstrap of datatype package.
 *)
 
-signature DATATYPE =
+signature OLD_DATATYPE =
 sig
   val distinct_lemma: thm
   type spec =
@@ -18,12 +18,12 @@ sig
     (binding * string list * mixfix) list
   val read_specs: spec_cmd list -> theory -> spec list * Proof.context
   val check_specs: spec list -> theory -> spec list * Proof.context
-  val add_datatype: Datatype_Aux.config -> spec list -> theory -> string list * theory
-  val add_datatype_cmd: Datatype_Aux.config -> spec_cmd list -> theory -> string list * theory
+  val add_datatype: Old_Datatype_Aux.config -> spec list -> theory -> string list * theory
+  val add_datatype_cmd: Old_Datatype_Aux.config -> spec_cmd list -> theory -> string list * theory
   val spec_cmd: spec_cmd parser
 end;
 
-structure Datatype : DATATYPE =
+structure Old_Datatype : OLD_DATATYPE =
 struct
 
 (** auxiliary **)
@@ -31,7 +31,7 @@ struct
 val distinct_lemma = @{lemma "f x \<noteq> f y ==> x \<noteq> y" by iprover};
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
-fun exh_thm_of (dt_info : Datatype_Aux.info Symtab.table) tname =
+fun exh_thm_of (dt_info : Old_Datatype_Aux.info Symtab.table) tname =
   #exhaust (the (Symtab.lookup dt_info tname));
 
 val In0_inject = @{thm In0_inject};
@@ -54,8 +54,9 @@ val datatype_injI =
 
 (** proof of characteristic theorems **)
 
-fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux.info Symtab.table)
-    descr types_syntax constr_syntax case_names_induct thy =
+fun representation_proofs (config : Old_Datatype_Aux.config)
+    (dt_info : Old_Datatype_Aux.info Symtab.table) descr types_syntax constr_syntax case_names_induct
+    thy =
   let
     val descr' = flat descr;
     val new_type_names = map (Binding.name_of o fst) types_syntax;
@@ -67,30 +68,30 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       else map (prefix (big_rec_name ^ "_") o string_of_int) (1 upto length descr');
     val rep_set_names = map (Sign.full_bname thy1) rep_set_names';
 
-    val tyvars = map (fn (_, (_, Ts, _)) => map Datatype_Aux.dest_DtTFree Ts) (hd descr);
-    val leafTs' = Datatype_Aux.get_nonrec_types descr';
-    val branchTs = Datatype_Aux.get_branching_types descr';
+    val tyvars = map (fn (_, (_, Ts, _)) => map Old_Datatype_Aux.dest_DtTFree Ts) (hd descr);
+    val leafTs' = Old_Datatype_Aux.get_nonrec_types descr';
+    val branchTs = Old_Datatype_Aux.get_branching_types descr';
     val branchT =
       if null branchTs then HOLogic.unitT
       else Balanced_Tree.make (fn (T, U) => Type (@{type_name Sum_Type.sum}, [T, U])) branchTs;
-    val arities = remove (op =) 0 (Datatype_Aux.get_arities descr');
+    val arities = remove (op =) 0 (Old_Datatype_Aux.get_arities descr');
     val unneeded_vars =
       subtract (op =) (fold Term.add_tfreesT (leafTs' @ branchTs) []) (hd tyvars);
     val leafTs = leafTs' @ map TFree unneeded_vars;
-    val recTs = Datatype_Aux.get_rec_types descr';
+    val recTs = Old_Datatype_Aux.get_rec_types descr';
     val (newTs, oldTs) = chop (length (hd descr)) recTs;
     val sumT =
       if null leafTs then HOLogic.unitT
       else Balanced_Tree.make (fn (T, U) => Type (@{type_name Sum_Type.sum}, [T, U])) leafTs;
-    val Univ_elT = HOLogic.mk_setT (Type (@{type_name Datatype.node}, [sumT, branchT]));
+    val Univ_elT = HOLogic.mk_setT (Type (@{type_name Old_Datatype.node}, [sumT, branchT]));
     val UnivT = HOLogic.mk_setT Univ_elT;
     val UnivT' = Univ_elT --> HOLogic.boolT;
     val Collect = Const (@{const_name Collect}, UnivT' --> UnivT);
 
-    val In0 = Const (@{const_name Datatype.In0}, Univ_elT --> Univ_elT);
-    val In1 = Const (@{const_name Datatype.In1}, Univ_elT --> Univ_elT);
-    val Leaf = Const (@{const_name Datatype.Leaf}, sumT --> Univ_elT);
-    val Lim = Const (@{const_name Datatype.Lim}, (branchT --> Univ_elT) --> Univ_elT);
+    val In0 = Const (@{const_name Old_Datatype.In0}, Univ_elT --> Univ_elT);
+    val In1 = Const (@{const_name Old_Datatype.In1}, Univ_elT --> Univ_elT);
+    val Leaf = Const (@{const_name Old_Datatype.Leaf}, sumT --> Univ_elT);
+    val Lim = Const (@{const_name Old_Datatype.Lim}, (branchT --> Univ_elT) --> Univ_elT);
 
     (* make injections needed for embedding types in leaves *)
 
@@ -116,7 +117,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         right = fn t => In1 $ t,
         init =
           if ts = [] then Const (@{const_name undefined}, Univ_elT)
-          else foldr1 (HOLogic.mk_binop @{const_name Datatype.Scons}) ts};
+          else foldr1 (HOLogic.mk_binop @{const_name Old_Datatype.Scons}) ts};
 
     (* function spaces *)
 
@@ -139,19 +140,20 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     (************** generate introduction rules for representing set **********)
 
-    val _ = Datatype_Aux.message config "Constructing representing sets ...";
+    val _ = Old_Datatype_Aux.message config "Constructing representing sets ...";
 
     (* make introduction rule for a single constructor *)
 
     fun make_intr s n (i, (_, cargs)) =
       let
         fun mk_prem dt (j, prems, ts) =
-          (case Datatype_Aux.strip_dtyp dt of
-            (dts, Datatype_Aux.DtRec k) =>
+          (case Old_Datatype_Aux.strip_dtyp dt of
+            (dts, Old_Datatype_Aux.DtRec k) =>
               let
-                val Ts = map (Datatype_Aux.typ_of_dtyp descr') dts;
+                val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr') dts;
                 val free_t =
-                  Datatype_Aux.app_bnds (Datatype_Aux.mk_Free "x" (Ts ---> Univ_elT) j) (length Ts)
+                  Old_Datatype_Aux.app_bnds (Old_Datatype_Aux.mk_Free "x" (Ts ---> Univ_elT) j)
+                    (length Ts)
               in
                 (j + 1, Logic.list_all (map (pair "x") Ts,
                   HOLogic.mk_Trueprop
@@ -159,8 +161,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                 mk_lim free_t Ts :: ts)
               end
           | _ =>
-              let val T = Datatype_Aux.typ_of_dtyp descr' dt
-              in (j + 1, prems, (Leaf $ mk_inj T (Datatype_Aux.mk_Free "x" T j)) :: ts) end);
+              let val T = Old_Datatype_Aux.typ_of_dtyp descr' dt
+              in (j + 1, prems, (Leaf $ mk_inj T (Old_Datatype_Aux.mk_Free "x" T j)) :: ts) end);
 
         val (_, prems, ts) = fold_rev mk_prem cargs (1, [], []);
         val concl = HOLogic.mk_Trueprop (Free (s, UnivT') $ mk_univ_inj ts n i);
@@ -214,19 +216,19 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       let
         fun constr_arg dt (j, l_args, r_args) =
           let
-            val T = Datatype_Aux.typ_of_dtyp descr' dt;
-            val free_t = Datatype_Aux.mk_Free "x" T j;
+            val T = Old_Datatype_Aux.typ_of_dtyp descr' dt;
+            val free_t = Old_Datatype_Aux.mk_Free "x" T j;
           in
-            (case (Datatype_Aux.strip_dtyp dt, strip_type T) of
-              ((_, Datatype_Aux.DtRec m), (Us, U)) =>
+            (case (Old_Datatype_Aux.strip_dtyp dt, strip_type T) of
+              ((_, Old_Datatype_Aux.DtRec m), (Us, U)) =>
                 (j + 1, free_t :: l_args, mk_lim
                   (Const (nth all_rep_names m, U --> Univ_elT) $
-                    Datatype_Aux.app_bnds free_t (length Us)) Us :: r_args)
+                    Old_Datatype_Aux.app_bnds free_t (length Us)) Us :: r_args)
             | _ => (j + 1, free_t :: l_args, (Leaf $ mk_inj T free_t) :: r_args))
           end;
 
         val (_, l_args, r_args) = fold_rev constr_arg cargs (1, [], []);
-        val constrT = map (Datatype_Aux.typ_of_dtyp descr') cargs ---> T;
+        val constrT = map (Old_Datatype_Aux.typ_of_dtyp descr') cargs ---> T;
         val ({Abs_name, Rep_name, ...}, _) = typedef;
         val lhs = list_comb (Const (cname, constrT), l_args);
         val rhs = mk_univ_inj r_args n i;
@@ -266,7 +268,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     (*********** isomorphisms for new types (introduced by typedef) ***********)
 
-    val _ = Datatype_Aux.message config "Proving isomorphism properties ...";
+    val _ = Old_Datatype_Aux.message config "Proving isomorphism properties ...";
 
     val collect_simp = rewrite_rule (Proof_Context.init_global thy4) [mk_meta_eq mem_Collect_eq];
 
@@ -291,32 +293,33 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     fun make_iso_def k ks n (cname, cargs) (fs, eqns, i) =
       let
-        val argTs = map (Datatype_Aux.typ_of_dtyp descr') cargs;
+        val argTs = map (Old_Datatype_Aux.typ_of_dtyp descr') cargs;
         val T = nth recTs k;
         val rep_const = Const (nth all_rep_names k, T --> Univ_elT);
         val constr = Const (cname, argTs ---> T);
 
         fun process_arg ks' dt (i2, i2', ts, Ts) =
           let
-            val T' = Datatype_Aux.typ_of_dtyp descr' dt;
+            val T' = Old_Datatype_Aux.typ_of_dtyp descr' dt;
             val (Us, U) = strip_type T'
           in
-            (case Datatype_Aux.strip_dtyp dt of
-              (_, Datatype_Aux.DtRec j) =>
+            (case Old_Datatype_Aux.strip_dtyp dt of
+              (_, Old_Datatype_Aux.DtRec j) =>
                 if member (op =) ks' j then
-                  (i2 + 1, i2' + 1, ts @ [mk_lim (Datatype_Aux.app_bnds
-                     (Datatype_Aux.mk_Free "y" (Us ---> Univ_elT) i2') (length Us)) Us],
+                  (i2 + 1, i2' + 1, ts @ [mk_lim (Old_Datatype_Aux.app_bnds
+                     (Old_Datatype_Aux.mk_Free "y" (Us ---> Univ_elT) i2') (length Us)) Us],
                    Ts @ [Us ---> Univ_elT])
                 else
                   (i2 + 1, i2', ts @ [mk_lim
                      (Const (nth all_rep_names j, U --> Univ_elT) $
-                        Datatype_Aux.app_bnds (Datatype_Aux.mk_Free "x" T' i2) (length Us)) Us], Ts)
-            | _ => (i2 + 1, i2', ts @ [Leaf $ mk_inj T' (Datatype_Aux.mk_Free "x" T' i2)], Ts))
+                        Old_Datatype_Aux.app_bnds
+                          (Old_Datatype_Aux.mk_Free "x" T' i2) (length Us)) Us], Ts)
+            | _ => (i2 + 1, i2', ts @ [Leaf $ mk_inj T' (Old_Datatype_Aux.mk_Free "x" T' i2)], Ts))
           end;
 
         val (i2, i2', ts, Ts) = fold (process_arg ks) cargs (1, 1, [], []);
-        val xs = map (uncurry (Datatype_Aux.mk_Free "x")) (argTs ~~ (1 upto (i2 - 1)));
-        val ys = map (uncurry (Datatype_Aux.mk_Free "y")) (Ts ~~ (1 upto (i2' - 1)));
+        val xs = map (uncurry (Old_Datatype_Aux.mk_Free "x")) (argTs ~~ (1 upto (i2 - 1)));
+        val ys = map (uncurry (Old_Datatype_Aux.mk_Free "y")) (Ts ~~ (1 upto (i2' - 1)));
         val f = fold_rev lambda (xs @ ys) (mk_univ_inj ts n i);
 
         val (_, _, ts', _) = fold (process_arg []) cargs (1, 1, [], []);
@@ -378,9 +381,9 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
             Goal.prove_sorry_global thy [] []
               (Logic.mk_implies
                 (HOLogic.mk_Trueprop (HOLogic.list_all
-                   (map (pair "x") Ts, S $ Datatype_Aux.app_bnds f i)),
+                   (map (pair "x") Ts, S $ Old_Datatype_Aux.app_bnds f i)),
                  HOLogic.mk_Trueprop (HOLogic.mk_eq (fold_rev (Term.abs o pair "x") Ts
-                   (r $ (a $ Datatype_Aux.app_bnds f i)), f))))
+                   (r $ (a $ Old_Datatype_Aux.app_bnds f i)), f))))
               (fn _ => EVERY [REPEAT_DETERM_N i (rtac @{thm ext} 1),
                  REPEAT (etac allE 1), rtac thm 1, atac 1])
           end
@@ -403,9 +406,9 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
             val rep_set_name = nth rep_set_names i;
             val concl1 =
               HOLogic.all_const T $ Abs ("y", T, HOLogic.imp $
-                HOLogic.mk_eq (Rep_t $ Datatype_Aux.mk_Free "x" T i, Rep_t $ Bound 0) $
-                  HOLogic.mk_eq (Datatype_Aux.mk_Free "x" T i, Bound 0));
-            val concl2 = Const (rep_set_name, UnivT') $ (Rep_t $ Datatype_Aux.mk_Free "x" T i);
+                HOLogic.mk_eq (Rep_t $ Old_Datatype_Aux.mk_Free "x" T i, Rep_t $ Bound 0) $
+                  HOLogic.mk_eq (Old_Datatype_Aux.mk_Free "x" T i, Bound 0));
+            val concl2 = Const (rep_set_name, UnivT') $ (Rep_t $ Old_Datatype_Aux.mk_Free "x" T i);
           in (concl1, concl2) end;
 
         val (ind_concl1, ind_concl2) = split_list (map mk_ind_concl ds);
@@ -415,12 +418,12 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
         val inj_thm =
           Goal.prove_sorry_global thy5 [] []
-            (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl1))
+            (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj ind_concl1))
             (fn {context = ctxt, ...} => EVERY
-              [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
+              [(Old_Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
                REPEAT (EVERY
                  [rtac allI 1, rtac impI 1,
-                  Datatype_Aux.exh_tac (exh_thm_of dt_info) 1,
+                  Old_Datatype_Aux.exh_tac (exh_thm_of dt_info) 1,
                   REPEAT (EVERY
                     [hyp_subst_tac ctxt 1,
                      rewrite_goals_tac ctxt rewrites,
@@ -437,19 +440,19 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                                Lim_inject :: inj_thms') @ fun_congs) 1),
                            atac 1]))])])])]);
 
-        val inj_thms'' = map (fn r => r RS datatype_injI) (Datatype_Aux.split_conj_thm inj_thm);
+        val inj_thms'' = map (fn r => r RS datatype_injI) (Old_Datatype_Aux.split_conj_thm inj_thm);
 
         val elem_thm =
           Goal.prove_sorry_global thy5 [] []
-            (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl2))
+            (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj ind_concl2))
             (fn {context = ctxt, ...} =>
               EVERY [
-                (Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
+                (Old_Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
                 rewrite_goals_tac ctxt rewrites,
                 REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
 
-      in (inj_thms'' @ inj_thms, elem_thms @ Datatype_Aux.split_conj_thm elem_thm) end;
+      in (inj_thms'' @ inj_thms, elem_thms @ Old_Datatype_Aux.split_conj_thm elem_thm) end;
 
     val (iso_inj_thms_unfolded, iso_elem_thms) =
       fold_rev prove_iso_thms (tl descr) ([], map #3 newT_iso_axms);
@@ -461,14 +464,14 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     fun mk_iso_t (((set_name, iso_name), i), T) =
       let val isoT = T --> Univ_elT in
         HOLogic.imp $
-          (Const (set_name, UnivT') $ Datatype_Aux.mk_Free "x" Univ_elT i) $
+          (Const (set_name, UnivT') $ Old_Datatype_Aux.mk_Free "x" Univ_elT i) $
             (if i < length newTs then @{term True}
-             else HOLogic.mk_mem (Datatype_Aux.mk_Free "x" Univ_elT i,
+             else HOLogic.mk_mem (Old_Datatype_Aux.mk_Free "x" Univ_elT i,
                Const (@{const_name image}, isoT --> HOLogic.mk_setT T --> UnivT) $
                  Const (iso_name, isoT) $ Const (@{const_abbrev UNIV}, HOLogic.mk_setT T)))
       end;
 
-    val iso_t = HOLogic.mk_Trueprop (Datatype_Aux.mk_conj (map mk_iso_t
+    val iso_t = HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj (map mk_iso_t
       (rep_set_names ~~ all_rep_names ~~ (0 upto (length descr' - 1)) ~~ recTs)));
 
     (* all the theorems are proved by one single simultaneous induction *)
@@ -478,9 +481,10 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val iso_thms =
       if length descr = 1 then []
       else
-        drop (length newTs) (Datatype_Aux.split_conj_thm
+        drop (length newTs) (Old_Datatype_Aux.split_conj_thm
           (Goal.prove_sorry_global thy5 [] [] iso_t (fn {context = ctxt, ...} => EVERY
-             [(Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
+             [(Old_Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW
+                 Object_Logic.atomize_prems_tac ctxt) 1,
               REPEAT (rtac TrueI 1),
               rewrite_goals_tac ctxt (mk_meta_eq @{thm choice_eq} ::
                 Thm.symmetric (mk_meta_eq @{thm fun_eq_iff}) :: range_eqs),
@@ -501,7 +505,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     (******************* freeness theorems for constructors *******************)
 
-    val _ = Datatype_Aux.message config "Proving freeness of constructors ...";
+    val _ = Old_Datatype_Aux.message config "Proving freeness of constructors ...";
 
     (* prove theorem  Rep_i (Constr_j ...) = Inj_j ...  *)
 
@@ -542,7 +546,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       in prove end;
 
     val distinct_thms =
-      map2 (prove_distinct_thms) dist_rewrites (Datatype_Prop.make_distincts descr);
+      map2 (prove_distinct_thms) dist_rewrites (Old_Datatype_Prop.make_distincts descr);
 
     (* prove injectivity of constructors *)
 
@@ -568,17 +572,17 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     val constr_inject =
       map (fn (ts, thms) => map (prove_constr_inj_thm thms) ts)
-        (Datatype_Prop.make_injs descr ~~ constr_rep_thms);
+        (Old_Datatype_Prop.make_injs descr ~~ constr_rep_thms);
 
     val ((constr_inject', distinct_thms'), thy6) =
       thy5
       |> Sign.parent_path
-      |> Datatype_Aux.store_thmss "inject" new_type_names constr_inject
-      ||>> Datatype_Aux.store_thmss "distinct" new_type_names distinct_thms;
+      |> Old_Datatype_Aux.store_thmss "inject" new_type_names constr_inject
+      ||>> Old_Datatype_Aux.store_thmss "distinct" new_type_names distinct_thms;
 
     (*************************** induction theorem ****************************)
 
-    val _ = Datatype_Aux.message config "Proving induction rule for datatypes ...";
+    val _ = Old_Datatype_Aux.message config "Proving induction rule for datatypes ...";
 
     val Rep_inverse_thms =
       map (fn (_, iso, _) => iso RS subst) newT_iso_axms @
@@ -587,7 +591,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     fun mk_indrule_lemma (i, _) T =
       let
-        val Rep_t = Const (nth all_rep_names i, T --> Univ_elT) $ Datatype_Aux.mk_Free "x" T i;
+        val Rep_t = Const (nth all_rep_names i, T --> Univ_elT) $ Old_Datatype_Aux.mk_Free "x" T i;
         val Abs_t =
           if i < length newTs then
             Const (#Abs_name (#1 (#2 (nth typedefs i))), Univ_elT --> T)
@@ -598,9 +602,10 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val prem =
           HOLogic.imp $
             (Const (nth rep_set_names i, UnivT') $ Rep_t) $
-              (Datatype_Aux.mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ (Abs_t $ Rep_t));
+              (Old_Datatype_Aux.mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ (Abs_t $ Rep_t));
         val concl =
-          Datatype_Aux.mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ Datatype_Aux.mk_Free "x" T i;
+          Old_Datatype_Aux.mk_Free "P" (T --> HOLogic.boolT) (i + 1) $
+            Old_Datatype_Aux.mk_Free "x" T i;
       in (prem, concl) end;
 
     val (indrule_lemma_prems, indrule_lemma_concls) =
@@ -611,8 +616,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val indrule_lemma =
       Goal.prove_sorry_global thy6 [] []
         (Logic.mk_implies
-          (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj indrule_lemma_prems),
-           HOLogic.mk_Trueprop (Datatype_Aux.mk_conj indrule_lemma_concls)))
+          (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj indrule_lemma_prems),
+           HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj indrule_lemma_concls)))
         (fn _ =>
           EVERY
            [REPEAT (etac conjE 1),
@@ -626,7 +631,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       else map (Free o apfst fst o dest_Var) Ps;
     val indrule_lemma' = cterm_instantiate (map cert Ps ~~ map cert frees) indrule_lemma;
 
-    val dt_induct_prop = Datatype_Prop.make_ind descr;
+    val dt_induct_prop = Old_Datatype_Prop.make_ind descr;
     val dt_induct =
       Goal.prove_sorry_global thy6 []
       (Logic.strip_imp_prems dt_induct_prop)
@@ -634,7 +639,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       (fn {context = ctxt, prems, ...} =>
         EVERY
           [rtac indrule_lemma' 1,
-           (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
+           (Old_Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW
+              Object_Logic.atomize_prems_tac ctxt) 1,
            EVERY (map (fn (prem, r) => (EVERY
              [REPEAT (eresolve_tac Abs_inverse_thms 1),
               simp_tac (put_simpset HOL_basic_ss ctxt
@@ -739,7 +745,7 @@ fun gen_add_datatype prep_specs config raw_specs thy =
               | vs => error ("Extra type variables on rhs: " ^ commas (map string_of_tyvar vs)));
             val c = Sign.full_name_path thy (Binding.name_of tname) cname;
           in
-            (constrs @ [(c, map (Datatype_Aux.dtyp_of_typ new_dts) cargs)],
+            (constrs @ [(c, map (Old_Datatype_Aux.dtyp_of_typ new_dts) cargs)],
               constr_syntax' @ [(cname, mx)])
           end handle ERROR msg =>
             cat_error msg ("The error above occurred in constructor " ^ Binding.print cname ^
@@ -749,7 +755,7 @@ fun gen_add_datatype prep_specs config raw_specs thy =
       in
         (case duplicates (op =) (map fst constrs') of
           [] =>
-            (dts' @ [(i, (Sign.full_name thy tname, map Datatype_Aux.DtTFree tvs, constrs'))],
+            (dts' @ [(i, (Sign.full_name thy tname, map Old_Datatype_Aux.DtTFree tvs, constrs'))],
               constr_syntax @ [constr_syntax'], i + 1)
         | dups =>
             error ("Duplicate constructors " ^ commas_quote dups ^
@@ -758,23 +764,23 @@ fun gen_add_datatype prep_specs config raw_specs thy =
 
     val (dts', constr_syntax, i) = fold prep_dt_spec dts ([], [], 0);
 
-    val dt_info = Datatype_Data.get_all thy;
-    val (descr, _) = Datatype_Aux.unfold_datatypes spec_ctxt dts' dt_info dts' i;
+    val dt_info = Old_Datatype_Data.get_all thy;
+    val (descr, _) = Old_Datatype_Aux.unfold_datatypes spec_ctxt dts' dt_info dts' i;
     val _ =
-      Datatype_Aux.check_nonempty descr
-        handle (exn as Datatype_Aux.Datatype_Empty s) =>
+      Old_Datatype_Aux.check_nonempty descr
+        handle (exn as Old_Datatype_Aux.Datatype_Empty s) =>
           if #strict config then error ("Nonemptiness check failed for datatype " ^ quote s)
           else reraise exn;
 
     val _ =
-      Datatype_Aux.message config
+      Old_Datatype_Aux.message config
         ("Constructing datatype(s) " ^ commas_quote (map (Binding.name_of o #1 o #1) dts));
   in
     thy
     |> representation_proofs config dt_info descr types_syntax constr_syntax
-      (Datatype_Data.mk_case_names_induct (flat descr))
+      (Old_Datatype_Data.mk_case_names_induct (flat descr))
     |-> (fn (inject, distinct, induct) =>
-      Rep_Datatype.derive_datatype_props config dt_names descr induct inject distinct)
+      Old_Rep_Datatype.derive_datatype_props config dt_names descr induct inject distinct)
   end;
 
 val add_datatype = gen_add_datatype check_specs;
@@ -791,9 +797,6 @@ val spec_cmd =
 val _ =
   Outer_Syntax.command @{command_spec "datatype"} "define inductive datatypes"
     (Parse.and_list1 spec_cmd
-      >> (Toplevel.theory o (snd oo add_datatype_cmd Datatype_Aux.default_config)));
-
-
-open Datatype_Data;
+      >> (Toplevel.theory o (snd oo add_datatype_cmd Old_Datatype_Aux.default_config)));
 
 end;

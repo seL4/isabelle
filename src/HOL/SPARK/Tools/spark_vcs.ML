@@ -173,8 +173,8 @@ fun assoc_ty_err thy T s msg =
 
 fun add_enum_type tyname tyname' thy =
   let
-    val {case_name, ...} = the (Datatype_Data.get_info thy tyname');
-    val cs = map Const (the (Datatype_Data.get_constrs thy tyname'));
+    val {case_name, ...} = the (Old_Datatype_Data.get_info thy tyname');
+    val cs = map Const (the (Old_Datatype_Data.get_constrs thy tyname'));
     val k = length cs;
     val T = Type (tyname', []);
     val p = Const (@{const_name pos}, T --> HOLogic.intT);
@@ -209,7 +209,7 @@ fun add_enum_type tyname tyname' thy =
       (fn _ =>
          rtac @{thm subset_antisym} 1 THEN
          rtac @{thm subsetI} 1 THEN
-         Datatype_Aux.exh_tac (K (#exhaust (Datatype_Data.the_info
+         Old_Datatype_Aux.exh_tac (K (#exhaust (Old_Datatype_Data.the_info
            (Proof_Context.theory_of lthy) tyname'))) 1 THEN
          ALLGOALS (asm_full_simp_tac lthy));
 
@@ -320,14 +320,14 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
                 val tyname = Sign.full_name thy tyb
               in
                 (thy |>
-                 Datatype.add_datatype {strict = true, quiet = true}
+                 Old_Datatype.add_datatype {strict = true, quiet = true}
                    [((tyb, [], NoSyn),
                      map (fn s => (Binding.name s, [], NoSyn)) els)] |> snd |>
                  add_enum_type s tyname,
                  tyname)
               end
           | SOME (T as Type (tyname, []), cmap) =>
-              (case Datatype_Data.get_constrs thy tyname of
+              (case Old_Datatype_Data.get_constrs thy tyname of
                  NONE => assoc_ty_err thy T s "is not a datatype"
                | SOME cs =>
                    let val (prfx', _) = strip_prfx s
@@ -338,7 +338,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
                      | SOME msg => assoc_ty_err thy T s msg
                    end)
           | SOME (T, _) => assoc_ty_err thy T s "is not a datatype");
-        val cs = map Const (the (Datatype_Data.get_constrs thy' tyname));
+        val cs = map Const (the (Old_Datatype_Data.get_constrs thy' tyname));
       in
         ((fold (Symtab.update_new o apsnd (rpair s)) (els ~~ cs) tab,
           fold Name.declare els ctxt),
@@ -888,7 +888,7 @@ fun add_type (s, (T as Type (tyname, Ts), cmap)) thy =
                 handle Symtab.DUP _ => error ("SPARK type " ^ s ^
                   " already associated with type")) |>
         (fn thy' =>
-           case Datatype_Data.get_constrs thy' tyname of
+           case Old_Datatype_Data.get_constrs thy' tyname of
              NONE => (case get_record_info thy' T of
                NONE => thy'
              | SOME {fields, ...} =>

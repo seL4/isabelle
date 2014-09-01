@@ -444,7 +444,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
       |> map (maps (map_filter (find_rec_calls has_call)));
 
     fun is_only_old_datatype (Type (s, _)) =
-        is_some (Datatype_Data.get_info thy s) andalso not (is_new_datatype lthy0 s)
+        is_some (Old_Datatype_Data.get_info thy s) andalso not (is_new_datatype lthy0 s)
       | is_only_old_datatype _ = false;
 
     val _ = if exists is_only_old_datatype arg_Ts then raise OLD_PRIMREC () else ();
@@ -561,8 +561,8 @@ fun gen_primrec old_primrec prep_spec opts
   end
   handle OLD_PRIMREC () => old_primrec raw_fixes raw_specs lthy |>> apsnd single;
 
-val add_primrec = gen_primrec Primrec.add_primrec Specification.check_spec [];
-val add_primrec_cmd = gen_primrec Primrec.add_primrec_cmd Specification.read_spec;
+val add_primrec = gen_primrec Old_Primrec.add_primrec Specification.check_spec [];
+val add_primrec_cmd = gen_primrec Old_Primrec.add_primrec_cmd Specification.read_spec;
 
 fun add_primrec_global fixes specs =
   Named_Target.theory_init

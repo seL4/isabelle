@@ -329,7 +329,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
     fun not_co_datatype0 T = error (qsoty T ^ " is not a " ^ co_prefix fp ^ "datatype");
     fun not_co_datatype (T as Type (s, _)) =
         if fp = Least_FP andalso
-           is_some (Datatype_Data.get_info (Proof_Context.theory_of lthy) s) then
+           is_some (Old_Datatype_Data.get_info (Proof_Context.theory_of lthy) s) then
           error (qsoty T ^ " is not a new-style datatype (cf. \"datatype_new\")")
         else
           not_co_datatype0 T

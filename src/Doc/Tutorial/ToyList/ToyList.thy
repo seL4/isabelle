@@ -1,5 +1,5 @@
 theory ToyList
-imports Datatype
+imports Old_Datatype
 begin
 
 text{*\noindent

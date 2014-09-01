@@ -205,8 +205,8 @@ ML_file "Tools/BNF/bnf_fp_n2m_tactics.ML"
 ML_file "Tools/BNF/bnf_fp_n2m.ML"
 ML_file "Tools/BNF/bnf_fp_n2m_sugar.ML"
 
-ML_file "Tools/Function/size.ML"
-setup Size.setup
+ML_file "Tools/Function/old_size.ML"
+setup Old_Size.setup
 
 lemma size_bool[code]: "size (b\<Colon>bool) = 0"
   by (cases b) auto

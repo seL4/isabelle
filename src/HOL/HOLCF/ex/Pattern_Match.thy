@@ -423,7 +423,7 @@ fun get_vars_avoiding
     : (term list * term list) =
   let
     val Ts = map snd args;
-    val ns = Name.variant_list taken (Datatype_Prop.make_tnames Ts);
+    val ns = Name.variant_list taken (Old_Datatype_Prop.make_tnames Ts);
     val vs = map Free (ns ~~ Ts);
     val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
   in
@@ -473,10 +473,10 @@ fun add_pattern_combinators
           val Ts = map snd args;
           val Vs =
               (map (K "'t") args)
-              |> Datatype_Prop.indexify_names
+              |> Old_Datatype_Prop.indexify_names
               |> Name.variant_list tns
               |> map (fn t => TFree (t, @{sort pcpo}));
-          val patNs = Datatype_Prop.indexify_names (map (K "pat") args);
+          val patNs = Old_Datatype_Prop.indexify_names (map (K "pat") args);
           val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
           val pats = map Free (patNs ~~ patTs);
           val fail = mk_fail (mk_tupleT Vs);
@@ -539,10 +539,10 @@ fun add_pattern_combinators
           val Ts = map snd args;
           val Vs =
               (map (K "'t") args)
-              |> Datatype_Prop.indexify_names
+              |> Old_Datatype_Prop.indexify_names
               |> Name.variant_list (rn::tns)
               |> map (fn t => TFree (t, @{sort pcpo}));
-          val patNs = Datatype_Prop.indexify_names (map (K "pat") args);
+          val patNs = Old_Datatype_Prop.indexify_names (map (K "pat") args);
           val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
           val pats = map Free (patNs ~~ patTs);
           val k = Free ("rhs", mk_tupleT Vs ->> R);

@@ -28,8 +28,9 @@ fun reindex_desc desc =
     val kks = map fst desc;
     val perm_kks = sort int_ord kks;
 
-    fun perm_dtyp (Datatype_Aux.DtType (s, Ds)) = Datatype_Aux.DtType (s, map perm_dtyp Ds)
-      | perm_dtyp (Datatype_Aux.DtRec kk) = Datatype_Aux.DtRec (find_index (curry (op =) kk) kks)
+    fun perm_dtyp (Old_Datatype_Aux.DtType (s, Ds)) = Old_Datatype_Aux.DtType (s, map perm_dtyp Ds)
+      | perm_dtyp (Old_Datatype_Aux.DtRec kk) =
+        Old_Datatype_Aux.DtRec (find_index (curry (op =) kk) kks)
       | perm_dtyp D = D
   in
     if perm_kks = kks then
@@ -68,7 +69,7 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
 
     val nn_fp = length fpTs;
 
-    val mk_dtyp = Datatype_Aux.dtyp_of_typ (map (apsnd (map Term.dest_TFree) o dest_Type) fpTs);
+    val mk_dtyp = Old_Datatype_Aux.dtyp_of_typ (map (apsnd (map Term.dest_TFree) o dest_Type) fpTs);
 
     fun mk_ctr_descr Ts = mk_ctr Ts #> dest_Const ##> (binder_types #> map mk_dtyp);
     fun mk_typ_descr index (Type (T_name, Ts)) ({ctrs, ...} : ctr_sugar) =
@@ -76,9 +77,9 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
 
     val fp_ctr_sugars = map (#ctr_sugar o lfp_sugar_of) fpT_names;
     val orig_descr = map3 mk_typ_descr (0 upto nn_fp - 1) fpTs fp_ctr_sugars;
-    val all_infos = Datatype_Data.get_all thy;
+    val all_infos = Old_Datatype_Data.get_all thy;
     val (orig_descr' :: nested_descrs, _) =
-      Datatype_Aux.unfold_datatypes lthy orig_descr all_infos orig_descr nn_fp;
+      Old_Datatype_Aux.unfold_datatypes lthy orig_descr all_infos orig_descr nn_fp;
 
     fun cliquify_descr [] = []
       | cliquify_descr [entry] = [[entry]]
@@ -90,7 +91,7 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
             else
               (case Symtab.lookup all_infos T_name1 of
                 SOME {descr, ...} =>
-                length (filter_out (exists Datatype_Aux.is_rec_type o #2 o snd) descr)
+                length (filter_out (exists Old_Datatype_Aux.is_rec_type o #2 o snd) descr)
               | NONE => raise Fail "unknown old-style datatype");
         in
           chop nn full_descr ||> cliquify_descr |> op ::
@@ -102,15 +103,15 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
       split_list (flat (map_index (fn (i, descr) => map (pair i) descr)
         (maps cliquify_descr descrs)));
 
-    val dest_dtyp = Datatype_Aux.typ_of_dtyp descr;
+    val dest_dtyp = Old_Datatype_Aux.typ_of_dtyp descr;
 
-    val Ts = Datatype_Aux.get_rec_types descr;
+    val Ts = Old_Datatype_Aux.get_rec_types descr;
     val nn = length Ts;
 
     val fp_sugars0 = map (lfp_sugar_of o fst o dest_Type) Ts;
     val ctr_Tsss = map (map (map dest_dtyp o snd) o #3 o snd) descr;
     val kkssss =
-      map (map (map (fn Datatype_Aux.DtRec kk => [kk] | _ => []) o snd) o #3 o snd) descr;
+      map (map (map (fn Old_Datatype_Aux.DtRec kk => [kk] | _ => []) o snd) o #3 o snd) descr;
 
     val callers = map (fn kk => Var ((Name.uu, kk), @{typ "unit => unit"})) (0 upto nn - 1);
 
@@ -175,8 +176,8 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
         end);
 
     val register_interpret =
-      Datatype_Data.register infos
-      #> Datatype_Data.interpretation_data (Datatype_Aux.default_config, map fst infos)
+      Old_Datatype_Data.register infos
+      #> Old_Datatype_Data.interpretation_data (Old_Datatype_Aux.default_config, map fst infos)
   in
     lthy
     |> Local_Theory.raw_theory register_interpret

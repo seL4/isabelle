@@ -1,11 +1,11 @@
-(*  Title:      HOL/Datatype.thy
+(*  Title:      HOL/Old_Datatype.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 
-header {* Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
+header {* Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
 
-theory Datatype
+theory Old_Datatype
 imports Product_Type Sum_Type Nat
 keywords "datatype" :: thy_decl
 begin
@@ -499,8 +499,7 @@ lemmas dprod_subset_Sigma = subset_trans [OF dprod_mono dprod_Sigma]
 
 (*Dependent version*)
 lemma dprod_subset_Sigma2:
-     "(dprod (Sigma A B) (Sigma C D)) <=
-      Sigma (uprod A C) (Split (%x y. uprod (B x) (D y)))"
+    "(dprod (Sigma A B) (Sigma C D)) <= Sigma (uprod A C) (Split (%x y. uprod (B x) (D y)))"
 by auto
 
 lemma dsum_Sigma: "(dsum (A <*> B) (C <*> D)) <= (usum A C) <*> (usum B D)"
@@ -513,12 +512,12 @@ text {* hides popular names *}
 hide_type (open) node item
 hide_const (open) Push Node Atom Leaf Numb Lim Split Case
 
-ML_file "Tools/Datatype/datatype.ML"
+ML_file "Tools/Old_Datatype/old_datatype.ML"
 
 ML_file "Tools/inductive_realizer.ML"
 setup InductiveRealizer.setup
 
-ML_file "Tools/Datatype/datatype_realizer.ML"
-setup Datatype_Realizer.setup
+ML_file "Tools/Old_Datatype/old_datatype_realizer.ML"
+setup Old_Datatype_Realizer.setup
 
 end

@@ -1,15 +1,15 @@
-(*  Title:      HOL/Tools/Function/size.ML
+(*  Title:      HOL/Tools/Function/old_size.ML
     Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 
-Size functions for datatypes.
+Size functions for old-style datatypes.
 *)
 
-signature SIZE =
+signature OLD_SIZE =
 sig
   val setup: theory -> theory
 end;
 
-structure Size: SIZE =
+structure Old_Size: OLD_SIZE =
 struct
 
 fun plus (t1, t2) = Const (@{const_name Groups.plus},
@@ -29,19 +29,19 @@ and size_of_type' f g h T = (case size_of_type f g h T of
       NONE => Abs ("x", T, HOLogic.zero)
     | SOME t => t);
 
-fun is_poly thy (Datatype_Aux.DtType (name, dts)) =
+fun is_poly thy (Old_Datatype_Aux.DtType (name, dts)) =
       is_some (BNF_LFP_Size.lookup_size_global thy name) andalso exists (is_poly thy) dts
   | is_poly _ _ = true;
 
 fun constrs_of thy name =
   let
-    val {descr, index, ...} = Datatype_Data.the_info thy name
+    val {descr, index, ...} = Old_Datatype_Data.the_info thy name
     val SOME (_, _, constrs) = AList.lookup op = descr index
   in constrs end;
 
 val app = curry (list_comb o swap);
 
-fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
+fun prove_size_thms (info : Old_Datatype_Aux.info) new_type_names thy =
   let
     val {descr, rec_names, rec_rewrites, induct, ...} = info;
     val l = length new_type_names;
@@ -53,10 +53,10 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
       thy
     else
       let
-        val recTs = Datatype_Aux.get_rec_types descr;
+        val recTs = Old_Datatype_Aux.get_rec_types descr;
         val (recTs1, recTs2) = chop l recTs;
         val (_, (_, paramdts, _)) :: _ = descr;
-        val paramTs = map (Datatype_Aux.typ_of_dtyp descr) paramdts;
+        val paramTs = map (Old_Datatype_Aux.typ_of_dtyp descr) paramdts;
         val ((param_size_fs, param_size_fTs), f_names) = paramTs |>
           map (fn T as TFree (s, _) =>
             let
@@ -87,10 +87,10 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
         (* instantiation for primrec combinator *)
         fun size_of_constr b size_ofp ((_, cargs), (_, cargs')) =
           let
-            val Ts = map (Datatype_Aux.typ_of_dtyp descr) cargs;
-            val k = length (filter Datatype_Aux.is_rec_type cargs);
+            val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr) cargs;
+            val k = length (filter Old_Datatype_Aux.is_rec_type cargs);
             val (ts, _, _) = fold_rev (fn ((dt, dt'), T) => fn (us, i, j) =>
-              if Datatype_Aux.is_rec_type dt then (Bound i :: us, i + 1, j + 1)
+              if Old_Datatype_Aux.is_rec_type dt then (Bound i :: us, i + 1, j + 1)
               else
                 (if b andalso is_poly thy dt' then
                    case size_of_type (K NONE) extra_size size_ofp T of
@@ -152,12 +152,12 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
 
         fun prove_unfolded_size_eqs size_ofp fs =
           if null recTs2 then []
-          else Datatype_Aux.split_conj_thm (Goal.prove_sorry ctxt xs []
-            (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj (replicate l @{term True} @
+          else Old_Datatype_Aux.split_conj_thm (Goal.prove_sorry ctxt xs []
+            (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj (replicate l @{term True} @
                map (mk_unfolded_size_eq (AList.lookup op =
                    (new_type_names ~~ map (app fs) rec_combs1)) size_ofp fs)
                  (xs ~~ recTs2 ~~ rec_combs2))))
-            (fn _ => (Datatype_Aux.ind_tac induct xs THEN_ALL_NEW asm_simp_tac simpset1) 1));
+            (fn _ => (Old_Datatype_Aux.ind_tac induct xs THEN_ALL_NEW asm_simp_tac simpset1) 1));
 
         val unfolded_size_eqs1 = prove_unfolded_size_eqs param_size fs;
         val unfolded_size_eqs2 = prove_unfolded_size_eqs (K NONE) fs';
@@ -165,8 +165,8 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
         (* characteristic equations for size functions *)
         fun gen_mk_size_eq p size_of size_ofp size_const T (cname, cargs) =
           let
-            val Ts = map (Datatype_Aux.typ_of_dtyp descr) cargs;
-            val tnames = Name.variant_list f_names (Datatype_Prop.make_tnames Ts);
+            val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr) cargs;
+            val tnames = Name.variant_list f_names (Old_Datatype_Prop.make_tnames Ts);
             val ts = map_filter (fn (sT as (_, T), dt) =>
               Option.map (fn sz => sz $ Free sT)
                 (if p dt then size_of_type size_of extra_size size_ofp T
@@ -195,7 +195,7 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
             (descr' ~~ size_fns ~~ recTs1);
 
         val size_eqns = prove_size_eqs (is_poly thy') size_fns param_size simpset2 @
-          prove_size_eqs Datatype_Aux.is_rec_type overloaded_size_fns (K NONE) simpset3;
+          prove_size_eqs Old_Datatype_Aux.is_rec_type overloaded_size_fns (K NONE) simpset3;
 
         val ([(_, size_thms)], thy'') = thy'
           |> Global_Theory.note_thmss ""
@@ -214,11 +214,11 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
 
 fun add_size_thms _ (new_type_names as name :: _) thy =
   let
-    val info as {descr, ...} = Datatype_Data.the_info thy name;
+    val info as {descr, ...} = Old_Datatype_Data.the_info thy name;
     val prefix = space_implode "_" (map Long_Name.base_name new_type_names);
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
-      Datatype_Aux.is_rec_type dt andalso
-        not (null (fst (Datatype_Aux.strip_dtyp dt)))) cargs) constrs) descr
+      Old_Datatype_Aux.is_rec_type dt andalso
+        not (null (fst (Old_Datatype_Aux.strip_dtyp dt)))) cargs) constrs) descr
   in
     if no_size then thy
     else
@@ -228,6 +228,6 @@ fun add_size_thms _ (new_type_names as name :: _) thy =
       |> Sign.restore_naming thy
   end;
 
-val setup = Datatype_Data.interpretation add_size_thms;
+val setup = Old_Datatype_Data.interpretation add_size_thms;
 
 end;

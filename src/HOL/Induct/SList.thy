@@ -59,8 +59,8 @@ typedef 'a list = "List :: 'a item set"
   morphisms Rep_List Abs_List
   unfolding List_def by (blast intro: list.NIL_I)
 
-abbreviation "Case == Datatype.Case"
-abbreviation "Split == Datatype.Split"
+abbreviation "Case == Old_Datatype.Case"
+abbreviation "Split == Old_Datatype.Split"
 
 definition
   List_case :: "['b, ['a item, 'a item]=>'b, 'a item] => 'b" where

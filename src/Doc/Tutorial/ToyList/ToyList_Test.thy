@@ -1,5 +1,5 @@
 theory ToyList_Test
-imports Datatype
+imports Old_Datatype
 begin
 
 ML {*
@@ -10,4 +10,3 @@ ML {*
 *}
 
 end
-

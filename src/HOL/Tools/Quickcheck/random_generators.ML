@@ -16,7 +16,7 @@ sig
     -> Proof.context -> Proof.context
   val put_counterexample_report: (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> ((bool * term list) option * (bool list * bool)) * seed)
     -> Proof.context -> Proof.context
-  val instantiate_random_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
+  val instantiate_random_datatype : Old_Datatype_Aux.config -> Old_Datatype_Aux.descr ->
     (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
   val setup: theory -> theory
 end;
@@ -97,7 +97,7 @@ fun random_aux_primrec eq lthy =
     val eqs0 = [subst_v @{term "0::natural"} eq,
       subst_v (@{const Code_Numeral.Suc} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
-    val ((_, (_, eqs2)), lthy') = Primrec.add_primrec_simple
+    val ((_, (_, eqs2)), lthy') = Old_Primrec.add_primrec_simple
       [((Binding.conceal (Binding.name random_aux), T), NoSyn)] eqs1 lthy;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;
@@ -204,10 +204,10 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
               mk_const @{const_name random_fun_lift} [fTs ---> T, fT] $
                 mk_random_fun_lift fTs t;
         val t = mk_random_fun_lift fTs (nth random_auxs k $ size_pred $ size');
-        val size = Option.map snd (Datatype_Aux.find_shortest_path descr k)
+        val size = Option.map snd (Old_Datatype_Aux.find_shortest_path descr k)
           |> the_default 0;
       in (SOME size, (t, fTs ---> T)) end;
-    val tss = Datatype_Aux.interpret_construction descr vs
+    val tss = Old_Datatype_Aux.interpret_construction descr vs
       { atyp = mk_random_call, dtyp = mk_random_aux_call };
     fun mk_consexpr simpleT (c, xs) =
       let
@@ -245,9 +245,9 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
 
 fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
-    val _ = Datatype_Aux.message config "Creating quickcheck generators ...";
+    val _ = Old_Datatype_Aux.message config "Creating quickcheck generators ...";
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
-    fun mk_size_arg k = case Datatype_Aux.find_shortest_path descr k
+    fun mk_size_arg k = case Old_Datatype_Aux.find_shortest_path descr k
      of SOME (_, l) => if l = 0 then size
           else @{term "max :: natural \<Rightarrow> natural \<Rightarrow> natural"}
             $ HOLogic.mk_number @{typ natural} l $ size

@@ -10,9 +10,9 @@ theory Sexp
 imports Main
 begin
 
-type_synonym 'a item = "'a Datatype.item"
-abbreviation "Leaf == Datatype.Leaf"
-abbreviation "Numb == Datatype.Numb"
+type_synonym 'a item = "'a Old_Datatype.item"
+abbreviation "Leaf == Old_Datatype.Leaf"
+abbreviation "Numb == Old_Datatype.Numb"
 
 inductive_set
   sexp      :: "'a item set"

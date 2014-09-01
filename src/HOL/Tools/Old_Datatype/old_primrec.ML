@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Datatype/primrec.ML
+(*  Title:      HOL/Tools/Old_Datatype/old_primrec.ML
     Author:     Norbert Voelker, FernUni Hagen
     Author:     Stefan Berghofer, TU Muenchen
     Author:     Florian Haftmann, TU Muenchen
@@ -6,7 +6,7 @@
 Primitive recursive functions on datatypes.
 *)
 
-signature PRIMREC =
+signature OLD_PRIMREC =
 sig
   val add_primrec: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> (term list * thm list) * local_theory
@@ -21,7 +21,7 @@ sig
     local_theory -> (string * (term list * thm list)) * local_theory
 end;
 
-structure Primrec : PRIMREC =
+structure Old_Primrec : OLD_PRIMREC =
 struct
 
 exception PrimrecError of string * term option;
@@ -145,12 +145,12 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
             (fnames', fnss', (Const (@{const_name undefined}, dummyT)) :: fns))
       | SOME (ls, cargs', rs, rhs, eq) =>
           let
-            val recs = filter (Datatype_Aux.is_rec_type o snd) (cargs' ~~ cargs);
+            val recs = filter (Old_Datatype_Aux.is_rec_type o snd) (cargs' ~~ cargs);
             val rargs = map fst recs;
             val subs = map (rpair dummyT o fst)
               (rev (Term.rename_wrt_term rhs rargs));
             val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
-              (Free x, (Datatype_Aux.body_index y, Free z))) recs subs) rhs (fnames', fnss')
+              (Free x, (Old_Datatype_Aux.body_index y, Free z))) recs subs) rhs (fnames', fnss')
                 handle PrimrecError (s, NONE) => primrec_error_eqn s eq
           in
             (fnames'', fnss'', fold_rev absfree (cargs' @ subs @ ls @ rs) rhs' :: fns)
@@ -182,7 +182,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
     NONE =>
       let
         val dummy_fns = map (fn (_, cargs) => Const (@{const_name undefined},
-          replicate (length cargs + length (filter Datatype_Aux.is_rec_type cargs))
+          replicate (length cargs + length (filter Old_Datatype_Aux.is_rec_type cargs))
             dummyT ---> HOLogic.unitT)) constrs;
         val _ = warning ("No function definition for datatype " ^ quote tname)
       in
@@ -210,7 +210,7 @@ fun find_dts _ _ [] = []
   | find_dts dt_info tnames' (tname :: tnames) =
       (case Symtab.lookup dt_info tname of
         NONE => primrec_error (quote tname ^ " is not a datatype")
-      | SOME (dt : Datatype_Aux.info) =>
+      | SOME (dt : Old_Datatype_Aux.info) =>
           if subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
             (tname, dt) :: (find_dts dt_info tnames' tnames)
           else find_dts dt_info tnames' tnames);
@@ -223,7 +223,7 @@ fun distill ctxt fixes eqs =
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed ctxt v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) eqs [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
-    val dts = find_dts (Datatype_Data.get_all (Proof_Context.theory_of ctxt)) tnames tnames;
+    val dts = find_dts (Old_Datatype_Data.get_all (Proof_Context.theory_of ctxt)) tnames tnames;
     val main_fns = map (fn (tname, {index, ...}) =>
       (index, (fst o the o find_first (fn (_, x) => #1 x = tname)) eqns)) dts;
     val {descr, rec_names, rec_rewrites, ...} =

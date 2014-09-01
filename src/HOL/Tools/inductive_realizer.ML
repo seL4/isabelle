@@ -247,7 +247,7 @@ fun add_dummies f [] _ thy =
       thy
       |> f (map snd dts)
       |-> (fn dtinfo => pair (map fst dts, SOME dtinfo))
-    handle Datatype_Aux.Datatype_Empty name' =>
+    handle Old_Datatype_Aux.Datatype_Empty name' =>
       let
         val name = Long_Name.base_name name';
         val dname = singleton (Name.variant_list used) "Dummy";
@@ -308,15 +308,15 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 
     val ((dummies, some_dt_names), thy2) =
       thy1
-      |> add_dummies (Datatype.add_datatype {strict = false, quiet = false})
+      |> add_dummies (Old_Datatype.add_datatype {strict = false, quiet = false})
         (map (pair false) dts) []
       ||> Extraction.add_typeof_eqns_i ty_eqs
       ||> Extraction.add_realizes_eqns_i rlz_eqs;
     val dt_names = these some_dt_names;
-    val case_thms = map (#case_rewrites o Datatype_Data.the_info thy2) dt_names;
+    val case_thms = map (#case_rewrites o Old_Datatype_Data.the_info thy2) dt_names;
     val rec_thms =
       if null dt_names then []
-      else #rec_rewrites (Datatype_Data.the_info thy2 (hd dt_names));
+      else #rec_rewrites (Old_Datatype_Data.the_info thy2 (hd dt_names));
     val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) rec_thms);
     val (constrss, _) = fold_map (fn (s, rs) => fn (recs, dummies) =>
@@ -402,7 +402,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
           (Long_Name.qualify qualifier "induct" :: vs' @ Ps @ ["correctness"])), thm) thy;
         val thms = map (fn th => zero_var_indexes (rotate_prems ~1 (th RS mp)))
-          (Datatype_Aux.split_conj_thm thm');
+          (Old_Datatype_Aux.split_conj_thm thm');
         val ([thms'], thy'') = Global_Theory.add_thmss
           [((Binding.qualified_name (space_implode "_"
              (Long_Name.qualify qualifier "inducts" :: vs' @ Ps @

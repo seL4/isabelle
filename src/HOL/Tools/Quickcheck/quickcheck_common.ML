@@ -23,15 +23,15 @@ sig
   val generator_test_goal_terms :
     generator -> Proof.context -> bool -> (string * typ) list
       -> (term * term list) list -> Quickcheck.result list
-  type instantiation = Datatype_Aux.config -> Datatype_Aux.descr -> (string * sort) list
+  type instantiation = Old_Datatype_Aux.config -> Old_Datatype_Aux.descr -> (string * sort) list
      -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
   val ensure_sort :
     (((sort * sort) * sort) *
-      ((theory -> string list -> Datatype_Aux.descr * (string * sort) list * string list
+      ((theory -> string list -> Old_Datatype_Aux.descr * (string * sort) list * string list
         * string * (string list * string list) * (typ list * typ list)) * instantiation))
-    -> Datatype_Aux.config -> string list -> theory -> theory
+    -> Old_Datatype_Aux.config -> string list -> theory -> theory
   val ensure_common_sort_datatype :
-    (sort * instantiation) -> Datatype_Aux.config -> string list -> theory -> theory
+    (sort * instantiation) -> Old_Datatype_Aux.config -> string list -> theory -> theory
   val datatype_interpretation : (sort * instantiation) -> theory -> theory
   val gen_mk_parametric_generator_expr :
    (((Proof.context -> term * term list -> term) * term) * typ)
@@ -387,7 +387,7 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
 
 (** ensuring sort constraints **)
 
-type instantiation = Datatype_Aux.config -> Datatype_Aux.descr -> (string * sort) list
+type instantiation = Old_Datatype_Aux.config -> Old_Datatype_Aux.descr -> (string * sort) list
   -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
 
 fun perhaps_constrain thy insts raw_vs =
@@ -406,7 +406,7 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
     val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) = the_descr thy raw_tycos
     val vs = (map o apsnd) (curry (Sorts.inter_sort algebra) sort_vs) raw_vs
     fun insts_of sort constr = (map (rpair sort) o flat o maps snd o maps snd)
-      (Datatype_Aux.interpret_construction descr vs constr)
+      (Old_Datatype_Aux.interpret_construction descr vs constr)
     val insts = insts_of sort { atyp = single, dtyp = (K o K o K) [] }
       @ insts_of aux_sort { atyp = K [], dtyp = K o K }
     val has_inst = exists (fn tyco => Sorts.has_instance algebra tyco sort) tycos;
@@ -419,9 +419,9 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
   end;
 
 fun ensure_common_sort_datatype (sort, instantiate) =
-  ensure_sort (((@{sort typerep}, @{sort term_of}), sort), (Datatype_Data.the_descr, instantiate))
+  ensure_sort (((@{sort typerep}, @{sort term_of}), sort), (Old_Datatype_Data.the_descr, instantiate))
 
-val datatype_interpretation = Datatype_Data.interpretation o ensure_common_sort_datatype
+val datatype_interpretation = Old_Datatype_Data.interpretation o ensure_common_sort_datatype
   
 (** generic parametric compilation **)
 

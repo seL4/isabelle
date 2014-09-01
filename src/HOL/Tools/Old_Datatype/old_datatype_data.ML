@@ -1,12 +1,12 @@
-(*  Title:      HOL/Tools/Datatype/datatype_data.ML
+(*  Title:      HOL/Tools/Old_Datatype/old_datatype_data.ML
     Author:     Stefan Berghofer, TU Muenchen
 
 Datatype package bookkeeping.
 *)
 
-signature DATATYPE_DATA =
+signature OLD_DATATYPE_DATA =
 sig
-  include DATATYPE_COMMON
+  include OLD_DATATYPE_COMMON
 
   val get_all : theory -> info Symtab.table
   val get_info : theory -> string -> info option
@@ -28,7 +28,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure Datatype_Data: DATATYPE_DATA =
+structure Old_Datatype_Data: OLD_DATATYPE_DATA =
 struct
 
 (** theory data **)
@@ -38,9 +38,9 @@ struct
 structure Data = Theory_Data
 (
   type T =
-    {types: Datatype_Aux.info Symtab.table,
-     constrs: (string * Datatype_Aux.info) list Symtab.table,
-     cases: Datatype_Aux.info Symtab.table};
+    {types: Old_Datatype_Aux.info Symtab.table,
+     constrs: (string * Old_Datatype_Aux.info) list Symtab.table,
+     cases: Old_Datatype_Aux.info Symtab.table};
 
   val empty =
     {types = Symtab.empty, constrs = Symtab.empty, cases = Symtab.empty};
@@ -96,7 +96,7 @@ fun case_of_case_rewrite case_rewrite =
   head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of case_rewrite))));
 
 fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case_cong,
-    case_cong_weak, split, split_asm, ...} : Datatype_Aux.info) =
+    case_cong_weak, split, split_asm, ...} : Old_Datatype_Aux.info) =
   {ctrs = ctrs_of_exhaust exhaust,
    casex = case_of_case_rewrite (hd case_rewrites),
    discs = [],
@@ -143,8 +143,8 @@ fun the_spec thy dtco =
   let
     val {descr, index, ...} = the_info thy dtco;
     val (_, dtys, raw_cos) = the (AList.lookup (op =) descr index);
-    val args = map Datatype_Aux.dest_DtTFree dtys;
-    val cos = map (fn (co, tys) => (co, map (Datatype_Aux.typ_of_dtyp descr) tys)) raw_cos;
+    val args = map Old_Datatype_Aux.dest_DtTFree dtys;
+    val cos = map (fn (co, tys) => (co, map (Old_Datatype_Aux.typ_of_dtyp descr) tys)) raw_cos;
   in (args, cos) end;
 
 fun the_descr thy (raw_tycos as raw_tyco :: _) =
@@ -153,15 +153,15 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
     val descr = #descr info;
 
     val (_, dtys, _) = the (AList.lookup (op =) descr (#index info));
-    val vs = map Datatype_Aux.dest_DtTFree dtys;
+    val vs = map Old_Datatype_Aux.dest_DtTFree dtys;
 
-    fun is_DtTFree (Datatype_Aux.DtTFree _) = true
+    fun is_DtTFree (Old_Datatype_Aux.DtTFree _) = true
       | is_DtTFree _ = false;
     val k = find_index (fn (_, (_, dTs, _)) => not (forall is_DtTFree dTs)) descr;
     val protoTs as (dataTs, _) =
       chop k descr
       |> (pairself o map)
-        (fn (_, (tyco, dTs, _)) => (tyco, map (Datatype_Aux.typ_of_dtyp descr) dTs));
+        (fn (_, (tyco, dTs, _)) => (tyco, map (Old_Datatype_Aux.typ_of_dtyp descr) dTs));
 
     val tycos = map fst dataTs;
     val _ =
@@ -175,7 +175,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
     val names = map Long_Name.base_name tycos;
     val (auxnames, _) =
       Name.make_context names
-      |> fold_map (Name.variant o Datatype_Aux.name_of_typ) Us;
+      |> fold_map (Name.variant o Old_Datatype_Aux.name_of_typ) Us;
     val prefix = space_implode "_" names;
 
   in (descr, vs, tycos, prefix, (names, auxnames), (Ts, Us)) end;
@@ -207,18 +207,18 @@ fun get_constrs thy dtco =
 
 local
 
-fun dt_recs (Datatype_Aux.DtTFree _) = []
-  | dt_recs (Datatype_Aux.DtType (_, dts)) = maps dt_recs dts
-  | dt_recs (Datatype_Aux.DtRec i) = [i];
+fun dt_recs (Old_Datatype_Aux.DtTFree _) = []
+  | dt_recs (Old_Datatype_Aux.DtType (_, dts)) = maps dt_recs dts
+  | dt_recs (Old_Datatype_Aux.DtRec i) = [i];
 
-fun dt_cases (descr: Datatype_Aux.descr) (_, args, constrs) =
+fun dt_cases (descr: Old_Datatype_Aux.descr) (_, args, constrs) =
   let
     fun the_bname i = Long_Name.base_name (#1 (the (AList.lookup (op =) descr i)));
     val bnames = map the_bname (distinct (op =) (maps dt_recs args));
   in map (fn (c, _) => space_implode "_" (Long_Name.base_name c :: bnames)) constrs end;
 
 fun induct_cases descr =
-  Datatype_Prop.indexify_names (maps (dt_cases descr) (map #2 descr));
+  Old_Datatype_Prop.indexify_names (maps (dt_cases descr) (map #2 descr));
 
 fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
 
@@ -265,7 +265,7 @@ val antiq_setup =
 
 structure Datatype_Interpretation = Interpretation
 (
-  type T = Datatype_Aux.config * string list;
+  type T = Old_Datatype_Aux.config * string list;
   val eq: T * T -> bool = eq_snd (op =);
 );
 
@@ -287,6 +287,6 @@ val setup =
   antiq_setup #>
   Datatype_Interpretation.init;
 
-open Datatype_Aux;
+open Old_Datatype_Aux;
 
 end;

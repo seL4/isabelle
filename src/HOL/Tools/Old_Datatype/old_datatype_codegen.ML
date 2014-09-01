@@ -1,14 +1,14 @@
-(*  Title:      HOL/Tools/Datatype/datatype_codegen.ML
+(*  Title:      HOL/Tools/Old_Datatype/old_datatype_codegen.ML
     Author:     Stefan Berghofer and Florian Haftmann, TU Muenchen
 
 Code generator facilities for inductive datatypes.
 *)
 
-signature DATATYPE_CODEGEN =
+signature OLD_DATATYPE_CODEGEN =
 sig
 end;
 
-structure Datatype_Codegen : DATATYPE_CODEGEN =
+structure Old_Datatype_Codegen : OLD_DATATYPE_CODEGEN =
 struct
 
 fun add_code_for_datatype fcT_name thy =
@@ -20,6 +20,6 @@ fun add_code_for_datatype fcT_name thy =
     Ctr_Sugar_Code.add_ctr_code fcT_name As (map dest_Const ctrs) injects distincts case_thms thy
   end;
 
-val _ = Theory.setup (Datatype_Data.interpretation (K (fold add_code_for_datatype)));
+val _ = Theory.setup (Old_Datatype_Data.interpretation (K (fold add_code_for_datatype)));
 
 end;

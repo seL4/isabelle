@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/Datatype/datatype_aux.ML
+(*  Title:      HOL/Tools/Old_Datatype/old_datatype_aux.ML
     Author:     Stefan Berghofer, TU Muenchen
 
 Datatype package: auxiliary data structures and functions.
 *)
 
-signature DATATYPE_COMMON =
+signature OLD_DATATYPE_COMMON =
 sig
   type config = {strict : bool, quiet : bool}
   val default_config : config
@@ -32,9 +32,9 @@ sig
     split_asm: thm}
 end
 
-signature DATATYPE_AUX =
+signature OLD_DATATYPE_AUX =
 sig
-  include DATATYPE_COMMON
+  include OLD_DATATYPE_COMMON
 
   val message : config -> string -> unit
 
@@ -79,7 +79,7 @@ sig
   val find_shortest_path : descr -> int -> (string * int) option
 end;
 
-structure Datatype_Aux : DATATYPE_AUX =
+structure Old_Datatype_Aux : OLD_DATATYPE_AUX =
 struct
 
 (* datatype option flags *)

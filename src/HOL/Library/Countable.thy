@@ -173,29 +173,29 @@ qed
 
 subsection {* Automatically proving countability of datatypes *}
 
-inductive finite_item :: "'a Datatype.item \<Rightarrow> bool" where
+inductive finite_item :: "'a Old_Datatype.item \<Rightarrow> bool" where
   undefined: "finite_item undefined"
-| In0: "finite_item x \<Longrightarrow> finite_item (Datatype.In0 x)"
-| In1: "finite_item x \<Longrightarrow> finite_item (Datatype.In1 x)"
-| Leaf: "finite_item (Datatype.Leaf a)"
-| Scons: "\<lbrakk>finite_item x; finite_item y\<rbrakk> \<Longrightarrow> finite_item (Datatype.Scons x y)"
+| In0: "finite_item x \<Longrightarrow> finite_item (Old_Datatype.In0 x)"
+| In1: "finite_item x \<Longrightarrow> finite_item (Old_Datatype.In1 x)"
+| Leaf: "finite_item (Old_Datatype.Leaf a)"
+| Scons: "\<lbrakk>finite_item x; finite_item y\<rbrakk> \<Longrightarrow> finite_item (Old_Datatype.Scons x y)"
 
 function
-  nth_item :: "nat \<Rightarrow> ('a::countable) Datatype.item"
+  nth_item :: "nat \<Rightarrow> ('a::countable) Old_Datatype.item"
 where
   "nth_item 0 = undefined"
 | "nth_item (Suc n) =
   (case sum_decode n of
     Inl i \<Rightarrow>
     (case sum_decode i of
-      Inl j \<Rightarrow> Datatype.In0 (nth_item j)
-    | Inr j \<Rightarrow> Datatype.In1 (nth_item j))
+      Inl j \<Rightarrow> Old_Datatype.In0 (nth_item j)
+    | Inr j \<Rightarrow> Old_Datatype.In1 (nth_item j))
   | Inr i \<Rightarrow>
     (case sum_decode i of
-      Inl j \<Rightarrow> Datatype.Leaf (from_nat j)
+      Inl j \<Rightarrow> Old_Datatype.Leaf (from_nat j)
     | Inr j \<Rightarrow>
       (case prod_decode j of
-        (a, b) \<Rightarrow> Datatype.Scons (nth_item a) (nth_item b))))"
+        (a, b) \<Rightarrow> Old_Datatype.Scons (nth_item a) (nth_item b))))"
 by pat_completeness auto
 
 lemma le_sum_encode_Inl: "x \<le> y \<Longrightarrow> x \<le> sum_encode (Inl y)"
@@ -218,33 +218,31 @@ proof (induct set: finite_item)
 next
   case (In0 x)
   then obtain n where "nth_item n = x" by fast
-  hence "nth_item (Suc (sum_encode (Inl (sum_encode (Inl n)))))
-    = Datatype.In0 x" by simp
+  hence "nth_item (Suc (sum_encode (Inl (sum_encode (Inl n))))) = Old_Datatype.In0 x" by simp
   thus ?case ..
 next
   case (In1 x)
   then obtain n where "nth_item n = x" by fast
-  hence "nth_item (Suc (sum_encode (Inl (sum_encode (Inr n)))))
-    = Datatype.In1 x" by simp
+  hence "nth_item (Suc (sum_encode (Inl (sum_encode (Inr n))))) = Old_Datatype.In1 x" by simp
   thus ?case ..
 next
   case (Leaf a)
-  have "nth_item (Suc (sum_encode (Inr (sum_encode (Inl (to_nat a))))))
-    = Datatype.Leaf a" by simp
+  have "nth_item (Suc (sum_encode (Inr (sum_encode (Inl (to_nat a)))))) = Old_Datatype.Leaf a"
+    by simp
   thus ?case ..
 next
   case (Scons x y)
   then obtain i j where "nth_item i = x" and "nth_item j = y" by fast
   hence "nth_item
-    (Suc (sum_encode (Inr (sum_encode (Inr (prod_encode (i, j)))))))
-      = Datatype.Scons x y" by simp
+    (Suc (sum_encode (Inr (sum_encode (Inr (prod_encode (i, j))))))) = Old_Datatype.Scons x y"
+    by simp
   thus ?case ..
 qed
 
 theorem countable_datatype:
-  fixes Rep :: "'b \<Rightarrow> ('a::countable) Datatype.item"
-  fixes Abs :: "('a::countable) Datatype.item \<Rightarrow> 'b"
-  fixes rep_set :: "('a::countable) Datatype.item \<Rightarrow> bool"
+  fixes Rep :: "'b \<Rightarrow> ('a::countable) Old_Datatype.item"
+  fixes Abs :: "('a::countable) Old_Datatype.item \<Rightarrow> 'b"
+  fixes rep_set :: "('a::countable) Old_Datatype.item \<Rightarrow> bool"
   assumes type: "type_definition Rep Abs (Collect rep_set)"
   assumes finite_item: "\<And>x. rep_set x \<Longrightarrow> finite_item x"
   shows "OFCLASS('b, countable_class)"

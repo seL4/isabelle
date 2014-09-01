@@ -80,6 +80,6 @@ datatype fnky = Fnky "nat tre"
 datatype_new tree = Tree "tree foo"
 datatype_compat tree
 
-ML {* Datatype_Data.get_info @{theory} @{type_name tree} *}
+ML {* Old_Datatype_Data.get_info @{theory} @{type_name tree} *}
 
 end

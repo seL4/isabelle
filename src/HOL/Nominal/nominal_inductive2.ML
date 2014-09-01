@@ -261,7 +261,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
       in abs_params params' prem end) prems);
 
     val ind_vars =
-      (Datatype_Prop.indexify_names (replicate (length atomTs) "pi") ~~
+      (Old_Datatype_Prop.indexify_names (replicate (length atomTs) "pi") ~~
        map NominalAtoms.mk_permT atomTs) @ [("z", fsT)];
     val ind_Ts = rev (map snd ind_vars);
 

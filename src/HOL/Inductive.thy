@@ -271,12 +271,12 @@ subsection {* Inductive datatypes and primitive recursion *}
 
 text {* Package setup. *}
 
-ML_file "Tools/Datatype/datatype_aux.ML"
-ML_file "Tools/Datatype/datatype_prop.ML"
-ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
-ML_file "Tools/Datatype/rep_datatype.ML"
-ML_file "Tools/Datatype/datatype_codegen.ML"
-ML_file "Tools/Datatype/primrec.ML"
+ML_file "Tools/Old_Datatype/old_datatype_aux.ML"
+ML_file "Tools/Old_Datatype/old_datatype_prop.ML"
+ML_file "Tools/Old_Datatype/old_datatype_data.ML" setup Old_Datatype_Data.setup
+ML_file "Tools/Old_Datatype/old_rep_datatype.ML"
+ML_file "Tools/Old_Datatype/old_datatype_codegen.ML"
+ML_file "Tools/Old_Datatype/old_primrec.ML"
 
 ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"

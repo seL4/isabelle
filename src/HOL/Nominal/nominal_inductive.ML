@@ -244,7 +244,7 @@ fun prove_strong_ind s avoids ctxt =
       end) prems);
 
     val ind_vars =
-      (Datatype_Prop.indexify_names (replicate (length atomTs) "pi") ~~
+      (Old_Datatype_Prop.indexify_names (replicate (length atomTs) "pi") ~~
        map NominalAtoms.mk_permT atomTs) @ [("z", fsT)];
     val ind_Ts = rev (map snd ind_vars);
 
@@ -645,7 +645,7 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
     val thss = map (fn atom =>
       let val pi' = Free (pi, NominalAtoms.mk_permT (Type (atom, [])))
       in map (fn th => zero_var_indexes (th RS mp))
-        (Datatype_Aux.split_conj_thm (Goal.prove ctxt' [] []
+        (Old_Datatype_Aux.split_conj_thm (Goal.prove ctxt' [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map (fn p =>
             let
               val (h, ts) = strip_comb p;

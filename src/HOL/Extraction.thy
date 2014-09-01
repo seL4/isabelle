@@ -5,7 +5,7 @@
 header {* Program extraction for HOL *}
 
 theory Extraction
-imports Datatype Option
+imports Option
 begin
 
 ML_file "Tools/rewrite_hol_proof.ML"
