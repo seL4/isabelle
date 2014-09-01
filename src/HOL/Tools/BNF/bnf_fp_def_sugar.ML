@@ -24,7 +24,7 @@ sig
     (thm list * thm * Token.src list) * (thm list list * Token.src list)
 
   val morph_lfp_sugar_thms: morphism -> lfp_sugar_thms -> lfp_sugar_thms
-  val transfer_lfp_sugar_thms: Proof.context -> lfp_sugar_thms -> lfp_sugar_thms
+  val transfer_lfp_sugar_thms: theory -> lfp_sugar_thms -> lfp_sugar_thms
 
   type gfp_sugar_thms =
     ((thm list * thm) list * (Token.src list * Token.src list))
@@ -34,7 +34,7 @@ sig
     * (thm list list list * Token.src list)
 
   val morph_gfp_sugar_thms: morphism -> gfp_sugar_thms -> gfp_sugar_thms
-  val transfer_gfp_sugar_thms: Proof.context -> gfp_sugar_thms -> gfp_sugar_thms
+  val transfer_gfp_sugar_thms: theory -> gfp_sugar_thms -> gfp_sugar_thms
 
   val mk_co_recs_prelims: BNF_Util.fp_kind -> typ list list list -> typ list -> typ list ->
      typ list -> typ list -> int list -> int list list -> term list -> Proof.context ->
@@ -143,10 +143,11 @@ val name_of_set = name_of_const "set";
 
 fun fp_sugar_of ctxt =
   Symtab.lookup (Data.get (Context.Proof ctxt))
-  #> Option.map (transfer_fp_sugar ctxt);
+  #> Option.map (transfer_fp_sugar (Proof_Context.theory_of ctxt));
 
 fun fp_sugars_of ctxt =
-  Symtab.fold (cons o transfer_fp_sugar ctxt o snd) (Data.get (Context.Proof ctxt)) [];
+  Symtab.fold (cons o transfer_fp_sugar (Proof_Context.theory_of ctxt) o snd)
+    (Data.get (Context.Proof ctxt)) [];
 
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;
@@ -308,8 +309,7 @@ fun morph_lfp_sugar_thms phi ((inducts, induct, induct_attrs), (recss, rec_attrs
    (map (map (Morphism.thm phi)) recss, rec_attrs))
   : lfp_sugar_thms;
 
-val transfer_lfp_sugar_thms =
-  morph_lfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
+val transfer_lfp_sugar_thms = morph_lfp_sugar_thms o Morphism.transfer_morphism;
 
 type gfp_sugar_thms =
   ((thm list * thm) list * (Token.src list * Token.src list))
@@ -328,8 +328,7 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs_pair),
    (map (map (Morphism.thm phi)) corec_disc_iffss, corec_disc_iff_attrs),
    (map (map (map (Morphism.thm phi))) corec_selsss, corec_sel_attrs)) : gfp_sugar_thms;
 
-val transfer_gfp_sugar_thms =
-  morph_gfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
+val transfer_gfp_sugar_thms = morph_gfp_sugar_thms o Morphism.transfer_morphism;
 
 fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
   let

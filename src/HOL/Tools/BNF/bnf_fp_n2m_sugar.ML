@@ -50,12 +50,11 @@ fun morph_n2m_sugar phi (fp_sugars, (lfp_sugar_thms_opt, gfp_sugar_thms_opt)) =
    (Option.map (morph_lfp_sugar_thms phi) lfp_sugar_thms_opt,
     Option.map (morph_gfp_sugar_thms phi) gfp_sugar_thms_opt));
 
-val transfer_n2m_sugar =
-  morph_n2m_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
+val transfer_n2m_sugar = morph_n2m_sugar o Morphism.transfer_morphism;
 
 fun n2m_sugar_of ctxt =
   Typtab.lookup (Data.get (Context.Proof ctxt))
-  #> Option.map (transfer_n2m_sugar ctxt);
+  #> Option.map (transfer_n2m_sugar (Proof_Context.theory_of ctxt));
 
 fun register_n2m_sugar key n2m_sugar =
   Local_Theory.declaration {syntax = false, pervasive = false}

@@ -56,7 +56,7 @@ sig
      rel_distincts: thm list};
 
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
-  val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
+  val transfer_fp_sugar: theory -> fp_sugar -> fp_sugar
 
   val time: Proof.context -> Timer.real_timer -> string -> Timer.real_timer
 
@@ -314,7 +314,7 @@ fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info,
    rel_injects = map (Morphism.thm phi) rel_injects,
    rel_distincts = map (Morphism.thm phi) rel_distincts};
 
-val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
+val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism;
 
 fun time ctxt timer msg = (if Config.get ctxt bnf_timing
   then warning (msg ^ ": " ^ string_of_int (Time.toMilliseconds (Timer.checkRealTimer timer)) ^
