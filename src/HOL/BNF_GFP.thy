@@ -226,9 +226,6 @@ lemma rec_list_Cons_imp: "f = rec_list f1 (%x xs rec. f2 x xs rec) \<Longrightar
 lemma not_arg_cong_Inr: "x \<noteq> y \<Longrightarrow> Inr x \<noteq> Inr y"
   by simp
 
-lemma Collect_splitD: "x \<in> Collect (split A) \<Longrightarrow> A (fst x) (snd x)"
-  by auto
-
 definition image2p where
   "image2p f g R = (\<lambda>x y. \<exists>x' y'. R x' y' \<and> f x' = x \<and> g y' = y)"
 

@@ -15,6 +15,9 @@ keywords
   "bnf" :: thy_goal
 begin
 
+lemma Collect_splitD: "x \<in> Collect (split A) \<Longrightarrow> A (fst x) (snd x)"
+  by auto
+
 definition
   rel_fun :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool"
 where
@@ -29,6 +32,20 @@ lemma rel_funD:
   assumes "rel_fun A B f g" and "A x y"
   shows "B (f x) (g y)"
   using assms by (simp add: rel_fun_def)
+
+definition rel_set :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool"
+  where "rel_set R = (\<lambda>A B. (\<forall>x\<in>A. \<exists>y\<in>B. R x y) \<and> (\<forall>y\<in>B. \<exists>x\<in>A. R x y))"
+
+lemma rel_setI:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. R x y"
+  assumes "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. R x y"
+  shows "rel_set R A B"
+  using assms unfolding rel_set_def by simp
+
+lemma predicate2_transferD:
+   "\<lbrakk>rel_fun R1 (rel_fun R2 (op =)) P Q; a \<in> A; b \<in> B; A \<subseteq> {(x, y). R1 x y}; B \<subseteq> {(x, y). R2 x y}\<rbrakk> \<Longrightarrow>
+   P (fst a) (fst b) \<longleftrightarrow> Q (snd a) (snd b)"
+  unfolding rel_fun_def by (blast dest!: Collect_splitD)
 
 definition collect where
 "collect F x = (\<Union>f \<in> F. f x)"

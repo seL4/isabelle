@@ -10,15 +10,6 @@ begin
 
 subsection {* Relator and predicator properties *}
 
-definition rel_set :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool"
-  where "rel_set R = (\<lambda>A B. (\<forall>x\<in>A. \<exists>y\<in>B. R x y) \<and> (\<forall>y\<in>B. \<exists>x\<in>A. R x y))"
-
-lemma rel_setI:
-  assumes "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. R x y"
-  assumes "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. R x y"
-  shows "rel_set R A B"
-  using assms unfolding rel_set_def by simp
-
 lemma rel_setD1: "\<lbrakk> rel_set R A B; x \<in> A \<rbrakk> \<Longrightarrow> \<exists>y \<in> B. R x y"
   and rel_setD2: "\<lbrakk> rel_set R A B; y \<in> B \<rbrakk> \<Longrightarrow> \<exists>x \<in> A. R x y"
 by(simp_all add: rel_set_def)

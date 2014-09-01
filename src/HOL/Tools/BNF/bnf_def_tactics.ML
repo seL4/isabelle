@@ -27,6 +27,7 @@ sig
   val mk_rel_map0_tac: Proof.context -> int -> thm -> thm -> thm -> thm -> tactic
   val mk_rel_mono_tac: thm list -> thm -> tactic
   val mk_rel_mono_strong0_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_rel_transfer_tac: Proof.context -> thm -> thm list -> thm -> tactic
 
   val mk_map_transfer_tac: Proof.context -> thm -> thm -> thm list -> thm -> thm -> tactic
 
@@ -233,6 +234,21 @@ fun mk_rel_mono_strong0_tac ctxt in_rel set_maps =
       CONJ_WRAP' (fn thm =>
         (etac (@{thm Collect_split_mono_strong} OF [thm, thm]) THEN' atac))
       set_maps] 1;
+
+fun mk_rel_transfer_tac ctxt in_rel rel_map rel_mono_strong =
+  let
+    fun last_tac iffD =
+      HEADGOAL (etac rel_mono_strong) THEN
+      REPEAT_DETERM (HEADGOAL (etac (@{thm predicate2_transferD} RS iffD) THEN'
+        REPEAT_DETERM o atac));
+  in
+    REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI})) THEN
+    (HEADGOAL (hyp_subst_tac ctxt THEN' rtac refl) ORELSE
+     REPEAT_DETERM (HEADGOAL (eresolve_tac (Tactic.make_elim (in_rel RS iffD1) ::
+       @{thms exE conjE CollectE}))) THEN
+     HEADGOAL (hyp_subst_tac ctxt) THEN unfold_thms_tac ctxt rel_map THEN HEADGOAL (rtac iffI) THEN
+     last_tac iffD1 THEN last_tac iffD2)
+  end;
 
 fun mk_map_transfer_tac ctxt rel_mono in_rel set_maps map_cong0 map_comp =
   let

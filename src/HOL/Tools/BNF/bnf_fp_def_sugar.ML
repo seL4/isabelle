@@ -123,20 +123,23 @@ fun zipping_map f =
       | zmap xs (y :: ys) = f (xs, y, ys) :: zmap (xs @ [y]) ys
   in zmap [] end;
 
+
 fun choose_binary_fun fs AB =
   find_first (fastype_of #> binder_types #> (fn [A, B] => AB = (A, B))) fs;
-fun build_binary_fun_app fs a b =
-  Option.map (rapp b o rapp a) (choose_binary_fun fs (fastype_of a, fastype_of b));
+fun build_binary_fun_app fs t u =
+  Option.map (rapp u o rapp t) (choose_binary_fun fs (fastype_of t, fastype_of u));
 
-fun build_the_rel ctxt Rs Ts A B = build_rel ctxt Ts (the o choose_binary_fun Rs) (A, B);
-fun build_rel_app ctxt Rs Ts a b = build_the_rel ctxt Rs Ts (fastype_of a) (fastype_of b) $ a $ b;
+fun build_the_rel rel_table ctxt Rs Ts A B =
+  build_rel rel_table ctxt Ts (the o choose_binary_fun Rs) (A, B);
+fun build_rel_app ctxt Rs Ts t u =
+  build_the_rel [] ctxt Rs Ts (fastype_of t) (fastype_of u) $ t $ u;
+
+fun mk_parametricity_goal ctxt Rs t u =
+  let val prem = build_the_rel [] ctxt Rs [] (fastype_of t) (fastype_of u) in
+    HOLogic.mk_Trueprop (prem $ t $ u)
+  end;
 
 val name_of_set = name_of_const "set";
-
-fun mk_parametricity_goal ctxt Rs f g =
-  let val prem = build_the_rel ctxt Rs [] (fastype_of f) (fastype_of g) in
-    HOLogic.mk_Trueprop (prem $ f $ g)
-  end;
 
 fun fp_sugar_of ctxt =
   Symtab.lookup (Data.get (Context.Proof ctxt))
@@ -514,7 +517,7 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
-      (map2 (build_the_rel lthy (Rs @ IRs) []) fpA_Ts fpB_Ts) IRs));
+      (map2 (build_the_rel [] lthy (Rs @ IRs) []) fpA_Ts fpB_Ts) IRs));
 
     val rel_induct0_thm =
       Goal.prove_sorry lthy [] premises goal (fn {context = ctxt, prems} =>
@@ -765,7 +768,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
-      IRs (map2 (build_the_rel lthy (Rs @ IRs) []) fpA_Ts fpB_Ts)));
+      IRs (map2 (build_the_rel [] lthy (Rs @ IRs) []) fpA_Ts fpB_Ts)));
 
     val rel_coinduct0_thm =
       Goal.prove_sorry lthy [] premises goal (fn {context = ctxt, prems} =>
@@ -924,7 +927,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
             fold_rev Term.lambda [u, v] (HOLogic.mk_disj (uvr, uv_eq))) us vs uvrs uv_eqs;
 
         fun build_the_rel rs' T Xs_T =
-          build_rel lthy [] (fn (_, X) => nth rs' (find_index (curry (op =) X) Xs)) (T, Xs_T)
+          build_rel [] lthy [] (fn (_, X) => nth rs' (find_index (curry (op =) X) Xs)) (T, Xs_T)
           |> Term.subst_atomic_types (Xs ~~ fpTs);
 
         fun build_rel_app rs' usel vsel Xs_T =
