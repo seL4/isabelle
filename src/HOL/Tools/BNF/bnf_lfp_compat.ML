@@ -15,12 +15,11 @@ sig
   val get_all: theory -> nesting_preference -> Old_Datatype_Aux.info Symtab.table
   val get_info: theory -> nesting_preference -> string -> Old_Datatype_Aux.info option
   val the_info: theory -> nesting_preference -> string -> Old_Datatype_Aux.info
-  val the_spec: theory -> nesting_preference -> string ->
-    (string * sort) list * (string * typ list) list
+  val the_spec: theory -> string -> (string * sort) list * (string * typ list) list
   val the_descr: theory -> nesting_preference -> string list ->
     Old_Datatype_Aux.descr * (string * sort) list * string list * string
     * (string list * string list) * (typ list * typ list)
-  val get_constrs: theory -> nesting_preference -> string -> (string * typ) list option
+  val get_constrs: theory -> string -> (string * typ) list option
   val interpretation: nesting_preference ->
     (Old_Datatype_Aux.config -> string list -> theory -> theory) -> theory -> theory
   val datatype_compat: string list -> local_theory -> local_theory
@@ -178,7 +177,9 @@ fun infos_of_new_datatype_mutual_cluster lthy nesting_pref fpT_name =
       #5 (mk_infos_of_mutually_recursive_new_datatypes nesting_pref false subset [fpT_name] lthy);
   in
     infos_of nesting_pref
-    handle ERROR _ => if nesting_pref = Unfold_Nesting then infos_of Keep_Nesting else []
+    handle ERROR _ =>
+      (if nesting_pref = Unfold_Nesting then infos_of Keep_Nesting else [])
+      handle ERROR _ => []
   end;
 
 fun get_all thy nesting_pref =
@@ -213,13 +214,13 @@ fun the_info thy nesting_pref T_name =
     SOME info => info
   | NONE => error ("Unknown datatype " ^ quote T_name));
 
-fun the_spec thy nesting_pref T_name =
+fun the_spec thy T_name =
   let
-    val {descr, index, ...} = the_info thy nesting_pref T_name;
+    val {descr, index, ...} = the_info thy Keep_Nesting T_name;
     val (_, Ds, ctrs0) = the (AList.lookup (op =) descr index);
-    val Ts = map Old_Datatype_Aux.dest_DtTFree Ds;
+    val tfrees = map Old_Datatype_Aux.dest_DtTFree Ds;
     val ctrs = map (apsnd (map (Old_Datatype_Aux.typ_of_dtyp descr))) ctrs0;
-  in (Ts, ctrs) end;
+  in (tfrees, ctrs) end;
 
 fun the_descr thy nesting_pref (T_names0 as T_name01 :: _) =
   let
@@ -253,8 +254,8 @@ fun the_descr thy nesting_pref (T_names0 as T_name01 :: _) =
     (descr, vs, T_names, prefix, (names, auxnames), (Ts, Us))
   end;
 
-fun get_constrs thy nesting_pref T_name =
-  try (the_spec thy nesting_pref) T_name
+fun get_constrs thy T_name =
+  try (the_spec thy) T_name
   |> Option.map (fn (tfrees, ctrs) =>
     let
       fun varify_tfree (s, S) = TVar ((s, 0), S);
