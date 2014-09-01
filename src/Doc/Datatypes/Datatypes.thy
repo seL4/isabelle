@@ -598,7 +598,7 @@ old-style datatypes. For example:
 
 text {* \blankline *}
 
-    ML {* Datatype_Data.get_info @{theory} @{type_name even_nat} *}
+    ML {* Old_Datatype_Data.get_info @{theory} @{type_name even_nat} *}
 
 text {*
 The syntactic entity \synt{name} denotes an identifier \cite{isabelle-isar-ref}.
