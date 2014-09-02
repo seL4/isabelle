@@ -165,18 +165,6 @@ fun f_foo and f_bar where
 | "f_foo (FooCons bar foo) = Suc (f_foo foo) + f_bar bar"
 | "f_bar Bar = Suc 0"
 
-locale opt begin
-
-datatype_new 'a opt = Non | Som 'a
-
-ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name opt}; \<close>
-
-datatype_compat opt
-
-ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name opt}; \<close>
-
-end
-
 datatype funky = Funky "funky tre" | Funky'
 
 ML \<open> get_descrs @{theory} (3, 3, 3) @{type_name funky}; \<close>
