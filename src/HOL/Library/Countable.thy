@@ -308,11 +308,26 @@ method_setup countable_datatype = {*
 hide_const (open) finite_item nth_item
 
 
-(* FIXME
 subsection {* Countable datatypes *}
 
+(* TODO: automate *)
+
+primrec encode_typerep :: "typerep \<Rightarrow> nat" where
+  "encode_typerep (Typerep.Typerep s ts) = prod_encode (to_nat s, to_nat (map encode_typerep ts))"
+
+lemma encode_typerep_injective: "\<forall>u. encode_typerep t = encode_typerep u \<longrightarrow> t = u"
+  apply (induct t)
+  apply (rule allI)
+  apply (case_tac u)
+  apply (auto simp: sum_encode_eq prod_encode_eq elim: list.inj_map_strong[rotated 1])
+  done
+
 instance typerep :: countable
-  by countable_datatype
-*)
+  apply default
+  apply (unfold inj_on_def ball_UNIV)
+  apply (rule exI)
+  apply (rule allI)
+  apply (rule encode_typerep_injective)
+  done
 
 end
