@@ -983,7 +983,7 @@ fun prepare_free_constructors prep_term
            (case_congN, [case_cong_thm], []),
            (case_cong_weak_thmsN, [case_cong_weak_thm], cong_attrs),
            (case_eq_ifN, case_eq_if_thms, []),
-           (collapseN, safe_collapse_thms, simp_attrs),
+           (collapseN, safe_collapse_thms, if ms = [0] then [] else simp_attrs),
            (discN, flat nontriv_disc_thmss, simp_attrs),
            (discIN, nontriv_discI_thms, []),
            (distinctN, distinct_thms, simp_attrs @ inductsimp_attrs),

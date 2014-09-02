@@ -807,7 +807,10 @@ The third subgroup revolves around discriminators and selectors:
 
 \item[@{text "t."}\hthm{collapse} @{text "[simp]"}\rm:] ~ \\
 @{thm list.collapse(1)[no_vars]} \\
-@{thm list.collapse(2)[no_vars]}
+@{thm list.collapse(2)[no_vars]} \\
+(The @{text "[simp]"} attribute is exceptionally omitted for datatypes equipped
+with a single nullary constructor, because a property of the form
+@{prop "x = C"} is not suitable as a simplification rule.)
 
 \item[@{text "t."}\hthm{distinct_disc} @{text "[dest]"}\rm:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
@@ -840,8 +843,8 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 \end{indentblock}
 
 \noindent
-In addition, equational versions of @{text t.disc} are registered with the @{text "[code]"}
-attribute.
+In addition, equational versions of @{text t.disc} are registered with the
+@{text "[code]"} attribute.
 *}
 
 
