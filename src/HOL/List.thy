@@ -52,7 +52,7 @@ translations
 
 subsection {* Basic list processing functions *}
 
-primrec last :: "'a list \<Rightarrow> 'a" where
+primrec (nonexhaustive) last :: "'a list \<Rightarrow> 'a" where
 "last (x # xs) = (if xs = [] then x else last xs)"
 
 primrec butlast :: "'a list \<Rightarrow> 'a list" where
@@ -117,7 +117,7 @@ take_Cons: "take n (x # xs) = (case n of 0 \<Rightarrow> [] | Suc m \<Rightarrow
   -- {*Warning: simpset does not contain this definition, but separate
        theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
 
-primrec nth :: "'a list => nat => 'a" (infixl "!" 100) where
+primrec (nonexhaustive) nth :: "'a list => nat => 'a" (infixl "!" 100) where
 nth_Cons: "(x # xs) ! n = (case n of 0 \<Rightarrow> x | Suc k \<Rightarrow> xs ! k)"
   -- {*Warning: simpset does not contain this definition, but separate
        theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
