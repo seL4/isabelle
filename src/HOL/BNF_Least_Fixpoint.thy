@@ -155,16 +155,12 @@ qed
 lemma insert_subsetI: "\<lbrakk>x \<in> A; X \<subseteq> A\<rbrakk> \<Longrightarrow> insert x X \<subseteq> A"
 by auto
 
-(*helps resolution*)
-lemma well_order_induct_imp:
-  "wo_rel r \<Longrightarrow> (\<And>x. \<forall>y. y \<noteq> x \<and> (y, x) \<in> r \<longrightarrow> y \<in> Field r \<longrightarrow> P y \<Longrightarrow> x \<in> Field r \<longrightarrow> P x) \<Longrightarrow>
-     x \<in> Field r \<longrightarrow> P x"
-by (erule wo_rel.well_order_induct)
+lemmas well_order_induct_imp = wo_rel.well_order_induct[of r "\<lambda>x. x \<in> Field r \<longrightarrow> P x" for r P]
 
 lemma meta_spec2:
   assumes "(\<And>x y. PROP P x y)"
   shows "PROP P x y"
-by (rule assms)
+  by (rule assms)
 
 lemma nchotomy_relcomppE:
   assumes "\<And>y. \<exists>x. y = f x" "(r OO s) a c" "\<And>b. r a (f b) \<Longrightarrow> s (f b) c \<Longrightarrow> P"
