@@ -160,6 +160,7 @@ sig
   val split_conj_prems: int -> thm -> thm
 
   val mk_sumTN: typ list -> typ
+  val mk_sumTN_balanced: typ list -> typ
   val mk_tupleT_balanced: typ list -> typ
   val mk_sumprodT_balanced: typ list list -> typ
 
@@ -181,6 +182,8 @@ sig
   val mk_absumprod: typ -> term -> int -> int -> term list -> term
 
   val dest_sumT: typ -> typ * typ
+  val dest_sumTN_balanced: int -> typ -> typ list
+  val dest_tupleT_balanced: int -> typ -> typ list
   val dest_absumprodT: typ -> typ -> int -> int list -> typ -> typ list list
 
   val If_const: typ -> term

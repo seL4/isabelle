@@ -66,13 +66,12 @@ lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B
 lemma bij_betw_imageE: "bij_betw f A B \<Longrightarrow> f ` A = B"
   unfolding bij_betw_def by auto
 
-lemma f_the_inv_into_f_bij_betw: "bij_betw f A B \<Longrightarrow>
-  (bij_betw f A B \<Longrightarrow> x \<in> B) \<Longrightarrow> f (the_inv_into A f x) = x"
+lemma f_the_inv_into_f_bij_betw:
+  "bij_betw f A B \<Longrightarrow> (bij_betw f A B \<Longrightarrow> x \<in> B) \<Longrightarrow> f (the_inv_into A f x) = x"
   unfolding bij_betw_def by (blast intro: f_the_inv_into_f)
 
 lemma ex_bij_betw: "|A| \<le>o (r :: 'b rel) \<Longrightarrow> \<exists>f B :: 'b set. bij_betw f B A"
-  by (subst (asm) internalize_card_of_ordLeq)
-    (auto dest!: iffD2[OF card_of_ordIso ordIso_symmetric])
+  by (subst (asm) internalize_card_of_ordLeq) (auto dest!: iffD2[OF card_of_ordIso ordIso_symmetric])
 
 lemma bij_betwI':
   "\<lbrakk>\<And>x y. \<lbrakk>x \<in> X; y \<in> X\<rbrakk> \<Longrightarrow> (f x = f y) = (x = y);

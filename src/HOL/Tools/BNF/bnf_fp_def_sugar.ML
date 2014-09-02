@@ -264,14 +264,6 @@ fun mk_xtor_co_recs thy fp fpTs Cs ts0 =
 fun mk_set Ts t =
   subst_nonatomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
-fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
-  | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
-  | unzip_recT _ T = [T];
-
-fun unzip_corecT (Type (@{type_name sum}, _)) T = [T]
-  | unzip_corecT _ (Type (@{type_name sum}, Ts)) = Ts
-  | unzip_corecT _ T = [T];
-
 fun liveness_of_fp_bnf n bnf =
   (case T_of_bnf bnf of
     Type (_, Ts) => map (not o member (op =) (deads_of_bnf bnf)) Ts
@@ -336,6 +328,10 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs_pair),
 
 val transfer_gfp_sugar_thms = morph_gfp_sugar_thms o Morphism.transfer_morphism;
 
+fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
+  | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
+  | unzip_recT _ T = [T];
+
 fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
   let
     val Css = map2 replicate ns Cs;
@@ -355,6 +351,10 @@ fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
   in
     ((f_Tss, x_Tssss, fss, xssss), lthy)
   end;
+
+fun unzip_corecT (Type (@{type_name sum}, _)) T = [T]
+  | unzip_corecT _ (Type (@{type_name sum}, Ts)) = Ts
+  | unzip_corecT _ T = [T];
 
 (*avoid "'a itself" arguments in corecursors*)
 fun repair_nullary_single_ctr [[]] = [[HOLogic.unitT]]

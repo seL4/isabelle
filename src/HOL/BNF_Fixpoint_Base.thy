@@ -21,25 +21,25 @@ lemma conj_imp_eq_imp_imp: "(P \<and> Q \<Longrightarrow> PROP R) \<equiv> (P \<
   by default simp_all
 
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
-by auto
+  by auto
 
 lemma predicate2D_conj: "P \<le> Q \<and> R \<Longrightarrow> P x y \<Longrightarrow> R \<and> Q x y"
   by auto
 
 lemma eq_sym_Unity_conv: "(x = (() = ())) = x"
-by blast
+  by blast
 
 lemma case_unit_Unity: "(case u of () \<Rightarrow> f) = f"
-by (cases u) (hypsubst, rule unit.case)
+  by (cases u) (hypsubst, rule unit.case)
 
 lemma case_prod_Pair_iden: "(case p of (x, y) \<Rightarrow> (x, y)) = p"
-by simp
+  by simp
 
 lemma unit_all_impI: "(P () \<Longrightarrow> Q ()) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
-by simp
+  by simp
 
 lemma pointfree_idE: "f \<circ> g = id \<Longrightarrow> f (g x) = x"
-unfolding comp_def fun_eq_iff by simp
+  unfolding comp_def fun_eq_iff by simp
 
 lemma o_bij:
   assumes gf: "g \<circ> f = id" and fg: "f \<circ> g = id"
@@ -55,15 +55,16 @@ next
   thus "EX a. b = f a" by blast
 qed
 
-lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> X" by simp
+lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> X"
+  by simp
 
 lemma case_sum_step:
-"case_sum (case_sum f' g') g (Inl p) = case_sum f' g' p"
-"case_sum f (case_sum f' g') (Inr p) = case_sum f' g' p"
-by auto
+  "case_sum (case_sum f' g') g (Inl p) = case_sum f' g' p"
+  "case_sum f (case_sum f' g') (Inr p) = case_sum f' g' p"
+  by auto
 
 lemma obj_one_pointE: "\<forall>x. s = x \<longrightarrow> P \<Longrightarrow> P"
-by blast
+  by blast
 
 lemma type_copy_obj_one_point_absE:
   assumes "type_definition Rep Abs UNIV" "\<forall>x. s = Abs x \<longrightarrow> P" shows P
@@ -78,20 +79,20 @@ proof
 qed
 
 lemma case_sum_if:
-"case_sum f g (if p then Inl x else Inr y) = (if p then f x else g y)"
-by simp
+  "case_sum f g (if p then Inl x else Inr y) = (if p then f x else g y)"
+  by simp
 
 lemma prod_set_simps:
-"fsts (x, y) = {x}"
-"snds (x, y) = {y}"
-unfolding fsts_def snds_def by simp+
+  "fsts (x, y) = {x}"
+  "snds (x, y) = {y}"
+  unfolding fsts_def snds_def by simp+
 
 lemma sum_set_simps:
-"setl (Inl x) = {x}"
-"setl (Inr x) = {}"
-"setr (Inl x) = {}"
-"setr (Inr x) = {x}"
-unfolding sum_set_defs by simp+
+  "setl (Inl x) = {x}"
+  "setl (Inr x) = {}"
+  "setr (Inl x) = {}"
+  "setr (Inr x) = {x}"
+  unfolding sum_set_defs by simp+
 
 lemma Inl_Inr_False: "(Inl x = Inr y) = False"
   by simp
@@ -100,7 +101,7 @@ lemma Inr_Inl_False: "(Inr x = Inl y) = False"
   by simp
 
 lemma spec2: "\<forall>x y. P x y \<Longrightarrow> P x y"
-by blast
+  by blast
 
 lemma rewriteR_comp_comp: "\<lbrakk>g \<circ> h = r\<rbrakk> \<Longrightarrow> f \<circ> g \<circ> h = f \<circ> r"
   unfolding comp_def fun_eq_iff by auto
