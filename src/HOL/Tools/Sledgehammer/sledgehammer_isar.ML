@@ -56,6 +56,7 @@ val veriT_la_generic_rule = "la_generic"
 val veriT_simp_arith_rule = "simp_arith"
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
+val waldmeister_skolemize_rule = ATP_Waldmeister.waldmeister_skolemize_rule
 val z3_skolemize_rule = Z3_Proof.string_of_rule Z3_Proof.Skolemize
 val z3_th_lemma_rule_prefix = Z3_Proof.string_of_rule (Z3_Proof.Th_Lemma "")
 val zipperposition_cnf_rule = "cnf"
@@ -63,7 +64,7 @@ val zipperposition_cnf_rule = "cnf"
 val skolemize_rules =
   [e_definition_rule, e_skolemize_rule, leo2_extcnf_forall_neg_rule, satallax_skolemize_rule,
    spass_skolemize_rule, vampire_skolemisation_rule, veriT_tmp_ite_elim_rule,
-   veriT_tmp_skolemize_rule, z3_skolemize_rule, zipperposition_cnf_rule]
+   veriT_tmp_skolemize_rule, waldmeister_skolemize_rule, z3_skolemize_rule, zipperposition_cnf_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
 fun is_arith_rule rule =
@@ -167,7 +168,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           | SOME n => n)
 
         fun is_fixed ctxt = Variable.is_declared ctxt orf Name.is_skolem
-        fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
+        fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev |> @{print}
 
         fun get_role keep_role ((num, _), role, t, rule, _) =
           if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
