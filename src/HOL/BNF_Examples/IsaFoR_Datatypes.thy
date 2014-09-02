@@ -11,16 +11,16 @@ theory IsaFoR_Datatypes
 imports Real
 begin
 
-datatype_new ('f, 'l) lab =
+datatype_new (discs_sels) ('f, 'l) lab =
     Lab "('f, 'l) lab" 'l
   | FunLab "('f, 'l) lab" "('f, 'l) lab list"
   | UnLab 'f
   | Sharp "('f, 'l) lab"
 
-datatype_new 'f projL = Projection "(('f \<times> nat) \<times> nat) list"
+datatype_new (discs_sels) 'f projL = Projection "(('f \<times> nat) \<times> nat) list"
 
-datatype_new ('f, 'v) "term" = Var 'v | Fun 'f "('f, 'v) term list"
-datatype_new ('f, 'v) ctxt =
+datatype_new (discs_sels) ('f, 'v) "term" = Var 'v | Fun 'f "('f, 'v) term list"
+datatype_new (discs_sels) ('f, 'v) ctxt =
     Hole ("\<box>")
   | More 'f "('f, 'v) term list" "('f, 'v) ctxt" "('f, 'v) term list"
 
@@ -32,7 +32,7 @@ type_synonym ('f, 'l, 'v) ruleLL  = "(('f, 'l) lab, 'v) rule"
 type_synonym ('f, 'l, 'v) trsLL   = "(('f, 'l) lab, 'v) rules"
 type_synonym ('f, 'l, 'v) termsLL = "(('f, 'l) lab, 'v) term list"
 
-datatype_new pos = Empty ("\<epsilon>") | PCons "nat" "pos" (infixr "<#" 70)
+datatype_new (discs_sels) pos = Empty ("\<epsilon>") | PCons "nat" "pos" (infixr "<#" 70)
 
 type_synonym  ('f, 'v) prseq = "(pos \<times> ('f, 'v) rule \<times> bool \<times> ('f, 'v) term) list"
 type_synonym  ('f, 'v) rseq = "(pos \<times> ('f, 'v) rule \<times> ('f, 'v) term) list"
@@ -49,7 +49,7 @@ type_synonym ('f, 'l, 'v) qreltrsLL =
 type_synonym ('f, 'l, 'v) qtrsLL =
   "bool \<times> ('f, 'l, 'v) termsLL \<times> ('f, 'l, 'v) trsLL"
 
-datatype_new location = H | A | B | R
+datatype_new (discs_sels) location = H | A | B | R
 
 type_synonym ('f, 'v) forb_pattern = "('f, 'v) ctxt \<times> ('f, 'v) term \<times> location"
 type_synonym ('f, 'v) forb_patterns = "('f, 'v) forb_pattern set"
@@ -68,20 +68,20 @@ type_synonym ('f, 'a) poly_inter_list = "(('f \<times> nat) \<times> (nat, 'a) p
 type_synonym 'a vec = "'a list"
 type_synonym 'a mat = "'a vec list"
 
-datatype_new arctic = MinInfty | Num_arc int
-datatype_new 'a arctic_delta = MinInfty_delta | Num_arc_delta 'a
-datatype_new order_tag = Lex | Mul
+datatype_new (discs_sels) arctic = MinInfty | Num_arc int
+datatype_new (discs_sels) 'a arctic_delta = MinInfty_delta | Num_arc_delta 'a
+datatype_new (discs_sels) order_tag = Lex | Mul
 
 type_synonym 'f status_prec_repr = "(('f \<times> nat) \<times> (nat \<times> order_tag)) list"
 
-datatype_new af_entry =
+datatype_new (discs_sels) af_entry =
     Collapse nat
   | AFList "nat list"
 
 type_synonym 'f afs_list = "(('f \<times> nat) \<times> af_entry) list"
 type_synonym 'f prec_weight_repr = "(('f \<times> nat) \<times> (nat \<times> nat \<times> (nat list option))) list \<times> nat"
 
-datatype_new 'f redtriple_impl =
+datatype_new (discs_sels) 'f redtriple_impl =
     Int_carrier "('f, int) lpoly_interL"
   | Int_nl_carrier "('f, int) poly_inter_list"
   | Rat_carrier "('f, rat) lpoly_interL"
@@ -98,15 +98,15 @@ datatype_new 'f redtriple_impl =
   | RPO "'f status_prec_repr" "'f afs_list"
   | KBO "'f prec_weight_repr" "'f afs_list"
 
-datatype_new list_order_type = MS_Ext | Max_Ext | Min_Ext  | Dms_Ext
+datatype_new (discs_sels) list_order_type = MS_Ext | Max_Ext | Min_Ext  | Dms_Ext
 type_synonym 'f scnp_af = "(('f \<times> nat) \<times> (nat \<times> nat) list) list"
 
-datatype_new 'f root_redtriple_impl = SCNP list_order_type "'f scnp_af" "'f redtriple_impl"
+datatype_new (discs_sels) 'f root_redtriple_impl = SCNP list_order_type "'f scnp_af" "'f redtriple_impl"
 
 type_synonym 'f sig_map_list = "(('f \<times> nat) \<times> 'f list) list"
 type_synonym ('f, 'v) uncurry_info = "'f \<times> 'f sig_map_list \<times> ('f, 'v) rules \<times> ('f, 'v) rules"
 
-datatype_new arithFun =
+datatype_new (discs_sels) arithFun =
     Arg nat
   | Const nat
   | Sum "arithFun list"
@@ -115,25 +115,25 @@ datatype_new arithFun =
   | Prod "arithFun list"
   | IfEqual arithFun arithFun arithFun arithFun
 
-datatype_new 'f sl_inter = SL_Inter nat "(('f \<times> nat) \<times> arithFun) list"
-datatype_new ('f, 'v) sl_variant =
+datatype_new (discs_sels) 'f sl_inter = SL_Inter nat "(('f \<times> nat) \<times> arithFun) list"
+datatype_new (discs_sels) ('f, 'v) sl_variant =
     Rootlab "('f \<times> nat) option"
   | Finitelab "'f sl_inter"
   | QuasiFinitelab "'f sl_inter" 'v
 
 type_synonym ('f, 'v) crit_pair_joins = "(('f, 'v) term \<times> ('f, 'v) rseq \<times> ('f, 'v) term \<times> ('f, 'v) rseq) list"
 
-datatype_new 'f join_info = Guided "('f, string) crit_pair_joins" | Join_NF | Join_BFS nat
+datatype_new (discs_sels) 'f join_info = Guided "('f, string) crit_pair_joins" | Join_NF | Join_BFS nat
 
 type_synonym unknown_info = string
 
 type_synonym dummy_prf = unit
 
-datatype_new ('f, 'v) complex_constant_removal_prf = Complex_Constant_Removal_Proof
+datatype_new (discs_sels) ('f, 'v) complex_constant_removal_prf = Complex_Constant_Removal_Proof
   "('f, 'v) term"
   "(('f, 'v) rule \<times> ('f, 'v) rule) list"
 
-datatype_new ('f, 'v) cond_constraint =
+datatype_new (discs_sels) ('f, 'v) cond_constraint =
     CC_cond bool "('f, 'v) rule"
   | CC_rewr "('f, 'v) term" "('f, 'v) term"
   | CC_impl "('f, 'v) cond_constraint list" "('f, 'v) cond_constraint"
@@ -142,7 +142,7 @@ datatype_new ('f, 'v) cond_constraint =
 type_synonym ('f, 'v, 'w) gsubstL = "('v \<times> ('f, 'w) term) list"
 type_synonym ('f, 'v) substL = "('f, 'v, 'v) gsubstL"
 
-datatype_new ('f, 'v) cond_constraint_prf =
+datatype_new (discs_sels) ('f, 'v) cond_constraint_prf =
     Final
   | Delete_Condition "('f, 'v) cond_constraint" "('f, 'v) cond_constraint_prf"
   | Different_Constructor "('f, 'v) cond_constraint"
@@ -152,28 +152,28 @@ datatype_new ('f, 'v) cond_constraint_prf =
   | Simplify_Condition "('f, 'v) cond_constraint" "('f, 'v) substL" "('f, 'v) cond_constraint" "('f, 'v) cond_constraint_prf"
   | Induction "('f, 'v) cond_constraint" "('f, 'v) cond_constraint list" "(('f, 'v) rule \<times> (('f, 'v) term \<times> 'v list) list \<times> ('f, 'v) cond_constraint \<times> ('f, 'v) cond_constraint_prf) list"
 
-datatype_new ('f, 'v) cond_red_pair_prf =
+datatype_new (discs_sels) ('f, 'v) cond_red_pair_prf =
   Cond_Red_Pair_Prf
     'f "(('f, 'v) cond_constraint \<times> ('f, 'v) rules \<times> ('f, 'v) cond_constraint_prf) list" nat nat
 
-datatype_new ('q, 'f) ta_rule = TA_rule 'f "'q list" 'q ("_ _ \<rightarrow> _")
-datatype_new ('q, 'f) tree_automaton = Tree_Automaton "'q list" "('q, 'f) ta_rule list" "('q \<times> 'q) list"
-datatype_new 'q ta_relation =
+datatype_new (discs_sels) ('q, 'f) ta_rule = TA_rule 'f "'q list" 'q ("_ _ \<rightarrow> _")
+datatype_new (discs_sels) ('q, 'f) tree_automaton = Tree_Automaton "'q list" "('q, 'f) ta_rule list" "('q \<times> 'q) list"
+datatype_new (discs_sels) 'q ta_relation =
     Decision_Proc
   | Id_Relation
   | Some_Relation "('q \<times> 'q) list"
 
-datatype_new boundstype = Roof | Match
-datatype_new ('f, 'q) bounds_info = Bounds_Info boundstype nat "'q list" "('q, 'f \<times> nat) tree_automaton" "'q ta_relation"
+datatype_new (discs_sels) boundstype = Roof | Match
+datatype_new (discs_sels) ('f, 'q) bounds_info = Bounds_Info boundstype nat "'q list" "('q, 'f \<times> nat) tree_automaton" "'q ta_relation"
 
-datatype_new ('f, 'v) pat_eqv_prf =
+datatype_new (discs_sels) ('f, 'v) pat_eqv_prf =
     Pat_Dom_Renaming "('f, 'v) substL"
   | Pat_Irrelevant "('f, 'v) substL" "('f, 'v) substL"
   | Pat_Simplify "('f, 'v) substL" "('f, 'v) substL"
 
-datatype_new pat_rule_pos = Pat_Base | Pat_Pump | Pat_Close
+datatype_new (discs_sels) pat_rule_pos = Pat_Base | Pat_Pump | Pat_Close
 
-datatype_new ('f, 'v) pat_rule_prf =
+datatype_new (discs_sels) ('f, 'v) pat_rule_prf =
     Pat_OrigRule "('f, 'v) rule" bool
   | Pat_InitPump "('f, 'v) pat_rule_prf" "('f, 'v) substL" "('f, 'v) substL"
   | Pat_InitPumpCtxt "('f, 'v) pat_rule_prf" "('f, 'v) substL" pos 'v
@@ -183,10 +183,10 @@ datatype_new ('f, 'v) pat_rule_prf =
   | Pat_Rewr "('f, 'v) pat_rule_prf" "('f, 'v) term \<times> ('f, 'v) rseq" pat_rule_pos 'v
   | Pat_Exp_Sigma "('f, 'v) pat_rule_prf" nat
 
-datatype_new ('f, 'v) non_loop_prf =
+datatype_new (discs_sels) ('f, 'v) non_loop_prf =
     Non_Loop_Prf "('f, 'v) pat_rule_prf" "('f, 'v) substL" "('f, 'v) substL" nat nat pos
 
-datatype_new ('f, 'l, 'v) problem =
+datatype_new (discs_sels) ('f, 'l, 'v) problem =
     SN_TRS "('f, 'l, 'v) qreltrsLL"
   | SN_FP_TRS "('f, 'l, 'v) fptrsLL"
   | Finite_DPP "('f, 'l, 'v) dppLL"
@@ -198,7 +198,7 @@ datatype_new ('f, 'l, 'v) problem =
 
 declare [[bnf_timing]]
 
-datatype_new ('f, 'l, 'v, 'a, 'b, 'c, 'd, 'e) generic_assm_proof =
+datatype_new (discs_sels) ('f, 'l, 'v, 'a, 'b, 'c, 'd, 'e) generic_assm_proof =
     SN_assm_proof "('f, 'l, 'v) qreltrsLL" 'a
   | Finite_assm_proof "('f, 'l, 'v) dppLL" 'b
   | SN_FP_assm_proof "('f, 'l, 'v) fptrsLL" 'c
@@ -210,7 +210,7 @@ datatype_new ('f, 'l, 'v, 'a, 'b, 'c, 'd, 'e) generic_assm_proof =
 
 type_synonym ('f, 'l, 'v, 'a, 'b, 'c, 'd) assm_proof = "('f, 'l, 'v, 'a, 'b, 'c, dummy_prf, 'd) generic_assm_proof"
 
-datatype_new ('f, 'l, 'v) assm =
+datatype_new (discs_sels) ('f, 'l, 'v) assm =
     SN_assm "('f, 'l, 'v) problem list" "('f, 'l, 'v) qreltrsLL"
   | SN_FP_assm "('f, 'l, 'v) problem list" "('f, 'l, 'v) fptrsLL"
   | Finite_assm "('f, 'l, 'v) problem list" "('f, 'l, 'v) dppLL"
@@ -254,7 +254,7 @@ fun collect_neg_assms :: "('tp \<Rightarrow> ('f, 'l, 'v) assm list)
 | "collect_neg_assms tp dpp rtp fptp unk (Unknown_assm_proof p prf) = unk prf"
 | "collect_neg_assms tp dpp rtp fptp unk _ = []"
 
-datatype_new ('f, 'l, 'v) dp_nontermination_proof =
+datatype_new (discs_sels) ('f, 'l, 'v) dp_nontermination_proof =
     DP_Loop "(('f, 'l) lab, 'v) term" "(('f, 'l) lab, 'v) prseq" "(('f, 'l) lab, 'v) substL" "(('f, 'l) lab, 'v) ctxt"
   | DP_Nonloop "(('f, 'l) lab, 'v) non_loop_prf"
   | DP_Rule_Removal "('f, 'l, 'v) trsLL option" "('f, 'l, 'v) trsLL option" "('f, 'l, 'v) dp_nontermination_proof"
@@ -312,7 +312,7 @@ and ('f, 'l, 'v) neg_unknown_proof =
        ('f, 'l, 'v) fp_nontermination_proof,
        ('f, 'l, 'v) neg_unknown_proof) generic_assm_proof list"
 
-datatype_new ('f, 'l, 'v) dp_termination_proof =
+datatype_new (discs_sels) ('f, 'l, 'v) dp_termination_proof =
     P_is_Empty
   | Subterm_Criterion_Proc "('f, 'l) lab projL" "('f, 'l, 'v) rseqL"
       "('f, 'l, 'v) trsLL" "('f, 'l, 'v) dp_termination_proof"
