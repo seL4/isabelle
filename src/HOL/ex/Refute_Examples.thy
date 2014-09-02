@@ -1266,18 +1266,6 @@ lemma "xs @ ys = ys @ xs"
 refute [expect = potential]
 oops
 
-lemma "f (lfp f) = lfp f"
-refute [expect = genuine]
-oops
-
-lemma "f (gfp f) = gfp f"
-refute [expect = genuine]
-oops
-
-lemma "lfp f = gfp f"
-refute [expect = genuine]
-oops
-
 (*****************************************************************************)
 
 subsubsection {* Type classes and overloading *}
