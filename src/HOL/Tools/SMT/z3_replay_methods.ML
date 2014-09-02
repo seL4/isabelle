@@ -430,10 +430,28 @@ fun prove_arith_rewrite ctxt t =
   prove_abstract' ctxt t arith_rewrite_tac (
     abstract_eq (abstract_arith ctxt) (dest_prop t))
 
+val lift_ite_thm = @{thm HOL.if_distrib} RS @{thm eq_reflection}
+
+fun ternary_conv cv = Conv.combination_conv (Conv.binop_conv cv) cv
+
+fun if_context_conv ctxt ct =
+  (case Thm.term_of ct of
+    Const (@{const_name HOL.If}, _) $ _ $ _ $ _ =>
+      ternary_conv (if_context_conv ctxt)
+  | _ $ (Const (@{const_name HOL.If}, _) $ _ $ _ $ _) =>
+      Conv.rewr_conv lift_ite_thm then_conv ternary_conv (if_context_conv ctxt)
+  | _ => Conv.sub_conv (Conv.top_sweep_conv if_context_conv) ctxt) ct
+
+fun lift_ite_rewrite ctxt t =
+  prove ctxt t (fn ctxt => 
+    CONVERSION (HOLogic.Trueprop_conv (Conv.binop_conv (if_context_conv ctxt)))
+    THEN' rtac @{thm refl})
+
 fun rewrite ctxt _ = try_provers ctxt Z3_Proof.Rewrite [
   ("rules", apply_rule ctxt),
   ("prop_rewrite", prove_prop_rewrite ctxt),
-  ("arith_rewrite", focus_eq prove_arith_rewrite ctxt)] []
+  ("arith_rewrite", focus_eq prove_arith_rewrite ctxt),
+  ("if_rewrite", lift_ite_rewrite ctxt)] []
 
 fun rewrite_star ctxt = rewrite ctxt
 
