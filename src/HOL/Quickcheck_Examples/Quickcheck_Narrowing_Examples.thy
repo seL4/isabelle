@@ -132,7 +132,7 @@ oops
 
 subsection {* AVL Trees *}
 
-datatype 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
+datatype_new 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
 
 primrec set_of :: "'a tree \<Rightarrow> 'a set"
 where
@@ -221,7 +221,7 @@ by (simp add: set_of')
 
 declare is_ord.simps(1)[code] is_ord_mkt[code]
 
-subsubsection {* Invalid Lemma due to typo in lbal *}
+subsubsection {* Invalid Lemma due to typo in @{const l_bal} *}
 
 lemma is_ord_l_bal:
  "\<lbrakk> is_ord(MKT (x :: nat) l r h); height l = height r + 2 \<rbrakk> \<Longrightarrow> is_ord(l_bal(x,l,r))"

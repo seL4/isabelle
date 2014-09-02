@@ -122,7 +122,7 @@ lemma "occurs b xs = 0 \<or> a=b \<longrightarrow> occurs a xs = occurs b (repla
 
 subsection {* Trees *}
 
-datatype 'a tree = Twig |  Leaf 'a | Branch "'a tree" "'a tree"
+datatype_new 'a tree = Twig |  Leaf 'a | Branch "'a tree" "'a tree"
 
 primrec leaves :: "'a tree \<Rightarrow> 'a list" where
   "leaves Twig = []"
@@ -150,7 +150,7 @@ theorem "plant((leaves xt) @ (leaves yt)) = Branch xt yt"
     --{* Wrong! *} 
   oops
 
-datatype 'a ntree = Tip "'a" | Node "'a" "'a ntree" "'a ntree"
+datatype_new 'a ntree = Tip "'a" | Node "'a" "'a ntree" "'a ntree"
 
 primrec inOrder :: "'a ntree \<Rightarrow> 'a list" where
   "inOrder (Tip a)= [a]"
@@ -439,7 +439,7 @@ quickcheck[exhaustive, expect = counterexample]
 quickcheck[random, expect = counterexample]
 oops
 
-datatype colour = Red | Green | Blue
+datatype_new colour = Red | Green | Blue
 
 record cpoint = point +
   colour :: colour

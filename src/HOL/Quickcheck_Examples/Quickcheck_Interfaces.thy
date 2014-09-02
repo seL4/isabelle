@@ -24,7 +24,7 @@ val SOME testers = Quickcheck.mk_batch_validator @{context}
 *}
 
 text {*
-It is upto the user with which strategy the conjectures should be tested.
+It is up to the user with which strategy the conjectures should be tested.
 For example, one could check all conjectures up to a given size, and check the different conjectures in sequence.
 This is implemented by:
 *}

@@ -2,14 +2,16 @@ theory Hotel_Example
 imports Main "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
 begin
 
-datatype guest = Guest0 | Guest1
-datatype key = Key0 | Key1 | Key2 | Key3
-datatype room = Room0
+datatype_new guest = Guest0 | Guest1
+datatype_new key = Key0 | Key1 | Key2 | Key3
+datatype_new room = Room0
 
 type_synonym card = "key * key"
 
-datatype event =
-   Check_in guest room card | Enter guest room card | Exit guest room
+datatype_new event =
+  Check_in guest room card
+| Enter guest room card
+| Exit guest room
 
 definition initk :: "room \<Rightarrow> key"
   where "initk = (%r. Key0)"
