@@ -308,9 +308,11 @@ method_setup countable_datatype = {*
 hide_const (open) finite_item nth_item
 
 
+(* FIXME
 subsection {* Countable datatypes *}
 
 instance typerep :: countable
   by countable_datatype
+*)
 
 end
