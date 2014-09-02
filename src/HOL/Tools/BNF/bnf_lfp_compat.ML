@@ -265,8 +265,9 @@ fun old_interpretation_of nesting_pref f config T_names thy =
 
 fun new_interpretation_of nesting_pref f (fp_sugars : fp_sugar list) thy =
   let val T_names = map (fst o dest_Type o #T) fp_sugars in
-    if nesting_pref = Keep_Nesting orelse
-        exists (is_none o Old_Datatype_Data.get_info thy) T_names then
+    if forall (curry (op =) Least_FP o #fp) fp_sugars andalso
+        (nesting_pref = Keep_Nesting orelse
+         exists (is_none o Old_Datatype_Data.get_info thy) T_names) then
       f Old_Datatype_Aux.default_config T_names thy
     else
       thy

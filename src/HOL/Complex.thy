@@ -11,11 +11,9 @@ imports Transcendental
 begin
 
 text {*
-
-We use the @{text codatatype}-command to define the type of complex numbers. This might look strange
-at first, but allows us to use @{text primcorec} to define complex-functions by defining their
-real and imaginary result separate.
-
+We use the @{text codatatype} command to define the type of complex numbers. This allows us to use
+@{text primcorec} to define complex functions by defining their real and imaginary result
+separately.
 *}
 
 codatatype complex = Complex (Re: real) (Im: real)
