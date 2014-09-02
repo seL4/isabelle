@@ -943,7 +943,7 @@ refute [expect = potential]
 oops
 
 lemma "rec_X a b c d e f A = a"
-refute [maxsize = 3, expect = none]
+refute [maxsize = 2, expect = none]
 by simp
 
 lemma "rec_X a b c d e f (B x) = b x (rec_X a b c d e f x)"
@@ -963,7 +963,7 @@ refute [maxsize = 1, expect = none]
 by simp
 
 lemma "rec_Y a b c d e f F = f"
-refute [maxsize = 3, expect = none]
+refute [maxsize = 2, expect = none]
 by simp
 
 lemma "P (rec_X a b c d e f x)"
@@ -1216,50 +1216,14 @@ record ('a, 'b) point =
   ypos :: 'b
 
 lemma "(x::('a, 'b) point) = y"
-refute
+refute [expect = genuine]
 oops
 
 record ('a, 'b, 'c) extpoint = "('a, 'b) point" +
   ext :: 'c
 
 lemma "(x::('a, 'b, 'c) extpoint) = y"
-refute
-oops
-
-(*****************************************************************************)
-
-subsubsection {* Inductively defined sets *}
-
-inductive_set arbitrarySet :: "'a set"
-where
-  "undefined : arbitrarySet"
-
-lemma "x : arbitrarySet"
-refute
-oops
-
-inductive_set evenCard :: "'a set set"
-where
-  "{} : evenCard"
-| "\<lbrakk> S : evenCard; x \<notin> S; y \<notin> S; x \<noteq> y \<rbrakk> \<Longrightarrow> S \<union> {x, y} : evenCard"
-
-lemma "S : evenCard"
-refute
-oops
-
-consts f :: "'a \<Rightarrow> 'a"
-
-inductive_set
-  a_even :: "'a set"
-  and a_odd :: "'a set"
-where
-  "undefined : a_even"
-| "x : a_even \<Longrightarrow> f x : a_odd"
-| "x : a_odd \<Longrightarrow> f x : a_even"
-
-lemma "x : a_odd"
-(* refute [expect = genuine] -- {* finds a model of size 2 *}
-   NO LONGER WORKS since "lfp"'s interpreter is disabled *)
+refute [expect = genuine]
 oops
 
 (*****************************************************************************)
@@ -1267,7 +1231,7 @@ oops
 subsubsection {* Examples involving special functions *}
 
 lemma "card x = 0"
-refute
+refute [expect = potential]
 oops
 
 lemma "finite x"
@@ -1303,15 +1267,15 @@ refute [expect = potential]
 oops
 
 lemma "f (lfp f) = lfp f"
-refute
+refute [expect = genuine]
 oops
 
 lemma "f (gfp f) = gfp f"
-refute
+refute [expect = genuine]
 oops
 
 lemma "lfp f = gfp f"
-refute
+refute [expect = genuine]
 oops
 
 (*****************************************************************************)
