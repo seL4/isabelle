@@ -5,7 +5,7 @@
 header {* Datatype option *}
 
 theory Option
-imports BNF_LFP Old_Datatype Finite_Set
+imports BNF_Least_Fixpoint Old_Datatype Finite_Set
 begin
 
 datatype_new 'a option =

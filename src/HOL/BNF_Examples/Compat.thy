@@ -58,7 +58,7 @@ ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name x}; \<close>
 datatype_compat s
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name s}; \<close>
-ML \<open> get_descrs @{theory} (0, 3, 1) @{type_name x}; \<close>
+ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name x}; \<close>
 
 datatype_compat x
 
@@ -66,7 +66,7 @@ ML \<open> get_descrs @{theory} (3, 3, 1) @{type_name x}; \<close>
 
 datatype_new 'a tttre = TTTre 'a "'a tttre lst lst lst"
 
-ML \<open> get_descrs @{theory} (0, 4, 1) @{type_name tttre}; \<close>
+ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name tttre}; \<close>
 
 datatype_compat tttre
 
@@ -74,7 +74,7 @@ ML \<open> get_descrs @{theory} (4, 4, 1) @{type_name tttre}; \<close>
 
 datatype_new 'a ftre = FEmp | FTre "'a \<Rightarrow> 'a ftre lst"
 
-ML \<open> get_descrs @{theory} (0, 2, 1) @{type_name ftre}; \<close>
+ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name ftre}; \<close>
 
 datatype_compat ftre
 
@@ -82,7 +82,7 @@ ML \<open> get_descrs @{theory} (2, 2, 1) @{type_name ftre}; \<close>
 
 datatype_new 'a btre = BTre 'a "'a btre lst" "'a btre lst"
 
-ML \<open> get_descrs @{theory} (0, 3, 1) @{type_name btre}; \<close>
+ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name btre}; \<close>
 
 datatype_compat btre
 
@@ -100,7 +100,7 @@ ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name bar}; \<close>
 
 datatype_new 'a tre = Tre 'a "'a tre lst"
 
-ML \<open> get_descrs @{theory} (0, 2, 1) @{type_name tre}; \<close>
+ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name tre}; \<close>
 
 datatype_compat tre
 
@@ -124,7 +124,7 @@ datatype_compat f g
 
 ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name f}; \<close>
 ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name g}; \<close>
-ML \<open> get_descrs @{theory} (0, 3, 1) @{type_name h}; \<close>
+ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name h}; \<close>
 
 datatype_compat h
 
@@ -187,7 +187,7 @@ ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name fnky}; \<close>
 
 datatype_new tree = Tree "tree foo"
 
-ML \<open> get_descrs @{theory} (0, 3, 1) @{type_name tree}; \<close>
+ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name tree}; \<close>
 
 datatype_compat tree
 

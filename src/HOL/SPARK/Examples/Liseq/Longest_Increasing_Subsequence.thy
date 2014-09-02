@@ -4,7 +4,7 @@
 *)
 
 theory Longest_Increasing_Subsequence
-imports SPARK
+imports "../../SPARK"
 begin
 
 text {*

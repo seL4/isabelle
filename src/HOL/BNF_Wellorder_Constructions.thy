@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Constructions_on_Wellorders.thy
+(*  Title:      HOL/BNF_Wellorder_Constructions.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -7,7 +7,7 @@ Constructions on wellorders as needed by bounded natural functors.
 
 header {* Constructions on Wellorders as Needed by Bounded Natural Functors *}
 
-theory BNF_Constructions_on_Wellorders
+theory BNF_Wellorder_Constructions
 imports BNF_Wellorder_Embedding
 begin
 

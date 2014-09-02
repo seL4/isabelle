@@ -609,7 +609,7 @@ oops
 
 text {* Non-recursive datatypes *}
 
-datatype T1 = A | B
+datatype_new T1 = A | B
 
 lemma "P (x::T1)"
 refute [expect = genuine]
@@ -643,7 +643,7 @@ lemma "P (case x of A \<Rightarrow> a | B \<Rightarrow> b)"
 refute [expect = genuine]
 oops
 
-datatype 'a T2 = C T1 | D 'a
+datatype_new 'a T2 = C T1 | D 'a
 
 lemma "P (x::'a T2)"
 refute [expect = genuine]
@@ -673,7 +673,7 @@ lemma "P (case x of C u \<Rightarrow> c u | D v \<Rightarrow> d v)"
 refute [expect = genuine]
 oops
 
-datatype ('a,'b) T3 = E "'a \<Rightarrow> 'b"
+datatype_new ('a,'b) T3 = E "'a \<Rightarrow> 'b"
 
 lemma "P (x::('a,'b) T3)"
 refute [expect = genuine]
@@ -776,7 +776,7 @@ lemma "a # xs = b # xs"
 refute [expect = potential]
 oops
 
-datatype BitList = BitListNil | Bit0 BitList | Bit1 BitList
+datatype_new BitList = BitListNil | Bit0 BitList | Bit1 BitList
 
 lemma "P (x::BitList)"
 refute [expect = potential]
@@ -806,7 +806,7 @@ lemma "P (rec_BitList nil bit0 bit1 x)"
 refute [expect = potential]
 oops
 
-datatype 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
+datatype_new 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
 
 lemma "P (x::'a BinTree)"
 refute [expect = potential]
@@ -842,8 +842,9 @@ oops
 
 text {* Mutually recursive datatypes *}
 
-datatype 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
-     and 'a bexp = Equal "'a aexp" "'a aexp"
+datatype_new
+  'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp" and
+  'a bexp = Equal "'a aexp" "'a aexp"
 
 lemma "P (x::'a aexp)"
 refute [expect = potential]
@@ -865,15 +866,15 @@ lemma "\<forall>x::'a bexp. P x"
 refute [expect = potential]
 oops
 
-lemma "rec_aexp_bexp_1 number ite equal (Number x) = number x"
+lemma "rec_aexp number ite equal (Number x) = number x"
 refute [maxsize = 1, expect = none]
 by simp
 
-lemma "rec_aexp_bexp_1 number ite equal (ITE x y z) = ite x y z (rec_aexp_bexp_2 number ite equal x) (rec_aexp_bexp_1 number ite equal y) (rec_aexp_bexp_1 number ite equal z)"
+lemma "rec_aexp number ite equal (ITE x y z) = ite x y z (rec_bexp number ite equal x) (rec_aexp number ite equal y) (rec_aexp number ite equal z)"
 refute [maxsize = 1, expect = none]
 by simp
 
-lemma "P (rec_aexp_bexp_1 number ite equal x)"
+lemma "P (rec_aexp number ite equal x)"
 refute [expect = potential]
 oops
 
@@ -881,11 +882,11 @@ lemma "P (case x of Number a \<Rightarrow> number a | ITE b a1 a2 \<Rightarrow> 
 refute [expect = potential]
 oops
 
-lemma "rec_aexp_bexp_2 number ite equal (Equal x y) = equal x y (rec_aexp_bexp_1 number ite equal x) (rec_aexp_bexp_1 number ite equal y)"
+lemma "rec_bexp number ite equal (Equal x y) = equal x y (rec_aexp number ite equal x) (rec_aexp number ite equal y)"
 refute [maxsize = 1, expect = none]
 by simp
 
-lemma "P (rec_aexp_bexp_2 number ite equal x)"
+lemma "P (rec_bexp number ite equal x)"
 refute [expect = potential]
 oops
 
@@ -893,8 +894,9 @@ lemma "P (case x of Equal a1 a2 \<Rightarrow> equal a1 a2)"
 refute [expect = potential]
 oops
 
-datatype X = A | B X | C Y
-     and Y = D X | E Y | F
+datatype_new
+  X = A | B X | C Y and
+  Y = D X | E Y | F
 
 lemma "P (x::X)"
 refute [expect = potential]
@@ -940,35 +942,35 @@ lemma "P (C (D (C F)))"
 refute [expect = potential]
 oops
 
-lemma "rec_X_Y_1 a b c d e f A = a"
+lemma "rec_X a b c d e f A = a"
 refute [maxsize = 3, expect = none]
 by simp
 
-lemma "rec_X_Y_1 a b c d e f (B x) = b x (rec_X_Y_1 a b c d e f x)"
+lemma "rec_X a b c d e f (B x) = b x (rec_X a b c d e f x)"
 refute [maxsize = 1, expect = none]
 by simp
 
-lemma "rec_X_Y_1 a b c d e f (C y) = c y (rec_X_Y_2 a b c d e f y)"
+lemma "rec_X a b c d e f (C y) = c y (rec_Y a b c d e f y)"
 refute [maxsize = 1, expect = none]
 by simp
 
-lemma "rec_X_Y_2 a b c d e f (D x) = d x (rec_X_Y_1 a b c d e f x)"
+lemma "rec_Y a b c d e f (D x) = d x (rec_X a b c d e f x)"
 refute [maxsize = 1, expect = none]
 by simp
 
-lemma "rec_X_Y_2 a b c d e f (E y) = e y (rec_X_Y_2 a b c d e f y)"
+lemma "rec_Y a b c d e f (E y) = e y (rec_Y a b c d e f y)"
 refute [maxsize = 1, expect = none]
 by simp
 
-lemma "rec_X_Y_2 a b c d e f F = f"
+lemma "rec_Y a b c d e f F = f"
 refute [maxsize = 3, expect = none]
 by simp
 
-lemma "P (rec_X_Y_1 a b c d e f x)"
+lemma "P (rec_X a b c d e f x)"
 refute [expect = potential]
 oops
 
-lemma "P (rec_X_Y_2 a b c d e f y)"
+lemma "P (rec_Y a b c d e f y)"
 refute [expect = potential]
 oops
 
@@ -1060,7 +1062,11 @@ lemma "P (rec_YOpt_2 cy n s x)"
 refute [expect = potential]
 oops
 
-datatype Trie = TR "Trie list"
+datatype_new Trie = TR "Trie list"
+datatype_compat Trie
+
+abbreviation "rec_Trie_1 \<equiv> compat_Trie.n2m_Trie_rec"
+abbreviation "rec_Trie_2 \<equiv> compat_Trie_list.n2m_Trie_list_rec"
 
 lemma "P (x::Trie)"
 refute [expect = potential]
@@ -1239,19 +1245,6 @@ where
 
 lemma "S : evenCard"
 refute
-oops
-
-inductive_set
-  even :: "nat set"
-  and odd  :: "nat set"
-where
-  "0 : even"
-| "n : even \<Longrightarrow> Suc n : odd"
-| "n : odd \<Longrightarrow> Suc n : even"
-
-lemma "n : odd"
-(* refute *)  (* TODO: there seems to be an issue here with undefined terms
-                       because of the recursive datatype "nat" *)
 oops
 
 consts f :: "'a \<Rightarrow> 'a"

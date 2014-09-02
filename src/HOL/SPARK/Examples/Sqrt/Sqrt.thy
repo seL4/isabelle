@@ -4,7 +4,7 @@
 *)
 
 theory Sqrt
-imports SPARK
+imports "../../SPARK"
 begin
 
 spark_open "sqrt/isqrt"

@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_LFP.thy
+(*  Title:      HOL/BNF_Least_Fixpoint.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Lorenz Panny, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
@@ -9,8 +9,8 @@ Least fixed point operation on bounded natural functors.
 
 header {* Least Fixed Point Operation on Bounded Natural Functors *}
 
-theory BNF_LFP
-imports BNF_FP_Base
+theory BNF_Least_Fixpoint
+imports BNF_Fixpoint_Base
 keywords
   "datatype_new" :: thy_decl and
   "datatype_compat" :: thy_decl
@@ -155,16 +155,12 @@ qed
 lemma insert_subsetI: "\<lbrakk>x \<in> A; X \<subseteq> A\<rbrakk> \<Longrightarrow> insert x X \<subseteq> A"
 by auto
 
-(*helps resolution*)
-lemma well_order_induct_imp:
-  "wo_rel r \<Longrightarrow> (\<And>x. \<forall>y. y \<noteq> x \<and> (y, x) \<in> r \<longrightarrow> y \<in> Field r \<longrightarrow> P y \<Longrightarrow> x \<in> Field r \<longrightarrow> P x) \<Longrightarrow>
-     x \<in> Field r \<longrightarrow> P x"
-by (erule wo_rel.well_order_induct)
+lemmas well_order_induct_imp = wo_rel.well_order_induct[of r "\<lambda>x. x \<in> Field r \<longrightarrow> P x" for r P]
 
 lemma meta_spec2:
   assumes "(\<And>x y. PROP P x y)"
   shows "PROP P x y"
-by (rule assms)
+  by (rule assms)
 
 lemma nchotomy_relcomppE:
   assumes "\<And>y. \<exists>x. y = f x" "(r OO s) a c" "\<And>b. r a (f b) \<Longrightarrow> s (f b) c \<Longrightarrow> P"

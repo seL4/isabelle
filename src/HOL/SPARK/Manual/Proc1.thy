@@ -1,5 +1,5 @@
 theory Proc1
-imports SPARK
+imports "../SPARK"
 begin
 
 spark_open "loop_invariant/proc1"

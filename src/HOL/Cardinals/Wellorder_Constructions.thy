@@ -1,4 +1,4 @@
-(*  Title:      HOL/Cardinals/Constructions_on_Wellorders.thy
+(*  Title:      HOL/Cardinals/Wellorder_Constructions.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -7,9 +7,9 @@ Constructions on wellorders.
 
 header {* Constructions on Wellorders *}
 
-theory Constructions_on_Wellorders
+theory Wellorder_Constructions
 imports
-  BNF_Constructions_on_Wellorders Wellorder_Embedding Order_Union
+  BNF_Wellorder_Constructions Wellorder_Embedding Order_Union
   "../Library/Cardinal_Notations"
 begin
 
@@ -902,10 +902,10 @@ abbreviation "worecZSL \<equiv> wo_rel.worecZSL"
 
 
 subsection {* Projections of wellorders *}
- 
+
 definition "oproj r s f \<equiv> Field s \<subseteq> f ` (Field r) \<and> compat r s f"
 
-lemma oproj_in: 
+lemma oproj_in:
 assumes "oproj r s f" and "(a,a') \<in> r"
 shows "(f a, f a') \<in> s"
 using assms unfolding oproj_def compat_def by auto
@@ -920,18 +920,18 @@ assumes f: "oproj r s f" and a: "b \<in> Field s"
 shows "\<exists> a \<in> Field r. f a = b"
 using assms unfolding oproj_def by auto
 
-lemma oproj_under: 
+lemma oproj_under:
 assumes f:  "oproj r s f" and a: "a \<in> under r a'"
 shows "f a \<in> under s (f a')"
 using oproj_in[OF f] a unfolding under_def by auto
 
-(* An ordinal is embedded in another whenever it is embedded as an order 
+(* An ordinal is embedded in another whenever it is embedded as an order
 (not necessarily as initial segment):*)
 theorem embedI:
-assumes r: "Well_order r" and s: "Well_order s" 
+assumes r: "Well_order r" and s: "Well_order s"
 and f: "\<And> a. a \<in> Field r \<Longrightarrow> f a \<in> Field s \<and> f ` underS r a \<subseteq> underS s (f a)"
 shows "\<exists> g. embed r s g"
-proof-  
+proof-
   interpret r!: wo_rel r by unfold_locales (rule r)
   interpret s!: wo_rel s by unfold_locales (rule s)
   let ?G = "\<lambda> g a. suc s (g ` underS r a)"
@@ -939,7 +939,7 @@ proof-
   have adm: "adm_wo r ?G" unfolding r.adm_wo_def image_def by auto
   (*  *)
   {fix a assume "a \<in> Field r"
-   hence "bij_betw g (under r a) (under s (g a)) \<and> 
+   hence "bij_betw g (under r a) (under s (g a)) \<and>
           g a \<in> under s (f a)"
    proof(induction a rule: r.underS_induct)
      case (1 a)
@@ -949,29 +949,29 @@ proof-
      and IH2: "\<And> a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> under s (f a1)"
      unfolding underS_def Field_def bij_betw_def by auto
      have fa: "f a \<in> Field s" using f[OF a] by auto
-     have g: "g a = suc s (g ` underS r a)" 
+     have g: "g a = suc s (g ` underS r a)"
      using r.worec_fixpoint[OF adm] unfolding g_def fun_eq_iff by simp
-     have A0: "g ` underS r a \<subseteq> Field s" 
+     have A0: "g ` underS r a \<subseteq> Field s"
      using IH1b by (metis IH2 image_subsetI in_mono under_Field)
      {fix a1 assume a1: "a1 \<in> underS r a"
       from IH2[OF this] have "g a1 \<in> under s (f a1)" .
       moreover have "f a1 \<in> underS s (f a)" using f[OF a] a1 by auto
       ultimately have "g a1 \<in> underS s (f a)" by (metis s.ANTISYM s.TRANS under_underS_trans)
      }
-     hence "f a \<in> AboveS s (g ` underS r a)" unfolding AboveS_def 
+     hence "f a \<in> AboveS s (g ` underS r a)" unfolding AboveS_def
      using fa by simp (metis (lifting, full_types) mem_Collect_eq underS_def)
      hence A: "AboveS s (g ` underS r a) \<noteq> {}" by auto
      have B: "\<And> a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> underS s (g a)"
      unfolding g apply(rule s.suc_underS[OF A0 A]) by auto
      {fix a1 a2 assume a2: "a2 \<in> underS r a" and 1: "a1 \<in> underS r a2"
       hence a12: "{a1,a2} \<subseteq> under r a2" and "a1 \<noteq> a2" using r.REFL a
-      unfolding underS_def under_def refl_on_def Field_def by auto 
+      unfolding underS_def under_def refl_on_def Field_def by auto
       hence "g a1 \<noteq> g a2" using IH1a[OF a2] unfolding inj_on_def by auto
-      hence "g a1 \<in> underS s (g a2)" using IH1b[OF a2] a12 
+      hence "g a1 \<in> underS s (g a2)" using IH1b[OF a2] a12
       unfolding underS_def under_def by auto
      } note C = this
      have ga: "g a \<in> Field s" unfolding g using s.suc_inField[OF A0 A] .
-     have aa: "a \<in> under r a" 
+     have aa: "a \<in> under r a"
      using a r.REFL unfolding under_def underS_def refl_on_def by auto
      show ?case proof safe
        show "bij_betw g (under r a) (under s (g a))" unfolding bij_betw_def proof safe
@@ -981,20 +981,20 @@ proof-
            using a r.REFL unfolding under_def underS_def refl_on_def by auto
            show "g a1 \<noteq> g a2"
            proof(cases "a2 = a")
-             case False hence "a2 \<in> underS r a" 
-             using a2 unfolding underS_def under_def by auto 
+             case False hence "a2 \<in> underS r a"
+             using a2 unfolding underS_def under_def by auto
              from IH1a[OF this] show ?thesis using a12 a22 unfolding inj_on_def by auto
            qed(insert B a1, unfold underS_def, auto)
          qed(unfold under_def Field_def, auto)
        next
-         fix a1 assume a1: "a1 \<in> under r a" 
+         fix a1 assume a1: "a1 \<in> under r a"
          show "g a1 \<in> under s (g a)"
          proof(cases "a1 = a")
-           case True thus ?thesis 
+           case True thus ?thesis
            using ga s.REFL unfolding refl_on_def under_def by auto
          next
            case False
-           hence a1: "a1 \<in> underS r a" using a1 unfolding underS_def under_def by auto 
+           hence a1: "a1 \<in> underS r a" using a1 unfolding underS_def under_def by auto
            thus ?thesis using B unfolding underS_def under_def by auto
          qed
        next
@@ -1003,21 +1003,21 @@ proof-
          proof(cases "b1 = g a")
            case True thus ?thesis using aa by auto
          next
-           case False 
+           case False
            hence "b1 \<in> underS s (g a)" using b1 unfolding underS_def under_def by auto
            from s.underS_suc[OF this[unfolded g] A0]
            obtain a1 where a1: "a1 \<in> underS r a" and b1: "b1 \<in> under s (g a1)" by auto
            obtain a2 where "a2 \<in> under r a1" and b1: "b1 = g a2" using IH1b[OF a1] b1 by auto
-           hence "a2 \<in> under r a" using a1 
+           hence "a2 \<in> under r a" using a1
            by (metis r.ANTISYM r.TRANS in_mono underS_subset_under under_underS_trans)
            thus ?thesis using b1 by auto
          qed
        qed
      next
        have "(g a, f a) \<in> s" unfolding g proof(rule s.suc_least[OF A0])
-         fix b1 assume "b1 \<in> g ` underS r a" 
+         fix b1 assume "b1 \<in> g ` underS r a"
          then obtain a1 where a1: "b1 = g a1" and a1: "a1 \<in> underS r a" by auto
-         hence "b1 \<in> underS s (f a)" 
+         hence "b1 \<in> underS s (f a)"
          using a by (metis `\<And>a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> underS s (f a)`)
          thus "f a \<noteq> b1 \<and> (b1, f a) \<in> s" unfolding underS_def by auto
        qed(insert fa, auto)

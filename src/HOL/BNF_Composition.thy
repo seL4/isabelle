@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Comp.thy
+(*  Title:      HOL/BNF_Composition.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013, 2014
@@ -8,79 +8,79 @@ Composition of bounded natural functors.
 
 header {* Composition of Bounded Natural Functors *}
 
-theory BNF_Comp
+theory BNF_Composition
 imports BNF_Def
 begin
 
 lemma empty_natural: "(\<lambda>_. {}) o f = image g o (\<lambda>_. {})"
-by (rule ext) simp
+  by (rule ext) simp
 
 lemma Union_natural: "Union o image (image f) = image f o Union"
-by (rule ext) (auto simp only: comp_apply)
+  by (rule ext) (auto simp only: comp_apply)
 
 lemma in_Union_o_assoc: "x \<in> (Union o gset o gmap) A \<Longrightarrow> x \<in> (Union o (gset o gmap)) A"
-by (unfold comp_assoc)
+  by (unfold comp_assoc)
 
 lemma comp_single_set_bd:
   assumes fbd_Card_order: "Card_order fbd" and
     fset_bd: "\<And>x. |fset x| \<le>o fbd" and
     gset_bd: "\<And>x. |gset x| \<le>o gbd"
   shows "|\<Union>(fset ` gset x)| \<le>o gbd *c fbd"
-apply simp
-apply (rule ordLeq_transitive)
-apply (rule card_of_UNION_Sigma)
-apply (subst SIGMA_CSUM)
-apply (rule ordLeq_transitive)
-apply (rule card_of_Csum_Times')
-apply (rule fbd_Card_order)
-apply (rule ballI)
-apply (rule fset_bd)
-apply (rule ordLeq_transitive)
-apply (rule cprod_mono1)
-apply (rule gset_bd)
-apply (rule ordIso_imp_ordLeq)
-apply (rule ordIso_refl)
-apply (rule Card_order_cprod)
-done
+  apply simp
+  apply (rule ordLeq_transitive)
+  apply (rule card_of_UNION_Sigma)
+  apply (subst SIGMA_CSUM)
+  apply (rule ordLeq_transitive)
+  apply (rule card_of_Csum_Times')
+  apply (rule fbd_Card_order)
+  apply (rule ballI)
+  apply (rule fset_bd)
+  apply (rule ordLeq_transitive)
+  apply (rule cprod_mono1)
+  apply (rule gset_bd)
+  apply (rule ordIso_imp_ordLeq)
+  apply (rule ordIso_refl)
+  apply (rule Card_order_cprod)
+  done
 
 lemma csum_dup: "cinfinite r \<Longrightarrow> Card_order r \<Longrightarrow> p +c p' =o r +c r \<Longrightarrow> p +c p' =o r"
-apply (erule ordIso_transitive)
-apply (frule csum_absorb2')
-apply (erule ordLeq_refl)
-by simp
+  apply (erule ordIso_transitive)
+  apply (frule csum_absorb2')
+  apply (erule ordLeq_refl)
+  by simp
 
 lemma cprod_dup: "cinfinite r \<Longrightarrow> Card_order r \<Longrightarrow> p *c p' =o r *c r \<Longrightarrow> p *c p' =o r"
-apply (erule ordIso_transitive)
-apply (rule cprod_infinite)
-by simp
+  apply (erule ordIso_transitive)
+  apply (rule cprod_infinite)
+  by simp
 
 lemma Union_image_insert: "\<Union>(f ` insert a B) = f a \<union> \<Union>(f ` B)"
-by simp
+  by simp
 
 lemma Union_image_empty: "A \<union> \<Union>(f ` {}) = A"
-by simp
+  by simp
 
 lemma image_o_collect: "collect ((\<lambda>f. image g o f) ` F) = image g o collect F"
-by (rule ext) (auto simp add: collect_def)
+  by (rule ext) (auto simp add: collect_def)
 
 lemma conj_subset_def: "A \<subseteq> {x. P x \<and> Q x} = (A \<subseteq> {x. P x} \<and> A \<subseteq> {x. Q x})"
-by blast
+  by blast
 
 lemma UN_image_subset: "\<Union>(f ` g x) \<subseteq> X = (g x \<subseteq> {x. f x \<subseteq> X})"
-by blast
+  by blast
 
 lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>((\<lambda>f. f x) ` X)| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
-by (unfold comp_apply collect_def) simp
+  by (unfold comp_apply collect_def) simp
 
 lemma wpull_cong:
-"\<lbrakk>A' = A; B1' = B1; B2' = B2; wpull A B1 B2 f1 f2 p1 p2\<rbrakk> \<Longrightarrow> wpull A' B1' B2' f1 f2 p1 p2"
-by simp
+  "\<lbrakk>A' = A; B1' = B1; B2' = B2; wpull A B1 B2 f1 f2 p1 p2\<rbrakk> \<Longrightarrow> wpull A' B1' B2' f1 f2 p1 p2"
+  by simp
 
 lemma Grp_fst_snd: "(Grp (Collect (split R)) fst)^--1 OO Grp (Collect (split R)) snd = R"
-unfolding Grp_def fun_eq_iff relcompp.simps by auto
+  unfolding Grp_def fun_eq_iff relcompp.simps by auto
 
 lemma OO_Grp_cong: "A = B \<Longrightarrow> (Grp A f)^--1 OO Grp A g = (Grp B f)^--1 OO Grp B g"
-by (rule arg_cong)
+  by (rule arg_cong)
 
 lemma vimage2p_relcompp_mono: "R OO S \<le> T \<Longrightarrow>
   vimage2p f g R OO vimage2p g h S \<le> vimage2p f h T"
@@ -96,8 +96,8 @@ lemma vimage2p_cong: "R = S \<Longrightarrow> vimage2p f g R = vimage2p f g S"
   by simp
 
 context
-fixes Rep Abs
-assumes type_copy: "type_definition Rep Abs UNIV"
+  fixes Rep Abs
+  assumes type_copy: "type_definition Rep Abs UNIV"
 begin
 
 lemma type_copy_map_id0: "M = id \<Longrightarrow> Abs o M o Rep = id"
@@ -144,7 +144,7 @@ bnf DEADID: 'a
   map: "id :: 'a \<Rightarrow> 'a"
   bd: natLeq
   rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
-by (auto simp add: Grp_def natLeq_card_order natLeq_cinfinite)
+  by (auto simp add: Grp_def natLeq_card_order natLeq_cinfinite)
 
 definition id_bnf_comp :: "'a \<Rightarrow> 'a" where "id_bnf_comp \<equiv> (\<lambda>x. x)"
 
@@ -156,11 +156,11 @@ bnf ID: 'a
   sets: "\<lambda>x. {x}"
   bd: natLeq
   rel: "id_bnf_comp :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
-unfolding id_bnf_comp_def
-apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
-apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
-apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
-done
+  unfolding id_bnf_comp_def
+  apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
+  apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
+  apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
+  done
 
 lemma type_definition_id_bnf_comp_UNIV: "type_definition id_bnf_comp id_bnf_comp UNIV"
   unfolding id_bnf_comp_def by unfold_locales auto
