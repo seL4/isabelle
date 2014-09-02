@@ -2035,6 +2035,10 @@ lemma [code_abbrev]:
   by simp
 
 lemma [code_abbrev]:
+  "(of_rat (- 1) :: real) = - 1"
+  by simp
+
+lemma [code_abbrev]:
   "(of_rat (numeral k) :: real) = numeral k"
   by simp
 
@@ -2043,17 +2047,10 @@ lemma [code_abbrev]:
   by simp
 
 lemma [code_post]:
-  "(of_rat (0 / r)  :: real) = 0"
-  "(of_rat (r / 0)  :: real) = 0"
-  "(of_rat (1 / 1)  :: real) = 1"
-  "(of_rat (numeral k / 1) :: real) = numeral k"
-  "(of_rat (- numeral k / 1) :: real) = - numeral k"
   "(of_rat (1 / numeral k) :: real) = 1 / numeral k"
-  "(of_rat (1 / - numeral k) :: real) = 1 / - numeral k"
-  "(of_rat (numeral k / numeral l)  :: real) = numeral k / numeral l"
-  "(of_rat (numeral k / - numeral l)  :: real) = numeral k / - numeral l"
-  "(of_rat (- numeral k / numeral l)  :: real) = - numeral k / numeral l"
-  "(of_rat (- numeral k / - numeral l)  :: real) = - numeral k / - numeral l"
+  "(of_rat (numeral k / numeral l) :: real) = numeral k / numeral l"
+  "(of_rat (- (1 / numeral k)) :: real) = - (1 / numeral k)"
+  "(of_rat (- (numeral k / numeral l)) :: real) = - (numeral k / numeral l)"
   by (simp_all add: of_rat_divide of_rat_minus)
 
 
