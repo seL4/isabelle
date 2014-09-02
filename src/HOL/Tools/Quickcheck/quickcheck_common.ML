@@ -419,9 +419,11 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
   end;
 
 fun ensure_common_sort_datatype (sort, instantiate) =
-  ensure_sort (((@{sort typerep}, @{sort term_of}), sort), (Old_Datatype_Data.the_descr, instantiate))
+  ensure_sort (((@{sort typerep}, @{sort term_of}), sort),
+    (fn thy => BNF_LFP_Compat.the_descr thy BNF_LFP_Compat.Keep_Nesting, instantiate))
 
-val datatype_interpretation = Old_Datatype_Data.interpretation o ensure_common_sort_datatype
+val datatype_interpretation =
+  BNF_LFP_Compat.interpretation BNF_LFP_Compat.Keep_Nesting o ensure_common_sort_datatype
   
 (** generic parametric compilation **)
 
