@@ -90,20 +90,19 @@ proof (rule ext)
 qed
 
 lemma Card_order_wo_rel: "Card_order r \<Longrightarrow> wo_rel r"
-unfolding wo_rel_def card_order_on_def by blast
+  unfolding wo_rel_def card_order_on_def by blast
 
-lemma Cinfinite_limit: "\<lbrakk>x \<in> Field r; Cinfinite r\<rbrakk> \<Longrightarrow>
-  \<exists>y \<in> Field r. x \<noteq> y \<and> (x, y) \<in> r"
-unfolding cinfinite_def by (auto simp add: infinite_Card_order_limit)
+lemma Cinfinite_limit: "\<lbrakk>x \<in> Field r; Cinfinite r\<rbrakk> \<Longrightarrow> \<exists>y \<in> Field r. x \<noteq> y \<and> (x, y) \<in> r"
+  unfolding cinfinite_def by (auto simp add: infinite_Card_order_limit)
 
 lemma Card_order_trans:
   "\<lbrakk>Card_order r; x \<noteq> y; (x, y) \<in> r; y \<noteq> z; (y, z) \<in> r\<rbrakk> \<Longrightarrow> x \<noteq> z \<and> (x, z) \<in> r"
-unfolding card_order_on_def well_order_on_def linear_order_on_def
-  partial_order_on_def preorder_on_def trans_def antisym_def by blast
+  unfolding card_order_on_def well_order_on_def linear_order_on_def
+    partial_order_on_def preorder_on_def trans_def antisym_def by blast
 
 lemma Cinfinite_limit2:
- assumes x1: "x1 \<in> Field r" and x2: "x2 \<in> Field r" and r: "Cinfinite r"
- shows "\<exists>y \<in> Field r. (x1 \<noteq> y \<and> (x1, y) \<in> r) \<and> (x2 \<noteq> y \<and> (x2, y) \<in> r)"
+  assumes x1: "x1 \<in> Field r" and x2: "x2 \<in> Field r" and r: "Cinfinite r"
+  shows "\<exists>y \<in> Field r. (x1 \<noteq> y \<and> (x1, y) \<in> r) \<and> (x2 \<noteq> y \<and> (x2, y) \<in> r)"
 proof -
   from r have trans: "trans r" and total: "Total r" and antisym: "antisym r"
     unfolding card_order_on_def well_order_on_def linear_order_on_def
@@ -132,8 +131,8 @@ proof -
   qed
 qed
 
-lemma Cinfinite_limit_finite: "\<lbrakk>finite X; X \<subseteq> Field r; Cinfinite r\<rbrakk>
- \<Longrightarrow> \<exists>y \<in> Field r. \<forall>x \<in> X. (x \<noteq> y \<and> (x, y) \<in> r)"
+lemma Cinfinite_limit_finite:
+  "\<lbrakk>finite X; X \<subseteq> Field r; Cinfinite r\<rbrakk> \<Longrightarrow> \<exists>y \<in> Field r. \<forall>x \<in> X. (x \<noteq> y \<and> (x, y) \<in> r)"
 proof (induct X rule: finite_induct)
   case empty thus ?case unfolding cinfinite_def using ex_in_conv[of "Field r"] finite.emptyI by auto
 next
@@ -153,7 +152,7 @@ next
 qed
 
 lemma insert_subsetI: "\<lbrakk>x \<in> A; X \<subseteq> A\<rbrakk> \<Longrightarrow> insert x X \<subseteq> A"
-by auto
+  by auto
 
 lemmas well_order_induct_imp = wo_rel.well_order_induct[of r "\<lambda>x. x \<in> Field r \<longrightarrow> P x" for r P]
 

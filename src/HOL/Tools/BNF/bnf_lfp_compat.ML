@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013, 2014
 
-Compatibility layer with the old datatype package. Parly based on:
+Compatibility layer with the old datatype package. Partly based on
 
     Title:      HOL/Tools/Old_Datatype/old_datatype_data.ML
     Author:     Stefan Berghofer, TU Muenchen
@@ -29,6 +29,13 @@ sig
     string list * theory
   val add_primrec: (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
    local_theory -> (term list * thm list) * local_theory
+  val add_primrec_global: (binding * typ option * mixfix) list ->
+    (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
+  val add_primrec_overloaded: (string * (string * typ) * bool) list ->
+    (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> theory ->
+    (term list * thm list) * theory
+  val add_primrec_simple: ((binding * typ) * mixfix) list -> term list ->
+    local_theory -> (string list * (term list * (int list * thm list))) * local_theory
 end;
 
 structure BNF_LFP_Compat : BNF_LFP_COMPAT =
@@ -358,6 +365,10 @@ fun add_datatype nesting_pref old_specs thy =
   end;
 
 val add_primrec = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec;
+val add_primrec_global = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec_global;
+val add_primrec_overloaded = apfst (apsnd flat) oooo BNF_LFP_Rec_Sugar.add_primrec_overloaded;
+val add_primrec_simple = apfst (apsnd (apsnd (apsnd flat o apfst flat))) ooo
+  BNF_LFP_Rec_Sugar.add_primrec_simple;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "datatype_compat"}
