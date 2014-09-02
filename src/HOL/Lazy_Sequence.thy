@@ -9,7 +9,7 @@ begin
 
 subsection {* Type of lazy sequences *}
 
-datatype 'a lazy_sequence = lazy_sequence_of_list "'a list"
+datatype_new (dead 'a) lazy_sequence = lazy_sequence_of_list "'a list"
 
 primrec list_of_lazy_sequence :: "'a lazy_sequence \<Rightarrow> 'a list"
 where
@@ -29,7 +29,7 @@ lemma lazy_sequence_eq_iff:
 
 lemma size_lazy_sequence_eq [code]:
   "size_lazy_sequence f xq = Suc (size_list f (list_of_lazy_sequence xq))"
-  "size (xq :: 'a lazy_sequence) = 0"
+  "size xq = Suc (length (list_of_lazy_sequence xq))"
   by (cases xq, simp)+
 
 lemma case_lazy_sequence [simp]:

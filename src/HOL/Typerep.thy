@@ -6,7 +6,7 @@ theory Typerep
 imports String
 begin
 
-datatype typerep = Typerep String.literal "typerep list"
+datatype_new typerep = Typerep String.literal "typerep list"
 
 class typerep =
   fixes typerep :: "'a itself \<Rightarrow> typerep"

@@ -493,7 +493,7 @@ subsection {* Small finite types *}
 
 text {* We define small finite types for the use in Quickcheck *}
 
-datatype finite_1 = a\<^sub>1
+datatype_new finite_1 = a\<^sub>1
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
 
@@ -595,7 +595,7 @@ end
 declare [[simproc del: finite_1_eq]]
 hide_const (open) a\<^sub>1
 
-datatype finite_2 = a\<^sub>1 | a\<^sub>2
+datatype_new finite_2 = a\<^sub>1 | a\<^sub>2
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
 notation (output) a\<^sub>2  ("a\<^sub>2")
@@ -701,7 +701,7 @@ end
 
 hide_const (open) a\<^sub>1 a\<^sub>2
 
-datatype finite_3 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3
+datatype_new finite_3 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
 notation (output) a\<^sub>2  ("a\<^sub>2")
@@ -825,7 +825,7 @@ end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3
 
-datatype finite_4 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4
+datatype_new finite_4 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
 notation (output) a\<^sub>2  ("a\<^sub>2")
@@ -927,7 +927,7 @@ end
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4
 
 
-datatype finite_5 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4 | a\<^sub>5
+datatype_new finite_5 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4 | a\<^sub>5
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
 notation (output) a\<^sub>2  ("a\<^sub>2")

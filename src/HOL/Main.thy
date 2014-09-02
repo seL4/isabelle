@@ -30,10 +30,9 @@ no_notation
   convol ("\<langle>(_,/ _)\<rangle>")
 
 hide_const (open)
-  czero cinfinite cfinite csum cone ctwo Csum cprod cexp
-  image2 image2p vimage2p Gr Grp collect fsts snds setl setr
-  convol pick_middlep fstOp sndOp csquare relImage relInvImage
-  Succ Shift shift proj
+  czero cinfinite cfinite csum cone ctwo Csum cprod cexp image2 image2p vimage2p Gr Grp collect
+  fsts snds setl setr convol pick_middlep fstOp sndOp csquare relImage relInvImage Succ Shift
+  shift proj
 
 no_syntax (xsymbols)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)

@@ -228,4 +228,3 @@ hide_const (open) catch_match random collapse beyond random_fun_aux random_fun_l
 hide_fact (open) collapse_def beyond_def random_fun_lift_def
 
 end
-

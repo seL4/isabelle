@@ -8,7 +8,7 @@ imports List
 begin
 
 definition (in monoid_add) listsum :: "'a list \<Rightarrow> 'a" where
-"listsum xs = foldr plus xs 0"
+  "listsum xs = foldr plus xs 0"
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 

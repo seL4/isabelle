@@ -79,7 +79,7 @@ text {*
 
 subsection {* Operators and lemmas for types isomorphic to tuples *}
 
-datatype ('a, 'b, 'c) tuple_isomorphism =
+datatype_new (dead 'a, dead 'b, dead 'c) tuple_isomorphism =
   Tuple_Isomorphism "'a \<Rightarrow> 'b \<times> 'c" "'b \<times> 'c \<Rightarrow> 'a"
 
 primrec

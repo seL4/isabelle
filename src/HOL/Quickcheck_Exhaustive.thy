@@ -574,8 +574,8 @@ definition pos_bound_cps_if :: "bool => unit pos_bound_cps"
 where
   "pos_bound_cps_if b = (if b then pos_bound_cps_single () else pos_bound_cps_empty)"
 
-datatype 'a unknown = Unknown | Known 'a
-datatype 'a three_valued = Unknown_value | Value 'a | No_value
+datatype_new (dead 'a) unknown = Unknown | Known 'a
+datatype_new (dead 'a) three_valued = Unknown_value | Value 'a | No_value
 
 type_synonym 'a neg_bound_cps = "('a unknown => term list three_valued) => natural => term list three_valued"
 

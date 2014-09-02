@@ -26,13 +26,19 @@ code_reserved Haskell_Quickcheck Typerep
 
 subsubsection {* Narrowing's deep representation of types and terms *}
 
-datatype narrowing_type = Narrowing_sum_of_products "narrowing_type list list"
-datatype narrowing_term = Narrowing_variable "integer list" narrowing_type | Narrowing_constructor integer "narrowing_term list"
-datatype 'a narrowing_cons = Narrowing_cons narrowing_type "(narrowing_term list => 'a) list"
+datatype_new narrowing_type =
+  Narrowing_sum_of_products "narrowing_type list list"
+
+datatype_new narrowing_term =
+  Narrowing_variable "integer list" narrowing_type
+| Narrowing_constructor integer "narrowing_term list"
+
+datatype_new (dead 'a) narrowing_cons =
+  Narrowing_cons narrowing_type "(narrowing_term list \<Rightarrow> 'a) list"
 
 primrec map_cons :: "('a => 'b) => 'a narrowing_cons => 'b narrowing_cons"
 where
-  "map_cons f (Narrowing_cons ty cs) = Narrowing_cons ty (map (%c. f o c) cs)"
+  "map_cons f (Narrowing_cons ty cs) = Narrowing_cons ty (map (\<lambda>c. f o c) cs)"
 
 subsubsection {* From narrowing's deep representation of terms to @{theory Code_Evaluation}'s terms *}
 
@@ -70,7 +76,7 @@ where
   
 definition cons :: "'a => 'a narrowing"
 where
-  "cons a d = (Narrowing_cons (Narrowing_sum_of_products [[]]) [(%_. a)])"
+  "cons a d = (Narrowing_cons (Narrowing_sum_of_products [[]]) [(\<lambda>_. a)])"
 
 fun conv :: "(narrowing_term list => 'a) list => narrowing_term => 'a"
 where
@@ -88,7 +94,7 @@ where
        case a (d - 1) of Narrowing_cons ta cas =>
        let
          shallow = (d > 0 \<and> non_empty ta);
-         cs = [(%xs'. (case xs' of [] => undefined | x # xs => cf xs (conv cas x))). shallow, cf <- cfs]
+         cs = [(\<lambda>xs'. (case xs' of [] => undefined | x # xs => cf xs (conv cas x))). shallow, cf <- cfs]
        in Narrowing_cons (Narrowing_sum_of_products [ta # p. shallow, p <- ps]) cs)"
 
 definition sum :: "'a narrowing => 'a narrowing => 'a narrowing"
@@ -121,7 +127,7 @@ subsubsection {* Narrowing generator type class *}
 class narrowing =
   fixes narrowing :: "integer => 'a narrowing_cons"
 
-datatype property = Universal narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Existential narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Property bool
+datatype_new property = Universal narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Existential narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Property bool
 
 (* FIXME: hard-wired maximal depth of 100 here *)
 definition exists :: "('a :: {narrowing, partial_term_of} => property) => property"
@@ -149,7 +155,7 @@ where
 
 subsubsection {* Defining a simple datatype to represent functions in an incomplete and redundant way *}
 
-datatype ('a, 'b) ffun = Constant 'b | Update 'a 'b "('a, 'b) ffun"
+datatype_new (dead 'a, dead 'b) ffun = Constant 'b | Update 'a 'b "('a, 'b) ffun"
 
 primrec eval_ffun :: "('a, 'b) ffun => 'a => 'b"
 where
@@ -159,7 +165,7 @@ where
 hide_type (open) ffun
 hide_const (open) Constant Update eval_ffun
 
-datatype 'b cfun = Constant 'b
+datatype_new (dead 'b) cfun = Constant 'b
 
 primrec eval_cfun :: "'b cfun => 'a => 'b"
 where
@@ -308,4 +314,3 @@ hide_const (open) Narrowing_variable Narrowing_constructor "apply" sum cons
 hide_fact empty_def cons_def conv.simps non_empty.simps apply_def sum_def ensure_testable_def all_def exists_def
 
 end
-
