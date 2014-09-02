@@ -1,6 +1,7 @@
 (*  Title:      HOL/Library/Countable.thy
     Author:     Alexander Krauss, TU Muenchen
     Author:     Brian Huffman, Portland State University
+    Author:     Jasmin Blanchette, TU Muenchen
 *)
 
 header {* Encoding (almost) everything into natural numbers *}
@@ -49,10 +50,7 @@ lemma from_nat_to_nat [simp]:
   by (simp add: from_nat_def)
 
 
-subsection {* Countable types *}
-
-instance nat :: countable
-  by (rule countable_classI [of "id"]) simp
+subsection {* Finite types are countable *}
 
 subclass (in finite) countable
 proof
@@ -65,113 +63,8 @@ proof
   then show "\<exists>to_nat \<Colon> 'a \<Rightarrow> nat. inj to_nat" by (rule exI[of inj])
 qed
 
-text {* Pairs *}
 
-instance prod :: (countable, countable) countable
-  by (rule countable_classI [of "\<lambda>(x, y). prod_encode (to_nat x, to_nat y)"])
-    (auto simp add: prod_encode_eq)
-
-
-text {* Sums *}
-
-instance sum :: (countable, countable) countable
-  by (rule countable_classI [of "(\<lambda>x. case x of Inl a \<Rightarrow> to_nat (False, to_nat a)
-                                     | Inr b \<Rightarrow> to_nat (True, to_nat b))"])
-    (simp split: sum.split_asm)
-
-
-text {* Integers *}
-
-instance int :: countable
-  by (rule countable_classI [of "int_encode"])
-    (simp add: int_encode_eq)
-
-
-text {* Options *}
-
-instance option :: (countable) countable
-  by (rule countable_classI [of "case_option 0 (Suc \<circ> to_nat)"])
-    (simp split: option.split_asm)
-
-
-text {* Lists *}
-
-instance list :: (countable) countable
-  by (rule countable_classI [of "list_encode \<circ> map to_nat"])
-    (simp add: list_encode_eq)
-
-
-text {* Further *}
-
-instance String.literal :: countable
-  by (rule countable_classI [of "to_nat o String.explode"])
-    (auto simp add: explode_inject)
-
-text {* Functions *}
-
-instance "fun" :: (finite, countable) countable
-proof
-  obtain xs :: "'a list" where xs: "set xs = UNIV"
-    using finite_list [OF finite_UNIV] ..
-  show "\<exists>to_nat::('a \<Rightarrow> 'b) \<Rightarrow> nat. inj to_nat"
-  proof
-    show "inj (\<lambda>f. to_nat (map f xs))"
-      by (rule injI, simp add: xs fun_eq_iff)
-  qed
-qed
-
-
-subsection {* The Rationals are Countably Infinite *}
-
-definition nat_to_rat_surj :: "nat \<Rightarrow> rat" where
-"nat_to_rat_surj n = (let (a,b) = prod_decode n
-                      in Fract (int_decode a) (int_decode b))"
-
-lemma surj_nat_to_rat_surj: "surj nat_to_rat_surj"
-unfolding surj_def
-proof
-  fix r::rat
-  show "\<exists>n. r = nat_to_rat_surj n"
-  proof (cases r)
-    fix i j assume [simp]: "r = Fract i j" and "j > 0"
-    have "r = (let m = int_encode i; n = int_encode j
-               in nat_to_rat_surj(prod_encode (m,n)))"
-      by (simp add: Let_def nat_to_rat_surj_def)
-    thus "\<exists>n. r = nat_to_rat_surj n" by(auto simp:Let_def)
-  qed
-qed
-
-lemma Rats_eq_range_nat_to_rat_surj: "\<rat> = range nat_to_rat_surj"
-by (simp add: Rats_def surj_nat_to_rat_surj)
-
-context field_char_0
-begin
-
-lemma Rats_eq_range_of_rat_o_nat_to_rat_surj:
-  "\<rat> = range (of_rat o nat_to_rat_surj)"
-using surj_nat_to_rat_surj
-by (auto simp: Rats_def image_def surj_def)
-   (blast intro: arg_cong[where f = of_rat])
-
-lemma surj_of_rat_nat_to_rat_surj:
-  "r\<in>\<rat> \<Longrightarrow> \<exists>n. r = of_rat(nat_to_rat_surj n)"
-by(simp add: Rats_eq_range_of_rat_o_nat_to_rat_surj image_def)
-
-end
-
-instance rat :: countable
-proof
-  show "\<exists>to_nat::rat \<Rightarrow> nat. inj to_nat"
-  proof
-    have "surj nat_to_rat_surj"
-      by (rule surj_nat_to_rat_surj)
-    then show "inj (inv nat_to_rat_surj)"
-      by (rule surj_imp_inj_inv)
-  qed
-qed
-
-
-subsection {* Automatically proving countability of datatypes *}
+subsection {* Automatically proving countability of old-style datatypes *}
 
 inductive finite_item :: "'a Old_Datatype.item \<Rightarrow> bool" where
   undefined: "finite_item undefined"
@@ -268,8 +161,8 @@ proof
 qed
 
 ML {*
-  fun countable_tac ctxt =
-    SUBGOAL (fn (goal, i) =>
+  fun old_countable_tac ctxt =
+    SUBGOAL (fn (goal, _) =>
       let
         val ty_name =
           (case goal of
@@ -279,7 +172,7 @@ ML {*
         val typedef_thm = #type_definition (snd typedef_info)
         val pred_name =
           (case HOLogic.dest_Trueprop (concl_of typedef_thm) of
-            (typedef $ rep $ abs $ (collect $ Const (n, _))) => n
+            (_ $ _ $ _ $ (_ $ Const (n, _))) => n
           | _ => raise Match)
         val induct_info = Inductive.the_inductive ctxt pred_name
         val pred_names = #names (fst induct_info)
@@ -301,33 +194,124 @@ ML {*
       end)
 *}
 
-method_setup countable_datatype = {*
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (countable_tac ctxt))
-*} "prove countable class instances for datatypes"
-
 hide_const (open) finite_item nth_item
 
 
-subsection {* Countable datatypes *}
+subsection {* Automatically proving countability of new-style datatypes *}
 
-(* TODO: automate *)
+ML_file "bnf_lfp_countable.ML"
 
-primrec encode_typerep :: "typerep \<Rightarrow> nat" where
-  "encode_typerep (Typerep.Typerep s ts) = prod_encode (to_nat s, to_nat (map encode_typerep ts))"
+method_setup countable_datatype = {*
+  Scan.succeed (fn ctxt =>
+    SIMPLE_METHOD (fn st => HEADGOAL (old_countable_tac ctxt) st
+      handle ERROR _ => BNF_LFP_Countable.countable_tac ctxt st))
+*} "prove countable class instances for datatypes"
 
-lemma encode_typerep_injective: "\<forall>u. encode_typerep t = encode_typerep u \<longrightarrow> t = u"
-  apply (induct t)
-  apply (rule allI)
-  apply (case_tac u)
-  apply (auto simp: sum_encode_eq prod_encode_eq elim: list.inj_map_strong[rotated 1])
-  done
+
+subsection {* More Countable types *}
+
+text {* Naturals *}
+
+instance nat :: countable
+  by (rule countable_classI [of "id"]) simp
+
+text {* Pairs *}
+
+instance prod :: (countable, countable) countable
+  by (rule countable_classI [of "\<lambda>(x, y). prod_encode (to_nat x, to_nat y)"])
+    (auto simp add: prod_encode_eq)
+
+text {* Sums *}
+
+instance sum :: (countable, countable) countable
+  by (rule countable_classI [of "(\<lambda>x. case x of Inl a \<Rightarrow> to_nat (False, to_nat a)
+                                     | Inr b \<Rightarrow> to_nat (True, to_nat b))"])
+    (simp split: sum.split_asm)
+
+text {* Integers *}
+
+instance int :: countable
+  by (rule countable_classI [of int_encode]) (simp add: int_encode_eq)
+
+text {* Options *}
+
+instance option :: (countable) countable
+  by countable_datatype
+
+text {* Lists *}
+
+instance list :: (countable) countable
+  by countable_datatype
+
+text {* String literals *}
+
+instance String.literal :: countable
+  by (rule countable_classI [of "to_nat o String.explode"]) (auto simp add: explode_inject)
+
+text {* Functions *}
+
+instance "fun" :: (finite, countable) countable
+proof
+  obtain xs :: "'a list" where xs: "set xs = UNIV"
+    using finite_list [OF finite_UNIV] ..
+  show "\<exists>to_nat::('a \<Rightarrow> 'b) \<Rightarrow> nat. inj to_nat"
+  proof
+    show "inj (\<lambda>f. to_nat (map f xs))"
+      by (rule injI, simp add: xs fun_eq_iff)
+  qed
+qed
+
+text {* Typereps *}
 
 instance typerep :: countable
-  apply default
-  apply (unfold inj_on_def ball_UNIV)
-  apply (rule exI)
-  apply (rule allI)
-  apply (rule encode_typerep_injective)
-  done
+  by countable_datatype
+
+
+subsection {* The rationals are countably infinite *}
+
+definition nat_to_rat_surj :: "nat \<Rightarrow> rat" where
+  "nat_to_rat_surj n = (let (a, b) = prod_decode n in Fract (int_decode a) (int_decode b))"
+
+lemma surj_nat_to_rat_surj: "surj nat_to_rat_surj"
+unfolding surj_def
+proof
+  fix r::rat
+  show "\<exists>n. r = nat_to_rat_surj n"
+  proof (cases r)
+    fix i j assume [simp]: "r = Fract i j" and "j > 0"
+    have "r = (let m = int_encode i; n = int_encode j
+               in nat_to_rat_surj(prod_encode (m,n)))"
+      by (simp add: Let_def nat_to_rat_surj_def)
+    thus "\<exists>n. r = nat_to_rat_surj n" by(auto simp:Let_def)
+  qed
+qed
+
+lemma Rats_eq_range_nat_to_rat_surj: "\<rat> = range nat_to_rat_surj"
+  by (simp add: Rats_def surj_nat_to_rat_surj)
+
+context field_char_0
+begin
+
+lemma Rats_eq_range_of_rat_o_nat_to_rat_surj:
+  "\<rat> = range (of_rat o nat_to_rat_surj)"
+  using surj_nat_to_rat_surj
+  by (auto simp: Rats_def image_def surj_def) (blast intro: arg_cong[where f = of_rat])
+
+lemma surj_of_rat_nat_to_rat_surj:
+  "r\<in>\<rat> \<Longrightarrow> \<exists>n. r = of_rat(nat_to_rat_surj n)"
+  by (simp add: Rats_eq_range_of_rat_o_nat_to_rat_surj image_def)
+
+end
+
+instance rat :: countable
+proof
+  show "\<exists>to_nat::rat \<Rightarrow> nat. inj to_nat"
+  proof
+    have "surj nat_to_rat_surj"
+      by (rule surj_nat_to_rat_surj)
+    then show "inj (inv nat_to_rat_surj)"
+      by (rule surj_imp_inj_inv)
+  qed
+qed
 
 end
