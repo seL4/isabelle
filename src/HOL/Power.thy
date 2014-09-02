@@ -822,12 +822,6 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma Domain_dprod [simp]: "Domain (dprod r s) = uprod (Domain r) (Domain s)"
-  by auto
-
-lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
-  by auto
-
 subsection {* Code generator tweak *}
 
 lemma power_power_power [code]:

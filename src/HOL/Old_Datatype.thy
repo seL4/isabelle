@@ -6,7 +6,7 @@
 header {* Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
 
 theory Old_Datatype
-imports Product_Type Sum_Type Nat
+imports Power
 keywords "datatype" :: thy_decl
 begin
 
@@ -506,6 +506,15 @@ lemma dsum_Sigma: "(dsum (A <*> B) (C <*> D)) <= (usum A C) <*> (usum B D)"
 by blast
 
 lemmas dsum_subset_Sigma = subset_trans [OF dsum_mono dsum_Sigma]
+
+
+(*** Domain theorems ***)
+
+lemma Domain_dprod [simp]: "Domain (dprod r s) = uprod (Domain r) (Domain s)"
+  by auto
+
+lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
+  by auto
 
 
 text {* hides popular names *}
