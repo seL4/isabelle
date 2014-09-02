@@ -6,7 +6,7 @@
 header {* Binary Numerals *}
 
 theory Num
-imports BNF_Least_Fixpoint Old_Datatype
+imports BNF_Least_Fixpoint
 begin
 
 subsection {* The @{text num} type *}
