@@ -160,7 +160,7 @@ fun derive_encode_injectives_thms _ [] = []
       val (xs, names_ctxt) = ctxt |> mk_Frees "x" fpTs;
 
       val conjuncts = map3 mk_conjunct fpTs xs (mk_encode_funs ctxt fpTs ns ctrss0 recs0);
-      val goal = HOLogic.mk_Trueprop (Balanced_Tree.make HOLogic.mk_conj conjuncts);
+      val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj conjuncts);
     in
       Goal.prove ctxt [] [] goal (fn {context = ctxt, prems = _} =>
         mk_encode_injectives_tac ctxt ns induct nchotomys injectss rec_thmss map_comps'
