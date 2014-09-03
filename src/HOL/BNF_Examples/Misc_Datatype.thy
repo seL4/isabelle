@@ -216,11 +216,8 @@ instance exp and trm and factor :: (countable, countable) countable
 instance nofail1 :: (countable) countable
   by countable_datatype
 
-(* FIXME:
-
 instance nofail2 :: (countable) countable
   by countable_datatype
-*)
 
 (* TODO: Enable once "fset" is registered as countable:
 
@@ -231,7 +228,7 @@ instance nofail4 :: (countable) countable
   by countable_datatype
 
 instance l1 and l2 :: countable
-  by default (rule l1_countable)
+  by countable_datatype
 *)
 
 instance kk1 and kk2 :: countable
