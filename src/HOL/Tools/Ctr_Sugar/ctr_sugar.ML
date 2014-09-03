@@ -180,7 +180,7 @@ fun with_repaired_path f (ctr_sugar as {ctrs = ctr1 :: _, ...} : ctr_sugar) thy 
   thy
   |> Sign.root_path
   |> Sign.add_path (Long_Name.qualifier (fst (dest_Type (body_type (fastype_of ctr1)))))
-  |> (fn thy => f (morph_ctr_sugar (Morphism.transfer_morphism thy) ctr_sugar) thy)
+  |> (fn thy => f (transfer_ctr_sugar thy ctr_sugar) thy)
   |> Sign.restore_naming thy;
 
 fun ctr_sugar_interpretation f = Ctr_Sugar_Interpretation.interpretation (with_repaired_path f);
@@ -188,7 +188,8 @@ fun ctr_sugar_interpretation f = Ctr_Sugar_Interpretation.interpretation (with_r
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_ctr_sugar phi ctr_sugar)))
-  #> Local_Theory.background_theory (Ctr_Sugar_Interpretation.data ctr_sugar);
+  #> Local_Theory.background_theory
+    (fn thy => Ctr_Sugar_Interpretation.data (the (ctr_sugar_of_global thy key)) thy);
 
 fun default_register_ctr_sugar_global key ctr_sugar thy =
   let val tab = Data.get (Context.Theory thy) in
