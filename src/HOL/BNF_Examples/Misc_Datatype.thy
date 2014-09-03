@@ -10,7 +10,7 @@ Miscellaneous datatype definitions.
 header {* Miscellaneous Datatype Definitions *}
 
 theory Misc_Datatype
-imports "~~/src/HOL/Library/FSet"
+imports "~~/src/HOL/Library/Countable" "~~/src/HOL/Library/FSet"
 begin
 
 datatype_new (discs_sels) simple = X1 | X2 | X3 | X4
@@ -114,16 +114,6 @@ and ('a, 'c) D5 = A5 "('a, 'c) D6"
 and ('a, 'c) D6 = A6 "('a, 'c) D7"
 and ('a, 'c) D7 = A7 "('a, 'c) D8"
 and ('a, 'c) D8 = A8 "('a, 'c) D1 list"
-
-(*time comparison*)
-datatype ('a, 'c) D1' = A1' "('a, 'c) D2'" | B1' "'a list"
-     and ('a, 'c) D2' = A2' "('a, 'c) D3'" | B2' "'c list"
-     and ('a, 'c) D3' = A3' "('a, 'c) D3'" | B3' "('a, 'c) D4'" | C3' "('a, 'c) D4'" "('a, 'c) D5'"
-     and ('a, 'c) D4' = A4' "('a, 'c) D5'" | B4' "'a list list list"
-     and ('a, 'c) D5' = A5' "('a, 'c) D6'"
-     and ('a, 'c) D6' = A6' "('a, 'c) D7'"
-     and ('a, 'c) D7' = A7' "('a, 'c) D8'"
-     and ('a, 'c) D8' = A8' "('a, 'c) D1' list"
 *)
 
 (* fail:
@@ -183,6 +173,135 @@ datatype_new (discs_sels) d5 = D nat | E int
 datatype_new (discs_sels) d5' = D nat | is_E: E int
 datatype_new (discs_sels) d5'' = is_D: D nat | E int
 datatype_new (discs_sels) d5''' = is_D: D nat | is_E: E int
+
+instance simple :: countable
+  by countable_datatype
+
+instance simple'' :: countable
+  by countable_datatype
+
+instance mylist :: (countable) countable
+  by countable_datatype
+
+instance some_passive :: (countable, countable , countable, countable) countable
+  by countable_datatype
+
+(* TODO: Enable once "fset" is registered as countable:
+
+instance hfset :: countable
+  by countable_datatype
+
+instance lambda :: countable
+  by countable_datatype
+
+instance par_lambda :: (countable) countable
+  by countable_datatype
+*)
+
+instance I1 and I2 :: (countable) countable
+  by countable_datatype
+
+instance tree and forest :: (countable) countable
+  by countable_datatype
+
+instance tree' and branch :: (countable) countable
+  by countable_datatype
+
+(* FIXME:
+
+instance bin_rose_tree :: (countable) countable
+  by countable_datatype
+*)
+
+instance exp and trm and factor :: (countable, countable) countable
+  by countable_datatype
+
+instance nofail1 :: (countable) countable
+  by countable_datatype
+
+(* FIXME:
+
+instance nofail2 :: (countable) countable
+  by countable_datatype
+*)
+
+(* TODO: Enable once "fset" is registered as countable:
+
+instance nofail3 :: (countable) countable
+  by countable_datatype
+
+instance nofail4 :: (countable) countable
+  by countable_datatype
+
+instance l1 and l2 :: countable
+  by default (rule l1_countable)
+*)
+
+instance kk1 and kk2 :: countable
+  by countable_datatype
+
+(* FIXME:
+
+instance t1 and t2 and t3 :: countable
+  by countable_datatype
+
+instance t1' and t2' and t3' :: countable
+  by countable_datatype
+
+instance k1 and k2 and k3 and k4 :: countable
+  by countable_datatype
+
+instance tt1 and tt2 and tt3 and tt4 :: countable
+  by countable_datatype
+
+instance d1 :: countable
+  by countable_datatype
+
+instance d1' :: countable
+  by countable_datatype
+*)
+
+instance d2 :: countable
+  by countable_datatype
+
+instance d2' :: countable
+  by countable_datatype
+
+instance d3 :: countable
+  by countable_datatype
+
+instance d3' :: countable
+  by countable_datatype
+
+instance d3'' :: countable
+  by countable_datatype
+
+instance d3''' :: countable
+  by countable_datatype
+
+instance d4 :: countable
+  by countable_datatype
+
+instance d4' :: countable
+  by countable_datatype
+
+instance d4'' :: countable
+  by countable_datatype
+
+instance d4''' :: countable
+  by countable_datatype
+
+instance d5 :: countable
+  by countable_datatype
+
+instance d5' :: countable
+  by countable_datatype
+
+instance d5'' :: countable
+  by countable_datatype
+
+instance d5''' :: countable
+  by countable_datatype
 
 datatype_compat simple
 datatype_compat simple'
