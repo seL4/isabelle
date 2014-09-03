@@ -243,14 +243,11 @@ instance t1 and t2 and t3 :: countable
 instance t1' and t2' and t3' :: countable
   by countable_datatype
 
-(* FIXME:
-
 instance k1 and k2 and k3 and k4 :: countable
   by countable_datatype
 
 instance tt1 and tt2 and tt3 and tt4 :: countable
   by countable_datatype
-*)
 
 instance d1 :: countable
   by countable_datatype
