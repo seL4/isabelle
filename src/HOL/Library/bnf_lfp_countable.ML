@@ -23,8 +23,7 @@ open BNF_FP_Def_Sugar
 
 fun nchotomy_tac nchotomy =
   HEADGOAL (rtac (nchotomy RS @{thm all_reg[rotated]}) THEN'
-    CHANGED_PROP o REPEAT_ALL_NEW (match_tac [allI, impI]) THEN'
-    CHANGED_PROP o REPEAT_ALL_NEW (ematch_tac [exE, disjE]));
+    REPEAT_ALL_NEW (match_tac [allI, impI]) THEN' REPEAT_ALL_NEW (ematch_tac [exE, disjE]));
 
 fun meta_spec_mp_tac 0 = K all_tac
   | meta_spec_mp_tac depth =
@@ -36,15 +35,17 @@ val use_induction_hypothesis_tac =
 
 val same_ctr_simps =
   @{thms sum_encode_eq prod_encode_eq sum.inject prod.inject to_nat_split snd_conv simp_thms};
+val distinct_ctrs_simps = @{thms sum_encode_eq sum.inject sum.distinct simp_thms};
 
-fun same_ctr_tac ctxt injects recs map_comps' inj_map_strongs' =
-  HEADGOAL (asm_full_simp_tac (ss_only (injects @ recs @ map_comps' @ same_ctr_simps) ctxt) THEN'
-    REPEAT_DETERM o CHANGED_PROP o REPEAT_ALL_NEW (ematch_tac (conjE :: inj_map_strongs'))
-    THEN_ALL_NEW use_induction_hypothesis_tac);
+fun same_ctr_tac ctxt injects recs map_congs' inj_map_strongs' =
+  HEADGOAL (asm_full_simp_tac
+      (ss_only (injects @ recs @ map_congs' @ same_ctr_simps) ctxt) THEN_MAYBE'
+    TRY o REPEAT_ALL_NEW (rtac conjI) THEN_ALL_NEW
+    REPEAT_ALL_NEW (eresolve_tac (conjE :: inj_map_strongs')) THEN_ALL_NEW
+    use_induction_hypothesis_tac);
 
 fun distinct_ctrs_tac ctxt recs =
-  HEADGOAL (asm_full_simp_tac (ss_only (recs @
-    @{thms sum_encode_eq sum.inject sum.distinct simp_thms}) ctxt));
+  HEADGOAL (asm_full_simp_tac (ss_only (recs @ distinct_ctrs_simps) ctxt));
 
 fun mk_encode_injective_tac ctxt n nchotomy injects recs map_comps' inj_map_strongs' =
   let val ks = 1 upto n in
@@ -120,7 +121,7 @@ fun derive_encode_injectives_thms _ [] = []
     let
       fun not_datatype s = error (quote s ^ " is not a new-style datatype");
       fun not_mutually_recursive ss =
-        error ("{" ^ commas ss ^ "} are not mutually recursive new-style datatypes");
+        error (commas ss ^ " are not mutually recursive new-style datatypes");
 
       fun lfp_sugar_of s =
         (case fp_sugar_of ctxt s of
