@@ -268,7 +268,8 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
         val fold_preTs' = mk_fp_absT_repTs (map subst fold_preTs);
 
         val fold_pre_deads_only_Ts =
-          map (typ_subst_nonatomic_sorted (map (rpair dummyT) (As @ fpTs))) fold_preTs';
+          map (typ_subst_nonatomic_sorted (map (rpair dummyT)
+            (As @ sort (int_ord o pairself Term.size_of_typ) fpTs))) fold_preTs';
 
         val (clique, TUs) =
           map_split dest_co_algT (binder_fun_types (foldT_of_recT (fastype_of approx_rec)))
