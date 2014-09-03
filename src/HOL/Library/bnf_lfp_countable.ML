@@ -23,7 +23,7 @@ open BNF_FP_Def_Sugar
 
 fun nchotomy_tac nchotomy =
   HEADGOAL (rtac (nchotomy RS @{thm all_reg[rotated]}) THEN'
-    REPEAT_ALL_NEW (match_tac [allI, impI]) THEN' REPEAT_ALL_NEW (ematch_tac [exE, disjE]));
+    REPEAT_ALL_NEW (resolve_tac [allI, impI] ORELSE' eresolve_tac [exE, disjE]));
 
 fun meta_spec_mp_tac 0 = K all_tac
   | meta_spec_mp_tac depth =
