@@ -21,6 +21,8 @@ open BNF_Tactics
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
 
+val countableS = @{sort countable};
+
 fun nchotomy_tac nchotomy =
   HEADGOAL (rtac (nchotomy RS @{thm all_reg[rotated]}) THEN'
     REPEAT_ALL_NEW (resolve_tac [allI, impI] ORELSE' eresolve_tac [exE, disjE]));
@@ -74,11 +76,16 @@ fun encode_tuple [] = @{term "0 :: nat"}
   | encode_tuple ts =
     Balanced_Tree.make (fn (t, u) => @{const prod_encode} $ (@{const Pair (nat, nat)} $ u $ t)) ts;
 
-fun mk_to_nat T = Const (@{const_name to_nat}, T --> HOLogic.natT);
-
 fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
   let
     val thy = Proof_Context.theory_of ctxt;
+
+    fun check_countable T =
+      Sign.of_sort thy (T, countableS) orelse
+      raise TYPE ("Type is not of sort " ^ Syntax.string_of_sort ctxt countableS, [T], []);
+
+    fun mk_to_nat_checked T =
+      Const (@{const_name to_nat}, tap check_countable T --> HOLogic.natT);
 
     val nn = length ns;
     val recs as rec1 :: _ =
@@ -98,10 +105,10 @@ fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
         NONE
       else if exists_subtype_in fpTs T then
         let val U = mk_U T in
-          SOME (mk_to_nat U $ (build_map ctxt [] (snd_const o fst) (T, U) $ Bound j))
+          SOME (mk_to_nat_checked U $ (build_map ctxt [] (snd_const o fst) (T, U) $ Bound j))
         end
       else
-        SOME (mk_to_nat T $ Bound j);
+        SOME (mk_to_nat_checked T $ Bound j);
 
     fun mk_arg n (k, arg_T) =
       let
@@ -133,7 +140,7 @@ fun derive_encode_injectives_thms _ [] = []
 
       val (As_names, _) = Variable.variant_fixes (map (fn TVar ((s, _), _) => s) var_As) ctxt;
       val As =
-        map2 (fn s => fn TVar (_, S) => TFree (s, union (op =) @{sort countable} S))
+        map2 (fn s => fn TVar (_, S) => TFree (s, union (op =) countableS S))
           As_names var_As;
       val fpTs = map (fn s => Type (s, As)) fpT_names;
 
