@@ -33,8 +33,8 @@ val use_induction_hypothesis_tac =
   DEEPEN (1, 64 (* large number *))
     (fn depth => meta_spec_mp_tac depth THEN' etac allE THEN' etac impE THEN' atac THEN' atac) 0;
 
-val same_ctr_simps =
-  @{thms sum_encode_eq prod_encode_eq sum.inject prod.inject to_nat_split snd_conv simp_thms};
+val same_ctr_simps = @{thms sum_encode_eq prod_encode_eq sum.inject prod.inject to_nat_split
+  id_apply snd_conv simp_thms};
 val distinct_ctrs_simps = @{thms sum_encode_eq sum.inject sum.distinct simp_thms};
 
 fun same_ctr_tac ctxt injects recs map_congs' inj_map_strongs' =
@@ -42,7 +42,7 @@ fun same_ctr_tac ctxt injects recs map_congs' inj_map_strongs' =
       (ss_only (injects @ recs @ map_congs' @ same_ctr_simps) ctxt) THEN_MAYBE'
     TRY o REPEAT_ALL_NEW (rtac conjI) THEN_ALL_NEW
     REPEAT_ALL_NEW (eresolve_tac (conjE :: inj_map_strongs')) THEN_ALL_NEW
-    use_induction_hypothesis_tac);
+    (atac ORELSE' use_induction_hypothesis_tac));
 
 fun distinct_ctrs_tac ctxt recs =
   HEADGOAL (asm_full_simp_tac (ss_only (recs @ distinct_ctrs_simps) ctxt));
