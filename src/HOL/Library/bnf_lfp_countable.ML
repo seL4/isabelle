@@ -7,6 +7,7 @@ Countability tactic for BNF datatypes.
 
 signature BNF_LFP_COUNTABLE =
 sig
+  val derive_encode_injectives_thms: Proof.context -> string list -> thm list
   val countable_datatype_tac: Proof.context -> tactic
 end;
 
@@ -26,15 +27,15 @@ fun nchotomy_tac nchotomy =
     CHANGED_PROP o REPEAT_ALL_NEW (ematch_tac [exE, disjE]));
 
 fun meta_spec_mp_tac 0 = K all_tac
-  | meta_spec_mp_tac n =
-    dtac meta_spec THEN' meta_spec_mp_tac (n - 1) THEN' dtac meta_mp THEN' atac;
+  | meta_spec_mp_tac depth =
+    dtac meta_spec THEN' meta_spec_mp_tac (depth - 1) THEN' dtac meta_mp THEN' atac;
 
 val use_induction_hypothesis_tac =
   DEEPEN (1, 64 (* large number *))
     (fn depth => meta_spec_mp_tac depth THEN' etac allE THEN' etac impE THEN' atac THEN' atac) 0;
 
 val same_ctr_simps =
-  @{thms sum_encode_eq prod_encode_eq sum.inject prod.inject to_nat_split simp_thms snd_conv};
+  @{thms sum_encode_eq prod_encode_eq sum.inject prod.inject to_nat_split snd_conv simp_thms};
 
 fun same_ctr_tac ctxt injects recs map_comps' inj_map_strongs' =
   HEADGOAL (asm_full_simp_tac (ss_only (injects @ recs @ map_comps' @ same_ctr_simps) ctxt) THEN'
@@ -114,8 +115,8 @@ fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
     map (fn recx => Term.list_comb (recx, flat argss)) recs
   end;
 
-fun mk_encode_injective_thms _ [] = []
-  | mk_encode_injective_thms ctxt fpT_names0 =
+fun derive_encode_injectives_thms _ [] = []
+  | derive_encode_injectives_thms ctxt fpT_names0 =
     let
       fun not_datatype s = error (quote s ^ " is not a new-style datatype");
       fun not_mutually_recursive ss =
@@ -160,7 +161,7 @@ fun mk_encode_injective_thms _ [] = []
       val conjuncts = map3 mk_conjunct fpTs xs (mk_encode_funs ctxt fpTs ns ctrss0 recs0);
       val goal = HOLogic.mk_Trueprop (Balanced_Tree.make HOLogic.mk_conj conjuncts);
     in
-      Goal.prove_sorry ctxt [] [] goal (fn {context = ctxt, prems = _} =>
+      Goal.prove ctxt [] [] goal (fn {context = ctxt, prems = _} =>
         mk_encode_injectives_tac ctxt ns induct nchotomys injectss rec_thmss map_comps'
           inj_map_strongs')
       |> HOLogic.conj_elims
@@ -168,14 +169,15 @@ fun mk_encode_injective_thms _ [] = []
       |> map Thm.close_derivation
     end;
 
-fun get_countable_goal_typ (@{const Trueprop} $ (Const (@{const_name Ex}, _)
+fun get_countable_goal_type_name (@{const Trueprop} $ (Const (@{const_name Ex}, _)
     $ Abs (_, Type (_, [Type (s, _), _]), Const (@{const_name inj_on}, _) $ Bound 0
         $ Const (@{const_name top}, _)))) = s
-  | get_countable_goal_typ _ = error "Wrong goal format for datatype countability tactic";
+  | get_countable_goal_type_name _ = error "Wrong goal format for datatype countability tactic";
 
 fun core_countable_datatype_tac ctxt st =
-  endgame_tac ctxt (mk_encode_injective_thms ctxt (map get_countable_goal_typ (Thm.prems_of st)))
-    st;
+  let val T_names = map get_countable_goal_type_name (Thm.prems_of st) in
+    endgame_tac ctxt (derive_encode_injectives_thms ctxt T_names) st
+  end;
 
 fun countable_datatype_tac ctxt =
   TRY (Class.intro_classes_tac []) THEN core_countable_datatype_tac ctxt;
