@@ -116,6 +116,7 @@ fun lifting_bnf_interpretation bnf lthy =
     end
 
 val _ = Context.>> (Context.map_theory (bnf_interpretation
-  (bnf_only_type_ctr (fn bnf => map_local_theory (lifting_bnf_interpretation bnf)))))
+  (bnf_only_type_ctr (map_local_theory o lifting_bnf_interpretation))
+  (bnf_only_type_ctr lifting_bnf_interpretation)))
 
 end

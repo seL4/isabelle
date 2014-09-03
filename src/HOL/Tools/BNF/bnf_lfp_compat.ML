@@ -281,8 +281,10 @@ fun new_interpretation_of nesting_pref f (fp_sugars : fp_sugar list) thy =
   end;
 
 fun interpretation nesting_pref f =
-  Old_Datatype_Data.interpretation (old_interpretation_of nesting_pref f)
-  #> fp_sugar_interpretation (new_interpretation_of nesting_pref f);
+  let val new_f = new_interpretation_of nesting_pref f in
+    Old_Datatype_Data.interpretation (old_interpretation_of nesting_pref f)
+    #> fp_sugar_interpretation new_f (Local_Theory.background_theory o new_f)
+  end;
 
 val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: @{attributes [nitpick_simp, simp]};
 

@@ -291,7 +291,8 @@ fun transfer_bnf_interpretation bnf lthy =
   end
 
 val _ = Context.>> (Context.map_theory (bnf_interpretation
-  (bnf_only_type_ctr (fn bnf => map_local_theory (transfer_bnf_interpretation bnf)))))
+  (bnf_only_type_ctr (map_local_theory o transfer_bnf_interpretation))
+  (bnf_only_type_ctr (transfer_bnf_interpretation))))
 
 (* simplification rules for the predicator *)
 
@@ -360,7 +361,8 @@ fun transfer_fp_sugar_interpretation fp_sugar lthy =
     snd (Local_Theory.note ((pred_inject_thm_name, simp_attrs), pred_injects) lthy)
   end
 
-val _ = Context.>> (Context.map_theory (fp_sugar_interpretation (fp_sugar_only_type_ctr
-  (fn fp_sugars => map_local_theory (fold transfer_fp_sugar_interpretation fp_sugars)))))
+val _ = Context.>> (Context.map_theory (fp_sugar_interpretation
+  (fp_sugar_only_type_ctr (map_local_theory o fold transfer_fp_sugar_interpretation))
+  (fp_sugar_only_type_ctr (fold transfer_fp_sugar_interpretation))))
 
 end

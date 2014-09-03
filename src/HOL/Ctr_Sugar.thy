@@ -37,6 +37,7 @@ lemma iff_contradict:
 "\<not> Q \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> P \<Longrightarrow> R"
 by blast+
 
+ML_file "Tools/Ctr_Sugar/local_interpretation.ML"
 ML_file "Tools/Ctr_Sugar/ctr_sugar_util.ML"
 ML_file "Tools/Ctr_Sugar/ctr_sugar_tactics.ML"
 ML_file "Tools/Ctr_Sugar/ctr_sugar_code.ML"

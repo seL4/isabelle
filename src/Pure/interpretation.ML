@@ -47,4 +47,3 @@ fun data x = Interp.map (apfst (cons x)) #> perhaps consolidate;
 val init = Theory.at_begin consolidate;
 
 end;
-

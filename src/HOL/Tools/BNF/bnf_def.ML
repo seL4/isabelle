@@ -17,7 +17,10 @@ sig
   val transfer_bnf: theory -> bnf -> bnf
   val bnf_of: Proof.context -> string -> bnf option
   val bnf_of_global: theory -> string -> bnf option
-  val bnf_interpretation: (bnf -> theory -> theory) -> theory -> theory
+  val bnf_interpretation: (bnf -> theory -> theory) -> (bnf -> local_theory -> local_theory) ->
+    theory -> theory
+  val interpret_bnf: bnf -> local_theory -> local_theory
+  val register_bnf_raw: string -> bnf -> local_theory -> local_theory
   val register_bnf: string -> bnf -> local_theory -> local_theory
 
   val name_of_bnf: bnf -> binding
@@ -1512,7 +1515,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
     (key, goals, wit_goalss, after_qed, lthy, one_step_defs)
   end;
 
-structure BNF_Interpretation = Interpretation
+structure BNF_Interpretation = Local_Interpretation
 (
   type T = bnf;
   val eq: T * T -> bool = op = o pairself T_of_bnf;
@@ -1533,13 +1536,14 @@ fun with_repaired_path f bnf thy =
     |> Sign.restore_naming thy
   end;
 
-fun bnf_interpretation f = BNF_Interpretation.interpretation (with_repaired_path f);
+val bnf_interpretation = BNF_Interpretation.interpretation o with_repaired_path;
+val interpret_bnf = BNF_Interpretation.data;
 
-fun register_bnf key bnf =
+fun register_bnf_raw key bnf =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf)))
-  #> Local_Theory.background_theory
-    (fn thy => BNF_Interpretation.data (the (bnf_of_global thy key)) thy);
+    (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf)));
+
+fun register_bnf key bnf = register_bnf_raw key bnf #> interpret_bnf bnf;
 
 fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_b set_bs =
   (fn (_, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, one_step_defs) =>

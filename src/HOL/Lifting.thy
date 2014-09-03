@@ -556,11 +556,8 @@ declare fun_mono[relator_mono]
 lemmas [relator_distr] = pos_fun_distr neg_fun_distr1 neg_fun_distr2
 
 ML_file "Tools/Lifting/lifting_bnf.ML"
-
 ML_file "Tools/Lifting/lifting_term.ML"
-
 ML_file "Tools/Lifting/lifting_def.ML"
-
 ML_file "Tools/Lifting/lifting_setup.ML"
                            
 hide_const (open) POS NEG

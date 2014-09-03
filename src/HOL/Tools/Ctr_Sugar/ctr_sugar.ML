@@ -43,7 +43,8 @@ sig
   val ctr_sugars_of_global: theory -> ctr_sugar list
   val ctr_sugar_of_case: Proof.context -> string -> ctr_sugar option
   val ctr_sugar_of_case_global: theory -> string -> ctr_sugar option
-  val ctr_sugar_interpretation: (ctr_sugar -> theory -> theory) -> theory -> theory
+  val ctr_sugar_interpretation: (ctr_sugar -> theory -> theory) ->
+    (ctr_sugar -> local_theory -> local_theory) -> theory -> theory
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
   val default_register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
 
@@ -170,26 +171,25 @@ val ctr_sugars_of_global = ctr_sugars_of_generic o Context.Theory;
 val ctr_sugar_of_case = ctr_sugar_of_case_generic o Context.Proof;
 val ctr_sugar_of_case_global = ctr_sugar_of_case_generic o Context.Theory;
 
-structure Ctr_Sugar_Interpretation = Interpretation
+structure Ctr_Sugar_Interpretation = Local_Interpretation
 (
   type T = ctr_sugar;
   val eq: T * T -> bool = op = o pairself #ctrs;
 );
 
-fun with_repaired_path f (ctr_sugar as {ctrs = ctr1 :: _, ...} : ctr_sugar) thy =
+fun with_repaired_path g (ctr_sugar as {ctrs = ctr1 :: _, ...} : ctr_sugar) thy =
   thy
   |> Sign.root_path
   |> Sign.add_path (Long_Name.qualifier (fst (dest_Type (body_type (fastype_of ctr1)))))
-  |> (fn thy => f (transfer_ctr_sugar thy ctr_sugar) thy)
+  |> (fn thy => g (transfer_ctr_sugar thy ctr_sugar) thy)
   |> Sign.restore_naming thy;
 
-fun ctr_sugar_interpretation f = Ctr_Sugar_Interpretation.interpretation (with_repaired_path f);
+val ctr_sugar_interpretation = Ctr_Sugar_Interpretation.interpretation o with_repaired_path;
 
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_ctr_sugar phi ctr_sugar)))
-  #> Local_Theory.background_theory
-    (fn thy => Ctr_Sugar_Interpretation.data (the (ctr_sugar_of_global thy key)) thy);
+  #> Ctr_Sugar_Interpretation.data ctr_sugar;
 
 fun default_register_ctr_sugar_global key ctr_sugar thy =
   let val tab = Data.get (Context.Theory thy) in
@@ -198,7 +198,7 @@ fun default_register_ctr_sugar_global key ctr_sugar thy =
     else
       thy
       |> Context.theory_map (Data.put (Symtab.update_new (key, ctr_sugar) tab))
-      |> Ctr_Sugar_Interpretation.data ctr_sugar
+      |> Ctr_Sugar_Interpretation.data_global ctr_sugar
   end;
 
 val isN = "is_";
