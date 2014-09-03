@@ -207,11 +207,8 @@ instance tree and forest :: (countable) countable
 instance tree' and branch :: (countable) countable
   by countable_datatype
 
-(* FIXME:
-
 instance bin_rose_tree :: (countable) countable
   by countable_datatype
-*)
 
 instance exp and trm and factor :: (countable, countable) countable
   by countable_datatype
