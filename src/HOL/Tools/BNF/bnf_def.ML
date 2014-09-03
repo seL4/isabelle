@@ -14,6 +14,7 @@ sig
 
   val morph_bnf: morphism -> bnf -> bnf
   val morph_bnf_defs: morphism -> bnf -> bnf
+  val transfer_bnf: theory -> bnf -> bnf
   val bnf_of: Proof.context -> string -> bnf option
   val bnf_of_global: theory -> string -> bnf option
   val bnf_interpretation: (bnf -> theory -> theory) -> theory -> theory
@@ -515,6 +516,8 @@ fun morph_bnf phi =
 
 fun morph_bnf_defs phi = map_bnf I I I I I I I I I I I (morph_defs phi) I I I I;
 
+val transfer_bnf = morph_bnf o Morphism.transfer_morphism;
+
 structure Data = Generic_Data
 (
   type T = bnf Symtab.table;
@@ -524,8 +527,7 @@ structure Data = Generic_Data
 );
 
 fun bnf_of_generic context =
-  Option.map (morph_bnf (Morphism.transfer_morphism (Context.theory_of context)))
-  o Symtab.lookup (Data.get context);
+  Option.map (transfer_bnf (Context.theory_of context)) o Symtab.lookup (Data.get context);
 
 val bnf_of = bnf_of_generic o Context.Proof;
 val bnf_of_global = bnf_of_generic o Context.Theory;
@@ -1516,19 +1518,18 @@ structure BNF_Interpretation = Interpretation
   val eq: T * T -> bool = op = o pairself T_of_bnf;
 );
 
-(* FIXME naming *)
 fun with_repaired_path f bnf thy =
   let
     val qualifiers =
       (case Binding.dest (name_of_bnf bnf) of
-        (* arbitrarily use "Fun" as prefix for "fun"*)
+        (* arbitrarily use "Fun" as prefix for "fun" *)
         (_, [], @{type_name fun}) => [(Context.theory_name @{theory Fun}, false)]
-      | (_, qs, _) => qs)
+      | (_, qs, _) => qs);
   in
     thy
     |> Sign.root_path
     |> fold (uncurry (fn true => Sign.mandatory_path | false => Sign.add_path) o swap) qualifiers
-    |> (fn thy => f (morph_bnf (Morphism.transfer_morphism thy) bnf) thy)
+    |> (fn thy => f (transfer_bnf thy bnf) thy)
     |> Sign.restore_naming thy
   end;
 
@@ -1537,7 +1538,8 @@ fun bnf_interpretation f = BNF_Interpretation.interpretation (with_repaired_path
 fun register_bnf key bnf =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf)))
-  #> Local_Theory.background_theory (BNF_Interpretation.data bnf);
+  #> Local_Theory.background_theory
+    (fn thy => BNF_Interpretation.data (the (bnf_of_global thy key)) thy);
 
 fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_b set_bs =
   (fn (_, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, one_step_defs) =>

@@ -168,7 +168,7 @@ fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _)
   thy
   |> Sign.root_path
   |> Sign.add_path (Long_Name.qualifier s)
-  |> f fp_sugars
+  |> f (map (transfer_fp_sugar thy) fp_sugars)
   |> Sign.restore_naming thy;
 
 fun fp_sugar_interpretation f = FP_Sugar_Interpretation.interpretation (with_repaired_path f);
@@ -179,7 +179,8 @@ fun register_fp_sugars (fp_sugars as {fp, ...} :: _) =
         (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
     fp_sugars
   #> fp = Least_FP ? generate_lfp_size fp_sugars
-  #> Local_Theory.background_theory (FP_Sugar_Interpretation.data fp_sugars);
+  #> Local_Theory.background_theory (fn thy => FP_Sugar_Interpretation.data
+    (map (the o fp_sugar_of_global thy o fst o dest_Type o #T) fp_sugars) thy);
 
 fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs live_nesting_bnfs fp_res
     ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss common_co_inducts co_inductss
