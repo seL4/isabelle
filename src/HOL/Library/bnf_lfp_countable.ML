@@ -7,7 +7,7 @@ Countability tactic for BNF datatypes.
 
 signature BNF_LFP_COUNTABLE =
 sig
-  val countable_tac: Proof.context -> tactic
+  val countable_datatype_tac: Proof.context -> tactic
 end;
 
 structure BNF_LFP_Countable : BNF_LFP_COUNTABLE =
@@ -30,7 +30,7 @@ fun meta_spec_mp_tac 0 = K all_tac
     dtac meta_spec THEN' meta_spec_mp_tac (n - 1) THEN' dtac meta_mp THEN' atac;
 
 val use_induction_hypothesis_tac =
-  DEEPEN (1, 1000000 (* large number *))
+  DEEPEN (1, 64 (* large number *))
     (fn depth => meta_spec_mp_tac depth THEN' etac allE THEN' etac impE THEN' atac THEN' atac) 0;
 
 val same_ctr_simps =
@@ -119,7 +119,7 @@ fun mk_encode_injective_thms _ [] = []
     let
       fun not_datatype s = error (quote s ^ " is not a new-style datatype");
       fun not_mutually_recursive ss =
-        error ("{" ^ commas ss ^ "} is not a set of mutually recursive new-style datatypes");
+        error ("{" ^ commas ss ^ "} are not mutually recursive new-style datatypes");
 
       fun lfp_sugar_of s =
         (case fp_sugar_of ctxt s of
@@ -162,7 +162,7 @@ fun mk_encode_injective_thms _ [] = []
     in
       Goal.prove_sorry ctxt [] [] goal (fn {context = ctxt, prems = _} =>
         mk_encode_injectives_tac ctxt ns induct nchotomys injectss rec_thmss map_comps'
-        inj_map_strongs')
+          inj_map_strongs')
       |> HOLogic.conj_elims
       |> Proof_Context.export names_ctxt ctxt
       |> map Thm.close_derivation
@@ -171,13 +171,13 @@ fun mk_encode_injective_thms _ [] = []
 fun get_countable_goal_typ (@{const Trueprop} $ (Const (@{const_name Ex}, _)
     $ Abs (_, Type (_, [Type (s, _), _]), Const (@{const_name inj_on}, _) $ Bound 0
         $ Const (@{const_name top}, _)))) = s
-  | get_countable_goal_typ _ = error "Wrong goal format for countable tactic";
+  | get_countable_goal_typ _ = error "Wrong goal format for datatype countability tactic";
 
-fun core_countable_tac ctxt st =
+fun core_countable_datatype_tac ctxt st =
   endgame_tac ctxt (mk_encode_injective_thms ctxt (map get_countable_goal_typ (Thm.prems_of st)))
     st;
 
-fun countable_tac ctxt =
-  TRY (Class.intro_classes_tac []) THEN core_countable_tac ctxt;
+fun countable_datatype_tac ctxt =
+  TRY (Class.intro_classes_tac []) THEN core_countable_datatype_tac ctxt;
 
 end;

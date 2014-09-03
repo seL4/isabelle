@@ -161,7 +161,7 @@ proof
 qed
 
 ML {*
-  fun old_countable_tac ctxt =
+  fun old_countable_datatype_tac ctxt =
     SUBGOAL (fn (goal, _) =>
       let
         val ty_name =
@@ -201,10 +201,18 @@ subsection {* Automatically proving countability of new-style datatypes *}
 
 ML_file "bnf_lfp_countable.ML"
 
+ML {*
+fun countable_datatype_tac ctxt st =
+  HEADGOAL (old_countable_datatype_tac ctxt) st
+  handle ERROR _ => BNF_LFP_Countable.countable_datatype_tac ctxt st;
+
+(* compatibility *)
+fun countable_tac ctxt =
+  SELECT_GOAL (countable_datatype_tac ctxt);
+*}
+
 method_setup countable_datatype = {*
-  Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD (fn st => HEADGOAL (old_countable_tac ctxt) st
-      handle ERROR _ => BNF_LFP_Countable.countable_tac ctxt st))
+  Scan.succeed (SIMPLE_METHOD o countable_datatype_tac)
 *} "prove countable class instances for datatypes"
 
 
@@ -279,10 +287,9 @@ proof
   show "\<exists>n. r = nat_to_rat_surj n"
   proof (cases r)
     fix i j assume [simp]: "r = Fract i j" and "j > 0"
-    have "r = (let m = int_encode i; n = int_encode j
-               in nat_to_rat_surj(prod_encode (m,n)))"
+    have "r = (let m = int_encode i; n = int_encode j in nat_to_rat_surj (prod_encode (m, n)))"
       by (simp add: Let_def nat_to_rat_surj_def)
-    thus "\<exists>n. r = nat_to_rat_surj n" by(auto simp:Let_def)
+    thus "\<exists>n. r = nat_to_rat_surj n" by(auto simp: Let_def)
   qed
 qed
 
