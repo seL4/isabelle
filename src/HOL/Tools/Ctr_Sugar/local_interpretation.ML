@@ -42,11 +42,13 @@ fun consolidate_common g_or_f lift_lthy thy thy_or_lthy =
     val (data, interps) = Interp.get thy;
     val unfinished = interps |> map (fn ((gf, _), xs) =>
       (g_or_f gf, if eq_list eq (xs, data) then [] else subtract eq xs data));
-    val finished = interps |> map (fn (interp, _) => (interp, data));
+    val finished = interps |> map (apsnd (K data));
   in
-    if forall (null o #2) unfinished then NONE
-    else SOME (thy_or_lthy |> fold_rev (uncurry fold_rev) unfinished
-      |> lift_lthy (Interp.put (data, finished)))
+    if forall (null o #2) unfinished then
+      NONE
+    else
+      SOME (thy_or_lthy |> fold_rev (uncurry fold_rev) unfinished
+        |> lift_lthy (Interp.put (data, finished)))
   end;
 
 fun consolidate lthy =

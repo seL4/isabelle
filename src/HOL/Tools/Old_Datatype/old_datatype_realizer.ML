@@ -8,7 +8,6 @@ realizers for induction and case analysis.
 signature OLD_DATATYPE_REALIZER =
 sig
   val add_dt_realizers: Old_Datatype_Aux.config -> string list -> theory -> theory
-  val setup: theory -> theory
 end;
 
 structure Old_Datatype_Realizer : OLD_DATATYPE_REALIZER =
@@ -158,9 +157,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
 
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
-
-fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old_Datatype_Aux.info)
-    thy =
+fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old_Datatype_Aux.info) thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val cert = cterm_of thy;
@@ -241,6 +238,6 @@ fun add_dt_realizers config names thy =
       |> fold_rev make_casedists infos
     end;
 
-val setup = Old_Datatype_Data.interpretation add_dt_realizers;
+val _ = Theory.setup (Old_Datatype_Data.interpretation add_dt_realizers);
 
 end;

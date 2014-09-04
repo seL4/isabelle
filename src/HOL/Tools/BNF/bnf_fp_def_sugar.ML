@@ -41,6 +41,8 @@ sig
   val fp_sugars_of_global: theory -> fp_sugar list
   val fp_sugar_interpretation: (fp_sugar list -> theory -> theory) ->
     (fp_sugar list -> local_theory -> local_theory)-> theory -> theory
+  val interpret_fp_sugars: fp_sugar list -> local_theory -> local_theory
+  val register_fp_sugars_raw: fp_sugar list -> local_theory -> local_theory
   val register_fp_sugars: fp_sugar list -> local_theory -> local_theory
 
   val co_induct_of: 'a list -> 'a
@@ -229,13 +231,16 @@ fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _)
   |> Sign.restore_naming thy;
 
 val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
+val interpret_fp_sugars = FP_Sugar_Interpretation.data;
 
-fun register_fp_sugars fp_sugars =
+fun register_fp_sugars_raw fp_sugars =
   fold (fn fp_sugar as {T = Type (s, _), ...} =>
       Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
-    fp_sugars
-  #> FP_Sugar_Interpretation.data fp_sugars;
+    fp_sugars;
+
+fun register_fp_sugars fp_sugars =
+  register_fp_sugars fp_sugars #> interpret_fp_sugars fp_sugars;
 
 fun interpret_bnfs_register_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs
     live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss
@@ -255,8 +260,9 @@ fun interpret_bnfs_register_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nestin
          rel_distincts = nth rel_distinctss kk}
         |> morph_fp_sugar (substitute_noted_thm noted)) Ts;
   in
-    fold interpret_bnf (#bnfs fp_res)
-    #> register_fp_sugars fp_sugars
+    register_fp_sugars_raw fp_sugars
+    #> fold interpret_bnf (#bnfs fp_res)
+    #> interpret_fp_sugars fp_sugars
   end;
 
 (* This function could produce (fairly harmless) clashes in contrived examples (e.g., "x.A",

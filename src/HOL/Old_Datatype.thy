@@ -526,7 +526,4 @@ ML_file "Tools/Old_Datatype/old_datatype.ML"
 ML_file "Tools/inductive_realizer.ML"
 setup InductiveRealizer.setup
 
-ML_file "Tools/Old_Datatype/old_datatype_realizer.ML"
-setup Old_Datatype_Realizer.setup
-
 end

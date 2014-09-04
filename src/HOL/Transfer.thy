@@ -9,8 +9,8 @@ theory Transfer
 imports Hilbert_Choice Metis Option
 begin
 
-(* We include Option here although it's not needed here. 
-   By doing this, we avoid a diamond problem for BNF and 
+(* We import Option here although it's not needed here.
+   By doing this, we avoid a diamond problem for BNF and
    FP sugar interpretation defined in this file. *)
 
 subsection {* Relator for function space *}
@@ -227,18 +227,18 @@ end
 
 subsection {* Equality restricted by a predicate *}
 
-definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
+definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
   where "eq_onp R = (\<lambda>x y. R x \<and> x = y)"
 
-lemma eq_onp_Grp: "eq_onp P = BNF_Def.Grp (Collect P) id" 
-unfolding eq_onp_def Grp_def by auto 
+lemma eq_onp_Grp: "eq_onp P = BNF_Def.Grp (Collect P) id"
+unfolding eq_onp_def Grp_def by auto
 
 lemma eq_onp_to_eq:
   assumes "eq_onp P x y"
   shows "x = y"
 using assms by (simp add: eq_onp_def)
 
-lemma eq_onp_top_eq_eq: "eq_onp top = op=" 
+lemma eq_onp_top_eq_eq: "eq_onp top = op="
 by (simp add: eq_onp_def)
 
 lemma eq_onp_same_args:
@@ -298,10 +298,10 @@ unfolding left_unique_def OO_def by blast
 
 subsection {* Properties of relators *}
 
-lemma left_total_eq[transfer_rule]: "left_total op=" 
+lemma left_total_eq[transfer_rule]: "left_total op="
   unfolding left_total_def by blast
 
-lemma left_unique_eq[transfer_rule]: "left_unique op=" 
+lemma left_unique_eq[transfer_rule]: "left_unique op="
   unfolding left_unique_def by blast
 
 lemma right_total_eq [transfer_rule]: "right_total op="
@@ -366,7 +366,7 @@ lemma bi_unique_fun[transfer_rule]:
 
 end
 
-ML_file "Tools/Transfer/transfer_bnf.ML" 
+ML_file "Tools/Transfer/transfer_bnf.ML"
 
 declare pred_fun_def [simp]
 declare rel_fun_eq [relator_eq]
@@ -486,13 +486,13 @@ lemma mono_transfer[transfer_rule]:
   shows "((A ===> B) ===> op=) mono mono"
 unfolding mono_def[abs_def] by transfer_prover
 
-lemma right_total_relcompp_transfer[transfer_rule]: 
+lemma right_total_relcompp_transfer[transfer_rule]:
   assumes [transfer_rule]: "right_total B"
-  shows "((A ===> B ===> op=) ===> (B ===> C ===> op=) ===> A ===> C ===> op=) 
+  shows "((A ===> B ===> op=) ===> (B ===> C ===> op=) ===> A ===> C ===> op=)
     (\<lambda>R S x z. \<exists>y\<in>Collect (Domainp B). R x y \<and> S y z) op OO"
 unfolding OO_def[abs_def] by transfer_prover
 
-lemma relcompp_transfer[transfer_rule]: 
+lemma relcompp_transfer[transfer_rule]:
   assumes [transfer_rule]: "bi_total B"
   shows "((A ===> B ===> op=) ===> (B ===> C ===> op=) ===> A ===> C ===> op=) op OO op OO"
 unfolding OO_def[abs_def] by transfer_prover
@@ -507,13 +507,13 @@ lemma Domainp_transfer[transfer_rule]:
   shows "((A ===> B ===> op=) ===> A ===> op=) Domainp Domainp"
 unfolding Domainp_iff[abs_def] by transfer_prover
 
-lemma reflp_transfer[transfer_rule]: 
+lemma reflp_transfer[transfer_rule]:
   "bi_total A \<Longrightarrow> ((A ===> A ===> op=) ===> op=) reflp reflp"
   "right_total A \<Longrightarrow> ((A ===> A ===> implies) ===> implies) reflp reflp"
   "right_total A \<Longrightarrow> ((A ===> A ===> op=) ===> implies) reflp reflp"
   "bi_total A \<Longrightarrow> ((A ===> A ===> rev_implies) ===> rev_implies) reflp reflp"
   "bi_total A \<Longrightarrow> ((A ===> A ===> op=) ===> rev_implies) reflp reflp"
-using assms unfolding reflp_def[abs_def] rev_implies_def bi_total_def right_total_def rel_fun_def 
+using assms unfolding reflp_def[abs_def] rev_implies_def bi_total_def right_total_def rel_fun_def
 by fast+
 
 lemma right_unique_transfer [transfer_rule]:

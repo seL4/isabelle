@@ -1025,7 +1025,7 @@ fun prepare_free_constructors prep_term
                      (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
                   I)
           |> Local_Theory.notes (anonymous_notes @ notes)
-          (* for "datatype_realizer.ML": *)
+          (* for "old_datatype_realizer.ML": *)
           |>> name_noted_thms fcT_name exhaustN;
 
         val ctr_sugar =
