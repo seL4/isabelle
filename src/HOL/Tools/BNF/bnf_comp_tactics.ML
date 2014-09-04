@@ -240,7 +240,7 @@ val cprod_thms =
 
 val simplified_set_simps =
   @{thms collect_def[abs_def] UN_insert UN_empty Un_empty_right Un_empty_left
-    o_def Union_Un_distrib Union_image_eq UN_empty2 UN_singleton id_bnf_comp_def};
+    o_def Union_Un_distrib Union_image_eq UN_empty2 UN_singleton id_bnf_def};
 
 fun mk_simplified_set_tac ctxt collect_set_map =
   unfold_thms_tac ctxt (collect_set_map :: @{thms comp_assoc}) THEN

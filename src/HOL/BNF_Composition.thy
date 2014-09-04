@@ -146,29 +146,29 @@ bnf DEADID: 'a
   rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
   by (auto simp add: Grp_def natLeq_card_order natLeq_cinfinite)
 
-definition id_bnf_comp :: "'a \<Rightarrow> 'a" where "id_bnf_comp \<equiv> (\<lambda>x. x)"
+definition id_bnf :: "'a \<Rightarrow> 'a" where "id_bnf \<equiv> (\<lambda>x. x)"
 
-lemma id_bnf_comp_apply: "id_bnf_comp x = x"
-  unfolding id_bnf_comp_def by simp
+lemma id_bnf_apply: "id_bnf x = x"
+  unfolding id_bnf_def by simp
 
 bnf ID: 'a
-  map: "id_bnf_comp :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+  map: "id_bnf :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   sets: "\<lambda>x. {x}"
   bd: natLeq
-  rel: "id_bnf_comp :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
-  unfolding id_bnf_comp_def
+  rel: "id_bnf :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+  unfolding id_bnf_def
   apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
   apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
   apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
   done
 
-lemma type_definition_id_bnf_comp_UNIV: "type_definition id_bnf_comp id_bnf_comp UNIV"
-  unfolding id_bnf_comp_def by unfold_locales auto
+lemma type_definition_id_bnf_UNIV: "type_definition id_bnf id_bnf UNIV"
+  unfolding id_bnf_def by unfold_locales auto
 
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"
 
-hide_const (open) id_bnf_comp
-hide_fact (open) id_bnf_comp_def type_definition_id_bnf_comp_UNIV
+hide_const (open) id_bnf
+hide_fact (open) id_bnf_def type_definition_id_bnf_UNIV
 
 end

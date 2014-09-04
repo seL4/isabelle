@@ -115,9 +115,8 @@ fun expand_term_const defs =
     val get = fn Const (x, _) => AList.lookup (op =) eqs x | _ => NONE;
   in Envir.expand_term get end;
 
-val id_bnf_comp_def = @{thm id_bnf_comp_def};
-val expand_id_bnf_comp_def =
-  expand_term_const [Thm.prop_of id_bnf_comp_def |> Logic.dest_equals];
+val id_bnf_def = @{thm id_bnf_def};
+val expand_id_bnf_def = expand_term_const [Thm.prop_of id_bnf_def |> Logic.dest_equals];
 
 fun is_sum_prod_natLeq (Const (@{const_name csum}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
   | is_sum_prod_natLeq (Const (@{const_name cprod}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
@@ -198,7 +197,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     fun mk_simplified_set set =
       let
         val setT = fastype_of set;
-        val var_set' = Const (@{const_name id_bnf_comp}, setT --> setT) $ Var ((Name.uu, 0), setT);
+        val var_set' = Const (@{const_name id_bnf}, setT --> setT) $ Var ((Name.uu, 0), setT);
         val goal = mk_Trueprop_eq (var_set', set);
         fun tac {context = ctxt, prems = _} =
           mk_simplified_set_tac ctxt (collect_set_map_of_bnf outer);
@@ -342,8 +341,8 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         Binding.empty Binding.empty [] ((((((b, CCA), mapx), sets'), bd'), wits), SOME rel) lthy;
 
     val phi =
-      Morphism.thm_morphism "BNF" (unfold_thms lthy' [id_bnf_comp_def])
-      $> Morphism.term_morphism "BNF" expand_id_bnf_comp_def;
+      Morphism.thm_morphism "BNF" (unfold_thms lthy' [id_bnf_def])
+      $> Morphism.term_morphism "BNF" expand_id_bnf_def;
 
     val bnf'' = morph_bnf phi bnf';
   in
@@ -720,8 +719,8 @@ fun mk_repT absT repT absU =
         else raise Term.TYPE ("mk_repT", [absT, repT, absT], [])
     | _ => raise Term.TYPE ("mk_repT", [absT, repT, absT], []));
 
-fun mk_abs_or_rep _ absU (Const (@{const_name id_bnf_comp}, _)) =
-    Const (@{const_name id_bnf_comp}, absU --> absU)
+fun mk_abs_or_rep _ absU (Const (@{const_name id_bnf}, _)) =
+    Const (@{const_name id_bnf}, absU --> absU)
   | mk_abs_or_rep getT (Type (_, Us)) abs =
     let val Ts = snd (dest_Type (getT (fastype_of abs)))
     in Term.subst_atomic_types (Ts ~~ Us) abs end;
@@ -738,11 +737,11 @@ fun maybe_typedef (b, As, mx) set opt_morphs tac =
   in
     if inline then
       pair (repT,
-        (@{const_name id_bnf_comp}, @{const_name id_bnf_comp},
-         @{thm type_definition_id_bnf_comp_UNIV},
-         @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_comp_UNIV]},
-         @{thm type_definition.Abs_inject[OF type_definition_id_bnf_comp_UNIV]},
-         @{thm type_definition.Abs_cases[OF type_definition_id_bnf_comp_UNIV]}))
+        (@{const_name id_bnf}, @{const_name id_bnf},
+         @{thm type_definition_id_bnf_UNIV},
+         @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_UNIV]},
+         @{thm type_definition.Abs_inject[OF type_definition_id_bnf_UNIV]},
+         @{thm type_definition.Abs_cases[OF type_definition_id_bnf_UNIV]}))
     else
       typedef (b, As, mx) set opt_morphs tac
       #>> (fn (T_name, ({Rep_name, Abs_name, ...},
@@ -858,7 +857,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
         Binding.empty Binding.empty []
         ((((((b, TA), bnf_map), bnf_sets), bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
 
-    val unfolds = @{thm id_bnf_comp_apply} ::
+    val unfolds = @{thm id_bnf_apply} ::
       (#map_unfolds unfold_set @ flat (#set_unfoldss unfold_set) @ #rel_unfolds unfold_set);
 
     val bnf'' = bnf' |> morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy' unfolds));
