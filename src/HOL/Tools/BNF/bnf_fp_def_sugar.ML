@@ -237,7 +237,7 @@ fun register_fp_sugars_raw fp_sugars =
     fp_sugars;
 
 fun register_fp_sugars fp_sugars =
-  register_fp_sugars fp_sugars #> interpret_fp_sugars fp_sugars;
+  register_fp_sugars_raw fp_sugars #> interpret_fp_sugars fp_sugars;
 
 fun interpret_bnfs_register_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs
     live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss

@@ -25,7 +25,6 @@ sig
   val mk_case_names_exhausts: descr -> string list -> attribute list
   val interpretation : (config -> string list -> theory -> theory) -> theory -> theory
   val interpretation_data : config * string list -> theory -> theory
-  val setup: theory -> theory
 end;
 
 structure Old_Datatype_Data: OLD_DATATYPE_DATA =
@@ -97,32 +96,35 @@ fun case_of_case_rewrite case_rewrite =
 
 fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case_cong,
     case_cong_weak, split, split_asm, ...} : Old_Datatype_Aux.info) =
-  {ctrs = ctrs_of_exhaust exhaust,
-   casex = case_of_case_rewrite (hd case_rewrites),
-   discs = [],
-   selss = [],
-   exhaust = exhaust,
-   nchotomy = nchotomy,
-   injects = inject,
-   distincts = distinct,
-   case_thms = case_rewrites,
-   case_cong = case_cong,
-   case_cong_weak = case_cong_weak,
-   split = split,
-   split_asm = split_asm,
-   disc_defs = [],
-   disc_thmss = [],
-   discIs = [],
-   sel_defs = [],
-   sel_thmss = [],
-   distinct_discsss = [],
-   exhaust_discs = [],
-   exhaust_sels = [],
-   collapses = [],
-   expands = [],
-   split_sels = [],
-   split_sel_asms = [],
-   case_eq_ifs = []};
+  let val ctrs as ctr1 :: _ = ctrs_of_exhaust exhaust in
+    {T = body_type (fastype_of ctr1),
+     ctrs = ctrs,
+     casex = case_of_case_rewrite (hd case_rewrites),
+     discs = [],
+     selss = [],
+     exhaust = exhaust,
+     nchotomy = nchotomy,
+     injects = inject,
+     distincts = distinct,
+     case_thms = case_rewrites,
+     case_cong = case_cong,
+     case_cong_weak = case_cong_weak,
+     split = split,
+     split_asm = split_asm,
+     disc_defs = [],
+     disc_thmss = [],
+     discIs = [],
+     sel_defs = [],
+     sel_thmss = [],
+     distinct_discsss = [],
+     exhaust_discs = [],
+     exhaust_sels = [],
+     collapses = [],
+     expands = [],
+     split_sels = [],
+     split_sel_asms = [],
+     case_eq_ifs = []}
+  end;
 
 fun register dt_infos =
   Data.map (fn {types, constrs, cases} =>
@@ -133,8 +135,7 @@ fun register dt_infos =
           map (rpair (dtname, info) o fst) (#3 (the (AList.lookup op = descr index)))) dt_infos),
      cases = cases |> fold Symtab.update
        (map (fn (_, info as {case_name, ...}) => (case_name, info)) dt_infos)}) #>
-  fold (fn (key, info) =>
-    Ctr_Sugar.default_register_ctr_sugar_global key (ctr_sugar_of_info info)) dt_infos;
+  fold (Ctr_Sugar.default_register_ctr_sugar_global o ctr_sugar_of_info o snd) dt_infos;
 
 
 (* complex queries *)
@@ -283,9 +284,7 @@ val interpretation_data = Datatype_Interpretation.data;
 
 (** setup theory **)
 
-val setup =
-  antiq_setup #>
-  Datatype_Interpretation.init;
+val _ = Theory.setup (antiq_setup #> Datatype_Interpretation.init);
 
 open Old_Datatype_Aux;
 

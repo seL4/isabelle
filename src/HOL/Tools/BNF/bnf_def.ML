@@ -1532,7 +1532,8 @@ fun register_bnf_raw key bnf =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf)));
 
-fun register_bnf key bnf = register_bnf_raw key bnf #> interpret_bnf bnf;
+fun register_bnf key bnf =
+  register_bnf_raw key bnf #> interpret_bnf bnf;
 
 fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_b set_bs =
   (fn (_, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, one_step_defs) =>

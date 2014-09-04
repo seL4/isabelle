@@ -273,7 +273,7 @@ text {* Package setup. *}
 
 ML_file "Tools/Old_Datatype/old_datatype_aux.ML"
 ML_file "Tools/Old_Datatype/old_datatype_prop.ML"
-ML_file "Tools/Old_Datatype/old_datatype_data.ML" setup Old_Datatype_Data.setup
+ML_file "Tools/Old_Datatype/old_datatype_data.ML"
 ML_file "Tools/Old_Datatype/old_rep_datatype.ML"
 ML_file "Tools/Old_Datatype/old_datatype_codegen.ML"
 ML_file "Tools/Old_Datatype/old_primrec.ML"

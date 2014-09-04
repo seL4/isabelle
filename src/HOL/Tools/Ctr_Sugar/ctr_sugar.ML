@@ -8,7 +8,8 @@ Wrapping existing freely generated type's constructors.
 signature CTR_SUGAR =
 sig
   type ctr_sugar =
-    {ctrs: term list,
+    {T: typ,
+     ctrs: term list,
      casex: term,
      discs: term list,
      selss: term list list,
@@ -45,8 +46,10 @@ sig
   val ctr_sugar_of_case_global: theory -> string -> ctr_sugar option
   val ctr_sugar_interpretation: string -> (ctr_sugar -> theory -> theory) ->
     (ctr_sugar -> local_theory -> local_theory) -> theory -> theory
-  val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
-  val default_register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
+  val interpret_ctr_sugar: ctr_sugar -> local_theory -> local_theory
+  val register_ctr_sugar_raw: ctr_sugar -> local_theory -> local_theory
+  val register_ctr_sugar: ctr_sugar -> local_theory -> local_theory
+  val default_register_ctr_sugar_global: ctr_sugar -> theory -> theory
 
   val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
   val join_halves: int -> 'a list list -> 'a list list -> 'a list * 'a list list list
@@ -84,7 +87,8 @@ open Ctr_Sugar_Tactics
 open Ctr_Sugar_Code
 
 type ctr_sugar =
-  {ctrs: term list,
+  {T: typ,
+   ctrs: term list,
    casex: term,
    discs: term list,
    selss: term list list,
@@ -111,11 +115,12 @@ type ctr_sugar =
    split_sel_asms: thm list,
    case_eq_ifs: thm list};
 
-fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
+fun morph_ctr_sugar phi {T, ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
     case_thms, case_cong, case_cong_weak, split, split_asm, disc_defs, disc_thmss, discIs, sel_defs,
     sel_thmss, distinct_discsss, exhaust_discs, exhaust_sels, collapses, expands, split_sels,
     split_sel_asms, case_eq_ifs} =
-  {ctrs = map (Morphism.term phi) ctrs,
+  {T = Morphism.typ phi T,
+   ctrs = map (Morphism.term phi) ctrs,
    casex = Morphism.term phi casex,
    discs = map (Morphism.term phi) discs,
    selss = map (map (Morphism.term phi)) selss,
@@ -182,18 +187,22 @@ fun with_transfer_ctr_sugar g ctr_sugar thy = g (transfer_ctr_sugar thy ctr_suga
 fun ctr_sugar_interpretation name =
   Ctr_Sugar_Interpretation.interpretation name o with_transfer_ctr_sugar;
 
-fun register_ctr_sugar key ctr_sugar =
-  Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update (key, morph_ctr_sugar phi ctr_sugar)))
-  #> Ctr_Sugar_Interpretation.data ctr_sugar;
+val interpret_ctr_sugar = Ctr_Sugar_Interpretation.data;
 
-fun default_register_ctr_sugar_global key ctr_sugar thy =
+fun register_ctr_sugar_raw (ctr_sugar as {T = Type (s, _), ...}) =
+  Local_Theory.declaration {syntax = false, pervasive = true}
+    (fn phi => Data.map (Symtab.update (s, morph_ctr_sugar phi ctr_sugar)));
+
+fun register_ctr_sugar ctr_sugar =
+  register_ctr_sugar_raw ctr_sugar #> interpret_ctr_sugar ctr_sugar;
+
+fun default_register_ctr_sugar_global (ctr_sugar as {T = Type (s, _), ...}) thy =
   let val tab = Data.get (Context.Theory thy) in
-    if Symtab.defined tab key then
+    if Symtab.defined tab s then
       thy
     else
       thy
-      |> Context.theory_map (Data.put (Symtab.update_new (key, ctr_sugar) tab))
+      |> Context.theory_map (Data.put (Symtab.update_new (s, ctr_sugar) tab))
       |> Ctr_Sugar_Interpretation.data_global ctr_sugar
   end;
 
@@ -1025,7 +1034,7 @@ fun prepare_free_constructors prep_term
           |>> name_noted_thms fcT_name exhaustN;
 
         val ctr_sugar =
-          {ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
+          {T = fcT, ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
            nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
            case_thms = case_thms, case_cong = case_cong_thm, case_cong_weak = case_cong_weak_thm,
            split = split_thm, split_asm = split_asm_thm, disc_defs = disc_defs,
@@ -1036,7 +1045,7 @@ fun prepare_free_constructors prep_term
            case_eq_ifs = case_eq_if_thms}
           |> morph_ctr_sugar (substitute_noted_thm noted);
       in
-        (ctr_sugar, lthy' |> register_ctr_sugar fcT_name ctr_sugar)
+        (ctr_sugar, lthy' |> register_ctr_sugar ctr_sugar)
       end;
   in
     (goalss, after_qed, lthy')

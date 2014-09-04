@@ -352,12 +352,11 @@ fun basic_corec_specs_of ctxt res_T =
     Type (T_name, _) =>
     (case Ctr_Sugar.ctr_sugar_of ctxt T_name of
       NONE => not_codatatype ctxt res_T
-    | SOME {ctrs, discs, selss, ...} =>
+    | SOME {T = fpT, ctrs, discs, selss, ...} =>
       let
         val thy = Proof_Context.theory_of ctxt;
 
-        val gfpT = body_type (fastype_of (hd ctrs));
-        val As_rho = tvar_subst thy [gfpT] [res_T];
+        val As_rho = tvar_subst thy [fpT] [res_T];
         val substA = Term.subst_TVars As_rho;
 
         fun mk_spec ctr disc sels = {ctr = substA ctr, disc = substA disc, sels = map substA sels};
@@ -384,11 +383,11 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val indices = map #fp_res_index fp_sugars;
     val perm_indices = map #fp_res_index perm_fp_sugars;
 
-    val perm_gfpTs = map #T perm_fp_sugars;
+    val perm_fpTs = map #T perm_fp_sugars;
     val perm_ctrXs_Tsss' = map (repair_nullary_single_ctr o #ctrXs_Tss) perm_fp_sugars;
 
     val nn0 = length res_Ts;
-    val nn = length perm_gfpTs;
+    val nn = length perm_fpTs;
     val kks = 0 upto nn - 1;
     val perm_ns' = map length perm_ctrXs_Tsss';
 
@@ -426,10 +425,10 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val f_issss = map (map (map (map (find_index_eq fun_arg_hs)))) (unpermute perm_f_hssss);
 
     val f_Tssss = unpermute perm_f_Tssss;
-    val gfpTs = unpermute perm_gfpTs;
+    val fpTs = unpermute perm_fpTs;
     val Cs = unpermute perm_Cs;
 
-    val As_rho = tvar_subst thy (take nn0 gfpTs) res_Ts;
+    val As_rho = tvar_subst thy (take nn0 fpTs) res_Ts;
     val Cs_rho = map (fst o dest_TVar) Cs ~~ pad_list HOLogic.unitT nn arg_Ts;
 
     val substA = Term.subst_TVars As_rho;

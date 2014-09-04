@@ -152,7 +152,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
 
     val perm_ctr_offsets = map (fn kk => Integer.sum (map length (take kk perm_ctrss))) kks;
 
-    val perm_lfpTs = map (body_type o fastype_of o hd) perm_ctrss;
+    val perm_fpTs = map #T perm_basic_lfp_sugars;
     val perm_Cs = map #C perm_basic_lfp_sugars;
     val perm_fun_arg_Tssss = map #fun_arg_Tsss perm_basic_lfp_sugars;
 
@@ -161,11 +161,11 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
 
     val inducts = unpermute0 (conj_dests nn common_induct);
 
-    val lfpTs = unpermute perm_lfpTs;
+    val fpTs = unpermute perm_fpTs;
     val Cs = unpermute perm_Cs;
     val ctr_offsets = unpermute perm_ctr_offsets;
 
-    val As_rho = tvar_subst thy (take nn0 lfpTs) arg_Ts;
+    val As_rho = tvar_subst thy (take nn0 fpTs) arg_Ts;
     val Cs_rho = map (fst o dest_TVar) Cs ~~ pad_list HOLogic.unitT nn res_Ts;
 
     val substA = Term.subst_TVars As_rho;
