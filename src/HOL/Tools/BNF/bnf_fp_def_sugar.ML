@@ -8,13 +8,40 @@ Sugared datatype and codatatype constructions.
 
 signature BNF_FP_DEF_SUGAR =
 sig
-  val fp_sugar_of: Proof.context -> string -> BNF_FP_Util.fp_sugar option
-  val fp_sugar_of_global: theory -> string -> BNF_FP_Util.fp_sugar option
-  val fp_sugars_of: Proof.context -> BNF_FP_Util.fp_sugar list
-  val fp_sugars_of_global: theory -> BNF_FP_Util.fp_sugar list
-  val fp_sugar_interpretation: (BNF_FP_Util.fp_sugar list -> theory -> theory) ->
-    (BNF_FP_Util.fp_sugar list -> local_theory -> local_theory)-> theory -> theory
-  val register_fp_sugars: BNF_FP_Util.fp_sugar list -> local_theory -> local_theory
+  type fp_sugar =
+    {T: typ,
+     BT: typ,
+     X: typ,
+     fp: BNF_Util.fp_kind,
+     fp_res_index: int,
+     fp_res: BNF_FP_Util.fp_result,
+     pre_bnf: BNF_Def.bnf,
+     absT_info: BNF_Comp.absT_info,
+     fp_nesting_bnfs: BNF_Def.bnf list,
+     live_nesting_bnfs: BNF_Def.bnf list,
+     ctrXs_Tss: typ list list,
+     ctr_defs: thm list,
+     ctr_sugar: Ctr_Sugar.ctr_sugar,
+     co_rec: term,
+     co_rec_def: thm,
+     maps: thm list,
+     common_co_inducts: thm list,
+     co_inducts: thm list,
+     co_rec_thms: thm list,
+     co_rec_discs: thm list,
+     co_rec_selss: thm list list,
+     rel_injects: thm list,
+     rel_distincts: thm list};
+
+  val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
+  val transfer_fp_sugar: theory -> fp_sugar -> fp_sugar
+  val fp_sugar_of: Proof.context -> string -> fp_sugar option
+  val fp_sugar_of_global: theory -> string -> fp_sugar option
+  val fp_sugars_of: Proof.context -> fp_sugar list
+  val fp_sugars_of_global: theory -> fp_sugar list
+  val fp_sugar_interpretation: (fp_sugar list -> theory -> theory) ->
+    (fp_sugar list -> local_theory -> local_theory)-> theory -> theory
+  val register_fp_sugars: fp_sugar list -> local_theory -> local_theory
 
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
@@ -111,6 +138,60 @@ val set_introsN = "set_intros";
 val set_inductN = "set_induct";
 val set_selN = "set_sel";
 
+type fp_sugar =
+  {T: typ,
+   BT: typ,
+   X: typ,
+   fp: fp_kind,
+   fp_res_index: int,
+   fp_res: fp_result,
+   pre_bnf: bnf,
+   absT_info: absT_info,
+   fp_nesting_bnfs: bnf list,
+   live_nesting_bnfs: bnf list,
+   ctrXs_Tss: typ list list,
+   ctr_defs: thm list,
+   ctr_sugar: Ctr_Sugar.ctr_sugar,
+   co_rec: term,
+   co_rec_def: thm,
+   maps: thm list,
+   common_co_inducts: thm list,
+   co_inducts: thm list,
+   co_rec_thms: thm list,
+   co_rec_discs: thm list,
+   co_rec_selss: thm list list,
+   rel_injects: thm list,
+   rel_distincts: thm list};
+
+fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, fp_nesting_bnfs,
+    live_nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, co_rec_def, maps, common_co_inducts,
+    co_inducts, co_rec_thms, co_rec_discs, co_rec_selss, rel_injects, rel_distincts} : fp_sugar) =
+  {T = Morphism.typ phi T,
+   BT = Morphism.typ phi BT,
+   X = Morphism.typ phi X,
+   fp = fp,
+   fp_res = morph_fp_result phi fp_res,
+   fp_res_index = fp_res_index,
+   pre_bnf = morph_bnf phi pre_bnf,
+   absT_info = morph_absT_info phi absT_info,
+   fp_nesting_bnfs = map (morph_bnf phi) fp_nesting_bnfs,
+   live_nesting_bnfs = map (morph_bnf phi) live_nesting_bnfs,
+   ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
+   ctr_defs = map (Morphism.thm phi) ctr_defs,
+   ctr_sugar = morph_ctr_sugar phi ctr_sugar,
+   co_rec = Morphism.term phi co_rec,
+   co_rec_def = Morphism.thm phi co_rec_def,
+   maps = map (Morphism.thm phi) maps,
+   common_co_inducts = map (Morphism.thm phi) common_co_inducts,
+   co_inducts = map (Morphism.thm phi) co_inducts,
+   co_rec_thms = map (Morphism.thm phi) co_rec_thms,
+   co_rec_discs = map (Morphism.thm phi) co_rec_discs,
+   co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss,
+   rel_injects = map (Morphism.thm phi) rel_injects,
+   rel_distincts = map (Morphism.thm phi) rel_distincts};
+
+val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism;
+
 structure Data = Generic_Data
 (
   type T = fp_sugar Symtab.table;
@@ -118,30 +199,6 @@ structure Data = Generic_Data
   val extend = I;
   fun merge data : T = Symtab.merge (K true) data;
 );
-
-fun zipping_map f =
-  let
-    fun zmap _ [] = []
-      | zmap xs (y :: ys) = f (xs, y, ys) :: zmap (xs @ [y]) ys
-  in zmap [] end;
-
-
-fun choose_binary_fun fs AB =
-  find_first (fastype_of #> binder_types #> (fn [A, B] => AB = (A, B))) fs;
-fun build_binary_fun_app fs t u =
-  Option.map (rapp u o rapp t) (choose_binary_fun fs (fastype_of t, fastype_of u));
-
-fun build_the_rel rel_table ctxt Rs Ts A B =
-  build_rel rel_table ctxt Ts (the o choose_binary_fun Rs) (A, B);
-fun build_rel_app ctxt Rs Ts t u =
-  build_the_rel [] ctxt Rs Ts (fastype_of t) (fastype_of u) $ t $ u;
-
-fun mk_parametricity_goal ctxt Rs t u =
-  let val prem = build_the_rel [] ctxt Rs [] (fastype_of t) (fastype_of u) in
-    HOLogic.mk_Trueprop (prem $ t $ u)
-  end;
-
-val name_of_set = name_of_const "set";
 
 fun fp_sugar_of_generic context =
   Option.map (transfer_fp_sugar (Context.theory_of context)) o Symtab.lookup (Data.get context)
@@ -215,6 +272,29 @@ fun quasi_unambiguous_case_names names =
   in
     map (fn (base, full) => if member (op =) dups base then underscore full else base) ps
   end;
+
+fun zipper_map f =
+  let
+    fun zed _ [] = []
+      | zed xs (y :: ys) = f (xs, y, ys) :: zed (xs @ [y]) ys
+  in zed [] end;
+
+fun choose_binary_fun fs AB =
+  find_first (fastype_of #> binder_types #> (fn [A, B] => AB = (A, B))) fs;
+fun build_binary_fun_app fs t u =
+  Option.map (rapp u o rapp t) (choose_binary_fun fs (fastype_of t, fastype_of u));
+
+fun build_the_rel rel_table ctxt Rs Ts A B =
+  build_rel rel_table ctxt Ts (the o choose_binary_fun Rs) (A, B);
+fun build_rel_app ctxt Rs Ts t u =
+  build_the_rel [] ctxt Rs Ts (fastype_of t) (fastype_of u) $ t $ u;
+
+fun mk_parametricity_goal ctxt Rs t u =
+  let val prem = build_the_rel [] ctxt Rs [] (fastype_of t) (fastype_of u) in
+    HOLogic.mk_Trueprop (prem $ t $ u)
+  end;
+
+val name_of_set = name_of_const "set";
 
 val mp_conj = @{thm mp_conj};
 
@@ -1547,7 +1627,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                                 val (args, names_lthy) =
                                   mk_Frees "z" (binder_types (fastype_of ctr)) names_lthy;
                               in
-                                flat (zipping_map (fn (prev_args, arg, next_args) =>
+                                flat (zipper_map (fn (prev_args, arg, next_args) =>
                                   let
                                     val (args_with_elem, args_without_elem) =
                                       if fastype_of arg = A then

@@ -19,7 +19,6 @@ struct
 open BNF_Util
 open BNF_Tactics
 open BNF_Def
-open BNF_FP_Util
 open BNF_FP_Def_Sugar
 
 val size_N = "size_"
@@ -63,7 +62,7 @@ fun pointfill ctxt th = unfold_thms ctxt [o_apply] (th RS fun_cong);
 fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
 
-val rec_o_map_simp_thms =
+val rec_o_map_simps =
   @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum case_prod_map_prod
       BNF_Composition.id_bnf_comp_def};
 
@@ -73,15 +72,15 @@ fun mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inve
   HEADGOAL (rtac (ctor_rec_o_map RS trans) THEN'
     CONVERSION Thm.eta_long_conversion THEN'
     asm_simp_tac (ss_only (pre_map_defs @
-        distinct Thm.eq_thm_prop (live_nesting_map_ident0s @ abs_inverses) @ rec_o_map_simp_thms)
+        distinct Thm.eq_thm_prop (live_nesting_map_ident0s @ abs_inverses) @ rec_o_map_simps)
       ctxt));
 
-val size_o_map_simp_thms = @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
+val size_o_map_simps = @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
 fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   unfold_thms_tac ctxt [size_def] THEN
   HEADGOAL (rtac (rec_o_map RS trans) THEN'
-    asm_simp_tac (ss_only (inj_maps @ size_maps @ size_o_map_simp_thms) ctxt)) THEN
+    asm_simp_tac (ss_only (inj_maps @ size_maps @ size_o_map_simps) ctxt)) THEN
   IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
 
 fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
