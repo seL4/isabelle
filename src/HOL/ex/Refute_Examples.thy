@@ -1207,27 +1207,6 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Records *}
-
-(*TODO: make use of pair types, rather than typedef, for record types*)
-
-record ('a, 'b) point =
-  xpos :: 'a
-  ypos :: 'b
-
-lemma "(x::('a, 'b) point) = y"
-refute [expect = genuine]
-oops
-
-record ('a, 'b, 'c) extpoint = "('a, 'b) point" +
-  ext :: 'c
-
-lemma "(x::('a, 'b, 'c) extpoint) = y"
-refute [expect = genuine]
-oops
-
-(*****************************************************************************)
-
 subsubsection {* Examples involving special functions *}
 
 lemma "card x = 0"
