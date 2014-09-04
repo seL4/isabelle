@@ -30,12 +30,12 @@ declare [[coercion_args case_elem - +]]
 ML_file "Tools/Ctr_Sugar/case_translation.ML"
 
 lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"
-by (erule iffI) (erule contrapos_pn)
+  by (erule iffI) (erule contrapos_pn)
 
 lemma iff_contradict:
-"\<not> P \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> Q \<Longrightarrow> R"
-"\<not> Q \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> P \<Longrightarrow> R"
-by blast+
+  "\<not> P \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> Q \<Longrightarrow> R"
+  "\<not> Q \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> P \<Longrightarrow> R"
+  by blast+
 
 ML_file "Tools/Ctr_Sugar/local_interpretation.ML"
 ML_file "Tools/Ctr_Sugar/ctr_sugar_util.ML"

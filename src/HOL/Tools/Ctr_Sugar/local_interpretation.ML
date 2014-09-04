@@ -13,8 +13,8 @@ sig
   val result: theory -> T list
   val interpretation: string -> (T -> theory -> theory) -> (T -> local_theory -> local_theory) ->
     theory -> theory
-  val data: T -> local_theory -> local_theory
-  val data_global: T -> theory -> theory
+  val data: (string -> bool) -> T -> local_theory -> local_theory
+  val data_global: (string -> bool) -> T -> theory -> theory
   val init: theory -> theory
 end;
 
@@ -26,9 +26,9 @@ type T = T;
 structure Interp = Theory_Data
 (
   type T =
-    (Name_Space.naming * T) list
+    ((Name_Space.naming * (string -> bool)) * T) list
     * ((((T -> theory -> theory) * (T -> local_theory -> local_theory)) * (string * stamp))
-       * (Name_Space.naming * T) list) list;
+       * ((Name_Space.naming * (string -> bool)) * T) list) list;
   val empty = ([], []);
   val extend = I;
   fun merge ((data1, interps1), (data2, interps2)) : T =
@@ -41,10 +41,17 @@ val result = map snd o fst o Interp.get;
 fun consolidate_common g_or_f lift_lthy thy thy_or_lthy =
   let
     val (data, interps) = Interp.get thy;
-    val unfinished = interps |> map (fn ((gf, _), data') =>
+
+    fun unfinished_of ((gf, (name, _)), data') =
       (g_or_f gf,
-       if eq_list (eq_snd eq) (data', data) then [] else subtract (eq_snd eq) data' data));
-    val finished = interps |> map (apsnd (K data));
+       if eq_list (eq_snd eq) (data', data) then
+         []
+       else
+         subtract (eq_snd eq) data' data
+         |> map_filter (fn ((naming, keep), x) => if keep name then SOME (naming, x) else NONE));
+
+    val unfinished = map unfinished_of interps;
+    val finished = map (apsnd (K data)) interps;
   in
     if forall (null o #2) unfinished then
       NONE
@@ -64,12 +71,13 @@ fun consolidate_global thy =
 fun interpretation name g f =
   Interp.map (apsnd (cons (((g, f), (name, stamp ())), []))) #> perhaps consolidate_global;
 
-fun data x =
-  Local_Theory.background_theory (fn thy => Interp.map (apfst (cons (Sign.naming_of thy, x))) thy)
+fun data keep x =
+  Local_Theory.background_theory
+    (fn thy => Interp.map (apfst (cons ((Sign.naming_of thy, keep), x))) thy)
   #> perhaps consolidate;
 
-fun data_global x =
-  (fn thy => Interp.map (apfst (cons (Sign.naming_of thy, x))) thy)
+fun data_global keep x =
+  (fn thy => Interp.map (apfst (cons ((Sign.naming_of thy, keep), x))) thy)
   #> perhaps consolidate_global;
 
 val init = Theory.at_begin consolidate_global;

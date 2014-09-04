@@ -19,9 +19,9 @@ sig
   val bnf_of_global: theory -> string -> bnf option
   val bnf_interpretation: string -> (bnf -> theory -> theory) ->
     (bnf -> local_theory -> local_theory) -> theory -> theory
-  val interpret_bnf: bnf -> local_theory -> local_theory
+  val interpret_bnf: (string -> bool) -> bnf -> local_theory -> local_theory
   val register_bnf_raw: string -> bnf -> local_theory -> local_theory
-  val register_bnf: string -> bnf -> local_theory -> local_theory
+  val register_bnf: (string -> bool) -> string -> bnf -> local_theory -> local_theory
 
   val name_of_bnf: bnf -> binding
   val T_of_bnf: bnf -> typ
@@ -1532,8 +1532,8 @@ fun register_bnf_raw key bnf =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf)));
 
-fun register_bnf key bnf =
-  register_bnf_raw key bnf #> interpret_bnf bnf;
+fun register_bnf keep key bnf =
+  register_bnf_raw key bnf #> interpret_bnf keep bnf;
 
 fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_b set_bs =
   (fn (_, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, one_step_defs) =>
@@ -1572,7 +1572,7 @@ val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs
       | SOME tac => (mk_triv_wit_thms tac, []));
   in
     Proof.unfolding ([[(defs, [])]])
-      (Proof.theorem NONE (uncurry (register_bnf key) oo after_qed mk_wit_thms)
+      (Proof.theorem NONE (uncurry (register_bnf (K true) key) oo after_qed mk_wit_thms)
         (map (single o rpair []) goals @ nontriv_wit_goals) lthy)
   end) oo prepare_def Do_Inline (user_policy Note_Some) false I Syntax.read_typ Syntax.read_term
     NONE Binding.empty Binding.empty [];

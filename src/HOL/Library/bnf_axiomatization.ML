@@ -91,7 +91,7 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
 
     val (bnf, lthy') = after_qed mk_wit_thms thms lthy
   in
-    (bnf, BNF_Def.register_bnf key bnf lthy')
+    (bnf, BNF_Def.register_bnf (K true) key bnf lthy')
   end;
 
 val bnf_axiomatization = prepare_decl (K I) (K I);

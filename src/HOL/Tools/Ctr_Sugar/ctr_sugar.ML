@@ -46,10 +46,10 @@ sig
   val ctr_sugar_of_case_global: theory -> string -> ctr_sugar option
   val ctr_sugar_interpretation: string -> (ctr_sugar -> theory -> theory) ->
     (ctr_sugar -> local_theory -> local_theory) -> theory -> theory
-  val interpret_ctr_sugar: ctr_sugar -> local_theory -> local_theory
+  val interpret_ctr_sugar: (string -> bool) -> ctr_sugar -> local_theory -> local_theory
   val register_ctr_sugar_raw: ctr_sugar -> local_theory -> local_theory
-  val register_ctr_sugar: ctr_sugar -> local_theory -> local_theory
-  val default_register_ctr_sugar_global: ctr_sugar -> theory -> theory
+  val register_ctr_sugar: (string -> bool) -> ctr_sugar -> local_theory -> local_theory
+  val default_register_ctr_sugar_global: (string -> bool) -> ctr_sugar -> theory -> theory
 
   val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
   val join_halves: int -> 'a list list -> 'a list list -> 'a list * 'a list list list
@@ -193,17 +193,17 @@ fun register_ctr_sugar_raw (ctr_sugar as {T = Type (s, _), ...}) =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (s, morph_ctr_sugar phi ctr_sugar)));
 
-fun register_ctr_sugar ctr_sugar =
-  register_ctr_sugar_raw ctr_sugar #> interpret_ctr_sugar ctr_sugar;
+fun register_ctr_sugar keep ctr_sugar =
+  register_ctr_sugar_raw ctr_sugar #> interpret_ctr_sugar keep ctr_sugar;
 
-fun default_register_ctr_sugar_global (ctr_sugar as {T = Type (s, _), ...}) thy =
+fun default_register_ctr_sugar_global keep (ctr_sugar as {T = Type (s, _), ...}) thy =
   let val tab = Data.get (Context.Theory thy) in
     if Symtab.defined tab s then
       thy
     else
       thy
       |> Context.theory_map (Data.put (Symtab.update_new (s, ctr_sugar) tab))
-      |> Ctr_Sugar_Interpretation.data_global ctr_sugar
+      |> Ctr_Sugar_Interpretation.data_global keep ctr_sugar
   end;
 
 val isN = "is_";
@@ -1045,7 +1045,7 @@ fun prepare_free_constructors prep_term
            case_eq_ifs = case_eq_if_thms}
           |> morph_ctr_sugar (substitute_noted_thm noted);
       in
-        (ctr_sugar, lthy' |> register_ctr_sugar ctr_sugar)
+        (ctr_sugar, lthy' |> register_ctr_sugar (K true) ctr_sugar)
       end;
   in
     (goalss, after_qed, lthy')

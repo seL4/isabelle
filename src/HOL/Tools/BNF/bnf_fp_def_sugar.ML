@@ -41,9 +41,9 @@ sig
   val fp_sugars_of_global: theory -> fp_sugar list
   val fp_sugars_interpretation: string -> (fp_sugar list -> theory -> theory) ->
     (fp_sugar list -> local_theory -> local_theory)-> theory -> theory
-  val interpret_fp_sugars: fp_sugar list -> local_theory -> local_theory
+  val interpret_fp_sugars: (string -> bool) -> fp_sugar list -> local_theory -> local_theory
   val register_fp_sugars_raw: fp_sugar list -> local_theory -> local_theory
-  val register_fp_sugars: fp_sugar list -> local_theory -> local_theory
+  val register_fp_sugars: (string -> bool) -> fp_sugar list -> local_theory -> local_theory
 
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
@@ -236,8 +236,8 @@ fun register_fp_sugars_raw fp_sugars =
         (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
     fp_sugars;
 
-fun register_fp_sugars fp_sugars =
-  register_fp_sugars_raw fp_sugars #> interpret_fp_sugars fp_sugars;
+fun register_fp_sugars keep fp_sugars =
+  register_fp_sugars_raw fp_sugars #> interpret_fp_sugars keep fp_sugars;
 
 fun interpret_bnfs_register_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs
     live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss
@@ -258,8 +258,8 @@ fun interpret_bnfs_register_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nestin
         |> morph_fp_sugar (substitute_noted_thm noted)) Ts;
   in
     register_fp_sugars_raw fp_sugars
-    #> fold interpret_bnf (#bnfs fp_res)
-    #> interpret_fp_sugars fp_sugars
+    #> fold (interpret_bnf (K true)) (#bnfs fp_res)
+    #> interpret_fp_sugars (K true) fp_sugars
   end;
 
 (* This function could produce (fairly harmless) clashes in contrived examples (e.g., "x.A",

@@ -1782,7 +1782,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
   else thy;
 
 fun add_ctr_sugar ctr sels exhaust inject sel_defs sel_thms =
-  Ctr_Sugar.default_register_ctr_sugar_global
+  Ctr_Sugar.default_register_ctr_sugar_global (K true)
     {T = body_type (fastype_of ctr), ctrs = [ctr], casex = Term.dummy, discs = [], selss = [sels],
      exhaust = exhaust, nchotomy = Drule.dummy_thm, injects = [inject], distincts = [],
      case_thms = [], case_cong = Drule.dummy_thm, case_cong_weak = Drule.dummy_thm,
