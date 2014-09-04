@@ -104,7 +104,7 @@ sig
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
-    (bool * bool)
+    Ctr_Sugar.ctr_options
     * ((((((binding option * (typ * sort)) list * binding) * mixfix)
          * ((binding, binding * typ) Ctr_Sugar.ctr_spec * mixfix) list) * (binding * binding))
        * term list) list ->
@@ -236,10 +236,10 @@ fun register_fp_sugars_raw fp_sugars =
         (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
     fp_sugars;
 
-fun register_fp_sugars keep fp_sugars =
-  register_fp_sugars_raw fp_sugars #> interpret_fp_sugars keep fp_sugars;
+fun register_fp_sugars plugins fp_sugars =
+  register_fp_sugars_raw fp_sugars #> interpret_fp_sugars plugins fp_sugars;
 
-fun interpret_bnfs_register_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs
+fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs
     live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss
     common_co_inducts co_inductss co_rec_thmss co_rec_discss co_rec_selsss rel_injectss
     rel_distinctss noted =
@@ -258,8 +258,8 @@ fun interpret_bnfs_register_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nestin
         |> morph_fp_sugar (substitute_noted_thm noted)) Ts;
   in
     register_fp_sugars_raw fp_sugars
-    #> fold (interpret_bnf (K true)) (#bnfs fp_res)
-    #> interpret_fp_sugars (K true) fp_sugars
+    #> fold (interpret_bnf plugins) (#bnfs fp_res)
+    #> interpret_fp_sugars plugins fp_sugars
   end;
 
 (* This function could produce (fairly harmless) clashes in contrived examples (e.g., "x.A",
@@ -1166,7 +1166,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
   end;
 
 fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
-    ((discs_sels0, no_code), specs) no_defs_lthy0 =
+    ((plugins, (discs_sels0, no_code)), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -1458,8 +1458,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             fun ctr_spec_of disc_b ctr0 sel_bs = ((disc_b, ctr0), sel_bs);
             val ctr_specs = map3 ctr_spec_of disc_bindings ctrs0 sel_bindingss;
           in
-            free_constructors tacss ((((discs_sels, no_code), standard_binding), ctr_specs),
-              sel_default_eqs) lthy
+            free_constructors tacss ((((plugins, (discs_sels, no_code)), standard_binding),
+              ctr_specs), sel_default_eqs) lthy
           end;
 
         fun derive_maps_sets_rels (ctr_sugar as {casex, case_cong, case_thms, discs, selss, ctrs,
@@ -2054,7 +2054,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         (* for "datatype_realizer.ML": *)
         |>> name_noted_thms
           (fst (dest_Type (hd fpTs)) ^ (implode (map (prefix "_") (tl fp_b_names)))) inductN
-        |-> interpret_bnfs_register_fp_sugars fpTs fpBTs Xs Least_FP pre_bnfs absT_infos
+        |-> interpret_bnfs_register_fp_sugars plugins fpTs fpBTs Xs Least_FP pre_bnfs absT_infos
           fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs
           mapss [induct_thm] (map single induct_thms) rec_thmss (replicate nn []) (replicate nn [])
           rel_injectss rel_distinctss
@@ -2146,7 +2146,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> fold (curry (Spec_Rules.add Spec_Rules.Equational) corecs)
           [flat corec_sel_thmss, flat corec_thmss]
         |> Local_Theory.notes (common_notes @ notes)
-        |-> interpret_bnfs_register_fp_sugars fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos
+        |-> interpret_bnfs_register_fp_sugars plugins fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos
           fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars corecs corec_defs
           mapss [coinduct_thm, coinduct_strong_thm]
           (transpose [coinduct_thms, coinduct_strong_thms]) corec_thmss corec_disc_thmss

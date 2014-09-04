@@ -88,7 +88,7 @@ qed
 free_constructors case_sum for
     isl: Inl projl
   | Inr projr
-by (erule sumE, assumption) (auto dest: Inl_inject Inr_inject simp add: Inl_not_Inr)
+  by (erule sumE, assumption) (auto dest: Inl_inject Inr_inject simp add: Inl_not_Inr)
 
 text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
 

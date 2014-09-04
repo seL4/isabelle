@@ -76,6 +76,7 @@ sig
   val standard_binding: binding
   val parse_binding_colon: binding parser
   val parse_opt_binding_colon: binding parser
+  val parse_plugins: (string -> bool) parser
 
   val ss_only: thm list -> Proof.context -> Proof.context
 
@@ -267,6 +268,11 @@ val standard_binding = @{binding _};
 
 val parse_binding_colon = Parse.binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
+
+val parse_plugins =
+  Parse.reserved "plugins" |--
+    ((Parse.reserved "only" >> K I || Parse.reserved "del" >> K not) --| @{keyword ":"}
+     -- Scan.repeat Parse.short_ident) >> (fn (modif, ss) => modif o member (op =) ss);
 
 fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;
 

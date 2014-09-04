@@ -69,12 +69,15 @@ sig
   val ctr_of_ctr_spec: ('c, 'a) ctr_spec -> 'c
   val args_of_ctr_spec: ('c, 'a) ctr_spec -> 'a list
 
+  type ctr_options = (string -> bool) * (bool * bool)
+
   val fake_local_theory_for_sel_defaults: (binding * typ) list -> Proof.context -> Proof.context
   val free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (((bool * bool) * binding) * (term, binding) ctr_spec list) * term list -> local_theory ->
+    ((ctr_options * binding) * (term, binding) ctr_spec list) * term list -> local_theory ->
     ctr_sugar * local_theory
+  val default_ctr_options: ctr_options
   val parse_bound_term: (binding * string) parser
-  val parse_ctr_options: (bool * bool) parser
+  val parse_ctr_options: ctr_options parser
   val parse_ctr_spec: 'c parser -> 'a parser -> ('c, 'a) ctr_spec parser
   val parse_sel_default_eqs: string list parser
 end;
@@ -193,17 +196,17 @@ fun register_ctr_sugar_raw (ctr_sugar as {T = Type (s, _), ...}) =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (s, morph_ctr_sugar phi ctr_sugar)));
 
-fun register_ctr_sugar keep ctr_sugar =
-  register_ctr_sugar_raw ctr_sugar #> interpret_ctr_sugar keep ctr_sugar;
+fun register_ctr_sugar plugins ctr_sugar =
+  register_ctr_sugar_raw ctr_sugar #> interpret_ctr_sugar plugins ctr_sugar;
 
-fun default_register_ctr_sugar_global keep (ctr_sugar as {T = Type (s, _), ...}) thy =
+fun default_register_ctr_sugar_global plugins (ctr_sugar as {T = Type (s, _), ...}) thy =
   let val tab = Data.get (Context.Theory thy) in
     if Symtab.defined tab s then
       thy
     else
       thy
       |> Context.theory_map (Data.put (Symtab.update_new (s, ctr_sugar) tab))
-      |> Ctr_Sugar_Interpretation.data_global keep ctr_sugar
+      |> Ctr_Sugar_Interpretation.data_global plugins ctr_sugar
   end;
 
 val isN = "is_";
@@ -359,8 +362,8 @@ fun disc_of_ctr_spec ((disc, _), _) = disc;
 fun ctr_of_ctr_spec ((_, ctr), _) = ctr;
 fun args_of_ctr_spec (_, args) = args;
 
-fun prepare_free_constructors prep_term
-    ((((discs_sels, no_code), raw_case_binding), ctr_specs), sel_default_eqs) no_defs_lthy =
+fun prepare_free_constructors prep_term ((((plugins, (discs_sels, no_code)), raw_case_binding),
+    ctr_specs), sel_default_eqs) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -1045,7 +1048,7 @@ fun prepare_free_constructors prep_term
            case_eq_ifs = case_eq_if_thms}
           |> morph_ctr_sugar (substitute_noted_thm noted);
       in
-        (ctr_sugar, lthy' |> register_ctr_sugar (K true) ctr_sugar)
+        (ctr_sugar, lthy' |> register_ctr_sugar plugins ctr_sugar)
       end;
   in
     (goalss, after_qed, lthy')
@@ -1061,12 +1064,18 @@ val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
 
 val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
 
+type ctr_options = (string -> bool) * (bool * bool)
+
+val default_ctr_options = (K true, (false, false));
+
 val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
-        (Parse.reserved "discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1) --|
+        (parse_plugins >> (apfst o K)
+         || Parse.reserved "discs_sels" >> (apsnd o apfst o K o K true)
+         || Parse.reserved "no_code" >> (apsnd o apsnd o K o K true)) --|
       @{keyword ")"}
-      >> (fn js => (member (op =) js 0, member (op =) js 1)))
-    (false, false);
+      >> (fn fs => fold I fs default_ctr_options))
+    default_ctr_options;
 
 fun parse_ctr_spec parse_ctr parse_arg =
   parse_opt_binding_colon -- parse_ctr -- Scan.repeat parse_arg;

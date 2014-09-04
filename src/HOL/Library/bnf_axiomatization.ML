@@ -7,8 +7,8 @@ Axiomatic declaration of bounded natural functors.
 
 signature BNF_AXIOMATIZATION =
 sig
-  val bnf_axiomatization: (binding option * (typ * sort)) list -> binding -> mixfix -> binding ->
-    binding -> typ list -> local_theory -> BNF_Def.bnf * local_theory
+  val bnf_axiomatization: (string -> bool) -> (binding option * (typ * sort)) list -> binding ->
+    mixfix -> binding -> binding -> typ list -> local_theory -> BNF_Def.bnf * local_theory
 end
 
 structure BNF_Axiomatization : BNF_AXIOMATIZATION =
@@ -17,7 +17,8 @@ struct
 open BNF_Util
 open BNF_Def
 
-fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_relb user_witTs lthy =
+fun prepare_decl prepare_constraint prepare_typ plugins raw_vars b mx user_mapb user_relb user_witTs
+  lthy =
   let
    fun prepare_type_arg (set_opt, (ty, c)) =
       let val s = fst (dest_TFree (prepare_typ lthy ty)) in
@@ -46,14 +47,14 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
     val mapT = map2 (curry op -->) lives lives' ---> T --> T';
     val setTs = map (fn U => T --> HOLogic.mk_setT U) lives;
     val bdT = BNF_Util.mk_relT (bd_type_T, bd_type_T);
-    val mapb = mk_b BNF_Def.mapN user_mapb;
+    val mapb = mk_b mapN user_mapb;
     val bdb = mk_b "bd" Binding.empty;
-    val setbs = map2 (fn b => fn i => mk_b (BNF_Def.mk_setN i) b) user_setbs
+    val setbs = map2 (fn b => fn i => mk_b (mk_setN i) b) user_setbs
       (if live = 1 then [0] else 1 upto live);
 
     val witTs = map (prepare_typ lthy) user_witTs;
     val nwits = length witTs;
-    val witbs = map (fn i => mk_b (BNF_Def.mk_witN i) Binding.empty)
+    val witbs = map (fn i => mk_b (mk_witN i) Binding.empty)
       (if nwits = 1 then [0] else 1 upto nwits);
 
     val lthy = Local_Theory.background_theory
@@ -91,7 +92,7 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
 
     val (bnf, lthy') = after_qed mk_wit_thms thms lthy
   in
-    (bnf, BNF_Def.register_bnf (K true) key bnf lthy')
+    (bnf, register_bnf plugins key bnf lthy')
   end;
 
 val bnf_axiomatization = prepare_decl (K I) (K I);
@@ -107,14 +108,17 @@ val parse_witTs =
          | (s, _) => error ("Unknown label " ^ quote s ^ " (expected \"wits\")"))) --|
   @{keyword "]"} || Scan.succeed [];
 
+val parse_bnf_axiomatization_options =
+  Scan.optional (@{keyword "("} |-- parse_plugins --| @{keyword ")"}) (K true);
+
 val parse_bnf_axiomatization =
-  parse_type_args_named_constrained -- Parse.binding -- parse_witTs -- Parse.opt_mixfix --
-  parse_map_rel_bindings;
+  parse_bnf_axiomatization_options -- parse_type_args_named_constrained -- Parse.binding --
+  parse_witTs -- Parse.opt_mixfix -- parse_map_rel_bindings;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "bnf_axiomatization"} "bnf declaration"
     (parse_bnf_axiomatization >> 
-      (fn ((((bsTs, b), witTs), mx), (mapb, relb)) =>
-         bnf_axiomatization_cmd bsTs b mx mapb relb witTs #> snd));
+      (fn (((((plugins, bsTs), b), witTs), mx), (mapb, relb)) =>
+         bnf_axiomatization_cmd plugins bsTs b mx mapb relb witTs #> snd));
 
 end;

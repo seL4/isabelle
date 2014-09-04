@@ -357,7 +357,7 @@ fun add_datatype nesting_pref old_specs thy =
   in
     (fpT_names,
      thy
-     |> map_local_theory (co_datatypes Least_FP construct_lfp ((false, false), new_specs))
+     |> map_local_theory (co_datatypes Least_FP construct_lfp (default_ctr_options, new_specs))
      |> nesting_pref = Unfold_Nesting ? perhaps (try (datatype_compat_global fpT_names)))
   end;
 

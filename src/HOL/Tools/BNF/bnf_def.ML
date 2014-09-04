@@ -122,11 +122,9 @@ sig
     (binding -> binding) -> (Proof.context -> 'a -> typ) -> (Proof.context -> 'b -> term) ->
     typ list option -> binding -> binding -> binding list ->
     (((((binding * 'a) * 'b) * 'b list) * 'b) * 'b list) * 'b option -> Proof.context ->
-    string * term list *
-    ((Proof.context -> thm list -> tactic) option * term list list) *
+    string * term list * ((Proof.context -> thm list -> tactic) option * term list list) *
     ((thm list -> thm list list) -> thm list list -> Proof.context -> bnf * local_theory) *
     local_theory * thm list
-
   val define_bnf_consts: inline_policy -> fact_policy -> bool -> typ list option ->
     binding -> binding -> binding list ->
     (((((binding * typ) * term) * term list) * term) * term list) * term option -> local_theory ->
@@ -140,11 +138,10 @@ sig
         (typ list -> typ list -> typ list -> term))) * local_theory
 
   val bnf_def: inline_policy -> (Proof.context -> fact_policy) -> bool -> (binding -> binding) ->
-    (Proof.context -> tactic) list ->
-    (Proof.context -> tactic) -> typ list option -> binding ->
+    (Proof.context -> tactic) list -> (Proof.context -> tactic) -> typ list option -> binding ->
     binding -> binding list ->
-    (((((binding * typ) * term) * term list) * term) * term list) * term option ->
-    local_theory -> bnf * local_theory
+    (((((binding * typ) * term) * term list) * term) * term list) * term option -> local_theory ->
+    bnf * local_theory
 end;
 
 structure BNF_Def : BNF_DEF =
@@ -1532,10 +1529,10 @@ fun register_bnf_raw key bnf =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf)));
 
-fun register_bnf keep key bnf =
-  register_bnf_raw key bnf #> interpret_bnf keep bnf;
+fun register_bnf plugins key bnf =
+  register_bnf_raw key bnf #> interpret_bnf plugins bnf;
 
-fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_b set_bs =
+fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_b set_bs raw_csts =
   (fn (_, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, one_step_defs) =>
   let
     fun mk_wits_tac ctxt set_maps =
@@ -1555,9 +1552,11 @@ fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_
       goals (map (fn tac => fn {context = ctxt, prems = _} =>
         unfold_thms_tac ctxt one_step_defs THEN tac ctxt) tacs)
     |> (fn thms => after_qed mk_wit_thms (map single thms) lthy)
-  end) oo prepare_def const_policy fact_policy internal qualify (K I) (K I) Ds map_b rel_b set_bs;
+  end) o prepare_def const_policy fact_policy internal qualify (K I) (K I) Ds map_b rel_b set_bs
+    raw_csts;
 
-val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs) =>
+fun bnf_cmd (raw_csts, plugins) =
+  (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs) =>
   let
     val wit_goals = map Logic.mk_conjunction_balanced wit_goalss;
     fun mk_triv_wit_thms tac set_maps =
@@ -1572,10 +1571,10 @@ val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs
       | SOME tac => (mk_triv_wit_thms tac, []));
   in
     Proof.unfolding ([[(defs, [])]])
-      (Proof.theorem NONE (uncurry (register_bnf (K true) key) oo after_qed mk_wit_thms)
+      (Proof.theorem NONE (uncurry (register_bnf plugins key) oo after_qed mk_wit_thms)
         (map (single o rpair []) goals @ nontriv_wit_goals) lthy)
-  end) oo prepare_def Do_Inline (user_policy Note_Some) false I Syntax.read_typ Syntax.read_term
-    NONE Binding.empty Binding.empty [];
+  end) o prepare_def Do_Inline (user_policy Note_Some) false I Syntax.read_typ Syntax.read_term
+    NONE Binding.empty Binding.empty [] raw_csts;
 
 fun print_bnfs ctxt =
   let
@@ -1611,12 +1610,13 @@ val _ =
     "register a type as a bounded natural functor"
     (parse_opt_binding_colon -- Parse.typ --|
        (Parse.reserved "map" -- @{keyword ":"}) -- Parse.term --
-       (Scan.option ((Parse.reserved "sets" -- @{keyword ":"}) |--
-         Scan.repeat1 (Scan.unless (Parse.reserved "bd") Parse.term)) >> the_default []) --|
+       Scan.optional ((Parse.reserved "sets" -- @{keyword ":"}) |--
+         Scan.repeat1 (Scan.unless (Parse.reserved "bd") Parse.term)) [] --|
        (Parse.reserved "bd" -- @{keyword ":"}) -- Parse.term --
-       (Scan.option ((Parse.reserved "wits" -- @{keyword ":"}) |--
-         Scan.repeat1 (Scan.unless (Parse.reserved "rel") Parse.term)) >> the_default []) --
-       Scan.option ((Parse.reserved "rel" -- @{keyword ":"}) |-- Parse.term)
+       Scan.optional ((Parse.reserved "wits" -- @{keyword ":"}) |--
+         Scan.repeat1 (Scan.unless (Parse.reserved "rel") Parse.term)) [] --
+       Scan.option ((Parse.reserved "rel" -- @{keyword ":"}) |-- Parse.term) --
+       Scan.optional parse_plugins (K true)
        >> bnf_cmd);
 
 val _ = Context.>> (Context.map_theory BNF_Interpretation.init);

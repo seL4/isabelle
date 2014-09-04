@@ -13,7 +13,7 @@ begin
 subsection {* @{typ bool} is a datatype *}
 
 free_constructors case_bool for True | False
-by auto
+  by auto
 
 text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
 
@@ -82,7 +82,7 @@ simproc_setup unit_eq ("x::unit") = {*
 *}
 
 free_constructors case_unit for "()"
-by auto
+  by auto
 
 text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
 
