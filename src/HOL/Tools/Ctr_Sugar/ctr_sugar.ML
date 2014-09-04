@@ -7,6 +7,8 @@ Wrapping existing freely generated type's constructors.
 
 signature CTR_SUGAR =
 sig
+  val code_plugin: string
+
   type ctr_sugar =
     {T: typ,
      ctrs: term list,
@@ -69,7 +71,7 @@ sig
   val ctr_of_ctr_spec: ('c, 'a) ctr_spec -> 'c
   val args_of_ctr_spec: ('c, 'a) ctr_spec -> 'a list
 
-  type ctr_options = (string -> bool) * (bool * bool)
+  type ctr_options = (string -> bool) * bool
 
   val fake_local_theory_for_sel_defaults: (binding * typ) list -> Proof.context -> Proof.context
   val free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
@@ -88,6 +90,8 @@ struct
 open Ctr_Sugar_Util
 open Ctr_Sugar_Tactics
 open Ctr_Sugar_Code
+
+val code_plugin = "code"
 
 type ctr_sugar =
   {T: typ,
@@ -362,8 +366,8 @@ fun disc_of_ctr_spec ((disc, _), _) = disc;
 fun ctr_of_ctr_spec ((_, ctr), _) = ctr;
 fun args_of_ctr_spec (_, args) = args;
 
-fun prepare_free_constructors prep_term ((((plugins, (discs_sels, no_code)), raw_case_binding),
-    ctr_specs), sel_default_eqs) no_defs_lthy =
+fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_binding), ctr_specs),
+    sel_default_eqs) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -1025,7 +1029,7 @@ fun prepare_free_constructors prep_term ((((plugins, (discs_sels, no_code)), raw
                (fn phi => Case_Translation.register
                   (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
           |> Local_Theory.background_theory (fold (fold Code.del_eqn) [disc_defs, sel_defs])
-          |> not no_code ?
+          |> plugins code_plugin ?
              Local_Theory.declaration {syntax = false, pervasive = false}
                (fn phi => Context.mapping
                   (add_ctr_code fcT_name (map (Morphism.typ phi) As)
@@ -1064,15 +1068,13 @@ val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
 
 val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
 
-type ctr_options = (string -> bool) * (bool * bool)
+type ctr_options = (string -> bool) * bool
 
-val default_ctr_options = (K true, (false, false));
+val default_ctr_options = (K true, false);
 
 val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
-        (parse_plugins >> (apfst o K)
-         || Parse.reserved "discs_sels" >> (apsnd o apfst o K o K true)
-         || Parse.reserved "no_code" >> (apsnd o apsnd o K o K true)) --|
+        (parse_plugins >> (apfst o K) || Parse.reserved "discs_sels" >> (apsnd o K o K true)) --|
       @{keyword ")"}
       >> (fn fs => fold I fs default_ctr_options))
     default_ctr_options;

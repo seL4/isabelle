@@ -6,7 +6,7 @@ Setup for Transfer for types that are BNF.
 
 signature TRANSFER_BNF =
 sig
-  val transfer_interpretation: string
+  val transfer_plugin: string
   val base_name_of_bnf: BNF_Def.bnf -> binding
   val type_name_of_bnf: BNF_Def.bnf -> string
   val lookup_defined_pred_data: Proof.context -> string -> Transfer.pred_data
@@ -21,7 +21,7 @@ open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
 
-val transfer_interpretation = "transfer"
+val transfer_plugin = "transfer"
 
 (* util functions *)
 
@@ -290,7 +290,7 @@ fun transfer_bnf_interpretation bnf lthy =
     snd (Local_Theory.notes (constr_notes @ relator_eq_notes @ pred_notes) lthy)
   end
 
-val _ = Theory.setup (bnf_interpretation transfer_interpretation
+val _ = Theory.setup (bnf_interpretation transfer_plugin
   (bnf_only_type_ctr (BNF_Util.map_local_theory o transfer_bnf_interpretation))
   (bnf_only_type_ctr (transfer_bnf_interpretation)))
 
@@ -361,7 +361,7 @@ fun transfer_fp_sugars_interpretation fp_sugar lthy =
     snd (Local_Theory.note ((pred_inject_thm_name, simp_attrs), pred_injects) lthy)
   end
 
-val _ = Theory.setup (fp_sugars_interpretation transfer_interpretation
+val _ = Theory.setup (fp_sugars_interpretation transfer_plugin
   (fp_sugar_only_type_ctr (map_local_theory o fold transfer_fp_sugars_interpretation))
   (fp_sugar_only_type_ctr (fold transfer_fp_sugars_interpretation)))
 

@@ -1166,7 +1166,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
   end;
 
 fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
-    ((plugins, (discs_sels0, no_code)), specs) no_defs_lthy0 =
+    ((plugins, discs_sels0), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -1458,8 +1458,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             fun ctr_spec_of disc_b ctr0 sel_bs = ((disc_b, ctr0), sel_bs);
             val ctr_specs = map3 ctr_spec_of disc_bindings ctrs0 sel_bindingss;
           in
-            free_constructors tacss ((((plugins, (discs_sels, no_code)), standard_binding),
-              ctr_specs), sel_default_eqs) lthy
+            free_constructors tacss ((((plugins, discs_sels), standard_binding), ctr_specs),
+              sel_default_eqs) lthy
           end;
 
         fun derive_maps_sets_rels (ctr_sugar as {casex, case_cong, case_thms, discs, selss, ctrs,

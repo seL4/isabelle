@@ -7,7 +7,7 @@ Generation of size functions for new-style datatypes.
 
 signature BNF_LFP_SIZE =
 sig
-  val size_interpretation: string
+  val size_plugin: string
   val register_size: string -> string -> thm list -> thm list -> local_theory -> local_theory
   val register_size_global: string -> string -> thm list -> thm list -> theory -> theory
   val size_of: Proof.context -> string -> (string * (thm list * thm list)) option
@@ -22,7 +22,7 @@ open BNF_Tactics
 open BNF_Def
 open BNF_FP_Def_Sugar
 
-val size_interpretation = "size"
+val size_plugin = "size"
 
 val size_N = "size_"
 
@@ -376,7 +376,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
     end
   | generate_datatype_size _ lthy = lthy;
 
-val _ = Theory.setup (fp_sugars_interpretation size_interpretation
+val _ = Theory.setup (fp_sugars_interpretation size_plugin
   (map_local_theory o generate_datatype_size) generate_datatype_size);
 
 end;
