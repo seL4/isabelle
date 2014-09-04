@@ -4,12 +4,7 @@
 Size functions for old-style datatypes.
 *)
 
-signature OLD_SIZE =
-sig
-  val setup: theory -> theory
-end;
-
-structure Old_Size: OLD_SIZE =
+structure Old_Size: sig end =
 struct
 
 fun plus (t1, t2) = Const (@{const_name Groups.plus},
@@ -30,7 +25,7 @@ and size_of_type' f g h T = (case size_of_type f g h T of
     | SOME t => t);
 
 fun is_poly thy (Old_Datatype_Aux.DtType (name, dts)) =
-      is_some (BNF_LFP_Size.lookup_size_global thy name) andalso exists (is_poly thy) dts
+      is_some (BNF_LFP_Size.size_of_global thy name) andalso exists (is_poly thy) dts
   | is_poly _ _ = true;
 
 fun constrs_of thy name =
@@ -68,8 +63,8 @@ fun prove_size_thms (info : Old_Datatype_Aux.info) new_type_names thy =
         val param_size = AList.lookup op = param_size_fs;
 
         val extra_rewrites = descr |> map (#1 o snd) |> distinct op = |>
-          map_filter (Option.map (fst o snd) o BNF_LFP_Size.lookup_size_global thy) |> flat;
-        val extra_size = Option.map fst o BNF_LFP_Size.lookup_size_global thy;
+          map_filter (Option.map (fst o snd) o BNF_LFP_Size.size_of_global thy) |> flat;
+        val extra_size = Option.map fst o BNF_LFP_Size.size_of_global thy;
 
         val (((size_names, size_fns), def_names), def_names') =
           recTs1 |> map (fn T as Type (s, _) =>
@@ -228,6 +223,6 @@ fun add_size_thms _ (new_type_names as name :: _) thy =
       |> Sign.restore_naming thy
   end;
 
-val setup = Old_Datatype_Data.interpretation add_size_thms;
+val _ = Context.>> (Context.map_theory (Old_Datatype_Data.interpretation add_size_thms));
 
 end;

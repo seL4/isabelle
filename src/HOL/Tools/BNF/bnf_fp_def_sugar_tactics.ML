@@ -22,7 +22,7 @@ sig
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
   val mk_ctr_transfer_tac: thm list -> tactic
-  val mk_disc_transfer_tac: Proof.context -> thm -> thm -> thm list -> tactic
+  val mk_disc_transfer_tac: thm -> thm -> thm list -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
@@ -103,7 +103,7 @@ fun mk_ctr_transfer_tac rel_intros =
   ALLGOALS (REPEAT o (resolve_tac (@{thm rel_funI} :: rel_intros) THEN'
     REPEAT_DETERM o atac));
 
-fun mk_disc_transfer_tac ctxt rel_sel exhaust_disc distinct_disc=
+fun mk_disc_transfer_tac rel_sel exhaust_disc distinct_disc=
   let
     fun last_disc_tac iffD =
       HEADGOAL (rtac (rotate_prems ~1 exhaust_disc) THEN' atac THEN'

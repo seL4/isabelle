@@ -331,10 +331,7 @@ fun datatype_compat fpT_names lthy =
     |> snd
   end;
 
-fun datatype_compat_global fpT_names =
-  Named_Target.theory_init
-  #> datatype_compat fpT_names
-  #> Named_Target.exit;
+val datatype_compat_global = map_local_theory o datatype_compat;
 
 fun datatype_compat_cmd raw_fpT_names lthy =
   let
@@ -360,9 +357,7 @@ fun add_datatype nesting_pref old_specs thy =
   in
     (fpT_names,
      thy
-     |> Named_Target.theory_init
-     |> co_datatypes Least_FP construct_lfp ((false, false), new_specs)
-     |> Named_Target.exit
+     |> map_local_theory (co_datatypes Least_FP construct_lfp ((false, false), new_specs))
      |> nesting_pref = Unfold_Nesting ? perhaps (try (datatype_compat_global fpT_names)))
   end;
 

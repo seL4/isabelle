@@ -186,6 +186,29 @@ ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
+ML_file "Tools/BNF/bnf_lfp_size.ML"
+ML_file "Tools/Function/old_size.ML"
+
+lemma size_bool[code]: "size (b\<Colon>bool) = 0"
+  by (cases b) auto
+
+lemma size_nat[simp, code]: "size (n\<Colon>nat) = n"
+  by (induct n) simp_all
+
+declare prod.size[no_atp]
+
+lemma size_sum_o_map: "size_sum g1 g2 \<circ> map_sum f1 f2 = size_sum (g1 \<circ> f1) (g2 \<circ> f2)"
+  by (rule ext) (case_tac x, auto)
+
+lemma size_prod_o_map: "size_prod g1 g2 \<circ> map_prod f1 f2 = size_prod (g1 \<circ> f1) (g2 \<circ> f2)"
+  by (rule ext) auto
+
+setup {*
+BNF_LFP_Size.register_size_global @{type_name sum} @{const_name size_sum} @{thms sum.size}
+  @{thms size_sum_o_map}
+#> BNF_LFP_Size.register_size_global @{type_name prod} @{const_name size_prod} @{thms prod.size}
+  @{thms size_prod_o_map}
+*}
 
 hide_fact (open) id_transfer
 

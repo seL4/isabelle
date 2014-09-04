@@ -1720,10 +1720,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           mk_wit_tac ctxt n (flat ctor_Iset_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Ibnfs, lthy) =
-          fold_map6 (fn b => fn tacs => fn map_b => fn rel_b => fn set_bs => fn consts =>
+          fold_map5 (fn tacs => fn map_b => fn rel_b => fn set_bs => fn consts =>
             bnf_def Do_Inline (user_policy Note_Some) false I tacs wit_tac (SOME deads)
               map_b rel_b set_bs consts)
-          bs tacss map_bs rel_bs set_bss
+          tacss map_bs rel_bs set_bss
             ((((((replicate n Binding.empty ~~ Ts) ~~ Imaps) ~~ Isetss_by_bnf) ~~ Ibds) ~~
               Iwitss) ~~ map SOME Irels) lthy;
 

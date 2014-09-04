@@ -97,7 +97,6 @@ open BNF_Comp
 open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar_Tactics
-open BNF_LFP_Size
 
 val EqN = "Eq_";
 
@@ -174,12 +173,11 @@ fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _)
 
 val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
 
-fun register_fp_sugars (fp_sugars as {fp, ...} :: _) =
+fun register_fp_sugars fp_sugars =
   fold (fn fp_sugar as {T = Type (s, _), ...} =>
       Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
     fp_sugars
-  #> fp = Least_FP ? generate_lfp_size fp_sugars
   #> FP_Sugar_Interpretation.data fp_sugars;
 
 fun interpret_bnfs_register_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs
@@ -1726,9 +1724,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                       if null goals then []
                       else
                         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                          (fn {context = ctxt, prems = _} =>
-                            mk_disc_transfer_tac ctxt (the_single rel_sel_thms)
-                              (the_single exhaust_discs) (flat (flat distinct_discsss)))
+                          (K (mk_disc_transfer_tac (the_single rel_sel_thms)
+                             (the_single exhaust_discs) (flat (flat distinct_discsss))))
                           |> Conjunction.elim_balanced (length goals)
                         |> Proof_Context.export names_lthy lthy
                         |> map Thm.close_derivation
@@ -2110,6 +2107,6 @@ val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 
 fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
 
-val _ = Context.>> (Context.map_theory FP_Sugar_Interpretation.init);
+val _ = Theory.setup FP_Sugar_Interpretation.init;
 
 end;

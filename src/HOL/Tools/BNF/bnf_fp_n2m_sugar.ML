@@ -113,8 +113,7 @@ fun get_indices callers t =
   |> map_filter I;
 
 (* TODO: test with sort constraints on As *)
-fun mutualize_fp_sugars fp cliques bs fpTs callers callssss (fp_sugars0 as fp_sugars01 :: _)
-    no_defs_lthy0 =
+fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
   let
     val thy = Proof_Context.theory_of no_defs_lthy0;
 

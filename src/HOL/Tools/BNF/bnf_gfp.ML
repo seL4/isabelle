@@ -2432,11 +2432,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           mk_wit_tac ctxt n dtor_ctor_thms (flat dtor_Jset_thmss) (maps wit_thms_of_bnf bnfs) thms;
 
         val (Jbnfs, lthy) =
-          fold_map7 (fn b => fn tacs => fn map_b => fn rel_b => fn set_bs => fn wit_thms =>
+          fold_map6 (fn tacs => fn map_b => fn rel_b => fn set_bs => fn wit_thms =>
               fn consts =>
             bnf_def Hardly_Inline (user_policy Note_Some) false I tacs (wit_tac wit_thms)
               (SOME deads) map_b rel_b set_bs consts)
-          bs tacss map_bs rel_bs set_bss wit_thmss
+          tacss map_bs rel_bs set_bss wit_thmss
           ((((((replicate n Binding.empty ~~ Ts) ~~ Jmaps) ~~ Jsetss_by_bnf) ~~ Jbds) ~~
             all_witss) ~~ map SOME Jrels)
           lthy;
