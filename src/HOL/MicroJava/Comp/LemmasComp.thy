@@ -200,7 +200,7 @@ apply (erule disjE)
 
   (* case class G x = None *)
 apply (simp (no_asm_simp) add: class_rec_def comp_subcls1
-  wfrec [where r="(subcls1 G)^-1", simplified])
+  wfrec [where R="(subcls1 G)^-1", simplified])
 apply (simp add: comp_class_None)
 
   (* case \<exists> D fs ms. (class G x = Some (D, fs, ms)) *)

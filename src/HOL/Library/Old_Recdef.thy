@@ -20,6 +20,9 @@ apply clarify
 apply (rule_tac r = R and P = P and a = x in wf_induct, assumption, blast)
 done
 
+lemma tfl_cut_def: "cut f r x \<equiv> (\<lambda>y. if (y,x) \<in> r then f y else undefined)"
+  unfolding cut_def .
+
 lemma tfl_cut_apply: "ALL f R. (x,a):R --> (cut f R a)(x) = f(x)"
 apply clarify
 apply (rule cut_apply, assumption)

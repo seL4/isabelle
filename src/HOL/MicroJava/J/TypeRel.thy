@@ -66,14 +66,8 @@ lemma class_rec_lemma:
   assumes wf: "wf ((subcls1 G)^-1)"
     and cls: "class G C = Some (D, fs, ms)"
   shows "class_rec G C t f = f C fs ms (if C=Object then t else class_rec G D t f)"
-proof -
-  from wf have step: "\<And>H a. wfrec ((subcls1 G)\<inverse>) H a =
-    H (cut (wfrec ((subcls1 G)\<inverse>) H) ((subcls1 G)\<inverse>) a) a"
-    by (rule wfrec)
-  have cut: "\<And>f. C \<noteq> Object \<Longrightarrow> cut f ((subcls1 G)\<inverse>) C D = f D"
-    by (rule cut_apply [where r="(subcls1 G)^-1", simplified, OF subcls1I, OF cls])
-  from cls show ?thesis by (simp add: step cut class_rec_def)
-qed
+  by (subst wfrec_def_adm[OF class_rec_def])
+     (auto simp: assms adm_wf_def fun_eq_iff subcls1I split: option.split)
 
 definition
   "wf_class G = wf ((subcls1 G)^-1)"

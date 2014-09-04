@@ -233,42 +233,34 @@ lemma (in finite_measure) Radon_Nikodym_aux:
 proof -
   interpret N: finite_measure N by fact
   let ?d = "\<lambda>A. measure M A - measure N A"
-  let ?P = "\<lambda>A B n. A \<in> sets M \<and> A \<subseteq> B \<and> ?d B \<le> ?d A \<and> (\<forall>C\<in>sets M. C \<subseteq> A \<longrightarrow> - 1 / real (Suc n) < ?d C)"
-  let ?r = "\<lambda>S. restricted_space S"
-  { fix S n assume S: "S \<in> sets M"
-    then have "finite_measure (density M (indicator S))" "0 < 1 / real (Suc n)"
-         "finite_measure (density N (indicator S))" "sets (density N (indicator S)) = sets (density M (indicator S))"
+  let ?P = "\<lambda>A n. if n = 0 then A = space M else (\<forall>C\<in>sets M. C \<subseteq> A \<longrightarrow> - 1 / real (Suc n) < ?d C)"
+  let ?Q = "\<lambda>A B. A \<subseteq> B \<and> ?d B \<le> ?d A"
+
+  have "\<exists>A. \<forall>n. (A n \<in> sets M \<and> ?P (A n) n) \<and> ?Q (A (Suc n)) (A n)"
+  proof (rule dependent_nat_choice)
+    show "\<exists>A. A \<in> sets M \<and> ?P A 0"
+      by auto
+  next
+    fix A n assume "A \<in> sets M \<and> ?P A n"
+    then have A: "A \<in> sets M" by auto
+    then have "finite_measure (density M (indicator A))" "0 < 1 / real (Suc (Suc n))"
+         "finite_measure (density N (indicator A))" "sets (density N (indicator A)) = sets (density M (indicator A))"
       by (auto simp: finite_measure_restricted N.finite_measure_restricted sets_eq)
     from finite_measure.Radon_Nikodym_aux_epsilon[OF this] guess X .. note X = this
-    with S have "?P (S \<inter> X) S n"
+    with A have "A \<inter> X \<in> sets M \<and> ?P (A \<inter> X) (Suc n) \<and> ?Q (A \<inter> X) A"
       by (simp add: measure_restricted sets_eq sets.Int) (metis inf_absorb2)
-    hence "\<exists>A. ?P A S n" .. }
-  note Ex_P = this
-  def A \<equiv> "rec_nat (space M) (\<lambda>n A. SOME B. ?P B A n)"
-  have A_Suc: "\<And>n. A (Suc n) = (SOME B. ?P B (A n) n)" by (simp add: A_def)
-  have A_0[simp]: "A 0 = space M" unfolding A_def by simp
-  { fix i have "A i \<in> sets M" unfolding A_def
-    proof (induct i)
-      case (Suc i)
-      from Ex_P[OF this, of i] show ?case unfolding nat.rec(2)
-        by (rule someI2_ex) simp
-    qed simp }
-  note A_in_sets = this
-  { fix n have "?P (A (Suc n)) (A n) n"
-      using Ex_P[OF A_in_sets] unfolding A_Suc
-      by (rule someI2_ex) simp }
-  note P_A = this
-  have "range A \<subseteq> sets M" using A_in_sets by auto
-  have A_mono: "\<And>i. A (Suc i) \<subseteq> A i" using P_A by simp
-  have mono_dA: "mono (\<lambda>i. ?d (A i))" using P_A by (simp add: mono_iff_le_Suc)
-  have epsilon: "\<And>C i. \<lbrakk> C \<in> sets M; C \<subseteq> A (Suc i) \<rbrakk> \<Longrightarrow> - 1 / real (Suc i) < ?d C"
-      using P_A by auto
+    then show "\<exists>B. (B \<in> sets M \<and> ?P B (Suc n)) \<and> ?Q B A"
+      by blast
+  qed
+  then obtain A where A: "\<And>n. A n \<in> sets M" "\<And>n. ?P (A n) n" "\<And>n. ?Q (A (Suc n)) (A n)"
+    by metis
+  then have mono_dA: "mono (\<lambda>i. ?d (A i))" and A_0[simp]: "A 0 = space M"
+    by (auto simp add: mono_iff_le_Suc)
   show ?thesis
   proof (safe intro!: bexI[of _ "\<Inter>i. A i"])
-    show "(\<Inter>i. A i) \<in> sets M" using A_in_sets by auto
-    have A: "decseq A" using A_mono by (auto intro!: decseq_SucI)
-    from `range A \<subseteq> sets M`
-      finite_Lim_measure_decseq[OF _ A] N.finite_Lim_measure_decseq[OF _ A]
+    show "(\<Inter>i. A i) \<in> sets M" using `\<And>n. A n \<in> sets M` by auto
+    have "decseq A" using A by (auto intro!: decseq_SucI)
+    from A(1) finite_Lim_measure_decseq[OF _ this] N.finite_Lim_measure_decseq[OF _ this]
     have "(\<lambda>i. ?d (A i)) ----> ?d (\<Inter>i. A i)" by (auto intro!: tendsto_diff simp: sets_eq)
     thus "?d (space M) \<le> ?d (\<Inter>i. A i)" using mono_dA[THEN monoD, of 0 _]
       by (rule_tac LIMSEQ_le_const) auto
@@ -280,10 +272,11 @@ proof -
       hence "0 < - ?d B" by auto
       from ex_inverse_of_nat_Suc_less[OF this]
       obtain n where *: "?d B < - 1 / real (Suc n)"
-        by (auto simp: real_eq_of_nat inverse_eq_divide field_simps)
-      have "B \<subseteq> A (Suc n)" using B by (auto simp del: nat.rec(2))
-      from epsilon[OF B(1) this] *
-      show False by auto
+        by (auto simp: real_eq_of_nat field_simps)
+      also have "\<dots> \<le> - 1 / real (Suc (Suc n))"
+        by (auto simp: field_simps)
+      finally show False
+        using * A(2)[of "Suc n"] B by (auto elim!: ballE[of _ _ B])
     qed
   qed
 qed

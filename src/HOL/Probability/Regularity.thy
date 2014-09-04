@@ -163,7 +163,7 @@ proof -
     by blast
   then obtain k where k: "\<forall>e\<in>{0<..}. \<forall>n\<in>{0<..}. measure M (space M) - e * 2 powr - real (n::nat)
     \<le> measure M (\<Union>i\<in>{0..k e n}. cball (from_nat_into X i) (1 / n))"
-    apply atomize_elim unfolding bchoice_iff .
+    by metis
   hence k: "\<And>e n. e > 0 \<Longrightarrow> n > 0 \<Longrightarrow> measure M (space M) - e * 2 powr - n
     \<le> measure M (\<Union>i\<in>{0..k e n}. cball (from_nat_into X i) (1 / n))"
     unfolding Ball_def by blast
@@ -209,8 +209,8 @@ proof -
       from nat_approx_posE[OF this] guess n . note n = this
       let ?k = "from_nat_into X ` {0..k e (Suc n)}"
       have "finite ?k" by simp
-      moreover have "K \<subseteq> \<Union>((\<lambda>x. ball x e') ` ?k)" unfolding K_def B_def using n by force
-      ultimately show "\<exists>k. finite k \<and> K \<subseteq> \<Union>((\<lambda>x. ball x e') ` k)" by blast
+      moreover have "K \<subseteq> (\<Union>x\<in>?k. ball x e')" unfolding K_def B_def using n by force
+      ultimately show "\<exists>k. finite k \<and> K \<subseteq> (\<Union>x\<in>k. ball x e')" by blast
     qed
     ultimately
     show "?thesis e " by (auto simp: sU)

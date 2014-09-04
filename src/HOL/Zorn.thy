@@ -720,4 +720,36 @@ proof -
   with 1 show ?thesis by auto
 qed
 
+(* Move this to Hilbert Choice and wfrec to Wellfounded*)
+
+lemma wfrec_def_adm: "f \<equiv> wfrec R F \<Longrightarrow> wf R \<Longrightarrow> adm_wf R F \<Longrightarrow> f = F f"
+  using wfrec_fixpoint by simp
+
+lemma dependent_wf_choice:
+  fixes P :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+  assumes "wf R" and adm: "\<And>f g x r. (\<And>z. (z, x) \<in> R \<Longrightarrow> f z = g z) \<Longrightarrow> P f x r = P g x r"
+  assumes P: "\<And>x f. (\<And>y. (y, x) \<in> R \<Longrightarrow> P f y (f y)) \<Longrightarrow> \<exists>r. P f x r"
+  shows "\<exists>f. \<forall>x. P f x (f x)"
+proof (intro exI allI)
+  fix x 
+  def f \<equiv> "wfrec R (\<lambda>f x. SOME r. P f x r)"
+  from `wf R` show "P f x (f x)"
+  proof (induct x)
+    fix x assume "\<And>y. (y, x) \<in> R \<Longrightarrow> P f y (f y)"
+    show "P f x (f x)"
+    proof (subst (2) wfrec_def_adm[OF f_def `wf R`])
+      show "adm_wf R (\<lambda>f x. SOME r. P f x r)"
+        by (auto simp add: adm_wf_def intro!: arg_cong[where f=Eps] ext adm)
+      show "P f x (Eps (P f x))"
+        using P by (rule someI_ex) fact
+    qed
+  qed
+qed
+
+lemma (in wellorder) dependent_wellorder_choice:
+  assumes "\<And>r f g x. (\<And>y. y < x \<Longrightarrow> f y = g y) \<Longrightarrow> P f x r = P g x r"
+  assumes P: "\<And>x f. (\<And>y. y < x \<Longrightarrow> P f y (f y)) \<Longrightarrow> \<exists>r. P f x r"
+  shows "\<exists>f. \<forall>x. P f x (f x)"
+  using wf by (rule dependent_wf_choice) (auto intro!: assms)
+
 end

@@ -184,70 +184,51 @@ next
 
       let ?q = "\<lambda>k n y. \<mu>G (?M (J k) (A n) y)"
 
-      have "\<forall>n. ?a / 2 ^ 0 \<le> \<mu>G (A n)" by (auto intro: INF_lower)
-      from Ex_w[OF A(1,2) this J(1-3), of 0] guess w0 .. note w0 = this
-
-      let ?P =
-        "\<lambda>k wk w. w \<in> space (Pi\<^sub>M (J (Suc k)) M) \<and> restrict w (J k) = wk \<and>
-          (\<forall>n. ?a / 2 ^ (Suc k + 1) \<le> ?q (Suc k) n w)"
-      def w \<equiv> "rec_nat w0 (\<lambda>k wk. Eps (?P k wk))"
-
-      { fix k have w: "w k \<in> space (Pi\<^sub>M (J k) M) \<and>
-          (\<forall>n. ?a / 2 ^ (k + 1) \<le> ?q k n (w k)) \<and> (k \<noteq> 0 \<longrightarrow> restrict (w k) (J (k - 1)) = w (k - 1))"
-        proof (induct k)
-          case 0 with w0 show ?case
-            unfolding w_def nat.rec(1) by auto
+      let ?P = "\<lambda>w k. w \<in> space (Pi\<^sub>M (J k) M) \<and> (\<forall>n. ?a / 2 ^ (Suc k) \<le> ?q k n w)"
+      have "\<exists>w. \<forall>k. ?P (w k) k \<and> restrict (w (Suc k)) (J k) = w k"
+      proof (rule dependent_nat_choice)
+        have "\<forall>n. ?a / 2 ^ 0 \<le> \<mu>G (A n)" by (auto intro: INF_lower)
+        from Ex_w[OF A(1,2) this J(1-3), of 0] show "\<exists>w. ?P w 0" by auto
+      next
+        fix w k assume Suc: "?P w k"
+        show "\<exists>w'. ?P w' (Suc k) \<and> restrict w' (J k) = w"
+        proof cases
+          assume [simp]: "J k = J (Suc k)"
+          have "?a / 2 ^ (Suc (Suc k)) \<le> ?a / 2 ^ (k + 1)"
+            using `0 < ?a` `?a \<le> 1` by (cases ?a) (auto simp: field_simps)
+          with Suc show ?thesis
+            by (auto intro!: exI[of _ w] simp: extensional_restrict space_PiM intro: order_trans)
         next
-          case (Suc k)
-          then have wk: "w k \<in> space (Pi\<^sub>M (J k) M)" by auto
-          have "\<exists>w'. ?P k (w k) w'"
-          proof cases
-            assume [simp]: "J k = J (Suc k)"
-            show ?thesis
-            proof (intro exI[of _ "w k"] conjI allI)
-              fix n
-              have "?a / 2 ^ (Suc k + 1) \<le> ?a / 2 ^ (k + 1)"
-                using `0 < ?a` `?a \<le> 1` by (cases ?a) (auto simp: field_simps)
-              also have "\<dots> \<le> ?q k n (w k)" using Suc by auto
-              finally show "?a / 2 ^ (Suc k + 1) \<le> ?q (Suc k) n (w k)" by simp
-            next
-              show "w k \<in> space (Pi\<^sub>M (J (Suc k)) M)"
-                using Suc by simp
-              then show "restrict (w k) (J k) = w k"
-                by (simp add: extensional_restrict space_PiM)
-            qed
-          next
-            assume "J k \<noteq> J (Suc k)"
-            with J_mono[of k "Suc k"] have "J (Suc k) - J k \<noteq> {}" (is "?D \<noteq> {}") by auto
-            have "range (\<lambda>n. ?M (J k) (A n) (w k)) \<subseteq> ?G"
-              "decseq (\<lambda>n. ?M (J k) (A n) (w k))"
-              "\<forall>n. ?a / 2 ^ (k + 1) \<le> \<mu>G (?M (J k) (A n) (w k))"
-              using `decseq A` fold(4)[OF J(1-3) A_eq(2), of "w k" k] Suc
-              by (auto simp: decseq_def)
-            from Ex_w[OF this `?D \<noteq> {}`] J[of "Suc k"]
-            obtain w' where w': "w' \<in> space (Pi\<^sub>M ?D M)"
-              "\<forall>n. ?a / 2 ^ (Suc k + 1) \<le> \<mu>G (?M ?D (?M (J k) (A n) (w k)) w')" by auto
-            let ?w = "merge (J k) ?D (w k, w')"
-            have [simp]: "\<And>x. merge (J k) (I - J k) (w k, merge ?D (I - ?D) (w', x)) =
-              merge (J (Suc k)) (I - (J (Suc k))) (?w, x)"
-              using J(3)[of "Suc k"] J(3)[of k] J_mono[of k "Suc k"]
-              by (auto intro!: ext split: split_merge)
-            have *: "\<And>n. ?M ?D (?M (J k) (A n) (w k)) w' = ?M (J (Suc k)) (A n) ?w"
-              using w'(1) J(3)[of "Suc k"]
-              by (auto simp: space_PiM split: split_merge intro!: extensional_merge_sub) force+
-            show ?thesis
-              using w' J_mono[of k "Suc k"] wk unfolding *
-              by (intro exI[of _ ?w])
-                 (auto split: split_merge intro!: extensional_merge_sub ext simp: space_PiM PiE_iff)
-          qed
-          then have "?P k (w k) (w (Suc k))"
-            unfolding w_def nat.rec(2) unfolding w_def[symmetric]
-            by (rule someI_ex)
-          then show ?case by auto
+          assume "J k \<noteq> J (Suc k)"
+          with J_mono[of k "Suc k"] have "J (Suc k) - J k \<noteq> {}" (is "?D \<noteq> {}") by auto
+          have "range (\<lambda>n. ?M (J k) (A n) w) \<subseteq> ?G" "decseq (\<lambda>n. ?M (J k) (A n) w)"
+            "\<forall>n. ?a / 2 ^ (k + 1) \<le> \<mu>G (?M (J k) (A n) w)"
+            using `decseq A` fold(4)[OF J(1-3) A_eq(2), of w k] Suc
+            by (auto simp: decseq_def)
+          from Ex_w[OF this `?D \<noteq> {}`] J[of "Suc k"]
+          obtain w' where w': "w' \<in> space (Pi\<^sub>M ?D M)"
+            "\<forall>n. ?a / 2 ^ (Suc k + 1) \<le> \<mu>G (?M ?D (?M (J k) (A n) w) w')" by auto
+          let ?w = "merge (J k) ?D (w, w')"
+          have [simp]: "\<And>x. merge (J k) (I - J k) (w, merge ?D (I - ?D) (w', x)) =
+            merge (J (Suc k)) (I - (J (Suc k))) (?w, x)"
+            using J(3)[of "Suc k"] J(3)[of k] J_mono[of k "Suc k"]
+            by (auto intro!: ext split: split_merge)
+          have *: "\<And>n. ?M ?D (?M (J k) (A n) w) w' = ?M (J (Suc k)) (A n) ?w"
+            using w'(1) J(3)[of "Suc k"]
+            by (auto simp: space_PiM split: split_merge intro!: extensional_merge_sub) force+
+          show ?thesis
+            using Suc w' J_mono[of k "Suc k"] unfolding *
+            by (intro exI[of _ ?w])
+               (auto split: split_merge intro!: extensional_merge_sub ext simp: space_PiM PiE_iff)
         qed
-        moreover
-        from w have "w k \<in> space (Pi\<^sub>M (J k) M)" by auto
-        moreover
+      qed
+      then obtain w where w:
+        "\<And>k. w k \<in> space (Pi\<^sub>M (J k) M)"
+        "\<And>k n. ?a / 2 ^ (Suc k) \<le> ?q k n (w k)"
+        "\<And>k. restrict (w (Suc k)) (J k) = w k"
+        by metis
+
+      { fix k
         from w have "?a / 2 ^ (k + 1) \<le> ?q k k (w k)" by auto
         then have "?M (J k) (A k) (w k) \<noteq> {}"
           using positive_mu_G[OF I_not_empty, unfolded positive_def] `0 < ?a` `?a \<le> 1`
@@ -256,19 +237,15 @@ next
         then have "merge (J k) (I - J k) (w k, x) \<in> A k" by auto
         then have "\<exists>x\<in>A k. restrict x (J k) = w k"
           using `w k \<in> space (Pi\<^sub>M (J k) M)`
-          by (intro rev_bexI) (auto intro!: ext simp: extensional_def space_PiM)
-        ultimately have "w k \<in> space (Pi\<^sub>M (J k) M)"
-          "\<exists>x\<in>A k. restrict x (J k) = w k"
-          "k \<noteq> 0 \<Longrightarrow> restrict (w k) (J (k - 1)) = w (k - 1)"
-          by auto }
-      note w = this
+          by (intro rev_bexI) (auto intro!: ext simp: extensional_def space_PiM) }
+      note w_ext = this
 
       { fix k l i assume "k \<le> l" "i \<in> J k"
         { fix l have "w k i = w (k + l) i"
           proof (induct l)
             case (Suc l)
             from `i \<in> J k` J_mono[of k "k + l"] have "i \<in> J (k + l)" by auto
-            with w(3)[of "k + Suc l"]
+            with w(3)[of "k + l"]
             have "w (k + l) i = w (k + Suc l) i"
               by (auto simp: restrict_def fun_eq_iff split: split_if_asm)
             with Suc show ?case by simp
@@ -297,7 +274,8 @@ next
       { fix n
         have "restrict w' (J n) = w n" using w(1)[of n]
           by (auto simp add: fun_eq_iff space_PiM)
-        with w[of n] obtain x where "x \<in> A n" "restrict x (J n) = restrict w' (J n)" by auto
+        with w_ext[of n] obtain x where "x \<in> A n" "restrict x (J n) = restrict w' (J n)"
+          by auto
         then have "w' \<in> A n" unfolding A_eq using w' by (auto simp: prod_emb_def space_PiM) }
       then have "w' \<in> (\<Inter>i. A i)" by auto
       with `(\<Inter>i. A i) = {}` show False by auto

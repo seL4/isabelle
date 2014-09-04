@@ -319,27 +319,6 @@ This subsection contains some variations of the results from @{theory Wellfounde
 *}
 
 
-subsubsection {* Well-founded recursion via genuine fixpoints *}
-
-lemma wfrec_fixpoint:
-fixes r :: "('a * 'a) set" and
-      H :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
-assumes WF: "wf r" and ADM: "adm_wf r H"
-shows "wfrec r H = H (wfrec r H)"
-proof(rule ext)
-  fix x
-  have "wfrec r H x = H (cut (wfrec r H) r x) x"
-  using wfrec[of r H] WF by simp
-  also
-  {have "\<And> y. (y,x) : r \<Longrightarrow> (cut (wfrec r H) r x) y = (wfrec r H) y"
-   by (auto simp add: cut_apply)
-   hence "H (cut (wfrec r H) r x) x = H (wfrec r H) x"
-   using ADM adm_wf_def[of r H] by auto
-  }
-  finally show "wfrec r H x = H (wfrec r H) x" .
-qed
-
-
 subsubsection {* Characterizations of well-foundedness *}
 
 text {* A transitive relation is well-founded iff it is ``locally'' well-founded,

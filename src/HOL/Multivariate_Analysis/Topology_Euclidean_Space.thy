@@ -3734,64 +3734,39 @@ lemma bolzano_weierstrass_imp_seq_compact:
   shows "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t) \<Longrightarrow> seq_compact s"
   by (rule countable_acc_point_imp_seq_compact) (metis islimpt_eq_acc_point)
 
-subsubsection{* Total boundedness *}
+subsubsection{* Totally bounded *}
 
 lemma cauchy_def: "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
   unfolding Cauchy_def by metis
 
-fun helper_1 :: "('a::metric_space set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> 'a"
-where
-  "helper_1 s e n = (SOME y::'a. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
-declare helper_1.simps[simp del]
-
 lemma seq_compact_imp_totally_bounded:
   assumes "seq_compact s"
-  shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k))"
-proof (rule, rule, rule ccontr)
-  fix e::real
-  assume "e > 0"
-  assume assm: "\<not> (\<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>((\<lambda>x. ball x e) ` k))"
-  def x \<equiv> "helper_1 s e"
-  {
-    fix n
-    have "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)"
-    proof (induct n rule: nat_less_induct)
-      fix n
-      def Q \<equiv> "(\<lambda>y. y \<in> s \<and> (\<forall>m<n. \<not> dist (x m) y < e))"
-      assume as: "\<forall>m<n. x m \<in> s \<and> (\<forall>ma<m. \<not> dist (x ma) (x m) < e)"
-      have "\<not> s \<subseteq> (\<Union>x\<in>x ` {0..<n}. ball x e)"
-        using assm
-        apply simp
-        apply (erule_tac x="x ` {0 ..< n}" in allE)
-        using as
-        apply auto
-        done
+  shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> (\<Union>x\<in>k. ball x e)"
+proof -
+  { fix e::real assume "e > 0" assume *: "\<And>k. finite k \<Longrightarrow> k \<subseteq> s \<Longrightarrow> \<not> s \<subseteq> (\<Union>x\<in>k. ball x e)"
+    let ?Q = "\<lambda>x n r. r \<in> s \<and> (\<forall>m < (n::nat). \<not> (dist (x m) r < e))"
+    have "\<exists>x. \<forall>n::nat. ?Q x n (x n)"
+    proof (rule dependent_wellorder_choice)
+      fix n x assume "\<And>y. y < n \<Longrightarrow> ?Q x y (x y)"
+      then have "\<not> s \<subseteq> (\<Union>x\<in>x ` {0..<n}. ball x e)"
+        using *[of "x ` {0 ..< n}"] by (auto simp: subset_eq)
       then obtain z where z:"z\<in>s" "z \<notin> (\<Union>x\<in>x ` {0..<n}. ball x e)"
         unfolding subset_eq by auto
-      have "Q (x n)"
-        unfolding x_def and helper_1.simps[of s e n]
-        apply (rule someI2[where a=z])
-        unfolding x_def[symmetric] and Q_def
-        using z
-        apply auto
-        done
-      then show "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)"
-        unfolding Q_def by auto
-    qed
-  }
-  then have "\<forall>n::nat. x n \<in> s" and x:"\<forall>n. \<forall>m < n. \<not> (dist (x m) (x n) < e)"
-    by blast+
-  then obtain l r where "l\<in>s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially"
-    using assms(1)[unfolded seq_compact_def, THEN spec[where x=x]] by auto
-  from this(3) have "Cauchy (x \<circ> r)"
-    using LIMSEQ_imp_Cauchy by auto
-  then obtain N::nat where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e"
-    unfolding cauchy_def using `e>0` by auto
-  show False
-    using N[THEN spec[where x=N], THEN spec[where x="N+1"]]
-    using r[unfolded subseq_def, THEN spec[where x=N], THEN spec[where x="N+1"]]
-    using x[THEN spec[where x="r (N+1)"], THEN spec[where x="r (N)"]]
-    by auto
+      show "\<exists>r. ?Q x n r"
+        using z by auto
+    qed simp
+    then obtain x where "\<forall>n::nat. x n \<in> s" and x:"\<And>n m. m < n \<Longrightarrow> \<not> (dist (x m) (x n) < e)"
+      by blast
+    then obtain l r where "l \<in> s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially"
+      using assms by (metis seq_compact_def)
+    from this(3) have "Cauchy (x \<circ> r)"
+      using LIMSEQ_imp_Cauchy by auto
+    then obtain N::nat where "\<And>m n. N \<le> m \<Longrightarrow> N \<le> n \<Longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e"
+      unfolding cauchy_def using `e > 0` by blast
+    then have False
+      using x[of "r N" "r (N+1)"] r by (auto simp: subseq_def) }
+  then show ?thesis
+    by metis
 qed
 
 subsubsection{* Heine-Borel theorem *}
@@ -3802,7 +3777,7 @@ lemma seq_compact_imp_heine_borel:
   shows "compact s"
 proof -
   from seq_compact_imp_totally_bounded[OF `seq_compact s`]
-  obtain f where f: "\<forall>e>0. finite (f e) \<and> f e \<subseteq> s \<and> s \<subseteq> \<Union>((\<lambda>x. ball x e) ` f e)"
+  obtain f where f: "\<forall>e>0. finite (f e) \<and> f e \<subseteq> s \<and> s \<subseteq> (\<Union>x\<in>f e. ball x e)"
     unfolding choice_iff' ..
   def K \<equiv> "(\<lambda>(x, r). ball x r) ` ((\<Union>e \<in> \<rat> \<inter> {0 <..}. f e) \<times> \<rat>)"
   have "countably_compact s"
@@ -4137,7 +4112,7 @@ proof atomize_elim
 qed
 
 lemma compact_eq_totally_bounded:
-  "compact s \<longleftrightarrow> complete s \<and> (\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k)))"
+  "compact s \<longleftrightarrow> complete s \<and> (\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> (\<Union>x\<in>k. ball x e))"
     (is "_ \<longleftrightarrow> ?rhs")
 proof
   assume assms: "?rhs"
