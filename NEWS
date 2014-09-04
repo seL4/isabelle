@@ -37,6 +37,9 @@ Minor INCOMPATIBILITY.
       strong_coinduct ~> coinduct_strong
       weak_case_cong ~> case_cong_weak
     INCOMPATIBILITY.
+  - The "no_code" option to "free_constructors", "datatype_new", and
+    "codatatype" has been renamed "plugins del: code".
+    INCOMPATIBILITY.
   - The rules "set_empty" have been removed. They are easy
     consequences of other set rules "by auto".
     INCOMPATIBILITY.

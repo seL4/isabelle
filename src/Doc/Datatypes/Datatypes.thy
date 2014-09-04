@@ -130,7 +130,7 @@ datatype_new} and @{command codatatype}.
 
 \item Section \ref{sec:plugins}, ``Plugins,''
 is concerned with the package's interoperability with other Isabelle packages
-and tools, such as Transfer, Lifting, and Quickcheck.
+and tools, such as the code generator, Transfer, Lifting, and Quickcheck.
 
 %\item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
 %Limitations,'' concludes with known open issues at the time of writing.
@@ -484,7 +484,7 @@ text {*
   ;
   @{syntax_def plugins}: 'plugins' ('only' | 'del') ':' (name +)
   ;
-  @{syntax_def dt_options}: '(' ((@{syntax plugins} | 'discs_sels' | 'no_code') + ',') ')'
+  @{syntax_def dt_options}: '(' ((@{syntax plugins} | 'discs_sels') + ',') ')'
   ;
   @{syntax_def map_rel}: @'for' ((('map' | 'rel') ':' name) +)
 \<close>}
@@ -513,10 +513,6 @@ The @{text "plugins"} option indicates which plugins should be enabled
 The @{text "discs_sels"} option indicates that discriminators and selectors
 should be generated. The option is implicitly enabled if names are specified for
 discriminators or selectors.
-
-\item
-The @{text "no_code"} option indicates that the datatype should not be
-registered for code generation.
 \end{itemize}
 
 The optional \keyw{where} clause specifies default values for selectors.
@@ -2699,10 +2695,8 @@ is available as a stand-alone command called @{command free_constructors}.
 %    old \keyw{datatype}
 %
 %  * @{command free_constructors}
-%    * @{text "no_discs_sels"}, @{text "no_code"}
+%    * @{text plugins}, @{text discs_sels}
 %    * hack to have both co and nonco view via locale (cf. ext nats)
-%  * code generator
-%     * eq, refl, simps
 *}
 
 
@@ -2772,13 +2766,25 @@ section {* Plugins
 
 text {*
 Plugins extend the (co)datatype package to interoperate with other Isabelle
-packages and tools, such as Transfer, Lifting, and Quickcheck. They can be
-enabled or disabled individually using the @{syntax plugins} option to
-@{command datatype_new}, @{command codatatype}, @{command free_constructors},
-@{command bnf}, and @{command bnf_axiomatization}. For example:
+packages and tools, such as the code generator, Transfer, Lifting, and
+Quickcheck. They can be enabled or disabled individually using the
+@{syntax plugins} option to @{command datatype_new}, @{command codatatype},
+@{command free_constructors}, @{command bnf}, and @{command bnf_axiomatization}.
+For example:
 *}
 
-    datatype_new (plugins del: size) color = Red | Black
+    datatype_new (plugins del: code) color = Red | Black
+
+
+subsection {* Code Generator
+  \label{ssec:code-generator} *}
+
+text {*
+The @{text code} plugin registers (co)datatypes for code generation. No
+distinction is made between atatypes and codatatypes. This means that for target
+languages with a strict evaluation strategy (e.g., Standard ML), programs that
+attempt to produce infinite codatatype values will not terminate.
+*}
 
 
 subsection {* Size
@@ -2818,7 +2824,8 @@ subsection {* Transfer
   \label{ssec:transfer} *}
 
 text {*
-The @{text transfer} plugin generates properties and attributes that guide the
+For each (co)datatype with live type arguments and each manually registered BNF,
+the @{text transfer} plugin generates properties and attributes that guide the
 Transfer tool.
 *}
 
@@ -2827,7 +2834,8 @@ subsection {* Lifting
   \label{ssec:lifting} *}
 
 text {*
-The @{text lifting} plugin generates properties that guide the Lifting tool.
+For each (co)datatype with live type arguments and each manually registered BNF,
+the @{text lifting} plugin generates properties that guide the Lifting tool.
 *}
 
 
@@ -2835,9 +2843,10 @@ subsection {* Quickcheck
   \label{ssec:quickcheck} *}
 
 text {*
-The integration with Quickcheck is accomplished by a number of plugins that
-instantiate specific type classes: @{text random}, @{text exhaustive},
-@{text bounded_forall}, @{text full_exhaustive}, @{text narrowing}.
+The integration of (co)datatypes with Quickcheck is accomplished by a number of
+plugins that instantiate specific type classes: @{text random},
+@{text exhaustive}, @{text bounded_forall}, @{text full_exhaustive}, and
+@{text narrowing}.
 *}
 
 
