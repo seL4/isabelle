@@ -37,29 +37,21 @@ structure Interp = Theory_Data
 
 val result = #1 o Interp.get;
 
-fun consolidate lthy =
+fun consolidate_common g_or_f lift_lthy thy thy_or_lthy =
   let
-    val thy = Proof_Context.theory_of lthy;
     val (data, interps) = Interp.get thy;
-    val unfinished = interps |> map (fn (((_, f), _), xs) =>
-      (f, if eq_list eq (xs, data) then [] else subtract eq xs data));
+    val unfinished = interps |> map (fn ((gf, _), xs) =>
+      (g_or_f gf, if eq_list eq (xs, data) then [] else subtract eq xs data));
     val finished = interps |> map (fn (interp, _) => (interp, data));
   in
     if forall (null o #2) unfinished then NONE
-    else SOME (lthy |> fold_rev (uncurry fold_rev) unfinished
-      |> Local_Theory.background_theory (Interp.put (data, finished)))
+    else SOME (thy_or_lthy |> fold_rev (uncurry fold_rev) unfinished
+      |> lift_lthy (Interp.put (data, finished)))
   end;
 
-fun consolidate_global thy =
-  let
-    val (data, interps) = Interp.get thy;
-    val unfinished = interps |> map (fn (((g, _), _), xs) =>
-      (g, if eq_list eq (xs, data) then [] else subtract eq xs data));
-    val finished = interps |> map (fn (interp, _) => (interp, data));
-  in
-    if forall (null o #2) unfinished then NONE
-    else SOME (thy |> fold_rev (uncurry fold_rev) unfinished |> Interp.put (data, finished))
-  end;
+fun consolidate lthy =
+  consolidate_common snd Local_Theory.background_theory (Proof_Context.theory_of lthy) lthy;
+fun consolidate_global thy = consolidate_common fst I thy thy;
 
 fun interpretation g f =
   Interp.map (apsnd (cons (((g, f), stamp ()), []))) #> perhaps consolidate_global;
