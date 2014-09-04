@@ -20,7 +20,7 @@ sig
     Old_Datatype_Aux.descr * (string * sort) list * string list * string
     * (string list * string list) * (typ list * typ list)
   val get_constrs: theory -> string -> (string * typ) list option
-  val interpretation: nesting_preference ->
+  val interpretation: string -> nesting_preference ->
     (Old_Datatype_Aux.config -> string list -> theory -> theory) -> theory -> theory
   val datatype_compat: string list -> local_theory -> local_theory
   val datatype_compat_global: string list -> theory -> theory
@@ -280,10 +280,10 @@ fun new_interpretation_of nesting_pref f (fp_sugars : fp_sugar list) thy =
       thy
   end;
 
-fun interpretation nesting_pref f =
+fun interpretation name nesting_pref f =
   let val new_f = new_interpretation_of nesting_pref f in
     Old_Datatype_Data.interpretation (old_interpretation_of nesting_pref f)
-    #> fp_sugar_interpretation new_f (Local_Theory.background_theory o new_f)
+    #> fp_sugars_interpretation name new_f (Local_Theory.background_theory o new_f)
   end;
 
 val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: @{attributes [nitpick_simp, simp]};

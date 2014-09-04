@@ -6,6 +6,7 @@ Setup for Lifting for types that are BNF.
 
 signature LIFTING_BNF =
 sig
+  val lifting_interpretation: string
 end
 
 structure Lifting_BNF : LIFTING_BNF =
@@ -14,6 +15,8 @@ struct
 open BNF_Util
 open BNF_Def
 open Transfer_BNF
+
+val lifting_interpretation = "lifting"
 
 (* Quotient map theorem *)
 
@@ -115,8 +118,8 @@ fun lifting_bnf_interpretation bnf lthy =
       snd (Local_Theory.notes notes lthy)
     end
 
-val _ = Theory.setup (bnf_interpretation
-  (bnf_only_type_ctr (map_local_theory o lifting_bnf_interpretation))
+val _ = Theory.setup (bnf_interpretation lifting_interpretation
+  (bnf_only_type_ctr (BNF_Util.map_local_theory o lifting_bnf_interpretation))
   (bnf_only_type_ctr lifting_bnf_interpretation))
 
 end

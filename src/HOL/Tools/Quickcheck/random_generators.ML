@@ -7,6 +7,7 @@ Random generators for various types.
 signature RANDOM_GENERATORS =
 sig
   type seed = Random_Engine.seed
+  val random_interpretation: string
   val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term)
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
     -> seed -> (('a -> 'b) * (unit -> term)) * seed
@@ -23,6 +24,8 @@ end;
 
 structure Random_Generators : RANDOM_GENERATORS =
 struct
+
+val random_interpretation = "random";
 
 (** abstract syntax **)
 
@@ -471,7 +474,8 @@ val test_goals =
 val active = Attrib.setup_config_bool @{binding quickcheck_random_active} (K false);
 
 val setup =
-  Quickcheck_Common.datatype_interpretation (@{sort random}, instantiate_random_datatype)
+  Quickcheck_Common.datatype_interpretation random_interpretation
+    (@{sort random}, instantiate_random_datatype)
   #> Context.theory_map (Quickcheck.add_tester ("random", (active, test_goals)));
 
 end;

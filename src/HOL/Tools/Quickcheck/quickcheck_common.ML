@@ -32,7 +32,7 @@ sig
     -> Old_Datatype_Aux.config -> string list -> theory -> theory
   val ensure_common_sort_datatype :
     (sort * instantiation) -> Old_Datatype_Aux.config -> string list -> theory -> theory
-  val datatype_interpretation : (sort * instantiation) -> theory -> theory
+  val datatype_interpretation : string -> sort * instantiation -> theory -> theory
   val gen_mk_parametric_generator_expr :
    (((Proof.context -> term * term list -> term) * term) * typ)
      -> Proof.context -> (term * term list) list -> term
@@ -422,8 +422,8 @@ fun ensure_common_sort_datatype (sort, instantiate) =
   ensure_sort (((@{sort typerep}, @{sort term_of}), sort),
     (fn thy => BNF_LFP_Compat.the_descr thy BNF_LFP_Compat.Keep_Nesting, instantiate))
 
-val datatype_interpretation =
-  BNF_LFP_Compat.interpretation BNF_LFP_Compat.Keep_Nesting o ensure_common_sort_datatype
+fun datatype_interpretation name =
+  BNF_LFP_Compat.interpretation name BNF_LFP_Compat.Keep_Nesting o ensure_common_sort_datatype
   
 (** generic parametric compilation **)
 

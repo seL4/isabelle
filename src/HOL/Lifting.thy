@@ -28,7 +28,7 @@ subsection {* Quotient Predicate *}
 
 definition
   "Quotient R Abs Rep T \<longleftrightarrow>
-     (\<forall>a. Abs (Rep a) = a) \<and> 
+     (\<forall>a. Abs (Rep a) = a) \<and>
      (\<forall>a. R (Rep a) (Rep a)) \<and>
      (\<forall>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s) \<and>
      T = (\<lambda>x y. R x x \<and> Abs x = y)"
@@ -83,8 +83,8 @@ lemma Quotient_rep_abs_eq: "R t t \<Longrightarrow> R \<le> op= \<Longrightarrow
   using a unfolding Quotient_def
   by blast
 
-lemma Quotient_rep_abs_fold_unmap: 
-  assumes "x' \<equiv> Abs x" and "R x x" and "Rep x' \<equiv> Rep' x'" 
+lemma Quotient_rep_abs_fold_unmap:
+  assumes "x' \<equiv> Abs x" and "R x x" and "Rep x' \<equiv> Rep' x'"
   shows "R (Rep' x') x"
 proof -
   have "R (Rep x') x" using assms(1-2) Quotient_rep_abs by auto
@@ -92,7 +92,7 @@ proof -
 qed
 
 lemma Quotient_Rep_eq:
-  assumes "x' \<equiv> Abs x" 
+  assumes "x' \<equiv> Abs x"
   shows "Rep x' \<equiv> Rep x'"
 by simp
 
@@ -120,7 +120,7 @@ by (metis Quotient_rep_reflp Quotient_symp Quotient_transp part_equivpI)
 end
 
 lemma identity_quotient: "Quotient (op =) id id (op =)"
-unfolding Quotient_def by simp 
+unfolding Quotient_def by simp
 
 text {* TODO: Use one of these alternatives as the real definition. *}
 
@@ -221,7 +221,7 @@ lemma UNIV_typedef_to_Quotient:
   shows "Quotient (op =) Abs Rep T"
 proof -
   interpret type_definition Rep Abs UNIV by fact
-  from Abs_inject Rep_inverse Abs_inverse T_def show ?thesis 
+  from Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
     by (fastforce intro!: QuotientI fun_eq_iff)
 qed
 
@@ -330,11 +330,11 @@ lemma typedef_bi_unique: "bi_unique T"
 (* the following two theorems are here only for convinience *)
 
 lemma typedef_right_unique: "right_unique T"
-  using T_def type Quotient_right_unique typedef_to_Quotient 
+  using T_def type Quotient_right_unique typedef_to_Quotient
   by blast
 
 lemma typedef_right_total: "right_total T"
-  using T_def type Quotient_right_total typedef_to_Quotient 
+  using T_def type Quotient_right_total typedef_to_Quotient
   by blast
 
 lemma typedef_rep_transfer: "(T ===> op =) (\<lambda>x. x) Rep"
@@ -503,7 +503,7 @@ lemma pcr_Domainp_par_left_total:
   assumes "(A ===> op=) P' P"
   shows "Domainp (A OO B) = P'"
 using assms
-unfolding Domainp_iff[abs_def] OO_def bi_unique_def left_total_def rel_fun_def 
+unfolding Domainp_iff[abs_def] OO_def bi_unique_def left_total_def rel_fun_def
 by (fast intro: fun_eq_iff)
 
 lemma pcr_Domainp_par:
@@ -526,12 +526,12 @@ lemma pcr_Domainp_total:
   assumes "left_total B"
   assumes "Domainp A = P"
   shows "Domainp (A OO B) = P"
-using assms unfolding left_total_def 
+using assms unfolding left_total_def
 by fast
 
 lemma Quotient_to_Domainp:
   assumes "Quotient R Abs Rep T"
-  shows "Domainp T = (\<lambda>x. R x x)"  
+  shows "Domainp T = (\<lambda>x. R x x)"
 by (simp add: Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
 
 lemma eq_onp_to_Domainp:
@@ -559,7 +559,7 @@ ML_file "Tools/Lifting/lifting_bnf.ML"
 ML_file "Tools/Lifting/lifting_term.ML"
 ML_file "Tools/Lifting/lifting_def.ML"
 ML_file "Tools/Lifting/lifting_setup.ML"
-                           
+
 hide_const (open) POS NEG
 
 end

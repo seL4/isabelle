@@ -6,10 +6,10 @@ Setup for Transfer for types that are BNF.
 
 signature TRANSFER_BNF =
 sig
+  val transfer_interpretation: string
   val base_name_of_bnf: BNF_Def.bnf -> binding
   val type_name_of_bnf: BNF_Def.bnf -> string
   val lookup_defined_pred_data: Proof.context -> string -> Transfer.pred_data
-  val map_local_theory: (local_theory -> local_theory) -> theory -> theory
   val bnf_only_type_ctr: (BNF_Def.bnf -> 'a -> 'a) -> BNF_Def.bnf -> 'a -> 'a
 end
 
@@ -20,6 +20,8 @@ open BNF_Util
 open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
+
+val transfer_interpretation = "transfer"
 
 (* util functions *)
 
@@ -58,8 +60,6 @@ fun type_name_of_bnf bnf = T_of_bnf bnf |> dest_Type |> fst
 
 fun is_Type (Type _) = true
   | is_Type _ = false
-
-fun map_local_theory f = Named_Target.theory_init #> f #> Local_Theory.exit_global
 
 fun bnf_only_type_ctr f bnf = if is_Type (T_of_bnf bnf) then f bnf else I
 
@@ -290,8 +290,8 @@ fun transfer_bnf_interpretation bnf lthy =
     snd (Local_Theory.notes (constr_notes @ relator_eq_notes @ pred_notes) lthy)
   end
 
-val _ = Theory.setup (bnf_interpretation
-  (bnf_only_type_ctr (map_local_theory o transfer_bnf_interpretation))
+val _ = Theory.setup (bnf_interpretation transfer_interpretation
+  (bnf_only_type_ctr (BNF_Util.map_local_theory o transfer_bnf_interpretation))
   (bnf_only_type_ctr (transfer_bnf_interpretation)))
 
 (* simplification rules for the predicator *)
@@ -351,7 +351,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
 
 (* fp_sugar interpretation *)
 
-fun transfer_fp_sugar_interpretation fp_sugar lthy =
+fun transfer_fp_sugars_interpretation fp_sugar lthy =
   let
     val pred_injects = prove_pred_inject lthy fp_sugar
     fun qualify defname suffix = Binding.qualified true suffix defname
@@ -361,8 +361,8 @@ fun transfer_fp_sugar_interpretation fp_sugar lthy =
     snd (Local_Theory.note ((pred_inject_thm_name, simp_attrs), pred_injects) lthy)
   end
 
-val _ = Theory.setup (fp_sugar_interpretation
-  (fp_sugar_only_type_ctr (map_local_theory o fold transfer_fp_sugar_interpretation))
-  (fp_sugar_only_type_ctr (fold transfer_fp_sugar_interpretation)))
+val _ = Theory.setup (fp_sugars_interpretation transfer_interpretation
+  (fp_sugar_only_type_ctr (map_local_theory o fold transfer_fp_sugars_interpretation))
+  (fp_sugar_only_type_ctr (fold transfer_fp_sugars_interpretation)))
 
 end

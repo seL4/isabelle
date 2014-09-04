@@ -43,7 +43,7 @@ sig
   val ctr_sugars_of_global: theory -> ctr_sugar list
   val ctr_sugar_of_case: Proof.context -> string -> ctr_sugar option
   val ctr_sugar_of_case_global: theory -> string -> ctr_sugar option
-  val ctr_sugar_interpretation: (ctr_sugar -> theory -> theory) ->
+  val ctr_sugar_interpretation: string -> (ctr_sugar -> theory -> theory) ->
     (ctr_sugar -> local_theory -> local_theory) -> theory -> theory
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
   val default_register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
@@ -179,7 +179,8 @@ structure Ctr_Sugar_Interpretation = Local_Interpretation
 
 fun with_transfer_ctr_sugar g ctr_sugar thy = g (transfer_ctr_sugar thy ctr_sugar) thy;
 
-val ctr_sugar_interpretation = Ctr_Sugar_Interpretation.interpretation o with_transfer_ctr_sugar;
+fun ctr_sugar_interpretation name =
+  Ctr_Sugar_Interpretation.interpretation name o with_transfer_ctr_sugar;
 
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}

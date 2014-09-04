@@ -6,6 +6,10 @@ Exhaustive generators for various types.
 
 signature EXHAUSTIVE_GENERATORS =
 sig
+  val exhaustive_interpretation: string
+  val bounded_forall_interpretation: string
+  val full_exhaustive_interpretation: string
+
   val compile_generator_expr:
     Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
   val compile_generator_exprs: Proof.context -> term list -> (int -> term list option) list
@@ -34,6 +38,11 @@ structure Exhaustive_Generators : EXHAUSTIVE_GENERATORS =
 struct
 
 (* basics *)
+
+val exhaustive_interpretation = "exhaustive"
+val bounded_forall_interpretation = "bounded_forall"
+val full_exhaustive_interpretation = "full_exhaustive"
+
 
 (** dynamic options **)
 
@@ -534,17 +543,20 @@ val test_goals =
 (* setup *)
 
 val setup_exhaustive_datatype_interpretation =
-  Quickcheck_Common.datatype_interpretation (@{sort exhaustive}, instantiate_exhaustive_datatype)
+  Quickcheck_Common.datatype_interpretation exhaustive_interpretation
+    (@{sort exhaustive}, instantiate_exhaustive_datatype)
 
 val setup_bounded_forall_datatype_interpretation =
-  BNF_LFP_Compat.interpretation BNF_LFP_Compat.Keep_Nesting (Quickcheck_Common.ensure_sort
-    (((@{sort type}, @{sort type}), @{sort bounded_forall}),
-    (fn thy => BNF_LFP_Compat.the_descr thy BNF_LFP_Compat.Keep_Nesting, instantiate_bounded_forall_datatype)))
+  BNF_LFP_Compat.interpretation bounded_forall_interpretation BNF_LFP_Compat.Keep_Nesting
+    (Quickcheck_Common.ensure_sort
+       (((@{sort type}, @{sort type}), @{sort bounded_forall}),
+       (fn thy => BNF_LFP_Compat.the_descr thy BNF_LFP_Compat.Keep_Nesting, instantiate_bounded_forall_datatype)))
 
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 
 val setup =
-  Quickcheck_Common.datatype_interpretation (@{sort full_exhaustive}, instantiate_full_exhaustive_datatype)
+  Quickcheck_Common.datatype_interpretation full_exhaustive_interpretation
+    (@{sort full_exhaustive}, instantiate_full_exhaustive_datatype)
   #> Context.theory_map (Quickcheck.add_tester ("exhaustive", (active, test_goals)))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))
   #> Context.theory_map (Quickcheck.add_batch_validator ("exhaustive", compile_validator_exprs));

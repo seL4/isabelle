@@ -17,8 +17,8 @@ sig
   val transfer_bnf: theory -> bnf -> bnf
   val bnf_of: Proof.context -> string -> bnf option
   val bnf_of_global: theory -> string -> bnf option
-  val bnf_interpretation: (bnf -> theory -> theory) -> (bnf -> local_theory -> local_theory) ->
-    theory -> theory
+  val bnf_interpretation: string -> (bnf -> theory -> theory) ->
+    (bnf -> local_theory -> local_theory) -> theory -> theory
   val interpret_bnf: bnf -> local_theory -> local_theory
   val register_bnf_raw: string -> bnf -> local_theory -> local_theory
   val register_bnf: string -> bnf -> local_theory -> local_theory
@@ -1523,7 +1523,9 @@ structure BNF_Interpretation = Local_Interpretation
 
 fun with_transfer_bnf g bnf thy = g (transfer_bnf thy bnf) thy;
 
-val bnf_interpretation = BNF_Interpretation.interpretation o with_transfer_bnf;
+fun bnf_interpretation name =
+  BNF_Interpretation.interpretation name o with_transfer_bnf;
+
 val interpret_bnf = BNF_Interpretation.data;
 
 fun register_bnf_raw key bnf =

@@ -11,8 +11,8 @@ signature LOCAL_INTERPRETATION =
 sig
   type T
   val result: theory -> T list
-  val interpretation: (T -> theory -> theory) -> (T -> local_theory -> local_theory) -> theory ->
-    theory
+  val interpretation: string -> (T -> theory -> theory) -> (T -> local_theory -> local_theory) ->
+    theory -> theory
   val data: T -> local_theory -> local_theory
   val data_global: T -> theory -> theory
   val init: theory -> theory
@@ -27,7 +27,7 @@ structure Interp = Theory_Data
 (
   type T =
     (Name_Space.naming * T) list
-    * ((((T -> theory -> theory) * (T -> local_theory -> local_theory)) * stamp)
+    * ((((T -> theory -> theory) * (T -> local_theory -> local_theory)) * (string * stamp))
        * (Name_Space.naming * T) list) list;
   val empty = ([], []);
   val extend = I;
@@ -61,8 +61,8 @@ fun consolidate_global thy =
   consolidate_common (fn (f, _) => fn (naming, x) => fn thy =>
     thy |> Sign.map_naming (K naming) |> f x |> Sign.restore_naming thy) I thy thy;
 
-fun interpretation g f =
-  Interp.map (apsnd (cons (((g, f), stamp ()), []))) #> perhaps consolidate_global;
+fun interpretation name g f =
+  Interp.map (apsnd (cons (((g, f), (name, stamp ())), []))) #> perhaps consolidate_global;
 
 fun data x =
   Local_Theory.background_theory (fn thy => Interp.map (apfst (cons (Sign.naming_of thy, x))) thy)

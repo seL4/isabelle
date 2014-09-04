@@ -39,7 +39,7 @@ sig
   val fp_sugar_of_global: theory -> string -> fp_sugar option
   val fp_sugars_of: Proof.context -> fp_sugar list
   val fp_sugars_of_global: theory -> fp_sugar list
-  val fp_sugar_interpretation: (fp_sugar list -> theory -> theory) ->
+  val fp_sugars_interpretation: string -> (fp_sugar list -> theory -> theory) ->
     (fp_sugar list -> local_theory -> local_theory)-> theory -> theory
   val interpret_fp_sugars: fp_sugar list -> local_theory -> local_theory
   val register_fp_sugars_raw: fp_sugar list -> local_theory -> local_theory
@@ -223,9 +223,11 @@ structure FP_Sugar_Interpretation = Local_Interpretation
   val eq: T * T -> bool = op = o pairself (map #T);
 );
 
-fun with_transfer_fp_sugar g fp_sugars thy = g (map (transfer_fp_sugar thy) fp_sugars) thy;
+fun with_transfer_fp_sugars g fp_sugars thy = g (map (transfer_fp_sugar thy) fp_sugars) thy;
 
-val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_transfer_fp_sugar;
+fun fp_sugars_interpretation name =
+  FP_Sugar_Interpretation.interpretation name o with_transfer_fp_sugars;
+
 val interpret_fp_sugars = FP_Sugar_Interpretation.data;
 
 fun register_fp_sugars_raw fp_sugars =

@@ -6,6 +6,7 @@ Narrowing-based counterexample generation.
 
 signature NARROWING_GENERATORS =
 sig
+  val narrowing_interpretation: string
   val allow_existentials : bool Config.T
   val finite_functions : bool Config.T
   val overlord : bool Config.T
@@ -21,6 +22,8 @@ end;
 
 structure Narrowing_Generators : NARROWING_GENERATORS =
 struct
+
+val narrowing_interpretation = "narrowing"
 
 (* configurations *)
 
@@ -525,7 +528,8 @@ val active = Attrib.setup_config_bool @{binding quickcheck_narrowing_active} (K 
 val setup =
   Code.datatype_interpretation ensure_partial_term_of
   #> Code.datatype_interpretation ensure_partial_term_of_code
-  #> Quickcheck_Common.datatype_interpretation (@{sort narrowing}, instantiate_narrowing_datatype)
+  #> Quickcheck_Common.datatype_interpretation narrowing_interpretation
+    (@{sort narrowing}, instantiate_narrowing_datatype)
   #> Context.theory_map (Quickcheck.add_tester ("narrowing", (active, test_goals)))
     
 end;
