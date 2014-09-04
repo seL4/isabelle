@@ -128,9 +128,9 @@ datatype_new} and @{command codatatype}.
 %\item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
 %describes the package's programmatic interface.
 
-%\item Section \ref{sec:interoperability}, ``Interoperability,''
-%is concerned with the packages' interaction with other Isabelle packages and
-%tools, such as the code generator and the counterexample generators.
+\item Section \ref{sec:plugins}, ``Plugins,''
+is concerned with the package's interoperability with other Isabelle packages
+and tools, such as Transfer, Lifting, and Quickcheck.
 
 %\item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
 %Limitations,'' concludes with known open issues at the time of writing.
@@ -482,7 +482,9 @@ text {*
     (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') \<newline>
      @{syntax map_rel}? (@'where' (prop + '|'))? + @'and')
   ;
-  @{syntax_def dt_options}: '(' (('discs_sels' | 'no_code') + ',') ')'
+  @{syntax_def plugins}: 'plugins' ('only' | 'del') ':' (name +)
+  ;
+  @{syntax_def dt_options}: '(' ((@{syntax plugins} | 'discs_sels' | 'no_code') + ',') ')'
   ;
   @{syntax_def map_rel}: @'for' ((('map' | 'rel') ':' name) +)
 \<close>}
@@ -497,11 +499,15 @@ The syntactic entity \synt{target} can be used to specify a local
 context (e.g., @{text "(in linorder)"} \cite{isabelle-isar-ref}),
 and \synt{prop} denotes a HOL proposition.
 
-The optional target is optionally followed by one or both of the following
+The optional target is optionally followed by a combination of the following
 options:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
+
+\item
+The @{text "plugins"} option indicates which plugins should be enabled
+(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
 
 \item
 The @{text "discs_sels"} option indicates that discriminators and selectors
@@ -536,7 +542,7 @@ variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (@{text set\<^sub>1_t}, \ldots, @{text set\<^sub>m_t}). Type
-arguments can be marked as dead by entering ``@{text dead}'' in front of the
+arguments can be marked as dead by entering @{text dead} in front of the
 type variable (e.g., ``@{text "(dead 'a)"}''); otherwise, they are live or dead
 (and a set function is generated or not) depending on where they occur in the
 right-hand sides of the definition. Declaring a type argument as dead can speed
@@ -659,9 +665,7 @@ Map function: &
 Relator: &
   @{text t.rel_t} \\
 Recursor: &
-  @{text t.rec_t} \\
-Size function: &
-  @{text t.size_t}
+  @{text t.rec_t}
 \end{tabular}
 
 \medskip
@@ -670,9 +674,6 @@ Size function: &
 The case combinator, discriminators, and selectors are collectively called
 \emph{destructors}. The prefix ``@{text "t."}'' is an optional component of the
 names and is normally hidden.
-
-In addition to the above, the @{class size} class is instantiated to overload the
-@{const size} function based on @{text t.size_t}.
 *}
 
 
@@ -1012,18 +1013,6 @@ prove $m$ properties simultaneously.
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rec_o_map}\rm:] ~ \\
-@{thm list.rec_o_map[no_vars]}
-
-\item[@{text "t."}\hthm{size} @{text "[simp, code]"}\rm:] ~ \\
-@{thm list.size(1)[no_vars]} \\
-@{thm list.size(2)[no_vars]} \\
-@{thm list.size(3)[no_vars]} \\
-@{thm list.size(4)[no_vars]}
-
-\item[@{text "t."}\hthm{size_o_map}\rm:] ~ \\
-@{thm list.size_o_map[no_vars]}
-
 \end{description}
 \end{indentblock}
 
@@ -1054,12 +1043,9 @@ incompatibilities that may arise when porting to the new package:
 
 \item \emph{The Standard ML interfaces are different.} Tools and extensions
 written to call the old ML interfaces will need to be adapted to the new
-interfaces. This concerns Quickcheck in particular. Whenever possible, it is
-recommended to use @{command datatype_compat} to register new-style datatypes
-as old-style datatypes.
-
-\item \emph{The constants @{text t_case}, @{text t_rec}, and @{text t_size} are
-now called @{text case_t}, @{text rec_t}, and @{text size_t}.}
+interfaces. Whenever possible, it is recommended to use
+@{command datatype_compat} to register new-style datatypes as old-style
+datatypes.
 
 \item \emph{The recursor @{text rec_t} has a different signature for nested
 recursive datatypes.} In the old package, nested recursion through non-functions
@@ -1739,7 +1725,7 @@ Given a codatatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
 with $m > 0$ live type variables and $n$ constructors @{text "t.C\<^sub>1"},
 \ldots, @{text "t.C\<^sub>n"}, the same auxiliary constants are generated as for
 datatypes (Section~\ref{ssec:datatype-generated-constants}), except that the
-recursor is replaced by a dual concept and no size function is produced:
+recursor is replaced by a dual concept:
 
 \medskip
 
@@ -2622,7 +2608,8 @@ text {*
 @{rail \<open>
   @@{command bnf} target? (name ':')? type \<newline>
     'map:' term ('sets:' (term +))? 'bd:' term \<newline>
-    ('wits:' (term +))? ('rel:' term)?
+    ('wits:' (term +))? ('rel:' term)? \<newline>
+    @{syntax plugins}?
 \<close>}
 
 \medskip
@@ -2650,8 +2637,9 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command bnf_axiomatization} target? @{syntax tyargs}? name \<newline>
-    @{syntax wit_types}? mixfix? @{syntax map_rel}?
+  @@{command bnf_axiomatization} target? @{syntax plugins}? \<newline>
+    @{syntax tyargs}? name @{syntax wit_types}? \<newline>
+    mixfix? @{syntax map_rel}?
   ;
   @{syntax_def wit_types}: '[' 'wits' ':' types ']'
 \<close>}
@@ -2669,7 +2657,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 parenthesized mixfix notation \cite{isabelle-isar-ref}.
 
 Type arguments are live by default; they can be marked as dead by entering
-``@{text dead}'' in front of the type variable (e.g., ``@{text "(dead 'a)"}'')
+@{text dead} in front of the type variable (e.g., ``@{text "(dead 'a)"}'')
 instead of an identifier for the corresponding set function. Witnesses can be
 specified by their types. Otherwise, the syntax of @{command bnf_axiomatization}
 is identical to the left-hand side of a @{command datatype_new} or
@@ -2779,35 +2767,78 @@ The package's programmatic interface.
 *)
 
 
-(*
-section {* Interoperability
-  \label{sec:interoperability} *}
+section {* Plugins
+  \label{sec:plugins} *}
 
 text {*
-The package's interaction with other Isabelle packages and tools, such as the
-code generator and the counterexample generators.
+Plugins extend the (co)datatype package to interoperate with other Isabelle
+packages and tools, such as Transfer, Lifting, and Quickcheck. They can be
+enabled or disabled individually using the @{syntax plugins} option to
+@{command datatype_new}, @{command codatatype}, @{command free_constructors},
+@{command bnf}, and @{command bnf_axiomatization}. For example:
+*}
+
+    datatype_new (plugins del: size) color = Red | Black
+
+
+subsection {* Size
+  \label{ssec:size} *}
+
+text {*
+For each datatype, the @{text size} plugin generates a parameterized size
+function @{text "t.size_t"} as well as a specific instance
+@{text "size \<Colon> t \<Rightarrow> bool"} belonging to the @{text size} type
+class. The \keyw{fun} command relies on @{const size} to prove termination of
+recursive functions on datatypes.
+
+The plugin derives the following properties:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{size} @{text "[simp, code]"}\rm:] ~ \\
+@{thm list.size(1)[no_vars]} \\
+@{thm list.size(2)[no_vars]} \\
+@{thm list.size(3)[no_vars]} \\
+@{thm list.size(4)[no_vars]}
+
+\item[@{text "t."}\hthm{rec_o_map}\rm:] ~ \\
+@{thm list.rec_o_map[no_vars]}
+
+\item[@{text "t."}\hthm{size_o_map}\rm:] ~ \\
+@{thm list.size_o_map[no_vars]}
+(This property is not generated for all datatypes.)
+
+\end{description}
+\end{indentblock}
 *}
 
 
-subsection {* Transfer and Lifting
-  \label{ssec:transfer-and-lifting} *}
+subsection {* Transfer
+  \label{ssec:transfer} *}
+
+text {*
+The @{text transfer} plugin generates properties and attributes that guide the
+Transfer tool.
+*}
 
 
-subsection {* Code Generator
-  \label{ssec:code-generator} *}
+subsection {* Lifting
+  \label{ssec:lifting} *}
+
+text {*
+The @{text lifting} plugin generates properties that guide the Lifting tool.
+*}
 
 
 subsection {* Quickcheck
   \label{ssec:quickcheck} *}
 
-
-subsection {* Nitpick
-  \label{ssec:nitpick} *}
-
-
-subsection {* Nominal Isabelle
-  \label{ssec:nominal-isabelle} *}
-*)
+text {*
+The integration with Quickcheck is accomplished by a number of plugins that
+instantiate specific type classes: @{text random}, @{text exhaustive},
+@{text bounded_forall}, @{text full_exhaustive}, @{text narrowing}.
+*}
 
 
 (*
@@ -2820,8 +2851,6 @@ Known open issues of the package.
 
 text {*
 %* slow n-ary mutual (co)datatype, avoid as much as possible (e.g. using nesting)
-%
-%* partial documentation
 %
 %* no way to register "sum" and "prod" as (co)datatypes to enable N2M reduction for them
 %  (for @{command datatype_compat} and prim(co)rec)
