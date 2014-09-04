@@ -177,14 +177,9 @@ structure Ctr_Sugar_Interpretation = Local_Interpretation
   val eq: T * T -> bool = op = o pairself #ctrs;
 );
 
-fun with_repaired_path g (ctr_sugar as {ctrs = ctr1 :: _, ...} : ctr_sugar) thy =
-  thy
-  |> Sign.root_path
-  |> Sign.add_path (Long_Name.qualifier (fst (dest_Type (body_type (fastype_of ctr1)))))
-  |> (fn thy => g (transfer_ctr_sugar thy ctr_sugar) thy)
-  |> Sign.restore_naming thy;
+fun with_transfer_ctr_sugar g ctr_sugar thy = g (transfer_ctr_sugar thy ctr_sugar) thy;
 
-val ctr_sugar_interpretation = Ctr_Sugar_Interpretation.interpretation o with_repaired_path;
+val ctr_sugar_interpretation = Ctr_Sugar_Interpretation.interpretation o with_transfer_ctr_sugar;
 
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}

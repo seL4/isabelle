@@ -223,14 +223,9 @@ structure FP_Sugar_Interpretation = Local_Interpretation
   val eq: T * T -> bool = op = o pairself (map #T);
 );
 
-fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _) thy =
-  thy
-  |> Sign.root_path
-  |> Sign.add_path (Long_Name.qualifier s)
-  |> f (map (transfer_fp_sugar thy) fp_sugars)
-  |> Sign.restore_naming thy;
+fun with_transfer_fp_sugar g fp_sugars thy = g (map (transfer_fp_sugar thy) fp_sugars) thy;
 
-val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
+val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_transfer_fp_sugar;
 val interpret_fp_sugars = FP_Sugar_Interpretation.data;
 
 fun register_fp_sugars_raw fp_sugars =

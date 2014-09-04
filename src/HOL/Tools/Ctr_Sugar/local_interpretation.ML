@@ -26,22 +26,24 @@ type T = T;
 structure Interp = Theory_Data
 (
   type T =
-    T list
-    * ((((T -> theory -> theory) * (T -> local_theory -> local_theory)) * stamp) * T list) list;
+    (Name_Space.naming * T) list
+    * ((((T -> theory -> theory) * (T -> local_theory -> local_theory)) * stamp)
+       * (Name_Space.naming * T) list) list;
   val empty = ([], []);
   val extend = I;
   fun merge ((data1, interps1), (data2, interps2)) : T =
-    (Library.merge eq (data1, data2),
-     AList.join (eq_snd (op =)) (K (Library.merge eq)) (interps1, interps2));
+    (Library.merge (eq_snd eq) (data1, data2),
+     AList.join (eq_snd (op =)) (K (Library.merge (eq_snd eq))) (interps1, interps2));
 );
 
-val result = #1 o Interp.get;
+val result = map snd o fst o Interp.get;
 
 fun consolidate_common g_or_f lift_lthy thy thy_or_lthy =
   let
     val (data, interps) = Interp.get thy;
-    val unfinished = interps |> map (fn ((gf, _), xs) =>
-      (g_or_f gf, if eq_list eq (xs, data) then [] else subtract eq xs data));
+    val unfinished = interps |> map (fn ((gf, _), data') =>
+      (g_or_f gf,
+       if eq_list (eq_snd eq) (data', data) then [] else subtract (eq_snd eq) data' data));
     val finished = interps |> map (apsnd (K data));
   in
     if forall (null o #2) unfinished then
@@ -52,14 +54,23 @@ fun consolidate_common g_or_f lift_lthy thy thy_or_lthy =
   end;
 
 fun consolidate lthy =
-  consolidate_common snd Local_Theory.background_theory (Proof_Context.theory_of lthy) lthy;
-fun consolidate_global thy = consolidate_common fst I thy thy;
+  consolidate_common (fn (_, g) => fn (_, x) => g x) Local_Theory.background_theory
+    (Proof_Context.theory_of lthy) lthy;
+
+fun consolidate_global thy =
+  consolidate_common (fn (f, _) => fn (naming, x) => fn thy =>
+    thy |> Sign.map_naming (K naming) |> f x |> Sign.restore_naming thy) I thy thy;
 
 fun interpretation g f =
   Interp.map (apsnd (cons (((g, f), stamp ()), []))) #> perhaps consolidate_global;
 
-fun data x = Local_Theory.background_theory (Interp.map (apfst (cons x))) #> perhaps consolidate;
-fun data_global x = Interp.map (apfst (cons x)) #> perhaps consolidate_global;
+fun data x =
+  Local_Theory.background_theory (fn thy => Interp.map (apfst (cons (Sign.naming_of thy, x))) thy)
+  #> perhaps consolidate;
+
+fun data_global x =
+  (fn thy => Interp.map (apfst (cons (Sign.naming_of thy, x))) thy)
+  #> perhaps consolidate_global;
 
 val init = Theory.at_begin consolidate_global;
 

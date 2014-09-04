@@ -1521,22 +1521,9 @@ structure BNF_Interpretation = Local_Interpretation
   val eq: T * T -> bool = op = o pairself T_of_bnf;
 );
 
-fun with_repaired_path f bnf thy =
-  let
-    val qualifiers =
-      (case Binding.dest (name_of_bnf bnf) of
-        (* arbitrarily use "Fun" as prefix for "fun" *)
-        (_, [], @{type_name fun}) => [(Context.theory_name @{theory Fun}, false)]
-      | (_, qs, _) => qs);
-  in
-    thy
-    |> Sign.root_path
-    |> fold (uncurry (fn true => Sign.mandatory_path | false => Sign.add_path) o swap) qualifiers
-    |> (fn thy => f (transfer_bnf thy bnf) thy)
-    |> Sign.restore_naming thy
-  end;
+fun with_transfer_bnf g bnf thy = g (transfer_bnf thy bnf) thy;
 
-val bnf_interpretation = BNF_Interpretation.interpretation o with_repaired_path;
+val bnf_interpretation = BNF_Interpretation.interpretation o with_transfer_bnf;
 val interpret_bnf = BNF_Interpretation.data;
 
 fun register_bnf_raw key bnf =
