@@ -766,4 +766,93 @@ proof -
   finally show ?thesis ..
 qed
 
+text{* The number of nat lists of length @{text m} summing to @{text N} is
+@{term "(N + m - 1) choose N"}: *} 
+
+lemma card_length_listsum_rec:
+  assumes "m\<ge>1"
+  shows "card {l::nat list. length l = m \<and> listsum l = N} =
+    (card {l. length l = (m - 1) \<and> listsum l = N} +
+    card {l. length l = m \<and> listsum l + 1 =  N})"
+    (is "card ?C = (card ?A + card ?B)")
+proof - 
+  let ?A'="{l. length l = m \<and> listsum l = N \<and> hd l = 0}"
+  let ?B'="{l. length l = m \<and> listsum l = N \<and> hd l \<noteq> 0}"
+  let ?f ="\<lambda> l. 0#l"
+  let ?g ="\<lambda> l. (hd l + 1) # tl l"
+  have 1: "\<And>xs x. xs \<noteq> [] \<Longrightarrow> x = hd xs \<Longrightarrow> x # tl xs = xs" by simp
+  have 2: "\<And>xs. (xs::nat list) \<noteq> [] \<Longrightarrow> listsum(tl xs) = listsum xs - hd xs"
+    by(auto simp add: neq_Nil_conv)
+  have f: "bij_betw ?f ?A ?A'"
+    apply(rule bij_betw_byWitness[where f' = tl])
+    using assms 
+    by (auto simp: 2 length_0_conv[symmetric] 1 simp del: length_0_conv)
+  have 3: "\<And>xs:: nat list. xs \<noteq> [] \<Longrightarrow> hd xs + (listsum xs - hd xs) = listsum xs"
+    by (metis 1 listsum_simps(2) 2)
+  have g: "bij_betw ?g ?B ?B'"
+    apply(rule bij_betw_byWitness[where f' = "\<lambda> l. (hd l - 1) # tl l"])
+    using assms
+    by (auto simp: 2 length_0_conv[symmetric] intro!: 3
+      simp del: length_greater_0_conv length_0_conv)
+  { fix M N :: nat have "finite {xs. size xs = M \<and> set xs \<subseteq> {0..<N}}"
+    using finite_lists_length_eq[OF finite_atLeastLessThan] conj_commute by auto }
+    note fin = this
+  have fin_A: "finite ?A" using fin[of _ "N+1"]
+    by (intro finite_subset[where ?A = "?A" and ?B = "{xs. size xs = m - 1 \<and> set xs \<subseteq> {0..<N+1}}"], 
+      auto simp: member_le_listsum_nat less_Suc_eq_le)
+  have fin_B: "finite ?B"
+    by (intro finite_subset[where ?A = "?B" and ?B = "{xs. size xs = m \<and> set xs \<subseteq> {0..<N}}"], 
+      auto simp: member_le_listsum_nat less_Suc_eq_le fin)
+  have uni: "?C = ?A' \<union> ?B'" by auto
+  have disj: "?A' \<inter> ?B' = {}" by auto
+  have "card ?C = card(?A' \<union> ?B')" using uni by simp
+  also have "\<dots> = card ?A + card ?B"
+    using card_Un_disjoint[OF _ _ disj] bij_betw_finite[OF f] bij_betw_finite[OF g]
+      bij_betw_same_card[OF f] bij_betw_same_card[OF g] fin_A fin_B
+    by presburger
+  finally show ?thesis .
+qed
+
+lemma card_length_listsum:
+  "m\<ge>1 \<Longrightarrow> card {l::nat list. size l = m \<and> listsum l = N} = (N + m - 1) choose N"
+proof (induct "N + m - 1" arbitrary: N m)
+-- "In the base case, the only solution is [0]."
+  case 0
+  have 1: "0 = N + m - 1 " by fact
+  hence 2: "{l::nat list. length l = Suc 0 \<and> (\<forall>n\<in>set l. n = 0)} = {[0]}"
+    by(auto simp: length_Suc_conv)
+  show "card {l::nat list. size l = m \<and> listsum l = N} = (N + m - 1) choose N"
+  proof -
+    from 1 "0.prems" have "m=1 \<and> N=0" by auto
+    with "0.prems" show ?thesis by (auto simp add: 2)
+  qed
+next
+  case (Suc k)
+  
+  have c1: "card {l::nat list. size l = (m - 1) \<and> listsum l =  N} = 
+    (N + (m - 1) - 1) choose N"
+  proof cases
+    assume "m = 1"
+    with Suc.hyps have "N\<ge>1" by auto
+    with `m = 1` show ?thesis  by (subst binomial_eq_0, auto)
+  next
+    assume "m \<noteq> 1" thus ?thesis using Suc by fastforce
+  qed
+
+  from Suc have c2: "card {l::nat list. size l = m \<and> listsum l + 1 = N} = 
+    (if N>0 then ((N - 1) + m - 1) choose (N - 1) else 0)"
+  proof -
+    have aux: "\<And>m n. n > 0 \<Longrightarrow> Suc m = n \<longleftrightarrow> m = n - 1" by arith
+    from Suc have "N>0 \<Longrightarrow>
+      card {l::nat list. size l = m \<and> listsum l + 1 = N} = 
+      ((N - 1) + m - 1) choose (N - 1)" by (simp add: aux)
+    thus ?thesis by auto
+  qed
+
+  from Suc.prems have "(card {l::nat list. size l = (m - 1) \<and> listsum l = N} + 
+      card {l::nat list. size l = m \<and> listsum l + 1 = N}) = (N + m - 1) choose N"
+    by (auto simp: c1 c2 choose_reduce_nat[of "N + m - 1" N] simp del: One_nat_def)
+  thus ?case using card_length_listsum_rec[OF Suc.prems] by auto
+qed
+
 end
