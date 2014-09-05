@@ -813,46 +813,49 @@ proof -
   finally show ?thesis .
 qed
 
-lemma card_length_listsum:
-  "m\<ge>1 \<Longrightarrow> card {l::nat list. size l = m \<and> listsum l = N} = (N + m - 1) choose N"
-proof (induct "N + m - 1" arbitrary: N m)
--- "In the base case, the only solution is [0]."
-  case 0
-  have 1: "0 = N + m - 1 " by fact
-  hence 2: "{l::nat list. length l = Suc 0 \<and> (\<forall>n\<in>set l. n = 0)} = {[0]}"
-    by(auto simp: length_Suc_conv)
-  show "card {l::nat list. size l = m \<and> listsum l = N} = (N + m - 1) choose N"
-  proof -
-    from 1 "0.prems" have "m=1 \<and> N=0" by auto
-    with "0.prems" show ?thesis by (auto simp add: 2)
-  qed
+lemma card_length_listsum: --"By Holden Lee, tidied by Tobias Nipkow"
+  "card {l::nat list. size l = m \<and> listsum l = N} = (N + m - 1) choose N"
+proof (cases m)
+  case 0 then show ?thesis
+    by (cases N) (auto simp: cong: conj_cong)
 next
-  case (Suc k)
-  
-  have c1: "card {l::nat list. size l = (m - 1) \<and> listsum l =  N} = 
-    (N + (m - 1) - 1) choose N"
-  proof cases
-    assume "m = 1"
-    with Suc.hyps have "N\<ge>1" by auto
-    with `m = 1` show ?thesis  by (subst binomial_eq_0, auto)
-  next
-    assume "m \<noteq> 1" thus ?thesis using Suc by fastforce
-  qed
-
-  from Suc have c2: "card {l::nat list. size l = m \<and> listsum l + 1 = N} = 
-    (if N>0 then ((N - 1) + m - 1) choose (N - 1) else 0)"
-  proof -
-    have aux: "\<And>m n. n > 0 \<Longrightarrow> Suc m = n \<longleftrightarrow> m = n - 1" by arith
-    from Suc have "N>0 \<Longrightarrow>
-      card {l::nat list. size l = m \<and> listsum l + 1 = N} = 
-      ((N - 1) + m - 1) choose (N - 1)" by (simp add: aux)
-    thus ?thesis by auto
-  qed
-
-  from Suc.prems have "(card {l::nat list. size l = (m - 1) \<and> listsum l = N} + 
-      card {l::nat list. size l = m \<and> listsum l + 1 = N}) = (N + m - 1) choose N"
-    by (auto simp: c1 c2 choose_reduce_nat[of "N + m - 1" N] simp del: One_nat_def)
-  thus ?case using card_length_listsum_rec[OF Suc.prems] by auto
+  case (Suc m')
+    have m: "m\<ge>1" by (simp add: Suc)
+    then show ?thesis
+    proof (induct "N + m - 1" arbitrary: N m)
+      case 0   -- "In the base case, the only solution is [0]."
+      have [simp]: "{l::nat list. length l = Suc 0 \<and> (\<forall>n\<in>set l. n = 0)} = {[0]}"
+        by (auto simp: length_Suc_conv)
+      have "m=1 \<and> N=0" using 0 by linarith
+      then show ?case by simp
+    next
+      case (Suc k)
+      
+      have c1: "card {l::nat list. size l = (m - 1) \<and> listsum l =  N} = 
+        (N + (m - 1) - 1) choose N"
+      proof cases
+        assume "m = 1"
+        with Suc.hyps have "N\<ge>1" by auto
+        with `m = 1` show ?thesis by (simp add: binomial_eq_0)
+      next
+        assume "m \<noteq> 1" thus ?thesis using Suc by fastforce
+      qed
+    
+      from Suc have c2: "card {l::nat list. size l = m \<and> listsum l + 1 = N} = 
+        (if N>0 then ((N - 1) + m - 1) choose (N - 1) else 0)"
+      proof -
+        have aux: "\<And>m n. n > 0 \<Longrightarrow> Suc m = n \<longleftrightarrow> m = n - 1" by arith
+        from Suc have "N>0 \<Longrightarrow>
+          card {l::nat list. size l = m \<and> listsum l + 1 = N} = 
+          ((N - 1) + m - 1) choose (N - 1)" by (simp add: aux)
+        thus ?thesis by auto
+      qed
+    
+      from Suc.prems have "(card {l::nat list. size l = (m - 1) \<and> listsum l = N} + 
+          card {l::nat list. size l = m \<and> listsum l + 1 = N}) = (N + m - 1) choose N"
+        by (auto simp: c1 c2 choose_reduce_nat[of "N + m - 1" N] simp del: One_nat_def)
+      thus ?case using card_length_listsum_rec[OF Suc.prems] by auto
+    qed
 qed
 
 end
