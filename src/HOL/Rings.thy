@@ -30,6 +30,13 @@ class mult_zero = times + zero +
   assumes mult_zero_right [simp]: "a * 0 = 0"
 
 class semiring_0 = semiring + comm_monoid_add + mult_zero
+begin
+
+lemma mult_not_zero:
+  "a * b \<noteq> 0 \<Longrightarrow> a \<noteq> 0 \<and> b \<noteq> 0"
+  by auto
+
+end
 
 class semiring_0_cancel = semiring + cancel_comm_monoid_add
 begin

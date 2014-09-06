@@ -456,6 +456,15 @@ proof-
   show ?thesis by(rule finite_imageD[OF 1 2])
 qed
 
+lemma not_finite_existsD:
+  assumes "\<not> finite {a. P a}"
+  shows "\<exists>a. P a"
+proof (rule classical)
+  assume "\<not> (\<exists>a. P a)"
+  with assms show ?thesis by auto
+qed
+
+
 subsubsection {* Further induction rules on finite sets *}
 
 lemma finite_ne_induct [case_names singleton insert, consumes 2]:
@@ -522,6 +531,29 @@ proof -
   then have "P (A - A)" by blast
   then show ?thesis by simp
 qed
+
+lemma finite_update_induct [consumes 1, case_names const update]:
+  assumes finite: "finite {a. f a \<noteq> c}"
+  assumes const: "P (\<lambda>a. c)"
+  assumes update: "\<And>a b f. finite {a. f a \<noteq> c} \<Longrightarrow> f a = c \<Longrightarrow> b \<noteq> c \<Longrightarrow> P f \<Longrightarrow> P (f(a := b))"
+  shows "P f"
+using finite proof (induct "{a. f a \<noteq> c}" arbitrary: f)
+  case empty with const show ?case by simp
+next
+  case (insert a A)
+  then have "A = {a'. (f(a := c)) a' \<noteq> c}" and "f a \<noteq> c"
+    by auto
+  with `finite A` have "finite {a'. (f(a := c)) a' \<noteq> c}"
+    by simp
+  have "(f(a := c)) a = c"
+    by simp
+  from insert `A = {a'. (f(a := c)) a' \<noteq> c}` have "P (f(a := c))"
+    by simp
+  with `finite {a'. (f(a := c)) a' \<noteq> c}` `(f(a := c)) a = c` `f a \<noteq> c` have "P ((f(a := c))(a := f a))"
+    by (rule update)
+  then show ?case by simp
+qed
+
 
 subsection {* Class @{text finite}  *}
 

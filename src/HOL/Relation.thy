@@ -604,7 +604,6 @@ lemma O_assoc:
   "(R O S) O T = R O (S O T)"
   by blast
 
-
 lemma relcompp_assoc:
   "(r OO s) OO t = r OO (s OO t)"
   by (fact O_assoc [to_pred])
@@ -664,6 +663,9 @@ lemma single_valued_relcomp:
 lemma relcomp_unfold:
   "r O s = {(x, z). \<exists>y. (x, y) \<in> r \<and> (y, z) \<in> s}"
   by (auto simp add: set_eq_iff)
+
+lemma relcompp_apply: "(R OO S) a c \<longleftrightarrow> (\<exists>b. R a b \<and> S b c)"
+  unfolding relcomp_unfold [to_pred] ..
 
 lemma eq_OO: "op= OO R = R"
 by blast

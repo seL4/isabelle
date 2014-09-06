@@ -3208,6 +3208,10 @@ lemma distinct_map:
   "distinct(map f xs) = (distinct xs & inj_on f (set xs))"
 by (induct xs) auto
 
+lemma distinct_map_filter:
+  "distinct (map f xs) \<Longrightarrow> distinct (map f (filter P xs))"
+  by (induct xs) auto
+
 lemma distinct_filter [simp]: "distinct xs ==> distinct (filter P xs)"
 by (induct xs) auto
 

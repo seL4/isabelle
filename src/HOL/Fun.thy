@@ -422,6 +422,17 @@ lemma bij_betw_subset:
 using assms
 by(unfold bij_betw_def inj_on_def, auto simp add: inj_on_def)
 
+lemma bij_pointE:
+  assumes "bij f"
+  obtains x where "y = f x" and "\<And>x'. y = f x' \<Longrightarrow> x' = x"
+proof -
+  from assms have "inj f" by (rule bij_is_inj)
+  moreover from assms have "surj f" by (rule bij_is_surj)
+  then have "y \<in> range f" by simp
+  ultimately have "\<exists>!x. y = f x" by (simp add: range_ex1_eq)
+  with that show thesis by blast
+qed
+
 lemma surj_image_vimage_eq: "surj f ==> f ` (f -` A) = A"
 by simp
 

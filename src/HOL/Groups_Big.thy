@@ -112,7 +112,7 @@ lemma setdiff_irrelevant:
   assumes "finite A"
   shows "F g (A - {x. g x = z}) = F g A"
   using assms by (induct A) (simp_all add: insert_Diff_if) 
-  
+
 lemma not_neutral_contains_not_neutral:
   assumes "F g A \<noteq> z"
   obtains a where "a \<in> A" and "g a \<noteq> z"
@@ -423,6 +423,38 @@ proof -
   ultimately show ?thesis using fin
     by (simp add: union_disjoint reindex)
 qed
+
+lemma same_carrier:
+  assumes "finite C"
+  assumes subset: "A \<subseteq> C" "B \<subseteq> C"
+  assumes trivial: "\<And>a. a \<in> C - A \<Longrightarrow> g a = 1" "\<And>b. b \<in> C - B \<Longrightarrow> h b = 1"
+  shows "F g A = F h B \<longleftrightarrow> F g C = F h C"
+proof -
+  from `finite C` subset have
+    "finite A" and "finite B" and "finite (C - A)" and "finite (C - B)"
+    by (auto elim: finite_subset)
+  from subset have [simp]: "A - (C - A) = A" by auto
+  from subset have [simp]: "B - (C - B) = B" by auto
+  from subset have "C = A \<union> (C - A)" by auto
+  then have "F g C = F g (A \<union> (C - A))" by simp
+  also have "\<dots> = F g (A - (C - A)) * F g (C - A - A) * F g (A \<inter> (C - A))"
+    using `finite A` `finite (C - A)` by (simp only: union_diff2)
+  finally have P: "F g C = F g A" using trivial by simp
+  from subset have "C = B \<union> (C - B)" by auto
+  then have "F h C = F h (B \<union> (C - B))" by simp
+  also have "\<dots> = F h (B - (C - B)) * F h (C - B - B) * F h (B \<inter> (C - B))"
+    using `finite B` `finite (C - B)` by (simp only: union_diff2)
+  finally have Q: "F h C = F h B" using trivial by simp
+  from P Q show ?thesis by simp
+qed
+
+lemma same_carrierI:
+  assumes "finite C"
+  assumes subset: "A \<subseteq> C" "B \<subseteq> C"
+  assumes trivial: "\<And>a. a \<in> C - A \<Longrightarrow> g a = 1" "\<And>b. b \<in> C - B \<Longrightarrow> h b = 1"
+  assumes "F g C = F h C"
+  shows "F g A = F h B"
+  using assms same_carrier [of C A B] by simp
 
 end
 

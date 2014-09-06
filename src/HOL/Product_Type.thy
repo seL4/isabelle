@@ -1029,6 +1029,14 @@ lemma swap_simp [simp]:
   "prod.swap (x, y) = (y, x)"
   by (simp add: prod.swap_def)
 
+lemma swap_swap [simp]:
+  "prod.swap (prod.swap p) = p"
+  by (cases p) simp
+
+lemma swap_comp_swap [simp]:
+  "prod.swap \<circ> prod.swap = id"
+  by (simp add: fun_eq_iff)
+
 lemma pair_in_swap_image [simp]:
   "(y, x) \<in> prod.swap ` A \<longleftrightarrow> (x, y) \<in> A"
   by (auto intro!: image_eqI)
@@ -1040,6 +1048,14 @@ lemma inj_swap [simp]:
 lemma swap_inj_on:
   "inj_on (\<lambda>(i, j). (j, i)) A"
   by (rule inj_onI) auto
+
+lemma surj_swap [simp]:
+  "surj prod.swap"
+  by (rule surjI [of _ prod.swap]) simp
+
+lemma bij_swap [simp]:
+  "bij prod.swap"
+  by (simp add: bij_def)
 
 lemma case_swap [simp]:
   "(case prod.swap p of (y, x) \<Rightarrow> f x y) = (case p of (x, y) \<Rightarrow> f x y)"
