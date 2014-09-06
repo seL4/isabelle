@@ -26,6 +26,7 @@ imports
   Function_Division
   Function_Growth
   Fundamental_Theorem_Algebra
+  Fun_Lexorder
   Indicator_Function
   Infinite_Set
   Inner_Product

@@ -6,6 +6,10 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* September 2014: Florian Haftmann, TUM
+  Lexicographic order on functions and
+  sum/product over function bodies.
+
 * August 2014: Manuel Eberl, TUM
   Generic euclidean algorithms for gcd et al.
 
