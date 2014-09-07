@@ -130,8 +130,13 @@ lemma order_unique_lemma:
   shows "n = order a p"
 unfolding Polynomial.order_def
 apply (rule Least_equality [symmetric])
-apply (rule assms)
-by (metis assms not_less_eq_eq power_le_dvd)
+apply (fact assms)
+apply (rule classical)
+apply (erule notE)
+unfolding not_less_eq_eq
+using assms(1) apply (rule power_le_dvd)
+apply assumption
+done
 
 lemma lemma_order_pderiv1:
   "pderiv ([:- a, 1:] ^ Suc n * q) = [:- a, 1:] ^ Suc n * pderiv q +

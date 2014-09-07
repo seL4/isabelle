@@ -7,85 +7,10 @@
 header {* Polynomials as type over a ring structure *}
 
 theory Polynomial
-imports Main GCD
+imports Main GCD "~~/src/HOL/Library/More_List"
 begin
 
 subsection {* Auxiliary: operations for lists (later) representing coefficients *}
-
-definition strip_while :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list"
-where
-  "strip_while P = rev \<circ> dropWhile P \<circ> rev"
-
-lemma strip_while_Nil [simp]:
-  "strip_while P [] = []"
-  by (simp add: strip_while_def)
-
-lemma strip_while_append [simp]:
-  "\<not> P x \<Longrightarrow> strip_while P (xs @ [x]) = xs @ [x]"
-  by (simp add: strip_while_def)
-
-lemma strip_while_append_rec [simp]:
-  "P x \<Longrightarrow> strip_while P (xs @ [x]) = strip_while P xs"
-  by (simp add: strip_while_def)
-
-lemma strip_while_Cons [simp]:
-  "\<not> P x \<Longrightarrow> strip_while P (x # xs) = x # strip_while P xs"
-  by (induct xs rule: rev_induct) (simp_all add: strip_while_def)
-
-lemma strip_while_eq_Nil [simp]:
-  "strip_while P xs = [] \<longleftrightarrow> (\<forall>x\<in>set xs. P x)"
-  by (simp add: strip_while_def)
-
-lemma strip_while_eq_Cons_rec:
-  "strip_while P (x # xs) = x # strip_while P xs \<longleftrightarrow> \<not> (P x \<and> (\<forall>x\<in>set xs. P x))"
-  by (induct xs rule: rev_induct) (simp_all add: strip_while_def)
-
-lemma strip_while_not_last [simp]:
-  "\<not> P (last xs) \<Longrightarrow> strip_while P xs = xs"
-  by (cases xs rule: rev_cases) simp_all
-
-lemma split_strip_while_append:
-  fixes xs :: "'a list"
-  obtains ys zs :: "'a list"
-  where "strip_while P xs = ys" and "\<forall>x\<in>set zs. P x" and "xs = ys @ zs"
-proof (rule that)
-  show "strip_while P xs = strip_while P xs" ..
-  show "\<forall>x\<in>set (rev (takeWhile P (rev xs))). P x" by (simp add: takeWhile_eq_all_conv [symmetric])
-  have "rev xs = rev (strip_while P xs @ rev (takeWhile P (rev xs)))"
-    by (simp add: strip_while_def)
-  then show "xs = strip_while P xs @ rev (takeWhile P (rev xs))"
-    by (simp only: rev_is_rev_conv)
-qed
-
-
-definition nth_default :: "'a \<Rightarrow> 'a list \<Rightarrow> nat \<Rightarrow> 'a"
-where
-  "nth_default x xs n = (if n < length xs then xs ! n else x)"
-
-lemma nth_default_Nil [simp]:
-  "nth_default y [] n = y"
-  by (simp add: nth_default_def)
-
-lemma nth_default_Cons_0 [simp]:
-  "nth_default y (x # xs) 0 = x"
-  by (simp add: nth_default_def)
-
-lemma nth_default_Cons_Suc [simp]:
-  "nth_default y (x # xs) (Suc n) = nth_default y xs n"
-  by (simp add: nth_default_def)
-
-lemma nth_default_map_eq:
-  "f y = x \<Longrightarrow> nth_default x (map f xs) n = f (nth_default y xs n)"
-  by (simp add: nth_default_def)
-
-lemma nth_default_strip_while_eq [simp]:
-  "nth_default x (strip_while (HOL.eq x) xs) n = nth_default x xs n"
-proof -
-  from split_strip_while_append obtain ys zs
-    where "strip_while (HOL.eq x) xs = ys" and "\<forall>z\<in>set zs. x = z" and "xs = ys @ zs" by blast
-  then show ?thesis by (simp add: nth_default_def not_less nth_append)
-qed
-
 
 definition cCons :: "'a::zero \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "##" 65)
 where
@@ -406,7 +331,8 @@ proof -
   { fix ms :: "nat list" and f :: "nat \<Rightarrow> 'a" and x :: "'a"
     assume "\<forall>m\<in>set ms. m > 0"
     then have "map (case_nat x f) ms = map f (map (\<lambda>n. n - 1) ms)"
-      by (induct ms) (auto, metis Suc_pred' nat.case(2)) }
+      by (induct ms) (auto split: nat.split)
+  }
   note * = this
   show ?thesis
     by (simp add: coeffs_def * upt_conv_Cons coeff_pCons map_decr_upt One_nat_def del: upt_Suc)

@@ -39,6 +39,7 @@ imports
   Lubs_Glbs
   Mapping
   Monad_Syntax
+  More_List
   Multiset
   Numeral_Type
   NthRoot_Limits
