@@ -890,10 +890,6 @@ val _ =
     (Scan.succeed Isar_Cmd.locale_deps);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "class_deps"} "visualize class dependencies"
-    (Scan.succeed Isar_Cmd.class_deps);
-
-val _ =
   Outer_Syntax.improper_command @{command_spec "print_binds"}
     "print term bindings of proof context -- Proof General legacy"
     (Scan.succeed (Toplevel.unknown_context o
