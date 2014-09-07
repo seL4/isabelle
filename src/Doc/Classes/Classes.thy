@@ -627,7 +627,9 @@ text {*
       together with associated operations etc.
 
     \item[@{command "class_deps"}] visualizes the subclass relation
-      between all classes as a Hasse diagram.
+      between all classes as a Hasse diagram.  An optional first sort argument
+      constrains the set of classes to all subclasses of this sort,
+      an optional second sort argument to all superclasses of this sort.
 
   \end{description}
 *}

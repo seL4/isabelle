@@ -832,6 +832,8 @@ text {*
       @{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref} )
     ;
     @@{command subclass} @{syntax target}? @{syntax nameref}
+    ;
+    @@{command class_deps} @{syntax sort}? @{syntax sort}?
   \<close>}
 
   \begin{description}
@@ -895,7 +897,9 @@ text {*
   theory.
 
   \item @{command "class_deps"} visualizes all classes and their
-  subclass relations as a Hasse diagram.
+  subclass relations as a Hasse diagram.  An optional first sort argument
+  constrains the set of classes to all subclasses of this sort,
+  an optional second sort argument to all superclasses of this sort.
 
   \item @{method intro_classes} repeatedly expands all class
   introduction rules of this theory.  Note that this method usually

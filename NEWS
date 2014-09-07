@@ -15,6 +15,12 @@ This supersedes functor Named_Thms, but with a subtle change of
 semantics due to external visual order vs. internal reverse order.
 
 
+*** Pure ***
+
+* Command "class_deps" takes optional sort arguments constraining
+the search space.
+
+
 *** HOL ***
 
 * Command and antiquotation "value" provide different evaluation slots (again),
