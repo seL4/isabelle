@@ -28,8 +28,6 @@ end
 class mult_zero = times + zero +
   assumes mult_zero_left [simp]: "0 * a = 0"
   assumes mult_zero_right [simp]: "a * 0 = 0"
-
-class semiring_0 = semiring + comm_monoid_add + mult_zero
 begin
 
 lemma mult_not_zero:
@@ -37,6 +35,8 @@ lemma mult_not_zero:
   by auto
 
 end
+
+class semiring_0 = semiring + comm_monoid_add + mult_zero
 
 class semiring_0_cancel = semiring + cancel_comm_monoid_add
 begin
