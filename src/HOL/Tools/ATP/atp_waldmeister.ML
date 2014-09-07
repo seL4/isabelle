@@ -228,6 +228,7 @@ val waldmeister_equals = "eq"
 val waldmeister_true = "true"
 val waldmeister_false = "false"
 val waldmeister_skolemize_rule = "waldmeister_skolemize"
+val lam_lift_waldmeister_prefix = "lambda_wm"
 
 val factsN = "Relevant facts"
 val helpersN = "Helper facts"
@@ -245,13 +246,19 @@ fun gen_ascii_tuple str = (str, ascii_of str)
 fun mk_eq_true (trm as (Const (@{const_name HOL.eq}, _) $ _ $ _)) = (NONE,trm)
   | mk_eq_true trm = (SOME trm,HOLogic.mk_eq (trm, @{term True}))
 
+val is_lambda_name = String.isPrefix lam_lifted_poly_prefix
+
+fun lookup table k = 
+  List.find (fn (key, _) => key = k) table
+
 (*
 Translation from Isabelle theorms and terms to ATP terms.
 *)
 
 fun trm_to_atp'' thy (Const (x, ty)) args =
     let
-      val ty_args = Sign.const_typargs thy (x,ty)
+      val ty_args = if is_lambda_name x then
+        [] else Sign.const_typargs thy (x,ty)
     in
       [ATerm ((gen_ascii_tuple (String.str const_prefix ^ encode_const (x,ty_args)), []), args)]
     end
@@ -285,7 +292,7 @@ fun split_conjecture _ conj_term =
 
 (* Translation from ATP terms to Isabelle terms. *)
 
-fun construct_term (name, args) =
+fun construct_term thy (name, args) =
   let
     val prefix = String.sub (name, 0)
     val encoded_name = String.extract(name,1,NONE)
@@ -294,8 +301,18 @@ fun construct_term (name, args) =
     if prefix = const_prefix then
       let
         val (const_name,ty_args) = decode_const encoded_name
+        val const_trans_name = 
+          if is_lambda_name const_name then
+            lam_lift_waldmeister_prefix ^ 
+            String.extract(const_name,size lam_lifted_poly_prefix,NONE)
+          else
+            const_name
       in
-        Const (const_name,Sign.const_instance @{theory } (* FIXME? *) (const_name, ty_args))
+        Const (const_trans_name,
+          if is_lambda_name const_name then
+            dummyT
+          else
+            Sign.const_instance thy (const_name, ty_args))
       end
     else if prefix = free_prefix then
       Free (encoded_name, dummy_fun_type ())
@@ -303,36 +320,35 @@ fun construct_term (name, args) =
       Var ((name, 0), dummy_fun_type ()) 
       (* Use name instead of encoded_name because Waldmeister renames free variables. *)
     else if name = waldmeister_equals then
-      case args of 
-        [_, _] => 
-          eq_const dummyT
+      (case args of 
+        [_, _] => eq_const dummyT
       | _ => raise FailureMessage 
         (WM_ERROR_MSG ^ "waldmeister equals needs 2 arguments but has " ^ 
-         Int.toString (length args))
+         Int.toString (length args)))
     else if name = waldmeister_true then
-      @{term "True"}
+      @{term True}
     else if name = waldmeister_false then
-      @{term "False"}
+      @{term False}
     else
       raise FailureMessage 
         (WM_ERROR_MSG ^ "Unknown name prefix when parsing Waldmeister proof: name = " ^ name)
   end
 
-and atp_to_trm' (ATerm ((name,_), args)) =
+and atp_to_trm' thy (ATerm ((name,_), args)) =
     (case args of
-      [] => construct_term (name, args)
-     | _ => Term.list_comb (construct_term (name, args), map atp_to_trm' args))
-     | atp_to_trm' _ = raise FailureMessage (WM_ERROR_MSG ^ "atp_to_trm' expects ATerm")
+      [] => construct_term thy (name, args)
+     | _ => Term.list_comb (construct_term thy (name, args), map (atp_to_trm' thy) args))
+     | atp_to_trm' _ _ = raise FailureMessage (WM_ERROR_MSG ^ "atp_to_trm' expects ATerm")
 
-fun atp_to_trm (ATerm (("equal", _), [lhs, rhs])) =
-    mk_eq (atp_to_trm' lhs, atp_to_trm' rhs)
-  | atp_to_trm (ATerm (("$true", _), _)) = @{term True}
-  | atp_to_trm _ = raise FailureMessage (WM_ERROR_MSG ^ "atp_to_trm expects ATerm")
+fun atp_to_trm thy (ATerm (("equal", _), [lhs, rhs])) =
+    mk_eq (atp_to_trm' thy lhs, atp_to_trm' thy rhs)
+  | atp_to_trm _ (ATerm (("$true", _), _)) = @{term True}
+  | atp_to_trm _ _ = raise FailureMessage (WM_ERROR_MSG ^ "atp_to_trm expects ATerm")
 
-fun formula_to_trm (AAtom aterm) = aterm |> atp_to_trm
-  | formula_to_trm (AConn (ANot, [aterm])) =
-    mk_not (formula_to_trm aterm)
-  | formula_to_trm _ = raise FailureMessage (WM_ERROR_MSG ^ "formula_to_trm expects AAtom or AConn")
+fun formula_to_trm thy (AAtom aterm) = aterm |> atp_to_trm thy
+  | formula_to_trm thy (AConn (ANot, [aterm])) =
+    mk_not (formula_to_trm thy aterm)
+  | formula_to_trm _ _ = raise FailureMessage (WM_ERROR_MSG ^ "formula_to_trm expects AAtom or AConn")
 
 (* Abstract translation *)
 
@@ -389,13 +405,15 @@ fun generate_waldmeister_problem ctxt _ concl_t0 facts0 =
     val (ctxt'',sko_conditions) = map_ctxt (skolemize false) ctxt' conditions : 
       Proof.context * (term list * term) list
 
-    val sko_eq_facts = map (apsnd (apsnd mk_eq_true)) sko_facts : 
+    val post_skolem = do_cheaply_conceal_lambdas []
+
+    val sko_eq_facts = map (apsnd (apsnd (mk_eq_true #> apsnd post_skolem))) sko_facts : 
       (string * (term list * (term option * term))) list
-    val sko_eq_conditions = map (apsnd mk_eq_true) sko_conditions 
+    val sko_eq_conditions = map (apsnd (mk_eq_true #> apsnd post_skolem)) sko_conditions 
             |> name_list conjecture_condition_name : 
       (string * (term list * (term option * term))) list
     val (_,eq_conseq as (_,(non_eq_consequence,eq_consequence))) = 
-      skolemize false ctxt'' consequence |> apsnd (apsnd mk_eq_true) :
+      skolemize false ctxt'' consequence |> apsnd (apsnd (mk_eq_true #> apsnd post_skolem)) :
       (Proof.context * (term list * (term option * term)))
 
     val sko_eq_info =
@@ -428,14 +446,15 @@ fun generate_waldmeister_problem ctxt _ concl_t0 facts0 =
 
     val problem = (factsN, axiom_lines) :: helper_lines @ [(conjN, [conj_line])]
 
-    val (nice_problem, pool) = make_nice (@{print} problem)
+    val (nice_problem, pool) = make_nice problem
   in
     (nice_problem, Option.map snd pool |> the_default Symtab.empty, [], Symtab.empty, sko_eq_info)
   end
 
 fun termify_line ctxt (name, role, u, rule, deps) =
   let
-    val t = u |> formula_to_trm
+    val thy = Proof_Context.theory_of ctxt
+    val t = u |> formula_to_trm thy
       |> singleton (infer_formulas_types ctxt)
       |> HOLogic.mk_Trueprop
   in
@@ -447,9 +466,7 @@ fun termify_waldmeister_proof ctxt pool =
   #> map (termify_line ctxt)
   #> repair_waldmeister_endgame
 
-fun lookup table k = 
-  List.find (fn (key, _) => key = k) table
-  
+
 fun get_skolem_info info names = case map (lookup info) names |> List.find is_some of
   SOME x => x |
   NONE => NONE
@@ -461,24 +478,31 @@ fun fix_name name =
     name
 
 fun skolemization_steps info 
-  (proof_step as ((waldmeister_name,isabelle_names), _, trm, rule, _)) =
-  case get_skolem_info info (map fix_name isabelle_names |> @{print}) of
+  (proof_step as ((waldmeister_name,isabelle_names), role, trm, rule, _)) =
+  case get_skolem_info info (map fix_name isabelle_names) of
     NONE => [proof_step] |
     SOME (_,([],_)) => [proof_step] |
     SOME (_,(step :: steps,_)) =>
       let
+        val is_conjecture = String.isPrefix "1.0.0.0" waldmeister_name
+
         fun mk_steps _ [] = []
           | mk_steps i (x :: xs) = (((waldmeister_name ^ "_" ^  Int.toString i),[]),Plain,
-            mk_Trueprop x,waldmeister_skolemize_rule,[(waldmeister_name ^ "_" ^  Int.toString (i-1),if i = 1 then isabelle_names else [])]) :: mk_steps (i+1) xs
-        val skolem_steps = ((waldmeister_name ^ "_0",isabelle_names),Unknown,mk_Trueprop step,rule,[]) :: 
+            mk_Trueprop (if is_conjecture then mk_not x else x),waldmeister_skolemize_rule,
+            [(waldmeister_name ^ "_" ^  Int.toString (i-1),if i = 1 then isabelle_names else [])]) 
+            :: mk_steps (i+1) xs
+        val skolem_steps = ((waldmeister_name ^ "_0",isabelle_names),Unknown,
+            mk_Trueprop (if is_conjecture then mk_not step else step),rule,[]) :: 
           mk_steps 1 steps
       in
-        skolem_steps @ [((waldmeister_name,[]), Unknown, trm, waldmeister_skolemize_rule,
+        if role = Conjecture then
+          [proof_step]
+        else
+          skolem_steps @ [((waldmeister_name,[]), Unknown, trm, waldmeister_skolemize_rule,
             [(waldmeister_name ^ "_" ^ Int.toString (length skolem_steps - 1),if length skolem_steps = 1 then isabelle_names else [])])]
       end
   
-fun introduce_waldmeister_skolems info (proof_steps : (term, string) atp_step list) = (@{print} info; proof_steps |> tap (map @{print})
-      |> map (skolemization_steps info) |> List.concat |> tap (map @{print}))
-
+fun introduce_waldmeister_skolems info (proof_steps : (term, string) atp_step list) = proof_steps
+      |> map (skolemization_steps info) |> List.concat
 
 end;

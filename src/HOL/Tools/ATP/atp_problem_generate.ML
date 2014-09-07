@@ -100,6 +100,7 @@ sig
   val type_enc_of_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
   val is_lambda_free : term -> bool
+  val do_cheaply_conceal_lambdas : typ list -> term -> term
   val mk_aconns :
     atp_connective -> ('a, 'b, 'c, 'd) atp_formula list
     -> ('a, 'b, 'c, 'd) atp_formula
