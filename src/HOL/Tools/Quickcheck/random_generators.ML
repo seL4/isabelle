@@ -25,7 +25,7 @@ end;
 structure Random_Generators : RANDOM_GENERATORS =
 struct
 
-val random_plugin = "random";
+val random_plugin = "quickcheck_random";
 
 (** abstract syntax **)
 
@@ -100,7 +100,7 @@ fun random_aux_primrec eq lthy =
     val eqs0 = [subst_v @{term "0::natural"} eq,
       subst_v (@{const Code_Numeral.Suc} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
-    val ((_, (_, eqs2)), lthy') = Old_Primrec.add_primrec_simple
+    val ((_, (_, eqs2)), lthy') = BNF_LFP_Compat.add_primrec_simple
       [((Binding.conceal (Binding.name random_aux), T), NoSyn)] eqs1 lthy;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;

@@ -23,7 +23,7 @@ end;
 structure Narrowing_Generators : NARROWING_GENERATORS =
 struct
 
-val narrowing_plugin = "narrowing"
+val narrowing_plugin = "quickcheck_narrowing"
 
 (* configurations *)
 

@@ -191,7 +191,7 @@ fun create_nom_typedecls ak_names thy =
         val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
       in
         thy' |>
-        Old_Primrec.add_primrec_global
+        BNF_LFP_Compat.add_primrec_global
           [(Binding.name swap_name, SOME swapT, NoSyn)]
           [(Attrib.empty_binding, def1)] ||>
         Sign.parent_path ||>>
@@ -225,7 +225,7 @@ fun create_nom_typedecls ak_names thy =
                     Const (swap_name, swapT) $ x $ (prm $ xs $ a)));
       in
         thy' |>
-        Old_Primrec.add_primrec_global
+        BNF_LFP_Compat.add_primrec_global
           [(Binding.name prm_name, SOME prmT, NoSyn)]
           [(Attrib.empty_binding, def1), (Attrib.empty_binding, def2)] ||>
         Sign.parent_path

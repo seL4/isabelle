@@ -39,9 +39,9 @@ struct
 
 (* basics *)
 
-val exhaustive_plugin = "exhaustive"
-val bounded_forall_plugin = "bounded_forall"
-val full_exhaustive_plugin = "full_exhaustive"
+val exhaustive_plugin = "quickcheck_exhaustive"
+val bounded_forall_plugin = "quickcheck_bounded_forall"
+val full_exhaustive_plugin = "quickcheck_full_exhaustive"
 
 
 (** dynamic options **)
