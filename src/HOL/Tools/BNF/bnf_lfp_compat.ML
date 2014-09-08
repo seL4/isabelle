@@ -119,37 +119,38 @@ fun define_split_recs fpTs Cs recs lthy =
     fold_map3 (define_co_rec_as Least_FP Cs) fpTs bs rhss lthy
   end;
 
-fun mk_split_rec_thmss ctxt Xs fpTs ctr_Tsss ctrss rec0_thmss (recs as rec1 :: _) rec_defs =
+fun mk_split_rec_thmss ctxt Xs ctrXs_Tsss ctrss rec0_thmss (recs as rec1 :: _) rec_defs =
   let
     val f_Ts = binder_fun_types (fastype_of rec1);
     val (fs, _) = mk_Frees "f" f_Ts ctxt;
     val frecs = map (fn recx => Term.list_comb (recx, fs)) recs;
 
-    val fpTs_frecs = fpTs ~~ frecs;
+    val Xs_frecs = Xs ~~ frecs;
     val fss = unflat ctrss fs;
 
     fun mk_rec_call g n (Type (@{type_name fun}, [dom_T, ran_T])) =
         Abs (Name.uu, dom_T, mk_rec_call g (n + 1) ran_T)
-      | mk_rec_call g n fpT =
+      | mk_rec_call g n X =
         let
-          val frec = the (AList.lookup (op =) fpTs_frecs fpT);
+          val frec = the (AList.lookup (op =) Xs_frecs X);
           val xg = Term.list_comb (g, map Bound (n - 1 downto 0));
         in frec $ xg end;
 
-    fun mk_rec_arg_arg ctr_T g =
-      g :: (if exists_subtype_in fpTs ctr_T then [mk_rec_call g 0 ctr_T] else []);
+    fun mk_rec_arg_arg ctrXs_T g =
+      g :: (if member (op =) Xs (body_type ctrXs_T) then [mk_rec_call g 0 ctrXs_T] else []);
 
-    fun mk_goal frec ctr_Ts ctr f =
+    fun mk_goal frec ctrXs_Ts ctr f =
       let
+        val ctr_Ts = binder_types (fastype_of ctr);
         val (gs, _) = mk_Frees "g" ctr_Ts ctxt;
         val gctr = Term.list_comb (ctr, gs);
-        val fgs = flat_rec_arg_args (map2 mk_rec_arg_arg ctr_Ts gs);
+        val fgs = flat_rec_arg_args (map2 mk_rec_arg_arg ctrXs_Ts gs);
       in
         fold_rev (fold_rev Logic.all) [fs, gs]
           (mk_Trueprop_eq (frec $ gctr, Term.list_comb (f, fgs)))
       end;
 
-    val goalss = map4 (map3 o mk_goal) frecs ctr_Tsss ctrss fss;
+    val goalss = map4 (map3 o mk_goal) frecs ctrXs_Tsss ctrss fss;
 
     fun tac ctxt =
       unfold_thms_tac ctxt (@{thms o_apply fst_conv snd_conv} @ rec_defs @ flat rec0_thmss) THEN
@@ -162,7 +163,7 @@ fun mk_split_rec_thmss ctxt Xs fpTs ctr_Tsss ctrss rec0_thmss (recs as rec1 :: _
     map (map prove) goalss
   end;
 
-fun define_split_rec_derive_induct_rec_thms Xs fpTs ctr_Tsss ctrss inducts induct recs0 rec_thmss
+fun define_split_rec_derive_induct_rec_thms Xs fpTs ctrXs_Tsss ctrss inducts induct recs0 rec_thmss
     lthy =
   let
     val thy = Proof_Context.theory_of lthy;
@@ -177,7 +178,7 @@ fun define_split_rec_derive_induct_rec_thms Xs fpTs ctr_Tsss ctrss inducts induc
     val Cs = map ((fn TVar ((s, _), S) => TFree (s, S)) o body_type o fastype_of) recs0;
     val recs = map2 (mk_co_rec thy Least_FP Cs) fpTs recs0;
     val ((recs', rec'_defs), lthy') = define_split_recs fpTs Cs recs lthy |>> split_list;
-    val rec'_thmss = mk_split_rec_thmss lthy' Xs fpTs ctr_Tsss ctrss rec_thmss recs' rec'_defs;
+    val rec'_thmss = mk_split_rec_thmss lthy' Xs ctrXs_Tsss ctrss rec_thmss recs' rec'_defs;
   in
     ((inducts', induct', recs', rec'_thmss), lthy')
   end;
@@ -264,7 +265,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
     val nn = length fpTs';
 
     val fp_sugars = map (lfp_sugar_of o fst o dest_Type) fpTs';
-    val ctr_Tsss = map (map (map dest_dtyp o snd) o #3 o snd) descr;
+    val ctrXs_Tsss = map (map (map dest_dtyp o snd) o #3 o snd) descr;
     val kkssss =
       map (map (map (fn Old_Datatype_Aux.DtRec kk => [kk] | _ => []) o snd) o #3 o snd) descr;
 
@@ -273,8 +274,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
     fun apply_comps n kk =
       mk_partial_compN n (replicate n HOLogic.unitT ---> HOLogic.unitT) (nth callers kk);
 
-    val callssss =
-      map2 (map2 (map2 (fn ctr_T => map (apply_comps (num_binder_types ctr_T))))) ctr_Tsss kkssss;
+    val callssss = map2 (map2 (map2 (map o apply_comps o num_binder_types))) ctrXs_Tsss kkssss;
 
     val b_names = Name.variant_list [] (map base_name_of_typ fpTs');
     val compat_b_names = map (prefix compat_N) b_names;
@@ -287,22 +287,23 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
         ((fp_sugars, (NONE, NONE)), lthy);
 
     fun mk_ctr_of {ctr_sugar = {ctrs, ...}, ...} (Type (_, Ts)) = map (mk_ctr Ts) ctrs;
+    val substAT = Term.typ_subst_atomic (var_As ~~ As);
 
     val Xs' = map #X fp_sugars';
-    val ctr_Tsss' = map (map (binder_types o fastype_of) o #ctrs o #ctr_sugar) fp_sugars'; (*###*)
+    val ctrXs_Tsss' = map (map (map substAT) o #ctrXs_Tss) fp_sugars';
     val ctrss' = map2 mk_ctr_of fp_sugars' fpTs';
     val {common_co_inducts = [induct], ...} :: _ = fp_sugars';
     val inducts = map (the_single o #co_inducts) fp_sugars';
     val recs = map #co_rec fp_sugars';
     val rec_thmss = map #co_rec_thms fp_sugars';
 
-    fun is_nested_rec_type (Type (@{type_name fun}, [_, T])) = member (op =) fpTs' (body_type T)
+    fun is_nested_rec_type (Type (@{type_name fun}, [_, T])) = member (op =) Xs' (body_type T)
       | is_nested_rec_type _ = false;
 
     val ((lfp_sugar_thms'', (inducts', induct', recs', rec'_thmss)), lthy'') =
       if nesting_pref = Unfold_Nesting andalso
-         exists (exists (exists is_nested_rec_type)) ctr_Tsss' then
-        define_split_rec_derive_induct_rec_thms Xs' fpTs' ctr_Tsss' ctrss' inducts induct recs
+         exists (exists (exists is_nested_rec_type)) ctrXs_Tsss' then
+        define_split_rec_derive_induct_rec_thms Xs' fpTs' ctrXs_Tsss' ctrss' inducts induct recs
           rec_thmss lthy'
         |>> `(fn (inducts', induct', _, rec'_thmss) =>
           SOME ((inducts', induct', mk_induct_attrs ctrss'), (rec'_thmss, [])))
