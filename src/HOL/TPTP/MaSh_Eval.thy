@@ -5,7 +5,7 @@
 header {* MaSh Evaluation Driver *}
 
 theory MaSh_Eval
-imports MaSh_Export
+imports MaSh_Export_Base
 begin
 
 ML_file "mash_eval.ML"
@@ -23,11 +23,7 @@ open MaSh_Eval
 *}
 
 ML {*
-val do_it = false (* switch to "true" to generate the files *)
 val params = Sledgehammer_Commands.default_params @{theory} []
-val range = (1, NONE)
-val dir = "List"
-val prefix = "/tmp/" ^ dir ^ "/"
 val prob_dir = prefix ^ "mash_problems"
 *}
 
