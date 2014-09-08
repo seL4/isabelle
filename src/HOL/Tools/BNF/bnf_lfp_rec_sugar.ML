@@ -10,6 +10,23 @@ signature BNF_LFP_REC_SUGAR =
 sig
   datatype primrec_option = Nonexhaustive_Option
 
+  datatype rec_call =
+    No_Rec of int * typ |
+    Mutual_Rec of (int * typ) * (int * typ) |
+    Nested_Rec of int * typ
+
+  type rec_ctr_spec =
+    {ctr: term,
+     offset: int,
+     calls: rec_call list,
+     rec_thm: thm}
+
+  type rec_spec =
+    {recx: term,
+     fp_nesting_map_ident0s: thm list,
+     fp_nesting_map_comps: thm list,
+     ctr_specs: rec_ctr_spec list}
+
   type basic_lfp_sugar =
     {T: typ,
      fp_res_index: int,
@@ -32,6 +49,9 @@ sig
   exception PRIMREC of string * term list;
 
   val register_lfp_rec_extension: lfp_rec_extension -> theory -> theory
+  val rec_specs_of: binding list -> typ list -> typ list -> term list ->
+    (term * term list list) list list -> local_theory ->
+    (bool * rec_spec list * typ list * thm * thm list) * local_theory
 
   val add_primrec: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> (term list * thm list list) * local_theory

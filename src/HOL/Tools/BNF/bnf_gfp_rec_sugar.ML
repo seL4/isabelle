@@ -10,6 +10,38 @@ signature BNF_GFP_REC_SUGAR =
 sig
   datatype primcorec_option = Sequential_Option | Exhaustive_Option
 
+  datatype corec_call =
+    Dummy_No_Corec of int |
+    No_Corec of int |
+    Mutual_Corec of int * int * int |
+    Nested_Corec of int
+
+  type corec_ctr_spec =
+    {ctr: term,
+     disc: term,
+     sels: term list,
+     pred: int option,
+     calls: corec_call list,
+     discI: thm,
+     sel_thms: thm list,
+     distinct_discss: thm list list,
+     collapse: thm,
+     corec_thm: thm,
+     corec_disc: thm,
+     corec_sels: thm list}
+
+  type corec_spec =
+    {corec: term,
+     exhaust_discs: thm list,
+     sel_defs: thm list,
+     fp_nesting_maps: thm list,
+     fp_nesting_map_ident0s: thm list,
+     fp_nesting_map_comps: thm list,
+     ctr_specs: corec_ctr_spec list}
+
+  val corec_specs_of: binding list -> typ list -> typ list -> term list ->
+    (term * term list list) list list -> local_theory ->
+    (bool * corec_spec list * typ list * thm * thm * thm list * thm list) * local_theory
   val add_primcorecursive_cmd: primcorec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
@@ -84,7 +116,7 @@ type corec_spec =
    fp_nesting_map_comps: thm list,
    ctr_specs: corec_ctr_spec list};
 
-exception NOT_A_MAP of term;
+exception NO_MAP of term;
 
 fun not_codatatype ctxt T =
   error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
@@ -260,14 +292,14 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
           in
             Term.list_comb (map', fs')
           end
-        | NONE => raise NOT_A_MAP t)
-      | massage_map _ _ _ t = raise NOT_A_MAP t
+        | NONE => raise NO_MAP t)
+      | massage_map _ _ _ t = raise NO_MAP t
     and massage_map_or_map_arg bound_Ts U T t =
       if T = U then
         tap check_no_call t
       else
         massage_map bound_Ts U T t
-        handle NOT_A_MAP _ => massage_mutual_fun bound_Ts U T t
+        handle NO_MAP _ => massage_mutual_fun bound_Ts U T t
     and massage_mutual_fun bound_Ts U T t =
       (case t of
         Const (@{const_name comp}, _) $ t1 $ t2 =>
@@ -308,7 +340,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
                   massage_mutual_call bound_Ts U T t
                 else
                   massage_map bound_Ts U T t1 $ t2
-                  handle NOT_A_MAP _ => massage_mutual_call bound_Ts U T t)
+                  handle NO_MAP _ => massage_mutual_call bound_Ts U T t)
               | Abs (s, T', t') =>
                 Abs (s, T', massage_call (T' :: bound_Ts) (range_type U) (range_type T) t')
               | _ => massage_mutual_call bound_Ts U T t))
