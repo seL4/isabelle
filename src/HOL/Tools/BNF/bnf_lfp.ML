@@ -40,14 +40,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val b_names = map Binding.name_of bs;
     val b_name = mk_common_name b_names;
     val b = Binding.name b_name;
-    val mk_internal_b = Binding.name #> Binding.prefix true b_name #> Binding.conceal;
-    fun mk_internal_bs name =
-      map (fn b =>
-        Binding.prefix true b_name (Binding.prefix_name (name ^ "_") b) |> Binding.conceal) bs;
+
+    fun mk_internal_of_b name =
+      Binding.prefix_name (name ^ "_") #> Binding.prefix true b_name #> Binding.conceal;
+    fun mk_internal_b name = mk_internal_of_b name b;
+    fun mk_internal_bs name = map (mk_internal_of_b name) bs;
     val external_bs = map2 (Binding.prefix false) b_names bs
       |> not note_all ? map Binding.conceal;
-
-    (* TODO: check if m, n, etc., are sane *)
 
     val deads = fold (union (op =)) Dss resDs;
     val names_lthy = fold Variable.declare_typ deads lthy;
