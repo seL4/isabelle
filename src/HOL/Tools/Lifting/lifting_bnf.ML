@@ -95,6 +95,7 @@ fun relator_eq_onp bnf ctxt =
   in
     [((Binding.empty, []), [([relator_eq_onp_thm], @{attributes [relator_eq_onp]})])]    
   end
+  handle ERROR _ => [] (* the "lifting" plugin should work even if "quotient" is disabled *)
 
 (* relator_mono  *)
 
@@ -112,10 +113,10 @@ fun lifting_bnf_interpretation bnf lthy =
   if dead_of_bnf bnf > 0 then lthy
   else
     let
-      val notes = relator_eq_onp bnf lthy @ Quotient_map bnf lthy @ relator_mono bnf
-        @ relator_distr bnf
+      val notess = [relator_eq_onp bnf lthy, Quotient_map bnf lthy, relator_mono bnf,
+        relator_distr bnf]
     in
-      snd (Local_Theory.notes notes lthy)
+      lthy |> fold (perhaps o try o (snd oo Local_Theory.notes)) notess
     end
 
 val _ = Theory.setup (bnf_interpretation lifting_plugin
