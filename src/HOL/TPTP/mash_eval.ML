@@ -50,7 +50,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
 
     fun pad lines = lines @ replicate (num_lines - length lines) ""
 
-    val liness = map pad liness0
+    val liness' = Ctr_Sugar_Util.transpose (map pad liness0)
 
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
@@ -81,12 +81,14 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
       end
 
     fun solve_goal (j, lines) =
-      if in_range range j then
+      if in_range range j andalso exists (curry (op <>) "") lines then
         let
           val get_suggs = extract_suggestions ##> (take max_suggs #> map fst)
           val (names, suggss0) = split_list (map get_suggs lines)
-          val [name] = names |> filter (curry (op <>) "") |> distinct (op =)
-            handle General.Match => error "Input files out of sync."
+          val name =
+            (case names |> filter (curry (op <>) "") |> distinct (op =) of
+              [name] => name
+            | names => error ("Input files out of sync: facts " ^ commas (map quote names) ^ "."))
           val th =
             case find_first (fn (_, th) => nickname_of_thm th = name) facts of
               SOME (_, th) => th
@@ -150,7 +152,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
        "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]
     val _ = print " * * *";
     val _ = print ("Options: " ^ commas options);
-    val oks = Par_List.map solve_goal (tag_list 1 liness)
+    val oks = Par_List.map solve_goal (tag_list 1 liness')
     val n = length oks
 
     fun total_of method ok =
