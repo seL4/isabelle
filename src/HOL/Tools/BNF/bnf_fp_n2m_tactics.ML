@@ -8,7 +8,7 @@ Tactics for mutualization of nested (co)datatypes.
 signature BNF_FP_N2M_TACTICS =
 sig
   val mk_rel_xtor_co_induct_tactic: BNF_Util.fp_kind -> thm list -> thm list -> thm list ->
-    thm list -> {prems: thm list, context: Proof.context} -> tactic
+    thm list -> thm list -> {prems: thm list, context: Proof.context} -> tactic
 end;
 
 structure BNF_FP_N2M_Tactics : BNF_FP_N2M_TACTICS =
@@ -20,10 +20,10 @@ open BNF_FP_Util
 
 val vimage2p_unfolds = o_apply :: @{thms vimage2p_def};
 
-fun mk_rel_xtor_co_induct_tactic fp abs_inverses co_inducts0 rel_defs rel_monos
+fun mk_rel_xtor_co_induct_tactic fp abs_inverses co_inducts0 rel_defs rel_monos nesting_rel_eqs
   {context = ctxt, prems = raw_C_IHs} =
   let
-    val co_inducts = map (unfold_thms ctxt vimage2p_unfolds) co_inducts0;
+    val co_inducts = map (unfold_thms ctxt (vimage2p_unfolds @ nesting_rel_eqs)) co_inducts0;
     val unfolds = map (fn def =>
       unfold_thms ctxt (id_apply :: vimage2p_unfolds @ abs_inverses @ no_reflexive [def])) rel_defs;
     val folded_C_IHs = map (fn thm => thm RS @{thm spec2} RS mp) raw_C_IHs;

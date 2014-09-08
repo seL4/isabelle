@@ -182,12 +182,14 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
     val castAs = map2 (curry HOLogic.mk_comp) absAs fp_repAs;
     val castBs = map2 (curry HOLogic.mk_comp) absBs fp_repBs;
 
+    val rel_eqs = no_refl (map rel_eq_of_bnf fp_or_nesting_bnfs);
+
     val rel_xtor_co_induct_thm =
-      mk_rel_xtor_co_induct_thm fp (map3 cast castAs castBs pre_rels) pre_phis rels phis xs ys xtors
-        xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts rel_defs rel_monos)
+      mk_rel_xtor_co_induct_thm fp (map3 cast castAs castBs pre_rels) pre_phis rels phis xs ys
+        xtors xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts rel_defs
+          rel_monos rel_eqs)
         lthy;
 
-    val rel_eqs = no_refl (map rel_eq_of_bnf fp_or_nesting_bnfs);
     val map_id0s = no_refl (map map_id0_of_bnf bnfs);
 
     val xtor_co_induct_thm =
