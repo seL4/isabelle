@@ -108,6 +108,6 @@ qed
 
 end
 
-ML_file "Tools/typedef.ML" setup Typedef.setup
+ML_file "Tools/typedef.ML"
 
 end

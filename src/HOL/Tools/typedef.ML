@@ -16,10 +16,9 @@ sig
   val get_info: Proof.context -> string -> info list
   val get_info_global: theory -> string -> info list
   val interpretation: (string -> theory -> theory) -> theory -> theory
-  val setup: theory -> theory
-  val add_typedef: binding * (string * sort) list * mixfix ->
+  val add_typedef: bool -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> local_theory -> (string * info) * local_theory
-  val add_typedef_global: binding * (string * sort) list * mixfix ->
+  val add_typedef_global: bool -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> theory -> (string * info) * theory
   val typedef: (binding * (string * sort) list * mixfix) * term *
     (binding * binding) option -> local_theory -> Proof.state
@@ -83,7 +82,7 @@ fun with_repaired_path f name thy =
 
 fun interpretation f = Typedef_Interpretation.interpretation (with_repaired_path f);
 
-val setup = Typedef_Interpretation.init;
+val _ = Theory.setup Typedef_Interpretation.init;
 
 
 (* primitive typedef axiomatization -- for fresh typedecl *)
@@ -136,8 +135,9 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A lthy =
 
 (* prepare_typedef *)
 
-fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
+fun prepare_typedef conceal prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
   let
+    val concealed_name = name |> conceal ? Binding.conceal;
     val bname = Binding.name_of name;
 
 
@@ -169,10 +169,11 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
 
     val (Rep_name, Abs_name) =
       (case opt_morphs of
-        NONE => (Binding.prefix_name "Rep_" name, Binding.prefix_name "Abs_" name)
+        NONE => (Binding.prefix_name "Rep_" concealed_name,
+          Binding.prefix_name "Abs_" concealed_name)
       | SOME morphs => morphs);
 
-    val typedef_name = Binding.prefix_name "type_definition_" name;
+    val typedef_name = Binding.prefix_name "type_definition_" concealed_name;
 
     val ((RepC, AbsC, axiom_name, typedef), typedef_lthy) = typedecl_lthy
       |> primitive_typedef typedef_name newT oldT Rep_name Abs_name set;
@@ -239,18 +240,18 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
 
 (* add_typedef: tactic interface *)
 
-fun add_typedef typ set opt_morphs tac lthy =
+fun add_typedef conceal typ set opt_morphs tac lthy =
   let
     val ((goal, _, typedef_result), lthy') =
-      prepare_typedef Syntax.check_term typ set opt_morphs lthy;
+      prepare_typedef conceal Syntax.check_term typ set opt_morphs lthy;
     val inhabited =
       Goal.prove lthy' [] [] goal (K tac)
       |> Goal.norm_result lthy' |> Thm.close_derivation;
   in typedef_result inhabited lthy' end;
 
-fun add_typedef_global typ set opt_morphs tac =
+fun add_typedef_global conceal typ set opt_morphs tac =
   Named_Target.theory_init
-  #> add_typedef typ set opt_morphs tac
+  #> add_typedef conceal typ set opt_morphs tac
   #> Local_Theory.exit_result_global (apsnd o transform_info);
 
 
@@ -262,7 +263,7 @@ fun gen_typedef prep_term prep_constraint ((b, raw_args, mx), set, opt_morphs) l
   let
     val args = map (apsnd (prep_constraint lthy)) raw_args;
     val ((goal, goal_pat, typedef_result), lthy') =
-      prepare_typedef prep_term (b, args, mx) set opt_morphs lthy;
+      prepare_typedef false prep_term (b, args, mx) set opt_morphs lthy;
     fun after_qed [[th]] = snd o typedef_result th;
   in Proof.theorem NONE after_qed [[(goal, [goal_pat])]] lthy' end;
 
