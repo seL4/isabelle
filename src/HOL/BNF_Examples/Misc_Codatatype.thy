@@ -23,7 +23,7 @@ codatatype 'a stream = Stream (shd: 'a) (stl: "'a stream")
 
 codatatype 'a mylist = MyNil | MyCons (myhd: 'a) (mytl: "'a mylist")
 
-codatatype ('b, 'c, 'd, 'e) some_passive =
+codatatype ('b, 'c :: ord, 'd, 'e) some_passive =
   SP1 "('b, 'c, 'd, 'e) some_passive" | SP2 'b | SP3 'c | SP4 'd | SP5 'e
 
 codatatype lambda =

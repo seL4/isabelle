@@ -21,7 +21,7 @@ datatype_new (discs_sels) simple'' = X1'' nat int | X2''
 
 datatype_new (discs_sels) 'a mylist = MyNil | MyCons (myhd: 'a) (mytl: "'a mylist")
 
-datatype_new (discs_sels) ('b, 'c, 'd, 'e) some_passive =
+datatype_new (discs_sels) ('b, 'c :: ord, 'd, 'e) some_passive =
   SP1 "('b, 'c, 'd, 'e) some_passive" | SP2 'b | SP3 'c | SP4 'd | SP5 'e
 
 datatype_new (discs_sels) hfset = HFset "hfset fset"
