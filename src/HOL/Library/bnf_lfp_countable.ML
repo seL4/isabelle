@@ -134,7 +134,8 @@ fun derive_encode_injectives_thms _ [] = []
           SOME (fp_sugar as {fp = Least_FP, ...}) => fp_sugar
         | _ => not_datatype s);
 
-      val fpTs0 as Type (_, var_As) :: _ = #Ts (#fp_res (lfp_sugar_of (hd fpT_names0)));
+      val fpTs0 as Type (_, var_As) :: _ =
+        map (#T o lfp_sugar_of o fst o dest_Type) (#Ts (#fp_res (lfp_sugar_of (hd fpT_names0))));
       val fpT_names = map (fst o dest_Type) fpTs0;
 
       val (As_names, _) = Variable.variant_fixes (map (fn TVar ((s, _), _) => s) var_As) ctxt;

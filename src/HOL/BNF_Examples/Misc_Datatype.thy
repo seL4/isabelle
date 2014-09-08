@@ -183,7 +183,7 @@ instance simple'' :: countable
 instance mylist :: (countable) countable
   by countable_datatype
 
-instance some_passive :: (countable, countable , countable, countable) countable
+instance some_passive :: (countable, "{countable,ord}", countable, countable) countable
   by countable_datatype
 
 (* TODO: Enable once "fset" is registered as countable:
