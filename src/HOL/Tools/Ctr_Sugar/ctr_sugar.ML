@@ -1068,9 +1068,9 @@ val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
 
 val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
 
-type ctr_options = (string -> bool) * bool
+type ctr_options = (string -> bool) * bool;
 
-val default_ctr_options = (K true, false);
+val default_ctr_options = (K true, false) : ctr_options;
 
 val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
