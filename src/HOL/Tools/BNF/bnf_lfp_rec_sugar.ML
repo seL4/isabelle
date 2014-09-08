@@ -529,7 +529,11 @@ fun add_primrec_simple' opts fixes ts lthy =
            error ("primrec error:\n  " ^ str ^ "\nin\n  " ^
              space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
 
-val add_primrec_simple = add_primrec_simple' [];
+fun add_primrec_simple fixes ts lthy =
+  add_primrec_simple' [] fixes ts lthy
+  handle OLD_PRIMREC () =>
+    Old_Primrec.add_primrec_simple fixes ts lthy
+    |>> apsnd (apsnd (pair [] o single)) o apfst single;
 
 fun gen_primrec old_primrec prep_spec opts
     (raw_fixes : (binding * 'a option * mixfix) list) raw_specs lthy =

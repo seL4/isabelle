@@ -507,7 +507,8 @@ options:
 
 \item
 The @{text "plugins"} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+(@{text only}) or disabled (@{text del}). Wildcards (``@{text *}'') are allowed
+(e.g., @{text "quickcheck_*"}). By default, all plugins are enabled.
 
 \item
 The @{text "discs_sels"} option indicates that discriminators and selectors
@@ -539,7 +540,7 @@ variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
 The optional names preceding the type variables allow to override the default
 names of the set functions (@{text set\<^sub>1_t}, \ldots, @{text set\<^sub>m_t}). Type
 arguments can be marked as dead by entering @{text dead} in front of the
-type variable (e.g., ``@{text "(dead 'a)"}''); otherwise, they are live or dead
+type variable (e.g., @{text "(dead 'a)"}); otherwise, they are live or dead
 (and a set function is generated or not) depending on where they occur in the
 right-hand sides of the definition. Declaring a type argument as dead can speed
 up the type definition but will prevent any later (co)recursion through that
@@ -2652,7 +2653,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 parenthesized mixfix notation \cite{isabelle-isar-ref}.
 
 Type arguments are live by default; they can be marked as dead by entering
-@{text dead} in front of the type variable (e.g., ``@{text "(dead 'a)"}'')
+@{text dead} in front of the type variable (e.g., @{text "(dead 'a)"})
 instead of an identifier for the corresponding set function. Witnesses can be
 specified by their types. Otherwise, the syntax of @{command bnf_axiomatization}
 is identical to the left-hand side of a @{command datatype_new} or
@@ -2843,9 +2844,9 @@ subsection {* Quickcheck
 
 text {*
 The integration of (co)datatypes with Quickcheck is accomplished by a number of
-plugins that instantiate specific type classes: @{text random},
-@{text exhaustive}, @{text bounded_forall}, @{text full_exhaustive}, and
-@{text narrowing}.
+plugins that instantiate specific type classes: @{text quickcheck_random},
+@{text quickcheck_exhaustive}, @{text quickcheck_bounded_forall},
+@{text quickcheck_full_exhaustive}, and @{text quickcheck_narrowing}.
 *}
 
 

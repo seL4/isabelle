@@ -35,7 +35,7 @@ sig
     (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> theory ->
     (term list * thm list) * theory
   val add_primrec_simple: ((binding * typ) * mixfix) list -> term list ->
-    local_theory -> (string list * (term list * (int list * thm list))) * local_theory
+    local_theory -> (string list * (term list * thm list)) * local_theory
 end;
 
 structure BNF_LFP_Compat : BNF_LFP_COMPAT =
@@ -516,7 +516,7 @@ fun add_datatype nesting_pref old_specs thy =
 val add_primrec = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec;
 val add_primrec_global = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec_global;
 val add_primrec_overloaded = apfst (apsnd flat) oooo BNF_LFP_Rec_Sugar.add_primrec_overloaded;
-val add_primrec_simple = apfst (apsnd (apsnd (apsnd flat o apfst flat))) ooo
+val add_primrec_simple = apfst (apsnd (apsnd (flat o snd))) ooo
   BNF_LFP_Rec_Sugar.add_primrec_simple;
 
 val _ =

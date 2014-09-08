@@ -92,7 +92,19 @@ end;
 structure Ctr_Sugar_Util : CTR_SUGAR_UTIL =
 struct
 
-fun map_prod f g (x, y) = (f x, g y)
+fun match_entire_string pat s =
+  let
+    fun match [] [] = true
+      | match [] _ = false
+      | match (ps as #"*" :: ps') cs =
+        match ps' cs orelse (not (null cs) andalso match ps (tl cs))
+      | match _ [] = false
+      | match (p :: ps) (c :: cs) = p = c andalso match ps cs;
+  in
+    match (String.explode pat) (String.explode s)
+  end;
+
+fun map_prod f g (x, y) = (f x, g y);
 
 fun map3 _ [] [] [] = []
   | map3 f (x1::x1s) (x2::x2s) (x3::x3s) = f x1 x2 x3 :: map3 f x1s x2s x3s
@@ -272,7 +284,8 @@ val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 val parse_plugins =
   Parse.reserved "plugins" |--
     ((Parse.reserved "only" >> K I || Parse.reserved "del" >> K not) --| @{keyword ":"}
-     -- Scan.repeat Parse.short_ident) >> (fn (modif, ss) => modif o member (op =) ss);
+     -- Scan.repeat (Parse.short_ident || Parse.string))
+  >> (fn (modif, pats) => modif o member (uncurry match_entire_string o swap) pats);
 
 fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;
 
@@ -291,7 +304,6 @@ fun CONJ_WRAP_GEN' conj_tac gen_tac xs =
   let val (butlast, last) = split_last xs;
   in WRAP' (fn thm => conj_tac THEN' gen_tac thm) (K (K all_tac)) butlast (gen_tac last) end;
 
-(*not eta-converted because of monotype restriction*)
 fun CONJ_WRAP gen_tac = CONJ_WRAP_GEN (rtac conjI 1) gen_tac;
 fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (rtac conjI) gen_tac;
 
