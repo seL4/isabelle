@@ -50,11 +50,11 @@ open BNF_FP_N2M_Sugar
 open BNF_LFP
 
 val compat_N = "compat_";
-val rec_fun_N = "rec_fun_";
+val rec_split_N = "rec_split_";
 
 datatype nesting_preference = Keep_Nesting | Unfold_Nesting;
 
-fun mk_fun_rec_rhs ctxt fpTs Cs (recs as rec1 :: _) =
+fun mk_split_rec_rhs ctxt fpTs Cs (recs as rec1 :: _) =
   let
     fun repair_rec_arg_args [] [] = []
       | repair_rec_arg_args ((g_T as Type (@{type_name fun}, _)) :: g_Ts) (g :: gs) =
@@ -105,21 +105,21 @@ fun mk_fun_rec_rhs ctxt fpTs Cs (recs as rec1 :: _) =
     map mk_rec' recs
   end;
 
-fun define_fun_recs fpTs Cs recs lthy =
+fun define_split_recs fpTs Cs recs lthy =
   let
     val b_names = Name.variant_list [] (map base_name_of_typ fpTs);
 
     fun mk_binding b_name =
       Binding.qualify true (compat_N ^ b_name)
-        (Binding.prefix_name rec_fun_N (Binding.name b_name));
+        (Binding.prefix_name rec_split_N (Binding.name b_name));
 
     val bs = map mk_binding b_names;
-    val rhss = mk_fun_rec_rhs lthy fpTs Cs recs;
+    val rhss = mk_split_rec_rhs lthy fpTs Cs recs;
   in
     fold_map3 (define_co_rec_as Least_FP Cs) fpTs bs rhss lthy
   end;
 
-fun mk_fun_rec_thmss ctxt rec0_thmss (recs as rec1 :: _) rec_defs =
+fun mk_split_rec_thmss ctxt rec0_thmss (recs as rec1 :: _) rec_defs =
   let
     val f_Ts = binder_fun_types (fastype_of rec1);
     val (fs, _) = mk_Frees "f" f_Ts ctxt;
@@ -170,7 +170,7 @@ fun mk_fun_rec_thmss ctxt rec0_thmss (recs as rec1 :: _) rec_defs =
     map (map prove) goalss
   end;
 
-fun define_fun_rec_derive_thms induct inducts recs0 rec_thmss fpTs lthy =
+fun define_split_rec_derive_induct_rec_thms induct inducts recs0 rec_thmss fpTs lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -183,8 +183,8 @@ fun define_fun_rec_derive_thms induct inducts recs0 rec_thmss fpTs lthy =
 
     val Cs = map ((fn TVar ((s, _), S) => TFree (s, S)) o body_type o fastype_of) recs0;
     val recs = map2 (mk_co_rec thy Least_FP Cs) fpTs recs0;
-    val ((recs', rec'_defs), lthy') = define_fun_recs fpTs Cs recs lthy |>> split_list;
-    val rec'_thmss = mk_fun_rec_thmss lthy' rec_thmss recs' rec'_defs;
+    val ((recs', rec'_defs), lthy') = define_split_recs fpTs Cs recs lthy |>> split_list;
+    val rec'_thmss = mk_split_rec_thmss lthy' rec_thmss recs' rec'_defs;
   in
     ((induct', inducts', recs', rec'_thmss), lthy')
   end;
@@ -305,7 +305,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
     val ((induct', inducts', recs', rec'_thmss), lthy'') =
       if nesting_pref = Unfold_Nesting andalso
          exists (exists (exists is_nested_rec_type)) ctr_Tsss then
-        define_fun_rec_derive_thms induct inducts recs rec_thmss fpTs' lthy'
+        define_split_rec_derive_induct_rec_thms induct inducts recs rec_thmss fpTs' lthy'
       else
         ((induct, inducts, recs, rec_thmss), lthy');
 
