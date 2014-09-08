@@ -11,7 +11,7 @@
 (* Christian Urban.                                       *)
 
 theory SOS
-  imports "Nominal"
+  imports "../Nominal"
 begin
 
 atom_decl name

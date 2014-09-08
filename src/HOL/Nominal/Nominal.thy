@@ -18,10 +18,14 @@ consts
   swap :: "('x \<times> 'x) \<Rightarrow> 'x \<Rightarrow> 'x"
 
 (* a "private" copy of the option type used in the abstraction function *)
-datatype 'a noption = nSome 'a | nNone
+datatype_new 'a noption = nSome 'a | nNone
+
+datatype_compat noption
 
 (* a "private" copy of the product type used in the nominal induct method *)
-datatype ('a, 'b) nprod = nPair 'a 'b
+datatype_new ('a, 'b) nprod = nPair 'a 'b
+
+datatype_compat nprod
 
 (* an auxiliary constant for the decision procedure involving *) 
 (* permutations (to avoid loops when using perm-compositions)  *)

@@ -100,10 +100,9 @@ fun create_nom_typedecls ak_names thy =
     val (_,thy1) = 
     fold_map (fn ak => fn thy => 
           let val dt = ((Binding.name ak, [], NoSyn), [(Binding.name ak, [@{typ nat}], NoSyn)])
-              val (dt_names, thy1) =
-                Old_Datatype.add_datatype Old_Datatype_Aux.default_config [dt] thy;
+              val (dt_names, thy1) = BNF_LFP_Compat.add_datatype BNF_LFP_Compat.Unfold_Nesting [dt] thy;
             
-              val injects = maps (#inject o Old_Datatype_Data.the_info thy1) dt_names;
+              val injects = maps (#inject o BNF_LFP_Compat.the_info thy1 BNF_LFP_Compat.Unfold_Nesting) dt_names;
               val ak_type = Type (Sign.intern_type thy1 ak,[])
               val ak_sign = Sign.intern_const thy1 ak 
               
