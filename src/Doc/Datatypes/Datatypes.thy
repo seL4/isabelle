@@ -507,8 +507,8 @@ options:
 
 \item
 The @{text "plugins"} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). Wildcards (``@{text *}'') are allowed
-(e.g., @{text "quickcheck_*"}). By default, all plugins are enabled.
+(@{text only}) or disabled (@{text del}). Wildcards (``@{text "*"}'') are
+allowed (e.g., @{text "quickcheck_*"}). By default, all plugins are enabled.
 
 \item
 The @{text "discs_sels"} option indicates that discriminators and selectors
