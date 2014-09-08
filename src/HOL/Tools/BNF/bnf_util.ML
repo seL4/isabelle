@@ -477,12 +477,10 @@ fun mk_in As sets T =
   let
     fun in_single set A =
       let val AT = fastype_of A;
-      in Const (@{const_name less_eq},
-        AT --> AT --> HOLogic.boolT) $ (set $ Free ("x", T)) $ A end;
+      in Const (@{const_name less_eq}, AT --> AT --> HOLogic.boolT) $ (set $ Free ("x", T)) $ A end;
   in
-    if length sets > 0
-    then HOLogic.mk_Collect ("x", T, foldr1 (HOLogic.mk_conj) (map2 in_single sets As))
-    else HOLogic.mk_UNIV T
+    if null sets then HOLogic.mk_UNIV T
+    else HOLogic.mk_Collect ("x", T, foldr1 (HOLogic.mk_conj) (map2 in_single sets As))
   end;
 
 fun mk_inj t =

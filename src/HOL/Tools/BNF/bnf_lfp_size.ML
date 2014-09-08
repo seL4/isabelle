@@ -121,15 +121,15 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         map ((fn base => Binding.qualify false base (Binding.name (prefix size_N base))) o
           Long_Name.base_name) T_names;
 
-      fun is_pair_C @{type_name prod} [_, T'] = member (op =) Cs T'
-        | is_pair_C _ _ = false;
+      fun is_prod_C @{type_name prod} [_, T'] = member (op =) Cs T'
+        | is_prod_C _ _ = false;
 
       fun mk_size_of_typ (T as TFree _) =
           pair (case AList.lookup (op =) As_fs T of
               SOME f => f
             | NONE => if member (op =) Cs T then Term.absdummy T (Bound 0) else mk_abs_zero_nat T)
         | mk_size_of_typ (T as Type (s, Ts)) =
-          if is_pair_C s Ts then
+          if is_prod_C s Ts then
             pair (snd_const T)
           else if exists (exists_subtype_in (As @ Cs)) Ts then
             (case Symtab.lookup data s of
@@ -169,7 +169,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         |>> (fn args => fold_rev Term.lambda fs (Term.list_comb (substCnatT recx, args)));
 
       val maybe_conceal_def_binding = Thm.def_binding
-        #> Config.get lthy0 bnf_note_all = false ? Binding.conceal;
+        #> not (Config.get lthy0 bnf_note_all) ? Binding.conceal;
 
       val (size_rhss, nested_size_o_maps) = fold_map mk_size_rhs recs [];
       val size_Ts = map fastype_of size_rhss;

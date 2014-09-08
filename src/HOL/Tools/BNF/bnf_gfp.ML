@@ -75,7 +75,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       map (fn b =>
         Binding.prefix true b_name (Binding.prefix_name (name ^ "_") b) |> Binding.conceal) bs;
     val external_bs = map2 (Binding.prefix false) b_names bs
-      |> note_all = false ? map Binding.conceal;
+      |> not note_all ? map Binding.conceal;
 
     (* TODO: check if m, n, etc., are sane *)
 

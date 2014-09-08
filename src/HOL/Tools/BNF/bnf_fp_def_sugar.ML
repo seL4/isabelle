@@ -526,7 +526,7 @@ fun define_co_rec fp fpT Cs b rhs lthy0 =
     val thy = Proof_Context.theory_of lthy0;
 
     val maybe_conceal_def_binding = Thm.def_binding
-      #> Config.get lthy0 bnf_note_all = false ? Binding.conceal;
+      #> not (Config.get lthy0 bnf_note_all) ? Binding.conceal;
 
     val ((cst, (_, def)), (lthy', lthy)) = lthy0
       |> Local_Theory.define ((b, NoSyn), ((maybe_conceal_def_binding b, []), rhs))
@@ -1394,7 +1394,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             ks xss;
 
         val maybe_conceal_def_binding = Thm.def_binding
-          #> Config.get no_defs_lthy bnf_note_all = false ? Binding.conceal;
+          #> not (Config.get no_defs_lthy bnf_note_all) ? Binding.conceal;
 
         val ((raw_ctrs, raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>

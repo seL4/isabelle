@@ -613,7 +613,7 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
     fun pre_qualify b = Binding.qualify false (Binding.name_of b)
-      #> Config.get lthy' bnf_note_all = false ? Binding.conceal;
+      #> not (Config.get lthy' bnf_note_all) ? Binding.conceal;
 
     val ((pre_bnfs, (deadss, absT_infos)), lthy'') =
       fold_map3 (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
