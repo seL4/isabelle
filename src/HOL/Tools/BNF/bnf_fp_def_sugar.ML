@@ -81,7 +81,7 @@ sig
     int list list -> term ->
     typ list list
     * (typ list list list list * typ list list list * typ list list list list * typ list)
-  val define_co_rec_as: BNF_Util.fp_kind -> typ -> typ list -> binding -> term -> local_theory ->
+  val define_co_rec_as: BNF_Util.fp_kind -> typ list -> typ -> binding -> term -> local_theory ->
     (term * thm) * local_theory
   val define_rec:
     typ list list * typ list list list list * term list list * term list list list list ->
@@ -523,7 +523,7 @@ fun mk_preds_getterss_join c cps absT abs cqgss =
     Term.lambda c (mk_IfN absT cps ts)
   end;
 
-fun define_co_rec_as fp fpT Cs b rhs lthy0 =
+fun define_co_rec_as fp Cs fpT b rhs lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
@@ -548,7 +548,7 @@ fun define_rec (_, _, fss, xssss) mk_binding fpTs Cs reps ctor_rec =
     val (ctor_rec_absTs, fpT) = strip_typeN nn (fastype_of ctor_rec)
       |>> map domain_type ||> domain_type;
   in
-    define_co_rec_as Least_FP fpT Cs (mk_binding recN)
+    define_co_rec_as Least_FP Cs fpT (mk_binding recN)
       (fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_rec,
          map4 (fn ctor_rec_absT => fn rep => fn fs => fn xsss =>
              mk_case_absumprod ctor_rec_absT rep fs (map (map HOLogic.mk_tuple) xsss)
@@ -561,7 +561,7 @@ fun define_corec (_, cs, cpss, ((pgss, cqgsss), f_absTs)) mk_binding fpTs Cs abs
     val nn = length fpTs;
     val fpT = range_type (snd (strip_typeN nn (fastype_of dtor_corec)));
   in
-    define_co_rec_as Greatest_FP fpT Cs (mk_binding corecN)
+    define_co_rec_as Greatest_FP Cs fpT (mk_binding corecN)
       (fold_rev (fold_rev Term.lambda) pgss (Term.list_comb (dtor_corec,
          map5 mk_preds_getterss_join cs cpss f_absTs abss cqgsss)))
   end;
