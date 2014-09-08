@@ -181,6 +181,50 @@ lemma id_transfer: "rel_fun A A id id"
 lemma ssubst_Pair_rhs: "\<lbrakk>(r, s) \<in> R; s' = s\<rbrakk> \<Longrightarrow> (r, s') \<in> R"
   by (rule ssubst)
 
+lemma all_mem_range1:
+  "(\<And>y. y \<in> range f \<Longrightarrow> P y) \<equiv> (\<And>x. P (f x)) "
+  by (rule equal_intr_rule) fast+
+
+lemma all_mem_range2:
+  "(\<And>fa y. fa \<in> range f \<Longrightarrow> y \<in> range fa \<Longrightarrow> P y) \<equiv> (\<And>x xa. P (f x xa))"
+  by (rule equal_intr_rule) fast+
+
+lemma all_mem_range3:
+  "(\<And>fa fb y. fa \<in> range f \<Longrightarrow> fb \<in> range fa \<Longrightarrow> y \<in> range fb \<Longrightarrow> P y) \<equiv> (\<And>x xa xb. P (f x xa xb))"
+  by (rule equal_intr_rule) fast+
+
+lemma all_mem_range4:
+  "(\<And>fa fb fc y. fa \<in> range f \<Longrightarrow> fb \<in> range fa \<Longrightarrow> fc \<in> range fb \<Longrightarrow> y \<in> range fc \<Longrightarrow> P y) \<equiv>
+   (\<And>x xa xb xc. P (f x xa xb xc))"
+  by (rule equal_intr_rule) fast+
+
+lemma all_mem_range5:
+  "(\<And>fa fb fc fd y. fa \<in> range f \<Longrightarrow> fb \<in> range fa \<Longrightarrow> fc \<in> range fb \<Longrightarrow> fd \<in> range fc \<Longrightarrow>
+     y \<in> range fd \<Longrightarrow> P y) \<equiv>
+   (\<And>x xa xb xc xd. P (f x xa xb xc xd))"
+  by (rule equal_intr_rule) fast+
+
+lemma all_mem_range6:
+  "(\<And>fa fb fc fd fe ff y. fa \<in> range f \<Longrightarrow> fb \<in> range fa \<Longrightarrow> fc \<in> range fb \<Longrightarrow> fd \<in> range fc \<Longrightarrow>
+     fe \<in> range fd \<Longrightarrow> ff \<in> range fe \<Longrightarrow> y \<in> range ff \<Longrightarrow> P y) \<equiv>
+   (\<And>x xa xb xc xd xe xf. P (f x xa xb xc xd xe xf))"
+  by (rule equal_intr_rule) (fastforce, fast)
+
+lemma all_mem_range7:
+  "(\<And>fa fb fc fd fe ff fg y. fa \<in> range f \<Longrightarrow> fb \<in> range fa \<Longrightarrow> fc \<in> range fb \<Longrightarrow> fd \<in> range fc \<Longrightarrow>
+     fe \<in> range fd \<Longrightarrow> ff \<in> range fe \<Longrightarrow> fg \<in> range ff \<Longrightarrow> y \<in> range fg \<Longrightarrow> P y) \<equiv>
+   (\<And>x xa xb xc xd xe xf xg. P (f x xa xb xc xd xe xf xg))"
+  by (rule equal_intr_rule) (fastforce, fast)
+
+lemma all_mem_range8:
+  "(\<And>fa fb fc fd fe ff fg fh y. fa \<in> range f \<Longrightarrow> fb \<in> range fa \<Longrightarrow> fc \<in> range fb \<Longrightarrow> fd \<in> range fc \<Longrightarrow>
+     fe \<in> range fd \<Longrightarrow> ff \<in> range fe \<Longrightarrow> fg \<in> range ff \<Longrightarrow> fh \<in> range fg \<Longrightarrow> y \<in> range fh \<Longrightarrow> P y) \<equiv>
+   (\<And>x xa xb xc xd xe xf xg xh. P (f x xa xb xc xd xe xf xg xh))"
+  by (rule equal_intr_rule) (fastforce, fast)
+
+lemmas all_mem_range = all_mem_range1 all_mem_range2 all_mem_range3 all_mem_range4 all_mem_range5
+  all_mem_range6 all_mem_range7 all_mem_range8
+
 ML_file "Tools/BNF/bnf_lfp_util.ML"
 ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"

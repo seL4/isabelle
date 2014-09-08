@@ -331,7 +331,8 @@ fun unfold_datatypes ctxt orig_descr (dt_info : info Symtab.table) descr i =
     fun get_dt_descr T i tname dts =
       (case Symtab.lookup dt_info tname of
         NONE =>
-          typ_error T (quote tname ^ " is not a datatype - can't use it in nested recursion")
+          typ_error T (quote tname ^ " is not registered as an old-style datatype and hence cannot \
+            \be used in nested recursion")
       | SOME {index, descr, ...} =>
           let
             val (_, vars, _) = the (AList.lookup (op =) descr index);

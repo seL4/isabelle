@@ -536,7 +536,7 @@ fun define_co_rec_as fp Cs fpT b rhs lthy0 =
 
     val phi = Proof_Context.export_morphism lthy lthy';
 
-    val cst' = mk_co_rec thy fp fpT Cs (Morphism.term phi cst);
+    val cst' = mk_co_rec thy fp Cs fpT (Morphism.term phi cst);
     val def' = Morphism.thm phi def;
   in
     ((cst', def'), lthy')
@@ -1464,7 +1464,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               sel_default_eqs) lthy
           end;
 
-        fun derive_maps_sets_rels (ctr_sugar as {casex, case_cong, case_thms, discs, selss, ctrs,
+        fun derive_map_set_rel_thms (ctr_sugar as {casex, case_cong, case_thms, discs, selss, ctrs,
             exhaust, exhaust_discs, disc_thmss, sel_thmss, injects, distincts, distinct_discsss,
             ...} : ctr_sugar, lthy) =
           if live = 0 then
@@ -1989,7 +1989,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_sugar)), co_rec_res), lthy);
       in
         (wrap_ctrs
-         #> derive_maps_sets_rels
+         #> derive_map_set_rel_thms
          ##>>
            (if fp = Least_FP then define_rec (the recs_args_types) mk_binding fpTs Cs reps
            else define_corec (the corecs_args_types) mk_binding fpTs Cs abss) xtor_co_rec

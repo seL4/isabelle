@@ -194,7 +194,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
 
     fun mk_spec ctr_offset
         ({T, fp_res_index, ctr_sugar = {ctrs, ...}, recx, rec_thms, ...} : basic_lfp_sugar) =
-      {recx = mk_co_rec thy Least_FP (substAT T) perm_Cs' recx,
+      {recx = mk_co_rec thy Least_FP perm_Cs' (substAT T) recx,
        fp_nesting_map_ident0s = fp_nesting_map_ident0s, fp_nesting_map_comps = fp_nesting_map_comps,
        ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs rec_thms};
   in
