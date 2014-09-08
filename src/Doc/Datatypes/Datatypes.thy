@@ -615,7 +615,8 @@ A few remarks concern nested recursive datatypes:
 
 \item The old-style, nested-as-mutual induction rule and recursor theorems are
 generated under their usual names but with ``@{text "compat_"}'' prefixed
-(e.g., @{text compat_tree.induct}).
+(e.g., @{text compat_tree.induct}, @{text compat_tree.inducts}, and
+@{text compat_tree.rec}).
 
 \item All types through which recursion takes place must be new-style datatypes
 or the function type. In principle, it should be possible to support old-style
