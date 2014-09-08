@@ -317,7 +317,6 @@ val parse_map_rel_bindings =
 
 fun map_local_theory f = Named_Target.theory_init #> f #> Local_Theory.exit_global;
 
-(*TODO: is this really different from Typedef.add_typedef_global?*)
 fun typedef (b, Ts, mx) set opt_morphs tac lthy =
   let
     (*Work around loss of qualification in "typedef" axioms by replicating it in the name*)
