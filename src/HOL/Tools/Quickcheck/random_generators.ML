@@ -119,7 +119,7 @@ end;
 fun random_aux_primrec_multi auxname [eq] lthy =
       lthy
       |> random_aux_primrec eq
-      |>> (fn simp => [simp])
+      |>> single
   | random_aux_primrec_multi auxname (eqs as _ :: _ :: _) lthy =
       let
         val thy = Proof_Context.theory_of lthy;
@@ -147,14 +147,13 @@ fun random_aux_primrec_multi auxname [eq] lthy =
             fun tac { context = ctxt, prems = _ } =
               ALLGOALS (simp_tac (put_simpset HOL_ss ctxt addsimps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
-              THEN ALLGOALS (simp_tac
-                (put_simpset HOL_ss ctxt addsimps [@{thm fst_conv}, @{thm snd_conv}]));
+              THEN ALLGOALS (simp_tac (put_simpset HOL_ss ctxt addsimps @{thms fst_conv snd_conv}));
           in (map (fn prop => Goal.prove_sorry lthy [v] [] prop tac) eqs, lthy) end;
       in
         lthy
         |> random_aux_primrec aux_eq'
         ||>> fold_map Local_Theory.define proj_defs
-        |-> (fn (aux_simp, proj_defs) => prove_eqs aux_simp proj_defs)
+        |-> uncurry prove_eqs
       end;
 
 fun random_aux_specification prfx name eqs lthy =
@@ -176,7 +175,7 @@ fun random_aux_specification prfx name eqs lthy =
   in
     lthy
     |> random_aux_primrec_multi (name ^ prfx) proto_eqs
-    |-> (fn proto_simps => prove_simps proto_simps)
+    |-> prove_simps
     |-> (fn simps => Local_Theory.note
       ((b, Code.add_default_eqn_attrib :: @{attributes [simp, nitpick_simp]}), simps))
     |> snd
