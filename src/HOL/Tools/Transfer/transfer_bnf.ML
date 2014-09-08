@@ -310,7 +310,10 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
     val eq_onps = map (Transfer.rel_eq_onp o lookup_defined_pred_data lthy) involved_types
     val live = live_of_bnf (bnf_of_fp_sugar fp_sugar)
     val old_lthy = lthy
-    val (As, lthy) = mk_TFrees live lthy
+    val old_As = snd (dest_Type (#T fp_sugar))
+    val (unsorted_As, lthy) = mk_TFrees live lthy
+    val As = map2 (Ctr_Sugar_Util.resort_tfree o snd o Ctr_Sugar_Util.dest_TFree_or_TVar)
+      old_As unsorted_As
     val predTs = map mk_pred1T As
     val (preds, lthy) = mk_Frees "P" predTs lthy
     val args = map mk_eq_onp preds

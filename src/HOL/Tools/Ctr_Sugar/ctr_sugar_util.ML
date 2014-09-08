@@ -34,6 +34,7 @@ sig
     (term list list * (string * typ) list list) * Proof.context
   val mk_Frees: string -> typ list -> Proof.context -> term list * Proof.context
   val mk_Freess: string -> typ list list -> Proof.context -> term list list * Proof.context
+  val dest_TFree_or_TVar: typ -> string * sort
   val resort_tfree: sort -> typ -> typ
   val variant_types: string list -> sort list -> Proof.context ->
     (string * sort) list * Proof.context
@@ -176,6 +177,10 @@ fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> spl
 
 fun mk_Frees x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => map2 (curry Free) xs Ts);
 fun mk_Freess x Tss = fold_map2 mk_Frees (mk_names (length Tss) x) Tss;
+
+fun dest_TFree_or_TVar (TFree sS) = sS
+  | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
+  | dest_TFree_or_TVar _ = error "Invalid type argument";
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 

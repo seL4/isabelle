@@ -388,10 +388,6 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
 
     fun qualify mandatory = Binding.qualify mandatory fc_b_name;
 
-    fun dest_TFree_or_TVar (TFree sS) = sS
-      | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
-      | dest_TFree_or_TVar _ = error "Invalid type argument";
-
     val (unsorted_As, B) =
       no_defs_lthy
       |> variant_tfrees (map (fst o dest_TFree_or_TVar) As0)
