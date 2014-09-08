@@ -393,7 +393,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
       |> variant_tfrees (map (fst o dest_TFree_or_TVar) As0)
       ||> the_single o fst o mk_TFrees 1;
 
-    val As = map2 (resort_tfree o snd o dest_TFree_or_TVar) As0 unsorted_As;
+    val As = map2 (resort_tfree_or_tvar o snd o dest_TFree_or_TVar) As0 unsorted_As;
 
     val fcT = Type (fcT_name, As);
     val ctrs = map (mk_ctr As) ctrs0;

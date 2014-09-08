@@ -314,7 +314,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
     val liveness =
       BNF_FP_Def_Sugar.liveness_of_fp_bnf (length old_As) (hd (#bnfs (#fp_res fp_sugar)));
     val (unsorted_As, lthy) = mk_TFrees live lthy
-    val As = map2 (Ctr_Sugar_Util.resort_tfree o snd o Ctr_Sugar_Util.dest_TFree_or_TVar)
+    val As = map2 (Ctr_Sugar_Util.resort_tfree_or_tvar o snd o Ctr_Sugar_Util.dest_TFree_or_TVar)
       (map_filter (uncurry (fn true => SOME | false => K NONE)) (liveness ~~ old_As)) unsorted_As
     val predTs = map mk_pred1T As
     val (preds, lthy) = mk_Frees "P" predTs lthy

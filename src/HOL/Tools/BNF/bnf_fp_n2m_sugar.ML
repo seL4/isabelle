@@ -370,7 +370,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
     fun gather_types _ _ rev_seens gen_seen [] = (rev rev_seens, gen_seen)
       | gather_types lthy rho rev_seens gen_seen ((T as Type (_, tyargs)) :: Ts) =
         let
-          val {fp_res = {Ts = mutual_Ts0, ...}, ...} = the_fp_sugar_of T;
+          val {T = Type (_, tyargs0), fp_res = {Ts = mutual_Ts0, ...}, ...} = the_fp_sugar_of T;
           val mutual_Ts = map (retypargs tyargs) mutual_Ts0;
 
           val rev_seen = flat rev_seens;
@@ -379,9 +379,11 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
 
           fun fresh_tyargs () =
             let
-              val (gen_tyargs, lthy') =
+              val (unsorted_gen_tyargs, lthy') =
                 variant_tfrees (replicate (length tyargs) "a") lthy
                 |>> map Logic.varifyT_global;
+              val gen_tyargs =
+                map2 (resort_tfree_or_tvar o snd o dest_TFree_or_TVar) tyargs0 unsorted_gen_tyargs;
               val rho' = (gen_tyargs ~~ tyargs) @ rho;
             in
               (rho', gen_tyargs, gen_seen, lthy')

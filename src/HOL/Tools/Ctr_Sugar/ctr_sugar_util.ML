@@ -35,7 +35,7 @@ sig
   val mk_Frees: string -> typ list -> Proof.context -> term list * Proof.context
   val mk_Freess: string -> typ list list -> Proof.context -> term list list * Proof.context
   val dest_TFree_or_TVar: typ -> string * sort
-  val resort_tfree: sort -> typ -> typ
+  val resort_tfree_or_tvar: sort -> typ -> typ
   val variant_types: string list -> sort list -> Proof.context ->
     (string * sort) list * Proof.context
   val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
@@ -182,7 +182,8 @@ fun dest_TFree_or_TVar (TFree sS) = sS
   | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
   | dest_TFree_or_TVar _ = error "Invalid type argument";
 
-fun resort_tfree S (TFree (s, _)) = TFree (s, S);
+fun resort_tfree_or_tvar S (TFree (s, _)) = TFree (s, S)
+  | resort_tfree_or_tvar S (TVar (x, _)) = TVar (x, S);
 
 fun ensure_prefix pre s = s |> not (String.isPrefix pre s) ? prefix pre;
 

@@ -1187,7 +1187,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       end;
 
     val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of_spec) specs;
-    val unsorted_Ass0 = map (map (resort_tfree @{sort type})) Ass0;
+    val unsorted_Ass0 = map (map (resort_tfree_or_tvar @{sort type})) Ass0;
     val unsorted_As = Library.foldr1 (merge_type_args fp) unsorted_Ass0;
     val num_As = length unsorted_As;
 
@@ -1196,7 +1196,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val ((((Bs0, Cs as C1 :: _), Es as E1 :: _), Xs), no_defs_lthy) =
       no_defs_lthy0
-      |> fold (Variable.declare_typ o resort_tfree dummyS) unsorted_As
+      |> fold (Variable.declare_typ o resort_tfree_or_tvar dummyS) unsorted_As
       |> mk_TFrees num_As
       ||>> mk_TFrees nn
       ||>> mk_TFrees nn
@@ -1340,7 +1340,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         ();
 
     val Bs =
-      map3 (fn alive => fn A as TFree (_, S) => fn B => if alive then resort_tfree S B else A)
+      map3 (fn alive => fn A as TFree (_, S) => fn B =>
+          if alive then resort_tfree_or_tvar S B else A)
         (liveness_of_fp_bnf num_As any_fp_bnf) As Bs0;
 
     val B_ify = Term.typ_subst_atomic (As ~~ Bs);
