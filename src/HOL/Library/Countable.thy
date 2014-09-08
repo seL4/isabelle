@@ -255,7 +255,7 @@ instance list :: (countable) countable
 text {* String literals *}
 
 instance String.literal :: countable
-  by (rule countable_classI [of "to_nat o String.explode"]) (auto simp add: explode_inject)
+  by (rule countable_classI [of "to_nat \<circ> String.explode"]) (auto simp add: explode_inject)
 
 text {* Functions *}
 
@@ -301,12 +301,12 @@ context field_char_0
 begin
 
 lemma Rats_eq_range_of_rat_o_nat_to_rat_surj:
-  "\<rat> = range (of_rat o nat_to_rat_surj)"
+  "\<rat> = range (of_rat \<circ> nat_to_rat_surj)"
   using surj_nat_to_rat_surj
   by (auto simp: Rats_def image_def surj_def) (blast intro: arg_cong[where f = of_rat])
 
 lemma surj_of_rat_nat_to_rat_surj:
-  "r\<in>\<rat> \<Longrightarrow> \<exists>n. r = of_rat(nat_to_rat_surj n)"
+  "r \<in> \<rat> \<Longrightarrow> \<exists>n. r = of_rat (nat_to_rat_surj n)"
   by (simp add: Rats_eq_range_of_rat_o_nat_to_rat_surj image_def)
 
 end

@@ -88,8 +88,7 @@ fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
       Const (@{const_name to_nat}, tap check_countable T --> HOLogic.natT);
 
     val nn = length ns;
-    val recs as rec1 :: _ =
-      map2 (fn fpT => mk_co_rec thy Least_FP fpT (replicate nn HOLogic.natT)) fpTs recs0;
+    val recs as rec1 :: _ = map2 (mk_co_rec thy Least_FP (replicate nn HOLogic.natT)) fpTs recs0;
     val arg_Ts = binder_fun_types (fastype_of rec1);
     val arg_Tss = Library.unflat ctrss0 arg_Ts;
 
