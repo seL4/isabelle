@@ -104,8 +104,12 @@ fun map_partition f xs =
       case f x of SOME y => (y :: ys, (x :: good, bad)) | NONE => (ys, (good, x :: bad)))
     xs ([], ([], []));
 
-fun key_of_fp_eqs fp fpTs fp_eqs =
-  Type (case_fp fp "l" "g", fpTs @ maps (fn (x, T) => [TFree x, T]) fp_eqs);
+fun key_of_fp_eqs fp As fpTs fp_eqs =
+  Type (case_fp fp "l" "g", fpTs @ maps (fn (x, T) => [TFree x, T]) fp_eqs)
+  |> Term.map_atyps (fn T as TFree (_, S) =>
+    (case find_index (curry (op =) T) As of
+      ~1 => T
+    | j => TFree ("'" ^ string_of_int j, S)));
 
 fun get_indices callers t =
   callers
@@ -202,7 +206,7 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
     val mss = map (map length) ctr_Tsss;
 
     val fp_eqs = map dest_TFree Xs ~~ ctrXs_repTs;
-    val key = key_of_fp_eqs fp fpTs fp_eqs;
+    val key = key_of_fp_eqs fp As fpTs fp_eqs;
   in
     (case n2m_sugar_of no_defs_lthy key of
       SOME n2m_sugar => (n2m_sugar, no_defs_lthy)
@@ -375,9 +379,8 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
 
           fun fresh_tyargs () =
             let
-              (* The name "'zy" is unlikely to clash with the context, yielding more cache hits. *)
               val (gen_tyargs, lthy') =
-                variant_tfrees (replicate (length tyargs) "zy") lthy
+                variant_tfrees (replicate (length tyargs) "a") lthy
                 |>> map Logic.varifyT_global;
               val rho' = (gen_tyargs ~~ tyargs) @ rho;
             in
