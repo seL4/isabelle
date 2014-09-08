@@ -30,7 +30,7 @@ primcorec myapp :: "'a mylist \<Rightarrow> 'a mylist \<Rightarrow> 'a mylist" w
       else if ys = MyNil then xs
       else MyCons (myhd xs) (myapp (mytl xs) ys))"
 
-primcorec shuffle_sp :: "('a, 'b, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 'b, 'c) some_passive" where
+primcorec shuffle_sp :: "('a \<Colon> ord, 'b \<Colon> ord, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 'b, 'c) some_passive" where
   "shuffle_sp sp =
      (case sp of
        SP1 sp' \<Rightarrow> SP1 (shuffle_sp sp')

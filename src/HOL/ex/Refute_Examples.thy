@@ -1065,8 +1065,8 @@ oops
 datatype_new Trie = TR "Trie list"
 datatype_compat Trie
 
-abbreviation "rec_Trie_1 \<equiv> compat_Trie.n2m_Trie_rec"
-abbreviation "rec_Trie_2 \<equiv> compat_Trie_list.n2m_Trie_list_rec"
+abbreviation "rec_Trie_1 \<equiv> compat_Trie.rec_n2m_Trie"
+abbreviation "rec_Trie_2 \<equiv> compat_Trie_list.rec_n2m_Trie_list"
 
 lemma "P (x::Trie)"
 refute [expect = potential]

@@ -35,7 +35,7 @@ primrec myrev :: "'a mylist \<Rightarrow> 'a mylist" where
   "myrev MyNil = MyNil" |
   "myrev (MyCons x xs) = myapp (myrev xs) (MyCons x MyNil)"
 
-primrec shuffle_sp :: "('a, 'b, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 'b, 'c) some_passive" where
+primrec shuffle_sp :: "('a \<Colon> ord, 'b \<Colon> ord, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 'b, 'c) some_passive" where
   "shuffle_sp (SP1 sp) = SP1 (shuffle_sp sp)" |
   "shuffle_sp (SP2 a) = SP3 a" |
   "shuffle_sp (SP3 b) = SP4 b" |
