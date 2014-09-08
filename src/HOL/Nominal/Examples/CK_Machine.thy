@@ -583,14 +583,5 @@ using a
 by (induct \<Gamma>\<equiv>"[]::tctx" t T)
    (auto dest!: canonical_tINT intro!: cbv.intros gr0I)
 
-end    
-   
-
-
-
-  
-
-  
-  
-
+end
 

@@ -46,7 +46,7 @@ nominal_datatype trm =
     Var "var"
   | App "trm" "trm" 
   | Lam "\<guillemotleft>var\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
-  | Let "\<guillemotleft>var\<guillemotright>trm" "trm" 
+  | Let "\<guillemotleft>var\<guillemotright>trm" "trm"
 
 abbreviation
   LetBe :: "var \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> trm" ("Let _ be _ in _" [100,100,100] 100)

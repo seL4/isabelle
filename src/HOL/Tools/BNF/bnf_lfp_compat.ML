@@ -183,6 +183,10 @@ fun define_split_rec_derive_induct_rec_thms Xs fpTs ctrXs_Tsss ctrss inducts ind
     ((inducts', induct', recs', rec'_thmss), lthy')
   end;
 
+fun body_rec_indices (Old_Datatype_Aux.DtRec kk) = [kk]
+  | body_rec_indices (Old_Datatype_Aux.DtType (@{type_name fun}, [_, D])) = body_rec_indices D
+  | body_rec_indices _ = [];
+
 fun reindex_desc desc =
   let
     val kks = map fst desc;
@@ -259,22 +263,19 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
       split_list (flat (map_index (fn (i, descr) => map (pair i) descr)
         (maps cliquify_descr descrs)));
 
-    val dest_dtyp = Old_Datatype_Aux.typ_of_dtyp descr;
-
     val fpTs' = Old_Datatype_Aux.get_rec_types descr;
     val nn = length fpTs';
 
     val fp_sugars = map (lfp_sugar_of o fst o dest_Type) fpTs';
-    val ctrXs_Tsss = map (map (map dest_dtyp o snd) o #3 o snd) descr;
-    val kkssss =
-      map (map (map (fn Old_Datatype_Aux.DtRec kk => [kk] | _ => []) o snd) o #3 o snd) descr;
+    val ctr_Tsss = map (map (map (Old_Datatype_Aux.typ_of_dtyp descr) o snd) o #3 o snd) descr;
+    val kkssss = map (map (map body_rec_indices o snd) o #3 o snd) descr;
 
     val callers = map (fn kk => Var ((Name.uu, kk), @{typ "unit => unit"})) (0 upto nn - 1);
 
     fun apply_comps n kk =
       mk_partial_compN n (replicate n HOLogic.unitT ---> HOLogic.unitT) (nth callers kk);
 
-    val callssss = map2 (map2 (map2 (map o apply_comps o num_binder_types))) ctrXs_Tsss kkssss;
+    val callssss = map2 (map2 (map2 (map o apply_comps o num_binder_types))) ctr_Tsss kkssss;
 
     val b_names = Name.variant_list [] (map base_name_of_typ fpTs');
     val compat_b_names = map (prefix compat_N) b_names;
