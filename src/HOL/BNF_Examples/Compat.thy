@@ -64,6 +64,9 @@ datatype_compat x
 
 ML \<open> get_descrs @{theory} (3, 3, 1) @{type_name x}; \<close>
 
+thm x.induct x.rec
+thm compat_x.induct compat_x.rec
+
 datatype_new 'a tttre = TTTre 'a "'a tttre lst lst lst"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name tttre}; \<close>
@@ -71,6 +74,9 @@ ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name tttre}; \<close>
 datatype_compat tttre
 
 ML \<open> get_descrs @{theory} (4, 4, 1) @{type_name tttre}; \<close>
+
+thm tttre.induct tttre.rec
+thm compat_tttre.induct compat_tttre.rec
 
 datatype_new 'a ftre = FEmp | FTre "'a \<Rightarrow> 'a ftre lst"
 
@@ -80,6 +86,9 @@ datatype_compat ftre
 
 ML \<open> get_descrs @{theory} (2, 2, 1) @{type_name ftre}; \<close>
 
+thm ftre.induct ftre.rec
+thm compat_ftre.induct compat_ftre.rec
+
 datatype_new 'a btre = BTre 'a "'a btre lst" "'a btre lst"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name btre}; \<close>
@@ -87,6 +96,9 @@ ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name btre}; \<close>
 datatype_compat btre
 
 ML \<open> get_descrs @{theory} (3, 3, 1) @{type_name btre}; \<close>
+
+thm btre.induct btre.rec
+thm compat_btre.induct compat_btre.rec
 
 datatype_new 'a foo = Foo | Foo' 'a "'a bar" and 'a bar = Bar | Bar' 'a "'a foo"
 
@@ -106,10 +118,8 @@ datatype_compat tre
 
 ML \<open> get_descrs @{theory} (2, 2, 1) @{type_name tre}; \<close>
 
-fun f_tre and f_tres where
-  "f_tre (Tre a ts) = {a} \<union> f_tres ts"
-| "f_tres Nl = {}"
-| "f_tres (Cns t ts) = f_tres ts"
+thm tre.induct tre.rec
+thm compat_tre.induct compat_tre.rec
 
 datatype_new 'a f = F 'a and 'a g = G 'a
 
@@ -130,6 +140,9 @@ datatype_compat h
 
 ML \<open> get_descrs @{theory} (3, 3, 1) @{type_name h}; \<close>
 
+thm h.induct h.rec
+thm compat_h.induct compat_h.rec
+
 datatype_new myunit = MyUnity
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name myunit}; \<close>
@@ -146,10 +159,6 @@ datatype_compat mylist
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name mylist}; \<close>
 
-fun f_mylist where
-  "f_mylist MyNil = 0"
-| "f_mylist (MyCons _ xs) = Suc (f_mylist xs)"
-
 datatype_new foo' = FooNil | FooCons bar' foo' and bar' = Bar
 
 ML \<open> get_descrs @{theory} (0, 2, 2) @{type_name foo'}; \<close>
@@ -159,11 +168,6 @@ datatype_compat bar' foo'
 
 ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name foo'}; \<close>
 ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name bar'}; \<close>
-
-fun f_foo and f_bar where
-  "f_foo FooNil = 0"
-| "f_foo (FooCons bar foo) = Suc (f_foo foo) + f_bar bar"
-| "f_bar Bar = Suc 0"
 
 datatype funky = Funky "funky tre" | Funky'
 
@@ -181,8 +185,11 @@ datatype_compat tree
 
 ML \<open> get_descrs @{theory} (3, 3, 1) @{type_name tree}; \<close>
 
+thm tree.induct tree.rec
+thm compat_tree.induct compat_tree.rec
 
-subsection \<open> Creating a New-Style Datatype Using an Old-Style Interface \<close>
+
+subsection \<open> Creating New-Style Datatypes Using Old-Style Interfaces \<close>
 
 ML \<open>
 val l_specs =
@@ -191,7 +198,7 @@ val l_specs =
     (@{binding C}, [@{typ 'a}, Type (Sign.full_name @{theory} @{binding l}, [@{typ 'a}])], NoSyn)])];
 \<close>
 
-setup \<open> snd o BNF_LFP_Compat.add_datatype BNF_LFP_Compat.Unfold_Nesting l_specs \<close>
+setup \<open> snd o BNF_LFP_Compat.add_datatype BNF_LFP_Compat.Unfold_Nesting l_specs; \<close>
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name l}; \<close>
 
@@ -204,10 +211,26 @@ val t_specs =
        [Type (Sign.full_name @{theory} @{binding t}, [@{typ 'b}])])], NoSyn)])];
 \<close>
 
-setup \<open> snd o BNF_LFP_Compat.add_datatype BNF_LFP_Compat.Unfold_Nesting t_specs \<close>
+setup \<open> snd o BNF_LFP_Compat.add_datatype BNF_LFP_Compat.Unfold_Nesting t_specs; \<close>
 
 ML \<open> get_descrs @{theory} (2, 2, 1) @{type_name t}; \<close>
 
 thm t.exhaust t.map t.induct t.rec t.size
+thm compat_t.induct compat_t.rec
+
+ML \<open>
+val ft_specs =
+  [((@{binding ft}, [("'a", @{sort type})], NoSyn),
+   [(@{binding FT0}, [], NoSyn),
+    (@{binding FT}, [@{typ 'a} --> Type (Sign.full_name @{theory} @{binding ft}, [@{typ 'a}])],
+     NoSyn)])];
+\<close>
+
+setup \<open> snd o BNF_LFP_Compat.add_datatype BNF_LFP_Compat.Unfold_Nesting ft_specs; \<close>
+
+ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name ft}; \<close>
+
+thm ft.exhaust ft.induct ft.rec ft.size
+thm compat_ft.induct compat_ft.rec
 
 end
