@@ -26,8 +26,8 @@ generated datatypes and codatatypes. The datatype support is similar to that
 provided by the earlier package due to Berghofer and Wenzel
 \cite{Berghofer-Wenzel:1999:TPHOL}, documented in the Isar reference manual
 \cite{isabelle-isar-ref}; indeed, replacing the keyword \keyw{datatype} by
-@{command datatype_new} is usually all that is needed to port existing theories
-to use the new package.
+@{command datatype_new} is often all that is needed to port existing theories to
+use the new package.
 
 Perhaps the main advantage of the new package is that it supports recursion
 through a large class of non-datatypes, such as finite sets:
@@ -125,10 +125,10 @@ use the command @{command free_constructors} to derive destructor constants
 and theorems for freely generated types, as performed internally by @{command
 datatype_new} and @{command codatatype}.
 
-%\item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
-%describes the package's programmatic interface.
+%\item Section \ref{sec:using-the-standard-ml-interface}, ``Using the Standard
+ML Interface,'' %describes the package's programmatic interface.
 
-\item Section \ref{sec:plugins}, ``Plugins,''
+\item Section \ref{sec:controlling-plugins}, ``Controlling Plugins,''
 is concerned with the package's interoperability with other Isabelle packages
 and tools, such as the code generator, Transfer, Lifting, and Quickcheck.
 
@@ -177,6 +177,7 @@ Datatypes are illustrated through concrete examples featuring different flavors
 of recursion. More examples can be found in the directory
 \verb|~~/src/HOL/|\allowbreak\verb|BNF/Examples|.
 *}
+
 
 subsubsection {* Nonrecursive Types
   \label{sssec:datatype-nonrecursive-types} *}
@@ -237,7 +238,7 @@ text {*
 Natural numbers are the simplest example of a recursive type:
 *}
 
-    datatype_new nat = Zero | Suc nat
+    datatype_new nat = Zero | Succ nat
 
 text {*
 \noindent
@@ -257,8 +258,8 @@ each other. The example below introduces a pair of types for even and odd
 natural numbers:
 *}
 
-    datatype_new even_nat = Even_Zero | Even_Suc odd_nat
-    and odd_nat = Odd_Suc even_nat
+    datatype_new even_nat = Even_Zero | Even_Succ odd_nat
+    and odd_nat = Odd_Succ even_nat
 
 text {*
 \noindent
@@ -348,6 +349,7 @@ recursive call in the type specification occurs around (rather than inside)
 another type constructor.
 *}
 
+
 subsubsection {* Auxiliary Constants and Properties
   \label{sssec:datatype-auxiliary-constants-and-properties} *}
 
@@ -371,7 +373,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
       Cons (infixr "#" 65)
 
     hide_type list
-    hide_const Nil Cons hd tl set map list_all2 rec_list size_list
+    hide_const Nil Cons case_list hd tl set map list_all2 rec_list size_list pred_list
 
     context early begin
 (*>*)
@@ -467,7 +469,6 @@ text {* \blankline *}
 
 subsection {* Command Syntax
   \label{ssec:datatype-command-syntax} *}
-
 
 subsubsection {* \keyw{datatype_new}
   \label{sssec:datatype-new} *}
@@ -594,7 +595,7 @@ text {*
 
 \noindent
 The @{command datatype_compat} command registers new-style datatypes as
-old-style datatypes. For example:
+old-style datatypes and invokes the old-style plugins. For example:
 *}
 
     datatype_compat even_nat odd_nat
@@ -664,9 +665,10 @@ Recursor: &
 \medskip
 
 \noindent
-The case combinator, discriminators, and selectors are collectively called
-\emph{destructors}. The prefix ``@{text "t."}'' is an optional component of the
-names and is normally hidden.
+In addition, some of the plugins introduce their own constants
+(Section~\ref{sec:plugins}). The case combinator, discriminators, and selectors
+are collectively called \emph{destructors}. The prefix ``@{text "t."}'' is an
+optional component of the names and is normally hidden.
 *}
 
 
@@ -696,8 +698,9 @@ are properties of datatypes related to their inductive nature.
 \noindent
 The full list of named theorems can be obtained as usual by entering the
 command \keyw{print_theorems} immediately after the datatype definition.
-This list normally excludes low-level theorems that reveal internal
-constructions. To make these accessible, add the line
+This list includes theorems produced by plugins (Section~\ref{sec:plugins}),
+but normally excludes low-level theorems that reveal internal constructions. To
+make these accessible, add the line
 *}
 
     declare [[bnf_note_all]]
@@ -709,6 +712,7 @@ text {*
 \noindent
 to the top of the theory file.
 *}
+
 
 subsubsection {* Free Constructor Theorems
   \label{sssec:free-constructor-theorems} *}
@@ -932,7 +936,7 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{set_transfer}\rm:] ~ \\
 @{thm list.set_transfer[no_vars]}
 
-\item[@{text "t."}\hthm{map_comg0}\rm:] ~ \\
+\item[@{text "t."}\hthm{map_cong0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
 
 \item[@{text "t."}\hthm{map_cong} @{text "[fundef_cong]"}\rm:] ~ \\
@@ -954,7 +958,7 @@ the map function, and the relator:
 @{thm list.map_transfer[no_vars]}
 
 \item[@{text "t."}\hthm{rel_compp} @{text "[relator_distr]"}\rm:] ~ \\
-@{thm list.rel_compp[no_vars]}
+@{thm list.rel_compp[no_vars]} \\
 (The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin,
 Section~\ref{ssec:lifting}.)
 
@@ -972,7 +976,7 @@ Section~\ref{ssec:lifting}.)
 @{thm list.rel_map(2)[no_vars]}
 
 \item[@{text "t."}\hthm{rel_mono} @{text "[relator_mono]"}\rm:] ~ \\
-@{thm list.rel_mono[no_vars]}
+@{thm list.rel_mono[no_vars]} \\
 (The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin,
 Section~\ref{ssec:lifting}.)
 
@@ -1040,9 +1044,8 @@ incompatibilities that may arise when porting to the new package:
 
 \item \emph{The Standard ML interfaces are different.} Tools and extensions
 written to call the old ML interfaces will need to be adapted to the new
-interfaces. Whenever possible, it is recommended to use the
-@{command datatype_compat} command to register new-style datatypes as old-style
-datatypes.
+interfaces. If possible, it is recommended to register new-style datatypes as
+old-style datatypes using the @{command datatype_compat} command.
 
 \item \emph{The recursor @{text rec_t} has a different signature for nested
 recursive datatypes.} In the old package, nested recursion through non-functions
@@ -1167,7 +1170,7 @@ allowed on the right-hand side:
 
     primrec replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
       "replicate Zero _ = []" |
-      "replicate (Suc n) x = x # replicate n x"
+      "replicate (Succ n) x = x # replicate n x"
 
 text {* \blankline *}
 
@@ -1175,7 +1178,7 @@ text {* \blankline *}
       "at (x # xs) j =
          (case j of
             Zero \<Rightarrow> x
-          | Suc j' \<Rightarrow> at xs j')"
+          | Succ j' \<Rightarrow> at xs j')"
 
 text {* \blankline *}
 
@@ -1211,7 +1214,7 @@ for use with \keyw{fun} and \keyw{function}
 text {* \blankline *}
 
     fun at_least_two :: "nat \<Rightarrow> bool" where
-      "at_least_two (Suc (Suc _)) \<longleftrightarrow> True" |
+      "at_least_two (Succ (Succ _)) \<longleftrightarrow> True" |
       "at_least_two _ \<longleftrightarrow> False"
 
 
@@ -1228,8 +1231,8 @@ is straightforward:
       nat_of_odd_nat :: "odd_nat \<Rightarrow> nat"
     where
       "nat_of_even_nat Even_Zero = Zero" |
-      "nat_of_even_nat (Even_Suc n) = Suc (nat_of_odd_nat n)" |
-      "nat_of_odd_nat (Odd_Suc n) = Suc (nat_of_even_nat n)"
+      "nat_of_even_nat (Even_Succ n) = Succ (nat_of_odd_nat n)" |
+      "nat_of_odd_nat (Odd_Succ n) = Succ (nat_of_even_nat n)"
 
 text {* \blankline *}
 
@@ -1256,9 +1259,9 @@ Mutual recursion is possible within a single type, using \keyw{fun}:
       odd :: "nat \<Rightarrow> bool"
     where
       "even Zero = True" |
-      "even (Suc n) = odd n" |
+      "even (Succ n) = odd n" |
       "odd Zero = False" |
-      "odd (Suc n) = even n"
+      "odd (Succ n) = even n"
 
 
 subsubsection {* Nested Recursion
@@ -1370,7 +1373,7 @@ datatypes. For example:
       "ats\<^sub>f\<^sub>f (t # ts) j =
          (case j of
             Zero \<Rightarrow> at\<^sub>f\<^sub>f t
-          | Suc j' \<Rightarrow> ats\<^sub>f\<^sub>f ts j')"
+          | Succ j' \<Rightarrow> ats\<^sub>f\<^sub>f ts j')"
 
 text {*
 \noindent
@@ -1428,7 +1431,6 @@ text {*
 
 subsection {* Command Syntax
   \label{ssec:primrec-command-syntax} *}
-
 
 subsubsection {* \keyw{primrec}
   \label{sssec:primrec-new} *}
@@ -1596,7 +1598,6 @@ for lazy lists \cite{lochbihler-2010}.
 subsection {* Introductory Examples
   \label{ssec:codatatype-introductory-examples} *}
 
-
 subsubsection {* Simple Corecursion
   \label{sssec:codatatype-simple-corecursion} *}
 
@@ -1635,13 +1636,13 @@ Another interesting type that can
 be defined as a codatatype is that of the extended natural numbers:
 *}
 
-    codatatype enat = EZero | ESuc enat
+    codatatype enat = EZero | ESucc enat
 
 text {*
 \noindent
-This type has exactly one infinite element, @{text "ESuc (ESuc (ESuc (\<dots>)))"},
+This type has exactly one infinite element, @{text "ESucc (ESucc (ESucc (\<dots>)))"},
 that represents $\infty$. In addition, it has finite values of the form
-@{text "ESuc (\<dots> (ESuc EZero)\<dots>)"}.
+@{text "ESucc (\<dots> (ESucc EZero)\<dots>)"}.
 
 Here is an example with many constructors:
 *}
@@ -1667,8 +1668,8 @@ text {*
 The example below introduces a pair of \emph{mutually corecursive} types:
 *}
 
-    codatatype even_enat = Even_EZero | Even_ESuc odd_enat
-    and odd_enat = Odd_ESuc even_enat
+    codatatype even_enat = Even_EZero | Even_ESucc odd_enat
+    and odd_enat = Odd_ESucc even_enat
 
 
 subsubsection {* Nested Corecursion
@@ -1692,7 +1693,6 @@ text {* \blankline *}
 
 subsection {* Command Syntax
   \label{ssec:codatatype-command-syntax} *}
-
 
 subsubsection {* \keyw{codatatype}
   \label{sssec:codatatype} *}
@@ -1903,6 +1903,7 @@ view is favored in the examples below. Sections
 present the same examples expressed using the constructor and destructor views.
 *}
 
+
 subsubsection {* Simple Corecursion
   \label{sssec:primcorec-simple-corecursion} *}
 
@@ -1973,7 +1974,7 @@ Corecursion is useful to specify not only functions but also infinite objects:
 *}
 
     primcorec infty :: enat where
-      "infty = ESuc infty"
+      "infty = ESucc infty"
 
 text {*
 \noindent
@@ -2016,8 +2017,8 @@ datatypes is unsurprising:
       even_infty :: even_enat and
       odd_infty :: odd_enat
     where
-      "even_infty = Even_ESuc odd_infty" |
-      "odd_infty = Odd_ESuc even_infty"
+      "even_infty = Even_ESucc odd_infty" |
+      "odd_infty = Odd_ESucc even_infty"
 
 
 subsubsection {* Nested Corecursion
@@ -2344,8 +2345,8 @@ Here are more examples to conclude:
       odd_infty :: odd_enat
     where
       "even_infty \<noteq> Even_EZero" |
-      "un_Even_ESuc even_infty = odd_infty" |
-      "un_Odd_ESuc odd_infty = even_infty"
+      "un_Even_ESucc even_infty = odd_infty" |
+      "un_Odd_ESucc odd_infty = even_infty"
 
 text {* \blankline *}
 
@@ -2359,7 +2360,6 @@ text {* \blankline *}
 
 subsection {* Command Syntax
   \label{ssec:primcorec-command-syntax} *}
-
 
 subsubsection {* \keyw{primcorec} and \keyw{primcorecursive}
   \label{sssec:primcorecursive-and-primcorec} *}
@@ -2596,7 +2596,6 @@ text {* \blankline *}
 subsection {* Command Syntax
   \label{ssec:bnf-command-syntax} *}
 
-
 subsubsection {* \keyw{bnf}
   \label{sssec:bnf} *}
 
@@ -2713,7 +2712,6 @@ subsection {* Introductory Example
 subsection {* Command Syntax
   \label{ssec:ctors-command-syntax} *}
 
-
 subsubsection {* \keyw{free_constructors}
   \label{sssec:free-constructors} *}
 
@@ -2756,8 +2754,8 @@ added manually using \keyw{declare}.
 
 
 (*
-section {* Standard ML Interface
-  \label{sec:standard-ml-interface} *}
+section {* Using the Standard ML Interface
+  \label{sec:using-the-standard-ml-interface} *}
 
 text {*
 The package's programmatic interface.
@@ -2765,26 +2763,27 @@ The package's programmatic interface.
 *)
 
 
-section {* Plugins
-  \label{sec:plugins} *}
+section {* Controlling Plugins
+  \label{sec:controlling-plugins} *}
 
 text {*
 Plugins extend the (co)datatype package to interoperate with other Isabelle
 packages and tools, such as the code generator, Transfer, Lifting, and
 Quickcheck. They can be enabled or disabled individually using the
-@{syntax plugins} option to @{command datatype_new}, @{command codatatype},
-@{command free_constructors}, @{command bnf}, and @{command bnf_axiomatization}.
+@{syntax plugins} option to the commands @{command datatype_new},
+@{command codatatype}, @{command free_constructors}, @{command bnf}, and
+@{command bnf_axiomatization}.
 For example:
 *}
 
-    datatype_new (plugins del: code) color = Red | Black
+    datatype_new (plugins del: code "quickcheck_*") color = Red | Black
 
 
 subsection {* Code Generator
   \label{ssec:code-generator} *}
 
 text {*
-The @{text code} plugin registers (co)datatypes and other freely generated types
+The \hthm{code} plugin registers (co)datatypes and other freely generated types
 for code generation. No distinction is made between datatypes and codatatypes.
 This means that for target languages with a strict evaluation strategy (e.g.,
 Standard ML), programs that attempt to produce infinite codatatype values will
@@ -2815,7 +2814,7 @@ subsection {* Size
   \label{ssec:size} *}
 
 text {*
-For each datatype, the @{text size} plugin generates a parameterized size
+For each datatype, the \hthm{size} plugin generates a parameterized size
 function @{text "t.size_t"} as well as a specific instance
 @{text "size \<Colon> t \<Rightarrow> bool"} belonging to the @{text size} type
 class. The \keyw{fun} command relies on @{const size} to prove termination of
@@ -2849,7 +2848,7 @@ subsection {* Transfer
 
 text {*
 For each (co)datatype with live type arguments and each manually registered BNF,
-the @{text transfer} plugin generates a predicator @{text "t.pred_t"} and
+the \hthm{transfer} plugin generates a predicator @{text "t.pred_t"} and
 properties that guide the Transfer tool.
 
 The plugin derives the following properties:
@@ -2895,7 +2894,7 @@ subsection {* Lifting
 
 text {*
 For each (co)datatype with live type arguments and each manually registered BNF,
-the @{text lifting} plugin generates properties and attributes that guide the
+the \hthm{lifting} plugin generates properties and attributes that guide the
 Lifting tool.
 
 The plugin derives the following property:
@@ -2909,7 +2908,7 @@ The plugin derives the following property:
 \end{description}
 \end{indentblock}
 
-In addition, the plugins sets the @{text "[relator_eq_onp]"} attribute on a
+In addition, the plugin sets the @{text "[relator_eq_onp]"} attribute on a
 variant of the @{text t.rel_eq_onp} property generated by the @{text quotient}
 plugin, the @{text "[relator_mono]"} attribute on @{text t.rel_mono}, and the
 @{text "[relator_distr]"} attribute on @{text t.rel_compp}.
@@ -2920,10 +2919,16 @@ subsection {* Quickcheck
   \label{ssec:quickcheck} *}
 
 text {*
-The integration of (co)datatypes with Quickcheck is accomplished by a number of
-plugins that instantiate specific type classes: @{text quickcheck_random},
-@{text quickcheck_exhaustive}, @{text quickcheck_bounded_forall},
-@{text quickcheck_full_exhaustive}, and @{text quickcheck_narrowing}.
+The integration of datatypes with Quickcheck is accomplished by a number of
+plugins that instantiate specific type classes. The plugins are listed below:
+
+\begin{indentblock}
+\hthm{quickcheck_random} \\
+\hthm{quickcheck_exhaustive} \\
+\hthm{quickcheck_bounded_forall} \\
+\hthm{quickcheck_full_exhaustive} \\
+\hthm{quickcheck_narrowing}
+\end{indentblock}
 *}
 
 
@@ -2958,12 +2963,12 @@ text {*
 Tobias Nipkow and Makarius Wenzel encouraged us to implement the new
 (co)datatype package. Andreas Lochbihler provided lots of comments on earlier
 versions of the package, especially on the coinductive part. Brian Huffman
-suggested major simplifications to the internal constructions, many of which
-have yet to be implemented. Florian Haftmann and Christian Urban provided
-general advice on Isabelle and package writing. Stefan Milius and Lutz
-Schr\"oder found an elegant proof that eliminated one of the BNF proof
-obligations. Andreas Lochbihler and Christian Sternagel suggested many textual
-improvements to this tutorial.
+suggested major simplifications to the internal constructions. Ond\v{r}ej
+Kun\v{c}ar implemented the @{text transfer} and @{text lifting} plugins.
+Florian Haftmann and Christian Urban provided general advice on Isabelle and
+package writing. Stefan Milius and Lutz Schr\"oder found an elegant proof that
+eliminated one of the BNF proof obligations. Andreas Lochbihler and Christian
+Sternagel suggested many textual improvements to this tutorial.
 *}
 
 end
