@@ -52,8 +52,7 @@ sig
     'a list
   val nesting_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
 
-  type lfp_sugar_thms =
-    (thm list * thm * Token.src list) * (thm list list * Token.src list)
+  type lfp_sugar_thms = (thm list * thm * Token.src list) * (thm list list * Token.src list)
 
   val morph_lfp_sugar_thms: morphism -> lfp_sugar_thms -> lfp_sugar_thms
   val transfer_lfp_sugar_thms: theory -> lfp_sugar_thms -> lfp_sugar_thms
@@ -90,6 +89,7 @@ sig
   val define_corec: 'a * term list * term list list
       * ((term list list * term list list list) * typ list) -> (string -> binding) -> 'b list ->
     typ list -> term list -> term -> local_theory -> (term * thm) * local_theory
+  val mk_induct_attrs: term list list -> Token.src list
   val derive_induct_recs_thms_for_types: BNF_Def.bnf list ->
      ('a * typ list list list list * term list list * 'b) option -> thm -> thm list ->
      BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list -> typ list ->
@@ -385,8 +385,7 @@ fun nesting_bnfs ctxt ctr_Tsss Us =
 
 fun indexify proj xs f p = f (find_index (curry (op =) (proj p)) xs) p;
 
-type lfp_sugar_thms =
-  (thm list * thm * Token.src list) * (thm list list * Token.src list);
+type lfp_sugar_thms = (thm list * thm * Token.src list) * (thm list list * Token.src list);
 
 fun morph_lfp_sugar_thms phi ((inducts, induct, induct_attrs), (recss, rec_attrs)) =
   ((map (Morphism.thm phi) inducts, Morphism.thm phi induct, induct_attrs),
