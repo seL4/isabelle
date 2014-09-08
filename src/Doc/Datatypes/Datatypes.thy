@@ -605,9 +605,8 @@ text {* \blankline *}
 text {*
 The syntactic entity \synt{name} denotes an identifier \cite{isabelle-isar-ref}.
 
-The command is interesting because the old datatype package provides some
-functionality that is not yet replicated in the new package, such as the
-integration with Quickcheck.
+The command can be useful because the old datatype package provides some
+functionality that is not yet replicated in the new package.
 
 A few remarks concern nested recursive datatypes:
 
@@ -622,10 +621,6 @@ generated under their usual names but with ``@{text "compat_"}'' prefixed
 or the function type. In principle, it should be possible to support old-style
 datatypes as well, but this has not been implemented yet (and there is currently
 no way to register old-style datatypes as new-style datatypes).
-
-\item The recursor produced for types that recurse through functions has a
-different signature than with the old package. This might affect the behavior of
-some third-party extensions.
 \end{itemize}
 
 An alternative to @{command datatype_compat} is to use the old package's
