@@ -1472,7 +1472,25 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           else
             let
               val rel_flip = rel_flip_of_bnf fp_bnf;
-              val nones = replicate live NONE;
+
+              val live_AsBs = filter (op <>) (As ~~ Bs);
+              val fTs = map (op -->) live_AsBs;
+              val (((((fs, Rs), ta), tb), thesis), names_lthy) = names_lthy
+                |> mk_Frees "f" fTs
+                ||>> mk_Frees "R" (map (uncurry mk_pred2T) live_AsBs)
+                ||>> yield_singleton (mk_Frees "a") fpT
+                ||>> yield_singleton (mk_Frees "b") fpBT
+                ||>> apfst HOLogic.mk_Trueprop o
+                  yield_singleton (mk_Frees "thesis") HOLogic.boolT;
+              val map_term = mk_map live As Bs (map_of_bnf fp_bnf);
+              val ctrAs = map (mk_ctr As) ctrs;
+              val ctrBs = map (mk_ctr Bs) ctrs;
+              val relAsBs = mk_rel live As Bs (rel_of_bnf fp_bnf);
+              val setAs = map (mk_set As) (sets_of_bnf fp_bnf);
+              val discAs = map (mk_disc_or_sel As) discs;
+              val discBs = map (mk_disc_or_sel Bs) discs;
+              val selAss = map (map (mk_disc_or_sel As)) selss;
+              val discAs_selAss = flat (map2 (map o pair) discAs selAss);
 
               val ctor_cong =
                 if fp = Least_FP then
@@ -1497,7 +1515,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   (unfold_thms lthy (o_apply :: pre_map_def ::
                        (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_map @
                        abs_inverses)
-                     (cterm_instantiate_pos (nones @ [SOME cxIn])
+                     (cterm_instantiate_pos (map (SOME o certify lthy) fs @ [SOME cxIn])
                         (if fp = Least_FP then fp_map_thm
                          else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans))))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
@@ -1526,7 +1544,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   (unfold_thms lthy (pre_rel_def :: abs_inverse ::
                        (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
                        @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]})
-                     (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
+                     (cterm_instantiate_pos (map (SOME o certify lthy) Rs @ [SOME cxIn, SOME cyIn])
+                        fp_rel_thm))
                 |> postproc
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
@@ -1569,25 +1588,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                    case_transfer_thms, ctr_transfer_thms, disc_transfer_thms,
                    (set_cases_thms, set_cases_attrss), (rel_cases_thm, rel_cases_attrs)) =
                 let
-                  val live_AsBs = filter (op <>) (As ~~ Bs);
-                  val fTs = map (op -->) live_AsBs;
-                  val (((((fs, Rs), ta), tb), thesis), names_lthy) = names_lthy
-                    |> mk_Frees "f" fTs
-                    ||>> mk_Frees "R" (map (uncurry mk_pred2T) live_AsBs)
-                    ||>> yield_singleton (mk_Frees "a") fpT
-                    ||>> yield_singleton (mk_Frees "b") fpBT
-                    ||>> apfst HOLogic.mk_Trueprop o
-                      yield_singleton (mk_Frees "thesis") HOLogic.boolT;
-                  val map_term = mk_map live As Bs (map_of_bnf fp_bnf);
-                  val ctrAs = map (mk_ctr As) ctrs;
-                  val ctrBs = map (mk_ctr Bs) ctrs;
-                  val relAsBs = mk_rel live As Bs (rel_of_bnf fp_bnf);
-                  val setAs = map (mk_set As) (sets_of_bnf fp_bnf);
-                  val discAs = map (mk_disc_or_sel As) discs;
-                  val discBs = map (mk_disc_or_sel Bs) discs;
-                  val selAss = map (map (mk_disc_or_sel As)) selss;
-                  val discAs_selAss = flat (map2 (map o pair) discAs selAss);
-
                   val ctr_transfer_thms =
                     let
                       val goals = map2 (mk_parametricity_goal names_lthy Rs) ctrAs ctrBs;
