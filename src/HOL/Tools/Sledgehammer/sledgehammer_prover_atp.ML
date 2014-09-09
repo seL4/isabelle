@@ -383,7 +383,7 @@ fun run_atp mode name
                       |> (if waldmeister_new then termify_waldmeister_proof ctxt pool
                           else termify_atp_proof ctxt name format type_enc pool lifted sym_tab)
                       |> spass ? introduce_spass_skolems
-                      |> waldmeister_new ? introduce_waldmeister_skolems (the wm_info)
+                      |> (if waldmeister_new then introduce_waldmeister_skolems (the wm_info) else I)
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,
