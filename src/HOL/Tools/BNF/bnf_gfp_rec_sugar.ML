@@ -411,7 +411,8 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
           common_co_inducts = common_coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy) =
       nested_to_mutual_fps Greatest_FP bs res_Ts callers callssss0 lthy0;
 
-    val coinduct_attrs_pair = (case gfp_sugar_thms of SOME ((_, _, pair), _) => pair | NONE => []);
+    val coinduct_attrs_pair =
+      (case gfp_sugar_thms of SOME ((_, attrs_pair), _, _, _, _) => attrs_pair | NONE => ([], []));
 
     val perm_fp_sugars = sort (int_ord o pairself #fp_res_index) fp_sugars;
 
@@ -1412,7 +1413,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
         val common_notes =
           [(coinductN, if n2m then [coinduct_thm] else [], common_coinduct_attrs),
-           (coinduct_strongN, if n2m then [coinduct_strong_thm] else [], common_coindut_attrs)]
+           (coinduct_strongN, if n2m then [coinduct_strong_thm] else [], common_coinduct_attrs)]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
