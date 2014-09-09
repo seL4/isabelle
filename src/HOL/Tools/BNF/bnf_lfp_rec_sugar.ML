@@ -382,19 +382,19 @@ fun build_defs lthy nonexhaustive bs mxs (funs_data : eqn_data list list)
           ##> (fn x => null x orelse
             raise PRIMREC ("excess equations in definition", map #rhs_term x)) #> fst);
     val _ = ctr_spec_eqn_data_list' |> map (fn ({ctr, ...}, x) =>
-        if length x > 1 then raise PRIMREC ("multiple equations for constructor", map #user_eqn x)
-        else if length x = 1 orelse nonexhaustive then ()
-        else warning ("no equation for constructor " ^ Syntax.string_of_term lthy ctr));
+      if length x > 1 then raise PRIMREC ("multiple equations for constructor", map #user_eqn x)
+      else if length x = 1 orelse nonexhaustive then ()
+      else warning ("no equation for constructor " ^ Syntax.string_of_term lthy ctr));
 
     val ctr_spec_eqn_data_list =
       ctr_spec_eqn_data_list' @ (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
 
     val recs = take n_funs rec_specs |> map #recx;
     val rec_args = ctr_spec_eqn_data_list
-      |> sort ((op <) o pairself (#offset o fst) |> make_ord)
+      |> sort (op < o pairself (#offset o fst) |> make_ord)
       |> map (uncurry (build_rec_arg lthy funs_data has_call) o apsnd (try the_single));
     val ctr_poss = map (fn x =>
-      if length (distinct ((op =) o pairself (length o #left_args)) x) <> 1 then
+      if length (distinct (op = o pairself (length o #left_args)) x) <> 1 then
         raise PRIMREC ("inconstant constructor pattern position for function " ^
           quote (#fun_name (hd x)), [])
       else
@@ -450,7 +450,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
     val fun_names = map Binding.name_of bs;
     val eqns_data = map (dissect_eqn lthy0 fun_names) specs;
     val funs_data = eqns_data
-      |> partition_eq ((op =) o pairself #fun_name)
+      |> partition_eq (op = o pairself #fun_name)
       |> finds (fn (x, y) => x = #fun_name (hd y)) fun_names |> fst
       |> map (fn (x, y) => the_single y
           handle List.Empty => raise PRIMREC ("missing equations for function " ^ quote x, []));
@@ -460,7 +460,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
     val arg_Ts = map (#rec_type o hd) funs_data;
     val res_Ts = map (#res_type o hd) funs_data;
     val callssss = funs_data
-      |> map (partition_eq ((op =) o pairself #ctr))
+      |> map (partition_eq (op = o pairself #ctr))
       |> map (maps (map_filter (find_rec_calls has_call)));
 
     fun is_only_old_datatype (Type (s, _)) =
