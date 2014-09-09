@@ -58,7 +58,7 @@ val get_info = Symtab.lookup o get_all;
 fun the_info thy name =
   (case get_info thy name of
     SOME info => info
-  | NONE => error ("Unknown datatype " ^ quote name));
+  | NONE => error ("Unknown old-style datatype " ^ quote name));
 
 fun info_of_constr thy (c, T) =
   let
@@ -169,7 +169,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
       if eq_set (op =) (tycos, raw_tycos) then ()
       else
         error ("Type constructors " ^ commas_quote raw_tycos ^
-          " do not belong exhaustively to one mutual recursive datatype");
+          " do not belong exhaustively to one mutually recursive old-style datatype");
 
     val (Ts, Us) = (pairself o map) Type protoTs;
 
