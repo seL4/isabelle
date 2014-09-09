@@ -109,10 +109,10 @@ lemma uniqueness_of_types: "
   E\<turnstile>e :: T1 \<longrightarrow> E\<turnstile>e :: T2 \<longrightarrow> T1 = T2) \<and>
   (\<forall> (E\<Colon>'a prog \<times> (vname \<Rightarrow> ty option)) Ts1 Ts2. 
   E\<turnstile>es [::] Ts1 \<longrightarrow> E\<turnstile>es [::] Ts2 \<longrightarrow> Ts1 = Ts2)"
-apply (rule expr.induct)
+apply (rule compat_expr_expr_list.induct)
 
 (* NewC *)
-apply (intro strip) 
+apply (intro strip)
 apply (erule ty_expr.cases) apply simp+
 apply (erule ty_expr.cases) apply simp+
 
@@ -128,7 +128,7 @@ apply (erule ty_expr.cases) apply simp+
 
 (* BinOp *)
 apply (intro strip)
-apply (case_tac binop)
+apply (rename_tac binop x2 x3 E T1 T2, case_tac binop)
 (* Eq *)
 apply (erule ty_expr.cases) apply simp+
 apply (erule ty_expr.cases) apply simp+

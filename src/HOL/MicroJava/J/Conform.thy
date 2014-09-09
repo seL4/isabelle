@@ -108,7 +108,7 @@ lemma defval_conf [rule_format (no_asm)]:
 apply (unfold conf_def)
 apply (rule_tac y = "T" in ty.exhaust)
 apply  (erule ssubst)
-apply  (rule_tac y = "prim_ty" in prim_ty.exhaust)
+apply  (rename_tac prim_ty, rule_tac y = "prim_ty" in prim_ty.exhaust)
 apply    (auto simp add: widen.null)
 done
 

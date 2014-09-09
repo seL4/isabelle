@@ -91,7 +91,7 @@ lemma order_widen:
    apply (case_tac y)
     apply simp
   apply simp
-  apply (case_tac ref_ty)
+  apply (rename_tac ref_ty ref_tya, case_tac ref_ty)
    apply (case_tac ref_tya)
     apply simp
    apply simp
@@ -116,6 +116,7 @@ apply (case_tac "EX C. Class C : M")
  apply (case_tac T)
   apply (fastforce simp add: PrimT_PrimT2)
  apply simp
+ apply (rename_tac ref_ty)
  apply (subgoal_tac "ref_ty = NullT")
   apply simp
   apply (rule_tac x = NT in bexI)

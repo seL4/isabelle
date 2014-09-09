@@ -22,7 +22,7 @@ lemma Cast_conf:
   ==> G,h\<turnstile>v::\<preceq>Class D"
 apply (case_tac "CC")
 apply simp
-apply (case_tac "ref_ty")
+apply (rename_tac ref_ty, case_tac "ref_ty")
 apply (clarsimp simp add: conf_def)
 apply simp
 apply (ind_cases "G \<turnstile> Class cname \<preceq>? Class D" for cname, simp)

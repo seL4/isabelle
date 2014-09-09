@@ -236,7 +236,7 @@ lemma compTpExpr_Exprs_LT_ST: "
   is_inited_LT C pTs lvars LT \<longrightarrow>
   sttp_of (compTpExprs jmb G exs (ST, LT)) = ((rev Ts) @ ST, LT))"
 
-apply (rule expr.induct)
+apply (rule compat_expr_expr_list.induct)
 
 (* expresssions *)
 
@@ -262,7 +262,7 @@ apply (drule BinOp_invers, clarify)
 apply (drule_tac x=ST in spec)
 apply (drule_tac x="Ta # ST" in spec)
 apply ((drule spec)+, (drule mp, assumption)+)
-  apply (case_tac binop)
+  apply (rename_tac binop x2 x3 ST LT T Ta, case_tac binop)
   apply (simp (no_asm_simp))
     apply (simp (no_asm_simp) add: popST_def pushST_def)
   apply (simp)
@@ -295,7 +295,7 @@ apply (simp add: replST_def)
 
   (* show   snd (the (field (G, cname) vname)) = T *)
   apply (subgoal_tac "is_class G Ca")
-  apply (subgoal_tac "is_class G cname \<and> field (G, cname) vname = Some (cname, T)")
+  apply (rename_tac cname x2 vname ST LT T Ca, subgoal_tac "is_class G cname \<and> field (G, cname) vname = Some (cname, T)")
   apply simp
 
   (* show is_class G cname \<and> field (G, cname) vname = Some (cname, T) *)
@@ -317,7 +317,7 @@ apply (simp add: popST_def dup_x1ST_def)
 apply (intro strip)
 apply (drule Call_invers, clarify)
 apply (drule_tac x=ST in spec)
-apply (drule_tac x="Class cname # ST" in spec)
+apply (rename_tac cname x2 x3 x4 x5 ST LT T pTsa md, drule_tac x="Class cname # ST" in spec)
 apply ((drule spec)+, (drule mp, assumption)+)
 apply (simp add: replST_def)
 
@@ -823,9 +823,9 @@ by (simp add: storeST_def split_beta)
 lemma length_compTpExpr_Exprs [rule_format]: "
   (\<forall> sttp. (length (mt_of (compTpExpr jmb G ex sttp)) = length (compExpr jmb ex)))
   \<and> (\<forall> sttp. (length (mt_of (compTpExprs jmb G exs sttp)) = length (compExprs jmb exs)))"
-apply (rule  expr.induct)
+apply (rule compat_expr_expr_list.induct)
 apply simp+
-apply (case_tac binop)
+apply (rename_tac binop a b, case_tac binop)
 apply simp+
 apply (simp add: pushST_def split_beta)
 apply simp+
@@ -1648,7 +1648,7 @@ lemma wt_method_compTpExpr_Exprs_corresp: "
   (is_inited_LT C pTs lvars LT) 
   \<longrightarrow> bc_mt_corresp (compExprs jmb exs) (compTpExprs jmb G exs) (ST, LT) (comp G) rT (length LT) (length (compExprs jmb exs)))"
 
-apply (rule  expr.induct)
+apply (rule compat_expr_expr_list.induct)
 
 
 (* expresssions *)
@@ -1690,7 +1690,7 @@ apply (rule bc_mt_corresp_LitPush)
 apply (intro allI impI)
 apply (simp (no_asm_simp) only:)
 apply (drule BinOp_invers, erule exE, (erule conjE)+)
-apply (case_tac binop)
+apply (rename_tac binop expr1 expr2 ST LT T bc' f' Ta, case_tac binop)
 apply (simp (no_asm_simp))
 
   (* case Eq *)
@@ -1819,9 +1819,10 @@ apply (frule wf_java_mdecl_length_pTs_pns)
 apply clarify
 apply (simp (no_asm_use))
 apply (rule bc_mt_corresp_comb) apply (rule HOL.refl, simp (no_asm_simp), blast)
+apply (rename_tac vname x2 ST LT T Ta)
 apply (rule_tac ?bc1.0="[Dup]" and ?bc2.0="[Store (index (pns, lvars, blk, res) vname)]" 
        and ?f1.0="dupST" and ?f2.0="popST (Suc 0)"
-       in bc_mt_corresp_comb) 
+       in bc_mt_corresp_comb)
   apply (simp (no_asm_simp))+
   apply (rule bc_mt_corresp_Dup)
   apply (simp only: compTpExpr_LT_ST)
@@ -1858,6 +1859,7 @@ apply (rule bc_mt_corresp_comb) apply (rule HOL.refl) apply simp apply blast
   apply (simp only: compTpExpr_LT_ST)
 apply (rule bc_mt_corresp_comb, (rule HOL.refl)+) apply blast
   apply (simp only: compTpExpr_LT_ST)
+apply (rename_tac cname x2 vname x4 ST LT T Ta Ca)
 apply (rule_tac ?bc1.0="[Dup_x1]" and ?bc2.0="[Putfield vname cname]" in bc_mt_corresp_comb) 
   apply (simp (no_asm_simp))+
 apply (rule bc_mt_corresp_Dup_x1)
@@ -1970,6 +1972,7 @@ apply (rule bc_mt_corresp_zero)
   apply (simp (no_asm_simp) add: length_compTpStmt length_compTpExpr)
   apply (simp (no_asm_simp))
 
+apply (rename_tac expr stmt1 stmt2 ST LT bc' f')
 apply (drule_tac ?bc1.0="[]" and ?bc2.0 = "[LitPush (Bool False)]" 
   and ?bc3.0="compExpr jmb expr @ Ifcmpeq (2 + int (length (compStmt jmb stmt1))) #
             compStmt jmb stmt1 @ Goto (1 + int (length (compStmt jmb stmt2))) #
@@ -2111,6 +2114,7 @@ apply (rule bc_mt_corresp_zero)
   apply (simp (no_asm_simp) add: length_compTpStmt length_compTpExpr)
   apply (simp (no_asm_simp))
 
+apply (rename_tac expr stmt ST LT bc' f')
 apply (drule_tac ?bc1.0="[]" and ?bc2.0 = "[LitPush (Bool False)]" 
   and ?bc3.0="compExpr jmb expr @ Ifcmpeq (2 + int (length (compStmt jmb stmt))) #
             compStmt jmb stmt @ 

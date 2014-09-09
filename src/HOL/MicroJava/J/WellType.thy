@@ -94,7 +94,7 @@ done
 
 lemma typeof_default_val: "\<exists>T. (typeof dt (default_val ty) = Some T) \<and> G\<turnstile> T \<preceq> ty"
 apply (case_tac ty)
-apply (case_tac prim_ty)
+apply (rename_tac prim_ty, case_tac prim_ty)
 apply auto
 done
 

@@ -785,7 +785,7 @@ apply (frule wtpd_expr_binop)
 apply (frule_tac e=e1 in state_ok_eval) apply (simp (no_asm_simp)) apply simp apply (simp (no_asm_use) only: env_of_jmb_fst) 
 
 
-apply (simp (no_asm_use) only: compExpr_compExprs.simps)
+apply (simp (no_asm_use) only: compExpr.simps compExprs.simps)
 apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e1" in progression_transitive, simp) apply blast
 apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e2" in progression_transitive, simp) apply blast
 apply (case_tac bop)
@@ -831,7 +831,7 @@ apply (intro allI impI)
 apply (simp (no_asm_use) only: gx_conv, frule np_NoneD)
 apply (frule wtpd_expr_facc)
 
-apply (simp (no_asm_use) only: compExpr_compExprs.simps)
+apply (simp (no_asm_use) only: compExpr.simps compExprs.simps)
 apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)
 apply blast
 apply (rule progression_one_step)
@@ -853,7 +853,7 @@ apply (simp only: gx_conv, simp only: gx_conv, frule np_NoneD, erule conjE)
 apply (frule_tac e=e1 in state_ok_eval) apply (simp (no_asm_simp) only: env_of_jmb_fst) 
    apply assumption apply (simp (no_asm_use) only: env_of_jmb_fst) 
 
-apply (simp only: compExpr_compExprs.simps)
+apply (simp only: compExpr.simps compExprs.simps)
 
 apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e1)" in progression_transitive, rule HOL.refl)
 apply fast (* blast does not seem to work - why? *)
@@ -1100,7 +1100,7 @@ apply (frule method_preserves_length, assumption, assumption)
 apply (frule evals_preserves_length [THEN sym])
 
 (** start evaluating subexpressions **)
-apply (simp (no_asm_use) only: compExpr_compExprs.simps)
+apply (simp (no_asm_use) only: compExpr.simps compExprs.simps)
 
   (* evaluate e *)
 apply (rule_tac ?instrs0.0 = "(compExpr (gmb G CL S) e)" in progression_transitive, rule HOL.refl)

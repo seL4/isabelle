@@ -19,7 +19,9 @@ datatype_new expr
   | FAss cname expr vname 
                     expr     ("{_}_.._:=_" [10,90,99,90]90) -- "field ass."
   | Call cname expr mname 
-    "ty list" "expr list"    ("{_}_.._'( {_}_')" [10,90,99,10,10] 90) -- "method call" 
+    "ty list" "expr list"    ("{_}_.._'( {_}_')" [10,90,99,10,10] 90) -- "method call"
+
+datatype_compat expr
 
 datatype_new stmt
   = Skip                     -- "empty statement"

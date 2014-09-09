@@ -95,15 +95,15 @@ lemma app'IAdd[simp]:
   apply simp
   apply (case_tac a)
   apply auto
-  apply (case_tac prim_ty)
+  apply (rename_tac prim_ty, case_tac prim_ty)
   apply auto
-  apply (case_tac prim_ty)
+  apply (rename_tac prim_ty, case_tac prim_ty)
   apply auto
   apply (case_tac list)
   apply auto
   apply (case_tac a)
   apply auto
-  apply (case_tac prim_ty)
+  apply (rename_tac prim_ty, case_tac prim_ty)
   apply auto
   done
  
