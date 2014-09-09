@@ -314,7 +314,7 @@ lemma mono_afilter: "r \<sqsubseteq> r' \<Longrightarrow> S \<sqsubseteq> S' \<L
 apply(induction e arbitrary: r r' S S')
 apply(auto simp: test_num' Let_def split: option.splits prod.splits)
 apply (metis mono_gamma subsetD)
-apply(drule_tac x = "list" in mono_lookup)
+apply(rename_tac list a b c d, drule_tac x = "list" in mono_lookup)
 apply (metis mono_meet le_trans)
 apply (metis mono_meet mono_lookup mono_update)
 apply(metis mono_aval'' mono_filter_plus'[simplified le_prod_def] fst_conv snd_conv)
