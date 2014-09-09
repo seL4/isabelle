@@ -1464,13 +1464,20 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
             fun ctr_spec_of disc_b ctr0 sel_bs = ((disc_b, ctr0), sel_bs);
             val ctr_specs = map3 ctr_spec_of disc_bindings ctrs0 sel_bindingss;
+
+            val (ctr_sugar as {case_cong, ...}, lthy') =
+              free_constructors tacss ((((plugins, discs_sels), standard_binding), ctr_specs),
+                sel_default_eqs) lthy
+
+            val anonymous_notes =
+              [([case_cong], fundefcong_attrs)]
+              |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
           in
-            free_constructors tacss ((((plugins, discs_sels), standard_binding), ctr_specs),
-              sel_default_eqs) lthy
+            (ctr_sugar, lthy' |> Local_Theory.notes anonymous_notes |> snd)
           end;
 
-        fun derive_map_set_rel_thms (ctr_sugar as {casex, case_cong, case_thms, discs, selss, ctrs,
-            exhaust, exhaust_discs, disc_thmss, sel_thmss, injects, distincts, distinct_discsss,
+        fun derive_map_set_rel_thms (ctr_sugar as {casex, case_thms, discs, selss, ctrs, exhaust,
+            exhaust_discs, disc_thmss, sel_thmss, injects, distincts, distinct_discsss,
             ...} : ctr_sugar, lthy) =
           if live = 0 then
             ((([], [], [], []), ctr_sugar), lthy)
@@ -1583,9 +1590,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   rel_inject_thms ms;
 
               val ctr_transfer_thms =
-                let
-                  val goals = map2 (mk_parametricity_goal names_lthy Rs) ctrAs ctrBs;
-                in
+                let val goals = map2 (mk_parametricity_goal names_lthy Rs) ctrAs ctrBs in
                   Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                     (K (mk_ctr_transfer_tac rel_intro_thms))
                   |> Conjunction.elim_balanced (length goals)
@@ -1919,8 +1924,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 end;
 
               val anonymous_notes =
-                [([case_cong], fundefcong_attrs),
-                 (rel_eq_thms, code_nitpicksimp_attrs)]
+                [(rel_eq_thms, code_nitpicksimp_attrs)]
                 |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
               val notes =
