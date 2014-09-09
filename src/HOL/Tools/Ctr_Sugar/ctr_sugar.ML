@@ -291,7 +291,7 @@ fun name_of_disc t =
     Long_Name.map_base_name (prefix isN) (name_of_disc t')
   | Abs (_, _, @{const Not} $ (Const (@{const_name HOL.eq}, _) $ Bound 0 $ t')) =>
     Long_Name.map_base_name (prefix (notN ^ isN)) (name_of_disc t')
-  | t' => name_of_const "discriminator" domain_type t');
+  | t' => name_of_const "discriminator" (perhaps (try domain_type)) t');
 
 val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
 
