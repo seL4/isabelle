@@ -116,11 +116,11 @@ fun get_indices callers t =
   |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
   |> map_filter I;
 
-fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
+fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_lthy =
   let
-    val thy = Proof_Context.theory_of no_defs_lthy0;
+    val thy = Proof_Context.theory_of no_defs_lthy;
 
-    val qsotm = quote o Syntax.string_of_term no_defs_lthy0;
+    val qsotm = quote o Syntax.string_of_term no_defs_lthy;
 
     fun incompatible_calls ts =
       error ("Incompatible " ^ co_prefix fp ^ "recursive calls: " ^ commas (map qsotm ts));
@@ -158,8 +158,8 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
     val unsortAT = Term.typ_subst_atomic (As ~~ unsorted_As);
     val unsorted_fpTs = map unsortAT fpTs;
 
-    val ((Cs, Xs), no_defs_lthy) =
-      no_defs_lthy0
+    val ((Cs, Xs), names_lthy) =
+      no_defs_lthy
       |> fold Variable.declare_typ As
       |> mk_TFrees nn
       ||>> variant_tfrees fp_b_names;
@@ -238,7 +238,7 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
         val ((pre_bnfs, absT_infos), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
                dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
           fp_bnf (construct_mutualized_fp fp cliques unsorted_fpTs fp_sugars0) fp_bs unsorted_As'
-            killed_As' fp_eqs no_defs_lthy0;
+            killed_As' fp_eqs no_defs_lthy;
 
         val fp_abs_inverses = map #abs_inverse fp_absT_infos;
         val fp_type_definitions = map #type_definition fp_absT_infos;
@@ -286,7 +286,7 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
                corec_disc_thmss, corec_sel_thmsss))
             ||> (fn info => (NONE, SOME info));
 
-        val phi = Proof_Context.export_morphism no_defs_lthy no_defs_lthy0;
+        val phi = Proof_Context.export_morphism names_lthy no_defs_lthy;
 
         fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctr_defs ctr_sugar co_rec
             co_rec_def maps co_inducts co_rec_thms co_rec_disc_thms co_rec_sel_thmss
@@ -384,7 +384,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
           fun fresh_tyargs () =
             let
               val (unsorted_gen_tyargs, lthy') =
-                variant_tfrees (replicate (length tyargs) "a") lthy
+                variant_tfrees (replicate (length tyargs) "z") lthy
                 |>> map Logic.varifyT_global;
               val gen_tyargs =
                 map2 (resort_tfree_or_tvar o snd o dest_TFree_or_TVar) tyargs0 unsorted_gen_tyargs;
