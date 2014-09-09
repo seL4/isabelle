@@ -7,11 +7,14 @@ realizers for induction and case analysis.
 
 signature OLD_DATATYPE_REALIZER =
 sig
+  val realizer_plugin: string
   val add_dt_realizers: Old_Datatype_Aux.config -> string list -> theory -> theory
 end;
 
 structure Old_Datatype_Realizer : OLD_DATATYPE_REALIZER =
 struct
+
+val realizer_plugin = "realizer";
 
 fun subsets i j =
   if i <= j then
@@ -155,7 +158,10 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
           (map Logic.unvarify_global ivs1 @ filter_out is_unit
               (map (head_of o strip_abs_body) rec_fns)) r);
 
-  in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
+  in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end
+  (* Nested new-style datatypes are not supported (unless they are registered via
+     "datatype_compat"). *)
+  handle Old_Datatype_Aux.Datatype => thy;
 
 fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old_Datatype_Aux.info) thy =
   let
@@ -230,7 +236,7 @@ fun add_dt_realizers config names thy =
   else
     let
       val _ = Old_Datatype_Aux.message config "Adding realizers for induction and case analysis ...";
-      val infos = map (Old_Datatype_Data.the_info thy) names;
+      val infos = map (BNF_LFP_Compat.the_info thy BNF_LFP_Compat.Unfold_Nesting) names;
       val info :: _ = infos;
     in
       thy
@@ -238,6 +244,7 @@ fun add_dt_realizers config names thy =
       |> fold_rev make_casedists infos
     end;
 
-val _ = Theory.setup (Old_Datatype_Data.interpretation add_dt_realizers);
+val _ = Theory.setup (BNF_LFP_Compat.interpretation realizer_plugin BNF_LFP_Compat.Unfold_Nesting
+  add_dt_realizers);
 
 end;

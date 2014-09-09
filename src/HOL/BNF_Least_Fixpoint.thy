@@ -16,6 +16,9 @@ keywords
   "datatype_compat" :: thy_decl
 begin
 
+ML {* proofs := 2 *} (*###*)
+ML {* Proofterm.proofs_enabled () *}
+
 lemma subset_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> False) \<Longrightarrow> A \<subseteq> {}"
   by blast
 

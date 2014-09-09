@@ -521,4 +521,3 @@ val setup =
     "add realizers for inductive set";
 
 end;
-
