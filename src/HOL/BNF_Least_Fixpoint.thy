@@ -235,7 +235,7 @@ ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 ML_file "Tools/BNF/bnf_lfp_size.ML"
 ML_file "Tools/Function/old_size.ML"
-ML_file "Tools/Old_Datatype/old_datatype_realizer.ML"
+ML_file "Tools/datatype_realizer.ML"
 
 lemma size_bool[code]: "size (b\<Colon>bool) = 0"
   by (cases b) auto

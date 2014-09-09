@@ -1,17 +1,17 @@
-(*  Title:      HOL/Tools/Old_Datatype/old_datatype_realizer.ML
+(*  Title:      HOL/Tools/datatype_realizer.ML
     Author:     Stefan Berghofer, TU Muenchen
 
 Program extraction from proofs involving datatypes:
 realizers for induction and case analysis.
 *)
 
-signature OLD_DATATYPE_REALIZER =
+signature DATATYPE_REALIZER =
 sig
   val realizer_plugin: string
   val add_dt_realizers: Old_Datatype_Aux.config -> string list -> theory -> theory
 end;
 
-structure Old_Datatype_Realizer : OLD_DATATYPE_REALIZER =
+structure Datatype_Realizer : DATATYPE_REALIZER =
 struct
 
 val realizer_plugin = "realizer";
