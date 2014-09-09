@@ -89,7 +89,7 @@ apply (case_tac "sq (sen (s))=[]")
 apply (simp add: hom_ioas)
 apply (blast dest!: add_leD1 [THEN leD])
 
-apply (case_tac "m = hd (sq (sen (s)))")
+apply (rename_tac m, case_tac "m = hd (sq (sen (s)))")
 
 apply force
 

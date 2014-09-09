@@ -347,7 +347,7 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   apply (tactic {* forward_tac [rewrite_rule @{context} [@{thm Impl.inv3_def}]
                                (@{thm raw_inv3} RS @{thm invariantE})] 1 *})
   apply simp
-  apply (erule_tac x = "m" in allE)
+  apply (rename_tac m, erule_tac x = "m" in allE)
   apply simp
   done
 

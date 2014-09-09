@@ -53,7 +53,7 @@ apply (rule transition_is_ex)
 apply (simp (no_asm) add: spec_ioa_def spec_trans_def trans_of_def)
 apply fast
 txt {* FREE *}
-apply (rule_tac x = " (used - {nat},c) " in exI)
+apply (rename_tac nat, rule_tac x = " (used - {nat},c) " in exI)
 apply simp
 apply (rule transition_is_ex)
 apply (simp (no_asm) add: spec_ioa_def spec_trans_def trans_of_def)

@@ -224,7 +224,7 @@ datatype_new foo = Foo1 nat | Foo2 bar
 
 text {*
   The pack of induction rules for this datatype is: @{thm [display]
-  foo_bar_bazar.inducts [no_vars]}
+  foo.induct [no_vars] bar.induct [no_vars] bazar.induct [no_vars]}
 
   This corresponds to the following basic proof pattern:
 *}
