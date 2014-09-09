@@ -2932,6 +2932,17 @@ plugins that instantiate specific type classes. The plugins are listed below:
 *}
 
 
+subsection {* Program Extraction
+  \label{ssec:program-extraction} *}
+
+text {*
+The \hthm{extraction} plugin provides realizers for induction and case analysis,
+to enable program extraction from proofs involving datatypes. This functionality
+is only available with full proof objects, i.e., with the @{text "HOL-Proofs"}
+session.
+*}
+
+
 (*
 section {* Known Bugs and Limitations
   \label{sec:known-bugs-and-limitations} *}
