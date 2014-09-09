@@ -237,7 +237,7 @@ apply (erule hoare_ehoare.eConseq [THEN hoare_ehoare.LAss])
 apply fast
 
 apply (erule thin_rl)
-apply (rule_tac Q = "\<lambda>a s. \<exists>n. Z -expr1\<succ>Addr a-n\<rightarrow> s" in hoare_ehoare.FAss)
+apply (rename_tac expr1 u v Z, rule_tac Q = "\<lambda>a s. \<exists>n. Z -expr1\<succ>Addr a-n\<rightarrow> s" in hoare_ehoare.FAss)
 apply  (drule spec)
 apply  (erule eConseq2)
 apply  fast
@@ -267,6 +267,7 @@ apply blast
 apply (erule hoare_ehoare.eConseq [THEN hoare_ehoare.FAcc])
 apply fast
 
+apply (rename_tac expr1 u expr2 Z)
 apply (rule_tac R = "\<lambda>a v s. \<exists>n1 n2 t. Z -expr1\<succ>a-n1\<rightarrow> t \<and> t -expr2\<succ>v-n2\<rightarrow> s" in
                 hoare_ehoare.Call)
 apply   (erule spec)
