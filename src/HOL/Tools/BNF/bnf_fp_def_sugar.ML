@@ -267,8 +267,6 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
     #> interpret_fp_sugars plugins fp_sugars
   end;
 
-(* This function could produce (fairly harmless) clashes in contrived examples (e.g., "x.A",
-   "x.x_A", "y.A"). *)
 fun quasi_unambiguous_case_names names =
   let
     val ps = map (`Long_Name.base_name) names;
@@ -279,6 +277,7 @@ fun quasi_unambiguous_case_names names =
       end;
   in
     map (fn (base, full) => if member (op =) dups base then underscore full else base) ps
+    |> Name.variant_list []
   end;
 
 fun zipper_map f =
