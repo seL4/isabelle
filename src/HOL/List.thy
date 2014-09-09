@@ -2009,7 +2009,7 @@ apply (induct xs arbitrary: i, simp)
 apply (case_tac i, auto)
 done
 
-lemma drop_Suc_conv_tl:
+lemma Cons_nth_drop_Suc:
   "i < length xs \<Longrightarrow> (xs!i) # (drop (Suc i) xs) = drop i xs"
 apply (induct xs arbitrary: i, simp)
 apply (case_tac i, auto)
@@ -2199,16 +2199,6 @@ proof -
     using i by (simp add: list_update_append)
   finally show ?thesis .
 qed
-
-lemma nth_drop':
-  "i < length xs \<Longrightarrow> xs ! i # drop (Suc i) xs = drop i xs"
-apply (induct i arbitrary: xs)
-apply (simp add: neq_Nil_conv)
-apply (erule exE)+
-apply simp
-apply (case_tac xs)
-apply simp_all
-done
 
 
 subsubsection {* @{const takeWhile} and @{const dropWhile} *}
@@ -5264,9 +5254,9 @@ lemma lexord_take_index_conv:
   apply (rule_tac x ="x ! i" in exI) 
   apply (rule_tac x ="y ! i" in exI, safe) 
   apply (rule_tac x="drop (Suc i) x" in exI)
-  apply (drule sym, simp add: drop_Suc_conv_tl) 
+  apply (drule sym, simp add: Cons_nth_drop_Suc) 
   apply (rule_tac x="drop (Suc i) y" in exI)
-  by (simp add: drop_Suc_conv_tl) 
+  by (simp add: Cons_nth_drop_Suc) 
 
 -- {* lexord is extension of partial ordering List.lex *} 
 lemma lexord_lex: "(x,y) \<in> lex r = ((x,y) \<in> lexord r \<and> length x = length y)"

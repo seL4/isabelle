@@ -78,6 +78,8 @@ Minor INCOMPATIBILITY.
   - The 'smt2' method has been renamed 'smt'.
     INCOMPATIBILITY.
 
+* List: renamed drop_Suc_conv_tl and nth_drop' to Cons_nth_drop_Suc
+
 
 *** ML ***
 

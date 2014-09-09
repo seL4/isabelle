@@ -436,7 +436,7 @@ proof (cases "a < b \<and> b < c", rule IntegralI)
     note rsum1 = I1[OF this]
 
     have drop_split: "drop N D = [D ! N] @ drop (Suc N) D"
-      using nth_drop'[OF `N < length D`] by simp
+      using Cons_nth_drop_Suc[OF `N < length D`] by simp
 
     have fine2: "fine \<delta>2 (e,c) (drop (Suc N) D)"
     proof (cases "drop (Suc N) D = []")
@@ -472,7 +472,7 @@ proof (cases "a < b \<and> b < c", rule IntegralI)
     note rsum2 = I2[OF this]
 
     have "rsum D f = rsum (take N D) f + rsum [D ! N] f + rsum (drop (Suc N) D) f"
-      using rsum_append[symmetric] nth_drop'[OF `N < length D`] by auto
+      using rsum_append[symmetric] Cons_nth_drop_Suc[OF `N < length D`] by auto
     also have "\<dots> = rsum D1 f + rsum D2 f"
       by (cases "b = e", auto simp add: D1_def D2_def D_eq rsum_append algebra_simps)
     finally have "\<bar>rsum D f - (x1 + x2)\<bar> < \<epsilon>"
