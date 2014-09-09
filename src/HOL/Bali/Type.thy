@@ -14,13 +14,13 @@ simplifications:
 \end{itemize}
 *}
 
-datatype prim_ty        --{* primitive type, cf. 4.2 *}
+datatype_new prim_ty        --{* primitive type, cf. 4.2 *}
         = Void          --{* result type of void methods *}
         | Boolean
         | Integer
 
 
-datatype ref_ty         --{* reference type, cf. 4.3 *}
+datatype_new ref_ty         --{* reference type, cf. 4.3 *}
         = NullT         --{* null type, cf. 4.1 *}
         | IfaceT qtname --{* interface type *}
         | ClassT qtname --{* class type *}

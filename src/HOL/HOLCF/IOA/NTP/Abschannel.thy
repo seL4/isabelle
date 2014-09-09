@@ -8,7 +8,7 @@ theory Abschannel
 imports IOA Action
 begin
 
-datatype 'a abs_action = S 'a | R 'a
+datatype_new 'a abs_action = S 'a | R 'a
 
 definition
   ch_asig :: "'a abs_action signature" where

@@ -16,7 +16,7 @@ by (simp add: symKeys_def)
 
 subsection{*Asymmetric Keys*}
 
-datatype keymode = Signature | Encryption
+datatype_new keymode = Signature | Encryption
 
 consts
   publicKey :: "[keymode,agent] => key"

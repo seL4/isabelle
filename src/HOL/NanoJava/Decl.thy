@@ -7,7 +7,7 @@ header "Types, class Declarations, and whole programs"
 
 theory Decl imports Term begin
 
-datatype ty
+datatype_new ty
   = NT           --{* null type  *}
   | Class cname  --{* class type *}
 

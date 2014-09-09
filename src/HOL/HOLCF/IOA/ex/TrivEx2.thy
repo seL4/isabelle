@@ -8,7 +8,7 @@ theory TrivEx2
 imports IOA Abstraction
 begin
 
-datatype action = INC
+datatype_new action = INC
 
 definition
   C_asig :: "action signature" where

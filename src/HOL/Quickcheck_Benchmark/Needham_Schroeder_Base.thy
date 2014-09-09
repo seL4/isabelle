@@ -2,7 +2,7 @@ theory Needham_Schroeder_Base
 imports Main "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
 begin
 
-datatype agent = Alice | Bob | Spy
+datatype_new agent = Alice | Bob | Spy
 
 definition agents :: "agent set"
 where
@@ -12,14 +12,14 @@ definition bad :: "agent set"
 where
   "bad = {Spy}"
 
-datatype key = pubEK agent | priEK agent
+datatype_new key = pubEK agent | priEK agent
 
 fun invKey
 where
   "invKey (pubEK A) = priEK A"
 | "invKey (priEK A) = pubEK A"
 
-datatype
+datatype_new
      msg = Agent  agent
          | Key    key
          | Nonce  nat
@@ -73,7 +73,7 @@ where
 | initState_Spy:
     "initState Spy        =  (Key ` priEK ` bad) \<union> (Key ` pubEK ` agents)"
 
-datatype
+datatype_new
   event = Says  agent agent msg
         | Gets  agent       msg
         | Notes agent       msg

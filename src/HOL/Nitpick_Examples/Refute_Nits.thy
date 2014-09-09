@@ -617,7 +617,7 @@ oops
 
 text {* Non-recursive datatypes *}
 
-datatype T1 = A | B
+datatype_new T1 = A | B
 
 lemma "P (x\<Colon>T1)"
 nitpick [expect = genuine]
@@ -653,7 +653,7 @@ lemma "P (case x of A \<Rightarrow> a | B \<Rightarrow> b)"
 nitpick [expect = genuine]
 oops
 
-datatype 'a T2 = C T1 | D 'a
+datatype_new 'a T2 = C T1 | D 'a
 
 lemma "P (x\<Colon>'a T2)"
 nitpick [expect = genuine]
@@ -685,7 +685,7 @@ lemma "P (case x of C u \<Rightarrow> c u | D v \<Rightarrow> d v)"
 nitpick [expect = genuine]
 oops
 
-datatype ('a, 'b) T3 = E "'a \<Rightarrow> 'b"
+datatype_new ('a, 'b) T3 = E "'a \<Rightarrow> 'b"
 
 lemma "P (x\<Colon>('a, 'b) T3)"
 nitpick [expect = genuine]
@@ -790,7 +790,7 @@ lemma "a # xs = b # xs"
 nitpick [expect = genuine]
 oops
 
-datatype BitList = BitListNil | Bit0 BitList | Bit1 BitList
+datatype_new BitList = BitListNil | Bit0 BitList | Bit1 BitList
 
 lemma "P (x\<Colon>BitList)"
 nitpick [expect = genuine]
@@ -823,7 +823,7 @@ lemma "P (rec_BitList nil bit0 bit1 x)"
 nitpick [expect = genuine]
 oops
 
-datatype 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
+datatype_new 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
 
 lemma "P (x\<Colon>'a BinTree)"
 nitpick [expect = genuine]
@@ -857,7 +857,7 @@ oops
 
 text {* Mutually recursive datatypes *}
 
-datatype 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
+datatype_new 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
  and 'a bexp = Equal "'a aexp" "'a aexp"
 
 lemma "P (x\<Colon>'a aexp)"
@@ -880,17 +880,17 @@ lemma "\<forall>x\<Colon>'a bexp. P x"
 nitpick [expect = genuine]
 oops
 
-lemma "rec_aexp_bexp_1 number ite equal (Number x) = number x"
+lemma "rec_aexp number ite equal (Number x) = number x"
 nitpick [card = 1-3, expect = none]
 apply simp
 done
 
-lemma "rec_aexp_bexp_1 number ite equal (ITE x y z) = ite x y z (rec_aexp_bexp_2 number ite equal x) (rec_aexp_bexp_1 number ite equal y) (rec_aexp_bexp_1 number ite equal z)"
+lemma "rec_aexp number ite equal (ITE x y z) = ite x y z (rec_aexp_bexp_2 number ite equal x) (rec_aexp number ite equal y) (rec_aexp number ite equal z)"
 nitpick [card = 1-3, expect = none]
 apply simp
 done
 
-lemma "P (rec_aexp_bexp_1 number ite equal x)"
+lemma "P (rec_aexp number ite equal x)"
 nitpick [expect = genuine]
 oops
 
@@ -898,7 +898,7 @@ lemma "P (case x of Number a \<Rightarrow> number a | ITE b a1 a2 \<Rightarrow> 
 nitpick [expect = genuine]
 oops
 
-lemma "rec_aexp_bexp_2 number ite equal (Equal x y) = equal x y (rec_aexp_bexp_1 number ite equal x) (rec_aexp_bexp_1 number ite equal y)"
+lemma "rec_aexp_bexp_2 number ite equal (Equal x y) = equal x y (rec_aexp number ite equal x) (rec_aexp number ite equal y)"
 nitpick [card = 1-3, expect = none]
 apply simp
 done
@@ -911,8 +911,7 @@ lemma "P (case x of Equal a1 a2 \<Rightarrow> equal a1 a2)"
 nitpick [expect = genuine]
 oops
 
-datatype X = A | B X | C Y
-     and Y = D X | E Y | F
+datatype_new X = A | B X | C Y and Y = D X | E Y | F
 
 lemma "P (x\<Colon>X)"
 nitpick [expect = genuine]
@@ -958,22 +957,22 @@ lemma "P (C (D (C F)))"
 nitpick [expect = genuine]
 oops
 
-lemma "rec_X_Y_1 a b c d e f A = a"
+lemma "rec_X a b c d e f A = a"
 nitpick [card = 1-5, expect = none]
 apply simp
 done
 
-lemma "rec_X_Y_1 a b c d e f (B x) = b x (rec_X_Y_1 a b c d e f x)"
+lemma "rec_X a b c d e f (B x) = b x (rec_X a b c d e f x)"
 nitpick [card = 1-5, expect = none]
 apply simp
 done
 
-lemma "rec_X_Y_1 a b c d e f (C y) = c y (rec_X_Y_2 a b c d e f y)"
+lemma "rec_X a b c d e f (C y) = c y (rec_X_Y_2 a b c d e f y)"
 nitpick [card = 1-5, expect = none]
 apply simp
 done
 
-lemma "rec_X_Y_2 a b c d e f (D x) = d x (rec_X_Y_1 a b c d e f x)"
+lemma "rec_X_Y_2 a b c d e f (D x) = d x (rec_X a b c d e f x)"
 nitpick [card = 1-5, expect = none]
 apply simp
 done
@@ -988,7 +987,7 @@ nitpick [card = 1-5, expect = none]
 apply simp
 done
 
-lemma "P (rec_X_Y_1 a b c d e f x)"
+lemma "P (rec_X a b c d e f x)"
 nitpick [expect = genuine]
 oops
 
@@ -1000,7 +999,7 @@ text {* Other datatype examples *}
 
 text {* Indirect recursion is implemented via mutual recursion. *}
 
-datatype XOpt = CX "XOpt option" | DX "bool \<Rightarrow> XOpt option"
+datatype_new XOpt = CX "XOpt option" | DX "bool \<Rightarrow> XOpt option"
 
 lemma "P (x\<Colon>XOpt)"
 nitpick [expect = genuine]
@@ -1014,12 +1013,12 @@ lemma "P (CX (Some (CX None)))"
 nitpick [expect = genuine]
 oops
 
-lemma "rec_XOpt_1 cx dx n1 s1 n2 s2 (CX x) = cx x (rec_XOpt_2 cx dx n1 s1 n2 s2 x)"
+lemma "rec_X cx dx n1 s1 n2 s2 (CX x) = cx x (rec_XOpt_2 cx dx n1 s1 n2 s2 x)"
 nitpick [card = 1-5, expect = none]
 apply simp
 done
 
-lemma "rec_XOpt_1 cx dx n1 s1 n2 s2 (DX x) = dx x (\<lambda>b. rec_XOpt_3 cx dx n1 s1 n2 s2 (x b))"
+lemma "rec_X cx dx n1 s1 n2 s2 (DX x) = dx x (\<lambda>b. rec_XOpt_3 cx dx n1 s1 n2 s2 (x b))"
 nitpick [card = 1-3, expect = none]
 apply simp
 done
@@ -1029,7 +1028,7 @@ nitpick [card = 1-4, expect = none]
 apply simp
 done
 
-lemma "rec_XOpt_2 cx dx n1 s1 n2 s2 (Some x) = s1 x (rec_XOpt_1 cx dx n1 s1 n2 s2 x)"
+lemma "rec_XOpt_2 cx dx n1 s1 n2 s2 (Some x) = s1 x (rec_X cx dx n1 s1 n2 s2 x)"
 nitpick [card = 1-4, expect = none]
 apply simp
 done
@@ -1039,12 +1038,12 @@ nitpick [card = 1-4, expect = none]
 apply simp
 done
 
-lemma "rec_XOpt_3 cx dx n1 s1 n2 s2 (Some x) = s2 x (rec_XOpt_1 cx dx n1 s1 n2 s2 x)"
+lemma "rec_XOpt_3 cx dx n1 s1 n2 s2 (Some x) = s2 x (rec_X cx dx n1 s1 n2 s2 x)"
 nitpick [card = 1-4, expect = none]
 apply simp
 done
 
-lemma "P (rec_XOpt_1 cx dx n1 s1 n2 s2 x)"
+lemma "P (rec_X cx dx n1 s1 n2 s2 x)"
 nitpick [expect = genuine]
 oops
 
@@ -1056,7 +1055,7 @@ lemma "P (rec_XOpt_3 cx dx n1 s1 n2 s2 x)"
 nitpick [expect = genuine]
 oops
 
-datatype 'a YOpt = CY "('a \<Rightarrow> 'a YOpt) option"
+datatype_new 'a YOpt = CY "('a \<Rightarrow> 'a YOpt) option"
 
 lemma "P (x\<Colon>'a YOpt)"
 nitpick [expect = genuine]
@@ -1070,30 +1069,7 @@ lemma "P (CY (Some (\<lambda>a. CY None)))"
 nitpick [expect = genuine]
 oops
 
-lemma "rec_YOpt_1 cy n s (CY x) = cy x (rec_YOpt_2 cy n s x)"
-nitpick [card = 1-2, expect = none]
-apply simp
-done
-
-lemma "rec_YOpt_2 cy n s None = n"
-nitpick [card = 1-2, expect = none]
-apply simp
-done
-
-lemma "rec_YOpt_2 cy n s (Some x) = s x (\<lambda>a. rec_YOpt_1 cy n s (x a))"
-nitpick [card = 1-2, expect = none]
-apply simp
-done
-
-lemma "P (rec_YOpt_1 cy n s x)"
-nitpick [expect = genuine]
-oops
-
-lemma "P (rec_YOpt_2 cy n s x)"
-nitpick [expect = genuine]
-oops
-
-datatype Trie = TR "Trie list"
+datatype_new Trie = TR "Trie list"
 
 lemma "P (x\<Colon>Trie)"
 nitpick [expect = genuine]
@@ -1107,30 +1083,7 @@ lemma "P (TR [TR []])"
 nitpick [expect = genuine]
 oops
 
-lemma "rec_Trie_1 tr nil cons (TR x) = tr x (rec_Trie_2 tr nil cons x)"
-nitpick [card = 1-4, expect = none]
-apply simp
-done
-
-lemma "rec_Trie_2 tr nil cons [] = nil"
-nitpick [card = 1-4, expect = none]
-apply simp
-done
-
-lemma "rec_Trie_2 tr nil cons (x#xs) = cons x xs (rec_Trie_1 tr nil cons x) (rec_Trie_2 tr nil cons xs)"
-nitpick [card = 1-4, expect = none]
-apply simp
-done
-
-lemma "P (rec_Trie_1 tr nil cons x)"
-nitpick [card = 1, expect = genuine]
-oops
-
-lemma "P (rec_Trie_2 tr nil cons x)"
-nitpick [card = 1, expect = genuine]
-oops
-
-datatype InfTree = Leaf | Node "nat \<Rightarrow> InfTree"
+datatype_new InfTree = Leaf | Node "nat \<Rightarrow> InfTree"
 
 lemma "P (x\<Colon>InfTree)"
 nitpick [expect = genuine]
@@ -1158,7 +1111,7 @@ lemma "P (rec_InfTree leaf node x)"
 nitpick [expect = genuine]
 oops
 
-datatype 'a lambda = Var 'a | App "'a lambda" "'a lambda" | Lam "'a \<Rightarrow> 'a lambda"
+datatype_new 'a lambda = Var 'a | App "'a lambda" "'a lambda" | Lam "'a \<Rightarrow> 'a lambda"
 
 lemma "P (x\<Colon>'a lambda)"
 nitpick [expect = genuine]
@@ -1194,8 +1147,8 @@ oops
 
 text {* Taken from "Inductive datatypes in HOL", p. 8: *}
 
-datatype ('a, 'b) T = C "'a \<Rightarrow> bool" | D "'b list"
-datatype 'c U = E "('c, 'c U) T"
+datatype_new ('a, 'b) T = C "'a \<Rightarrow> bool" | D "'b list"
+datatype_new 'c U = E "('c, 'c U) T"
 
 lemma "P (x\<Colon>'c U)"
 nitpick [expect = genuine]
@@ -1207,43 +1160,6 @@ oops
 
 lemma "P (E (C (\<lambda>a. True)))"
 nitpick [expect = genuine]
-oops
-
-lemma "rec_U_1 e c d nil cons (E x) = e x (rec_U_2 e c d nil cons x)"
-nitpick [card = 1-3, expect = none]
-apply simp
-done
-
-lemma "rec_U_2 e c d nil cons (C x) = c x"
-nitpick [card = 1-3, expect = none]
-apply simp
-done
-
-lemma "rec_U_2 e c d nil cons (D x) = d x (rec_U_3 e c d nil cons x)"
-nitpick [card = 1-3, expect = none]
-apply simp
-done
-
-lemma "rec_U_3 e c d nil cons [] = nil"
-nitpick [card = 1-3, expect = none]
-apply simp
-done
-
-lemma "rec_U_3 e c d nil cons (x#xs) = cons x xs (rec_U_1 e c d nil cons x) (rec_U_3 e c d nil cons xs)"
-nitpick [card = 1-3, expect = none]
-apply simp
-done
-
-lemma "P (rec_U_1 e c d nil cons x)"
-nitpick [expect = genuine]
-oops
-
-lemma "P (rec_U_2 e c d nil cons x)"
-nitpick [card = 1, expect = genuine]
-oops
-
-lemma "P (rec_U_3 e c d nil cons x)"
-nitpick [card = 1, expect = genuine]
 oops
 
 subsubsection {* Records *}

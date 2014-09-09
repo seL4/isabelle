@@ -31,7 +31,7 @@ text {* The language of expressions is defined as an inductive type,
   consisting of variables, constants, and binary operations on
   expressions. *}
 
-datatype ('adr, 'val) expr =
+datatype_new ('adr, 'val) expr =
     Variable 'adr
   | Constant 'val
   | Binop "'val binop" "('adr, 'val) expr" "('adr, 'val) expr"
@@ -51,7 +51,7 @@ subsection {* Machine *}
 text {* Next we model a simple stack machine, with three
   instructions. *}
 
-datatype ('adr, 'val) instr =
+datatype_new ('adr, 'val) instr =
     Const 'val
   | Load 'adr
   | Apply "'val binop"

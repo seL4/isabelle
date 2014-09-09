@@ -46,7 +46,7 @@ text {*
   of the original one.
 *}
 
-datatype 'a dual = dual 'a
+datatype_new 'a dual = dual 'a
 
 primrec undual :: "'a dual \<Rightarrow> 'a" where
   undual_dual: "undual (dual x) = x"

@@ -107,7 +107,7 @@ section {* Example symbolic derivation *}
 
 hide_const Pow
 
-datatype expr = Log expr | Mult expr expr | Div expr expr | x | Num int | Plus expr expr
+datatype_new expr = Log expr | Mult expr expr | Div expr expr | x | Num int | Plus expr expr
   | Minus expr expr | Uminus expr | Pow expr int | Exp expr
 
 text {*
@@ -197,7 +197,7 @@ values_prolog "{e. times10 e}"
 
 section {* Example negation *}
 
-datatype abc = A | B | C
+datatype_new abc = A | B | C
 
 inductive notB :: "abc => bool"
 where

@@ -11,7 +11,7 @@ text {*
 type_synonym var = unit
 type_synonym state = bool
 
-datatype com =
+datatype_new com =
   Skip |
   Ass bool |
   Seq com com |

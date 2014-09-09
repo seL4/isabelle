@@ -12,7 +12,7 @@ begin
 
 text {* The Hebrew Alef-Bet (א-ב). *}
 
-datatype alef_bet =
+datatype_new alef_bet =
     Alef    ("א")
   | Bet     ("ב")
   | Gimel   ("ג")

@@ -218,7 +218,7 @@ text {*
   before!
 *}
 
-datatype foo = Foo1 nat | Foo2 bar
+datatype_new foo = Foo1 nat | Foo2 bar
   and bar = Bar1 bool | Bar2 bazar
   and bazar = Bazar foo
 

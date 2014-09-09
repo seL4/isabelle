@@ -15,7 +15,7 @@ begin
 
 subsection {* Terms *}
 
-datatype tm = CP poly | Bound nat | Add tm tm | Mul poly tm
+datatype_new tm = CP poly | Bound nat | Add tm tm | Mul poly tm
   | Neg tm | Sub tm tm | CNP nat poly tm
 
 (* A size for poly to make inductive proofs simpler*)
@@ -493,7 +493,7 @@ lemma isnpoly_fst_split0:
 
 subsection{* Formulae *}
 
-datatype fm  =  T| F| Le tm | Lt tm | Eq tm | NEq tm|
+datatype_new fm  =  T| F| Le tm | Lt tm | Eq tm | NEq tm|
   NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
 
 

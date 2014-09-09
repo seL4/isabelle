@@ -13,8 +13,8 @@ begin
   memory implementation.
 *)
 
-datatype rpcOp = memcall memOp | othercall Vals
-datatype rpcState = rpcA | rpcB
+datatype_new rpcOp = memcall memOp | othercall Vals
+datatype_new rpcState = rpcA | rpcB
 
 consts
   (* some particular return values *)

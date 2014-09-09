@@ -8,11 +8,11 @@ theory Value imports Type begin
 
 typedecl loc' -- "locations, i.e. abstract references on objects" 
 
-datatype loc 
+datatype_new loc 
   = XcptRef xcpt -- "special locations for pre-allocated system exceptions"
   | Loc loc'     -- "usual locations (references on objects)"
 
-datatype val
+datatype_new val
   = Unit        -- "dummy result value of void methods"
   | Null        -- "null reference"
   | Bool bool   -- "Boolean value"

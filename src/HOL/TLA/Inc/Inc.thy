@@ -9,7 +9,7 @@ imports TLA
 begin
 
 (* program counter as an enumeration type *)
-datatype pcount = a | b | g
+datatype_new pcount = a | b | g
 
 axiomatization
   (* program variables *)

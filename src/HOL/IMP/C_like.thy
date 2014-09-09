@@ -4,14 +4,14 @@ subsection "A C-like Language"
 
 type_synonym state = "nat \<Rightarrow> nat"
 
-datatype aexp = N nat | Deref aexp ("!") | Plus aexp aexp
+datatype_new aexp = N nat | Deref aexp ("!") | Plus aexp aexp
 
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> nat" where
 "aval (N n) s = n" |
 "aval (!a) s = s(aval a s)" |
 "aval (Plus a\<^sub>1 a\<^sub>2) s = aval a\<^sub>1 s + aval a\<^sub>2 s"
 
-datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
+datatype_new bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
 
 primrec bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
 "bval (Bc v) _ = v" |
@@ -20,7 +20,7 @@ primrec bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
 "bval (Less a\<^sub>1 a\<^sub>2) s = (aval a\<^sub>1 s < aval a\<^sub>2 s)"
 
 
-datatype
+datatype_new
   com = SKIP 
       | Assign aexp aexp         ("_ ::= _" [61, 61] 61)
       | New    aexp aexp

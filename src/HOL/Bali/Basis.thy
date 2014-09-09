@@ -155,7 +155,7 @@ primrec the_Inl :: "'a + 'b \<Rightarrow> 'a"
 primrec the_Inr :: "'a + 'b \<Rightarrow> 'b"
   where "the_Inr (Inr b) = b"
 
-datatype ('a, 'b, 'c) sum3 = In1 'a | In2 'b | In3 'c
+datatype_new ('a, 'b, 'c) sum3 = In1 'a | In2 'b | In3 'c
 
 primrec the_In1 :: "('a, 'b, 'c) sum3 \<Rightarrow> 'a"
   where "the_In1 (In1 a) = a"

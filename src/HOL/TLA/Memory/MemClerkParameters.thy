@@ -8,7 +8,7 @@ theory MemClerkParameters
 imports RPCParameters
 begin
 
-datatype mClkState = clkA | clkB
+datatype_new mClkState = clkA | clkB
 
 (* types sent on the clerk's send and receive channels are argument types
    of the memory and the RPC, respectively *)

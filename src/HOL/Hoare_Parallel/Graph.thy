@@ -4,7 +4,7 @@ header {* \chapter{Case Study: Single and Multi-Mutator Garbage Collection Algor
 
 theory Graph imports Main begin
 
-datatype node = Black | White
+datatype_new node = Black | White
 
 type_synonym nodes = "node list"
 type_synonym edge = "nat \<times> nat"

@@ -9,7 +9,7 @@ theory Tree
 imports Main
 begin
 
-datatype 'a tree =
+datatype_new 'a tree =
     Atom 'a
   | Branch "nat => 'a tree"
 
@@ -34,7 +34,7 @@ lemma exists_map:
 
 subsection{*The Brouwer ordinals, as in ZF/Induct/Brouwer.thy.*}
 
-datatype brouwer = Zero | Succ "brouwer" | Lim "nat => brouwer"
+datatype_new brouwer = Zero | Succ "brouwer" | Lim "nat => brouwer"
 
 text{*Addition of ordinals*}
 primrec add :: "[brouwer,brouwer] => brouwer"

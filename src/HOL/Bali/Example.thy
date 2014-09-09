@@ -66,9 +66,9 @@ declare wf_fdecl_def2 [iff]
 section "type and expression names"
 
 (** unfortunately cannot simply instantiate tnam **)
-datatype tnam'  = HasFoo' | Base' | Ext' | Main'
-datatype vnam'  = arr' | vee' | z' | e'
-datatype label' = lab1'
+datatype_new tnam'  = HasFoo' | Base' | Ext' | Main'
+datatype_new vnam'  = arr' | vee' | z' | e'
+datatype_new label' = lab1'
 
 axiomatization
   tnam' :: "tnam'  \<Rightarrow> tnam" and

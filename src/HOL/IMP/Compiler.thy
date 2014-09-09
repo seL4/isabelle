@@ -43,7 +43,7 @@ notation isize ("size")
 subsection "Instructions and Stack Machine"
 
 text_raw{*\snip{instrdef}{0}{1}{% *}
-datatype instr = 
+datatype_new instr = 
   LOADI int | LOAD vname | ADD | STORE vname |
   JMP int | JMPLESS int | JMPGE int
 text_raw{*}%endsnip*}

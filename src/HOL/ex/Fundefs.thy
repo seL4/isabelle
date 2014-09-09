@@ -372,7 +372,7 @@ where
 
 
 (* Simple Higher-Order Recursion *)
-datatype 'a tree = 
+datatype_new 'a tree = 
   Leaf 'a 
   | Branch "'a tree list"
 
@@ -423,7 +423,7 @@ where
 
 
 (* Many equations (quadratic blowup) *)
-datatype DT = 
+datatype_new DT = 
   A | B | C | D | E | F | G | H | I | J | K | L | M | N | P
 | Q | R | S | T | U | V
 

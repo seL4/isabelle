@@ -13,7 +13,7 @@ Note that arrays cannot be printed directly but only by turning them into
 lists first. Arrays could be converted back into lists for printing if they
 were wrapped up in an additional constructor. *}
 
-datatype 'a iarray = IArray "'a list"
+datatype_new 'a iarray = IArray "'a list"
 
 primrec list_of :: "'a iarray \<Rightarrow> 'a list" where
 "list_of (IArray xs) = xs"

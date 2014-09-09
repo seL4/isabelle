@@ -21,7 +21,7 @@ text {* The following abstract syntax and semantics of Hoare Logic
 type_synonym 'a bexp = "'a set"
 type_synonym 'a assn = "'a set"
 
-datatype 'a com =
+datatype_new 'a com =
     Basic "'a \<Rightarrow> 'a"
   | Seq "'a com" "'a com"    ("(_;/ _)" [60, 61] 60)
   | Cond "'a bexp" "'a com" "'a com"

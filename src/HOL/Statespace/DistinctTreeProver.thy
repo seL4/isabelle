@@ -18,7 +18,7 @@ tree have distinct names. This setup leads to logarithmic certificates.
 
 subsection {* The Binary Tree *}
 
-datatype 'a tree = Node "'a tree" 'a bool "'a tree" | Tip
+datatype_new 'a tree = Node "'a tree" 'a bool "'a tree" | Tip
 
 
 text {* The boolean flag in the node marks the content of the node as

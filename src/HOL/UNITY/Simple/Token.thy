@@ -15,7 +15,7 @@ text{*From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2 and 
 
 subsection{*Definitions*}
 
-datatype pstate = Hungry | Eating | Thinking
+datatype_new pstate = Hungry | Eating | Thinking
     --{*process states*}
 
 record state =

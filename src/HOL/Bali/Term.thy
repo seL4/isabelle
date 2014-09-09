@@ -60,20 +60,20 @@ simplifications:
 type_synonym locals = "(lname, val) table"  --{* local variables *}
 
 
-datatype jump
+datatype_new jump
         = Break label --{* break *}
         | Cont label  --{* continue *}
         | Ret         --{* return from method *}
 
-datatype xcpt        --{* exception *}
+datatype_new xcpt        --{* exception *}
         = Loc loc    --{* location of allocated execption object *}
         | Std xname  --{* intermediate standard exception, see Eval.thy *}
 
-datatype error
+datatype_new error
        =  AccessViolation  --{* Access to a member that isn't permitted *}
         | CrossMethodJump  --{* Method exits with a break or continue *}
 
-datatype abrupt       --{* abrupt completion *} 
+datatype_new abrupt       --{* abrupt completion *} 
         = Xcpt xcpt   --{* exception *}
         | Jump jump   --{* break, continue, return *}
         | Error error -- {* runtime errors, we wan't to detect and proof absent
@@ -90,7 +90,7 @@ statement *}
 translations
  (type) "locals" <= (type) "(lname, val) table"
 
-datatype inv_mode                  --{* invocation mode for method calls *}
+datatype_new inv_mode                  --{* invocation mode for method calls *}
         = Static                   --{* static *}
         | SuperM                   --{* super  *}
         | IntVir                   --{* interface or virtual *}
@@ -104,13 +104,13 @@ translations
   (type) "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
 
 --{* function codes for unary operations *}
-datatype unop =  UPlus    -- {*{\tt +} unary plus*} 
+datatype_new unop =  UPlus    -- {*{\tt +} unary plus*} 
                | UMinus   -- {*{\tt -} unary minus*}
                | UBitNot  -- {*{\tt ~} bitwise NOT*}
                | UNot     -- {*{\tt !} logical complement*}
 
 --{* function codes for binary operations *}
-datatype binop = Mul     -- {*{\tt * }   multiplication*}
+datatype_new binop = Mul     -- {*{\tt * }   multiplication*}
                | Div     -- {*{\tt /}   division*}
                | Mod     -- {*{\tt \%}   remainder*}
                | Plus    -- {*{\tt +}   addition*}
@@ -140,7 +140,7 @@ e.g.: {\tt false \&\& e} e is not evaluated;
       {\tt true || e} e is not evaluated; 
 *}
 
-datatype var
+datatype_new var
         = LVar lname --{* local variable (incl. parameters) *}
         | FVar qtname qtname bool expr vname ("{_,_,_}_.._"[10,10,10,85,99]90)
                      --{* class field *}

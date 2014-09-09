@@ -6,7 +6,7 @@ begin
 
 subsection "Constant Propagation"
 
-datatype const = Const val | Any
+datatype_new const = Const val | Any
 
 fun \<gamma>_const where
 "\<gamma>_const (Const n) = {n}" |

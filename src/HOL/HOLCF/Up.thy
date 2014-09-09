@@ -13,7 +13,7 @@ default_sort cpo
 
 subsection {* Definition of new type for lifting *}
 
-datatype 'a u = Ibottom | Iup 'a
+datatype_new 'a u = Ibottom | Iup 'a
 
 type_notation (xsymbols)
   u  ("(_\<^sub>\<bottom>)" [1000] 999)

@@ -14,7 +14,7 @@ text {*
   @{url "http://www.dcs.ed.ac.uk/home/pgh/chat.html"}).
 *}
 
-datatype ordinal =
+datatype_new ordinal =
     Zero
   | Succ ordinal
   | Limit "nat => ordinal"

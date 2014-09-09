@@ -6,7 +6,7 @@ begin
 
 subsection "Constant Propagation"
 
-datatype cval = Const val | Any
+datatype_new cval = Const val | Any
 
 fun rep_cval where
 "rep_cval (Const n) = {n}" |

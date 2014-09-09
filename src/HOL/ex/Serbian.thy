@@ -11,7 +11,7 @@ imports Main
 begin
 
 text{* Serbian cyrillic letters *}
-datatype azbuka =
+datatype_new azbuka =
   azbA   ("А")
 | azbB   ("Б")
 | azbV   ("В")
@@ -47,7 +47,7 @@ datatype azbuka =
 thm azbuka.induct
 
 text{* Serbian latin letters *}
-datatype abeceda =
+datatype_new abeceda =
   abcA   ("A")
 | abcB   ("B")
 | abcC   ("C")

@@ -49,7 +49,7 @@ text{*TLS apparently does not require separate keypairs for encryption and
 signature.  Therefore, we formalize signature as encryption using the
 private encryption key.*}
 
-datatype role = ClientRole | ServerRole
+datatype_new role = ClientRole | ServerRole
 
 consts
   (*Pseudo-random function of Section 5*)

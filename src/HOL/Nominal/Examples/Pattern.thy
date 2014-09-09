@@ -38,7 +38,7 @@ abbreviation
 where
   "\<lambda>x:T. t \<equiv> Abs T x t"
 
-datatype pat =
+datatype_new pat =
     PVar name ty
   | PTuple pat pat  ("(1'\<langle>\<langle>_,/ _'\<rangle>\<rangle>)")
 

@@ -10,7 +10,7 @@ theory Heap imports Main begin
 
 subsection "References"
 
-datatype 'a ref = Null | Ref 'a
+datatype_new 'a ref = Null | Ref 'a
 
 lemma not_Null_eq [iff]: "(x ~= Null) = (EX y. x = Ref y)"
   by (induct x) auto

@@ -107,13 +107,13 @@ where
   "unique [] = True"
 | "unique (x # xs) = (xs\<langle>fst x\<rangle>\<^sub>? = \<bottom> \<and> unique xs)"
 
-datatype type =
+datatype_new type =
     TVar nat
   | Top
   | Fun type type    (infixr "\<rightarrow>" 200)
   | TyAll type type  ("(3\<forall><:_./ _)" [0, 10] 10)
 
-datatype binding = VarB type | TVarB type
+datatype_new binding = VarB type | TVarB type
 type_synonym env = "binding list"
 
 primrec is_TVarB :: "binding \<Rightarrow> bool"
@@ -131,7 +131,7 @@ where
   "mapB f (VarB T) = VarB (f T)"
 | "mapB f (TVarB T) = TVarB (f T)"
 
-datatype trm =
+datatype_new trm =
     Var nat
   | Abs type trm   ("(3\<lambda>:_./ _)" [0, 10] 10)
   | TAbs type trm  ("(3\<lambda><:_./ _)" [0, 10] 10)

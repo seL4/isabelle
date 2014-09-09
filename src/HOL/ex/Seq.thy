@@ -8,7 +8,7 @@ theory Seq
 imports Main
 begin
 
-datatype 'a seq = Empty | Seq 'a "'a seq"
+datatype_new 'a seq = Empty | Seq 'a "'a seq"
 
 fun conc :: "'a seq \<Rightarrow> 'a seq \<Rightarrow> 'a seq"
 where

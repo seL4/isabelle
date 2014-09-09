@@ -166,7 +166,7 @@ definition incX' :: "'a point_scheme => 'a point_scheme"
 
 subsection {* Coloured points: record extension *}
 
-datatype colour = Red | Green | Blue
+datatype_new colour = Red | Green | Blue
 
 record cpoint = point +
   colour :: colour

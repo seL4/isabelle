@@ -15,7 +15,7 @@ begin
 (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
 (*********************************************************************************)
 
-datatype num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub num num
+datatype_new num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub num num
   | Mul int num
 
 primrec num_size :: "num \<Rightarrow> nat" -- {* A size for num to make inductive proofs simpler *}
@@ -38,7 +38,7 @@ where
 | "Inum bs (Sub a b) = Inum bs a - Inum bs b"
 | "Inum bs (Mul c a) = c* Inum bs a"
 
-datatype fm  =
+datatype_new fm  =
   T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num| Dvd int num| NDvd int num|
   NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
   | Closed nat | NClosed nat

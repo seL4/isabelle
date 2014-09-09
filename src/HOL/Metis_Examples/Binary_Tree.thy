@@ -13,7 +13,7 @@ begin
 
 declare [[metis_new_skolem]]
 
-datatype 'a bt =
+datatype_new 'a bt =
     Lf
   | Br 'a  "'a bt"  "'a bt"
 

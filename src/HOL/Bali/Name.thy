@@ -12,11 +12,11 @@ typedecl mname  --{* method name *}
 typedecl vname  --{* variable or field name *}
 typedecl label  --{* label as destination of break or continue *}
 
-datatype ename        --{* expression name *} 
+datatype_new ename        --{* expression name *} 
         = VNam vname 
         | Res         --{* special name to model the return value of methods *}
 
-datatype lname        --{* names for local variables and the This pointer *}
+datatype_new lname        --{* names for local variables and the This pointer *}
         = EName ename 
         | This
 abbreviation VName   :: "vname \<Rightarrow> lname"
@@ -25,7 +25,7 @@ abbreviation VName   :: "vname \<Rightarrow> lname"
 abbreviation Result :: lname
       where "Result == EName Res"
 
-datatype xname          --{* names of standard exceptions *}
+datatype_new xname          --{* names of standard exceptions *}
         = Throwable
         | NullPointer | OutOfMemory | ClassCast   
         | NegArrSize  | IndOutBound | ArrStore
@@ -39,7 +39,7 @@ apply auto
 done
 
 
-datatype tname  --{* type names for standard classes and other type names *}
+datatype_new tname  --{* type names for standard classes and other type names *}
         = Object'
         | SXcpt'   xname
         | TName   tnam

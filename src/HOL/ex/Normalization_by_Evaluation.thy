@@ -15,7 +15,7 @@ lemma "0 + Suc n = Suc n" by normalization
 lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization
 lemma "~((0::nat) < (0::nat))" by normalization
 
-datatype n = Z | S n
+datatype_new n = Z | S n
 
 primrec add :: "n \<Rightarrow> n \<Rightarrow> n" where
    "add Z = id"

@@ -73,7 +73,7 @@ text {*
   \cite{Naraschewski:2001}.}
 *}
 
-datatype perm =
+datatype_new perm =
     Readable
   | Writable
   | Executable    -- "(ignored)"
@@ -284,7 +284,7 @@ text {*
   @{text "root \<midarrow>x\<rightarrow> root'"} for the operational semantics.
 *}
 
-datatype operation =
+datatype_new operation =
     Read uid string path
   | Write uid string path
   | Chmod uid perms path

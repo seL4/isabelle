@@ -11,7 +11,7 @@ text {*
 type_synonym var = nat
 type_synonym state = "int list"
 
-datatype com =
+datatype_new com =
   Skip |
   Ass var "int" |
   Seq com com |

@@ -6,7 +6,7 @@ begin
 
 subsection "Interval Analysis"
 
-datatype ivl = I "int option" "int option"
+datatype_new ivl = I "int option" "int option"
 
 text{* We assume an important invariant: arithmetic operations are never
 applied to empty intervals @{term"I (Some i) (Some j)"} with @{term"j <

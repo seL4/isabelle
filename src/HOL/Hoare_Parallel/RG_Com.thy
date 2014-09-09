@@ -12,7 +12,7 @@ of states.  Syntax of commands @{text com} and parallel commands
 
 type_synonym 'a bexp = "'a set"
 
-datatype 'a com = 
+datatype_new 'a com = 
     Basic "'a \<Rightarrow>'a"
   | Seq "'a com" "'a com"
   | Cond "'a bexp" "'a com" "'a com"         

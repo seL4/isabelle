@@ -139,7 +139,7 @@ values [expected "{(0::nat, 7::natural)}"] "{(a, c). JamesBond a 0 c}"
 
 subsection {* Alternative Rules *}
 
-datatype char = C | D | E | F | G | H
+datatype_new char = C | D | E | F | G | H
 
 inductive is_C_or_D
 where
@@ -784,7 +784,7 @@ subsection {* IMP *}
 type_synonym var = nat
 type_synonym state = "int list"
 
-datatype com =
+datatype_new com =
   Skip |
   Ass var "state => int" |
   Seq com com |
@@ -809,7 +809,7 @@ subsection {* CCS *}
 text{* This example formalizes finite CCS processes without communication or
 recursion. For simplicity, labels are natural numbers. *}
 
-datatype proc = nil | pre nat proc | or proc proc | par proc proc
+datatype_new proc = nil | pre nat proc | or proc proc | par proc proc
 
 inductive tupled_step :: "(proc \<times> nat \<times> proc) \<Rightarrow> bool"
 where
@@ -974,7 +974,7 @@ thm lists.equation
 *)
 subsection {* AVL Tree *}
 
-datatype 'a tree = ET | MKT 'a "'a tree" "'a tree" nat
+datatype_new 'a tree = ET | MKT 'a "'a tree" "'a tree" nat
 fun height :: "'a tree => nat" where
 "height ET = 0"
 | "height (MKT x l r h) = max (height l) (height r) + 1"
@@ -1403,7 +1403,7 @@ code_pred is_error' .
 
 thm is_error'.equation
 
-datatype ErrorObject = Error String.literal int
+datatype_new ErrorObject = Error String.literal int
 
 inductive is_error'' :: "ErrorObject \<Rightarrow> bool"
 where
@@ -1508,7 +1508,7 @@ thm detect_switches9.equation
 
 text {* The higher-order predicate r is in an output term *}
 
-datatype result = Result bool
+datatype_new result = Result bool
 
 inductive fixed_relation :: "'a => bool"
 

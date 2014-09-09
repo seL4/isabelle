@@ -8,7 +8,7 @@ theory Discrete
 imports Cont
 begin
 
-datatype 'a discr = Discr "'a :: type"
+datatype_new 'a discr = Discr "'a :: type"
 
 subsection {* Discrete cpo class instance *}
 

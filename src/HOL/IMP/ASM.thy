@@ -5,7 +5,7 @@ theory ASM imports AExp begin
 subsection "Stack Machine"
 
 text_raw{*\snip{ASMinstrdef}{0}{1}{% *}
-datatype instr = LOADI val | LOAD vname | ADD
+datatype_new instr = LOADI val | LOAD vname | ADD
 text_raw{*}%endsnip*}
 
 text_raw{*\snip{ASMstackdef}{1}{2}{% *}

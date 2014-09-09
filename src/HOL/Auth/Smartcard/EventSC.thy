@@ -9,10 +9,10 @@ begin
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: "agent => msg set"
 
-datatype card = Card agent
+datatype_new card = Card agent
 
 text{*Four new events express the traffic between an agent and his card*}
-datatype  
+datatype_new  
   event = Says  agent agent msg
         | Notes agent       msg
         | Gets  agent       msg

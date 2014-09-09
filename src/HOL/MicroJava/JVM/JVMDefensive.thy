@@ -11,7 +11,7 @@ begin
 text {*
   Extend the state space by one element indicating a type error (or
   other abnormal termination) *}
-datatype 'a type_error = TypeError | Normal 'a
+datatype_new 'a type_error = TypeError | Normal 'a
 
 
 abbreviation

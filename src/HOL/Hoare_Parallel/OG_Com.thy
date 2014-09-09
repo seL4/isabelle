@@ -14,7 +14,7 @@ text {* The syntax of commands is defined by two mutually recursive
 datatypes: @{text "'a ann_com"} for annotated commands and @{text "'a
 com"} for non-annotated commands. *}
 
-datatype 'a ann_com = 
+datatype_new 'a ann_com = 
      AnnBasic "('a assn)"  "('a \<Rightarrow> 'a)"         
    | AnnSeq "('a ann_com)"  "('a ann_com)"   
    | AnnCond1 "('a assn)"  "('a bexp)"  "('a ann_com)"  "('a ann_com)" 

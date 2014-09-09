@@ -9,7 +9,7 @@ begin
 
 subsection {* Values extended by a bottom element *}
 
-datatype 'a bot = Value 'a | Bot
+datatype_new 'a bot = Value 'a | Bot
 
 instantiation bot :: (preorder) preorder
 begin
@@ -108,7 +108,7 @@ by(intro_classes)(simp add: bot_bot_def)
 
 section {* Values extended by a top element *}
 
-datatype 'a top = Value 'a | Top
+datatype_new 'a top = Value 'a | Top
 
 instantiation top :: (preorder) preorder
 begin
@@ -207,7 +207,7 @@ by(intro_classes)(simp add: top_top_def)
 
 subsection {* Values extended by a top and a bottom element *}
 
-datatype 'a flat_complete_lattice = Value 'a | Bot | Top
+datatype_new 'a flat_complete_lattice = Value 'a | Bot | Top
 
 instantiation flat_complete_lattice :: (type) order
 begin

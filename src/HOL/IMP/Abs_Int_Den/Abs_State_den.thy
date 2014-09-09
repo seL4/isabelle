@@ -10,7 +10,7 @@ subsection "Abstract State with Computable Ordering"
 
 text{* A concrete type of state with computable @{text"\<sqsubseteq>"}: *}
 
-datatype 'a astate = FunDom "string \<Rightarrow> 'a" "string list"
+datatype_new 'a astate = FunDom "string \<Rightarrow> 'a" "string list"
 
 fun "fun" where "fun (FunDom f _) = f"
 fun dom where "dom (FunDom _ A) = A"

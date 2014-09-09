@@ -16,7 +16,7 @@ subsubsection {* Monad construction *}
 
 text {* Monadic heap actions either produce values
   and transform the heap, or fail *}
-datatype 'a Heap = Heap "heap \<Rightarrow> ('a \<times> heap) option"
+datatype_new 'a Heap = Heap "heap \<Rightarrow> ('a \<times> heap) option"
 
 lemma [code, code del]:
   "(Code_Evaluation.term_of :: 'a::typerep Heap \<Rightarrow> Code_Evaluation.term) = Code_Evaluation.term_of"

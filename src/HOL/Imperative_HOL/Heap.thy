@@ -53,8 +53,8 @@ record heap =
 definition empty :: heap where
   "empty = \<lparr>arrays = (\<lambda>_ _. []), refs = (\<lambda>_ _. 0), lim = 0\<rparr>"
 
-datatype 'a array = Array addr
-datatype 'a ref = Ref addr -- "note the phantom type 'a "
+datatype_new 'a array = Array addr
+datatype_new 'a ref = Ref addr -- "note the phantom type 'a "
 
 primrec addr_of_array :: "'a array \<Rightarrow> addr" where
   "addr_of_array (Array x) = x"

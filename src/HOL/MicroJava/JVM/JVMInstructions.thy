@@ -8,7 +8,7 @@ header {* \isaheader{Instructions of the JVM} *}
 theory JVMInstructions imports JVMState begin
 
 
-datatype 
+datatype_new 
   instr = Load nat                  -- "load from local variable"
         | Store nat                 -- "store into local variable"
         | LitPush val               -- "push a literal (constant)"

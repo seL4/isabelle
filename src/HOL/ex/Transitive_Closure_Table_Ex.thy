@@ -6,7 +6,7 @@ theory Transitive_Closure_Table_Ex
 imports "~~/src/HOL/Library/Transitive_Closure_Table"
 begin
 
-datatype ty = A | B | C
+datatype_new ty = A | B | C
 
 inductive test :: "ty \<Rightarrow> ty \<Rightarrow> bool"
 where

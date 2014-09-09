@@ -10,7 +10,7 @@ imports
   "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
-datatype 'a extended = Fin 'a | Pinf ("\<infinity>") | Minf ("-\<infinity>")
+datatype_new 'a extended = Fin 'a | Pinf ("\<infinity>") | Minf ("-\<infinity>")
 
 
 instantiation extended :: (order)order

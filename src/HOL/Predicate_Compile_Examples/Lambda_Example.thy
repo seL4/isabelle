@@ -4,11 +4,11 @@ begin
 
 subsection {* Lambda *}
 
-datatype type =
+datatype_new type =
     Atom nat
   | Fun type type    (infixr "\<Rightarrow>" 200)
 
-datatype dB =
+datatype_new dB =
     Var nat
   | App dB dB (infixl "\<degree>" 200)
   | Abs type dB

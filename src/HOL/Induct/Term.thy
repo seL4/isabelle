@@ -8,7 +8,7 @@ theory Term
 imports Main
 begin
 
-datatype ('a, 'b) "term" =
+datatype_new ('a, 'b) "term" =
     Var 'a
   | App 'b "('a, 'b) term list"
 

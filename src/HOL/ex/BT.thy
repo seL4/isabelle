@@ -9,7 +9,7 @@ header {* Binary trees *}
 
 theory BT imports Main begin
 
-datatype 'a bt =
+datatype_new 'a bt =
     Lf
   | Br 'a  "'a bt"  "'a bt"
 

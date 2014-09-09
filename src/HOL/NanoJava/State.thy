@@ -13,7 +13,7 @@ definition body :: "cname \<times> mname => stmt" where
 text {* Locations, i.e.\ abstract references to objects *}
 typedecl loc 
 
-datatype val
+datatype_new val
   = Null        --{* null reference *}
   | Addr loc    --{* address, i.e. location of object *}
 

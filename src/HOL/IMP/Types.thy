@@ -7,13 +7,13 @@ the real numbers. *}
 
 subsection "Arithmetic Expressions"
 
-datatype val = Iv int | Rv real
+datatype_new val = Iv int | Rv real
 
 type_synonym vname = string
 type_synonym state = "vname \<Rightarrow> val"
 
 text_raw{*\snip{aexptDef}{0}{2}{% *}
-datatype aexp =  Ic int | Rc real | V vname | Plus aexp aexp
+datatype_new aexp =  Ic int | Rc real | V vname | Plus aexp aexp
 text_raw{*}%endsnip*}
 
 inductive taval :: "aexp \<Rightarrow> state \<Rightarrow> val \<Rightarrow> bool" where
@@ -32,7 +32,7 @@ inductive_cases [elim!]:
 
 subsection "Boolean Expressions"
 
-datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
+datatype_new bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
 
 inductive tbval :: "bexp \<Rightarrow> state \<Rightarrow> bool \<Rightarrow> bool" where
 "tbval (Bc v) s v" |
@@ -44,7 +44,7 @@ inductive tbval :: "bexp \<Rightarrow> state \<Rightarrow> bool \<Rightarrow> bo
 subsection "Syntax of Commands"
 (* a copy of Com.thy - keep in sync! *)
 
-datatype
+datatype_new
   com = SKIP 
       | Assign vname aexp       ("_ ::= _" [1000, 61] 61)
       | Seq    com  com         ("_;; _"  [60, 61] 60)
@@ -71,7 +71,7 @@ lemmas small_step_induct = small_step.induct[split_format(complete)]
 
 subsection "The Type System"
 
-datatype ty = Ity | Rty
+datatype_new ty = Ity | Rty
 
 type_synonym tyenv = "vname \<Rightarrow> ty"
 

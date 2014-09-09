@@ -42,7 +42,7 @@ subsection {* Modifier*}
 
 subsubsection {* Access modifier *}
 
-datatype acc_modi (* access modifier *)
+datatype_new acc_modi (* access modifier *)
          = Private | Package | Protected | Public 
 
 text {* 
@@ -223,9 +223,9 @@ text {* To be able to talk uniformaly about field and method declarations we
 introduce the notion of a member declaration (e.g. useful to define 
 accessiblity ) *}
 
-datatype memberdecl = fdecl fdecl | mdecl mdecl
+datatype_new memberdecl = fdecl fdecl | mdecl mdecl
 
-datatype memberid = fid vname | mid sig
+datatype_new memberid = fid vname | mid sig
 
 class has_memberid =
   fixes memberid :: "'a \<Rightarrow> memberid"

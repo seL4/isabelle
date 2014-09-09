@@ -11,12 +11,12 @@ begin
 
 text {* Syntax of multivariate polynomials (pol) and polynomial expressions. *}
 
-datatype 'a pol =
+datatype_new 'a pol =
     Pc 'a
   | Pinj nat "'a pol"
   | PX "'a pol" nat "'a pol"
 
-datatype 'a polex =
+datatype_new 'a polex =
     Pol "'a pol"
   | Add "'a polex" "'a polex"
   | Sub "'a polex" "'a polex"
