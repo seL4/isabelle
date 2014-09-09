@@ -395,8 +395,7 @@ type lfp_sugar_thms = (thm list * thm * Token.src list) * (thm list list * Token
 
 fun morph_lfp_sugar_thms phi ((inducts, induct, induct_attrs), (recss, rec_attrs)) =
   ((map (Morphism.thm phi) inducts, Morphism.thm phi induct, induct_attrs),
-   (map (map (Morphism.thm phi)) recss, rec_attrs))
-  : lfp_sugar_thms;
+   (map (map (Morphism.thm phi)) recss, rec_attrs)) : lfp_sugar_thms;
 
 val transfer_lfp_sugar_thms = morph_lfp_sugar_thms o Morphism.transfer_morphism;
 
@@ -601,7 +600,7 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
       ||>> mk_Freesss "a" ctrAs_Tsss
       ||>> mk_Freesss "b" ctrBs_Tsss;
 
-    val premises =
+    val prems =
       let
         fun mk_prem ctrA ctrB argAs argBs =
           fold_rev Logic.all (argAs @ argBs) (fold_rev (curry Logic.mk_implies)
@@ -616,7 +615,7 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
       (map2 (build_the_rel [] lthy (Rs @ IRs) []) fpA_Ts fpB_Ts) IRs));
 
     val rel_induct0_thm =
-      Goal.prove_sorry lthy [] premises goal (fn {context = ctxt, prems} =>
+      Goal.prove_sorry lthy [] prems goal (fn {context = ctxt, prems} =>
         mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (certify ctxt) IRs) exhausts ctor_defss
           ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs)
       |> singleton (Proof_Context.export names_lthy lthy)
@@ -821,25 +820,24 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
           ||>> Variable.variant_fixes fp_names
           ||>> Variable.variant_fixes (map (suffix "'") fp_names);
       in
-        (Rs, IRs,
-          map2 (curry Free) fpAs_names fpA_Ts,
-          map2 (curry Free) fpBs_names fpB_Ts,
-          names_lthy)
+        (Rs, IRs, map2 (curry Free) fpAs_names fpA_Ts, map2 (curry Free) fpBs_names fpB_Ts,
+         names_lthy)
       end;
 
     val ((discA_tss, selA_tsss), (discB_tss, selB_tsss)) =
       let
         val discss = map #discs ctr_sugars;
         val selsss = map #selss ctr_sugars;
+
         fun mk_discss ts Ts = map2 (map o rapp) ts (map (map (mk_disc_or_sel Ts)) discss);
-        fun mk_selsss ts Ts = map2 (map o map o rapp) ts (map (map (map (mk_disc_or_sel Ts)))
-          selsss);
+        fun mk_selsss ts Ts =
+          map2 (map o map o rapp) ts (map (map (map (mk_disc_or_sel Ts))) selsss);
       in
         ((mk_discss fpAs As, mk_selsss fpAs As),
          (mk_discss fpBs Bs, mk_selsss fpBs Bs))
       end;
 
-    val premises =
+    val prems =
       let
         fun mk_prem_ctr_concls n k discA_t selA_ts discB_t selB_ts =
           (if k = n then [] else [HOLogic.mk_eq (discA_t, discB_t)]) @
@@ -867,7 +865,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
       IRs (map2 (build_the_rel [] lthy (Rs @ IRs) []) fpA_Ts fpB_Ts)));
 
     val rel_coinduct0_thm =
-      Goal.prove_sorry lthy [] premises goal (fn {context = ctxt, prems} =>
+      Goal.prove_sorry lthy [] prems goal (fn {context = ctxt, prems} =>
         mk_rel_coinduct0_tac ctxt dtor_rel_coinduct (map (certify ctxt) IRs) prems
           (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars)
           (map (flat o #sel_thmss) ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects
@@ -942,15 +940,15 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
       let
         val A = HOLogic.dest_setT (range_type (fastype_of (hd sets)));
         val (Ps, ctxt') = mk_Frees "P" (map (fn fpT => A --> fpT --> HOLogic.boolT) fpTs) ctxt;
-        val (((premises, conclusion), case_names), ctxt'') =
-          (fold_map (mk_prems_and_concl_for_type A Ps) (fpTs ~~ ctrss ~~ sets) ctxt')
+        val (((prems, concl), case_names), ctxt'') =
+          fold_map (mk_prems_and_concl_for_type A Ps) (fpTs ~~ ctrss ~~ sets) ctxt'
           |>> apfst split_list o split_list
           |>> apfst (apfst flat)
           |>> apfst (apsnd (Library.foldr1 HOLogic.mk_conj))
           |>> apsnd flat;
 
         val thm =
-          Goal.prove_sorry lthy [] premises (HOLogic.mk_Trueprop conclusion)
+          Goal.prove_sorry lthy [] prems (HOLogic.mk_Trueprop concl)
             (fn {context = ctxt, prems} =>
                mk_set_induct0_tac ctxt (map (certify ctxt'') Ps) prems dtor_set_inducts exhausts
                  set_pre_defs ctor_defs dtor_ctors Abs_pre_inverses)
