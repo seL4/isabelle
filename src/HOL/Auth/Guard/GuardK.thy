@@ -211,13 +211,13 @@ subsection{*list of kparts*}
 
 lemma kparts_msg_set: "EX l. kparts {X} = set l & cnb l = crypt_nb X"
 apply (induct X, simp_all)
-apply (rule_tac x="[Agent agent]" in exI, simp)
-apply (rule_tac x="[Number nat]" in exI, simp)
-apply (rule_tac x="[Nonce nat]" in exI, simp)
-apply (rule_tac x="[Key nat]" in exI, simp)
+apply (rename_tac agent, rule_tac x="[Agent agent]" in exI, simp)
+apply (rename_tac nat, rule_tac x="[Number nat]" in exI, simp)
+apply (rename_tac nat, rule_tac x="[Nonce nat]" in exI, simp)
+apply (rename_tac nat, rule_tac x="[Key nat]" in exI, simp)
 apply (rule_tac x="[Hash X]" in exI, simp)
 apply (clarify, rule_tac x="l@la" in exI, simp)
-by (clarify, rule_tac x="[Crypt nat X]" in exI, simp)
+by (clarify, rename_tac nat X y, rule_tac x="[Crypt nat X]" in exI, simp)
 
 lemma kparts_set: "EX l'. kparts (set l) = set l' & cnb l' = cnb l"
 apply (induct l)
