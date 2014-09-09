@@ -13,7 +13,9 @@ text {*
   based on Berger, Schwichtenberg and Seisenberger \cite{Berger-JAR-2001}.
 *}
 
-datatype b = T | F
+datatype_new b = T | F
+
+datatype_compat b
 
 primrec
   is_path' :: "('a \<Rightarrow> 'a \<Rightarrow> b) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
