@@ -35,9 +35,11 @@ lemma shift_commute [simp]: "e\<langle>i:U\<rangle>\<langle>0:T\<rangle> = e\<la
 
 subsection {* Types and typing rules *}
 
-datatype type =
+datatype_new type =
     Atom nat
   | Fun type type    (infixr "\<Rightarrow>" 200)
+
+datatype_compat type
 
 inductive typing :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
   where
@@ -225,9 +227,11 @@ lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degr
   apply simp
   apply (erule list_app_typeE)
   apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
+  apply (rename_tac nat Tsa Ta)
   apply (drule_tac T="Atom nat" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
   apply assumption
   apply simp
+  apply (rename_tac nat type1 type2)
   apply (erule_tac x="ts @ [a]" in allE)
   apply (erule_tac x="Ts @ [type1]" in allE)
   apply (erule_tac x="type2" in allE)
@@ -270,6 +274,7 @@ lemma abs_typeE: "e \<turnstile> Abs t : T \<Longrightarrow> (\<And>U V. e\<lang
   apply (erule typing.cases)
   apply simp_all
   apply atomize
+  apply (rename_tac type1 type2)
   apply (erule_tac x="type1" in allE)
   apply (erule_tac x="type2" in allE)
   apply (erule mp)

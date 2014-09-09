@@ -181,9 +181,9 @@ lemma not_free_iff_lifted:
     apply simp
     apply (rule iffI)
      apply (erule linorder_neqE)
-      apply (rule_tac x = "Var nat" in exI)
+      apply (rename_tac nat a, rule_tac x = "Var nat" in exI)
       apply simp
-     apply (rule_tac x = "Var (nat - 1)" in exI)
+     apply (rename_tac nat a, rule_tac x = "Var (nat - 1)" in exI)
      apply simp
     apply clarify
     apply (rule notE)
