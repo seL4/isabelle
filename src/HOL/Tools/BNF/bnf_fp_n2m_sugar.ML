@@ -180,8 +180,10 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
         if T = fpT andalso kk' <> kk then
           mutual_self_call (nth callers kk)
             (the (find_first (not o null o get_indices callers) calls))
-        else
+        else if T = nth fpTs kk' then
           nth Xs kk'
+        else
+          freeze_fpTs_type_based_default T
       | _ => incompatible_calls calls);
 
     fun freeze_fpTs_map kk (fpT as Type (_, Ts')) (callss, (live_call :: _, dead_calls))
