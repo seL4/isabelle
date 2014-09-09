@@ -235,33 +235,6 @@ end;
 
 
 
-(** document antiquotation **)
-
-val antiq_setup =
-  Thy_Output.antiquotation @{binding datatype} (Args.type_name {proper = true, strict = true})
-    (fn {source = src, context = ctxt, ...} => fn dtco =>
-      let
-        val thy = Proof_Context.theory_of ctxt;
-        val (vs, cos) = the_spec thy dtco;
-        val ty = Type (dtco, map TFree vs);
-        val pretty_typ_bracket = Syntax.pretty_typ (Config.put pretty_priority 1001 ctxt);
-        fun pretty_constr (co, tys) =
-          Pretty.block (Pretty.breaks
-            (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::
-              map pretty_typ_bracket tys));
-        val pretty_datatype =
-          Pretty.block
-           (Pretty.keyword1 "datatype" :: Pretty.brk 1 ::
-            Syntax.pretty_typ ctxt ty ::
-            Pretty.str " =" :: Pretty.brk 1 ::
-            flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_constr) cos)));
-      in
-        Thy_Output.output ctxt
-          (Thy_Output.maybe_pretty_source (K (K pretty_datatype)) ctxt src [()])
-      end);
-
-
-
 (** abstract theory extensions relative to a datatype characterisation **)
 
 structure Datatype_Interpretation = Interpretation
@@ -284,7 +257,7 @@ val interpretation_data = Datatype_Interpretation.data;
 
 (** setup theory **)
 
-val _ = Theory.setup (antiq_setup #> Datatype_Interpretation.init);
+val _ = Theory.setup Datatype_Interpretation.init;
 
 open Old_Datatype_Aux;
 

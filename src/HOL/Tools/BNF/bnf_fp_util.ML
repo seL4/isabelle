@@ -2,6 +2,7 @@
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Martin Desharnais, TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
     Copyright   2012, 2013, 2014
 
 Shared library for the datatype and codatatype constructions.
@@ -187,6 +188,7 @@ sig
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory -> 'a) ->
     binding list -> (string * sort) list -> (string * sort) list -> ((string * sort) * typ) list ->
     local_theory -> (BNF_Def.bnf list * BNF_Comp.absT_info list) * 'a
+  val fp_antiquote_setup: binding -> theory -> theory
 end;
 
 structure BNF_FP_Util : BNF_FP_UTIL =
@@ -629,5 +631,30 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
   in
     timer; ((pre_bnfs, absT_infos), res)
   end;
+
+fun fp_antiquote_setup binding =
+  Thy_Output.antiquotation binding (Args.type_name {proper = true, strict = true})
+    (fn {source = src, context = ctxt, ...} => fn fcT_name =>
+       (case Ctr_Sugar.ctr_sugar_of ctxt fcT_name of
+         NONE => error ("Not a known freely generated type name: " ^ quote fcT_name)
+       | SOME {T = T0, ctrs = ctrs0, ...} =>
+         let
+           val freezeT = Term.map_atyps (fn TVar ((s, _), S) => TFree (s, S) | T => T);
+
+           val T = freezeT T0;
+           val ctrs = map (Term.map_types freezeT) ctrs0;
+
+           val pretty_typ_bracket = Syntax.pretty_typ (Config.put pretty_priority 1001 ctxt);
+           fun pretty_ctr ctr =
+             Pretty.block (Pretty.breaks (Syntax.pretty_term ctxt ctr ::
+               map pretty_typ_bracket (binder_types (fastype_of ctr))));
+           val pretty_co_datatype =
+             Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
+               Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
+               flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)));
+         in
+           Thy_Output.output ctxt
+             (Thy_Output.maybe_pretty_source (K (K pretty_co_datatype)) ctxt src [()])
+         end));
 
 end;

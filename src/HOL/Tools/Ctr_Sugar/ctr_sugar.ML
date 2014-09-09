@@ -1088,6 +1088,6 @@ val _ =
        -- parse_sel_default_eqs
      >> free_constructors_cmd);
 
-val _ = Context.>> (Context.map_theory Ctr_Sugar_Interpretation.init);
+val _ = Theory.setup Ctr_Sugar_Interpretation.init;
 
 end;
