@@ -168,6 +168,15 @@ lemma type_definition_id_bnf_UNIV: "type_definition id_bnf id_bnf UNIV"
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"
 
+hide_fact
+  DEADID.inj_map DEADID.inj_map_strong DEADID.map_comp DEADID.map_cong DEADID.map_cong0
+  DEADID.map_cong_simp DEADID.map_id DEADID.map_id0 DEADID.map_ident DEADID.map_transfer
+  DEADID.rel_Grp DEADID.rel_compp DEADID.rel_compp_Grp DEADID.rel_conversep DEADID.rel_eq
+  DEADID.rel_flip DEADID.rel_map DEADID.rel_mono DEADID.rel_transfer
+  ID.inj_map ID.inj_map_strong ID.map_comp ID.map_cong ID.map_cong0 ID.map_cong_simp ID.map_id
+  ID.map_id0 ID.map_ident ID.map_transfer ID.rel_Grp ID.rel_compp ID.rel_compp_Grp ID.rel_conversep
+  ID.rel_eq ID.rel_flip ID.rel_map ID.rel_mono ID.rel_transfer ID.set_map ID.set_transfer
+
 hide_const (open) id_bnf
 hide_fact (open) id_bnf_def type_definition_id_bnf_UNIV
 
