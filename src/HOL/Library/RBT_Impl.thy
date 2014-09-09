@@ -1056,7 +1056,7 @@ end
 theorem (in linorder) rbt_lookup_map: "rbt_lookup (map f t) x = map_option (f x) (rbt_lookup t x)"
   apply(induct t)
   apply auto
-  apply(subgoal_tac "x = a")
+  apply(rename_tac a b c, subgoal_tac "x = a")
   apply auto
   done
  (* FIXME: simproc "antisym less" does not work for linorder context, only for linorder type class
@@ -1749,7 +1749,7 @@ declare compare_height.simps [code]
 hide_type (open) compare
 hide_const (open)
   compare_height skip_black skip_red LT GT EQ case_compare rec_compare
-  Abs_compare Rep_compare rep_set_compare
+  Abs_compare Rep_compare
 hide_fact (open)
   Abs_compare_cases Abs_compare_induct Abs_compare_inject Abs_compare_inverse
   Rep_compare Rep_compare_cases Rep_compare_induct Rep_compare_inject Rep_compare_inverse
