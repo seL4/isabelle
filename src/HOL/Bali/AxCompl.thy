@@ -1318,7 +1318,7 @@ proof (induct rule: full_nat_induct)
       show "G,A\<turnstile>{=:n} \<langle>Init C\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
         by (rule MGFn_Init)
     next
-      case Nil
+      case Nil_expr
       show "G,A\<turnstile>{=:n} \<langle>[]\<rangle>\<^sub>l\<succ> {G\<rightarrow>}"
         apply -
         apply (rule MGFn_NormalI)
@@ -1326,7 +1326,7 @@ proof (induct rule: full_nat_induct)
         apply (fastforce intro: eval.Nil)
         done
     next
-      case (Cons e es)
+      case (Cons_expr e es)
       thus "G,A\<turnstile>{=:n} \<langle>e# es\<rangle>\<^sub>l\<succ> {G\<rightarrow>}"
         apply -
         apply (rule MGFn_NormalI)
