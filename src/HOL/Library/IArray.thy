@@ -55,7 +55,7 @@ code_printing
 | constant IArray.exists \<rightharpoonup> (SML) "Vector.exists"
 
 lemma [code]:
-"size (as :: 'a iarray) = 0"
+"size (as :: 'a iarray) = Suc (length (IArray.list_of as))"
 by (cases as) simp
 
 lemma [code]:
@@ -116,4 +116,3 @@ code_printing
   constant IArray.length' \<rightharpoonup> (SML) "Vector.length"
 
 end
-
