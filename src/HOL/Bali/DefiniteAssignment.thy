@@ -236,8 +236,8 @@ lemma constVal_Some_induct [consumes 1, case_names Lit UnOp BinOp CondL CondR]:
                               \<Longrightarrow> P (b? e1 : e2)"
   shows "P e"
 proof -
-  have "True" and "\<And> v. constVal e = Some v \<Longrightarrow> P e" and "True" and "True"
-  proof (induct "x::var" and e and "s::stmt" and "es::expr list")
+  have "\<And> v. constVal e = Some v \<Longrightarrow> P e"
+  proof (induct e)
     case Lit
     show ?case by (rule hyp_Lit)
   next
@@ -264,7 +264,7 @@ proof -
       with Cond show ?thesis using v bv
         by (auto intro: hyp_CondR)
     qed
-  qed (simp_all)
+  qed (simp_all add: hyp_Lit)
   with const 
   show ?thesis
     by blast  
@@ -334,8 +334,8 @@ lemma assigns_if_const_b_simp:
   assumes boolConst: "constVal e = Some (Bool b)" (is "?Const b e")
   shows   "assigns_if b e = {}" (is "?Ass b e")
 proof -
-  have "True" and "\<And> b. ?Const b e \<Longrightarrow> ?Ass b e" and "True" and "True"
-  proof (induct _ and e and _ and _ rule: var_expr_stmt.inducts)
+  have "\<And> b. ?Const b e \<Longrightarrow> ?Ass b e"
+  proof (induct e)
     case Lit
     thus ?case by simp
   next
@@ -382,8 +382,8 @@ lemma assigns_if_const_not_b_simp:
   assumes boolConst: "constVal e = Some (Bool b)"        (is "?Const b e")  
   shows "assigns_if (\<not>b) e = UNIV"                  (is "?Ass b e")
 proof -
-  have True and "\<And> b. ?Const b e \<Longrightarrow> ?Ass b e" and True and True
-  proof (induct _ and e and _ and _ rule: var_expr_stmt.inducts) 
+  have "\<And> b. ?Const b e \<Longrightarrow> ?Ass b e"
+  proof (induct e)
     case Lit
     thus ?case by simp
   next
@@ -949,8 +949,10 @@ lemma assignsE_subseteq_assigns_ifs:
  assumes boolEx: "E\<turnstile>e\<Colon>-PrimT Boolean" (is "?Boolean e")
    shows "assignsE e \<subseteq> assigns_if True e \<inter> assigns_if False e" (is "?Incl e")
 proof -
-  have True and "?Boolean e \<Longrightarrow> ?Incl e" and True and True
-  proof (induct _ and e and _ and _ rule: var_expr_stmt.inducts)
+  obtain vv where ex_lit: "E\<turnstile>Lit vv\<Colon>- PrimT Boolean"
+    using typeof.simps(2) wt.Lit by blast
+  have "?Boolean e \<Longrightarrow> ?Incl e"
+  proof (induct e)
     case (Cast T e)
     have "E\<turnstile>e\<Colon>- (PrimT Boolean)"
     proof -
@@ -1011,7 +1013,10 @@ proof -
         with Some show ?thesis using hyp_e2 boolean_e2 by auto
       qed
     qed
-  qed simp_all
+  next
+    show "\<And>x. E\<turnstile>Lit vv\<Colon>-PrimT Boolean"
+      by (rule ex_lit)
+  qed (simp_all add: ex_lit)
   with boolEx 
   show ?thesis
     by blast

@@ -1027,7 +1027,7 @@ proof (induct rule: full_nat_induct)
       "G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}" and
       "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}" and  
       "G,A\<turnstile>{=:n} \<langle>es\<rangle>\<^sub>l\<succ> {G\<rightarrow>}"
-    proof (induct rule: var_expr_stmt.inducts)
+    proof (induct rule: compat_var.induct compat_expr.induct compat_stmt.induct compat_expr_list.induct)
       case (LVar v)
       show "G,A\<turnstile>{=:n} \<langle>LVar v\<rangle>\<^sub>v\<succ> {G\<rightarrow>}"
         apply (rule MGFn_NormalI)
@@ -1318,7 +1318,7 @@ proof (induct rule: full_nat_induct)
       show "G,A\<turnstile>{=:n} \<langle>Init C\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
         by (rule MGFn_Init)
     next
-      case Nil_expr
+      case Nil
       show "G,A\<turnstile>{=:n} \<langle>[]\<rangle>\<^sub>l\<succ> {G\<rightarrow>}"
         apply -
         apply (rule MGFn_NormalI)
@@ -1326,7 +1326,7 @@ proof (induct rule: full_nat_induct)
         apply (fastforce intro: eval.Nil)
         done
     next
-      case (Cons_expr e es)
+      case (Cons e es)
       thus "G,A\<turnstile>{=:n} \<langle>e# es\<rangle>\<^sub>l\<succ> {G\<rightarrow>}"
         apply -
         apply (rule MGFn_NormalI)

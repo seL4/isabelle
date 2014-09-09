@@ -245,7 +245,7 @@ lemma evaln_Inj_elim: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarro
   | In2 e \<Rightarrow> (\<exists>v. w = In2 v) | In3 e \<Rightarrow> (\<exists>v. w = In3 v)"
 apply (erule evaln_cases , auto)
 apply (induct_tac "t")
-apply   (induct_tac "a")
+apply   (rename_tac a, induct_tac "a")
 apply auto
 done
 

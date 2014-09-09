@@ -833,7 +833,7 @@ lemma eval_Inj_elim:
 apply (erule eval_cases)
 apply auto
 apply (induct_tac "t")
-apply (induct_tac "a")
+apply (rename_tac a, induct_tac "a")
 apply auto
 done
 

@@ -217,6 +217,8 @@ and  stmt
                                 --{* technical term  for smallstep sem.) *}
         | Init  qtname          --{* class initialization *}
 
+datatype_compat var expr stmt
+
 
 text {*
 The expressions Methd and Body are artificial program constructs, in the
@@ -421,7 +423,7 @@ lemma term_cases: "
   \<lbrakk>\<And> v. P \<langle>v\<rangle>\<^sub>v; \<And> e. P \<langle>e\<rangle>\<^sub>e;\<And> c. P \<langle>c\<rangle>\<^sub>s;\<And> l. P \<langle>l\<rangle>\<^sub>l\<rbrakk>
   \<Longrightarrow> P t"
   apply (cases t)
-  apply (case_tac a)
+  apply (rename_tac a, case_tac a)
   apply auto
   done
 
