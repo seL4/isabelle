@@ -31,7 +31,7 @@ lemma subst_comp:
     subst_term f1 (subst_term f2 t)"
 and "subst_term_list (subst_term f1 \<circ> f2) ts =
     subst_term_list f1 (subst_term_list f2 ts)"
-  by (induct t and ts) simp_all
+  by (induct t and ts rule: subst_term.induct subst_term_list.induct) simp_all
 
 
 text {* \medskip Alternative induction rule *}
@@ -41,7 +41,7 @@ lemma
     and app: "!!f ts. (\<forall>t \<in> set ts. P t) ==> P (App f ts)"
   shows term_induct2: "P t"
     and "\<forall>t \<in> set ts. P t"
-  apply (induct t and ts)
+  apply (induct t and ts rule: subst_term.induct subst_term_list.induct)
      apply (rule var)
     apply (rule app)
     apply assumption
