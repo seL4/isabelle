@@ -42,7 +42,8 @@ sig
      is_new_datatype: Proof.context -> string -> bool,
      get_basic_lfp_sugars: binding list -> typ list -> term list ->
        (term * term list list) list list -> local_theory ->
-       typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * bool * local_theory,
+       typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * Token.src list
+       * bool * local_theory,
      rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
        term -> term -> term -> term};
 
@@ -51,7 +52,7 @@ sig
   val register_lfp_rec_extension: lfp_rec_extension -> theory -> theory
   val rec_specs_of: binding list -> typ list -> typ list -> term list ->
     (term * term list list) list list -> local_theory ->
-    (bool * rec_spec list * typ list * thm * thm list) * local_theory
+    (bool * rec_spec list * typ list * thm * thm list * Token.src list) * local_theory
 
   val add_primrec: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> (term list * thm list list) * local_theory
@@ -118,7 +119,8 @@ type lfp_rec_extension =
    is_new_datatype: Proof.context -> string -> bool,
    get_basic_lfp_sugars: binding list -> typ list -> term list ->
      (term * term list list) list list -> local_theory ->
-     typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * bool * local_theory,
+     typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * Token.src list * bool
+     * local_theory,
    rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
      term -> term -> term -> term};
 
@@ -156,7 +158,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val thy = Proof_Context.theory_of lthy0;
 
     val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, fp_nesting_map_ident0s, fp_nesting_map_comps,
-         common_induct, n2m, lthy) =
+         common_induct, induct_attrs, n2m, lthy) =
       get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0;
 
     val perm_basic_lfp_sugars = sort (int_ord o pairself #fp_res_index) basic_lfp_sugars;
@@ -218,7 +220,8 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
        fp_nesting_map_ident0s = fp_nesting_map_ident0s, fp_nesting_map_comps = fp_nesting_map_comps,
        ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs rec_thms};
   in
-    ((n2m, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, common_induct, inducts), lthy)
+    ((n2m, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, common_induct, inducts,
+      induct_attrs), lthy)
   end;
 
 val undef_const = Const (@{const_name undefined}, dummyT);
@@ -472,7 +475,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
         [] => ()
       | (b, _) :: _ => raise PRIMREC ("type of " ^ Binding.print b ^ " contains top sort", []));
 
-    val ((n2m, rec_specs, _, common_induct, inducts), lthy) =
+    val ((n2m, rec_specs, _, common_induct, inducts, induct_attrs), lthy) =
       rec_specs_of bs arg_Ts res_Ts frees callssss lthy0;
 
     val actual_nn = length funs_data;
@@ -513,7 +516,8 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
 
     val notes =
       (if n2m then
-         map2 (fn name => fn thm => (name, inductN, [thm], [])) fun_names (take actual_nn inducts)
+         map2 (fn name => fn thm => (name, inductN, [thm], induct_attrs)) fun_names
+           (take actual_nn inducts)
        else
          [])
       |> map (fn (prefix, thmN, thms, attrs) =>

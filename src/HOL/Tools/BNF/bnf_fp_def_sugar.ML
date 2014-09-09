@@ -91,6 +91,8 @@ sig
       * ((term list list * term list list list) * typ list) -> (string -> binding) -> 'b list ->
     typ list -> term list -> term -> local_theory -> (term * thm) * local_theory
   val mk_induct_attrs: term list list -> Token.src list
+  val mk_coinduct_attrs: typ list -> term list list -> term list list -> int list list ->
+    Token.src list * Token.src list
   val derive_induct_recs_thms_for_types: BNF_Def.bnf list ->
      ('a * typ list list list list * term list list * 'b) option -> thm -> thm list ->
      BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list -> typ list ->
@@ -768,7 +770,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
      (rec_thmss, code_nitpicksimp_attrs @ simp_attrs))
   end;
 
-fun mk_coinduct_attributes fpTs ctrss discss mss =
+fun mk_coinduct_attrs fpTs ctrss discss mss =
   let
     val nn = length fpTs;
     val fp_b_names = map base_name_of_typ fpTs;
@@ -876,7 +878,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
   in
     (postproc_co_induct lthy (length fpA_Ts) @{thm predicate2D} @{thm predicate2D_conj}
        rel_coinduct0_thm,
-     mk_coinduct_attributes fpA_Ts (map #ctrs ctr_sugars) (map #discs ctr_sugars) mss)
+     mk_coinduct_attrs fpA_Ts (map #ctrs ctr_sugars) (map #discs ctr_sugars) mss)
   end;
 
 fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts exhausts
@@ -1164,7 +1166,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
     val corec_sel_thmsss = mk_corec_sel_thms corec_thmss;
   in
     ((coinduct_thms_pairs,
-      mk_coinduct_attributes fpTs (map #ctrs ctr_sugars) (map #discs ctr_sugars) mss),
+      mk_coinduct_attrs fpTs (map #ctrs ctr_sugars) (map #discs ctr_sugars) mss),
      corec_thmss,
      corec_disc_thmss,
      (corec_disc_iff_thmss, simp_attrs),

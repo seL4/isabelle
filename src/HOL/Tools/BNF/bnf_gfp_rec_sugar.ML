@@ -41,7 +41,8 @@ sig
 
   val corec_specs_of: binding list -> typ list -> typ list -> term list ->
     (term * term list list) list list -> local_theory ->
-    (bool * corec_spec list * typ list * thm * thm * thm list * thm list) * local_theory
+    corec_spec list * typ list * thm * thm * thm list * thm list * (Token.src list * Token.src list)
+    * bool * local_theory
   val add_primcorecursive_cmd: primcorec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
@@ -410,6 +411,8 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
           common_co_inducts = common_coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy) =
       nested_to_mutual_fps Greatest_FP bs res_Ts callers callssss0 lthy0;
 
+    val coinduct_attrs_pair = (case gfp_sugar_thms of SOME ((_, _, pair), _) => pair | NONE => []);
+
     val perm_fp_sugars = sort (int_ord o pairself #fp_res_index) fp_sugars;
 
     val indices = map #fp_res_index fp_sugars;
@@ -502,9 +505,10 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
        ctr_specs = mk_ctr_specs ctr_sugar p_is q_isss f_isss f_Tsss corec_thms corec_discs
          corec_selss};
   in
-    ((is_some gfp_sugar_thms, map5 mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
-      co_induct_of common_coinduct_thms, strong_co_induct_of common_coinduct_thms,
-      co_induct_of coinduct_thmss, strong_co_induct_of coinduct_thmss), lthy)
+    (map5 mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
+     co_induct_of common_coinduct_thms, strong_co_induct_of common_coinduct_thms,
+     co_induct_of coinduct_thmss, strong_co_induct_of coinduct_thmss, coinduct_attrs_pair,
+     is_some gfp_sugar_thms, lthy)
   end;
 
 val undef_const = Const (@{const_name undefined}, dummyT);
@@ -1024,8 +1028,8 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
       |> map2 (curry (op |>)) (map (map (fn {ctr, sels, ...} =>
         (ctr, map (K []) sels))) basic_ctr_specss);
 
-    val ((n2m, corec_specs', _, coinduct_thm, coinduct_strong_thm, coinduct_thms,
-          coinduct_strong_thms), lthy') =
+    val (corec_specs', _, coinduct_thm, coinduct_strong_thm, coinduct_thms, coinduct_strong_thms,
+         (coinduct_attrs, common_coinduct_attrs), n2m, lthy') =
       corec_specs_of bs arg_Ts res_Ts frees callssss lthy;
     val corec_specs = take actual_nn corec_specs';
     val ctr_specss = map #ctr_specs corec_specs;
@@ -1406,8 +1410,17 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
           [(flat disc_iff_or_disc_thmss, simp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
+        val common_notes =
+          [(coinductN, if n2m then [coinduct_thm] else [], common_coinduct_attrs),
+           (coinduct_strongN, if n2m then [coinduct_strong_thm] else [], common_coindut_attrs)]
+          |> filter_out (null o #2)
+          |> map (fn (thmN, thms, attrs) =>
+            ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
+
         val notes =
-          [(coinductN, map (if n2m then single else K []) coinduct_thms, []),
+          [(coinductN, map (if n2m then single else K []) coinduct_thms, coinduct_attrs),
+           (coinduct_strongN, map (if n2m then single else K []) coinduct_strong_thms,
+            coinduct_attrs),
            (codeN, code_thmss, code_nitpicksimp_attrs),
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, []),
@@ -1415,26 +1428,18 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
            (excludeN, exclude_thmss, []),
            (exhaustN, nontriv_exhaust_thmss, []),
            (selN, sel_thmss, simp_attrs),
-           (simpsN, simp_thmss, []),
-           (coinduct_strongN, map (if n2m then single else K []) coinduct_strong_thms, [])]
+           (simpsN, simp_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map2 (fn fun_name => fn thms =>
                 ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]))
               fun_names (take actual_nn thmss))
           |> filter_out (null o fst o hd o snd);
-
-        val common_notes =
-          [(coinductN, if n2m then [coinduct_thm] else [], []),
-           (coinduct_strongN, if n2m then [coinduct_strong_thm] else [], [])]
-          |> filter_out (null o #2)
-          |> map (fn (thmN, thms, attrs) =>
-            ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
       in
         lthy
         |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat sel_thmss)
         |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat ctr_thmss)
         |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat code_thmss)
-        |> Local_Theory.notes (anonymous_notes @ notes @ common_notes)
+        |> Local_Theory.notes (anonymous_notes @ common_notes @ notes)
         |> snd
       end;
 
