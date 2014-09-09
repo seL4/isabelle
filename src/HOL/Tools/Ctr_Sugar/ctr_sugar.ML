@@ -281,7 +281,7 @@ fun mk_case Ts T t =
 fun mk_disc_or_sel Ts t =
   subst_nonatomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
-val name_of_ctr = name_of_const "constructor";
+val name_of_ctr = name_of_const "constructor" body_type;
 
 fun name_of_disc t =
   (case head_of t of
@@ -291,7 +291,7 @@ fun name_of_disc t =
     Long_Name.map_base_name (prefix isN) (name_of_disc t')
   | Abs (_, _, @{const Not} $ (Const (@{const_name HOL.eq}, _) $ Bound 0 $ t')) =>
     Long_Name.map_base_name (prefix (notN ^ isN)) (name_of_disc t')
-  | t' => name_of_const "destructor" t');
+  | t' => name_of_const "discriminator" domain_type t');
 
 val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
 

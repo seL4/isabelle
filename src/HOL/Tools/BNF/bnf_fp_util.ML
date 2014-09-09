@@ -127,8 +127,6 @@ sig
 
   val co_prefix: BNF_Util.fp_kind -> string
 
-  val base_name_of_typ: typ -> string
-
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
@@ -347,12 +345,6 @@ val selN = "sel"
 val corec_selN = corecN ^ "_" ^ selN
 
 fun co_prefix fp = case_fp fp "" "co";
-
-fun add_components_of_typ (Type (s, Ts)) =
-    cons (Long_Name.base_name s) #> fold_rev add_components_of_typ Ts
-  | add_components_of_typ _ = I;
-
-fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
 
 fun dest_sumT (Type (@{type_name sum}, [T, T'])) = (T, T');
 

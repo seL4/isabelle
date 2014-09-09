@@ -306,7 +306,7 @@ fun mk_parametricity_goal ctxt Rs t u =
     HOLogic.mk_Trueprop (prem $ t $ u)
   end;
 
-val name_of_set = name_of_const "set";
+val name_of_set = name_of_const "set function" domain_type;
 
 val mp_conj = @{thm mp_conj};
 
@@ -779,7 +779,7 @@ fun mk_coinduct_attrs fpTs ctrss discss mss =
       let
         fun mk_disc_concl disc = [name_of_disc disc];
         fun mk_ctr_concl 0 _ = []
-          | mk_ctr_concl _ ctor = [name_of_ctr ctor];
+          | mk_ctr_concl _ ctr = [name_of_ctr ctr];
         val disc_concls = map mk_disc_concl (fst (split_last discs)) @ [[]];
         val ctr_concls = map2 mk_ctr_concl ms ctrs;
       in
@@ -1771,7 +1771,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     |> singleton (Proof_Context.export names_lthy lthy)
                     |> Thm.close_derivation;
 
-                  val ctr_names = quasi_unambiguous_case_names ((map name_of_ctr) ctrAs);
+                  val ctr_names = quasi_unambiguous_case_names (map name_of_ctr ctrAs);
                   val case_names_attr = Attrib.internal (K (Rule_Cases.case_names ctr_names));
                   val consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
                   val cases_pred_attr = Attrib.internal o K o Induct.cases_pred;

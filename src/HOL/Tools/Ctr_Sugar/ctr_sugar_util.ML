@@ -40,7 +40,8 @@ sig
     (string * sort) list * Proof.context
   val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
 
-  val name_of_const: string -> term -> string
+  val base_name_of_typ: typ -> string
+  val name_of_const: string -> (typ -> typ) -> term -> string
 
   val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
   val subst_nonatomic_types: (typ * typ) list -> term -> term
@@ -198,10 +199,20 @@ fun variant_tfrees ss =
   apfst (map TFree) o
     variant_types (map (ensure_prefix "'") ss) (replicate (length ss) @{sort type});
 
-fun name_of_const what t =
+fun add_components_of_typ (Type (s, Ts)) =
+    cons (Long_Name.base_name s) #> fold_rev add_components_of_typ Ts
+  | add_components_of_typ _ = I;
+
+fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
+
+fun suffix_with_type s (Type (_, Ts)) =
+    space_implode "_" (s :: fold_rev add_components_of_typ Ts [])
+  | suffix_with_type s _ = s;
+
+fun name_of_const what get_fcT t =
   (case head_of t of
-    Const (s, _) => s
-  | Free (s, _) => s
+    Const (s, T) => suffix_with_type s (get_fcT T)
+  | Free (s, T) => suffix_with_type s (get_fcT T)
   | _ => error ("Cannot extract name of " ^ what));
 
 (*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
