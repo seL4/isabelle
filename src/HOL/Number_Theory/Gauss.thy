@@ -206,7 +206,7 @@ lemma all_A_relprime: assumes "x \<in> A" shows "gcd x p = 1"
   by (simp add: cong_altdef_int) (metis gcd_int.commute prime_imp_coprime_int)
 
 lemma A_prod_relprime: "gcd (setprod id A) p = 1"
-  by (metis DEADID.map_id all_A_relprime setprod_coprime_int)
+  by (metis id_def all_A_relprime setprod_coprime_int)
 
 
 subsection {* Relationships Between Gauss Sets *}
