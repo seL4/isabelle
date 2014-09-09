@@ -60,6 +60,9 @@ where
 
 text {* Defining the basic ring operations on normalized polynomials *}
 
+lemma pol_size_nz[simp]: "size (p :: 'a pol) \<noteq> 0"
+  by (cases p) simp_all
+
 function add :: "'a::comm_ring pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<oplus>" 65)
 where
   "Pc a \<oplus> Pc b = Pc (a + b)"

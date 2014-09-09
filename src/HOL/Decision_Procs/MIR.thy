@@ -1722,7 +1722,7 @@ proof(induct p rule: zlfm.induct)
   have "?c = 0 \<or> (?c >0 \<and> ?c\<noteq>0) \<or> (?c<0 \<and> ?c\<noteq>0)" by arith
   moreover
   {assume "?c=0" hence ?case using zsplit0_I[OF spl, where x="i" and bs="bs"] 
-      by (cases "?r", simp_all add: Let_def split_def,case_tac "nat", simp_all)}
+      by (cases "?r", simp_all add: Let_def split_def,rename_tac nat a b,case_tac "nat", simp_all)}
   moreover
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Lt a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
@@ -1747,7 +1747,7 @@ next
   have "?c = 0 \<or> (?c >0 \<and> ?c\<noteq>0) \<or> (?c<0 \<and> ?c\<noteq>0)" by arith
   moreover
   {assume "?c=0" hence ?case using zsplit0_I[OF spl, where x="i" and bs="bs"] 
-      by (cases "?r", simp_all add: Let_def split_def, case_tac "nat",simp_all)}
+      by (cases "?r", simp_all add: Let_def split_def, rename_tac nat a b, case_tac "nat",simp_all)}
   moreover
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Le a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
@@ -1772,7 +1772,7 @@ next
   have "?c = 0 \<or> (?c >0 \<and> ?c\<noteq>0) \<or> (?c<0 \<and> ?c\<noteq>0)" by arith
   moreover
   {assume "?c=0" hence ?case using zsplit0_I[OF spl, where x="i" and bs="bs"] 
-      by (cases "?r", simp_all add: Let_def split_def, case_tac "nat", simp_all)}
+      by (cases "?r", simp_all add: Let_def split_def, rename_tac nat a b, case_tac "nat", simp_all)}
   moreover
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Gt a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
@@ -1797,7 +1797,7 @@ next
   have "?c = 0 \<or> (?c >0 \<and> ?c\<noteq>0) \<or> (?c<0 \<and> ?c\<noteq>0)" by arith
   moreover
   {assume "?c=0" hence ?case using zsplit0_I[OF spl, where x="i" and bs="bs"] 
-      by (cases "?r", simp_all add: Let_def split_def, case_tac "nat", simp_all)}
+      by (cases "?r", simp_all add: Let_def split_def, rename_tac nat a b, case_tac "nat", simp_all)}
   moreover
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Ge a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
@@ -1822,7 +1822,7 @@ next
   have "?c = 0 \<or> (?c >0 \<and> ?c\<noteq>0) \<or> (?c<0 \<and> ?c\<noteq>0)" by arith
   moreover
   {assume "?c=0" hence ?case using zsplit0_I[OF spl, where x="i" and bs="bs"] 
-      by (cases "?r", simp_all add: Let_def split_def, case_tac "nat", simp_all)}
+      by (cases "?r", simp_all add: Let_def split_def, rename_tac nat a b, case_tac "nat", simp_all)}
   moreover
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Eq a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
@@ -1847,7 +1847,7 @@ next
   have "?c = 0 \<or> (?c >0 \<and> ?c\<noteq>0) \<or> (?c<0 \<and> ?c\<noteq>0)" by arith
   moreover
   {assume "?c=0" hence ?case using zsplit0_I[OF spl, where x="i" and bs="bs"] 
-      by (cases "?r", simp_all add: Let_def split_def, case_tac "nat", simp_all)}
+      by (cases "?r", simp_all add: Let_def split_def, rename_tac nat a b, case_tac "nat", simp_all)}
   moreover
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (NEq a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
@@ -1876,7 +1876,7 @@ next
   moreover
   {assume "?c=0" and "j\<noteq>0" hence ?case 
       using zsplit0_I[OF spl, where x="i" and bs="bs"] rdvd_abs1[where d="j"]
-      by (cases "?r", simp_all add: Let_def split_def, case_tac "nat", simp_all)}
+      by (cases "?r", simp_all add: Let_def split_def, rename_tac nat a b, case_tac "nat", simp_all)}
   moreover
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
@@ -1922,7 +1922,7 @@ next
   moreover
   {assume "?c=0" and "j\<noteq>0" hence ?case 
       using zsplit0_I[OF spl, where x="i" and bs="bs"] rdvd_abs1[where d="j"]
-      by (cases "?r", simp_all add: Let_def split_def, case_tac "nat", simp_all)}
+      by (cases "?r", simp_all add: Let_def split_def, rename_tac nat a b, case_tac "nat", simp_all)}
   moreover
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" and jnz: "j\<noteq>0" hence l: "?L (?l (NDvd j a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
@@ -3714,7 +3714,7 @@ qed
 
 lemma lt_l: "isrlfm (rsplit lt a)"
   by (rule rsplit_l[where f="lt" and a="a"], auto simp add: lt_def,
-    case_tac s, simp_all, case_tac "nat", simp_all)
+    case_tac s, simp_all, rename_tac nat a b, case_tac "nat", simp_all)
 
 lemma le_mono: "\<forall> a n s. Inum (x#bs) a = Inum (x#bs) (CN 0 n s) \<and> numbound0 s \<longrightarrow> Ifm (x#bs) (le n s) = Ifm (x#bs) (Le a)" (is "\<forall> a n s. ?N a = ?N (CN 0 n s) \<and> _ \<longrightarrow> ?I (le n s) = ?I (Le a)")
 proof(clarify)
@@ -3726,7 +3726,7 @@ qed
 
 lemma le_l: "isrlfm (rsplit le a)"
   by (rule rsplit_l[where f="le" and a="a"], auto simp add: le_def) 
-(case_tac s, simp_all, case_tac "nat",simp_all)
+(case_tac s, simp_all, rename_tac nat a b, case_tac "nat",simp_all)
 
 lemma gt_mono: "\<forall> a n s. Inum (x#bs) a = Inum (x#bs) (CN 0 n s) \<and> numbound0 s \<longrightarrow> Ifm (x#bs) (gt n s) = Ifm (x#bs) (Gt a)" (is "\<forall> a n s. ?N a = ?N (CN 0 n s) \<and> _ \<longrightarrow> ?I (gt n s) = ?I (Gt a)")
 proof(clarify)
@@ -3737,7 +3737,7 @@ proof(clarify)
 qed
 lemma gt_l: "isrlfm (rsplit gt a)"
   by (rule rsplit_l[where f="gt" and a="a"], auto simp add: gt_def) 
-(case_tac s, simp_all, case_tac "nat", simp_all)
+(case_tac s, simp_all, rename_tac nat a b, case_tac "nat", simp_all)
 
 lemma ge_mono: "\<forall> a n s. Inum (x#bs) a = Inum (x#bs) (CN 0 n s) \<and> numbound0 s \<longrightarrow> Ifm (x#bs) (ge n s) = Ifm (x#bs) (Ge a)" (is "\<forall> a n s . ?N a = ?N (CN 0 n s) \<and> _ \<longrightarrow> ?I (ge n s) = ?I (Ge a)")
 proof(clarify)
@@ -3748,7 +3748,7 @@ proof(clarify)
 qed
 lemma ge_l: "isrlfm (rsplit ge a)"
   by (rule rsplit_l[where f="ge" and a="a"], auto simp add: ge_def) 
-(case_tac s, simp_all, case_tac "nat", simp_all)
+(case_tac s, simp_all, rename_tac nat a b, case_tac "nat", simp_all)
 
 lemma eq_mono: "\<forall> a n s. Inum (x#bs) a = Inum (x#bs) (CN 0 n s) \<and> numbound0 s \<longrightarrow> Ifm (x#bs) (eq n s) = Ifm (x#bs) (Eq a)" (is "\<forall> a n s. ?N a = ?N (CN 0 n s) \<and> _ \<longrightarrow> ?I (eq n s) = ?I (Eq a)")
 proof(clarify)
@@ -3758,7 +3758,7 @@ proof(clarify)
 qed
 lemma eq_l: "isrlfm (rsplit eq a)"
   by (rule rsplit_l[where f="eq" and a="a"], auto simp add: eq_def) 
-(case_tac s, simp_all, case_tac"nat", simp_all)
+(case_tac s, simp_all, rename_tac nat a b, case_tac"nat", simp_all)
 
 lemma neq_mono: "\<forall> a n s. Inum (x#bs) a = Inum (x#bs) (CN 0 n s) \<and> numbound0 s \<longrightarrow> Ifm (x#bs) (neq n s) = Ifm (x#bs) (NEq a)" (is "\<forall> a n s. ?N a = ?N (CN 0 n s) \<and> _ \<longrightarrow> ?I (neq n s) = ?I (NEq a)")
 proof(clarify)
@@ -3769,7 +3769,7 @@ qed
 
 lemma neq_l: "isrlfm (rsplit neq a)"
   by (rule rsplit_l[where f="neq" and a="a"], auto simp add: neq_def) 
-(case_tac s, simp_all, case_tac"nat", simp_all)
+(case_tac s, simp_all, rename_tac nat a b, case_tac"nat", simp_all)
 
 lemma small_le: 
   assumes u0:"0 \<le> u" and u1: "u < 1"
@@ -3928,11 +3928,11 @@ qed
 
 lemma DVD_l: "isrlfm (rsplit (DVD i) a)"
   by (rule rsplit_l[where f="DVD i" and a="a"], auto simp add: DVD_def eq_def DVDJ_l) 
-(case_tac s, simp_all, case_tac "nat", simp_all)
+(case_tac s, simp_all, rename_tac nat a b, case_tac "nat", simp_all)
 
 lemma NDVD_l: "isrlfm (rsplit (NDVD i) a)"
   by (rule rsplit_l[where f="NDVD i" and a="a"], auto simp add: NDVD_def neq_def NDVDJ_l) 
-(case_tac s, simp_all, case_tac "nat", simp_all)
+(case_tac s, simp_all, rename_tac nat a b, case_tac "nat", simp_all)
 
 consts rlfm :: "fm \<Rightarrow> fm"
 recdef rlfm "measure fmsize"
@@ -3972,7 +3972,7 @@ lemma simpfm_rl: "isrlfm p \<Longrightarrow> isrlfm (simpfm p)"
 proof (induct p)
   case (Lt a) 
   hence "bound0 (Lt a) \<or> (\<exists> c e. a = CN 0 c e \<and> c > 0 \<and> numbound0 e)"
-    by (cases a,simp_all, case_tac "nat", simp_all)
+    by (cases a,simp_all, rename_tac nat a b, case_tac "nat", simp_all)
   moreover
   {assume "bound0 (Lt a)" hence bn:"bound0 (simpfm (Lt a))"  
       using simpfm_bound0 by blast
@@ -3996,7 +3996,7 @@ proof (induct p)
 next
   case (Le a)   
   hence "bound0 (Le a) \<or> (\<exists> c e. a = CN 0 c e \<and> c > 0 \<and> numbound0 e)"
-    by (cases a,simp_all, case_tac "nat", simp_all)
+    by (cases a,simp_all, rename_tac nat a b, case_tac "nat", simp_all)
   moreover
   { assume "bound0 (Le a)" hence bn:"bound0 (simpfm (Le a))"  
       using simpfm_bound0 by blast
@@ -4020,7 +4020,7 @@ next
 next
   case (Gt a)   
   hence "bound0 (Gt a) \<or> (\<exists> c e. a = CN 0 c e \<and> c > 0 \<and> numbound0 e)"
-    by (cases a,simp_all, case_tac "nat", simp_all)
+    by (cases a, simp_all, rename_tac nat a b,case_tac "nat", simp_all)
   moreover
   {assume "bound0 (Gt a)" hence bn:"bound0 (simpfm (Gt a))"  
       using simpfm_bound0 by blast
@@ -4044,7 +4044,7 @@ next
 next
   case (Ge a)   
   hence "bound0 (Ge a) \<or> (\<exists> c e. a = CN 0 c e \<and> c > 0 \<and> numbound0 e)"
-    by (cases a,simp_all, case_tac "nat", simp_all)
+    by (cases a,simp_all, rename_tac nat a b, case_tac "nat", simp_all)
   moreover
   { assume "bound0 (Ge a)" hence bn:"bound0 (simpfm (Ge a))"  
       using simpfm_bound0 by blast
@@ -4068,7 +4068,7 @@ next
 next
   case (Eq a)   
   hence "bound0 (Eq a) \<or> (\<exists> c e. a = CN 0 c e \<and> c > 0 \<and> numbound0 e)"
-    by (cases a,simp_all, case_tac "nat", simp_all)
+    by (cases a,simp_all, rename_tac nat a b, case_tac "nat", simp_all)
   moreover
   { assume "bound0 (Eq a)" hence bn:"bound0 (simpfm (Eq a))"  
       using simpfm_bound0 by blast
@@ -4092,7 +4092,7 @@ next
 next
   case (NEq a)  
   hence "bound0 (NEq a) \<or> (\<exists> c e. a = CN 0 c e \<and> c > 0 \<and> numbound0 e)"
-    by (cases a,simp_all, case_tac "nat", simp_all)
+    by (cases a,simp_all, rename_tac nat a b, case_tac "nat", simp_all)
   moreover
   {assume "bound0 (NEq a)" hence bn:"bound0 (simpfm (NEq a))"  
       using simpfm_bound0 by blast

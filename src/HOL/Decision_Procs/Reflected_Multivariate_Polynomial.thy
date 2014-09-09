@@ -930,7 +930,7 @@ lemma decrpoly_normh: "isnpolyh p n0 \<Longrightarrow> polybound0 p \<Longrighta
   apply (induct p arbitrary: n0)
   apply auto
   apply atomize
-  apply (erule_tac x = "Suc nat" in allE)
+  apply (rename_tac nat a b, erule_tac x = "Suc nat" in allE)
   apply auto
   done
 
@@ -1056,7 +1056,7 @@ lemma length_le_list_ex: "length xs \<le> n \<Longrightarrow> \<exists>ys. lengt
 lemma isnpolyh_Suc_const: "isnpolyh p (Suc n) \<Longrightarrow> isconstant p"
   apply (cases p)
   apply auto
-  apply (case_tac "nat")
+  apply (rename_tac nat a, case_tac "nat")
   apply simp_all
   done
 
@@ -1144,7 +1144,7 @@ lemma polypoly_poly_polybound0:
   unfolding polypoly_def
   apply (cases p)
   apply auto
-  apply (case_tac nat)
+  apply (rename_tac nat a, case_tac nat)
   apply auto
   done
 
@@ -2009,7 +2009,7 @@ lemma isnonconstant_coefficients_length: "isnonconstant p \<Longrightarrow> leng
   unfolding isnonconstant_def
   apply (cases p)
   apply simp_all
-  apply (case_tac nat)
+  apply (rename_tac nat a, case_tac nat)
   apply auto
   done
 

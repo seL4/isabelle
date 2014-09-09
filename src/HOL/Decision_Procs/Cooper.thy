@@ -276,7 +276,7 @@ lemma numsubst0_numbound0:
   using assms
   apply (induct a)
   apply simp_all
-  apply (case_tac nat)
+  apply (rename_tac nat a b, case_tac nat)
   apply simp_all
   done
 
@@ -1126,7 +1126,7 @@ proof (induct p rule: zlfm.induct)
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (case_tac nat)
+    apply (rename_tac nat a b, case_tac nat)
     apply auto
     done
 next
@@ -1143,7 +1143,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (case_tac nat)
+    apply (rename_tac nat a b, case_tac nat)
     apply auto
     done
 next
@@ -1160,7 +1160,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (case_tac nat)
+    apply (rename_tac nat a b, case_tac nat)
     apply auto
     done
 next
@@ -1177,7 +1177,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (case_tac nat)
+    apply (rename_tac nat a b, case_tac nat)
     apply auto
     done
 next
@@ -1194,7 +1194,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (case_tac nat)
+    apply (rename_tac nat a b, case_tac nat)
     apply auto
     done
 next
@@ -1211,7 +1211,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (case_tac nat)
+    apply (rename_tac nat a b, case_tac nat)
     apply auto
     done
 next
@@ -1242,7 +1242,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (case_tac nat)
+    apply (rename_tac nat a b, case_tac nat)
     apply auto
     done
   }
@@ -1292,7 +1292,7 @@ next
     apply (auto simp add: Let_def split_def algebra_simps)
     apply (cases "?r")
     apply auto
-    apply (case_tac nat)
+    apply (rename_tac nat a b, case_tac nat)
     apply auto
     done
   }

@@ -39,7 +39,7 @@ lemma norm_PX2: "isnorm (PX P i Q) \<Longrightarrow> isnorm Q"
   apply auto
   apply (cases P)
   apply auto
-  apply (case_tac pol2)
+  apply (rename_tac pol2, case_tac pol2)
   apply auto
   done
 
@@ -48,14 +48,14 @@ lemma norm_PX1: "isnorm (PX P i Q) \<Longrightarrow> isnorm P"
   apply auto
   apply (cases P)
   apply auto
-  apply (case_tac pol2)
+  apply (rename_tac pol2, case_tac pol2)
   apply auto
   done
 
 lemma mkPinj_cn: "y \<noteq> 0 \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (mkPinj y Q)"
   apply (auto simp add: mkPinj_def norm_Pinj_0_False split: pol.split)
-  apply (case_tac nat, auto simp add: norm_Pinj_0_False)
-  apply (case_tac pol, auto)
+  apply (rename_tac nat a, case_tac nat, auto simp add: norm_Pinj_0_False)
+  apply (rename_tac pol a, case_tac pol, auto)
   apply (case_tac y, auto)
   done
 
@@ -140,13 +140,13 @@ next
   then have "isnorm P2" "isnorm Q2"
     by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
   with 4 show ?case
-    by (cases i) (simp, cases P2, auto, case_tac pol2, auto)
+    by (cases i) (simp, cases P2, auto, rename_tac pol2, case_tac pol2, auto)
 next
   case (5 P2 i Q2 c)
   then have "isnorm P2" "isnorm Q2"
     by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
   with 5 show ?case
-    by (cases i) (simp, cases P2, auto, case_tac pol2, auto)
+    by (cases i) (simp, cases P2, auto, rename_tac pol2, case_tac pol2, auto)
 next
   case (6 x P2 y Q2)
   then have Y0: "y > 0"

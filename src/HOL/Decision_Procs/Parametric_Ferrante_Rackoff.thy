@@ -1066,7 +1066,7 @@ lemma islin_stupid:
     and "islin (Le p)"
     and "islin (Eq p)"
     and "islin (NEq p)"
-  using nb by (cases p, auto, case_tac nat, auto)+
+  using nb by (cases p, auto, rename_tac nat a b, case_tac nat, auto)+
 
 definition "lt p = (case p of CP (C c) \<Rightarrow> if 0>\<^sub>N c then T else F| _ \<Rightarrow> Lt p)"
 definition "le p = (case p of CP (C c) \<Rightarrow> if 0\<ge>\<^sub>N c then T else F | _ \<Rightarrow> Le p)"
@@ -1077,7 +1077,7 @@ lemma lt: "allpolys isnpoly p \<Longrightarrow> Ifm vs bs (lt p) = Ifm vs bs (Lt
   apply (simp add: lt_def)
   apply (cases p)
   apply simp_all
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply (simp_all add: isnpoly_def)
   done
 
@@ -1085,7 +1085,7 @@ lemma le: "allpolys isnpoly p \<Longrightarrow> Ifm vs bs (le p) = Ifm vs bs (Le
   apply (simp add: le_def)
   apply (cases p)
   apply simp_all
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply (simp_all add: isnpoly_def)
   done
 
@@ -1093,7 +1093,7 @@ lemma eq: "allpolys isnpoly p \<Longrightarrow> Ifm vs bs (eq p) = Ifm vs bs (Eq
   apply (simp add: eq_def)
   apply (cases p)
   apply simp_all
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply (simp_all add: isnpoly_def)
   done
 
@@ -1104,9 +1104,9 @@ lemma lt_lin: "tmbound0 p \<Longrightarrow> islin (lt p)"
   apply (simp add: lt_def)
   apply (cases p)
   apply simp_all
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply simp_all
-  apply (case_tac nat)
+  apply (rename_tac nat a b, case_tac nat)
   apply simp_all
   done
 
@@ -1114,9 +1114,9 @@ lemma le_lin: "tmbound0 p \<Longrightarrow> islin (le p)"
   apply (simp add: le_def)
   apply (cases p)
   apply simp_all
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply simp_all
-  apply (case_tac nat)
+  apply (rename_tac nat a b, case_tac nat)
   apply simp_all
   done
 
@@ -1124,9 +1124,9 @@ lemma eq_lin: "tmbound0 p \<Longrightarrow> islin (eq p)"
   apply (simp add: eq_def)
   apply (cases p)
   apply simp_all
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply simp_all
-  apply (case_tac nat)
+  apply (rename_tac nat a b, case_tac nat)
   apply simp_all
   done
 
@@ -1134,9 +1134,9 @@ lemma neq_lin: "tmbound0 p \<Longrightarrow> islin (neq p)"
   apply (simp add: neq_def eq_def)
   apply (cases p)
   apply simp_all
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply simp_all
-  apply (case_tac nat)
+  apply (rename_tac nat a b, case_tac nat)
   apply simp_all
   done
 
@@ -1276,7 +1276,7 @@ lemma lt_nb: "tmbound0 t \<Longrightarrow> bound0 (lt t)"
   apply (simp add: lt_def)
   apply (cases t)
   apply auto
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply auto
   done
 
@@ -1284,7 +1284,7 @@ lemma le_nb: "tmbound0 t \<Longrightarrow> bound0 (le t)"
   apply (simp add: le_def)
   apply (cases t)
   apply auto
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply auto
   done
 
@@ -1292,7 +1292,7 @@ lemma eq_nb: "tmbound0 t \<Longrightarrow> bound0 (eq t)"
   apply (simp add: eq_def)
   apply (cases t)
   apply auto
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply auto
   done
 
@@ -1300,7 +1300,7 @@ lemma neq_nb: "tmbound0 t \<Longrightarrow> bound0 (neq t)"
   apply (simp add: neq_def eq_def)
   apply (cases t)
   apply auto
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply auto
   done
 
@@ -1533,21 +1533,21 @@ lemma simpfm_bound0:
 lemma lt_qf[simp]: "qfree (lt t)"
   apply (cases t)
   apply (auto simp add: lt_def)
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply auto
   done
 
 lemma le_qf[simp]: "qfree (le t)"
   apply (cases t)
   apply (auto simp add: le_def)
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply auto
   done
 
 lemma eq_qf[simp]: "qfree (eq t)"
   apply (cases t)
   apply (auto simp add: eq_def)
-  apply (case_tac poly)
+  apply (rename_tac poly, case_tac poly)
   apply auto
   done
 

@@ -978,27 +978,27 @@ where
 
 lemma lt: "numnoabs t \<Longrightarrow> Ifm bs (split lt (rsplit0 t)) = Ifm bs (Lt t) \<and> isrlfm (split lt (rsplit0 t))"
 using rsplit0[where bs = "bs" and t="t"]
-by (auto simp add: lt_def split_def,cases "snd(rsplit0 t)",auto,case_tac "nat",auto)
+by (auto simp add: lt_def split_def,cases "snd(rsplit0 t)",auto,rename_tac nat a b,case_tac "nat",auto)
 
 lemma le: "numnoabs t \<Longrightarrow> Ifm bs (split le (rsplit0 t)) = Ifm bs (Le t) \<and> isrlfm (split le (rsplit0 t))"
 using rsplit0[where bs = "bs" and t="t"]
-by (auto simp add: le_def split_def) (cases "snd(rsplit0 t)",auto,case_tac "nat",auto)
+by (auto simp add: le_def split_def) (cases "snd(rsplit0 t)",auto,rename_tac nat a b,case_tac "nat",auto)
 
 lemma gt: "numnoabs t \<Longrightarrow> Ifm bs (split gt (rsplit0 t)) = Ifm bs (Gt t) \<and> isrlfm (split gt (rsplit0 t))"
 using rsplit0[where bs = "bs" and t="t"]
-by (auto simp add: gt_def split_def) (cases "snd(rsplit0 t)",auto,case_tac "nat",auto)
+by (auto simp add: gt_def split_def) (cases "snd(rsplit0 t)",auto,rename_tac nat a b,case_tac "nat",auto)
 
 lemma ge: "numnoabs t \<Longrightarrow> Ifm bs (split ge (rsplit0 t)) = Ifm bs (Ge t) \<and> isrlfm (split ge (rsplit0 t))"
 using rsplit0[where bs = "bs" and t="t"]
-by (auto simp add: ge_def split_def) (cases "snd(rsplit0 t)",auto,case_tac "nat",auto)
+by (auto simp add: ge_def split_def) (cases "snd(rsplit0 t)",auto,rename_tac nat a b,case_tac "nat",auto)
 
 lemma eq: "numnoabs t \<Longrightarrow> Ifm bs (split eq (rsplit0 t)) = Ifm bs (Eq t) \<and> isrlfm (split eq (rsplit0 t))"
 using rsplit0[where bs = "bs" and t="t"]
-by (auto simp add: eq_def split_def) (cases "snd(rsplit0 t)",auto,case_tac "nat",auto)
+by (auto simp add: eq_def split_def) (cases "snd(rsplit0 t)",auto,rename_tac nat a b,case_tac "nat",auto)
 
 lemma neq: "numnoabs t \<Longrightarrow> Ifm bs (split neq (rsplit0 t)) = Ifm bs (NEq t) \<and> isrlfm (split neq (rsplit0 t))"
 using rsplit0[where bs = "bs" and t="t"]
-by (auto simp add: neq_def split_def) (cases "snd(rsplit0 t)",auto,case_tac "nat",auto)
+by (auto simp add: neq_def split_def) (cases "snd(rsplit0 t)",auto,rename_tac nat a b,case_tac "nat",auto)
 
 lemma conj_lin: "isrlfm p \<Longrightarrow> isrlfm q \<Longrightarrow> isrlfm (conj p q)"
 by (auto simp add: conj_def)
