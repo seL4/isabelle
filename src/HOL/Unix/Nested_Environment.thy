@@ -19,7 +19,7 @@ text {*
   position within the structure.
 *}
 
-datatype_new ('a, 'b, 'c) env =
+datatype_new (dead 'a, dead 'b, dead 'c) env =
     Val 'a
   | Env 'b  "'c \<Rightarrow> ('a, 'b, 'c) env option"
 
@@ -74,7 +74,7 @@ theorem lookup_env_cons:
     | Some e \<Rightarrow> lookup e xs)"
   by (cases "es x") simp_all
 
-lemmas lookup_lookup_option.simps [simp del]
+lemmas lookup.simps [simp del] lookup_option.simps [simp del]
   and lookup_simps [simp] = lookup_nil lookup_val_cons lookup_env_cons
 
 theorem lookup_eq:
@@ -290,7 +290,7 @@ theorem update_cons_cons_env:
       | Some e \<Rightarrow> Some (update (y # ys) opt e))))"
   by (cases "es x") simp_all
 
-lemmas update_update_option.simps [simp del]
+lemmas update.simps [simp del] update_option.simps [simp del]
   and update_simps [simp] = update_nil_none update_nil_some
     update_cons_val update_cons_nil_env update_cons_cons_env
 
