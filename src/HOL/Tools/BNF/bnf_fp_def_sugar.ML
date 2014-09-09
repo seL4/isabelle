@@ -285,6 +285,10 @@ fun zipper_map f =
       | zed xs (y :: ys) = f (xs, y, ys) :: zed (xs @ [y]) ys
   in zed [] end;
 
+fun uncurry_thm 0 thm = thm
+  | uncurry_thm 1 thm = thm
+  | uncurry_thm n thm = rotate_prems ~1 (uncurry_thm (n - 1) (rotate_prems 1 (conjI RS thm)));
+
 fun choose_binary_fun fs AB =
   find_first (fastype_of #> binder_types #> (fn [A, B] => AB = (A, B))) fs;
 fun build_binary_fun_app fs t u =
@@ -1552,14 +1556,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
                 mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
 
-              fun mk_rel_intro_thm thm =
-                let
-                  fun impl thm = rotate_prems (~1) (impl (rotate_prems 1 (conjI RS thm)))
-                    handle THM _ => thm
-                in
-                  impl (thm RS iffD2)
-                  handle THM _ => thm
-                end;
+              fun mk_rel_intro_thm m thm =
+                uncurry_thm m (thm RS iffD2) handle THM _ => thm;
 
               fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
                 mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
@@ -1570,7 +1568,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
 
               val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
-              val rel_intro_thms = map mk_rel_intro_thm rel_inject_thms;
+              val rel_intro_thms = map2 mk_rel_intro_thm ms rel_inject_thms;
 
               val half_rel_distinct_thmss =
                 map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
