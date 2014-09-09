@@ -288,7 +288,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
       else
         ((fp_sugars, (NONE, NONE)), lthy);
 
-    fun mk_ctr_of {ctr_sugar = {ctrs, ...}, ...} (Type (_, Ts)) = map (mk_ctr Ts) ctrs;
+    fun mk_ctr_of ({ctr_sugar = {ctrs, ...}, ...} : fp_sugar) (Type (_, Ts)) = map (mk_ctr Ts) ctrs;
     val substAT = Term.typ_subst_atomic (var_As ~~ As);
 
     val Xs' = map #X fp_sugars';
