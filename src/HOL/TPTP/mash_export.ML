@@ -170,6 +170,7 @@ fun generate_prover_dependencies ctxt params =
 
 fun is_bad_query ctxt ho_atp step j th isar_deps =
   j mod step <> 0 orelse
+  Thm.legacy_get_kind th = "" orelse
   null (the_list isar_deps) orelse
   is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
 
