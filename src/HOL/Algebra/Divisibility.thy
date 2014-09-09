@@ -3412,7 +3412,7 @@ next
 
     from len
       have as': "as' = (take i as' @ as'!i # drop (Suc i) as')"
-      by (simp add: drop_Suc_conv_tl)
+      by (simp add: Cons_nth_drop_Suc)
     with carr
       have eer: "essentially_equal G (take i as' @ as'!i # drop (Suc i) as') as'"
       by simp

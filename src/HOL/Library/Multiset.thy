@@ -2296,7 +2296,7 @@ next
   def xsa \<equiv> "take j xs' @ drop (Suc j) xs'" 
   have "multiset_of xs' = {#x#} + multiset_of xsa"
     unfolding xsa_def using j_len nth_j
-    by (metis (no_types) ab_semigroup_add_class.add_ac(1) append_take_drop_id drop_Suc_conv_tl
+    by (metis (no_types) ab_semigroup_add_class.add_ac(1) append_take_drop_id Cons_nth_drop_Suc
       multiset_of.simps(2) union_code union_commute)
   hence ms_x: "multiset_of xsa = multiset_of xs"
     by (metis Cons.prems add.commute add_right_imp_eq multiset_of.simps(2))
@@ -2307,7 +2307,7 @@ next
   def ys' \<equiv> "take j ysa @ y # drop j ysa"
   have xs': "xs' = take j xsa @ x # drop j xsa"
     using ms_x j_len nth_j Cons.prems xsa_def
-    by (metis append_eq_append_conv append_take_drop_id diff_Suc_Suc drop_Suc_conv_tl length_Cons
+    by (metis append_eq_append_conv append_take_drop_id diff_Suc_Suc Cons_nth_drop_Suc length_Cons
       length_drop mcard_multiset_of)
   have j_len': "j \<le> length xsa"
     using j_len xs' xsa_def
