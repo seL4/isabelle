@@ -39,8 +39,6 @@ datatype_new type =
     Atom nat
   | Fun type type    (infixr "\<Rightarrow>" 200)
 
-datatype_compat type
-
 inductive typing :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
   where
     Var [intro!]: "env x = T \<Longrightarrow> env \<turnstile> Var x : T"
