@@ -55,38 +55,52 @@ code_printing
 | constant IArray.exists \<rightharpoonup> (SML) "Vector.exists"
 
 lemma [code]:
-"size (as :: 'a iarray) = Suc (length (IArray.list_of as))"
-by (cases as) simp
+  "size (as :: 'a iarray) = Suc (length (IArray.list_of as))"
+  by (cases as) simp
 
 lemma [code]:
-"size_iarray f as = Suc (size_list f (IArray.list_of as))"
-by (cases as) simp
+  "size_iarray f as = Suc (size_list f (IArray.list_of as))"
+  by (cases as) simp
 
 lemma [code]:
-"rec_iarray f as = f (IArray.list_of as)"
-by (cases as) simp
+  "rec_iarray f as = f (IArray.list_of as)"
+  by (cases as) simp
 
 lemma [code]:
-"case_iarray f as = f (IArray.list_of as)"
-by (cases as) simp
+  "case_iarray f as = f (IArray.list_of as)"
+  by (cases as) simp
 
 lemma [code]:
-"HOL.equal as bs \<longleftrightarrow> HOL.equal (IArray.list_of as) (IArray.list_of bs)"
-by (cases as, cases bs) (simp add: equal)
+  "set_iarray as = set (IArray.list_of as)"
+  by (case_tac as) auto
+
+lemma [code]:
+  "map_iarray f as = IArray (map f (IArray.list_of as))"
+  by (case_tac as) auto
+
+lemma [code]:
+  "rel_iarray r as bs = list_all2 r (IArray.list_of as) (IArray.list_of bs)"
+  by (case_tac as) (case_tac bs, auto)
+
+lemma [code]:
+  "HOL.equal as bs \<longleftrightarrow> HOL.equal (IArray.list_of as) (IArray.list_of bs)"
+  by (cases as, cases bs) (simp add: equal)
 
 primrec tabulate :: "integer \<times> (integer \<Rightarrow> 'a) \<Rightarrow> 'a iarray" where
-"tabulate (n, f) = IArray (map (f \<circ> integer_of_nat) [0..<nat_of_integer n])"
+  "tabulate (n, f) = IArray (map (f \<circ> integer_of_nat) [0..<nat_of_integer n])"
+
 hide_const (open) tabulate
 
 lemma [code]:
-"IArray.of_fun f n = IArray.tabulate (integer_of_nat n, f \<circ> nat_of_integer)"
-by simp 
+  "IArray.of_fun f n = IArray.tabulate (integer_of_nat n, f \<circ> nat_of_integer)"
+  by simp
 
 code_printing
   constant IArray.tabulate \<rightharpoonup> (SML) "Vector.tabulate"
 
 primrec sub' :: "'a iarray \<times> integer \<Rightarrow> 'a" where
-[code del]: "sub' (as, n) = IArray.list_of as ! nat_of_integer n"
+  [code del]: "sub' (as, n) = IArray.list_of as ! nat_of_integer n"
+
 hide_const (open) sub'
 
 lemma [code]:
@@ -94,14 +108,15 @@ lemma [code]:
   by simp
 
 lemma [code]:
-"as !! n = IArray.sub' (as, integer_of_nat n)"
-by simp
+  "as !! n = IArray.sub' (as, integer_of_nat n)"
+  by simp
 
 code_printing
   constant IArray.sub' \<rightharpoonup> (SML) "Vector.sub"
 
 definition length' :: "'a iarray \<Rightarrow> integer" where
-[code del, simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
+  [code del, simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
+
 hide_const (open) length'
 
 lemma [code]:
@@ -109,8 +124,8 @@ lemma [code]:
   by simp
 
 lemma [code]:
-"IArray.length as = nat_of_integer (IArray.length' as)"
-by simp
+  "IArray.length as = nat_of_integer (IArray.length' as)"
+  by simp
 
 code_printing
   constant IArray.length' \<rightharpoonup> (SML) "Vector.length"
