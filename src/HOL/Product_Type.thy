@@ -385,28 +385,6 @@ typed_print_translation {*
   in [(@{const_syntax case_prod}, K split_guess_names_tr')] end
 *}
 
-(* Force eta-contraction for terms of the form "Q A (%p. case_prod P p)"
-   where Q is some bounded quantifier or set operator.
-   Reason: the above prints as "Q p : A. case p of (x,y) \<Rightarrow> P x y"
-   whereas we want "Q (x,y):A. P x y".
-   Otherwise prevent eta-contraction.
-*)
-print_translation {*
-  let
-    fun contract Q tr ctxt ts =
-      (case ts of
-        [A, Abs (_, _, (s as Const (@{const_syntax case_prod},_) $ t) $ Bound 0)] =>
-          if Term.is_dependent t then tr ctxt ts
-          else Syntax.const Q $ A $ s
-      | _ => tr ctxt ts);
-  in
-    [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
-     Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"},
-     Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFIMUM} @{syntax_const "_INF"},
-     Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPREMUM} @{syntax_const "_SUP"}]
-    |> map (fn (Q, tr) => (Q, contract Q tr))
-  end
-*}
 
 subsubsection {* Code generator setup *}
 
