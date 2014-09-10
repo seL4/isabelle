@@ -7,12 +7,14 @@ theory More_List
 imports Main
 begin
 
-text \<open>FIXME adapted from @{file "~~/src/HOL/Library/Polynomial.thy"}; to be merged back\<close>
-
 definition strip_while :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
   "strip_while P = rev \<circ> dropWhile P \<circ> rev"
 
+lemma strip_while_rev [simp]:
+  "strip_while P (rev xs) = rev (dropWhile P xs)"
+  by (simp add: strip_while_def)
+  
 lemma strip_while_Nil [simp]:
   "strip_while P [] = []"
   by (simp add: strip_while_def)
@@ -62,13 +64,120 @@ lemma strip_while_map:
   "strip_while P (map f xs) = map f (strip_while (P \<circ> f) xs)"
   by (simp add: strip_while_def rev_map dropWhile_map)
 
-lemma dropWhile_idI:
-  "(xs \<noteq> [] \<Longrightarrow> \<not> P (hd xs)) \<Longrightarrow> dropWhile P xs = xs"
-  by (metis dropWhile.simps(1) dropWhile.simps(2) list.collapse)
 
-lemma strip_while_idI:
-  "(xs \<noteq> [] \<Longrightarrow> \<not> P (last xs)) \<Longrightarrow> strip_while P xs = xs"
-  using dropWhile_idI [of "rev xs"] by (simp add: strip_while_def hd_rev)
+definition no_leading :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+where
+  "no_leading P xs \<longleftrightarrow> (xs \<noteq> [] \<longrightarrow> \<not> P (hd xs))"
+
+lemma no_leading_Nil [simp, intro!]:
+  "no_leading P []"
+  by (simp add: no_leading_def)
+
+lemma no_leading_Cons [simp, intro!]:
+  "no_leading P (x # xs) \<longleftrightarrow> \<not> P x"
+  by (simp add: no_leading_def)
+
+lemma no_leading_append [simp]:
+  "no_leading P (xs @ ys) \<longleftrightarrow> no_leading P xs \<and> (xs = [] \<longrightarrow> no_leading P ys)"
+  by (induct xs) simp_all
+
+lemma no_leading_dropWhile [simp]:
+  "no_leading P (dropWhile P xs)"
+  by (induct xs) simp_all
+
+lemma dropWhile_eq_obtain_leading:
+  assumes "dropWhile P xs = ys"
+  obtains zs where "xs = zs @ ys" and "\<And>z. z \<in> set zs \<Longrightarrow> P z" and "no_leading P ys"
+proof -
+  from assms have "\<exists>zs. xs = zs @ ys \<and> (\<forall>z \<in> set zs. P z) \<and> no_leading P ys"
+  proof (induct xs arbitrary: ys)
+    case Nil then show ?case by simp
+  next
+    case (Cons x xs ys)
+    show ?case proof (cases "P x")
+      case True with Cons.hyps [of ys] Cons.prems
+      have "\<exists>zs. xs = zs @ ys \<and> (\<forall>a\<in>set zs. P a) \<and> no_leading P ys"
+        by simp
+      then obtain zs where "xs = zs @ ys" and "\<And>z. z \<in> set zs \<Longrightarrow> P z"
+        and *: "no_leading P ys"
+        by blast
+      with True have "x # xs = (x # zs) @ ys" and "\<And>z. z \<in> set (x # zs) \<Longrightarrow> P z"
+        by auto
+      with * show ?thesis
+        by blast    next
+      case False
+      with Cons show ?thesis by (cases ys) simp_all
+    qed
+  qed
+  with that show thesis
+    by blast
+qed
+
+lemma dropWhile_idem_iff:
+  "dropWhile P xs = xs \<longleftrightarrow> no_leading P xs"
+  by (cases xs) (auto elim: dropWhile_eq_obtain_leading)
+
+
+abbreviation no_trailing :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+where
+  "no_trailing P xs \<equiv> no_leading P (rev xs)"
+
+lemma no_trailing_unfold:
+  "no_trailing P xs \<longleftrightarrow> (xs \<noteq> [] \<longrightarrow> \<not> P (last xs))"
+  by (induct xs) simp_all
+
+lemma no_trailing_Nil [simp, intro!]:
+  "no_trailing P []"
+  by simp
+
+lemma no_trailing_Cons [simp]:
+  "no_trailing P (x # xs) \<longleftrightarrow> no_trailing P xs \<and> (xs = [] \<longrightarrow> \<not> P x)"
+  by simp
+
+lemma no_trailing_append_Cons [simp]:
+  "no_trailing P (xs @ y # ys) \<longleftrightarrow> no_trailing P (y # ys)"
+  by simp
+
+lemma no_trailing_strip_while [simp]:
+  "no_trailing P (strip_while P xs)"
+  by (induct xs rule: rev_induct) simp_all
+
+lemma strip_while_eq_obtain_trailing:
+  assumes "strip_while P xs = ys"
+  obtains zs where "xs = ys @ zs" and "\<And>z. z \<in> set zs \<Longrightarrow> P z" and "no_trailing P ys"
+proof -
+  from assms have "rev (rev (dropWhile P (rev xs))) = rev ys"
+    by (simp add: strip_while_def)
+  then have "dropWhile P (rev xs) = rev ys"
+    by simp
+  then obtain zs where A: "rev xs = zs @ rev ys" and B: "\<And>z. z \<in> set zs \<Longrightarrow> P z"
+    and C: "no_trailing P ys"
+    using dropWhile_eq_obtain_leading by blast
+  from A have "rev (rev xs) = rev (zs @ rev ys)"
+    by simp
+  then have "xs = ys @ rev zs"
+    by simp
+  moreover from B have "\<And>z. z \<in> set (rev zs) \<Longrightarrow> P z"
+    by simp
+  ultimately show thesis using that C by blast
+qed
+
+lemma strip_while_idem_iff:
+  "strip_while P xs = xs \<longleftrightarrow> no_trailing P xs"
+proof -
+  def ys \<equiv> "rev xs"
+  moreover have "strip_while P (rev ys) = rev ys \<longleftrightarrow> no_trailing P (rev ys)"
+    by (simp add: dropWhile_idem_iff)
+  ultimately show ?thesis by simp
+qed
+
+lemma no_trailing_map:
+  "no_trailing P (map f xs) = no_trailing (P \<circ> f) xs"
+  by (simp add: last_map no_trailing_unfold)
+
+lemma no_trailing_upt [simp]:
+  "no_trailing P [n..<m] \<longleftrightarrow> (n < m \<longrightarrow> \<not> P (m - 1))"
+  by (auto simp add: no_trailing_unfold)
 
 
 definition nth_default :: "'a \<Rightarrow> 'a list \<Rightarrow> nat \<Rightarrow> 'a"
@@ -153,3 +262,4 @@ lemma nth_default_eq_dflt_iff:
   by (simp add: nth_default_def)
 
 end
+
