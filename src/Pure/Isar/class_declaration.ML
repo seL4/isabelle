@@ -117,11 +117,11 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val base_constraints = (map o apsnd)
       (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
         (Class.these_operations thy sups);
-    fun singleton_fixate tms =
+    fun singleton_fixate Ts =
       let
-        val tfrees = fold Term.add_tfrees tms [];
+        val tfrees = fold Term.add_tfreesT Ts [];
         val inferred_sort =
-          (fold o fold_types o fold_atyps) (fn TVar (_, S) => inter_sort S | _ => I) tms [];
+          (fold o fold_atyps) (fn TVar (_, S) => inter_sort S | _ => I) Ts [];
         val fixate_sort =
           (case tfrees of
             [] => inferred_sort
@@ -137,20 +137,21 @@ fun prep_class_elems prep_decl thy sups raw_elems =
           | _ => error "Multiple type variables in class specification");
         val fixateT = TFree (Name.aT, fixate_sort);
       in
-        (map o map_types o map_atyps)
-          (fn T as TVar (xi, _) => if Type_Infer.is_param xi then fixateT else T | T => T) tms
+        (map o map_atyps)
+          (fn T as TVar (xi, _) => if Type_Infer.is_param xi then fixateT else T | T => T) Ts
       end;
-    fun after_infer_fixate tms =
+    fun after_infer_fixate Ts =
       let
         val fixate_sort =
-          (fold o fold_types o fold_atyps)
-            (fn TVar (xi, S) => if Type_Infer.is_param xi then inter_sort S else I | _ => I) tms [];
+          (fold o fold_atyps)
+            (fn TVar (xi, S) => if Type_Infer.is_param xi then inter_sort S else I | _ => I) Ts [];
       in
-        (map o map_types o map_atyps)
+        (map o map_atyps)
           (fn T as TVar (xi, _) =>
               if Type_Infer.is_param xi then Type_Infer.param 0 (Name.aT, fixate_sort) else T
-            | T => T) tms
+            | T => T) Ts
       end;
+    fun lift_check f _ ts = burrow_types f ts;
 
     (* preprocessing elements, retrieving base sort from type-checked elements *)
     val raw_supexpr =
@@ -158,10 +159,10 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val init_class_body =
       fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
-      #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
+      #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (lift_check singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems, _), _) =
       Proof_Context.init_global thy
-      |> Context.proof_map (Syntax_Phases.term_check 0 "after_infer_fixate" (K after_infer_fixate))
+      |> Context.proof_map (Syntax_Phases.term_check 0 "after_infer_fixate" (lift_check after_infer_fixate))
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun filter_element (Element.Fixes []) = NONE
       | filter_element (e as Element.Fixes _) = SOME e
