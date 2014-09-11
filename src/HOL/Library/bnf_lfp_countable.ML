@@ -169,7 +169,7 @@ fun derive_encode_injectives_thms _ [] = []
       val conjuncts = map3 mk_conjunct fpTs xs (mk_encode_funs ctxt fpTs ns ctrss0 recs0);
       val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj conjuncts);
     in
-      Goal.prove ctxt [] [] goal (fn {context = ctxt, prems = _} =>
+      Goal.prove (*no sorry*) ctxt [] [] goal (fn {context = ctxt, prems = _} =>
         mk_encode_injectives_tac ctxt ns induct nchotomys injectss rec_thmss map_comps'
           inj_map_strongs')
       |> HOLogic.conj_elims
