@@ -10,7 +10,7 @@ begin
 
 (*
   Users should be aware that by including this file all code equations
-  outside of List.thy using 'a list as an implenentation of sets cannot be
+  outside of List.thy using 'a list as an implementation of sets cannot be
   used for code generation. If such equations are not needed, they can be
   deleted from the code generator. Otherwise, a user has to provide their 
   own equations using RBT trees. 

@@ -296,25 +296,27 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
 
     fun subst bound_Ts (t as g' $ y) =
         let
-          fun subst_rec () = subst bound_Ts g' $ subst bound_Ts y;
+          fun subst_rec (h $ z) = subst bound_Ts h $ subst bound_Ts z
+            | subst_rec t = t;
+
           val y_head = head_of y;
         in
           if not (member (op =) ctr_args y_head) then
-            subst_rec ()
+            subst_rec t
           else
             (case try_nested_rec bound_Ts y_head t of
-              SOME t' => t'
+              SOME t' => subst_rec t'
             | NONE =>
               let val (g, g_args) = strip_comb g' in
                 (case try (get_ctr_pos o fst o dest_Free) g of
-                  SOME ~1 => subst_rec ()
+                  SOME ~1 => subst_rec t
                 | SOME ctr_pos =>
                   (length g_args >= ctr_pos orelse
                    raise PRIMREC ("too few arguments in recursive call", [t]);
                    (case AList.lookup (op =) mutual_calls y of
                      SOME y' => list_comb (y', g_args)
-                   | NONE => subst_rec ()))
-                | NONE => subst_rec ())
+                   | NONE => subst_rec t))
+                | NONE => subst_rec t)
               end)
         end
       | subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
