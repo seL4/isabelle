@@ -435,7 +435,7 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Dont_Note) true qualify tacs wit_tac (SOME (killedAs @ Ds))
+      bnf_def Smart_Inline (K Dont_Note) true qualify tacs wit_tac (SOME (Ds @ killedAs))
         Binding.empty Binding.empty [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
@@ -667,7 +667,7 @@ fun raw_compose_bnf const_policy qualify sort outer inners oDs Dss tfreess accum
     val ((kill_poss, As), (inners', ((cache', unfold_set'), lthy'))) =
       normalize_bnfs qualify Ass Ds sort inners accum;
 
-    val Ds = oDs @ flat (map3 (append oo map o nth) tfreess kill_poss Dss);
+    val Ds = oDs @ flat (map3 (uncurry append oo curry swap oo map o nth) tfreess kill_poss Dss);
     val As = map TFree As;
   in
     apfst (rpair (Ds, As))
