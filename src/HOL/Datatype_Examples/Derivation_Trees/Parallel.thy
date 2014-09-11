@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Examples/Derivation_Trees/Parallel.thy
+(*  Title:      HOL/Datatype_Examples/Derivation_Trees/Parallel.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

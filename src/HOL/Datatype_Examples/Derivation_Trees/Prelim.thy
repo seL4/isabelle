@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Examples/Derivation_Trees/Prelim.thy
+(*  Title:      HOL/Datatype_Examples/Derivation_Trees/Prelim.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

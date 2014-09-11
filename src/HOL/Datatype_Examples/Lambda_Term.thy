@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Examples/Lambda_Term.thy
+(*  Title:      HOL/Datatype_Examples/Lambda_Term.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012

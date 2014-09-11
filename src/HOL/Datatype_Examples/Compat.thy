@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Examples/Compat.thy
+(*  Title:      HOL/Datatype_Examples/Compat.thy
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2014
 

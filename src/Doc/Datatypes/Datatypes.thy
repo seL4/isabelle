@@ -1112,7 +1112,7 @@ subsection {* Introductory Examples
 text {*
 Primitive recursion is illustrated through concrete examples based on the
 datatypes defined in Section~\ref{ssec:datatype-introductory-examples}. More
-examples can be found in the directory \verb|~~/src/HOL/BNF_Examples|.
+examples can be found in the directory \verb|~~/src/HOL/Datatype_Examples|.
 *}
 
 
@@ -1847,7 +1847,7 @@ Corecursive functions can be specified using the @{command primcorec} and
 \keyw{prim\-corec\-ursive} commands, which support primitive corecursion, or
 using the more general \keyw{partial_function} command. Here, the focus is on
 the first two. More examples can be found in the directory
-\verb|~~/src/HOL/BNF_Examples|.
+\verb|~~/src/HOL/Datatype_Examples|.
 
 Whereas recursive functions consume datatypes one constructor at a time,
 corecursive functions construct codatatypes one constructor at a time.
@@ -1891,8 +1891,8 @@ subsection {* Introductory Examples
 text {*
 Primitive corecursion is illustrated through concrete examples based on the
 codatatypes defined in Section~\ref{ssec:codatatype-introductory-examples}. More
-examples can be found in the directory \verb|~~/src/HOL/BNF_Examples|. The code
-view is favored in the examples below. Sections
+examples can be found in the directory \verb|~~/src/HOL/Datatype_Examples|. The
+code view is favored in the examples below. Sections
 \ref{ssec:primrec-constructor-view} and \ref{ssec:primrec-destructor-view}
 present the same examples expressed using the constructor and destructor views.
 *}

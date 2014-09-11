@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Examples/IsaFoR_Datatypes.thy
+(*  Title:      HOL/Datatype_Examples/IsaFoR_Datatypes.thy
     Author:     Rene Thiemann, UIBK
     Copyright   2014
 

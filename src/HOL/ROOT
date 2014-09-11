@@ -730,9 +730,9 @@ session "HOL-Cardinals" in Cardinals = HOL +
     "root.tex"
     "root.bib"
 
-session "HOL-BNF_Examples" in BNF_Examples = HOL +
+session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
   description {*
-    Examples for Bounded Natural Functors.
+    (Co)datatype Examples.
   *}
   options [document = false]
   theories

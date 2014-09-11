@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Examples/Process.thy
+(*  Title:      HOL/Datatype_Examples/Process.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

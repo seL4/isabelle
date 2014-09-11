@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF_Examples/Stream.thy
+(*  Title:      HOL/Datatype_Examples/Stream.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012, 2013
