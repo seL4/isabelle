@@ -88,7 +88,7 @@ The package, like its predecessor, fully adheres to the LCF philosophy
 \cite{mgordon79}: The characteristic theorems associated with the specified
 (co)datatypes are derived rather than introduced axiomatically.%
 \footnote{However, some of the
-internal constructions and most of the internal proof obligations are skipped
+internal constructions and most of the internal proof obligations are omitted
 if the @{text quick_and_dirty} option is enabled.}
 The package is described in a number of papers
 \cite{traytel-et-al-2012,blanchette-et-al-wit,blanchette-et-al-2014-impl,panny-et-al-2014}.
@@ -1060,7 +1060,9 @@ Section~\ref{sssec:primrec-nested-as-mutual-recursion}.
 \item \emph{Accordingly, the induction rule is different for nested recursive
 datatypes.} Again, the old-style induction rule can be generated on demand using
 @{command primrec} if the recursion is via new-style datatypes, as explained in
-Section~\ref{sssec:primrec-nested-as-mutual-recursion}.
+Section~\ref{sssec:primrec-nested-as-mutual-recursion}. For recursion through
+functions, the old-style induction rule can be obtained by applying the
+@{text "[unfolded all_mem_range]"} attribute on @{text t.induct}.
 
 \item \emph{The internal constructions are completely different.} Proof texts
 that unfold the definition of constants introduced by \keyw{datatype} will be
