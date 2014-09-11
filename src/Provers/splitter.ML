@@ -207,8 +207,8 @@ fun mk_split_pack (thm, T: typ, T', n, ts, apsns, pos, TB, t) =
 
 
 (****************************************************************************
-   Recursively scans term for occurences of Const(key,...) $ ...
-   Returns a list of "split-packs" (one for each occurence of Const(key,...) )
+   Recursively scans term for occurrences of Const(key,...) $ ...
+   Returns a list of "split-packs" (one for each occurrence of Const(key,...) )
 
    cmap : association list of split-theorems that should be tried.
           The elements have the format (key,(thm,T,n)) , where

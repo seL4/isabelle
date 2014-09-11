@@ -459,7 +459,7 @@ apply (rule_tac a1 = "succ (u mod b) |-| b" in iszero_decidable [THEN PlusE])
 apply (erule_tac [3] SumE)
 apply (tactic {* hyp_arith_rew_tac (@{thms div_typing_rls} @
   [@{thm modC0}, @{thm modC_succ}, @{thm divC0}, @{thm divC_succ2}]) *})
-(*Replace one occurence of  b  by succ(u mod b).  Clumsy!*)
+(*Replace one occurrence of  b  by succ(u mod b).  Clumsy!*)
 apply (rule add_typingL [THEN trans_elem])
 apply (erule EqE [THEN absdiff_eq0, THEN sym_elem])
 apply (rule_tac [3] refl_elem)

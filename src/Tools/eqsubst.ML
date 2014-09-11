@@ -29,7 +29,7 @@ sig
   val eqsubst_asm_tac': Proof.context ->
     (searchinfo -> int -> term -> match skipseq) -> int -> thm -> int -> tactic
   val eqsubst_tac: Proof.context ->
-    int list -> (* list of occurences to rewrite, use [0] for any *)
+    int list -> (* list of occurrences to rewrite, use [0] for any *)
     thm list -> int -> tactic
   val eqsubst_tac': Proof.context ->
     (searchinfo -> term -> match Seq.seq) (* search function *)
@@ -292,7 +292,7 @@ fun eqsubst_tac' ctxt searchf instepthm i st =
   in stepthms |> Seq.maps rewrite_with_thm end;
 
 
-(* General substitution of multiple occurances using one of
+(* General substitution of multiple occurrences using one of
    the given theorems *)
 
 fun skip_first_occs_search occ srchf sinfo lhs =
@@ -300,9 +300,9 @@ fun skip_first_occs_search occ srchf sinfo lhs =
     SkipMore _ => Seq.empty
   | SkipSeq ss => Seq.flat ss);
 
-(* The "occs" argument is a list of integers indicating which occurence
+(* The "occs" argument is a list of integers indicating which occurrence
 w.r.t. the search order, to rewrite. Backtracking will also find later
-occurences, but all earlier ones are skipped. Thus you can use [0] to
+occurrences, but all earlier ones are skipped. Thus you can use [0] to
 just find all rewrites. *)
 
 fun eqsubst_tac ctxt occs thms i st =

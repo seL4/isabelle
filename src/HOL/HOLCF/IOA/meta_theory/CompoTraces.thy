@@ -563,7 +563,7 @@ prefer 2 apply fast
 apply (frule sym [THEN eq_imp_below, THEN divide_Seq])
 apply (erule conjE)+
 
-(* subst divide_Seq in conclusion, but only at the righest occurence *)
+(* subst divide_Seq in conclusion, but only at the righest occurrence *)
 apply (rule_tac t = "schA" in ssubst)
 back
 back
@@ -616,7 +616,7 @@ prefer 2 apply (fast)
 apply (frule sym [THEN eq_imp_below, THEN divide_Seq])
 apply (erule conjE)+
 
-(* subst divide_Seq in conclusion, but only at the righest occurence *)
+(* subst divide_Seq in conclusion, but only at the rightmost occurrence *)
 apply (rule_tac t = "schA" in ssubst)
 back
 back
@@ -782,7 +782,7 @@ prefer 2 apply (fast)
 apply (frule sym [THEN eq_imp_below, THEN divide_Seq])
 apply (erule conjE)+
 
-(* subst divide_Seq in conclusion, but only at the righest occurence *)
+(* subst divide_Seq in conclusion, but only at the rightmost occurrence *)
 apply (rule_tac t = "schB" in ssubst)
 back
 back
@@ -833,7 +833,7 @@ prefer 2 apply (fast)
 apply (frule sym [THEN eq_imp_below, THEN divide_Seq])
 apply (erule conjE)+
 
-(* subst divide_Seq in conclusion, but only at the righest occurence *)
+(* subst divide_Seq in conclusion, but only at the rightmost occurrence *)
 apply (rule_tac t = "schB" in ssubst)
 back
 back

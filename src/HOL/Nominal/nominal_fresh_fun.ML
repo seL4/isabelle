@@ -106,7 +106,7 @@ fun generate_fresh_fun_tac ctxt = SUBGOAL (fn (goal, _) =>
   | SOME atom_name  => generate_fresh_tac ctxt atom_name
   end) 1;
 
-(* Two substitution tactics which looks for the innermost occurence in
+(* Two substitution tactics which looks for the innermost occurrence in
    one assumption or in the conclusion *)
 
 val search_fun = curry (Seq.flat o uncurry EqSubst.searchf_bt_unify_valid);
@@ -116,7 +116,7 @@ fun subst_inner_tac ctxt = EqSubst.eqsubst_tac' ctxt search_fun;
 fun subst_inner_asm_tac_aux i ctxt = EqSubst.eqsubst_asm_tac' ctxt search_fun_asm i;
 
 (* A tactic to substitute in the first assumption
-   which contains an occurence. *)
+   which contains an occurrence. *)
 
 fun subst_inner_asm_tac ctxt th =
   curry (curry (FIRST' (map uncurry (map uncurry (map subst_inner_asm_tac_aux

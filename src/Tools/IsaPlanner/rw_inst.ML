@@ -134,7 +134,7 @@ fun mk_fixtvar_tyinsts ignore_insts ts =
 
 
 (* cross-instantiate the instantiations - ie for each instantiation
-replace all occurances in other instantiations - no loops are possible
+replace all occurrences in other instantiations - no loops are possible
 and thus only one-parsing of the instantiations is necessary. *)
 fun cross_inst insts =
   let

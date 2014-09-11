@@ -46,7 +46,7 @@ design issues:
       statements
 \item the value entry in statement rules is redundant 
 \item the value entry in rules is irrelevant in case of exceptions, but its full
-  inclusion helps to make the rule structure independent of exception occurence.
+  inclusion helps to make the rule structure independent of exception occurrence.
 \item as irrelevant value entries are ignored, it does not matter if they are 
       unique.
   For simplicity, (fixed) arbitrary values are preferred over "free" values.

@@ -3650,7 +3650,7 @@ method_setup generate_fresh = {*
 method_setup fresh_fun_simp = {*
   Scan.lift (Args.parens (Args.$$$ "no_asm") >> K true || Scan.succeed false) >>
     (fn b => fn ctxt => SIMPLE_METHOD' (fresh_fun_tac ctxt b))
-*} "delete one inner occurence of fresh_fun"
+*} "delete one inner occurrence of fresh_fun"
 
 
 (************************************************)

@@ -1884,7 +1884,7 @@ done
 
 (* The following theorem is needed/useful due to type check for rel_cfI,
    but also elsewhere.
-   Look for occurences of rel_cfI, rel_DinfI, etc to evaluate the problem. *)
+   Look for occurrences of rel_cfI, rel_DinfI, etc to evaluate the problem. *)
 
 lemma lam_Dinf_cont:
   "[| emb_chain(DD,ee); n \<in> nat |]

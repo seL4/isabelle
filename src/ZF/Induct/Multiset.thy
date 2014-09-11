@@ -61,7 +61,7 @@ definition
   "MCollect(M, P) == funrestrict(M, {x \<in> mset_of(M). P(x)})"
 
 definition
-  (* Counts the number of occurences of an element in a multiset *)
+  (* Counts the number of occurrences of an element in a multiset *)
   mcount :: "[i, i] => i"  where
   "mcount(M, a) == if a \<in> mset_of(M) then  M`a else 0"
 
