@@ -238,7 +238,7 @@ type eqn_data = {
   user_eqn: term
 };
 
-fun dissect_eqn lthy fun_names eqn' =
+fun dissect_eqn ctxt fun_names eqn' =
   let
     val eqn = drop_all eqn' |> HOLogic.dest_Trueprop
       handle TERM _ =>
@@ -262,19 +262,24 @@ fun dissect_eqn lthy fun_names eqn' =
     val _ = try (num_binder_types o fastype_of) ctr = SOME (length ctr_args) orelse
       raise PRIMREC ("partially applied constructor in pattern", [eqn]);
     val _ = let val d = duplicates (op =) (left_args @ ctr_args @ right_args) in null d orelse
-      raise PRIMREC ("duplicate variable \"" ^ Syntax.string_of_term lthy (hd d) ^
+      raise PRIMREC ("duplicate variable \"" ^ Syntax.string_of_term ctxt (hd d) ^
         "\" in left-hand side", [eqn]) end;
     val _ = forall is_Free ctr_args orelse
       raise PRIMREC ("non-primitive pattern in left-hand side", [eqn]);
     val _ =
-      let val b = fold_aterms (fn x as Free (v, _) =>
-        if (not (member (op =) (left_args @ ctr_args @ right_args) x) andalso
-        not (member (op =) fun_names v) andalso
-        not (Variable.is_fixed lthy v)) then cons x else I | _ => I) rhs []
+      let
+        val b =
+          fold_aterms (fn x as Free (v, _) =>
+              if (not (member (op =) (left_args @ ctr_args @ right_args) x) andalso
+                  not (member (op =) fun_names v) andalso not (Variable.is_fixed ctxt v)) then
+                cons x
+              else
+                I
+            | _ => I) rhs [];
       in
         null b orelse
         raise PRIMREC ("extra variable(s) in right-hand side: " ^
-          commas (map (Syntax.string_of_term lthy) b), [eqn])
+          commas (map (Syntax.string_of_term ctxt) b), [eqn])
       end;
   in
     {fun_name = fun_name,
@@ -288,11 +293,11 @@ fun dissect_eqn lthy fun_names eqn' =
      user_eqn = eqn'}
   end;
 
-fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls =
+fun subst_rec_calls ctxt get_ctr_pos has_call ctr_args mutual_calls nested_calls =
   let
     fun try_nested_rec bound_Ts y t =
       AList.lookup (op =) nested_calls y
-      |> Option.map (fn y' => rewrite_nested_rec_call lthy has_call get_ctr_pos bound_Ts y y' t);
+      |> Option.map (fn y' => rewrite_nested_rec_call ctxt has_call get_ctr_pos bound_Ts y y' t);
 
     fun subst bound_Ts (t as g' $ y) =
         let
@@ -332,7 +337,7 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
     subst' o subst []
   end;
 
-fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec_ctr_spec)
+fun build_rec_arg ctxt (funs_data : eqn_data list list) has_call (ctr_spec : rec_ctr_spec)
     (eqn_data_opt : eqn_data option) =
   (case eqn_data_opt of
     NONE => undef_const
@@ -372,11 +377,11 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
       val nested_calls = map (map_prod (nth ctr_args) (nth args o fst)) nested_calls';
     in
       t
-      |> subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
+      |> subst_rec_calls ctxt get_ctr_pos has_call ctr_args mutual_calls nested_calls
       |> fold_rev lambda (args @ left_args @ right_args)
     end);
 
-fun build_defs lthy nonexhaustive bs mxs (funs_data : eqn_data list list)
+fun build_defs ctxt nonexhaustive bs mxs (funs_data : eqn_data list list)
     (rec_specs : rec_spec list) has_call =
   let
     val n_funs = length funs_data;
@@ -389,7 +394,7 @@ fun build_defs lthy nonexhaustive bs mxs (funs_data : eqn_data list list)
     val _ = ctr_spec_eqn_data_list' |> map (fn ({ctr, ...}, x) =>
       if length x > 1 then raise PRIMREC ("multiple equations for constructor", map #user_eqn x)
       else if length x = 1 orelse nonexhaustive then ()
-      else warning ("no equation for constructor " ^ Syntax.string_of_term lthy ctr));
+      else warning ("no equation for constructor " ^ Syntax.string_of_term ctxt ctr));
 
     val ctr_spec_eqn_data_list =
       ctr_spec_eqn_data_list' @ (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
@@ -397,7 +402,7 @@ fun build_defs lthy nonexhaustive bs mxs (funs_data : eqn_data list list)
     val recs = take n_funs rec_specs |> map #recx;
     val rec_args = ctr_spec_eqn_data_list
       |> sort (op < o pairself (#offset o fst) |> make_ord)
-      |> map (uncurry (build_rec_arg lthy funs_data has_call) o apsnd (try the_single));
+      |> map (uncurry (build_rec_arg ctxt funs_data has_call) o apsnd (try the_single));
     val ctr_poss = map (fn x =>
       if length (distinct (op = o pairself (length o #left_args)) x) <> 1 then
         raise PRIMREC ("inconstant constructor pattern position for function " ^
@@ -407,7 +412,7 @@ fun build_defs lthy nonexhaustive bs mxs (funs_data : eqn_data list list)
   in
     (recs, ctr_poss)
     |-> map2 (fn recx => fn ctr_pos => list_comb (recx, rec_args) |> permute_args ctr_pos)
-    |> Syntax.check_terms lthy
+    |> Syntax.check_terms ctxt
     |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
       bs mxs
   end;
