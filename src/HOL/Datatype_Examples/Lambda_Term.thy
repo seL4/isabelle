@@ -14,7 +14,7 @@ begin
 
 section {* Datatype definition *}
 
-datatype_new 'a trm =
+datatype 'a trm =
   Var 'a |
   App "'a trm" "'a trm" |
   Lam 'a "'a trm" |

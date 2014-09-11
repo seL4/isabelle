@@ -9,7 +9,7 @@ theory Value imports Type begin
 
 typedecl loc            --{* locations, i.e. abstract references on objects *}
 
-datatype_new val
+datatype val
         = Unit          --{* dummy result value of void methods *}
         | Bool bool     --{* Boolean value *}
         | Intg int      --{* integer value *}

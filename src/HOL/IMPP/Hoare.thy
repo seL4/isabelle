@@ -28,7 +28,7 @@ definition
   peek_and :: "'a assn => (state => bool) => 'a assn" (infixr "&>" 35) where
   "peek_and P p = (%Z s. P Z s & p s)"
 
-datatype_new 'a triple =
+datatype 'a triple =
   triple "'a assn"  com  "'a assn"       ("{(1_)}./ (_)/ .{(1_)}" [3,60,3] 58)
 
 definition

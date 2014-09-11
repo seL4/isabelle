@@ -10,7 +10,7 @@ begin
 
 subsection{*Defining the Free Algebra*}
 
-datatype_new
+datatype
   freemsg = NONCE  nat
         | MPAIR  freemsg freemsg
         | CRYPT  nat freemsg

@@ -19,7 +19,7 @@ internally).*}
 subsection {* Plain Ad Hoc Overloading *}
 
 text {*Consider the type of first-order terms.*}
-datatype_new ('a, 'b) "term" =
+datatype ('a, 'b) "term" =
   Var 'b |
   Fun 'a "('a, 'b) term list"
 

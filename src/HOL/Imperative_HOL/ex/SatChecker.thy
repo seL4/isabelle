@@ -20,7 +20,7 @@ type_synonym Clause = "Lit list"
 text {* This resembles exactly to Isat's Proof Steps *}
 
 type_synonym Resolvants = "ClauseId * (Lit * ClauseId) list"
-datatype_new ProofStep =
+datatype ProofStep =
   ProofDone bool
   | Root ClauseId Clause
   | Conflict ClauseId Resolvants

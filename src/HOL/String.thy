@@ -8,7 +8,7 @@ begin
 
 subsection {* Characters and strings *}
 
-datatype_new nibble =
+datatype nibble =
     Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
   | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC | NibbleD | NibbleE | NibbleF
 
@@ -114,7 +114,7 @@ lemma nibble_of_nat_mod_16:
   "nibble_of_nat (n mod 16) = nibble_of_nat n"
   by (simp add: nibble_of_nat_def)
 
-datatype_new char = Char nibble nibble
+datatype char = Char nibble nibble
   -- "Note: canonical order of character encoding coincides with standard term ordering"
 
 syntax

@@ -10,7 +10,7 @@ theory QuoNestedDataType imports Main begin
 subsection{*Defining the Free Algebra*}
 
 text{*Messages with encryption and decryption as free constructors.*}
-datatype_new
+datatype
      freeExp = VAR  nat
              | PLUS  freeExp freeExp
              | FNCALL  nat "freeExp list"

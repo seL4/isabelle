@@ -8,7 +8,7 @@ begin
 
 subsection {* Futures *}
 
-datatype_new 'a future = fork "unit \<Rightarrow> 'a"
+datatype 'a future = fork "unit \<Rightarrow> 'a"
 
 primrec join :: "'a future \<Rightarrow> 'a" where
   "join (fork f) = f ()"

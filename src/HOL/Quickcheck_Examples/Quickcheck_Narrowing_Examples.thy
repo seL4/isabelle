@@ -132,7 +132,7 @@ oops
 
 subsection {* AVL Trees *}
 
-datatype_new 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
+datatype 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
 
 primrec set_of :: "'a tree \<Rightarrow> 'a set"
 where

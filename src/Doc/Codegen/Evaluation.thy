@@ -205,7 +205,7 @@ text {*
   An simplistic example:
 *}
 
-datatype_new %quote form_ord = T | F | Less nat nat
+datatype %quote form_ord = T | F | Less nat nat
   | And form_ord form_ord | Or form_ord form_ord | Neg form_ord
 
 primrec %quote interp :: "form_ord \<Rightarrow> 'a::order list \<Rightarrow> bool"
@@ -259,7 +259,7 @@ text {*
   example:
 *}
 
-datatype_new %quote form = T | F | And form form | Or form form (*<*)
+datatype %quote form = T | F | And form form | Or form form (*<*)
 
 (*>*) ML %quotett {*
   fun eval_form @{code T} = true

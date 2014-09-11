@@ -20,7 +20,7 @@ text {*
 
 subsection {* The datatype of propositions *}
 
-datatype_new 'a pl =
+datatype 'a pl =
   false |
   var 'a ("#_" [1000]) |
   imp "'a pl" "'a pl" (infixr "->" 90)

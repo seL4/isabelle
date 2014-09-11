@@ -19,7 +19,7 @@ design issues:
 
 section "objects"
 
-datatype_new  obj_tag =     --{* tag for generic object   *}
+datatype  obj_tag =     --{* tag for generic object   *}
           CInst qtname  --{* class instance           *}
         | Arr  ty int   --{* array with component type and length *}
     --{* | CStat qtname   the tag is irrelevant for a class object,
@@ -225,7 +225,7 @@ translations
  (type) "heap"   <= (type) "(loc  , obj) table"
 (*  (type) "locals" <= (type) "(lname, val) table" *)
 
-datatype_new st = (* pure state, i.e. contents of all variables *)
+datatype st = (* pure state, i.e. contents of all variables *)
          st globs locals
 
 subsection "access"

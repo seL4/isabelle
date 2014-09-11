@@ -25,10 +25,10 @@ begin
 
 typedecl D
 
-datatype_new
+datatype
   M     = Md D | Mreq ("\<bullet>")
 
-datatype_new
+datatype
   State = Sd D | Snil ("\<currency>")
 
 type_synonym

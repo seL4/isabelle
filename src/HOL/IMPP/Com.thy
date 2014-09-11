@@ -18,10 +18,10 @@ axiomatization
   Arg :: loc and
   Res :: loc
 
-datatype_new vname  = Glb glb | Loc loc
+datatype vname  = Glb glb | Loc loc
 type_synonym globs = "glb => val"
 type_synonym locals = "loc => val"
-datatype_new state  = st globs locals
+datatype state  = st globs locals
 (* for the meta theory, the following would be sufficient:
 typedecl state
 consts   st :: "[globs , locals] => state"
@@ -31,7 +31,7 @@ type_synonym bexp = "state => bool"
 
 typedecl pname
 
-datatype_new com
+datatype com
       = SKIP
       | Ass   vname aexp        ("_:==_"                [65, 65    ] 60)
       | Local loc aexp com      ("LOCAL _:=_ IN _"      [65,  0, 61] 60)

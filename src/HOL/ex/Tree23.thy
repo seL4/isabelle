@@ -21,16 +21,16 @@ for the function definition facility.  *}
 
 type_synonym key = int -- {*for simplicity, should be a type class*}
 
-datatype_new ord = LESS | EQUAL | GREATER
+datatype ord = LESS | EQUAL | GREATER
 
 definition "ord i j = (if i<j then LESS else if i=j then EQUAL else GREATER)"
 
-datatype_new 'a tree23 =
+datatype 'a tree23 =
   Empty |
   Branch2 "'a tree23" "key * 'a" "'a tree23" |
   Branch3 "'a tree23" "key * 'a" "'a tree23" "key * 'a" "'a tree23"
 
-datatype_new 'a growth =
+datatype 'a growth =
   Stay "'a tree23" |
   Sprout "'a tree23" "key * 'a" "'a tree23"
 
@@ -402,7 +402,7 @@ done
 text{* This is a little test harness and should be commented out once the
 above functions have been proved correct. *}
 
-datatype_new 'a act = Add int 'a | Del int
+datatype 'a act = Add int 'a | Del int
 
 fun exec where
 "exec [] t = t" |

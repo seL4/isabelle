@@ -20,7 +20,7 @@ subsection {* Definitions *}
 
 text {* Datatype definition of combinators @{text S} and @{text K}. *}
 
-datatype_new comb = K
+datatype comb = K
               | S
               | Ap comb comb (infixl "##" 90)
 

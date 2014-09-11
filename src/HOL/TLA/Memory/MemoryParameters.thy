@@ -9,7 +9,7 @@ imports RPCMemoryParams
 begin
 
 (* the memory operations *)
-datatype_new memOp = read Locs | "write" Locs Vals
+datatype memOp = read Locs | "write" Locs Vals
 
 consts
   (* memory locations and contents *)

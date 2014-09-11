@@ -11,7 +11,7 @@ text {*
 type_synonym var = unit
 type_synonym state = int
 
-datatype_new com =
+datatype com =
   Skip |
   Ass var "int" |
   Seq com com |

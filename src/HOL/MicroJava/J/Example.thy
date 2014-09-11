@@ -36,8 +36,8 @@ class Example {
 \end{verbatim}
 *}
 
-datatype_new cnam' = Base' | Ext'
-datatype_new vnam' = vee' | x' | e'
+datatype cnam' = Base' | Ext'
+datatype vnam' = vee' | x' | e'
 
 text {*
   @{text cnam'} and @{text vnam'} are intended to be isomorphic 

@@ -14,7 +14,7 @@ begin
 
 section {* Continuous Functions on Streams *}
 
-datatype_new ('a, 'b, 'c) sp\<^sub>\<mu> = Get "'a \<Rightarrow> ('a, 'b, 'c) sp\<^sub>\<mu>" | Put "'b" "'c"
+datatype ('a, 'b, 'c) sp\<^sub>\<mu> = Get "'a \<Rightarrow> ('a, 'b, 'c) sp\<^sub>\<mu>" | Put "'b" "'c"
 codatatype ('a, 'b) sp\<^sub>\<nu> = In (out: "('a, 'b, ('a, 'b) sp\<^sub>\<nu>) sp\<^sub>\<mu>")
 
 primrec run\<^sub>\<mu> :: "('a, 'b, 'c) sp\<^sub>\<mu> \<Rightarrow> 'a stream \<Rightarrow> ('b \<times> 'c) \<times> 'a stream" where
@@ -170,7 +170,7 @@ lemma \<theta>_rid: "F id fst o \<theta> = fst"
 lemma \<theta>_assl: "F id assl o \<theta> = \<theta> o map_prod \<theta> id o assl"
   unfolding assl_def \<theta>_def F.map_comp comp_def id_apply convol_def map_prod_def split fst_conv snd_conv ..
 
-datatype_new ('a, 'b, 'c) spF\<^sub>\<mu> = GetF "'a \<Rightarrow> ('a, 'b, 'c) spF\<^sub>\<mu>" | PutF "('b,'c) F"
+datatype ('a, 'b, 'c) spF\<^sub>\<mu> = GetF "'a \<Rightarrow> ('a, 'b, 'c) spF\<^sub>\<mu>" | PutF "('b,'c) F"
 codatatype ('a, 'b) spF\<^sub>\<nu> = InF (outF: "('a, 'b, ('a, 'b) spF\<^sub>\<nu>) spF\<^sub>\<mu>")
 
 codatatype 'b JF = Ctor (dtor: "('b, 'b JF) F")

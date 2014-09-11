@@ -13,7 +13,7 @@ section {* Quantifier elimination for @{text "\<real> (0, 1, +, <)"} *}
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
   (*********************************************************************************)
 
-datatype_new num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub num num 
+datatype num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub num num 
   | Mul int num 
 
   (* A size for num to make inductive proofs simpler*)
@@ -36,7 +36,7 @@ primrec Inum :: "real list \<Rightarrow> num \<Rightarrow> real" where
 | "Inum bs (Sub a b) = Inum bs a - Inum bs b"
 | "Inum bs (Mul c a) = (real c) * Inum bs a"
     (* FORMULAE *)
-datatype_new fm  = 
+datatype fm  = 
   T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num|
   NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
 

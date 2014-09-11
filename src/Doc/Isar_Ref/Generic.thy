@@ -736,7 +736,7 @@ text {*
   monotonically through the theory hierarchy: forming a new theory,
   the union of the simpsets of its imports are taken as starting
   point.  Also note that definitional packages like @{command
-  "datatype_new"}, @{command "primrec"}, @{command "fun"} routinely
+  "datatype"}, @{command "primrec"}, @{command "fun"} routinely
   declare Simplifier rules to the target context, while plain
   @{command "definition"} is an exception in \emph{not} declaring
   anything.

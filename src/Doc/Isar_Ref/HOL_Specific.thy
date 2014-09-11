@@ -283,7 +283,7 @@ text {*
   \begin{description}
 
   \item @{command (HOL) "primrec"} defines primitive recursive
-  functions over datatypes (see also @{command_ref (HOL) datatype_new}).
+  functions over datatypes (see also @{command_ref (HOL) datatype}).
   The given @{text equations} specify reduction rules that are produced
   by instantiating the generic combinator for primitive recursion that
   is available for each datatype.
@@ -378,7 +378,7 @@ text {* Subsequently, we define mutual datatypes for arithmetic and
   boolean expressions, and use @{command primrec} for evaluation
   functions that follow the same recursive structure. *}
 
-datatype_new 'a aexp =
+datatype 'a aexp =
     IF "'a bexp"  "'a aexp"  "'a aexp"
   | Sum "'a aexp"  "'a aexp"
   | Diff "'a aexp"  "'a aexp"
@@ -449,7 +449,7 @@ subsubsection {* Example: a substitution function for terms *}
 text {* Functions on datatypes with nested recursion are also defined
   by mutual primitive recursion. *}
 
-datatype_new ('a, 'b) "term" = Var 'a | App 'b "('a, 'b) term list"
+datatype ('a, 'b) "term" = Var 'a | App 'b "('a, 'b) term list"
 
 text {* A substitution function on type @{typ "('a, 'b) term"} can be
   defined as follows, by working simultaneously on @{typ "('a, 'b)
@@ -479,7 +479,7 @@ text {* Defining functions on infinitely branching datatypes by
   primitive recursion is just as easy.
 *}
 
-datatype_new 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
+datatype 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
 
 primrec map_tree :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a tree \<Rightarrow> 'b tree"
 where
@@ -749,7 +749,7 @@ text {* We define a type of finite sequences, with slightly different
   names than the existing @{typ "'a list"} that is already in @{theory
   Main}: *}
 
-datatype_new 'a seq = Empty | Seq 'a "'a seq"
+datatype 'a seq = Empty | Seq 'a "'a seq"
 
 text {* We can now prove some simple lemma by structural induction: *}
 
@@ -1158,9 +1158,9 @@ lemma three_cases:
   by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject)
 
 text {* Note that such trivial constructions are better done with
-  derived specification mechanisms such as @{command datatype_new}: *}
+  derived specification mechanisms such as @{command datatype}: *}
 
-datatype_new three' = One' | Two' | Three'
+datatype three' = One' | Two' | Three'
 
 text {* This avoids re-doing basic definitions and proofs from the
   primitive @{command typedef} above. *}
@@ -2354,7 +2354,7 @@ text {*
   to reason about inductive types.  Rules are selected according to
   the declarations by the @{attribute cases} and @{attribute induct}
   attributes, cf.\ \secref{sec:cases-induct}.  The @{command (HOL)
-  datatype_new} package already takes care of this.
+  datatype} package already takes care of this.
 
   These unstructured tactics feature both goal addressing and dynamic
   instantiation.  Note that named rule cases are \emph{not} provided

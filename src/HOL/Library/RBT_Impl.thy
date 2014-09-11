@@ -16,8 +16,8 @@ text {*
 
 subsection {* Datatype of RB trees *}
 
-datatype_new color = R | B
-datatype_new ('a, 'b) rbt = Empty | Branch color "('a, 'b) rbt" 'a 'b "('a, 'b) rbt"
+datatype color = R | B
+datatype ('a, 'b) rbt = Empty | Branch color "('a, 'b) rbt" 'a 'b "('a, 'b) rbt"
 
 lemma rbt_cases:
   obtains (Empty) "t = Empty" 
@@ -1728,7 +1728,7 @@ definition skip_black :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
 where
   "skip_black t = (let t' = skip_red t in case t' of Branch color.B l k v r \<Rightarrow> l | _ \<Rightarrow> t')"
 
-datatype_new compare = LT | GT | EQ
+datatype compare = LT | GT | EQ
 
 partial_function (tailrec) compare_height :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> compare"
 where

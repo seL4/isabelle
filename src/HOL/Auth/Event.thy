@@ -15,7 +15,7 @@ theory Event imports Message begin
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: "agent => msg set"
 
-datatype_new
+datatype
   event = Says  agent agent msg
         | Gets  agent       msg
         | Notes agent       msg

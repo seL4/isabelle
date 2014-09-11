@@ -28,6 +28,9 @@ where the previous strategy (nbe after ML) serves as default.
 Minor INCOMPATIBILITY.
 
 * New (co)datatype package:
+  - The 'datatype_new' command has been renamed 'datatype'. The old command of
+    that name is now called 'old_datatype'. See 'isabelle doc datatypes' for
+    information on porting.
   - Renamed theorems:
       disc_corec ~> corec_disc
       disc_corec_iff ~> corec_disc_iff
@@ -58,6 +61,9 @@ Minor INCOMPATIBILITY.
     INCOMPATIBILITY.
 
 * Old datatype package:
+  - The old 'datatype' command has been renamed 'old_datatype', and
+    'rep_datatype' has been renamed 'old_rep_datatype'. See
+    'isabelle doc datatypes' for information on porting.
   - Renamed theorems:
       weak_case_cong ~> case_cong_weak
     INCOMPATIBILITY.

@@ -12,7 +12,7 @@ begin
 type_synonym 'a bexp = "'a set"
 type_synonym 'a assn = "'a set"
 
-datatype_new 'a com =
+datatype 'a com =
   Basic "'a \<Rightarrow> 'a"
 | Abort
 | Seq "'a com" "'a com"               ("(_;/ _)"      [61,60] 60)

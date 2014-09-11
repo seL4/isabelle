@@ -105,7 +105,7 @@ lemma rdvd_mult:
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
   (*********************************************************************************)
 
-datatype_new num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub num num 
+datatype num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub num num 
   | Mul int num | Floor num| CF int num num
 
   (* A size for num to make inductive proofs simpler*)
@@ -188,7 +188,7 @@ lemma isint_c: "isint (C j) bs"
 
 
     (* FORMULAE *)
-datatype_new fm  = 
+datatype fm  = 
   T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num| Dvd int num| NDvd int num|
   NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
 

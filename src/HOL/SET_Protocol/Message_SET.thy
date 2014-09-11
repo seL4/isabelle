@@ -52,11 +52,11 @@ definition symKeys :: "key set" where
 
 text{*Agents. We allow any number of certification authorities, cardholders
             merchants, and payment gateways.*}
-datatype_new
+datatype
   agent = CA nat | Cardholder nat | Merchant nat | PG nat | Spy
 
 text{*Messages*}
-datatype_new
+datatype
      msg = Agent  agent     --{*Agent names*}
          | Number nat       --{*Ordinary integers, timestamps, ...*}
          | Nonce  nat       --{*Unguessable nonces*}

@@ -79,7 +79,7 @@ primcorec BX where
 
 subsection{* Multi-guard fixpoint definitions, simulated with auxiliary arguments *}
 
-datatype_new x_y_ax = x | y | ax
+datatype x_y_ax = x | y | ax
 
 primcorec F :: "x_y_ax \<Rightarrow> char list process" where
   "xyax = x \<Longrightarrow> isChoice (F xyax)"
@@ -106,7 +106,7 @@ section{* Case study: Multi-guard fixpoint definitions, without auxiliary argume
 hide_const x y ax X Y AX
 
 (* Process terms *)
-datatype_new ('a,'pvar) process_term =
+datatype ('a,'pvar) process_term =
  VAR 'pvar |
  PROC "'a process" |
  ACT 'a "('a,'pvar) process_term" | CH "('a,'pvar) process_term" "('a,'pvar) process_term"

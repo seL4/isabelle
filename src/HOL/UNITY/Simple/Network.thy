@@ -11,9 +11,9 @@ theory Network imports "../UNITY" begin
 
 (*The state assigns a number to each process variable*)
 
-datatype_new pvar = Sent | Rcvd | Idle
+datatype pvar = Sent | Rcvd | Idle
 
-datatype_new pname = Aproc | Bproc
+datatype pname = Aproc | Bproc
 
 type_synonym state = "pname * pvar => nat"
 

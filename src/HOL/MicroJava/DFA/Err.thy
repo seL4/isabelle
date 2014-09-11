@@ -9,7 +9,7 @@ theory Err
 imports Semilat
 begin
 
-datatype_new 'a err = Err | OK 'a
+datatype 'a err = Err | OK 'a
 
 type_synonym 'a ebinop = "'a \<Rightarrow> 'a \<Rightarrow> 'a err"
 type_synonym 'a esl = "'a set * 'a ord * 'a ebinop"

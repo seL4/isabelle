@@ -12,7 +12,7 @@ declare [[syntax_ambiguity_warning = false]]
 
 subsection {* Lambda-terms in de Bruijn notation and substitution *}
 
-datatype_new dB =
+datatype dB =
     Var nat
   | App dB dB (infixl "\<degree>" 200)
   | Abs dB

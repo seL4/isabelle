@@ -32,7 +32,7 @@ subsection {* Terms *}
 
 text {* Binary trees with leaves that are constants or variables. *}
 
-datatype_new 'a trm = 
+datatype 'a trm = 
   Var 'a 
   | Const 'a
   | Comb "'a trm" "'a trm" (infix "\<cdot>" 60)

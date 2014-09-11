@@ -14,9 +14,9 @@ keywords
   "nitpick_params" :: thy_decl
 begin
 
-datatype_new (dead 'a, dead 'b) fun_box = FunBox "'a \<Rightarrow> 'b"
-datatype_new (dead 'a, dead 'b) pair_box = PairBox 'a 'b
-datatype_new (dead 'a) word = Word "'a set"
+datatype (dead 'a, dead 'b) fun_box = FunBox "'a \<Rightarrow> 'b"
+datatype (dead 'a, dead 'b) pair_box = PairBox 'a 'b
+datatype (dead 'a) word = Word "'a set"
 
 typedecl bisim_iterator
 typedecl unsigned_bit

@@ -8,13 +8,13 @@ abbreviation fun_upd2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> '
 where "f(x,y := z) == f(x := (f x)(y := z))"
 
 type_synonym addr = nat
-datatype_new ref = null | Ref addr
+datatype ref = null | Ref addr
 
 type_synonym obj = "string \<Rightarrow> ref"
 type_synonym venv = "string \<Rightarrow> ref"
 type_synonym store = "addr \<Rightarrow> obj"
 
-datatype_new exp =
+datatype exp =
   Null |
   New |
   V string |

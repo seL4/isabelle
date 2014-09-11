@@ -8,7 +8,7 @@ theory Option
 imports BNF_Least_Fixpoint Finite_Set
 begin
 
-datatype_new 'a option =
+datatype 'a option =
     None
   | Some (the: 'a)
 

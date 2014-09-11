@@ -8,7 +8,7 @@ theory ABexp
 imports Main
 begin
 
-datatype_new 'a aexp =
+datatype 'a aexp =
     IF "'a bexp"  "'a aexp"  "'a aexp"
   | Sum "'a aexp"  "'a aexp"
   | Diff "'a aexp"  "'a aexp"

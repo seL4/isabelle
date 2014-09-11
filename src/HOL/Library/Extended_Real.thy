@@ -20,7 +20,7 @@ For more lemmas about the extended real numbers go to
 
 subsection {* Definition and basic properties *}
 
-datatype_new ereal = ereal real | PInfty | MInfty
+datatype ereal = ereal real | PInfty | MInfty
 
 instantiation ereal :: uminus
 begin

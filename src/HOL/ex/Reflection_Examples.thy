@@ -46,7 +46,7 @@ the proof of @{prop "t = t'"} where @{prop "I xs s' = t'"}.
 text {* Example 1 : Propositional formulae and NNF. *}
 text {* The type @{text fm} represents simple propositional formulae: *}
 
-datatype_new form = TrueF | FalseF | Less nat nat
+datatype form = TrueF | FalseF | Less nat nat
   | And form form | Or form form | Neg form | ExQ form
 
 primrec interp :: "form \<Rightarrow> ('a::ord) list \<Rightarrow> bool"
@@ -66,7 +66,7 @@ lemma "\<exists>x. x < y \<and> x < z"
   apply reify
   oops
 
-datatype_new fm = And fm fm | Or fm fm | Imp fm fm | Iff fm fm | NOT fm | At nat
+datatype fm = And fm fm | Or fm fm | Imp fm fm | Iff fm fm | NOT fm | At nat
 
 primrec Ifm :: "fm \<Rightarrow> bool list \<Rightarrow> bool"
 where
@@ -135,7 +135,7 @@ oops
 text {* Example 2: Simple arithmetic formulae *}
 
 text {* The type @{text num} reflects linear expressions over natural number *}
-datatype_new num = C nat | Add num num | Mul nat num | Var nat | CN nat nat num
+datatype num = C nat | Add num num | Mul nat num | Var nat | CN nat nat num
 
 text {* This is just technical to make recursive definitions easier. *}
 primrec num_size :: "num \<Rightarrow> nat" 
@@ -252,7 +252,7 @@ oops
 
 text {* Let's lift this to formulae and see what happens *}
 
-datatype_new aform = Lt num num  | Eq num num | Ge num num | NEq num num | 
+datatype aform = Lt num num  | Eq num num | Ge num num | NEq num num | 
   Conj aform aform | Disj aform aform | NEG aform | T | F
 
 primrec linaformsize:: "aform \<Rightarrow> nat"
@@ -331,7 +331,7 @@ text {* We now give an example where interpretaions have zero or more than only
   one envornement of different types and show that automatic reification also deals with
   bindings *}
   
-datatype_new rb = BC bool | BAnd rb rb | BOr rb rb
+datatype rb = BC bool | BAnd rb rb | BOr rb rb
 
 primrec Irb :: "rb \<Rightarrow> bool"
 where
@@ -343,7 +343,7 @@ lemma "A \<and> (B \<or> D \<and> B) \<and> A \<and> (B \<or> D \<and> B) \<or> 
   apply (reify Irb.simps)
 oops
 
-datatype_new rint = IC int | IVar nat | IAdd rint rint | IMult rint rint
+datatype rint = IC int | IVar nat | IAdd rint rint | IMult rint rint
   | INeg rint | ISub rint rint
 
 primrec Irint :: "rint \<Rightarrow> int list \<Rightarrow> int"
@@ -370,7 +370,7 @@ lemma "(3::int) * x + y * y - 9 + (- z) = 0"
   apply (reify Irint_simps ("(3::int) * x + y * y - 9 + (- z)"))
   oops
 
-datatype_new rlist = LVar nat | LEmpty | LCons rint rlist | LAppend rlist rlist
+datatype rlist = LVar nat | LEmpty | LCons rint rlist | LAppend rlist rlist
 
 primrec Irlist :: "rlist \<Rightarrow> int list \<Rightarrow> int list list \<Rightarrow> int list"
 where
@@ -387,7 +387,7 @@ lemma "([(3::int) * x + y * y - 9 + (- z)] @ []) @ xs = [y * y - z - 9 + (3::int
   apply (reify Irlist.simps Irint_simps ("([(3::int) * x + y * y - 9 + (- z)] @ []) @ xs"))
   oops
 
-datatype_new rnat = NC nat| NVar nat| NSuc rnat | NAdd rnat rnat | NMult rnat rnat
+datatype rnat = NC nat| NVar nat| NSuc rnat | NAdd rnat rnat | NMult rnat rnat
   | NNeg rnat | NSub rnat rnat | Nlgth rlist
 
 primrec Irnat :: "rnat \<Rightarrow> int list \<Rightarrow> int list list \<Rightarrow> nat list \<Rightarrow> nat"
@@ -418,7 +418,7 @@ lemma "Suc n * length (([(3::int) * x + y * y - 9 + (- z)] @ []) @ xs) = length 
      ("Suc n * length (([(3::int) * x + y * y - 9 + (- z)] @ []) @ xs)"))
   oops
 
-datatype_new rifm = RT | RF | RVar nat
+datatype rifm = RT | RF | RVar nat
   | RNLT rnat rnat | RNILT rnat rint | RNEQ rnat rnat
   | RAnd rifm rifm | ROr rifm rifm | RImp rifm rifm| RIff rifm rifm
   | RNEX rifm | RIEX rifm | RLEX rifm | RNALL rifm | RIALL rifm | RLALL rifm
@@ -451,7 +451,7 @@ oops
 
 text {* An example for equations containing type variables *}
 
-datatype_new prod = Zero | One | Var nat | Mul prod prod 
+datatype prod = Zero | One | Var nat | Mul prod prod 
   | Pw prod nat | PNM nat nat prod
 
 primrec Iprod :: " prod \<Rightarrow> ('a::linordered_idom) list \<Rightarrow>'a" 
@@ -463,7 +463,7 @@ where
 | "Iprod (Pw a n) vs = Iprod a vs ^ n"
 | "Iprod (PNM n k t) vs = (vs ! n) ^ k * Iprod t vs"
 
-datatype_new sgn = Pos prod | Neg prod | ZeroEq prod | NZeroEq prod | Tr | F 
+datatype sgn = Pos prod | Neg prod | ZeroEq prod | NZeroEq prod | Tr | F 
   | Or sgn sgn | And sgn sgn
 
 primrec Isgn :: "sgn \<Rightarrow> ('a::linordered_idom) list \<Rightarrow> bool"

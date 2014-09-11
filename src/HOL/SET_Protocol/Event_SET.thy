@@ -15,7 +15,7 @@ abbreviation "RCA == CA 0"
 
 
 text{*Message events*}
-datatype_new
+datatype
   event = Says  agent agent msg
         | Gets  agent       msg
         | Notes agent       msg

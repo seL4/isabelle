@@ -6,7 +6,7 @@ begin
 
 subsection {* Terms and substitution *}
 
-datatype_new ('a, 'b) "term" =
+datatype ('a, 'b) "term" =
   Var 'a
 | App 'b "('a, 'b) term list"
 

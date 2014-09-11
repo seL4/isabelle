@@ -8,7 +8,7 @@ theory MemoryImplementation
 imports Memory RPC MemClerk
 begin
 
-datatype_new histState = histA | histB
+datatype histState = histA | histB
 
 type_synonym histType = "(PrIds => histState) stfun"  (* the type of the history variable *)
 

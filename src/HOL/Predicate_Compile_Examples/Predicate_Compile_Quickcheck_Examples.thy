@@ -53,7 +53,7 @@ oops
 
 section {* Context Free Grammar *}
 
-datatype_new alphabet = a | b
+datatype alphabet = a | b
 
 inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
   "[] \<in> S\<^sub>1"
@@ -179,7 +179,7 @@ subsection {* IMP *}
 type_synonym var = nat
 type_synonym state = "int list"
 
-datatype_new com =
+datatype com =
   Skip |
   Ass var "int" |
   Seq com com |
@@ -206,11 +206,11 @@ oops
 
 subsection {* Lambda *}
 
-datatype_new type =
+datatype type =
     Atom nat
   | Fun type type    (infixr "\<Rightarrow>" 200)
 
-datatype_new dB =
+datatype dB =
     Var nat
   | App dB dB (infixl "\<degree>" 200)
   | Abs type dB

@@ -7,7 +7,7 @@ subsection "Verification Conditions"
 text{* Annotated commands: commands where loops are annotated with
 invariants. *}
 
-datatype_new acom =
+datatype acom =
   Askip                  ("SKIP") |
   Aassign vname aexp     ("(_ ::= _)" [1000, 61] 61) |
   Aseq   acom acom       ("_;;/ _"  [60, 61] 60) |

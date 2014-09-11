@@ -24,7 +24,7 @@ setup {*
     (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
 *}
 
-datatype_new alphabet = a | b
+datatype alphabet = a | b
 
 inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
   "[] \<in> S\<^sub>1"

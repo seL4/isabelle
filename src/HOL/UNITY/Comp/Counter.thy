@@ -13,7 +13,7 @@ header{*A Family of Similar Counters: Original Version*}
 theory Counter imports "../UNITY_Main" begin
 
 (* Variables are names *)
-datatype_new name = C | c nat
+datatype name = C | c nat
 type_synonym state = "name=>int"
 
 primrec sum  :: "[nat,state]=>int" where

@@ -44,7 +44,7 @@ lemma "(rot ^^ 16) n = n"
 nitpick [card = 17, expect = none]
 oops
 
-datatype_new ('a, 'b) pd = Pd "'a \<times> 'b"
+datatype ('a, 'b) pd = Pd "'a \<times> 'b"
 
 fun fs where
 "fs (Pd (a, _)) = a"
@@ -76,7 +76,7 @@ lemma "fs (Pd ((a, b), (c, d))) = (c, d)"
 nitpick [expect = genuine]
 oops
 
-datatype_new ('a, 'b) fn = Fn "'a \<Rightarrow> 'b"
+datatype ('a, 'b) fn = Fn "'a \<Rightarrow> 'b"
 
 fun app where
 "app (Fn f) x = f x"

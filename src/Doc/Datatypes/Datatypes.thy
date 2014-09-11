@@ -28,7 +28,7 @@ Perhaps the main advantage of the new package is that it supports recursion
 through a large class of non-datatypes, such as finite sets:
 *}
 
-    datatype_new 'a tree\<^sub>f\<^sub>s = Node\<^sub>f\<^sub>s (lbl\<^sub>f\<^sub>s: 'a) (sub\<^sub>f\<^sub>s: "'a tree\<^sub>f\<^sub>s fset")
+    datatype 'a tree\<^sub>f\<^sub>s = Node\<^sub>f\<^sub>s (lbl\<^sub>f\<^sub>s: 'a) (sub\<^sub>f\<^sub>s: "'a tree\<^sub>f\<^sub>s fset")
 
 text {*
 \noindent
@@ -37,7 +37,7 @@ Another strong point is the support for local definitions:
 
     context linorder
     begin
-    datatype_new flag = Less | Eq | Greater
+    datatype flag = Less | Eq | Greater
     end
 
 text {*
@@ -64,8 +64,8 @@ Mixed inductive--coinductive recursion is possible via nesting. Compare the
 following four Rose tree examples:
 *}
 
-    datatype_new (*<*)(in early) (*>*)'a tree\<^sub>f\<^sub>f = Node\<^sub>f\<^sub>f 'a "'a tree\<^sub>f\<^sub>f list"
-    datatype_new (*<*)(in early) (*>*)'a tree\<^sub>f\<^sub>i = Node\<^sub>f\<^sub>i 'a "'a tree\<^sub>f\<^sub>i llist"
+    datatype (*<*)(in early) (*>*)'a tree\<^sub>f\<^sub>f = Node\<^sub>f\<^sub>f 'a "'a tree\<^sub>f\<^sub>f list"
+    datatype (*<*)(in early) (*>*)'a tree\<^sub>f\<^sub>i = Node\<^sub>f\<^sub>i 'a "'a tree\<^sub>f\<^sub>i llist"
     codatatype (*<*)(in early) (*>*)'a tree\<^sub>i\<^sub>f = Node\<^sub>i\<^sub>f 'a "'a tree\<^sub>i\<^sub>f list"
     codatatype (*<*)(in early) (*>*)'a tree\<^sub>i\<^sub>i = Node\<^sub>i\<^sub>i 'a "'a tree\<^sub>i\<^sub>i llist"
 
@@ -96,7 +96,7 @@ This tutorial is organized as follows:
 \setlength{\itemsep}{0pt}
 
 \item Section \ref{sec:defining-datatypes}, ``Defining Datatypes,''
-describes how to specify datatypes using the @{command datatype_new} command.
+describes how to specify datatypes using the @{command datatype} command.
 
 \item Section \ref{sec:defining-recursive-functions}, ``Defining Recursive
 Functions,'' describes how to specify recursive functions using
@@ -118,7 +118,7 @@ to register arbitrary type constructors as BNFs.
 ``Deriving Destructors and Theorems for Free Constructors,'' explains how to
 use the command @{command free_constructors} to derive destructor constants
 and theorems for freely generated types, as performed internally by @{command
-datatype_new} and @{command codatatype}.
+datatype} and @{command codatatype}.
 
 %\item Section \ref{sec:using-the-standard-ml-interface}, ``Using the Standard
 ML Interface,'' %describes the package's programmatic interface.
@@ -156,7 +156,7 @@ section {* Defining Datatypes
   \label{sec:defining-datatypes} *}
 
 text {*
-Datatypes can be specified using the @{command datatype_new} command.
+Datatypes can be specified using the @{command datatype} command.
 *}
 
 
@@ -179,7 +179,7 @@ their constructors. \emph{Enumeration} types are the simplest form of datatype.
 All their constructors are nullary:
 *}
 
-    datatype_new trool = Truue | Faalse | Perhaaps
+    datatype trool = Truue | Faalse | Perhaaps
 
 text {*
 \noindent
@@ -193,7 +193,7 @@ its homologue from the @{theory Option} theory:
     hide_const None Some map_option
     hide_type option
 (*>*)
-    datatype_new 'a option = None | Some 'a
+    datatype 'a option = None | Some 'a
 
 text {*
 \noindent
@@ -203,7 +203,7 @@ The constructors are @{text "None :: 'a option"} and
 The next example has three type parameters:
 *}
 
-    datatype_new ('a, 'b, 'c) triple = Triple 'a 'b 'c
+    datatype ('a, 'b, 'c) triple = Triple 'a 'b 'c
 
 text {*
 \noindent
@@ -213,7 +213,7 @@ Unlike in Standard ML, curried constructors are supported. The uncurried variant
 is also possible:
 *}
 
-    datatype_new ('a, 'b, 'c) triple\<^sub>u = Triple\<^sub>u "'a * 'b * 'c"
+    datatype ('a, 'b, 'c) triple\<^sub>u = Triple\<^sub>u "'a * 'b * 'c"
 
 text {*
 \noindent
@@ -229,7 +229,7 @@ text {*
 Natural numbers are the simplest example of a recursive type:
 *}
 
-    datatype_new nat = Zero | Succ nat
+    datatype nat = Zero | Succ nat
 
 text {*
 \noindent
@@ -237,7 +237,7 @@ Lists were shown in the introduction. Terminated lists are a variant that
 stores a value of type @{typ 'b} at the very end:
 *}
 
-    datatype_new (*<*)(in early) (*>*)('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
+    datatype (*<*)(in early) (*>*)('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
 
 
 subsubsection {* Mutual Recursion
@@ -249,7 +249,7 @@ each other. The example below introduces a pair of types for even and odd
 natural numbers:
 *}
 
-    datatype_new even_nat = Even_Zero | Even_Succ odd_nat
+    datatype even_nat = Even_Zero | Even_Succ odd_nat
     and odd_nat = Odd_Succ even_nat
 
 text {*
@@ -258,7 +258,7 @@ Arithmetic expressions are defined via terms, terms via factors, and factors via
 expressions:
 *}
 
-    datatype_new ('a, 'b) exp =
+    datatype ('a, 'b) exp =
       Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) exp"
     and ('a, 'b) trm =
       Factor "('a, 'b) fct" | Prod "('a, 'b) fct" "('a, 'b) trm"
@@ -276,7 +276,7 @@ through lists. A more complex example, that reuses our @{type option} type,
 follows:
 *}
 
-    datatype_new 'a btree =
+    datatype 'a btree =
       BNode 'a "'a btree option" "'a btree option"
 
 text {*
@@ -284,7 +284,7 @@ text {*
 Not all nestings are admissible. For example, this command will fail:
 *}
 
-    datatype_new 'a wrong = W1 | W2 (*<*)'a
+    datatype 'a wrong = W1 | W2 (*<*)'a
     typ (*>*)"'a wrong \<Rightarrow> 'a"
 
 text {*
@@ -294,8 +294,8 @@ only through its right-hand side. This issue is inherited by polymorphic
 datatypes defined in terms of~@{text "\<Rightarrow>"}:
 *}
 
-    datatype_new ('a, 'b) fun_copy = Fun "'a \<Rightarrow> 'b"
-    datatype_new 'a also_wrong = W1 | W2 (*<*)'a
+    datatype ('a, 'b) fun_copy = Fun "'a \<Rightarrow> 'b"
+    datatype 'a also_wrong = W1 | W2 (*<*)'a
     typ (*>*)"('a also_wrong, 'a) fun_copy"
 
 text {*
@@ -303,14 +303,14 @@ text {*
 The following definition of @{typ 'a}-branching trees is legal:
 *}
 
-    datatype_new 'a ftree = FTLeaf 'a | FTNode "'a \<Rightarrow> 'a ftree"
+    datatype 'a ftree = FTLeaf 'a | FTNode "'a \<Rightarrow> 'a ftree"
 
 text {*
 \noindent
 And so is the definition of hereditarily finite sets:
 *}
 
-    datatype_new hfset = HFSet "hfset fset"
+    datatype hfset = HFSet "hfset fset"
 
 text {*
 \noindent
@@ -323,15 +323,15 @@ type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
 
 Type constructors must be registered as BNFs to have live arguments. This is
 done automatically for datatypes and codatatypes introduced by the @{command
-datatype_new} and @{command codatatype} commands.
+datatype} and @{command codatatype} commands.
 Section~\ref{sec:introducing-bounded-natural-functors} explains how to
 register arbitrary type constructors as BNFs.
 
 Here is another example that fails:
 *}
 
-    datatype_new 'a pow_list = PNil 'a (*<*)'a
-    datatype_new 'a pow_list' = PNil' 'a (*>*)| PCons "('a * 'a) pow_list"
+    datatype 'a pow_list = PNil 'a (*<*)'a
+    datatype 'a pow_list' = PNil' 'a (*>*)| PCons "('a * 'a) pow_list"
 
 text {*
 \noindent
@@ -345,7 +345,7 @@ subsubsection {* Auxiliary Constants and Properties
   \label{sssec:datatype-auxiliary-constants-and-properties} *}
 
 text {*
-The @{command datatype_new} command introduces various constants in addition to
+The @{command datatype} command introduces various constants in addition to
 the constructors. With each datatype are associated set functions, a map
 function, a relator, discriminators, and selectors, all of which can be given
 custom names. In the example below, the familiar names @{text null}, @{text hd},
@@ -368,7 +368,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
 
     context early begin
 (*>*)
-    datatype_new (set: 'a) list =
+    datatype (set: 'a) list =
       null: Nil
     | Cons (hd: 'a) (tl: "'a list")
     for
@@ -433,11 +433,11 @@ constructors. For example:
 (*<*)
     end
 (*>*)
-    datatype_new ('a, 'b) prod (infixr "*" 20) = Pair 'a 'b
+    datatype ('a, 'b) prod (infixr "*" 20) = Pair 'a 'b
 
 text {* \blankline *}
 
-    datatype_new (set: 'a) list =
+    datatype (set: 'a) list =
       null: Nil ("[]")
     | Cons (hd: 'a) (tl: "'a list") (infixr "#" 65)
     for
@@ -461,16 +461,16 @@ text {* \blankline *}
 subsection {* Command Syntax
   \label{ssec:datatype-command-syntax} *}
 
-subsubsection {* \keyw{datatype_new}
+subsubsection {* \keyw{datatype}
   \label{sssec:datatype-new} *}
 
 text {*
 \begin{matharray}{rcl}
-  @{command_def "datatype_new"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "datatype"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
 @{rail \<open>
-  @@{command datatype_new} target? @{syntax dt_options}? \<newline>
+  @@{command datatype} target? @{syntax dt_options}? \<newline>
     (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') \<newline>
      @{syntax map_rel}? (@'where' (prop + '|'))? + @'and')
   ;
@@ -484,7 +484,7 @@ text {*
 \medskip
 
 \noindent
-The @{command datatype_new} command introduces a set of mutually recursive
+The @{command datatype} command introduces a set of mutually recursive
 datatypes specified by their constructors.
 
 The syntactic entity \synt{target} can be used to specify a local
@@ -667,7 +667,7 @@ subsection {* Generated Theorems
   \label{ssec:datatype-generated-theorems} *}
 
 text {*
-The characteristic theorems generated by @{command datatype_new} are grouped in
+The characteristic theorems generated by @{command datatype} are grouped in
 three broad categories:
 
 \begin{itemize}
@@ -1009,7 +1009,7 @@ prove $m$ properties simultaneously.
 \end{indentblock}
 
 \noindent
-For convenience, @{command datatype_new} also provides the following collection:
+For convenience, @{command datatype} also provides the following collection:
 
 \begin{indentblock}
 \begin{description}
@@ -1026,7 +1026,7 @@ subsection {* Compatibility Issues
   \label{ssec:datatype-compatibility-issues} *}
 
 text {*
-The command @{command datatype_new} has been designed to be highly compatible
+The command @{command datatype} has been designed to be highly compatible
 with the old command (which is now called \keyw{old_datatype}), to ease
 migration. There are nonetheless a few incompatibilities that may arise when
 porting:
@@ -1268,7 +1268,7 @@ recursive calls are lifted to lists using @{const map}:
 *}
 
 (*<*)
-    datatype_new 'a tree\<^sub>f\<^sub>f = Node\<^sub>f\<^sub>f (lbl\<^sub>f\<^sub>f: 'a) (sub\<^sub>f\<^sub>f: "'a tree\<^sub>f\<^sub>f list")
+    datatype 'a tree\<^sub>f\<^sub>f = Node\<^sub>f\<^sub>f (lbl\<^sub>f\<^sub>f: 'a) (sub\<^sub>f\<^sub>f: "'a tree\<^sub>f\<^sub>f list")
 (*>*)
     primrec at\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" where
       "at\<^sub>f\<^sub>f (Node\<^sub>f\<^sub>f a ts) js =
@@ -1322,7 +1322,7 @@ For recursion through curried $n$-ary functions, $n$ applications of
 $n = 2$:
 *}
 
-    datatype_new 'a ftree2 = FTLeaf2 'a | FTNode2 "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2"
+    datatype 'a ftree2 = FTLeaf2 'a | FTNode2 "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2"
 
 text {* \blankline *}
 
@@ -1533,7 +1533,7 @@ The following example illustrates this procedure:
 
 text {* \blankline *}
 
-    datatype_new ('a, 'b) tlist =
+    datatype ('a, 'b) tlist =
       TNil (termi: 'b)
     | TCons (thd: 'a) (ttl: "('a, 'b) tlist")
     where
@@ -2455,7 +2455,7 @@ extends binary predicates over elements to binary predicates over parallel
 lazy lists. The cardinal bound limits the number of elements returned by the
 set function; it may not depend on the cardinality of @{typ 'a}.
 
-The type constructors introduced by @{command datatype_new} and
+The type constructors introduced by @{command datatype} and
 @{command codatatype} are automatically registered as BNFs. In addition, a
 number of old-style datatypes and non-free types are preregistered.
 
@@ -2653,7 +2653,7 @@ Type arguments are live by default; they can be marked as dead by entering
 @{text dead} in front of the type variable (e.g., @{text "(dead 'a)"})
 instead of an identifier for the corresponding set function. Witnesses can be
 specified by their types. Otherwise, the syntax of @{command bnf_axiomatization}
-is identical to the left-hand side of a @{command datatype_new} or
+is identical to the left-hand side of a @{command datatype} or
 @{command codatatype} definition.
 
 The command is useful to reason abstractly about BNFs. The axioms are safe
@@ -2682,7 +2682,7 @@ section {* Deriving Destructors and Theorems for Free Constructors
 
 text {*
 The derivation of convenience theorems for types equipped with free constructors,
-as performed internally by @{command datatype_new} and @{command codatatype},
+as performed internally by @{command datatype} and @{command codatatype},
 is available as a stand-alone command called @{command free_constructors}.
 
 %  * need for this is rare but may arise if you want e.g. to add destructors to
@@ -2731,7 +2731,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{name} denotes an identifier, \synt{prop} denotes a HOL proposition, and
 \synt{term} denotes a HOL term \cite{isabelle-isar-ref}.
 
-The syntax resembles that of @{command datatype_new} and @{command codatatype}
+The syntax resembles that of @{command datatype} and @{command codatatype}
 definitions (Sections
 \ref{ssec:datatype-command-syntax}~and~\ref{ssec:codatatype-command-syntax}).
 A constructor is specified by an optional name for the discriminator, the
@@ -2761,13 +2761,13 @@ text {*
 Plugins extend the (co)datatype package to interoperate with other Isabelle
 packages and tools, such as the code generator, Transfer, Lifting, and
 Quickcheck. They can be enabled or disabled individually using the
-@{syntax plugins} option to the commands @{command datatype_new},
+@{syntax plugins} option to the commands @{command datatype},
 @{command codatatype}, @{command free_constructors}, @{command bnf}, and
 @{command bnf_axiomatization}.
 For example:
 *}
 
-    datatype_new (plugins del: code "quickcheck_*") color = Red | Black
+    datatype (plugins del: code "quickcheck_*") color = Red | Black
 
 
 subsection {* Code Generator

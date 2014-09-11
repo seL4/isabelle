@@ -206,7 +206,7 @@ nitpick [unary_ints, expect = none]
 nitpick [binary_ints, expect = none]
 sorry
 
-datatype_new tree = Null | Node nat tree tree
+datatype tree = Null | Node nat tree tree
 
 primrec labels where
 "labels Null = {}" |

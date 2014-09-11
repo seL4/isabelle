@@ -2,7 +2,7 @@ theory Poly_Types imports Types begin
 
 subsection "Type Variables"
 
-datatype_new ty = Ity | Rty | TV nat
+datatype ty = Ity | Rty | TV nat
 
 text{* Everything else remains the same. *}
 

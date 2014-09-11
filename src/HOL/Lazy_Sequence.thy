@@ -9,7 +9,7 @@ begin
 
 subsection {* Type of lazy sequences *}
 
-datatype_new (dead 'a) lazy_sequence = lazy_sequence_of_list "'a list"
+datatype (dead 'a) lazy_sequence = lazy_sequence_of_list "'a list"
 
 primrec list_of_lazy_sequence :: "'a lazy_sequence \<Rightarrow> 'a list"
 where

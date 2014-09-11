@@ -6,9 +6,9 @@ header {* \isaheader{Expressions and Statements} *}
 
 theory Term imports Value begin
 
-datatype_new binop = Eq | Add    -- "function codes for binary operation"
+datatype binop = Eq | Add    -- "function codes for binary operation"
 
-datatype_new expr
+datatype expr
   = NewC cname               -- "class instance creation"
   | Cast cname expr          -- "type cast"
   | Lit val                  -- "literal value, also references"
@@ -23,7 +23,7 @@ datatype_new expr
 
 datatype_compat expr
 
-datatype_new stmt
+datatype stmt
   = Skip                     -- "empty statement"
   | Expr expr                -- "expression statement"
   | Comp stmt stmt       ("_;; _"             [61,60]60)

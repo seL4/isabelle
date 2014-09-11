@@ -9,7 +9,7 @@ text {* The example (original in Haskell) was imported with Haskabelle and
   manually slightly adapted.
 *}
  
-datatype_new Nat = Zer
+datatype Nat = Zer
              | Suc Nat
 
 fun sub :: "Nat \<Rightarrow> Nat \<Rightarrow> Nat"
@@ -20,10 +20,10 @@ where
                                          Zer \<Rightarrow> Zer
                                        | Suc x' \<Rightarrow> sub x' y')"
 
-datatype_new Sym = N0
+datatype Sym = N0
              | N1 Sym
 
-datatype_new RE = Sym Sym
+datatype RE = Sym Sym
             | Or RE RE
             | Seq RE RE
             | And RE RE

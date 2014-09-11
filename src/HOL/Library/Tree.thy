@@ -6,7 +6,7 @@ theory Tree
 imports Main
 begin
 
-datatype_new 'a tree = Leaf | Node (left: "'a tree") (val: 'a) (right: "'a tree")
+datatype 'a tree = Leaf | Node (left: "'a tree") (val: 'a) (right: "'a tree")
   where
     "left Leaf = Leaf"
   | "right Leaf = Leaf"

@@ -8,7 +8,7 @@ theory List
 imports Sledgehammer Code_Numeral Lifting_Set Lifting_Option Lifting_Product
 begin
 
-datatype_new (set: 'a) list =
+datatype (set: 'a) list =
     Nil  ("[]")
   | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
 for

@@ -605,7 +605,7 @@ oops
 
 text {* Non-recursive datatypes *}
 
-datatype_new T1 = A | B
+datatype T1 = A | B
 
 lemma "P (x::T1)"
 refute [expect = genuine]
@@ -639,7 +639,7 @@ lemma "P (case x of A \<Rightarrow> a | B \<Rightarrow> b)"
 refute [expect = genuine]
 oops
 
-datatype_new 'a T2 = C T1 | D 'a
+datatype 'a T2 = C T1 | D 'a
 
 lemma "P (x::'a T2)"
 refute [expect = genuine]
@@ -669,7 +669,7 @@ lemma "P (case x of C u \<Rightarrow> c u | D v \<Rightarrow> d v)"
 refute [expect = genuine]
 oops
 
-datatype_new ('a,'b) T3 = E "'a \<Rightarrow> 'b"
+datatype ('a,'b) T3 = E "'a \<Rightarrow> 'b"
 
 lemma "P (x::('a,'b) T3)"
 refute [expect = genuine]
@@ -772,7 +772,7 @@ lemma "a # xs = b # xs"
 refute [expect = potential]
 oops
 
-datatype_new BitList = BitListNil | Bit0 BitList | Bit1 BitList
+datatype BitList = BitListNil | Bit0 BitList | Bit1 BitList
 
 lemma "P (x::BitList)"
 refute [expect = potential]

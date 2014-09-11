@@ -6,7 +6,7 @@ begin
 
 subsection "Parity Analysis"
 
-datatype_new parity = Even | Odd | Either
+datatype parity = Even | Odd | Either
 
 text{* Instantiation of class @{class order} with type @{typ parity}: *}
 

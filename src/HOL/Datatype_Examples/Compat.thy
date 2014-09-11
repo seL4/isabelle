@@ -31,7 +31,7 @@ old_datatype 'a old_lst = Old_Nl | Old_Cns 'a "'a old_lst"
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name old_lst}; \<close>
 
-datatype_new 'a lst = Nl | Cns 'a "'a lst"
+datatype 'a lst = Nl | Cns 'a "'a lst"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name lst}; \<close>
 
@@ -39,7 +39,7 @@ datatype_compat lst
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name lst}; \<close>
 
-datatype_new 'b w = W | W' "'b w \<times> 'b list"
+datatype 'b w = W | W' "'b w \<times> 'b list"
 
 (* no support for sums of products:
 datatype_compat w
@@ -47,11 +47,11 @@ datatype_compat w
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name w}; \<close>
 
-datatype_new ('c, 'b) s = L 'c | R 'b
+datatype ('c, 'b) s = L 'c | R 'b
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name s}; \<close>
 
-datatype_new 'd x = X | X' "('d x lst, 'd list) s"
+datatype 'd x = X | X' "('d x lst, 'd list) s"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name x}; \<close>
 
@@ -67,7 +67,7 @@ ML \<open> get_descrs @{theory} (3, 3, 1) @{type_name x}; \<close>
 thm x.induct x.rec
 thm compat_x.induct compat_x.rec
 
-datatype_new 'a tttre = TTTre 'a "'a tttre lst lst lst"
+datatype 'a tttre = TTTre 'a "'a tttre lst lst lst"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name tttre}; \<close>
 
@@ -78,7 +78,7 @@ ML \<open> get_descrs @{theory} (4, 4, 1) @{type_name tttre}; \<close>
 thm tttre.induct tttre.rec
 thm compat_tttre.induct compat_tttre.rec
 
-datatype_new 'a ftre = FEmp | FTre "'a \<Rightarrow> 'a ftre lst"
+datatype 'a ftre = FEmp | FTre "'a \<Rightarrow> 'a ftre lst"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name ftre}; \<close>
 
@@ -89,7 +89,7 @@ ML \<open> get_descrs @{theory} (2, 2, 1) @{type_name ftre}; \<close>
 thm ftre.induct ftre.rec
 thm compat_ftre.induct compat_ftre.rec
 
-datatype_new 'a btre = BTre 'a "'a btre lst" "'a btre lst"
+datatype 'a btre = BTre 'a "'a btre lst" "'a btre lst"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name btre}; \<close>
 
@@ -100,7 +100,7 @@ ML \<open> get_descrs @{theory} (3, 3, 1) @{type_name btre}; \<close>
 thm btre.induct btre.rec
 thm compat_btre.induct compat_btre.rec
 
-datatype_new 'a foo = Foo | Foo' 'a "'a bar" and 'a bar = Bar | Bar' 'a "'a foo"
+datatype 'a foo = Foo | Foo' 'a "'a bar" and 'a bar = Bar | Bar' 'a "'a foo"
 
 ML \<open> get_descrs @{theory} (0, 2, 2) @{type_name foo}; \<close>
 ML \<open> get_descrs @{theory} (0, 2, 2) @{type_name bar}; \<close>
@@ -110,7 +110,7 @@ datatype_compat foo bar
 ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name foo}; \<close>
 ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name bar}; \<close>
 
-datatype_new 'a tre = Tre 'a "'a tre lst"
+datatype 'a tre = Tre 'a "'a tre lst"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name tre}; \<close>
 
@@ -121,12 +121,12 @@ ML \<open> get_descrs @{theory} (2, 2, 1) @{type_name tre}; \<close>
 thm tre.induct tre.rec
 thm compat_tre.induct compat_tre.rec
 
-datatype_new 'a f = F 'a and 'a g = G 'a
+datatype 'a f = F 'a and 'a g = G 'a
 
 ML \<open> get_descrs @{theory} (0, 2, 2) @{type_name f}; \<close>
 ML \<open> get_descrs @{theory} (0, 2, 2) @{type_name g}; \<close>
 
-datatype_new h = H "h f" | H'
+datatype h = H "h f" | H'
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name h}; \<close>
 
@@ -143,7 +143,7 @@ ML \<open> get_descrs @{theory} (3, 3, 1) @{type_name h}; \<close>
 thm h.induct h.rec
 thm compat_h.induct compat_h.rec
 
-datatype_new myunit = MyUnity
+datatype myunit = MyUnity
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name myunit}; \<close>
 
@@ -151,7 +151,7 @@ datatype_compat myunit
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name myunit}; \<close>
 
-datatype_new mylist = MyNil | MyCons nat mylist
+datatype mylist = MyNil | MyCons nat mylist
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name mylist}; \<close>
 
@@ -159,7 +159,7 @@ datatype_compat mylist
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name mylist}; \<close>
 
-datatype_new foo' = FooNil | FooCons bar' foo' and bar' = Bar
+datatype foo' = FooNil | FooCons bar' foo' and bar' = Bar
 
 ML \<open> get_descrs @{theory} (0, 2, 2) @{type_name foo'}; \<close>
 ML \<open> get_descrs @{theory} (0, 2, 2) @{type_name bar'}; \<close>
@@ -177,7 +177,7 @@ old_datatype fnky = Fnky "nat tre"
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name fnky}; \<close>
 
-datatype_new tree = Tree "tree foo"
+datatype tree = Tree "tree foo"
 
 ML \<open> get_descrs @{theory} (0, 1, 1) @{type_name tree}; \<close>
 

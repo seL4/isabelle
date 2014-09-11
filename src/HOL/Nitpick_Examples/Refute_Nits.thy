@@ -617,7 +617,7 @@ oops
 
 text {* Non-recursive datatypes *}
 
-datatype_new T1 = A | B
+datatype T1 = A | B
 
 lemma "P (x\<Colon>T1)"
 nitpick [expect = genuine]
@@ -653,7 +653,7 @@ lemma "P (case x of A \<Rightarrow> a | B \<Rightarrow> b)"
 nitpick [expect = genuine]
 oops
 
-datatype_new 'a T2 = C T1 | D 'a
+datatype 'a T2 = C T1 | D 'a
 
 lemma "P (x\<Colon>'a T2)"
 nitpick [expect = genuine]
@@ -685,7 +685,7 @@ lemma "P (case x of C u \<Rightarrow> c u | D v \<Rightarrow> d v)"
 nitpick [expect = genuine]
 oops
 
-datatype_new ('a, 'b) T3 = E "'a \<Rightarrow> 'b"
+datatype ('a, 'b) T3 = E "'a \<Rightarrow> 'b"
 
 lemma "P (x\<Colon>('a, 'b) T3)"
 nitpick [expect = genuine]
@@ -790,7 +790,7 @@ lemma "a # xs = b # xs"
 nitpick [expect = genuine]
 oops
 
-datatype_new BitList = BitListNil | Bit0 BitList | Bit1 BitList
+datatype BitList = BitListNil | Bit0 BitList | Bit1 BitList
 
 lemma "P (x\<Colon>BitList)"
 nitpick [expect = genuine]
@@ -823,7 +823,7 @@ lemma "P (rec_BitList nil bit0 bit1 x)"
 nitpick [expect = genuine]
 oops
 
-datatype_new 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
+datatype 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
 
 lemma "P (x\<Colon>'a BinTree)"
 nitpick [expect = genuine]
@@ -857,7 +857,7 @@ oops
 
 text {* Mutually recursive datatypes *}
 
-datatype_new 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
+datatype 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
  and 'a bexp = Equal "'a aexp" "'a aexp"
 
 lemma "P (x\<Colon>'a aexp)"
@@ -911,7 +911,7 @@ lemma "P (case x of Equal a1 a2 \<Rightarrow> equal a1 a2)"
 nitpick [expect = genuine]
 oops
 
-datatype_new X = A | B X | C Y and Y = D X | E Y | F
+datatype X = A | B X | C Y and Y = D X | E Y | F
 
 lemma "P (x\<Colon>X)"
 nitpick [expect = genuine]
@@ -999,7 +999,7 @@ text {* Other datatype examples *}
 
 text {* Indirect recursion is implemented via mutual recursion. *}
 
-datatype_new XOpt = CX "XOpt option" | DX "bool \<Rightarrow> XOpt option"
+datatype XOpt = CX "XOpt option" | DX "bool \<Rightarrow> XOpt option"
 
 lemma "P (x\<Colon>XOpt)"
 nitpick [expect = genuine]
@@ -1017,7 +1017,7 @@ lemma "P (rec_X cx dx n1 s1 n2 s2 x)"
 nitpick [expect = genuine]
 oops
 
-datatype_new 'a YOpt = CY "('a \<Rightarrow> 'a YOpt) option"
+datatype 'a YOpt = CY "('a \<Rightarrow> 'a YOpt) option"
 
 lemma "P (x\<Colon>'a YOpt)"
 nitpick [expect = genuine]
@@ -1031,7 +1031,7 @@ lemma "P (CY (Some (\<lambda>a. CY None)))"
 nitpick [expect = genuine]
 oops
 
-datatype_new Trie = TR "Trie list"
+datatype Trie = TR "Trie list"
 
 lemma "P (x\<Colon>Trie)"
 nitpick [expect = genuine]
@@ -1045,7 +1045,7 @@ lemma "P (TR [TR []])"
 nitpick [expect = genuine]
 oops
 
-datatype_new InfTree = Leaf | Node "nat \<Rightarrow> InfTree"
+datatype InfTree = Leaf | Node "nat \<Rightarrow> InfTree"
 
 lemma "P (x\<Colon>InfTree)"
 nitpick [expect = genuine]
@@ -1073,7 +1073,7 @@ lemma "P (rec_InfTree leaf node x)"
 nitpick [expect = genuine]
 oops
 
-datatype_new 'a lambda = Var 'a | App "'a lambda" "'a lambda" | Lam "'a \<Rightarrow> 'a lambda"
+datatype 'a lambda = Var 'a | App "'a lambda" "'a lambda" | Lam "'a \<Rightarrow> 'a lambda"
 
 lemma "P (x\<Colon>'a lambda)"
 nitpick [expect = genuine]
@@ -1109,8 +1109,8 @@ oops
 
 text {* Taken from "Inductive datatypes in HOL", p. 8: *}
 
-datatype_new (dead 'a, 'b) T = C "'a \<Rightarrow> bool" | D "'b list"
-datatype_new 'c U = E "('c, 'c U) T"
+datatype (dead 'a, 'b) T = C "'a \<Rightarrow> bool" | D "'b list"
+datatype 'c U = E "('c, 'c U) T"
 
 lemma "P (x\<Colon>'c U)"
 nitpick [expect = genuine]

@@ -16,7 +16,7 @@ text{* 数学家能把咖啡变成理论,如今中国的数学家也可
 
     *}
 
-datatype_new shuzi =
+datatype shuzi =
     One   ("一")
   | Two   ("二")
   | Three ("三") 

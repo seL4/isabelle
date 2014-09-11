@@ -223,7 +223,7 @@ sorry
 
 subsection {* 2.10. Boxing *}
 
-datatype_new tm = Var nat | Lam tm | App tm tm
+datatype tm = Var nat | Lam tm | App tm tm
 
 primrec lift where
 "lift (Var j) k = Var (if j < k then j else j + 1)" |
@@ -306,7 +306,7 @@ nitpick_params [max_potential = 0]
 
 subsection {* 3.1. A Context-Free Grammar *}
 
-datatype_new alphabet = a | b
+datatype alphabet = a | b
 
 inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
   "[] \<in> S\<^sub>1"
@@ -381,7 +381,7 @@ sorry
 
 subsection {* 3.2. AA Trees *}
 
-datatype_new 'a aa_tree = \<Lambda> | N "'a\<Colon>linorder" nat "'a aa_tree" "'a aa_tree"
+datatype 'a aa_tree = \<Lambda> | N "'a\<Colon>linorder" nat "'a aa_tree" "'a aa_tree"
 
 primrec data where
 "data \<Lambda> = undefined" |

@@ -6,7 +6,7 @@ begin
 
 subsection "Interval Analysis"
 
-datatype_new ivl = I "int option" "int option"
+datatype ivl = I "int option" "int option"
 
 definition "\<gamma>_ivl i = (case i of
   I (Some l) (Some h) \<Rightarrow> {l..h} |

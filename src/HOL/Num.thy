@@ -11,7 +11,7 @@ begin
 
 subsection {* The @{text num} type *}
 
-datatype_new num = One | Bit0 num | Bit1 num
+datatype num = One | Bit0 num | Bit1 num
 
 text {* Increment function for type @{typ num} *}
 

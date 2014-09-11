@@ -15,7 +15,7 @@ begin
 type_synonym 'a bexp = "'a set"
 type_synonym 'a assn = "'a set"
 
-datatype_new 'a com =
+datatype 'a com =
   Basic "'a \<Rightarrow> 'a"
 | Seq "'a com" "'a com"               ("(_;/ _)"      [61,60] 60)
 | Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)

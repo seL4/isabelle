@@ -10,7 +10,7 @@ begin
 
 subsection{* Datatype of polynomial expressions *}
 
-datatype_new poly = C Num | Bound nat | Add poly poly | Sub poly poly
+datatype poly = C Num | Bound nat | Add poly poly | Sub poly poly
   | Mul poly poly| Neg poly| Pw poly nat| CN poly nat poly
 
 abbreviation poly_0 :: "poly" ("0\<^sub>p") where "0\<^sub>p \<equiv> C (0\<^sub>N)"

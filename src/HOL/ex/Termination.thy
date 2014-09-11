@@ -118,7 +118,7 @@ where
   
 subsection {* Simple examples with other datatypes than nat, e.g. trees and lists *}
 
-datatype_new tree = Node | Branch tree tree
+datatype tree = Node | Branch tree tree
 
 fun g_tree :: "tree * tree \<Rightarrow> tree"
 where

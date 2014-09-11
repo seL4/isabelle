@@ -35,7 +35,7 @@ lemma shift_commute [simp]: "e\<langle>i:U\<rangle>\<langle>0:T\<rangle> = e\<la
 
 subsection {* Types and typing rules *}
 
-datatype_new type =
+datatype type =
     Atom nat
   | Fun type type    (infixr "\<Rightarrow>" 200)
 

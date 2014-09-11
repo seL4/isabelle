@@ -23,7 +23,7 @@ where
   Res_neq_This [simp]: "Res \<noteq> This"
 *)
 
-datatype_new stmt
+datatype stmt
   = Skip                   --{* empty statement *}
   | Comp       stmt stmt   ("_;; _"             [91,90   ] 90)
   | Cond expr  stmt stmt   ("If '(_') _ Else _" [ 3,91,91] 91)

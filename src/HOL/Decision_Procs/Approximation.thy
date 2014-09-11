@@ -2037,7 +2037,7 @@ section "Implement floatarith"
 
 subsection "Define syntax and semantics"
 
-datatype_new floatarith
+datatype floatarith
   = Add floatarith floatarith
   | Minus floatarith
   | Mult floatarith floatarith
@@ -2456,7 +2456,7 @@ next
   show ?case by (cases "n < length vs", auto)
 qed
 
-datatype_new form = Bound floatarith floatarith floatarith form
+datatype form = Bound floatarith floatarith floatarith form
               | Assign floatarith floatarith form
               | Less floatarith floatarith
               | LessEqual floatarith floatarith

@@ -19,7 +19,7 @@ text {*
   position within the structure.
 *}
 
-datatype_new (dead 'a, dead 'b, dead 'c) env =
+datatype (dead 'a, dead 'b, dead 'c) env =
     Val 'a
   | Env 'b  "'c \<Rightarrow> ('a, 'b, 'c) env option"
 

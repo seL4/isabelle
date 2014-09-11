@@ -10,11 +10,11 @@ subsection {* General Context Free Grammars *}
 
 text {* a contribution by Aditi Barthwal *}
 
-datatype_new ('nts,'ts) symbol = NTS 'nts
+datatype ('nts,'ts) symbol = NTS 'nts
                             | TS 'ts
 
                             
-datatype_new ('nts,'ts) rule = rule 'nts "('nts,'ts) symbol list"
+datatype ('nts,'ts) rule = rule 'nts "('nts,'ts) symbol list"
 
 type_synonym ('nts,'ts) grammar = "('nts,'ts) rule set * 'nts"
 
@@ -75,7 +75,7 @@ values "{rhs. test2 rhs}"
 
 subsection {* Some concrete Context Free Grammars *}
 
-datatype_new alphabet = a | b
+datatype alphabet = a | b
 
 inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
   "[] \<in> S\<^sub>1"
@@ -140,7 +140,7 @@ subsection {* IMP *}
 type_synonym var = nat
 type_synonym state = "int list"
 
-datatype_new com =
+datatype com =
   Skip |
   Ass var "state => int" |
   Seq com com |
@@ -164,11 +164,11 @@ values "{t. exec
 
 subsection {* Lambda *}
 
-datatype_new type =
+datatype type =
     Atom nat
   | Fun type type    (infixr "\<Rightarrow>" 200)
 
-datatype_new dB =
+datatype dB =
     Var nat
   | App dB dB (infixl "\<degree>" 200)
   | Abs type dB
@@ -237,12 +237,12 @@ type_synonym vname = nat
 type_synonym vvalue = int
 type_synonym var_assign = "vname \<Rightarrow> vvalue"  --"variable assignment"
 
-datatype_new ir_expr = 
+datatype ir_expr = 
   IrConst vvalue
 | ObjAddr vname
 | Add ir_expr ir_expr
 
-datatype_new val =
+datatype val =
   IntVal  vvalue
 
 record  configuration =
@@ -267,14 +267,14 @@ subsection {* Another semantics *}
 type_synonym name = nat --"For simplicity in examples"
 type_synonym state' = "name \<Rightarrow> nat"
 
-datatype_new aexp = N nat | V name | Plus aexp aexp
+datatype aexp = N nat | V name | Plus aexp aexp
 
 fun aval :: "aexp \<Rightarrow> state' \<Rightarrow> nat" where
 "aval (N n) _ = n" |
 "aval (V x) st = st x" |
 "aval (Plus e\<^sub>1 e\<^sub>2) st = aval e\<^sub>1 st + aval e\<^sub>2 st"
 
-datatype_new bexp = B bool | Not bexp | And bexp bexp | Less aexp aexp
+datatype bexp = B bool | Not bexp | And bexp bexp | Less aexp aexp
 
 primrec bval :: "bexp \<Rightarrow> state' \<Rightarrow> bool" where
 "bval (B b) _ = b" |
@@ -282,7 +282,7 @@ primrec bval :: "bexp \<Rightarrow> state' \<Rightarrow> bool" where
 "bval (And b1 b2) st = (bval b1 st \<and> bval b2 st)" |
 "bval (Less a\<^sub>1 a\<^sub>2) st = (aval a\<^sub>1 st < aval a\<^sub>2 st)"
 
-datatype_new
+datatype
   com' = SKIP 
       | Assign name aexp         ("_ ::= _" [1000, 61] 61)
       | Semi   com'  com'          ("_; _"  [60, 61] 60)
@@ -326,7 +326,7 @@ subsection {* CCS *}
 text{* This example formalizes finite CCS processes without communication or
 recursion. For simplicity, labels are natural numbers. *}
 
-datatype_new proc = nil | pre nat proc | or proc proc | par proc proc
+datatype proc = nil | pre nat proc | or proc proc | par proc proc
 
 inductive step :: "proc \<Rightarrow> nat \<Rightarrow> proc \<Rightarrow> bool" where
 "step (pre n p) n p" |

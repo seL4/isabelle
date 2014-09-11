@@ -19,7 +19,7 @@ text {*
 
 no_notation Groups.one_class.one ("1")
 
-datatype_new digit = A ("1") | B ("2") | C ("3") | D ("4") | E ("5") | F ("6") | G ("7") | H ("8") | I ("9")
+datatype digit = A ("1") | B ("2") | C ("3") | D ("4") | E ("5") | F ("6") | G ("7") | H ("8") | I ("9")
 
 definition valid :: "digit => digit => digit => digit => digit => digit => digit => digit => digit => bool" where
 

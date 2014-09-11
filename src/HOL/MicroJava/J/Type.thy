@@ -45,14 +45,14 @@ instance ..
 end
 
  -- "exceptions"
-datatype_new 
+datatype 
   xcpt   
   = NullPointer
   | ClassCast
   | OutOfMemory
 
 -- "class names"
-datatype_new cname  
+datatype cname  
   = Object 
   | Xcpt xcpt 
   | Cname cnam 
@@ -128,23 +128,23 @@ instance ..
 end
 
 -- "names for @{text This} pointer and local/field variables"
-datatype_new vname 
+datatype vname 
   = This
   | VName vnam
 
 -- "primitive type, cf. 4.2"
-datatype_new prim_ty 
+datatype prim_ty 
   = Void          -- "'result type' of void methods"
   | Boolean
   | Integer
 
 -- "reference type, cf. 4.3"
-datatype_new ref_ty   
+datatype ref_ty   
   = NullT         -- "null type, cf. 4.1"
   | ClassT cname  -- "class type"
 
 -- "any type, cf. 4.1"
-datatype_new ty 
+datatype ty 
   = PrimT prim_ty -- "primitive type"
   | RefT  ref_ty  -- "reference type"
 

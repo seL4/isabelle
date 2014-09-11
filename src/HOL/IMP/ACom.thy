@@ -6,7 +6,7 @@ begin
 
 subsection "Annotated Commands"
 
-datatype_new 'a acom =
+datatype 'a acom =
   SKIP 'a                           ("SKIP {_}" 61) |
   Assign vname aexp 'a              ("(_ ::= _/ {_})" [1000, 61, 0] 61) |
   Seq "('a acom)" "('a acom)"       ("_;;//_"  [60, 61] 60) |

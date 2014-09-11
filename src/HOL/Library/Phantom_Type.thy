@@ -8,7 +8,7 @@ theory Phantom_Type
 imports Main
 begin
 
-datatype_new ('a, 'b) phantom = phantom 'b
+datatype ('a, 'b) phantom = phantom 'b
 
 primrec of_phantom :: "('a, 'b) phantom \<Rightarrow> 'b" 
 where "of_phantom (phantom x) = x"

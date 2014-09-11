@@ -378,7 +378,7 @@ definition
                              \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>dom (locals (store s))\<guillemotright>t\<guillemotright>A )
                \<and> s\<Colon>\<preceq>(G,L))"
 
-datatype_new    'a triple = triple "('a assn)" "term" "('a assn)" (** should be
+datatype    'a triple = triple "('a assn)" "term" "('a assn)" (** should be
 something like triple = \<forall>'a. triple ('a assn) term ('a assn)   **)
                                         ("{(1_)}/ _>/ {(1_)}"      [3,65,3]75)
 type_synonym 'a triples = "'a triple set"

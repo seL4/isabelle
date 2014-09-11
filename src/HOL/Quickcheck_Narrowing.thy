@@ -26,14 +26,14 @@ code_reserved Haskell_Quickcheck Typerep
 
 subsubsection {* Narrowing's deep representation of types and terms *}
 
-datatype_new narrowing_type =
+datatype narrowing_type =
   Narrowing_sum_of_products "narrowing_type list list"
 
-datatype_new narrowing_term =
+datatype narrowing_term =
   Narrowing_variable "integer list" narrowing_type
 | Narrowing_constructor integer "narrowing_term list"
 
-datatype_new (dead 'a) narrowing_cons =
+datatype (dead 'a) narrowing_cons =
   Narrowing_cons narrowing_type "(narrowing_term list \<Rightarrow> 'a) list"
 
 primrec map_cons :: "('a => 'b) => 'a narrowing_cons => 'b narrowing_cons"
@@ -127,7 +127,7 @@ subsubsection {* Narrowing generator type class *}
 class narrowing =
   fixes narrowing :: "integer => 'a narrowing_cons"
 
-datatype_new property = Universal narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Existential narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Property bool
+datatype property = Universal narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Existential narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Property bool
 
 (* FIXME: hard-wired maximal depth of 100 here *)
 definition exists :: "('a :: {narrowing, partial_term_of} => property) => property"
@@ -155,7 +155,7 @@ where
 
 subsubsection {* Defining a simple datatype to represent functions in an incomplete and redundant way *}
 
-datatype_new (dead 'a, dead 'b) ffun = Constant 'b | Update 'a 'b "('a, 'b) ffun"
+datatype (dead 'a, dead 'b) ffun = Constant 'b | Update 'a 'b "('a, 'b) ffun"
 
 primrec eval_ffun :: "('a, 'b) ffun => 'a => 'b"
 where
@@ -165,7 +165,7 @@ where
 hide_type (open) ffun
 hide_const (open) Constant Update eval_ffun
 
-datatype_new (dead 'b) cfun = Constant 'b
+datatype (dead 'b) cfun = Constant 'b
 
 primrec eval_cfun :: "'b cfun => 'a => 'b"
 where

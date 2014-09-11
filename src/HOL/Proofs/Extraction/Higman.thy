@@ -14,7 +14,7 @@ text {*
   based on Coquand and Fridlender \cite{Coquand93}.
 *}
 
-datatype_new letter = A | B
+datatype letter = A | B
 
 inductive emb :: "letter list \<Rightarrow> letter list \<Rightarrow> bool"
 where

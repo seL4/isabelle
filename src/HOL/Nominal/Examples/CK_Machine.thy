@@ -81,7 +81,7 @@ by (nominal_induct t avoiding: x y s rule: lam.strong_induct)
 
 section {* Evaluation Contexts *}
 
-datatype_new ctx = 
+datatype ctx = 
     Hole ("\<box>")  
   | CAPPL "ctx" "lam"
   | CAPPR "lam" "ctx"

@@ -8,7 +8,7 @@ theory Abschannel
 imports IOA Action Lemmas
 begin
 
-datatype_new 'a abs_action = S 'a | R 'a
+datatype 'a abs_action = S 'a | R 'a
 
 
 (**********************************************************
