@@ -5,9 +5,9 @@ Example from Konrad: 68000 instruction set.
 
 theory Instructions imports Main begin
 
-old_datatype Size = Byte | Word | Long
+datatype Size = Byte | Word | Long
 
-old_datatype DataRegister =
+datatype DataRegister =
   RegD0
 | RegD1
 | RegD2
@@ -17,7 +17,7 @@ old_datatype DataRegister =
 | RegD6
 | RegD7
 
-old_datatype AddressRegister =
+datatype AddressRegister =
   RegA0
 | RegA1
 | RegA2
@@ -27,11 +27,11 @@ old_datatype AddressRegister =
 | RegA6
 | RegA7
 
-old_datatype DataOrAddressRegister =
+datatype DataOrAddressRegister =
   data DataRegister
 | address AddressRegister
 
-old_datatype Condition =
+datatype Condition =
   Hi
 | Ls
 | Cc
@@ -47,7 +47,7 @@ old_datatype Condition =
 | Gt
 | Le
 
-old_datatype AddressingMode =
+datatype AddressingMode =
   immediate nat
 | direct DataOrAddressRegister
 | indirect AddressRegister
@@ -59,7 +59,7 @@ old_datatype AddressingMode =
 | pcdisp nat
 | pcindex nat DataOrAddressRegister Size
 
-old_datatype M68kInstruction =
+datatype M68kInstruction =
   ABCD AddressingMode AddressingMode
 | ADD Size AddressingMode AddressingMode
 | ADDA Size AddressingMode AddressRegister
