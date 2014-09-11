@@ -200,7 +200,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
     val new_type_names' = map (fn n => n ^ "_Rep") new_type_names;
 
-    val (full_new_type_names',thy1) = BNF_LFP_Compat.add_datatype BNF_LFP_Compat.Unfold_Nesting dts'' thy;
+    val (full_new_type_names',thy1) = BNF_LFP_Compat.add_datatype_dead BNF_LFP_Compat.Unfold_Nesting dts'' thy;
 
     val {descr, induct, ...} = BNF_LFP_Compat.the_info thy1 BNF_LFP_Compat.Unfold_Nesting (hd full_new_type_names');
     fun nth_dtyp i = Old_Datatype_Aux.typ_of_dtyp descr (Old_Datatype_Aux.DtRec i);

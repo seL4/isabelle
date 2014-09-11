@@ -1,5 +1,5 @@
 theory Type_Preservation
-  imports Nominal
+  imports "../Nominal"
 begin
 
 text {*

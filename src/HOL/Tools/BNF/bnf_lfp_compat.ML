@@ -27,6 +27,8 @@ sig
   val datatype_compat_cmd: string list -> local_theory -> local_theory
   val add_datatype: nesting_preference -> Old_Datatype_Aux.spec list -> theory ->
     string list * theory
+  val add_datatype_dead: nesting_preference -> Old_Datatype_Aux.spec list -> theory ->
+    string list * theory
   val add_primrec: (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
    local_theory -> (term list * thm list) * local_theory
   val add_primrec_global: (binding * typ option * mixfix) list ->
@@ -495,11 +497,12 @@ fun datatype_compat_cmd raw_fpT_names lthy =
     datatype_compat fpT_names lthy
   end;
 
-fun add_datatype nesting_pref old_specs thy =
+fun gen_add_datatype live nesting_pref old_specs thy =
   let
     val fpT_names = map (Sign.full_name thy o #1 o fst) old_specs;
 
-    fun new_type_args_of (s, S) = (SOME Binding.empty, (TFree (s, @{sort type}), S));
+    fun new_type_args_of (s, S) =
+      (if live then SOME Binding.empty else NONE, (TFree (s, @{sort type}), S));
     fun new_ctr_spec_of (b, Ts, mx) = (((Binding.empty, b), map (pair Binding.empty) Ts), mx);
 
     fun new_spec_of ((b, old_tyargs, mx), old_ctr_specs) =
@@ -513,6 +516,9 @@ fun add_datatype nesting_pref old_specs thy =
      |> map_local_theory (co_datatypes Least_FP construct_lfp (default_ctr_options, new_specs))
      |> nesting_pref = Unfold_Nesting ? perhaps (try (datatype_compat_global fpT_names)))
   end;
+
+val add_datatype = gen_add_datatype true;
+val add_datatype_dead = gen_add_datatype false;
 
 val add_primrec = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec;
 val add_primrec_global = apfst (apsnd flat) ooo BNF_LFP_Rec_Sugar.add_primrec_global;
