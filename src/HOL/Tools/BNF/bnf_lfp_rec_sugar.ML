@@ -331,7 +331,7 @@ fun subst_rec_calls ctxt get_ctr_pos has_call ctr_args mutual_calls nested_calls
       if has_call t then
         raise PRIMREC ("recursive call not directly applied to constructor argument", [t])
       else
-        try_nested_rec [] (head_of t) t |> the_default t
+        try_nested_rec [] (head_of t) t |> the_default t;
   in
     subst' o subst []
   end;
@@ -386,10 +386,10 @@ fun build_defs ctxt nonexhaustive bs mxs (funs_data : eqn_data list list)
     val n_funs = length funs_data;
 
     val ctr_spec_eqn_data_list' =
-      (take n_funs rec_specs |> map #ctr_specs) ~~ funs_data
+      map #ctr_specs (take n_funs rec_specs) ~~ funs_data
       |> maps (uncurry (finds (fn (x, y) => #ctr x = #ctr y))
-          ##> (fn x => null x orelse
-            raise PRIMREC ("excess equations in definition", map #rhs_term x)) #> fst);
+        ##> (fn x => null x orelse
+          raise PRIMREC ("excess equations in definition", map #rhs_term x)) #> fst);
     val _ = ctr_spec_eqn_data_list' |> map (fn ({ctr, ...}, x) =>
       if length x > 1 then raise PRIMREC ("multiple equations for constructor", map #user_eqn x)
       else if length x = 1 orelse nonexhaustive then ()
