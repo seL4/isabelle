@@ -1817,10 +1817,6 @@ val _ =
   Outer_Syntax.local_theory @{command_spec "datatype"} "define inductive datatypes"
     (parse_co_datatype_cmd Least_FP construct_lfp);
 
-val _ =
-  Outer_Syntax.local_theory @{command_spec "datatype"} "define inductive datatypes"
-    (parse_co_datatype_cmd Least_FP construct_lfp);
-
 val _ = Theory.setup (fp_antiquote_setup @{binding datatype});
 
 end;
