@@ -751,7 +751,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
   theories [condition = ISABELLE_FULL_TEST, timing]
     Brackin
     Instructions
-    IsaFoR_Datatypes
+    IsaFoR
     SML
     Verilog
 
