@@ -10,7 +10,7 @@ keywords
   "inductive" "coinductive" "inductive_cases" "inductive_simps" :: thy_decl and
   "monos" and
   "print_inductives" :: diag and
-  "rep_datatype" :: thy_goal and
+  "old_rep_datatype" :: thy_goal and
   "primrec" :: thy_decl
 begin
 

@@ -29,7 +29,7 @@ apply (case_tac x)
 apply (simp add: Def_def)
 done
 
-rep_datatype "\<bottom>\<Colon>'a lift" Def
+old_rep_datatype "\<bottom>\<Colon>'a lift" Def
   by (erule lift_induct) (simp_all add: Def_def Abs_lift_inject inst_lift_pcpo)
 
 text {* @{term bottom} and @{term Def} *}

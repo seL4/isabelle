@@ -800,7 +800,7 @@ lift_definition Suc :: "natural \<Rightarrow> natural"
 
 declare Suc.rep_eq [simp]
 
-rep_datatype "0::natural" Suc
+old_rep_datatype "0::natural" Suc
   by (transfer, fact nat.induct nat.inject nat.distinct)+
 
 lemma natural_cases [case_names nat, cases type: natural]:

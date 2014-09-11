@@ -96,10 +96,10 @@ where
   apply (simp only: Suc_not_Zero)
   done
 
--- {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
+-- {* Avoid name clashes by prefixing the output of @{text old_rep_datatype} with @{text old}. *}
 setup {* Sign.mandatory_path "old" *}
 
-rep_datatype "0 \<Colon> nat" Suc
+old_rep_datatype "0 \<Colon> nat" Suc
   apply (erule nat_induct0, assumption)
  apply (rule nat.inject)
 apply (rule nat.distinct(1))

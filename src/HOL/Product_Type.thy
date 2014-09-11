@@ -15,11 +15,11 @@ subsection {* @{typ bool} is a datatype *}
 free_constructors case_bool for True | False
   by auto
 
-text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
+text {* Avoid name clashes by prefixing the output of @{text old_rep_datatype} with @{text old}. *}
 
 setup {* Sign.mandatory_path "old" *}
 
-rep_datatype True False by (auto intro: bool_induct)
+old_rep_datatype True False by (auto intro: bool_induct)
 
 setup {* Sign.parent_path *}
 
@@ -84,11 +84,11 @@ simproc_setup unit_eq ("x::unit") = {*
 free_constructors case_unit for "()"
   by auto
 
-text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
+text {* Avoid name clashes by prefixing the output of @{text old_rep_datatype} with @{text old}. *}
 
 setup {* Sign.mandatory_path "old" *}
 
-rep_datatype "()" by simp
+old_rep_datatype "()" by simp
 
 setup {* Sign.parent_path *}
 
@@ -257,11 +257,11 @@ next
     by (simp add: Pair_def Abs_prod_inject)
 qed
 
-text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
+text {* Avoid name clashes by prefixing the output of @{text old_rep_datatype} with @{text old}. *}
 
 setup {* Sign.mandatory_path "old" *}
 
-rep_datatype Pair
+old_rep_datatype Pair
 by (erule prod_cases) (rule prod.inject)
 
 setup {* Sign.parent_path *}

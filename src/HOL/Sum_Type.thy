@@ -90,11 +90,11 @@ free_constructors case_sum for
   | Inr projr
   by (erule sumE, assumption) (auto dest: Inl_inject Inr_inject simp add: Inl_not_Inr)
 
-text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
+text {* Avoid name clashes by prefixing the output of @{text old_rep_datatype} with @{text old}. *}
 
 setup {* Sign.mandatory_path "old" *}
 
-rep_datatype Inl Inr
+old_rep_datatype Inl Inr
 proof -
   fix P
   fix s :: "'a + 'b"

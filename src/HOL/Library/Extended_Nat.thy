@@ -44,7 +44,7 @@ proof
     by (rule exI[of _ "to_nat \<circ> Rep_enat"]) (simp add: inj_on_def Rep_enat_inject)
 qed
  
-rep_datatype enat "\<infinity> :: enat"
+old_rep_datatype enat "\<infinity> :: enat"
 proof -
   fix P i assume "\<And>j. P (enat j)" "P \<infinity>"
   then show "P i"
