@@ -210,9 +210,9 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
   let
     val thy = Proof_Context.theory_of lthy;
 
-    fun not_datatype s = error (quote s ^ " is not a new-style datatype");
+    fun not_datatype s = error (quote s ^ " is not a datatype");
     fun not_mutually_recursive ss =
-      error ("{" ^ commas ss ^ "} is not a complete set of mutually recursive new-style datatypes");
+      error ("{" ^ commas ss ^ "} is not a complete set of mutually recursive datatypes");
 
     fun lfp_sugar_of s =
       (case fp_sugar_of lthy s of
@@ -528,7 +528,7 @@ val add_primrec_simple = apfst (apsnd (apsnd (flat o snd))) ooo
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "datatype_compat"}
-    "register new-style datatypes as old-style datatypes"
+    "register datatypes as old-style datatypes and derive old-style properties"
     (Scan.repeat1 Parse.type_const >> datatype_compat_cmd);
 
 end;

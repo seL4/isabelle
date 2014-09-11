@@ -3,7 +3,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 
-New-style recursor sugar ("primrec").
+Recursor sugar ("primrec").
 *)
 
 signature BNF_LFP_REC_SUGAR =

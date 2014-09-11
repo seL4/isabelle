@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2014
 
-Generation of size functions for new-style datatypes.
+Generation of size functions for datatypes.
 *)
 
 signature BNF_LFP_SIZE =

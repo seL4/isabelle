@@ -3,7 +3,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Library for the new-style datatype construction.
+Library for the datatype construction.
 *)
 
 signature BNF_LFP_UTIL =

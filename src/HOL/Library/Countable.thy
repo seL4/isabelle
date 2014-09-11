@@ -197,7 +197,7 @@ ML {*
 hide_const (open) finite_item nth_item
 
 
-subsection {* Automatically proving countability of new-style datatypes *}
+subsection {* Automatically proving countability of datatypes *}
 
 ML_file "bnf_lfp_countable.ML"
 

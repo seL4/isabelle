@@ -3,7 +3,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 
-More new-style recursor sugar.
+More recursor sugar.
 *)
 
 structure BNF_LFP_Rec_Sugar_More : sig end =

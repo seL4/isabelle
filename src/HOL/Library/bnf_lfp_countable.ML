@@ -125,9 +125,8 @@ fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
 fun derive_encode_injectives_thms _ [] = []
   | derive_encode_injectives_thms ctxt fpT_names0 =
     let
-      fun not_datatype s = error (quote s ^ " is not a new-style datatype");
-      fun not_mutually_recursive ss =
-        error (commas ss ^ " are not mutually recursive new-style datatypes");
+      fun not_datatype s = error (quote s ^ " is not a datatype");
+      fun not_mutually_recursive ss = error (commas ss ^ " are not mutually recursive datatypes");
 
       fun lfp_sugar_of s =
         (case fp_sugar_of ctxt s of
