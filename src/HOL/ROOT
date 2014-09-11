@@ -732,7 +732,7 @@ session "HOL-Cardinals" in Cardinals = HOL +
 
 session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
   description {*
-    (Co)datatype Examples.
+    (Co)datatype Examples, including large ones from John Harrison.
   *}
   options [document = false]
   theories
@@ -748,7 +748,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Misc_Datatype
     Misc_Primcorec
     Misc_Primrec
-  theories [condition = ISABELLE_FULL_TEST]
+  theories [condition = ISABELLE_FULL_TEST, timing]
     Brackin
     Instructions
     IsaFoR_Datatypes
@@ -1084,17 +1084,6 @@ session "IOA-ex" in "HOLCF/IOA/ex" = IOA +
   theories
     TrivEx
     TrivEx2
-
-session "HOL-Datatype_Benchmark" in Datatype_Benchmark = HOL +
-  description {*
-    Some rather large datatype examples (from John Harrison).
-  *}
-  options [document = false]
-  theories [condition = ISABELLE_FULL_TEST, timing]
-    Brackin
-    Instructions
-    SML
-    Verilog
 
 session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
   description {*
