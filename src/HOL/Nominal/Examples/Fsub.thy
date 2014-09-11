@@ -30,7 +30,7 @@ text{* There are numerous facts that come with this declaration: for example tha
   there are infinitely many elements in @{text "tyvrs"} and @{text "vrs"}. *}
 
 text{* The constructors for types and terms in System \FSUB{} contain abstractions 
-  over type-variables and term-variables. The nominal datatype-package uses 
+  over type-variables and term-variables. The nominal datatype package uses 
   @{text "\<guillemotleft>\<dots>\<guillemotright>\<dots>"} to indicate where abstractions occur. *}
 
 nominal_datatype ty = 

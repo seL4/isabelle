@@ -522,7 +522,7 @@ text {*
   and @{term "X"} for true, false and uncertain propositions, respectively. 
 *}
 
-datatype P3 = T | F | X
+datatype_new P3 = T | F | X
 
 text {* \noindent Then the conjunction of such values can be defined as follows: *}
 
@@ -1122,7 +1122,7 @@ text {*
   As an example, imagine a datatype of n-ary trees:
 *}
 
-datatype 'a tree = 
+datatype_new 'a tree = 
   Leaf 'a 
 | Branch "'a tree list"
 

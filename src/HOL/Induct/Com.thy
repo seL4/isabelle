@@ -12,7 +12,7 @@ theory Com imports Main begin
 typedecl loc
 type_synonym state = "loc => nat"
 
-datatype
+datatype_new
   exp = N nat
       | X loc
       | Op "nat => nat => nat" exp exp

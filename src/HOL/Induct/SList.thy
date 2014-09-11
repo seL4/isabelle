@@ -15,10 +15,10 @@ and not         list    == lfp(%Z. {NUMB(0)} <+> range(Leaf) <*> Z)
 
 so that list can serve as a "functor" for defining other recursive types.
 
-This enables the conservative construction of mutual recursive data-types
+This enables the conservative construction of mutual recursive datatypes
 such as
 
-datatype 'a m = Node 'a * ('a m) list
+datatype 'a m = Node 'a * 'a m list
 *)
 
 header {* Extended List Theory (old) *}

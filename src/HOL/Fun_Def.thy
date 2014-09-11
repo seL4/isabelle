@@ -97,7 +97,7 @@ ML_file "Tools/Function/pat_completeness.ML"
 
 method_setup pat_completeness = {*
   Scan.succeed (SIMPLE_METHOD' o Pat_Completeness.pat_completeness_tac)
-*} "prove completeness of datatype patterns"
+*} "prove completeness of (co)datatype patterns"
 
 ML_file "Tools/Function/fun.ML"
 ML_file "Tools/Function/induction_schema.ML"

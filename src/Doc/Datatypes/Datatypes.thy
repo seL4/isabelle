@@ -5,7 +5,7 @@
     Author:     Andrei Popescu, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen
 
-Tutorial for (co)datatype definitions with the new package.
+Tutorial for (co)datatype definitions.
 *)
 
 theory Datatypes
@@ -21,14 +21,9 @@ section {* Introduction
   \label{sec:introduction} *}
 
 text {*
-The 2013 edition of Isabelle introduced a new definitional package for freely
-generated datatypes and codatatypes. The datatype support is similar to that
-provided by the earlier package due to Berghofer and Wenzel
-\cite{Berghofer-Wenzel:1999:TPHOL}, documented in the Isar reference manual
-\cite{isabelle-isar-ref}; indeed, replacing the keyword \keyw{datatype} by
-@{command datatype_new} is often all that is needed to port existing theories to
-use the new package.
-
+The 2013 edition of Isabelle introduced a definitional package for freely
+generated datatypes and codatatypes. This package replaces the earlier
+implementation due to Berghofer and Wenzel \cite{Berghofer-Wenzel:1999:TPHOL}.
 Perhaps the main advantage of the new package is that it supports recursion
 through a large class of non-datatypes, such as finite sets:
 *}
@@ -51,7 +46,7 @@ Furthermore, the package provides a lot of convenience, including automatically
 generated discriminators, selectors, and relators as well as a wealth of
 properties about them.
 
-In addition to inductive datatypes, the new package supports coinductive
+In addition to inductive datatypes, the package supports coinductive
 datatypes, or \emph{codatatypes}, which allow infinite values. For example, the
 following command introduces the type of lazy lists, which comprises both finite
 and infinite values:
@@ -151,12 +146,8 @@ in.\allowbreak tum.\allowbreak de}}
 \newcommand\authoremailv{\texttt{tray{\color{white}NOSPAM}\kern-\wd\boxA{}tel@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
 
-The command @{command datatype_new} is expected to replace \keyw{datatype} in a
-future release. Authors of new theories are encouraged to use the new commands,
-and maintainers of older theories may want to consider upgrading.
-
-Comments and bug reports concerning either the tool or this tutorial should be
-directed to the authors at \authoremaili, \authoremailii, \authoremailiii,
+Comments and bug reports concerning either the package or this tutorial should
+be directed to the authors at \authoremaili, \authoremailii, \authoremailiii,
 \authoremailiv, and \authoremailv.
 *}
 
@@ -1036,8 +1027,9 @@ subsection {* Compatibility Issues
 
 text {*
 The command @{command datatype_new} has been designed to be highly compatible
-with the old \keyw{datatype}, to ease migration. There are nonetheless a few
-incompatibilities that may arise when porting to the new package:
+with the old command (which is now called \keyw{old_datatype}), to ease
+migration. There are nonetheless a few incompatibilities that may arise when
+porting:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1065,8 +1057,8 @@ functions, the old-style induction rule can be obtained by applying the
 @{text "[unfolded all_mem_range]"} attribute on @{text t.induct}.
 
 \item \emph{The internal constructions are completely different.} Proof texts
-that unfold the definition of constants introduced by \keyw{datatype} will be
-difficult to port.
+that unfold the definition of constants introduced by \keyw{old\_datatype} will
+be difficult to port.
 
 \item \emph{Some constants and theorems have different names.}
 For non-mutually recursive datatypes,
@@ -2695,9 +2687,6 @@ is available as a stand-alone command called @{command free_constructors}.
 
 %  * need for this is rare but may arise if you want e.g. to add destructors to
 %    a type not introduced by ...
-%
-%  * also useful for compatibility with old package, e.g. add destructors to
-%    old \keyw{datatype}
 %
 %  * @{command free_constructors}
 %    * @{text plugins}, @{text discs_sels}

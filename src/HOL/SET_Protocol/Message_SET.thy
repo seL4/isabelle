@@ -52,11 +52,11 @@ definition symKeys :: "key set" where
 
 text{*Agents. We allow any number of certification authorities, cardholders
             merchants, and payment gateways.*}
-datatype
+datatype_new
   agent = CA nat | Cardholder nat | Merchant nat | PG nat | Spy
 
 text{*Messages*}
-datatype
+datatype_new
      msg = Agent  agent     --{*Agent names*}
          | Number nat       --{*Ordinary integers, timestamps, ...*}
          | Nonce  nat       --{*Unguessable nonces*}
@@ -373,6 +373,7 @@ apply (simp_all (no_asm_simp) add: exI parts_insert2)
 (*MPair case: blast_tac works out the necessary sum itself!*)
 prefer 2 apply (blast elim!: add_leE)
 (*Nonce case*)
+apply (rename_tac nat)
 apply (rule_tac x = "N + Suc nat" in exI)
 apply (auto elim!: add_leE)
 done
@@ -382,6 +383,7 @@ lemma msg_Number_supply: "\<exists>N. \<forall>n. N<=n --> Number n \<notin> par
 apply (induct_tac "msg")
 apply (simp_all (no_asm_simp) add: exI parts_insert2)
 prefer 2 apply (blast elim!: add_leE)
+apply (rename_tac nat)
 apply (rule_tac x = "N + Suc nat" in exI, auto)
 done
 

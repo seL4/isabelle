@@ -208,7 +208,7 @@ done
 
 
 (* Exercise 3. Solution by Getrud Bauer *)
-datatype ('a,'v) triem = Triem  "'v option" "'a \<Rightarrow> ('a,'v) triem option";
+datatype ('a,dead 'v) triem = Triem  "'v option" "'a \<Rightarrow> ('a,'v) triem option";
 
 primrec valuem :: "('a, 'v) triem \<Rightarrow> 'v option" where
 "valuem (Triem ov m) = ov"

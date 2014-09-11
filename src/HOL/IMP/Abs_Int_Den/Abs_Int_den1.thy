@@ -37,7 +37,7 @@ assumes filter_plus': "filter_plus' a a1 a2 = (a1',a2') \<Longrightarrow>
 and filter_less': "filter_less' (n1<n2) a1 a2 = (a1',a2') \<Longrightarrow>
   n1 <: a1 \<Longrightarrow> n2 <: a2 \<Longrightarrow> n1 <: a1' \<and> n2 <: a2'"
 
-datatype 'a up = bot | Up 'a
+old_datatype 'a up = bot | Up 'a
 
 instantiation up :: (SL_top)SL_top
 begin

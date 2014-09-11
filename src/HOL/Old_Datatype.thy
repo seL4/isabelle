@@ -7,7 +7,7 @@ header {* Old Datatype package: constructing datatypes from Cartesian Products a
 
 theory Old_Datatype
 imports Power
-keywords "datatype" :: thy_decl
+keywords "old_datatype" :: thy_decl
 begin
 
 subsection {* The datatype universe *}

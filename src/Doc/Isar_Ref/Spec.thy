@@ -81,7 +81,7 @@ text {*
   the formal text.  Examples may be seen in Isabelle/HOL sources
   itself, such as @{keyword "keywords"}~@{verbatim "\"typedef\""}
   @{text ":: thy_goal"} or @{keyword "keywords"}~@{verbatim
-  "\"datatype\""} @{text ":: thy_decl"} for theory-level declarations
+  "\"old_datatype\""} @{text ":: thy_decl"} for theory-level declarations
   with and without proof, respectively.  Additional @{syntax tags}
   provide defaults for document preparation (\secref{sec:tags}).
 

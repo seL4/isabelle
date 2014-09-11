@@ -12,6 +12,7 @@ header {* Least Fixed Point Operation on Bounded Natural Functors *}
 theory BNF_Least_Fixpoint
 imports BNF_Fixpoint_Base
 keywords
+  "datatype" :: thy_decl and
   "datatype_new" :: thy_decl and
   "datatype_compat" :: thy_decl
 begin

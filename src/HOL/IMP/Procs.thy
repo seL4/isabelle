@@ -6,7 +6,7 @@ subsection "Procedures and Local Variables"
 
 type_synonym pname = string
 
-datatype
+datatype_new
   com = SKIP 
       | Assign vname aexp        ("_ ::= _" [1000, 61] 61)
       | Seq    com  com          ("_;;/ _"  [60, 61] 60)

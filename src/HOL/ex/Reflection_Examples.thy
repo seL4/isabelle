@@ -17,7 +17,7 @@ on the theory level.  This is the case of @{typ bool}, arithmetical terms such a
 often need its structure.  Traditionnaly such simplifications are written in ML,
 proofs are synthesized.
 
-An other strategy is to declare an HOL-datatype @{text \<tau>} and an HOL function (the
+An other strategy is to declare an HOL datatype @{text \<tau>} and an HOL function (the
 interpretation) that maps elements of @{text \<tau>} to elements of @{text \<sigma>}.
 
 The functionality of @{text reify} then is, given a term @{text t} of type @{text \<sigma>},

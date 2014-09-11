@@ -27,7 +27,7 @@ fun get_descrs thy lens T_name =
   |> tap (check_lens lens);
 \<close>
 
-datatype 'a old_lst = Old_Nl | Old_Cns 'a "'a old_lst"
+old_datatype 'a old_lst = Old_Nl | Old_Cns 'a "'a old_lst"
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name old_lst}; \<close>
 
@@ -169,11 +169,11 @@ datatype_compat bar' foo'
 ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name foo'}; \<close>
 ML \<open> get_descrs @{theory} (2, 2, 2) @{type_name bar'}; \<close>
 
-datatype funky = Funky "funky tre" | Funky'
+old_datatype funky = Funky "funky tre" | Funky'
 
 ML \<open> get_descrs @{theory} (3, 3, 3) @{type_name funky}; \<close>
 
-datatype fnky = Fnky "nat tre"
+old_datatype fnky = Fnky "nat tre"
 
 ML \<open> get_descrs @{theory} (1, 1, 1) @{type_name fnky}; \<close>
 

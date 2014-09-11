@@ -87,7 +87,7 @@ text {*
   queues:
 *}
 
-datatype %quote 'a queue = Queue "'a list"
+datatype_new %quote 'a queue = Queue "'a list"
 
 definition %quote empty :: "'a queue" where
   "empty = Queue []"

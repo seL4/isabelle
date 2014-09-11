@@ -12,12 +12,12 @@ begin
 type_synonym 'a bexp = "'a set"
 type_synonym 'a assn = "'a set"
 
-datatype
- 'a com = Basic "'a \<Rightarrow> 'a"
-   | Abort
-   | Seq "'a com" "'a com"               ("(_;/ _)"      [61,60] 60)
-   | Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
-   | While "'a bexp" "'a assn" "'a com"  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
+datatype_new 'a com =
+  Basic "'a \<Rightarrow> 'a"
+| Abort
+| Seq "'a com" "'a com"               ("(_;/ _)"      [61,60] 60)
+| Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
+| While "'a bexp" "'a assn" "'a com"  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
 
 abbreviation annskip ("SKIP") where "SKIP == Basic id"
 

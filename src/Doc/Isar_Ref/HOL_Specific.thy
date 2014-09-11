@@ -283,11 +283,10 @@ text {*
   \begin{description}
 
   \item @{command (HOL) "primrec"} defines primitive recursive
-  functions over datatypes (see also @{command_ref (HOL) datatype} and
-  @{command_ref (HOL) rep_datatype}).  The given @{text equations}
-  specify reduction rules that are produced by instantiating the
-  generic combinator for primitive recursion that is available for
-  each datatype.
+  functions over datatypes (see also @{command_ref (HOL) datatype_new}).
+  The given @{text equations} specify reduction rules that are produced
+  by instantiating the generic combinator for primitive recursion that
+  is available for each datatype.
 
   Each equation needs to be of the form:
 
@@ -379,7 +378,7 @@ text {* Subsequently, we define mutual datatypes for arithmetic and
   boolean expressions, and use @{command primrec} for evaluation
   functions that follow the same recursive structure. *}
 
-datatype 'a aexp =
+datatype_new 'a aexp =
     IF "'a bexp"  "'a aexp"  "'a aexp"
   | Sum "'a aexp"  "'a aexp"
   | Diff "'a aexp"  "'a aexp"
@@ -450,7 +449,7 @@ subsubsection {* Example: a substitution function for terms *}
 text {* Functions on datatypes with nested recursion are also defined
   by mutual primitive recursion. *}
 
-datatype ('a, 'b) "term" = Var 'a | App 'b "('a, 'b) term list"
+datatype_new ('a, 'b) "term" = Var 'a | App 'b "('a, 'b) term list"
 
 text {* A substitution function on type @{typ "('a, 'b) term"} can be
   defined as follows, by working simultaneously on @{typ "('a, 'b)
@@ -471,7 +470,7 @@ text {* The recursion scheme follows the structure of the unfolded
 
 lemma "subst_term (subst_term f1 \<circ> f2) t = subst_term f1 (subst_term f2 t)" and
   "subst_term_list (subst_term f1 \<circ> f2) ts = subst_term_list f1 (subst_term_list f2 ts)"
-  by (induct t and ts) simp_all
+  by (induct t and ts rule: subst_term.induct subst_term_list.induct) simp_all
 
 
 subsubsection {* Example: a map function for infinitely branching trees *}
@@ -480,7 +479,7 @@ text {* Defining functions on infinitely branching datatypes by
   primitive recursion is just as easy.
 *}
 
-datatype 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
+datatype_new 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
 
 primrec map_tree :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a tree \<Rightarrow> 'b tree"
 where
@@ -702,16 +701,16 @@ text {*
 *}
 
 
-section {* Datatypes \label{sec:hol-datatype} *}
+section {* Old-style datatypes \label{sec:hol-datatype} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "datatype"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "old_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) datatype} (spec + @'and')
+    @@{command (HOL) old_datatype} (spec + @'and')
     ;
     @@{command (HOL) rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
     ;
@@ -723,30 +722,16 @@ text {*
 
   \begin{description}
 
-  \item @{command (HOL) "datatype"} defines inductive datatypes in
-  HOL.
+  \item @{command (HOL) "old_datatype"} defines old-style inductive
+  datatypes in HOL.
 
   \item @{command (HOL) "rep_datatype"} represents existing types as
-  datatypes.
-
-  For foundational reasons, some basic types such as @{typ nat}, @{typ
-  "'a \<times> 'b"}, @{typ "'a + 'b"}, @{typ bool} and @{typ unit} are
-  introduced by more primitive means using @{command_ref typedef}.  To
-  recover the rich infrastructure of @{command datatype} (e.g.\ rules
-  for @{method cases} and @{method induct} and the primitive recursion
-  combinators), such types may be represented as actual datatypes
-  later.  This is done by specifying the constructors of the desired
-  type, and giving a proof of the induction rule, distinctness and
-  injectivity of constructors.
-
-  For example, see @{file "~~/src/HOL/Sum_Type.thy"} for the
-  representation of the primitive sum type as fully-featured datatype.
+  old-style datatypes.
 
   \end{description}
 
-  The generated rules for @{method induct} and @{method cases} provide
-  case names according to the given constructors, while parameters are
-  named after the types (see also \secref{sec:cases-induct}).
+  These commands are mostly obsolete; @{command (HOL) "datatype"}
+  should be used instead.
 
   See \cite{isabelle-HOL} for more details on datatypes, but beware of
   the old-style theory syntax being used there!  Apart from proper
@@ -764,7 +749,7 @@ text {* We define a type of finite sequences, with slightly different
   names than the existing @{typ "'a list"} that is already in @{theory
   Main}: *}
 
-datatype 'a seq = Empty | Seq 'a "'a seq"
+datatype_new 'a seq = Empty | Seq 'a "'a seq"
 
 text {* We can now prove some simple lemma by structural induction: *}
 
@@ -1173,9 +1158,9 @@ lemma three_cases:
   by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject)
 
 text {* Note that such trivial constructions are better done with
-  derived specification mechanisms such as @{command datatype}: *}
+  derived specification mechanisms such as @{command datatype_new}: *}
 
-datatype three' = One' | Two' | Three'
+datatype_new three' = One' | Two' | Three'
 
 text {* This avoids re-doing basic definitions and proofs from the
   primitive @{command typedef} above. *}
@@ -2369,7 +2354,7 @@ text {*
   to reason about inductive types.  Rules are selected according to
   the declarations by the @{attribute cases} and @{attribute induct}
   attributes, cf.\ \secref{sec:cases-induct}.  The @{command (HOL)
-  datatype} package already takes care of this.
+  datatype_new} package already takes care of this.
 
   These unstructured tactics feature both goal addressing and dynamic
   instantiation.  Note that named rule cases are \emph{not} provided

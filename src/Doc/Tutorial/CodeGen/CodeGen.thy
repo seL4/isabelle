@@ -16,9 +16,9 @@ appropriate function itself.
 *}
 
 type_synonym 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v";
-datatype ('a,'v)expr = Cex 'v
-                     | Vex 'a
-                     | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr";
+datatype (dead 'a, 'v) expr = Cex 'v
+                      | Vex 'a
+                      | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr";
 
 text{*\noindent
 The three constructors represent constants, variables and the application of
@@ -40,7 +40,7 @@ binary operation to the two topmost elements of the stack, replacing them by
 the result. As for @{text"expr"}, addresses and values are type parameters:
 *}
 
-datatype ('a,'v) instr = Const 'v
+datatype (dead 'a, 'v) instr = Const 'v
                        | Load 'a
                        | Apply "'v binop";
 

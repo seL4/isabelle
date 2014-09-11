@@ -35,7 +35,7 @@ text {*
 subsection {* A quick start with the Isabelle/HOL toolbox \label{sec:queue_example} *}
 
 text {*
-  In a HOL theory, the @{command_def datatype} and @{command_def
+  In a HOL theory, the @{command_def datatype_new} and @{command_def
   definition}/@{command_def primrec}/@{command_def fun} declarations
   form the core of a functional programming language.  By default
   equational theorems stemming from those are used for generated code,
@@ -45,7 +45,7 @@ text {*
   For example, here a simple \qt{implementation} of amortised queues:
 *}
 
-datatype %quote 'a queue = AQueue "'a list" "'a list"
+datatype_new %quote 'a queue = AQueue "'a list" "'a list"
 
 definition %quote empty :: "'a queue" where
   "empty = AQueue [] []"

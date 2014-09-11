@@ -10,7 +10,7 @@ theory QuoDataType imports Main begin
 subsection{*Defining the Free Algebra*}
 
 text{*Messages with encryption and decryption as free constructors.*}
-datatype
+datatype_new
      freemsg = NONCE  nat
              | MPAIR  freemsg freemsg
              | CRYPT  nat freemsg  

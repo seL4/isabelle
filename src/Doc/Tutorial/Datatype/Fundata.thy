@@ -1,7 +1,7 @@
 (*<*)
 theory Fundata imports Main begin
 (*>*)
-datatype ('a,'i)bigtree = Tip | Br 'a "'i \<Rightarrow> ('a,'i)bigtree"
+datatype (dead 'a,'i) bigtree = Tip | Br 'a "'i \<Rightarrow> ('a,'i)bigtree"
 
 text{*\noindent
 Parameter @{typ"'a"} is the type of values stored in

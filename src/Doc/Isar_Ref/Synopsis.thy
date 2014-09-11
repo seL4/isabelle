@@ -1068,7 +1068,7 @@ text {*
   provide suitable derived cases rules.
 *}
 
-datatype foo = Foo | Bar foo
+datatype_new foo = Foo | Bar foo
 
 notepad
 begin

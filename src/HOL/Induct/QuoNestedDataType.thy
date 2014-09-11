@@ -10,10 +10,12 @@ theory QuoNestedDataType imports Main begin
 subsection{*Defining the Free Algebra*}
 
 text{*Messages with encryption and decryption as free constructors.*}
-datatype
+datatype_new
      freeExp = VAR  nat
              | PLUS  freeExp freeExp
              | FNCALL  nat "freeExp list"
+
+datatype_compat freeExp
 
 text{*The equivalence relation, which makes PLUS associative.*}
 
@@ -38,7 +40,8 @@ text{*Proving that it is an equivalence relation*}
 
 lemma exprel_refl: "X \<sim> X"
   and list_exprel_refl: "(Xs,Xs) \<in> listrel(exprel)"
-  by (induct X and Xs) (blast intro: exprel.intros listrel.intros)+
+  by (induct X and Xs rule: compat_freeExp.induct compat_freeExp_list.induct)
+    (blast intro: exprel.intros listrel.intros)+
 
 theorem equiv_exprel: "equiv UNIV exprel"
 proof -
@@ -306,7 +309,7 @@ done
 lemma vars_FnCall [simp]: "vars (FnCall F Xs) = vars_list Xs"
 apply (cases Xs rule: eq_Abs_ExpList) 
 apply (simp add: FnCall)
-apply (induct_tac Us) 
+apply (induct_tac Us)
 apply (simp_all add: vars_def UN_equiv_class [OF equiv_exprel vars_respects])
 done
 
@@ -428,7 +431,7 @@ proof -
   obtain U where exp: "exp = (Abs_Exp (exprel `` {U}))" by (cases exp)
   obtain Us where list: "list = Abs_ExpList Us" by (rule eq_Abs_ExpList)
   have "P1 (Abs_Exp (exprel `` {U}))" and "P2 (Abs_ExpList Us)"
-  proof (induct U and Us)
+  proof (induct U and Us rule: compat_freeExp.induct compat_freeExp_list.induct)
     case (VAR nat)
     with V show ?case by (simp add: Var_def) 
   next
