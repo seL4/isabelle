@@ -301,27 +301,27 @@ fun subst_rec_calls ctxt get_ctr_pos has_call ctr_args mutual_calls nested_calls
 
     fun subst bound_Ts (t as g' $ y) =
         let
-          fun subst_rec (h $ z) = subst bound_Ts h $ subst bound_Ts z
-            | subst_rec t = t;
+          fun subst_comb (h $ z) = subst bound_Ts h $ subst bound_Ts z
+            | subst_comb t = t;
 
           val y_head = head_of y;
         in
           if not (member (op =) ctr_args y_head) then
-            subst_rec t
+            subst_comb t
           else
             (case try_nested_rec bound_Ts y_head t of
-              SOME t' => subst_rec t'
+              SOME t' => subst_comb t'
             | NONE =>
               let val (g, g_args) = strip_comb g' in
                 (case try (get_ctr_pos o fst o dest_Free) g of
-                  SOME ~1 => subst_rec t
+                  SOME ~1 => subst_comb t
                 | SOME ctr_pos =>
                   (length g_args >= ctr_pos orelse
                    raise PRIMREC ("too few arguments in recursive call", [t]);
                    (case AList.lookup (op =) mutual_calls y of
-                     SOME y' => list_comb (y', g_args)
-                   | NONE => subst_rec t))
-                | NONE => subst_rec t)
+                     SOME y' => list_comb (y', map (subst bound_Ts) g_args)
+                   | NONE => subst_comb t))
+                | NONE => subst_comb t)
               end)
         end
       | subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
@@ -329,7 +329,6 @@ fun subst_rec_calls ctxt get_ctr_pos has_call ctr_args mutual_calls nested_calls
 
     fun subst' t =
       if has_call t then
-        (* FIXME detect this case earlier? *)
         raise PRIMREC ("recursive call not directly applied to constructor argument", [t])
       else
         try_nested_rec [] (head_of t) t |> the_default t
