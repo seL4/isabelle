@@ -749,7 +749,11 @@ session "HOL-BNF_Examples" in BNF_Examples = HOL +
     Misc_Primcorec
     Misc_Primrec
   theories [condition = ISABELLE_FULL_TEST]
+    Brackin
+    Instructions
     IsaFoR_Datatypes
+    SML
+    Verilog
 
 session "HOL-Word" (main) in Word = HOL +
   options [document_graph]
