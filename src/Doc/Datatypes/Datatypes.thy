@@ -117,8 +117,8 @@ to register arbitrary type constructors as BNFs.
 \ref{sec:deriving-destructors-and-theorems-for-free-constructors},
 ``Deriving Destructors and Theorems for Free Constructors,'' explains how to
 use the command @{command free_constructors} to derive destructor constants
-and theorems for freely generated types, as performed internally by @{command
-datatype} and @{command codatatype}.
+and theorems for freely generated types, as performed internally by
+@{command datatype} and @{command codatatype}.
 
 %\item Section \ref{sec:using-the-standard-ml-interface}, ``Using the Standard
 ML Interface,'' %describes the package's programmatic interface.
@@ -322,8 +322,8 @@ type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
 @{typ 'b} is live.
 
 Type constructors must be registered as BNFs to have live arguments. This is
-done automatically for datatypes and codatatypes introduced by the @{command
-datatype} and @{command codatatype} commands.
+done automatically for datatypes and codatatypes introduced by the
+@{command datatype} and @{command codatatype} commands.
 Section~\ref{sec:introducing-bounded-natural-functors} explains how to
 register arbitrary type constructors as BNFs.
 
@@ -616,10 +616,6 @@ or the function type. In principle, it should be possible to support old-style
 datatypes as well, but this has not been implemented yet (and there is currently
 no way to register old-style datatypes as new-style datatypes).
 \end{itemize}
-
-An alternative to @{command datatype_compat} is to use the old package's
-\keyw{rep_\allowbreak datatype} command. The associated proof obligations must then be
-discharged manually.
 *}
 
 
@@ -1057,7 +1053,7 @@ functions, the old-style induction rule can be obtained by applying the
 @{text "[unfolded all_mem_range]"} attribute on @{text t.induct}.
 
 \item \emph{The internal constructions are completely different.} Proof texts
-that unfold the definition of constants introduced by \keyw{old\_datatype} will
+that unfold the definition of constants introduced by \keyw{old_datatype} will
 be difficult to port.
 
 \item \emph{Some constants and theorems have different names.}
