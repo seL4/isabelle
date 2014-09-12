@@ -1334,6 +1334,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
     val fp_nesting_set_maps = maps set_map_of_bnf fp_nesting_bnfs;
     val live_nesting_set_maps = maps set_map_of_bnf live_nesting_bnfs;
+    val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
+    val live_nesting_map_id0s = map map_id0_of_bnf live_nesting_bnfs;
 
     val live = live_of_bnf any_fp_bnf;
     val _ =
@@ -1592,7 +1594,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 let val goals = map2 (mk_parametricity_goal names_lthy Rs) ctrAs ctrBs in
                   Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                     (fn {context = ctxt, prems = _} =>
-                      mk_ctr_transfer_tac ctxt rel_intro_thms (map rel_eq_of_bnf live_nesting_bnfs))
+                      mk_ctr_transfer_tac ctxt rel_intro_thms live_nesting_rel_eqs)
                   |> Conjunction.elim_balanced (length goals)
                   |> Proof_Context.export names_lthy lthy
                   |> map Thm.close_derivation
@@ -1730,7 +1732,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                       (fn {context = ctxt, prems = _} =>
                          mk_rel_sel_tac ctxt (certify ctxt ta) (certify ctxt tb) exhaust
                            (flat disc_thmss) (flat sel_thmss) rel_inject_thms distincts
-                           rel_distinct_thms (map rel_eq_of_bnf live_nesting_bnfs))
+                           rel_distinct_thms live_nesting_rel_eqs)
                     |> Conjunction.elim_balanced (length goals)
                     |> Proof_Context.export names_lthy lthy
                     |> map Thm.close_derivation
@@ -1764,8 +1766,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   val thm =
                     Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
                       mk_rel_cases_tac ctxt (certify ctxt ta) (certify ctxt tb) exhaust injects
-                        rel_inject_thms distincts rel_distinct_thms
-                        (map rel_eq_of_bnf live_nesting_bnfs))
+                        rel_inject_thms distincts rel_distinct_thms live_nesting_rel_eqs)
                     |> singleton (Proof_Context.export names_lthy lthy)
                     |> Thm.close_derivation;
 
@@ -1859,7 +1860,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                       (fn {context = ctxt, prems = _} =>
                          mk_map_sel_tac ctxt (certify ctxt ta) exhaust (flat disc_thmss) map_thms
-                           (flat sel_thmss) (map map_id0_of_bnf live_nesting_bnfs))
+                           (flat sel_thmss) live_nesting_map_id0s)
                     |> Conjunction.elim_balanced (length goals)
                     |> Proof_Context.export names_lthy lthy
                     |> map Thm.close_derivation
@@ -2002,7 +2003,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val ((rel_induct_thms, common_rel_induct_thm), rel_induct_attrs) =
                 derive_rel_induct_thms_for_types lthy fpTs As Bs ctrss ctr_Tsss
                   (map #exhaust ctr_sugars) rel_xtor_co_induct_thm ctr_defss ctor_injects
-                  pre_rel_defs abs_inverses (map rel_eq_of_bnf live_nesting_bnfs);
+                  pre_rel_defs abs_inverses live_nesting_rel_eqs;
             in
               ((map single rel_induct_thms, single common_rel_induct_thm),
                (rel_induct_attrs, rel_induct_attrs))
@@ -2080,7 +2081,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                    (rel_coinduct_attrs, common_rel_coinduct_attrs)) =
                 derive_rel_coinduct_thm_for_types lthy fpTs ns As Bs mss ctr_sugars abs_inverses
                   abs_injects ctor_injects dtor_ctors pre_rel_defs ctr_defss rel_xtor_co_induct_thm
-                  (map rel_eq_of_bnf live_nesting_bnfs)
+                  live_nesting_rel_eqs;
             in
               ((map single rel_coinduct_thms, single common_rel_coinduct_thm),
                (rel_coinduct_attrs, common_rel_coinduct_attrs))
