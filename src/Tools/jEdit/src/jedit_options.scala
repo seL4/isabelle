@@ -80,6 +80,19 @@ object JEdit_Options {
     }
   }
 
+  object skip_proofs extends Bool_Access("skip_proofs") {
+    override def changed(): Unit = GUI_Thread.require {
+      super.changed()
+      JEdit_Editor.flush_edits(hidden = true)
+      JEdit_Editor.flush_edits()
+    }
+
+    class GUI extends Bool_GUI(this, "Skip proofs") {
+      tooltip = "Avoid checking proofs where possible"
+    }
+  }
+
+
 
   /* editor pane for plugin options */
 
