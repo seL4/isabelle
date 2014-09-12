@@ -1,4 +1,4 @@
-(*  Title:      HOL/Datatype_Benchmark/Brackin.thy
+(*  Title:      HOL/Datatype_Examples/Brackin.thy
 
 A couple of datatypes from Steve Brackin's work.
 *)

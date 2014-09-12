@@ -1,4 +1,4 @@
-(*  Title:      HOL/Datatype_Benchmark/SML.thy
+(*  Title:      HOL/Datatype_Examples/SML.thy
 
 Example from Myra: part of the syntax of SML.
 *)
@@ -32,7 +32,7 @@ datatype
 datatype
   'a long = BASE 'a | QUALIFIED strid "'a long"
 
-datatype
+old_datatype
    atpat_e = WILDCARDatpat_e
            | SCONatpat_e scon
            | VARatpat_e var

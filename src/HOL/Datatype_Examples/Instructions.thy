@@ -1,4 +1,4 @@
-(*  Title:      HOL/Datatype_Benchmark/Instructions.thy
+(*  Title:      HOL/Datatype_Examples/Instructions.thy
 
 Example from Konrad: 68000 instruction set.
 *)
@@ -59,7 +59,7 @@ datatype AddressingMode =
 | pcdisp nat
 | pcindex nat DataOrAddressRegister Size
 
-datatype M68kInstruction =
+old_datatype M68kInstruction =
   ABCD AddressingMode AddressingMode
 | ADD Size AddressingMode AddressingMode
 | ADDA Size AddressingMode AddressRegister

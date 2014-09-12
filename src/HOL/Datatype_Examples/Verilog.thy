@@ -1,11 +1,11 @@
-(*  Title:      HOL/Datatype_Benchmark/Verilog.thy
+(*  Title:      HOL/Datatype_Examples/Verilog.thy
 
 Example from Daryl: a Verilog grammar.
 *)
 
 theory Verilog imports Main begin
 
-datatype
+old_datatype
   Source_text
      = module string "string list" "Module_item list"
      | Source_textMeta string
