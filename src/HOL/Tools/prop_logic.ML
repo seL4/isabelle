@@ -105,7 +105,7 @@ fun indices True = []
   | indices (And (fm1, fm2)) = union (op =) (indices fm1) (indices fm2);
 
 (* ------------------------------------------------------------------------- *)
-(* maxidx: computes the maximal variable index occuring in a formula of      *)
+(* maxidx: computes the maximal variable index occurring in a formula of     *)
 (*      propositional logic 'fm'; 0 if 'fm' contains no variable             *)
 (* ------------------------------------------------------------------------- *)
 

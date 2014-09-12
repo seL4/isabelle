@@ -1947,7 +1947,7 @@ fun IDT_constructor_interpreter ctxt model args t =
                             ^ Syntax.string_of_typ ctxt (Type (s', Ts'))
                             ^ ") is not a variable")
                         else ()
-                      (* split the constructors into those occuring before/after *)
+                      (* split the constructors into those occurring before/after *)
                       (* 'Const (s, T)'                                          *)
                       val (constrs1, constrs2) = take_prefix (fn (cname, ctypes) =>
                         not (cname = s andalso Sign.typ_instance thy (T,
