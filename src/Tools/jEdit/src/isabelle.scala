@@ -221,6 +221,42 @@ object Isabelle
     state_dockable(view).foreach(_.update_request())
 
 
+  /* ML statistics */
+
+  class ML_Stats extends
+    JEdit_Options.Check_Box("ML_statistics", "ML statistics", "Enable ML runtime system statistics")
+
+
+  /* skip proofs */
+
+  private val SKIP_PROOFS = "skip_proofs"
+
+  def skip_proofs: Boolean = PIDE.options.bool(SKIP_PROOFS)
+
+  def skip_proofs_=(b: Boolean)
+  {
+    GUI_Thread.require()
+
+    if (skip_proofs != b) {
+      PIDE.options.bool(SKIP_PROOFS) = b
+      PIDE.plugin.options_changed()
+      PIDE.session.update_options(PIDE.options.value)
+      PIDE.editor.flush()
+    }
+  }
+
+  def set_skip_proofs() { skip_proofs = true }
+  def reset_skip_proofs() { skip_proofs = false }
+  def toggle_skip_proofs() { skip_proofs = !skip_proofs }
+
+  class Skip_Proofs extends CheckBox("Skip proofs")
+  {
+    tooltip = "Avoid checking proofs where possible"
+    reactions += { case ButtonClicked(_) => skip_proofs = selected }
+    def load() { selected = skip_proofs }
+    load()
+  }
+
   /* required document nodes */
 
   def set_node_required(view: View) { Document_Model.view_node_required(view, set = true) }
