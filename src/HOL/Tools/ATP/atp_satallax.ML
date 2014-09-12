@@ -28,11 +28,13 @@ Also seen -- but we can ignore it:
 *)
 fun parse_satallax_tstp_information x =
   ((Symbol.scan_ascii_id || ($$ "$" |-- Symbol.scan_ascii_id))
-  -- Scan.option ( $$ "(" |-- Scan.option (Symbol.scan_ascii_id --| $$ ",")
-  -- ((Scan.option (($$ "[" |-- (Scan.option ((scan_general_id
+  -- Scan.option ( $$ "("
+    |-- (Scan.option (Symbol.scan_ascii_id --| $$ ",")
+       -- ((Scan.option (($$ "[" |-- (Scan.option ((scan_general_id
          -- Scan.repeat ($$ "," |-- scan_general_id)) >> op ::) --| $$ "]"))
-         || (skip_term >> K "") >> (fn x => SOME [x]))
-       >> (fn (SOME x) => x | NONE => NONE)) --| $$ ")"))) x
+         || (scan_general_id) >> (fn x => SOME [x]))
+       >> (fn (SOME x) => x | NONE => NONE)) --| $$ ")"))
+  || (skip_term >> K (NONE, NONE)))) x
 
 fun parse_prem x =
   ((Symbol.scan_ascii_id || scan_general_id) --| Scan.option ($$ ":" -- skip_term)) x
@@ -90,7 +92,7 @@ fun seperate_dependices dependencies =
     fun sep_dep [] used_assumptions new_goals generated_assumptions _ =
         (used_assumptions, new_goals, generated_assumptions)
       | sep_dep (x :: l) used_assumptions new_goals generated_assumptions state =
-        if hd (raw_explode x) = "h" orelse Int.fromString x = NONE  then
+        if hd (raw_explode x) = "h" orelse Int.fromString x = NONE then
           if state = 0 then
             sep_dep l (x :: used_assumptions) new_goals generated_assumptions state
           else
@@ -175,18 +177,18 @@ fun find_assumptions_to_inline ths (assm :: assms) to_inline no_inline =
         NONE => find_assumptions_to_inline ths assms to_inline no_inline
       | SOME (_, th) =>
         let
-          val simplified_ths_with_inlined_assumption =
+          val simplified_ths_with_inlined_asms =
             (case List.partition (curry tptp_term_equal th o remove_not_not) ths of
               ([], ths) => ATerm ((tptp_not, [dummy_atype]), [th]) :: ths
             | (_, _) => [])
         in
-          find_assumptions_to_inline simplified_ths_with_inlined_assumption assms to_inline no_inline
+          find_assumptions_to_inline simplified_ths_with_inlined_asms assms to_inline no_inline
         end))
   | find_assumptions_to_inline ths [] _ _ = ths
 
 fun inline_if_needed_and_simplify th assms to_inline no_inline =
-    (case find_assumptions_to_inline [th] assms to_inline no_inline of
-      [] => dummy_true_aterm
+  (case find_assumptions_to_inline [th] assms to_inline no_inline of
+    [] => dummy_true_aterm
   | l => foldl1 (fn (a, b) =>
     (case b of
       ATerm (("$false", _), _) => a
@@ -195,8 +197,8 @@ fun inline_if_needed_and_simplify th assms to_inline no_inline =
 
 fun get_conclusion (Satallax_Step {theorem = AAtom theorem, ...}) = theorem
 
-fun add_assumption new_used_assumptions ((Satallax_Step {id, role, theorem, assumptions,
-    rule, generated_goal_assumptions, used_assumptions, detailed_eigen})) =
+fun add_assumptions new_used_assumptions (Satallax_Step {id, role, theorem, assumptions,
+    rule, generated_goal_assumptions, used_assumptions, detailed_eigen}) =
   mk_satallax_step id role theorem assumptions rule (new_used_assumptions @ used_assumptions)
     generated_goal_assumptions detailed_eigen
 
@@ -205,10 +207,15 @@ fun set_rule new_rule (Satallax_Step {id, role, theorem, assumptions,
   mk_satallax_step id role theorem assumptions new_rule used_assumptions
     generated_goal_assumptions detailed_eigen
 
+fun add_detailled_eigen eigen (Satallax_Step {id, role, theorem, assumptions,
+    rule, generated_goal_assumptions, used_assumptions, detailed_eigen}) =
+  mk_satallax_step id role theorem assumptions rule used_assumptions
+    generated_goal_assumptions (if detailed_eigen <> "" then detailed_eigen else eigen)
+
 fun transform_inline_assumption hypotheses_step proof_sketch =
   let
     fun inline_in_step (Linear_Part {node as Satallax_Step {generated_goal_assumptions,
-          used_assumptions, rule, ...}, succs}) =
+          used_assumptions, rule, detailed_eigen, ...}, succs}) =
         if generated_goal_assumptions = [] then
           Linear_Part {node = node, succs = []}
         else
@@ -216,11 +223,12 @@ fun transform_inline_assumption hypotheses_step proof_sketch =
             (*one singel goal is created, two hypothesis can be created, for the "and" rule:
               (A /\ B) create two hypotheses A, and B.*)
             fun set_hypotheses_as_goal [hypothesis] succs =
-                Linear_Part {node = set_rule rule (add_assumption used_assumptions 
-                    (find_proof_step hypotheses_step hypothesis)),
+                Linear_Part {node = add_detailled_eigen detailed_eigen
+                    (set_rule rule (add_assumptions used_assumptions
+                    (find_proof_step hypotheses_step hypothesis))),
                   succs = map inline_in_step succs}
               | set_hypotheses_as_goal (hypothesis :: new_goal_hypotheses) succs =
-                Linear_Part {node = set_rule rule (add_assumption used_assumptions
+                Linear_Part {node = set_rule rule (add_assumptions used_assumptions
                     (find_proof_step hypotheses_step hypothesis)),
                   succs = [set_hypotheses_as_goal new_goal_hypotheses succs]}
           in
@@ -232,7 +240,7 @@ fun transform_inline_assumption hypotheses_step proof_sketch =
     fun inline_contradictory_assumptions (Linear_Part {node as Satallax_Step{id, theorem, ...},
        succs}) (to_inline, no_inline) =
       let
-        val (succs, inliner) = fold_map inline_contradictory_assumptions succs 
+        val (succs, inliner) = fold_map inline_contradictory_assumptions succs
           (to_inline, (id, theorem) :: no_inline)
       in
         (Linear_Part {node = node, succs = succs}, inliner)
@@ -241,19 +249,19 @@ fun transform_inline_assumption hypotheses_step proof_sketch =
         theorem = AAtom theorem, assumptions, rule, generated_goal_assumptions,
         used_assumptions, detailed_eigen}, deps}) (to_inline, no_inline) =
       let
-        val (dep', (to_inline', no_inline')) = fold_map inline_contradictory_assumptions deps 
+        val (dep', (to_inline', no_inline')) = fold_map inline_contradictory_assumptions deps
           (to_inline, no_inline)
         val to_inline'' =
           map (fn s => (s, get_conclusion (find_proof_step hypotheses_step s)))
-            (List.filter (fn s => nth_string s 0 = "h")
-              (used_assumptions @ (map snd generated_goal_assumptions |> flat)))
+            (filter (fn s => (nth_string s 0 = "h") andalso List.find (curry (op =) s o fst)
+              no_inline' = NONE) (used_assumptions @ (map snd generated_goal_assumptions |> flat)))
           @ to_inline'
         val node' = Satallax_Step {id = id, role = role, theorem =
             AAtom (inline_if_needed_and_simplify theorem assumptions to_inline'' no_inline'),
           assumptions = assumptions, rule = rule,
           generated_goal_assumptions = generated_goal_assumptions, detailed_eigen = detailed_eigen,
           used_assumptions =
-            List.filter (fn s => List.find (curry (op =) s o fst) to_inline = NONE)
+            filter (fn s => List.find (curry (op =) s o fst) to_inline'' = NONE)
             used_assumptions}
       in
         (Tree_Part {node = node', deps = dep'}, (to_inline'', no_inline'))
@@ -270,7 +278,7 @@ fun correct_dependencies (Linear_Part {node, succs}) =
         map (fn Linear_Part {node = (Satallax_Step{id, ...}), ...} => id
               | Tree_Part {node = (Satallax_Step{id, ...}), ...} => id) deps
     in
-      Tree_Part {node = add_assumption new_used_assumptions node,
+      Tree_Part {node = add_assumptions new_used_assumptions node,
         deps = map correct_dependencies deps}
     end
 
@@ -293,11 +301,11 @@ fun create_satallax_proof_graph (hypotheses_step, proof_sketch) =
     transform_inline_assumption hypotheses_step proof_with_correct_sense
   end
 
-val satallax_known_theorems = ["eq_ind", "eq_trans2", "eq_trans3", "eq_neg_neg_id", "eq_true",
+val satallax_known_rules = ["eq_ind", "eq_trans2", "eq_trans3", "eq_neg_neg_id", "eq_true",
   "eq_and_nor", "eq_or_nand", "eq_or_imp", "eq_and_imp", "eq_imp_or", "eq_iff", "eq_sym_eq",
   "eq_forall_nexists", "eq_exists_nforall", "eq_leib1", "eq_leib2", "eq_leib3", "eq_leib4",
   "eq_eta", "SinhE", "eq_forall_Seps", "eq_SPi_Seps", "eq_exists_Seps"]
-val is_special_satallax_rule = member (op =) satallax_known_theorems
+val is_special_satallax_rule = member (op =) satallax_known_rules
 
 fun terms_to_upper_case var (AAbs (((var', ty), b), ts)) =
     let
@@ -311,25 +319,37 @@ fun terms_to_upper_case var (AAbs (((var', ty), b), ts)) =
     ATerm ((((var = var' ? String.implode o (map Char.toUpper) o String.explode) var'),
       ty), map (terms_to_upper_case var) ts)
 
-fun add_quantifier_in_tree_part vars_to_add assumption_to_add (Linear_Part {node, succs}) =
-    Linear_Part {node = node, succs = map (add_quantifier_in_tree_part vars_to_add assumption_to_add) succs}
-  | add_quantifier_in_tree_part vars_to_add assumption_to_add (Tree_Part {node = Satallax_Step {rule, detailed_eigen,
-      id, role, theorem = AAtom theorem, assumptions, used_assumptions, generated_goal_assumptions},
-      deps}) =
+fun add_quantifier_in_tree_part var_rule_to_add assumption_to_add
+      (Linear_Part {node as Satallax_Step {detailed_eigen, rule, ...} , succs}) =
+    Linear_Part {node = node, succs = map (add_quantifier_in_tree_part
+      ((detailed_eigen <> "" ? cons (detailed_eigen, rule)) var_rule_to_add) assumption_to_add)
+      succs}
+  | add_quantifier_in_tree_part var_rule_to_add assumption_to_add
+      (Tree_Part {node = Satallax_Step {rule, detailed_eigen, id, role, theorem = AAtom th,
+      assumptions, used_assumptions, generated_goal_assumptions}, deps}) =
     let
-      val theorem' = fold (fn v => fn body => terms_to_upper_case v body) vars_to_add theorem
-      val theorem'' = theorem'
+      val theorem' = fold (fn v => fn body => terms_to_upper_case (fst v) body) var_rule_to_add th
+      fun add_quantified_var (var, rule) = fn body =>
+        let
+          val quant = if rule = "tab_ex" then tptp_ho_exists else tptp_ho_forall
+          val upperVar = (String.implode o (map Char.toUpper) o String.explode) var
+          val quant_bdy = if rule = "tab_ex"
+            then ATerm ((quant, []), [AAbs (((upperVar, dummy_atype), body), []) ]) else body
+        in
+          quant_bdy
+        end
+      val theorem'' = fold add_quantified_var var_rule_to_add theorem'
       val node' = mk_satallax_step id role (AAtom theorem'') assumptions rule
         (used_assumptions @ (filter (curry (op <=) (the (Int.fromString id)) o size)
         assumption_to_add)) generated_goal_assumptions detailed_eigen
     in
       if detailed_eigen <> "" then
         Tree_Part {node = node',
-          deps = map (add_quantifier_in_tree_part (detailed_eigen :: vars_to_add)
+          deps = map (add_quantifier_in_tree_part ((detailed_eigen, rule) :: var_rule_to_add)
           (used_assumptions @ assumption_to_add)) deps}
       else
         Tree_Part {node = node',
-                   deps = map (add_quantifier_in_tree_part vars_to_add assumption_to_add) deps}
+          deps = map (add_quantifier_in_tree_part var_rule_to_add assumption_to_add) deps}
     end
 
 fun transform_to_standard_atp_step already_transformed proof =
@@ -349,12 +369,12 @@ fun transform_to_standard_atp_step already_transformed proof =
            map (fn s => (s, [])) (filter_out is_special_satallax_rule used_assumptions))],
         new_transformed @ already_transformed)
       end
-    fun transform_steps (Linear_Part {node, succs}) (already_transformed:string list) =
+    fun transform_steps (Linear_Part {node, succs}) already_transformed =
         transform_one_step already_transformed node
         ||> (fold_map transform_steps succs)
         ||> apfst flat
         |> (fn (a, (b, transformed)) => (a @ b, transformed))
-      | transform_steps (Tree_Part {node, deps}) (already_transformed: string list) =
+      | transform_steps (Tree_Part {node, deps}) already_transformed =
         fold_map transform_steps deps already_transformed
         |>> flat
         ||> (fn transformed => transform_one_step transformed node)
