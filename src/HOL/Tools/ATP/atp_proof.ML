@@ -533,7 +533,8 @@ fun parse_simple_thf0_term x =
   || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var, typ) => ATerm ((var, [typ]), []))
   || parse_ho_quantifier >> mk_simple_aterm
   || $$ "(" |-- parse_thf0_term --| $$ ")"
-  || scan_general_id >> mk_simple_aterm) x
+  || scan_general_id >> mk_simple_aterm
+  || parse_binary_op >> mk_simple_aterm) x
 and parse_thf0_term x =
   (parse_simple_thf0_term
       -- Scan.option (parse_binary_op
