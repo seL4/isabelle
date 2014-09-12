@@ -23,6 +23,11 @@ the search space.
 
 *** HOL ***
 
+* Bootstrap of listsum as special case of abstract product over lists.
+Fact rename:
+    listsum_def ~> listsum.eq_foldr
+INCOMPATIBILITY.
+
 * Command and antiquotation "value" provide different evaluation slots (again),
 where the previous strategy (nbe after ML) serves as default.
 Minor INCOMPATIBILITY.

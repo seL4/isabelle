@@ -118,7 +118,7 @@ text {* For derived operations, we can use the @{text "transfer_prover"}
   method to help generate transfer rules. *}
 
 lemma ZN_listsum [transfer_rule]: "(list_all2 ZN ===> ZN) listsum listsum"
-  unfolding listsum_def [abs_def] by transfer_prover
+  by transfer_prover
 
 end
 

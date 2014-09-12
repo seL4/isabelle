@@ -1,43 +1,108 @@
 
 (* Author: Tobias Nipkow, TU Muenchen *)
 
-header {* Summation over lists *}
+header {* Sum over lists *}
 
 theory Groups_List
 imports List
 begin
 
-definition (in monoid_add) listsum :: "'a list \<Rightarrow> 'a" where
-  "listsum xs = foldr plus xs 0"
+no_notation times (infixl "*" 70)
+no_notation Groups.one ("1")
+ 
+locale monoid_list = monoid
+begin
+ 
+definition F :: "'a list \<Rightarrow> 'a"
+where
+  eq_foldr [code]: "F xs = foldr f xs 1"
+ 
+lemma Nil [simp]:
+  "F [] = 1"
+  by (simp add: eq_foldr)
+ 
+lemma Cons [simp]:
+  "F (x # xs) = x * F xs"
+  by (simp add: eq_foldr)
+ 
+lemma append [simp]:
+  "F (xs @ ys) = F xs * F ys"
+  by (induct xs) (simp_all add: assoc)
+ 
+end
 
-subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
+locale comm_monoid_list = comm_monoid + monoid_list
+begin
+ 
+lemma rev [simp]:
+  "F (rev xs) = F xs"
+  by (simp add: eq_foldr foldr_fold  fold_rev fun_eq_iff assoc left_commute)
+ 
+end
+ 
+locale comm_monoid_list_set = list: comm_monoid_list + set: comm_monoid_set
+begin
 
-lemma (in monoid_add) listsum_simps [simp]:
-  "listsum [] = 0"
-  "listsum (x # xs) = x + listsum xs"
-  by (simp_all add: listsum_def)
+lemma distinct_set_conv_list:
+  "distinct xs \<Longrightarrow> set.F g (set xs) = list.F (map g xs)"
+  by (induct xs) simp_all
 
-lemma (in monoid_add) listsum_append [simp]:
-  "listsum (xs @ ys) = listsum xs + listsum ys"
-  by (induct xs) (simp_all add: add.assoc)
+lemma set_conv_list [code]:
+  "set.F g (set xs) = list.F (map g (remdups xs))"
+  by (simp add: distinct_set_conv_list [symmetric])
 
-lemma (in comm_monoid_add) listsum_rev [simp]:
-  "listsum (rev xs) = listsum xs"
-  by (simp add: listsum_def foldr_fold fold_rev fun_eq_iff add_ac)
+end
 
-lemma (in monoid_add) fold_plus_listsum_rev:
-  "fold plus xs = plus (listsum (rev xs))"
-proof
-  fix x
-  have "fold plus xs x = fold plus xs (x + 0)" by simp
-  also have "\<dots> = fold plus (x # xs) 0" by simp
-  also have "\<dots> = foldr plus (rev xs @ [x]) 0" by (simp add: foldr_conv_fold)
-  also have "\<dots> = listsum (rev xs @ [x])" by (simp add: listsum_def)
-  also have "\<dots> = listsum (rev xs) + listsum [x]" by simp
-  finally show "fold plus xs x = listsum (rev xs) + x" by simp
+notation times (infixl "*" 70)
+notation Groups.one ("1")
+
+
+subsection {* List summation *}
+
+context monoid_add
+begin
+
+definition listsum :: "'a list \<Rightarrow> 'a"
+where
+  "listsum  = monoid_list.F plus 0"
+
+sublocale listsum!: monoid_list plus 0
+where
+ "monoid_list.F plus 0 = listsum"
+proof -
+  show "monoid_list plus 0" ..
+  then interpret listsum!: monoid_list plus 0 .
+  from listsum_def show "monoid_list.F plus 0 = listsum" by rule
+qed
+ 
+end
+
+context comm_monoid_add
+begin
+
+sublocale listsum!: comm_monoid_list plus 0
+where
+  "monoid_list.F plus 0 = listsum"
+proof -
+  show "comm_monoid_list plus 0" ..
+  then interpret listsum!: comm_monoid_list plus 0 .
+  from listsum_def show "monoid_list.F plus 0 = listsum" by rule
 qed
 
-text{* Some syntactic sugar for summing a function over a list: *}
+sublocale setsum!: comm_monoid_list_set plus 0
+where
+  "monoid_list.F plus 0 = listsum"
+  and "comm_monoid_set.F plus 0 = setsum"
+proof -
+  show "comm_monoid_list_set plus 0" ..
+  then interpret setsum!: comm_monoid_list_set plus 0 .
+  from listsum_def show "monoid_list.F plus 0 = listsum" by rule
+  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by rule
+qed
+
+end
+
+text {* Some syntactic sugar for summing a function over a list: *}
 
 syntax
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
@@ -49,6 +114,23 @@ syntax (HTML output)
 translations -- {* Beware of argument permutation! *}
   "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
   "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (%x. b) xs)"
+
+text {* TODO duplicates *}
+lemmas listsum_simps = listsum.Nil listsum.Cons
+lemmas listsum_append = listsum.append
+lemmas listsum_rev = listsum.rev
+
+lemma (in monoid_add) fold_plus_listsum_rev:
+  "fold plus xs = plus (listsum (rev xs))"
+proof
+  fix x
+  have "fold plus xs x = listsum (rev xs @ [x])"
+    by (simp add: foldr_conv_fold listsum.eq_foldr)
+  also have "\<dots> = listsum (rev xs) + x"
+    by simp
+  finally show "fold plus xs x = listsum (rev xs) + x"
+    .
+qed
 
 lemma (in comm_monoid_add) listsum_map_remove1:
   "x \<in> set xs \<Longrightarrow> listsum (map f xs) = f x + listsum (map f (remove1 x xs))"
@@ -183,6 +265,8 @@ qed
 
 subsection {* Tools setup *}
 
+lemmas setsum_code = setsum.set_conv_list
+
 lemma setsum_set_upto_conv_listsum_int [code_unfold]:
   "setsum f (set [i..j::int]) = listsum (map f [i..j])"
   by (simp add: interv_listsum_conv_setsum_set_int)
@@ -190,10 +274,6 @@ lemma setsum_set_upto_conv_listsum_int [code_unfold]:
 lemma setsum_set_upt_conv_listsum_nat [code_unfold]:
   "setsum f (set [m..<n]) = listsum (map f [m..<n])"
   by (simp add: interv_listsum_conv_setsum_set_nat)
-
-lemma setsum_code [code]:
-  "setsum f (set xs) = listsum (map f (remdups xs))"
-  by (simp add: listsum_distinct_conv_setsum_set)
 
 context
 begin
@@ -204,7 +284,7 @@ lemma listsum_transfer[transfer_rule]:
   assumes [transfer_rule]: "A 0 0"
   assumes [transfer_rule]: "(A ===> A ===> A) op + op +"
   shows "(list_all2 A ===> A) listsum listsum"
-  unfolding listsum_def[abs_def]
+  unfolding listsum.eq_foldr [abs_def]
   by transfer_prover
 
 end

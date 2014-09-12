@@ -146,14 +146,14 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       let
         val param_Ts = (fold o fold_aterms)
           (fn Free (v, T) => if is_param v then fold_atyps (insert (op =)) T else I | _ => I) ts [];
-        val param_Ts_subst = map_filter (try dest_TVar) param_Ts;
-        val param_T = if null param_Ts_subst then NONE
+        val param_namesT = map_filter (try (fst o dest_TVar)) param_Ts;
+        val param_T = if null param_namesT then NONE
           else SOME (case get_first (try dest_TFree) param_Ts of
             SOME v_sort => TFree v_sort |
-            NONE => TVar ((fst o hd) param_Ts_subst, fold (inter_sort o snd) param_Ts_subst []));
+            NONE => TVar (hd param_namesT, proto_base_sort));
       in case param_T of
         NONE => ts |
-        SOME T => map (subst_TVars (map (rpair T o fst) param_Ts_subst)) ts
+        SOME T => map (subst_TVars (map (rpair T) param_namesT)) ts
       end;
 
     (* preprocessing elements, retrieving base sort from type-checked elements *)
