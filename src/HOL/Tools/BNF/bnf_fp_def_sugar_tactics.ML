@@ -29,7 +29,8 @@ sig
     thm list -> thm -> thm list -> thm list -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_map_disc_iff_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
-  val mk_map_sel_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list -> tactic
+  val mk_map_sel_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list ->
+    thm list -> tactic
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
   val mk_rel_cases_tac:  Proof.context -> cterm -> cterm -> thm -> thm list -> thm list ->
@@ -40,7 +41,7 @@ sig
   val mk_rel_induct0_tac: Proof.context -> thm -> thm list -> cterm list -> thm list ->
     thm list list -> thm list -> thm list -> thm list -> thm list -> tactic
   val mk_rel_sel_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list -> thm list ->
-    thm list -> thm list -> tactic
+    thm list -> thm list -> thm list -> tactic
   val mk_set_cases_tac: Proof.context -> cterm -> thm list -> thm -> thm list -> tactic
   val mk_set_induct0_tac: Proof.context -> cterm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> thm list -> tactic
@@ -253,14 +254,14 @@ fun mk_map_disc_iff_tac ctxt ct exhaust discs maps =
     handle THM _ => thm RS eqTrueI) discs) THEN
   ALLGOALS (rtac refl ORELSE' rtac TrueI);
 
-fun mk_map_sel_tac ctxt ct exhaust discs maps sels =
+fun mk_map_sel_tac ctxt ct exhaust discs maps sels map_id0s =
   TRYALL Goal.conjunction_tac THEN
     ALLGOALS (rtac (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
       REPEAT_DETERM o hyp_subst_tac ctxt) THEN
     unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @
       @{thms not_True_eq_False not_False_eq_True}) THEN
     TRYALL (etac FalseE ORELSE' etac @{thm TrueE}) THEN
-    unfold_thms_tac ctxt (maps @ sels) THEN
+    unfold_thms_tac ctxt (@{thm id_apply} :: maps @ sels @ map_id0s) THEN
     ALLGOALS (rtac refl);
 
 fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts rel_eqs=
@@ -312,11 +313,11 @@ fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss cto
         TRYALL (rtac refl ORELSE' etac FalseE ORELSE' (REPEAT_DETERM o etac conjE) THEN' atac))
     cterms exhausts ctor_defss ctor_injects rel_pre_list_defs Abs_inverses);
 
-fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_distincts =
+fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_distincts rel_eqs =
   HEADGOAL (rtac (cterm_instantiate_pos [SOME ct1] exhaust) THEN_ALL_NEW
     rtac (cterm_instantiate_pos [SOME ct2] exhaust) THEN_ALL_NEW
       hyp_subst_tac ctxt) THEN
-  unfold_thms_tac ctxt (sels @ rel_injects @ @{thms simp_thms(6,7,8,11,12,15,16,21,22,24)} @
+  unfold_thms_tac ctxt (sels @ rel_injects @ rel_eqs @ @{thms simp_thms(6,7,8,11,12,15,16,21,22,24)} @
     ((discs @ distincts) RL @{thms iffD2[OF eq_True] iffD2[OF eq_False]}) @
     (rel_injects RL @{thms iffD2[OF eq_True]}) @
     (rel_distincts RL @{thms iffD2[OF eq_False]})) THEN

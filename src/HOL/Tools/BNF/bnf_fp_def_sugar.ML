@@ -1729,7 +1729,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                       (fn {context = ctxt, prems = _} =>
                          mk_rel_sel_tac ctxt (certify ctxt ta) (certify ctxt tb) exhaust
                            (flat disc_thmss) (flat sel_thmss) rel_inject_thms distincts
-                           rel_distinct_thms)
+                           rel_distinct_thms (map rel_eq_of_bnf live_nesting_bnfs))
                     |> Conjunction.elim_balanced (length goals)
                     |> Proof_Context.export names_lthy lthy
                     |> map Thm.close_derivation
@@ -1858,7 +1858,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                       (fn {context = ctxt, prems = _} =>
                          mk_map_sel_tac ctxt (certify ctxt ta) exhaust (flat disc_thmss) map_thms
-                           (flat sel_thmss))
+                           (flat sel_thmss) (map map_id0_of_bnf live_nesting_bnfs))
                     |> Conjunction.elim_balanced (length goals)
                     |> Proof_Context.export names_lthy lthy
                     |> map Thm.close_derivation
