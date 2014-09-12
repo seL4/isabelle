@@ -130,9 +130,9 @@ option record_theories : bool = false for content
 
 option record_proofs : int = -1 for content
   -- "set level of proofterm recording: 0, 1, 2, negative means unchanged"
-option quick_and_dirty : bool = false for content
+public option quick_and_dirty : bool = false for content
   -- "if true then some tools will OMIT some proofs"
-option skip_proofs : bool = false for content
+public option skip_proofs : bool = false for content
   -- "skip over proofs (implicit 'sorry')"
 option strict_facts : bool = false for content
   -- "force lazy facts when defined in context"

@@ -209,6 +209,12 @@ object Isabelle {
     state_dockable(view).foreach(_.update_request())
 
 
+  /* skip proofs */
+
+  def set_skip_proofs(): Unit = { JEdit_Options.skip_proofs.set() }
+  def reset_skip_proofs(): Unit = { JEdit_Options.skip_proofs.reset() }
+  def toggle_skip_proofs(): Unit = { JEdit_Options.skip_proofs.toggle() }
+
   /* required document nodes */
 
   def set_node_required(view: View): Unit = Document_Model.view_node_required(view, set = true)
