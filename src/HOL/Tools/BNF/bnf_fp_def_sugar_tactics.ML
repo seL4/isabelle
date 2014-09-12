@@ -21,7 +21,7 @@ sig
   val mk_corec_disc_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
-  val mk_ctr_transfer_tac: thm list -> tactic
+  val mk_ctr_transfer_tac: Proof.context -> thm list -> thm list -> tactic
   val mk_disc_transfer_tac: thm -> thm -> thm list -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm -> thm list -> tactic
@@ -99,10 +99,11 @@ fun mk_case_transfer_tac ctxt rel_cases cases =
     ALLGOALS (REPEAT_ALL_NEW (atac ORELSE' rtac refl ORELSE' dtac @{thm rel_funD}))
   end;
 
-fun mk_ctr_transfer_tac rel_intros =
+fun mk_ctr_transfer_tac ctxt rel_intros rel_eqs =
   HEADGOAL Goal.conjunction_tac THEN
   ALLGOALS (REPEAT o (resolve_tac (@{thm rel_funI} :: rel_intros) THEN'
-    REPEAT_DETERM o atac));
+    TRY o (REPEAT_DETERM1 o atac ORELSE'
+      K (unfold_thms_tac ctxt rel_eqs) THEN' hyp_subst_tac ctxt THEN' rtac refl)));
 
 fun mk_disc_transfer_tac rel_sel exhaust_disc distinct_disc=
   let

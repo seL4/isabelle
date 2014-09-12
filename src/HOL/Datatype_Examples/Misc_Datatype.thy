@@ -153,6 +153,8 @@ datatype (discs_sels) 'a deadfoo = DeadFoo "'a \<Rightarrow> 'a + 'a"
 datatype (discs_sels) 'a dead_foo = A
 datatype (discs_sels) ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
 
+datatype ('t, 'id) dead_sum_fun = Dead_sum_fun "('t list \<Rightarrow> 't) + 't" | Bar (bar: 'id)
+
 datatype (discs_sels) d1 = D
 datatype (discs_sels) d1' = is_D: D
 

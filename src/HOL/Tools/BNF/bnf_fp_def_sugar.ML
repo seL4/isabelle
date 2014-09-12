@@ -1591,7 +1591,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val ctr_transfer_thms =
                 let val goals = map2 (mk_parametricity_goal names_lthy Rs) ctrAs ctrBs in
                   Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                    (K (mk_ctr_transfer_tac rel_intro_thms))
+                    (fn {context = ctxt, prems = _} =>
+                      mk_ctr_transfer_tac ctxt rel_intro_thms (map rel_eq_of_bnf live_nesting_bnfs))
                   |> Conjunction.elim_balanced (length goals)
                   |> Proof_Context.export names_lthy lthy
                   |> map Thm.close_derivation
