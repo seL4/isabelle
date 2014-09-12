@@ -716,8 +716,12 @@ session "HOL-Nominal" (main) in Nominal = HOL +
 
 session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   options [timeout = 3600, condition = ISABELLE_POLYML, document = false]
-  theories Nominal_Examples
-  theories [quick_and_dirty] VC_Condition
+  theories
+    Nominal_Examples_Base
+  theories [condition = ISABELLE_FULL_TEST]
+    Nominal_Examples
+  theories [quick_and_dirty]
+    VC_Condition
 
 session "HOL-Cardinals" in Cardinals = HOL +
   description {*
