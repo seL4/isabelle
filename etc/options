@@ -92,9 +92,9 @@ section "Detail of Proof Checking"
 
 option record_proofs : int = -1
   -- "set level of proofterm recording: 0, 1, 2, negative means unchanged"
-option quick_and_dirty : bool = false
+public option quick_and_dirty : bool = false
   -- "if true then some tools will OMIT some proofs"
-option skip_proofs : bool = false
+public option skip_proofs : bool = false
   -- "skip over proofs (implicit 'sorry')"
 option strict_facts : bool = false
   -- "force lazy facts when defined in context"
