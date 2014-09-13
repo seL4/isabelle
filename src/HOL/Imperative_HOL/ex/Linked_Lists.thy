@@ -11,7 +11,7 @@ begin
 section {* Definition of Linked Lists *}
 
 setup {* Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a\<Colon>type ref"}) *}
-old_datatype 'a node = Empty | Node 'a "'a node ref"
+datatype 'a node = Empty | Node 'a "'a node ref"
 
 primrec
   node_encode :: "'a\<Colon>countable node \<Rightarrow> nat"
