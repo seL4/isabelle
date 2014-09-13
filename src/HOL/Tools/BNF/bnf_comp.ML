@@ -42,7 +42,7 @@ sig
   val mk_repT: typ -> typ -> typ -> typ
   val mk_abs: typ -> term -> term
   val mk_rep: typ -> term -> term
-  val seal_bnf: (binding -> binding) -> unfold_set -> binding -> typ list -> BNF_Def.bnf ->
+  val seal_bnf: (binding -> binding) -> unfold_set -> binding -> bool -> typ list -> BNF_Def.bnf ->
     local_theory -> (BNF_Def.bnf * (typ list * absT_info)) * local_theory
 end;
 
@@ -629,7 +629,7 @@ fun lift_and_permute qualify n src dest bnf =
   lift_bnf qualify n bnf
   #> uncurry (permute_bnf qualify src dest);
 
-fun normalize_bnfs qualify Ass Ds sort bnfs accum =
+fun normalize_bnfs qualify Ass Ds flatten_tyargs bnfs accum =
   let
     val before_kill_src = map (fn As => 0 upto (length As - 1)) Ass;
     val kill_poss = map (find_indices op = Ds) Ass;
@@ -642,7 +642,7 @@ fun normalize_bnfs qualify Ass Ds sort bnfs accum =
         kill_ns before_kill_src before_kill_dest bnfs accum;
 
     val Ass' = map2 (map o nth) Ass live_poss;
-    val As = sort Ass';
+    val As = flatten_tyargs Ass';
     val after_lift_dest = replicate (length Ass') (0 upto (length As - 1));
     val old_poss = map (map (fn x => find_index (fn y => x = y) As)) Ass';
     val new_poss = map2 (subtract op =) old_poss after_lift_dest;
@@ -657,7 +657,7 @@ fun normalize_bnfs qualify Ass Ds sort bnfs accum =
 fun default_comp_sort Ass =
   Library.sort (Term_Ord.typ_ord o pairself TFree) (fold (fold (insert (op =))) Ass []);
 
-fun raw_compose_bnf const_policy qualify sort outer inners oDs Dss tfreess accum =
+fun raw_compose_bnf const_policy qualify flatten_tyargs outer inners oDs Dss tfreess accum =
   let
     val b = name_of_bnf outer;
 
@@ -665,7 +665,7 @@ fun raw_compose_bnf const_policy qualify sort outer inners oDs Dss tfreess accum
     val Ds = fold (fold Term.add_tfreesT) (oDs :: Dss) [];
 
     val ((kill_poss, As), (inners', ((cache', unfold_set'), lthy'))) =
-      normalize_bnfs qualify Ass Ds sort inners accum;
+      normalize_bnfs qualify Ass Ds flatten_tyargs inners accum;
 
     val Ds = oDs @ flat (map3 (uncurry append oo curry swap oo map o nth) tfreess kill_poss Dss);
     val As = map TFree As;
@@ -675,12 +675,14 @@ fun raw_compose_bnf const_policy qualify sort outer inners oDs Dss tfreess accum
         (clean_compose_bnf const_policy (qualify 0) b outer inners' (unfold_set', lthy')))
   end;
 
-fun compose_bnf const_policy qualify sort outer inners oDs Dss tfreess (accum as ((cache, _), _)) =
+fun compose_bnf const_policy qualify flatten_tyargs outer inners oDs Dss tfreess
+    (accum as ((cache, _), _)) =
   let val key = key_of_compose oDs Dss tfreess outer inners in
     (case Typtab.lookup cache key of
       SOME bnf_Ds_As => (bnf_Ds_As, accum)
     | NONE =>
-      cache_comp key (raw_compose_bnf const_policy qualify sort outer inners oDs Dss tfreess accum))
+      cache_comp key
+        (raw_compose_bnf const_policy qualify flatten_tyargs outer inners oDs Dss tfreess accum))
   end;
 
 (* Hide the type of the bound (optimization) and unfold the definitions (nicer to the user) *)
@@ -730,35 +732,34 @@ val mk_rep = mk_abs_or_rep domain_type;
 
 val smart_max_inline_type_size = 5; (*FUDGE*)
 
-fun maybe_typedef (b, As, mx) set opt_morphs tac =
+fun maybe_typedef force_out_of_line (b, As, mx) set opt_morphs tac =
   let
     val repT = HOLogic.dest_setT (fastype_of set);
-    val inline = Term.size_of_typ repT <= smart_max_inline_type_size;
+    val out_of_line = force_out_of_line orelse Term.size_of_typ repT > smart_max_inline_type_size;
   in
-    if inline then
+    if out_of_line then
+      typedef (b, As, mx) set opt_morphs tac
+      #>> (fn (T_name, ({Rep_name, Abs_name, ...},
+          {type_definition, Abs_inverse, Abs_inject, Abs_cases, ...}) : Typedef.info) =>
+        (Type (T_name, map TFree As),
+          (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, Abs_cases)))
+    else
       pair (repT,
         (@{const_name id_bnf}, @{const_name id_bnf},
          @{thm type_definition_id_bnf_UNIV},
          @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_UNIV]},
          @{thm type_definition.Abs_inject[OF type_definition_id_bnf_UNIV]},
          @{thm type_definition.Abs_cases[OF type_definition_id_bnf_UNIV]}))
-    else
-      typedef (b, As, mx) set opt_morphs tac
-      #>> (fn (T_name, ({Rep_name, Abs_name, ...},
-          {type_definition, Abs_inverse, Abs_inject, Abs_cases, ...}) : Typedef.info) =>
-        (Type (T_name, map TFree As),
-          (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, Abs_cases)))
   end;
 
-fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
+fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
   let
     val live = live_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
 
-    val (As, lthy1) = apfst (map TFree)
+    val ((As, As'), lthy1) = apfst (`(map TFree))
       (Variable.invent_types (replicate live @{sort type}) (fold Variable.declare_typ Ds lthy));
-    val (Bs, _) = apfst (map TFree)
-      (Variable.invent_types (replicate live @{sort type}) lthy1);
+    val (Bs, _) = apfst (map TFree) (Variable.invent_types (replicate live @{sort type}) lthy1);
 
     val (((fs, fs'), (Rs, Rs')), _(*names_lthy*)) = lthy
       |> mk_Frees' "f" (map2 (curry op -->) As Bs)
@@ -766,10 +767,10 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
     val repTA = mk_T_of_bnf Ds As bnf;
     val T_bind = qualify b;
-    val TA_params = Term.add_tfreesT repTA [];
+    val TA_params = Term.add_tfreesT repTA (if has_live_phantoms then As' else []);
     val ((TA, (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, _)), lthy) =
-      maybe_typedef (T_bind, TA_params, NoSyn)
-        (HOLogic.mk_UNIV repTA) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+      maybe_typedef has_live_phantoms (T_bind, TA_params, NoSyn) (HOLogic.mk_UNIV repTA) NONE
+        (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val repTB = mk_T_of_bnf Ds Bs bnf;
     val TB = Term.typ_subst_atomic (As ~~ Bs) TA;
@@ -798,7 +799,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     val all_deads = map TFree (fold Term.add_tfreesT Ds []);
 
     val ((bdT, (_, Abs_bd_name, _, _, Abs_bdT_inject, Abs_bdT_cases)), lthy) =
-      maybe_typedef (bdT_bind, params, NoSyn)
+      maybe_typedef false (bdT_bind, params, NoSyn)
         (HOLogic.mk_UNIV bd_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite) =
@@ -836,9 +837,11 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       rtac (le_rel_OO_of_bnf bnf RS @{thm vimage2p_relcompp_mono}) 1;
     fun rel_OO_Grp_tac ctxt =
       (rtac (rel_OO_Grp_of_bnf bnf RS @{thm vimage2p_cong} RS trans) THEN'
-      SELECT_GOAL (unfold_thms_tac ctxt [o_apply,
-        type_definition RS @{thm type_copy_vimage2p_Grp_Rep},
-        type_definition RS @{thm vimage2p_relcompp_converse}]) THEN' rtac refl) 1;
+       subst_tac ctxt NONE [type_definition RS @{thm vimage2p_relcompp_converse}] THEN'
+       SELECT_GOAL (unfold_thms_tac ctxt [o_apply,
+         type_definition RS @{thm type_copy_vimage2p_Grp_Rep},
+         type_definition RS @{thm vimage2p_relcompp_converse}]) THEN'
+       rtac refl) 1;
 
     val tacs = zip_axioms map_id0_tac map_comp0_tac map_cong0_tac
       (map set_map0_tac (set_map0_of_bnf bnf)) (K (rtac bd_card_order 1)) (K (rtac bd_cinfinite 1))
@@ -888,7 +891,8 @@ exception BAD_DEAD of typ * typ;
 fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
     (if member (op =) Ds0 T' then (DEADID_bnf, ([T], [])) else (ID_bnf, ([], [T])), accum)
   | bnf_of_typ _ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
-  | bnf_of_typ const_policy qualify' sort Xs Ds0 (T as Type (C, Ts)) (accum as (_, lthy)) =
+  | bnf_of_typ const_policy qualify' flatten_tyargs Xs Ds0 (T as Type (C, Ts))
+      (accum as (_, lthy)) =
     let
       fun check_bad_dead ((_, (deads, _)), _) =
         let val Ds = fold Term.add_tfreesT deads [] in
@@ -926,10 +930,10 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
             val ((inners, (Dss, Ass)), (accum', lthy')) =
               apfst (apsnd split_list o split_list)
-                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) sort Xs Ds0)
+                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) flatten_tyargs Xs Ds0)
                 (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' accum);
           in
-            compose_bnf const_policy qualify sort bnf inners oDs Dss Ass (accum', lthy')
+            compose_bnf const_policy qualify flatten_tyargs bnf inners oDs Dss Ass (accum', lthy')
           end)
       |> tap check_bad_dead
     end;

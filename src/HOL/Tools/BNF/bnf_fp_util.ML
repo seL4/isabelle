@@ -572,11 +572,11 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
+
+    val nn = length fp_eqs;
     val (Xs, rhsXs) = split_list fp_eqs;
 
-    (* FIXME: because of "@ Xs", the output could contain type variables that are not in the
-       input; also, "fp_sort" should put the "resBs" first and in the order in which they appear *)
-    fun fp_sort Ass =
+    fun flatten_tyargs Ass =
       subtract (op =) Xs (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ Xs;
 
     fun raw_qualify base_b =
@@ -589,20 +589,23 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
 
     val ((bnfs, (deadss, livess)), accum) =
       apfst (apsnd split_list o split_list)
-        (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) fp_sort Xs Ds0) bs rhsXs
+        (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) flatten_tyargs Xs Ds0) bs rhsXs
           ((empty_comp_cache, empty_unfolds), lthy));
 
     fun norm_qualify i = Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))))
       #> Binding.conceal;
 
     val Ass = map (map dest_TFree) livess;
-    val resDs = fold (subtract (op =)) Ass resBs;
-    val Ds = fold (fold Term.add_tfreesT) deadss Ds0;
+    val Ds' = fold (fold Term.add_tfreesT) deadss [];
+    val Ds = union (op =) Ds' Ds0;
+    val missing = resBs |> fold (subtract (op =)) (Ds' :: Ass);
+    val (dead_phantoms, live_phantoms) = List.partition (member (op =) Ds0) missing;
+    val resBs' = resBs |> fold (subtract (op =)) [dead_phantoms, Ds];
 
     val timer = time (timer "Construction of BNFs");
 
     val ((kill_poss, _), (bnfs', ((_, unfold_set'), lthy'))) =
-      normalize_bnfs norm_qualify Ass Ds fp_sort bnfs accum;
+      normalize_bnfs norm_qualify Ass Ds (K (resBs' @ Xs)) bnfs accum;
 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
@@ -610,14 +613,14 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
       #> not (Config.get lthy' bnf_note_all) ? Binding.conceal;
 
     val ((pre_bnfs, (deadss, absT_infos)), lthy'') =
-      fold_map3 (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
-        bs Dss bnfs' lthy'
+      fold_map4 (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
+        bs (not (null live_phantoms) :: replicate (nn - 1) false) Dss bnfs' lthy'
       |>> split_list
       |>> apsnd split_list;
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct_fp bs resBs (map TFree resDs, deadss) pre_bnfs absT_infos lthy'';
+    val res = construct_fp bs resBs (map TFree dead_phantoms, deadss) pre_bnfs absT_infos lthy'';
 
     val timer = time (timer "FP construction in total");
   in

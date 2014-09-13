@@ -11,6 +11,7 @@ sig
   include CTR_SUGAR_GENERAL_TACTICS
 
   val fo_rtac: thm -> Proof.context -> int -> tactic
+  val subst_tac: Proof.context -> int list option -> thm list -> int -> tactic
 
   val mk_rotate_eq_tac: (int -> tactic) -> thm -> thm -> thm -> thm -> ''a list -> ''a list ->
     int -> tactic
@@ -40,6 +41,9 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
     rtac (Drule.instantiate_normalize insts thm) 1
   end
   handle Pattern.MATCH => no_tac);
+
+(*unlike "unfold_thms_tac", it succeed when the RHS contains schematic variables not in the LHS*)
+fun subst_tac ctxt = EqSubst.eqsubst_tac ctxt o the_default [0];
 
 (*transforms f (g x) = h (k x) into f o g = h o k using first order matches for f, g, h, and k*)
 fun mk_pointfree ctxt thm = thm

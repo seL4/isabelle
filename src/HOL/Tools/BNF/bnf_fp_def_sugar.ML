@@ -1273,11 +1273,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val fp_eqs =
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_repTs;
 
-    val rhsXs_As' = fold (fold (fold Term.add_tfreesT)) ctrXs_Tsss [];
-    val _ = (case subtract (op =) rhsXs_As' As' of [] => ()
-      | extras => List.app (fn extra => warning ("Unused type variable on right-hand side of " ^
-          co_prefix fp ^ "datatype definition: " ^ qsoty (TFree extra))) extras);
-
     val killed_As =
       map_filter (fn (A, set_bos) => if exists is_none set_bos then SOME A else NONE)
         (unsorted_As ~~ transpose set_boss);
@@ -1710,32 +1705,35 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   val selBss = map (map (mk_disc_or_sel Bs)) selss;
                   val n = length discAs;
 
-                  fun mk_rhs n k discA selAs discB selBs =
+                  fun mk_conjunct n k discA selAs discB selBs =
                     (if k = n then [] else [HOLogic.mk_eq (discA $ ta, discB $ tb)]) @
-                    (case (selAs, selBs) of
-                       ([], []) => []
-                     | (_ :: _, _ :: _) => [Library.foldr HOLogic.mk_imp
-                       (if n = 1 then [] else [discA $ ta, discB $ tb],
-                        Library.foldr1 HOLogic.mk_conj (map2 (build_rel_app names_lthy Rs [])
-                          (map (rapp ta) selAs) (map (rapp tb) selBs)))]);
+                    (if null selAs then
+                       []
+                     else
+                        [Library.foldr HOLogic.mk_imp
+                           (if n = 1 then [] else [discA $ ta, discB $ tb],
+                            Library.foldr1 HOLogic.mk_conj (map2 (build_rel_app names_lthy Rs [])
+                              (map (rapp ta) selAs) (map (rapp tb) selBs)))]);
 
-                  val goals = if n = 0 then []
-                    else [mk_Trueprop_eq
-                      (build_rel_app names_lthy Rs [] ta tb,
-                       Library.foldr1 HOLogic.mk_conj
-                         (flat (map5 (mk_rhs n) (1 upto n) discAs selAss discBs selBss)))];
-                in
-                  if null goals then
-                    []
-                  else
-                    Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                  val goals =
+                    if n = 0 then
+                      []
+                    else
+                      [mk_Trueprop_eq (build_rel_app names_lthy Rs [] ta tb,
+                         (case flat (map5 (mk_conjunct n) (1 upto n) discAs selAss discBs selBss) of
+                           [] => @{term True}
+                         | conjuncts => Library.foldr1 HOLogic.mk_conj conjuncts))];
+
+                  fun prove goal =
+                    Goal.prove_sorry lthy [] [] goal
                       (fn {context = ctxt, prems = _} =>
                          mk_rel_sel_tac ctxt (certify ctxt ta) (certify ctxt tb) exhaust
                            (flat disc_thmss) (flat sel_thmss) rel_inject_thms distincts
                            rel_distinct_thms live_nesting_rel_eqs)
-                    |> Conjunction.elim_balanced (length goals)
-                    |> Proof_Context.export names_lthy lthy
-                    |> map Thm.close_derivation
+                    |> singleton (Proof_Context.export names_lthy lthy)
+                    |> Thm.close_derivation;
+                in
+                  map prove goals
                 end;
 
               val (rel_cases_thm, rel_cases_attrs) =

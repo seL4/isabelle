@@ -250,9 +250,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       end;
 
     val ((alg_free, (_, alg_def_free)), (lthy, lthy_old)) =
-        lthy
-        |> Local_Theory.define ((alg_bind, NoSyn), (alg_def_bind, alg_spec))
-        ||> `Local_Theory.restore;
+      lthy
+      |> Local_Theory.define ((alg_bind, NoSyn), (alg_def_bind, alg_spec))
+      ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val alg = fst (Term.dest_Const (Morphism.term phi alg_free));

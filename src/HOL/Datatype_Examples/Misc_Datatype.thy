@@ -150,8 +150,11 @@ datatype (discs_sels) ('a, 'b) bar = Bar "'b \<Rightarrow> 'a"
 datatype (discs_sels) ('a, 'b, 'c, 'd) foo = Foo "'d + 'b \<Rightarrow> 'c + 'a"
 datatype (discs_sels) 'a deadfoo = DeadFoo "'a \<Rightarrow> 'a + 'a"
 
-datatype (discs_sels) 'a dead_foo = A
-datatype (discs_sels) ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
+datatype (discs_sels) (dead 'a) dead_foo = A
+datatype (discs_sels) ('a, 'b) use_dead_foo = Y 'a "'b dead_foo"
+
+datatype (discs_sels) 'a phantom = A
+datatype (discs_sels) 'a use_phantom = Y 'a "'a use_phantom phantom"
 
 datatype ('t, 'id) dead_sum_fun = Dead_sum_fun "('t list \<Rightarrow> 't) + 't" | Bar (bar: 'id)
 

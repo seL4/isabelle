@@ -105,8 +105,11 @@ and ('c, 'e, 'g) ind_wit =
 codatatype ('b, 'a) bar = BAR "'a \<Rightarrow> 'b"
 codatatype ('a, 'b, 'c, 'd) foo = FOO "'d + 'b \<Rightarrow> 'c + 'a"
 
-codatatype 'a dead_foo = A
-codatatype ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
+codatatype (dead 'a) dead_foo = A
+codatatype ('a, 'b) use_dead_foo = Y 'a "'b dead_foo"
+
+codatatype 'a phantom = A
+codatatype 'a use_phantom = Y 'a "'a use_phantom phantom"
 
 (* SLOW, MEMORY-HUNGRY
 codatatype ('a, 'c) D1 = A1 "('a, 'c) D2" | B1 "'a list"
