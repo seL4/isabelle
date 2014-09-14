@@ -37,7 +37,7 @@ lemmas [extraction_expand_def] =
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
   induct_true_def induct_false_def
 
-datatype sumbool = Left | Right
+datatype (plugins only: code) sumbool = Left | Right
 
 subsection {* Type of extracted program *}
 

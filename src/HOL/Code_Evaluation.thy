@@ -13,7 +13,7 @@ subsection {* Term representation *}
 
 subsubsection {* Terms and class @{text term_of} *}
 
-datatype "term" = dummy_term
+datatype (plugins only: code) "term" = dummy_term
 
 definition Const :: "String.literal \<Rightarrow> typerep \<Rightarrow> term" where
   "Const _ _ = dummy_term"
@@ -113,7 +113,7 @@ instance ..
 
 end
 
-declare [[code drop: rec_term case_term size_term "size :: term \<Rightarrow> _" "HOL.equal :: term \<Rightarrow> _"
+declare [[code drop: rec_term case_term "HOL.equal :: term \<Rightarrow> _"
   "term_of :: typerep \<Rightarrow> _" "term_of :: term \<Rightarrow> _" "term_of :: String.literal \<Rightarrow> _"
   "term_of :: _ Predicate.pred \<Rightarrow> term" "term_of :: _ Predicate.seq \<Rightarrow> term"]]
 

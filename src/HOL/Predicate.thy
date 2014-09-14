@@ -10,7 +10,7 @@ begin
 
 subsection {* The type of predicate enumerations (a monad) *}
 
-datatype 'a pred = Pred "'a \<Rightarrow> bool"
+datatype (plugins only: code) (dead 'a) pred = Pred "'a \<Rightarrow> bool"
 
 primrec eval :: "'a pred \<Rightarrow> 'a \<Rightarrow> bool" where
   eval_pred: "eval (Pred f) = f"
@@ -402,7 +402,10 @@ functor map: map
 
 subsection {* Implementation *}
 
-datatype 'a seq = Empty | Insert "'a" "'a pred" | Join "'a pred" "'a seq"
+datatype (plugins only: code) (dead 'a) seq =
+  Empty
+| Insert "'a" "'a pred"
+| Join "'a pred" "'a seq"
 
 primrec pred_of_seq :: "'a seq \<Rightarrow> 'a pred" where
   "pred_of_seq Empty = \<bottom>"
@@ -493,12 +496,6 @@ next
     unfolding Seq_def
     by (simp add: adjunct_sup sup_assoc sup_commute sup_left_commute)
 qed
-
-lemma [code]:
-  "size (P :: 'a Predicate.pred) = 0" by (cases P) simp
-
-lemma [code]:
-  "size_pred f P = 0" by (cases P) simp
 
 primrec contained :: "'a seq \<Rightarrow> 'a pred \<Rightarrow> bool" where
   "contained Empty Q \<longleftrightarrow> True"
