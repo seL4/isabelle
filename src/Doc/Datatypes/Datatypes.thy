@@ -1065,6 +1065,11 @@ Section~\ref{sssec:primrec-nested-as-mutual-recursion}. For recursion through
 functions, the old-style induction rule can be obtained by applying the
 @{text "[unfolded all_mem_range]"} attribute on @{text t.induct}.
 
+\item \emph{The @{const size} function has a slightly different definition.}
+The new function returns @{text 1} instead of @{text 0} for some nonrecursive
+constructors. This departure from the old behavior made it possible to implement
+@{const size} in terms of the parameterized function @{text "t.size_t"}.
+
 \item \emph{The internal constructions are completely different.} Proof texts
 that unfold the definition of constants introduced by \keyw{old_datatype} will
 be difficult to port.
