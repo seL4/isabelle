@@ -1069,6 +1069,10 @@ functions, the old-style induction rule can be obtained by applying the
 The new function returns @{text 1} instead of @{text 0} for some nonrecursive
 constructors. This departure from the old behavior made it possible to implement
 @{const size} in terms of the parameterized function @{text "t.size_t"}.
+Moreover, the new function considers nested occurrences of a value, in the nested
+recursive case. The old behavior can be obtained by disabling the @{text size}
+plugin (Section~\ref{sec:controlling-plugins}) and instantiating the
+@{text size} type class manually.
 
 \item \emph{The internal constructions are completely different.} Proof texts
 that unfold the definition of constants introduced by \keyw{old_datatype} will
