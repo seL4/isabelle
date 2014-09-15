@@ -409,7 +409,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
 
     val ((missing_res_Ts, perm0_kks, fp_sugars as {fp_nesting_bnfs,
           common_co_inducts = common_coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy) =
-      nested_to_mutual_fps Greatest_FP bs res_Ts callers callssss0 lthy0;
+      nested_to_mutual_fps (K true) Greatest_FP bs res_Ts callers callssss0 lthy0;
 
     val coinduct_attrs_pair =
       (case gfp_sugar_thms of SOME ((_, attrs_pair), _, _, _, _) => attrs_pair | NONE => ([], []));

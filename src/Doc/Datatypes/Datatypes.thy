@@ -753,7 +753,9 @@ The next subgroup is concerned with the case combinator:
 
 \item[@{text "t."}\hthm{case} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.case(1)[no_vars]} \\
-@{thm list.case(2)[no_vars]}
+@{thm list.case(2)[no_vars]} \\
+(The @{text "[code]"} attribute is set by the @{text code} plugin,
+Section~\ref{ssec:code-generator}.)
 
 \item[@{text "t."}\hthm{case_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.case_cong[no_vars]}
@@ -788,7 +790,9 @@ The third subgroup revolves around discriminators and selectors:
 
 \item[@{text "t."}\hthm{sel} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.sel(1)[no_vars]} \\
-@{thm list.sel(2)[no_vars]}
+@{thm list.sel(2)[no_vars]} \\
+(The @{text "[code]"} attribute is set by the @{text code} plugin,
+Section~\ref{ssec:code-generator}.)
 
 \item[@{text "t."}\hthm{collapse} @{text "[simp]"}\rm:] ~ \\
 @{thm list.collapse(1)[no_vars]} \\
@@ -829,7 +833,8 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 
 \noindent
 In addition, equational versions of @{text t.disc} are registered with the
-@{text "[code]"} attribute.
+@{text "[code]"} attribute. (The @{text "[code]"} attribute is set by the
+@{text code} plugin, Section~\ref{ssec:code-generator}.)
 *}
 
 
@@ -857,7 +862,9 @@ a set function, the map function, or the relator:
 
 \item[@{text "t."}\hthm{set} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.set(1)[no_vars]} \\
-@{thm list.set(2)[no_vars]}
+@{thm list.set(2)[no_vars]} \\
+(The @{text "[code]"} attribute is set by the @{text code} plugin,
+Section~\ref{ssec:code-generator}.)
 
 \item[@{text "t."}\hthm{set_cases} @{text "[consumes 1, cases set: set\<^sub>i_t]"}\rm:] ~ \\
 @{thm list.set_cases[no_vars]}
@@ -871,7 +878,9 @@ a set function, the map function, or the relator:
 
 \item[@{text "t."}\hthm{map} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
-@{thm list.map(2)[no_vars]}
+@{thm list.map(2)[no_vars]} \\
+(The @{text "[code]"} attribute is set by the @{text code} plugin,
+Section~\ref{ssec:code-generator}.)
 
 \item[@{text "t."}\hthm{map_disc_iff} @{text "[simp]"}\rm:] ~ \\
 @{thm list.map_disc_iff[no_vars]}
@@ -903,7 +912,9 @@ a set function, the map function, or the relator:
 
 \noindent
 In addition, equational versions of @{text t.rel_inject} and @{text
-rel_distinct} are registered with the @{text "[code]"} attribute.
+rel_distinct} are registered with the @{text "[code]"} attribute. (The
+@{text "[code]"} attribute is set by the @{text code} plugin,
+Section~\ref{ssec:code-generator}.)
 
 The second subgroup consists of more abstract properties of the set functions,
 the map function, and the relator:
@@ -999,7 +1010,9 @@ prove $m$ properties simultaneously.
 
 \item[@{text "t."}\hthm{rec} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
-@{thm list.rec(2)[no_vars]}
+@{thm list.rec(2)[no_vars]} \\
+(The @{text "[code]"} attribute is set by the @{text code} plugin,
+Section~\ref{ssec:code-generator}.)
 
 \end{description}
 \end{indentblock}
@@ -1804,7 +1817,9 @@ If $m = 1$, the attribute @{text "[consumes 1]"} is generated as well.
 @{thm llist.corec(2)[no_vars]}
 
 \item[@{text "t."}\hthm{corec_code} @{text "[code]"}\rm:] ~ \\
-@{thm llist.corec_code[no_vars]}
+@{thm llist.corec_code[no_vars]} \\
+(The @{text "[code]"} attribute is set by the @{text code} plugin,
+Section~\ref{ssec:code-generator}.)
 
 \item[@{text "t."}\hthm{corec_disc}\rm:] ~ \\
 @{thm llist.corec_disc(1)[no_vars]} \\

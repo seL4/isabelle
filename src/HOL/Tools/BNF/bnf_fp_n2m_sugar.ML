@@ -11,13 +11,14 @@ sig
   val unfold_splits_lets: term -> term
   val dest_map: Proof.context -> string -> term -> term * term list
 
-  val mutualize_fp_sugars: BNF_Util.fp_kind -> int list -> binding list -> typ list -> term list ->
-    term list list list list -> BNF_FP_Def_Sugar.fp_sugar list -> local_theory ->
+  val mutualize_fp_sugars: (string -> bool) -> BNF_Util.fp_kind -> int list -> binding list ->
+    typ list -> term list -> term list list list list -> BNF_FP_Def_Sugar.fp_sugar list ->
+    local_theory ->
     (BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
     * local_theory
-  val nested_to_mutual_fps: BNF_Util.fp_kind -> binding list -> typ list -> term list ->
-    (term * term list list) list list -> local_theory ->
+  val nested_to_mutual_fps: (string -> bool) -> BNF_Util.fp_kind -> binding list -> typ list ->
+    term list -> (term * term list list) list list -> local_theory ->
     (typ list * int list * BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
     * local_theory
@@ -116,7 +117,7 @@ fun get_indices callers t =
   |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
   |> map_filter I;
 
-fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_lthy =
+fun mutualize_fp_sugars plugins fp cliques bs fpTs callers callssss fp_sugars0 no_defs_lthy =
   let
     val thy = Proof_Context.theory_of no_defs_lthy;
 
@@ -269,7 +270,7 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
         val ((common_co_inducts, co_inductss', co_rec_thmss, co_rec_disc_thmss, co_rec_sel_thmsss),
              fp_sugar_thms) =
           if fp = Least_FP then
-            derive_induct_recs_thms_for_types pre_bnfs recs_args_types xtor_co_induct
+            derive_induct_recs_thms_for_types plugins pre_bnfs recs_args_types xtor_co_induct
               xtor_co_rec_thms live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss
               fp_abs_inverses fp_type_definitions abs_inverses ctrss ctr_defss co_recs co_rec_defs
               lthy
@@ -332,7 +333,7 @@ fun fold_subtype_pairs f (T as Type (s, Ts), U as Type (s', Us)) =
 
 val impossible_caller = Bound ~1;
 
-fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 lthy =
+fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_callssss0 lthy =
   let
     val qsoty = quote o Syntax.string_of_typ lthy;
     val qsotys = space_implode " or " o map qsoty;
@@ -456,8 +457,8 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
       if length perm_Tss = 1 then
         ((perm_fp_sugars0, (NONE, NONE)), lthy)
       else
-        mutualize_fp_sugars fp perm_cliques perm_bs perm_frozen_gen_Ts perm_callers perm_callssss
-          perm_fp_sugars0 lthy;
+        mutualize_fp_sugars plugins fp perm_cliques perm_bs perm_frozen_gen_Ts perm_callers
+          perm_callssss perm_fp_sugars0 lthy;
 
     val fp_sugars = unpermute perm_fp_sugars;
   in

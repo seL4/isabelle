@@ -91,7 +91,7 @@ open Ctr_Sugar_Util
 open Ctr_Sugar_Tactics
 open Ctr_Sugar_Code
 
-val code_plugin = "code"
+val code_plugin = "code";
 
 type ctr_sugar =
   {T: typ,
@@ -250,8 +250,6 @@ val iff_attrs = @{attributes [iff]};
 val inductsimp_attrs = @{attributes [induct_simp]};
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
-val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
-val code_nitpicksimp_simp_attrs = code_nitpicksimp_attrs @ simp_attrs;
 
 fun unflat_lookup eq xs ys = map (fn xs' => permute_like_unique eq xs xs' ys);
 
@@ -978,17 +976,19 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
         val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
 
+        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+
         val nontriv_disc_eq_thmss =
           map (map (fn th => th RS @{thm eq_False[THEN iffD2]}
             handle THM _ => th RS @{thm eq_True[THEN iffD2]})) nontriv_disc_thmss;
 
         val anonymous_notes =
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs),
-           (flat nontriv_disc_eq_thmss, code_nitpicksimp_attrs)]
+           (flat nontriv_disc_eq_thmss, code_attrs @ nitpicksimp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val notes =
-          [(caseN, case_thms, code_nitpicksimp_simp_attrs),
+          [(caseN, case_thms, code_attrs @ nitpicksimp_attrs @ simp_attrs),
            (case_congN, [case_cong_thm], []),
            (case_cong_weak_thmsN, [case_cong_weak_thm], cong_attrs),
            (case_eq_ifN, case_eq_if_thms, []),
@@ -1003,7 +1003,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
            (expandN, expand_thms, []),
            (injectN, inject_thms, iff_attrs @ inductsimp_attrs),
            (nchotomyN, [nchotomy_thm], []),
-           (selN, all_sel_thms, code_nitpicksimp_simp_attrs),
+           (selN, all_sel_thms, code_attrs @ nitpicksimp_attrs @ simp_attrs),
            (splitN, [split_thm], []),
            (split_asmN, [split_asm_thm], []),
            (split_selN, split_sel_thms, []),
@@ -1022,16 +1022,16 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
           |> fold (Spec_Rules.add Spec_Rules.Equational)
             (filter_out (null o snd) (map single discs ~~ nontriv_disc_eq_thmss))
           |> Local_Theory.declaration {syntax = false, pervasive = true}
-               (fn phi => Case_Translation.register
-                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
+            (fn phi => Case_Translation.register
+               (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
           |> Local_Theory.background_theory (fold (fold Code.del_eqn) [disc_defs, sel_defs])
           |> plugins code_plugin ?
-             Local_Theory.declaration {syntax = false, pervasive = false}
-               (fn phi => Context.mapping
-                  (add_ctr_code fcT_name (map (Morphism.typ phi) As)
-                     (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
-                     (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
-                  I)
+            Local_Theory.declaration {syntax = false, pervasive = false}
+              (fn phi => Context.mapping
+                 (add_ctr_code fcT_name (map (Morphism.typ phi) As)
+                    (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
+                    (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
+                 I)
           |> Local_Theory.notes (anonymous_notes @ notes)
           (* for "datatype_realizer.ML": *)
           |>> name_noted_thms fcT_name exhaustN;

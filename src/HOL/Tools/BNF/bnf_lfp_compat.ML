@@ -286,7 +286,8 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
 
     val ((fp_sugars', (lfp_sugar_thms', _)), lthy') =
       if nn > nn_fp then
-        mutualize_fp_sugars Least_FP cliques compat_bs fpTs' callers callssss fp_sugars lthy
+        mutualize_fp_sugars (K true) Least_FP cliques compat_bs fpTs' callers callssss fp_sugars
+          lthy
       else
         ((fp_sugars, (NONE, NONE)), lthy);
 

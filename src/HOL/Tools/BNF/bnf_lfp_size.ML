@@ -32,7 +32,6 @@ val size_o_mapN = "size_o_map"
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
-val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs @ simp_attrs;
 
 structure Data = Generic_Data
 (
@@ -346,6 +345,9 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
             (map single rec_o_map_thms, size_o_map_thmss)
           end;
 
+      (* Ideally, the "[code]" attribute would be generated only if the "code" plugin is enabled. *)
+      val code_attrs = Code.add_default_eqn_attrib;
+
       val massage_multi_notes =
         maps (fn (thmN, thmss, attrs) =>
           map2 (fn T_name => fn thms =>
@@ -356,7 +358,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       val notes =
         [(rec_o_mapN, rec_o_map_thmss, []),
-         (sizeN, size_thmss, code_nitpicksimp_simp_attrs),
+         (sizeN, size_thmss, code_attrs :: nitpicksimp_attrs @ simp_attrs),
          (size_o_mapN, size_o_map_thmss, [])]
         |> massage_multi_notes;
 

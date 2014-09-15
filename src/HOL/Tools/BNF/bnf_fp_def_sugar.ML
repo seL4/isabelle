@@ -93,7 +93,7 @@ sig
   val mk_induct_attrs: term list list -> Token.src list
   val mk_coinduct_attrs: typ list -> term list list -> term list list -> int list list ->
     Token.src list * Token.src list
-  val derive_induct_recs_thms_for_types: BNF_Def.bnf list ->
+  val derive_induct_recs_thms_for_types: (string -> bool) -> BNF_Def.bnf list ->
      ('a * typ list list list list * term list list * 'b) option -> thm -> thm list ->
      BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list -> typ list ->
      typ list list list -> thm list -> thm list -> thm list -> term list list -> thm list list ->
@@ -311,7 +311,6 @@ val mp_conj = @{thm mp_conj};
 
 val fundefcong_attrs = @{attributes [fundef_cong]};
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
-val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
 val simp_attrs = @{attributes [simp]};
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
@@ -626,7 +625,7 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
      mk_induct_attrs ctrAss)
   end;
 
-fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_rec_thms
+fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_induct ctor_rec_thms
     live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses fp_type_definitions
     abs_inverses ctrss ctr_defss recs rec_defs lthy =
   let
@@ -763,9 +762,11 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
       end;
 
     val rec_thmss = mk_rec_thmss (the rec_args_typess) recs rec_defs ctor_rec_thms;
+
+    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
   in
     ((induct_thms, induct_thm, mk_induct_attrs ctrss),
-     (rec_thmss, code_nitpicksimp_attrs @ simp_attrs))
+     (rec_thmss, code_attrs @ nitpicksimp_attrs @ simp_attrs))
   end;
 
 fun mk_coinduct_attrs fpTs ctrss discss mss =
@@ -1364,6 +1365,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           fp_b_names fpTs thmss)
       #> filter_out (null o fst o hd o snd);
 
+    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+
     val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctrXs_Tsss;
     val ns = map length ctr_Tsss;
     val kss = map (fn n => 1 upto n) ns;
@@ -1923,14 +1926,14 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 end;
 
               val anonymous_notes =
-                [(rel_eq_thms, code_nitpicksimp_attrs)]
+                [(rel_eq_thms, code_attrs @ nitpicksimp_attrs)]
                 |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
               val notes =
                 [(case_transferN, [case_transfer_thms], K []),
                  (ctr_transferN, ctr_transfer_thms, K []),
                  (disc_transferN, disc_transfer_thms, K []),
-                 (mapN, map_thms, K (code_nitpicksimp_attrs @ simp_attrs)),
+                 (mapN, map_thms, K (code_attrs @ nitpicksimp_attrs @ simp_attrs)),
                  (map_disc_iffN, map_disc_iff_thms, K simp_attrs),
                  (map_selN, map_sel_thms, K []),
                  (rel_casesN, [rel_cases_thm], K rel_cases_attrs),
@@ -1938,7 +1941,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                  (rel_injectN, rel_inject_thms, K simp_attrs),
                  (rel_introsN, rel_intro_thms, K []),
                  (rel_selN, rel_sel_thms, K []),
-                 (setN, set_thms, K (code_nitpicksimp_attrs @ simp_attrs)),
+                 (setN, set_thms, K (code_attrs @ nitpicksimp_attrs @ simp_attrs)),
                  (set_casesN, set_cases_thms, nth set_cases_attrss),
                  (set_introsN, set_intros_thms, K []),
                  (set_selN, set_sel_thms, K [])]
@@ -1985,9 +1988,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           (recs, rec_defs)), lthy) =
       let
         val ((induct_thms, induct_thm, induct_attrs), (rec_thmss, rec_attrs)) =
-          derive_induct_recs_thms_for_types pre_bnfs recs_args_types xtor_co_induct xtor_co_rec_thms
-            live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss abs_inverses type_definitions
-            abs_inverses ctrss ctr_defss recs rec_defs lthy;
+          derive_induct_recs_thms_for_types plugins pre_bnfs recs_args_types xtor_co_induct
+            xtor_co_rec_thms live_nesting_bnfs fp_nesting_bnfs fpTs Cs Xs ctrXs_Tsss abs_inverses
+            type_definitions abs_inverses ctrss ctr_defss recs rec_defs lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
         val induct_pred_attr = Attrib.internal o K o Induct.induct_pred;
@@ -2111,7 +2114,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             fn T_name => coinduct_attrs @ [coinduct_type_attr T_name]),
            (coinduct_strongN, map single coinduct_strong_thms, K coinduct_attrs),
            (corecN, corec_thmss, K []),
-           (corec_codeN, map single corec_code_thms, K code_nitpicksimp_attrs),
+           (corec_codeN, map single corec_code_thms, K (code_attrs @ nitpicksimp_attrs)),
            (corec_discN, corec_disc_thmss, K []),
            (corec_disc_iffN, corec_disc_iff_thmss, K corec_disc_iff_attrs),
            (corec_selN, corec_sel_thmss, K corec_sel_attrs),
