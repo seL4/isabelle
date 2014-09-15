@@ -1975,8 +1975,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
          #> massage_res, lthy')
       end;
 
-    fun wrap_types_etc (wrap_types_etcs, lthy) =
-      fold_map I wrap_types_etcs lthy
+    fun wrap_ctrs_derive_map_set_rel_thms_define_co_rec_for_types (wrap_one_etc, lthy) =
+      fold_map I wrap_one_etc lthy
       |>> apsnd split_list o apfst (apsnd split_list4 o apfst split_list4 o split_list)
         o split_list;
 
@@ -2141,7 +2141,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         pre_rel_defs ~~ xtor_map_thms ~~ xtor_set_thmss ~~ xtor_rel_thms ~~ ns ~~ kss ~~ mss ~~
         abss ~~ abs_injects ~~ abs_inverses ~~ type_definitions ~~ ctr_bindingss ~~ ctr_mixfixess ~~
         ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_default_eqss)
-      |> wrap_types_etc
+      |> wrap_ctrs_derive_map_set_rel_thms_define_co_rec_for_types
       |> case_fp fp derive_note_induct_recs_thms_for_types
            derive_note_coinduct_corecs_thms_for_types;
 
