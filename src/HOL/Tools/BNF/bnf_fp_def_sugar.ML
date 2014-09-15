@@ -1353,10 +1353,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val fpTs = map (domain_type o fastype_of) dtors;
     val fpBTs = map B_ify fpTs;
 
+    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+
     fun massage_simple_notes base =
       filter_out (null o #2)
       #> map (fn (thmN, thms, f_attrs) =>
-        ((Binding.qualify true base (Binding.name thmN), []), map_index (fn (i, thm) => ([thm], f_attrs i)) thms));
+        ((Binding.qualify true base (Binding.name thmN), []),
+         map_index (fn (i, thm) => ([thm], f_attrs i)) thms));
 
     val massage_multi_notes =
       maps (fn (thmN, thmss, attrs) =>
@@ -1364,8 +1367,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             ((Binding.qualify true fp_b_name (Binding.name thmN), attrs T_name), [(thms, [])]))
           fp_b_names fpTs thmss)
       #> filter_out (null o fst o hd o snd);
-
-    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
 
     val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctrXs_Tsss;
     val ns = map length ctr_Tsss;

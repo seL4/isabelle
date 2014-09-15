@@ -77,7 +77,7 @@ fun num_binder_types (Type (@{type_name fun}, [_, T])) = 1 + num_binder_types T
   | num_binder_types _ = 0;
 
 val exists_subtype_in = Term.exists_subtype o member (op =);
-fun exists_strict_subtype_in Ts T = exists_subtype_in (filter_out (curry (op =) T) Ts) T;
+fun exists_strict_subtype_in Ts T = exists_subtype_in (remove (op =) T Ts) T;
 
 fun tvar_subst thy Ts Us =
   Vartab.fold (cons o apsnd snd) (fold (Sign.typ_match thy) (Ts ~~ Us) Vartab.empty) [];

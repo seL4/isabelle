@@ -22,13 +22,13 @@ open BNF_Tactics
 open BNF_Def
 open BNF_FP_Def_Sugar
 
-val size_plugin = "size"
+val size_plugin = "size";
 
-val size_N = "size_"
+val size_N = "size_";
 
-val rec_o_mapN = "rec_o_map"
-val sizeN = "size"
-val size_o_mapN = "size_o_map"
+val rec_o_mapN = "rec_o_map";
+val sizeN = "size";
+val size_o_mapN = "size_o_map";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
@@ -50,14 +50,12 @@ fun register_size_global T_name size_name size_simps size_o_maps =
 val size_of = Symtab.lookup o Data.get o Context.Proof;
 val size_of_global = Symtab.lookup o Data.get o Context.Theory;
 
-val zero_nat = @{const zero_class.zero (nat)};
-
 fun mk_plus_nat (t1, t2) = Const (@{const_name Groups.plus},
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
 fun mk_to_natT T = T --> HOLogic.natT;
 
-fun mk_abs_zero_nat T = Term.absdummy T zero_nat;
+fun mk_abs_zero_nat T = Term.absdummy T HOLogic.zero;
 
 fun pointfill ctxt th = unfold_thms ctxt [o_apply] (th RS fun_cong);
 
@@ -155,7 +153,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
           val xs = map2 (curry Free) x_names x_Ts;
           val (summands, size_o_maps') =
             fold_map mk_size_of_arg xs size_o_maps
-            |>> remove (op =) zero_nat;
+            |>> remove (op =) HOLogic.zero;
           val sum =
             if null summands then HOLogic.zero
             else foldl1 mk_plus_nat (summands @ [HOLogic.Suc_zero]);
