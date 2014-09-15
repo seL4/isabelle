@@ -168,7 +168,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
           | SOME n => n)
 
         fun is_fixed ctxt = Variable.is_declared ctxt orf Name.is_skolem
-        fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev |> @{print}
+        fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
 
         fun get_role keep_role ((num, _), role, t, rule, _) =
           if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
