@@ -152,6 +152,7 @@ open BNF_Tactics
 open BNF_Def_Tactics
 
 val fundefcong_attrs = @{attributes [fundef_cong]};
+val mono_attrs = @{attributes [mono]};
 
 type axioms = {
   map_id0: thm,
@@ -730,7 +731,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (rel_flipN, [Lazy.force (#rel_flip facts)], []),
            (rel_GrpN, [Lazy.force (#rel_Grp facts)], []),
            (rel_mapN, Lazy.force (#rel_map facts), []),
-           (rel_monoN, [Lazy.force (#rel_mono facts)], []),
+           (rel_monoN, [Lazy.force (#rel_mono facts)], mono_attrs),
            (rel_transferN, [Lazy.force (#rel_transfer facts)], []),
            (set_mapN, map Lazy.force (#set_map facts), []),
            (set_transferN, Lazy.force (#set_transfer facts), [])]

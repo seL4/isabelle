@@ -973,9 +973,9 @@ Section~\ref{ssec:lifting}.)
 @{thm list.rel_map(1)[no_vars]} \\
 @{thm list.rel_map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel_mono} @{text "[relator_mono]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel_mono} @{text "[mono, relator_mono]"}\rm:] ~ \\
 @{thm list.rel_mono[no_vars]} \\
-(The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin,
+(The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin,
 Section~\ref{ssec:lifting}.)
 
 \item[@{text "t."}\hthm{rel_transfer}\rm:] ~ \\
