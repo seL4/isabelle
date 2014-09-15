@@ -145,6 +145,24 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       fun mk_size_of_arg t =
         mk_size_of_typ (fastype_of t) #>> (fn s => substCnatT (betapply (s, t)));
 
+      fun is_recursive_or_plain_case Ts =
+        exists (exists_subtype_in Cs) Ts orelse forall (not o exists_subtype_in As) Ts;
+
+      (* We want the size function to enjoy the following properties:
+
+         1. The size of a list should coincide with its length.
+         2. All the nonrecursive constructors of a type should have the same size.
+         3. Each constructor through which nested recursion takes place should count as at least
+            one in the generic size function.
+         4. The "size" function should be definable as "size_t (%_. 0) ... (%_. 0)", where "size_t"
+            is the generic function.
+
+         This justifies the somewhat convoluted logic ahead. *)
+
+      val base_case =
+        if forall (is_recursive_or_plain_case o binder_types) rec_arg_Ts then HOLogic.zero
+        else HOLogic.Suc_zero;
+
       fun mk_size_arg rec_arg_T size_o_maps =
         let
           val x_Ts = binder_types rec_arg_T;
@@ -155,7 +173,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
             fold_map mk_size_of_arg xs size_o_maps
             |>> remove (op =) HOLogic.zero;
           val sum =
-            if null summands then HOLogic.zero
+            if null summands then base_case
             else foldl1 mk_plus_nat (summands @ [HOLogic.Suc_zero]);
         in
           (fold_rev Term.lambda (map substCnatT xs) sum, size_o_maps')
