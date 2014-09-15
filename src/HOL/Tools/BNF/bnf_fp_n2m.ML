@@ -47,8 +47,8 @@ fun mk_map_sum f g =
     Const (@{const_name map_sum}, fT --> gT --> mk_sumT (fAT, gAT) --> mk_sumT (fBT, gBT)) $ f $ g
   end;
 
-fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs (resDs, Dss) bnfs
-    (absT_infos : absT_info list) lthy =
+fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) bs resBs (resDs, Dss)
+    bnfs (absT_infos : absT_info list) lthy =
   let
     fun of_fp_res get =
       map (fn {fp_res, fp_res_index, ...} => nth (get fp_res) fp_res_index) fp_sugars;
@@ -273,15 +273,15 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
           map (typ_subst_nonatomic_sorted (map (rpair dummyT)
             (As @ sort (int_ord o pairself Term.size_of_typ) fpTs))) fold_preTs';
 
-        val (clique, TUs) =
+        val (mutual_clique, TUs) =
           map_split dest_co_algT (binder_fun_types (foldT_of_recT (fastype_of approx_rec)))
           |>> map subst
           |> `(fn (_, Ys) =>
-            nth cliques (find_index (fn X => X = the (find_first (can dest_TFree) Ys)) Xs))
+            nth mutual_cliques (find_index (fn X => X = the (find_first (can dest_TFree) Ys)) Xs))
           ||> uncurry (map2 mk_co_algT);
-        val cands = cliques ~~ map2 mk_co_algT fold_preTs' Xs;
+        val cands = mutual_cliques ~~ map2 mk_co_algT fold_preTs' Xs;
         val js = find_indices (fn ((cl, cand), TU) =>
-          cl = clique andalso Type.could_unify (TU, cand)) TUs cands;
+          cl = mutual_clique andalso Type.could_unify (TU, cand)) TUs cands;
         val Tpats = map (fn j => mk_co_algT (nth fold_pre_deads_only_Ts j) (nth Xs j)) js;
       in
         force_typ names_lthy (Tpats ---> TU) raw_rec

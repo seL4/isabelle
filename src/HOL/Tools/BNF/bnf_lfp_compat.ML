@@ -262,7 +262,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
 
     (* put nested types before the types that nest them, as needed for N2M *)
     val descrs = burrow reindex_desc (orig_descr' :: rev nested_descrs);
-    val (cliques, descr) =
+    val (mutual_cliques, descr) =
       split_list (flat (map_index (fn (i, descr) => map (pair i) descr)
         (maps cliquify_descr descrs)));
 
@@ -286,8 +286,8 @@ fun mk_infos_of_mutually_recursive_new_datatypes nesting_pref check_names fpT_na
 
     val ((fp_sugars', (lfp_sugar_thms', _)), lthy') =
       if nn > nn_fp then
-        mutualize_fp_sugars (K true) Least_FP cliques compat_bs fpTs' callers callssss fp_sugars
-          lthy
+        mutualize_fp_sugars (K true) Least_FP mutual_cliques compat_bs fpTs' callers callssss
+          fp_sugars lthy
       else
         ((fp_sugars, (NONE, NONE)), lthy);
 

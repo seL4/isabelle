@@ -117,7 +117,7 @@ fun get_indices callers t =
   |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
   |> map_filter I;
 
-fun mutualize_fp_sugars plugins fp cliques bs fpTs callers callssss fp_sugars0 no_defs_lthy =
+fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_sugars0 no_defs_lthy =
   let
     val thy = Proof_Context.theory_of no_defs_lthy;
 
@@ -240,8 +240,8 @@ fun mutualize_fp_sugars plugins fp cliques bs fpTs callers callssss fp_sugars0 n
 
         val ((pre_bnfs, absT_infos), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
                dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
-          fp_bnf (construct_mutualized_fp fp cliques unsorted_fpTs fp_sugars0) fp_bs unsorted_As'
-            killed_As' fp_eqs no_defs_lthy;
+          fp_bnf (construct_mutualized_fp fp mutual_cliques unsorted_fpTs fp_sugars0) fp_bs
+            unsorted_As' killed_As' fp_eqs no_defs_lthy;
 
         val fp_abs_inverses = map #abs_inverse fp_absT_infos;
         val fp_type_definitions = map #type_definition fp_absT_infos;
@@ -421,7 +421,7 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
       | gather_types _ _ _ _ (T :: _) = not_co_datatype T;
 
     val (perm_Tss, perm_gen_Ts) = gather_types lthy [] [] [] sorted_actual_Ts;
-    val (perm_cliques, perm_Ts) =
+    val (perm_mutual_cliques, perm_Ts) =
       split_list (flat (map_index (fn (i, perm_Ts) => map (pair i) perm_Ts) perm_Tss));
 
     val perm_frozen_gen_Ts = map Logic.unvarifyT_global perm_gen_Ts;
@@ -441,10 +441,10 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
     fun permute xs = permute_like (op =) Ts perm_Ts xs;
     fun unpermute perm_xs = permute_like (op =) perm_Ts Ts perm_xs;
 
-    (* The assignment of callers to cliques is incorrect in general. This code would need to inspect
-       the actual calls to discover the correct cliques in the presence of type duplicates. However,
-       the naive scheme implemented here supports "prim(co)rec" specifications following reasonable
-       ordering of the duplicates (e.g., keeping the cliques together). *)
+    (* The assignment of callers to mutual cliques is incorrect in general. This code would need to
+       inspect the actual calls to discover the correct cliques in the presence of type duplicates.
+       However, the naive scheme implemented here supports "prim(co)rec" specifications following
+       reasonable ordering of the duplicates (e.g., keeping the cliques together). *)
     val perm_bs = permute bs;
     val perm_callers = permute callers;
     val perm_kks = permute kks;
@@ -457,7 +457,7 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
       if length perm_Tss = 1 then
         ((perm_fp_sugars0, (NONE, NONE)), lthy)
       else
-        mutualize_fp_sugars plugins fp perm_cliques perm_bs perm_frozen_gen_Ts perm_callers
+        mutualize_fp_sugars plugins fp perm_mutual_cliques perm_bs perm_frozen_gen_Ts perm_callers
           perm_callssss perm_fp_sugars0 lthy;
 
     val fp_sugars = unpermute perm_fp_sugars;
