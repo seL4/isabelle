@@ -403,10 +403,10 @@ fun massage_multi_notes b_names Ts =
       b_names Ts thmss)
   #> filter_out (null o fst o hd o snd);
 
-fun derive_map_set_rel_thms names_lthy plugins fp live As Bs abs_inverses ctr_defs'
-    live_nesting_rel_eqs xss yss fp_nesting_set_maps live_nesting_set_maps live_nesting_map_id0s
-    fp_b_name fp_bnf fpT ctor ctor_dtor dtor_ctor pre_map_def pre_set_defs pre_rel_def fp_map_thm
-    fp_set_thms fp_rel_thm n ks ms abs abs_inverse
+fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nesting_set_maps
+    live_nesting_map_id0s live_nesting_set_maps live_nesting_rel_eqs fp_b_name fp_bnf fpT ctor
+    ctor_dtor dtor_ctor pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm
+    ctr_Tss abs
     ({casex, case_thms, discs, selss, ctrs, exhaust, exhaust_discs, disc_thmss, sel_thmss, injects,
       distincts, distinct_discsss, ...} : ctr_sugar)
     lthy =
@@ -414,14 +414,20 @@ fun derive_map_set_rel_thms names_lthy plugins fp live As Bs abs_inverses ctr_de
     (([], [], [], []), lthy)
   else
     let
+      val n = length ctr_Tss;
+      val ks = 1 upto n;
+      val ms = map length ctr_Tss;
+
       val B_ify = Term.typ_subst_atomic (As ~~ Bs);
 
       val fpBT = B_ify fpT;
       val live_AsBs = filter (op <>) (As ~~ Bs);
       val fTs = map (op -->) live_AsBs;
 
-      val (((((([C, E], fs), Rs), ta), tb), thesis), names_lthy) = names_lthy
+      val (((((((([C, E], xss), yss), fs), Rs), ta), tb), thesis), names_lthy) = lthy
         |> mk_TFrees 2
+        ||>> mk_Freess "x" ctr_Tss
+        ||>> mk_Freess "y" (map (map B_ify) ctr_Tss)
         ||>> mk_Frees "f" fTs
         ||>> mk_Frees "R" (map (uncurry mk_pred2T) live_AsBs)
         ||>> yield_singleton (mk_Frees "a") fpT
@@ -485,7 +491,7 @@ fun derive_map_set_rel_thms names_lthy plugins fp live As Bs abs_inverses ctr_de
 
       fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
         fold_thms lthy ctr_defs'
-          (unfold_thms lthy (pre_rel_def :: abs_inverse ::
+          (unfold_thms lthy (pre_rel_def :: abs_inverses @
                (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
                @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]})
              (cterm_instantiate_pos (map (SOME o certify lthy) Rs @ [SOME cxIn, SOME cyIn])
@@ -1824,9 +1830,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
     val fp_nesting_set_maps = maps set_map_of_bnf fp_nesting_bnfs;
+    val live_nesting_map_id0s = map map_id0_of_bnf live_nesting_bnfs;
     val live_nesting_set_maps = maps set_map_of_bnf live_nesting_bnfs;
     val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
-    val live_nesting_map_id0s = map map_id0_of_bnf live_nesting_bnfs;
 
     val live = live_of_bnf any_fp_bnf;
     val _ =
@@ -1868,11 +1874,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
         val ctr_absT = domain_type (fastype_of ctor);
 
-        val ((((w, xss), yss), u'), names_lthy) =
-          no_defs_lthy
+        val (((w, xss), u'), _) = no_defs_lthy
           |> yield_singleton (mk_Frees "w") ctr_absT
           ||>> mk_Freess "x" ctr_Tss
-          ||>> mk_Freess "y" (map (map B_ify) ctr_Tss)
           ||>> yield_singleton Variable.variant_fixes fp_b_name;
 
         val u = Free (u', fpT);
@@ -1964,11 +1968,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         (wrap_ctrs
          #> (fn (ctr_sugar, lthy) =>
-           derive_map_set_rel_thms names_lthy plugins fp live As Bs abs_inverses ctr_defs'
-             live_nesting_rel_eqs xss yss fp_nesting_set_maps live_nesting_set_maps
-             live_nesting_map_id0s fp_b_name fp_bnf fpT ctor ctor_dtor dtor_ctor pre_map_def
-             pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm n ks ms abs abs_inverse
-             ctr_sugar lthy
+           derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nesting_set_maps
+             live_nesting_map_id0s live_nesting_set_maps live_nesting_rel_eqs fp_b_name fp_bnf fpT
+             ctor ctor_dtor dtor_ctor pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms
+             fp_rel_thm ctr_Tss abs ctr_sugar lthy
            |>> pair ctr_sugar)
          ##>>
            (if fp = Least_FP then define_rec (the recs_args_types) mk_binding fpTs Cs reps
