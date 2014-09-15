@@ -278,12 +278,12 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 (case gamma of
                   [g] =>
                   if skolem andalso is_clause_tainted g then
-                    (case skolems_of ctxt (prop_of_clause g) of
-                      [] => steps_of_rest (prove [] deps)
-                    | skos =>
-                      let val subproof = Proof (skos, [], rev accum) in
-                        isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
-                      end)
+                    let
+                      val skos = skolems_of ctxt (prop_of_clause g)
+                      val subproof = Proof (skos, [], rev accum)
+                    in
+                      isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
+                    end
                   else
                     steps_of_rest (prove [] deps)
                 | _ => steps_of_rest (prove [] deps))
@@ -317,9 +317,9 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         val canonical_isar_proof =
           refute_graph
-          |> trace ? tap (tracing o prefix "Refute graph: " o string_of_refute_graph)
+          |> trace ? tap (tracing o prefix "Refute graph:\n" o string_of_refute_graph)
           |> redirect_graph axioms tainted bot
-          |> trace ? tap (tracing o prefix "Direct proof: " o string_of_direct_proof)
+          |> trace ? tap (tracing o prefix "Direct proof:\n" o string_of_direct_proof)
           |> isar_proof true params assms lems
           |> postprocess_isar_proof_remove_show_stuttering
           |> postprocess_isar_proof_remove_unreferenced_steps I
