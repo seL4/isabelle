@@ -26,14 +26,14 @@ code_reserved Haskell_Quickcheck Typerep
 
 subsubsection {* Narrowing's deep representation of types and terms *}
 
-datatype (plugins only: code) narrowing_type =
+datatype (plugins only: code extraction) narrowing_type =
   Narrowing_sum_of_products "narrowing_type list list"
 
-datatype (plugins only: code) narrowing_term =
+datatype (plugins only: code extraction) narrowing_term =
   Narrowing_variable "integer list" narrowing_type
 | Narrowing_constructor integer "narrowing_term list"
 
-datatype (plugins only: code) (dead 'a) narrowing_cons =
+datatype (plugins only: code extraction) (dead 'a) narrowing_cons =
   Narrowing_cons narrowing_type "(narrowing_term list \<Rightarrow> 'a) list"
 
 primrec map_cons :: "('a => 'b) => 'a narrowing_cons => 'b narrowing_cons"
@@ -127,7 +127,7 @@ subsubsection {* Narrowing generator type class *}
 class narrowing =
   fixes narrowing :: "integer => 'a narrowing_cons"
 
-datatype (plugins only: code) property =
+datatype (plugins only: code extraction) property =
   Universal narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term"
 | Existential narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term"
 | Property bool
@@ -158,7 +158,7 @@ where
 
 subsubsection {* Defining a simple datatype to represent functions in an incomplete and redundant way *}
 
-datatype (plugins only: code quickcheck_narrowing) (dead 'a, dead 'b) ffun =
+datatype (plugins only: code quickcheck_narrowing extraction) (dead 'a, dead 'b) ffun =
   Constant 'b
 | Update 'a 'b "('a, 'b) ffun"
 
@@ -170,7 +170,7 @@ where
 hide_type (open) ffun
 hide_const (open) Constant Update eval_ffun
 
-datatype (plugins only: code quickcheck_narrowing) (dead 'b) cfun = Constant 'b
+datatype (plugins only: code quickcheck_narrowing extraction) (dead 'b) cfun = Constant 'b
 
 primrec eval_cfun :: "'b cfun => 'a => 'b"
 where

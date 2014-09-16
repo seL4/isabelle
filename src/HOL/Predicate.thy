@@ -10,7 +10,7 @@ begin
 
 subsection {* The type of predicate enumerations (a monad) *}
 
-datatype (plugins only: code) (dead 'a) pred = Pred "'a \<Rightarrow> bool"
+datatype (plugins only: code extraction) (dead 'a) pred = Pred "'a \<Rightarrow> bool"
 
 primrec eval :: "'a pred \<Rightarrow> 'a \<Rightarrow> bool" where
   eval_pred: "eval (Pred f) = f"
@@ -402,7 +402,7 @@ functor map: map
 
 subsection {* Implementation *}
 
-datatype (plugins only: code) (dead 'a) seq =
+datatype (plugins only: code extraction) (dead 'a) seq =
   Empty
 | Insert "'a" "'a pred"
 | Join "'a pred" "'a seq"

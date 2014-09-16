@@ -13,7 +13,7 @@ subsection {* Term representation *}
 
 subsubsection {* Terms and class @{text term_of} *}
 
-datatype (plugins only: code) "term" = dummy_term
+datatype (plugins only: code extraction) "term" = dummy_term
 
 definition Const :: "String.literal \<Rightarrow> typerep \<Rightarrow> term" where
   "Const _ _ = dummy_term"
