@@ -10,6 +10,6 @@ definition id_integer :: "integer \<Rightarrow> integer" where "id_integer = id"
 
 test_code "id_integer (14 + 7 * -12) = 140 div -2" in GHC
 
-eval_term "14 + 7 * -12 :: integer" in GHC
+value [GHC] "14 + 7 * -12 :: integer"
 
 end

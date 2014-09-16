@@ -8,6 +8,6 @@ theory Code_Test_PolyML imports Code_Test begin
 
 test_code "14 + 7 * -12 = (140 div -2 :: integer)" in PolyML
 
-eval_term "14 + 7 * -12 :: integer" in PolyML
+value [PolyML] "14 + 7 * -12 :: integer"
 
 end

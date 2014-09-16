@@ -8,6 +8,6 @@ theory Code_Test_OCaml imports Code_Test begin
 
 test_code "14 + 7 * -12 = (140 div -2 :: integer)" in OCaml
 
-eval_term "14 + 7 * -12 :: integer" in OCaml
+value [OCaml] "14 + 7 * -12 :: integer"
 
 end

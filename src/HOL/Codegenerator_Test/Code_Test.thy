@@ -6,7 +6,7 @@ Test infrastructure for the code generator
 
 theory Code_Test
 imports Main
-keywords "test_code" "eval_term" :: diag
+keywords "test_code" :: diag
 begin
 
 subsection {* YXML encoding for @{typ Code_Evaluation.term} *}

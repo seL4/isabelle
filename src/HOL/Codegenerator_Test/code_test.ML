@@ -16,7 +16,7 @@ signature CODE_TEST = sig
   val test_targets : Proof.context -> term list -> string list -> unit list
   val test_code_cmd : string list -> string list -> Toplevel.state -> unit
 
-  val eval_term : Proof.context -> term -> string -> unit
+  val eval_term : string -> Proof.context -> term -> term
 
   val gen_driver :
    (theory -> Path.T -> string list -> string ->
@@ -252,9 +252,13 @@ fun test_code_cmd raw_ts targets state =
     test_targets ctxt ts targets; ()
   end
 
-
-fun eval_term ctxt t target =
+fun eval_term target ctxt t =
   let
+    val frees = Term.add_free_names t []
+    val _ = if frees = [] then () else
+      error ("Term contains free variables: " ^
+      Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
+
     val thy = Proof_Context.theory_of ctxt
 
     val T_t = fastype_of t
@@ -266,23 +270,9 @@ fun eval_term ctxt t target =
     val t' = HOLogic.mk_list T [HOLogic.mk_prod (@{term "False"}, mk_term_of [t])]
 
     val result = dynamic_value_strict ctxt t' target;
-    val t_eval = case result of [(_, SOME [t])] => t | _ => error "Evaluation failed"
   in
-    Pretty.writeln (Syntax.pretty_term ctxt t_eval)
+    case result of [(_, SOME [t])] => t | _ => error "Evaluation failed"
   end
-
-fun eval_term_cmd raw_t target state =
-  let
-    val ctxt = Toplevel.context_of state;
-    val t = Syntax.read_term ctxt raw_t;
-    val frees = Term.add_free_names t []
-    val _ = if frees = [] then () else
-      error ("Term contains free variables: " ^
-      Pretty.string_of (Pretty.block (Pretty.commas (map Pretty.str frees))))
-  in
-    eval_term ctxt t target
-  end
-
 
 (* Generic driver *)
 
@@ -575,13 +565,6 @@ val _ =
     "compile test cases to target languages, execute them and report results"
       (test_codeP >> (fn (raw_ts, targets) => Toplevel.keep (test_code_cmd raw_ts targets)))
 
-val eval_termP = Parse.term -- (@{keyword "in"} |-- Parse.name)
-
-val _ = 
-  Outer_Syntax.command @{command_spec "eval_term"}
-    "evaluate term in target language"
-      (eval_termP >> (fn (raw_t, target) => Toplevel.keep (eval_term_cmd raw_t target)))
-
 val _ = Context.>> (Context.map_theory (
   fold add_driver
     [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
@@ -589,6 +572,9 @@ val _ = Context.>> (Context.map_theory (
      (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
      (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
      (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
-     (scalaN, (evaluate_in_scala, Code_Scala.target))]))
+     (scalaN, (evaluate_in_scala, Code_Scala.target))]
+    #> fold (fn target => Value.add_evaluator (target, eval_term target))
+      [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN]
+    ))
 end
 
