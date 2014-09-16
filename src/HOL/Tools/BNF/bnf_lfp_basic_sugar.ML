@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2014
 
-Sugared datatype and codatatype constructions.
+Registration of basic types as BNF least fixpoints (datatypes).
 *)
 
 structure BNF_LFP_Basic_Sugar : sig end =
@@ -20,13 +20,11 @@ open BNF_LFP_Size
 fun trivial_absT_info_of fpT =
   {absT = fpT,
    repT = fpT,
-   abs = Const (@{const_name BNF_Composition.id_bnf}, fpT --> fpT),
-   rep = Const (@{const_name BNF_Composition.id_bnf}, fpT --> fpT),
-   abs_inject = @{thm type_definition.Abs_inject
-     [OF BNF_Composition.type_definition_id_bnf_UNIV UNIV_I UNIV_I]},
-   abs_inverse = @{thm type_definition.Abs_inverse
-     [OF BNF_Composition.type_definition_id_bnf_UNIV UNIV_I]},
-   type_definition = @{thm BNF_Composition.type_definition_id_bnf_UNIV}};
+   abs = Const (@{const_name id_bnf}, fpT --> fpT),
+   rep = Const (@{const_name id_bnf}, fpT --> fpT),
+   abs_inject = @{thm type_definition.Abs_inject[OF type_definition_id_bnf_UNIV UNIV_I UNIV_I]},
+   abs_inverse = @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_UNIV UNIV_I]},
+   type_definition = @{thm type_definition_id_bnf_UNIV}};
 
 fun the_frozen_ctr_sugar_of ctxt fpT_name =
   the (ctr_sugar_of ctxt fpT_name)

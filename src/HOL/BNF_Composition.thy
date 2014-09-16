@@ -146,7 +146,8 @@ bnf DEADID: 'a
   rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
   by (auto simp add: Grp_def natLeq_card_order natLeq_cinfinite)
 
-definition id_bnf :: "'a \<Rightarrow> 'a" where "id_bnf \<equiv> (\<lambda>x. x)"
+definition id_bnf :: "'a \<Rightarrow> 'a" where
+  "id_bnf \<equiv> (\<lambda>x. x)"
 
 lemma id_bnf_apply: "id_bnf x = x"
   unfolding id_bnf_def by simp
@@ -176,8 +177,5 @@ hide_fact
   ID.inj_map ID.inj_map_strong ID.map_comp ID.map_cong ID.map_cong0 ID.map_cong_simp ID.map_id
   ID.map_id0 ID.map_ident ID.map_transfer ID.rel_Grp ID.rel_compp ID.rel_compp_Grp ID.rel_conversep
   ID.rel_eq ID.rel_flip ID.rel_map ID.rel_mono ID.rel_transfer ID.set_map ID.set_transfer
-
-hide_const (open) id_bnf
-hide_fact (open) id_bnf_def type_definition_id_bnf_UNIV
 
 end

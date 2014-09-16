@@ -32,7 +32,9 @@ no_notation
 hide_const (open)
   czero cinfinite cfinite csum cone ctwo Csum cprod cexp image2 image2p vimage2p Gr Grp collect
   fsts snds setl setr convol pick_middlep fstOp sndOp csquare relImage relInvImage Succ Shift
-  shift proj
+  shift proj id_bnf
+
+hide_fact (open) id_bnf_def type_definition_id_bnf_UNIV
 
 no_syntax (xsymbols)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
