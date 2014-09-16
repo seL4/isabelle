@@ -5,10 +5,10 @@
     Author:     Martin Desharnais, TU Muenchen
     Copyright   2012, 2013, 2014
 
-Shared fixed point operations on bounded natural functors.
+Shared fixpoint operations on bounded natural functors.
 *)
 
-header {* Shared Fixed Point Operations on Bounded Natural Functors *}
+header {* Shared Fixpoint Operations on Bounded Natural Functors *}
 
 theory BNF_Fixpoint_Base
 imports BNF_Composition Basic_BNFs

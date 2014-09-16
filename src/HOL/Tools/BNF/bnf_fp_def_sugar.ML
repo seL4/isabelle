@@ -919,8 +919,10 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs_pair),
 
 val transfer_gfp_sugar_thms = morph_gfp_sugar_thms o Morphism.transfer_morphism;
 
-fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
-  | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
+fun unzip_recT (Type (@{type_name prod}, [_, TFree x]))
+      (T as Type (@{type_name prod}, Ts as [_, TFree y])) =
+    if x = y then [T] else Ts
+  | unzip_recT _ (Type (@{type_name prod}, Ts as [_, TFree _])) = Ts
   | unzip_recT _ T = [T];
 
 fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
@@ -1246,8 +1248,13 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
           if T = U then
             x
           else
-            build_map lthy [] (indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
-              (fn kk => fn TU => maybe_tick TU (nth us kk) (nth frecs kk))) (T, U) $ x;
+            let
+              val build_simple =
+                indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
+                  (fn kk => fn TU => maybe_tick TU (nth us kk) (nth frecs kk));
+            in
+              build_map lthy [] build_simple (T, U) $ x
+            end;
 
         val fxsss = map2 (map2 (flat_rec_arg_args oo map2 (map o build_rec))) xsss x_Tssss;
         val goalss = map5 (map4 o mk_goal) frecs xctrss fss xsss fxsss;
@@ -1594,9 +1601,13 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
         fun build_corec cqg =
           let val T = fastype_of cqg in
             if exists_subtype_in Cs T then
-              let val U = mk_U T in
-                build_map lthy [] (indexify fst (map2 (curry mk_sumT) fpTs Cs) (fn kk => fn _ =>
-                  tack (nth cs kk, nth us kk) (nth gcorecs kk))) (T, U) $ cqg
+              let
+                val U = mk_U T;
+                val build_simple =
+                  indexify fst (map2 (curry mk_sumT) fpTs Cs)
+                    (fn kk => fn _ => tack (nth cs kk, nth us kk) (nth gcorecs kk));
+              in
+                build_map lthy [] build_simple (T, U) $ cqg
               end
             else
               cqg
@@ -1975,7 +1986,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
            |>> pair ctr_sugar)
          ##>>
            (if fp = Least_FP then define_rec (the recs_args_types) mk_binding fpTs Cs reps
-           else define_corec (the corecs_args_types) mk_binding fpTs Cs abss) xtor_co_rec
+            else define_corec (the corecs_args_types) mk_binding fpTs Cs abss) xtor_co_rec
          #> massage_res, lthy')
       end;
 

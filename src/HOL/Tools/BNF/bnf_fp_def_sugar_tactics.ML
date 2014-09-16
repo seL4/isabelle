@@ -145,7 +145,8 @@ val rec_unfold_thms =
       case_unit_Unity} @ sumprod_thms_map;
 
 fun mk_rec_tac pre_map_defs map_ident0s rec_defs ctor_rec fp_abs_inverse abs_inverse ctr_def ctxt =
-  unfold_thms_tac ctxt (ctr_def :: ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
+  HEADGOAL (subst_tac ctxt NONE [ctr_def]) THEN
+  unfold_thms_tac ctxt (ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
     pre_map_defs @ map_ident0s @ rec_unfold_thms) THEN HEADGOAL (rtac refl);
 
 val corec_unfold_thms = @{thms id_def} @ sumprod_thms_map;
@@ -194,8 +195,8 @@ fun mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps
 fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' fp_abs_inverses abs_inverses set_maps
     pre_set_defss =
   let val n = Integer.sum ns in
-    unfold_thms_tac ctxt ctr_defs THEN HEADGOAL (rtac ctor_induct') THEN
-    co_induct_inst_as_projs_tac ctxt 0 THEN
+    EVERY (map (fn th => HEADGOAL (subst_asm_tac ctxt NONE [th])) ctr_defs) THEN
+    HEADGOAL (rtac ctor_induct') THEN co_induct_inst_as_projs_tac ctxt 0 THEN
     EVERY (map4 (EVERY oooo map3 o
         mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps)
       pre_set_defss mss (unflat mss (1 upto n)) kkss)

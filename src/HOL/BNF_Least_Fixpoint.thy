@@ -4,10 +4,10 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013, 2014
 
-Least fixed point operation on bounded natural functors.
+Least fixpoint (datatype) operation on bounded natural functors.
 *)
 
-header {* Least Fixed Point Operation on Bounded Natural Functors *}
+header {* Least Fixpoint (Datatype) Operation on Bounded Natural Functors *}
 
 theory BNF_Least_Fixpoint
 imports BNF_Fixpoint_Base
@@ -233,27 +233,6 @@ ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 ML_file "Tools/BNF/bnf_lfp_size.ML"
 ML_file "Tools/Function/old_size.ML"
 ML_file "Tools/datatype_realizer.ML"
-
-lemma size_bool[code]: "size (b\<Colon>bool) = 0"
-  by (cases b) auto
-
-lemma size_nat[simp, code]: "size (n\<Colon>nat) = n"
-  by (induct n) simp_all
-
-declare prod.size[no_atp]
-
-lemma size_sum_o_map: "size_sum g1 g2 \<circ> map_sum f1 f2 = size_sum (g1 \<circ> f1) (g2 \<circ> f2)"
-  by (rule ext) (case_tac x, auto)
-
-lemma size_prod_o_map: "size_prod g1 g2 \<circ> map_prod f1 f2 = size_prod (g1 \<circ> f1) (g2 \<circ> f2)"
-  by (rule ext) auto
-
-setup {*
-BNF_LFP_Size.register_size_global @{type_name sum} @{const_name size_sum} @{thms sum.size}
-  @{thms size_sum_o_map}
-#> BNF_LFP_Size.register_size_global @{type_name prod} @{const_name size_prod} @{thms prod.size}
-  @{thms size_prod_o_map}
-*}
 
 hide_fact (open) id_transfer
 

@@ -2,7 +2,7 @@ header {* Main HOL *}
 
 theory Main
 imports Predicate_Compile Quickcheck_Narrowing Extraction Lifting_Sum Coinduction Nitpick
-  BNF_Greatest_Fixpoint Old_Datatype
+  Basic_BNF_Least_Fixpoints BNF_Greatest_Fixpoint Old_Datatype
 begin
 
 text {*

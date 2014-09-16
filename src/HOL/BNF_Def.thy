@@ -48,16 +48,16 @@ lemma predicate2_transferD:
   unfolding rel_fun_def by (blast dest!: Collect_splitD)
 
 definition collect where
-"collect F x = (\<Union>f \<in> F. f x)"
+  "collect F x = (\<Union>f \<in> F. f x)"
 
 lemma fstI: "x = (y, z) \<Longrightarrow> fst x = y"
-by simp
+  by simp
 
 lemma sndI: "x = (y, z) \<Longrightarrow> snd x = z"
-by simp
+  by simp
 
 lemma bijI': "\<lbrakk>\<And>x y. (f x = f y) = (x = y); \<And>y. \<exists>x. y = f x\<rbrakk> \<Longrightarrow> bij f"
-unfolding bij_def inj_on_def by auto blast
+  unfolding bij_def inj_on_def by auto blast
 
 (* Operator: *)
 definition "Gr A f = {(a, f a) | a. a \<in> A}"
@@ -71,27 +71,25 @@ lemma collect_comp: "collect F \<circ> g = collect ((\<lambda>f. f \<circ> g) ` 
   by (rule ext) (auto simp only: comp_apply collect_def)
 
 definition convol ("\<langle>(_,/ _)\<rangle>") where
-"\<langle>f, g\<rangle> \<equiv> \<lambda>a. (f a, g a)"
+  "\<langle>f, g\<rangle> \<equiv> \<lambda>a. (f a, g a)"
 
-lemma fst_convol:
-"fst \<circ> \<langle>f, g\<rangle> = f"
-apply(rule ext)
-unfolding convol_def by simp
+lemma fst_convol: "fst \<circ> \<langle>f, g\<rangle> = f"
+  apply(rule ext)
+  unfolding convol_def by simp
 
-lemma snd_convol:
-"snd \<circ> \<langle>f, g\<rangle> = g"
-apply(rule ext)
-unfolding convol_def by simp
+lemma snd_convol: "snd \<circ> \<langle>f, g\<rangle> = g"
+  apply(rule ext)
+  unfolding convol_def by simp
 
 lemma convol_mem_GrpI:
-"x \<in> A \<Longrightarrow> \<langle>id, g\<rangle> x \<in> (Collect (split (Grp A g)))"
-unfolding convol_def Grp_def by auto
+  "x \<in> A \<Longrightarrow> \<langle>id, g\<rangle> x \<in> (Collect (split (Grp A g)))"
+  unfolding convol_def Grp_def by auto
 
 definition csquare where
-"csquare A f1 f2 p1 p2 \<longleftrightarrow> (\<forall> a \<in> A. f1 (p1 a) = f2 (p2 a))"
+  "csquare A f1 f2 p1 p2 \<longleftrightarrow> (\<forall> a \<in> A. f1 (p1 a) = f2 (p2 a))"
 
 lemma eq_alt: "op = = Grp UNIV id"
-unfolding Grp_def by auto
+  unfolding Grp_def by auto
 
 lemma leq_conversepI: "R = op = \<Longrightarrow> R \<le> R^--1"
   by auto
@@ -103,83 +101,82 @@ lemma OO_Grp_alt: "(Grp A f)^--1 OO Grp A g = (\<lambda>x y. \<exists>z. z \<in>
   unfolding Grp_def by auto
 
 lemma Grp_UNIV_id: "f = id \<Longrightarrow> (Grp UNIV f)^--1 OO Grp UNIV f = Grp UNIV f"
-unfolding Grp_def by auto
+  unfolding Grp_def by auto
 
 lemma Grp_UNIV_idI: "x = y \<Longrightarrow> Grp UNIV id x y"
-unfolding Grp_def by auto
+  unfolding Grp_def by auto
 
 lemma Grp_mono: "A \<le> B \<Longrightarrow> Grp A f \<le> Grp B f"
-unfolding Grp_def by auto
+  unfolding Grp_def by auto
 
 lemma GrpI: "\<lbrakk>f x = y; x \<in> A\<rbrakk> \<Longrightarrow> Grp A f x y"
-unfolding Grp_def by auto
+  unfolding Grp_def by auto
 
 lemma GrpE: "Grp A f x y \<Longrightarrow> (\<lbrakk>f x = y; x \<in> A\<rbrakk> \<Longrightarrow> R) \<Longrightarrow> R"
-unfolding Grp_def by auto
+  unfolding Grp_def by auto
 
 lemma Collect_split_Grp_eqD: "z \<in> Collect (split (Grp A f)) \<Longrightarrow> (f \<circ> fst) z = snd z"
-unfolding Grp_def comp_def by auto
+  unfolding Grp_def comp_def by auto
 
 lemma Collect_split_Grp_inD: "z \<in> Collect (split (Grp A f)) \<Longrightarrow> fst z \<in> A"
-unfolding Grp_def comp_def by auto
+  unfolding Grp_def comp_def by auto
 
 definition "pick_middlep P Q a c = (SOME b. P a b \<and> Q b c)"
 
 lemma pick_middlep:
-"(P OO Q) a c \<Longrightarrow> P a (pick_middlep P Q a c) \<and> Q (pick_middlep P Q a c) c"
-unfolding pick_middlep_def apply(rule someI_ex) by auto
+  "(P OO Q) a c \<Longrightarrow> P a (pick_middlep P Q a c) \<and> Q (pick_middlep P Q a c) c"
+  unfolding pick_middlep_def apply(rule someI_ex) by auto
 
-definition fstOp where "fstOp P Q ac = (fst ac, pick_middlep P Q (fst ac) (snd ac))"
-definition sndOp where "sndOp P Q ac = (pick_middlep P Q (fst ac) (snd ac), (snd ac))"
+definition fstOp where
+  "fstOp P Q ac = (fst ac, pick_middlep P Q (fst ac) (snd ac))"
+
+definition sndOp where
+  "sndOp P Q ac = (pick_middlep P Q (fst ac) (snd ac), (snd ac))"
 
 lemma fstOp_in: "ac \<in> Collect (split (P OO Q)) \<Longrightarrow> fstOp P Q ac \<in> Collect (split P)"
-unfolding fstOp_def mem_Collect_eq
-by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct1])
+  unfolding fstOp_def mem_Collect_eq
+  by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct1])
 
 lemma fst_fstOp: "fst bc = (fst \<circ> fstOp P Q) bc"
-unfolding comp_def fstOp_def by simp
+  unfolding comp_def fstOp_def by simp
 
 lemma snd_sndOp: "snd bc = (snd \<circ> sndOp P Q) bc"
-unfolding comp_def sndOp_def by simp
+  unfolding comp_def sndOp_def by simp
 
 lemma sndOp_in: "ac \<in> Collect (split (P OO Q)) \<Longrightarrow> sndOp P Q ac \<in> Collect (split Q)"
-unfolding sndOp_def mem_Collect_eq
-by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct2])
+  unfolding sndOp_def mem_Collect_eq
+  by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct2])
 
 lemma csquare_fstOp_sndOp:
-"csquare (Collect (split (P OO Q))) snd fst (fstOp P Q) (sndOp P Q)"
-unfolding csquare_def fstOp_def sndOp_def using pick_middlep by simp
+  "csquare (Collect (split (P OO Q))) snd fst (fstOp P Q) (sndOp P Q)"
+  unfolding csquare_def fstOp_def sndOp_def using pick_middlep by simp
 
 lemma snd_fst_flip: "snd xy = (fst \<circ> (%(x, y). (y, x))) xy"
-by (simp split: prod.split)
+  by (simp split: prod.split)
 
 lemma fst_snd_flip: "fst xy = (snd \<circ> (%(x, y). (y, x))) xy"
-by (simp split: prod.split)
+  by (simp split: prod.split)
 
 lemma flip_pred: "A \<subseteq> Collect (split (R ^--1)) \<Longrightarrow> (%(x, y). (y, x)) ` A \<subseteq> Collect (split R)"
-by auto
+  by auto
 
 lemma Collect_split_mono: "A \<le> B \<Longrightarrow> Collect (split A) \<subseteq> Collect (split B)"
   by auto
 
 lemma Collect_split_mono_strong: 
   "\<lbrakk>X = fst ` A; Y = snd ` A; \<forall>a\<in>X. \<forall>b \<in> Y. P a b \<longrightarrow> Q a b; A \<subseteq> Collect (split P)\<rbrakk> \<Longrightarrow>
-  A \<subseteq> Collect (split Q)"
+   A \<subseteq> Collect (split Q)"
   by fastforce
 
 
 lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
-by simp
+  by simp
 
-lemma case_sum_o_inj:
-"case_sum f g \<circ> Inl = f"
-"case_sum f g \<circ> Inr = g"
-by auto
+lemma case_sum_o_inj: "case_sum f g \<circ> Inl = f" "case_sum f g \<circ> Inr = g"
+  by auto
 
-lemma map_sum_o_inj:
-"map_sum f g o Inl = Inl o f"
-"map_sum f g o Inr = Inr o g"
-by auto
+lemma map_sum_o_inj: "map_sum f g o Inl = Inl o f" "map_sum f g o Inr = Inr o g"
+  by auto
 
 lemma card_order_csum_cone_cexp_def:
   "card_order r \<Longrightarrow> ( |A1| +c cone) ^c r = |Func UNIV (Inl ` A1 \<union> {Inr ()})|"
@@ -187,13 +184,12 @@ lemma card_order_csum_cone_cexp_def:
 
 lemma If_the_inv_into_in_Func:
   "\<lbrakk>inj_on g C; C \<subseteq> B \<union> {x}\<rbrakk> \<Longrightarrow>
-  (\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) \<in> Func UNIV (B \<union> {x})"
-unfolding Func_def by (auto dest: the_inv_into_into)
+   (\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) \<in> Func UNIV (B \<union> {x})"
+  unfolding Func_def by (auto dest: the_inv_into_into)
 
 lemma If_the_inv_into_f_f:
-  "\<lbrakk>i \<in> C; inj_on g C\<rbrakk> \<Longrightarrow>
-  ((\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) \<circ> g) i = id i"
-unfolding Func_def by (auto elim: the_inv_into_f_f)
+  "\<lbrakk>i \<in> C; inj_on g C\<rbrakk> \<Longrightarrow> ((\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) \<circ> g) i = id i"
+  unfolding Func_def by (auto elim: the_inv_into_f_f)
 
 lemma the_inv_f_o_f_id: "inj f \<Longrightarrow> (the_inv f \<circ> f) z = id z"
   by (simp add: the_inv_f_f)
@@ -212,6 +208,9 @@ lemma vimage2p_Grp: "vimage2p f g P = Grp UNIV f OO P OO (Grp UNIV g)\<inverse>\
 
 lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a) (snd a)"
   by simp
+
+lemma comp_apply_eq: "f (g x) = h (k x) \<Longrightarrow> (f \<circ> g) x = (h \<circ> k) x"
+  unfolding comp_apply by assumption
 
 ML_file "Tools/BNF/bnf_util.ML"
 ML_file "Tools/BNF/bnf_tactics.ML"

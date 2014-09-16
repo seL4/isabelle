@@ -331,28 +331,31 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
                   |> force_typ names_lthy smapT
                   |> hidden_to_unit;
                 val smap_argTs = strip_typeN live (fastype_of smap) |> fst;
-                fun mk_smap_arg TU =
-                  (if domain_type TU = range_type TU then
-                    HOLogic.id_const (domain_type TU)
+                fun mk_smap_arg T_to_U =
+                  (if domain_type T_to_U = range_type T_to_U then
+                    HOLogic.id_const (domain_type T_to_U)
                   else
                     let
-                      val (TY, (U, X)) = TU |> dest_co_algT ||> dest_co_productT;
+                      val (TY, (U, X)) = T_to_U |> dest_co_algT ||> dest_co_productT;
                       val T = mk_co_algT TY U;
-                      fun mk_co_proj TU = build_map lthy [] (fn TU =>
-                        let
-                          val ((T1, T2), U) = TU |> co_swap |>> dest_co_productT
-                        in
-                          if T1 = U then co_proj1_const TU
-                          else mk_co_comp (mk_co_proj (co_swap (T1, U)),
-                            co_proj1_const (co_swap (mk_co_productT T1 T2, T1)))
-                        end) TU;
+                      fun mk_co_proj TU =
+                        build_map lthy [] (fn TU =>
+                          let val ((T1, T2), U) = TU |> co_swap |>> dest_co_productT in
+                            if T1 = U then co_proj1_const TU
+                            else mk_co_comp (mk_co_proj (co_swap (T1, U)),
+                              co_proj1_const (co_swap (mk_co_productT T1 T2, T1)))
+                          end)
+                          TU;
+                      fun default () =
+                        mk_co_product (mk_co_proj (dest_funT T))
+                          (fst (fst (mk_rec NONE recs lthy (mk_co_algT TY X))));
                     in
-                      if not (can dest_co_productT TY)
-                      then mk_co_product (mk_co_proj (dest_funT T))
-                        (fst (fst (mk_rec NONE recs lthy (mk_co_algT TY X))))
-                      else mk_map_co_product
-                        (mk_co_proj (co_swap (dest_co_productT TY |> fst, U)))
-                        (HOLogic.id_const X)
+                      if can dest_co_productT TY then
+                        mk_map_co_product (mk_co_proj (co_swap (dest_co_productT TY |> fst, U)))
+                          (HOLogic.id_const X)
+                        handle TYPE _ => default () (*N2M involving "prod" type*)
+                      else
+                        default ()
                     end)
                 val smap_args = map mk_smap_arg smap_argTs;
               in
@@ -441,8 +444,9 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
         val Rep_o_Abss = maps mk_Rep_o_Abs type_definitions;
 
         fun tac {context = ctxt, prems = _} =
-          unfold_thms_tac ctxt (flat [rec_thms, raw_co_rec_defs, pre_map_defs, fp_pre_map_defs,
-            fp_xtor_co_recs, fp_rec_o_maps, map_thms, fp_Rep_o_Abss, Rep_o_Abss]) THEN
+          unfold_thms_tac ctxt (flat [rec_thms, raw_co_rec_defs, pre_map_defs,
+            fp_pre_map_defs, fp_xtor_co_recs, fp_rec_o_maps, map_thms, fp_Rep_o_Abss,
+            Rep_o_Abss]) THEN
           CONJ_WRAP (K (HEADGOAL (rtac refl))) bnfs;
       in
         Library.foldr1 HOLogic.mk_conj goals

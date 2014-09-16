@@ -12,6 +12,7 @@ sig
 
   val fo_rtac: thm -> Proof.context -> int -> tactic
   val subst_tac: Proof.context -> int list option -> thm list -> int -> tactic
+  val subst_asm_tac: Proof.context -> int list option -> thm list -> int -> tactic
 
   val mk_rotate_eq_tac: (int -> tactic) -> thm -> thm -> thm -> thm -> ''a list -> ''a list ->
     int -> tactic
@@ -44,14 +45,20 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
 
 (*unlike "unfold_thms_tac", it succeed when the RHS contains schematic variables not in the LHS*)
 fun subst_tac ctxt = EqSubst.eqsubst_tac ctxt o the_default [0];
+fun subst_asm_tac ctxt = EqSubst.eqsubst_asm_tac ctxt o the_default [0];
+
 
 (*transforms f (g x) = h (k x) into f o g = h o k using first order matches for f, g, h, and k*)
 fun mk_pointfree ctxt thm = thm
-  |> Thm.prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
+  |> Drule.zero_var_indexes
+  |> Thm.prop_of
+  |> Logic.unvarify_global
+  |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
   |> pairself (dest_comb #> apsnd (dest_comb #> fst) #> HOLogic.mk_comp)
   |> mk_Trueprop_eq
   |> (fn goal => Goal.prove_sorry ctxt [] [] goal
-    (K (rtac @{thm ext} 1 THEN unfold_thms_tac ctxt [o_apply, mk_sym thm] THEN rtac refl 1)))
+    (K (rtac ext 1 THEN rtac @{thm comp_apply_eq} 1 THEN rtac thm 1)))
+  |> Drule.export_without_context
   |> Thm.close_derivation;
 
 

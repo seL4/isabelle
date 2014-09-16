@@ -583,12 +583,12 @@ fun mk_rel live Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
-fun build_map_or_rel mk const of_bnf dest pre_cst_table  ctxt simpleTs build_simple =
+fun build_map_or_rel mk const of_bnf dest pre_cst_table ctxt simple_Ts build_simple =
   let
     fun build (TU as (T, U)) =
-      if exists (curry (op =) T) simpleTs then
+      if exists (curry (op =) T) simple_Ts then
         build_simple TU
-      else if T = U andalso not (exists_subtype_in simpleTs T) then
+      else if T = U andalso not (exists_subtype_in simple_Ts T) then
         const T
       else
         (case TU of
@@ -602,7 +602,8 @@ fun build_map_or_rel mk const of_bnf dest pre_cst_table  ctxt simpleTs build_sim
               val cst = mk live Ts Us cst0;
               val TUs' = map dest (fst (strip_typeN live (fastype_of cst)));
             in Term.list_comb (cst, map build TUs') end
-          else build_simple TU
+          else
+            build_simple TU
         | _ => build_simple TU);
   in build end;
 

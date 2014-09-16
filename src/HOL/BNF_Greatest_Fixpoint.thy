@@ -4,10 +4,10 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013, 2014
 
-Greatest fixed point operation on bounded natural functors.
+Greatest fixpoint (codatatype) operation on bounded natural functors.
 *)
 
-header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
+header {* Greatest Fixpoint (Codatatype) Operation on Bounded Natural Functors *}
 
 theory BNF_Greatest_Fixpoint
 imports BNF_Fixpoint_Base String
