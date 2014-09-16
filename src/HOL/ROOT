@@ -755,10 +755,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Misc_Primrec
   theories [condition = ISABELLE_FULL_TEST, timing]
     Brackin
-    Instructions
     IsaFoR
-    SML
-    Verilog
 
 session "HOL-Word" (main) in Word = HOL +
   options [document_graph]
