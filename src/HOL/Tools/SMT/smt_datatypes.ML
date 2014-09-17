@@ -15,21 +15,30 @@ end;
 structure SMT_Datatypes: SMT_DATATYPES =
 struct
 
-fun mk_selectors T Ts =
-  Variable.variant_fixes (replicate (length Ts) "select")
-  #>> map2 (fn U => fn n => Free (n, T --> U)) Ts
+fun mk_selectors T Ts sels =
+  if null sels then
+    Variable.variant_fixes (replicate (length Ts) "select")
+    #>> map2 (fn U => fn n => Free (n, T --> U)) Ts
+  else
+    pair sels
 
 
 (* free constructor type declarations *)
 
-fun get_ctr_sugar_decl ({ctrs, ...} : Ctr_Sugar.ctr_sugar) T Ts ctxt =
+fun get_ctr_sugar_decl ({ctrs = ctrs0, selss = selss0, ...} : Ctr_Sugar.ctr_sugar) T Ts ctxt =
   let
-    fun mk_constr ctr0 =
-      let val ctr = Ctr_Sugar.mk_ctr Ts ctr0 in
-        mk_selectors T (binder_types (fastype_of ctr)) #>> pair ctr
+    fun mk_constr ctr0 sels0 =
+      let
+        val sels = map (Ctr_Sugar.mk_disc_or_sel Ts) sels0
+        val ctr = Ctr_Sugar.mk_ctr Ts ctr0
+        val binder_Ts = binder_types (fastype_of ctr)
+      in
+        mk_selectors T binder_Ts sels #>> pair ctr
       end
+
+    val selss = if has_duplicates (op aconv) (flat selss0) then [] else selss0
   in
-    fold_map mk_constr ctrs ctxt
+    Ctr_Sugar_Util.fold_map2 mk_constr ctrs0 (Ctr_Sugar_Util.pad_list [] (length ctrs0) selss) ctxt
     |>> (pair T #> single)
   end
 
