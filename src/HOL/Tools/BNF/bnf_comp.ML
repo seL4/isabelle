@@ -837,7 +837,8 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
       rtac (le_rel_OO_of_bnf bnf RS @{thm vimage2p_relcompp_mono}) 1;
     fun rel_OO_Grp_tac ctxt =
       (rtac (rel_OO_Grp_of_bnf bnf RS @{thm vimage2p_cong} RS trans) THEN'
-       subst_tac ctxt NONE [type_definition RS @{thm vimage2p_relcompp_converse}] THEN'
+       (if has_live_phantoms then subst_tac ctxt NONE else SELECT_GOAL o unfold_thms_tac ctxt)
+         [type_definition RS @{thm vimage2p_relcompp_converse}] THEN'
        SELECT_GOAL (unfold_thms_tac ctxt [o_apply,
          type_definition RS @{thm type_copy_vimage2p_Grp_Rep},
          type_definition RS @{thm vimage2p_relcompp_converse}]) THEN'

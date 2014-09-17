@@ -68,6 +68,11 @@ val basic_sumprod_thms_set =
 val sumprod_thms_set = @{thms UN_simps(10) image_iff} @ basic_sumprod_thms_set;
 val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_apply prod.inject id_apply conj_assoc};
 
+fun is_def_looping def =
+  (case Thm.prop_of def of
+    Const (@{const_name Pure.eq}, _) $ lhs $ rhs => Term.exists_subterm (curry (op =) lhs) rhs
+  | _ => false);
+
 fun hhf_concl_conv cv ctxt ct =
   (case Thm.term_of ct of
     Const (@{const_name Pure.all}, _) $ Abs _ =>
@@ -145,7 +150,8 @@ val rec_unfold_thms =
       case_unit_Unity} @ sumprod_thms_map;
 
 fun mk_rec_tac pre_map_defs map_ident0s rec_defs ctor_rec fp_abs_inverse abs_inverse ctr_def ctxt =
-  HEADGOAL (subst_tac ctxt NONE [ctr_def]) THEN
+  HEADGOAL ((if is_def_looping ctr_def then subst_tac ctxt NONE
+    else SELECT_GOAL o unfold_thms_tac ctxt) [ctr_def]) THEN
   unfold_thms_tac ctxt (ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
     pre_map_defs @ map_ident0s @ rec_unfold_thms) THEN HEADGOAL (rtac refl);
 
@@ -195,7 +201,10 @@ fun mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps
 fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' fp_abs_inverses abs_inverses set_maps
     pre_set_defss =
   let val n = Integer.sum ns in
-    EVERY (map (fn th => HEADGOAL (subst_asm_tac ctxt NONE [th])) ctr_defs) THEN
+    (if exists is_def_looping ctr_defs then
+       EVERY (map (fn def => HEADGOAL (subst_asm_tac ctxt NONE [def])) ctr_defs)
+     else
+       unfold_thms_tac ctxt ctr_defs) THEN
     HEADGOAL (rtac ctor_induct') THEN co_induct_inst_as_projs_tac ctxt 0 THEN
     EVERY (map4 (EVERY oooo map3 o
         mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps)
