@@ -61,9 +61,6 @@ fun get_typedef_decl (({Abs_name, Rep_name, abs_type, rep_type, ...}, {Abs_inver
 
 (* collection of declarations *)
 
-fun declared declss T = exists (exists (equal T o fst)) declss
-fun declared' dss T = exists (exists (equal T o fst) o snd) dss
-
 (* Simplification: We assume that every type that is not a codatatype is a datatype (or a
    record). *)
 fun fp_kind_of ctxt n =
@@ -79,14 +76,16 @@ fun get_decls fp T n Ts ctxt =
       | info :: _ => (get_typedef_decl info T Ts, ctxt))
   in
     (case Ctr_Sugar.ctr_sugar_of ctxt n of
-      SOME ctr_sugar =>
+      SOME (ctr_sugar as {T = U as Type (_, Us), ...}) =>
       if fp_kind_of ctxt n = fp then get_ctr_sugar_decl ctr_sugar T Ts ctxt else fallback ()
     | NONE => fallback ())
   end
 
 fun add_decls fp T (declss, ctxt) =
   let
-    fun depends Ts ds = exists (member (op =) (map fst ds)) Ts
+    fun declared T = exists (exists (equal T o fst))
+    fun declared' T = exists (exists (equal T o fst) o snd)
+    fun depends ds = exists (member (op =) (map fst ds))
 
     fun add (TFree _) = I
       | add (TVar _) = I
@@ -94,7 +93,7 @@ fun add_decls fp T (declss, ctxt) =
           fold add (Term.body_type T :: Term.binder_types T)
       | add @{typ bool} = I
       | add (T as Type (n, Ts)) = (fn (dss, ctxt1) =>
-          if declared declss T orelse declared' dss T then (dss, ctxt1)
+          if declared T declss orelse declared' T dss then (dss, ctxt1)
           else if SMT_Builtin.is_builtin_typ_ext ctxt1 T then (dss, ctxt1)
           else
             (case get_decls fp T n Ts ctxt1 of
@@ -106,8 +105,7 @@ fun add_decls fp T (declss, ctxt) =
 
                   fun ins [] = [(Us, ds)]
                     | ins ((Uds as (Us', _)) :: Udss) =
-                        if depends Us' ds then (Us, ds) :: Uds :: Udss
-                        else Uds :: ins Udss
+                        if depends ds Us' then (Us, ds) :: Uds :: Udss else Uds :: ins Udss
             in fold add Us (ins dss, ctxt2) end))
   in add T ([], ctxt) |>> append declss o map snd end
 
