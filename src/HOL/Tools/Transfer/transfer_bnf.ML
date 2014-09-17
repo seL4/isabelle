@@ -271,28 +271,32 @@ fun predicator bnf lthy =
     val relator_domain_attr = @{attributes [relator_domain]}
     val notes = [((Domainp_rel_thm_name, []), [([Domainp_rel], relator_domain_attr)]),
       ((rel_eq_onp_thm_name, []), [([rel_eq_onp], [])])]
-    val lthy = Local_Theory.declaration {syntax = false, pervasive = true}
-      (fn phi => Transfer.update_pred_data type_name (Transfer.morph_pred_data phi pred_data)) lthy
   in
-    (notes, lthy)
+    lthy
+    |> Local_Theory.notes notes
+    |> snd
+    |> Local_Theory.declaration {syntax = false, pervasive = true}
+      (fn phi => Transfer.update_pred_data type_name (Transfer.morph_pred_data phi pred_data))
+    |> Local_Theory.restore
   end
 
 (* BNF interpretation *)
 
 fun transfer_bnf_interpretation bnf lthy =
   let
-    val constr_notes = if dead_of_bnf bnf > 0 then []
-      else prove_relation_constraints bnf lthy
-    val relator_eq_notes = if dead_of_bnf bnf > 0 then []
-      else relator_eq bnf
-    val (pred_notes, lthy) = predicator bnf lthy
+    val dead = dead_of_bnf bnf
+    val constr_notes = if dead > 0 then [] else prove_relation_constraints bnf lthy
+    val relator_eq_notes = if dead > 0 then [] else relator_eq bnf
   in
-    snd (Local_Theory.notes (constr_notes @ relator_eq_notes @ pred_notes) lthy)
+    lthy
+    |> Local_Theory.notes (constr_notes @ relator_eq_notes)
+    |> snd
+    |> predicator bnf
   end
 
 val _ = Theory.setup (bnf_interpretation transfer_plugin
   (bnf_only_type_ctr (BNF_Util.map_local_theory o transfer_bnf_interpretation))
-  (bnf_only_type_ctr (transfer_bnf_interpretation)))
+  (bnf_only_type_ctr transfer_bnf_interpretation))
 
 (* simplification rules for the predicator *)
 
