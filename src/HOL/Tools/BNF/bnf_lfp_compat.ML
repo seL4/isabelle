@@ -332,8 +332,15 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
   end;
 
 fun infos_of_new_datatype_mutual_cluster lthy prefs fpT_name =
-  #5 (mk_infos_of_mutually_recursive_new_datatypes prefs subset [fpT_name] lthy)
-  handle ERROR _ => [];
+  let
+    fun get prefs =
+      #5 (mk_infos_of_mutually_recursive_new_datatypes prefs subset [fpT_name] lthy)
+      handle ERROR _ => [];
+  in
+    (case get prefs of
+      [] => if member (op =) prefs Keep_Nesting then [] else get (Keep_Nesting :: prefs)
+    | infos => infos)
+  end;
 
 fun get_all thy prefs =
   let

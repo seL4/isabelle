@@ -41,11 +41,11 @@ ML {* get_descrs @{theory} (1, 1, 1) @{type_name lst} *}
 
 datatype 'b w = W | W' "'b w \<times> 'b list"
 
-(* no support for sums of products:
-datatype_compat w
-*)
-
 ML {* get_descrs @{theory} (0, 1, 1) @{type_name w} *}
+
+datatype_compat w
+
+ML {* get_descrs @{theory} (2, 2, 1) @{type_name w} *}
 
 datatype ('c, 'b) s = L 'c | R 'b
 
