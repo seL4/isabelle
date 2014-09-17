@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 
 Collector functions for common type declarations and their representation
-as algebraic datatypes.
+as (co)algebraic datatypes.
 *)
 
 signature SMT_DATATYPES =
@@ -55,13 +55,25 @@ fun get_typedef_decl (({Abs_name, Rep_name, abs_type, rep_type, ...}, {Abs_inver
 fun declared declss T = exists (exists (equal T o fst)) declss
 fun declared' dss T = exists (exists (equal T o fst) o snd) dss
 
-fun get_decls T n Ts ctxt =
-  (case Ctr_Sugar.ctr_sugar_of ctxt n of
-    SOME ctr_sugar => get_ctr_sugar_decl ctr_sugar T Ts ctxt
-  | NONE =>
+(* Simplification: We assume that every type that is not a codatatype is a datatype (or a
+   record). *)
+fun fp_kind_of ctxt n =
+  (case BNF_FP_Def_Sugar.fp_sugar_of ctxt n of
+    SOME {fp, ...} => fp
+  | NONE => BNF_Util.Least_FP)
+
+fun get_decls fp T n Ts ctxt =
+  let
+    fun fallback () =
       (case Typedef.get_info ctxt n of
         [] => ([], ctxt)
-      | info :: _ => (get_typedef_decl info T Ts, ctxt)))
+      | info :: _ => (get_typedef_decl info T Ts, ctxt))
+  in
+    (case Ctr_Sugar.ctr_sugar_of ctxt n of
+      SOME ctr_sugar =>
+      if fp_kind_of ctxt n = fp then get_ctr_sugar_decl ctr_sugar T Ts ctxt else fallback ()
+    | NONE => fallback ())
+  end
 
 fun add_decls fp T (declss, ctxt) =
   let
@@ -76,7 +88,7 @@ fun add_decls fp T (declss, ctxt) =
           if declared declss T orelse declared' dss T then (dss, ctxt1)
           else if SMT_Builtin.is_builtin_typ_ext ctxt1 T then (dss, ctxt1)
           else
-            (case get_decls T n Ts ctxt1 of
+            (case get_decls fp T n Ts ctxt1 of
               ([], _) => (dss, ctxt1)
             | (ds, ctxt2) =>
                 let
