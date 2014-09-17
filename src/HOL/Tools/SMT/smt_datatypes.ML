@@ -7,7 +7,7 @@ as algebraic datatypes.
 
 signature SMT_DATATYPES =
 sig
-  val add_decls: typ ->
+  val add_decls: BNF_Util.fp_kind -> typ ->
     (typ * (term * term list) list) list list * Proof.context ->
     (typ * (term * term list) list) list list * Proof.context
 end;
@@ -63,7 +63,7 @@ fun get_decls T n Ts ctxt =
         [] => ([], ctxt)
       | info :: _ => (get_typedef_decl info T Ts, ctxt)))
 
-fun add_decls T (declss, ctxt) =
+fun add_decls fp T (declss, ctxt) =
   let
     fun depends Ts ds = exists (member (op =) (map fst ds)) Ts
 

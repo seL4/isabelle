@@ -153,7 +153,7 @@ fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
 
 fun translate_config ctxt = {
   logic = choose_logic ctxt,
-  has_datatypes = false,
+  fp_kinds = [],
   serialize = serialize}
 
 val _ = Theory.setup (Context.theory_map

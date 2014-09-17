@@ -112,15 +112,16 @@ ML_file "Tools/SMT/smtlib_isar.ML"
 ML_file "Tools/SMT/z3_proof.ML"
 ML_file "Tools/SMT/z3_isar.ML"
 ML_file "Tools/SMT/smt_solver.ML"
+ML_file "Tools/SMT/cvc4_interface.ML"
+ML_file "Tools/SMT/verit_proof.ML"
+ML_file "Tools/SMT/verit_isar.ML"
+ML_file "Tools/SMT/verit_proof_parse.ML"
 ML_file "Tools/SMT/z3_interface.ML"
 ML_file "Tools/SMT/z3_replay_util.ML"
 ML_file "Tools/SMT/z3_replay_literals.ML"
 ML_file "Tools/SMT/z3_replay_rules.ML"
 ML_file "Tools/SMT/z3_replay_methods.ML"
 ML_file "Tools/SMT/z3_replay.ML"
-ML_file "Tools/SMT/verit_proof.ML"
-ML_file "Tools/SMT/verit_isar.ML"
-ML_file "Tools/SMT/verit_proof_parse.ML"
 ML_file "Tools/SMT/smt_systems.ML"
 
 method_setup smt = {*
@@ -194,6 +195,14 @@ in the SMT solver). To turn it on, set the following option.
 *}
 
 declare [[smt_infer_triggers = false]]
+
+text {*
+Enable the following option to use built-in support for datatypes,
+codatatypes, and records in CVC4. Currently, this is implemented only
+in oracle mode.
+*}
+
+declare [[cvc4_extensions = false]]
 
 text {*
 Enable the following option to use built-in support for div/mod, datatypes,

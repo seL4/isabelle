@@ -31,7 +31,7 @@ val smtlib_z3C = SMTLIB_Interface.smtlibC @ ["z3"]
 
 local
   fun translate_config ctxt =
-    {logic = K "", has_datatypes = true,
+    {logic = K "", fp_kinds = [BNF_Util.Least_FP],
      serialize = #serialize (SMTLIB_Interface.translate_config ctxt)}
 
   fun is_div_mod @{const div (int)} = true

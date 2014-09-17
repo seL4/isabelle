@@ -23,7 +23,7 @@ sig
     funcs: (string * (string list * string)) list }
   type config = {
     logic: term list -> string,
-    has_datatypes: bool,
+    fp_kinds: BNF_Util.fp_kind list,
     serialize: (string * string) list -> string list -> sign -> sterm list -> string }
   type replay_data = {
     context: Proof.context,
@@ -66,7 +66,7 @@ type sign = {
 
 type config = {
   logic: term list -> string,
-  has_datatypes: bool,
+  fp_kinds: BNF_Util.fp_kind list,
   serialize: (string * string) list -> string list -> sign -> sterm list -> string }
 
 type replay_data = {
@@ -139,7 +139,8 @@ fun replay_data_of ctxt ll_defs rules assms (_, typs, terms) =
 
 fun collect_datatypes_and_records (tr_context, ctxt) ts =
   let
-    val (declss, ctxt') = fold (Term.fold_types SMT_Datatypes.add_decls) ts ([], ctxt)
+    val (declss, ctxt') =
+      fold (Term.fold_types (SMT_Datatypes.add_decls BNF_Util.Least_FP)) ts ([], ctxt)
 
     fun is_decl_typ T = exists (exists (equal T o fst)) declss
 
@@ -478,7 +479,7 @@ fun get_config ctxt =
 
 fun translate ctxt smt_options comments ithms =
   let
-    val {logic, has_datatypes, serialize} = get_config ctxt
+    val {logic, fp_kinds, serialize} = get_config ctxt
 
     fun no_dtyps (tr_context, ctxt) ts =
       ((Termtab.empty, [], tr_context, ctxt), ts)
@@ -487,7 +488,8 @@ fun translate ctxt smt_options comments ithms =
 
     val ((funcs, dtyps, tr_context, ctxt1), ts2) =
       ((empty_tr_context, ctxt), ts1)
-      |-> (if has_datatypes then collect_datatypes_and_records else no_dtyps)
+      |-> (if member (op =) fp_kinds BNF_Util.Least_FP then collect_datatypes_and_records
+        else no_dtyps)
 
     fun is_binder (Const (@{const_name Let}, _) $ _) = true
       | is_binder t = Lambda_Lifting.is_quantifier t

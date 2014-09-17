@@ -66,16 +66,22 @@ end
 
 (* CVC4 *)
 
+val cvc4_extensions = Attrib.setup_config_bool @{binding cvc4_extensions} (K false)
+
 local
   fun cvc4_options ctxt = [
     "--random-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
     "--lang=smt2",
     "--tlimit", string_of_int (Real.ceil (1000.0 * Config.get ctxt SMT_Config.timeout))]
+
+  fun select_class ctxt =
+    if Config.get ctxt cvc4_extensions then CVC4_Interface.smtlib_cvc4C
+    else SMTLIB_Interface.smtlibC
 in
 
 val cvc4: SMT_Solver.solver_config = {
   name = "cvc4",
-  class = K SMTLIB_Interface.smtlibC,
+  class = select_class,
   avail = make_avail "CVC4",
   command = make_command "CVC4",
   options = cvc4_options,
