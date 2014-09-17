@@ -173,7 +173,7 @@ fun assoc_ty_err thy T s msg =
 
 fun add_enum_type tyname tyname' thy =
   let
-    val {case_name, ...} = the (BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Keep_Nesting tyname');
+    val {case_name, ...} = the (BNF_LFP_Compat.get_info thy [BNF_LFP_Compat.Keep_Nesting] tyname');
     val cs = map Const (the (BNF_LFP_Compat.get_constrs thy tyname'));
     val k = length cs;
     val T = Type (tyname', []);
@@ -210,7 +210,7 @@ fun add_enum_type tyname tyname' thy =
          rtac @{thm subset_antisym} 1 THEN
          rtac @{thm subsetI} 1 THEN
          Old_Datatype_Aux.exh_tac (K (#exhaust (BNF_LFP_Compat.the_info
-           (Proof_Context.theory_of lthy) BNF_LFP_Compat.Keep_Nesting tyname'))) 1 THEN
+           (Proof_Context.theory_of lthy) [BNF_LFP_Compat.Keep_Nesting] tyname'))) 1 THEN
          ALLGOALS (asm_full_simp_tac lthy));
 
     val finite_UNIV = Goal.prove lthy [] []
@@ -320,7 +320,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
                 val tyname = Sign.full_name thy tyb
               in
                 (thy |>
-                 BNF_LFP_Compat.add_datatype BNF_LFP_Compat.Keep_Nesting
+                 BNF_LFP_Compat.add_datatype [BNF_LFP_Compat.Keep_Nesting]
                    [((tyb, [], NoSyn),
                      map (fn s => (Binding.name s, [], NoSyn)) els)] |> snd |>
                  add_enum_type s tyname,

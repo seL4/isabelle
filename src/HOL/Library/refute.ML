@@ -416,8 +416,7 @@ fun is_IDT_constructor thy (s, T) =
 
 fun is_IDT_recursor thy (s, _) =
   let
-    val rec_names = Symtab.fold (append o #rec_names o snd)
-      (BNF_LFP_Compat.get_all thy BNF_LFP_Compat.Unfold_Nesting) []
+    val rec_names = Symtab.fold (append o #rec_names o snd) (BNF_LFP_Compat.get_all thy []) []
   in
     (* I'm not quite sure if checking the name 's' is sufficient, *)
     (* or if we should also check the type 'T'.                   *)
@@ -690,7 +689,7 @@ fun collect_axioms ctxt t =
       (* axiomatic type classes *)
       | Type (@{type_name itself}, [T1]) => collect_type_axioms T1 axs
       | Type (s, Ts) =>
-        (case BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Unfold_Nesting s of
+        (case BNF_LFP_Compat.get_info thy [] s of
           SOME _ =>  (* inductive datatype *)
             (* only collect relevant type axioms for the argument types *)
             fold collect_type_axioms Ts axs
@@ -819,7 +818,7 @@ fun ground_types ctxt t =
       | Type (@{type_name prop}, []) => acc
       | Type (@{type_name set}, [T1]) => collect_types T1 acc
       | Type (s, Ts) =>
-          (case BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Unfold_Nesting s of
+          (case BNF_LFP_Compat.get_info thy [] s of
             SOME info =>  (* inductive datatype *)
               let
                 val index = #index info
@@ -1014,7 +1013,7 @@ fun find_model ctxt
         (* TODO: no warning needed for /positive/ occurrences of IDTs       *)
         val maybe_spurious = Library.exists (fn
             Type (s, _) =>
-              (case BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Unfold_Nesting s of
+              (case BNF_LFP_Compat.get_info thy [] s of
                 SOME info =>  (* inductive datatype *)
                   let
                     val index           = #index info
@@ -1740,7 +1739,7 @@ fun IDT_interpreter ctxt model args t =
     val thy = Proof_Context.theory_of ctxt
     val (typs, terms) = model
     fun interpret_term (Type (s, Ts)) =
-          (case BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Unfold_Nesting s of
+          (case BNF_LFP_Compat.get_info thy [] s of
             SOME info =>  (* inductive datatype *)
               let
                 (* only recursive IDTs have an associated depth *)
@@ -1865,7 +1864,7 @@ fun IDT_constructor_interpreter ctxt model args t =
                 HOLogic_empty_set) pairss
             end
       | Type (s, Ts) =>
-          (case BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Unfold_Nesting s of
+          (case BNF_LFP_Compat.get_info thy [] s of
             SOME info =>
               (case AList.lookup (op =) typs T of
                 SOME 0 =>
@@ -1931,7 +1930,7 @@ fun IDT_constructor_interpreter ctxt model args t =
           Const (s, T) =>
             (case body_type T of
               Type (s', Ts') =>
-                (case BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Unfold_Nesting s' of
+                (case BNF_LFP_Compat.get_info thy [] s' of
                   SOME info =>  (* body type is an inductive datatype *)
                     let
                       val index               = #index info
@@ -2403,7 +2402,7 @@ fun IDT_recursion_interpreter ctxt model args t =
                 end
               else
                 NONE  (* not a recursion operator of this datatype *)
-          ) (BNF_LFP_Compat.get_all thy BNF_LFP_Compat.Unfold_Nesting) NONE
+          ) (BNF_LFP_Compat.get_all thy []) NONE
     | _ =>  (* head of term is not a constant *)
       NONE
   end;
@@ -2837,7 +2836,7 @@ fun IDT_printer ctxt model T intr assignment =
   in
     (case T of
       Type (s, Ts) =>
-        (case BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Unfold_Nesting s of
+        (case BNF_LFP_Compat.get_info thy [] s of
           SOME info =>  (* inductive datatype *)
             let
               val (typs, _)           = model
@@ -3003,4 +3002,3 @@ val _ =
         in thy' end)));
 
 end;
-

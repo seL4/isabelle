@@ -338,7 +338,7 @@ fun mkName (Type (T,args)) = implode (map mkName args) ^ mkUpper (Long_Name.base
   | mkName (TFree (x,_)) = mkUpper (Long_Name.base_name x)
   | mkName (TVar ((x,_),_)) = mkUpper (Long_Name.base_name x);
 
-fun is_datatype thy = is_some o BNF_LFP_Compat.get_info thy BNF_LFP_Compat.Keep_Nesting;
+fun is_datatype thy = is_some o BNF_LFP_Compat.get_info thy [BNF_LFP_Compat.Keep_Nesting];
 
 fun mk_map @{type_name List.list} = Syntax.const @{const_name List.map}
   | mk_map n = Syntax.const ("StateFun.map_" ^ Long_Name.base_name n);

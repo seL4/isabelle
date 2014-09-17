@@ -233,7 +233,7 @@ fun add_dt_realizers config names thy =
   else
     let
       val _ = Old_Datatype_Aux.message config "Adding realizers for induction and case analysis ...";
-      val infos = map (BNF_LFP_Compat.the_info thy BNF_LFP_Compat.Unfold_Nesting) names;
+      val infos = map (BNF_LFP_Compat.the_info thy []) names;
       val info :: _ = infos;
     in
       thy
@@ -241,7 +241,6 @@ fun add_dt_realizers config names thy =
       |> fold_rev (perhaps o try o make_casedists) infos
     end;
 
-val _ = Theory.setup (BNF_LFP_Compat.interpretation extraction_plugin BNF_LFP_Compat.Unfold_Nesting
-  add_dt_realizers);
+val _ = Theory.setup (BNF_LFP_Compat.interpretation extraction_plugin [] add_dt_realizers);
 
 end;

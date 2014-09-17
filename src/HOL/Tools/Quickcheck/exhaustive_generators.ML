@@ -263,7 +263,8 @@ fun mk_test_term lookup mk_closure mk_if mk_let none_t return ctxt =
   let
     val cnstrs = flat (maps
       (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
-      (Symtab.dest (BNF_LFP_Compat.get_all (Proof_Context.theory_of ctxt) BNF_LFP_Compat.Keep_Nesting)))
+      (Symtab.dest (BNF_LFP_Compat.get_all (Proof_Context.theory_of ctxt)
+         Quickcheck_Common.compat_prefs)))
     fun is_constrt (Const (s, T), ts) = (case (AList.lookup (op =) cnstrs s, body_type T) of
         (SOME (i, Tname), Type (Tname', _)) => length ts = i andalso Tname = Tname'
       | _ => false)
@@ -547,10 +548,11 @@ val setup_exhaustive_datatype_interpretation =
     (@{sort exhaustive}, instantiate_exhaustive_datatype)
 
 val setup_bounded_forall_datatype_interpretation =
-  BNF_LFP_Compat.interpretation bounded_forall_plugin BNF_LFP_Compat.Keep_Nesting
+  BNF_LFP_Compat.interpretation bounded_forall_plugin Quickcheck_Common.compat_prefs
     (Quickcheck_Common.ensure_sort
        (((@{sort type}, @{sort type}), @{sort bounded_forall}),
-       (fn thy => BNF_LFP_Compat.the_descr thy BNF_LFP_Compat.Keep_Nesting, instantiate_bounded_forall_datatype)))
+       (fn thy => BNF_LFP_Compat.the_descr thy Quickcheck_Common.compat_prefs,
+        instantiate_bounded_forall_datatype)))
 
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 

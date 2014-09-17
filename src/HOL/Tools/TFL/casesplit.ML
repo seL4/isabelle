@@ -24,7 +24,7 @@ fun case_thm_of_ty thy ty  =
                      Type(ty_str, _) => ty_str
                    | TFree(s,_)  => error ("Free type: " ^ s)
                    | TVar((s,i),_) => error ("Free variable: " ^ s)
-      val {induct, ...} = BNF_LFP_Compat.the_info thy BNF_LFP_Compat.Keep_Nesting ty_str
+      val {induct, ...} = BNF_LFP_Compat.the_info thy [BNF_LFP_Compat.Keep_Nesting] ty_str
     in
       cases_thm_of_induct_thm induct
     end;

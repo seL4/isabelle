@@ -6,6 +6,7 @@ Common functions for quickcheck's generators.
 
 signature QUICKCHECK_COMMON =
 sig
+  val compat_prefs : BNF_LFP_Compat.preference list
   val strip_imp : term -> (term list * term)
   val reflect_bool : bool -> term
   val define_functions : ((term list -> term list) * (Proof.context -> tactic) option)
@@ -45,6 +46,8 @@ structure Quickcheck_Common : QUICKCHECK_COMMON =
 struct
 
 (* static options *)
+
+val compat_prefs = [BNF_LFP_Compat.Keep_Nesting, BNF_LFP_Compat.Include_GFPs]
 
 val define_foundationally = false
 
@@ -420,10 +423,10 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
 
 fun ensure_common_sort_datatype (sort, instantiate) =
   ensure_sort (((@{sort typerep}, @{sort term_of}), sort),
-    (fn thy => BNF_LFP_Compat.the_descr thy BNF_LFP_Compat.Keep_Nesting, instantiate))
+    (fn thy => BNF_LFP_Compat.the_descr thy compat_prefs, instantiate))
 
 fun datatype_interpretation name =
-  BNF_LFP_Compat.interpretation name BNF_LFP_Compat.Keep_Nesting o ensure_common_sort_datatype
+  BNF_LFP_Compat.interpretation name compat_prefs o ensure_common_sort_datatype
   
 (** generic parametric compilation **)
 
