@@ -539,12 +539,9 @@ record bw_point = point +
   black :: bool
 
 lemma
-  "p1 = p2 \<longrightarrow> cx p1 = cx p2"
-  "p1 = p2 \<longrightarrow> cy p1 = cy p2"
-  "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
-  "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
+  "\<lparr>cx = x, cy = y\<rparr> = \<lparr>cx = x', cy = y'\<rparr> \<Longrightarrow> x = x' \<and> y = y'"
   using point.simps
-  by smt+
+  by smt
 
 lemma
   "cx \<lparr> cx = 3, cy = 4 \<rparr> = 3"
@@ -564,14 +561,9 @@ lemma
   sorry
 
 lemma
-  "p1 = p2 \<longrightarrow> cx p1 = cx p2"
-  "p1 = p2 \<longrightarrow> cy p1 = cy p2"
-  "p1 = p2 \<longrightarrow> black p1 = black p2"
-  "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
-  "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
-  "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
+  "\<lparr>cx = x, cy = y, black = b\<rparr> = \<lparr>cx = x', cy = y', black = b'\<rparr> \<Longrightarrow> x = x' \<and> y = y' \<and> b = b'"
   using point.simps bw_point.simps
-  by smt+
+  by smt
 
 lemma
   "cx \<lparr> cx = 3, cy = 4, black = b \<rparr> = 3"
@@ -587,7 +579,7 @@ lemma
   "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
      p \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   using point.simps bw_point.simps
-  sorry (* smt FIXME: bad Z3 4.3.x proof *)
+  by smt+
 
 lemma
   "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> cx = 3, cy = 4, black = w \<rparr>"
@@ -595,7 +587,11 @@ lemma
      \<lparr> cx = 3, cy = 4, black = False \<rparr>"
   "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> =
      p \<lparr> black := True \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
-  sorry
+    apply (smt add_One add_inc bw_point.update_convs(1) default_unit_def inc.simps(2) one_plus_BitM
+      semiring_norm(6,26))
+   apply (smt bw_point.update_convs(1))
+  apply (smt bw_point.cases_scheme bw_point.update_convs(1) point.update_convs(1,2))
+  done
 
 
 subsubsection {* Type definitions *}
@@ -660,11 +656,7 @@ lemma
 subsubsection {* Records *}
 
 lemma
-  "p1 = p2 \<longrightarrow> cx p1 = cx p2"
-  "p1 = p2 \<longrightarrow> cy p1 = cy p2"
-  "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
-  "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
-  using point.simps
+  "\<lparr>cx = x, cy = y\<rparr> = \<lparr>cx = x', cy = y'\<rparr> \<Longrightarrow> x = x' \<and> y = y'"
   using [[smt_oracle, z3_extensions]]
   by smt+
 
@@ -689,15 +681,9 @@ lemma
   by smt+
 
 lemma
-  "p1 = p2 \<longrightarrow> cx p1 = cx p2"
-  "p1 = p2 \<longrightarrow> cy p1 = cy p2"
-  "p1 = p2 \<longrightarrow> black p1 = black p2"
-  "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
-  "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
-  "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
-  using point.simps bw_point.simps
+  "\<lparr>cx = x, cy = y, black = b\<rparr> = \<lparr>cx = x', cy = y', black = b'\<rparr> \<Longrightarrow> x = x' \<and> y = y' \<and> b = b'"
   using [[smt_oracle, z3_extensions]]
-  by smt+
+  by smt
 
 lemma
   "cx \<lparr> cx = 3, cy = 4, black = b \<rparr> = 3"
