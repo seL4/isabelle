@@ -1997,7 +1997,7 @@ actions (@{text s}), a pseudorandom function generator (@{text f}), and a
 pseudorandom seed (@{text n}):
 *}
 
-    primcorec
+    primcorec(*<*) (in early)(*>*)
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
       "random_process s f n =
