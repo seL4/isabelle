@@ -57,7 +57,7 @@ fun mk_to_natT T = T --> HOLogic.natT;
 
 fun mk_abs_zero_nat T = Term.absdummy T HOLogic.zero;
 
-fun pointfill ctxt th = unfold_thms ctxt [o_apply] (th RS fun_cong);
+fun mk_pointfull ctxt th = unfold_thms ctxt [o_apply] (th RS fun_cong);
 
 fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
@@ -131,10 +131,10 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
             (case Symtab.lookup data s of
               SOME (size_name, (_, size_o_maps)) =>
               let
-                val (args, size_o_mapss') = split_list (map (fn T => mk_size_of_typ T []) Ts);
+                val (args, size_o_mapss') = fold_map mk_size_of_typ Ts [];
                 val size_const = Const (size_name, map fastype_of args ---> mk_to_natT T);
               in
-                fold (union Thm.eq_thm_prop) (size_o_maps :: size_o_mapss')
+                append (size_o_maps :: size_o_mapss')
                 #> pair (Term.list_comb (size_const, args))
               end
             | _ => pair (mk_abs_zero_nat T))
@@ -149,44 +149,48 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       (* We want the size function to enjoy the following properties:
 
-         1. The size of a list should coincide with its length.
-         2. All the nonrecursive constructors of a type should have the same size.
-         3. Each constructor through which nested recursion takes place should count as at least
-            one in the generic size function.
-         4. The "size" function should be definable as "size_t (%_. 0) ... (%_. 0)", where "size_t"
-            is the generic function.
+          1. The size of a list should coincide with its length.
+          2. All the nonrecursive constructors of a type should have the same size.
+          3. Each constructor through which nested recursion takes place should count as at least
+             one in the generic size function.
+          4. The "size" function should be definable as "size_t (%_. 0) ... (%_. 0)", where "size_t"
+             is the generic function.
 
-         This justifies the somewhat convoluted logic ahead. *)
+         This explains the somewhat convoluted logic ahead. *)
 
       val base_case =
         if forall (is_recursive_or_plain_case o binder_types) rec_arg_Ts then HOLogic.zero
         else HOLogic.Suc_zero;
 
-      fun mk_size_arg rec_arg_T size_o_maps =
+      fun mk_size_arg rec_arg_T =
         let
           val x_Ts = binder_types rec_arg_T;
           val m = length x_Ts;
           val x_names = variant_names m "x";
           val xs = map2 (curry Free) x_names x_Ts;
-          val (summands, size_o_maps') =
-            fold_map mk_size_of_arg xs size_o_maps
+          val (summands, size_o_mapss) =
+            fold_map mk_size_of_arg xs []
             |>> remove (op =) HOLogic.zero;
           val sum =
             if null summands then base_case
             else foldl1 mk_plus_nat (summands @ [HOLogic.Suc_zero]);
         in
-          (fold_rev Term.lambda (map substCnatT xs) sum, size_o_maps')
+          append size_o_mapss
+          #> pair (fold_rev Term.lambda (map substCnatT xs) sum)
         end;
 
-      fun mk_size_rhs recx size_o_maps =
-        fold_map mk_size_arg rec_arg_Ts size_o_maps
-        |>> (fn args => fold_rev Term.lambda fs (Term.list_comb (substCnatT recx, args)));
+      fun mk_size_rhs recx =
+        fold_map mk_size_arg rec_arg_Ts
+        #>> (fn args => fold_rev Term.lambda fs (Term.list_comb (substCnatT recx, args)));
 
       val maybe_conceal_def_binding = Thm.def_binding
         #> not (Config.get lthy0 bnf_note_all) ? Binding.conceal;
 
-      val (size_rhss, nested_size_o_maps) = fold_map mk_size_rhs recs [];
+      val (size_rhss, nested_size_o_mapss) = fold_map mk_size_rhs recs [];
       val size_Ts = map fastype_of size_rhss;
+
+      val nested_size_o_maps_complete = forall (not o null) nested_size_o_mapss;
+      val nested_size_o_maps = fold (union Thm.eq_thm_prop) nested_size_o_mapss [];
 
       val ((raw_size_consts, raw_size_defs), (lthy1', lthy1)) = lthy0
         |> apfst split_list o fold_map2 (fn b => fn rhs =>
@@ -240,7 +244,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         (Spec_Rules.retrieve lthy0 @{const size ('a)}
          |> map_filter (try (fn (Spec_Rules.Equational, (_, [thm])) => thm)));
 
-      val nested_size_maps = map (pointfill lthy2) nested_size_o_maps @ nested_size_o_maps;
+      val nested_size_maps = map (mk_pointfull lthy2) nested_size_o_maps @ nested_size_o_maps;
       val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ fp_nesting_bnfs @ live_nesting_bnfs)
         |> distinct Thm.eq_thm_prop;
 
@@ -346,16 +350,16 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
                 curry Logic.list_implies size_o_map_conds o HOLogic.mk_Trueprop oo
                 curry HOLogic.mk_eq) size_o_map_lhss size_o_map_rhss;
 
-            (* The "size o map" theorem generation will fail if "nested_size_maps" is incomplete,
-               which occurs when there is recursion through non-datatypes. In this case, we simply
-               avoid generating the theorem. The resulting characteristic lemmas are then expressed
-               in terms of "map", which is not the end of the world. *)
             val size_o_map_thmss =
-              map3 (fn goal => fn size_def => the_list o try (fn rec_o_map =>
-                  Goal.prove (*no sorry*) lthy2 [] [] goal (fn {context = ctxt, ...} =>
-                    mk_size_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
-                  |> Thm.close_derivation))
-                size_o_map_goals size_defs rec_o_map_thms
+              if nested_size_o_maps_complete then
+                map3 (fn goal => fn size_def => fn rec_o_map =>
+                    Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
+                      mk_size_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
+                    |> Thm.close_derivation
+                    |> single)
+                  size_o_map_goals size_defs rec_o_map_thms
+              else
+                replicate nn [];
           in
             (map single rec_o_map_thms, size_o_map_thmss)
           end;
