@@ -10,7 +10,7 @@ begin
 
 declare [[smt_oracle = true]]
 declare [[z3_extensions = true]]
-declare [[smt_certificates = "SMT_Word_Examples.certs2"]]
+declare [[smt_certificates = "SMT_Word_Examples.certs"]]
 declare [[smt_read_only_certificates = true]]
 
 text {*

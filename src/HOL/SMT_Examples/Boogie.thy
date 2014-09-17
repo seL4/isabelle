@@ -55,18 +55,18 @@ declare [[smt_oracle = false]]
 declare [[smt_read_only_certificates = true]]
 
 
-declare [[smt_certificates = "Boogie_Max.certs2"]]
+declare [[smt_certificates = "Boogie_Max.certs"]]
 
 boogie_file Boogie_Max
 
 
-declare [[smt_certificates = "Boogie_Dijkstra.certs2"]]
+declare [[smt_certificates = "Boogie_Dijkstra.certs"]]
 
 boogie_file Boogie_Dijkstra
 
 
 declare [[z3_extensions = true]]
-declare [[smt_certificates = "VCC_Max.certs2"]]
+declare [[smt_certificates = "VCC_Max.certs"]]
 
 boogie_file VCC_Max
 
