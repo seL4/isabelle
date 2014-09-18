@@ -8,13 +8,7 @@ theory Phantom_Type
 imports Main
 begin
 
-datatype ('a, 'b) phantom = phantom 'b
-
-primrec of_phantom :: "('a, 'b) phantom \<Rightarrow> 'b" 
-where "of_phantom (phantom x) = x"
-
-lemma of_phantom_phantom [simp]: "phantom (of_phantom x) = x"
-by(cases x) simp
+datatype ('a, 'b) phantom = phantom (of_phantom: 'b)
 
 lemma type_definition_phantom': "type_definition of_phantom phantom UNIV"
 by(unfold_locales) simp_all
