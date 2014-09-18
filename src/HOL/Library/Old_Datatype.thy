@@ -523,5 +523,6 @@ hide_const (open) Push Node Atom Leaf Numb Lim Split Case
 
 ML_file "~~/src/HOL/Tools/Old_Datatype/old_datatype.ML"
 ML_file "~~/src/HOL/Tools/inductive_realizer.ML"
+ML_file "~~/src/HOL/Tools/datatype_realizer.ML"
 
 end

@@ -232,7 +232,6 @@ ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 ML_file "Tools/BNF/bnf_lfp_size.ML"
 ML_file "Tools/Function/old_size.ML"
-ML_file "Tools/datatype_realizer.ML"
 
 hide_fact (open) id_transfer
 
