@@ -214,7 +214,6 @@ fun add_size_thms _ (new_type_names as name :: _) thy =
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
       Old_Datatype_Aux.is_rec_type dt andalso
         not (null (fst (Old_Datatype_Aux.strip_dtyp dt)))) cargs) constrs) descr
-val _ = tracing ("NAME: " ^ @{make_string} (name, no_size))(*###*)
   in
     if no_size then thy
     else
