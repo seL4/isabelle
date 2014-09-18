@@ -809,16 +809,24 @@ lemma natural_cases [case_names nat, cases type: natural]:
   shows P
   using assms by transfer blast
 
+instantiation natural :: size
+begin
+
+definition size_natural :: "natural \<Rightarrow> nat" where
+  [simp, code]: "size_natural = nat_of_natural"
+
+instance ..
+
+end
+
 lemma natural_decr [termination_simp]:
   "n \<noteq> 0 \<Longrightarrow> nat_of_natural n - Nat.Suc 0 < nat_of_natural n"
   by transfer simp
 
-lemma natural_zero_minus_one:
-  "(0::natural) - 1 = 0"
-  by simp
+lemma natural_zero_minus_one: "(0::natural) - 1 = 0"
+  by (rule zero_diff)
 
-lemma Suc_natural_minus_one:
-  "Suc n - 1 = n"
+lemma Suc_natural_minus_one: "Suc n - 1 = n"
   by transfer simp
 
 hide_const (open) Suc
@@ -898,16 +906,13 @@ lemma [code]:
   "HOL.equal m n \<longleftrightarrow> HOL.equal (integer_of_natural m) (integer_of_natural n)"
   by transfer (simp add: equal)
 
-lemma [code nbe]:
-  "HOL.equal n (n::natural) \<longleftrightarrow> True"
-  by (simp add: equal)
+lemma [code nbe]: "HOL.equal n (n::natural) \<longleftrightarrow> True"
+  by (rule equal_class.equal_refl)
 
-lemma [code]:
-  "m \<le> n \<longleftrightarrow> integer_of_natural m \<le> integer_of_natural n"
+lemma [code]: "m \<le> n \<longleftrightarrow> integer_of_natural m \<le> integer_of_natural n"
   by transfer simp
 
-lemma [code]:
-  "m < n \<longleftrightarrow> integer_of_natural m < integer_of_natural n"
+lemma [code]: "m < n \<longleftrightarrow> integer_of_natural m < integer_of_natural n"
   by transfer simp
 
 hide_const (open) Nat
@@ -923,4 +928,3 @@ code_reflect Code_Numeral
   functions integer_of_natural natural_of_integer
 
 end
-
