@@ -1,7 +1,7 @@
 
 (* Author: Tobias Nipkow, TU Muenchen *)
 
-header {* Sum over lists *}
+header {* Sum and product over lists *}
 
 theory Groups_List
 imports List
@@ -288,5 +288,64 @@ lemma listsum_transfer[transfer_rule]:
   by transfer_prover
 
 end
+
+
+subsection {* List product *}
+
+context monoid_mult
+begin
+
+definition listprod :: "'a list \<Rightarrow> 'a"
+where
+  "listprod  = monoid_list.F times 1"
+
+sublocale listprod!: monoid_list times 1
+where
+  "monoid_list.F times 1 = listprod"
+proof -
+  show "monoid_list times 1" ..
+  then interpret listprod!: monoid_list times 1 .
+  from listprod_def show "monoid_list.F times 1 = listprod" by rule
+qed
+
+end
+
+context comm_monoid_mult
+begin
+
+sublocale listprod!: comm_monoid_list times 1
+where
+  "monoid_list.F times 1 = listprod"
+proof -
+  show "comm_monoid_list times 1" ..
+  then interpret listprod!: comm_monoid_list times 1 .
+  from listprod_def show "monoid_list.F times 1 = listprod" by rule
+qed
+
+sublocale setprod!: comm_monoid_list_set times 1
+where
+  "monoid_list.F times 1 = listprod"
+  and "comm_monoid_set.F times 1 = setprod"
+proof -
+  show "comm_monoid_list_set times 1" ..
+  then interpret setprod!: comm_monoid_list_set times 1 .
+  from listprod_def show "monoid_list.F times 1 = listprod" by rule
+  from setprod_def show "comm_monoid_set.F times 1 = setprod" by rule
+qed
+
+end
+
+text {* Some syntactic sugar: *}
+
+syntax
+  "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3PROD _<-_. _)" [0, 51, 10] 10)
+syntax (xsymbols)
+  "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
+syntax (HTML output)
+  "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
+
+translations -- {* Beware of argument permutation! *}
+  "PROD x<-xs. b" == "CONST listprod (CONST map (%x. b) xs)"
+  "\<Prod>x\<leftarrow>xs. b" == "CONST listprod (CONST map (%x. b) xs)"
 
 end

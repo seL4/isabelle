@@ -73,6 +73,8 @@ Minor INCOMPATIBILITY.
       weak_case_cong ~> case_cong_weak
     INCOMPATIBILITY.
 
+* Product over lists via constant "listprod".
+
 * Sledgehammer:
   - Minimization is now always enabled by default.
     Removed subcommand:
