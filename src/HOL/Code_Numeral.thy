@@ -538,9 +538,9 @@ code_printing
 
 code_printing
   constant "0::integer" \<rightharpoonup>
-    (SML) "0"
+    (SML) "!(0/ :/ IntInf.int)"
     and (OCaml) "Big'_int.zero'_big'_int"
-    and (Haskell) "0"
+    and (Haskell) "!(0/ ::/ Integer)"
     and (Scala) "BigInt(0)"
 
 setup {*

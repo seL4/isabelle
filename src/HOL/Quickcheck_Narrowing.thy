@@ -23,6 +23,20 @@ data Typerep = Typerep String [Typerep]
 
 code_reserved Haskell_Quickcheck Typerep
 
+code_printing
+  constant "0::integer" \<rightharpoonup>
+    (Haskell_Quickcheck) "!(0/ ::/ Prelude.Int)"
+
+setup {*
+  let
+    val target = "Haskell_Quickcheck";
+    fun print _ = Code_Haskell.print_numeral "Prelude.Int";
+  in
+    Numeral.add_code @{const_name Code_Numeral.Pos} I print target
+    #> Numeral.add_code @{const_name Code_Numeral.Neg} (op ~) print target
+  end
+*}
+
 
 subsubsection {* Narrowing's deep representation of types and terms *}
 

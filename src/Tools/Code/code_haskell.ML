@@ -8,6 +8,7 @@ signature CODE_HASKELL =
 sig
   val language_params: string
   val target: string
+  val print_numeral: string -> int -> string
   val setup: theory -> theory
 end;
 
@@ -424,17 +425,17 @@ val serializer : Code_Target.serializer =
     >> (fn (module_prefix, string_classes) =>
       serialize_haskell module_prefix string_classes));
 
+fun print_numeral typ = Library.enclose "(" (" :: " ^ typ ^ ")") o signed_string_of_int;
+
 val literals = let
   fun char_haskell c =
     let
       val s = ML_Syntax.print_char c;
     in if s = "'" then "\\'" else s end;
-  fun numeral_haskell k = if k >= 0 then string_of_int k
-    else Library.enclose "(" ")" (signed_string_of_int k);
 in Literals {
   literal_char = Library.enclose "'" "'" o char_haskell,
   literal_string = quote o translate_string char_haskell,
-  literal_numeral = numeral_haskell,
+  literal_numeral = print_numeral "Integer",
   literal_list = enum "," "[" "]",
   infix_cons = (5, ":")
 } end;
