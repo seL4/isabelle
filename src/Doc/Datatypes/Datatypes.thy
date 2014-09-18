@@ -2877,22 +2877,22 @@ The plugin derives the following properties:
 \item[@{text "t."}\hthm{rel_eq_onp}\rm:] ~ \\
 @{thm list.rel_eq_onp[no_vars]}
 
-\item[@{text "t."}\hthm{left_total_rel} @{text "[transfer]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{left_total_rel} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.left_total_rel[no_vars]}
 
-\item[@{text "t."}\hthm{left_unique_rel} @{text "[transfer]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{left_unique_rel} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.left_unique_rel[no_vars]}
 
-\item[@{text "t."}\hthm{right_total_rel} @{text "[transfer]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{right_total_rel} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.right_total_rel[no_vars]}
 
-\item[@{text "t."}\hthm{right_unique_rel} @{text "[transfer]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{right_unique_rel} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.right_unique_rel[no_vars]}
 
-\item[@{text "t."}\hthm{bi_total_rel} @{text "[transfer]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{bi_total_rel} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.bi_total_rel[no_vars]}
 
-\item[@{text "t."}\hthm{bi_unique_rel} @{text "[transfer]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{bi_unique_rel} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.bi_unique_rel[no_vars]}
 
 \end{description}
