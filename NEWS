@@ -33,9 +33,11 @@ where the previous strategy (nbe after ML) serves as default.
 Minor INCOMPATIBILITY.
 
 * New (co)datatype package:
-  - The 'datatype_new' command has been renamed 'datatype'. The old command of
-    that name is now called 'old_datatype'. See 'isabelle doc datatypes' for
-    information on porting.
+  - The 'datatype_new' command has been renamed 'datatype'. The old
+    command of that name is now called 'old_datatype' and is provided
+    by "~~/src/HOL/Library/Old_Datatype.thy". See
+    'isabelle doc datatypes' for information on porting.
+    INCOMPATIBILITY.
   - Renamed theorems:
       disc_corec ~> corec_disc
       disc_corec_iff ~> corec_disc_iff
@@ -67,10 +69,15 @@ Minor INCOMPATIBILITY.
 
 * Old datatype package:
   - The old 'datatype' command has been renamed 'old_datatype', and
-    'rep_datatype' has been renamed 'old_rep_datatype'. See
+    'rep_datatype' has been renamed 'old_rep_datatype'. They are
+    provided by "~~/src/HOL/Library/Old_Datatype.thy". See
     'isabelle doc datatypes' for information on porting.
+    INCOMPATIBILITY.
   - Renamed theorems:
       weak_case_cong ~> case_cong_weak
+    INCOMPATIBILITY.
+  - Renamed theory:
+      ~~/src/HOL/Datatype.thy ~> ~~/src/HOL/Library/Old_Datatype.thy
     INCOMPATIBILITY.
 
 * Product over lists via constant "listprod".
