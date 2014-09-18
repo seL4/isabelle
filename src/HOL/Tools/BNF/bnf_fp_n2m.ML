@@ -182,12 +182,13 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
     val castAs = map2 (curry HOLogic.mk_comp) absAs fp_repAs;
     val castBs = map2 (curry HOLogic.mk_comp) absBs fp_repBs;
 
-    val rel_eqs = no_refl (map rel_eq_of_bnf fp_or_nesting_bnfs);
+    val fp_or_nesting_rel_eqs = no_refl (map rel_eq_of_bnf fp_or_nesting_bnfs);
+    val fp_or_nesting_rel_monos = map rel_mono_of_bnf fp_or_nesting_bnfs;
 
     val rel_xtor_co_induct_thm =
       mk_rel_xtor_co_induct_thm fp (map3 cast castAs castBs pre_rels) pre_phis rels phis xs ys
         xtors xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts rel_defs
-          rel_monos rel_eqs)
+          rel_monos fp_or_nesting_rel_eqs fp_or_nesting_rel_monos)
         lthy;
 
     val map_id0s = no_refl (map map_id0_of_bnf bnfs);
@@ -209,7 +210,8 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
           in
             cterm_instantiate_pos cts rel_xtor_co_induct_thm
             |> singleton (Proof_Context.export names_lthy lthy)
-            |> unfold_thms lthy (@{thms eq_le_Grp_id_iff all_simps(1,2)[symmetric]} @ rel_eqs)
+            |> unfold_thms lthy (@{thms eq_le_Grp_id_iff all_simps(1,2)[symmetric]} @
+                fp_or_nesting_rel_eqs)
             |> funpow n (fn thm => thm RS spec)
             |> unfold_thms lthy (@{thm eq_alt} :: map rel_Grp_of_bnf bnfs @ map_id0s)
             |> unfold_thms lthy (@{thms vimage2p_id vimage2p_comp comp_apply comp_id
@@ -224,7 +226,8 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
             val cts = NONE :: map (SOME o certify lthy) (map HOLogic.eq_const As);
           in
             cterm_instantiate_pos cts rel_xtor_co_induct_thm
-            |> unfold_thms lthy (@{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} @ rel_eqs)
+            |> unfold_thms lthy (@{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} @
+                fp_or_nesting_rel_eqs)
             |> funpow (2 * n) (fn thm => thm RS spec)
             |> Conv.fconv_rule (Object_Logic.atomize lthy)
             |> funpow n (fn thm => thm RS mp)
