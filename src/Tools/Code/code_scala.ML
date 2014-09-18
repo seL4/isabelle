@@ -400,11 +400,10 @@ val literals = let
     else if c = "\\" then "\\\\"
     else let val k = ord c
     in if k < 32 orelse k > 126 then "\\" ^ radixstring (8, "0", k) else c end
-  fun numeral_scala k = if k < 0
-    then if k > ~ 2147483647 then "- " ^ string_of_int (~ k)
-      else quote ("-" ^ string_of_int (~ k))
-    else if k <= 2147483647 then string_of_int k
-      else quote (string_of_int k)
+  fun numeral_scala k =
+    if ~2147483647 < k andalso k <= 2147483647
+    then signed_string_of_int k
+    else quote (signed_string_of_int k)
 in Literals {
   literal_char = Library.enclose "'" "'" o char_scala,
   literal_string = quote o translate_string char_scala,
