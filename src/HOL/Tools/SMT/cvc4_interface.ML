@@ -1,5 +1,5 @@
 (*  Title:      HOL/Tools/SMT/cvc4_interface.ML
-    Author:     Sascha Boehme, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Interface to CVC4 based on an extended version of SMT-LIB.
 *)
