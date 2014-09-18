@@ -6,7 +6,7 @@
 header {* Abstract commutation and confluence notions *}
 
 theory Commutation
-imports Old_Datatype
+imports Main
 begin
 
 declare [[syntax_ambiguity_warning = false]]
