@@ -5,7 +5,7 @@
 header {* Warshall's algorithm *}
 
 theory Warshall
-imports Main
+imports Old_Datatype
 begin
 
 text {*

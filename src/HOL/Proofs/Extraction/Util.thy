@@ -5,7 +5,7 @@
 header {* Auxiliary lemmas used in program extraction examples *}
 
 theory Util
-imports Main
+imports Old_Datatype
 begin
 
 text {*

@@ -1,5 +1,5 @@
 theory ToyList_Test
-imports Old_Datatype
+imports BNF_Least_Fixpoint
 begin
 
 ML {*

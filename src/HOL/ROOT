@@ -21,7 +21,7 @@ session "HOL-Proofs" = Pure +
   *}
   options [timeout = 5400, document = false]
   theories Proofs (*sequential change of global flag!*)
-  theories Main
+  theories "~~/src/HOL/Library/Old_Datatype"
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
@@ -51,6 +51,7 @@ session "HOL-Library" (main) in Library = HOL +
     RBT_Set
     (*legacy tools*)
     Refute
+    Old_Datatype
     Old_Recdef
     Old_SMT
   theories [condition = ISABELLE_FULL_TEST]
@@ -91,11 +92,13 @@ session "HOL-Induct" in Induct = HOL +
 
     PropLog proves the completeness of a formalization of propositional logic
     (see
-    HREF="http://www.cl.cam.ac.uk/Research/Reports/TR312-lcp-set-II.ps.gz).
+    http://www.cl.cam.ac.uk/Research/Reports/TR312-lcp-set-II.ps.gz).
 
     Exp demonstrates the use of iterated inductive definitions to reason about
     mutually recursive relations.
   *}
+  theories [document = false]
+    "~~/src/HOL/Library/Old_Datatype"
   theories [quick_and_dirty]
     Common_Patterns
   theories
@@ -741,6 +744,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
   *}
   options [document = false]
   theories
+    "~~/src/HOL/Library/Old_Datatype"
     Compat
     Lambda_Term
     Process

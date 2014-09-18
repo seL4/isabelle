@@ -5,7 +5,9 @@
 
 header {* Basic definitions of Lambda-calculus *}
 
-theory Lambda imports Main begin
+theory Lambda
+imports Old_Datatype
+begin
 
 declare [[syntax_ambiguity_warning = false]]
 

@@ -1,5 +1,5 @@
 theory ToyList
-imports Old_Datatype
+imports BNF_Least_Fixpoint
 begin
 
 datatype 'a list = Nil                          ("[]")

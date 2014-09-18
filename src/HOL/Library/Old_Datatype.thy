@@ -1,4 +1,4 @@
-(*  Title:      HOL/Old_Datatype.thy
+(*  Title:      HOL/Library/Old_Datatype.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
@@ -6,7 +6,7 @@
 header {* Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
 
 theory Old_Datatype
-imports Power
+imports "../Main"
 keywords "old_datatype" :: thy_decl
 begin
 
@@ -521,9 +521,7 @@ text {* hides popular names *}
 hide_type (open) node item
 hide_const (open) Push Node Atom Leaf Numb Lim Split Case
 
-ML_file "Tools/Old_Datatype/old_datatype.ML"
-
-ML_file "Tools/inductive_realizer.ML"
-setup InductiveRealizer.setup
+ML_file "~~/src/HOL/Tools/Old_Datatype/old_datatype.ML"
+ML_file "~~/src/HOL/Tools/inductive_realizer.ML"
 
 end

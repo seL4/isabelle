@@ -8,7 +8,6 @@ Realizers for induction and elimination rules.
 signature INDUCTIVE_REALIZER =
 sig
   val add_ind_realizers: string -> string list -> theory -> theory
-  val setup: theory -> theory
 end;
 
 structure InductiveRealizer : INDUCTIVE_REALIZER =
@@ -513,11 +512,10 @@ fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.mapping
       | SOME (SOME sets') => subtract (op =) sets' sets)
   end I);
 
-val setup =
-  Attrib.setup @{binding ind_realizer}
-    ((Scan.option (Scan.lift (Args.$$$ "irrelevant") |--
-      Scan.option (Scan.lift (Args.colon) |--
-        Scan.repeat1 (Args.const {proper = true, strict = true})))) >> rlz_attrib)
-    "add realizers for inductive set";
+val _ = Theory.setup (Attrib.setup @{binding ind_realizer}
+  ((Scan.option (Scan.lift (Args.$$$ "irrelevant") |--
+    Scan.option (Scan.lift (Args.colon) |--
+      Scan.repeat1 (Args.const {proper = true, strict = true})))) >> rlz_attrib)
+  "add realizers for inductive set");
 
 end;

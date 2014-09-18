@@ -6,7 +6,7 @@
 header {* Higman's lemma *}
 
 theory Higman
-imports Main
+imports Old_Datatype
 begin
 
 text {*

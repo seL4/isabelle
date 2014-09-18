@@ -752,7 +752,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                   Old_Datatype_Aux.DtRec k => if k < length new_type_names then
                       Const (nth rep_names k, Old_Datatype_Aux.typ_of_dtyp descr'' dt -->
                         Old_Datatype_Aux.typ_of_dtyp descr dt) $ x
-                    else error "nested recursion not (yet) supported"
+                    else error "nested recursion not supported"
                 | _ => x) :: r_args)
           end
 

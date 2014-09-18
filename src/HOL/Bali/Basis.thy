@@ -145,9 +145,7 @@ lemma All_Ex_refl_eq1 [simp]: "(\<forall>x. (\<exists>b. x = f b) \<longrightarr
 
 section "sums"
 
-hide_const In0 In1
-
-notation case_sum  (infixr "'(+')"80)
+notation case_sum  (infixr "'(+')" 80)
 
 primrec the_Inl :: "'a + 'b \<Rightarrow> 'a"
   where "the_Inl (Inl a) = a"

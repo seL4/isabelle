@@ -7,7 +7,7 @@
 header {* Encoding (almost) everything into natural numbers *}
 
 theory Countable
-imports Main Rat Nat_Bijection
+imports Old_Datatype Rat Nat_Bijection
 begin
 
 subsection {* The class of countable types *}

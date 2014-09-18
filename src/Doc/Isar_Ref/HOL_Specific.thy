@@ -1,5 +1,6 @@
 theory HOL_Specific
-imports Base Main "~~/src/HOL/Library/Old_Recdef" "~~/src/Tools/Adhoc_Overloading"
+imports Base "~~/src/HOL/Library/Old_Datatype" "~~/src/HOL/Library/Old_Recdef"
+  "~~/src/Tools/Adhoc_Overloading"
 begin
 
 chapter {* Higher-Order Logic *}

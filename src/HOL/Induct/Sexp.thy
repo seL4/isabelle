@@ -7,7 +7,7 @@ structures by hand.
 *)
 
 theory Sexp
-imports Main
+imports "~~/src/HOL/Library/Old_Datatype"
 begin
 
 type_synonym 'a item = "'a Old_Datatype.item"
