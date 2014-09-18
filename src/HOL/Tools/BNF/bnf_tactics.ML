@@ -50,15 +50,13 @@ fun subst_asm_tac ctxt = EqSubst.eqsubst_asm_tac ctxt o the_default [0];
 
 (*transforms f (g x) = h (k x) into f o g = h o k using first order matches for f, g, h, and k*)
 fun mk_pointfree ctxt thm = thm
-  |> Drule.zero_var_indexes
-  |> Thm.prop_of
-  |> Logic.unvarify_global
-  |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
+  |> Thm.prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
   |> pairself (dest_comb #> apsnd (dest_comb #> fst) #> HOLogic.mk_comp)
   |> mk_Trueprop_eq
   |> (fn goal => Goal.prove_sorry ctxt [] [] goal
-    (K (rtac ext 1 THEN rtac @{thm comp_apply_eq} 1 THEN rtac thm 1)))
-  |> Drule.export_without_context
+    (K (rtac @{thm ext} 1 THEN
+        unfold_thms_tac ctxt ([o_apply, unfold_thms ctxt [o_apply] (mk_sym thm)]) THEN
+        rtac refl 1)))
   |> Thm.close_derivation;
 
 
