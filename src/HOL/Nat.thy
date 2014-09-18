@@ -1185,7 +1185,7 @@ lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (fact Let_def)
 
 
-subsubsection {* Monotonicity of Multiplication *}
+subsubsection {* Monotonicity of multiplication *}
 
 lemma mult_le_mono1: "i \<le> (j::nat) ==> i * k \<le> j * k"
 by (simp add: mult_right_mono)
@@ -1390,7 +1390,7 @@ next
 qed
 
 
-subsection {* Embedding of the Naturals into any @{text semiring_1}: @{term of_nat} *}
+subsection {* Embedding of the naturals into any @{text semiring_1}: @{term of_nat} *}
 
 context semiring_1
 begin
@@ -1512,7 +1512,7 @@ lemma of_nat_eq_id [simp]: "of_nat = id"
   by (auto simp add: fun_eq_iff)
 
 
-subsection {* The Set of Natural Numbers *}
+subsection {* The set of natural numbers *}
 
 context semiring_1
 begin
@@ -1567,7 +1567,7 @@ lemma Nats_induct [case_names of_nat, induct set: Nats]:
 end
 
 
-subsection {* Further Arithmetic Facts Concerning the Natural Numbers *}
+subsection {* Further arithmetic facts concerning the natural numbers *}
 
 lemma subst_equals:
   assumes 1: "t = s" and 2: "u = t"
@@ -1825,6 +1825,7 @@ lemma dec_induct[consumes 1, case_names base step]:
   "i \<le> j \<Longrightarrow> P i \<Longrightarrow> (\<And>n. i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n \<Longrightarrow> P (Suc n)) \<Longrightarrow> P j"
   by (induct j arbitrary: i) (auto simp: le_Suc_eq)
  
+
 subsection {* The divides relation on @{typ nat} *}
 
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
@@ -1962,7 +1963,7 @@ proof -
 qed
 
 
-subsection {* aliases *}
+subsection {* Aliases *}
 
 lemma nat_mult_1: "(1::nat) * n = n"
   by (rule mult_1_left)
@@ -1971,13 +1972,23 @@ lemma nat_mult_1_right: "n * (1::nat) = n"
   by (rule mult_1_right)
 
 
-subsection {* size of a datatype value *}
+subsection {* Size of a datatype value *}
 
 class size =
   fixes size :: "'a \<Rightarrow> nat" -- {* see further theory @{text Wellfounded} *}
 
+instantiation nat :: size
+begin
 
-subsection {* code module namespace *}
+definition size_nat where
+  [simp, code]: "size (n \<Colon> nat) = n"
+
+instance ..
+
+end
+
+
+subsection {* Code module namespace *}
 
 code_identifier
   code_module Nat \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith

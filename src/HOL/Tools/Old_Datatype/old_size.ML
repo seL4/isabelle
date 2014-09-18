@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Function/old_size.ML
+(*  Title:      HOL/Tools/Old_Datatype/old_size.ML
     Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 
 Size functions for old-style datatypes.
@@ -214,6 +214,7 @@ fun add_size_thms _ (new_type_names as name :: _) thy =
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
       Old_Datatype_Aux.is_rec_type dt andalso
         not (null (fst (Old_Datatype_Aux.strip_dtyp dt)))) cargs) constrs) descr
+val _ = tracing ("NAME: " ^ @{make_string} (name, no_size))(*###*)
   in
     if no_size then thy
     else
@@ -223,6 +224,6 @@ fun add_size_thms _ (new_type_names as name :: _) thy =
       |> Sign.restore_naming thy
   end;
 
-val _ = Context.>> (Context.map_theory (Old_Datatype_Data.interpretation add_size_thms));
+val _ = Theory.setup (Old_Datatype_Data.interpretation add_size_thms);
 
 end;

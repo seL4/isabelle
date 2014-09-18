@@ -67,8 +67,7 @@ val rec_o_map_simps =
 
 fun mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
     ctor_rec_o_map =
-  unfold_thms_tac ctxt [rec_def] THEN
-  HEADGOAL (rtac (ctor_rec_o_map RS trans) THEN'
+  HEADGOAL (subst_tac @{context} (SOME [1, 2]) [rec_def] THEN' rtac (ctor_rec_o_map RS trans) THEN'
     CONVERSION Thm.eta_long_conversion THEN'
     asm_simp_tac (ss_only (pre_map_defs @
         distinct Thm.eq_thm_prop (live_nesting_map_ident0s @ abs_inverses) @ rec_o_map_simps)

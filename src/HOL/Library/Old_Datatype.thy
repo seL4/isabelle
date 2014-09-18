@@ -10,6 +10,10 @@ imports "../Main"
 keywords "old_datatype" :: thy_decl
 begin
 
+ML_file "~~/src/HOL/Tools/Old_Datatype/old_size.ML"
+ML_file "~~/src/HOL/Tools/datatype_realizer.ML"
+
+
 subsection {* The datatype universe *}
 
 definition "Node = {p. EX f x k. p = (f :: nat => 'b + nat, x ::'a + nat) & f k = Inr 0}"
@@ -523,6 +527,5 @@ hide_const (open) Push Node Atom Leaf Numb Lim Split Case
 
 ML_file "~~/src/HOL/Tools/Old_Datatype/old_datatype.ML"
 ML_file "~~/src/HOL/Tools/inductive_realizer.ML"
-ML_file "~~/src/HOL/Tools/datatype_realizer.ML"
 
 end
