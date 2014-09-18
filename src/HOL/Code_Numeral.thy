@@ -544,13 +544,10 @@ code_printing
     and (Scala) "BigInt(0)"
 
 setup {*
-  fold (Numeral.add_code @{const_name Code_Numeral.Pos}
-    false Code_Printer.literal_numeral) ["SML", "OCaml", "Haskell", "Scala"]
-*}
-
-setup {*
-  fold (Numeral.add_code @{const_name Code_Numeral.Neg}
-    true Code_Printer.literal_numeral) ["SML", "OCaml", "Haskell", "Scala"]
+  fold (fn target =>
+    Numeral.add_code @{const_name Code_Numeral.Pos} I Code_Printer.literal_numeral target
+    #> Numeral.add_code @{const_name Code_Numeral.Neg} (op ~) Code_Printer.literal_numeral target)
+    ["SML", "OCaml", "Haskell", "Scala"]
 *}
 
 code_printing

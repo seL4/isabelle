@@ -8,7 +8,7 @@ signature NUMERAL =
 sig
   val mk_cnumeral: int -> cterm
   val mk_cnumber: ctyp -> int -> cterm
-  val add_code: string -> bool -> (Code_Printer.literals -> int -> string) -> string -> theory -> theory
+  val add_code: string -> (int -> int) -> (Code_Printer.literals -> int -> string) -> string -> theory -> theory
 end;
 
 structure Numeral: NUMERAL =
@@ -65,9 +65,9 @@ end;
 
 local open Basic_Code_Thingol in
 
-fun add_code number_of negative print target thy =
+fun add_code number_of preproc print target thy =
   let
-    fun dest_numeral thm t =
+    fun pretty literals _ thm _ _ [(t, _)] =
       let
         fun dest_bit (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit0}, ... }) = 0
           | dest_bit (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit1}, ... }) = 1
@@ -75,9 +75,7 @@ fun add_code number_of negative print target thy =
         fun dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.One}, ... }) = 1
           | dest_num (t1 `$ t2) = 2 * dest_num t2 + dest_bit t1
           | dest_num _ = Code_Printer.eqn_error thy thm "Illegal numeral expression: illegal term";
-      in if negative then ~ (dest_num t) else dest_num t end;
-    fun pretty literals _ thm _ _ [(t, _)] =
-      (Code_Printer.str o print literals o dest_numeral thm) t;
+      in (Code_Printer.str o print literals o preproc o dest_num) t end;
   in
     thy |> Code_Target.set_printings (Code_Symbol.Constant (number_of,
       [(target, SOME (Code_Printer.complex_const_syntax (1, pretty)))]))
