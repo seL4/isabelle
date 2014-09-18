@@ -19,7 +19,7 @@ session "HOL-Proofs" = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false]
+  options [timeout = 5400, document = false]
   theories Proofs (*sequential change of global flag!*)
   theories Main
   files
