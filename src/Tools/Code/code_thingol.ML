@@ -24,7 +24,7 @@ sig
       `%% of string * itype list
     | ITyVar of vname;
   type const = { sym: Code_Symbol.T, typargs: itype list, dicts: dict list list,
-    dom: itype list, range: itype, annotate: bool };
+    dom: itype list, annotation: itype option };
   datatype iterm =
       IConst of const
     | IVar of vname option
@@ -152,7 +152,7 @@ fun unfold_fun_n n ty =
   in (tys3, ty3) end;
 
 type const = { sym: Code_Symbol.T, typargs: itype list, dicts: dict list list,
-  dom: itype list, range: itype, annotate: bool };
+  dom: itype list, annotation: itype option };
 
 datatype iterm =
     IConst of const
@@ -646,10 +646,11 @@ and translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) =
     ensure_const ctxt algbr eqngr permissive c
     ##>> fold_map (translate_typ ctxt algbr eqngr permissive) typargs
     ##>> fold_map (translate_dicts ctxt algbr eqngr permissive some_thm) (typargs ~~ sorts)
-    ##>> fold_map (translate_typ ctxt algbr eqngr permissive) (range :: dom)
-    #>> (fn (((c, typargs), dss), range :: dom) =>
+    ##>> fold_map (translate_typ ctxt algbr eqngr permissive) (ty' :: dom)
+    #>> (fn (((c, typargs), dss), annotation :: dom) =>
       IConst { sym = Constant c, typargs = typargs, dicts = dss,
-        dom = dom, range = range, annotate = annotate })
+        dom = dom, annotation =
+          if annotate then SOME annotation else NONE })
   end
 and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
   translate_const ctxt algbr eqngr permissive some_thm (c_ty, some_abs)

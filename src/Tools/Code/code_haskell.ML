@@ -90,14 +90,12 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                 then print_case tyvars some_thm vars fxy case_expr
                 else print_app tyvars some_thm vars fxy app
             | NONE => print_case tyvars some_thm vars fxy case_expr)
-    and print_app_expr tyvars some_thm vars ({ sym, dom, range, annotate, ... }, ts) =
+    and print_app_expr tyvars some_thm vars ({ sym, annotation, ... }, ts) =
       let
-        val ty = Library.foldr (op `->) (dom, range)
         val printed_const =
-          if annotate then
-            brackets [(str o deresolve) sym, str "::", print_typ tyvars NOBR ty]
-          else
-            (str o deresolve) sym
+          case annotation of
+            SOME ty => brackets [(str o deresolve) sym, str "::", print_typ tyvars NOBR ty]
+          | NONE => (str o deresolve) sym
       in 
         printed_const :: map (print_term tyvars some_thm vars BR) ts
       end
@@ -241,7 +239,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                   ]
               | SOME (k, Code_Printer.Complex_printer _) =>
                   let
-                    val { sym = Constant c, dom, range, ... } = const;
+                    val { sym = Constant c, dom, ... } = const;
                     val (vs, rhs) = (apfst o map) fst
                       (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
                     val s = if (is_some o const_syntax) c
@@ -249,7 +247,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                     val vars = reserved
                       |> intro_vars (map_filter I (s :: vs));
                     val lhs = IConst { sym = Constant classparam, typargs = [],
-                      dicts = [], dom = dom, range = range, annotate = false } `$$ map IVar vs;
+                      dicts = [], dom = dom, annotation = NONE } `$$ map IVar vs;
                       (*dictionaries are not relevant at this late stage,
                         and these consts never need type annotations for disambiguation *)
                   in

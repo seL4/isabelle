@@ -658,7 +658,7 @@ val imp_program =
     val unitT = @{type_name unit} `%% [];
     val unitt =
       IConst { sym = Code_Symbol.Constant @{const_name Unity}, typargs = [], dicts = [], dom = [],
-        range = unitT, annotate = false };
+        annotation = NONE };
     fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
       | dest_abs (t, ty) =
           let

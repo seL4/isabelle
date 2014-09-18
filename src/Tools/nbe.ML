@@ -416,7 +416,7 @@ fun compile_eqnss ctxt nbe_program raw_deps [] = []
 
 fun dummy_const sym dss =
   IConst { sym = sym, typargs = [], dicts = dss,
-    dom = [], range = ITyVar "", annotate = false };
+    dom = [], annotation = NONE };
 
 fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
       []
