@@ -10,7 +10,6 @@ imports "../Main"
 keywords "old_datatype" :: thy_decl
 begin
 
-ML_file "~~/src/HOL/Tools/Old_Datatype/old_size.ML"
 ML_file "~~/src/HOL/Tools/datatype_realizer.ML"
 
 

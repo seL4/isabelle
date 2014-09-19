@@ -55,11 +55,7 @@ lemma ctor_rec_o_map: "ctor_rec f \<circ> g = ctor_rec (f \<circ> (id_bnf \<circ
 
 ML_file "Tools/BNF/bnf_lfp_basic_sugar.ML"
 
-thm sum.rec_o_map
-thm sum.size_o_map
-
-thm prod.rec_o_map
-thm prod.size_o_map
+ML_file "~~/src/HOL/Tools/Old_Datatype/old_size.ML"
 
 hide_const (open) xtor ctor_rec
 

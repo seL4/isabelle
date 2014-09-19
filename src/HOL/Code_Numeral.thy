@@ -809,15 +809,19 @@ lemma natural_cases [case_names nat, cases type: natural]:
   shows P
   using assms by transfer blast
 
-instantiation natural :: size
-begin
+lemma [simp, code]: "size_natural = nat_of_natural"
+proof (rule ext)
+  fix n
+  show "size_natural n = nat_of_natural n"
+    by (induct n) simp_all
+qed
 
-definition size_natural :: "natural \<Rightarrow> nat" where
-  [simp, code]: "size_natural = nat_of_natural"
-
-instance ..
-
-end
+lemma [simp, code]: "size = nat_of_natural"
+proof (rule ext)
+  fix n
+  show "size n = nat_of_natural n"
+    by (induct n) simp_all
+qed
 
 lemma natural_decr [termination_simp]:
   "n \<noteq> 0 \<Longrightarrow> nat_of_natural n - Nat.Suc 0 < nat_of_natural n"
