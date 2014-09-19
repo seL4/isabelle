@@ -29,6 +29,26 @@ fun get_descrs thy lens T_name =
 
 old_datatype 'a old_lst = Old_Nl | Old_Cns 'a "'a old_lst"
 
+text {*
+A few tests to make sure that @{text old_datatype} works as expected:
+*}
+
+primrec old_len :: "'a old_lst \<Rightarrow> nat" where
+  "old_len Old_Nl = 0"
+| "old_len (Old_Cns _ xs) = Suc (old_len xs)"
+
+export_code old_len checking SML OCaml? Haskell? Scala
+
+lemma "Old_Nl = Old_Cns x xs"
+  nitpick [expect = genuine]
+  quickcheck [exhaustive, expect = counterexample]
+  quickcheck [random, expect = counterexample]
+  quickcheck [narrowing, expect = counterexample]
+  oops
+
+lemma "old_len xs = size xs"
+  by (induct xs) auto
+
 ML {* get_descrs @{theory} (1, 1, 1) @{type_name old_lst} *}
 
 datatype 'a lst = Nl | Cns 'a "'a lst"
