@@ -755,6 +755,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Stream_Processor
     Misc_Codatatype
     Misc_Datatype
+    Misc_N2M
     Misc_Primcorec
     Misc_Primrec
   theories [condition = ISABELLE_FULL_TEST, timing]
