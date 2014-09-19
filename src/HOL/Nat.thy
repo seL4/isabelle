@@ -152,6 +152,31 @@ hide_fact
   nat_exhaust
   nat_induct0
 
+ML {*
+val nat_basic_lfp_sugar =
+  let
+    val ctr_sugar = the (Ctr_Sugar.ctr_sugar_of_global @{theory} @{type_name nat});
+    val recx = Logic.varify_types_global @{term rec_nat};
+    val C = body_type (fastype_of recx);
+  in
+    {T = HOLogic.natT, fp_res_index = 0, C = C, fun_arg_Tsss = [[], [[HOLogic.natT, C]]],
+     ctr_sugar = ctr_sugar, recx = recx, rec_thms = @{thms nat.rec}}
+  end;
+*}
+
+setup {*
+let
+  fun basic_lfp_sugars_of _ [@{typ nat}] _ _ ctxt =
+      ([], [0], [nat_basic_lfp_sugar], [], [], TrueI (*dummy*), [], false, ctxt)
+    | basic_lfp_sugars_of bs arg_Ts callers callssss ctxt =
+      BNF_LFP_Rec_Sugar.default_basic_lfp_sugars_of bs arg_Ts callers callssss ctxt;
+in
+  BNF_LFP_Rec_Sugar.register_lfp_rec_extension
+    {nested_simps = [], is_new_datatype = K (K true), basic_lfp_sugars_of = basic_lfp_sugars_of,
+     rewrite_nested_rec_call = NONE}
+end
+*}
+
 text {* Injectiveness and distinctness lemmas *}
 
 lemma inj_Suc[simp]: "inj_on Suc N"

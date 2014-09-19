@@ -1342,6 +1342,7 @@ simproc_setup Collect_mem ("Collect t") = {*
         end
     | _ => NONE)
 *}
+
 ML_file "Tools/inductive_set.ML"
 
 

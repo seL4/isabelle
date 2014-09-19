@@ -168,7 +168,7 @@ definition (in term_syntax) [code_unfold]:
 instantiation set :: (random) random
 begin
 
-primrec random_aux_set
+fun random_aux_set
 where
   "random_aux_set 0 j = collapse (Random.select_weight [(1, Pair valterm_emptyset)])"
 | "random_aux_set (Code_Numeral.Suc i) j =

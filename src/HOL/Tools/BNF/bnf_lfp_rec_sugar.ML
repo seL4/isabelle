@@ -39,16 +39,20 @@ sig
   type lfp_rec_extension =
     {nested_simps: thm list,
      is_new_datatype: Proof.context -> string -> bool,
-     get_basic_lfp_sugars: binding list -> typ list -> term list ->
+     basic_lfp_sugars_of: binding list -> typ list -> term list ->
        (term * term list list) list list -> local_theory ->
        typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * Token.src list
        * bool * local_theory,
-     rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
-       term -> term -> term -> term};
+     rewrite_nested_rec_call: (Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
+       term -> term -> term -> term) option};
 
   exception PRIMREC of string * term list;
 
   val register_lfp_rec_extension: lfp_rec_extension -> theory -> theory
+  val default_basic_lfp_sugars_of: binding list -> typ list -> term list ->
+    (term * term list list) list list -> local_theory ->
+    typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * Token.src list * bool
+    * local_theory
   val rec_specs_of: binding list -> typ list -> typ list -> term list ->
     (term * term list list) list list -> local_theory ->
     (bool * rec_spec list * typ list * thm * thm list * Token.src list) * local_theory
@@ -115,12 +119,12 @@ type basic_lfp_sugar =
 type lfp_rec_extension =
   {nested_simps: thm list,
    is_new_datatype: Proof.context -> string -> bool,
-   get_basic_lfp_sugars: binding list -> typ list -> term list ->
+   basic_lfp_sugars_of: binding list -> typ list -> term list ->
      (term * term list list) list list -> local_theory ->
      typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * Token.src list * bool
      * local_theory,
-   rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
-     term -> term -> term -> term};
+   rewrite_nested_rec_call: (Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
+     term -> term -> term -> term) option};
 
 structure Data = Theory_Data
 (
@@ -140,16 +144,35 @@ fun nested_simps ctxt =
 fun is_new_datatype ctxt =
   (case Data.get (Proof_Context.theory_of ctxt) of
     SOME {is_new_datatype, ...} => is_new_datatype ctxt
-  | NONE => K false);
+  | NONE => K true);
 
-fun get_basic_lfp_sugars bs arg_Ts callers callssss lthy =
+fun default_basic_lfp_sugars_of _ [Type (arg_T_name, _)] _ _ ctxt =
+    let
+      val ctr_sugar as {T, ctrs, casex, case_thms, ...} =
+        (case ctr_sugar_of ctxt arg_T_name of
+          SOME ctr_sugar => ctr_sugar
+        | NONE => error ("Unsupported type " ^ quote arg_T_name ^ " at this stage"));
+
+      val C = body_type (fastype_of casex);
+      val fun_arg_Tsss = map (map single o binder_types o fastype_of) ctrs;
+
+      val basic_lfp_sugar =
+        {T = T, fp_res_index = 0, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_sugar = ctr_sugar,
+         recx = casex, rec_thms = case_thms};
+    in
+      ([], [0], [basic_lfp_sugar], [], [], TrueI, [], false, ctxt)
+    end
+  | default_basic_lfp_sugars_of _ _ _ _ _ = error "Unsupported mutual recursion at this stage";
+
+fun basic_lfp_sugars_of bs arg_Ts callers callssss lthy =
   (case Data.get (Proof_Context.theory_of lthy) of
-    SOME {get_basic_lfp_sugars, ...} => get_basic_lfp_sugars bs arg_Ts callers callssss lthy
-  | NONE => error "Functionality not loaded yet");
+    SOME {basic_lfp_sugars_of, ...} => basic_lfp_sugars_of
+  | NONE => default_basic_lfp_sugars_of) bs arg_Ts callers callssss lthy;
 
 fun rewrite_nested_rec_call ctxt =
   (case Data.get (Proof_Context.theory_of ctxt) of
-    SOME {rewrite_nested_rec_call, ...} => rewrite_nested_rec_call ctxt);
+    SOME {rewrite_nested_rec_call = SOME f, ...} => f ctxt
+  | _ => error "Unsupported nested recursion");
 
 fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
@@ -157,7 +180,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
 
     val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, fp_nesting_map_ident0s, fp_nesting_map_comps,
          common_induct, induct_attrs, n2m, lthy) =
-      get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0;
+      basic_lfp_sugars_of bs arg_Ts callers callssss0 lthy0;
 
     val perm_basic_lfp_sugars = sort (int_ord o pairself #fp_res_index) basic_lfp_sugars;
 

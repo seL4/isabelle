@@ -16,46 +16,51 @@ open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar
 open BNF_LFP_Rec_Sugar
 
+(* FIXME: remove "nat" cases throughout once it is registered as a datatype *)
+
 val nested_simps = @{thms o_def[abs_def] id_def split fst_conv snd_conv};
 
-fun is_new_datatype ctxt s =
-  (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);
+fun is_new_datatype _ @{type_name nat} = true
+  | is_new_datatype ctxt s =
+    (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);
 
 fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, ctr_sugar, co_rec = recx,
     co_rec_thms = rec_thms, ...} : fp_sugar) =
   {T = T, fp_res_index = fp_res_index, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_sugar = ctr_sugar,
    recx = recx, rec_thms = rec_thms};
 
-fun get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0 =
-  let
-    val ((missing_arg_Ts, perm0_kks,
-          fp_sugars as {fp_nesting_bnfs, common_co_inducts = [common_induct], ...} :: _,
-          (lfp_sugar_thms, _)), lthy) =
-      nested_to_mutual_fps (K true) Least_FP bs arg_Ts callers callssss0 lthy0;
+fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
+    ([], [0], [nat_basic_lfp_sugar], [], [], TrueI (*dummy*), [], false, lthy)
+  | basic_lfp_sugars_of bs arg_Ts callers callssss0 lthy0 =
+    let
+      val ((missing_arg_Ts, perm0_kks,
+            fp_sugars as {fp_nesting_bnfs, common_co_inducts = [common_induct], ...} :: _,
+            (lfp_sugar_thms, _)), lthy) =
+        nested_to_mutual_fps (K true) Least_FP bs arg_Ts callers callssss0 lthy0;
 
-    val induct_attrs = (case lfp_sugar_thms of SOME ((_, _, attrs), _) => attrs | NONE => []);
+      val induct_attrs = (case lfp_sugar_thms of SOME ((_, _, attrs), _) => attrs | NONE => []);
 
-    val Ts = map #T fp_sugars;
-    val Xs = map #X fp_sugars;
-    val Cs = map (body_type o fastype_of o #co_rec) fp_sugars;
-    val Xs_TCs = Xs ~~ (Ts ~~ Cs);
+      val Ts = map #T fp_sugars;
+      val Xs = map #X fp_sugars;
+      val Cs = map (body_type o fastype_of o #co_rec) fp_sugars;
+      val Xs_TCs = Xs ~~ (Ts ~~ Cs);
 
-    fun zip_recT (Type (s, Us)) = [Type (s, map (HOLogic.mk_tupleT o zip_recT) Us)]
-      | zip_recT U =
-        (case AList.lookup (op =) Xs_TCs U of
-          SOME (T, C) => [T, C]
-        | NONE => [U]);
+      fun zip_XrecT (Type (s, Us)) = [Type (s, map (HOLogic.mk_tupleT o zip_XrecT) Us)]
+        | zip_XrecT U =
+          (case AList.lookup (op =) Xs_TCs U of
+            SOME (T, C) => [T, C]
+          | NONE => [U]);
 
-    val ctrXs_Tsss = map #ctrXs_Tss fp_sugars;
-    val fun_arg_Tssss = map (map (map zip_recT)) ctrXs_Tsss;
+      val ctrXs_Tsss = map #ctrXs_Tss fp_sugars;
+      val fun_arg_Tssss = map (map (map zip_XrecT)) ctrXs_Tsss;
 
-    val fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs;
-    val fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs;
-  in
-    (missing_arg_Ts, perm0_kks, map3 basic_lfp_sugar_of Cs fun_arg_Tssss fp_sugars,
-     fp_nesting_map_ident0s, fp_nesting_map_comps, common_induct, induct_attrs,
-     is_some lfp_sugar_thms, lthy)
-  end;
+      val fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs;
+      val fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs;
+    in
+      (missing_arg_Ts, perm0_kks, map3 basic_lfp_sugar_of Cs fun_arg_Tssss fp_sugars,
+       fp_nesting_map_ident0s, fp_nesting_map_comps, common_induct, induct_attrs,
+       is_some lfp_sugar_thms, lthy)
+    end;
 
 exception NO_MAP of term;
 
@@ -162,6 +167,7 @@ fun rewrite_nested_rec_call ctxt has_call get_ctr_pos =
 
 val _ = Theory.setup (register_lfp_rec_extension
   {nested_simps = nested_simps, is_new_datatype = is_new_datatype,
-   get_basic_lfp_sugars = get_basic_lfp_sugars, rewrite_nested_rec_call = rewrite_nested_rec_call});
+   basic_lfp_sugars_of = basic_lfp_sugars_of,
+   rewrite_nested_rec_call = SOME rewrite_nested_rec_call});
 
 end;
