@@ -30,4 +30,8 @@ typed_print_translation {*
   in [(@{const_syntax phantom}, phantom_tr')] end
 *}
 
+lemma of_phantom_inject [simp]:
+  "of_phantom x = of_phantom y \<longleftrightarrow> x = y"
+by(cases x y rule: phantom.exhaust[case_product phantom.exhaust]) simp
+
 end
