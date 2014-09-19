@@ -75,8 +75,8 @@ open Ctr_Sugar_Util
 open Ctr_Sugar_General_Tactics
 open BNF_FP_Rec_Sugar_Util
 
-val inductN = "induct"
-val simpsN = "simps"
+val inductN = "induct";
+val simpsN = "simps";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};

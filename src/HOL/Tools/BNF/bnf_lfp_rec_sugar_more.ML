@@ -57,7 +57,7 @@ fun get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0 =
      is_some lfp_sugar_thms, lthy)
   end;
 
-exception NOT_A_MAP of term;
+exception NO_MAP of term;
 
 fun ill_formed_rec_call ctxt t =
   error ("Ill-formed recursive call: " ^ quote (Syntax.string_of_term ctxt t));
@@ -101,20 +101,20 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
           in
             Term.list_comb (map', fs')
           end
-        | NONE => raise NOT_A_MAP t)
-      | massage_map _ _ t = raise NOT_A_MAP t
+        | NONE => raise NO_MAP t)
+      | massage_map _ _ t = raise NO_MAP t
     and massage_map_or_map_arg U T t =
       if T = U then
         tap check_no_call t
       else
         massage_map U T t
-        handle NOT_A_MAP _ => massage_mutual_fun U T t;
+        handle NO_MAP _ => massage_mutual_fun U T t;
 
     fun massage_call (t as t1 $ t2) =
         if has_call t then
           if t2 = y then
             massage_map yU yT (elim_y t1) $ y'
-            handle NOT_A_MAP t' => invalid_map ctxt t'
+            handle NO_MAP t' => invalid_map ctxt t'
           else
             let val (g, xs) = Term.strip_comb t2 in
               if g = y then

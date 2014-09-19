@@ -64,12 +64,12 @@ open BNF_FP_N2M_Sugar
 open BNF_FP_Rec_Sugar_Util
 open BNF_GFP_Rec_Sugar_Tactics
 
-val codeN = "code"
-val ctrN = "ctr"
-val discN = "disc"
-val disc_iffN = "disc_iff"
-val excludeN = "exclude"
-val selN = "sel"
+val codeN = "code";
+val ctrN = "ctr";
+val discN = "disc";
+val disc_iffN = "disc_iff";
+val excludeN = "exclude";
+val selN = "sel";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
