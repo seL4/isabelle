@@ -2,7 +2,7 @@
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2014
 
-Miscellaneous datatype definitions.
+Miscellaneous tests for the nested-to-mutual reduction.
 *)
 
 header \<open>Miscellaneous Tests for the Nested-to-Mutual Reduction\<close>
@@ -126,8 +126,7 @@ datatype_compat kk1 kk2
 datatype_compat ll1 ll2
 
 
-
-section \<open>Deep Nesting\<close>
+subsection \<open>Deep Nesting\<close>
 
 datatype 'a tree = Empty | Node 'a "'a tree list"
 datatype_compat tree
@@ -156,7 +155,8 @@ datatype_compat F
 datatype_compat G
 datatype_compat H
 
-section \<open>Primrec cache\<close>
+
+subsection \<open>Primrec cache\<close>
 
 datatype 'a l = N | C 'a "'a l"
 datatype ('a, 'b) t = T 'a 'b "('a, 'b) t l"
@@ -331,8 +331,7 @@ where
   "l1_t4 (T4 n _ ts us) = n + l1_tl5 ts + l1_tl6 us"
 
 
-
-section \<open>Primcorec Cache\<close>
+subsection \<open>Primcorec Cache\<close>
 
 codatatype 'a col = N | C 'a "'a col"
 codatatype ('a, 'b) cot = T 'a 'b "('a, 'b) cot col"
