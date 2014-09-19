@@ -32,7 +32,6 @@ sig
      fp_res_index: int,
      C: typ,
      fun_arg_Tsss : typ list list list,
-     ctr_defs: thm list,
      ctr_sugar: Ctr_Sugar.ctr_sugar,
      recx: term,
      rec_thms: thm list};
@@ -109,7 +108,6 @@ type basic_lfp_sugar =
    fp_res_index: int,
    C: typ,
    fun_arg_Tsss : typ list list list,
-   ctr_defs: thm list,
    ctr_sugar: ctr_sugar,
    recx: term,
    rec_thms: thm list};
