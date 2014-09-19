@@ -57,6 +57,14 @@ ML_file "Tools/BNF/bnf_lfp_basic_sugar.ML"
 
 ML_file "~~/src/HOL/Tools/Old_Datatype/old_size.ML"
 
+lemma size_bool[code]: "size (b\<Colon>bool) = 0"
+  by (cases b) auto
+
+declare prod.size[no_atp]
+
+lemma size_nat[simp, code]: "size (n\<Colon>nat) = n"
+  by (induct n) simp_all
+
 hide_const (open) xtor ctor_rec
 
 hide_fact (open)
