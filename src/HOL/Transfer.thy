@@ -263,7 +263,7 @@ text {* Handling of domains *}
 lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
   by auto
 
-lemma Domaimp_refl[transfer_domain_rule]:
+lemma Domainp_refl[transfer_domain_rule]:
   "Domainp T = Domainp T" ..
 
 lemma Domainp_prod_fun_eq[relator_domain]:
