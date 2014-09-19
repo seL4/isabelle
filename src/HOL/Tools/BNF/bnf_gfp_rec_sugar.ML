@@ -1453,8 +1453,9 @@ val primcorec_option_parser = Parse.group (fn () => "option")
   (Parse.reserved "sequential" >> K Sequential_Option
   || Parse.reserved "exhaustive" >> K Exhaustive_Option)
 
+(* FIXME: should use "Parse_Spec.spec" instead of "Parse.prop" and honor binding *)
 val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
-  (Parse_Spec.spec -- Scan.option (Parse.reserved "of" |-- Parse.const)));
+  ((Parse.prop >> pair Attrib.empty_binding) -- Scan.option (Parse.reserved "of" |-- Parse.const)));
 
 val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorecursive"}
   "define primitive corecursive functions"
