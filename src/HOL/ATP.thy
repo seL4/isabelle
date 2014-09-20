@@ -138,7 +138,7 @@ lemma boolean_equality: "(P \<longleftrightarrow> P) = True"
   by simp
 
 lemma boolean_comm: "(P \<longleftrightarrow> Q) = (Q \<longleftrightarrow> P)"
-  by metis
+  by auto
 
 lemmas waldmeister_fol = boolean_equality boolean_comm
   simp_thms(1-5,7-8,11-25,27-33) disj_comms disj_assoc conj_comms conj_assoc
