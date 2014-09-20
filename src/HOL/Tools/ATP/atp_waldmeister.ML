@@ -304,7 +304,8 @@ fun mk_waldmeister_app function [] = function
       val resT = dest_funT funT |> snd
       val newT = funT --> argT --> resT
     in
-      mk_waldmeister_app (Const (waldmeister_apply ^ encode_type resT, newT) $ function $ a) args
+      mk_waldmeister_app (Const (waldmeister_apply ^ "," ^ 
+        encode_types [resT, argT], newT) $ function $ a) args
     end
 
 fun hide_partial_applications info (trm as (_ $ _)) =
@@ -335,7 +336,7 @@ fun remove_waldmeister_app ((c as Const (name, _)) $ x $ y) =
   | remove_waldmeister_app x = x
 
 (*
-  Translation from Isabelle theorms and terms to ATP terms.
+  Translation from Isabelle terms to ATP terms.
 *)
 
 fun trm_to_atp'' thy (Const (x, ty)) args =
@@ -425,8 +426,8 @@ fun formula_to_trm thy (AAtom aterm) = aterm |> atp_to_trm thy
 fun mk_formula prefix_name name atype aterm =
   Formula ((prefix_name ^ ascii_of name, name), atype, AAtom aterm, NONE, [])
 
-fun problem_lines_of_fact thy prefix (s, (_, (_, t))) fact_number =
-  mk_formula (prefix ^ Int.toString fact_number ^ "_") s Axiom (eq_trm_to_atp thy t)
+fun problem_lines_of_fact thy prefix (s, (_, (_, t))) =
+  mk_formula (prefix ^ "0_") s Axiom (eq_trm_to_atp thy t)
 
 fun make_nice problem = nice_atp_problem true CNF problem
 
@@ -468,7 +469,8 @@ fun generate_waldmeister_problem ctxt hyps_t0 concl_t0 facts0 =
       | name_list' prefix (x :: xs) i = (prefix ^ Int.toString i, x) :: name_list' prefix xs (i + 1)
 
     fun name_list prefix xs = name_list' prefix xs 0
-
+    
+    (* Skolemization, hiding lambdas and translating formulas to equations *)
     val (ctxt', sko_facts) = map_ctxt skolemize_fact ctxt facts
     val (ctxt'', sko_conditions) = map_ctxt (skolemize true) ctxt' conditions
 
@@ -484,6 +486,7 @@ fun generate_waldmeister_problem ctxt hyps_t0 concl_t0 facts0 =
       (((conj_identifier, eq_conseq) :: sko_eq_conditions0) 
       @ map (apfst (fn name => fact_prefix ^ "0_" ^ name)) sko_eq_facts0)
 
+    (* Translation of partial function applications *)
     val fun_app_info = map_minimal_app (map (snd o snd o snd) sko_eq_info)
 
     fun hide_partial_apps_in_last (x, (y, (z, term))) = 
@@ -493,10 +496,8 @@ fun generate_waldmeister_problem ctxt hyps_t0 concl_t0 facts0 =
     val sko_eq_conditions = map hide_partial_apps_in_last sko_eq_conditions0
     val eq_consequence = hide_partial_applications fun_app_info eq_consequence0
 
-    fun map_enum _ _ [] = []
-      | map_enum f i (x :: xs) = f x i :: map_enum f (i + 1) xs
-
-    val fact_lines = map_enum (problem_lines_of_fact thy fact_prefix) 0 sko_eq_facts
+    (* Problem creation *)
+    val fact_lines = map (problem_lines_of_fact thy fact_prefix) sko_eq_facts
     val condition_lines =
       map (fn (name, (_, (_, trm))) =>
         mk_formula fact_prefix name Hypothesis (eq_trm_to_atp thy trm)) sko_eq_conditions
@@ -543,19 +544,12 @@ fun get_skolem_info info names = case map (lookup info) names |> List.find is_so
   SOME x => x |
   NONE => NONE
 
-fun fix_name name =
-  let
-    fun drop_digits' xs [] = (xs, [])
-      | drop_digits' xs (c :: cs) = if Char.isDigit c then drop_digits' (c :: xs) cs else
-        (xs, (c :: cs))
-    fun drop_digits xs = drop_digits' [] xs
-  in
-    if String.isPrefix fact_prefix name then 
-      String.extract(name,size fact_prefix,NONE) |> String.explode |> drop_digits ||> tl 
-        ||> String.implode ||> unascii_of |> (fn (x,y) => fact_prefix ^ String.implode x ^ "_" ^ y)
-    else
-      name
-  end
+fun fix_name name = 
+  if  String.isPrefix fact_prefix name andalso String.isSuffix "_J" name then
+    String.extract(name, size fact_prefix + 2,NONE) |> unascii_of |> 
+    (fn x => fact_prefix ^ "0_" ^ x)
+  else
+    name
 
 fun skolemization_steps info
   (proof_step as ((waldmeister_name, isabelle_names), _, trm, rule, _)) =

@@ -133,10 +133,15 @@ unfolding fFalse_def fTrue_def fequal_def by auto
 
 subsection {* Waldmeister helpers *}
 
-(* Has all needed simplification lemmas for logic.
-   "HOL.simp_thms(35-42)" are about \<exists> and \<forall>. These lemmas are left out for now. *)
-lemmas waldmeister_fol = simp_thms(1,2,4-8,11-34) disj_absorb disj_left_absorb conj_absorb conj_left_absorb
-  eq_ac disj_comms disj_assoc conj_comms conj_assoc
+(* Has all needed simplification lemmas for logic. *)
+lemma boolean_equality: "(P \<longleftrightarrow> P) = True"
+  by simp
+
+lemma boolean_comm: "(P \<longleftrightarrow> Q) = (Q \<longleftrightarrow> P)"
+  by metis
+
+lemmas waldmeister_fol = boolean_equality boolean_comm
+  simp_thms(1-5,7-8,11-25,27-33) disj_comms disj_assoc conj_comms conj_assoc
 
 
 subsection {* Basic connection between ATPs and HOL *}
@@ -148,6 +153,6 @@ ML_file "Tools/ATP/atp_proof_reconstruct.ML"
 ML_file "Tools/ATP/atp_systems.ML"
 ML_file "Tools/ATP/atp_waldmeister.ML"
 
-hide_fact (open) waldmeister_fol
+hide_fact (open) waldmeister_fol boolean_equality boolean_comm
 
 end
