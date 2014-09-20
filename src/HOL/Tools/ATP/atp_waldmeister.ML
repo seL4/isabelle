@@ -279,17 +279,6 @@ fun thm_to_atps thy split_conj prop_term =
   if split_conj then map (eq_trm_to_atp thy) (prop_term |> HOLogic.dest_conj)
   else [prop_term |> eq_trm_to_atp thy]
 
-fun split_conjecture _ conj_term =
-  let
-    fun split_conj_trm (Const (@{const_name Pure.imp}, _) $ condition $ consequence) =
-        (SOME condition, consequence)
-      | split_conj_trm conj = (NONE, conj)
-    val (condition, consequence) = split_conj_trm conj_term
-  in
-    (case condition of SOME x => HOLogic.dest_conj x | NONE => []
-    , consequence)
-  end
-
 (* Translation from ATP terms to Isabelle terms. *)
 
 fun construct_term thy (name, args) =
@@ -367,16 +356,16 @@ fun mk_conjecture aterm =
     Formula ((conj_identifier, ""), Hypothesis, formula, NONE, [])
   end
 
-fun generate_waldmeister_problem ctxt _ concl_t0 facts0 =
+fun generate_waldmeister_problem ctxt hyps_t0 concl_t0 facts0 =
   let
     val thy = Proof_Context.theory_of ctxt
 
     val preproc = Object_Logic.atomize_term thy
 
+    val conditions = map preproc hyps_t0
+    val consequence = preproc concl_t0
     (*val hyp_ts = map preproc hyp_ts0 : term list *)
-    val concl_t = preproc concl_t0 : term
     val facts = map (apsnd preproc #> apfst fst) facts0 : (string * term) list
-    val (conditions, consequence) = split_conjecture thy concl_t : term list * term
     
     fun map_ctxt' _ ctxt [] ys = (ctxt,ys)
       | map_ctxt' f ctxt (x :: xs) ys =
@@ -402,7 +391,7 @@ fun generate_waldmeister_problem ctxt _ concl_t0 facts0 =
 
     val (ctxt',sko_facts) = map_ctxt skolemize_fact ctxt facts : 
       Proof.context * (string * (term list * term)) list
-    val (ctxt'',sko_conditions) = map_ctxt (skolemize false) ctxt' conditions : 
+    val (ctxt'',sko_conditions) = map_ctxt (skolemize true) ctxt' conditions : 
       Proof.context * (term list * term) list
 
     val post_skolem = do_cheaply_conceal_lambdas []
