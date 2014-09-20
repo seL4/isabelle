@@ -100,8 +100,8 @@ fun skolemize' pos ctxt1 ctxt2 spets vars (Const (@{const_name Not},_) $ trm') =
     in
       (ctxt1',ctxt2',map mk_not spets',mk_not trm'')
     end
-  | skolemize' pos ctxt1 ctxt2 spets vars (trm as (Const (@{const_name HOL.eq},_) $ a $ b)) =
-    if contains_quantor trm then
+  | skolemize' pos ctxt1 ctxt2 spets vars (trm as (Const (@{const_name HOL.eq},t) $ a $ b)) =
+    if contains_quantor trm andalso t = @{typ "bool \<Rightarrow> bool \<Rightarrow> bool"}then
       skolemize' pos ctxt1 ctxt2 (trm::spets) vars (mk_conj (mk_imp (a,b), mk_imp (b,a)))
     else
       (ctxt1,ctxt2,spets,trm)
