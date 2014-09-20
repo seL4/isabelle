@@ -545,7 +545,7 @@ fun get_skolem_info info names = case map (lookup info) names |> List.find is_so
   NONE => NONE
 
 fun fix_name name = 
-  if  String.isPrefix fact_prefix name andalso String.isSuffix "_J" name then
+  if String.isPrefix fact_prefix name andalso String.isSuffix "_J" name then
     String.extract(name, size fact_prefix + 2,NONE) |> unascii_of |> 
     (fn x => fact_prefix ^ "0_" ^ x)
   else
