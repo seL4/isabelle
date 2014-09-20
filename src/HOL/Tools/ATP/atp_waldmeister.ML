@@ -389,7 +389,7 @@ fun construct_term thy (name, args) =
       (* Use name instead of encoded_name because Waldmeister renames free variables. *)
     else if name = waldmeister_equals then
       (case args of 
-        [_, _] => eq_const @{typ bool}
+        [_, _] => eq_const dummyT
       | _ => raise FailureMessage 
         (WM_ERROR_MSG ^ "waldmeister equals needs 2 arguments but has " ^ 
          Int.toString (length args)))
@@ -541,12 +541,20 @@ fun termify_waldmeister_proof ctxt pool =
 fun get_skolem_info info names = case map (lookup info) names |> List.find is_some of
   SOME x => x |
   NONE => NONE
-  
-fun fix_name name = (* fixme *)
-  if String.isPrefix fact_prefix name then 
-    String.extract(name,7,NONE) |> unascii_of |> curry (op ^) "fact_0_"
-  else
-    name
+
+fun fix_name name =
+  let
+    fun drop_digits' xs [] = (xs, [])
+      | drop_digits' xs (c :: cs) = if Char.isDigit c then drop_digits' (c :: xs) cs else
+        (xs, (c :: cs))
+    fun drop_digits xs = drop_digits' [] xs
+  in
+    if String.isPrefix fact_prefix name then 
+      String.extract(name,size fact_prefix,NONE) |> String.explode |> drop_digits ||> tl 
+        ||> String.implode ||> unascii_of |> (fn (x,y) => fact_prefix ^ String.implode x ^ "_" ^ y)
+    else
+      name
+  end
 
 fun skolemization_steps info
   (proof_step as ((waldmeister_name, isabelle_names), _, trm, rule, _)) =
