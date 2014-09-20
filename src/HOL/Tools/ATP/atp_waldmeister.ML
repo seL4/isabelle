@@ -201,7 +201,7 @@ fun decode_const s = Scan.finite Symbol.stopper
 
 end;
 
-structure ATP_Waldmeister : ATP_WALDMEISTER  =
+structure ATP_Waldmeister (*** : ATP_WALDMEISTER  *) =
 struct
 
 open ATP_Util
@@ -301,9 +301,10 @@ fun mk_waldmeister_app function [] = function
     let
       val funT = type_of function
       val argT = type_of a
-      val newT = funT --> argT --> (dest_funT funT |> snd)
+      val resT = dest_funT funT |> snd
+      val newT = funT --> argT --> resT
     in
-      mk_waldmeister_app (Const (waldmeister_apply ^ encode_type newT, newT) $ function $ a) args
+      mk_waldmeister_app (Const (waldmeister_apply ^ encode_type resT, newT) $ function $ a) args
     end
 
 fun hide_partial_applications info (trm as (_ $ _)) =
