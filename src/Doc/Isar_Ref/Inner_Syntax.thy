@@ -617,7 +617,7 @@ text {* The inner lexical syntax vaguely resembles the outer one
   @{file "~~/src/HOL/Tools/string_syntax.ML"}).
 
   The derived categories @{syntax_def (inner) num_const}, @{syntax_def
-  (inner) float_const}, and @{syntax_def (inner) num_const} provide
+  (inner) float_const}, and @{syntax_def (inner) xnum_const} provide
   robust access to the respective tokens: the syntax tree holds a
   syntactic constant instead of a free variable.
 *}
