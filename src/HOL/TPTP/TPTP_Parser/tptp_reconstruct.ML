@@ -543,7 +543,7 @@ fun dest_parent_infos filtered fms parent_infos : {name : string, details : TPTP
       annotation) and use them in its reconstruction.
     *)
     val filter_deps =
-      List.filter (fn {name, ...} =>
+      filter (fn {name, ...} =>
         let
           val role = node_info fms #role name
         in role <> TPTP_Syntax.Role_Definition andalso
@@ -1277,7 +1277,7 @@ fun reconstruct ctxt tactic prob_name =
     val pannot = get_pannot_of_prob thy prob_name
     val goal =
       #meta pannot
-      |> List.filter (fn (_, info) =>
+      |> filter (fn (_, info) =>
           #role info = TPTP_Syntax.Role_Conjecture)
   in
     if null (#meta pannot) then
@@ -1301,8 +1301,8 @@ val ignore_consts =
 
 (*Difference between the constants appearing between two terms, minus "ignore_consts"*)
 fun new_consts_between t1 t2 =
-  List.filter
-   (fn n => not (List.exists (fn n' => n' = n) ignore_consts))
+  filter
+   (fn n => not (exists (fn n' => n' = n) ignore_consts))
    (list_diff (consts_in t2) (consts_in t1))
 
 (*Generate definition binding for an equation*)
@@ -1678,7 +1678,7 @@ fun prune_redundant_splits prob_name thy fms : theory * formula_meaning list =
             let
               val parent_nodes = parents_of_node fms n
             in
-              if List.exists (node_is_inference fms "split_conjecture") parent_nodes then
+              if exists (node_is_inference fms "split_conjecture") parent_nodes then
                 (([], [branch_id]), intermediate_thy) (*all related branches are to be deleted*)
               else
                 list_prod [] parent_nodes (n :: ns)
@@ -1701,7 +1701,7 @@ fun prune_redundant_splits prob_name thy fms : theory * formula_meaning list =
                   end
                 else (intermediate_thy, NONE)
             in
-              if List.exists (node_is_inference fms "split_conjecture") parent_nodes then
+              if exists (node_is_inference fms "split_conjecture") parent_nodes then
                 (([], []), thy')
               else
                 list_prod [] parent_nodes (n :: ns)
@@ -1736,7 +1736,7 @@ fun prune_redundant_splits prob_name thy fms : theory * formula_meaning list =
           |> (fn (paths, branch_ids) =>
               filter (fn (info, _) =>
                         case info of
-                            Coinconsistent branch_id => List.exists (fn x => x = branch_id) branch_ids
+                            Coinconsistent branch_id => exists (fn x => x = branch_id) branch_ids
                           | _ => true) paths)
           |> compute_paths thy'
         end
@@ -1820,13 +1820,13 @@ fun import_thm cautious path_prefixes file_name
     else
       let
         val defn_equations =
-          List.filter (fn (_, role, _, _) => role = TPTP_Syntax.Role_Definition) fms
+          filter (fn (_, role, _, _) => role = TPTP_Syntax.Role_Definition) fms
           |> map (fn (node, _, t, _) =>
                (node,
                 get_defn_components t
                 |> mk_bind_eq prob_name []))
         val axioms =
-          List.filter (fn (_, role, _, _) => role = TPTP_Syntax.Role_Axiom) fms
+          filter (fn (_, role, _, _) => role = TPTP_Syntax.Role_Axiom) fms
           |> map (fn (node, _, t, _) =>
                (node,
                 mk_bind_ax prob_name node t))

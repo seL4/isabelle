@@ -55,7 +55,7 @@ ML {*
   fun interpretation_tests timeout ctxt probs =
     List.app
      (interpretation_test timeout ctxt)
-     (List.map situate probs)
+     (map situate probs)
 *}
 
 ML {*

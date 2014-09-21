@@ -298,7 +298,7 @@ fun show_goal ctxt prob_name =
     val pannot = TPTP_Reconstruct.get_pannot_of_prob thy prob_name
   in
     #meta pannot
-    |> List.filter (fn (_, info) =>
+    |> filter (fn (_, info) =>
         #role info = TPTP_Syntax.Role_Conjecture)
     |> hd
     |> snd |> #fmla

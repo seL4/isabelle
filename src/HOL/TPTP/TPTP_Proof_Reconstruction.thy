@@ -775,7 +775,7 @@ fun find_skolem_term ctxt consts_candidate arity = fn st =>
       else
         map (strip_top_all_vars [] #> snd #> Logic.strip_horn #> snd) gls
         (*Remove skolem-definition conclusion, to avoid wasting time analysing it*)
-        |> List.filter (try_dest_Trueprop #> conc_is_skolem_def #> not)
+        |> filter (try_dest_Trueprop #> conc_is_skolem_def #> not)
         (*There should only be a single goal*) (*FIXME this might not always be the case, in practice*)
         (* |> tap (fn x => @{assert} (is_some (try the_single x))) *)
 
@@ -831,7 +831,7 @@ fun instantiate_skols ctxt consts_candidates i = fn st =>
               Term.add_frees lhs []
               |> distinct (op =)
             (*check to make sure that params' <= params*)
-            val _ = @{assert} (List.all (member (op =) params) params')
+            val _ = @{assert} (forall (member (op =) params) params')
             val skolem_const_ty =
               let
                 val (skolem_const_prety, no_params) =
@@ -1407,7 +1407,7 @@ fun can_feature x l =
         | _ => NONE
 
     fun check_sublist sought_sublist opt_list =
-      if List.all is_none opt_list then false
+      if forall is_none opt_list then false
       else
         fold_options opt_list
         |> flat
@@ -1427,7 +1427,7 @@ fun can_feature x l =
       | InnerLoopOnce l' =>
           map sublist_of_inner_loop_once l
           |> check_sublist l'
-      | _ => List.exists (curry (op =) x) l
+      | _ => exists (curry (op =) x) l
   end;
 
 fun loop_can_feature loop_feats l =
@@ -2069,8 +2069,8 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
             else
               case the (source_inf_opt node) of
                   TPTP_Proof.Inference (_, _, parent_inf) =>
-                    List.map TPTP_Proof.parent_name parent_inf
-                    |> List.filter (node_is_of_role role)
+                    map TPTP_Proof.parent_name parent_inf
+                    |> filter (node_is_of_role role)
                     |> (*FIXME currently definitions are not
                          included in the proof annotations, so
                          i'm using all the definitions available

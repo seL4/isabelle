@@ -360,7 +360,7 @@ fun transform_to_standard_atp_step already_transformed proof =
         rule, ...}) =
       let
         val role' = role_of_tptp_string role
-        val new_transformed = List.filter
+        val new_transformed = filter
           (fn s => size s >=4 andalso not (is_special_satallax_rule s) andalso not
           (member (op =) already_transformed s)) used_assumptions
       in

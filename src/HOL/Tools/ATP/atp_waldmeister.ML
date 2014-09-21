@@ -505,8 +505,8 @@ fun generate_waldmeister_problem ctxt hyps_t0 concl_t0 facts0 =
 
     val conj_line = mk_conjecture (eq_trm_to_atp thy eq_consequence)
 
-    val helper_lemmas_needed = List.exists (snd #> snd #> fst #> is_some) sko_eq_facts
-      orelse List.exists (snd #> snd #> fst #> is_some) sko_eq_conditions orelse
+    val helper_lemmas_needed = exists (snd #> snd #> fst #> is_some) sko_eq_facts
+      orelse exists (snd #> snd #> fst #> is_some) sko_eq_conditions orelse
       is_some non_eq_consequence0
 
     val helper_lines =

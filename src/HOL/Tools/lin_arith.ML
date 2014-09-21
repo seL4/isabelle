@@ -662,7 +662,7 @@ fun filter_prems_tac_items (p : term -> bool) (terms : term list) : term list =
 (* subgoal that has 'terms' as premises                                      *)
 
 fun negated_term_occurs_positively (terms : term list) : bool =
-  List.exists
+  exists
     (fn (Trueprop $ (Const (@{const_name Not}, _) $ t)) =>
       member Envir.aeconv terms (Trueprop $ t)
       | _ => false)

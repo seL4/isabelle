@@ -100,7 +100,7 @@ enumerate 0 ["a", "b", "c"];
 
 (*List subtraction*)
 fun list_diff l1 l2 =
-  List.filter (fn x => List.all (fn y => x <> y) l2) l1
+  filter (fn x => forall (fn y => x <> y) l2) l1
 
 val _ = @{assert}
   (list_diff [1,2,3] [2,4] = [1, 3])
@@ -769,7 +769,7 @@ fun TERMPRED
         let
           val hyps_conjoined =
             fold (fn a => fn b =>
-              b andalso (List.all (fn x => x) a)) hyp_results true
+              b andalso (forall (fn x => x) a)) hyp_results true
           val concs_conjoined =
             fold (fn a => fn b =>
               b andalso a) conc_results true
