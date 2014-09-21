@@ -98,7 +98,7 @@ by arith
 lemma "!!a::int. [| a+b <= i+j; a<=b; i<=j |] ==> a+a <= j+j"
 by arith
 
-lemma "!!a::int. [| a+b < i+j; a<b; i<j |] ==> a+a - - -1 < j+j - 3"
+lemma "!!a::int. [| a+b < i+j; a<b; i<j |] ==> a+a - - (- 1) < j+j - 3"
 by arith
 
 lemma "!!a::int. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k"
@@ -262,7 +262,7 @@ text {* \medskip Powers *}
 lemma "2 ^ 10 = (1024::int)"
   by simp
 
-lemma "-3 ^ 7 = (-2187::int)"
+lemma "(- 3) ^ 7 = (-2187::int)"
   by simp
 
 lemma "13 ^ 7 = (62748517::int)"
@@ -271,7 +271,7 @@ lemma "13 ^ 7 = (62748517::int)"
 lemma "3 ^ 15 = (14348907::int)"
   by simp
 
-lemma "-5 ^ 11 = (-48828125::int)"
+lemma "(- 5) ^ 11 = (-48828125::int)"
   by simp
 
 
@@ -446,7 +446,7 @@ subsubsection {*Powers *}
 lemma "2 ^ 15 = (32768::real)"
 by simp
 
-lemma "-3 ^ 7 = (-2187::real)"
+lemma "(- 3) ^ 7 = (-2187::real)"
 by simp
 
 lemma "13 ^ 7 = (62748517::real)"
@@ -455,7 +455,7 @@ by simp
 lemma "3 ^ 15 = (14348907::real)"
 by simp
 
-lemma "-5 ^ 11 = (-48828125::real)"
+lemma "(- 5) ^ 11 = (-48828125::real)"
 by simp
 
 

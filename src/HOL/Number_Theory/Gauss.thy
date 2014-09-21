@@ -318,7 +318,7 @@ qed
 
 subsection {* Gauss' Lemma *}
 
-lemma aux: "setprod id A * -1 ^ card E * a ^ card A * -1 ^ card E = setprod id A * a ^ card A"
+lemma aux: "setprod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = setprod id A * a ^ card A"
 by (metis (no_types) minus_minus mult.commute mult.left_commute power_minus power_one)
 
 theorem pre_gauss_lemma:
@@ -363,7 +363,7 @@ proof -
     apply (rule cong_trans_int)
     apply (simp add: aux cong del:setprod.cong)
     done
-  with A_prod_relprime have "[-1 ^ card E = a ^ card A](mod p)"
+  with A_prod_relprime have "[(- 1) ^ card E = a ^ card A](mod p)"
     by (metis cong_mult_lcancel_int)
   then show ?thesis
     by (simp add: A_card_eq cong_sym_int)

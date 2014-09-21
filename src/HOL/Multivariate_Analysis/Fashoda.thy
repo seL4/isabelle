@@ -146,7 +146,7 @@ proof (rule ccontr)
     using UNIV_2 by auto
   have 1: "box (- 1) (1::real^2) \<noteq> {}"
     unfolding interval_eq_empty_cart by auto
-  have 2: "continuous_on (cbox -1 1) (negatex \<circ> sqprojection \<circ> ?F)"
+  have 2: "continuous_on (cbox (- 1) 1) (negatex \<circ> sqprojection \<circ> ?F)"
     apply (intro continuous_intros continuous_on_component)
     unfolding *
     apply (rule assms)+
@@ -179,7 +179,7 @@ proof (rule ccontr)
   proof -
     case goal1
     then obtain y :: "real^2" where y:
-        "y \<in> cbox -1 1"
+        "y \<in> cbox (- 1) 1"
         "x = (negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) y"
       unfolding image_iff ..
     have "?F y \<noteq> 0"
@@ -208,9 +208,9 @@ proof (rule ccontr)
     qed
   qed
   obtain x :: "real^2" where x:
-      "x \<in> cbox -1 1"
+      "x \<in> cbox (- 1) 1"
       "(negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) x = x"
-    apply (rule brouwer_weak[of "cbox -1 (1::real^2)" "negatex \<circ> sqprojection \<circ> ?F"])
+    apply (rule brouwer_weak[of "cbox (- 1) (1::real^2)" "negatex \<circ> sqprojection \<circ> ?F"])
     apply (rule compact_cbox convex_box)+
     unfolding interior_cbox
     apply (rule 1 2 3)+
@@ -362,7 +362,7 @@ proof -
     unfolding iscale_def by auto
   have "\<exists>s\<in>{- 1..1}. \<exists>t\<in>{- 1..1}. (f \<circ> iscale) s = (g \<circ> iscale) t"
   proof (rule fashoda_unit)
-    show "(f \<circ> iscale) ` {- 1..1} \<subseteq> cbox -1 1" "(g \<circ> iscale) ` {- 1..1} \<subseteq> cbox -1 1"
+    show "(f \<circ> iscale) ` {- 1..1} \<subseteq> cbox (- 1) 1" "(g \<circ> iscale) ` {- 1..1} \<subseteq> cbox (- 1) 1"
       using isc and assms(3-4) by (auto simp add: image_comp [symmetric])
     have *: "continuous_on {- 1..1} iscale"
       unfolding iscale_def by (rule continuous_intros)+
@@ -506,7 +506,7 @@ next
         "y \<in> {0..1}"
         "x = (interval_bij (a, b) (- 1, 1) \<circ> f) y"
       unfolding image_iff ..
-    show "x \<in> cbox -1 1"
+    show "x \<in> cbox (- 1) 1"
       unfolding y o_def
       apply (rule in_interval_interval_bij)
       using y(1)
@@ -520,7 +520,7 @@ next
         "y \<in> {0..1}"
         "x = (interval_bij (a, b) (- 1, 1) \<circ> g) y"
       unfolding image_iff ..
-    show "x \<in> cbox -1 1"
+    show "x \<in> cbox (- 1) 1"
       unfolding y o_def
       apply (rule in_interval_interval_bij)
       using y(1)

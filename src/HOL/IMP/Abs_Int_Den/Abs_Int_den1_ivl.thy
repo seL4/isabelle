@@ -252,7 +252,7 @@ value "list_up(AI_ivl test2_ivl Top)"
 definition "test3_ivl =
  ''x'' ::= N 0;; ''y'' ::= N 100;; ''z'' ::= Plus (V ''x'') (V ''y'');;
  WHILE Less (V ''x'') (N 11)
- DO (''x'' ::= Plus (V ''x'') (N 1);; ''y'' ::= Plus (V ''y'') (N -1))"
+ DO (''x'' ::= Plus (V ''x'') (N 1);; ''y'' ::= Plus (V ''y'') (N (- 1)))"
 value "list_up(AI_ivl test3_ivl Top)"
 
 definition "test4_ivl =
@@ -264,7 +264,7 @@ value "list_up(AI_ivl test4_ivl Top)"
 text{* Nontermination not detected: *}
 definition "test5_ivl =
  ''x'' ::= N 0;;
- WHILE Less (V ''x'') (N 1) DO ''x'' ::= Plus (V ''x'') (N -1)"
+ WHILE Less (V ''x'') (N 1) DO ''x'' ::= Plus (V ''x'') (N (- 1))"
 value "list_up(AI_ivl test5_ivl Top)"
 
 end

@@ -214,7 +214,7 @@ lemma power2_minus [simp]:
   by (rule power_minus_Bit0)
 
 lemma power_minus1_even [simp]:
-  "-1 ^ (2*n) = 1"
+  "(- 1) ^ (2*n) = 1"
 proof (induct n)
   case 0 show ?case by simp
 next
@@ -222,7 +222,7 @@ next
 qed
 
 lemma power_minus1_odd:
-  "-1 ^ Suc (2*n) = -1"
+  "(- 1) ^ Suc (2*n) = -1"
   by simp
 
 lemma power_minus_even [simp]:

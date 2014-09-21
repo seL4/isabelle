@@ -1458,22 +1458,22 @@ consts \<beta> :: "fm \<Rightarrow> num list"
 recdef \<beta> "measure size"
   "\<beta> (And p q) = (\<beta> p @ \<beta> q)"
   "\<beta> (Or p q) = (\<beta> p @ \<beta> q)"
-  "\<beta> (Eq  (CN 0 c e)) = [Sub (C -1) e]"
+  "\<beta> (Eq  (CN 0 c e)) = [Sub (C (- 1)) e]"
   "\<beta> (NEq (CN 0 c e)) = [Neg e]"
   "\<beta> (Lt  (CN 0 c e)) = []"
   "\<beta> (Le  (CN 0 c e)) = []"
   "\<beta> (Gt  (CN 0 c e)) = [Neg e]"
-  "\<beta> (Ge  (CN 0 c e)) = [Sub (C -1) e]"
+  "\<beta> (Ge  (CN 0 c e)) = [Sub (C (- 1)) e]"
   "\<beta> p = []"
 
 consts \<alpha> :: "fm \<Rightarrow> num list"
 recdef \<alpha> "measure size"
   "\<alpha> (And p q) = \<alpha> p @ \<alpha> q"
   "\<alpha> (Or p q) = \<alpha> p @ \<alpha> q"
-  "\<alpha> (Eq  (CN 0 c e)) = [Add (C -1) e]"
+  "\<alpha> (Eq  (CN 0 c e)) = [Add (C (- 1)) e]"
   "\<alpha> (NEq (CN 0 c e)) = [e]"
   "\<alpha> (Lt  (CN 0 c e)) = [e]"
-  "\<alpha> (Le  (CN 0 c e)) = [Add (C -1) e]"
+  "\<alpha> (Le  (CN 0 c e)) = [Add (C (- 1)) e]"
   "\<alpha> (Gt  (CN 0 c e)) = []"
   "\<alpha> (Ge  (CN 0 c e)) = []"
   "\<alpha> p = []"
@@ -2082,7 +2082,7 @@ next
   moreover
   {
     assume H: "\<not> (x - d) + ?e \<ge> 0"
-    let ?v = "Sub (C -1) e"
+    let ?v = "Sub (C (- 1)) e"
     have vb: "?v \<in> set (\<beta> (Ge (CN 0 c e)))"
       by simp
     from 8(5)[simplified simp_thms Inum.simps \<beta>.simps list.set bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]]
@@ -2109,7 +2109,7 @@ next
     and bn: "numbound0 e"
     by simp_all
   let ?e = "Inum (x # bs) e"
-  let ?v="(Sub (C -1) e)"
+  let ?v="(Sub (C (- 1)) e)"
   have vb: "?v \<in> set (\<beta> (Eq (CN 0 c e)))"
     by simp
   from p have "x= - ?e"

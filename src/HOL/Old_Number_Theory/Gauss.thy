@@ -436,7 +436,7 @@ qed
 
 subsection {* Gauss' Lemma *}
 
-lemma aux: "setprod id A * -1 ^ card E * a ^ card A * -1 ^ card E = setprod id A * a ^ card A"
+lemma aux: "setprod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = setprod id A * a ^ card A"
   by (auto simp add: finite_E neg_one_special)
 
 theorem pre_gauss_lemma:
@@ -488,8 +488,8 @@ proof -
     apply (rule zcong_trans)
     apply (simp add: aux cong del:setprod.cong)
     done
-  with this zcong_cancel2 [of p "setprod id A" "-1 ^ card E" "a ^ card A"]
-      p_g_0 A_prod_relprime have "[-1 ^ card E = a ^ card A](mod p)"
+  with this zcong_cancel2 [of p "setprod id A" "(- 1) ^ card E" "a ^ card A"]
+      p_g_0 A_prod_relprime have "[(- 1) ^ card E = a ^ card A](mod p)"
     by (simp add: order_less_imp_le)
   from this show ?thesis
     by (simp add: A_card_eq zcong_sym)

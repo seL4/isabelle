@@ -2304,21 +2304,21 @@ recdef \<zeta> "measure size"
 recdef \<beta> "measure size"
   "\<beta> (And p q) = (\<beta> p @ \<beta> q)" 
   "\<beta> (Or p q) = (\<beta> p @ \<beta> q)" 
-  "\<beta> (Eq  (CN 0 c e)) = [Sub (C -1) e]"
+  "\<beta> (Eq  (CN 0 c e)) = [Sub (C (- 1)) e]"
   "\<beta> (NEq (CN 0 c e)) = [Neg e]"
   "\<beta> (Lt  (CN 0 c e)) = []"
   "\<beta> (Le  (CN 0 c e)) = []"
   "\<beta> (Gt  (CN 0 c e)) = [Neg e]"
-  "\<beta> (Ge  (CN 0 c e)) = [Sub (C -1) e]"
+  "\<beta> (Ge  (CN 0 c e)) = [Sub (C (- 1)) e]"
   "\<beta> p = []"
 
 recdef \<alpha> "measure size"
   "\<alpha> (And p q) = (\<alpha> p @ \<alpha> q)" 
   "\<alpha> (Or p q) = (\<alpha> p @ \<alpha> q)" 
-  "\<alpha> (Eq  (CN 0 c e)) = [Add (C -1) e]"
+  "\<alpha> (Eq  (CN 0 c e)) = [Add (C (- 1)) e]"
   "\<alpha> (NEq (CN 0 c e)) = [e]"
   "\<alpha> (Lt  (CN 0 c e)) = [e]"
-  "\<alpha> (Le  (CN 0 c e)) = [Add (C -1) e]"
+  "\<alpha> (Le  (CN 0 c e)) = [Add (C (- 1)) e]"
   "\<alpha> (Gt  (CN 0 c e)) = []"
   "\<alpha> (Ge  (CN 0 c e)) = []"
   "\<alpha> p = []"
@@ -2636,7 +2636,7 @@ next
         by (simp del: real_of_int_minus)}
     moreover
     {assume H: "\<not> real (x-d) + ?e \<ge> 0" 
-      let ?v="Sub (C -1) e"
+      let ?v="Sub (C (- 1)) e"
       have vb: "?v \<in> set (\<beta> (Ge (CN 0 c e)))" by simp
       from 8(5)[simplified simp_thms Inum.simps \<beta>.simps list.set bex_simps numbound0_I[OF bn,where b="a" and b'="real x" and bs="bs"]] 
       have nob: "\<not> (\<exists> j\<in> {1 ..d}. real x =  - ?e - 1 + real j)" by auto 
@@ -2656,7 +2656,7 @@ next
   case (3 c e) hence p: "Ifm (real x #bs) (Eq (CN 0 c e))" (is "?p x") and c1: "c=1" 
     and bn:"numbound0 e" and ie1: "isint e (a #bs)" using dvd1_eq1[where x="c"] by simp+
     let ?e = "Inum (real x # bs) e"
-    let ?v="(Sub (C -1) e)"
+    let ?v="(Sub (C (- 1)) e)"
     have vb: "?v \<in> set (\<beta> (Eq (CN 0 c e)))" by simp
     from p have "real x= - ?e" by (simp add: c1) with 3(5) show ?case using dp
       by simp (erule ballE[where x="1"],
@@ -2796,7 +2796,7 @@ consts
 recdef \<rho> "measure size"
   "\<rho> (And p q) = (\<rho> p @ \<rho> q)" 
   "\<rho> (Or p q) = (\<rho> p @ \<rho> q)" 
-  "\<rho> (Eq  (CN 0 c e)) = [(Sub (C -1) e,c)]"
+  "\<rho> (Eq  (CN 0 c e)) = [(Sub (C (- 1)) e,c)]"
   "\<rho> (NEq (CN 0 c e)) = [(Neg e,c)]"
   "\<rho> (Lt  (CN 0 c e)) = []"
   "\<rho> (Le  (CN 0 c e)) = []"
@@ -2828,10 +2828,10 @@ recdef \<sigma>_\<rho> "measure size"
 recdef \<alpha>_\<rho> "measure size"
   "\<alpha>_\<rho> (And p q) = (\<alpha>_\<rho> p @ \<alpha>_\<rho> q)" 
   "\<alpha>_\<rho> (Or p q) = (\<alpha>_\<rho> p @ \<alpha>_\<rho> q)" 
-  "\<alpha>_\<rho> (Eq  (CN 0 c e)) = [(Add (C -1) e,c)]"
+  "\<alpha>_\<rho> (Eq  (CN 0 c e)) = [(Add (C (- 1)) e,c)]"
   "\<alpha>_\<rho> (NEq (CN 0 c e)) = [(e,c)]"
   "\<alpha>_\<rho> (Lt  (CN 0 c e)) = [(e,c)]"
-  "\<alpha>_\<rho> (Le  (CN 0 c e)) = [(Add (C -1) e,c)]"
+  "\<alpha>_\<rho> (Le  (CN 0 c e)) = [(Add (C (- 1)) e,c)]"
   "\<alpha>_\<rho> p = []"
 
     (* Simulates normal substituion by modifying the formula see correctness theorem *)
@@ -4856,9 +4856,9 @@ proof-
   let ?P = "?I x (plusinf ?rq)"
   have MF: "?M = False"
     apply (simp add: Let_def reducecoeff_def numgcd_def rsplit_def ge_def lt_def conj_def disj_def)
-    by (cases "rlfm p = And (Ge (CN 0 1 (C 0))) (Lt (CN 0 1 (C -1)))", simp_all)
+    by (cases "rlfm p = And (Ge (CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))", simp_all)
   have PF: "?P = False" apply (simp add: Let_def reducecoeff_def numgcd_def rsplit_def ge_def lt_def conj_def disj_def)
-    by (cases "rlfm p = And (Ge (CN 0 1 (C 0))) (Lt (CN 0 1 (C -1)))", simp_all)
+    by (cases "rlfm p = And (Ge (CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))", simp_all)
   have "(\<exists> x. ?I x ?q ) = 
     ((?I x (minusinf ?rq)) \<or> (?I x (plusinf ?rq )) \<or> (\<exists> (t,n) \<in> set (\<Upsilon> ?rq). \<exists> (s,m) \<in> set (\<Upsilon> ?rq ). ?I x (\<upsilon> ?rq (Add (Mul m t) (Mul n s), 2*n*m))))"
     (is "(\<exists> x. ?I x ?q) = (?M \<or> ?P \<or> ?F)" is "?E = ?D")

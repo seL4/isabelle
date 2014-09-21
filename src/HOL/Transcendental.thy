@@ -247,8 +247,8 @@ subsection {* Alternating series test / Leibniz formula *}
 lemma sums_alternating_upper_lower:
   fixes a :: "nat \<Rightarrow> real"
   assumes mono: "\<And>n. a (Suc n) \<le> a n" and a_pos: "\<And>n. 0 \<le> a n" and "a ----> 0"
-  shows "\<exists>l. ((\<forall>n. (\<Sum>i<2*n. -1^i*a i) \<le> l) \<and> (\<lambda> n. \<Sum>i<2*n. -1^i*a i) ----> l) \<and>
-             ((\<forall>n. l \<le> (\<Sum>i<2*n + 1. -1^i*a i)) \<and> (\<lambda> n. \<Sum>i<2*n + 1. -1^i*a i) ----> l)"
+  shows "\<exists>l. ((\<forall>n. (\<Sum>i<2*n. (- 1)^i*a i) \<le> l) \<and> (\<lambda> n. \<Sum>i<2*n. (- 1)^i*a i) ----> l) \<and>
+             ((\<forall>n. l \<le> (\<Sum>i<2*n + 1. (- 1)^i*a i)) \<and> (\<lambda> n. \<Sum>i<2*n + 1. (- 1)^i*a i) ----> l)"
   (is "\<exists>l. ((\<forall>n. ?f n \<le> l) \<and> _) \<and> ((\<forall>n. l \<le> ?g n) \<and> _)")
 proof (rule nested_sequence_unique)
   have fg_diff: "\<And>n. ?f n - ?g n = - a (2 * n)" unfolding One_nat_def by auto
@@ -367,11 +367,11 @@ theorem summable_Leibniz:
   assumes a_zero: "a ----> 0" and "monoseq a"
   shows "summable (\<lambda> n. (-1)^n * a n)" (is "?summable")
     and "0 < a 0 \<longrightarrow>
-      (\<forall>n. (\<Sum>i. -1^i*a i) \<in> { \<Sum>i<2*n. -1^i * a i .. \<Sum>i<2*n+1. -1^i * a i})" (is "?pos")
+      (\<forall>n. (\<Sum>i. (- 1)^i*a i) \<in> { \<Sum>i<2*n. (- 1)^i * a i .. \<Sum>i<2*n+1. (- 1)^i * a i})" (is "?pos")
     and "a 0 < 0 \<longrightarrow>
-      (\<forall>n. (\<Sum>i. -1^i*a i) \<in> { \<Sum>i<2*n+1. -1^i * a i .. \<Sum>i<2*n. -1^i * a i})" (is "?neg")
-    and "(\<lambda>n. \<Sum>i<2*n. -1^i*a i) ----> (\<Sum>i. -1^i*a i)" (is "?f")
-    and "(\<lambda>n. \<Sum>i<2*n+1. -1^i*a i) ----> (\<Sum>i. -1^i*a i)" (is "?g")
+      (\<forall>n. (\<Sum>i. (- 1)^i*a i) \<in> { \<Sum>i<2*n+1. (- 1)^i * a i .. \<Sum>i<2*n. (- 1)^i * a i})" (is "?neg")
+    and "(\<lambda>n. \<Sum>i<2*n. (- 1)^i*a i) ----> (\<Sum>i. (- 1)^i*a i)" (is "?f")
+    and "(\<lambda>n. \<Sum>i<2*n+1. (- 1)^i*a i) ----> (\<Sum>i. (- 1)^i*a i)" (is "?g")
 proof -
   have "?summable \<and> ?pos \<and> ?neg \<and> ?f \<and> ?g"
   proof (cases "(\<forall> n. 0 \<le> a n) \<and> (\<forall>m. \<forall>n\<ge>m. a n \<le> a m)")
@@ -413,7 +413,7 @@ proof -
       unfolding minus_diff_minus by auto
 
     from suminf_minus[OF leibniz(1), unfolded mult_minus_right minus_minus]
-    have move_minus: "(\<Sum>n. - (-1 ^ n * a n)) = - (\<Sum>n. -1 ^ n * a n)"
+    have move_minus: "(\<Sum>n. - ((- 1) ^ n * a n)) = - (\<Sum>n. (- 1) ^ n * a n)"
       by auto
 
     have ?pos using `0 \<le> ?a 0` by auto
@@ -1383,7 +1383,7 @@ proof -
       fix x :: real
       assume "x \<in> {- 1<..<1}"
       hence "norm (-x) < 1" by auto
-      show "summable (\<lambda>n. -1 ^ n * (1 / real (n + 1)) * real (Suc n) * x ^ n)"
+      show "summable (\<lambda>n. (- 1) ^ n * (1 / real (n + 1)) * real (Suc n) * x ^ n)"
         unfolding One_nat_def
         by (auto simp add: power_mult_distrib[symmetric] summable_geometric[OF `norm (-x) < 1`])
     qed
@@ -2216,10 +2216,10 @@ qed auto
 subsection {* Sine and Cosine *}
 
 definition sin_coeff :: "nat \<Rightarrow> real" where
-  "sin_coeff = (\<lambda>n. if even n then 0 else -1 ^ ((n - Suc 0) div 2) / real (fact n))"
+  "sin_coeff = (\<lambda>n. if even n then 0 else (- 1) ^ ((n - Suc 0) div 2) / real (fact n))"
 
 definition cos_coeff :: "nat \<Rightarrow> real" where
-  "cos_coeff = (\<lambda>n. if even n then (-1 ^ (n div 2)) / real (fact n) else 0)"
+  "cos_coeff = (\<lambda>n. if even n then ((- 1) ^ (n div 2)) / real (fact n) else 0)"
 
 definition sin :: "real \<Rightarrow> real"
   where "sin = (\<lambda>x. \<Sum>n. sin_coeff n * x ^ n)"
@@ -2472,7 +2472,7 @@ text{*Show that there's a least positive @{term x} with @{term "cos(x) = 0"};
    hence define pi.*}
 
 lemma sin_paired:
-  "(\<lambda>n. -1 ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) sums  sin x"
+  "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) sums  sin x"
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. sin_coeff k * x ^ k) sums sin x"
     by (rule sin_converges [THEN sums_group], simp)
@@ -2483,7 +2483,7 @@ lemma sin_gt_zero:
   assumes "0 < x" and "x < 2"
   shows "0 < sin x"
 proof -
-  let ?f = "\<lambda>n. \<Sum>k = n*2..<n*2+2. -1 ^ k / real (fact (2*k+1)) * x^(2*k+1)"
+  let ?f = "\<lambda>n. \<Sum>k = n*2..<n*2+2. (- 1) ^ k / real (fact (2*k+1)) * x^(2*k+1)"
   have pos: "\<forall>n. 0 < ?f n"
   proof
     fix n :: nat
@@ -2508,7 +2508,7 @@ qed
 lemma cos_double_less_one: "0 < x \<Longrightarrow> x < 2 \<Longrightarrow> cos (2 * x) < 1"
   using sin_gt_zero [where x = x] by (auto simp add: cos_squared_eq cos_double)
 
-lemma cos_paired: "(\<lambda>n. -1 ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
+lemma cos_paired: "(\<lambda>n. (- 1) ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. cos_coeff k * x ^ k) sums cos x"
     by (rule cos_converges [THEN sums_group], simp)
@@ -2541,16 +2541,16 @@ lemma cos_two_less_zero [simp]:
 proof -
   note fact_Suc [simp del]
   from cos_paired
-  have "(\<lambda>n. - (-1 ^ n / real (fact (2 * n)) * 2 ^ (2 * n))) sums - cos 2"
+  have "(\<lambda>n. - ((- 1) ^ n / real (fact (2 * n)) * 2 ^ (2 * n))) sums - cos 2"
     by (rule sums_minus)
-  then have *: "(\<lambda>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n)))) sums - cos 2"
+  then have *: "(\<lambda>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n)))) sums - cos 2"
     by simp
-  then have **: "summable (\<lambda>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  then have **: "summable (\<lambda>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
     by (rule sums_summable)
-  have "0 < (\<Sum>n<Suc (Suc (Suc 0)). - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  have "0 < (\<Sum>n<Suc (Suc (Suc 0)). - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
     by (simp add: fact_num_eq_if_nat realpow_num_eq_if)
-  moreover have "(\<Sum>n<Suc (Suc (Suc 0)). - (-1 ^ n  * 2 ^ (2 * n) / real (fact (2 * n))))
-    < (\<Sum>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  moreover have "(\<Sum>n<Suc (Suc (Suc 0)). - ((- 1) ^ n  * 2 ^ (2 * n) / real (fact (2 * n))))
+    < (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
   proof -
     { fix d
       have "4 * real (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
@@ -2569,9 +2569,9 @@ proof -
     from ** show ?thesis by (rule sumr_pos_lt_pair)
       (simp add: divide_inverse mult.assoc [symmetric] ***)
   qed
-  ultimately have "0 < (\<Sum>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  ultimately have "0 < (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
     by (rule order_less_trans)
-  moreover from * have "- cos 2 = (\<Sum>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  moreover from * have "- cos 2 = (\<Sum>n. - ((- 1) ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
     by (rule sums_unique)
   ultimately have "0 < - cos 2" by simp
   then show ?thesis by simp
@@ -2677,10 +2677,10 @@ lemma sin_periodic [simp]: "sin (x + 2*pi) = sin x"
 lemma cos_periodic [simp]: "cos (x + 2*pi) = cos x"
   by (simp add: cos_add cos_double)
 
-lemma cos_npi [simp]: "cos (real n * pi) = -1 ^ n"
+lemma cos_npi [simp]: "cos (real n * pi) = (- 1) ^ n"
   by (induct n) (auto simp add: real_of_nat_Suc distrib_right)
 
-lemma cos_npi2 [simp]: "cos (pi * real n) = -1 ^ n"
+lemma cos_npi2 [simp]: "cos (pi * real n) = (- 1) ^ n"
   by (metis cos_npi mult.commute)
 
 lemma sin_npi [simp]: "sin (real (n::nat) * pi) = 0"
@@ -3754,9 +3754,9 @@ proof -
     fix x :: real
     assume "\<bar>x\<bar> < 1"
     hence "x\<^sup>2 < 1" by (rule less_one_imp_sqr_less_one)
-    have "summable (\<lambda> n. -1 ^ n * (x\<^sup>2) ^n)"
+    have "summable (\<lambda> n. (- 1) ^ n * (x\<^sup>2) ^n)"
       by (rule summable_Leibniz(1), auto intro!: LIMSEQ_realpow_zero monoseq_realpow `x\<^sup>2 < 1` order_less_imp_le[OF `x\<^sup>2 < 1`])
-    hence "summable (\<lambda> n. -1 ^ n * x^(2*n))" unfolding power_mult .
+    hence "summable (\<lambda> n. (- 1) ^ n * x^(2*n))" unfolding power_mult .
   } note summable_Integral = this
 
   {
@@ -3778,17 +3778,17 @@ proof -
   } note sums_even = this
 
   have Int_eq: "(\<Sum>n. ?f n * real (Suc n) * x^n) = ?Int"
-    unfolding if_eq mult.commute[of _ 2] suminf_def sums_even[of "\<lambda> n. -1 ^ n * x ^ (2 * n)", symmetric]
+    unfolding if_eq mult.commute[of _ 2] suminf_def sums_even[of "\<lambda> n. (- 1) ^ n * x ^ (2 * n)", symmetric]
     by auto
 
   {
     fix x :: real
-    have if_eq': "\<And>n. (if even n then -1 ^ (n div 2) * 1 / real (Suc n) else 0) * x ^ Suc n =
-      (if even n then -1 ^ (n div 2) * (1 / real (Suc (2 * (n div 2))) * x ^ Suc (2 * (n div 2))) else 0)"
+    have if_eq': "\<And>n. (if even n then (- 1) ^ (n div 2) * 1 / real (Suc n) else 0) * x ^ Suc n =
+      (if even n then (- 1) ^ (n div 2) * (1 / real (Suc (2 * (n div 2))) * x ^ Suc (2 * (n div 2))) else 0)"
       using n_even by auto
     have idx_eq: "\<And>n. n * 2 + 1 = Suc (2 * n)" by auto
     have "(\<Sum>n. ?f n * x^(Suc n)) = ?arctan x"
-      unfolding if_eq' idx_eq suminf_def sums_even[of "\<lambda> n. -1 ^ n * (1 / real (Suc (2 * n)) * x ^ Suc (2 * n))", symmetric]
+      unfolding if_eq' idx_eq suminf_def sums_even[of "\<lambda> n. (- 1) ^ n * (1 / real (Suc (2 * n)) * x ^ Suc (2 * n))", symmetric]
       by auto
   } note arctan_eq = this
 
@@ -3798,11 +3798,18 @@ proof -
     {
       fix x' :: real
       assume x'_bounds: "x' \<in> {- 1 <..< 1}"
-      hence "\<bar>x'\<bar> < 1" by auto
-
+      then have "\<bar>x'\<bar> < 1" by auto
+      then
+        have *: "summable (\<lambda>n. (- 1) ^ n * x' ^ (2 * n))"
+        by (rule summable_Integral)
       let ?S = "\<Sum> n. (-1)^n * x'^(2 * n)"
       show "summable (\<lambda> n. ?f n * real (Suc n) * x'^n)" unfolding if_eq
-        by (rule sums_summable[where l="0 + ?S"], rule sums_if, rule sums_zero, rule summable_sums, rule summable_Integral[OF `\<bar>x'\<bar> < 1`])
+        apply (rule sums_summable [where l="0 + ?S"])
+        apply (rule sums_if)
+        apply (rule sums_zero)
+        apply (rule summable_sums)
+        apply (rule *)
+        done
     }
   qed auto
   thus ?thesis unfolding Int_eq arctan_eq .

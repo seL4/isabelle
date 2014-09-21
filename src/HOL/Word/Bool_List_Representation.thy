@@ -105,8 +105,8 @@ lemma bin_to_bl_aux_zero_minus_simp [simp]:
   by (cases n) auto
 
 lemma bin_to_bl_aux_minus1_minus_simp [simp]:
-  "0 < n ==> bin_to_bl_aux n -1 bl = 
-    bin_to_bl_aux (n - 1) -1 (True # bl)"
+  "0 < n ==> bin_to_bl_aux n (- 1) bl = 
+    bin_to_bl_aux (n - 1) (- 1) (True # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_one_minus_simp [simp]:
@@ -206,10 +206,10 @@ lemma bin_to_bl_zero: "bin_to_bl n 0 = replicate n False"
   unfolding bin_to_bl_def by (simp add: bin_to_bl_zero_aux)
 
 lemma bin_to_bl_minus1_aux:
-  "bin_to_bl_aux n -1 bl = replicate n True @ bl"
+  "bin_to_bl_aux n (- 1) bl = replicate n True @ bl"
   by (induct n arbitrary: bl) (auto simp: replicate_app_Cons_same)
 
-lemma bin_to_bl_minus1: "bin_to_bl n -1 = replicate n True"
+lemma bin_to_bl_minus1: "bin_to_bl n (- 1) = replicate n True"
   unfolding bin_to_bl_def by (simp add: bin_to_bl_minus1_aux)
 
 lemma bl_to_bin_rep_F: 

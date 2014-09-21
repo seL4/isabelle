@@ -1275,7 +1275,7 @@ lemma sint_0 [simp]: "sint 0 = 0"
 lemma scast_0 [simp]: "scast 0 = 0"
   unfolding scast_def by simp
 
-lemma sint_n1 [simp] : "sint -1 = -1"
+lemma sint_n1 [simp] : "sint (- 1) = - 1"
   unfolding word_m1_wi word_sbin.eq_norm by simp
 
 lemma scast_n1 [simp]: "scast (- 1) = - 1"
@@ -1349,7 +1349,7 @@ lemma sint_word_ariths:
 lemmas uint_div_alt = word_div_def [THEN trans [OF uint_cong int_word_uint]]
 lemmas uint_mod_alt = word_mod_def [THEN trans [OF uint_cong int_word_uint]]
 
-lemma word_pred_0_n1: "word_pred 0 = word_of_int -1"
+lemma word_pred_0_n1: "word_pred 0 = word_of_int (- 1)"
   unfolding word_pred_m1 by simp
 
 lemma succ_pred_no [simp]:
@@ -1360,7 +1360,7 @@ lemma succ_pred_no [simp]:
   unfolding word_succ_p1 word_pred_m1 by simp_all
 
 lemma word_sp_01 [simp] : 
-  "word_succ -1 = 0 & word_succ 0 = 1 & word_pred 0 = -1 & word_pred 1 = 0"
+  "word_succ (- 1) = 0 & word_succ 0 = 1 & word_pred 0 = - 1 & word_pred 1 = 0"
   unfolding word_succ_p1 word_pred_m1 by simp_all
 
 (* alternative approach to lifting arithmetic equalities *)
@@ -2803,7 +2803,7 @@ lemma shiftr1_0 [simp]: "shiftr1 0 = 0"
 lemma sshiftr1_0 [simp]: "sshiftr1 0 = 0"
   unfolding sshiftr1_def by simp
 
-lemma sshiftr1_n1 [simp] : "sshiftr1 -1 = -1"
+lemma sshiftr1_n1 [simp] : "sshiftr1 (- 1) = - 1"
   unfolding sshiftr1_def by simp
 
 lemma shiftl_0 [simp] : "(0::'a::len0 word) << n = 0"
@@ -3243,7 +3243,7 @@ lemma nth_mask [OF refl, simp]:
 lemma mask_bl: "mask n = of_bl (replicate n True)"
   by (auto simp add : test_bit_of_bl word_size intro: word_eqI)
 
-lemma mask_bin: "mask n = word_of_int (bintrunc n -1)"
+lemma mask_bin: "mask n = word_of_int (bintrunc n (- 1))"
   by (auto simp add: nth_bintr word_size intro: word_eqI)
 
 lemma and_mask_bintr: "w AND mask n = word_of_int (bintrunc n (uint w))"
@@ -4729,7 +4729,7 @@ apply simp
 done
 
 lemma word_rec_max: 
-  "\<forall>m\<ge>n. m \<noteq> -1 \<longrightarrow> f m = id \<Longrightarrow> word_rec z f -1 = word_rec z f n"
+  "\<forall>m\<ge>n. m \<noteq> - 1 \<longrightarrow> f m = id \<Longrightarrow> word_rec z f (- 1) = word_rec z f n"
 apply (subst word_rec_twice[where n="-1" and m="-1 - n"])
  apply simp
 apply simp

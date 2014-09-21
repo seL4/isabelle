@@ -599,8 +599,8 @@ text {* The inner lexical syntax vaguely resembles the outer one
     @{syntax_def (inner) var} & = & @{syntax_ref var} \\
     @{syntax_def (inner) tid} & = & @{syntax_ref typefree} \\
     @{syntax_def (inner) tvar} & = & @{syntax_ref typevar} \\
-    @{syntax_def (inner) num_token} & = & @{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat} \\
-    @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
+    @{syntax_def (inner) num_token} & = & @{syntax_ref nat} \\
+    @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
     @{syntax_def (inner) xnum_token} & = & @{verbatim "#"}@{syntax_ref nat}@{text "  |  "}@{verbatim "#-"}@{syntax_ref nat} \\
     @{syntax_def (inner) str_token} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
     @{syntax_def (inner) string_token} & = & @{verbatim "\""} @{text "\<dots>"} @{verbatim "\""} \\

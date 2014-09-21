@@ -98,7 +98,7 @@ lemma expand_BIT:
 lemma bin_last_numeral_simps [simp]:
   "\<not> bin_last 0"
   "bin_last 1"
-  "bin_last -1"
+  "bin_last (- 1)"
   "bin_last Numeral1"
   "\<not> bin_last (numeral (Num.Bit0 w))"
   "bin_last (numeral (Num.Bit1 w))"
@@ -109,7 +109,7 @@ lemma bin_last_numeral_simps [simp]:
 lemma bin_rest_numeral_simps [simp]:
   "bin_rest 0 = 0"
   "bin_rest 1 = 0"
-  "bin_rest -1 = -1"
+  "bin_rest (- 1) = - 1"
   "bin_rest Numeral1 = 0"
   "bin_rest (numeral (Num.Bit0 w)) = numeral w"
   "bin_rest (numeral (Num.Bit1 w)) = numeral w"
@@ -182,7 +182,7 @@ lemma bin_abs_lem:
 
 lemma bin_induct:
   assumes PPls: "P 0"
-    and PMin: "P -1"
+    and PMin: "P (- 1)"
     and PBit: "!!bin bit. P bin ==> P (bin BIT bit)"
   shows "P bin"
   apply (rule_tac P=P and a=bin and f1="nat o abs" 
@@ -242,7 +242,7 @@ lemma bin_nth_zero [simp]: "\<not> bin_nth 0 n"
 lemma bin_nth_1 [simp]: "bin_nth 1 n \<longleftrightarrow> n = 0"
   by (cases n) simp_all
 
-lemma bin_nth_minus1 [simp]: "bin_nth -1 n"
+lemma bin_nth_minus1 [simp]: "bin_nth (- 1) n"
   by (induct n) auto
 
 lemma bin_nth_0_BIT: "bin_nth (w BIT b) 0 \<longleftrightarrow> b"
@@ -328,12 +328,12 @@ lemma bintrunc_n_0 [simp]: "bintrunc n 0 = 0"
 lemma sbintrunc_n_0 [simp]: "sbintrunc n 0 = 0"
   by (induct n) auto
 
-lemma sbintrunc_n_minus1 [simp]: "sbintrunc n -1 = -1"
+lemma sbintrunc_n_minus1 [simp]: "sbintrunc n (- 1) = -1"
   by (induct n) auto
 
 lemma bintrunc_Suc_numeral:
   "bintrunc (Suc n) 1 = 1"
-  "bintrunc (Suc n) -1 = bintrunc n -1 BIT True"
+  "bintrunc (Suc n) (- 1) = bintrunc n (- 1) BIT True"
   "bintrunc (Suc n) (numeral (Num.Bit0 w)) = bintrunc n (numeral w) BIT False"
   "bintrunc (Suc n) (numeral (Num.Bit1 w)) = bintrunc n (numeral w) BIT True"
   "bintrunc (Suc n) (- numeral (Num.Bit0 w)) =
@@ -678,7 +678,7 @@ lemma bintr_ge0: "0 \<le> bintrunc n w"
 lemma bintr_lt2p: "bintrunc n w < 2 ^ n"
   by (simp add: bintrunc_mod2p)
 
-lemma bintr_Min: "bintrunc n -1 = 2 ^ n - 1"
+lemma bintr_Min: "bintrunc n (- 1) = 2 ^ n - 1"
   by (simp add: bintrunc_mod2p m1mod2k)
 
 lemma sbintr_ge: "- (2 ^ n) \<le> sbintrunc n w"

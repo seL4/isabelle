@@ -280,31 +280,14 @@ text {* Numeral syntax. *}
 syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
 
+ML_file "Tools/numeral.ML"
+
 parse_translation {*
   let
-    fun num_of_int n =
-      if n > 0 then
-        (case IntInf.quotRem (n, 2) of
-          (0, 1) => Syntax.const @{const_syntax One}
-        | (n, 0) => Syntax.const @{const_syntax Bit0} $ num_of_int n
-        | (n, 1) => Syntax.const @{const_syntax Bit1} $ num_of_int n)
-      else raise Match
-    val numeral = Syntax.const @{const_syntax numeral}
-    val uminus = Syntax.const @{const_syntax uminus}
-    val one = Syntax.const @{const_syntax Groups.one}
-    val zero = Syntax.const @{const_syntax Groups.zero}
     fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
           c $ numeral_tr [t] $ u
       | numeral_tr [Const (num, _)] =
-          let
-            val {value, ...} = Lexicon.read_xnum num;
-          in
-            if value = 0 then zero else
-            if value > 0
-            then numeral $ num_of_int value
-            else if value = ~1 then uminus $ one
-            else uminus $ (numeral $ num_of_int (~ value))
-          end
+          (Numeral.mk_number_syntax o #value o Lexicon.read_xnum) num
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
   in [(@{syntax_const "_Numeral"}, K numeral_tr)] end
 *}
@@ -333,8 +316,6 @@ typed_print_translation {*
    [(@{const_syntax numeral}, num_tr')]
   end
 *}
-
-ML_file "Tools/numeral.ML"
 
 
 subsection {* Class-specific numeral rules *}

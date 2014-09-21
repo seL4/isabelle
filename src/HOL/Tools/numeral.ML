@@ -8,6 +8,7 @@ signature NUMERAL =
 sig
   val mk_cnumeral: int -> cterm
   val mk_cnumber: ctyp -> int -> cterm
+  val mk_number_syntax: int -> term
   val add_code: string -> (int -> int) -> (Code_Printer.literals -> int -> string) -> string -> theory -> theory
 end;
 
@@ -59,6 +60,19 @@ fun mk_cnumber T 0 = instT T zeroT zero
     else Thm.apply (instT T uminusT uminus) (Thm.apply (instT T numeralT numeral) (mk_cnumeral (~i)));
 
 end;
+
+fun mk_num_syntax n =
+  if n > 0 then
+    (case IntInf.quotRem (n, 2) of
+      (0, 1) => Syntax.const @{const_syntax One}
+    | (n, 0) => Syntax.const @{const_syntax Bit0} $ mk_num_syntax n
+    | (n, 1) => Syntax.const @{const_syntax Bit1} $ mk_num_syntax n)
+  else raise Match
+
+fun mk_number_syntax n =
+  if n = 0 then Syntax.const @{const_syntax Groups.zero}
+  else if n = 1 then Syntax.const @{const_syntax Groups.one}
+  else Syntax.const @{const_syntax numeral} $ mk_num_syntax n;
 
 
 (* code generator *)

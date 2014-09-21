@@ -27,7 +27,7 @@ lemma "23 < (27::8 word)" by smt
 lemma "27 + 11 = (6::5 word)" by smt
 lemma "7 * 3 = (21::8 word)" by smt
 lemma "11 - 27 = (-16::8 word)" by smt
-lemma "- -11 = (11::5 word)" by smt
+lemma "- (- 11) = (11::5 word)" by smt
 lemma "-40 + 1 = (-39::7 word)" by smt
 lemma "a + 2 * b + c - b = (b + c) + (a :: 32 word)" by smt
 lemma "x = (5 :: 4 word) \<Longrightarrow> 4 * x = 4" by smt

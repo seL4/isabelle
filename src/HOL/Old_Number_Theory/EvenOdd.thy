@@ -240,8 +240,8 @@ lemma zprime_zOdd_eq_grt_2: "zprime p ==> (p \<in> zOdd) = (2 < p)"
 (* Powers of -1 and parity *)
 
 lemma neg_one_special: "finite A ==>
-    ((-1 :: int) ^ card A) * (-1 ^ card A) = 1"
-  by (induct set: finite) auto
+  ((- 1) ^ card A) * ((- 1) ^ card A) = (1 :: int)"
+  unfolding power_add [symmetric] by simp
 
 lemma neg_one_power: "(-1::int)^n = 1 | (-1::int)^n = -1"
   by (induct n) auto

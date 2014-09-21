@@ -523,7 +523,7 @@ apply (rule_tac [2] hyperpow_le, auto)
 done
 
 lemma hyperpow_minus_one2 [simp]:
-     "\<And>n. -1 pow (2*n) = (1::hypreal)"
+     "\<And>n. (- 1) pow (2*n) = (1::hypreal)"
 by transfer (rule power_minus1_even)
 
 lemma hyperpow_less_le:

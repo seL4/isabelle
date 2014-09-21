@@ -205,7 +205,7 @@ proof
     done
   assume "a < b"
   then show "\<exists>c. a < c \<and> c < b"
-    apply (intro exI[of _ "(a + b) * Float 1 -1"])
+    apply (intro exI[of _ "(a + b) * Float 1 (- 1)"])
     apply transfer
     apply (simp add: powr_minus)
     done
@@ -1085,8 +1085,8 @@ subsection {* Lemmas needed by Approximate *}
 
 lemma Float_num[simp]: shows
    "real (Float 1 0) = 1" and "real (Float 1 1) = 2" and "real (Float 1 2) = 4" and
-   "real (Float 1 -1) = 1/2" and "real (Float 1 -2) = 1/4" and "real (Float 1 -3) = 1/8" and
-   "real (Float -1 0) = -1" and "real (Float (number_of n) 0) = number_of n"
+   "real (Float 1 (- 1)) = 1/2" and "real (Float 1 (- 2)) = 1/4" and "real (Float 1 (- 3)) = 1/8" and
+   "real (Float (- 1) 0) = -1" and "real (Float (number_of n) 0) = number_of n"
 using two_powr_int_float[of 2] two_powr_int_float[of "-1"] two_powr_int_float[of "-2"] two_powr_int_float[of "-3"]
 using powr_realpow[of 2 2] powr_realpow[of 2 3]
 using powr_minus[of 2 1] powr_minus[of 2 2] powr_minus[of 2 3]

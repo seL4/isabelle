@@ -221,10 +221,10 @@ proof -
     by (intro Maclaurin) (auto intro!: derivative_eq_intros DERIV')
   then guess t ..
   moreover
-  have "-1 ^ n * diff n (- t) * (- h) ^ n / real (fact n) = diff n (- t) * h ^ n / real (fact n)"
+  have "(- 1) ^ n * diff n (- t) * (- h) ^ n / real (fact n) = diff n (- t) * h ^ n / real (fact n)"
     by (auto simp add: power_mult_distrib[symmetric])
   moreover
-  have "(SUM m<n. -1 ^ m * diff m 0 * (- h) ^ m / real (fact m)) = (SUM m<n. diff m 0 * h ^ m / real (fact m))"
+  have "(SUM m<n. (- 1) ^ m * diff m 0 * (- h) ^ m / real (fact m)) = (SUM m<n. diff m 0 * h ^ m / real (fact m))"
     by (auto intro: setsum.cong simp add: power_mult_distrib[symmetric])
   ultimately have " h < - t \<and>
     - t < 0 \<and>
@@ -561,7 +561,7 @@ proof -
       ?diff n t / real (fact n) * x ^ n" by fast
   have diff_m_0:
     "\<And>m. ?diff m 0 = (if even m then 0
-         else -1 ^ ((m - Suc 0) div 2))"
+         else (- 1) ^ ((m - Suc 0) div 2))"
     apply (subst even_even_mod_4_iff)
     apply (cut_tac m=m in mod_exhaust_less_4)
     apply (elim disjE, simp_all)

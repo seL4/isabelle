@@ -11000,7 +11000,7 @@ lemma monotone_convergence_decreasing:
   shows "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
 proof -
   note assm = assms[rule_format]
-  have *: "{integral s (\<lambda>x. - f k x) |k. True} = op *\<^sub>R -1 ` {integral s (f k)| k. True}"
+  have *: "{integral s (\<lambda>x. - f k x) |k. True} = op *\<^sub>R (- 1) ` {integral s (f k)| k. True}"
     apply safe
     unfolding image_iff
     apply (rule_tac x="integral s (f k)" in bexI)

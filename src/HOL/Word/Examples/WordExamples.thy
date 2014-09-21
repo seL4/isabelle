@@ -33,13 +33,13 @@ lemma
   "27 + 11 = (6::5 word)"
   "7 * 3 = (21::'a::len word)"
   "11 - 27 = (-16::'a::len word)"
-  "- -11 = (11::'a::len word)"
+  "- (- 11) = (11::'a::len word)"
   "-40 + 1 = (-39::'a::len word)"
   by simp_all
 
 lemma "word_pred 2 = 1" by simp
 
-lemma "word_succ -3 = -2" by simp
+lemma "word_succ (- 3) = -2" by simp
   
 lemma "23 < (27::8 word)" by simp
 lemma "23 \<le> (27::8 word)" by simp
@@ -147,11 +147,11 @@ lemma "slice 3 (1::6 word) = (0::3 word)" apply simp? oops
 lemma "word_rotr 2 0b0110 = (0b1001::4 word)" by simp
 lemma "word_rotl 1 0b1110 = (0b1101::4 word)" by simp
 lemma "word_roti 2 0b1110 = (0b1011::4 word)" by simp
-lemma "word_roti -2 0b0110 = (0b1001::4 word)" by simp
+lemma "word_roti (- 2) 0b0110 = (0b1001::4 word)" by simp
 lemma "word_rotr 2 0 = (0::4 word)" by simp
 lemma "word_rotr 2 1 = (0b0100::4 word)" apply simp? oops
 lemma "word_rotl 2 1 = (0b0100::4 word)" apply simp? oops
-lemma "word_roti -2 1 = (0b0100::4 word)" apply simp? oops
+lemma "word_roti (- 2) 1 = (0b0100::4 word)" apply simp? oops
 
 lemma "(x AND 0xff00) OR (x AND 0x00ff) = (x::16 word)"
 proof -

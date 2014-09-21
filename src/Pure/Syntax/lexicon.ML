@@ -98,9 +98,8 @@ val scan_longid = scan_id @@@ (Scan.repeat1 ($$$ "." @@@ scan_id) >> flat);
 val scan_tid = $$$ "'" @@@ scan_id;
 
 val scan_nat = Scan.many1 (Symbol.is_digit o Symbol_Pos.symbol);
+val scan_float = scan_nat @@@ $$$ "." @@@ scan_nat;
 val scan_int = $$$ "-" @@@ scan_nat || scan_nat;
-val scan_natdot = scan_nat @@@ $$$ "." @@@ scan_nat;
-val scan_float = $$$ "-" @@@ scan_natdot || scan_natdot;
 val scan_hex = $$$ "0" @@@ $$$ "x" @@@ Scan.many1 (Symbol.is_ascii_hex o Symbol_Pos.symbol);
 val scan_bin = $$$ "0" @@@ $$$ "b" @@@ Scan.many1 (fn (s, _) => s = "0" orelse s = "1");
 
@@ -264,15 +263,16 @@ fun tokenize lex xids syms =
       (if xids then $$$ "_" @@@ scan_id || scan_id else scan_id) ||
       $$$ "_" @@@ $$$ "_";
 
-    val scan_num = scan_hex || scan_bin || scan_int;
+    val scan_num_unsigned = scan_hex || scan_bin || scan_nat;
+    val scan_num_signed = scan_hex || scan_bin || scan_int;
 
     val scan_val =
       scan_tvar >> token TVarSy ||
       scan_var >> token VarSy ||
       scan_tid >> token TFreeSy ||
       scan_float >> token FloatSy ||
-      scan_num >> token NumSy ||
-      $$$ "#" @@@ scan_num >> token XNumSy ||
+      scan_num_unsigned >> token NumSy ||
+      $$$ "#" @@@ scan_num_signed >> token XNumSy ||
       scan_longid >> token LongIdentSy ||
       scan_xid >> token IdentSy;
 

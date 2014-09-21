@@ -17,7 +17,7 @@ declare sum.simps[simp del]
 abbreviation "wsum ==
   WHILE Less (N 0) (V ''x'')
   DO (''y'' ::= Plus (V ''y'') (V ''x'');;
-      ''x'' ::= Plus (V ''x'') (N -1))"
+      ''x'' ::= Plus (V ''x'') (N (- 1)))"
 
 
 subsubsection{* Proof by Operational Semantics *}

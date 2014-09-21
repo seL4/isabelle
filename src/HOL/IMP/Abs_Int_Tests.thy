@@ -63,6 +63,6 @@ definition "test5_ivl =
 
 definition "test6_ivl =
  ''x'' ::= N 0;;
- WHILE Less (N -1) (V ''x'') DO ''x'' ::= Plus (V ''x'') (N 1)"
+ WHILE Less (N (- 1)) (V ''x'') DO ''x'' ::= Plus (V ''x'') (N 1)"
 
 end

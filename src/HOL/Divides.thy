@@ -1664,7 +1664,7 @@ by (subst posDivAlg.simps, auto)
 lemma posDivAlg_0_right [simp]: "posDivAlg a 0 = (0, a)"
 by (subst posDivAlg.simps, auto)
 
-lemma negDivAlg_minus1 [simp]: "negDivAlg -1 b = (-1, b - 1)"
+lemma negDivAlg_minus1 [simp]: "negDivAlg (- 1) b = (- 1, b - 1)"
 by (subst negDivAlg.simps, auto)
 
 lemma divmod_int_rel_neg: "divmod_int_rel (-a) (-b) qr ==> divmod_int_rel a b (apsnd uminus qr)"

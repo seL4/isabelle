@@ -462,7 +462,7 @@ lemma bintr_bin_set_ge:
 lemma bin_sc_FP [simp]: "bin_sc n False 0 = 0"
   by (induct n) auto
 
-lemma bin_sc_TM [simp]: "bin_sc n True -1 = -1"
+lemma bin_sc_TM [simp]: "bin_sc n True (- 1) = - 1"
   by (induct n) auto
   
 lemmas bin_sc_simps = bin_sc.Z bin_sc.Suc bin_sc_TM bin_sc_FP
@@ -583,7 +583,7 @@ lemma bin_split_zero [simp]: "bin_split n 0 = (0, 0)"
   by (induct n) auto
 
 lemma bin_split_minus1 [simp]:
-  "bin_split n -1 = (-1, bintrunc n -1)"
+  "bin_split n (- 1) = (- 1, bintrunc n (- 1))"
   by (induct n) auto
 
 lemma bin_split_trunc:

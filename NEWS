@@ -20,6 +20,11 @@ semantics due to external visual order vs. internal reverse order.
 * Command "class_deps" takes optional sort arguments constraining
 the search space.
 
+* Lexical separation of signed and unsigend numerals: categories "num"
+and "float" are unsigend.  INCOMPATIBILITY: subtle change in precedence
+of numeral signs, particulary in expressions involving infix syntax like
+"(- 1) ^ n".
+
 
 *** HOL ***
 
