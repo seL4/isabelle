@@ -914,7 +914,7 @@ fun make_skeleton ctxt (pannot : proof_annotation) : rolling_stock list =
                         (*point to the split node, so that custom rule can be built later on*)
                         Step n :: (Split (split_node, n, parents)) :: (*this will create the elimination rule*)
                          naive_skeleton' stop_just_befores split_node @ (*this will discharge the major premise*)
-                         List.concat skeletons_up @ [Assumed] (*this will discharge the minor premises*)
+                         flat skeletons_up @ [Assumed] (*this will discharge the minor premises*)
                       end
                     else if length parents > 1 then
                       (*Handle fan-in nodes which aren't split-sinks by
@@ -1729,9 +1729,9 @@ fun prune_redundant_splits prob_name thy fms : theory * formula_meaning list =
           paths'
           |> ListPair.unzip (*we get a list of pairs of lists. we want a pair of lists*)
           |> (fn (paths, branch_ids) =>
-               (List.concat paths,
+               (flat paths,
                 (*remove duplicate branch_ids*)
-                fold (Library.insert (op =)) (List.concat branch_ids) []))
+                fold (Library.insert (op =)) (flat branch_ids) []))
           (*filter paths having branch_ids appearing in the second list*)
           |> (fn (paths, branch_ids) =>
               filter (fn (info, _) =>

@@ -589,5 +589,5 @@ fun skolemization_steps info
       end
   
 fun introduce_waldmeister_skolems info proof_steps = proof_steps
-      |> map (skolemization_steps info) |> List.concat
+      |> maps (skolemization_steps info)
 end;

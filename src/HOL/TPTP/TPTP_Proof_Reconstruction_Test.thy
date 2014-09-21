@@ -708,9 +708,8 @@ fun filter_failures inference_name (Whole_proof (filename, results)) =
       case results of
           Nonempty (SOME results') =>
             #2 results'
-            |> map (fn (stock as TPTP_Reconstruct.Annotated_step (_, inf_name), inf_fmla, _) =>
+            |> maps (fn (stock as TPTP_Reconstruct.Annotated_step (_, inf_name), inf_fmla, _) =>
                  if inf_name = inference_name then [inf_fmla] else [])
-            |> List.concat
         | _ => []
   in Specific_rule (filename, inference_name, filtered_results) end
 

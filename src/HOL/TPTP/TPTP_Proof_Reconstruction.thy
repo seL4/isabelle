@@ -798,8 +798,7 @@ fun find_skolem_term ctxt consts_candidate arity = fn st =>
         | _ => acc
   in
     map (strip_top_All_vars #> snd) conclusions
-    |> map (get_skolem_terms [] [])
-    |> List.concat
+    |> maps (get_skolem_terms [] [])
     |> distinct (op =)
   end
 *}
@@ -935,8 +934,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
                Logic.strip_horn #> snd #>
                get_skolem_conc)
           |> switch (fold (fn x => fn l => if is_some x then the x :: l else l)) []
-          |> map (switch Term.add_vars [])
-          |> List.concat
+          |> maps (switch Term.add_vars [])
 
         fun make_var pre_var =
           the_single pre_var
@@ -1412,7 +1410,7 @@ fun can_feature x l =
       if List.all is_none opt_list then false
       else
         fold_options opt_list
-        |> List.concat
+        |> flat
         |> pair sought_sublist
         |> subset (op =)
   in
@@ -2101,11 +2099,10 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
     fun get_binds source_inf_opt =
       case the source_inf_opt of
           TPTP_Proof.Inference (_, _, parent_inf) =>
-            List.map
+            maps
               (fn TPTP_Proof.Parent _ => []
                 | TPTP_Proof.ParentWithDetails (_, parent_details) => parent_details)
               parent_inf
-            |> List.concat
         | _ => []
 
     val inference_name =

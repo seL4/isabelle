@@ -122,8 +122,7 @@ fun permute l =
     fun permute' (l, []) = [(l, [])]
       | permute' (l, xs) =
           map (fn x => (x :: l, filter (fn y => y <> x) xs)) xs
-          |> map permute'
-          |> List.concat
+          |> maps permute'
   in
     permute' ([], l)
     |> map fst
