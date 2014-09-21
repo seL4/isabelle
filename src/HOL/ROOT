@@ -388,7 +388,7 @@ session "HOL-Decision_Procs" in Decision_Procs = HOL +
   description {*
     Various decision procedures, typically involving reflection.
   *}
-  options [condition = ISABELLE_POLYML, document = false]
+  options [condition = ML_SYSTEM_POLYML, document = false]
   theories Decision_Procs
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
@@ -401,7 +401,7 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
   description {*
     Examples for program extraction in Higher-Order Logic.
   *}
-  options [condition = ISABELLE_POLYML, parallel_proofs = 0]
+  options [condition = ML_SYSTEM_POLYML, parallel_proofs = 0]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Numeral"
     "~~/src/HOL/Library/Monad_Syntax"
@@ -524,7 +524,7 @@ session "HOL-ex" in ex = HOL +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
-  options [timeout = 3600, condition = ISABELLE_POLYML]
+  options [timeout = 3600, condition = ML_SYSTEM_POLYML]
   theories [document = false]
     "~~/src/HOL/Library/State_Monad"
     Code_Binary_Nat_examples
@@ -719,7 +719,7 @@ session "HOL-Nominal" (main) in Nominal = HOL +
   theories Nominal
 
 session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
-  options [timeout = 3600, condition = ISABELLE_POLYML, document = false]
+  options [timeout = 3600, condition = ML_SYSTEM_POLYML, document = false]
   theories
     Nominal_Examples_Base
   theories [condition = ISABELLE_FULL_TEST]

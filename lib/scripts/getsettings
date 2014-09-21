@@ -260,10 +260,10 @@ export JAVA_HOME="$ISABELLE_JDK_HOME"
 #build condition etc.
 case "$ML_SYSTEM" in
   polyml*)
-    ISABELLE_POLYML="true"
+    ML_SYSTEM_POLYML="true"
     ;;
   *)
-    ISABELLE_POLYML=""
+    ML_SYSTEM_POLYML=""
     ;;
 esac
 

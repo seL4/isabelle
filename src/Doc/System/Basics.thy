@@ -217,7 +217,7 @@ text {*
   automatically obtained by composing the values of @{setting
   ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version values.
 
-  \item[@{setting_def ISABELLE_POLYML}@{text "\<^sup>*"}] is @{verbatim true}
+  \item[@{setting_def ML_SYSTEM_POLYML}@{text "\<^sup>*"}] is @{verbatim true}
   for @{setting ML_SYSTEM} values derived from Poly/ML, as opposed to
   SML/NJ where it is empty.  This is particularly useful with the
   build option @{system_option condition}

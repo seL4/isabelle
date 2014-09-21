@@ -1,11 +1,11 @@
 session Spec_Check in Spec_Check = Pure +
   theories
     Spec_Check
-  theories [condition = ISABELLE_POLYML]
+  theories [condition = ML_SYSTEM_POLYML]
     Examples
 
 session SML in SML = Pure +
-  options [condition = ISABELLE_POLYML]
+  options [condition = ML_SYSTEM_POLYML]
   theories
     Examples
 
