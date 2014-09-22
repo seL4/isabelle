@@ -365,7 +365,12 @@ fun mk_set_intros_tac ctxt sets =
 fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs ctor_defs dtor_ctors
     Abs_pre_inverses =
   let
-    val assms_ctor_defs = map (unfold_thms ctxt (@{thm id_bnf_def} :: ctor_defs)) assms;
+    val assms_tac =
+      let val assms' = map (unfold_thms ctxt (@{thm id_bnf_def} :: ctor_defs)) assms in
+        fold (curry (op ORELSE')) (map (fn thm =>
+            funpow (length (prems_of thm)) (fn tac => tac THEN' atac) (rtac thm)) assms')
+          (etac FalseE)
+      end;
     val exhausts' = map (fn thm => thm RS @{thm asm_rl[of "P x y" for P x y]}) exhausts
       |> map2 (fn ct => cterm_instantiate_pos [NONE, SOME ct]) cts;
   in
@@ -377,12 +382,8 @@ fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs cto
     unfold_thms_tac ctxt (Abs_pre_inverses @ dtor_ctors @ set_pre_defs @ ctor_defs @
       @{thms id_bnf_def o_apply sum_set_simps prod_set_simps UN_empty UN_insert Un_empty_left
         Un_empty_right empty_iff singleton_iff}) THEN
-    REPEAT_DETERM (HEADGOAL
-      (TRY o etac UnE THEN' TRY o etac @{thm singletonE} THEN' TRY o hyp_subst_tac ctxt THEN'
-       REPEAT_DETERM o eresolve_tac @{thms UN_E UnE singletonE} THEN'
-       fold (curry (op ORELSE')) (map (fn thm =>
-         funpow (length (prems_of thm)) (fn tac => tac THEN' atac) (rtac thm)) assms_ctor_defs)
-         (etac FalseE)))
+    REPEAT (HEADGOAL (hyp_subst_tac ctxt ORELSE' eresolve_tac @{thms UN_E UnE singletonE} ORELSE'
+      assms_tac))
   end;
 
 end;

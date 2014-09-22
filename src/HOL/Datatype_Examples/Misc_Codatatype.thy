@@ -26,6 +26,16 @@ codatatype 'a mylist = MyNil | MyCons (myhd: 'a) (mytl: "'a mylist")
 codatatype ('b, 'c :: ord, 'd, 'e) some_passive =
   SP1 "('b, 'c, 'd, 'e) some_passive" | SP2 'b | SP3 'c | SP4 'd | SP5 'e
 
+codatatype 'a multi_live_direct1 = MultiLiveDirect1 'a
+codatatype 'a multi_live_direct2 = MultiLiveDirect2 'a 'a
+codatatype 'a multi_live_direct3 = MultiLiveDirect3 'a 'a 'a
+codatatype 'a multi_live_direct4 = MultiLiveDirect4 'a 'a 'a 'a
+codatatype 'a multi_live_direct5 = MultiLiveDirect5 'a 'a 'a 'a 'a
+codatatype 'a multi_live_direct6 = MultiLiveDirect6 'a 'a 'a 'a 'a 'a
+codatatype 'a multi_live_direct7 = MultiLiveDirect7 'a 'a 'a 'a 'a 'a 'a
+codatatype 'a multi_live_direct8 = MultiLiveDirect8 'a 'a 'a 'a 'a 'a 'a 'a
+codatatype 'a multi_live_direct9 = MultiLiveDirect9 'a 'a 'a 'a 'a 'a 'a 'a 'a
+
 codatatype lambda =
   Var string |
   App lambda lambda |

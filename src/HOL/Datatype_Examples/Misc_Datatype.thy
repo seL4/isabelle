@@ -24,6 +24,16 @@ datatype (discs_sels) 'a mylist = MyNil | MyCons (myhd: 'a) (mytl: "'a mylist")
 datatype (discs_sels) ('b, 'c :: ord, 'd, 'e) some_passive =
   SP1 "('b, 'c, 'd, 'e) some_passive" | SP2 'b | SP3 'c | SP4 'd | SP5 'e
 
+datatype (discs_sels) 'a multi_live_direct1 = MultiLiveDirect1 'a
+datatype (discs_sels) 'a multi_live_direct2 = MultiLiveDirect2 'a 'a
+datatype (discs_sels) 'a multi_live_direct3 = MultiLiveDirect3 'a 'a 'a
+datatype (discs_sels) 'a multi_live_direct4 = MultiLiveDirect4 'a 'a 'a 'a
+datatype (discs_sels) 'a multi_live_direct5 = MultiLiveDirect5 'a 'a 'a 'a 'a
+datatype (discs_sels) 'a multi_live_direct6 = MultiLiveDirect6 'a 'a 'a 'a 'a 'a
+datatype (discs_sels) 'a multi_live_direct7 = MultiLiveDirect7 'a 'a 'a 'a 'a 'a 'a
+datatype (discs_sels) 'a multi_live_direct8 = MultiLiveDirect8 'a 'a 'a 'a 'a 'a 'a 'a
+datatype (discs_sels) 'a multi_live_direct9 = MultiLiveDirect9 'a 'a 'a 'a 'a 'a 'a 'a 'a
+
 datatype (discs_sels) hfset = HFset "hfset fset"
 
 datatype (discs_sels) lambda =
