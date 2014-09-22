@@ -6,9 +6,7 @@ Test case for test_code on GHC
 
 theory Code_Test_GHC imports Code_Test begin
 
-definition id_integer :: "integer \<Rightarrow> integer" where "id_integer = id"
-
-test_code "id_integer (14 + 7 * -12) = 140 div -2" in GHC
+test_code "(14 + 7 * -12 :: integer) = 140 div -2" in GHC
 
 value [GHC] "14 + 7 * -12 :: integer"
 
