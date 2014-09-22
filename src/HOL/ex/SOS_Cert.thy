@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Sum_of_Squares.thy
+(*  Title:      HOL/ex/SOS_Cert.thy
     Author:     Amine Chaieb, University of Cambridge
     Author:     Philipp Meyer, TU Muenchen
 
