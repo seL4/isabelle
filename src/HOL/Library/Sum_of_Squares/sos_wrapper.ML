@@ -7,7 +7,6 @@ Added functionality for sums of squares, e.g. calling a remote prover.
 signature SOS_WRAPPER =
 sig
   datatype prover_result = Success | Failure | Error
-  val setup: theory -> theory
   val dest_dir: string Config.T
   val prover_name: string Config.T
 end
@@ -139,8 +138,8 @@ val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cer
 
 fun sos_solver print method = SIMPLE_METHOD' o Sum_of_Squares.sos_tac print method
 
-val setup =
-  Method.setup @{binding sos}
+val _ = Theory.setup
+ (Method.setup @{binding sos}
     (Scan.lift (Scan.option Parse.xname)
       >> (fn opt_name => fn ctxt =>
         sos_solver print_cert
@@ -151,6 +150,6 @@ val setup =
       >> (fn cert => fn ctxt =>
         sos_solver ignore
           (Sum_of_Squares.Certificate (PositivstellensatzTools.cert_to_pss_tree ctxt cert)) ctxt))
-    "prove universal problems over the reals using sums of squares with certificates"
+    "prove universal problems over the reals using sums of squares with certificates")
 
 end

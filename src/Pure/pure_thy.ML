@@ -70,8 +70,8 @@ val _ = Theory.setup
     (map (fn name => Binding.make (name, @{here}))
       (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
         "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
-        "any", "prop'", "num_const", "float_const", "xnum_const", "num_position",
-        "float_position", "xnum_position", "index", "struct", "tid_position",
+        "any", "prop'", "num_const", "float_const", "num_position",
+        "float_position", "index", "struct", "tid_position",
         "tvar_position", "id_position", "longid_position", "var_position",
         "str_position", "string_position", "cartouche_position", "type_name",
         "class_name"]))
@@ -142,10 +142,8 @@ val _ = Theory.setup
     ("_strip_positions", typ "'a", NoSyn),
     ("_position",   typ "num_token => num_position",   Delimfix "_"),
     ("_position",   typ "float_token => float_position", Delimfix "_"),
-    ("_position",   typ "xnum_token => xnum_position", Delimfix "_"),
     ("_constify",   typ "num_position => num_const",   Delimfix "_"),
     ("_constify",   typ "float_position => float_const", Delimfix "_"),
-    ("_constify",   typ "xnum_position => xnum_const", Delimfix "_"),
     ("_index",      typ "logic => index",              Delimfix "(00\\<^bsub>_\\<^esub>)"),
     ("_indexdefault", typ "index",                     Delimfix ""),
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),

@@ -601,7 +601,6 @@ text {* The inner lexical syntax vaguely resembles the outer one
     @{syntax_def (inner) tvar} & = & @{syntax_ref typevar} \\
     @{syntax_def (inner) num_token} & = & @{syntax_ref nat} \\
     @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
-    @{syntax_def (inner) xnum_token} & = & @{verbatim "#"}@{syntax_ref nat}@{text "  |  "}@{verbatim "#-"}@{syntax_ref nat} \\
     @{syntax_def (inner) str_token} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
     @{syntax_def (inner) string_token} & = & @{verbatim "\""} @{text "\<dots>"} @{verbatim "\""} \\
     @{syntax_def (inner) cartouche} & = & @{verbatim "\<open>"} @{text "\<dots>"} @{verbatim "\<close>"} \\
@@ -609,17 +608,15 @@ text {* The inner lexical syntax vaguely resembles the outer one
   \end{center}
 
   The token categories @{syntax (inner) num_token}, @{syntax (inner)
-  float_token}, @{syntax (inner) xnum_token}, @{syntax (inner)
-  str_token}, @{syntax (inner) string_token}, and @{syntax (inner)
-  cartouche} are not used in Pure. Object-logics may implement
-  numerals and string literals by adding appropriate syntax
-  declarations, together with some translation functions (e.g.\ see
-  @{file "~~/src/HOL/Tools/string_syntax.ML"}).
+  float_token}, @{syntax (inner) str_token}, @{syntax (inner) string_token},
+  and @{syntax (inner) cartouche} are not used in Pure. Object-logics may
+  implement numerals and string literals by adding appropriate syntax
+  declarations, together with some translation functions (e.g.\ see @{file
+  "~~/src/HOL/Tools/string_syntax.ML"}).
 
-  The derived categories @{syntax_def (inner) num_const}, @{syntax_def
-  (inner) float_const}, and @{syntax_def (inner) xnum_const} provide
-  robust access to the respective tokens: the syntax tree holds a
-  syntactic constant instead of a free variable.
+  The derived categories @{syntax_def (inner) num_const}, and @{syntax_def
+  (inner) float_const}, provide robust access to the respective tokens: the
+  syntax tree holds a syntactic constant instead of a free variable.
 *}
 
 

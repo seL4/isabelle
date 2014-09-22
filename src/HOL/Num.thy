@@ -287,7 +287,7 @@ parse_translation {*
     fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
           c $ numeral_tr [t] $ u
       | numeral_tr [Const (num, _)] =
-          (Numeral.mk_number_syntax o #value o Lexicon.read_xnum) num
+          (Numeral.mk_number_syntax o #value o Lexicon.read_num) num
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
   in [(@{syntax_const "_Numeral"}, K numeral_tr)] end
 *}

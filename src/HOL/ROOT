@@ -54,8 +54,6 @@ session "HOL-Library" (main) in Library = HOL +
     Old_Datatype
     Old_Recdef
     Old_SMT
-  theories [condition = ISABELLE_FULL_TEST]
-    Sum_of_Squares_Remote
   document_files "root.bib" "root.tex"
 
 session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
@@ -601,6 +599,11 @@ session "HOL-ex" in ex = HOL +
     ML
     SAT_Examples
     Nominal2_Dummy
+    SOS_Cert
+  theories [condition = ISABELLE_CSDP]
+    SOS
+  theories [condition = ISABELLE_FULL_TEST]
+    SOS_Remote
   theories [skip_proofs = false]
     Meson_Test
   theories [condition = SVC_HOME]
