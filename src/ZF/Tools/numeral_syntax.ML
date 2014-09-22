@@ -8,7 +8,6 @@ signature NUMERAL_SYNTAX =
 sig
   val make_binary: int -> int list
   val dest_binary: int list -> int
-  val setup: theory -> theory
 end;
 
 structure Numeral_Syntax: NUMERAL_SYNTAX =
@@ -21,6 +20,7 @@ fun mk_bit 0 = Syntax.const @{const_syntax zero}
   | mk_bit _ = raise Fail "mk_bit";
 
 fun dest_bit (Const (@{const_syntax zero}, _)) = 0
+  | dest_bit (Const (@{const_syntax one}, _)) = 1
   | dest_bit (Const (@{const_syntax succ}, _) $ Const (@{const_syntax zero}, _)) = 1
   | dest_bit _ = raise Match;
 
@@ -58,28 +58,34 @@ fun bin_of (Const (@{const_syntax Pls}, _)) = []
 fun show_int t =
   let
     val rev_digs = bin_of t;
-    val (sign, zs) =
+    val (c, zs) =
       (case rev rev_digs of
-         ~1 :: bs => ("-", prefix_len (equal 1) bs)
-      | bs => ("",  prefix_len (equal 0) bs));
+         ~1 :: bs => (@{syntax_const "_Neg_Int"}, prefix_len (equal 1) bs)
+      | bs => (@{syntax_const "_Int"},  prefix_len (equal 0) bs));
     val num = string_of_int (abs (dest_binary rev_digs));
-  in
-    "#" ^ sign ^ implode (replicate zs "0") ^ num
-  end;
+  in (c, implode (replicate zs "0") ^ num) end;
 
 
 (* translation of integer constant tokens to and from binary *)
 
-fun int_tr [t as Free (str, _)] =
-      Syntax.const @{const_syntax integ_of} $ mk_bin (#value (Lexicon.read_xnum str))
+fun int_tr [Free (s, _)] =
+      Syntax.const @{const_syntax integ_of} $ mk_bin (#value (Lexicon.read_num s))
   | int_tr ts = raise TERM ("int_tr", ts);
 
-fun int_tr' [t] = Syntax.const @{syntax_const "_Int"} $ Syntax.free (show_int t)
-  | int_tr' _ = raise Match;
+fun neg_int_tr [Free (s, _)] =
+      Syntax.const @{const_syntax integ_of} $ mk_bin (~ (#value (Lexicon.read_num s)))
+  | neg_int_tr ts = raise TERM ("neg_int_tr", ts);
 
+fun integ_of_tr' [t] =
+      let val (c, s) = show_int t
+      in Syntax.const c $ Syntax.free s end
+  | integ_of_tr' _ = raise Match;
 
-val setup =
- Sign.parse_translation [(@{syntax_const "_Int"}, K int_tr)] #>
- Sign.print_translation [(@{const_syntax integ_of}, K int_tr')];
+val _ = Theory.setup
+ (Sign.parse_translation
+   [(@{syntax_const "_Int"}, K int_tr),
+    (@{syntax_const "_Neg_Int"}, K neg_int_tr)] #>
+  Sign.print_translation
+   [(@{const_syntax integ_of}, K integ_of_tr')]);
 
 end;

@@ -25,6 +25,10 @@ and "float" are unsigend.  INCOMPATIBILITY: subtle change in precedence
 of numeral signs, particulary in expressions involving infix syntax like
 "(- 1) ^ n".
 
+* Old inner token category "xnum" has been discontinued.  Potential
+INCOMPATIBILITY for exotic syntax: may use mixfix grammar with "num"
+token category instead.
+
 
 *** HOL ***
 

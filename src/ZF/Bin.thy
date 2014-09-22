@@ -101,10 +101,23 @@ primrec
                                  NCons(bin_mult(v,w),0))"
 
 syntax
-  "_Int"    :: "xnum_token => i"        ("_")
+  "_Int0" :: i  ("#()0")
+  "_Int1" :: i  ("#()1")
+  "_Int2" :: i  ("#()2")
+  "_Neg_Int1" :: i  ("#-()1")
+  "_Neg_Int2" :: i  ("#-()2")
+translations
+  "#0" \<rightleftharpoons> "CONST integ_of(CONST Pls)"
+  "#1" \<rightleftharpoons> "CONST integ_of(CONST Pls BIT 1)"
+  "#2" \<rightleftharpoons> "CONST integ_of(CONST Pls BIT 1 BIT 0)"
+  "#-1" \<rightleftharpoons> "CONST integ_of(CONST Min)"
+  "#-2" \<rightleftharpoons> "CONST integ_of(CONST Min BIT 0)"
+
+syntax
+  "_Int" :: "num_token => i"  ("#_" 1000)
+  "_Neg_Int" :: "num_token => i"  ("#-_" 1000)
 
 ML_file "Tools/numeral_syntax.ML"
-setup Numeral_Syntax.setup
 
 
 declare bin.intros [simp,TC]
