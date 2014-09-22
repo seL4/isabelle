@@ -87,10 +87,10 @@ for SETTINGS in $@; do
 
     case "$SETTINGS" in
       *sml*)
-        BUILD_ARGS="-o timeout=36000 $BUILD_ARGS"
+        BUILD_ARGS="-o timeout=54000 $BUILD_ARGS"
         ;;
       *)
-        BUILD_ARGS="-o timeout=3600 $BUILD_ARGS"
+        BUILD_ARGS="-o timeout=5400 $BUILD_ARGS"
         ;;
     esac
 

@@ -19,7 +19,7 @@ session "HOL-Proofs" = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [timeout = 5400, document = false]
+  options [document = false]
   theories Proofs (*sequential change of global flag!*)
   theories "~~/src/HOL/Library/Old_Datatype"
   files
@@ -260,7 +260,7 @@ session "HOL-Metis_Examples" in Metis_Examples = HOL +
 
     Testing Metis and Sledgehammer.
   *}
-  options [timeout = 3600, document = false]
+  options [document = false]
   theories
     Abstraction
     Big_O
@@ -522,7 +522,7 @@ session "HOL-ex" in ex = HOL +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
-  options [timeout = 3600, condition = ML_SYSTEM_POLYML]
+  options [condition = ML_SYSTEM_POLYML]
   theories [document = false]
     "~~/src/HOL/Library/State_Monad"
     Code_Binary_Nat_examples
@@ -722,7 +722,7 @@ session "HOL-Nominal" (main) in Nominal = HOL +
   theories Nominal
 
 session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
-  options [timeout = 3600, condition = ML_SYSTEM_POLYML, document = false]
+  options [condition = ML_SYSTEM_POLYML, document = false]
   theories
     Nominal_Examples_Base
   theories [condition = ISABELLE_FULL_TEST]
