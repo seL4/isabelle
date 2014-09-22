@@ -8,8 +8,6 @@ init_components /home/isabelle/contrib "$HOME/admin/components/main"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 500 --gcthreads 4"
 
-ISABELLE_GHC=ghc
-
 ISABELLE_HOME_USER=~/isabelle-mac-poly-M4
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
@@ -29,6 +27,14 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 ISABELLE_BUILD_OPTIONS="browser_info=false document=pdf document_variants=document:outline=/proof,/ML threads=4 parallel_proofs=2"
 
 ISABELLE_FULL_TEST=true
+
+ISABELLE_GHC=ghc
+ISABELLE_MLTON=mlton
+ISABELLE_OCAML=ocaml
+ISABELLE_OCAMLC=ocamlc
+ISABELLE_POLYML="$ML_HOME/poly"
+#ISABELLE_SCALA="$SCALA_HOME/bin"
+ISABELLE_SMLNJ="/mnt/nfsbroy/home/smlnj/bin/sml"
 
 Z3_NON_COMMERCIAL="yes"
 

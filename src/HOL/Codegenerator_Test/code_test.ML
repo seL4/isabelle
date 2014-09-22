@@ -25,7 +25,7 @@ signature CODE_TEST = sig
    -> string -> string -> string
    -> theory -> (string * string) list * string -> Path.T -> string
 
-  val ISABELLE_POLYML_PATH : string
+  val ISABELLE_POLYML : string
   val polymlN : string
   val evaluate_in_polyml : Proof.context -> (string * string) list * string -> Path.T -> string
 
@@ -316,7 +316,7 @@ fun gen_driver mk_driver env_var env_var_dest compilerN ctxt (code_files, value_
 
 (* Driver for PolyML *)
 
-val ISABELLE_POLYML_PATH = "ISABELLE_POLYML_PATH"
+val ISABELLE_POLYML = "ISABELLE_POLYML"
 val polymlN = "PolyML";
 
 fun mk_driver_polyml _ path _ value_name =
@@ -343,12 +343,12 @@ fun mk_driver_polyml _ path _ value_name =
     val cmd =
       "echo \"use \\\"" ^ Path.implode code_path ^ "\\\"; use \\\"" ^ 
       Path.implode driver_path ^ "\\\"; main ();\" | " ^ 
-      Path.implode (Path.variable ISABELLE_POLYML_PATH)
+      Path.implode (Path.variable ISABELLE_POLYML)
   in
     {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
   end
 
-val evaluate_in_polyml = gen_driver mk_driver_polyml ISABELLE_POLYML_PATH "PolyML executable" polymlN
+val evaluate_in_polyml = gen_driver mk_driver_polyml ISABELLE_POLYML "PolyML executable" polymlN
 
 (* Driver for mlton *)
 
