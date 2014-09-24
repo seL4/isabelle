@@ -478,7 +478,7 @@ val _ = Theory.setup
 
 val dummyt = Const ("dummy", dummyT);
 
-fun extract thms thy =
+fun extract thm_vss thy =
   let
     val thy' = add_syntax thy;
     val {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =
@@ -769,7 +769,7 @@ fun extract thms thy =
 
       | extr d vs ts Ts hs _ defs = error "extr: bad proof";
 
-    fun prep_thm (thm, vs) =
+    fun prep_thm vs thm =
       let
         val thy = Thm.theory_of_thm thm;
         val prop = Thm.prop_of thm;
@@ -778,11 +778,11 @@ fun extract thms thy =
         val _ = name <> "" orelse error "extraction: unnamed theorem";
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
           quote name ^ " has no computational content")
-      in (Reconstruct.reconstruct_proof thy prop prf, vs) end;
+      in Reconstruct.reconstruct_proof thy prop prf end;
 
     val defs =
-      fold (fn (prf, vs) => snd o extr 0 vs [] [] [] prf)
-        (map prep_thm thms) [];
+      fold (fn (thm, vs) => snd o (extr 0 vs [] [] [] o prep_thm vs) thm)
+        thm_vss [];
 
     fun add_def (s, (vs, ((t, u), (prf, _)))) thy =
       (case Sign.const_type thy (extr_name s vs) of
