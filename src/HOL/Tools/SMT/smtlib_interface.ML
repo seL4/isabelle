@@ -133,18 +133,17 @@ val assert_prefix = "a"
 fun assert_name_of_index i = assert_prefix ^ string_of_int i
 fun assert_index_of_name s = the_default ~1 (Int.fromString (unprefix assert_prefix s))
 
-fun serialize smt_options comments {logic, sorts, lfp_dtyps, gfp_dtyps, funcs} ts =
+fun sdtyp (fp, dtyps) =
+  Buffer.add (enclose ("(declare-" ^ BNF_FP_Util.co_prefix fp ^ "datatypes () (") "))\n"
+    (space_implode "\n  " (map sdatatype dtyps)))
+
+fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
   Buffer.empty
   |> fold (Buffer.add o enclose "; " "\n") comments
   |> fold (fn (k, v) => Buffer.add ("(set-option " ^ k ^ " " ^ v ^ ")\n")) smt_options
   |> Buffer.add logic
   |> fold (Buffer.add o enclose "(declare-sort " " 0)\n") (sort fast_string_ord sorts)
-  |> (if null lfp_dtyps then I
-    else Buffer.add (enclose "(declare-datatypes () (" "))\n"
-      (space_implode "\n  " (maps (map sdatatype) lfp_dtyps))))
-  |> (if null gfp_dtyps then I
-    else Buffer.add (enclose "(declare-codatatypes () (" "))\n"
-      (space_implode "\n  " (maps (map sdatatype) gfp_dtyps))))
+  |> fold sdtyp (AList.coalesce (op =) dtyps)
   |> fold (Buffer.add o enclose "(declare-fun " ")\n" o string_of_fun)
       (sort (fast_string_ord o pairself fst) funcs)
   |> fold (fn (i, t) => Buffer.add (enclose "(assert " ")\n"

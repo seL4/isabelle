@@ -7,9 +7,9 @@ as (co)algebraic datatypes.
 
 signature SMT_DATATYPES =
 sig
-  val add_decls: BNF_Util.fp_kind -> typ ->
-    (typ * (term * term list) list) list list * Proof.context ->
-    (typ * (term * term list) list) list list * Proof.context
+  val add_decls: BNF_Util.fp_kind list -> typ ->
+    (BNF_Util.fp_kind * (typ * (term * term list) list)) list list * Proof.context ->
+    (BNF_Util.fp_kind * (typ * (term * term list) list)) list list * Proof.context
 end;
 
 structure SMT_Datatypes: SMT_DATATYPES =
@@ -63,49 +63,47 @@ fun get_typedef_decl (({Abs_name, Rep_name, abs_type, rep_type, ...}, {Abs_inver
 
 val extN = "_ext" (* cf. "HOL/Tools/typedef.ML" *)
 
-fun get_decls fp T n Ts ctxt =
+fun get_decls fps T n Ts ctxt =
   let
     fun maybe_typedef () =
       (case Typedef.get_info ctxt n of
         [] => ([], ctxt)
-      | info :: _ => (get_typedef_decl info T Ts, ctxt))
+      | info :: _ => (map (pair (hd fps)) (get_typedef_decl info T Ts), ctxt))
   in
     (case BNF_FP_Def_Sugar.fp_sugar_of ctxt n of
-      SOME {fp = fp', fp_res = {Ts = fp_Ts, ...}, ctr_sugar, ...} =>
-      if fp' = fp then
+      SOME {fp, fp_res = {Ts = fp_Ts, ...}, ctr_sugar, ...} =>
+      if member (op =) fps fp then
         let
           val ns = map (fst o dest_Type) fp_Ts
           val mutual_fp_sugars = map_filter (BNF_FP_Def_Sugar.fp_sugar_of ctxt) ns
           val Xs = map #X mutual_fp_sugars
           val ctrXs_Tsss = map #ctrXs_Tss mutual_fp_sugars
 
-          fun is_nested_co_recursive (T as Type _) =
-              BNF_FP_Rec_Sugar_Util.exists_subtype_in Xs T
+          (* FIXME: allow nested recursion to same FP kind *)
+          fun is_nested_co_recursive (T as Type _) = BNF_FP_Rec_Sugar_Util.exists_subtype_in Xs T
             | is_nested_co_recursive _ = false
         in
           if exists (exists (exists is_nested_co_recursive)) ctrXs_Tsss then maybe_typedef ()
-          else get_ctr_sugar_decl ctr_sugar T Ts ctxt
+          else get_ctr_sugar_decl ctr_sugar T Ts ctxt |>> map (pair fp)
         end
       else
         ([], ctxt)
     | NONE =>
-      if fp = BNF_Util.Least_FP then
-        if String.isSuffix extN n then
-          (* for records (FIXME: hack) *)
-          (case Ctr_Sugar.ctr_sugar_of ctxt n of
-            SOME ctr_sugar => get_ctr_sugar_decl ctr_sugar T Ts ctxt
-          | NONE => maybe_typedef ())
-        else
-          maybe_typedef ()
+      if String.isSuffix extN n then
+        (* for records (FIXME: hack) *)
+        (case Ctr_Sugar.ctr_sugar_of ctxt n of
+          SOME ctr_sugar =>
+          get_ctr_sugar_decl ctr_sugar T Ts ctxt |>> map (pair (hd fps))
+        | NONE => maybe_typedef ())
       else
-        ([], ctxt))
+        maybe_typedef ())
   end
 
-fun add_decls fp T (declss, ctxt) =
+fun add_decls fps T (declss, ctxt) =
   let
-    fun declared T = exists (exists (equal T o fst))
-    fun declared' T = exists (exists (equal T o fst) o snd)
-    fun depends ds = exists (member (op =) (map fst ds))
+    fun declared T = exists (exists (equal T o fst o snd))
+    fun declared' T = exists (exists (equal T o fst o snd) o snd)
+    fun depends ds = exists (member (op =) (map (fst o snd) ds))
 
     fun add (TFree _) = I
       | add (TVar _) = I
@@ -113,14 +111,16 @@ fun add_decls fp T (declss, ctxt) =
           fold add (Term.body_type T :: Term.binder_types T)
       | add @{typ bool} = I
       | add (T as Type (n, Ts)) = (fn (dss, ctxt1) =>
-          if declared T declss orelse declared' T dss then (dss, ctxt1)
-          else if SMT_Builtin.is_builtin_typ_ext ctxt1 T then (dss, ctxt1)
+          if declared T declss orelse declared' T dss then
+            (dss, ctxt1)
+          else if SMT_Builtin.is_builtin_typ_ext ctxt1 T then
+            (dss, ctxt1)
           else
-            (case get_decls fp T n Ts ctxt1 of
+            (case get_decls fps T n Ts ctxt1 of
               ([], _) => (dss, ctxt1)
             | (ds, ctxt2) =>
                 let
-                  val constrTs = maps (map (snd o Term.dest_Const o fst) o snd) ds
+                  val constrTs = maps (map (snd o Term.dest_Const o fst) o snd o snd) ds
                   val Us = fold (union (op =) o Term.binder_types) constrTs []
 
                   fun ins [] = [(Us, ds)]
