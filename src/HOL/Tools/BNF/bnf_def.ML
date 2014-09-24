@@ -1616,7 +1616,8 @@ val _ =
          Scan.repeat1 (Scan.unless (Parse.reserved "bd") Parse.term)) [] --|
        (Parse.reserved "bd" -- @{keyword ":"}) -- Parse.term --
        Scan.optional ((Parse.reserved "wits" -- @{keyword ":"}) |--
-         Scan.repeat1 (Scan.unless (Parse.reserved "rel") Parse.term)) [] --
+         Scan.repeat1 (Scan.unless (Parse.reserved "rel" ||
+           Parse.reserved "plugins") Parse.term)) [] --
        Scan.option ((Parse.reserved "rel" -- @{keyword ":"}) |-- Parse.term) --
        Scan.optional parse_plugins (K true)
        >> bnf_cmd);
