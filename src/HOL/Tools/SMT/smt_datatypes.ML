@@ -71,8 +71,23 @@ fun get_decls fp T n Ts ctxt =
       | info :: _ => (get_typedef_decl info T Ts, ctxt))
   in
     (case BNF_FP_Def_Sugar.fp_sugar_of ctxt n of
-      SOME {fp = fp', ctr_sugar, ...} =>
-      if fp' = fp then get_ctr_sugar_decl ctr_sugar T Ts ctxt else ([], ctxt)
+      SOME {fp = fp', fp_res = {Ts = fp_Ts, ...}, ctr_sugar, ...} =>
+      if fp' = fp then
+        let
+          val ns = map (fst o dest_Type) fp_Ts
+          val mutual_fp_sugars = map_filter (BNF_FP_Def_Sugar.fp_sugar_of ctxt) ns
+          val Xs = map #X mutual_fp_sugars
+          val ctrXs_Tsss = map #ctrXs_Tss mutual_fp_sugars
+
+          fun is_nested_co_recursive (T as Type _) =
+              BNF_FP_Rec_Sugar_Util.exists_subtype_in Xs T
+            | is_nested_co_recursive _ = false
+        in
+          if exists (exists (exists is_nested_co_recursive)) ctrXs_Tsss then maybe_typedef ()
+          else get_ctr_sugar_decl ctr_sugar T Ts ctxt
+        end
+      else
+        ([], ctxt)
     | NONE =>
       if fp = BNF_Util.Least_FP then
         if String.isSuffix extN n then
