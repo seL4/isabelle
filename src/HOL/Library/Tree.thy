@@ -6,17 +6,16 @@ theory Tree
 imports Main
 begin
 
-datatype 'a tree = Leaf | Node (left: "'a tree") (val: 'a) (right: "'a tree")
+datatype 'a tree =
+  Leaf ("\<langle>\<rangle>") |
+  Node (left: "'a tree") (val: 'a) (right: "'a tree") ("\<langle>_, _, _\<rangle>")
   where
     "left Leaf = Leaf"
   | "right Leaf = Leaf"
 datatype_compat tree
 
-lemma neq_Leaf_iff: "(t \<noteq> Leaf) = (\<exists>l a r. t = Node l a r)"
-  by (cases t) auto
-
-lemma set_tree_Node2: "set_tree(Node l x r) = insert x (set_tree l \<union> set_tree r)"
-by auto
+lemma neq_Leaf_iff: "(t \<noteq> \<langle>\<rangle>) = (\<exists>l a r. t = \<langle>l, a, r\<rangle>)"
+by (cases t) auto
 
 lemma finite_set_tree[simp]: "finite(set_tree t)"
 by(induction t) auto
@@ -25,44 +24,44 @@ by(induction t) auto
 subsection "The set of subtrees"
 
 fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
-  "subtrees Leaf = {Leaf}" |
-  "subtrees (Node l a r) = insert (Node l a r) (subtrees l \<union> subtrees r)"
+  "subtrees \<langle>\<rangle> = {\<langle>\<rangle>}" |
+  "subtrees (\<langle>l, a, r\<rangle>) = insert \<langle>l, a, r\<rangle> (subtrees l \<union> subtrees r)"
 
-lemma set_treeE: "a \<in> set_tree t \<Longrightarrow> \<exists>l r. Node l a r \<in> subtrees t"
-  by (induction t)(auto)
+lemma set_treeE: "a \<in> set_tree t \<Longrightarrow> \<exists>l r. \<langle>l, a, r\<rangle> \<in> subtrees t"
+by (induction t)(auto)
 
 lemma Node_notin_subtrees_if[simp]: "a \<notin> set_tree t \<Longrightarrow> Node l a r \<notin> subtrees t"
-  by (induction t) auto
+by (induction t) auto
 
-lemma in_set_tree_if: "Node l a r \<in> subtrees t \<Longrightarrow> a \<in> set_tree t"
-  by (metis Node_notin_subtrees_if)
+lemma in_set_tree_if: "\<langle>l, a, r\<rangle> \<in> subtrees t \<Longrightarrow> a \<in> set_tree t"
+by (metis Node_notin_subtrees_if)
 
 
 subsection "Inorder list of entries"
 
 fun inorder :: "'a tree \<Rightarrow> 'a list" where
-  "inorder Leaf = []" |
-  "inorder (Node l x r) = inorder l @ [x] @ inorder r"
+"inorder \<langle>\<rangle> = []" |
+"inorder \<langle>l, x, r\<rangle> = inorder l @ [x] @ inorder r"
 
 lemma set_inorder[simp]: "set (inorder t) = set_tree t"
-  by (induction t) auto
+by (induction t) auto
 
 
 subsection {* Binary Search Tree predicate *}
 
 fun (in linorder) bst :: "'a tree \<Rightarrow> bool" where
-  "bst Leaf \<longleftrightarrow> True" |
-  "bst (Node l a r) \<longleftrightarrow> bst l \<and> bst r \<and> (\<forall>x\<in>set_tree l. x < a) \<and> (\<forall>x\<in>set_tree r. a < x)"
+"bst \<langle>\<rangle> \<longleftrightarrow> True" |
+"bst \<langle>l, a, r\<rangle> \<longleftrightarrow> bst l \<and> bst r \<and> (\<forall>x\<in>set_tree l. x < a) \<and> (\<forall>x\<in>set_tree r. a < x)"
 
 lemma (in linorder) bst_imp_sorted: "bst t \<Longrightarrow> sorted (inorder t)"
-  by (induction t) (auto simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
+by (induction t) (auto simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
 
 
 subsection "Deletion of the rightmost entry"
 
 fun del_rightmost :: "'a tree \<Rightarrow> 'a tree * 'a" where
-"del_rightmost (Node l a Leaf) = (l,a)" |
-"del_rightmost (Node l a r) = (let (r',x) = del_rightmost r in (Node l a r', x))"
+"del_rightmost \<langle>l, a, \<langle>\<rangle>\<rangle> = (l,a)" |
+"del_rightmost \<langle>l, a, r\<rangle> = (let (r',x) = del_rightmost r in (\<langle>l, a, r'\<rangle>, x))"
 
 lemma del_rightmost_set_tree_if_bst:
   "\<lbrakk> del_rightmost t = (t',x); bst t; t \<noteq> Leaf \<rbrakk>
@@ -72,12 +71,12 @@ apply(induction t arbitrary: t' rule: del_rightmost.induct)
 done
 
 lemma del_rightmost_set_tree:
-  "\<lbrakk> del_rightmost t = (t',x);  t \<noteq> Leaf \<rbrakk> \<Longrightarrow> set_tree t = insert x (set_tree t')"
+  "\<lbrakk> del_rightmost t = (t',x);  t \<noteq> \<langle>\<rangle> \<rbrakk> \<Longrightarrow> set_tree t = insert x (set_tree t')"
 apply(induction t arbitrary: t' rule: del_rightmost.induct)
 by (auto split: prod.splits) auto
 
 lemma del_rightmost_bst:
-  "\<lbrakk> del_rightmost t = (t',x);  bst t;  t \<noteq> Leaf \<rbrakk> \<Longrightarrow> bst t'"
+  "\<lbrakk> del_rightmost t = (t',x);  bst t;  t \<noteq> \<langle>\<rangle> \<rbrakk> \<Longrightarrow> bst t'"
 proof(induction t arbitrary: t' rule: del_rightmost.induct)
   case (2 l a rl b rr)
   let ?r = "Node rl b rr"
@@ -87,7 +86,7 @@ proof(induction t arbitrary: t' rule: del_rightmost.induct)
 qed auto
 
 
-lemma del_rightmost_greater: "\<lbrakk> del_rightmost t = (t',x);  bst t;  t \<noteq> Leaf \<rbrakk>
+lemma del_rightmost_greater: "\<lbrakk> del_rightmost t = (t',x);  bst t;  t \<noteq> \<langle>\<rangle> \<rbrakk>
   \<Longrightarrow> \<forall>a\<in>set_tree t'. a < x"
 proof(induction t arbitrary: t' rule: del_rightmost.induct)
   case (2 l a rl b rr)
@@ -103,7 +102,7 @@ lemma Max_insert1: "\<lbrakk> finite A;  \<forall>a\<in>A. a \<le> x \<rbrakk> \
 by (metis Max_in Max_insert Max_singleton antisym max_def)
 
 lemma del_rightmost_Max:
-  "\<lbrakk> del_rightmost t = (t',x);  bst t;  t \<noteq> Leaf \<rbrakk> \<Longrightarrow> x = Max(set_tree t)"
+  "\<lbrakk> del_rightmost t = (t',x);  bst t;  t \<noteq> \<langle>\<rangle> \<rbrakk> \<Longrightarrow> x = Max(set_tree t)"
 by (metis Max_insert1 del_rightmost_greater del_rightmost_set_tree finite_set_tree less_le_not_le)
 
 end
