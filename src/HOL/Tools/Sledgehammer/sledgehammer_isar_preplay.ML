@@ -8,7 +8,7 @@ Preplaying of Isar proofs.
 signature SLEDGEHAMMER_ISAR_PREPLAY =
 sig
   type play_outcome = Sledgehammer_Proof_Methods.play_outcome
-  type proof_method = Sledgehammer_Isar_Proof.proof_method
+  type proof_method = Sledgehammer_Proof_Methods.proof_method
   type isar_step = Sledgehammer_Isar_Proof.isar_step
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
   type label = Sledgehammer_Isar_Proof.label
