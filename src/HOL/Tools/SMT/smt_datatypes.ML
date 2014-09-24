@@ -79,12 +79,21 @@ fun get_decls fps T n Ts ctxt =
           val Xs = map #X mutual_fp_sugars
           val ctrXs_Tsss = map #ctrXs_Tss mutual_fp_sugars
 
-          (* FIXME: allow nested recursion to same FP kind *)
-          fun is_nested_co_recursive (T as Type _) = BNF_FP_Rec_Sugar_Util.exists_subtype_in Xs T
-            | is_nested_co_recursive _ = false
+          (* Datatypes nested through datatypes and codatatypes nested through codatatypes are
+             allowed. So are mutually (co)recursive (co)datatypes. *)
+          fun is_same_fp s =
+            (case BNF_FP_Def_Sugar.fp_sugar_of ctxt s of
+              SOME {fp = fp', ...} => fp' = fp
+            | NONE => false)
+          fun is_homogenously_nested_co_recursive (Type (s, Ts)) =
+              forall (if is_same_fp s then is_homogenously_nested_co_recursive
+                else not o BNF_FP_Rec_Sugar_Util.exists_subtype_in Xs) Ts
+            | is_homogenously_nested_co_recursive _ = true
         in
-          if exists (exists (exists is_nested_co_recursive)) ctrXs_Tsss then maybe_typedef ()
-          else get_ctr_sugar_decl ctr_sugar T Ts ctxt |>> map (pair fp)
+          if forall (forall (forall is_homogenously_nested_co_recursive)) ctrXs_Tsss then
+            get_ctr_sugar_decl ctr_sugar T Ts ctxt |>> map (pair fp)
+          else
+            maybe_typedef ()
         end
       else
         ([], ctxt)
