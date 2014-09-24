@@ -128,7 +128,7 @@ begin
 
 lift_definition minus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
 by (rule diff_preserves_multiset)
- 
+
 instance
 by default (transfer, simp add: fun_eq_iff)+
 
@@ -156,7 +156,7 @@ lemma diff_right_commute:
 lemma diff_add:
   "(M::'a multiset) - (N + Q) = M - N - Q"
   by (rule sym) (fact diff_diff_add)
-  
+
 lemma insert_DiffM:
   "x \<in># M \<Longrightarrow> {#x#} + (M - {#x#}) = M"
   by (clarsimp simp: multiset_eq_iff)
@@ -242,7 +242,7 @@ next
   qed
 qed
 
-lemma insert_noteq_member: 
+lemma insert_noteq_member:
   assumes BC: "B + {#b#} = C + {#c#}"
    and bnotc: "b \<noteq> c"
   shows "c \<in># B"
@@ -262,14 +262,14 @@ lemma multi_member_split:
   "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#}"
   by (rule_tac x = "M - {#x#}" in exI, simp)
 
-lemma multiset_add_sub_el_shuffle: 
-  assumes "c \<in># B" and "b \<noteq> c" 
+lemma multiset_add_sub_el_shuffle:
+  assumes "c \<in># B" and "b \<noteq> c"
   shows "B - {#c#} + {#b#} = B + {#b#} - {#c#}"
 proof -
-  from `c \<in># B` obtain A where B: "B = A + {#c#}" 
+  from `c \<in># B` obtain A where B: "B = A + {#c#}"
     by (blast dest: multi_member_split)
   have "A + {#b#} = A + {#b#} + {#c#} - {#c#}" by simp
-  then have "A + {#b#} = A + {#c#} + {#b#} - {#c#}" 
+  then have "A + {#b#} = A + {#c#} + {#b#} - {#c#}"
     by (simp add: ac_simps)
   then show ?thesis using B by simp
 qed
@@ -351,7 +351,7 @@ apply (clarsimp simp: mset_le_def mset_less_def)
 apply (erule_tac x = x in allE)
 apply auto
 done
-  
+
 lemma mset_less_insertD: "(A + {#x#} < B) \<Longrightarrow> (x \<in># B \<and> A < B)"
 apply (rule conjI)
  apply (simp add: mset_lessD)
@@ -590,7 +590,7 @@ lemma finite_set_of [iff]: "finite (set_of M)"
 lemma finite_Collect_mem [iff]: "finite {x. x :# M}"
   unfolding set_of_def[symmetric] by simp
 
-lemma set_of_mono: "A \<le> B \<Longrightarrow> set_of A \<subseteq> set_of B"  
+lemma set_of_mono: "A \<le> B \<Longrightarrow> set_of A \<subseteq> set_of B"
   by (metis mset_leD subsetI mem_set_of_iff)
 
 subsubsection {* Size *}
@@ -705,7 +705,7 @@ lemma mset_less_size: "(A::'a multiset) < B \<Longrightarrow> size A < size B"
 proof (induct A arbitrary: B)
   case (empty M)
   then have "M \<noteq> {#}" by (simp add: mset_less_empty_nonempty)
-  then obtain M' x where "M = M' + {#x#}" 
+  then obtain M' x where "M = M' + {#x#}"
     by (blast dest: multi_nonempty_split)
   then show ?case by simp
 next
@@ -713,9 +713,9 @@ next
   have IH: "\<And>B. S < B \<Longrightarrow> size S < size B" by fact
   have SxsubT: "S + {#x#} < T" by fact
   then have "x \<in># T" and "S < T" by (auto dest: mset_less_insertD)
-  then obtain T' where T: "T = T' + {#x#}" 
+  then obtain T' where T: "T = T' + {#x#}"
     by (blast dest: multi_member_split)
-  then have "S < T'" using SxsubT 
+  then have "S < T'" using SxsubT
     by (blast intro: mset_less_add_bothsides)
   then have "size S < size T'" using IH by simp
   then show ?case using T by simp
@@ -1047,7 +1047,7 @@ proof (induct xs arbitrary: ys)
 next
   case (Cons x xs)
   then have *: "set ys = set (x # xs)" by (blast dest: multiset_of_eq_setD)
-  have "\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x" 
+  have "\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
     by (rule Cons.prems(1)) (simp_all add: *)
   moreover from * have "x \<in> set ys" by simp
   ultimately have "List.fold f ys = List.fold f (remove1 x ys) \<circ> f x" by (fact fold_remove1_split)
@@ -1211,15 +1211,15 @@ lemma setsum_unfold_msetsum:
 end
 
 syntax
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add" 
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
       ("(3SUM _:#_. _)" [0, 51, 10] 10)
 
 syntax (xsymbols)
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add" 
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
       ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
 
 syntax (HTML output)
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add" 
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
       ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
 
 translations
@@ -1249,7 +1249,7 @@ lemma msetprod_singleton:
   by (fact msetprod.singleton)
 
 lemma msetprod_Un:
-  "msetprod (A + B) = msetprod A * msetprod B" 
+  "msetprod (A + B) = msetprod A * msetprod B"
   by (fact msetprod.union)
 
 lemma setprod_unfold_msetprod:
@@ -1263,15 +1263,15 @@ lemma msetprod_multiplicity:
 end
 
 syntax
-  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
       ("(3PROD _:#_. _)" [0, 51, 10] 10)
 
 syntax (xsymbols)
-  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
       ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
 
 syntax (HTML output)
-  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
       ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
 
 translations
@@ -1349,7 +1349,7 @@ begin
 lemma multiset_of_insort [simp]:
   "multiset_of (insort_key k x xs) = {#x#} + multiset_of xs"
   by (induct xs) (simp_all add: ac_simps)
- 
+
 lemma multiset_of_sort [simp]:
   "multiset_of (sort_key k xs) = multiset_of xs"
   by (induct xs) (simp_all add: ac_simps)
@@ -1469,7 +1469,7 @@ next
     proof (cases zs)
       case Nil with hyps show ?thesis by auto
     next
-      case Cons 
+      case Cons
       from sort_key_by_quicksort [of f xs]
       have "sort_key f xs = (let (lts, eqs, gts) = part f (f (xs ! (length xs div 2))) xs
         in sort_key f lts @ eqs @ sort_key f gts)"
@@ -1833,16 +1833,16 @@ proof (induct)
 next
   case (pw_leq_step x y X Y)
   then obtain A B Z where
-    [simp]: "X = A + Z" "Y = B + Z" 
-      and 1[simp]: "(set_of A, set_of B) \<in> max_strict \<or> (B = {#} \<and> A = {#})" 
+    [simp]: "X = A + Z" "Y = B + Z"
+      and 1[simp]: "(set_of A, set_of B) \<in> max_strict \<or> (B = {#} \<and> A = {#})"
     by auto
-  from pw_leq_step have "x = y \<or> (x, y) \<in> pair_less" 
+  from pw_leq_step have "x = y \<or> (x, y) \<in> pair_less"
     unfolding pair_leq_def by auto
   thus ?case
   proof
     assume [simp]: "x = y"
     have
-      "{#x#} + X = A + ({#y#}+Z) 
+      "{#x#} + X = A + ({#y#}+Z)
       \<and> {#y#} + Y = B + ({#y#}+Z)
       \<and> ((set_of A, set_of B) \<in> max_strict \<or> (B = {#} \<and> A = {#}))"
       by (auto simp: ac_simps)
@@ -1853,21 +1853,21 @@ next
     have "{#x#} + X = ?A' + Z"
       "{#y#} + Y = ?B' + Z"
       by (auto simp add: ac_simps)
-    moreover have 
+    moreover have
       "(set_of ?A', set_of ?B') \<in> max_strict"
-      using 1 A unfolding max_strict_def 
+      using 1 A unfolding max_strict_def
       by (auto elim!: max_ext.cases)
     ultimately show ?thesis by blast
   qed
 qed
 
-lemma 
+lemma
   assumes pwleq: "pw_leq Z Z'"
   shows ms_strictI: "(set_of A, set_of B) \<in> max_strict \<Longrightarrow> (Z + A, Z' + B) \<in> ms_strict"
   and   ms_weakI1:  "(set_of A, set_of B) \<in> max_strict \<Longrightarrow> (Z + A, Z' + B) \<in> ms_weak"
   and   ms_weakI2:  "(Z + {#}, Z' + {#}) \<in> ms_weak"
 proof -
-  from pw_leq_split[OF pwleq] 
+  from pw_leq_split[OF pwleq]
   obtain A' B' Z''
     where [simp]: "Z = A' + Z''" "Z' = B' + Z''"
     and mx_or_empty: "(set_of A', set_of B') \<in> max_strict \<or> (A' = {#} \<and> B' = {#})"
@@ -1880,7 +1880,7 @@ proof -
       assume max': "(set_of A', set_of B') \<in> max_strict"
       with max have "(set_of (A + A'), set_of (B + B')) \<in> max_strict"
         by (auto simp: max_strict_def intro: max_ext_additive)
-      thus ?thesis by (rule smsI) 
+      thus ?thesis by (rule smsI)
     next
       assume [simp]: "A' = {#} \<and> B' = {#}"
       show ?thesis by (rule smsI) (auto intro: max)
@@ -1929,7 +1929,7 @@ let
   val set_of_simps = [@{thm set_of_empty}, @{thm set_of_single}, @{thm set_of_union},
                       @{thm Un_insert_left}, @{thm Un_empty_left}]
 in
-  ScnpReconstruct.multiset_setup (ScnpReconstruct.Multiset 
+  ScnpReconstruct.multiset_setup (ScnpReconstruct.Multiset
   {
     msetT=msetT, mk_mset=mk_mset, mset_regroup_conv=regroup_munion_conv,
     mset_member_tac=mset_member_tac, mset_nonempty_tac=mset_nonempty_tac,
@@ -1989,7 +1989,7 @@ lemma mult_less_not_refl:
 lemma mult_less_trans:
   "K \<subset># M ==> M \<subset># N ==> K \<subset># (N::'a::order multiset)"
   by (fact multiset_order.less_trans)
-    
+
 lemma mult_less_not_sym:
   "M \<subset># N ==> \<not> N \<subset># (M::'a::order multiset)"
   by (fact multiset_order.less_not_sym)
@@ -2114,9 +2114,9 @@ lemma [code]:
   "mcard (multiset_of xs) = length xs"
   by (simp add: mcard_multiset_of)
 
-fun ms_lesseq_impl :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool option" where 
+fun ms_lesseq_impl :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool option" where
   "ms_lesseq_impl [] ys = Some (ys \<noteq> [])"
-| "ms_lesseq_impl (Cons x xs) ys = (case List.extract (op = x) ys of 
+| "ms_lesseq_impl (Cons x xs) ys = (case List.extract (op = x) ys of
      None \<Rightarrow> None
    | Some (ys1,_,ys2) \<Rightarrow> ms_lesseq_impl xs (ys1 @ ys2))"
 
@@ -2148,7 +2148,7 @@ next
     obtain ys1 y ys2 where res: "res = (ys1,y,ys2)" by (cases res, auto)
     note Some = Some[unfolded res]
     from extract_SomeE[OF Some] have "ys = ys1 @ x # ys2" by simp
-    hence id: "multiset_of ys = multiset_of (ys1 @ ys2) + {#x#}" 
+    hence id: "multiset_of ys = multiset_of (ys1 @ ys2) + {#x#}"
       by (auto simp: ac_simps)
     show ?thesis unfolding ms_lesseq_impl.simps
       unfolding Some option.simps split
@@ -2267,13 +2267,13 @@ next
       by (rule Cons.hyps(2))
     thus ?thesis
       unfolding k by (auto simp: add.commute union_lcomm)
-  qed      
+  qed
 qed
 
 lemma ex_multiset_of_zip_left:
   assumes "length xs = length ys" "multiset_of xs' = multiset_of xs"
   shows "\<exists>ys'. length ys' = length xs' \<and> multiset_of (zip xs' ys') = multiset_of (zip xs ys)"
-using assms 
+using assms
 proof (induct xs ys arbitrary: xs' rule: list_induct2)
   case Nil
   thus ?case
@@ -2281,19 +2281,9 @@ proof (induct xs ys arbitrary: xs' rule: list_induct2)
 next
   case (Cons x xs y ys xs')
   obtain j where j_len: "j < length xs'" and nth_j: "xs' ! j = x"
-  proof -
-    assume "\<And>j. \<lbrakk>j < length xs'; xs' ! j = x\<rbrakk> \<Longrightarrow> ?thesis"
-    moreover have "\<And>k m n. (m\<Colon>nat) + n < m + k \<or> \<not> n < k" by linarith
-    moreover have "\<And>n a as. n - n < length (a # as) \<or> n < n"
-      by (metis Nat.add_diff_inverse diff_add_inverse2 impossible_Cons le_add1
-        less_diff_conv not_add_less2)
-    moreover have "\<not> length xs' < length xs'" by blast
-    ultimately show ?thesis
-      by (metis (no_types) Cons.prems Nat.add_diff_inverse diff_add_inverse2 length_append
-        less_diff_conv list.set_intros(1) multiset_of_eq_setD nth_append_length split_list)
-  qed
+    by (metis Cons.prems in_set_conv_nth list.set_intros(1) multiset_of_eq_setD)
 
-  def xsa \<equiv> "take j xs' @ drop (Suc j) xs'" 
+  def xsa \<equiv> "take j xs' @ drop (Suc j) xs'"
   have "multiset_of xs' = {#x#} + multiset_of xsa"
     unfolding xsa_def using j_len nth_j
     by (metis (no_types) ab_semigroup_add_class.add_ac(1) append_take_drop_id Cons_nth_drop_Suc
@@ -2345,7 +2335,7 @@ lemma ex_multiset_of: "\<exists>xs. multiset_of xs = X"
 
 bnf "'a multiset"
   map: image_mset
-  sets: set_of 
+  sets: set_of
   bd: natLeq
   wits: "{#}"
   rel: rel_mset
