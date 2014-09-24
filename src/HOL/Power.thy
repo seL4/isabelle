@@ -795,6 +795,10 @@ next
     by simp
 qed
 
+lemma power_setsum:
+  "c ^ (\<Sum>a\<in>A. f a) = (\<Prod>a\<in>A. c ^ f a)"
+  by (induct A rule: infinite_finite_induct) (simp_all add: power_add)
+
 lemma setprod_gen_delta:
   assumes fS: "finite S"
   shows "setprod (\<lambda>k. if k=a then b k else c) S = (if a \<in> S then (b a ::'a::comm_monoid_mult) * c^ (card S - 1) else c^ card S)"

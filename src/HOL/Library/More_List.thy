@@ -182,47 +182,86 @@ lemma no_trailing_upt [simp]:
 
 definition nth_default :: "'a \<Rightarrow> 'a list \<Rightarrow> nat \<Rightarrow> 'a"
 where
-  "nth_default x xs n = (if n < length xs then xs ! n else x)"
-
-lemma nth_default_Nil [simp]:
-  "nth_default y [] n = y"
-  by (simp add: nth_default_def)
-
-lemma nth_default_Cons_0 [simp]:
-  "nth_default y (x # xs) 0 = x"
-  by (simp add: nth_default_def)
-
-lemma nth_default_Cons_Suc [simp]:
-  "nth_default y (x # xs) (Suc n) = nth_default y xs n"
-  by (simp add: nth_default_def)
-
-lemma nth_default_map_eq:
-  "f y = x \<Longrightarrow> nth_default x (map f xs) n = f (nth_default y xs n)"
-  by (simp add: nth_default_def)
-
-lemma nth_default_strip_while_eq [simp]:
-  "nth_default x (strip_while (HOL.eq x) xs) n = nth_default x xs n"
-proof -
-  from split_strip_while_append obtain ys zs
-    where "strip_while (HOL.eq x) xs = ys" and "\<forall>z\<in>set zs. x = z" and "xs = ys @ zs" by blast
-  then show ?thesis by (simp add: nth_default_def not_less nth_append)
-qed
-
-lemma nth_default_Cons:
-  "nth_default y (x # xs) n = (case n of 0 \<Rightarrow> x | Suc n' \<Rightarrow> nth_default y xs n')"
-  by (simp split: nat.split)
+  "nth_default dflt xs n = (if n < length xs then xs ! n else dflt)"
 
 lemma nth_default_nth:
-  "n < length xs \<Longrightarrow> nth_default y xs n = xs ! n"
+  "n < length xs \<Longrightarrow> nth_default dflt xs n = xs ! n"
   by (simp add: nth_default_def)
 
 lemma nth_default_beyond:
-  "length xs \<le> n \<Longrightarrow> nth_default y xs n = y"
+  "length xs \<le> n \<Longrightarrow> nth_default dflt xs n = dflt"
   by (simp add: nth_default_def)
+
+lemma nth_default_Nil [simp]:
+  "nth_default dflt [] n = dflt"
+  by (simp add: nth_default_def)
+
+lemma nth_default_Cons:
+  "nth_default dflt (x # xs) n = (case n of 0 \<Rightarrow> x | Suc n' \<Rightarrow> nth_default dflt xs n')"
+  by (simp add: nth_default_def split: nat.split)
+
+lemma nth_default_Cons_0 [simp]:
+  "nth_default dflt (x # xs) 0 = x"
+  by (simp add: nth_default_Cons)
+
+lemma nth_default_Cons_Suc [simp]:
+  "nth_default dflt (x # xs) (Suc n) = nth_default dflt xs n"
+  by (simp add: nth_default_Cons)
+
+lemma nth_default_replicate_dflt [simp]:
+  "nth_default dflt (replicate n dflt) m = dflt"
+  by (simp add: nth_default_def)
+
+lemma nth_default_append:
+  "nth_default dflt (xs @ ys) n =
+    (if n < length xs then nth xs n else nth_default dflt ys (n - length xs))"
+  by (auto simp add: nth_default_def nth_append)
+
+lemma nth_default_append_trailing [simp]:
+  "nth_default dflt (xs @ replicate n dflt) = nth_default dflt xs"
+  by (simp add: fun_eq_iff nth_default_append) (simp add: nth_default_def)
+
+lemma nth_default_snoc_default [simp]:
+  "nth_default dflt (xs @ [dflt]) = nth_default dflt xs"
+  by (auto simp add: nth_default_def fun_eq_iff nth_append)
+
+lemma nth_default_eq_dflt_iff:
+  "nth_default dflt xs k = dflt \<longleftrightarrow> (k < length xs \<longrightarrow> xs ! k = dflt)"
+  by (simp add: nth_default_def)
+
+lemma in_enumerate_iff_nth_default_eq:
+  "x \<noteq> dflt \<Longrightarrow> (n, x) \<in> set (enumerate 0 xs) \<longleftrightarrow> nth_default dflt xs n = x"
+  by (auto simp add: nth_default_def in_set_conv_nth enumerate_eq_zip)
+
+lemma last_conv_nth_default:
+  assumes "xs \<noteq> []"
+  shows "last xs = nth_default dflt xs (length xs - 1)"
+  using assms by (simp add: nth_default_def last_conv_nth)
+  
+lemma nth_default_map_eq:
+  "f dflt' = dflt \<Longrightarrow> nth_default dflt (map f xs) n = f (nth_default dflt' xs n)"
+  by (simp add: nth_default_def)
+
+lemma finite_nth_default_neq_default [simp]:
+  "finite {k. nth_default dflt xs k \<noteq> dflt}"
+  by (simp add: nth_default_def)
+
+lemma sorted_list_of_set_nth_default:
+  "sorted_list_of_set {k. nth_default dflt xs k \<noteq> dflt} = map fst (filter (\<lambda>(_, x). x \<noteq> dflt) (enumerate 0 xs))"
+  by (rule sorted_distinct_set_unique) (auto simp add: nth_default_def in_set_conv_nth
+    sorted_filter distinct_map_filter enumerate_eq_zip intro: rev_image_eqI)
+
+lemma map_nth_default:
+  "map (nth_default x xs) [0..<length xs] = xs"
+proof -
+  have *: "map (nth_default x xs) [0..<length xs] = map (List.nth xs) [0..<length xs]"
+    by (rule map_cong) (simp_all add: nth_default_nth)
+  show ?thesis by (simp add: * map_nth)
+qed
 
 lemma range_nth_default [simp]:
   "range (nth_default dflt xs) = insert dflt (set xs)"
-  by (auto simp add: nth_default_def[abs_def] in_set_conv_nth)
+  by (auto simp add: nth_default_def [abs_def] in_set_conv_nth)
 
 lemma nth_strip_while:
   assumes "n < length (strip_while P xs)"
@@ -241,25 +280,59 @@ lemma length_strip_while_le:
   by (subst (2) length_rev[symmetric])
     (simp add: strip_while_def length_dropWhile_le del: length_rev)
 
-lemma finite_nth_default_neq_default [simp]:
-  "finite {k. nth_default dflt xs k \<noteq> dflt}"
-  by (simp add: nth_default_def)
-
-lemma sorted_list_of_set_nth_default:
-  "sorted_list_of_set {k. nth_default dflt xs k \<noteq> dflt} = map fst (filter (\<lambda>(_, x). x \<noteq> dflt) (zip [0..<length xs] xs))"
-  by (rule sorted_distinct_set_unique) (auto simp add: nth_default_def in_set_conv_nth sorted_filter distinct_map_filter intro: rev_image_eqI)
-
-lemma nth_default_snoc_default [simp]:
-  "nth_default dflt (xs @ [dflt]) = nth_default dflt xs"
-  by (auto simp add: nth_default_def fun_eq_iff nth_append)
-
 lemma nth_default_strip_while_dflt [simp]:
- "nth_default dflt (strip_while (op = dflt) xs) = nth_default dflt xs"
+  "nth_default dflt (strip_while (op = dflt) xs) = nth_default dflt xs"
   by (induct xs rule: rev_induct) auto
 
-lemma nth_default_eq_dflt_iff:
-  "nth_default dflt xs k = dflt \<longleftrightarrow> (k < length xs \<longrightarrow> xs ! k = dflt)"
-  by (simp add: nth_default_def)
+lemma nth_default_eq_iff:
+  "nth_default dflt xs = nth_default dflt ys
+     \<longleftrightarrow> strip_while (HOL.eq dflt) xs = strip_while (HOL.eq dflt) ys" (is "?P \<longleftrightarrow> ?Q")
+proof
+  let ?xs = "strip_while (HOL.eq dflt) xs" and ?ys = "strip_while (HOL.eq dflt) ys"
+  assume ?P
+  then have eq: "nth_default dflt ?xs = nth_default dflt ?ys"
+    by simp
+  have len: "length ?xs = length ?ys"
+  proof (rule ccontr)
+    assume len: "length ?xs \<noteq> length ?ys"
+    { fix xs ys :: "'a list"
+      let ?xs = "strip_while (HOL.eq dflt) xs" and ?ys = "strip_while (HOL.eq dflt) ys"
+      assume eq: "nth_default dflt ?xs = nth_default dflt ?ys"
+      assume len: "length ?xs < length ?ys"
+      then have "length ?ys > 0" by arith
+      then have "?ys \<noteq> []" by simp
+      with last_conv_nth_default [of ?ys dflt]
+      have "last ?ys = nth_default dflt ?ys (length ?ys - 1)"
+        by auto
+      moreover from `?ys \<noteq> []` no_trailing_strip_while [of "HOL.eq dflt" ys]
+        have "last ?ys \<noteq> dflt" by (simp add: no_trailing_unfold)
+      ultimately have "nth_default dflt ?xs (length ?ys - 1) \<noteq> dflt"
+        using eq by simp
+      moreover from len have "length ?ys - 1 \<ge> length ?xs" by simp
+      ultimately have False by (simp only: nth_default_beyond) simp
+    } 
+    from this [of xs ys] this [of ys xs] len eq show False
+      by (auto simp only: linorder_class.neq_iff)
+  qed
+  then show ?Q
+  proof (rule nth_equalityI [rule_format])
+    fix n
+    assume "n < length ?xs"
+    moreover with len have "n < length ?ys"
+      by simp
+    ultimately have xs: "nth_default dflt ?xs n = ?xs ! n"
+      and ys: "nth_default dflt ?ys n = ?ys ! n"
+      by (simp_all only: nth_default_nth)
+    with eq show "?xs ! n = ?ys ! n"
+      by simp
+  qed
+next
+  assume ?Q
+  then have "nth_default dflt (strip_while (HOL.eq dflt) xs) = nth_default dflt (strip_while (HOL.eq dflt) ys)"
+    by simp
+  then show ?P
+    by simp
+qed
 
 end
 

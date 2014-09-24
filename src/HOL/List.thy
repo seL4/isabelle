@@ -2796,6 +2796,10 @@ lemma fold_map [code_unfold]:
   "fold g (map f xs) = fold (g o f) xs"
   by (induct xs) simp_all
 
+lemma fold_filter:
+  "fold f (filter P xs) = fold (\<lambda>x. if P x then f x else id) xs"
+  by (induct xs) simp_all
+
 lemma fold_rev:
   assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"
   shows "fold f (rev xs) = fold f xs"
@@ -2942,6 +2946,10 @@ lemma foldr_map [code_unfold]:
   "foldr g (map f xs) a = foldr (g o f) xs a"
   by (simp add: foldr_conv_fold fold_map rev_map)
 
+lemma foldr_filter:
+  "foldr f (filter P xs) = foldr (\<lambda>x. if P x then f x else id) xs"
+  by (simp add: foldr_conv_fold rev_filter fold_filter)
+  
 lemma foldl_map [code_unfold]:
   "foldl g a (map f xs) = foldl (\<lambda>a x. g a (f x)) a xs"
   by (simp add: foldl_conv_fold fold_map comp_def)
@@ -3030,6 +3038,7 @@ lemma map_decr_upt:
   "map (\<lambda>n. n - Suc 0) [Suc m..<Suc n] = [m..<n]"
   by (induct n) simp_all
 
+ 
 lemma nth_take_lemma:
   "k <= length xs ==> k <= length ys ==>
      (!!i. i < k --> xs!i = ys!i) ==> take k xs = take k ys"
@@ -3479,6 +3488,18 @@ lemma remdups_adj_map_injective:
   by (induct xs rule: remdups_adj.induct, 
       auto simp add: injD[OF assms])
 
+lemma remdups_upt [simp]:
+  "remdups [m..<n] = [m..<n]"
+proof (cases "m \<le> n")
+  case False then show ?thesis by simp
+next
+  case True then obtain q where "n = m + q"
+    by (auto simp add: le_iff_add)
+  moreover have "remdups [m..<m + q] = [m..<m + q]"
+    by (induct q) simp_all
+  ultimately show ?thesis by simp
+qed
+
 
 subsubsection {* @{const insert} *}
 
@@ -3698,6 +3719,15 @@ subsubsection {* @{const replicate} *}
 
 lemma length_replicate [simp]: "length (replicate n x) = n"
 by (induct n) auto
+
+lemma replicate_eqI:
+  assumes "length xs = n" and "\<And>y. y \<in> set xs \<Longrightarrow> y = x"
+  shows "xs = replicate n x"
+using assms proof (induct xs arbitrary: n)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs) then show ?case by (cases n) simp_all
+qed
 
 lemma Ex_list_of_length: "\<exists>xs. length xs = n"
 by (rule exI[of _ "replicate n undefined"]) simp
@@ -3951,6 +3981,18 @@ lemma distinct_enumerate [simp]:
   "distinct (enumerate n xs)"
   by (simp add: enumerate_eq_zip distinct_zipI1)
 
+lemma enumerate_append_eq:
+  "enumerate n (xs @ ys) = enumerate n xs @ enumerate (n + length xs) ys"
+  unfolding enumerate_eq_zip apply auto
+  apply (subst zip_append [symmetric]) apply simp
+  apply (subst upt_add_eq_append [symmetric])
+  apply (simp_all add: ac_simps)
+  done
+
+lemma enumerate_map_upt:
+  "enumerate n (map f [n..<m]) = map (\<lambda>k. (k, f k)) [n..<m]"
+  by (cases "n \<le> m") (simp_all add: zip_map2 zip_same_conv_map enumerate_eq_zip)
+  
 
 subsubsection {* @{const rotate1} and @{const rotate} *}
 
@@ -4755,6 +4797,10 @@ end
 lemma sorted_upt[simp]: "sorted[i..<j]"
 by (induct j) (simp_all add:sorted_append)
 
+lemma sort_upt [simp]:
+  "sort [m..<n] = [m..<n]"
+  by (rule sorted_sort_id) simp
+
 lemma sorted_upto[simp]: "sorted[i..j]"
 apply(induct i j rule:upto.induct)
 apply(subst upto.simps)
@@ -4776,6 +4822,10 @@ next
     with Cons False show ?thesis by simp_all
   qed
 qed
+
+lemma sorted_enumerate [simp]:
+  "sorted (map fst (enumerate n xs))"
+  by (simp add: enumerate_eq_zip)
 
 
 subsubsection {* @{const transpose} on sorted lists *}

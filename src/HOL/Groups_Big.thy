@@ -997,6 +997,10 @@ proof-
   finally show ?thesis by auto
 qed
 
+lemma (in ordered_comm_monoid_add) setsum_pos: 
+  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 < f i) \<Longrightarrow> 0 < setsum f I"
+  by (induct I rule: finite_ne_induct) (auto intro: add_pos_pos)
+
 
 subsubsection {* Cardinality of products *}
 
@@ -1191,9 +1195,5 @@ using setprod_zero_iff by(simp del:neq0_conv add:neq0_conv[symmetric])
 lemma setprod_pos_nat_iff[simp]:
   "finite S ==> (setprod f S > 0) = (ALL x : S. f x > (0::nat))"
 using setprod_zero_iff by(simp del:neq0_conv add:neq0_conv[symmetric])
-
-lemma (in ordered_comm_monoid_add) setsum_pos: 
-  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 < f i) \<Longrightarrow> 0 < setsum f I"
-  by (induct I rule: finite_ne_induct) (auto intro: add_pos_pos)
 
 end

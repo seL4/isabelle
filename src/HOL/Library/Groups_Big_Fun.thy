@@ -285,6 +285,12 @@ proof -
       setsum_product)
 qed
 
+lemma Sum_any_eq_zero_iff [simp]: 
+  fixes f :: "'a \<Rightarrow> nat"
+  assumes "finite {a. f a \<noteq> 0}"
+  shows "Sum_any f = 0 \<longleftrightarrow> f = (\<lambda>_. 0)"
+  using assms by (simp add: Sum_any.expand_set fun_eq_iff)
+
 
 subsection \<open>Concrete product\<close>
 
@@ -337,4 +343,15 @@ lemma Prod_any_not_zero:
   shows "f a \<noteq> 0"
   using assms Prod_any_zero [of f] by blast
 
+lemma power_Sum_any:
+  assumes "finite {a. f a \<noteq> 0}"
+  shows "c ^ (\<Sum>a. f a) = (\<Prod>a. c ^ f a)"
+proof -
+  have "{a. c ^ f a \<noteq> 1} \<subseteq> {a. f a \<noteq> 0}"
+    by (auto intro: ccontr)
+  with assms show ?thesis
+    by (simp add: Sum_any.expand_set Prod_any.expand_superset power_setsum)
+qed
+
 end
+
