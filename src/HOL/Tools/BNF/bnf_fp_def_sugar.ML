@@ -1685,7 +1685,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss)
   end;
 
 fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
-    ((plugins, discs_sels0), specs) no_defs_lthy0 =
+    ((plugins, discs_sels0), specs) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -1699,8 +1699,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val rel_bs = map rel_binding_of_spec specs;
 
     fun prepare_type_arg (_, (ty, c)) =
-      let val TFree (s, _) = prepare_typ no_defs_lthy0 ty in
-        TFree (s, prepare_constraint no_defs_lthy0 c)
+      let val TFree (s, _) = prepare_typ no_defs_lthy ty in
+        TFree (s, prepare_constraint no_defs_lthy c)
       end;
 
     val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of_spec) specs;
@@ -1711,8 +1711,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val set_boss = map (map fst o type_args_named_constrained_of_spec) specs;
     val set_bss = map (map (the_default Binding.empty)) set_boss;
 
-    val (((Bs0, Cs), Xs), no_defs_lthy) =
-      no_defs_lthy0
+    val (((Bs0, Cs), Xs), names_no_defs_lthy) =
+      no_defs_lthy
       |> fold (Variable.declare_typ o resort_tfree_or_tvar dummyS) unsorted_As
       |> mk_TFrees num_As
       ||>> mk_TFrees nn
@@ -1721,7 +1721,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     fun add_fake_type spec =
       Typedecl.basic_typedecl (type_binding_of_spec spec, num_As, mixfix_of_spec spec);
 
-    val (fake_T_names, fake_lthy) = fold_map add_fake_type specs no_defs_lthy0;
+    val (fake_T_names, fake_lthy) = fold_map add_fake_type specs no_defs_lthy;
 
     val qsoty = quote o Syntax.string_of_typ fake_lthy;
 
@@ -1730,7 +1730,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           "datatype specification"));
 
     val bad_args =
-      map (Logic.type_map (singleton (Variable.polymorphic no_defs_lthy0))) unsorted_As
+      map (Logic.type_map (singleton (Variable.polymorphic no_defs_lthy))) unsorted_As
       |> filter_out Term.is_TVar;
     val _ = null bad_args orelse
       error ("Locally fixed type argument " ^ qsoty (hd bad_args) ^ " in " ^ co_prefix fp ^
@@ -1796,7 +1796,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              xtor_co_rec_thms, rel_xtor_co_induct_thm, dtor_set_induct_thms, ...},
            lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
-        (map dest_TFree killed_As) fp_eqs no_defs_lthy0
+        (map dest_TFree killed_As) fp_eqs no_defs_lthy
       handle BAD_DEAD (X, X_backdrop) =>
         (case X_backdrop of
           Type (bad_tc, _) =>
@@ -2067,7 +2067,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types) xtor_co_induct
             dtor_injects dtor_ctors xtor_co_rec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss
             ns abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
-            (Proof_Context.export lthy' no_defs_lthy) lthy;
+            (Proof_Context.export lthy' names_no_defs_lthy) lthy;
 
         fun distinct_prems ctxt thm =
           Goal.prove (*no sorry*) ctxt [] []
