@@ -61,24 +61,29 @@ fun get_typedef_decl (({Abs_name, Rep_name, abs_type, rep_type, ...}, {Abs_inver
 
 (* collection of declarations *)
 
-(* Simplification: We assume that every type that is not a codatatype is a datatype (or a
-   record). *)
-fun fp_kind_of ctxt n =
-  (case BNF_FP_Def_Sugar.fp_sugar_of ctxt n of
-    SOME {fp, ...} => fp
-  | NONE => BNF_Util.Least_FP)
+val extN = "_ext" (* cf. "HOL/Tools/typedef.ML" *)
 
 fun get_decls fp T n Ts ctxt =
   let
-    fun fallback () =
+    fun maybe_typedef () =
       (case Typedef.get_info ctxt n of
         [] => ([], ctxt)
       | info :: _ => (get_typedef_decl info T Ts, ctxt))
   in
-    (case Ctr_Sugar.ctr_sugar_of ctxt n of
-      SOME (ctr_sugar as {T = U as Type (_, Us), ...}) =>
-      if fp_kind_of ctxt n = fp then get_ctr_sugar_decl ctr_sugar T Ts ctxt else fallback ()
-    | NONE => fallback ())
+    (case BNF_FP_Def_Sugar.fp_sugar_of ctxt n of
+      SOME {fp = fp', ctr_sugar, ...} =>
+      if fp' = fp then get_ctr_sugar_decl ctr_sugar T Ts ctxt else ([], ctxt)
+    | NONE =>
+      if fp = BNF_Util.Least_FP then
+        if String.isSuffix extN n then
+          (* for records (FIXME: hack) *)
+          (case Ctr_Sugar.ctr_sugar_of ctxt n of
+            SOME ctr_sugar => get_ctr_sugar_decl ctr_sugar T Ts ctxt
+          | NONE => maybe_typedef ())
+        else
+          maybe_typedef ()
+      else
+        ([], ctxt))
   end
 
 fun add_decls fp T (declss, ctxt) =
