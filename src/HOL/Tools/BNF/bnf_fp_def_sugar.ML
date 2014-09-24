@@ -425,6 +425,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
       val fTs = map (op -->) live_AsBs;
 
       val (((((((([C, E], xss), yss), fs), Rs), ta), tb), thesis), names_lthy) = lthy
+        |> fold (fold Variable.declare_typ) [As, Bs]
         |> mk_TFrees 2
         ||>> mk_Freess "x" ctr_Tss
         ||>> mk_Freess "y" (map (map B_ify) ctr_Tss)
@@ -713,11 +714,10 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
 
       val case_transfer_thms =
         let
-          val (R, names_lthy) = yield_singleton (mk_Frees "R") (mk_pred2T C E) names_lthy;
-
+          val (S, names_lthy) = yield_singleton (mk_Frees "S") (mk_pred2T C E) names_lthy;
           val caseA = mk_case As C casex;
           val caseB = mk_case Bs E casex;
-          val goal = mk_parametricity_goal names_lthy (R :: Rs) caseA caseB;
+          val goal = mk_parametricity_goal names_lthy (S :: Rs) caseA caseB;
         in
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
             mk_case_transfer_tac ctxt rel_cases_thm case_thms)
