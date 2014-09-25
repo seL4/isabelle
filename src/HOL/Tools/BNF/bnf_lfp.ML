@@ -1156,7 +1156,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val rec_names = map (fst o dest_Const) recs;
     fun mk_recs Ts passives actives =
       let val Tactives = map2 (curry HOLogic.mk_prodT) Ts actives;
-      in 
+      in
         map3 (fn name => fn T => fn active =>
           Const (name, Library.foldr (op -->)
             (map2 (curry op -->) (mk_FTs (passives @ Tactives)) actives, T --> active)))
@@ -1829,7 +1829,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
        xtor_map_thms = ctor_Imap_thms, xtor_set_thmss = ctor_Iset_thmss',
        xtor_rel_thms = ctor_Irel_thms, xtor_co_rec_thms = ctor_rec_thms,
        xtor_co_rec_o_map_thms = ctor_rec_o_Imap_thms, rel_xtor_co_induct_thm = Irel_induct_thm,
-       dtor_set_induct_thms = [], ctor_rec_transfer_thms = ctor_rec_transfer_thms};
+       dtor_set_induct_thms = [], xtor_co_rec_transfer_thms = ctor_rec_transfer_thms};
   in
     timer; (fp_res, lthy')
   end;

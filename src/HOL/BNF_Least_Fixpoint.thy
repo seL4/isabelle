@@ -189,14 +189,6 @@ lemma convol_transfer:
   "rel_fun (rel_fun R S) (rel_fun (rel_fun R T) (rel_fun R (rel_prod S T))) BNF_Def.convol BNF_Def.convol"
   unfolding rel_prod_def rel_fun_def convol_def by auto
 
-lemma Inl_transfer:
-  "rel_fun S (rel_sum S T) Inl Inl"
-  by auto
-
-lemma Inr_transfer:
-  "rel_fun T (rel_sum S T) Inr Inr"
-  by auto
-
 lemma ssubst_Pair_rhs: "\<lbrakk>(r, s) \<in> R; s' = s\<rbrakk> \<Longrightarrow> (r, s') \<in> R"
   by (rule ssubst)
 

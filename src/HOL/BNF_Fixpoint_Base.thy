@@ -213,6 +213,28 @@ lemma comp_transfer:
   "rel_fun (rel_fun B C) (rel_fun (rel_fun A B) (rel_fun A C)) (op \<circ>) (op \<circ>)"
   unfolding rel_fun_def by simp
 
+lemma If_transfer: "rel_fun (op =) (rel_fun A (rel_fun A A)) If If"
+  unfolding rel_fun_def by simp
+
+lemma Abs_transfer:
+  assumes type_copy1: "type_definition Rep1 Abs1 UNIV"
+  assumes type_copy2: "type_definition Rep2 Abs2 UNIV"
+  shows "rel_fun R (vimage2p Rep1 Rep2 R) Abs1 Abs2"
+  unfolding vimage2p_def rel_fun_def
+    type_definition.Abs_inverse[OF type_copy1 UNIV_I]
+    type_definition.Abs_inverse[OF type_copy2 UNIV_I] by simp
+
+lemma Inl_transfer:
+  "rel_fun S (rel_sum S T) Inl Inl"
+  by auto
+
+lemma Inr_transfer:
+  "rel_fun T (rel_sum S T) Inr Inr"
+  by auto
+
+lemma Pair_transfer: "rel_fun A (rel_fun B (rel_prod A B)) Pair Pair"
+  unfolding rel_fun_def rel_prod_def by simp
+
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar.ML"

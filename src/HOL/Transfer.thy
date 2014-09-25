@@ -449,8 +449,7 @@ lemma Ex_transfer [transfer_rule]:
   shows "((A ===> op =) ===> op =) Ex Ex"
   using assms unfolding bi_total_def rel_fun_def by fast
 
-lemma If_transfer [transfer_rule]: "(op = ===> A ===> A ===> A) If If"
-  unfolding rel_fun_def by simp
+declare If_transfer [transfer_rule]
 
 lemma Let_transfer [transfer_rule]: "(A ===> (A ===> B) ===> B) Let Let"
   unfolding rel_fun_def by simp

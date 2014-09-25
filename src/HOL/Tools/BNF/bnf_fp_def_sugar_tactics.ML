@@ -19,6 +19,9 @@ sig
     thm list list list -> tactic
   val mk_corec_tac: thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_corec_disc_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
+  val mk_corec_transfer_tac: Proof.context -> cterm list -> cterm list -> thm list -> thm list ->
+    thm list -> thm list -> thm list -> ''a list -> ''a list list -> ''a list list list list ->
+    ''a list list list list -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
   val mk_ctr_transfer_tac: Proof.context -> thm list -> thm list -> tactic
@@ -213,6 +216,71 @@ fun mk_corec_disc_iff_tac case_splits' corecs discs ctxt =
       HEADGOAL (asm_simp_tac (ss_only basic_simp_thms ctxt)) THEN
       (if is_refl disc then all_tac else HEADGOAL (rtac disc)))
     (map rtac case_splits' @ [K all_tac]) corecs discs);
+
+fun mk_corec_transfer_tac ctxt actives passives type_definitions corec_defs dtor_corec_transfers
+    rel_pre_T_defs rel_eqs pgs pss qssss gssss =
+  let
+    val num_pgs = length pgs;
+    fun prem_no_of x = 1 + find_index (curry (op =) x) pgs;
+
+    val Inl_Inr_Pair_tac = REPEAT_DETERM o
+      (rtac (mk_rel_funDN 1 @{thm Inl_transfer}) ORELSE'
+       rtac (mk_rel_funDN 1 @{thm Inr_transfer}) ORELSE'
+       rtac (mk_rel_funDN 2 @{thm Pair_transfer}));
+
+    fun mk_unfold_If_tac total pos =
+      HEADGOAL (Inl_Inr_Pair_tac THEN'
+        rtac (mk_rel_funDN 3 @{thm If_transfer}) THEN'
+        select_prem_tac total (dtac asm_rl) pos THEN'
+        dtac rel_funD THEN' atac THEN' atac);
+
+    fun mk_unfold_Inl_Inr_Pair_tac total pos =
+      HEADGOAL (Inl_Inr_Pair_tac THEN'
+        select_prem_tac total (dtac asm_rl) pos THEN'
+        dtac rel_funD THEN' atac THEN' atac);
+
+    fun mk_unfold_arg_tac qs gs =
+      EVERY (map (mk_unfold_If_tac num_pgs o prem_no_of) qs) THEN
+      EVERY (map (mk_unfold_Inl_Inr_Pair_tac num_pgs o prem_no_of) gs);
+
+    fun mk_unfold_ctr_tac type_definition qss gss =
+      HEADGOAL (rtac (mk_rel_funDN 1 (@{thm Abs_transfer} OF
+        [type_definition, type_definition])) THEN' Inl_Inr_Pair_tac) THEN
+      (case (qss, gss) of
+        ([], []) => HEADGOAL (rtac refl)
+      | _ => EVERY (map2 mk_unfold_arg_tac qss gss));
+
+    fun mk_unfold_type_tac type_definition ps qsss gsss =
+      let
+        val p_tacs = map (mk_unfold_If_tac num_pgs o prem_no_of) ps;
+        val qg_tacs = map2 (mk_unfold_ctr_tac type_definition) qsss gsss;
+        fun mk_unfold_ty [] [qg_tac] = qg_tac
+          | mk_unfold_ty (p_tac :: p_tacs) (qg_tac :: qg_tacs) =
+            p_tac THEN qg_tac THEN mk_unfold_ty p_tacs qg_tacs
+      in
+        HEADGOAL (rtac rel_funI) THEN mk_unfold_ty p_tacs qg_tacs
+      end;
+
+    fun mk_unfold_corec_type_tac dtor_corec_transfer corec_def =
+      let
+        val active :: actives' = actives;
+        val dtor_corec_transfer' = cterm_instantiate_pos
+          (SOME active :: map SOME passives @ map SOME actives') dtor_corec_transfer;
+      in
+        HEADGOAL Goal.conjunction_tac THEN
+        REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
+        unfold_thms_tac ctxt [corec_def] THEN
+        HEADGOAL (etac (mk_rel_funDN_rotated (1 + length actives) dtor_corec_transfer')) THEN
+        unfold_thms_tac ctxt (rel_pre_T_defs @ rel_eqs)
+      end;
+
+    fun mk_unfold_prop_tac dtor_corec_transfer corec_def =
+      mk_unfold_corec_type_tac dtor_corec_transfer corec_def THEN
+      EVERY (map4 mk_unfold_type_tac type_definitions pss qssss gssss);
+  in
+    HEADGOAL Goal.conjunction_tac THEN
+    EVERY (map2 mk_unfold_prop_tac dtor_corec_transfers corec_defs)
+  end;
 
 fun solve_prem_prem_tac ctxt =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'

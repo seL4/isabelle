@@ -48,7 +48,7 @@ fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map
    xtor_co_rec_o_map_thms = [ctor_rec_o_map],
    rel_xtor_co_induct_thm = xtor_rel_induct,
    dtor_set_induct_thms = [],
-   ctor_rec_transfer_thms = []};
+   xtor_co_rec_transfer_thms = []};
 
 fun fp_sugar_of_sum ctxt =
   let

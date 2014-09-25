@@ -19,9 +19,7 @@ context
 begin
 interpretation lifting_syntax .
 
-lemma Pair_transfer [transfer_rule]: "(A ===> B ===> rel_prod A B) Pair Pair"
-  unfolding rel_fun_def rel_prod_def by simp
-
+declare Pair_transfer [transfer_rule]
 declare fst_transfer [transfer_rule]
 declare snd_transfer [transfer_rule]
 declare case_prod_transfer [transfer_rule]

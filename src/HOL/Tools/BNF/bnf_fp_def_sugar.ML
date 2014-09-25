@@ -73,7 +73,8 @@ sig
      (term list
       * (typ list list * typ list list list list * term list list * term list list list list) option
       * (string * term list * term list list
-         * ((term list list * term list list list) * typ list)) option)
+         * (((term list list * term list list * term list list list list * term list list list list)
+             * term list list list) * typ list)) option)
      * Proof.context
   val repair_nullary_single_ctr: typ list list -> typ list list
   val mk_corec_p_pred_types: typ list -> int list -> typ list list
@@ -88,8 +89,9 @@ sig
     (string -> binding) -> typ list -> typ list -> term list -> term -> Proof.context ->
     (term * thm) * Proof.context
   val define_corec: 'a * term list * term list list
-      * ((term list list * term list list list) * typ list) -> (string -> binding) -> 'b list ->
-    typ list -> term list -> term -> local_theory -> (term * thm) * local_theory
+      * (((term list list * term list list * term list list list list * term list list list list)
+          * term list list list) * typ list) -> (string -> binding) -> 'b list -> typ list ->
+    term list -> term -> local_theory -> (term * thm) * local_theory
   val mk_induct_attrs: term list list -> Token.src list
   val mk_coinduct_attrs: typ list -> term list list -> term list list -> int list list ->
     Token.src list * Token.src list
@@ -99,7 +101,9 @@ sig
      typ list list list -> thm list -> thm list -> thm list -> term list list -> thm list list ->
      term list -> thm list -> Proof.context -> lfp_sugar_thms
   val derive_coinduct_corecs_thms_for_types: BNF_Def.bnf list ->
-    string * term list * term list list * ((term list list * term list list list) * typ list) ->
+    string * term list * term list list
+      * (((term list list * term list list * term list list list list * term list list list list)
+          * term list list list) * typ list) ->
     thm -> thm list -> thm list -> thm list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> typ list list list -> int list list -> int list list -> int list -> thm list ->
     thm list -> (thm -> thm) -> thm list list -> Ctr_Sugar.ctr_sugar list -> term list ->
@@ -138,6 +142,7 @@ val case_transferN = "case_transfer";
 val ctr_transferN = "ctr_transfer";
 val disc_transferN = "disc_transfer";
 val corec_codeN = "corec_code";
+val corec_transferN = "corec_transfer";
 val map_disc_iffN = "map_disc_iff";
 val map_selN = "map_sel";
 val rec_transferN = "rec_transfer";
@@ -1002,7 +1007,7 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
     val cgssss = map2 (map o map o map o rapp) cs gssss;
     val cqgsss = map3 (map3 (map3 build_dtor_corec_arg)) g_Tsss cqssss cgssss;
   in
-    ((x, cs, cpss, ((pgss, cqgsss), corec_types)), lthy)
+    ((x, cs, cpss, (((pgss, pss, qssss, gssss), cqgsss), corec_types)), lthy)
   end;
 
 fun mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy =
@@ -1064,7 +1069,7 @@ fun define_rec (_, _, fss, xssss) mk_binding fpTs Cs reps ctor_rec =
            ctor_rec_absTs reps fss xssss)))
   end;
 
-fun define_corec (_, cs, cpss, ((pgss, cqgsss), f_absTs)) mk_binding fpTs Cs abss dtor_corec =
+fun define_corec (_, cs, cpss, (((pgss, _, _, _), cqgsss), f_absTs)) mk_binding fpTs Cs abss dtor_corec =
   let
     val nn = length fpTs;
     val fpT = range_type (snd (strip_typeN nn (fastype_of dtor_corec)));
@@ -1485,7 +1490,7 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
       end) (transpose setss)
   end;
 
-fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss), _))
+fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, _), cqgsss), _))
     dtor_coinduct dtor_injects dtor_ctors dtor_corec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss
     kss mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
     corecs corec_defs export_args lthy =
@@ -1799,7 +1804,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
              ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
              xtor_co_rec_thms, rel_xtor_co_induct_thm, dtor_set_induct_thms,
-             ctor_rec_transfer_thms, ...},
+             xtor_co_rec_transfer_thms, ...},
            lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
         (map dest_TFree killed_As) fp_eqs no_defs_lthy
@@ -2005,7 +2010,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         rel_distincts setss =
       injects @ distincts @ case_thms @ co_recs @ mapsx @ rel_injects @ rel_distincts @ flat setss;
 
-    fun derive_rec_transfer_thms lthy recs rec_defs ns =
+    fun mk_co_rec_transfer_goals lthy co_recs =
       let
         val liveAsBs = filter (op <>) (As ~~ Bs);
         val B_ify = Term.subst_atomic_types (liveAsBs @ (Cs ~~ Es));
@@ -2014,14 +2019,17 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           |> mk_Frees "R" (map (uncurry mk_pred2T) liveAsBs)
           ||>> mk_Frees "S" (map2 mk_pred2T Cs Es);
 
-        val recBs = map B_ify recs;
-        val goals = map2 (mk_parametricity_goal lthy (Rs @ Ss)) recs recBs;
+        val co_recBs = map B_ify co_recs;
       in
+        (Rs, Ss, map2 (mk_parametricity_goal lthy (Rs @ Ss)) co_recs co_recBs, names_lthy)
+      end;
+
+    fun derive_rec_transfer_thms lthy recs rec_defs =
+      let val (Rs, Ss, goals, names_lthy) = mk_co_rec_transfer_goals lthy recs in
         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
           (fn {context = ctxt, prems = _} =>
-             mk_rec_transfer_tac names_lthy nn ns (map (certify ctxt) Ss)
-               (map (certify ctxt) Rs) rec_defs ctor_rec_transfer_thms pre_rel_defs
-               live_nesting_rel_eqs)
+             mk_rec_transfer_tac ctxt nn ns (map (certify ctxt) Ss) (map (certify ctxt) Rs) rec_defs
+               xtor_co_rec_transfer_thms pre_rel_defs live_nesting_rel_eqs)
         |> Conjunction.elim_balanced nn
         |> Proof_Context.export names_lthy lthy
         |> map Thm.close_derivation
@@ -2038,8 +2046,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
         val rec_transfer_thmss =
           if live = 0 then replicate nn []
-          else
-            map single (derive_rec_transfer_thms lthy recs rec_defs ns);
+          else map single (derive_rec_transfer_thms lthy recs rec_defs);
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
         val induct_pred_attr = Attrib.internal o K o Induct.induct_pred;
@@ -2090,6 +2097,21 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           rel_injectss rel_distinctss
       end;
 
+    fun derive_corec_transfer_thms lthy corecs corec_defs =
+      let
+        val (Rs, Ss, goals, names_lthy) = mk_co_rec_transfer_goals lthy corecs;
+        val (_, _, _, (((pgss, pss, qssss, gssss), _), _)) = the corecs_args_types;
+      in
+        Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+          (fn {context = ctxt, prems = _} =>
+             mk_corec_transfer_tac ctxt (map (certify ctxt) Ss) (map (certify ctxt) Rs)
+               type_definitions corec_defs xtor_co_rec_transfer_thms pre_rel_defs
+               live_nesting_rel_eqs (flat pgss) pss qssss gssss)
+        |> Conjunction.elim_balanced (length goals)
+        |> Proof_Context.export names_lthy lthy
+        |> map Thm.close_derivation
+      end;
+
     fun derive_note_coinduct_corecs_thms_for_types
         ((((mapss, rel_injectss, rel_distinctss, setss), (_, _, ctr_defss, ctr_sugars)),
           (corecs, corec_defs)), lthy) =
@@ -2121,6 +2143,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val coinduct_pred_attr = Attrib.internal o K o Induct.coinduct_pred;
 
         val flat_corec_thms = append oo append;
+
+        val corec_transfer_thmss =
+          if live = 0 then replicate nn []
+          else map single (derive_corec_transfer_thms lthy corecs corec_defs);
 
         val ((rel_coinduct_thmss, common_rel_coinduct_thms),
              (rel_coinduct_attrs, common_rel_coinduct_attrs)) =
@@ -2168,6 +2194,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
            (corec_discN, corec_disc_thmss, K []),
            (corec_disc_iffN, corec_disc_iff_thmss, K corec_disc_iff_attrs),
            (corec_selN, corec_sel_thmss, K corec_sel_attrs),
+           (corec_transferN, corec_transfer_thmss, K []),
            (rel_coinductN, rel_coinduct_thmss, K (rel_coinduct_attrs @ [coinduct_pred_attr ""])),
            (simpsN, simp_thmss, K [])]
           |> massage_multi_notes fp_b_names fpTs;
