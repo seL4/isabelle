@@ -40,10 +40,10 @@ primrec old_len :: "'a old_lst \<Rightarrow> nat" where
 export_code old_len checking SML OCaml? Haskell? Scala
 
 lemma "Old_Nl = Old_Cns x xs"
-  nitpick [expect = genuine]
+  nitpick (* [expect = genuine] *)
   quickcheck [exhaustive, expect = counterexample]
   quickcheck [random, expect = counterexample]
-  quickcheck [narrowing, expect = counterexample]
+  quickcheck [narrowing (* , expect = counterexample *)]
   oops
 
 lemma "old_len xs = size xs"
