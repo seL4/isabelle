@@ -24,7 +24,8 @@ hoelzl@in.tum.de \
 krauss@in.tum.de \
 noschinl@in.tum.de \
 kuncar@in.tum.de \
-ns441@cam.ac.uk"
+ns441@cam.ac.uk \
+traytel@in.tum.de"
 
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
