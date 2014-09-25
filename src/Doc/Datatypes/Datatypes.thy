@@ -1845,6 +1845,9 @@ Section~\ref{ssec:code-generator}.)
 @{thm llist.corec_sel(1)[no_vars]} \\
 @{thm llist.corec_sel(2)[no_vars]}
 
+\item[@{text "t."}\hthm{corec_transfer}\rm:] ~ \\
+@{thm llist.corec_transfer[no_vars]}
+
 \end{description}
 \end{indentblock}
 
