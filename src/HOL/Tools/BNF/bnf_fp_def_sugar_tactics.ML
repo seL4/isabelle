@@ -33,6 +33,8 @@ sig
     thm list -> tactic
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
+  val mk_rec_transfer_tac: Proof.context -> int -> int list -> cterm list -> cterm list ->
+    thm list -> thm list -> thm list -> thm list -> tactic
   val mk_rel_cases_tac:  Proof.context -> cterm -> cterm -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list -> tactic
   val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
@@ -56,6 +58,11 @@ open Ctr_Sugar_Util
 open BNF_Tactics
 open BNF_Util
 open BNF_FP_Util
+
+val case_sum_transfer = @{thm case_sum_transfer};
+val case_sum_transfer_eq = @{thm case_sum_transfer[of "op =" _ "op =", unfolded sum.rel_eq]};
+val case_prod_transfer = @{thm case_prod_transfer};
+val case_prod_transfer_eq = @{thm case_prod_transfer[of "op =" "op =", unfolded prod.rel_eq]};
 
 val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
 val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
@@ -96,19 +103,19 @@ fun mk_case_transfer_tac ctxt rel_cases cases =
   let
     val n = length (tl (prems_of rel_cases));
   in
-    REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI})) THEN
+    REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
     HEADGOAL (etac rel_cases) THEN
     ALLGOALS (hyp_subst_tac ctxt) THEN
     unfold_thms_tac ctxt cases THEN
     ALLGOALS (fn k => (select_prem_tac n (dtac asm_rl) k THEN' rotate_tac ~1) k) THEN
-    ALLGOALS (REPEAT_ALL_NEW (atac ORELSE' rtac refl ORELSE' dtac @{thm rel_funD}))
+    ALLGOALS (REPEAT_ALL_NEW (atac ORELSE' rtac refl ORELSE' dtac rel_funD))
   end;
 
 fun mk_ctr_transfer_tac ctxt rel_intros rel_eqs =
   HEADGOAL Goal.conjunction_tac THEN
-  ALLGOALS (REPEAT o (resolve_tac (@{thm rel_funI} :: rel_intros) THEN'
-    TRY o (REPEAT_DETERM1 o atac ORELSE'
-      K (unfold_thms_tac ctxt rel_eqs) THEN' hyp_subst_tac ctxt THEN' rtac refl)));
+  ALLGOALS (REPEAT o (resolve_tac (rel_funI :: rel_intros) THEN'
+    TRY o (REPEAT_DETERM1 o (atac ORELSE'
+      K (unfold_thms_tac ctxt rel_eqs) THEN' hyp_subst_tac ctxt THEN' rtac refl))));
 
 fun mk_disc_transfer_tac rel_sel exhaust_disc distinct_disc=
   let
@@ -118,7 +125,7 @@ fun mk_disc_transfer_tac rel_sel exhaust_disc distinct_disc=
         rotate_tac ~1 THEN' etac (rotate_prems 1 notE) THEN' eresolve_tac distinct_disc));
   in
     HEADGOAL Goal.conjunction_tac THEN
-    REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI} THEN' dtac (rel_sel RS iffD1) THEN'
+    REPEAT_DETERM (HEADGOAL (rtac rel_funI THEN' dtac (rel_sel RS iffD1) THEN'
       REPEAT_DETERM o (etac conjE) THEN' (atac ORELSE' rtac iffI))) THEN
     TRY (last_disc_tac iffD2) THEN TRY (last_disc_tac iffD1)
   end;
@@ -154,6 +161,39 @@ fun mk_rec_tac pre_map_defs map_ident0s rec_defs ctor_rec fp_abs_inverse abs_inv
     else SELECT_GOAL o unfold_thms_tac ctxt) [ctr_def]) THEN
   unfold_thms_tac ctxt (ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
     pre_map_defs @ map_ident0s @ rec_unfold_thms) THEN HEADGOAL (rtac refl);
+
+fun mk_rec_transfer_tac ctxt nn ns actives passives rec_defs ctor_rec_transfers rel_pre_T_defs
+    rel_eqs =
+  let
+    val ctor_rec_transfers' =
+      map (cterm_instantiate_pos (map SOME passives @ map SOME actives)) ctor_rec_transfers;
+    val ns' = Integer.sum ns;
+  in
+    HEADGOAL Goal.conjunction_tac THEN
+    EVERY (map (fn ctor_rec_transfer =>
+        REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
+        unfold_thms_tac ctxt rec_defs THEN
+        HEADGOAL (etac (mk_rel_funDN_rotated (nn + 1) ctor_rec_transfer)) THEN
+        unfold_thms_tac ctxt rel_pre_T_defs THEN
+        EVERY (fst (fold_map (fn k => fn acc => rpair (k + acc)
+            (HEADGOAL (rtac (mk_rel_funDN_rotated 2 @{thm comp_transfer})) THEN
+             HEADGOAL (rtac @{thm vimage2p_rel_fun}) THEN
+             unfold_thms_tac ctxt rel_eqs THEN
+             EVERY (map (fn n =>
+                 REPEAT_DETERM (HEADGOAL
+                   (rtac (mk_rel_funDN 2 case_sum_transfer_eq) ORELSE'
+                    rtac (mk_rel_funDN 2 case_sum_transfer))) THEN
+                 HEADGOAL (select_prem_tac ns' (dtac asm_rl) (acc + n)) THEN
+                 HEADGOAL (SELECT_GOAL (HEADGOAL
+                   ((REPEAT_DETERM o (atac ORELSE'
+                       rtac (mk_rel_funDN 1 case_prod_transfer_eq) ORELSE'
+                       rtac (mk_rel_funDN 1 case_prod_transfer) ORELSE'
+                       rtac rel_funI)) THEN_ALL_NEW
+                    (REPEAT_ALL_NEW (dtac rel_funD) THEN_ALL_NEW atac)))))
+               (1 upto k))))
+          ns 0)))
+      ctor_rec_transfers')
+  end;
 
 val corec_unfold_thms = @{thms id_def} @ sumprod_thms_map;
 

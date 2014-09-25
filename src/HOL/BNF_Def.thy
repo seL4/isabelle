@@ -19,6 +19,14 @@ lemma Collect_splitD: "x \<in> Collect (split A) \<Longrightarrow> A (fst x) (sn
   by auto
 
 definition
+   rel_sum :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
+where
+   "rel_sum R1 R2 x y =
+     (case (x, y) of (Inl x, Inl y) \<Rightarrow> R1 x y
+     | (Inr x, Inr y) \<Rightarrow> R2 x y
+     | _ \<Rightarrow> False)"
+
+definition
   rel_fun :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool"
 where
   "rel_fun A B = (\<lambda>f g. \<forall>x y. A x y \<longrightarrow> B (f x) (g y))"

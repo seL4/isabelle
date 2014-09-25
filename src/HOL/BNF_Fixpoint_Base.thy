@@ -177,6 +177,9 @@ lemma vimage2p_id: "vimage2p id id R = R"
 lemma vimage2p_comp: "vimage2p (f1 \<circ> f2) (g1 \<circ> g2) = vimage2p f2 g2 \<circ> vimage2p f1 g1"
   unfolding fun_eq_iff vimage2p_def o_apply by simp
 
+lemma vimage2p_rel_fun: "rel_fun (vimage2p f g R) R f g"
+  unfolding rel_fun_def vimage2p_def by auto
+
 lemma fun_cong_unused_0: "f = (\<lambda>x. g) \<Longrightarrow> f (\<lambda>x. 0) = g"
   by (erule arg_cong)
 
@@ -189,14 +192,26 @@ lemma case_prod_app: "case_prod f x y = case_prod (\<lambda>l r. f l r y) x"
 lemma case_sum_map_sum: "case_sum l r (map_sum f g x) = case_sum (l \<circ> f) (r \<circ> g) x"
   by (case_tac x) simp+
 
+lemma case_sum_transfer:
+  "rel_fun (rel_fun R T) (rel_fun (rel_fun S T) (rel_fun (rel_sum R S) T)) case_sum case_sum"
+  unfolding rel_fun_def rel_sum_def by (auto split: sum.splits)
+
 lemma case_prod_map_prod: "case_prod h (map_prod f g x) = case_prod (\<lambda>l r. h (f l) (g r)) x"
   by (case_tac x) simp+
+
+lemma case_prod_transfer:
+  "(rel_fun (rel_fun A (rel_fun B C)) (rel_fun (rel_prod A B) C)) case_prod case_prod"
+  unfolding rel_fun_def rel_prod_def by simp
 
 lemma prod_inj_map: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (map_prod f g)"
   by (simp add: inj_on_def)
 
 lemma eq_ifI: "(P \<longrightarrow> t = u1) \<Longrightarrow> (\<not> P \<longrightarrow> t = u2) \<Longrightarrow> t = (if P then u1 else u2)"
   by simp
+
+lemma comp_transfer:
+  "rel_fun (rel_fun B C) (rel_fun (rel_fun A B) (rel_fun A C)) (op \<circ>) (op \<circ>)"
+  unfolding rel_fun_def by simp
 
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"

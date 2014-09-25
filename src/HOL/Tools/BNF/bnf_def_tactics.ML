@@ -243,7 +243,7 @@ fun mk_rel_transfer_tac ctxt in_rel rel_map rel_mono_strong =
       REPEAT_DETERM (HEADGOAL (etac (@{thm predicate2_transferD} RS iffD) THEN'
         REPEAT_DETERM o atac));
   in
-    REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI})) THEN
+    REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
     (HEADGOAL (hyp_subst_tac ctxt THEN' rtac refl) ORELSE
      REPEAT_DETERM (HEADGOAL (eresolve_tac (Tactic.make_elim (in_rel RS iffD1) ::
        @{thms exE conjE CollectE}))) THEN
@@ -260,7 +260,7 @@ fun mk_map_transfer_tac ctxt rel_mono in_rel set_maps map_cong0 map_comp =
           @{thm ord_eq_le_trans[OF _ subset_trans[OF image_mono convol_image_vimage2p]]}))
       set_maps;
   in
-    REPEAT_DETERM_N n (HEADGOAL (rtac @{thm rel_funI})) THEN
+    REPEAT_DETERM_N n (HEADGOAL (rtac rel_funI)) THEN
     unfold_thms_tac ctxt @{thms rel_fun_iff_leq_vimage2p} THEN
     HEADGOAL (EVERY' [rtac @{thm order_trans}, rtac rel_mono, REPEAT_DETERM_N n o atac,
       rtac @{thm predicate2I}, dtac (in_rel RS iffD1),
@@ -340,7 +340,7 @@ fun mk_trivial_wit_tac ctxt wit_defs set_maps =
 
 fun mk_set_transfer_tac ctxt in_rel set_maps =
   Goal.conjunction_tac 1 THEN
-  EVERY (map (fn set_map => HEADGOAL (rtac @{thm rel_funI}) THEN
+  EVERY (map (fn set_map => HEADGOAL (rtac rel_funI) THEN
   REPEAT_DETERM (HEADGOAL (eresolve_tac (Tactic.make_elim (in_rel RS iffD1) ::
     @{thms exE conjE CollectE}))) THEN
   HEADGOAL (hyp_subst_tac ctxt THEN' rtac (@{thm iffD2[OF arg_cong2]} OF [set_map, set_map]) THEN'

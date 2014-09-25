@@ -35,11 +35,11 @@ sig
       'o) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list -> 'o list
- val map15: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n ->
+  val map15: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n ->
       'o -> 'p) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list -> 'o list -> 'p list
- val map16: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n ->
+  val map16: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n ->
       'o -> 'p -> 'q) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list -> 'o list -> 'p list -> 'q list
@@ -116,13 +116,6 @@ sig
   val mk_nthN: int -> term -> int -> term
 
   (*parameterized thms*)
-  val mk_Un_upper: int -> int -> thm
-  val mk_conjIN: int -> thm
-  val mk_nthI: int -> int -> thm
-  val mk_nth_conv: int -> int -> thm
-  val mk_ordLeq_csum: int -> int -> thm -> thm
-  val mk_UnIN: int -> int -> thm
-
   val eqTrueI: thm
   val eqFalseI: thm
   val prod_injectD: thm
@@ -132,11 +125,22 @@ sig
   val meta_mp: thm
   val meta_spec: thm
   val o_apply: thm
+  val rel_funD: thm
+  val rel_funI: thm
   val set_mp: thm
   val set_rev_mp: thm
   val subset_UNIV: thm
+
+  val mk_conjIN: int -> thm
+  val mk_nthI: int -> int -> thm
+  val mk_nth_conv: int -> int -> thm
+  val mk_ordLeq_csum: int -> int -> thm -> thm
+  val mk_rel_funDN: int -> thm -> thm
+  val mk_rel_funDN_rotated: int -> thm -> thm
   val mk_sym: thm -> thm
   val mk_trans: thm -> thm -> thm
+  val mk_UnIN: int -> int -> thm
+  val mk_Un_upper: int -> int -> thm
 
   val is_refl_bool: term -> bool
   val is_refl: thm -> bool
@@ -528,6 +532,8 @@ val id_apply = @{thm id_apply};
 val meta_mp = @{thm meta_mp};
 val meta_spec = @{thm meta_spec};
 val o_apply = @{thm o_apply};
+val rel_funD = @{thm rel_funD};
+val rel_funI = @{thm rel_funI};
 val set_mp = @{thm set_mp};
 val set_rev_mp = @{thm set_rev_mp};
 val subset_UNIV = @{thm subset_UNIV};
@@ -559,6 +565,10 @@ fun mk_ordLeq_csum 1 1 thm = thm
   | mk_ordLeq_csum 2 2 thm = @{thm ordLeq_transitive} OF [thm, @{thm ordLeq_csum2}]
   | mk_ordLeq_csum n m thm = @{thm ordLeq_transitive} OF
     [mk_ordLeq_csum (n - 1) (m - 1) thm, @{thm ordLeq_csum2[OF Card_order_csum]}];
+
+fun mk_rel_funDN n = funpow n (fn thm => thm RS @{thm rel_funD});
+
+val mk_rel_funDN_rotated = rotate_prems ~1 oo mk_rel_funDN;
 
 local
   fun mk_Un_upper' 0 = subset_refl

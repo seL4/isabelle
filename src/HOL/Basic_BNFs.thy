@@ -21,14 +21,6 @@ definition setr :: "'a + 'b \<Rightarrow> 'b set" where
 
 lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
 
-definition
-   rel_sum :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
-where
-   "rel_sum R1 R2 x y =
-     (case (x, y) of (Inl x, Inl y) \<Rightarrow> R1 x y
-     | (Inr x, Inr y) \<Rightarrow> R2 x y
-     | _ \<Rightarrow> False)"
-
 lemma rel_sum_simps[simp]:
   "rel_sum R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
   "rel_sum R1 R2 (Inl a1) (Inr b2) = False"

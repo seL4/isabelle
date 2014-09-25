@@ -24,10 +24,7 @@ lemma Pair_transfer [transfer_rule]: "(A ===> B ===> rel_prod A B) Pair Pair"
 
 declare fst_transfer [transfer_rule]
 declare snd_transfer [transfer_rule]
-
-lemma case_prod_transfer [transfer_rule]:
-  "((A ===> B ===> C) ===> rel_prod A B ===> C) case_prod case_prod"
-  unfolding rel_fun_def rel_prod_def by simp
+declare case_prod_transfer [transfer_rule]
 
 lemma curry_transfer [transfer_rule]:
   "((rel_prod A B ===> C) ===> A ===> B ===> C) curry curry"

@@ -932,26 +932,20 @@ fun mk_coind_wit_tac ctxt induct unfolds set_nats wits =
 
 fun mk_dtor_corec_transfer_tac ctxt n m dtor_corec_defs dtor_unfold_transfer pre_T_map_transfers
     dtor_rels =
-  let
-    val rel_funD = @{thm rel_funD};
-    fun rel_funD_n n = funpow n (fn thm => thm RS rel_funD);
-    val rel_funD_n_rotated = rotate_prems 1 oo rel_funD_n;
-  in
-    CONJ_WRAP (fn (dtor_corec_def, dtor_unfold_transfer) =>
-        REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI})) THEN
-        unfold_thms_tac ctxt [dtor_corec_def, o_apply] THEN
-        HEADGOAL (rtac (rel_funD_n (n + 1) dtor_unfold_transfer) THEN'
-          EVERY' (map2 (fn pre_T_map_transfer => fn dtor_rel =>
-            etac (rel_funD_n_rotated 2 @{thm case_sum_transfer}) THEN'
-            rtac (rel_funD_n 2 @{thm comp_transfer}) THEN'
-            rtac (rel_funD_n (m + n) pre_T_map_transfer) THEN'
-            REPEAT_DETERM_N m o rtac @{thm id_transfer} THEN'
-            REPEAT_DETERM_N n o rtac @{thm Inl_transfer} THEN'
-            rtac @{thm rel_funI} THEN'
-            etac (dtor_rel RS iffD1)) pre_T_map_transfers dtor_rels) THEN'
-          etac (rel_funD_n 1 @{thm Inr_transfer})))
-      (dtor_corec_defs ~~ dtor_unfold_transfer)
-  end;
+  CONJ_WRAP (fn (dtor_corec_def, dtor_unfold_transfer) =>
+      REPEAT_DETERM (HEADGOAL (rtac rel_funI)) THEN
+      unfold_thms_tac ctxt [dtor_corec_def, o_apply] THEN
+      HEADGOAL (rtac (mk_rel_funDN (n + 1) dtor_unfold_transfer) THEN'
+        EVERY' (map2 (fn pre_T_map_transfer => fn dtor_rel =>
+          etac (mk_rel_funDN_rotated 2 @{thm case_sum_transfer}) THEN'
+          rtac (mk_rel_funDN 2 @{thm comp_transfer}) THEN'
+          rtac (mk_rel_funDN (m + n) pre_T_map_transfer) THEN'
+          REPEAT_DETERM_N m o rtac @{thm id_transfer} THEN'
+          REPEAT_DETERM_N n o rtac @{thm Inl_transfer} THEN'
+          rtac rel_funI THEN'
+          etac (dtor_rel RS iffD1)) pre_T_map_transfers dtor_rels) THEN'
+        etac (mk_rel_funDN 1 @{thm Inr_transfer})))
+    (dtor_corec_defs ~~ dtor_unfold_transfer);
 
 fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_sets dtor_inject
     dtor_ctor set_map0s dtor_set_incls dtor_set_set_inclss =
@@ -1113,7 +1107,7 @@ fun mk_unfold_transfer_tac ctxt m ctor_rel_coinduct map_transfers unfolds =
       EVERY' (map (fn map_transfer => EVERY'
         [REPEAT_DETERM o resolve_tac [allI, impI], etac @{thm image2pE}, hyp_subst_tac ctxt,
         SELECT_GOAL (unfold_thms_tac ctxt unfolds),
-        rtac (funpow (m + n + 1) (fn thm => thm RS @{thm rel_funD}) map_transfer),
+        rtac (funpow (m + n + 1) (fn thm => thm RS rel_funD) map_transfer),
         REPEAT_DETERM_N m o rtac @{thm id_transfer},
         REPEAT_DETERM_N n o rtac @{thm rel_fun_image2p},
         etac @{thm predicate2D}, etac @{thm image2pI}])
