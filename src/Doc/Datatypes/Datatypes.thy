@@ -1014,6 +1014,9 @@ prove $m$ properties simultaneously.
 (The @{text "[code]"} attribute is set by the @{text code} plugin,
 Section~\ref{ssec:code-generator}.)
 
+\item[@{text "t."}\hthm{rec_transfer}\rm:] ~ \\
+@{thm list.rec_transfer[no_vars]}
+
 \end{description}
 \end{indentblock}
 
