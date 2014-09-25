@@ -1786,7 +1786,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val ctor_rec_transfer_thms =
       mk_co_iter_transfer_thms Least_FP rec_rels rec_activephis activephis Irels Iphis
         (mk_recs Ts passiveAs activeAs) (mk_recs Ts' passiveBs activeBs)
-        (fn {context = ctxt, prems = _} => print_tac ctxt "xxx" THEN Skip_Proof.cheat_tac 1)
+        (fn {context = ctxt, prems = _} => mk_ctor_rec_transfer_tac ctxt n m rec_defs
+           ctor_fold_transfer_thms (map map_transfer_of_bnf bnfs) ctor_Irel_thms)
         lthy;
 
     val timer = time (timer "relator induction");
@@ -1795,6 +1796,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       [(ctor_inductN, [ctor_induct_thm]),
       (ctor_induct2N, [ctor_induct2_thm]),
       (ctor_fold_transferN, ctor_fold_transfer_thms),
+      (ctor_rec_transferN, ctor_rec_transfer_thms),
       (ctor_rel_inductN, [Irel_induct_thm])]
       |> map (fn (thmN, thms) =>
         ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));

@@ -178,6 +178,29 @@ lemma predicate2D_vimage2p: "\<lbrakk>R \<le> vimage2p f g S; R x y\<rbrakk> \<L
 lemma id_transfer: "rel_fun A A id id"
   unfolding rel_fun_def by simp
 
+lemma fst_transfer: "rel_fun (rel_prod A B) A fst fst"
+  unfolding rel_fun_def rel_prod_def by simp
+
+lemma snd_transfer: "rel_fun (rel_prod A B) B snd snd"
+  unfolding rel_fun_def rel_prod_def by simp
+
+lemma case_sum_transfer:
+  "rel_fun (rel_fun R T) (rel_fun (rel_fun S T) (rel_fun (rel_sum R S) T)) case_sum case_sum"
+  unfolding rel_fun_def rel_sum_def by (auto split: sum.splits)
+
+lemma map_sum_transfer:
+  "rel_fun (rel_fun R T) (rel_fun (rel_fun S U) (rel_fun (rel_sum R S) (rel_sum T U))) map_sum map_sum"
+  unfolding rel_fun_def rel_sum_def by (auto split: sum.splits)
+
+lemma convol_transfer:
+  "rel_fun (rel_fun R S) (rel_fun (rel_fun R T) (rel_fun R (rel_prod S T))) BNF_Def.convol BNF_Def.convol"
+  unfolding rel_prod_def rel_fun_def convol_def by auto
+
+lemma comp_transfer:
+  "rel_fun (rel_fun B C) (rel_fun (rel_fun A B) (rel_fun A C)) (op \<circ>) (op \<circ>)"
+  unfolding rel_fun_def by simp
+
+
 lemma ssubst_Pair_rhs: "\<lbrakk>(r, s) \<in> R; s' = s\<rbrakk> \<Longrightarrow> (r, s') \<in> R"
   by (rule ssubst)
 

@@ -22,6 +22,8 @@ sig
   val mk_ctor_induct2_tac: Proof.context -> ctyp option list -> cterm option list -> thm ->
     thm list -> tactic
   val mk_ctor_set_tac: thm -> thm -> thm list -> tactic
+  val mk_ctor_rec_transfer_tac: Proof.context -> int -> int -> thm list -> thm list -> thm list ->
+    thm list -> tactic
   val mk_ctor_rel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list -> tactic
@@ -699,6 +701,29 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
           atac]]
   in
     EVERY' [rtac iffI, if_tac, only_if_tac] 1
+  end;
+
+fun mk_ctor_rec_transfer_tac ctxt n m ctor_rec_defs ctor_fold_transfers pre_T_map_transfers
+    ctor_rels =
+  let
+    val rel_funD = @{thm rel_funD};
+    fun rel_funD_n n = funpow n (fn thm => thm RS rel_funD);
+    val rel_funD_n_rotated = rotate_prems ~1 oo rel_funD_n;
+  in
+    CONJ_WRAP (fn (ctor_rec_def, ctor_fold_transfer) =>
+        REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI})) THEN
+        unfold_thms_tac ctxt [ctor_rec_def, o_apply] THEN
+        HEADGOAL (rtac @{thm rel_funD[OF snd_transfer]} THEN'
+          etac (rel_funD_n_rotated (n + 1) ctor_fold_transfer) THEN'
+          EVERY' (map2 (fn pre_T_map_transfer => fn ctor_rel =>
+            etac (rel_funD_n_rotated 2 @{thm convol_transfer}) THEN'
+            rtac (rel_funD_n_rotated 2 @{thm comp_transfer}) THEN'
+            rtac (rel_funD_n (m + n) pre_T_map_transfer) THEN'
+            REPEAT_DETERM_N m o rtac @{thm id_transfer} THEN'
+            REPEAT_DETERM o rtac @{thm fst_transfer} THEN'
+            rtac @{thm rel_funI} THEN'
+            etac (ctor_rel RS iffD2)) pre_T_map_transfers ctor_rels)))
+      (ctor_rec_defs ~~ ctor_fold_transfers)
   end;
 
 fun mk_rel_induct_tac ctxt IHs m ctor_induct2 ks ctor_rels rel_mono_strong0s =

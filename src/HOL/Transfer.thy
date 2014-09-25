@@ -458,9 +458,7 @@ lemma Let_transfer [transfer_rule]: "(A ===> (A ===> B) ===> B) Let Let"
 lemma id_transfer [transfer_rule]: "(A ===> A) id id"
   unfolding rel_fun_def by simp
 
-lemma comp_transfer [transfer_rule]:
-  "((B ===> C) ===> (A ===> B) ===> (A ===> C)) (op \<circ>) (op \<circ>)"
-  unfolding rel_fun_def by simp
+declare comp_transfer [transfer_rule]
 
 lemma fun_upd_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"

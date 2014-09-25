@@ -22,11 +22,8 @@ interpretation lifting_syntax .
 lemma Pair_transfer [transfer_rule]: "(A ===> B ===> rel_prod A B) Pair Pair"
   unfolding rel_fun_def rel_prod_def by simp
 
-lemma fst_transfer [transfer_rule]: "(rel_prod A B ===> A) fst fst"
-  unfolding rel_fun_def rel_prod_def by simp
-
-lemma snd_transfer [transfer_rule]: "(rel_prod A B ===> B) snd snd"
-  unfolding rel_fun_def rel_prod_def by simp
+declare fst_transfer [transfer_rule]
+declare snd_transfer [transfer_rule]
 
 lemma case_prod_transfer [transfer_rule]:
   "((A ===> B ===> C) ===> rel_prod A B ===> C) case_prod case_prod"
