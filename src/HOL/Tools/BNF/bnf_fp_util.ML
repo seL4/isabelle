@@ -607,7 +607,7 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
     val ((kill_poss, _), (bnfs', ((_, unfold_set'), lthy'))) =
       normalize_bnfs norm_qualify Ass Ds (K (resBs' @ Xs)) bnfs accum;
 
-    val Dss = map3 (append oo map o nth) livess kill_poss deadss;
+    val Dss = map3 (uncurry append oo curry swap oo map o nth) livess kill_poss deadss;
 
     fun pre_qualify b = Binding.qualify false (Binding.name_of b)
       #> not (Config.get lthy' bnf_note_all) ? Binding.conceal;
