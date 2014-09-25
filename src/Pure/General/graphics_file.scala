@@ -7,15 +7,36 @@ File system operations for Graphics2D output.
 package isabelle
 
 
+import java.io.{FileOutputStream, BufferedOutputStream, File => JFile}
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
-import java.io.{FileOutputStream, BufferedOutputStream, File => JFile}
+import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 
 import org.jfree.chart.JFreeChart
 
 
 object Graphics_File
 {
+  /* PNG */
+
+  def write_png(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int, dpi: Int = 72)
+  {
+    val scale = dpi / 72.0f
+    val w = (width * scale).round
+    val h = (height * scale).round
+
+    val img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
+    val gfx = img.createGraphics
+    try {
+      gfx.scale(scale, scale)
+      paint(gfx)
+      ImageIO.write(img, "png", file)
+    }
+    finally { gfx.dispose }
+  }
+
+
   /* PDF */
 
   def write_pdf(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int)
