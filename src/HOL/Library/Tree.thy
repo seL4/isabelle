@@ -14,6 +14,16 @@ datatype 'a tree =
   | "right Leaf = Leaf"
 datatype_compat tree
 
+text{* Can be seen as counting the number of leaves rather than nodes: *}
+
+definition size1 :: "'a tree \<Rightarrow> nat" where
+"size1 t = size t + 1"
+
+lemma size1_simps[simp]:
+  "size1 \<langle>\<rangle> = 1"
+  "size1 \<langle>l, x, r\<rangle> = size1 l + size1 r"
+by (simp_all add: size1_def)
+
 lemma neq_Leaf_iff: "(t \<noteq> \<langle>\<rangle>) = (\<exists>l a r. t = \<langle>l, a, r\<rangle>)"
 by (cases t) auto
 
