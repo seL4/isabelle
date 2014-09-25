@@ -72,6 +72,7 @@ sig
   val dtor_coinductN: string
   val dtor_corecN: string
   val dtor_corec_o_mapN: string
+  val dtor_corec_transferN: string
   val dtor_corec_uniqueN: string
   val dtor_ctorN: string
   val dtor_exhaustN: string
@@ -299,6 +300,7 @@ val ctor_rec_transferN = ctor_recN ^ transferN
 val ctor_rec_uniqueN = ctor_recN ^ uniqueN
 val dtor_corecN = dtorN ^ "_" ^ corecN
 val dtor_corec_o_mapN = dtor_corecN ^ "_o_" ^ mapN
+val dtor_corec_transferN = dtor_corecN ^ transferN
 val dtor_corec_uniqueN = dtor_corecN ^ uniqueN
 
 val ctor_dtorN = ctorN ^ "_" ^ dtorN

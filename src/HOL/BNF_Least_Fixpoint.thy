@@ -200,6 +200,13 @@ lemma comp_transfer:
   "rel_fun (rel_fun B C) (rel_fun (rel_fun A B) (rel_fun A C)) (op \<circ>) (op \<circ>)"
   unfolding rel_fun_def by simp
 
+lemma Inl_transfer:
+  "rel_fun S (rel_sum S T) Inl Inl"
+  by auto
+
+lemma Inr_transfer:
+  "rel_fun T (rel_sum S T) Inr Inr"
+  by auto
 
 lemma ssubst_Pair_rhs: "\<lbrakk>(r, s) \<in> R; s' = s\<rbrakk> \<Longrightarrow> (r, s') \<in> R"
   by (rule ssubst)

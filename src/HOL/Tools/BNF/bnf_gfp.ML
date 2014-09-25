@@ -2500,7 +2500,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val dtor_corec_transfer_thms =
       mk_co_iter_transfer_thms Greatest_FP corec_rels corec_activephis activephis Jrels Jphis
         (mk_corecs Ts passiveAs activeAs) (mk_corecs Ts' passiveBs activeBs)
-        (fn {context = ctxt, prems = _} => print_tac ctxt "xxx" THEN Skip_Proof.cheat_tac 1)
+        (fn {context = ctxt, prems = _} => mk_dtor_corec_transfer_tac ctxt n m corec_defs
+           dtor_unfold_transfer_thms (map map_transfer_of_bnf bnfs) dtor_Jrel_thms)
         lthy;
 
     val timer = time (timer "relator coinduction");
@@ -2517,6 +2518,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       (ctor_exhaustN, ctor_exhaust_thms),
       (ctor_injectN, ctor_inject_thms),
       (dtor_corecN, dtor_corec_thms),
+      (dtor_corec_transferN, dtor_corec_transfer_thms),
       (dtor_ctorN, dtor_ctor_thms),
       (dtor_exhaustN, dtor_exhaust_thms),
       (dtor_injectN, dtor_inject_thms),

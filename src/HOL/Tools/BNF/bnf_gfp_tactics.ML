@@ -28,6 +28,8 @@ sig
   val mk_corec_tac: Proof.context -> int -> thm list -> thm -> thm -> thm list -> tactic
   val mk_corec_unique_mor_tac: Proof.context -> thm list -> thm list -> thm -> tactic
   val mk_dtor_coinduct_tac: int -> thm -> thm -> thm list -> tactic
+  val mk_dtor_corec_transfer_tac: Proof.context -> int -> int -> thm list -> thm list -> thm list ->
+    thm list -> tactic
   val mk_dtor_rel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: Proof.context -> thm -> thm -> thm -> thm -> thm list -> tactic
@@ -609,7 +611,7 @@ fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_d
         EVERY' (map3 (fn i' => fn to_sbd_inj => fn from_to_sbd =>
           DETERM o EVERY' [rtac trans, rtac o_apply, rtac prod_injectI, rtac conjI,
             rtac trans, rtac @{thm Shift_def},
-            rtac equalityI, rtac subsetI, etac thin_rl, 
+            rtac equalityI, rtac subsetI, etac thin_rl,
             REPEAT_DETERM o eresolve_tac [CollectE, @{thm UN_E}], dtac length_Lev', dtac asm_rl,
             etac thin_rl, dtac @{thm set_rev_mp[OF _ equalityD1]},
             rtac (@{thm length_Cons} RS arg_cong RS trans), rtac Lev_Suc,
@@ -926,7 +928,30 @@ fun mk_coind_wit_tac ctxt induct unfolds set_nats wits =
   unfold_thms_tac ctxt (unfolds @ set_nats @ @{thms image_id id_apply}) THEN
   ALLGOALS (REPEAT_DETERM o etac imageE THEN' TRY o hyp_subst_tac ctxt) THEN
   ALLGOALS (TRY o
-    FIRST' [rtac TrueI, rtac refl, etac (refl RSN (2, mp)), dresolve_tac wits THEN' etac FalseE])
+    FIRST' [rtac TrueI, rtac refl, etac (refl RSN (2, mp)), dresolve_tac wits THEN' etac FalseE]);
+
+fun mk_dtor_corec_transfer_tac ctxt n m dtor_corec_defs dtor_unfold_transfer pre_T_map_transfers
+    dtor_rels =
+  let
+    val rel_funD = @{thm rel_funD};
+    fun rel_funD_n n = funpow n (fn thm => thm RS rel_funD);
+    val rel_funD_n_rotated = rotate_prems 1 oo rel_funD_n;
+  in
+    CONJ_WRAP (fn (dtor_corec_def, dtor_unfold_transfer) =>
+        REPEAT_DETERM (HEADGOAL (rtac @{thm rel_funI})) THEN
+        unfold_thms_tac ctxt [dtor_corec_def, o_apply] THEN
+        HEADGOAL (rtac (rel_funD_n (n + 1) dtor_unfold_transfer) THEN'
+          EVERY' (map2 (fn pre_T_map_transfer => fn dtor_rel =>
+            etac (rel_funD_n_rotated 2 @{thm case_sum_transfer}) THEN'
+            rtac (rel_funD_n 2 @{thm comp_transfer}) THEN'
+            rtac (rel_funD_n (m + n) pre_T_map_transfer) THEN'
+            REPEAT_DETERM_N m o rtac @{thm id_transfer} THEN'
+            REPEAT_DETERM_N n o rtac @{thm Inl_transfer} THEN'
+            rtac @{thm rel_funI} THEN'
+            etac (dtor_rel RS iffD1)) pre_T_map_transfers dtor_rels) THEN'
+          etac (rel_funD_n 1 @{thm Inr_transfer})))
+      (dtor_corec_defs ~~ dtor_unfold_transfer)
+  end;
 
 fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_sets dtor_inject
     dtor_ctor set_map0s dtor_set_incls dtor_set_set_inclss =
@@ -991,7 +1016,7 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
     EVERY' [rtac iffI, if_tac, only_if_tac] 1
   end;
 
-fun mk_rel_coinduct_coind_tac ctxt fst m coinduct ks map_comp0s map_congs map_arg_congs set_map0ss 
+fun mk_rel_coinduct_coind_tac ctxt fst m coinduct ks map_comp0s map_congs map_arg_congs set_map0ss
   dtor_unfolds dtor_maps in_rels =
   let
     val n = length ks;
