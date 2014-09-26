@@ -14,7 +14,8 @@ sig
      ctr_sugar: Ctr_Sugar.ctr_sugar}
 
   type fp_bnf_sugar =
-    {rel_injects: thm list,
+    {map_thms: thm list,
+     rel_injects: thm list,
      rel_distincts: thm list}
 
   type fp_co_induct_sugar =
@@ -37,7 +38,6 @@ sig
      absT_info: BNF_Comp.absT_info,
      fp_nesting_bnfs: BNF_Def.bnf list,
      live_nesting_bnfs: BNF_Def.bnf list,
-     maps: thm list,
      fp_ctr_sugar: fp_ctr_sugar,
      fp_bnf_sugar: fp_bnf_sugar,
      fp_co_induct_sugar: fp_co_induct_sugar};
@@ -163,11 +163,12 @@ val set_selN = "set_sel";
 type fp_ctr_sugar =
   {ctrXs_Tss: typ list list,
    ctr_defs: thm list,
-   ctr_sugar: Ctr_Sugar.ctr_sugar}
+   ctr_sugar: Ctr_Sugar.ctr_sugar};
 
 type fp_bnf_sugar =
-  {rel_injects: thm list,
-   rel_distincts: thm list}
+  {map_thms: thm list,
+   rel_injects: thm list,
+   rel_distincts: thm list};
 
 type fp_co_induct_sugar =
   {co_rec: term,
@@ -176,7 +177,7 @@ type fp_co_induct_sugar =
    co_rec_def: thm,
    co_rec_thms: thm list,
    co_rec_discs: thm list,
-   co_rec_selss: thm list list}
+   co_rec_selss: thm list list};
 
 type fp_sugar =
   {T: typ,
@@ -189,14 +190,14 @@ type fp_sugar =
    absT_info: absT_info,
    fp_nesting_bnfs: bnf list,
    live_nesting_bnfs: bnf list,
-   maps: thm list,
    fp_ctr_sugar: fp_ctr_sugar,
    fp_bnf_sugar: fp_bnf_sugar,
    fp_co_induct_sugar: fp_co_induct_sugar};
 
-fun morph_fp_bnf_sugar phi ({rel_injects, rel_distincts} : fp_bnf_sugar) =
-  {rel_injects = map (Morphism.thm phi) rel_injects,
-   rel_distincts = map (Morphism.thm phi) rel_distincts}
+fun morph_fp_bnf_sugar phi ({map_thms, rel_injects, rel_distincts} : fp_bnf_sugar) =
+  {map_thms = map (Morphism.thm phi) map_thms,
+   rel_injects = map (Morphism.thm phi) rel_injects,
+   rel_distincts = map (Morphism.thm phi) rel_distincts};
 
 fun morph_fp_co_induct_sugar phi ({co_rec, common_co_inducts, co_inducts, co_rec_def, co_rec_thms,
     co_rec_discs, co_rec_selss} : fp_co_induct_sugar) =
@@ -206,15 +207,15 @@ fun morph_fp_co_induct_sugar phi ({co_rec, common_co_inducts, co_inducts, co_rec
    co_rec_def = Morphism.thm phi co_rec_def,
    co_rec_thms = map (Morphism.thm phi) co_rec_thms,
    co_rec_discs = map (Morphism.thm phi) co_rec_discs,
-   co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss}
+   co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss};
 
 fun morph_fp_ctr_sugar phi ({ctrXs_Tss, ctr_defs, ctr_sugar} : fp_ctr_sugar) =
   {ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
    ctr_defs = map (Morphism.thm phi) ctr_defs,
-   ctr_sugar = morph_ctr_sugar phi ctr_sugar}
+   ctr_sugar = morph_ctr_sugar phi ctr_sugar};
 
 fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, fp_nesting_bnfs,
-    live_nesting_bnfs, maps, fp_ctr_sugar, fp_bnf_sugar,
+    live_nesting_bnfs, fp_ctr_sugar, fp_bnf_sugar,
     fp_co_induct_sugar} : fp_sugar) =
   {T = Morphism.typ phi T,
    BT = Morphism.typ phi BT,
@@ -226,7 +227,6 @@ fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info,
    absT_info = morph_absT_info phi absT_info,
    fp_nesting_bnfs = map (morph_bnf phi) fp_nesting_bnfs,
    live_nesting_bnfs = map (morph_bnf phi) live_nesting_bnfs,
-   maps = map (Morphism.thm phi) maps,
    fp_ctr_sugar = morph_fp_ctr_sugar phi fp_ctr_sugar,
    fp_bnf_sugar = morph_fp_bnf_sugar phi fp_bnf_sugar,
    fp_co_induct_sugar = morph_fp_co_induct_sugar phi fp_co_induct_sugar};
@@ -279,7 +279,7 @@ fun register_fp_sugars plugins fp_sugars =
   register_fp_sugars_raw fp_sugars #> interpret_fp_sugars plugins fp_sugars;
 
 fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs
-    live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs mapss
+    live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs map_thmss
     common_co_inducts co_inductss co_rec_thmss co_rec_discss co_rec_selsss rel_injectss
     rel_distinctss noted =
   let
@@ -288,13 +288,13 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
         {T = T, BT = nth BTs kk, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
          pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk,
          fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
-         maps = nth mapss kk,
          fp_ctr_sugar =
            {ctrXs_Tss = nth ctrXs_Tsss kk,
             ctr_defs = nth ctr_defss kk,
             ctr_sugar = nth ctr_sugars kk},
          fp_bnf_sugar =
-           {rel_injects = nth rel_injectss kk,
+           {map_thms = nth map_thmss kk,
+            rel_injects = nth rel_injectss kk,
             rel_distincts = nth rel_distinctss kk},
          fp_co_induct_sugar =
            {co_rec = nth co_recs kk,
@@ -2048,9 +2048,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       |>> apsnd split_list o apfst (apsnd split_list4 o apfst split_list4 o split_list)
         o split_list;
 
-    fun mk_simp_thms ({injects, distincts, case_thms, ...} : ctr_sugar) co_recs mapsx rel_injects
+    fun mk_simp_thms ({injects, distincts, case_thms, ...} : ctr_sugar) co_recs map_thms rel_injects
         rel_distincts setss =
-      injects @ distincts @ case_thms @ co_recs @ mapsx @ rel_injects @ rel_distincts @ flat setss;
+      injects @ distincts @ case_thms @ co_recs @ map_thms @ rel_injects @ rel_distincts @ flat setss;
 
     fun mk_co_rec_transfer_goals lthy co_recs =
       let
@@ -2078,7 +2078,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       end;
 
     fun derive_note_induct_recs_thms_for_types
-        ((((mapss, rel_injectss, rel_distinctss, setss), (ctrss, _, ctr_defss, ctr_sugars)),
+        ((((map_thmss, rel_injectss, rel_distinctss, setss), (ctrss, _, ctr_defss, ctr_sugars)),
           (recs, rec_defs)), lthy) =
       let
         val ((induct_thms, induct_thm, induct_attrs), (rec_thmss, rec_attrs)) =
@@ -2109,7 +2109,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             end;
 
         val simp_thmss =
-          map6 mk_simp_thms ctr_sugars rec_thmss mapss rel_injectss rel_distinctss setss;
+          map6 mk_simp_thms ctr_sugars rec_thmss map_thmss rel_injectss rel_distinctss setss;
 
         val common_notes =
           (if nn > 1 then
@@ -2135,7 +2135,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           (fst (dest_Type (hd fpTs)) ^ (implode (map (prefix "_") (tl fp_b_names)))) inductN
         |-> interpret_bnfs_register_fp_sugars plugins fpTs fpBTs Xs Least_FP pre_bnfs absT_infos
           fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs
-          mapss [induct_thm] (map single induct_thms) rec_thmss (replicate nn []) (replicate nn [])
+          map_thmss [induct_thm] (map single induct_thms) rec_thmss (replicate nn []) (replicate nn [])
           rel_injectss rel_distinctss
       end;
 
@@ -2155,7 +2155,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       end;
 
     fun derive_note_coinduct_corecs_thms_for_types
-        ((((mapss, rel_injectss, rel_distinctss, setss), (_, _, ctr_defss, ctr_sugars)),
+        ((((map_thmss, rel_injectss, rel_distinctss, setss), (_, _, ctr_defss, ctr_sugars)),
           (corecs, corec_defs)), lthy) =
       let
         val (([(coinduct_thms, coinduct_thm), (coinduct_strong_thms, coinduct_strong_thm)],
@@ -2216,7 +2216,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val simp_thmss =
           map6 mk_simp_thms ctr_sugars
             (map3 flat_corec_thms corec_disc_thmss corec_disc_iff_thmss corec_sel_thmss)
-            mapss rel_injectss rel_distinctss setss;
+            map_thmss rel_injectss rel_distinctss setss;
 
         val common_notes =
           (set_inductN, set_induct_thms, nth set_induct_attrss) ::
@@ -2247,7 +2247,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> Local_Theory.notes (common_notes @ notes)
         |-> interpret_bnfs_register_fp_sugars plugins fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos
           fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars corecs corec_defs
-          mapss [coinduct_thm, coinduct_strong_thm]
+          map_thmss [coinduct_thm, coinduct_strong_thm]
           (transpose [coinduct_thms, coinduct_strong_thms]) corec_thmss corec_disc_thmss
           corec_sel_thmsss rel_injectss rel_distinctss
       end;

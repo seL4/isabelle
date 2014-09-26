@@ -400,7 +400,7 @@ fun basic_corec_specs_of ctxt res_T =
   | _ => not_codatatype ctxt res_T);
 
 fun map_thms_of_typ ctxt (Type (s, _)) =
-    (case fp_sugar_of ctxt s of SOME {maps, ...} => maps | NONE => [])
+    (case fp_sugar_of ctxt s of SOME {fp_bnf_sugar = {map_thms, ...}, ...} => map_thms | NONE => [])
   | map_thms_of_typ _ _ = [];
 
 fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
