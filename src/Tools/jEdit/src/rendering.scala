@@ -139,8 +139,8 @@ object Rendering
   private val language_elements = Markup.Elements(Markup.LANGUAGE)
 
   private val highlight_elements =
-    Markup.Elements(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
-      Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
+    Markup.Elements(Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,
+      Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
       Markup.VAR, Markup.TFREE, Markup.TVAR)
 
@@ -156,6 +156,7 @@ object Rendering
 
   private val tooltip_descriptions =
     Map(
+      Markup.EXPRESSION -> "expression",
       Markup.TOKEN_RANGE -> "inner syntax token",
       Markup.FREE -> "free variable",
       Markup.SKOLEM -> "skolem variable",
