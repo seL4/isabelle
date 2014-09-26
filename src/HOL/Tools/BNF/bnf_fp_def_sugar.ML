@@ -600,9 +600,13 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
               val consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
               val cases_set_attr =
                 Attrib.internal (K (Induct.cases_pred (name_of_set set)));
+
+              val ctr_names = quasi_unambiguous_case_names (flat
+                (map (uncurry mk_names o map_prod length name_of_ctr) (premss ~~ ctrAs)));
+              val case_names_attr = Attrib.internal (K (Rule_Cases.case_names ctr_names));
             in
               (* TODO: @{attributes [elim?]} *)
-              (thm, [consumes_attr, cases_set_attr])
+              (thm, [consumes_attr, cases_set_attr, case_names_attr])
             end) setAs)
         end;
 
