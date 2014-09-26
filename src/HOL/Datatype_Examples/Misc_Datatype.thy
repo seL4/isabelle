@@ -34,6 +34,8 @@ datatype (discs_sels) 'a multi_live_direct7 = MultiLiveDirect7 'a 'a 'a 'a 'a 'a
 datatype (discs_sels) 'a multi_live_direct8 = MultiLiveDirect8 'a 'a 'a 'a 'a 'a 'a 'a
 datatype (discs_sels) 'a multi_live_direct9 = MultiLiveDirect9 'a 'a 'a 'a 'a 'a 'a 'a 'a
 
+datatype 'a live_and_fun = LiveAndFun nat "nat \<Rightarrow> 'a"
+
 datatype (discs_sels) hfset = HFset "hfset fset"
 
 datatype (discs_sels) lambda =

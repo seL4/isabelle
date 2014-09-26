@@ -110,8 +110,9 @@ fun mk_case_transfer_tac ctxt rel_cases cases =
     HEADGOAL (etac rel_cases) THEN
     ALLGOALS (hyp_subst_tac ctxt) THEN
     unfold_thms_tac ctxt cases THEN
-    ALLGOALS (fn k => (select_prem_tac n (dtac asm_rl) k THEN' rotate_tac ~1) k) THEN
-    ALLGOALS (REPEAT_ALL_NEW (atac ORELSE' rtac refl ORELSE' dtac rel_funD))
+    ALLGOALS (fn k => (select_prem_tac n (dtac asm_rl) k) k) THEN
+    ALLGOALS (REPEAT_DETERM o (rotate_tac ~1 THEN' dtac @{thm rel_funD} THEN'
+      (atac THEN' etac thin_rl ORELSE' rtac refl)) THEN' atac)
   end;
 
 fun mk_ctr_transfer_tac ctxt rel_intros rel_eqs =
