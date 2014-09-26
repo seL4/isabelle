@@ -115,6 +115,11 @@ object Markup
   val POSITION = "position"
 
 
+  /* expression */
+
+  val EXPRESSION = "expression"
+
+
   /* embedded languages */
 
   val Symbols = new Properties.Boolean("symbols")

@@ -54,6 +54,7 @@ sig
   val position_properties': string list
   val position_properties: string list
   val positionN: string val position: T
+  val expressionN: string val expression: T
   val pathN: string val path: string -> T
   val urlN: string val url: string -> T
   val indentN: string
@@ -338,6 +339,11 @@ val position_properties' = [fileN, idN];
 val position_properties = [lineN, offsetN, end_offsetN] @ position_properties';
 
 val (positionN, position) = markup_elem "position";
+
+
+(* expression *)
+
+val (expressionN, expression) = markup_elem "expression";
 
 
 (* external resources *)
