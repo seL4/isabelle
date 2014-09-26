@@ -71,13 +71,13 @@ fun get_decls fps T n Ts ctxt =
       | info :: _ => (map (pair (hd fps)) (get_typedef_decl info T Ts), ctxt))
   in
     (case BNF_FP_Def_Sugar.fp_sugar_of ctxt n of
-      SOME {fp, fp_res = {Ts = fp_Ts, ...}, ctr_sugar, ...} =>
+      SOME {fp, fp_res = {Ts = fp_Ts, ...}, fp_ctr_sugar = {ctr_sugar, ...}, ...} =>
       if member (op =) fps fp then
         let
           val ns = map (fst o dest_Type) fp_Ts
           val mutual_fp_sugars = map_filter (BNF_FP_Def_Sugar.fp_sugar_of ctxt) ns
           val Xs = map #X mutual_fp_sugars
-          val ctrXs_Tsss = map #ctrXs_Tss mutual_fp_sugars
+          val ctrXs_Tsss = map (#ctrXs_Tss o #fp_ctr_sugar) mutual_fp_sugars
 
           (* Datatypes nested through datatypes and codatatypes nested through codatatypes are
              allowed. So are mutually (co)recursive (co)datatypes. *)

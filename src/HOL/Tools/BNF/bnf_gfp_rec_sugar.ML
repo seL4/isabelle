@@ -420,7 +420,8 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val perm_indices = map #fp_res_index perm_fp_sugars;
 
     val perm_fpTs = map #T perm_fp_sugars;
-    val perm_ctrXs_Tsss' = map (repair_nullary_single_ctr o #ctrXs_Tss) perm_fp_sugars;
+    val perm_ctrXs_Tsss' =
+      map (repair_nullary_single_ctr o #ctrXs_Tss o #fp_ctr_sugar) perm_fp_sugars;
 
     val nn0 = length res_Ts;
     val nn = length perm_fpTs;
@@ -495,7 +496,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
           distinct_discsss collapses corec_thms corec_discs corec_selss
       end;
 
-    fun mk_spec ({T, ctr_sugar as {exhaust_discs, sel_defs, ...}, co_rec = corec,
+    fun mk_spec ({T, fp_ctr_sugar = {ctr_sugar as {exhaust_discs, sel_defs, ...}, ...}, co_rec = corec,
         fp_co_induct_sugar = {co_rec_thms = corec_thms, co_rec_discs = corec_discs,
         co_rec_selss = corec_selss, ...}, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
       {corec = mk_co_rec thy Greatest_FP perm_Cs' (substAT T) corec, exhaust_discs = exhaust_discs,

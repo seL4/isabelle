@@ -24,7 +24,7 @@ fun is_new_datatype _ @{type_name nat} = true
   | is_new_datatype ctxt s =
     (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);
 
-fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, ctr_sugar, co_rec = recx,
+fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, fp_ctr_sugar = {ctr_sugar, ...}, co_rec = recx,
     fp_co_induct_sugar = {co_rec_thms = rec_thms, ...}, ...} : fp_sugar) =
   {T = T, fp_res_index = fp_res_index, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_sugar = ctr_sugar,
    recx = recx, rec_thms = rec_thms};
@@ -51,7 +51,7 @@ fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
             SOME (T, C) => [T, C]
           | NONE => [U]);
 
-      val ctrXs_Tsss = map #ctrXs_Tss fp_sugars;
+      val ctrXs_Tsss = map (#ctrXs_Tss o #fp_ctr_sugar) fp_sugars;
       val fun_arg_Tssss = map (map (map zip_XrecT)) ctrXs_Tsss;
 
       val fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs;

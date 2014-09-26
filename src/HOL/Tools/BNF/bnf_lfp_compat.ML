@@ -236,7 +236,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     fun mk_typ_descr index (Type (T_name, Ts)) ({ctrs, ...} : ctr_sugar) =
       (index, (T_name, map mk_dtyp Ts, map (mk_ctr_descr Ts) ctrs));
 
-    val fp_ctr_sugars = map (#ctr_sugar o checked_fp_sugar_of) fpT_names;
+    val fp_ctr_sugars = map (#ctr_sugar o #fp_ctr_sugar o checked_fp_sugar_of) fpT_names;
     val orig_descr = map3 mk_typ_descr (0 upto nn_fp - 1) fpTs fp_ctr_sugars;
     val all_infos = Old_Datatype_Data.get_all thy;
     val (orig_descr' :: nested_descrs) =
@@ -290,11 +290,12 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
       else
         ((fp_sugars, (NONE, NONE)), lthy);
 
-    fun mk_ctr_of ({ctr_sugar = {ctrs, ...}, ...} : fp_sugar) (Type (_, Ts)) = map (mk_ctr Ts) ctrs;
+    fun mk_ctr_of ({fp_ctr_sugar = {ctr_sugar = {ctrs, ...}, ...}, ...} : fp_sugar) (Type (_, Ts)) =
+      map (mk_ctr Ts) ctrs;
     val substAT = Term.typ_subst_atomic (var_As ~~ As);
 
     val Xs' = map #X fp_sugars';
-    val ctrXs_Tsss' = map (map (map substAT) o #ctrXs_Tss) fp_sugars';
+    val ctrXs_Tsss' = map (map (map substAT) o #ctrXs_Tss o #fp_ctr_sugar) fp_sugars';
     val ctrss' = map2 mk_ctr_of fp_sugars' fpTs';
     val {common_co_inducts = induct :: _, ...} :: _ = fp_sugars';
     val inducts = map (hd o #co_inducts o #fp_co_induct_sugar) fp_sugars';
@@ -317,8 +318,9 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     val rec'_names = map (fst o dest_Const) recs';
     val rec'_thms = flat rec'_thmss;
 
-    fun mk_info (kk, {T = Type (T_name0, _), ctr_sugar = {casex, exhaust, nchotomy, injects,
-        distincts, case_thms, case_cong, case_cong_weak, split, split_asm, ...}, ...} : fp_sugar) =
+    fun mk_info (kk, {T = Type (T_name0, _), fp_ctr_sugar = {ctr_sugar = {casex, exhaust, nchotomy,
+        injects, distincts, case_thms, case_cong, case_cong_weak, split,
+        split_asm, ...}, ...}, ...} : fp_sugar) =
       (T_name0,
        {index = kk, descr = descr, inject = injects, distinct = distincts, induct = induct',
         inducts = inducts', exhaust = exhaust, nchotomy = nchotomy, rec_names = rec'_names,

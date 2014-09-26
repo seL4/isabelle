@@ -152,7 +152,7 @@ fun derive_encode_injectives_thms _ [] = []
 
       val fp_sugars as {fp_nesting_bnfs, common_co_inducts = induct :: _, ...} :: _ =
         map (the o fp_sugar_of ctxt o fst o dest_Type) fpTs0;
-      val ctr_sugars = map #ctr_sugar fp_sugars;
+      val ctr_sugars = map (#ctr_sugar o #fp_ctr_sugar) fp_sugars;
 
       val ctrss0 = map #ctrs ctr_sugars;
       val ns = map length ctrss0;

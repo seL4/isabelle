@@ -8,7 +8,10 @@ Sugared datatype and codatatype constructions.
 
 signature BNF_FP_DEF_SUGAR =
 sig
-  type fp_ctr_sugar = {}
+  type fp_ctr_sugar =
+    {ctrXs_Tss: typ list list,
+     ctr_defs: thm list,
+     ctr_sugar: Ctr_Sugar.ctr_sugar}
 
   type fp_bnf_sugar =
     {rel_injects: thm list,
@@ -31,9 +34,6 @@ sig
      absT_info: BNF_Comp.absT_info,
      fp_nesting_bnfs: BNF_Def.bnf list,
      live_nesting_bnfs: BNF_Def.bnf list,
-     ctrXs_Tss: typ list list,
-     ctr_defs: thm list,
-     ctr_sugar: Ctr_Sugar.ctr_sugar,
      co_rec: term,
      co_rec_def: thm,
      maps: thm list,
@@ -160,7 +160,10 @@ val set_introsN = "set_intros";
 val set_inductN = "set_induct";
 val set_selN = "set_sel";
 
-type fp_ctr_sugar = {}
+type fp_ctr_sugar =
+  {ctrXs_Tss: typ list list,
+   ctr_defs: thm list,
+   ctr_sugar: Ctr_Sugar.ctr_sugar}
 
 type fp_bnf_sugar =
   {rel_injects: thm list,
@@ -183,9 +186,6 @@ type fp_sugar =
    absT_info: absT_info,
    fp_nesting_bnfs: bnf list,
    live_nesting_bnfs: bnf list,
-   ctrXs_Tss: typ list list,
-   ctr_defs: thm list,
-   ctr_sugar: Ctr_Sugar.ctr_sugar,
    co_rec: term,
    co_rec_def: thm,
    maps: thm list,
@@ -205,9 +205,14 @@ fun morph_fp_co_induct_sugar phi ({co_inducts, co_rec_thms, co_rec_discs,
    co_rec_discs = map (Morphism.thm phi) co_rec_discs,
    co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss}
 
+fun morph_fp_ctr_sugar phi ({ctrXs_Tss, ctr_defs, ctr_sugar} : fp_ctr_sugar) =
+  {ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
+   ctr_defs = map (Morphism.thm phi) ctr_defs,
+   ctr_sugar = morph_ctr_sugar phi ctr_sugar}
+
 fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, fp_nesting_bnfs,
-    live_nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, co_rec_def, maps, common_co_inducts,
-    fp_ctr_sugar, fp_bnf_sugar, fp_co_induct_sugar} : fp_sugar) =
+    live_nesting_bnfs, co_rec, co_rec_def, maps, common_co_inducts, fp_ctr_sugar, fp_bnf_sugar,
+    fp_co_induct_sugar} : fp_sugar) =
   {T = Morphism.typ phi T,
    BT = Morphism.typ phi BT,
    X = Morphism.typ phi X,
@@ -218,14 +223,11 @@ fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info,
    absT_info = morph_absT_info phi absT_info,
    fp_nesting_bnfs = map (morph_bnf phi) fp_nesting_bnfs,
    live_nesting_bnfs = map (morph_bnf phi) live_nesting_bnfs,
-   ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
-   ctr_defs = map (Morphism.thm phi) ctr_defs,
-   ctr_sugar = morph_ctr_sugar phi ctr_sugar,
    co_rec = Morphism.term phi co_rec,
    co_rec_def = Morphism.thm phi co_rec_def,
    maps = map (Morphism.thm phi) maps,
    common_co_inducts = map (Morphism.thm phi) common_co_inducts,
-   fp_ctr_sugar = fp_ctr_sugar,
+   fp_ctr_sugar = morph_fp_ctr_sugar phi fp_ctr_sugar,
    fp_bnf_sugar = morph_fp_bnf_sugar phi fp_bnf_sugar,
    fp_co_induct_sugar = morph_fp_co_induct_sugar phi fp_co_induct_sugar};
 
@@ -286,10 +288,12 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
         {T = T, BT = nth BTs kk, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
          pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk,
          fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
-         ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk, ctr_sugar = nth ctr_sugars kk,
          co_rec = nth co_recs kk, co_rec_def = nth co_rec_defs kk, maps = nth mapss kk,
          common_co_inducts = common_co_inducts,
-         fp_ctr_sugar = {},
+         fp_ctr_sugar =
+           {ctrXs_Tss = nth ctrXs_Tsss kk,
+            ctr_defs = nth ctr_defss kk,
+            ctr_sugar = nth ctr_sugars kk},
          fp_bnf_sugar =
            {rel_injects = nth rel_injectss kk,
             rel_distincts = nth rel_distinctss kk},
