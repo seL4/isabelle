@@ -301,7 +301,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
            common_co_inducts = common_co_inducts, co_inducts = co_inducts,
            co_rec_thms = co_rec_thms, co_rec_discs = co_rec_disc_thms,
            co_rec_selss = co_rec_sel_thmss, rel_injects = rel_injects,
-           rel_distincts = rel_distincts}
+           rel_distincts = rel_distincts, fp_ctr_sugar = {}, fp_bnf_sugar = {},
+           fp_co_induct_sugar = {}}
           |> morph_fp_sugar phi;
 
         val target_fp_sugars =

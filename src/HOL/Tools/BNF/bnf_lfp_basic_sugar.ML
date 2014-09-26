@@ -88,7 +88,10 @@ fun fp_sugar_of_sum ctxt =
      co_rec_discs = [],
      co_rec_selss = [],
      rel_injects = @{thms rel_sum_simps(1,4)},
-     rel_distincts = @{thms rel_sum_simps(2,3)[THEN eq_False[THEN iffD1]]}}
+     rel_distincts = @{thms rel_sum_simps(2,3)[THEN eq_False[THEN iffD1]]},
+     fp_ctr_sugar = {},
+     fp_bnf_sugar = {},
+     fp_co_induct_sugar = {}}
   end;
 
 fun fp_sugar_of_prod ctxt =
@@ -129,7 +132,10 @@ fun fp_sugar_of_prod ctxt =
      co_rec_discs = [],
      co_rec_selss = [],
      rel_injects = @{thms rel_prod_apply},
-     rel_distincts = []}
+     rel_distincts = [],
+     fp_ctr_sugar = {},
+     fp_bnf_sugar = {},
+     fp_co_induct_sugar = {}}
   end;
 
 val _ = Theory.setup (map_local_theory (fn lthy =>

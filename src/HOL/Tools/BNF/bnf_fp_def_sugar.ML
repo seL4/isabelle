@@ -8,6 +8,10 @@ Sugared datatype and codatatype constructions.
 
 signature BNF_FP_DEF_SUGAR =
 sig
+  type fp_ctr_sugar = {}
+  type fp_bnf_sugar = {}
+  type fp_co_induct_sugar = {}
+
   type fp_sugar =
     {T: typ,
      BT: typ,
@@ -31,7 +35,10 @@ sig
      co_rec_discs: thm list,
      co_rec_selss: thm list list,
      rel_injects: thm list,
-     rel_distincts: thm list};
+     rel_distincts: thm list,
+     fp_ctr_sugar: fp_ctr_sugar,
+     fp_bnf_sugar: fp_bnf_sugar,
+     fp_co_induct_sugar: fp_co_induct_sugar};
 
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val transfer_fp_sugar: theory -> fp_sugar -> fp_sugar
@@ -151,6 +158,10 @@ val set_introsN = "set_intros";
 val set_inductN = "set_induct";
 val set_selN = "set_sel";
 
+type fp_ctr_sugar = {}
+type fp_bnf_sugar = {}
+type fp_co_induct_sugar = {}
+
 type fp_sugar =
   {T: typ,
    BT: typ,
@@ -174,11 +185,15 @@ type fp_sugar =
    co_rec_discs: thm list,
    co_rec_selss: thm list list,
    rel_injects: thm list,
-   rel_distincts: thm list};
+   rel_distincts: thm list,
+   fp_ctr_sugar: fp_ctr_sugar,
+   fp_bnf_sugar: fp_bnf_sugar,
+   fp_co_induct_sugar: fp_co_induct_sugar};
 
 fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, fp_nesting_bnfs,
     live_nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, co_rec_def, maps, common_co_inducts,
-    co_inducts, co_rec_thms, co_rec_discs, co_rec_selss, rel_injects, rel_distincts} : fp_sugar) =
+    co_inducts, co_rec_thms, co_rec_discs, co_rec_selss, rel_injects, rel_distincts,
+    fp_ctr_sugar, fp_bnf_sugar, fp_co_induct_sugar} : fp_sugar) =
   {T = Morphism.typ phi T,
    BT = Morphism.typ phi BT,
    X = Morphism.typ phi X,
@@ -201,7 +216,10 @@ fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info,
    co_rec_discs = map (Morphism.thm phi) co_rec_discs,
    co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss,
    rel_injects = map (Morphism.thm phi) rel_injects,
-   rel_distincts = map (Morphism.thm phi) rel_distincts};
+   rel_distincts = map (Morphism.thm phi) rel_distincts,
+   fp_ctr_sugar = fp_ctr_sugar,
+   fp_bnf_sugar = fp_bnf_sugar,
+   fp_co_induct_sugar = fp_co_induct_sugar};
 
 val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism;
 
@@ -265,7 +283,8 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
          common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
          co_rec_thms = nth co_rec_thmss kk, co_rec_discs = nth co_rec_discss kk,
          co_rec_selss = nth co_rec_selsss kk, rel_injects = nth rel_injectss kk,
-         rel_distincts = nth rel_distinctss kk}
+         rel_distincts = nth rel_distinctss kk, fp_ctr_sugar = {}, fp_bnf_sugar = {},
+         fp_co_induct_sugar = {}}
         |> morph_fp_sugar (substitute_noted_thm noted)) Ts;
   in
     register_fp_sugars_raw fp_sugars
