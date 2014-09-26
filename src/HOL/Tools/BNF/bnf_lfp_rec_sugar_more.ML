@@ -25,7 +25,7 @@ fun is_new_datatype _ @{type_name nat} = true
     (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);
 
 fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, ctr_sugar, co_rec = recx,
-    co_rec_thms = rec_thms, ...} : fp_sugar) =
+    fp_co_induct_sugar = {co_rec_thms = rec_thms, ...}, ...} : fp_sugar) =
   {T = T, fp_res_index = fp_res_index, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_sugar = ctr_sugar,
    recx = recx, rec_thms = rec_thms};
 

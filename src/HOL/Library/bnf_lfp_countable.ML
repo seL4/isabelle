@@ -159,7 +159,7 @@ fun derive_encode_injectives_thms _ [] = []
       val recs0 = map #co_rec fp_sugars;
       val nchotomys = map #nchotomy ctr_sugars;
       val injectss = map #injects ctr_sugars;
-      val rec_thmss = map #co_rec_thms fp_sugars;
+      val rec_thmss = map (#co_rec_thms o #fp_co_induct_sugar) fp_sugars;
       val map_comps' = map (unfold_thms ctxt @{thms comp_def} o map_comp_of_bnf) fp_nesting_bnfs;
       val inj_map_strongs' = map (Thm.permute_prems 0 ~1 o inj_map_strong_of_bnf) fp_nesting_bnfs;
 

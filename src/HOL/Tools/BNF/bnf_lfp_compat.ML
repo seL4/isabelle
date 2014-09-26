@@ -297,9 +297,9 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     val ctrXs_Tsss' = map (map (map substAT) o #ctrXs_Tss) fp_sugars';
     val ctrss' = map2 mk_ctr_of fp_sugars' fpTs';
     val {common_co_inducts = induct :: _, ...} :: _ = fp_sugars';
-    val inducts = map (hd o #co_inducts) fp_sugars';
+    val inducts = map (hd o #co_inducts o #fp_co_induct_sugar) fp_sugars';
     val recs = map #co_rec fp_sugars';
-    val rec_thmss = map #co_rec_thms fp_sugars';
+    val rec_thmss = map (#co_rec_thms o #fp_co_induct_sugar) fp_sugars';
 
     fun is_nested_rec_type (Type (@{type_name fun}, [_, T])) = member (op =) Xs' (body_type T)
       | is_nested_rec_type _ = false;

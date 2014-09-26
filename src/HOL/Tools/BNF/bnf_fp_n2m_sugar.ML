@@ -298,11 +298,16 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
            pre_bnf = pre_bnf, absT_info = absT_info, fp_nesting_bnfs = fp_nesting_bnfs,
            live_nesting_bnfs = live_nesting_bnfs, ctrXs_Tss = ctrXs_Tss, ctr_defs = ctr_defs,
            ctr_sugar = ctr_sugar, co_rec = co_rec, co_rec_def = co_rec_def, maps = maps,
-           common_co_inducts = common_co_inducts, co_inducts = co_inducts,
-           co_rec_thms = co_rec_thms, co_rec_discs = co_rec_disc_thms,
-           co_rec_selss = co_rec_sel_thmss, fp_ctr_sugar = {},
-           fp_bnf_sugar = {rel_injects = rel_injects, rel_distincts = rel_distincts},
-           fp_co_induct_sugar = {}}
+           common_co_inducts = common_co_inducts,
+           fp_ctr_sugar = {},
+           fp_bnf_sugar =
+             {rel_injects = rel_injects,
+              rel_distincts = rel_distincts},
+           fp_co_induct_sugar =
+             {co_inducts = co_inducts,
+              co_rec_thms = co_rec_thms,
+              co_rec_discs = co_rec_disc_thms,
+              co_rec_selss = co_rec_sel_thmss}}
           |> morph_fp_sugar phi;
 
         val target_fp_sugars =

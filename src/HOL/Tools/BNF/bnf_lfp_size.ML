@@ -94,7 +94,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val B_ify = Term.typ_subst_atomic (As ~~ Bs);
 
       val recs = map #co_rec fp_sugars;
-      val rec_thmss = map #co_rec_thms fp_sugars;
+      val rec_thmss = map (#co_rec_thms o #fp_co_induct_sugar) fp_sugars;
       val rec_Ts as rec_T1 :: _ = map fastype_of recs;
       val rec_arg_Ts = binder_fun_types rec_T1;
       val Cs = map body_type rec_Ts;

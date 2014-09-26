@@ -14,7 +14,11 @@ sig
     {rel_injects: thm list,
      rel_distincts: thm list}
 
-  type fp_co_induct_sugar = {}
+  type fp_co_induct_sugar =
+    {co_inducts: thm list,
+     co_rec_thms: thm list,
+     co_rec_discs: thm list,
+     co_rec_selss: thm list list}
 
   type fp_sugar =
     {T: typ,
@@ -34,10 +38,6 @@ sig
      co_rec_def: thm,
      maps: thm list,
      common_co_inducts: thm list,
-     co_inducts: thm list,
-     co_rec_thms: thm list,
-     co_rec_discs: thm list,
-     co_rec_selss: thm list list,
      fp_ctr_sugar: fp_ctr_sugar,
      fp_bnf_sugar: fp_bnf_sugar,
      fp_co_induct_sugar: fp_co_induct_sugar};
@@ -166,7 +166,11 @@ type fp_bnf_sugar =
   {rel_injects: thm list,
    rel_distincts: thm list}
 
-type fp_co_induct_sugar = {}
+type fp_co_induct_sugar =
+  {co_inducts: thm list,
+   co_rec_thms: thm list,
+   co_rec_discs: thm list,
+   co_rec_selss: thm list list}
 
 type fp_sugar =
   {T: typ,
@@ -186,10 +190,6 @@ type fp_sugar =
    co_rec_def: thm,
    maps: thm list,
    common_co_inducts: thm list,
-   co_inducts: thm list,
-   co_rec_thms: thm list,
-   co_rec_discs: thm list,
-   co_rec_selss: thm list list,
    fp_ctr_sugar: fp_ctr_sugar,
    fp_bnf_sugar: fp_bnf_sugar,
    fp_co_induct_sugar: fp_co_induct_sugar};
@@ -198,10 +198,16 @@ fun morph_fp_bnf_sugar phi ({rel_injects, rel_distincts} : fp_bnf_sugar) =
   {rel_injects = map (Morphism.thm phi) rel_injects,
    rel_distincts = map (Morphism.thm phi) rel_distincts}
 
+fun morph_fp_co_induct_sugar phi ({co_inducts, co_rec_thms, co_rec_discs,
+    co_rec_selss} : fp_co_induct_sugar) =
+  {co_inducts = map (Morphism.thm phi) co_inducts,
+   co_rec_thms = map (Morphism.thm phi) co_rec_thms,
+   co_rec_discs = map (Morphism.thm phi) co_rec_discs,
+   co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss}
+
 fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, fp_nesting_bnfs,
     live_nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, co_rec_def, maps, common_co_inducts,
-    co_inducts, co_rec_thms, co_rec_discs, co_rec_selss, fp_ctr_sugar, fp_bnf_sugar,
-    fp_co_induct_sugar} : fp_sugar) =
+    fp_ctr_sugar, fp_bnf_sugar, fp_co_induct_sugar} : fp_sugar) =
   {T = Morphism.typ phi T,
    BT = Morphism.typ phi BT,
    X = Morphism.typ phi X,
@@ -219,13 +225,9 @@ fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info,
    co_rec_def = Morphism.thm phi co_rec_def,
    maps = map (Morphism.thm phi) maps,
    common_co_inducts = map (Morphism.thm phi) common_co_inducts,
-   co_inducts = map (Morphism.thm phi) co_inducts,
-   co_rec_thms = map (Morphism.thm phi) co_rec_thms,
-   co_rec_discs = map (Morphism.thm phi) co_rec_discs,
-   co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss,
    fp_ctr_sugar = fp_ctr_sugar,
    fp_bnf_sugar = morph_fp_bnf_sugar phi fp_bnf_sugar,
-   fp_co_induct_sugar = fp_co_induct_sugar};
+   fp_co_induct_sugar = morph_fp_co_induct_sugar phi fp_co_induct_sugar};
 
 val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism;
 
@@ -286,11 +288,16 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
          fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
          ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk, ctr_sugar = nth ctr_sugars kk,
          co_rec = nth co_recs kk, co_rec_def = nth co_rec_defs kk, maps = nth mapss kk,
-         common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
-         co_rec_thms = nth co_rec_thmss kk, co_rec_discs = nth co_rec_discss kk,
-         co_rec_selss = nth co_rec_selsss kk, fp_ctr_sugar = {},
-         fp_bnf_sugar = {rel_injects = nth rel_injectss kk, rel_distincts = nth rel_distinctss kk},
-         fp_co_induct_sugar = {}}
+         common_co_inducts = common_co_inducts,
+         fp_ctr_sugar = {},
+         fp_bnf_sugar =
+           {rel_injects = nth rel_injectss kk,
+            rel_distincts = nth rel_distinctss kk},
+         fp_co_induct_sugar =
+           {co_inducts = nth co_inductss kk,
+            co_rec_thms = nth co_rec_thmss kk,
+            co_rec_discs = nth co_rec_discss kk,
+            co_rec_selss = nth co_rec_selsss kk}}
         |> morph_fp_sugar (substitute_noted_thm noted)) Ts;
   in
     register_fp_sugars_raw fp_sugars

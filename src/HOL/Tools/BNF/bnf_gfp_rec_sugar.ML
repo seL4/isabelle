@@ -496,8 +496,8 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
       end;
 
     fun mk_spec ({T, ctr_sugar as {exhaust_discs, sel_defs, ...}, co_rec = corec,
-        co_rec_thms = corec_thms, co_rec_discs = corec_discs,
-        co_rec_selss = corec_selss, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
+        fp_co_induct_sugar = {co_rec_thms = corec_thms, co_rec_discs = corec_discs,
+        co_rec_selss = corec_selss, ...}, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
       {corec = mk_co_rec thy Greatest_FP perm_Cs' (substAT T) corec, exhaust_discs = exhaust_discs,
        sel_defs = sel_defs,
        fp_nesting_maps = maps (map_thms_of_typ lthy o T_of_bnf) fp_nesting_bnfs,
