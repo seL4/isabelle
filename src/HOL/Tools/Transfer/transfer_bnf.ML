@@ -348,7 +348,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
             else thm RS (@{thm eq_onp_same_args} RS iffD1))
         |> kill_top
       end
-    val rel_injects = #rel_injects fp_sugar
+    val rel_injects = #rel_injects (#fp_bnf_sugar fp_sugar)
   in
     rel_injects
     |> map (Local_Defs.unfold lthy [@{thm conj_assoc}])
