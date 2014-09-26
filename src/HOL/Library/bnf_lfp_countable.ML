@@ -150,13 +150,14 @@ fun derive_encode_injectives_thms _ [] = []
           HOLogic.mk_imp (HOLogic.mk_eq (encode_fun $ x, encode_fun $ Bound 0),
             HOLogic.eq_const fpT $ x $ Bound 0));
 
-      val fp_sugars as {fp_nesting_bnfs, common_co_inducts = induct :: _, ...} :: _ =
+      val fp_sugars as
+          {fp_nesting_bnfs, fp_co_induct_sugar = {common_co_inducts = induct :: _, ...}, ...} :: _ =
         map (the o fp_sugar_of ctxt o fst o dest_Type) fpTs0;
       val ctr_sugars = map (#ctr_sugar o #fp_ctr_sugar) fp_sugars;
 
       val ctrss0 = map #ctrs ctr_sugars;
       val ns = map length ctrss0;
-      val recs0 = map #co_rec fp_sugars;
+      val recs0 = map (#co_rec o #fp_co_induct_sugar) fp_sugars;
       val nchotomys = map #nchotomy ctr_sugars;
       val injectss = map #injects ctr_sugars;
       val rec_thmss = map (#co_rec_thms o #fp_co_induct_sugar) fp_sugars;

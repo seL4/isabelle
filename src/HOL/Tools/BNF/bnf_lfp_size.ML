@@ -93,7 +93,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       val B_ify = Term.typ_subst_atomic (As ~~ Bs);
 
-      val recs = map #co_rec fp_sugars;
+      val recs = map (#co_rec o #fp_co_induct_sugar) fp_sugars;
       val rec_thmss = map (#co_rec_thms o #fp_co_induct_sugar) fp_sugars;
       val rec_Ts as rec_T1 :: _ = map fastype_of recs;
       val rec_arg_Ts = binder_fun_types rec_T1;
@@ -283,7 +283,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
             val pre_map_defs = map map_def_of_bnf pre_bnfs;
             val live_nesting_map_ident0s = map map_ident0_of_bnf live_nesting_bnfs;
             val abs_inverses = map (#abs_inverse o #absT_info) fp_sugars;
-            val rec_defs = map #co_rec_def fp_sugars;
+            val rec_defs = map (#co_rec_def o #fp_co_induct_sugar) fp_sugars;
 
             val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
 
