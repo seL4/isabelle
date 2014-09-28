@@ -560,6 +560,30 @@ lemma Max_in [simp]:
   shows "Max A \<in> A"
   using assms by (auto simp add: max_def Max.closed)
 
+lemma Min_insert2:
+  assumes "finite A" and min: "\<And>b. b \<in> A \<Longrightarrow> a \<le> b"
+  shows "Min (insert a A) = a"
+proof (cases "A = {}")
+  case True then show ?thesis by simp
+next
+  case False with `finite A` have "Min (insert a A) = min a (Min A)"
+    by simp
+  moreover from `finite A` `A \<noteq> {}` min have "a \<le> Min A" by simp
+  ultimately show ?thesis by (simp add: min.absorb1)
+qed
+
+lemma Max_insert2:
+  assumes "finite A" and max: "\<And>b. b \<in> A \<Longrightarrow> b \<le> a"
+  shows "Max (insert a A) = a"
+proof (cases "A = {}")
+  case True then show ?thesis by simp
+next
+  case False with `finite A` have "Max (insert a A) = max a (Max A)"
+    by simp
+  moreover from `finite A` `A \<noteq> {}` max have "Max A \<le> a" by simp
+  ultimately show ?thesis by (simp add: max.absorb1)
+qed
+
 lemma Min_le [simp]:
   assumes "finite A" and "x \<in> A"
   shows "Min A \<le> x"

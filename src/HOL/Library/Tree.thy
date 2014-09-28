@@ -107,12 +107,8 @@ proof(induction t arbitrary: t' rule: del_rightmost.induct)
     by (fastforce simp add: ball_Un)
 qed simp_all
 
-(* should be moved but metis not available in much of Main *)
-lemma Max_insert1: "\<lbrakk> finite A;  \<forall>a\<in>A. a \<le> x \<rbrakk> \<Longrightarrow> Max(insert x A) = x"
-by (metis Max_in Max_insert Max_singleton antisym max_def)
-
 lemma del_rightmost_Max:
   "\<lbrakk> del_rightmost t = (t',x);  bst t;  t \<noteq> \<langle>\<rangle> \<rbrakk> \<Longrightarrow> x = Max(set_tree t)"
-by (metis Max_insert1 del_rightmost_greater del_rightmost_set_tree finite_set_tree less_le_not_le)
+by (metis Max_insert2 del_rightmost_greater del_rightmost_set_tree finite_set_tree less_le_not_le)
 
 end
