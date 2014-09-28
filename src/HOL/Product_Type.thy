@@ -1,4 +1,4 @@
-(*  Title:      HOL/Product_Type.thy
+ (*  Title:      HOL/Product_Type.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 *)
@@ -462,9 +462,8 @@ lemma split_twice: "split f (split g p) = split (\<lambda>x y. split f (g x y)) 
 lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
   by (simp add: case_prod_unfold)
 
-lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
+lemmas split_weak_cong = prod.case_cong_weak
   -- {* Prevents simplification of @{term c}: much faster *}
-  by (fact prod.case_cong_weak)
 
 lemma cond_split_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
   by (simp add: split_eta)
@@ -577,7 +576,7 @@ in
     | beta_proc _ _ = NONE;
   fun eta_proc ctxt (s as Const (@{const_name case_prod}, _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
-          SOME (_, ft) => SOME (metaeq ctxt s (let val (f $ arg) = ft in f end))
+          SOME (_, ft) => SOME (metaeq ctxt s (let val f $ _ = ft in f end))
         | NONE => NONE)
     | eta_proc _ _ = NONE;
 end;
@@ -585,16 +584,13 @@ end;
 simproc_setup split_beta ("split f z") = {* fn _ => fn ctxt => fn ct => beta_proc ctxt (term_of ct) *}
 simproc_setup split_eta ("split f") = {* fn _ => fn ctxt => fn ct => eta_proc ctxt (term_of ct) *}
 
-lemma split_beta [mono]: "(%(x, y). P x y) z = P (fst z) (snd z)"
-  by (subst surjective_pairing, rule split_conv)
+lemmas split_beta [mono] = prod.case_eq_if
 
 lemma split_beta': "(\<lambda>(x,y). f x y) = (\<lambda>x. f (fst x) (snd x))"
   by (auto simp: fun_eq_iff)
 
-
-lemma split_split [no_atp]: "R(split c p) = (ALL x y. p = (x, y) --> R(c x y))"
+lemmas split_split [no_atp] = prod.split
   -- {* For use with @{text split} and the Simplifier. *}
-  by (insert surj_pair [of p], clarify, simp)
 
 text {*
   @{thm [source] split_split} could be declared as @{text "[split]"}
@@ -603,8 +599,7 @@ text {*
   current goal contains one of those constants.
 *}
 
-lemma split_split_asm [no_atp]: "R (split c p) = (~(EX x y. p = (x, y) & (~R (c x y))))"
-by (subst split_split, simp)
+lemmas split_split_asm [no_atp] = prod.split_asm
 
 text {*
   \medskip @{term split} used as a logical connective or set former.
@@ -649,10 +644,9 @@ lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: split c p"
 by (simp only: split_tupled_all, simp)
 
 lemma mem_splitE:
-  assumes major: "z \<in> split c p"
-    and cases: "\<And>x y. p = (x, y) \<Longrightarrow> z \<in> c x y \<Longrightarrow> Q"
-  shows Q
-  by (rule major [unfolded case_prod_unfold] cases surjective_pairing)+
+  assumes "z \<in> split c p"
+  obtains x y where "p = (x, y)" and "z \<in> c x y"
+  using assms by (rule splitE2)
 
 declare mem_splitI2 [intro!] mem_splitI [intro!] splitI2' [intro!] splitI2 [intro!] splitI [intro!]
 declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]

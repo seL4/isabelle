@@ -37,7 +37,7 @@ fun ap_split (Type (@{type_name Product_Type.prod}, [T1, T2])) T3 u =
           ap_split T2 T3
              ((ap_split T1 (HOLogic.flatten_tupleT T2 ---> T3) (incr_boundvars 1 u)) $
               Bound 0))
-  | ap_split T T3 u = u;
+  | ap_split _ T3 u = u;
 
 (*Curries any Var of function type in the rule*)
 fun split_rule_var' (t as Var (v, Type ("fun", [T1, T2]))) rl =
@@ -45,7 +45,7 @@ fun split_rule_var' (t as Var (v, Type ("fun", [T1, T2]))) rl =
           val newt = ap_split T1 T2 (Var (v, T'));
           val cterm = Thm.cterm_of (Thm.theory_of_thm rl);
       in Thm.instantiate ([], [(cterm t, cterm newt)]) rl end
-  | split_rule_var' t rl = rl;
+  | split_rule_var' _ rl = rl;
 
 
 (* complete splitting of partially split rules *)
@@ -82,7 +82,7 @@ fun collect_vars (Abs (_, _, t)) = collect_vars t
   | collect_vars t =
       (case strip_comb t of
         (v as Var _, ts) => cons (v, ts)
-      | (t, ts) => fold collect_vars ts);
+      | (_, ts) => fold collect_vars ts);
 
 
 fun split_rule_var ctxt =
