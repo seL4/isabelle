@@ -156,27 +156,6 @@ fun class_of_atp_class cls =
     SOME s => s
   | NONE => raise ATP_CLASS [cls])
 
-(* Type variables are given the basic sort "HOL.type". Some will later be constrained by information
-   from type literals, or by type inference. *)
-fun typ_of_atp_type ctxt (ty as AType ((a, clss), tys)) =
-    let val Ts = map (typ_of_atp_type ctxt) tys in
-      (case unprefix_and_unascii type_const_prefix a of
-        SOME b => Type (invert_const b, Ts)
-      | NONE =>
-        if not (null tys) then
-          raise ATP_TYPE [ty] (* only "tconst"s have type arguments *)
-        else
-          (case unprefix_and_unascii tfree_prefix a of
-            SOME b => make_tfree ctxt b
-          | NONE =>
-            (* The term could be an Isabelle variable or a variable from the ATP, say "X1" or "_5018".
-               Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
-               forces us to use a type parameter in all cases. *)
-            Type_Infer.param 0 ("'" ^ perhaps (unprefix_and_unascii tvar_prefix) a,
-              (if null clss then @{sort type} else map class_of_atp_class clss))))
-    end
-  | typ_of_atp_type ctxt (AFun (ty1, ty2)) = typ_of_atp_type ctxt ty1 --> typ_of_atp_type ctxt ty2
-
 fun atp_type_of_atp_term (ATerm ((s, _), us)) =
   let val tys = map atp_type_of_atp_term us in
     if s = tptp_fun_type then
@@ -186,6 +165,30 @@ fun atp_type_of_atp_term (ATerm ((s, _), us)) =
     else
       AType ((s, []), tys)
   end
+
+(* Type variables are given the basic sort "HOL.type". Some will later be constrained by information
+   from type literals, or by type inference. *)
+fun typ_of_atp_type ctxt (ty as AType ((a, clss), tys)) =
+    let val Ts = map (typ_of_atp_type ctxt) tys in
+      (case unprefix_and_unascii native_type_prefix a of
+        SOME b => typ_of_atp_type ctxt (atp_type_of_atp_term (unmangled_type b))
+      | NONE =>
+        (case unprefix_and_unascii type_const_prefix a of
+          SOME b => Type (invert_const b, Ts)
+        | NONE =>
+          if not (null tys) then
+            raise ATP_TYPE [ty] (* only "tconst"s have type arguments *)
+          else
+            (case unprefix_and_unascii tfree_prefix a of
+              SOME b => make_tfree ctxt b
+            | NONE =>
+              (* The term could be an Isabelle variable or a variable from the ATP, say "X1" or "_5018".
+                 Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
+                 forces us to use a type parameter in all cases. *)
+              Type_Infer.param 0 ("'" ^ perhaps (unprefix_and_unascii tvar_prefix) a,
+                (if null clss then @{sort type} else map class_of_atp_class clss)))))
+    end
+  | typ_of_atp_type ctxt (AFun (ty1, ty2)) = typ_of_atp_type ctxt ty1 --> typ_of_atp_type ctxt ty2
 
 fun typ_of_atp_term ctxt = typ_of_atp_type ctxt o atp_type_of_atp_term
 
@@ -337,7 +340,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
           error "Isar proof reconstruction failed because the ATP proof contains unparsable \
             \material."
         else if String.isPrefix native_type_prefix s then
-          @{const True} (* ignore TPTP type information *)
+          @{const True} (* ignore TPTP type information (needed?) *)
         else if s = tptp_equal then
           list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}),
             map (do_term [] NONE) us)
@@ -619,10 +622,6 @@ fun termify_atp_proof ctxt local_prover format type_enc pool lifted sym_tab =
   #> map_filter (termify_line ctxt format type_enc lifted sym_tab)
   #> map_proof_terms (infer_formulas_types ctxt #> map HOLogic.mk_Trueprop)
   #> local_prover = waldmeisterN ? repair_waldmeister_endgame
-
-fun take_distinct_vars seen ((t as Var _) :: ts) =
-    if member (op aconv) seen t then rev seen else take_distinct_vars (t :: seen) ts
-  | take_distinct_vars seen _ = rev seen
 
 fun unskolemize_term skos =
   let

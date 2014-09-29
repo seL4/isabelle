@@ -348,17 +348,22 @@ fun parse_type x =
    >> AType) x
 and parse_types x = (parse_type ::: Scan.repeat ($$ "," |-- parse_type)) x
 
-(* We currently ignore TFF and THF types. *)
-fun parse_type_signature x = Scan.repeat (($$ tptp_has_type || $$ tptp_fun_type) |-- parse_arg) x
+(* We currently half ignore types. *)
+fun parse_optional_type_signature x =
+  Scan.option ($$ tptp_has_type |-- parse_type) x
 and parse_arg x =
-  ($$ "(" |-- parse_term --| $$ ")" --| parse_type_signature
-   || scan_general_id --| parse_type_signature
+  ($$ "(" |-- parse_term --| $$ ")" --| parse_optional_type_signature
+   || scan_general_id -- parse_optional_type_signature
        -- Scan.optional ($$ "<" |-- parse_types --| $$ ">") []
        -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
-     >> ATerm) x
+     >> (fn (((s, ty_opt), tyargs), args) =>
+       if is_tptp_variable s andalso null tyargs andalso null args andalso is_some ty_opt then
+         ATerm ((s, the_list ty_opt), [])
+       else
+         ATerm ((s, tyargs), args))) x
 and parse_term x =
   (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg)
-   --| Scan.option parse_type_signature >> list_app) x
+   --| parse_optional_type_signature >> list_app) x
 and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
 fun parse_atom x =

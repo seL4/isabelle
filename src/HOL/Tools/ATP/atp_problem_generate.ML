@@ -104,6 +104,7 @@ sig
   val mk_aconns :
     atp_connective -> ('a, 'b, 'c, 'd) atp_formula list
     -> ('a, 'b, 'c, 'd) atp_formula
+  val unmangled_type : string -> (string, 'a) ATP_Problem.atp_term
   val unmangled_const : string -> string * (string, 'b) atp_term list
   val unmangled_const_name : string -> string list
   val helper_table : ((string * bool) * (status * thm) list) list
