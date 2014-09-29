@@ -240,10 +240,14 @@ fun rationalize_obtains_in_isar_proofs ctxt =
         in
           (Prove (qs, xs', l, t', subs', facts, meths, comment), subst_ctxt')
         end
-    and rationalize_proof outer subst_ctxt (Proof (fix, assms, steps)) =
+    and rationalize_proof outer (subst_ctxt as (subst, ctxt)) (Proof (fix, assms, steps)) =
       let
         val (fix', subst_ctxt' as (subst', _)) =
-          if outer then (fix, subst_ctxt) else rename_obtains fix subst_ctxt
+          if outer then
+            (* last call: eliminate any remaining skolem names (from SMT proofs) *)
+            (fix, (subst @ map (fn x => (Free (apfst Name.skolem x), Free x)) fix, ctxt))
+          else
+            rename_obtains fix subst_ctxt
       in
         Proof (fix', map (apsnd (subst_atomic subst')) assms,
           fst (fold_map rationalize_step steps subst_ctxt'))
