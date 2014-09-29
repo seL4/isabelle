@@ -131,8 +131,6 @@ and succedent_of_case (c, []) = c
   | succedent_of_case (_, infs) = succedent_of_inference (List.last infs)
 and succedent_of_cases cases = disj (map succedent_of_case cases)
 
-fun s_cases cases = [Cases cases]
-
 fun descendants direct_graph = these o try (Atom_Graph.all_succs direct_graph) o single
 
 fun zones_of 0 _ = []
@@ -167,9 +165,8 @@ fun redirect_graph axioms tainted bot refute_graph =
           val subseqss = map (subsequents seqs) zones
           val seqs = fold (subtract direct_sequent_eq) subseqss seqs
           val cases = map2 (fn l => fn subseqs => ([l], redirect [l] proved subseqs)) c subseqss
-          val cases' = filter_out (null o snd) cases
         in
-          s_cases cases' @ redirect (succedent_of_cases cases) proved seqs
+          Cases cases :: redirect (succedent_of_cases cases) proved seqs
         end
   in
     redirect [] axioms seqs
