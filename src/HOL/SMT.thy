@@ -9,6 +9,34 @@ imports Divides
 keywords "smt_status" :: diag
 begin
 
+subsection {* A skolemization tactic and proof method *}
+
+lemma choices:
+  "\<And>Q. \<forall>x. \<exists>y ya. Q x y ya \<Longrightarrow> \<exists>f fa. \<forall>x. Q x (f x) (fa x)"
+  "\<And>Q. \<forall>x. \<exists>y ya yb. Q x y ya yb \<Longrightarrow> \<exists>f fa fb. \<forall>x. Q x (f x) (fa x) (fb x)"
+  "\<And>Q. \<forall>x. \<exists>y ya yb yc. Q x y ya yb yc \<Longrightarrow> \<exists>f fa fb fc. \<forall>x. Q x (f x) (fa x) (fb x) (fc x)"
+  by metis+
+
+lemma bchoices:
+  "\<And>Q. \<forall>x \<in> S. \<exists>y ya. Q x y ya \<Longrightarrow> \<exists>f fa. \<forall>x \<in> S. Q x (f x) (fa x)"
+  "\<And>Q. \<forall>x \<in> S. \<exists>y ya yb. Q x y ya yb \<Longrightarrow> \<exists>f fa fb. \<forall>x \<in> S. Q x (f x) (fa x) (fb x)"
+  "\<And>Q. \<forall>x \<in> S. \<exists>y ya yb yc. Q x y ya yb yc \<Longrightarrow> \<exists>f fa fb fc. \<forall>x \<in> S. Q x (f x) (fa x) (fb x) (fc x)"
+  by metis+
+
+ML {*
+fun moura_tac ctxt =
+  Atomize_Elim.atomize_elim_tac ctxt THEN'
+  SELECT_GOAL (Clasimp.auto_tac (ctxt addSIs @{thms choice choices bchoice bchoices}) THEN
+    ALLGOALS (blast_tac ctxt));
+*}
+
+method_setup moura = {*
+ Scan.succeed (SIMPLE_METHOD' o moura_tac)
+*} "solve skolemization goals, especially those arising from Z3 proofs"
+
+hide_fact (open) choices bchoices
+
+
 subsection {* Triggers for quantifier instantiation *}
 
 text {*

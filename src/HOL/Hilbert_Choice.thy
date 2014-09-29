@@ -111,19 +111,6 @@ proof (intro exI allI conjI)
 qed
 
 
-subsection {* A skolemization tactic and proof method *}
-
-ML {*
-fun moura_tac ctxt =
-  Atomize_Elim.atomize_elim_tac ctxt THEN'
-  SELECT_GOAL (Clasimp.auto_tac (ctxt addSIs @{thms choice bchoice}) THEN ALLGOALS (blast_tac ctxt));
-*}
-
-method_setup moura = {*
- Scan.succeed (SIMPLE_METHOD' o moura_tac)
-*} "solve skolemization goals, especially those arising from Z3 proofs"
-
-
 subsection {*Function Inverse*}
 
 lemma inv_def: "inv f = (%y. SOME x. f x = y)"
