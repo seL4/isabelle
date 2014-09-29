@@ -20,6 +20,7 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
+open SMTLIB_Interface
 open SMTLIB_Isar
 open VeriT_Proof
 
@@ -32,9 +33,12 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
         fun standard_step role = ((id, []), role, concl', rule, map (rpair []) prems)
       in
         if rule = veriT_input_rule then
-          let val ss = the_list (AList.lookup (op =) fact_helper_ids (the (Int.fromString id))) in
-            (case distinguish_conjecture_and_hypothesis ss (the (Int.fromString id))
-                conjecture_id prem_ids fact_helper_ts hyp_ts concl_t of
+          let
+            val id_num = the (Int.fromString (unprefix assert_prefix id))
+            val ss = the_list (AList.lookup (op =) fact_helper_ids id_num)
+          in
+            (case distinguish_conjecture_and_hypothesis ss id_num conjecture_id prem_ids
+                fact_helper_ts hyp_ts concl_t of
               NONE => []
             | SOME (role0, concl00) =>
               let

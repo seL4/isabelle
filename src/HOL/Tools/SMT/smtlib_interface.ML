@@ -10,6 +10,7 @@ sig
   val smtlibC: SMT_Util.class
   val add_logic: int * (term list -> string option) -> Context.generic -> Context.generic
   val translate_config: Proof.context -> SMT_Translate.config
+  val assert_name_of_index: int -> string
   val assert_index_of_name: string -> int
   val assert_prefix : string
 end;

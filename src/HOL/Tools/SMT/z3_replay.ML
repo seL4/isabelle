@@ -186,17 +186,19 @@ fun parse_proof outer_ctxt
 
     val conjecture_id = id_of_index conjecture_i
     val prem_ids = map id_of_index (prems_i upto facts_i - 1)
-    val helper_ids = map_filter (try (fn (~1, idth) => idth)) iidths
-    val fact_ids = map_filter (fn (i, (id, _)) => try (apsnd (nth xfacts)) (id, i - facts_i)) iidths
+    val fact_ids' =
+      map_filter (fn (i, (id, _)) => try (apsnd (nth xfacts)) (id, i - facts_i)) iidths
+    val helper_ids' = map_filter (try (fn (~1, idth) => idth)) iidths
+
     val fact_helper_ts =
-      map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, prop_of th)) helper_ids @
-      map (fn (_, ((s, _), th)) => (s, prop_of th)) fact_ids
-    val fact_helper_ids =
-      map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids @ map (apsnd (fst o fst)) fact_ids
+      map (fn (_, th) => (ATP_Util.short_thm_name ctxt th, prop_of th)) helper_ids' @
+      map (fn (_, ((s, _), th)) => (s, prop_of th)) fact_ids'
+    val fact_helper_ids' =
+      map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids' @ map (apsnd (fst o fst)) fact_ids'
   in
-    {outcome = NONE, fact_ids = fact_ids,
+    {outcome = NONE, fact_ids = fact_ids',
      atp_proof = fn () => Z3_Isar.atp_proof_of_z3_proof ctxt ll_defs rewrite_rules prems concl
-       fact_helper_ts prem_ids conjecture_id fact_helper_ids steps}
+       fact_helper_ts prem_ids conjecture_id fact_helper_ids' steps}
   end
 
 fun replay outer_ctxt
