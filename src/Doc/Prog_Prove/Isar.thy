@@ -546,7 +546,7 @@ clearly and avoids new names.
 
 Sometimes one would like to prove some lemma locally within a proof,
 a lemma that shares the current context of assumptions but that
-has its own assumptions and is generalized over its locally fixed
+has its own assumptions and is generalised over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
 \begin{quote}\index{$IMP053@@{text"{ ... }"} (proof block)}
 @{text"{"} \isacom{fix} @{text"x\<^sub>1 \<dots> x\<^sub>n"}\\
@@ -1031,7 +1031,7 @@ new variables @{text x}, @{text y}, @{text z} and reformulating the goal like th
 \isacom{lemma} @{text[source]"I x y z \<Longrightarrow> x = r \<Longrightarrow> y = s \<Longrightarrow> z = t \<Longrightarrow> \<dots>"}
 \end{isabelle}
 Standard rule induction will work fine now, provided the free variables in
-@{text r}, @{text s}, @{text t} are generalized via @{text"arbitrary"}.
+@{text r}, @{text s}, @{text t} are generalised via @{text"arbitrary"}.
 
 However, induction can do the above transformation for us, behind the curtains, so we never
 need to see the expanded version of the lemma. This is what we need to write:
