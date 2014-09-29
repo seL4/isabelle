@@ -23,6 +23,7 @@ val max_relevantK = "max_relevant" (*=NUM: max. relevant clauses to use*)
 val max_callsK = "max_calls" (*=NUM: max. no. of calls to sledgehammer*)
 val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstructed proof*)
 val isar_proofsK = "isar_proofs" (*: enable Isar proof generation*)
+val smt_proofsK = "smt_proofs" (*: enable SMT proof generation*)
 val minimizeK = "minimize" (*: instruct sledgehammer to run its minimizer*)
 
 val check_trivialK = "check_trivial" (*: check if goals are "trivial" (false by default)*)
@@ -316,7 +317,7 @@ fun get_prover ctxt name params goal all_facts =
 
 type stature = ATP_Problem_Generate.stature
 
-fun good_line s =
+fun is_good_line s =
   (String.isSubstring " ms)" s orelse String.isSubstring " s)" s)
   andalso not (String.isSubstring "(> " s)
   andalso not (String.isSubstring ", > " s)
@@ -325,9 +326,16 @@ fun good_line s =
 (* Fragile hack *)
 fun proof_method_from_msg args msg =
   (case AList.lookup (op =) args proof_methodK of
-    SOME name => name
+    SOME name =>
+    if name = "smart" then
+      if exists is_good_line (split_lines msg) then
+        "none"
+      else
+        "fail"
+    else
+      name
   | NONE =>
-    if exists good_line (split_lines msg) then
+    if exists is_good_line (split_lines msg) then
       "none" (* trust the preplayed proof *)
     else if String.isSubstring "metis (" msg then
       msg |> Substring.full
@@ -349,8 +357,8 @@ datatype sh_result =
 
 fun run_sh prover_name fact_filter type_enc strict max_facts slice
       lam_trans uncurried_aliases e_selection_heuristic term_order force_sos
-      hard_timeout timeout preplay_timeout isar_proofsLST minimizeLST
-      max_new_mono_instancesLST max_mono_itersLST dir pos st =
+      hard_timeout timeout preplay_timeout isar_proofsLST smt_proofsLST
+      minimizeLST max_new_mono_instancesLST max_mono_itersLST dir pos st =
   let
     val thy = Proof.theory_of st
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
@@ -375,7 +383,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                   force_sos |> the_default I))
     val params as {max_facts, minimize, preplay_timeout, ...} =
       Sledgehammer_Commands.default_params thy
-         ([("verbose", "true"),
+         ([(* ("verbose", "true"), *)
            ("fact_filter", fact_filter),
            ("type_enc", type_enc),
            ("strict", strict),
@@ -386,6 +394,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
            ("timeout", string_of_int timeout),
            ("preplay_timeout", preplay_timeout)]
           |> isar_proofsLST
+          |> smt_proofsLST
           |> minimizeLST (*don't confuse the two minimization flags*)
           |> max_new_mono_instancesLST
           |> max_mono_itersLST)
@@ -471,6 +480,7 @@ fun run_sledgehammer trivial args proof_method named_thms id
     val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
       |> the_default preplay_timeout_default
     val isar_proofsLST = available_parameter args isar_proofsK "isar_proofs"
+    val smt_proofsLST = available_parameter args smt_proofsK "smt_proofs"
     val minimizeLST = available_parameter args minimizeK "minimize"
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
@@ -479,8 +489,8 @@ fun run_sledgehammer trivial args proof_method named_thms id
     val (msg, result) =
       run_sh prover_name fact_filter type_enc strict max_facts slice lam_trans
         uncurried_aliases e_selection_heuristic term_order force_sos
-        hard_timeout timeout preplay_timeout isar_proofsLST minimizeLST
-        max_new_mono_instancesLST max_mono_itersLST dir pos st
+        hard_timeout timeout preplay_timeout isar_proofsLST smt_proofsLST
+        minimizeLST max_new_mono_instancesLST max_mono_itersLST dir pos st
   in
     (case result of
       SH_OK (time_isa, time_prover, names) =>
@@ -559,8 +569,12 @@ fun run_proof_method trivial full name meth named_thms id
           in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
         else if !meth = "metis" then
           Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
-        else
+        else if !meth = "none" then
           K all_tac
+        else if !meth = "fail" then
+          K no_tac
+        else
+          (warning ("Unknown method " ^ quote (!meth)); K no_tac)
       end
     fun apply_method named_thms =
       Mirabelle.can_apply timeout (do_method named_thms) st
