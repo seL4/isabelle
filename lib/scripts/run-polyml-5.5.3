@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# :mode=shellscript:
+#
+# Author: Makarius
+#
+# Startup script for Poly/ML 5.5.3.
+
+export -n INFILE OUTFILE MLTEXT TERMINATE NOWRITE
+
+
+## diagnostics
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function fail_out()
+{
+  fail "Unable to create output heap file: \"$OUTFILE\""
+}
+
+function check_file()
+{
+  [ ! -f "$1" ] && fail "Unable to locate \"$1\""
+}
+
+
+## compiler executables and libraries
+
+[ -z "$ML_HOME" ] && fail "Missing ML installation (ML_HOME)"
+
+POLY="$ML_HOME/poly"
+check_file "$POLY"
+
+librarypath "$ML_HOME"
+
+
+
+## prepare databases
+
+if [ -z "$INFILE" ]; then
+  INIT=""
+  EXIT="fun exit rc = Posix.Process.exit (Word8.fromInt rc);"
+else
+  check_file "$INFILE"
+  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); Posix.Process.exit 0w1));"
+  EXIT=""
+fi
+
+if [ -z "$OUTFILE" ]; then
+  COMMIT='fun commit () = false;'
+  MLEXIT=""
+else
+  if [ -z "$INFILE" ]; then
+    COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $OUTFILE\\n\"); Posix.Process.exit 0w1);"
+  else
+    COMMIT="fun commit () = (ML_System.share_common_data (); ML_System.save_state \"$OUTFILE\");"
+  fi
+  [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
+  MLEXIT="commit();"
+fi
+
+
+## run it!
+
+MLTEXT="$INIT $EXIT $COMMIT $MLTEXT"
+
+if [ -n "$TERMINATE" -a -z "$MLEXIT" ]; then
+  "$POLY" -q -i $ML_OPTIONS --eval "$(perl "$ISABELLE_HOME/lib/scripts/recode.pl" "$MLTEXT")" \
+    --error-exit </dev/null
+  RC="$?"
+else
+  if [ -z "$TERMINATE" ]; then
+    FEEDER_OPTS=""
+  else
+    FEEDER_OPTS="-q"
+    ML_OPTIONS="$ML_OPTIONS --error-exit"
+  fi
+  "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+    { read FPID; "$POLY" -q -i $ML_OPTIONS; RC="$?"; kill -TERM "$FPID"; exit "$RC"; }
+  RC="$?"
+fi
+
+[ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
+
+exit "$RC"
+
+#:wrap=soft:maxLineLen=100:
