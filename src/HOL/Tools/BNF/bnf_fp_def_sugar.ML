@@ -1124,8 +1124,8 @@ fun define_corec (_, cs, cpss, (((pgss, _, _, _), cqgsss), f_absTs)) mk_binding 
 fun postproc_co_induct lthy nn prop prop_conj =
   Drule.zero_var_indexes
   #> `(conj_dests nn)
-  #>> map (fn thm => Thm.permute_prems 0 (~1) (thm RS prop))
-  ##> (fn thm => Thm.permute_prems 0 (~nn)
+  #>> map (fn thm => Thm.permute_prems 0 ~1 (thm RS prop))
+  ##> (fn thm => Thm.permute_prems 0 (~ nn)
     (if nn = 1 then thm RS prop
      else funpow nn (fn thm => unfold_thms lthy @{thms conj_assoc} (thm RS prop_conj)) thm));
 
@@ -1524,12 +1524,9 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
       end
     val consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
   in
-    map (fn Asets =>
-      let
-        fun massage_thm thm = rotate_prems (~1) (thm RS bspec);
-      in
-        mk_thm lthy fpTs ctrss Asets |> nn = 1 ? map_prod massage_thm (cons consumes_attr)
-      end) (transpose setss)
+    map (mk_thm lthy fpTs ctrss
+        #> nn = 1 ? map_prod (fn thm => rotate_prems ~1 (thm RS bspec)) (cons consumes_attr))
+      (transpose setss)
   end;
 
 fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, _), cqgsss), _))
