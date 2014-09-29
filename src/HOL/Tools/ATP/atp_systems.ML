@@ -461,7 +461,7 @@ val spass_config : atp_config =
   {exec = K (["SPASS_NEW_HOME", "SPASS_HOME"], ["SPASS"]),
    arguments = fn _ => fn full_proofs => fn extra_options => fn timeout =>
        fn file_name => fn _ =>
-       "-Isabelle=1 " ^ (if full_proofs then "-Splits=0 " else "") ^
+       "-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
        "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
        |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
