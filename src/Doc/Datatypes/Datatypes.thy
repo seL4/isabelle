@@ -900,9 +900,8 @@ Section~\ref{ssec:code-generator}.)
 @{thm list.rel_intros(1)[no_vars]} \\
 @{thm list.rel_intros(2)[no_vars]}
 
-% FIXME (and add @ before antiquotation below)
-%\item[@{text "t."}\hthm{rel_cases} @{text "[consumes 1, case_names t\<^sub>1 \<dots> t\<^sub>m, cases pred]"}\rm:] ~ \\
-%{thm list.rel_cases[no_vars]}
+\item[@{text "t."}\hthm{rel_cases} @{text "[consumes 1, case_names t\<^sub>1 \<dots> t\<^sub>m, cases pred]"}\rm:] ~ \\
+@{thm list.rel_cases[no_vars]}
 
 \item[@{text "t."}\hthm{rel_sel}\rm:] ~ \\
 @{thm list.rel_sel[no_vars]}
