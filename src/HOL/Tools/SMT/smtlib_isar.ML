@@ -11,7 +11,7 @@ sig
   val postprocess_step_conclusion: Proof.context -> thm list -> term list -> term -> term
   val normalizing_prems : Proof.context -> term -> (string * string list) list
   val distinguish_conjecture_and_hypothesis : ''a list -> ''b -> ''b -> ''b list ->
-    (''a * 'c) list -> 'c list -> 'c -> (ATP_Problem.atp_formula_role * 'c) option
+    (''a * term) list -> term list -> term -> (ATP_Problem.atp_formula_role * term) option
   val unskolemize_names: Proof.context -> term -> term
 end;
 
@@ -70,6 +70,6 @@ fun distinguish_conjecture_and_hypothesis ss id conjecture_id prem_ids fact_help
     else
      (case find_index (curry (op =) id) prem_ids of
        ~1 => NONE (* lambda-lifting definition *)
-     | i => SOME (Hypothesis, nth hyp_ts i)))
+     | i => SOME (Hypothesis, close_form (nth hyp_ts i))))
 
 end;

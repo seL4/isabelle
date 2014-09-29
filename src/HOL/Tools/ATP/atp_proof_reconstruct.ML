@@ -757,7 +757,8 @@ fun factify_atp_proof facts hyp_ts concl_t atp_proof =
         val (ss', role', t') =
           (case resolve_conjectures ss of
             [j] =>
-            if j = length hyp_ts then ([], Conjecture, concl_t) else ([], Hypothesis, nth hyp_ts j)
+            if j = length hyp_ts then ([], Conjecture, concl_t)
+            else ([], Hypothesis, close_form (nth hyp_ts j))
           | _ =>
             (case resolve_facts facts ss of
               [] => (ss, if role = Lemma then Lemma else Plain, t)
