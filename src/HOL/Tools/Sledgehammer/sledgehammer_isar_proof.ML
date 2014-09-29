@@ -236,15 +236,20 @@ fun rationalize_obtains_in_isar_proofs ctxt =
         let
           val (xs', subst_ctxt' as (subst', _)) = rename_obtains xs subst_ctxt
           val t' = subst_atomic subst' t
-          val subs' = map (rationalize_proof subst_ctxt') subs
+          val subs' = map (rationalize_proof false subst_ctxt') subs
         in
           (Prove (qs, xs', l, t', subs', facts, meths, comment), subst_ctxt')
         end
-    and rationalize_proof (subst_ctxt as (subst, _)) (Proof (fix, assms, steps)) =
-      Proof (fix, map (apsnd (subst_atomic subst)) assms,
-        fst (fold_map rationalize_step steps subst_ctxt))
+    and rationalize_proof outer subst_ctxt (Proof (fix, assms, steps)) =
+      let
+        val (fix', subst_ctxt' as (subst', _)) =
+          if outer then (fix, subst_ctxt) else rename_obtains fix subst_ctxt
+      in
+        Proof (fix', map (apsnd (subst_atomic subst')) assms,
+          fst (fold_map rationalize_step steps subst_ctxt'))
+      end
   in
-    rationalize_proof ([], ctxt)
+    rationalize_proof true ([], ctxt)
   end
 
 val thesis_var = ((Auto_Bind.thesisN, 0), HOLogic.boolT)
