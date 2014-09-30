@@ -536,7 +536,7 @@ val vampire_config : atp_config =
    best_slices = fn ctxt =>
      (* FUDGE *)
      (if is_vampire_beyond_1_8 () then
-        [(0.333, (((500, meshN), vampire_tff0, "mono_guards??", combs_or_liftingN, false), sosN)),
+        [(0.333, (((500, meshN), vampire_tff0, "mono_native", combs_or_liftingN, false), sosN)),
          (0.333, (((150, meshN), vampire_tff0, "poly_tags??", combs_or_liftingN, false), sosN)),
          (0.334, (((50, meshN), vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN))]
       else
