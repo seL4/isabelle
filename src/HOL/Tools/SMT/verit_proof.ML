@@ -113,7 +113,6 @@ fun update_step_and_cx (node as VeriT_Node {id, rule, prems, concl, bounds}) cx 
   else
     (node, cx)
 
-(*FIXME: using a reference would be better to know the numbers of the steps to add*)
 fun fix_subproof_steps ((((id_of_father_step, rule), prems), subproof), ((step_concl, bounds),
     cx)) =
   let
@@ -121,13 +120,8 @@ fun fix_subproof_steps ((((id_of_father_step, rule), prems), subproof), ((step_c
       concl |> fastype_of concl = @{typ bool} ? curry (op $) @{term Trueprop}
     fun inline_assumption assumption assumption_id
         (node as VeriT_Node {id, rule, prems, concl, bounds}) =
-      if List.find (curry (op =) assumption_id) prems <> NONE then
-        let val prems' = filter_out (curry (op =) assumption_id) prems in
-          mk_node id rule (filter_out (curry (op =) assumption_id) prems')
-            (@{const Pure.imp} $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
-        end
-      else
-        node
+      mk_node id rule (filter_out (curry (op =) assumption_id) prems)
+        (@{const Pure.imp} $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
     fun find_input_steps_and_inline [] last_step = ([], last_step)
       | find_input_steps_and_inline (VeriT_Node {id = id', rule, prems, concl, bounds} :: steps)
           last_step =
