@@ -23,34 +23,45 @@ open ATP_Proof_Reconstruct
 open VeriT_Isar
 open VeriT_Proof
 
-fun add_used_assms_in_step (VeriT_Proof.VeriT_Step {prems, ...}) =
+fun add_used_asserts_in_step (VeriT_Proof.VeriT_Step {prems, ...}) =
   union (op =) (map_filter (try SMTLIB_Interface.assert_index_of_name) prems)
-
-fun step_of_assm (i, th) =
-  VeriT_Proof.VeriT_Step {id = SMTLIB_Interface.assert_name_of_index i, rule = veriT_input_rule,
-    prems = [], concl = prop_of th, fixes = []}
 
 fun parse_proof
     ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
     xfacts prems concl output =
   let
+    val num_ll_defs = length ll_defs
+
+    val id_of_index = Integer.add num_ll_defs
+    val index_of_id = Integer.add (~ num_ll_defs)
+
+    fun step_of_assume j (_, th) =
+      VeriT_Proof.VeriT_Step {id = SMTLIB_Interface.assert_name_of_index (id_of_index j),
+        rule = veriT_input_rule, prems = [], concl = prop_of th, fixes = []}
+
     val (actual_steps, _) = VeriT_Proof.parse typs terms output ctxt
-    val used_assm_ids = fold add_used_assms_in_step actual_steps []
-    val used_assms = filter (member (op =) used_assm_ids o fst) assms
-    val assm_steps = map step_of_assm used_assms
+    val used_assert_ids = fold add_used_asserts_in_step actual_steps []
+    val used_assm_js =
+      map_filter (fn id => let val i = index_of_id id in if i >= 0 then SOME i else NONE end)
+        used_assert_ids
+    val used_assms = map (nth assms) used_assm_js
+    val assm_steps = map2 step_of_assume used_assm_js used_assms
     val steps = assm_steps @ actual_steps
 
-    val conjecture_i = length ll_defs
+    val conjecture_i = 0
     val prems_i = conjecture_i + 1
     val num_prems = length prems
     val facts_i = prems_i + num_prems
     val num_facts = length xfacts
     val helpers_i = facts_i + num_facts
 
-    val conjecture_id = conjecture_i
-    val prem_ids = prems_i upto prems_i + num_prems - 1
-    val fact_ids = facts_i upto facts_i + num_facts - 1
-    val fact_ids' = map (fn i => (i, nth xfacts (i - facts_i))) fact_ids
+    val conjecture_id = id_of_index conjecture_i
+    val prem_ids = map id_of_index (prems_i upto prems_i + num_prems - 1)
+    val fact_ids' =
+      map_filter (fn j =>
+        let val (i, _) = nth assms j in
+          try (apsnd (nth xfacts)) (id_of_index j, i - facts_i)
+        end) used_assm_js
     val helper_ids' = filter (fn (i, _) => i >= helpers_i) used_assms
 
     val fact_helper_ts =

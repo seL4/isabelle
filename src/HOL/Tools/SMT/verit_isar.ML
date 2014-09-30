@@ -25,7 +25,7 @@ open SMTLIB_Isar
 open VeriT_Proof
 
 fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids
-    conjecture_id fact_helper_ids proof =
+    conjecture_id fact_helper_ids =
   let
     fun steps_of (VeriT_Proof.VeriT_Step {id, rule, prems, concl, ...}) =
       let
@@ -56,7 +56,7 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
           [standard_step Plain]
       end
   in
-    maps steps_of proof
+    maps steps_of
   end
 
 end;
