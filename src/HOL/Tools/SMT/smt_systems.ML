@@ -109,7 +109,7 @@ val veriT: SMT_Solver.solver_config = {
     "--disable-banner",
     "--max-time=" ^ string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]),
   smt_options = [],
-  default_max_relevant = 120 (* FUDGE *),
+  default_max_relevant = 200 (* FUDGE *),
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat"
     "warning : proof_done: status is still open"),
   parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
