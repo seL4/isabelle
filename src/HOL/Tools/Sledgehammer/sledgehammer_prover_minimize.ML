@@ -228,7 +228,7 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
     ({state, goal, subgoal, subgoal_count, ...} : prover_problem)
     (result as {outcome, used_facts, used_from, preferred_methss, run_time, message}
      : prover_result) =
-  if is_some outcome orelse null used_facts then
+  if is_some outcome then
     result
   else
     let
