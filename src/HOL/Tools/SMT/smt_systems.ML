@@ -112,7 +112,7 @@ val veriT: SMT_Solver.solver_config = {
   default_max_relevant = 120 (* FUDGE *),
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat"
     "warning : proof_done: status is still open"),
-  parse_proof = SOME VeriT_Proof_Parse.parse_proof,
+  parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
   replay = NONE }
 
 (* Z3 *)

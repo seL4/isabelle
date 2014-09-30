@@ -8,7 +8,7 @@ VeriT proof parsing.
 signature VERIT_PROOF_PARSE =
 sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
-  val parse_proof: Proof.context -> SMT_Translate.replay_data ->
+  val parse_proof: SMT_Translate.replay_data ->
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
     SMT_Solver.parsed_proof
 end;
@@ -30,7 +30,7 @@ fun step_of_assm (i, th) =
   VeriT_Proof.VeriT_Step {id = SMTLIB_Interface.assert_name_of_index i, rule = veriT_input_rule,
     prems = [], concl = prop_of th, fixes = []}
 
-fun parse_proof _
+fun parse_proof
     ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
     xfacts prems concl output =
   let
