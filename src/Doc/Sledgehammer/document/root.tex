@@ -107,11 +107,12 @@ The supported ATPs are AgsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 \cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF \cite{tofof}, iProver
 \cite{korovin-2009}, iProver-Eq \cite{korovin-sticksel-2010}, LEO-II
 \cite{leo2}, Satallax \cite{satallax}, SNARK \cite{snark}, SPASS
-\cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002}, and
-Waldmeister \cite{waldmeister}. The ATPs are run either locally or remotely via
-the System\-On\-TPTP web service \cite{sutcliffe-2000}. The supported SMT
-solvers are CVC3 \cite{cvc3}, CVC4 \cite{cvc4}, and Z3 \cite{z3}. These are
-always run locally.
+\cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002},
+Waldmeister \cite{waldmeister}, and Zipperposition \cite{cruanes-2014}.
+The ATPs are run either locally or remotely via the System\-On\-TPTP web service
+\cite{sutcliffe-2000}. The supported SMT solvers are CVC3 \cite{cvc3}, CVC4
+\cite{cvc4}, veriT \cite{bouton-et-al-2009}, and Z3 \cite{z3}. These are always
+run locally.
 
 The problem passed to the external provers (or solvers) consists of your current
 goal together with a heuristic selection of hundreds of facts (theorems) from the
@@ -152,12 +153,11 @@ directed to the author at \authoremail.
 Sledgehammer is part of Isabelle, so you do not need to install it. However, it
 relies on third-party automatic provers (ATPs and SMT solvers).
 
-Among the ATPs, AgsyHOL, Alt-Ergo, E, LEO-II, Satallax, SPASS, and Vampire can
-be run locally; in addition, AgsyHOL, E, E-SInE, E-ToFoF, iProver, iProver-Eq,
-LEO-II, Satallax, SNARK, Vampire, and Waldmeister are available remotely via
-System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
-should at least install E and SPASS locally. The SMT solvers CVC3, CVC4, and Z3
-can be run locally.
+Among the ATPs, AgsyHOL, Alt-Ergo, E, LEO-II, Satallax, SPASS, Vampire, and
+Zipperposition can be run locally; in addition, AgsyHOL, E, E-SInE, E-ToFoF,
+iProver, iProver-Eq, LEO-II, Satallax, SNARK, Vampire, and Waldmeister are
+available remotely via System\-On\-TPTP \cite{sutcliffe-2000}. The SMT solvers
+CVC3, CVC4, veriT, and Z3 can be run locally.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -212,16 +212,15 @@ you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{SATALLAX\_VERSION}, \texttt{SPASS\_VERSION}, or
 \texttt{VAMPIRE\_VERSION} to the prover's version number (e.g., ``3.0'').
 
-Similarly, if you want to build CVC3 or CVC4, or found a
-Z3 executable somewhere (e.g., \url{http://z3.codeplex.com/}),
-set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
-\texttt{CVC4\_\allowbreak SOLVER}, or \texttt{Z3\_SOLVER} to the complete path
+Similarly, if you want to install CVC3, CVC4, veriT, or Z3, set the environment
+variable \texttt{CVC3\_\allowbreak SOLVER}, \texttt{CVC4\_\allowbreak SOLVER},
+\texttt{VERIT\_\allowbreak SOLVER}, or \texttt{Z3\_SOLVER} to the complete path
 of the executable, \emph{including the file name}. Sledgehammer has been tested
-with CVC3 2.2 and 2.4.1, CVC4 1.2, and Z3 4.3.2. Since Z3's output format is
-somewhat unstable, other versions of the solver might not work well with
-Sledgehammer. Ideally, also set
-\texttt{CVC3\_VERSION}, \texttt{CVC4\_VERSION}, or \texttt{Z3\_NEW\_VERSION} to
-the solver's version number (e.g., ``4.3.2'').
+with CVC3 2.2 and 2.4.1, CVC4 1.2, veriT smtcomp2014, and Z3 4.3.2. Since Z3's
+output format is somewhat unstable, other versions of the solver might not work
+well with Sledgehammer. Ideally, also set
+\texttt{CVC3\_VERSION}, \texttt{CVC4\_VERSION}, \texttt{VERIT\_VERSION}, or
+\texttt{Z3\_NEW\_VERSION} to the solver's version number (e.g., ``4.3.2'').
 \end{enum}
 \end{sloppy}
 
@@ -858,6 +857,13 @@ executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g.,
 ``3.0''). Sledgehammer has been tested with versions 0.6 to 3.0.
 Versions strictly above 1.8 support the TPTP typed first-order format (TFF0).
 
+\item[\labelitemi] \textbf{\textit{veriT}:} veriT \cite{bouton-et-al-2009} is an
+SMT solver developed by David Déharbe, Pascal Fontaine, and their colleagues.
+It is specifically designed to produce detailed proofs for reconstruction in
+proof assistants. To use veriT, set the environment variable
+\texttt{VERIT\_SOLVER} to the complete path of the executable, including the
+file name. Sledgehammer has been tested with version smtcomp2014.
+
 \item[\labelitemi] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
 Microsoft Research \cite{z3}. To use Z3, set the environment variable
 \texttt{Z3\_NEW\_SOLVER} to the complete path of the executable, including the file
@@ -874,6 +880,12 @@ formats (FOF and TFF0). It is included for experimental purposes. It requires
 version 4.3.1 of Z3 or above. To use it, set the environment variable
 \texttt{Z3\_TPTP\_HOME} to the directory that contains the \texttt{z3\_tptp}
 executable.
+
+\item[\labelitemi] \textbf{\textit{zipperposition}:} Zipperposition
+\cite{cruanes-2014} is an experimental first-order resolution prover developed
+by Simon Cruane. To use Zipperposition, set the environment variable
+\texttt{ZIPPERPOSITION\_HOME} to the directory that contains the
+\texttt{zipperposition} executable.
 \end{enum}
 
 \end{sloppy}
