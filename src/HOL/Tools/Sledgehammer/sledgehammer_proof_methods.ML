@@ -80,6 +80,9 @@ fun is_proof_method_direct (Metis_Method _) = true
   | is_proof_method_direct Simp_Size_Method = true
   | is_proof_method_direct _ = false
 
+fun is_proof_method_multi_goal Auto_Method = true
+  | is_proof_method_multi_goal _ = false
+
 fun maybe_paren s = s |> not (Symbol_Pos.is_identifier s) ? enclose "(" ")"
 
 fun string_of_proof_method ctxt ss meth =
@@ -163,7 +166,8 @@ fun apply_on_subgoal _ 1 = "by "
 fun proof_method_command ctxt meth i n _(*used_chaineds*) _(*num_chained*) ss =
   let val (indirect_ss, direct_ss) = if is_proof_method_direct meth then ([], ss) else (ss, []) in
     (if null indirect_ss then "" else "using " ^ space_implode " " indirect_ss ^ " ") ^
-    apply_on_subgoal i n ^ string_of_proof_method ctxt direct_ss meth
+    apply_on_subgoal i n ^ string_of_proof_method ctxt direct_ss meth ^
+    (if is_proof_method_multi_goal meth andalso n <> 1 then "[1]" else "")
   end
 
 fun try_command_line banner play command =
