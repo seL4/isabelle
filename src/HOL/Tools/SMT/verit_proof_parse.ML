@@ -40,8 +40,8 @@ fun parse_proof _
     val assm_steps = map step_of_assm used_assms
     val steps = assm_steps @ actual_steps
 
-    val conjecture_i = 0
-    val prems_i = 1
+    val conjecture_i = length ll_defs
+    val prems_i = conjecture_i + 1
     val num_prems = length prems
     val facts_i = prems_i + num_prems
     val num_facts = length xfacts
