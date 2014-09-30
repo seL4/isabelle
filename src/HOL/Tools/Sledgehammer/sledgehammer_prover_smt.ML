@@ -196,8 +196,10 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
       (case outcome of
         NONE =>
         let
+          val smt_method = smt_proofs <> SOME false
           val preferred_methss =
-            (SMT_Method, bunches_of_proof_methods try0 (smt_proofs <> SOME false) false liftingN)
+            (if smt_method then SMT_Method else Metis_Method (NONE, NONE),
+             bunches_of_proof_methods try0 smt_method false liftingN)
         in
           (preferred_methss,
            fn preplay =>

@@ -159,7 +159,7 @@ fun proof_banner mode name =
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | _ => "Try this")
 
-fun bunches_of_proof_methods try0 smt_proofs needs_full_types desperate_lam_trans =
+fun bunches_of_proof_methods try0 smt_method needs_full_types desperate_lam_trans =
   (if try0 then
     [[Simp_Method, Auto_Method, Blast_Method, Linarith_Method],
      [Meson_Method, Fastforce_Method, Force_Method, Presburger_Method]]
@@ -175,7 +175,7 @@ fun bunches_of_proof_methods try0 smt_proofs needs_full_types desperate_lam_tran
       [Metis_Method (SOME full_typesN, NONE),
        Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
        Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)])] @
-  (if smt_proofs then [[SMT_Method]] else [])
+  (if smt_method then [[SMT_Method]] else [])
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 
