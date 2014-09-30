@@ -77,7 +77,8 @@ fun play_one_line_proof minimize timeout used_facts state i (preferred_meth, met
       val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
       val goal_t = Logic.list_implies (map prop_of chained @ hyp_ts, concl_t)
 
-      fun try_methss ress [] =
+      fun try_methss [] [] = (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
+        | try_methss ress [] =
           (used_facts,
            (case AList.lookup (op =) ress preferred_meth of
              SOME play => (preferred_meth, play)
