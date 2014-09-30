@@ -91,49 +91,43 @@ fun replace_bound_var_by_free_var (q $ Abs (var, ty, u)) free_var =
      replace_bound_var_by_free_var v free_vars
   | replace_bound_var_by_free_var u _ = u
 
-fun find_type_in_formula (Abs(v, ty, u)) var_name =
-    if String.isPrefix var_name v then SOME ty else find_type_in_formula u var_name
+fun find_type_in_formula (Abs (v, T, u)) var_name =
+    if String.isPrefix var_name v then SOME T else find_type_in_formula u var_name
   | find_type_in_formula (u $ v) var_name =
     (case find_type_in_formula u var_name of
       NONE => find_type_in_formula v var_name
-    | a => a)
+    | some_T => some_T)
   | find_type_in_formula _ _ = NONE
 
-fun add_bound_variables_to_ctxt cx bounds concl =
-    fold (fn a => fn b => update_binding a b)
-      (map (fn s => ((s, Term (Free (s, the_default dummyT (find_type_in_formula concl s))))))
-       bounds) cx
+fun add_bound_variables_to_ctxt concl =
+  fold (update_binding o
+    (fn s => (s, Term (Free (s, the_default dummyT (find_type_in_formula concl s))))))
 
-fun update_step_and_cx (st as VeriT_Node {id, rule, prems, concl, bounds}) cx =
+fun update_step_and_cx (node as VeriT_Node {id, rule, prems, concl, bounds}) cx =
   if rule = veriT_tmp_ite_elim_rule then
-    (mk_node id rule prems concl bounds, add_bound_variables_to_ctxt cx bounds concl)
+    (mk_node id rule prems concl bounds, add_bound_variables_to_ctxt concl bounds cx)
   else if rule = veriT_tmp_skolemize_rule then
-    let
-      val concl' = replace_bound_var_by_free_var concl bounds
-    in
-      (mk_node id rule prems concl' [], add_bound_variables_to_ctxt cx bounds concl)
+    let val concl' = replace_bound_var_by_free_var concl bounds in
+      (mk_node id rule prems concl' [], add_bound_variables_to_ctxt concl bounds cx)
     end
   else
-    (st, cx)
+    (node, cx)
 
-(*FIXME: using a reference would be better to know th numbers of the steps to add*)
+(*FIXME: using a reference would be better to know the numbers of the steps to add*)
 fun fix_subproof_steps ((((id_of_father_step, rule), prems), subproof), ((step_concl, bounds),
     cx)) =
   let
-    fun mk_prop_of_term concl = (fastype_of concl = @{typ "bool"} ?
-      curry (op $) @{term "Trueprop"}) concl
-    fun inline_assumption assumption assumption_id (st as VeriT_Node {id, rule, prems, concl,
-        bounds}) =
+    fun mk_prop_of_term concl =
+      concl |> fastype_of concl = @{typ bool} ? curry (op $) @{term Trueprop}
+    fun inline_assumption assumption assumption_id
+        (node as VeriT_Node {id, rule, prems, concl, bounds}) =
       if List.find (curry (op =) assumption_id) prems <> NONE then
-        let
-          val prems' = filter_out (curry (op =) assumption_id) prems
-        in
+        let val prems' = filter_out (curry (op =) assumption_id) prems in
           mk_node id rule (filter_out (curry (op =) assumption_id) prems')
-            (Const (@{const_name "Pure.imp"}, @{typ "prop"} --> @{typ "prop"} --> @{typ "prop"})
-            $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
+            (@{const Pure.imp} $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
         end
       else
-        st
+        node
     fun find_input_steps_and_inline [] last_step = ([], last_step)
       | find_input_steps_and_inline (VeriT_Node {id = id', rule, prems, concl, bounds} :: steps)
           last_step =
@@ -144,7 +138,8 @@ fun fix_subproof_steps ((((id_of_father_step, rule), prems), subproof), ((step_c
             (find_input_steps_and_inline steps (id_of_father_step ^ id'))
     val (subproof', last_step_id) = find_input_steps_and_inline subproof ""
     val prems' =
-      if last_step_id = "" then prems
+      if last_step_id = "" then
+        prems
       else
         (case prems of
           NONE => SOME [last_step_id]
@@ -179,9 +174,9 @@ fun parse_proof_step cx =
     fun make_or_from_clausification l =
       foldl1 (fn ((concl1, bounds1), (concl2, bounds2)) =>
         (HOLogic.mk_disj (perhaps (try HOLogic.dest_Trueprop) concl1,
-        perhaps (try HOLogic.dest_Trueprop) concl2), bounds1 @ bounds2)) l
-    fun to_node (((((id, rule), prems), concl), bounds), cx) = (mk_node id rule
-      (the_default [] prems) concl bounds, cx)
+         perhaps (try HOLogic.dest_Trueprop) concl2), bounds1 @ bounds2)) l
+    fun to_node (((((id, rule), prems), concl), bounds), cx) =
+      (mk_node id rule (the_default [] prems) concl bounds, cx)
   in
     get_id
     ##> parse_rule
@@ -206,23 +201,25 @@ fun parse_proof_step cx =
 unbalanced on each line*)
 fun seperate_into_steps lines =
   let
-    fun count ("(" :: l) n = count l (n+1)
-      | count (")" :: l) n = count l (n-1)
+    fun count ("(" :: l) n = count l (n + 1)
+      | count (")" :: l) n = count l (n - 1)
       | count (_ :: l) n = count l n
       | count [] n = n
     fun seperate (line :: l) actual_lines m =
         let val n = count (raw_explode line) 0 in
           if m + n = 0 then
             [actual_lines ^ line] :: seperate l "" 0
-          else seperate l (actual_lines ^ line) (m + n)
+          else
+            seperate l (actual_lines ^ line) (m + n)
         end
       | seperate [] _ 0 = []
   in
     seperate lines "" 0
   end
 
- (* VeriT adds @ before every variable. *)
-fun remove_all_at (SMTLIB.Sym v :: l) = SMTLIB.Sym (perhaps (try (unprefix "@")) v) :: remove_all_at l
+(* VeriT adds "@" before every variable. *)
+fun remove_all_at (SMTLIB.Sym v :: l) =
+    SMTLIB.Sym (perhaps (try (unprefix "@")) v) :: remove_all_at l
   | remove_all_at (SMTLIB.S l :: l') = SMTLIB.S (remove_all_at l) :: remove_all_at l'
   | remove_all_at (SMTLIB.Key v :: l) = SMTLIB.Key v :: remove_all_at l
   | remove_all_at (v :: l) = v :: remove_all_at l
@@ -235,9 +232,9 @@ fun find_in_which_step_defined var (VeriT_Node {id, bounds, ...} :: l) =
   | find_in_which_step_defined var _ = raise Fail ("undefined " ^ var)
 
 (*Yes every case is possible: the introduced var is not on a special size of the equality sign.*)
-fun find_ite_var_in_term (Const ("HOL.If", _) $ _ $
-      (Const (@{const_name "HOL.eq"}, _) $ Free (var1, _) $ Free (var2, _) ) $
-      (Const (@{const_name "HOL.eq"}, _) $ Free (var3, _) $ Free (var4, _) )) =
+fun find_ite_var_in_term (Const (@{const_name If}, _) $ _ $
+      (Const (@{const_name HOL.eq}, _) $ Free (var1, _) $ Free (var2, _) ) $
+      (Const (@{const_name HOL.eq}, _) $ Free (var3, _) $ Free (var4, _) )) =
     let
       fun get_number_of_ite_transformed_var var =
         perhaps (try (unprefix "ite")) var
@@ -261,13 +258,13 @@ fun find_ite_var_in_term (Const ("HOL.If", _) $ _ $
       | (_, SOME _) => var2_introduced_var
       | (SOME _, _) => var1_introduced_var)
     end
-  | find_ite_var_in_term (Const (@{const_name "If"}, _) $ _ $
-      (Const (@{const_name "HOL.eq"}, _) $ Free (var, _) $ _ ) $
-      (Const (@{const_name "HOL.eq"}, _) $ Free (var', _) $ _ )) =
+  | find_ite_var_in_term (Const (@{const_name If}, _) $ _ $
+      (Const (@{const_name HOL.eq}, _) $ Free (var, _) $ _ ) $
+      (Const (@{const_name HOL.eq}, _) $ Free (var', _) $ _ )) =
     if var = var' then SOME var else NONE
-  | find_ite_var_in_term (Const (@{const_name "If"}, _) $ _ $
-      (Const (@{const_name "HOL.eq"}, _) $ _ $ Free (var, _)) $
-      (Const (@{const_name "HOL.eq"}, _) $ _ $ Free (var', _))) =
+  | find_ite_var_in_term (Const (@{const_name If}, _) $ _ $
+      (Const (@{const_name HOL.eq}, _) $ _ $ Free (var, _)) $
+      (Const (@{const_name HOL.eq}, _) $ _ $ Free (var', _))) =
     if var = var' then SOME var else NONE
   | find_ite_var_in_term (p $ q) =
     (case find_ite_var_in_term p of
@@ -276,34 +273,31 @@ fun find_ite_var_in_term (Const ("HOL.If", _) $ _ $
   | find_ite_var_in_term (Abs (_, _, body)) = find_ite_var_in_term body
   | find_ite_var_in_term _ = NONE
 
-fun correct_veriT_step steps (st as VeriT_Node {id, rule, prems, concl, bounds}) =
+fun correct_veriT_step steps (node as VeriT_Node {id, rule, prems, concl, bounds}) =
   if rule = veriT_tmp_ite_elim_rule then
     if bounds = [] then
       (*if the introduced var has already been defined, adding the definition as a dependency*)
       let
-        val new_prems =
-          (case find_ite_var_in_term concl of
-            NONE => prems
-          | SOME var => find_in_which_step_defined var steps :: prems)
+        val new_prems = prems
+          |> (case find_ite_var_in_term concl of
+               NONE => I
+             | SOME var => cons (find_in_which_step_defined var steps))
       in
         VeriT_Node {id = id, rule = rule, prems = new_prems, concl = concl, bounds = bounds}
       end
     else
       (*some new variables are created*)
-      let
-        val concl' = replace_bound_var_by_free_var concl bounds
-      in
+      let val concl' = replace_bound_var_by_free_var concl bounds in
         mk_node id rule prems concl' []
       end
   else
-    st
+    node
 
 fun remove_alpha_conversion _ [] = []
   | remove_alpha_conversion replace_table (VeriT_Node {id, rule, prems, concl, bounds} :: steps) =
     let
-      fun correct_dependency prems =
-        map (fn x => perhaps (Symtab.lookup replace_table) x) prems
-      fun find_predecessor prem = perhaps (Symtab.lookup replace_table) prem
+      val correct_dependency = map (perhaps (Symtab.lookup replace_table))
+      val find_predecessor = perhaps (Symtab.lookup replace_table)
     in
       if rule = veriT_alpha_conv_rule then
         remove_alpha_conversion (Symtab.update (id, find_predecessor (hd prems))
@@ -326,7 +320,7 @@ fun parse typs funs lines ctxt =
     val t = correct_veriT_steps u
     fun node_to_step (VeriT_Node {id, rule, prems, concl, bounds, ...}) =
       mk_step id rule prems concl bounds
-   in
+  in
     (map node_to_step t, ctxt_of env)
   end
 
