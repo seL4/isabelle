@@ -197,7 +197,7 @@ Hence all our proof methods only differ in how incomplete they are.
 
 A proof method that is still incomplete but tries harder than @{text auto} is
 \indexed{@{text fastforce}}{fastforce}.  It either succeeds or fails, it acts on the first
-subgoal only, and it can be modified just like @{text auto}, e.g.\
+subgoal only, and it can be modified just like @{text auto}, e.g.,
 with @{text "simp add"}. Here is a typical example of what @{text fastforce}
 can do:
 *}
@@ -284,7 +284,7 @@ By arithmetic formulas we mean formulas involving variables, numbers, @{text
 connectives @{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"}, @{text"\<longrightarrow>"},
 @{text"\<longleftrightarrow>"}. Strictly speaking, this is known as \concept{linear arithmetic}
 because it does not involve multiplication, although multiplication with
-numbers, e.g.\ @{text"2*n"}, is allowed. Such formulas can be proved by
+numbers, e.g., @{text"2*n"}, is allowed. Such formulas can be proved by
 \indexed{@{text arith}}{arith}:
 *}
 
@@ -399,7 +399,7 @@ useful introduction rules:
   {\mbox{@{text"?P = ?Q"}}}
 \]
 These rules are part of the logical system of \concept{natural deduction}
-(e.g.\ \cite{HuthRyan}). Although we intentionally de-emphasize the basic rules
+(e.g., \cite{HuthRyan}). Although we intentionally de-emphasize the basic rules
 of logic in favour of automatic proof methods that allow you to take bigger
 steps, these rules are helpful in locating where and why automation fails.
 When applied backwards, these rules decompose the goal:
@@ -471,7 +471,7 @@ Therefore @{text blast}, @{text fastforce} and @{text auto} support a modifier
 @{text dest} which instructs the proof method to use certain rules in a
 forward fashion. If @{text r} is of the form \mbox{@{text "A \<Longrightarrow> B"}}, the modifier
 \mbox{@{text"dest: r"}}\index{dest@@{text"dest:"}}
-allows proof search to reason forward with @{text r}, i.e.\
+allows proof search to reason forward with @{text r}, i.e.,
 to replace an assumption @{text A'}, where @{text A'} unifies with @{text A},
 with the correspondingly instantiated @{text B}. For example, @{thm[source,show_question_marks] Suc_leD} is the theorem \mbox{@{thm Suc_leD}}, which works well for forward reasoning:
 *}
@@ -526,7 +526,7 @@ text_raw{* @{prop[source]"ev n \<Longrightarrow> ev (n + 2)"} *}
 text{* To get used to inductive definitions, we will first prove a few
 properties of @{const ev} informally before we descend to the Isabelle level.
 
-How do we prove that some number is even, e.g.\ @{prop "ev 4"}? Simply by combining the defining rules for @{const ev}:
+How do we prove that some number is even, e.g., @{prop "ev 4"}? Simply by combining the defining rules for @{const ev}:
 \begin{quote}
 @{text "ev 0 \<Longrightarrow> ev (0 + 2) \<Longrightarrow> ev((0 + 2) + 2) = ev 4"}
 \end{quote}

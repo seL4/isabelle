@@ -169,7 +169,7 @@ or @{term"Cons x (Cons y Nil)"}, etc.
 \item \isacom{datatype} requires no quotation marks on the
 left-hand side, but on the right-hand side each of the argument
 types of a constructor needs to be enclosed in quotation marks, unless
-it is just an identifier (e.g.\ @{typ nat} or @{typ 'a}).
+it is just an identifier (e.g., @{typ nat} or @{typ 'a}).
 \end{itemize}
 We also define two standard functions, append and reverse: *}
 
@@ -221,7 +221,7 @@ Because @{text list}, @{const Nil}, @{const Cons}, etc.\ are already predefined,
 Just as for natural numbers, there is a proof principle of induction for
 lists. Induction over a list is essentially induction over the length of
 the list, although the length remains implicit. To prove that some property
-@{text P} holds for all lists @{text xs}, i.e.\ \mbox{@{prop"P(xs)"}},
+@{text P} holds for all lists @{text xs}, i.e., \mbox{@{prop"P(xs)"}},
 you need to prove
 \begin{enumerate}
 \item the base case @{prop"P(Nil)"} and

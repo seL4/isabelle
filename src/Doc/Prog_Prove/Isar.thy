@@ -59,7 +59,7 @@ goal. In more detail, this is the Isar core syntax:
 method which must finish off the statement being proved, for example @{text
 auto},  or it can be a \isacom{proof}--\isacom{qed} block of multiple
 steps. Such a block can optionally begin with a proof method that indicates
-how to start off the proof, e.g.\ \mbox{@{text"(induction xs)"}}.
+how to start off the proof, e.g., \mbox{@{text"(induction xs)"}}.
 
 A step either assumes a proposition or states a proposition
 together with its proof. The optional \isacom{from} clause
@@ -721,7 +721,7 @@ qed
 
 text{*
 The unknown @{text"?case"}\index{case?@@{text"?case"}|(} is set in each case to the required
-claim, i.e.\ @{text"?P 0"} and \mbox{@{text"?P(Suc n)"}} in the above proof,
+claim, i.e., @{text"?P 0"} and \mbox{@{text"?P(Suc n)"}} in the above proof,
 without requiring the user to define a @{text "?P"}. The general
 pattern for induction over @{typ nat} is shown on the left-hand side:
 *}text_raw{*
@@ -935,7 +935,7 @@ also called @{text name}, which is subdivided into three parts:
 induction rule. For rule inductions these are the hypotheses of rule
 @{text name}, for structural inductions these are empty.
 \item[@{text name.prems}]\index{prems@@{text".prems"}} contains the (suitably instantiated) premises
-of the statement being proved, i.e. the @{text A\<^sub>i} when
+of the statement being proved, i.e., the @{text A\<^sub>i} when
 proving @{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}.
 \end{description}
 \begin{warn}
@@ -947,7 +947,7 @@ only in this naming policy: @{text induct} does not distinguish
 More complicated inductive proofs than the ones we have seen so far
 often need to refer to specific assumptions---just @{text name} or even
 @{text name.prems} and @{text name.IH} can be too unspecific.
-This is where the indexing of fact lists comes in handy, e.g.\
+This is where the indexing of fact lists comes in handy, e.g.,
 @{text"name.IH(2)"} or @{text"name.prems(1-2)"}.
 
 \subsection{Rule Inversion}

@@ -145,7 +145,7 @@ Isabelle's automatic termination checker requires that the arguments of
 recursive calls on the right-hand side must be strictly smaller than the
 arguments on the left-hand side. In the simplest case, this means that one
 fixed argument position decreases in size with each recursive call. The size
-is measured as the number of constructors (excluding 0-ary ones, e.g.\ @{text
+is measured as the number of constructors (excluding 0-ary ones, e.g., @{text
 Nil}). Lexicographic combinations are also recognized. In more complicated
 situations, the user may have to prove termination by hand. For details
 see~\cite{Krauss}.
