@@ -126,7 +126,7 @@ final class Outer_Syntax private(
 
   def scan(input: CharSequence): List[Token] =
   {
-    var in: Reader[Char] = new CharSequenceReader(input)
+    val in: Reader[Char] = new CharSequenceReader(input)
     Token.Parsers.parseAll(
         Token.Parsers.rep(Token.Parsers.token(lexicon, is_command)), in) match {
       case Token.Parsers.Success(tokens, _) => tokens
