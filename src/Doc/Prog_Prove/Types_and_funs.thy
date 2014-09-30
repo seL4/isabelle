@@ -249,7 +249,7 @@ the following heuristic in the proofs about the append function:
  if the function is defined by recursion on argument number $i$.}
 \end{quote}
 The key heuristic, and the main point of this section, is to
-\emph{generalise the goal before induction}.
+\emph{generalize the goal before induction}.
 The reason is simple: if the goal is
 too specific, the induction hypothesis is too weak to allow the induction
 step to go through. Let us illustrate the idea with an example.
@@ -294,10 +294,10 @@ The induction hypothesis is too weak.  The fixed
 argument,~@{term"[]"}, prevents it from rewriting the conclusion.  
 This example suggests a heuristic:
 \begin{quote}
-\emph{Generalise goals for induction by replacing constants by variables.}
+\emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
 Of course one cannot do this na\"{\i}vely: @{prop"itrev xs ys = rev xs"} is
-just not true.  The correct generalisation is
+just not true.  The correct generalization is
 *};
 (*<*)oops;(*>*)
 lemma "itrev xs ys = rev xs @ ys"
@@ -305,7 +305,7 @@ lemma "itrev xs ys = rev xs @ ys"
 txt{*
 If @{text ys} is replaced by @{term"[]"}, the right-hand side simplifies to
 @{term"rev xs"}, as required.
-In this instance it was easy to guess the right generalisation.
+In this instance it was easy to guess the right generalization.
 Other situations can require a good deal of creativity.  
 
 Although we now have two variables, only @{text xs} is suitable for
@@ -313,12 +313,12 @@ induction, and we repeat our proof attempt. Unfortunately, we are still
 not there:
 @{subgoals[display,margin=65]}
 The induction hypothesis is still too weak, but this time it takes no
-intuition to generalise: the problem is that the @{text ys}
+intuition to generalize: the problem is that the @{text ys}
 in the induction hypothesis is fixed,
 but the induction hypothesis needs to be applied with
 @{term"a # ys"} instead of @{text ys}. Hence we prove the theorem
 for all @{text ys} instead of a fixed one. We can instruct induction
-to perform this generalisation for us by adding @{text "arbitrary: ys"}\index{arbitrary@@{text"arbitrary:"}}.
+to perform this generalization for us by adding @{text "arbitrary: ys"}\index{arbitrary@@{text"arbitrary:"}}.
 *}
 (*<*)oops
 lemma "itrev xs ys = rev xs @ ys"
@@ -334,12 +334,12 @@ apply auto
 done
 
 text{*
-This leads to another heuristic for generalisation:
+This leads to another heuristic for generalization:
 \begin{quote}
-\emph{Generalise induction by generalising all free
+\emph{Generalize induction by generalizing all free
 variables\\ {\em(except the induction variable itself)}.}
 \end{quote}
-Generalisation is best performed with @{text"arbitrary: y\<^sub>1 \<dots> y\<^sub>k"}. 
+Generalization is best performed with @{text"arbitrary: y\<^sub>1 \<dots> y\<^sub>k"}. 
 This heuristic prevents trivial failures like the one above.
 However, it should not be applied blindly.
 It is not always required, and the additional quantifiers can complicate

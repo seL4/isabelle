@@ -793,7 +793,7 @@ transitive closure simplifies the induction rule.
 \subsection*{Exercises}
 
 \begin{exercise}
-Formalise the following definition of palindromes
+Formalize the following definition of palindromes
 \begin{itemize}
 \item The empty list and a singleton list are palindromes.
 \item If @{text xs} is a palindrome, so is @{term "a # xs @ [a]"}.
