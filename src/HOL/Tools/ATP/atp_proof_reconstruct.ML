@@ -307,13 +307,13 @@ fun term_of_atp_ho ctxt sym_tab =
             let
               val ts = map (do_term NONE) us
               val T =
-                (case opt_T of
-                  SOME T => map slack_fastype_of ts ---> T
-                | NONE =>
+                (case tys of
+                  [ty] => typ_of_atp_type ctxt ty
+                | _ =>
                   map slack_fastype_of ts --->
-                    (case tys of
-                      [ty] => typ_of_atp_type ctxt ty
-                    | _ => Type_Infer.anyT @{sort type}))
+                  (case opt_T of
+                    SOME T => T
+                  | NONE => Type_Infer.anyT @{sort type}))
               val t =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
@@ -398,11 +398,12 @@ fun term_of_atp_fo ctxt textual sym_tab =
                   [spass_skolem_prefix, vampire_skolem_prefix] ? rev
               val ts = term_ts @ extra_ts
               val T =
-                (case opt_T of
-                  SOME T => map slack_fastype_of term_ts ---> T
-                | NONE =>
-                  map slack_fastype_of ts --->
-                  (case tys of [ty] => typ_of_atp_type ctxt ty | _ => Type_Infer.anyT @{sort type}))
+                (case tys of
+                  [ty] => typ_of_atp_type ctxt ty
+                | _ =>
+                  (case opt_T of
+                    SOME T => map slack_fastype_of term_ts ---> T
+                  | NONE => map slack_fastype_of ts ---> Type_Infer.anyT @{sort type}))
               val t =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
