@@ -185,7 +185,8 @@ object Scan
           val n = matcher(i, end)
           val sym = in.source.subSequence(i, i + n).toString
           if (Symbol.is_open(sym)) { i += n; d += 1 }
-          else if (d > 0) { i += n; if (Symbol.is_close(sym)) d -= 1 }
+          else if (Symbol.is_close(sym) && d > 0) { i += n; d -= 1; if (d == 0) finished = true }
+          else if (d > 0) i += n
           else finished = true
         }
         if (i == start) Failure("bad input", in)
@@ -248,7 +249,7 @@ object Scan
         var finished = false
         while (!finished) {
           if (try_parse("(*")) d += 1
-          else if (d > 0 && try_parse("*)")) d -= 1
+          else if (d > 0 && try_parse("*)")) { d -= 1; if (d == 0) finished = true }
           else if (d == 0 || !try_parse(comment_text)) finished = true
         }
         if (in.offset < rest.offset)
