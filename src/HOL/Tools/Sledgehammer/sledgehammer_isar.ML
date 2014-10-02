@@ -30,6 +30,7 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
+open ATP_Waldmeister
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
@@ -56,7 +57,6 @@ val veriT_la_generic_rule = "la_generic"
 val veriT_simp_arith_rule = "simp_arith"
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
-val waldmeister_skolemize_rule = ATP_Waldmeister.waldmeister_skolemize_rule
 val z3_skolemize_rule = Z3_Proof.string_of_rule Z3_Proof.Skolemize
 val z3_th_lemma_rule_prefix = Z3_Proof.string_of_rule (Z3_Proof.Th_Lemma "")
 val zipperposition_cnf_rule = "cnf"
@@ -224,6 +224,17 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                       I))))
             atp_proof
 
+        fun is_referenced_in_step _ (Let _) = false
+          | is_referenced_in_step l (Prove (_, _, _, _, subs, (ls, _), _, _)) =
+            member (op =) ls l orelse exists (is_referenced_in_proof l) subs
+        and is_referenced_in_proof l (Proof (_, _, steps)) =
+          exists (is_referenced_in_step l) steps
+
+        fun insert_lemma lem [] = [lem]
+          | insert_lemma lem (steps as step :: steps') =
+            if is_referenced_in_step (the (label_of_isar_step lem)) step then lem :: steps
+            else step :: insert_lemma lem steps'
+
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
         val finish_off = close_form #> rename_bound_vars
@@ -309,7 +320,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               isar_steps outer (SOME l) (step :: accum) infs
             end
         and isar_proof outer fix assms lems infs =
-          Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
+          Proof (fix, assms, fold_rev insert_lemma lems (isar_steps outer NONE [] infs))
 
         val trace = Config.get ctxt trace
 
