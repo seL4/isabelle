@@ -1073,6 +1073,22 @@ lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
 lemmas nat_1_add_1 = one_add_one [where 'a=nat] (* legacy *)
 
 
+subsection {* Particular lemmas concerning @{term 2} *}
+
+context linordered_field_inverse_zero
+begin
+
+lemma half_gt_zero_iff:
+  "0 < a / 2 \<longleftrightarrow> 0 < a" (is "?P \<longleftrightarrow> ?Q")
+  by (auto simp add: field_simps)
+
+lemma half_gt_zero [simp]:
+  "0 < a \<Longrightarrow> 0 < a / 2"
+  by (simp add: half_gt_zero_iff)
+
+end
+
+
 subsection {* Numeral equations as default simplification rules *}
 
 declare (in numeral) numeral_One [simp]

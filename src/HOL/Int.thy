@@ -1217,21 +1217,6 @@ lemmas divide_const_simps =
   divide_less_eq_numeral eq_divide_eq_numeral divide_eq_eq_numeral
   le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
 
-text{*Division By @{text "-1"}*}
-
-lemma divide_minus1 [simp]: "(x::'a::field) / -1 = - x"
-  unfolding nonzero_minus_divide_right [OF one_neq_zero, symmetric]
-  by simp
-
-lemma half_gt_zero_iff:
-  "(0 < r/2) = (0 < (r::'a::linordered_field_inverse_zero))"
-  by auto
-
-lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2]
-
-lemma divide_Numeral1: "(x::'a::field) / Numeral1 = x"
-  by (fact divide_numeral_1)
-
 
 subsection {* The divides relation *}
 

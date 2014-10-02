@@ -375,6 +375,9 @@ lemma frac_eq_eq:
   "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> (x / y = w / z) = (x * z = w * y)"
   by (simp add: field_simps)
 
+lemma divide_minus1 [simp]: "x / - 1 = - x"
+  using nonzero_minus_divide_right [of "1" x] by simp
+  
 end
 
 class field_inverse_zero = field +

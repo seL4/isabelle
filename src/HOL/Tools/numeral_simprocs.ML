@@ -710,7 +710,7 @@ val ord_frac_simproc =
              name = "ord_frac_simproc", proc = proc3, identifier = []}
 
 val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
-           @{thm "divide_Numeral1"},
+           @{thm "divide_numeral_1"},
            @{thm "divide_zero"}, @{thm divide_zero_left},
            @{thm "divide_divide_eq_left"}, 
            @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
