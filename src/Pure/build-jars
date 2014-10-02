@@ -85,6 +85,7 @@ declare -a SOURCES=(
   Thy/thy_info.scala
   Thy/thy_structure.scala
   Thy/thy_syntax.scala
+  Tools/bibtex.scala
   Tools/build.scala
   Tools/build_console.scala
   Tools/build_doc.scala
