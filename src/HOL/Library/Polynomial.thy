@@ -1724,6 +1724,10 @@ by (relation "measure (\<lambda>(x, y). if y = 0 then 0 else Suc (degree y))")
 
 declare gcd_poly.simps [simp del]
 
+definition lcm_poly :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
+where
+  "lcm_poly a b = a * b div smult (coeff a (degree a) * coeff b (degree b)) (gcd a b)"
+
 instance ..
 
 end
