@@ -296,7 +296,7 @@ This example suggests a heuristic:
 \begin{quote}
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
-Of course one cannot do this na\"{\i}vely: @{prop"itrev xs ys = rev xs"} is
+Of course one cannot do this naively: @{prop"itrev xs ys = rev xs"} is
 just not true.  The correct generalization is
 *};
 (*<*)oops;(*>*)
