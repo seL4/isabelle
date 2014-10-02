@@ -139,7 +139,7 @@ val systematic_methods =
   basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
   [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
-val skolem_methods = Moura_Method :: basic_systematic_methods
+val skolem_methods = Moura_Method :: systematic_methods
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
@@ -230,10 +230,31 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         and is_referenced_in_proof l (Proof (_, _, steps)) =
           exists (is_referenced_in_step l) steps
 
-        fun insert_lemma lem [] = [lem]
-          | insert_lemma lem (steps as step :: steps') =
-            if is_referenced_in_step (the (label_of_isar_step lem)) step then lem :: steps
-            else step :: insert_lemma lem steps'
+        fun insert_lemma_in_step lem
+            (step as Prove (qs, fix, l, t, subs, (ls, gs), meths, comment)) =
+          let val l' = the (label_of_isar_step lem) in
+            if member (op =) ls l' then
+              [lem, step]
+            else
+              let val refs = map (is_referenced_in_proof l') subs in
+                if length (filter I refs) = 1 then
+                  let
+                    val subs' = map2 (fn false => I | true => insert_lemma_in_proof lem) refs subs
+                  in
+                    [Prove (qs, fix, l, t, subs', (ls, gs), meths, comment)]
+                  end
+                else
+                  [lem, step]
+              end
+          end
+        and insert_lemma_in_steps lem [] = [lem]
+          | insert_lemma_in_steps lem (step :: steps) =
+            if is_referenced_in_step (the (label_of_isar_step lem)) step then
+              insert_lemma_in_step lem step @ steps
+            else
+              step :: insert_lemma_in_steps lem steps
+        and insert_lemma_in_proof lem (Proof (fix, assms, steps)) =
+          Proof (fix, assms, insert_lemma_in_steps lem steps)
 
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
@@ -320,7 +341,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               isar_steps outer (SOME l) (step :: accum) infs
             end
         and isar_proof outer fix assms lems infs =
-          Proof (fix, assms, fold_rev insert_lemma lems (isar_steps outer NONE [] infs))
+          Proof (fix, assms, fold_rev insert_lemma_in_steps lems (isar_steps outer NONE [] infs))
 
         val trace = Config.get ctxt trace
 
