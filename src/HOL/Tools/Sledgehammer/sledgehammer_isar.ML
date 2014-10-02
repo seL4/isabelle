@@ -138,7 +138,7 @@ val systematic_methods =
   basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
   [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
-fun skolem_methods_of z3 = basic_systematic_methods |> z3 ? cons Moura_Method
+val skolem_methods = Moura_Method :: basic_systematic_methods
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
@@ -186,12 +186,9 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         fun add_lemma ((l, t), rule) ctxt =
           let
             val (skos, meths) =
-              (if is_skolemize_rule rule then
-                 (skolems_of ctxt t, skolem_methods_of (rule = z3_skolemize_rule))
-               else if is_arith_rule rule then
-                 ([], arith_methods)
-               else
-                 ([], rewrite_methods))
+              (if is_skolemize_rule rule then (skolems_of ctxt t, skolem_methods)
+               else if is_arith_rule rule then ([], arith_methods)
+               else ([], rewrite_methods))
               ||> massage_methods
           in
             (Prove ([], skos, l, t, [], ([], []), meths, ""),
@@ -265,7 +262,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 |> fold add_fact_of_dependencies gamma
                 |> sort_facts
               val meths =
-                (if skolem then skolem_methods_of (rule = z3_skolemize_rule)
+                (if skolem then skolem_methods
                  else if is_arith_rule rule then arith_methods
                  else if is_datatype_rule rule then datatype_methods
                  else systematic_methods')
