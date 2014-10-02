@@ -6,6 +6,8 @@ Mastering target language namespaces.
 
 signature CODE_NAMESPACE =
 sig
+  val variant_case_insensitive: string -> Name.context -> string * Name.context
+
   datatype export = Private | Opaque | Public
   val is_public: export -> bool
   val not_private: export -> bool
@@ -46,6 +48,25 @@ end;
 
 structure Code_Namespace : CODE_NAMESPACE =
 struct
+
+(** name handling on case-insensitive file systems **)
+
+fun restore_for cs =
+  if forall Symbol.is_ascii_upper cs then map Symbol.to_ascii_upper
+  else if Symbol.is_ascii_upper (nth cs 0) then nth_map 0 Symbol.to_ascii_upper
+  else I;
+
+fun variant_case_insensitive s ctxt =
+  let
+    val cs = Symbol.explode s;
+    val s_lower = implode (map Symbol.to_ascii_lower cs);
+    val restore = implode o restore_for cs o Symbol.explode;
+  in
+    ctxt
+    |> Name.variant s_lower
+    |>> restore
+  end;
+
 
 (** export **)
 

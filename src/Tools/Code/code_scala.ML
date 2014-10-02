@@ -7,6 +7,7 @@ Serializer for Scala.
 signature CODE_SCALA =
 sig
   val target: string
+  val case_insensitive: bool Config.T;
   val setup: theory -> theory
 end;
 
@@ -21,6 +22,10 @@ open Code_Printer;
 
 infixr 5 @@;
 infixr 5 @|;
+
+(** preliminary: option to circumvent clashes on case-insensitive file systems **)
+
+val case_insensitive = Attrib.setup_config_bool @{binding "scala_case_insensitive"} (K false);
 
 
 (** Scala serializer **)
@@ -293,21 +298,24 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
 
 fun scala_program_of_program ctxt module_name reserved identifiers exports program =
   let
+    val variant = if Config.get ctxt case_insensitive
+      then Code_Namespace.variant_case_insensitive
+      else Name.variant;
     fun namify_module name_fragment ((nsp_class, nsp_object), nsp_common) =
       let
         val declare = Name.declare name_fragment;
       in (name_fragment, ((declare nsp_class, declare nsp_object), declare nsp_common)) end;
     fun namify_class base ((nsp_class, nsp_object), nsp_common) =
       let
-        val (base', nsp_class') = Name.variant base nsp_class
+        val (base', nsp_class') = variant base nsp_class
       in (base', ((nsp_class', nsp_object), Name.declare base' nsp_common)) end;
     fun namify_object base ((nsp_class, nsp_object), nsp_common) =
       let
-        val (base', nsp_object') = Name.variant base nsp_object
+        val (base', nsp_object') = variant base nsp_object
       in (base', ((nsp_class, nsp_object'), Name.declare base' nsp_common)) end;
     fun namify_common base ((nsp_class, nsp_object), nsp_common) =
       let
-        val (base', nsp_common') = Name.variant base nsp_common
+        val (base', nsp_common') = variant base nsp_common
       in
         (base', ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))
       end;
