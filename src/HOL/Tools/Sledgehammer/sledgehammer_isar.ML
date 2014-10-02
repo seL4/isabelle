@@ -104,8 +104,9 @@ fun add_lines_pass2 res [] = rev res
       val norm_t = normalize role t
       val is_duplicate =
         exists (fn (prev_name, prev_role, prev_t, _, _) =>
-            member (op =) deps prev_name andalso
-            Term.aconv_untyped (normalize prev_role prev_t, norm_t))
+            (prev_role = Hypothesis andalso prev_t aconv t) orelse
+            (member (op =) deps prev_name andalso
+             Term.aconv_untyped (normalize prev_role prev_t, norm_t)))
           res
 
       fun looks_boring () = t aconv @{prop False} orelse length deps < 2
