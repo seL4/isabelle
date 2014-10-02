@@ -50,10 +50,8 @@ fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_help
                   name0 :: normalizing_prems ctxt concl0)]
               end)
           end
-        else if rule = veriT_tmp_ite_elim_rule orelse null prems then
-          [standard_step Lemma]
         else
-          [standard_step Plain]
+          [standard_step (if null prems then Lemma else Plain)]
       end
   in
     maps steps_of
