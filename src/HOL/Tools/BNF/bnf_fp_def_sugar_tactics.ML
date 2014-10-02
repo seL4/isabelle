@@ -170,8 +170,8 @@ fun mk_rec_transfer_tac ctxt nn ns actives passives rec_defs ctor_rec_transfers 
     rel_eqs =
   let
     val ctor_rec_transfers' =
-      map (cterm_instantiate_pos (map SOME passives @ map SOME actives)) ctor_rec_transfers;
-    val ns' = Integer.sum ns;
+      map (cterm_instantiate_pos (map SOME (passives @ actives))) ctor_rec_transfers;
+    val total_n = Integer.sum ns;
   in
     HEADGOAL Goal.conjunction_tac THEN
     EVERY (map (fn ctor_rec_transfer =>
@@ -187,7 +187,7 @@ fun mk_rec_transfer_tac ctxt nn ns actives passives rec_defs ctor_rec_transfers 
                  REPEAT_DETERM (HEADGOAL
                    (rtac (mk_rel_funDN 2 case_sum_transfer_eq) ORELSE'
                     rtac (mk_rel_funDN 2 case_sum_transfer))) THEN
-                 HEADGOAL (select_prem_tac ns' (dtac asm_rl) (acc + n)) THEN
+                 HEADGOAL (select_prem_tac total_n (dtac asm_rl) (acc + n)) THEN
                  HEADGOAL (SELECT_GOAL (HEADGOAL
                    ((REPEAT_DETERM o (atac ORELSE'
                        rtac (mk_rel_funDN 1 case_prod_transfer_eq) ORELSE'

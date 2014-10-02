@@ -1832,8 +1832,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val ctrXs_Tsss = map (map (map freeze_fp)) fake_ctr_Tsss;
     val ctrXs_repTs = map mk_sumprodT_balanced ctrXs_Tsss;
 
-    val fp_eqs =
-      map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_repTs;
+    val fp_eqs = map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_repTs;
 
     val killed_As =
       map_filter (fn (A, set_bos) => if exists is_none set_bos then SOME A else NONE)
