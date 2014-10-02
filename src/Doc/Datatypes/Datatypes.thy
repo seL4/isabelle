@@ -2824,6 +2824,11 @@ The plugin derives the following properties:
 
 \end{description}
 \end{indentblock}
+
+In addition, the plugin sets the @{text "[code]"} attribute on a number of
+properties of (co)datatypes and other freely generated types, as documented in
+Sections \ref{ssec:datatype-generated-theorems} and
+\ref{ssec:codatatype-generated-theorems}.
 *}
 
 
@@ -2853,7 +2858,6 @@ The plugin derives the following properties:
 
 \item[@{text "t."}\hthm{size_o_map}\rm:] ~ \\
 @{thm list.size_o_map[no_vars]}
-(This property is not generated for all datatypes.)
 
 \end{description}
 \end{indentblock}
