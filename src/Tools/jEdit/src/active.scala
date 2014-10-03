@@ -60,16 +60,18 @@ object Active
                 }
 
               case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
-                props match {
-                  case Position.Id(id) =>
-                    Isabelle.edit_command(snapshot, buffer,
-                      props.exists(_ == Markup.PADDING_COMMAND), id, text)
-                  case _ =>
-                    if (props.exists(_ == Markup.PADDING_LINE))
-                      Isabelle.insert_line_padding(text_area, text)
-                    else text_area.setSelectedText(text)
+                if (buffer.isEditable) {
+                  props match {
+                    case Position.Id(id) =>
+                      Isabelle.edit_command(snapshot, buffer,
+                        props.exists(_ == Markup.PADDING_COMMAND), id, text)
+                    case _ =>
+                      if (props.exists(_ == Markup.PADDING_LINE))
+                        Isabelle.insert_line_padding(text_area, text)
+                      else text_area.setSelectedText(text)
+                  }
+                  text_area.requestFocus
                 }
-                text_area.requestFocus
 
               case Protocol.Dialog(id, serial, result) =>
                 model.session.dialog_result(id, serial, result)
