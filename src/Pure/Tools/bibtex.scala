@@ -7,6 +7,7 @@ Some support for bibtex files.
 package isabelle
 
 
+import scala.collection.mutable
 import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.util.parsing.combinator.RegexParsers
 
@@ -123,34 +124,41 @@ object Bibtex
     def is_error: Boolean = kind == Token.Kind.ERROR
   }
 
-  abstract class Chunk { def size: Int; def kind: String = "" }
-  case class Ignored(source: String) extends Chunk { def size: Int = source.size }
-  case class Malformed(source: String) extends Chunk { def size: Int = source.size }
-  case class Item(tokens: List[Token]) extends Chunk
+  abstract class Chunk
+  {
+    def size: Int
+    def kind: String
+  }
+
+  case class Ignored(source: String) extends Chunk
+  {
+    def size: Int = source.size
+    def kind: String = ""
+  }
+
+  case class Item(kind: String, tokens: List[Token]) extends Chunk
   {
     def size: Int = (0 /: tokens)({ case (n, token) => n + token.source.size })
 
-    private val content: (String, List[Token]) =
+    private val wellformed_content: Option[List[Token]] =
       tokens match {
         case Token(Token.Kind.KEYWORD, "@") :: body
         if !body.isEmpty && !body.exists(_.is_error) =>
           (body.init.filterNot(_.is_space), body.last) match {
-            case (Token(Token.Kind.IDENT, id) :: Token(Token.Kind.KEYWORD, "{") :: toks,
-                  Token(Token.Kind.KEYWORD, "}")) => (id, toks)
-            case (Token(Token.Kind.IDENT, id) :: Token(Token.Kind.KEYWORD, "(") :: toks,
-                  Token(Token.Kind.KEYWORD, ")")) => (id, toks)
-            case _ => ("", Nil)
+            case (Token(Token.Kind.IDENT, _) :: Token(Token.Kind.KEYWORD, "{") :: toks,
+                  Token(Token.Kind.KEYWORD, "}")) => Some(toks)
+            case (Token(Token.Kind.IDENT, _) :: Token(Token.Kind.KEYWORD, "(") :: toks,
+                  Token(Token.Kind.KEYWORD, ")")) => Some(toks)
+            case _ => None
           }
-        case _ => ("", Nil)
+        case _ => None
       }
-    override def kind: String = content._1
-    def content_tokens: List[Token] = content._2
-
-    def is_wellformed: Boolean = kind != ""
+    def is_wellformed: Boolean = kind != "" && wellformed_content.isDefined
+    def content_tokens: List[Token] = wellformed_content getOrElse Nil
 
     def name: String =
       content_tokens match {
-        case Token(Token.Kind.IDENT, name) :: _ if is_wellformed => name
+        case Token(Token.Kind.IDENT, id) :: _ if is_wellformed => id
         case _ => ""
       }
   }
@@ -161,8 +169,10 @@ object Bibtex
 
   // context of partial line-oriented scans
   abstract class Line_Context
-  case class Delimited(quoted: Boolean, depth: Int) extends Line_Context
-  val Finished = Delimited(false, 0)
+  case object Ignored_Context extends Line_Context
+  case class Item_Context(kind: String, delim: Delimited, right: String) extends Line_Context
+  case class Delimited(quoted: Boolean, depth: Int)
+  val Closed = Delimited(false, 0)
 
   private def token(kind: Token.Kind.Value)(source: String): Token = Token(kind, source)
   private def keyword(source: String): Token = Token(Token.Kind.KEYWORD, source)
@@ -180,8 +190,17 @@ object Bibtex
     private val space = """[ \t\n\r]+""".r ^^ token(Token.Kind.SPACE)
     private val strict_space = """[ \t]+""".r ^^ token(Token.Kind.SPACE)
 
-    private val ignored =
-      rep1("""(?mi)([^@]+|@[ \t\n\r]*comment)""".r) ^^ { case ss => Ignored(ss.mkString) }
+
+    /* ignored material outside items */
+
+    private val ignored: Parser[Chunk] =
+      rep1("""(?mi)([^@]+|@[ \t]*comment)""".r) ^^ { case ss => Ignored(ss.mkString) }
+
+    private def ignored_line(ctxt: Line_Context): Parser[(Chunk, Line_Context)] =
+      ctxt match {
+        case Ignored_Context => ignored ^^ { case a => (a, ctxt) }
+        case _ => failure("")
+      }
 
 
     /* delimited string: outermost "..." or {...} and body with balanced {...} */
@@ -210,29 +229,29 @@ object Bibtex
             else finished = true
           }
           if (i == start) Failure("bad input", in)
-          else
-            Success((in.source.subSequence(start, i).toString,
-              Delimited(q, d)), in.drop(i - start))
+          else {
+            val s = in.source.subSequence(start, i).toString
+            Success((s, Delimited(q, d)), in.drop(i - start))
+          }
         }
       }.named("delimited_depth")
 
-    private def delimited: Parser[String] =
-      delimited_depth(Finished) ^? { case (x, delim) if delim == Finished => x }
+    private def delimited: Parser[Token] =
+      delimited_depth(Closed) ^?
+        { case (s, delim) if delim == Closed => Token(Token.Kind.STRING, s) }
 
-    private def delimited_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
+    private def delimited_line(ctxt: Line_Context): Parser[(Item, Line_Context)] =
     {
       ctxt match {
-        case delim: Delimited => delimited_depth(delim)
+        case Item_Context(kind, delim, right) =>
+          delimited_depth(delim) ^^ { case (s, delim1) =>
+            (Item(kind, List(Token(Token.Kind.STRING, s))), Item_Context(kind, delim1, right)) }
         case _ => failure("")
       }
     }
 
-    private val recover_delimited: Parser[String] =
-      delimited_depth(Finished) ^^ (_._1)
-
-    private val delimited_token =
-      delimited ^^ token(Token.Kind.STRING) |
-      recover_delimited ^^ token(Token.Kind.ERROR)
+    private def recover_delimited: Parser[Token] =
+      """(?m)["{][^@]+""".r ^^ token(Token.Kind.ERROR)
 
 
     /* other tokens */
@@ -248,32 +267,80 @@ object Bibtex
     private val ident =
       """[\x21-\x7f&&[^"#%'(),={}0-9]][\x21-\x7f&&[^"#%'(),={}]]*""".r ^^ token(Token.Kind.IDENT)
 
+    val other_token = "[=#,]".r ^^ keyword | (nat | (ident | space))
+
+
+    /* items */
+
+    private val item_start: Parser[(String, List[Token])] =
+      at ~ rep(strict_space) ~ ident ~ rep(strict_space) ^^
+        { case a ~ b ~ c ~ d => (c.source, List(a) ::: b ::: List(c) ::: d) }
+
+    private val item_body =
+      delimited | (recover_delimited | other_token)
+
+    private val item: Parser[Item] =
+      (item_start ~ left_brace ~ rep(item_body) ~ opt(right_brace) |
+       item_start ~ left_paren ~ rep(item_body) ~ opt(right_paren)) ^^
+        { case (kind, a) ~ b ~ c ~ d => Item(kind, a ::: List(b) ::: c ::: d.toList) }
+
+    private val recover_item: Parser[Item] =
+      at ~ "(?m)[^@]+".r ^^ { case a ~ b => Item("", List(a, Token(Token.Kind.ERROR, b))) }
+
+    def item_line(ctxt: Line_Context): Parser[(Item, Line_Context)] =
+    {
+      ctxt match {
+        case Ignored_Context =>
+          item_start ~ (left_brace | left_paren) ^^
+            { case (kind, a) ~ b =>
+                val right = if (b.source == "{") "}" else ")"
+                (Item(kind, a ::: List(b)), Item_Context(kind, Closed, right)) }
+        case Item_Context(kind, delim, right) =>
+          if (delim.depth > 0)
+            delimited_line(ctxt)
+          else {
+            delimited_line(ctxt) |
+            other_token ^^ { case a => (Item(kind, List(a)), ctxt) } |
+            right ^^ { case a => (Item(kind, List(keyword(a))), Ignored_Context) }
+          }
+        case _ => failure("")
+      }
+    }
+
 
     /* chunks */
 
-    private val item_start =
-      at ~ rep(strict_space) ~ ident ~ rep(strict_space) ^^
-        { case a ~ b ~ c ~ d => List(a) ::: b ::: List(c) ::: d }
+    val chunk: Parser[Chunk] = ignored | (item | recover_item)
 
-    private val body_token = delimited_token | ("[=#,]".r ^^ keyword | (nat | (ident | space)))
-
-    private val item =
-      (item_start ~ left_brace ~ rep(body_token) ~ opt(right_brace) |
-       item_start ~ left_paren ~ rep(body_token) ~ opt(right_paren)) ^^
-        { case a ~ b ~ c ~ d => Item(a ::: List(b) ::: c ::: d.toList) }
-
-    private val recover_item = "(?m)@[^@]+".r ^^ (s => Malformed(s))
-
-    val chunks: Parser[List[Chunk]] = rep(ignored | (item | recover_item))
+    def chunk_line(ctxt: Line_Context): Parser[(Chunk, Line_Context)] =
+      ignored_line(ctxt) | item_line(ctxt)
   }
+
+
+  /* parse */
 
   def parse(input: CharSequence): List[Chunk] =
   {
     val in: Reader[Char] = new CharSequenceReader(input)
-    Parsers.parseAll(Parsers.chunks, in) match {
+    Parsers.parseAll(Parsers.rep(Parsers.chunk), in) match {
       case Parsers.Success(result, _) => result
       case _ => error("Unexpected failure to parse input:\n" + input.toString)
     }
+  }
+
+  def parse_line(input: CharSequence, context: Line_Context): (List[Chunk], Line_Context) =
+  {
+    var in: Reader[Char] = new CharSequenceReader(input)
+    val chunks = new mutable.ListBuffer[Chunk]
+    var ctxt = context
+    while (!in.atEnd) {
+      Parsers.parse(Parsers.chunk_line(ctxt), in) match {
+        case Parsers.Success((x, c), rest) => { chunks += x; ctxt = c; in = rest }
+        case Parsers.NoSuccess(_, rest) =>
+          error("Unepected failure to parse input:\n" + rest.source.toString)
+      }
+    }
+    (chunks.toList, ctxt)
   }
 }
 
