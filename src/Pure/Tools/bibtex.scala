@@ -31,81 +31,74 @@ object Bibtex
 
   val commands = List("preamble", "string")
 
-  sealed case class Entry_Type(
+  sealed case class Entry(
+    name: String,
     required: List[String],
     optional_crossref: List[String],
     optional: List[String])
+  {
+    def fields: List[String] = required ::: optional_crossref ::: optional
+    def template: String =
+      "@" + name + "{,\n" + fields.map(x => "  " + x + " = {},\n").mkString + "}\n"
+  }
 
-  val entries =
-    Map[String, Entry_Type](
-      "Article" ->
-        Entry_Type(
-          List("author", "title"),
-          List("journal", "year"),
-          List("volume", "number", "pages", "month", "note")),
-      "InProceedings" ->
-        Entry_Type(
-          List("author", "title"),
-          List("booktitle", "year"),
-          List("editor", "volume", "number", "series", "pages", "month", "address",
-            "organization", "publisher", "note")),
-      "InCollection" ->
-        Entry_Type(
-          List("author", "title", "booktitle"),
-          List("publisher", "year"),
-          List("editor", "volume", "number", "series", "type", "chapter", "pages",
-            "edition", "month", "address", "note")),
-      "InBook" ->
-        Entry_Type(
-         List("author", "editor", "title", "chapter"),
-         List("publisher", "year"),
-         List("volume", "number", "series", "type", "address", "edition", "month", "pages", "note")),
-      "Proceedings" ->
-        Entry_Type(
-          List("title", "year"),
-          List(),
-          List("booktitle", "editor", "volume", "number", "series", "address", "month",
-            "organization", "publisher", "note")),
-      "Book" ->
-        Entry_Type(
-          List("author", "editor", "title"),
-          List("publisher", "year"),
-          List("volume", "number", "series", "address", "edition", "month", "note")),
-      "Booklet" ->
-        Entry_Type(
-          List("title"),
-          List(),
-          List("author", "howpublished", "address", "month", "year", "note")),
-      "PhdThesis" ->
-        Entry_Type(
-          List("author", "title", "school", "year"),
-          List(),
-          List("type", "address", "month", "note")),
-      "MastersThesis" ->
-        Entry_Type(
-          List("author", "title", "school", "year"),
-          List(),
-          List("type", "address", "month", "note")),
-      "TechReport" ->
-        Entry_Type(
-          List("author", "title", "institution", "year"),
-          List(),
-          List("type", "number", "address", "month", "note")),
-      "Manual" ->
-        Entry_Type(
-          List("title"),
-          List(),
-          List("author", "organization", "address", "edition", "month", "year", "note")),
-      "Unpublished" ->
-        Entry_Type(
-          List("author", "title", "note"),
-          List(),
-          List("month", "year")),
-      "Misc" ->
-        Entry_Type(
-          List(),
-          List(),
-          List("author", "title", "howpublished", "month", "year", "note")))
+  val entries: List[Entry] =
+    List(
+      Entry("Article",
+        List("author", "title"),
+        List("journal", "year"),
+        List("volume", "number", "pages", "month", "note")),
+      Entry("InProceedings",
+        List("author", "title"),
+        List("booktitle", "year"),
+        List("editor", "volume", "number", "series", "pages", "month", "address",
+          "organization", "publisher", "note")),
+      Entry("InCollection",
+        List("author", "title", "booktitle"),
+        List("publisher", "year"),
+        List("editor", "volume", "number", "series", "type", "chapter", "pages",
+          "edition", "month", "address", "note")),
+      Entry("InBook",
+        List("author", "editor", "title", "chapter"),
+        List("publisher", "year"),
+        List("volume", "number", "series", "type", "address", "edition", "month", "pages", "note")),
+      Entry("Proceedings",
+        List("title", "year"),
+        List(),
+        List("booktitle", "editor", "volume", "number", "series", "address", "month",
+          "organization", "publisher", "note")),
+      Entry("Book",
+        List("author", "editor", "title"),
+        List("publisher", "year"),
+        List("volume", "number", "series", "address", "edition", "month", "note")),
+      Entry("Booklet",
+        List("title"),
+        List(),
+        List("author", "howpublished", "address", "month", "year", "note")),
+      Entry("PhdThesis",
+        List("author", "title", "school", "year"),
+        List(),
+        List("type", "address", "month", "note")),
+      Entry("MastersThesis",
+        List("author", "title", "school", "year"),
+        List(),
+        List("type", "address", "month", "note")),
+      Entry("TechReport",
+        List("author", "title", "institution", "year"),
+        List(),
+        List("type", "number", "address", "month", "note")),
+      Entry("Manual",
+        List("title"),
+        List(),
+        List("author", "organization", "address", "edition", "month", "year", "note")),
+      Entry("Unpublished",
+        List("author", "title", "note"),
+        List(),
+        List("month", "year")),
+      Entry("Misc",
+        List(),
+        List(),
+        List("author", "title", "howpublished", "month", "year", "note")))
 
 
 

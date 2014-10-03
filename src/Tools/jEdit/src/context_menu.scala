@@ -10,13 +10,13 @@ package isabelle.jedit
 import isabelle._
 
 
-import java.awt.event.MouseEvent
-import javax.swing.JMenuItem
+import java.awt.event.{ActionListener, ActionEvent, MouseEvent}
+import javax.swing.{JMenu, JMenuItem}
 
 import org.gjt.sp.jedit.menu.EnhancedMenuItem
 import org.gjt.sp.jedit.gui.DynamicContextMenuService
-import org.gjt.sp.jedit.jEdit
-import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.{jEdit, Buffer}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 
 
 class Context_Menu extends DynamicContextMenuService
@@ -67,20 +67,50 @@ class Context_Menu extends DynamicContextMenuService
   }
 
 
+  /* bibtex menu */
+
+  def bibtex_menu(text_area0: JEditTextArea): List[JMenuItem] =
+  {
+    text_area0 match {
+      case text_area: TextArea =>
+        text_area.getBuffer match {
+          case buffer: Buffer
+          if (JEdit_Lib.buffer_name(buffer).endsWith(".bib")) =>
+            val menu = new JMenu("BibTeX entries")
+            for (entry <- Bibtex.entries) {
+              val item = new JMenuItem(entry.name)
+              item.addActionListener(new ActionListener {
+                def actionPerformed(evt: ActionEvent): Unit =
+                  Isabelle.insert_line_padding(text_area, entry.template)
+              })
+              menu.add(item)
+            }
+            List(menu)
+          case _ => Nil
+        }
+      case _ => Nil
+    }
+  }
+
+
   /* menu service */
 
   def createMenu(text_area: JEditTextArea, evt: MouseEvent): Array[JMenuItem] =
   {
     PIDE.dismissed_popups(text_area.getView)
-    if (evt != null && evt.getSource == text_area.getPainter) {
-      val offset = text_area.xyToOffset(evt.getX, evt.getY)
-      if (offset >= 0) {
-        val items = spell_checker_menu(text_area, offset)
-        if (items.isEmpty) null else items.toArray
+
+    val items1 =
+      if (evt != null && evt.getSource == text_area.getPainter) {
+        val offset = text_area.xyToOffset(evt.getX, evt.getY)
+        if (offset >= 0) spell_checker_menu(text_area, offset)
+        else Nil
       }
-      else null
-    }
-    else null
+      else Nil
+
+    val items2 = bibtex_menu(text_area)
+
+    val items = items1 ::: items2
+    if (items.isEmpty) null else items.toArray
   }
 }
 

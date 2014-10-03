@@ -15,6 +15,11 @@ This supersedes functor Named_Thms, but with a subtle change of
 semantics due to external visual order vs. internal reverse order.
 
 
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Support for BibTeX files: context menu.
+
+
 *** Pure ***
 
 * Command "class_deps" takes optional sort arguments constraining
