@@ -178,7 +178,7 @@ object Bibtex
     override val whiteSpace = "".r
 
     private val space = """[ \t\n\r]+""".r ^^ token(Token.Kind.SPACE)
-    private val spaces = rep(space)
+    private val strict_space = """[ \t]+""".r ^^ token(Token.Kind.SPACE)
 
     private val ignored =
       rep1("""(?mi)([^@]+|@[ \t\n\r]*comment)""".r) ^^ { case ss => Ignored(ss.mkString) }
@@ -252,7 +252,7 @@ object Bibtex
     /* chunks */
 
     private val item_start =
-      at ~ spaces ~ ident ~ spaces ^^
+      at ~ rep(strict_space) ~ ident ~ rep(strict_space) ^^
         { case a ~ b ~ c ~ d => List(a) ::: b ::: List(c) ::: d }
 
     private val body_token = delimited_token | ("[=#,]".r ^^ keyword | (nat | (ident | space)))
