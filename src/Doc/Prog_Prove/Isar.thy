@@ -73,7 +73,7 @@ variables, \isacom{assume} introduces the assumption of an implication
 Propositions are optionally named formulas. These names can be referred to in
 later \isacom{from} clauses. In the simplest case, a fact is such a name.
 But facts can also be composed with @{text OF} and @{text of} as shown in
-\S\ref{sec:forward-proof}---hence the \dots\ in the above grammar.  Note
+\autoref{sec:forward-proof}---hence the \dots\ in the above grammar.  Note
 that assumptions, intermediate \isacom{have} statements and global lemmas all
 have the same status and are thus collectively referred to as
 \conceptidx{facts}{fact}.
@@ -217,7 +217,7 @@ eliminated.
 
 Stating a lemma with \isacom{assumes}-\isacom{shows} implicitly introduces the
 name \indexed{@{text assms}}{assms} that stands for the list of all assumptions. You can refer
-to individual assumptions by @{text"assms(1)"}, @{text"assms(2)"}, etc.\
+to individual assumptions by @{text"assms(1)"}, @{text"assms(2)"}, etc.,
 thus obviating the need to name them individually.
 
 \section{Proof Patterns}

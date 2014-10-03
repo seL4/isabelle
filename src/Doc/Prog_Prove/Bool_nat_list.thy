@@ -94,7 +94,7 @@ interchangeably for propositions that have been proved.
 \begin{warn}
   Numerals (@{text 0}, @{text 1}, @{text 2}, \dots) and most of the standard
   arithmetic operations (@{text "+"}, @{text "-"}, @{text "*"}, @{text"\<le>"},
-  @{text"<"} etc) are overloaded: they are available
+  @{text"<"}, etc.) are overloaded: they are available
   not just for natural numbers but for other types as well.
   For example, given the goal @{text"x + 0 = x"}, there is nothing to indicate
   that you are talking about natural numbers. Hence Isabelle can only infer
@@ -150,7 +150,7 @@ directly readable.
 
 \subsection{Type \indexed{@{text list}}{list}}
 
-Although lists are already predefined, we define our own copy just for
+Although lists are already predefined, we define our own copy for
 demonstration purposes:
 *}
 (*<*)
@@ -211,7 +211,7 @@ Because @{text list}, @{const Nil}, @{const Cons}, etc.\ are already predefined,
 \begin{figure}[htbp]
 \begin{alltt}
 \input{MyList.thy}\end{alltt}
-\caption{A Theory of Lists}
+\caption{A theory of lists}
 \label{fig:MyList}
 \index{comment}
 \end{figure}

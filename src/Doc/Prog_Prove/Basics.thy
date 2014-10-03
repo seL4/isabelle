@@ -27,7 +27,7 @@ postfix, i.e., after their arguments. For example,
 \item[function types,]
 denoted by @{text"\<Rightarrow>"}.
 \item[type variables,]
-  denoted by @{typ 'a}, @{typ 'b}, etc., just like in ML\@.
+  denoted by @{typ 'a}, @{typ 'b}, etc., like in ML\@.
 \end{description}
 Note that @{typ"'a \<Rightarrow> 'b list"} means @{typ[source]"'a \<Rightarrow> ('b list)"},
 not @{typ"('a \<Rightarrow> 'b) list"}: postfix type constructors have precedence
