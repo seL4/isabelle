@@ -17,7 +17,7 @@ semantics due to external visual order vs. internal reverse order.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Support for BibTeX files: context menu.
+* Support for BibTeX files: SideKick parser, context menu.
 
 
 *** Pure ***

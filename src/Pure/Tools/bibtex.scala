@@ -32,14 +32,14 @@ object Bibtex
   val commands = List("preamble", "string")
 
   sealed case class Entry(
-    name: String,
+    kind: String,
     required: List[String],
     optional_crossref: List[String],
     optional: List[String])
   {
     def fields: List[String] = required ::: optional_crossref ::: optional
     def template: String =
-      "@" + name + "{,\n" + fields.map(x => "  " + x + " = {},\n").mkString + "}\n"
+      "@" + kind + "{,\n" + fields.map(x => "  " + x + " = {},\n").mkString + "}\n"
   }
 
   val entries: List[Entry] =
@@ -123,26 +123,36 @@ object Bibtex
     def is_error: Boolean = kind == Token.Kind.ERROR
   }
 
-  abstract class Chunk
-  case class Ignored(source: String) extends Chunk
-  case class Malformed(source: String) extends Chunk
+  abstract class Chunk { def size: Int; def kind: String = "" }
+  case class Ignored(source: String) extends Chunk { def size: Int = source.size }
+  case class Malformed(source: String) extends Chunk { def size: Int = source.size }
   case class Item(tokens: List[Token]) extends Chunk
   {
-    val name: String =
+    def size: Int = (0 /: tokens)({ case (n, token) => n + token.source.size })
+
+    private val content: (String, List[Token]) =
       tokens match {
         case Token(Token.Kind.KEYWORD, "@") :: body
         if !body.isEmpty && !body.exists(_.is_error) =>
-          (body.filterNot(_.is_space), body.last) match {
-            case (Token(Token.Kind.IDENT, id) :: Token(Token.Kind.KEYWORD, "{") :: _,
-                  Token(Token.Kind.KEYWORD, "}")) => id
-            case (Token(Token.Kind.IDENT, id) :: Token(Token.Kind.KEYWORD, "(") :: _,
-                  Token(Token.Kind.KEYWORD, ")")) => id
-            case _ => ""
+          (body.init.filterNot(_.is_space), body.last) match {
+            case (Token(Token.Kind.IDENT, id) :: Token(Token.Kind.KEYWORD, "{") :: toks,
+                  Token(Token.Kind.KEYWORD, "}")) => (id, toks)
+            case (Token(Token.Kind.IDENT, id) :: Token(Token.Kind.KEYWORD, "(") :: toks,
+                  Token(Token.Kind.KEYWORD, ")")) => (id, toks)
+            case _ => ("", Nil)
           }
+        case _ => ("", Nil)
+      }
+    override def kind: String = content._1
+    def content_tokens: List[Token] = content._2
+
+    def is_wellformed: Boolean = kind != ""
+
+    def name: String =
+      content_tokens match {
+        case Token(Token.Kind.IDENT, name) :: _ if is_wellformed => name
         case _ => ""
       }
-    val entry_name: String = if (commands.contains(name.toLowerCase)) "" else name
-    def is_wellformed: Boolean = name != ""
   }
 
 
@@ -262,7 +272,7 @@ object Bibtex
     val in: Reader[Char] = new CharSequenceReader(input)
     Parsers.parseAll(Parsers.chunks, in) match {
       case Parsers.Success(result, _) => result
-      case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
+      case _ => error("Unexpected failure to parse input:\n" + input.toString)
     }
   }
 }

@@ -23,6 +23,13 @@ object Isabelle_Sidekick
   def int_to_pos(offset: Text.Offset): Position =
     new Position { def getOffset = offset; override def toString: String = offset.toString }
 
+  def root_data(buffer: Buffer): SideKickParsedData =
+  {
+    val data = new SideKickParsedData(buffer.getName)
+    data.getAsset(data.root).setEnd(int_to_pos(buffer.getLength))
+    data
+  }
+
   class Asset(name: String, start: Text.Offset, end: Text.Offset) extends IAsset
   {
     protected var _name = name
@@ -71,19 +78,16 @@ class Isabelle_Sidekick(name: String) extends SideKickParser(name)
     stopped = false
 
     // FIXME lock buffer (!??)
-    val data = new SideKickParsedData(buffer.getName)
-    val root = data.root
-    data.getAsset(root).setEnd(Isabelle_Sidekick.int_to_pos(buffer.getLength))
-
+    val data = Isabelle_Sidekick.root_data(buffer)
     val syntax = Isabelle.mode_syntax(name)
     val ok =
       if (syntax.isDefined) {
         val ok = parser(buffer, syntax.get, data)
-        if (stopped) { root.add(new DefaultMutableTreeNode("<stopped>")); true }
+        if (stopped) { data.root.add(new DefaultMutableTreeNode("<stopped>")); true }
         else ok
       }
       else false
-    if (!ok) root.add(new DefaultMutableTreeNode("<ignored>"))
+    if (!ok) data.root.add(new DefaultMutableTreeNode("<ignored>"))
 
     data
   }
@@ -155,13 +159,13 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
       }
     opt_snapshot match {
       case Some(snapshot) =>
-        val root = data.root
         for ((command, command_start) <- snapshot.node.command_iterator() if !stopped) {
           val markup =
             snapshot.state.command_markup(
               snapshot.version, command, Command.Markup_Index.markup,
                 command.range, Markup.Elements.full)
-          Isabelle_Sidekick.swing_markup_tree(markup, root, (info: Text.Info[List[XML.Elem]]) =>
+          Isabelle_Sidekick.swing_markup_tree(markup, data.root,
+            (info: Text.Info[List[XML.Elem]]) =>
               {
                 val range = info.range + command_start
                 val content = command.source(info.range).replace('\n', ' ')
@@ -209,6 +213,37 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
     }
 
     true
+  }
+}
+
+
+class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex")
+{
+  override def supportsCompletion = false
+
+  private class Asset(label: String, start: Text.Offset, stop: Text.Offset) extends
+    Isabelle_Sidekick.Asset(label, start, stop) { override def getShortString: String = _name }
+
+  def parse(buffer: Buffer, error_source: errorlist.DefaultErrorSource): SideKickParsedData =
+  {
+    val data = Isabelle_Sidekick.root_data(buffer)
+
+    try {
+      var offset = 0
+      for (chunk <- Bibtex.parse(JEdit_Lib.buffer_text(buffer))) {
+        val n = chunk.size
+        chunk match {
+          case item: Bibtex.Item if item.is_wellformed =>
+            val label = if (item.name == "") item.kind else item.kind + " " + item.name
+            val asset = new Isabelle_Sidekick.Asset(label, offset, offset + n)
+            data.root.add(new DefaultMutableTreeNode(asset))
+          case _ =>
+        }
+        offset += n
+      }
+      data
+    }
+    catch { case ERROR(_) => null }
   }
 }
 

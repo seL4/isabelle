@@ -26,6 +26,9 @@
   <SERVICE NAME="isabelle-root" CLASS="sidekick.SideKickParser">
     new isabelle.jedit.Isabelle_Sidekick_Root();
   </SERVICE>
+  <SERVICE NAME="bibtex" CLASS="sidekick.SideKickParser">
+    new isabelle.jedit.Isabelle_Sidekick_Bibtex();
+  </SERVICE>
   <SERVICE CLASS="console.Shell" NAME="Scala">
     new isabelle.jedit.Scala_Console();
   </SERVICE>

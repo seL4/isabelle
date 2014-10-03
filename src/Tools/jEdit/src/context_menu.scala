@@ -78,7 +78,7 @@ class Context_Menu extends DynamicContextMenuService
           if (JEdit_Lib.buffer_name(buffer).endsWith(".bib") && buffer.isEditable) =>
             val menu = new JMenu("BibTeX entries")
             for (entry <- Bibtex.entries) {
-              val item = new JMenuItem(entry.name)
+              val item = new JMenuItem(entry.kind)
               item.addActionListener(new ActionListener {
                 def actionPerformed(evt: ActionEvent): Unit =
                   Isabelle.insert_line_padding(text_area, entry.template)

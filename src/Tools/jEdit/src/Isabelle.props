@@ -84,4 +84,6 @@ mode.isabelle.sidekick.parser=isabelle
 mode.isabelle.sidekick.showStatusWindow.label=true
 mode.ml.sidekick.parser=isabelle
 sidekick.parser.isabelle.label=Isabelle
+mode.bibtex.sidekick.parser=bibtex
+mode.bibtex.folding=sidekick
 
