@@ -863,7 +863,7 @@ is the induction hypothesis.
 Because each \isacom{case} command introduces a list of assumptions
 named like the case name, which is the name of a rule of the inductive
 definition, those rules now need to be accessed with a qualified name, here
-@{thm[source] ev.ev0} and @{thm[source] ev.evSS}
+@{thm[source] ev.ev0} and @{thm[source] ev.evSS}.
 \end{warn}
 
 In the case @{thm[source]evSS} of the proof above we have pretended that the
