@@ -34,7 +34,8 @@ object Bibtex_Token_Markup
             case Some(entry) if entry.is_optional(token.source) => JEditToken.KEYWORD4
             case _ => JEditToken.DIGIT
           }
-      case Bibtex.Token.Kind.IGNORED => JEditToken.NULL
+      case Bibtex.Token.Kind.SPACE => JEditToken.NULL
+      case Bibtex.Token.Kind.COMMENT => JEditToken.COMMENT1
       case Bibtex.Token.Kind.ERROR => JEditToken.INVALID
     }
 

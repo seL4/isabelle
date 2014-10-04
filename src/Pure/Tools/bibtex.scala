@@ -127,7 +127,8 @@ object Bibtex
       val STRING = Value("string")
       val NAME = Value("name")
       val IDENT = Value("identifier")
-      val IGNORED = Value("ignored")
+      val SPACE = Value("white space")
+      val COMMENT = Value("ignored text")
       val ERROR = Value("bad input")
     }
   }
@@ -141,8 +142,11 @@ object Bibtex
     def is_name: Boolean =
       kind == Token.Kind.NAME ||
       kind == Token.Kind.IDENT
-    def is_ignored: Boolean = kind == Token.Kind.IGNORED
-    def is_malformed: Boolean = kind == Token.Kind.ERROR
+    def is_ignored: Boolean =
+      kind == Token.Kind.SPACE ||
+      kind == Token.Kind.COMMENT
+    def is_malformed: Boolean = kind ==
+      Token.Kind.ERROR
   }
 
   case class Chunk(kind: String, tokens: List[Token])
@@ -202,15 +206,15 @@ object Bibtex
 
     override val whiteSpace = "".r
 
-    private val space = """[ \t\n\r]+""".r ^^ token(Token.Kind.IGNORED)
-    private val strict_space = """[ \t]+""".r ^^ token(Token.Kind.IGNORED)
+    private val space = """[ \t\n\r]+""".r ^^ token(Token.Kind.SPACE)
+    private val strict_space = """[ \t]+""".r ^^ token(Token.Kind.SPACE)
 
 
-    /* ignored material */
+    /* ignored text */
 
     private val ignored: Parser[Chunk] =
       rep1("""(?mi)([^@]+|@[ \t]*comment)""".r) ^^ {
-        case ss => Chunk("", List(Token(Token.Kind.IGNORED, ss.mkString))) }
+        case ss => Chunk("", List(Token(Token.Kind.COMMENT, ss.mkString))) }
 
 
     /* delimited string: outermost "..." or {...} and body with balanced {...} */
