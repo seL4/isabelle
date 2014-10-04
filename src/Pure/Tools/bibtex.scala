@@ -215,6 +215,7 @@ object Bibtex
 
     /* delimited string: outermost "..." or {...} and body with balanced {...} */
 
+    // see also bibtex.web: scan_a_field_token_and_eat_white, scan_balanced_braces
     private def delimited_depth(delim: Delimited): Parser[(String, Delimited)] =
       new Parser[(String, Delimited)]
       {
@@ -231,13 +232,15 @@ object Bibtex
           var finished = false
           while (!finished && i < end) {
             val c = in.source.charAt(i)
+
             if (c == '"' && d == 0) { i += 1; d = 1; q = true }
             else if (c == '"' && d == 1 && q) {
               i += 1; d = 0; q = false; finished = true
             }
             else if (c == '{') { i += 1; d += 1 }
-            else if (c == '}' && (d > 1 || d == 1 && !q)) {
-              i += 1; d -= 1; if (d == 0) finished = true
+            else if (c == '}') {
+              if (d == 1 && !q || d > 1) { i += 1; d -= 1; if (d == 0) finished = true }
+              else {i = start; finished = true }
             }
             else if (d > 0) i += 1
             else finished = true
@@ -254,18 +257,16 @@ object Bibtex
       delimited_depth(Closed) ^?
         { case (s, delim) if delim == Closed => Token(Token.Kind.STRING, s) }
 
-    private def delimited_line(ctxt: Line_Context): Parser[(Chunk, Line_Context)] =
-    {
-      ctxt match {
-        case Item_Context(kind, delim, right) =>
-          delimited_depth(delim) ^^ { case (s, delim1) =>
-            (Chunk(kind, List(Token(Token.Kind.STRING, s))), Item_Context(kind, delim1, right)) }
-        case _ => failure("")
-      }
-    }
-
     private def recover_delimited: Parser[Token] =
-      """(?m)["{][^@]+""".r ^^ token(Token.Kind.ERROR)
+      """(?m)["{][^@]*""".r ^^ token(Token.Kind.ERROR)
+
+    def delimited_line(item_ctxt: Item_Context): Parser[(Chunk, Line_Context)] =
+      item_ctxt match {
+        case Item_Context(kind, delim, _) =>
+          delimited_depth(delim) ^^ { case (s, delim1) =>
+            (Chunk(kind, List(Token(Token.Kind.STRING, s))), item_ctxt.copy(delim = delim1)) } |
+          recover_delimited ^^ { case a => (Chunk(kind, List(a)), Ignored_Context) }
+        }
 
 
     /* other tokens */
@@ -332,11 +333,11 @@ object Bibtex
                 val chunk = Chunk(kind, a ::: List(b) ::: (c getOrElse Nil))
                 (chunk, Item_Context(kind, Closed, right)) } |
           recover_item ^^ { case a => (a, Ignored_Context) }
-        case Item_Context(kind, delim, right) =>
+        case item_ctxt @ Item_Context(kind, delim, right) =>
           if (delim.depth > 0)
-            delimited_line(ctxt)
+            delimited_line(item_ctxt)
           else {
-            delimited_line(ctxt) |
+            delimited_line(item_ctxt) |
             other_token ^^ { case a => (Chunk(kind, List(a)), ctxt) } |
             right ^^ { case a => (Chunk(kind, List(keyword(a))), Ignored_Context) }
           }
