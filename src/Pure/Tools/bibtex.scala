@@ -333,13 +333,13 @@ object Bibtex
     {
       ctxt match {
         case Ignored_Context =>
+          ignored_line |
           item_start ~ (left_brace | left_paren) ~ opt(item_name) ^^
             { case (kind, a) ~ b ~ c =>
                 val right = if (b.source == "{") "}" else ")"
                 val chunk = Chunk(kind, a ::: List(b) ::: (c getOrElse Nil))
                 (chunk, Item_Context(kind, Closed, right)) } |
-          recover_item ^^ { case a => (a, Ignored_Context) } |
-          ignored_line
+          recover_item ^^ { case a => (a, Ignored_Context) }
         case item_ctxt @ Item_Context(kind, delim, right) =>
           if (delim.depth > 0)
             delimited_line(item_ctxt) |
