@@ -18,7 +18,7 @@ object Bibtex_Token_Markup
 {
   /* token style */
 
-  private def token_style(item_kind: String, token: Bibtex.Token): Byte =
+  private def token_style(context: String, token: Bibtex.Token): Byte =
     token.kind match {
       case Bibtex.Token.Kind.COMMAND => JEditToken.KEYWORD2
       case Bibtex.Token.Kind.ENTRY => JEditToken.KEYWORD1
@@ -28,7 +28,7 @@ object Bibtex_Token_Markup
       case Bibtex.Token.Kind.IDENT =>
         if (Bibtex.is_month(token.source)) JEditToken.LITERAL3
         else
-          Bibtex.get_entry(item_kind) match {
+          Bibtex.get_entry(context) match {
             case Some(entry) if entry.is_required(token.source) => JEditToken.KEYWORD3
             case Some(entry) if entry.is_optional(token.source) => JEditToken.KEYWORD4
             case _ => JEditToken.DIGIT

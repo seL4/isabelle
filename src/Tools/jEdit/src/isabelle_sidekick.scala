@@ -232,12 +232,12 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex")
       var offset = 0
       for (chunk <- Bibtex.parse(JEdit_Lib.buffer_text(buffer))) {
         val n = chunk.source.size
-        chunk match {
-          case item: Bibtex.Item if item.is_wellformed =>
-            val label = if (item.name == "") item.kind else item.kind + " " + item.name
-            val asset = new Isabelle_Sidekick.Asset(label, offset, offset + n)
-            data.root.add(new DefaultMutableTreeNode(asset))
-          case _ =>
+        val label =
+          ((if (chunk.kind == "") Nil else List(chunk.kind)) :::
+           (if (chunk.name == "") Nil else List(chunk.name))).mkString(" ")
+        if (label != "") {
+          val asset = new Isabelle_Sidekick.Asset(label, offset, offset + n)
+          data.root.add(new DefaultMutableTreeNode(asset))
         }
         offset += n
       }
