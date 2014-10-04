@@ -125,6 +125,7 @@ object Bibtex
       val KEYWORD = Value("keyword")
       val NAT = Value("natural number")
       val STRING = Value("string")
+      val NAME = Value("name")
       val IDENT = Value("identifier")
       val IGNORED = Value("ignored")
       val ERROR = Value("bad input")
@@ -136,6 +137,9 @@ object Bibtex
     def is_kind: Boolean =
       kind == Token.Kind.COMMAND ||
       kind == Token.Kind.ENTRY ||
+      kind == Token.Kind.IDENT
+    def is_name: Boolean =
+      kind == Token.Kind.NAME ||
       kind == Token.Kind.IDENT
     def is_ignored: Boolean = kind == Token.Kind.IGNORED
     def is_malformed: Boolean = kind == Token.Kind.ERROR
@@ -162,7 +166,7 @@ object Bibtex
 
     def name: String =
       content match {
-        case Some(Token(Token.Kind.IDENT, a) :: _) => a
+        case Some(tok :: _) if tok.is_name => tok.source
         case _ => ""
       }
 
@@ -289,17 +293,21 @@ object Bibtex
         Token(kind, a)
       }
 
-    private val item_start: Parser[(String, List[Token])] =
+    private val item_start =
       at ~ rep(strict_space) ~ item_kind ~ rep(strict_space) ^^
         { case a ~ b ~ c ~ d => (c.source, List(a) ::: b ::: List(c) ::: d) }
+
+    private val item_name =
+      rep(strict_space) ~ identifier ^^
+        { case a ~ b => a ::: List(Token(Token.Kind.NAME, b)) }
 
     private val item_body =
       delimited | (recover_delimited | other_token)
 
     private val item: Parser[Chunk] =
-      (item_start ~ left_brace ~ rep(item_body) ~ opt(right_brace) |
-       item_start ~ left_paren ~ rep(item_body) ~ opt(right_paren)) ^^
-        { case (kind, a) ~ b ~ c ~ d => Chunk(kind, a ::: List(b) ::: c ::: d.toList) }
+      (item_start ~ left_brace ~ item_name ~ rep(item_body) ~ opt(right_brace) |
+       item_start ~ left_paren ~ item_name ~ rep(item_body) ~ opt(right_paren)) ^^
+        { case (kind, a) ~ b ~ c ~ d ~ e => Chunk(kind, a ::: List(b) ::: c ::: d ::: e.toList) }
 
     private val recover_item: Parser[Chunk] =
       at ~ "(?m)[^@]*".r ^^ { case a ~ b => Chunk("", List(a, Token(Token.Kind.ERROR, b))) }
@@ -314,10 +322,11 @@ object Bibtex
       ctxt match {
         case Ignored_Context =>
           ignored ^^ { case a => (a, ctxt) } |
-          item_start ~ (left_brace | left_paren) ^^
-            { case (kind, a) ~ b =>
+          item_start ~ (left_brace | left_paren) ~ opt(item_name) ^^
+            { case (kind, a) ~ b ~ c =>
                 val right = if (b.source == "{") "}" else ")"
-                (Chunk(kind, a ::: List(b)), Item_Context(kind, Closed, right)) } |
+                val chunk = Chunk(kind, a ::: List(b) ::: (c getOrElse Nil))
+                (chunk, Item_Context(kind, Closed, right)) } |
           recover_item ^^ { case a => (a, Ignored_Context) }
         case Item_Context(kind, delim, right) =>
           if (delim.depth > 0)

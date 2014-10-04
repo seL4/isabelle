@@ -25,6 +25,7 @@ object Bibtex_Token_Markup
       case Bibtex.Token.Kind.KEYWORD => JEditToken.OPERATOR
       case Bibtex.Token.Kind.NAT => JEditToken.LITERAL2
       case Bibtex.Token.Kind.STRING => JEditToken.LITERAL1
+      case Bibtex.Token.Kind.NAME => JEditToken.LABEL
       case Bibtex.Token.Kind.IDENT =>
         if (Bibtex.is_month(token.source)) JEditToken.LITERAL3
         else
