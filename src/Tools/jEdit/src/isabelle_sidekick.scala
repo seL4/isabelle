@@ -221,8 +221,12 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex")
 {
   override def supportsCompletion = false
 
-  private class Asset(label: String, start: Text.Offset, stop: Text.Offset) extends
-    Isabelle_Sidekick.Asset(label, start, stop) { override def getShortString: String = _name }
+  private class Asset(
+      label: String, label_html: String, start: Text.Offset, stop: Text.Offset, source: String)
+    extends Isabelle_Sidekick.Asset(label, start, stop) {
+      override def getShortString: String = label_html
+      override def getLongString: String = source
+    }
 
   def parse(buffer: Buffer, error_source: errorlist.DefaultErrorSource): SideKickParsedData =
   {
@@ -231,15 +235,17 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex")
     try {
       var offset = 0
       for (chunk <- Bibtex.parse(JEdit_Lib.buffer_text(buffer))) {
-        val n = chunk.source.size
-        val label =
-          ((if (chunk.kind == "") Nil else List(chunk.kind)) :::
-           (if (chunk.name == "") Nil else List(chunk.name))).mkString(" ")
-        if (label != "") {
-          val asset = new Isabelle_Sidekick.Asset(label, offset, offset + n)
+        val kind = chunk.kind
+        val name = chunk.name
+        val source = chunk.source
+        if (kind != "") {
+          val label = kind + (if (name == "") "" else " " + name)
+          val label_html =
+            "<html><b>" + kind + "</b>" + (if (name == "") "" else " " + name) + "</html>"
+          val asset = new Asset(label, label_html, offset, offset + source.size, source)
           data.root.add(new DefaultMutableTreeNode(asset))
         }
-        offset += n
+        offset += source.size
       }
       data
     }
