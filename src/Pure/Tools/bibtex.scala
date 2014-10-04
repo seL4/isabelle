@@ -232,9 +232,13 @@ object Bibtex
           while (!finished && i < end) {
             val c = in.source.charAt(i)
             if (c == '"' && d == 0) { i += 1; d = 1; q = true }
-            else if (c == '"' && d == 1) { i += 1; d = 0; q = false; finished = true }
+            else if (c == '"' && d == 1 && q) {
+              i += 1; d = 0; q = false; finished = true
+            }
             else if (c == '{') { i += 1; d += 1 }
-            else if (c == '}' && d > 0) { i += 1; d -= 1; if (d == 0) finished = true }
+            else if (c == '}' && (d > 1 || d == 1 && !q)) {
+              i += 1; d -= 1; if (d == 0) finished = true
+            }
             else if (d > 0) i += 1
             else finished = true
           }
