@@ -82,10 +82,8 @@ lemma successI:
 
 lemma successE:
   assumes "success f h"
-  obtains r h' where "r = fst (the (execute c h))"
-    and "h' = snd (the (execute c h))"
-    and "execute f h \<noteq> None"
-  using assms by (simp add: success_def)
+  obtains r h' where "execute f h = Some (r, h')"
+  using assms by (auto simp: success_def)
 
 named_theorems success_intros "introduction rules for success"
 
@@ -266,11 +264,11 @@ lemma execute_bind_case:
 
 lemma execute_bind_success:
   "success f h \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g (fst (the (execute f h)))) (snd (the (execute f h)))"
-  by (cases f h rule: Heap_cases) (auto elim!: successE simp add: bind_def)
+  by (cases f h rule: Heap_cases) (auto elim: successE simp add: bind_def)
 
 lemma success_bind_executeI:
   "execute f h = Some (x, h') \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"
-  by (auto intro!: successI elim!: successE simp add: bind_def)
+  by (auto intro!: successI elim: successE simp add: bind_def)
 
 lemma success_bind_effectI [success_intros]:
   "effect f h h' x \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"

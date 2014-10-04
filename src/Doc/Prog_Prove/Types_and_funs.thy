@@ -8,11 +8,11 @@ text{*
 \section{Type and Function Definitions}
 
 Type synonyms are abbreviations for existing types, for example
-*}
+\index{string@@{text string}}*}
 
 type_synonym string = "char list"
 
-text{*\index{string@@{text string}}
+text{*
 Type synonyms are expanded after parsing and are not present in internal representation and output. They are mere conveniences for the reader.
 
 \subsection{Datatypes}
@@ -118,7 +118,7 @@ abbreviation sq' :: "nat \<Rightarrow> nat" where
 "sq' n \<equiv> n * n"
 
 text{* The key difference is that @{const sq'} is only syntactic sugar:
-after parsing, @{term"sq' t"} is replaced by \mbox{@{term"t*t"}}, and
+after parsing, @{term"sq' t"} is replaced by \mbox{@{term"t*t"}};
 before printing, every occurrence of @{term"u*u"} is replaced by
 \mbox{@{term"sq' u"}}.  Internally, @{const sq'} does not exist.
 This is the
@@ -296,7 +296,7 @@ This example suggests a heuristic:
 \begin{quote}
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
-Of course one cannot do this na\"{\i}vely: @{prop"itrev xs ys = rev xs"} is
+Of course one cannot do this naively: @{prop"itrev xs ys = rev xs"} is
 just not true.  The correct generalization is
 *};
 (*<*)oops;(*>*)
@@ -411,7 +411,7 @@ equation. For example, the theorem @{prop"\<not> P"} is turned into @{prop"P = F
 Only equations that really simplify, like @{prop"rev (rev xs) = xs"} and
 @{prop"xs @ [] = xs"}, should be declared as simplification
 rules. Equations that may be counterproductive as simplification rules
-should only be used in specific proof steps (see \S\ref{sec:simp} below).
+should only be used in specific proof steps (see \autoref{sec:simp} below).
 Distributivity laws, for example, alter the structure of terms
 and can produce an exponential blow-up.
 

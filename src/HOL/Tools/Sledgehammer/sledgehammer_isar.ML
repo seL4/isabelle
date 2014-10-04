@@ -30,6 +30,7 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
+open ATP_Waldmeister
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
@@ -56,7 +57,6 @@ val veriT_la_generic_rule = "la_generic"
 val veriT_simp_arith_rule = "simp_arith"
 val veriT_tmp_ite_elim_rule = "tmp_ite_elim"
 val veriT_tmp_skolemize_rule = "tmp_skolemize"
-val waldmeister_skolemize_rule = ATP_Waldmeister.waldmeister_skolemize_rule
 val z3_skolemize_rule = Z3_Proof.string_of_rule Z3_Proof.Skolemize
 val z3_th_lemma_rule_prefix = Z3_Proof.string_of_rule (Z3_Proof.Th_Lemma "")
 val zipperposition_cnf_rule = "cnf"
@@ -104,8 +104,9 @@ fun add_lines_pass2 res [] = rev res
       val norm_t = normalize role t
       val is_duplicate =
         exists (fn (prev_name, prev_role, prev_t, _, _) =>
-            member (op =) deps prev_name andalso
-            Term.aconv_untyped (normalize prev_role prev_t, norm_t))
+            (prev_role = Hypothesis andalso prev_t aconv t) orelse
+            (member (op =) deps prev_name andalso
+             Term.aconv_untyped (normalize prev_role prev_t, norm_t)))
           res
 
       fun looks_boring () = t aconv @{prop False} orelse length deps < 2
@@ -138,7 +139,7 @@ val systematic_methods =
   basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
   [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
-fun skolem_methods_of z3 = basic_systematic_methods |> z3 ? cons Moura_Method
+val skolem_methods = Moura_Method :: systematic_methods
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
@@ -186,12 +187,9 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         fun add_lemma ((l, t), rule) ctxt =
           let
             val (skos, meths) =
-              (if is_skolemize_rule rule then
-                 (skolems_of ctxt t, skolem_methods_of (rule = z3_skolemize_rule))
-               else if is_arith_rule rule then
-                 ([], arith_methods)
-               else
-                 ([], rewrite_methods))
+              (if is_skolemize_rule rule then (skolems_of ctxt t, skolem_methods)
+               else if is_arith_rule rule then ([], arith_methods)
+               else ([], rewrite_methods))
               ||> massage_methods
           in
             (Prove ([], skos, l, t, [], ([], []), meths, ""),
@@ -225,6 +223,38 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                     else
                       I))))
             atp_proof
+
+        fun is_referenced_in_step _ (Let _) = false
+          | is_referenced_in_step l (Prove (_, _, _, _, subs, (ls, _), _, _)) =
+            member (op =) ls l orelse exists (is_referenced_in_proof l) subs
+        and is_referenced_in_proof l (Proof (_, _, steps)) =
+          exists (is_referenced_in_step l) steps
+
+        fun insert_lemma_in_step lem
+            (step as Prove (qs, fix, l, t, subs, (ls, gs), meths, comment)) =
+          let val l' = the (label_of_isar_step lem) in
+            if member (op =) ls l' then
+              [lem, step]
+            else
+              let val refs = map (is_referenced_in_proof l') subs in
+                if length (filter I refs) = 1 then
+                  let
+                    val subs' = map2 (fn false => I | true => insert_lemma_in_proof lem) refs subs
+                  in
+                    [Prove (qs, fix, l, t, subs', (ls, gs), meths, comment)]
+                  end
+                else
+                  [lem, step]
+              end
+          end
+        and insert_lemma_in_steps lem [] = [lem]
+          | insert_lemma_in_steps lem (step :: steps) =
+            if is_referenced_in_step (the (label_of_isar_step lem)) step then
+              insert_lemma_in_step lem step @ steps
+            else
+              step :: insert_lemma_in_steps lem steps
+        and insert_lemma_in_proof lem (Proof (fix, assms, steps)) =
+          Proof (fix, assms, insert_lemma_in_steps lem steps)
 
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
@@ -265,7 +295,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 |> fold add_fact_of_dependencies gamma
                 |> sort_facts
               val meths =
-                (if skolem then skolem_methods_of (rule = z3_skolemize_rule)
+                (if skolem then skolem_methods
                  else if is_arith_rule rule then arith_methods
                  else if is_datatype_rule rule then datatype_methods
                  else systematic_methods')
@@ -311,7 +341,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               isar_steps outer (SOME l) (step :: accum) infs
             end
         and isar_proof outer fix assms lems infs =
-          Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
+          Proof (fix, assms, fold_rev insert_lemma_in_steps lems (isar_steps outer NONE [] infs))
 
         val trace = Config.get ctxt trace
 

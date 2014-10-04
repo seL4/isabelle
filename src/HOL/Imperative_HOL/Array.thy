@@ -255,8 +255,7 @@ lemma effect_nthI [effect_intros]:
 lemma effect_nthE [effect_elims]:
   assumes "effect (nth a i) h h' r"
   obtains "i < length h a" "r = get h a ! i" "h' = h"
-  using assms by (rule effectE)
-    (erule successE, cases "i < length h a", simp_all add: execute_simps)
+  using assms by (rule effectE) (cases "i < length h a", auto simp: execute_simps elim: successE)
 
 lemma execute_upd [execute_simps]:
   "i < length h a \<Longrightarrow>
@@ -276,8 +275,7 @@ lemma effect_updI [effect_intros]:
 lemma effect_updE [effect_elims]:
   assumes "effect (upd i v a) h h' r"
   obtains "r = a" "h' = update a i v h" "i < length h a"
-  using assms by (rule effectE)
-    (erule successE, cases "i < length h a", simp_all add: execute_simps)
+  using assms by (rule effectE) (cases "i < length h a", auto simp: execute_simps elim: successE)
 
 lemma execute_map_entry [execute_simps]:
   "i < length h a \<Longrightarrow>
@@ -298,8 +296,7 @@ lemma effect_map_entryI [effect_intros]:
 lemma effect_map_entryE [effect_elims]:
   assumes "effect (map_entry i f a) h h' r"
   obtains "r = a" "h' = update a i (f (get h a ! i)) h" "i < length h a"
-  using assms by (rule effectE)
-    (erule successE, cases "i < length h a", simp_all add: execute_simps)
+  using assms by (rule effectE) (cases "i < length h a", auto simp: execute_simps elim: successE)
 
 lemma execute_swap [execute_simps]:
   "i < length h a \<Longrightarrow>
@@ -320,8 +317,7 @@ lemma effect_swapI [effect_intros]:
 lemma effect_swapE [effect_elims]:
   assumes "effect (swap i x a) h h' r"
   obtains "r = get h a ! i" "h' = update a i x h" "i < length h a"
-  using assms by (rule effectE)
-    (erule successE, cases "i < length h a", simp_all add: execute_simps)
+  using assms by (rule effectE) (cases "i < length h a", auto simp: execute_simps elim: successE)
 
 lemma execute_freeze [execute_simps]:
   "execute (freeze a) h = Some (get h a, h)"

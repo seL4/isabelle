@@ -38,6 +38,9 @@ token category instead.
 
 *** HOL ***
 
+* Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1
+Minor INCOMPATIBILITY.
+
 * Bootstrap of listsum as special case of abstract product over lists.
 Fact rename:
     listsum_def ~> listsum.eq_foldr

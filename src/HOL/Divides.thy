@@ -2425,16 +2425,6 @@ done
 
 subsubsection {* The Divides Relation *}
 
-lemma dvd_neg_numeral_left [simp]:
-  fixes y :: "'a::comm_ring_1"
-  shows "(- numeral k) dvd y \<longleftrightarrow> (numeral k) dvd y"
-  by (fact minus_dvd_iff)
-
-lemma dvd_neg_numeral_right [simp]:
-  fixes x :: "'a::comm_ring_1"
-  shows "x dvd (- numeral k) \<longleftrightarrow> x dvd (numeral k)"
-  by (fact dvd_minus_iff)
-
 lemmas dvd_eq_mod_eq_0_numeral [simp] =
   dvd_eq_mod_eq_0 [of "numeral x" "numeral y"] for x y
 
