@@ -40,9 +40,9 @@ object Bibtex
     optional_crossref: List[String],
     optional_other: List[String])
   {
-    def is_required(s: String): Boolean = required.contains(s)
+    def is_required(s: String): Boolean = required.contains(s.toLowerCase)
     def is_optional(s: String): Boolean =
-      optional_crossref.contains(s) || optional_other.contains(s)
+      optional_crossref.contains(s.toLowerCase) || optional_other.contains(s.toLowerCase)
 
     def fields: List[String] = required ::: optional_crossref ::: optional_other
     def template: String =
