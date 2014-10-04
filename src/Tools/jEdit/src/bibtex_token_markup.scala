@@ -81,7 +81,13 @@ object Bibtex_Token_Markup
         for ((style, token) <- styled_tokens) {
           val length = token.length
           val end_offset = offset + length
-          handler.handleToken(line, style, offset, length, context1)
+
+          if ((offset until end_offset).exists(i => line.charAt(i) == '\t')) {
+            for (i <- offset until end_offset)
+              handler.handleToken(line, style, i, 1, context1)
+          }
+          else handler.handleToken(line, style, offset, length, context1)
+
           offset += length
         }
         handler.handleToken(line, JEditToken.END, line.count, 0, context1)
