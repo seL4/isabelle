@@ -216,6 +216,9 @@ object Bibtex
       rep1("""(?mi)([^@]+|@[ \t]*comment)""".r) ^^ {
         case ss => Chunk("", List(Token(Token.Kind.COMMENT, ss.mkString))) }
 
+    private def ignored_line: Parser[(Chunk, Line_Context)] =
+      ignored ^^ { case a => (a, Ignored_Context) }
+
 
     /* delimited string: outermost "..." or {...} and body with balanced {...} */
 
@@ -330,20 +333,22 @@ object Bibtex
     {
       ctxt match {
         case Ignored_Context =>
-          ignored ^^ { case a => (a, ctxt) } |
           item_start ~ (left_brace | left_paren) ~ opt(item_name) ^^
             { case (kind, a) ~ b ~ c =>
                 val right = if (b.source == "{") "}" else ")"
                 val chunk = Chunk(kind, a ::: List(b) ::: (c getOrElse Nil))
                 (chunk, Item_Context(kind, Closed, right)) } |
-          recover_item ^^ { case a => (a, Ignored_Context) }
+          recover_item ^^ { case a => (a, Ignored_Context) } |
+          ignored_line
         case item_ctxt @ Item_Context(kind, delim, right) =>
           if (delim.depth > 0)
-            delimited_line(item_ctxt)
+            delimited_line(item_ctxt) |
+            ignored_line
           else {
             delimited_line(item_ctxt) |
             other_token ^^ { case a => (Chunk(kind, List(a)), ctxt) } |
-            right ^^ { case a => (Chunk(kind, List(keyword(a))), Ignored_Context) }
+            right ^^ { case a => (Chunk(kind, List(keyword(a))), Ignored_Context) } |
+            ignored_line
           }
         case _ => failure("")
       }
