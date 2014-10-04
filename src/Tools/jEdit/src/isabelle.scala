@@ -16,6 +16,7 @@ import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
 import org.gjt.sp.jedit.options.PluginOptions
 
@@ -65,10 +66,11 @@ object Isabelle
 
   /* token markers */
 
-  private val markers =
-    Map(modes.map(name => (name, new Token_Markup.Marker(name))): _*)
+  private val markers: Map[String, TokenMarker] =
+    Map(modes.map(name => (name, new Token_Markup.Marker(name))): _*) +
+      ("bibtex" -> new Bibtex_Token_Markup.Marker)
 
-  def token_marker(name: String): Option[Token_Markup.Marker] = markers.get(name)
+  def token_marker(name: String): Option[TokenMarker] = markers.get(name)
 
 
   /* dockable windows */

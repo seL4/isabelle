@@ -9,6 +9,7 @@
 
 declare -a SOURCES=(
   "src/active.scala"
+  "src/bibtex_token_markup.scala"
   "src/completion_popup.scala"
   "src/context_menu.scala"
   "src/dockable.scala"
@@ -41,9 +42,9 @@ declare -a SOURCES=(
   "src/rendering.scala"
   "src/rich_text_area.scala"
   "src/scala_console.scala"
-  "src/sledgehammer_dockable.scala"
   "src/simplifier_trace_dockable.scala"
   "src/simplifier_trace_window.scala"
+  "src/sledgehammer_dockable.scala"
   "src/spell_checker.scala"
   "src/symbols_dockable.scala"
   "src/syslog_dockable.scala"

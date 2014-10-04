@@ -16,7 +16,7 @@ object Bibtex
 {
   /** content **/
 
-  val months = List(
+  private val months = List(
     "jan",
     "feb",
     "mar",
@@ -29,16 +29,22 @@ object Bibtex
     "oct",
     "nov",
     "dec")
+  def is_month(s: String): Boolean = months.contains(s.toLowerCase)
 
-  val commands = List("preamble", "string")
+  private val commands = List("preamble", "string")
+  def is_command(s: String): Boolean = commands.contains(s.toLowerCase)
 
   sealed case class Entry(
     kind: String,
     required: List[String],
     optional_crossref: List[String],
-    optional: List[String])
+    optional_other: List[String])
   {
-    def fields: List[String] = required ::: optional_crossref ::: optional
+    def is_required(s: String): Boolean = required.contains(s)
+    def is_optional(s: String): Boolean =
+      optional_crossref.contains(s) || optional_other.contains(s)
+
+    def fields: List[String] = required ::: optional_crossref ::: optional_other
     def template: String =
       "@" + kind + "{,\n" + fields.map(x => "  " + x + " = {},\n").mkString + "}\n"
   }
@@ -101,6 +107,9 @@ object Bibtex
         List(),
         List("author", "title", "howpublished", "month", "year", "note")))
 
+  def get_entry(kind: String): Option[Entry] =
+    entries.find(entry => entry.kind.toLowerCase == kind.toLowerCase)
+
 
 
   /** tokens and chunks **/
@@ -109,42 +118,45 @@ object Bibtex
   {
     object Kind extends Enumeration
     {
+      val COMMAND = Value("command")
+      val ENTRY = Value("entry")
       val KEYWORD = Value("keyword")
       val NAT = Value("natural number")
-      val IDENT = Value("identifier")
       val STRING = Value("string")
-      val SPACE = Value("white space")
+      val IDENT = Value("identifier")
+      val IGNORED = Value("ignored")
       val ERROR = Value("bad input")
     }
   }
 
   sealed case class Token(kind: Token.Kind.Value, val source: String)
   {
-    def is_space: Boolean = kind == Token.Kind.SPACE
+    def is_ignored: Boolean = kind == Token.Kind.IGNORED
     def is_error: Boolean = kind == Token.Kind.ERROR
   }
 
   abstract class Chunk
   {
-    def size: Int
     def kind: String
+    def tokens: List[Token]
+    def source: String
   }
 
   case class Ignored(source: String) extends Chunk
   {
-    def size: Int = source.size
     def kind: String = ""
+    val tokens = List(Token(Token.Kind.IGNORED, source))
   }
 
   case class Item(kind: String, tokens: List[Token]) extends Chunk
   {
-    def size: Int = (0 /: tokens)({ case (n, token) => n + token.source.size })
+    val source = tokens.map(_.source).mkString
 
     private val wellformed_content: Option[List[Token]] =
       tokens match {
         case Token(Token.Kind.KEYWORD, "@") :: body
         if !body.isEmpty && !body.exists(_.is_error) =>
-          (body.init.filterNot(_.is_space), body.last) match {
+          (body.init.filterNot(_.is_ignored), body.last) match {
             case (Token(Token.Kind.IDENT, _) :: Token(Token.Kind.KEYWORD, "{") :: toks,
                   Token(Token.Kind.KEYWORD, "}")) => Some(toks)
             case (Token(Token.Kind.IDENT, _) :: Token(Token.Kind.KEYWORD, "(") :: toks,
@@ -187,8 +199,8 @@ object Bibtex
 
     override val whiteSpace = "".r
 
-    private val space = """[ \t\n\r]+""".r ^^ token(Token.Kind.SPACE)
-    private val strict_space = """[ \t]+""".r ^^ token(Token.Kind.SPACE)
+    private val space = """[ \t\n\r]+""".r ^^ token(Token.Kind.IGNORED)
+    private val strict_space = """[ \t]+""".r ^^ token(Token.Kind.IGNORED)
 
 
     /* ignored material outside items */
@@ -264,16 +276,27 @@ object Bibtex
 
     private val nat = "[0-9]+".r ^^ token(Token.Kind.NAT)
 
-    private val ident =
-      """[\x21-\x7f&&[^"#%'(),={}0-9]][\x21-\x7f&&[^"#%'(),={}]]*""".r ^^ token(Token.Kind.IDENT)
+    private val identifier =
+      """[\x21-\x7f&&[^"#%'(),={}0-9]][\x21-\x7f&&[^"#%'(),={}]]*""".r
+
+    private val ident = identifier ^^ token(Token.Kind.IDENT)
 
     val other_token = "[=#,]".r ^^ keyword | (nat | (ident | space))
 
 
     /* items */
 
+    private val special_ident =
+      identifier ^^ { case a =>
+        val kind =
+          if (is_command(a)) Token.Kind.COMMAND
+          else if (get_entry(a).isDefined) Token.Kind.ENTRY
+          else Token.Kind.IDENT
+        Token(kind, a)
+      }
+
     private val item_start: Parser[(String, List[Token])] =
-      at ~ rep(strict_space) ~ ident ~ rep(strict_space) ^^
+      at ~ rep(strict_space) ~ special_ident ~ rep(strict_space) ^^
         { case a ~ b ~ c ~ d => (c.source, List(a) ::: b ::: List(c) ::: d) }
 
     private val item_body =
@@ -285,7 +308,7 @@ object Bibtex
         { case (kind, a) ~ b ~ c ~ d => Item(kind, a ::: List(b) ::: c ::: d.toList) }
 
     private val recover_item: Parser[Item] =
-      at ~ "(?m)[^@]+".r ^^ { case a ~ b => Item("", List(a, Token(Token.Kind.ERROR, b))) }
+      at ~ "(?m)[^@]*".r ^^ { case a ~ b => Item("", List(a, Token(Token.Kind.ERROR, b))) }
 
     def item_line(ctxt: Line_Context): Parser[(Item, Line_Context)] =
     {
@@ -294,7 +317,8 @@ object Bibtex
           item_start ~ (left_brace | left_paren) ^^
             { case (kind, a) ~ b =>
                 val right = if (b.source == "{") "}" else ")"
-                (Item(kind, a ::: List(b)), Item_Context(kind, Closed, right)) }
+                (Item(kind, a ::: List(b)), Item_Context(kind, Closed, right)) } |
+          recover_item ^^ { case a => (a, Ignored_Context) }
         case Item_Context(kind, delim, right) =>
           if (delim.depth > 0)
             delimited_line(ctxt)

@@ -15,8 +15,8 @@ import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.jedit.{jEdit, Mode}
-import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler,
-  ParserRuleSet, ModeProvider, XModeHandler, SyntaxStyle}
+import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, ParserRuleSet,
+  ModeProvider, XModeHandler, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.{TextArea, Selection}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 
@@ -173,12 +173,10 @@ object Token_Markup
   }
 
 
-  /* token marker */
+  /* line context */
 
-  private val isabelle_rules = new ParserRuleSet("isabelle", "MAIN")
-
-  private class Line_Context(val context: Option[Scan.Line_Context])
-    extends TokenMarker.LineContext(isabelle_rules, null)
+  class Generic_Line_Context[C](rules: ParserRuleSet, val context: Option[C])
+    extends TokenMarker.LineContext(rules, null)
   {
     override def hashCode: Int = context.hashCode
     override def equals(that: Any): Boolean =
@@ -187,6 +185,14 @@ object Token_Markup
         case _ => false
       }
   }
+
+  private val context_rules = new ParserRuleSet("isabelle", "MAIN")
+
+  private class Line_Context(context: Option[Scan.Line_Context])
+    extends Generic_Line_Context[Scan.Line_Context](context_rules, context)
+
+
+  /* token marker */
 
   class Marker(mode: String) extends TokenMarker
   {
@@ -202,11 +208,19 @@ object Token_Markup
 
       val context1 =
       {
+        def no_context =
+        {
+          val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
+          (List(styled_token), new Line_Context(None))
+        }
         val (styled_tokens, context1) =
           if (mode == "isabelle-ml" || mode == "sml") {
-            val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, line_ctxt.get)
-            val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
-            (styled_tokens, new Line_Context(Some(ctxt1)))
+            if (line_ctxt.isDefined) {
+              val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, line_ctxt.get)
+              val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
+              (styled_tokens, new Line_Context(Some(ctxt1)))
+            }
+            else no_context
           }
           else {
             Isabelle.mode_syntax(mode) match {
@@ -215,9 +229,7 @@ object Token_Markup
                 val styled_tokens =
                   tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
                 (styled_tokens, new Line_Context(Some(ctxt1)))
-              case _ =>
-                val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
-                (List(styled_token), new Line_Context(None))
+              case _ => no_context
             }
           }
 

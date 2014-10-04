@@ -231,7 +231,7 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex")
     try {
       var offset = 0
       for (chunk <- Bibtex.parse(JEdit_Lib.buffer_text(buffer))) {
-        val n = chunk.size
+        val n = chunk.source.size
         chunk match {
           case item: Bibtex.Item if item.is_wellformed =>
             val label = if (item.name == "") item.kind else item.kind + " " + item.name
