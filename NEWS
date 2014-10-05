@@ -20,6 +20,10 @@ semantics due to external visual order vs. internal reverse order.
 * Support for BibTeX files: context menu, context-sensitive token
 marker, SideKick parser.
 
+* Document antiquotation @{cite} provides formal markup, which is
+interpreted semi-formally based on .bib files that happen to be opened
+in the editor (hyperlinks etc.).
+
 
 *** Pure ***
 
