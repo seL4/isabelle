@@ -12,10 +12,14 @@ import isabelle._
 
 import scala.collection.mutable
 
+import java.awt.event.{ActionListener, ActionEvent}
+
 import javax.swing.text.Segment
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.{JMenu, JMenuItem}
 
 import org.gjt.sp.jedit.Buffer
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, ParserRuleSet}
 
 import sidekick.{SideKickParser, SideKickParsedData}
@@ -49,6 +53,33 @@ object Bibtex_JEdit
       model <- PIDE.document_model(buffer).iterator
       (name, offset) <- model.bibtex_entries.iterator
     } yield (name, buffer, offset)
+
+
+
+  /** context menu **/
+
+  def context_menu(text_area0: JEditTextArea): List[JMenuItem] =
+  {
+    text_area0 match {
+      case text_area: TextArea =>
+        text_area.getBuffer match {
+          case buffer: Buffer
+          if (check(buffer) && buffer.isEditable) =>
+            val menu = new JMenu("BibTeX entries")
+            for (entry <- Bibtex.entries) {
+              val item = new JMenuItem(entry.kind)
+              item.addActionListener(new ActionListener {
+                def actionPerformed(evt: ActionEvent): Unit =
+                  Isabelle.insert_line_padding(text_area, entry.template)
+              })
+              menu.add(item)
+            }
+            List(menu)
+          case _ => Nil
+        }
+      case _ => Nil
+    }
+  }
 
 
 

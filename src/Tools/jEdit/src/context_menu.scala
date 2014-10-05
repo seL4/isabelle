@@ -10,13 +10,14 @@ package isabelle.jedit
 import isabelle._
 
 
-import java.awt.event.{ActionListener, ActionEvent, MouseEvent}
-import javax.swing.{JMenu, JMenuItem}
+import java.awt.event.MouseEvent
+
+import javax.swing.JMenuItem
 
 import org.gjt.sp.jedit.menu.EnhancedMenuItem
 import org.gjt.sp.jedit.gui.DynamicContextMenuService
 import org.gjt.sp.jedit.{jEdit, Buffer}
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
+import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
 class Context_Menu extends DynamicContextMenuService
@@ -67,32 +68,6 @@ class Context_Menu extends DynamicContextMenuService
   }
 
 
-  /* bibtex menu */
-
-  def bibtex_menu(text_area0: JEditTextArea): List[JMenuItem] =
-  {
-    text_area0 match {
-      case text_area: TextArea =>
-        text_area.getBuffer match {
-          case buffer: Buffer
-          if (Bibtex_JEdit.check(buffer) && buffer.isEditable) =>
-            val menu = new JMenu("BibTeX entries")
-            for (entry <- Bibtex.entries) {
-              val item = new JMenuItem(entry.kind)
-              item.addActionListener(new ActionListener {
-                def actionPerformed(evt: ActionEvent): Unit =
-                  Isabelle.insert_line_padding(text_area, entry.template)
-              })
-              menu.add(item)
-            }
-            List(menu)
-          case _ => Nil
-        }
-      case _ => Nil
-    }
-  }
-
-
   /* menu service */
 
   def createMenu(text_area: JEditTextArea, evt: MouseEvent): Array[JMenuItem] =
@@ -107,7 +82,7 @@ class Context_Menu extends DynamicContextMenuService
       }
       else Nil
 
-    val items2 = bibtex_menu(text_area)
+    val items2 = Bibtex_JEdit.context_menu(text_area)
 
     val items = items1 ::: items2
     if (items.isEmpty) null else items.toArray
