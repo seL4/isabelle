@@ -110,6 +110,7 @@ ML_file "ML/ml_thms.ML"
 ML_file "Tools/print_operation.ML"
 ML_file "Isar/isar_syn.ML"
 ML_file "Isar/calculation.ML"
+ML_file "Tools/bibtex.ML"
 ML_file "Tools/rail.ML"
 ML_file "Tools/rule_insts.ML";
 ML_file "Tools/thm_deps.ML";

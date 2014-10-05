@@ -120,6 +120,11 @@ object Markup
   val EXPRESSION = "expression"
 
 
+  /* citation */
+
+  val CITATION = "citation"
+
+
   /* embedded languages */
 
   val Symbols = new Properties.Boolean("symbols")

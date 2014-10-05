@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/bibtex.scala
     Author:     Makarius
 
-Some support for bibtex files.
+BibTeX support.
 */
 
 package isabelle
