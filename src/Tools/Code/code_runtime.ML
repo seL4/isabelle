@@ -196,10 +196,9 @@ end; (*local*)
 
 (** instrumentalization **)
 
-fun evaluation_code ctxt module_name tycos consts =
+fun evaluation_code ctxt module_name program tycos consts =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val program = Code_Thingol.consts_program thy consts;
     val (ml_modules, target_names) =
       Code_Target.produce_code_for ctxt
         target NONE module_name [] program false (map Constant consts @ map Type_Constructor tycos);
@@ -236,8 +235,9 @@ fun register_code new_tycos new_consts ctxt =
     val ((tycos, consts), _) = Code_Antiq_Data.get ctxt;
     val tycos' = fold (insert (op =)) new_tycos tycos;
     val consts' = fold (insert (op =)) new_consts consts;
+    val program = Code_Thingol.consts_program (Proof_Context.theory_of ctxt) consts';
     val acc_code = Lazy.lazy (fn () =>
-      evaluation_code ctxt structure_generated tycos' consts'
+      evaluation_code ctxt structure_generated program tycos' consts'
       |> apsnd snd);
   in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
 
@@ -336,7 +336,9 @@ fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_nam
     val (tycos, constrs) = map_split (uncurry (check_datatype thy)) datatypes
       |> apsnd flat;
     val functions = map (prep_const thy) raw_functions;
-    val result = evaluation_code ctxt module_name tycos (constrs @ functions)
+    val consts = constrs @ functions;
+    val program = Code_Thingol.consts_program (Proof_Context.theory_of ctxt) consts;
+    val result = evaluation_code ctxt module_name program tycos consts
       |> (apsnd o apsnd) (chop (length constrs));
   in
     thy
