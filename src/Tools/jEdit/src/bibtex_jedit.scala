@@ -10,6 +10,8 @@ package isabelle.jedit
 import isabelle._
 
 
+import scala.collection.mutable
+
 import javax.swing.text.Segment
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -25,6 +27,21 @@ object Bibtex_JEdit
 
   def check(buffer: Buffer): Boolean =
     JEdit_Lib.buffer_name(buffer).endsWith(".bib")
+
+  def parse_buffer_entries(buffer: Buffer): List[(String, Text.Offset)] =
+  {
+    val chunks =
+      try { Bibtex.parse(JEdit_Lib.buffer_text(buffer)) }
+      catch { case ERROR(msg) => Output.warning(msg); Nil }
+
+    val result = new mutable.ListBuffer[(String, Text.Offset)]
+    var offset = 0
+    for (chunk <- chunks) {
+      if (chunk.name != "" && !chunk.is_command) result += ((chunk.name, offset))
+      offset += chunk.source.length
+    }
+    result.toList
+  }
 
   def entries_iterator(): Iterator[(String, Buffer, Text.Offset)] =
     for {

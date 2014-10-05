@@ -167,19 +167,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
         _bibtex match {
           case Some(entries) => entries
           case None =>
-            val chunks =
-              try { Bibtex.parse(JEdit_Lib.buffer_text(buffer)) }
-              catch { case ERROR(msg) => Output.warning(msg); Nil }
-            val entries =
-            {
-              val result = new mutable.ListBuffer[(String, Text.Offset)]
-              var offset = 0
-              for (chunk <- chunks) {
-                if (chunk.name != "" && !chunk.is_command) result += ((chunk.name, offset))
-                offset += chunk.source.length
-              }
-              result.toList
-            }
+            val entries = Bibtex_JEdit.parse_buffer_entries(buffer)
             _bibtex = Some(entries)
             entries
         }
