@@ -10,7 +10,6 @@
 declare -a SOURCES=(
   "src/active.scala"
   "src/bibtex_jedit.scala"
-  "src/bibtex_token_markup.scala"
   "src/completion_popup.scala"
   "src/context_menu.scala"
   "src/dockable.scala"

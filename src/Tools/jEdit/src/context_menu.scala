@@ -75,7 +75,7 @@ class Context_Menu extends DynamicContextMenuService
       case text_area: TextArea =>
         text_area.getBuffer match {
           case buffer: Buffer
-          if (Isabelle.is_bibtex(buffer) && buffer.isEditable) =>
+          if (Bibtex_JEdit.check(buffer) && buffer.isEditable) =>
             val menu = new JMenu("BibTeX entries")
             for (entry <- Bibtex.entries) {
               val item = new JMenuItem(entry.kind)

@@ -163,7 +163,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   def bibtex_entries(): List[(String, Text.Offset)] =
     GUI_Thread.require {
-      if (Isabelle.is_bibtex(buffer)) {
+      if (Bibtex_JEdit.check(buffer)) {
         _bibtex match {
           case Some(entries) => entries
           case None =>

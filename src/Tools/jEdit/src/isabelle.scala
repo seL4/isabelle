@@ -64,17 +64,11 @@ object Isabelle
     }
 
 
-  /* buffer types */
-
-  def is_bibtex(buffer: Buffer): Boolean =
-    JEdit_Lib.buffer_name(buffer).endsWith(".bib")
-
-
   /* token markers */
 
   private val markers: Map[String, TokenMarker] =
     Map(modes.map(name => (name, new Token_Markup.Marker(name))): _*) +
-      ("bibtex" -> new Bibtex_Token_Markup.Marker)
+      ("bibtex" -> new Bibtex_JEdit.Token_Marker)
 
   def token_marker(name: String): Option[TokenMarker] = markers.get(name)
 
