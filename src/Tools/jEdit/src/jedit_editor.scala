@@ -12,7 +12,7 @@ import isabelle._
 
 import java.io.{File => JFile}
 
-import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.browser.VFSBrowser
 
 
@@ -136,6 +136,20 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
+  def goto_buffer(view: View, buffer: Buffer, offset: Text.Offset)
+  {
+    GUI_Thread.require {}
+
+    push_position(view)
+
+    view.goToBuffer(buffer)
+    try { view.getTextArea.moveCaretPosition(offset) }
+    catch {
+      case _: ArrayIndexOutOfBoundsException =>
+      case _: IllegalArgumentException =>
+    }
+  }
+
   def goto_file(view: View, name: String, line: Int = 0, column: Int = 0)
   {
     GUI_Thread.require {}
@@ -184,6 +198,13 @@ class JEdit_Editor extends Editor[View]
           }
         }
       override def toString: String = "URL " + quote(name)
+    }
+
+  def hyperlink_buffer(buffer: Buffer, offset: Text.Offset): Hyperlink =
+    new Hyperlink {
+      val external = false
+      def follow(view: View): Unit = goto_buffer(view, buffer, offset)
+      override def toString: String = "buffer " + quote(JEdit_Lib.buffer_name(buffer))
     }
 
   def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =

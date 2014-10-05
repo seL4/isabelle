@@ -21,11 +21,13 @@ val _ =
       (Scan.lift
         (Scan.option (Parse.verbatim || Parse.cartouche) --
          Scan.repeat1 (Parse.position Args.name)))
-      (fn {context = ctxt, ...} => fn (opt, cites) =>
+      (fn {context = ctxt, ...} => fn (opt, citations) =>
         let
-          val _ = Context_Position.reports ctxt (map (fn (_, p) => (p, Markup.citation)) cites);
+          val _ =
+            Context_Position.reports ctxt
+              (map (fn (name, pos) => (pos, Markup.citation name)) citations);
           val opt_arg = (case opt of NONE => "" | SOME s => "[" ^ s ^ "]");
-          val arg = "{" ^ space_implode "," (map #1 cites) ^ "}";
+          val arg = "{" ^ space_implode "," (map #1 citations) ^ "}";
         in "\\" ^ Config.get ctxt cite_macro ^ opt_arg ^ arg end));
 
 end;

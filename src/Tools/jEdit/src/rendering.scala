@@ -139,13 +139,13 @@ object Rendering
   private val language_elements = Markup.Elements(Markup.LANGUAGE)
 
   private val highlight_elements =
-    Markup.Elements(Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,
+    Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
       Markup.VAR, Markup.TFREE, Markup.TVAR)
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION, Markup.URL)
 
   private val active_elements =
     Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
@@ -157,6 +157,7 @@ object Rendering
   private val tooltip_descriptions =
     Map(
       Markup.EXPRESSION -> "expression",
+      Markup.CITATION -> "citation",
       Markup.TOKEN_RANGE -> "inner syntax token",
       Markup.FREE -> "free variable",
       Markup.SKOLEM -> "skolem variable",
@@ -393,6 +394,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   PIDE.editor.hyperlink_command_id(snapshot, id, offset)
                 case _ => None
               }
+            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
+
+          case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
+            val opt_link =
+              Bibtex_JEdit.entries_iterator.collectFirst(
+                { case (a, buffer, offset) if a == name =>
+                    PIDE.editor.hyperlink_buffer(buffer, offset) })
             opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case _ => None

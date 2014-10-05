@@ -123,6 +123,7 @@ object Markup
   /* citation */
 
   val CITATION = "citation"
+  val Citation = new Markup_String(CITATION, NAME)
 
 
   /* embedded languages */

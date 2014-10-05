@@ -55,7 +55,7 @@ sig
   val position_properties: string list
   val positionN: string val position: T
   val expressionN: string val expression: T
-  val citationN: string val citation: T
+  val citationN: string val citation: string -> T
   val pathN: string val path: string -> T
   val urlN: string val url: string -> T
   val indentN: string
@@ -349,7 +349,7 @@ val (expressionN, expression) = markup_elem "expression";
 
 (* citation *)
 
-val (citationN, citation) = markup_elem "citation";
+val (citationN, citation) = markup_string "citation" nameN;
 
 
 (* external resources *)
