@@ -10,11 +10,12 @@ section {* Concepts and terminology *}
 
 text {*
   Isabelle/jEdit is a Prover IDE that integrates \emph{parallel proof
-  checking} \cite{Wenzel:2009,Wenzel:2013:ITP} with \emph{asynchronous user
-  interaction} \cite{Wenzel:2010,Wenzel:2012:UITP-EPTCS,Wenzel:2014:ITP-PIDE},
-  based on a document-oriented approach to \emph{continuous proof processing}
-  \cite{Wenzel:2011:CICM,Wenzel:2012}. Many concepts and system components are
-  fit together in order to make this work. The main building blocks are as
+  checking} @{cite "Wenzel:2009" and "Wenzel:2013:ITP"} with
+  \emph{asynchronous user interaction} @{cite "Wenzel:2010" and
+  "Wenzel:2012:UITP-EPTCS" and "Wenzel:2014:ITP-PIDE"}, based on a
+  document-oriented approach to \emph{continuous proof processing} @{cite
+  "Wenzel:2011:CICM" and "Wenzel:2012"}. Many concepts and system components
+  are fit together in order to make this work. The main building blocks are as
   follows.
 
   \begin{description}
@@ -27,7 +28,7 @@ text {*
   markup for GUI rendering.
 
   \item [Isabelle/ML] is the implementation and extension language of
-  Isabelle, see also \cite{isabelle-implementation}. It is integrated
+  Isabelle, see also @{cite "isabelle-implementation"}. It is integrated
   into the logical context of Isabelle/Isar and allows to manipulate
   logical entities directly. Arbitrary add-on tools may be implemented
   for object-logics such as Isabelle/HOL.
@@ -81,7 +82,7 @@ text {*
   The options allow to specify a logic session name --- the same selector is
   accessible in the \emph{Theories} panel (\secref{sec:theories}). On
   application startup, the selected logic session image is provided
-  automatically by the Isabelle build tool \cite{isabelle-sys}: if it is
+  automatically by the Isabelle build tool @{cite "isabelle-sys"}: if it is
   absent or outdated wrt.\ its sources, the build process updates it before
   entering the Prover IDE.  Changing the logic session within Isabelle/jEdit
   requires a restart of the whole application.
@@ -168,7 +169,7 @@ text {* Both jEdit and Isabelle have distinctive management of
 
   Isabelle system options are managed by Isabelle/Scala and changes are stored
   in @{file_unchecked "$ISABELLE_HOME_USER/etc/preferences"}, independently of
-  other jEdit properties. See also \cite{isabelle-sys}, especially the
+  other jEdit properties. See also @{cite "isabelle-sys"}, especially the
   coverage of sessions and command-line tools like @{tool build} or @{tool
   options}.
 
@@ -180,7 +181,7 @@ text {* Both jEdit and Isabelle have distinctive management of
   Isabelle system options. Note that some of these options affect general
   parameters that are relevant outside Isabelle/jEdit as well, e.g.\
   @{system_option threads} or @{system_option parallel_proofs} for the
-  Isabelle build tool \cite{isabelle-sys}, but it is possible to use the
+  Isabelle build tool @{cite "isabelle-sys"}, but it is possible to use the
   settings variable @{setting ISABELLE_BUILD_OPTIONS} to change defaults for
   batch builds without affecting Isabelle/jEdit.
 
@@ -241,7 +242,7 @@ text {*
   The @{verbatim "-l"} option specifies the session name of the logic
   image to be used for proof processing.  Additional session root
   directories may be included via option @{verbatim "-d"} to augment
-  that name space of @{tool build} \cite{isabelle-sys}.
+  that name space of @{tool build} @{cite "isabelle-sys"}.
 
   By default, the specified image is checked and built on demand. The
   @{verbatim "-s"} option determines where to store the result session image
@@ -255,9 +256,9 @@ text {*
 
   The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass additional
   low-level options to the JVM or jEdit, respectively. The defaults are
-  provided by the Isabelle settings environment \cite{isabelle-sys}, but note
-  that these only work for the command-line tool described here, and not the
-  regular application.
+  provided by the Isabelle settings environment @{cite "isabelle-sys"}, but
+  note that these only work for the command-line tool described here, and not
+  the regular application.
 
   The @{verbatim "-b"} and @{verbatim "-f"} options control the self-build
   mechanism of Isabelle/jEdit. This is only relevant for building from
@@ -376,7 +377,7 @@ text {*
   standards.\footnote{Raw Unicode characters within formal sources would
   compromise portability and reliability in the face of changing
   interpretation of special features of Unicode, such as Combining Characters
-  or Bi-directional Text.} See also \cite{Wenzel:2011:CICM}.
+  or Bi-directional Text.} See also @{cite "Wenzel:2011:CICM"}.
 
   For the prover back-end, formal text consists of ASCII characters that are
   grouped according to some simple rules, e.g.\ as plain ``@{verbatim a}'' or
@@ -387,14 +388,14 @@ text {*
   "$ISABELLE_HOME/etc/symbols"} and may be augmented by the user in
   @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"}.
 
-  The appendix of \cite{isabelle-isar-ref} gives an overview of the
+  The appendix of @{cite "isabelle-isar-ref"} gives an overview of the
   standard interpretation of finitely many symbols from the infinite
-  collection.  Uninterpreted symbols are displayed literally, e.g.\
-  ``@{verbatim "\<foobar>"}''.  Overlap of Unicode characters used in
-  symbol interpretation with informal ones (which might appear e.g.\
-  in comments) needs to be avoided.  Raw Unicode characters within
-  prover source files should be restricted to informal parts, e.g.\ to
-  write text in non-latin alphabets in comments.
+  collection. Uninterpreted symbols are displayed literally, e.g.\
+  ``@{verbatim "\<foobar>"}''. Overlap of Unicode characters used in symbol
+  interpretation with informal ones (which might appear e.g.\ in comments)
+  needs to be avoided. Raw Unicode characters within prover source files
+  should be restricted to informal parts, e.g.\ to write text in non-latin
+  alphabets in comments.
 
   \medskip \paragraph{Encoding.} Technically, the Unicode view on Isabelle
   symbols is an \emph{encoding} in jEdit (not in the underlying JVM) that is
@@ -673,11 +674,11 @@ text {*
 
   \item via \textbf{theory imports} that are specified in the \emph{theory
   header} using concrete syntax of the @{command_ref theory} command
-  \cite{isabelle-isar-ref};
+  @{cite "isabelle-isar-ref"};
 
   \item via \textbf{auxiliary files} that are loaded into a theory by special
   \emph{load commands}, notably @{command_ref ML_file} and @{command_ref
-  SML_file} \cite{isabelle-isar-ref}.
+  SML_file} @{cite "isabelle-isar-ref"}.
 
   \end{enumerate}
 
@@ -693,10 +694,10 @@ subsection {* Theories \label{sec:theories} *}
 text {*
   The \emph{Theories} panel (see also \figref{fig:theories}) provides an
   overview of the status of continuous checking of theory nodes within the
-  document model. Unlike batch sessions of @{tool build} \cite{isabelle-sys},
-  theory nodes are identified by full path names; this allows to work with
-  multiple (disjoint) Isabelle sessions simultaneously within the same editor
-  session.
+  document model. Unlike batch sessions of @{tool build} @{cite
+  "isabelle-sys"}, theory nodes are identified by full path names; this allows
+  to work with multiple (disjoint) Isabelle sessions simultaneously within the
+  same editor session.
 
   \begin{figure}[htb]
   \begin{center}
@@ -749,7 +750,7 @@ subsection {* Auxiliary files \label{sec:aux-files} *}
 
 text {*
   Special load commands like @{command_ref ML_file} and @{command_ref
-  SML_file} \cite{isabelle-isar-ref} refer to auxiliary files within some
+  SML_file} @{cite "isabelle-isar-ref"} refer to auxiliary files within some
   theory. Conceptually, the file argument of the command extends the theory
   source by the content of the file, but its editor buffer may be loaded~/
   changed~/ saved separately. The PIDE document model propagates changes of
@@ -936,7 +937,7 @@ text {*
   \<close>}
 
   See also the Isar command @{command_ref find_theorems} in
-  \cite{isabelle-isar-ref}.
+  @{cite "isabelle-isar-ref"}.
 *}
 
 
@@ -952,8 +953,8 @@ text {*
       ('name' ':' @{syntax nameref} | 'strict' ':' @{syntax type} | @{syntax type})
   \<close>}
 
-  See also the Isar command @{command_ref find_consts} in
-  \cite{isabelle-isar-ref}.
+  See also the Isar command @{command_ref find_consts} in @{cite
+  "isabelle-isar-ref"}.
 *}
 
 
@@ -963,8 +964,8 @@ text {*
   The \emph{Query} panel in \emph{Print Context} mode prints information from
   the theory or proof context, or proof state. See also the Isar commands
   @{command_ref print_context}, @{command_ref print_cases}, @{command_ref
-  print_term_bindings}, @{command_ref print_theorems},
-  @{command_ref print_state} described in \cite{isabelle-isar-ref}.
+  print_term_bindings}, @{command_ref print_theorems}, @{command_ref
+  print_state} described in @{cite "isabelle-isar-ref"}.
 *}
 
 
@@ -1469,7 +1470,7 @@ text {*
   \item @{system_option_ref auto_methods} controls automatic use of a
   combination of standard proof methods (@{method auto}, @{method
   simp}, @{method blast}, etc.).  This corresponds to the Isar command
-  @{command_ref "try0"} \cite{isabelle-isar-ref}.
+  @{command_ref "try0"} @{cite "isabelle-isar-ref"}.
 
   The tool is disabled by default, since unparameterized invocation of
   standard proof methods often consumes substantial CPU resources
@@ -1478,7 +1479,7 @@ text {*
   \item @{system_option_ref auto_nitpick} controls a slightly reduced
   version of @{command_ref nitpick}, which tests for counterexamples using
   first-order relational logic. See also the Nitpick manual
-  \cite{isabelle-nitpick}.
+  @{cite "isabelle-nitpick"}.
 
   This tool is disabled by default, due to the extra overhead of
   invoking an external Java process for each attempt to disprove a
@@ -1494,7 +1495,7 @@ text {*
   \item @{system_option_ref auto_sledgehammer} controls a significantly
   reduced version of @{command_ref sledgehammer}, which attempts to prove
   a subgoal using external automatic provers. See also the
-  Sledgehammer manual \cite{isabelle-sledgehammer}.
+  Sledgehammer manual @{cite "isabelle-sledgehammer"}.
 
   This tool is disabled by default, due to the relatively heavy nature
   of Sledgehammer.
