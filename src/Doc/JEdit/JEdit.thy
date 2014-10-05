@@ -12,11 +12,11 @@ text {*
   Isabelle/jEdit is a Prover IDE that integrates \emph{parallel proof
   checking} @{cite "Wenzel:2009" and "Wenzel:2013:ITP"} with
   \emph{asynchronous user interaction} @{cite "Wenzel:2010" and
-  "Wenzel:2012:UITP-EPTCS" and "Wenzel:2014:ITP-PIDE"}, based on a
-  document-oriented approach to \emph{continuous proof processing} @{cite
-  "Wenzel:2011:CICM" and "Wenzel:2012"}. Many concepts and system components
-  are fit together in order to make this work. The main building blocks are as
-  follows.
+  "Wenzel:2012:UITP-EPTCS" and "Wenzel:2014:ITP-PIDE" and "Wenzel:2014:UITP"},
+  based on a document-oriented approach to \emph{continuous proof processing}
+  @{cite "Wenzel:2011:CICM" and "Wenzel:2012"}. Many concepts and system
+  components are fit together in order to make this work. The main building
+  blocks are as follows.
 
   \begin{description}
 
