@@ -5,7 +5,7 @@ begin
 chapter {* Isar language elements *}
 
 text {* The Isar proof language (see also
-  \cite[\S2]{isabelle-isar-ref}) consists of three main categories of
+  @{cite \<open>\S2\<close> "isabelle-isar-ref"}) consists of three main categories of
   language elements:
 
   \begin{enumerate}
@@ -96,7 +96,7 @@ text %mlref {*
   unless a certain linguistic mode is active, namely ``@{text
   "proof(state)"}'', ``@{text "proof(chain)"}'', ``@{text
   "proof(prove)"}'', respectively (using the terminology of
-  \cite{isabelle-isar-ref}).
+  @{cite "isabelle-isar-ref"}).
 
   It is advisable study the implementations of existing proof commands
   for suitable modes to be asserted.
@@ -351,7 +351,7 @@ text %mlref {*
 *}
 
 text %mlex {* See also @{command method_setup} in
-  \cite{isabelle-isar-ref} which includes some abstract examples.
+  @{cite "isabelle-isar-ref"} which includes some abstract examples.
 
   \medskip The following toy examples illustrate how the goal facts
   and state are passed to proof methods.  The predefined proof method
@@ -394,7 +394,7 @@ text {* The concrete syntax wrapping of @{command method_setup} always
 
   The @{ML Attrib.thms} parser produces a list of theorems from the
   usual Isar syntax involving attribute expressions etc.\ (syntax
-  category @{syntax thmrefs}) \cite{isabelle-isar-ref}.  The resulting
+  category @{syntax thmrefs}) @{cite "isabelle-isar-ref"}.  The resulting
   @{ML_text thms} are added to @{ML HOL_basic_ss} which already
   contains the basic Simplifier setup for HOL.
 
@@ -575,6 +575,6 @@ text %mlantiq {*
 *}
 
 text %mlex {* See also @{command attribute_setup} in
-  \cite{isabelle-isar-ref} which includes some abstract examples. *}
+  @{cite "isabelle-isar-ref"} which includes some abstract examples. *}
 
 end

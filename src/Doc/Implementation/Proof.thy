@@ -380,7 +380,7 @@ text {*
   conclusion: the proof demonstrates that the context may be augmented
   by parameters and assumptions, without affecting any conclusions
   that do not mention these parameters.  See also
-  \cite{isabelle-isar-ref} for the user-level @{command obtain} and
+  @{cite "isabelle-isar-ref"} for the user-level @{command obtain} and
   @{command guess} elements.  Final results, which may not refer to
   the parameters in the conclusion, need to exported explicitly into
   the original context.  *}

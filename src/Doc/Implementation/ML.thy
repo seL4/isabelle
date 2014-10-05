@@ -681,7 +681,7 @@ text {* A very important consequence of embedding ML into Isar is the
   \<close>}
 
   Here @{syntax nameref} and @{syntax args} are outer syntax categories, as
-  defined in \cite{isabelle-isar-ref}.
+  defined in @{cite "isabelle-isar-ref"}.
 
   \medskip A regular antiquotation @{text "@{name args}"} processes
   its arguments by the usual means of the Isar source language, and
@@ -1008,7 +1008,7 @@ text {* Isabelle provides output channels for different kinds of
   batch sessions prefixes each line of warnings by @{verbatim
   "###"} and errors by @{verbatim "***"}, but leaves anything else
   unchanged.  The message body may contain further markup and formatting,
-  which is routinely used in the Prover IDE \cite{isabelle-jedit}.
+  which is routinely used in the Prover IDE @{cite "isabelle-jedit"}.
 
   Messages are associated with the transaction context of the running
   Isar command.  This enables the front-end to manage commands and
@@ -1325,7 +1325,7 @@ text %mlref {*
   \item @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
   "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify standard
   symbols according to fixed syntactic conventions of Isabelle, cf.\
-  \cite{isabelle-isar-ref}.
+  @{cite "isabelle-isar-ref"}.
 
   \item Type @{ML_type "Symbol.sym"} is a concrete datatype that
   represents the different kinds of symbols explicitly, with
@@ -1404,7 +1404,7 @@ text %mlref {*
   \item sequence of Isabelle symbols (see also \secref{sec:symbols}),
   with @{ML Symbol.explode} as key operation;
 
-  \item XML tree structure via YXML (see also \cite{isabelle-sys}),
+  \item XML tree structure via YXML (see also @{cite "isabelle-sys"}),
   with @{ML YXML.parse_body} as key operation.
 
   \end{enumerate}
@@ -1686,15 +1686,15 @@ text {* Multiple threads help to organize advanced operations of the
   Law'' follows different rules: clock frequency has reached its peak
   around 2005, and applications need to be parallelized in order to
   avoid a perceived loss of performance.  See also
-  \cite{Sutter:2005}.}
+  @{cite "Sutter:2005"}.}
 
   Isabelle/Isar exploits the inherent structure of theories and proofs to
   support \emph{implicit parallelism} to a large extent. LCF-style theorem
   proving provides almost ideal conditions for that, see also
-  \cite{Wenzel:2009}. This means, significant parts of theory and proof
+  @{cite "Wenzel:2009"}. This means, significant parts of theory and proof
   checking is parallelized by default. In Isabelle2013, a maximum
   speedup-factor of 3.5 on 4 cores and 6.5 on 8 cores can be expected
-  \cite{Wenzel:2013:ITP}.
+  @{cite "Wenzel:2013:ITP"}.
 
   \medskip ML threads lack the memory protection of separate
   processes, and operate concurrently on shared heap memory.  This has
@@ -2156,11 +2156,11 @@ subsection {* Futures \label{sec:futures} *}
 text {*
   Futures help to organize parallel execution in a value-oriented manner, with
   @{text fork}~/ @{text join} as the main pair of operations, and some further
-  variants; see also \cite{Wenzel:2009,Wenzel:2013:ITP}. Unlike lazy values,
-  futures are evaluated strictly and spontaneously on separate worker threads.
-  Futures may be canceled, which leads to interrupts on running evaluation
-  attempts, and forces structurally related futures to fail for all time;
-  already finished futures remain unchanged. Exceptions between related
+  variants; see also @{cite "Wenzel:2009" and "Wenzel:2013:ITP"}. Unlike lazy
+  values, futures are evaluated strictly and spontaneously on separate worker
+  threads. Futures may be canceled, which leads to interrupts on running
+  evaluation attempts, and forces structurally related futures to fail for all
+  time; already finished futures remain unchanged. Exceptions between related
   futures are propagated as well, and turned into parallel exceptions (see
   above).
 

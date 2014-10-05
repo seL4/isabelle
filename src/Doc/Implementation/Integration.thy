@@ -15,7 +15,8 @@ text {*
   stateless manner. Historically, the sequence of transitions was wrapped up
   as sequential command loop, such that commands are applied one-by-one. In
   contemporary Isabelle/Isar, processing toplevel commands usually works in
-  parallel in multi-threaded Isabelle/ML \cite{Wenzel:2009,Wenzel:2013:ITP}.
+  parallel in multi-threaded Isabelle/ML @{cite "Wenzel:2009" and
+  "Wenzel:2013:ITP"}.
 *}
 
 
@@ -182,7 +183,7 @@ text %mlref {*
   sub-graph of theories, the intrinsic parallelism can be exploited by the
   system to speedup loading.
 
-  This variant is used by default in @{tool build} \cite{isabelle-sys}.
+  This variant is used by default in @{tool build} @{cite "isabelle-sys"}.
 
   \item @{ML Thy_Info.get_theory}~@{text A} retrieves the theory value
   presently associated with name @{text A}. Note that the result might be

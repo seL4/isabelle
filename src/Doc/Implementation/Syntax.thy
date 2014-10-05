@@ -12,13 +12,13 @@ text {* Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} is
   additional means for reading and printing of terms and types.  This
   important add-on outside the logical core is called \emph{inner
   syntax} in Isabelle jargon, as opposed to the \emph{outer syntax} of
-  the theory and proof language \cite{isabelle-isar-ref}.
+  the theory and proof language @{cite "isabelle-isar-ref"}.
 
-  For example, according to \cite{church40} quantifiers are represented as
+  For example, according to @{cite church40} quantifiers are represented as
   higher-order constants @{text "All :: ('a \<Rightarrow> bool) \<Rightarrow> bool"} such that @{text
   "All (\<lambda>x::'a. B x)"} faithfully represents the idea that is displayed in
   Isabelle as @{text "\<forall>x::'a. B x"} via @{keyword "binder"} notation.
-  Moreover, type-inference in the style of Hindley-Milner \cite{hindleymilner}
+  Moreover, type-inference in the style of Hindley-Milner @{cite hindleymilner}
   (and extensions) enables users to write @{text "\<forall>x. B x"} concisely, when
   the type @{text "'a"} is already clear from the
   context.\footnote{Type-inference taken to the extreme can easily confuse
@@ -133,9 +133,9 @@ text %mlref {*
 
   \medskip Note that the string values that are passed in and out are
   annotated by the system, to carry further markup that is relevant for the
-  Prover IDE \cite{isabelle-jedit}. User code should neither compose its own
-  input strings, nor try to analyze the output strings. Conceptually this is
-  an abstract datatype, encoded as concrete string for historical reasons.
+  Prover IDE @{cite "isabelle-jedit"}. User code should neither compose its
+  own input strings, nor try to analyze the output strings. Conceptually this
+  is an abstract datatype, encoded as concrete string for historical reasons.
 
   The standard way to provide the required position markup for input works via
   the outer syntax parser wrapper @{ML Parse.inner_syntax}, which is already
@@ -161,9 +161,10 @@ text {*
   declaratively via mixfix annotations. Moreover, there are \emph{syntax
   translations} that can be augmented by the user, either declaratively via
   @{command translations} or programmatically via @{command
-  parse_translation}, @{command print_translation} \cite{isabelle-isar-ref}.
-  The final scope-resolution is performed by the system, according to name
-  spaces for types, term variables and constants determined by the context.
+  parse_translation}, @{command print_translation} @{cite
+  "isabelle-isar-ref"}. The final scope-resolution is performed by the system,
+  according to name spaces for types, term variables and constants determined
+  by the context.
 *}
 
 text %mlref {*
@@ -216,7 +217,7 @@ text {* These operations define the transition from pre-terms and
   before pretty printing.
 
   A typical add-on for the check/uncheck syntax layer is the @{command
-  abbreviation} mechanism \cite{isabelle-isar-ref}. Here the user specifies
+  abbreviation} mechanism @{cite "isabelle-isar-ref"}. Here the user specifies
   syntactic definitions that are managed by the system as polymorphic @{text
   "let"} bindings. These are expanded during the @{text "check"} phase, and
   contracted during the @{text "uncheck"} phase, without affecting the
@@ -230,7 +231,7 @@ text {* These operations define the transition from pre-terms and
   constants according to the ``dictionary construction'' of its
   logical foundation.  This involves ``type improvement''
   (specialization of slightly too general types) and replacement by
-  certain locale parameters.  See also \cite{Haftmann-Wenzel:2009}.
+  certain locale parameters.  See also @{cite "Haftmann-Wenzel:2009"}.
 *}
 
 text %mlref {*

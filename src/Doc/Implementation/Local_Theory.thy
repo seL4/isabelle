@@ -90,7 +90,7 @@ text {*
   reset to the target context.  The target now holds definitions for
   terms and theorems that stem from the hypothetical @{text
   "\<DEFINE>"} and @{text "\<NOTE>"} elements, transformed by the
-  particular target policy (see \cite[\S4--5]{Haftmann-Wenzel:2009}
+  particular target policy (see @{cite \<open>\S4--5\<close> "Haftmann-Wenzel:2009"}
   for details).  *}
 
 text %mlref {*
@@ -159,7 +159,7 @@ section {* Morphisms and declarations \label{sec:morphisms} *}
 text {*
   %FIXME
 
-  See also \cite{Chaieb-Wenzel:2007}.
+  See also @{cite "Chaieb-Wenzel:2007"}.
 *}
 
 end

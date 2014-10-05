@@ -58,7 +58,7 @@ text {*
   elimination rules for arbitrary operators (depending on the
   object-logic and application), which enables users to perform
   standard proof steps implicitly (cf.\ the @{text "rule"} method
-  \cite{isabelle-isar-ref}).
+  @{cite "isabelle-isar-ref"}).
 
   \medskip Thus Isabelle/Isar is able to bring forth more and more
   concepts successively.  In particular, an object-logic like

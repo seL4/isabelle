@@ -7,9 +7,9 @@ chapter {* Primitive logic \label{ch:logic} *}
 text {*
   The logical foundations of Isabelle/Isar are that of the Pure logic,
   which has been introduced as a Natural Deduction framework in
-  \cite{paulson700}.  This is essentially the same logic as ``@{text
+  @{cite paulson700}.  This is essentially the same logic as ``@{text
   "\<lambda>HOL"}'' in the more abstract setting of Pure Type Systems (PTS)
-  \cite{Barendregt-Geuvers:2001}, although there are some key
+  @{cite "Barendregt-Geuvers:2001"}, although there are some key
   differences in the specific treatment of simple types in
   Isabelle/Pure.
 
@@ -112,7 +112,7 @@ text {*
   \<alpha>\<^bsub>s\<^sub>k\<^esub>)\<kappa>"} is of sort @{text "s"}.
   Consequently, type unification has most general solutions (modulo
   equivalence of sorts), so type-inference produces primary types as
-  expected \cite{nipkow-prehofer}.
+  expected @{cite "nipkow-prehofer"}.
 *}
 
 text %mlref {*
@@ -237,8 +237,8 @@ section {* Terms \label{sec:terms} *}
 
 text {*
   The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
-  with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
-  or \cite{paulson-ml2}), with the types being determined by the
+  with de-Bruijn indices for bound variables (cf.\ @{cite debruijn72}
+  or @{cite "paulson-ml2"}), with the types being determined by the
   corresponding binders.  In contrast, free variables and constants
   have an explicit name and type in each occurrence.
 
@@ -558,7 +558,7 @@ text {*
   explicit proof terms for primitive inferences, see also
   \secref{sec:proof-terms}.  Thus all three levels of @{text
   "\<lambda>"}-calculus become explicit: @{text "\<Rightarrow>"} for terms, and @{text
-  "\<And>/\<Longrightarrow>"} for proofs (cf.\ \cite{Berghofer-Nipkow:2000:TPHOL}).
+  "\<And>/\<Longrightarrow>"} for proofs (cf.\ @{cite "Berghofer-Nipkow:2000:TPHOL"}).
 
   Observe that locally fixed parameters (as in @{text
   "\<And>\<hyphen>intro"}) need not be recorded in the hypotheses, because
@@ -566,7 +566,7 @@ text {*
   ``Assumptions'' @{text "x :: \<tau>"} for type-membership are only
   present as long as some @{text "x\<^sub>\<tau>"} occurs in the statement
   body.\footnote{This is the key difference to ``@{text "\<lambda>HOL"}'' in
-  the PTS framework \cite{Barendregt-Geuvers:2001}, where hypotheses
+  the PTS framework @{cite "Barendregt-Geuvers:2001"}, where hypotheses
   @{text "x : A"} are treated uniformly for propositions and types.}
 
   \medskip The axiomatization of a theory is implicitly closed by
@@ -628,7 +628,7 @@ text {*
   "d(\<alpha>\<^sub>i)"} for some @{text "\<alpha>\<^sub>i"} projected from @{text
   "\<^vec>\<alpha>"}.  Thus overloaded definitions essentially work by
   primitive recursion over the syntactic structure of a single type
-  argument.  See also \cite[\S4.3]{Haftmann-Wenzel:2006:classes}.
+  argument.  See also @{cite \<open>\S4.3\<close> "Haftmann-Wenzel:2006:classes"}.
 *}
 
 text %mlref {*
@@ -1009,8 +1009,8 @@ subsection {* Hereditary Harrop Formulae *}
 
 text {*
   The idea of object-level rules is to model Natural Deduction
-  inferences in the style of Gentzen \cite{Gentzen:1935}, but we allow
-  arbitrary nesting similar to \cite{extensions91}.  The most basic
+  inferences in the style of Gentzen @{cite "Gentzen:1935"}, but we allow
+  arbitrary nesting similar to @{cite extensions91}.  The most basic
   rule format is that of a \emph{Horn Clause}:
   \[
   \infer{@{text "A"}}{@{text "A\<^sub>1"} & @{text "\<dots>"} & @{text "A\<^sub>n"}}
@@ -1033,7 +1033,7 @@ text {*
   Nesting of rules means that the positions of @{text "A\<^sub>i"} may
   again hold compound rules, not just atomic propositions.
   Propositions of this format are called \emph{Hereditary Harrop
-  Formulae} in the literature \cite{Miller:1991}.  Here we give an
+  Formulae} in the literature @{cite "Miller:1991"}.  Here we give an
   inductive characterization as follows:
 
   \medskip
@@ -1222,7 +1222,7 @@ text {* The Isabelle/Pure inference kernel can record the proof of
   according to the propositions-as-types principle.  The resulting
   3-level @{text "\<lambda>"}-calculus resembles ``@{text "\<lambda>HOL"}'' in the
   more abstract setting of Pure Type Systems (PTS)
-  \cite{Barendregt-Geuvers:2001}, if some fine points like schematic
+  @{cite "Barendregt-Geuvers:2001"}, if some fine points like schematic
   polymorphism and type classes are ignored.
 
   \medskip\emph{Proof abstractions} of the form @{text "\<^bold>\<lambda>x :: \<alpha>. prf"}
@@ -1284,7 +1284,7 @@ text {* Fully explicit proof terms can be large, but most of this
 
   There are separate operations to reconstruct the full proof term
   later on, using \emph{higher-order pattern unification}
-  \cite{nipkow-patterns,Berghofer-Nipkow:2000:TPHOL}.
+  @{cite "nipkow-patterns" and "Berghofer-Nipkow:2000:TPHOL"}.
 
   The \emph{proof checker} expects a fully reconstructed proof term,
   and can turn it into a theorem by replaying its primitive inferences
@@ -1294,7 +1294,7 @@ text {* Fully explicit proof terms can be large, but most of this
 subsection {* Concrete syntax of proof terms *}
 
 text {* The concrete syntax of proof terms is a slight extension of
-  the regular inner syntax of Isabelle/Pure \cite{isabelle-isar-ref}.
+  the regular inner syntax of Isabelle/Pure @{cite "isabelle-isar-ref"}.
   Its main syntactic category @{syntax (inner) proof} is defined as
   follows:
 
