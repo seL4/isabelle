@@ -110,7 +110,7 @@ text {*
   @{command "print_state"}~@{text "(latex xsymbols)"} prints the
   current proof state with mathematical symbols and special characters
   represented in {\LaTeX} source, according to the Isabelle style
-  \cite{isabelle-sys}.
+  @{cite "isabelle-sys"}.
 
   Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more
   systematic way to include formal items into the printed text
@@ -325,7 +325,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   syntax, and the pretty printing.  Special case annotations provide a
   simple means of specifying infix operators and binders.
 
-  Isabelle mixfix syntax is inspired by {\OBJ} \cite{OBJ}.  It allows
+  Isabelle mixfix syntax is inspired by {\OBJ} @{cite OBJ}.  It allows
   to specify any context-free priority grammar, which is more general
   than the fixity declarations of ML and Prolog.
 
@@ -435,7 +435,7 @@ text {* In full generality, mixfix declarations work as follows.
   \end{description}
 
   The general idea of pretty printing with blocks and breaks is also
-  described in \cite{paulson-ml2}; it goes back to \cite{Oppen:1980}.
+  described in @{cite "paulson-ml2"}; it goes back to @{cite "Oppen:1980"}.
 *}
 
 
@@ -476,7 +476,7 @@ subsection {* Binders *}
 text {* A \emph{binder} is a variable-binding construct such as a
   quantifier.  The idea to formalize @{text "\<forall>x. b"} as @{text "All
   (\<lambda>x. b)"} for @{text "All :: ('a \<Rightarrow> bool) \<Rightarrow> bool"} already goes back
-  to \cite{church40}.  Isabelle declarations of certain higher-order
+  to @{cite church40}.  Isabelle declarations of certain higher-order
   operators may be annotated with @{keyword_def "binder"} annotations
   as follows:
 
@@ -1034,7 +1034,7 @@ text {* The inner syntax engine of Isabelle provides separate
 
   Pre-terms are further processed by the so-called \emph{check} and
   \emph{unckeck} phases that are intertwined with type-inference (see
-  also \cite{isabelle-implementation}).  The latter allows to operate
+  also @{cite "isabelle-implementation"}).  The latter allows to operate
   on higher-order abstract syntax with proper binding and type
   information already available.
 

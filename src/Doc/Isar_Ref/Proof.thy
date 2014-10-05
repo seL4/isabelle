@@ -673,7 +673,7 @@ text {*
   quick_and_dirty} is enabled.  Facts emerging from fake
   proofs are not the real thing.  Internally, the derivation object is
   tainted by an oracle invocation, which may be inspected via the
-  theorem status \cite{isabelle-implementation}.
+  theorem status @{cite "isabelle-implementation"}.
   
   The most important application of @{command "sorry"} is to support
   experimentation and top-down proof development.

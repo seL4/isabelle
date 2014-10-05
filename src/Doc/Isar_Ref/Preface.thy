@@ -20,18 +20,18 @@ text {*
   transactions with unlimited undo etc.
 
   In its pioneering times, the Isabelle/Isar version of the
-  \emph{Proof~General} user interface
-  \cite{proofgeneral,Aspinall:TACAS:2000} has contributed to the
+  \emph{Proof~General} user interface @{cite proofgeneral and
+  "Aspinall:TACAS:2000"} has contributed to the
   success of for interactive theory and proof development in this
   advanced theorem proving environment, even though it was somewhat
   biased towards old-style proof scripts.  The more recent
-  Isabelle/jEdit Prover IDE \cite{Wenzel:2012} emphasizes the
+  Isabelle/jEdit Prover IDE @{cite "Wenzel:2012"} emphasizes the
   document-oriented approach of Isabelle/Isar again more explicitly.
 
   \medskip Apart from the technical advances over bare-bones ML
   programming, the main purpose of the Isar language is to provide a
   conceptually different view on machine-checked proofs
-  \cite{Wenzel:1999:TPHOL,Wenzel-PhD}.  \emph{Isar} stands for
+  @{cite "Wenzel:1999:TPHOL" and "Wenzel-PhD"}.  \emph{Isar} stands for
   \emph{Intelligible semi-automated reasoning}.  Drawing from both the
   traditions of informal mathematical proof texts and high-level
   programming languages, Isar offers a versatile environment for

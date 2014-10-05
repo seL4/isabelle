@@ -153,14 +153,14 @@ text {*
   \end{tabular}
   \medskip
 
-  \medskip @{ML CHANGED} (see \cite{isabelle-implementation}) is
+  \medskip @{ML CHANGED} (see @{cite "isabelle-implementation"}) is
   usually not required in Isar, since most basic proof methods already
   fail unless there is an actual change in the goal state.
   Nevertheless, ``@{text "?"}''  (try) may be used to accept
   \emph{unchanged} results as well.
 
   \medskip @{ML ALLGOALS}, @{ML SOMEGOAL} etc.\ (see
-  \cite{isabelle-implementation}) are not available in Isar, since
+  @{cite "isabelle-implementation"}) are not available in Isar, since
   there is no direct goal addressing.  Nevertheless, some basic
   methods address all goals internally, notably @{method simp_all}
   (see \secref{sec:simplifier}).  Also note that @{ML ALLGOALS} can be

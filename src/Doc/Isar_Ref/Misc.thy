@@ -99,7 +99,7 @@ text {*
 
   \item @{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}
   visualizes dependencies of facts, using Isabelle's graph browser
-  tool (see also \cite{isabelle-sys}).
+  tool (see also @{cite "isabelle-sys"}).
 
   \item @{command "unused_thms"}~@{text "A\<^sub>1 \<dots> A\<^sub>m - B\<^sub>1 \<dots> B\<^sub>n"}
   displays all theorems that are proved in theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}

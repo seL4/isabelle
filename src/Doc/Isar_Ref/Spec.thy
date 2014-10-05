@@ -442,7 +442,7 @@ text {*
   redundant locale instances are omitted.  A locale instance is
   redundant if it is subsumed by an instance encountered earlier.  A
   more detailed description of this process is available elsewhere
-  \cite{Ballarin2014}.
+  @{cite Ballarin2014}.
 *}
 
 
@@ -813,10 +813,10 @@ text {*
   A class is a particular locale with \emph{exactly one} type variable
   @{text \<alpha>}.  Beyond the underlying locale, a corresponding type class
   is established which is interpreted logically as axiomatic type
-  class \cite{Wenzel:1997:TPHOL} whose logical content are the
+  class @{cite "Wenzel:1997:TPHOL"} whose logical content are the
   assumptions of the locale.  Thus, classes provide the full
   generality of locales combined with the commodity of type classes
-  (notably type-inference).  See \cite{isabelle-classes} for a short
+  (notably type-inference).  See @{cite "isabelle-classes"} for a short
   tutorial.
 
   @{rail \<open>
@@ -972,7 +972,7 @@ text {* The class relation together with the collection of
 
   \medskip Co-regularity is a very fundamental property of the
   order-sorted algebra of types.  For example, it entails principle
-  types and most general unifiers, e.g.\ see \cite{nipkow-prehofer}.
+  types and most general unifiers, e.g.\ see @{cite "nipkow-prehofer"}.
 *}
 
 
@@ -1144,8 +1144,8 @@ text {*
 
   The boundary for the exception trace is the current Isar command
   transactions. It is occasionally better to insert the combinator @{ML
-  Runtime.exn_trace} into ML code for debugging
-  \cite{isabelle-implementation}, closer to the point where it actually
+  Runtime.exn_trace} into ML code for debugging @{cite
+  "isabelle-implementation"}, closer to the point where it actually
   happens.
 
   \end{description}

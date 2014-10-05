@@ -28,7 +28,7 @@ text {*
 
   Printed theory documents usually omit quotes to gain readability
   (this is a matter of {\LaTeX} macro setup, say via @{verbatim
-  "\\isabellestyle"}, see also \cite{isabelle-sys}).  Experienced
+  "\\isabellestyle"}, see also @{cite "isabelle-sys"}).  Experienced
   users of Isabelle/Isar may easily reconstruct the lost technical
   information, while mere readers need not care about quotes at all.
 
@@ -41,8 +41,8 @@ text {*
   clearly recognized from the input syntax, e.g.\ encounter of the
   next command keyword.
 
-  More advanced interfaces such as Isabelle/jEdit \cite{Wenzel:2012}
-  and Proof~General \cite{proofgeneral} do not require explicit
+  More advanced interfaces such as Isabelle/jEdit @{cite "Wenzel:2012"}
+  and Proof~General @{cite proofgeneral} do not require explicit
   semicolons: command spans are determined by inspecting the content
   of the editor buffer.  In the printed presentation of Isabelle/Isar
   documents semicolons are omitted altogether for readability.

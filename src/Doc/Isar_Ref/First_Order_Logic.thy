@@ -174,7 +174,7 @@ subsection {* Propositional logic \label{sec:framework-ex-prop} *}
 text {*
   We axiomatize basic connectives of propositional logic: implication,
   disjunction, and conjunction.  The associated rules are modeled
-  after Gentzen's system of Natural Deduction \cite{Gentzen:1935}.
+  after Gentzen's system of Natural Deduction @{cite "Gentzen:1935"}.
 *}
 
 axiomatization
@@ -333,7 +333,7 @@ subsection {* Quantifiers \label{sec:framework-ex-quant} *}
 text {*
   Representing quantifiers is easy, thanks to the higher-order nature
   of the underlying framework.  According to the well-known technique
-  introduced by Church \cite{church40}, quantifiers are operators on
+  introduced by Church @{cite "church40"}, quantifiers are operators on
   predicates, which are syntactically represented as @{text "\<lambda>"}-terms
   of type @{typ "i \<Rightarrow> o"}.  Binder notation turns @{text "All (\<lambda>x. B
   x)"} into @{text "\<forall>x. B x"} etc.

@@ -95,7 +95,7 @@ text {*
   "a\<^sub>1 \<dots> a\<^sub>n"} are similar to the basic @{method rule}
   method (see \secref{sec:pure-meth-att}), but apply rules by
   elim-resolution, destruct-resolution, and forward-resolution,
-  respectively \cite{isabelle-implementation}.  The optional natural
+  respectively @{cite "isabelle-implementation"}.  The optional natural
   number argument (default 0) specifies additional assumption steps to
   be performed here.
 
@@ -158,7 +158,7 @@ text {*
   \item @{attribute THEN}~@{text a} composes rules by resolution; it
   resolves with the first premise of @{text a} (an alternative
   position may be also specified).  See also @{ML_op "RS"} in
-  \cite{isabelle-implementation}.
+  @{cite "isabelle-implementation"}.
   
   \item @{attribute unfolded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{attribute
   folded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} expand and fold back again the given
@@ -319,11 +319,11 @@ text {*
 
   \item @{method rule_tac} etc. do resolution of rules with explicit
   instantiation.  This works the same way as the ML tactics @{ML
-  res_inst_tac} etc. (see \cite{isabelle-implementation})
+  res_inst_tac} etc.\ (see @{cite "isabelle-implementation"}).
 
   Multiple rules may be only given if there is no instantiation; then
   @{method rule_tac} is the same as @{ML resolve_tac} in ML (see
-  \cite{isabelle-implementation}).
+  @{cite "isabelle-implementation"}).
 
   \item @{method cut_tac} inserts facts into the proof state as
   assumption of a subgoal; instantiations may be given as well.  Note
@@ -649,7 +649,7 @@ text {*
   @{text "(?x + ?y) + ?z \<equiv> ?x + (?y + ?z)"} \\
   @{text "f (f ?x ?y) ?z \<equiv> f ?x (f ?y ?z)"}
 
-  \item Higher-order patterns in the sense of \cite{nipkow-patterns}.
+  \item Higher-order patterns in the sense of @{cite "nipkow-patterns"}.
   These are terms in @{text "\<beta>"}-normal form (this will always be the
   case unless you have done something strange) where each occurrence
   of an unknown is of the form @{text "?F x\<^sub>1 \<dots> x\<^sub>n"}, where the
@@ -846,10 +846,10 @@ lemma "(b \<bullet> c) \<bullet> a = (c \<bullet> b) \<bullet> a" by (simp only:
 
 end
 
-text {* Martin and Nipkow \cite{martin-nipkow} discuss the theory and
+text {* Martin and Nipkow @{cite "martin-nipkow"} discuss the theory and
   give many examples; other algebraic structures are amenable to
   ordered rewriting, such as Boolean rings.  The Boyer-Moore theorem
-  prover \cite{bm88book} also employs ordered rewriting.
+  prover @{cite bm88book} also employs ordered rewriting.
 *}
 
 
@@ -903,7 +903,7 @@ text {*
   invocation of simplification procedures.
 
   \item @{attribute simp_trace_new} controls Simplifier tracing within
-  Isabelle/PIDE applications, notably Isabelle/jEdit \cite{isabelle-jedit}.
+  Isabelle/PIDE applications, notably Isabelle/jEdit @{cite "isabelle-jedit"}.
   This provides a hierarchical representation of the rewriting steps
   performed by the Simplifier.
 
@@ -1299,7 +1299,7 @@ text {* Although Isabelle is generic, many users will be working in
   context.  These proof procedures are slow and simplistic compared
   with high-end automated theorem provers, but they can save
   considerable time and effort in practice.  They can prove theorems
-  such as Pelletier's \cite{pelletier86} problems 40 and 41 in a few
+  such as Pelletier's @{cite pelletier86} problems 40 and 41 in a few
   milliseconds (including full proof reconstruction): *}
 
 lemma "(\<exists>y. \<forall>x. F x y \<longleftrightarrow> F x x) \<longrightarrow> \<not> (\<forall>x. \<exists>y. \<forall>z. F z y \<longleftrightarrow> \<not> F z x)"
@@ -1370,8 +1370,8 @@ text {* Isabelle supports natural deduction, which is easy to use for
   desired theorem and apply rules backwards in a fairly arbitrary
   manner.  This yields a surprisingly effective proof procedure.
   Quantifiers add only few complications, since Isabelle handles
-  parameters and schematic variables.  See \cite[Chapter
-  10]{paulson-ml2} for further discussion.  *}
+  parameters and schematic variables.  See @{cite \<open>Chapter 10\<close>
+  "paulson-ml2"} for further discussion.  *}
 
 
 subsubsection {* Simulating sequents by natural deduction *}
