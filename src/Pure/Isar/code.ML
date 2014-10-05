@@ -918,9 +918,17 @@ fun preprocess conv ctxt =
   end;
 
 fun cert_of_eqns_preprocess ctxt functrans c =
-  (perhaps o perhaps_loop o perhaps_apply) functrans
-  #> (map o apfst) (preprocess eqn_conv ctxt)
-  #> cert_of_eqns ctxt c;
+  let
+    fun trace_eqns s eqns = (Pretty.writeln o Pretty.chunks)
+      (Pretty.str s :: map (Display.pretty_thm ctxt o fst) eqns);
+    val tracing = if Config.get ctxt simp_trace then trace_eqns else (K o K) ();
+  in
+    tap (tracing "before function transformation")
+    #> (perhaps o perhaps_loop o perhaps_apply) functrans
+    #> tap (tracing "after function transformation")
+    #> (map o apfst) (preprocess eqn_conv ctxt)
+    #> cert_of_eqns ctxt c
+  end;
 
 fun get_cert ctxt functrans c =
   let
