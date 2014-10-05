@@ -28,6 +28,10 @@ sig
     -> Proof.context -> term -> 'a Exn.result
   val dynamic_holds_conv: Proof.context -> conv
   val static_holds_conv: { ctxt: Proof.context, consts: string list } -> Proof.context -> conv
+  val static_value_exn': (Proof.context -> term -> 'a) cookie
+    -> { ctxt: Proof.context, lift_postproc: (term -> term) -> 'a -> 'a,
+           consts: (string * typ) list, T: typ }
+    -> Proof.context -> term -> 'a Exn.result (*EXPERIMENTAL!*)
   val code_reflect: (string * string list option) list -> string list -> string
     -> string option -> theory -> theory
   datatype truth = Holds
@@ -154,9 +158,9 @@ structure Truth_Result = Proof_Data
 val put_truth = Truth_Result.put;
 val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_truth");
 
-val reject_vars = fn ctxt => tap (reject_vars ctxt o Thm.term_of);
-
 local
+
+val reject_vars = fn ctxt => tap (reject_vars ctxt o Thm.term_of);
 
 fun check_holds ctxt evaluator vs_t ct =
   let
@@ -194,7 +198,7 @@ fun static_holds_conv (ctxt_consts as { ctxt, ... }) =
 end; (*local*)
 
 
-(** instrumentalization **)
+(** full static evaluation -- still with limited coverage! **)
 
 fun evaluation_code ctxt module_name program tycos consts =
   let
@@ -216,8 +220,99 @@ fun evaluation_code ctxt module_name program tycos consts =
         | SOME tyco' => (tyco, tyco')) tycos tycos';
   in (ml_code, (tycos_map, consts_map)) end;
 
+fun typ_signatures_for T =
+  let
+    val (Ts, T') = strip_type T;
+  in map_range (fn n => (drop n Ts ---> T', take n Ts)) (length Ts + 1) end;
 
-(* by antiquotation *)
+fun typ_signatures cTs =
+  let
+    fun add (c, T) =
+      fold (fn (T, Ts) => Typtab.map_default (T, []) (cons (c, Ts)))
+        (typ_signatures_for T);
+  in
+    Typtab.empty
+    |> fold add cTs
+    |> Typtab.lookup_list
+  end;
+
+fun print_of_term_funs { typ_sign_for, ml_name_for_const, ml_name_for_typ } Ts =
+  let
+    val var_names = map_range (fn n => "t" ^ string_of_int (n + 1));
+    fun print_lhs c xs = "Const (" ^ quote c ^ ", _)"
+      |> fold (fn x => fn s => s ^ " $ " ^ x) xs
+      |> enclose "(" ")"
+      |> prefix "ctxt ";
+    fun print_rhs c Ts xs = ml_name_for_const c
+      |> fold2 (fn T => fn x => fn s =>
+         s ^ (" (" ^ ml_name_for_typ T ^ " ctxt " ^ x ^ ")")) Ts xs
+    fun print_eq (c, Ts) =
+      let
+        val xs = var_names (length Ts);
+      in print_lhs c xs ^ " = " ^ print_rhs c Ts xs end;
+    val err_eq =
+      "ctxt t = error (" ^ quote "Bad term: " ^ " ^ Syntax.string_of_term ctxt t)";
+    fun print_eqs T =
+      let
+        val typ_signs = typ_sign_for T;
+        val name = ml_name_for_typ T;
+      in
+        (map print_eq typ_signs @ [err_eq])
+        |> map (prefix (name ^ " "))
+        |> space_implode "\n  | "
+      end;
+  in
+    map print_eqs Ts
+    |> space_implode "\nand "
+    |> prefix "fun "
+    |> pair (map ml_name_for_typ Ts)
+  end;
+
+fun print_of_term ctxt ml_name_for_const T cTs =
+  let
+    val typ_sign_for = typ_signatures cTs;
+    fun add_typ T Ts =
+      if member (op =) Ts T
+      then Ts
+      else Ts
+        |> cons T
+        |> fold (fold add_typ o snd) (typ_sign_for T);
+    val Ts = add_typ T [];
+    fun tycos_of (Type (tyco, Ts)) = maps tycos_of Ts @ [tyco]
+      | tycos_of _ = [];
+    val ml_name_of = Name.desymbolize NONE o Long_Name.base_name;
+    val ml_names = map (suffix "_of_term" o space_implode "_" o map ml_name_of o tycos_of) Ts
+      |> Name.variant_list [];
+    val ml_name_for_typ = the o AList.lookup (op =) (Ts ~~ ml_names);
+  in
+    print_of_term_funs { typ_sign_for = typ_sign_for,
+      ml_name_for_const = ml_name_for_const,
+      ml_name_for_typ = ml_name_for_typ } Ts
+  end;
+
+fun compile_evaluator cookie ctxt cs_code cTs T { program, deps } =
+  let
+    val (context_code, (_, const_map)) =
+      evaluation_code ctxt structure_generated program [] cs_code;
+    val ml_name_for_const = the o AList.lookup (op =) const_map;
+    val (ml_names, of_term_code) = print_of_term ctxt ml_name_for_const T cTs
+    val of_term = value ctxt cookie (context_code ^ "\n" ^ of_term_code, List.last ml_names);
+  in fn ctxt' => fn t => fn _ => fn _ => Exn.interruptible_capture (of_term ctxt') t end;
+
+fun static_value_exn' cookie { ctxt, lift_postproc, consts, T } =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val cs_code = map (Axclass.unoverload_const thy) consts;
+    val cTs = map2 (fn (_, T) => fn c => (c, T)) consts cs_code;
+    val evaluator = Code_Thingol.static_value { ctxt = ctxt,
+      lift_postproc = Exn.map_result o lift_postproc, consts = cs_code }
+      (compile_evaluator cookie ctxt cs_code cTs T);
+  in fn ctxt' =>
+    evaluator ctxt' o reject_vars ctxt' o Syntax.check_term ctxt' o Type.constraint T
+  end;
+
+
+(** code antiquotation **)
 
 local
 
@@ -263,7 +358,7 @@ fun ml_code_antiq raw_const ctxt =
 end; (*local*)
 
 
-(* reflection support *)
+(** reflection support **)
 
 fun check_datatype thy tyco some_consts =
   let
