@@ -72,7 +72,7 @@ isabelle-timing.label=Timing panel
 isabelle-timing.title=Timing
 
 #SideKick
-mode.isabelle-news.folding=none
+mode.isabelle-news.folding=sidekick
 mode.isabelle-news.sidekick.parser=isabelle-news
 mode.isabelle-options.folding=sidekick
 mode.isabelle-options.sidekick.parser=isabelle-options
@@ -84,6 +84,6 @@ mode.isabelle.sidekick.parser=isabelle
 mode.isabelle.sidekick.showStatusWindow.label=true
 mode.ml.sidekick.parser=isabelle
 sidekick.parser.isabelle.label=Isabelle
-mode.bibtex.sidekick.parser=bibtex
 mode.bibtex.folding=sidekick
+mode.bibtex.sidekick.parser=bibtex
 

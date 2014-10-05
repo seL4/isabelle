@@ -199,18 +199,44 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
     var offset = 0
+    var end_offset = 0
+
+    var start1: Option[(Int, String, Vector[DefaultMutableTreeNode])] = None
+    var start2: Option[(Int, String)] = None
+
+    def close1: Unit =
+      start1 match {
+        case Some((start_offset, s, body)) =>
+          val node = make_node(s, start_offset, end_offset)
+          body.foreach(node.add(_))
+          data.root.add(node)
+          start1 = None
+        case None =>
+      }
+
+    def close2: Unit =
+      start2 match {
+        case Some((start_offset, s)) =>
+          start1 match {
+            case Some((start_offset1, s1, body)) =>
+              val node = make_node(s, start_offset, end_offset)
+              start1 = Some((start_offset1, s1, body :+ node))
+            case None =>
+          }
+          start2 = None
+        case None =>
+      }
 
     for (line <- split_lines(JEdit_Lib.buffer_text(buffer)) if !stopped) {
       line match {
-        case Heading1(s) =>
-          data.root.add(make_node(s, offset, offset + line.length))
-        case Heading2(s) =>
-          data.root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
-            .add(make_node(s, offset, offset + line.length))
+        case Heading1(s) => close2; close1; start1 = Some((offset, s, Vector()))
+        case Heading2(s) => close2; start2 = Some((offset, s))
         case _ =>
       }
       offset += line.length + 1
+      if (!line.forall(Character.isSpaceChar(_))) end_offset = offset
     }
+    if (!stopped) { close2; close1 }
 
     true
   }
