@@ -179,26 +179,6 @@ object Completion_Popup
     }
 
 
-    /* spell-checker completion */
-
-    def spell_checker_completion(
-      explicit: Boolean,
-      rendering: Rendering): Option[Completion.Result] =
-    {
-      for {
-        spell_checker <- PIDE.spell_checker.get
-        if explicit
-        range = JEdit_Lib.before_caret_range(text_area, rendering)
-        word <- Spell_Checker.current_word(text_area, rendering, range)
-        words = spell_checker.complete(word.info)
-        if !words.isEmpty
-        descr = "(from dictionary " + quote(spell_checker.toString) + ")"
-        items =
-          words.map(w => Completion.Item(word.range, word.info, "", List(w, descr), w, 0, false))
-      } yield Completion.Result(word.range, word.info, false, items)
-    }
-
-
     /* path completion */
 
     def path_completion(rendering: Rendering): Option[Completion.Result] =
@@ -399,7 +379,8 @@ object Completion_Popup
               case Some(rendering) =>
                 Completion.Result.merge(history, result0,
                   Completion.Result.merge(history,
-                    spell_checker_completion(explicit, rendering), path_completion(rendering)))
+                    Spell_Checker.completion(text_area, explicit, rendering),
+                      path_completion(rendering)))
             }
           }
           result match {

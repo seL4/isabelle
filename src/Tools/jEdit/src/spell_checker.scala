@@ -12,17 +12,21 @@ import isabelle._
 
 import java.lang.Class
 
+import javax.swing.JMenuItem
+
 import scala.collection.mutable
 import scala.swing.ComboBox
 import scala.annotation.tailrec
 import scala.collection.immutable.SortedMap
 
-import org.gjt.sp.jedit.textarea.TextArea
+import org.gjt.sp.jedit.menu.EnhancedMenuItem
+import org.gjt.sp.jedit.{jEdit, Buffer}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 
 
 object Spell_Checker
 {
-  /* words within text */
+  /** words within text **/
 
   def marked_words(base: Text.Offset, text: String, mark: Text.Info[String] => Boolean)
     : List[Text.Info[String]] =
@@ -68,7 +72,77 @@ object Spell_Checker
   }
 
 
-  /* dictionary declarations */
+
+  /** completion **/
+
+  def completion(text_area: TextArea, explicit: Boolean, rendering: Rendering)
+      : Option[Completion.Result] =
+  {
+    for {
+      spell_checker <- PIDE.spell_checker.get
+      if explicit
+      range = JEdit_Lib.before_caret_range(text_area, rendering)
+      word <- current_word(text_area, rendering, range)
+      words = spell_checker.complete(word.info)
+      if !words.isEmpty
+      descr = "(from dictionary " + quote(spell_checker.toString) + ")"
+      items =
+        words.map(w => Completion.Item(word.range, word.info, "", List(w, descr), w, 0, false))
+    } yield Completion.Result(word.range, word.info, false, items)
+  }
+
+
+
+  /** context menu **/
+
+  def context_menu(text_area: JEditTextArea, offset: Text.Offset): List[JMenuItem] =
+  {
+    val result =
+      for {
+        spell_checker <- PIDE.spell_checker.get
+        doc_view <- PIDE.document_view(text_area)
+        rendering = doc_view.get_rendering()
+        range = JEdit_Lib.point_range(text_area.getBuffer, offset)
+        Text.Info(_, word) <- current_word(text_area, rendering, range)
+      } yield (spell_checker, word)
+
+    result match {
+      case Some((spell_checker, word)) =>
+
+        val context = jEdit.getActionContext()
+        def item(name: String): JMenuItem =
+          new EnhancedMenuItem(context.getAction(name).getLabel, name, context)
+
+        val complete_items =
+          if (spell_checker.complete_enabled(word)) List(item("isabelle.complete-word"))
+          else Nil
+
+        val update_items =
+          if (spell_checker.check(word))
+            List(item("isabelle.exclude-word"), item("isabelle.exclude-word-permanently"))
+          else
+            List(item("isabelle.include-word"), item("isabelle.include-word-permanently"))
+
+        val reset_items =
+          spell_checker.reset_enabled() match {
+            case 0 => Nil
+            case n =>
+              val name = "isabelle.reset-words"
+              val label = context.getAction(name).getLabel
+              List(new EnhancedMenuItem(label + " (" + n + ")", name, context))
+          }
+
+        complete_items ::: update_items ::: reset_items
+
+      case None => Nil
+    }
+  }
+
+
+
+  /** dictionary **/
+
+  /* declarations */
 
   class Dictionary private[Spell_Checker](val path: Path)
   {
