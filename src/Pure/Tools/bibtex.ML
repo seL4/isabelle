@@ -20,7 +20,7 @@ val _ =
     Thy_Output.antiquotation @{binding cite}
       (Scan.lift
         (Scan.option (Parse.verbatim || Parse.cartouche) --
-         Scan.repeat1 (Parse.position Args.name)))
+         Parse.and_list1 (Parse.position Args.name)))
       (fn {context = ctxt, ...} => fn (opt, citations) =>
         let
           val _ =
