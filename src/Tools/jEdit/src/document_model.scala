@@ -155,6 +155,39 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     }
 
 
+  /* bibtex entries */
+
+  private var _bibtex: Option[List[(String, Text.Offset)]] = None  // owned by GUI thread
+
+  private def reset_bibtex(): Unit = GUI_Thread.require { _bibtex = None }
+
+  def bibtex_entries(): List[(String, Text.Offset)] =
+    GUI_Thread.require {
+      if (Isabelle.is_bibtex(buffer)) {
+        _bibtex match {
+          case Some(entries) => entries
+          case None =>
+            val chunks =
+              try { Bibtex.parse(JEdit_Lib.buffer_text(buffer)) }
+              catch { case ERROR(msg) => Output.warning(msg); Nil }
+            val entries =
+            {
+              val result = new mutable.ListBuffer[(String, Text.Offset)]
+              var offset = 0
+              for (chunk <- chunks) {
+                if (chunk.name != "" && !chunk.is_command) result += ((chunk.name, offset))
+                offset += chunk.source.length
+              }
+              result.toList
+            }
+            _bibtex = Some(entries)
+            entries
+        }
+      }
+      else Nil
+    }
+
+
   /* edits */
 
   def node_edits(
@@ -211,6 +244,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     def edit(clear: Boolean, e: Text.Edit)
     {
       reset_blob()
+      reset_bibtex()
 
       if (clear) {
         pending_clear = true

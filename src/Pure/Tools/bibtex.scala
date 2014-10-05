@@ -176,10 +176,8 @@ object Bibtex
 
     def is_ignored: Boolean = kind == "" && tokens.forall(_.is_ignored)
     def is_malformed: Boolean = kind == "" || tokens.exists(_.is_malformed)
-    def is_command: Boolean =
-      Bibtex.is_command(kind) && name != "" && content.isDefined && !is_malformed
-    def is_entry: Boolean =
-      Bibtex.is_entry(kind) && name != "" && content.isDefined && !is_malformed
+    def is_command: Boolean = Bibtex.is_command(kind) && name != "" && content.isDefined
+    def is_entry: Boolean = Bibtex.is_entry(kind) && name != "" && content.isDefined
   }
 
 
