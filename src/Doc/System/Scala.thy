@@ -8,7 +8,7 @@ text {* Isabelle/ML and Isabelle/Scala are the two main language
 environments for Isabelle tool implementations.  There are some basic
 command-line tools to work with the underlying Java Virtual Machine,
 the Scala toplevel and compiler.  Note that Isabelle/jEdit
-\cite{isabelle-jedit} provides a Scala Console for interactive
+@{cite "isabelle-jedit"} provides a Scala Console for interactive
 experimentation within the running application. *}
 
 
@@ -66,7 +66,7 @@ text {* The @{tool_def scalac} tool is a direct wrapper for the Scala
   add-on components can register themselves in a modular manner, see
   also \secref{sec:components}.
 
-  Note that jEdit \cite{isabelle-jedit} has its own mechanisms for
+  Note that jEdit @{cite "isabelle-jedit"} has its own mechanisms for
   adding plugin components, which needs special attention since
   it overrides the standard Java class loader.  *}
 

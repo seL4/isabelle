@@ -36,7 +36,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
 
   The ROOT file format follows the lexical conventions of the
   \emph{outer syntax} of Isabelle/Isar, see also
-  \cite{isabelle-isar-ref}.  This defines common forms like
+  @{cite "isabelle-isar-ref"}.  This defines common forms like
   identifiers, names, quoted strings, verbatim text, nested comments
   etc.  The grammar for @{syntax session_chapter} and @{syntax
   session_entry} is given as syntax diagram below; each ROOT file may
@@ -44,7 +44,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   organize browser info (\secref{sec:info}), but have no formal
   meaning.  The default chapter is ``@{text "Unsorted"}''.
 
-  Isabelle/jEdit \cite{isabelle-jedit} includes a simple editing
+  Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple editing
   mode @{verbatim "isabelle-root"} for session ROOT files, which is
   enabled by default for any file of that name.
 
@@ -161,7 +161,7 @@ text {* See @{file "~~/src/HOL/ROOT"} for a diversity of practically
 section {* System build options \label{sec:system-options} *}
 
 text {* See @{file "~~/etc/options"} for the main defaults provided by
-  the Isabelle distribution.  Isabelle/jEdit \cite{isabelle-jedit}
+  the Isabelle distribution.  Isabelle/jEdit @{cite "isabelle-jedit"}
   includes a simple editing mode @{verbatim "isabelle-options"} for
   this file-format.
 

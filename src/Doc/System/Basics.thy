@@ -6,10 +6,10 @@ chapter {* The Isabelle system environment *}
 
 text {* This manual describes Isabelle together with related tools and
   user interfaces as seen from a system oriented view.  See also the
-  \emph{Isabelle/Isar Reference Manual}~\cite{isabelle-isar-ref} for
+  \emph{Isabelle/Isar Reference Manual} @{cite "isabelle-isar-ref"} for
   the actual Isabelle input language and related concepts, and
   \emph{The Isabelle/Isar Implementation
-  Manual}~\cite{isabelle-implementation} for the main concepts of the
+  Manual} @{cite "isabelle-implementation"} for the main concepts of the
   underlying implementation in Isabelle/ML.
 
   \medskip The Isabelle system environment provides the following

@@ -244,7 +244,7 @@ Usage: isabelle document [OPTIONS] [DIR]
   "isabellesym.sty"} should be included as well.  This package
   contains a standard set of {\LaTeX} macro definitions @{verbatim
   "\\isasym"}@{text foo} corresponding to @{verbatim "\\"}@{verbatim
-  "<"}@{text foo}@{verbatim ">"}, see \cite{isabelle-implementation} for a
+  "<"}@{text foo}@{verbatim ">"}, see @{cite "isabelle-implementation"} for a
   complete list of predefined Isabelle symbols.  Users may invent
   further symbols as well, just by providing {\LaTeX} macros in a
   similar fashion as in @{file "~~/lib/texinputs/isabellesym.sty"} of
