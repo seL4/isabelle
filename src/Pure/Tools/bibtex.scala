@@ -361,6 +361,7 @@ object Bibtex
         case Item_Start(kind) =>
           space ^^ { case a => (Chunk(kind, List(a)), ctxt) } |
           item_begin ^^ { case (end, a) => (Chunk(kind, List(a)), Item_Open(kind, end)) } |
+          recover_item ^^ { case a => (a, Ignored) } |
           ignored_line
 
         case Item_Open(kind, end) =>
