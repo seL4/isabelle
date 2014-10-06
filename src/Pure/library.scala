@@ -145,6 +145,8 @@ object Library
     if (s.startsWith("\"") && s.endsWith("\"")) Some(s.substring(1, s.length - 1))
     else None
 
+  def perhaps_unquote(s: String): String = try_unquote(s) getOrElse s
+
   def commas(ss: Iterable[String]): String = ss.iterator.mkString(", ")
   def commas_quote(ss: Iterable[String]): String = ss.iterator.map(quote).mkString(", ")
 

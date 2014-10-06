@@ -29,8 +29,13 @@ object Bibtex_JEdit
 {
   /** buffer model **/
 
+  /* file type */
+
   def check(buffer: Buffer): Boolean =
     JEdit_Lib.buffer_name(buffer).endsWith(".bib")
+
+
+  /* parse entries */
 
   def parse_buffer_entries(buffer: Buffer): List[(String, Text.Offset)] =
   {
@@ -47,12 +52,47 @@ object Bibtex_JEdit
     result.toList
   }
 
+
+  /* retrieve entries */
+
   def entries_iterator(): Iterator[(String, Buffer, Text.Offset)] =
     for {
       buffer <- JEdit_Lib.jedit_buffers()
       model <- PIDE.document_model(buffer).iterator
       (name, offset) <- model.bibtex_entries.iterator
     } yield (name, buffer, offset)
+
+
+  /* completion */
+
+  def complete(name: String): List[String] =
+  {
+    val name1 = name.toLowerCase
+    (for ((entry, _, _) <- entries_iterator() if entry.toLowerCase.containsSlice(name1))
+      yield entry).toList
+  }
+
+  def completion(
+    history: Completion.History,
+    text_area: JEditTextArea,
+    rendering: Rendering): Option[Completion.Result] =
+  {
+    for {
+      Text.Info(r, name) <- rendering.citation(JEdit_Lib.before_caret_range(text_area, rendering))
+      original <- JEdit_Lib.try_get_text(text_area.getBuffer, r)
+      orig = Library.perhaps_unquote(original)
+      entries = complete(name).filter(_ != orig)
+      if !entries.isEmpty
+      items =
+        entries.map({
+          case entry =>
+            val full_name = Long_Name.qualify(Markup.CITATION, entry)
+            val description = List(entry, "(BibTeX entry)")
+            val replacement = quote(entry)
+          Completion.Item(r, original, full_name, description, replacement, 0, false)
+        }).sorted(history.ordering).take(PIDE.options.int("completion_limit"))
+    } yield Completion.Result(r, original, false, items)
+  }
 
 
 
@@ -127,7 +167,7 @@ object Bibtex_JEdit
       val line_ctxt =
         context match {
           case c: Line_Context => c.context
-          case _ => Some(Bibtex.Ignored_Context)
+          case _ => Some(Bibtex.Ignored)
         }
       val line = if (raw_line == null) new Segment else raw_line
 

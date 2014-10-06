@@ -22,7 +22,7 @@ marker, SideKick parser.
 
 * Document antiquotation @{cite} provides formal markup, which is
 interpreted semi-formally based on .bib files that happen to be opened
-in the editor (hyperlinks etc.).
+in the editor (hyperlinks, completion etc.).
 
 
 *** Pure ***

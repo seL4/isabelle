@@ -138,6 +138,8 @@ object Rendering
 
   private val language_elements = Markup.Elements(Markup.LANGUAGE)
 
+  private val citation_elements = Markup.Elements(Markup.CITATION)
+
   private val highlight_elements =
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
@@ -293,6 +295,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       {
         case Text.Info(info_range, XML.Elem(Markup.Language(Markup.Language.PATH, _, _, _), _)) =>
           Some(snapshot.convert(info_range))
+        case _ => None
+      }).headOption.map(_.info)
+
+  def citation(range: Text.Range): Option[Text.Info[String]] =
+    snapshot.select(range, Rendering.citation_elements, _ =>
+      {
+        case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
+          Some(Text.Info(snapshot.convert(info_range), name))
         case _ => None
       }).headOption.map(_.info)
 

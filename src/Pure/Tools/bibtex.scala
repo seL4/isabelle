@@ -186,8 +186,12 @@ object Bibtex
 
   // context of partial line-oriented scans
   abstract class Line_Context
-  case object Ignored_Context extends Line_Context
-  case class Item_Context(kind: String, delim: Delimited, right: String) extends Line_Context
+  case object Ignored extends Line_Context
+  case object At extends Line_Context
+  case class Item_Start(kind: String) extends Line_Context
+  case class Item_Open(kind: String, end: String) extends Line_Context
+  case class Item(kind: String, end: String, delim: Delimited) extends Line_Context
+
   case class Delimited(quoted: Boolean, depth: Int)
   val Closed = Delimited(false, 0)
 
@@ -205,7 +209,7 @@ object Bibtex
     override val whiteSpace = "".r
 
     private val space = """[ \t\n\r]+""".r ^^ token(Token.Kind.SPACE)
-    private val strict_space = """[ \t]+""".r ^^ token(Token.Kind.SPACE)
+    private val spaces = rep(space)
 
 
     /* ignored text */
@@ -215,7 +219,7 @@ object Bibtex
         case ss => Chunk("", List(Token(Token.Kind.COMMENT, ss.mkString))) }
 
     private def ignored_line: Parser[(Chunk, Line_Context)] =
-      ignored ^^ { case a => (a, Ignored_Context) }
+      ignored ^^ { case a => (a, Ignored) }
 
 
     /* delimited string: outermost "..." or {...} and body with balanced {...} */
@@ -265,24 +269,19 @@ object Bibtex
     private def recover_delimited: Parser[Token] =
       """(?m)["{][^@]*""".r ^^ token(Token.Kind.ERROR)
 
-    def delimited_line(item_ctxt: Item_Context): Parser[(Chunk, Line_Context)] =
-      item_ctxt match {
-        case Item_Context(kind, delim, _) =>
-          delimited_depth(delim) ^^ { case (s, delim1) =>
-            (Chunk(kind, List(Token(Token.Kind.STRING, s))), item_ctxt.copy(delim = delim1)) } |
-          recover_delimited ^^ { case a => (Chunk(kind, List(a)), Ignored_Context) }
-        }
+    def delimited_line(ctxt: Item): Parser[(Chunk, Line_Context)] =
+      delimited_depth(ctxt.delim) ^^ { case (s, delim1) =>
+        (Chunk(ctxt.kind, List(Token(Token.Kind.STRING, s))), ctxt.copy(delim = delim1)) } |
+      recover_delimited ^^ { case a => (Chunk(ctxt.kind, List(a)), Ignored) }
 
 
     /* other tokens */
 
     private val at = "@" ^^ keyword
-    private val left_brace = "{" ^^ keyword
-    private val right_brace = "}" ^^ keyword
-    private val left_paren = "(" ^^ keyword
-    private val right_paren = ")" ^^ keyword
 
     private val nat = "[0-9]+".r ^^ token(Token.Kind.NAT)
+
+    private val name = """[\x21-\x7f&&[^"#%'(),={}]]+""".r ^^ token(Token.Kind.NAME)
 
     private val identifier =
       """[\x21-\x7f&&[^"#%'(),={}0-9]][\x21-\x7f&&[^"#%'(),={}]]*""".r
@@ -290,6 +289,20 @@ object Bibtex
     private val ident = identifier ^^ token(Token.Kind.IDENT)
 
     val other_token = "[=#,]".r ^^ keyword | (nat | (ident | space))
+
+
+    /* body */
+
+    private val body =
+      delimited | (recover_delimited | other_token)
+
+    private def body_line(ctxt: Item) =
+      if (ctxt.delim.depth > 0)
+        delimited_line(ctxt)
+      else
+        delimited_line(ctxt) |
+        other_token ^^ { case a => (Chunk(ctxt.kind, List(a)), ctxt) } |
+        ctxt.end ^^ { case a => (Chunk(ctxt.kind, List(keyword(a))), Ignored) }
 
 
     /* items: command or entry */
@@ -303,21 +316,26 @@ object Bibtex
         Token(kind, a)
       }
 
+    private val item_begin =
+      "{" ^^ { case a => ("}", keyword(a)) } |
+      "(" ^^ { case a => (")", keyword(a)) }
+
+    private def item_name(kind: String) =
+      kind.toLowerCase match {
+        case "preamble" => failure("")
+        case "string" => identifier ^^ token(Token.Kind.NAME)
+        case _ => name
+      }
+
     private val item_start =
-      at ~ rep(strict_space) ~ item_kind ~ rep(strict_space) ^^
+      at ~ spaces ~ item_kind ~ spaces ^^
         { case a ~ b ~ c ~ d => (c.source, List(a) ::: b ::: List(c) ::: d) }
 
-    private val item_name =
-      rep(strict_space) ~ identifier ^^
-        { case a ~ b => a ::: List(Token(Token.Kind.NAME, b)) }
-
-    private val item_body =
-      delimited | (recover_delimited | other_token)
-
     private val item: Parser[Chunk] =
-      (item_start ~ left_brace ~ item_name ~ rep(item_body) ~ opt(right_brace) |
-       item_start ~ left_paren ~ item_name ~ rep(item_body) ~ opt(right_paren)) ^^
-        { case (kind, a) ~ b ~ c ~ d ~ e => Chunk(kind, a ::: List(b) ::: c ::: d ::: e.toList) }
+      (item_start ~ item_begin ~ spaces) into
+        { case (kind, a) ~ ((end, b)) ~ c =>
+            opt(item_name(kind)) ~ rep(body) ~ opt(end ^^ keyword) ^^ {
+              case d ~ e ~ f => Chunk(kind, a ::: List(b) ::: c ::: d.toList ::: e ::: f.toList) } }
 
     private val recover_item: Parser[Chunk] =
       at ~ "(?m)[^@]*".r ^^ { case a ~ b => Chunk("", List(a, Token(Token.Kind.ERROR, b))) }
@@ -330,24 +348,31 @@ object Bibtex
     def chunk_line(ctxt: Line_Context): Parser[(Chunk, Line_Context)] =
     {
       ctxt match {
-        case Ignored_Context =>
+        case Ignored =>
           ignored_line |
-          item_start ~ (left_brace | left_paren) ~ opt(item_name) ^^
-            { case (kind, a) ~ b ~ c =>
-                val right = if (b.source == "{") "}" else ")"
-                val chunk = Chunk(kind, a ::: List(b) ::: (c getOrElse Nil))
-                (chunk, Item_Context(kind, Closed, right)) } |
-          recover_item ^^ { case a => (a, Ignored_Context) }
-        case item_ctxt @ Item_Context(kind, delim, right) =>
-          if (delim.depth > 0)
-            delimited_line(item_ctxt) |
-            ignored_line
-          else {
-            delimited_line(item_ctxt) |
-            other_token ^^ { case a => (Chunk(kind, List(a)), ctxt) } |
-            right ^^ { case a => (Chunk(kind, List(keyword(a))), Ignored_Context) } |
-            ignored_line
-          }
+          at ^^ { case a => (Chunk("", List(a)), At) }
+
+        case At =>
+          space ^^ { case a => (Chunk("", List(a)), ctxt) } |
+          item_kind ^^ { case a => (Chunk(a.source, List(a)), Item_Start(a.source)) } |
+          recover_item ^^ { case a => (a, Ignored) } |
+          ignored_line
+
+        case Item_Start(kind) =>
+          space ^^ { case a => (Chunk(kind, List(a)), ctxt) } |
+          item_begin ^^ { case (end, a) => (Chunk(kind, List(a)), Item_Open(kind, end)) } |
+          ignored_line
+
+        case Item_Open(kind, end) =>
+          space ^^ { case a => (Chunk(kind, List(a)), ctxt) } |
+          item_name(kind) ^^ { case a => (Chunk(kind, List(a)), Item(kind, end, Closed)) } |
+          body_line(Item(kind, end, Closed)) |
+          ignored_line
+
+        case item_ctxt: Item =>
+          body_line(item_ctxt) |
+          ignored_line
+
         case _ => failure("")
       }
     }
