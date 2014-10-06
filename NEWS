@@ -720,7 +720,7 @@ min.cobounded2, max.cobounded1m max.cobounded2 directly.
 
 For min_ac or max_ac, prefer more general collection ac_simps.
 
-INCOMPATBILITY.
+INCOMPATIBILITY.
 
 * Theorem disambiguation Inf_le_Sup (on finite sets) ~>
 Inf_fin_le_Sup_fin.  INCOMPATIBILITY.
@@ -3975,7 +3975,7 @@ explicit paths, relatively to the theory.
 * Special treatment of ML file names has been discontinued.
 Historically, optional extensions .ML or .sml were added on demand --
 at the cost of clarity of file dependencies.  Recall that Isabelle/ML
-files exclusively use the .ML extension.  Minor INCOMPATIBILTY.
+files exclusively use the .ML extension.  Minor INCOMPATIBILITY.
 
 * Various options that affect pretty printing etc. are now properly
 handled within the context via configuration options, instead of
@@ -4931,7 +4931,7 @@ application of the various fold combinators on finite sets.
 
 * Library theory "RBT" renamed to "RBT_Impl"; new library theory "RBT"
 provides abstract red-black tree type which is backed by "RBT_Impl" as
-implementation.  INCOMPATIBILTY.
+implementation.  INCOMPATIBILITY.
 
 * Theory Library/Coinductive_List has been removed -- superseded by
 AFP/thys/Coinductive.
