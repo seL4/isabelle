@@ -103,6 +103,7 @@ fun fp_sugar_of_sum ctxt =
         co_rec_def = @{thm ctor_rec_def_alt[of "case_sum f1 f2" for f1 f2]},
         co_rec_thms = @{thms sum.case},
         co_rec_discs = [],
+        co_rec_disc_iffs = [],
         co_rec_selss = []}}
   end;
 
@@ -159,6 +160,7 @@ fun fp_sugar_of_prod ctxt =
         co_rec_def = @{thm ctor_rec_def_alt[of "case_prod f" for f]},
         co_rec_thms = @{thms prod.case},
         co_rec_discs = [],
+        co_rec_disc_iffs = [],
         co_rec_selss = []}}
   end;
 
