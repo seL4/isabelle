@@ -96,6 +96,7 @@ sig
   val tptp_true : string
   val tptp_lambda : string
   val tptp_empty_list : string
+  val dfg_individual_type : string
   val isabelle_info_prefix : string
   val isabelle_info : string -> int -> (string, 'a) atp_term list
   val extract_isabelle_status : (string, 'a) atp_term list -> string option
@@ -251,6 +252,9 @@ val tptp_false = "$false"
 val tptp_true = "$true"
 val tptp_lambda = "^"
 val tptp_empty_list = "[]"
+
+val dfg_individual_type = "iii" (* cannot clash *)
+
 val isabelle_info_prefix = "isabelle_"
 
 val inductionN = "induction"
@@ -385,8 +389,6 @@ fun uncurry_type (APi (tys, ty)) = APi (tys, uncurry_type ty)
   | uncurry_type (ty as AType _) = ty
   | uncurry_type _ =
     raise Fail "unexpected higher-order type in first-order format"
-
-val dfg_individual_type = "iii" (* cannot clash *)
 
 val suffix_type_of_types = suffix (" " ^ tptp_has_type ^ " " ^ tptp_type_of_types)
 

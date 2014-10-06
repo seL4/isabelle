@@ -134,9 +134,7 @@ fun single_letter upper s =
 fun var_name_of_typ (Type (@{type_name fun}, [_, T])) =
     if body_type T = HOLogic.boolT then "p" else "f"
   | var_name_of_typ (Type (@{type_name set}, [T])) =
-    let
-      fun default () = single_letter true (var_name_of_typ T)
-    in
+    let fun default () = single_letter true (var_name_of_typ T) in
       (case T of
         Type (s, [T1, T2]) => if String.isSuffix "prod" s andalso T1 = T2 then "r" else default ()
       | _ => default ())

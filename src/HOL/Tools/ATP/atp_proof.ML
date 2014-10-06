@@ -350,7 +350,9 @@ and parse_types x = (parse_type ::: Scan.repeat ($$ "," |-- parse_type)) x
 
 (* We currently half ignore types. *)
 fun parse_optional_type_signature x =
-  Scan.option ($$ tptp_has_type |-- parse_type) x
+  (Scan.option ($$ tptp_has_type |-- parse_type)
+   >> (fn some as SOME (AType ((s, []), [])) => if s = dfg_individual_type then NONE else some
+        | res => res)) x
 and parse_arg x =
   ($$ "(" |-- parse_term --| $$ ")" --| parse_optional_type_signature
    || scan_general_id -- parse_optional_type_signature
@@ -519,7 +521,7 @@ fun remove_thf_app (ATerm ((x, ty), arg)) =
   | remove_thf_app (AAbs (((x, ty), arg), t)) = AAbs (((x, ty), remove_thf_app arg), t)
 
 fun parse_thf0_typed_var x =
-  (Scan.repeat (scan_general_id -- Scan.option ($$ ":" |-- parse_thf0_type)
+  (Scan.repeat (scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_thf0_type)
      --| Scan.option (Scan.this_string ","))
    || $$ "(" |-- parse_thf0_typed_var --| $$ ")") x
 
@@ -535,7 +537,8 @@ fun parse_simple_thf0_term x =
                     else I))
             ys t)
   || Scan.this_string tptp_not |-- parse_thf0_term >> mk_app (mk_simple_aterm tptp_not)
-  || scan_general_id --| $$ ":" -- parse_thf0_type >> (fn (var, typ) => ATerm ((var, [typ]), []))
+  || scan_general_id --| $$ tptp_has_type -- parse_thf0_type
+    >> (fn (var, typ) => ATerm ((var, [typ]), []))
   || parse_ho_quantifier >> mk_simple_aterm
   || $$ "(" |-- parse_thf0_term --| $$ ")"
   || scan_general_id >> mk_simple_aterm
