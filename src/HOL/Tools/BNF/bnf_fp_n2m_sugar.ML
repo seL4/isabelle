@@ -294,7 +294,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
         fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctr_defs ctr_sugar co_rec
             co_rec_def map_thms co_inducts co_rec_thms co_rec_disc_thms co_rec_sel_thmss
             ({fp_bnf_sugar = {map_disc_iffs, map_sels, rel_injects, rel_distincts, rel_sels,
-              rel_intros, rel_cases, ...}, ...} : fp_sugar) =
+              rel_intros, rel_cases, set_thms, ...}, ...} : fp_sugar) =
           {T = T, BT = T (*wrong but harmless*), X = X, fp = fp, fp_res = fp_res, fp_res_index = kk,
            pre_bnf = pre_bnf, absT_info = absT_info, fp_nesting_bnfs = fp_nesting_bnfs,
            live_nesting_bnfs = live_nesting_bnfs,
@@ -310,7 +310,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
               rel_distincts = rel_distincts,
               rel_sels = rel_sels,
               rel_intros = rel_intros,
-              rel_cases = rel_cases},
+              rel_cases = rel_cases,
+              set_thms = set_thms},
            fp_co_induct_sugar =
              {co_rec = co_rec,
               common_co_inducts = common_co_inducts,
