@@ -7,6 +7,7 @@ imports
   Projective_Limit
   Independent_Family
   Distributions
+  Probability_Mass_Function
 begin
 
 end

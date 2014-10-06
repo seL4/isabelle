@@ -3,7 +3,7 @@
 *)
 
 theory Complete_Measure
-imports Bochner_Integration
+  imports Bochner_Integration Probability_Measure
 begin
 
 definition
@@ -313,5 +313,20 @@ proof -
     qed
   qed auto
 qed
+
+lemma (in prob_space) prob_space_completion: "prob_space (completion M)"
+  by (rule prob_spaceI) (simp add: emeasure_space_1)
+
+lemma null_sets_completionI: "N \<in> null_sets M \<Longrightarrow> N \<in> null_sets (completion M)"
+  by (auto simp: null_sets_def)
+
+lemma AE_completion: "(AE x in M. P x) \<Longrightarrow> (AE x in completion M. P x)"
+  unfolding eventually_ae_filter by (auto intro: null_sets_completionI)
+
+lemma null_sets_completion_iff: "N \<in> sets M \<Longrightarrow> N \<in> null_sets (completion M) \<longleftrightarrow> N \<in> null_sets M"
+  by (auto simp: null_sets_def)
+
+lemma AE_completion_iff: "{x\<in>space M. P x} \<in> sets M \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> (AE x in completion M. P x)"
+  by (simp add: AE_iff_null null_sets_completion_iff)
 
 end
