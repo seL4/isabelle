@@ -478,7 +478,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
         xtor_co_rec_o_maps = fp_rec_o_maps (*theorems about old constants*),
         xtor_rel_co_induct = xtor_rel_co_induct,
         dtor_set_inducts = [],
-        xtor_co_rec_transfer_thms = []}
+        xtor_co_rec_transfers = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in
     (fp_res, lthy)

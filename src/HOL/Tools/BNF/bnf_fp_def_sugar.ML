@@ -1936,7 +1936,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
              ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
              xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_inducts,
-             xtor_co_rec_transfer_thms, ...},
+             xtor_co_rec_transfers, ...},
            lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
         (map dest_TFree killed_As) fp_eqs no_defs_lthy
@@ -2162,7 +2162,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
           (fn {context = ctxt, prems = _} =>
              mk_rec_transfer_tac ctxt nn ns (map (certify ctxt) Ss) (map (certify ctxt) Rs) rec_defs
-               xtor_co_rec_transfer_thms pre_rel_defs live_nesting_rel_eqs)
+               xtor_co_rec_transfers pre_rel_defs live_nesting_rel_eqs)
         |> Conjunction.elim_balanced nn
         |> Proof_Context.export names_lthy lthy
         |> map Thm.close_derivation
@@ -2244,7 +2244,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
           (fn {context = ctxt, prems = _} =>
              mk_corec_transfer_tac ctxt (map (certify ctxt) Ss) (map (certify ctxt) Rs)
-               type_definitions corec_defs xtor_co_rec_transfer_thms pre_rel_defs
+               type_definitions corec_defs xtor_co_rec_transfers pre_rel_defs
                live_nesting_rel_eqs (flat pgss) pss qssss gssss)
         |> Conjunction.elim_balanced (length goals)
         |> Proof_Context.export names_lthy lthy
