@@ -121,7 +121,7 @@ it follows that @{prop"a \<notin> f a \<longleftrightarrow> a \<in> f a"}.
 Labels should be avoided. They interrupt the flow of the reader who has to
 scan the context for the point where the label was introduced. Ideally, the
 proof is a linear flow, where the output of one step becomes the input of the
-next step, piping the previously proved fact into the next proof, just like
+next step, piping the previously proved fact into the next proof, like
 in a UNIX pipe. In such cases the predefined name @{text this} can be used
 to refer to the proposition proved in the previous step. This allows us to
 eliminate all labels from our proof (we suppress the \isacom{lemma} statement):
@@ -874,7 +874,7 @@ it a specific name. In case one needs to refer to it one writes
 \begin{quote}
 \isacom{case} @{text"(evSS m)"}
 \end{quote}
-just like \isacom{case}~@{text"(Suc n)"} in earlier structural inductions.
+like \isacom{case}~@{text"(Suc n)"} in earlier structural inductions.
 The name @{text m} is an arbitrary choice. As a result,
 case @{thm[source] evSS} is derived from a renamed version of
 rule @{thm[source] evSS}: @{text"ev m \<Longrightarrow> ev(Suc(Suc m))"}.
@@ -1039,7 +1039,7 @@ need to see the expanded version of the lemma. This is what we need to write:
 \isacom{lemma} @{text[source]"I r s t \<Longrightarrow> \<dots>"}\isanewline
 \isacom{proof}@{text"(induction \"r\" \"s\" \"t\" arbitrary: \<dots> rule: I.induct)"}\index{inductionrule@@{text"induction ... rule:"}}\index{arbitrary@@{text"arbitrary:"}}
 \end{isabelle}
-Just like for rule inversion, cases that are impossible because of constructor clashes
+Like for rule inversion, cases that are impossible because of constructor clashes
 will not show up at all. Here is a concrete example: *}
 
 lemma "ev (Suc m) \<Longrightarrow> \<not> ev m"

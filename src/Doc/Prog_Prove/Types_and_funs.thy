@@ -46,14 +46,14 @@ $P(x_j)$ for all $j$ where $\tau_{i,j} =$~@{text "('a\<^sub>1,\<dots>,'a\<^sub>n
 Distinctness and injectivity are applied automatically by @{text auto}
 and other proof methods. Induction must be applied explicitly.
 
-Datatype values can be taken apart with case expressions\index{case expression}\index{case expression@@{text "case ... of"}}, for example
+Like in functional programming languages, datatype values can be taken apart
+with case expressions\index{case expression}\index{case expression@@{text "case ... of"}}, for example
 \begin{quote}
 \noquotes{@{term[source] "(case xs of [] \<Rightarrow> 0 | x # _ \<Rightarrow> Suc x)"}}
 \end{quote}
-just like in functional programming languages. Case expressions
-must be enclosed in parentheses.
+Case expressions must be enclosed in parentheses.
 
-As an example, consider binary trees:
+As an example of a datatype beyond @{typ nat} and @{text list}, consider binary trees:
 *}
 
 datatype 'a tree = Tip | Node  "'a tree"  'a  "'a tree"
@@ -502,7 +502,7 @@ robust: if the definition has to be changed, only the proofs of the abstract
 properties will be affected.
 
 The definition of a function @{text f} is a theorem named @{text f_def}
-and can be added to a call of @{text simp} just like any other theorem:
+and can be added to a call of @{text simp} like any other theorem:
 \begin{quote}
 \isacom{apply}@{text"(simp add: f_def)"}
 \end{quote}

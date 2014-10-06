@@ -127,7 +127,7 @@ There are also indexed unions and intersections:
 \end{center}
 The ASCII forms are \ \texttt{UN x:A.~B} \ and \ \texttt{INT x:A. B} \
 where \texttt{x} may occur in \texttt{B}.
-If \texttt{A} is \texttt{UNIV} you can just write \ \texttt{UN x.~B} \ and \ \texttt{INT x. B}.
+If \texttt{A} is \texttt{UNIV} you can write \ \texttt{UN x.~B} \ and \ \texttt{INT x. B}.
 
 Some other frequently useful functions on sets are the following:
 \begin{center}
@@ -197,7 +197,7 @@ Hence all our proof methods only differ in how incomplete they are.
 
 A proof method that is still incomplete but tries harder than @{text auto} is
 \indexed{@{text fastforce}}{fastforce}.  It either succeeds or fails, it acts on the first
-subgoal only, and it can be modified just like @{text auto}, e.g.,
+subgoal only, and it can be modified like @{text auto}, e.g.,
 with @{text "simp add"}. Here is a typical example of what @{text fastforce}
 can do:
 *}
@@ -258,7 +258,7 @@ text{* We do not explain how the proof was found but what this command
 means. For a start, Isabelle does not trust external tools (and in particular
 not the translations from Isabelle's logic to those tools!)
 and insists on a proof that it can check. This is what \indexed{@{text metis}}{metis} does.
-It is given a list of lemmas and tries to find a proof just using those lemmas
+It is given a list of lemmas and tries to find a proof using just those lemmas
 (and pure logic). In contrast to using @{text simp} and friends who know a lot of
 lemmas already, using @{text metis} manually is tedious because one has
 to find all the relevant lemmas first. But that is precisely what
@@ -352,7 +352,7 @@ unifying @{text"?P \<and> ?Q"} with \mbox{@{prop"a=b \<and> False"}} instantiate
 @{text "?P"} with @{prop "a=b"} and @{text "?Q"} with @{prop False}.
 \end{itemize}
 We need not instantiate all unknowns. If we want to skip a particular one we
-can just write @{text"_"} instead, for example @{text "conjI[of _ \"False\"]"}.
+can write @{text"_"} instead, for example @{text "conjI[of _ \"False\"]"}.
 Unknowns can also be instantiated by name using \indexed{@{text "where"}}{where}, for example
 @{text "conjI[where ?P = \"a=b\""} \isacom{and} @{text"?Q = \"False\"]"}.
 
