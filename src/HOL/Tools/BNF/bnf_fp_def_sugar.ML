@@ -1934,7 +1934,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val ((pre_bnfs, absT_infos), (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0,
              dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
-             ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
+             ctor_dtors, ctor_injects, dtor_injects, xtor_maps, xtor_set_thmss, xtor_rel_thms,
              xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_inducts,
              xtor_co_rec_transfers, ...},
            lthy)) =
@@ -2360,7 +2360,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       |> live > 0 ? fold2 (fn Type (s, _) => fn bnf => register_bnf_raw s bnf) fpTs fp_bnfs
       |> fold_map define_ctrs_dtrs_for_type (fp_bnfs ~~ fp_bs ~~ fpTs ~~ ctors ~~ dtors ~~
         xtor_co_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~ pre_set_defss ~~
-        pre_rel_defs ~~ xtor_map_thms ~~ xtor_set_thmss ~~ xtor_rel_thms ~~ ns ~~ kss ~~ mss ~~
+        pre_rel_defs ~~ xtor_maps ~~ xtor_set_thmss ~~ xtor_rel_thms ~~ ns ~~ kss ~~ mss ~~
         abss ~~ abs_injects ~~ abs_inverses ~~ type_definitions ~~ ctr_bindingss ~~ ctr_mixfixess ~~
         ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_default_eqss)
       |> wrap_ctrs_derive_map_set_rel_thms_define_co_rec_for_types

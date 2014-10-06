@@ -2539,7 +2539,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       {Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, xtor_co_recs = corecs,
        xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms,
        ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
-       xtor_map_thms = dtor_Jmap_thms, xtor_set_thmss = dtor_Jset_thmss',
+       xtor_maps = dtor_Jmap_thms, xtor_set_thmss = dtor_Jset_thmss',
        xtor_rel_thms = dtor_Jrel_thms, xtor_co_rec_thms = dtor_corec_thms,
        xtor_co_rec_o_maps = dtor_corec_o_Jmap_thms, xtor_rel_co_induct = Jrel_coinduct_thm,
        dtor_set_inducts = dtor_Jset_induct_thms,
