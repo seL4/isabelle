@@ -569,7 +569,6 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
       val discAs = map (mk_disc_or_sel As) discs;
       val discBs = map (mk_disc_or_sel Bs) discs;
       val selAss = map (map (mk_disc_or_sel As)) selss;
-      val discAs_selAss = flat (map2 (map o pair) discAs selAss);
 
       val ctor_cong =
         if fp = Least_FP then
@@ -894,7 +893,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
 
       val map_sel_thms =
         let
-          fun mk_goal (discA, selA) =
+          fun mk_goal discA selA =
             let
               val prem = Term.betapply (discA, ta);
               val selB = mk_disc_or_sel Bs selA;
@@ -913,7 +912,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
               else Logic.mk_implies (HOLogic.mk_Trueprop prem, concl)
             end;
 
-          val goals = map mk_goal discAs_selAss;
+          val goals = flat (map2 (map o mk_goal) discAs selAss);
         in
           if null goals then
             []
@@ -968,8 +967,10 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
               else
                 ([], ctxt)
             end;
-          val (goals, names_lthy) = apfst (flat o flat) (fold_map (fn (disc, sel) =>
-            fold_map (mk_goal disc sel) setAs) discAs_selAss names_lthy);
+          val (goals, names_lthy) = apfst (flat o flat o flat)
+            (fold_map2 (fn disc =>
+                 fold_map (fn sel => fold_map (mk_goal disc sel) setAs))
+               discAs selAss names_lthy);
         in
           if null goals then
             []
