@@ -136,7 +136,7 @@ The ASCII representation of @{text"\<equiv>"} is \texttt{==} or \xsymbol{equiv}.
 Recursive functions are defined with \indexed{\isacom{fun}}{fun} by pattern matching
 over datatype constructors. The order of equations matters, as in
 functional programming languages. However, all HOL functions must be
-total. This simplifies the logic---terms are always defined---but means
+total. This simplifies the logic --- terms are always defined --- but means
 that recursive functions must terminate. Otherwise one could define a
 function @{prop"f n = f n + (1::nat)"} and conclude \mbox{@{prop"(0::nat) = 1"}} by
 subtracting @{term"f n"} on both sides.
@@ -435,7 +435,7 @@ Simplification can run forever, for example if both @{prop"f x = g x"} and
 responsibility not to include simplification rules that can lead to
 nontermination, either on their own or in combination with other
 simplification rules. The right-hand side of a simplification rule should
-always be ``simpler'' than the left-hand side---in some sense. But since
+always be ``simpler'' than the left-hand side --- in some sense. But since
 termination is undecidable, such a check cannot be automated completely
 and Isabelle makes little attempt to detect nontermination.
 
