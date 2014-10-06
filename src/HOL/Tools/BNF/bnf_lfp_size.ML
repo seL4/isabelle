@@ -82,7 +82,7 @@ fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
 
 fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
-      fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, fp_nesting_bnfs,
+      fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_maps = ctor_rec_o_maps, ...}, fp_nesting_bnfs,
       live_nesting_bnfs, ...} : fp_sugar) :: _) lthy0 =
     let
       val data = Data.get (Context.Proof lthy0);

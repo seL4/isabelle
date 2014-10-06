@@ -388,7 +388,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
 
     val co_recs = map (Morphism.term phi) raw_co_recs;
 
-    val fp_rec_o_maps = of_fp_res #xtor_co_rec_o_map_thms
+    val fp_rec_o_maps = of_fp_res #xtor_co_rec_o_maps
       |> maps (fn thm => [thm, thm RS rewrite_comp_comp]);
 
     val xtor_co_rec_thms =
@@ -475,7 +475,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
         xtor_set_thmss = of_fp_res #xtor_set_thmss (*too general types and terms*),
         xtor_rel_thms = of_fp_res #xtor_rel_thms (*too general types and terms*),
         xtor_co_rec_thms = xtor_co_rec_thms,
-        xtor_co_rec_o_map_thms = fp_rec_o_maps (*theorems about old constants*),
+        xtor_co_rec_o_maps = fp_rec_o_maps (*theorems about old constants*),
         rel_xtor_co_induct_thm = rel_xtor_co_induct_thm,
         dtor_set_induct_thms = [],
         xtor_co_rec_transfer_thms = []}
