@@ -134,7 +134,10 @@ object Completion_Popup
                   case None =>
                     Completion.Result.merge(Completion.History.empty,
                       syntax_completion(Completion.History.empty, false, Some(rendering)),
-                      path_completion(rendering)).map(_.range)
+                      Completion.Result.merge(Completion.History.empty,
+                        path_completion(rendering),
+                        Bibtex_JEdit.completion(Completion.History.empty, text_area, rendering)))
+                    .map(_.range)
                 }
               case _ => None
             }
@@ -380,7 +383,9 @@ object Completion_Popup
                 Completion.Result.merge(history, result0,
                   Completion.Result.merge(history,
                     Spell_Checker.completion(text_area, explicit, rendering),
-                      path_completion(rendering)))
+                    Completion.Result.merge(history,
+                      path_completion(rendering),
+                      Bibtex_JEdit.completion(history, text_area, rendering))))
             }
           }
           result match {
