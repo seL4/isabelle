@@ -127,6 +127,7 @@ text {*
     @{antiquotation_def ML_functor} & : & @{text antiquotation} \\
     @{antiquotation_def "file"} & : & @{text antiquotation} \\
     @{antiquotation_def "url"} & : & @{text antiquotation} \\
+    @{antiquotation_def "cite"} & : & @{text antiquotation} \\
   \end{matharray}
 
   The overall content of an Isabelle/Isar theory may alternate between
@@ -180,7 +181,8 @@ text {*
       @@{antiquotation ML_functor} options @{syntax text} |
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation file_unchecked} options @{syntax name} |
-      @@{antiquotation url} options @{syntax name}
+      @@{antiquotation url} options @{syntax name} |
+      @@{antiquotation cite} options @{syntax cartouche}? (@{syntax name} + @'and')
     ;
     options: '[' (option * ',') ']'
     ;
@@ -278,6 +280,20 @@ text {*
 
   \item @{text "@{url name}"} produces markup for the given URL, which
   results in an active hyperlink within the text.
+
+  \item @{text "@{cite name}"} produces a citation @{verbatim
+  "\\cite{name}"} in {\LaTeX}, where the name refers to some Bib{\TeX}
+  database entry.
+
+  The variant @{text "@{cite \<open>opt\<close> name}"} produces @{verbatim
+  "\\cite[opt]{name}"} with some free-form optional argument. Multiple names
+  are output with commas, e.g. @{text "@{cite foo \<AND> bar}"} becomes
+  @{verbatim "\\cite{foo,bar}"}.
+
+  The {\LaTeX} macro name is determined by the antiquotation option
+  @{antiquotation_option_def cite_macro}, or the configuration option
+  @{attribute cite_macro} in the context. For example, @{text "@{cite
+  [cite_macro = nocite] foobar}"} produces @{verbatim "\\nocite{foobar}"}.
 
   \end{description}
 *}
