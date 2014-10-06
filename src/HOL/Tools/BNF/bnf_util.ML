@@ -59,6 +59,8 @@ sig
     'i list -> 'j -> 'k list * 'j
   val split_list4: ('a * 'b * 'c * 'd) list -> 'a list * 'b list * 'c list * 'd list
   val split_list5: ('a * 'b * 'c * 'd * 'e) list -> 'a list * 'b list * 'c list * 'd list * 'e list
+  val split_list6: ('a * 'b * 'c * 'd * 'e * 'f) list -> 'a list * 'b list * 'c list * 'd list *
+    'e list * 'f list
 
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
   val mk_Freesss: string -> typ list list list -> Proof.context ->
@@ -293,6 +295,11 @@ fun split_list5 [] = ([], [], [], [], [])
   | split_list5 ((x1, x2, x3, x4, x5) :: xs) =
     let val (xs1, xs2, xs3, xs4, xs5) = split_list5 xs;
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4, x5 :: xs5) end;
+
+fun split_list6 [] = ([], [], [], [], [], [])
+  | split_list6 ((x1, x2, x3, x4, x5, x6) :: xs) =
+    let val (xs1, xs2, xs3, xs4, xs5, xs6) = split_list6 xs;
+    in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4, x5 :: xs5, x6 :: xs6) end;
 
 val parse_type_arg_constrained =
   Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
