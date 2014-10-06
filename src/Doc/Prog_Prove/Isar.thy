@@ -73,7 +73,7 @@ variables, \isacom{assume} introduces the assumption of an implication
 Propositions are optionally named formulas. These names can be referred to in
 later \isacom{from} clauses. In the simplest case, a fact is such a name.
 But facts can also be composed with @{text OF} and @{text of} as shown in
-\autoref{sec:forward-proof}---hence the \dots\ in the above grammar.  Note
+\autoref{sec:forward-proof} --- hence the \dots\ in the above grammar.  Note
 that assumptions, intermediate \isacom{have} statements and global lemmas all
 have the same status and are thus collectively referred to as
 \conceptidx{facts}{fact}.
@@ -110,7 +110,7 @@ rule, in the above case for @{text"\<not>"}:
 \]
 In order to prove @{prop"~ P"}, assume @{text P} and show @{text False}.
 Thus we may assume @{prop"surj f"}. The proof shows that names of propositions
-may be (single!) digits---meaningful names are hard to invent and are often
+may be (single!) digits --- meaningful names are hard to invent and are often
 not necessary. Both \isacom{have} steps are obvious. The second one introduces
 the diagonal set @{term"{x. x \<notin> f x}"}, the key idea in the proof.
 If you wonder why @{text 2} directly implies @{text False}: from @{text 2}
@@ -207,7 +207,7 @@ text{*
 \begin{warn}
 Note the hyphen after the \isacom{proof} command.
 It is the null method that does nothing to the goal. Leaving it out would be asking
-Isabelle to try some suitable introduction rule on the goal @{const False}---but
+Isabelle to try some suitable introduction rule on the goal @{const False} --- but
 there is no such rule and \isacom{proof} would fail.
 \end{warn}
 In the \isacom{have} step the assumption @{prop"surj f"} is now
@@ -945,7 +945,7 @@ only in this naming policy: @{text induct} does not distinguish
 \end{warn}
 
 More complicated inductive proofs than the ones we have seen so far
-often need to refer to specific assumptions---just @{text name} or even
+often need to refer to specific assumptions --- just @{text name} or even
 @{text name.prems} and @{text name.IH} can be too unspecific.
 This is where the indexing of fact lists comes in handy, e.g.,
 @{text"name.IH(2)"} or @{text"name.prems(1-2)"}.
