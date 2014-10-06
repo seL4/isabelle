@@ -78,6 +78,9 @@ sig
   val split_list13: ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h * 'i * 'j * 'k * 'l * 'm) list ->
     'a list * 'b list * 'c list * 'd list * 'e list * 'f list * 'g list * 'h list * 'i list *
     'j list * 'k list * 'l list * 'm list
+  val split_list14: ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h * 'i * 'j * 'k * 'l * 'm * 'n) list ->
+    'a list * 'b list * 'c list * 'd list * 'e list * 'f list * 'g list * 'h list * 'i list *
+    'j list * 'k list * 'l list * 'm list * 'n list
 
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
   val mk_Freesss: string -> typ list list list -> Proof.context ->
@@ -357,6 +360,13 @@ fun split_list13 [] = ([], [], [], [], [], [], [], [], [], [], [], [], [])
     let val (xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8, xs9, xs10, xs11, xs12, xs13) = split_list13 xs;
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4, x5 :: xs5, x6 :: xs6, x7 :: xs7, x8 :: xs8,
         x9 :: xs9, x10 :: xs10, x11 :: xs11, x12 :: xs12, x13 :: xs13) end;
+
+fun split_list14 [] = ([], [], [], [], [], [], [], [], [], [], [], [], [], [])
+  | split_list14 ((x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14) :: xs) =
+    let val (xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8, xs9, xs10, xs11, xs12, xs13, xs14) =
+      split_list14 xs;
+    in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4, x5 :: xs5, x6 :: xs6, x7 :: xs7, x8 :: xs8,
+        x9 :: xs9, x10 :: xs10, x11 :: xs11, x12 :: xs12, x13 :: xs13, x14 :: xs14) end;
 
 val parse_type_arg_constrained =
   Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
