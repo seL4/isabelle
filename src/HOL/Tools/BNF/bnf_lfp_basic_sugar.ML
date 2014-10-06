@@ -107,7 +107,8 @@ fun fp_sugar_of_sum ctxt =
         co_rec_selss = [],
         co_rec_codes = [],
         co_rec_transfers = [],
-        common_rel_co_inducts = []}}
+        common_rel_co_inducts = [],
+        rel_co_inducts = []}}
   end;
 
 fun fp_sugar_of_prod ctxt =
@@ -167,7 +168,8 @@ fun fp_sugar_of_prod ctxt =
         co_rec_selss = [],
         co_rec_codes = [],
         co_rec_transfers = [],
-        common_rel_co_inducts = []}}
+        common_rel_co_inducts = [],
+        rel_co_inducts = []}}
   end;
 
 val _ = Theory.setup (map_local_theory (fn lthy =>
