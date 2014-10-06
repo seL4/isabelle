@@ -104,7 +104,9 @@ fun fp_sugar_of_sum ctxt =
         co_rec_thms = @{thms sum.case},
         co_rec_discs = [],
         co_rec_disc_iffs = [],
-        co_rec_selss = []}}
+        co_rec_selss = [],
+        co_rec_codes = [],
+        co_rec_transfers = []}}
   end;
 
 fun fp_sugar_of_prod ctxt =
@@ -161,7 +163,9 @@ fun fp_sugar_of_prod ctxt =
         co_rec_thms = @{thms prod.case},
         co_rec_discs = [],
         co_rec_disc_iffs = [],
-        co_rec_selss = []}}
+        co_rec_selss = [],
+        co_rec_codes = [],
+        co_rec_transfers = []}}
   end;
 
 val _ = Theory.setup (map_local_theory (fn lthy =>
