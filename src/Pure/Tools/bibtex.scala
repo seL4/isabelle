@@ -186,8 +186,8 @@ object Bibtex
 
   // context of partial line-oriented scans
   abstract class Line_Context
-  case object Ignored_Context extends Line_Context
-  case class Item_Context(kind: String, delim: Delimited, right: String) extends Line_Context
+  case object Ignored extends Line_Context
+  case class Item(kind: String, delim: Delimited, right: String) extends Line_Context
   case class Delimited(quoted: Boolean, depth: Int)
   val Closed = Delimited(false, 0)
 
@@ -215,7 +215,7 @@ object Bibtex
         case ss => Chunk("", List(Token(Token.Kind.COMMENT, ss.mkString))) }
 
     private def ignored_line: Parser[(Chunk, Line_Context)] =
-      ignored ^^ { case a => (a, Ignored_Context) }
+      ignored ^^ { case a => (a, Ignored) }
 
 
     /* delimited string: outermost "..." or {...} and body with balanced {...} */
@@ -265,12 +265,12 @@ object Bibtex
     private def recover_delimited: Parser[Token] =
       """(?m)["{][^@]*""".r ^^ token(Token.Kind.ERROR)
 
-    def delimited_line(item_ctxt: Item_Context): Parser[(Chunk, Line_Context)] =
+    def delimited_line(item_ctxt: Item): Parser[(Chunk, Line_Context)] =
       item_ctxt match {
-        case Item_Context(kind, delim, _) =>
+        case Item(kind, delim, _) =>
           delimited_depth(delim) ^^ { case (s, delim1) =>
             (Chunk(kind, List(Token(Token.Kind.STRING, s))), item_ctxt.copy(delim = delim1)) } |
-          recover_delimited ^^ { case a => (Chunk(kind, List(a)), Ignored_Context) }
+          recover_delimited ^^ { case a => (Chunk(kind, List(a)), Ignored) }
         }
 
 
@@ -330,22 +330,22 @@ object Bibtex
     def chunk_line(ctxt: Line_Context): Parser[(Chunk, Line_Context)] =
     {
       ctxt match {
-        case Ignored_Context =>
+        case Ignored =>
           ignored_line |
           item_start ~ (left_brace | left_paren) ~ opt(item_name) ^^
             { case (kind, a) ~ b ~ c =>
                 val right = if (b.source == "{") "}" else ")"
                 val chunk = Chunk(kind, a ::: List(b) ::: (c getOrElse Nil))
-                (chunk, Item_Context(kind, Closed, right)) } |
-          recover_item ^^ { case a => (a, Ignored_Context) }
-        case item_ctxt @ Item_Context(kind, delim, right) =>
+                (chunk, Item(kind, Closed, right)) } |
+          recover_item ^^ { case a => (a, Ignored) }
+        case item_ctxt @ Item(kind, delim, right) =>
           if (delim.depth > 0)
             delimited_line(item_ctxt) |
             ignored_line
           else {
             delimited_line(item_ctxt) |
             other_token ^^ { case a => (Chunk(kind, List(a)), ctxt) } |
-            right ^^ { case a => (Chunk(kind, List(keyword(a))), Ignored_Context) } |
+            right ^^ { case a => (Chunk(kind, List(keyword(a))), Ignored) } |
             ignored_line
           }
         case _ => failure("")

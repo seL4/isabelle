@@ -127,7 +127,7 @@ object Bibtex_JEdit
       val line_ctxt =
         context match {
           case c: Line_Context => c.context
-          case _ => Some(Bibtex.Ignored_Context)
+          case _ => Some(Bibtex.Ignored)
         }
       val line = if (raw_line == null) new Segment else raw_line
 
