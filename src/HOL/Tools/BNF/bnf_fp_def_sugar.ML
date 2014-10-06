@@ -1935,7 +1935,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val ((pre_bnfs, absT_infos), (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0,
              dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
              ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
-             xtor_co_rec_thms, rel_xtor_co_induct_thm, dtor_set_induct_thms,
+             xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_induct_thms,
              xtor_co_rec_transfer_thms, ...},
            lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
@@ -2195,7 +2195,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             let
               val ((rel_induct_thms, common_rel_induct_thm), rel_induct_attrs) =
                 derive_rel_induct_thms_for_types lthy fpTs As Bs ctrss ctr_Tsss
-                  (map #exhaust ctr_sugars) rel_xtor_co_induct_thm ctr_defss ctor_injects
+                  (map #exhaust ctr_sugars) xtor_rel_co_induct ctr_defss ctor_injects
                   pre_rel_defs abs_inverses live_nesting_rel_eqs;
             in
               ((map single rel_induct_thms, single common_rel_induct_thm),
@@ -2299,7 +2299,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val ((rel_coinduct_thms, common_rel_coinduct_thm),
                    (rel_coinduct_attrs, common_rel_coinduct_attrs)) =
                 derive_rel_coinduct_thm_for_types lthy fpTs ns As Bs mss ctr_sugars abs_inverses
-                  abs_injects ctor_injects dtor_ctors pre_rel_defs ctr_defss rel_xtor_co_induct_thm
+                  abs_injects ctor_injects dtor_ctors pre_rel_defs ctr_defss xtor_rel_co_induct
                   live_nesting_rel_eqs;
             in
               ((map single rel_coinduct_thms, single common_rel_coinduct_thm),

@@ -164,7 +164,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
     val pre_rels = map2 (fn Ds => mk_rel_of_bnf Ds (As @ fpTs) (Bs @ fpTs')) Dss bnfs;
 
     val rel_unfolds = maps (no_refl o single o rel_def_of_bnf) pre_bnfs;
-    val rel_xtor_co_inducts = of_fp_res (split_conj_thm o #rel_xtor_co_induct_thm)
+    val rel_xtor_co_inducts = of_fp_res (split_conj_thm o #xtor_rel_co_induct)
       |> map (unfold_thms lthy (id_apply :: rel_unfolds));
 
     val rel_defs = map rel_def_of_bnf bnfs;
@@ -185,8 +185,8 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
     val fp_or_nesting_rel_eqs = no_refl (map rel_eq_of_bnf fp_or_nesting_bnfs);
     val fp_or_nesting_rel_monos = map rel_mono_of_bnf fp_or_nesting_bnfs;
 
-    val rel_xtor_co_induct_thm =
-      mk_rel_xtor_co_induct_thm fp (map3 cast castAs castBs pre_rels) pre_phis rels phis xs ys
+    val xtor_rel_co_induct =
+      mk_xtor_rel_co_induct_thm fp (map3 cast castAs castBs pre_rels) pre_phis rels phis xs ys
         xtors xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts rel_defs
           rel_monos fp_or_nesting_rel_eqs fp_or_nesting_rel_monos)
         lthy;
@@ -208,7 +208,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
             fun mk_type_copy_thms thm = map (curry op RS thm)
               @{thms type_copy_Rep_o_Abs type_copy_vimage2p_Grp_Abs};
           in
-            cterm_instantiate_pos cts rel_xtor_co_induct_thm
+            cterm_instantiate_pos cts xtor_rel_co_induct
             |> singleton (Proof_Context.export names_lthy lthy)
             |> unfold_thms lthy (@{thms eq_le_Grp_id_iff all_simps(1,2)[symmetric]} @
                 fp_or_nesting_rel_eqs)
@@ -225,7 +225,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
           let
             val cts = NONE :: map (SOME o certify lthy) (map HOLogic.eq_const As);
           in
-            cterm_instantiate_pos cts rel_xtor_co_induct_thm
+            cterm_instantiate_pos cts xtor_rel_co_induct
             |> unfold_thms lthy (@{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} @
                 fp_or_nesting_rel_eqs)
             |> funpow (2 * n) (fn thm => thm RS spec)
@@ -476,7 +476,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
         xtor_rel_thms = of_fp_res #xtor_rel_thms (*too general types and terms*),
         xtor_co_rec_thms = xtor_co_rec_thms,
         xtor_co_rec_o_maps = fp_rec_o_maps (*theorems about old constants*),
-        rel_xtor_co_induct_thm = rel_xtor_co_induct_thm,
+        xtor_rel_co_induct = xtor_rel_co_induct,
         dtor_set_induct_thms = [],
         xtor_co_rec_transfer_thms = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));

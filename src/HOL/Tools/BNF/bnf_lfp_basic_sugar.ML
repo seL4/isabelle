@@ -46,7 +46,7 @@ fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map
    xtor_rel_thms = [xtor_rel],
    xtor_co_rec_thms = [map_id0_of_bnf fp_bnf RS @{thm ctor_rec}],
    xtor_co_rec_o_maps = [ctor_rec_o_map],
-   rel_xtor_co_induct_thm = xtor_rel_induct,
+   xtor_rel_co_induct = xtor_rel_induct,
    dtor_set_induct_thms = [],
    xtor_co_rec_transfer_thms = []};
 

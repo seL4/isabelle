@@ -1659,7 +1659,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
 
     fun mk_Jrel_DEADID_coinduct_thm () =
-      mk_rel_xtor_co_induct_thm Greatest_FP rels activeJphis (map HOLogic.eq_const Ts) Jphis
+      mk_xtor_rel_co_induct_thm Greatest_FP rels activeJphis (map HOLogic.eq_const Ts) Jphis
         Jzs Jz's dtors dtor's (fn {context = ctxt, prems} =>
           (unfold_thms_tac ctxt @{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} THEN
           REPEAT_DETERM (rtac allI 1) THEN rtac (dtor_coinduct_thm OF prems) 1)) lthy;
@@ -2255,7 +2255,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         end;
 
       val Jrel_coinduct_thm =
-        mk_rel_xtor_co_induct_thm Greatest_FP rels activeJphis Jrels Jphis Jzs Jz's dtors dtor's
+        mk_xtor_rel_co_induct_thm Greatest_FP rels activeJphis Jrels Jphis Jzs Jz's dtors dtor's
           Jrel_coinduct_tac lthy;
 
         val le_Jrel_OO_thm =
@@ -2541,7 +2541,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
        ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
        xtor_map_thms = dtor_Jmap_thms, xtor_set_thmss = dtor_Jset_thmss',
        xtor_rel_thms = dtor_Jrel_thms, xtor_co_rec_thms = dtor_corec_thms,
-       xtor_co_rec_o_maps = dtor_corec_o_Jmap_thms, rel_xtor_co_induct_thm = Jrel_coinduct_thm,
+       xtor_co_rec_o_maps = dtor_corec_o_Jmap_thms, xtor_rel_co_induct = Jrel_coinduct_thm,
        dtor_set_induct_thms = dtor_Jset_induct_thms,
        xtor_co_rec_transfer_thms = dtor_corec_transfer_thms};
   in

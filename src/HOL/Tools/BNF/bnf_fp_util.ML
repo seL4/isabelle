@@ -26,7 +26,7 @@ sig
      xtor_rel_thms: thm list,
      xtor_co_rec_thms: thm list,
      xtor_co_rec_o_maps: thm list,
-     rel_xtor_co_induct_thm: thm,
+     xtor_rel_co_induct: thm,
      dtor_set_induct_thms: thm list,
      xtor_co_rec_transfer_thms: thm list}
 
@@ -176,7 +176,7 @@ sig
   val mk_sum_Cinfinite: thm list -> thm
   val mk_sum_card_order: thm list -> thm
 
-  val mk_rel_xtor_co_induct_thm: BNF_Util.fp_kind -> term list -> term list -> term list ->
+  val mk_xtor_rel_co_induct_thm: BNF_Util.fp_kind -> term list -> term list -> term list ->
     term list -> term list -> term list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm
   val mk_co_iter_transfer_thms: BNF_Util.fp_kind -> term list -> term list -> term list ->
@@ -218,13 +218,13 @@ type fp_result =
    xtor_rel_thms: thm list,
    xtor_co_rec_thms: thm list,
    xtor_co_rec_o_maps: thm list,
-   rel_xtor_co_induct_thm: thm,
+   xtor_rel_co_induct: thm,
    dtor_set_induct_thms: thm list,
    xtor_co_rec_transfer_thms: thm list};
 
 fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_recs, xtor_co_induct,
     dtor_ctors, ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss,
-    xtor_rel_thms, xtor_co_rec_thms, xtor_co_rec_o_maps, rel_xtor_co_induct_thm,
+    xtor_rel_thms, xtor_co_rec_thms, xtor_co_rec_o_maps, xtor_rel_co_induct,
     dtor_set_induct_thms, xtor_co_rec_transfer_thms} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
@@ -241,7 +241,7 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_recs, xtor_co_induct,
    xtor_rel_thms = map (Morphism.thm phi) xtor_rel_thms,
    xtor_co_rec_thms = map (Morphism.thm phi) xtor_co_rec_thms,
    xtor_co_rec_o_maps = map (Morphism.thm phi) xtor_co_rec_o_maps,
-   rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm,
+   xtor_rel_co_induct = Morphism.thm phi xtor_rel_co_induct,
    dtor_set_induct_thms = map (Morphism.thm phi) dtor_set_induct_thms,
    xtor_co_rec_transfer_thms = map (Morphism.thm phi) xtor_co_rec_transfer_thms};
 
@@ -500,7 +500,7 @@ fun mk_sum_Cinfinite [thm] = thm
 fun mk_sum_card_order [thm] = thm
   | mk_sum_card_order (thm :: thms) = @{thm card_order_csum} OF [thm, mk_sum_card_order thms];
 
-fun mk_rel_xtor_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
+fun mk_xtor_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
   let
     val pre_relphis = map (fn rel => Term.list_comb (rel, phis @ pre_phis)) pre_rels;
     val relphis = map (fn rel => Term.list_comb (rel, phis)) rels;
