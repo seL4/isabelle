@@ -473,7 +473,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
         dtor_injects = of_fp_res #dtor_injects (*too general types*),
         xtor_maps = of_fp_res #xtor_maps (*too general types and terms*),
         xtor_setss = of_fp_res #xtor_setss (*too general types and terms*),
-        xtor_rel_thms = of_fp_res #xtor_rel_thms (*too general types and terms*),
+        xtor_rels = of_fp_res #xtor_rels (*too general types and terms*),
         xtor_co_rec_thms = xtor_co_rec_thms,
         xtor_co_rec_o_maps = fp_rec_o_maps (*theorems about old constants*),
         xtor_rel_co_induct = xtor_rel_co_induct,
