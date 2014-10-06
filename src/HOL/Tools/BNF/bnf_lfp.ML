@@ -1829,7 +1829,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
        xtor_map_thms = ctor_Imap_thms, xtor_set_thmss = ctor_Iset_thmss',
        xtor_rel_thms = ctor_Irel_thms, xtor_co_rec_thms = ctor_rec_thms,
        xtor_co_rec_o_maps = ctor_rec_o_Imap_thms, xtor_rel_co_induct = Irel_induct_thm,
-       dtor_set_induct_thms = [], xtor_co_rec_transfer_thms = ctor_rec_transfer_thms};
+       dtor_set_inducts = [], xtor_co_rec_transfer_thms = ctor_rec_transfer_thms};
   in
     timer; (fp_res, lthy')
   end;

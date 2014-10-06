@@ -1935,7 +1935,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val ((pre_bnfs, absT_infos), (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0,
              dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
              ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
-             xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_induct_thms,
+             xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_inducts,
              xtor_co_rec_transfer_thms, ...},
            lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
@@ -2308,7 +2308,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
         val (set_induct_thms, set_induct_attrss) =
           derive_set_induct_thms_for_types lthy nn fpTs (map #ctrs ctr_sugars)
-            (map (map (mk_set As)) (map sets_of_bnf fp_bnfs)) dtor_set_induct_thms
+            (map (map (mk_set As)) (map sets_of_bnf fp_bnfs)) dtor_set_inducts
             (map #exhaust ctr_sugars) (flat pre_set_defss) (flat ctr_defss)
             dtor_ctors abs_inverses
           |> split_list;

@@ -27,7 +27,7 @@ sig
      xtor_co_rec_thms: thm list,
      xtor_co_rec_o_maps: thm list,
      xtor_rel_co_induct: thm,
-     dtor_set_induct_thms: thm list,
+     dtor_set_inducts: thm list,
      xtor_co_rec_transfer_thms: thm list}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
@@ -219,13 +219,13 @@ type fp_result =
    xtor_co_rec_thms: thm list,
    xtor_co_rec_o_maps: thm list,
    xtor_rel_co_induct: thm,
-   dtor_set_induct_thms: thm list,
+   dtor_set_inducts: thm list,
    xtor_co_rec_transfer_thms: thm list};
 
 fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_recs, xtor_co_induct,
     dtor_ctors, ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss,
     xtor_rel_thms, xtor_co_rec_thms, xtor_co_rec_o_maps, xtor_rel_co_induct,
-    dtor_set_induct_thms, xtor_co_rec_transfer_thms} =
+    dtor_set_inducts, xtor_co_rec_transfer_thms} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
@@ -242,7 +242,7 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_recs, xtor_co_induct,
    xtor_co_rec_thms = map (Morphism.thm phi) xtor_co_rec_thms,
    xtor_co_rec_o_maps = map (Morphism.thm phi) xtor_co_rec_o_maps,
    xtor_rel_co_induct = Morphism.thm phi xtor_rel_co_induct,
-   dtor_set_induct_thms = map (Morphism.thm phi) dtor_set_induct_thms,
+   dtor_set_inducts = map (Morphism.thm phi) dtor_set_inducts,
    xtor_co_rec_transfer_thms = map (Morphism.thm phi) xtor_co_rec_transfer_thms};
 
 fun time ctxt timer msg = (if Config.get ctxt bnf_timing
