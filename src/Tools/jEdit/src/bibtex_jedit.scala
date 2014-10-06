@@ -171,19 +171,26 @@ object Bibtex_JEdit
         }
       val line = if (raw_line == null) new Segment else raw_line
 
+      def no_markup =
+      {
+        val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
+        (List(styled_token), new Line_Context(None))
+      }
+
       val context1 =
       {
         val (styled_tokens, context1) =
           line_ctxt match {
             case Some(ctxt) =>
-              val (chunks, ctxt1) = Bibtex.parse_line(line, ctxt)
-              val styled_tokens =
-                for { chunk <- chunks; tok <- chunk.tokens }
-                yield (token_style(chunk.kind, tok), tok.source)
-              (styled_tokens, new Line_Context(Some(ctxt1)))
-            case None =>
-              val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
-              (List(styled_token), new Line_Context(None))
+              try {
+                val (chunks, ctxt1) = Bibtex.parse_line(line, ctxt)
+                val styled_tokens =
+                  for { chunk <- chunks; tok <- chunk.tokens }
+                  yield (token_style(chunk.kind, tok), tok.source)
+                (styled_tokens, new Line_Context(Some(ctxt1)))
+              }
+              catch { case ERROR(msg) => Output.warning(msg); no_markup }
+            case None => no_markup
           }
 
         var offset = 0
@@ -244,7 +251,7 @@ object Bibtex_JEdit
         }
         data
       }
-      catch { case ERROR(_) => null }
+      catch { case ERROR(msg) => Output.warning(msg); null }
     }
   }
 }
