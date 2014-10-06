@@ -626,35 +626,30 @@ fun termify_atp_proof ctxt local_prover format type_enc pool lifted sym_tab =
 
 fun unskolemize_term skos =
   let
-    val is_skolem = member (op =) skos
+    val is_skolem_name = member (op =) skos
 
     fun find_argless_skolem (Free _ $ Var _) = NONE
-      | find_argless_skolem (Free (x as (s, _))) = if is_skolem s then SOME x else NONE
+      | find_argless_skolem (Free (x as (s, _))) = if is_skolem_name s then SOME x else NONE
       | find_argless_skolem (t $ u) =
         (case find_argless_skolem t of NONE => find_argless_skolem u | sk => sk)
       | find_argless_skolem (Abs (_, _, t)) = find_argless_skolem t
       | find_argless_skolem _ = NONE
 
-    fun find_skolem_arg (Free (s, _) $ Var v) = if is_skolem s then SOME v else NONE
+    fun find_skolem_arg (Free (s, _) $ Var v) = if is_skolem_name s then SOME v else NONE
       | find_skolem_arg (t $ u) = (case find_skolem_arg t of NONE => find_skolem_arg u | v => v)
       | find_skolem_arg (Abs (_, _, t)) = find_skolem_arg t
       | find_skolem_arg _ = NONE
+
+    fun kill_skolem_arg (t as Free (s, T) $ Var _) =
+        if is_skolem_name s then Free (s, range_type T) else t
+      | kill_skolem_arg (t $ u) = kill_skolem_arg t $ kill_skolem_arg u
+      | kill_skolem_arg (Abs (s, T, t)) = Abs (s, T, kill_skolem_arg t)
+      | kill_skolem_arg t = t
 
     fun find_var (Var v) = SOME v
       | find_var (t $ u) = (case find_var t of NONE => find_var u | v => v)
       | find_var (Abs (_, _, t)) = find_var t
       | find_var _ = NONE
-
-    fun find_next_var t =
-      (case find_skolem_arg t of
-        NONE => find_var t
-      | v => v)
-
-    fun kill_skolem_arg (t as Free (s, T) $ Var _) =
-        if is_skolem s then Free (s, range_type T) else t
-      | kill_skolem_arg (t $ u) = kill_skolem_arg t $ kill_skolem_arg u
-      | kill_skolem_arg (Abs (s, T, t)) = Abs (s, T, kill_skolem_arg t)
-      | kill_skolem_arg t = t
 
     val safe_abstract_over = abstract_over o apsnd (incr_boundvars 1)
 
@@ -663,19 +658,23 @@ fun unskolemize_term skos =
         SOME (x as (s, T)) =>
         HOLogic.exists_const T $ Abs (s, T, unskolem (safe_abstract_over (Free x, t)))
       | NONE =>
-        (case find_next_var t of
+        (case find_skolem_arg t of
           SOME (v as ((s, _), T)) =>
           let
             val (haves, have_nots) =
               HOLogic.disjuncts t
-              |> List.partition (Term.exists_subterm (curry (op =) (Var v)))
+              |> List.partition (exists_subterm (curry (op =) (Var v)))
               |> pairself (fn lits => fold (curry s_disj) lits @{term False})
           in
             s_disj (HOLogic.all_const T
                 $ Abs (s, T, unskolem (safe_abstract_over (Var v, kill_skolem_arg haves))),
               unskolem have_nots)
           end
-        | NONE => t))
+        | NONE =>
+          (case find_var t of
+            SOME (v as ((s, _), T)) =>
+            HOLogic.all_const T $ Abs (s, T, unskolem (safe_abstract_over (Var v, t)))
+          | NONE => t)))
   in
     HOLogic.mk_Trueprop o unskolem o HOLogic.dest_Trueprop
   end
@@ -714,38 +713,41 @@ fun introduce_spass_skolems proof =
 
     val (input_steps, other_steps) = List.partition (null o #5) proof
 
-    val skoss = map (fn (_, _, t, _, _) => Term.fold_aterms add_skolem t []) input_steps
-    val skoss_input_steps = filter_out (null o fst) (skoss ~~ input_steps)
-    val groups = Graph.strong_conn (fold add_cycle skoss Graph.empty)
+    (* The names of the formulas are added to the Skolem constants, to ensure that formulas giving
+       rise to several clauses are skolemized together. *)
+    val skoXss = map (fn ((_, ss), _, t, _, _) => Term.fold_aterms add_skolem t ss) input_steps
+    val skoXss_input_steps = filter_out (null o fst) (skoXss ~~ input_steps)
+    val groups = Graph.strong_conn (fold add_cycle skoXss Graph.empty)
 
-    fun step_name_of_group skos = (implode skos, [])
+    fun step_name_of_group skoXs = (implode skoXs, [])
     fun in_group group = member (op =) group o hd
-    fun group_of sko = the (find_first (fn group => in_group group sko) groups)
+    fun group_of skoX = the (find_first (fn group => in_group group skoX) groups)
 
-    fun new_steps (skoss_steps : (string list * (term, 'a) atp_step) list) group =
+    fun new_steps (skoXss_steps : (string list * (term, 'a) atp_step) list) group =
       let
         val name = step_name_of_group group
         val name0 = name |>> prefix "0"
         val t =
-          (case map (snd #> #3) skoss_steps of
+          (case map (snd #> #3) skoXss_steps of
             [t] => t
           | ts => ts
             |> map (HOLogic.dest_Trueprop #> rename_skolem_args)
             |> Library.foldr1 s_conj
             |> HOLogic.mk_Trueprop)
-        val skos = fold (union (op =) o fst) skoss_steps []
-        val deps = map (snd #> #1) skoss_steps
+        val skos =
+          fold (union (op =) o filter (String.isPrefix spass_skolem_prefix) o fst) skoXss_steps []
+        val deps = map (snd #> #1) skoXss_steps
       in
         [(name0, Unknown, unskolemize_term skos t, spass_pre_skolemize_rule, deps),
          (name, Unknown, t, spass_skolemize_rule, [name0])]
       end
 
     val sko_steps =
-      maps (fn group => new_steps (filter (in_group group o fst) skoss_input_steps) group) groups
+      maps (fn group => new_steps (filter (in_group group o fst) skoXss_input_steps) group) groups
 
     val old_news =
       map (fn (skos, (name, _, _, _, _)) => (name, [step_name_of_group (group_of skos)]))
-        skoss_input_steps
+        skoXss_input_steps
     val repair_deps = fold replace_dependencies_in_line old_news
   in
     input_steps @ sko_steps @ map repair_deps other_steps
