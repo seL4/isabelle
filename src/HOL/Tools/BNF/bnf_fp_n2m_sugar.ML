@@ -297,7 +297,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
               fp_bnf_sugar = {map_disc_iffs, map_sels, rel_injects, rel_distincts, rel_sels,
                 rel_intros, rel_cases, set_thms, set_sels, set_intros, set_cases, ...},
               fp_co_induct_sugar = {co_rec_disc_iffs, co_rec_codes, co_rec_transfers,
-                common_rel_co_inducts, rel_co_inducts, common_set_inducts, ...},
+                common_rel_co_inducts, rel_co_inducts, common_set_inducts, set_inducts, ...},
               ...} : fp_sugar) =
           {T = T, BT = T (*wrong but harmless*), X = X, fp = fp, fp_res = fp_res, fp_res_index = kk,
            pre_bnf = pre_bnf, absT_info = absT_info, fp_nesting_bnfs = fp_nesting_bnfs,
@@ -335,7 +335,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
               co_rec_transfers = co_rec_transfers,
               common_rel_co_inducts = common_rel_co_inducts,
               rel_co_inducts = rel_co_inducts,
-              common_set_inducts = common_set_inducts}}
+              common_set_inducts = common_set_inducts,
+              set_inducts = set_inducts}}
           |> morph_fp_sugar phi;
 
         val target_fp_sugars =
