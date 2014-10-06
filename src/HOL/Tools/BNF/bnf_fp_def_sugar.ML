@@ -649,7 +649,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
       val (rel_distinct_thms, _) =
         join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
 
-      val rel_eq_thms =
+      val rel_code_thms =
         map (fn thm => thm RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms @
         map2 (fn thm => fn 0 => thm RS @{thm eq_True[THEN iffD2]} | _ => thm) rel_inject_thms ms;
 
@@ -986,7 +986,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
       val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
 
       val anonymous_notes =
-        [(rel_eq_thms, code_attrs @ nitpicksimp_attrs)]
+        [(rel_code_thms, code_attrs @ nitpicksimp_attrs)]
         |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
       val notes =
@@ -1011,7 +1011,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
         lthy
         |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) map_thms)
         |> fp = Least_FP
-          ? Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_eq_thms)
+          ? Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_code_thms)
         |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) set0_thms)
         |> Local_Theory.notes (anonymous_notes @ notes);
 
