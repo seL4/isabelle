@@ -42,7 +42,7 @@ fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map
    ctor_injects = @{thms xtor_inject},
    dtor_injects = @{thms xtor_inject},
    xtor_maps = [xtor_map],
-   xtor_set_thmss = [xtor_sets],
+   xtor_setss = [xtor_sets],
    xtor_rel_thms = [xtor_rel],
    xtor_co_rec_thms = [map_id0_of_bnf fp_bnf RS @{thm ctor_rec}],
    xtor_co_rec_o_maps = [ctor_rec_o_map],
