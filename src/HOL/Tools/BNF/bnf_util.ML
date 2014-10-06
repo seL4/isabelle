@@ -65,6 +65,8 @@ sig
     'd list * 'e list * 'f list * 'g list
   val split_list8: ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h) list -> 'a list * 'b list * 'c list *
     'd list * 'e list * 'f list * 'g list * 'h list
+  val split_list9: ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h * 'i) list -> 'a list * 'b list *
+    'c list * 'd list * 'e list * 'f list * 'g list * 'h list * 'i list
 
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
   val mk_Freesss: string -> typ list list list -> Proof.context ->
@@ -314,6 +316,12 @@ fun split_list8 [] = ([], [], [], [], [], [], [], [])
   | split_list8 ((x1, x2, x3, x4, x5, x6, x7, x8) :: xs) =
     let val (xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8) = split_list8 xs;
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4, x5 :: xs5, x6 :: xs6, x7 :: xs7, x8 :: xs8) end;
+
+fun split_list9 [] = ([], [], [], [], [], [], [], [], [])
+  | split_list9 ((x1, x2, x3, x4, x5, x6, x7, x8, x9) :: xs) =
+    let val (xs1, xs2, xs3, xs4, xs5, xs6, xs7, xs8, xs9) = split_list9 xs;
+    in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4, x5 :: xs5, x6 :: xs6, x7 :: xs7, x8 :: xs8,
+        x9 :: xs9) end;
 
 val parse_type_arg_constrained =
   Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
