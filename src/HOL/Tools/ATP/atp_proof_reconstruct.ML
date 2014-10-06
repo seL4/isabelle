@@ -721,14 +721,16 @@ fun introduce_spass_skolems proof =
     (* The names of the formulas are added to the Skolem constants, to ensure that formulas giving
        rise to several clauses are skolemized together. *)
     val skoXss = map (fn ((_, ss), _, t, _, _) => Term.fold_aterms add_skolem t ss) input_steps
-    val skoXss_input_steps = filter_out (null o fst) (skoXss ~~ input_steps)
-    val groups = Graph.strong_conn (fold add_cycle skoXss Graph.empty)
+    val groups0 = Graph.strong_conn (fold add_cycle skoXss Graph.empty)
+    val groups = filter (exists (String.isPrefix spass_skolem_prefix)) groups0
+
+    val skoXss_input_steps = skoXss ~~ input_steps
 
     fun step_name_of_group skoXs = (implode skoXs, [])
     fun in_group group = member (op =) group o hd
-    fun group_of skoX = the (find_first (fn group => in_group group skoX) groups)
+    fun group_of skoX = find_first (fn group => in_group group skoX) groups
 
-    fun new_steps (skoXss_steps : (string list * (term, 'a) atp_step) list) group =
+    fun new_steps skoXss_steps group =
       let
         val name = step_name_of_group group
         val name0 = name |>> prefix "0"
@@ -751,7 +753,8 @@ fun introduce_spass_skolems proof =
       maps (fn group => new_steps (filter (in_group group o fst) skoXss_input_steps) group) groups
 
     val old_news =
-      map (fn (skos, (name, _, _, _, _)) => (name, [step_name_of_group (group_of skos)]))
+      map_filter (fn (skoXs, (name, _, _, _, _)) =>
+          Option.map (pair name o single o step_name_of_group) (group_of skoXs))
         skoXss_input_steps
     val repair_deps = fold replace_dependencies_in_line old_news
   in
