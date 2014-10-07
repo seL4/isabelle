@@ -826,7 +826,7 @@ do not increase the cardinality.  The cornerstone for this is
 theorem @{text "Card_order_Times_same_infinite"}, which states that self-product
 does not increase cardinality -- the proof of this fact adapts a standard
 set-theoretic argument, as presented, e.g., in the proof of theorem 1.5.11
-at page 47 in \cite{card-book}. Then everything else follows fairly easily. *}
+at page 47 in @{cite "card-book"}. Then everything else follows fairly easily. *}
 
 lemma infinite_iff_card_of_nat:
 "\<not> finite A \<longleftrightarrow> ( |UNIV::nat set| \<le>o |A| )"

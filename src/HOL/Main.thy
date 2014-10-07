@@ -10,7 +10,7 @@ text {*
   complex numbers etc.
 *}
 
-text {* See further \cite{Nipkow-et-al:2002:tutorial} *}
+text {* See further @{cite "Nipkow-et-al:2002:tutorial"} *}
 
 no_notation
   bot ("\<bottom>") and

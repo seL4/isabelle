@@ -174,7 +174,9 @@ session "ZF-Induct" in Induct = ZF +
 
     Comb            (*Combinatory Logic example*)
     Primrec         (*Primitive recursive functions*)
-  document_files "root.tex"
+  document_files
+    "root.bib"
+    "root.tex"
 
 session "ZF-Resid" in Resid = ZF +
   description {*

@@ -8,7 +8,7 @@ header {* Primitive Recursive Functions: the inductive definition *}
 theory Primrec imports Main begin
 
 text {*
-  Proof adopted from \cite{szasz}.
+  Proof adopted from \cite{szasz93}.
 
   See also \cite[page 250, exercise 11]{mendelson}.
 *}

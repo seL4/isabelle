@@ -8,7 +8,7 @@ header {* The accessible part of a relation *}
 theory Acc imports Main begin
 
 text {*
-  Inductive definition of @{text "acc(r)"}; see \cite{paulin-tlca}.
+  Inductive definition of @{text "acc(r)"}; see @{cite "paulin-tlca"}.
 *}
 
 consts

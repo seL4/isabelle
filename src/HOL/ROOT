@@ -212,7 +212,9 @@ session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
     Quadratic_Reciprocity
     Primes
     Pocklington
-  document_files "root.tex"
+  document_files
+    "root.bib"
+    "root.tex"
 
 session "HOL-Hoare" in Hoare = HOL +
   description {*

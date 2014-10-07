@@ -10,7 +10,7 @@ theory Comb imports Main begin
 text {*
   Curiously, combinators do not include free variables.
 
-  Example taken from \cite{camilleri-melham}.
+  Example taken from @{cite camilleri92}.
 
 HOL system proofs may be found in the HOL distribution at
    .../contrib/rule-induction/cl.ml

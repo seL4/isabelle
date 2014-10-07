@@ -8,7 +8,7 @@ lemmas are proved uniformly for the natural numbers and integers.
 This file combines and revises a number of prior developments.
 
 The original theories "GCD" and "Primes" were by Christophe Tabacznyj
-and Lawrence C. Paulson, based on \cite{davenport92}. They introduced
+and Lawrence C. Paulson, based on @{cite davenport92}. They introduced
 gcd, lcm, and prime for the natural numbers.
 
 The original theory "IntPrimes" was by Thomas M. Rasmussen, and
@@ -364,7 +364,7 @@ text {*
 *}
 
 lemma gcd_mult_distrib_nat: "(k::nat) * gcd m n = gcd (k * m) (k * n)"
-    -- {* \cite[page 27]{davenport92} *}
+    -- {* @{cite \<open>page 27\<close> davenport92} *}
   apply (induct m n rule: gcd_nat_induct)
   apply simp
   apply (case_tac "k = 0")

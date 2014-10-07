@@ -9,7 +9,7 @@ theory ListN imports Main begin
 
 text {*
   Inductive definition of lists of @{text n} elements; see
-  \cite{paulin-tlca}.
+  @{cite "paulin-tlca"}.
 *}
 
 consts listn :: "i=>i"

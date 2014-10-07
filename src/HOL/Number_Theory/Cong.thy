@@ -8,7 +8,7 @@ integers.
 This file combines and revises a number of prior developments.
 
 The original theories "GCD" and "Primes" were by Christophe Tabacznyj
-and Lawrence C. Paulson, based on \cite{davenport92}. They introduced
+and Lawrence C. Paulson, based on @{cite davenport92}. They introduced
 gcd, lcm, and prime for the natural numbers.
 
 The original theory "IntPrimes" was by Thomas M. Rasmussen, and

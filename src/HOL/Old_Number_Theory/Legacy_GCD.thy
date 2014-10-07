@@ -10,7 +10,7 @@ imports Main
 begin
 
 text {*
-  See \cite{davenport92}. \bigskip
+  See @{cite davenport92}. \bigskip
 *}
 
 subsection {* Specification of GCD on nats *}
@@ -130,7 +130,7 @@ text {*
 *}
 
 lemma gcd_mult_distrib2: "k * gcd m n = gcd (k * m) (k * n)"
-    -- {* \cite[page 27]{davenport92} *}
+    -- {* @{cite \<open>page 27\<close> davenport92} *}
   apply (induct m n rule: gcd_induct)
    apply simp
   apply (case_tac "k = 0")

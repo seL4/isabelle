@@ -464,7 +464,7 @@ subsection {* Accessible Part *}
 
 text {*
  Inductive definition of the accessible part @{term "acc r"} of a
- relation; see also \cite{paulin-tlca}.
+ relation; see also @{cite "paulin-tlca"}.
 *}
 
 inductive_set
