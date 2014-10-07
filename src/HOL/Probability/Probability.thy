@@ -7,6 +7,7 @@ imports
   Distributions
   Probability_Mass_Function
   Stream_Space
+  Giry_Monad
 begin
 
 end

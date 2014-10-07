@@ -1759,6 +1759,10 @@ qed
 lemma in_measure_of[intro, simp]: "M \<subseteq> Pow \<Omega> \<Longrightarrow> A \<in> M \<Longrightarrow> A \<in> sets (measure_of \<Omega> M \<mu>)"
   by auto
 
+lemma space_empty_iff: "space N = {} \<longleftrightarrow> sets N = {{}}"
+  by (metis Pow_empty Sup_bot_conv(1) cSup_singleton empty_iff
+            sets.sigma_sets_eq sets.space_closed sigma_sets_top subset_singletonD)
+
 subsubsection {* Constructing simple @{typ "'a measure"} *}
 
 lemma emeasure_measure_of:
@@ -2153,6 +2157,10 @@ proof -
   then show ?thesis
     unfolding measurable_def by auto
 qed
+
+lemma measurable_empty_iff: 
+  "space N = {} \<Longrightarrow> f \<in> measurable M N \<longleftrightarrow> space M = {}"
+  by (auto simp add: measurable_def Pi_iff)
 
 subsubsection {* Extend measure *}
 

@@ -1643,6 +1643,10 @@ lemma emeasure_count_space_infinite[simp]:
   "X \<subseteq> A \<Longrightarrow> infinite X \<Longrightarrow> emeasure (count_space A) X = \<infinity>"
   using emeasure_count_space[of X A] by simp
 
+lemma measure_count_space: "measure (count_space A) X = (if X \<subseteq> A then card X else 0)"
+  unfolding measure_def
+  by (cases "finite X") (simp_all add: emeasure_notin_sets)
+
 lemma emeasure_count_space_eq_0:
   "emeasure (count_space A) X = 0 \<longleftrightarrow> (X \<subseteq> A \<longrightarrow> X = {})"
 proof cases
@@ -1654,6 +1658,9 @@ proof cases
       by (subst (asm) emeasure_count_space) (auto split: split_if_asm)
   qed simp
 qed (simp add: emeasure_notin_sets)
+
+lemma space_empty: "space M = {} \<Longrightarrow> M = count_space {}"
+  by (rule measure_eqI) (simp_all add: space_empty_iff)
 
 lemma null_sets_count_space: "null_sets (count_space A) = { {} }"
   unfolding null_sets_def by (auto simp add: emeasure_count_space_eq_0)

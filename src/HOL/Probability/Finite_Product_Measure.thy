@@ -353,6 +353,25 @@ next
   finally show "A \<in> sigma_sets ?\<Omega> (prod_algebra I M)" .
 qed
 
+lemma sets_PiM_eq_proj:
+  "I \<noteq> {} \<Longrightarrow> sets (PiM I M) = sets (\<Squnion>\<^sub>\<sigma> i\<in>I. vimage_algebra (\<Pi>\<^sub>E i\<in>I. space (M i)) (\<lambda>x. x i) (M i))"
+  apply (simp add: sets_PiM_single sets_Sup_sigma)
+  apply (subst SUP_cong[OF refl])
+  apply (rule sets_vimage_algebra2)
+  apply auto []
+  apply (auto intro!: arg_cong2[where f=sigma_sets])
+  done
+
+lemma sets_PiM_in_sets:
+  assumes space: "space N = (\<Pi>\<^sub>E i\<in>I. space (M i))"
+  assumes sets: "\<And>i A. i \<in> I \<Longrightarrow> A \<in> sets (M i) \<Longrightarrow> {x\<in>space N. x i \<in> A} \<in> sets N"
+  shows "sets (\<Pi>\<^sub>M i \<in> I. M i) \<subseteq> sets N"
+  unfolding sets_PiM_single space[symmetric]
+  by (intro sets.sigma_sets_subset subsetI) (auto intro: sets)
+
+lemma sets_PiM_cong: assumes "I = J" "\<And>i. i \<in> J \<Longrightarrow> sets (M i) = sets (N i)" shows "sets (PiM I M) = sets (PiM J N)"
+  using assms sets_eq_imp_space_eq[OF assms(2)] by (simp add: sets_PiM_single cong: PiE_cong conj_cong)
+
 lemma sets_PiM_I:
   assumes "finite J" "J \<subseteq> I" "\<forall>i\<in>J. E i \<in> sets (M i)"
   shows "prod_emb I M J (PIE j:J. E j) \<in> sets (PIM i:I. M i)"

@@ -748,6 +748,9 @@ translations
 lemma nn_integral_nonneg: "0 \<le> integral\<^sup>N M f"
   by (auto intro!: SUP_upper2[of "\<lambda>x. 0"] simp: nn_integral_def le_fun_def)
 
+lemma nn_integral_le_0[simp]: "integral\<^sup>N M f \<le> 0 \<longleftrightarrow> integral\<^sup>N M f = 0"
+  using nn_integral_nonneg[of M f] by auto
+
 lemma nn_integral_not_MInfty[simp]: "integral\<^sup>N M f \<noteq> -\<infinity>"
   using nn_integral_nonneg[of M f] by auto
 
@@ -2186,6 +2189,10 @@ lemma measure_uniform_measure[simp]:
   shows "measure (uniform_measure M A) B = measure M (A \<inter> B) / measure M A"
   using emeasure_uniform_measure[OF emeasure_neq_0_sets[OF A(1)] B] A
   by (cases "emeasure M A" "emeasure M (A \<inter> B)" rule: ereal2_cases) (simp_all add: measure_def)
+
+lemma AE_uniform_measureI:
+  "A \<in> sets M \<Longrightarrow> (AE x in M. x \<in> A \<longrightarrow> P x) \<Longrightarrow> (AE x in uniform_measure M A. P x)"
+  unfolding uniform_measure_def by (auto simp: AE_density)
 
 subsubsection {* Uniform count measure *}
 

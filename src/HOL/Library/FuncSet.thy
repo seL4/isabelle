@@ -199,6 +199,9 @@ lemma restrict_ext:
     "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> (\<lambda>x\<in>A. f x) = (\<lambda>x\<in>A. g x)"
   by (simp add: fun_eq_iff Pi_def restrict_def)
 
+lemma restrict_UNIV: "restrict f UNIV = f"
+  by (simp add: restrict_def)
+
 lemma inj_on_restrict_eq [simp]: "inj_on (restrict f A) A = inj_on f A"
   by (simp add: inj_on_def restrict_def)
 

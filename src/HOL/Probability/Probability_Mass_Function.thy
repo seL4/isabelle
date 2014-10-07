@@ -1,19 +1,9 @@
+(*  Title:      HOL/Probability/Probability_Mass_Function.thy
+    Author:     Johannes Hölzl, TU München *)
+
 theory Probability_Mass_Function
   imports Probability_Measure
 begin
-
-lemma sets_Pair: "{x} \<in> sets M1 \<Longrightarrow> {y} \<in> sets M2 \<Longrightarrow> {(x, y)} \<in> sets (M1 \<Otimes>\<^sub>M M2)"
-  using pair_measureI[of "{x}" M1 "{y}" M2] by simp
-
-lemma finite_subset_card:
-  assumes X: "infinite X" shows "\<exists>A\<subseteq>X. finite A \<and> card A = n"
-proof (induct n)
-  case (Suc n) then guess A .. note A = this
-  with X obtain x where "x \<in> X" "x \<notin> A"
-    by (metis subset_antisym subset_eq)
-  with A show ?case  
-    by (intro exI[of _ "insert x A"]) auto
-qed (simp cong: conj_cong)
 
 lemma (in prob_space) countable_support:
   "countable {x. measure M {x} \<noteq> 0}"
@@ -25,7 +15,7 @@ proof -
   proof (rule ccontr)
     fix n assume "infinite {x. inverse (Suc n) < ?m x}" (is "infinite ?X")
     then obtain X where "finite X" "card X = Suc (Suc n)" "X \<subseteq> ?X"
-      by (metis finite_subset_card)
+      by (metis infinite_arbitrarily_large)
     from this(3) have *: "\<And>x. x \<in> X \<Longrightarrow> 1 / Suc n \<le> ?m x" 
       by (auto simp: inverse_eq_divide)
     { fix x assume "x \<in> X"
@@ -46,17 +36,10 @@ proof -
     unfolding * by (intro countable_UN countableI_type countable_finite[OF **])
 qed
 
-lemma measure_count_space: "measure (count_space A) X = (if X \<subseteq> A then card X else 0)"
-  unfolding measure_def
-  by (cases "finite X") (simp_all add: emeasure_notin_sets)
-
 typedef 'a pmf = "{M :: 'a measure. prob_space M \<and> sets M = UNIV \<and> (AE x in M. measure M {x} \<noteq> 0)}"
   morphisms measure_pmf Abs_pmf
-  apply (intro exI[of _ "uniform_measure (count_space UNIV) {undefined}"])
-  apply (auto intro!: prob_space_uniform_measure simp: measure_count_space)
-  apply (subst uniform_measure_def)
-  apply (simp add: AE_density AE_count_space split: split_indicator)
-  done
+  by (intro exI[of _ "uniform_measure (count_space UNIV) {undefined}"])
+     (auto intro!: prob_space_uniform_measure AE_uniform_measureI)
 
 declare [[coercion measure_pmf]]
 

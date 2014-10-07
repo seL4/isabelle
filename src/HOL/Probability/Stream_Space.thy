@@ -1,3 +1,6 @@
+(*  Title:      HOL/Probability/Stream_Space.thy
+    Author:     Johannes Hölzl, TU München *)
+
 theory Stream_Space
 imports
   Infinite_Product_Measure
@@ -9,15 +12,6 @@ lemma stream_eq_Stream_iff: "s = x ## t \<longleftrightarrow> (shd s = x \<and> 
 
 lemma Stream_snth: "(x ## s) !! n = (case n of 0 \<Rightarrow> x | Suc n \<Rightarrow> s !! n)"
   by (cases n) simp_all
-
-lemma sets_PiM_cong: assumes "I = J" "\<And>i. i \<in> J \<Longrightarrow> sets (M i) = sets (N i)" shows "sets (PiM I M) = sets (PiM J N)"
-  using assms sets_eq_imp_space_eq[OF assms(2)] by (simp add: sets_PiM_single cong: PiE_cong conj_cong)
-
-lemma nn_integral_le_0[simp]: "integral\<^sup>N M f \<le> 0 \<longleftrightarrow> integral\<^sup>N M f = 0"
-  using nn_integral_nonneg[of M f] by auto
-
-lemma restrict_UNIV: "restrict f UNIV = f"
-  by (simp add: restrict_def)
 
 definition to_stream :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a stream" where
   "to_stream X = smap X nats"

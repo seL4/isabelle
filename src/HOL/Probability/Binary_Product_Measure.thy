@@ -34,6 +34,12 @@ lemma sets_pair_measure:
   unfolding pair_measure_def using pair_measure_closed[of A B]
   by (rule sets_measure_of)
 
+lemma sets_pair_in_sets:
+  assumes N: "space A \<times> space B = space N"
+  assumes "\<And>a b. a \<in> sets A \<Longrightarrow> b \<in> sets B \<Longrightarrow> a \<times> b \<in> sets N"
+  shows "sets (A \<Otimes>\<^sub>M B) \<subseteq> sets N"
+  using assms by (auto intro!: sets.sigma_sets_subset simp: sets_pair_measure N)
+
 lemma sets_pair_measure_cong[cong]:
   "sets M1 = sets M1' \<Longrightarrow> sets M2 = sets M2' \<Longrightarrow> sets (M1 \<Otimes>\<^sub>M M2) = sets (M1' \<Otimes>\<^sub>M M2')"
   unfolding sets_pair_measure by (simp cong: sets_eq_imp_space_eq)
@@ -41,6 +47,9 @@ lemma sets_pair_measure_cong[cong]:
 lemma pair_measureI[intro, simp, measurable]:
   "x \<in> sets A \<Longrightarrow> y \<in> sets B \<Longrightarrow> x \<times> y \<in> sets (A \<Otimes>\<^sub>M B)"
   by (auto simp: sets_pair_measure)
+
+lemma sets_Pair: "{x} \<in> sets M1 \<Longrightarrow> {y} \<in> sets M2 \<Longrightarrow> {(x, y)} \<in> sets (M1 \<Otimes>\<^sub>M M2)"
+  using pair_measureI[of "{x}" M1 "{y}" M2] by simp
 
 lemma measurable_pair_measureI:
   assumes 1: "f \<in> space M \<rightarrow> space M1 \<times> space M2"
@@ -97,6 +106,25 @@ lemma
   shows measurable_fst'': "(\<lambda>x. f (fst x)) \<in> measurable (M \<Otimes>\<^sub>M P) N"
     and measurable_snd'': "(\<lambda>x. f (snd x)) \<in> measurable (P \<Otimes>\<^sub>M M) N"
   by simp_all
+
+lemma sets_pair_eq_sets_fst_snd:
+  "sets (A \<Otimes>\<^sub>M B) = sets (Sup_sigma {vimage_algebra (space A \<times> space B) fst A, vimage_algebra (space A \<times> space B) snd B})"
+    (is "?P = sets (Sup_sigma {?fst, ?snd})")
+proof -
+  { fix a b assume ab: "a \<in> sets A" "b \<in> sets B"
+    then have "a \<times> b = (fst -` a \<inter> (space A \<times> space B)) \<inter> (snd -` b \<inter> (space A \<times> space B))"
+      by (auto dest: sets.sets_into_space)
+    also have "\<dots> \<in> sets (Sup_sigma {?fst, ?snd})"
+      using ab by (auto intro: in_Sup_sigma in_vimage_algebra)
+    finally have "a \<times> b \<in> sets (Sup_sigma {?fst, ?snd})" . }
+  moreover have "sets ?fst \<subseteq> sets (A \<Otimes>\<^sub>M B)"
+    by (rule sets_image_in_sets) (auto simp: space_pair_measure[symmetric])
+  moreover have "sets ?snd \<subseteq> sets (A \<Otimes>\<^sub>M B)"  
+    by (rule sets_image_in_sets) (auto simp: space_pair_measure)
+  ultimately show ?thesis
+    by (intro antisym[of "sets A" for A] sets_Sup_in_sets sets_pair_in_sets )
+       (auto simp add: space_Sup_sigma space_pair_measure)
+qed
 
 lemma measurable_pair_iff:
   "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2) \<longleftrightarrow> (fst \<circ> f) \<in> measurable M M1 \<and> (snd \<circ> f) \<in> measurable M M2"
