@@ -162,6 +162,12 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
     prfx + Path.basic(s + "~")
   }
 
+  def backup2: Path =
+  {
+    val (prfx, s) = split_path
+    prfx + Path.basic(s + "~~")
+  }
+
   private val Ext = new Regex("(.*)\\.([^.]*)")
 
   def split_ext: (Path, String) =
