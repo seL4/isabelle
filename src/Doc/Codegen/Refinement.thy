@@ -264,7 +264,7 @@ text %quotetypewriter {*
 *}
 
 text {*
-  See further \cite{Haftmann-Kraus-Kuncar-Nipkow:2013:data_refinement}
+  See further @{cite "Haftmann-Kraus-Kuncar-Nipkow:2013:data_refinement"}
   for the meta theory of datatype refinement involving invariants.
 
   Typical data structures implemented by representations involving

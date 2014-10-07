@@ -148,7 +148,7 @@ fixed argument position decreases in size with each recursive call. The size
 is measured as the number of constructors (excluding 0-ary ones, e.g., @{text
 Nil}). Lexicographic combinations are also recognized. In more complicated
 situations, the user may have to prove termination by hand. For details
-see~\cite{Krauss}.
+see~@{cite Krauss}.
 
 Functions defined with \isacom{fun} come with their own induction schema
 that mirrors the recursion schema and is derived from the termination

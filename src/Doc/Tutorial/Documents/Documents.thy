@@ -11,7 +11,7 @@ text {*
   for the parser and output templates for the pretty printer.
 
   In full generality, parser and pretty printer configuration is a
-  subtle affair~\cite{isabelle-isar-ref}.  Your syntax specifications need
+  subtle affair~@{cite "isabelle-isar-ref"}.  Your syntax specifications need
   to interact properly with the existing setup of Isabelle/Pure and
   Isabelle/HOL\@.  To avoid creating ambiguities with existing
   elements, it is particularly important to give new syntactic
@@ -107,7 +107,7 @@ text {*
   \verb,\,\verb,<forall>, symbol as~@{text \<forall>}.
 
   A list of standard Isabelle symbols is given in
-  \cite{isabelle-isar-ref}.  You may introduce your own
+  @{cite "isabelle-isar-ref"}.  You may introduce your own
   interpretation of further symbols by configuring the appropriate
   front-end tool accordingly, e.g.\ by defining certain {\LaTeX}
   macros (see also \S\ref{sec:doc-prep-symbols}).  There are also a
@@ -153,7 +153,7 @@ text {*
   be displayed after further input.
 
   More flexible is to provide alternative syntax forms
-  through the \bfindex{print mode} concept~\cite{isabelle-isar-ref}.  By
+  through the \bfindex{print mode} concept~@{cite "isabelle-isar-ref"}.  By
   convention, the mode of ``$xsymbols$'' is enabled whenever
   Proof~General's X-Symbol mode or {\LaTeX} output is active.  Now
   consider the following hybrid declaration of @{text xor}:
@@ -187,7 +187,7 @@ subsection {* Prefix Annotations *}
 
 text {*
   Prefix syntax annotations\index{prefix annotation} are another form
-  of mixfixes \cite{isabelle-isar-ref}, without any template arguments or
+  of mixfixes @{cite "isabelle-isar-ref"}, without any template arguments or
   priorities --- just some literal syntax.  The following example
   associates common symbols with the constructors of a datatype.
 *}
@@ -262,7 +262,7 @@ definitions.
 
 Abbreviations are a simplified form of the general concept of
 \emph{syntax translations}; even heavier transformations may be
-written in ML \cite{isabelle-isar-ref}.
+written in ML @{cite "isabelle-isar-ref"}.
 *}
 
 
@@ -351,7 +351,7 @@ text {*
   setup) and \texttt{isabelle build} (to run sessions as specified in
   the corresponding \texttt{ROOT} file).  These Isabelle tools are
   described in further detail in the \emph{Isabelle System Manual}
-  \cite{isabelle-sys}.
+  @{cite "isabelle-sys"}.
 
   For example, a new session \texttt{MySession} (with document
   preparation) may be produced as follows:
@@ -412,7 +412,7 @@ text {*
   \texttt{MySession/document} directory as well.  In particular,
   adding a file named \texttt{root.bib} causes an automatic run of
   \texttt{bibtex} to process a bibliographic database; see also
-  \texttt{isabelle document} \cite{isabelle-sys}.
+  \texttt{isabelle document} @{cite "isabelle-sys"}.
 
   \medskip Any failure of the document preparation phase in an
   Isabelle batch session leaves the generated sources in their target
@@ -526,7 +526,7 @@ text {*
   theory or proof context (\bfindex{text blocks}).
 
   \medskip Marginal comments are part of each command's concrete
-  syntax \cite{isabelle-isar-ref}; the common form is ``\verb,--,~$text$''
+  syntax @{cite "isabelle-isar-ref"}; the common form is ``\verb,--,~$text$''
   where $text$ is delimited by \verb,",@{text \<dots>}\verb,", or
   \verb,{,\verb,*,~@{text \<dots>}~\verb,*,\verb,}, as before.  Multiple
   marginal comments may be given at the same time.  Here is a simple
@@ -612,7 +612,7 @@ text {\ttlbrace}*
   same types as they have in the main goal statement.
 
   \medskip Several further kinds of antiquotations and options are
-  available \cite{isabelle-isar-ref}.  Here are a few commonly used
+  available @{cite "isabelle-isar-ref"}.  Here are a few commonly used
   combinations:
 
   \medskip
@@ -661,7 +661,7 @@ text {*
   straightforward generalization of ASCII characters.  While Isabelle
   does not impose any interpretation of the infinite collection of
   named symbols, {\LaTeX} documents use canonical glyphs for certain
-  standard symbols \cite{isabelle-isar-ref}.
+  standard symbols @{cite "isabelle-isar-ref"}.
 
   The {\LaTeX} code produced from Isabelle text follows a simple
   scheme.  You can tune the final appearance by redefining certain
@@ -751,7 +751,7 @@ text {*
   preparation system allows the user to specify how to interpret a
   tagged region, in order to keep, drop, or fold the corresponding
   parts of the document.  See the \emph{Isabelle System Manual}
-  \cite{isabelle-sys} for further details, especially on
+  @{cite "isabelle-sys"} for further details, especially on
   \texttt{isabelle build} and \texttt{isabelle document}.
 
   Ignored material is specified by delimiting the original formal

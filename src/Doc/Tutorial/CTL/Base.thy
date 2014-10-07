@@ -7,7 +7,7 @@ This chapter ends with a case study concerning model checking for
 Computation Tree Logic (CTL), a temporal logic.
 Model checking is a popular technique for the verification of finite
 state systems (implementations) with respect to temporal logic formulae
-(specifications) \cite{ClarkeGP-book,Huth-Ryan-book}. Its foundations are set theoretic
+(specifications) @{cite "ClarkeGP-book" and "Huth-Ryan-book"}. Its foundations are set theoretic
 and this section will explore them in HOL\@. This is done in two steps.  First
 we consider a simple modal logic called propositional dynamic
 logic (PDL)\@.  We then proceed to the temporal logic CTL, which is

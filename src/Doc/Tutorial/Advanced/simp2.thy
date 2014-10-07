@@ -123,7 +123,7 @@ So far we have pretended the simplifier can deal with arbitrary
 rewrite rules. This is not quite true.  For reasons of feasibility,
 the simplifier expects the
 left-hand side of each rule to be a so-called \emph{higher-order
-pattern}~\cite{nipkow-patterns}\indexbold{patterns!higher-order}. 
+pattern}~@{cite "nipkow-patterns"}\indexbold{patterns!higher-order}. 
 This restricts where
 unknowns may occur.  Higher-order patterns are terms in $\beta$-normal
 form.  (This means there are no subterms of the form $(\lambda x. M)(N)$.)  

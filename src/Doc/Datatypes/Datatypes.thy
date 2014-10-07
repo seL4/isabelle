@@ -23,7 +23,7 @@ section {* Introduction
 text {*
 The 2013 edition of Isabelle introduced a definitional package for freely
 generated datatypes and codatatypes. This package replaces the earlier
-implementation due to Berghofer and Wenzel \cite{Berghofer-Wenzel:1999:TPHOL}.
+implementation due to Berghofer and Wenzel @{cite "Berghofer-Wenzel:1999:TPHOL"}.
 Perhaps the main advantage of the new package is that it supports recursion
 through a large class of non-datatypes, such as finite sets:
 *}
@@ -80,13 +80,14 @@ the theory @{theory BNF_Axiomatization}, located in the directory
 \verb|~~/src/HOL/Library|.
 
 The package, like its predecessor, fully adheres to the LCF philosophy
-\cite{mgordon79}: The characteristic theorems associated with the specified
+@{cite mgordon79}: The characteristic theorems associated with the specified
 (co)datatypes are derived rather than introduced axiomatically.%
 \footnote{However, some of the
 internal constructions and most of the internal proof obligations are omitted
 if the @{text quick_and_dirty} option is enabled.}
 The package is described in a number of papers
-\cite{traytel-et-al-2012,blanchette-et-al-wit,blanchette-et-al-2014-impl,panny-et-al-2014}.
+@{cite "traytel-et-al-2012" and "blanchette-et-al-wit" and
+  "blanchette-et-al-2014-impl" and "panny-et-al-2014"}.
 The central notion is that of a \emph{bounded natural functor} (BNF)---a
 well-behaved type constructor for which nested (co)recursion is supported.
 
@@ -488,7 +489,7 @@ The @{command datatype} command introduces a set of mutually recursive
 datatypes specified by their constructors.
 
 The syntactic entity \synt{target} can be used to specify a local
-context (e.g., @{text "(in linorder)"} \cite{isabelle-isar-ref}),
+context (e.g., @{text "(in linorder)"} @{cite "isabelle-isar-ref"}),
 and \synt{prop} denotes a HOL proposition.
 
 The optional target is optionally followed by a combination of the following
@@ -527,7 +528,7 @@ define, its type parameters, and additional information:
 \noindent
 The syntactic entity \synt{name} denotes an identifier, \synt{mixfix} denotes
 the usual parenthesized mixfix notation, and \synt{typefree} denotes fixed type
-variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
+variable (@{typ 'a}, @{typ 'b}, \ldots) @{cite "isabelle-isar-ref"}.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (@{text set\<^sub>1_t}, \ldots, @{text set\<^sub>m_t}). Type
@@ -561,7 +562,7 @@ can be supplied at the front to override the default, which is
 \medskip
 
 \noindent
-The syntactic entity \synt{type} denotes a HOL type \cite{isabelle-isar-ref}.
+The syntactic entity \synt{type} denotes a HOL type @{cite "isabelle-isar-ref"}.
 
 In addition to the type of a constructor argument, it is possible to specify a
 name for the corresponding selector to override the default name
@@ -596,7 +597,7 @@ text {* \blankline *}
     ML {* Old_Datatype_Data.get_info @{theory} @{type_name even_nat} *}
 
 text {*
-The syntactic entity \synt{name} denotes an identifier \cite{isabelle-isar-ref}.
+The syntactic entity \synt{name} denotes an identifier @{cite "isabelle-isar-ref"}.
 
 The command can be useful because the old datatype package provides some
 functionality that is not yet replicated in the new package.
@@ -1121,7 +1122,7 @@ Recursive functions over datatypes can be specified using the @{command primrec}
 command, which supports primitive recursion, or using the more general
 \keyw{fun} and \keyw{function} commands. Here, the focus is on
 @{command primrec}; the other two commands are described in a separate
-tutorial \cite{isabelle-function}.
+tutorial @{cite "isabelle-function"}.
 
 %%% TODO: partial_function
 *}
@@ -1473,7 +1474,7 @@ over datatypes.
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{fixes} denotes a list of names with optional type signatures,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
-\synt{prop} denotes a HOL proposition \cite{isabelle-isar-ref}.
+\synt{prop} denotes a HOL proposition @{cite "isabelle-isar-ref"}.
 
 The optional target is optionally followed by the following option:
 
@@ -1606,7 +1607,7 @@ command is first illustrated through concrete examples featuring different
 flavors of corecursion. More examples can be found in the directory
 \verb|~~/src/HOL/|\allowbreak\verb|BNF/Examples|. The
 \emph{Archive of Formal Proofs} also includes some useful codatatypes, notably
-for lazy lists \cite{lochbihler-2010}.
+for lazy lists @{cite "lochbihler-2010"}.
 *}
 
 
@@ -2408,7 +2409,7 @@ of mutually corecursive functions over codatatypes.
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{fixes} denotes a list of names with optional type signatures,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
-\synt{prop} denotes a HOL proposition \cite{isabelle-isar-ref}.
+\synt{prop} denotes a HOL proposition @{cite "isabelle-isar-ref"}.
 
 The optional target is optionally followed by one or both of the following
 options:
@@ -2468,7 +2469,7 @@ subsection {* Bounded Natural Functors
 text {*
 Bounded natural functors (BNFs) are a semantic criterion for where
 (co)re\-cur\-sion may appear on the right-hand side of an equation
-\cite{traytel-et-al-2012,blanchette-et-al-wit}.
+@{cite "traytel-et-al-2012" and "blanchette-et-al-wit"}.
 
 An $n$-ary BNF is a type constructor equipped with a map function
 (functorial action), $n$ set functions (natural transformations),
@@ -2641,7 +2642,7 @@ nonemptiness witnesses can be specified; otherwise, default versions are used.
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{type} denotes a HOL type, and \synt{term} denotes a HOL term
-\cite{isabelle-isar-ref}.
+@{cite "isabelle-isar-ref"}.
 
 %%% TODO: elaborate on proof obligations
 *}
@@ -2673,7 +2674,7 @@ these constants as axioms.
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{name} denotes an identifier, \synt{typefree} denotes fixed type variable
 (@{typ 'a}, @{typ 'b}, \ldots), and \synt{mixfix} denotes the usual
-parenthesized mixfix notation \cite{isabelle-isar-ref}.
+parenthesized mixfix notation @{cite "isabelle-isar-ref"}.
 
 Type arguments are live by default; they can be marked as dead by entering
 @{text dead} in front of the type variable (e.g., @{text "(dead 'a)"})
@@ -2755,7 +2756,7 @@ that is queried by various tools (e.g., \keyw{function}).
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{name} denotes an identifier, \synt{prop} denotes a HOL proposition, and
-\synt{term} denotes a HOL term \cite{isabelle-isar-ref}.
+\synt{term} denotes a HOL term @{cite "isabelle-isar-ref"}.
 
 The syntax resembles that of @{command datatype} and @{command codatatype}
 definitions (Sections

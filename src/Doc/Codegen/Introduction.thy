@@ -8,12 +8,12 @@ text {*
   This tutorial introduces the code generator facilities of @{text
   "Isabelle/HOL"}.  It allows to turn (a certain class of) HOL
   specifications into corresponding executable code in the programming
-  languages @{text SML} \cite{SML}, @{text OCaml} \cite{OCaml},
-  @{text Haskell} \cite{haskell-revised-report} and @{text Scala}
-  \cite{scala-overview-tech-report}.
+  languages @{text SML} @{cite SML}, @{text OCaml} @{cite OCaml},
+  @{text Haskell} @{cite "haskell-revised-report"} and @{text Scala}
+  @{cite "scala-overview-tech-report"}.
 
   To profit from this tutorial, some familiarity and experience with
-  @{theory HOL} \cite{isa-tutorial} and its basic theories is assumed.
+  @{theory HOL} @{cite "isa-tutorial"} and its basic theories is assumed.
 *}
 
 
@@ -28,7 +28,7 @@ text {*
   a generated program as an implementation of a higher-order rewrite
   system, then every rewrite step performed by the program can be
   simulated in the logic, which guarantees partial correctness
-  \cite{Haftmann-Nipkow:2010:code}.
+  @{cite "Haftmann-Nipkow:2010:code"}.
 *}
 
 
@@ -221,11 +221,11 @@ text {*
     \item You may want to skim over the more technical sections
       \secref{sec:adaptation} and \secref{sec:further}.
 
-    \item The target language Scala \cite{scala-overview-tech-report}
+    \item The target language Scala @{cite "scala-overview-tech-report"}
       comes with some specialities discussed in \secref{sec:scala}.
 
     \item For exhaustive syntax diagrams etc. you should visit the
-      Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}.
+      Isabelle/Isar Reference Manual @{cite "isabelle-isar-ref"}.
 
   \end{itemize}
 

@@ -381,8 +381,8 @@ the flaw only harms the second participant.
 \medskip
 
 Detailed information on this protocol verification technique can be found
-elsewhere~\cite{paulson-jcs}, including proofs of an Internet
-protocol~\cite{paulson-tls}.  We must stress that the protocol discussed
+elsewhere~@{cite "paulson-jcs"}, including proofs of an Internet
+protocol~@{cite "paulson-tls"}.  We must stress that the protocol discussed
 in this chapter is trivial.  There are only three messages; no keys are
 exchanged; we merely have to prove that encrypted data remains secret. 
 Real world protocols are much longer and distribute many secrets to their
@@ -391,7 +391,7 @@ of keys being lost dynamically due to carelessness.  If those keys have
 been used to encrypt other sensitive information, there may be cascading
 losses.  We may still be able to establish a bound on the losses and to
 prove that other protocol runs function
-correctly~\cite{paulson-yahalom}.  Proofs of real-world protocols follow
+correctly~@{cite "paulson-yahalom"}.  Proofs of real-world protocols follow
 the strategy illustrated above, but the subgoals can
 be much bigger and there are more of them.
 \index{protocols!security|)}

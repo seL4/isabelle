@@ -139,7 +139,7 @@ Some other frequently useful functions on sets are the following:
 @{thm image_def}\index{$IMP042@@{term"f ` A"}} & is the image of a function over a set
 \end{tabular}
 \end{center}
-See \cite{Nipkow-Main} for the wealth of further predefined functions in theory
+See @{cite "Nipkow-Main"} for the wealth of further predefined functions in theory
 @{theory Main}.
 
 
@@ -399,7 +399,7 @@ useful introduction rules:
   {\mbox{@{text"?P = ?Q"}}}
 \]
 These rules are part of the logical system of \concept{natural deduction}
-(e.g., \cite{HuthRyan}). Although we intentionally de-emphasize the basic rules
+(e.g., @{cite HuthRyan}). Although we intentionally de-emphasize the basic rules
 of logic in favour of automatic proof methods that allow you to take bigger
 steps, these rules are helpful in locating where and why automation fails.
 When applied backwards, these rules decompose the goal:
@@ -486,7 +486,7 @@ text{* In this particular example we could have backchained with
 %
 %Command \isacom{find{\isacharunderscorekeyword}theorems} searches for specific theorems in the current
 %theory. Search criteria include pattern matching on terms and on names.
-%For details see the Isabelle/Isar Reference Manual~\cite{IsarRef}.
+%For details see the Isabelle/Isar Reference Manual~@{cite IsarRef}.
 %\bigskip
 
 \begin{warn}

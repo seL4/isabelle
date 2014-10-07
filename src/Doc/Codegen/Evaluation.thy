@@ -53,7 +53,7 @@ text {*
 subsubsection {* Normalization by evaluation (@{text nbe}) *}
 
 text {*
-  Normalization by evaluation \cite{Aehlig-Haftmann-Nipkow:2008:nbe}
+  Normalization by evaluation @{cite "Aehlig-Haftmann-Nipkow:2008:nbe"}
   provides a comparably fast partially symbolic evaluation which
   permits also normalization of functions and uninterpreted symbols;
   the stack of code to be trusted is considerable.

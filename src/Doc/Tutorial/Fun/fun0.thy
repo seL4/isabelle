@@ -96,7 +96,7 @@ fun ack2 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 
 text{* The order of arguments has no influence on whether
 \isacommand{fun} can prove termination of a function. For more details
-see elsewhere~\cite{bulwahnKN07}.
+see elsewhere~@{cite bulwahnKN07}.
 
 \subsection{Simplification}
 \label{sec:fun-simplification}

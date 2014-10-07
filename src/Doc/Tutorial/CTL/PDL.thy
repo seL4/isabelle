@@ -8,7 +8,7 @@ negation and conjunction and the two temporal
 connectives @{text AX} and @{text EF}\@. Since formulae are essentially
 syntax trees, they are naturally modelled as a datatype:%
 \footnote{The customary definition of PDL
-\cite{HarelKT-DL} looks quite different from ours, but the two are easily
+@{cite "HarelKT-DL"} looks quite different from ours, but the two are easily
 shown to be equivalent.}
 *}
 

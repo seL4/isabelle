@@ -502,13 +502,13 @@ section {* Further Reading *}
 
 text {* More information on locales and their interpretation is
   available.  For the locale hierarchy of import and interpretation
-  dependencies see~\cite{Ballarin2006a}; interpretations in theories
-  and proofs are covered in~\cite{Ballarin2006b}.  In the latter, I
+  dependencies see~@{cite Ballarin2006a}; interpretations in theories
+  and proofs are covered in~@{cite Ballarin2006b}.  In the latter, I
   show how interpretation in proofs enables to reason about families
   of algebraic structures, which cannot be expressed with locales
   directly.
 
-  Haftmann and Wenzel~\cite{HaftmannWenzel2007} overcome a restriction
+  Haftmann and Wenzel~@{cite HaftmannWenzel2007} overcome a restriction
   of axiomatic type classes through a combination with locale
   interpretation.  The result is a Haskell-style class system with a
   facility to generate ML and Haskell code.  Classes are sufficient for
@@ -520,14 +520,14 @@ text {* More information on locales and their interpretation is
   The locales reimplementation for Isabelle 2009 provides, among other
   improvements, a clean integration with Isabelle/Isar's local theory
   mechanisms, which are described in another paper by Haftmann and
-  Wenzel~\cite{HaftmannWenzel2009}.
+  Wenzel~@{cite HaftmannWenzel2009}.
 
-  The original work of Kamm\"uller on locales~\cite{KammullerEtAl1999}
+  The original work of Kamm\"uller on locales~@{cite KammullerEtAl1999}
   may be of interest from a historical perspective.  My previous
-  report on locales and locale expressions~\cite{Ballarin2004a}
+  report on locales and locale expressions~@{cite Ballarin2004a}
   describes a simpler form of expressions than available now and is
   outdated. The mathematical background on orders and lattices is
-  taken from Jacobson's textbook on algebra~\cite[Chapter~8]{Jacobson1985}.
+  taken from Jacobson's textbook on algebra~@{cite \<open>Chapter~8\<close> Jacobson1985}.
 
   The sources of this tutorial, which include all proofs, are
   available with the Isabelle distribution at

@@ -29,7 +29,7 @@ all pairs $(r,l)$, where $l$ is the argument on the
 left-hand side of an equation and $r$ the argument of some recursive call on
 the corresponding right-hand side, induces a well-founded relation.  For a
 systematic account of termination proofs via well-founded relations see, for
-example, Baader and Nipkow~\cite{Baader-Nipkow}.
+example, Baader and Nipkow~@{cite "Baader-Nipkow"}.
 
 Each \isacommand{recdef} definition should be accompanied (after the function's
 name) by a well-founded relation on the function's argument type.  

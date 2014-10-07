@@ -33,7 +33,7 @@ subsection {* Record Basics *}
 
 text {*
   Record types are not primitive in Isabelle and have a delicate
-  internal representation \cite{NaraschewskiW-TPHOLs98}, based on
+  internal representation @{cite "NaraschewskiW-TPHOLs98"}, based on
   nested copies of the primitive product type.  A \commdx{record}
   declaration introduces a new record type scheme by specifying its
   fields, which are packaged internally to hold up the perception of

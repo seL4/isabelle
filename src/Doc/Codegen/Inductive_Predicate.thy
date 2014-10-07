@@ -23,7 +23,7 @@ text {*
   which turns inductive specifications into equational ones, from
   which in turn executable code can be generated.  The mechanisms of
   this compiler are described in detail in
-  \cite{Berghofer-Bulwahn-Haftmann:2009:TPHOL}.
+  @{cite "Berghofer-Bulwahn-Haftmann:2009:TPHOL"}.
 
   Consider the simple predicate @{const append} given by these two
   introduction rules:

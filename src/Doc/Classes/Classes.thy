@@ -5,7 +5,7 @@ begin
 section {* Introduction *}
 
 text {*
-  Type classes were introduced by Wadler and Blott \cite{wadler89how}
+  Type classes were introduced by Wadler and Blott @{cite wadler89how}
   into the Haskell language to allow for a reasonable implementation
   of overloading\footnote{throughout this tutorial, we are referring
   to classical Haskell 1.0 type classes, not considering later
@@ -43,7 +43,7 @@ text {*
 
   Indeed, type classes not only allow for simple overloading but form
   a generic calculus, an instance of order-sorted algebra
-  \cite{nipkow-sorts93,Nipkow-Prehofer:1993,Wenzel:1997:TPHOL}.
+  @{cite "nipkow-sorts93" and "Nipkow-Prehofer:1993" and "Wenzel:1997:TPHOL"}.
 
   From a software engineering point of view, type classes roughly
   correspond to interfaces in object-oriented languages like Java; so,
@@ -67,7 +67,7 @@ text {*
 
   \noindent From a theoretical point of view, type classes are
   lightweight modules; Haskell type classes may be emulated by SML
-  functors \cite{classes_modules}.  Isabelle/Isar offers a discipline
+  functors @{cite classes_modules}.  Isabelle/Isar offers a discipline
   of type classes which brings all those aspects together:
 
   \begin{enumerate}
@@ -77,17 +77,17 @@ text {*
        type
     \item in connection with a ``less ad-hoc'' approach to overloading,
     \item with a direct link to the Isabelle module system:
-      locales \cite{kammueller-locales}.
+      locales @{cite "kammueller-locales"}.
   \end{enumerate}
 
   \noindent Isar type classes also directly support code generation in
   a Haskell like fashion. Internally, they are mapped to more
-  primitive Isabelle concepts \cite{Haftmann-Wenzel:2006:classes}.
+  primitive Isabelle concepts @{cite "Haftmann-Wenzel:2006:classes"}.
 
   This tutorial demonstrates common elements of structured
   specifications and abstract reasoning with type classes by the
   algebraic hierarchy of semigroups, monoids and groups.  Our
-  background theory is that of Isabelle/HOL \cite{isa-tutorial}, for
+  background theory is that of Isabelle/HOL @{cite "isa-tutorial"}, for
   which some familiarity is assumed.
 *}
 
@@ -423,7 +423,7 @@ text {*
   \noindent As you can see from this example, for local definitions
   you may use any specification tool which works together with
   locales, such as Krauss's recursive function package
-  \cite{krauss2006}.
+  @{cite krauss2006}.
 *}
 
 
@@ -583,7 +583,7 @@ text {*
   overloading, it is obvious that overloading stemming from @{command
   class} statements and @{command instantiation} targets naturally
   maps to Haskell type classes.  The code generator framework
-  \cite{isabelle-codegen} takes this into account.  If the target
+  @{cite "isabelle-codegen"} takes this into account.  If the target
   language (e.g.~SML) lacks type classes, then they are implemented by
   an explicit dictionary construction.  As example, let's go back to
   the power function:

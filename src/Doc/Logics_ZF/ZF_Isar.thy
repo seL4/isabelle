@@ -94,7 +94,7 @@ text {*
     hints: @{syntax (ZF) "monos"}? @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
   \<close>}
 
-  See \cite{isabelle-ZF} for further information on inductive
+  See @{cite "isabelle-ZF"} for further information on inductive
   definitions in ZF, but note that this covers the old-style theory
   format.
 *}
