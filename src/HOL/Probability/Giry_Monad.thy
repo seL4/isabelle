@@ -817,7 +817,7 @@ proof-
   finally show ?thesis ..
 qed
 
-section {* Measures are \omega-chain complete partial orders *}
+section {* Measures form a $\omega$-chain complete partial order *}
 
 definition SUP_measure :: "(nat \<Rightarrow> 'a measure) \<Rightarrow> 'a measure" where
   "SUP_measure M = measure_of (\<Union>i. space (M i)) (\<Union>i. sets (M i)) (\<lambda>A. SUP i. emeasure (M i) A)"

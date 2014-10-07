@@ -2222,7 +2222,7 @@ lemma emeasure_extend_measure_Pair:
   using emeasure_extend_measure[OF M _ _ ms(2,3), of "(i,j)"] eq ms(1) `I i j`
   by (auto simp: subset_eq)
 
-subsubsection {* Supremum of a set of \sigma-algebras *}
+subsubsection {* Supremum of a set of $\sigma$-algebras *}
 
 definition "Sup_sigma M = sigma (\<Union>x\<in>M. space x) (\<Union>x\<in>M. sets x)"
 
@@ -2274,7 +2274,7 @@ proof (rule measurable_measure_of)
     using measurable_space[OF f] M by auto
 qed (auto intro: measurable_sets f dest: sets.sets_into_space)
 
-subsection {* The smallest \sigma-algebra regarding a function *}
+subsection {* The smallest $\sigma$-algebra regarding a function *}
 
 definition
   "vimage_algebra X f M = sigma X {f -` A \<inter> X | A. A \<in> sets M}"
