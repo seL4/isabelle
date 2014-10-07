@@ -10,7 +10,7 @@ begin
 
 text {*
   Derivation of Warshall's algorithm using program extraction,
-  based on Berger, Schwichtenberg and Seisenberger \cite{Berger-JAR-2001}.
+  based on Berger, Schwichtenberg and Seisenberger @{cite "Berger-JAR-2001"}.
 *}
 
 datatype b = T | F

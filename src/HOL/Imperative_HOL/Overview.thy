@@ -24,8 +24,8 @@ end
 text {*
   @{text "Imperative HOL"} is a leightweight framework for reasoning
   about imperative data structures in @{text "Isabelle/HOL"}
-  \cite{Nipkow-et-al:2002:tutorial}.  Its basic ideas are described in
-  \cite{Bulwahn-et-al:2008:imp_HOL}.  However their concrete
+  @{cite "Nipkow-et-al:2002:tutorial"}.  Its basic ideas are described in
+  @{cite "Bulwahn-et-al:2008:imp_HOL"}.  However their concrete
   realisation has changed since, due to both extensions and
   refinements.  Therefore this overview wants to present the framework
   \qt{as it is} by now.  It focusses on the user-view, less on matters

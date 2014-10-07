@@ -10,8 +10,8 @@ imports NormalForm
 begin
 
 text {*
-Based on lecture notes by Ralph Matthes \cite{Matthes-ESSLLI2000},
-original proof idea due to Ralph Loader \cite{Loader1998}.
+Based on lecture notes by Ralph Matthes @{cite "Matthes-ESSLLI2000"},
+original proof idea due to Ralph Loader @{cite Loader1998}.
 *}
 
 

@@ -10,7 +10,7 @@ text {*
   The following theory development demonstrates Higher-Order Logic
   itself, represented directly within the Pure framework of Isabelle.
   The ``HOL'' logic given here is essentially that of Gordon
-  \cite{Gordon:1985:HOL}, although we prefer to present basic concepts
+  @{cite "Gordon:1985:HOL"}, although we prefer to present basic concepts
   in a slightly more conventional manner oriented towards plain
   Natural Deduction.
 *}

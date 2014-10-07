@@ -12,7 +12,7 @@ text {*
 This library is designed to support asymptotic ``big O'' calculations,
 i.e.~reasoning with expressions of the form $f = O(g)$ and $f = g +
 O(h)$.  An earlier version of this library is described in detail in
-\cite{Avigad-Donnelly}.
+@{cite "Avigad-Donnelly"}.
 
 The main changes in this version are as follows:
 \begin{itemize}

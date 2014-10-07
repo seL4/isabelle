@@ -110,7 +110,7 @@ subsection {* The Knaster-Tarski Theorem *}
 text {*
   The Knaster-Tarski Theorem (in its simplest formulation) states that
   any monotone function on a complete lattice has a least fixed-point
-  (see \cite[pages 93--94]{Davey-Priestley:1990} for example).  This
+  (see @{cite \<open>pages 93--94\<close> "Davey-Priestley:1990"} for example).  This
   is a consequence of the basic boundary properties of the complete
   lattice operations.
 *}

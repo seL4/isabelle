@@ -7,7 +7,7 @@ imports Coset Exponent
 begin
 
 text {*
-  See also \cite{Kammueller-Paulson:1999}.
+  See also @{cite "Kammueller-Paulson:1999"}.
 *}
 
 text{*The combinatorial argument is in theory Exponent*}

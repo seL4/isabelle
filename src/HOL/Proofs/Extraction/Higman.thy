@@ -11,7 +11,7 @@ begin
 
 text {*
   Formalization by Stefan Berghofer and Monika Seisenberger,
-  based on Coquand and Fridlender \cite{Coquand93}.
+  based on Coquand and Fridlender @{cite Coquand93}.
 *}
 
 datatype letter = A | B

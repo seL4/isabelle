@@ -10,7 +10,7 @@ begin
 
 text {*
   We present the proof of two different versions of the Hahn-Banach
-  Theorem, closely following \cite[\S36]{Heuser:1986}.
+  Theorem, closely following @{cite \<open>\S36\<close> "Heuser:1986"}.
 *}
 
 subsection {* The Hahn-Banach Theorem for vector spaces *}

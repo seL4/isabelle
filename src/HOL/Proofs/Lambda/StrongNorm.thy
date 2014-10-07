@@ -9,7 +9,7 @@ theory StrongNorm imports LambdaType InductTermi begin
 
 text {*
 Formalization by Stefan Berghofer. Partly based on a paper proof by
-Felix Joachimski and Ralph Matthes \cite{Matthes-Joachimski-AML}.
+Felix Joachimski and Ralph Matthes @{cite "Matthes-Joachimski-AML"}.
 *}
 
 

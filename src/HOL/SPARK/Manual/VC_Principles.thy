@@ -76,7 +76,7 @@ a * b \mod 2^{32} = 0 %
 \caption{Control flow graph for procedure \texttt{Proc2}}
 \label{fig:proc2-graph}
 \end{figure}
-As explained by Barnes \cite[\S 11.5]{Barnes}, the \SPARK{} Examiner unfolds the loop
+As explained by Barnes @{cite \<open>\S 11.5\<close> Barnes}, the \SPARK{} Examiner unfolds the loop
 \begin{lstlisting}
 for I in T range L .. U loop
   --# assert P (I);

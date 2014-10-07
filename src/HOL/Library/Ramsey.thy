@@ -338,7 +338,7 @@ subsection {* Disjunctive Well-Foundedness *}
 
 text {*
   An application of Ramsey's theorem to program termination. See
-  \cite{Podelski-Rybalchenko}.
+  @{cite "Podelski-Rybalchenko"}.
 *}
 
 definition disj_wf :: "('a * 'a)set => bool"

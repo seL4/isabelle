@@ -10,7 +10,7 @@ begin
 
 text {*
   We formalize basic concepts of Computational Tree Logic (CTL)
-  \cite{McMillan-PhDThesis,McMillan-LectureNotes} within the
+  @{cite "McMillan-PhDThesis" and "McMillan-LectureNotes"} within the
   simply-typed set theory of HOL.
 
   By using the common technique of ``shallow embedding'', a CTL
@@ -55,7 +55,7 @@ text {*
   such that for all states @{term s'} on the path, @{term p} holds in
   @{term s'}.  It is easy to see that @{text "\<EF> p"} and @{text
   "\<EG> p"} may be expressed using least and greatest fixed points
-  \cite{McMillan-PhDThesis}.
+  @{cite "McMillan-PhDThesis"}.
 *}
 
 definition

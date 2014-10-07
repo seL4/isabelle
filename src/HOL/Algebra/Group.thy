@@ -13,7 +13,7 @@ section {* Monoids and Groups *}
 subsection {* Definitions *}
 
 text {*
-  Definitions follow \cite{Jacobson:1985}.
+  Definitions follow @{cite "Jacobson:1985"}.
 *}
 
 record 'a monoid =  "'a partial_object" +
