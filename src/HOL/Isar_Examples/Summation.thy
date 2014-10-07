@@ -2,23 +2,23 @@
     Author:     Markus Wenzel
 *)
 
-header {* Summing natural numbers *}
+header \<open>Summing natural numbers\<close>
 
 theory Summation
 imports Main
 begin
 
-text {* Subsequently, we prove some summation laws of natural numbers
+text \<open>Subsequently, we prove some summation laws of natural numbers
   (including odds, squares, and cubes).  These examples demonstrate
   how plain natural deduction (including induction) may be combined
-  with calculational proof. *}
+  with calculational proof.\<close>
 
 
-subsection {* Summation laws *}
+subsection \<open>Summation laws\<close>
 
-text {* The sum of natural numbers $0 + \cdots + n$ equals $n \times
+text \<open>The sum of natural numbers $0 + \cdots + n$ equals $n \times
   (n + 1)/2$.  Avoiding formal reasoning about division we prove this
-  equation multiplied by $2$. *}
+  equation multiplied by $2$.\<close>
 
 theorem sum_of_naturals:
   "2 * (\<Sum>i::nat=0..n. i) = n * (n + 1)"
@@ -35,7 +35,7 @@ next
     by simp
 qed
 
-text {* The above proof is a typical instance of mathematical
+text \<open>The above proof is a typical instance of mathematical
   induction.  The main statement is viewed as some $\var{P} \ap n$
   that is split by the induction method into base case $\var{P} \ap
   0$, and step case $\var{P} \ap n \Impl \var{P} \ap (\idt{Suc} \ap
@@ -71,11 +71,11 @@ text {* The above proof is a typical instance of mathematical
   $x:A$ instead.
 
   \end{enumerate}
-*}
+\<close>
 
-text {* \medskip We derive further summation laws for odds, squares,
+text \<open>\medskip We derive further summation laws for odds, squares,
   and cubes as follows.  The basic technique of induction plus
-  calculation is the same as before. *}
+  calculation is the same as before.\<close>
 
 theorem sum_of_odds:
   "(\<Sum>i::nat=0..<n. 2 * i + 1) = n^Suc (Suc 0)"
@@ -93,9 +93,9 @@ next
     by simp
 qed
 
-text {* Subsequently we require some additional tweaking of Isabelle
+text \<open>Subsequently we require some additional tweaking of Isabelle
   built-in arithmetic simplifications, such as bringing in
-  distributivity by hand. *}
+  distributivity by hand.\<close>
 
 lemmas distrib = add_mult_distrib add_mult_distrib2
 
@@ -132,7 +132,7 @@ next
     by simp
 qed
 
-text {* Note that in contrast to older traditions of tactical proof
+text \<open>Note that in contrast to older traditions of tactical proof
   scripts, the structured proof applies induction on the original,
   unsimplified statement.  This allows to state the induction cases
   robustly and conveniently.  Simplification (or other automated)
@@ -143,6 +143,6 @@ text {* Note that in contrast to older traditions of tactical proof
   $\idt{simp}$ or $\idt{auto}$ should normally be never used as
   initial proof methods with a nested sub-proof to address the
   automatically produced situation, but only as terminal ones to solve
-  sub-problems.  *}
+  sub-problems.\<close>
 
 end

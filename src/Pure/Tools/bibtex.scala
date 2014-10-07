@@ -215,7 +215,7 @@ object Bibtex
     /* ignored text */
 
     private val ignored: Parser[Chunk] =
-      rep1("""(?mi)([^@]+|@[ \t]*comment)""".r) ^^ {
+      rep1("""(?i)([^@]+|@[ \t]*comment)""".r) ^^ {
         case ss => Chunk("", List(Token(Token.Kind.COMMENT, ss.mkString))) }
 
     private def ignored_line: Parser[(Chunk, Line_Context)] =
@@ -267,7 +267,7 @@ object Bibtex
         { case (s, delim) if delim == Closed => Token(Token.Kind.STRING, s) }
 
     private def recover_delimited: Parser[Token] =
-      """(?m)["{][^@]*""".r ^^ token(Token.Kind.ERROR)
+      """["{][^@]*""".r ^^ token(Token.Kind.ERROR)
 
     def delimited_line(ctxt: Item): Parser[(Chunk, Line_Context)] =
       delimited_depth(ctxt.delim) ^^ { case (s, delim1) =>
@@ -338,7 +338,7 @@ object Bibtex
               case d ~ e ~ f => Chunk(kind, a ::: List(b) ::: c ::: d.toList ::: e ::: f.toList) } }
 
     private val recover_item: Parser[Chunk] =
-      at ~ "(?m)[^@]*".r ^^ { case a ~ b => Chunk("", List(a, Token(Token.Kind.ERROR, b))) }
+      at ~ "[^@]*".r ^^ { case a ~ b => Chunk("", List(a, Token(Token.Kind.ERROR, b))) }
 
 
     /* chunks */

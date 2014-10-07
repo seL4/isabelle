@@ -122,149 +122,149 @@ ML_file "Tools/simplifier_trace.ML"
 ML_file "Tools/named_theorems.ML"
 
 
-section {* Basic attributes *}
+section \<open>Basic attributes\<close>
 
 attribute_setup tagged =
-  "Scan.lift (Args.name -- Args.name) >> Thm.tag"
+  \<open>Scan.lift (Args.name -- Args.name) >> Thm.tag\<close>
   "tagged theorem"
 
 attribute_setup untagged =
-  "Scan.lift Args.name >> Thm.untag"
+  \<open>Scan.lift Args.name >> Thm.untag\<close>
   "untagged theorem"
 
 attribute_setup kind =
-  "Scan.lift Args.name >> Thm.kind"
+  \<open>Scan.lift Args.name >> Thm.kind\<close>
   "theorem kind"
 
 attribute_setup THEN =
-  "Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- Attrib.thm
-    >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B)))"
+  \<open>Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- Attrib.thm
+    >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B)))\<close>
   "resolution with rule"
 
 attribute_setup OF =
-  "Attrib.thms >> (fn Bs => Thm.rule_attribute (fn _ => fn A => A OF Bs))"
+  \<open>Attrib.thms >> (fn Bs => Thm.rule_attribute (fn _ => fn A => A OF Bs))\<close>
   "rule resolved with facts"
 
 attribute_setup rename_abs =
-  "Scan.lift (Scan.repeat (Args.maybe Args.name)) >> (fn vs =>
-    Thm.rule_attribute (K (Drule.rename_bvars' vs)))"
+  \<open>Scan.lift (Scan.repeat (Args.maybe Args.name)) >> (fn vs =>
+    Thm.rule_attribute (K (Drule.rename_bvars' vs)))\<close>
   "rename bound variables in abstractions"
 
 attribute_setup unfolded =
-  "Attrib.thms >> (fn ths =>
-    Thm.rule_attribute (fn context => Local_Defs.unfold (Context.proof_of context) ths))"
+  \<open>Attrib.thms >> (fn ths =>
+    Thm.rule_attribute (fn context => Local_Defs.unfold (Context.proof_of context) ths))\<close>
   "unfolded definitions"
 
 attribute_setup folded =
-  "Attrib.thms >> (fn ths =>
-    Thm.rule_attribute (fn context => Local_Defs.fold (Context.proof_of context) ths))"
+  \<open>Attrib.thms >> (fn ths =>
+    Thm.rule_attribute (fn context => Local_Defs.fold (Context.proof_of context) ths))\<close>
   "folded definitions"
 
 attribute_setup consumes =
-  "Scan.lift (Scan.optional Parse.int 1) >> Rule_Cases.consumes"
+  \<open>Scan.lift (Scan.optional Parse.int 1) >> Rule_Cases.consumes\<close>
   "number of consumed facts"
 
 attribute_setup constraints =
-  "Scan.lift Parse.nat >> Rule_Cases.constraints"
+  \<open>Scan.lift Parse.nat >> Rule_Cases.constraints\<close>
   "number of equality constraints"
 
-attribute_setup case_names = {*
-  Scan.lift (Scan.repeat1 (Args.name --
+attribute_setup case_names =
+  \<open>Scan.lift (Scan.repeat1 (Args.name --
     Scan.optional (@{keyword "["} |-- Scan.repeat1 (Args.maybe Args.name) --| @{keyword "]"}) []))
-  >> (fn cs =>
+    >> (fn cs =>
       Rule_Cases.cases_hyp_names
         (map #1 cs)
-        (map (map (the_default Rule_Cases.case_hypsN) o #2) cs))
-*} "named rule cases"
+        (map (map (the_default Rule_Cases.case_hypsN) o #2) cs))\<close>
+  "named rule cases"
 
 attribute_setup case_conclusion =
-  "Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion"
+  \<open>Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion\<close>
   "named conclusion of rule cases"
 
 attribute_setup params =
-  "Scan.lift (Parse.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params"
+  \<open>Scan.lift (Parse.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params\<close>
   "named rule parameters"
 
-attribute_setup rule_format = {*
-  Scan.lift (Args.mode "no_asm")
-    >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format)
-*} "result put into canonical rule format"
+attribute_setup rule_format =
+  \<open>Scan.lift (Args.mode "no_asm")
+    >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format)\<close>
+  "result put into canonical rule format"
 
 attribute_setup elim_format =
-  "Scan.succeed (Thm.rule_attribute (K Tactic.make_elim))"
+  \<open>Scan.succeed (Thm.rule_attribute (K Tactic.make_elim))\<close>
   "destruct rule turned into elimination rule format"
 
-attribute_setup no_vars = {*
-  Scan.succeed (Thm.rule_attribute (fn context => fn th =>
+attribute_setup no_vars =
+  \<open>Scan.succeed (Thm.rule_attribute (fn context => fn th =>
     let
       val ctxt = Variable.set_body false (Context.proof_of context);
       val ((_, [th']), _) = Variable.import true [th] ctxt;
-    in th' end))
-*} "imported schematic variables"
+    in th' end))\<close>
+  "imported schematic variables"
 
 attribute_setup eta_long =
-  "Scan.succeed (Thm.rule_attribute (fn _ => Conv.fconv_rule Drule.eta_long_conversion))"
+  \<open>Scan.succeed (Thm.rule_attribute (fn _ => Conv.fconv_rule Drule.eta_long_conversion))\<close>
   "put theorem into eta long beta normal form"
 
 attribute_setup atomize =
-  "Scan.succeed Object_Logic.declare_atomize"
+  \<open>Scan.succeed Object_Logic.declare_atomize\<close>
   "declaration of atomize rule"
 
 attribute_setup rulify =
-  "Scan.succeed Object_Logic.declare_rulify"
+  \<open>Scan.succeed Object_Logic.declare_rulify\<close>
   "declaration of rulify rule"
 
 attribute_setup rotated =
-  "Scan.lift (Scan.optional Parse.int 1
-    >> (fn n => Thm.rule_attribute (fn _ => rotate_prems n)))"
+  \<open>Scan.lift (Scan.optional Parse.int 1
+    >> (fn n => Thm.rule_attribute (fn _ => rotate_prems n)))\<close>
   "rotated theorem premises"
 
 attribute_setup defn =
-  "Attrib.add_del Local_Defs.defn_add Local_Defs.defn_del"
+  \<open>Attrib.add_del Local_Defs.defn_add Local_Defs.defn_del\<close>
   "declaration of definitional transformations"
 
 attribute_setup abs_def =
-  "Scan.succeed (Thm.rule_attribute (fn context =>
-    Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def))"
+  \<open>Scan.succeed (Thm.rule_attribute (fn context =>
+    Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def))\<close>
   "abstract over free variables of definitional theorem"
 
 
-section {* Further content for the Pure theory *}
+section \<open>Further content for the Pure theory\<close>
 
-subsection {* Meta-level connectives in assumptions *}
+subsection \<open>Meta-level connectives in assumptions\<close>
 
 lemma meta_mp:
-  assumes "PROP P ==> PROP Q" and "PROP P"
+  assumes "PROP P \<Longrightarrow> PROP Q" and "PROP P"
   shows "PROP Q"
-    by (rule `PROP P ==> PROP Q` [OF `PROP P`])
+    by (rule \<open>PROP P \<Longrightarrow> PROP Q\<close> [OF \<open>PROP P\<close>])
 
 lemmas meta_impE = meta_mp [elim_format]
 
 lemma meta_spec:
-  assumes "!!x. PROP P x"
+  assumes "\<And>x. PROP P x"
   shows "PROP P x"
-    by (rule `!!x. PROP P x`)
+    by (rule \<open>\<And>x. PROP P x\<close>)
 
 lemmas meta_allE = meta_spec [elim_format]
 
 lemma swap_params:
-  "(!!x y. PROP P x y) == (!!y x. PROP P x y)" ..
+  "(\<And>x y. PROP P x y) \<equiv> (\<And>y x. PROP P x y)" ..
 
 
-subsection {* Meta-level conjunction *}
+subsection \<open>Meta-level conjunction\<close>
 
 lemma all_conjunction:
-  "(!!x. PROP A x &&& PROP B x) == ((!!x. PROP A x) &&& (!!x. PROP B x))"
+  "(\<And>x. PROP A x &&& PROP B x) \<equiv> ((\<And>x. PROP A x) &&& (\<And>x. PROP B x))"
 proof
-  assume conj: "!!x. PROP A x &&& PROP B x"
-  show "(!!x. PROP A x) &&& (!!x. PROP B x)"
+  assume conj: "\<And>x. PROP A x &&& PROP B x"
+  show "(\<And>x. PROP A x) &&& (\<And>x. PROP B x)"
   proof -
     fix x
     from conj show "PROP A x" by (rule conjunctionD1)
     from conj show "PROP B x" by (rule conjunctionD2)
   qed
 next
-  assume conj: "(!!x. PROP A x) &&& (!!x. PROP B x)"
+  assume conj: "(\<And>x. PROP A x) &&& (\<And>x. PROP B x)"
   fix x
   show "PROP A x &&& PROP B x"
   proof -
@@ -274,36 +274,36 @@ next
 qed
 
 lemma imp_conjunction:
-  "(PROP A ==> PROP B &&& PROP C) == ((PROP A ==> PROP B) &&& (PROP A ==> PROP C))"
+  "(PROP A \<Longrightarrow> PROP B &&& PROP C) \<equiv> ((PROP A \<Longrightarrow> PROP B) &&& (PROP A \<Longrightarrow> PROP C))"
 proof
-  assume conj: "PROP A ==> PROP B &&& PROP C"
-  show "(PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
+  assume conj: "PROP A \<Longrightarrow> PROP B &&& PROP C"
+  show "(PROP A \<Longrightarrow> PROP B) &&& (PROP A \<Longrightarrow> PROP C)"
   proof -
     assume "PROP A"
-    from conj [OF `PROP A`] show "PROP B" by (rule conjunctionD1)
-    from conj [OF `PROP A`] show "PROP C" by (rule conjunctionD2)
+    from conj [OF \<open>PROP A\<close>] show "PROP B" by (rule conjunctionD1)
+    from conj [OF \<open>PROP A\<close>] show "PROP C" by (rule conjunctionD2)
   qed
 next
-  assume conj: "(PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
+  assume conj: "(PROP A \<Longrightarrow> PROP B) &&& (PROP A \<Longrightarrow> PROP C)"
   assume "PROP A"
   show "PROP B &&& PROP C"
   proof -
-    from `PROP A` show "PROP B" by (rule conj [THEN conjunctionD1])
-    from `PROP A` show "PROP C" by (rule conj [THEN conjunctionD2])
+    from \<open>PROP A\<close> show "PROP B" by (rule conj [THEN conjunctionD1])
+    from \<open>PROP A\<close> show "PROP C" by (rule conj [THEN conjunctionD2])
   qed
 qed
 
 lemma conjunction_imp:
-  "(PROP A &&& PROP B ==> PROP C) == (PROP A ==> PROP B ==> PROP C)"
+  "(PROP A &&& PROP B \<Longrightarrow> PROP C) \<equiv> (PROP A \<Longrightarrow> PROP B \<Longrightarrow> PROP C)"
 proof
-  assume r: "PROP A &&& PROP B ==> PROP C"
+  assume r: "PROP A &&& PROP B \<Longrightarrow> PROP C"
   assume ab: "PROP A" "PROP B"
   show "PROP C"
   proof (rule r)
     from ab show "PROP A &&& PROP B" .
   qed
 next
-  assume r: "PROP A ==> PROP B ==> PROP C"
+  assume r: "PROP A \<Longrightarrow> PROP B \<Longrightarrow> PROP C"
   assume conj: "PROP A &&& PROP B"
   show "PROP C"
   proof (rule r)

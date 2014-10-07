@@ -4,17 +4,17 @@
 Typical textbook proof example.
 *)
 
-header {* Textbook-style reasoning: the Knaster-Tarski Theorem *}
+header \<open>Textbook-style reasoning: the Knaster-Tarski Theorem\<close>
 
 theory Knaster_Tarski
 imports Main "~~/src/HOL/Library/Lattice_Syntax"
 begin
 
 
-subsection {* Prose version *}
+subsection \<open>Prose version\<close>
 
-text {* According to the textbook \cite[pages
-  93--94]{davey-priestley}, the Knaster-Tarski fixpoint theorem is as
+text \<open>According to the textbook @{cite \<open>pages 93--94\<close> "davey-priestley"},
+  the Knaster-Tarski fixpoint theorem is as
   follows.\footnote{We have dualized the argument, and tuned the
   notation a little bit.}
 
@@ -28,16 +28,16 @@ text {* According to the textbook \cite[pages
   H}, whence @{text "f(a) \<le> a"}.  We now use this inequality to prove
   the reverse one (!) and thereby complete the proof that @{text a} is
   a fixpoint.  Since @{text f} is order-preserving, @{text "f(f(a)) \<le>
-  f(a)"}.  This says @{text "f(a) \<in> H"}, so @{text "a \<le> f(a)"}. *}
+  f(a)"}.  This says @{text "f(a) \<in> H"}, so @{text "a \<le> f(a)"}.\<close>
 
 
-subsection {* Formal versions *}
+subsection \<open>Formal versions\<close>
 
-text {* The Isar proof below closely follows the original
+text \<open>The Isar proof below closely follows the original
   presentation.  Virtually all of the prose narration has been
   rephrased in terms of formal Isar language elements.  Just as many
   textbook-style proofs, there is a strong bias towards forward proof,
-  and several bends in the course of reasoning. *}
+  and several bends in the course of reasoning.\<close>
 
 theorem Knaster_Tarski:
   fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
@@ -52,8 +52,8 @@ proof
       fix x
       assume "x \<in> ?H"
       then have "?a \<le> x" by (rule Inf_lower)
-      with `mono f` have "f ?a \<le> f x" ..
-      also from `x \<in> ?H` have "\<dots> \<le> x" ..
+      with \<open>mono f\<close> have "f ?a \<le> f x" ..
+      also from \<open>x \<in> ?H\<close> have "\<dots> \<le> x" ..
       finally have "f ?a \<le> x" .
     }
     then have "f ?a \<le> ?a" by (rule Inf_greatest)
@@ -61,13 +61,13 @@ proof
       also presume "\<dots> \<le> f ?a"
       finally (order_antisym) show ?thesis .
     }
-    from `mono f` and `f ?a \<le> ?a` have "f (f ?a) \<le> f ?a" ..
+    from \<open>mono f\<close> and \<open>f ?a \<le> ?a\<close> have "f (f ?a) \<le> f ?a" ..
     then have "f ?a \<in> ?H" ..
     then show "?a \<le> f ?a" by (rule Inf_lower)
   qed
 qed
 
-text {* Above we have used several advanced Isar language elements,
+text \<open>Above we have used several advanced Isar language elements,
   such as explicit block structure and weak assumptions.  Thus we have
   mimicked the particular way of reasoning of the original text.
 
@@ -75,7 +75,7 @@ text {* Above we have used several advanced Isar language elements,
   achieve structured top-down decomposition of the problem at the
   outer level, while only the inner steps of reasoning are done in a
   forward manner.  We are certainly more at ease here, requiring only
-  the most basic features of the Isar language. *}
+  the most basic features of the Isar language.\<close>
 
 theorem Knaster_Tarski':
   fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
@@ -91,13 +91,13 @@ proof
       fix x
       assume "x \<in> ?H"
       then have "?a \<le> x" by (rule Inf_lower)
-      with `mono f` have "f ?a \<le> f x" ..
-      also from `x \<in> ?H` have "\<dots> \<le> x" ..
+      with \<open>mono f\<close> have "f ?a \<le> f x" ..
+      also from \<open>x \<in> ?H\<close> have "\<dots> \<le> x" ..
       finally show "f ?a \<le> x" .
     qed
     show "?a \<le> f ?a"
     proof (rule Inf_lower)
-      from `mono f` and `f ?a \<le> ?a` have "f (f ?a) \<le> f ?a" ..
+      from \<open>mono f\<close> and \<open>f ?a \<le> ?a\<close> have "f (f ?a) \<le> f ?a" ..
       then show "f ?a \<in> ?H" ..
     qed
   qed

@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Unix file-systems \label{sec:unix-file-system} *}
+header \<open>Unix file-systems \label{sec:unix-file-system}\<close>
 
 theory Unix
 imports
@@ -10,7 +10,7 @@ imports
   "~~/src/HOL/Library/Sublist"
 begin
 
-text {*
+text \<open>
   We give a simple mathematical model of the basic structures
   underlying the Unix file-system, together with a few fundamental
   operations that could be imagined to be performed internally by the
@@ -34,26 +34,26 @@ text {*
   file-systems to be discussed here.  First of all, we ignore
   character and block special files, pipes, sockets, hard links,
   symbolic links, and mount points.
-*}
+\<close>
 
 
-subsection {* Names *}
+subsection \<open>Names\<close>
 
-text {*
+text \<open>
   User ids and file name components shall be represented by natural
   numbers (without loss of generality).  We do not bother about
   encoding of actual names (e.g.\ strings), nor a mapping between user
   names and user ids as would be present in a reality.
-*}
+\<close>
 
 type_synonym uid = nat
 type_synonym name = nat
 type_synonym path = "name list"
 
 
-subsection {* Attributes *}
+subsection \<open>Attributes\<close>
 
-text {*
+text \<open>
   Unix file attributes mainly consist of \emph{owner} information and
   a number of \emph{permission} bits which control access for
   ``user'', ``group'', and ``others'' (see the Unix man pages @{text
@@ -70,8 +70,8 @@ text {*
   of multiple groups and group membership, but pretend that everyone
   is member of a single global group.\footnote{A general HOL model of
   user group structures and related issues is given in
-  \cite{Naraschewski:2001}.}
-*}
+  @{cite "Naraschewski:2001"}.}
+\<close>
 
 datatype perm =
     Readable
@@ -84,7 +84,7 @@ record att =
   owner :: uid
   others :: perms
 
-text {*
+text \<open>
   For plain files @{term Readable} and @{term Writable} specify read
   and write access to the actual content, i.e.\ the string of text
   stored here.  For directories @{term Readable} determines if the set
@@ -101,16 +101,16 @@ text {*
   directories encountered on the path would have to grant @{term
   Executable}.  We ignore this detail and pretend that all directories
   give @{term Executable} permission to anybody.
-*}
+\<close>
 
 
-subsection {* Files *}
+subsection \<open>Files\<close>
 
-text {*
+text \<open>
   In order to model the general tree structure of a Unix file-system
   we use the arbitrarily branching datatype @{typ "('a, 'b, 'c) env"}
   from the standard library of Isabelle/HOL
-  \cite{Bauer-et-al:2002:HOL-Library}.  This type provides
+  @{cite "Bauer-et-al:2002:HOL-Library"}.  This type provides
   constructors @{term Val} and @{term Env} as follows:
 
   \medskip
@@ -128,11 +128,11 @@ text {*
   "att \<times> string"} (representing plain files), @{typ att} (for
   attributes of directory nodes), and @{typ name} (for the index type
   of directory nodes).
-*}
+\<close>
 
 type_synonym "file" = "(att \<times> string, att, name) env"
 
-text {*
+text \<open>
   \medskip The HOL library also provides @{term lookup} and @{term
   update} operations for general tree structures with the subsequent
   primitive recursive characterizations.
@@ -149,15 +149,15 @@ text {*
   @{thm [display, indent = 2, eta_contract = false] update_eq [no_vars]}
 
   Several further properties of these operations are proven in
-  \cite{Bauer-et-al:2002:HOL-Library}.  These will be routinely used
+  @{cite "Bauer-et-al:2002:HOL-Library"}.  These will be routinely used
   later on without further notice.
 
   \bigskip Apparently, the elements of type @{typ "file"} contain an
   @{typ att} component in either case.  We now define a few auxiliary
   operations to manipulate this field uniformly, following the
   conventions for record types in Isabelle/HOL
-  \cite{Nipkow-et-al:2000:HOL}.
-*}
+  @{cite "Nipkow-et-al:2000:HOL"}.
+\<close>
 
 definition
   "attributes file =
@@ -188,16 +188,16 @@ lemma [simp]: "map_attributes f (Env att dir) = Env (f att) dir"
   by (simp add: map_attributes_def)
 
 
-subsection {* Initial file-systems *}
+subsection \<open>Initial file-systems\<close>
 
-text {*
+text \<open>
   Given a set of \emph{known users} a file-system shall be initialized
   by providing an empty home directory for each user, with read-only
   access for everyone else.  (Note that we may directly use the user
   id as home directory name, since both types have been identified.)
   Certainly, the very root directory is owned by the super user (who
   has user id 0).
-*}
+\<close>
 
 definition
   "init users =
@@ -206,9 +206,9 @@ definition
         else None)"
 
 
-subsection {* Accessing file-systems *}
+subsection \<open>Accessing file-systems\<close>
 
-text {*
+text \<open>
   The main internal file-system operation is access of a file by a
   user, requesting a certain set of permissions.  The resulting @{typ
   "file option"} indicates if a file had been present at the
@@ -216,9 +216,9 @@ text {*
   permissions recorded within the file-system.
 
   Note that by the rules of Unix file-system security (e.g.\
-  \cite{Tanenbaum:1992}) both the super-user and owner may always
+  @{cite "Tanenbaum:1992"}) both the super-user and owner may always
   access a file unconditionally (in our simplified model).
-*}
+\<close>
 
 definition
   "access root path uid perms =
@@ -231,7 +231,7 @@ definition
         then Some file
         else None)"
 
-text {*
+text \<open>
   \medskip Successful access to a certain file is the main
   prerequisite for system-calls to be applicable (cf.\
   \secref{sec:unix-trans}).  Any modification of the file-system is
@@ -241,7 +241,7 @@ text {*
   @{term lookup} function, with additional checking of
   attributes. Subsequently we establish a few auxiliary facts that
   stem from the primitive @{term lookup} used within @{term access}.
-*}
+\<close>
 
 lemma access_empty_lookup: "access root path uid {} = lookup root path"
   by (simp add: access_def split: option.splits)
@@ -264,13 +264,13 @@ proof -
 qed
 
 
-section {* File-system transitions \label{sec:unix-trans} *}
+section \<open>File-system transitions \label{sec:unix-trans}\<close>
 
-subsection {* Unix system calls \label{sec:unix-syscall} *}
+subsection \<open>Unix system calls \label{sec:unix-syscall}\<close>
 
-text {*
+text \<open>
   According to established operating system design (cf.\
-  \cite{Tanenbaum:1992}) user space processes may only initiate system
+  @{cite "Tanenbaum:1992"}) user space processes may only initiate system
   operations by a fixed set of \emph{system-calls}.  This enables the
   kernel to enforce certain security policies in the first
   place.\footnote{Incidently, this is the very same principle employed
@@ -282,7 +282,7 @@ text {*
   operation} for the syntax of system-calls, together with an
   inductive definition of file-system state transitions of the form
   @{text "root \<midarrow>x\<rightarrow> root'"} for the operational semantics.
-*}
+\<close>
 
 datatype operation =
     Read uid string path
@@ -294,13 +294,13 @@ datatype operation =
   | Rmdir uid path
   | Readdir uid "name set" path
 
-text {*
+text \<open>
   The @{typ uid} field of an operation corresponds to the
   \emph{effective user id} of the underlying process, although our
   model never mentions processes explicitly.  The other parameters are
   provided as arguments by the caller; the @{term path} one is common
   to all kinds of system-calls.
-*}
+\<close>
 
 primrec uid_of :: "operation \<Rightarrow> uid"
 where
@@ -324,7 +324,7 @@ where
   | "path_of (Rmdir uid path) = path"
   | "path_of (Readdir uid names path) = path"
 
-text {*
+text \<open>
   \medskip Note that we have omitted explicit @{text Open} and @{text
   Close} operations, pretending that @{term Read} and @{term Write}
   would already take care of this behind the scenes.  Thus we have
@@ -345,7 +345,7 @@ text {*
   via transitions of the file-system configuration.  This is expressed
   as an inductive relation (although there is no actual recursion
   involved here).
-*}
+\<close>
 
 inductive transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
   ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
@@ -392,7 +392,7 @@ where
       names = dom dir \<Longrightarrow>
       root \<midarrow>(Readdir uid names path)\<rightarrow> root"
 
-text {*
+text \<open>
   \medskip Certainly, the above specification is central to the whole
   formal development.  Any of the results to be established later on
   are only meaningful to the outside world if this transition system
@@ -403,16 +403,16 @@ text {*
   If in doubt, one may consider to compare our definition with the
   informal specifications given the corresponding Unix man pages, or
   even peek at an actual implementation such as
-  \cite{Torvalds-et-al:Linux}.  Another common way to gain confidence
+  @{cite "Torvalds-et-al:Linux"}.  Another common way to gain confidence
   into the formal model is to run simple simulations (see
   \secref{sec:unix-examples}), and check the results with that of
   experiments performed on a real Unix system.
-*}
+\<close>
 
 
-subsection {* Basic properties of single transitions \label{sec:unix-single-trans} *}
+subsection \<open>Basic properties of single transitions \label{sec:unix-single-trans}\<close>
 
-text {*
+text \<open>
   The transition system @{text "root \<midarrow>x\<rightarrow> root'"} defined above
   determines a unique result @{term root'} from given @{term root} and
   @{term x} (this is holds rather trivially, since there is even only
@@ -420,7 +420,7 @@ text {*
   simplify our subsequent development to some extent, since we only
   have to reason about a partial function rather than a general
   relation.
-*}
+\<close>
 
 theorem transition_uniq:
   assumes root': "root \<midarrow>x\<rightarrow> root'"
@@ -453,11 +453,11 @@ next
   with root' show ?thesis by cases blast+
 qed
 
-text {*
+text \<open>
   \medskip Apparently, file-system transitions are \emph{type-safe} in
   the sense that the result of transforming an actual directory yields
   again a directory.
-*}
+\<close>
 
 theorem transition_type_safe:
   assumes tr: "root \<midarrow>x\<rightarrow> root'"
@@ -476,25 +476,25 @@ next
     by (auto simp add: update_eq split: list.splits)
 qed
 
-text {*
+text \<open>
   The previous result may be seen as the most basic invariant on the
   file-system state that is enforced by any proper kernel
   implementation.  So user processes --- being bound to the
   system-call interface --- may never mess up a file-system such that
   the root becomes a plain file instead of a directory, which would be
   a strange situation indeed.
-*}
+\<close>
 
 
-subsection {* Iterated transitions *}
+subsection \<open>Iterated transitions\<close>
 
-text {*
+text \<open>
   Iterated system transitions via finite sequences of system
   operations are modeled inductively as follows.  In a sense, this
   relation describes the cumulative effect of the sequence of
   system-calls issued by a number of running processes over a finite
   amount of time.
-*}
+\<close>
 
 inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
   ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
@@ -502,11 +502,11 @@ where
     nil: "root =[]\<Rightarrow> root"
   | cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root'' \<Longrightarrow> root =(x # xs)\<Rightarrow> root''"
 
-text {*
+text \<open>
   \medskip We establish a few basic facts relating iterated
   transitions with single ones, according to the recursive structure
   of lists.
-*}
+\<close>
 
 lemma transitions_nil_eq: "root =[]\<Rightarrow> root' = (root = root')"
 proof
@@ -529,12 +529,12 @@ next
     by (blast intro: transitions.cons)
 qed
 
-text {*
+text \<open>
   The next two rules show how to ``destruct'' known transition
   sequences.  Note that the second one actually relies on the
   uniqueness property of the basic transition system (see
   \secref{sec:unix-single-trans}).
-*}
+\<close>
 
 lemma transitions_nilD: "root =[]\<Rightarrow> root' \<Longrightarrow> root' = root"
   by (simp add: transitions_nil_eq)
@@ -550,12 +550,12 @@ proof -
   with root'' show "root' =xs\<Rightarrow> root''" by simp
 qed
 
-text {*
+text \<open>
   \medskip The following fact shows how an invariant @{term Q} of
   single transitions with property @{term P} may be transferred to
   iterated transitions.  The proof is rather obvious by rule induction
   over the definition of @{term "root =xs\<Rightarrow> root'"}.
-*}
+\<close>
 
 lemma transitions_invariant:
   assumes r: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow> P x \<Longrightarrow> Q r'"
@@ -567,19 +567,19 @@ proof induct
   show ?case by (rule nil.prems)
 next
   case (cons root x root' xs root'')
-  note P = `\<forall>x \<in> set (x # xs). P x`
+  note P = \<open>\<forall>x \<in> set (x # xs). P x\<close>
   then have "P x" by simp
-  with `root \<midarrow>x\<rightarrow> root'` and `Q root` have Q': "Q root'" by (rule r)
+  with \<open>root \<midarrow>x\<rightarrow> root'\<close> and \<open>Q root\<close> have Q': "Q root'" by (rule r)
   from P have "\<forall>x \<in> set xs. P x" by simp
   with Q' show "Q root''" by (rule cons.hyps)
 qed
 
-text {*
+text \<open>
   As an example of applying the previous result, we transfer the basic
   type-safety property (see \secref{sec:unix-single-trans}) from
   single transitions to iterated ones, which is a rather obvious
   result indeed.
-*}
+\<close>
 
 theorem transitions_type_safe:
   assumes "root =xs\<Rightarrow> root'"
@@ -591,9 +591,9 @@ proof (rule transitions_invariant)
 qed
 
 
-section {* Executable sequences *}
+section \<open>Executable sequences\<close>
 
-text {*
+text \<open>
   An inductively defined relation such as the one of @{text "root \<midarrow>x\<rightarrow>
   root'"} (see \secref{sec:unix-syscall}) has two main aspects.  First
   of all, the resulting system admits a certain set of transition
@@ -614,16 +614,16 @@ text {*
   executions; exhaustive reasoning will be employed only later on (see
   \secref{sec:unix-bogosity}), when we shall demonstrate that certain
   behavior is \emph{not} possible.
-*}
+\<close>
 
 
-subsection {* Possible transitions *}
+subsection \<open>Possible transitions\<close>
 
-text {*
+text \<open>
   Rather obviously, a list of system operations can be executed within
   a certain state if there is a result state reached by an iterated
   transition.
-*}
+\<close>
 
 definition "can_exec root xs = (\<exists>root'. root =xs\<Rightarrow> root')"
 
@@ -634,10 +634,10 @@ lemma can_exec_cons:
     "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> can_exec root' xs \<Longrightarrow> can_exec root (x # xs)"
   unfolding can_exec_def by (blast intro: transitions.intros)
 
-text {*
+text \<open>
   \medskip In case that we already know that a certain sequence can be
   executed we may destruct it backwardly into individual transitions.
-*}
+\<close>
 
 lemma can_exec_snocD: "can_exec root (xs @ [y])
     \<Longrightarrow> \<exists>root' root''. root =xs\<Rightarrow> root' \<and> root' \<midarrow>y\<rightarrow> root''"
@@ -647,7 +647,7 @@ proof (induct xs arbitrary: root)
     by (simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
 next
   case (Cons x xs)
-  from `can_exec root ((x # xs) @ [y])` obtain r root'' where
+  from \<open>can_exec root ((x # xs) @ [y])\<close> obtain r root'' where
       x: "root \<midarrow>x\<rightarrow> r" and
       xs_y: "r =(xs @ [y])\<Rightarrow> root''"
     by (auto simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
@@ -659,35 +659,35 @@ next
 qed
 
 
-subsection {* Example executions \label{sec:unix-examples} *}
+subsection \<open>Example executions \label{sec:unix-examples}\<close>
 
-text {*
+text \<open>
   We are now ready to perform a few experiments within our formal
   model of Unix system-calls.  The common technique is to alternate
   introduction rules of the transition system (see
   \secref{sec:unix-trans}), and steps to solve any emerging side
   conditions using algebraic properties of the underlying file-system
   structures (see \secref{sec:unix-file-system}).
-*}
+\<close>
 
 lemmas eval = access_def init_def
 
 theorem "u \<in> users \<Longrightarrow> can_exec (init users)
     [Mkdir u perms [u, name]]"
   apply (rule can_exec_cons)
-    -- {* back-chain @{term can_exec} (of @{term [source] Cons}) *}
+    -- \<open>back-chain @{term can_exec} (of @{term [source] Cons})\<close>
   apply (rule mkdir)
-    -- {* back-chain @{term Mkdir} *}
+    -- \<open>back-chain @{term Mkdir}\<close>
   apply (force simp add: eval)+
-    -- {* solve preconditions of @{term Mkdir} *}
+    -- \<open>solve preconditions of @{term Mkdir}\<close>
   apply (simp add: eval)
-    -- {* peek at resulting dir (optional) *}
-  txt {* @{subgoals [display]} *}
+    -- \<open>peek at resulting dir (optional)\<close>
+  txt \<open>@{subgoals [display]}\<close>
   apply (rule can_exec_nil)
-    -- {* back-chain @{term can_exec} (of @{term [source] Nil}) *}
+    -- \<open>back-chain @{term can_exec} (of @{term [source] Nil})\<close>
   done
 
-text {*
+text \<open>
   By inspecting the result shown just before the final step above, we
   may gain confidence that our specification of Unix system-calls
   actually makes sense.  Further common errors are usually exhibited
@@ -695,7 +695,7 @@ text {*
 
   \medskip Here are a few further experiments, using the same
   techniques as before.
-*}
+\<close>
 
 theorem "u \<in> users \<Longrightarrow> can_exec (init users)
    [Creat u perms [u, name],
@@ -708,7 +708,7 @@ theorem "u \<in> users \<Longrightarrow> can_exec (init users)
   apply (rule unlink)
   apply (force simp add: eval)+
   apply (simp add: eval)
-  txt {* peek at result: @{subgoals [display]} *}
+  txt \<open>peek at result: @{subgoals [display]}\<close>
   apply (rule can_exec_nil)
   done
 
@@ -722,7 +722,7 @@ theorem "u \<in> users \<Longrightarrow> Writable \<in> perms\<^sub>1 \<Longrigh
     Readdir u {name\<^sub>3, name\<^sub>4} [u, name\<^sub>1, name\<^sub>2]]"
   apply (rule can_exec_cons, rule transition.intros,
     (force simp add: eval)+, (simp add: eval)?)+
-  txt {* peek at result: @{subgoals [display]} *}
+  txt \<open>peek at result: @{subgoals [display]}\<close>
   apply (rule can_exec_nil)
   done
 
@@ -735,28 +735,28 @@ theorem "u \<in> users \<Longrightarrow> Writable \<in> perms\<^sub>1 \<Longrigh
     Read u ''foo'' [u, name\<^sub>1, name\<^sub>2, name\<^sub>3]]"
   apply (rule can_exec_cons, rule transition.intros,
     (force simp add: eval)+, (simp add: eval)?)+
-  txt {* peek at result: @{subgoals [display]} *}
+  txt \<open>peek at result: @{subgoals [display]}\<close>
   apply (rule can_exec_nil)
   done
 
 
-section {* Odd effects --- treated formally \label{sec:unix-bogosity} *}
+section \<open>Odd effects --- treated formally \label{sec:unix-bogosity}\<close>
 
-text {*
+text \<open>
   We are now ready to give a completely formal treatment of the
   slightly odd situation discussed in the introduction (see
   \secref{sec:unix-intro}): the file-system can easily reach a state
   where a user is unable to remove his very own directory, because it
   is still populated by items placed there by another user in an
   uncouth manner.
-*}
+\<close>
 
-subsection {* The general procedure \label{sec:unix-inv-procedure} *}
+subsection \<open>The general procedure \label{sec:unix-inv-procedure}\<close>
 
-text {*
+text \<open>
   The following theorem expresses the general procedure we are
   following to achieve the main result.
-*}
+\<close>
 
 theorem general_procedure:
   assumes cannot_y: "\<And>r r'. Q r \<Longrightarrow> r \<midarrow>y\<rightarrow> r' \<Longrightarrow> False"
@@ -780,7 +780,7 @@ proof -
   then show ?thesis by blast
 qed
 
-text {*
+text \<open>
   Here @{prop "P x"} refers to the restriction on file-system
   operations that are admitted after having reached the critical
   configuration; according to the problem specification this will
@@ -790,16 +790,16 @@ text {*
   @{term Q} is a suitable (auxiliary) invariant over the file-system;
   choosing @{term Q} adequately is very important to make the proof
   work (see \secref{sec:unix-inv-lemmas}).
-*}
+\<close>
 
 
-subsection {* The particular situation *}
+subsection \<open>The particular situation\<close>
 
-text {*
+text \<open>
   We introduce a few global declarations and axioms to describe our
   particular situation considered here.  Thus we avoid excessive use
   of local parameters in the subsequent development.
-*}
+\<close>
 
 locale situation =
   fixes users :: "uid set"
@@ -827,21 +827,21 @@ definition
 definition
   "bogus_path = [user\<^sub>1, name\<^sub>1, name\<^sub>2]"
 
-text {*
+text \<open>
   The @{term bogus} operations are the ones that lead into the uncouth
   situation; @{term bogus_path} is the key position within the
   file-system where things go awry.
-*}
+\<close>
 
 
-subsection {* Invariance lemmas \label{sec:unix-inv-lemmas} *}
+subsection \<open>Invariance lemmas \label{sec:unix-inv-lemmas}\<close>
 
-text {*
+text \<open>
   The following invariant over the root file-system describes the
   bogus situation in an abstract manner: located at a certain @{term
   path} within the file-system is a non-empty directory that is
   neither owned nor writable by @{term user\<^sub>1}.
-*}
+\<close>
 
 definition
   "invariant root path =
@@ -850,7 +850,7 @@ definition
       user\<^sub>1 \<noteq> owner att \<and>
       access root path user\<^sub>1 {Writable} = None)"
 
-text {*
+text \<open>
   Following the general procedure (see
   \secref{sec:unix-inv-procedure}) we will now establish the three key
   lemmas required to yield the final result.
@@ -880,7 +880,7 @@ text {*
 
   \medskip The first two lemmas are technically straight forward ---
   we just have to inspect rather special cases.
-*}
+\<close>
 
 lemma cannot_rmdir:
   assumes inv: "invariant root bogus_path"
@@ -913,13 +913,13 @@ lemma
     -- "check the invariant"
   done
 
-text {*
+text \<open>
   \medskip At last we are left with the main effort to show that the
   ``bogosity'' invariant is preserved by any file-system operation
   performed by @{term user\<^sub>1} alone.  Note that this holds for
   any @{term path} given, the particular @{term bogus_path} is not
   required here.
-*}
+\<close>
 
 lemma preserve_invariant:
   assumes tr: "root \<midarrow>x\<rightarrow> root'"
@@ -1056,13 +1056,13 @@ proof -
 qed
 
 
-subsection {* Putting it all together \label{sec:unix-main-result} *}
+subsection \<open>Putting it all together \label{sec:unix-main-result}\<close>
 
-text {*
+text \<open>
   The main result is now imminent, just by composing the three
   invariance lemmas (see \secref{sec:unix-inv-lemmas}) according the the
   overall procedure (see \secref{sec:unix-inv-procedure}).
-*}
+\<close>
 
 corollary
   assumes bogus: "init users =bogus\<Rightarrow> root"

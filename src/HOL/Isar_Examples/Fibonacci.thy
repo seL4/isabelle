@@ -12,21 +12,21 @@ Fibonacci numbers: proofs of laws taken from
   (Addison-Wesley, 1989)
 *)
 
-header {* Fib and Gcd commute *}
+header \<open>Fib and Gcd commute\<close>
 
 theory Fibonacci
 imports "../Number_Theory/Primes"
 begin
 
-text_raw {* \footnote{Isar version by Gertrud Bauer.  Original tactic
+text_raw \<open>\footnote{Isar version by Gertrud Bauer.  Original tactic
   script by Larry Paulson.  A few proofs of laws taken from
-  \cite{Concrete-Math}.} *}
+  @{cite "Concrete-Math"}.}\<close>
 
 
 declare One_nat_def [simp]
 
 
-subsection {* Fibonacci numbers *}
+subsection \<open>Fibonacci numbers\<close>
 
 fun fib :: "nat \<Rightarrow> nat" where
   "fib 0 = 0"
@@ -37,7 +37,7 @@ lemma [simp]: "fib (Suc n) > 0"
   by (induct n rule: fib.induct) simp_all
 
 
-text {* Alternative induction rule. *}
+text \<open>Alternative induction rule.\<close>
 
 theorem fib_induct:
   fixes n :: nat
@@ -45,14 +45,14 @@ theorem fib_induct:
   by (induct rule: fib.induct) simp_all
 
 
-subsection {* Fib and gcd commute *}
+subsection \<open>Fib and gcd commute\<close>
 
-text {* A few laws taken from \cite{Concrete-Math}. *}
+text \<open>A few laws taken from @{cite "Concrete-Math"}.\<close>
 
 lemma fib_add:
   "fib (n + k + 1) = fib (k + 1) * fib (n + 1) + fib k * fib n"
   (is "?P n")
-  -- {* see \cite[page 280]{Concrete-Math} *}
+  -- \<open>see @{cite \<open>page 280\<close> "Concrete-Math"}\<close>
 proof (induct n rule: fib_induct)
   show "?P 0" by simp
   show "?P 1" by simp
@@ -93,7 +93,7 @@ proof -
   assume "0 < n"
   then have "gcd (n * k + m) n = gcd n (m mod n)"
     by (simp add: gcd_non_0_nat add.commute)
-  also from `0 < n` have "\<dots> = gcd m n"
+  also from \<open>0 < n\<close> have "\<dots> = gcd m n"
     by (simp add: gcd_non_0_nat)
   finally show ?thesis .
 qed
@@ -124,7 +124,7 @@ lemma gcd_fib_diff:
 proof -
   have "gcd (fib m) (fib (n - m)) = gcd (fib m) (fib (n - m + m))"
     by (simp add: gcd_fib_add)
-  also from `m \<le> n` have "n - m + m = n"
+  also from \<open>m \<le> n\<close> have "n - m + m = n"
     by simp
   finally show ?thesis .
 qed
@@ -145,12 +145,12 @@ proof (induct n rule: nat_less_induct)
     next
       case False
       then have "m \<le> n" by simp
-      from `0 < m` and False have "n - m < n"
+      from \<open>0 < m\<close> and False have "n - m < n"
         by simp
       with hyp have "gcd (fib m) (fib ((n - m) mod m))
           = gcd (fib m) (fib (n - m))" by simp
       also have "\<dots> = gcd (fib m) (fib n)"
-        using `m \<le> n` by (rule gcd_fib_diff)
+        using \<open>m \<le> n\<close> by (rule gcd_fib_diff)
       finally have "gcd (fib m) (fib ((n - m) mod m)) =
           gcd (fib m) (fib n)" .
       with False show ?thesis by simp

@@ -2,13 +2,13 @@
     Author:     Makarius
 *)
 
-header {* Some algebraic identities derived from group axioms -- theory context version *}
+header \<open>Some algebraic identities derived from group axioms -- theory context version\<close>
 
 theory Group_Context
 imports Main
 begin
 
-text {* hypothetical group axiomatization *}
+text \<open>hypothetical group axiomatization\<close>
 
 context
   fixes prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "**" 70)
@@ -19,7 +19,7 @@ context
     and left_inverse: "inverse x ** x = one"
 begin
 
-text {* some consequences *}
+text \<open>some consequences\<close>
 
 lemma right_inverse: "x ** inverse x = one"
 proof -

@@ -2,13 +2,13 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Nested environments *}
+header \<open>Nested environments\<close>
 
 theory Nested_Environment
 imports Main
 begin
 
-text {*
+text \<open>
   Consider a partial function @{term [source] "e :: 'a \<Rightarrow> 'b option"};
   this may be understood as an \emph{environment} mapping indexes
   @{typ 'a} to optional entry values @{typ 'b} (cf.\ the basic theory
@@ -17,31 +17,31 @@ text {*
   basic values or again proper environments.  Then each entry is
   accessed by a \emph{path}, i.e.\ a list of indexes leading to its
   position within the structure.
-*}
+\<close>
 
 datatype (dead 'a, dead 'b, dead 'c) env =
     Val 'a
   | Env 'b  "'c \<Rightarrow> ('a, 'b, 'c) env option"
 
-text {*
+text \<open>
   \medskip In the type @{typ "('a, 'b, 'c) env"} the parameter @{typ
   'a} refers to basic values (occurring in terminal positions), type
   @{typ 'b} to values associated with proper (inner) environments, and
   type @{typ 'c} with the index type for branching.  Note that there
   is no restriction on any of these types.  In particular, arbitrary
   branching may yield rather large (transfinite) tree structures.
-*}
+\<close>
 
 
-subsection {* The lookup operation *}
+subsection \<open>The lookup operation\<close>
 
-text {*
+text \<open>
   Lookup in nested environments works by following a given path of
   index elements, leading to an optional result (a terminal value or
   nested environment).  A \emph{defined position} within a nested
   environment is one where @{term lookup} at its path does not yield
   @{term None}.
-*}
+\<close>
 
 primrec lookup :: "('a, 'b, 'c) env \<Rightarrow> 'c list \<Rightarrow> ('a, 'b, 'c) env option"
   and lookup_option :: "('a, 'b, 'c) env option \<Rightarrow> 'c list \<Rightarrow> ('a, 'b, 'c) env option"
@@ -56,10 +56,10 @@ where
 
 hide_const lookup_option
 
-text {*
+text \<open>
   \medskip The characteristic cases of @{term lookup} are expressed by
   the following equalities.
-*}
+\<close>
 
 theorem lookup_nil: "lookup e [] = Some e"
   by (cases e) simp_all
@@ -90,12 +90,12 @@ theorem lookup_eq:
           | Some e \<Rightarrow> lookup e xs)))"
   by (simp split: list.split env.split)
 
-text {*
+text \<open>
   \medskip Displaced @{term lookup} operations, relative to a certain
   base path prefix, may be reduced as follows.  There are two cases,
   depending whether the environment actually extends far enough to
   follow the base path.
-*}
+\<close>
 
 theorem lookup_append_none:
   assumes "lookup env xs = None"
@@ -119,7 +119,7 @@ next
       with Env show ?thesis by simp
     next
       case (Some e)
-      note es = `es x = Some e`
+      note es = \<open>es x = Some e\<close>
       show ?thesis
       proof (cases "lookup e xs")
         case None
@@ -144,7 +144,7 @@ proof (induct xs arbitrary: env e)
   then show "lookup env ([] @ ys) = lookup e ys" by simp
 next
   case (Cons x xs)
-  note asm = `lookup env (x # xs) = Some e`
+  note asm = \<open>lookup env (x # xs) = Some e\<close>
   show "lookup env ((x # xs) @ ys) = lookup e ys"
   proof (cases env)
     case (Val a)
@@ -159,7 +159,7 @@ next
       then show ?thesis ..
     next
       case (Some e')
-      note es = `es x = Some e'`
+      note es = \<open>es x = Some e'\<close>
       show ?thesis
       proof (cases "lookup e' xs")
         case None
@@ -176,12 +176,12 @@ next
   qed
 qed
 
-text {*
+text \<open>
   \medskip Successful @{term lookup} deeper down an environment
   structure means we are able to peek further up as well.  Note that
   this is basically just the contrapositive statement of @{thm
   [source] lookup_append_none} above.
-*}
+\<close>
 
 theorem lookup_some_append:
   assumes "lookup env (xs @ ys) = Some e"
@@ -193,11 +193,11 @@ proof -
   then show ?thesis by (simp)
 qed
 
-text {*
+text \<open>
   The subsequent statement describes in more detail how a successful
   @{term lookup} with a non-empty path results in a certain situation
   at any upper position.
-*}
+\<close>
 
 theorem lookup_some_upper:
   assumes "lookup env (xs @ y # ys) = Some e"
@@ -236,14 +236,14 @@ next
 qed
 
 
-subsection {* The update operation *}
+subsection \<open>The update operation\<close>
 
-text {*
+text \<open>
   Update at a certain position in a nested environment may either
   delete an existing entry, or overwrite an existing one.  Note that
   update at undefined positions is simple absorbed, i.e.\ the
   environment is left unchanged.
-*}
+\<close>
 
 primrec update :: "'c list \<Rightarrow> ('a, 'b, 'c) env option \<Rightarrow>
     ('a, 'b, 'c) env \<Rightarrow> ('a, 'b, 'c) env"
@@ -264,10 +264,10 @@ where
 
 hide_const update_option
 
-text {*
+text \<open>
   \medskip The characteristic cases of @{term update} are expressed by
   the following equalities.
-*}
+\<close>
 
 theorem update_nil_none: "update [] None env = env"
   by (cases env) simp_all
@@ -314,11 +314,11 @@ lemma update_eq:
                   | Some e \<Rightarrow> Some (update (y # ys) opt e)))))))"
   by (simp split: list.split env.split option.split)
 
-text {*
+text \<open>
   \medskip The most basic correspondence of @{term lookup} and @{term
   update} states that after @{term update} at a defined position,
   subsequent @{term lookup} operations would yield the new value.
-*}
+\<close>
 
 theorem lookup_update_some:
   assumes "lookup env xs = Some e"
@@ -331,7 +331,7 @@ proof (induct xs arbitrary: env e)
 next
   case (Cons x xs)
   note hyp = Cons.hyps
-    and asm = `lookup env (x # xs) = Some e`
+    and asm = \<open>lookup env (x # xs) = Some e\<close>
   show ?case
   proof (cases env)
     case (Val a)
@@ -346,7 +346,7 @@ next
       then show ?thesis ..
     next
       case (Some e')
-      note es = `es x = Some e'`
+      note es = \<open>es x = Some e'\<close>
       show ?thesis
       proof (cases xs)
         case Nil
@@ -361,13 +361,13 @@ next
   qed
 qed
 
-text {*
+text \<open>
   \medskip The properties of displaced @{term update} operations are
   analogous to those of @{term lookup} above.  There are two cases:
   below an undefined position @{term update} is absorbed altogether,
   and below a defined positions @{term update} affects subsequent
   @{term lookup} operations in the obvious way.
-*}
+\<close>
 
 theorem update_append_none:
   assumes "lookup env xs = None"
@@ -380,7 +380,7 @@ proof (induct xs arbitrary: env)
 next
   case (Cons x xs)
   note hyp = Cons.hyps
-    and asm = `lookup env (x # xs) = None`
+    and asm = \<open>lookup env (x # xs) = None\<close>
   show "update ((x # xs) @ y # ys) opt env = env"
   proof (cases env)
     case (Val a)
@@ -390,12 +390,12 @@ next
     show ?thesis
     proof (cases "es x")
       case None
-      note es = `es x = None`
+      note es = \<open>es x = None\<close>
       show ?thesis
         by (cases xs) (simp_all add: es Env fun_upd_idem_iff)
     next
       case (Some e)
-      note es = `es x = Some e`
+      note es = \<open>es x = Some e\<close>
       show ?thesis
       proof (cases xs)
         case Nil
@@ -423,7 +423,7 @@ proof (induct xs arbitrary: env e)
 next
   case (Cons x xs)
   note hyp = Cons.hyps
-    and asm = `lookup env (x # xs) = Some e`
+    and asm = \<open>lookup env (x # xs) = Some e\<close>
   show "lookup (update ((x # xs) @ y # ys) opt env) (x # xs) =
       Some (update (y # ys) opt e)"
   proof (cases env)
@@ -439,7 +439,7 @@ next
       then show ?thesis ..
     next
       case (Some e')
-      note es = `es x = Some e'`
+      note es = \<open>es x = Some e'\<close>
       show ?thesis
       proof (cases xs)
         case Nil
@@ -456,12 +456,12 @@ next
   qed
 qed
 
-text {*
+text \<open>
   \medskip Apparently, @{term update} does not affect the result of
   subsequent @{term lookup} operations at independent positions, i.e.\
   in case that the paths for @{term update} and @{term lookup} fork at
   a certain point.
-*}
+\<close>
 
 theorem lookup_update_other:
   assumes neq: "y \<noteq> (z::'c)"
@@ -519,7 +519,7 @@ next
 qed
 
 
-subsection {* Code generation *}
+subsection \<open>Code generation\<close>
 
 lemma [code, code del]:
   "(HOL.equal :: (_, _, _) env \<Rightarrow> _) = HOL.equal" ..
@@ -549,7 +549,7 @@ proof (unfold equal)
     show ?lhs
     proof
       fix z
-      from `?rhs` have "?prop z" ..
+      from \<open>?rhs\<close> have "?prop z" ..
       then show "f z = g z" by (auto split: option.splits)
     qed
   qed

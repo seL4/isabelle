@@ -2,17 +2,17 @@
     Author:     Makarius
 *)
 
-header {* The Drinker's Principle *}
+header \<open>The Drinker's Principle\<close>
 
 theory Drinker
 imports Main
 begin
 
-text {* Here is another example of classical reasoning: the Drinker's
+text \<open>Here is another example of classical reasoning: the Drinker's
   Principle says that for some person, if he is drunk, everybody else
   is drunk!
 
-  We first prove a classical part of de-Morgan's law. *}
+  We first prove a classical part of de-Morgan's law.\<close>
 
 lemma de_Morgan:
   assumes "\<not> (\<forall>x. P x)"
@@ -25,10 +25,10 @@ proof (rule classical)
     proof (rule classical)
       assume "\<not> P x"
       then have "\<exists>x. \<not> P x" ..
-      with `\<not> (\<exists>x. \<not> P x)` show ?thesis by contradiction
+      with \<open>\<not> (\<exists>x. \<not> P x)\<close> show ?thesis by contradiction
     qed
   qed
-  with `\<not> (\<forall>x. P x)` show ?thesis by contradiction
+  with \<open>\<not> (\<forall>x. P x)\<close> show ?thesis by contradiction
 qed
 
 theorem Drinker's_Principle: "\<exists>x. drunk x \<longrightarrow> (\<forall>x. drunk x)"

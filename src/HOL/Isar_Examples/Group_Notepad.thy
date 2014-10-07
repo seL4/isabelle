@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header {* Some algebraic identities derived from group axioms -- proof notepad version *}
+header \<open>Some algebraic identities derived from group axioms -- proof notepad version\<close>
 
 theory Group_Notepad
 imports Main
@@ -10,7 +10,7 @@ begin
 
 notepad
 begin
-  txt {* hypothetical group axiomatization *}
+  txt \<open>hypothetical group axiomatization\<close>
 
   fix prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "**" 70)
     and one :: "'a"
@@ -19,7 +19,7 @@ begin
     and left_one: "\<And>x. one ** x = x"
     and left_inverse: "\<And>x. inverse x ** x = one"
 
-  txt {* some consequences *}
+  txt \<open>some consequences\<close>
 
   have right_inverse: "\<And>x. x ** inverse x = one"
   proof -

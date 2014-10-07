@@ -129,6 +129,12 @@ Minor INCOMPATIBILITY.
 PARALLEL_GOALS.
 
 
+*** System ***
+
+* The Isabelle tool "update_cartouches" changes theory files to use
+cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
+
+
 
 New in Isabelle2014 (August 2014)
 ---------------------------------

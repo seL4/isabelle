@@ -116,6 +116,12 @@ object File
     File.write(path, text)
   }
 
+  def write_backup2(path: Path, text: CharSequence)
+  {
+    path.file renameTo path.backup2.file
+    File.write(path, text)
+  }
+
 
   /* copy */
 
