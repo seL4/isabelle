@@ -1,10 +1,10 @@
-header {* Nested datatypes *}
+header \<open>Nested datatypes\<close>
 
 theory Nested_Datatype
 imports Main
 begin
 
-subsection {* Terms and substitution *}
+subsection \<open>Terms and substitution\<close>
 
 datatype ('a, 'b) "term" =
   Var 'a
@@ -20,7 +20,7 @@ where
 
 lemmas subst_simps = subst_term.simps subst_term_list.simps
 
-text {* \medskip A simple lemma about composition of substitutions. *}
+text \<open>\medskip A simple lemma about composition of substitutions.\<close>
 
 lemma
   "subst_term (subst_term f1 \<circ> f2) t =
@@ -52,7 +52,7 @@ proof -
 qed
 
 
-subsection {* Alternative induction *}
+subsection \<open>Alternative induction\<close>
 
 lemma "subst_term (subst_term f1 \<circ> f2) t = subst_term f1 (subst_term f2 t)"
 proof (induct t rule: term.induct)

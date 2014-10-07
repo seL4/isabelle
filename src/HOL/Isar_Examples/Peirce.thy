@@ -2,13 +2,13 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Peirce's Law *}
+header \<open>Peirce's Law\<close>
 
 theory Peirce
 imports Main
 begin
 
-text {* We consider Peirce's Law: $((A \impl B) \impl A) \impl A$.
+text \<open>We consider Peirce's Law: $((A \impl B) \impl A) \impl A$.
   This is an inherently non-intuitionistic statement, so its proof
   will certainly involve some form of classical contradiction.
 
@@ -17,7 +17,7 @@ text {* We consider Peirce's Law: $((A \impl B) \impl A) \impl A$.
   the negated goal may be introduced as additional assumption.  This
   eventually leads to a contradiction.\footnote{The rule involved
   there is negation elimination; it holds in intuitionistic logic as
-  well.} *}
+  well.}\<close>
 
 theorem "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
 proof
@@ -28,13 +28,13 @@ proof
     have "A \<longrightarrow> B"
     proof
       assume A
-      with `\<not> A` show B by contradiction
+      with \<open>\<not> A\<close> show B by contradiction
     qed
-    with `(A \<longrightarrow> B) \<longrightarrow> A` show A ..
+    with \<open>(A \<longrightarrow> B) \<longrightarrow> A\<close> show A ..
   qed
 qed
 
-text {* In the subsequent version the reasoning is rearranged by means
+text \<open>In the subsequent version the reasoning is rearranged by means
   of ``weak assumptions'' (as introduced by \isacommand{presume}).
   Before assuming the negated goal $\neg A$, its intended consequence
   $A \impl B$ is put into place in order to solve the main problem.
@@ -46,7 +46,7 @@ text {* In the subsequent version the reasoning is rearranged by means
   \isacommand{show} in the context of weak assumptions then the latter
   give rise to new subgoals, which may be established separately.  In
   contrast, strong assumptions (as introduced by \isacommand{assume})
-  are solved immediately. *}
+  are solved immediately.\<close>
 
 theorem "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
 proof
@@ -54,18 +54,18 @@ proof
   show A
   proof (rule classical)
     presume "A \<longrightarrow> B"
-    with `(A \<longrightarrow> B) \<longrightarrow> A` show A ..
+    with \<open>(A \<longrightarrow> B) \<longrightarrow> A\<close> show A ..
   next
     assume "\<not> A"
     show "A \<longrightarrow> B"
     proof
       assume A
-      with `\<not> A` show B by contradiction
+      with \<open>\<not> A\<close> show B by contradiction
     qed
   qed
 qed
 
-text {* Note that the goals stemming from weak assumptions may be even
+text \<open>Note that the goals stemming from weak assumptions may be even
   left until qed time, where they get eventually solved ``by
   assumption'' as well.  In that case there is really no fundamental
   difference between the two kinds of assumptions, apart from the
@@ -80,6 +80,6 @@ text {* Note that the goals stemming from weak assumptions may be even
   several goals that only differ in there local contexts.  With strong
   assumptions these may be still solved in any order in a predictable
   way, while weak ones would quickly lead to great confusion,
-  eventually demanding even some backtracking. *}
+  eventually demanding even some backtracking.\<close>
 
 end

@@ -3,16 +3,16 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory (original scripts)
 *)
 
-header {* The Mutilated Checker Board Problem *}
+header \<open>The Mutilated Checker Board Problem\<close>
 
 theory Mutilated_Checkerboard
 imports Main
 begin
 
-text {* The Mutilated Checker Board Problem, formalized inductively.
-  See \cite{paulson-mutilated-board} for the original tactic script version. *}
+text \<open>The Mutilated Checker Board Problem, formalized inductively.
+  See @{cite "paulson-mutilated-board"} for the original tactic script version.\<close>
 
-subsection {* Tilings *}
+subsection \<open>Tilings\<close>
 
 inductive_set tiling :: "'a set set \<Rightarrow> 'a set set"
   for A :: "'a set set"
@@ -21,7 +21,7 @@ where
 | Un: "a \<in> A \<Longrightarrow> t \<in> tiling A \<Longrightarrow> a \<subseteq> - t \<Longrightarrow> a \<union> t \<in> tiling A"
 
 
-text "The union of two disjoint tilings is a tiling."
+text \<open>The union of two disjoint tilings is a tiling.\<close>
 
 lemma tiling_Un:
   assumes "t \<in> tiling A"
@@ -30,21 +30,21 @@ lemma tiling_Un:
   shows "t \<union> u \<in> tiling A"
 proof -
   let ?T = "tiling A"
-  from `t \<in> ?T` and `t \<inter> u = {}`
+  from \<open>t \<in> ?T\<close> and \<open>t \<inter> u = {}\<close>
   show "t \<union> u \<in> ?T"
   proof (induct t)
     case empty
-    with `u \<in> ?T` show "{} \<union> u \<in> ?T" by simp
+    with \<open>u \<in> ?T\<close> show "{} \<union> u \<in> ?T" by simp
   next
     case (Un a t)
     show "(a \<union> t) \<union> u \<in> ?T"
     proof -
       have "a \<union> (t \<union> u) \<in> ?T"
-        using `a \<in> A`
+        using \<open>a \<in> A\<close>
       proof (rule tiling.Un)
-        from `(a \<union> t) \<inter> u = {}` have "t \<inter> u = {}" by blast
+        from \<open>(a \<union> t) \<inter> u = {}\<close> have "t \<inter> u = {}" by blast
         then show "t \<union> u \<in> ?T" by (rule Un)
-        from `a \<subseteq> - t` and `(a \<union> t) \<inter> u = {}`
+        from \<open>a \<subseteq> - t\<close> and \<open>(a \<union> t) \<inter> u = {}\<close>
         show "a \<subseteq> - (t \<union> u)" by blast
       qed
       also have "a \<union> (t \<union> u) = (a \<union> t) \<union> u"
@@ -55,7 +55,7 @@ proof -
 qed
 
 
-subsection {* Basic properties of ``below'' *}
+subsection \<open>Basic properties of ``below''\<close>
 
 definition below :: "nat \<Rightarrow> nat set"
   where "below n = {i. i < n}"
@@ -77,7 +77,7 @@ lemma Sigma_Suc2:
 lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2
 
 
-subsection {* Basic properties of ``evnodd'' *}
+subsection \<open>Basic properties of ``evnodd''\<close>
 
 definition evnodd :: "(nat \<times> nat) set \<Rightarrow> nat \<Rightarrow> (nat \<times> nat) set"
   where "evnodd A b = A \<inter> {(i, j). (i + j) mod 2 = b}"
@@ -109,7 +109,7 @@ lemma evnodd_insert: "evnodd (insert (i, j) C) b =
   by (simp add: evnodd_def)
 
 
-subsection {* Dominoes *}
+subsection \<open>Dominoes\<close>
 
 inductive_set domino :: "(nat \<times> nat) set set"
 where
@@ -164,7 +164,7 @@ lemma domino_singleton:
   shows "\<exists>i j. evnodd d b = {(i, j)}"  (is "?P d")
   using assms
 proof induct
-  from `b < 2` have b_cases: "b = 0 \<or> b = 1" by arith
+  from \<open>b < 2\<close> have b_cases: "b = 0 \<or> b = 1" by arith
   fix i j
   note [simp] = evnodd_empty evnodd_insert mod_Suc
   from b_cases show "?P {(i, j), (i, j + 1)}" by rule auto
@@ -182,7 +182,7 @@ proof induct
 qed
 
 
-subsection {* Tilings of dominoes *}
+subsection \<open>Tilings of dominoes\<close>
 
 lemma tiling_domino_finite:
   assumes t: "t \<in> tiling domino"  (is "t \<in> ?T")
@@ -193,7 +193,7 @@ proof induct
   fix a t assume "?F t"
   assume "a \<in> domino"
   then have "?F a" by (rule domino_finite)
-  from this and `?F t` show "?F (a \<union> t)" by (rule finite_UnI)
+  from this and \<open>?F t\<close> show "?F (a \<union> t)" by (rule finite_UnI)
 qed
 
 lemma tiling_domino_01:
@@ -206,8 +206,8 @@ proof induct
 next
   case (Un a t)
   let ?e = evnodd
-  note hyp = `card (?e t 0) = card (?e t 1)`
-    and at = `a \<subseteq> - t`
+  note hyp = \<open>card (?e t 0) = card (?e t 1)\<close>
+    and at = \<open>a \<subseteq> - t\<close>
   have card_suc:
     "\<And>b. b < 2 \<Longrightarrow> card (?e (a \<union> t) b) = Suc (card (?e t b))"
   proof -
@@ -216,14 +216,14 @@ next
     have "?e (a \<union> t) b = ?e a b \<union> ?e t b" by (rule evnodd_Un)
     also obtain i j where e: "?e a b = {(i, j)}"
     proof -
-      from `a \<in> domino` and `b < 2`
+      from \<open>a \<in> domino\<close> and \<open>b < 2\<close>
       have "\<exists>i j. ?e a b = {(i, j)}" by (rule domino_singleton)
       then show ?thesis by (blast intro: that)
     qed
     also have "\<dots> \<union> ?e t b = insert (i, j) (?e t b)" by simp
     also have "card \<dots> = Suc (card (?e t b))"
     proof (rule card_insert_disjoint)
-      from `t \<in> tiling domino` have "finite t"
+      from \<open>t \<in> tiling domino\<close> have "finite t"
         by (rule tiling_domino_finite)
       then show "finite (?e t b)"
         by (rule evnodd_finite)
@@ -240,7 +240,7 @@ next
 qed
 
 
-subsection {* Main theorem *}
+subsection \<open>Main theorem\<close>
 
 definition mutilated_board :: "nat \<Rightarrow> nat \<Rightarrow> (nat \<times> nat) set"
   where

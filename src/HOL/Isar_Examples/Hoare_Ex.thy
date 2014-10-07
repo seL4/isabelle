@@ -1,14 +1,14 @@
-header {* Using Hoare Logic *}
+header \<open>Using Hoare Logic\<close>
 
 theory Hoare_Ex
 imports Hoare
 begin
 
-subsection {* State spaces *}
+subsection \<open>State spaces\<close>
 
-text {* First of all we provide a store of program variables that
+text \<open>First of all we provide a store of program variables that
   occur in any of the programs considered later.  Slightly unexpected
-  things may happen when attempting to work with undeclared variables. *}
+  things may happen when attempting to work with undeclared variables.\<close>
 
 record vars =
   I :: nat
@@ -16,29 +16,29 @@ record vars =
   N :: nat
   S :: nat
 
-text {* While all of our variables happen to have the same type,
+text \<open>While all of our variables happen to have the same type,
   nothing would prevent us from working with many-sorted programs as
   well, or even polymorphic ones.  Also note that Isabelle/HOL's
   extensible record types even provides simple means to extend the
-  state space later. *}
+  state space later.\<close>
 
 
-subsection {* Basic examples *}
+subsection \<open>Basic examples\<close>
 
-text {* We look at few trivialities involving assignment and
+text \<open>We look at few trivialities involving assignment and
   sequential composition, in order to get an idea of how to work with
-  our formulation of Hoare Logic. *}
+  our formulation of Hoare Logic.\<close>
 
-text {* Using the basic @{text assign} rule directly is a bit
-  cumbersome. *}
+text \<open>Using the basic @{text assign} rule directly is a bit
+  cumbersome.\<close>
 
 lemma "\<turnstile> \<lbrace>\<acute>(N_update (\<lambda>_. (2 * \<acute>N))) \<in> \<lbrace>\<acute>N = 10\<rbrace>\<rbrace> \<acute>N := 2 * \<acute>N \<lbrace>\<acute>N = 10\<rbrace>"
   by (rule assign)
 
-text {* Certainly we want the state modification already done, e.g.\
+text \<open>Certainly we want the state modification already done, e.g.\
   by simplification.  The \name{hoare} method performs the basic state
   update for us; we may apply the Simplifier afterwards to achieve
-  ``obvious'' consequences as well. *}
+  ``obvious'' consequences as well.\<close>
 
 lemma "\<turnstile> \<lbrace>True\<rbrace> \<acute>N := 10 \<lbrace>\<acute>N = 10\<rbrace>"
   by hoare
@@ -67,10 +67,10 @@ lemma
       \<lbrace>\<acute>M = b \<and> \<acute>N = a\<rbrace>"
   by hoare simp
 
-text {* It is important to note that statements like the following one
+text \<open>It is important to note that statements like the following one
   can only be proven for each individual program variable.  Due to the
   extra-logical nature of record fields, we cannot formulate a theorem
-  relating record selectors and updates schematically. *}
+  relating record selectors and updates schematically.\<close>
 
 lemma "\<turnstile> \<lbrace>\<acute>N = a\<rbrace> \<acute>N := \<acute>N \<lbrace>\<acute>N = a\<rbrace>"
   by hoare
@@ -80,13 +80,13 @@ lemma "\<turnstile> \<lbrace>\<acute>x = a\<rbrace> \<acute>x := \<acute>x \<lbr
 
 lemma
   "Valid {s. x s = a} (Basic (\<lambda>s. x_update (x s) s)) {s. x s = n}"
-  -- {* same statement without concrete syntax *}
+  -- \<open>same statement without concrete syntax\<close>
   oops
 
 
-text {* In the following assignments we make use of the consequence
+text \<open>In the following assignments we make use of the consequence
   rule in order to achieve the intended precondition.  Certainly, the
-  \name{hoare} method is able to handle this case, too. *}
+  \name{hoare} method is able to handle this case, too.\<close>
 
 lemma "\<turnstile> \<lbrace>\<acute>M = \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
 proof -
@@ -100,8 +100,8 @@ qed
 lemma "\<turnstile> \<lbrace>\<acute>M = \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
 proof -
   have "\<And>m n::nat. m = n \<longrightarrow> m + 1 \<noteq> n"
-      -- {* inclusion of assertions expressed in ``pure'' logic, *}
-      -- {* without mentioning the state space *}
+      -- \<open>inclusion of assertions expressed in ``pure'' logic,\<close>
+      -- \<open>without mentioning the state space\<close>
     by simp
   also have "\<turnstile> \<lbrace>\<acute>M + 1 \<noteq> \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
     by hoare
@@ -112,12 +112,12 @@ lemma "\<turnstile> \<lbrace>\<acute>M = \<acute>N\<rbrace> \<acute>M := \<acute
   by hoare simp
 
 
-subsection {* Multiplication by addition *}
+subsection \<open>Multiplication by addition\<close>
 
-text {* We now do some basic examples of actual \texttt{WHILE}
+text \<open>We now do some basic examples of actual \texttt{WHILE}
   programs.  This one is a loop for calculating the product of two
   natural numbers, by iterated addition.  We first give detailed
-  structured proof based on single-step Hoare rules. *}
+  structured proof based on single-step Hoare rules.\<close>
 
 lemma
   "\<turnstile> \<lbrace>\<acute>M = 0 \<and> \<acute>S = 0\<rbrace>
@@ -141,10 +141,10 @@ proof -
   finally show ?thesis .
 qed
 
-text {* The subsequent version of the proof applies the @{text hoare}
+text \<open>The subsequent version of the proof applies the @{text hoare}
   method to reduce the Hoare statement to a purely logical problem
   that can be solved fully automatically.  Note that we have to
-  specify the \texttt{WHILE} loop invariant in the original statement. *}
+  specify the \texttt{WHILE} loop invariant in the original statement.\<close>
 
 lemma
   "\<turnstile> \<lbrace>\<acute>M = 0 \<and> \<acute>S = 0\<rbrace>
@@ -155,17 +155,17 @@ lemma
   by hoare auto
 
 
-subsection {* Summing natural numbers *}
+subsection \<open>Summing natural numbers\<close>
 
-text {* We verify an imperative program to sum natural numbers up to a
+text \<open>We verify an imperative program to sum natural numbers up to a
   given limit.  First some functional definition for proper
-  specification of the problem. *}
+  specification of the problem.\<close>
 
-text {* The following proof is quite explicit in the individual steps
+text \<open>The following proof is quite explicit in the individual steps
   taken, with the \name{hoare} method only applied locally to take
   care of assignment and sequential composition.  Note that we express
   intermediate proof obligation in pure logic, without referring to
-  the state space. *}
+  the state space.\<close>
 
 theorem
   "\<turnstile> \<lbrace>True\<rbrace>
@@ -203,9 +203,9 @@ proof -
   finally show ?thesis .
 qed
 
-text {* The next version uses the @{text hoare} method, while still
+text \<open>The next version uses the @{text hoare} method, while still
   explaining the resulting proof obligations in an abstract,
-  structured manner. *}
+  structured manner.\<close>
 
 theorem
   "\<turnstile> \<lbrace>True\<rbrace>
@@ -235,8 +235,8 @@ proof -
   qed
 qed
 
-text {* Certainly, this proof may be done fully automatic as well,
-  provided that the invariant is given beforehand. *}
+text \<open>Certainly, this proof may be done fully automatic as well,
+  provided that the invariant is given beforehand.\<close>
 
 theorem
   "\<turnstile> \<lbrace>True\<rbrace>
@@ -251,10 +251,10 @@ theorem
   by hoare auto
 
 
-subsection {* Time *}
+subsection \<open>Time\<close>
 
-text {* A simple embedding of time in Hoare logic: function @{text
-  timeit} inserts an extra variable to keep track of the elapsed time. *}
+text \<open>A simple embedding of time in Hoare logic: function @{text
+  timeit} inserts an extra variable to keep track of the elapsed time.\<close>
 
 record tstate = time :: nat
 

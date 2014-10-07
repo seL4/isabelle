@@ -4,40 +4,40 @@
 Correctness of a simple expression/stack-machine compiler.
 *)
 
-header {* Correctness of a simple expression compiler *}
+header \<open>Correctness of a simple expression compiler\<close>
 
 theory Expr_Compiler
 imports Main
 begin
 
-text {* This is a (rather trivial) example of program verification.
+text \<open>This is a (rather trivial) example of program verification.
   We model a compiler for translating expressions to stack machine
   instructions, and prove its correctness wrt.\ some evaluation
-  semantics. *}
+  semantics.\<close>
 
 
-subsection {* Binary operations *}
+subsection \<open>Binary operations\<close>
 
-text {* Binary operations are just functions over some type of values.
+text \<open>Binary operations are just functions over some type of values.
   This is both for abstract syntax and semantics, i.e.\ we use a
-  ``shallow embedding'' here. *}
+  ``shallow embedding'' here.\<close>
 
 type_synonym 'val binop = "'val \<Rightarrow> 'val \<Rightarrow> 'val"
 
 
-subsection {* Expressions *}
+subsection \<open>Expressions\<close>
 
-text {* The language of expressions is defined as an inductive type,
+text \<open>The language of expressions is defined as an inductive type,
   consisting of variables, constants, and binary operations on
-  expressions. *}
+  expressions.\<close>
 
 datatype (dead 'adr, dead 'val) expr =
     Variable 'adr
   | Constant 'val
   | Binop "'val binop" "('adr, 'val) expr" "('adr, 'val) expr"
 
-text {* Evaluation (wrt.\ some environment of variable assignments) is
-  defined by primitive recursion over the structure of expressions. *}
+text \<open>Evaluation (wrt.\ some environment of variable assignments) is
+  defined by primitive recursion over the structure of expressions.\<close>
 
 primrec eval :: "('adr, 'val) expr \<Rightarrow> ('adr \<Rightarrow> 'val) \<Rightarrow> 'val"
 where
@@ -46,18 +46,18 @@ where
 | "eval (Binop f e1 e2) env = f (eval e1 env) (eval e2 env)"
 
 
-subsection {* Machine *}
+subsection \<open>Machine\<close>
 
-text {* Next we model a simple stack machine, with three
-  instructions. *}
+text \<open>Next we model a simple stack machine, with three
+  instructions.\<close>
 
 datatype (dead 'adr, dead 'val) instr =
     Const 'val
   | Load 'adr
   | Apply "'val binop"
 
-text {* Execution of a list of stack machine instructions is easily
-  defined as follows. *}
+text \<open>Execution of a list of stack machine instructions is easily
+  defined as follows.\<close>
 
 primrec exec :: "(('adr, 'val) instr) list \<Rightarrow> 'val list \<Rightarrow> ('adr \<Rightarrow> 'val) \<Rightarrow> 'val list"
 where
@@ -73,10 +73,10 @@ definition execute :: "(('adr, 'val) instr) list \<Rightarrow> ('adr \<Rightarro
   where "execute instrs env = hd (exec instrs [] env)"
 
 
-subsection {* Compiler *}
+subsection \<open>Compiler\<close>
 
-text {* We are ready to define the compilation function of expressions
-  to lists of stack machine instructions. *}
+text \<open>We are ready to define the compilation function of expressions
+  to lists of stack machine instructions.\<close>
 
 primrec compile :: "('adr, 'val) expr \<Rightarrow> (('adr, 'val) instr) list"
 where
@@ -85,9 +85,9 @@ where
 | "compile (Binop f e1 e2) = compile e2 @ compile e1 @ [Apply f]"
 
 
-text {* The main result of this development is the correctness theorem
+text \<open>The main result of this development is the correctness theorem
   for @{text compile}.  We first establish a lemma about @{text exec}
-  and list append. *}
+  and list append.\<close>
 
 lemma exec_append:
   "exec (xs @ ys) stack env =
@@ -127,11 +127,11 @@ proof -
 qed
 
 
-text {* \bigskip In the proofs above, the @{text simp} method does
+text \<open>\bigskip In the proofs above, the @{text simp} method does
   quite a lot of work behind the scenes (mostly ``functional program
   execution'').  Subsequently, the same reasoning is elaborated in
   detail --- at most one recursive function definition is used at a
-  time.  Thus we get a better idea of what is actually going on. *}
+  time.  Thus we get a better idea of what is actually going on.\<close>
 
 lemma exec_append':
   "exec (xs @ ys) stack env = exec ys (exec xs stack env) env"
@@ -158,7 +158,7 @@ next
   next
     case (Load adr)
     from Cons show ?case
-      by simp -- {* same as above *}
+      by simp -- \<open>same as above\<close>
   next
     case (Apply fn)
     have "exec ((Apply fn # xs) @ ys) s env =
@@ -188,7 +188,7 @@ proof -
     finally show ?case .
   next
     case (Constant val s)
-    show ?case by simp -- {* same as above *}
+    show ?case by simp -- \<open>same as above\<close>
   next
     case (Binop fn e1 e2 s)
     have "exec (compile (Binop fn e1 e2)) s env =

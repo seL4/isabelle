@@ -4,19 +4,19 @@
 Basic propositional and quantifier reasoning.
 *)
 
-header {* Basic logical reasoning *}
+header \<open>Basic logical reasoning\<close>
 
 theory Basic_Logic
 imports Main
 begin
 
 
-subsection {* Pure backward reasoning *}
+subsection \<open>Pure backward reasoning\<close>
 
-text {* In order to get a first idea of how Isabelle/Isar proof
+text \<open>In order to get a first idea of how Isabelle/Isar proof
   documents may look like, we consider the propositions @{text I},
   @{text K}, and @{text S}.  The following (rather explicit) proofs
-  should require little extra explanations. *}
+  should require little extra explanations.\<close>
 
 lemma I: "A \<longrightarrow> A"
 proof
@@ -51,14 +51,14 @@ proof
   qed
 qed
 
-text {* Isar provides several ways to fine-tune the reasoning,
+text \<open>Isar provides several ways to fine-tune the reasoning,
   avoiding excessive detail.  Several abbreviated language elements
   are available, enabling the writer to express proofs in a more
   concise way, even without referring to any automated proof tools
   yet.
 
   First of all, proof by assumption may be abbreviated as a single
-  dot. *}
+  dot.\<close>
 
 lemma "A \<longrightarrow> A"
 proof
@@ -66,42 +66,42 @@ proof
   show A by fact+
 qed
 
-text {* In fact, concluding any (sub-)proof already involves solving
+text \<open>In fact, concluding any (sub-)proof already involves solving
   any remaining goals by assumption\footnote{This is not a completely
   trivial operation, as proof by assumption may involve full
   higher-order unification.}.  Thus we may skip the rather vacuous
-  body of the above proof as well. *}
+  body of the above proof as well.\<close>
 
 lemma "A \<longrightarrow> A"
 proof
 qed
 
-text {* Note that the \isacommand{proof} command refers to the @{text
+text \<open>Note that the \isacommand{proof} command refers to the @{text
   rule} method (without arguments) by default.  Thus it implicitly
   applies a single rule, as determined from the syntactic form of the
   statements involved.  The \isacommand{by} command abbreviates any
-  proof with empty body, so the proof may be further pruned. *}
+  proof with empty body, so the proof may be further pruned.\<close>
 
 lemma "A \<longrightarrow> A"
   by rule
 
-text {* Proof by a single rule may be abbreviated as double-dot. *}
+text \<open>Proof by a single rule may be abbreviated as double-dot.\<close>
 
 lemma "A \<longrightarrow> A" ..
 
-text {* Thus we have arrived at an adequate representation of the
+text \<open>Thus we have arrived at an adequate representation of the
   proof of a tautology that holds by a single standard
   rule.\footnote{Apparently, the rule here is implication
-  introduction.} *}
+  introduction.}\<close>
 
-text {* Let us also reconsider @{text K}.  Its statement is composed
+text \<open>Let us also reconsider @{text K}.  Its statement is composed
   of iterated connectives.  Basic decomposition is by a single rule at
   a time, which is why our first version above was by nesting two
   proofs.
 
   The @{text intro} proof method repeatedly decomposes a goal's
   conclusion.\footnote{The dual method is @{text elim}, acting on a
-  goal's premises.} *}
+  goal's premises.}\<close>
 
 lemma "A \<longrightarrow> B \<longrightarrow> A"
 proof (intro impI)
@@ -109,12 +109,12 @@ proof (intro impI)
   show A by fact
 qed
 
-text {* Again, the body may be collapsed. *}
+text \<open>Again, the body may be collapsed.\<close>
 
 lemma "A \<longrightarrow> B \<longrightarrow> A"
   by (intro impI)
 
-text {* Just like @{text rule}, the @{text intro} and @{text elim}
+text \<open>Just like @{text rule}, the @{text intro} and @{text elim}
   proof methods pick standard structural rules, in case no explicit
   arguments are given.  While implicit rules are usually just fine for
   single rule application, this may go too far with iteration.  Thus
@@ -127,18 +127,18 @@ text {* Just like @{text rule}, the @{text intro} and @{text elim}
   prime application of @{text intro} and @{text elim}.  In contrast,
   terminal steps that solve a goal completely are usually performed by
   actual automated proof methods (such as \isacommand{by}~@{text
-  blast}. *}
+  blast}.\<close>
 
 
-subsection {* Variations of backward vs.\ forward reasoning *}
+subsection \<open>Variations of backward vs.\ forward reasoning\<close>
 
-text {* Certainly, any proof may be performed in backward-style only.
+text \<open>Certainly, any proof may be performed in backward-style only.
   On the other hand, small steps of reasoning are often more naturally
   expressed in forward-style.  Isar supports both backward and forward
   reasoning as a first-class concept.  In order to demonstrate the
   difference, we consider several proofs of @{text "A \<and> B \<longrightarrow> B \<and> A"}.
 
-  The first version is purely backward. *}
+  The first version is purely backward.\<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
@@ -150,70 +150,70 @@ proof
   qed
 qed
 
-text {* Above, the @{text "conjunct_1/2"} projection rules had to be
+text \<open>Above, the @{text "conjunct_1/2"} projection rules had to be
   named explicitly, since the goals @{text B} and @{text A} did not
   provide any structural clue.  This may be avoided using
   \isacommand{from} to focus on the @{text "A \<and> B"} assumption as the
   current facts, enabling the use of double-dot proofs.  Note that
   \isacommand{from} already does forward-chaining, involving the
-  @{text conjE} rule here. *}
+  @{text conjE} rule here.\<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume "A \<and> B"
   show "B \<and> A"
   proof
-    from `A \<and> B` show B ..
-    from `A \<and> B` show A ..
+    from \<open>A \<and> B\<close> show B ..
+    from \<open>A \<and> B\<close> show A ..
   qed
 qed
 
-text {* In the next version, we move the forward step one level
+text \<open>In the next version, we move the forward step one level
   upwards.  Forward-chaining from the most recent facts is indicated
   by the \isacommand{then} command.  Thus the proof of @{text "B \<and> A"}
   from @{text "A \<and> B"} actually becomes an elimination, rather than an
   introduction.  The resulting proof structure directly corresponds to
   that of the @{text conjE} rule, including the repeated goal
-  proposition that is abbreviated as @{text ?thesis} below. *}
+  proposition that is abbreviated as @{text ?thesis} below.\<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume "A \<and> B"
   then show "B \<and> A"
-  proof                    -- {* rule @{text conjE} of @{text "A \<and> B"} *}
+  proof                    -- \<open>rule @{text conjE} of @{text "A \<and> B"}\<close>
     assume B A
-    then show ?thesis ..   -- {* rule @{text conjI} of @{text "B \<and> A"} *}
+    then show ?thesis ..   -- \<open>rule @{text conjI} of @{text "B \<and> A"}\<close>
   qed
 qed
 
-text {* In the subsequent version we flatten the structure of the main
+text \<open>In the subsequent version we flatten the structure of the main
   body by doing forward reasoning all the time.  Only the outermost
-  decomposition step is left as backward. *}
+  decomposition step is left as backward.\<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume "A \<and> B"
-  from `A \<and> B` have A ..
-  from `A \<and> B` have B ..
-  from `B` `A` show "B \<and> A" ..
+  from \<open>A \<and> B\<close> have A ..
+  from \<open>A \<and> B\<close> have B ..
+  from \<open>B\<close> \<open>A\<close> show "B \<and> A" ..
 qed
 
-text {* We can still push forward-reasoning a bit further, even at the
+text \<open>We can still push forward-reasoning a bit further, even at the
   risk of getting ridiculous.  Note that we force the initial proof
-  step to do nothing here, by referring to the ``-'' proof method. *}
+  step to do nothing here, by referring to the ``-'' proof method.\<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof -
   {
     assume "A \<and> B"
-    from `A \<and> B` have A ..
-    from `A \<and> B` have B ..
-    from `B` `A` have "B \<and> A" ..
+    from \<open>A \<and> B\<close> have A ..
+    from \<open>A \<and> B\<close> have B ..
+    from \<open>B\<close> \<open>A\<close> have "B \<and> A" ..
   }
-  then show ?thesis ..         -- {* rule @{text impI} *}
+  then show ?thesis ..         -- \<open>rule @{text impI}\<close>
 qed
 
-text {* \medskip With these examples we have shifted through a whole
+text \<open>\medskip With these examples we have shifted through a whole
   range from purely backward to purely forward reasoning.  Apparently,
   in the extreme ends we get slightly ill-structured proofs, which
   also require much explicit naming of either rules (backward) or
@@ -226,11 +226,11 @@ text {* \medskip With these examples we have shifted through a whole
   course.  Depending on the actual applications, the intended audience
   etc., rules (and methods) on the one hand vs.\ facts on the other
   hand have to be emphasized in an appropriate way.  This requires the
-  proof writer to develop good taste, and some practice, of course. *}
+  proof writer to develop good taste, and some practice, of course.\<close>
 
-text {* For our example the most appropriate way of reasoning is
+text \<open>For our example the most appropriate way of reasoning is
   probably the middle one, with conjunction introduction done after
-  elimination. *}
+  elimination.\<close>
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
@@ -244,32 +244,32 @@ qed
 
 
 
-subsection {* A few examples from ``Introduction to Isabelle'' *}
+subsection \<open>A few examples from ``Introduction to Isabelle''\<close>
 
-text {* We rephrase some of the basic reasoning examples of
-  \cite{isabelle-intro}, using HOL rather than FOL. *}
+text \<open>We rephrase some of the basic reasoning examples of
+  @{cite "isabelle-intro"}, using HOL rather than FOL.\<close>
 
 
-subsubsection {* A propositional proof *}
+subsubsection \<open>A propositional proof\<close>
 
-text {* We consider the proposition @{text "P \<or> P \<longrightarrow> P"}.  The proof
+text \<open>We consider the proposition @{text "P \<or> P \<longrightarrow> P"}.  The proof
   below involves forward-chaining from @{text "P \<or> P"}, followed by an
-  explicit case-analysis on the two \emph{identical} cases. *}
+  explicit case-analysis on the two \emph{identical} cases.\<close>
 
 lemma "P \<or> P \<longrightarrow> P"
 proof
   assume "P \<or> P"
   then show P
-  proof                    -- {*
+  proof                    -- \<open>
     rule @{text disjE}: \smash{$\infer{C}{A \disj B & \infer*{C}{[A]} & \infer*{C}{[B]}}$}
-  *}
+\<close>
     assume P show P by fact
   next
     assume P show P by fact
   qed
 qed
 
-text {* Case splits are \emph{not} hardwired into the Isar language as
+text \<open>Case splits are \emph{not} hardwired into the Isar language as
   a special feature.  The \isacommand{next} command used to separate
   the cases above is just a short form of managing block structure.
 
@@ -289,7 +289,7 @@ text {* Case splits are \emph{not} hardwired into the Isar language as
 
   \medskip In our example the situation is even simpler, since the two
   cases actually coincide.  Consequently the proof may be rephrased as
-  follows. *}
+  follows.\<close>
 
 lemma "P \<or> P \<longrightarrow> P"
 proof
@@ -302,10 +302,10 @@ proof
   qed
 qed
 
-text {* Again, the rather vacuous body of the proof may be collapsed.
+text \<open>Again, the rather vacuous body of the proof may be collapsed.
   Thus the case analysis degenerates into two assumption steps, which
   are implicitly performed when concluding the single rule step of the
-  double-dot proof as follows. *}
+  double-dot proof as follows.\<close>
 
 lemma "P \<or> P \<longrightarrow> P"
 proof
@@ -314,9 +314,9 @@ proof
 qed
 
 
-subsubsection {* A quantifier proof *}
+subsubsection \<open>A quantifier proof\<close>
 
-text {* To illustrate quantifier reasoning, let us prove @{text
+text \<open>To illustrate quantifier reasoning, let us prove @{text
   "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"}.  Informally, this holds because any
   @{text a} with @{text "P (f a)"} may be taken as a witness for the
   second existential statement.
@@ -326,27 +326,27 @@ text {* To illustrate quantifier reasoning, let us prove @{text
   instantiation.  Furthermore, we encounter two new language elements:
   the \isacommand{fix} command augments the context by some new
   ``arbitrary, but fixed'' element; the \isacommand{is} annotation
-  binds term abbreviations by higher-order pattern matching. *}
+  binds term abbreviations by higher-order pattern matching.\<close>
 
 lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
   assume "\<exists>x. P (f x)"
   then show "\<exists>y. P y"
-  proof (rule exE)             -- {*
+  proof (rule exE)             -- \<open>
     rule @{text exE}: \smash{$\infer{B}{\ex x A(x) & \infer*{B}{[A(x)]_x}}$}
-  *}
+\<close>
     fix a
     assume "P (f a)" (is "P ?witness")
     then show ?thesis by (rule exI [of P ?witness])
   qed
 qed
 
-text {* While explicit rule instantiation may occasionally improve
+text \<open>While explicit rule instantiation may occasionally improve
   readability of certain aspects of reasoning, it is usually quite
   redundant.  Above, the basic proof outline gives already enough
   structural clues for the system to infer both the rules and their
   instances (by higher-order unification).  Thus we may as well prune
-  the text as follows. *}
+  the text as follows.\<close>
 
 lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
@@ -359,10 +359,10 @@ proof
   qed
 qed
 
-text {* Explicit @{text \<exists>}-elimination as seen above can become quite
+text \<open>Explicit @{text \<exists>}-elimination as seen above can become quite
   cumbersome in practice.  The derived Isar language element
   ``\isakeyword{obtain}'' provides a more handsome way to do
-  generalized existence reasoning. *}
+  generalized existence reasoning.\<close>
 
 lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
@@ -371,21 +371,21 @@ proof
   then show "\<exists>y. P y" ..
 qed
 
-text {* Technically, \isakeyword{obtain} is similar to
+text \<open>Technically, \isakeyword{obtain} is similar to
   \isakeyword{fix} and \isakeyword{assume} together with a soundness
   proof of the elimination involved.  Thus it behaves similar to any
   other forward proof element.  Also note that due to the nature of
   general existence reasoning involved here, any result exported from
   the context of an \isakeyword{obtain} statement may \emph{not} refer
-  to the parameters introduced there. *}
+  to the parameters introduced there.\<close>
 
 
-subsubsection {* Deriving rules in Isabelle *}
+subsubsection \<open>Deriving rules in Isabelle\<close>
 
-text {* We derive the conjunction elimination rule from the
+text \<open>We derive the conjunction elimination rule from the
   corresponding projections.  The proof is quite straight-forward,
   since Isabelle/Isar supports non-atomic goals and assumptions fully
-  transparently. *}
+  transparently.\<close>
 
 theorem conjE: "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C"
 proof -
