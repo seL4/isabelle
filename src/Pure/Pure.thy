@@ -234,37 +234,37 @@ section \<open>Further content for the Pure theory\<close>
 subsection \<open>Meta-level connectives in assumptions\<close>
 
 lemma meta_mp:
-  assumes "PROP P ==> PROP Q" and "PROP P"
+  assumes "PROP P \<Longrightarrow> PROP Q" and "PROP P"
   shows "PROP Q"
-    by (rule \<open>PROP P ==> PROP Q\<close> [OF \<open>PROP P\<close>])
+    by (rule \<open>PROP P \<Longrightarrow> PROP Q\<close> [OF \<open>PROP P\<close>])
 
 lemmas meta_impE = meta_mp [elim_format]
 
 lemma meta_spec:
-  assumes "!!x. PROP P x"
+  assumes "\<And>x. PROP P x"
   shows "PROP P x"
-    by (rule \<open>!!x. PROP P x\<close>)
+    by (rule \<open>\<And>x. PROP P x\<close>)
 
 lemmas meta_allE = meta_spec [elim_format]
 
 lemma swap_params:
-  "(!!x y. PROP P x y) == (!!y x. PROP P x y)" ..
+  "(\<And>x y. PROP P x y) \<equiv> (\<And>y x. PROP P x y)" ..
 
 
 subsection \<open>Meta-level conjunction\<close>
 
 lemma all_conjunction:
-  "(!!x. PROP A x &&& PROP B x) == ((!!x. PROP A x) &&& (!!x. PROP B x))"
+  "(\<And>x. PROP A x &&& PROP B x) \<equiv> ((\<And>x. PROP A x) &&& (\<And>x. PROP B x))"
 proof
-  assume conj: "!!x. PROP A x &&& PROP B x"
-  show "(!!x. PROP A x) &&& (!!x. PROP B x)"
+  assume conj: "\<And>x. PROP A x &&& PROP B x"
+  show "(\<And>x. PROP A x) &&& (\<And>x. PROP B x)"
   proof -
     fix x
     from conj show "PROP A x" by (rule conjunctionD1)
     from conj show "PROP B x" by (rule conjunctionD2)
   qed
 next
-  assume conj: "(!!x. PROP A x) &&& (!!x. PROP B x)"
+  assume conj: "(\<And>x. PROP A x) &&& (\<And>x. PROP B x)"
   fix x
   show "PROP A x &&& PROP B x"
   proof -
@@ -274,17 +274,17 @@ next
 qed
 
 lemma imp_conjunction:
-  "(PROP A ==> PROP B &&& PROP C) == ((PROP A ==> PROP B) &&& (PROP A ==> PROP C))"
+  "(PROP A \<Longrightarrow> PROP B &&& PROP C) \<equiv> ((PROP A \<Longrightarrow> PROP B) &&& (PROP A \<Longrightarrow> PROP C))"
 proof
-  assume conj: "PROP A ==> PROP B &&& PROP C"
-  show "(PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
+  assume conj: "PROP A \<Longrightarrow> PROP B &&& PROP C"
+  show "(PROP A \<Longrightarrow> PROP B) &&& (PROP A \<Longrightarrow> PROP C)"
   proof -
     assume "PROP A"
     from conj [OF \<open>PROP A\<close>] show "PROP B" by (rule conjunctionD1)
     from conj [OF \<open>PROP A\<close>] show "PROP C" by (rule conjunctionD2)
   qed
 next
-  assume conj: "(PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
+  assume conj: "(PROP A \<Longrightarrow> PROP B) &&& (PROP A \<Longrightarrow> PROP C)"
   assume "PROP A"
   show "PROP B &&& PROP C"
   proof -
@@ -294,16 +294,16 @@ next
 qed
 
 lemma conjunction_imp:
-  "(PROP A &&& PROP B ==> PROP C) == (PROP A ==> PROP B ==> PROP C)"
+  "(PROP A &&& PROP B \<Longrightarrow> PROP C) \<equiv> (PROP A \<Longrightarrow> PROP B \<Longrightarrow> PROP C)"
 proof
-  assume r: "PROP A &&& PROP B ==> PROP C"
+  assume r: "PROP A &&& PROP B \<Longrightarrow> PROP C"
   assume ab: "PROP A" "PROP B"
   show "PROP C"
   proof (rule r)
     from ab show "PROP A &&& PROP B" .
   qed
 next
-  assume r: "PROP A ==> PROP B ==> PROP C"
+  assume r: "PROP A \<Longrightarrow> PROP B \<Longrightarrow> PROP C"
   assume conj: "PROP A &&& PROP B"
   show "PROP C"
   proof (rule r)
