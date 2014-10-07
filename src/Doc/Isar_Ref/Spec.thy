@@ -1110,15 +1110,15 @@ text \<open>
   \end{description}
 \<close>
 
-  attribute_setup my_rule = \<open>
-    Attrib.thms >> (fn ths =>
+  attribute_setup my_rule =
+    \<open>Attrib.thms >> (fn ths =>
       Thm.rule_attribute
         (fn context: Context.generic => fn th: thm =>
           let val th' = th OF ths
           in th' end))\<close>
 
-  attribute_setup my_declaration = \<open>
-    Attrib.thms >> (fn ths =>
+  attribute_setup my_declaration =
+    \<open>Attrib.thms >> (fn ths =>
       Thm.declaration_attribute
         (fn th: thm => fn context: Context.generic =>
           let val context' = context

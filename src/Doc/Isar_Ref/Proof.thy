@@ -940,19 +940,19 @@ text \<open>
   \end{description}
 \<close>
 
-  method_setup my_method1 = \<open>
-    Scan.succeed (K (SIMPLE_METHOD' (fn i: int => no_tac)))
-\<close>  "my first method (without any arguments)"
+  method_setup my_method1 =
+    \<open>Scan.succeed (K (SIMPLE_METHOD' (fn i: int => no_tac)))\<close>
+    "my first method (without any arguments)"
 
-  method_setup my_method2 = \<open>
-    Scan.succeed (fn ctxt: Proof.context =>
-      SIMPLE_METHOD' (fn i: int => no_tac))
-\<close>  "my second method (with context)"
+  method_setup my_method2 =
+    \<open>Scan.succeed (fn ctxt: Proof.context =>
+      SIMPLE_METHOD' (fn i: int => no_tac))\<close>
+    "my second method (with context)"
 
-  method_setup my_method3 = \<open>
-    Attrib.thms >> (fn thms: thm list => fn ctxt: Proof.context =>
-      SIMPLE_METHOD' (fn i: int => no_tac))
-\<close>  "my third method (with theorem arguments and context)"
+  method_setup my_method3 =
+    \<open>Attrib.thms >> (fn thms: thm list => fn ctxt: Proof.context =>
+      SIMPLE_METHOD' (fn i: int => no_tac))\<close>
+    "my third method (with theorem arguments and context)"
 
 
 section \<open>Generalized elimination \label{sec:obtain}\<close>
