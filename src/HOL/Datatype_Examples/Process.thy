@@ -8,7 +8,7 @@ Processes.
 header {* Processes *}
 
 theory Process
-imports Stream 
+imports "~~/src/HOL/Library/Stream"
 begin
 
 codatatype 'a process =

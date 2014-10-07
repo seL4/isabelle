@@ -9,7 +9,7 @@ Koenig's lemma.
 header {* Koenig's Lemma *}
 
 theory Koenig
-imports TreeFI Stream
+imports TreeFI "~~/src/HOL/Library/Stream"
 begin
 
 (* infinite trees: *)

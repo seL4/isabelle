@@ -65,6 +65,7 @@ imports
   Saturated
   Set_Algebras
   State_Monad
+  Stream
   Sublist
   Sum_of_Squares
   Transitive_Closure_Table

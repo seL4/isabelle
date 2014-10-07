@@ -4,7 +4,7 @@
 theory Stream_Space
 imports
   Infinite_Product_Measure
-  "~~/src/HOL/Datatype_Examples/Stream"
+  "~~/src/HOL/Library/Stream"
 begin
 
 lemma stream_eq_Stream_iff: "s = x ## t \<longleftrightarrow> (shd s = x \<and> stl s = t)"

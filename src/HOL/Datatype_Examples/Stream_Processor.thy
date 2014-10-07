@@ -9,7 +9,7 @@ Stream processors---a syntactic representation of continuous functions on stream
 header {* Stream Processors---A Syntactic Representation of Continuous Functions on Streams *}
 
 theory Stream_Processor
-imports Stream "~~/src/HOL/Library/BNF_Axiomatization"
+imports "~~/src/HOL/Library/Stream" "~~/src/HOL/Library/BNF_Axiomatization"
 begin
 
 section {* Continuous Functions on Streams *}
