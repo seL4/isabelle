@@ -1,17 +1,17 @@
 
-header {* Example: First-Order Logic *}
+header \<open>Example: First-Order Logic\<close>
 
 theory %visible First_Order_Logic
 imports Base  (* FIXME Pure!? *)
 begin
 
-text {*
+text \<open>
   \noindent In order to commence a new object-logic within
   Isabelle/Pure we introduce abstract syntactic categories @{text "i"}
   for individuals and @{text "o"} for object-propositions.  The latter
   is embedded into the language of Pure propositions by means of a
   separate judgment.
-*}
+\<close>
 
 typedecl i
 typedecl o
@@ -19,24 +19,24 @@ typedecl o
 judgment
   Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
 
-text {*
+text \<open>
   \noindent Note that the object-logic judgment is implicit in the
   syntax: writing @{prop A} produces @{term "Trueprop A"} internally.
   From the Pure perspective this means ``@{prop A} is derivable in the
   object-logic''.
-*}
+\<close>
 
 
-subsection {* Equational reasoning \label{sec:framework-ex-equal} *}
+subsection \<open>Equational reasoning \label{sec:framework-ex-equal}\<close>
 
-text {*
+text \<open>
   Equality is axiomatized as a binary predicate on individuals, with
   reflexivity as introduction, and substitution as elimination
   principle.  Note that the latter is particularly convenient in a
   framework like Isabelle, because syntactic congruences are
   implicitly produced by unification of @{term "B x"} against
   expressions containing occurrences of @{term x}.
-*}
+\<close>
 
 axiomatization
   equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infix "=" 50)
@@ -44,33 +44,33 @@ where
   refl [intro]: "x = x" and
   subst [elim]: "x = y \<Longrightarrow> B x \<Longrightarrow> B y"
 
-text {*
+text \<open>
   \noindent Substitution is very powerful, but also hard to control in
   full generality.  We derive some common symmetry~/ transitivity
   schemes of @{term equal} as particular consequences.
-*}
+\<close>
 
 theorem sym [sym]:
   assumes "x = y"
   shows "y = x"
 proof -
   have "x = x" ..
-  with `x = y` show "y = x" ..
+  with \<open>x = y\<close> show "y = x" ..
 qed
 
 theorem forw_subst [trans]:
   assumes "y = x" and "B x"
   shows "B y"
 proof -
-  from `y = x` have "x = y" ..
-  from this and `B x` show "B y" ..
+  from \<open>y = x\<close> have "x = y" ..
+  from this and \<open>B x\<close> show "B y" ..
 qed
 
 theorem back_subst [trans]:
   assumes "B x" and "x = y"
   shows "B y"
 proof -
-  from `x = y` and `B x`
+  from \<open>x = y\<close> and \<open>B x\<close>
   show "B y" ..
 qed
 
@@ -78,19 +78,19 @@ theorem trans [trans]:
   assumes "x = y" and "y = z"
   shows "x = z"
 proof -
-  from `y = z` and `x = y`
+  from \<open>y = z\<close> and \<open>x = y\<close>
   show "x = z" ..
 qed
 
 
-subsection {* Basic group theory *}
+subsection \<open>Basic group theory\<close>
 
-text {*
+text \<open>
   As an example for equational reasoning we consider some bits of
   group theory.  The subsequent locale definition postulates group
   operations and axioms; we also derive some consequences of this
   specification.
-*}
+\<close>
 
 locale group =
   fixes prod :: "i \<Rightarrow> i \<Rightarrow> i"  (infix "\<circ>" 70)
@@ -123,7 +123,7 @@ proof -
   finally show "x \<circ> 1 = x" .
 qed
 
-text {*
+text \<open>
   \noindent Reasoning from basic axioms is often tedious.  Our proofs
   work by producing various instances of the given rules (potentially
   the symmetric form) using the pattern ``@{command have}~@{text
@@ -139,7 +139,7 @@ text {*
   not be over-emphasized.  The other extreme is to compose a chain by
   plain transitivity only, with replacements occurring always in
   topmost position. For example:
-*}
+\<close>
 
 (*<*)
 theorem "\<And>A. PROP A \<Longrightarrow> PROP A"
@@ -156,7 +156,7 @@ proof -
 qed
 (*>*)
 
-text {*
+text \<open>
   \noindent Here we have re-used the built-in mechanism for unfolding
   definitions in order to normalize each equational problem.  A more
   realistic object-logic would include proper setup for the Simplifier
@@ -164,18 +164,18 @@ text {*
   reasoning in Isabelle.  Then ``@{command unfolding}~@{thm
   left_inv}~@{command ".."}'' would become ``@{command "by"}~@{text
   "(simp only: left_inv)"}'' etc.
-*}
+\<close>
 
 end
 
 
-subsection {* Propositional logic \label{sec:framework-ex-prop} *}
+subsection \<open>Propositional logic \label{sec:framework-ex-prop}\<close>
 
-text {*
+text \<open>
   We axiomatize basic connectives of propositional logic: implication,
   disjunction, and conjunction.  The associated rules are modeled
   after Gentzen's system of Natural Deduction @{cite "Gentzen:1935"}.
-*}
+\<close>
 
 axiomatization
   imp :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longrightarrow>" 25) where
@@ -194,26 +194,26 @@ axiomatization
   conjD\<^sub>1: "A \<and> B \<Longrightarrow> A" and
   conjD\<^sub>2: "A \<and> B \<Longrightarrow> B"
 
-text {*
+text \<open>
   \noindent The conjunctive destructions have the disadvantage that
   decomposing @{prop "A \<and> B"} involves an immediate decision which
   component should be projected.  The more convenient simultaneous
   elimination @{prop "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C"} can be derived as
   follows:
-*}
+\<close>
 
 theorem conjE [elim]:
   assumes "A \<and> B"
   obtains A and B
 proof
-  from `A \<and> B` show A by (rule conjD\<^sub>1)
-  from `A \<and> B` show B by (rule conjD\<^sub>2)
+  from \<open>A \<and> B\<close> show A by (rule conjD\<^sub>1)
+  from \<open>A \<and> B\<close> show B by (rule conjD\<^sub>2)
 qed
 
-text {*
+text \<open>
   \noindent Here is an example of swapping conjuncts with a single
   intermediate elimination step:
-*}
+\<close>
 
 (*<*)
 lemma "\<And>A. PROP A \<Longrightarrow> PROP A"
@@ -226,7 +226,7 @@ proof -
 qed
 (*>*)
 
-text {*
+text \<open>
   \noindent Note that the analogous elimination rule for disjunction
   ``@{text "\<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"}'' coincides with
   the original axiomatization of @{thm disjE}.
@@ -234,7 +234,7 @@ text {*
   \medskip We continue propositional logic by introducing absurdity
   with its characteristic elimination.  Plain truth may then be
   defined as a proposition that is trivially true.
-*}
+\<close>
 
 axiomatization
   false :: o  ("\<bottom>") where
@@ -247,10 +247,10 @@ definition
 theorem trueI [intro]: \<top>
   unfolding true_def ..
 
-text {*
+text \<open>
   \medskip\noindent Now negation represents an implication towards
   absurdity:
-*}
+\<close>
 
 definition
   not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40) where
@@ -262,27 +262,27 @@ theorem notI [intro]:
 unfolding not_def
 proof
   assume A
-  then show \<bottom> by (rule `A \<Longrightarrow> \<bottom>`)
+  then show \<bottom> by (rule \<open>A \<Longrightarrow> \<bottom>\<close>)
 qed
 
 theorem notE [elim]:
   assumes "\<not> A" and A
   shows B
 proof -
-  from `\<not> A` have "A \<longrightarrow> \<bottom>" unfolding not_def .
-  from `A \<longrightarrow> \<bottom>` and `A` have \<bottom> ..
+  from \<open>\<not> A\<close> have "A \<longrightarrow> \<bottom>" unfolding not_def .
+  from \<open>A \<longrightarrow> \<bottom>\<close> and \<open>A\<close> have \<bottom> ..
   then show B ..
 qed
 
 
-subsection {* Classical logic *}
+subsection \<open>Classical logic\<close>
 
-text {*
+text \<open>
   Subsequently we state the principle of classical contradiction as a
   local assumption.  Thus we refrain from forcing the object-logic
   into the classical perspective.  Within that context, we may derive
   well-known consequences of the classical principle.
-*}
+\<close>
 
 locale classical =
   assumes classical: "(\<not> C \<Longrightarrow> C) \<Longrightarrow> C"
@@ -293,7 +293,7 @@ theorem double_negation:
   shows C
 proof (rule classical)
   assume "\<not> C"
-  with `\<not> \<not> C` show C ..
+  with \<open>\<not> \<not> C\<close> show C ..
 qed
 
 theorem tertium_non_datur: "C \<or> \<not> C"
@@ -304,14 +304,14 @@ proof (rule double_negation)
     have "\<not> C"
     proof
       assume C then have "C \<or> \<not> C" ..
-      with `\<not> (C \<or> \<not> C)` show \<bottom> ..
+      with \<open>\<not> (C \<or> \<not> C)\<close> show \<bottom> ..
     qed
     then have "C \<or> \<not> C" ..
-    with `\<not> (C \<or> \<not> C)` show \<bottom> ..
+    with \<open>\<not> (C \<or> \<not> C)\<close> show \<bottom> ..
   qed
 qed
 
-text {*
+text \<open>
   \noindent These examples illustrate both classical reasoning and
   non-trivial propositional proofs in general.  All three rules
   characterize classical logic independently, but the original rule is
@@ -323,21 +323,21 @@ text {*
   This also explains nicely how classical reasoning really works:
   whatever the main @{text thesis} might be, we may always assume its
   negation!
-*}
+\<close>
 
 end
 
 
-subsection {* Quantifiers \label{sec:framework-ex-quant} *}
+subsection \<open>Quantifiers \label{sec:framework-ex-quant}\<close>
 
-text {*
+text \<open>
   Representing quantifiers is easy, thanks to the higher-order nature
   of the underlying framework.  According to the well-known technique
   introduced by Church @{cite "church40"}, quantifiers are operators on
   predicates, which are syntactically represented as @{text "\<lambda>"}-terms
   of type @{typ "i \<Rightarrow> o"}.  Binder notation turns @{text "All (\<lambda>x. B
   x)"} into @{text "\<forall>x. B x"} etc.
-*}
+\<close>
 
 axiomatization
   All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10) where
@@ -349,26 +349,26 @@ axiomatization
   exI [intro]: "B a \<Longrightarrow> (\<exists>x. B x)" and
   exE [elim]: "(\<exists>x. B x) \<Longrightarrow> (\<And>x. B x \<Longrightarrow> C) \<Longrightarrow> C"
 
-text {*
+text \<open>
   \noindent The statement of @{thm exE} corresponds to ``@{text
   "\<ASSUMES> \<exists>x. B x \<OBTAINS> x \<WHERE> B x"}'' in Isar.  In the
   subsequent example we illustrate quantifier reasoning involving all
   four rules:
-*}
+\<close>
 
 theorem
   assumes "\<exists>x. \<forall>y. R x y"
   shows "\<forall>y. \<exists>x. R x y"
-proof    -- {* @{text "\<forall>"} introduction *}
-  obtain x where "\<forall>y. R x y" using `\<exists>x. \<forall>y. R x y` ..    -- {* @{text "\<exists>"} elimination *}
-  fix y have "R x y" using `\<forall>y. R x y` ..    -- {* @{text "\<forall>"} destruction *}
-  then show "\<exists>x. R x y" ..    -- {* @{text "\<exists>"} introduction *}
+proof    -- \<open>@{text "\<forall>"} introduction\<close>
+  obtain x where "\<forall>y. R x y" using \<open>\<exists>x. \<forall>y. R x y\<close> ..    -- \<open>@{text "\<exists>"} elimination\<close>
+  fix y have "R x y" using \<open>\<forall>y. R x y\<close> ..    -- \<open>@{text "\<forall>"} destruction\<close>
+  then show "\<exists>x. R x y" ..    -- \<open>@{text "\<exists>"} introduction\<close>
 qed
 
 
-subsection {* Canonical reasoning patterns *}
+subsection \<open>Canonical reasoning patterns\<close>
 
-text {*
+text \<open>
   The main rules of first-order predicate logic from
   \secref{sec:framework-ex-prop} and \secref{sec:framework-ex-quant}
   can now be summarized as follows, using the native Isar statement
@@ -407,14 +407,14 @@ text {*
   (Pure) elim}, @{attribute (Pure) dest} --- each according to its
   particular shape --- we can immediately write Isar proof texts as
   follows:
-*}
+\<close>
 
 (*<*)
 theorem "\<And>A. PROP A \<Longrightarrow> PROP A"
 proof -
 (*>*)
 
-  txt_raw {*\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "A \<longrightarrow> B"
   proof
@@ -422,12 +422,12 @@ proof -
     show B sorry %noproof
   qed
 
-  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "A \<longrightarrow> B" and A sorry %noproof
   then have B ..
 
-  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have A sorry %noproof
   then have "A \<or> B" ..
@@ -435,7 +435,7 @@ proof -
   have B sorry %noproof
   then have "A \<or> B" ..
 
-  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "A \<or> B" sorry %noproof
   then have C
@@ -447,26 +447,26 @@ proof -
     then show C sorry %noproof
   qed
 
-  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have A and B sorry %noproof
   then have "A \<and> B" ..
 
-  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "A \<and> B" sorry %noproof
   then obtain A and B ..
 
-  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<bottom>" sorry %noproof
   then have A ..
 
-  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<top>" ..
 
-  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<not> A"
   proof
@@ -474,12 +474,12 @@ proof -
     then show "\<bottom>" sorry %noproof
   qed
 
-  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<not> A" and A sorry %noproof
   then have B ..
 
-  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<forall>x. B x"
   proof
@@ -487,35 +487,35 @@ proof -
     show "B x" sorry %noproof
   qed
 
-  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<forall>x. B x" sorry %noproof
   then have "B a" ..
 
-  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<exists>x. B x"
   proof
     show "B a" sorry %noproof
   qed
 
-  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<exists>x. B x" sorry %noproof
   then obtain a where "B a" ..
 
-  txt_raw {*\end{minipage}*}
+  txt_raw \<open>\end{minipage}\<close>
 
 (*<*)
 qed
 (*>*)
 
-text {*
+text \<open>
   \bigskip\noindent Of course, these proofs are merely examples.  As
   sketched in \secref{sec:framework-subproof}, there is a fair amount
   of flexibility in expressing Pure deductions in Isar.  Here the user
   is asked to express himself adequately, aiming at proof texts of
   literary quality.
-*}
+\<close>
 
 end %visible

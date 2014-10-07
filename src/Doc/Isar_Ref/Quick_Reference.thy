@@ -2,13 +2,13 @@ theory Quick_Reference
 imports Base Main
 begin
 
-chapter {* Isabelle/Isar quick reference \label{ap:refcard} *}
+chapter \<open>Isabelle/Isar quick reference \label{ap:refcard}\<close>
 
-section {* Proof commands *}
+section \<open>Proof commands\<close>
 
-subsection {* Primitives and basic syntax *}
+subsection \<open>Primitives and basic syntax\<close>
 
-text {*
+text \<open>
   \begin{tabular}{ll}
     @{command "fix"}~@{text x} & augment context by @{text "\<And>x. \<box>"} \\
     @{command "assume"}~@{text "a: \<phi>"} & augment context by @{text "\<phi> \<Longrightarrow> \<box>"} \\
@@ -44,12 +44,12 @@ text {*
     @{text goal} & = & @{command "have"}~@{text "name: props proof"} \\
     & @{text "|"} & @{command "show"}~@{text "name: props proof"} \\
   \end{tabular}
-*}
+\<close>
 
 
-subsection {* Abbreviations and synonyms *}
+subsection \<open>Abbreviations and synonyms\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcl}
     @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} & @{text "\<equiv>"} &
       @{command "proof"}~@{text "m\<^sub>1"}~@{command "qed"}~@{text "m\<^sub>2"} \\
@@ -63,12 +63,12 @@ text {*
     @{command "from"}~@{text this}~@{command "have"} & @{text "\<equiv>"} & @{command "hence"} \\
     @{command "from"}~@{text this}~@{command "show"} & @{text "\<equiv>"} & @{command "thus"} \\
   \end{tabular}
-*}
+\<close>
 
 
-subsection {* Derived elements *}
+subsection \<open>Derived elements\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcl}
     @{command "also"}@{text "\<^sub>0"} & @{text "\<approx>"} &
       @{command "note"}~@{text "calculation = this"} \\
@@ -91,12 +91,12 @@ text {*
     @{command "sorry"} & @{text "\<approx>"} &
       @{command "by"}~@{text cheating} \\
   \end{tabular}
-*}
+\<close>
 
 
-subsection {* Diagnostic commands *}
+subsection \<open>Diagnostic commands\<close>
 
-text {*
+text \<open>
   \begin{tabular}{ll}
     @{command "print_state"} & print proof state \\
     @{command "print_statement"} & print fact in long statement form \\
@@ -105,12 +105,12 @@ text {*
     @{command "term"}~@{text t} & print term \\
     @{command "typ"}~@{text \<tau>} & print type \\
   \end{tabular}
-*}
+\<close>
 
 
-section {* Proof methods *}
+section \<open>Proof methods\<close>
 
-text {*
+text \<open>
   \begin{tabular}{ll}
     \multicolumn{2}{l}{\textbf{Single steps (forward-chaining facts)}} \\[0.5ex]
     @{method assumption} & apply some assumption \\
@@ -135,12 +135,12 @@ text {*
     @{method auto}, @{method force} & Simplifier + Classical Reasoner \\
     @{method arith} & Arithmetic procedures \\
   \end{tabular}
-*}
+\<close>
 
 
-section {* Attributes *}
+section \<open>Attributes\<close>
 
-text {*
+text \<open>
   \begin{tabular}{ll}
     \multicolumn{2}{l}{\textbf{Rules}} \\[0.5ex]
     @{attribute OF}~@{text a} & rule resolved with facts (skipping ``@{text _}'') \\
@@ -159,12 +159,12 @@ text {*
     @{attribute trans} & transitivity rule \\
     @{attribute sym} & symmetry rule \\
   \end{tabular}
-*}
+\<close>
 
 
-section {* Rule declarations and methods *}
+section \<open>Rule declarations and methods\<close>
 
-text {*
+text \<open>
   \begin{tabular}{l|lllll}
       & @{method rule} & @{method iprover} & @{method blast} & @{method simp} & @{method auto} \\
       &                &                   & @{method fast} & @{method simp_all} & @{method force} \\
@@ -190,14 +190,14 @@ text {*
     @{attribute split}
       &                &                    &                      & @{text "\<times>"}         & @{text "\<times>"} \\
   \end{tabular}
-*}
+\<close>
 
 
-section {* Emulating tactic scripts *}
+section \<open>Emulating tactic scripts\<close>
 
-subsection {* Commands *}
+subsection \<open>Commands\<close>
 
-text {*
+text \<open>
   \begin{tabular}{ll}
     @{command "apply"}~@{text m} & apply proof method at initial position \\
     @{command "apply_end"}~@{text m} & apply proof method near terminal position \\
@@ -206,12 +206,12 @@ text {*
     @{command "prefer"}~@{text n} & move subgoal to beginning \\
     @{command "back"} & backtrack last command \\
   \end{tabular}
-*}
+\<close>
 
 
-subsection {* Methods *}
+subsection \<open>Methods\<close>
 
-text {*
+text \<open>
   \begin{tabular}{ll}
     @{method rule_tac}~@{text insts} & resolution (with instantiation) \\
     @{method erule_tac}~@{text insts} & elim-resolution (with instantiation) \\
@@ -227,6 +227,6 @@ text {*
     @{method induct_tac}~@{text x} & induction (datatypes) \\
     @{method ind_cases}~@{text t} & exhaustion + simplification (inductive predicates) \\
   \end{tabular}
-*}
+\<close>
 
 end

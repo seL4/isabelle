@@ -2,11 +2,11 @@ theory Misc
 imports Base Main
 begin
 
-chapter {* Other commands *}
+chapter \<open>Other commands\<close>
 
-section {* Inspecting the context *}
+section \<open>Inspecting the context\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "print_theory"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_methods"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -110,6 +110,6 @@ text {*
   only the unused theorems in the current theory are displayed.
   
   \end{description}
-*}
+\<close>
 
 end

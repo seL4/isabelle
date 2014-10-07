@@ -2,11 +2,11 @@ theory Proof
 imports Base
 begin
 
-chapter {* Structured proofs *}
+chapter \<open>Structured proofs\<close>
 
-section {* Variables \label{sec:variables} *}
+section \<open>Variables \label{sec:variables}\<close>
 
-text {*
+text \<open>
   Any variable that is not explicitly bound by @{text "\<lambda>"}-abstraction
   is considered as ``free''.  Logically, free variables act like
   outermost universal quantification at the sequent level: @{text
@@ -56,22 +56,22 @@ text {*
   \<turnstile> x\<^sub>\<alpha> \<equiv> x\<^sub>\<alpha>"} for fixed @{text "\<alpha>"}, and only in the second step
   @{text "\<turnstile> ?x\<^sub>?\<^sub>\<alpha> \<equiv> ?x\<^sub>?\<^sub>\<alpha>"} for schematic @{text "?x"} and @{text "?\<alpha>"}.
   The following Isar source text illustrates this scenario.
-*}
+\<close>
 
 notepad
 begin
   {
-    fix x  -- {* all potential occurrences of some @{text "x::\<tau>"} are fixed *}
+    fix x  -- \<open>all potential occurrences of some @{text "x::\<tau>"} are fixed\<close>
     {
-      have "x::'a \<equiv> x"  -- {* implicit type assignment by concrete occurrence *}
+      have "x::'a \<equiv> x"  -- \<open>implicit type assignment by concrete occurrence\<close>
         by (rule reflexive)
     }
-    thm this  -- {* result still with fixed type @{text "'a"} *}
+    thm this  -- \<open>result still with fixed type @{text "'a"}\<close>
   }
-  thm this  -- {* fully general result for arbitrary @{text "?x::?'a"} *}
+  thm this  -- \<open>fully general result for arbitrary @{text "?x::?'a"}\<close>
 end
 
-text {* The Isabelle/Isar proof context manages the details of term
+text \<open>The Isabelle/Isar proof context manages the details of term
   vs.\ type variables, with high-level principles for moving the
   frontier between fixed and schematic variables.
 
@@ -95,9 +95,9 @@ text {* The Isabelle/Isar proof context manages the details of term
   "\<And>x\<^sub>1 \<dots> x\<^sub>n. B(x\<^sub>1, \<dots>, x\<^sub>n)"} is
   decomposed by inventing fixed variables @{text "x\<^sub>1, \<dots>,
   x\<^sub>n"} for the body.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Variable.add_fixes: "
   string list -> Proof.context -> string list * Proof.context"} \\
@@ -157,12 +157,12 @@ text %mlref {*
   "\<And>"} prefix of proposition @{text "B"}.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following example shows how to work with fixed term
-  and type parameters and with type-inference.  *}
+text %mlex \<open>The following example shows how to work with fixed term
+  and type parameters and with type-inference.\<close>
 
-ML {*
+ML \<open>
   (*static compile-time context -- for testing only*)
   val ctxt0 = @{context};
 
@@ -179,30 +179,30 @@ ML {*
   (*official declaration of u -- propagates constraints etc.*)
   val ctxt2 = ctxt1 |> Variable.declare_term u;
   val t2 = Syntax.read_term ctxt2 "x";  (*x::nat is enforced*)
-*}
+\<close>
 
-text {* In the above example, the starting context is derived from the
+text \<open>In the above example, the starting context is derived from the
   toplevel theory, which means that fixed variables are internalized
   literally: @{text "x"} is mapped again to @{text "x"}, and
   attempting to fix it again in the subsequent context is an error.
   Alternatively, fixed parameters can be renamed explicitly as
-  follows: *}
+  follows:\<close>
 
-ML {*
+ML \<open>
   val ctxt0 = @{context};
   val ([x1, x2, x3], ctxt1) =
     ctxt0 |> Variable.variant_fixes ["x", "x", "x"];
-*}
+\<close>
 
-text {* The following ML code can now work with the invented names of
+text \<open>The following ML code can now work with the invented names of
   @{text x1}, @{text x2}, @{text x3}, without depending on
   the details on the system policy for introducing these variants.
   Recall that within a proof body the system always invents fresh
-  ``Skolem constants'', e.g.\ as follows: *}
+  ``Skolem constants'', e.g.\ as follows:\<close>
 
 notepad
 begin
-  ML_prf %"ML" {*
+  ML_prf %"ML" \<open>
     val ctxt0 = @{context};
 
     val ([x1], ctxt1) = ctxt0 |> Variable.add_fixes ["x"];
@@ -211,18 +211,18 @@ begin
 
     val ([y1, y2], ctxt4) =
       ctxt3 |> Variable.variant_fixes ["y", "y"];
-  *}
+\<close>
 end
 
-text {* In this situation @{ML Variable.add_fixes} and @{ML
+text \<open>In this situation @{ML Variable.add_fixes} and @{ML
   Variable.variant_fixes} are very similar, but identical name
   proposals given in a row are only accepted by the second version.
-  *}
+\<close>
 
 
-section {* Assumptions \label{sec:assumptions} *}
+section \<open>Assumptions \label{sec:assumptions}\<close>
 
-text {*
+text \<open>
   An \emph{assumption} is a proposition that it is postulated in the
   current context.  Local conclusions may use assumptions as
   additional facts, but this imposes implicit hypotheses that weaken
@@ -274,9 +274,9 @@ text {*
   This works, because the assumption @{text "x \<equiv> t"} was introduced in
   a context with @{text "x"} being fresh, so @{text "x"} does not
   occur in @{text "\<Gamma>"} here.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type Assumption.export} \\
   @{index_ML Assumption.assume: "Proof.context -> cterm -> thm"} \\
@@ -318,15 +318,15 @@ text %mlref {*
   and @{ML "Assumption.export"} in the canonical way.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following example demonstrates how rules can be
+text %mlex \<open>The following example demonstrates how rules can be
   derived by building up a context of assumptions first, and exporting
   some local fact afterwards.  We refer to @{theory Pure} equality
   here for testing purposes.
-*}
+\<close>
 
-ML {*
+ML \<open>
   (*static compile-time context -- for testing only*)
   val ctxt0 = @{context};
 
@@ -336,17 +336,17 @@ ML {*
 
   (*back to original context -- discharges assumption*)
   val r = Assumption.export false ctxt1 ctxt0 eq';
-*}
+\<close>
 
-text {* Note that the variables of the resulting rule are not
+text \<open>Note that the variables of the resulting rule are not
   generalized.  This would have required to fix them properly in the
   context beforehand, and export wrt.\ variables afterwards (cf.\ @{ML
-  Variable.export} or the combined @{ML "Proof_Context.export"}).  *}
+  Variable.export} or the combined @{ML "Proof_Context.export"}).\<close>
 
 
-section {* Structured goals and results \label{sec:struct-goals} *}
+section \<open>Structured goals and results \label{sec:struct-goals}\<close>
 
-text {*
+text \<open>
   Local results are established by monotonic reasoning from facts
   within a context.  This allows common combinations of theorems,
   e.g.\ via @{text "\<And>/\<Longrightarrow>"} elimination, resolution rules, or equational
@@ -383,9 +383,9 @@ text {*
   @{cite "isabelle-isar-ref"} for the user-level @{command obtain} and
   @{command guess} elements.  Final results, which may not refer to
   the parameters in the conclusion, need to exported explicitly into
-  the original context.  *}
+  the original context.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) ->
   Proof.context -> int -> tactic"} \\
@@ -448,10 +448,10 @@ text %mlref {*
   exported explicitly.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following minimal example illustrates how to access
-  the focus information of a structured goal state. *}
+text %mlex \<open>The following minimal example illustrates how to access
+  the focus information of a structured goal state.\<close>
 
 notepad
 begin
@@ -459,34 +459,34 @@ begin
 
   have "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
     ML_val
-    {*
+    \<open>
       val {goal, context = goal_ctxt, ...} = @{Isar.goal};
       val (focus as {params, asms, concl, ...}, goal') =
         Subgoal.focus goal_ctxt 1 goal;
       val [A, B] = #prems focus;
       val [(_, x)] = #params focus;
-    *}
+\<close>
     oops
 
-text {* \medskip The next example demonstrates forward-elimination in
-  a local context, using @{ML Obtain.result}.  *}
+text \<open>\medskip The next example demonstrates forward-elimination in
+  a local context, using @{ML Obtain.result}.\<close>
 
 notepad
 begin
   assume ex: "\<exists>x. B x"
 
-  ML_prf %"ML" {*
+  ML_prf %"ML" \<open>
     val ctxt0 = @{context};
     val (([(_, x)], [B]), ctxt1) = ctxt0
       |> Obtain.result (fn _ => etac @{thm exE} 1) [@{thm ex}];
-  *}
-  ML_prf %"ML" {*
+\<close>
+  ML_prf %"ML" \<open>
     singleton (Proof_Context.export ctxt1 ctxt0) @{thm refl};
-  *}
-  ML_prf %"ML" {*
+\<close>
+  ML_prf %"ML" \<open>
     Proof_Context.export ctxt1 ctxt0 [Thm.reflexive x]
       handle ERROR msg => (warning msg; []);
-  *}
+\<close>
 end
 
 end

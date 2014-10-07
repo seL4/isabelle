@@ -2,9 +2,9 @@ theory Local_Theory
 imports Base
 begin
 
-chapter {* Local theory specifications \label{ch:local-theory} *}
+chapter \<open>Local theory specifications \label{ch:local-theory}\<close>
 
-text {*
+text \<open>
   A \emph{local theory} combines aspects of both theory and proof
   context (cf.\ \secref{sec:context}), such that definitional
   specifications may be given relatively to parameters and
@@ -33,12 +33,12 @@ text {*
   Isabelle.  Although a few old packages only work for global
   theories, the standard way of implementing definitional packages in
   Isabelle is via the local theory interface.
-*}
+\<close>
 
 
-section {* Definitional elements *}
+section \<open>Definitional elements\<close>
 
-text {*
+text \<open>
   There are separate elements @{text "\<DEFINE> c \<equiv> t"} for terms, and
   @{text "\<NOTE> b = thm"} for theorems.  Types are treated
   implicitly, according to Hindley-Milner discipline (cf.\
@@ -91,9 +91,9 @@ text {*
   terms and theorems that stem from the hypothetical @{text
   "\<DEFINE>"} and @{text "\<NOTE>"} elements, transformed by the
   particular target policy (see @{cite \<open>\S4--5\<close> "Haftmann-Wenzel:2009"}
-  for details).  *}
+  for details).\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type local_theory: Proof.context} \\
   @{index_ML Named_Target.init: "string -> theory -> local_theory"} \\[1ex]
@@ -151,15 +151,15 @@ text %mlref {*
   command, or @{command declare} if an empty name binding is given.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Morphisms and declarations \label{sec:morphisms} *}
+section \<open>Morphisms and declarations \label{sec:morphisms}\<close>
 
-text {*
+text \<open>
   %FIXME
 
   See also @{cite "Chaieb-Wenzel:2007"}.
-*}
+\<close>
 
 end

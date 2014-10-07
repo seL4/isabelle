@@ -2,9 +2,9 @@ theory Basics
 imports Base
 begin
 
-chapter {* The Isabelle system environment *}
+chapter \<open>The Isabelle system environment\<close>
 
-text {* This manual describes Isabelle together with related tools and
+text \<open>This manual describes Isabelle together with related tools and
   user interfaces as seen from a system oriented view.  See also the
   \emph{Isabelle/Isar Reference Manual} @{cite "isabelle-isar-ref"} for
   the actual Isabelle input language and related concepts, and
@@ -33,12 +33,12 @@ text {* This manual describes Isabelle together with related tools and
   from the settings mechanism.
 
   \end{enumerate}
-*}
+\<close>
 
 
-section {* Isabelle settings \label{sec:settings} *}
+section \<open>Isabelle settings \label{sec:settings}\<close>
 
-text {*
+text \<open>
   The Isabelle system heavily depends on the \emph{settings
   mechanism}\indexbold{settings}.  Essentially, this is a statically
   scoped collection of environment variables, such as @{setting
@@ -59,12 +59,12 @@ text {*
   Occasionally, users would still want to put the @{file
   "$ISABELLE_HOME/bin"} directory into their shell's search path, but
   this is not required.
-*}
+\<close>
 
 
-subsection {* Bootstrapping the environment \label{sec:boot} *}
+subsection \<open>Bootstrapping the environment \label{sec:boot}\<close>
 
-text {* Isabelle executables need to be run within a proper settings
+text \<open>Isabelle executables need to be run within a proper settings
   environment.  This is bootstrapped as described below, on the first
   invocation of one of the outer wrapper scripts (such as
   @{executable_ref isabelle}).  This happens only once for each
@@ -134,12 +134,12 @@ text {* Isabelle executables need to be run within a proper settings
 
   \medskip Note that the settings environment may be inspected with
   the @{tool getenv} tool.  This might help to figure out the effect
-  of complex settings scripts.  *}
+  of complex settings scripts.\<close>
 
 
-subsection {* Common variables *}
+subsection \<open>Common variables\<close>
 
-text {*
+text \<open>
   This is a reference of common Isabelle settings variables. Note that
   the list is somewhat open-ended. Third-party utilities or interfaces
   may add their own selection. Variables that are special in some
@@ -276,12 +276,12 @@ text {*
   somewhere in @{file_unchecked "/tmp"}.
   
   \end{description}
-*}
+\<close>
 
 
-subsection {* Additional components \label{sec:components} *}
+subsection \<open>Additional components \label{sec:components}\<close>
 
-text {* Any directory may be registered as an explicit \emph{Isabelle
+text \<open>Any directory may be registered as an explicit \emph{Isabelle
   component}.  The general layout conventions are that of the main
   Isabelle distribution itself, and the following two files (both
   optional) have a special meaning:
@@ -347,12 +347,12 @@ init_components "$HOME/my_component_store" "some_catalog_file"
   See also \secref{sec:tool-components} for some tool-support for
   resolving components that are formally initialized but not installed
   yet.
-*}
+\<close>
 
 
-section {* The raw Isabelle process \label{sec:isabelle-process} *}
+section \<open>The raw Isabelle process \label{sec:isabelle-process}\<close>
 
-text {*
+text \<open>
   The @{executable_def "isabelle_process"} executable runs bare-bones
   Isabelle logic sessions --- either interactively or in batch mode.
   It provides an abstraction over the underlying ML system, and over
@@ -390,12 +390,12 @@ Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
   actual file locations may also be given by including at least one
   slash (@{verbatim "/"}) in the name (hint: use @{verbatim "./"} to
   refer to the current directory).
-*}
+\<close>
 
 
-subsubsection {* Options *}
+subsubsection \<open>Options\<close>
 
-text {*
+text \<open>
   If the input heap file does not have write permission bits set, or
   the @{verbatim "-r"} option is given explicitly, then the session
   started will be read-only.  That is, the ML world cannot be
@@ -450,12 +450,12 @@ text {*
   \medskip The @{verbatim "-S"} option makes the Isabelle process more
   secure by disabling some critical operations, notably runtime
   compilation and evaluation of ML source code.
-*}
+\<close>
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {*
+text \<open>
   Run an interactive session of the default object-logic (as specified
   by the @{setting ISABELLE_LOGIC} setting) like this:
 \begin{ttbox}
@@ -495,12 +495,12 @@ isabelle_process -e 'Thy_Info.get_theory "Main";' -q -r HOL
   messages by the ML runtime environment.  The @{verbatim "-W"} option
   allows to communicate with the Isabelle process via an external
   program in a more robust fashion.
-*}
+\<close>
 
 
-section {* The Isabelle tool wrapper \label{sec:isabelle-tool} *}
+section \<open>The Isabelle tool wrapper \label{sec:isabelle-tool}\<close>
 
-text {*
+text \<open>
   All Isabelle related tools and interfaces are called via a common
   wrapper --- @{executable isabelle}:
 
@@ -520,12 +520,12 @@ Available tools:
   ISABELLE_TOOLS} setting.  Do not try to call the scripts directly
   from the shell.  Neither should you add the tool directories to your
   shell's search path!
-*}
+\<close>
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* Show the list of available documentation of the Isabelle
+text \<open>Show the list of available documentation of the Isabelle
   distribution:
 
 \begin{ttbox}
@@ -541,6 +541,6 @@ text {* Show the list of available documentation of the Isabelle
 \begin{ttbox}
   isabelle getenv ISABELLE_HOME_USER
 \end{ttbox}
-*}
+\<close>
 
 end

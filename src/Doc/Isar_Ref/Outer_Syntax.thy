@@ -2,9 +2,9 @@ theory Outer_Syntax
 imports Base Main
 begin
 
-chapter {* Outer syntax --- the theory language \label{ch:outer-syntax} *}
+chapter \<open>Outer syntax --- the theory language \label{ch:outer-syntax}\<close>
 
-text {*
+text \<open>
   The rather generic framework of Isabelle/Isar syntax emerges from
   three main syntactic categories: \emph{commands} of the top-level
   Isar engine (covering theory and proof elements), \emph{methods} for
@@ -61,12 +61,12 @@ text {*
     logic image).  Note that option @{verbatim "-L"} does both
     of this at the same time.
   \end{warn}
-*}
+\<close>
 
 
-section {* Commands *}
+section \<open>Commands\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "print_commands"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
     @{command_def "help"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
@@ -85,21 +85,21 @@ text {*
   commands according to the specified name patterns.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* Some common diagnostic commands are retrieved like this
-  (according to usual naming conventions): *}
+text \<open>Some common diagnostic commands are retrieved like this
+  (according to usual naming conventions):\<close>
 
 help "print"
 help "find"
 
 
-section {* Lexical matters \label{sec:outer-lex} *}
+section \<open>Lexical matters \label{sec:outer-lex}\<close>
 
-text {* The outer lexical syntax consists of three main categories of
+text \<open>The outer lexical syntax consists of three main categories of
   syntax tokens:
 
   \begin{enumerate}
@@ -211,21 +211,21 @@ text {* The outer lexical syntax consists of three main categories of
   predefined Isabelle symbols that work well with these tools is given
   in \appref{app:symbols}.  Note that @{verbatim "\<lambda>"} does not belong
   to the @{text letter} category, since it is already used differently
-  in the Pure term language.  *}
+  in the Pure term language.\<close>
 
 
-section {* Common syntax entities *}
+section \<open>Common syntax entities\<close>
 
-text {*
+text \<open>
   We now introduce several basic syntactic entities, such as names,
   terms, and theorem specifications, which are factored out of the
   actual Isar language elements to be described later.
-*}
+\<close>
 
 
-subsection {* Names *}
+subsection \<open>Names\<close>
 
-text {* Entity @{syntax name} usually refers to any name of types,
+text \<open>Entity @{syntax name} usually refers to any name of types,
   constants, theorems etc.\ that are to be \emph{declared} or
   \emph{defined} (so qualified identifiers are excluded here).  Quoted
   strings provide an escape for non-identifier names or those ruled
@@ -241,12 +241,12 @@ text {* Entity @{syntax name} usually refers to any name of types,
     ;
     @{syntax_def nameref}: @{syntax name} | @{syntax longident}
   \<close>}
-*}
+\<close>
 
 
-subsection {* Numbers *}
+subsection \<open>Numbers\<close>
 
-text {* The outer lexical syntax (\secref{sec:outer-lex}) admits
+text \<open>The outer lexical syntax (\secref{sec:outer-lex}) admits
   natural numbers and floating point numbers.  These are combined as
   @{syntax int} and @{syntax real} as follows.
 
@@ -258,12 +258,12 @@ text {* The outer lexical syntax (\secref{sec:outer-lex}) admits
 
   Note that there is an overlap with the category @{syntax name},
   which also includes @{syntax nat}.
-*}
+\<close>
 
 
-subsection {* Comments \label{sec:comments} *}
+subsection \<open>Comments \label{sec:comments}\<close>
 
-text {* Large chunks of plain @{syntax text} are usually given
+text \<open>Large chunks of plain @{syntax text} are usually given
   @{syntax verbatim}, i.e.\ enclosed in @{verbatim "{"}@{verbatim
   "*"}~@{text "\<dots>"}~@{verbatim "*"}@{verbatim "}"}, or as @{syntax
   cartouche} @{text "\<open>\<dots>\<close>"}.  For convenience, any of the smaller text
@@ -276,12 +276,12 @@ text {* Large chunks of plain @{syntax text} are usually given
     ;
     @{syntax_def comment}: '--' @{syntax text}
   \<close>}
-*}
+\<close>
 
 
-subsection {* Type classes, sorts and arities *}
+subsection \<open>Type classes, sorts and arities\<close>
 
-text {*
+text \<open>
   Classes are specified by plain names.  Sorts have a very simple
   inner syntax, which is either a single class name @{text c} or a
   list @{text "{c\<^sub>1, \<dots>, c\<^sub>n}"} referring to the
@@ -295,12 +295,12 @@ text {*
     ;
     @{syntax_def arity}: ('(' (@{syntax sort} + ',') ')')? @{syntax sort}
   \<close>}
-*}
+\<close>
 
 
-subsection {* Types and terms \label{sec:types-terms} *}
+subsection \<open>Types and terms \label{sec:types-terms}\<close>
 
-text {*
+text \<open>
   The actual inner Isabelle syntax, that of types and terms of the
   logic, is far too sophisticated in order to be modelled explicitly
   at the outer theory level.  Basically, any such entity has to be
@@ -346,12 +346,12 @@ text {*
       (() | (@{syntax typefree} ('::' @{syntax sort})?) |
         '(' ( (@{syntax typefree} ('::' @{syntax sort})?) + ',' ) ')') @{syntax name}
   \<close>}
-*}
+\<close>
 
 
-subsection {* Term patterns and declarations \label{sec:term-decls} *}
+subsection \<open>Term patterns and declarations \label{sec:term-decls}\<close>
 
-text {* Wherever explicit propositions (or term fragments) occur in a
+text \<open>Wherever explicit propositions (or term fragments) occur in a
   proof text, casual binding of schematic term variables may be given
   specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}''.
   This works both for @{syntax term} and @{syntax prop}.
@@ -385,12 +385,12 @@ text {* Wherever explicit propositions (or term fragments) occur in a
   another level of iteration, with explicit @{keyword_ref "and"}
   separators; e.g.\ see @{command "fix"} and @{command "assume"} in
   \secref{sec:proof-context}.
-*}
+\<close>
 
 
-subsection {* Attributes and theorems \label{sec:syn-att} *}
+subsection \<open>Attributes and theorems \label{sec:syn-att}\<close>
 
-text {* Attributes have their own ``semi-inner'' syntax, in the sense
+text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   that input conforming to @{syntax args} below is parsed by the
   attribute a second time.  The attribute argument specifications may
   be any sequence of atomic entities (identifiers, strings etc.), or
@@ -462,6 +462,6 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
     ;
     selection: '(' ((@{syntax nat} | @{syntax nat} '-' @{syntax nat}?) + ',') ')'
   \<close>}
-*}
+\<close>
 
 end

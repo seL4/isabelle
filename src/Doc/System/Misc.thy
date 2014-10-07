@@ -2,27 +2,27 @@ theory Misc
 imports Base
 begin
 
-chapter {* Miscellaneous tools \label{ch:tools} *}
+chapter \<open>Miscellaneous tools \label{ch:tools}\<close>
 
-text {*
+text \<open>
   Subsequently we describe various Isabelle related utilities, given
   in alphabetical order.
-*}
+\<close>
 
 
-section {* Theory graph browser \label{sec:browse} *}
+section \<open>Theory graph browser \label{sec:browse}\<close>
 
-text {* The Isabelle graph browser is a general tool for visualizing
+text \<open>The Isabelle graph browser is a general tool for visualizing
   dependency graphs.  Certain nodes of the graph (i.e.\ theories) can
   be grouped together in ``directories'', whose contents may be
   hidden, thus enabling the user to collapse irrelevant portions of
   information.  The browser is written in Java, it can be used both as
-  a stand-alone application and as an applet.  *}
+  a stand-alone application and as an applet.\<close>
 
 
-subsection {* Invoking the graph browser *}
+subsection \<open>Invoking the graph browser\<close>
 
-text {* The stand-alone version of the graph browser is wrapped up as
+text \<open>The stand-alone version of the graph browser is wrapped up as
   @{tool_def browser}:
 \begin{ttbox}
 Usage: isabelle browser [OPTIONS] [GRAPHFILE]
@@ -49,12 +49,12 @@ Usage: isabelle browser [OPTIONS] [GRAPHFILE]
   \medskip The applet version of the browser is part of the standard
   WWW theory presentation, see the link ``theory dependencies'' within
   each session index.
-*}
+\<close>
 
 
-subsection {* Using the graph browser *}
+subsection \<open>Using the graph browser\<close>
 
-text {*
+text \<open>
   The browser's main window, which is shown in
   \figref{fig:browserwindow}, consists of two sub-windows.  In the
   left sub-window, the directory tree is displayed. The graph itself
@@ -64,12 +64,12 @@ text {*
   \includegraphics[width=\textwidth]{browser_screenshot}
   \caption{\label{fig:browserwindow} Browser main window}
   \end{figure}
-*}
+\<close>
 
 
-subsubsection {* The directory tree window *}
+subsubsection \<open>The directory tree window\<close>
 
-text {*
+text \<open>
   We describe the usage of the directory browser and the meaning of
   the different items in the browser window.
 
@@ -95,12 +95,12 @@ text {*
   displayed.
 
   \end{itemize}
-*}
+\<close>
 
 
-subsubsection {* The graph display window *}
+subsubsection \<open>The graph display window\<close>
 
-text {*
+text \<open>
   When pointing on an ordinary node, an upward and a downward arrow is
   shown.  Initially, both of these arrows are green. Clicking on the
   upward or downward arrow collapses all predecessor or successor
@@ -112,12 +112,12 @@ text {*
   "[....]"}''. Similar to the directory browser, the contents of
   theory files can be displayed by double clicking on the
   corresponding node.
-*}
+\<close>
 
 
-subsubsection {* The ``File'' menu *}
+subsubsection \<open>The ``File'' menu\<close>
 
-text {*
+text \<open>
   Due to Java Applet security restrictions this menu is only available
   in the full application version. The meaning of the menu items is as
   follows:
@@ -137,12 +137,12 @@ text {*
   \item[Quit] Quit the graph browser.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Syntax of graph definition files *}
+subsection \<open>Syntax of graph definition files\<close>
 
-text {*
+text \<open>
   A graph definition file has the following syntax:
 
   \begin{center}\small
@@ -177,12 +177,12 @@ text {*
   browser assumes that successor nodes are listed.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Resolving Isabelle components \label{sec:tool-components} *}
+section \<open>Resolving Isabelle components \label{sec:tool-components}\<close>
 
-text {*
+text \<open>
   The @{tool_def components} tool resolves Isabelle components:
 \begin{ttbox}
 Usage: isabelle components [OPTIONS] [COMPONENTS ...]
@@ -227,12 +227,12 @@ Usage: isabelle components [OPTIONS] [COMPONENTS ...]
   repository clone --- this does not make any sense for regular
   Isabelle releases.  If the file already exists, it needs to be
   edited manually according to the printed explanation.
-*}
+\<close>
 
 
-section {* Raw ML console *}
+section \<open>Raw ML console\<close>
 
-text {*
+text \<open>
   The @{tool_def console} tool runs the Isabelle process with raw ML console:
 \begin{ttbox}
 Usage: isabelle console [OPTIONS]
@@ -268,12 +268,12 @@ Usage: isabelle console [OPTIONS]
   Isabelle/Isar nor Isabelle/ML within the usual formal context. Some useful
   ML commands at this stage are @{ML cd}, @{ML pwd}, @{ML use}, @{ML use_thy},
   @{ML use_thys}.
-*}
+\<close>
 
 
-section {* Displaying documents \label{sec:tool-display} *}
+section \<open>Displaying documents \label{sec:tool-display}\<close>
 
-text {* The @{tool_def display} tool displays documents in DVI or PDF
+text \<open>The @{tool_def display} tool displays documents in DVI or PDF
   format:
 \begin{ttbox}
 Usage: isabelle display DOCUMENT
@@ -286,12 +286,12 @@ Usage: isabelle display DOCUMENT
   file formats.  Normally this opens the document via the desktop
   environment, potentially in an asynchronous manner with re-use of
   previews views.
-*}
+\<close>
 
 
-section {* Viewing documentation \label{sec:tool-doc} *}
+section \<open>Viewing documentation \label{sec:tool-doc}\<close>
 
-text {*
+text \<open>
   The @{tool_def doc} tool displays Isabelle documentation:
 \begin{ttbox}
 Usage: isabelle doc [DOC ...]
@@ -306,12 +306,12 @@ Usage: isabelle doc [DOC ...]
 
   \medskip The @{setting ISABELLE_DOCS} setting specifies the list of
   directories (separated by colons) to be scanned for documentations.
-*}
+\<close>
 
 
-section {* Shell commands within the settings environment \label{sec:tool-env} *}
+section \<open>Shell commands within the settings environment \label{sec:tool-env}\<close>
 
-text {* The @{tool_def env} tool is a direct wrapper for the standard
+text \<open>The @{tool_def env} tool is a direct wrapper for the standard
   @{verbatim "/usr/bin/env"} command on POSIX systems, running within
   the Isabelle settings environment (\secref{sec:settings}).
 
@@ -321,12 +321,12 @@ text {* The @{tool_def env} tool is a direct wrapper for the standard
 \begin{alltt}
   isabelle env bash
 \end{alltt}
-*}
+\<close>
 
 
-section {* Inspecting the settings environment \label{sec:tool-getenv} *}
+section \<open>Inspecting the settings environment \label{sec:tool-getenv}\<close>
 
-text {* The Isabelle settings environment --- as provided by the
+text \<open>The Isabelle settings environment --- as provided by the
   site-default and user-specific settings files --- can be inspected
   with the @{tool_def getenv} tool:
 \begin{ttbox}
@@ -351,12 +351,12 @@ Usage: isabelle getenv [OPTIONS] [VARNAMES ...]
   Option @{verbatim "-d"} produces a dump of the complete environment
   to the specified file.  Entries are terminated by the ASCII null
   character, i.e.\ the C string terminator.
-*}
+\<close>
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* Get the location of @{setting ISABELLE_HOME_USER} where
+text \<open>Get the location of @{setting ISABELLE_HOME_USER} where
   user-specific information is stored:
 \begin{ttbox}
 isabelle getenv ISABELLE_HOME_USER
@@ -367,12 +367,12 @@ particularly useful in shell scripts:
 \begin{ttbox}
 isabelle getenv -b ISABELLE_OUTPUT
 \end{ttbox}
-*}
+\<close>
 
 
-section {* Installing standalone Isabelle executables \label{sec:tool-install} *}
+section \<open>Installing standalone Isabelle executables \label{sec:tool-install}\<close>
 
-text {* By default, the main Isabelle binaries (@{executable
+text \<open>By default, the main Isabelle binaries (@{executable
   "isabelle"} etc.)  are just run from their location within the
   distribution directory, probably indirectly by the shell through its
   @{setting PATH}.  Other schemes of installation are supported by the
@@ -398,12 +398,12 @@ Usage: isabelle install [OPTIONS] BINDIR
 
   \medskip It is also possible to make symbolic links of the main
   Isabelle executables manually, but making separate copies outside
-  the Isabelle distribution directory will not work!  *}
+  the Isabelle distribution directory will not work!\<close>
 
 
-section {* Creating instances of the Isabelle logo *}
+section \<open>Creating instances of the Isabelle logo\<close>
 
-text {* The @{tool_def logo} tool creates instances of the generic
+text \<open>The @{tool_def logo} tool creates instances of the generic
   Isabelle logo as EPS and PDF, for inclusion in {\LaTeX} documents.
 \begin{ttbox}
 Usage: isabelle logo [OPTIONS] XYZ
@@ -423,12 +423,12 @@ Usage: isabelle logo [OPTIONS] XYZ
 
   \medskip Implementors of Isabelle tools and applications are
   encouraged to make derived Isabelle logos for their own projects
-  using this template.  *}
+  using this template.\<close>
 
 
-section {* Output the version identifier of the Isabelle distribution *}
+section \<open>Output the version identifier of the Isabelle distribution\<close>
 
-text {*
+text \<open>
   The @{tool_def version} tool displays Isabelle version information:
 \begin{ttbox}
 Usage: isabelle version [OPTIONS]
@@ -444,12 +444,12 @@ Usage: isabelle version [OPTIONS]
 
   The @{verbatim "-i"} option produces a short identification derived
   from the Mercurial id of the @{setting ISABELLE_HOME} directory.
-*}
+\<close>
 
 
-section {* Convert XML to YXML *}
+section \<open>Convert XML to YXML\<close>
 
-text {*
+text \<open>
   The @{tool_def yxml} tool converts a standard XML document (stdin)
   to the much simpler and more efficient YXML format of Isabelle
   (stdout).  The YXML format is defined as follows.
@@ -489,6 +489,6 @@ text {*
 
   YXML documents may be detected quickly by checking that the first
   two characters are @{text "\<^bold>X\<^bold>Y"}.
-*}
+\<close>
 
 end

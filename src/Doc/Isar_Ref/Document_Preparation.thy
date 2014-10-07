@@ -2,9 +2,9 @@ theory Document_Preparation
 imports Base Main
 begin
 
-chapter {* Document preparation \label{ch:document-prep} *}
+chapter \<open>Document preparation \label{ch:document-prep}\<close>
 
-text {* Isabelle/Isar provides a simple document preparation system
+text \<open>Isabelle/Isar provides a simple document preparation system
   based on {PDF-\LaTeX}, with support for hyperlinks and bookmarks
   within that format.  This allows to produce papers, books, theses
   etc.\ from Isabelle theory sources.
@@ -15,12 +15,12 @@ text {* Isabelle/Isar provides a simple document preparation system
   document preparation are @{tool_ref mkroot} and @{tool_ref build}.
 
   The classic Isabelle/HOL tutorial @{cite "isabelle-hol-book"} also
-  explains some aspects of theory presentation.  *}
+  explains some aspects of theory presentation.\<close>
 
 
-section {* Markup commands \label{sec:markup} *}
+section \<open>Markup commands \label{sec:markup}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "header"} & : & @{text "toplevel \<rightarrow> toplevel"} \\[0.5ex]
     @{command_def "chapter"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -96,12 +96,12 @@ text {*
   specifications, but have a different formal status and produce
   different {\LaTeX} macros.  The default definitions coincide for
   analogous commands such as @{command section} and @{command sect}.
-*}
+\<close>
 
 
-section {* Document Antiquotations \label{sec:antiq} *}
+section \<open>Document Antiquotations \label{sec:antiq}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{antiquotation_def "theory"} & : & @{text antiquotation} \\
     @{antiquotation_def "thm"} & : & @{text antiquotation} \\
@@ -296,12 +296,12 @@ text {*
   [cite_macro = nocite] foobar}"} produces @{verbatim "\\nocite{foobar}"}.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Styled antiquotations *}
+subsection \<open>Styled antiquotations\<close>
 
-text {* The antiquotations @{text thm}, @{text prop} and @{text
+text \<open>The antiquotations @{text thm}, @{text prop} and @{text
   term} admit an extra \emph{style} specification to modify the
   printed result.  A style is specified by a name with a possibly
   empty number of arguments;  multiple styles can be sequenced with
@@ -324,12 +324,12 @@ text {* The antiquotations @{text thm}, @{text prop} and @{text
   normal form @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C"}
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* General options *}
+subsection \<open>General options\<close>
 
-text {* The following options are available to tune the printed output
+text \<open>The following options are available to tune the printed output
   of antiquotations.  Note that many of these coincide with system and
   configuration options of the same names.
 
@@ -413,12 +413,12 @@ text {* The following options are available to tune the printed output
   For Boolean flags, ``@{text "name = true"}'' may be abbreviated as
   ``@{text name}''.  All of the above flags are disabled by default,
   unless changed specifically for a logic session in the corresponding
-  @{verbatim "ROOT"} file.  *}
+  @{verbatim "ROOT"} file.\<close>
 
 
-section {* Markup via command tags \label{sec:tags} *}
+section \<open>Markup via command tags \label{sec:tags}\<close>
 
-text {* Each Isabelle/Isar command may be decorated by additional
+text \<open>Each Isabelle/Isar command may be decorated by additional
   presentation tags, to indicate some modification in the way it is
   printed in the document.
 
@@ -465,12 +465,12 @@ text {* Each Isabelle/Isar command may be decorated by additional
   parts of the text.  Logic sessions may also specify ``document
   versions'', where given tags are interpreted in some particular way.
   Again see @{cite "isabelle-sys"} for further details.
-*}
+\<close>
 
 
-section {* Railroad diagrams *}
+section \<open>Railroad diagrams\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{antiquotation_def "rail"} & : & @{text antiquotation} \\
   \end{matharray}
@@ -578,12 +578,12 @@ text {*
   @{rail \<open>A + sep\<close>}
 
   \end{itemize}
-*}
+\<close>
 
 
-section {* Draft presentation *}
+section \<open>Draft presentation\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "display_drafts"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
@@ -600,6 +600,6 @@ text {*
   verbatim.
 
   \end{description}
-*}
+\<close>
 
 end

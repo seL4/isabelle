@@ -2,9 +2,9 @@ theory Isar
 imports Base
 begin
 
-chapter {* Isar language elements *}
+chapter \<open>Isar language elements\<close>
 
-text {* The Isar proof language (see also
+text \<open>The Isar proof language (see also
   @{cite \<open>\S2\<close> "isabelle-isar-ref"}) consists of three main categories of
   language elements:
 
@@ -36,12 +36,12 @@ text {* The Isar proof language (see also
   and @{attribute symmetric} (which affects the theorem).
 
   \end{enumerate}
-*}
+\<close>
 
 
-section {* Proof commands *}
+section \<open>Proof commands\<close>
 
-text {* A \emph{proof command} is state transition of the Isar/VM
+text \<open>A \emph{proof command} is state transition of the Isar/VM
   proof interpreter.
 
   In principle, Isar proof commands could be defined in user-space as
@@ -61,9 +61,9 @@ text {* A \emph{proof command} is state transition of the Isar/VM
   poses a problem to the user as Isar proof state and processes the
   final result relatively to the context.  Thus a proof can be
   incorporated into the context of some user-space tool, without
-  modifying the Isar proof language itself.  *}
+  modifying the Isar proof language itself.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type Proof.state} \\
   @{index_ML Proof.assert_forward: "Proof.state -> Proof.state"} \\
@@ -140,10 +140,10 @@ text %mlref {*
   invoked.
 
   \end{description}
-*}
+\<close>
 
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "Isar.goal"} & : & @{text ML_antiquotation} \\
   \end{matharray}
@@ -158,26 +158,26 @@ text %mlantiq {*
   ML_val} or @{command ML_command}.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following example peeks at a certain goal configuration. *}
+text %mlex \<open>The following example peeks at a certain goal configuration.\<close>
 
 notepad
 begin
   have A and B and C
-    ML_val {*
+    ML_val \<open>
       val n = Thm.nprems_of (#goal @{Isar.goal});
       @{assert} (n = 3);
-    *}
+\<close>
     oops
 
-text {* Here we see 3 individual subgoals in the same way as regular
-  proof methods would do.  *}
+text \<open>Here we see 3 individual subgoals in the same way as regular
+  proof methods would do.\<close>
 
 
-section {* Proof methods *}
+section \<open>Proof methods\<close>
 
-text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup>* \<rightarrow> goal
+text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup>* \<rightarrow> goal
   \<rightarrow> (cases \<times> goal)\<^sup>*\<^sup>*"} that operates on the full Isar goal
   configuration with context, goal facts, and tactical goal state and
   enumerates possible follow-up goal states, with the potential
@@ -301,9 +301,9 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   Isabelle99 until Isabelle2009 the system did provide various odd
   combinations of method syntax wrappers that made applications more
   complicated than necessary.}
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type Proof.method} \\
   @{index_ML METHOD_CASES: "(thm list -> cases_tactic) -> Proof.method"} \\
@@ -348,16 +348,16 @@ text %mlref {*
   function.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* See also @{command method_setup} in
+text %mlex \<open>See also @{command method_setup} in
   @{cite "isabelle-isar-ref"} which includes some abstract examples.
 
   \medskip The following toy examples illustrate how the goal facts
   and state are passed to proof methods.  The predefined proof method
   called ``@{method tactic}'' wraps ML source of type @{ML_type
   tactic} (abstracted over @{ML_text facts}).  This allows immediate
-  experimentation without parsing of concrete syntax. *}
+  experimentation without parsing of concrete syntax.\<close>
 
 notepad
 begin
@@ -378,8 +378,8 @@ begin
     done
 end
 
-text {* \medskip The next example implements a method that simplifies
-  the first subgoal by rewrite rules that are given as arguments.  *}
+text \<open>\medskip The next example implements a method that simplifies
+  the first subgoal by rewrite rules that are given as arguments.\<close>
 
 method_setup my_simp =
   \<open>Attrib.thms >> (fn thms => fn ctxt =>
@@ -388,7 +388,7 @@ method_setup my_simp =
         (put_simpset HOL_basic_ss ctxt addsimps thms) i)))\<close>
   "rewrite subgoal by given rules"
 
-text {* The concrete syntax wrapping of @{command method_setup} always
+text \<open>The concrete syntax wrapping of @{command method_setup} always
   passes-through the proof context at the end of parsing, but it is
   not used in this example.
 
@@ -406,7 +406,7 @@ text {* The concrete syntax wrapping of @{command method_setup} always
 
   \medskip Method @{method my_simp} can be used in Isar proofs like
   this:
-*}
+\<close>
 
 notepad
 begin
@@ -416,8 +416,8 @@ begin
   have "a = c" by (my_simp a b)
 end
 
-text {* Here is a similar method that operates on all subgoals,
-  instead of just the first one. *}
+text \<open>Here is a similar method that operates on all subgoals,
+  instead of just the first one.\<close>
 
 method_setup my_simp_all =
   \<open>Attrib.thms >> (fn thms => fn ctxt =>
@@ -435,15 +435,15 @@ begin
   have "a = c" and "c = b" by (my_simp_all a b)
 end
 
-text {* \medskip Apart from explicit arguments, common proof methods
+text \<open>\medskip Apart from explicit arguments, common proof methods
   typically work with a default configuration provided by the context. As a
   shortcut to rule management we use a cheap solution via the @{command
-  named_theorems} command to declare a dynamic fact in the context. *}
+  named_theorems} command to declare a dynamic fact in the context.\<close>
 
 named_theorems my_simp
 
-text {* The proof method is now defined as before, but we append the
-  explicit arguments and the rules from the context. *}
+text \<open>The proof method is now defined as before, but we append the
+  explicit arguments and the rules from the context.\<close>
 
 method_setup my_simp' =
   \<open>Attrib.thms >> (fn thms => fn ctxt =>
@@ -457,10 +457,10 @@ method_setup my_simp' =
     end)\<close>
   "rewrite subgoal by given rules and my_simp rules from the context"
 
-text {*
+text \<open>
   \medskip Method @{method my_simp'} can be used in Isar proofs
   like this:
-*}
+\<close>
 
 notepad
 begin
@@ -470,7 +470,7 @@ begin
   have "a \<equiv> c" by my_simp'
 end
 
-text {* \medskip The @{method my_simp} variants defined above are
+text \<open>\medskip The @{method my_simp} variants defined above are
   ``simple'' methods, i.e.\ the goal facts are merely inserted as goal
   premises by the @{ML SIMPLE_METHOD'} or @{ML SIMPLE_METHOD} wrapper.
   For proof methods that are similar to the standard collection of
@@ -500,12 +500,12 @@ text {* \medskip The @{method my_simp} variants defined above are
   left-hand sides of rewrite rules.  For variations on the Simplifier,
   re-use of the existing type @{ML_type simpset} is adequate, but
   scalability would require it be maintained statically within the
-  context data, not dynamically on each tool invocation.  *}
+  context data, not dynamically on each tool invocation.\<close>
 
 
-section {* Attributes \label{sec:attributes} *}
+section \<open>Attributes \label{sec:attributes}\<close>
 
-text {* An \emph{attribute} is a function @{text "context \<times> thm \<rightarrow>
+text \<open>An \emph{attribute} is a function @{text "context \<times> thm \<rightarrow>
   context \<times> thm"}, which means both a (generic) context and a theorem
   can be modified simultaneously.  In practice this mixed form is very
   rare, instead attributes are presented either as \emph{declaration
@@ -522,9 +522,9 @@ text {* An \emph{attribute} is a function @{text "context \<times> thm \<rightar
   exactly on the variant of the generic context that is provided by
   the system, which is either global theory context or local proof
   context.  In particular, the background theory of a local context
-  must not be modified in this situation! *}
+  must not be modified in this situation!\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type attribute} \\
   @{index_ML Thm.rule_attribute: "(Context.generic -> thm -> thm) -> attribute"} \\
@@ -551,9 +551,9 @@ text %mlref {*
   ML function.
 
   \end{description}
-*}
+\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def attributes} & : & @{text ML_antiquotation} \\
   \end{matharray}
@@ -572,9 +572,9 @@ text %mlantiq {*
   be subject to odd effects of dynamic scoping!
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* See also @{command attribute_setup} in
-  @{cite "isabelle-isar-ref"} which includes some abstract examples. *}
+text %mlex \<open>See also @{command attribute_setup} in
+  @{cite "isabelle-isar-ref"} which includes some abstract examples.\<close>
 
 end

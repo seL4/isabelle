@@ -2,20 +2,20 @@ theory Tactic
 imports Base
 begin
 
-chapter {* Tactical reasoning *}
+chapter \<open>Tactical reasoning\<close>
 
-text {* Tactical reasoning works by refining an initial claim in a
+text \<open>Tactical reasoning works by refining an initial claim in a
   backwards fashion, until a solved form is reached.  A @{text "goal"}
   consists of several subgoals that need to be solved in order to
   achieve the main statement; zero subgoals means that the proof may
   be finished.  A @{text "tactic"} is a refinement operation that maps
   a goal to a lazy sequence of potential successors.  A @{text
-  "tactical"} is a combinator for composing tactics.  *}
+  "tactical"} is a combinator for composing tactics.\<close>
 
 
-section {* Goals \label{sec:tactical-goals} *}
+section \<open>Goals \label{sec:tactical-goals}\<close>
 
-text {*
+text \<open>
   Isabelle/Pure represents a goal as a theorem stating that the
   subgoals imply the main goal: @{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow>
   C"}.  The outermost goal structure is that of a Horn Clause: i.e.\
@@ -58,9 +58,9 @@ text {*
   \[
   \infer[@{text "(conclude)"}]{@{text "A \<Longrightarrow> \<dots> \<Longrightarrow> C"}}{@{text "A \<Longrightarrow> \<dots> \<Longrightarrow> #C"}}
   \]
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Goal.init: "cterm -> thm"} \\
   @{index_ML Goal.finish: "Proof.context -> thm -> thm"} \\
@@ -86,12 +86,12 @@ text %mlref {*
   protection, even if there are pending subgoals.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Tactics\label{sec:tactics} *}
+section \<open>Tactics\label{sec:tactics}\<close>
 
-text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*\<^sup>*"} that
+text \<open>A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*\<^sup>*"} that
   maps a given goal state (represented as a theorem, cf.\
   \secref{sec:tactical-goals}) to a lazy sequence of potential
   successor states.  The underlying sequence implementation is lazy
@@ -168,9 +168,9 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
   experienced by the user (e.g.\ tactics that insist in being
   applicable only to singleton goals, or prevent composition via
   standard tacticals such as @{ML REPEAT}).
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type tactic: "thm -> thm Seq.seq"} \\
   @{index_ML no_tac: tactic} \\
@@ -231,12 +231,12 @@ text %mlref {*
   without changing the main goal protection.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Resolution and assumption tactics \label{sec:resolve-assume-tac} *}
+subsection \<open>Resolution and assumption tactics \label{sec:resolve-assume-tac}\<close>
 
-text {* \emph{Resolution} is the most basic mechanism for refining a
+text \<open>\emph{Resolution} is the most basic mechanism for refining a
   subgoal using a theorem as object-level rule.
   \emph{Elim-resolution} is particularly suited for elimination rules:
   it resolves with a rule, proves its first premise by assumption, and
@@ -273,9 +273,9 @@ text {* \emph{Resolution} is the most basic mechanism for refining a
 
   Recall that higher-order unification may produce multiple results
   that are enumerated here.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML resolve_tac: "thm list -> int -> tactic"} \\
   @{index_ML eresolve_tac: "thm list -> int -> tactic"} \\
@@ -346,12 +346,12 @@ text %mlref {*
 
   Flexible subgoals are not updated at will, but are left alone.
   \end{description}
-*}
+\<close>
 
 
-subsection {* Explicit instantiation within a subgoal context *}
+subsection \<open>Explicit instantiation within a subgoal context\<close>
 
-text {* The main resolution tactics (\secref{sec:resolve-assume-tac})
+text \<open>The main resolution tactics (\secref{sec:resolve-assume-tac})
   use higher-order unification, which works well in many practical
   situations despite its daunting theoretical properties.
   Nonetheless, there are important problem classes where unguided
@@ -390,9 +390,9 @@ text {* The main resolution tactics (\secref{sec:resolve-assume-tac})
   Types are instantiated before terms are.  Since term instantiation
   already performs simple type-inference, so explicit type
   instantiations are seldom necessary.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML res_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
   @{index_ML eres_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
@@ -440,17 +440,17 @@ text %mlref {*
   ML code.  The slightly more advanced @{ML Subgoal.FOCUS} combinator
   of \secref{sec:struct-goals} allows to refer to internal goal
   structure with explicit context management.
-*}
+\<close>
 
 
-subsection {* Rearranging goal states *}
+subsection \<open>Rearranging goal states\<close>
 
-text {* In rare situations there is a need to rearrange goal states:
+text \<open>In rare situations there is a need to rearrange goal states:
   either the overall collection of subgoals, or the local structure of
   a subgoal.  Various administrative tactics allow to operate on the
-  concrete presentation these conceptual sets of formulae. *}
+  concrete presentation these conceptual sets of formulae.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML rotate_tac: "int -> int -> tactic"} \\
   @{index_ML distinct_subgoals_tac: tactic} \\
@@ -477,20 +477,20 @@ text %mlref {*
   ignored; they often disappear as unknowns get instantiated.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Raw composition: resolution without lifting *}
+subsection \<open>Raw composition: resolution without lifting\<close>
 
-text {*
+text \<open>
   Raw composition of two rules means resolving them without prior
   lifting or renaming of unknowns.  This low-level operation, which
   underlies the resolution tactics, may occasionally be useful for
   special effects.  Schematic variables are not renamed by default, so
   beware of clashes!
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML compose_tac: "(bool * thm * int) -> int -> tactic"} \\
   @{index_ML Drule.compose: "thm * int * thm -> thm"} \\
@@ -526,31 +526,31 @@ text %mlref {*
   the consequences, they may produce results that cause problems with
   standard rules and tactics later on.
   \end{warn}
-*}
+\<close>
 
 
-section {* Tacticals \label{sec:tacticals} *}
+section \<open>Tacticals \label{sec:tacticals}\<close>
 
-text {* A \emph{tactical} is a functional combinator for building up
+text \<open>A \emph{tactical} is a functional combinator for building up
   complex tactics from simpler ones.  Common tacticals perform
   sequential composition, disjunctive choice, iteration, or goal
   addressing.  Various search strategies may be expressed via
   tacticals.
-*}
+\<close>
 
 
-subsection {* Combining tactics *}
+subsection \<open>Combining tactics\<close>
 
-text {* Sequential composition and alternative choices are the most
+text \<open>Sequential composition and alternative choices are the most
   basic ways to combine tactics, similarly to ``@{verbatim ","}'' and
   ``@{verbatim "|"}'' in Isar method notation.  This corresponds to
   @{ML_op "THEN"} and @{ML_op "ORELSE"} in ML, but there are further
   possibilities for fine-tuning alternation of tactics such as @{ML_op
   "APPEND"}.  Further details become visible in ML due to explicit
   subgoal addressing.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_op "THEN": "tactic * tactic -> tactic"} \\
   @{index_ML_op "ORELSE": "tactic * tactic -> tactic"} \\
@@ -607,16 +607,16 @@ text %mlref {*
   The other primed tacticals work analogously.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Repetition tacticals *}
+subsection \<open>Repetition tacticals\<close>
 
-text {* These tacticals provide further control over repetition of
+text \<open>These tacticals provide further control over repetition of
   tactics, beyond the stylized forms of ``@{verbatim "?"}''  and
-  ``@{verbatim "+"}'' in Isar method expressions. *}
+  ``@{verbatim "+"}'' in Isar method expressions.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML "TRY": "tactic -> tactic"} \\
   @{index_ML "REPEAT": "tactic -> tactic"} \\
@@ -658,9 +658,9 @@ text %mlref {*
   by @{text "n"} (where @{ML "~1"} means @{text "\<infinity>"}).
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The basic tactics and tacticals considered above follow
+text %mlex \<open>The basic tactics and tacticals considered above follow
   some algebraic laws:
 
   \begin{itemize}
@@ -678,14 +678,14 @@ text %mlex {* The basic tactics and tacticals considered above follow
   implementation tricks):
 
   \end{itemize}
-*}
+\<close>
 
-ML {*
+ML \<open>
   fun TRY tac = tac ORELSE all_tac;
   fun REPEAT tac st = ((tac THEN REPEAT tac) ORELSE all_tac) st;
-*}
+\<close>
 
-text {* If @{text "tac"} can return multiple outcomes then so can @{ML
+text \<open>If @{text "tac"} can return multiple outcomes then so can @{ML
   REPEAT}~@{text "tac"}.  @{ML REPEAT} uses @{ML_op "ORELSE"} and not
   @{ML_op "APPEND"}, it applies @{text "tac"} as many times as
   possible in each outcome.
@@ -697,17 +697,17 @@ text {* If @{text "tac"} can return multiple outcomes then so can @{ML
   evaluation in Standard ML.  The following attempt would make @{ML
   REPEAT}~@{text "tac"} loop:
   \end{warn}
-*}
+\<close>
 
-ML {*
+ML \<open>
   (*BAD -- does not terminate!*)
   fun REPEAT tac = (tac THEN REPEAT tac) ORELSE all_tac;
-*}
+\<close>
 
 
-subsection {* Applying tactics to subgoal ranges *}
+subsection \<open>Applying tactics to subgoal ranges\<close>
 
-text {* Tactics with explicit subgoal addressing
+text \<open>Tactics with explicit subgoal addressing
   @{ML_type "int -> tactic"} can be used together with tacticals that
   act like ``subgoal quantifiers'': guided by success of the body
   tactic a certain range of subgoals is covered.  Thus the body tactic
@@ -718,9 +718,9 @@ text {* Tactics with explicit subgoal addressing
   @{text "n"} towards @{text "1"}.  This has the fortunate effect that
   newly emerging subgoals are concatenated in the result, without
   interfering each other.  Nonetheless, there might be situations
-  where a different order is desired. *}
+  where a different order is desired.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML ALLGOALS: "(int -> tactic) -> tactic"} \\
   @{index_ML SOMEGOAL: "(int -> tactic) -> tactic"} \\
@@ -760,25 +760,25 @@ text %mlref {*
   corresponding range of subgoals, counting downwards.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Control and search tacticals *}
+subsection \<open>Control and search tacticals\<close>
 
-text {* A predicate on theorems @{ML_type "thm -> bool"} can test
+text \<open>A predicate on theorems @{ML_type "thm -> bool"} can test
   whether a goal state enjoys some desirable property --- such as
   having no subgoals.  Tactics that search for satisfactory goal
   states are easy to express.  The main search procedures,
   depth-first, breadth-first and best-first, are provided as
   tacticals.  They generate the search tree by repeatedly applying a
-  given tactic.  *}
+  given tactic.\<close>
 
 
 text %mlref ""
 
-subsubsection {* Filtering a tactic's results *}
+subsubsection \<open>Filtering a tactic's results\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML FILTER: "(thm -> bool) -> tactic -> tactic"} \\
   @{index_ML CHANGED: "tactic -> tactic"} \\
@@ -796,12 +796,12 @@ text {*
   CHANGED}~@{text "tac"} always has some effect on the state.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Depth-first search *}
+subsubsection \<open>Depth-first search\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML DEPTH_FIRST: "(thm -> bool) -> tactic -> tactic"} \\
   @{index_ML DEPTH_SOLVE: "tactic -> tactic"} \\
@@ -825,12 +825,12 @@ text {*
   it insists upon solving at least one subgoal.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Other search strategies *}
+subsubsection \<open>Other search strategies\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML BREADTH_FIRST: "(thm -> bool) -> tactic -> tactic"} \\
   @{index_ML BEST_FIRST: "(thm -> bool) * (thm -> int) -> tactic -> tactic"} \\
@@ -866,12 +866,12 @@ text {*
   continuing the search.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Auxiliary tacticals for searching *}
+subsubsection \<open>Auxiliary tacticals for searching\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML COND: "(thm -> bool) -> tactic -> tactic -> tactic"} \\
   @{index_ML IF_UNSOLVED: "tactic -> tactic"} \\
@@ -901,12 +901,12 @@ text {*
   limits the search space by making its argument deterministic.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Predicates and functions useful for searching *}
+subsubsection \<open>Predicates and functions useful for searching\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML has_fewer_prems: "int -> thm -> bool"} \\
   @{index_ML Thm.eq_thm: "thm * thm -> bool"} \\
@@ -934,6 +934,6 @@ text {*
   @{ML BEST_FIRST}.
 
   \end{description}
-*}
+\<close>
 
 end

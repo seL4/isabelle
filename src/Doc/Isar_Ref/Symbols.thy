@@ -2,9 +2,9 @@ theory Symbols
 imports Base Main
 begin
 
-chapter {* Predefined Isabelle symbols \label{app:symbols} *}
+chapter \<open>Predefined Isabelle symbols \label{app:symbols}\<close>
 
-text {*
+text \<open>
   Isabelle supports an infinite number of non-ASCII symbols, which are
   represented in source text as @{verbatim "\\"}@{verbatim "<"}@{text
   name}@{verbatim ">"} (where @{text name} may be any identifier).  It
@@ -36,6 +36,6 @@ text {*
   \input{syms}  
   \end{isabellebody}
   \end{center}
-*}
+\<close>
 
 end

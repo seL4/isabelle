@@ -2,9 +2,9 @@ theory Sessions
 imports Base
 begin
 
-chapter {* Isabelle sessions and build management \label{ch:session} *}
+chapter \<open>Isabelle sessions and build management \label{ch:session}\<close>
 
-text {* An Isabelle \emph{session} consists of a collection of related
+text \<open>An Isabelle \emph{session} consists of a collection of related
   theories that may be associated with formal documents
   (\chref{ch:present}).  There is also a notion of \emph{persistent
   heap} image to capture the state of a session, similar to
@@ -24,12 +24,12 @@ text {* An Isabelle \emph{session} consists of a collection of related
   management helps to organize this efficiently.  This includes
   support for parallel build jobs, in addition to the multithreaded
   theory and proof checking that is already provided by the prover
-  process itself.  *}
+  process itself.\<close>
 
 
-section {* Session ROOT specifications \label{sec:session-root} *}
+section \<open>Session ROOT specifications \label{sec:session-root}\<close>
 
-text {* Session specifications reside in files called @{verbatim ROOT}
+text \<open>Session specifications reside in files called @{verbatim ROOT}
   within certain directories, such as the home locations of registered
   Isabelle components or additional project directories given by the
   user.
@@ -144,23 +144,23 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   directory @{verbatim document} within the session root directory.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* See @{file "~~/src/HOL/ROOT"} for a diversity of practically
+text \<open>See @{file "~~/src/HOL/ROOT"} for a diversity of practically
   relevant situations, although it uses relatively complex
   quasi-hierarchic naming conventions like @{text "HOL\<dash>SPARK"},
   @{text "HOL\<dash>SPARK\<dash>Examples"}.  An alternative is to use
   unqualified names that are relatively long and descriptive, as in
   the Archive of Formal Proofs (@{url "http://afp.sourceforge.net"}), for
-  example. *}
+  example.\<close>
 
 
-section {* System build options \label{sec:system-options} *}
+section \<open>System build options \label{sec:system-options}\<close>
 
-text {* See @{file "~~/etc/options"} for the main defaults provided by
+text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   the Isabelle distribution.  Isabelle/jEdit @{cite "isabelle-jedit"}
   includes a simple editing mode @{verbatim "isabelle-options"} for
   this file-format.
@@ -269,12 +269,12 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
   Option @{verbatim "-x"} specifies a file to export the result in
   YXML format, instead of printing it in human-readable form.
-*}
+\<close>
 
 
-section {* Invoking the build process \label{sec:tool-build} *}
+section \<open>Invoking the build process \label{sec:tool-build}\<close>
 
-text {* The @{tool_def build} tool invokes the build process for
+text \<open>The @{tool_def build} tool invokes the build process for
   Isabelle sessions.  It manages dependencies between sessions,
   related sources of theories and auxiliary files, and target heap
   images.  Accordingly, it runs instances of the prover process with
@@ -378,11 +378,11 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   \medskip Option @{verbatim "-v"} increases the general level of
   verbosity.  Option @{verbatim "-l"} lists the source files that
   contribute to a session.
-*}
+\<close>
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {*
+text \<open>
   Build a specific logic image:
 \begin{ttbox}
 isabelle build -b HOLCF
@@ -434,6 +434,6 @@ isabelle build -D '$AFP'
 \begin{ttbox}
 isabelle build -D '$AFP' -R -v -n
 \end{ttbox}
-*}
+\<close>
 
 end

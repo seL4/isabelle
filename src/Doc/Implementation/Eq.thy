@@ -2,9 +2,9 @@ theory Eq
 imports Base
 begin
 
-chapter {* Equational reasoning *}
+chapter \<open>Equational reasoning\<close>
 
-text {* Equality is one of the most fundamental concepts of
+text \<open>Equality is one of the most fundamental concepts of
   mathematics.  The Isabelle/Pure logic (\chref{ch:logic}) provides a
   builtin relation @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} that expresses equality
   of arbitrary terms (or propositions) at the framework level, as
@@ -26,12 +26,12 @@ text {* Equality is one of the most fundamental concepts of
   equivalence, and relate it with the Pure equality.  This enables to
   re-use the Pure tools for equational reasoning for particular
   object-logic connectives as well.
-*}
+\<close>
 
 
-section {* Basic equality rules \label{sec:eq-rules} *}
+section \<open>Basic equality rules \label{sec:eq-rules}\<close>
 
-text {* Isabelle/Pure uses @{text "\<equiv>"} for equality of arbitrary
+text \<open>Isabelle/Pure uses @{text "\<equiv>"} for equality of arbitrary
   terms, which includes equivalence of propositions of the logical
   framework.  The conceptual axiomatization of the constant @{text "\<equiv>
   :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} is given in \figref{fig:pure-equality}.  The
@@ -50,9 +50,9 @@ text {* Isabelle/Pure uses @{text "\<equiv>"} for equality of arbitrary
   inference function, although the rule attribute @{attribute THEN} or
   ML operator @{ML "op RS"} involve the full machinery of higher-order
   unification (modulo @{text "\<beta>\<eta>"}-conversion) and lifting of @{text
-  "\<And>/\<Longrightarrow>"} contexts. *}
+  "\<And>/\<Longrightarrow>"} contexts.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Thm.reflexive: "cterm -> thm"} \\
   @{index_ML Thm.symmetric: "thm -> thm"} \\
@@ -67,29 +67,29 @@ text %mlref {*
   these inference rules, and a few more for primitive @{text "\<beta>"} and
   @{text "\<eta>"} conversions.  Note that @{text "\<alpha>"} conversion is
   implicit due to the representation of terms with de-Bruijn indices
-  (\secref{sec:terms}). *}
+  (\secref{sec:terms}).\<close>
 
 
-section {* Conversions \label{sec:conv} *}
+section \<open>Conversions \label{sec:conv}\<close>
 
-text {*
+text \<open>
   %FIXME
 
   The classic article that introduces the concept of conversion (for
   Cambridge LCF) is @{cite "paulson:1983"}.
-*}
+\<close>
 
 
-section {* Rewriting \label{sec:rewriting} *}
+section \<open>Rewriting \label{sec:rewriting}\<close>
 
-text {* Rewriting normalizes a given term (theorem or goal) by
+text \<open>Rewriting normalizes a given term (theorem or goal) by
   replacing instances of given equalities @{text "t \<equiv> u"} in subterms.
   Rewriting continues until no rewrites are applicable to any subterm.
   This may be used to unfold simple definitions of the form @{text "f
   x\<^sub>1 \<dots> x\<^sub>n \<equiv> u"}, but is slightly more general than that.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML rewrite_rule: "Proof.context -> thm list -> thm -> thm"} \\
   @{index_ML rewrite_goals_rule: "Proof.context -> thm list -> thm -> thm"} \\
@@ -121,6 +121,6 @@ text %mlref {*
   in the proof state.
 
   \end{description}
-*}
+\<close>
 
 end

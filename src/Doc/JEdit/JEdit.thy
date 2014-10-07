@@ -4,11 +4,11 @@ theory JEdit
 imports Base
 begin
 
-chapter {* Introduction *}
+chapter \<open>Introduction\<close>
 
-section {* Concepts and terminology *}
+section \<open>Concepts and terminology\<close>
 
-text {*
+text \<open>
   Isabelle/jEdit is a Prover IDE that integrates \emph{parallel proof
   checking} @{cite "Wenzel:2009" and "Wenzel:2013:ITP"} with
   \emph{asynchronous user interaction} @{cite "Wenzel:2010" and
@@ -58,12 +58,12 @@ text {*
   Isabelle/Scala versus Scala, Isabelle/jEdit versus jEdit need to be
   taken into account when discussing any of these PIDE building blocks
   in public forums, mailing lists, or even scientific publications.
-  *}
+\<close>
 
 
-section {* The Isabelle/jEdit Prover IDE *}
+section \<open>The Isabelle/jEdit Prover IDE\<close>
 
-text {*
+text \<open>
   \begin{figure}[htb]
   \begin{center}
   \includegraphics[scale=0.333]{isabelle-jedit}
@@ -104,12 +104,12 @@ text {*
   Thus the Prover IDE gives an impression of direct access to formal content
   of the prover within the editor, but in reality only certain aspects are
   exposed, according to the possibilities of the prover and its many tools.
-*}
+\<close>
 
 
-subsection {* Documentation *}
+subsection \<open>Documentation\<close>
 
-text {*
+text \<open>
   The \emph{Documentation} panel of Isabelle/jEdit provides access to the
   standard Isabelle documentation: PDF files are opened by regular desktop
   operations of the underlying platform. The section ``Original jEdit
@@ -124,12 +124,12 @@ text {*
   the official jEdit documentation does not know about the Isabelle plugin
   with its support for continuous checking of formal source text: jEdit is a
   plain text editor, but Isabelle/jEdit is a Prover IDE.
-*}
+\<close>
 
 
-subsection {* Plugins *}
+subsection \<open>Plugins\<close>
 
-text {*
+text \<open>
   The \emph{Plugin Manager} of jEdit allows to augment editor functionality by
   JVM modules (jars) that are provided by the central plugin repository, which
   is accessible via various mirror sites.
@@ -153,12 +153,12 @@ text {*
   (e.g.\ \emph{ErrorList}, \emph{Code2HTML}) are included to saturate the
   dependencies of bundled plugins, but have no particular use in
   Isabelle/jEdit.
-*}
+\<close>
 
 
-subsection {* Options \label{sec:options} *}
+subsection \<open>Options \label{sec:options}\<close>
 
-text {* Both jEdit and Isabelle have distinctive management of
+text \<open>Both jEdit and Isabelle have distinctive management of
   persistent options.
 
   Regular jEdit options are accessible via the dialogs \emph{Utilities~/
@@ -192,12 +192,12 @@ text {* Both jEdit and Isabelle have distinctive management of
   Isabelle/jEdit. Editing the machine-generated @{file_unchecked
   "$ISABELLE_HOME_USER/jedit/properties"} or @{file_unchecked
   "$ISABELLE_HOME_USER/etc/preferences"} manually while the application is
-  running is likely to cause surprise due to lost update! *}
+  running is likely to cause surprise due to lost update!\<close>
 
 
-subsection {* Keymaps *}
+subsection \<open>Keymaps\<close>
 
-text {* Keyboard shortcuts used to be managed as jEdit properties in
+text \<open>Keyboard shortcuts used to be managed as jEdit properties in
   the past, but recent versions (2013) have a separate concept of
   \emph{keymap} that is configurable via \emph{Global Options~/
   Shortcuts}.  The @{verbatim imported} keymap is derived from the
@@ -210,12 +210,12 @@ text {* Keyboard shortcuts used to be managed as jEdit properties in
   keyboard shortcuts manually (see also @{file_unchecked
   "$ISABELLE_HOME_USER/jedit/keymaps"} versus @{verbatim shortcut} properties
   in @{file "$ISABELLE_HOME/src/Tools/jEdit/src/jEdit.props"}).
-*}
+\<close>
 
 
-section {* Command-line invocation \label{sec:command-line} *}
+section \<open>Command-line invocation \label{sec:command-line}\<close>
 
-text {*
+text \<open>
   Isabelle/jEdit is normally invoked as standalone application, with
   platform-specific executable wrappers for Linux, Windows, Mac OS X.
   Nonetheless it is occasionally useful to invoke the Prover IDE on the
@@ -265,14 +265,14 @@ text {*
   sources, which also requires an auxiliary @{verbatim jedit_build} component
   from @{url "http://isabelle.in.tum.de/components"}. The official
   Isabelle release already includes a pre-built version of Isabelle/jEdit.
-*}
+\<close>
 
 
-chapter {* Augmented jEdit functionality *}
+chapter \<open>Augmented jEdit functionality\<close>
 
-section {* Look-and-feel *}
+section \<open>Look-and-feel\<close>
 
-text {* jEdit is a Java/AWT/Swing application with some ambition to
+text \<open>jEdit is a Java/AWT/Swing application with some ambition to
   support ``native'' look-and-feel on all platforms, within the limits
   of what Oracle as Java provider and major operating system
   distributors allow (see also \secref{sec:problems}).
@@ -312,12 +312,12 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
 
   After changing the look-and-feel in \emph{Global Options~/
   Appearance}, it is advisable to restart Isabelle/jEdit in order to
-  take full effect.  *}
+  take full effect.\<close>
 
 
-section {* Dockable windows \label{sec:dockables} *}
+section \<open>Dockable windows \label{sec:dockables}\<close>
 
-text {*
+text \<open>
   In jEdit terminology, a \emph{view} is an editor window with one or more
   \emph{text areas} that show the content of one or more \emph{buffers}. A
   regular view may be surrounded by \emph{dockable windows} that show
@@ -365,12 +365,12 @@ text {*
   similar \emph{Detach} operation as an icon.
 
   \end{itemize}
-*}
+\<close>
 
 
-section {* Isabelle symbols \label{sec:symbols} *}
+section \<open>Isabelle symbols \label{sec:symbols}\<close>
 
-text {*
+text \<open>
   Isabelle sources consist of \emph{symbols} that extend plain ASCII to allow
   infinitely many mathematical symbols within the formal sources. This works
   without depending on particular encodings and varying Unicode
@@ -520,12 +520,12 @@ text {*
 
   To produce a single control symbol, it is also possible to complete
   on @{verbatim "\\"}@{verbatim sup}, @{verbatim "\\"}@{verbatim sub},
-  @{verbatim "\\"}@{verbatim bold} as for regular symbols.  *}
+  @{verbatim "\\"}@{verbatim bold} as for regular symbols.\<close>
 
 
-section {* SideKick parsers \label{sec:sidekick} *}
+section \<open>SideKick parsers \label{sec:sidekick}\<close>
 
-text {*
+text \<open>
   The \emph{SideKick} plugin provides some general services to display buffer
   structure in a tree view.
 
@@ -548,12 +548,12 @@ text {*
   for informative purposes, but the amount of displayed information
   might cause problems for large buffers, both for the human and the
   machine.
-*}
+\<close>
 
 
-section {* Scala console \label{sec:scala-console} *}
+section \<open>Scala console \label{sec:scala-console}\<close>
 
-text {*
+text \<open>
   The \emph{Console} plugin manages various shells (command interpreters),
   e.g.\ \emph{BeanShell}, which is the official jEdit scripting language, and
   the cross-platform \emph{System} shell. Thus the console provides similar
@@ -575,12 +575,12 @@ text {*
   This helps to explore Isabelle/Scala functionality interactively. Some care
   is required to avoid interference with the internals of the running
   application, especially in production use.
-*}
+\<close>
 
 
-section {* File-system access *}
+section \<open>File-system access\<close>
 
-text {*
+text \<open>
   File specifications in jEdit follow various formats and conventions
   according to \emph{Virtual File Systems}, which may be also provided by
   additional plugins. This allows to access remote files via the @{verbatim
@@ -628,14 +628,14 @@ text {*
   Formally checked paths in prover input are subject to completion
   (\secref{sec:completion}): partial specifications are resolved via
   directory content and possible completions are offered in a popup.
-*}
+\<close>
 
 
-chapter {* Prover IDE functionality \label{sec:document-model} *}
+chapter \<open>Prover IDE functionality \label{sec:document-model}\<close>
 
-section {* Document model \label{sec:document-model} *}
+section \<open>Document model \label{sec:document-model}\<close>
 
-text {*
+text \<open>
   The document model is central to the PIDE architecture: the editor and the
   prover have a common notion of structured source text with markup, which is
   produced by formal processing. The editor is responsible for edits of
@@ -645,12 +645,12 @@ text {*
   Isabelle/jEdit handles classic editor events of jEdit, in order to connect
   the physical world of the GUI (with its singleton state) to the mathematical
   world of multiple document versions (with timeless and stateless updates).
-*}
+\<close>
 
 
-subsection {* Editor buffers and document nodes \label{sec:buffer-node} *}
+subsection \<open>Editor buffers and document nodes \label{sec:buffer-node}\<close>
 
-text {*
+text \<open>
   As a regular text editor, jEdit maintains a collection of \emph{buffers} to
   store text files; each buffer may be associated with any number of visible
   \emph{text areas}. Buffers are subject to an \emph{edit mode} that is
@@ -686,12 +686,12 @@ text {*
   physical file-system only plays a subordinate role. The relevant version of
   source text is passed directly from the editor to the prover, via internal
   communication channels.
-*}
+\<close>
 
 
-subsection {* Theories \label{sec:theories} *}
+subsection \<open>Theories \label{sec:theories}\<close>
 
-text {*
+text \<open>
   The \emph{Theories} panel (see also \figref{fig:theories}) provides an
   overview of the status of continuous checking of theory nodes within the
   document model. Unlike batch sessions of @{tool build} @{cite
@@ -744,11 +744,11 @@ text {*
   (e.g.\ information messages with \emph{sendback} markup by automated provers
   or disprovers in the background).
 
-*}
+\<close>
 
-subsection {* Auxiliary files \label{sec:aux-files} *}
+subsection \<open>Auxiliary files \label{sec:aux-files}\<close>
 
-text {*
+text \<open>
   Special load commands like @{command_ref ML_file} and @{command_ref
   SML_file} @{cite "isabelle-isar-ref"} refer to auxiliary files within some
   theory. Conceptually, the file argument of the command extends the theory
@@ -795,12 +795,12 @@ text {*
   fully-featured IDE for Standard ML, independently of theory or proof
   development: the required theory merely serves as some kind of project
   file for a collection of SML source modules.
-*}
+\<close>
 
 
-section {* Output \label{sec:output} *}
+section \<open>Output \label{sec:output}\<close>
 
-text {*
+text \<open>
   Prover output consists of \emph{markup} and \emph{messages}. Both are
   directly attached to the corresponding positions in the original source
   text, and visualized in the text area, e.g.\ as text colours for free and
@@ -869,12 +869,12 @@ text {*
   be explored recursively via tooltips or hyperlinks (see
   \secref{sec:tooltips-hyperlinks}), or clicked directly to initiate
   certain actions (see \secref{sec:auto-tools} and
-  \secref{sec:sledgehammer}).  *}
+  \secref{sec:sledgehammer}).\<close>
 
 
-section {* Query \label{sec:query} *}
+section \<open>Query \label{sec:query}\<close>
 
-text {*
+text \<open>
   The \emph{Query} panel provides various GUI forms to request extra
   information from the prover. In old times the user would have issued some
   diagnostic command like @{command find_theorems} and inspected its output,
@@ -921,12 +921,12 @@ text {*
   window, using a menu operation of the dockable window manager. The printed
   result usually provides sufficient clues about the original query, with some
   hyperlink to its context (via markup of its head line).
-*}
+\<close>
 
 
-subsection {* Find theorems *}
+subsection \<open>Find theorems\<close>
 
-text {*
+text \<open>
   The \emph{Query} panel in \emph{Find Theorems} mode retrieves facts from the
   theory or proof context matching all of given criteria in the \emph{Find}
   text field. A single criterium has the following syntax:
@@ -938,12 +938,12 @@ text {*
 
   See also the Isar command @{command_ref find_theorems} in
   @{cite "isabelle-isar-ref"}.
-*}
+\<close>
 
 
-subsection {* Find constants *}
+subsection \<open>Find constants\<close>
 
-text {*
+text \<open>
   The \emph{Query} panel in \emph{Find Constants} mode prints all constants
   whose type meets all of the given criteria in the \emph{Find} text field.
   A single criterium has the following syntax:
@@ -955,23 +955,23 @@ text {*
 
   See also the Isar command @{command_ref find_consts} in @{cite
   "isabelle-isar-ref"}.
-*}
+\<close>
 
 
-subsection {* Print context *}
+subsection \<open>Print context\<close>
 
-text {*
+text \<open>
   The \emph{Query} panel in \emph{Print Context} mode prints information from
   the theory or proof context, or proof state. See also the Isar commands
   @{command_ref print_context}, @{command_ref print_cases}, @{command_ref
   print_term_bindings}, @{command_ref print_theorems}, @{command_ref
   print_state} described in @{cite "isabelle-isar-ref"}.
-*}
+\<close>
 
 
-section {* Tooltips and hyperlinks \label{sec:tooltips-hyperlinks} *}
+section \<open>Tooltips and hyperlinks \label{sec:tooltips-hyperlinks}\<close>
 
-text {*
+text \<open>
   Formally processed text (prover input or output) contains rich markup
   information that can be explored further by using the @{verbatim CONTROL}
   modifier key on Linux and Windows, or @{verbatim COMMAND} on Mac OS X.
@@ -1017,12 +1017,12 @@ text {*
   subject to formal document processing of the editor session and thus
   prevents further exploration: the chain of hyperlinks may end in
   some source file of the underlying logic image, or within the
-  Isabelle/ML bootstrap sources of Isabelle/Pure. *}
+  Isabelle/ML bootstrap sources of Isabelle/Pure.\<close>
 
 
-section {* Completion \label{sec:completion} *}
+section \<open>Completion \label{sec:completion}\<close>
 
-text {*
+text \<open>
   Smart completion of partial input is the IDE functionality \emph{par
   excellance}. Isabelle/jEdit combines several sources of information to
   achieve that. Despite its complexity, it should be possible to get some idea
@@ -1051,14 +1051,14 @@ text {*
   immediately or producing a popup. Although there is an inherent danger of
   non-deterministic behaviour due to such real-time parameters, the general
   completion policy aims at determined results as far as possible.
-*}
+\<close>
 
 
-subsection {* Varieties of completion \label{sec:completion-varieties} *}
+subsection \<open>Varieties of completion \label{sec:completion-varieties}\<close>
 
-subsubsection {* Built-in templates *}
+subsubsection \<open>Built-in templates\<close>
 
-text {*
+text \<open>
   Isabelle is ultimately a framework of nested sub-languages of different
   kinds and purposes. The completion mechanism supports this by the following
   built-in templates:
@@ -1084,12 +1084,12 @@ text {*
   embedded languages should work fluently. Note that national keyboard layouts
   might cause problems with back-quote as dead key: if possible, dead keys
   should be disabled.
-*}
+\<close>
 
 
-subsubsection {* Syntax keywords *}
+subsubsection \<open>Syntax keywords\<close>
 
-text {*
+text \<open>
   Syntax completion tables are determined statically from the keywords of the
   ``outer syntax'' of the underlying edit mode: for theory files this is the
   syntax of Isar commands.
@@ -1104,12 +1104,12 @@ text {*
   keyword itself. An empty string means to suppress the keyword altogether,
   which is occasionally useful to avoid confusion, e.g.\ the rare keyword
   @{command simproc_setup} vs.\ the frequent name-space entry @{text simp}.
-*}
+\<close>
 
 
-subsubsection {* Isabelle symbols *}
+subsubsection \<open>Isabelle symbols\<close>
 
-text {*
+text \<open>
   The completion tables for Isabelle symbols (\secref{sec:symbols}) are
   determined statically from @{file "$ISABELLE_HOME/etc/symbols"} and
   @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"} for each symbol
@@ -1137,12 +1137,12 @@ text {*
   particular sub-language of Isabelle. For example, symbol completion is
   suppressed within document source to avoid confusion with {\LaTeX} macros
   that use similar notation.
-*}
+\<close>
 
 
-subsubsection {* Name-space entries *}
+subsubsection \<open>Name-space entries\<close>
 
-text {*
+text \<open>
   This is genuine semantic completion, using information from the prover, so
   it requires some delay. A \emph{failed name-space lookup} produces an error
   message that is annotated with a list of alternative names that are legal.
@@ -1162,12 +1162,12 @@ text {*
   mechanism (truncated according to @{system_option completion_limit}). This
   is occasionally useful to explore an unknown name-space, e.g.\ in some
   template.
-*}
+\<close>
 
 
-subsubsection {* File-system paths *}
+subsubsection \<open>File-system paths\<close>
 
-text {*
+text \<open>
   Depending on prover markup about file-system path specifications in the
   source text, e.g.\ for the argument of a load command
   (\secref{sec:aux-files}), the completion mechanism explores the directory
@@ -1178,12 +1178,12 @@ text {*
 
   A suffix of slashes may be used to continue the exploration of an already
   recognized directory name.
-*}
+\<close>
 
 
-subsubsection {* Spell-checking *}
+subsubsection \<open>Spell-checking\<close>
 
-text {*
+text \<open>
   The spell-checker combines semantic markup from the prover (regions of plain
   words) with static dictionaries (word lists) that are known to the editor.
 
@@ -1210,12 +1210,12 @@ text {*
   upper-case, and capitalized words. This is oriented on common use in
   English, where this aspect is not decisive for proper spelling, in contrast
   to German, for example.
-*}
+\<close>
 
 
-subsection {* Semantic completion context \label{sec:completion-context} *}
+subsection \<open>Semantic completion context \label{sec:completion-context}\<close>
 
-text {*
+text \<open>
   Completion depends on a semantic context that is provided by the prover,
   although with some delay, because at least a full PIDE protocol round-trip
   is required. Until that information becomes available in the PIDE
@@ -1238,12 +1238,12 @@ text {*
   \secref{sec:completion-varieties}. This allows to complete within broken
   input that escapes its normal semantic context, e.g.\ antiquotations or
   string literals in ML, which do not allow arbitrary backslash sequences.
-*}
+\<close>
 
 
-subsection {* Input events \label{sec:completion-input} *}
+subsection \<open>Input events \label{sec:completion-input}\<close>
 
-text {*
+text \<open>
   Completion is triggered by certain events produced by the user, with
   optional delay after keyboard input according to @{system_option
   jedit_completion_delay}.
@@ -1290,12 +1290,12 @@ text {*
   \end{enumerate}
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Completion popup \label{sec:completion-popup} *}
+subsection \<open>Completion popup \label{sec:completion-popup}\<close>
 
-text {*
+text \<open>
   A \emph{completion popup} is a minimally invasive GUI component over the
   text area that offers a selection of completion items to be inserted into
   the text, e.g.\ by mouse clicks. Items are sorted dynamically, according to
@@ -1325,12 +1325,12 @@ text {*
   Movement within the popup is only active for multiple items.
   Otherwise the corresponding key event retains its standard meaning
   within the underlying text area.
-*}
+\<close>
 
 
-subsection {* Insertion \label{sec:completion-insert} *}
+subsection \<open>Insertion \label{sec:completion-insert}\<close>
 
-text {*
+text \<open>
   Completion may first propose replacements to be selected (via a popup), or
   replace text immediately in certain situations and depending on certain
   options like @{system_option jedit_completion_immediate}. In any case,
@@ -1368,12 +1368,12 @@ text {*
   of jEdit. According to normal jEdit policies, the recovered text after
   @{action undo} is selected: @{verbatim ESCAPE} is required to reset the
   selection and to continue typing more text.
-*}
+\<close>
 
 
-subsection {* Options \label{sec:completion-options} *}
+subsection \<open>Options \label{sec:completion-options}\<close>
 
-text {*
+text \<open>
   This is a summary of Isabelle/Scala system options that are relevant for
   completion. They may be configured in \emph{Plugin Options~/ Isabelle~/
   General} as usual.
@@ -1427,12 +1427,12 @@ text {*
   that is subject to spell-checking, including various forms of comments.
 
   \end{itemize}
-*}
+\<close>
 
 
-section {* Automatically tried tools \label{sec:auto-tools} *}
+section \<open>Automatically tried tools \label{sec:auto-tools}\<close>
 
-text {*
+text \<open>
   Continuous document processing works asynchronously in the background.
   Visible document source that has been evaluated may get augmented by
   additional results of \emph{asynchronous print functions}. The canonical
@@ -1533,12 +1533,12 @@ text {*
   Users should experiment how the available CPU resources (number of
   cores) are best invested to get additional feedback from prover in
   the background, by using a selection of weaker or stronger tools.
-*}
+\<close>
 
 
-section {* Sledgehammer \label{sec:sledgehammer} *}
+section \<open>Sledgehammer \label{sec:sledgehammer}\<close>
 
-text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
+text \<open>The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
   provides a view on some independent execution of the Isar command
   @{command_ref sledgehammer}, with process indicator (spinning wheel) and
   GUI elements for important Sledgehammer arguments and options.  Any
@@ -1564,14 +1564,14 @@ text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
   Proposed proof snippets are marked-up as \emph{sendback}, which
   means a single mouse click inserts the text into a suitable place of
   the original source.  Some manual editing may be required
-  nonetheless, say to remove earlier proof attempts. *}
+  nonetheless, say to remove earlier proof attempts.\<close>
 
 
-chapter {* Miscellaneous tools *}
+chapter \<open>Miscellaneous tools\<close>
 
-section {* Timing *}
+section \<open>Timing\<close>
 
-text {* Managed evaluation of commands within PIDE documents includes
+text \<open>Managed evaluation of commands within PIDE documents includes
   timing information, which consists of elapsed (wall-clock) time, CPU
   time, and GC (garbage collection) time.  Note that in a
   multithreaded system it is difficult to measure execution time
@@ -1603,12 +1603,12 @@ text {* Managed evaluation of commands within PIDE documents includes
   runtime itself --- on the Java Virtual Machine that runs Isabelle/Scala, not
   Isabelle/ML. Internally, the Isabelle/Scala module @{verbatim
   isabelle.ML_Statistics} provides further access to statistics of
-  Isabelle/ML. *}
+  Isabelle/ML.\<close>
 
 
-section {* Low-level output *}
+section \<open>Low-level output\<close>
 
-text {* Prover output is normally shown directly in the main text area
+text \<open>Prover output is normally shown directly in the main text area
   or secondary \emph{Output} panels, as explained in
   \secref{sec:output}.
 
@@ -1655,12 +1655,12 @@ text {* Prover output is normally shown directly in the main text area
   ignored.
 
   \end{itemize}
-*}
+\<close>
 
 
-chapter {* Known problems and workarounds \label{sec:problems} *}
+chapter \<open>Known problems and workarounds \label{sec:problems}\<close>
 
-text {*
+text \<open>
   \begin{itemize}
 
   \item \textbf{Problem:} Odd behavior of some diagnostic commands with
@@ -1725,6 +1725,6 @@ text {*
   manager (notably on Mac OS X).
 
   \end{itemize}
-*}
+\<close>
 
 end

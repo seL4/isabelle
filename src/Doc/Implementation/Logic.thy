@@ -2,9 +2,9 @@ theory Logic
 imports Base
 begin
 
-chapter {* Primitive logic \label{ch:logic} *}
+chapter \<open>Primitive logic \label{ch:logic}\<close>
 
-text {*
+text \<open>
   The logical foundations of Isabelle/Isar are that of the Pure logic,
   which has been introduced as a Natural Deduction framework in
   @{cite paulson700}.  This is essentially the same logic as ``@{text
@@ -27,12 +27,12 @@ text {*
   of the core calculus: type constructors, term constants, and facts
   (proof constants) may involve arbitrary type schemes, but the type
   of a locally fixed term parameter is also fixed!}
-*}
+\<close>
 
 
-section {* Types \label{sec:types} *}
+section \<open>Types \label{sec:types}\<close>
 
-text {*
+text \<open>
   The language of types is an uninterpreted order-sorted first-order
   algebra; types are qualified by ordered type classes.
 
@@ -113,9 +113,9 @@ text {*
   Consequently, type unification has most general solutions (modulo
   equivalence of sorts), so type-inference produces primary types as
   expected @{cite "nipkow-prehofer"}.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type class: string} \\
   @{index_ML_type sort: "class list"} \\
@@ -184,9 +184,9 @@ text %mlref {*
   the arity @{text "\<kappa> :: (\<^vec>s)s"}.
 
   \end{description}
-*}
+\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "class"} & : & @{text ML_antiquotation} \\
   @{ML_antiquotation_def "sort"} & : & @{text ML_antiquotation} \\
@@ -230,12 +230,12 @@ text %mlantiq {*
   --- as constructor term for datatype @{ML_type typ}.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Terms \label{sec:terms} *}
+section \<open>Terms \label{sec:terms}\<close>
 
-text {*
+text \<open>
   The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
   with de-Bruijn indices for bound variables (cf.\ @{cite debruijn72}
   or @{cite "paulson-ml2"}), with the types being determined by the
@@ -350,9 +350,9 @@ text {*
   mostly for parsing and printing.  Full @{text "\<alpha>\<beta>\<eta>"}-conversion is
   commonplace in various standard operations (\secref{sec:obj-rules})
   that are based on higher-order unification and matching.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type term} \\
   @{index_ML_op "aconv": "term * term -> bool"} \\
@@ -433,9 +433,9 @@ text %mlref {*
   type instance vs.\ compact type arguments form.
 
   \end{description}
-*}
+\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "const_name"} & : & @{text ML_antiquotation} \\
   @{ML_antiquotation_def "const_abbrev"} & : & @{text ML_antiquotation} \\
@@ -476,24 +476,24 @@ text %mlantiq {*
   @{text "\<phi>"} --- as constructor term for datatype @{ML_type term}.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Theorems \label{sec:thms} *}
+section \<open>Theorems \label{sec:thms}\<close>
 
-text {*
+text \<open>
   A \emph{proposition} is a well-typed term of type @{text "prop"}, a
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
   plain Natural Deduction rules for the primary connectives @{text
   "\<And>"} and @{text "\<Longrightarrow>"} of the framework.  There is also a builtin
   notion of equality/equivalence @{text "\<equiv>"}.
-*}
+\<close>
 
 
-subsection {* Primitive connectives and rules \label{sec:prim-rules} *}
+subsection \<open>Primitive connectives and rules \label{sec:prim-rules}\<close>
 
-text {*
+text \<open>
   The theory @{text "Pure"} contains constant declarations for the
   primitive connectives @{text "\<And>"}, @{text "\<Longrightarrow>"}, and @{text "\<equiv>"} of
   the logical framework, see \figref{fig:pure-connectives}.  The
@@ -629,9 +629,9 @@ text {*
   "\<^vec>\<alpha>"}.  Thus overloaded definitions essentially work by
   primitive recursion over the syntactic structure of a single type
   argument.  See also @{cite \<open>\S4.3\<close> "Haftmann-Wenzel:2006:classes"}.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Logic.all: "term -> term -> term"} \\
   @{index_ML Logic.mk_implies: "term * term -> term"} \\
@@ -767,10 +767,10 @@ text %mlref {*
   "\<^vec>d\<^sub>\<sigma>"}.
 
   \end{description}
-*}
+\<close>
 
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "ctyp"} & : & @{text ML_antiquotation} \\
   @{ML_antiquotation_def "cterm"} & : & @{text ML_antiquotation} \\
@@ -830,12 +830,12 @@ text %mlantiq {*
 
   \end{description}
 
-*}
+\<close>
 
 
-subsection {* Auxiliary connectives \label{sec:logic-aux} *}
+subsection \<open>Auxiliary connectives \label{sec:logic-aux}\<close>
 
-text {* Theory @{text "Pure"} provides a few auxiliary connectives
+text \<open>Theory @{text "Pure"} provides a few auxiliary connectives
   that are defined on top of the primitive ones, see
   \figref{fig:pure-aux}.  These special constants are useful in
   certain internal encodings, and are normally not directly exposed to
@@ -890,9 +890,9 @@ text {* Theory @{text "Pure"} provides a few auxiliary connectives
   TYPE(\<alpha>) \<equiv> A[\<alpha>]"} defines @{text "c :: \<alpha> itself \<Rightarrow> prop"} in terms of
   a proposition @{text "A"} that depends on an additional type
   argument, which is essentially a predicate on types.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Conjunction.intr: "thm -> thm -> thm"} \\
   @{index_ML Conjunction.elim: "thm -> thm * thm"} \\
@@ -922,12 +922,12 @@ text %mlref {*
   @{text "\<tau>"}.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Sort hypotheses *}
+subsection \<open>Sort hypotheses\<close>
 
-text {* Type variables are decorated with sorts, as explained in
+text \<open>Type variables are decorated with sorts, as explained in
   \secref{sec:types}.  This constrains type instantiation to certain
   ranges of types: variable @{text "\<alpha>\<^sub>s"} may only be assigned to types
   @{text "\<tau>"} that belong to sort @{text "s"}.  Within the logic, sort
@@ -951,9 +951,9 @@ text {* Type variables are decorated with sorts, as explained in
   they are typically left over from intermediate reasoning with type
   classes that can be satisfied by some concrete type @{text "\<tau>"} of
   sort @{text "s"} to replace the hypothetical type variable @{text
-  "\<alpha>\<^sub>s"}.  *}
+  "\<alpha>\<^sub>s"}.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Thm.extra_shyps: "thm -> sort list"} \\
   @{index_ML Thm.strip_shyps: "thm -> thm"} \\
@@ -969,11 +969,11 @@ text %mlref {*
   sort hypotheses that can be witnessed from the type signature.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following artificial example demonstrates the
+text %mlex \<open>The following artificial example demonstrates the
   derivation of @{prop False} with a pending sort hypothesis involving
-  a logically empty sort.  *}
+  a logically empty sort.\<close>
 
 class empty =
   assumes bad: "\<And>(x::'a) y. x \<noteq> y"
@@ -981,19 +981,19 @@ class empty =
 theorem (in empty) false: False
   using bad by blast
 
-ML {*
+ML \<open>
   @{assert} (Thm.extra_shyps @{thm false} = [@{sort empty}])
-*}
+\<close>
 
-text {* Thanks to the inference kernel managing sort hypothesis
+text \<open>Thanks to the inference kernel managing sort hypothesis
   according to their logical significance, this example is merely an
   instance of \emph{ex falso quodlibet consequitur} --- not a collapse
-  of the logical framework! *}
+  of the logical framework!\<close>
 
 
-section {* Object-level rules \label{sec:obj-rules} *}
+section \<open>Object-level rules \label{sec:obj-rules}\<close>
 
-text {*
+text \<open>
   The primitive inferences covered so far mostly serve foundational
   purposes.  User-level reasoning usually works via object-level rules
   that are represented as theorems of Pure.  Composition of rules
@@ -1002,12 +1002,12 @@ text {*
   \emph{lifting} of rules into a context of @{text "\<And>"} and @{text
   "\<Longrightarrow>"} connectives.  Thus the full power of higher-order Natural
   Deduction in Isabelle/Pure becomes readily available.
-*}
+\<close>
 
 
-subsection {* Hereditary Harrop Formulae *}
+subsection \<open>Hereditary Harrop Formulae\<close>
 
-text {*
+text \<open>
   The idea of object-level rules is to model Natural Deduction
   inferences in the style of Gentzen @{cite "Gentzen:1935"}, but we allow
   arbitrary nesting similar to @{cite extensions91}.  The most basic
@@ -1071,9 +1071,9 @@ text {*
   parameters, and vacuous quantifiers vanish automatically.
 
   \end{itemize}
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Simplifier.norm_hhf: "Proof.context -> thm -> thm"} \\
   \end{mldecls}
@@ -1086,12 +1086,12 @@ text %mlref {*
   handle Hereditary Harrop Formulae properly.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Rule composition *}
+subsection \<open>Rule composition\<close>
 
-text {*
+text \<open>
   The rule calculus of Isabelle/Pure provides two main inferences:
   @{inference resolution} (i.e.\ back-chaining of rules) and
   @{inference assumption} (i.e.\ closing a branch), both modulo
@@ -1148,9 +1148,9 @@ text {*
   \]
 
   %FIXME @{inference_def elim_resolution}, @{inference_def dest_resolution}
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_op "RSN": "thm * (int * thm) -> thm"} \\
   @{index_ML_op "RS": "thm * thm -> thm"} \\
@@ -1201,12 +1201,12 @@ text %mlref {*
   source language.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Proof terms \label{sec:proof-terms} *}
+section \<open>Proof terms \label{sec:proof-terms}\<close>
 
-text {* The Isabelle/Pure inference kernel can record the proof of
+text \<open>The Isabelle/Pure inference kernel can record the proof of
   each theorem as a proof term that contains all logical inferences in
   detail.  Rule composition by resolution (\secref{sec:obj-rules}) and
   type-class reasoning is broken down to primitive rules of the
@@ -1270,12 +1270,12 @@ text {* The Isabelle/Pure inference kernel can record the proof of
   digest about oracles and promises occurring in the original proof.
   This allows the inference kernel to manage this critical information
   without the full overhead of explicit proof terms.
-*}
+\<close>
 
 
-subsection {* Reconstructing and checking proof terms *}
+subsection \<open>Reconstructing and checking proof terms\<close>
 
-text {* Fully explicit proof terms can be large, but most of this
+text \<open>Fully explicit proof terms can be large, but most of this
   information is redundant and can be reconstructed from the context.
   Therefore, the Isabelle/Pure inference kernel records only
   \emph{implicit} proof terms, by omitting all typing information in
@@ -1288,12 +1288,12 @@ text {* Fully explicit proof terms can be large, but most of this
 
   The \emph{proof checker} expects a fully reconstructed proof term,
   and can turn it into a theorem by replaying its primitive inferences
-  within the kernel.  *}
+  within the kernel.\<close>
 
 
-subsection {* Concrete syntax of proof terms *}
+subsection \<open>Concrete syntax of proof terms\<close>
 
-text {* The concrete syntax of proof terms is a slight extension of
+text \<open>The concrete syntax of proof terms is a slight extension of
   the regular inner syntax of Isabelle/Pure @{cite "isabelle-isar-ref"}.
   Its main syntactic category @{syntax (inner) proof} is defined as
   follows:
@@ -1328,9 +1328,9 @@ text {* The concrete syntax of proof terms is a slight extension of
 
   \medskip There are separate read and print operations for proof
   terms, in order to avoid conflicts with the regular term language.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type proof} \\
   @{index_ML_type proof_body} \\
@@ -1404,10 +1404,10 @@ text %mlref {*
   pretty-prints the given proof term.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* Detailed proof information of a theorem may be retrieved
-  as follows: *}
+text %mlex \<open>Detailed proof information of a theorem may be retrieved
+  as follows:\<close>
 
 lemma ex: "A \<and> B \<longrightarrow> B \<and> A"
 proof
@@ -1416,7 +1416,7 @@ proof
   then show "B \<and> A" ..
 qed
 
-ML_val {*
+ML_val \<open>
   (*proof body with digest*)
   val body = Proofterm.strip_thm (Thm.proof_body_of @{thm ex});
 
@@ -1428,18 +1428,18 @@ ML_val {*
   val all_thms =
     Proofterm.fold_body_thms
       (fn (name, _, _) => insert (op =) name) [body] [];
-*}
+\<close>
 
-text {* The result refers to various basic facts of Isabelle/HOL:
+text \<open>The result refers to various basic facts of Isabelle/HOL:
   @{thm [source] HOL.impI}, @{thm [source] HOL.conjE}, @{thm [source]
   HOL.conjI} etc.  The combinator @{ML Proofterm.fold_body_thms}
   recursively explores the graph of the proofs of all theorems being
   used here.
 
   \medskip Alternatively, we may produce a proof term manually, and
-  turn it into a theorem as follows: *}
+  turn it into a theorem as follows:\<close>
 
-ML_val {*
+ML_val \<open>
   val thy = @{theory};
   val prf =
     Proof_Syntax.read_proof thy true false
@@ -1452,11 +1452,11 @@ ML_val {*
     |> Reconstruct.reconstruct_proof thy @{prop "A \<and> B \<longrightarrow> B \<and> A"}
     |> Proof_Checker.thm_of_proof thy
     |> Drule.export_without_context;
-*}
+\<close>
 
-text {* \medskip See also @{file "~~/src/HOL/Proofs/ex/XML_Data.thy"}
+text \<open>\medskip See also @{file "~~/src/HOL/Proofs/ex/XML_Data.thy"}
   for further examples, with export and import of proof terms via
   XML/ML data representation.
-*}
+\<close>
 
 end

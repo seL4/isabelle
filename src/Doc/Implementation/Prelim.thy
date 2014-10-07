@@ -2,11 +2,11 @@ theory Prelim
 imports Base
 begin
 
-chapter {* Preliminaries *}
+chapter \<open>Preliminaries\<close>
 
-section {* Contexts \label{sec:context} *}
+section \<open>Contexts \label{sec:context}\<close>
 
-text {*
+text \<open>
   A logical context represents the background that is required for
   formulating statements and composing proofs.  It acts as a medium to
   produce formal content, depending on earlier material (declarations,
@@ -68,12 +68,12 @@ text {*
   mechanisms (inductive predicates, recursive functions etc.).  All of
   this is ultimately based on the generic data management by theory
   and proof contexts introduced here.
-*}
+\<close>
 
 
-subsection {* Theory context \label{sec:context-theory} *}
+subsection \<open>Theory context \label{sec:context-theory}\<close>
 
-text {* A \emph{theory} is a data container with explicit name and
+text \<open>A \emph{theory} is a data container with explicit name and
   unique identifier.  Theories are related by a (nominal) sub-theory
   relation, which corresponds to the dependency graph of the original
   construction; each theory is derived from a certain sub-graph of
@@ -116,9 +116,9 @@ text {* A \emph{theory} is a data container with explicit name and
   \medskip Derived formal entities may retain a reference to the
   background theory in order to indicate the formal context from which
   they were produced.  This provides an immutable certificate of the
-  background theory.  *}
+  background theory.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type theory} \\
   @{index_ML Theory.eq_thy: "theory * theory -> bool"} \\
@@ -157,9 +157,9 @@ text %mlref {*
   ancestors of @{text thy} (not including @{text thy} itself).
 
   \end{description}
-*}
+\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "theory"} & : & @{text ML_antiquotation} \\
   @{ML_antiquotation_def "theory_context"} & : & @{text ML_antiquotation} \\
@@ -185,12 +185,12 @@ text %mlantiq {*
   (see also @{ML Proof_Context.init_global}).
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Proof context \label{sec:context-proof} *}
+subsection \<open>Proof context \label{sec:context-proof}\<close>
 
-text {* A proof context is a container for pure data that refers to
+text \<open>A proof context is a container for pure data that refers to
   the theory from which it is derived. The @{text "init"} operation
   creates a proof context from a given theory. There is an explicit
   @{text "transfer"} operation to force resynchronization with updates
@@ -214,9 +214,9 @@ text {* A proof context is a container for pure data that refers to
   contexts internally.  For various technical reasons, the background
   theory of an Isar proof state must not be changed while the proof is
   still under construction!
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type Proof.context} \\
   @{index_ML Proof_Context.init_global: "theory -> Proof.context"} \\
@@ -239,9 +239,9 @@ text %mlref {*
   "thy"}.
 
   \end{description}
-*}
+\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "context"} & : & @{text ML_antiquotation} \\
   \end{matharray}
@@ -256,12 +256,12 @@ text %mlantiq {*
   experimentation with ML inside Isar.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Generic contexts \label{sec:generic-context} *}
+subsection \<open>Generic contexts \label{sec:generic-context}\<close>
 
-text {*
+text \<open>
   A generic context is the disjoint sum of either a theory or proof
   context.  Occasionally, this enables uniform treatment of generic
   context data, typically extra-logical information.  Operations on
@@ -274,9 +274,9 @@ text {*
   can always be selected from the sum, while a proof context might
   have to be constructed by an ad-hoc @{text "init"} operation, which
   incurs a small runtime overhead.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type Context.generic} \\
   @{index_ML Context.theory_of: "Context.generic -> theory"} \\
@@ -299,12 +299,12 @@ text %mlref {*
   context data with each invocation).
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Context data \label{sec:context-data} *}
+subsection \<open>Context data \label{sec:context-data}\<close>
 
-text {* The main purpose of theory and proof contexts is to manage
+text \<open>The main purpose of theory and proof contexts is to manage
   arbitrary (pure) data.  New data types can be declared incrementally
   at compile time.  There are separate declaration mechanisms for any
   of the three kinds of contexts: theory, proof, generic.
@@ -377,9 +377,9 @@ text {* The main purpose of theory and proof contexts is to manage
   observes the ML discipline for types and scopes: there is no other
   way to access the corresponding data slot of a context.  By keeping
   these operations private, an Isabelle/ML module may maintain
-  abstract values authentically.  *}
+  abstract values authentically.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_functor Theory_Data} \\
   @{index_ML_functor Proof_Data} \\
@@ -400,27 +400,27 @@ text %mlref {*
   @{ML_functor Theory_Data} for type @{ML_type Context.generic}.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {*
+text %mlex \<open>
   The following artificial example demonstrates theory
   data: we maintain a set of terms that are supposed to be wellformed
   wrt.\ the enclosing theory.  The public interface is as follows:
-*}
+\<close>
 
-ML {*
+ML \<open>
   signature WELLFORMED_TERMS =
   sig
     val get: theory -> term list
     val add: term -> theory -> theory
   end;
-*}
+\<close>
 
-text {* The implementation uses private theory data internally, and
+text \<open>The implementation uses private theory data internally, and
   only exposes an operation that involves explicit argument checking
-  wrt.\ the given theory. *}
+  wrt.\ the given theory.\<close>
 
-ML {*
+ML \<open>
   structure Wellformed_Terms: WELLFORMED_TERMS =
   struct
 
@@ -443,9 +443,9 @@ ML {*
     end;
 
   end;
-*}
+\<close>
 
-text {* Type @{ML_type "term Ord_List.T"} is used for reasonably
+text \<open>Type @{ML_type "term Ord_List.T"} is used for reasonably
   efficient representation of a set of terms: all operations are
   linear in the number of stored elements.  Here we assume that users
   of this module do not care about the declaration order, since that
@@ -482,12 +482,12 @@ text {* Type @{ML_type "term Ord_List.T"} is used for reasonably
   invariants too seriously.  The situation is different in the
   implementation of the inference kernel itself, which uses the very
   same data mechanisms for types, constants, axioms etc.
-*}
+\<close>
 
 
-subsection {* Configuration options \label{sec:config-options} *}
+subsection \<open>Configuration options \label{sec:config-options}\<close>
 
-text {* A \emph{configuration option} is a named optional value of
+text \<open>A \emph{configuration option} is a named optional value of
   some basic type (Boolean, integer, string) that is stored in the
   context.  It is a simple application of general context data
   (\secref{sec:context-data}) that is sufficiently common to justify
@@ -499,24 +499,24 @@ text {* A \emph{configuration option} is a named optional value of
   show_types} controls output of explicit type constraints for
   variables in printed terms (cf.\ \secref{sec:read-print}).  Its
   value can be modified within Isar text like this:
-*}
+\<close>
 
 declare [[show_types = false]]
-  -- {* declaration within (local) theory context *}
+  -- \<open>declaration within (local) theory context\<close>
 
 notepad
 begin
   note [[show_types = true]]
-    -- {* declaration within proof (forward mode) *}
+    -- \<open>declaration within proof (forward mode)\<close>
   term x
 
   have "x = x"
     using [[show_types = false]]
-      -- {* declaration within proof (backward mode) *}
+      -- \<open>declaration within proof (backward mode)\<close>
     ..
 end
 
-text {* Configuration options that are not set explicitly hold a
+text \<open>Configuration options that are not set explicitly hold a
   default value that can depend on the application context.  This
   allows to retrieve the value from another slot within the context,
   or fall back on a global preference mechanism, for example.
@@ -525,9 +525,9 @@ text {* Configuration options that are not set explicitly hold a
   values are modeled as direct replacements for historic global
   references, only that the context is made explicit.  This allows
   easy configuration of tools, without relying on the execution order
-  as required for old-style mutable references.  *}
+  as required for old-style mutable references.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Config.get: "Proof.context -> 'a Config.T -> 'a"} \\
   @{index_ML Config.map: "'a Config.T -> ('a -> 'a) -> Proof.context -> Proof.context"} \\
@@ -562,51 +562,51 @@ text %mlref {*
   types @{ML_type int} and @{ML_type string}, respectively.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following example shows how to declare and use a
+text %mlex \<open>The following example shows how to declare and use a
   Boolean configuration option called @{text "my_flag"} with constant
-  default value @{ML false}.  *}
+  default value @{ML false}.\<close>
 
-ML {*
+ML \<open>
   val my_flag =
     Attrib.setup_config_bool @{binding my_flag} (K false)
-*}
+\<close>
 
-text {* Now the user can refer to @{attribute my_flag} in
+text \<open>Now the user can refer to @{attribute my_flag} in
   declarations, while ML tools can retrieve the current value from the
-  context via @{ML Config.get}.  *}
+  context via @{ML Config.get}.\<close>
 
-ML_val {* @{assert} (Config.get @{context} my_flag = false) *}
+ML_val \<open>@{assert} (Config.get @{context} my_flag = false)\<close>
 
 declare [[my_flag = true]]
 
-ML_val {* @{assert} (Config.get @{context} my_flag = true) *}
+ML_val \<open>@{assert} (Config.get @{context} my_flag = true)\<close>
 
 notepad
 begin
   {
     note [[my_flag = false]]
-    ML_val {* @{assert} (Config.get @{context} my_flag = false) *}
+    ML_val \<open>@{assert} (Config.get @{context} my_flag = false)\<close>
   }
-  ML_val {* @{assert} (Config.get @{context} my_flag = true) *}
+  ML_val \<open>@{assert} (Config.get @{context} my_flag = true)\<close>
 end
 
-text {* Here is another example involving ML type @{ML_type real}
-  (floating-point numbers). *}
+text \<open>Here is another example involving ML type @{ML_type real}
+  (floating-point numbers).\<close>
 
-ML {*
+ML \<open>
   val airspeed_velocity =
     Attrib.setup_config_real @{binding airspeed_velocity} (K 0.0)
-*}
+\<close>
 
 declare [[airspeed_velocity = 10]]
 declare [[airspeed_velocity = 9.9]]
 
 
-section {* Names \label{sec:names} *}
+section \<open>Names \label{sec:names}\<close>
 
-text {* In principle, a name is just a string, but there are various
+text \<open>In principle, a name is just a string, but there are various
   conventions for representing additional structure.  For example,
   ``@{text "Foo.bar.baz"}'' is considered as a long name consisting of
   qualifier @{text "Foo.bar"} and base name @{text "baz"}.  The
@@ -630,12 +630,12 @@ text {* In principle, a name is just a string, but there are various
   (\secref{sec:name-space}).
 
   \end{itemize}
-*}
+\<close>
 
 
-subsection {* Basic names \label{sec:basic-name} *}
+subsection \<open>Basic names \label{sec:basic-name}\<close>
 
-text {*
+text \<open>
   A \emph{basic name} essentially consists of a single Isabelle
   identifier.  There are conventions to mark separate classes of basic
   names, by attaching a suffix of underscores: one underscore means
@@ -667,9 +667,9 @@ text {*
   "foo"} results in variants @{text "fooa"}, @{text "foob"}, @{text
   "fooc"}, \dots, @{text "fooaa"}, @{text "fooab"} etc.; each renaming
   step picks the next unused variant from this sequence.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Name.internal: "string -> string"} \\
   @{index_ML Name.skolem: "string -> string"} \\
@@ -715,27 +715,27 @@ text %mlref {*
   \secref{sec:variables}).
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following simple examples demonstrate how to produce
-  fresh names from the initial @{ML Name.context}. *}
+text %mlex \<open>The following simple examples demonstrate how to produce
+  fresh names from the initial @{ML Name.context}.\<close>
 
-ML {*
+ML \<open>
   val list1 = Name.invent Name.context "a" 5;
   @{assert} (list1 = ["a", "b", "c", "d", "e"]);
 
   val list2 =
     #1 (fold_map Name.variant ["x", "x", "a", "a", "'a", "'a"] Name.context);
   @{assert} (list2 = ["x", "xa", "a", "aa", "'a", "'aa"]);
-*}
+\<close>
 
-text {* \medskip The same works relatively to the formal context as
-  follows. *}
+text \<open>\medskip The same works relatively to the formal context as
+  follows.\<close>
 
 locale ex = fixes a b c :: 'a
 begin
 
-ML {*
+ML \<open>
   val names = Variable.names_of @{context};
 
   val list1 = Name.invent names "a" 5;
@@ -744,14 +744,14 @@ ML {*
   val list2 =
     #1 (fold_map Name.variant ["x", "x", "a", "a", "'a", "'a"] names);
   @{assert} (list2 = ["x", "xa", "aa", "ab", "'aa", "'ab"]);
-*}
+\<close>
 
 end
 
 
-subsection {* Indexed names \label{sec:indexname} *}
+subsection \<open>Indexed names \label{sec:indexname}\<close>
 
-text {*
+text \<open>
   An \emph{indexed name} (or @{text "indexname"}) is a pair of a basic
   name and a natural number.  This representation allows efficient
   renaming by incrementing the second component only.  The canonical
@@ -784,9 +784,9 @@ text {*
   This works by producing variants of the corresponding basic name
   components.  For example, the collection @{text "?x1, ?x7, ?x42"}
   becomes @{text "?x, ?xa, ?xb"}.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type indexname: "string * int"} \\
   \end{mldecls}
@@ -800,12 +800,12 @@ text %mlref {*
   indexes should not be used.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Long names \label{sec:long-name} *}
+subsection \<open>Long names \label{sec:long-name}\<close>
 
-text {* A \emph{long name} consists of a sequence of non-empty name
+text \<open>A \emph{long name} consists of a sequence of non-empty name
   components.  The packed representation uses a dot as separator, as
   in ``@{text "A.b.c"}''.  The last component is called \emph{base
   name}, the remaining prefix is called \emph{qualifier} (which may be
@@ -825,9 +825,9 @@ text {* A \emph{long name} consists of a sequence of non-empty name
   entities, or entities that are not entered into the corresponding
   name space, whenever this makes any sense.  The basic operations on
   long names map empty names again to empty names.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Long_Name.base_name: "string -> string"} \\
   @{index_ML Long_Name.qualifier: "string -> string"} \\
@@ -852,12 +852,12 @@ text %mlref {*
   representation and the explicit list form of long names.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Name spaces \label{sec:name-space} *}
+subsection \<open>Name spaces \label{sec:name-space}\<close>
 
-text {* A @{text "name space"} manages a collection of long names,
+text \<open>A @{text "name space"} manages a collection of long names,
   together with a mapping between partially qualified external names
   and fully qualified internal names (in both directions).  Note that
   the corresponding @{text "intern"} and @{text "extern"} operations
@@ -908,9 +908,9 @@ text {* A @{text "name space"} manages a collection of long names,
   type @{text "c"} & @{text "c_type.intro"} \\
   class @{text "c"} & @{text "c_class.intro"} \\
   \end{tabular}
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type binding} \\
   @{index_ML Binding.empty: binding} \\
@@ -1018,9 +1018,9 @@ text %mlref {*
   other tools are supposed to ignore!
 
   \end{description}
-*}
+\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "binding"} & : & @{text ML_antiquotation} \\
   \end{matharray}
@@ -1037,33 +1037,33 @@ text %mlantiq {*
   appropriate than the more basic @{ML Binding.name} function.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following example yields the source position of some
+text %mlex \<open>The following example yields the source position of some
   concrete binding inlined into the text:
-*}
+\<close>
 
-ML {* Binding.pos_of @{binding here} *}
+ML \<open>Binding.pos_of @{binding here}\<close>
 
-text {* \medskip That position can be also printed in a message as
-  follows: *}
+text \<open>\medskip That position can be also printed in a message as
+  follows:\<close>
 
-ML_command {*
+ML_command \<open>
   writeln
     ("Look here" ^ Position.here (Binding.pos_of @{binding here}))
-*}
+\<close>
 
-text {* This illustrates a key virtue of formalized bindings as
+text \<open>This illustrates a key virtue of formalized bindings as
   opposed to raw specifications of base names: the system can use this
   additional information for feedback given to the user (error
   messages etc.).
 
   \medskip The following example refers to its source position
   directly, which is occasionally useful for experimentation and
-  diagnostic purposes: *}
+  diagnostic purposes:\<close>
 
-ML_command {*
+ML_command \<open>
   warning ("Look here" ^ Position.here @{here})
-*}
+\<close>
 
 end

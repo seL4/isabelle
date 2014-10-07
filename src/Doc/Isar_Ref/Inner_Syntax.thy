@@ -2,9 +2,9 @@ theory Inner_Syntax
 imports Base Main
 begin
 
-chapter {* Inner syntax --- the term language \label{ch:inner-syntax} *}
+chapter \<open>Inner syntax --- the term language \label{ch:inner-syntax}\<close>
 
-text {* The inner syntax of Isabelle provides concrete notation for
+text \<open>The inner syntax of Isabelle provides concrete notation for
   the main entities of the logical framework, notably @{text
   "\<lambda>"}-terms with types and type classes.  Applications may either
   extend existing syntactic categories by additional notation, or
@@ -25,14 +25,14 @@ text {* The inner syntax of Isabelle provides concrete notation for
   distinction of lexical language versus context-free grammar (see
   \secref{sec:pure-syntax}), and various mechanisms for \emph{syntax
   transformations} (see \secref{sec:syntax-transformations}).
-*}
+\<close>
 
 
-section {* Printing logical entities *}
+section \<open>Printing logical entities\<close>
 
-subsection {* Diagnostic commands \label{sec:print-diag} *}
+subsection \<open>Diagnostic commands \label{sec:print-diag}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "typ"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "term"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -115,12 +115,12 @@ text {*
   Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more
   systematic way to include formal items into the printed text
   document.
-*}
+\<close>
 
 
-subsection {* Details of printed content *}
+subsection \<open>Details of printed content\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcll}
     @{attribute_def show_markup} & : & @{text attribute} \\
     @{attribute_def show_types} & : & @{text attribute} & default @{text false} \\
@@ -241,12 +241,12 @@ text {*
   relevant for user interfaces).
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Alternative print modes \label{sec:print-modes} *}
+subsection \<open>Alternative print modes \label{sec:print-modes}\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
     @{index_ML print_mode_value: "unit -> string list"} \\
     @{index_ML Print_Mode.with_modes: "string list -> ('a -> 'b) -> 'a -> 'b"} \\
@@ -312,12 +312,12 @@ text {*
   alternative output notation.
 
   \end{itemize}
-*}
+\<close>
 
 
-section {* Mixfix annotations \label{sec:mixfix} *}
+section \<open>Mixfix annotations \label{sec:mixfix}\<close>
 
-text {* Mixfix annotations specify concrete \emph{inner syntax} of
+text \<open>Mixfix annotations specify concrete \emph{inner syntax} of
   Isabelle types and terms.  Locally fixed parameters in toplevel
   theorem statements, locale and class specifications also admit
   mixfix annotations in a fairly uniform manner.  A mixfix annotation
@@ -352,12 +352,12 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   Infix and binder declarations provide common abbreviations for
   particular mixfix declarations.  So in practice, mixfix templates
   mostly degenerate to literal text for concrete syntax, such as
-  ``@{verbatim "++"}'' for an infix symbol.  *}
+  ``@{verbatim "++"}'' for an infix symbol.\<close>
 
 
-subsection {* The general mixfix form *}
+subsection \<open>The general mixfix form\<close>
 
-text {* In full generality, mixfix declarations work as follows.
+text \<open>In full generality, mixfix declarations work as follows.
   Suppose a constant @{text "c :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>"} is annotated by
   @{text "(mixfix [p\<^sub>1, \<dots>, p\<^sub>n] p)"}, where @{text "mixfix"} is a string
   @{text "d\<^sub>0 _ d\<^sub>1 _ \<dots> _ d\<^sub>n"} consisting of delimiters that surround
@@ -436,12 +436,12 @@ text {* In full generality, mixfix declarations work as follows.
 
   The general idea of pretty printing with blocks and breaks is also
   described in @{cite "paulson-ml2"}; it goes back to @{cite "Oppen:1980"}.
-*}
+\<close>
 
 
-subsection {* Infixes *}
+subsection \<open>Infixes\<close>
 
-text {* Infix operators are specified by convenient short forms that
+text \<open>Infix operators are specified by convenient short forms that
   abbreviate general mixfix annotations as follows:
 
   \begin{center}
@@ -468,12 +468,12 @@ text {* Infix operators are specified by convenient short forms that
   The alternative notation @{verbatim "op"}~@{text sy} is introduced
   in addition.  Thus any infix operator may be written in prefix form
   (as in ML), independently of the number of arguments in the term.
-*}
+\<close>
 
 
-subsection {* Binders *}
+subsection \<open>Binders\<close>
 
-text {* A \emph{binder} is a variable-binding construct such as a
+text \<open>A \emph{binder} is a variable-binding construct such as a
   quantifier.  The idea to formalize @{text "\<forall>x. b"} as @{text "All
   (\<lambda>x. b)"} for @{text "All :: ('a \<Rightarrow> bool) \<Rightarrow> bool"} already goes back
   to @{cite church40}.  Isabelle declarations of certain higher-order
@@ -509,12 +509,12 @@ text {* A \emph{binder} is a variable-binding construct such as a
 
   Furthermore, a syntax translation to transforms @{text "c_binder x\<^sub>1
   \<dots> x\<^sub>n b"} into iterated application @{text "c (\<lambda>x\<^sub>1. \<dots> c (\<lambda>x\<^sub>n. b)\<dots>)"}.
-  This works in both directions, for parsing and printing.  *}
+  This works in both directions, for parsing and printing.\<close>
 
 
-section {* Explicit notation \label{sec:notation} *}
+section \<open>Explicit notation \label{sec:notation}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "type_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "no_type_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -562,14 +562,14 @@ text {*
   works within an Isar proof body.
 
   \end{description}
-*}
+\<close>
 
 
-section {* The Pure syntax \label{sec:pure-syntax} *}
+section \<open>The Pure syntax \label{sec:pure-syntax}\<close>
 
-subsection {* Lexical matters \label{sec:inner-lex} *}
+subsection \<open>Lexical matters \label{sec:inner-lex}\<close>
 
-text {* The inner lexical syntax vaguely resembles the outer one
+text \<open>The inner lexical syntax vaguely resembles the outer one
   (\secref{sec:outer-lex}), but some details are different.  There are
   two main categories of inner syntax tokens:
 
@@ -617,12 +617,12 @@ text {* The inner lexical syntax vaguely resembles the outer one
   The derived categories @{syntax_def (inner) num_const}, and @{syntax_def
   (inner) float_const}, provide robust access to the respective tokens: the
   syntax tree holds a syntactic constant instead of a free variable.
-*}
+\<close>
 
 
-subsection {* Priority grammars \label{sec:priority-grammar} *}
+subsection \<open>Priority grammars \label{sec:priority-grammar}\<close>
 
-text {* A context-free grammar consists of a set of \emph{terminal
+text \<open>A context-free grammar consists of a set of \emph{terminal
   symbols}, a set of \emph{nonterminal symbols} and a set of
   \emph{productions}.  Productions have the form @{text "A = \<gamma>"},
   where @{text A} is a nonterminal and @{text \<gamma>} is a string of
@@ -692,12 +692,12 @@ text {* A context-free grammar consists of a set of \emph{terminal
               & @{text "|"} & @{verbatim "-"} @{text "A\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
   \end{tabular}
   \end{center}
-*}
+\<close>
 
 
-subsection {* The Pure grammar \label{sec:pure-grammar} *}
+subsection \<open>The Pure grammar \label{sec:pure-grammar}\<close>
 
-text {* The priority grammar of the @{text "Pure"} theory is defined
+text \<open>The priority grammar of the @{text "Pure"} theory is defined
   approximately like this:
 
   \begin{center}
@@ -896,12 +896,12 @@ text {* The priority grammar of the @{text "Pure"} theory is defined
   translation rules (\secref{sec:syn-trans}), notably on the LHS.
 
   \end{itemize}
-*}
+\<close>
 
 
-subsection {* Inspecting the syntax *}
+subsection \<open>Inspecting the syntax\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "print_syntax"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
@@ -956,12 +956,12 @@ text {*
   \end{description}
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Ambiguity of parsed expressions *}
+subsection \<open>Ambiguity of parsed expressions\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcll}
     @{attribute_def syntax_ambiguity_warning} & : & @{text attribute} & default @{text true} \\
     @{attribute_def syntax_ambiguity_limit} & : & @{text attribute} & default @{text 10} \\
@@ -991,12 +991,12 @@ text {*
   in case of an ambiguity.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Syntax transformations \label{sec:syntax-transformations} *}
+section \<open>Syntax transformations \label{sec:syntax-transformations}\<close>
 
-text {* The inner syntax engine of Isabelle provides separate
+text \<open>The inner syntax engine of Isabelle provides separate
   mechanisms to transform parse trees either via rewrite systems on
   first-order ASTs (\secref{sec:syn-trans}), or ML functions on ASTs
   or syntactic @{text "\<lambda>"}-terms (\secref{sec:tr-funs}).  This works
@@ -1042,12 +1042,12 @@ text {* The inner syntax engine of Isabelle provides separate
   or constants needs to be implemented as syntax transformation (see
   below).  Anything else is better done via check/uncheck: a prominent
   example application is the @{command abbreviation} concept of
-  Isabelle/Pure. *}
+  Isabelle/Pure.\<close>
 
 
-subsection {* Abstract syntax trees \label{sec:ast} *}
+subsection \<open>Abstract syntax trees \label{sec:ast}\<close>
 
-text {* The ML datatype @{ML_type Ast.ast} explicitly represents the
+text \<open>The ML datatype @{ML_type Ast.ast} explicitly represents the
   intermediate AST format that is used for syntax rewriting
   (\secref{sec:syn-trans}).  It is defined in ML as follows:
   \begin{ttbox}
@@ -1081,12 +1081,12 @@ text {* The ML datatype @{ML_type Ast.ast} explicitly represents the
   where @{verbatim "(\"_abs\" x t)"} becomes an @{ML Abs} node and
   occurrences of @{verbatim x} in @{verbatim t} are replaced by bound
   variables (represented as de-Bruijn indices).
-*}
+\<close>
 
 
-subsubsection {* AST constants versus variables *}
+subsubsection \<open>AST constants versus variables\<close>
 
-text {* Depending on the situation --- input syntax, output syntax,
+text \<open>Depending on the situation --- input syntax, output syntax,
   translation patterns --- the distinction of atomic ASTs as @{ML
   Ast.Constant} versus @{ML Ast.Variable} serves slightly different
   purposes.
@@ -1121,12 +1121,12 @@ text {* Depending on the situation --- input syntax, output syntax,
   corresponds to an AST application of some constant for @{text foo}
   and variable arguments for @{text "'a"} and @{text "'b"}.  Note that
   the postfix application is merely a feature of the concrete syntax,
-  while in the AST the constructor occurs in head position.  *}
+  while in the AST the constructor occurs in head position.\<close>
 
 
-subsubsection {* Authentic syntax names *}
+subsubsection \<open>Authentic syntax names\<close>
 
-text {* Naming constant entities within ASTs is another delicate
+text \<open>Naming constant entities within ASTs is another delicate
   issue.  Unqualified names are resolved in the name space tables in
   the last stage of parsing, after all translations have been applied.
   Since syntax transformations do not know about this later name
@@ -1160,12 +1160,12 @@ text {* Naming constant entities within ASTs is another delicate
   In other words, syntax transformations that operate on input terms
   written as prefix applications are difficult to make robust.
   Luckily, this case rarely occurs in practice, because syntax forms
-  to be translated usually correspond to some concrete notation. *}
+  to be translated usually correspond to some concrete notation.\<close>
 
 
-subsection {* Raw syntax and translations \label{sec:syn-trans} *}
+subsection \<open>Raw syntax and translations \label{sec:syn-trans}\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcll}
     @{command_def "nonterminal"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "syntax"} & : & @{text "theory \<rightarrow> theory"} \\
@@ -1337,11 +1337,11 @@ text {*
   List} in Isabelle/HOL.
 
   \end{itemize}
-*}
+\<close>
 
-subsubsection {* Applying translation rules *}
+subsubsection \<open>Applying translation rules\<close>
 
-text {* As a term is being parsed or printed, an AST is generated as
+text \<open>As a term is being parsed or printed, an AST is generated as
   an intermediate form according to \figref{fig:parse-print}.  The AST
   is normalized by applying translation rules in the manner of a
   first-order term rewriting system.  We first examine how a single
@@ -1410,12 +1410,12 @@ text {* As a term is being parsed or printed, an AST is generated as
   functions (see also \secref{sec:tr-funs}), which is in fact the same
   mechanism used in built-in @{keyword "binder"} declarations.
   \end{warn}
-*}
+\<close>
 
 
-subsection {* Syntax translation functions \label{sec:tr-funs} *}
+subsection \<open>Syntax translation functions \label{sec:tr-funs}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "parse_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "parse_translation"} & : & @{text "theory \<rightarrow> theory"} \\
@@ -1492,12 +1492,12 @@ text {*
   names occurring in parse trees (unqualified constants etc.).
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* The translation strategy *}
+subsubsection \<open>The translation strategy\<close>
 
-text {* The different kinds of translation functions are invoked during
+text \<open>The different kinds of translation functions are invoked during
   the transformations between parse trees, ASTs and syntactic terms
   (cf.\ \figref{fig:parse-print}).  Whenever a combination of the form
   @{text "c x\<^sub>1 \<dots> x\<^sub>n"} is encountered, and a translation function
@@ -1545,20 +1545,20 @@ text {* The different kinds of translation functions are invoked during
   the status of constant versus variable is not yet know during
   parsing.  This is in contrast to print translations, where constants
   are explicitly known from the given term in its fully internal form.
-*}
+\<close>
 
 
-subsection {* Built-in syntax transformations *}
+subsection \<open>Built-in syntax transformations\<close>
 
-text {*
+text \<open>
   Here are some further details of the main syntax transformation
   phases of \figref{fig:parse-print}.
-*}
+\<close>
 
 
-subsubsection {* Transforming parse trees to ASTs *}
+subsubsection \<open>Transforming parse trees to ASTs\<close>
 
-text {* The parse tree is the raw output of the parser.  It is
+text \<open>The parse tree is the raw output of the parser.  It is
   transformed into an AST according to some basic scheme that may be
   augmented by AST translation functions as explained in
   \secref{sec:tr-funs}.
@@ -1598,12 +1598,12 @@ text {* The parse tree is the raw output of the parser.  It is
   translations need to be ready to cope with them.  The built-in
   syntax transformation from parse trees to ASTs insert additional
   constraints that represent source positions.
-*}
+\<close>
 
 
-subsubsection {* Transforming ASTs to terms *}
+subsubsection \<open>Transforming ASTs to terms\<close>
 
-text {* After application of macros (\secref{sec:syn-trans}), the AST
+text \<open>After application of macros (\secref{sec:syn-trans}), the AST
   is transformed into a term.  This term still lacks proper type
   information, but it might contain some constraints consisting of
   applications with head @{verbatim "_constrain"}, where the second
@@ -1620,12 +1620,12 @@ text {* After application of macros (\secref{sec:syn-trans}), the AST
   bound variables are introduced by parse translations associated with
   certain syntax constants.  Thus @{verbatim "(_abs x x)"} eventually
   becomes a de-Bruijn term @{verbatim "Abs (\"x\", _, Bound 0)"}.
-*}
+\<close>
 
 
-subsubsection {* Printing of terms *}
+subsubsection \<open>Printing of terms\<close>
 
-text {* The output phase is essentially the inverse of the input
+text \<open>The output phase is essentially the inverse of the input
   phase.  Terms are translated via abstract syntax trees into
   pretty-printed text.
 
@@ -1672,6 +1672,6 @@ text {* The output phase is essentially the inverse of the input
   \medskip White space is \emph{not} inserted automatically.  If
   blanks (or breaks) are required to separate tokens, they need to be
   specified in the mixfix declaration (\secref{sec:mixfix}).
-*}
+\<close>
 
 end

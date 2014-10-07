@@ -2,9 +2,9 @@ theory ML_Tactic
 imports Base Main
 begin
 
-chapter {* ML tactic expressions *}
+chapter \<open>ML tactic expressions\<close>
 
-text {*
+text \<open>
   Isar Proof methods closely resemble traditional tactics, when used
   in unstructured sequences of @{command "apply"} commands.
   Isabelle/Isar provides emulations for all major ML tactics of
@@ -22,12 +22,12 @@ text {*
   asm_simp_tac}~/ @{ML full_simp_tac}~/ @{ML asm_full_simp_tac}, there
   is also concrete syntax for augmenting the Simplifier context (the
   current ``simpset'') in a convenient way.
-*}
+\<close>
 
 
-section {* Resolution tactics *}
+section \<open>Resolution tactics\<close>
 
-text {*
+text \<open>
   Classic Isabelle provides several variant forms of tactics for
   single-step rule applications (based on higher-order resolution).
   The space of resolution tactics has the following main dimensions.
@@ -75,12 +75,12 @@ text {*
   Note that explicit goal addressing may be usually avoided by
   changing the order of subgoals with @{command "defer"} or @{command
   "prefer"} (see \secref{sec:tactic-commands}).
-*}
+\<close>
 
 
-section {* Simplifier tactics *}
+section \<open>Simplifier tactics\<close>
 
-text {* The main Simplifier tactics @{ML simp_tac} and variants are
+text \<open>The main Simplifier tactics @{ML simp_tac} and variants are
   all covered by the @{method simp} and @{method simp_all} methods
   (see \secref{sec:simplifier}).  Note that there is no individual
   goal addressing available, simplification acts either on the first
@@ -96,21 +96,21 @@ text {* The main Simplifier tactics @{ML simp_tac} and variants are
     @{ML asm_lr_simp_tac}~@{text "@{context} 1"} & & @{method simp}~@{text "(asm_lr)"} \\
   \end{tabular}
   \medskip
-*}
+\<close>
 
 
-section {* Classical Reasoner tactics *}
+section \<open>Classical Reasoner tactics\<close>
 
-text {* The Classical Reasoner provides a rather large number of
+text \<open>The Classical Reasoner provides a rather large number of
   variations of automated tactics, such as @{ML blast_tac}, @{ML
   fast_tac}, @{ML clarify_tac} etc.  The corresponding Isar methods
   usually share the same base name, such as @{method blast}, @{method
-  fast}, @{method clarify} etc.\ (see \secref{sec:classical}).  *}
+  fast}, @{method clarify} etc.\ (see \secref{sec:classical}).\<close>
 
 
-section {* Miscellaneous tactics *}
+section \<open>Miscellaneous tactics\<close>
 
-text {*
+text \<open>
   There are a few additional tactics defined in various theories of
   Isabelle/HOL, some of these also in Isabelle/FOL or Isabelle/ZF.
   The most common ones of these may be ported to Isar as follows.
@@ -123,12 +123,12 @@ text {*
       & @{text "\<approx>"} & @{text "simp only: split_tupled_all"} \\
       & @{text "\<lless>"} & @{text "clarify"} \\
   \end{tabular}
-*}
+\<close>
 
 
-section {* Tacticals *}
+section \<open>Tacticals\<close>
 
-text {*
+text \<open>
   Classic Isabelle provides a huge amount of tacticals for combination
   and modification of existing tactics.  This has been greatly reduced
   in Isar, providing the bare minimum of combinators only: ``@{text
@@ -172,6 +172,6 @@ text {*
   @{ML_text "REPEAT (FIRSTGOAL (resolve_tac ...))"}, is usually better
   expressed using the @{method intro} and @{method elim} methods of
   Isar (see \secref{sec:classical}).
-*}
+\<close>
 
 end

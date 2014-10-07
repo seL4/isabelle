@@ -2,9 +2,9 @@ theory Preface
 imports Base Main
 begin
 
-chapter {* Preface *}
+chapter \<open>Preface\<close>
 
-text {*
+text \<open>
   The \emph{Isabelle} system essentially provides a generic
   infrastructure for building deductive systems (programmed in
   Standard ML), with a special focus on interactive theorem proving in
@@ -69,6 +69,6 @@ text {*
   the final human-readable outcome.  Typical examples are diagnostic
   commands that print terms or theorems according to the current
   context; other commands emulate old-style tactical theorem proving.
-*}
+\<close>
 
 end

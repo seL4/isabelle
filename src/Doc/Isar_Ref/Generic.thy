@@ -2,11 +2,11 @@ theory Generic
 imports Base Main
 begin
 
-chapter {* Generic tools and packages \label{ch:gen-tools} *}
+chapter \<open>Generic tools and packages \label{ch:gen-tools}\<close>
 
-section {* Configuration options \label{sec:config} *}
+section \<open>Configuration options \label{sec:config}\<close>
 
-text {* Isabelle/Pure maintains a record of named configuration
+text \<open>Isabelle/Pure maintains a record of named configuration
   options within the theory or proof context, with values of type
   @{ML_type bool}, @{ML_type int}, @{ML_type real}, or @{ML_type
   string}.  Tools may declare options in ML, and then refer to these
@@ -16,7 +16,7 @@ text {* Isabelle/Pure maintains a record of named configuration
   name.  This form of context declaration works particularly well with
   commands such as @{command "declare"} or @{command "using"} like
   this:
-*}
+\<close>
 
 declare [[show_main_goal = false]]
 
@@ -25,7 +25,7 @@ begin
   note [[show_main_goal = true]]
 end
 
-text {* For historical reasons, some tools cannot take the full proof
+text \<open>For historical reasons, some tools cannot take the full proof
   context into account and merely refer to the background theory.
   This is accommodated by configuration options being declared as
   ``global'', which may not be changed within a local context.
@@ -49,14 +49,14 @@ text {* For historical reasons, some tools cannot take the full proof
   attempt to change a global option in a local context is ignored.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Basic proof tools *}
+section \<open>Basic proof tools\<close>
 
-subsection {* Miscellaneous methods and attributes \label{sec:misc-meth-att} *}
+subsection \<open>Miscellaneous methods and attributes \label{sec:misc-meth-att}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def unfold} & : & @{text method} \\
     @{method_def fold} & : & @{text method} \\
@@ -183,12 +183,12 @@ text {*
   ones; this is mainly for tuning output of pretty printed theorems.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Low-level equational reasoning *}
+subsection \<open>Low-level equational reasoning\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def subst} & : & @{text method} \\
     @{method_def hypsubst} & : & @{text method} \\
@@ -251,12 +251,12 @@ text {*
   @{attribute split}, for example.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Further tactic emulations \label{sec:tactics} *}
+subsection \<open>Further tactic emulations \label{sec:tactics}\<close>
 
-text {*
+text \<open>
   The following improper proof methods emulate traditional tactics.
   These admit direct access to the goal state, which is normally
   considered harmful!  In particular, this may involve both numbered
@@ -366,12 +366,12 @@ text {*
   appear in production theories.
 
   \end{description}
-*}
+\<close>
 
 
-section {* The Simplifier \label{sec:simplifier} *}
+section \<open>The Simplifier \label{sec:simplifier}\<close>
 
-text {* The Simplifier performs conditional and unconditional
+text \<open>The Simplifier performs conditional and unconditional
   rewriting and uses contextual information: rule declarations in the
   background theory or local proof context are taken into account, as
   well as chained facts and subgoal premises (``local assumptions'').
@@ -389,12 +389,12 @@ text {* The Simplifier performs conditional and unconditional
   engaging into the internal structures.  Thus it serves as
   general-purpose proof tool with the main focus on equational
   reasoning, and a bit more than that.
-*}
+\<close>
 
 
-subsection {* Simplification methods \label{sec:simp-meth} *}
+subsection \<open>Simplification methods \label{sec:simp-meth}\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcll}
     @{method_def simp} & : & @{text method} \\
     @{method_def simp_all} & : & @{text method} \\
@@ -505,38 +505,38 @@ text {*
 
   \end{supertabular}
   \end{center}
-*}
+\<close>
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* We consider basic algebraic simplifications in Isabelle/HOL.
+text \<open>We consider basic algebraic simplifications in Isabelle/HOL.
   The rather trivial goal @{prop "0 + (x + 0) = x + 0 + 0"} looks like
   a good candidate to be solved by a single call of @{method simp}:
-*}
+\<close>
 
 lemma "0 + (x + 0) = x + 0 + 0" apply simp? oops
 
-text {* The above attempt \emph{fails}, because @{term "0"} and @{term
+text \<open>The above attempt \emph{fails}, because @{term "0"} and @{term
   "op +"} in the HOL library are declared as generic type class
   operations, without stating any algebraic laws yet.  More specific
   types are required to get access to certain standard simplifications
-  of the theory context, e.g.\ like this: *}
+  of the theory context, e.g.\ like this:\<close>
 
 lemma fixes x :: nat shows "0 + (x + 0) = x + 0 + 0" by simp
 lemma fixes x :: int shows "0 + (x + 0) = x + 0 + 0" by simp
 lemma fixes x :: "'a :: monoid_add" shows "0 + (x + 0) = x + 0 + 0" by simp
 
-text {*
+text \<open>
   \medskip In many cases, assumptions of a subgoal are also needed in
   the simplification process.  For example:
-*}
+\<close>
 
 lemma fixes x :: nat shows "x = 0 \<Longrightarrow> x + x = 0" by simp
 lemma fixes x :: nat assumes "x = 0" shows "x + x = 0" apply simp oops
 lemma fixes x :: nat assumes "x = 0" shows "x + x = 0" using assms by simp
 
-text {* As seen above, local assumptions that shall contribute to
+text \<open>As seen above, local assumptions that shall contribute to
   simplification need to be part of the subgoal already, or indicated
   explicitly for use by the subsequent method invocation.  Both too
   little or too much information can make simplification fail, for
@@ -550,19 +550,19 @@ text {* As seen above, local assumptions that shall contribute to
   nontermination, but not this one.  The problem can be solved
   nonetheless, by ignoring assumptions via special options as
   explained before:
-*}
+\<close>
 
 lemma "(\<And>x::nat. f x = g (f (g x))) \<Longrightarrow> f 0 = f 0 + 0"
   by (simp (no_asm))
 
-text {* The latter form is typical for long unstructured proof
+text \<open>The latter form is typical for long unstructured proof
   scripts, where the control over the goal content is limited.  In
   structured proofs it is usually better to avoid pushing too many
   facts into the goal state in the first place.  Assumptions in the
   Isar proof context do not intrude the reasoning if not used
   explicitly.  This is illustrated for a toplevel statement and a
   local proof body as follows:
-*}
+\<close>
 
 lemma
   assumes "\<And>x::nat. f x = g (f (g x))"
@@ -574,7 +574,7 @@ begin
   have "f 0 = f 0 + 0" by simp
 end
 
-text {* \medskip Because assumptions may simplify each other, there
+text \<open>\medskip Because assumptions may simplify each other, there
   can be very subtle cases of nontermination. For example, the regular
   @{method simp} method applied to @{prop "P (f x) \<Longrightarrow> y = x \<Longrightarrow> f x = f y
   \<Longrightarrow> Q"} gives rise to the infinite reduction sequence
@@ -585,21 +585,21 @@ text {* \medskip Because assumptions may simplify each other, there
   \]
   whereas applying the same to @{prop "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow>
   Q"} terminates (without solving the goal):
-*}
+\<close>
 
 lemma "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow> Q"
   apply simp
   oops
 
-text {* See also \secref{sec:simp-trace} for options to enable
+text \<open>See also \secref{sec:simp-trace} for options to enable
   Simplifier trace mode, which often helps to diagnose problems with
   rewrite systems.
-*}
+\<close>
 
 
-subsection {* Declaring rules \label{sec:simp-rules} *}
+subsection \<open>Declaring rules \label{sec:simp-rules}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{attribute_def simp} & : & @{text attribute} \\
     @{attribute_def split} & : & @{text attribute} \\
@@ -762,12 +762,12 @@ text {*
   will contain the unwanted rules, and thus have to be deleted again
   in the theory body.
   \end{warn}
-*}
+\<close>
 
 
-subsection {* Ordered rewriting with permutative rules *}
+subsection \<open>Ordered rewriting with permutative rules\<close>
 
-text {* A rewrite rule is \emph{permutative} if the left-hand side and
+text \<open>A rewrite rule is \emph{permutative} if the left-hand side and
   right-hand side are the equal up to renaming of variables.  The most
   common permutative rule is commutativity: @{text "?x + ?y = ?y +
   ?x"}.  Other examples include @{text "(?x - ?y) - ?z = (?x - ?z) -
@@ -790,12 +790,12 @@ text {* A rewrite rule is \emph{permutative} if the left-hand side and
   \medskip Permutative rewrite rules are declared to the Simplifier
   just like other rewrite rules.  Their special status is recognized
   automatically, and their application is guarded by the term ordering
-  accordingly. *}
+  accordingly.\<close>
 
 
-subsubsection {* Rewriting with AC operators *}
+subsubsection \<open>Rewriting with AC operators\<close>
 
-text {* Ordered rewriting is particularly effective in the case of
+text \<open>Ordered rewriting is particularly effective in the case of
   associative-commutative operators.  (Associativity by itself is not
   permutative.)  When dealing with an AC-operator @{text "f"}, keep
   the following points in mind:
@@ -815,7 +815,7 @@ text {* Ordered rewriting is particularly effective in the case of
 
   Ordered rewriting with the combination of A, C, and LC sorts a term
   lexicographically --- the rewriting engine imitates bubble-sort.
-*}
+\<close>
 
 locale AC_example =
   fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infix "\<bullet>" 60)
@@ -831,13 +831,13 @@ qed
 
 lemmas AC_rules = assoc commute left_commute
 
-text {* Thus the Simplifier is able to establish equalities with
+text \<open>Thus the Simplifier is able to establish equalities with
   arbitrary permutations of subterms, by normalizing to a common
-  standard form.  For example: *}
+  standard form.  For example:\<close>
 
 lemma "(b \<bullet> c) \<bullet> a = xxx"
   apply (simp only: AC_rules)
-  txt {* @{subgoals} *}
+  txt \<open>@{subgoals}\<close>
   oops
 
 lemma "(b \<bullet> c) \<bullet> a = a \<bullet> (b \<bullet> c)" by (simp only: AC_rules)
@@ -846,27 +846,27 @@ lemma "(b \<bullet> c) \<bullet> a = (c \<bullet> b) \<bullet> a" by (simp only:
 
 end
 
-text {* Martin and Nipkow @{cite "martin-nipkow"} discuss the theory and
+text \<open>Martin and Nipkow @{cite "martin-nipkow"} discuss the theory and
   give many examples; other algebraic structures are amenable to
   ordered rewriting, such as Boolean rings.  The Boyer-Moore theorem
   prover @{cite bm88book} also employs ordered rewriting.
-*}
+\<close>
 
 
-subsubsection {* Re-orienting equalities *}
+subsubsection \<open>Re-orienting equalities\<close>
 
-text {* Another application of ordered rewriting uses the derived rule
+text \<open>Another application of ordered rewriting uses the derived rule
   @{thm [source] eq_commute}: @{thm [source = false] eq_commute} to
   reverse equations.
 
   This is occasionally useful to re-orient local assumptions according
   to the term ordering, when other built-in mechanisms of
-  reorientation and mutual simplification fail to apply.  *}
+  reorientation and mutual simplification fail to apply.\<close>
 
 
-subsection {* Simplifier tracing and debugging \label{sec:simp-trace} *}
+subsection \<open>Simplifier tracing and debugging \label{sec:simp-trace}\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcll}
     @{attribute_def simp_trace} & : & @{text attribute} & default @{text false} \\
     @{attribute_def simp_trace_depth_limit} & : & @{text attribute} & default @{text 1} \\
@@ -921,15 +921,15 @@ text {*
   rewrite step. For example:
 
   \end{description}
-*}
+\<close>
 
 declare conjI [simp_break]
 declare [[simp_break "?x \<and> ?y"]]
 
 
-subsection {* Simplification procedures \label{sec:simproc} *}
+subsection \<open>Simplification procedures \label{sec:simproc}\<close>
 
-text {* Simplification procedures are ML functions that produce proven
+text \<open>Simplification procedures are ML functions that produce proven
   rewrite rules on demand.  They are associated with higher-order
   patterns that approximate the left-hand sides of equations.  The
   Simplifier first matches the current redex against one of the LHS
@@ -985,43 +985,43 @@ text {* Simplification procedures are ML functions that produce proven
   already adds the new simproc to the subsequent context.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Example *}
+subsubsection \<open>Example\<close>
 
-text {* The following simplification procedure for @{thm
+text \<open>The following simplification procedure for @{thm
   [source=false, show_types] unit_eq} in HOL performs fine-grained
   control over rule application, beyond higher-order pattern matching.
   Declaring @{thm unit_eq} as @{attribute simp} directly would make
   the Simplifier loop!  Note that a version of this simplification
-  procedure is already active in Isabelle/HOL.  *}
+  procedure is already active in Isabelle/HOL.\<close>
 
-simproc_setup unit ("x::unit") = {*
+simproc_setup unit ("x::unit") = \<open>
   fn _ => fn _ => fn ct =>
     if HOLogic.is_unit (term_of ct) then NONE
     else SOME (mk_meta_eq @{thm unit_eq})
-*}
+\<close>
 
-text {* Since the Simplifier applies simplification procedures
+text \<open>Since the Simplifier applies simplification procedures
   frequently, it is important to make the failure check in ML
-  reasonably fast. *}
+  reasonably fast.\<close>
 
 
-subsection {* Configurable Simplifier strategies \label{sec:simp-strategies} *}
+subsection \<open>Configurable Simplifier strategies \label{sec:simp-strategies}\<close>
 
-text {* The core term-rewriting engine of the Simplifier is normally
+text \<open>The core term-rewriting engine of the Simplifier is normally
   used in combination with some add-on components that modify the
   strategy and allow to integrate other non-Simplifier proof tools.
   These may be reconfigured in ML as explained below.  Even if the
   default strategies of object-logics like Isabelle/HOL are used
   unchanged, it helps to understand how the standard Simplifier
-  strategies work. *}
+  strategies work.\<close>
 
 
-subsubsection {* The subgoaler *}
+subsubsection \<open>The subgoaler\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML Simplifier.set_subgoaler: "(Proof.context -> int -> tactic) ->
   Proof.context -> Proof.context"} \\
@@ -1049,23 +1049,23 @@ text {*
   \end{description}
 
   As an example, consider the following alternative subgoaler:
-*}
+\<close>
 
-ML {*
+ML \<open>
   fun subgoaler_tac ctxt =
     assume_tac ORELSE'
     resolve_tac (Simplifier.prems_of ctxt) ORELSE'
     asm_simp_tac ctxt
-*}
+\<close>
 
-text {* This tactic first tries to solve the subgoal by assumption or
+text \<open>This tactic first tries to solve the subgoal by assumption or
   by resolving with with one of the premises, calling simplification
-  only if that fails. *}
+  only if that fails.\<close>
 
 
-subsubsection {* The solver *}
+subsubsection \<open>The solver\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML_type solver} \\
   @{index_ML Simplifier.mk_solver: "string ->
@@ -1162,12 +1162,12 @@ text {*
   @{text "t = ?x"}.  Otherwise it indicates that some congruence rule,
   or possibly the subgoaler or solver, is faulty.
   \end{warn}
-*}
+\<close>
 
 
-subsubsection {* The looper *}
+subsubsection \<open>The looper\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML_op setloop: "Proof.context *
   (Proof.context -> int -> tactic) -> Proof.context"} \\
@@ -1246,12 +1246,12 @@ text {*
   in tactic expressions that silently assume 0 or 1 subgoals after
   simplification.
   \end{warn}
-*}
+\<close>
 
 
-subsection {* Forward simplification \label{sec:simp-forward} *}
+subsection \<open>Forward simplification \label{sec:simp-forward}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{attribute_def simplified} & : & @{text attribute} \\
   \end{matharray}
@@ -1279,14 +1279,14 @@ text {*
   under normal circumstances.
 
   \end{description}
-*}
+\<close>
 
 
-section {* The Classical Reasoner \label{sec:classical} *}
+section \<open>The Classical Reasoner \label{sec:classical}\<close>
 
-subsection {* Basic concepts *}
+subsection \<open>Basic concepts\<close>
 
-text {* Although Isabelle is generic, many users will be working in
+text \<open>Although Isabelle is generic, many users will be working in
   some extension of classical first-order logic.  Isabelle/ZF is built
   upon theory FOL, while Isabelle/HOL conceptually contains
   first-order logic as a fragment.  Theorem-proving in predicate logic
@@ -1300,7 +1300,7 @@ text {* Although Isabelle is generic, many users will be working in
   with high-end automated theorem provers, but they can save
   considerable time and effort in practice.  They can prove theorems
   such as Pelletier's @{cite pelletier86} problems 40 and 41 in a few
-  milliseconds (including full proof reconstruction): *}
+  milliseconds (including full proof reconstruction):\<close>
 
 lemma "(\<exists>y. \<forall>x. F x y \<longleftrightarrow> F x x) \<longrightarrow> \<not> (\<forall>x. \<exists>y. \<forall>z. F z y \<longleftrightarrow> \<not> F z x)"
   by blast
@@ -1308,16 +1308,16 @@ lemma "(\<exists>y. \<forall>x. F x y \<longleftrightarrow> F x x) \<longrightar
 lemma "(\<forall>z. \<exists>y. \<forall>x. f x y \<longleftrightarrow> f x z \<and> \<not> f x x) \<longrightarrow> \<not> (\<exists>z. \<forall>x. f x z)"
   by blast
 
-text {* The proof tools are generic.  They are not restricted to
+text \<open>The proof tools are generic.  They are not restricted to
   first-order logic, and have been heavily used in the development of
   the Isabelle/HOL library and applications.  The tactics can be
   traced, and their components can be called directly; in this manner,
-  any proof can be viewed interactively.  *}
+  any proof can be viewed interactively.\<close>
 
 
-subsubsection {* The sequent calculus *}
+subsubsection \<open>The sequent calculus\<close>
 
-text {* Isabelle supports natural deduction, which is easy to use for
+text \<open>Isabelle supports natural deduction, which is easy to use for
   interactive proof.  But natural deduction does not easily lend
   itself to automation, and has a bias towards intuitionism.  For
   certain proofs in classical logic, it can not be called natural.
@@ -1371,12 +1371,12 @@ text {* Isabelle supports natural deduction, which is easy to use for
   manner.  This yields a surprisingly effective proof procedure.
   Quantifiers add only few complications, since Isabelle handles
   parameters and schematic variables.  See @{cite \<open>Chapter 10\<close>
-  "paulson-ml2"} for further discussion.  *}
+  "paulson-ml2"} for further discussion.\<close>
 
 
-subsubsection {* Simulating sequents by natural deduction *}
+subsubsection \<open>Simulating sequents by natural deduction\<close>
 
-text {* Isabelle can represent sequents directly, as in the
+text \<open>Isabelle can represent sequents directly, as in the
   object-logic LK.  But natural deduction is easier to work with, and
   most object-logics employ it.  Fortunately, we can simulate the
   sequent @{text "P\<^sub>1, \<dots>, P\<^sub>m \<turnstile> Q\<^sub>1, \<dots>, Q\<^sub>n"} by the Isabelle formula
@@ -1417,12 +1417,12 @@ text {* Isabelle can represent sequents directly, as in the
   regard for readability of intermediate goal states, we could treat
   the right side more uniformly by representing sequents as @{text
   [display] "P\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> P\<^sub>m \<Longrightarrow> \<not> Q\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> \<not> Q\<^sub>n \<Longrightarrow> \<bottom>"}
-*}
+\<close>
 
 
-subsubsection {* Extra rules for the sequent calculus *}
+subsubsection \<open>Extra rules for the sequent calculus\<close>
 
-text {* As mentioned, destruction rules such as @{text "(\<and>E1, 2)"} and
+text \<open>As mentioned, destruction rules such as @{text "(\<and>E1, 2)"} and
   @{text "(\<forall>E)"} must be replaced by sequent-style elimination rules.
   In addition, we need rules to embody the classical equivalence
   between @{text "P \<longrightarrow> Q"} and @{text "\<not> P \<or> Q"}.  The introduction
@@ -1472,12 +1472,12 @@ text {* As mentioned, destruction rules such as @{text "(\<and>E1, 2)"} and
   Depth-first search may well go down a blind alley; best-first search
   is better behaved in an infinite search space.  However, quantifier
   replication is too expensive to prove any but the simplest theorems.
-*}
+\<close>
 
 
-subsection {* Rule declarations *}
+subsection \<open>Rule declarations\<close>
 
-text {* The proof tools of the Classical Reasoner depend on
+text \<open>The proof tools of the Classical Reasoner depend on
   collections of rules declared in the context, which are classified
   as introduction, elimination or destruction and as \emph{safe} or
   \emph{unsafe}.  In general, safe rules can be attempted blindly,
@@ -1578,12 +1578,12 @@ text {* The proof tools of the Classical Reasoner depend on
   internally as explained above.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Structured methods *}
+subsection \<open>Structured methods\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def rule} & : & @{text method} \\
     @{method_def contradiction} & : & @{text method} \\
@@ -1611,12 +1611,12 @@ text {*
   order.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Fully automated methods *}
+subsection \<open>Fully automated methods\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def blast} & : & @{text method} \\
     @{method_def auto} & : & @{text method} \\
@@ -1746,12 +1746,12 @@ text {*
   semantics of these ad-hoc rule declarations is analogous to the
   attributes given before.  Facts provided by forward chaining are
   inserted into the goal before commencing proof search.
-*}
+\<close>
 
 
-subsection {* Partially automated methods *}
+subsection \<open>Partially automated methods\<close>
 
-text {* These proof methods may help in situations when the
+text \<open>These proof methods may help in situations when the
   fully-automated tools fail.  The result is a simpler subgoal that
   can be tackled by other means, such as by manual instantiation of
   quantifiers.
@@ -1781,12 +1781,12 @@ text {* These proof methods may help in situations when the
   splitter for the premises, the subgoal may still be split.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Single-step tactics *}
+subsection \<open>Single-step tactics\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def safe_step} & : & @{text method} \\
     @{method_def inst_step} & : & @{text method} \\
@@ -1827,12 +1827,12 @@ text {*
   be eliminated.  The safe wrapper tactical is applied.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Modifying the search step *}
+subsection \<open>Modifying the search step\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
     @{index_ML_type wrapper: "(int -> tactic) -> (int -> tactic)"} \\[0.5ex]
     @{index_ML_op addSWrapper: "Proof.context *
@@ -1919,12 +1919,12 @@ text {*
   the each unsafe step of the search.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Object-logic setup \label{sec:object-logic} *}
+section \<open>Object-logic setup \label{sec:object-logic}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "judgment"} & : & @{text "theory \<rightarrow> theory"} \\
     @{method_def atomize} & : & @{text method} \\
@@ -1999,12 +1999,12 @@ text {*
   rule statements over @{text "\<And>"} and @{text "\<Longrightarrow>"}.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Tracing higher-order unification *}
+section \<open>Tracing higher-order unification\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcll}
     @{attribute_def unify_trace_simp} & : & @{text "attribute"} & default @{text "false"} \\
     @{attribute_def unify_trace_types} & : & @{text "attribute"} & default @{text "false"} \\
@@ -2044,6 +2044,6 @@ text {*
   Options for unification cannot be modified in a local context.  Only
   the global theory content is taken into account.
   \end{warn}
-*}
+\<close>
 
 end

@@ -2,9 +2,9 @@ theory Spec
 imports Base Main
 begin
 
-chapter {* Specifications *}
+chapter \<open>Specifications\<close>
 
-text {*
+text \<open>
   The Isabelle/Isar theory format integrates specifications and
   proofs, supporting interactive development with unlimited undo
   operation.  There is an integrated document preparation system (see
@@ -19,12 +19,12 @@ text {*
   qed}).  Some theory specification mechanisms also require a proof,
   such as @{command typedef} in HOL, which demands non-emptiness of
   the representing sets.
-*}
+\<close>
 
 
-section {* Defining theories \label{sec:begin-thy} *}
+section \<open>Defining theories \label{sec:begin-thy}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "theory"} & : & @{text "toplevel \<rightarrow> theory"} \\
     @{command_def (global) "end"} & : & @{text "theory \<rightarrow> toplevel"} \\
@@ -95,12 +95,12 @@ text {*
   "end"}, according to the usual rules for nested blocks.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Local theory targets \label{sec:target} *}
+section \<open>Local theory targets \label{sec:target}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "context"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def (local) "end"} & : & @{text "local_theory \<rightarrow> theory"} \\
@@ -182,12 +182,12 @@ text {*
   \medskip The Isabelle/HOL library contains numerous applications of
   locales and classes, e.g.\ see @{file "~~/src/HOL/Algebra"}.  An
   example for an unnamed auxiliary contexts is given in @{file
-  "~~/src/HOL/Isar_Examples/Group_Context.thy"}.  *}
+  "~~/src/HOL/Isar_Examples/Group_Context.thy"}.\<close>
 
 
-section {* Bundled declarations \label{sec:bundle} *}
+section \<open>Bundled declarations \label{sec:bundle}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "bundle"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "print_bundles"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
@@ -249,7 +249,7 @@ text {*
   \end{description}
 
   Here is an artificial example of bundling various configuration
-  options: *}
+  options:\<close>
 
 bundle trace = [[simp_trace, linarith_trace, metis_trace, smt_trace]]
 
@@ -257,9 +257,9 @@ lemma "x = x"
   including trace by metis
 
 
-section {* Term definitions \label{sec:term-definitions} *}
+section \<open>Term definitions \label{sec:term-definitions}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "definition"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{attribute_def "defn"} & : & @{text attribute} \\
@@ -324,12 +324,12 @@ text {*
   of the current context.
   
   \end{description}
-*}
+\<close>
 
 
-section {* Axiomatizations \label{sec:axiomatizations} *}
+section \<open>Axiomatizations \label{sec:axiomatizations}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "axiomatization"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
@@ -366,12 +366,12 @@ text {*
   logic and its libraries.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Generic declarations *}
+section \<open>Generic declarations\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "syntax_declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -417,12 +417,12 @@ text {*
   of applying attributes as included in the theorem specification.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Locales \label{sec:locale} *}
+section \<open>Locales \label{sec:locale}\<close>
 
-text {*
+text \<open>
   A locale is a functor that maps parameters (including implicit type
   parameters) and a specification to a list of declarations.  The
   syntax of locales is modeled after the Isar proof context commands
@@ -443,12 +443,12 @@ text {*
   redundant if it is subsumed by an instance encountered earlier.  A
   more detailed description of this process is available elsewhere
   @{cite Ballarin2014}.
-*}
+\<close>
 
 
-subsection {* Locale expressions \label{sec:locale-expr} *}
+subsection \<open>Locale expressions \label{sec:locale-expr}\<close>
 
-text {*
+text \<open>
   A \emph{locale expression} denotes a context composed of instances
   of existing locales.  The context consists of the declaration
   elements from the locale instances.  Redundant locale instances are
@@ -489,12 +489,12 @@ text {*
   the default is ``mandatory'', for @{command "locale"} and @{command
   "sublocale"} the default is ``optional''.  Qualifiers play no role
   in determining whether one locale instance subsumes another.
-*}
+\<close>
 
 
-subsection {* Locale declarations *}
+subsection \<open>Locale declarations\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "locale"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "print_locale"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -631,12 +631,12 @@ text {*
   by the current context are discharged automatically.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Locale interpretation *}
+subsection \<open>Locale interpretation\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "interpretation"} & : & @{text "theory | local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "interpret"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
@@ -793,12 +793,12 @@ text {*
     first.  The locale package does not attempt to remove subsumed
     interpretations.
   \end{warn}
-*}
+\<close>
 
 
-section {* Classes \label{sec:class} *}
+section \<open>Classes \label{sec:class}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "class"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "instantiation"} & : & @{text "theory \<rightarrow> local_theory"} \\
@@ -909,12 +909,12 @@ text {*
   single ``@{command ".."}'' proof step.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* The class target *}
+subsection \<open>The class target\<close>
 
-text {*
+text \<open>
   %FIXME check
 
   A named context may refer to a locale (cf.\ \secref{sec:target}).
@@ -936,12 +936,12 @@ text {*
   needed.
   
   \end{itemize}
-*}
+\<close>
 
 
-subsection {* Co-regularity of type classes and arities *}
+subsection \<open>Co-regularity of type classes and arities\<close>
 
-text {* The class relation together with the collection of
+text \<open>The class relation together with the collection of
   type-constructor arities must obey the principle of
   \emph{co-regularity} as defined below.
 
@@ -973,12 +973,12 @@ text {* The class relation together with the collection of
   \medskip Co-regularity is a very fundamental property of the
   order-sorted algebra of types.  For example, it entails principle
   types and most general unifiers, e.g.\ see @{cite "nipkow-prehofer"}.
-*}
+\<close>
 
 
-section {* Unrestricted overloading *}
+section \<open>Unrestricted overloading\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "overloading"} & : & @{text "theory \<rightarrow> local_theory"} \\
   \end{matharray}
@@ -1020,12 +1020,12 @@ text {*
   malformed theory specifications!
 
   \end{description}
-*}
+\<close>
 
 
-section {* Incorporating ML code \label{sec:ML} *}
+section \<open>Incorporating ML code \label{sec:ML}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "SML_file"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "ML_file"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -1108,23 +1108,23 @@ text {*
   other serves as parameter.  Here are examples for these two cases:
 
   \end{description}
-*}
+\<close>
 
-  attribute_setup my_rule = {*
+  attribute_setup my_rule = \<open>
     Attrib.thms >> (fn ths =>
       Thm.rule_attribute
         (fn context: Context.generic => fn th: thm =>
           let val th' = th OF ths
-          in th' end)) *}
+          in th' end))\<close>
 
-  attribute_setup my_declaration = {*
+  attribute_setup my_declaration = \<open>
     Attrib.thms >> (fn ths =>
       Thm.declaration_attribute
         (fn th: thm => fn context: Context.generic =>
           let val context' = context
-          in context' end)) *}
+          in context' end))\<close>
 
-text {*
+text \<open>
   \begin{description}
 
   \item @{attribute ML_print_depth} controls the printing depth of the ML
@@ -1149,14 +1149,14 @@ text {*
   happens.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Primitive specification elements *}
+section \<open>Primitive specification elements\<close>
 
-subsection {* Sorts *}
+subsection \<open>Sorts\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "default_sort"} & : & @{text "local_theory \<rightarrow> local_theory"}
   \end{matharray}
@@ -1181,12 +1181,12 @@ text {*
   are joined.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Types \label{sec:types-pure} *}
+subsection \<open>Types \label{sec:types-pure}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "type_synonym"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "typedecl"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -1224,12 +1224,12 @@ text {*
   (\secref{sec:hol-typedef}), or any other extension that people might have
   introduced elsewhere.
   \end{warn}
-*}
+\<close>
 
 
-subsection {* Constants and definitions \label{sec:consts} *}
+subsection \<open>Constants and definitions \label{sec:consts}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "consts"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "defs"} & : & @{text "theory \<rightarrow> theory"} \\
@@ -1301,12 +1301,12 @@ text {*
   special type than that of the corresponding constant declaration.
   
   \end{description}
-*}
+\<close>
 
 
-section {* Naming existing theorems \label{sec:theorems} *}
+section \<open>Naming existing theorems \label{sec:theorems}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "lemmas"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -1340,12 +1340,12 @@ text {*
   canonical declaration order of the text structure.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Oracles *}
+section \<open>Oracles\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcll}
     @{command_def "oracle"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
@@ -1383,12 +1383,12 @@ text {*
   See @{file "~~/src/HOL/ex/Iff_Oracle.thy"} for a worked example of
   defining a new primitive rule as oracle, and turning it into a proof
   method.
-*}
+\<close>
 
 
-section {* Name spaces *}
+section \<open>Name spaces\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "hide_class"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "hide_type"} & : & @{text "theory \<rightarrow> theory"} \\
@@ -1423,6 +1423,6 @@ text {*
   constants, and facts, respectively.
   
   \end{description}
-*}
+\<close>
 
 end

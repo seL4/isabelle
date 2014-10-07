@@ -2,9 +2,9 @@ theory Proof
 imports Base Main
 begin
 
-chapter {* Proofs \label{ch:proofs} *}
+chapter \<open>Proofs \label{ch:proofs}\<close>
 
-text {*
+text \<open>
   Proof commands perform transitions of Isar/VM machine
   configurations, which are block-structured, consisting of a stack of
   nodes with three main components: logical proof context, current
@@ -41,14 +41,14 @@ text {*
   language emerging that way from the different types of proof
   commands.  The main ideas of the overall Isar framework are
   explained in \chref{ch:isar-framework}.
-*}
+\<close>
 
 
-section {* Proof structure *}
+section \<open>Proof structure\<close>
 
-subsection {* Formal notepad *}
+subsection \<open>Formal notepad\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "notepad"} & : & @{text "local_theory \<rightarrow> proof(state)"} \\
   \end{matharray}
@@ -69,12 +69,12 @@ text {*
   @{command "oops"}.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Blocks *}
+subsection \<open>Blocks\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "next"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
     @{command_def "{"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
@@ -111,12 +111,12 @@ text {*
   the result exported at @{command "show"} time.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Omitting proofs *}
+subsection \<open>Omitting proofs\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "oops"} & : & @{text "proof \<rightarrow> local_theory | theory"} \\
   \end{matharray}
@@ -138,14 +138,14 @@ text {*
   logically sound manner.  Note that the Isabelle {\LaTeX} macros can
   be easily adapted to print something like ``@{text "\<dots>"}'' instead of
   the keyword ``@{command "oops"}''.
-*}
+\<close>
 
 
-section {* Statements *}
+section \<open>Statements\<close>
 
-subsection {* Context elements \label{sec:proof-context} *}
+subsection \<open>Context elements \label{sec:proof-context}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "fix"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
     @{command_def "assume"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
@@ -225,12 +225,12 @@ text {*
   The special name @{fact_ref prems} refers to all assumptions of the
   current context as a list of theorems.  This feature should be used
   with great care!  It is better avoided in final proof texts.
-*}
+\<close>
 
 
-subsection {* Term abbreviations \label{sec:term-abbrev} *}
+subsection \<open>Term abbreviations \label{sec:term-abbrev}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "let"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
     @{keyword_def "is"} & : & syntax \\
@@ -292,12 +292,12 @@ text {*
   @{text t} is bound to the special text variable ``@{variable "\<dots>"}''
   (three dots).  The canonical application of this convenience are
   calculational proofs (see \secref{sec:calculation}).
-*}
+\<close>
 
 
-subsection {* Facts and forward chaining \label{sec:proof-facts} *}
+subsection \<open>Facts and forward chaining \label{sec:proof-facts}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "note"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
     @{command_def "then"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
@@ -377,12 +377,12 @@ text {*
   insert any given facts before their usual operation.  Depending on
   the kind of procedure involved, the order of facts is less
   significant here.
-*}
+\<close>
 
 
-subsection {* Goals \label{sec:goals} *}
+subsection \<open>Goals \label{sec:goals}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "lemma"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "theorem"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
@@ -524,14 +524,14 @@ text {*
   introductions, (2) in the resulting rule they become annotations for
   symbolic case splits, e.g.\ for the @{method_ref cases} method
   (\secref{sec:cases-induct}).
-*}
+\<close>
 
 
-section {* Refinement steps *}
+section \<open>Refinement steps\<close>
 
-subsection {* Proof method expressions \label{sec:proof-meth} *}
+subsection \<open>Proof method expressions \label{sec:proof-meth}\<close>
 
-text {* Proof methods are either basic ones, or expressions composed
+text \<open>Proof methods are either basic ones, or expressions composed
   of methods via ``@{verbatim ","}'' (sequential composition),
   ``@{verbatim "|"}'' (alternative choices), ``@{verbatim "?"}''
   (try), ``@{verbatim "+"}'' (repeat at least once), ``@{verbatim
@@ -568,12 +568,12 @@ text {* Proof methods are either basic ones, or expressions composed
     @{syntax_def goal_spec}:
       '[' (@{syntax nat} '-' @{syntax nat} | @{syntax nat} '-' | @{syntax nat} | '!' ) ']'
   \<close>}
-*}
+\<close>
 
 
-subsection {* Initial and terminal proof steps \label{sec:proof-steps} *}
+subsection \<open>Initial and terminal proof steps \label{sec:proof-steps}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "proof"} & : & @{text "proof(prove) \<rightarrow> proof(state)"} \\
     @{command_def "qed"} & : & @{text "proof(state) \<rightarrow> proof(state) | local_theory | theory"} \\
@@ -679,12 +679,12 @@ text {*
   experimentation and top-down proof development.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Fundamental methods and attributes \label{sec:pure-meth-att} *}
+subsection \<open>Fundamental methods and attributes \label{sec:pure-meth-att}\<close>
 
-text {*
+text \<open>
   The following proof methods and attributes refer to basic logical
   operations of Isar.  Further methods and attributes are provided by
   several generic and object-logic specific tools and packages (see
@@ -831,12 +831,12 @@ text {*
   be specified as for @{attribute "of"} above.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Emulating tactic scripts \label{sec:tactic-commands} *}
+subsection \<open>Emulating tactic scripts \label{sec:tactic-commands}\<close>
 
-text {*
+text \<open>
   The Isar provides separate commands to accommodate tactic-style
   proof scripts within the same system.  While being outside the
   orthodox Isar proof language, these might come in handy for
@@ -908,12 +908,12 @@ text {*
   such as @{command "apply"}.  A few additional emulations of actual
   tactics are provided as well; these would be never used in actual
   structured proofs, of course.
-*}
+\<close>
 
 
-subsection {* Defining proof methods *}
+subsection \<open>Defining proof methods\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "method_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
@@ -938,26 +938,26 @@ text {*
   Here are some example method definitions:
 
   \end{description}
-*}
+\<close>
 
-  method_setup my_method1 = {*
+  method_setup my_method1 = \<open>
     Scan.succeed (K (SIMPLE_METHOD' (fn i: int => no_tac)))
-  *}  "my first method (without any arguments)"
+\<close>  "my first method (without any arguments)"
 
-  method_setup my_method2 = {*
+  method_setup my_method2 = \<open>
     Scan.succeed (fn ctxt: Proof.context =>
       SIMPLE_METHOD' (fn i: int => no_tac))
-  *}  "my second method (with context)"
+\<close>  "my second method (with context)"
 
-  method_setup my_method3 = {*
+  method_setup my_method3 = \<open>
     Attrib.thms >> (fn thms: thm list => fn ctxt: Proof.context =>
       SIMPLE_METHOD' (fn i: int => no_tac))
-  *}  "my third method (with theorem arguments and context)"
+\<close>  "my third method (with theorem arguments and context)"
 
 
-section {* Generalized elimination \label{sec:obtain} *}
+section \<open>Generalized elimination \label{sec:obtain}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "obtain"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "guess"}@{text "\<^sup>*"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
@@ -1032,12 +1032,12 @@ text {*
   It is important to note that the facts introduced by @{command
   "obtain"} and @{command "guess"} may not be polymorphic: any
   type-variables occurring here are fixed in the present context!
-*}
+\<close>
 
 
-section {* Calculational reasoning \label{sec:calculation} *}
+section \<open>Calculational reasoning \label{sec:calculation}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "also"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
     @{command_def "finally"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
@@ -1143,14 +1143,14 @@ text {*
   "y = x"}~@{command ".."}''.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Proof by cases and induction \label{sec:cases-induct} *}
+section \<open>Proof by cases and induction \label{sec:cases-induct}\<close>
 
-subsection {* Rule contexts *}
+subsection \<open>Rule contexts\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "case"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
     @{command_def "print_cases"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -1281,12 +1281,12 @@ text {*
   @{attribute coinduct} declarations.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Proof methods *}
+subsection \<open>Proof methods\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def cases} & : & @{text method} \\
     @{method_def induct} & : & @{text method} \\
@@ -1497,12 +1497,12 @@ text {*
   remaining facts are inserted into the goal verbatim before the
   actual @{text cases}, @{text induct}, or @{text coinduct} rule is
   applied.
-*}
+\<close>
 
 
-subsection {* Declaring rules *}
+subsection \<open>Declaring rules\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def "print_induct_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def cases} & : & @{text attribute} \\
@@ -1547,6 +1547,6 @@ text {*
   consumes}~@{text 1} for ``predicate'' / ``set'' rules.
 
   \end{description}
-*}
+\<close>
 
 end

@@ -2,19 +2,19 @@ theory Scala
 imports Base
 begin
 
-chapter {* Isabelle/Scala development tools *}
+chapter \<open>Isabelle/Scala development tools\<close>
 
-text {* Isabelle/ML and Isabelle/Scala are the two main language
+text \<open>Isabelle/ML and Isabelle/Scala are the two main language
 environments for Isabelle tool implementations.  There are some basic
 command-line tools to work with the underlying Java Virtual Machine,
 the Scala toplevel and compiler.  Note that Isabelle/jEdit
 @{cite "isabelle-jedit"} provides a Scala Console for interactive
-experimentation within the running application. *}
+experimentation within the running application.\<close>
 
 
-section {* Java Runtime Environment within Isabelle \label{sec:tool-java} *}
+section \<open>Java Runtime Environment within Isabelle \label{sec:tool-java}\<close>
 
-text {* The @{tool_def java} tool is a direct wrapper for the Java
+text \<open>The @{tool_def java} tool is a direct wrapper for the Java
   Runtime Environment, within the regular Isabelle settings
   environment (\secref{sec:settings}).  The command line arguments are
   that of the underlying Java version.  It is run in @{verbatim
@@ -33,12 +33,12 @@ text {* The @{tool_def java} tool is a direct wrapper for the Java
 \begin{alltt}
   isabelle java isabelle.GUI_Setup
 \end{alltt}
-*}
+\<close>
 
 
-section {* Scala toplevel \label{sec:tool-scala} *}
+section \<open>Scala toplevel \label{sec:tool-scala}\<close>
 
-text {* The @{tool_def scala} tool is a direct wrapper for the Scala
+text \<open>The @{tool_def scala} tool is a direct wrapper for the Scala
   toplevel; see also @{tool java} above.  The command line arguments
   are that of the underlying Scala version.
 
@@ -50,12 +50,12 @@ text {* The @{tool_def scala} tool is a direct wrapper for the Scala
   scala> options.bool("browser_info")
   scala> options.string("document")
 \end{alltt}
-*}
+\<close>
 
 
-section {* Scala compiler \label{sec:tool-scalac} *}
+section \<open>Scala compiler \label{sec:tool-scalac}\<close>
 
-text {* The @{tool_def scalac} tool is a direct wrapper for the Scala
+text \<open>The @{tool_def scalac} tool is a direct wrapper for the Scala
   compiler; see also @{tool scala} above.  The command line arguments
   are that of the underlying Scala version.
 
@@ -68,12 +68,12 @@ text {* The @{tool_def scalac} tool is a direct wrapper for the Scala
 
   Note that jEdit @{cite "isabelle-jedit"} has its own mechanisms for
   adding plugin components, which needs special attention since
-  it overrides the standard Java class loader.  *}
+  it overrides the standard Java class loader.\<close>
 
 
-section {* Scala script wrapper *}
+section \<open>Scala script wrapper\<close>
 
-text {* The executable @{executable
+text \<open>The executable @{executable
   "$ISABELLE_HOME/bin/isabelle_scala_script"} allows to run
   Isabelle/Scala source files stand-alone programs, by using a
   suitable ``hash-bang'' line and executable file permissions.
@@ -92,6 +92,6 @@ Console.println("document = " + options.string("document"))
 
   Alternatively the full @{file
   "$ISABELLE_HOME/bin/isabelle_scala_script"} may be specified in
-  expanded form.  *}
+  expanded form.\<close>
 
 end

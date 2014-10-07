@@ -4,9 +4,9 @@ theory "ML"
 imports Base
 begin
 
-chapter {* Isabelle/ML *}
+chapter \<open>Isabelle/ML\<close>
 
-text {* Isabelle/ML is best understood as a certain culture based on
+text \<open>Isabelle/ML is best understood as a certain culture based on
   Standard ML.  Thus it is not a new programming language, but a
   certain way to use SML at an advanced level within the Isabelle
   environment.  This covers a variety of aspects that are geared
@@ -27,12 +27,12 @@ text {* Isabelle/ML is best understood as a certain culture based on
   @{url "http://isabelle.in.tum.de/repos/isabelle"} for the full
   Mercurial history.  There are symbolic tags to refer to official
   Isabelle releases, as opposed to arbitrary \emph{tip} versions that
-  merely reflect snapshots that are never really up-to-date.}  *}
+  merely reflect snapshots that are never really up-to-date.}\<close>
 
 
-section {* Style and orthography *}
+section \<open>Style and orthography\<close>
 
-text {* The sources of Isabelle/Isar are optimized for
+text \<open>The sources of Isabelle/Isar are optimized for
   \emph{readability} and \emph{maintainability}.  The main purpose is
   to tell an informed reader what is really going on and how things
   really work.  This is a non-trivial aim, but it is supported by a
@@ -57,12 +57,12 @@ text {* The sources of Isabelle/Isar are optimized for
   sources: it helps to read quickly over the text and see through the
   main points, without getting distracted by accidental presentation
   of free-style code.
-*}
+\<close>
 
 
-subsection {* Header and sectioning *}
+subsection \<open>Header and sectioning\<close>
 
-text {* Isabelle source files have a certain standardized header
+text \<open>Isabelle source files have a certain standardized header
   format (with precise spacing) that follows ancient traditions
   reaching back to the earliest versions of the system by Larry
   Paulson.  See @{file "~~/src/Pure/thm.ML"}, for example.
@@ -98,12 +98,12 @@ text {* Isabelle source files have a certain standardized header
   \medskip The precise wording of the prose text given in these
   headings is chosen carefully to introduce the main theme of the
   subsequent formal ML text.
-*}
+\<close>
 
 
-subsection {* Naming conventions *}
+subsection \<open>Naming conventions\<close>
 
-text {* Since ML is the primary medium to express the meaning of the
+text \<open>Since ML is the primary medium to express the meaning of the
   source text, naming of ML entities requires special care.
 
   \paragraph{Notation.}  A name consists of 1--3 \emph{words} (rarely
@@ -282,12 +282,12 @@ text {* Since ML is the primary medium to express the meaning of the
   certificate.
 
   \end{itemize}
-*}
+\<close>
 
 
-subsection {* General source layout *}
+subsection \<open>General source layout\<close>
 
-text {*
+text \<open>
   The general Isabelle/ML source layout imitates regular type-setting
   conventions, augmented by the requirements for deeply nested expressions
   that are commonplace in functional programming.
@@ -519,12 +519,12 @@ text {*
   \medskip In general the source layout is meant to emphasize the
   structure of complex language expressions, not to pretend that SML
   had a completely different syntax (say that of Haskell, Scala, Java).
-*}
+\<close>
 
 
-section {* ML embedded into Isabelle/Isar *}
+section \<open>ML embedded into Isabelle/Isar\<close>
 
-text {* ML and Isar are intertwined via an open-ended bootstrap
+text \<open>ML and Isar are intertwined via an open-ended bootstrap
   process that provides more and more programming facilities and
   logical content in an alternating manner.  Bootstrapping starts from
   the raw environment of existing implementations of Standard ML
@@ -544,12 +544,12 @@ text {* ML and Isar are intertwined via an open-ended bootstrap
   add-on tools can be implemented in ML within the Isar context in the same
   manner: ML is part of the standard repertoire of Isabelle, and there is no
   distinction between ``users'' and ``developers'' in this respect.
-*}
+\<close>
 
 
-subsection {* Isar ML commands *}
+subsection \<open>Isar ML commands\<close>
 
-text {*
+text \<open>
   The primary Isar source language provides facilities to ``open a window'' to
   the underlying ML compiler. Especially see the Isar commands @{command_ref
   "ML_file"} and @{command_ref "ML"}: both work the same way, but the source
@@ -559,20 +559,20 @@ text {*
   @{command_ref declaration}. Even more fine-grained embedding of ML into Isar
   is encountered in the proof method @{method_ref tactic}, which refines the
   pending goal state via a given expression of type @{ML_type tactic}.
-*}
+\<close>
 
-text %mlex {* The following artificial example demonstrates some ML
+text %mlex \<open>The following artificial example demonstrates some ML
   toplevel declarations within the implicit Isar theory context.  This
   is regular functional programming without referring to logical
   entities yet.
-*}
+\<close>
 
-ML {*
+ML \<open>
   fun factorial 0 = 1
     | factorial n = n * factorial (n - 1)
-*}
+\<close>
 
-text {* Here the ML environment is already managed by Isabelle, i.e.\
+text \<open>Here the ML environment is already managed by Isabelle, i.e.\
   the @{ML factorial} function is not yet accessible in the preceding
   paragraph, nor in a different theory that is independent from the
   current one in the import hierarchy.
@@ -589,18 +589,18 @@ text {* Here the ML environment is already managed by Isabelle, i.e.\
   @{command_ref "ML_prf"} instead of Instead of @{command_ref "ML"}.
   As illustrated below, the effect on the ML environment is local to
   the whole proof body, but ignoring the block structure.
-*}
+\<close>
 
 notepad
 begin
-  ML_prf %"ML" {* val a = 1 *}
+  ML_prf %"ML" \<open>val a = 1\<close>
   {
-    ML_prf %"ML" {* val b = a + 1 *}
-  } -- {* Isar block structure ignored by ML environment *}
-  ML_prf %"ML" {* val c = b + 1 *}
+    ML_prf %"ML" \<open>val b = a + 1\<close>
+  } -- \<open>Isar block structure ignored by ML environment\<close>
+  ML_prf %"ML" \<open>val c = b + 1\<close>
 end
 
-text {* By side-stepping the normal scoping rules for Isar proof
+text \<open>By side-stepping the normal scoping rules for Isar proof
   blocks, embedded ML code can refer to the different contexts and
   manipulate corresponding entities, e.g.\ export a fact from a block
   context.
@@ -612,29 +612,29 @@ text {* By side-stepping the normal scoping rules for Isar proof
   invoking @{ML factorial}: @{command ML_val} takes care of printing the ML
   toplevel result, but @{command ML_command} is silent so we produce an
   explicit output message.
-*}
+\<close>
 
-ML_val {* factorial 100 *}
-ML_command {* writeln (string_of_int (factorial 100)) *}
+ML_val \<open>factorial 100\<close>
+ML_command \<open>writeln (string_of_int (factorial 100))\<close>
 
 notepad
 begin
-  ML_val {* factorial 100 *}
-  ML_command {* writeln (string_of_int (factorial 100)) *}
+  ML_val \<open>factorial 100\<close>
+  ML_command \<open>writeln (string_of_int (factorial 100))\<close>
 end
 
 
-subsection {* Compile-time context *}
+subsection \<open>Compile-time context\<close>
 
-text {* Whenever the ML compiler is invoked within Isabelle/Isar, the
+text \<open>Whenever the ML compiler is invoked within Isabelle/Isar, the
   formal context is passed as a thread-local reference variable.  Thus
   ML code may access the theory context during compilation, by reading
   or writing the (local) theory under construction.  Note that such
   direct access to the compile-time context is rare.  In practice it
   is typically done via some derived ML functions instead.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML ML_Context.the_generic_context: "unit -> Context.generic"} \\
   @{index_ML "Context.>>": "(Context.generic -> Context.generic) -> unit"} \\
@@ -667,12 +667,12 @@ text %mlref {*
   invoked at run-time.  The majority of ML code either uses static
   antiquotations (\secref{sec:ML-antiq}) or refers to the theory or
   proof context at run-time, by explicit functional abstraction.
-*}
+\<close>
 
 
-subsection {* Antiquotations \label{sec:ML-antiq} *}
+subsection \<open>Antiquotations \label{sec:ML-antiq}\<close>
 
-text {* A very important consequence of embedding ML into Isar is the
+text \<open>A very important consequence of embedding ML into Isar is the
   concept of \emph{ML antiquotation}.  The standard token language of
   ML is augmented by special syntactic entities of the following form:
 
@@ -691,12 +691,12 @@ text {* A very important consequence of embedding ML into Isar is the
   scheme allows to refer to formal entities in a robust manner, with
   proper static scoping and with some degree of logical checking of
   small portions of the code.
-*}
+\<close>
 
 
-subsection {* Printing ML values *}
+subsection \<open>Printing ML values\<close>
 
-text {* The ML compiler knows about the structure of values according
+text \<open>The ML compiler knows about the structure of values according
   to their static type, and can print them in the manner of its
   toplevel, although the details are non-portable.  The
   antiquotations @{ML_antiquotation_def "make_string"} and
@@ -706,9 +706,9 @@ text {* The ML compiler knows about the structure of values according
 
   This is occasionally useful for diagnostic or demonstration
   purposes.  Note that production-quality tools require proper
-  user-level error messages, avoiding raw ML values in the output. *}
+  user-level error messages, avoiding raw ML values in the output.\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "make_string"} & : & @{text ML_antiquotation} \\
   @{ML_antiquotation_def "print"} & : & @{text ML_antiquotation} \\
@@ -733,12 +733,12 @@ text %mlantiq {*
   output function is @{ML writeln}.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following artificial examples show how to produce
-  adhoc output of ML values for debugging purposes. *}
+text %mlex \<open>The following artificial examples show how to produce
+  adhoc output of ML values for debugging purposes.\<close>
 
-ML {*
+ML \<open>
   val x = 42;
   val y = true;
 
@@ -746,12 +746,12 @@ ML {*
 
   @{print} {x = x, y = y};
   @{print tracing} {x = x, y = y};
-*}
+\<close>
 
 
-section {* Canonical argument order \label{sec:canonical-argument-order} *}
+section \<open>Canonical argument order \label{sec:canonical-argument-order}\<close>
 
-text {* Standard ML is a language in the tradition of @{text
+text \<open>Standard ML is a language in the tradition of @{text
   "\<lambda>"}-calculus and \emph{higher-order functional programming},
   similar to OCaml, Haskell, or Isabelle/Pure and HOL as logical
   languages.  Getting acquainted with the native style of representing
@@ -818,12 +818,12 @@ text {* Standard ML is a language in the tradition of @{text
   inversion of the composition order is due to conventional
   mathematical notation, which can be easily amended as explained
   below.
-*}
+\<close>
 
 
-subsection {* Forward application and composition *}
+subsection \<open>Forward application and composition\<close>
 
-text {* Regular function application and infix notation works best for
+text \<open>Regular function application and infix notation works best for
   relatively deeply structured expressions, e.g.\ @{text "h (f x y + g
   z)"}.  The important special case of \emph{linear transformation}
   applies a cascade of functions @{text "f\<^sub>n (\<dots> (f\<^sub>1 x))"}.  This
@@ -853,21 +853,21 @@ text {* Regular function application and infix notation works best for
   @{text "(f #-> g) x"} & @{text "\<equiv>"} & @{text "x |> f |-> g"} \\
   \end{tabular}
   \medskip
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_op "|> ": "'a * ('a -> 'b) -> 'b"} \\
   @{index_ML_op "|-> ": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
   @{index_ML_op "#> ": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
   @{index_ML_op "#-> ": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
   \end{mldecls}
-*}
+\<close>
 
 
-subsection {* Canonical iteration *}
+subsection \<open>Canonical iteration\<close>
 
-text {* As explained above, a function @{text "f: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} can be
+text \<open>As explained above, a function @{text "f: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} can be
   understood as update on a configuration of type @{text "\<beta>"},
   parameterized by an argument of type @{text "\<alpha>"}.  Given @{text "a: \<alpha>"}
   the partial application @{text "(f a): \<beta> \<rightarrow> \<beta>"} operates
@@ -891,9 +891,9 @@ text {* As explained above, a function @{text "f: \<alpha> \<rightarrow> \<beta>
   "fold"} and @{text "map"} simultaneously: each application of @{text
   "f"} produces an updated configuration together with a side-result;
   the iteration collects all such side-results as a separate list.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
   @{index_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
@@ -923,14 +923,14 @@ text %mlref {*
   versions should be ignored, and the canonical @{ML fold} (or @{ML fold_rev})
   used exclusively.
   \end{warn}
-*}
+\<close>
 
-text %mlex {* The following example shows how to fill a text buffer
+text %mlex \<open>The following example shows how to fill a text buffer
   incrementally by adding strings, either individually or from a given
   list.
-*}
+\<close>
 
-ML {*
+ML \<open>
   val s =
     Buffer.empty
     |> Buffer.add "digits: "
@@ -938,9 +938,9 @@ ML {*
     |> Buffer.content;
 
   @{assert} (s = "digits: 0123456789");
-*}
+\<close>
 
-text {* Note how @{ML "fold (Buffer.add o string_of_int)"} above saves
+text \<open>Note how @{ML "fold (Buffer.add o string_of_int)"} above saves
   an extra @{ML "map"} over the given list.  This kind of peephole
   optimization reduces both the code size and the tree structures in
   memory (``deforestation''), but it requires some practice to read
@@ -949,9 +949,9 @@ text {* Note how @{ML "fold (Buffer.add o string_of_int)"} above saves
   \medskip The next example elaborates the idea of canonical
   iteration, demonstrating fast accumulation of tree content using a
   text buffer.
-*}
+\<close>
 
-ML {*
+ML \<open>
   datatype tree = Text of string | Elem of string * tree list;
 
   fun slow_content (Text txt) = txt
@@ -968,9 +968,9 @@ ML {*
 
   fun fast_content tree =
     Buffer.empty |> add_content tree |> Buffer.content;
-*}
+\<close>
 
-text {* The slowness of @{ML slow_content} is due to the @{ML implode} of
+text \<open>The slowness of @{ML slow_content} is due to the @{ML implode} of
   the recursive results, because it copies previously produced strings
   again and again.
 
@@ -994,12 +994,12 @@ text {* The slowness of @{ML slow_content} is due to the @{ML implode} of
   many practical situations, it is customary to provide the
   incremental @{ML add_content} only and leave the initialization and
   termination to the concrete application to the user.
-*}
+\<close>
 
 
-section {* Message output channels \label{sec:message-channels} *}
+section \<open>Message output channels \label{sec:message-channels}\<close>
 
-text {* Isabelle provides output channels for different kinds of
+text \<open>Isabelle provides output channels for different kinds of
   messages: regular output, high-volume tracing information, warnings,
   and errors.
 
@@ -1015,9 +1015,9 @@ text {* Isabelle provides output channels for different kinds of
   resulting messages together.  For example, after deleting a command
   from a given theory document version, the corresponding message
   output can be retracted from the display.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML writeln: "string -> unit"} \\
   @{index_ML tracing: "string -> unit"} \\
@@ -1082,25 +1082,25 @@ text %mlref {*
   issued by a single invocation of @{ML writeln} etc.\ with the
   functional concatenation of all message constituents.
   \end{warn}
-*}
+\<close>
 
-text %mlex {* The following example demonstrates a multi-line
+text %mlex \<open>The following example demonstrates a multi-line
   warning.  Note that in some situations the user sees only the first
   line, so the most important point should be made first.
-*}
+\<close>
 
-ML_command {*
+ML_command \<open>
   warning (cat_lines
    ["Beware the Jabberwock, my son!",
     "The jaws that bite, the claws that catch!",
     "Beware the Jubjub Bird, and shun",
     "The frumious Bandersnatch!"]);
-*}
+\<close>
 
 
-section {* Exceptions \label{sec:exceptions} *}
+section \<open>Exceptions \label{sec:exceptions}\<close>
 
-text {* The Standard ML semantics of strict functional evaluation
+text \<open>The Standard ML semantics of strict functional evaluation
   together with exceptions is rather well defined, but some delicate
   points need to be observed to avoid that ML programs go wrong
   despite static type-checking.  Exceptions in Isabelle/ML are
@@ -1175,9 +1175,9 @@ text {* The Standard ML semantics of strict functional evaluation
   etc.\ needs to be followed immediately by re-raising of the original
   exception.
   \end{warn}
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
   @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
@@ -1222,9 +1222,9 @@ text %mlref {*
   useful for debugging, but not suitable for production code.
 
   \end{description}
-*}
+\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "assert"} & : & @{text ML_antiquotation} \\
   \end{matharray}
@@ -1237,12 +1237,12 @@ text %mlantiq {*
   assertions is included in the error output.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Strings of symbols \label{sec:symbols} *}
+section \<open>Strings of symbols \label{sec:symbols}\<close>
 
-text {* A \emph{symbol} constitutes the smallest textual unit in
+text \<open>A \emph{symbol} constitutes the smallest textual unit in
   Isabelle/ML --- raw ML characters are normally not encountered at
   all.  Isabelle strings consist of a sequence of symbols, represented
   as a packed string or an exploded list of strings.  Each symbol is
@@ -1294,9 +1294,9 @@ text {* A \emph{symbol} constitutes the smallest textual unit in
   ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as @{text "\<^bold>\<alpha>"}. On-screen
   rendering usually works by mapping a finite subset of Isabelle symbols to
   suitable Unicode characters.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type "Symbol.symbol": string} \\
   @{index_ML Symbol.explode: "string -> Symbol.symbol list"} \\
@@ -1348,12 +1348,12 @@ text %mlref {*
   ``symbols'' as explained above.  Thus Isabelle sources can refer to
   an infinite store of user-defined symbols, without having to worry
   about the multitude of Unicode encodings that have emerged over the
-  years.  *}
+  years.\<close>
 
 
-section {* Basic data types *}
+section \<open>Basic data types\<close>
 
-text {* The basis library proposal of SML97 needs to be treated with
+text \<open>The basis library proposal of SML97 needs to be treated with
   caution.  Many of its operations simply do not fit with important
   Isabelle/ML conventions (like ``canonical argument order'', see
   \secref{sec:canonical-argument-order}), others cause problems with
@@ -1362,12 +1362,12 @@ text {* The basis library proposal of SML97 needs to be treated with
 
   Subsequently we give a brief overview of important operations on
   basic ML data types.
-*}
+\<close>
 
 
-subsection {* Characters *}
+subsection \<open>Characters\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type char} \\
   \end{mldecls}
@@ -1379,12 +1379,12 @@ text %mlref {*
   \secref{sec:symbols}).
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Strings *}
+subsection \<open>Strings\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type string} \\
   \end{mldecls}
@@ -1415,31 +1415,31 @@ text %mlref {*
   source text as strings of symbols, instead of raw characters.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The subsequent example illustrates the difference of
+text %mlex \<open>The subsequent example illustrates the difference of
   physical addressing of bytes versus logical addressing of symbols in
   Isabelle strings.
-*}
+\<close>
 
-ML_val {*
+ML_val \<open>
   val s = "\<A>";
 
   @{assert} (length (Symbol.explode s) = 1);
   @{assert} (size s = 4);
-*}
+\<close>
 
-text {* Note that in Unicode renderings of the symbol @{text "\<A>"},
+text \<open>Note that in Unicode renderings of the symbol @{text "\<A>"},
   variations of encodings like UTF-8 or UTF-16 pose delicate questions
   about the multi-byte representations of its codepoint, which is outside
   of the 16-bit address space of the original Unicode standard from
   the 1990-ies.  In Isabelle/ML it is just ``\verb,\,\verb,<A>,''
-  literally, using plain ASCII characters beyond any doubts. *}
+  literally, using plain ASCII characters beyond any doubts.\<close>
 
 
-subsection {* Integers *}
+subsection \<open>Integers\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type int} \\
   \end{mldecls}
@@ -1461,12 +1461,12 @@ text %mlref {*
   operations.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Time *}
+subsection \<open>Time\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type Time.time} \\
   @{index_ML seconds: "real -> Time.time"} \\
@@ -1485,12 +1485,12 @@ text %mlref {*
   are maintained externally.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Options *}
+subsection \<open>Options\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Option.map: "('a -> 'b) -> 'a option -> 'b option"} \\
   @{index_ML is_some: "'a option -> bool"} \\
@@ -1500,22 +1500,22 @@ text %mlref {*
   @{index_ML the_list: "'a option -> 'a list"} \\
   @{index_ML the_default: "'a -> 'a option -> 'a"} \\
   \end{mldecls}
-*}
+\<close>
 
-text {* Apart from @{ML Option.map} most other operations defined in
+text \<open>Apart from @{ML Option.map} most other operations defined in
   structure @{ML_structure Option} are alien to Isabelle/ML and never
   used.  The operations shown above are defined in @{file
-  "~~/src/Pure/General/basics.ML"}.  *}
+  "~~/src/Pure/General/basics.ML"}.\<close>
 
 
-subsection {* Lists *}
+subsection \<open>Lists\<close>
 
-text {* Lists are ubiquitous in ML as simple and light-weight
+text \<open>Lists are ubiquitous in ML as simple and light-weight
   ``collections'' for many everyday programming tasks.  Isabelle/ML
   provides important additions and improvements over operations that
-  are predefined in the SML97 library. *}
+  are predefined in the SML97 library.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML cons: "'a -> 'a list -> 'a list"} \\
   @{index_ML member: "('b * 'a -> bool) -> 'a list -> 'b -> bool"} \\
@@ -1546,17 +1546,17 @@ text %mlref {*
   source: later declarations take precedence over earlier ones.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* Using canonical @{ML fold} together with @{ML cons} (or
+text %mlex \<open>Using canonical @{ML fold} together with @{ML cons} (or
   similar standard operations) alternates the orientation of data.
   The is quite natural and should not be altered forcible by inserting
   extra applications of @{ML rev}.  The alternative @{ML fold_rev} can
   be used in the few situations, where alternation should be
   prevented.
-*}
+\<close>
 
-ML {*
+ML \<open>
   val items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   val list1 = fold cons items [];
@@ -1564,16 +1564,16 @@ ML {*
 
   val list2 = fold_rev cons items [];
   @{assert} (list2 = items);
-*}
+\<close>
 
-text {* The subsequent example demonstrates how to \emph{merge} two
-  lists in a natural way. *}
+text \<open>The subsequent example demonstrates how to \emph{merge} two
+  lists in a natural way.\<close>
 
-ML {*
+ML \<open>
   fun merge_lists eq (xs, ys) = fold_rev (insert eq) ys xs;
-*}
+\<close>
 
-text {* Here the first list is treated conservatively: only the new
+text \<open>Here the first list is treated conservatively: only the new
   elements from the second list are inserted.  The inside-out order of
   insertion via @{ML fold_rev} attempts to preserve the order of
   elements in the result.
@@ -1581,19 +1581,19 @@ text {* Here the first list is treated conservatively: only the new
   This way of merging lists is typical for context data
   (\secref{sec:context-data}).  See also @{ML merge} as defined in
   @{file "~~/src/Pure/library.ML"}.
-*}
+\<close>
 
 
-subsection {* Association lists *}
+subsection \<open>Association lists\<close>
 
-text {* The operations for association lists interpret a concrete list
+text \<open>The operations for association lists interpret a concrete list
   of pairs as a finite function from keys to values.  Redundant
   representations with multiple occurrences of the same key are
   implicitly normalized: lookup and update only take the first
   occurrence into account.
-*}
+\<close>
 
-text {*
+text \<open>
   \begin{mldecls}
   @{index_ML AList.lookup: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> 'c option"} \\
   @{index_ML AList.defined: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> bool"} \\
@@ -1623,21 +1623,21 @@ text {*
   in many practical situations. A more advanced table structure is defined in
   @{file "~~/src/Pure/General/table.ML"}; that version scales easily to
   thousands or millions of elements.
-*}
+\<close>
 
 
-subsection {* Unsynchronized references *}
+subsection \<open>Unsynchronized references\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type "'a Unsynchronized.ref"} \\
   @{index_ML Unsynchronized.ref: "'a -> 'a Unsynchronized.ref"} \\
   @{index_ML "!": "'a Unsynchronized.ref -> 'a"} \\
   @{index_ML_op ":=": "'a Unsynchronized.ref * 'a -> unit"} \\
   \end{mldecls}
-*}
+\<close>
 
-text {* Due to ubiquitous parallelism in Isabelle/ML (see also
+text \<open>Due to ubiquitous parallelism in Isabelle/ML (see also
   \secref{sec:multi-threading}), the mutable reference cells of
   Standard ML are notorious for causing problems.  In a highly
   parallel system, both correctness \emph{and} performance are easily
@@ -1654,12 +1654,12 @@ text {* Due to ubiquitous parallelism in Isabelle/ML (see also
   Never @{ML_text "open Unsynchronized"}, not even in a local scope!
   Pretending that mutable state is no problem is a very bad idea.
   \end{warn}
-*}
+\<close>
 
 
-section {* Thread-safe programming \label{sec:multi-threading} *}
+section \<open>Thread-safe programming \label{sec:multi-threading}\<close>
 
-text {* Multi-threaded execution has become an everyday reality in
+text \<open>Multi-threaded execution has become an everyday reality in
   Isabelle since Poly/ML 5.2.1 and Isabelle2008.  Isabelle/ML provides
   implicit and explicit parallelism by default, and there is no way
   for user-space tools to ``opt out''.  ML programs that are purely
@@ -1670,12 +1670,12 @@ text {* Multi-threaded execution has become an everyday reality in
 
   More ambitious tools with more fine-grained interaction with the
   environment need to observe the principles explained below.
-*}
+\<close>
 
 
-subsection {* Multi-threading with shared memory *}
+subsection \<open>Multi-threading with shared memory\<close>
 
-text {* Multiple threads help to organize advanced operations of the
+text \<open>Multiple threads help to organize advanced operations of the
   system, such as real-time conditions on command transactions,
   sub-components with explicit communication, general asynchronous
   interaction etc.  Moreover, parallel evaluation is a prerequisite to
@@ -1725,12 +1725,12 @@ text {* Multiple threads help to organize advanced operations of the
   Isabelle/ML infrastructure.  User programs must not fork their own
   ML threads to perform heavy computations.
   \end{warn}
-*}
+\<close>
 
 
-subsection {* Critical shared resources *}
+subsection \<open>Critical shared resources\<close>
 
-text {* Thread-safeness is mainly concerned about concurrent
+text \<open>Thread-safeness is mainly concerned about concurrent
   read/write access to shared resources, which are outside the purely
   functional world of ML.  This covers the following in particular.
 
@@ -1798,9 +1798,9 @@ text {* Thread-safeness is mainly concerned about concurrent
   thread-safe.
 
   \end{itemize}
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML File.tmp_path: "Path.T -> Path.T"} \\
   @{index_ML serial_string: "unit -> string"} \\
@@ -1816,22 +1816,22 @@ text %mlref {*
   that is unique over the runtime of the Isabelle/ML process.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* The following example shows how to create unique
+text %mlex \<open>The following example shows how to create unique
   temporary file names.
-*}
+\<close>
 
-ML {*
+ML \<open>
   val tmp1 = File.tmp_path (Path.basic ("foo" ^ serial_string ()));
   val tmp2 = File.tmp_path (Path.basic ("foo" ^ serial_string ()));
   @{assert} (tmp1 <> tmp2);
-*}
+\<close>
 
 
-subsection {* Explicit synchronization *}
+subsection \<open>Explicit synchronization\<close>
 
-text {* Isabelle/ML also provides some explicit synchronization
+text \<open>Isabelle/ML also provides some explicit synchronization
   mechanisms, for the rare situations where mutable shared resources
   are really required.  These are based on the synchronizations
   primitives of Poly/ML, which have been adapted to the specific
@@ -1856,9 +1856,9 @@ text {* Isabelle/ML also provides some explicit synchronization
   Here the synchronized access to the state variable is \emph{not}
   re-entrant: direct or indirect nesting within the same thread will
   cause a deadlock!
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML NAMED_CRITICAL: "string -> (unit -> 'a) -> 'a"} \\
   @{index_ML CRITICAL: "(unit -> 'a) -> 'a"} \\
@@ -1907,14 +1907,14 @@ text %mlref {*
   There are some further variants of the @{ML
   Synchronized.guarded_access} combinator, see @{file
   "~~/src/Pure/Concurrent/synchronized.ML"} for details.
-*}
+\<close>
 
-text %mlex {* The following example implements a counter that produces
+text %mlex \<open>The following example implements a counter that produces
   positive integers that are unique over the runtime of the Isabelle
   process:
-*}
+\<close>
 
-ML {*
+ML \<open>
   local
     val counter = Synchronized.var "counter" 0;
   in
@@ -1924,22 +1924,22 @@ ML {*
           let val j = i + 1
           in SOME (j, j) end);
   end;
-*}
+\<close>
 
-ML {*
+ML \<open>
   val a = next ();
   val b = next ();
   @{assert} (a <> b);
-*}
+\<close>
 
-text {* \medskip See @{file "~~/src/Pure/Concurrent/mailbox.ML"} how
+text \<open>\medskip See @{file "~~/src/Pure/Concurrent/mailbox.ML"} how
   to implement a mailbox as synchronized variable over a purely
-  functional list. *}
+  functional list.\<close>
 
 
-section {* Managed evaluation *}
+section \<open>Managed evaluation\<close>
 
-text {* Execution of Standard ML follows the model of strict
+text \<open>Execution of Standard ML follows the model of strict
   functional evaluation with optional exceptions.  Evaluation happens
   whenever some function is applied to (sufficiently many)
   arguments. The result is either an explicit value or an implicit
@@ -1983,9 +1983,9 @@ text {* Execution of Standard ML follows the model of strict
   their original occurrence (e.g.\ when printed at the toplevel).
   Interrupt counts as neutral element here: it is treated as minimal
   information about some canceled evaluation process, and is absorbed
-  by the presence of regular program exceptions.  *}
+  by the presence of regular program exceptions.\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type "'a Exn.result"} \\
   @{index_ML Exn.capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
@@ -2029,12 +2029,12 @@ text %mlref {*
   means in ML.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Parallel skeletons \label{sec:parlist} *}
+subsection \<open>Parallel skeletons \label{sec:parlist}\<close>
 
-text {*
+text \<open>
   Algorithmic skeletons are combinators that operate on lists in
   parallel, in the manner of well-known @{text map}, @{text exists},
   @{text forall} etc.  Management of futures (\secref{sec:futures})
@@ -2048,9 +2048,9 @@ text {*
   fine-grained, CPU cycles are wasted due to the overhead of
   organizing parallel processing.  In the worst case, parallel
   performance will be less than the sequential counterpart!
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Par_List.map: "('a -> 'b) -> 'a list -> 'b list"} \\
   @{index_ML Par_List.get_some: "('a -> 'b option) -> 'a list -> 'b option"} \\
@@ -2081,24 +2081,24 @@ text %mlref {*
   Par_List.forall}.
 
   \end{description}
-*}
+\<close>
 
-text %mlex {* Subsequently, the Ackermann function is evaluated in
-  parallel for some ranges of arguments. *}
+text %mlex \<open>Subsequently, the Ackermann function is evaluated in
+  parallel for some ranges of arguments.\<close>
 
-ML_val {*
+ML_val \<open>
   fun ackermann 0 n = n + 1
     | ackermann m 0 = ackermann (m - 1) 1
     | ackermann m n = ackermann (m - 1) (ackermann m (n - 1));
 
   Par_List.map (ackermann 2) (500 upto 1000);
   Par_List.map (ackermann 3) (5 upto 10);
-*}
+\<close>
 
 
-subsection {* Lazy evaluation *}
+subsection \<open>Lazy evaluation\<close>
 
-text {*
+text \<open>
   Classic lazy evaluation works via the @{text lazy}~/ @{text force} pair of
   operations: @{text lazy} to wrap an unevaluated expression, and @{text
   force} to evaluate it once and store its result persistently. Later
@@ -2119,9 +2119,9 @@ text {*
   and multiple receivers of intermediate interrupt events. Interrupts are
   \emph{not} made persistent: later evaluation attempts start again from the
   original expression.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type "'a lazy"} \\
   @{index_ML Lazy.lazy: "(unit -> 'a) -> 'a lazy"} \\
@@ -2148,12 +2148,12 @@ text %mlref {*
   to wait on a pending evaluation attempt by another thread.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Futures \label{sec:futures} *}
+subsection \<open>Futures \label{sec:futures}\<close>
 
-text {*
+text \<open>
   Futures help to organize parallel execution in a value-oriented manner, with
   @{text fork}~/ @{text join} as the main pair of operations, and some further
   variants; see also @{cite "Wenzel:2009" and "Wenzel:2013:ITP"}. Unlike lazy
@@ -2203,9 +2203,9 @@ text {*
   used as minimal elements (or guards) within the future dependency graph:
   when these promises are fulfilled the evaluation of subsequent futures
   starts spontaneously, according to their own inter-dependencies.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type "'a future"} \\
   @{index_ML Future.fork: "(unit -> 'a) -> 'a future"} \\
@@ -2337,7 +2337,7 @@ text %mlref {*
   the attempt to fulfill it causes an exception.
 
   \end{description}
-*}
+\<close>
 
 
 end

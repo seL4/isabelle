@@ -4,9 +4,9 @@ theory Syntax
 imports Base
 begin
 
-chapter {* Concrete syntax and type-checking *}
+chapter \<open>Concrete syntax and type-checking\<close>
 
-text {* Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} is
+text \<open>Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} is
   an adequate foundation for logical languages --- in the tradition of
   \emph{higher-order abstract syntax} --- but end-users require
   additional means for reading and printing of terms and types.  This
@@ -57,12 +57,12 @@ text {* Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} is
 
   There are analogous operations to read and print types, with the same
   sub-division into phases.
-*}
+\<close>
 
 
-section {* Reading and pretty printing \label{sec:read-print} *}
+section \<open>Reading and pretty printing \label{sec:read-print}\<close>
 
-text {*
+text \<open>
   Read and print operations are roughly dual to each other, such that for the
   user @{text "s' = pretty (read s)"} looks similar to the original source
   text @{text "s"}, but the details depend on many side-conditions. There are
@@ -70,9 +70,9 @@ text {*
   output. The default configuration routinely looses information, so @{text
   "t' = read (pretty t)"} might fail, or produce a differently typed term, or
   a completely different term in the face of syntactic overloading.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Syntax.read_typs: "Proof.context -> string list -> typ list"} \\
   @{index_ML Syntax.read_terms: "Proof.context -> string list -> term list"} \\
@@ -143,12 +143,12 @@ text %mlref {*
   obtained from one of the latter may be directly passed to the corresponding
   read operation: this yields PIDE markup of the input and precise positions
   for warning and error messages.
-*}
+\<close>
 
 
-section {* Parsing and unparsing \label{sec:parse-unparse} *}
+section \<open>Parsing and unparsing \label{sec:parse-unparse}\<close>
 
-text {*
+text \<open>
   Parsing and unparsing converts between actual source text and a certain
   \emph{pre-term} format, where all bindings and scopes are already resolved
   faithfully. Thus the names of free variables or constants are determined in
@@ -165,9 +165,9 @@ text {*
   "isabelle-isar-ref"}. The final scope-resolution is performed by the system,
   according to name spaces for types, term variables and constants determined
   by the context.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Syntax.parse_typ: "Proof.context -> string -> typ"} \\
   @{index_ML Syntax.parse_term: "Proof.context -> string -> term"} \\
@@ -201,12 +201,12 @@ text %mlref {*
 
   These operations always operate on a single item; use the combinator @{ML
   map} to apply them to a list.
-*}
+\<close>
 
 
-section {* Checking and unchecking \label{sec:term-check} *}
+section \<open>Checking and unchecking \label{sec:term-check}\<close>
 
-text {* These operations define the transition from pre-terms and
+text \<open>These operations define the transition from pre-terms and
   fully-annotated terms in the sense of the logical core
   (\chref{ch:logic}).
 
@@ -232,9 +232,9 @@ text {* These operations define the transition from pre-terms and
   logical foundation.  This involves ``type improvement''
   (specialization of slightly too general types) and replacement by
   certain locale parameters.  See also @{cite "Haftmann-Wenzel:2009"}.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Syntax.check_typs: "Proof.context -> typ list -> typ list"} \\
   @{index_ML Syntax.check_terms: "Proof.context -> term list -> term list"} \\
@@ -276,6 +276,6 @@ text %mlref {*
 
   These operations always operate simultaneously on a list; use the combinator
   @{ML singleton} to apply them to a single item.
-*}
+\<close>
 
 end

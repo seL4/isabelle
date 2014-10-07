@@ -2,120 +2,120 @@ theory Synopsis
 imports Base Main
 begin
 
-chapter {* Synopsis *}
+chapter \<open>Synopsis\<close>
 
-section {* Notepad *}
+section \<open>Notepad\<close>
 
-text {*
+text \<open>
   An Isar proof body serves as mathematical notepad to compose logical
   content, consisting of types, terms, facts.
-*}
+\<close>
 
 
-subsection {* Types and terms *}
+subsection \<open>Types and terms\<close>
 
 notepad
 begin
-  txt {* Locally fixed entities: *}
-  fix x   -- {* local constant, without any type information yet *}
-  fix x :: 'a  -- {* variant with explicit type-constraint for subsequent use*}
+  txt \<open>Locally fixed entities:\<close>
+  fix x   -- \<open>local constant, without any type information yet\<close>
+  fix x :: 'a  -- \<open>variant with explicit type-constraint for subsequent use\<close>
 
   fix a b
-  assume "a = b"  -- {* type assignment at first occurrence in concrete term *}
+  assume "a = b"  -- \<open>type assignment at first occurrence in concrete term\<close>
 
-  txt {* Definitions (non-polymorphic): *}
+  txt \<open>Definitions (non-polymorphic):\<close>
   def x \<equiv> "t::'a"
 
-  txt {* Abbreviations (polymorphic): *}
+  txt \<open>Abbreviations (polymorphic):\<close>
   let ?f = "\<lambda>x. x"
   term "?f ?f"
 
-  txt {* Notation: *}
+  txt \<open>Notation:\<close>
   write x  ("***")
 end
 
 
-subsection {* Facts *}
+subsection \<open>Facts\<close>
 
-text {*
+text \<open>
   A fact is a simultaneous list of theorems.
-*}
+\<close>
 
 
-subsubsection {* Producing facts *}
+subsubsection \<open>Producing facts\<close>
 
 notepad
 begin
 
-  txt {* Via assumption (``lambda''): *}
+  txt \<open>Via assumption (``lambda''):\<close>
   assume a: A
 
-  txt {* Via proof (``let''): *}
+  txt \<open>Via proof (``let''):\<close>
   have b: B sorry
 
-  txt {* Via abbreviation (``let''): *}
+  txt \<open>Via abbreviation (``let''):\<close>
   note c = a b
 
 end
 
 
-subsubsection {* Referencing facts *}
+subsubsection \<open>Referencing facts\<close>
 
 notepad
 begin
-  txt {* Via explicit name: *}
+  txt \<open>Via explicit name:\<close>
   assume a: A
   note a
 
-  txt {* Via implicit name: *}
+  txt \<open>Via implicit name:\<close>
   assume A
   note this
 
-  txt {* Via literal proposition (unification with results from the proof text): *}
+  txt \<open>Via literal proposition (unification with results from the proof text):\<close>
   assume A
-  note `A`
+  note \<open>A\<close>
 
   assume "\<And>x. B x"
-  note `B a`
-  note `B b`
+  note \<open>B a\<close>
+  note \<open>B b\<close>
 end
 
 
-subsubsection {* Manipulating facts *}
+subsubsection \<open>Manipulating facts\<close>
 
 notepad
 begin
-  txt {* Instantiation: *}
+  txt \<open>Instantiation:\<close>
   assume a: "\<And>x. B x"
   note a
   note a [of b]
   note a [where x = b]
 
-  txt {* Backchaining: *}
+  txt \<open>Backchaining:\<close>
   assume 1: A
   assume 2: "A \<Longrightarrow> C"
   note 2 [OF 1]
   note 1 [THEN 2]
 
-  txt {* Symmetric results: *}
+  txt \<open>Symmetric results:\<close>
   assume "x = y"
   note this [symmetric]
 
   assume "x \<noteq> y"
   note this [symmetric]
 
-  txt {* Adhoc-simplification (take care!): *}
+  txt \<open>Adhoc-simplification (take care!):\<close>
   assume "P ([] @ xs)"
   note this [simplified]
 end
 
 
-subsubsection {* Projections *}
+subsubsection \<open>Projections\<close>
 
-text {*
+text \<open>
   Isar facts consist of multiple theorems.  There is notation to project
   interval ranges.
-*}
+\<close>
 
 notepad
 begin
@@ -126,9 +126,9 @@ begin
 end
 
 
-subsubsection {* Naming conventions *}
+subsubsection \<open>Naming conventions\<close>
 
-text {*
+text \<open>
   \begin{itemize}
 
   \item Lower-case identifiers are usually preferred.
@@ -146,15 +146,15 @@ text {*
   "**"}, @{text "***"}).
 
   \end{itemize}
-*}
+\<close>
 
 
-subsection {* Block structure *}
+subsection \<open>Block structure\<close>
 
-text {*
+text \<open>
   The formal notepad is block structured.  The fact produced by the last
   entry of a block is exported into the outer context.
-*}
+\<close>
 
 notepad
 begin
@@ -164,14 +164,14 @@ begin
     note a b
   }
   note this
-  note `A`
-  note `B`
+  note \<open>A\<close>
+  note \<open>B\<close>
 end
 
-text {* Explicit blocks as well as implicit blocks of nested goal
+text \<open>Explicit blocks as well as implicit blocks of nested goal
   statements (e.g.\ @{command have}) automatically introduce one extra
   pair of parentheses in reserve.  The @{command next} command allows
-  to ``jump'' between these sub-blocks. *}
+  to ``jump'' between these sub-blocks.\<close>
 
 notepad
 begin
@@ -189,7 +189,7 @@ begin
     qed
   }
 
-  txt {* Alternative version with explicit parentheses everywhere: *}
+  txt \<open>Alternative version with explicit parentheses everywhere:\<close>
 
   {
     {
@@ -214,16 +214,16 @@ begin
 end
 
 
-section {* Calculational reasoning \label{sec:calculations-synopsis} *}
+section \<open>Calculational reasoning \label{sec:calculations-synopsis}\<close>
 
-text {*
+text \<open>
   For example, see @{file "~~/src/HOL/Isar_Examples/Group.thy"}.
-*}
+\<close>
 
 
-subsection {* Special names in Isar proofs *}
+subsection \<open>Special names in Isar proofs\<close>
 
-text {*
+text \<open>
   \begin{itemize}
 
   \item term @{text "?thesis"} --- the main conclusion of the
@@ -235,7 +235,7 @@ text {*
   \item fact @{text "this"} --- the last result produced in the text
 
   \end{itemize}
-*}
+\<close>
 
 notepad
 begin
@@ -243,23 +243,23 @@ begin
   proof -
     term ?thesis
     show ?thesis sorry
-    term ?thesis  -- {* static! *}
+    term ?thesis  -- \<open>static!\<close>
   qed
   term "\<dots>"
   thm this
 end
 
-text {* Calculational reasoning maintains the special fact called
+text \<open>Calculational reasoning maintains the special fact called
   ``@{text calculation}'' in the background.  Certain language
   elements combine primary @{text this} with secondary @{text
-  calculation}. *}
+  calculation}.\<close>
 
 
-subsection {* Transitive chains *}
+subsection \<open>Transitive chains\<close>
 
-text {* The Idea is to combine @{text this} and @{text calculation}
+text \<open>The Idea is to combine @{text this} and @{text calculation}
   via typical @{text trans} rules (see also @{command
-  print_trans_rules}): *}
+  print_trans_rules}):\<close>
 
 thm trans
 thm less_trans
@@ -267,7 +267,7 @@ thm less_le_trans
 
 notepad
 begin
-  txt {* Plain bottom-up calculation: *}
+  txt \<open>Plain bottom-up calculation:\<close>
   have "a = b" sorry
   also
   have "b = c" sorry
@@ -276,7 +276,7 @@ begin
   finally
   have "a = d" .
 
-  txt {* Variant using the @{text "\<dots>"} abbreviation: *}
+  txt \<open>Variant using the @{text "\<dots>"} abbreviation:\<close>
   have "a = b" sorry
   also
   have "\<dots> = c" sorry
@@ -285,7 +285,7 @@ begin
   finally
   have "a = d" .
 
-  txt {* Top-down version with explicit claim at the head: *}
+  txt \<open>Top-down version with explicit claim at the head:\<close>
   have "a = d"
   proof -
     have "a = b" sorry
@@ -297,7 +297,7 @@ begin
     show ?thesis .
   qed
 next
-  txt {* Mixed inequalities (require suitable base type): *}
+  txt \<open>Mixed inequalities (require suitable base type):\<close>
   fix a b c d :: nat
 
   have "a < b" sorry
@@ -310,9 +310,9 @@ next
 end
 
 
-subsubsection {* Notes *}
+subsubsection \<open>Notes\<close>
 
-text {*
+text \<open>
   \begin{itemize}
 
   \item The notion of @{text trans} rule is very general due to the
@@ -322,17 +322,17 @@ text {*
   about the operational details of higher-order unification.
 
   \end{itemize}
-*}
+\<close>
 
 
-subsection {* Degenerate calculations and bigstep reasoning *}
+subsection \<open>Degenerate calculations and bigstep reasoning\<close>
 
-text {* The Idea is to append @{text this} to @{text calculation},
-  without rule composition.  *}
+text \<open>The Idea is to append @{text this} to @{text calculation},
+  without rule composition.\<close>
 
 notepad
 begin
-  txt {* A vacuous proof: *}
+  txt \<open>A vacuous proof:\<close>
   have A sorry
   moreover
   have B sorry
@@ -341,7 +341,7 @@ begin
   ultimately
   have A and B and C .
 next
-  txt {* Slightly more content (trivial bigstep reasoning): *}
+  txt \<open>Slightly more content (trivial bigstep reasoning):\<close>
   have A sorry
   moreover
   have B sorry
@@ -350,7 +350,7 @@ next
   ultimately
   have "A \<and> B \<and> C" by blast
 next
-  txt {* More ambitious bigstep reasoning involving structured results: *}
+  txt \<open>More ambitious bigstep reasoning involving structured results:\<close>
   have "A \<or> B \<or> C" sorry
   moreover
   { assume A have R sorry }
@@ -359,17 +359,17 @@ next
   moreover
   { assume C have R sorry }
   ultimately
-  have R by blast  -- {* ``big-bang integration'' of proof blocks (occasionally fragile) *}
+  have R by blast  -- \<open>``big-bang integration'' of proof blocks (occasionally fragile)\<close>
 end
 
 
-section {* Induction *}
+section \<open>Induction\<close>
 
-subsection {* Induction as Natural Deduction *}
+subsection \<open>Induction as Natural Deduction\<close>
 
-text {* In principle, induction is just a special case of Natural
+text \<open>In principle, induction is just a special case of Natural
   Deduction (see also \secref{sec:natural-deduction-synopsis}).  For
-  example: *}
+  example:\<close>
 
 thm nat.induct
 print_statement nat.induct
@@ -378,7 +378,7 @@ notepad
 begin
   fix n :: nat
   have "P n"
-  proof (rule nat.induct)  -- {* fragile rule application! *}
+  proof (rule nat.induct)  -- \<open>fragile rule application!\<close>
     show "P 0" sorry
   next
     fix n :: nat
@@ -387,7 +387,7 @@ begin
   qed
 end
 
-text {*
+text \<open>
   In practice, much more proof infrastructure is required.
 
   The proof method @{method induct} provides:
@@ -401,7 +401,7 @@ text {*
     parameters, premises, etc.
 
   \end{itemize}
-*}
+\<close>
 
 notepad
 begin
@@ -417,9 +417,9 @@ begin
 end
 
 
-subsubsection {* Example *}
+subsubsection \<open>Example\<close>
 
-text {*
+text \<open>
   The subsequent example combines the following proof patterns:
   \begin{itemize}
 
@@ -432,7 +432,7 @@ text {*
   \item solving local claims within the calculation by simplification
 
   \end{itemize}
-*}
+\<close>
 
 lemma
   fixes n :: nat
@@ -451,19 +451,19 @@ next
   finally show ?case .
 qed
 
-text {* This demonstrates how induction proofs can be done without
-  having to consider the raw Natural Deduction structure. *}
+text \<open>This demonstrates how induction proofs can be done without
+  having to consider the raw Natural Deduction structure.\<close>
 
 
-subsection {* Induction with local parameters and premises *}
+subsection \<open>Induction with local parameters and premises\<close>
 
-text {* Idea: Pure rule statements are passed through the induction
+text \<open>Idea: Pure rule statements are passed through the induction
   rule.  This achieves convenient proof patterns, thanks to some
   internal trickery in the @{method induct} method.
 
   Important: Using compact HOL formulae with @{text "\<forall>/\<longrightarrow>"} is a
   well-known anti-pattern! It would produce useless formal noise.
-*}
+\<close>
 
 notepad
 begin
@@ -477,17 +477,17 @@ begin
     show "P 0" sorry
   next
     case (Suc n)
-    from `P n` show "P (Suc n)" sorry
+    from \<open>P n\<close> show "P (Suc n)" sorry
   qed
 
   have "A n \<Longrightarrow> P n"
   proof (induct n)
     case 0
-    from `A 0` show "P 0" sorry
+    from \<open>A 0\<close> show "P 0" sorry
   next
     case (Suc n)
-    from `A n \<Longrightarrow> P n`
-      and `A (Suc n)` show "P (Suc n)" sorry
+    from \<open>A n \<Longrightarrow> P n\<close>
+      and \<open>A (Suc n)\<close> show "P (Suc n)" sorry
   qed
 
   have "\<And>x. Q x n"
@@ -496,19 +496,19 @@ begin
     show "Q x 0" sorry
   next
     case (Suc n)
-    from `\<And>x. Q x n` show "Q x (Suc n)" sorry
-    txt {* Local quantification admits arbitrary instances: *}
-    note `Q a n` and `Q b n`
+    from \<open>\<And>x. Q x n\<close> show "Q x (Suc n)" sorry
+    txt \<open>Local quantification admits arbitrary instances:\<close>
+    note \<open>Q a n\<close> and \<open>Q b n\<close>
   qed
 end
 
 
-subsection {* Implicit induction context *}
+subsection \<open>Implicit induction context\<close>
 
-text {* The @{method induct} method can isolate local parameters and
+text \<open>The @{method induct} method can isolate local parameters and
   premises directly from the given statement.  This is convenient in
   practical applications, but requires some understanding of what is
-  going on internally (as explained above).  *}
+  going on internally (as explained above).\<close>
 
 notepad
 begin
@@ -520,24 +520,24 @@ begin
   then have "Q x n"
   proof (induct n arbitrary: x)
     case 0
-    from `A x 0` show "Q x 0" sorry
+    from \<open>A x 0\<close> show "Q x 0" sorry
   next
     case (Suc n)
-    from `\<And>x. A x n \<Longrightarrow> Q x n`  -- {* arbitrary instances can be produced here *}
-      and `A x (Suc n)` show "Q x (Suc n)" sorry
+    from \<open>\<And>x. A x n \<Longrightarrow> Q x n\<close>  -- \<open>arbitrary instances can be produced here\<close>
+      and \<open>A x (Suc n)\<close> show "Q x (Suc n)" sorry
   qed
 end
 
 
-subsection {* Advanced induction with term definitions *}
+subsection \<open>Advanced induction with term definitions\<close>
 
-text {* Induction over subexpressions of a certain shape are delicate
+text \<open>Induction over subexpressions of a certain shape are delicate
   to formalize.  The Isar @{method induct} method provides
   infrastructure for this.
 
   Idea: sub-expressions of the problem are turned into a defined
   induction variable; often accompanied with fixing of auxiliary
-  parameters in the original expression.  *}
+  parameters in the original expression.\<close>
 
 notepad
 begin
@@ -548,35 +548,35 @@ begin
   then have "P (a x)"
   proof (induct "a x" arbitrary: x)
     case 0
-    note prem = `A (a x)`
-      and defn = `0 = a x`
+    note prem = \<open>A (a x)\<close>
+      and defn = \<open>0 = a x\<close>
     show "P (a x)" sorry
   next
     case (Suc n)
-    note hyp = `\<And>x. n = a x \<Longrightarrow> A (a x) \<Longrightarrow> P (a x)`
-      and prem = `A (a x)`
-      and defn = `Suc n = a x`
+    note hyp = \<open>\<And>x. n = a x \<Longrightarrow> A (a x) \<Longrightarrow> P (a x)\<close>
+      and prem = \<open>A (a x)\<close>
+      and defn = \<open>Suc n = a x\<close>
     show "P (a x)" sorry
   qed
 end
 
 
-section {* Natural Deduction \label{sec:natural-deduction-synopsis} *}
+section \<open>Natural Deduction \label{sec:natural-deduction-synopsis}\<close>
 
-subsection {* Rule statements *}
+subsection \<open>Rule statements\<close>
 
-text {*
+text \<open>
   Isabelle/Pure ``theorems'' are always natural deduction rules,
   which sometimes happen to consist of a conclusion only.
 
   The framework connectives @{text "\<And>"} and @{text "\<Longrightarrow>"} indicate the
-  rule structure declaratively.  For example: *}
+  rule structure declaratively.  For example:\<close>
 
 thm conjI
 thm impI
 thm nat.induct
 
-text {*
+text \<open>
   The object-logic is embedded into the Pure framework via an implicit
   derivability judgment @{term "Trueprop :: bool \<Rightarrow> prop"}.
 
@@ -584,7 +584,7 @@ text {*
   the rule structure outlines the corresponding proof pattern.
 
   This can be made explicit as follows:
-*}
+\<close>
 
 notepad
 begin
@@ -595,22 +595,22 @@ begin
   thm nat.induct
 end
 
-text {*
+text \<open>
   Isar provides first-class notation for rule statements as follows.
-*}
+\<close>
 
 print_statement conjI
 print_statement impI
 print_statement nat.induct
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {*
+text \<open>
   Introductions and eliminations of some standard connectives of
   the object-logic can be written as rule statements as follows.  (The
   proof ``@{command "by"}~@{method blast}'' serves as sanity check.)
-*}
+\<close>
 
 lemma "(P \<Longrightarrow> False) \<Longrightarrow> \<not> P" by blast
 lemma "\<not> P \<Longrightarrow> P \<Longrightarrow> Q" by blast
@@ -636,11 +636,11 @@ lemma "x \<in> B \<Longrightarrow> x \<in> A \<union> B" by blast
 lemma "x \<in> A \<union> B \<Longrightarrow> (x \<in> A \<Longrightarrow> R) \<Longrightarrow> (x \<in> B \<Longrightarrow> R) \<Longrightarrow> R" by blast
 
 
-subsection {* Isar context elements *}
+subsection \<open>Isar context elements\<close>
 
-text {* We derive some results out of the blue, using Isar context
+text \<open>We derive some results out of the blue, using Isar context
   elements and some explicit blocks.  This illustrates their meaning
-  wrt.\ Pure connectives, without goal states getting in the way.  *}
+  wrt.\ Pure connectives, without goal states getting in the way.\<close>
 
 notepad
 begin
@@ -677,9 +677,9 @@ next
 end
 
 
-subsection {* Pure rule composition *}
+subsection \<open>Pure rule composition\<close>
 
-text {*
+text \<open>
   The Pure framework provides means for:
 
   \begin{itemize}
@@ -691,7 +691,7 @@ text {*
   \end{itemize}
 
   Both principles involve higher-order unification of @{text \<lambda>}-terms
-  modulo @{text "\<alpha>\<beta>\<eta>"}-equivalence (cf.\ Huet and Miller).  *}
+  modulo @{text "\<alpha>\<beta>\<eta>"}-equivalence (cf.\ Huet and Miller).\<close>
 
 notepad
 begin
@@ -700,20 +700,20 @@ begin
   thm conjI [of A B]  -- "instantiation"
   thm conjI [of A B, OF a b]  -- "instantiation and composition"
   thm conjI [OF a b]  -- "composition via unification (trivial)"
-  thm conjI [OF `A` `B`]
+  thm conjI [OF \<open>A\<close> \<open>B\<close>]
 
   thm conjI [OF disjI1]
 end
 
-text {* Note: Low-level rule composition is tedious and leads to
-  unreadable~/ unmaintainable expressions in the text.  *}
+text \<open>Note: Low-level rule composition is tedious and leads to
+  unreadable~/ unmaintainable expressions in the text.\<close>
 
 
-subsection {* Structured backward reasoning *}
+subsection \<open>Structured backward reasoning\<close>
 
-text {* Idea: Canonical proof decomposition via @{command fix}~/
+text \<open>Idea: Canonical proof decomposition via @{command fix}~/
   @{command assume}~/ @{command show}, where the body produces a
-  natural deduction rule to refine some goal.  *}
+  natural deduction rule to refine some goal.\<close>
 
 notepad
 begin
@@ -733,22 +733,22 @@ begin
       assume "A x"
       show "B x" sorry
     } -- "implicit block structure made explicit"
-    note `\<And>x. A x \<Longrightarrow> B x`
+    note \<open>\<And>x. A x \<Longrightarrow> B x\<close>
       -- "side exit for the resulting rule"
   qed
 end
 
 
-subsection {* Structured rule application *}
+subsection \<open>Structured rule application\<close>
 
-text {*
+text \<open>
   Idea: Previous facts and new claims are composed with a rule from
   the context (or background library).
-*}
+\<close>
 
 notepad
 begin
-  assume r1: "A \<Longrightarrow> B \<Longrightarrow> C"  -- {* simple rule (Horn clause) *}
+  assume r1: "A \<Longrightarrow> B \<Longrightarrow> C"  -- \<open>simple rule (Horn clause)\<close>
 
   have A sorry  -- "prefix of facts via outer sub-proof"
   then have C
@@ -772,7 +772,7 @@ begin
 
 next
 
-  assume r2: "A \<Longrightarrow> (\<And>x. B1 x \<Longrightarrow> B2 x) \<Longrightarrow> C"  -- {* nested rule *}
+  assume r2: "A \<Longrightarrow> (\<And>x. B1 x \<Longrightarrow> B2 x) \<Longrightarrow> C"  -- \<open>nested rule\<close>
 
   have A sorry
   then have C
@@ -782,18 +782,18 @@ next
     show "B2 x" sorry
   qed
 
-  txt {* The compound rule premise @{prop "\<And>x. B1 x \<Longrightarrow> B2 x"} is better
+  txt \<open>The compound rule premise @{prop "\<And>x. B1 x \<Longrightarrow> B2 x"} is better
     addressed via @{command fix}~/ @{command assume}~/ @{command show}
-    in the nested proof body.  *}
+    in the nested proof body.\<close>
 end
 
 
-subsection {* Example: predicate logic *}
+subsection \<open>Example: predicate logic\<close>
 
-text {*
+text \<open>
   Using the above principles, standard introduction and elimination proofs
   of predicate logic connectives of HOL work as follows.
-*}
+\<close>
 
 notepad
 begin
@@ -861,56 +861,56 @@ begin
     show C sorry
   qed
 
-  txt {* Less awkward version using @{command obtain}: *}
+  txt \<open>Less awkward version using @{command obtain}:\<close>
   have "\<exists>x. P x" sorry
   then obtain a where "P a" ..
 end
 
-text {* Further variations to illustrate Isar sub-proofs involving
-  @{command show}: *}
+text \<open>Further variations to illustrate Isar sub-proofs involving
+  @{command show}:\<close>
 
 notepad
 begin
   have "A \<and> B"
-  proof  -- {* two strictly isolated subproofs *}
+  proof  -- \<open>two strictly isolated subproofs\<close>
     show A sorry
   next
     show B sorry
   qed
 
   have "A \<and> B"
-  proof  -- {* one simultaneous sub-proof *}
+  proof  -- \<open>one simultaneous sub-proof\<close>
     show A and B sorry
   qed
 
   have "A \<and> B"
-  proof  -- {* two subproofs in the same context *}
+  proof  -- \<open>two subproofs in the same context\<close>
     show A sorry
     show B sorry
   qed
 
   have "A \<and> B"
-  proof  -- {* swapped order *}
+  proof  -- \<open>swapped order\<close>
     show B sorry
     show A sorry
   qed
 
   have "A \<and> B"
-  proof  -- {* sequential subproofs *}
+  proof  -- \<open>sequential subproofs\<close>
     show A sorry
-    show B using `A` sorry
+    show B using \<open>A\<close> sorry
   qed
 end
 
 
-subsubsection {* Example: set-theoretic operators *}
+subsubsection \<open>Example: set-theoretic operators\<close>
 
-text {* There is nothing special about logical connectives (@{text
+text \<open>There is nothing special about logical connectives (@{text
   "\<and>"}, @{text "\<or>"}, @{text "\<forall>"}, @{text "\<exists>"} etc.).  Operators from
   set-theory or lattice-theory work analogously.  It is only a matter
   of rule declarations in the library; rules can be also specified
   explicitly.
-*}
+\<close>
 
 notepad
 begin
@@ -955,20 +955,20 @@ next
 end
 
 
-section {* Generalized elimination and cases *}
+section \<open>Generalized elimination and cases\<close>
 
-subsection {* General elimination rules *}
+subsection \<open>General elimination rules\<close>
 
-text {*
+text \<open>
   The general format of elimination rules is illustrated by the
   following typical representatives:
-*}
+\<close>
 
-thm exE     -- {* local parameter *}
-thm conjE   -- {* local premises *}
-thm disjE   -- {* split into cases *}
+thm exE     -- \<open>local parameter\<close>
+thm conjE   -- \<open>local premises\<close>
+thm disjE   -- \<open>split into cases\<close>
 
-text {*
+text \<open>
   Combining these characteristics leads to the following general scheme
   for elimination rules with cases:
 
@@ -980,7 +980,7 @@ text {*
     in an augmented context
 
   \end{itemize}
-*}
+\<close>
 
 notepad
 begin
@@ -1003,13 +1003,13 @@ begin
   qed
 end
 
-text {* Here @{text "?thesis"} is used to refer to the unchanged goal
-  statement.  *}
+text \<open>Here @{text "?thesis"} is used to refer to the unchanged goal
+  statement.\<close>
 
 
-subsection {* Rules with cases *}
+subsection \<open>Rules with cases\<close>
 
-text {*
+text \<open>
   Applying an elimination rule to some goal, leaves that unchanged
   but allows to augment the context in the sub-proof of each case.
 
@@ -1025,21 +1025,21 @@ text {*
   sub-proof
 
   \end{itemize}
-*}
+\<close>
 
 print_statement exE
 print_statement conjE
 print_statement disjE
 
 lemma
-  assumes A1 and A2  -- {* assumptions *}
+  assumes A1 and A2  -- \<open>assumptions\<close>
   obtains
     (case1)  x y where "B1 x y" and "C1 x y"
   | (case2)  x y where "B2 x y" and "C2 x y"
   sorry
 
 
-subsubsection {* Example *}
+subsubsection \<open>Example\<close>
 
 lemma tertium_non_datur:
   obtains
@@ -1053,20 +1053,20 @@ begin
   have C
   proof (cases "x = y" rule: tertium_non_datur)
     case T
-    from `x = y` show ?thesis sorry
+    from \<open>x = y\<close> show ?thesis sorry
   next
     case F
-    from `x \<noteq> y` show ?thesis sorry
+    from \<open>x \<noteq> y\<close> show ?thesis sorry
   qed
 end
 
 
-subsubsection {* Example *}
+subsubsection \<open>Example\<close>
 
-text {*
+text \<open>
   Isabelle/HOL specification mechanisms (datatype, inductive, etc.)
   provide suitable derived cases rules.
-*}
+\<close>
 
 datatype foo = Foo | Bar foo
 
@@ -1076,33 +1076,33 @@ begin
   have C
   proof (cases x)
     case Foo
-    from `x = Foo` show ?thesis sorry
+    from \<open>x = Foo\<close> show ?thesis sorry
   next
     case (Bar a)
-    from `x = Bar a` show ?thesis sorry
+    from \<open>x = Bar a\<close> show ?thesis sorry
   qed
 end
 
 
-subsection {* Obtaining local contexts *}
+subsection \<open>Obtaining local contexts\<close>
 
-text {* A single ``case'' branch may be inlined into Isar proof text
+text \<open>A single ``case'' branch may be inlined into Isar proof text
   via @{command obtain}.  This proves @{prop "(\<And>x. B x \<Longrightarrow> thesis) \<Longrightarrow>
-  thesis"} on the spot, and augments the context afterwards.  *}
+  thesis"} on the spot, and augments the context afterwards.\<close>
 
 notepad
 begin
   fix B :: "'a \<Rightarrow> bool"
 
   obtain x where "B x" sorry
-  note `B x`
+  note \<open>B x\<close>
 
-  txt {* Conclusions from this context may not mention @{term x} again! *}
+  txt \<open>Conclusions from this context may not mention @{term x} again!\<close>
   {
     obtain x where "B x" sorry
-    from `B x` have C sorry
+    from \<open>B x\<close> have C sorry
   }
-  note `C`
+  note \<open>C\<close>
 end
 
 end

@@ -3,9 +3,9 @@ imports Base "~~/src/HOL/Library/Old_Datatype" "~~/src/HOL/Library/Old_Recdef"
   "~~/src/Tools/Adhoc_Overloading"
 begin
 
-chapter {* Higher-Order Logic *}
+chapter \<open>Higher-Order Logic\<close>
 
-text {* Isabelle/HOL is based on Higher-Order Logic, a polymorphic
+text \<open>Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   version of Church's Simple Theory of Types.  HOL can be best
   understood as a simply-typed version of classical set theory.  The
   logic was first implemented in Gordon's HOL system
@@ -54,14 +54,14 @@ text {* Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   type-inference with type-classes, which are both used extensively in
   the standard libraries and applications.  Beginners can set
   @{attribute show_types} or even @{attribute show_sorts} to get more
-  explicit information about the result of type-inference.  *}
+  explicit information about the result of type-inference.\<close>
 
 
-chapter {* Derived specification elements *}
+chapter \<open>Derived specification elements\<close>
 
-section {* Inductive and coinductive definitions \label{sec:hol-inductive} *}
+section \<open>Inductive and coinductive definitions \label{sec:hol-inductive}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "inductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def (HOL) "inductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -145,12 +145,12 @@ text {*
   proof of the above inductive and coinductive definitions.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Derived rules *}
+subsection \<open>Derived rules\<close>
 
-text {* A (co)inductive definition of @{text R} provides the following
+text \<open>A (co)inductive definition of @{text R} provides the following
   main theorems:
 
   \begin{description}
@@ -176,12 +176,12 @@ text {* A (co)inductive definition of @{text R} provides the following
   called @{text "R\<^sub>1.cases, \<dots>, R\<^sub>n.cases"}, and the list
   of mutual induction rules is called @{text
   "R\<^sub>1_\<dots>_R\<^sub>n.inducts"}.
-*}
+\<close>
 
 
-subsection {* Monotonicity theorems *}
+subsection \<open>Monotonicity theorems\<close>
 
-text {* The context maintains a default set of theorems that are used
+text \<open>The context maintains a default set of theorems that are used
   in monotonicity proofs.  New rules can be declared via the
   @{attribute (HOL) mono} attribute.  See the main Isabelle/HOL
   sources for some examples.  The general format of such monotonicity
@@ -215,26 +215,26 @@ text {* The context maintains a default set of theorems that are used
   \]
 
   \end{itemize}
-*}
+\<close>
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* The finite powerset operator can be defined inductively like this: *}
+text \<open>The finite powerset operator can be defined inductively like this:\<close>
 
 inductive_set Fin :: "'a set \<Rightarrow> 'a set set" for A :: "'a set"
 where
   empty: "{} \<in> Fin A"
 | insert: "a \<in> A \<Longrightarrow> B \<in> Fin A \<Longrightarrow> insert a B \<in> Fin A"
 
-text {* The accessible part of a relation is defined as follows: *}
+text \<open>The accessible part of a relation is defined as follows:\<close>
 
 inductive acc :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<prec>" 50)
 where acc: "(\<And>y. y \<prec> x \<Longrightarrow> acc r y) \<Longrightarrow> acc r x"
 
-text {* Common logical connectives can be easily characterized as
+text \<open>Common logical connectives can be easily characterized as
 non-recursive inductive definitions with parameters, but without
-arguments. *}
+arguments.\<close>
 
 inductive AND for A B :: bool
 where "A \<Longrightarrow> B \<Longrightarrow> AND A B"
@@ -246,17 +246,17 @@ where "A \<Longrightarrow> OR A B"
 inductive EXISTS for B :: "'a \<Rightarrow> bool"
 where "B a \<Longrightarrow> EXISTS B"
 
-text {* Here the @{text "cases"} or @{text "induct"} rules produced by
+text \<open>Here the @{text "cases"} or @{text "induct"} rules produced by
   the @{command inductive} package coincide with the expected
   elimination rules for Natural Deduction.  Already in the original
   article by Gerhard Gentzen @{cite "Gentzen:1935"} there is a hint that
   each connective can be characterized by its introductions, and the
-  elimination can be constructed systematically. *}
+  elimination can be constructed systematically.\<close>
 
 
-section {* Recursive functions \label{sec:recursion} *}
+section \<open>Recursive functions \label{sec:recursion}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "primrec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def (HOL) "fun"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -371,13 +371,13 @@ text {*
   needed, they can be helpful in some proofs about partial functions.
 
   \end{description}
-*}
+\<close>
 
-subsubsection {* Example: evaluation of expressions *}
+subsubsection \<open>Example: evaluation of expressions\<close>
 
-text {* Subsequently, we define mutual datatypes for arithmetic and
+text \<open>Subsequently, we define mutual datatypes for arithmetic and
   boolean expressions, and use @{command primrec} for evaluation
-  functions that follow the same recursive structure. *}
+  functions that follow the same recursive structure.\<close>
 
 datatype 'a aexp =
     IF "'a bexp"  "'a aexp"  "'a aexp"
@@ -391,7 +391,7 @@ and 'a bexp =
   | Neg "'a bexp"
 
 
-text {* \medskip Evaluation of arithmetic and boolean expressions *}
+text \<open>\medskip Evaluation of arithmetic and boolean expressions\<close>
 
 primrec evala :: "('a \<Rightarrow> nat) \<Rightarrow> 'a aexp \<Rightarrow> nat"
   and evalb :: "('a \<Rightarrow> nat) \<Rightarrow> 'a bexp \<Rightarrow> bool"
@@ -405,7 +405,7 @@ where
 | "evalb env (And b1 b2) = (evalb env b1 \<and> evalb env b2)"
 | "evalb env (Neg b) = (\<not> evalb env b)"
 
-text {* Since the value of an expression depends on the value of its
+text \<open>Since the value of an expression depends on the value of its
   variables, the functions @{const evala} and @{const evalb} take an
   additional parameter, an \emph{environment} that maps variables to
   their values.
@@ -414,7 +414,7 @@ text {* Since the value of an expression depends on the value of its
   mapping @{text f} of type @{typ "'a \<Rightarrow> 'a aexp"} given as a
   parameter is lifted canonically on the types @{typ "'a aexp"} and
   @{typ "'a bexp"}, respectively.
-*}
+\<close>
 
 primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp"
   and substb :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a bexp \<Rightarrow> 'b bexp"
@@ -428,11 +428,11 @@ where
 | "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
 | "substb f (Neg b) = Neg (substb f b)"
 
-text {* In textbooks about semantics one often finds substitution
+text \<open>In textbooks about semantics one often finds substitution
   theorems, which express the relationship between substitution and
   evaluation.  For @{typ "'a aexp"} and @{typ "'a bexp"}, we can prove
   such a theorem by mutual induction, followed by simplification.
-*}
+\<close>
 
 lemma subst_one:
   "evala env (substa (Var (v := a')) a) = evala (env (v := evala env a')) a"
@@ -445,16 +445,16 @@ lemma subst_all:
   by (induct a and b) simp_all
 
 
-subsubsection {* Example: a substitution function for terms *}
+subsubsection \<open>Example: a substitution function for terms\<close>
 
-text {* Functions on datatypes with nested recursion are also defined
-  by mutual primitive recursion. *}
+text \<open>Functions on datatypes with nested recursion are also defined
+  by mutual primitive recursion.\<close>
 
 datatype ('a, 'b) "term" = Var 'a | App 'b "('a, 'b) term list"
 
-text {* A substitution function on type @{typ "('a, 'b) term"} can be
+text \<open>A substitution function on type @{typ "('a, 'b) term"} can be
   defined as follows, by working simultaneously on @{typ "('a, 'b)
-  term list"}: *}
+  term list"}:\<close>
 
 primrec subst_term :: "('a \<Rightarrow> ('a, 'b) term) \<Rightarrow> ('a, 'b) term \<Rightarrow> ('a, 'b) term" and
   subst_term_list :: "('a \<Rightarrow> ('a, 'b) term) \<Rightarrow> ('a, 'b) term list \<Rightarrow> ('a, 'b) term list"
@@ -464,21 +464,21 @@ where
 | "subst_term_list f [] = []"
 | "subst_term_list f (t # ts) = subst_term f t # subst_term_list f ts"
 
-text {* The recursion scheme follows the structure of the unfolded
+text \<open>The recursion scheme follows the structure of the unfolded
   definition of type @{typ "('a, 'b) term"}.  To prove properties of this
   substitution function, mutual induction is needed:
-*}
+\<close>
 
 lemma "subst_term (subst_term f1 \<circ> f2) t = subst_term f1 (subst_term f2 t)" and
   "subst_term_list (subst_term f1 \<circ> f2) ts = subst_term_list f1 (subst_term_list f2 ts)"
   by (induct t and ts rule: subst_term.induct subst_term_list.induct) simp_all
 
 
-subsubsection {* Example: a map function for infinitely branching trees *}
+subsubsection \<open>Example: a map function for infinitely branching trees\<close>
 
-text {* Defining functions on infinitely branching datatypes by
+text \<open>Defining functions on infinitely branching datatypes by
   primitive recursion is just as easy.
-*}
+\<close>
 
 datatype 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
 
@@ -487,19 +487,19 @@ where
   "map_tree f (Atom a) = Atom (f a)"
 | "map_tree f (Branch ts) = Branch (\<lambda>x. map_tree f (ts x))"
 
-text {* Note that all occurrences of functions such as @{text ts}
+text \<open>Note that all occurrences of functions such as @{text ts}
   above must be applied to an argument.  In particular, @{term
-  "map_tree f \<circ> ts"} is not allowed here. *}
+  "map_tree f \<circ> ts"} is not allowed here.\<close>
 
-text {* Here is a simple composition lemma for @{term map_tree}: *}
+text \<open>Here is a simple composition lemma for @{term map_tree}:\<close>
 
 lemma "map_tree g (map_tree f t) = map_tree (g \<circ> f) t"
   by (induct t) simp_all
 
 
-subsection {* Proof methods related to recursive definitions *}
+subsection \<open>Proof methods related to recursive definitions\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def (HOL) pat_completeness} & : & @{text method} \\
     @{method_def (HOL) relation} & : & @{text method} \\
@@ -563,12 +563,12 @@ text {*
   @{file "~~/src/HOL/ex/Induction_Schema.thy"} for examples.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Functions with explicit partiality *}
+subsection \<open>Functions with explicit partiality\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "partial_function"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{attribute_def (HOL) "partial_function_mono"} & : & @{text attribute} \\
@@ -634,12 +634,12 @@ text {*
 
   \end{description}
 
-*}
+\<close>
 
 
-subsection {* Old-style recursive function definitions (TFL) *}
+subsection \<open>Old-style recursive function definitions (TFL)\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "recdef"} & : & @{text "theory \<rightarrow> theory)"} \\
     @{command_def (HOL) "recdef_tc"}@{text "\<^sup>*"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
@@ -699,12 +699,12 @@ text {*
     (@@{attribute (HOL) recdef_simp} | @@{attribute (HOL) recdef_cong} |
       @@{attribute (HOL) recdef_wf}) (() | 'add' | 'del')
   \<close>}
-*}
+\<close>
 
 
-section {* Old-style datatypes \label{sec:hol-datatype} *}
+section \<open>Old-style datatypes \label{sec:hol-datatype}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "old_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "old_rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
@@ -741,43 +741,43 @@ text {*
   induct_tac} available, see \secref{sec:hol-induct-tac}; these admit
   to refer directly to the internal structure of subgoals (including
   internally bound parameters).
-*}
+\<close>
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* We define a type of finite sequences, with slightly different
+text \<open>We define a type of finite sequences, with slightly different
   names than the existing @{typ "'a list"} that is already in @{theory
-  Main}: *}
+  Main}:\<close>
 
 datatype 'a seq = Empty | Seq 'a "'a seq"
 
-text {* We can now prove some simple lemma by structural induction: *}
+text \<open>We can now prove some simple lemma by structural induction:\<close>
 
 lemma "Seq x xs \<noteq> xs"
 proof (induct xs arbitrary: x)
   case Empty
-  txt {* This case can be proved using the simplifier: the freeness
+  txt \<open>This case can be proved using the simplifier: the freeness
     properties of the datatype are already declared as @{attribute
-    simp} rules. *}
+    simp} rules.\<close>
   show "Seq x Empty \<noteq> Empty"
     by simp
 next
   case (Seq y ys)
-  txt {* The step case is proved similarly. *}
+  txt \<open>The step case is proved similarly.\<close>
   show "Seq x (Seq y ys) \<noteq> Seq y ys"
-    using `Seq y ys \<noteq> ys` by simp
+    using \<open>Seq y ys \<noteq> ys\<close> by simp
 qed
 
-text {* Here is a more succinct version of the same proof: *}
+text \<open>Here is a more succinct version of the same proof:\<close>
 
 lemma "Seq x xs \<noteq> xs"
   by (induct xs arbitrary: x) simp_all
 
 
-section {* Records \label{sec:hol-record} *}
+section \<open>Records \label{sec:hol-record}\<close>
 
-text {*
+text \<open>
   In principle, records merely generalize the concept of tuples, where
   components may be addressed by labels instead of just position.  The
   logical infrastructure of records in Isabelle/HOL is slightly more
@@ -786,12 +786,12 @@ text {*
   extension, yielding ``object-oriented'' effects like (single)
   inheritance.  See also @{cite "NaraschewskiW-TPHOLs98"} for more
   details on object-oriented verification and record subtyping in HOL.
-*}
+\<close>
 
 
-subsection {* Basic concepts *}
+subsection \<open>Basic concepts\<close>
 
-text {*
+text \<open>
   Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records
   at the level of terms and types.  The notation is as follows:
 
@@ -849,12 +849,12 @@ text {*
   tools enable succinct reasoning patterns.  See also the Isabelle/HOL
   tutorial @{cite "isabelle-hol-book"} for further instructions on using
   records in practice.
-*}
+\<close>
 
 
-subsection {* Record specifications *}
+subsection \<open>Record specifications\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "record"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
@@ -896,12 +896,12 @@ text {*
   \<zeta>\<rparr>"}.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Record operations *}
+subsection \<open>Record operations\<close>
 
-text {*
+text \<open>
   Any record definition of the form presented above produces certain
   standard operations.  Selectors and updates are provided for any
   field, including the improper one ``@{text more}''.  There are also
@@ -975,12 +975,12 @@ text {*
 
   \noindent Note that @{text "t.make"} and @{text "t.fields"} coincide
   for root records.
-*}
+\<close>
 
 
-subsection {* Derived rules and proof tools *}
+subsection \<open>Derived rules and proof tools\<close>
 
-text {*
+text \<open>
   The record package proves several results internally, declaring
   these facts to appropriate proof tools.  This enables users to
   reason about record structures quite conveniently.  Assume that
@@ -1025,16 +1025,16 @@ text {*
   using the collective fact @{text "t.defs"}.
 
   \end{enumerate}
-*}
+\<close>
 
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* See @{file "~~/src/HOL/ex/Records.thy"}, for example. *}
+text \<open>See @{file "~~/src/HOL/ex/Records.thy"}, for example.\<close>
 
-section {* Typedef axiomatization \label{sec:hol-typedef} *}
+section \<open>Typedef axiomatization \label{sec:hol-typedef}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
@@ -1118,11 +1118,11 @@ text {*
   respectively.
 
   \end{description}
-*}
+\<close>
 
-subsubsection {* Examples *}
+subsubsection \<open>Examples\<close>
 
-text {* Type definitions permit the introduction of abstract data
+text \<open>Type definitions permit the introduction of abstract data
   types in a safe way, namely by providing models based on already
   existing types.  Given some abstract axiomatic description @{text P}
   of a type, this involves two steps:
@@ -1142,7 +1142,7 @@ text {* Type definitions permit the introduction of abstract data
   terms of the abstract properties @{text P}.
 
   \medskip The following trivial example pulls a three-element type
-  into existence within the formal logical environment of HOL. *}
+  into existence within the formal logical environment of HOL.\<close>
 
 typedef three = "{(True, True), (True, False), (False, True)}"
   by blast
@@ -1158,19 +1158,19 @@ lemma three_cases:
   fixes x :: three obtains "x = One" | "x = Two" | "x = Three"
   by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject)
 
-text {* Note that such trivial constructions are better done with
-  derived specification mechanisms such as @{command datatype}: *}
+text \<open>Note that such trivial constructions are better done with
+  derived specification mechanisms such as @{command datatype}:\<close>
 
 datatype three' = One' | Two' | Three'
 
-text {* This avoids re-doing basic definitions and proofs from the
-  primitive @{command typedef} above. *}
+text \<open>This avoids re-doing basic definitions and proofs from the
+  primitive @{command typedef} above.\<close>
 
 
 
-section {* Functorial structure of types *}
+section \<open>Functorial structure of types\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "functor"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
   \end{matharray}
@@ -1207,12 +1207,12 @@ text {*
   \<alpha>\<^sub>n"}.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Quotient types *}
+section \<open>Quotient types\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "quotient_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
     @{command_def (HOL) "quotient_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
@@ -1361,12 +1361,12 @@ text {*
     theorems.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Definition by specification \label{sec:hol-specification} *}
+section \<open>Definition by specification \label{sec:hol-specification}\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
@@ -1393,12 +1393,12 @@ text {*
   the declaration.  Overloaded constants should be declared as such.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Adhoc overloading of constants *}
+section \<open>Adhoc overloading of constants\<close>
 
-text {*
+text \<open>
   \begin{tabular}{rcll}
   @{command_def "adhoc_overloading"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   @{command_def "no_adhoc_overloading"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -1435,14 +1435,14 @@ text {*
   user's expectations about derived variants.
 
   \end{description}
-*}
+\<close>
 
 
-chapter {* Proof tools *}
+chapter \<open>Proof tools\<close>
 
-section {* Adhoc tuples *}
+section \<open>Adhoc tuples\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
@@ -1461,12 +1461,12 @@ text {*
   parameters introduced.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Transfer package *}
+section \<open>Transfer package\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def (HOL) "transfer"} & : & @{text method} \\
     @{method_def (HOL) "transfer'"} & : & @{text method} \\
@@ -1558,12 +1558,12 @@ text {*
   \end{description}
 
   Theoretical background can be found in @{cite "Huffman-Kuncar:2013:lifting_transfer"}.
-*}
+\<close>
 
 
-section {* Lifting package *}
+section \<open>Lifting package\<close>
 
-text {*
+text \<open>
   The Lifting package allows users to lift terms of the raw type to the abstract type, which is 
   a necessary step in building a library for an abstract type. Lifting defines a new constant 
   by combining coercion functions (Abs and Rep) with the raw term. It also proves an appropriate 
@@ -1781,12 +1781,12 @@ text {*
     simplification rules for a predicator are again proved automatically.
   
   \end{description}
-*}
+\<close>
 
 
-section {* Coercive subtyping *}
+section \<open>Coercive subtyping\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{attribute_def (HOL) coercion} & : & @{text attribute} \\
     @{attribute_def (HOL) coercion_enabled} & : & @{text attribute} \\
@@ -1831,12 +1831,12 @@ text {*
   inference algorithm.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Arithmetic proof support *}
+section \<open>Arithmetic proof support\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def (HOL) arith} & : & @{text method} \\
     @{attribute_def (HOL) arith} & : & @{text attribute} \\
@@ -1859,12 +1859,12 @@ text {*
 
   Note that a simpler (but faster) arithmetic prover is already
   invoked by the Simplifier.
-*}
+\<close>
 
 
-section {* Intuitionistic proof search *}
+section \<open>Intuitionistic proof search\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def (HOL) iprover} & : & @{text method} \\
   \end{matharray}
@@ -1890,12 +1890,12 @@ text {*
   number of rule premises will be taken into account here.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Model Elimination and Resolution *}
+section \<open>Model Elimination and Resolution\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def (HOL) "meson"} & : & @{text method} \\
     @{method_def (HOL) "metis"} & : & @{text method} \\
@@ -1923,12 +1923,12 @@ text {*
   theories developed to a large extent using @{method (HOL) metis}.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Algebraic reasoning via Gr\"obner bases *}
+section \<open>Algebraic reasoning via Gr\"obner bases\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def (HOL) "algebra"} & : & @{text method} \\
     @{attribute_def (HOL) algebra} & : & @{text attribute} \\
@@ -1985,13 +1985,13 @@ text {*
   collection of pre-simplification rules of the above proof method.
 
   \end{description}
-*}
+\<close>
 
 
-subsubsection {* Example *}
+subsubsection \<open>Example\<close>
 
-text {* The subsequent example is from geometry: collinearity is
-  invariant by rotation.  *}
+text \<open>The subsequent example is from geometry: collinearity is
+  invariant by rotation.\<close>
 
 type_synonym point = "int \<times> int"
 
@@ -2005,14 +2005,14 @@ lemma collinear_inv_rotation:
     (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
   using assms by (algebra add: collinear.simps)
 
-text {*
+text \<open>
  See also @{file "~~/src/HOL/ex/Groebner_Examples.thy"}.
-*}
+\<close>
 
 
-section {* Coherent Logic *}
+section \<open>Coherent Logic\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{method_def (HOL) "coherent"} & : & @{text method} \\
   \end{matharray}
@@ -2029,12 +2029,12 @@ text {*
   @{file "~~/src/HOL/ex/Coherent.thy"} for some examples.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Proving propositions *}
+section \<open>Proving propositions\<close>
 
-text {*
+text \<open>
   In addition to the standard proof methods, a number of diagnosis
   tools search for proofs and provide an Isar proof snippet on success.
   These tools are available via the following commands.
@@ -2092,12 +2092,12 @@ text {*
   "sledgehammer"} configuration options persistently.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Checking and refuting propositions *}
+section \<open>Checking and refuting propositions\<close>
 
-text {*
+text \<open>
   Identifying incorrect propositions usually involves evaluation of
   particular assignments and systematic counterexample search.  This
   is supported by the following commands.
@@ -2321,12 +2321,12 @@ text {*
   common configuration declarations.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Unstructured case analysis and induction \label{sec:hol-induct-tac} *}
+section \<open>Unstructured case analysis and induction \label{sec:hol-induct-tac}\<close>
 
-text {*
+text \<open>
   The following tools of Isabelle/HOL support cases analysis and
   induction in unstructured tactic scripts; see also
   \secref{sec:cases-induct} for proper Isar versions of similar ideas.
@@ -2379,12 +2379,12 @@ text {*
   be generalized before applying the resulting rule.
 
   \end{description}
-*}
+\<close>
 
 
-chapter {* Executable code *}
+chapter \<open>Executable code\<close>
 
-text {* For validation purposes, it is often useful to \emph{execute}
+text \<open>For validation purposes, it is often useful to \emph{execute}
   specifications.  In principle, execution could be simulated by
   Isabelle's inference kernel, i.e. by a combination of resolution and
   simplification.  Unfortunately, this approach is rather inefficient.
@@ -2665,6 +2665,6 @@ text {* For validation purposes, it is often useful to \emph{execute}
     prove a corresponding elimination rule.
 
   \end{description}
-*}
+\<close>
 
 end

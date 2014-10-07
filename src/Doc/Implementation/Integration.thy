@@ -4,11 +4,11 @@ theory Integration
 imports Base
 begin
 
-chapter {* System integration *}
+chapter \<open>System integration\<close>
 
-section {* Isar toplevel \label{sec:isar-toplevel} *}
+section \<open>Isar toplevel \label{sec:isar-toplevel}\<close>
 
-text {*
+text \<open>
   The Isar \emph{toplevel state} represents the outermost configuration that
   is transformed by a sequence of transitions (commands) within a theory body.
   This is a pure value with pure functions acting on it in a timeless and
@@ -17,12 +17,12 @@ text {*
   contemporary Isabelle/Isar, processing toplevel commands usually works in
   parallel in multi-threaded Isabelle/ML @{cite "Wenzel:2009" and
   "Wenzel:2013:ITP"}.
-*}
+\<close>
 
 
-subsection {* Toplevel state *}
+subsection \<open>Toplevel state\<close>
 
-text {*
+text \<open>
   The toplevel state is a disjoint sum of empty @{text toplevel}, or @{text
   theory}, or @{text proof}. The initial toplevel is empty; a theory is
   commenced by a @{command theory} header; within a theory we may use theory
@@ -33,9 +33,9 @@ text {*
   defining the resulting fact. Further theory declarations or theorem
   statements with proofs may follow, until we eventually conclude the theory
   development by issuing @{command end} to get back to the empty toplevel.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type Toplevel.state} \\
   @{index_ML_exception Toplevel.UNDEF} \\
@@ -65,9 +65,9 @@ text %mlref {*
   state if available, otherwise it raises @{ML Toplevel.UNDEF}.
 
   \end{description}
-*}
+\<close>
 
-text %mlantiq {*
+text %mlantiq \<open>
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "Isar.state"} & : & @{text ML_antiquotation} \\
   \end{matharray}
@@ -81,12 +81,12 @@ text %mlantiq {*
   ML_val} or @{command ML_command}.
 
   \end{description}
-*}
+\<close>
 
 
-subsection {* Toplevel transitions \label{sec:toplevel-transition} *}
+subsection \<open>Toplevel transitions \label{sec:toplevel-transition}\<close>
 
-text {*
+text \<open>
   An Isar toplevel transition consists of a partial function on the toplevel
   state, with additional information for diagnostics and error reporting:
   there are fields for command name, source position, and other meta-data.
@@ -103,9 +103,9 @@ text {*
   source position. It is then left to the individual command parser to turn
   the given concrete syntax into a suitable transition transformer that
   adjoins actual operations on a theory or proof state.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML Toplevel.keep: "(Toplevel.state -> unit) ->
   Toplevel.transition -> Toplevel.transition"} \\
@@ -148,21 +148,21 @@ text %mlref {*
   resulting facts to the target context.
 
   \end{description}
-*}
+\<close>
 
 
-section {* Theory loader database *}
+section \<open>Theory loader database\<close>
 
-text {*
+text \<open>
   In batch mode and within dumped logic images, the theory database maintains
   a collection of theories as a directed acyclic graph. A theory may refer to
   other theories as @{keyword "imports"}, or to auxiliary files via special
   \emph{load commands} (e.g.\ @{command ML_file}). For each theory, the base
   directory of its own theory file is called \emph{master directory}: this is
   used as the relative location to refer to other files from that theory.
-*}
+\<close>
 
-text %mlref {*
+text %mlref \<open>
   \begin{mldecls}
   @{index_ML use_thy: "string -> unit"} \\
   @{index_ML use_thys: "string list -> unit"} \\[0.5ex]
@@ -197,6 +197,6 @@ text %mlref {*
   information according to the file store.
 
   \end{description}
-*}
+\<close>
 
 end

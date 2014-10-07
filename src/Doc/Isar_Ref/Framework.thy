@@ -2,9 +2,9 @@ theory Framework
 imports Base Main
 begin
 
-chapter {* The Isabelle/Isar Framework \label{ch:isar-framework} *}
+chapter \<open>The Isabelle/Isar Framework \label{ch:isar-framework}\<close>
 
-text {*
+text \<open>
   Isabelle/Isar @{cite "Wenzel:1999:TPHOL" and "Wenzel-PhD" and
   "Nipkow-TYPES02" and "Wenzel-Paulson:2006" and "Wenzel:2006:Festschrift"}
   is intended as a generic framework for developing formal
@@ -74,9 +74,9 @@ text {*
   both the Isar text, and depict the primitive rule involved, as
   determined by unification of the problem against rules that are
   declared in the library context.
-*}
+\<close>
 
-text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
+text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
 
 (*<*)
 notepad
@@ -88,15 +88,15 @@ begin
 end
 (*>*)
 
-text_raw {*\end{minipage}\begin{minipage}{0.4\textwidth}*}
+text_raw \<open>\end{minipage}\begin{minipage}{0.4\textwidth}\<close>
 
-text {*
+text \<open>
   \infer{@{prop "x \<in> A \<inter> B"}}{@{prop "x \<in> A"} & @{prop "x \<in> B"}}
-*}
+\<close>
 
-text_raw {*\end{minipage}*}
+text_raw \<open>\end{minipage}\<close>
 
-text {*
+text \<open>
   \medskip\noindent Note that @{command assume} augments the proof
   context, @{command then} indicates that the current fact shall be
   used in the next step, and @{command have} states an intermediate
@@ -104,7 +104,7 @@ text {*
   this claim, using the indicated facts and a canonical rule from the
   context.  We could have been more explicit here by spelling out the
   final proof step via the @{command "by"} command:
-*}
+\<close>
 
 (*<*)
 notepad
@@ -116,7 +116,7 @@ begin
 end
 (*>*)
 
-text {*
+text \<open>
   \noindent The format of the @{text "\<inter>"}-introduction rule represents
   the most basic inference, which proceeds from given premises to a
   conclusion, without any nested proof context involved.
@@ -125,9 +125,9 @@ text {*
   the intersection of all sets within a given set.  This requires a
   nested proof of set membership within a local context, where @{term
   A} is an arbitrary-but-fixed member of the collection:
-*}
+\<close>
 
-text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
+text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
 
 (*<*)
 notepad
@@ -143,15 +143,15 @@ begin
 end
 (*>*)
 
-text_raw {*\end{minipage}\begin{minipage}{0.4\textwidth}*}
+text_raw \<open>\end{minipage}\begin{minipage}{0.4\textwidth}\<close>
 
-text {*
+text \<open>
   \infer{@{prop "x \<in> \<Inter>\<A>"}}{\infer*{@{prop "x \<in> A"}}{@{text "[A][A \<in> \<A>]"}}}
-*}
+\<close>
 
-text_raw {*\end{minipage}*}
+text_raw \<open>\end{minipage}\<close>
 
-text {*
+text \<open>
   \medskip\noindent This Isar reasoning pattern again refers to the
   primitive rule depicted above.  The system determines it in the
   ``@{command proof}'' step, which could have been spelled out more
@@ -173,9 +173,9 @@ text {*
   directly a local @{term "A"} such that @{prop "x \<in> A"} and @{prop "A
   \<in> \<A>"} hold.  This corresponds to the following Isar proof and
   inference rule, respectively:
-*}
+\<close>
 
-text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
+text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
 
 (*<*)
 notepad
@@ -192,15 +192,15 @@ begin
 end
 (*>*)
 
-text_raw {*\end{minipage}\begin{minipage}{0.4\textwidth}*}
+text_raw \<open>\end{minipage}\begin{minipage}{0.4\textwidth}\<close>
 
-text {*
+text \<open>
   \infer{@{prop "C"}}{@{prop "x \<in> \<Union>\<A>"} & \infer*{@{prop "C"}~}{@{text "[A][x \<in> A, A \<in> \<A>]"}}}
-*}
+\<close>
 
-text_raw {*\end{minipage}*}
+text_raw \<open>\end{minipage}\<close>
 
-text {*
+text \<open>
   \medskip\noindent Although the Isar proof follows the natural
   deduction rule closely, the text reads not as natural as
   anticipated.  There is a double occurrence of an arbitrary
@@ -209,7 +209,7 @@ text {*
   involving local parameters.  Isar provides the derived language
   element @{command obtain}, which is able to perform the same
   elimination proof more conveniently:
-*}
+\<close>
 
 (*<*)
 notepad
@@ -221,16 +221,16 @@ begin
 end
 (*>*)
 
-text {*
+text \<open>
   \noindent Here we avoid to mention the final conclusion @{prop "C"}
   and return to plain forward reasoning.  The rule involved in the
   ``@{command ".."}'' proof is the same as before.
-*}
+\<close>
 
 
-section {* The Pure framework \label{sec:framework-pure} *}
+section \<open>The Pure framework \label{sec:framework-pure}\<close>
 
-text {*
+text \<open>
   The Pure logic @{cite "paulson-found" and "paulson700"} is an intuitionistic
   fragment of higher-order logic @{cite "church40"}.  In type-theoretic
   parlance, there are three levels of @{text "\<lambda>"}-calculus with
@@ -257,12 +257,12 @@ text {*
   internalized as formulae over @{text "\<And>"} and @{text "\<Longrightarrow>"}.
   Combining such rule statements may involve higher-order unification
   @{cite "paulson-natural"}.
-*}
+\<close>
 
 
-subsection {* Primitive inferences *}
+subsection \<open>Primitive inferences\<close>
 
-text {*
+text \<open>
   Term syntax provides explicit notation for abstraction @{text "\<lambda>x ::
   \<alpha>. b(x)"} and application @{text "b a"}, while types are usually
   implicit thanks to type-inference; terms of type @{text "prop"} are
@@ -308,12 +308,12 @@ text {*
   Pure.  After the initial object-logic setup, further axiomatizations
   are usually avoided; plain definitions and derived principles are
   used exclusively.
-*}
+\<close>
 
 
-subsection {* Reasoning with rules \label{sec:framework-resolution} *}
+subsection \<open>Reasoning with rules \label{sec:framework-resolution}\<close>
 
-text {*
+text \<open>
   Primitive inferences mostly serve foundational purposes.  The main
   reasoning mechanisms of Pure operate on nested natural deduction
   rules expressed as formulae, using @{text "\<And>"} to bind local
@@ -444,12 +444,12 @@ text {*
   premises.  Consequently, @{command fix}-@{command assume}-@{command
   show} enables to fit the result of a sub-proof quite robustly into a
   pending sub-goal, while maintaining a good measure of flexibility.
-*}
+\<close>
 
 
-section {* The Isar proof language \label{sec:framework-isar} *}
+section \<open>The Isar proof language \label{sec:framework-isar}\<close>
 
-text {*
+text \<open>
   Structured proofs are presented as high-level expressions for
   composing entities of Pure (propositions, facts, and goals).  The
   Isar proof language allows to organize reasoning within the
@@ -554,12 +554,12 @@ text {*
   from a nested sub-proof (see \secref{sec:framework-subproof}).
   Further derived concepts will support calculational reasoning (see
   \secref{sec:framework-calc}).
-*}
+\<close>
 
 
-subsection {* Context elements \label{sec:framework-context} *}
+subsection \<open>Context elements \label{sec:framework-context}\<close>
 
-text {*
+text \<open>
   In judgments @{text "\<Gamma> \<turnstile> \<phi>"} of the primitive framework, @{text "\<Gamma>"}
   essentially acts like a proof context.  Isar elaborates this idea
   towards a higher-level notion, with additional information for
@@ -648,49 +648,49 @@ text {*
   elements introduced above using the formal proof language itself.
   After finishing a local proof within a block, we indicate the
   exported result via @{command note}.
-*}
+\<close>
 
 (*<*)
 theorem True
 proof
 (*>*)
-  txt_raw {* \begin{minipage}[t]{0.45\textwidth} *}
+  txt_raw \<open>\begin{minipage}[t]{0.45\textwidth}\<close>
   {
     fix x
     have "B x" sorry %noproof
   }
-  note `\<And>x. B x`
-  txt_raw {* \end{minipage}\quad\begin{minipage}[t]{0.45\textwidth} *}(*<*)next(*>*)
+  note \<open>\<And>x. B x\<close>
+  txt_raw \<open>\end{minipage}\quad\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
     assume A
     have B sorry %noproof
   }
-  note `A \<Longrightarrow> B`
-  txt_raw {* \end{minipage}\\[3ex]\begin{minipage}[t]{0.45\textwidth} *}(*<*)next(*>*)
+  note \<open>A \<Longrightarrow> B\<close>
+  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
     def x \<equiv> a
     have "B x" sorry %noproof
   }
-  note `B a`
-  txt_raw {* \end{minipage}\quad\begin{minipage}[t]{0.45\textwidth} *}(*<*)next(*>*)
+  note \<open>B a\<close>
+  txt_raw \<open>\end{minipage}\quad\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
     obtain x where "A x" sorry %noproof
     have B sorry %noproof
   }
-  note `B`
-  txt_raw {* \end{minipage} *}
+  note \<open>B\<close>
+  txt_raw \<open>\end{minipage}\<close>
 (*<*)
 qed
 (*>*)
 
-text {*
+text \<open>
   \bigskip\noindent This illustrates the meaning of Isar context
   elements without goals getting in between.
-*}
+\<close>
 
-subsection {* Structured statements \label{sec:framework-stmt} *}
+subsection \<open>Structured statements \label{sec:framework-stmt}\<close>
 
-text {*
+text \<open>
   The category @{text "statement"} of top-level theorem specifications
   is defined as follows:
 
@@ -735,20 +735,20 @@ text {*
   problem is already laid out directly.  E.g.\ consider the following
   canonical patterns for @{text "\<SHOWS>"} and @{text "\<OBTAINS>"},
   respectively:
-*}
+\<close>
 
-text_raw {*\begin{minipage}{0.5\textwidth}*}
+text_raw \<open>\begin{minipage}{0.5\textwidth}\<close>
 
 theorem
   fixes x and y
   assumes "A x" and "B y"
   shows "C x y"
 proof -
-  from `A x` and `B y`
+  from \<open>A x\<close> and \<open>B y\<close>
   show "C x y" sorry %noproof
 qed
 
-text_raw {*\end{minipage}\begin{minipage}{0.5\textwidth}*}
+text_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
 
 theorem
   obtains x and y
@@ -758,9 +758,9 @@ proof -
   then show thesis ..
 qed
 
-text_raw {*\end{minipage}*}
+text_raw \<open>\end{minipage}\<close>
 
-text {*
+text \<open>
   \medskip\noindent Here local facts \isacharbackquoteopen@{text "A
   x"}\isacharbackquoteclose\ and \isacharbackquoteopen@{text "B
   y"}\isacharbackquoteclose\ are referenced immediately; there is no
@@ -769,12 +769,12 @@ text {*
   thesis}~@{command ".."}''  involves the local rule case @{text "\<And>x
   y. A x \<Longrightarrow> B y \<Longrightarrow> thesis"} for the particular instance of terms @{text
   "a"} and @{text "b"} produced in the body.
-*}
+\<close>
 
 
-subsection {* Structured proof refinement \label{sec:framework-subproof} *}
+subsection \<open>Structured proof refinement \label{sec:framework-subproof}\<close>
 
-text {*
+text \<open>
   By breaking up the grammar for the Isar proof language, we may
   understand a proof text as a linear sequence of individual proof
   commands.  These are interpreted as transitions of the Isar virtual
@@ -814,19 +814,19 @@ text {*
   @{text "state"} mode one level upwards.  The subsequent Isar/VM
   trace indicates block structure, linguistic mode, goal state, and
   inferences:
-*}
+\<close>
 
-text_raw {* \begingroup\footnotesize *}
+text_raw \<open>\begingroup\footnotesize\<close>
 (*<*)notepad begin
 (*>*)
-  txt_raw {* \begin{minipage}[t]{0.18\textwidth} *}
+  txt_raw \<open>\begin{minipage}[t]{0.18\textwidth}\<close>
   have "A \<longrightarrow> B"
   proof
     assume A
     show B
       sorry %noproof
   qed
-  txt_raw {* \end{minipage}\quad
+  txt_raw \<open>\end{minipage}\quad
 \begin{minipage}[t]{0.06\textwidth}
 @{text "begin"} \\
 \\
@@ -856,13 +856,13 @@ text_raw {* \begingroup\footnotesize *}
 \\
 @{text "(refinement #A \<Longrightarrow> B)"} \\
 @{text "(finish)"} \\
-\end{minipage} *}
+\end{minipage}\<close>
 (*<*)
 end
 (*>*)
-text_raw {* \endgroup *}
+text_raw \<open>\endgroup\<close>
 
-text {*
+text \<open>
   \noindent Here the @{inference refinement} inference from
   \secref{sec:framework-resolution} mediates composition of Isar
   sub-proofs nicely.  Observe that this principle incorporates some
@@ -871,9 +871,9 @@ text {*
   according to Hereditary Harrop Form.  Moreover, context elements
   that are not used in a sub-proof may be omitted altogether.  For
   example:
-*}
+\<close>
 
-text_raw {*\begin{minipage}{0.5\textwidth}*}
+text_raw \<open>\begin{minipage}{0.5\textwidth}\<close>
 
 (*<*)
 notepad
@@ -886,7 +886,7 @@ begin
     show "C x y" sorry %noproof
   qed
 
-txt_raw {*\end{minipage}\begin{minipage}{0.5\textwidth}*}
+txt_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
 
 (*<*)
 next
@@ -898,7 +898,7 @@ next
     show "C x y" sorry %noproof
   qed
 
-txt_raw {*\end{minipage}\\[3ex]\begin{minipage}{0.5\textwidth}*}
+txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}{0.5\textwidth}\<close>
 
 (*<*)
 next
@@ -910,7 +910,7 @@ next
     show "C x y" sorry
   qed
 
-txt_raw {*\end{minipage}\begin{minipage}{0.5\textwidth}*}
+txt_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
 (*<*)
 next
 (*>*)
@@ -924,9 +924,9 @@ next
 end
 (*>*)
 
-text_raw {*\end{minipage}*}
+text_raw \<open>\end{minipage}\<close>
 
-text {*
+text \<open>
   \medskip\noindent Such ``peephole optimizations'' of Isar texts are
   practically important to improve readability, by rearranging
   contexts elements according to the natural flow of reasoning in the
@@ -938,12 +938,12 @@ text {*
   particular, there are no direct operations on goal states within the
   proof body.  Moreover, there is no hidden automated reasoning
   involved, just plain unification.
-*}
+\<close>
 
 
-subsection {* Calculational reasoning \label{sec:framework-calc} *}
+subsection \<open>Calculational reasoning \label{sec:framework-calc}\<close>
 
-text {*
+text \<open>
   The existing Isar infrastructure is sufficiently flexible to support
   calculational reasoning (chains of transitivity steps) as derived
   concept.  The generic proof elements introduced below depend on
@@ -983,7 +983,7 @@ text {*
 
   Here is a canonical proof pattern, using @{command have} to
   establish the intermediate results:
-*}
+\<close>
 
 (*<*)
 notepad
@@ -997,7 +997,7 @@ begin
 end
 (*>*)
 
-text {*
+text \<open>
   \noindent The term ``@{text "\<dots>"}'' above is a special abbreviation
   provided by the Isabelle/Isar syntax layer: it statically refers to
   the right-hand side argument of the previous statement given in the
@@ -1011,6 +1011,6 @@ text {*
   used in fact expressions ``@{text "a [symmetric]"}'', or single-step
   proofs ``@{command assume}~@{text "x = y"}~@{command then}~@{command
   have}~@{text "y = x"}~@{command ".."}''.
-*}
+\<close>
 
 end
