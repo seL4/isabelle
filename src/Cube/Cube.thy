@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow
 *)
 
-header {* Barendregt's Lambda-Cube *}
+header \<open>Barendregt's Lambda-Cube\<close>
 
 theory Cube
 imports Pure
@@ -54,10 +54,10 @@ translations
 syntax (xsymbols)
   "_Pi" :: "[idt, term, term] => term"    ("(3\<Pi> _:_./ _)" [0, 0] 10)
 
-print_translation {*
+print_translation \<open>
   [(@{const_syntax Prod},
     fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]
-*}
+\<close>
 
 axiomatization where
   s_b: "*: \<box>"  and
