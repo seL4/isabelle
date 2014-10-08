@@ -134,7 +134,7 @@ fun vector_cmul c (v: vector) =
 
 fun vector_of_list l =
   let val n = length l in
-    (n, fold_rev2 (curry FuncUtil.Intfunc.update) (1 upto n) l FuncUtil.Intfunc.empty): vector
+    (n, fold_rev FuncUtil.Intfunc.update (1 upto n ~~ l) FuncUtil.Intfunc.empty): vector
   end;
 
 (* Matrices; again rows and columns indexed from 1.                          *)
@@ -592,8 +592,8 @@ fun sdpa_of_blockproblem nblocks blocksizes obj mats =
     (space_implode " " (map string_of_int blocksizes)) ^
     "\n" ^
     sdpa_of_vector obj ^
-    fold_rev2 (fn k => fn m => fn a => sdpa_of_blockdiagonal (k - 1) m ^ a)
-      (1 upto length mats) mats ""
+    fold_rev (fn (k, m) => fn a => sdpa_of_blockdiagonal (k - 1) m ^ a)
+      (1 upto length mats ~~ mats) ""
   end;
 
 (* Run prover on a problem in block diagonal form.                       *)
@@ -683,9 +683,9 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
     val (_(*idmonlist*),ids) =  split_list (map2 mk_idmultiplier (1 upto length eqs) eqs)
     val blocksizes = map length sqmonlist
     val bigsum =
-      fold_rev2 (fn p => fn q => fn a => tri_epoly_pmul p q a) eqs ids
-        (fold_rev2 (fn (p,_) => fn s => fn a => tri_epoly_pmul p s a) monoid sqs
-          (epoly_of_poly(poly_neg pol)))
+      fold_rev (fn (p, q) => fn a => tri_epoly_pmul p q a) (eqs ~~ ids)
+        (fold_rev (fn ((p, _), s) => fn a => tri_epoly_pmul p s a) (monoid ~~ sqs)
+          (epoly_of_poly (poly_neg pol)))
     val eqns = FuncUtil.Monomialfunc.fold (fn (_, e) => fn a => e :: a) bigsum []
     val (pvs, assig) = tri_eliminate_all_equations (0, 0, 0) eqns
     val qvars = (0, 0, 0) :: pvs
@@ -753,7 +753,7 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
     fun eval_sq sqs = fold_rev (fn (c, q) => poly_add (poly_cmul c (poly_mul q q))) sqs poly_0
     val sanity =
       fold_rev (fn ((p, _), s) => poly_add (poly_mul p (eval_sq s))) msq
-        (fold_rev2 (fn p => fn q => poly_add (poly_mul p q)) cfs eqs (poly_neg pol))
+        (fold_rev (fn (p, q) => poly_add (poly_mul p q)) (cfs ~~ eqs) (poly_neg pol))
   in
     if not(FuncUtil.Monomialfunc.is_empty sanity) then raise Sanity
     else (cfs, map (fn (a, b) => (snd a, b)) msq)
