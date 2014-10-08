@@ -7,6 +7,41 @@ Miscellaneous ML antiquotations.
 structure ML_Antiquotations: sig end =
 struct
 
+(* ML support *)
+
+val _ = Theory.setup
+ (ML_Antiquotation.inline @{binding assert}
+    (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
+
+  ML_Antiquotation.inline @{binding make_string} (Scan.succeed ml_make_string) #>
+
+  ML_Antiquotation.declaration @{binding print}
+    (Scan.lift (Scan.optional Args.name "Output.writeln"))
+      (fn src => fn output => fn ctxt =>
+        let
+          val (_, pos) = Token.name_of_src src;
+          val (a, ctxt') = ML_Antiquotation.variant "output" ctxt;
+          val env =
+            "val " ^ a ^ ": string -> unit =\n\
+            \  (" ^ output ^ ") o (fn s => s ^ Position.here (" ^
+            ML_Syntax.print_position pos ^ "));\n";
+          val body =
+            "(fn x => (Isabelle." ^ a ^ " (" ^ ml_make_string ^ " x); x))";
+        in (K (env, body), ctxt') end));
+
+
+(* embedded source *)
+
+val _ = Theory.setup
+ (ML_Antiquotation.value @{binding source}
+    (Scan.lift Args.text_source_position >> (fn {delimited, text, pos} =>
+      "{delimited = " ^ Bool.toString delimited ^
+      ", text = " ^ ML_Syntax.print_string text ^
+      ", pos = " ^ ML_Syntax.print_position pos ^ "}")));
+
+
+(* formal entities *)
+
 val _ = Theory.setup
  (ML_Antiquotation.value @{binding system_option}
     (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
@@ -50,39 +85,6 @@ val _ = Theory.setup
       Scan.lift Args.name_inner_syntax >> uncurry Proof_Context.read_term_pattern >> (fn t =>
         "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
           ML_Syntax.atomic (ML_Syntax.print_term t))));
-
-
-(* embedded source *)
-
-val _ = Theory.setup
- (ML_Antiquotation.value @{binding source}
-    (Scan.lift Args.text_source_position >> (fn {delimited, text, pos} =>
-      "{delimited = " ^ Bool.toString delimited ^
-      ", text = " ^ ML_Syntax.print_string text ^
-      ", pos = " ^ ML_Syntax.print_position pos ^ "}")));
-
-
-(* ML support *)
-
-val _ = Theory.setup
- (ML_Antiquotation.inline @{binding assert}
-    (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
-
-  ML_Antiquotation.inline @{binding make_string} (Scan.succeed ml_make_string) #>
-
-  ML_Antiquotation.declaration @{binding print}
-    (Scan.lift (Scan.optional Args.name "Output.writeln"))
-      (fn src => fn output => fn ctxt =>
-        let
-          val (_, pos) = Token.name_of_src src;
-          val (a, ctxt') = ML_Antiquotation.variant "output" ctxt;
-          val env =
-            "val " ^ a ^ ": string -> unit =\n\
-            \  (" ^ output ^ ") o (fn s => s ^ Position.here (" ^
-            ML_Syntax.print_position pos ^ "));\n";
-          val body =
-            "(fn x => (Isabelle." ^ a ^ " (" ^ ml_make_string ^ " x); x))";
-        in (K (env, body), ctxt') end));
 
 
 (* type classes *)
