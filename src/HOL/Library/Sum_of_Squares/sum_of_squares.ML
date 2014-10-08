@@ -10,6 +10,9 @@ sig
   datatype proof_method = Certificate of RealArith.pss_tree | Prover of string -> string
   val sos_tac: (RealArith.pss_tree -> unit) -> proof_method -> Proof.context -> int -> tactic
   val trace: bool Config.T
+  val debug: bool Config.T
+  val trace_message: Proof.context -> (unit -> string) -> unit
+  val debug_message: Proof.context -> (unit -> string) -> unit
   exception Failure of string;
 end
 
@@ -52,7 +55,13 @@ val abs_rat = Rat.abs;
 val pow2 = rat_pow rat_2;
 val pow10 = rat_pow rat_10;
 
+
 val trace = Attrib.setup_config_bool @{binding sos_trace} (K false);
+val debug = Attrib.setup_config_bool @{binding sos_debug} (K false);
+
+fun trace_message ctxt msg =
+  if Config.get ctxt trace orelse Config.get ctxt debug then tracing (msg ()) else ();
+fun debug_message ctxt msg = if Config.get ctxt debug then tracing (msg ()) else ();
 
 exception Sanity;
 
@@ -710,9 +719,7 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
     fun find_rounding d =
       let
         val _ =
-          if Config.get ctxt trace
-          then writeln ("Trying rounding with limit "^Rat.string_of_rat d ^ "\n")
-          else ()
+          debug_message ctxt (fn () => "Trying rounding with limit "^Rat.string_of_rat d ^ "\n")
         val vec = nice_vector d raw_vec
         val blockmat =
           iter (1, dim vec)
@@ -755,9 +762,10 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
 
 (* Iterative deepening.                                                      *)
 
-fun deepen f n =
-  (writeln ("Searching with depth limit " ^ string_of_int n);
-    (f n handle Failure s => (writeln ("failed with message: " ^ s); deepen f (n + 1))));
+fun deepen ctxt f n =
+  (trace_message ctxt (fn () => "Searching with depth limit " ^ string_of_int n);
+    (f n handle Failure s =>
+      (trace_message ctxt (fn () => "failed with message: " ^ s); deepen ctxt f (n + 1))));
 
 
 (* Map back polynomials and their composites to a positivstellensatz.        *)
@@ -839,7 +847,7 @@ fun real_nonlinear_prover proof_method ctxt =
                               (poly_neg(poly_pow pol i))))
                           (0 upto k)
                       end
-                    val (_,i,(cert_ideal,cert_cone)) = deepen tryall 0
+                    val (_,i,(cert_ideal,cert_cone)) = deepen ctxt tryall 0
                     val proofs_ideal =
                       map2 (fn q => fn (_,ax) => RealArith.Eqmul(q,ax)) cert_ideal eq
                     val proofs_cone = map cterm_of_sos cert_cone

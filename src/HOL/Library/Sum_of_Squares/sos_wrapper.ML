@@ -1,7 +1,7 @@
 (*  Title:      HOL/Library/Sum_of_Squares/sos_wrapper.ML
     Author:     Philipp Meyer, TU Muenchen
 
-Added functionality for sums of squares, e.g. calling a remote prover.
+Wrapper for "sos" proof method.
 *)
 
 signature SOS_WRAPPER =
@@ -18,12 +18,8 @@ fun str_of_result Success = "Success"
   | str_of_result Failure = "Failure"
   | str_of_result Error = "Error"
 
-
-fun filename name =
-  File.tmp_path (Path.basic (name ^ serial_string ()))
-
-fun find_failure rv =
-  case rv of
+fun get_result rc =
+  (case rc of
     0 => (Success, "SDP solved")
   | 1 => (Failure, "SDP is primal infeasible")
   | 2 => (Failure, "SDP is dual infeasible")
@@ -34,52 +30,37 @@ fun find_failure rv =
   | 7 => (Failure, "Lack of progress")
   | 8 => (Failure, "X, Z, or O was singular")
   | 9 => (Failure, "Detected NaN or Inf values")
-  | _ => (Error, "return code is " ^ string_of_int rv)
-
-val exe = Path.explode "$ISABELLE_CSDP"
+  | _ => (Error, "return code is " ^ string_of_int rc))
 
 fun run_solver ctxt input =
-  let
-    (* create input file *)
-    val input_file = filename "sos_in"
-    val _ = File.write input_file input
+  Isabelle_System.with_tmp_file "sos_in" "" (fn in_path =>
+    Isabelle_System.with_tmp_file "sos_out" "" (fn out_path =>
+      let
+        val _ = File.write in_path input
 
-    (* call solver *)
-    val output_file = filename "sos_out"
-    val (output, rv) =
-      Isabelle_System.bash_output
-       (if File.exists exe then
-          space_implode " " (map File.shell_path [exe, input_file, output_file])
-        else error ("Bad executable: " ^ File.platform_path exe))
+        val (output, rc) =
+          Isabelle_System.bash_output
+            ("\"$ISABELLE_CSDP\" " ^ File.shell_path in_path ^ " " ^ File.shell_path out_path)
+        val _ = Sum_of_Squares.debug_message ctxt (fn () => "Solver output:\n" ^ output)
 
-    (* read and analyze output *)
-    val (res, res_msg) = find_failure rv
-    val result = if File.exists output_file then File.read output_file else ""
+        val result = if File.exists out_path then File.read out_path else ""
 
-    (* remove temporary files *)
-    val _ = File.rm input_file
-    val _ = if File.exists output_file then File.rm output_file else ()
-
-    val _ =
-      if Config.get ctxt Sum_of_Squares.trace
-      then writeln ("Solver output:\n" ^ output)
-      else ()
-
-    val _ = warning (str_of_result res ^ ": " ^ res_msg)
-  in
-    (case res of
-      Success => result
-    | Failure => raise Sum_of_Squares.Failure res_msg
-    | Error => error ("Prover failed: " ^ res_msg))
-  end
+        val (res, res_msg) = get_result rc
+        val _ = Sum_of_Squares.trace_message ctxt (fn () => str_of_result res ^ ": " ^ res_msg)
+      in
+        (case res of
+          Success => result
+        | Failure => raise Sum_of_Squares.Failure res_msg
+        | Error => error ("Prover failed: " ^ res_msg))
+      end))
 
 
 (* method setup *)
 
 fun print_cert cert =
-  warning
-    ("To repeat this proof with a certificate use this proof method:\n" ^
-      Active.sendback_markup [] ("(sos \"" ^ Positivstellensatz_Tools.print_cert cert ^ "\")"))
+  (writeln o Markup.markup Markup.information)
+    ("To repeat this proof with a certificate use this command:\n" ^
+      Active.sendback_markup [] ("by (sos \"" ^ Positivstellensatz_Tools.print_cert cert ^ "\")"))
 
 fun sos_tac ctxt NONE =
       Sum_of_Squares.sos_tac print_cert
