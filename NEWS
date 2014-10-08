@@ -122,6 +122,9 @@ Minor INCOMPATIBILITY.
 
 * List: renamed drop_Suc_conv_tl and nth_drop' to Cons_nth_drop_Suc
 
+* New infrastructure for compiling, running, evaluating and testing
+  generated code in target languages in HOL/Library/Code_Test. See
+  HOL/Codegenerator_Test/Code_Test* for examples.
 
 *** ML ***
 

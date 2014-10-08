@@ -4,7 +4,7 @@
 Test case for test_code on Scala
 *)
 
-theory Code_Test_Scala imports Code_Test begin 
+theory Code_Test_Scala imports  "../Library/Code_Test" begin 
 
 declare [[scala_case_insensitive]]
 

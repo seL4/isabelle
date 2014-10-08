@@ -11,7 +11,7 @@ begin
 
 subsection {* YXML encoding for @{typ Code_Evaluation.term} *}
 
-datatype yxml_of_term = YXML
+datatype (plugins del: code size "quickcheck") yxml_of_term = YXML
 
 lemma yot_anything: "x = (y :: yxml_of_term)"
 by(cases x y rule: yxml_of_term.exhaust[case_product yxml_of_term.exhaust])(simp)
@@ -58,7 +58,7 @@ text {*
   sufficient to encode @{typ "Code_Evaluation.term"} as in @{file "~~/src/Pure/term_xml.ML"}.
 *}
 
-datatype xml_tree = XML_Tree
+datatype (plugins del: code size "quickcheck") xml_tree = XML_Tree
 
 lemma xml_tree_anything: "x = (y :: xml_tree)"
 by(cases x y rule: xml_tree.exhaust[case_product xml_tree.exhaust])(simp)

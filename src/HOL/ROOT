@@ -241,7 +241,6 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
     Generate_Target_Nat
     Generate_Efficient_Datastructures
     Generate_Pretty_Char
-    Code_Test
   theories [condition = ISABELLE_GHC]
     Code_Test_GHC
   theories [condition = ISABELLE_MLTON]

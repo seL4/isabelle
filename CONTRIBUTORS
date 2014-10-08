@@ -10,6 +10,9 @@ Contributions to this Isabelle version
   Lexicographic order on functions and
   sum/product over function bodies.
 
+* August 2014: Andreas Lochbihler, ETH Zurich
+  Test infrastructure for executing generated code in target langauges
+
 * August 2014: Manuel Eberl, TUM
   Generic euclidean algorithms for gcd et al.
 

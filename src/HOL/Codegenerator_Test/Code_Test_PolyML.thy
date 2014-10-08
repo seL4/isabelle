@@ -4,7 +4,7 @@
 Test case for test_code on PolyML
 *)
 
-theory Code_Test_PolyML imports Code_Test begin
+theory Code_Test_PolyML imports  "../Library/Code_Test" begin
 
 test_code "14 + 7 * -12 = (140 div -2 :: integer)" in PolyML
 

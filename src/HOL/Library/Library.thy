@@ -7,6 +7,7 @@ imports
   BNF_Axiomatization
   Boolean_Algebra
   Char_ord
+  Code_Test
   ContNotDenum
   Convex
   Countable
