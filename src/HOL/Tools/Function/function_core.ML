@@ -873,7 +873,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val cert = cterm_of (Proof_Context.theory_of lthy)
 
     val xclauses = PROFILE "xclauses"
-      (map7 (mk_clause_info globals G f) (1 upto n) clauses abstract_qglrs trees
+      (@{map 7} (mk_clause_info globals G f) (1 upto n) clauses abstract_qglrs trees
         RCss GIntro_thms) RIntro_thmss
 
     val complete =

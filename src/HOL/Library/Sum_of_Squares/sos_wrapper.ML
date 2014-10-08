@@ -1,14 +1,12 @@
 (*  Title:      HOL/Library/Sum_of_Squares/sos_wrapper.ML
     Author:     Philipp Meyer, TU Muenchen
 
-Added functionality for sums of squares, e.g. calling a remote prover.
+Wrapper for "sos" proof method.
 *)
 
 signature SOS_WRAPPER =
 sig
-  datatype prover_result = Success | Failure | Error
-  val dest_dir: string Config.T
-  val prover_name: string Config.T
+  val sos_tac: Proof.context -> string option -> int -> tactic
 end
 
 structure SOS_Wrapper: SOS_WRAPPER =
@@ -20,70 +18,8 @@ fun str_of_result Success = "Success"
   | str_of_result Failure = "Failure"
   | str_of_result Error = "Error"
 
-
-(*** calling provers ***)
-
-val dest_dir = Attrib.setup_config_string @{binding sos_dest_dir} (K "")
-
-fun filename dir name =
-  let
-    val probfile = Path.basic (name ^ serial_string ())
-    val dir_path = Path.explode dir
-  in
-    if dir = "" then
-      File.tmp_path probfile
-    else if File.exists dir_path then
-      Path.append dir_path probfile
-    else error ("No such directory: " ^ dir)
-  end
-
-fun run_solver ctxt name exe find_failure input =
-  let
-    val _ = warning ("Calling solver: " ^ name)
-
-    (* create input file *)
-    val dir = Config.get ctxt dest_dir
-    val input_file = filename dir "sos_in"
-    val _ = File.write input_file input
-
-    (* call solver *)
-    val output_file = filename dir "sos_out"
-    val (output, rv) =
-      Isabelle_System.bash_output
-       (if File.exists exe then
-          space_implode " " (map File.shell_path [exe, input_file, output_file])
-        else error ("Bad executable: " ^ File.platform_path exe))
-
-    (* read and analyze output *)
-    val (res, res_msg) = find_failure rv
-    val result = if File.exists output_file then File.read output_file else ""
-
-    (* remove temporary files *)
-    val _ =
-      if dir = "" then
-        (File.rm input_file; if File.exists output_file then File.rm output_file else ())
-      else ()
-
-    val _ =
-      if Config.get ctxt Sum_of_Squares.trace
-      then writeln ("Solver output:\n" ^ output)
-      else ()
-
-    val _ = warning (str_of_result res ^ ": " ^ res_msg)
-  in
-    (case res of
-      Success => result
-    | Failure => raise Sum_of_Squares.Failure res_msg
-    | Error => error ("Prover failed: " ^ res_msg))
-  end
-
-
-(*** various provers ***)
-
-(* local csdp client *)
-
-fun find_csdp_failure rv =
-  case rv of
+fun get_result rc =
+  (case rc of
     0 => (Success, "SDP solved")
   | 1 => (Failure, "SDP is primal infeasible")
   | 2 => (Failure, "SDP is dual infeasible")
@@ -94,62 +30,49 @@ fun find_csdp_failure rv =
   | 7 => (Failure, "Lack of progress")
   | 8 => (Failure, "X, Z, or O was singular")
   | 9 => (Failure, "Detected NaN or Inf values")
-  | _ => (Error, "return code is " ^ string_of_int rv)
+  | _ => (Error, "return code is " ^ string_of_int rc))
 
-val csdp = (Path.explode "$ISABELLE_CSDP", find_csdp_failure)
+fun run_solver ctxt input =
+  Isabelle_System.with_tmp_file "sos_in" "" (fn in_path =>
+    Isabelle_System.with_tmp_file "sos_out" "" (fn out_path =>
+      let
+        val _ = File.write in_path input
 
+        val (output, rc) =
+          Isabelle_System.bash_output
+            ("\"$ISABELLE_CSDP\" " ^ File.shell_path in_path ^ " " ^ File.shell_path out_path)
+        val _ = Sum_of_Squares.debug_message ctxt (fn () => "Solver output:\n" ^ output)
 
-(* remote neos server *)
+        val result = if File.exists out_path then File.read out_path else ""
 
-fun find_neos_failure rv =
-  case rv of
-    20 => (Error, "error submitting job")
-  | 21 => (Error, "interrupt")
-  |  _ => find_csdp_failure rv
-
-val neos_csdp = (Path.explode "$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)
-
-
-(* named provers *)
-
-fun prover "remote_csdp" = neos_csdp
-  | prover "csdp" = csdp
-  | prover name = error ("Unknown prover: " ^ name)
-
-val prover_name = Attrib.setup_config_string @{binding sos_prover_name} (K "remote_csdp")
-
-fun call_solver ctxt opt_name =
-  let
-    val name = the_default (Config.get ctxt prover_name) opt_name
-    val (exe, find_failure) = prover name
-  in run_solver ctxt name exe find_failure end
-
-
-(* certificate output *)
-
-fun output_line cert =
-  "To repeat this proof with a certificate use this command:\n" ^
-    Active.sendback_markup [] ("apply (sos_cert \"" ^ cert ^ "\")")
-
-val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cert
+        val (res, res_msg) = get_result rc
+        val _ = Sum_of_Squares.trace_message ctxt (fn () => str_of_result res ^ ": " ^ res_msg)
+      in
+        (case res of
+          Success => result
+        | Failure => raise Sum_of_Squares.Failure res_msg
+        | Error => error ("Prover failed: " ^ res_msg))
+      end))
 
 
 (* method setup *)
 
-fun sos_solver print method = SIMPLE_METHOD' o Sum_of_Squares.sos_tac print method
+fun print_cert cert =
+  (writeln o Markup.markup Markup.information)
+    ("To repeat this proof with a certificate use this command:\n" ^
+      Active.sendback_markup [] ("by (sos \"" ^ Positivstellensatz_Tools.print_cert cert ^ "\")"))
+
+fun sos_tac ctxt NONE =
+      Sum_of_Squares.sos_tac print_cert
+        (Sum_of_Squares.Prover (run_solver ctxt)) ctxt
+  | sos_tac ctxt (SOME cert) =
+      Sum_of_Squares.sos_tac ignore
+        (Sum_of_Squares.Certificate (Positivstellensatz_Tools.read_cert ctxt cert)) ctxt
 
 val _ = Theory.setup
  (Method.setup @{binding sos}
-    (Scan.lift (Scan.option Parse.xname)
-      >> (fn opt_name => fn ctxt =>
-        sos_solver print_cert
-          (Sum_of_Squares.Prover (call_solver ctxt opt_name)) ctxt))
-    "prove universal problems over the reals using sums of squares" #>
-  Method.setup @{binding sos_cert}
-    (Scan.lift Parse.string
-      >> (fn cert => fn ctxt =>
-        sos_solver ignore
-          (Sum_of_Squares.Certificate (PositivstellensatzTools.cert_to_pss_tree ctxt cert)) ctxt))
-    "prove universal problems over the reals using sums of squares with certificates")
+    (Scan.lift (Scan.option Parse.string)
+      >> (fn arg => fn ctxt => SIMPLE_METHOD' (sos_tac ctxt arg)))
+    "prove universal problems over the reals using sums of squares")
 
 end

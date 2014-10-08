@@ -217,14 +217,14 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
                   val time_slice = time_mult (1.0 / Real.fromInt (length labels)) (reference_time l)
                   val timeouts =
                     map (adjust_merge_timeout preplay_timeout o curry Time.+ time_slice) times0
-                  val meths_outcomess = map3 (preplay_isar_step ctxt) timeouts hopelesses succs'
+                  val meths_outcomess = @{map 3} (preplay_isar_step ctxt) timeouts hopelesses succs'
                 in
                   (case try (map (fn (_, Played time) :: _ => time)) meths_outcomess of
                     NONE => steps
                   | SOME times =>
                     (* "l" successfully eliminated *)
                     (decrement_step_count ();
-                     map3 (fn time => set_preplay_outcomes_of_isar_step ctxt time preplay_data)
+                     @{map 3} (fn time => set_preplay_outcomes_of_isar_step ctxt time preplay_data)
                        times succs' meths_outcomess;
                      map (replace_successor l labels) lfs;
                      steps_before @ update_steps succs' steps_after))

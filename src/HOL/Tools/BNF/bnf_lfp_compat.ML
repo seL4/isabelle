@@ -115,7 +115,7 @@ fun define_split_recs fpTs Cs recs lthy =
     val bs = map mk_binding b_names;
     val rhss = mk_split_rec_rhs lthy fpTs Cs recs;
   in
-    fold_map3 (define_co_rec_as Least_FP Cs) fpTs bs rhss lthy
+    @{fold_map 3} (define_co_rec_as Least_FP Cs) fpTs bs rhss lthy
   end;
 
 fun mk_split_rec_thmss ctxt Xs ctrXs_Tsss ctrss rec0_thmss (recs as rec1 :: _) rec_defs =
@@ -149,7 +149,7 @@ fun mk_split_rec_thmss ctxt Xs ctrXs_Tsss ctrss rec0_thmss (recs as rec1 :: _) r
           (mk_Trueprop_eq (frec $ gctr, Term.list_comb (f, fgs)))
       end;
 
-    val goalss = map4 (map3 o mk_goal) frecs ctrXs_Tsss ctrss fss;
+    val goalss = @{map 4} (@{map 3} o mk_goal) frecs ctrXs_Tsss ctrss fss;
 
     fun tac ctxt =
       unfold_thms_tac ctxt (@{thms o_apply fst_conv snd_conv} @ rec_defs @ flat rec0_thmss) THEN
@@ -237,7 +237,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
       (index, (T_name, map mk_dtyp Ts, map (mk_ctr_descr Ts) ctrs));
 
     val fp_ctr_sugars = map (#ctr_sugar o #fp_ctr_sugar o checked_fp_sugar_of) fpT_names;
-    val orig_descr = map3 mk_typ_descr (0 upto nn_fp - 1) fpTs fp_ctr_sugars;
+    val orig_descr = @{map 3} mk_typ_descr (0 upto nn_fp - 1) fpTs fp_ctr_sugars;
     val all_infos = Old_Datatype_Data.get_all thy;
     val (orig_descr' :: nested_descrs) =
       if member (op =) prefs Keep_Nesting then [orig_descr]

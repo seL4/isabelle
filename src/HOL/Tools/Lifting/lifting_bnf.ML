@@ -57,7 +57,8 @@ fun prove_Quotient_map bnf ctxt =
       ||>> mk_TFrees live
       ||>> mk_TFrees (dead_of_bnf bnf)
     val argTss = map2 (fn a => fn b => [mk_pred2T a a, a --> b, b --> a,mk_pred2T a b]) As Bs
-    val ((argss, argss'), ctxt) = fold_map2 mk_Frees ["R", "Abs", "Rep", "T"] (transpose argTss) ctxt
+    val ((argss, argss'), ctxt) =
+      @{fold_map 2} mk_Frees ["R", "Abs", "Rep", "T"] (transpose argTss) ctxt
       |>> `transpose
    
     val assms = map (mk_Quotient #> HOLogic.mk_Trueprop) argss

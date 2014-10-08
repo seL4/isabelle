@@ -32,7 +32,7 @@ fun mk_rel_xtor_co_induct_tactic fp abs_inverses co_inducts0 rel_defs rel_monos 
     val folded_C_IHs = map (fn thm => thm RS @{thm spec2} RS mp) raw_C_IHs;
     val C_IHs = map2 (curry op |>) folded_C_IHs unfolds;
     val C_IH_monos =
-      map3 (fn C_IH => fn mono => fn unfold =>
+      @{map 3} (fn C_IH => fn mono => fn unfold =>
         (mono RSN (2, @{thm vimage2p_mono}), C_IH)
         |> fp = Greatest_FP ? swap
         |> op RS

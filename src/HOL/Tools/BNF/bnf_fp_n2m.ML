@@ -125,8 +125,8 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
     val xTs = map (domain_type o fastype_of) xtors;
     val yTs = map (domain_type o fastype_of) xtor's;
 
-    val absAs = map3 (fn Ds => mk_abs o mk_T_of_bnf Ds allAs) Dss bnfs abss;
-    val absBs = map3 (fn Ds => mk_abs o mk_T_of_bnf Ds allBs) Dss bnfs abss;
+    val absAs = @{map 3} (fn Ds => mk_abs o mk_T_of_bnf Ds allAs) Dss bnfs abss;
+    val absBs = @{map 3} (fn Ds => mk_abs o mk_T_of_bnf Ds allBs) Dss bnfs abss;
     val fp_repAs = map2 mk_rep absATs fp_reps;
     val fp_repBs = map2 mk_rep absBTs fp_reps;
 
@@ -186,7 +186,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
     val fp_or_nesting_rel_monos = map rel_mono_of_bnf fp_or_nesting_bnfs;
 
     val xtor_rel_co_induct =
-      mk_xtor_rel_co_induct_thm fp (map3 cast castAs castBs pre_rels) pre_phis rels phis xs ys
+      mk_xtor_rel_co_induct_thm fp (@{map 3} cast castAs castBs pre_rels) pre_phis rels phis xs ys
         xtors xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts rel_defs
           rel_monos fp_or_nesting_rel_eqs fp_or_nesting_rel_monos)
         lthy;
@@ -268,7 +268,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
         val subst = Term.typ_subst_atomic fold_thetaAs;
 
         fun mk_fp_absT_repT fp_repT fp_absT = mk_absT thy fp_repT fp_absT ooo mk_repT;
-        val mk_fp_absT_repTs = map5 mk_fp_absT_repT fp_repTs fp_absTs absTs repTs;
+        val mk_fp_absT_repTs = @{map 5} mk_fp_absT_repT fp_repTs fp_absTs absTs repTs;
 
         val fold_preTs' = mk_fp_absT_repTs (map subst fold_preTs);
 
@@ -411,7 +411,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
                 fp_abs fp_rep abs rep rhs)
           end;
 
-        val goals = map8 mk_goals recs xtors rec_strs pre_rec_maps fp_abss fp_reps abss reps;
+        val goals = @{map 8} mk_goals recs xtors rec_strs pre_rec_maps fp_abss fp_reps abss reps;
 
         val pre_map_defs = no_refl (map map_def_of_bnf bnfs);
         val fp_pre_map_defs = no_refl (map map_def_of_bnf pre_bnfs);

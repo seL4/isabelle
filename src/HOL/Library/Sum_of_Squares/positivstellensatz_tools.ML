@@ -7,14 +7,16 @@ versa.
 
 signature POSITIVSTELLENSATZ_TOOLS =
 sig
-  val pss_tree_to_cert : RealArith.pss_tree -> string
-  val cert_to_pss_tree : Proof.context -> string -> RealArith.pss_tree
+  val print_cert: RealArith.pss_tree -> string
+  val read_cert: Proof.context -> string -> RealArith.pss_tree
 end
 
-structure PositivstellensatzTools : POSITIVSTELLENSATZ_TOOLS =
+structure Positivstellensatz_Tools : POSITIVSTELLENSATZ_TOOLS =
 struct
 
-(*** certificate generation ***)
+(** print certificate **)
+
+local
 
 fun string_of_rat r =
   let
@@ -23,6 +25,7 @@ fun string_of_rat r =
     if den = 1 then string_of_int nom
     else string_of_int nom ^ "/" ^ string_of_int den
   end
+
 
 (* map polynomials to strings *)
 
@@ -48,7 +51,7 @@ fun string_of_monomial m =
 fun string_of_cmonomial (m,c) =
   if FuncUtil.Ctermfunc.is_empty m then string_of_rat c
   else if c = Rat.one then string_of_monomial m
-  else string_of_rat c ^ "*" ^ string_of_monomial m;
+  else string_of_rat c ^ "*" ^ string_of_monomial m
 
 fun string_of_poly p =
   if FuncUtil.Monomialfunc.is_empty p then "0"
@@ -56,7 +59,10 @@ fun string_of_poly p =
     let
       val cms = map string_of_cmonomial
         (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.dest p))
-    in foldr1 (fn (t1, t2) => t1 ^ " + " ^ t2) cms end;
+    in foldr1 (fn (t1, t2) => t1 ^ " + " ^ t2) cms end
+
+
+(* print cert *)
 
 fun pss_to_cert (RealArith.Axiom_eq i) = "A=" ^ string_of_int i
   | pss_to_cert (RealArith.Axiom_le i) = "A<=" ^ string_of_int i
@@ -72,15 +78,22 @@ fun pss_to_cert (RealArith.Axiom_eq i) = "A=" ^ string_of_int i
   | pss_to_cert (RealArith.Product (pss1, pss2)) =
       "(" ^ pss_to_cert pss1 ^ " * " ^ pss_to_cert pss2 ^ ")"
 
-fun pss_tree_to_cert RealArith.Trivial = "()"
-  | pss_tree_to_cert (RealArith.Cert pss) = "(" ^ pss_to_cert pss ^ ")"
-  | pss_tree_to_cert (RealArith.Branch (t1, t2)) =
-      "(" ^ pss_tree_to_cert t1 ^ " & " ^ pss_tree_to_cert t2 ^ ")"
+in
+
+fun print_cert RealArith.Trivial = "()"
+  | print_cert (RealArith.Cert pss) = "(" ^ pss_to_cert pss ^ ")"
+  | print_cert (RealArith.Branch (t1, t2)) =
+      "(" ^ print_cert t1 ^ " & " ^ print_cert t2 ^ ")"
+
+end
 
 
-(*** certificate parsing ***)
 
-(* basic parser *)
+(** read certificate **)
+
+local
+
+(* basic parsers *)
 
 val str = Scan.this_string
 
@@ -89,12 +102,12 @@ val number =
     >> foldl1 (fn (n, d) => n * 10 + d)
 
 val nat = number
-val int = Scan.optional (str "~" >> K ~1) 1 -- nat >> op *;
+val int = Scan.optional (str "~" >> K ~1) 1 -- nat >> op *
 val rat = int --| str "/" -- int >> Rat.rat_of_quotient
 val rat_int = rat || int >> Rat.rat_of_int
 
 
-(* polynomial parser *)
+(* polynomial parsers *)
 
 fun repeat_sep s f = f ::: Scan.repeat (str s |-- f)
 
@@ -115,7 +128,7 @@ fun parse_poly ctxt = repeat_sep "+" (parse_cmonomial ctxt) >>
   (fn xs => fold FuncUtil.Monomialfunc.update xs FuncUtil.Monomialfunc.empty)
 
 
-(* positivstellensatz parser *)
+(* positivstellensatz parsers *)
 
 val parse_axiom =
   (str "A=" |-- int >> RealArith.Axiom_eq) ||
@@ -150,12 +163,13 @@ fun parse_cert_tree ctxt input =
      str "(" |-- pt --| str "&" -- pt --| str ")" >> RealArith.Branch) input
   end
 
+in
 
-(* scanner *)
-
-fun cert_to_pss_tree ctxt input_str =
+fun read_cert ctxt input_str =
   Symbol.scanner "Bad certificate" (parse_cert_tree ctxt)
     (filter_out Symbol.is_blank (Symbol.explode input_str))
+
+end
 
 end
 

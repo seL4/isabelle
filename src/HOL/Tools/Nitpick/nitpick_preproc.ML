@@ -439,7 +439,7 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
                 s_let Ts "l" (n + 1) dataT bool_T
                       (fn t1 =>
                           discriminate_value hol_ctxt x t1 ::
-                          map3 (sel_eq Ts x t1) (index_seq 0 n) arg_Ts args
+                          @{map 3} (sel_eq Ts x t1) (index_seq 0 n) arg_Ts args
                           |> foldr1 s_conj) t1
             else
               raise SAME ()

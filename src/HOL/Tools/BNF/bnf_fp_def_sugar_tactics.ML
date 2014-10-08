@@ -141,7 +141,7 @@ fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
 
 fun mk_ctor_iff_dtor_tac ctxt cTs cctor cdtor ctor_dtor dtor_ctor =
   HEADGOAL (rtac iffI THEN'
-    EVERY' (map3 (fn cTs => fn cx => fn th =>
+    EVERY' (@{map 3} (fn cTs => fn cx => fn th =>
       dtac (Drule.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
       SELECT_GOAL (unfold_thms_tac ctxt [th]) THEN'
       atac) [rev cTs, cTs] [cdtor, cctor] [dtor_ctor, ctor_dtor]));
@@ -212,7 +212,7 @@ fun mk_corec_tac corec_defs map_ident0s ctor_dtor_corec pre_map_def abs_inverse 
   end;
 
 fun mk_corec_disc_iff_tac case_splits' corecs discs ctxt =
-  EVERY (map3 (fn case_split_tac => fn corec_thm => fn disc =>
+  EVERY (@{map 3} (fn case_split_tac => fn corec_thm => fn disc =>
       HEADGOAL case_split_tac THEN unfold_thms_tac ctxt [corec_thm] THEN
       HEADGOAL (asm_simp_tac (ss_only basic_simp_thms ctxt)) THEN
       (if is_refl disc then all_tac else HEADGOAL (rtac disc)))
@@ -277,7 +277,7 @@ fun mk_corec_transfer_tac ctxt actives passives type_definitions corec_defs dtor
 
     fun mk_unfold_prop_tac dtor_corec_transfer corec_def =
       mk_unfold_corec_type_tac dtor_corec_transfer corec_def THEN
-      EVERY (map4 mk_unfold_type_tac type_definitions pss qssss gssss);
+      EVERY (@{map 4} mk_unfold_type_tac type_definitions pss qssss gssss);
   in
     HEADGOAL Goal.conjunction_tac THEN
     EVERY (map2 mk_unfold_prop_tac dtor_corec_transfers corec_defs)
@@ -315,7 +315,7 @@ fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' fp_abs_inverses abs_
      else
        unfold_thms_tac ctxt ctr_defs) THEN
     HEADGOAL (rtac ctor_induct') THEN co_induct_inst_as_projs_tac ctxt 0 THEN
-    EVERY (map4 (EVERY oooo map3 o
+    EVERY (@{map 4} (EVERY oooo @{map 3} o
         mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps)
       pre_set_defss mss (unflat mss (1 upto n)) kkss)
   end;
@@ -348,7 +348,7 @@ fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def fp_abs_inve
     EVERY' ([rtac allI, rtac allI, rtac impI, select_prem_tac nn (dtac meta_spec) kk,
         dtac meta_spec, dtac meta_mp, atac, rtac exhaust, K (co_induct_inst_as_projs_tac ctxt 0),
         hyp_subst_tac ctxt] @
-      map4 (fn k => fn ctr_def => fn discs => fn sels =>
+      @{map 4} (fn k => fn ctr_def => fn discs => fn sels =>
         EVERY' ([rtac exhaust, K (co_induct_inst_as_projs_tac ctxt 1)] @
           map2 (fn k' => fn discs' =>
             if k' = k then
@@ -361,7 +361,7 @@ fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def fp_abs_inve
 fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs fp_abs_inverses abs_inverses
     dtor_ctors exhausts ctr_defss discsss selsss =
   HEADGOAL (rtac dtor_coinduct' THEN'
-    EVERY' (map10 (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
+    EVERY' (@{map 10} (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
       (1 upto nn) ns pre_rel_defs fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss discsss
       selsss));
 
@@ -401,7 +401,7 @@ fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_dist
 fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss ctor_defss
     dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses nesting_rel_eqs =
   rtac dtor_rel_coinduct 1 THEN
-   EVERY (map11 (fn ct => fn assm => fn exhaust => fn discs => fn sels => fn ctor_defs =>
+   EVERY (@{map 11} (fn ct => fn assm => fn exhaust => fn discs => fn sels => fn ctor_defs =>
      fn dtor_ctor => fn ctor_inject => fn abs_inject => fn rel_pre_def => fn abs_inverse =>
       (rtac exhaust THEN_ALL_NEW (rtac exhaust THEN_ALL_NEW
          (dtac (rotate_prems ~1 (cterm_instantiate_pos [NONE, NONE, NONE, NONE, SOME ct]
@@ -420,7 +420,7 @@ fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss 
 
 fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss ctor_injects
     rel_pre_list_defs Abs_inverses nesting_rel_eqs =
-  rtac ctor_rel_induct 1 THEN EVERY (map6 (fn cterm => fn exhaust => fn ctor_defs =>
+  rtac ctor_rel_induct 1 THEN EVERY (@{map 6} (fn cterm => fn exhaust => fn ctor_defs =>
       fn ctor_inject => fn rel_pre_list_def => fn Abs_inverse =>
         HEADGOAL (rtac exhaust THEN_ALL_NEW (rtac exhaust THEN_ALL_NEW
           (rtac (cterm_instantiate_pos (replicate 4 NONE @ [SOME cterm]) @{thm arg_cong2} RS iffD2)

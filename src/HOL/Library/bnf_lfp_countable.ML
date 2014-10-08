@@ -58,7 +58,7 @@ fun mk_encode_injective_tac ctxt n nchotomy injects recs map_comps' inj_map_stro
 
 fun mk_encode_injectives_tac ctxt ns induct nchotomys injectss recss map_comps' inj_map_strongs' =
   HEADGOAL (rtac induct) THEN
-  EVERY (map4 (fn n => fn nchotomy => fn injects => fn recs =>
+  EVERY (@{map 4} (fn n => fn nchotomy => fn injects => fn recs =>
       mk_encode_injective_tac ctxt n nchotomy injects recs map_comps' inj_map_strongs')
     ns nchotomys injectss recss);
 
@@ -166,7 +166,7 @@ fun derive_encode_injectives_thms _ [] = []
 
       val (xs, names_ctxt) = ctxt |> mk_Frees "x" fpTs;
 
-      val conjuncts = map3 mk_conjunct fpTs xs (mk_encode_funs ctxt fpTs ns ctrss0 recs0);
+      val conjuncts = @{map 3} mk_conjunct fpTs xs (mk_encode_funs ctxt fpTs ns ctrss0 recs0);
       val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj conjuncts);
     in
       Goal.prove (*no sorry*) ctxt [] [] goal (fn {context = ctxt, prems = _} =>

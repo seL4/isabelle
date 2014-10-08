@@ -57,7 +57,7 @@ fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
       val fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs;
       val fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs;
     in
-      (missing_arg_Ts, perm0_kks, map3 basic_lfp_sugar_of Cs fun_arg_Tssss fp_sugars,
+      (missing_arg_Ts, perm0_kks, @{map 3} basic_lfp_sugar_of Cs fun_arg_Tssss fp_sugars,
        fp_nesting_map_ident0s, fp_nesting_map_comps, common_induct, induct_attrs,
        is_some lfp_sugar_thms, lthy)
     end;
@@ -102,7 +102,7 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
           let
             val Type (_, ran_Ts) = range_type (typof t);
             val map' = mk_map (length fs) Us ran_Ts map0;
-            val fs' = map_flattened_map_args ctxt s (map3 massage_map_or_map_arg Us Ts) fs;
+            val fs' = map_flattened_map_args ctxt s (@{map 3} massage_map_or_map_arg Us Ts) fs;
           in
             Term.list_comb (map', fs')
           end

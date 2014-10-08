@@ -602,7 +602,7 @@ and struct_from_rel_expr kk Rs old_R r =
         val old_rs = map2 (#kk_project_seq kk r) old_offsets old_arities
       in
         fold1 (#kk_product kk)
-              (map3 (rel_expr_from_rel_expr kk) Rs Rs' old_rs)
+              (@{map 3} (rel_expr_from_rel_expr kk) Rs Rs' old_rs)
       end
     else
       lone_rep_fallback kk (Struct Rs) old_R r

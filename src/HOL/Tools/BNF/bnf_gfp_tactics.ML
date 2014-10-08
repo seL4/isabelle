@@ -608,7 +608,7 @@ fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_d
         else (rtac (sum_case_cong_weak RS trans) THEN'
           rtac (mk_sum_caseN n i) THEN' rtac (mk_sum_caseN n i RS trans)),
         rtac (map_comp_id RS trans), rtac (map_cong0 OF replicate m refl),
-        EVERY' (map3 (fn i' => fn to_sbd_inj => fn from_to_sbd =>
+        EVERY' (@{map 3} (fn i' => fn to_sbd_inj => fn from_to_sbd =>
           DETERM o EVERY' [rtac trans, rtac o_apply, rtac prod_injectI, rtac conjI,
             rtac trans, rtac @{thm Shift_def},
             rtac equalityI, rtac subsetI, etac thin_rl,
@@ -783,7 +783,7 @@ fun mk_set_le_tac n Jset_minimal set_Jsets set_Jset_Jsetss =
   EVERY' [rtac Jset_minimal,
     REPEAT_DETERM_N n o rtac @{thm Un_upper1},
     REPEAT_DETERM_N n o
-      EVERY' (map3 (fn i => fn set_Jset => fn set_Jset_Jsets =>
+      EVERY' (@{map 3} (fn i => fn set_Jset => fn set_Jset_Jsets =>
         EVERY' [rtac subsetI, rtac @{thm UnI2}, rtac (mk_UnIN n i), etac @{thm UN_I},
           etac UnE, etac set_Jset, REPEAT_DETERM_N (n - 1) o etac UnE,
           EVERY' (map (fn thm => EVERY' [etac @{thm UN_E}, etac thm, atac]) set_Jset_Jsets)])
@@ -1018,7 +1018,7 @@ fun mk_rel_coinduct_coind_tac ctxt fst m coinduct ks map_comp0s map_congs map_ar
     val snd_diag_nth = if fst then @{thm snd_diag_fst} else @{thm snd_diag_snd};
   in
     EVERY' [rtac coinduct,
-      EVERY' (map8 (fn i => fn map_comp0 => fn map_cong => fn map_arg_cong => fn set_map0s =>
+      EVERY' (@{map 8} (fn i => fn map_comp0 => fn map_cong => fn map_arg_cong => fn set_map0s =>
           fn dtor_unfold => fn dtor_map => fn in_rel =>
         EVERY' [REPEAT_DETERM o resolve_tac [allI, impI, in_rel RS iffD2],
           REPEAT_DETERM o eresolve_tac [exE, conjE],
@@ -1050,7 +1050,7 @@ fun mk_rel_coinduct_ind_tac ctxt m ks unfolds set_map0ss j set_induct =
   let val n = length ks;
   in
     rtac set_induct 1 THEN
-    EVERY' (map3 (fn unfold => fn set_map0s => fn i =>
+    EVERY' (@{map 3} (fn unfold => fn set_map0s => fn i =>
       EVERY' [REPEAT_DETERM o resolve_tac [allI, impI], etac conjE,
         select_prem_tac n (dtac @{thm spec2}) i, dtac mp, atac,
         REPEAT_DETERM o eresolve_tac [CollectE, conjE, Collect_splitD_set_mp, set_rev_mp],
@@ -1058,7 +1058,7 @@ fun mk_rel_coinduct_ind_tac ctxt m ks unfolds set_map0ss j set_induct =
         SELECT_GOAL (unfold_thms_tac ctxt ([unfold, nth set_map0s (j - 1)] @ split_id_unfolds)),
         rtac subset_refl])
     unfolds set_map0ss ks) 1 THEN
-    EVERY' (map3 (fn unfold => fn set_map0s => fn i =>
+    EVERY' (@{map 3} (fn unfold => fn set_map0s => fn i =>
       EVERY' (map (fn set_map0 =>
         EVERY' [REPEAT_DETERM o resolve_tac [allI, impI], etac conjE,
         select_prem_tac n (dtac @{thm spec2}) i, dtac mp, atac,

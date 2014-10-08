@@ -545,7 +545,7 @@ fun assert_abs_eqn thy some_tyco thm =
       else bad_thm ("Projection mismatch: " ^ quote rep_const ^ " vs. " ^ quote rep');
     val _ = check_eqn thy { allow_nonlinear = false,
       allow_consts = false, allow_pats = false } thm (lhs, rhs);
-    val _ = if forall2 (fn T => fn (_, sort) => Sign.of_sort thy (T, sort)) Ts vs' then ()
+    val _ = if ListPair.all (fn (T, (_, sort)) => Sign.of_sort thy (T, sort)) (Ts, vs') then ()
       else error ("Type arguments do not satisfy sort constraints of abstype certificate.");
   in (thm, tyco) end;
 

@@ -100,9 +100,9 @@ fun mk_expand_tac ctxt n ms uexhaust_disc vexhaust_disc uncollapses distinct_dis
   else
     let val ks = 1 upto n in
       HEADGOAL (rtac uexhaust_disc THEN'
-        EVERY' (map5 (fn k => fn m => fn distinct_discss => fn distinct_discss' => fn uuncollapse =>
+        EVERY' (@{map 5} (fn k => fn m => fn distinct_discss => fn distinct_discss' => fn uuncollapse =>
           EVERY' [rtac (uuncollapse RS trans) THEN' TRY o atac, rtac sym, rtac vexhaust_disc,
-            EVERY' (map4 (fn k' => fn distinct_discs => fn distinct_discs' => fn vuncollapse =>
+            EVERY' (@{map 4} (fn k' => fn distinct_discs => fn distinct_discs' => fn vuncollapse =>
               EVERY'
                 (if k' = k then
                    [rtac (vuncollapse RS trans), TRY o atac] @
@@ -150,7 +150,7 @@ fun mk_case_cong_tac ctxt uexhaust cases =
 
 fun mk_case_eq_if_tac ctxt n uexhaust cases discss' selss =
   HEADGOAL (rtac uexhaust THEN'
-    EVERY' (map3 (fn casex => fn if_discs => fn sels =>
+    EVERY' (@{map 3} (fn casex => fn if_discs => fn sels =>
         EVERY' [hyp_subst_tac ctxt, SELECT_GOAL (unfold_thms_tac ctxt (if_discs @ sels)),
           rtac casex])
       cases (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) discss') selss));

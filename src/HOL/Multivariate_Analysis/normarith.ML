@@ -295,7 +295,7 @@ local
        val rawverts = vertices nvs constraints
        fun check_solution v =
         let
-          val f = fold_rev2 (curry FuncUtil.Intfunc.update) nvs v (FuncUtil.Intfunc.onefunc (0, Rat.one))
+          val f = fold_rev FuncUtil.Intfunc.update (nvs ~~ v) (FuncUtil.Intfunc.onefunc (0, Rat.one))
         in forall (fn e => evaluate f e =/ Rat.zero) flippedequations
         end
        val goodverts = filter check_solution rawverts

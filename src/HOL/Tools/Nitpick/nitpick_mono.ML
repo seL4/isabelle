@@ -700,7 +700,7 @@ fun add_connective_var conn mk_quasi_clauses res_aa aa1 aa2 =
         (mk_quasi_clauses res_aa aa1 aa2))
 
 fun add_connective_frames conn mk_quasi_clauses res_frame frame1 frame2 =
-  fold I (map3 (fn (_, res_aa) => fn (_, aa1) => fn (_, aa2) =>
+  fold I (@{map 3} (fn (_, res_aa) => fn (_, aa1) => fn (_, aa2) =>
                    add_connective_var conn mk_quasi_clauses res_aa aa1 aa2)
                res_frame frame1 frame2)
 

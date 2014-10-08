@@ -73,7 +73,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
           val ((names, ctxt), Ts) = map_split (apfst fst o dest_Var o fst) raw_eqs
             |>> (fn names => Variable.variant_fixes names names_ctxt) ;
           val eqs =
-            map3 (fn name => fn T => fn (_, rhs) =>
+            @{map 3} (fn name => fn T => fn (_, rhs) =>
               HOLogic.mk_eq (Free (name, T), rhs))
             names Ts raw_eqs;
           val phi = eqs @ map (HOLogic.dest_Trueprop o prop_of) prems

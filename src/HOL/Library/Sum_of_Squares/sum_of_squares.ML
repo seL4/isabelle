@@ -10,6 +10,9 @@ sig
   datatype proof_method = Certificate of RealArith.pss_tree | Prover of string -> string
   val sos_tac: (RealArith.pss_tree -> unit) -> proof_method -> Proof.context -> int -> tactic
   val trace: bool Config.T
+  val debug: bool Config.T
+  val trace_message: Proof.context -> (unit -> string) -> unit
+  val debug_message: Proof.context -> (unit -> string) -> unit
   exception Failure of string;
 end
 
@@ -52,7 +55,13 @@ val abs_rat = Rat.abs;
 val pow2 = rat_pow rat_2;
 val pow10 = rat_pow rat_10;
 
+
 val trace = Attrib.setup_config_bool @{binding sos_trace} (K false);
+val debug = Attrib.setup_config_bool @{binding sos_debug} (K false);
+
+fun trace_message ctxt msg =
+  if Config.get ctxt trace orelse Config.get ctxt debug then tracing (msg ()) else ();
+fun debug_message ctxt msg = if Config.get ctxt debug then tracing (msg ()) else ();
 
 exception Sanity;
 
@@ -125,7 +134,7 @@ fun vector_cmul c (v: vector) =
 
 fun vector_of_list l =
   let val n = length l in
-    (n, fold_rev2 (curry FuncUtil.Intfunc.update) (1 upto n) l FuncUtil.Intfunc.empty): vector
+    (n, fold_rev FuncUtil.Intfunc.update (1 upto n ~~ l) FuncUtil.Intfunc.empty): vector
   end;
 
 (* Matrices; again rows and columns indexed from 1.                          *)
@@ -583,8 +592,8 @@ fun sdpa_of_blockproblem nblocks blocksizes obj mats =
     (space_implode " " (map string_of_int blocksizes)) ^
     "\n" ^
     sdpa_of_vector obj ^
-    fold_rev2 (fn k => fn m => fn a => sdpa_of_blockdiagonal (k - 1) m ^ a)
-      (1 upto length mats) mats ""
+    fold_rev (fn (k, m) => fn a => sdpa_of_blockdiagonal (k - 1) m ^ a)
+      (1 upto length mats ~~ mats) ""
   end;
 
 (* Run prover on a problem in block diagonal form.                       *)
@@ -674,9 +683,9 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
     val (_(*idmonlist*),ids) =  split_list (map2 mk_idmultiplier (1 upto length eqs) eqs)
     val blocksizes = map length sqmonlist
     val bigsum =
-      fold_rev2 (fn p => fn q => fn a => tri_epoly_pmul p q a) eqs ids
-        (fold_rev2 (fn (p,_) => fn s => fn a => tri_epoly_pmul p s a) monoid sqs
-          (epoly_of_poly(poly_neg pol)))
+      fold_rev (fn (p, q) => fn a => tri_epoly_pmul p q a) (eqs ~~ ids)
+        (fold_rev (fn ((p, _), s) => fn a => tri_epoly_pmul p s a) (monoid ~~ sqs)
+          (epoly_of_poly (poly_neg pol)))
     val eqns = FuncUtil.Monomialfunc.fold (fn (_, e) => fn a => e :: a) bigsum []
     val (pvs, assig) = tri_eliminate_all_equations (0, 0, 0) eqns
     val qvars = (0, 0, 0) :: pvs
@@ -710,9 +719,7 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
     fun find_rounding d =
       let
         val _ =
-          if Config.get ctxt trace
-          then writeln ("Trying rounding with limit "^Rat.string_of_rat d ^ "\n")
-          else ()
+          debug_message ctxt (fn () => "Trying rounding with limit "^Rat.string_of_rat d ^ "\n")
         val vec = nice_vector d raw_vec
         val blockmat =
           iter (1, dim vec)
@@ -746,7 +753,7 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
     fun eval_sq sqs = fold_rev (fn (c, q) => poly_add (poly_cmul c (poly_mul q q))) sqs poly_0
     val sanity =
       fold_rev (fn ((p, _), s) => poly_add (poly_mul p (eval_sq s))) msq
-        (fold_rev2 (fn p => fn q => poly_add (poly_mul p q)) cfs eqs (poly_neg pol))
+        (fold_rev (fn (p, q) => poly_add (poly_mul p q)) (cfs ~~ eqs) (poly_neg pol))
   in
     if not(FuncUtil.Monomialfunc.is_empty sanity) then raise Sanity
     else (cfs, map (fn (a, b) => (snd a, b)) msq)
@@ -755,9 +762,10 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
 
 (* Iterative deepening.                                                      *)
 
-fun deepen f n =
-  (writeln ("Searching with depth limit " ^ string_of_int n);
-    (f n handle Failure s => (writeln ("failed with message: " ^ s); deepen f (n + 1))));
+fun deepen ctxt f n =
+  (trace_message ctxt (fn () => "Searching with depth limit " ^ string_of_int n);
+    (f n handle Failure s =>
+      (trace_message ctxt (fn () => "failed with message: " ^ s); deepen ctxt f (n + 1))));
 
 
 (* Map back polynomials and their composites to a positivstellensatz.        *)
@@ -839,7 +847,7 @@ fun real_nonlinear_prover proof_method ctxt =
                               (poly_neg(poly_pow pol i))))
                           (0 upto k)
                       end
-                    val (_,i,(cert_ideal,cert_cone)) = deepen tryall 0
+                    val (_,i,(cert_ideal,cert_cone)) = deepen ctxt tryall 0
                     val proofs_ideal =
                       map2 (fn q => fn (_,ax) => RealArith.Eqmul(q,ax)) cert_ideal eq
                     val proofs_cone = map cterm_of_sos cert_cone

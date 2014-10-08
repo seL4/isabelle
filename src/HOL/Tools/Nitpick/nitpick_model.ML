@@ -508,7 +508,7 @@ and reconstruct_term maybe_opt unfold pool
           val k2 = k div k1
         in
           list_comb (HOLogic.pair_const T1 T2,
-                     map3 (fn T => term_for_atom seen T T) [T1, T2]
+                     @{map 3} (fn T => term_for_atom seen T T) [T1, T2]
                           (* ### k2 or k1? FIXME *)
                           [j div k2, j mod k2] [k1, k2])
         end
@@ -578,7 +578,7 @@ and reconstruct_term maybe_opt unfold pool
                   if length arg_Ts = 0 then
                     []
                   else
-                    map3 (fn Ts => term_for_rep true seen Ts Ts) arg_Ts arg_Rs
+                    @{map 3} (fn Ts => term_for_rep true seen Ts Ts) arg_Ts arg_Rs
                          arg_jsss
                     |> mk_tuple (HOLogic.mk_tupleT uncur_arg_Ts)
                     |> dest_n_tuple (length uncur_arg_Ts)
@@ -633,7 +633,7 @@ and reconstruct_term maybe_opt unfold pool
           val (js1, js2) = chop arity1 js
         in
           list_comb (HOLogic.pair_const T1 T2,
-                     map3 (fn T => term_for_rep true seen T T) [T1, T2] [R1, R2]
+                     @{map 3} (fn T => term_for_rep true seen T T) [T1, T2] [R1, R2]
                           [[js1], [js2]])
         end
       | term_for_rep _ seen T T' (Vect (k, R')) [js] =

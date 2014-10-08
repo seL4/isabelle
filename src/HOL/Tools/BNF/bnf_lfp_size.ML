@@ -192,7 +192,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val nested_size_o_maps = fold (union Thm.eq_thm_prop) nested_size_o_mapss [];
 
       val ((raw_size_consts, raw_size_defs), (lthy1', lthy1)) = lthy0
-        |> apfst split_list o fold_map2 (fn b => fn rhs =>
+        |> apfst split_list o @{fold_map 2} (fn b => fn rhs =>
             Local_Theory.define ((b, NoSyn), ((maybe_conceal_def_binding b, []), rhs))
             #>> apsnd snd)
           size_bs size_rhss
@@ -227,7 +227,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val (overloaded_size_defs, lthy2) = lthy1
         |> Local_Theory.background_theory_result
           (Class.instantiation (T_names, map dest_TFree As, [HOLogic.class_size])
-           #> fold_map3 define_overloaded_size overloaded_size_def_bs overloaded_size_consts
+           #> @{fold_map 3} define_overloaded_size overloaded_size_def_bs overloaded_size_consts
              overloaded_size_rhss
            ##> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
            ##> Local_Theory.exit_global);
@@ -324,7 +324,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
               map2 (fold_rev (fold_rev Logic.all) [gs, hs] o HOLogic.mk_Trueprop oo
                 curry HOLogic.mk_eq) rec_o_map_lhss rec_o_map_rhss;
             val rec_o_map_thms =
-              map3 (fn goal => fn rec_def => fn ctor_rec_o_map =>
+              @{map 3} (fn goal => fn rec_def => fn ctor_rec_o_map =>
                   Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
                     mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
                       ctor_rec_o_map)
@@ -351,7 +351,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
             val size_o_map_thmss =
               if nested_size_o_maps_complete then
-                map3 (fn goal => fn size_def => fn rec_o_map =>
+                @{map 3} (fn goal => fn size_def => fn rec_o_map =>
                     Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
                       mk_size_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
                     |> Thm.close_derivation
