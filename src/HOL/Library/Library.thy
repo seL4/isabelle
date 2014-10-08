@@ -36,6 +36,7 @@ imports
   Lattice_Algebras
   Lattice_Syntax
   Lattice_Constructions
+  Linear_Temporal_Logic_on_Streams
   ListVector
   Lubs_Glbs
   Mapping
