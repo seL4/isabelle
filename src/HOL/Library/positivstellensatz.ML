@@ -2,8 +2,8 @@
     Author:     Amine Chaieb, University of Cambridge
 
 A generic arithmetic prover based on Positivstellensatz certificates
---- also implements Fourrier-Motzkin elimination as a special case
-Fourrier-Motzkin elimination.
+--- also implements Fourier-Motzkin elimination as a special case
+Fourier-Motzkin elimination.
 *)
 
 (* A functor for finite mappings based on Tables *)
@@ -360,7 +360,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
        absconv1,absconv2,prover) =
   let
     val pre_ss = put_simpset HOL_basic_ss ctxt addsimps
-      @{thms simp_thms ex_simps all_simps not_all not_ex ex_disj_distrib all_conj_distrib if_bool_eq_disj}
+      @{thms simp_thms ex_simps all_simps not_all not_ex ex_disj_distrib
+          all_conj_distrib if_bool_eq_disj}
     val prenex_ss = put_simpset HOL_basic_ss ctxt addsimps prenex_simps
     val skolemize_ss = put_simpset HOL_basic_ss ctxt addsimps [choice_iff]
     val presimp_conv = Simplifier.rewrite pre_ss
@@ -439,7 +440,9 @@ fun gen_gen_real_arith ctxt (mk_numeric,
       let
         val (p,q) = Thm.dest_binop (concl th)
         val c = concl th1
-        val _ = if c aconvc (concl th2) then () else error "disj_cases : conclusions not alpha convertible"
+        val _ =
+          if c aconvc (concl th2) then ()
+          else error "disj_cases : conclusions not alpha convertible"
       in Thm.implies_elim (Thm.implies_elim
           (Thm.implies_elim (instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th)
           (Thm.implies_intr (Thm.apply @{cterm Trueprop} p) th1))
@@ -463,8 +466,12 @@ fun gen_gen_real_arith ctxt (mk_numeric,
             in overall cert_choice dun (th1::th2::oths) end
           else if is_disj ct then
             let
-              val (th1, cert1) = overall (Left::cert_choice) dun (Thm.assume (Thm.apply @{cterm Trueprop} (Thm.dest_arg1 ct))::oths)
-              val (th2, cert2) = overall (Right::cert_choice) dun (Thm.assume (Thm.apply @{cterm Trueprop} (Thm.dest_arg ct))::oths)
+              val (th1, cert1) =
+                overall (Left::cert_choice) dun
+                  (Thm.assume (Thm.apply @{cterm Trueprop} (Thm.dest_arg1 ct))::oths)
+              val (th2, cert2) =
+                overall (Right::cert_choice) dun
+                  (Thm.assume (Thm.apply @{cterm Trueprop} (Thm.dest_arg ct))::oths)
             in (disj_cases th th1 th2, Branch (cert1, cert2)) end
           else overall cert_choice (th::dun) oths
         end
@@ -495,7 +502,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
       let
         fun h (acc, t) =
           case (term_of t) of
-            Const(@{const_name Ex},_)$Abs(_,_,_) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+            Const(@{const_name Ex},_)$Abs(_,_,_) =>
+              h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
           | _ => (acc,t)
       in fn t => h ([],t)
       end
@@ -505,7 +513,10 @@ fun gen_gen_real_arith ctxt (mk_numeric,
       | Var ((s,_),_) => s
       | _ => "x"
 
-    fun mk_forall x th = Drule.arg_cong_rule (instantiate_cterm' [SOME (ctyp_of_term x)] [] @{cpat "All :: (?'a => bool) => _" }) (Thm.abstract_rule (name_of x) x th)
+    fun mk_forall x th =
+      Drule.arg_cong_rule
+        (instantiate_cterm' [SOME (ctyp_of_term x)] [] @{cpat "All :: (?'a => bool) => _" })
+        (Thm.abstract_rule (name_of x) x th)
 
     val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 
@@ -527,13 +538,16 @@ fun gen_gen_real_arith ctxt (mk_numeric,
       | _ => raise THM ("choose",0,[th, th'])
 
     fun simple_choose v th =
-      choose v (Thm.assume ((Thm.apply @{cterm Trueprop} o mk_ex v) ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
+      choose v
+        (Thm.assume
+          ((Thm.apply @{cterm Trueprop} o mk_ex v) ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
 
     val strip_forall =
       let
         fun h (acc, t) =
           case (term_of t) of
-            Const(@{const_name All},_)$Abs(_,_,_) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+            Const(@{const_name All},_)$Abs(_,_,_) =>
+              h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
           | _ => (acc,t)
       in fn t => h ([],t)
       end
@@ -560,7 +574,9 @@ fun gen_gen_real_arith ctxt (mk_numeric,
             val (avs,ibod) = strip_forall bod
             val th1 = Drule.arg_cong_rule @{cterm Trueprop} (fold mk_forall avs (absremover ibod))
             val (th2, certs) = overall [] [] [specl avs (Thm.assume (Thm.rhs_of th1))]
-            val th3 = fold simple_choose evs (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.apply @{cterm Trueprop} bod))) th2)
+            val th3 =
+              fold simple_choose evs
+                (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.apply @{cterm Trueprop} bod))) th2)
           in (Drule.implies_intr_hyps (prove_hyp (Thm.equal_elim th0 (Thm.assume nct)) th3), certs)
           end
       in (Thm.implies_elim (instantiate' [] [SOME ct] pth_final) th, certificates)
