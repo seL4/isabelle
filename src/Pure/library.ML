@@ -531,19 +531,19 @@ fun map2 _ [] [] = []
   | map2 f (x :: xs) (y :: ys) = f x y :: map2 f xs ys
   | map2 _ _ _ = raise ListPair.UnequalLengths;
 
-fun fold2 f [] [] z = z
+fun fold2 _ [] [] z = z
   | fold2 f (x :: xs) (y :: ys) z = fold2 f xs ys (f x y z)
-  | fold2 f _ _ _ = raise ListPair.UnequalLengths;
+  | fold2 _ _ _ _ = raise ListPair.UnequalLengths;
 
-fun fold_rev2 f [] [] z = z
+fun fold_rev2 _ [] [] z = z
   | fold_rev2 f (x :: xs) (y :: ys) z = f x y (fold_rev2 f xs ys z)
-  | fold_rev2 f _ _ _ = raise ListPair.UnequalLengths;
+  | fold_rev2 _ _ _ _ = raise ListPair.UnequalLengths;
 
-fun forall2 P [] [] = true
+fun forall2 _ [] [] = true
   | forall2 P (x :: xs) (y :: ys) = P x y andalso forall2 P xs ys
-  | forall2 P _ _ = raise ListPair.UnequalLengths;
+  | forall2 _ _ _ = raise ListPair.UnequalLengths;
 
-fun map_split f [] = ([], [])
+fun map_split _ [] = ([], [])
   | map_split f (x :: xs) =
       let
         val (y, w) = f x;
