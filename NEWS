@@ -126,6 +126,12 @@ Minor INCOMPATIBILITY.
   generated code in target languages in HOL/Library/Code_Test. See
   HOL/Codegenerator_Test/Code_Test* for examples.
 
+* Library/Sum_of_Squares: simplified and improved "sos" method. Always
+use local CSDP executable, which is much faster than the NEOS server.
+The "sos_cert" functionality is invoked as "sos" with additional
+argument. Minor INCOMPATIBILITY.
+
+
 *** ML ***
 
 * Tactical PARALLEL_ALLGOALS is the most common way to refer to

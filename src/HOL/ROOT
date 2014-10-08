@@ -600,11 +600,8 @@ session "HOL-ex" in ex = HOL +
     ML
     SAT_Examples
     Nominal2_Dummy
-    SOS_Cert
-  theories [condition = ISABELLE_CSDP]
     SOS
-  theories [condition = ISABELLE_FULL_TEST]
-    SOS_Remote
+    SOS_Cert
   theories [skip_proofs = false]
     Meson_Test
   theories [condition = SVC_HOME]
