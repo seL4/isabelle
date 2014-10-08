@@ -131,7 +131,7 @@ fun output_line cert =
   "To repeat this proof with a certificate use this command:\n" ^
     Active.sendback_markup [] ("apply (sos_cert \"" ^ cert ^ "\")")
 
-val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cert
+val print_cert = warning o output_line o Positivstellensatz_Tools.print_cert
 
 
 (* method setup *)
@@ -149,7 +149,7 @@ val _ = Theory.setup
     (Scan.lift Parse.string
       >> (fn cert => fn ctxt =>
         sos_solver ignore
-          (Sum_of_Squares.Certificate (PositivstellensatzTools.cert_to_pss_tree ctxt cert)) ctxt))
+          (Sum_of_Squares.Certificate (Positivstellensatz_Tools.read_cert ctxt cert)) ctxt))
     "prove universal problems over the reals using sums of squares with certificates")
 
 end
