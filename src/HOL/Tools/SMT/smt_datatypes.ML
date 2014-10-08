@@ -38,7 +38,7 @@ fun get_ctr_sugar_decl ({ctrs = ctrs0, selss = selss0, ...} : Ctr_Sugar.ctr_suga
 
     val selss = if has_duplicates (op aconv) (flat selss0) then [] else selss0
   in
-    Ctr_Sugar_Util.fold_map2 mk_constr ctrs0 (Ctr_Sugar_Util.pad_list [] (length ctrs0) selss) ctxt
+    @{fold_map 2} mk_constr ctrs0 (Ctr_Sugar_Util.pad_list [] (length ctrs0) selss) ctxt
     |>> (pair T #> single)
   end
 

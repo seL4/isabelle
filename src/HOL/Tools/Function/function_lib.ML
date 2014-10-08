@@ -11,10 +11,6 @@ sig
 
   val dest_all_all: term -> term list * term
 
-  val map4: ('a -> 'b -> 'c -> 'd -> 'e) -> 'a list -> 'b list -> 'c list -> 'd list -> 'e list
-  val map7: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h) -> 'a list -> 'b list -> 'c list ->
-    'd list -> 'e list -> 'f list -> 'g list -> 'h list
-
   val unordered_pairs: 'a list -> ('a * 'a) list
 
   val rename_bound: string -> term -> term
@@ -48,14 +44,6 @@ fun dest_all_all (t as (Const (@{const_name Pure.all},_) $ _)) =
     (v :: vs, b')
   end
   | dest_all_all t = ([],t)
-
-
-fun map4 f = Ctr_Sugar_Util.map4 f
-
-fun map7 _ [] [] [] [] [] [] [] = []
-  | map7 f (x :: xs) (y :: ys) (z :: zs) (u :: us) (v :: vs) (w :: ws) (b :: bs) = f x y z u v w b :: map7 f xs ys zs us vs ws bs
-  | map7 _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
-
 
 
 (* forms all "unordered pairs": [1, 2, 3] ==> [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)] *)

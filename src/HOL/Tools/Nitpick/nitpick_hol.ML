@@ -1319,7 +1319,7 @@ and coerce_term (hol_ctxt as {ctxt, ...}) Ts new_T old_T t =
           construct_value ctxt
               (if new_s = @{type_name prod} then @{const_name Pair}
                else @{const_name PairBox}, new_Ts ---> new_T)
-              (map3 (coerce_term hol_ctxt Ts) [new_T1, new_T2] [old_T1, old_T2]
+              (@{map 3} (coerce_term hol_ctxt Ts) [new_T1, new_T2] [old_T1, old_T2]
                     [t1, t2])
         | t' => raise TERM ("Nitpick_HOL.coerce_term", [t'])
       else

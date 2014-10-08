@@ -289,7 +289,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
             val Type (_, dom_Ts) = domain_type (fastype_of1 (bound_Ts, t));
             val map' = mk_map (length fs) dom_Ts Us map0;
             val fs' =
-              map_flattened_map_args ctxt s (map3 (massage_map_or_map_arg bound_Ts) Us Ts) fs;
+              map_flattened_map_args ctxt s (@{map 3} (massage_map_or_map_arg bound_Ts) Us Ts) fs;
           in
             Term.list_comb (map', fs')
           end
@@ -325,7 +325,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
                 val f'_T = typof f';
                 val arg_Ts = map typof args;
               in
-                Term.list_comb (f', map3 (massage_call bound_Ts) (binder_types f'_T) arg_Ts args)
+                Term.list_comb (f', @{map 3} (massage_call bound_Ts) (binder_types f'_T) arg_Ts args)
               end
             | NONE =>
               (case t of
@@ -394,7 +394,7 @@ fun basic_corec_specs_of ctxt res_T =
 
         fun mk_spec ctr disc sels = {ctr = substA ctr, disc = substA disc, sels = map substA sels};
       in
-        map3 mk_spec ctrs discs selss
+        @{map 3} mk_spec ctrs discs selss
         handle ListPair.UnequalLengths => not_codatatype ctxt res_T
       end)
   | _ => not_codatatype ctxt res_T);
@@ -452,7 +452,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val (perm_f_hssss, _) = indexedddd perm_f_Tssss h';
 
     val fun_arg_hs =
-      flat (map3 flat_corec_preds_predsss_gettersss perm_p_hss perm_q_hssss perm_f_hssss);
+      flat (@{map 3} flat_corec_preds_predsss_gettersss perm_p_hss perm_q_hssss perm_f_hssss);
 
     fun unpermute0 perm0_xs = permute_like_unique (op =) perm0_kks kks perm0_xs;
     fun unpermute perm_xs = permute_like_unique (op =) perm_indices indices perm_xs;
@@ -486,7 +486,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
         corec_thm corec_disc corec_sels =
       let val nullary = not (can dest_funT (fastype_of ctr)) in
         {ctr = substA ctr, disc = substA disc, sels = map substA sels, pred = p_io,
-         calls = map3 (call_of nullary) q_iss f_iss f_Tss, discI = discI, sel_thms = sel_thms,
+         calls = @{map 3} (call_of nullary) q_iss f_iss f_Tss, discI = discI, sel_thms = sel_thms,
          distinct_discss = distinct_discss, collapse = collapse, corec_thm = corec_thm,
          corec_disc = corec_disc, corec_sels = corec_sels}
       end;
@@ -494,7 +494,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     fun mk_ctr_specs ({ctrs, discs, selss, discIs, sel_thmss, distinct_discsss, collapses, ...}
         : ctr_sugar) p_is q_isss f_isss f_Tsss corec_thms corec_discs corec_selss =
       let val p_ios = map SOME p_is @ [NONE] in
-        map14 mk_ctr_spec ctrs discs selss p_ios q_isss f_isss f_Tsss discIs sel_thmss
+        @{map 14} mk_ctr_spec ctrs discs selss p_ios q_isss f_isss f_Tsss discIs sel_thmss
           distinct_discsss collapses corec_thms corec_discs corec_selss
       end;
 
@@ -509,7 +509,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
        ctr_specs = mk_ctr_specs ctr_sugar p_is q_isss f_isss f_Tsss corec_thms corec_discs
          corec_selss};
   in
-    (map5 mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
+    (@{map 5} mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
      co_induct_of common_coinduct_thms, strong_co_induct_of common_coinduct_thms,
      co_induct_of coinduct_thmss, strong_co_induct_of coinduct_thmss, coinduct_attrs_pair,
      is_some gfp_sugar_thms, lthy)
@@ -738,7 +738,7 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 con
 
     val sequentials = replicate (length fun_names) false;
   in
-    fold_map2 (dissect_coeqn_ctr lthy fun_names sequentials basic_ctr_specss eqn_pos eqn0
+    @{fold_map 2} (dissect_coeqn_ctr lthy fun_names sequentials basic_ctr_specss eqn_pos eqn0
         (SOME (abstract (List.rev fun_args) rhs)))
       ctr_premss ctr_concls matchedsss
   end;
@@ -909,7 +909,7 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
     |> map2 currys arg_Tss
     |> Syntax.check_terms lthy
-    |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
+    |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
       bs mxs
     |> rpair excludess'
   end;
@@ -981,7 +981,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val frees = map (fst #>> Binding.name_of #> Free) fixes;
     val has_call = exists_subterm (member (op =) frees);
     val eqns_data =
-      fold_map2 (dissect_coeqn lthy has_call fun_names sequentials basic_ctr_specss)
+      @{fold_map 2} (dissect_coeqn lthy has_call fun_names sequentials basic_ctr_specss)
         (tag_list 0 (map snd specs)) of_specs_opt []
       |> flat o fst;
 
@@ -1030,7 +1030,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
       |> map (flat o snd);
 
     val arg_Tss = map (binder_types o snd o fst) fixes;
-    val disc_eqnss = map6 mk_actual_disc_eqns bs arg_Tss exhaustives corec_specs sel_eqnss
+    val disc_eqnss = @{map 6} mk_actual_disc_eqns bs arg_Tss exhaustives corec_specs sel_eqnss
       disc_eqnss';
     val (defs, excludess') =
       build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
@@ -1045,7 +1045,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
       else
         tac_opt;
 
-    val excludess'' = map3 (fn tac_opt => fn sequential => map (fn (j, goal) =>
+    val excludess'' = @{map 3} (fn tac_opt => fn sequential => map (fn (j, goal) =>
         (j, (Option.map (Goal.prove_sorry lthy [] [] goal #> Thm.close_derivation)
            (exclude_tac tac_opt sequential j), goal))))
       tac_opts sequentials excludess';
@@ -1072,7 +1072,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         de_facto_exhaustives disc_eqnss
       |> list_all_fun_args []
     val nchotomy_taut_thmss =
-      map5 (fn tac_opt => fn {exhaust_discs = res_exhaust_discs, ...} =>
+      @{map 5} (fn tac_opt => fn {exhaust_discs = res_exhaust_discs, ...} =>
           fn {code_rhs_opt, ...} :: _ => fn [] => K []
             | [goal] => fn true =>
               let
@@ -1121,7 +1121,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                 end)
             de_facto_exhaustives disc_eqnss
           |> list_all_fun_args ps
-          |> map3 (fn disc_eqns as {fun_args, ...} :: _ => fn [] => K []
+          |> @{map 3} (fn disc_eqns as {fun_args, ...} :: _ => fn [] => K []
               | [nchotomy_thm] => fn [goal] =>
                 [mk_primcorec_exhaust_tac lthy ("" (* for "P" *) :: map (fst o dest_Free) fun_args)
                    (length disc_eqns) nchotomy_thm
@@ -1334,9 +1334,9 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
               end)
           end;
 
-        val disc_alistss = map3 (map oo prove_disc) corec_specs excludessss disc_eqnss;
+        val disc_alistss = @{map 3} (map oo prove_disc) corec_specs excludessss disc_eqnss;
         val disc_alists = map (map snd o flat) disc_alistss;
-        val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss excludessss sel_eqnss;
+        val sel_alists = @{map 4} (map ooo prove_sel) corec_specs disc_eqnss excludessss sel_eqnss;
         val disc_thmss = map (map snd o sort_list_duplicates o flat) disc_alistss;
         val disc_thmsss' = map (map (map (snd o snd))) disc_alistss;
         val sel_thmss = map (map (fst o snd) o sort_list_duplicates) sel_alists;
@@ -1364,17 +1364,18 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
               |> single
             end;
 
-        val disc_iff_thmss = map6 (flat ooo map2 oooo prove_disc_iff) corec_specs exhaust_thmss
+        val disc_iff_thmss = @{map 6} (flat ooo map2 oooo prove_disc_iff) corec_specs exhaust_thmss
           disc_thmsss' disc_eqnss disc_thmsss' disc_eqnss
           |> map sort_list_duplicates;
 
-        val ctr_alists = map6 (fn disc_alist => maps oooo prove_ctr disc_alist) disc_alists
+        val ctr_alists = @{map 6} (fn disc_alist => maps oooo prove_ctr disc_alist) disc_alists
           (map (map snd) sel_alists) corec_specs disc_eqnss sel_eqnss ctr_specss;
         val ctr_thmss' = map (map snd) ctr_alists;
         val ctr_thmss = map (map snd o order_list) ctr_alists;
 
-        val code_thmss = map6 prove_code exhaustives disc_eqnss sel_eqnss nchotomy_thmss ctr_thmss'
-          ctr_specss;
+        val code_thmss =
+          @{map 6} prove_code exhaustives disc_eqnss sel_eqnss nchotomy_thmss ctr_thmss'
+            ctr_specss;
 
         val disc_iff_or_disc_thmss =
           map2 (fn [] => I | disc_iffs => K disc_iffs) disc_iff_thmss disc_thmss;

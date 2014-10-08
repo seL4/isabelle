@@ -167,6 +167,70 @@ val _ = Theory.setup
         in ML_Syntax.atomic (ML_Syntax.print_term const) end)));
 
 
+(* basic combinators *)
+
+local
+
+val parameter = Parse.position Parse.nat >> (fn (n, pos) =>
+  if n > 1 then n else error ("Bad parameter: " ^ string_of_int n ^ Position.here pos));
+
+fun indices n = map string_of_int (1 upto n);
+
+fun empty n = replicate_string n " []";
+fun dummy n = replicate_string n " _";
+fun vars x n = implode (map (fn a => " " ^ x ^ a) (indices n));
+fun cons n = implode (map (fn a => " (x" ^ a ^ " :: xs" ^ a ^ ")") (indices n));
+
+val tuple = enclose "(" ")" o commas;
+fun tuple_empty n = tuple (replicate n "[]");
+fun tuple_vars x n = tuple (map (fn a => x ^ a) (indices n));
+fun tuple_cons n = "(" ^ tuple_vars "x" n ^ " :: xs)"
+fun cons_tuple n = tuple (map (fn a => "x" ^ a ^ " :: xs" ^ a) (indices n));
+
+in
+
+val _ = Theory.setup
+ (ML_Antiquotation.value @{binding map}
+    (Scan.lift parameter >> (fn n =>
+      "fn f =>\n\
+      \  let\n\
+      \    fun map _" ^ empty n ^ " = []\n\
+      \      | map f" ^ cons n ^ " = f" ^ vars "x" n ^ " :: map f" ^ vars "xs" n ^ "\n\
+      \      | map _" ^  dummy n ^ " = raise ListPair.UnequalLengths\n" ^
+      "  in map f end")) #>
+  ML_Antiquotation.value @{binding fold}
+    (Scan.lift parameter >> (fn n =>
+      "fn f =>\n\
+      \  let\n\
+      \    fun fold _" ^ empty n ^ " a = a\n\
+      \      | fold f" ^ cons n ^ " a = fold f" ^ vars "xs" n ^ " (f" ^ vars "x" n ^ " a)\n\
+      \      | fold _" ^  dummy n ^ " _ = raise ListPair.UnequalLengths\n" ^
+      "  in fold f end")) #>
+  ML_Antiquotation.value @{binding fold_map}
+    (Scan.lift parameter >> (fn n =>
+      "fn f =>\n\
+      \  let\n\
+      \    fun fold_map _" ^ empty n ^ " a = ([], a)\n\
+      \      | fold_map f" ^ cons n ^ " a =\n\
+      \          let\n\
+      \            val (x, a') = f" ^ vars "x" n ^ " a\n\
+      \            val (xs, a'') = fold_map f" ^ vars "xs" n ^ " a'\n\
+      \          in (x :: xs, a'') end\n\
+      \      | fold_map _" ^  dummy n ^ " _ = raise ListPair.UnequalLengths\n" ^
+      "  in fold_map f end")) #>
+  ML_Antiquotation.value @{binding split_list}
+    (Scan.lift parameter >> (fn n =>
+      "fn list =>\n\
+      \  let\n\
+      \    fun split_list [] =" ^ tuple_empty n ^ "\n\
+      \      | split_list" ^ tuple_cons n ^ " =\n\
+      \          let val" ^ tuple_vars "xs" n ^ " = split_list xs\n\
+      \          in " ^ cons_tuple n ^ "end\n\
+      \  in split_list list end")))
+
+end;
+
+
 (* outer syntax *)
 
 fun with_keyword f =

@@ -39,7 +39,6 @@ sig
   val all_permutations : 'a list -> 'a list list
   val chunk_list : int -> 'a list -> 'a list list
   val chunk_list_unevenly : int list -> 'a list -> 'a list list
-  val map3 : ('a -> 'b -> 'c -> 'd) -> 'a list -> 'b list -> 'c list -> 'd list
   val double_lookup :
     ('a * 'a -> bool) -> ('a option * 'b) list -> 'a -> 'b option
   val triple_lookup :
@@ -201,10 +200,6 @@ fun chunk_list_unevenly _ [] = []
   | chunk_list_unevenly [] xs = map single xs
   | chunk_list_unevenly (k :: ks) xs =
     let val (xs1, xs2) = chop k xs in xs1 :: chunk_list_unevenly ks xs2 end
-
-fun map3 _ [] [] [] = []
-  | map3 f (x :: xs) (y :: ys) (z :: zs) = f x y z :: map3 f xs ys zs
-  | map3 _ _ _ _ = raise ListPair.UnequalLengths
 
 fun double_lookup eq ps key =
   case AList.lookup (fn (SOME x, SOME y) => eq (x, y) | _ => false) ps

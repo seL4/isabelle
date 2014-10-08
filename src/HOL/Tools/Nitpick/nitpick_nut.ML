@@ -1151,7 +1151,7 @@ fun rename_n_ary_var rename_free v (ws, pool, table) =
                                             (j :: js, pool)
                                           end)
                                 ([], pool)
-        val ws' = map3 (fn j => fn x => fn T =>
+        val ws' = @{map 3} (fn j => fn x => fn T =>
                            constr ((1, j), T, Atom x,
                                    nick ^ " [" ^ string_of_int j ^ "]"))
                        (rev js) atom_schema type_schema

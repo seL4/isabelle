@@ -414,7 +414,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
 
     val disc_bindings =
       raw_disc_bindings
-      |> map4 (fn k => fn m => fn ctr => fn disc =>
+      |> @{map 4} (fn k => fn m => fn ctr => fn disc =>
         qualify false
           (if Binding.is_empty disc then
              if m = 0 then equal_binding
@@ -428,7 +428,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
     fun standard_sel_binding m l = Binding.name o mk_unN m l o base_name_of_ctr;
 
     val sel_bindingss =
-      map3 (fn ctr => fn m => map2 (fn l => fn sel =>
+      @{map 3} (fn ctr => fn m => map2 (fn l => fn sel =>
         qualify false
           (if Binding.is_empty sel orelse Binding.eq_name (sel, standard_binding) then
             standard_sel_binding m l ctr
@@ -476,7 +476,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
 
     val case_rhs = fold_rev (fold_rev Term.lambda) [fs, [u]]
       (Const (@{const_name The}, (B --> HOLogic.boolT) --> B) $
-         Term.lambda w (Library.foldr1 HOLogic.mk_disj (map3 mk_case_disj xctrs xfs xss)));
+         Term.lambda w (Library.foldr1 HOLogic.mk_disj (@{map 3} mk_case_disj xctrs xfs xss)));
 
     val ((raw_case, (_, raw_case_def)), (lthy', lthy)) = no_defs_lthy
       |> Local_Theory.define ((case_binding, NoSyn),
@@ -538,7 +538,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
             else
               map (fn b => find_index (curry Binding.eq_name b) uniq_sel_bindings) all_sel_bindings;
 
-          val all_proto_sels = flat (map3 (fn k => fn xs => map (pair k o pair xs)) ks xss xss);
+          val all_proto_sels = flat (@{map 3} (fn k => fn xs => map (pair k o pair xs)) ks xss xss);
           val sel_infos =
             AList.group (op =) (sel_binding_index ~~ all_proto_sels)
             |> sort (int_ord o pairself fst)
@@ -565,7 +565,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
             Term.lambda u (alternate_disc_lhs (K o rapp u o disc_free) (3 - k));
 
           fun mk_sel_case_args b proto_sels T =
-            map3 (fn Const (c, _) => fn Ts => fn k =>
+            @{map 3} (fn Const (c, _) => fn Ts => fn k =>
               (case AList.lookup (op =) proto_sels k of
                 NONE =>
                 (case filter (curry (op =) (c, Binding.name_of b) o fst) sel_defaults of
@@ -596,7 +596,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
 
           val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
             lthy
-            |> apfst split_list o fold_map3 (fn k => fn exist_xs_u_eq_ctr => fn b =>
+            |> apfst split_list o @{fold_map 3} (fn k => fn exist_xs_u_eq_ctr => fn b =>
                 if Binding.is_empty b then
                   if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
                   else pair (alternate_disc k, alternate_disc_no_def)
@@ -640,7 +640,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
             [fold_rev Logic.all (xs @ ys) (mk_Trueprop_eq (HOLogic.mk_eq (xctr, yctr),
               Library.foldr1 HOLogic.mk_conj (map2 (curry HOLogic.mk_eq) xs ys)))];
       in
-        map4 mk_goal xctrs yctrs xss yss
+        @{map 4} mk_goal xctrs yctrs xss yss
       end;
 
     val half_distinct_goalss =
@@ -686,10 +686,10 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
         val case_thms =
           let
             val goals =
-              map3 (fn xctr => fn xf => fn xs =>
+              @{map 3} (fn xctr => fn xf => fn xs =>
                 fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (fcase $ xctr, xf))) xctrs xfs xss;
           in
-            map4 (fn k => fn goal => fn injects => fn distinctss =>
+            @{map 4} (fn k => fn goal => fn injects => fn distinctss =>
                 Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                   mk_case_tac ctxt n k case_def injects distinctss)
                 |> Thm.close_derivation)
@@ -703,7 +703,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
                 mk_Trueprop_eq (xf, xg)));
 
             val goal =
-              Logic.list_implies (uv_eq :: map4 mk_prem xctrs xss xfs xgs,
+              Logic.list_implies (uv_eq :: @{map 4} mk_prem xctrs xss xfs xgs,
                  mk_Trueprop_eq (eta_ufcase, eta_vgcase));
             val weak_goal = Logic.mk_implies (uv_eq, mk_Trueprop_eq (ufcase, vfcase));
           in
@@ -723,10 +723,10 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
 
         fun mk_split_goal xctrs xss xfs =
           mk_Trueprop_eq (split_lhs, Library.foldr1 HOLogic.mk_conj
-            (map3 mk_split_conjunct xctrs xss xfs));
+            (@{map 3} mk_split_conjunct xctrs xss xfs));
         fun mk_split_asm_goal xctrs xss xfs =
           mk_Trueprop_eq (split_lhs, HOLogic.mk_not (Library.foldr1 HOLogic.mk_disj
-            (map3 mk_split_disjunct xctrs xss xfs)));
+            (@{map 3} mk_split_disjunct xctrs xss xfs)));
 
         fun prove_split selss goal =
           Goal.prove_sorry lthy [] [] goal (fn _ =>
@@ -771,7 +771,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
                 zero_var_indexes (Drule.gen_all (Drule.rename_bvars' (map (SOME o fst) xs')
                     (Drule.forall_intr_vars (case_thm RS (sel_def RS trans)))));
 
-              val sel_thmss = map3 (map oo make_sel_thm) xss' case_thms sel_defss;
+              val sel_thmss = @{map 3} (map oo make_sel_thm) xss' case_thms sel_defss;
 
               fun has_undefined_rhs thm =
                 (case snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))) of
@@ -833,7 +833,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
                     | mk_thm _ not_discI [distinct] = distinct RS not_discI;
                   fun mk_thms discI not_discI distinctss = map (mk_thm discI not_discI) distinctss;
                 in
-                  map3 mk_thms discI_thms not_discI_thms distinct_thmsss' |> `transpose
+                  @{map 3} mk_thms discI_thms not_discI_thms distinct_thmsss' |> `transpose
                 end;
 
               val nontriv_disc_thmss =
@@ -861,7 +861,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
 
                   val half_goalss = map mk_goal half_pairss;
                   val half_thmss =
-                    map3 (fn [] => K (K []) | [goal] => fn [(((m, discD), _), _)] =>
+                    @{map 3} (fn [] => K (K []) | [goal] => fn [(((m, discD), _), _)] =>
                         fn disc_thm => [prove (mk_half_distinct_disc_tac lthy m discD disc_thm) goal])
                       half_goalss half_pairss (flat disc_thmss');
 
@@ -893,9 +893,9 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
                     in
                       (prem aconv concl, Logic.all u (Logic.mk_implies (prem, concl)))
                     end;
-                  val (trivs, goals) = map3 mk_goal ms udiscs usel_ctrs |> split_list;
+                  val (trivs, goals) = @{map 3} mk_goal ms udiscs usel_ctrs |> split_list;
                   val thms =
-                    map5 (fn m => fn discD => fn sel_thms => fn triv => fn goal =>
+                    @{map 5} (fn m => fn discD => fn sel_thms => fn triv => fn goal =>
                         Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                           mk_collapse_tac ctxt m discD sel_thms ORELSE HEADGOAL atac)
                         |> Thm.close_derivation
@@ -933,7 +933,7 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
 
                   val goal =
                     Library.foldr Logic.list_implies
-                      (map5 mk_prems ks udiscs uselss vdiscs vselss, uv_eq);
+                      (@{map 5} mk_prems ks udiscs uselss vdiscs vselss, uv_eq);
                   val uncollapse_thms =
                     map2 (fn thm => fn [] => thm | _ => thm RS sym) all_collapse_thms uselss;
                 in

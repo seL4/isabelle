@@ -864,7 +864,7 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
     val CA = mk_bnf_T Ds As Calpha;
     val CR = mk_bnf_T Ds RTs Calpha;
     val setRs =
-      map3 (fn R => fn T => fn U =>
+      @{map 3} (fn R => fn T => fn U =>
           HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_split R) Rs As Bs;
 
     (*Grp (in (Collect (split R1) .. Collect (split Rn))) (map fst .. fst)^--1 OO
@@ -1057,7 +1057,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
     val map_cong0_goal =
       let
-        val prems = map4 (mk_map_cong_prem Logic.mk_implies x) zs bnf_sets_As fs fs_copy;
+        val prems = @{map 4} (mk_map_cong_prem Logic.mk_implies x) zs bnf_sets_As fs fs_copy;
         val eq = mk_Trueprop_eq (Term.list_comb (bnf_map_AsBs, fs) $ x,
           Term.list_comb (bnf_map_AsBs, fs_copy) $ x);
       in
@@ -1074,7 +1074,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             fold_rev Logic.all fs (mk_Trueprop_eq (set_comp_map, image_comp_set))
           end;
       in
-        map3 mk_goal bnf_sets_As bnf_sets_Bs fs
+        @{map 3} mk_goal bnf_sets_As bnf_sets_Bs fs
       end;
 
     val card_order_bd_goal = HOLogic.mk_Trueprop (mk_card_order bnf_bd_As);
@@ -1185,7 +1185,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         fun mk_map_cong mk_implies () =
           let
             val prem0 = mk_Trueprop_eq (x, x_copy);
-            val prems = map4 (mk_map_cong_prem mk_implies x_copy) zs bnf_sets_As fs fs_copy;
+            val prems = @{map 4} (mk_map_cong_prem mk_implies x_copy) zs bnf_sets_As fs fs_copy;
             val eq = mk_Trueprop_eq (Term.list_comb (bnf_map_AsBs, fs) $ x,
               Term.list_comb (bnf_map_AsBs, fs_copy) $ x_copy);
             val goal = fold_rev Logic.all (x :: x_copy :: fs @ fs_copy)
@@ -1364,7 +1364,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                   (mk_Ball (setB $ y) (Term.absfree (dest_Free b)
                     (HOLogic.mk_imp (R $ a $ b, S $ a $ b))))));
             val prems = HOLogic.mk_Trueprop (Term.list_comb (rel, Rs) $ x $ y) ::
-              map6 mk_prem bnf_sets_As bnf_sets_Bs Rs Rs_copy zs ys;
+              @{map 6} mk_prem bnf_sets_As bnf_sets_Bs Rs Rs_copy zs ys;
             val concl = HOLogic.mk_Trueprop (Term.list_comb (rel, Rs_copy) $ x $ y);
           in
             Goal.prove_sorry lthy [] []
@@ -1389,9 +1389,9 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               [Term.list_comb (relCsBs, S_CsBs) $ (Term.list_comb (bnf_map_AsCs, is) $ x) $ y,
                Term.list_comb (relAsCs, S_AsCs) $ x $ (Term.list_comb (bnf_map_BsCs, gs) $ y)];
             val rhss =
-              [Term.list_comb (rel, map3 (fn f => fn P => fn T =>
+              [Term.list_comb (rel, @{map 3} (fn f => fn P => fn T =>
                  mk_vimage2p f (HOLogic.id_const T) $ P) is S_CsBs Bs') $ x $ y,
-               Term.list_comb (rel, map3 (fn f => fn P => fn T =>
+               Term.list_comb (rel, @{map 3} (fn f => fn P => fn T =>
                  mk_vimage2p (HOLogic.id_const T) f $ P) gs S_AsCs As') $ x $ y];
             val goals = map2 mk_goal lhss rhss;
           in
@@ -1451,7 +1451,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           let
             val rel_sets = map2 (fn A => fn B => mk_rel 1 [A] [B] @{term rel_set}) As' Bs';
             val rel_Rs = Term.list_comb (rel, Rs);
-            val goals = map4 (fn R => fn rel_set => fn setA => fn setB => HOLogic.mk_Trueprop
+            val goals = @{map 4} (fn R => fn rel_set => fn setA => fn setB => HOLogic.mk_Trueprop
               (mk_rel_fun rel_Rs (rel_set $ R) $ setA $ setB)) Rs rel_sets bnf_sets_As bnf_sets_Bs;
           in
             if null goals then []
@@ -1468,7 +1468,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         fun mk_inj_map_strong () =
           let
-            val assms = map5 (fn setA => fn z => fn f => fn z' => fn f' =>
+            val assms = @{map 5} (fn setA => fn z => fn f => fn z' => fn f' =>
               fold_rev Logic.all [z, z']
                 (Logic.mk_implies (mk_Trueprop_mem (z, setA $ x),
                    Logic.mk_implies (mk_Trueprop_mem (z', setA $ x'),

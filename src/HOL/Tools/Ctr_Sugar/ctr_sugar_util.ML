@@ -10,13 +10,6 @@ signature CTR_SUGAR_UTIL =
 sig
   val map_prod: ('a -> 'b) -> ('c -> 'd) -> 'a * 'c -> 'b * 'd
 
-  val map3: ('a -> 'b -> 'c -> 'd) -> 'a list -> 'b list -> 'c list -> 'd list
-  val map4: ('a -> 'b -> 'c -> 'd -> 'e) -> 'a list -> 'b list -> 'c list -> 'd list -> 'e list
-  val map5: ('a -> 'b -> 'c -> 'd -> 'e -> 'f) ->
-    'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list
-  val fold_map2: ('a -> 'b -> 'c -> 'd * 'c) -> 'a list -> 'b list -> 'c -> 'd list * 'c
-  val fold_map3: ('a -> 'b -> 'c -> 'd -> 'e * 'd) ->
-    'a list -> 'b list -> 'c list -> 'd -> 'e list * 'd
   val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
   val transpose: 'a list list -> 'a list list
   val pad_list: 'a -> int -> 'a list -> 'a list
@@ -108,35 +101,6 @@ fun match_entire_string pat s =
 
 fun map_prod f g (x, y) = (f x, g y);
 
-fun map3 _ [] [] [] = []
-  | map3 f (x1::x1s) (x2::x2s) (x3::x3s) = f x1 x2 x3 :: map3 f x1s x2s x3s
-  | map3 _ _ _ _ = raise ListPair.UnequalLengths;
-
-fun map4 _ [] [] [] [] = []
-  | map4 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) = f x1 x2 x3 x4 :: map4 f x1s x2s x3s x4s
-  | map4 _ _ _ _ _ = raise ListPair.UnequalLengths;
-
-fun map5 _ [] [] [] [] [] = []
-  | map5 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) =
-    f x1 x2 x3 x4 x5 :: map5 f x1s x2s x3s x4s x5s
-  | map5 _ _ _ _ _ _ = raise ListPair.UnequalLengths;
-
-fun fold_map2 _ [] [] acc = ([], acc)
-  | fold_map2 f (x1::x1s) (x2::x2s) acc =
-    let
-      val (x, acc') = f x1 x2 acc;
-      val (xs, acc'') = fold_map2 f x1s x2s acc';
-    in (x :: xs, acc'') end
-  | fold_map2 _ _ _ _ = raise ListPair.UnequalLengths;
-
-fun fold_map3 _ [] [] [] acc = ([], acc)
-  | fold_map3 f (x1::x1s) (x2::x2s) (x3::x3s) acc =
-    let
-      val (x, acc') = f x1 x2 x3 acc;
-      val (xs, acc'') = fold_map3 f x1s x2s x3s acc';
-    in (x :: xs, acc'') end
-  | fold_map3 _ _ _ _ _ = raise ListPair.UnequalLengths;
-
 fun seq_conds f n k xs =
   if k = n then
     map (f false) (take (k - 1) xs)
@@ -174,10 +138,10 @@ val mk_TFrees' = apfst (map TFree) oo Variable.invent_types;
 fun mk_TFrees n = mk_TFrees' (replicate n @{sort type});
 
 fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => `(map Free) (xs ~~ Ts));
-fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
+fun mk_Freess' x Tss = @{fold_map 2} mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
 
 fun mk_Frees x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => map2 (curry Free) xs Ts);
-fun mk_Freess x Tss = fold_map2 mk_Frees (mk_names (length Tss) x) Tss;
+fun mk_Freess x Tss = @{fold_map 2} mk_Frees (mk_names (length Tss) x) Tss;
 
 fun dest_TFree_or_TVar (TFree sS) = sS
   | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
@@ -191,7 +155,7 @@ fun ensure_prefix pre s = s |> not (String.isPrefix pre s) ? prefix pre;
 fun variant_types ss Ss ctxt =
   let
     val (tfrees, _) =
-      fold_map2 (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
+      @{fold_map 2} (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
     val ctxt' = fold (Variable.declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
   in (tfrees, ctxt') end;
 

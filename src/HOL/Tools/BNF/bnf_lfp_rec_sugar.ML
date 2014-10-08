@@ -232,7 +232,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
       end;
 
     fun mk_ctr_specs fp_res_index k ctrs rec_thms =
-      map4 mk_ctr_spec ctrs (k upto k + length ctrs - 1) (nth perm_fun_arg_Tssss fp_res_index)
+      @{map 4} mk_ctr_spec ctrs (k upto k + length ctrs - 1) (nth perm_fun_arg_Tssss fp_res_index)
         rec_thms;
 
     fun mk_spec ctr_offset
@@ -433,7 +433,7 @@ fun build_defs ctxt nonexhaustive bs mxs (funs_data : eqn_data list list)
     (recs, ctr_poss)
     |-> map2 (fn recx => fn ctr_pos => list_comb (recx, rec_args) |> permute_args ctr_pos)
     |> Syntax.check_terms ctxt
-    |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
+    |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
       bs mxs
   end;
 
@@ -595,11 +595,11 @@ fun gen_primrec old_primrec prep_spec opts
     val (fixes, specs) = fst (prep_spec raw_fixes raw_specs lthy);
 
     val mk_notes =
-      flat ooo map3 (fn js => fn prefix => fn thms =>
+      flat ooo @{map 3} (fn js => fn prefix => fn thms =>
         let
           val (bs, attrss) = map_split (fst o nth specs) js;
           val notes =
-            map3 (fn b => fn attrs => fn thm =>
+            @{map 3} (fn b => fn attrs => fn thm =>
                 ((Binding.qualify false prefix b, code_nitpicksimp_simp_attrs @ attrs),
                  [([thm], [])]))
               bs attrss thms;

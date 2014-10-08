@@ -433,7 +433,7 @@ fun mk_tupled_fun f x xs =
   if xs = [x] then f else HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 
 fun mk_case_absumprod absT rep fs xss xss' =
-  HOLogic.mk_comp (mk_case_sumN_balanced (map3 mk_tupled_fun fs (map mk_tuple_balanced xss) xss'),
+  HOLogic.mk_comp (mk_case_sumN_balanced (@{map 3} mk_tupled_fun fs (map mk_tuple_balanced xss) xss'),
     mk_rep absT rep);
 
 fun If_const T = Const (@{const_name If}, HOLogic.boolT --> T --> T --> T);
@@ -512,7 +512,7 @@ fun mk_xtor_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's 
     fun mk_prem pre_relphi phi x y xtor xtor' =
       HOLogic.mk_Trueprop (list_all_free [x, y] (flip (curry HOLogic.mk_imp)
         (pre_relphi $ (dtor xtor x) $ (dtor xtor' y)) (phi $ (ctor xtor x) $ (ctor xtor' y))));
-    val prems = map6 mk_prem pre_relphis pre_phis xs ys xtors xtor's;
+    val prems = @{map 6} mk_prem pre_relphis pre_phis xs ys xtors xtor's;
 
     val concl = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
       (map2 (flip mk_leq) relphis pre_phis));
@@ -531,7 +531,7 @@ fun mk_co_iter_transfer_thms fp pre_rels pre_iphis pre_ophis rels phis un_folds 
     val arg_rels = map2 (flip mk_rel_fun) pre_relphis pre_ophis;
     fun mk_transfer relphi pre_phi un_fold un_fold' =
       fold_rev mk_rel_fun arg_rels (flip mk_rel_fun relphi pre_phi) $ un_fold $ un_fold';
-    val transfers = map4 mk_transfer relphis pre_ophis un_folds un_folds';
+    val transfers = @{map 4} mk_transfer relphis pre_ophis un_folds un_folds';
 
     val goal = fold_rev Logic.all (phis @ pre_ophis)
       (HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj transfers));
@@ -565,7 +565,7 @@ fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_fold
     val rewrite1s = mk_rewrites map_cong1s;
     val rewrite2s = mk_rewrites map_cong2s;
     val unique_prems =
-      map4 (fn xtor_map => fn un_fold => fn rewrite1 => fn rewrite2 =>
+      @{map 4} (fn xtor_map => fn un_fold => fn rewrite1 => fn rewrite2 =>
         mk_trans (rewrite_comp_comp2 OF [xtor_map, un_fold])
           (mk_trans rewrite1 (mk_sym rewrite2)))
       xtor_maps xtor_un_folds rewrite1s rewrite2s;
@@ -613,7 +613,8 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
 
     val ((bnfs, (deadss, livess)), accum) =
       apfst (apsnd split_list o split_list)
-        (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) flatten_tyargs Xs Ds0) bs rhsXs
+        (@{fold_map 2}
+          (fn b => bnf_of_typ Smart_Inline (raw_qualify b) flatten_tyargs Xs Ds0) bs rhsXs
           ((empty_comp_cache, empty_unfolds), lthy));
 
     fun norm_qualify i = Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))))
@@ -631,13 +632,13 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
     val ((kill_poss, _), (bnfs', ((_, unfold_set'), lthy'))) =
       normalize_bnfs norm_qualify Ass Ds (K (resBs' @ Xs)) bnfs accum;
 
-    val Dss = map3 (uncurry append oo curry swap oo map o nth) livess kill_poss deadss;
+    val Dss = @{map 3} (uncurry append oo curry swap oo map o nth) livess kill_poss deadss;
 
     fun pre_qualify b = Binding.qualify false (Binding.name_of b)
       #> not (Config.get lthy' bnf_note_all) ? Binding.conceal;
 
     val ((pre_bnfs, (deadss, absT_infos)), lthy'') =
-      fold_map4 (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
+      @{fold_map 4} (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))
         bs (not (null live_phantoms) :: replicate (nn - 1) false) Dss bnfs' lthy'
       |>> split_list
       |>> apsnd split_list;

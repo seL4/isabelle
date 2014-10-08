@@ -137,6 +137,9 @@ argument. Minor INCOMPATIBILITY.
 * Tactical PARALLEL_ALLGOALS is the most common way to refer to
 PARALLEL_GOALS.
 
+* Basic combinators map, fold, fold_map, split_list are available as
+parameterized antiquotations, e.g. @{map 4} for lists of quadruples.
+
 
 *** System ***
 

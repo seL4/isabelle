@@ -154,12 +154,12 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       ||>> mk_Frees "A" (map HOLogic.mk_setT As)
       ||>> mk_Frees "x" As;
 
-    val CAs = map3 mk_T_of_bnf Dss Ass_repl inners;
+    val CAs = @{map 3} mk_T_of_bnf Dss Ass_repl inners;
     val CCA = mk_T_of_bnf oDs CAs outer;
-    val CBs = map3 mk_T_of_bnf Dss Bss_repl inners;
+    val CBs = @{map 3} mk_T_of_bnf Dss Bss_repl inners;
     val outer_sets = mk_sets_of_bnf (replicate olive oDs) (replicate olive CAs) outer;
-    val inner_setss = map3 mk_sets_of_bnf (map (replicate ilive) Dss) (replicate olive Ass) inners;
-    val inner_bds = map3 mk_bd_of_bnf Dss Ass_repl inners;
+    val inner_setss = @{map 3} mk_sets_of_bnf (map (replicate ilive) Dss) (replicate olive Ass) inners;
+    val inner_bds = @{map 3} mk_bd_of_bnf Dss Ass_repl inners;
     val outer_bd = mk_bd_of_bnf oDs CAs outer;
 
     (*%f1 ... fn. outer.map (inner_1.map f1 ... fn) ... (inner_m.map f1 ... fn)*)
@@ -280,7 +280,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           val single_set_bd_thmss =
             map ((fn f => map f (0 upto olive - 1)) o single_set_bd_thm) (0 upto ilive - 1);
         in
-          map3 (fn set'_eq_set => fn set_alt => fn single_set_bds => fn ctxt =>
+          @{map 3} (fn set'_eq_set => fn set_alt => fn single_set_bds => fn ctxt =>
             mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_thm_opt set_alt single_set_bds)
           set'_eq_sets set_alt_thms single_set_bd_thmss
         end;
@@ -320,7 +320,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     val outer_wits = mk_wits_of_bnf (replicate onwits oDs) (replicate onwits CAs) outer;
 
     val inner_witss = map (map (fn (I, wit) => Term.list_comb (wit, map (nth xs) I)))
-      (map3 (fn Ds => fn n => mk_wits_of_bnf (replicate n Ds) (replicate n As))
+      (@{map 3} (fn Ds => fn n => mk_wits_of_bnf (replicate n Ds) (replicate n As))
         Dss inwitss inners);
 
     val inner_witsss = map (map (nth inner_witss) o fst) outer_wits;
@@ -637,7 +637,7 @@ fun normalize_bnfs qualify Ass Ds flatten_tyargs bnfs accum =
     val before_kill_dest = map2 append kill_poss live_poss;
     val kill_ns = map length kill_poss;
     val (inners', accum') =
-      fold_map5 (fn i => permute_and_kill (qualify i))
+      @{fold_map 5} (fn i => permute_and_kill (qualify i))
         (if length bnfs = 1 then [0] else (1 upto length bnfs))
         kill_ns before_kill_src before_kill_dest bnfs accum;
 
@@ -649,7 +649,7 @@ fun normalize_bnfs qualify Ass Ds flatten_tyargs bnfs accum =
     val after_lift_src = map2 append new_poss old_poss;
     val lift_ns = map (fn xs => length As - length xs) Ass';
   in
-    ((kill_poss, As), fold_map5 (fn i => lift_and_permute (qualify i))
+    ((kill_poss, As), @{fold_map 5} (fn i => lift_and_permute (qualify i))
       (if length bnfs = 1 then [0] else 1 upto length bnfs)
       lift_ns after_lift_src after_lift_dest inners' accum')
   end;
@@ -667,7 +667,7 @@ fun raw_compose_bnf const_policy qualify flatten_tyargs outer inners oDs Dss tfr
     val ((kill_poss, As), (inners', ((cache', unfold_set'), lthy'))) =
       normalize_bnfs qualify Ass Ds flatten_tyargs inners accum;
 
-    val Ds = oDs @ flat (map3 (uncurry append oo curry swap oo map o nth) tfreess kill_poss Dss);
+    val Ds = oDs @ flat (@{map 3} (uncurry append oo curry swap oo map o nth) tfreess kill_poss Dss);
     val As = map TFree As;
   in
     apfst (rpair (Ds, As))
@@ -931,7 +931,7 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
             val ((inners, (Dss, Ass)), (accum', lthy')) =
               apfst (apsnd split_list o split_list)
-                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) flatten_tyargs Xs Ds0)
+                (@{fold_map 2} (fn i => bnf_of_typ Smart_Inline (qualify i) flatten_tyargs Xs Ds0)
                 (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' accum);
           in
             compose_bnf const_policy qualify flatten_tyargs bnf inners oDs Dss Ass (accum', lthy')

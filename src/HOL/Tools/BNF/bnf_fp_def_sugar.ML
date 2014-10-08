@@ -524,7 +524,7 @@ fun massage_simple_notes base =
 
 fun massage_multi_notes b_names Ts =
   maps (fn (thmN, thmss, attrs) =>
-    map3 (fn b_name => fn Type (T_name, _) => fn thms =>
+    @{map 3} (fn b_name => fn Type (T_name, _) => fn thms =>
         ((Binding.qualify true b_name (Binding.name thmN), attrs T_name), [(thms, [])]))
       b_names Ts thmss)
   #> filter_out (null o fst o hd o snd);
@@ -788,7 +788,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
               []
             else
               [mk_Trueprop_eq (build_rel_app names_lthy Rs [] ta tb,
-                 (case flat (map5 (mk_conjunct n) (1 upto n) discAs selAss discBs selBss) of
+                 (case flat (@{map 5} (mk_conjunct n) (1 upto n) discAs selAss discBs selBss) of
                    [] => @{term True}
                  | conjuncts => Library.foldr1 HOLogic.mk_conj conjuncts))];
 
@@ -824,7 +824,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
                names_ctxt)
             end;
 
-          val (assms, names_lthy) = fold_map2 mk_assms ctrAs ctrBs names_lthy;
+          val (assms, names_lthy) = @{fold_map 2} mk_assms ctrAs ctrBs names_lthy;
           val goal = Logic.list_implies (HOLogic.mk_Trueprop rel_Rs_a_b :: assms, thesis);
           val thm =
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
@@ -968,7 +968,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
                 ([], ctxt)
             end;
           val (goals, names_lthy) = apfst (flat o flat o flat)
-            (fold_map2 (fn disc =>
+            (@{fold_map 2} (fn disc =>
                  fold_map (fn sel => fold_map (mk_goal disc sel) setAs))
                discAs selAss names_lthy);
         in
@@ -1072,7 +1072,7 @@ fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
   let
     val Css = map2 replicate ns Cs;
     val x_Tssss =
-      map6 (fn absT => fn repT => fn n => fn ms => fn ctr_Tss => fn ctor_rec_fun_T =>
+      @{map 6} (fn absT => fn repT => fn n => fn ms => fn ctr_Tss => fn ctor_rec_fun_T =>
           map2 (map2 unzip_recT)
             ctr_Tss (dest_absumprodT absT repT n ms (domain_type ctor_rec_fun_T)))
         absTs repTs ns mss ctr_Tsss ctor_rec_fun_Ts;
@@ -1100,8 +1100,8 @@ fun mk_corec_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss fun_Ts =
   let
     val ctr_Tsss' = map repair_nullary_single_ctr ctr_Tsss;
     val g_absTs = map range_type fun_Ts;
-    val g_Tsss = map repair_nullary_single_ctr (map5 dest_absumprodT absTs repTs ns mss g_absTs);
-    val g_Tssss = map3 (fn C => map2 (map2 (map (curry (op -->) C) oo unzip_corecT)))
+    val g_Tsss = map repair_nullary_single_ctr (@{map 5} dest_absumprodT absTs repTs ns mss g_absTs);
+    val g_Tssss = @{map 3} (fn C => map2 (map2 (map (curry (op -->) C) oo unzip_corecT)))
       Cs ctr_Tsss' g_Tsss;
     val q_Tssss = map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) g_Tssss;
   in
@@ -1139,10 +1139,10 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
         mk_If cq (build_sum_inj Inl_const (fastype_of cg, T) $ cg)
           (build_sum_inj Inr_const (fastype_of cg', T) $ cg');
 
-    val pgss = map3 flat_corec_preds_predsss_gettersss pss qssss gssss;
+    val pgss = @{map 3} flat_corec_preds_predsss_gettersss pss qssss gssss;
     val cqssss = map2 (map o map o map o rapp) cs qssss;
     val cgssss = map2 (map o map o map o rapp) cs gssss;
-    val cqgsss = map3 (map3 (map3 build_dtor_corec_arg)) g_Tsss cqssss cgssss;
+    val cqgsss = @{map 3} (@{map 3} (@{map 3} build_dtor_corec_arg)) g_Tsss cqssss cgssss;
   in
     ((x, cs, cpss, (((pgss, pss, qssss, gssss), cqgsss), corec_types)), lthy)
   end;
@@ -1200,7 +1200,7 @@ fun define_rec (_, _, fss, xssss) mk_binding fpTs Cs reps ctor_rec =
   in
     define_co_rec_as Least_FP Cs fpT (mk_binding recN)
       (fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_rec,
-         map4 (fn ctor_rec_absT => fn rep => fn fs => fn xsss =>
+         @{map 4} (fn ctor_rec_absT => fn rep => fn fs => fn xsss =>
              mk_case_absumprod ctor_rec_absT rep fs (map (map HOLogic.mk_tuple) xsss)
                (map flat_rec_arg_args xsss))
            ctor_rec_absTs reps fss xssss)))
@@ -1213,7 +1213,7 @@ fun define_corec (_, cs, cpss, (((pgss, _, _, _), cqgsss), f_absTs)) mk_binding 
   in
     define_co_rec_as Greatest_FP Cs fpT (mk_binding corecN)
       (fold_rev (fold_rev Term.lambda) pgss (Term.list_comb (dtor_corec,
-         map5 mk_preds_getterss_join cs cpss f_absTs abss cqgsss)))
+         @{map 5} mk_preds_getterss_join cs cpss f_absTs abss cqgsss)))
   end;
 
 fun postproc_co_induct lthy nn prop prop_conj =
@@ -1256,7 +1256,7 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
             (HOLogic.mk_Trueprop (build_rel_app names_lthy (Rs @ IRs) fpA_Ts
               (Term.list_comb (ctrA, argAs)) (Term.list_comb (ctrB, argBs)))));
       in
-        flat (map4 (map4 mk_prem) ctrAss ctrBss ctrAsss ctrBsss)
+        flat (@{map 4} (@{map 4} mk_prem) ctrAss ctrBss ctrAsss ctrBsss)
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
@@ -1354,7 +1354,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
         fun mk_prem (xs, raw_pprems, concl) =
           fold_rev Logic.all xs (Logic.list_implies (map (mk_prem_prem xs) raw_pprems, concl));
 
-        val raw_premss = map4 (map3 o mk_raw_prem) ps ctrss ctr_Tsss ctrXs_Tsss;
+        val raw_premss = @{map 4} (@{map 3} o mk_raw_prem) ps ctrss ctr_Tsss ctrXs_Tsss;
 
         val goal =
           Library.foldr (Logic.list_implies o apfst (map mk_prem)) (raw_premss,
@@ -1402,9 +1402,9 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
             end;
 
         val fxsss = map2 (map2 (flat_rec_arg_args oo map2 (map o build_rec))) xsss x_Tssss;
-        val goalss = map5 (map4 o mk_goal) frecs xctrss fss xsss fxsss;
+        val goalss = @{map 5} (@{map 4} o mk_goal) frecs xctrss fss xsss fxsss;
 
-        val tacss = map4 (map ooo
+        val tacss = @{map 4} (map ooo
               mk_rec_tac pre_map_defs (fp_nesting_map_ident0s @ live_nesting_map_ident0s) rec_defs)
             ctor_rec_thms fp_abs_inverses abs_inverses ctr_defss;
 
@@ -1441,7 +1441,7 @@ fun mk_coinduct_attrs fpTs ctrss discss mss =
 
     val coinduct_cases = quasi_unambiguous_case_names (map (prefix EqN) fp_b_names);
     val coinduct_conclss =
-      map3 (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
+      @{map 3} (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
 
     val common_coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes nn));
     val coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
@@ -1506,7 +1506,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
                  (map2 (build_rel_app lthy (Rs @ IRs) fpA_Ts) selA_ts selB_ts))]);
 
         fun mk_prem_concl n discA_ts selA_tss discB_ts selB_tss =
-          Library.foldr1 HOLogic.mk_conj (flat (map5 (mk_prem_ctr_concls n)
+          Library.foldr1 HOLogic.mk_conj (flat (@{map 5} (mk_prem_ctr_concls n)
             (1 upto n) discA_ts selA_tss discB_ts selB_tss))
           handle List.Empty => @{term True};
 
@@ -1514,7 +1514,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
           fold_rev Logic.all [tA, tB] (Logic.mk_implies (HOLogic.mk_Trueprop (IR $ tA $ tB),
             HOLogic.mk_Trueprop (mk_prem_concl n discA_ts selA_tss discB_ts selB_tss)));
       in
-        map8 mk_prem IRs fpAs fpBs ns discA_tss selA_tsss discB_tss selB_tsss
+        @{map 8} mk_prem IRs fpAs fpBs ns discA_tss selA_tsss discB_tss selB_tsss
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
@@ -1632,7 +1632,8 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
     fun mk_ctor_dtor_corec_thm dtor_inject dtor_ctor corec =
       iffD1 OF [dtor_inject, trans OF [corec, dtor_ctor RS sym]];
 
-    val ctor_dtor_corec_thms = map3 mk_ctor_dtor_corec_thm dtor_injects dtor_ctors dtor_corec_thms;
+    val ctor_dtor_corec_thms =
+      @{map 3} mk_ctor_dtor_corec_thm dtor_injects dtor_ctors dtor_corec_thms;
 
     val nn = length pre_bnfs;
 
@@ -1667,10 +1668,10 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
 
     val coinduct_thms_pairs =
       let
-        val uvrs = map3 (fn r => fn u => fn v => r $ u $ v) rs us vs;
+        val uvrs = @{map 3} (fn r => fn u => fn v => r $ u $ v) rs us vs;
         val uv_eqs = map2 (curry HOLogic.mk_eq) us vs;
         val strong_rs =
-          map4 (fn u => fn v => fn uvr => fn uv_eq =>
+          @{map 4} (fn u => fn v => fn uvr => fn uv_eq =>
             fold_rev Term.lambda [u, v] (HOLogic.mk_disj (uvr, uv_eq))) us vs uvrs uv_eqs;
 
         fun build_the_rel rs' T Xs_T =
@@ -1686,10 +1687,10 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
              []
            else
              [Library.foldr HOLogic.mk_imp (if n = 1 then [] else [udisc, vdisc],
-                Library.foldr1 HOLogic.mk_conj (map3 (build_rel_app rs') usels vsels ctrXs_Ts))]);
+                Library.foldr1 HOLogic.mk_conj (@{map 3} (build_rel_app rs') usels vsels ctrXs_Ts))]);
 
         fun mk_prem_concl rs' n udiscs uselss vdiscs vselss ctrXs_Tss =
-          Library.foldr1 HOLogic.mk_conj (flat (map6 (mk_prem_ctr_concls rs' n)
+          Library.foldr1 HOLogic.mk_conj (flat (@{map 6} (mk_prem_ctr_concls rs' n)
             (1 upto n) udiscs uselss vdiscs vselss ctrXs_Tss))
           handle List.Empty => @{term True};
 
@@ -1699,11 +1700,11 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
 
         val concl =
           HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-            (map3 (fn uvr => fn u => fn v => HOLogic.mk_imp (uvr, HOLogic.mk_eq (u, v)))
+            (@{map 3} (fn uvr => fn u => fn v => HOLogic.mk_imp (uvr, HOLogic.mk_eq (u, v)))
                uvrs us vs));
 
         fun mk_goal rs' =
-          Logic.list_implies (map9 (mk_prem rs') uvrs us vs ns udiscss uselsss vdiscss vselsss
+          Logic.list_implies (@{map 9} (mk_prem rs') uvrs us vs ns udiscss uselsss vdiscss vselsss
             ctrXs_Tsss, concl);
 
         val goals = map mk_goal [rs, strong_rs];
@@ -1757,10 +1758,10 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
           end;
 
         val cqgsss' = map (map (map build_corec)) cqgsss;
-        val goalss = map8 (map4 oooo mk_goal) cs cpss gcorecs ns kss ctrss mss cqgsss';
+        val goalss = @{map 8} (@{map 4} oooo mk_goal) cs cpss gcorecs ns kss ctrss mss cqgsss';
 
         val tacss =
-          map4 (map ooo mk_corec_tac corec_defs live_nesting_map_ident0s)
+          @{map 4} (map ooo mk_corec_tac corec_defs live_nesting_map_ident0s)
             ctor_dtor_corec_thms pre_map_defs abs_inverses ctr_defss;
 
         fun prove goal tac =
@@ -1778,13 +1779,13 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
             if n = 1 then @{const True}
             else Library.foldr1 HOLogic.mk_conj (seq_conds mk_maybe_not n k cps));
 
-        val goalss = map6 (map2 oooo mk_goal) cs cpss gcorecs ns kss discss;
+        val goalss = @{map 6} (map2 oooo mk_goal) cs cpss gcorecs ns kss discss;
 
         fun mk_case_split' cp = Drule.instantiate' [] [SOME (certify lthy cp)] @{thm case_split};
 
         val case_splitss' = map (map mk_case_split') cpss;
 
-        val tacss = map3 (map oo mk_corec_disc_iff_tac) case_splitss' corec_thmss disc_thmsss;
+        val tacss = @{map 3} (map oo mk_corec_disc_iff_tac) case_splitss' corec_thmss disc_thmsss;
 
         fun prove goal tac =
           Goal.prove_sorry lthy [] [] goal (tac o #context)
@@ -1815,7 +1816,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
       end;
 
     fun mk_corec_sel_thms corec_thmss =
-      map3 (map3 (map2 o mk_corec_sel_thm)) corec_thmss selsss sel_thmsss;
+      @{map 3} (@{map 3} (map2 o mk_corec_sel_thm)) corec_thmss selsss sel_thmsss;
 
     val corec_sel_thmsss = mk_corec_sel_thms corec_thmss;
   in
@@ -1997,7 +1998,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         ();
 
     val Bs =
-      map3 (fn alive => fn A as TFree (_, S) => fn B =>
+      @{map 3} (fn alive => fn A as TFree (_, S) => fn B =>
           if alive then resort_tfree_or_tvar S B else A)
         (liveness_of_fp_bnf num_As any_fp_bnf) As Bs0;
 
@@ -2044,7 +2045,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           #> not (Config.get no_defs_lthy bnf_note_all) ? Binding.conceal;
 
         val ((raw_ctrs, raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
-          |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
+          |> apfst split_list o @{fold_map 3} (fn b => fn mx => fn rhs =>
               Local_Theory.define ((b, mx), ((maybe_conceal_def_binding b, []), rhs)) #>> apsnd snd)
             ctr_bindings ctr_mixfixes ctr_rhss
           ||> `Local_Theory.restore;
@@ -2103,7 +2104,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             val sel_default_eqs = map (prepare_term sel_default_lthy) raw_sel_default_eqs;
 
             fun ctr_spec_of disc_b ctr0 sel_bs = ((disc_b, ctr0), sel_bs);
-            val ctr_specs = map3 ctr_spec_of disc_bindings ctrs0 sel_bindingss;
+            val ctr_specs = @{map 3} ctr_spec_of disc_bindings ctrs0 sel_bindingss;
 
             val (ctr_sugar as {case_cong, ...}, lthy') =
               free_constructors tacss ((((plugins, discs_sels), standard_binding), ctr_specs),
@@ -2136,7 +2137,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     fun wrap_ctrs_derive_map_set_rel_thms_define_co_rec_for_types (wrap_one_etc, lthy) =
       fold_map I wrap_one_etc lthy
-      |>> apsnd split_list o apfst (apsnd split_list4 o apfst split_list15 o split_list)
+      |>> apsnd split_list o apfst (apsnd @{split_list 4} o apfst @{split_list 15} o split_list)
         o split_list;
 
     fun mk_simp_thms ({injects, distincts, case_thms, ...} : ctr_sugar) co_recs map_thms rel_injects
@@ -2204,7 +2205,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             end;
 
         val simp_thmss =
-          map6 mk_simp_thms ctr_sugars rec_thmss map_thmss rel_injectss rel_distinctss set_thmss;
+          @{map 6} mk_simp_thms ctr_sugars rec_thmss map_thmss rel_injectss rel_distinctss set_thmss;
 
         val common_notes =
           (if nn > 1 then
@@ -2315,8 +2316,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           |> split_list;
 
         val simp_thmss =
-          map6 mk_simp_thms ctr_sugars
-            (map3 flat_corec_thms corec_disc_thmss corec_disc_iff_thmss corec_sel_thmss)
+          @{map 6} mk_simp_thms ctr_sugars
+            (@{map 3} flat_corec_thms corec_disc_thmss corec_disc_iff_thmss corec_sel_thmss)
             map_thmss rel_injectss rel_distinctss set_thmss;
 
         val common_notes =

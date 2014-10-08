@@ -106,7 +106,7 @@ fun analyze_eqs ctxt defname fs eqs =
         (MutualPart {i=i, i'=i', fvar=fvar,cargTs=caTs,f_def=def,f=NONE,f_defthm=NONE}, rew)
       end
 
-    val (parts, rews) = split_list (map4 define fs caTss resultTs (1 upto num))
+    val (parts, rews) = split_list (@{map 4} define fs caTss resultTs (1 upto num))
 
     fun convert_eqs (f, qs, gs, args, rhs) =
       let

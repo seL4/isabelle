@@ -205,7 +205,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
       | freeze_fpTs_call _ _ _ T = T;
 
     val ctr_Tsss = map (map binder_types) ctr_Tss;
-    val ctrXs_Tsss = map4 (map2 o map2 oo freeze_fpTs_call) kks fpTs callssss ctr_Tsss;
+    val ctrXs_Tsss = @{map 4} (map2 o map2 oo freeze_fpTs_call) kks fpTs callssss ctr_Tsss;
     val ctrXs_repTs = map mk_sumprodT_balanced ctrXs_Tsss;
 
     val ns = map length ctr_Tsss;
@@ -261,7 +261,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
         fun mk_binding b pre = Binding.prefix_name (pre ^ "_") b;
 
         val ((co_recs, co_rec_defs), lthy) =
-          fold_map2 (fn b =>
+          @{fold_map 2} (fn b =>
               if fp = Least_FP then define_rec (the recs_args_types) (mk_binding b) fpTs Cs reps
               else define_corec (the corecs_args_types) (mk_binding b) fpTs Cs abss)
             fp_bs xtor_co_recs lthy
@@ -340,9 +340,9 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
           |> morph_fp_sugar phi;
 
         val target_fp_sugars =
-          map16 mk_target_fp_sugar fpTs Xs kks pre_bnfs absT_infos ctrXs_Tsss ctr_defss ctr_sugars
-            co_recs co_rec_defs mapss (transpose co_inductss') co_rec_thmss co_rec_disc_thmss
-            co_rec_sel_thmsss fp_sugars0;
+          @{map 16} mk_target_fp_sugar fpTs Xs kks pre_bnfs absT_infos ctrXs_Tsss ctr_defss
+            ctr_sugars co_recs co_rec_defs mapss (transpose co_inductss') co_rec_thmss
+            co_rec_disc_thmss co_rec_sel_thmsss fp_sugars0;
 
         val n2m_sugar = (target_fp_sugars, fp_sugar_thms);
       in

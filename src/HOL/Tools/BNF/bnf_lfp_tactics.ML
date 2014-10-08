@@ -473,7 +473,7 @@ fun mk_ctor_induct_tac ctxt m set_mapss init_induct morEs mor_Abs Rep_invs Abs_i
       EVERY' [select_prem_tac n (dtac asm_rl) k, rtac ballI, rtac impI,
         rtac (mor_Abs RS morE RS arg_cong RS iffD2), atac,
         REPEAT_DETERM o eresolve_tac [CollectE, conjE], dtac @{thm meta_spec},
-        EVERY' (map3 mk_IH_tac Rep_invs Abs_invs (drop m set_maps)), atac];
+        EVERY' (@{map 3} mk_IH_tac Rep_invs Abs_invs (drop m set_maps)), atac];
 
     fun mk_induct_tac (Rep, Rep_inv) =
       EVERY' [rtac (Rep_inv RS arg_cong RS iffD1), etac (Rep RSN (2, bspec))];
@@ -547,7 +547,7 @@ fun mk_set_nat_tac ctxt m induct_tac set_mapss ctor_maps csets ctor_sets i =
         REPEAT_DETERM_N (n - 1) o EVERY' (map rtac [trans, @{thm image_Un}, Un_cong]),
         EVERY' (map useIH (drop m set_nats))];
   in
-    (induct_tac THEN' EVERY' (map4 mk_set_nat csets ctor_maps ctor_sets set_mapss)) 1
+    (induct_tac THEN' EVERY' (@{map 4} mk_set_nat csets ctor_maps ctor_sets set_mapss)) 1
   end;
 
 fun mk_set_bd_tac ctxt m induct_tac bd_Cinfinite set_bdss ctor_sets i =
@@ -581,12 +581,12 @@ fun mk_mcong_tac ctxt induct_tac set_setsss map_cong0s ctor_maps =
         EVERY' (map useIH (transpose (map tl set_setss))),
         rtac sym, rtac ctor_map];
   in
-    (induct_tac THEN' EVERY' (map3 mk_map_cong0 ctor_maps map_cong0s set_setsss)) 1
+    (induct_tac THEN' EVERY' (@{map 3} mk_map_cong0 ctor_maps map_cong0s set_setsss)) 1
   end;
 
 fun mk_le_rel_OO_tac ctxt m induct ctor_nchotomys ctor_Irels rel_mono_strong0s le_rel_OOs =
   EVERY' (rtac induct ::
-  map4 (fn nchotomy => fn Irel => fn rel_mono => fn le_rel_OO =>
+  @{map 4} (fn nchotomy => fn Irel => fn rel_mono => fn le_rel_OO =>
     EVERY' [rtac impI, etac (nchotomy RS @{thm nchotomy_relcomppE}),
       REPEAT_DETERM_N 2 o dtac (Irel RS iffD1), rtac (Irel RS iffD2),
       rtac rel_mono, rtac (le_rel_OO RS @{thm predicate2D}),
@@ -725,7 +725,7 @@ fun mk_rel_induct_tac ctxt IHs m ctor_induct2 ks ctor_rels rel_mono_strong0s =
   in
     unfold_tac ctxt @{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} THEN
     EVERY' [REPEAT_DETERM o rtac allI, rtac ctor_induct2,
-      EVERY' (map3 (fn IH => fn ctor_rel => fn rel_mono_strong0 =>
+      EVERY' (@{map 3} (fn IH => fn ctor_rel => fn rel_mono_strong0 =>
         EVERY' [rtac impI, dtac (ctor_rel RS iffD1), rtac (IH RS @{thm spec2} RS mp),
           etac rel_mono_strong0,
           REPEAT_DETERM_N m o rtac @{thm ballI[OF ballI[OF imp_refl]]},
