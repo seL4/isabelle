@@ -76,20 +76,26 @@ object Isabelle_System
 
       set_cygwin_root()
 
+      def default(env: Map[String, String], entry: (String, String)): Map[String, String] =
+        if (env.isDefinedAt(entry._1) || entry._2 == "") env
+        else env + entry
+
       val env =
       {
+        val temp_windows =
+        {
+          val temp = System.getenv("TEMP")
+          if (temp != null && temp.contains('\\')) temp else ""
+        }
         val user_home = System.getProperty("user.home", "")
         val isabelle_app = System.getProperty("isabelle.app", "")
 
-        val env0 = sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home()))
-        val env1 =
-          if (user_home == "" || env0.isDefinedAt("HOME")) env0
-          else env0 + ("HOME" -> user_home)
-        val env2 =
-          if (isabelle_app == "") env1
-          else env1 + ("ISABELLE_APP" -> "true")
-
-        env2
+        default(
+          default(
+            default(sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home())),
+              ("TEMP_WINDOWS" -> temp_windows)),
+            ("HOME" -> user_home)),
+          ("ISABELLE_APP" -> "true"))
       }
 
       val system_home =
