@@ -70,7 +70,7 @@ isabelle_admin_build browser || exit $?
 classpath "$ISABELLE_HOME/lib/browser/GraphBrowser.jar"
 
 if [ -n "$GRAPHFILE" ]; then
-  PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$"$(basename "$GRAPHFILE")
+  PRIVATE_FILE="${ISABELLE_TMP:-${TMPDIR:-/tmp}}/$$"$(basename "$GRAPHFILE")
   if [ -n "$CLEAN" ]; then
     mv -f "$GRAPHFILE" "$PRIVATE_FILE" || fail "Cannot move file: $GRAPHFILE"
   else

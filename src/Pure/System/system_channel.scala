@@ -43,7 +43,7 @@ private class Fifo_Channel extends System_Channel
   {
     val i = Fifo_Channel.next_fifo()
     val script =
-      "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$" + i + "\"\n" +
+      "FIFO=\"${TMPDIR:-/tmp}/isabelle-fifo-${PPID}-$$" + i + "\"\n" +
       "echo -n \"$FIFO\"\n" +
       "mkfifo -m 600 \"$FIFO\"\n"
     val result = Isabelle_System.bash(script)
