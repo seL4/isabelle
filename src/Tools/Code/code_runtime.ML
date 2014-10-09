@@ -28,6 +28,14 @@ sig
     -> Proof.context -> term -> 'a Exn.result
   val dynamic_holds_conv: Proof.context -> conv
   val static_holds_conv: { ctxt: Proof.context, consts: string list } -> Proof.context -> conv
+  val static_value': (Proof.context -> term -> 'a) cookie
+    -> { ctxt: Proof.context, lift_postproc: (term -> term) -> 'a -> 'a,
+           consts: (string * typ) list, T: typ }
+    -> Proof.context -> term -> 'a option (*EXPERIMENTAL!*)
+  val static_value_strict': (Proof.context -> term -> 'a) cookie
+    -> { ctxt: Proof.context, lift_postproc: (term -> term) -> 'a -> 'a,
+           consts: (string * typ) list, T: typ }
+    -> Proof.context -> term -> 'a (*EXPERIMENTAL!*)
   val static_value_exn': (Proof.context -> term -> 'a) cookie
     -> { ctxt: Proof.context, lift_postproc: (term -> term) -> 'a -> 'a,
            consts: (string * typ) list, T: typ }
@@ -310,6 +318,10 @@ fun static_value_exn' cookie { ctxt, lift_postproc, consts, T } =
   in fn ctxt' =>
     evaluator ctxt' o reject_vars ctxt' o Syntax.check_term ctxt' o Type.constraint T
   end;
+
+fun static_value_strict' cookie = Exn.release ooo static_value_exn' cookie;
+
+fun static_value' cookie = partiality_as_none ooo static_value_exn' cookie;
 
 
 (** code antiquotation **)
