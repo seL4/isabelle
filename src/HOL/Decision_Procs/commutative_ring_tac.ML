@@ -90,7 +90,7 @@ fun reif_eq ctxt (eq as Const (@{const_name HOL.eq}, Type (@{type_name fun}, [T,
 (* Attention: You have to make sure that no t^0 is in the goal!! *)
 (* Use simply rewriting t^0 = 1 *)
 val cring_simps =
-  @{thms mkPX_def mkPinj_def sub_def power_add even_def pow_if power_add [symmetric]};
+  @{thms mkPX_def mkPinj_def sub_def power_add even_iff_mod_2_eq_zero pow_if power_add [symmetric]};
 
 fun tac ctxt = SUBGOAL (fn (g, i) =>
   let

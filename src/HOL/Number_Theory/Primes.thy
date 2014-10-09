@@ -43,8 +43,8 @@ lemmas prime_nat_def = prime_def
 subsection {* Primes *}
 
 lemma prime_odd_nat: "prime p \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
-  apply (auto simp add: prime_nat_def even_def dvd_eq_mod_eq_0)
-  apply (metis dvd_eq_mod_eq_0 even_Suc even_def mod_by_1 nat_dvd_not_less not_mod_2_eq_0_eq_1 zero_less_numeral)
+  apply (auto simp add: prime_nat_def even_iff_mod_2_eq_zero dvd_eq_mod_eq_0)
+  apply (metis dvd_eq_mod_eq_0 even_Suc even_iff_mod_2_eq_zero mod_by_1 nat_dvd_not_less not_mod_2_eq_0_eq_1 zero_less_numeral)
   done
 
 (* FIXME Is there a better way to handle these, rather than making them elim rules? *)

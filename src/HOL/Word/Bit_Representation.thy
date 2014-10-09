@@ -34,7 +34,7 @@ where
 
 lemma bin_last_odd:
   "bin_last = odd"
-  by (rule ext) (simp add: bin_last_def even_def)
+  by (rule ext) (simp add: bin_last_def even_iff_mod_2_eq_zero)
 
 definition bin_rest :: "int \<Rightarrow> int"
 where
@@ -317,7 +317,7 @@ lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n"
          zmod_zdiv_equality [THEN diff_eq_eq [THEN iffD2 [THEN sym]]])
   apply (rule trans [symmetric, OF _ emep1])
      apply auto
-  apply (auto simp: even_def)
+  apply (auto simp: even_iff_mod_2_eq_zero)
   done
 
 subsection "Simplifications for (s)bintrunc"

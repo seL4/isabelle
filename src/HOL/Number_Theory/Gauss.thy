@@ -57,7 +57,7 @@ lemma p_eq2: "int p = (2 * ((int p - 1) div 2)) + 1"
 
 lemma p_odd_int: obtains z::int where "int p = 2*z+1" "0<z"
   using odd_p p_ge_2
-  by (auto simp add: even_def) (metis p_eq2)
+  by (auto simp add: even_iff_mod_2_eq_zero) (metis p_eq2)
 
 
 subsection {* Basic Properties of the Gauss Sets *}

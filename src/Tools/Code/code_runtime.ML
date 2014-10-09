@@ -323,6 +323,10 @@ fun static_value_strict' cookie = Exn.release ooo static_value_exn' cookie;
 
 fun static_value' cookie = partiality_as_none ooo static_value_exn' cookie;
 
+fun static_value_strict' cookie = Exn.release ooo static_value_exn' cookie;
+
+fun static_value' cookie = partiality_as_none ooo static_value_exn' cookie;
+
 
 (** code antiquotation **)
 

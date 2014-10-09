@@ -14,15 +14,17 @@ begin
 
 definition even :: "'a \<Rightarrow> bool"
 where
-  even_def [presburger]: "even a \<longleftrightarrow> a mod 2 = 0"
+  [algebra]: "even a \<longleftrightarrow> 2 dvd a"
 
-lemma even_iff_2_dvd [algebra]:
-  "even a \<longleftrightarrow> 2 dvd a"
+lemmas even_iff_2_dvd = even_def
+
+lemma even_iff_mod_2_eq_zero [presburger]:
+  "even a \<longleftrightarrow> a mod 2 = 0"
   by (simp add: even_def dvd_eq_mod_eq_0)
 
 lemma even_zero [simp]:
   "even 0"
-  by (simp add: even_def)
+  by (simp add: even_iff_mod_2_eq_zero)
 
 lemma even_times_anything:
   "even a \<Longrightarrow> even (a * b)"
@@ -38,7 +40,7 @@ where
 
 lemma odd_times_odd:
   "odd a \<Longrightarrow> odd b \<Longrightarrow> odd (a * b)" 
-  by (auto simp add: even_def mod_mult_left_eq)
+  by (auto simp add: even_iff_mod_2_eq_zero mod_mult_left_eq)
 
 lemma even_product [simp, presburger]:
   "even (a * b) \<longleftrightarrow> even a \<or> even b"
@@ -53,7 +55,7 @@ instance nat and int  :: even_odd ..
 
 lemma even_nat_def [presburger]:
   "even x \<longleftrightarrow> even (int x)"
-  by (auto simp add: even_def int_eq_iff int_mult nat_mult_distrib)
+  by (auto simp add: even_iff_mod_2_eq_zero int_eq_iff int_mult nat_mult_distrib)
   
 lemma transfer_int_nat_relations:
   "even (int x) \<longleftrightarrow> even x"
@@ -72,13 +74,13 @@ lemma odd_1_nat [simp]:
   by presburger
 
 lemma even_numeral_int [simp]: "even (numeral (Num.Bit0 k) :: int)"
-  unfolding even_def by simp
+  unfolding even_iff_mod_2_eq_zero by simp
 
 lemma odd_numeral_int [simp]: "odd (numeral (Num.Bit1 k) :: int)"
-  unfolding even_def by simp
+  unfolding even_iff_mod_2_eq_zero by simp
 
 (* TODO: proper simp rules for Num.Bit0, Num.Bit1 *)
-declare even_def [of "- numeral v", simp] for v
+declare even_iff_mod_2_eq_zero [of "- numeral v", simp] for v
 
 lemma even_numeral_nat [simp]: "even (numeral (Num.Bit0 k) :: nat)"
   unfolding even_nat_def by simp

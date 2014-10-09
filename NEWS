@@ -42,6 +42,10 @@ token category instead.
 
 *** HOL ***
 
+* More foundational definition for predicate "even":
+  even_def ~> even_iff_mod_2_eq_zero
+Minor INCOMPATIBILITY.
+
 * Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1
 Minor INCOMPATIBILITY.
 
