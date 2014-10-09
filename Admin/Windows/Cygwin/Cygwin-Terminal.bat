@@ -1,5 +1,6 @@
 @echo off
 
+set TEMP_WINDOWS=%TEMP%
 set HOME=%HOMEDRIVE%%HOMEPATH%
 set PATH=%CD%\bin;%PATH%
 set CHERE_INVOKING=true

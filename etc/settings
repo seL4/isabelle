@@ -65,7 +65,7 @@ fi
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 
 # Location for temporary files (should be on a local file system).
-ISABELLE_TMP_PREFIX="/tmp/isabelle-$USER"
+ISABELLE_TMP_PREFIX="${TMPDIR:-/tmp}/isabelle-$USER"
 
 # Heap input locations. ML system identifier is included in lookup.
 ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"

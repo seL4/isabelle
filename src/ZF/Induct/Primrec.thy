@@ -10,7 +10,7 @@ theory Primrec imports Main begin
 text {*
   Proof adopted from @{cite szasz93}.
 
-  See also \cite[page 250, exercise 11]{mendelson}.
+  See also @{cite \<open>page 250, exercise 11\<close> mendelson}.
 *}
 
 

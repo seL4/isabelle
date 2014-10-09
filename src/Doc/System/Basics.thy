@@ -272,8 +272,7 @@ text \<open>
   
   \item[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
   prefix from which any running @{executable "isabelle_process"}
-  derives an individual directory for temporary files.  The default is
-  somewhere in @{file_unchecked "/tmp"}.
+  derives an individual directory for temporary files.
   
   \end{description}
 \<close>

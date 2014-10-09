@@ -26,6 +26,12 @@ if [ "$OSTYPE" = cygwin ]
 then
   unset INI_DIR
 
+  if [ -n "$TEMP_WINDOWS" ]; then
+    TMPDIR="$(cygpath -u "$TEMP_WINDOWS")"
+    TMP="$TMPDIR"
+    TEMP="$TMPDIR"
+  fi
+
   if [ -z "$USER_HOME" ]; then
     USER_HOME="$(cygpath -u "$HOMEDRIVE\\$HOMEPATH")"
   fi
