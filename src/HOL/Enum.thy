@@ -681,7 +681,7 @@ by(intro_classes)(auto simp add: INF_def SUP_def sup_finite_2_def inf_finite_2_d
 
 instance finite_2 :: complete_linorder ..
 
-instantiation finite_2 :: "{field_inverse_zero, abs_if, ring_div, semiring_div_parity, sgn_if}" begin
+instantiation finite_2 :: "{field_inverse_zero, abs_if, ring_div, sgn_if, semiring_div}" begin
 definition [simp]: "0 = a\<^sub>1"
 definition [simp]: "1 = a\<^sub>2"
 definition "x + y = (case (x, y) of (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
@@ -700,6 +700,14 @@ by intro_classes
        inverse_finite_2_def divide_finite_2_def abs_finite_2_def div_finite_2_def mod_finite_2_def sgn_finite_2_def
      split: finite_2.splits)
 end
+
+lemma two_finite_2 [simp]:
+  "2 = a\<^sub>1"
+  by (simp add: numeral.simps plus_finite_2_def)
+  
+instance finite_2 :: semiring_div_parity
+by intro_classes (simp_all add: mod_finite_2_def split: finite_2.splits)
+
 
 hide_const (open) a\<^sub>1 a\<^sub>2
 
@@ -825,6 +833,8 @@ by intro_classes
        less_finite_3_def
      split: finite_3.splits)
 end
+
+
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3
 

@@ -506,6 +506,7 @@ end
 
 class semiring_div_parity = semiring_div + semiring_numeral +
   assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
+  assumes one_mod_two_eq_one: "1 mod 2 = 1"
 begin
 
 lemma parity_cases [case_names even odd]:
@@ -569,6 +570,9 @@ proof
     with discrete have "2 \<le> a mod 2" by simp
     with `a mod 2 < 2` show False by simp
   qed
+next
+  show "1 mod 2 = 1"
+    by (rule mod_less) simp_all
 qed
 
 lemma divmod_digit_1:
