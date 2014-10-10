@@ -562,6 +562,7 @@ session "HOL-ex" in ex = HOL +
     Arith_Examples
     BT
     Tree23
+    Bubblesort
     MergeSort
     Lagrange
     Groebner_Examples
