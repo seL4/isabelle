@@ -1853,6 +1853,48 @@ lemma dec_induct[consumes 1, case_names base step]:
 
 subsection {* The divides relation on @{typ nat} *}
 
+instance nat :: semiring_dvd
+proof
+  fix m n q :: nat
+  show "m dvd q * m + n \<longleftrightarrow> m dvd n" (is "?P \<longleftrightarrow> ?Q")
+  proof
+    assume ?Q then show ?P by simp
+  next
+    assume ?P then obtain d where *: "q * m + n = m * d" ..
+    show ?Q
+    proof (cases "n = 0")
+      case True then show ?Q by simp
+    next
+      case False
+      with * have "q * m < m * d"
+        using less_add_eq_less [of 0 n "q * m" "m * d"] by simp
+      then have "q \<le> d" by (auto intro: ccontr simp add: mult.commute [of m])
+      with * [symmetric] have "n = m * (d - q)"
+        by (simp add: diff_mult_distrib2 mult.commute [of m])
+      then show ?Q ..
+    qed
+  qed
+  assume "m dvd n + q" and "m dvd n"
+  show "m dvd q"
+  proof -
+    from `m dvd n` obtain d where "n = m * d" ..
+    moreover from `m dvd n + q` obtain e where "n + q = m * e" ..
+    ultimately have *: "m * d + q = m * e" by simp
+    show "m dvd q"
+    proof (cases "q = 0")
+      case True then show ?thesis by simp
+    next
+      case False
+      with * have "m * d < m * e"
+        using less_add_eq_less [of 0 q "m * d" "m * e"] by simp
+      then have "d \<le> e" by (auto intro: ccontr)
+      with * have "q = m * (e - d)"
+        by (simp add: diff_mult_distrib2)
+      then show ?thesis ..
+    qed
+  qed
+qed
+
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
 unfolding dvd_def by simp
 
@@ -1882,17 +1924,6 @@ lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
 
 lemma dvd_diffD1: "[| k dvd m-n; k dvd m; n\<le>m |] ==> k dvd (n::nat)"
 by (drule_tac m = m in dvd_diff_nat, auto)
-
-lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
-  apply (rule iffI)
-   apply (erule_tac [2] dvd_add)
-   apply (rule_tac [2] dvd_refl)
-  apply (subgoal_tac "n = (n+k) -k")
-   prefer 2 apply simp
-  apply (erule ssubst)
-  apply (erule dvd_diff_nat)
-  apply (rule dvd_refl)
-  done
 
 lemma dvd_mult_cancel: "!!k::nat. [| k*m dvd k*n; 0<k |] ==> m dvd n"
   unfolding dvd_def
@@ -1947,18 +1978,6 @@ next
   qed
 qed
 
-lemma dvd_plus_eq_right:
-  fixes m n q :: nat
-  assumes "m dvd n"
-  shows "m dvd n + q \<longleftrightarrow> m dvd q"
-  using assms by (auto elim: dvd_plusE)
-
-lemma dvd_plus_eq_left:
-  fixes m n q :: nat
-  assumes "m dvd q"
-  shows "m dvd n + q \<longleftrightarrow> m dvd n"
-  using assms by (simp add: dvd_plus_eq_right add.commute [of n])
-
 lemma less_eq_dvd_minus:
   fixes m n :: nat
   assumes "m \<le> n"
@@ -1966,7 +1985,7 @@ lemma less_eq_dvd_minus:
 proof -
   from assms have "n = m + (n - m)" by simp
   then obtain q where "n = m + q" ..
-  then show ?thesis by (simp add: dvd_reduce add.commute [of m])
+  then show ?thesis by (simp add: add.commute [of m])
 qed
 
 lemma dvd_minus_self:
@@ -1991,10 +2010,25 @@ qed
 subsection {* Aliases *}
 
 lemma nat_mult_1: "(1::nat) * n = n"
-  by (rule mult_1_left)
+  by (fact mult_1_left)
  
 lemma nat_mult_1_right: "n * (1::nat) = n"
-  by (rule mult_1_right)
+  by (fact mult_1_right)
+
+lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
+  by (fact dvd_add_triv_right_iff)
+
+lemma dvd_plus_eq_right:
+  fixes m n q :: nat
+  assumes "m dvd n"
+  shows "m dvd n + q \<longleftrightarrow> m dvd q"
+  using assms by (fact dvd_add_eq_right)
+
+lemma dvd_plus_eq_left:
+  fixes m n q :: nat
+  assumes "m dvd q"
+  shows "m dvd n + q \<longleftrightarrow> m dvd n"
+  using assms by (fact dvd_add_eq_left)
 
 
 subsection {* Size of a datatype value *}
