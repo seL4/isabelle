@@ -1333,6 +1333,10 @@ lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
 lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
   unfolding zdvd_int by (cases "z \<ge> 0") simp_all
 
+lemma dvd_int_unfold_dvd_nat:
+  "k dvd l \<longleftrightarrow> nat \<bar>k\<bar> dvd nat \<bar>l\<bar>"
+  unfolding dvd_int_iff [symmetric] by simp
+
 lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)"
   by (auto simp add: dvd_int_iff)
 
