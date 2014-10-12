@@ -66,6 +66,9 @@ val skolemize_rules =
    spass_skolemize_rule, vampire_skolemisation_rule, veriT_tmp_ite_elim_rule,
    veriT_tmp_skolemize_rule, waldmeister_skolemize_rule, z3_skolemize_rule, zipperposition_cnf_rule]
 
+fun is_ext_rule rule = (rule = leo2_extcnf_equal_neg_rule)
+val is_maybe_ext_rule = is_ext_rule orf String.isPrefix satallax_tab_rule_prefix
+
 val is_skolemize_rule = member (op =) skolemize_rules
 fun is_arith_rule rule =
   String.isPrefix z3_th_lemma_rule_prefix rule orelse rule = veriT_simp_arith_rule orelse
@@ -77,8 +80,10 @@ fun raw_label_of_num num = (num, 0)
 fun label_of_clause [(num, _)] = raw_label_of_num num
   | label_of_clause c = (space_implode "___" (map (fst o raw_label_of_num o fst) c), 0)
 
-fun add_fact_of_dependencies [(_, ss as _ :: _)] = apsnd (union (op =) ss)
-  | add_fact_of_dependencies names = apfst (insert (op =) (label_of_clause names))
+fun add_global_fact ss = apsnd (union (op =) ss)
+
+fun add_fact_of_dependency [(_, ss as _ :: _)] = add_global_fact ss
+  | add_fact_of_dependency names = apfst (insert (op =) (label_of_clause names))
 
 fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire) internal facts or
@@ -118,8 +123,9 @@ fun add_lines_pass2 res [] = rev res
     in
       if is_duplicate orelse
           (role = Plain andalso not (is_skolemize_rule rule) andalso
-           not (is_arith_rule rule) andalso not (is_datatype_rule rule) andalso
-           not (null lines) andalso looks_boring () andalso not (is_before_skolemize_rule ())) then
+           not (is_ext_rule rule) andalso not (is_arith_rule rule) andalso
+           not (is_datatype_rule rule) andalso not (null lines) andalso looks_boring () andalso
+           not (is_before_skolemize_rule ())) then
         add_lines_pass2 res (map (replace_dependencies_in_line (name, deps)) lines)
       else
         add_lines_pass2 (line :: res) lines
@@ -292,7 +298,8 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val skolem = is_skolemize_rule rule
 
               val deps = ([], [])
-                |> fold add_fact_of_dependencies gamma
+                |> fold add_fact_of_dependency gamma
+                |> is_maybe_ext_rule rule ? add_global_fact [short_thm_name ctxt ext]
                 |> sort_facts
               val meths =
                 (if skolem then skolem_methods

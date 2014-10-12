@@ -28,6 +28,9 @@ sig
   val partial_type_encs : string list
   val default_metis_lam_trans : string
 
+  val leo2_extcnf_equal_neg_rule : string
+  val satallax_tab_rule_prefix : string
+
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
   val simplify_bool : term -> term
@@ -90,6 +93,9 @@ fun unalias_type_enc s =
   AList.lookup (op =) type_enc_aliases s |> the_default [s]
 
 val default_metis_lam_trans = combsN
+
+val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
+val satallax_tab_rule_prefix = "tab_"
 
 fun term_name' (Var ((s, _), _)) = perhaps (try Name.dest_skolem) s
   | term_name' _ = ""
@@ -499,10 +505,9 @@ val resolve_conjectures = map_filter resolve_conjecture
 fun is_axiom_used_in_proof pred =
   exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
 
-val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
-
 fun add_fact ctxt facts ((_, ss), _, _, rule, deps) =
-  (if member (op =) [agsyhol_core_rule, leo2_extcnf_equal_neg_rule] rule then
+  (if member (op =) [agsyhol_core_rule, leo2_extcnf_equal_neg_rule] rule orelse
+      String.isPrefix satallax_tab_rule_prefix rule then
      insert (op =) (short_thm_name ctxt ext, (Global, General))
    else
      I)
