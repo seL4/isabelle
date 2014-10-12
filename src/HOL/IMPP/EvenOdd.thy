@@ -41,23 +41,6 @@ definition
   "Res_ok = (%Z s. even Z = (s<Res> = 0))"
 
 
-subsection "even"
-
-lemma not_even_1 [simp]: "even (Suc 0) = False"
-apply (unfold even_def)
-apply simp
-done
-
-lemma even_step [simp]: "even (Suc (Suc n)) = even n"
-apply (unfold even_def)
-apply (subgoal_tac "Suc (Suc n) = n+2")
-prefer 2
-apply  simp
-apply (erule ssubst)
-apply (rule dvd_reduce)
-done
-
-
 subsection "Arg, Res"
 
 declare Arg_neq_Res [simp] Arg_neq_Res [THEN not_sym, simp]
