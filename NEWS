@@ -42,6 +42,12 @@ token category instead.
 
 *** HOL ***
 
+* Generalized and consolidated some theorems concerning divsibility:
+  dvd_reduce ~> dvd_add_triv_right_iff
+  dvd_plus_eq_right ~> dvd_add_right_iff
+  dvd_plus_eq_left ~> dvd_add_left_iff
+Minor INCOMPATIBILITY.
+
 * More foundational definition for predicate "even":
   even_def ~> even_iff_mod_2_eq_zero
 Minor INCOMPATIBILITY.

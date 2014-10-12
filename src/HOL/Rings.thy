@@ -228,15 +228,15 @@ lemma dvd_add_triv_right_iff [simp]:
   "a dvd b + a \<longleftrightarrow> a dvd b"
   using dvd_add_times_triv_right_iff [of a b 1] by simp
 
-lemma dvd_add_eq_right:
+lemma dvd_add_right_iff:
   assumes "a dvd b"
   shows "a dvd b + c \<longleftrightarrow> a dvd c"
   using assms by (auto dest: dvd_addD)
 
-lemma dvd_add_eq_left:
+lemma dvd_add_left_iff:
   assumes "a dvd c"
   shows "a dvd b + c \<longleftrightarrow> a dvd b"
-  using assms dvd_add_eq_right [of a c b] by (simp add: ac_simps)
+  using assms dvd_add_right_iff [of a c b] by (simp add: ac_simps)
 
 end
 

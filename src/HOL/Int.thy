@@ -1242,19 +1242,10 @@ next
 qed
 
 lemma zdvd_zdiffD: "k dvd m - n ==> k dvd n ==> k dvd (m::int)"
-  apply (subgoal_tac "m = n + (m - n)")
-   apply (erule ssubst)
-   apply (blast intro: dvd_add, simp)
-  done
+  using dvd_add_right_iff [of k "- n" m] by simp 
 
 lemma zdvd_reduce: "(k dvd n + k * m) = (k dvd (n::int))"
-apply (rule iffI)
- apply (erule_tac [2] dvd_add)
- apply (subgoal_tac "n = (n + k * m) - k * m")
-  apply (erule ssubst)
-  apply (erule dvd_diff)
-  apply(simp_all)
-done
+  using dvd_add_times_triv_right_iff [of k n m] by (simp add: ac_simps)
 
 lemma dvd_imp_le_int:
   fixes d i :: int

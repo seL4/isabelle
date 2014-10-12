@@ -142,7 +142,7 @@ proof -
     }
     then have "w dvd v + w + r + (w - v mod w) \<longleftrightarrow> w dvd m + w + r + (w - m mod w)"
       by (simp add: add.assoc add.left_commute [of m] add.left_commute [of v]
-        dvd_plus_eq_left dvd_plus_eq_right)
+        dvd_add_left_iff dvd_add_right_iff)
     moreover from q have "Suc q = m + w + r" by (simp add: w_def)
     moreover from q have "Suc (Suc q) = v + w + r" by (simp add: v_def w_def)
     ultimately have "w dvd Suc (Suc (q + (w - v mod w))) \<longleftrightarrow> w dvd Suc (q + (w - m mod w))"

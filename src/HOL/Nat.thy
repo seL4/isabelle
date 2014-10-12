@@ -1950,34 +1950,6 @@ lemma nat_dvd_not_less:
   shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
 by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
 
-lemma dvd_plusE:
-  fixes m n q :: nat
-  assumes "m dvd n + q" "m dvd n"
-  obtains "m dvd q"
-proof (cases "m = 0")
-  case True with assms that show thesis by simp
-next
-  case False then have "m > 0" by simp
-  from assms obtain r s where "n = m * r" and "n + q = m * s" by (blast elim: dvdE)
-  then have *: "m * r + q = m * s" by simp
-  show thesis proof (cases "r \<le> s")
-    case False then have "s < r" by (simp add: not_le)
-    with * have "m * r + q - m * s = m * s - m * s" by simp
-    then have "m * r + q - m * s = 0" by simp
-    with `m > 0` `s < r` have "m * r - m * s + q = 0" by (unfold less_le_not_le) auto
-    then have "m * (r - s) + q = 0" by auto
-    then have "m * (r - s) = 0" by simp
-    then have "m = 0 \<or> r - s = 0" by simp
-    with `s < r` have "m = 0" by (simp add: less_le_not_le)
-    with `m > 0` show thesis by auto
-  next
-    case True with * have "m * r + q - m * r = m * s - m * r" by simp
-    with `m > 0` `r \<le> s` have "m * r - m * r + q = m * s - m * r" by simp
-    then have "q = m * (s - r)" by (simp add: diff_mult_distrib2)
-    with assms that show thesis by (auto intro: dvdI)
-  qed
-qed
-
 lemma less_eq_dvd_minus:
   fixes m n :: nat
   assumes "m \<le> n"
@@ -1999,7 +1971,7 @@ lemma dvd_minus_add:
   shows "m dvd n - q \<longleftrightarrow> m dvd n + (r * m - q)"
 proof -
   have "m dvd n - q \<longleftrightarrow> m dvd r * m + (n - q)"
-    by (auto elim: dvd_plusE)
+    using dvd_add_times_triv_left_iff [of m r] by simp
   also from assms have "\<dots> \<longleftrightarrow> m dvd r * m + n - q" by simp
   also from assms have "\<dots> \<longleftrightarrow> m dvd (r * m - q) + n" by simp
   also have "\<dots> \<longleftrightarrow> m dvd n + (r * m - q)" by (simp add: add.commute)
@@ -2014,21 +1986,6 @@ lemma nat_mult_1: "(1::nat) * n = n"
  
 lemma nat_mult_1_right: "n * (1::nat) = n"
   by (fact mult_1_right)
-
-lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
-  by (fact dvd_add_triv_right_iff)
-
-lemma dvd_plus_eq_right:
-  fixes m n q :: nat
-  assumes "m dvd n"
-  shows "m dvd n + q \<longleftrightarrow> m dvd q"
-  using assms by (fact dvd_add_eq_right)
-
-lemma dvd_plus_eq_left:
-  fixes m n q :: nat
-  assumes "m dvd q"
-  shows "m dvd n + q \<longleftrightarrow> m dvd n"
-  using assms by (fact dvd_add_eq_left)
 
 
 subsection {* Size of a datatype value *}
