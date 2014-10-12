@@ -180,7 +180,8 @@ fun bunches_of_proof_methods try0 smt_method needs_full_types desperate_lam_tran
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 
 fun filter_used_facts keep_chained used =
-  filter ((member (op =) used o fst) orf (if keep_chained then is_fact_chained else K false))
+  filter ((member (eq_fst (op =)) used o fst) orf
+    (if keep_chained then is_fact_chained else K false))
 
 val max_fact_instances = 10 (* FUDGE *)
 

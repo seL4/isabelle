@@ -99,7 +99,16 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
        factss = [("", facts)]}
-    val result as {outcome, used_facts, run_time, ...} = prover params problem
+    val result0 as {outcome = outcome0, used_facts, used_from, preferred_methss, run_time,
+        message} =
+      prover params problem
+    val result as {outcome, ...} =
+      if is_none outcome0 andalso
+         forall (member (fn ((s, _), ((s', _), _)) => s = s') used_from) used_facts then
+        result0
+      else
+        {outcome = SOME MaybeUnprovable, used_facts = [], used_from = used_from,
+         preferred_methss = preferred_methss, run_time = run_time, message = message}
   in
     print silent (fn () =>
       (case outcome of

@@ -18,6 +18,7 @@ sig
   exception UNRECOGNIZED_ATP_PROOF of unit
 
   datatype atp_failure =
+    MaybeUnprovable |
     Unprovable |
     GaveUp |
     ProofMissing |
@@ -145,6 +146,7 @@ val z3_tptp_core_rule = "__z3_tptp_core" (* arbitrary *)
 exception UNRECOGNIZED_ATP_PROOF of unit
 
 datatype atp_failure =
+  MaybeUnprovable |
   Unprovable |
   GaveUp |
   ProofMissing |
@@ -177,7 +179,8 @@ val missing_message_tail =
 fun from_lemmas [] = ""
   | from_lemmas ss = " from " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
 
-fun string_of_atp_failure Unprovable = "The generated problem is unprovable."
+fun string_of_atp_failure MaybeUnprovable = "The generated problem is maybe unprovable."
+  | string_of_atp_failure Unprovable = "The generated problem is unprovable."
   | string_of_atp_failure GaveUp = "The prover gave up."
   | string_of_atp_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
