@@ -5,12 +5,8 @@
 header {* Example of mutually recursive procedures verified with Hoare logic *}
 
 theory EvenOdd
-imports Misc
+imports Misc "~~/src/HOL/Parity"
 begin
-
-definition
-  even :: "nat => bool" where
-  "even n = (2 dvd n)"
 
 axiomatization
   Even :: pname and
@@ -46,11 +42,6 @@ definition
 
 
 subsection "even"
-
-lemma even_0 [simp]: "even 0"
-apply (unfold even_def)
-apply simp
-done
 
 lemma not_even_1 [simp]: "even (Suc 0) = False"
 apply (unfold even_def)
