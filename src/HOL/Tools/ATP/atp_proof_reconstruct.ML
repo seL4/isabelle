@@ -730,7 +730,7 @@ fun introduce_spass_skolems proof =
     fun in_group group = member (op =) group o hd
     fun group_of skoX = find_first (fn group => in_group group skoX) groups
 
-    fun new_steps skoXss_steps group =
+    fun new_steps (skoXss_steps : (string list * (term, 'a) atp_step) list) group =
       let
         val name = step_name_of_group group
         val name0 = name |>> prefix "0"
