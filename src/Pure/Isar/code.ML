@@ -1237,18 +1237,18 @@ fun register_type (tyco, vs_spec) thy =
 
 fun unoverload_const_typ thy (c, ty) = (Axclass.unoverload_const thy (c, ty), ty);
 
-structure Datatype_Interpretation =
-  Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
+structure Datatype_Plugin = Plugin(type T = string);
 
-fun with_repaired_path f (tyco, serial) thy =
-  thy
-  |> Sign.root_path
-  |> Sign.add_path (Long_Name.qualifier tyco)
-  |> f (tyco, serial)
-  |> Sign.restore_naming thy;
+val datatype_plugin = Plugin_Name.declare_setup @{binding datatype_code};
 
-fun datatype_interpretation f = Datatype_Interpretation.interpretation
-  (fn (tyco, _) => fn thy => with_repaired_path f (tyco, fst (get_type thy tyco)) thy);
+fun datatype_interpretation f =
+  Datatype_Plugin.interpretation datatype_plugin
+    (fn tyco => Local_Theory.background_theory (fn thy =>
+      thy
+      |> Sign.root_path
+      |> Sign.add_path (Long_Name.qualifier tyco)
+      |> f (tyco, fst (get_type thy tyco))
+      |> Sign.restore_naming thy));
 
 fun add_datatype proto_constrs thy =
   let
@@ -1257,17 +1257,22 @@ fun add_datatype proto_constrs thy =
   in
     thy
     |> register_type (tyco, (vs, Constructors (cos, [])))
-    |> Datatype_Interpretation.data (tyco, serial ())
+    |> Named_Target.theory_init
+    |> Datatype_Plugin.data Plugin_Name.default_filter tyco
+    |> Local_Theory.exit_global
   end;
 
 fun add_datatype_cmd raw_constrs thy =
   add_datatype (map (read_bare_const thy) raw_constrs) thy;
 
-structure Abstype_Interpretation =
-  Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
+structure Abstype_Plugin = Plugin(type T = string);
 
-fun abstype_interpretation f = Abstype_Interpretation.interpretation
-  (fn (tyco, _) => fn thy => f (tyco, get_abstype_spec thy tyco) thy);
+val abstype_plugin = Plugin_Name.declare_setup @{binding abstype_code};
+
+fun abstype_interpretation f =
+  Abstype_Plugin.interpretation abstype_plugin
+    (fn tyco =>
+      Local_Theory.background_theory (fn thy => f (tyco, get_abstype_spec thy tyco) thy));
 
 fun add_abstype proto_thm thy =
   let
@@ -1278,7 +1283,9 @@ fun add_abstype proto_thm thy =
     |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
     |> change_fun_spec rep
       (K (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco)))
-    |> Abstype_Interpretation.data (tyco, serial ())
+    |> Named_Target.theory_init
+    |> Abstype_Plugin.data Plugin_Name.default_filter tyco
+    |> Local_Theory.exit_global
   end;
 
 
@@ -1299,8 +1306,7 @@ val _ = Theory.setup
       || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term >> mk_const_attribute del_exception)
       || Scan.succeed (mk_attribute add_eqn_maybe_abs);
   in
-    Datatype_Interpretation.init
-    #> Attrib.setup @{binding code} (Scan.lift code_attribute_parser)
+    Attrib.setup @{binding code} (Scan.lift code_attribute_parser)
         "declare theorems for code generation"
   end);
 
