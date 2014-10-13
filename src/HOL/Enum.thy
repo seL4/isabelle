@@ -493,7 +493,7 @@ subsection {* Small finite types *}
 
 text {* We define small finite types for use in Quickcheck *}
 
-datatype (plugins only: code "quickcheck*" extraction) finite_1 =
+datatype (plugins only: code "quickcheck" extraction) finite_1 =
   a\<^sub>1
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
@@ -596,7 +596,7 @@ end
 declare [[simproc del: finite_1_eq]]
 hide_const (open) a\<^sub>1
 
-datatype (plugins only: code "quickcheck*" extraction) finite_2 =
+datatype (plugins only: code "quickcheck" extraction) finite_2 =
   a\<^sub>1 | a\<^sub>2
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
@@ -711,7 +711,7 @@ by intro_classes (simp_all add: mod_finite_2_def split: finite_2.splits)
 
 hide_const (open) a\<^sub>1 a\<^sub>2
 
-datatype (plugins only: code "quickcheck*" extraction) finite_3 =
+datatype (plugins only: code "quickcheck" extraction) finite_3 =
   a\<^sub>1 | a\<^sub>2 | a\<^sub>3
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
@@ -838,7 +838,7 @@ end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3
 
-datatype (plugins only: code "quickcheck*" extraction) finite_4 =
+datatype (plugins only: code "quickcheck" extraction) finite_4 =
   a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4
 
 notation (output) a\<^sub>1  ("a\<^sub>1")
@@ -940,7 +940,7 @@ end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4
 
-datatype (plugins only: code "quickcheck*" extraction) finite_5 =
+datatype (plugins only: code "quickcheck" extraction) finite_5 =
   a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4 | a\<^sub>5
 
 notation (output) a\<^sub>1  ("a\<^sub>1")

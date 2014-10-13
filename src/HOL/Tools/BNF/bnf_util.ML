@@ -103,7 +103,6 @@ sig
   val parse_type_args_named_constrained: (binding option * (string * string option)) list parser
   val parse_map_rel_bindings: (binding * binding) parser
 
-  val map_local_theory: (local_theory -> local_theory) -> theory -> theory
   val typedef: binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
 end;
@@ -140,8 +139,6 @@ val parse_map_rel_bindings =
   @{keyword "for"} |-- Scan.repeat parse_map_rel_binding
     >> (fn ps => fold extract_map_rel ps no_map_rel)
   || Scan.succeed no_map_rel;
-
-fun map_local_theory f = Named_Target.theory_init #> f #> Local_Theory.exit_global;
 
 fun typedef (b, Ts, mx) set opt_morphs tac lthy =
   let

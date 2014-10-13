@@ -17,9 +17,11 @@ struct
 open BNF_Util
 open BNF_Def
 
-fun prepare_decl prepare_constraint prepare_typ plugins raw_vars b mx user_mapb user_relb user_witTs
-  lthy =
+fun prepare_decl prepare_plugins prepare_constraint prepare_typ
+    raw_plugins raw_vars b mx user_mapb user_relb user_witTs lthy =
   let
+   val plugins = prepare_plugins lthy raw_plugins;
+
    fun prepare_type_arg (set_opt, (ty, c)) =
       let val s = fst (dest_TFree (prepare_typ lthy ty)) in
         (set_opt, (s, prepare_constraint lthy c))
@@ -95,12 +97,12 @@ fun prepare_decl prepare_constraint prepare_typ plugins raw_vars b mx user_mapb 
     (bnf, register_bnf plugins key bnf lthy')
   end;
 
-val bnf_axiomatization = prepare_decl (K I) (K I);
+val bnf_axiomatization = prepare_decl (K I) (K I) (K I);
 
 fun read_constraint _ NONE = @{sort type}
   | read_constraint ctxt (SOME s) = Syntax.read_sort ctxt s;
 
-val bnf_axiomatization_cmd = prepare_decl read_constraint Syntax.read_typ;
+val bnf_axiomatization_cmd = prepare_decl Plugin_Name.make_filter read_constraint Syntax.read_typ;
 
 val parse_witTs =
   @{keyword "["} |-- (Parse.short_ident --| @{keyword ":"} -- Scan.repeat Parse.typ
@@ -109,7 +111,7 @@ val parse_witTs =
   @{keyword "]"} || Scan.succeed [];
 
 val parse_bnf_axiomatization_options =
-  Scan.optional (@{keyword "("} |-- parse_plugins --| @{keyword ")"}) (K true);
+  Scan.optional (@{keyword "("} |-- Plugin_Name.parse_filter --| @{keyword ")"}) (K (K true));
 
 val parse_bnf_axiomatization =
   parse_bnf_axiomatization_options -- parse_type_args_named_constrained -- Parse.binding --

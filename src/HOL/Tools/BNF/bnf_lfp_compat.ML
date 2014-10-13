@@ -451,10 +451,8 @@ fun new_interpretation_of prefs f (fp_sugars : fp_sugar list) thy =
   end;
 
 fun interpretation name prefs f =
-  let val new_f = new_interpretation_of prefs f in
-    Old_Datatype_Data.interpretation (old_interpretation_of prefs f)
-    #> fp_sugars_interpretation name new_f (Local_Theory.background_theory o new_f)
-  end;
+  Old_Datatype_Data.interpretation (old_interpretation_of prefs f)
+  #> fp_sugars_interpretation name (Local_Theory.background_theory o new_interpretation_of prefs f);
 
 val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: @{attributes [nitpick_simp, simp]};
 
@@ -501,7 +499,7 @@ fun datatype_compat fpT_names lthy =
     |> snd
   end;
 
-val datatype_compat_global = map_local_theory o datatype_compat;
+val datatype_compat_global = Named_Target.theory_map o datatype_compat;
 
 fun datatype_compat_cmd raw_fpT_names lthy =
   let
@@ -529,7 +527,8 @@ fun add_datatype prefs old_specs thy =
   in
     (fpT_names,
      thy
-     |> map_local_theory (co_datatypes Least_FP construct_lfp (default_ctr_options, new_specs))
+     |> Named_Target.theory_map
+       (co_datatypes Least_FP construct_lfp (default_ctr_options, new_specs))
      |> not (member (op =) prefs Keep_Nesting) ? perhaps (try (datatype_compat_global fpT_names)))
   end;
 

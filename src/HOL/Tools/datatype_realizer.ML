@@ -7,14 +7,11 @@ realizers for induction and case analysis.
 
 signature DATATYPE_REALIZER =
 sig
-  val extraction_plugin: string
   val add_dt_realizers: Old_Datatype_Aux.config -> string list -> theory -> theory
 end;
 
 structure Datatype_Realizer : DATATYPE_REALIZER =
 struct
-
-val extraction_plugin = "extraction";
 
 fun subsets i j =
   if i <= j then
@@ -241,6 +238,6 @@ fun add_dt_realizers config names thy =
       |> fold_rev (perhaps o try o make_casedists) infos
     end;
 
-val _ = Theory.setup (BNF_LFP_Compat.interpretation extraction_plugin [] add_dt_realizers);
+val _ = Theory.setup (BNF_LFP_Compat.interpretation @{plugin extraction} [] add_dt_realizers);
 
 end;

@@ -15,7 +15,7 @@ sig
   val transform_info: morphism -> info -> info
   val get_info: Proof.context -> string -> info list
   val get_info_global: theory -> string -> info list
-  val interpretation: (string -> theory -> theory) -> theory -> theory
+  val interpretation: (string -> local_theory -> local_theory) -> theory -> theory
   val add_typedef: bool -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> local_theory -> (string * info) * local_theory
   val add_typedef_global: bool -> binding * (string * sort) list * mixfix ->
@@ -71,18 +71,18 @@ fun put_info name info = Data.map (Symtab.cons_list (name, info));
 
 (* global interpretation *)
 
-structure Typedef_Interpretation = Interpretation(type T = string val eq = op =);
+structure Typedef_Plugin = Plugin(type T = string);
 
-fun with_repaired_path f name thy =
-  thy
-  |> Sign.root_path
-  |> Sign.add_path (Long_Name.qualifier name)
-  |> f name
-  |> Sign.restore_naming thy;
+val typedef_plugin = Plugin_Name.declare_setup @{binding typedef};
 
-fun interpretation f = Typedef_Interpretation.interpretation (with_repaired_path f);
-
-val _ = Theory.setup Typedef_Interpretation.init;
+fun interpretation f =
+  Typedef_Plugin.interpretation typedef_plugin
+    (fn name => fn lthy =>
+      lthy
+      |> Local_Theory.map_naming
+          (Name_Space.root_path #> Name_Space.add_path (Long_Name.qualifier name))
+      |> f name
+      |> Local_Theory.restore_naming lthy);
 
 
 (* primitive typedef axiomatization -- for fresh typedecl *)
@@ -229,7 +229,7 @@ fun prepare_typedef conceal prep_term (name, raw_args, mx) raw_set opt_morphs lt
         lthy2
         |> Local_Theory.declaration {syntax = false, pervasive = true}
           (fn phi => put_info full_name (transform_info phi info))
-        |> Local_Theory.background_theory (Typedef_Interpretation.data full_name)
+        |> Typedef_Plugin.data Plugin_Name.default_filter full_name
         |> pair (full_name, info)
       end;
 

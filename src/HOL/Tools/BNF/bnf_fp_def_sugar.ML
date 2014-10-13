@@ -67,7 +67,7 @@ sig
   val fp_sugar_of_global: theory -> string -> fp_sugar option
   val fp_sugars_of: Proof.context -> fp_sugar list
   val fp_sugars_of_global: theory -> fp_sugar list
-  val fp_sugars_interpretation: string -> (fp_sugar list -> theory -> theory) ->
+  val fp_sugars_interpretation: string ->
     (fp_sugar list -> local_theory -> local_theory)-> theory -> theory
   val interpret_fp_sugars: (string -> bool) -> fp_sugar list -> local_theory -> local_theory
   val register_fp_sugars_raw: fp_sugar list -> local_theory -> local_theory
@@ -316,18 +316,14 @@ val fp_sugars_of_global = fp_sugars_of_generic o Context.Theory;
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;
 
-structure FP_Sugar_Interpretation = Local_Interpretation
-(
-  type T = fp_sugar list;
-  val eq: T * T -> bool = op = o pairself (map #T);
-);
+structure FP_Sugar_Plugin = Plugin(type T = fp_sugar list);
 
-fun with_transfer_fp_sugars g fp_sugars thy = g (map (transfer_fp_sugar thy) fp_sugars) thy;
+fun fp_sugars_interpretation name f =
+  FP_Sugar_Plugin.interpretation name
+    (fn fp_sugars => fn lthy =>
+      f (map (transfer_fp_sugar (Proof_Context.theory_of lthy)) fp_sugars) lthy);
 
-fun fp_sugars_interpretation name =
-  FP_Sugar_Interpretation.interpretation name o with_transfer_fp_sugars;
-
-val interpret_fp_sugars = FP_Sugar_Interpretation.data;
+val interpret_fp_sugars = FP_Sugar_Plugin.data;
 
 fun register_fp_sugars_raw fp_sugars =
   fold (fn fp_sugar as {T = Type (s, _), ...} =>
@@ -984,7 +980,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
             |> map Thm.close_derivation
         end;
 
-      val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+      val code_attrs = if plugins @{plugin code} then [Code.add_default_eqn_attrib] else [];
 
       val anonymous_notes =
         [(rel_code_thms, code_attrs @ nitpicksimp_attrs)]
@@ -1417,7 +1413,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
 
     val rec_thmss = mk_rec_thmss (the rec_args_typess) recs rec_defs ctor_rec_thms;
 
-    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+    val code_attrs = if plugins @{plugin code} then [Code.add_default_eqn_attrib] else [];
   in
     ((induct_thms, induct_thm, mk_induct_attrs ctrss),
      (rec_thmss, code_attrs @ nitpicksimp_attrs @ simp_attrs))
@@ -1828,11 +1824,12 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
      (corec_sel_thmsss, simp_attrs))
   end;
 
-fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
-    ((plugins, discs_sels0), specs) no_defs_lthy =
+fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_term fp construct_fp
+    ((raw_plugins, discs_sels0), specs) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
 
+    val plugins = prepare_plugins no_defs_lthy raw_plugins;
     val discs_sels = discs_sels0 orelse fp = Greatest_FP;
 
     val nn = length specs;
@@ -2010,7 +2007,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val fpTs = map (domain_type o fastype_of) dtors;
     val fpBTs = map B_ify_T fpTs;
 
-    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+    val code_attrs = if plugins @{plugin code} then [Code.add_default_eqn_attrib] else [];
 
     val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctrXs_Tsss;
     val ns = map length ctr_Tsss;
@@ -2375,10 +2372,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     timer; lthy''
   end;
 
-fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) x;
+fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) (K I) x;
 
 fun co_datatype_cmd x =
-  define_co_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term x;
+  define_co_datatypes Plugin_Name.make_filter Typedecl.read_constraint
+    Syntax.parse_typ Syntax.parse_term x;
 
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"}
@@ -2394,7 +2392,5 @@ val parse_spec =
 val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 
 fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
-
-val _ = Theory.setup FP_Sugar_Interpretation.init;
 
 end;

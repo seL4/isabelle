@@ -13,6 +13,7 @@ sig
   val class_of: local_theory -> string option
   val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
+  val theory_map: (local_theory -> local_theory) -> theory -> theory
   val theory_like_init: (local_theory -> local_theory) -> theory -> local_theory
   val begin: xstring * Position.T -> theory -> local_theory
   val exit: local_theory -> theory
@@ -175,6 +176,8 @@ fun gen_init before_exit target thy =
 val init = gen_init NONE
 
 val theory_init = init "";
+
+fun theory_map f = theory_init #> f #> Local_Theory.exit_global;
 
 fun theory_like_init before_exit = gen_init (SOME before_exit) "";
 
