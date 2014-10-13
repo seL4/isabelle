@@ -15,8 +15,9 @@ sig
   val declare: binding -> theory -> string * theory
   val declare_setup: binding -> string
   type filter = string -> bool
-  val parse_filter: (Proof.context -> filter) parser
+  val default_filter: filter
   val make_filter: Proof.context -> (Proof.context -> filter) -> filter
+  val parse_filter: (Proof.context -> filter) parser
 end;
 
 structure Plugin_Name: PLUGIN_NAME =
@@ -71,12 +72,14 @@ fun declare_setup binding = Context.>>> (Context.map_theory_result (declare bind
 
 type filter = string -> bool;
 
+val default_filter: filter = K true;
+
 fun make_filter (ctxt: Proof.context) f : filter = f ctxt;
 
 val parse_filter =
   Parse.position (Parse.reserved "plugins") --
     Parse.position (Parse.reserved "only" >> K I || Parse.reserved "del" >> K not) --
-    (@{keyword ":"} |-- Scan.repeat (Parse.position Parse.name)) >>
+    (Parse.$$$ ":" |-- Scan.repeat (Parse.position Parse.name)) >>
       (fn (((_, pos1), (modif, pos2)), args) => fn ctxt =>
         let
           val thy = Proof_Context.theory_of ctxt;

@@ -278,6 +278,7 @@ use "Isar/class_declaration.ML";
 use "Isar/bundle.ML";
 
 use "simplifier.ML";
+use "Tools/plugin.ML";
 
 (*executable theory content*)
 use "Isar/code.ML";

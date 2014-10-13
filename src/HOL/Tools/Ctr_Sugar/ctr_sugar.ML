@@ -1066,11 +1066,11 @@ val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
 
 val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
 
-type ctr_options = (string -> bool) * bool;
-type ctr_options_cmd = (Proof.context -> string -> bool) * bool;
+type ctr_options = Plugin_Name.filter * bool;
+type ctr_options_cmd = (Proof.context -> Plugin_Name.filter) * bool;
 
-val default_ctr_options : ctr_options = (K true, false);
-val default_ctr_options_cmd : ctr_options_cmd = (K (K true), false);
+val default_ctr_options : ctr_options = (Plugin_Name.default_filter, false);
+val default_ctr_options_cmd : ctr_options_cmd = (K Plugin_Name.default_filter, false);
 
 val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1

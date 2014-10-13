@@ -1614,7 +1614,7 @@ val _ =
          Scan.repeat1 (Scan.unless (Parse.reserved "rel" ||
            Parse.reserved "plugins") Parse.term)) [] --
        Scan.option ((Parse.reserved "rel" -- @{keyword ":"}) |-- Parse.term) --
-       Scan.optional Plugin_Name.parse_filter (K (K true))
+       Scan.optional Plugin_Name.parse_filter (K Plugin_Name.default_filter)
        >> bnf_cmd);
 
 end;
