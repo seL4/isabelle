@@ -97,6 +97,7 @@ signature PLUGIN =
 sig
   type T
   val data: Plugin_Name.filter -> T -> local_theory -> local_theory
+  val data_default: T -> local_theory -> local_theory
   val interpretation: string -> (T -> local_theory -> local_theory) -> theory -> theory
 end;
 
@@ -177,6 +178,8 @@ fun data filter x =
   Local_Theory.background_theory (fn thy =>
     Plugin_Data.map (apfst (cons (mk_data filter (Sign.naming_of thy) x))) thy)
   #> consolidate;
+
+val data_default = data Plugin_Name.default_filter;
 
 fun interpretation name f =
   Plugin_Data.map (apsnd (cons (mk_interp name f, [])))

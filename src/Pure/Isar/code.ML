@@ -1257,7 +1257,7 @@ fun add_datatype proto_constrs thy =
   in
     thy
     |> register_type (tyco, (vs, Constructors (cos, [])))
-    |> Named_Target.theory_map (Datatype_Plugin.data Plugin_Name.default_filter tyco)
+    |> Named_Target.theory_map (Datatype_Plugin.data_default tyco)
   end;
 
 fun add_datatype_cmd raw_constrs thy =
@@ -1281,7 +1281,7 @@ fun add_abstype proto_thm thy =
     |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
     |> change_fun_spec rep
       (K (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco)))
-    |> Named_Target.theory_map (Abstype_Plugin.data Plugin_Name.default_filter tyco)
+    |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
   end;
 
 

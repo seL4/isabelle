@@ -251,8 +251,7 @@ fun interpretation f =
         |> f config type_names
         |> Sign.restore_naming thy));
 
-val interpretation_data =
-  Named_Target.theory_map o Old_Datatype_Plugin.data Plugin_Name.default_filter;
+val interpretation_data = Named_Target.theory_map o Old_Datatype_Plugin.data_default;
 
 
 open Old_Datatype_Aux;
