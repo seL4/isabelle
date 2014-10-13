@@ -237,27 +237,25 @@ end;
 
 (** abstract theory extensions relative to a datatype characterisation **)
 
-structure Datatype_Interpretation = Interpretation
-(
-  type T = Old_Datatype_Aux.config * string list;
-  val eq: T * T -> bool = eq_snd (op =);
-);
+structure Old_Datatype_Plugin = Plugin(type T = Old_Datatype_Aux.config * string list);
 
-fun with_repaired_path f config (type_names as name :: _) thy =
-  thy
-  |> Sign.root_path
-  |> Sign.add_path (Long_Name.qualifier name)
-  |> f config type_names
-  |> Sign.restore_naming thy;
+val old_datatype_plugin = Plugin_Name.declare_setup @{binding old_datatype};
 
-fun interpretation f = Datatype_Interpretation.interpretation (uncurry (with_repaired_path f));
-val interpretation_data = Datatype_Interpretation.data;
+fun interpretation f =
+  Old_Datatype_Plugin.interpretation old_datatype_plugin
+    (fn (config, type_names as name :: _) =>
+      Local_Theory.background_theory (fn thy =>
+        thy
+        |> Sign.root_path
+        |> Sign.add_path (Long_Name.qualifier name)
+        |> f config type_names
+        |> Sign.restore_naming thy));
 
+fun interpretation_data x =
+  Named_Target.theory_init #>
+  Old_Datatype_Plugin.data Plugin_Name.default_filter x #>
+  Local_Theory.exit_global;
 
-
-(** setup theory **)
-
-val _ = Theory.setup Datatype_Interpretation.init;
 
 open Old_Datatype_Aux;
 
