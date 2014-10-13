@@ -71,7 +71,7 @@ fun ensure_typerep tyco thy =
 in
 
 add_typerep @{type_name fun}
-#> Typedef.interpretation ensure_typerep
+#> Typedef.interpretation (Local_Theory.background_theory o ensure_typerep)
 #> Code.datatype_interpretation (ensure_typerep o fst)
 #> Code.abstype_interpretation (ensure_typerep o fst)
 
