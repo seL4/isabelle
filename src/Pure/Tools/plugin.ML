@@ -163,10 +163,8 @@ val consolidate' =
   unfinished_data #> (fn (unfinished, thy) =>
     if forall (null o #2) unfinished then NONE
     else
-      Named_Target.theory_init thy
-      |> fold_rev (fn (interp, data) => fold_rev (apply true interp) data) unfinished
-      |> Local_Theory.exit_global
-      |> SOME);
+      SOME (Named_Target.theory_map
+        (fold_rev (fn (interp, data) => fold_rev (apply true interp) data) unfinished) thy));
 
 end;
 

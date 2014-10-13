@@ -499,7 +499,7 @@ fun datatype_compat fpT_names lthy =
     |> snd
   end;
 
-val datatype_compat_global = map_local_theory o datatype_compat;
+val datatype_compat_global = Named_Target.theory_map o datatype_compat;
 
 fun datatype_compat_cmd raw_fpT_names lthy =
   let
@@ -527,7 +527,8 @@ fun add_datatype prefs old_specs thy =
   in
     (fpT_names,
      thy
-     |> map_local_theory (co_datatypes Least_FP construct_lfp (default_ctr_options, new_specs))
+     |> Named_Target.theory_map
+       (co_datatypes Least_FP construct_lfp (default_ctr_options, new_specs))
      |> not (member (op =) prefs Keep_Nesting) ? perhaps (try (datatype_compat_global fpT_names)))
   end;
 

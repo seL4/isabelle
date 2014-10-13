@@ -204,9 +204,7 @@ fun default_register_ctr_sugar_global plugins (ctr_sugar as {T = Type (s, _), ..
     else
       thy
       |> Context.theory_map (Data.put (Symtab.update_new (s, ctr_sugar) tab))
-      |> Named_Target.theory_init
-      |> Ctr_Sugar_Plugin.data plugins ctr_sugar
-      |> Local_Theory.exit_global
+      |> Named_Target.theory_map (Ctr_Sugar_Plugin.data plugins ctr_sugar)
   end;
 
 val isN = "is_";
