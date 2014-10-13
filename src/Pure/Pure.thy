@@ -120,6 +120,7 @@ ML_file "Tools/find_consts.ML"
 ML_file "Tools/proof_general_pure.ML"
 ML_file "Tools/simplifier_trace.ML"
 ML_file "Tools/named_theorems.ML"
+ML_file "Tools/plugin.ML"
 
 
 section \<open>Basic attributes\<close>
