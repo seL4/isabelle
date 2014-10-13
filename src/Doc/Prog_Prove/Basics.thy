@@ -86,7 +86,8 @@ clearer as we go along.
 Right-arrows of all kinds always associate to the right. In particular,
 the formula
 @{text"A\<^sub>1 \<Longrightarrow> A\<^sub>2 \<Longrightarrow> A\<^sub>3"} means @{text "A\<^sub>1 \<Longrightarrow> (A\<^sub>2 \<Longrightarrow> A\<^sub>3)"}.
-The (Isabelle-specific) notation \mbox{@{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}}
+The (Isabelle-specific\footnote{To display implications in this style in
+Isabelle/jedit you need to set Plugins $>$ Plugin Options $>$ Isabelle/General $>$ Print Mode to ``\texttt{brackets}'' and restart.}) notation \mbox{@{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}}
 is short for the iterated implication \mbox{@{text"A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> A"}}.
 Sometimes we also employ inference rule notation:
 \inferrule{\mbox{@{text "A\<^sub>1"}}\\ \mbox{@{text "\<dots>"}}\\ \mbox{@{text "A\<^sub>n"}}}
