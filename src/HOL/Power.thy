@@ -103,6 +103,19 @@ next
   ultimately show ?case by (simp add: power_add funpow_add fun_eq_iff mult.assoc)
 qed
 
+lemma power_commuting_commutes:
+  assumes "x * y = y * x"
+  shows "x ^ n * y = y * x ^n"
+proof (induct n)
+  case (Suc n)
+  have "x ^ Suc n * y = x ^ n * y * x"
+    by (subst power_Suc2) (simp add: assms ac_simps)
+  also have "\<dots> = y * x ^ Suc n"
+    unfolding Suc power_Suc2
+    by (simp add: ac_simps)
+  finally show ?case .
+qed simp
+
 end
 
 context comm_monoid_mult

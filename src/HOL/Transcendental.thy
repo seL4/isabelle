@@ -931,7 +931,7 @@ qed
 
 subsection {* Exponential Function *}
 
-definition exp :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+definition exp :: "'a \<Rightarrow> 'a::{real_normed_algebra_1,banach}"
   where "exp = (\<lambda>x. \<Sum>n. x ^ n /\<^sub>R real (fact n))"
 
 lemma summable_exp_generic:
@@ -1001,22 +1001,40 @@ lemma DERIV_exp [simp]: "DERIV exp x :> exp(x)"
 
 declare DERIV_exp[THEN DERIV_chain2, derivative_intros]
 
-lemma isCont_exp: "isCont exp x"
+lemma norm_exp: "norm (exp x) \<le> exp (norm x)"
+proof -
+  from summable_norm[OF summable_norm_exp, of x]
+  have "norm (exp x) \<le> (\<Sum>n. inverse (real (fact n)) * norm (x ^ n))"
+    by (simp add: exp_def)
+  also have "\<dots> \<le> exp (norm x)"
+    using summable_exp_generic[of "norm x"] summable_norm_exp[of x]
+    by (auto simp: exp_def intro!: suminf_le norm_power_ineq)
+  finally show ?thesis .
+qed
+
+lemma isCont_exp:
+  fixes x::"'a::{real_normed_field,banach}"
+  shows "isCont exp x"
   by (rule DERIV_exp [THEN DERIV_isCont])
 
-lemma isCont_exp' [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. exp (f x)) a"
+lemma isCont_exp' [simp]:
+  fixes f::"_ \<Rightarrow>'a::{real_normed_field,banach}"
+  shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. exp (f x)) a"
   by (rule isCont_o2 [OF _ isCont_exp])
 
 lemma tendsto_exp [tendsto_intros]:
-  "(f ---> a) F \<Longrightarrow> ((\<lambda>x. exp (f x)) ---> exp a) F"
+  fixes f::"_ \<Rightarrow>'a::{real_normed_field,banach}"
+  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. exp (f x)) ---> exp a) F"
   by (rule isCont_tendsto_compose [OF isCont_exp])
 
 lemma continuous_exp [continuous_intros]:
-  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. exp (f x))"
+  fixes f::"_ \<Rightarrow>'a::{real_normed_field,banach}"
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. exp (f x))"
   unfolding continuous_def by (rule tendsto_exp)
 
 lemma continuous_on_exp [continuous_intros]:
-  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. exp (f x))"
+  fixes f::"_ \<Rightarrow>'a::{real_normed_field,banach}"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. exp (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_exp)
 
 
@@ -1034,9 +1052,10 @@ qed
 lemma exp_zero [simp]: "exp 0 = 1"
   unfolding exp_def by (simp add: scaleR_conv_of_real powser_zero)
 
-lemma exp_series_add:
-  fixes x y :: "'a::{real_field}"
+lemma exp_series_add_commuting:
+  fixes x y :: "'a::{real_normed_algebra_1, banach}"
   defines S_def: "S \<equiv> \<lambda>x n. x ^ n /\<^sub>R real (fact n)"
+  assumes comm: "x * y = y * x"
   shows "S (x + y) n = (\<Sum>i\<le>n. S x i * S y (n - i))"
 proof (induct n)
   case 0
@@ -1048,6 +1067,8 @@ next
     unfolding S_def by (simp del: mult_Suc)
   hence times_S: "\<And>x n. x * S x n = real (Suc n) *\<^sub>R S x (Suc n)"
     by simp
+  have S_comm: "\<And>n. S x n * y = y * S x n"
+    by (simp add: power_commuting_commutes comm S_def)
 
   have "real (Suc n) *\<^sub>R S (x + y) (Suc n) = (x + y) * S (x + y) n"
     by (simp only: times_S)
@@ -1056,9 +1077,12 @@ next
   also have "\<dots> = x * (\<Sum>i\<le>n. S x i * S y (n-i))
                 + y * (\<Sum>i\<le>n. S x i * S y (n-i))"
     by (rule distrib_right)
-  also have "\<dots> = (\<Sum>i\<le>n. (x * S x i) * S y (n-i))
+  also have "\<dots> = (\<Sum>i\<le>n. x * S x i * S y (n-i))
+                + (\<Sum>i\<le>n. S x i * y * S y (n-i))"
+    by (simp add: setsum_right_distrib ac_simps S_comm)
+  also have "\<dots> = (\<Sum>i\<le>n. x * S x i * S y (n-i))
                 + (\<Sum>i\<le>n. S x i * (y * S y (n-i)))"
-    by (simp only: setsum_right_distrib ac_simps)
+    by (simp add: ac_simps)
   also have "\<dots> = (\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n-i)))
                 + (\<Sum>i\<le>n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i)))"
     by (simp add: times_S Suc_diff_le)
@@ -1080,12 +1104,16 @@ next
     by (simp del: setsum_cl_ivl_Suc)
 qed
 
-lemma exp_add: "exp (x + y) = exp x * exp y"
+lemma exp_add_commuting: "x * y = y * x \<Longrightarrow> exp (x + y) = exp x * exp y"
   unfolding exp_def
-  by (simp only: Cauchy_product summable_norm_exp exp_series_add)
+  by (simp only: Cauchy_product summable_norm_exp exp_series_add_commuting)
 
-lemma mult_exp_exp: "exp x * exp y = exp (x + y)"
-  by (rule exp_add [symmetric])
+lemma exp_add:
+  fixes x y::"'a::{real_normed_field,banach}"
+  shows "exp (x + y) = exp x * exp y"
+  by (rule exp_add_commuting) (simp add: ac_simps)
+
+lemmas mult_exp_exp = exp_add [symmetric]
 
 lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
   unfolding exp_def
@@ -1096,15 +1124,23 @@ lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
 
 lemma exp_not_eq_zero [simp]: "exp x \<noteq> 0"
 proof
-  have "exp x * exp (- x) = 1" by (simp add: mult_exp_exp)
+  have "exp x * exp (- x) = 1" by (simp add: exp_add_commuting[symmetric])
   also assume "exp x = 0"
   finally show "False" by simp
 qed
 
-lemma exp_minus: "exp (- x) = inverse (exp x)"
-  by (rule inverse_unique [symmetric], simp add: mult_exp_exp)
+lemma exp_minus_inverse:
+  shows "exp x * exp (- x) = 1"
+  by (simp add: exp_add_commuting[symmetric])
 
-lemma exp_diff: "exp (x - y) = exp x / exp y"
+lemma exp_minus:
+  fixes x :: "'a::{real_normed_field, banach}"
+  shows "exp (- x) = inverse (exp x)"
+  by (intro inverse_unique [symmetric] exp_minus_inverse)
+
+lemma exp_diff:
+  fixes x :: "'a::{real_normed_field, banach}"
+  shows "exp (x - y) = exp x / exp y"
   using exp_add [of x "- y"] by (simp add: exp_minus divide_inverse)
 
 

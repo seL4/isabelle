@@ -880,7 +880,8 @@ lemma borel_measurable_log[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. log (g x) (f x)) \<in> borel_measurable M"
   unfolding log_def by auto
 
-lemma borel_measurable_exp[measurable]: "exp \<in> borel_measurable borel"
+lemma borel_measurable_exp[measurable]:
+  "(exp::'a::{real_normed_field,banach}\<Rightarrow>'a) \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_at_imp_continuous_on ballI isCont_exp)
 
 lemma measurable_real_floor[measurable]:

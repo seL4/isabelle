@@ -263,7 +263,8 @@ done
 lemma STAR_exp_epsilon [simp]: "( *f* exp) epsilon @= 1"
 by (auto intro: STAR_exp_Infinitesimal)
 
-lemma STAR_exp_add: "!!x y. ( *f* exp)(x + y) = ( *f* exp) x * ( *f* exp) y"
+lemma STAR_exp_add:
+  "!!(x::'a:: {banach,real_normed_field} star) y. ( *f* exp)(x + y) = ( *f* exp) x * ( *f* exp) y"
 by transfer (rule exp_add)
 
 lemma exphr_hypreal_of_real_exp_eq: "exphr x = hypreal_of_real (exp x)"
@@ -289,7 +290,8 @@ apply (rule HInfinite_ge_HInfinite, assumption)
 apply (rule order_trans [of _ "1+x"], auto) 
 done
 
-lemma starfun_exp_minus: "!!x. ( *f* exp) (-x) = inverse(( *f* exp) x)"
+lemma starfun_exp_minus:
+  "!!x::'a:: {banach,real_normed_field} star. ( *f* exp) (-x) = inverse(( *f* exp) x)"
 by transfer (rule exp_minus)
 
 (* exp (-oo) is infinitesimal *)
