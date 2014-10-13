@@ -54,7 +54,7 @@ fun resolve thy = maps (fn name =>
 
 fun define binding rhs thy =
   let
-    val context = Context.Theory thy |> Name_Space.map_naming (K Name_Space.default_naming);
+    val context = Context.Theory thy |> Name_Space.map_naming (K Name_Space.global_naming);
     val (name, data') = Name_Space.define context true (binding, resolve thy rhs) (Data.get thy);
     val thy' = Data.put data' thy;
   in (name, thy') end;

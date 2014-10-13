@@ -326,7 +326,7 @@ local
 fun guess_morphism_identity (b, rhs) phi1 phi2 =
   let
     (*FIXME proper concept to identify morphism instead of educated guess*)
-    val name_of_binding = Name_Space.full_name Name_Space.default_naming;
+    val name_of_binding = Name_Space.full_name Name_Space.global_naming;
     val n1 = (name_of_binding o Morphism.binding phi1) b;
     val n2 = (name_of_binding o Morphism.binding phi2) b;
     val rhs1 = Morphism.term phi1 rhs;

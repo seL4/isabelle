@@ -44,7 +44,7 @@ sig
   val parent_path: naming -> naming
   val mandatory_path: string -> naming -> naming
   val qualified_path: bool -> binding -> naming -> naming
-  val default_naming: naming
+  val global_naming: naming
   val local_naming: naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
@@ -324,8 +324,8 @@ fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 fun qualified_path mandatory binding = map_path (fn path =>
   path @ #2 (Binding.dest (Binding.qualified mandatory "" binding)));
 
-val default_naming = make_naming (false, NONE, "", []);
-val local_naming = default_naming |> add_path Long_Name.localN;
+val global_naming = make_naming (false, NONE, "", []);
+val local_naming = global_naming |> add_path Long_Name.localN;
 
 
 (* full name *)
@@ -354,7 +354,7 @@ fun name_spec (naming as Naming {path, ...}) raw_binding =
 fun full_name naming =
   name_spec naming #> #2 #> map #1 #> Long_Name.implode;
 
-val base_name = full_name default_naming #> Long_Name.base_name;
+val base_name = full_name global_naming #> Long_Name.base_name;
 
 
 (* accesses *)
@@ -411,9 +411,9 @@ fun alias naming binding name space =
 structure Data_Args =
 struct
   type T = naming;
-  val empty = default_naming;
-  fun extend _ = default_naming;
-  fun merge _ = default_naming;
+  val empty = global_naming;
+  fun extend _ = global_naming;
+  fun merge _ = global_naming;
   fun init _ = local_naming;
 end;
 

@@ -922,7 +922,7 @@ text %mlref \<open>
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type Name_Space.naming} \\
-  @{index_ML Name_Space.default_naming: Name_Space.naming} \\
+  @{index_ML Name_Space.global_naming: Name_Space.naming} \\
   @{index_ML Name_Space.add_path: "string -> Name_Space.naming -> Name_Space.naming"} \\
   @{index_ML Name_Space.full_name: "Name_Space.naming -> binding -> string"} \\
   \end{mldecls}
@@ -975,9 +975,9 @@ text %mlref \<open>
   \item Type @{ML_type Name_Space.naming} represents the abstract
   concept of a naming policy.
 
-  \item @{ML Name_Space.default_naming} is the default naming policy.
-  In a theory context, this is usually augmented by a path prefix
-  consisting of the theory name.
+  \item @{ML Name_Space.global_naming} is the default naming policy: it is
+  global and lacks any path prefix.  In a regular theory context this is
+  augmented by a path prefix consisting of the theory name.
 
   \item @{ML Name_Space.add_path}~@{text "path naming"} augments the
   naming policy by extending its path component.

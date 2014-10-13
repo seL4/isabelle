@@ -380,11 +380,11 @@ fun err_dups dups =
 fun new_fixed ((x, x'), pos) ctxt =
   if is_some (lookup_fixed ctxt x') then err_dups [Binding.make (x, pos)]
   else
-    let val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.default_naming) in
+    let val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming) in
       ctxt
       |> map_fixes
         (Name_Space.define context true (Binding.make (x', pos), x) #> snd #>
-          Name_Space.alias_table Name_Space.default_naming (Binding.make (x, pos)) x')
+          Name_Space.alias_table Name_Space.global_naming (Binding.make (x, pos)) x')
       |> declare_fixed x
       |> declare_constraints (Syntax.free x')
   end;

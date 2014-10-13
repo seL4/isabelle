@@ -1197,7 +1197,7 @@ in
 
 fun update_cases is_proper args ctxt =
   let
-    val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.default_naming);
+    val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming);
     val cases = cases_of ctxt;
     val index = Name_Space.fold_table (fn _ => Integer.add 1) cases 0;
     val (cases', _) = fold (update_case context is_proper) args (cases, index);
