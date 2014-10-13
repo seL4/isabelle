@@ -10,8 +10,10 @@ Named plugins for definitional packages.
 signature PLUGIN_NAME =
 sig
   val check: Proof.context -> xstring * Position.T -> string
+  val define: binding -> string list -> theory -> string * theory
+  val define_setup: binding -> string list -> string
   val declare: binding -> theory -> string * theory
-  val setup: binding -> string
+  val declare_setup: binding -> string
   type filter = string -> bool
   val parse_filter: (Proof.context -> filter) parser
   val make_filter: Proof.context -> (Proof.context -> filter) -> filter
@@ -24,7 +26,7 @@ struct
 
 structure Data = Theory_Data
 (
-  type T = unit Name_Space.table;
+  type T = string list Name_Space.table;
   val empty: T = Name_Space.empty_table "plugin";
   val extend = I;
   val merge = Name_Space.merge_tables;
@@ -42,16 +44,27 @@ val _ = Theory.setup
       >> (ML_Syntax.print_string o uncurry check)));
 
 
-(* declare *)
+(* indirections *)
 
-fun declare binding thy =
+fun resolve thy = maps (fn name =>
+  (case Name_Space.get (Data.get thy) name of
+    [] => [name]
+  | names => resolve thy names));
+
+fun define binding rhs thy =
   let
     val context = Context.Theory thy |> Name_Space.map_naming (K Name_Space.default_naming);
-    val (name, data') = Name_Space.define context true (binding, ()) (Data.get thy);
+    val (name, data') = Name_Space.define context true (binding, resolve thy rhs) (Data.get thy);
     val thy' = Data.put data' thy;
   in (name, thy') end;
 
-fun setup binding = Context.>>> (Context.map_theory_result (declare binding));
+fun define_setup binding rhs = Context.>>> (Context.map_theory_result (define binding rhs));
+
+
+(* immediate entries *)
+
+fun declare binding thy = define binding [] thy;
+fun declare_setup binding = Context.>>> (Context.map_theory_result (declare binding));
 
 
 (* filter *)
@@ -66,9 +79,10 @@ val parse_filter =
     (@{keyword ":"} |-- Scan.repeat (Parse.position Parse.name)) >>
       (fn (((_, pos1), (modif, pos2)), args) => fn ctxt =>
         let
+          val thy = Proof_Context.theory_of ctxt;
           val _ = Context_Position.reports ctxt (map (rpair Markup.quasi_keyword) [pos1, pos2]);
-          val names = map (check ctxt) args;
-        in modif o member (op =) names end);
+          val basic_names = resolve thy (map (check ctxt) args);
+        in modif o member (op =) basic_names end);
 
 end;
 
