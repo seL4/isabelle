@@ -500,8 +500,10 @@ options:
 
 \item
 The @{text "plugins"} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). Wildcards (``@{text "*"}'') are
-allowed (e.g., @{text "quickcheck_*"}). By default, all plugins are enabled.
+(@{text only}) or disabled (@{text del}). Some plugin names are defined
+as indirection to a group of sub-plugins (notably @{text "quickcheck"}
+based on @{text quickcheck_random}, @{text quickcheck_exhaustive}, \dots).
+By default, all plugins are enabled.
 
 \item
 The @{text "discs_sels"} option indicates that discriminators and selectors
@@ -2794,7 +2796,7 @@ Quickcheck. They can be enabled or disabled individually using the
 For example:
 *}
 
-    datatype (plugins del: code "quickcheck_*") color = Red | Black
+    datatype (plugins del: code "quickcheck") color = Red | Black
 
 
 subsection {* Code Generator

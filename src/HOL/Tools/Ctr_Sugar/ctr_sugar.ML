@@ -7,8 +7,6 @@ Wrapping existing freely generated type's constructors.
 
 signature CTR_SUGAR =
 sig
-  val code_plugin: string
-
   type ctr_sugar =
     {T: typ,
      ctrs: term list,
@@ -46,7 +44,7 @@ sig
   val ctr_sugars_of_global: theory -> ctr_sugar list
   val ctr_sugar_of_case: Proof.context -> string -> ctr_sugar option
   val ctr_sugar_of_case_global: theory -> string -> ctr_sugar option
-  val ctr_sugar_interpretation: string -> (ctr_sugar -> theory -> theory) ->
+  val ctr_sugar_interpretation: string ->
     (ctr_sugar -> local_theory -> local_theory) -> theory -> theory
   val interpret_ctr_sugar: (string -> bool) -> ctr_sugar -> local_theory -> local_theory
   val register_ctr_sugar_raw: ctr_sugar -> local_theory -> local_theory
@@ -72,14 +70,16 @@ sig
   val args_of_ctr_spec: ('c, 'a) ctr_spec -> 'a list
 
   type ctr_options = (string -> bool) * bool
+  type ctr_options_cmd = (Proof.context -> string -> bool) * bool
 
   val fake_local_theory_for_sel_defaults: (binding * typ) list -> Proof.context -> Proof.context
   val free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((ctr_options * binding) * (term, binding) ctr_spec list) * term list -> local_theory ->
     ctr_sugar * local_theory
   val default_ctr_options: ctr_options
+  val default_ctr_options_cmd: ctr_options_cmd
   val parse_bound_term: (binding * string) parser
-  val parse_ctr_options: ctr_options parser
+  val parse_ctr_options: ctr_options_cmd parser
   val parse_ctr_spec: 'c parser -> 'a parser -> ('c, 'a) ctr_spec parser
   val parse_sel_default_eqs: string list parser
 end;
@@ -90,8 +90,6 @@ struct
 open Ctr_Sugar_Util
 open Ctr_Sugar_Tactics
 open Ctr_Sugar_Code
-
-val code_plugin = "code";
 
 type ctr_sugar =
   {T: typ,
@@ -183,18 +181,14 @@ val ctr_sugars_of_global = ctr_sugars_of_generic o Context.Theory;
 val ctr_sugar_of_case = ctr_sugar_of_case_generic o Context.Proof;
 val ctr_sugar_of_case_global = ctr_sugar_of_case_generic o Context.Theory;
 
-structure Ctr_Sugar_Interpretation = Local_Interpretation
-(
-  type T = ctr_sugar;
-  val eq: T * T -> bool = op = o pairself #ctrs;
-);
+structure Ctr_Sugar_Plugin = Plugin(type T = ctr_sugar);
 
-fun with_transfer_ctr_sugar g ctr_sugar thy = g (transfer_ctr_sugar thy ctr_sugar) thy;
+fun ctr_sugar_interpretation name f =
+  Ctr_Sugar_Plugin.interpretation name
+    (fn ctr_sugar => fn lthy =>
+      f (transfer_ctr_sugar (Proof_Context.theory_of lthy) ctr_sugar) lthy);
 
-fun ctr_sugar_interpretation name =
-  Ctr_Sugar_Interpretation.interpretation name o with_transfer_ctr_sugar;
-
-val interpret_ctr_sugar = Ctr_Sugar_Interpretation.data;
+val interpret_ctr_sugar = Ctr_Sugar_Plugin.data;
 
 fun register_ctr_sugar_raw (ctr_sugar as {T = Type (s, _), ...}) =
   Local_Theory.declaration {syntax = false, pervasive = true}
@@ -210,7 +204,9 @@ fun default_register_ctr_sugar_global plugins (ctr_sugar as {T = Type (s, _), ..
     else
       thy
       |> Context.theory_map (Data.put (Symtab.update_new (s, ctr_sugar) tab))
-      |> Ctr_Sugar_Interpretation.data_global plugins ctr_sugar
+      |> Named_Target.theory_init
+      |> Ctr_Sugar_Plugin.data plugins ctr_sugar
+      |> Local_Theory.exit_global
   end;
 
 val isN = "is_";
@@ -364,9 +360,15 @@ fun disc_of_ctr_spec ((disc, _), _) = disc;
 fun ctr_of_ctr_spec ((_, ctr), _) = ctr;
 fun args_of_ctr_spec (_, args) = args;
 
-fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_binding), ctr_specs),
-    sel_default_eqs) no_defs_lthy =
+val code_plugin = Plugin_Name.declare_setup @{binding code};
+
+fun prepare_free_constructors prep_plugins prep_term
+    ((((raw_plugins, discs_sels), raw_case_binding), ctr_specs),
+      sel_default_eqs) no_defs_lthy =
   let
+    val plugins = prep_plugins no_defs_lthy raw_plugins;
+
+
     (* TODO: sanity checks on arguments *)
 
     val raw_ctrs = map ctr_of_ctr_spec ctr_specs;
@@ -1056,24 +1058,27 @@ fun prepare_free_constructors prep_term ((((plugins, discs_sels), raw_case_bindi
 
 fun free_constructors tacss = (fn (goalss, after_qed, lthy) =>
   map2 (map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])) goalss tacss
-  |> (fn thms => after_qed thms lthy)) oo prepare_free_constructors (K I);
+  |> (fn thms => after_qed thms lthy)) oo prepare_free_constructors (K I) (K I);
 
 val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
-  prepare_free_constructors Syntax.read_term;
+  prepare_free_constructors Plugin_Name.make_filter Syntax.read_term;
 
 val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
 
 type ctr_options = (string -> bool) * bool;
+type ctr_options_cmd = (Proof.context -> string -> bool) * bool;
 
-val default_ctr_options = (K true, false) : ctr_options;
+val default_ctr_options : ctr_options = (K true, false);
+val default_ctr_options_cmd : ctr_options_cmd = (K (K true), false);
 
 val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
-        (parse_plugins >> (apfst o K) || Parse.reserved "discs_sels" >> (apsnd o K o K true)) --|
+        (Plugin_Name.parse_filter >> (apfst o K) ||
+         Parse.reserved "discs_sels" >> (apsnd o K o K true)) --|
       @{keyword ")"}
-      >> (fn fs => fold I fs default_ctr_options))
-    default_ctr_options;
+      >> (fn fs => fold I fs default_ctr_options_cmd))
+    default_ctr_options_cmd;
 
 fun parse_ctr_spec parse_ctr parse_arg =
   parse_opt_binding_colon -- parse_ctr -- Scan.repeat parse_arg;
@@ -1087,7 +1092,5 @@ val _ =
     (parse_ctr_options -- Parse.binding --| @{keyword "for"} -- parse_ctr_specs
        -- parse_sel_default_eqs
      >> free_constructors_cmd);
-
-val _ = Theory.setup Ctr_Sugar_Interpretation.init;
 
 end;

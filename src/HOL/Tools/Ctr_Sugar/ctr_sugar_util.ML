@@ -71,7 +71,6 @@ sig
   val standard_binding: binding
   val parse_binding_colon: binding parser
   val parse_opt_binding_colon: binding parser
-  val parse_plugins: (string -> bool) parser
 
   val ss_only: thm list -> Proof.context -> Proof.context
 
@@ -86,18 +85,6 @@ end;
 
 structure Ctr_Sugar_Util : CTR_SUGAR_UTIL =
 struct
-
-fun match_entire_string pat s =
-  let
-    fun match [] [] = true
-      | match [] _ = false
-      | match (ps as #"*" :: ps') cs =
-        match ps' cs orelse (not (null cs) andalso match ps (tl cs))
-      | match _ [] = false
-      | match (p :: ps) (c :: cs) = p = c andalso match ps cs;
-  in
-    match (String.explode pat) (String.explode s)
-  end;
 
 fun map_prod f g (x, y) = (f x, g y);
 
@@ -261,12 +248,6 @@ val standard_binding = @{binding _};
 
 val parse_binding_colon = Parse.binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
-
-val parse_plugins =
-  Parse.reserved "plugins" |--
-    ((Parse.reserved "only" >> K I || Parse.reserved "del" >> K not) --| @{keyword ":"}
-     -- Scan.repeat (Parse.short_ident || Parse.string))
-  >> (fn (modif, pats) => modif o member (uncurry match_entire_string o swap) pats);
 
 fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;
 

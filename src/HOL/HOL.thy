@@ -40,6 +40,25 @@ setup {*
   #> Case_Product.setup
 *}
 
+ML \<open>Plugin_Name.declare_setup @{binding extraction}\<close>
+
+ML \<open>
+  Plugin_Name.declare_setup @{binding quickcheck_random};
+  Plugin_Name.declare_setup @{binding quickcheck_exhaustive};
+  Plugin_Name.declare_setup @{binding quickcheck_bounded_forall};
+  Plugin_Name.declare_setup @{binding quickcheck_full_exhaustive};
+  Plugin_Name.declare_setup @{binding quickcheck_narrowing};
+\<close>
+ML \<open>
+  Plugin_Name.define_setup @{binding quickcheck}
+   [@{plugin quickcheck_exhaustive},
+    @{plugin quickcheck_random},
+    @{plugin quickcheck_bounded_forall},
+    @{plugin quickcheck_full_exhaustive},
+    @{plugin quickcheck_narrowing}]
+\<close>
+
+
 subsection {* Primitive logic *}
 
 subsubsection {* Core syntax *}

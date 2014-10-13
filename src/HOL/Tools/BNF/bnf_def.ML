@@ -17,8 +17,7 @@ sig
   val transfer_bnf: theory -> bnf -> bnf
   val bnf_of: Proof.context -> string -> bnf option
   val bnf_of_global: theory -> string -> bnf option
-  val bnf_interpretation: string -> (bnf -> theory -> theory) ->
-    (bnf -> local_theory -> local_theory) -> theory -> theory
+  val bnf_interpretation: string -> (bnf -> local_theory -> local_theory) -> theory -> theory
   val interpret_bnf: (string -> bool) -> bnf -> local_theory -> local_theory
   val register_bnf_raw: string -> bnf -> local_theory -> local_theory
   val register_bnf: (string -> bool) -> string -> bnf -> local_theory -> local_theory
@@ -1514,18 +1513,13 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
     (key, goals, wit_goalss, after_qed, lthy, one_step_defs)
   end;
 
-structure BNF_Interpretation = Local_Interpretation
-(
-  type T = bnf;
-  val eq: T * T -> bool = op = o pairself T_of_bnf;
-);
+structure BNF_Plugin = Plugin(type T = bnf);
 
-fun with_transfer_bnf g bnf thy = g (transfer_bnf thy bnf) thy;
+fun bnf_interpretation name f =
+  BNF_Plugin.interpretation name
+    (fn bnf => fn lthy => f (transfer_bnf (Proof_Context.theory_of lthy) bnf) lthy);
 
-fun bnf_interpretation name =
-  BNF_Interpretation.interpretation name o with_transfer_bnf;
-
-val interpret_bnf = BNF_Interpretation.data;
+val interpret_bnf = BNF_Plugin.data;
 
 fun register_bnf_raw key bnf =
   Local_Theory.declaration {syntax = false, pervasive = true}
@@ -1557,9 +1551,10 @@ fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_
   end) o prepare_def const_policy fact_policy internal qualify (K I) (K I) Ds map_b rel_b set_bs
     raw_csts;
 
-fun bnf_cmd (raw_csts, plugins) =
+fun bnf_cmd (raw_csts, raw_plugins) =
   (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs) =>
   let
+    val plugins = raw_plugins lthy;
     val wit_goals = map Logic.mk_conjunction_balanced wit_goalss;
     fun mk_triv_wit_thms tac set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
@@ -1619,9 +1614,7 @@ val _ =
          Scan.repeat1 (Scan.unless (Parse.reserved "rel" ||
            Parse.reserved "plugins") Parse.term)) [] --
        Scan.option ((Parse.reserved "rel" -- @{keyword ":"}) |-- Parse.term) --
-       Scan.optional parse_plugins (K true)
+       Scan.optional Plugin_Name.parse_filter (K (K true))
        >> bnf_cmd);
-
-val _ = Context.>> (Context.map_theory BNF_Interpretation.init);
 
 end;

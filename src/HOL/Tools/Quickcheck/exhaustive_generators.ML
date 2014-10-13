@@ -6,10 +6,6 @@ Exhaustive generators for various types.
 
 signature EXHAUSTIVE_GENERATORS =
 sig
-  val exhaustive_plugin: string
-  val bounded_forall_plugin: string
-  val full_exhaustive_plugin: string
-
   val compile_generator_expr:
     Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
   val compile_generator_exprs: Proof.context -> term list -> (int -> term list option) list
@@ -38,11 +34,6 @@ structure Exhaustive_Generators : EXHAUSTIVE_GENERATORS =
 struct
 
 (* basics *)
-
-val exhaustive_plugin = "quickcheck_exhaustive"
-val bounded_forall_plugin = "quickcheck_bounded_forall"
-val full_exhaustive_plugin = "quickcheck_full_exhaustive"
-
 
 (** dynamic options **)
 
@@ -544,11 +535,11 @@ val test_goals =
 (* setup *)
 
 val setup_exhaustive_datatype_interpretation =
-  Quickcheck_Common.datatype_interpretation exhaustive_plugin
+  Quickcheck_Common.datatype_interpretation @{plugin quickcheck_exhaustive}
     (@{sort exhaustive}, instantiate_exhaustive_datatype)
 
 val setup_bounded_forall_datatype_interpretation =
-  BNF_LFP_Compat.interpretation bounded_forall_plugin Quickcheck_Common.compat_prefs
+  BNF_LFP_Compat.interpretation @{plugin quickcheck_bounded_forall} Quickcheck_Common.compat_prefs
     (Quickcheck_Common.ensure_sort
        (((@{sort type}, @{sort type}), @{sort bounded_forall}),
        (fn thy => BNF_LFP_Compat.the_descr thy Quickcheck_Common.compat_prefs,
@@ -557,7 +548,7 @@ val setup_bounded_forall_datatype_interpretation =
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 
 val setup =
-  Quickcheck_Common.datatype_interpretation full_exhaustive_plugin
+  Quickcheck_Common.datatype_interpretation @{plugin quickcheck_full_exhaustive}
     (@{sort full_exhaustive}, instantiate_full_exhaustive_datatype)
   #> Context.theory_map (Quickcheck.add_tester ("exhaustive", (active, test_goals)))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))
