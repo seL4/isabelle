@@ -181,7 +181,6 @@ use "term_sharing.ML";
 use "pattern.ML";
 use "unify.ML";
 use "theory.ML";
-use "interpretation.ML";
 use "proofterm.ML";
 use "thm.ML";
 use "more_thm.ML";

@@ -228,7 +228,6 @@ session Pure =
     "global_theory.ML"
     "goal.ML"
     "goal_display.ML"
-    "interpretation.ML"
     "item_net.ML"
     "library.ML"
     "logic.ML"
