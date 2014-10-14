@@ -856,6 +856,10 @@ a set function, the map function, or the relator:
 \item[@{text "t."}\hthm{case_transfer}\rm:] ~ \\
 @{thm list.case_transfer[no_vars]}
 
+\item[@{text "t."}\hthm{sel_transfer}\rm:] ~ \\
+This property is missing for @{typ "'a list"} because there is no common
+selector to all constructors.
+
 \item[@{text "t."}\hthm{ctr_transfer}\rm:] ~ \\
 @{thm list.ctr_transfer(1)[no_vars]} \\
 @{thm list.ctr_transfer(2)[no_vars]}
