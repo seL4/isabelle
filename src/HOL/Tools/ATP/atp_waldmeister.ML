@@ -131,10 +131,13 @@ fun skolemize' pos ctxt1 ctxt2 spets vars (Const (@{const_name Not}, _) $ trm') 
     else
       (ctxt1,ctxt2,spets,c $ a $ b)
   | skolemize' _ ctxt1 ctxt2 spets _ trm = (ctxt1, ctxt2, spets, trm)
+  
+  fun vars_of trm =
+    rev (distinct (op =) (Term.fold_aterms (fn t as Var _ => cons t | _ => I) trm []));
 
   fun skolemize positve ctxt trm = 
     let
-      val (ctxt1, _, spets, skolemized_trm) = skolemize' positve ctxt ctxt [] [] trm
+      val (ctxt1, _, spets, skolemized_trm) = skolemize' positve ctxt ctxt [] (vars_of trm) trm
     in
         (ctxt1, (trm :: List.rev spets, skolemized_trm))
     end
