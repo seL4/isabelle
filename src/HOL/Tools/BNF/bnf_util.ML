@@ -385,7 +385,7 @@ fun mk_ordLeq_csum 1 1 thm = thm
   | mk_ordLeq_csum n m thm = @{thm ordLeq_transitive} OF
     [mk_ordLeq_csum (n - 1) (m - 1) thm, @{thm ordLeq_csum2[OF Card_order_csum]}];
 
-fun mk_rel_funDN n = funpow n (fn thm => thm RS @{thm rel_funD});
+fun mk_rel_funDN n = funpow n (fn thm => thm RS rel_funD);
 
 val mk_rel_funDN_rotated = rotate_prems ~1 oo mk_rel_funDN;
 

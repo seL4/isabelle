@@ -47,6 +47,7 @@ sig
     thm list list -> thm list -> thm list -> thm list -> thm list -> tactic
   val mk_rel_sel_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> tactic
+  val mk_sel_transfer_tac: Proof.context -> int -> thm list -> thm -> tactic
   val mk_set_cases_tac: Proof.context -> cterm -> thm list -> thm -> thm list -> tactic
   val mk_set_induct0_tac: Proof.context -> cterm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> thm list -> tactic
@@ -111,7 +112,7 @@ fun mk_case_transfer_tac ctxt rel_cases cases =
     ALLGOALS (hyp_subst_tac ctxt) THEN
     unfold_thms_tac ctxt cases THEN
     ALLGOALS (fn k => (select_prem_tac n (dtac asm_rl) k) k) THEN
-    ALLGOALS (REPEAT_DETERM o (rotate_tac ~1 THEN' dtac @{thm rel_funD} THEN'
+    ALLGOALS (REPEAT_DETERM o (rotate_tac ~1 THEN' dtac rel_funD THEN'
       (atac THEN' etac thin_rl ORELSE' rtac refl)) THEN' atac)
   end;
 
@@ -442,6 +443,12 @@ fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_dis
     (rel_injects RL @{thms iffD2[OF eq_True]}) @
     (rel_distincts RL @{thms iffD2[OF eq_False]})) THEN
   TRYALL (resolve_tac [TrueI, refl]);
+
+fun mk_sel_transfer_tac ctxt n sel_defs case_transfer =
+  TRYALL Goal.conjunction_tac THEN
+  unfold_thms_tac ctxt (map (Drule.abs_def o Local_Defs.meta_rewrite_rule ctxt) sel_defs) THEN
+  ALLGOALS (rtac (mk_rel_funDN n case_transfer) THEN_ALL_NEW
+    REPEAT_DETERM o (atac ORELSE' rtac rel_funI));
 
 fun mk_set_sel_tac ctxt ct exhaust discs sels sets =
   TRYALL Goal.conjunction_tac THEN
