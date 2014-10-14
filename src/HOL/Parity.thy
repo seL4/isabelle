@@ -41,11 +41,25 @@ class semiring_parity = semiring_dvd + semiring_numeral +
   assumes two_not_dvd_one [simp]: "\<not> 2 dvd 1"
   assumes not_dvd_not_dvd_dvd_add: "\<not> 2 dvd a \<Longrightarrow> \<not> 2 dvd b \<Longrightarrow> 2 dvd a + b"
   assumes two_is_prime: "2 dvd a * b \<Longrightarrow> 2 dvd a \<or> 2 dvd b"
+  assumes not_dvd_ex_decrement: "\<not> 2 dvd a \<Longrightarrow> \<exists>b. a = b + 1"
 begin
 
 lemma two_dvd_plus_one_iff [simp]:
   "2 dvd a + 1 \<longleftrightarrow> \<not> 2 dvd a"
   by (auto simp add: dvd_add_right_iff intro: not_dvd_not_dvd_dvd_add)
+
+lemma not_two_dvdE [elim?]:
+  assumes "\<not> 2 dvd a"
+  obtains b where "a = 2 * b + 1"
+proof -
+  from assms obtain b where *: "a = b + 1"
+    by (blast dest: not_dvd_ex_decrement)
+  with assms have "2 dvd b + 2" by simp
+  then have "2 dvd b" by simp
+  then obtain c where "b = 2 * c" ..
+  with * have "a = 2 * c + 1" by simp
+  with that show thesis .
+qed
 
 end
 
@@ -79,6 +93,11 @@ next
     then have "m = 2 * (m * r - s)" by simp
     then show "2 dvd m" ..
   qed
+next
+  fix n :: nat
+  assume "\<not> 2 dvd n"
+  then show "\<exists>m. n = m + 1"
+    by (cases n) simp_all
 qed
 
 class ring_parity = comm_ring_1 + semiring_parity
@@ -95,7 +114,16 @@ proof
     by (simp add: dvd_int_unfold_dvd_nat nat_add_distrib)
   then show "2 dvd k + l"
     by (simp add: two_dvd_abs_add_iff two_dvd_add_abs_iff)
-qed (simp add: dvd_int_unfold_dvd_nat two_is_prime nat_abs_mult_distrib)
+next
+  fix k l :: int
+  assume "2 dvd k * l"
+  then show "2 dvd k \<or> 2 dvd l"
+    by (simp add: dvd_int_unfold_dvd_nat two_is_prime nat_abs_mult_distrib)
+next
+  fix k :: int
+  have "k = (k - 1) + 1" by simp
+  then show "\<exists>l. k = l + 1" ..
+qed
 
 context semiring_div_parity
 begin
@@ -130,12 +158,19 @@ next
     by (cases "a mod 2 = 0") (simp_all add: mod_mult_eq [of a b 2])
   then show "a mod 2 = 0 \<or> b mod 2 = 0"
     by (rule divisors_zero)
+next
+  fix a
+  assume "a mod 2 = 1"
+  then have "a = a div 2 * 2 + 1" using mod_div_equality [of a 2] by simp
+  then show "\<exists>b. a = b + 1" ..
 qed
 
 end
 
 
 subsection {* Dedicated @{text even}/@{text odd} predicate *}
+
+subsubsection {* Properties *}
 
 context semiring_parity
 begin
@@ -148,6 +183,14 @@ abbreviation odd :: "'a \<Rightarrow> bool"
 where
   "odd a \<equiv> \<not> even a"
 
+lemma odd_dvdE [elim?]:
+  assumes "odd a"
+  obtains b where "a = 2 * b + 1"
+proof -
+  from assms have "\<not> 2 dvd a" by (simp add: even_def)
+  then show thesis using that by (rule not_two_dvdE)
+qed
+  
 lemma even_times_iff [simp, presburger, algebra]:
   "even (a * b) \<longleftrightarrow> even a \<or> even b"
   by (auto simp add: even_def dest: two_is_prime)
@@ -187,6 +230,18 @@ proof
   then show False by simp
 qed
 
+lemma even_add [simp]:
+  "even (a + b) \<longleftrightarrow> (even a \<longleftrightarrow> even b)"
+  by (auto simp add: even_def dvd_add_right_iff dvd_add_left_iff not_dvd_not_dvd_dvd_add)
+
+lemma odd_add [simp]:
+  "odd (a + b) \<longleftrightarrow> (\<not> (odd a \<longleftrightarrow> odd b))"
+  by simp
+
+lemma even_power [simp, presburger]:
+  "even (a ^ n) \<longleftrightarrow> even a \<and> n \<noteq> 0"
+  by (induct n) auto
+
 end
 
 context ring_parity
@@ -195,6 +250,10 @@ begin
 lemma even_minus [simp, presburger, algebra]:
   "even (- a) \<longleftrightarrow> even a"
   by (simp add: even_def)
+
+lemma even_diff [simp]:
+  "even (a - b) \<longleftrightarrow> even (a + b)"
+  using even_add [of a "- b"] by simp
 
 end
 
@@ -207,6 +266,9 @@ lemma even_iff_mod_2_eq_zero [presburger]:
 
 end
 
+
+subsubsection {* Particularities for @{typ nat}/@{typ int} *}
+
 lemma even_int_iff:
   "even (int n) \<longleftrightarrow> even n"
   by (simp add: even_def dvd_int_iff)
@@ -215,72 +277,71 @@ declare transfer_morphism_int_nat [transfer add return:
   even_int_iff
 ]
 
+
+subsubsection {* Tools setup *}
+
 lemma [presburger]:
   "even n \<longleftrightarrow> even (int n)"
   using even_int_iff [of n] by simp
-  
 
-subsection {* Behavior under integer arithmetic operations *}
-
-lemma even_plus_even: "even (x::int) ==> even y ==> even (x + y)"
-by presburger
-
-lemma even_plus_odd: "even (x::int) ==> odd y ==> odd (x + y)"
-by presburger
-
-lemma odd_plus_even: "odd (x::int) ==> even y ==> odd (x + y)"
-by presburger
-
-lemma odd_plus_odd: "odd (x::int) ==> odd y ==> even (x + y)" by presburger
-
-lemma even_sum[simp,presburger]:
-  "even ((x::int) + y) = ((even x & even y) | (odd x & odd y))"
-by presburger
-
-lemma even_difference[simp]:
-    "even ((x::int) - y) = ((even x & even y) | (odd x & odd y))" by presburger
-
-lemma even_power[simp,presburger]: "even ((x::int)^n) = (even x & n \<noteq> 0)"
-by (induct n) auto
-
-lemma odd_pow: "odd x ==> odd((x::int)^n)" by simp
+lemma [presburger]:
+  "even (a + b) \<longleftrightarrow> even a \<and> even b \<or> odd a \<and> odd b"
+  by auto
 
 
-subsection {* Equivalent definitions *}
+subsubsection {* Legacy cruft *}
 
-lemma two_times_even_div_two: "even (x::int) ==> 2 * (x div 2) = x" 
-by presburger
+lemma even_plus_even:
+  "even (x::int) ==> even y ==> even (x + y)"
+  by simp
+
+lemma odd_plus_odd:
+  "odd (x::int) ==> odd y ==> even (x + y)"
+  by simp
+
+lemma even_sum_nat:
+  "even ((x::nat) + y) = ((even x & even y) | (odd x & odd y))"
+  by auto
+
+lemma odd_pow:
+  "odd x ==> odd((x::int)^n)"
+  by simp
+
+lemma even_equiv_def:
+  "even (x::int) = (EX y. x = 2 * y)"
+  by presburger
+
+
+subsubsection {* Equivalent definitions *}
+
+lemma two_times_even_div_two:
+  "even (x::int) ==> 2 * (x div 2) = x" 
+  by presburger
 
 lemma two_times_odd_div_two_plus_one:
   "odd (x::int) ==> 2 * (x div 2) + 1 = x"
-by presburger
+  by presburger
   
-lemma even_equiv_def: "even (x::int) = (EX y. x = 2 * y)" by presburger
 
-lemma odd_equiv_def: "odd (x::int) = (EX y. x = 2 * y + 1)" by presburger
-
-subsection {* even and odd for nats *}
+subsubsection {* even and odd for nats *}
 
 lemma pos_int_even_equiv_nat_even: "0 \<le> x ==> even x = even (nat x)"
 by (simp add: even_int_iff [symmetric])
 
-lemma even_sum_nat[simp,presburger,algebra]:
-  "even ((x::nat) + y) = ((even x & even y) | (odd x & odd y))"
-by presburger
-
-lemma even_difference_nat[simp,presburger,algebra]:
+lemma even_difference_nat [simp,presburger,algebra]:
   "even ((x::nat) - y) = (x < y | (even x & even y) | (odd x & odd y))"
-by presburger
+  by presburger
 
-lemma even_Suc[simp,presburger,algebra]: "even (Suc x) = odd x"
-by presburger
+lemma even_Suc [simp ,presburger, algebra]:
+  "even (Suc x) = odd x"
+  by presburger
 
 lemma even_power_nat[simp,presburger,algebra]:
   "even ((x::nat)^y) = (even x & 0 < y)"
-by (simp add: even_int_iff [symmetric] int_power)
+  by simp
 
 
-subsection {* Equivalent definitions *}
+subsubsection {* Equivalent definitions *}
 
 lemma even_nat_mod_two_eq_zero: "even (x::nat) ==> x mod (Suc (Suc 0)) = 0"
 by presburger
@@ -300,14 +361,11 @@ lemma even_nat_div_two_times_two: "even (x::nat) ==>
 lemma odd_nat_div_two_times_two_plus_one: "odd (x::nat) ==>
     Suc( Suc (Suc 0) * (x div Suc (Suc 0))) = x" by presburger
 
-lemma even_nat_equiv_def2: "even (x::nat) = (EX y. x = Suc (Suc 0) * y)"
-by presburger
-
 lemma odd_nat_equiv_def2: "odd (x::nat) = (EX y. x = Suc(Suc (Suc 0) * y))"
-by presburger
+  by presburger
 
 
-subsection {* Parity and powers *}
+subsubsection {* Parity and powers *}
 
 lemma (in comm_ring_1) neg_power_if:
   "(- a) ^ n = (if even n then (a ^ n) else - (a ^ n))"
@@ -320,10 +378,11 @@ lemma (in comm_ring_1)
 
 lemma zero_le_even_power: "even n ==>
     0 <= (x::'a::{linordered_ring,monoid_mult}) ^ n"
-  apply (simp add: even_nat_equiv_def2)
-  apply (erule exE)
+  apply (simp add: even_def)
+  apply (erule dvdE)
   apply (erule ssubst)
-  apply (subst power_add)
+  unfolding mult.commute [of 2]
+  unfolding power_mult power2_eq_square
   apply (rule zero_le_square)
   done
 
@@ -343,7 +402,6 @@ lemma zero_le_power_eq [presburger]: "(0 <= (x::'a::{linordered_idom}) ^ n) =
 
 lemma zero_less_power_eq[presburger]: "(0 < (x::'a::{linordered_idom}) ^ n) =
     (n = 0 | (even n & x ~= 0) | (odd n & 0 < x))"
-
   unfolding order_less_le zero_le_power_eq by auto
 
 lemma power_less_zero_eq[presburger]: "((x::'a::{linordered_idom}) ^ n < 0) =
@@ -414,13 +472,10 @@ next
 qed
 
 
-subsection {* More Even/Odd Results *}
+subsubsection {* More Even/Odd Results *}
  
 lemma even_mult_two_ex: "even(n) = (\<exists>m::nat. n = 2*m)" by presburger
 lemma odd_Suc_mult_two_ex: "odd(n) = (\<exists>m. n = Suc (2*m))" by presburger
-lemma even_add [simp]: "even(m + n::nat) = (even m = even n)"  by presburger
-
-lemma odd_add [simp]: "odd(m + n::nat) = (odd m \<noteq> odd n)" by presburger
 
 lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2" by presburger
 
@@ -459,14 +514,14 @@ lemmas power_even_abs_numeral [simp] =
   power_even_abs [of "numeral w" _] for w
 
 
-subsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}
+subsubsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}
 
 lemma zero_le_power_iff[presburger]:
   "(0 \<le> a^n) = (0 \<le> (a::'a::{linordered_idom}) | even n)"
 proof cases
   assume even: "even n"
-  then obtain k where "n = 2*k"
-    by (auto simp add: even_nat_equiv_def2 numeral_2_eq_2)
+  then have "2 dvd n" by (simp add: even_def)
+  then obtain k where "n = 2 * k" ..
   thus ?thesis by (simp add: zero_le_even_power even)
 next
   assume odd: "odd n"
@@ -479,7 +534,7 @@ next
 qed
 
 
-subsection {* Miscellaneous *}
+subsubsection {* Miscellaneous *}
 
 lemma [presburger]:"(x + 1) div 2 = x div 2 \<longleftrightarrow> even (x::int)" by presburger
 lemma [presburger]: "(x + 1) div 2 = x div 2 + 1 \<longleftrightarrow> odd (x::int)" by presburger
