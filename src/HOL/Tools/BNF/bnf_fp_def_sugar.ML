@@ -54,6 +54,7 @@ sig
      fp_res_index: int,
      fp_res: BNF_FP_Util.fp_result,
      pre_bnf: BNF_Def.bnf,
+     fp_bnf: BNF_Def.bnf,
      absT_info: BNF_Comp.absT_info,
      fp_nesting_bnfs: BNF_Def.bnf list,
      live_nesting_bnfs: BNF_Def.bnf list,
@@ -225,6 +226,7 @@ type fp_sugar =
    fp_res_index: int,
    fp_res: fp_result,
    pre_bnf: bnf,
+   fp_bnf: bnf,
    absT_info: absT_info,
    fp_nesting_bnfs: bnf list,
    live_nesting_bnfs: bnf list,
@@ -275,8 +277,8 @@ fun morph_fp_ctr_sugar phi ({ctrXs_Tss, ctr_defs, ctr_sugar, ctr_transfers, case
    case_transfers = map (Morphism.thm phi) case_transfers,
    disc_transfers = map (Morphism.thm phi) disc_transfers};
 
-fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, fp_nesting_bnfs,
-    live_nesting_bnfs, fp_ctr_sugar, fp_bnf_sugar,
+fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, fp_bnf, absT_info,
+    fp_nesting_bnfs, live_nesting_bnfs, fp_ctr_sugar, fp_bnf_sugar,
     fp_co_induct_sugar} : fp_sugar) =
   {T = Morphism.typ phi T,
    BT = Morphism.typ phi BT,
@@ -285,6 +287,7 @@ fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info,
    fp_res = morph_fp_result phi fp_res,
    fp_res_index = fp_res_index,
    pre_bnf = morph_bnf phi pre_bnf,
+   fp_bnf = morph_bnf phi fp_bnf,
    absT_info = morph_absT_info phi absT_info,
    fp_nesting_bnfs = map (morph_bnf phi) fp_nesting_bnfs,
    live_nesting_bnfs = map (morph_bnf phi) live_nesting_bnfs,
@@ -347,6 +350,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
       map_index (fn (kk, T) =>
         {T = T, BT = nth BTs kk, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
          pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk,
+         fp_bnf = nth (#bnfs fp_res) kk,
          fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
          fp_ctr_sugar =
            {ctrXs_Tss = nth ctrXs_Tsss kk,
@@ -776,17 +780,15 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
 
           fun mk_conjunct n k discA selAs discB selBs =
             (if k = n then [] else [HOLogic.mk_eq (discA $ ta, discB $ tb)]) @
-            (if null selAs then
-               []
+            (if null selAs then []
              else
-                [Library.foldr HOLogic.mk_imp
-                   (if n = 1 then [] else [discA $ ta, discB $ tb],
-                    Library.foldr1 HOLogic.mk_conj (map2 (build_rel_app names_lthy Rs [])
-                      (map (rapp ta) selAs) (map (rapp tb) selBs)))]);
+               [Library.foldr HOLogic.mk_imp
+                  (if n = 1 then [] else [discA $ ta, discB $ tb],
+                   Library.foldr1 HOLogic.mk_conj (map2 (build_rel_app names_lthy Rs [])
+                     (map (rapp ta) selAs) (map (rapp tb) selBs)))]);
 
           val goals =
-            if n = 0 then
-              []
+            if n = 0 then []
             else
               [mk_Trueprop_eq (build_rel_app names_lthy Rs [] ta tb,
                  (case flat (@{map 5} (mk_conjunct n) (1 upto n) discAs selAss discBs selBss) of

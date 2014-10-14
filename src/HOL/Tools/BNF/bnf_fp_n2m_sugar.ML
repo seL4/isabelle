@@ -300,8 +300,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
                 common_rel_co_inducts, rel_co_inducts, common_set_inducts, set_inducts, ...},
               ...} : fp_sugar) =
           {T = T, BT = T (*wrong but harmless*), X = X, fp = fp, fp_res = fp_res, fp_res_index = kk,
-           pre_bnf = pre_bnf, absT_info = absT_info, fp_nesting_bnfs = fp_nesting_bnfs,
-           live_nesting_bnfs = live_nesting_bnfs,
+           pre_bnf = pre_bnf, fp_bnf = nth (#bnfs fp_res) kk, absT_info = absT_info,
+           fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
            fp_ctr_sugar =
              {ctrXs_Tss = ctrXs_Tss,
               ctr_defs = ctr_defs,
@@ -326,7 +326,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
              {co_rec = co_rec,
               common_co_inducts = common_co_inducts,
               co_inducts = co_inducts,
-              co_rec_def = co_rec_def, 
+              co_rec_def = co_rec_def,
               co_rec_thms = co_rec_thms,
               co_rec_discs = co_rec_disc_thms,
               co_rec_disc_iffs = co_rec_disc_iffs,

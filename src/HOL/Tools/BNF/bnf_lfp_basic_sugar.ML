@@ -73,6 +73,7 @@ fun fp_sugar_of_sum ctxt =
      fp_res =
        trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map xtor_rel_induct,
      pre_bnf = ID_bnf (*wrong*),
+     fp_bnf = fp_bnf,
      absT_info = trivial_absT_info_of fpT,
      fp_nesting_bnfs = [],
      live_nesting_bnfs = [],
@@ -136,6 +137,7 @@ fun fp_sugar_of_prod ctxt =
      fp_res =
        trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map xtor_rel_induct,
      pre_bnf = ID_bnf (*wrong*),
+     fp_bnf = fp_bnf,
      absT_info = trivial_absT_info_of fpT,
      fp_nesting_bnfs = [],
      live_nesting_bnfs = [],
