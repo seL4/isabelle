@@ -94,7 +94,7 @@ fun fp_sugar_of_sum ctxt =
         rel_cases = [],
         set_thms = [],
         set_selssss = [],
-        set_intros = [],
+        set_introssss = [],
         set_cases = []},
      fp_co_induct_sugar =
        {co_rec = Const (@{const_name case_sum}, map (fn Ts => (Ts ---> C)) ctr_Tss ---> fpT --> C),
@@ -157,7 +157,7 @@ fun fp_sugar_of_prod ctxt =
         rel_cases = [],
         set_thms = [],
         set_selssss = [],
-        set_intros = [],
+        set_introssss = [],
         set_cases = []},
      fp_co_induct_sugar =
        {co_rec = Const (@{const_name case_prod}, (ctr_Ts ---> C) --> fpT --> C),

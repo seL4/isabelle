@@ -27,7 +27,7 @@ sig
      rel_cases: thm list,
      set_thms: thm list,
      set_selssss: thm list list list list,
-     set_intros: thm list,
+     set_introssss: thm list list list list,
      set_cases: thm list}
 
   type fp_co_induct_sugar =
@@ -198,7 +198,7 @@ type fp_bnf_sugar =
    rel_cases: thm list,
    set_thms: thm list,
    set_selssss: thm list list list list,
-   set_intros: thm list,
+   set_introssss: thm list list list list,
    set_cases: thm list};
 
 type fp_co_induct_sugar =
@@ -233,7 +233,8 @@ type fp_sugar =
    fp_co_induct_sugar: fp_co_induct_sugar};
 
 fun morph_fp_bnf_sugar phi ({map_thms, map_disc_iffs, map_selss, rel_injects, rel_distincts,
-    rel_sels, rel_intros, rel_cases, set_thms, set_selssss, set_intros, set_cases} : fp_bnf_sugar) =
+    rel_sels, rel_intros, rel_cases, set_thms, set_selssss, set_introssss,
+    set_cases} : fp_bnf_sugar) =
   {map_thms = map (Morphism.thm phi) map_thms,
    map_disc_iffs = map (Morphism.thm phi) map_disc_iffs,
    map_selss = map (map (Morphism.thm phi)) map_selss,
@@ -244,7 +245,7 @@ fun morph_fp_bnf_sugar phi ({map_thms, map_disc_iffs, map_selss, rel_injects, re
    rel_cases = map (Morphism.thm phi) rel_cases,
    set_thms = map (Morphism.thm phi) set_thms,
    set_selssss = map (map (map (map (Morphism.thm phi)))) set_selssss,
-   set_intros = map (Morphism.thm phi) set_intros,
+   set_introssss = map (map (map (map (Morphism.thm phi)))) set_introssss,
    set_cases = map (Morphism.thm phi) set_cases};
 
 fun morph_fp_co_induct_sugar phi ({co_rec, common_co_inducts, co_inducts, co_rec_def, co_rec_thms,
@@ -338,7 +339,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
     live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs map_thmss
     common_co_inducts co_inductss co_rec_thmss co_rec_discss co_rec_selsss rel_injectss
     rel_distinctss map_disc_iffss map_selsss rel_selss rel_intross rel_casess set_thmss set_selsssss
-    set_intross set_casess ctr_transferss case_transferss disc_transferss co_rec_disc_iffss
+    set_introsssss set_casess ctr_transferss case_transferss disc_transferss co_rec_disc_iffss
     co_rec_codess co_rec_transferss common_rel_co_inducts rel_co_inductss common_set_inducts
     set_inductss noted =
   let
@@ -365,7 +366,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
             rel_cases = nth rel_casess kk,
             set_thms = nth set_thmss kk,
             set_selssss = nth set_selsssss kk,
-            set_intros = nth set_intross kk,
+            set_introssss = nth set_introsssss kk,
             set_cases = nth set_casess kk},
          fp_co_induct_sugar =
            {co_rec = nth co_recs kk,
@@ -730,7 +731,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
             end) setAs)
         end;
 
-      val set_intros_thms =
+      val (set_intros_thmssss, set_intros_thms) =
         let
           fun mk_goals A setA ctr_args t ctxt =
             (case fastype_of t of
@@ -748,25 +749,24 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
                   end) (map (mk_set innerTs) (sets_of_bnf bnf)) ctxt))
             | T => (if T = A then [mk_Trueprop_mem (t, setA $ ctr_args)] else [], ctxt));
 
-          val (goals, names_lthy) =
-            apfst flat (fold_map (fn set => fn ctxt =>
+          val (goalssss, names_lthy) =
+            fold_map (fn set =>
               let val A = HOLogic.dest_setT (range_type (fastype_of set)) in
-                apfst flat (fold_map (fn ctr => fn ctxt =>
-                  let
-                    val (args, ctxt') = mk_Frees "a" (binder_types (fastype_of ctr)) ctxt;
-                    val ctr_args = Term.list_comb (ctr, args);
-                  in
-                    apfst flat (fold_map (mk_goals A set ctr_args) args ctxt')
-                  end) ctrAs ctxt)
-              end) setAs lthy);
+                fold_map (fn ctr => fn ctxt =>
+                  let val (args, ctxt') = mk_Frees "a" (binder_types (fastype_of ctr)) ctxt in
+                    fold_map (mk_goals A set (Term.list_comb (ctr, args))) args ctxt'
+                  end) ctrAs
+              end) setAs lthy;
+          val goals = flat (flat (flat goalssss));
         in
-          if null goals then []
-          else
-            Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-              (fn {context = ctxt, prems = _} => mk_set_intros_tac ctxt set0_thms)
-            |> Conjunction.elim_balanced (length goals)
-            |> Proof_Context.export names_lthy lthy
-            |> map Thm.close_derivation
+          `(fst o unflattt goalssss)
+            (if null goals then []
+             else
+               Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                 (fn {context = ctxt, prems = _} => mk_set_intros_tac ctxt set0_thms)
+               |> Conjunction.elim_balanced (length goals)
+               |> Proof_Context.export names_lthy lthy
+               |> map Thm.close_derivation)
         end;
 
       val rel_sel_thms =
@@ -1031,7 +1031,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
         [subst rel_cases_thm],
         map subst set_thms,
         map (map (map (map subst))) set_sel_thmssss,
-        map subst set_intros_thms,
+        map (map (map (map subst))) set_intros_thmssss,
         map subst set_cases_thms,
         map subst ctr_transfer_thms,
         [subst case_transfer_thm],
@@ -2176,8 +2176,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     fun derive_note_induct_recs_thms_for_types
         ((((map_thmss, map_disc_iffss, map_selsss, rel_injectss, rel_distinctss, rel_selss,
-            rel_intross, rel_casess, set_thmss, set_selsssss, set_intross, set_casess, ctr_transferss,
-            case_transferss, disc_transferss),
+            rel_intross, rel_casess, set_thmss, set_selsssss, set_introsssss,
+            set_casess, ctr_transferss, case_transferss, disc_transferss),
            (ctrss, _, ctr_defss, ctr_sugars)),
           (recs, rec_defs)), lthy) =
       let
@@ -2237,7 +2237,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs
           map_thmss [induct_thm] (map single induct_thms) rec_thmss (replicate nn [])
           (replicate nn []) rel_injectss rel_distinctss map_disc_iffss map_selsss rel_selss
-          rel_intross rel_casess set_thmss set_selsssss set_intross set_casess ctr_transferss
+          rel_intross rel_casess set_thmss set_selsssss set_introsssss set_casess ctr_transferss
           case_transferss disc_transferss (replicate nn []) (replicate nn []) rec_transfer_thmss
           common_rel_induct_thms rel_induct_thmss [] (replicate nn [])
       end;
@@ -2259,8 +2259,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     fun derive_note_coinduct_corecs_thms_for_types
         ((((map_thmss, map_disc_iffss, map_selsss, rel_injectss, rel_distinctss, rel_selss,
-            rel_intross, rel_casess, set_thmss, set_selsssss, set_intross, set_casess, ctr_transferss,
-            case_transferss, disc_transferss),
+            rel_intross, rel_casess, set_thmss, set_selsssss, set_introsssss, set_casess,
+            ctr_transferss, case_transferss, disc_transferss),
            (_, _, ctr_defss, ctr_sugars)),
           (corecs, corec_defs)), lthy) =
       let
@@ -2356,7 +2356,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           map_thmss [coinduct_thm, coinduct_strong_thm]
           (transpose [coinduct_thms, coinduct_strong_thms]) corec_thmss corec_disc_thmss
           corec_sel_thmsss rel_injectss rel_distinctss map_disc_iffss map_selsss rel_selss
-          rel_intross rel_casess set_thmss set_selsssss set_intross set_casess ctr_transferss
+          rel_intross rel_casess set_thmss set_selsssss set_introsssss set_casess ctr_transferss
           case_transferss disc_transferss corec_disc_iff_thmss (map single corec_code_thms)
           corec_transfer_thmss common_rel_coinduct_thms rel_coinduct_thmss set_induct_thms
           (replicate nn (if nn = 1 then set_induct_thms else []))
