@@ -8,7 +8,6 @@ signature THEORY =
 sig
   val eq_thy: theory * theory -> bool
   val subthy: theory * theory -> bool
-  val assert_super: theory -> theory -> theory
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val nodes_of: theory -> theory list
@@ -42,10 +41,6 @@ struct
 
 val eq_thy = Context.eq_thy;
 val subthy = Context.subthy;
-
-fun assert_super thy1 thy2 =
-  if subthy (thy1, thy2) then thy2
-  else raise THEORY ("Not a super theory", [thy1, thy2]);
 
 val parents_of = Context.parents_of;
 val ancestors_of = Context.ancestors_of;

@@ -187,6 +187,11 @@ fun set_naming (Computer (r as Unsynchronized.ref (SOME (p1,p2,p3,p4,p5,p6,_))))
 
 fun ref_of (Computer r) = r
 
+fun super_theory thy1 thy2 =
+  if Theory.subthy (thy1, thy2) then thy2
+  else raise THEORY ("Not a super theory", [thy1, thy2]);
+
+
 datatype cthm = ComputeThm of term list * sort list * term
 
 fun thm2cthm th = 
@@ -374,7 +379,7 @@ fun rewrite computer ct =
     let
         val thy = Thm.theory_of_cterm ct
         val {t=t',T=ty,...} = rep_cterm ct
-        val _ = Theory.assert_super (theory_of computer) thy
+        val _ = super_theory (theory_of computer) thy
         val naming = naming_of computer
         val (encoding, t) = remove_types (encoding_of computer) t'
         val t = runprog (prog_of computer) t
@@ -396,7 +401,7 @@ exception ParamSimplify of computer * theorem
 
 fun make_theorem computer th vars =
 let
-    val _ = Theory.assert_super (theory_of computer) (theory_of_thm th)
+    val _ = super_theory (theory_of computer) (theory_of_thm th)
 
     val (ComputeThm (hyps, shyps, prop)) = thm2cthm th 
 
@@ -501,7 +506,7 @@ let
 
     fun compute_inst (s, ct) vs =
         let
-            val _ = Theory.assert_super (theory_of_cterm ct) thy
+            val _ = super_theory (theory_of_cterm ct) thy
             val ty = typ_of (ctyp_of_term ct) 
         in          
             (case Symtab.lookup vartab s of 
