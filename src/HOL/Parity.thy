@@ -183,7 +183,7 @@ abbreviation odd :: "'a \<Rightarrow> bool"
 where
   "odd a \<equiv> \<not> even a"
 
-lemma odd_dvdE [elim?]:
+lemma oddE [elim?]:
   assumes "odd a"
   obtains b where "a = 2 * b + 1"
 proof -
@@ -291,26 +291,6 @@ lemma [presburger]:
 
 subsubsection {* Legacy cruft *}
 
-lemma even_plus_even:
-  "even (x::int) ==> even y ==> even (x + y)"
-  by simp
-
-lemma odd_plus_odd:
-  "odd (x::int) ==> odd y ==> even (x + y)"
-  by simp
-
-lemma even_sum_nat:
-  "even ((x::nat) + y) = ((even x & even y) | (odd x & odd y))"
-  by auto
-
-lemma odd_pow:
-  "odd x ==> odd((x::int)^n)"
-  by simp
-
-lemma even_equiv_def:
-  "even (x::int) = (EX y. x = 2 * y)"
-  by presburger
-
 
 subsubsection {* Equivalent definitions *}
 
@@ -361,9 +341,6 @@ lemma even_nat_div_two_times_two: "even (x::nat) ==>
 lemma odd_nat_div_two_times_two_plus_one: "odd (x::nat) ==>
     Suc( Suc (Suc 0) * (x div Suc (Suc 0))) = x" by presburger
 
-lemma odd_nat_equiv_def2: "odd (x::nat) = (EX y. x = Suc(Suc (Suc 0) * y))"
-  by presburger
-
 
 subsubsection {* Parity and powers *}
 
@@ -386,11 +363,9 @@ lemma zero_le_even_power: "even n ==>
   apply (rule zero_le_square)
   done
 
-lemma zero_le_odd_power: "odd n ==>
-    (0 <= (x::'a::{linordered_idom}) ^ n) = (0 <= x)"
-apply (auto simp: odd_nat_equiv_def2 power_add zero_le_mult_iff)
-apply (metis field_power_not_zero divisors_zero order_antisym_conv zero_le_square)
-done
+lemma zero_le_odd_power:
+  "odd n \<Longrightarrow> 0 \<le> (x::'a::{linordered_idom}) ^ n \<longleftrightarrow> 0 \<le> x"
+  by (erule oddE) (auto simp: power_add zero_le_mult_iff mult_2 order_antisym_conv)
 
 lemma zero_le_power_eq [presburger]: "(0 <= (x::'a::{linordered_idom}) ^ n) =
     (even n | (odd n & 0 <= x))"
@@ -525,8 +500,7 @@ proof cases
   thus ?thesis by (simp add: zero_le_even_power even)
 next
   assume odd: "odd n"
-  then obtain k where "n = Suc(2*k)"
-    by (auto simp add: odd_nat_equiv_def2 numeral_2_eq_2)
+  then obtain k where "n = 2 * k + 1" ..
   moreover have "a ^ (2 * k) \<le> 0 \<Longrightarrow> a = 0"
     by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
   ultimately show ?thesis

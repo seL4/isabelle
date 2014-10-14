@@ -142,16 +142,8 @@ lemma sum_imp_diff: "j = k + i ==> j - i = (k :: nat)" by arith
 lemmas pos_mod_sign2 = zless2 [THEN pos_mod_sign [where b = "2::int"]]
 lemmas pos_mod_bound2 = zless2 [THEN pos_mod_bound [where b = "2::int"]]
 
-lemma nmod2: "n mod (2::int) = 0 | n mod 2 = 1" by arith
-
-lemma emep1:
-  "even n ==> even d ==> 0 <= d ==> (n + 1) mod (d :: int) = (n mod d) + 1"
-  apply (simp add: add.commute)
-  apply (safe dest!: even_equiv_def [THEN iffD1])
-  apply (subst pos_zmod_mult_2)
-   apply arith
-  apply (simp add: mod_mult_mult1)
- done
+lemma nmod2: "n mod (2::int) = 0 | n mod 2 = 1"
+  by arith
 
 lemmas eme1p = emep1 [simplified add.commute]
 
@@ -165,9 +157,6 @@ lemmas m1mod22k = mult_pos_pos [OF zless2 zless2p, THEN zmod_minus1]
 lemmas z1pmod2' = zero_le_one [THEN pos_zmod_mult_2, simplified]
 lemmas z1pdiv2' = zero_le_one [THEN pos_zdiv_mult_2, simplified]
 
-lemma z1pmod2:
-  "(2 * b + 1) mod 2 = (1::int)" by arith
-  
 lemma z1pdiv2:
   "(2 * b + 1) div 2 = (b::int)" by arith
 
@@ -256,7 +245,7 @@ lemma int_mod_eq:
 lemmas int_mod_eq' = mod_pos_pos_trivial (* FIXME delete *)
 
 lemma int_mod_le: "(0::int) <= a ==> a mod n <= a"
-  by (fact zmod_le_nonneg_dividend) (* FIXME: delete *)
+  by (fact Divides.semiring_numeral_div_class.mod_less_eq_dividend) (* FIXME: delete *)
 
 lemma mod_add_if_z:
   "(x :: int) < z ==> y < z ==> 0 <= y ==> 0 <= x ==> 0 <= z ==> 

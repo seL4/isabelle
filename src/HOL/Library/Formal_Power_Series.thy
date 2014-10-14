@@ -3608,9 +3608,8 @@ proof -
     }
     moreover
     {
-      assume on: "odd n"
-      from on obtain m where m: "n = 2*m + 1"
-        unfolding odd_nat_equiv_def2 by (auto simp add: mult_2)
+      assume "odd n"
+      then obtain m where m: "n = 2 * m + 1" ..
       have "?l $n = ?r$n"
         by (simp add: m fps_sin_def fps_cos_def power_mult_distrib
           power_mult power_minus [of "c ^ 2"])
