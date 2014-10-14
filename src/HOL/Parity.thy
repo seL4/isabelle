@@ -189,6 +189,15 @@ qed
 
 end
 
+context ring_parity
+begin
+
+lemma even_minus [simp, presburger, algebra]:
+  "even (- a) \<longleftrightarrow> even a"
+  by (simp add: even_def)
+
+end
+
 context semiring_div_parity
 begin
 
@@ -196,38 +205,20 @@ lemma even_iff_mod_2_eq_zero [presburger]:
   "even a \<longleftrightarrow> a mod 2 = 0"
   by (simp add: even_def dvd_eq_mod_eq_0)
 
-lemma even_times_anything:
-  "even a \<Longrightarrow> even (a * b)"
-  by (simp add: even_def)
-
-lemma anything_times_even:
-  "even a \<Longrightarrow> even (b * a)"
-  by (simp add: even_def)
-
-lemma odd_times_odd:
-  "odd a \<Longrightarrow> odd b \<Longrightarrow> odd (a * b)" 
-  by (auto simp add: even_iff_mod_2_eq_zero mod_mult_left_eq)
-
-lemma even_product:
-  "even (a * b) \<longleftrightarrow> even a \<or> even b"
-  by (fact even_times_iff)
-
 end
 
-lemma even_nat_def [presburger]:
-  "even x \<longleftrightarrow> even (int x)"
-  by (auto simp add: even_iff_mod_2_eq_zero int_eq_iff int_mult nat_mult_distrib)
-  
-lemma transfer_int_nat_relations:
-  "even (int x) \<longleftrightarrow> even x"
-  by (simp add: even_nat_def)
+lemma even_int_iff:
+  "even (int n) \<longleftrightarrow> even n"
+  by (simp add: even_def dvd_int_iff)
 
-declare transfer_morphism_int_nat[transfer add return:
-  transfer_int_nat_relations
+declare transfer_morphism_int_nat [transfer add return:
+  even_int_iff
 ]
 
-declare even_iff_mod_2_eq_zero [of "- numeral v", simp] for v
-
+lemma [presburger]:
+  "even n \<longleftrightarrow> even (int n)"
+  using even_int_iff [of n] by simp
+  
 
 subsection {* Behavior under integer arithmetic operations *}
 
@@ -244,9 +235,6 @@ lemma odd_plus_odd: "odd (x::int) ==> odd y ==> even (x + y)" by presburger
 
 lemma even_sum[simp,presburger]:
   "even ((x::int) + y) = ((even x & even y) | (odd x & odd y))"
-by presburger
-
-lemma even_neg[simp,presburger,algebra]: "even (-(x::int)) = even x"
 by presburger
 
 lemma even_difference[simp]:
@@ -274,11 +262,7 @@ lemma odd_equiv_def: "odd (x::int) = (EX y. x = 2 * y + 1)" by presburger
 subsection {* even and odd for nats *}
 
 lemma pos_int_even_equiv_nat_even: "0 \<le> x ==> even x = even (nat x)"
-by (simp add: even_nat_def)
-
-lemma even_product_nat:
-  "even((x::nat) * y) = (even x | even y)"
-  by (fact even_times_iff)
+by (simp add: even_int_iff [symmetric])
 
 lemma even_sum_nat[simp,presburger,algebra]:
   "even ((x::nat) + y) = ((even x & even y) | (odd x & odd y))"
@@ -293,7 +277,7 @@ by presburger
 
 lemma even_power_nat[simp,presburger,algebra]:
   "even ((x::nat)^y) = (even x & 0 < y)"
-by (simp add: even_nat_def int_power)
+by (simp add: even_int_iff [symmetric] int_power)
 
 
 subsection {* Equivalent definitions *}
