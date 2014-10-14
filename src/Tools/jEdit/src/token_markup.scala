@@ -18,7 +18,7 @@ import org.gjt.sp.jedit.{jEdit, Mode}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, ParserRuleSet,
   ModeProvider, XModeHandler, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.{TextArea, Selection}
-import org.gjt.sp.jedit.buffer.JEditBuffer
+import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 
 import javax.swing.text.Segment
 
@@ -185,6 +185,17 @@ object Token_Markup
         case _ => false
       }
   }
+
+  def buffer_line_context[C](buffer: JEditBuffer, line: Int): Option[Generic_Line_Context[C]] =
+    Untyped.get(buffer, "lineMgr") match {
+      case line_mgr: LineManager =>
+        line_mgr.getLineContext(line) match {
+          case ctxt: Generic_Line_Context[C] => Some(ctxt)
+          case _ => None
+        }
+      case _ => None
+    }
+
 
   private val context_rules = new ParserRuleSet("isabelle", "MAIN")
 
