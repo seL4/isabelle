@@ -97,7 +97,8 @@ fun case_of_case_rewrite case_rewrite =
 fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case_cong,
     case_cong_weak, split, split_asm, ...} : Old_Datatype_Aux.info) =
   let val ctrs as ctr1 :: _ = ctrs_of_exhaust exhaust in
-    {T = body_type (fastype_of ctr1),
+    {kind = Ctr_Sugar.Datatype,
+     T = body_type (fastype_of ctr1),
      ctrs = ctrs,
      casex = case_of_case_rewrite (hd case_rewrites),
      discs = [],

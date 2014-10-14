@@ -418,6 +418,9 @@ val unflat = fold_map unfla
 val unflatt = fold_map unflat
 val unflattt = fold_map unflatt
 
+fun ctr_sugar_kind_of_fp_kind Least_FP = Datatype
+  | ctr_sugar_kind_of_fp_kind Greatest_FP = Codatatype
+
 fun uncurry_thm 0 thm = thm
   | uncurry_thm 1 thm = thm
   | uncurry_thm n thm = rotate_prems ~1 (uncurry_thm (n - 1) (rotate_prems 1 (conjI RS thm)));
@@ -2026,7 +2029,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val ((xtor_co_recs, recs_args_types, corecs_args_types), lthy') =
       mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy;
 
-    fun define_ctrs_dtrs_for_type (((((((((((((((((((((((((((fp_bnf, fp_b), fpT), ctor), dtor),
+    fun define_ctrs_dtrs_for_type fp (((((((((((((((((((((((((((fp_bnf, fp_b), fpT), ctor), dtor),
               xtor_co_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
             pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), abs),
           abs_inject), abs_inverse), type_definition), ctr_bindings), ctr_mixfixes), ctr_Tss),
@@ -2113,8 +2116,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             val ctr_specs = @{map 3} ctr_spec_of disc_bindings ctrs0 sel_bindingss;
 
             val (ctr_sugar as {case_cong, ...}, lthy') =
-              free_constructors tacss ((((plugins, discs_sels), standard_binding), ctr_specs),
-                sel_default_eqs) lthy
+              free_constructors (ctr_sugar_kind_of_fp_kind fp) tacss
+                ((((plugins, discs_sels), standard_binding), ctr_specs), sel_default_eqs) lthy
 
             val anonymous_notes =
               [([case_cong], fundefcong_attrs)]
@@ -2366,7 +2369,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     val lthy'' = lthy'
       |> live > 0 ? fold2 (fn Type (s, _) => fn bnf => register_bnf_raw s bnf) fpTs fp_bnfs
-      |> fold_map define_ctrs_dtrs_for_type (fp_bnfs ~~ fp_bs ~~ fpTs ~~ ctors ~~ dtors ~~
+      |> fold_map (define_ctrs_dtrs_for_type fp) (fp_bnfs ~~ fp_bs ~~ fpTs ~~ ctors ~~ dtors ~~
         xtor_co_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~ pre_set_defss ~~
         pre_rel_defs ~~ xtor_maps ~~ xtor_setss ~~ xtor_rels ~~ ns ~~ kss ~~ mss ~~
         abss ~~ abs_injects ~~ abs_inverses ~~ type_definitions ~~ ctr_bindingss ~~ ctr_mixfixess ~~

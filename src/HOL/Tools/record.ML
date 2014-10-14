@@ -1783,9 +1783,9 @@ fun add_code ext_tyco vs extT ext simps inject thy =
 
 fun add_ctr_sugar ctr exhaust inject sel_thms =
   Ctr_Sugar.default_register_ctr_sugar_global (K true)
-    {T = body_type (fastype_of ctr), ctrs = [ctr], casex = Term.dummy, discs = [], selss = [],
-     exhaust = exhaust, nchotomy = Drule.dummy_thm, injects = [inject], distincts = [],
-     case_thms = [], case_cong = Drule.dummy_thm, case_cong_weak = Drule.dummy_thm,
+    {kind = Ctr_Sugar.Record, T = body_type (fastype_of ctr), ctrs = [ctr], casex = Term.dummy,
+     discs = [], selss = [], exhaust = exhaust, nchotomy = Drule.dummy_thm, injects = [inject],
+     distincts = [], case_thms = [], case_cong = Drule.dummy_thm, case_cong_weak = Drule.dummy_thm,
      split = Drule.dummy_thm, split_asm = Drule.dummy_thm, disc_defs = [], disc_thmss = [],
      discIs = [], sel_defs = [], sel_thmss = [sel_thms], distinct_discsss = [], exhaust_discs = [],
      exhaust_sels = [], collapses = [], expands = [], split_sels = [], split_sel_asms = [],

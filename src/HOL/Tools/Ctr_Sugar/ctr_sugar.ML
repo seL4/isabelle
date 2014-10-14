@@ -7,8 +7,12 @@ Wrapping existing freely generated type's constructors.
 
 signature CTR_SUGAR =
 sig
+
+  datatype ctr_sugar_kind = Datatype | Codatatype | Record | Unknown
+
   type ctr_sugar =
-    {T: typ,
+    {kind: ctr_sugar_kind,
+     T: typ,
      ctrs: term list,
      casex: term,
      discs: term list,
@@ -73,7 +77,8 @@ sig
   type ctr_options_cmd = (Proof.context -> string -> bool) * bool
 
   val fake_local_theory_for_sel_defaults: (binding * typ) list -> Proof.context -> Proof.context
-  val free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
+  val free_constructors: ctr_sugar_kind ->
+    ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((ctr_options * binding) * (term, binding) ctr_spec list) * term list -> local_theory ->
     ctr_sugar * local_theory
   val default_ctr_options: ctr_options
@@ -91,8 +96,11 @@ open Ctr_Sugar_Util
 open Ctr_Sugar_Tactics
 open Ctr_Sugar_Code
 
+datatype ctr_sugar_kind = Datatype | Codatatype | Record | Unknown;
+
 type ctr_sugar =
-  {T: typ,
+  {kind: ctr_sugar_kind,
+   T: typ,
    ctrs: term list,
    casex: term,
    discs: term list,
@@ -120,11 +128,12 @@ type ctr_sugar =
    split_sel_asms: thm list,
    case_eq_ifs: thm list};
 
-fun morph_ctr_sugar phi {T, ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
+fun morph_ctr_sugar phi {kind, T, ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
     case_thms, case_cong, case_cong_weak, split, split_asm, disc_defs, disc_thmss, discIs, sel_defs,
     sel_thmss, distinct_discsss, exhaust_discs, exhaust_sels, collapses, expands, split_sels,
     split_sel_asms, case_eq_ifs} =
-  {T = Morphism.typ phi T,
+  {kind = kind,
+   T = Morphism.typ phi T,
    ctrs = map (Morphism.term phi) ctrs,
    casex = Morphism.term phi casex,
    discs = map (Morphism.term phi) discs,
@@ -360,7 +369,7 @@ fun args_of_ctr_spec (_, args) = args;
 
 val code_plugin = Plugin_Name.declare_setup @{binding code};
 
-fun prepare_free_constructors prep_plugins prep_term
+fun prepare_free_constructors kind prep_plugins prep_term
     ((((raw_plugins, discs_sels), raw_case_binding), ctr_specs),
       sel_default_eqs) no_defs_lthy =
   let
@@ -1037,15 +1046,15 @@ fun prepare_free_constructors prep_plugins prep_term
           |>> name_noted_thms fcT_name exhaustN;
 
         val ctr_sugar =
-          {T = fcT, ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
-           nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
-           case_thms = case_thms, case_cong = case_cong_thm, case_cong_weak = case_cong_weak_thm,
-           split = split_thm, split_asm = split_asm_thm, disc_defs = disc_defs,
-           disc_thmss = disc_thmss, discIs = discI_thms, sel_defs = sel_defs, sel_thmss = sel_thmss,
-           distinct_discsss = distinct_disc_thmsss, exhaust_discs = exhaust_disc_thms,
-           exhaust_sels = exhaust_sel_thms, collapses = all_collapse_thms, expands = expand_thms,
-           split_sels = split_sel_thms, split_sel_asms = split_sel_asm_thms,
-           case_eq_ifs = case_eq_if_thms}
+          {kind = kind, T = fcT, ctrs = ctrs, casex = casex, discs = discs, selss = selss,
+           exhaust = exhaust_thm, nchotomy = nchotomy_thm, injects = inject_thms,
+           distincts = distinct_thms, case_thms = case_thms, case_cong = case_cong_thm,
+           case_cong_weak = case_cong_weak_thm, split = split_thm, split_asm = split_asm_thm,
+           disc_defs = disc_defs, disc_thmss = disc_thmss, discIs = discI_thms, sel_defs = sel_defs,
+           sel_thmss = sel_thmss, distinct_discsss = distinct_disc_thmsss,
+           exhaust_discs = exhaust_disc_thms, exhaust_sels = exhaust_sel_thms,
+           collapses = all_collapse_thms, expands = expand_thms, split_sels = split_sel_thms,
+           split_sel_asms = split_sel_asm_thms, case_eq_ifs = case_eq_if_thms}
           |> morph_ctr_sugar (substitute_noted_thm noted);
       in
         (ctr_sugar, lthy' |> register_ctr_sugar plugins ctr_sugar)
@@ -1054,13 +1063,13 @@ fun prepare_free_constructors prep_plugins prep_term
     (goalss, after_qed, lthy')
   end;
 
-fun free_constructors tacss = (fn (goalss, after_qed, lthy) =>
+fun free_constructors kind tacss = (fn (goalss, after_qed, lthy) =>
   map2 (map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])) goalss tacss
-  |> (fn thms => after_qed thms lthy)) oo prepare_free_constructors (K I) (K I);
+  |> (fn thms => after_qed thms lthy)) oo prepare_free_constructors kind (K I) (K I);
 
-val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
+fun free_constructors_cmd kind = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
-  prepare_free_constructors Plugin_Name.make_filter Syntax.read_term;
+  prepare_free_constructors kind Plugin_Name.make_filter Syntax.read_term;
 
 val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
 
@@ -1089,6 +1098,6 @@ val _ =
     "register an existing freely generated type's constructors"
     (parse_ctr_options -- Parse.binding --| @{keyword "for"} -- parse_ctr_specs
        -- parse_sel_default_eqs
-     >> free_constructors_cmd);
+     >> free_constructors_cmd Unknown);
 
 end;
