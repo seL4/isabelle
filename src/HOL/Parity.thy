@@ -9,49 +9,210 @@ theory Parity
 imports Main
 begin
 
-class even_odd = semiring_div_parity
+subsection {* Preliminaries about divisibility on @{typ nat} and @{typ int} *}
+
+lemma two_dvd_Suc_Suc_iff [simp]:
+  "2 dvd Suc (Suc n) \<longleftrightarrow> 2 dvd n"
+  using dvd_add_triv_right_iff [of 2 n] by simp
+
+lemma two_dvd_Suc_iff:
+  "2 dvd Suc n \<longleftrightarrow> \<not> 2 dvd n"
+  by (induct n) auto
+
+lemma two_dvd_diff_iff:
+  fixes k l :: int
+  shows "2 dvd k - l \<longleftrightarrow> 2 dvd k + l"
+  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: ac_simps)
+
+lemma two_dvd_abs_add_iff:
+  fixes k l :: int
+  shows "2 dvd \<bar>k\<bar> + l \<longleftrightarrow> 2 dvd k + l"
+  by (cases "k \<ge> 0") (simp_all add: two_dvd_diff_iff ac_simps)
+
+lemma two_dvd_add_abs_iff:
+  fixes k l :: int
+  shows "2 dvd k + \<bar>l\<bar> \<longleftrightarrow> 2 dvd k + l"
+  using two_dvd_abs_add_iff [of l k] by (simp add: ac_simps)
+
+
+subsection {* Ring structures with parity *}
+
+class semiring_parity = semiring_dvd + semiring_numeral +
+  assumes two_not_dvd_one [simp]: "\<not> 2 dvd 1"
+  assumes not_dvd_not_dvd_dvd_add: "\<not> 2 dvd a \<Longrightarrow> \<not> 2 dvd b \<Longrightarrow> 2 dvd a + b"
+  assumes two_is_prime: "2 dvd a * b \<Longrightarrow> 2 dvd a \<or> 2 dvd b"
+begin
+
+lemma two_dvd_plus_one_iff [simp]:
+  "2 dvd a + 1 \<longleftrightarrow> \<not> 2 dvd a"
+  by (auto simp add: dvd_add_right_iff intro: not_dvd_not_dvd_dvd_add)
+
+end
+
+instance nat :: semiring_parity
+proof
+  show "\<not> (2 :: nat) dvd 1"
+    by (rule notI, erule dvdE) simp
+next
+  fix m n :: nat
+  assume "\<not> 2 dvd m"
+  moreover assume "\<not> 2 dvd n"
+  ultimately have *: "2 dvd Suc m \<and> 2 dvd Suc n"
+    by (simp add: two_dvd_Suc_iff)
+  then have "2 dvd Suc m + Suc n"
+    by (blast intro: dvd_add)
+  also have "Suc m + Suc n = m + n + 2"
+    by simp
+  finally show "2 dvd m + n"
+    using dvd_add_triv_right_iff [of 2 "m + n"] by simp
+next
+  fix m n :: nat
+  assume *: "2 dvd m * n"
+  show "2 dvd m \<or> 2 dvd n"
+  proof (rule disjCI)
+    assume "\<not> 2 dvd n"
+    then have "2 dvd Suc n" by (simp add: two_dvd_Suc_iff)
+    then obtain r where "Suc n = 2 * r" ..
+    moreover from * obtain s where "m * n = 2 * s" ..
+    then have "2 * s + m = m * Suc n" by simp
+    ultimately have " 2 * s + m = 2 * (m * r)" by simp
+    then have "m = 2 * (m * r - s)" by simp
+    then show "2 dvd m" ..
+  qed
+qed
+
+class ring_parity = comm_ring_1 + semiring_parity
+
+instance int :: ring_parity
+proof
+  show "\<not> (2 :: int) dvd 1" by (simp add: dvd_int_unfold_dvd_nat)
+  fix k l :: int
+  assume "\<not> 2 dvd k"
+  moreover assume "\<not> 2 dvd l"
+  ultimately have "2 dvd nat \<bar>k\<bar> + nat \<bar>l\<bar>" 
+    by (auto simp add: dvd_int_unfold_dvd_nat intro: not_dvd_not_dvd_dvd_add)
+  then have "2 dvd \<bar>k\<bar> + \<bar>l\<bar>"
+    by (simp add: dvd_int_unfold_dvd_nat nat_add_distrib)
+  then show "2 dvd k + l"
+    by (simp add: two_dvd_abs_add_iff two_dvd_add_abs_iff)
+qed (simp add: dvd_int_unfold_dvd_nat two_is_prime nat_abs_mult_distrib)
+
+context semiring_div_parity
+begin
+
+subclass semiring_parity
+proof (unfold_locales, unfold dvd_eq_mod_eq_0 not_mod_2_eq_0_eq_1)
+  fix a b c
+  show "(c * a + b) mod a = 0 \<longleftrightarrow> b mod a = 0"
+    by simp
+next
+  fix a b c
+  assume "(b + c) mod a = 0"
+  with mod_add_eq [of b c a]
+  have "(b mod a + c mod a) mod a = 0"
+    by simp
+  moreover assume "b mod a = 0"
+  ultimately show "c mod a = 0"
+    by simp
+next
+  show "1 mod 2 = 1"
+    by (fact one_mod_two_eq_one)
+next
+  fix a b
+  assume "a mod 2 = 1"
+  moreover assume "b mod 2 = 1"
+  ultimately show "(a + b) mod 2 = 0"
+    using mod_add_eq [of a b 2] by simp
+next
+  fix a b
+  assume "(a * b) mod 2 = 0"
+  then have "(a mod 2) * (b mod 2) = 0"
+    by (cases "a mod 2 = 0") (simp_all add: mod_mult_eq [of a b 2])
+  then show "a mod 2 = 0 \<or> b mod 2 = 0"
+    by (rule divisors_zero)
+qed
+
+end
+
+
+subsection {* Dedicated @{text even}/@{text odd} predicate *}
+
+context semiring_parity
 begin
 
 definition even :: "'a \<Rightarrow> bool"
 where
   [algebra]: "even a \<longleftrightarrow> 2 dvd a"
 
-lemmas even_iff_2_dvd = even_def
+abbreviation odd :: "'a \<Rightarrow> bool"
+where
+  "odd a \<equiv> \<not> even a"
+
+lemma even_times_iff [simp, presburger, algebra]:
+  "even (a * b) \<longleftrightarrow> even a \<or> even b"
+  by (auto simp add: even_def dest: two_is_prime)
+
+lemma even_zero [simp]:
+  "even 0"
+  by (simp add: even_def)
+
+lemma odd_one [simp]:
+  "odd 1"
+  by (simp add: even_def)
+
+lemma even_numeral [simp]:
+  "even (numeral (Num.Bit0 n))"
+proof -
+  have "even (2 * numeral n)"
+    unfolding even_times_iff by (simp add: even_def)
+  then have "even (numeral n + numeral n)"
+    unfolding mult_2 .
+  then show ?thesis
+    unfolding numeral.simps .
+qed
+
+lemma odd_numeral [simp]:
+  "odd (numeral (Num.Bit1 n))"
+proof
+  assume "even (numeral (num.Bit1 n))"
+  then have "even (numeral n + numeral n + 1)"
+    unfolding numeral.simps .
+  then have "even (2 * numeral n + 1)"
+    unfolding mult_2 .
+  then have "2 dvd numeral n * 2 + 1"
+    unfolding even_def by (simp add: ac_simps)
+  with dvd_add_times_triv_left_iff [of 2 "numeral n" 1]
+    have "2 dvd 1"
+    by simp
+  then show False by simp
+qed
+
+end
+
+context semiring_div_parity
+begin
 
 lemma even_iff_mod_2_eq_zero [presburger]:
   "even a \<longleftrightarrow> a mod 2 = 0"
   by (simp add: even_def dvd_eq_mod_eq_0)
 
-lemma even_zero [simp]:
-  "even 0"
-  by (simp add: even_iff_mod_2_eq_zero)
-
 lemma even_times_anything:
   "even a \<Longrightarrow> even (a * b)"
-  by (simp add: even_iff_2_dvd)
+  by (simp add: even_def)
 
 lemma anything_times_even:
   "even a \<Longrightarrow> even (b * a)"
-  by (simp add: even_iff_2_dvd)
-
-abbreviation odd :: "'a \<Rightarrow> bool"
-where
-  "odd a \<equiv> \<not> even a"
+  by (simp add: even_def)
 
 lemma odd_times_odd:
   "odd a \<Longrightarrow> odd b \<Longrightarrow> odd (a * b)" 
   by (auto simp add: even_iff_mod_2_eq_zero mod_mult_left_eq)
 
-lemma even_product [simp, presburger]:
+lemma even_product:
   "even (a * b) \<longleftrightarrow> even a \<or> even b"
-  apply (auto simp add: even_times_anything anything_times_even)
-  apply (rule ccontr)
-  apply (auto simp add: odd_times_odd)
-  done
+  by (fact even_times_iff)
 
 end
-
-instance nat and int  :: even_odd ..
 
 lemma even_nat_def [presburger]:
   "even x \<longleftrightarrow> even (int x)"
@@ -65,30 +226,7 @@ declare transfer_morphism_int_nat[transfer add return:
   transfer_int_nat_relations
 ]
 
-lemma odd_one_int [simp]:
-  "odd (1::int)"
-  by presburger
-
-lemma odd_1_nat [simp]:
-  "odd (1::nat)"
-  by presburger
-
-lemma even_numeral_int [simp]: "even (numeral (Num.Bit0 k) :: int)"
-  unfolding even_iff_mod_2_eq_zero by simp
-
-lemma odd_numeral_int [simp]: "odd (numeral (Num.Bit1 k) :: int)"
-  unfolding even_iff_mod_2_eq_zero by simp
-
-(* TODO: proper simp rules for Num.Bit0, Num.Bit1 *)
 declare even_iff_mod_2_eq_zero [of "- numeral v", simp] for v
-
-lemma even_numeral_nat [simp]: "even (numeral (Num.Bit0 k) :: nat)"
-  unfolding even_nat_def by simp
-
-lemma odd_numeral_nat [simp]: "odd (numeral (Num.Bit1 k) :: nat)"
-  unfolding even_nat_def by simp
-
-subsection {* Even and odd are mutually exclusive *}
 
 
 subsection {* Behavior under integer arithmetic operations *}
@@ -128,7 +266,7 @@ by presburger
 lemma two_times_odd_div_two_plus_one:
   "odd (x::int) ==> 2 * (x div 2) + 1 = x"
 by presburger
-
+  
 lemma even_equiv_def: "even (x::int) = (EX y. x = 2 * y)" by presburger
 
 lemma odd_equiv_def: "odd (x::int) = (EX y. x = 2 * y + 1)" by presburger
@@ -138,9 +276,9 @@ subsection {* even and odd for nats *}
 lemma pos_int_even_equiv_nat_even: "0 \<le> x ==> even x = even (nat x)"
 by (simp add: even_nat_def)
 
-lemma even_product_nat[simp,presburger,algebra]:
+lemma even_product_nat:
   "even((x::nat) * y) = (even x | even y)"
-by (simp add: even_nat_def int_mult)
+  by (fact even_times_iff)
 
 lemma even_sum_nat[simp,presburger,algebra]:
   "even ((x::nat) + y) = ((even x & even y) | (odd x & odd y))"

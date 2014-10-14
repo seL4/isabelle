@@ -12,6 +12,11 @@ imports
   "~~/src/HOL/ex/Records"
 begin
 
+lemma [code]: -- {* Formal joining of hierarchy of implicit definitions in Scala *}
+  fixes a :: "'a :: semiring_div_parity"
+  shows "even a \<longleftrightarrow> a mod 2 = 0"
+  by (fact even_iff_mod_2_eq_zero)
+
 inductive sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 where
   empty: "sublist [] xs"

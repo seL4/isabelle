@@ -50,6 +50,7 @@ Minor INCOMPATIBILITY.
 
 * More foundational definition for predicate "even":
   even_def ~> even_iff_mod_2_eq_zero
+  even_iff_2_dvd ~> even_def
 Minor INCOMPATIBILITY.
 
 * Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1
