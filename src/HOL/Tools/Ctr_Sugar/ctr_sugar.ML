@@ -128,10 +128,10 @@ type ctr_sugar =
    split_sel_asms: thm list,
    case_eq_ifs: thm list};
 
-fun morph_ctr_sugar phi {kind, T, ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
+fun morph_ctr_sugar phi ({kind, T, ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
     case_thms, case_cong, case_cong_weak, split, split_asm, disc_defs, disc_thmss, discIs, sel_defs,
     sel_thmss, distinct_discsss, exhaust_discs, exhaust_sels, collapses, expands, split_sels,
-    split_sel_asms, case_eq_ifs} =
+    split_sel_asms, case_eq_ifs} : ctr_sugar) =
   {kind = kind,
    T = Morphism.typ phi T,
    ctrs = map (Morphism.term phi) ctrs,
