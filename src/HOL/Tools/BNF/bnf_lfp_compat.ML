@@ -27,7 +27,7 @@ sig
   val datatype_compat_cmd: string list -> local_theory -> local_theory
   val add_datatype: preference list -> Old_Datatype_Aux.spec list -> theory -> string list * theory
   val add_primrec: (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
-   local_theory -> (term list * thm list) * local_theory
+    local_theory -> (term list * thm list) * local_theory
   val add_primrec_global: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
   val add_primrec_overloaded: (string * (string * typ) * bool) list ->
