@@ -54,8 +54,20 @@ final class Outer_Syntax private(
         (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
     }).toList.sorted.mkString("keywords\n  ", " and\n  ", "")
 
+
+  /* keyword kind */
+
   def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
   def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
+
+  def is_command(name: String): Boolean =
+    keyword_kind(name) match {
+      case Some(kind) => kind != Keyword.MINOR
+      case None => false
+    }
+
+
+  /* load commands */
 
   def load_command(name: String): Option[List[String]] =
     keywords.get(name) match {
@@ -68,6 +80,9 @@ final class Outer_Syntax private(
 
   def load_commands_in(text: String): Boolean =
     load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
+
+
+  /* add keywords */
 
   def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =
   {
@@ -99,11 +114,8 @@ final class Outer_Syntax private(
           (Symbol.encode(name), replace)
     }
 
-  def is_command(name: String): Boolean =
-    keyword_kind(name) match {
-      case Some(kind) => kind != Keyword.MINOR
-      case None => false
-    }
+
+  /* document headings */
 
   def heading_level(name: String): Option[Int] =
   {
