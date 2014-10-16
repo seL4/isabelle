@@ -415,16 +415,16 @@ fun quasi_unambiguous_case_names names =
 fun zipper_map f =
   let
     fun zed _ [] = []
-      | zed xs (y :: ys) = f (xs, y, ys) :: zed (xs @ [y]) ys
+      | zed xs (y :: ys) = f (xs, y, ys) :: zed (xs @ [y]) ys;
   in zed [] end;
 
-val unfla = fold_map (fn _ => fn y :: ys => (y, ys))
-val unflat = fold_map unfla
-val unflatt = fold_map unflat
-val unflattt = fold_map unflatt
+fun unfla _ = rpair [];
+fun unflat xss = fold_map unfla xss;
+fun unflatt xsss = fold_map unflat xsss;
+fun unflattt xssss = fold_map unflatt xssss;
 
 fun ctr_sugar_kind_of_fp_kind Least_FP = Datatype
-  | ctr_sugar_kind_of_fp_kind Greatest_FP = Codatatype
+  | ctr_sugar_kind_of_fp_kind Greatest_FP = Codatatype;
 
 fun uncurry_thm 0 thm = thm
   | uncurry_thm 1 thm = thm
