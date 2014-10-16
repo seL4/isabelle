@@ -178,14 +178,14 @@ object Token_Markup
   class Generic_Line_Context[C](
       rules: ParserRuleSet,
       val context: Option[C],
-      val depth: Int)
+      val nesting: Outer_Syntax.Line_Nesting)
     extends TokenMarker.LineContext(rules, null)
   {
-    override def hashCode: Int = (context, depth).hashCode
+    override def hashCode: Int = (context, nesting).hashCode
     override def equals(that: Any): Boolean =
       that match {
         case other: Generic_Line_Context[_] =>
-          context == other.context && depth == other.depth
+          context == other.context && nesting == other.nesting
         case _ => false
       }
   }
@@ -200,26 +200,29 @@ object Token_Markup
       case _ => None
     }
 
-  def buffer_line_depth(buffer: JEditBuffer, line: Int): Int =
-    buffer_line_context(buffer, line) match { case Some(c) => c.depth case None => 0 }
+  def buffer_line_nesting(buffer: JEditBuffer, line: Int): Outer_Syntax.Line_Nesting =
+    buffer_line_context(buffer, line) match {
+      case Some(c) => c.nesting
+      case None => Outer_Syntax.Line_Nesting.init
+    }
 
 
   /* token marker */
 
   private val context_rules = new ParserRuleSet("isabelle", "MAIN")
 
-  private class Line_Context(context: Option[Scan.Line_Context], depth: Int)
-    extends Generic_Line_Context[Scan.Line_Context](context_rules, context, depth)
+  private class Line_Context(context: Option[Scan.Line_Context], nesting: Outer_Syntax.Line_Nesting)
+    extends Generic_Line_Context[Scan.Line_Context](context_rules, context, nesting)
 
   class Marker(mode: String) extends TokenMarker
   {
     override def markTokens(context: TokenMarker.LineContext,
         handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
     {
-      val (opt_ctxt, depth) =
+      val (opt_ctxt, nesting) =
         context match {
-          case c: Line_Context => (c.context, c.depth)
-          case _ => (Some(Scan.Finished), 0)
+          case c: Line_Context => (c.context, c.nesting)
+          case _ => (Some(Scan.Finished), Outer_Syntax.Line_Nesting.init)
         }
       val line = if (raw_line == null) new Segment else raw_line
 
@@ -230,17 +233,17 @@ object Token_Markup
             case (Some(ctxt), _) if mode == "isabelle-ml" || mode == "sml" =>
               val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, ctxt)
               val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
-              (styled_tokens, new Line_Context(Some(ctxt1), depth))
+              (styled_tokens, new Line_Context(Some(ctxt1), nesting))
 
             case (Some(ctxt), Some(syntax)) if syntax.has_tokens =>
-              val (tokens, ctxt1, depth1) = syntax.scan_line(line, ctxt, depth)
+              val (tokens, ctxt1, nesting1) = syntax.scan_line(line, ctxt, nesting)
               val styled_tokens =
                 tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
-              (styled_tokens, new Line_Context(Some(ctxt1), depth1))
+              (styled_tokens, new Line_Context(Some(ctxt1), nesting1))
 
             case _ =>
               val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
-              (List(styled_token), new Line_Context(None, 0))
+              (List(styled_token), new Line_Context(None, nesting))
           }
 
         val extended = extended_styles(line)

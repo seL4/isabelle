@@ -154,7 +154,8 @@ object Bibtex_JEdit
   private val context_rules = new ParserRuleSet("bibtex", "MAIN")
 
   private class Line_Context(context: Option[Bibtex.Line_Context])
-    extends Token_Markup.Generic_Line_Context[Bibtex.Line_Context](context_rules, context, 0)
+    extends Token_Markup.Generic_Line_Context[Bibtex.Line_Context](
+      context_rules, context, Outer_Syntax.Line_Nesting.init)
 
 
   /* token marker */

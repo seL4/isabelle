@@ -37,6 +37,16 @@ object Outer_Syntax
   val empty: Outer_Syntax = new Outer_Syntax()
 
   def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
+
+
+  /* line nesting */
+
+  object Line_Nesting
+  {
+    val init = Line_Nesting(0, 0)
+  }
+
+  sealed case class Line_Nesting(depth_before: Int, depth: Int)
 }
 
 final class Outer_Syntax private(
@@ -65,6 +75,10 @@ final class Outer_Syntax private(
       case Some(kind) => kind != Keyword.MINOR
       case None => false
     }
+
+  def command_kind(token: Token, pred: String => Boolean): Boolean =
+    token.is_command && is_command(token.source) &&
+      pred(keyword_kind(token.source).get)
 
 
   /* load commands */
@@ -134,6 +148,26 @@ final class Outer_Syntax private(
     heading_level(command.name)
 
 
+  /* line nesting */
+
+  def line_nesting(tokens: List[Token], depth: Int): Outer_Syntax.Line_Nesting =
+  {
+    val depth1 =
+      if (tokens.exists(tok => command_kind(tok, Keyword.theory))) 0
+      else depth
+    val depth2 =
+      (depth /: tokens) { case (d, tok) =>
+        if (command_kind(tok, Keyword.theory_goal)) 1
+        else if (command_kind(tok, Keyword.theory)) 0
+        else if (command_kind(tok, Keyword.proof_goal)) d + 1
+        else if (command_kind(tok, Keyword.qed)) d - 1
+        else if (command_kind(tok, Keyword.qed_global)) 0
+        else d
+      }
+    Outer_Syntax.Line_Nesting(depth1, depth2)
+  }
+
+
   /* token language */
 
   def scan(input: CharSequence): List[Token] =
@@ -146,8 +180,8 @@ final class Outer_Syntax private(
     }
   }
 
-  def scan_line(input: CharSequence, context: Scan.Line_Context, depth: Int)
-    : (List[Token], Scan.Line_Context, Int) =
+  def scan_line(input: CharSequence, context: Scan.Line_Context, nesting: Outer_Syntax.Line_Nesting)
+    : (List[Token], Scan.Line_Context, Outer_Syntax.Line_Nesting) =
   {
     var in: Reader[Char] = new CharSequenceReader(input)
     val toks = new mutable.ListBuffer[Token]
@@ -159,9 +193,8 @@ final class Outer_Syntax private(
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
     }
-
-    val depth1 = depth // FIXME
-    (toks.toList, ctxt, depth1)
+    val tokens = toks.toList
+    (tokens, ctxt, line_nesting(tokens, nesting.depth))
   }
 
 

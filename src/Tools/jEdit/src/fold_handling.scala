@@ -27,7 +27,7 @@ object Fold_Handling
       }
 
     override def getFoldLevel(buffer: JEditBuffer, line: Int, seg: Segment): Int =
-      Token_Markup.buffer_line_depth(buffer, line)
+      Token_Markup.buffer_line_nesting(buffer, line).depth_before
   }
 
 
