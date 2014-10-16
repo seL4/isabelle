@@ -181,7 +181,7 @@ object Token_Markup
     override def hashCode: Int = context.hashCode
     override def equals(that: Any): Boolean =
       that match {
-        case other: Line_Context => context == other.context
+        case other: Generic_Line_Context[_] => context == other.context
         case _ => false
       }
   }
