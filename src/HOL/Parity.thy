@@ -287,6 +287,10 @@ lemma even_Suc [simp, presburger, algebra]:
   "even (Suc n) = odd n"
   by (simp add: even_def two_dvd_Suc_iff)
 
+lemma odd_pos: 
+  "odd (n :: nat) \<Longrightarrow> 0 < n"
+  by (auto simp add: even_def intro: classical)
+  
 lemma even_diff_nat [simp]:
   fixes m n :: nat
   shows "even (m - n) \<longleftrightarrow> m < n \<or> even (m + n)"
@@ -299,6 +303,167 @@ lemma even_int_iff:
 lemma even_nat_iff:
   "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
   by (simp add: even_int_iff [symmetric])
+
+
+subsubsection {* Parity and powers *}
+
+context comm_ring_1
+begin
+
+lemma neg_power_if:
+  "(- a) ^ n = (if even n then a ^ n else - (a ^ n))"
+  by (induct n) simp_all
+
+lemma power_minus_even [simp]:
+  "even n \<Longrightarrow> (- a) ^ n = a ^ n"
+  by (simp add: neg_power_if)
+
+lemma power_minus_odd [simp]:
+  "odd n \<Longrightarrow> (- a) ^ n = - (a ^ n)"
+  by (simp add: neg_power_if)
+
+lemma neg_one_even_power [simp]:
+  "even n \<Longrightarrow> (- 1) ^ n = 1"
+  by (simp add: neg_power_if)
+
+lemma neg_one_odd_power [simp]:
+  "odd n \<Longrightarrow> (- 1) ^ n = - 1"
+  by (simp_all add: neg_power_if)
+
+end  
+
+lemma zero_less_power_nat_eq_numeral [simp]: -- \<open>FIXME move\<close>
+  "0 < (n :: nat) ^ numeral w \<longleftrightarrow> 0 < n \<or> numeral w = (0 :: nat)"
+  by (fact nat_zero_less_power_iff)
+
+context linordered_idom
+begin
+
+lemma power_eq_0_iff' [simp]: -- \<open>FIXME move\<close>
+  "a ^ n = 0 \<longleftrightarrow> a = 0 \<and> n > 0"
+  by (induct n) auto
+
+lemma power2_less_eq_zero_iff [simp]: -- \<open>FIXME move\<close>
+  "a\<^sup>2 \<le> 0 \<longleftrightarrow> a = 0"
+proof (cases "a = 0")
+  case True then show ?thesis by simp
+next
+  case False then have "a < 0 \<or> a > 0" by auto
+  then have "a\<^sup>2 > 0" by auto
+  then have "\<not> a\<^sup>2 \<le> 0" by (simp add: not_le)
+  with False show ?thesis by simp
+qed
+
+lemma zero_le_even_power:
+  "even n \<Longrightarrow> 0 \<le> a ^ n"
+  by (auto simp add: even_def elim: dvd_class.dvdE)
+
+lemma zero_le_odd_power:
+  "odd n \<Longrightarrow> 0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a"
+  by (auto simp add: power_even_eq zero_le_mult_iff elim: oddE)
+
+lemma zero_le_power_iff [presburger]:
+  "0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a \<or> even n"
+proof (cases "even n")
+  case True
+  then have "2 dvd n" by (simp add: even_def)
+  then obtain k where "n = 2 * k" ..
+  thus ?thesis by (simp add: zero_le_even_power True)
+next
+  case False
+  then obtain k where "n = 2 * k + 1" ..
+  moreover have "a ^ (2 * k) \<le> 0 \<Longrightarrow> a = 0"
+    by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
+  ultimately show ?thesis
+    by (auto simp add: zero_le_mult_iff zero_le_even_power)
+qed
+
+lemma zero_le_power_eq [presburger]: -- \<open>FIXME weaker version of @{text zero_le_power_iff}\<close>
+  "0 \<le> a ^ n \<longleftrightarrow> even n \<or> odd n \<and> 0 \<le> a"
+  using zero_le_power_iff [of a n] by auto
+
+lemma zero_less_power_eq [presburger]:
+  "0 < a ^ n \<longleftrightarrow> n = 0 \<or> even n \<and> a \<noteq> 0 \<or> odd n \<and> 0 < a"
+proof -
+  have [simp]: "0 = a ^ n \<longleftrightarrow> a = 0 \<and> n > 0"
+    unfolding power_eq_0_iff' [of a n, symmetric] by blast
+  show ?thesis
+  unfolding less_le zero_le_power_iff by auto
+qed
+
+lemma power_less_zero_eq [presburger]:
+  "a ^ n < 0 \<longleftrightarrow> odd n \<and> a < 0"
+  unfolding not_le [symmetric] zero_le_power_eq by auto
+  
+lemma power_le_zero_eq [presburger]:
+  "a ^ n \<le> 0 \<longleftrightarrow> n > 0 \<and> (odd n \<and> a \<le> 0 \<or> even n \<and> a = 0)"
+  unfolding not_less [symmetric] zero_less_power_eq by auto 
+
+lemma power_even_abs:
+  "even n \<Longrightarrow> \<bar>a\<bar> ^ n = a ^ n"
+  using power_abs [of a n] by (simp add: zero_le_even_power)
+
+lemma power_mono_even:
+  assumes "even n" and "\<bar>a\<bar> \<le> \<bar>b\<bar>"
+  shows "a ^ n \<le> b ^ n"
+proof -
+  have "0 \<le> \<bar>a\<bar>" by auto
+  with `\<bar>a\<bar> \<le> \<bar>b\<bar>`
+  have "\<bar>a\<bar> ^ n \<le> \<bar>b\<bar> ^ n" by (rule power_mono)
+  with `even n` show ?thesis by (simp add: power_even_abs)  
+qed
+
+lemma power_mono_odd:
+  assumes "odd n" and "a \<le> b"
+  shows "a ^ n \<le> b ^ n"
+proof (cases "b < 0")
+  case True with `a \<le> b` have "- b \<le> - a" and "0 \<le> - b" by auto
+  hence "(- b) ^ n \<le> (- a) ^ n" by (rule power_mono)
+  with `odd n` show ?thesis by simp
+next
+  case False then have "0 \<le> b" by auto
+  show ?thesis
+  proof (cases "a < 0")
+    case True then have "n \<noteq> 0" and "a \<le> 0" using `odd n` [THEN odd_pos] by auto
+    then have "a ^ n \<le> 0" unfolding power_le_zero_eq using `odd n` by auto
+    moreover
+    from `0 \<le> b` have "0 \<le> b ^ n" by auto
+    ultimately show ?thesis by auto
+  next
+    case False then have "0 \<le> a" by auto
+    with `a \<le> b` show ?thesis using power_mono by auto
+  qed
+qed
+ 
+text {* Simplify, when the exponent is a numeral *}
+
+lemma zero_le_power_eq_numeral [simp]:
+  "0 \<le> a ^ numeral w \<longleftrightarrow> even (numeral w :: nat) \<or> odd (numeral w :: nat) \<and> 0 \<le> a"
+  by (fact zero_le_power_eq)
+
+lemma zero_less_power_eq_numeral [simp]:
+  "0 < a ^ numeral w \<longleftrightarrow> numeral w = (0 :: nat)
+    \<or> even (numeral w :: nat) \<and> a \<noteq> 0 \<or> odd (numeral w :: nat) \<and> 0 < a"
+  by (fact zero_less_power_eq)
+
+lemma power_le_zero_eq_numeral [simp]:
+  "a ^ numeral w \<le> 0 \<longleftrightarrow> (0 :: nat) < numeral w
+    \<and> (odd (numeral w :: nat) \<and> a \<le> 0 \<or> even (numeral w :: nat) \<and> a = 0)"
+  by (fact power_le_zero_eq)
+
+lemma power_less_zero_eq_numeral [simp]:
+  "a ^ numeral w < 0 \<longleftrightarrow> odd (numeral w :: nat) \<and> a < 0"
+  by (fact power_less_zero_eq)
+
+lemma power_eq_0_iff_numeral [simp]:
+  "a ^ numeral w = (0 :: nat) \<longleftrightarrow> a = 0 \<and> numeral w \<noteq> (0 :: nat)"
+  by (fact power_eq_0_iff)
+
+lemma power_even_abs_numeral [simp]:
+  "even (numeral w :: nat) \<Longrightarrow> \<bar>a\<bar> ^ numeral w = a ^ numeral w"
+  by (fact power_even_abs)
+
+end
 
 
 subsubsection {* Tools setup *}
@@ -390,150 +555,6 @@ lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)" by pres
 
 lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
   by presburger
-
-
-subsubsection {* Parity and powers *}
-
-lemma (in comm_ring_1) neg_power_if:
-  "(- a) ^ n = (if even n then (a ^ n) else - (a ^ n))"
-  by (induct n) simp_all
-
-lemma (in comm_ring_1)
-  shows neg_one_even_power [simp]: "even n \<Longrightarrow> (- 1) ^ n = 1"
-  and neg_one_odd_power [simp]: "odd n \<Longrightarrow> (- 1) ^ n = - 1"
-  by (simp_all add: neg_power_if)
-
-lemma zero_le_even_power: "even n ==>
-    0 <= (x::'a::{linordered_ring,monoid_mult}) ^ n"
-  apply (simp add: even_def)
-  apply (erule dvdE)
-  apply (erule ssubst)
-  unfolding mult.commute [of 2]
-  unfolding power_mult power2_eq_square
-  apply (rule zero_le_square)
-  done
-
-lemma zero_le_odd_power:
-  "odd n \<Longrightarrow> 0 \<le> (x::'a::{linordered_idom}) ^ n \<longleftrightarrow> 0 \<le> x"
-  by (erule oddE) (auto simp: power_add zero_le_mult_iff mult_2 order_antisym_conv)
-
-lemma zero_le_power_eq [presburger]: "(0 <= (x::'a::{linordered_idom}) ^ n) =
-    (even n | (odd n & 0 <= x))"
-  apply auto
-  apply (subst zero_le_odd_power [symmetric])
-  apply assumption+
-  apply (erule zero_le_even_power)
-  done
-
-lemma zero_less_power_eq[presburger]: "(0 < (x::'a::{linordered_idom}) ^ n) =
-    (n = 0 | (even n & x ~= 0) | (odd n & 0 < x))"
-  unfolding order_less_le zero_le_power_eq by auto
-
-lemma power_less_zero_eq[presburger]: "((x::'a::{linordered_idom}) ^ n < 0) =
-    (odd n & x < 0)"
-  apply (subst linorder_not_le [symmetric])+
-  apply (subst zero_le_power_eq)
-  apply auto
-  done
-
-lemma power_le_zero_eq[presburger]: "((x::'a::{linordered_idom}) ^ n <= 0) =
-    (n ~= 0 & ((odd n & x <= 0) | (even n & x = 0)))"
-  apply (subst linorder_not_less [symmetric])+
-  apply (subst zero_less_power_eq)
-  apply auto
-  done
-
-lemma power_even_abs: "even n ==>
-    (abs (x::'a::{linordered_idom}))^n = x^n"
-  apply (subst power_abs [symmetric])
-  apply (simp add: zero_le_even_power)
-  done
-
-lemma power_minus_even [simp]: "even n ==>
-    (- x)^n = (x^n::'a::{comm_ring_1})"
-  apply (subst power_minus)
-  apply simp
-  done
-
-lemma power_minus_odd [simp]: "odd n ==>
-    (- x)^n = - (x^n::'a::{comm_ring_1})"
-  apply (subst power_minus)
-  apply simp
-  done
-
-lemma power_mono_even: fixes x y :: "'a :: {linordered_idom}"
-  assumes "even n" and "\<bar>x\<bar> \<le> \<bar>y\<bar>"
-  shows "x^n \<le> y^n"
-proof -
-  have "0 \<le> \<bar>x\<bar>" by auto
-  with `\<bar>x\<bar> \<le> \<bar>y\<bar>`
-  have "\<bar>x\<bar>^n \<le> \<bar>y\<bar>^n" by (rule power_mono)
-  thus ?thesis unfolding power_even_abs[OF `even n`] .
-qed
-
-lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n" by presburger
-
-lemma power_mono_odd: fixes x y :: "'a :: {linordered_idom}"
-  assumes "odd n" and "x \<le> y"
-  shows "x^n \<le> y^n"
-proof (cases "y < 0")
-  case True with `x \<le> y` have "-y \<le> -x" and "0 \<le> -y" by auto
-  hence "(-y)^n \<le> (-x)^n" by (rule power_mono)
-  thus ?thesis unfolding power_minus_odd[OF `odd n`] by auto
-next
-  case False
-  show ?thesis
-  proof (cases "x < 0")
-    case True hence "n \<noteq> 0" and "x \<le> 0" using `odd n`[THEN odd_pos] by auto
-    hence "x^n \<le> 0" unfolding power_le_zero_eq using `odd n` by auto
-    moreover
-    from `\<not> y < 0` have "0 \<le> y" by auto
-    hence "0 \<le> y^n" by auto
-    ultimately show ?thesis by auto
-  next
-    case False hence "0 \<le> x" by auto
-    with `x \<le> y` show ?thesis using power_mono by auto
-  qed
-qed
-
-lemma (in linordered_idom) zero_le_power_iff [presburger]:
-  "0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a \<or> even n"
-proof (cases "even n")
-  case True
-  then have "2 dvd n" by (simp add: even_def)
-  then obtain k where "n = 2 * k" ..
-  thus ?thesis by (simp add: zero_le_even_power True)
-next
-  case False
-  then obtain k where "n = 2 * k + 1" ..
-  moreover have "a ^ (2 * k) \<le> 0 \<Longrightarrow> a = 0"
-    by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
-  ultimately show ?thesis
-    by (auto simp add: zero_le_mult_iff zero_le_even_power)
-qed
-
-text {* Simplify, when the exponent is a numeral *}
-
-lemmas zero_le_power_eq_numeral [simp] =
-  zero_le_power_eq [of _ "numeral w"] for w
-
-lemmas zero_less_power_eq_numeral [simp] =
-  zero_less_power_eq [of _ "numeral w"] for w
-
-lemmas power_le_zero_eq_numeral [simp] =
-  power_le_zero_eq [of _ "numeral w"] for w
-
-lemmas power_less_zero_eq_numeral [simp] =
-  power_less_zero_eq [of _ "numeral w"] for w
-
-lemmas zero_less_power_nat_eq_numeral [simp] =
-  nat_zero_less_power_iff [of _ "numeral w"] for w
-
-lemmas power_eq_0_iff_numeral [simp] =
-  power_eq_0_iff [of _ "numeral w"] for w
-
-lemmas power_even_abs_numeral [simp] =
-  power_even_abs [of "numeral w" _] for w
 
 end
 
