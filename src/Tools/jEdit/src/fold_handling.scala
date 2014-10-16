@@ -30,8 +30,8 @@ object Fold_Handling
       def depth(i: Text.Offset): Int =
         if (i < 0) 0
         else {
-          rendering.fold_depth(Text.Range(i, i + 1)).map(_.info) match {
-            case d :: _ => d
+          rendering.fold_depth(Text.Range(i, i + 1)) match {
+            case Text.Info(_, d) :: _ => d
             case _ => 0
           }
         }
