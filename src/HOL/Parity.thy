@@ -514,6 +514,14 @@ lemma [presburger]:
 
 subsubsection {* Miscellaneous *}
 
+lemma even_mult_two_ex:
+  "even(n) = (\<exists>m::nat. n = 2*m)"
+  by presburger
+
+lemma odd_Suc_mult_two_ex:
+  "odd(n) = (\<exists>m. n = Suc (2*m))"
+  by presburger
+
 lemma even_nat_plus_one_div_two:
   "even (x::nat) ==> (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)"
   by presburger
@@ -546,21 +554,28 @@ lemma odd_nat_div_two_times_two_plus_one:
   "odd (x::nat) ==> Suc (Suc (Suc 0) * (x div Suc (Suc 0))) = x"
   by presburger
 
-lemma even_mult_two_ex: "even(n) = (\<exists>m::nat. n = 2*m)" by presburger
-lemma odd_Suc_mult_two_ex: "odd(n) = (\<exists>m. n = Suc (2*m))" by presburger
-
-lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2"
+lemma lemma_even_div2 [simp]:
+  "even (n::nat) ==> (n + 1) div 2 = n div 2"
   by presburger
 
-lemma lemma_odd_div2 [simp]: "odd n ==> (n + 1) div 2 = Suc (n div 2)"
+lemma lemma_odd_div2 [simp]:
+  "odd n ==> (n + 1) div 2 = Suc (n div 2)"
   by presburger
 
-lemma even_num_iff: "0 < n ==> even n = (odd (n - 1 :: nat))" by presburger
-lemma even_even_mod_4_iff: "even (n::nat) = even (n mod 4)" by presburger
+lemma even_num_iff:
+  "0 < n ==> even n = (odd (n - 1 :: nat))"
+  by presburger
 
-lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)" by presburger
+lemma even_even_mod_4_iff:
+  "even (n::nat) = even (n mod 4)"
+  by presburger
 
-lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
+lemma lemma_odd_mod_4_div_2:
+  "n mod 4 = (3::nat) ==> odd((n - 1) div 2)"
+  by presburger
+
+lemma lemma_even_mod_4_div_2:
+  "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
   by presburger
 
 end
