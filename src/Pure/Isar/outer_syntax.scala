@@ -134,7 +134,8 @@ final class Outer_Syntax private(
     }
   }
 
-  def scan_line(input: CharSequence, context: Scan.Line_Context): (List[Token], Scan.Line_Context) =
+  def scan_line(input: CharSequence, context: Scan.Line_Context, depth: Int)
+    : (List[Token], Scan.Line_Context, Int) =
   {
     var in: Reader[Char] = new CharSequenceReader(input)
     val toks = new mutable.ListBuffer[Token]
@@ -146,7 +147,9 @@ final class Outer_Syntax private(
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
     }
-    (toks.toList, ctxt)
+
+    val depth1 = depth // FIXME
+    (toks.toList, ctxt, depth1)
   }
 
 

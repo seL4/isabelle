@@ -16,6 +16,23 @@ import javax.swing.text.Segment
 
 object Fold_Handling
 {
+  /* input: dynamic line context  */
+
+  class Fold_Handler extends FoldHandler("isabelle")
+  {
+    override def equals(other: Any): Boolean =
+      other match {
+        case that: Fold_Handler => true
+        case _ => false
+      }
+
+    override def getFoldLevel(buffer: JEditBuffer, line: Int, seg: Segment): Int =
+      Token_Markup.buffer_line_depth(buffer, line)
+  }
+
+
+  /* output: static document rendering */
+
   class Document_Fold_Handler(private val rendering: Rendering)
     extends FoldHandler("isabelle-document")
   {
