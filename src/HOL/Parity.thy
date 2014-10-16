@@ -197,6 +197,14 @@ abbreviation odd :: "'a \<Rightarrow> bool"
 where
   "odd a \<equiv> \<not> even a"
 
+lemma evenE [elim?]:
+  assumes "even a"
+  obtains b where "a = 2 * b"
+proof -
+  from assms have "2 dvd a" by (simp add: even_def)
+  then show thesis using that ..
+qed
+
 lemma oddE [elim?]:
   assumes "odd a"
   obtains b where "a = 2 * b + 1"
@@ -289,7 +297,7 @@ lemma even_Suc [simp, presburger, algebra]:
 
 lemma odd_pos: 
   "odd (n :: nat) \<Longrightarrow> 0 < n"
-  by (auto simp add: even_def intro: classical)
+  by (auto elim: oddE)
   
 lemma even_diff_nat [simp]:
   fixes m n :: nat
@@ -310,25 +318,25 @@ subsubsection {* Parity and powers *}
 context comm_ring_1
 begin
 
-lemma neg_power_if:
-  "(- a) ^ n = (if even n then a ^ n else - (a ^ n))"
-  by (induct n) simp_all
-
 lemma power_minus_even [simp]:
   "even n \<Longrightarrow> (- a) ^ n = a ^ n"
-  by (simp add: neg_power_if)
+  by (auto elim: evenE)
 
 lemma power_minus_odd [simp]:
   "odd n \<Longrightarrow> (- a) ^ n = - (a ^ n)"
-  by (simp add: neg_power_if)
+  by (auto elim: oddE)
+
+lemma neg_power_if:
+  "(- a) ^ n = (if even n then a ^ n else - (a ^ n))"
+  by simp
 
 lemma neg_one_even_power [simp]:
   "even n \<Longrightarrow> (- 1) ^ n = 1"
-  by (simp add: neg_power_if)
+  by simp
 
 lemma neg_one_odd_power [simp]:
   "odd n \<Longrightarrow> (- 1) ^ n = - 1"
-  by (simp_all add: neg_power_if)
+  by simp
 
 end  
 
@@ -356,7 +364,7 @@ qed
 
 lemma zero_le_even_power:
   "even n \<Longrightarrow> 0 \<le> a ^ n"
-  by (auto simp add: even_def elim: dvd_class.dvdE)
+  by (auto elim: evenE)
 
 lemma zero_le_odd_power:
   "odd n \<Longrightarrow> 0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a"
@@ -366,9 +374,8 @@ lemma zero_le_power_iff [presburger]:
   "0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a \<or> even n"
 proof (cases "even n")
   case True
-  then have "2 dvd n" by (simp add: even_def)
   then obtain k where "n = 2 * k" ..
-  thus ?thesis by (simp add: zero_le_even_power True)
+  then show ?thesis by simp
 next
   case False
   then obtain k where "n = 2 * k + 1" ..
