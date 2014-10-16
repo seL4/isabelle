@@ -19,6 +19,20 @@ lemma two_dvd_Suc_iff:
   "2 dvd Suc n \<longleftrightarrow> \<not> 2 dvd n"
   by (induct n) auto
 
+lemma two_dvd_diff_nat_iff:
+  fixes m n :: nat
+  shows "2 dvd m - n \<longleftrightarrow> m < n \<or> 2 dvd m + n"
+proof (cases "n \<le> m")
+  case True
+  then have "m - n + n * 2 = m + n" by simp
+  moreover have "2 dvd m - n \<longleftrightarrow> 2 dvd m - n + n * 2" by simp
+  ultimately have "2 dvd m - n \<longleftrightarrow> 2 dvd m + n" by (simp only:)
+  then show ?thesis by auto
+next
+  case False
+  then show ?thesis by simp
+qed 
+  
 lemma two_dvd_diff_iff:
   fixes k l :: int
   shows "2 dvd k - l \<longleftrightarrow> 2 dvd k + l"
@@ -267,26 +281,63 @@ lemma even_iff_mod_2_eq_zero [presburger]:
 end
 
 
-subsubsection {* Particularities for @{typ nat}/@{typ int} *}
+subsubsection {* Particularities for @{typ nat} and @{typ int} *}
+
+lemma even_Suc [simp, presburger, algebra]:
+  "even (Suc n) = odd n"
+  by (simp add: even_def two_dvd_Suc_iff)
+
+lemma even_diff_nat [simp]:
+  fixes m n :: nat
+  shows "even (m - n) \<longleftrightarrow> m < n \<or> even (m + n)"
+  by (simp add: even_def two_dvd_diff_nat_iff)
 
 lemma even_int_iff:
   "even (int n) \<longleftrightarrow> even n"
   by (simp add: even_def dvd_int_iff)
 
-declare transfer_morphism_int_nat [transfer add return:
-  even_int_iff
-]
+lemma even_nat_iff:
+  "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
+  by (simp add: even_int_iff [symmetric])
 
 
 subsubsection {* Tools setup *}
+
+declare transfer_morphism_int_nat [transfer add return:
+  even_int_iff
+]
 
 lemma [presburger]:
   "even n \<longleftrightarrow> even (int n)"
   using even_int_iff [of n] by simp
 
-lemma [presburger]:
+lemma (in semiring_parity) [presburger]:
   "even (a + b) \<longleftrightarrow> even a \<and> even b \<or> odd a \<and> odd b"
   by auto
+
+lemma [presburger, algebra]:
+  fixes m n :: nat
+  shows "even (m - n) \<longleftrightarrow> m < n \<or> even m \<and> even n \<or> odd m \<and> odd n"
+  by auto
+
+lemma [presburger, algebra]:
+  fixes m n :: nat
+  shows "even (m ^ n) \<longleftrightarrow> even m \<and> 0 < n"
+  by simp
+
+lemma [presburger]:
+  fixes k :: int
+  shows "(k + 1) div 2 = k div 2 \<longleftrightarrow> even k"
+  by presburger
+
+lemma [presburger]:
+  fixes k :: int
+  shows "(k + 1) div 2 = k div 2 + 1 \<longleftrightarrow> odd k"
+  by presburger
+  
+lemma [presburger]:
+  "Suc n div Suc (Suc 0) = n div Suc (Suc 0) \<longleftrightarrow> even n"
+  by presburger
 
 
 subsubsection {* Legacy cruft *}
@@ -294,52 +345,29 @@ subsubsection {* Legacy cruft *}
 
 subsubsection {* Equivalent definitions *}
 
-lemma two_times_even_div_two:
-  "even (x::int) ==> 2 * (x div 2) = x" 
+lemma even_nat_mod_two_eq_zero:
+  "even (x::nat) ==> x mod Suc (Suc 0) = 0"
   by presburger
 
-lemma two_times_odd_div_two_plus_one:
-  "odd (x::int) ==> 2 * (x div 2) + 1 = x"
-  by presburger
-  
-
-subsubsection {* even and odd for nats *}
-
-lemma pos_int_even_equiv_nat_even: "0 \<le> x ==> even x = even (nat x)"
-by (simp add: even_int_iff [symmetric])
-
-lemma even_difference_nat [simp,presburger,algebra]:
-  "even ((x::nat) - y) = (x < y | (even x & even y) | (odd x & odd y))"
+lemma odd_nat_mod_two_eq_one:
+  "odd (x::nat) ==> x mod Suc (Suc 0) = Suc 0"
   by presburger
 
-lemma even_Suc [simp ,presburger, algebra]:
-  "even (Suc x) = odd x"
+lemma even_nat_equiv_def:
+  "even (x::nat) = (x mod Suc (Suc 0) = 0)"
   by presburger
 
-lemma even_power_nat[simp,presburger,algebra]:
-  "even ((x::nat)^y) = (even x & 0 < y)"
-  by simp
+lemma odd_nat_equiv_def:
+  "odd (x::nat) = (x mod Suc (Suc 0) = Suc 0)"
+  by presburger
 
+lemma even_nat_div_two_times_two:
+  "even (x::nat) ==> Suc (Suc 0) * (x div Suc (Suc 0)) = x"
+  by presburger
 
-subsubsection {* Equivalent definitions *}
-
-lemma even_nat_mod_two_eq_zero: "even (x::nat) ==> x mod (Suc (Suc 0)) = 0"
-by presburger
-
-lemma odd_nat_mod_two_eq_one: "odd (x::nat) ==> x mod (Suc (Suc 0)) = Suc 0"
-by presburger
-
-lemma even_nat_equiv_def: "even (x::nat) = (x mod Suc (Suc 0) = 0)"
-by presburger
-
-lemma odd_nat_equiv_def: "odd (x::nat) = (x mod Suc (Suc 0) = Suc 0)"
-by presburger
-
-lemma even_nat_div_two_times_two: "even (x::nat) ==>
-    Suc (Suc 0) * (x div Suc (Suc 0)) = x" by presburger
-
-lemma odd_nat_div_two_times_two_plus_one: "odd (x::nat) ==>
-    Suc( Suc (Suc 0) * (x div Suc (Suc 0))) = x" by presburger
+lemma odd_nat_div_two_times_two_plus_one:
+  "odd (x::nat) ==> Suc (Suc (Suc 0) * (x div Suc (Suc 0))) = x"
+  by presburger
 
 
 subsubsection {* Parity and powers *}
@@ -452,12 +480,13 @@ subsubsection {* More Even/Odd Results *}
 lemma even_mult_two_ex: "even(n) = (\<exists>m::nat. n = 2*m)" by presburger
 lemma odd_Suc_mult_two_ex: "odd(n) = (\<exists>m. n = Suc (2*m))" by presburger
 
-lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2" by presburger
+lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2"
+  by presburger
 
-lemma lemma_not_even_div2 [simp]: "~even n ==> (n + 1) div 2 = Suc (n div 2)"
-by presburger
+lemma lemma_odd_div2 [simp]: "odd n ==> (n + 1) div 2 = Suc (n div 2)"
+  by presburger
 
-lemma even_num_iff: "0 < n ==> even n = (~ even(n - 1 :: nat))"  by presburger
+lemma even_num_iff: "0 < n ==> even n = (odd (n - 1 :: nat))" by presburger
 lemma even_even_mod_4_iff: "even (n::nat) = even (n mod 4)" by presburger
 
 lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)" by presburger
@@ -510,17 +539,13 @@ qed
 
 subsubsection {* Miscellaneous *}
 
-lemma [presburger]:"(x + 1) div 2 = x div 2 \<longleftrightarrow> even (x::int)" by presburger
-lemma [presburger]: "(x + 1) div 2 = x div 2 + 1 \<longleftrightarrow> odd (x::int)" by presburger
-lemma even_plus_one_div_two: "even (x::int) ==> (x + 1) div 2 = x div 2"  by presburger
-lemma odd_plus_one_div_two: "odd (x::int) ==> (x + 1) div 2 = x div 2 + 1" by presburger
+lemma even_nat_plus_one_div_two:
+  "even (x::nat) ==> (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)"
+  by presburger
 
-lemma [presburger]: "(Suc x) div Suc (Suc 0) = x div Suc (Suc 0) \<longleftrightarrow> even x" by presburger
-lemma even_nat_plus_one_div_two: "even (x::nat) ==>
-    (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)" by presburger
-
-lemma odd_nat_plus_one_div_two: "odd (x::nat) ==>
-    (Suc x) div Suc (Suc 0) = Suc (x div Suc (Suc 0))" by presburger
+lemma odd_nat_plus_one_div_two:
+  "odd (x::nat) ==> (Suc x) div Suc (Suc 0) = Suc (x div Suc (Suc 0))"
+  by presburger
 
 end
 
