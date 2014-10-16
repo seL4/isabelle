@@ -340,10 +340,15 @@ lemma [presburger]:
   by presburger
 
 
-subsubsection {* Legacy cruft *}
+subsubsection {* Miscellaneous *}
 
+lemma even_nat_plus_one_div_two:
+  "even (x::nat) ==> (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)"
+  by presburger
 
-subsubsection {* Equivalent definitions *}
+lemma odd_nat_plus_one_div_two:
+  "odd (x::nat) ==> (Suc x) div Suc (Suc 0) = Suc (x div Suc (Suc 0))"
+  by presburger
 
 lemma even_nat_mod_two_eq_zero:
   "even (x::nat) ==> x mod Suc (Suc 0) = 0"
@@ -367,6 +372,23 @@ lemma even_nat_div_two_times_two:
 
 lemma odd_nat_div_two_times_two_plus_one:
   "odd (x::nat) ==> Suc (Suc (Suc 0) * (x div Suc (Suc 0))) = x"
+  by presburger
+
+lemma even_mult_two_ex: "even(n) = (\<exists>m::nat. n = 2*m)" by presburger
+lemma odd_Suc_mult_two_ex: "odd(n) = (\<exists>m. n = Suc (2*m))" by presburger
+
+lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2"
+  by presburger
+
+lemma lemma_odd_div2 [simp]: "odd n ==> (n + 1) div 2 = Suc (n div 2)"
+  by presburger
+
+lemma even_num_iff: "0 < n ==> even n = (odd (n - 1 :: nat))" by presburger
+lemma even_even_mod_4_iff: "even (n::nat) = even (n mod 4)" by presburger
+
+lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)" by presburger
+
+lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
   by presburger
 
 
@@ -474,25 +496,21 @@ next
   qed
 qed
 
-
-subsubsection {* More Even/Odd Results *}
- 
-lemma even_mult_two_ex: "even(n) = (\<exists>m::nat. n = 2*m)" by presburger
-lemma odd_Suc_mult_two_ex: "odd(n) = (\<exists>m. n = Suc (2*m))" by presburger
-
-lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2"
-  by presburger
-
-lemma lemma_odd_div2 [simp]: "odd n ==> (n + 1) div 2 = Suc (n div 2)"
-  by presburger
-
-lemma even_num_iff: "0 < n ==> even n = (odd (n - 1 :: nat))" by presburger
-lemma even_even_mod_4_iff: "even (n::nat) = even (n mod 4)" by presburger
-
-lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)" by presburger
-
-lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
-  by presburger
+lemma (in linordered_idom) zero_le_power_iff [presburger]:
+  "0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a \<or> even n"
+proof (cases "even n")
+  case True
+  then have "2 dvd n" by (simp add: even_def)
+  then obtain k where "n = 2 * k" ..
+  thus ?thesis by (simp add: zero_le_even_power True)
+next
+  case False
+  then obtain k where "n = 2 * k + 1" ..
+  moreover have "a ^ (2 * k) \<le> 0 \<Longrightarrow> a = 0"
+    by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
+  ultimately show ?thesis
+    by (auto simp add: zero_le_mult_iff zero_le_even_power)
+qed
 
 text {* Simplify, when the exponent is a numeral *}
 
@@ -516,36 +534,6 @@ lemmas power_eq_0_iff_numeral [simp] =
 
 lemmas power_even_abs_numeral [simp] =
   power_even_abs [of "numeral w" _] for w
-
-
-subsubsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}
-
-lemma zero_le_power_iff[presburger]:
-  "(0 \<le> a^n) = (0 \<le> (a::'a::{linordered_idom}) | even n)"
-proof cases
-  assume even: "even n"
-  then have "2 dvd n" by (simp add: even_def)
-  then obtain k where "n = 2 * k" ..
-  thus ?thesis by (simp add: zero_le_even_power even)
-next
-  assume odd: "odd n"
-  then obtain k where "n = 2 * k + 1" ..
-  moreover have "a ^ (2 * k) \<le> 0 \<Longrightarrow> a = 0"
-    by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
-  ultimately show ?thesis
-    by (auto simp add: zero_le_mult_iff zero_le_even_power)
-qed
-
-
-subsubsection {* Miscellaneous *}
-
-lemma even_nat_plus_one_div_two:
-  "even (x::nat) ==> (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)"
-  by presburger
-
-lemma odd_nat_plus_one_div_two:
-  "odd (x::nat) ==> (Suc x) div Suc (Suc 0) = Suc (x div Suc (Suc 0))"
-  by presburger
 
 end
 
