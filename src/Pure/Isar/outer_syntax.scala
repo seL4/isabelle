@@ -43,10 +43,15 @@ object Outer_Syntax
 
   object Line_Structure
   {
-    val init = Line_Structure(0, 0)
+    val init = Line_Structure()
   }
 
-  sealed case class Line_Structure(depth_before: Int, depth: Int)
+  sealed case class Line_Structure(
+    improper: Boolean = true,
+    command: Boolean = false,
+    depth: Int = 0,
+    span_depth: Int = 0,
+    after_span_depth: Int = 0)
 }
 
 final class Outer_Syntax private(
@@ -150,21 +155,29 @@ final class Outer_Syntax private(
 
   /* line-oriented structure */
 
-  def line_structure(tokens: List[Token], depth: Int): Outer_Syntax.Line_Structure =
+  def line_structure(tokens: List[Token], struct: Outer_Syntax.Line_Structure)
+    : Outer_Syntax.Line_Structure =
   {
+    val improper1 = tokens.forall(_.is_improper)
+    val command1 = tokens.exists(_.is_command)
+
     val depth1 =
       if (tokens.exists(tok => command_kind(tok, Keyword.theory))) 0
-      else depth
-    val depth2 =
-      (depth /: tokens) { case (d, tok) =>
-        if (command_kind(tok, Keyword.theory_goal)) 1
-        else if (command_kind(tok, Keyword.theory)) 0
-        else if (command_kind(tok, Keyword.proof_goal)) d + 1
-        else if (command_kind(tok, Keyword.qed)) d - 1
-        else if (command_kind(tok, Keyword.qed_global)) 0
-        else d
+      else if (command1) struct.after_span_depth
+      else struct.span_depth
+
+    val (span_depth1, after_span_depth1) =
+      ((struct.span_depth, struct.after_span_depth) /: tokens) {
+        case ((d0, d), tok) =>
+          if (command_kind(tok, Keyword.theory_goal)) (2, 1)
+          else if (command_kind(tok, Keyword.theory)) (1, 0)
+          else if (command_kind(tok, Keyword.proof_goal)) (d + 2, d + 1)
+          else if (command_kind(tok, Keyword.qed)) (d + 1, d - 1)
+          else if (command_kind(tok, Keyword.qed_global)) (1, 0)
+          else (d0, d)
       }
-    Outer_Syntax.Line_Structure(depth1, depth2)
+
+    Outer_Syntax.Line_Structure(improper1, command1, depth1, span_depth1, after_span_depth1)
   }
 
 
@@ -197,7 +210,7 @@ final class Outer_Syntax private(
       }
     }
     val tokens = toks.toList
-    (tokens, ctxt, line_structure(tokens, structure.depth))
+    (tokens, ctxt, line_structure(tokens, structure))
   }
 
 

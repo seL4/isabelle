@@ -9,9 +9,11 @@ package isabelle.jedit
 
 import isabelle._
 
-import org.gjt.sp.jedit.buffer.{JEditBuffer, FoldHandler}
-
 import javax.swing.text.Segment
+
+import scala.collection.convert.WrapAsJava
+
+import org.gjt.sp.jedit.buffer.{JEditBuffer, FoldHandler}
 
 
 object Fold_Handling
@@ -27,7 +29,22 @@ object Fold_Handling
       }
 
     override def getFoldLevel(buffer: JEditBuffer, line: Int, seg: Segment): Int =
-      Token_Markup.buffer_line_structure(buffer, line).depth_before
+      Token_Markup.buffer_line_structure(buffer, line).depth max 0
+
+    override def getPrecedingFoldLevels(
+      buffer: JEditBuffer, line: Int, seg: Segment, level: Int): java.util.List[Integer] =
+    {
+      val struct = Token_Markup.buffer_line_structure(buffer, line)
+      val result =
+        if (line > 0 && struct.command)
+          Range.inclusive(line - 1, 0, -1).iterator.
+            map(Token_Markup.buffer_line_structure(buffer, _)).
+            takeWhile(_.improper).map(_ => struct.depth max 0).toList
+        else Nil
+
+      if (result.isEmpty) null
+      else WrapAsJava.seqAsJavaList(result.map(i => new Integer(i)))
+    }
   }
 
 
