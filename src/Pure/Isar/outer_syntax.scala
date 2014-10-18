@@ -37,6 +37,21 @@ object Outer_Syntax
   val empty: Outer_Syntax = new Outer_Syntax()
 
   def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
+
+
+  /* line-oriented structure */
+
+  object Line_Structure
+  {
+    val init = Line_Structure()
+  }
+
+  sealed case class Line_Structure(
+    improper: Boolean = true,
+    command: Boolean = false,
+    depth: Int = 0,
+    span_depth: Int = 0,
+    after_span_depth: Int = 0)
 }
 
 final class Outer_Syntax private(
@@ -54,8 +69,24 @@ final class Outer_Syntax private(
         (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
     }).toList.sorted.mkString("keywords\n  ", " and\n  ", "")
 
+
+  /* keyword kind */
+
   def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
   def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
+
+  def is_command(name: String): Boolean =
+    keyword_kind(name) match {
+      case Some(kind) => kind != Keyword.MINOR
+      case None => false
+    }
+
+  def command_kind(token: Token, pred: String => Boolean): Boolean =
+    token.is_command && is_command(token.source) &&
+      pred(keyword_kind(token.source).get)
+
+
+  /* load commands */
 
   def load_command(name: String): Option[List[String]] =
     keywords.get(name) match {
@@ -68,6 +99,9 @@ final class Outer_Syntax private(
 
   def load_commands_in(text: String): Boolean =
     load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
+
+
+  /* add keywords */
 
   def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =
   {
@@ -99,11 +133,8 @@ final class Outer_Syntax private(
           (Symbol.encode(name), replace)
     }
 
-  def is_command(name: String): Boolean =
-    keyword_kind(name) match {
-      case Some(kind) => kind != Keyword.MINOR
-      case None => false
-    }
+
+  /* document headings */
 
   def heading_level(name: String): Option[Int] =
   {
@@ -122,6 +153,37 @@ final class Outer_Syntax private(
     heading_level(command.name)
 
 
+  /* line-oriented structure */
+
+  def line_structure(tokens: List[Token], struct: Outer_Syntax.Line_Structure)
+    : Outer_Syntax.Line_Structure =
+  {
+    val improper1 = tokens.forall(_.is_improper)
+    val command1 = tokens.exists(_.is_command)
+
+    val depth1 =
+      if (tokens.exists(tok => command_kind(tok, Keyword.theory))) 0
+      else if (command1) struct.after_span_depth
+      else struct.span_depth
+
+    val (span_depth1, after_span_depth1) =
+      ((struct.span_depth, struct.after_span_depth) /: tokens) {
+        case ((x, y), tok) =>
+          if (tok.is_command) {
+            if (command_kind(tok, Keyword.theory_goal)) (2, 1)
+            else if (command_kind(tok, Keyword.theory)) (1, 0)
+            else if (command_kind(tok, Keyword.proof_goal) || tok.source == "{") (y + 2, y + 1)
+            else if (command_kind(tok, Keyword.qed) || tok.source == "}") (y + 1, y - 1)
+            else if (command_kind(tok, Keyword.qed_global)) (1, 0)
+            else (x, y)
+          }
+          else (x, y)
+      }
+
+    Outer_Syntax.Line_Structure(improper1, command1, depth1, span_depth1, after_span_depth1)
+  }
+
+
   /* token language */
 
   def scan(input: CharSequence): List[Token] =
@@ -134,7 +196,11 @@ final class Outer_Syntax private(
     }
   }
 
-  def scan_line(input: CharSequence, context: Scan.Line_Context): (List[Token], Scan.Line_Context) =
+  def scan_line(
+    input: CharSequence,
+    context: Scan.Line_Context,
+    structure: Outer_Syntax.Line_Structure)
+    : (List[Token], Scan.Line_Context, Outer_Syntax.Line_Structure) =
   {
     var in: Reader[Char] = new CharSequenceReader(input)
     val toks = new mutable.ListBuffer[Token]
@@ -146,7 +212,8 @@ final class Outer_Syntax private(
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
     }
-    (toks.toList, ctxt)
+    val tokens = toks.toList
+    (tokens, ctxt, line_structure(tokens, structure))
   }
 
 

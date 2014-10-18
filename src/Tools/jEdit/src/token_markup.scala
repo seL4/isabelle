@@ -15,8 +15,8 @@ import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.jedit.{jEdit, Mode}
-import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, ParserRuleSet,
-  ModeProvider, XModeHandler, SyntaxStyle}
+import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, DummyTokenHandler,
+  ParserRuleSet, ModeProvider, XModeHandler, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.{TextArea, Selection}
 import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 
@@ -175,32 +175,41 @@ object Token_Markup
 
   /* line context */
 
-  class Generic_Line_Context[C](rules: ParserRuleSet, val context: Option[C])
-    extends TokenMarker.LineContext(rules, null)
+  private val context_rules = new ParserRuleSet("isabelle", "MAIN")
+
+  class Line_Context(
+      val context: Option[Scan.Line_Context],
+      val structure: Outer_Syntax.Line_Structure)
+    extends TokenMarker.LineContext(context_rules, null)
   {
-    override def hashCode: Int = context.hashCode
+    override def hashCode: Int = (context, structure).hashCode
     override def equals(that: Any): Boolean =
       that match {
-        case other: Line_Context => context == other.context
+        case other: Line_Context => context == other.context && structure == other.structure
         case _ => false
       }
   }
 
-  def buffer_line_context[C](buffer: JEditBuffer, line: Int): Option[Generic_Line_Context[C]] =
+  def buffer_line_context(buffer: JEditBuffer, line: Int): Option[Line_Context] =
     Untyped.get(buffer, "lineMgr") match {
       case line_mgr: LineManager =>
-        line_mgr.getLineContext(line) match {
-          case ctxt: Generic_Line_Context[C] => Some(ctxt)
-          case _ => None
+        def context =
+          line_mgr.getLineContext(line) match {
+            case c: Line_Context => Some(c)
+            case _ => None
+          }
+        context orElse {
+          buffer.markTokens(line, DummyTokenHandler.INSTANCE)
+          context
         }
       case _ => None
     }
 
-
-  private val context_rules = new ParserRuleSet("isabelle", "MAIN")
-
-  private class Line_Context(context: Option[Scan.Line_Context])
-    extends Generic_Line_Context[Scan.Line_Context](context_rules, context)
+  def buffer_line_structure(buffer: JEditBuffer, line: Int): Outer_Syntax.Line_Structure =
+    buffer_line_context(buffer, line) match {
+      case Some(c) => c.structure
+      case _ => Outer_Syntax.Line_Structure.init
+    }
 
 
   /* token marker */
@@ -210,38 +219,31 @@ object Token_Markup
     override def markTokens(context: TokenMarker.LineContext,
         handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
     {
-      val line_ctxt =
+      val (opt_ctxt, structure) =
         context match {
-          case c: Line_Context => c.context
-          case _ => Some(Scan.Finished)
+          case c: Line_Context => (c.context, c.structure)
+          case _ => (Some(Scan.Finished), Outer_Syntax.Line_Structure.init)
         }
       val line = if (raw_line == null) new Segment else raw_line
 
       val context1 =
       {
-        def no_context =
-        {
-          val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
-          (List(styled_token), new Line_Context(None))
-        }
         val (styled_tokens, context1) =
-          if (mode == "isabelle-ml" || mode == "sml") {
-            if (line_ctxt.isDefined) {
-              val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, line_ctxt.get)
+          (opt_ctxt, Isabelle.mode_syntax(mode)) match {
+            case (Some(ctxt), _) if mode == "isabelle-ml" || mode == "sml" =>
+              val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, ctxt)
               val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
-              (styled_tokens, new Line_Context(Some(ctxt1)))
-            }
-            else no_context
-          }
-          else {
-            Isabelle.mode_syntax(mode) match {
-              case Some(syntax) if syntax.has_tokens && line_ctxt.isDefined =>
-                val (tokens, ctxt1) = syntax.scan_line(line, line_ctxt.get)
-                val styled_tokens =
-                  tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
-                (styled_tokens, new Line_Context(Some(ctxt1)))
-              case _ => no_context
-            }
+              (styled_tokens, new Line_Context(Some(ctxt1), structure))
+
+            case (Some(ctxt), Some(syntax)) if syntax.has_tokens =>
+              val (tokens, ctxt1, structure1) = syntax.scan_line(line, ctxt, structure)
+              val styled_tokens =
+                tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
+              (styled_tokens, new Line_Context(Some(ctxt1), structure1))
+
+            case _ =>
+              val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
+              (List(styled_token), new Line_Context(None, structure))
           }
 
         val extended = extended_styles(line)
@@ -267,6 +269,7 @@ object Token_Markup
         handler.handleToken(line, JEditToken.END, line.count, 0, context1)
         context1
       }
+
       val context2 = context1.intern
       handler.setLineContext(context2)
       context2
