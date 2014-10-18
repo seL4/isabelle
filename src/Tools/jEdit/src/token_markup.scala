@@ -15,8 +15,8 @@ import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.jedit.{jEdit, Mode}
-import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, ParserRuleSet,
-  ModeProvider, XModeHandler, SyntaxStyle}
+import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, DummyTokenHandler,
+  ParserRuleSet, ModeProvider, XModeHandler, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.{TextArea, Selection}
 import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 
@@ -193,9 +193,14 @@ object Token_Markup
   def buffer_line_context(buffer: JEditBuffer, line: Int): Option[Line_Context] =
     Untyped.get(buffer, "lineMgr") match {
       case line_mgr: LineManager =>
-        line_mgr.getLineContext(line) match {
-          case c: Line_Context => Some(c)
-          case _ => None
+        def context =
+          line_mgr.getLineContext(line) match {
+            case c: Line_Context => Some(c)
+            case _ => None
+          }
+        context orElse {
+          buffer.markTokens(line, DummyTokenHandler.INSTANCE)
+          context
         }
       case _ => None
     }
