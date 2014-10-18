@@ -168,13 +168,16 @@ final class Outer_Syntax private(
 
     val (span_depth1, after_span_depth1) =
       ((struct.span_depth, struct.after_span_depth) /: tokens) {
-        case ((d0, d), tok) =>
-          if (command_kind(tok, Keyword.theory_goal)) (2, 1)
-          else if (command_kind(tok, Keyword.theory)) (1, 0)
-          else if (command_kind(tok, Keyword.proof_goal)) (d + 2, d + 1)
-          else if (command_kind(tok, Keyword.qed)) (d + 1, d - 1)
-          else if (command_kind(tok, Keyword.qed_global)) (1, 0)
-          else (d0, d)
+        case ((x, y), tok) =>
+          if (tok.is_command) {
+            if (command_kind(tok, Keyword.theory_goal)) (2, 1)
+            else if (command_kind(tok, Keyword.theory)) (1, 0)
+            else if (command_kind(tok, Keyword.proof_goal) || tok.source == "{") (y + 2, y + 1)
+            else if (command_kind(tok, Keyword.qed) || tok.source == "}") (y + 1, y - 1)
+            else if (command_kind(tok, Keyword.qed_global)) (1, 0)
+            else (x, y)
+          }
+          else (x, y)
       }
 
     Outer_Syntax.Line_Structure(improper1, command1, depth1, span_depth1, after_span_depth1)
