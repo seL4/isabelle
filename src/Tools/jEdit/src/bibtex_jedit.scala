@@ -155,7 +155,7 @@ object Bibtex_JEdit
 
   private class Line_Context(context: Option[Bibtex.Line_Context])
     extends Token_Markup.Generic_Line_Context[Bibtex.Line_Context](
-      context_rules, context, Outer_Syntax.Line_Nesting.init)
+      context_rules, context, Outer_Syntax.Line_Structure.init)
 
 
   /* token marker */

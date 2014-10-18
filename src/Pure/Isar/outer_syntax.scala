@@ -39,14 +39,14 @@ object Outer_Syntax
   def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
 
 
-  /* line nesting */
+  /* line-oriented structure */
 
-  object Line_Nesting
+  object Line_Structure
   {
-    val init = Line_Nesting(0, 0)
+    val init = Line_Structure(0, 0)
   }
 
-  sealed case class Line_Nesting(depth_before: Int, depth: Int)
+  sealed case class Line_Structure(depth_before: Int, depth: Int)
 }
 
 final class Outer_Syntax private(
@@ -148,9 +148,9 @@ final class Outer_Syntax private(
     heading_level(command.name)
 
 
-  /* line nesting */
+  /* line-oriented structure */
 
-  def line_nesting(tokens: List[Token], depth: Int): Outer_Syntax.Line_Nesting =
+  def line_structure(tokens: List[Token], depth: Int): Outer_Syntax.Line_Structure =
   {
     val depth1 =
       if (tokens.exists(tok => command_kind(tok, Keyword.theory))) 0
@@ -164,7 +164,7 @@ final class Outer_Syntax private(
         else if (command_kind(tok, Keyword.qed_global)) 0
         else d
       }
-    Outer_Syntax.Line_Nesting(depth1, depth2)
+    Outer_Syntax.Line_Structure(depth1, depth2)
   }
 
 
@@ -180,8 +180,11 @@ final class Outer_Syntax private(
     }
   }
 
-  def scan_line(input: CharSequence, context: Scan.Line_Context, nesting: Outer_Syntax.Line_Nesting)
-    : (List[Token], Scan.Line_Context, Outer_Syntax.Line_Nesting) =
+  def scan_line(
+    input: CharSequence,
+    context: Scan.Line_Context,
+    structure: Outer_Syntax.Line_Structure)
+    : (List[Token], Scan.Line_Context, Outer_Syntax.Line_Structure) =
   {
     var in: Reader[Char] = new CharSequenceReader(input)
     val toks = new mutable.ListBuffer[Token]
@@ -194,7 +197,7 @@ final class Outer_Syntax private(
       }
     }
     val tokens = toks.toList
-    (tokens, ctxt, line_nesting(tokens, nesting.depth))
+    (tokens, ctxt, line_structure(tokens, structure.depth))
   }
 
 
