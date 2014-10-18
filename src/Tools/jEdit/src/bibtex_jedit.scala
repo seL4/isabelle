@@ -153,8 +153,16 @@ object Bibtex_JEdit
 
   private val context_rules = new ParserRuleSet("bibtex", "MAIN")
 
-  private class Line_Context(context: Option[Bibtex.Line_Context])
-    extends Token_Markup.Generic_Line_Context[Bibtex.Line_Context](context_rules, context)
+  private class Line_Context(val context: Option[Bibtex.Line_Context])
+    extends TokenMarker.LineContext(context_rules, null)
+  {
+    override def hashCode: Int = context.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Line_Context => context == other.context
+        case _ => false
+      }
+  }
 
 
   /* token marker */

@@ -175,42 +175,39 @@ object Token_Markup
 
   /* line context */
 
-  class Generic_Line_Context[C](rules: ParserRuleSet, val context: Option[C])
-    extends TokenMarker.LineContext(rules, null)
+  private val context_rules = new ParserRuleSet("isabelle", "MAIN")
+
+  class Line_Context(
+      val context: Option[Scan.Line_Context],
+      val structure: Outer_Syntax.Line_Structure)
+    extends TokenMarker.LineContext(context_rules, null)
   {
-    override def hashCode: Int = context.hashCode
+    override def hashCode: Int = (context, structure).hashCode
     override def equals(that: Any): Boolean =
       that match {
-        case other: Generic_Line_Context[_] => context == other.context
+        case other: Line_Context => context == other.context && structure == other.structure
         case _ => false
       }
   }
 
-  def buffer_line_context[C](buffer: JEditBuffer, line: Int): Option[Generic_Line_Context[C]] =
+  def buffer_line_context(buffer: JEditBuffer, line: Int): Option[Line_Context] =
     Untyped.get(buffer, "lineMgr") match {
       case line_mgr: LineManager =>
         line_mgr.getLineContext(line) match {
-          case c: Generic_Line_Context[C] => Some(c)
+          case c: Line_Context => Some(c)
           case _ => None
         }
       case _ => None
     }
 
-
-  /* token marker */
-
-  private val context_rules = new ParserRuleSet("isabelle", "MAIN")
-
-  private class Line_Context(
-      context: Option[Scan.Line_Context],
-      val structure: Outer_Syntax.Line_Structure)
-    extends Generic_Line_Context[Scan.Line_Context](context_rules, context)
-
   def buffer_line_structure(buffer: JEditBuffer, line: Int): Outer_Syntax.Line_Structure =
-    buffer_line_context[Scan.Line_Context](buffer, line) match {
-      case Some(c: Line_Context) => c.structure
+    buffer_line_context(buffer, line) match {
+      case Some(c) => c.structure
       case _ => Outer_Syntax.Line_Structure.init
     }
+
+
+  /* token marker */
 
   class Marker(mode: String) extends TokenMarker
   {
