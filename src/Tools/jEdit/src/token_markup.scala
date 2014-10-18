@@ -175,17 +175,13 @@ object Token_Markup
 
   /* line context */
 
-  class Generic_Line_Context[C](
-      rules: ParserRuleSet,
-      val context: Option[C],
-      val structure: Outer_Syntax.Line_Structure)
+  class Generic_Line_Context[C](rules: ParserRuleSet, val context: Option[C])
     extends TokenMarker.LineContext(rules, null)
   {
-    override def hashCode: Int = (context, structure).hashCode
+    override def hashCode: Int = context.hashCode
     override def equals(that: Any): Boolean =
       that match {
-        case other: Generic_Line_Context[_] =>
-          context == other.context && structure == other.structure
+        case other: Generic_Line_Context[_] => context == other.context
         case _ => false
       }
   }
@@ -200,12 +196,6 @@ object Token_Markup
       case _ => None
     }
 
-  def buffer_line_structure(buffer: JEditBuffer, line: Int): Outer_Syntax.Line_Structure =
-    buffer_line_context(buffer, line) match {
-      case Some(c) => c.structure
-      case None => Outer_Syntax.Line_Structure.init
-    }
-
 
   /* token marker */
 
@@ -213,8 +203,14 @@ object Token_Markup
 
   private class Line_Context(
       context: Option[Scan.Line_Context],
-      structure: Outer_Syntax.Line_Structure)
-    extends Generic_Line_Context[Scan.Line_Context](context_rules, context, structure)
+      val structure: Outer_Syntax.Line_Structure)
+    extends Generic_Line_Context[Scan.Line_Context](context_rules, context)
+
+  def buffer_line_structure(buffer: JEditBuffer, line: Int): Outer_Syntax.Line_Structure =
+    buffer_line_context[Scan.Line_Context](buffer, line) match {
+      case Some(c: Line_Context) => c.structure
+      case _ => Outer_Syntax.Line_Structure.init
+    }
 
   class Marker(mode: String) extends TokenMarker
   {
