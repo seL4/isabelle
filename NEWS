@@ -18,6 +18,7 @@ semantics due to external visual order vs. internal reverse order.
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
 * Improved folding mode "isabelle" based on Isar syntax.
+Alternatively, the "sidekick" mode may be used for document structure.
 
 * Support for BibTeX files: context menu, context-sensitive token
 marker, SideKick parser.
