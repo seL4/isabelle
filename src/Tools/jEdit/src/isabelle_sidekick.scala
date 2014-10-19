@@ -115,13 +115,6 @@ class Isabelle_Sidekick_Structure(
               i + doc.length
             })
           List(node)
-
-        case Outer_Syntax.Document_Atom(command)
-        if command.is_proper && syntax.heading_level(command).isEmpty =>
-          val node =
-            new DefaultMutableTreeNode(
-              new Isabelle_Sidekick.Asset(command.name, offset, offset + document.length))
-          List(node)
         case _ => Nil
       }
 
