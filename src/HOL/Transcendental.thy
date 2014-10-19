@@ -2275,7 +2275,7 @@ lemma sin_coeff_Suc: "sin_coeff (Suc n) = cos_coeff n / real (Suc n)"
 
 lemma cos_coeff_Suc: "cos_coeff (Suc n) = - sin_coeff n / real (Suc n)"
   unfolding cos_coeff_def sin_coeff_def
-  by (simp del: mult_Suc, auto simp add: odd_Suc_mult_two_ex)
+  by (simp del: mult_Suc) (auto elim: oddE)
 
 lemma summable_sin: "summable (\<lambda>n. sin_coeff n * x ^ n)"
   unfolding sin_coeff_def
@@ -2863,24 +2863,30 @@ lemma sin_zero_lemma:
       \<exists>n::nat. even n & x = real n * (pi/2)"
 apply (subgoal_tac "\<exists>n::nat. ~ even n & x + pi/2 = real n * (pi/2) ")
  apply (clarify, rule_tac x = "n - 1" in exI)
- apply (force simp add: odd_Suc_mult_two_ex real_of_nat_Suc distrib_right)
-apply (rule cos_zero_lemma)
-apply (simp_all add: cos_add)
+ apply (auto elim!: oddE simp add: real_of_nat_Suc field_simps)[1]
+ apply (rule cos_zero_lemma)
+ apply (auto simp add: cos_add)
 done
-
 
 lemma cos_zero_iff:
      "(cos x = 0) =
       ((\<exists>n::nat. ~even n & (x = real n * (pi/2))) |
        (\<exists>n::nat. ~even n & (x = -(real n * (pi/2)))))"
-apply (rule iffI)
-apply (cut_tac linorder_linear [of 0 x], safe)
-apply (drule cos_zero_lemma, assumption+)
-apply (cut_tac x="-x" in cos_zero_lemma, simp, simp)
-apply (force simp add: minus_equation_iff [of x])
-apply (auto simp only: odd_Suc_mult_two_ex real_of_nat_Suc distrib_right)
-apply (auto simp add: cos_diff cos_add)
-done
+proof -
+  { fix n :: nat
+    assume "odd n"
+    then obtain m where "n = 2 * m + 1" ..
+    then have "cos (real n * pi / 2) = 0"
+      by (simp add: field_simps real_of_nat_Suc) (simp add: cos_add add_divide_distrib)
+  } note * = this
+  show ?thesis
+  apply (rule iffI)
+  apply (cut_tac linorder_linear [of 0 x], safe)
+  apply (drule cos_zero_lemma, assumption+)
+  apply (cut_tac x="-x" in cos_zero_lemma, simp, simp)
+  apply (auto dest: *)
+  done
+qed
 
 (* ditto: but to a lesser extent *)
 lemma sin_zero_iff:
@@ -2892,7 +2898,7 @@ apply (cut_tac linorder_linear [of 0 x], safe)
 apply (drule sin_zero_lemma, assumption+)
 apply (cut_tac x="-x" in sin_zero_lemma, simp, simp, safe)
 apply (force simp add: minus_equation_iff [of x])
-apply (auto simp add: even_mult_two_ex)
+apply (auto elim: evenE)
 done
 
 lemma cos_monotone_0_pi:
@@ -3623,7 +3629,7 @@ lemma DERIV_cos_add [simp]: "DERIV (\<lambda>x. cos (x + k)) xa :> - sin (xa + k
   by (auto intro!: derivative_eq_intros)
 
 lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
-  by (auto simp add: sin_zero_iff even_mult_two_ex)
+  by (auto simp add: sin_zero_iff elim: evenE)
 
 lemma cos_one_sin_zero: "cos x = 1 ==> sin x = 0"
   using sin_cos_squared_add3 [where x = x] by auto
@@ -3973,8 +3979,8 @@ proof -
         proof (cases "even n")
           case True
           hence sgn_pos: "(-1)^n = (1::real)" by auto
-          from `even n` obtain m where "2 * m = n"
-            unfolding even_mult_two_ex by auto
+          from `even n` obtain m where "n = 2 * m" ..
+          then have "2 * m = n" ..
           from bounds[of m, unfolded this atLeastAtMost_iff]
           have "\<bar>arctan x - (\<Sum>i<n. (?c x i))\<bar> \<le> (\<Sum>i<n + 1. (?c x i)) - (\<Sum>i<n. (?c x i))"
             by auto
@@ -3984,8 +3990,8 @@ proof -
         next
           case False
           hence sgn_neg: "(-1)^n = (-1::real)" by auto
-          from `odd n` obtain m where m_def: "2 * m + 1 = n"
-            unfolding odd_Suc_mult_two_ex by auto
+          from `odd n` obtain m where "n = 2 * m + 1" ..
+          then have m_def: "2 * m + 1 = n" ..
           hence m_plus: "2 * (m + 1) = n + 1" by auto
           from bounds[of "m + 1", unfolded this atLeastAtMost_iff, THEN conjunct1] bounds[of m, unfolded m_def atLeastAtMost_iff, THEN conjunct2]
           have "\<bar>arctan x - (\<Sum>i<n. (?c x i))\<bar> \<le> (\<Sum>i<n. (?c x i)) - (\<Sum>i<n+1. (?c x i))"

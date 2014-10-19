@@ -3600,8 +3600,7 @@ proof -
   { fix n :: nat
     {
       assume en: "even n"
-      from en obtain m where m: "n = 2 * m"
-        unfolding even_mult_two_ex by blast
+      from en obtain m where m: "n = 2 * m" ..
 
       have "?l $n = ?r$n"
         by (simp add: m fps_sin_def fps_cos_def power_mult_distrib power_mult power_minus [of "c ^ 2"])

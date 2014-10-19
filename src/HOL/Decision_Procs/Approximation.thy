@@ -137,8 +137,11 @@ lemma get_even[simp]: "even (get_even n)" unfolding get_even_def by (cases "even
 lemma get_odd_ex: "\<exists> k. Suc k = get_odd n \<and> odd (Suc k)"
   by (auto simp: get_odd_def odd_pos intro!: exI[of _ "n - 1"])
 
-lemma get_even_double: "\<exists>i. get_even n = 2 * i" using get_even[unfolded even_mult_two_ex] .
-lemma get_odd_double: "\<exists>i. get_odd n = 2 * i + 1" using get_odd[unfolded odd_Suc_mult_two_ex] by auto
+lemma get_even_double:
+  "\<exists>i. get_even n = 2 * i" using get_even by (blast elim: evenE)
+
+lemma get_odd_double:
+  "\<exists>i. get_odd n = 2 * i + 1" using get_odd by (blast elim: oddE)
 
 section "Power function"
 
@@ -363,7 +366,7 @@ proof -
   let ?S = "\<lambda>n. \<Sum> i=0..<n. ?c i"
 
   have "0 \<le> real (x * x)" by auto
-  from `even n` obtain m where "2 * m = n" unfolding even_mult_two_ex by auto
+  from `even n` obtain m where "2 * m = n" by (blast elim: evenE)
 
   have "arctan x \<in> { ?S n .. ?S (Suc n) }"
   proof (cases "real x = 0")

@@ -732,8 +732,8 @@ proof -
     hence cos: "cos d = 1" unfolding d_def cos_diff by simp
     moreover from cos have "sin d = 0" by (rule cos_one_sin_zero)
     ultimately have "d = 0"
-      unfolding sin_zero_iff even_mult_two_ex
-      by (auto simp add: numeral_2_eq_2 less_Suc_eq)
+      unfolding sin_zero_iff
+      by (auto simp add: numeral_2_eq_2 less_Suc_eq elim!: evenE)
     thus "a = x" unfolding d_def by simp
   qed (simp add: assms del: Re_sgn Im_sgn)
   with `z \<noteq> 0` show "arg z = x"

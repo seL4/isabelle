@@ -514,14 +514,6 @@ lemma [presburger]:
 
 subsubsection {* Miscellaneous *}
 
-lemma even_mult_two_ex:
-  "even(n) = (\<exists>m::nat. n = 2*m)"
-  by presburger
-
-lemma odd_Suc_mult_two_ex:
-  "odd(n) = (\<exists>m. n = Suc (2*m))"
-  by presburger
-
 lemma even_nat_plus_one_div_two:
   "even (x::nat) ==> (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)"
   by presburger

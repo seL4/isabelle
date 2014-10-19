@@ -429,8 +429,7 @@ lemma sqrt_even_pow2:
   assumes n: "even n"
   shows "sqrt (2 ^ n) = 2 ^ (n div 2)"
 proof -
-  from n obtain m where m: "n = 2 * m"
-    unfolding even_mult_two_ex ..
+  from n obtain m where m: "n = 2 * m" ..
   from m have "sqrt (2 ^ n) = sqrt ((2 ^ m)\<^sup>2)"
     by (simp only: power_mult[symmetric] mult.commute)
   then show ?thesis

@@ -425,7 +425,7 @@ apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
-apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
+apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE)
 done
 
 lemma Maclaurin_sin_expansion:
@@ -450,7 +450,7 @@ apply (force intro!: derivative_eq_intros)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
-apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
+apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE)
 done
 
 lemma Maclaurin_sin_expansion4:
@@ -467,7 +467,7 @@ apply (force intro!: derivative_eq_intros)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
-apply (auto simp add: sin_coeff_def sin_zero_iff odd_Suc_mult_two_ex)
+apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE)
 done
 
 
@@ -497,7 +497,7 @@ apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
-apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
+apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
 done
 
 lemma Maclaurin_cos_expansion2:
@@ -513,7 +513,7 @@ apply (simp (no_asm) add: cos_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
-apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
+apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
 done
 
 lemma Maclaurin_minus_cos_expansion:
@@ -529,7 +529,7 @@ apply (simp (no_asm) add: cos_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
-apply (auto simp add: cos_coeff_def cos_zero_iff even_mult_two_ex)
+apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
 done
 
 (* ------------------------------------------------------------------------- *)

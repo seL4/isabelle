@@ -941,7 +941,7 @@ proof -
                    filterlim_at_top_imp_at_infinity filterlim_ident filterlim_pow_at_top filterlim_ident)
              auto
         also have "(\<lambda>x. ((x\<^sup>2)^(k div 2 + 1) / exp (x\<^sup>2)) * (1 / x) :: real) = ?M (k + 1)"
-          using `even k` by (auto simp: even_mult_two_ex fun_eq_iff exp_minus field_simps power2_eq_square power_mult)
+          using `even k` by (auto simp: fun_eq_iff exp_minus field_simps power2_eq_square power_mult elim: evenE)
         finally show ?thesis by simp
       next
         assume "odd k"
@@ -950,7 +950,7 @@ proof -
                     filterlim_ident filterlim_pow_at_top)
              auto
         also have "(\<lambda>x. ((x\<^sup>2)^((k - 1) div 2 + 1) / exp (x\<^sup>2)) :: real) = ?M (k + 1)"
-          using `odd k` by (auto simp: odd_Suc_mult_two_ex fun_eq_iff exp_minus field_simps power2_eq_square power_mult)
+          using `odd k` by (auto simp: fun_eq_iff exp_minus field_simps power2_eq_square power_mult elim: oddE)
         finally show ?thesis by simp
       qed
     qed
@@ -1126,19 +1126,19 @@ lemma integrable_normal_moment_nz_1: "integrable lborel (\<lambda>x. normal_dens
 lemma integrable_normal_moment: "integrable lborel (\<lambda>x. normal_density \<mu> \<sigma> x * (x - \<mu>)^k)"
 proof cases
   assume "even k" then show ?thesis
-    using integrable.intros[OF normal_moment_even] by (auto simp add: even_mult_two_ex)
+    using integrable.intros[OF normal_moment_even] by (auto elim: evenE)
 next
   assume "odd k" then show ?thesis
-    using integrable.intros[OF normal_moment_odd] by (auto simp add: odd_Suc_mult_two_ex)
+    using integrable.intros[OF normal_moment_odd] by (auto elim: oddE)
 qed
 
 lemma integrable_normal_moment_abs: "integrable lborel (\<lambda>x. normal_density \<mu> \<sigma> x * \<bar>x - \<mu>\<bar>^k)"
 proof cases
   assume "even k" then show ?thesis
-    using integrable.intros[OF normal_moment_even] by (auto simp add: even_mult_two_ex power_even_abs)
+    using integrable.intros[OF normal_moment_even] by (auto simp add: power_even_abs elim: evenE)
 next
   assume "odd k" then show ?thesis
-    using integrable.intros[OF normal_moment_abs_odd] by (auto simp add: odd_Suc_mult_two_ex)
+    using integrable.intros[OF normal_moment_abs_odd] by (auto elim: oddE)
 qed
 
 lemma integrable_normal_density[simp, intro]: "integrable lborel (normal_density \<mu> \<sigma>)"
