@@ -101,32 +101,34 @@ class Isabelle_Sidekick_Structure(
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
-    def make_tree(offset: Text.Offset, entry: Thy_Structure.Entry): List[DefaultMutableTreeNode] =
-      entry match {
-        case Thy_Structure.Block(name, body) =>
+    def make_tree(offset: Text.Offset, document: Outer_Syntax.Document)
+        : List[DefaultMutableTreeNode] =
+      document match {
+        case Outer_Syntax.Document_Block(name, body) =>
           val node =
             new DefaultMutableTreeNode(
-              new Isabelle_Sidekick.Asset(Library.first_line(name), offset, offset + entry.length))
-          (offset /: body)((i, e) =>
+              new Isabelle_Sidekick.Asset(
+                Library.first_line(name), offset, offset + document.length))
+          (offset /: body)((i, doc) =>
             {
-              make_tree(i, e) foreach (nd => node.add(nd))
-              i + e.length
+              for (nd <- make_tree(i, doc)) node.add(nd)
+              i + doc.length
             })
           List(node)
-        case Thy_Structure.Atom(command)
+
+        case Outer_Syntax.Document_Atom(command)
         if command.is_proper && syntax.heading_level(command).isEmpty =>
           val node =
             new DefaultMutableTreeNode(
-              new Isabelle_Sidekick.Asset(command.name, offset, offset + entry.length))
+              new Isabelle_Sidekick.Asset(command.name, offset, offset + document.length))
           List(node)
         case _ => Nil
       }
 
     node_name(buffer) match {
       case Some(name) =>
-        val text = JEdit_Lib.buffer_text(buffer)
-        val structure = Thy_Structure.parse(syntax, name, text)
-        make_tree(0, structure) foreach (node => data.root.add(node))
+        val document = syntax.parse_document(name, JEdit_Lib.buffer_text(buffer))
+        for (node <- make_tree(0, document)) data.root.add(node)
         true
       case None => false
     }

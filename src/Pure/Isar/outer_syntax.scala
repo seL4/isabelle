@@ -9,10 +9,20 @@ package isabelle
 
 import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.collection.mutable
+import scala.annotation.tailrec
 
 
 object Outer_Syntax
 {
+  /* syntax */
+
+  val empty: Outer_Syntax = new Outer_Syntax()
+
+  def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
+
+
+  /* string literals */
+
   def quote_string(str: String): String =
   {
     val result = new StringBuilder(str.length + 10)
@@ -34,10 +44,6 @@ object Outer_Syntax
     result.toString
   }
 
-  val empty: Outer_Syntax = new Outer_Syntax()
-
-  def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
-
 
   /* line-oriented structure */
 
@@ -52,6 +58,19 @@ object Outer_Syntax
     depth: Int = 0,
     span_depth: Int = 0,
     after_span_depth: Int = 0)
+
+
+  /* overall document structure */
+
+  sealed abstract class Document { def length: Int }
+  case class Document_Block(val name: String, val body: List[Document]) extends Document
+  {
+    val length: Int = (0 /: body)(_ + _.length)
+  }
+  case class Document_Atom(val command: Command) extends Document
+  {
+    def length: Int = command.length
+  }
 }
 
 final class Outer_Syntax private(
@@ -61,6 +80,8 @@ final class Outer_Syntax private(
   val language_context: Completion.Language_Context = Completion.Language_Context.outer,
   val has_tokens: Boolean = true) extends Prover.Syntax
 {
+  /** syntax content **/
+
   override def toString: String =
     (for ((name, (kind, files)) <- keywords) yield {
       if (kind == Keyword.MINOR) quote(name)
@@ -134,24 +155,23 @@ final class Outer_Syntax private(
     }
 
 
-  /* document headings */
+  /* language context */
 
-  def heading_level(name: String): Option[Int] =
+  def set_language_context(context: Completion.Language_Context): Outer_Syntax =
+    new Outer_Syntax(keywords, lexicon, completion, context, has_tokens)
+
+  def no_tokens: Outer_Syntax =
   {
-    keyword_kind(name) match {
-      case _ if name == "header" => Some(0)
-      case Some(Keyword.THY_HEADING1) => Some(1)
-      case Some(Keyword.THY_HEADING2) | Some(Keyword.PRF_HEADING2) => Some(2)
-      case Some(Keyword.THY_HEADING3) | Some(Keyword.PRF_HEADING3) => Some(3)
-      case Some(Keyword.THY_HEADING4) | Some(Keyword.PRF_HEADING4) => Some(4)
-      case Some(kind) if Keyword.theory(kind) => Some(5)
-      case _ => None
-    }
+    require(keywords.isEmpty && lexicon.isEmpty)
+    new Outer_Syntax(
+      completion = completion,
+      language_context = language_context,
+      has_tokens = false)
   }
 
-  def heading_level(command: Command): Option[Int] =
-    heading_level(command.name)
 
+
+  /** parsing **/
 
   /* line-oriented structure */
 
@@ -217,7 +237,7 @@ final class Outer_Syntax private(
   }
 
 
-  /* parse_spans */
+  /* command spans */
 
   def parse_spans(toks: List[Token]): List[Command_Span.Span] =
   {
@@ -258,17 +278,65 @@ final class Outer_Syntax private(
     parse_spans(scan(input))
 
 
-  /* language context */
+  /* overall document structure */
 
-  def set_language_context(context: Completion.Language_Context): Outer_Syntax =
-    new Outer_Syntax(keywords, lexicon, completion, context, has_tokens)
-
-  def no_tokens: Outer_Syntax =
+  def heading_level(command: Command): Option[Int] =
   {
-    require(keywords.isEmpty && lexicon.isEmpty)
-    new Outer_Syntax(
-      completion = completion,
-      language_context = language_context,
-      has_tokens = false)
+    keyword_kind(command.name) match {
+      case _ if command.name == "header" => Some(0)
+      case Some(Keyword.THY_HEADING1) => Some(1)
+      case Some(Keyword.THY_HEADING2) | Some(Keyword.PRF_HEADING2) => Some(2)
+      case Some(Keyword.THY_HEADING3) | Some(Keyword.PRF_HEADING3) => Some(3)
+      case Some(Keyword.THY_HEADING4) | Some(Keyword.PRF_HEADING4) => Some(4)
+      case Some(kind) if Keyword.theory(kind) => Some(5)
+      case _ => None
+    }
+  }
+
+  def parse_document(node_name: Document.Node.Name, text: CharSequence): Outer_Syntax.Document =
+  {
+    /* stack operations */
+
+    def buffer(): mutable.ListBuffer[Outer_Syntax.Document] =
+      new mutable.ListBuffer[Outer_Syntax.Document]
+
+    var stack: List[(Int, String, mutable.ListBuffer[Outer_Syntax.Document])] =
+      List((0, node_name.toString, buffer()))
+
+    @tailrec def close(level: Int => Boolean)
+    {
+      stack match {
+        case (lev, name, body) :: (_, _, body2) :: rest if level(lev) =>
+          body2 += Outer_Syntax.Document_Block(name, body.toList)
+          stack = stack.tail
+          close(level)
+        case _ =>
+      }
+    }
+
+    def result(): Outer_Syntax.Document =
+    {
+      close(_ => true)
+      val (_, name, body) = stack.head
+      Outer_Syntax.Document_Block(name, body.toList)
+    }
+
+    def add(command: Command)
+    {
+      heading_level(command) match {
+        case Some(i) =>
+          close(_ > i)
+          stack = (i + 1, command.source, buffer()) :: stack
+        case None =>
+      }
+      stack.head._3 += Outer_Syntax.Document_Atom(command)
+    }
+
+
+    /* result structure */
+
+    val spans = parse_spans(text)
+    spans.foreach(span => add(Command(Document_ID.none, node_name, Nil, span)))
+    result()
   }
 }
