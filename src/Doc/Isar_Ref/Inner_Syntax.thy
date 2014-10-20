@@ -1588,7 +1588,7 @@ text \<open>The parse tree is the raw output of the parser.  It is
   @{text "('a, 'b)ty"} & @{verbatim "(ty 'a 'b)"} \\
   @{text "\<lambda>x y z. t"} & @{verbatim \<open>("_abs" x ("_abs" y ("_abs" z t)))\<close>} \\
   @{text "\<lambda>x :: 'a. t"} & @{verbatim \<open>("_abs" ("_constrain" x 'a) t)\<close>} \\
-  @{text "\<lbrakk>P; Q; R\<rbrakk> \<Longrightarrow> S"} & @{verbatim \<open>("==>" P ("==>" Q ("==>" R S)))\<close>} \\
+  @{text "\<lbrakk>P; Q; R\<rbrakk> \<Longrightarrow> S"} & @{verbatim \<open>("Pure.imp" P ("Pure.imp" Q ("Pure.imp" R S)))\<close>} \\
    @{text "['a, 'b, 'c] \<Rightarrow> 'd"} & @{verbatim \<open>("fun" 'a ("fun" 'b ("fun" 'c 'd)))\<close>} \\
   \end{tabular}
   \end{center}
