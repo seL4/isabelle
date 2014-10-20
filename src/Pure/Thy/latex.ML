@@ -39,7 +39,7 @@ val output_ascii =
       | "\t" => "\\ "
       | "\n" => "\\isanewline\n"
       | s =>
-          if exists_string (fn s' => s = s') "#$%^&_{}~\\"
+          if exists_string (fn s' => s = s') "#$%^&_{}~\\<>"
           then enclose "{\\char`\\" "}" s else s);
 
 
