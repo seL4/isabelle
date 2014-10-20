@@ -191,7 +191,7 @@ begin
 
 definition even :: "'a \<Rightarrow> bool"
 where
-  [algebra]: "even a \<longleftrightarrow> 2 dvd a"
+  [presburger, algebra]: "even a \<longleftrightarrow> 2 dvd a"
 
 abbreviation odd :: "'a \<Rightarrow> bool"
 where
@@ -298,7 +298,7 @@ next
   with False show ?thesis by auto
 qed
 
-lemma even_iff_mod_2_eq_zero [presburger]:
+lemma even_iff_mod_2_eq_zero:
   "even a \<longleftrightarrow> a mod 2 = 0"
   by (simp add: even_def dvd_eq_mod_eq_0)
 
