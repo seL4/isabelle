@@ -19,7 +19,9 @@ struct
 fun props_of (loc: PolyML.location) =
   (case YXML.parse_body (#file loc) of
     [] => []
-  | [XML.Text file] => [(Markup.fileN, file)]
+  | [XML.Text file] =>
+      if file = "Standard Basis" then []
+      else [(Markup.fileN, file)]
   | body => XML.Decode.properties body);
 
 fun position_of loc =

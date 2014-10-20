@@ -34,7 +34,8 @@ sig
   val maybe_pretty_source: (Proof.context -> 'a -> Pretty.T) -> Proof.context ->
     Token.src -> 'a list -> Pretty.T list
   val output: Proof.context -> Pretty.T list -> string
-  val verb_text: string -> string
+  val verbatim_text: Proof.context -> string -> string
+  val enclose_isabelle_tt: Proof.context -> string -> string
 end;
 
 structure Thy_Output: THY_OUTPUT =
@@ -469,6 +470,10 @@ val _ = Theory.setup
 fun tweak_line ctxt s =
   if Config.get ctxt display then s else Symbol.strip_blanks s;
 
+fun tweak_lines ctxt s =
+  if Config.get ctxt display then s
+  else s |> split_lines |> map Symbol.strip_blanks |> space_implode " ";
+
 fun pretty_text ctxt =
   Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o split_lines;
 
@@ -542,15 +547,15 @@ fun maybe_pretty_source pretty ctxt src xs =
 
 fun output ctxt prts =
   prts
-  |> (if Config.get ctxt quotes then map Pretty.quote else I)
+  |> Config.get ctxt quotes ? map Pretty.quote
   |> (if Config.get ctxt display then
-    map (Output.output o Pretty.string_of o Pretty.indent (Config.get ctxt indent))
-    #> space_implode "\\isasep\\isanewline%\n"
-    #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
-  else
-    map (Output.output o (if Config.get ctxt break then Pretty.string_of else Pretty.str_of))
-    #> space_implode "\\isasep\\isanewline%\n"
-    #> enclose "\\isa{" "}");
+        map (Output.output o Pretty.string_of o Pretty.indent (Config.get ctxt indent))
+        #> space_implode "\\isasep\\isanewline%\n"
+        #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+      else
+        map (Output.output o (if Config.get ctxt break then Pretty.string_of else Pretty.str_of))
+        #> space_implode "\\isasep\\isanewline%\n"
+        #> enclose "\\isa{" "}");
 
 
 
@@ -636,23 +641,31 @@ val _ = Theory.setup
       in output ctxt (maybe_pretty_source pretty_term ctxt prop_src [prop]) end));
 
 
-(* ML text *)
+(* verbatim text *)
 
-val verb_text =
-  split_lines
-  #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
-  #> space_implode "\\isasep\\isanewline%\n";
+fun enclose_isabelle_tt ctxt =
+  if Config.get ctxt display
+  then enclose "\\begin{isabellett}%\n" "%\n\\end{isabellett}"
+  else enclose "\\isatt{" "}";
+
+fun verbatim_text ctxt =
+  tweak_lines ctxt
+  #> Latex.output_ascii
+  #> enclose_isabelle_tt ctxt;
+
+val _ = Theory.setup
+  (antiquotation @{binding verbatim} (Scan.lift Args.text) (verbatim_text o #context));
+
+
+(* ML text *)
 
 local
 
 fun ml_text name ml = antiquotation name (Scan.lift Args.text_source_position)
-  (fn {context, ...} => fn source =>
-   (ML_Context.eval_in (SOME context) ML_Compiler.flags (#pos source) (ml source);
-    Symbol_Pos.source_content source
-    |> #1
-    |> (if Config.get context quotes then quote else I)
-    |> (if Config.get context display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
-        else verb_text)));
+  (fn {context = ctxt, ...} => fn source =>
+   (ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (#pos source) (ml source);
+    Symbol_Pos.source_content source |> #1
+    |> verbatim_text ctxt));
 
 fun ml_enclose bg en source =
   ML_Lex.read Position.none bg @
