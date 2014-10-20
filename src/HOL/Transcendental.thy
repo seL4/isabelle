@@ -200,14 +200,10 @@ proof (rule LIMSEQ_I)
     have "?SUM (2 * (m div 2)) = ?SUM m"
     proof (cases "even m")
       case True
-      show ?thesis
-        unfolding even_nat_div_two_times_two[OF True, unfolded numeral_2_eq_2[symmetric]] ..
+      then show ?thesis by (auto simp add: even_two_times_div_two)
     next
       case False
-      hence "even (Suc m)" by auto
-      from even_nat_div_two_times_two[OF this, unfolded numeral_2_eq_2[symmetric]]
-        odd_nat_plus_one_div_two[OF False, unfolded numeral_2_eq_2[symmetric]]
-      have eq: "Suc (2 * (m div 2)) = m" by auto
+      then have eq: "Suc (2 * (m div 2)) = m" by (simp add: odd_two_times_div_two_Suc)
       hence "even (2 * (m div 2))" using `odd m` by auto
       have "?SUM m = ?SUM (Suc (2 * (m div 2)))" unfolding eq ..
       also have "\<dots> = ?SUM (2 * (m div 2))" using `even (2 * (m div 2))` by auto
@@ -321,9 +317,7 @@ proof -
       have "norm (?Sa n - l) < r"
       proof (cases "even n")
         case True
-        from even_nat_div_two_times_two[OF this]
-        have n_eq: "2 * (n div 2) = n"
-          unfolding numeral_2_eq_2[symmetric] by auto
+        then have n_eq: "2 * (n div 2) = n" by (simp add: even_two_times_div_two)
         with `n \<ge> 2 * f_no` have "n div 2 \<ge> f_no"
           by auto
         from f[OF this] show ?thesis
@@ -331,9 +325,8 @@ proof -
       next
         case False
         hence "even (n - 1)" by simp
-        from even_nat_div_two_times_two[OF this]
-        have n_eq: "2 * ((n - 1) div 2) = n - 1"
-          unfolding numeral_2_eq_2[symmetric] by auto
+        then have n_eq: "2 * ((n - 1) div 2) = n - 1"
+          by (simp add: even_two_times_div_two)
         hence range_eq: "n - 1 + 1 = n"
           using odd_pos[OF False] by auto
 

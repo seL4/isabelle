@@ -140,19 +140,17 @@ where
     mkPX (sqr A) (x + x) (sqr B) \<oplus> mkPX (Pc (1 + 1) \<otimes> A \<otimes> mkPinj 1 B) x (Pc 0)"
 
 text {* Fast Exponentation *}
+
 fun pow :: "nat \<Rightarrow> 'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
 where
-  "pow 0 P = Pc 1"
-| "pow n P =
-    (if even n then pow (n div 2) (sqr P)
-     else P \<otimes> pow (n div 2) (sqr P))"
-
-lemma pow_if:
-  "pow n P =
+  pow_if [simp del]: "pow n P =
    (if n = 0 then Pc 1 else if even n then pow (n div 2) (sqr P)
     else P \<otimes> pow (n div 2) (sqr P))"
-  by (cases n) simp_all
 
+lemma pow_simps [simp]:    
+  "pow 0 P = Pc 1"
+  "pow (Suc n) P = (if odd n then pow (Suc n div 2) (sqr P) else P \<otimes> pow (Suc n div 2) (sqr P))"
+  by (simp_all add: pow_if)
 
 text {* Normalization of polynomial expressions *}
 
@@ -244,7 +242,8 @@ lemma sqr_ci: "Ipol ls (sqr P) = Ipol ls P * Ipol ls P"
     (simp_all add: add_ci mkPinj_ci mkPX_ci mul_ci algebra_simps power_add)
 
 text {* Power *}
-lemma even_pow:"even n \<Longrightarrow> pow n P = pow (n div 2) (sqr P)"
+lemma even_pow:
+  "even n \<Longrightarrow> pow n P = pow (n div 2) (sqr P)"
   by (induct n) simp_all
 
 lemma pow_ci: "Ipol ls (pow n P) = Ipol ls P ^ n"
@@ -260,12 +259,12 @@ proof (induct n arbitrary: P rule: nat_less_induct)
     proof cases
       assume "even l"
       then have "Suc l div 2 = l div 2"
-        by (simp add: eval_nat_numeral even_nat_plus_one_div_two)
+        by simp
       moreover
       from Suc have "l < k" by simp
       with 1 have "\<And>P. Ipol ls (pow l P) = Ipol ls P ^ l" by simp
       moreover
-      note Suc `even l` even_nat_plus_one_div_two
+      note Suc `even l`
       ultimately show ?thesis by (auto simp add: mul_ci even_pow)
     next
       assume "odd l"
@@ -278,8 +277,8 @@ proof (induct n arbitrary: P rule: nat_less_induct)
         next
           case (Suc w)
           with `odd l` have "even w" by simp
-          have two_times: "2 * (w div 2) = w"
-            by (simp only: numerals even_nat_div_two_times_two [OF `even w`])
+          then have two_times: "2 * (w div 2) = w"
+            by (simp add: even_two_times_div_two)
           have "Ipol ls P * Ipol ls P = Ipol ls P ^ Suc (Suc 0)"
             by simp
           then have "Ipol ls P * Ipol ls P = (Ipol ls P)\<^sup>2"
@@ -288,7 +287,9 @@ proof (induct n arbitrary: P rule: nat_less_induct)
             by (auto simp add: power_mult [symmetric, of _ 2 _] two_times mul_ci sqr_ci
                      simp del: power_Suc)
         qed
-      } with 1 Suc `odd l` show ?thesis by simp
+      }
+      with 1 `odd l` Suc show ?thesis
+        by (simp del: odd_Suc_div_two)
     qed
   qed
 qed

@@ -279,13 +279,45 @@ lemma even_diff [simp]:
 
 end
 
+
+subsubsection {* Parity and division *}
+
 context semiring_div_parity
 begin
+
+lemma one_div_two_eq_zero [simp]: -- \<open>FIXME move\<close>
+  "1 div 2 = 0"
+proof (cases "2 = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  from mod_div_equality have "1 div 2 * 2 + 1 mod 2 = 1" .
+  with one_mod_two_eq_one have "1 div 2 * 2 + 1 = 1" by simp
+  then have "1 div 2 * 2 = 0" by (simp add: ac_simps add_left_imp_eq)
+  then have "1 div 2 = 0 \<or> 2 = 0" by (rule divisors_zero)
+  with False show ?thesis by auto
+qed
 
 lemma even_iff_mod_2_eq_zero [presburger]:
   "even a \<longleftrightarrow> a mod 2 = 0"
   by (simp add: even_def dvd_eq_mod_eq_0)
 
+lemma even_succ_div_two [simp]:
+  "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
+  by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)
+
+lemma odd_succ_div_two [simp]:
+  "odd a \<Longrightarrow> (a + 1) div 2 = a div 2 + 1"
+  by (auto elim!: oddE simp add: zero_not_eq_two [symmetric] add.assoc)
+
+lemma even_two_times_div_two:
+  "even a \<Longrightarrow> 2 * (a div 2) = a"
+  by (rule dvd_mult_div_cancel) (simp add: even_def)
+
+lemma odd_two_times_div_two_succ:
+  "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
+  using mod_div_equality2 [of 2 a] by (simp add: even_iff_mod_2_eq_zero)
+  
 end
 
 
@@ -312,8 +344,37 @@ lemma even_nat_iff:
   "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
   by (simp add: even_int_iff [symmetric])
 
+lemma even_num_iff:
+  "0 < n \<Longrightarrow> even n = odd (n - 1 :: nat)"
+  by simp
 
-subsubsection {* Parity and powers *}
+lemma even_Suc_div_two [simp]:
+  "even n \<Longrightarrow> Suc n div 2 = n div 2"
+  using even_succ_div_two [of n] by simp
+  
+lemma odd_Suc_div_two [simp]:
+  "odd n \<Longrightarrow> Suc n div 2 = Suc (n div 2)"
+  using odd_succ_div_two [of n] by simp
+
+lemma odd_two_times_div_two_Suc:
+  "odd n \<Longrightarrow> Suc (2 * (n div 2)) = n"
+  using odd_two_times_div_two_succ [of n] by simp
+  
+text {* Nice facts about division by @{term 4} *}  
+
+lemma even_even_mod_4_iff:
+  "even (n::nat) \<longleftrightarrow> even (n mod 4)"
+  by presburger
+
+lemma odd_mod_4_div_2:
+  "n mod 4 = (3::nat) \<Longrightarrow> odd ((n - 1) div 2)"
+  by presburger
+
+lemma even_mod_4_div_2:
+  "n mod 4 = (1::nat) \<Longrightarrow> even ((n - 1) div 2)"
+  by presburger
+  
+text {* Parity and powers *}
 
 context comm_ring_1
 begin
@@ -370,7 +431,7 @@ lemma zero_le_odd_power:
   "odd n \<Longrightarrow> 0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a"
   by (auto simp add: power_even_eq zero_le_mult_iff elim: oddE)
 
-lemma zero_le_power_iff [presburger]:
+lemma zero_le_power_iff [presburger]: -- \<open>FIXME cf. zero_le_power_eq\<close>
   "0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a \<or> even n"
 proof (cases "even n")
   case True
@@ -385,7 +446,7 @@ next
     by (auto simp add: zero_le_mult_iff zero_le_even_power)
 qed
 
-lemma zero_le_power_eq [presburger]: -- \<open>FIXME weaker version of @{text zero_le_power_iff}\<close>
+lemma zero_le_power_eq [presburger]:
   "0 \<le> a ^ n \<longleftrightarrow> even n \<or> odd n \<and> 0 \<le> a"
   using zero_le_power_iff [of a n] by auto
 
@@ -395,7 +456,7 @@ proof -
   have [simp]: "0 = a ^ n \<longleftrightarrow> a = 0 \<and> n > 0"
     unfolding power_eq_0_iff' [of a n, symmetric] by blast
   show ?thesis
-  unfolding less_le zero_le_power_iff by auto
+  unfolding less_le zero_le_power_eq by auto
 qed
 
 lemma power_less_zero_eq [presburger]:
@@ -509,65 +570,6 @@ lemma [presburger]:
   
 lemma [presburger]:
   "Suc n div Suc (Suc 0) = n div Suc (Suc 0) \<longleftrightarrow> even n"
-  by presburger
-
-
-subsubsection {* Miscellaneous *}
-
-lemma even_nat_plus_one_div_two:
-  "even (x::nat) ==> (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)"
-  by presburger
-
-lemma odd_nat_plus_one_div_two:
-  "odd (x::nat) ==> (Suc x) div Suc (Suc 0) = Suc (x div Suc (Suc 0))"
-  by presburger
-
-lemma even_nat_mod_two_eq_zero:
-  "even (x::nat) ==> x mod Suc (Suc 0) = 0"
-  by presburger
-
-lemma odd_nat_mod_two_eq_one:
-  "odd (x::nat) ==> x mod Suc (Suc 0) = Suc 0"
-  by presburger
-
-lemma even_nat_equiv_def:
-  "even (x::nat) = (x mod Suc (Suc 0) = 0)"
-  by presburger
-
-lemma odd_nat_equiv_def:
-  "odd (x::nat) = (x mod Suc (Suc 0) = Suc 0)"
-  by presburger
-
-lemma even_nat_div_two_times_two:
-  "even (x::nat) ==> Suc (Suc 0) * (x div Suc (Suc 0)) = x"
-  by presburger
-
-lemma odd_nat_div_two_times_two_plus_one:
-  "odd (x::nat) ==> Suc (Suc (Suc 0) * (x div Suc (Suc 0))) = x"
-  by presburger
-
-lemma lemma_even_div2 [simp]:
-  "even (n::nat) ==> (n + 1) div 2 = n div 2"
-  by presburger
-
-lemma lemma_odd_div2 [simp]:
-  "odd n ==> (n + 1) div 2 = Suc (n div 2)"
-  by presburger
-
-lemma even_num_iff:
-  "0 < n ==> even n = (odd (n - 1 :: nat))"
-  by presburger
-
-lemma even_even_mod_4_iff:
-  "even (n::nat) = even (n mod 4)"
-  by presburger
-
-lemma lemma_odd_mod_4_div_2:
-  "n mod 4 = (3::nat) ==> odd((n - 1) div 2)"
-  by presburger
-
-lemma lemma_even_mod_4_div_2:
-  "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
   by presburger
 
 end

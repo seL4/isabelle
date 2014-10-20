@@ -122,9 +122,7 @@ unfolding sum_decode_def sum_encode_def
 by (induct x) simp_all
 
 lemma sum_decode_inverse [simp]: "sum_encode (sum_decode n) = n"
-unfolding sum_decode_def sum_encode_def numeral_2_eq_2
-by (simp add: even_nat_div_two_times_two odd_nat_div_two_times_two_plus_one
-         del: mult_Suc)
+  by (simp add: even_two_times_div_two odd_two_times_div_two_Suc sum_decode_def sum_encode_def)
 
 lemma inj_sum_encode: "inj_on sum_encode A"
 by (rule inj_on_inverseI, rule sum_encode_inverse)
@@ -270,17 +268,14 @@ lemma vimage_Suc_insert_Suc:
   "Suc -` insert (Suc n) A = insert n (Suc -` A)"
 by auto
 
-lemma even_nat_Suc_div_2: "even x \<Longrightarrow> Suc x div 2 = x div 2"
-by (simp only: numeral_2_eq_2 even_nat_plus_one_div_two)
-
 lemma div2_even_ext_nat:
-  "\<lbrakk>x div 2 = y div 2; even x = even y\<rbrakk> \<Longrightarrow> (x::nat) = y"
+  "x div 2 = y div 2 \<Longrightarrow> even x \<longleftrightarrow> even y \<Longrightarrow> (x::nat) = y"
 apply (rule mod_div_equality [of x 2, THEN subst])
 apply (rule mod_div_equality [of y 2, THEN subst])
-apply (case_tac "even x")
-apply (simp add: numeral_2_eq_2 even_nat_equiv_def)
-apply (simp add: numeral_2_eq_2 odd_nat_equiv_def)
+apply (cases "even x")
+apply (simp_all add: even_iff_mod_2_eq_zero)
 done
+
 
 subsubsection {* From sets to naturals *}
 
@@ -303,7 +298,7 @@ lemma set_encode_vimage_Suc: "set_encode (Suc -` A) = set_encode A div 2"
 apply (cases "finite A")
 apply (erule finite_induct, simp)
 apply (case_tac x)
-apply (simp add: even_nat_Suc_div_2 even_set_encode_iff vimage_Suc_insert_0)
+apply (simp add: even_set_encode_iff vimage_Suc_insert_0)
 apply (simp add: finite_vimageI add.commute vimage_Suc_insert_Suc)
 apply (simp add: set_encode_def finite_vimage_Suc_iff)
 done
@@ -333,7 +328,7 @@ by auto
 lemma set_decode_plus_power_2:
   "n \<notin> set_decode z \<Longrightarrow> set_decode (2 ^ n + z) = insert n (set_decode z)"
  apply (induct n arbitrary: z, simp_all)
-  apply (rule set_eqI, induct_tac x, simp, simp add: even_nat_Suc_div_2)
+  apply (rule set_eqI, induct_tac x, simp, simp)
  apply (rule set_eqI, induct_tac x, simp, simp add: add.commute)
 done
 

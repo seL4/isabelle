@@ -705,10 +705,6 @@ lemma two_finite_2 [simp]:
   "2 = a\<^sub>1"
   by (simp add: numeral.simps plus_finite_2_def)
   
-instance finite_2 :: semiring_div_parity
-by intro_classes (simp_all add: mod_finite_2_def split: finite_2.splits)
-
-
 hide_const (open) a\<^sub>1 a\<^sub>2
 
 datatype (plugins only: code "quickcheck" extraction) finite_3 =

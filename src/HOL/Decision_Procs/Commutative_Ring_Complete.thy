@@ -551,7 +551,7 @@ proof (induct n arbitrary: P rule: less_induct)
     then have K2: "k div 2 < k" by (cases k) auto
     from less have "isnorm (sqr P)" by (simp add: sqr_cn)
     with less False K2 show ?thesis
-      by (simp add: allE[of _ "(k div 2)" _] allE[of _ "(sqr P)" _], cases k, auto simp add: mul_cn)
+      by (cases k) (auto simp del: odd_Suc_div_two simp add: mul_cn)
   qed
 qed
 

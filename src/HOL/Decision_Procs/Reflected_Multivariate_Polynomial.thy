@@ -789,20 +789,18 @@ next
       by (simp only: power_add power_one_right) simp
     also have "\<dots> = (Ipoly bs p) ^ (Suc (Suc (Suc 0) * (Suc n div Suc (Suc 0))))"
       by (simp only: th)
-    finally have ?case
-    using odd_nat_div_two_times_two_plus_one[OF odd, symmetric] by simp
+    finally have ?case unfolding numeral_2_eq_2 [symmetric]
+    using odd_two_times_div_two_Suc [OF odd] by simp
   }
   moreover
   {
     assume even: "even (Suc n)"
-    have th: "(Suc (Suc 0)) * (Suc n div Suc (Suc 0)) = Suc n div 2 + Suc n div 2"
-      by arith
     from even have "Ipoly bs (p ^\<^sub>p Suc n) = Ipoly bs ?d"
       by (simp add: Let_def)
-    also have "\<dots> = (Ipoly bs p) ^ (Suc n div 2 + Suc n div 2)"
-      using "2.hyps" by (simp only: power_add) simp
-    finally have ?case using even_nat_div_two_times_two[OF even]
-      by (simp only: th)
+    also have "\<dots> = (Ipoly bs p) ^ (2 * (Suc n div 2))"
+      using "2.hyps" by (simp only: mult_2 power_add) simp
+    finally have ?case using even_two_times_div_two [OF even]
+      by simp
   }
   ultimately show ?case by blast
 qed
@@ -823,8 +821,8 @@ next
     by simp
   from polymul_normh[OF th2 dn] have on: "isnpolyh (polymul p ?d) n"
     by simp
-  from dn on show ?case
-    by (simp add: Let_def)
+  from dn on show ?case by (simp, unfold Let_def) auto
+    
 qed
 
 lemma polypow_norm:

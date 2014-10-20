@@ -491,9 +491,8 @@ lemma sinterleave_code[code]:
 
 lemma sinterleave_snth[simp]:
   "even n \<Longrightarrow> sinterleave s1 s2 !! n = s1 !! (n div 2)"
-   "odd n \<Longrightarrow> sinterleave s1 s2 !! n = s2 !! (n div 2)"
-  by (induct n arbitrary: s1 s2)
-    (auto dest: even_nat_Suc_div_2 odd_nat_plus_one_div_two[folded nat_2])
+  "odd n \<Longrightarrow> sinterleave s1 s2 !! n = s2 !! (n div 2)"
+  by (induct n arbitrary: s1 s2) simp_all
 
 lemma sset_sinterleave: "sset (sinterleave s1 s2) = sset s1 \<union> sset s2"
 proof (intro equalityI subsetI)
