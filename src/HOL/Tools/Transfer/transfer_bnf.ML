@@ -152,6 +152,17 @@ fun prove_relation_constraints bnf lthy =
 fun relator_eq bnf =
   [((Binding.empty, []), [([rel_eq_of_bnf bnf], @{attributes [relator_eq]})])]
 
+(* transfer rules *)
+
+fun bnf_transfer_rules bnf =
+  let
+    val transfer_rules = map_transfer_of_bnf bnf :: rel_transfer_of_bnf bnf 
+      :: set_transfer_of_bnf bnf
+    val transfer_attr = @{attributes [transfer_rule]}
+  in
+    map (fn thm => ((Binding.empty,[]),[([thm],transfer_attr)])) transfer_rules
+  end
+
 (* predicator definition and Domainp and eq_onp theorem *)
 
 fun define_pred bnf lthy =
@@ -286,9 +297,10 @@ fun transfer_bnf_interpretation bnf lthy =
     val dead = dead_of_bnf bnf
     val constr_notes = if dead > 0 then [] else prove_relation_constraints bnf lthy
     val relator_eq_notes = if dead > 0 then [] else relator_eq bnf
+    val transfer_rule_notes = if dead > 0 then [] else bnf_transfer_rules bnf
   in
     lthy
-    |> Local_Theory.notes (constr_notes @ relator_eq_notes)
+    |> Local_Theory.notes (constr_notes @ relator_eq_notes @ transfer_rule_notes)
     |> snd
     |> predicator bnf
   end
@@ -363,14 +375,36 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
 
 (* fp_sugar interpretation *)
 
-fun transfer_fp_sugars_interpretation fp_sugar lthy =
+fun fp_sugar_transfer_rules (fp_sugar:fp_sugar) =
+  let
+    val fp_ctr_sugar = #fp_ctr_sugar fp_sugar
+    val transfer_rules = #ctr_transfers fp_ctr_sugar @ #case_transfers fp_ctr_sugar 
+      @ #disc_transfers fp_ctr_sugar @ #sel_transfers fp_ctr_sugar 
+      @ (#co_rec_transfers o #fp_co_induct_sugar) fp_sugar
+    val transfer_attr = @{attributes [transfer_rule]}
+  in
+    map (fn thm => ((Binding.empty, []), [([thm], transfer_attr)])) transfer_rules
+  end
+
+fun pred_injects fp_sugar lthy =
   let
     val pred_injects = prove_pred_inject lthy fp_sugar
     fun qualify defname suffix = Binding.qualified true suffix defname
     val pred_inject_thm_name = qualify (base_name_of_bnf (bnf_of_fp_sugar fp_sugar)) "pred_inject"
     val simp_attrs = @{attributes [simp]}
   in
-    snd (Local_Theory.note ((pred_inject_thm_name, simp_attrs), pred_injects) lthy)
+    [((pred_inject_thm_name, []), [(pred_injects, simp_attrs)])]
+  end
+
+
+fun transfer_fp_sugars_interpretation fp_sugar lthy =
+  let
+    val pred_injects_notes = pred_injects fp_sugar lthy
+    val transfer_rules_notes = fp_sugar_transfer_rules fp_sugar
+  in
+    lthy
+    |> Local_Theory.notes (pred_injects_notes @ transfer_rules_notes)
+    |> snd
   end
 
 val _ =
