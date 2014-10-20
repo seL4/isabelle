@@ -76,20 +76,20 @@ text \<open>Isabelle source files have a certain standardized header
   subsubsections, paragraphs etc.\ using a simple layout via ML
   comments as follows.
 
-\begin{verbatim}
-(*** section ***)
+  \begin{verbatim}
+  (*** section ***)
 
-(** subsection **)
+  (** subsection **)
 
-(* subsubsection *)
+  (* subsubsection *)
 
-(*short paragraph*)
+  (*short paragraph*)
 
-(*
-  long paragraph,
-  with more text
-*)
-\end{verbatim}
+  (*
+    long paragraph,
+    with more text
+  *)
+  \end{verbatim}
 
   As in regular typography, there is some extra space \emph{before}
   section headings that are adjacent to plain text, bit not other headings
@@ -180,7 +180,6 @@ text \<open>Since ML is the primary medium to express the meaning of the
     let
       fun aux t = ... string_of_term ctxt t ...
     in ... end;
-
   \end{verbatim}
 
 
@@ -1252,24 +1251,24 @@ text \<open>A \emph{symbol} constitutes the smallest textual unit in
   \begin{enumerate}
 
   \item a single ASCII character ``@{text "c"}'', for example
-  ``\verb,a,'',
+  ``@{verbatim a}'',
 
   \item a codepoint according to UTF-8 (non-ASCII byte sequence),
 
-  \item a regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
-  for example ``\verb,\,\verb,<alpha>,'',
+  \item a regular symbol ``@{verbatim \<open>\\<close>}@{verbatim "<"}@{text
+  "ident"}@{verbatim ">"}'', for example ``@{verbatim "\<alpha>"}'',
 
-  \item a control symbol ``\verb,\,\verb,<^,@{text "ident"}\verb,>,'',
-  for example ``\verb,\,\verb,<^bold>,'',
+  \item a control symbol ``@{verbatim \<open>\\<close>}@{verbatim "<^"}@{text
+  "ident"}@{verbatim ">"}'', for example ``@{verbatim "\<^bold>"}'',
 
-  \item a raw symbol ``\verb,\,\verb,<^raw:,@{text text}\verb,>,''
-  where @{text text} consists of printable characters excluding
-  ``\verb,.,'' and ``\verb,>,'', for example
-  ``\verb,\,\verb,<^raw:$\sum_{i = 1}^n$>,'',
+  \item a raw symbol ``@{verbatim \<open>\\<close>}@{verbatim "<^raw:"}@{text
+  text}@{verbatim ">"}'' where @{text text} consists of printable characters
+  excluding ``@{verbatim "."}'' and ``@{verbatim ">"}'', for example
+  ``@{verbatim "\<^raw:$\sum_{i = 1}^n$>"}'',
 
-  \item a numbered raw control symbol ``\verb,\,\verb,<^raw,@{text
-  n}\verb,>, where @{text n} consists of digits, for example
-  ``\verb,\,\verb,<^raw42>,''.
+  \item a numbered raw control symbol ``@{verbatim \<open>\\<close>}@{verbatim
+  "<^raw"}@{text n}@{verbatim ">"}, where @{text n} consists of digits, for
+  example ``@{verbatim "\<^raw42>"}''.
 
   \end{enumerate}
 
@@ -1277,7 +1276,7 @@ text \<open>A \emph{symbol} constitutes the smallest textual unit in
   (letter | digit)\<^sup>*"}, where @{text "letter = A..Za..z"} and @{text
   "digit = 0..9"}.  There are infinitely many regular symbols and
   control symbols, but a fixed collection of standard symbols is
-  treated specifically.  For example, ``\verb,\,\verb,<alpha>,'' is
+  treated specifically.  For example, ``@{verbatim "\<alpha>"}'' is
   classified as a letter, which means it may occur within regular
   Isabelle identifiers.
 
@@ -1290,10 +1289,9 @@ text \<open>A \emph{symbol} constitutes the smallest textual unit in
 
   \medskip Output of Isabelle symbols depends on the print mode. For example,
   the standard {\LaTeX} setup of the Isabelle document preparation system
-  would present ``\verb,\,\verb,<alpha>,'' as @{text "\<alpha>"}, and
-  ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as @{text "\<^bold>\<alpha>"}. On-screen
-  rendering usually works by mapping a finite subset of Isabelle symbols to
-  suitable Unicode characters.
+  would present ``@{verbatim "\<alpha>"}'' as @{text "\<alpha>"}, and ``@{verbatim
+  "\<^bold>\<alpha>"}'' as @{text "\<^bold>\<alpha>"}. On-screen rendering usually works by mapping a
+  finite subset of Isabelle symbols to suitable Unicode characters.
 \<close>
 
 text %mlref \<open>
@@ -1409,10 +1407,10 @@ text %mlref \<open>
 
   \end{enumerate}
 
-  Note that Isabelle/ML string literals may refer Isabelle symbols
-  like ``\verb,\,\verb,<alpha>,'' natively, \emph{without} escaping
-  the backslash.  This is a consequence of Isabelle treating all
-  source text as strings of symbols, instead of raw characters.
+  Note that Isabelle/ML string literals may refer Isabelle symbols like
+  ``@{verbatim \<alpha>}'' natively, \emph{without} escaping the backslash. This is a
+  consequence of Isabelle treating all source text as strings of symbols,
+  instead of raw characters.
 
   \end{description}
 \<close>
@@ -1433,7 +1431,7 @@ text \<open>Note that in Unicode renderings of the symbol @{text "\<A>"},
   variations of encodings like UTF-8 or UTF-16 pose delicate questions
   about the multi-byte representations of its codepoint, which is outside
   of the 16-bit address space of the original Unicode standard from
-  the 1990-ies.  In Isabelle/ML it is just ``\verb,\,\verb,<A>,''
+  the 1990-ies.  In Isabelle/ML it is just ``@{verbatim \<A>}''
   literally, using plain ASCII characters beyond any doubts.\<close>
 
 
@@ -2338,6 +2336,5 @@ text %mlref \<open>
 
   \end{description}
 \<close>
-
 
 end

@@ -322,8 +322,8 @@ ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
   that directory exists).  This allows to install private components
   via @{file_unchecked "$ISABELLE_HOME_USER/etc/components"}, although it is
   often more convenient to do that programmatically via the
-  \verb,init_component, shell function in the \verb,etc/settings,
-  script of \verb,$ISABELLE_HOME_USER, (or any other component
+  @{verbatim init_component} shell function in the @{verbatim "etc/settings"}
+  script of @{verbatim "$ISABELLE_HOME_USER"} (or any other component
   directory).  For example:
 \begin{ttbox}
 init_component "$HOME/screwdriver-2.0"

@@ -611,7 +611,7 @@ text \<open>In principle, a name is just a string, but there are various
   ``@{text "Foo.bar.baz"}'' is considered as a long name consisting of
   qualifier @{text "Foo.bar"} and base name @{text "baz"}.  The
   individual constituents of a name may have further substructure,
-  e.g.\ the string ``\verb,\,\verb,<alpha>,'' encodes as a single
+  e.g.\ the string ``@{verbatim \<alpha>}'' encodes as a single
   symbol (\secref{sec:symbols}).
 
   \medskip Subsequently, we shall introduce specific categories of
