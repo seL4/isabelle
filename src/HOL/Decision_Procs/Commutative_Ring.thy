@@ -149,9 +149,19 @@ where
 
 lemma pow_simps [simp]:    
   "pow 0 P = Pc 1"
-  "pow (Suc n) P = (if odd n then pow (Suc n div 2) (sqr P) else P \<otimes> pow (Suc n div 2) (sqr P))"
+  "pow (2 * n) P = pow n (sqr P)"
+  "pow (Suc (2 * n)) P = P \<otimes> pow n (sqr P)"
   by (simp_all add: pow_if)
 
+lemma even_pow:
+  "even n \<Longrightarrow> pow n P = pow (n div 2) (sqr P)"
+  by (erule evenE) simp
+
+lemma odd_pow:
+  "odd n \<Longrightarrow> pow n P = P \<otimes> pow (n div 2) (sqr P)"
+  by (erule oddE) simp
+
+  
 text {* Normalization of polynomial expressions *}
 
 primrec norm :: "'a::{comm_ring_1} polex \<Rightarrow> 'a pol"
@@ -242,54 +252,24 @@ lemma sqr_ci: "Ipol ls (sqr P) = Ipol ls P * Ipol ls P"
     (simp_all add: add_ci mkPinj_ci mkPX_ci mul_ci algebra_simps power_add)
 
 text {* Power *}
-lemma even_pow:
-  "even n \<Longrightarrow> pow n P = pow (n div 2) (sqr P)"
-  by (induct n) simp_all
-
 lemma pow_ci: "Ipol ls (pow n P) = Ipol ls P ^ n"
-proof (induct n arbitrary: P rule: nat_less_induct)
-  case (1 k)
+proof (induct n arbitrary: P rule: less_induct)
+  case (less k)
   show ?case
-  proof (cases k)
-    case 0
-    then show ?thesis by simp
+  proof (cases "k = 0")
+    case True then show ?thesis by simp
   next
-    case (Suc l)
+    case False then have "k > 0" by simp
+    then have "k div 2 < k" by arith
+    with less have *: "Ipol ls (pow (k div 2) (sqr P)) = Ipol ls (sqr P) ^ (k div 2)"
+      by simp
     show ?thesis
-    proof cases
-      assume "even l"
-      then have "Suc l div 2 = l div 2"
-        by simp
-      moreover
-      from Suc have "l < k" by simp
-      with 1 have "\<And>P. Ipol ls (pow l P) = Ipol ls P ^ l" by simp
-      moreover
-      note Suc `even l`
-      ultimately show ?thesis by (auto simp add: mul_ci even_pow)
+    proof (cases "even k")
+      case True with * show ?thesis
+        by (simp add: even_pow sqr_ci power_mult_distrib power_add [symmetric] mult_2 [symmetric] even_two_times_div_two)
     next
-      assume "odd l"
-      {
-        fix p
-        have "Ipol ls (sqr P) ^ (Suc l div 2) = Ipol ls P ^ Suc l"
-        proof (cases l)
-          case 0
-          with `odd l` show ?thesis by simp
-        next
-          case (Suc w)
-          with `odd l` have "even w" by simp
-          then have two_times: "2 * (w div 2) = w"
-            by (simp add: even_two_times_div_two)
-          have "Ipol ls P * Ipol ls P = Ipol ls P ^ Suc (Suc 0)"
-            by simp
-          then have "Ipol ls P * Ipol ls P = (Ipol ls P)\<^sup>2"
-            by (simp add: numerals)
-          with Suc show ?thesis
-            by (auto simp add: power_mult [symmetric, of _ 2 _] two_times mul_ci sqr_ci
-                     simp del: power_Suc)
-        qed
-      }
-      with 1 `odd l` Suc show ?thesis
-        by (simp del: odd_Suc_div_two)
+      case False with * show ?thesis
+        by (simp add: odd_pow mul_ci sqr_ci power_mult_distrib power_add [symmetric] mult_2 [symmetric] power_Suc [symmetric] odd_two_times_div_two_Suc)
     qed
   qed
 qed
