@@ -79,9 +79,9 @@ text \<open>
   order to make parsing of proof documents work properly.  Command
   keywords need to be classified according to their structural role in
   the formal text.  Examples may be seen in Isabelle/HOL sources
-  itself, such as @{keyword "keywords"}~@{verbatim "\"typedef\""}
+  itself, such as @{keyword "keywords"}~@{verbatim \<open>"typedef"\<close>}
   @{text ":: thy_goal"} or @{keyword "keywords"}~@{verbatim
-  "\"datatype\""} @{text ":: thy_decl"} for theory-level declarations
+  \<open>"datatype"\<close>} @{text ":: thy_decl"} for theory-level declarations
   with and without proof, respectively.  Additional @{syntax tags}
   provide defaults for document preparation (\secref{sec:tags}).
 

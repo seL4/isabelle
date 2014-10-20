@@ -6,13 +6,13 @@ chapter \<open>Predefined Isabelle symbols \label{app:symbols}\<close>
 
 text \<open>
   Isabelle supports an infinite number of non-ASCII symbols, which are
-  represented in source text as @{verbatim "\\"}@{verbatim "<"}@{text
+  represented in source text as @{verbatim \<open>\\<close>}@{verbatim "<"}@{text
   name}@{verbatim ">"} (where @{text name} may be any identifier).  It
   is left to front-end tools how to present these symbols to the user.
   The collection of predefined standard symbols given below is
   available by default for Isabelle document output, due to
-  appropriate definitions of @{verbatim "\\"}@{verbatim isasym}@{text
-  name} for each @{verbatim "\\"}@{verbatim "<"}@{text name}@{verbatim
+  appropriate definitions of @{verbatim \<open>\isasym\<close>}@{text
+  name} for each @{verbatim \<open>\\<close>}@{verbatim "<"}@{text name}@{verbatim
   ">"} in the @{verbatim isabellesym.sty} file.  Most of these symbols
   are displayed properly in Isabelle/jEdit and {\LaTeX} generated from Isabelle.
 

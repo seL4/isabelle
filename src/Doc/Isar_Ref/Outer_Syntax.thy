@@ -22,7 +22,7 @@ text \<open>
   syntax is that of Isabelle/Isar theory sources (specifications and
   proofs).  As a general rule, inner syntax entities may occur only as
   \emph{atomic entities} within outer syntax.  For example, the string
-  @{verbatim "\"x + y\""} and identifier @{verbatim z} are legal term
+  @{verbatim \<open>"x + y"\<close>} and identifier @{verbatim z} are legal term
   specifications within a theory, while @{verbatim "x + y"} without
   quotes is not.
 
@@ -123,7 +123,7 @@ text \<open>The outer lexical syntax consists of three main categories of
 
   Keywords override named tokens.  For example, the presence of a
   command called @{verbatim term} inhibits the identifier @{verbatim
-  term}, but the string @{verbatim "\"term\""} can be used instead.
+  term}, but the string @{verbatim \<open>"term"\<close>} can be used instead.
   By convention, the outer syntax always allows quoted strings in
   addition to identifiers, wherever a named entity is expected.
 
@@ -139,18 +139,18 @@ text \<open>The outer lexical syntax consists of three main categories of
   \begin{supertabular}{rcl}
     @{syntax_def ident} & = & @{text "letter (subscript\<^sup>? quasiletter)\<^sup>*"} \\
     @{syntax_def longident} & = & @{text "ident("}@{verbatim "."}@{text "ident)\<^sup>+"} \\
-    @{syntax_def symident} & = & @{text "sym\<^sup>+  |  "}@{verbatim "\\"}@{verbatim "<"}@{text ident}@{verbatim ">"} \\
+    @{syntax_def symident} & = & @{text "sym\<^sup>+  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text ident}@{verbatim ">"} \\
     @{syntax_def nat} & = & @{text "digit\<^sup>+"} \\
     @{syntax_def float} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
     @{syntax_def var} & = & @{verbatim "?"}@{text "ident  |  "}@{verbatim "?"}@{text ident}@{verbatim "."}@{text nat} \\
     @{syntax_def typefree} & = & @{verbatim "'"}@{text ident} \\
     @{syntax_def typevar} & = & @{verbatim "?"}@{text "typefree  |  "}@{verbatim "?"}@{text typefree}@{verbatim "."}@{text nat} \\
-    @{syntax_def string} & = & @{verbatim "\""} @{text "\<dots>"} @{verbatim "\""} \\
+    @{syntax_def string} & = & @{verbatim \<open>"\<close>} @{text "\<dots>"} @{verbatim \<open>"\<close>} \\
     @{syntax_def altstring} & = & @{verbatim "`"} @{text "\<dots>"} @{verbatim "`"} \\
     @{syntax_def cartouche} & = & @{verbatim "\<open>"} @{text "\<dots>"} @{verbatim "\<close>"} \\
     @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*"}@{verbatim "}"} \\[1ex]
 
-    @{text letter} & = & @{text "latin  |  "}@{verbatim "\\"}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim "\\"}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
+    @{text letter} & = & @{text "latin  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
     @{text subscript} & = & @{verbatim "\<^sub>"} \\
     @{text quasiletter} & = & @{text "letter  |  digit  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "'"} \\
     @{text latin} & = & @{verbatim a}@{text "  | \<dots> |  "}@{verbatim z}@{text "  |  "}@{verbatim A}@{text "  |  \<dots> |  "}@{verbatim Z} \\
@@ -178,9 +178,9 @@ text \<open>The outer lexical syntax consists of three main categories of
   same unknown, with basename @{text "x"} and index 0.
 
   The syntax of @{syntax_ref string} admits any characters, including
-  newlines; ``@{verbatim "\""}'' (double-quote) and ``@{verbatim
-  "\\"}'' (backslash) need to be escaped by a backslash; arbitrary
-  character codes may be specified as ``@{verbatim "\\"}@{text ddd}'',
+  newlines; ``@{verbatim \<open>"\<close>}'' (double-quote) and ``@{verbatim \<open>\\<close>}''
+  (backslash) need to be escaped by a backslash; arbitrary
+  character codes may be specified as ``@{verbatim \<open>\\<close>}@{text ddd}'',
   with three decimal digits.  Alternative strings according to
   @{syntax_ref altstring} are analogous, using single back-quotes
   instead.
@@ -229,7 +229,7 @@ text \<open>Entity @{syntax name} usually refers to any name of types,
   constants, theorems etc.\ that are to be \emph{declared} or
   \emph{defined} (so qualified identifiers are excluded here).  Quoted
   strings provide an escape for non-identifier names or those ruled
-  out by outer syntax keywords (e.g.\ quoted @{verbatim "\"let\""}).
+  out by outer syntax keywords (e.g.\ quoted @{verbatim \<open>"let"\<close>}).
   Already existing objects are usually referenced by @{syntax
   nameref}.
 
@@ -308,7 +308,7 @@ text \<open>
   is performed internally later).  For convenience, a slightly more
   liberal convention is adopted: quotes may be omitted for any type or
   term that is already atomic at the outer level.  For example, one
-  may just write @{verbatim x} instead of quoted @{verbatim "\"x\""}.
+  may just write @{verbatim x} instead of quoted @{verbatim \<open>"x"\<close>}.
   Note that symbolic identifiers (e.g.\ @{verbatim "++"} or @{text
   "\<forall>"} are available as well, provided these have not been superseded
   by commands or other keywords already (such as @{verbatim "="} or

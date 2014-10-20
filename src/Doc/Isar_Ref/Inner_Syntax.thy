@@ -288,7 +288,7 @@ text \<open>
 
   \begin{itemize}
 
-  \item @{verbatim "\"\""} (the empty string): default mode;
+  \item @{verbatim \<open>""\<close>} (the empty string): default mode;
   implicitly active as last element in the list of modes.
 
   \item @{verbatim input}: dummy print mode that is never active; may
@@ -447,20 +447,20 @@ text \<open>Infix operators are specified by convenient short forms that
   \begin{center}
   \begin{tabular}{lll}
 
-  @{verbatim "("}@{keyword_def "infix"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  @{verbatim "("}@{keyword_def "infix"}~@{verbatim \<open>"\<close>}@{text sy}@{verbatim \<open>"\<close>} @{text "p"}@{verbatim ")"}
   & @{text "\<mapsto>"} &
-  @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p + 1"}@{verbatim ", "}@{text "p + 1"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
-  @{verbatim "("}@{keyword_def "infixl"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  @{verbatim \<open>("(_\<close>}~@{text sy}@{verbatim \<open>/ _)" [\<close>}@{text "p + 1"}@{verbatim ","}~@{text "p + 1"}@{verbatim "]"}~@{text "p"}@{verbatim ")"} \\
+  @{verbatim "("}@{keyword_def "infixl"}~@{verbatim \<open>"\<close>}@{text sy}@{verbatim \<open>"\<close>} @{text "p"}@{verbatim ")"}
   & @{text "\<mapsto>"} &
-  @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p"}@{verbatim ", "}@{text "p + 1"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
-  @{verbatim "("}@{keyword_def "infixr"}~@{verbatim "\""}@{text sy}@{verbatim "\""} @{text "p"}@{verbatim ")"}
+  @{verbatim \<open>("(_\<close>}~@{text sy}@{verbatim \<open>/ _)" [\<close>}@{text "p"}@{verbatim ","}~@{text "p + 1"}@{verbatim "]"}~@{text "p"}@{verbatim ")"} \\
+  @{verbatim "("}@{keyword_def "infixr"}~@{verbatim \<open>"\<close>}@{text sy}@{verbatim \<open>"\<close>}~@{text "p"}@{verbatim ")"}
   & @{text "\<mapsto>"} &
-  @{verbatim "(\"(_ "}@{text sy}@{verbatim "/ _)\" ["}@{text "p + 1"}@{verbatim ", "}@{text "p"}@{verbatim "]"}@{text " p"}@{verbatim ")"} \\
+  @{verbatim \<open>("(_\<close>}~@{text sy}@{verbatim \<open>/ _)" [\<close>}@{text "p + 1"}@{verbatim ","}~@{text "p"}@{verbatim "]"}~@{text "p"}@{verbatim ")"} \\
 
   \end{tabular}
   \end{center}
 
-  The mixfix template @{verbatim "\"(_ "}@{text sy}@{verbatim "/ _)\""}
+  The mixfix template @{verbatim \<open>"(_\<close>}~@{text sy}@{verbatim \<open>/ _)"\<close>}
   specifies two argument positions; the delimiter is preceded by a
   space and followed by a space or line break; the entire phrase is a
   pretty printing block.
@@ -481,7 +481,7 @@ text \<open>A \emph{binder} is a variable-binding construct such as a
   as follows:
 
   \begin{center}
-  @{text "c :: "}@{verbatim "\""}@{text "(\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2) \<Rightarrow> \<tau>\<^sub>3"}@{verbatim "\"  ("}@{keyword "binder"}@{verbatim " \""}@{text "sy"}@{verbatim "\" ["}@{text "p"}@{verbatim "] "}@{text "q"}@{verbatim ")"}
+  @{text "c :: "}@{verbatim \<open>"\<close>}@{text "(\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2) \<Rightarrow> \<tau>\<^sub>3"}@{verbatim \<open>"  (\<close>}@{keyword "binder"}~@{verbatim \<open>"\<close>}@{text "sy"}@{verbatim \<open>" [\<close>}@{text "p"}@{verbatim "]"}~@{text "q"}@{verbatim ")"}
   \end{center}
 
   This introduces concrete binder syntax @{text "sy x. b"}, where
@@ -493,13 +493,13 @@ text \<open>A \emph{binder} is a variable-binding construct such as a
 
   Internally, the binder syntax is expanded to something like this:
   \begin{center}
-  @{text "c_binder :: "}@{verbatim "\""}@{text "idts \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3"}@{verbatim "\"  (\"(3"}@{text sy}@{verbatim "_./ _)\" [0, "}@{text "p"}@{verbatim "] "}@{text "q"}@{verbatim ")"}
+  @{text "c_binder :: "}@{verbatim \<open>"\<close>}@{text "idts \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3"}@{verbatim \<open>"  ("(3\<close>}@{text sy}@{verbatim \<open>_./ _)" [0,\<close>}~@{text "p"}@{verbatim "]"}~@{text "q"}@{verbatim ")"}
   \end{center}
 
   Here @{syntax (inner) idts} is the nonterminal symbol for a list of
   identifiers with optional type constraints (see also
   \secref{sec:pure-grammar}).  The mixfix template @{verbatim
-  "\"(3"}@{text sy}@{verbatim "_./ _)\""} defines argument positions
+  \<open>"(3\<close>}@{text sy}@{verbatim \<open>_./ _)"\<close>} defines argument positions
   for the bound identifiers and the body, separated by a dot with
   optional line break; the entire phrase is a pretty printing block of
   indentation level 3.  Note that there is no extra space after @{text
@@ -602,7 +602,7 @@ text \<open>The inner lexical syntax vaguely resembles the outer one
     @{syntax_def (inner) num_token} & = & @{syntax_ref nat} \\
     @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
     @{syntax_def (inner) str_token} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
-    @{syntax_def (inner) string_token} & = & @{verbatim "\""} @{text "\<dots>"} @{verbatim "\""} \\
+    @{syntax_def (inner) string_token} & = & @{verbatim \<open>"\<close>} @{text "\<dots>"} @{verbatim \<open>"\<close>} \\
     @{syntax_def (inner) cartouche} & = & @{verbatim "\<open>"} @{text "\<dots>"} @{verbatim "\<close>"} \\
   \end{supertabular}
   \end{center}
@@ -1063,9 +1063,8 @@ text \<open>The ML datatype @{ML_type Ast.ast} explicitly represents the
   shown as quoted strings, variable atoms as non-quoted strings and
   applications as a parenthesized list of subtrees.  For example, the
   AST
-  @{ML [display] "Ast.Appl
-  [Ast.Constant \"_abs\", Ast.Variable \"x\", Ast.Variable \"t\"]"}
-  is pretty-printed as @{verbatim "(\"_abs\" x t)"}.  Note that
+  @{ML [display] \<open>Ast.Appl [Ast.Constant "_abs", Ast.Variable "x", Ast.Variable "t"]\<close>}
+  is pretty-printed as @{verbatim \<open>("_abs" x t)\<close>}.  Note that
   @{verbatim "()"} and @{verbatim "(x)"} are excluded as ASTs, because
   they have too few subtrees.
 
@@ -1074,11 +1073,11 @@ text \<open>The ML datatype @{ML_type Ast.ast} explicitly represents the
   either term application or type application, depending on the
   syntactic context.
 
-  Nested application like @{verbatim "((\"_abs\" x t) u)"} is also
+  Nested application like @{verbatim \<open>(("_abs" x t) u)\<close>} is also
   possible, but ASTs are definitely first-order: the syntax constant
-  @{verbatim "\"_abs\""} does not bind the @{verbatim x} in any way.
+  @{verbatim \<open>"_abs"\<close>} does not bind the @{verbatim x} in any way.
   Proper bindings are introduced in later stages of the term syntax,
-  where @{verbatim "(\"_abs\" x t)"} becomes an @{ML Abs} node and
+  where @{verbatim \<open>("_abs" x t)\<close>} becomes an @{ML Abs} node and
   occurrences of @{verbatim x} in @{verbatim t} are replaced by bound
   variables (represented as de-Bruijn indices).
 \<close>
@@ -1209,7 +1208,7 @@ text \<open>
 
   \item @{command "syntax"}~@{text "(mode) c :: \<sigma> (mx)"} augments the
   priority grammar and the pretty printer table for the given print
-  mode (default @{verbatim "\"\""}). An optional keyword @{keyword_ref
+  mode (default @{verbatim \<open>""\<close>}). An optional keyword @{keyword_ref
   "output"} means that only the pretty printer table is affected.
 
   Following \secref{sec:mixfix}, the mixfix annotation @{text "mx =
@@ -1251,7 +1250,7 @@ text \<open>
   with other syntax declarations.
 
   \medskip The special case of copy production is specified by @{text
-  "c = "}@{verbatim "\"\""} (empty string).  It means that the
+  "c = "}@{verbatim \<open>""\<close>} (empty string).  It means that the
   resulting parse tree @{text "t"} is copied directly, without any
   further decoration.
 
@@ -1587,10 +1586,10 @@ text \<open>The parse tree is the raw output of the parser.  It is
   @{text "f x y z"} & @{verbatim "(f x y z)"} \\
   @{text "'a ty"} & @{verbatim "(ty 'a)"} \\
   @{text "('a, 'b)ty"} & @{verbatim "(ty 'a 'b)"} \\
-  @{text "\<lambda>x y z. t"} & @{verbatim "(\"_abs\" x (\"_abs\" y (\"_abs\" z t)))"} \\
-  @{text "\<lambda>x :: 'a. t"} & @{verbatim "(\"_abs\" (\"_constrain\" x 'a) t)"} \\
-  @{text "\<lbrakk>P; Q; R\<rbrakk> \<Longrightarrow> S"} & @{verbatim "(\"==>\" P (\"==>\" Q (\"==>\" R S)))"} \\
-   @{text "['a, 'b, 'c] \<Rightarrow> 'd"} & @{verbatim "(\"fun\" 'a (\"fun\" 'b (\"fun\" 'c 'd)))"} \\
+  @{text "\<lambda>x y z. t"} & @{verbatim \<open>("_abs" x ("_abs" y ("_abs" z t)))\<close>} \\
+  @{text "\<lambda>x :: 'a. t"} & @{verbatim \<open>("_abs" ("_constrain" x 'a) t)\<close>} \\
+  @{text "\<lbrakk>P; Q; R\<rbrakk> \<Longrightarrow> S"} & @{verbatim \<open>("==>" P ("==>" Q ("==>" R S)))\<close>} \\
+   @{text "['a, 'b, 'c] \<Rightarrow> 'd"} & @{verbatim \<open>("fun" 'a ("fun" 'b ("fun" 'c 'd)))\<close>} \\
   \end{tabular}
   \end{center}
 
@@ -1618,8 +1617,8 @@ text \<open>After application of macros (\secref{sec:syn-trans}), the AST
 
   The outcome is still a first-order term.  Proper abstractions and
   bound variables are introduced by parse translations associated with
-  certain syntax constants.  Thus @{verbatim "(_abs x x)"} eventually
-  becomes a de-Bruijn term @{verbatim "Abs (\"x\", _, Bound 0)"}.
+  certain syntax constants.  Thus @{verbatim \<open>("_abs" x x)\<close>} eventually
+  becomes a de-Bruijn term @{verbatim \<open>Abs ("x", _, Bound 0)\<close>}.
 \<close>
 
 

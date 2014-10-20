@@ -59,25 +59,22 @@ text \<open>
 
   \item @{command header} provides plain text markup just preceding
   the formal beginning of a theory.  The corresponding {\LaTeX} macro
-  is @{verbatim "\\isamarkupheader"}, which acts like @{command
+  is @{verbatim \<open>\isamarkupheader\<close>}, which acts like @{command
   section} by default.
   
   \item @{command chapter}, @{command section}, @{command subsection},
   and @{command subsubsection} mark chapter and section headings
   within the main theory body or local theory targets.  The
-  corresponding {\LaTeX} macros are @{verbatim "\\isamarkupchapter"},
-  @{verbatim "\\isamarkupsection"}, @{verbatim
-  "\\isamarkupsubsection"} etc.
+  corresponding {\LaTeX} macros are @{verbatim \<open>\isamarkupchapter\<close>},
+  @{verbatim \<open>\isamarkupsection\<close>}, @{verbatim \<open>\isamarkupsubsection\<close>} etc.
 
   \item @{command sect}, @{command subsect}, and @{command subsubsect}
   mark section headings within proofs.  The corresponding {\LaTeX}
-  macros are @{verbatim "\\isamarkupsect"}, @{verbatim
-  "\\isamarkupsubsect"} etc.
+  macros are @{verbatim \<open>\isamarkupsect\<close>}, @{verbatim \<open>\isamarkupsubsect\<close>} etc.
 
   \item @{command text} and @{command txt} specify paragraphs of plain
   text.  This corresponds to a {\LaTeX} environment @{verbatim
-  "\\begin{isamarkuptext}"} @{text "\<dots>"} @{verbatim
-  "\\end{isamarkuptext}"} etc.
+  \<open>\begin{isamarkuptext}\<close>} @{text "\<dots>"} @{verbatim \<open>\end{isamarkuptext}\<close>} etc.
 
   \item @{command text_raw} and @{command txt_raw} insert {\LaTeX}
   source into the output, without additional markup.  Thus the full
@@ -139,7 +136,7 @@ text \<open>
   in the resulting document, but may again refer to formal entities
   via \emph{document antiquotations}.
 
-  For example, embedding of ``@{text [source=false] "@{term [show_types] \"f x = a + x\"}"}''
+  For example, embedding @{verbatim \<open>@{term [show_types] "f x = a + x"}\<close>}
   within a text block makes
   \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} appear in the final {\LaTeX} document.
 
@@ -287,18 +284,18 @@ text \<open>
   results in an active hyperlink within the text.
 
   \item @{text "@{cite name}"} produces a citation @{verbatim
-  "\\cite{name}"} in {\LaTeX}, where the name refers to some Bib{\TeX}
+  \<open>\cite{name}\<close>} in {\LaTeX}, where the name refers to some Bib{\TeX}
   database entry.
 
   The variant @{text "@{cite \<open>opt\<close> name}"} produces @{verbatim
-  "\\cite[opt]{name}"} with some free-form optional argument. Multiple names
+  \<open>\cite[opt]{name}\<close>} with some free-form optional argument. Multiple names
   are output with commas, e.g. @{text "@{cite foo \<AND> bar}"} becomes
-  @{verbatim "\\cite{foo,bar}"}.
+  @{verbatim \<open>\cite{foo,bar}\<close>}.
 
   The {\LaTeX} macro name is determined by the antiquotation option
   @{antiquotation_option_def cite_macro}, or the configuration option
   @{attribute cite_macro} in the context. For example, @{text "@{cite
-  [cite_macro = nocite] foobar}"} produces @{verbatim "\\nocite{foobar}"}.
+  [cite_macro = nocite] foobar}"} produces @{verbatim \<open>\nocite{foobar}\<close>}.
 
   \end{description}
 \<close>
@@ -487,7 +484,7 @@ text \<open>
   The @{antiquotation rail} antiquotation allows to include syntax
   diagrams into Isabelle documents.  {\LaTeX} requires the style file
   @{file "~~/lib/texinputs/pdfsetup.sty"}, which can be used via
-  @{verbatim "\\usepackage{pdfsetup}"} in @{verbatim "root.tex"}, for
+  @{verbatim \<open>\usepackage{pdfsetup}\<close>} in @{verbatim "root.tex"}, for
   example.
 
   The rail specification language is quoted here as Isabelle @{syntax
