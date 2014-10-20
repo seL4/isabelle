@@ -33,15 +33,6 @@ fun clean_name "\<dots>" = "dots"
   | clean_name s = s |> translate (fn "_" => "-" | "\<hyphen>" => "-" | c => c);
 
 
-(* verbatim text *)
-
-val verbatim = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
-
-val _ =
-  Theory.setup (Thy_Output.antiquotation @{binding verbatim} (Scan.lift Args.name)
-    (K (split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n")));
-
-
 (* ML text *)
 
 local
@@ -106,11 +97,7 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
     in
       "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string (ml_name txt1) ^ "}" ^
-      (txt'
-      |> (if Config.get ctxt Thy_Output.quotes then quote else I)
-      |> (if Config.get ctxt Thy_Output.display
-          then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
-          else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
+      (Thy_Output.verbatim_text ctxt txt')
     end);
 
 in
@@ -281,13 +268,13 @@ val _ =
     entity_antiqs no_check "" @{binding case} #>
     entity_antiqs (can o Thy_Output.check_command) "" @{binding antiquotation} #>
     entity_antiqs (can o Thy_Output.check_option) "" @{binding antiquotation_option} #>
-    entity_antiqs no_check "isatt" @{binding setting} #>
-    entity_antiqs check_system_option "isatt" @{binding system_option} #>
+    entity_antiqs no_check "isasystem" @{binding setting} #>
+    entity_antiqs check_system_option "isasystem" @{binding system_option} #>
     entity_antiqs no_check "" @{binding inference} #>
-    entity_antiqs no_check "isatt" @{binding executable} #>
+    entity_antiqs no_check "isasystem" @{binding executable} #>
     entity_antiqs check_tool "isatool" @{binding tool} #>
     entity_antiqs (can o ML_Context.check_antiquotation) "" @{binding ML_antiquotation} #>
-    entity_antiqs (K (is_action o #1)) "isatt" @{binding action});
+    entity_antiqs (K (is_action o #1)) "isasystem" @{binding action});
 
 end;
 

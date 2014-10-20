@@ -146,6 +146,17 @@ The "sos_cert" functionality is invoked as "sos" with additional
 argument. Minor INCOMPATIBILITY.
 
 
+*** Document preparation ***
+
+* Official support for "tt" style variants, via \isatt{...} or
+\begin{isabellett}...\end{isabellett}. The somewhat fragile \verb or
+verbatim environment of LaTeX is no longer used. This allows @{ML} etc.
+as argument to other macros (such as footnotes).
+
+* Document antiquotation @{verbatim} prints ASCII text literally in "tt"
+style.
+
+
 *** ML ***
 
 * Tactical PARALLEL_ALLGOALS is the most common way to refer to
