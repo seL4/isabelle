@@ -304,6 +304,16 @@ fun lookup_defined_pred_data lthy name =
     SOME data => data
     | NONE => (error "lookup_pred_data: something went utterly wrong")
 
+fun lives_of_fp fp_sugar =
+  let
+    val As = snd (dest_Type (#T fp_sugar))
+    val liveness = liveness_of_fp_bnf (length As) (hd (#bnfs (#fp_res fp_sugar)));
+  in
+    map_filter (uncurry (fn true => SOME | false => K NONE)) (liveness ~~ As)
+  end
+
+fun sorts_of_fp fp_sugar = map (snd o Ctr_Sugar_Util.dest_TFree_or_TVar) (lives_of_fp fp_sugar)
+
 fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
   let
     val involved_types = distinct op= (
@@ -311,14 +321,8 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
       @ map type_name_of_bnf (#live_nesting_bnfs fp_sugar)
       @ map type_name_of_bnf (#bnfs (#fp_res fp_sugar)))
     val eq_onps = map (Transfer.rel_eq_onp o lookup_defined_pred_data lthy) involved_types
-    val live = live_of_bnf (bnf_of_fp_sugar fp_sugar)
     val old_lthy = lthy
-    val old_As = snd (dest_Type (#T fp_sugar))
-    val liveness =
-      BNF_FP_Def_Sugar.liveness_of_fp_bnf (length old_As) (hd (#bnfs (#fp_res fp_sugar)));
-    val (unsorted_As, lthy) = mk_TFrees live lthy
-    val As = map2 (Ctr_Sugar_Util.resort_tfree_or_tvar o snd o Ctr_Sugar_Util.dest_TFree_or_TVar)
-      (map_filter (uncurry (fn true => SOME | false => K NONE)) (liveness ~~ old_As)) unsorted_As
+    val (As, lthy) = mk_TFrees' (sorts_of_fp fp_sugar) lthy
     val predTs = map mk_pred1T As
     val (preds, lthy) = mk_Frees "P" predTs lthy
     val args = map mk_eq_onp preds
