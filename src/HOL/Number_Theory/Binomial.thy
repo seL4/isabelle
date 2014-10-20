@@ -619,11 +619,19 @@ lemma binomial_altdef_nat: "(k::nat) \<le> n \<Longrightarrow>
     n choose k = fact n div (fact k * fact (n - k))"
  by (subst binomial_fact_lemma [symmetric]) auto
 
-lemma fact_fact_dvd_fact_m: fixes k::nat shows "k \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
-  by (metis binomial_fact_lemma dvd_def)
+lemma choose_dvd_nat: "(k::nat) \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
+by (metis binomial_fact_lemma dvd_def)
+
+lemma choose_dvd_int: 
+  assumes "(0::int) <= k" and "k <= n"
+  shows "fact k * fact (n - k) dvd fact n"
+  apply (subst tsub_eq [symmetric], rule assms)
+  apply (rule choose_dvd_nat [transferred])
+  using assms apply auto
+  done
 
 lemma fact_fact_dvd_fact: fixes k::nat shows "fact k * fact n dvd fact (n + k)"
-  by (metis fact_fact_dvd_fact_m diff_add_inverse2 le_add2)
+by (metis add.commute add_diff_cancel_left' choose_dvd_nat le_add2)
 
 lemma choose_mult_lemma:
      "((m+r+k) choose (m+k)) * ((m+k) choose k) = ((m+r+k) choose k) * ((m+r) choose m)"
@@ -634,7 +642,7 @@ proof -
   also have "... = fact (m+r+k) div (fact r * (fact k * fact m))"
     apply (subst div_mult_div_if_dvd)
     apply (auto simp: fact_fact_dvd_fact)
-    apply (metis ac_simps add.commute fact_fact_dvd_fact)
+    apply (metis add.assoc add.commute fact_fact_dvd_fact)
     done
   also have "... = (fact (m+r+k) * fact (m+r)) div (fact r * (fact k * fact m) * fact (m+r))"
     apply (subst div_mult_div_if_dvd [symmetric])
@@ -670,6 +678,7 @@ lemma choose_Suc_nat:
 lemma choose_one: "(n::nat) choose 1 = n"
   by simp
 
+(*FIXME: messy and apparently unused*)
 lemma binomial_induct [rule_format]: "(ALL (n::nat). P n n) \<longrightarrow> 
     (ALL n. P (Suc n) 0) \<longrightarrow> (ALL n. (ALL k < n. P n k \<longrightarrow> P n (Suc k) \<longrightarrow>
     P (Suc n) (Suc k))) \<longrightarrow> (ALL k <= n. P n k)"
@@ -680,17 +689,6 @@ lemma binomial_induct [rule_format]: "(ALL (n::nat). P n n) \<longrightarrow>
   apply (case_tac "k = Suc n")
   apply auto
   apply (metis Suc_le_eq fact_nat.cases le_Suc_eq le_eq_less_or_eq)
-  done
-
-lemma choose_dvd_nat: "(k::nat) \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
-by (metis binomial_fact_lemma dvd_def)
-
-lemma choose_dvd_int: 
-  assumes "(0::int) <= k" and "k <= n"
-  shows "fact k * fact (n - k) dvd fact n"
-  apply (subst tsub_eq [symmetric], rule assms)
-  apply (rule choose_dvd_nat [transferred])
-  using assms apply auto
   done
 
 lemma card_UNION:
