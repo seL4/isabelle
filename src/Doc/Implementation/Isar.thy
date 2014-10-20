@@ -165,10 +165,9 @@ text %mlex \<open>The following example peeks at a certain goal configuration.\<
 notepad
 begin
   have A and B and C
-    ML_val \<open>
-      val n = Thm.nprems_of (#goal @{Isar.goal});
-      @{assert} (n = 3);
-\<close>
+    ML_val
+     \<open>val n = Thm.nprems_of (#goal @{Isar.goal});
+      @{assert} (n = 3);\<close>
     oops
 
 text \<open>Here we see 3 individual subgoals in the same way as regular

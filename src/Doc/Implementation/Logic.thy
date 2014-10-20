@@ -981,9 +981,7 @@ class empty =
 theorem (in empty) false: False
   using bad by blast
 
-ML \<open>
-  @{assert} (Thm.extra_shyps @{thm false} = [@{sort empty}])
-\<close>
+ML \<open>@{assert} (Thm.extra_shyps @{thm false} = [@{sort empty}])\<close>
 
 text \<open>Thanks to the inference kernel managing sort hypothesis
   according to their logical significance, this example is merely an

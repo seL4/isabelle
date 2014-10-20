@@ -202,16 +202,15 @@ text \<open>The following ML code can now work with the invented names of
 
 notepad
 begin
-  ML_prf %"ML" \<open>
-    val ctxt0 = @{context};
+  ML_prf %"ML"
+   \<open>val ctxt0 = @{context};
 
     val ([x1], ctxt1) = ctxt0 |> Variable.add_fixes ["x"];
     val ([x2], ctxt2) = ctxt1 |> Variable.add_fixes ["x"];
     val ([x3], ctxt3) = ctxt2 |> Variable.add_fixes ["x"];
 
     val ([y1, y2], ctxt4) =
-      ctxt3 |> Variable.variant_fixes ["y", "y"];
-\<close>
+      ctxt3 |> Variable.variant_fixes ["y", "y"];\<close>
 end
 
 text \<open>In this situation @{ML Variable.add_fixes} and @{ML
@@ -459,13 +458,11 @@ begin
 
   have "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
     ML_val
-    \<open>
-      val {goal, context = goal_ctxt, ...} = @{Isar.goal};
+     \<open>val {goal, context = goal_ctxt, ...} = @{Isar.goal};
       val (focus as {params, asms, concl, ...}, goal') =
         Subgoal.focus goal_ctxt 1 goal;
       val [A, B] = #prems focus;
-      val [(_, x)] = #params focus;
-\<close>
+      val [(_, x)] = #params focus;\<close>
     oops
 
 text \<open>\medskip The next example demonstrates forward-elimination in
@@ -475,18 +472,15 @@ notepad
 begin
   assume ex: "\<exists>x. B x"
 
-  ML_prf %"ML" \<open>
-    val ctxt0 = @{context};
+  ML_prf %"ML"
+   \<open>val ctxt0 = @{context};
     val (([(_, x)], [B]), ctxt1) = ctxt0
-      |> Obtain.result (fn _ => etac @{thm exE} 1) [@{thm ex}];
-\<close>
-  ML_prf %"ML" \<open>
-    singleton (Proof_Context.export ctxt1 ctxt0) @{thm refl};
-\<close>
-  ML_prf %"ML" \<open>
-    Proof_Context.export ctxt1 ctxt0 [Thm.reflexive x]
-      handle ERROR msg => (warning msg; []);
-\<close>
+      |> Obtain.result (fn _ => etac @{thm exE} 1) [@{thm ex}];\<close>
+  ML_prf %"ML"
+   \<open>singleton (Proof_Context.export ctxt1 ctxt0) @{thm refl};\<close>
+  ML_prf %"ML"
+   \<open>Proof_Context.export ctxt1 ctxt0 [Thm.reflexive x]
+      handle ERROR msg => (warning msg; []);\<close>
 end
 
 end
