@@ -544,11 +544,8 @@ lemma tendsto_setsum [tendsto_intros]:
   shows "((\<lambda>x. \<Sum>i\<in>S. f i x) ---> (\<Sum>i\<in>S. a i)) F"
 proof (cases "finite S")
   assume "finite S" thus ?thesis using assms
-    by (induct, simp add: tendsto_const, simp add: tendsto_add)
-next
-  assume "\<not> finite S" thus ?thesis
-    by (simp add: tendsto_const)
-qed
+    by (induct, simp, simp add: tendsto_add)
+qed simp
 
 lemma continuous_setsum [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::real_normed_vector"
@@ -646,7 +643,7 @@ lemmas tendsto_mult_right_zero =
 lemma tendsto_power [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra}"
   shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. f x ^ n) ---> a ^ n) F"
-  by (induct n) (simp_all add: tendsto_const tendsto_mult)
+  by (induct n) (simp_all add: tendsto_mult)
 
 lemma continuous_power [continuous_intros]:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::{power,real_normed_algebra}"
@@ -664,11 +661,8 @@ lemma tendsto_setprod [tendsto_intros]:
   shows "((\<lambda>x. \<Prod>i\<in>S. f i x) ---> (\<Prod>i\<in>S. L i)) F"
 proof (cases "finite S")
   assume "finite S" thus ?thesis using assms
-    by (induct, simp add: tendsto_const, simp add: tendsto_mult)
-next
-  assume "\<not> finite S" thus ?thesis
-    by (simp add: tendsto_const)
-qed
+    by (induct, simp, simp add: tendsto_mult)
+qed simp
 
 lemma continuous_setprod [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
@@ -1480,7 +1474,7 @@ proof cases
   hence "(\<lambda>n. inverse (inverse x ^ n)) ----> 0"
     by (rule LIMSEQ_inverse_realpow_zero)
   thus ?thesis by (simp add: power_inverse)
-qed (rule LIMSEQ_imp_Suc, simp add: tendsto_const)
+qed (rule LIMSEQ_imp_Suc, simp)
 
 lemma LIMSEQ_power_zero:
   fixes x :: "'a::{real_normed_algebra_1}"

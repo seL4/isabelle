@@ -87,8 +87,8 @@ proof cases
     "(indicator (\<Union> i. A i) x :: 'a) = 1"
     using incseqD[OF `incseq A`, of i "n + i" for n] `x \<in> A i` by (auto simp: indicator_def)
   then show ?thesis
-    by (rule_tac LIMSEQ_offset[of _ i]) (simp add: tendsto_const)
-qed (auto simp: indicator_def tendsto_const)
+    by (rule_tac LIMSEQ_offset[of _ i]) simp
+qed (auto simp: indicator_def)
 
 lemma LIMSEQ_indicator_UN:
   "(\<lambda>k. indicator (\<Union> i<k. A i) x :: 'a :: {topological_space, one, zero}) ----> indicator (\<Union>i. A i) x"
@@ -112,8 +112,8 @@ proof cases
     "(indicator (\<Inter>i. A i) x :: 'a) = 0"
     using decseqD[OF `decseq A`, of i "n + i" for n] `x \<notin> A i` by (auto simp: indicator_def)
   then show ?thesis
-    by (rule_tac LIMSEQ_offset[of _ i]) (simp add: tendsto_const)
-qed (auto simp: indicator_def tendsto_const)
+    by (rule_tac LIMSEQ_offset[of _ i]) simp
+qed (auto simp: indicator_def)
 
 lemma LIMSEQ_indicator_INT:
   "(\<lambda>k. indicator (\<Inter>i<k. A i) x :: 'a :: {topological_space, one, zero}) ----> indicator (\<Inter>i. A i) x"

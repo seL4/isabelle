@@ -1171,10 +1171,10 @@ next
     by (auto simp: min_less_iff_disj elim: eventually_elim1)
 qed
 
-lemma tendsto_ident_at [tendsto_intros]: "((\<lambda>x. x) ---> a) (at a within s)"
+lemma tendsto_ident_at [tendsto_intros, simp, intro]: "((\<lambda>x. x) ---> a) (at a within s)"
   unfolding tendsto_def eventually_at_topological by auto
 
-lemma (in topological_space) tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) F"
+lemma (in topological_space) tendsto_const [tendsto_intros, simp, intro]: "((\<lambda>x. k) ---> k) F"
   by (simp add: tendsto_def)
 
 lemma (in t2_space) tendsto_unique:
@@ -1202,7 +1202,7 @@ qed
 
 lemma (in t2_space) tendsto_const_iff:
   assumes "\<not> trivial_limit F" shows "((\<lambda>x. a :: 'a) ---> b) F \<longleftrightarrow> a = b"
-  by (safe intro!: tendsto_const tendsto_unique [OF assms tendsto_const])
+  by (auto intro!: tendsto_unique [OF assms tendsto_const])
 
 lemma increasing_tendsto:
   fixes f :: "_ \<Rightarrow> 'a::order_topology"
@@ -1689,7 +1689,7 @@ lemma LIMSEQ_le:
 
 lemma LIMSEQ_le_const2:
   "\<lbrakk>X ----> (x::'a::linorder_topology); \<exists>N. \<forall>n\<ge>N. X n \<le> a\<rbrakk> \<Longrightarrow> x \<le> a"
-  by (rule LIMSEQ_le[of X x "\<lambda>n. a"]) (auto simp: tendsto_const)
+  by (rule LIMSEQ_le[of X x "\<lambda>n. a"]) auto
 
 lemma convergentD: "convergent X ==> \<exists>L. (X ----> L)"
 by (simp add: convergent_def)
@@ -2117,10 +2117,10 @@ proof-
 qed
 
 lemma continuous_on_id[continuous_intros]: "continuous_on s (\<lambda>x. x)"
-  unfolding continuous_on_def by (fast intro: tendsto_ident_at)
+  unfolding continuous_on_def by fast
 
 lemma continuous_on_const[continuous_intros]: "continuous_on s (\<lambda>x. c)"
-  unfolding continuous_on_def by (auto intro: tendsto_const)
+  unfolding continuous_on_def by auto
 
 lemma continuous_on_compose[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on (f ` s) g \<Longrightarrow> continuous_on s (g o f)"

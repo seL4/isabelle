@@ -45,7 +45,7 @@ lemma suminf_eq_lim: "suminf f = lim (\<lambda>n. \<Sum>i<n. f i)"
   by (simp add: suminf_def sums_def lim_def)
 
 lemma sums_zero[simp, intro]: "(\<lambda>n. 0) sums 0"
-  unfolding sums_def by (simp add: tendsto_const)
+  unfolding sums_def by simp
 
 lemma summable_zero[simp, intro]: "summable (\<lambda>n. 0)"
   by (rule sums_zero [THEN sums_summable])
@@ -84,7 +84,7 @@ proof -
   note eq = this
   show ?thesis unfolding sums_def
     by (rule LIMSEQ_offset[of _ "Suc (Max N)"])
-       (simp add: eq atLeast0LessThan tendsto_const del: add_Suc_right)
+       (simp add: eq atLeast0LessThan del: add_Suc_right)
 qed
 
 lemma summable_finite: "finite N \<Longrightarrow> (\<And>n. n \<notin> N \<Longrightarrow> f n = 0) \<Longrightarrow> summable f"
@@ -232,7 +232,7 @@ proof -
     with tendsto_add[OF this tendsto_const, of "- f 0"]
     show "(\<lambda>i. f (Suc i)) sums s"
       by (simp add: sums_def)
-  qed (auto intro: tendsto_add tendsto_const simp: sums_def)
+  qed (auto intro: tendsto_add simp: sums_def)
   finally show ?thesis ..
 qed
 

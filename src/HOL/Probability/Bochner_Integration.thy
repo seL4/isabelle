@@ -2335,7 +2335,7 @@ proof -
          (auto split: split_indicator simp: natceiling_le_eq) }
   from filterlim_cong[OF refl refl this]
   have "AE x in M. (\<lambda>i. f x * indicator {..real i} x) ----> f x"
-    by (simp add: tendsto_const)
+    by simp
   have "(\<lambda>i. \<integral> x. f x * indicator {..real i} x \<partial>M) ----> x"
     using conv filterlim_real_sequentially by (rule filterlim_compose)
   have M_measure[simp]: "borel_measurable M = borel_measurable borel"
@@ -2439,7 +2439,7 @@ proof -
     then 
     show "(\<lambda>i. f' i x) ----> integral\<^sup>L M (f x)"
       unfolding f'_def
-      by (cases "integrable M (f x)") (simp_all add: not_integrable_integral_eq tendsto_const)
+      by (cases "integrable M (f x)") (simp_all add: not_integrable_integral_eq)
   qed
 qed
 

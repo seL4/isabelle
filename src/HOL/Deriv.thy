@@ -80,10 +80,10 @@ lemma has_derivative_linear: "(f has_derivative f') F \<Longrightarrow> linear f
   using bounded_linear.linear[OF has_derivative_bounded_linear] .
 
 lemma has_derivative_ident[derivative_intros, simp]: "((\<lambda>x. x) has_derivative (\<lambda>x. x)) F"
-  by (simp add: has_derivative_def tendsto_const)
+  by (simp add: has_derivative_def)
 
 lemma has_derivative_const[derivative_intros, simp]: "((\<lambda>x. c) has_derivative (\<lambda>x. 0)) F"
-  by (simp add: has_derivative_def tendsto_const)
+  by (simp add: has_derivative_def)
 
 lemma (in bounded_linear) bounded_linear: "bounded_linear f" ..
 
@@ -180,7 +180,7 @@ proof safe
     show "(H ---> 0) (at x within s)" by fact
     show "eventually (\<lambda>n. norm (f n - f x - f' (n - x)) / norm (n - x) \<le> H n) (at x within s)"
       unfolding eventually_at using e sandwich by auto
-  qed (auto simp: le_divide_eq tendsto_const)
+  qed (auto simp: le_divide_eq)
 qed fact
 
 lemma has_derivative_subset: "(f has_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_derivative f') (at x within t)"
@@ -1583,8 +1583,7 @@ proof -
   from \<zeta> have "eventually (\<lambda>x. norm (\<zeta> x) \<le> x) (at_right 0)"
     by eventually_elim auto
   then have "((\<lambda>x. norm (\<zeta> x)) ---> 0) (at_right 0)"
-    by (rule_tac real_tendsto_sandwich[where f="\<lambda>x. 0" and h="\<lambda>x. x"])
-       (auto intro: tendsto_const tendsto_ident_at)
+    by (rule_tac real_tendsto_sandwich[where f="\<lambda>x. 0" and h="\<lambda>x. x"]) auto
   then have "(\<zeta> ---> 0) (at_right 0)"
     by (rule tendsto_norm_zero_cancel)
   with \<zeta> have "filterlim \<zeta> (at_right 0) (at_right 0)"

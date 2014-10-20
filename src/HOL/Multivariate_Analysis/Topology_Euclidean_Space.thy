@@ -3688,7 +3688,7 @@ proof -
       then obtain r where "subseq r" and fr: "\<forall>n. f (r n) = f l"
         using infinite_enumerate by blast
       then have "subseq r \<and> (f \<circ> r) ----> f l"
-        by (simp add: fr tendsto_const o_def)
+        by (simp add: fr o_def)
       with f show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l"
         by auto
     next
@@ -7525,8 +7525,6 @@ proof -
     using dist[THEN bspec[where x=a]] `g a = a` and `a\<in>s` by auto
   ultimately show "\<exists>!x\<in>s. g x = x" using `a \<in> s` by blast
 qed
-
-declare tendsto_const [intro] (* FIXME: move *)
 
 no_notation
   eucl_less (infix "<e" 50)

@@ -1347,7 +1347,7 @@ next
     unfolding isCont_def
     by (subst filterlim_cong[OF _ refl, of _ "nhds (ln 0)" _ "\<lambda>_. ln 0"])
        (auto simp: ln_neg_is_const not_less eventually_at dist_real_def
-                intro!: tendsto_const exI[of _ "\<bar>x\<bar>"])
+                intro!: exI[of _ "\<bar>x\<bar>"])
 qed
 
 lemma tendsto_ln [tendsto_intros]:
@@ -2214,7 +2214,7 @@ proof cases
       unfolding eventually_at_right[OF zero_less_one]
       using `x \<noteq> 0` by (intro exI[of _ "1 / \<bar>x\<bar>"]) (auto simp: field_simps powr_def)
   qed (simp_all add: at_eq_sup_left_right)
-qed (simp add: tendsto_const)
+qed simp
 
 lemma tendsto_exp_limit_at_top:
   fixes x :: real
@@ -3733,7 +3733,7 @@ lemma zeroseq_arctan_series:
 proof (cases "x = 0")
   case True
   thus ?thesis
-    unfolding One_nat_def by (auto simp add: tendsto_const)
+    unfolding One_nat_def by auto
 next
   case False
   have "norm x \<le> 1" and "x \<le> 1" and "-1 \<le> x" using assms by auto
