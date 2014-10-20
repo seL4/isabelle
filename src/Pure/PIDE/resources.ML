@@ -222,8 +222,9 @@ fun file_antiq strict ctxt (name, pos) =
     val _ = check_path strict ctxt dir (name, pos);
   in
     space_explode "/" name
-    |> map Thy_Output.verb_text
-    |> space_implode (Thy_Output.verb_text "/" ^ "\\discretionary{}{}{}")
+    |> map Latex.output_ascii
+    |> space_implode (Latex.output_ascii "/" ^ "\\discretionary{}{}{}")
+    |> Thy_Output.enclose_isabelle_tt ctxt
   end;
 
 in

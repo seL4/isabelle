@@ -6,6 +6,7 @@ LaTeX presentation elements -- based on outer lexical syntax.
 
 signature LATEX =
 sig
+  val output_ascii: string -> string
   val output_known_symbols: (string -> bool) * (string -> bool) ->
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
@@ -29,6 +30,18 @@ end;
 
 structure Latex: LATEX =
 struct
+
+(* literal ASCII *)
+
+val output_ascii =
+  translate_string
+    (fn " " => "\\ "
+      | "\t" => "\\ "
+      | "\n" => "\\isanewline\n"
+      | s =>
+          if exists_string (fn s' => s = s') "#$%^&_{}~\\"
+          then enclose "{\\char`\\" "}" s else s);
+
 
 (* symbol output *)
 

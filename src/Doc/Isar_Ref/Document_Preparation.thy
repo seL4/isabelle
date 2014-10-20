@@ -125,6 +125,7 @@ text \<open>
     @{antiquotation_def ML_type} & : & @{text antiquotation} \\
     @{antiquotation_def ML_structure} & : & @{text antiquotation} \\
     @{antiquotation_def ML_functor} & : & @{text antiquotation} \\
+    @{antiquotation_def verbatim} & : & @{text antiquotation} \\
     @{antiquotation_def "file"} & : & @{text antiquotation} \\
     @{antiquotation_def "url"} & : & @{text antiquotation} \\
     @{antiquotation_def "cite"} & : & @{text antiquotation} \\
@@ -179,6 +180,7 @@ text \<open>
       @@{antiquotation ML_type} options @{syntax text} |
       @@{antiquotation ML_structure} options @{syntax text} |
       @@{antiquotation ML_functor} options @{syntax text} |
+      @@{antiquotation verbatim} options @{syntax text} |
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation file_unchecked} options @{syntax name} |
       @@{antiquotation url} options @{syntax name} |
@@ -270,6 +272,9 @@ text \<open>
   s}"}, @{text "@{ML_structure s}"}, and @{text "@{ML_functor s}"}
   check text @{text s} as ML value, infix operator, type, structure,
   and functor respectively.  The source is printed verbatim.
+
+  \item @{text "@{verbatim s}"} prints uninterpreted source text literally
+  as ASCII characters, using some type-writer font style.
 
   \item @{text "@{file path}"} checks that @{text "path"} refers to a
   file (or directory) and prints it verbatim.

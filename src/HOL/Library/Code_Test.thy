@@ -131,10 +131,10 @@ lemma xml_of_term_code [code]:
   "xml_of_term (Code_Evaluation.Const x ty) = [xml.tagged (STR ''0'') (Some x) (xml_of_typ ty)]"
   "xml_of_term (Code_Evaluation.App t1 t2)  = [xml.tagged (STR ''5'') None [xml.node (xml_of_term t1), xml.node (xml_of_term t2)]]"
   "xml_of_term (Code_Evaluation.Abs x ty t) = [xml.tagged (STR ''4'') (Some x) [xml.node (xml_of_typ ty), xml.node (xml_of_term t)]]"
-  (*
+  -- {*
     FIXME: @{const Code_Evaluation.Free} is used only in @{theory Quickcheck_Narrowing} to represent
     uninstantiated parameters in constructors. Here, we always translate them to @{ML Free} variables.
-  *)
+  *}
   "xml_of_term (Code_Evaluation.Free x ty)  = [xml.tagged (STR ''1'') (Some x) (xml_of_typ ty)]"
 by(simp_all add: xml_of_term_def xml_tree_anything)
 
