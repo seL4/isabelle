@@ -194,8 +194,7 @@ text \<open>
 
   Note that the syntax of antiquotations may \emph{not} include source
   comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
-  text @{verbatim "{"}@{verbatim "*"}~@{text "\<dots>"}~@{verbatim
-  "*"}@{verbatim "}"}.
+  text @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"}.
 
   \begin{description}
   

@@ -148,7 +148,7 @@ text \<open>The outer lexical syntax consists of three main categories of
     @{syntax_def string} & = & @{verbatim \<open>"\<close>} @{text "\<dots>"} @{verbatim \<open>"\<close>} \\
     @{syntax_def altstring} & = & @{verbatim "`"} @{text "\<dots>"} @{verbatim "`"} \\
     @{syntax_def cartouche} & = & @{verbatim "\<open>"} @{text "\<dots>"} @{verbatim "\<close>"} \\
-    @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*"}@{verbatim "}"} \\[1ex]
+    @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*}"} \\[1ex]
 
     @{text letter} & = & @{text "latin  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
     @{text subscript} & = & @{verbatim "\<^sub>"} \\
@@ -185,12 +185,10 @@ text \<open>The outer lexical syntax consists of three main categories of
   @{syntax_ref altstring} are analogous, using single back-quotes
   instead.
 
-  The body of @{syntax_ref verbatim} may consist of any text not
-  containing ``@{verbatim "*"}@{verbatim "}"}''; this allows
-  convenient inclusion of quotes without further escapes.  There is no
-  way to escape ``@{verbatim "*"}@{verbatim "}"}''.  If the quoted
-  text is {\LaTeX} source, one may usually add some blank or comment
-  to avoid the critical character sequence.
+  The body of @{syntax_ref verbatim} may consist of any text not containing
+  ``@{verbatim "*}"}''; this allows to include quotes without further
+  escapes, but there is no way to escape ``@{verbatim "*}"}''. Cartouches
+  do not have this limitation.
 
   A @{syntax_ref cartouche} consists of arbitrary text, with properly
   balanced blocks of ``@{verbatim "\<open>"}~@{text "\<dots>"}~@{verbatim
@@ -263,13 +261,12 @@ text \<open>The outer lexical syntax (\secref{sec:outer-lex}) admits
 
 subsection \<open>Comments \label{sec:comments}\<close>
 
-text \<open>Large chunks of plain @{syntax text} are usually given
-  @{syntax verbatim}, i.e.\ enclosed in @{verbatim "{"}@{verbatim
-  "*"}~@{text "\<dots>"}~@{verbatim "*"}@{verbatim "}"}, or as @{syntax
-  cartouche} @{text "\<open>\<dots>\<close>"}.  For convenience, any of the smaller text
-  units conforming to @{syntax nameref} are admitted as well.  A
-  marginal @{syntax comment} is of the form @{verbatim "--"}~@{syntax
-  text}.  Any number of these may occur within Isabelle/Isar commands.
+text \<open>Large chunks of plain @{syntax text} are usually given @{syntax
+  verbatim}, i.e.\ enclosed in @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"},
+  or as @{syntax cartouche} @{text "\<open>\<dots>\<close>"}. For convenience, any of the
+  smaller text units conforming to @{syntax nameref} are admitted as well. A
+  marginal @{syntax comment} is of the form @{verbatim "--"}~@{syntax text}.
+  Any number of these may occur within Isabelle/Isar commands.
 
   @{rail \<open>
     @{syntax_def text}: @{syntax verbatim} | @{syntax cartouche} | @{syntax nameref}
