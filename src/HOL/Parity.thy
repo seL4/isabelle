@@ -431,7 +431,7 @@ lemma zero_le_odd_power:
   "odd n \<Longrightarrow> 0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a"
   by (auto simp add: power_even_eq zero_le_mult_iff elim: oddE)
 
-lemma zero_le_power_iff [presburger]: -- \<open>FIXME cf. zero_le_power_eq\<close>
+lemma zero_le_power_iff [presburger]: -- \<open>FIXME cf. @{text zero_le_power_eq}\<close>
   "0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a \<or> even n"
 proof (cases "even n")
   case True
