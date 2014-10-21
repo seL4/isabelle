@@ -180,6 +180,7 @@ expand-abbrev.shortcut2=CA+SPACE
 fallbackEncodings=UTF-8 ISO-8859-15 US-ASCII
 firstTime=false
 focus-buffer-switcher.shortcut2=A+CIRCUMFLEX
+foldPainter=Circle
 home.shortcut=
 insert-newline-indent.shortcut=
 insert-newline.shortcut=ENTER
