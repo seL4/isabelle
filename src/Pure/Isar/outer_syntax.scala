@@ -63,11 +63,11 @@ object Outer_Syntax
   /* overall document structure */
 
   sealed abstract class Document { def length: Int }
-  case class Document_Block(val name: String, val body: List[Document]) extends Document
+  case class Document_Block(name: String, text: String, body: List[Document]) extends Document
   {
     val length: Int = (0 /: body)(_ + _.length)
   }
-  case class Document_Atom(val command: Command) extends Document
+  case class Document_Atom(command: Command) extends Document
   {
     def length: Int = command.length
   }
@@ -301,14 +301,14 @@ final class Outer_Syntax private(
     def buffer(): mutable.ListBuffer[Outer_Syntax.Document] =
       new mutable.ListBuffer[Outer_Syntax.Document]
 
-    var stack: List[(Int, String, mutable.ListBuffer[Outer_Syntax.Document])] =
-      List((0, "", buffer()))
+    var stack: List[(Int, Command, mutable.ListBuffer[Outer_Syntax.Document])] =
+      List((0, Command.empty, buffer()))
 
     @tailrec def close(level: Int => Boolean)
     {
       stack match {
-        case (lev, name, body) :: (_, _, body2) :: rest if level(lev) =>
-          body2 += Outer_Syntax.Document_Block(name, body.toList)
+        case (lev, command, body) :: (_, _, body2) :: rest if level(lev) =>
+          body2 += Outer_Syntax.Document_Block(command.name, command.source, body.toList)
           stack = stack.tail
           close(level)
         case _ =>
@@ -326,7 +326,7 @@ final class Outer_Syntax private(
       heading_level(command) match {
         case Some(i) =>
           close(_ > i)
-          stack = (i + 1, command.source, buffer()) :: stack
+          stack = (i + 1, command, buffer()) :: stack
         case None =>
       }
       stack.head._3 += Outer_Syntax.Document_Atom(command)
