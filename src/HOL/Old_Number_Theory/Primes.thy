@@ -68,7 +68,7 @@ lemma odd_square: assumes e: "odd (n::nat)" shows "\<exists>x. n\<^sup>2 = 4*x +
 proof-
   from e have np: "n > 0" by presburger
   from e have "2 dvd (n - 1)" by presburger
-  then obtain k where "n - 1 = 2*k" using dvd_def by auto
+  then obtain k where "n - 1 = 2 * k" ..
   hence k: "n = 2*k + 1"  using e by presburger 
   hence "n\<^sup>2 = 4* (k\<^sup>2 + k) + 1" by algebra   
   thus ?thesis by blast
@@ -588,7 +588,6 @@ proof-
 thus ?thesis by blast
 qed
 
-lemma even_dvd[simp]: "even (n::nat) \<longleftrightarrow> 2 dvd n" by presburger
 lemma prime_odd: "prime p \<Longrightarrow> p = 2 \<or> odd p" unfolding prime_def by auto
 
 
@@ -828,6 +827,5 @@ apply(metis coprime_commute coprime_divprod dvd.neq_le_trans dvd_triv_right)
 done
 
 declare power_Suc0[simp del]
-declare even_dvd[simp del]
 
 end

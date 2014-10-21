@@ -3598,7 +3598,7 @@ proof -
 qed
 
 lemma cos_2npi [simp]: "cos (2 * real (n::nat) * pi) = 1"
-  by (simp add: cos_double mult.assoc power_add [symmetric] numeral_2_eq_2)
+  by (cases "even n") (simp_all add: cos_double mult.assoc)
 
 lemma cos_3over2_pi [simp]: "cos (3 / 2 * pi) = 0"
   apply (subgoal_tac "cos (pi + pi/2) = 0", simp)

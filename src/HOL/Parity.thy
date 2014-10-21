@@ -189,47 +189,41 @@ subsubsection {* Properties *}
 context semiring_parity
 begin
 
-definition even :: "'a \<Rightarrow> bool"
+abbreviation even :: "'a \<Rightarrow> bool"
 where
-  [presburger, algebra]: "even a \<longleftrightarrow> 2 dvd a"
+  "even a \<equiv> 2 dvd a"
 
 abbreviation odd :: "'a \<Rightarrow> bool"
 where
-  "odd a \<equiv> \<not> even a"
+  "odd a \<equiv> \<not> 2 dvd a"
 
 lemma evenE [elim?]:
   assumes "even a"
   obtains b where "a = 2 * b"
-proof -
-  from assms have "2 dvd a" by (simp add: even_def)
-  then show thesis using that ..
-qed
+  using assms by (rule dvdE)
 
 lemma oddE [elim?]:
   assumes "odd a"
   obtains b where "a = 2 * b + 1"
-proof -
-  from assms have "\<not> 2 dvd a" by (simp add: even_def)
-  then show thesis using that by (rule not_two_dvdE)
-qed
+  using assms by (rule not_two_dvdE)
   
 lemma even_times_iff [simp, presburger, algebra]:
   "even (a * b) \<longleftrightarrow> even a \<or> even b"
-  by (auto simp add: even_def dest: two_is_prime)
+  by (auto simp add: dest: two_is_prime)
 
 lemma even_zero [simp]:
   "even 0"
-  by (simp add: even_def)
+  by simp
 
 lemma odd_one [simp]:
   "odd 1"
-  by (simp add: even_def)
+  by simp
 
 lemma even_numeral [simp]:
   "even (numeral (Num.Bit0 n))"
 proof -
   have "even (2 * numeral n)"
-    unfolding even_times_iff by (simp add: even_def)
+    unfolding even_times_iff by simp
   then have "even (numeral n + numeral n)"
     unfolding mult_2 .
   then show ?thesis
@@ -245,7 +239,7 @@ proof
   then have "even (2 * numeral n + 1)"
     unfolding mult_2 .
   then have "2 dvd numeral n * 2 + 1"
-    unfolding even_def by (simp add: ac_simps)
+    by (simp add: ac_simps)
   with dvd_add_times_triv_left_iff [of 2 "numeral n" 1]
     have "2 dvd 1"
     by simp
@@ -254,7 +248,7 @@ qed
 
 lemma even_add [simp]:
   "even (a + b) \<longleftrightarrow> (even a \<longleftrightarrow> even b)"
-  by (auto simp add: even_def dvd_add_right_iff dvd_add_left_iff not_dvd_not_dvd_dvd_add)
+  by (auto simp add: dvd_add_right_iff dvd_add_left_iff not_dvd_not_dvd_dvd_add)
 
 lemma odd_add [simp]:
   "odd (a + b) \<longleftrightarrow> (\<not> (odd a \<longleftrightarrow> odd b))"
@@ -271,7 +265,7 @@ begin
 
 lemma even_minus [simp, presburger, algebra]:
   "even (- a) \<longleftrightarrow> even a"
-  by (simp add: even_def)
+  by (fact dvd_minus_iff)
 
 lemma even_diff [simp]:
   "even (a - b) \<longleftrightarrow> even (a + b)"
@@ -300,7 +294,7 @@ qed
 
 lemma even_iff_mod_2_eq_zero:
   "even a \<longleftrightarrow> a mod 2 = 0"
-  by (simp add: even_def dvd_eq_mod_eq_0)
+  by (fact dvd_eq_mod_eq_0)
 
 lemma even_succ_div_two [simp]:
   "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
@@ -312,7 +306,7 @@ lemma odd_succ_div_two [simp]:
 
 lemma even_two_times_div_two:
   "even a \<Longrightarrow> 2 * (a div 2) = a"
-  by (rule dvd_mult_div_cancel) (simp add: even_def)
+  by (fact dvd_mult_div_cancel)
 
 lemma odd_two_times_div_two_succ:
   "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
@@ -325,7 +319,7 @@ subsubsection {* Particularities for @{typ nat} and @{typ int} *}
 
 lemma even_Suc [simp, presburger, algebra]:
   "even (Suc n) = odd n"
-  by (simp add: even_def two_dvd_Suc_iff)
+  by (fact two_dvd_Suc_iff)
 
 lemma odd_pos: 
   "odd (n :: nat) \<Longrightarrow> 0 < n"
@@ -334,11 +328,11 @@ lemma odd_pos:
 lemma even_diff_nat [simp]:
   fixes m n :: nat
   shows "even (m - n) \<longleftrightarrow> m < n \<or> even (m + n)"
-  by (simp add: even_def two_dvd_diff_nat_iff)
+  by (fact two_dvd_diff_nat_iff)
 
 lemma even_int_iff:
   "even (int n) \<longleftrightarrow> even n"
-  by (simp add: even_def dvd_int_iff)
+  by (simp add: dvd_int_iff)
 
 lemma even_nat_iff:
   "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"

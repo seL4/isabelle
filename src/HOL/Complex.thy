@@ -733,7 +733,7 @@ proof -
     moreover from cos have "sin d = 0" by (rule cos_one_sin_zero)
     ultimately have "d = 0"
       unfolding sin_zero_iff
-      by (auto simp add: numeral_2_eq_2 less_Suc_eq elim!: evenE)
+      by (auto elim!: evenE dest!: less_2_cases)
     thus "a = x" unfolding d_def by simp
   qed (simp add: assms del: Re_sgn Im_sgn)
   with `z \<noteq> 0` show "arg z = x"

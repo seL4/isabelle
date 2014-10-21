@@ -51,10 +51,9 @@ token category instead.
   dvd_plus_eq_left ~> dvd_add_left_iff
 Minor INCOMPATIBILITY.
 
-* More foundational definition for predicate "even":
+* "even" and "odd" are mere abbreviations for "2 dvd _" and "~ 2 dvd _".
   even_def ~> even_iff_mod_2_eq_zero
-  even_iff_2_dvd ~> even_def
-Minor INCOMPATIBILITY.
+INCOMPATIBILITY.
 
 * Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1
 Minor INCOMPATIBILITY.
