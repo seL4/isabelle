@@ -1855,6 +1855,9 @@ Section~\ref{ssec:code-generator}.)
 @{thm llist.corec_sel(1)[no_vars]} \\
 @{thm llist.corec_sel(2)[no_vars]}
 
+\item[@{text "t."}\hthm{map_o_corec}\rm:] ~ \\
+@{thm llist.map_o_corec[no_vars]}
+
 \item[@{text "t."}\hthm{corec_transfer}\rm:] ~ \\
 @{thm llist.corec_transfer[no_vars]}
 
