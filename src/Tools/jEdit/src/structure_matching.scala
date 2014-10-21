@@ -16,21 +16,20 @@ object Structure_Matching
 {
   object Isabelle_Matcher extends StructureMatcher
   {
-    def scan_block(
+    def find_block(
       open: Token => Boolean,
       close: Token => Boolean,
       reset: Token => Boolean,
-      init_range: Text.Range,
-      init_depth: Int,
-      it: Iterator[Text.Info[Token]]): Option[Text.Range] =
+      it: Iterator[Text.Info[Token]]): Option[(Text.Range, Text.Range)] =
     {
-      it.scanLeft((init_range, init_depth))(
+      val range1 = it.next.range
+      it.scanLeft((range1, 1))(
         { case ((r, d), Text.Info(range, tok)) =>
             if (open(tok)) (range, d + 1)
             else if (close(tok)) (range, d - 1)
             else if (reset(tok)) (range, 0)
             else (r, d) }
-      ).collectFirst({ case (r, 0) => r })
+      ).collectFirst({ case (range2, 0) => (range1, range2) })
     }
 
     def find_pair(text_area: TextArea): Option[(Text.Range, Text.Range)] =
@@ -68,16 +67,10 @@ object Structure_Matching
               }
 
             case Some(Text.Info(range1, tok)) if tok.is_begin =>
-              val it = caret_iterator()
-              it.next
-              scan_block(_.is_begin, _.is_end, _ => false, range1, 1, it).
-                map(range2 => (range1, range2))
+              find_block(_.is_begin, _.is_end, _ => false, caret_iterator())
 
             case Some(Text.Info(range1, tok)) if tok.is_end =>
-              val it = rev_caret_iterator()
-              it.next
-              scan_block(_.is_end, _.is_begin, _ => false, range1, 1, it).
-                map(range2 => (range1, range2))
+              find_block(_.is_end, _.is_begin, _ => false, rev_caret_iterator())
 
             case _ => None
           }
