@@ -23,6 +23,7 @@ open BNF_FP_Def_Sugar
 
 val size_N = "size_";
 val sizeN = "size";
+val size_genN = "size_gen";
 val size_o_mapN = "size_o_map";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
@@ -250,6 +251,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val overloaded_size_simpss =
         map2 (map o derive_overloaded_size_simp) overloaded_size_defs' size_simpss;
       val size_thmss = map2 append size_simpss overloaded_size_simpss;
+      val size_gen_thmss = size_simpss
 
       val ABs = As ~~ Bs;
       val g_names = variant_names num_As "g";
@@ -315,6 +317,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       val notes =
         [(sizeN, size_thmss, code_attrs :: nitpicksimp_attrs @ simp_attrs),
+         (size_genN, size_gen_thmss, []),
          (size_o_mapN, size_o_map_thmss, [])]
         |> massage_multi_notes;
 
