@@ -20,6 +20,10 @@ semantics due to external visual order vs. internal reverse order.
 * Improved folding mode "isabelle" based on Isar syntax.
 Alternatively, the "sidekick" mode may be used for document structure.
 
+* Extended bracket matching based on Isar language structure.  System
+option jedit_structure_limit determines maximum number of lines to
+scan in the buffer.
+
 * Support for BibTeX files: context menu, context-sensitive token
 marker, SideKick parser.
 
