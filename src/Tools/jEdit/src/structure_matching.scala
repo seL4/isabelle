@@ -23,17 +23,24 @@ object Structure_Matching
       val caret = text_area.getCaretPosition
 
       PIDE.session.recent_syntax match {
-        case syntax: Outer_Syntax if syntax != Outer_Syntax.empty =>
-          Token_Markup.line_token_iterator(syntax, buffer, caret_line).
-            find({ case (tok, r) => r.touches(caret) })
-          match {
-            case Some((tok, range1)) if (syntax.command_kind(tok, Keyword.qed_global)) =>
-              Token_Markup.line_token_reverse_iterator(syntax, buffer, caret_line).
-                dropWhile({ case (_, r) => caret <= r.stop }).
-                find({ case (tok, _) => syntax.command_kind(tok, Keyword.theory) })
+        case syntax: Outer_Syntax
+        if syntax != Outer_Syntax.empty =>
+
+          val limit = PIDE.options.value.int("jedit_structure_limit") max 0
+
+          def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
+            Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
+
+          def rev_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
+            Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
+
+          iterator(caret_line, 1).find(info => info.range.touches(caret)) match {
+            case Some(Text.Info(range1, tok)) if syntax.command_kind(tok, Keyword.qed_global) =>
+              rev_iterator(caret_line).dropWhile(info => caret <= info.range.stop).
+                find(info => syntax.command_kind(info.info, Keyword.theory))
               match {
-                case Some((tok, range2)) if syntax.command_kind(tok, Keyword.theory_goal) =>
-                  Some((range1, range2))
+                case Some(Text.Info(range2, tok))
+                if syntax.command_kind(tok, Keyword.theory_goal) => Some((range1, range2))
                 case _ => None
               }
             case _ => None

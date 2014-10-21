@@ -225,26 +225,32 @@ object Token_Markup
   }
 
   def line_token_iterator(
-      syntax: Outer_Syntax, buffer: JEditBuffer, start_line: Int): Iterator[(Token, Text.Range)] =
+      syntax: Outer_Syntax,
+      buffer: JEditBuffer,
+      start_line: Int,
+      end_line: Int): Iterator[Text.Info[Token]] =
     for {
-      line <- ((start_line max 0) until buffer.getLineCount).iterator
+      line <- Range(start_line max 0, end_line min buffer.getLineCount).iterator
       tokens <- try_line_tokens(syntax, buffer, line).iterator
       starts =
         tokens.iterator.scanLeft(buffer.getLineStartOffset(line))(
           (i, tok) => i + tok.source.length)
-      (tok, i) <- tokens.iterator zip starts
-    } yield (tok, Text.Range(i, i + tok.source.length))
+      (i, tok) <- starts zip tokens.iterator
+    } yield Text.Info(Text.Range(i, i + tok.source.length), tok)
 
   def line_token_reverse_iterator(
-      syntax: Outer_Syntax, buffer: JEditBuffer, start_line: Int): Iterator[(Token, Text.Range)] =
+      syntax: Outer_Syntax,
+      buffer: JEditBuffer,
+      start_line: Int,
+      end_line: Int): Iterator[Text.Info[Token]] =
     for {
-      line <- Range.inclusive(start_line min (buffer.getLineCount - 1), 0, -1).iterator
+      line <- Range(start_line min (buffer.getLineCount - 1), end_line max -1, -1).iterator
       tokens <- try_line_tokens(syntax, buffer, line).iterator
       stops =
         tokens.reverseIterator.scanLeft(buffer.getLineEndOffset(line) min buffer.getLength)(
           (i, tok) => i - tok.source.length)
-      (tok, i) <- tokens.reverseIterator zip stops
-    } yield (tok, Text.Range(i - tok.source.length, i))
+      (i, tok) <- stops zip tokens.reverseIterator
+    } yield Text.Info(Text.Range(i - tok.source.length, i), tok)
 
 
   /* token marker */
