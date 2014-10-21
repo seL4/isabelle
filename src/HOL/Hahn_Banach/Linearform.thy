@@ -2,16 +2,16 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Linearforms *}
+header \<open>Linearforms\<close>
 
 theory Linearform
 imports Vector_Space
 begin
 
-text {*
+text \<open>
   A \emph{linear form} is a function on a vector space into the reals
   that is additive and multiplicative.
-*}
+\<close>
 
 locale linearform =
   fixes V :: "'a\<Colon>{minus, plus, zero, uminus} set" and f
@@ -40,11 +40,11 @@ proof -
   assume x: "x \<in> V" and y: "y \<in> V"
   then have "x - y = x + - y" by (rule diff_eq1)
   also have "f \<dots> = f x + f (- y)" by (rule add) (simp_all add: x y)
-  also have "f (- y) = - f y" using `vectorspace V` y by (rule neg)
+  also have "f (- y) = - f y" using \<open>vectorspace V\<close> y by (rule neg)
   finally show ?thesis by simp
 qed
 
-text {* Every linear form yields @{text 0} for the @{text 0} vector. *}
+text \<open>Every linear form yields @{text 0} for the @{text 0} vector.\<close>
 
 lemma (in linearform) zero [iff]:
   assumes "vectorspace V"
@@ -52,7 +52,7 @@ lemma (in linearform) zero [iff]:
 proof -
   interpret vectorspace V by fact
   have "f 0 = f (0 - 0)" by simp
-  also have "\<dots> = f 0 - f 0" using `vectorspace V` by (rule diff) simp_all
+  also have "\<dots> = f 0 - f 0" using \<open>vectorspace V\<close> by (rule diff) simp_all
   also have "\<dots> = 0" by simp
   finally show ?thesis .
 qed

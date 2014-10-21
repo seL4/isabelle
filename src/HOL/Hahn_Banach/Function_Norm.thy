@@ -2,15 +2,15 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* The norm of a function *}
+header \<open>The norm of a function\<close>
 
 theory Function_Norm
 imports Normed_Space Function_Order
 begin
 
-subsection {* Continuous linear forms*}
+subsection \<open>Continuous linear forms\<close>
 
-text {*
+text \<open>
   A linear form @{text f} on a normed vector space @{text "(V, \<parallel>\<cdot>\<parallel>)"}
   is \emph{continuous}, iff it is bounded, i.e.
   \begin{center}
@@ -19,7 +19,7 @@ text {*
   In our application no other functions than linear forms are
   considered, so we can define continuous linear forms as bounded
   linear forms:
-*}
+\<close>
 
 locale continuous = linearform +
   fixes norm :: "_ \<Rightarrow> real"    ("\<parallel>_\<parallel>")
@@ -39,9 +39,9 @@ proof
 qed
 
 
-subsection {* The norm of a linear form *}
+subsection \<open>The norm of a linear form\<close>
 
-text {*
+text \<open>
   The least real number @{text c} for which holds
   \begin{center}
   @{text "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>"}
@@ -70,7 +70,7 @@ text {*
 
   @{text fn_norm} is equal to the supremum of @{text B}, if the
   supremum exists (otherwise it is undefined).
-*}
+\<close>
 
 locale fn_norm =
   fixes norm :: "_ \<Rightarrow> real"    ("\<parallel>_\<parallel>")
@@ -83,34 +83,34 @@ locale normed_vectorspace_with_fn_norm = normed_vectorspace + fn_norm
 lemma (in fn_norm) B_not_empty [intro]: "0 \<in> B V f"
   by (simp add: B_def)
 
-text {*
+text \<open>
   The following lemma states that every continuous linear form on a
   normed space @{text "(V, \<parallel>\<cdot>\<parallel>)"} has a function norm.
-*}
+\<close>
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_works:
   assumes "continuous V f norm"
   shows "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
 proof -
   interpret continuous V f norm by fact
-  txt {* The existence of the supremum is shown using the
+  txt \<open>The existence of the supremum is shown using the
     completeness of the reals. Completeness means, that every
-    non-empty bounded set of reals has a supremum. *}
+    non-empty bounded set of reals has a supremum.\<close>
   have "\<exists>a. lub (B V f) a"
   proof (rule real_complete)
-    txt {* First we have to show that @{text B} is non-empty: *}
+    txt \<open>First we have to show that @{text B} is non-empty:\<close>
     have "0 \<in> B V f" ..
     then show "\<exists>x. x \<in> B V f" ..
 
-    txt {* Then we have to show that @{text B} is bounded: *}
+    txt \<open>Then we have to show that @{text B} is bounded:\<close>
     show "\<exists>c. \<forall>y \<in> B V f. y \<le> c"
     proof -
-      txt {* We know that @{text f} is bounded by some value @{text c}. *}
+      txt \<open>We know that @{text f} is bounded by some value @{text c}.\<close>
       from bounded obtain c where c: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
 
-      txt {* To prove the thesis, we have to show that there is some
+      txt \<open>To prove the thesis, we have to show that there is some
         @{text b}, such that @{text "y \<le> b"} for all @{text "y \<in>
-        B"}. Due to the definition of @{text B} there are two cases. *}
+        B"}. Due to the definition of @{text B} there are two cases.\<close>
 
       def b \<equiv> "max c 0"
       have "\<forall>y \<in> B V f. y \<le> b"
@@ -121,16 +121,16 @@ proof -
           assume "y = 0"
           then show ?thesis unfolding b_def by arith
         next
-          txt {* The second case is @{text "y = \<bar>f x\<bar> / \<parallel>x\<parallel>"} for some
-            @{text "x \<in> V"} with @{text "x \<noteq> 0"}. *}
+          txt \<open>The second case is @{text "y = \<bar>f x\<bar> / \<parallel>x\<parallel>"} for some
+            @{text "x \<in> V"} with @{text "x \<noteq> 0"}.\<close>
           assume "y \<noteq> 0"
           with y obtain x where y_rep: "y = \<bar>f x\<bar> * inverse \<parallel>x\<parallel>"
               and x: "x \<in> V" and neq: "x \<noteq> 0"
             by (auto simp add: B_def divide_inverse)
           from x neq have gt: "0 < \<parallel>x\<parallel>" ..
 
-          txt {* The thesis follows by a short calculation using the
-            fact that @{text f} is bounded. *}
+          txt \<open>The thesis follows by a short calculation using the
+            fact that @{text f} is bounded.\<close>
 
           note y_rep
           also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
@@ -162,7 +162,7 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_ub [iff?]:
 proof -
   interpret continuous V f norm by fact
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    using `continuous V f norm` by (rule fn_norm_works)
+    using \<open>continuous V f norm\<close> by (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
@@ -173,32 +173,32 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_leastB:
 proof -
   interpret continuous V f norm by fact
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    using `continuous V f norm` by (rule fn_norm_works)
+    using \<open>continuous V f norm\<close> by (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
-text {* The norm of a continuous function is always @{text "\<ge> 0"}. *}
+text \<open>The norm of a continuous function is always @{text "\<ge> 0"}.\<close>
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_ge_zero [iff]:
   assumes "continuous V f norm"
   shows "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
   interpret continuous V f norm by fact
-  txt {* The function norm is defined as the supremum of @{text B}.
+  txt \<open>The function norm is defined as the supremum of @{text B}.
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
-    0"}, provided the supremum exists and @{text B} is not empty. *}
+    0"}, provided the supremum exists and @{text B} is not empty.\<close>
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    using `continuous V f norm` by (rule fn_norm_works)
+    using \<open>continuous V f norm\<close> by (rule fn_norm_works)
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
 qed
 
-text {*
+text \<open>
   \medskip The fundamental property of function norms is:
   \begin{center}
   @{text "\<bar>f x\<bar> \<le> \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"}
   \end{center}
-*}
+\<close>
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_le_cong:
   assumes "continuous V f norm" "linearform V f"
@@ -214,7 +214,7 @@ proof -
     also have "f 0 = 0" by rule unfold_locales
     also have "\<bar>\<dots>\<bar> = 0" by simp
     also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
-      using `continuous V f norm` by (rule fn_norm_ge_zero)
+      using \<open>continuous V f norm\<close> by (rule fn_norm_ge_zero)
     from x have "0 \<le> norm x" ..
     with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
     finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
@@ -227,20 +227,20 @@ proof -
       from x show "0 \<le> \<parallel>x\<parallel>" ..
       from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
         by (auto simp add: B_def divide_inverse)
-      with `continuous V f norm` show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
+      with \<open>continuous V f norm\<close> show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
         by (rule fn_norm_ub)
     qed
     finally show ?thesis .
   qed
 qed
 
-text {*
+text \<open>
   \medskip The function norm is the least positive real number for
   which the following inequation holds:
   \begin{center}
     @{text "\<bar>f x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>"}
   \end{center}
-*}
+\<close>
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_least [intro?]:
   assumes "continuous V f norm"
@@ -274,7 +274,7 @@ proof -
       qed
       finally show ?thesis .
     qed
-  qed (insert `continuous V f norm`, simp_all add: continuous_def)
+  qed (insert \<open>continuous V f norm\<close>, simp_all add: continuous_def)
 qed
 
 end

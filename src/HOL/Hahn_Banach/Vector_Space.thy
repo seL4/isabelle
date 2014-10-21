@@ -2,19 +2,19 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Vector spaces *}
+header \<open>Vector spaces\<close>
 
 theory Vector_Space
 imports Complex_Main Bounds
 begin
 
-subsection {* Signature *}
+subsection \<open>Signature\<close>
 
-text {*
+text \<open>
   For the definition of real vector spaces a type @{typ 'a} of the
   sort @{text "{plus, minus, zero}"} is considered, on which a real
   scalar multiplication @{text \<cdot>} is declared.
-*}
+\<close>
 
 consts
   prod  :: "real \<Rightarrow> 'a::{plus, minus, zero} \<Rightarrow> 'a"     (infixr "'(*')" 70)
@@ -25,9 +25,9 @@ notation (HTML output)
   prod  (infixr "\<cdot>" 70)
 
 
-subsection {* Vector space laws *}
+subsection \<open>Vector space laws\<close>
 
-text {*
+text \<open>
   A \emph{vector space} is a non-empty set @{text V} of elements from
   @{typ 'a} with the following vector space laws: The set @{text V} is
   closed under addition and scalar multiplication, addition is
@@ -36,7 +36,7 @@ text {*
   addition.  Addition and multiplication are distributive; scalar
   multiplication is associative and the real number @{text "1"} is
   the neutral element of scalar multiplication.
-*}
+\<close>
 
 locale vectorspace =
   fixes V
@@ -83,8 +83,8 @@ qed
 theorems add_ac = add_assoc add_commute add_left_commute
 
 
-text {* The existence of the zero element of a vector space
-  follows from the non-emptiness of carrier set. *}
+text \<open>The existence of the zero element of a vector space
+  follows from the non-emptiness of carrier set.\<close>
 
 lemma zero [iff]: "0 \<in> V"
 proof -
@@ -127,7 +127,7 @@ lemmas distrib =
   diff_mult_distrib1 diff_mult_distrib2
 
 
-text {* \medskip Further derived laws: *}
+text \<open>\medskip Further derived laws:\<close>
 
 lemma mult_zero_left [simp]: "x \<in> V \<Longrightarrow> 0 \<cdot> x = 0"
 proof -
@@ -236,11 +236,11 @@ lemma mult_zero_uniq:
 proof (rule classical)
   assume a: "a \<noteq> 0"
   from x a have "x = (inverse a * a) \<cdot> x" by simp
-  also from `x \<in> V` have "\<dots> = inverse a \<cdot> (a \<cdot> x)" by (rule mult_assoc)
+  also from \<open>x \<in> V\<close> have "\<dots> = inverse a \<cdot> (a \<cdot> x)" by (rule mult_assoc)
   also from ax have "\<dots> = inverse a \<cdot> 0" by simp
   also have "\<dots> = 0" by simp
   finally have "x = 0" .
-  with `x \<noteq> 0` show "a = 0" by contradiction
+  with \<open>x \<noteq> 0\<close> show "a = 0" by contradiction
 qed
 
 lemma mult_left_cancel:
@@ -330,7 +330,7 @@ lemma add_diff_swap:
 proof -
   from assms have "- c + (a + b) = - c + (c + d)"
     by (simp add: add_left_cancel)
-  also have "\<dots> = d" using `c \<in> V` `d \<in> V` by (rule minus_add_cancel)
+  also have "\<dots> = d" using \<open>c \<in> V\<close> \<open>d \<in> V\<close> by (rule minus_add_cancel)
   finally have eq: "- c + (a + b) = d" .
   from vs have "a - c = (- c + (a + b)) + - b"
     by (simp add: add_ac diff_eq1)

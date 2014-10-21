@@ -2,15 +2,15 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* An order on functions *}
+header \<open>An order on functions\<close>
 
 theory Function_Order
 imports Subspace Linearform
 begin
 
-subsection {* The graph of a function *}
+subsection \<open>The graph of a function\<close>
 
-text {*
+text \<open>
   We define the \emph{graph} of a (real) function @{text f} with
   domain @{text F} as the set
   \begin{center}
@@ -19,7 +19,7 @@ text {*
   So we are modeling partial functions by specifying the domain and
   the mapping function. We use the term ``function'' also for its
   graph.
-*}
+\<close>
 
 type_synonym 'a graph = "('a \<times> real) set"
 
@@ -38,12 +38,12 @@ lemma graphE [elim?]:
   using assms unfolding graph_def by blast
 
 
-subsection {* Functions ordered by domain extension *}
+subsection \<open>Functions ordered by domain extension\<close>
 
-text {*
+text \<open>
   A function @{text h'} is an extension of @{text h}, iff the graph of
   @{text h} is a subset of the graph of @{text h'}.
-*}
+\<close>
 
 lemma graph_extI:
   "(\<And>x. x \<in> H \<Longrightarrow> h x = h' x) \<Longrightarrow> H \<subseteq> H'
@@ -57,12 +57,12 @@ lemma graph_extD2 [dest?]: "graph H h \<subseteq> graph H' h' \<Longrightarrow> 
   unfolding graph_def by blast
 
 
-subsection {* Domain and function of a graph *}
+subsection \<open>Domain and function of a graph\<close>
 
-text {*
+text \<open>
   The inverse functions to @{text graph} are @{text domain} and @{text
   funct}.
-*}
+\<close>
 
 definition domain :: "'a graph \<Rightarrow> 'a set"
   where "domain g = {x. \<exists>y. (x, y) \<in> g}"
@@ -70,10 +70,10 @@ definition domain :: "'a graph \<Rightarrow> 'a set"
 definition funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)"
   where "funct g = (\<lambda>x. (SOME y. (x, y) \<in> g))"
 
-text {*
+text \<open>
   The following lemma states that @{text g} is the graph of a function
   if the relation induced by @{text g} is unique.
-*}
+\<close>
 
 lemma graph_domain_funct:
   assumes uniq: "\<And>x y z. (x, y) \<in> g \<Longrightarrow> (x, z) \<in> g \<Longrightarrow> z = y"
@@ -91,14 +91,14 @@ proof auto  (* FIXME !? *)
 qed
 
 
-subsection {* Norm-preserving extensions of a function *}
+subsection \<open>Norm-preserving extensions of a function\<close>
 
-text {*
+text \<open>
   Given a linear form @{text f} on the space @{text F} and a seminorm
   @{text p} on @{text E}. The set of all linear extensions of @{text
   f}, to superspaces @{text H} of @{text F}, which are bounded by
   @{text p}, is defined as follows.
-*}
+\<close>
 
 definition
   norm_pres_extensions ::

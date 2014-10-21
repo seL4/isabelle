@@ -2,13 +2,13 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* The supremum w.r.t.~the function order *}
+header \<open>The supremum w.r.t.~the function order\<close>
 
 theory Hahn_Banach_Sup_Lemmas
 imports Function_Norm Zorn_Lemma
 begin
 
-text {*
+text \<open>
   This section contains some lemmas that will be used in the proof of
   the Hahn-Banach Theorem.  In this section the following context is
   presumed.  Let @{text E} be a real vector space with a seminorm
@@ -22,7 +22,7 @@ text {*
   the function @{text f} and let @{text "graph H h"} be the supremum
   of @{text c}.  Every element in @{text H} is member of one of the
   elements of the chain.
-*}
+\<close>
 lemmas [dest?] = chainsD
 lemmas chainsE2 [elim?] = chainsD2 [elim_format]
 
@@ -53,13 +53,13 @@ proof -
   ultimately show ?thesis using * by blast
 qed
 
-text {*
+text \<open>
   \medskip Let @{text c} be a chain of norm-preserving extensions of
   the function @{text f} and let @{text "graph H h"} be the supremum
   of @{text c}.  Every element in the domain @{text H} of the supremum
   function is member of the domain @{text H'} of some function @{text
   h'}, such that @{text h} extends @{text h'}.
-*}
+\<close>
 
 lemma some_H'h':
   assumes M: "M = norm_pres_extensions E p F f"
@@ -81,12 +81,12 @@ proof -
   ultimately show ?thesis using * by blast
 qed
 
-text {*
+text \<open>
   \medskip Any two elements @{text x} and @{text y} in the domain
   @{text H} of the supremum function @{text h} are both in the domain
   @{text H'} of some function @{text h'}, such that @{text h} extends
   @{text h'}.
-*}
+\<close>
 
 lemma some_H'h'2:
   assumes M: "M = norm_pres_extensions E p F f"
@@ -99,8 +99,8 @@ lemma some_H'h'2:
     \<and> linearform H' h' \<and> H' \<unlhd> E \<and> F \<unlhd> H'
     \<and> graph F f \<subseteq> graph H' h' \<and> (\<forall>x \<in> H'. h' x \<le> p x)"
 proof -
-  txt {* @{text y} is in the domain @{text H''} of some function @{text h''},
-  such that @{text h} extends @{text h''}. *}
+  txt \<open>@{text y} is in the domain @{text H''} of some function @{text h''},
+  such that @{text h} extends @{text h''}.\<close>
 
   from M cM u and y obtain H' h' where
       y_hy: "(y, h y) \<in> graph H' h'"
@@ -110,8 +110,8 @@ proof -
       "graph F f \<subseteq> graph H' h'"  "\<forall>x \<in> H'. h' x \<le> p x"
     by (rule some_H'h't [elim_format]) blast
 
-  txt {* @{text x} is in the domain @{text H'} of some function @{text h'},
-    such that @{text h} extends @{text h'}. *}
+  txt \<open>@{text x} is in the domain @{text H'} of some function @{text h'},
+    such that @{text h} extends @{text h'}.\<close>
 
   from M cM u and x obtain H'' h'' where
       x_hx: "(x, h x) \<in> graph H'' h''"
@@ -121,10 +121,10 @@ proof -
       "graph F f \<subseteq> graph H'' h''"  "\<forall>x \<in> H''. h'' x \<le> p x"
     by (rule some_H'h't [elim_format]) blast
 
-  txt {* Since both @{text h'} and @{text h''} are elements of the chain,
+  txt \<open>Since both @{text h'} and @{text h''} are elements of the chain,
     @{text h''} is an extension of @{text h'} or vice versa. Thus both
     @{text x} and @{text y} are contained in the greater
-    one. \label{cases1}*}
+    one. \label{cases1}\<close>
 
   from cM c'' c' have "graph H'' h'' \<subseteq> graph H' h' \<or> graph H' h' \<subseteq> graph H'' h''"
     (is "?case1 \<or> ?case2") ..
@@ -151,10 +151,10 @@ proof -
   qed
 qed
 
-text {*
+text \<open>
   \medskip The relation induced by the graph of the supremum of a
   chain @{text c} is definite, i.~e.~t is the graph of a function.
-*}
+\<close>
 
 lemma sup_definite:
   assumes M_def: "M \<equiv> norm_pres_extensions E p F f"
@@ -175,9 +175,9 @@ proof -
   then obtain H2 h2 where G2_rep: "G2 = graph H2 h2"
     unfolding M_def by blast
 
-  txt {* @{text "G\<^sub>1"} is contained in @{text "G\<^sub>2"}
+  txt \<open>@{text "G\<^sub>1"} is contained in @{text "G\<^sub>2"}
     or vice versa, since both @{text "G\<^sub>1"} and @{text
-    "G\<^sub>2"} are members of @{text c}. \label{cases2}*}
+    "G\<^sub>2"} are members of @{text c}. \label{cases2}\<close>
 
   from cM G1 G2 have "G1 \<subseteq> G2 \<or> G2 \<subseteq> G1" (is "?case1 \<or> ?case2") ..
   then show ?thesis
@@ -200,14 +200,14 @@ proof -
   qed
 qed
 
-text {*
+text \<open>
   \medskip The limit function @{text h} is linear. Every element
   @{text x} in the domain of @{text h} is in the domain of a function
   @{text h'} in the chain of norm preserving extensions.  Furthermore,
   @{text h} is an extension of @{text h'} so the function values of
   @{text x} are identical for @{text h'} and @{text h}.  Finally, the
   function @{text h'} is linear by construction of @{text M}.
-*}
+\<close>
 
 lemma sup_lf:
   assumes M: "M = norm_pres_extensions E p F f"
@@ -255,12 +255,12 @@ next
   qed
 qed
 
-text {*
+text \<open>
   \medskip The limit of a non-empty chain of norm preserving
   extensions of @{text f} is an extension of @{text f}, since every
   element of the chain is an extension of @{text f} and the supremum
   is an extension for every element of the chain.
-*}
+\<close>
 
 lemma sup_ext:
   assumes graph: "graph H h = \<Union>c"
@@ -281,12 +281,12 @@ proof -
   finally show ?thesis .
 qed
 
-text {*
+text \<open>
   \medskip The domain @{text H} of the limit function is a superspace
   of @{text F}, since @{text F} is a subset of @{text H}. The
   existence of the @{text 0} element in @{text F} and the closure
   properties follow from the fact that @{text F} is a vector space.
-*}
+\<close>
 
 lemma sup_supF:
   assumes graph: "graph H h = \<Union>c"
@@ -306,10 +306,10 @@ next
   with FE show "a \<cdot> x \<in> F" by (rule subspace.mult_closed)
 qed
 
-text {*
+text \<open>
   \medskip The domain @{text H} of the limit function is a subspace of
   @{text E}.
-*}
+\<close>
 
 lemma sup_subE:
   assumes graph: "graph H h = \<Union>c"
@@ -362,10 +362,10 @@ next
   qed
 qed
 
-text {*
+text \<open>
   \medskip The limit function is bounded by the norm @{text p} as
   well, since all elements in the chain are bounded by @{text p}.
-*}
+\<close>
 
 lemma sup_norm_pres:
   assumes graph: "graph H h = \<Union>c"
@@ -383,7 +383,7 @@ proof
   finally show "h x \<le> p x" .
 qed
 
-text {*
+text \<open>
   \medskip The following lemma is a property of linear forms on real
   vector spaces. It will be used for the lemma @{text abs_Hahn_Banach}
   (see page \pageref{abs-Hahn_Banach}). \label{abs-ineq-iff} For real
@@ -394,7 +394,7 @@ text {*
   @{text "\<forall>x \<in> H. h x \<le> p x"} \\
   \end{tabular}
   \end{center}
-*}
+\<close>
 
 lemma abs_ineq_iff:
   assumes "subspace H E" and "vectorspace E" and "seminorm E p"
@@ -405,7 +405,7 @@ proof
   interpret vectorspace E by fact
   interpret seminorm E p by fact
   interpret linearform H h by fact
-  have H: "vectorspace H" using `vectorspace E` ..
+  have H: "vectorspace H" using \<open>vectorspace E\<close> ..
   {
     assume l: ?L
     show ?R
@@ -422,13 +422,13 @@ proof
       fix x assume x: "x \<in> H"
       show "\<And>a b :: real. - a \<le> b \<Longrightarrow> b \<le> a \<Longrightarrow> \<bar>b\<bar> \<le> a"
         by arith
-      from `linearform H h` and H x
+      from \<open>linearform H h\<close> and H x
       have "- h x = h (- x)" by (rule linearform.neg [symmetric])
       also
       from H x have "- x \<in> H" by (rule vectorspace.neg_closed)
       with r have "h (- x) \<le> p (- x)" ..
       also have "\<dots> = p x"
-        using `seminorm E p` `vectorspace E`
+        using \<open>seminorm E p\<close> \<open>vectorspace E\<close>
       proof (rule seminorm.minus)
         from x show "x \<in> E" ..
       qed

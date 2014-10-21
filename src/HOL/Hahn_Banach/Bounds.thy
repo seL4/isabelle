@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Bounds *}
+header \<open>Bounds\<close>
 
 theory Bounds
 imports Main "~~/src/HOL/Library/ContNotDenum"
@@ -28,7 +28,7 @@ proof -
   interpret lub A x by fact
   show ?thesis
   proof (unfold the_lub_def)
-    from `lub A x` show "The (lub A) = x"
+    from \<open>lub A x\<close> show "The (lub A) = x"
     proof
       fix x' assume lub': "lub A x'"
       show "x' = x"
