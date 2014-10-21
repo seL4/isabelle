@@ -285,7 +285,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
                 curry Logic.list_implies size_o_map_conds o HOLogic.mk_Trueprop oo
                 curry HOLogic.mk_eq) size_o_map_lhss size_o_map_rhss;
 
-            val rec_o_maps = fold_rev (curry (op @) o (#rec_o_maps o #fp_co_induct_sugar)) fp_sugars [];
+            val rec_o_maps =
+              fold_rev (curry (op @) o (#co_rec_o_maps o #fp_co_induct_sugar)) fp_sugars [];
 
             val size_o_map_thmss =
               if nested_size_o_maps_complete then

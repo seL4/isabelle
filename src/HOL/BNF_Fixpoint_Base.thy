@@ -186,6 +186,16 @@ lemma fun_cong_unused_0: "f = (\<lambda>x. g) \<Longrightarrow> f (\<lambda>x. 0
 lemma inj_on_convol_ident: "inj_on (\<lambda>x. (x, f x)) X"
   unfolding inj_on_def by simp
 
+lemma map_sum_if_distrib_then:
+  "\<And>f g e x y. map_sum f g (if e then Inl x else y) = (if e then Inl (f x) else map_sum f g y)"
+  "\<And>f g e x y. map_sum f g (if e then Inr x else y) = (if e then Inr (g x) else map_sum f g y)"
+  by simp_all
+
+lemma map_sum_if_distrib_else:
+  "\<And>f g e x y. map_sum f g (if e then x else Inl y) = (if e then map_sum f g x else Inl (f y))"
+  "\<And>f g e x y. map_sum f g (if e then x else Inr y) = (if e then map_sum f g x else Inr (g y))"
+  by simp_all
+
 lemma case_prod_app: "case_prod f x y = case_prod (\<lambda>l r. f l r y) x"
   by (case_tac x) simp
 

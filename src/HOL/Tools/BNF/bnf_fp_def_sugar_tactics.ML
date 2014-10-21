@@ -19,6 +19,8 @@ sig
     thm list list list -> tactic
   val mk_corec_tac: thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_corec_disc_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
+  val mk_co_rec_o_map_tac: Proof.context -> thm -> thm list -> thm list -> thm list -> thm -> thm ->
+    thm Seq.seq
   val mk_corec_transfer_tac: Proof.context -> cterm list -> cterm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> ''a list -> ''a list list -> ''a list list list list ->
     ''a list list list list -> tactic
@@ -34,8 +36,6 @@ sig
   val mk_map_disc_iff_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_map_sel_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> tactic
-  val mk_rec_o_map_tac: Proof.context -> thm -> thm list -> thm list -> thm list -> thm -> thm ->
-    thm Seq.seq
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
   val mk_rec_transfer_tac: Proof.context -> int -> int list -> cterm list -> cterm list ->
@@ -163,13 +163,14 @@ val rec_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def case_prod_Pair_iden snd_conv split_conv
       case_unit_Unity} @ sumprod_thms_map;
 
-fun mk_rec_o_map_tac ctxt rec_def pre_map_defs map_ident0s abs_inverses ctor_rec_o_map =
+fun mk_co_rec_o_map_tac ctxt co_rec_def pre_map_defs map_ident0s abs_inverses xtor_co_rec_o_map =
   let
-    val rec_o_map_simps =
-      @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum case_prod_map_prod id_bnf_def};
+    val rec_o_map_simps = @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum map_sum.simps
+      case_prod_map_prod id_bnf_def map_prod_simp map_sum_if_distrib_then map_sum_if_distrib_else
+      if_distrib[THEN sym]};
   in
-    HEADGOAL (subst_tac @{context} (SOME [1, 2]) [rec_def] THEN'
-      rtac (ctor_rec_o_map RS trans) THEN'
+    HEADGOAL (subst_tac @{context} (SOME [1, 2]) [co_rec_def] THEN'
+      rtac (xtor_co_rec_o_map RS trans) THEN'
       CONVERSION Thm.eta_long_conversion THEN'
       asm_simp_tac (ss_only (pre_map_defs @ distinct Thm.eq_thm_prop (map_ident0s @ abs_inverses) @
         rec_o_map_simps) ctxt))

@@ -42,7 +42,7 @@ sig
      co_rec_selss: thm list list,
      co_rec_codes: thm list,
      co_rec_transfers: thm list,
-     rec_o_maps: thm list,
+     co_rec_o_maps: thm list,
      common_rel_co_inducts: thm list,
      rel_co_inducts: thm list,
      common_set_inducts: thm list,
@@ -176,6 +176,7 @@ val sel_transferN = "sel_transfer";
 val corec_codeN = "corec_code";
 val corec_transferN = "corec_transfer";
 val map_disc_iffN = "map_disc_iff";
+val map_o_corecN = "map_o_corec";
 val map_selN = "map_sel";
 val rec_o_mapN = "rec_o_map";
 val rec_transferN = "rec_transfer";
@@ -218,7 +219,7 @@ type fp_co_induct_sugar =
    co_rec_selss: thm list list,
    co_rec_codes: thm list,
    co_rec_transfers: thm list,
-   rec_o_maps: thm list,
+   co_rec_o_maps: thm list,
    common_rel_co_inducts: thm list,
    rel_co_inducts: thm list,
    common_set_inducts: thm list,
@@ -257,7 +258,7 @@ fun morph_fp_bnf_sugar phi ({map_thms, map_disc_iffs, map_selss, rel_injects, re
    set_cases = map (Morphism.thm phi) set_cases};
 
 fun morph_fp_co_induct_sugar phi ({co_rec, common_co_inducts, co_inducts, co_rec_def, co_rec_thms,
-    co_rec_discs, co_rec_disc_iffs, co_rec_selss, co_rec_codes, co_rec_transfers, rec_o_maps,
+    co_rec_discs, co_rec_disc_iffs, co_rec_selss, co_rec_codes, co_rec_transfers, co_rec_o_maps,
     common_rel_co_inducts, rel_co_inducts, common_set_inducts, set_inducts} : fp_co_induct_sugar) =
   {co_rec = Morphism.term phi co_rec,
    common_co_inducts = map (Morphism.thm phi) common_co_inducts,
@@ -269,7 +270,7 @@ fun morph_fp_co_induct_sugar phi ({co_rec, common_co_inducts, co_inducts, co_rec
    co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss,
    co_rec_codes = map (Morphism.thm phi) co_rec_codes,
    co_rec_transfers = map (Morphism.thm phi) co_rec_transfers,
-   rec_o_maps = map (Morphism.thm phi) rec_o_maps,
+   co_rec_o_maps = map (Morphism.thm phi) co_rec_o_maps,
    common_rel_co_inducts = map (Morphism.thm phi) common_rel_co_inducts,
    rel_co_inducts = map (Morphism.thm phi) rel_co_inducts,
    common_set_inducts = map (Morphism.thm phi) common_set_inducts,
@@ -352,7 +353,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
     rel_distinctss map_disc_iffss map_selsss rel_selss rel_intross rel_casess set_thmss set_selsssss
     set_introsssss set_casess ctr_transferss case_transferss disc_transferss co_rec_disc_iffss
     co_rec_codess co_rec_transferss common_rel_co_inducts rel_co_inductss common_set_inducts
-    set_inductss sel_transferss rec_o_mapss noted =
+    set_inductss sel_transferss co_rec_o_mapss noted =
   let
     val fp_sugars =
       map_index (fn (kk, T) =>
@@ -392,7 +393,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
             co_rec_selss = nth co_rec_selsss kk,
             co_rec_codes = nth co_rec_codess kk,
             co_rec_transfers = nth co_rec_transferss kk,
-            rec_o_maps = nth rec_o_mapss kk,
+            co_rec_o_maps = nth co_rec_o_mapss kk,
             common_rel_co_inducts = common_rel_co_inducts,
             rel_co_inducts = nth rel_co_inductss kk,
             common_set_inducts = common_set_inducts,
@@ -2296,8 +2297,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           val rec_o_map_thms =
             @{map 3} (fn goal => fn rec_def => fn ctor_rec_o_map =>
                 Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                  mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
-                    ctor_rec_o_map)
+                  mk_co_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s
+                    abs_inverses ctor_rec_o_map)
                 |> Thm.close_derivation)
               rec_o_map_goals rec_defs xtor_co_rec_o_maps;
         in
@@ -2391,6 +2392,66 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         |> map Thm.close_derivation
       end;
 
+    fun derive_map_o_corec_thmss lthy0 lthy2 corecs corec_defs =
+      if live = 0 then replicate nn []
+      else
+        let
+          fun variant_names n pre = fst (Variable.variant_fixes (replicate n pre) lthy0);
+          val maps0 = map map_of_bnf fp_bnfs;
+          val ABs = As ~~ Bs
+          val liveness = map (op <>) ABs;
+          val f_names = variant_names num_As "f";
+          val fs = map2 (curry Free) f_names (map (op -->) ABs);
+          val live_fs = AList.find (op =) (fs ~~ liveness) true;
+
+          val fmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_fs)) maps0;
+
+          val corec_Ts as corec_T1 :: _ = map fastype_of corecs;
+          val corec_arg_Ts = binder_fun_types corec_T1;
+
+          val B_ify = Term.subst_atomic_types (As ~~ Bs);
+          val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
+
+          val num_rec_args = length corec_arg_Ts;
+          val g_names = variant_names num_rec_args "g";
+          val gs = map2 (curry Free) g_names corec_arg_Ts;
+          val gcorecs = map (fn corecx => Term.list_comb (corecx, gs)) corecs;
+
+          val map_o_corec_lhss = map2 (curry HOLogic.mk_comp) fmaps gcorecs;
+
+          val ABgs = ABs ~~ fs;
+
+          fun mk_map_o_corec_arg corec_argB_T g =
+            let
+              val T = range_type (fastype_of g);
+              val U = range_type corec_argB_T;
+            in
+              if T = U then g
+              else HOLogic.mk_comp (build_map lthy2 [] (the o AList.lookup (op =) ABgs) (T, U), g)
+            end;
+
+          fun mk_map_o_corec_rhs corecx =
+            let val args = map2 (mk_map_o_corec_arg o B_ify_T) corec_arg_Ts gs in
+              Term.list_comb (B_ify corecx, args)
+            end;
+
+          val map_o_corec_rhss = map mk_map_o_corec_rhs corecs;
+
+          val map_o_corec_goals =
+            map2 (fold_rev (fold_rev Logic.all) [fs, gs] o HOLogic.mk_Trueprop oo
+              curry HOLogic.mk_eq) map_o_corec_lhss map_o_corec_rhss;
+
+          val map_o_corec_thms =
+            @{map 3} (fn goal => fn corec_def => fn dtor_map_o_corec =>
+                Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
+                  mk_co_rec_o_map_tac ctxt corec_def pre_map_defs live_nesting_map_ident0s
+                    abs_inverses dtor_map_o_corec)
+                |> Thm.close_derivation)
+              map_o_corec_goals corec_defs xtor_co_rec_o_maps;
+        in
+          map single map_o_corec_thms
+        end;
+
     fun derive_note_coinduct_corecs_thms_for_types
         ((((map_thmss, map_disc_iffss, map_selsss, rel_injectss, rel_distinctss, rel_selss,
             rel_intross, rel_casess, set_thmss, set_selsssss, set_introsssss, set_casess,
@@ -2446,6 +2507,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
                (rel_coinduct_attrs, common_rel_coinduct_attrs))
             end;
 
+        val map_o_corec_thmss = derive_map_o_corec_thmss lthy lthy corecs corec_defs;
+
         val (set_induct_thms, set_induct_attrss) =
           derive_set_induct_thms_for_types lthy nn fpTs (map #ctrs ctr_sugars)
             (map (map (mk_set As)) (map sets_of_bnf fp_bnfs)) dtor_set_inducts
@@ -2477,6 +2540,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
            (corec_disc_iffN, corec_disc_iff_thmss, K corec_disc_iff_attrs),
            (corec_selN, corec_sel_thmss, K corec_sel_attrs),
            (corec_transferN, corec_transfer_thmss, K []),
+           (map_o_corecN, map_o_corec_thmss, K []),
            (rel_coinductN, rel_coinduct_thmss, K (rel_coinduct_attrs @ [coinduct_pred_attr ""])),
            (simpsN, simp_thmss, K [])]
           |> massage_multi_notes fp_b_names fpTs;
@@ -2493,7 +2557,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           rel_intross rel_casess set_thmss set_selsssss set_introsssss set_casess ctr_transferss
           case_transferss disc_transferss corec_disc_iff_thmss (map single corec_code_thms)
           corec_transfer_thmss common_rel_coinduct_thms rel_coinduct_thmss set_induct_thms
-          (replicate nn (if nn = 1 then set_induct_thms else [])) sel_transferss (replicate nn [])
+          (replicate nn (if nn = 1 then set_induct_thms else [])) sel_transferss map_o_corec_thmss
       end;
 
     val lthy'' = lthy'
