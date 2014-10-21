@@ -35,7 +35,6 @@ sig
     Token.src -> 'a list -> Pretty.T list
   val output: Proof.context -> Pretty.T list -> string
   val verbatim_text: Proof.context -> string -> string
-  val enclose_isabelle_tt: Proof.context -> string -> string
 end;
 
 structure Thy_Output: THY_OUTPUT =
@@ -470,10 +469,6 @@ val _ = Theory.setup
 fun tweak_line ctxt s =
   if Config.get ctxt display then s else Symbol.strip_blanks s;
 
-fun tweak_lines ctxt s =
-  if Config.get ctxt display then s
-  else s |> split_lines |> map Symbol.strip_blanks |> space_implode " ";
-
 fun pretty_text ctxt =
   Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o split_lines;
 
@@ -643,18 +638,18 @@ val _ = Theory.setup
 
 (* verbatim text *)
 
-fun enclose_isabelle_tt ctxt =
-  if Config.get ctxt display
-  then enclose "\\begin{isabellett}%\n" "%\n\\end{isabellett}"
-  else enclose "\\isatt{" "}";
-
 fun verbatim_text ctxt =
-  tweak_lines ctxt
-  #> Latex.output_ascii
-  #> enclose_isabelle_tt ctxt;
+  if Config.get ctxt display then
+    Latex.output_ascii #>
+    enclose "\\begin{isabellett}%\n" "%\n\\end{isabellett}"
+  else
+    split_lines #>
+    map (Latex.output_ascii #> enclose "\\isatt{" "}") #>
+    space_implode "\\isasep\\isanewline%\n";
 
-val _ = Theory.setup
-  (antiquotation @{binding verbatim} (Scan.lift Args.text) (verbatim_text o #context));
+val _ =
+  Theory.setup
+    (antiquotation @{binding verbatim} (Scan.lift Args.text) (verbatim_text o #context));
 
 
 (* ML text *)
