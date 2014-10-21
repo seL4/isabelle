@@ -2,19 +2,19 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Subspaces *}
+header \<open>Subspaces\<close>
 
 theory Subspace
 imports Vector_Space "~~/src/HOL/Library/Set_Algebras"
 begin
 
-subsection {* Definition *}
+subsection \<open>Definition\<close>
 
-text {*
+text \<open>
   A non-empty subset @{text U} of a vector space @{text V} is a
   \emph{subspace} of @{text V}, iff @{text U} is closed under addition
   and scalar multiplication.
-*}
+\<close>
 
 locale subspace =
   fixes U :: "'a\<Colon>{minus, plus, zero, uminus} set" and V
@@ -49,11 +49,11 @@ proof -
   from x y show ?thesis by (simp add: diff_eq1 negate_eq1)
 qed
 
-text {*
+text \<open>
   \medskip Similar as for linear spaces, the existence of the zero
   element in every subspace follows from the non-emptiness of the
   carrier set and by vector space laws.
-*}
+\<close>
 
 lemma (in subspace) zero [intro]:
   assumes "vectorspace V"
@@ -63,7 +63,7 @@ proof -
   have "U \<noteq> {}" by (rule non_empty)
   then obtain x where x: "x \<in> U" by blast
   then have "x \<in> V" .. then have "0 = x - x" by simp
-  also from `vectorspace V` x x have "\<dots> \<in> U" by (rule diff_closed)
+  also from \<open>vectorspace V\<close> x x have "\<dots> \<in> U" by (rule diff_closed)
   finally show ?thesis .
 qed
 
@@ -76,7 +76,7 @@ proof -
   from x show ?thesis by (simp add: negate_eq1)
 qed
 
-text {* \medskip Further derived laws: every subspace is a vector space. *}
+text \<open>\medskip Further derived laws: every subspace is a vector space.\<close>
 
 lemma (in subspace) vectorspace [iff]:
   assumes "vectorspace V"
@@ -104,7 +104,7 @@ proof -
 qed
 
 
-text {* The subspace relation is reflexive. *}
+text \<open>The subspace relation is reflexive.\<close>
 
 lemma (in vectorspace) subspace_refl [intro]: "V \<unlhd> V"
 proof
@@ -117,7 +117,7 @@ next
   from x show "a \<cdot> x \<in> V" by simp
 qed
 
-text {* The subspace relation is transitive. *}
+text \<open>The subspace relation is transitive.\<close>
 
 lemma (in vectorspace) subspace_trans [trans]:
   "U \<unlhd> V \<Longrightarrow> V \<unlhd> W \<Longrightarrow> U \<unlhd> W"
@@ -136,14 +136,14 @@ proof
 qed
 
 
-subsection {* Linear closure *}
+subsection \<open>Linear closure\<close>
 
-text {*
+text \<open>
   The \emph{linear closure} of a vector @{text x} is the set of all
   scalar multiples of @{text x}.
-*}
+\<close>
 
-definition lin :: "('a::{minus, plus, zero}) \<Rightarrow> 'a set"
+definition lin :: "('a::{minus,plus,zero}) \<Rightarrow> 'a set"
   where "lin x = {a \<cdot> x | a. True}"
 
 lemma linI [intro]: "y = a \<cdot> x \<Longrightarrow> y \<in> lin x"
@@ -156,7 +156,7 @@ lemma linE [elim]: "x \<in> lin v \<Longrightarrow> (\<And>a::real. x = a \<cdot
   unfolding lin_def by blast
 
 
-text {* Every vector is contained in its linear closure. *}
+text \<open>Every vector is contained in its linear closure.\<close>
 
 lemma (in vectorspace) x_lin_x [iff]: "x \<in> V \<Longrightarrow> x \<in> lin x"
 proof -
@@ -172,7 +172,7 @@ proof
   then show "0 = 0 \<cdot> x" by simp
 qed
 
-text {* Any linear closure is a subspace. *}
+text \<open>Any linear closure is a subspace.\<close>
 
 lemma (in vectorspace) lin_subspace [intro]:
   assumes x: "x \<in> V"
@@ -208,25 +208,25 @@ next
 qed
 
 
-text {* Any linear closure is a vector space. *}
+text \<open>Any linear closure is a vector space.\<close>
 
 lemma (in vectorspace) lin_vectorspace [intro]:
   assumes "x \<in> V"
   shows "vectorspace (lin x)"
 proof -
-  from `x \<in> V` have "subspace (lin x) V"
+  from \<open>x \<in> V\<close> have "subspace (lin x) V"
     by (rule lin_subspace)
   from this and vectorspace_axioms show ?thesis
     by (rule subspace.vectorspace)
 qed
 
 
-subsection {* Sum of two vectorspaces *}
+subsection \<open>Sum of two vectorspaces\<close>
 
-text {*
+text \<open>
   The \emph{sum} of two vectorspaces @{text U} and @{text V} is the
   set of all sums of elements from @{text U} and @{text V}.
-*}
+\<close>
 
 lemma sum_def: "U + V = {u + v | u v. u \<in> U \<and> v \<in> V}"
   unfolding set_plus_def by auto
@@ -243,7 +243,7 @@ lemma sumI' [intro]:
     "u \<in> U \<Longrightarrow> v \<in> V \<Longrightarrow> u + v \<in> U + V"
   unfolding sum_def by blast
 
-text {* @{text U} is a subspace of @{text "U + V"}. *}
+text \<open>@{text U} is a subspace of @{text "U + V"}.\<close>
 
 lemma subspace_sum1 [iff]:
   assumes "vectorspace U" "vectorspace V"
@@ -267,7 +267,7 @@ proof -
   qed
 qed
 
-text {* The sum of two subspaces is again a subspace. *}
+text \<open>The sum of two subspaces is again a subspace.\<close>
 
 lemma sum_subspace [intro?]:
   assumes "subspace U E" "vectorspace E" "subspace V E"
@@ -280,8 +280,8 @@ proof -
   proof
     have "0 \<in> U + V"
     proof
-      show "0 \<in> U" using `vectorspace E` ..
-      show "0 \<in> V" using `vectorspace E` ..
+      show "0 \<in> U" using \<open>vectorspace E\<close> ..
+      show "0 \<in> V" using \<open>vectorspace E\<close> ..
       show "(0::'a) = 0 + 0" by simp
     qed
     then show "U + V \<noteq> {}" by blast
@@ -316,22 +316,22 @@ proof -
   qed
 qed
 
-text{* The sum of two subspaces is a vectorspace. *}
+text\<open>The sum of two subspaces is a vectorspace.\<close>
 
 lemma sum_vs [intro?]:
     "U \<unlhd> E \<Longrightarrow> V \<unlhd> E \<Longrightarrow> vectorspace E \<Longrightarrow> vectorspace (U + V)"
   by (rule subspace.vectorspace) (rule sum_subspace)
 
 
-subsection {* Direct sums *}
+subsection \<open>Direct sums\<close>
 
-text {*
+text \<open>
   The sum of @{text U} and @{text V} is called \emph{direct}, iff the
   zero element is the only common element of @{text U} and @{text
   V}. For every element @{text x} of the direct sum of @{text U} and
   @{text V} the decomposition in @{text "x = u + v"} with
   @{text "u \<in> U"} and @{text "v \<in> V"} is unique.
-*}
+\<close>
 
 lemma decomp:
   assumes "vectorspace E" "subspace U E" "subspace V E"
@@ -347,9 +347,9 @@ proof -
   show ?thesis
   proof
     have U: "vectorspace U"  (* FIXME: use interpret *)
-      using `subspace U E` `vectorspace E` by (rule subspace.vectorspace)
+      using \<open>subspace U E\<close> \<open>vectorspace E\<close> by (rule subspace.vectorspace)
     have V: "vectorspace V"
-      using `subspace V E` `vectorspace E` by (rule subspace.vectorspace)
+      using \<open>subspace V E\<close> \<open>vectorspace E\<close> by (rule subspace.vectorspace)
     from u1 u2 v1 v2 and sum have eq: "u1 - u2 = v2 - v1"
       by (simp add: add_diff_swap)
     from u1 u2 have u: "u1 - u2 \<in> U"
@@ -374,14 +374,14 @@ proof -
   qed
 qed
 
-text {*
+text \<open>
   An application of the previous lemma will be used in the proof of
   the Hahn-Banach Theorem (see page \pageref{decomp-H-use}): for any
   element @{text "y + a \<cdot> x\<^sub>0"} of the direct sum of a
   vectorspace @{text H} and the linear closure of @{text "x\<^sub>0"}
   the components @{text "y \<in> H"} and @{text a} are uniquely
   determined.
-*}
+\<close>
 
 lemma decomp_H':
   assumes "vectorspace E" "subspace H E"
@@ -414,31 +414,31 @@ proof -
             from x have "x \<in> H" ..
             with xx' have "inverse a \<cdot> a \<cdot> x' \<in> H" by simp
             with a and x' have "x' \<in> H" by (simp add: mult_assoc2)
-            with `x' \<notin> H` show ?thesis by contradiction
+            with \<open>x' \<notin> H\<close> show ?thesis by contradiction
           qed
           then show "x \<in> {0}" ..
         qed
         show "{0} \<subseteq> H \<inter> lin x'"
         proof -
-          have "0 \<in> H" using `vectorspace E` ..
-          moreover have "0 \<in> lin x'" using `x' \<in> E` ..
+          have "0 \<in> H" using \<open>vectorspace E\<close> ..
+          moreover have "0 \<in> lin x'" using \<open>x' \<in> E\<close> ..
           ultimately show ?thesis by blast
         qed
       qed
-      show "lin x' \<unlhd> E" using `x' \<in> E` ..
-    qed (rule `vectorspace E`, rule `subspace H E`, rule y1, rule y2, rule eq)
+      show "lin x' \<unlhd> E" using \<open>x' \<in> E\<close> ..
+    qed (rule \<open>vectorspace E\<close>, rule \<open>subspace H E\<close>, rule y1, rule y2, rule eq)
     then show "y1 = y2" ..
     from c have "a1 \<cdot> x' = a2 \<cdot> x'" ..
     with x' show "a1 = a2" by (simp add: mult_right_cancel)
   qed
 qed
 
-text {*
+text \<open>
   Since for any element @{text "y + a \<cdot> x'"} of the direct sum of a
   vectorspace @{text H} and the linear closure of @{text x'} the
   components @{text "y \<in> H"} and @{text a} are unique, it follows from
   @{text "y \<in> H"} that @{text "a = 0"}.
-*}
+\<close>
 
 lemma decomp_H'_H:
   assumes "vectorspace E" "subspace H E"
@@ -456,16 +456,16 @@ proof -
     proof (rule decomp_H')
       from ya x' show "y + a \<cdot> x' = t + 0 \<cdot> x'" by simp
       from ya show "y \<in> H" ..
-    qed (rule `vectorspace E`, rule `subspace H E`, rule t, (rule x')+)
+    qed (rule \<open>vectorspace E\<close>, rule \<open>subspace H E\<close>, rule t, (rule x')+)
     with t x' show "(y, a) = (y + a \<cdot> x', 0)" by simp
   qed
 qed
 
-text {*
+text \<open>
   The components @{text "y \<in> H"} and @{text a} in @{text "y + a \<cdot> x'"}
   are unique, so the function @{text h'} defined by
   @{text "h' (y + a \<cdot> x') = h y + a \<cdot> \<xi>"} is definite.
-*}
+\<close>
 
 lemma h'_definite:
   fixes H
@@ -498,7 +498,7 @@ proof -
         from xq show "fst q \<in> H" ..
         from xp and xq show "fst p + snd p \<cdot> x' = fst q + snd q \<cdot> x'"
           by simp
-      qed (rule `vectorspace E`, rule `subspace H E`, (rule x')+)
+      qed (rule \<open>vectorspace E\<close>, rule \<open>subspace H E\<close>, (rule x')+)
       then show ?thesis by (cases p, cases q) simp
     qed
   qed

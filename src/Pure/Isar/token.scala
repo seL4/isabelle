@@ -190,7 +190,10 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     source.startsWith(Symbol.open_decoded))
 
   def is_begin: Boolean = is_keyword && source == "begin"
-  def is_end: Boolean = is_keyword && source == "end"
+  def is_end: Boolean = is_command && source == "end"
+
+  def is_begin_block: Boolean = is_command && source == "{"
+  def is_end_block: Boolean = is_command && source == "}"
 
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)

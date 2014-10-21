@@ -231,9 +231,8 @@ object Bibtex_JEdit
   {
     override def supportsCompletion = false
 
-    private class Asset(
-        label: String, label_html: String, start: Text.Offset, stop: Text.Offset, source: String)
-      extends Isabelle_Sidekick.Asset(label, start, stop) {
+    private class Asset(label: String, label_html: String, range: Text.Range, source: String)
+      extends Isabelle_Sidekick.Asset(label, range) {
         override def getShortString: String = label_html
         override def getLongString: String = source
       }
@@ -252,7 +251,8 @@ object Bibtex_JEdit
             val label = kind + (if (name == "") "" else " " + name)
             val label_html =
               "<html><b>" + kind + "</b>" + (if (name == "") "" else " " + name) + "</html>"
-            val asset = new Asset(label, label_html, offset, offset + source.size, source)
+            val range = Text.Range(offset, offset + source.size)
+            val asset = new Asset(label, label_html, range, source)
             data.root.add(new DefaultMutableTreeNode(asset))
           }
           offset += source.size

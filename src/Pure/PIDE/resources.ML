@@ -224,7 +224,7 @@ fun file_antiq strict ctxt (name, pos) =
     space_explode "/" name
     |> map Latex.output_ascii
     |> space_implode (Latex.output_ascii "/" ^ "\\discretionary{}{}{}")
-    |> Thy_Output.enclose_isabelle_tt ctxt
+    |> enclose "\\isatt{" "}"
   end;
 
 in

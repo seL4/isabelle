@@ -63,11 +63,11 @@ object Outer_Syntax
   /* overall document structure */
 
   sealed abstract class Document { def length: Int }
-  case class Document_Block(val name: String, val body: List[Document]) extends Document
+  case class Document_Block(name: String, text: String, body: List[Document]) extends Document
   {
     val length: Int = (0 /: body)(_ + _.length)
   }
-  case class Document_Atom(val command: Command) extends Document
+  case class Document_Atom(command: Command) extends Document
   {
     def length: Int = command.length
   }
@@ -192,8 +192,8 @@ final class Outer_Syntax private(
           if (tok.is_command) {
             if (command_kind(tok, Keyword.theory_goal)) (2, 1)
             else if (command_kind(tok, Keyword.theory)) (1, 0)
-            else if (command_kind(tok, Keyword.proof_goal) || tok.source == "{") (y + 2, y + 1)
-            else if (command_kind(tok, Keyword.qed) || tok.source == "}") (y + 1, y - 1)
+            else if (command_kind(tok, Keyword.proof_goal) || tok.is_begin_block) (y + 2, y + 1)
+            else if (command_kind(tok, Keyword.qed) || tok.is_end_block) (y + 1, y - 1)
             else if (command_kind(tok, Keyword.qed_global)) (1, 0)
             else (x, y)
           }
@@ -216,11 +216,7 @@ final class Outer_Syntax private(
     }
   }
 
-  def scan_line(
-    input: CharSequence,
-    context: Scan.Line_Context,
-    structure: Outer_Syntax.Line_Structure)
-    : (List[Token], Scan.Line_Context, Outer_Syntax.Line_Structure) =
+  def scan_line(input: CharSequence, context: Scan.Line_Context): (List[Token], Scan.Line_Context) =
   {
     var in: Reader[Char] = new CharSequenceReader(input)
     val toks = new mutable.ListBuffer[Token]
@@ -232,8 +228,7 @@ final class Outer_Syntax private(
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
     }
-    val tokens = toks.toList
-    (tokens, ctxt, line_structure(tokens, structure))
+    (toks.toList, ctxt)
   }
 
 
@@ -293,32 +288,32 @@ final class Outer_Syntax private(
     }
   }
 
-  def parse_document(node_name: Document.Node.Name, text: CharSequence): Outer_Syntax.Document =
+  def parse_document(node_name: Document.Node.Name, text: CharSequence):
+    List[Outer_Syntax.Document] =
   {
     /* stack operations */
 
     def buffer(): mutable.ListBuffer[Outer_Syntax.Document] =
       new mutable.ListBuffer[Outer_Syntax.Document]
 
-    var stack: List[(Int, String, mutable.ListBuffer[Outer_Syntax.Document])] =
-      List((0, node_name.toString, buffer()))
+    var stack: List[(Int, Command, mutable.ListBuffer[Outer_Syntax.Document])] =
+      List((0, Command.empty, buffer()))
 
     @tailrec def close(level: Int => Boolean)
     {
       stack match {
-        case (lev, name, body) :: (_, _, body2) :: rest if level(lev) =>
-          body2 += Outer_Syntax.Document_Block(name, body.toList)
+        case (lev, command, body) :: (_, _, body2) :: rest if level(lev) =>
+          body2 += Outer_Syntax.Document_Block(command.name, command.source, body.toList)
           stack = stack.tail
           close(level)
         case _ =>
       }
     }
 
-    def result(): Outer_Syntax.Document =
+    def result(): List[Outer_Syntax.Document] =
     {
       close(_ => true)
-      val (_, name, body) = stack.head
-      Outer_Syntax.Document_Block(name, body.toList)
+      stack.head._3.toList
     }
 
     def add(command: Command)
@@ -326,7 +321,7 @@ final class Outer_Syntax private(
       heading_level(command) match {
         case Some(i) =>
           close(_ > i)
-          stack = (i + 1, command.source, buffer()) :: stack
+          stack = (i + 1, command, buffer()) :: stack
         case None =>
       }
       stack.head._3 += Outer_Syntax.Document_Atom(command)

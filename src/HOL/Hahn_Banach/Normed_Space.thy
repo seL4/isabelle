@@ -2,19 +2,19 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Normed vector spaces *}
+header \<open>Normed vector spaces\<close>
 
 theory Normed_Space
 imports Subspace
 begin
 
-subsection {* Quasinorms *}
+subsection \<open>Quasinorms\<close>
 
-text {*
+text \<open>
   A \emph{seminorm} @{text "\<parallel>\<cdot>\<parallel>"} is a function on a real vector space
   into the reals that has the following properties: it is positive
   definite, absolute homogeneous and subadditive.
-*}
+\<close>
 
 locale seminorm =
   fixes V :: "'a\<Colon>{minus, plus, zero, uminus} set"
@@ -54,23 +54,23 @@ proof -
 qed
 
 
-subsection {* Norms *}
+subsection \<open>Norms\<close>
 
-text {*
+text \<open>
   A \emph{norm} @{text "\<parallel>\<cdot>\<parallel>"} is a seminorm that maps only the
   @{text 0} vector to @{text 0}.
-*}
+\<close>
 
 locale norm = seminorm +
   assumes zero_iff [iff]: "x \<in> V \<Longrightarrow> (\<parallel>x\<parallel> = 0) = (x = 0)"
 
 
-subsection {* Normed vector spaces *}
+subsection \<open>Normed vector spaces\<close>
 
-text {*
+text \<open>
   A vector space together with a norm is called a \emph{normed
   space}.
-*}
+\<close>
 
 locale normed_vectorspace = vectorspace + norm
 
@@ -90,9 +90,9 @@ proof -
   finally show ?thesis .
 qed
 
-text {*
+text \<open>
   Any subspace of a normed vector space is again a normed vectorspace.
-*}
+\<close>
 
 lemma subspace_normed_vs [intro?]:
   fixes F E norm

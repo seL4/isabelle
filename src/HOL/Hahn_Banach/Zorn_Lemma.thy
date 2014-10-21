@@ -2,13 +2,13 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Zorn's Lemma *}
+header \<open>Zorn's Lemma\<close>
 
 theory Zorn_Lemma
 imports Main
 begin
 
-text {*
+text \<open>
   Zorn's Lemmas states: if every linear ordered subset of an ordered
   set @{text S} has an upper bound in @{text S}, then there exists a
   maximal element in @{text S}.  In our application, @{text S} is a
@@ -17,7 +17,7 @@ text {*
   of Zorn's lemma can be modified: if @{text S} is non-empty, it
   suffices to show that for every non-empty chain @{text c} in @{text
   S} the union of @{text c} also lies in @{text S}.
-*}
+\<close>
 
 theorem Zorn's_Lemma:
   assumes r: "\<And>c. c \<in> chains S \<Longrightarrow> \<exists>x. x \<in> c \<Longrightarrow> \<Union>c \<in> S"
@@ -30,14 +30,14 @@ proof (rule Zorn_Lemma2)
     show "\<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
     proof cases
 
-      txt {* If @{text c} is an empty chain, then every element in
-        @{text S} is an upper bound of @{text c}. *}
+      txt \<open>If @{text c} is an empty chain, then every element in
+        @{text S} is an upper bound of @{text c}.\<close>
 
       assume "c = {}"
       with aS show ?thesis by fast
 
-      txt {* If @{text c} is non-empty, then @{text "\<Union>c"} is an upper
-        bound of @{text c}, lying in @{text S}. *}
+      txt \<open>If @{text c} is non-empty, then @{text "\<Union>c"} is an upper
+        bound of @{text c}, lying in @{text S}.\<close>
 
     next
       assume "c \<noteq> {}"
@@ -46,7 +46,7 @@ proof (rule Zorn_Lemma2)
         show "\<forall>z \<in> c. z \<subseteq> \<Union>c" by fast
         show "\<Union>c \<in> S"
         proof (rule r)
-          from `c \<noteq> {}` show "\<exists>x. x \<in> c" by fast
+          from \<open>c \<noteq> {}\<close> show "\<exists>x. x \<in> c" by fast
           show "c \<in> chains S" by fact
         qed
       qed

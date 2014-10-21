@@ -30,15 +30,17 @@ object Isabelle_Sidekick
     data
   }
 
-  class Asset(name: String, start: Text.Offset, end: Text.Offset) extends IAsset
+  class Keyword_Asset(keyword: String, text: String, range: Text.Range) extends IAsset
   {
-    protected var _name = name
-    protected var _start = int_to_pos(start)
-    protected var _end = int_to_pos(end)
+    protected var _name = text
+    protected var _start = int_to_pos(range.start)
+    protected var _end = int_to_pos(range.stop)
     override def getIcon: Icon = null
     override def getShortString: String =
       "<html><span style=\"font-family: " + Font_Info.main_family() + ";\">" +
-      HTML.encode(_name) + "</span></html>"
+      (if (keyword != "" && _name.startsWith(keyword))
+        "<b>" + HTML.encode(keyword) + "</b>" + HTML.encode(_name.substring(keyword.length))
+       else HTML.encode(_name)) + "</span></html>"
     override def getLongString: String = _name
     override def getName: String = _name
     override def setName(name: String) = _name = name
@@ -48,6 +50,8 @@ object Isabelle_Sidekick
     override def setEnd(end: Position) = _end = end
     override def toString: String = _name
   }
+
+  class Asset(name: String, range: Text.Range) extends Keyword_Asset("", name, range)
 
   def swing_markup_tree(tree: Markup_Tree, parent: DefaultMutableTreeNode,
     swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
@@ -101,27 +105,29 @@ class Isabelle_Sidekick_Structure(
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
-    def make_tree(offset: Text.Offset, document: Outer_Syntax.Document)
-        : List[DefaultMutableTreeNode] =
-      document match {
-        case Outer_Syntax.Document_Block(name, body) =>
-          val node =
-            new DefaultMutableTreeNode(
-              new Isabelle_Sidekick.Asset(
-                Library.first_line(name), offset, offset + document.length))
-          (offset /: body)((i, doc) =>
-            {
-              for (nd <- make_tree(i, doc)) node.add(nd)
-              i + doc.length
-            })
-          List(node)
-        case _ => Nil
+    def make_tree(
+      parent: DefaultMutableTreeNode,
+      offset: Text.Offset,
+      documents: List[Outer_Syntax.Document])
+    {
+      (offset /: documents) { case (i, document) =>
+        document match {
+          case Outer_Syntax.Document_Block(name, text, body) =>
+            val range = Text.Range(i, i + document.length)
+            val node =
+              new DefaultMutableTreeNode(
+                new Isabelle_Sidekick.Keyword_Asset(name, Library.first_line(text), range))
+            parent.add(node)
+            make_tree(node, i, body)
+          case _ =>
+        }
+        i + document.length
       }
+    }
 
     node_name(buffer) match {
       case Some(name) =>
-        val document = syntax.parse_document(name, JEdit_Lib.buffer_text(buffer))
-        for (node <- make_tree(0, document)) data.root.add(node)
+        make_tree(data.root, 0, syntax.parse_document(name, JEdit_Lib.buffer_text(buffer)))
         true
       case None => false
     }
@@ -169,7 +175,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
                     .mkString
 
                 new DefaultMutableTreeNode(
-                  new Isabelle_Sidekick.Asset(command.toString, range.start, range.stop) {
+                  new Isabelle_Sidekick.Asset(command.toString, range) {
                     override def getShortString: String = content
                     override def getLongString: String = info_text
                     override def toString: String = quote(content) + " " + range.toString
@@ -189,7 +195,7 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
   private val Heading2 = """^\*\*\*\w*(.*)\w*\*\*\*\w*$""".r
 
   private def make_node(s: String, start: Text.Offset, stop: Text.Offset): DefaultMutableTreeNode =
-    new DefaultMutableTreeNode(new Isabelle_Sidekick.Asset(s, start, stop))
+    new DefaultMutableTreeNode(new Isabelle_Sidekick.Asset(s, Text.Range(start, stop)))
 
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {

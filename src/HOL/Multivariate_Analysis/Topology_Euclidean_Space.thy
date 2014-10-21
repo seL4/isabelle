@@ -1015,7 +1015,7 @@ lemma subset_box_imp:
     and "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> box c d \<subseteq> cbox a b"
      and "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> box c d \<subseteq> box a b"
   unfolding subset_eq[unfolded Ball_def] unfolding mem_box
-   by (best intro: order_trans less_le_trans le_less_trans less_imp_le)+
+  by (best intro: order_trans less_le_trans le_less_trans less_imp_le)+
 
 lemma box_subset_cbox:
   fixes a :: "'a::euclidean_space"
@@ -1153,7 +1153,9 @@ qed
 
 lemma UN_box_eq_UNIV: "(\<Union>i::nat. box (- (real i *\<^sub>R One)) (real i *\<^sub>R One)) = UNIV"
 proof -
-  { fix x b :: 'a assume [simp]: "b \<in> Basis"
+  {
+    fix x b :: 'a
+    assume [simp]: "b \<in> Basis"
     have "\<bar>x \<bullet> b\<bar> \<le> real (natceiling \<bar>x \<bullet> b\<bar>)"
       by (rule real_natceiling_ge)
     also have "\<dots> \<le> real (natceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)))"
@@ -1679,7 +1681,7 @@ lemma frontier_empty[simp]: "frontier {} = {}"
   by (simp add: frontier_def)
 
 lemma frontier_subset_eq: "frontier S \<subseteq> S \<longleftrightarrow> closed S"
-proof-
+proof -
   {
     assume "frontier S \<subseteq> S"
     then have "closure S \<subseteq> S"
@@ -1690,12 +1692,13 @@ proof-
   then show ?thesis using frontier_subset_closed[of S] ..
 qed
 
-lemma frontier_complement: "frontier(- S) = frontier S"
+lemma frontier_complement: "frontier (- S) = frontier S"
   by (auto simp add: frontier_def closure_complement interior_complement)
 
 lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> open S"
   using frontier_complement frontier_subset_eq[of "- S"]
   unfolding open_closed by auto
+
 
 subsection {* Filters and the ``eventually true'' quantifier *}
 

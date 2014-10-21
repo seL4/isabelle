@@ -2,13 +2,13 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Extending non-maximal functions *}
+header \<open>Extending non-maximal functions\<close>
 
 theory Hahn_Banach_Ext_Lemmas
 imports Function_Norm
 begin
 
-text {*
+text \<open>
   In this section the following context is presumed.  Let @{text E} be
   a real vector space with a seminorm @{text q} on @{text E}. @{text
   F} is a subspace of @{text E} and @{text f} a linear function on
@@ -38,7 +38,7 @@ text {*
   @{text "\<forall>u \<in> F. \<forall>v \<in> F. a u \<le> b v"}
   \end{tabular}
   \end{center}
-*}
+\<close>
 
 lemma ex_xi:
   assumes "vectorspace F"
@@ -46,9 +46,9 @@ lemma ex_xi:
   shows "\<exists>xi::real. \<forall>y \<in> F. a y \<le> xi \<and> xi \<le> b y"
 proof -
   interpret vectorspace F by fact
-  txt {* From the completeness of the reals follows:
+  txt \<open>From the completeness of the reals follows:
     The set @{text "S = {a u. u \<in> F}"} has a supremum, if it is
-    non-empty and has an upper bound. *}
+    non-empty and has an upper bound.\<close>
 
   let ?S = "{a u | u. u \<in> F}"
   have "\<exists>xi. lub ?S xi"
@@ -81,11 +81,11 @@ proof -
   } ultimately show "\<exists>xi. \<forall>y \<in> F. a y \<le> xi \<and> xi \<le> b y" by blast
 qed
 
-text {*
+text \<open>
   \medskip The function @{text h'} is defined as a @{text "h' x = h y
   + a \<cdot> \<xi>"} where @{text "x = y + a \<cdot> \<xi>"} is a linear extension of
   @{text h} to @{text H'}.
-*}
+\<close>
 
 lemma h'_lf:
   assumes h'_def: "h' \<equiv> \<lambda>x. let (y, a) =
@@ -101,10 +101,10 @@ proof -
   interpret vectorspace E by fact
   show ?thesis
   proof
-    note E = `vectorspace E`
+    note E = \<open>vectorspace E\<close>
     have H': "vectorspace H'"
     proof (unfold H'_def)
-      from `x0 \<in> E`
+      from \<open>x0 \<in> E\<close>
       have "lin x0 \<unlhd> E" ..
       with HE show "vectorspace (H + lin x0)" using E ..
     qed
@@ -121,7 +121,7 @@ proof -
           unfolding H'_def sum_def lin_def by blast
         
         have ya: "y1 + y2 = y \<and> a1 + a2 = a" using E HE _ y x0
-        proof (rule decomp_H') txt_raw {* \label{decomp-H-use} *}
+        proof (rule decomp_H') txt_raw \<open>\label{decomp-H-use}\<close>
           from HE y1 y2 show "y1 + y2 \<in> H"
             by (rule subspace.add_closed)
           from x0 and HE y y1 y2
@@ -188,8 +188,8 @@ proof -
   qed
 qed
 
-text {* \medskip The linear extension @{text h'} of @{text h}
-  is bounded by the seminorm @{text p}. *}
+text \<open>\medskip The linear extension @{text h'} of @{text h}
+  is bounded by the seminorm @{text p}.\<close>
 
 lemma h'_norm_pres:
   assumes h'_def: "h' \<equiv> \<lambda>x. let (y, a) =
@@ -229,8 +229,8 @@ proof -
         also from x0 y' z have "p y = p (y + a \<cdot> x0)" by simp
         finally show ?thesis .
       next
-        txt {* In the case @{text "a < 0"}, we use @{text "a\<^sub>1"}
-          with @{text ya} taken as @{text "y / a"}: *}
+        txt \<open>In the case @{text "a < 0"}, we use @{text "a\<^sub>1"}
+          with @{text ya} taken as @{text "y / a"}:\<close>
         assume lz: "a < 0" then have nz: "a \<noteq> 0" by simp
         from a1 ay
         have "- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y) \<le> xi" ..
@@ -251,8 +251,8 @@ proof -
         finally have "a * xi \<le> p (y + a \<cdot> x0) - h y" .
         then show ?thesis by simp
       next
-        txt {* In the case @{text "a > 0"}, we use @{text "a\<^sub>2"}
-          with @{text ya} taken as @{text "y / a"}: *}
+        txt \<open>In the case @{text "a > 0"}, we use @{text "a\<^sub>2"}
+          with @{text ya} taken as @{text "y / a"}:\<close>
         assume gz: "0 < a" then have nz: "a \<noteq> 0" by simp
         from a2 ay
         have "xi \<le> p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y)" ..
