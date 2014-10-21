@@ -192,8 +192,8 @@ final class Outer_Syntax private(
           if (tok.is_command) {
             if (command_kind(tok, Keyword.theory_goal)) (2, 1)
             else if (command_kind(tok, Keyword.theory)) (1, 0)
-            else if (command_kind(tok, Keyword.proof_goal) || tok.source == "{") (y + 2, y + 1)
-            else if (command_kind(tok, Keyword.qed) || tok.source == "}") (y + 1, y - 1)
+            else if (command_kind(tok, Keyword.proof_goal) || tok.is_begin_block) (y + 2, y + 1)
+            else if (command_kind(tok, Keyword.qed) || tok.is_end_block) (y + 1, y - 1)
             else if (command_kind(tok, Keyword.qed_global)) (1, 0)
             else (x, y)
           }
