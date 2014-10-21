@@ -15,7 +15,7 @@ import scala.swing.CheckBox
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
-import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher}
 import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
 import org.gjt.sp.jedit.options.PluginOptions
@@ -71,6 +71,12 @@ object Isabelle
       ("bibtex" -> new Bibtex_JEdit.Token_Marker)
 
   def token_marker(name: String): Option[TokenMarker] = markers.get(name)
+
+
+  /* structure matchers */
+
+  def structure_matchers(name: String): List[StructureMatcher] =
+    if (name == "isabelle") List(Structure_Matching.Isabelle_Matcher) else Nil
 
 
   /* dockable windows */

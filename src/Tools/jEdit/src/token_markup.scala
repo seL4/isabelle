@@ -177,6 +177,11 @@ object Token_Markup
 
   private val context_rules = new ParserRuleSet("isabelle", "MAIN")
 
+  object Line_Context
+  {
+    val init = new Line_Context(Some(Scan.Finished), Outer_Syntax.Line_Structure.init)
+  }
+
   class Line_Context(
       val context: Option[Scan.Line_Context],
       val structure: Outer_Syntax.Line_Structure)
@@ -190,7 +195,7 @@ object Token_Markup
       }
   }
 
-  def buffer_line_context(buffer: JEditBuffer, line: Int): Option[Line_Context] =
+  def buffer_line_context(buffer: JEditBuffer, line: Int): Line_Context =
     Untyped.get(buffer, "lineMgr") match {
       case line_mgr: LineManager =>
         def context =
@@ -198,18 +203,24 @@ object Token_Markup
             case c: Line_Context => Some(c)
             case _ => None
           }
-        context orElse {
+        context getOrElse {
           buffer.markTokens(line, DummyTokenHandler.INSTANCE)
-          context
+          context getOrElse Line_Context.init
         }
-      case _ => None
+      case _ => Line_Context.init
     }
 
-  def buffer_line_structure(buffer: JEditBuffer, line: Int): Outer_Syntax.Line_Structure =
-    buffer_line_context(buffer, line) match {
-      case Some(c) => c.structure
-      case _ => Outer_Syntax.Line_Structure.init
-    }
+  def buffer_line_tokens(syntax: Outer_Syntax, buffer: JEditBuffer, line: Int)
+    : Option[List[Token]] =
+  {
+    val line_context =
+      if (line == 0) Line_Context.init
+      else buffer_line_context(buffer, line - 1)
+    for {
+      ctxt <- line_context.context
+      text <- JEdit_Lib.try_get_text(buffer, JEdit_Lib.line_range(buffer, line))
+    } yield syntax.scan_line(text, ctxt)._1
+  }
 
 
   /* token marker */
@@ -219,24 +230,22 @@ object Token_Markup
     override def markTokens(context: TokenMarker.LineContext,
         handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
     {
-      val (opt_ctxt, structure) =
-        context match {
-          case c: Line_Context => (c.context, c.structure)
-          case _ => (Some(Scan.Finished), Outer_Syntax.Line_Structure.init)
-        }
       val line = if (raw_line == null) new Segment else raw_line
+      val line_context = context match { case c: Line_Context => c case _ => Line_Context.init }
+      val structure = line_context.structure
 
       val context1 =
       {
         val (styled_tokens, context1) =
-          (opt_ctxt, Isabelle.mode_syntax(mode)) match {
+          (line_context.context, Isabelle.mode_syntax(mode)) match {
             case (Some(ctxt), _) if mode == "isabelle-ml" || mode == "sml" =>
               val (tokens, ctxt1) = ML_Lex.tokenize_line(mode == "sml", line, ctxt)
               val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
               (styled_tokens, new Line_Context(Some(ctxt1), structure))
 
             case (Some(ctxt), Some(syntax)) if syntax.has_tokens =>
-              val (tokens, ctxt1, structure1) = syntax.scan_line(line, ctxt, structure)
+              val (tokens, ctxt1) = syntax.scan_line(line, ctxt)
+              val structure1 = syntax.line_structure(tokens, structure)
               val styled_tokens =
                 tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
               (styled_tokens, new Line_Context(Some(ctxt1), structure1))

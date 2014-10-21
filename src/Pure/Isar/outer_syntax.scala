@@ -216,11 +216,7 @@ final class Outer_Syntax private(
     }
   }
 
-  def scan_line(
-    input: CharSequence,
-    context: Scan.Line_Context,
-    structure: Outer_Syntax.Line_Structure)
-    : (List[Token], Scan.Line_Context, Outer_Syntax.Line_Structure) =
+  def scan_line(input: CharSequence, context: Scan.Line_Context): (List[Token], Scan.Line_Context) =
   {
     var in: Reader[Char] = new CharSequenceReader(input)
     val toks = new mutable.ListBuffer[Token]
@@ -232,8 +228,7 @@ final class Outer_Syntax private(
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
     }
-    val tokens = toks.toList
-    (tokens, ctxt, line_structure(tokens, structure))
+    (toks.toList, ctxt)
   }
 
 

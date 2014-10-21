@@ -251,6 +251,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.addKeyListener(key_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
+    Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
+      foreach(text_area.addStructureMatcher(_))
     session.raw_edits += main
     session.commands_changed += main
   }
@@ -261,6 +263,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
     session.raw_edits -= main
     session.commands_changed -= main
+    Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
+      foreach(text_area.removeStructureMatcher(_))
     text_area.removeLeftOfScrollBar(overview); overview.delay_repaint.revoke()
     text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeKeyListener(key_listener)
