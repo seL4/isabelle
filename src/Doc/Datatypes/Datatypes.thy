@@ -1021,6 +1021,9 @@ prove $m$ properties simultaneously.
 (The @{text "[code]"} attribute is set by the @{text code} plugin,
 Section~\ref{ssec:code-generator}.)
 
+\item[@{text "t."}\hthm{rec_o_map}\rm:] ~ \\
+@{thm list.rec_o_map[no_vars]}
+
 \item[@{text "t."}\hthm{rec_transfer}\rm:] ~ \\
 @{thm list.rec_transfer[no_vars]}
 
@@ -2859,9 +2862,6 @@ The plugin derives the following properties:
 @{thm list.size(2)[no_vars]} \\
 @{thm list.size(3)[no_vars]} \\
 @{thm list.size(4)[no_vars]}
-
-\item[@{text "t."}\hthm{rec_o_map}\rm:] ~ \\
-@{thm list.rec_o_map[no_vars]}
 
 \item[@{text "t."}\hthm{size_o_map}\rm:] ~ \\
 @{thm list.size_o_map[no_vars]}
