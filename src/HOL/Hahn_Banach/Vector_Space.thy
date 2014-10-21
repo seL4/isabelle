@@ -17,12 +17,7 @@ text \<open>
 \<close>
 
 consts
-  prod  :: "real \<Rightarrow> 'a::{plus, minus, zero} \<Rightarrow> 'a"     (infixr "'(*')" 70)
-
-notation (xsymbols)
-  prod  (infixr "\<cdot>" 70)
-notation (HTML output)
-  prod  (infixr "\<cdot>" 70)
+  prod :: "real \<Rightarrow> 'a::{plus,minus,zero} \<Rightarrow> 'a"  (infixr "\<cdot>" 70)
 
 
 subsection \<open>Vector space laws\<close>

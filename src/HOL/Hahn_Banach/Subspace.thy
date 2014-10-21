@@ -143,7 +143,7 @@ text \<open>
   scalar multiples of @{text x}.
 \<close>
 
-definition lin :: "('a::{minus, plus, zero}) \<Rightarrow> 'a set"
+definition lin :: "('a::{minus,plus,zero}) \<Rightarrow> 'a set"
   where "lin x = {a \<cdot> x | a. True}"
 
 lemma linI [intro]: "y = a \<cdot> x \<Longrightarrow> y \<in> lin x"
