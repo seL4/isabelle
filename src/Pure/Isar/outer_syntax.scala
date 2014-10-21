@@ -293,7 +293,8 @@ final class Outer_Syntax private(
     }
   }
 
-  def parse_document(node_name: Document.Node.Name, text: CharSequence): Outer_Syntax.Document =
+  def parse_document(node_name: Document.Node.Name, text: CharSequence):
+    List[Outer_Syntax.Document] =
   {
     /* stack operations */
 
@@ -301,7 +302,7 @@ final class Outer_Syntax private(
       new mutable.ListBuffer[Outer_Syntax.Document]
 
     var stack: List[(Int, String, mutable.ListBuffer[Outer_Syntax.Document])] =
-      List((0, node_name.toString, buffer()))
+      List((0, "", buffer()))
 
     @tailrec def close(level: Int => Boolean)
     {
@@ -314,11 +315,10 @@ final class Outer_Syntax private(
       }
     }
 
-    def result(): Outer_Syntax.Document =
+    def result(): List[Outer_Syntax.Document] =
     {
       close(_ => true)
-      val (_, name, body) = stack.head
-      Outer_Syntax.Document_Block(name, body.toList)
+      stack.head._3.toList
     }
 
     def add(command: Command)

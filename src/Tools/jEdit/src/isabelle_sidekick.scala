@@ -101,27 +101,28 @@ class Isabelle_Sidekick_Structure(
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
-    def make_tree(offset: Text.Offset, document: Outer_Syntax.Document)
-        : List[DefaultMutableTreeNode] =
-      document match {
-        case Outer_Syntax.Document_Block(name, body) =>
-          val node =
-            new DefaultMutableTreeNode(
-              new Isabelle_Sidekick.Asset(
-                Library.first_line(name), offset, offset + document.length))
-          (offset /: body)((i, doc) =>
-            {
-              for (nd <- make_tree(i, doc)) node.add(nd)
-              i + doc.length
-            })
-          List(node)
-        case _ => Nil
+    def make_tree(
+      parent: DefaultMutableTreeNode,
+      offset: Text.Offset,
+      documents: List[Outer_Syntax.Document])
+    {
+      (offset /: documents) { case (i, document) =>
+        document match {
+          case Outer_Syntax.Document_Block(name, body) =>
+            val node =
+              new DefaultMutableTreeNode(
+                new Isabelle_Sidekick.Asset(Library.first_line(name), i, i + document.length))
+            parent.add(node)
+            make_tree(node, i, body)
+          case _ =>
+        }
+        i + document.length
       }
+    }
 
     node_name(buffer) match {
       case Some(name) =>
-        val document = syntax.parse_document(name, JEdit_Lib.buffer_text(buffer))
-        for (node <- make_tree(0, document)) data.root.add(node)
+        make_tree(data.root, 0, syntax.parse_document(name, JEdit_Lib.buffer_text(buffer)))
         true
       case None => false
     }
