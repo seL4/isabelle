@@ -234,7 +234,7 @@ qed
 end
 
 lemma embed_pmf_transfer:
-  "rel_fun (eq_onp (\<lambda>f::'a \<Rightarrow> real. (\<forall>x. 0 \<le> f x) \<and> (\<integral>\<^sup>+x. ereal (f x) \<partial>count_space UNIV) = 1)) pmf_as_measure.cr_pmf (\<lambda>f. density (count_space UNIV) (ereal \<circ> f)) embed_pmf"
+  "rel_fun (eq_onp (\<lambda>f. (\<forall>x. 0 \<le> f x) \<and> (\<integral>\<^sup>+x. ereal (f x) \<partial>count_space UNIV) = 1)) pmf_as_measure.cr_pmf (\<lambda>f. density (count_space UNIV) (ereal \<circ> f)) embed_pmf"
   by (auto simp: rel_fun_def eq_onp_def embed_pmf.transfer)
 
 lemma td_pmf_embed_pmf:
@@ -262,6 +262,13 @@ locale pmf_as_function
 begin
 
 setup_lifting td_pmf_embed_pmf
+
+lemma set_pmf_transfer[transfer_rule]: 
+  assumes "bi_total A"
+  shows "rel_fun (pcr_pmf A) (rel_set A) (\<lambda>f. {x. f x \<noteq> 0}) set_pmf"  
+  using `bi_total A`
+  by (auto simp: pcr_pmf_def cr_pmf_def rel_fun_def rel_set_def bi_total_def Bex_def set_pmf_iff)
+     metis+
 
 end 
 
