@@ -42,6 +42,7 @@ sig
      co_rec_selss: thm list list,
      co_rec_codes: thm list,
      co_rec_transfers: thm list,
+     rec_o_maps: thm list,
      common_rel_co_inducts: thm list,
      rel_co_inducts: thm list,
      common_set_inducts: thm list,
@@ -176,6 +177,7 @@ val corec_codeN = "corec_code";
 val corec_transferN = "corec_transfer";
 val map_disc_iffN = "map_disc_iff";
 val map_selN = "map_sel";
+val rec_o_mapN = "rec_o_map";
 val rec_transferN = "rec_transfer";
 val set_casesN = "set_cases";
 val set_introsN = "set_intros";
@@ -216,6 +218,7 @@ type fp_co_induct_sugar =
    co_rec_selss: thm list list,
    co_rec_codes: thm list,
    co_rec_transfers: thm list,
+   rec_o_maps: thm list,
    common_rel_co_inducts: thm list,
    rel_co_inducts: thm list,
    common_set_inducts: thm list,
@@ -254,7 +257,7 @@ fun morph_fp_bnf_sugar phi ({map_thms, map_disc_iffs, map_selss, rel_injects, re
    set_cases = map (Morphism.thm phi) set_cases};
 
 fun morph_fp_co_induct_sugar phi ({co_rec, common_co_inducts, co_inducts, co_rec_def, co_rec_thms,
-    co_rec_discs, co_rec_disc_iffs, co_rec_selss, co_rec_codes, co_rec_transfers,
+    co_rec_discs, co_rec_disc_iffs, co_rec_selss, co_rec_codes, co_rec_transfers, rec_o_maps,
     common_rel_co_inducts, rel_co_inducts, common_set_inducts, set_inducts} : fp_co_induct_sugar) =
   {co_rec = Morphism.term phi co_rec,
    common_co_inducts = map (Morphism.thm phi) common_co_inducts,
@@ -266,6 +269,7 @@ fun morph_fp_co_induct_sugar phi ({co_rec, common_co_inducts, co_inducts, co_rec
    co_rec_selss = map (map (Morphism.thm phi)) co_rec_selss,
    co_rec_codes = map (Morphism.thm phi) co_rec_codes,
    co_rec_transfers = map (Morphism.thm phi) co_rec_transfers,
+   rec_o_maps = map (Morphism.thm phi) rec_o_maps,
    common_rel_co_inducts = map (Morphism.thm phi) common_rel_co_inducts,
    rel_co_inducts = map (Morphism.thm phi) rel_co_inducts,
    common_set_inducts = map (Morphism.thm phi) common_set_inducts,
@@ -348,7 +352,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
     rel_distinctss map_disc_iffss map_selsss rel_selss rel_intross rel_casess set_thmss set_selsssss
     set_introsssss set_casess ctr_transferss case_transferss disc_transferss co_rec_disc_iffss
     co_rec_codess co_rec_transferss common_rel_co_inducts rel_co_inductss common_set_inducts
-    set_inductss sel_transferss noted =
+    set_inductss sel_transferss rec_o_mapss noted =
   let
     val fp_sugars =
       map_index (fn (kk, T) =>
@@ -388,6 +392,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
             co_rec_selss = nth co_rec_selsss kk,
             co_rec_codes = nth co_rec_codess kk,
             co_rec_transfers = nth co_rec_transferss kk,
+            rec_o_maps = nth rec_o_mapss kk,
             common_rel_co_inducts = common_rel_co_inducts,
             rel_co_inducts = nth rel_co_inductss kk,
             common_set_inducts = common_set_inducts,
@@ -1999,7 +2004,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
              dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
              ctor_dtors, ctor_injects, dtor_injects, xtor_maps, xtor_setss, xtor_rels,
              xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_inducts,
-             xtor_co_rec_transfers, ...},
+             xtor_co_rec_transfers, xtor_co_rec_o_maps, ...},
            lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
         (map dest_TFree killed_As) fp_eqs no_defs_lthy
@@ -2048,6 +2053,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
     val fp_nesting_set_maps = maps set_map_of_bnf fp_nesting_bnfs;
     val live_nesting_map_id0s = map map_id0_of_bnf live_nesting_bnfs;
+    val live_nesting_map_ident0s = map map_ident0_of_bnf live_nesting_bnfs;
     val live_nesting_set_maps = maps set_map_of_bnf live_nesting_bnfs;
     val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
 
@@ -2064,6 +2070,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         (liveness_of_fp_bnf num_As any_fp_bnf) As Bs0;
 
     val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
+    val live_AsBs = filter (op <>) (As ~~ Bs);
 
     val ctors = map (mk_ctor As) ctors0;
     val dtors = map (mk_dtor As) dtors0;
@@ -2208,11 +2215,10 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     fun mk_co_rec_transfer_goals lthy co_recs =
       let
-        val liveAsBs = filter (op <>) (As ~~ Bs);
-        val B_ify = Term.subst_atomic_types (liveAsBs @ (Cs ~~ Es));
+        val B_ify = Term.subst_atomic_types (live_AsBs @ (Cs ~~ Es));
 
         val ((Rs, Ss), names_lthy) = lthy
-          |> mk_Frees "R" (map (uncurry mk_pred2T) liveAsBs)
+          |> mk_Frees "R" (map (uncurry mk_pred2T) live_AsBs)
           ||>> mk_Frees "S" (map2 mk_pred2T Cs Es);
 
         val co_recBs = map B_ify co_recs;
@@ -2230,6 +2236,73 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         |> Proof_Context.export names_lthy lthy
         |> map Thm.close_derivation
       end;
+
+    fun derive_rec_o_map_thmss lthy recs rec_defs =
+      if live = 0 then replicate nn []
+      else
+        let
+          fun variant_names n pre = fst (Variable.variant_fixes (replicate n pre) lthy);
+
+          val maps0 = map map_of_bnf fp_bnfs;
+          val ABs = As ~~ Bs
+          val liveness = map (op <>) ABs;
+          val f_names = variant_names num_As "f";
+          val fs = map2 (curry Free) f_names (map (op -->) ABs);
+          val live_gs = AList.find (op =) (fs ~~ liveness) true;
+
+          val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
+
+          val rec_Ts as rec_T1 :: _ = map fastype_of recs;
+          val rec_arg_Ts = binder_fun_types rec_T1;
+
+          val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
+
+          val num_rec_args = length rec_arg_Ts;
+          val g_Ts = map B_ify_T rec_arg_Ts;
+          val g_names = variant_names num_rec_args "g";
+          val gs = map2 (curry Free) g_names g_Ts;
+          val grecs = map (fn recx => Term.list_comb (Term.map_types B_ify_T recx, gs)) recs;
+
+          val rec_o_map_lhss = map2 (curry HOLogic.mk_comp) grecs gmaps;
+
+          val ABfs = ABs ~~ fs;
+
+          fun mk_rec_arg_arg (x as Free (_, T)) =
+            let val U = B_ify_T T in
+              if T = U then x else build_map lthy [] (the o AList.lookup (op =) ABfs) (T, U) $ x
+            end;
+
+          fun mk_rec_o_map_arg rec_arg_T h =
+            let
+              val x_Ts = binder_types rec_arg_T;
+              val m = length x_Ts;
+              val x_names = variant_names m "x";
+              val xs = map2 (curry Free) x_names x_Ts;
+              val xs' = map mk_rec_arg_arg xs;
+            in
+              fold_rev Term.lambda xs (Term.list_comb (h, xs'))
+            end;
+
+          fun mk_rec_o_map_rhs recx =
+            let val args = map2 mk_rec_o_map_arg rec_arg_Ts gs in
+              Term.list_comb (recx, args)
+            end;
+
+          val rec_o_map_rhss = map mk_rec_o_map_rhs recs;
+
+          val rec_o_map_goals =
+            map2 (fold_rev (fold_rev Logic.all) [fs, gs] o HOLogic.mk_Trueprop oo
+              curry HOLogic.mk_eq) rec_o_map_lhss rec_o_map_rhss;
+          val rec_o_map_thms =
+            @{map 3} (fn goal => fn rec_def => fn ctor_rec_o_map =>
+                Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+                  mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
+                    ctor_rec_o_map)
+                |> Thm.close_derivation)
+              rec_o_map_goals rec_defs xtor_co_rec_o_maps;
+        in
+          map single rec_o_map_thms
+        end;
 
     fun derive_note_induct_recs_thms_for_types
         ((((map_thmss, map_disc_iffss, map_selsss, rel_injectss, rel_distinctss, rel_selss,
@@ -2265,6 +2338,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
                (rel_induct_attrs, rel_induct_attrs))
             end;
 
+        val rec_o_map_thmss = derive_rec_o_map_thmss lthy recs rec_defs;
+
         val simp_thmss =
           @{map 6} mk_simp_thms ctr_sugars rec_thmss map_thmss rel_injectss rel_distinctss set_thmss;
 
@@ -2279,6 +2354,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         val notes =
           [(inductN, map single induct_thms, fn T_name => induct_attrs @ [induct_type_attr T_name]),
            (recN, rec_thmss, K rec_attrs),
+           (rec_o_mapN, rec_o_map_thmss, K []),
            (rec_transferN, rec_transfer_thmss, K []),
            (rel_inductN, rel_induct_thmss, K (rel_induct_attrs @ [induct_pred_attr ""])),
            (simpsN, simp_thmss, K [])]
@@ -2297,6 +2373,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           rel_intross rel_casess set_thmss set_selsssss set_introsssss set_casess ctr_transferss
           case_transferss disc_transferss (replicate nn []) (replicate nn []) rec_transfer_thmss
           common_rel_induct_thms rel_induct_thmss [] (replicate nn []) sel_transferss
+          rec_o_map_thmss
       end;
 
     fun derive_corec_transfer_thms lthy corecs corec_defs =
@@ -2416,7 +2493,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           rel_intross rel_casess set_thmss set_selsssss set_introsssss set_casess ctr_transferss
           case_transferss disc_transferss corec_disc_iff_thmss (map single corec_code_thms)
           corec_transfer_thmss common_rel_coinduct_thms rel_coinduct_thmss set_induct_thms
-          (replicate nn (if nn = 1 then set_induct_thms else [])) sel_transferss
+          (replicate nn (if nn = 1 then set_induct_thms else [])) sel_transferss (replicate nn [])
       end;
 
     val lthy'' = lthy'

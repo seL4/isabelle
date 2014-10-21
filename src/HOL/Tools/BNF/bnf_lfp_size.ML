@@ -22,8 +22,6 @@ open BNF_Def
 open BNF_FP_Def_Sugar
 
 val size_N = "size_";
-
-val rec_o_mapN = "rec_o_map";
 val sizeN = "size";
 val size_o_mapN = "size_o_map";
 
@@ -61,14 +59,6 @@ fun mk_unabs_def_unused_0 n =
 
 val rec_o_map_simps =
   @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum case_prod_map_prod id_bnf_def};
-
-fun mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
-    ctor_rec_o_map =
-  HEADGOAL (subst_tac @{context} (SOME [1, 2]) [rec_def] THEN' rtac (ctor_rec_o_map RS trans) THEN'
-    CONVERSION Thm.eta_long_conversion THEN'
-    asm_simp_tac (ss_only (pre_map_defs @
-        distinct Thm.eq_thm_prop (live_nesting_map_ident0s @ abs_inverses) @ rec_o_map_simps)
-      ctxt));
 
 val size_o_map_simps = @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
@@ -271,62 +261,11 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       val maps0 = map map_of_bnf fp_bnfs;
 
-      val (rec_o_map_thmss, size_o_map_thmss) =
-        if live = 0 then
-          `I (replicate nn [])
+      val size_o_map_thmss =
+        if live = 0 then replicate nn []
         else
           let
-            val pre_bnfs = map #pre_bnf fp_sugars;
-            val pre_map_defs = map map_def_of_bnf pre_bnfs;
-            val live_nesting_map_ident0s = map map_ident0_of_bnf live_nesting_bnfs;
-            val abs_inverses = map (#abs_inverse o #absT_info) fp_sugars;
-            val rec_defs = map (#co_rec_def o #fp_co_induct_sugar) fp_sugars;
-
             val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
-
-            val num_rec_args = length rec_arg_Ts;
-            val h_Ts = map B_ify rec_arg_Ts;
-            val h_names = variant_names num_rec_args "h";
-            val hs = map2 (curry Free) h_names h_Ts;
-            val hrecs = map (fn recx => Term.list_comb (Term.map_types B_ify recx, hs)) recs;
-
-            val rec_o_map_lhss = map2 (curry HOLogic.mk_comp) hrecs gmaps;
-
-            val ABgs = ABs ~~ gs;
-
-            fun mk_rec_arg_arg (x as Free (_, T)) =
-              let val U = B_ify T in
-                if T = U then x else build_map lthy2 [] (the o AList.lookup (op =) ABgs) (T, U) $ x
-              end;
-
-            fun mk_rec_o_map_arg rec_arg_T h =
-              let
-                val x_Ts = binder_types rec_arg_T;
-                val m = length x_Ts;
-                val x_names = variant_names m "x";
-                val xs = map2 (curry Free) x_names x_Ts;
-                val xs' = map mk_rec_arg_arg xs;
-              in
-                fold_rev Term.lambda xs (Term.list_comb (h, xs'))
-              end;
-
-            fun mk_rec_o_map_rhs recx =
-              let val args = map2 mk_rec_o_map_arg rec_arg_Ts hs in
-                Term.list_comb (recx, args)
-              end;
-
-            val rec_o_map_rhss = map mk_rec_o_map_rhs recs;
-
-            val rec_o_map_goals =
-              map2 (fold_rev (fold_rev Logic.all) [gs, hs] o HOLogic.mk_Trueprop oo
-                curry HOLogic.mk_eq) rec_o_map_lhss rec_o_map_rhss;
-            val rec_o_map_thms =
-              @{map 3} (fn goal => fn rec_def => fn ctor_rec_o_map =>
-                  Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
-                    mk_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s abs_inverses
-                      ctor_rec_o_map)
-                  |> Thm.close_derivation)
-                rec_o_map_goals rec_defs ctor_rec_o_maps;
 
             val size_o_map_conds =
               if exists (can Logic.dest_implies o Thm.prop_of) nested_size_o_maps then
@@ -346,6 +285,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
                 curry Logic.list_implies size_o_map_conds o HOLogic.mk_Trueprop oo
                 curry HOLogic.mk_eq) size_o_map_lhss size_o_map_rhss;
 
+            val rec_o_maps = fold_rev (curry (op @) o (#rec_o_maps o #fp_co_induct_sugar)) fp_sugars [];
+
             val size_o_map_thmss =
               if nested_size_o_maps_complete then
                 @{map 3} (fn goal => fn size_def => fn rec_o_map =>
@@ -353,11 +294,11 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
                       mk_size_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
                     |> Thm.close_derivation
                     |> single)
-                  size_o_map_goals size_defs rec_o_map_thms
+                  size_o_map_goals size_defs rec_o_maps
               else
                 replicate nn [];
           in
-            (map single rec_o_map_thms, size_o_map_thmss)
+            size_o_map_thmss
           end;
 
       (* Ideally, the "[code]" attribute would be generated only if the "code" plugin is enabled. *)
@@ -372,8 +313,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         #> filter_out (null o fst o hd o snd);
 
       val notes =
-        [(rec_o_mapN, rec_o_map_thmss, []),
-         (sizeN, size_thmss, code_attrs :: nitpicksimp_attrs @ simp_attrs),
+        [(sizeN, size_thmss, code_attrs :: nitpicksimp_attrs @ simp_attrs),
          (size_o_mapN, size_o_map_thmss, [])]
         |> massage_multi_notes;
 

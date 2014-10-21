@@ -34,6 +34,8 @@ sig
   val mk_map_disc_iff_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_map_sel_tac: Proof.context -> cterm -> thm -> thm list -> thm list -> thm list ->
     thm list -> tactic
+  val mk_rec_o_map_tac: Proof.context -> thm -> thm list -> thm list -> thm list -> thm -> thm ->
+    thm Seq.seq
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
   val mk_rec_transfer_tac: Proof.context -> int -> int list -> cterm list -> cterm list ->
@@ -160,6 +162,18 @@ fun mk_inject_tac ctxt ctr_def ctor_inject abs_inject =
 val rec_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def case_prod_Pair_iden snd_conv split_conv
       case_unit_Unity} @ sumprod_thms_map;
+
+fun mk_rec_o_map_tac ctxt rec_def pre_map_defs map_ident0s abs_inverses ctor_rec_o_map =
+  let
+    val rec_o_map_simps =
+      @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum case_prod_map_prod id_bnf_def};
+  in
+    HEADGOAL (subst_tac @{context} (SOME [1, 2]) [rec_def] THEN'
+      rtac (ctor_rec_o_map RS trans) THEN'
+      CONVERSION Thm.eta_long_conversion THEN'
+      asm_simp_tac (ss_only (pre_map_defs @ distinct Thm.eq_thm_prop (map_ident0s @ abs_inverses) @
+        rec_o_map_simps) ctxt))
+  end;
 
 fun mk_rec_tac pre_map_defs map_ident0s rec_defs ctor_rec fp_abs_inverse abs_inverse ctr_def ctxt =
   HEADGOAL ((if is_def_looping ctr_def then subst_tac ctxt NONE

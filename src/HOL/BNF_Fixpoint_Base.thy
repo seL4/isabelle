@@ -199,6 +199,9 @@ lemma case_sum_transfer:
 lemma case_prod_map_prod: "case_prod h (map_prod f g x) = case_prod (\<lambda>l r. h (f l) (g r)) x"
   by (case_tac x) simp+
 
+lemma case_prod_o_map_prod: "case_prod f \<circ> map_prod g1 g2 = case_prod (\<lambda>l r. f (g1 l) (g2 r))"
+  unfolding comp_def by auto
+
 lemma case_prod_transfer:
   "(rel_fun (rel_fun A (rel_fun B C)) (rel_fun (rel_prod A B) C)) case_prod case_prod"
   unfolding rel_fun_def rel_prod_def by simp
