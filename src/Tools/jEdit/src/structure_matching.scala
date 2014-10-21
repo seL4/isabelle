@@ -45,10 +45,12 @@ object Structure_Matching
           val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
           def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
-            Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
+            Token_Markup.line_token_iterator(syntax, buffer, line, line + lim).
+              filter(_.info.is_proper)
 
           def rev_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
-            Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
+            Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim).
+              filter(_.info.is_proper)
 
           def caret_iterator(): Iterator[Text.Info[Token]] =
             iterator(caret_line).dropWhile(info => !info.range.touches(caret))
@@ -56,8 +58,8 @@ object Structure_Matching
           def rev_caret_iterator(): Iterator[Text.Info[Token]] =
             rev_iterator(caret_line).dropWhile(info => !info.range.touches(caret))
 
-          iterator(caret_line, 1).find(info => info.range.touches(caret)) match
-          {
+          iterator(caret_line, 1).find(info => info.range.touches(caret))
+          match {
             case Some(Text.Info(range1, tok)) if syntax.command_kind(tok, Keyword.theory_goal) =>
               find_block(
                 syntax.command_kind(_, Keyword.proof_goal),
