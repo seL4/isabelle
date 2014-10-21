@@ -2870,8 +2870,8 @@ The plugin derives the following properties:
 @{thm list.size_gen(1)[no_vars]} \\
 @{thm list.size_gen(2)[no_vars]}
 
-\item[@{text "t."}\hthm{size_o_map}\rm:] ~ \\
-@{thm list.size_o_map[no_vars]}
+\item[@{text "t."}\hthm{size_gen_o_map}\rm:] ~ \\
+@{thm list.size_gen_o_map[no_vars]}
 
 \end{description}
 \end{indentblock}
