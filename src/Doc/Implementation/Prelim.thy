@@ -1048,10 +1048,9 @@ ML \<open>Binding.pos_of @{binding here}\<close>
 text \<open>\medskip That position can be also printed in a message as
   follows:\<close>
 
-ML_command \<open>
-  writeln
-    ("Look here" ^ Position.here (Binding.pos_of @{binding here}))
-\<close>
+ML_command
+  \<open>writeln
+    ("Look here" ^ Position.here (Binding.pos_of @{binding here}))\<close>
 
 text \<open>This illustrates a key virtue of formalized bindings as
   opposed to raw specifications of base names: the system can use this
@@ -1062,8 +1061,6 @@ text \<open>This illustrates a key virtue of formalized bindings as
   directly, which is occasionally useful for experimentation and
   diagnostic purposes:\<close>
 
-ML_command \<open>
-  warning ("Look here" ^ Position.here @{here})
-\<close>
+ML_command \<open>warning ("Look here" ^ Position.here @{here})\<close>
 
 end
