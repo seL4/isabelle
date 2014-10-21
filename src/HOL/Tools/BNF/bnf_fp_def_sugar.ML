@@ -1959,6 +1959,36 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val ctrXs_Tsss = map (map (map freeze_fp)) fake_ctr_Tsss;
     val ctrXs_repTs = map mk_sumprodT_balanced ctrXs_Tsss;
 
+    val _ =
+      let
+        fun mk_edges Xs ctrXs_Tsss =
+          let
+            fun add_edges i =
+              fold (fn T => fold_index (fn (j, X) =>
+                exists_subtype (curry (op =) X) T ? cons (i, j)) Xs);
+          in
+            fold_index (uncurry (fold o add_edges)) ctrXs_Tsss []
+          end;
+
+        fun mk_graph nn edges =
+          Int_Graph.empty
+          |> fold (fn kk => Int_Graph.new_node (kk, ())) (0 upto nn - 1)
+          |> fold Int_Graph.add_edge edges;
+
+        val str_of_scc = curry (op ^) (co_prefix fp ^ "datatype ") o
+          space_implode " and " o map (suffix " = \<dots>" o Long_Name.base_name);
+
+        fun warn [_] = ()
+          | warn sccs =
+            warning ("Defined types not fully mutually " ^ co_prefix fp ^ "recursive\n\
+              \Alternative specification:\n" ^
+              cat_lines (map (prefix "  " o str_of_scc o map (nth fp_b_names)) sccs));
+
+        val edges = mk_edges Xs ctrXs_Tsss;
+        val G = mk_graph nn edges;
+        val sccs = rev (map (sort int_ord) (Int_Graph.strong_conn G));
+      in warn sccs end;
+
     val fp_eqs = map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_repTs;
 
     val killed_As =
