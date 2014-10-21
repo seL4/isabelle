@@ -187,7 +187,9 @@ case "$PLATFORM_FAMILY" in
     purge_contrib '-name "x86*-linux" -o -name "x86*-darwin"'
     mv "$ISABELLE_TARGET/contrib/windows_app" "$TMP/."
 
-    perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
+    perl -pi \
+      -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
+      -e "s,foldPainter=.*,foldPainter=Square,g;" \
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
 
     (
