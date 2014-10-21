@@ -24,7 +24,7 @@ open BNF_FP_Def_Sugar
 val size_N = "size_";
 val sizeN = "size";
 val size_genN = "size_gen";
-val size_o_mapN = "size_o_map";
+val size_gen_o_mapN = "size_gen_o_map";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
@@ -37,11 +37,11 @@ structure Data = Generic_Data
   fun merge data = Symtab.merge (K true) data;
 );
 
-fun register_size T_name size_name size_simps size_o_maps =
-  Context.proof_map (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_o_maps)))));
+fun register_size T_name size_name size_simps size_gen_o_maps =
+  Context.proof_map (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_gen_o_maps)))));
 
-fun register_size_global T_name size_name size_simps size_o_maps =
-  Context.theory_map (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_o_maps)))));
+fun register_size_global T_name size_name size_simps size_gen_o_maps =
+  Context.theory_map (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_gen_o_maps)))));
 
 val size_of = Symtab.lookup o Data.get o Context.Proof;
 val size_of_global = Symtab.lookup o Data.get o Context.Theory;
@@ -61,12 +61,12 @@ fun mk_unabs_def_unused_0 n =
 val rec_o_map_simps =
   @{thms o_def[abs_def] id_def case_prod_app case_sum_map_sum case_prod_map_prod id_bnf_def};
 
-val size_o_map_simps = @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
+val size_gen_o_map_simps = @{thms prod_inj_map inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
-fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
+fun mk_size_gen_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   unfold_thms_tac ctxt [size_def] THEN
   HEADGOAL (rtac (rec_o_map RS trans) THEN'
-    asm_simp_tac (ss_only (inj_maps @ size_maps @ size_o_map_simps) ctxt)) THEN
+    asm_simp_tac (ss_only (inj_maps @ size_maps @ size_gen_o_map_simps) ctxt)) THEN
   IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
 
 fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
@@ -116,12 +116,12 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
             pair (snd_const T)
           else if exists (exists_subtype_in (As @ Cs)) Ts then
             (case Symtab.lookup data s of
-              SOME (size_name, (_, size_o_maps)) =>
+              SOME (size_name, (_, size_gen_o_maps)) =>
               let
-                val (args, size_o_mapss') = fold_map mk_size_of_typ Ts [];
+                val (args, size_gen_o_mapss') = fold_map mk_size_of_typ Ts [];
                 val size_const = Const (size_name, map fastype_of args ---> mk_to_natT T);
               in
-                append (size_o_maps :: size_o_mapss')
+                append (size_gen_o_maps :: size_gen_o_mapss')
                 #> pair (Term.list_comb (size_const, args))
               end
             | _ => pair (mk_abs_zero_nat T))
@@ -155,14 +155,14 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
           val m = length x_Ts;
           val x_names = variant_names m "x";
           val xs = map2 (curry Free) x_names x_Ts;
-          val (summands, size_o_mapss) =
+          val (summands, size_gen_o_mapss) =
             fold_map mk_size_of_arg xs []
             |>> remove (op =) HOLogic.zero;
           val sum =
             if null summands then base_case
             else foldl1 mk_plus_nat (summands @ [HOLogic.Suc_zero]);
         in
-          append size_o_mapss
+          append size_gen_o_mapss
           #> pair (fold_rev Term.lambda (map substCnatT xs) sum)
         end;
 
@@ -173,11 +173,11 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val maybe_conceal_def_binding = Thm.def_binding
         #> not (Config.get lthy0 bnf_note_all) ? Binding.conceal;
 
-      val (size_rhss, nested_size_o_mapss) = fold_map mk_size_rhs recs [];
+      val (size_rhss, nested_size_gen_o_mapss) = fold_map mk_size_rhs recs [];
       val size_Ts = map fastype_of size_rhss;
 
-      val nested_size_o_maps_complete = forall (not o null) nested_size_o_mapss;
-      val nested_size_o_maps = fold (union Thm.eq_thm_prop) nested_size_o_mapss [];
+      val nested_size_gen_o_maps_complete = forall (not o null) nested_size_gen_o_mapss;
+      val nested_size_gen_o_maps = fold (union Thm.eq_thm_prop) nested_size_gen_o_mapss [];
 
       val ((raw_size_consts, raw_size_defs), (lthy1', lthy1)) = lthy0
         |> apfst split_list o @{fold_map 2} (fn b => fn rhs =>
@@ -231,7 +231,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         (Spec_Rules.retrieve lthy0 @{const size ('a)}
          |> map_filter (try (fn (Spec_Rules.Equational, (_, [thm])) => thm)));
 
-      val nested_size_maps = map (mk_pointfull lthy2) nested_size_o_maps @ nested_size_o_maps;
+      val nested_size_maps = map (mk_pointfull lthy2) nested_size_gen_o_maps @ nested_size_gen_o_maps;
       val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ fp_nesting_bnfs @ live_nesting_bnfs)
         |> distinct Thm.eq_thm_prop;
 
@@ -263,45 +263,45 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       val maps0 = map map_of_bnf fp_bnfs;
 
-      val size_o_map_thmss =
+      val size_gen_o_map_thmss =
         if live = 0 then replicate nn []
         else
           let
             val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
 
-            val size_o_map_conds =
-              if exists (can Logic.dest_implies o Thm.prop_of) nested_size_o_maps then
+            val size_gen_o_map_conds =
+              if exists (can Logic.dest_implies o Thm.prop_of) nested_size_gen_o_maps then
                 map (HOLogic.mk_Trueprop o mk_inj) live_gs
               else
                 [];
 
             val fsizes = map (fn size_constB => Term.list_comb (size_constB, fsB)) size_constsB;
-            val size_o_map_lhss = map2 (curry HOLogic.mk_comp) fsizes gmaps;
+            val size_gen_o_map_lhss = map2 (curry HOLogic.mk_comp) fsizes gmaps;
 
             val fgs = map2 (fn fB => fn g as Free (_, Type (_, [A, B])) =>
               if A = B then fB else HOLogic.mk_comp (fB, g)) fsB gs;
-            val size_o_map_rhss = map (fn c => Term.list_comb (c, fgs)) size_consts;
+            val size_gen_o_map_rhss = map (fn c => Term.list_comb (c, fgs)) size_consts;
 
-            val size_o_map_goals =
+            val size_gen_o_map_goals =
               map2 (fold_rev (fold_rev Logic.all) [fsB, gs] o
-                curry Logic.list_implies size_o_map_conds o HOLogic.mk_Trueprop oo
-                curry HOLogic.mk_eq) size_o_map_lhss size_o_map_rhss;
+                curry Logic.list_implies size_gen_o_map_conds o HOLogic.mk_Trueprop oo
+                curry HOLogic.mk_eq) size_gen_o_map_lhss size_gen_o_map_rhss;
 
             val rec_o_maps =
               fold_rev (curry (op @) o (#co_rec_o_maps o #fp_co_induct_sugar)) fp_sugars [];
 
-            val size_o_map_thmss =
-              if nested_size_o_maps_complete then
+            val size_gen_o_map_thmss =
+              if nested_size_gen_o_maps_complete then
                 @{map 3} (fn goal => fn size_def => fn rec_o_map =>
                     Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
-                      mk_size_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
+                      mk_size_gen_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
                     |> Thm.close_derivation
                     |> single)
-                  size_o_map_goals size_defs rec_o_maps
+                  size_gen_o_map_goals size_defs rec_o_maps
               else
                 replicate nn [];
           in
-            size_o_map_thmss
+            size_gen_o_map_thmss
           end;
 
       (* Ideally, the "[code]" attribute would be generated only if the "code" plugin is enabled. *)
@@ -318,7 +318,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val notes =
         [(sizeN, size_thmss, code_attrs :: nitpicksimp_attrs @ simp_attrs),
          (size_genN, size_gen_thmss, []),
-         (size_o_mapN, size_o_map_thmss, [])]
+         (size_gen_o_mapN, size_gen_o_map_thmss, [])]
         |> massage_multi_notes;
 
       val (noted, lthy3) =
@@ -332,7 +332,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Data.map (fold2 (fn T_name => fn Const (size_name, _) =>
              Symtab.update (T_name, (size_name,
-               pairself (map (Morphism.thm (phi0 $> phi))) (size_simps, flat size_o_map_thmss))))
+               pairself (map (Morphism.thm (phi0 $> phi))) (size_simps, flat size_gen_o_map_thmss))))
            T_names size_consts))
     end
   | generate_datatype_size _ lthy = lthy;
