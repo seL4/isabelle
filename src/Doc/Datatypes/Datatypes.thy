@@ -1081,7 +1081,7 @@ functions, the old-style induction rule can be obtained by applying the
 \item \emph{The @{const size} function has a slightly different definition.}
 The new function returns @{text 1} instead of @{text 0} for some nonrecursive
 constructors. This departure from the old behavior made it possible to implement
-@{const size} in terms of the parameterized function @{text "t.size_t"}.
+@{const size} in terms of the generic function @{text "t.size_t"}.
 Moreover, the new function considers nested occurrences of a value, in the nested
 recursive case. The old behavior can be obtained by disabling the @{text size}
 plugin (Section~\ref{sec:controlling-plugins}) and instantiating the
@@ -2849,7 +2849,7 @@ subsection {* Size
   \label{ssec:size} *}
 
 text {*
-For each datatype, the \hthm{size} plugin generates a parameterized size
+For each datatype, the \hthm{size} plugin generates a generic size
 function @{text "t.size_t"} as well as a specific instance
 @{text "size \<Colon> t \<Rightarrow> bool"} belonging to the @{text size} type
 class. The \keyw{fun} command relies on @{const size} to prove termination of
@@ -2865,6 +2865,10 @@ The plugin derives the following properties:
 @{thm list.size(2)[no_vars]} \\
 @{thm list.size(3)[no_vars]} \\
 @{thm list.size(4)[no_vars]}
+
+\item[@{text "t."}\hthm{size_gen}\rm:] ~ \\
+@{thm list.size_gen(1)[no_vars]} \\
+@{thm list.size_gen(2)[no_vars]}
 
 \item[@{text "t."}\hthm{size_o_map}\rm:] ~ \\
 @{thm list.size_o_map[no_vars]}
