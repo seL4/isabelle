@@ -58,6 +58,20 @@ object Structure_Matching
 
           iterator(caret_line, 1).find(info => info.range.touches(caret)) match
           {
+            case Some(Text.Info(range1, tok)) if syntax.command_kind(tok, Keyword.theory_goal) =>
+              find_block(
+                syntax.command_kind(_, Keyword.proof_goal),
+                syntax.command_kind(_, Keyword.qed),
+                syntax.command_kind(_, Keyword.qed_global),
+                caret_iterator())
+
+            case Some(Text.Info(range1, tok)) if syntax.command_kind(tok, Keyword.proof_goal) =>
+              find_block(
+                syntax.command_kind(_, Keyword.proof_goal),
+                syntax.command_kind(_, Keyword.qed),
+                _ => false,
+                caret_iterator())
+
             case Some(Text.Info(range1, tok)) if syntax.command_kind(tok, Keyword.qed_global) =>
               rev_caret_iterator().find(info => syntax.command_kind(info.info, Keyword.theory))
               match {
@@ -65,6 +79,15 @@ object Structure_Matching
                 if syntax.command_kind(tok, Keyword.theory_goal) => Some((range1, range2))
                 case _ => None
               }
+
+            case Some(Text.Info(range1, tok)) if syntax.command_kind(tok, Keyword.qed) =>
+              find_block(
+                syntax.command_kind(_, Keyword.qed),
+                t =>
+                  syntax.command_kind(t, Keyword.proof_goal) ||
+                  syntax.command_kind(t, Keyword.theory_goal),
+                _ => false,
+                rev_caret_iterator())
 
             case Some(Text.Info(range1, tok)) if tok.is_begin =>
               find_block(_.is_begin, _.is_end, _ => false, caret_iterator())
