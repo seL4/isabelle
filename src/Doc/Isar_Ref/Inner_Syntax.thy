@@ -331,11 +331,10 @@ text \<open>Mixfix annotations specify concrete \emph{inner syntax} of
 
   @{rail \<open>
     @{syntax_def mixfix}: '('
-      @{syntax template} prios? @{syntax nat}? |
-      (@'infix' | @'infixl' | @'infixr') @{syntax template} @{syntax nat} |
-      @'binder' @{syntax template} prios? @{syntax nat} |
-      @'structure'
-    ')'
+      (@{syntax template} prios? @{syntax nat}? |
+        (@'infix' | @'infixl' | @'infixr') @{syntax template} @{syntax nat} |
+        @'binder' @{syntax template} prios? @{syntax nat} |
+        @'structure') ')'
     ;
     template: string
     ;
