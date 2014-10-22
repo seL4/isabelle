@@ -108,6 +108,18 @@ object Structure_Matching
 
             case Some(Text.Info(range1, tok)) if tok.is_end =>
               find_block(_.is_end, _.is_begin, _ => false, _ => true, rev_caret_iterator())
+              match {
+                case Some((_, range2)) =>
+                  rev_caret_iterator().dropWhile(info => info.range != range2).
+                    find(info =>
+                      // FIXME more precise keyword category
+                      syntax.command_kind(info.info, Set(Keyword.THY_BEGIN, Keyword.THY_DECL)))
+                  match {
+                    case Some(Text.Info(range3, _)) => Some((range1, range3))
+                    case None => None
+                  }
+                case None => None
+              }
 
             case _ => None
           }
