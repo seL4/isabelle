@@ -251,7 +251,7 @@ class Rich_Text_Area(
                         case None =>
                         case Some(tip) =>
                           val painter = text_area.getPainter
-                          val loc = new Point(x, y + painter.getFontMetrics.getHeight / 2)
+                          val loc = new Point(x, y + painter.getLineHeight / 2)
                           val results = rendering.command_results(tip.range)
                           Pretty_Tooltip(view, painter, loc, rendering, results, tip)
                       }
@@ -444,7 +444,7 @@ class Rich_Text_Area(
 
         val clip = gfx.getClip
         val x0 = text_area.getHorizontalOffset
-        var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
+        var y0 = y + painter.getLineHeight - (fm.getLeading + 1) - fm.getDescent
 
         val (bullet_x, bullet_y, bullet_w, bullet_h) =
         {
@@ -596,7 +596,7 @@ class Rich_Text_Area(
 
             val offset = caret - text_area.getLineStartOffset(physical_line)
             val x = text_area.offsetToXY(physical_line, offset).x
-            val y1 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
+            val y1 = y + painter.getLineHeight - (fm.getLeading + 1) - fm.getDescent
 
             val astr = new AttributedString(" ")
             astr.addAttribute(TextAttribute.FONT, painter.getFont)
