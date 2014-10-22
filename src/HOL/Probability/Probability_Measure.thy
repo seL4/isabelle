@@ -218,6 +218,69 @@ syntax
 translations
   "\<P>(x in M. P)" => "CONST measure M {x \<in> CONST space M. P}"
 
+print_translation {*
+  let
+    fun to_pattern (Const (@{const_syntax Pair}, _) $ l $ r) =
+      Syntax.const @{const_syntax Pair} :: to_pattern l @ to_pattern r
+    | to_pattern (t as (Const (@{syntax_const "_bound"}, _)) $ _) = [t]
+
+    fun mk_pattern ((t, n) :: xs) = mk_patterns n xs |>> curry list_comb t
+    and mk_patterns 0 xs = ([], xs)
+    | mk_patterns n xs =
+      let
+        val (t, xs') = mk_pattern xs
+        val (ts, xs'') = mk_patterns (n - 1) xs'
+      in
+        (t :: ts, xs'')
+      end
+
+    fun unnest_tuples
+      (Const (@{syntax_const "_pattern"}, _) $ 
+        t1 $
+        (t as (Const (@{syntax_const "_pattern"}, _) $ _ $ _)))
+      = let
+        val (_ $ t2 $ t3) = unnest_tuples t
+      in
+        Syntax.const @{syntax_const "_pattern"} $ 
+          unnest_tuples t1 $
+          (Syntax.const @{syntax_const "_patterns"} $ t2 $ t3)
+      end
+    | unnest_tuples pat = pat
+
+    fun tr' [sig_alg, Const (@{const_syntax Collect}, _) $ t] = 
+      let
+        val bound_dummyT = Const (@{syntax_const "_bound"}, dummyT)
+
+        fun go pattern elem
+          (Const (@{const_syntax "conj"}, _) $ 
+            (Const (@{const_syntax Set.member}, _) $ elem' $ (Const (@{const_syntax space}, _) $ sig_alg')) $
+            u)
+          = let
+              val _ = if sig_alg aconv sig_alg' andalso to_pattern elem' = rev elem then () else raise Match;
+              val (pat, rest) = mk_pattern (rev pattern);
+              val _ = case rest of [] => () | _ => raise Match
+            in
+              Syntax.const @{syntax_const "_prob"} $ unnest_tuples pat $ sig_alg $ u
+            end
+        | go pattern elem (Abs abs) =
+            let
+              val (x as (_ $ tx), t) = Syntax_Trans.atomic_abs_tr' abs
+            in
+              go ((x, 0) :: pattern) (bound_dummyT $ tx :: elem) t
+            end
+        | go pattern elem (Const (@{const_syntax case_prod}, _) $ t) =
+            go 
+              ((Syntax.const @{syntax_const "_pattern"}, 2) :: pattern)
+              (Syntax.const @{const_syntax Pair} :: elem)
+              t
+      in
+        go [] [] t
+      end
+  in
+    [(@{const_syntax Sigma_Algebra.measure}, K tr')]
+  end
+*}
+
 definition
   "cond_prob M P Q = \<P>(\<omega> in M. P \<omega> \<and> Q \<omega>) / \<P>(\<omega> in M. Q \<omega>)"
 
