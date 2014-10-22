@@ -303,7 +303,7 @@ object Completion_Popup
         if (loc1 != null) {
           val loc2 =
             SwingUtilities.convertPoint(painter,
-              loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
+              loc1.x, loc1.y + painter.getLineHeight, layered)
 
           val items = result.items.map(new Item(_))
           val completion =

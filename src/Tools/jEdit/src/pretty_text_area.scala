@@ -10,7 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Color, Font, FontMetrics, Toolkit, Window}
+import java.awt.{Color, Font, Toolkit, Window}
 import java.awt.event.KeyEvent
 import javax.swing.JTextField
 import javax.swing.event.{DocumentListener, DocumentEvent}

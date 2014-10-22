@@ -264,7 +264,7 @@ class Pretty_Tooltip private(
         XML.traverse_text(formatted)(0)(
           (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
-      val h = painter.getFontMetrics.getHeight * (lines + 1) + geometry.deco_height
+      val h = painter.getLineHeight * (lines + 1) + geometry.deco_height
       val margin1 =
         if (h <= h_max)
           (0.0 /: split_lines(XML.content(formatted)))({ case (m, line) => m max metric(line) })
