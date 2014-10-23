@@ -9,7 +9,7 @@
 header {* Bijections between natural numbers and other types *}
 
 theory Nat_Bijection
-imports Main Parity
+imports Main
 begin
 
 subsection {* Type @{typ "nat \<times> nat"} *}

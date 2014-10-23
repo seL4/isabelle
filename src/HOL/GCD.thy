@@ -28,7 +28,7 @@ Tobias Nipkow cleaned up a lot.
 header {* Greatest common divisor and least common multiple *}
 
 theory GCD
-imports Fact Parity
+imports Fact
 begin
 
 declare One_nat_def [simp del]

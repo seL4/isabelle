@@ -5,7 +5,7 @@
 header {* Miscellaneous lemmas, of at least doubtful value *}
 
 theory Word_Miscellaneous
-imports Main Parity "~~/src/HOL/Library/Bit" Misc_Numeric
+imports Main "~~/src/HOL/Library/Bit" Misc_Numeric
 begin
 
 lemma power_minus_simp:

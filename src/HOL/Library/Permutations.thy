@@ -5,7 +5,7 @@
 header {* Permutations, both general and specifically on finite sets.*}
 
 theory Permutations
-imports Parity Fact
+imports Fact
 begin
 
 subsection {* Transpositions *}

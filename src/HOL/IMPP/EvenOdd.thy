@@ -5,7 +5,7 @@
 header {* Example of mutually recursive procedures verified with Hoare logic *}
 
 theory EvenOdd
-imports Misc "~~/src/HOL/Parity"
+imports Main Misc
 begin
 
 axiomatization

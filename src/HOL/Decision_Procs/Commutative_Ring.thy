@@ -6,7 +6,7 @@ Proving equalities in commutative rings done "right" in Isabelle/HOL.
 header {* Proving equalities in commutative rings *}
 
 theory Commutative_Ring
-imports Parity
+imports Main
 begin
 
 text {* Syntax of multivariate polynomials (pol) and polynomial expressions. *}

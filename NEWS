@@ -55,7 +55,8 @@ token category instead.
   dvd_plus_eq_left ~> dvd_add_left_iff
 Minor INCOMPATIBILITY.
 
-* "even" and "odd" are mere abbreviations for "2 dvd _" and "~ 2 dvd _".
+* "even" and "odd" are mere abbreviations for "2 dvd _" and "~ 2 dvd _"
+and part of HOL-Main.
   even_def ~> even_iff_mod_2_eq_zero
 INCOMPATIBILITY.
 

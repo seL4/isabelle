@@ -6,7 +6,7 @@
 header {* Even and Odd for int and nat *}
 
 theory Parity
-imports Main
+imports Presburger
 begin
 
 subsection {* Preliminaries about divisibility on @{typ nat} and @{typ int} *}
@@ -24,7 +24,7 @@ lemma two_dvd_diff_nat_iff:
   shows "2 dvd m - n \<longleftrightarrow> m < n \<or> 2 dvd m + n"
 proof (cases "n \<le> m")
   case True
-  then have "m - n + n * 2 = m + n" by simp
+  then have "m - n + n * 2 = m + n" by (simp add: mult_2_right)
   moreover have "2 dvd m - n \<longleftrightarrow> 2 dvd m - n + n * 2" by simp
   ultimately have "2 dvd m - n \<longleftrightarrow> 2 dvd m + n" by (simp only:)
   then show ?thesis by auto
@@ -103,7 +103,7 @@ next
     then obtain r where "Suc n = 2 * r" ..
     moreover from * obtain s where "m * n = 2 * s" ..
     then have "2 * s + m = m * Suc n" by simp
-    ultimately have " 2 * s + m = 2 * (m * r)" by simp
+    ultimately have " 2 * s + m = 2 * (m * r)" by (simp add: algebra_simps)
     then have "m = 2 * (m * r - s)" by simp
     then show "2 dvd m" ..
   qed
@@ -207,7 +207,7 @@ lemma oddE [elim?]:
   obtains b where "a = 2 * b + 1"
   using assms by (rule not_two_dvdE)
   
-lemma even_times_iff [simp, presburger, algebra]:
+lemma even_times_iff [simp]:
   "even (a * b) \<longleftrightarrow> even a \<or> even b"
   by (auto simp add: dest: two_is_prime)
 
@@ -254,7 +254,7 @@ lemma odd_add [simp]:
   "odd (a + b) \<longleftrightarrow> (\<not> (odd a \<longleftrightarrow> odd b))"
   by simp
 
-lemma even_power [simp, presburger]:
+lemma even_power [simp]:
   "even (a ^ n) \<longleftrightarrow> even a \<and> n \<noteq> 0"
   by (induct n) auto
 
@@ -263,7 +263,7 @@ end
 context ring_parity
 begin
 
-lemma even_minus [simp, presburger, algebra]:
+lemma even_minus [simp]:
   "even (- a) \<longleftrightarrow> even a"
   by (fact dvd_minus_iff)
 
@@ -317,7 +317,7 @@ end
 
 subsubsection {* Particularities for @{typ nat} and @{typ int} *}
 
-lemma even_Suc [simp, presburger, algebra]:
+lemma even_Suc [simp]:
   "even (Suc n) = odd n"
   by (fact two_dvd_Suc_iff)
 
@@ -380,20 +380,6 @@ proof (induct n rule: less_induct)
   qed
 qed
   
-text {* Nice facts about division by @{term 4} *}  
-
-lemma even_even_mod_4_iff:
-  "even (n::nat) \<longleftrightarrow> even (n mod 4)"
-  by presburger
-
-lemma odd_mod_4_div_2:
-  "n mod 4 = (3::nat) \<Longrightarrow> odd ((n - 1) div 2)"
-  by presburger
-
-lemma even_mod_4_div_2:
-  "n mod 4 = (1::nat) \<Longrightarrow> even ((n - 1) div 2)"
-  by presburger
-  
 text {* Parity and powers *}
 
 context comm_ring_1
@@ -451,7 +437,7 @@ lemma zero_le_odd_power:
   "odd n \<Longrightarrow> 0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a"
   by (auto simp add: power_even_eq zero_le_mult_iff elim: oddE)
 
-lemma zero_le_power_iff [presburger]: -- \<open>FIXME cf. @{text zero_le_power_eq}\<close>
+lemma zero_le_power_iff: -- \<open>FIXME cf. @{text zero_le_power_eq}\<close>
   "0 \<le> a ^ n \<longleftrightarrow> 0 \<le> a \<or> even n"
 proof (cases "even n")
   case True
@@ -466,11 +452,11 @@ next
     by (auto simp add: zero_le_mult_iff zero_le_even_power)
 qed
 
-lemma zero_le_power_eq [presburger]:
+lemma zero_le_power_eq:
   "0 \<le> a ^ n \<longleftrightarrow> even n \<or> odd n \<and> 0 \<le> a"
   using zero_le_power_iff [of a n] by auto
 
-lemma zero_less_power_eq [presburger]:
+lemma zero_less_power_eq:
   "0 < a ^ n \<longleftrightarrow> n = 0 \<or> even n \<and> a \<noteq> 0 \<or> odd n \<and> 0 < a"
 proof -
   have [simp]: "0 = a ^ n \<longleftrightarrow> a = 0 \<and> n > 0"
@@ -479,11 +465,11 @@ proof -
   unfolding less_le zero_le_power_eq by auto
 qed
 
-lemma power_less_zero_eq [presburger]:
+lemma power_less_zero_eq:
   "a ^ n < 0 \<longleftrightarrow> odd n \<and> a < 0"
   unfolding not_le [symmetric] zero_le_power_eq by auto
   
-lemma power_le_zero_eq [presburger]:
+lemma power_le_zero_eq:
   "a ^ n \<le> 0 \<longleftrightarrow> n > 0 \<and> (odd n \<and> a \<le> 0 \<or> even n \<and> a = 0)"
   unfolding not_less [symmetric] zero_less_power_eq by auto 
 
@@ -560,13 +546,46 @@ declare transfer_morphism_int_nat [transfer add return:
   even_int_iff
 ]
 
-lemma [presburger]:
-  "even n \<longleftrightarrow> even (int n)"
-  using even_int_iff [of n] by simp
+context semiring_parity
+begin
 
-lemma (in semiring_parity) [presburger]:
+declare even_times_iff [presburger, algebra]
+
+declare even_power [presburger]
+
+lemma [presburger]:
   "even (a + b) \<longleftrightarrow> even a \<and> even b \<or> odd a \<and> odd b"
   by auto
+
+end
+
+context ring_parity
+begin
+
+declare even_minus [presburger, algebra]
+
+end
+
+context linordered_idom
+begin
+
+declare zero_le_power_iff [presburger]
+
+declare zero_le_power_eq [presburger]
+
+declare zero_less_power_eq [presburger]
+
+declare power_less_zero_eq [presburger]
+  
+declare power_le_zero_eq [presburger]
+
+end
+
+declare even_Suc [presburger, algebra]
+
+lemma [presburger]:
+  "Suc n div Suc (Suc 0) = n div Suc (Suc 0) \<longleftrightarrow> even n"
+  by presburger
 
 lemma [presburger, algebra]:
   fixes m n :: nat
@@ -587,10 +606,25 @@ lemma [presburger]:
   fixes k :: int
   shows "(k + 1) div 2 = k div 2 + 1 \<longleftrightarrow> odd k"
   by presburger
-  
+
 lemma [presburger]:
-  "Suc n div Suc (Suc 0) = n div Suc (Suc 0) \<longleftrightarrow> even n"
+  "even n \<longleftrightarrow> even (int n)"
+  using even_int_iff [of n] by simp
+  
+
+subsubsection {* Nice facts about division by @{term 4} *}  
+
+lemma even_even_mod_4_iff:
+  "even (n::nat) \<longleftrightarrow> even (n mod 4)"
   by presburger
 
+lemma odd_mod_4_div_2:
+  "n mod 4 = (3::nat) \<Longrightarrow> odd ((n - 1) div 2)"
+  by presburger
+
+lemma even_mod_4_div_2:
+  "n mod 4 = (1::nat) \<Longrightarrow> even ((n - 1) div 2)"
+  by presburger
+  
 end
 

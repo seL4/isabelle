@@ -7,7 +7,7 @@
 header {* Nth Roots of Real Numbers *}
 
 theory NthRoot
-imports Parity Deriv
+imports Deriv
 begin
 
 lemma abs_sgn_eq: "abs (sgn x :: real) = (if x = 0 then 0 else 1)"

@@ -5,7 +5,7 @@
 header {* Useful Numerical Lemmas *}
 
 theory Misc_Numeric
-imports Main Parity
+imports Main
 begin
 
 lemma mod_2_neq_1_eq_eq_0:

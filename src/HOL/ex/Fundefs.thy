@@ -5,7 +5,7 @@
 header {* Examples of function definitions *}
 
 theory Fundefs 
-imports Parity "~~/src/HOL/Library/Monad_Syntax"
+imports Main "~~/src/HOL/Library/Monad_Syntax"
 begin
 
 subsection {* Very basic *}
