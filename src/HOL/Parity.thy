@@ -255,7 +255,7 @@ lemma odd_add [simp]:
   by simp
 
 lemma even_power [simp]:
-  "even (a ^ n) \<longleftrightarrow> even a \<and> n \<noteq> 0"
+  "even (a ^ n) \<longleftrightarrow> even a \<and> n > 0"
   by (induct n) auto
 
 end
@@ -551,7 +551,7 @@ begin
 
 declare even_times_iff [presburger, algebra]
 
-declare even_power [presburger]
+declare even_power [presburger, algebra]
 
 lemma [presburger]:
   "even (a + b) \<longleftrightarrow> even a \<and> even b \<or> odd a \<and> odd b"
@@ -587,15 +587,7 @@ lemma [presburger]:
   "Suc n div Suc (Suc 0) = n div Suc (Suc 0) \<longleftrightarrow> even n"
   by presburger
 
-lemma [presburger, algebra]:
-  fixes m n :: nat
-  shows "even (m - n) \<longleftrightarrow> m < n \<or> even m \<and> even n \<or> odd m \<and> odd n"
-  by auto
-
-lemma [presburger, algebra]:
-  fixes m n :: nat
-  shows "even (m ^ n) \<longleftrightarrow> even m \<and> 0 < n"
-  by simp
+declare even_diff_nat [presburger, algebra]
 
 lemma [presburger]:
   fixes k :: int
