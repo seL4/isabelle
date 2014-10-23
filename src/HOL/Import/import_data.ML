@@ -114,7 +114,7 @@ val _ = Theory.setup
     (Scan.lift (Parse.name -- Parse.name -- Parse.name) >>
       (fn ((tyname, absname), repname) => Thm.declaration_attribute
         (fn th => Context.mapping (add_typ_def tyname absname repname th) I)))
-  "declare a type_definion theorem as a map for an imported type abs rep")
+  "declare a type_definition theorem as a map for an imported type with abs and rep")
 
 val _ =
   Outer_Syntax.command @{command_spec "import_type_map"}
