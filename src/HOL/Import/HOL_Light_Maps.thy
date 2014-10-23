@@ -181,9 +181,13 @@ lemma DEF_MIN[import_const "MIN"]:
   "min = (\<lambda>x y :: nat. if x \<le> y then x else y)"
   by (auto simp add: min.absorb_iff1 fun_eq_iff)
 
+definition even
+where
+  "even = Parity.even"
+  
 lemma EVEN[import_const "EVEN" : even]:
   "even (id 0\<Colon>nat) = True \<and> (\<forall>n. even (Suc n) = (\<not> even n))"
-  by simp
+  by (simp add: even_def)
 
 lemma SUB[import_const "-" : minus]:
   "(\<forall>m\<Colon>nat. m - (id 0) = m) \<and> (\<forall>m n. m - (Suc n) = pred (m - n))"
