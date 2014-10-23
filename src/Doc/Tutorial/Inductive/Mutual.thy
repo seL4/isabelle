@@ -67,7 +67,7 @@ step: "evn n \<Longrightarrow> evn(Suc(Suc n))"
 
 text{*\noindent Everything works as before, except that
 you write \commdx{inductive} instead of \isacommand{inductive\_set} and
-@{prop"evn n"} instead of @{prop"n : even"}.
+@{prop"evn n"} instead of @{prop"n : Even"}.
 When defining an n-ary relation as a predicate, it is recommended to curry
 the predicate: its type should be \mbox{@{text"\<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>n \<Rightarrow> bool"}}
 rather than
