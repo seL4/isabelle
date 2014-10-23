@@ -6,7 +6,7 @@
 header {* Even and Odd for int and nat *}
 
 theory Parity
-imports Divides
+imports Nat_Transfer
 begin
 
 subsection {* Preliminaries about divisibility on @{typ nat} and @{typ int} *}
@@ -139,48 +139,6 @@ next
   then show "\<exists>l. k = l + 1" ..
 qed
 
-context semiring_div_parity
-begin
-
-subclass semiring_parity
-proof (unfold_locales, unfold dvd_eq_mod_eq_0 not_mod_2_eq_0_eq_1)
-  fix a b c
-  show "(c * a + b) mod a = 0 \<longleftrightarrow> b mod a = 0"
-    by simp
-next
-  fix a b c
-  assume "(b + c) mod a = 0"
-  with mod_add_eq [of b c a]
-  have "(b mod a + c mod a) mod a = 0"
-    by simp
-  moreover assume "b mod a = 0"
-  ultimately show "c mod a = 0"
-    by simp
-next
-  show "1 mod 2 = 1"
-    by (fact one_mod_two_eq_one)
-next
-  fix a b
-  assume "a mod 2 = 1"
-  moreover assume "b mod 2 = 1"
-  ultimately show "(a + b) mod 2 = 0"
-    using mod_add_eq [of a b 2] by simp
-next
-  fix a b
-  assume "(a * b) mod 2 = 0"
-  then have "(a mod 2) * (b mod 2) = 0"
-    by (cases "a mod 2 = 0") (simp_all add: mod_mult_eq [of a b 2])
-  then show "a mod 2 = 0 \<or> b mod 2 = 0"
-    by (rule divisors_zero)
-next
-  fix a
-  assume "a mod 2 = 1"
-  then have "a = a div 2 * 2 + 1" using mod_div_equality [of a 2] by simp
-  then show "\<exists>b. a = b + 1" ..
-qed
-
-end
-
 
 subsection {* Dedicated @{text even}/@{text odd} predicate *}
 
@@ -274,47 +232,6 @@ lemma even_diff [simp]:
 end
 
 
-subsubsection {* Parity and division *}
-
-context semiring_div_parity
-begin
-
-lemma one_div_two_eq_zero [simp]: -- \<open>FIXME move\<close>
-  "1 div 2 = 0"
-proof (cases "2 = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  from mod_div_equality have "1 div 2 * 2 + 1 mod 2 = 1" .
-  with one_mod_two_eq_one have "1 div 2 * 2 + 1 = 1" by simp
-  then have "1 div 2 * 2 = 0" by (simp add: ac_simps add_left_imp_eq)
-  then have "1 div 2 = 0 \<or> 2 = 0" by (rule divisors_zero)
-  with False show ?thesis by auto
-qed
-
-lemma even_iff_mod_2_eq_zero:
-  "even a \<longleftrightarrow> a mod 2 = 0"
-  by (fact dvd_eq_mod_eq_0)
-
-lemma even_succ_div_two [simp]:
-  "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
-  by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)
-
-lemma odd_succ_div_two [simp]:
-  "odd a \<Longrightarrow> (a + 1) div 2 = a div 2 + 1"
-  by (auto elim!: oddE simp add: zero_not_eq_two [symmetric] add.assoc)
-
-lemma even_two_times_div_two:
-  "even a \<Longrightarrow> 2 * (a div 2) = a"
-  by (fact dvd_mult_div_cancel)
-
-lemma odd_two_times_div_two_succ:
-  "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
-  using mod_div_equality2 [of 2 a] by (simp add: even_iff_mod_2_eq_zero)
-  
-end
-
-
 subsubsection {* Particularities for @{typ nat} and @{typ int} *}
 
 lemma even_Suc [simp]:
@@ -342,44 +259,6 @@ lemma even_num_iff:
   "0 < n \<Longrightarrow> even n = odd (n - 1 :: nat)"
   by simp
 
-lemma even_Suc_div_two [simp]:
-  "even n \<Longrightarrow> Suc n div 2 = n div 2"
-  using even_succ_div_two [of n] by simp
-  
-lemma odd_Suc_div_two [simp]:
-  "odd n \<Longrightarrow> Suc n div 2 = Suc (n div 2)"
-  using odd_succ_div_two [of n] by simp
-
-lemma odd_two_times_div_two_Suc:
-  "odd n \<Longrightarrow> Suc (2 * (n div 2)) = n"
-  using odd_two_times_div_two_succ [of n] by simp
-
-lemma parity_induct [case_names zero even odd]:
-  assumes zero: "P 0"
-  assumes even: "\<And>n. P n \<Longrightarrow> P (2 * n)"
-  assumes odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
-  shows "P n"
-proof (induct n rule: less_induct)
-  case (less n)
-  show "P n"
-  proof (cases "n = 0")
-    case True with zero show ?thesis by simp
-  next
-    case False
-    with less have hyp: "P (n div 2)" by simp
-    show ?thesis
-    proof (cases "even n")
-      case True
-      with hyp even [of "n div 2"] show ?thesis
-        by (simp add: dvd_mult_div_cancel)
-    next
-      case False
-      with hyp odd [of "n div 2"] show ?thesis 
-        by (simp add: odd_two_times_div_two_Suc)
-    qed
-  qed
-qed
-  
 text {* Parity and powers *}
 
 context comm_ring_1
