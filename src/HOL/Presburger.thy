@@ -434,6 +434,78 @@ lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = (1::nat) \<longleftrightarro
 lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
 lemma [presburger, algebra]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 
+context semiring_parity
+begin
+
+declare even_times_iff [presburger]
+
+declare even_power [presburger]
+
+lemma [presburger]:
+  "even (a + b) \<longleftrightarrow> even a \<and> even b \<or> odd a \<and> odd b"
+  by auto
+
+end
+
+context ring_parity
+begin
+
+declare even_minus [presburger]
+
+end
+
+context linordered_idom
+begin
+
+declare zero_le_power_iff [presburger]
+
+declare zero_le_power_eq [presburger]
+
+declare zero_less_power_eq [presburger]
+
+declare power_less_zero_eq [presburger]
+  
+declare power_le_zero_eq [presburger]
+
+end
+
+declare even_Suc [presburger]
+
+lemma [presburger]:
+  "Suc n div Suc (Suc 0) = n div Suc (Suc 0) \<longleftrightarrow> even n"
+  by presburger
+
+declare even_diff_nat [presburger]
+
+lemma [presburger]:
+  fixes k :: int
+  shows "(k + 1) div 2 = k div 2 \<longleftrightarrow> even k"
+  by presburger
+
+lemma [presburger]:
+  fixes k :: int
+  shows "(k + 1) div 2 = k div 2 + 1 \<longleftrightarrow> odd k"
+  by presburger
+
+lemma [presburger]:
+  "even n \<longleftrightarrow> even (int n)"
+  using even_int_iff [of n] by simp
+  
+
+subsection {* Nice facts about division by @{term 4} *}  
+
+lemma even_even_mod_4_iff:
+  "even (n::nat) \<longleftrightarrow> even (n mod 4)"
+  by presburger
+
+lemma odd_mod_4_div_2:
+  "n mod 4 = (3::nat) \<Longrightarrow> odd ((n - 1) div 2)"
+  by presburger
+
+lemma even_mod_4_div_2:
+  "n mod 4 = (1::nat) \<Longrightarrow> even ((n - 1) div 2)"
+  by presburger
+
 
 subsection {* Try0 *}
 

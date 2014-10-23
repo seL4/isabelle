@@ -5,7 +5,7 @@
 header {* Groebner bases *}
 
 theory Groebner_Basis
-imports Semiring_Normalization
+imports Semiring_Normalization Parity
 keywords "try0" :: diag
 begin
 
@@ -76,5 +76,23 @@ declare dvd_0_left_iff[algebra]
 declare zdvd1_eq[algebra]
 declare zmod_eq_dvd_iff[algebra]
 declare nat_mod_eq_iff[algebra]
+
+context semiring_parity
+begin
+
+declare even_times_iff [algebra]
+declare even_power [algebra]
+
+end
+
+context ring_parity
+begin
+
+declare even_minus [algebra]
+
+end
+
+declare even_Suc [algebra]
+declare even_diff_nat [algebra]
 
 end

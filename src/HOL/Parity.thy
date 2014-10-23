@@ -6,7 +6,7 @@
 header {* Even and Odd for int and nat *}
 
 theory Parity
-imports Presburger
+imports Divides
 begin
 
 subsection {* Preliminaries about divisibility on @{typ nat} and @{typ int} *}
@@ -36,7 +36,7 @@ qed
 lemma two_dvd_diff_iff:
   fixes k l :: int
   shows "2 dvd k - l \<longleftrightarrow> 2 dvd k + l"
-  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: ac_simps)
+  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: mult_2_right)
 
 lemma two_dvd_abs_add_iff:
   fixes k l :: int
@@ -546,77 +546,5 @@ declare transfer_morphism_int_nat [transfer add return:
   even_int_iff
 ]
 
-context semiring_parity
-begin
-
-declare even_times_iff [presburger, algebra]
-
-declare even_power [presburger, algebra]
-
-lemma [presburger]:
-  "even (a + b) \<longleftrightarrow> even a \<and> even b \<or> odd a \<and> odd b"
-  by auto
-
-end
-
-context ring_parity
-begin
-
-declare even_minus [presburger, algebra]
-
-end
-
-context linordered_idom
-begin
-
-declare zero_le_power_iff [presburger]
-
-declare zero_le_power_eq [presburger]
-
-declare zero_less_power_eq [presburger]
-
-declare power_less_zero_eq [presburger]
-  
-declare power_le_zero_eq [presburger]
-
-end
-
-declare even_Suc [presburger, algebra]
-
-lemma [presburger]:
-  "Suc n div Suc (Suc 0) = n div Suc (Suc 0) \<longleftrightarrow> even n"
-  by presburger
-
-declare even_diff_nat [presburger, algebra]
-
-lemma [presburger]:
-  fixes k :: int
-  shows "(k + 1) div 2 = k div 2 \<longleftrightarrow> even k"
-  by presburger
-
-lemma [presburger]:
-  fixes k :: int
-  shows "(k + 1) div 2 = k div 2 + 1 \<longleftrightarrow> odd k"
-  by presburger
-
-lemma [presburger]:
-  "even n \<longleftrightarrow> even (int n)"
-  using even_int_iff [of n] by simp
-  
-
-subsubsection {* Nice facts about division by @{term 4} *}  
-
-lemma even_even_mod_4_iff:
-  "even (n::nat) \<longleftrightarrow> even (n mod 4)"
-  by presburger
-
-lemma odd_mod_4_div_2:
-  "n mod 4 = (3::nat) \<Longrightarrow> odd ((n - 1) div 2)"
-  by presburger
-
-lemma even_mod_4_div_2:
-  "n mod 4 = (1::nat) \<Longrightarrow> even ((n - 1) div 2)"
-  by presburger
-  
 end
 
