@@ -353,6 +353,32 @@ lemma odd_Suc_div_two [simp]:
 lemma odd_two_times_div_two_Suc:
   "odd n \<Longrightarrow> Suc (2 * (n div 2)) = n"
   using odd_two_times_div_two_succ [of n] by simp
+
+lemma parity_induct [case_names zero even odd]:
+  assumes zero: "P 0"
+  assumes even: "\<And>n. P n \<Longrightarrow> P (2 * n)"
+  assumes odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
+  shows "P n"
+proof (induct n rule: less_induct)
+  case (less n)
+  show "P n"
+  proof (cases "n = 0")
+    case True with zero show ?thesis by simp
+  next
+    case False
+    with less have hyp: "P (n div 2)" by simp
+    show ?thesis
+    proof (cases "even n")
+      case True
+      with hyp even [of "n div 2"] show ?thesis
+        by (simp add: dvd_mult_div_cancel)
+    next
+      case False
+      with hyp odd [of "n div 2"] show ?thesis 
+        by (simp add: odd_two_times_div_two_Suc)
+    qed
+  qed
+qed
   
 text {* Nice facts about division by @{term 4} *}  
 
