@@ -1049,7 +1049,7 @@ proof (induct x y rule: gcd_nat_induct)
       apply (subst mod_div_equality [of m n, symmetric])
       (* applying simp here undoes the last substitution!
          what is procedure cancel_div_mod? *)
-      apply (simp only: field_simps of_nat_add of_nat_mult)
+      apply (simp only: NO_MATCH_def field_simps of_nat_add of_nat_mult)
       done
 qed
 

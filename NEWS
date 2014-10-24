@@ -65,6 +65,12 @@ INCOMPATIBILITY.
 * Lemma name consolidation: divide_Numeral1 ~> divide_numeral_1
 Minor INCOMPATIBILITY.
 
+* field_simps: Use NO_MATCH-simproc for distribution rules, to avoid
+  non-termination in case of distributing a division. With this change
+  field_simps is in some cases slightly less powerful, if it fails try
+  to add algebra_simps, or use divide_simps.
+Minor INCOMPATIBILITY.
+
 * Bootstrap of listsum as special case of abstract product over lists.
 Fact rename:
     listsum_def ~> listsum.eq_foldr

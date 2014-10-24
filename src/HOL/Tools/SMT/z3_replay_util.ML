@@ -121,7 +121,7 @@ local
   val basic_simpset =
     simpset_of (put_simpset HOL_ss @{context}
       addsimps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
-        arith_simps rel_simps array_rules z3div_def z3mod_def}
+        arith_simps rel_simps array_rules z3div_def z3mod_def NO_MATCH_def}
       addsimprocs [@{simproc binary_int_div}, @{simproc binary_int_mod},
         Simplifier.simproc_global @{theory} "fast_int_arith" [
           "(m::int) < n", "(m::int) <= n", "(m::int) = n"] Lin_Arith.simproc,

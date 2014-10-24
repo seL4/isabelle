@@ -5915,29 +5915,10 @@ proof -
   proof -
     fix y
     assume as: "y\<in>cbox (x - ?d) (x + ?d)"
-    {
-      fix i :: 'a
-      assume i: "i \<in> Basis"
-      have "x \<bullet> i \<le> d + y \<bullet> i" "y \<bullet> i \<le> d + x \<bullet> i"
-        using as[unfolded mem_box, THEN bspec[where x=i]] i
-        by (auto simp: inner_simps)
-      then have "1 \<ge> inverse d * (x \<bullet> i - y \<bullet> i)" "1 \<ge> inverse d * (y \<bullet> i - x \<bullet> i)"
-        apply (rule_tac[!] mult_left_le_imp_le[OF _ assms])
-        unfolding mult.assoc[symmetric]
-        using assms
-        by (auto simp add: field_simps)
-      then have "inverse d * (x \<bullet> i * 2) \<le> 2 + inverse d * (y \<bullet> i * 2)"
-        "inverse d * (y \<bullet> i * 2) \<le> 2 + inverse d * (x \<bullet> i * 2)"
-        using `0<d` by (auto simp add: field_simps) }
     then have "inverse (2 * d) *\<^sub>R (y - (x - ?d)) \<in> cbox 0 (\<Sum>Basis)"
-      unfolding mem_box using assms
-      by (auto simp add: field_simps inner_simps simp del: inverse_eq_divide)
-    then show "\<exists>z\<in>cbox 0 (\<Sum>Basis). y = x - ?d + (2 * d) *\<^sub>R z"
-      apply -
-      apply (rule_tac x="inverse (2 * d) *\<^sub>R (y - (x - ?d))" in bexI)
-      using assms
-      apply auto
-      done
+      using assms by (simp add: mem_box field_simps inner_simps)
+    with `0 < d` show "\<exists>z\<in>cbox 0 (\<Sum>Basis). y = x - ?d + (2 * d) *\<^sub>R z"
+      by (intro bexI[of _ "inverse (2 * d) *\<^sub>R (y - (x - ?d))"]) auto
   next
     fix y z
     assume as: "z\<in>cbox 0 (\<Sum>Basis)" "y = x - ?d + (2*d) *\<^sub>R z"
@@ -6076,7 +6057,7 @@ proof (rule,rule,rule)
           using `0 < t` `2 < t` and `y \<in> s` `w \<in> s`
           by (auto simp add:field_simps)
         also have "\<dots> = (f w + t * f y) / (1 + t)"
-          using `t > 0` unfolding divide_inverse by (auto simp add: field_simps)
+          using `t > 0` by (auto simp add: divide_simps)
         also have "\<dots> < e + f y"
           using `t > 0` * `e > 0` by (auto simp add: field_simps)
         finally have "f x - f y < e" by auto

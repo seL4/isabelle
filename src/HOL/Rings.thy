@@ -14,8 +14,8 @@ imports Groups
 begin
 
 class semiring = ab_semigroup_add + semigroup_mult +
-  assumes distrib_right[algebra_simps, field_simps]: "(a + b) * c = a * c + b * c"
-  assumes distrib_left[algebra_simps, field_simps]: "a * (b + c) = a * b + a * c"
+  assumes distrib_right[algebra_simps]: "(a + b) * c = a * c + b * c"
+  assumes distrib_left[algebra_simps]: "a * (b + c) = a * b + a * c"
 begin
 
 text{*For the @{text combine_numerals} simproc*}
@@ -299,11 +299,11 @@ by simp
 lemma minus_mult_commute: "- a * b = a * - b"
 by simp
 
-lemma right_diff_distrib [algebra_simps, field_simps]:
+lemma right_diff_distrib [algebra_simps]:
   "a * (b - c) = a * b - a * c"
   using distrib_left [of a b "-c "] by simp
 
-lemma left_diff_distrib [algebra_simps, field_simps]:
+lemma left_diff_distrib [algebra_simps]:
   "(a - b) * c = a * c - b * c"
   using distrib_right [of a "- b" c] by simp
 

@@ -375,7 +375,7 @@ qed auto
 
 lemma polyadd[simp]: "Ipoly bs (polyadd p q) = Ipoly bs p + Ipoly bs q"
   by (induct p q rule: polyadd.induct)
-    (auto simp add: Let_def field_simps distrib_left[symmetric] simp del: distrib_left)
+     (auto simp add: Let_def field_simps distrib_left[symmetric] simp del: distrib_left_NO_MATCH)
 
 lemma polyadd_norm: "isnpoly p \<Longrightarrow> isnpoly q \<Longrightarrow> isnpoly (polyadd p q)"
   using polyadd_normh[of "p" "0" "q" "0"] isnpoly_def by simp

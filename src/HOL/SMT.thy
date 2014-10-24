@@ -322,6 +322,7 @@ lemmas [z3_rule] =
   refl eq_commute conj_commute disj_commute simp_thms nnf_simps
   ring_distribs field_simps times_divide_eq_right times_divide_eq_left
   if_True if_False not_not
+  NO_MATCH_def
 
 lemma [z3_rule]:
   "(P \<and> Q) = (\<not> (\<not> P \<or> \<not> Q))"
