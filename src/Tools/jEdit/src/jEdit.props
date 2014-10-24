@@ -8,6 +8,7 @@ buffer.maxLineLen=100
 buffer.noTabs=true
 buffer.sidekick.keystroke-parse=false
 buffer.tabSize=2
+buffer.undoCount=1000
 close-docking-area.shortcut2=C+e C+CIRCUMFLEX
 complete-word.shortcut=
 console.dock-position=floating

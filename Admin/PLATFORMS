@@ -93,10 +93,8 @@ The following portable system tools can be taken for granted:
   shell /bin/sh is *not* appropriate, because there are too many
   non-standard implementations of it.
 
-* Perl as largely portable system programming language.  In some
-  situations Python may serve as an alternative, but it usually
-  performs not as well in addressing various delicate details of
-  operating system concepts (processes, signals, sockets etc.).
+* Perl as largely portable system programming language, with its
+  fairly robust support for processes, signals, sockets etc.
 
 * Scala with Java 1.7.  Isabelle/Scala irons out many oddities and
   portability issues of the Java platform.
