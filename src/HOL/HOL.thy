@@ -1701,6 +1701,29 @@ val trans = @{thm trans}
 ML_file "Tools/cnf.ML"
 
 
+section {* @{text NO_MATCH} simproc *}
+
+text {*
+ The simplification procedure can be used to avoid simplification of terms of a certain form
+*}
+
+definition NO_MATCH :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where "NO_MATCH val pat \<equiv> True"
+lemma NO_MATCH_cong[cong]: "NO_MATCH val pat = NO_MATCH val pat" by (rule refl)
+
+simproc_setup NO_MATCH ("NO_MATCH val pat") = {* fn _ => fn ctxt => fn ct =>
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val dest_binop = Term.dest_comb #> apfst (Term.dest_comb #> snd)
+    val m = Pattern.matches thy (dest_binop (Thm.term_of ct))
+  in if m then NONE else SOME @{thm NO_MATCH_def} end
+*}
+
+text {*
+  This setup ensures that a rewrite rule of the form @{term "NO_MATCH val pat \<Longrightarrow> t"}
+  is only applied, if the pattern @{term pat} does not match the value @{term val}.
+*}
+
+
 subsection {* Code generator setup *}
 
 subsubsection {* Generic code generator preprocessor setup *}

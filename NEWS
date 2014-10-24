@@ -49,6 +49,8 @@ token category instead.
 
 *** HOL ***
 
+* Add NO_MATCH-simproc, allows to check for syntactic non-equality
+
 * Generalized and consolidated some theorems concerning divsibility:
   dvd_reduce ~> dvd_add_triv_right_iff
   dvd_plus_eq_right ~> dvd_add_right_iff
