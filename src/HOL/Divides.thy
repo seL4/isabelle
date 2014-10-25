@@ -321,7 +321,7 @@ proof -
   also have "\<dots> = (a mod (c * k) + a div (c * k) * k * c) mod c"
     by (simp only: mod_mult_self1)
   also have "\<dots> = (a div (c * k) * (c * k) + a mod (c * k)) mod c"
-    by (simp only: ac_simps ac_simps)
+    by (simp only: ac_simps)
   also have "\<dots> = a mod c"
     by (simp only: mod_div_equality)
   finally show ?thesis .
@@ -509,7 +509,7 @@ subsubsection {* Parity and division *}
 
 class semiring_div_parity = semiring_div + semiring_numeral +
   assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
-  assumes one_mod_two_eq_one: "1 mod 2 = 1"
+  assumes one_mod_two_eq_one [simp]: "1 mod 2 = 1"
   assumes zero_not_eq_two: "0 \<noteq> 2"
 begin
 
@@ -519,15 +519,7 @@ lemma parity_cases [case_names even odd]:
   shows P
   using assms parity by blast
 
-lemma not_mod_2_eq_0_eq_1 [simp]:
-  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
-  by (cases a rule: parity_cases) simp_all
-
-lemma not_mod_2_eq_1_eq_0 [simp]:
-  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
-  by (cases a rule: parity_cases) simp_all
-
-lemma one_div_two_eq_zero [simp]: -- \<open>FIXME move\<close>
+lemma one_div_two_eq_zero [simp]:
   "1 div 2 = 0"
 proof (cases "2 = 0")
   case True then show ?thesis by simp
@@ -539,6 +531,14 @@ next
   then have "1 div 2 = 0 \<or> 2 = 0" by (rule divisors_zero)
   with False show ?thesis by auto
 qed
+
+lemma not_mod_2_eq_0_eq_1 [simp]:
+  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
+  by (cases a rule: parity_cases) simp_all
+
+lemma not_mod_2_eq_1_eq_0 [simp]:
+  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
+  by (cases a rule: parity_cases) simp_all
 
 subclass semiring_parity
 proof (unfold_locales, unfold dvd_eq_mod_eq_0 not_mod_2_eq_0_eq_1)
@@ -1148,11 +1148,15 @@ by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_nat_u
 lemma mod_mult2_eq: "a mod (b * c) = b * (a div b mod c) + a mod (b::nat)"
 by (auto simp add: mult.commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_nat_unique])
 
+instance nat :: semiring_numeral_div
+  by intro_classes (auto intro: div_positive simp add: mult_div_cancel mod_mult2_eq div_mult2_eq)
+
 
 subsubsection {* Further Facts about Quotient and Remainder *}
 
-lemma div_1 [simp]: "m div Suc 0 = m"
-by (induct m) (simp_all add: div_geq)
+lemma div_1 [simp]:
+  "m div Suc 0 = m"
+  using div_by_1 [of m] by simp
 
 (* Monotonicity of div in first argument *)
 lemma div_le_mono [rule_format (no_asm)]:
@@ -1324,7 +1328,7 @@ proof
     proof (simp, intro allI impI)
       fix i j
       assume "n = k*i + j" "j < k"
-      thus "P j" using not0 P by(simp add:ac_simps ac_simps)
+      thus "P j" using not0 P by (simp add: ac_simps)
     qed
   qed
 next
@@ -1480,7 +1484,6 @@ by (simp add: Suc3_eq_add_3)
 lemmas Suc_div_eq_add3_div_numeral [simp] = Suc_div_eq_add3_div [of _ "numeral v"] for v
 lemmas Suc_mod_eq_add3_mod_numeral [simp] = Suc_mod_eq_add3_mod [of _ "numeral v"] for v
 
-
 lemma Suc_times_mod_eq: "1<k ==> Suc (k * m) mod k = 1" 
 apply (induct "m")
 apply (simp_all add: mod_Suc)
@@ -1500,10 +1503,6 @@ proof -
   from Suc_n_div_2_gt_zero [OF B] C show ?thesis by simp 
 qed
 
-  (* Potential use of algebra : Equality modulo n*)
-lemma mod_mult_self3 [simp]: "(k*n + m) mod n = m mod (n::nat)"
-by (simp add: ac_simps ac_simps)
-
 lemma mod_mult_self4 [simp]: "Suc (k*n + m) mod n = Suc m mod n"
 proof -
   have "Suc (k * n + m) mod n = (k * n + Suc m) mod n" by simp
@@ -1519,11 +1518,8 @@ done
 lemma mod_2_not_eq_zero_eq_one_nat:
   fixes n :: nat
   shows "n mod 2 \<noteq> 0 \<longleftrightarrow> n mod 2 = 1"
-  by simp
-
-instance nat :: semiring_numeral_div
-  by intro_classes (auto intro: div_positive simp add: mult_div_cancel mod_mult2_eq div_mult2_eq)
-
+  by (fact not_mod_2_eq_0_eq_1)
+  
 lemma even_Suc_div_two [simp]:
   "even n \<Longrightarrow> Suc n div 2 = n div 2"
   using even_succ_div_two [of n] by simp
@@ -2554,6 +2550,12 @@ lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
   using zmod_zdiv_equality[where a="m" and b="n"]
   by (simp add: algebra_simps) (* FIXME: generalize *)
 
+instance int :: semiring_numeral_div
+  by intro_classes (auto intro: zmod_le_nonneg_dividend
+    simp add: zmult_div_cancel
+    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial
+    zmod_zmult2_eq zdiv_zmult2_eq)
+  
 lemma zdiv_int: "int (a div b) = (int a) div (int b)"
 apply (subst split_div, auto)
 apply (subst split_zdiv, auto)
@@ -2724,12 +2726,6 @@ lemma mod_nat_numeral [simp]:
 lemma one_mod_nat_numeral [simp]:
   "Suc 0 mod numeral v' = nat (1 mod numeral v')"
   by (subst nat_mod_distrib) simp_all
-
-instance int :: semiring_numeral_div
-  by intro_classes (auto intro: zmod_le_nonneg_dividend
-    simp add: zmult_div_cancel
-    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial
-    zmod_zmult2_eq zdiv_zmult2_eq)
 
 
 subsubsection {* Tools setup *}
