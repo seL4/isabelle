@@ -316,7 +316,7 @@ fun lookup_defined_pred_data lthy name =
     SOME data => data
     | NONE => (error "lookup_pred_data: something went utterly wrong")
 
-fun lives_of_fp fp_sugar =
+fun lives_of_fp (fp_sugar: fp_sugar) =
   let
     val As = snd (dest_Type (#T fp_sugar))
     val liveness = liveness_of_fp_bnf (length As) (hd (#bnfs (#fp_res fp_sugar)));
