@@ -870,7 +870,8 @@ proof-
       by (simp add: ab'(1,2)[symmetric])
     hence "?g^n*a'^n dvd ?g^n *b'^n"
       by (simp only: power_mult_distrib mult.commute)
-    with zn z n have th0:"a'^n dvd b'^n" by auto
+    then have th0: "a'^n dvd b'^n"
+      using zn by auto
     have "a' dvd a'^n" by (simp add: m)
     with th0 have "a' dvd b'^n" using dvd_trans[of a' "a'^n" "b'^n"] by simp
     hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute)

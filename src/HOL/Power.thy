@@ -244,8 +244,17 @@ lemma power_minus_even [simp]:
 
 end
 
+lemma power_eq_0_nat_iff [simp]:
+  fixes m n :: nat
+  shows "m ^ n = 0 \<longleftrightarrow> m = 0 \<and> n > 0"
+  by (induct n) auto
+
 context ring_1_no_zero_divisors
 begin
+
+lemma power_eq_0_iff [simp]:
+  "a ^ n = 0 \<longleftrightarrow> a = 0 \<and> n > 0"
+  by (induct n) auto
 
 lemma field_power_not_zero:
   "a \<noteq> 0 \<Longrightarrow> a ^ n \<noteq> 0"
@@ -559,6 +568,10 @@ lemma power2_less_0 [simp]:
   "\<not> a\<^sup>2 < 0"
   by (force simp add: power2_eq_square mult_less_0_iff)
 
+lemma power2_less_eq_zero_iff [simp]:
+  "a\<^sup>2 \<le> 0 \<longleftrightarrow> a = 0"
+  by (simp add: le_less)
+
 lemma abs_power2 [simp]:
   "abs (a\<^sup>2) = a\<^sup>2"
   by (simp add: power2_eq_square abs_mult abs_mult_self)
@@ -631,15 +644,13 @@ lemma self_le_power:
 lemma power_eq_if: "p ^ m = (if m=0 then 1 else p * (p ^ (m - 1)))"
   unfolding One_nat_def by (cases m) simp_all
 
-lemma power2_sum:
-  fixes x y :: "'a::comm_semiring_1"
-  shows "(x + y)\<^sup>2 = x\<^sup>2 + y\<^sup>2 + 2 * x * y"
+lemma (in comm_semiring_1) power2_sum:
+  "(x + y)\<^sup>2 = x\<^sup>2 + y\<^sup>2 + 2 * x * y"
   by (simp add: algebra_simps power2_eq_square mult_2_right)
 
-lemma power2_diff:
-  fixes x y :: "'a::comm_ring_1"
-  shows "(x - y)\<^sup>2 = x\<^sup>2 + y\<^sup>2 - 2 * x * y"
-  by (simp add: ring_distribs power2_eq_square mult_2) (rule mult.commute)
+lemma (in comm_ring_1) power2_diff:
+  "(x - y)\<^sup>2 = x\<^sup>2 + y\<^sup>2 - 2 * x * y"
+  by (simp add: algebra_simps power2_eq_square mult_2_right)
 
 lemma power_0_Suc [simp]:
   "(0::'a::{power, semiring_0}) ^ Suc n = 0"
@@ -649,12 +660,6 @@ text{*It looks plausible as a simprule, but its effect can be strange.*}
 lemma power_0_left:
   "0 ^ n = (if n = 0 then 1 else (0::'a::{power, semiring_0}))"
   by (induct n) simp_all
-
-lemma power_eq_0_iff [simp]:
-  "a ^ n = 0 \<longleftrightarrow>
-     a = (0::'a::{mult_zero,zero_neq_one,no_zero_divisors,power}) \<and> n \<noteq> 0"
-  by (induct n)
-    (auto simp add: no_zero_divisors elim: contrapos_pp)
 
 lemma (in field) power_diff:
   assumes nz: "a \<noteq> 0"

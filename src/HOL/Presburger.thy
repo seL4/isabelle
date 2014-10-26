@@ -457,8 +457,6 @@ end
 context linordered_idom
 begin
 
-declare zero_le_power_iff [presburger]
-
 declare zero_le_power_eq [presburger]
 
 declare zero_less_power_eq [presburger]

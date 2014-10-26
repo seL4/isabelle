@@ -109,7 +109,16 @@ proof -
     by (auto simp add: sqrt_def power2_nat_le_eq_le intro: antisym)
 qed
 
-lemma mono_sqrt: "mono sqrt"
+lemma sqrt_zero [simp]:
+  "sqrt 0 = 0"
+  using sqrt_inverse_power2 [of 0] by simp
+
+lemma sqrt_one [simp]:
+  "sqrt 1 = 1"
+  using sqrt_inverse_power2 [of 1] by simp
+
+lemma mono_sqrt:
+  "mono sqrt"
 proof
   fix m n :: nat
   have *: "0 * 0 \<le> m" by simp
@@ -140,7 +149,7 @@ qed
 lemma sqrt_power2_le [simp]: (* FIXME tune proof *)
   "(sqrt n)\<^sup>2 \<le> n"
 proof (cases "n > 0")
-  case False then show ?thesis by (simp add: sqrt_def)
+  case False then show ?thesis by simp
 next
   case True then have "sqrt n > 0" by simp
   then have "mono (times (Max {m. m\<^sup>2 \<le> n}))" by (auto intro: mono_times_nat simp add: sqrt_def)

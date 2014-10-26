@@ -1232,9 +1232,8 @@ lemma ereal_mult_less_right:
 lemma ereal_power_divide:
   fixes x y :: ereal
   shows "y \<noteq> 0 \<Longrightarrow> (x / y) ^ n = x^n / y^n"
-  by (cases rule: ereal2_cases[of x y])
-     (auto simp: one_ereal_def zero_ereal_def power_divide not_le
-                 power_less_zero_eq zero_le_power_iff)
+  by (cases rule: ereal2_cases [of x y])
+     (auto simp: one_ereal_def zero_ereal_def power_divide zero_le_power_eq)
 
 lemma ereal_le_mult_one_interval:
   fixes x y :: ereal

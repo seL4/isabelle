@@ -890,7 +890,7 @@ lemma finfun_upd_apply_other [simp]:
 by(simp add: finfun_upd_apply)
 
 lemma finfun_ext: "(\<And>a. f $ a = g $ a) \<Longrightarrow> f = g"
-by(auto simp add: finfun_apply_inject[symmetric] simp del: finfun_apply_inject)
+by(auto simp add: finfun_apply_inject[symmetric])
 
 lemma expand_finfun_eq: "(f = g) = (op $ f = op $ g)"
 by(auto intro: finfun_ext)
@@ -1287,7 +1287,7 @@ by(simp add: finfun_def exI[where x=False])
 lemma finfun_dom_update [simp]:
   "finfun_dom (f(a $:= b)) = (finfun_dom f)(a $:= (b \<noteq> finfun_default f))"
 including finfun unfolding finfun_dom_def finfun_update_def
-apply(simp add: finfun_default_update_const fun_upd_apply finfun_dom_finfunI)
+apply(simp add: finfun_default_update_const finfun_dom_finfunI)
 apply(fold finfun_update.rep_eq)
 apply(simp add: finfun_upd_apply fun_eq_iff fun_upd_def finfun_default_update_const)
 done
@@ -1495,7 +1495,7 @@ next
     thus "finite (UNIV :: 'b set)"
       by(rule finite_imageD)(auto intro!: inj_onI)
   qed
-  with False show ?thesis by simp
+  with False show ?thesis by auto
 qed
 
 lemma finite_UNIV_finfun:

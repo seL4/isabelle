@@ -425,8 +425,8 @@ proof -
 qed
 
 lemma AE_lborel_singleton: "AE x in lborel::'a::euclidean_space measure. x \<noteq> c"
-  using AE_discrete_difference[of "{c::'a}" lborel] emeasure_lborel_cbox[of c c]
-  by (auto simp del: emeasure_lborel_cbox simp add: cbox_sing setprod_constant)
+  using SOME_Basis AE_discrete_difference [of "{c}" lborel]
+    emeasure_lborel_cbox [of c c] by (auto simp add: cbox_sing)
 
 lemma emeasure_lborel_Ioo[simp]:
   assumes [simp]: "l \<le> u"

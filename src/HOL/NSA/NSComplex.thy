@@ -374,11 +374,11 @@ by transfer (rule norm_power)
 lemma hcpow_minus:
      "!!x n. (-x::hcomplex) pow n =
       (if ( *p* even) n then (x pow n) else -(x pow n))"
-by transfer (rule neg_power_if)
+by transfer simp
 
 lemma hcpow_mult:
   "!!r s n. ((r::hcomplex) * s) pow n = (r pow n) * (s pow n)"
-by transfer (rule power_mult_distrib)
+  by (fact hyperpow_mult)
 
 lemma hcpow_zero2 [simp]:
   "\<And>n. 0 pow (hSuc n) = (0::'a::{power,semiring_0} star)"
