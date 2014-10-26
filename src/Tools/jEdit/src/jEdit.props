@@ -238,6 +238,7 @@ lookAndFeel=javax.swing.plaf.nimbus.NimbusLookAndFeel
 match-bracket.shortcut2=C+9
 navigator.showOnToolbar=true
 next-bracket.shortcut2=C+e C+9
+options.textarea.lineSpacing=-2
 plugin-blacklist.MacOSX.jar=true
 plugin.MacOSXPlugin.altDispatcher=false
 plugin.MacOSXPlugin.disableOption=true

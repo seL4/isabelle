@@ -31,6 +31,9 @@ marker, SideKick parser.
 interpreted semi-formally based on .bib files that happen to be opened
 in the editor (hyperlinks, completion etc.).
 
+* Less waste of vertical space via negative line spacing (see Global
+Options / Text Area).
+
 
 *** Pure ***
 
