@@ -1,0 +1,37 @@
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/textarea/StructureMatcher.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/StructureMatcher.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/textarea/StructureMatcher.java	2013-07-28 19:03:31.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/StructureMatcher.java	2014-10-26 15:23:15.176502388 +0100
+@@ -201,8 +201,9 @@
+ 			int matchEndLine = textArea.getScreenLineOfOffset(
+ 				match.end);
+ 
+-			int fontHeight = textArea.getPainter().getFontHeight();
+-			y += textArea.getPainter().getLineExtraSpacing();
++			int height = Math.min(
++				textArea.getPainter().getLineHeight(), textArea.getPainter().getFontHeight());
++			y += Math.max(textArea.getPainter().getLineExtraSpacing(), 0);
+ 
+ 			int[] offsets = getOffsets(screenLine,match);
+ 			int x1 = offsets[0];
+@@ -210,8 +211,8 @@
+ 
+ 			gfx.setColor(textArea.getPainter().getStructureHighlightColor());
+ 
+-			gfx.drawLine(x1,y,x1,y + fontHeight - 1);
+-			gfx.drawLine(x2,y,x2,y + fontHeight - 1);
++			gfx.drawLine(x1,y,x1,y + height - 1);
++			gfx.drawLine(x2,y,x2,y + height - 1);
+ 
+ 			if(matchStartLine == screenLine || screenLine == 0)
+ 				gfx.drawLine(x1,y,x2,y);
+@@ -229,8 +230,8 @@
+ 
+ 			if(matchEndLine == screenLine)
+ 			{
+-				gfx.drawLine(x1,y + fontHeight - 1,
+-					     x2,y + fontHeight - 1);
++				gfx.drawLine(x1,y + height - 1,
++					     x2,y + height - 1);
+ 			}
+ 		}
+ 
