@@ -57,15 +57,6 @@ case "\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}" in
     ISABELLE_JDK_HOME="\$COMPONENT/\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}"
     ;;
 esac
-
-if [ -n "\$ISABELLE_JDK_HOME" ]; then
-  if [ -d "\$ISABELLE_JDK_HOME" ]; then
-    ISABELLE_JAVA_EXT="\${ISABELLE_JDK_HOME}/jre/lib/ext"
-  else
-    echo "### Missing Java platform directory: \"\$ISABELLE_JDK_HOME\"" >&2
-    unset ISABELLE_JDK_HOME
-  fi
-fi
 EOF
 
 
