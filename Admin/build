@@ -24,8 +24,8 @@ Usage: $PRG [MODULES]
   The MODULES list may contain any of the following:
 
     all             all modules below
-    browser         graph browser (requires jdk)
-    jars            Isabelle/Scala (requires \$ISABELLE_JDK_HOME and \$SCALA_HOME)
+    browser         graph browser
+    jars            Isabelle/Scala
     jars_test       test separate build of jars
     jars_fresh      fresh build of jars
 

@@ -119,7 +119,7 @@ function librarypath ()
 function isabelle_jdk ()
 {
   if [ -z "$ISABELLE_JDK_HOME" ]; then
-    echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
+    echo "Unknown ISABELLE_JDK_HOME -- Java development tools unavailable" >&2
     return 127
   else
     local PRG="$1"; shift
@@ -127,11 +127,23 @@ function isabelle_jdk ()
   fi
 }
 
+#robust invocation via JAVA_HOME
+function isabelle_java ()
+{
+  if [ -z "$JAVA_HOME" ]; then
+    echo "Unknown JAVA_HOME -- Java unavailable" >&2
+    return 127
+  else
+    local PRG="$1"; shift
+    "$JAVA_HOME/bin/$PRG" "$@"
+  fi
+}
+
 #robust invocation via SCALA_HOME
 function isabelle_scala ()
 {
-  if [ -z "$ISABELLE_JDK_HOME" ]; then
-    echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
+  if [ -z "$JAVA_HOME" ]; then
+    echo "Unknown JAVA_HOME -- Java unavailable" >&2
     return 127
   elif [ -z "$SCALA_HOME" ]; then
     echo "Unknown SCALA_HOME -- Scala unavailable" >&2
@@ -261,7 +273,7 @@ fi
 ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
 
 #enforce JAVA_HOME
-export JAVA_HOME="$ISABELLE_JDK_HOME"
+export JAVA_HOME="$ISABELLE_JDK_HOME/jre"
 
 #build condition etc.
 case "$ML_SYSTEM" in
