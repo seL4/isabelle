@@ -11,8 +11,8 @@ function fail()
 
 ## parameters
 
-VERSION="7u67"
-FULL_VERSION="1.7.0_67"
+VERSION="7u72"
+FULL_VERSION="1.7.0_72"
 
 ARCHIVE_LINUX32="jdk-${VERSION}-linux-i586.tar.gz"
 ARCHIVE_LINUX64="jdk-${VERSION}-linux-x64.tar.gz"
@@ -29,7 +29,7 @@ mkdir "$DIR" || fail "Cannot create fresh directory: \"$DIR\""
 # README
 
 cat >> "$DIR/README" << EOF
-This is JDK $FULL_VERSION as required for Isabelle.
+This is JDK/JRE $FULL_VERSION as required for Isabelle.
 
 See http://www.oracle.com/technetwork/java/javase/downloads/index.html
 for the original downloads, which are covered by the Oracle Binary
