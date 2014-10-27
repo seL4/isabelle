@@ -145,6 +145,31 @@ function purge_contrib
 }
 
 
+# purge jdk -- keep only jre
+
+function purge_jdk
+{
+  local DIR="contrib/jdk/$1"
+  (
+    cd "$ISABELLE_TARGET"
+    if [ -d "$DIR/jre" ]; then
+      for X in "$DIR"/*
+      do
+        case "$X" in
+          */jre) ;;
+          *)
+            echo "removing $X"
+            rm -rf "$X"
+            ;;
+        esac
+      done
+    else
+      fail "Bad JDK directory: \"$DIR\""
+    fi
+  )
+}
+
+
 # platform-specific setup (inside archive)
 
 perl -pi -e "s,view.title=Isabelle/jEdit,view.title=${ISABELLE_NAME},g;" \
@@ -153,6 +178,8 @@ perl -pi -e "s,view.title=Isabelle/jEdit,view.title=${ISABELLE_NAME},g;" \
 case "$PLATFORM_FAMILY" in
   linux)
     purge_contrib '-name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'
+    purge_jdk "x86-linux"
+    purge_jdk "x86_64-linux"
 
     LINUX_CLASSPATH=""
     for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
@@ -173,6 +200,7 @@ case "$PLATFORM_FAMILY" in
     ;;
   macos)
     purge_contrib '-name "x86*-linux" -o -name "x86*-cygwin" -o -name "x86*-windows"'
+    purge_jdk "x86_64-darwin/Contents/Home"
     mv "$ISABELLE_TARGET/contrib/macos_app" "$TMP/."
 
     perl -pi \
@@ -185,6 +213,7 @@ case "$PLATFORM_FAMILY" in
     ;;
   windows)
     purge_contrib '-name "x86*-linux" -o -name "x86*-darwin"'
+    purge_jdk "x86-cygwin"
     mv "$ISABELLE_TARGET/contrib/windows_app" "$TMP/."
 
     perl -pi \

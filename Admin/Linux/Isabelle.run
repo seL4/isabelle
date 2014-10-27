@@ -22,7 +22,7 @@ source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 #paranoia setting -- avoid problems of Java/Swing versus XIM/IBus etc.
 unset XMODIFIERS
 
-exec "$ISABELLE_HOME/contrib/jdk/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}/bin/java" \
+exec "$ISABELLE_HOME/contrib/jdk/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}/jre/bin/java" \
   "-Disabelle.home=$ISABELLE_HOME" \
   {JAVA_ARGS} \
   -classpath "{CLASSPATH}" \
