@@ -1724,6 +1724,23 @@ lemma floor_add [simp]: "floor (x + real a) = floor x + a"
 lemma floor_subtract [simp]: "floor (x - real a) = floor x - a"
   by linarith
 
+lemma floor_divide_real_eq_div: "0 \<le> b \<Longrightarrow> floor (a / real b) = floor a div b"
+proof cases
+  assume "0 < b"
+  { fix i j :: int assume "real i \<le> a" "a < 1 + real i"
+      "real j * real b \<le> a" "a < real b + real j * real b"
+    then have "i < b + j * b" "j * b < 1 + i"
+      unfolding real_of_int_less_iff[symmetric] by auto
+    then have "(j - i div b) * b \<le> i mod b" "i mod b < ((j - i div b) + 1) * b"
+      by (auto simp: field_simps)
+    then have "(j - i div b) * b < 1 * b" "0 * b < ((j - i div b) + 1) * b"
+      using pos_mod_bound[OF `0<b`, of i] pos_mod_sign[OF `0<b`, of i] by linarith+
+    then have "j = i div b"
+      using `0 < b` unfolding mult_less_cancel_right by auto }
+  with `0 < b` show ?thesis
+    by (auto split: floor_split simp: field_simps)
+qed auto
+
 lemma floor_divide_eq_div:
   "floor (real a / real b) = a div b"
 proof cases
@@ -1896,24 +1913,9 @@ lemma natfloor_subtract [simp]:
     "natfloor(x - real a) = natfloor x - a"
   by linarith
 
-lemma natfloor_div_nat:
-  assumes "1 <= x" and "y > 0"
-  shows "natfloor (x / real y) = natfloor x div y"
-proof (rule natfloor_eq)
-  have "(natfloor x) div y * y \<le> natfloor x"
-    by (rule add_leD1 [where k="natfloor x mod y"], simp)
-  thus "real (natfloor x div y) \<le> x / real y"
-    using assms by (simp add: le_divide_eq le_natfloor_eq)
-  have "natfloor x < (natfloor x) div y * y + y"
-    apply (subst mod_div_equality [symmetric])
-    apply (rule add_strict_left_mono)
-    apply (rule mod_less_divisor)
-    apply fact
-    done
-  thus "x / real y < real (natfloor x div y) + 1"
-    using assms
-    by (simp add: divide_less_eq natfloor_less_iff distrib_right)
-qed
+lemma natfloor_div_nat: "0 \<le> x \<Longrightarrow> natfloor (x / real y) = natfloor x div y"
+  unfolding natfloor_def real_of_int_of_nat_eq[symmetric]
+  by (subst floor_divide_real_eq_div) (simp_all add: nat_div_distrib)
 
 lemma natfloor_div_numeral[simp]:
   "natfloor (numeral x / numeral y) = numeral x div numeral y"
