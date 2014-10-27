@@ -1913,9 +1913,12 @@ lemma natfloor_subtract [simp]:
     "natfloor(x - real a) = natfloor x - a"
   by linarith
 
-lemma natfloor_div_nat: "0 \<le> x \<Longrightarrow> natfloor (x / real y) = natfloor x div y"
-  unfolding natfloor_def real_of_int_of_nat_eq[symmetric]
-  by (subst floor_divide_real_eq_div) (simp_all add: nat_div_distrib)
+lemma natfloor_div_nat: "natfloor (x / real y) = natfloor x div y"
+proof cases
+  assume "0 \<le> x" then show ?thesis
+    unfolding natfloor_def real_of_int_of_nat_eq[symmetric]
+    by (subst floor_divide_real_eq_div) (simp_all add: nat_div_distrib)
+qed (simp add: divide_nonpos_nonneg natfloor_neg)
 
 lemma natfloor_div_numeral[simp]:
   "natfloor (numeral x / numeral y) = numeral x div numeral y"
