@@ -175,9 +175,9 @@ val init_context =
 fun init ctxt =
   State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));
 
-fun top (State st) = Stack.top st |> (fn Node node => node);
-fun map_top f (State st) = State (Stack.map_top (map_node f) st);
-fun map_all f (State st) = State (Stack.map_all (map_node f) st);
+fun top (State stack) = Stack.top stack |> (fn Node node => node);
+fun map_top f (State stack) = State (Stack.map_top (map_node f) stack);
+fun map_all f (State stack) = State (Stack.map_all (map_node f) stack);
 
 
 
@@ -185,12 +185,12 @@ fun map_all f (State st) = State (Stack.map_all (map_node f) st);
 
 (* block structure *)
 
-fun open_block (State st) = State (Stack.push st);
+fun open_block (State stack) = State (Stack.push stack);
 
-fun close_block (State st) = State (Stack.pop st)
+fun close_block (State stack) = State (Stack.pop stack)
   handle List.Empty => error "Unbalanced block parentheses";
 
-fun level (State st) = Stack.level st;
+fun level (State stack) = Stack.level stack;
 
 fun assert_bottom b state =
   let val b' = level state <= 2 in
