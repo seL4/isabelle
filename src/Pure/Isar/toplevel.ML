@@ -473,14 +473,13 @@ fun begin_proof init = transaction (fn int =>
     let
       val (finish, prf) = init int gthy;
       val skip = Goal.skip_proofs_enabled ();
-      val (is_goal, no_skip) =
-        (true, Proof.schematic_goal prf) handle ERROR _ => (false, true);
+      val schematic_goal = try Proof.schematic_goal prf;
       val _ =
-        if is_goal andalso skip andalso no_skip then
+        if skip andalso schematic_goal = SOME true then
           warning "Cannot skip proof of schematic goal statement"
         else ();
     in
-      if skip andalso not no_skip then
+      if skip andalso schematic_goal = SOME false then
         Skipped_Proof (0, (finish (Proof.global_skip_proof true prf), gthy))
       else Proof (Proof_Node.init prf, (finish, gthy))
     end
