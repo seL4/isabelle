@@ -14,6 +14,10 @@ together with an attribute to maintain the content incrementally.
 This supersedes functor Named_Thms, but with a subtle change of
 semantics due to external visual order vs. internal reverse order.
 
+* Command 'notepad' requires proper nesting of begin/end and its proof
+structure in the body: 'oops' is no longer supported here. Minor
+INCOMPATIBILITY, use 'sorry' instead.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

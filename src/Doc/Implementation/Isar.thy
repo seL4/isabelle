@@ -168,7 +168,8 @@ begin
     ML_val
      \<open>val n = Thm.nprems_of (#goal @{Isar.goal});
       @{assert} (n = 3);\<close>
-    oops
+    sorry
+end
 
 text \<open>Here we see 3 individual subgoals in the same way as regular
   proof methods would do.\<close>

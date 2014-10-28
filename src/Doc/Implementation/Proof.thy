@@ -463,7 +463,8 @@ begin
         Subgoal.focus goal_ctxt 1 goal;
       val [A, B] = #prems focus;
       val [(_, x)] = #params focus;\<close>
-    oops
+    sorry
+end
 
 text \<open>\medskip The next example demonstrates forward-elimination in
   a local context, using @{ML Obtain.result}.\<close>

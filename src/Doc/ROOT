@@ -100,7 +100,7 @@ session Intro (doc) in "Intro" = Pure +
     "root.tex"
 
 session Implementation (doc) in "Implementation" = "HOL-Proofs" +
-  options [document_variants = "implementation"]
+  options [document_variants = "implementation", quick_and_dirty]
   theories
     Eq
     Integration
