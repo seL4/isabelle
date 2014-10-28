@@ -302,18 +302,22 @@ val before_qed = #before_qed o #2 o current_goal;
 
 (* nested goal *)
 
-fun map_goal f g h (State (Node {context, facts, mode, goal = SOME goal}, node :: nodes)) =
+fun map_goal f g h (State stack) =
+  (case Stack.dest stack of
+    (Node {context, facts, mode, goal = SOME goal}, node :: nodes) =>
       let
         val Goal {statement, messages, using, goal, before_qed, after_qed} = goal;
         val goal' = make_goal (g (statement, messages, using, goal, before_qed, after_qed));
         val node' = map_node_context h node;
-      in State (make_node (f context, facts, mode, SOME goal'), node' :: nodes) end
-  | map_goal f g h (State (nd, node :: nodes)) =
+        val stack' = Stack.make (make_node (f context, facts, mode, SOME goal')) (node' :: nodes);
+      in State stack' end
+  | (nd, node :: nodes) =>
       let
         val nd' = map_node_context f nd;
-        val State (node', nodes') = map_goal f g h (State (node, nodes));
-      in State (nd', node' :: nodes') end
-  | map_goal _ _ _ state = state;
+        val State stack' = map_goal f g h (State (Stack.make node nodes));
+        val (node', nodes') = Stack.dest stack';
+      in State (Stack.make nd' (node' :: nodes')) end
+  | _ => State stack);
 
 fun provide_goal goal = map_goal I (fn (statement, _, using, _, before_qed, after_qed) =>
   (statement, [], using, goal, before_qed, after_qed)) I;
