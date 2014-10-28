@@ -31,6 +31,7 @@ sig
   val assert_backward: state -> state
   val assert_no_chain: state -> state
   val enter_forward: state -> state
+  val has_bottom_goal: state -> bool
   val goal_message: (unit -> Pretty.T) -> state -> state
   val pretty_goal_messages: state -> Pretty.T list
   val pretty_state: int -> state -> Pretty.T list
@@ -298,6 +299,17 @@ val set_goal = put_goal o SOME;
 val reset_goal = put_goal NONE;
 
 val before_qed = #before_qed o #2 o current_goal;
+
+
+(* bottom goal *)
+
+fun has_bottom_goal (State stack) =
+  let
+    fun bottom [Node {goal = SOME _, ...}, Node {goal = NONE, ...}] = true
+      | bottom [Node {goal, ...}] = is_some goal
+      | bottom [] = false
+      | bottom (_ :: rest) = bottom rest;
+  in bottom (op :: (Stack.dest stack)) end;
 
 
 (* nested goal *)

@@ -692,7 +692,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "oops"} "forget proof"
-    (Scan.succeed Toplevel.forget_proof);
+    (Scan.succeed (Toplevel.forget_proof true));
 
 
 (* proof steps *)
