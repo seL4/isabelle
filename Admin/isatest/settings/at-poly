@@ -4,7 +4,7 @@ init_components /home/isabelle/contrib "$HOME/admin/components/main"
 
   POLYML_HOME="/home/polyml/polyml-5.3.0"
   ML_SYSTEM="polyml-5.3.0"
-  ML_PLATFORM="x86-linux"
+  ML_PLATFORM="x86_64-linux"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 1000"
 
