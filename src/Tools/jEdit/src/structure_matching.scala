@@ -9,14 +9,20 @@ package isabelle.jedit
 
 import isabelle._
 
-import org.gjt.sp.jedit.textarea.{TextArea, StructureMatcher}
+import org.gjt.sp.jedit.textarea.{TextArea, StructureMatcher, Selection}
 
 
 object Structure_Matching
 {
   object Isabelle_Matcher extends StructureMatcher
   {
-    def find_block(
+    private def get_syntax(): Option[Outer_Syntax] =
+      PIDE.session.recent_syntax match {
+        case syntax: Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
+        case _ => None
+      }
+
+    private def find_block(
       open: Token => Boolean,
       close: Token => Boolean,
       reset: Token => Boolean,
@@ -34,16 +40,14 @@ object Structure_Matching
         ).collectFirst({ case (range2, 0) => (range1, range2) })
     }
 
-    def find_pair(text_area: TextArea): Option[(Text.Range, Text.Range)] =
+    private def find_pair(text_area: TextArea): Option[(Text.Range, Text.Range)] =
     {
       val buffer = text_area.getBuffer
       val caret_line = text_area.getCaretLine
       val caret = text_area.getCaretPosition
 
-      PIDE.session.recent_syntax match {
-        case syntax: Outer_Syntax
-        if syntax != Outer_Syntax.empty =>
-
+      get_syntax() match {
+        case Some(syntax) =>
           val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
           def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
@@ -125,7 +129,7 @@ object Structure_Matching
 
             case _ => None
           }
-        case _ => None
+        case None => None
       }
     }
 
@@ -140,7 +144,26 @@ object Structure_Matching
 
     def selectMatch(text_area: TextArea)
     {
-      // FIXME
+      def get_span(offset: Text.Offset): Option[Text.Range] =
+        for {
+          syntax <- get_syntax()
+          span <- Token_Markup.command_span(syntax, text_area.getBuffer, offset)
+        } yield span.range
+
+      find_pair(text_area) match {
+        case Some((r1, r2)) =>
+          (get_span(r1.start), get_span(r2.start)) match {
+            case (Some(range1), Some(range2)) =>
+              val start = range1.start min range2.start
+              val stop = range1.stop max range2.stop
+
+              text_area.moveCaretPosition(stop, false)
+              if (!text_area.isMultipleSelectionEnabled) text_area.selectNone
+              text_area.addToSelection(new Selection.Range(start, stop))
+            case _ =>
+          }
+        case None =>
+      }
     }
   }
 }
