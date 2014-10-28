@@ -16,12 +16,6 @@ object Structure_Matching
 {
   object Isabelle_Matcher extends StructureMatcher
   {
-    private def get_syntax(): Option[Outer_Syntax] =
-      PIDE.session.recent_syntax match {
-        case syntax: Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
-        case _ => None
-      }
-
     private def find_block(
       open: Token => Boolean,
       close: Token => Boolean,
@@ -46,7 +40,7 @@ object Structure_Matching
       val caret_line = text_area.getCaretLine
       val caret = text_area.getCaretPosition
 
-      get_syntax() match {
+      Isabelle.session_syntax() match {
         case Some(syntax) =>
           val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
@@ -146,7 +140,7 @@ object Structure_Matching
     {
       def get_span(offset: Text.Offset): Option[Text.Range] =
         for {
-          syntax <- get_syntax()
+          syntax <- Isabelle.session_syntax()
           span <- Token_Markup.command_span(syntax, text_area.getBuffer, offset)
         } yield span.range
 

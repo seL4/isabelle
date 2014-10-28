@@ -47,13 +47,15 @@ object Isabelle
   private lazy val news_syntax: Outer_Syntax =
     Outer_Syntax.init().no_tokens
 
+  def session_syntax(): Option[Outer_Syntax] =
+    PIDE.session.recent_syntax match {
+      case syntax: Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
+      case _ => None
+    }
+
   def mode_syntax(name: String): Option[Outer_Syntax] =
     name match {
-      case "isabelle" | "isabelle-markup" =>
-        PIDE.session.recent_syntax match {
-          case syntax: Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
-          case _ => None
-        }
+      case "isabelle" | "isabelle-markup" => session_syntax()
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)
