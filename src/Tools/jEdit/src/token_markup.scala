@@ -213,7 +213,8 @@ object Token_Markup
 
   /* line tokens */
 
-  def try_line_tokens(syntax: Outer_Syntax, buffer: JEditBuffer, line: Int): Option[List[Token]] =
+  private def try_line_tokens(syntax: Outer_Syntax, buffer: JEditBuffer, line: Int)
+    : Option[List[Token]] =
   {
     val line_context =
       if (line == 0) Line_Context.init
@@ -251,6 +252,35 @@ object Token_Markup
           (i, tok) => i - tok.source.length)
       (i, tok) <- stops zip tokens.reverseIterator
     } yield Text.Info(Text.Range(i - tok.source.length, i), tok)
+
+
+  /* command span */
+
+  def command_span(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
+    : Option[Text.Info[Command_Span.Span]] =
+  {
+    if (JEdit_Lib.buffer_range(buffer).contains(offset)) {
+      val start =
+        line_token_reverse_iterator(syntax, buffer, buffer.getLineOfOffset(offset), -1).
+          dropWhile(info => !info.range.contains(offset)).
+          collectFirst({ case Text.Info(range, tok) if tok.is_command => range.start }).
+          getOrElse(0)
+      val stop =
+        line_token_iterator(syntax, buffer, buffer.getLineOfOffset(start), buffer.getLineCount).
+          dropWhile(info => !info.range.contains(start)).
+          dropWhile(info => info.range.contains(start)).
+          collectFirst({ case Text.Info(range, tok) if tok.is_command => range.start }).
+          getOrElse(buffer.getLength)
+
+      val text = JEdit_Lib.try_get_text(buffer, Text.Range(start, stop)).getOrElse("")
+      val spans = syntax.parse_spans(text)
+
+      (spans.iterator.scanLeft(start)(_ + _.length) zip spans.iterator).
+        map({ case (i, span) => Text.Info(Text.Range(i, i + span.length), span) }).
+        find(_.range.contains(offset))
+    }
+    else None
+  }
 
 
   /* token marker */

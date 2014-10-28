@@ -26,6 +26,8 @@ object Command_Span
 
   sealed case class Span(kind: Kind, content: List[Token])
   {
+    def length: Int = (0 /: content)(_ + _.source.length)
+
     def compact_source: (String, Span) =
     {
       val source: String =
