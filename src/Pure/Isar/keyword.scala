@@ -21,6 +21,7 @@ object Keyword
   val THY_HEADING3 = "thy_heading3"
   val THY_HEADING4 = "thy_heading4"
   val THY_DECL = "thy_decl"
+  val THY_DECL_BLOCK = "thy_decl_block"
   val THY_LOAD = "thy_load"
   val THY_GOAL = "thy_goal"
   val QED = "qed"
@@ -53,6 +54,8 @@ object Keyword
   val theory =
     Set(THY_BEGIN, THY_END, THY_HEADING1, THY_HEADING2, THY_HEADING3, THY_HEADING4,
       THY_LOAD, THY_DECL, THY_GOAL)
+
+  val theory_block = Set(THY_BEGIN, THY_DECL_BLOCK)
 
   val theory_body =
     Set(THY_HEADING1, THY_HEADING2, THY_HEADING3, THY_HEADING4, THY_LOAD, THY_DECL, THY_GOAL)

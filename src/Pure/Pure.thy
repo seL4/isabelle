@@ -43,18 +43,18 @@ theory Pure
   and "bundle" :: thy_decl
   and "include" "including" :: prf_decl
   and "print_bundles" :: diag
-  and "context" "locale" :: thy_decl
+  and "context" "locale" :: thy_decl_block
   and "sublocale" "interpretation" :: thy_goal
   and "interpret" :: prf_goal % "proof"
-  and "class" :: thy_decl
+  and "class" :: thy_decl_block
   and "subclass" :: thy_goal
-  and "instantiation" :: thy_decl
+  and "instantiation" :: thy_decl_block
   and "instance" :: thy_goal
-  and "overloading" :: thy_decl
+  and "overloading" :: thy_decl_block
   and "code_datatype" :: thy_decl
   and "theorem" "lemma" "corollary" :: thy_goal
   and "schematic_theorem" "schematic_lemma" "schematic_corollary" :: thy_goal
-  and "notepad" :: thy_decl
+  and "notepad" :: thy_decl_block
   and "have" :: prf_goal % "proof"
   and "hence" :: prf_goal % "proof" == "then have"
   and "show" :: prf_asm_goal % "proof"

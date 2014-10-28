@@ -18,6 +18,7 @@ sig
   val thy_heading3: T
   val thy_heading4: T
   val thy_decl: T
+  val thy_decl_block: T
   val thy_load: T
   val thy_load_files: string list -> T
   val thy_goal: T
@@ -100,6 +101,7 @@ val thy_heading2 = kind "thy_heading2";
 val thy_heading3 = kind "thy_heading3";
 val thy_heading4 = kind "thy_heading4";
 val thy_decl = kind "thy_decl";
+val thy_decl_block = kind "thy_decl_block";
 val thy_load = kind "thy_load";
 fun thy_load_files files = Keyword {kind = "thy_load", files = files, tags = []};
 val thy_goal = kind "thy_goal";
@@ -123,7 +125,7 @@ val prf_script = kind "prf_script";
 
 val kinds =
   [control, diag, thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_load, thy_decl, thy_goal, qed, qed_script, qed_block, qed_global,
+    thy_load, thy_decl, thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global,
     prf_heading2, prf_heading3, prf_heading4, prf_goal, prf_block, prf_open,
     prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
@@ -249,10 +251,11 @@ val is_theory_load = command_category [thy_load];
 
 val is_theory = command_category
   [thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_load, thy_decl, thy_goal];
+    thy_load, thy_decl, thy_decl_block, thy_goal];
 
 val is_theory_body = command_category
-  [thy_heading1, thy_heading2, thy_heading3, thy_heading4, thy_load, thy_decl, thy_goal];
+  [thy_heading1, thy_heading2, thy_heading3, thy_heading4,
+    thy_load, thy_decl, thy_decl_block, thy_goal];
 
 val is_proof = command_category
   [qed, qed_script, qed_block, qed_global, prf_heading2, prf_heading3, prf_heading4,

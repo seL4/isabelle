@@ -25,6 +25,7 @@ object Keywords
     "thy_heading4" -> "theory-heading",
     "thy_load" -> "theory-decl",
     "thy_decl" -> "theory-decl",
+    "thy_decl_block" -> "theory-decl",
     "thy_goal" -> "theory-goal",
     "qed_script" -> "qed",
     "qed_block" -> "qed-block",
