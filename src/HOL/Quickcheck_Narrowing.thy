@@ -197,7 +197,7 @@ subsubsection {* Setting up the counterexample generator *}
 
 ML_file "Tools/Quickcheck/narrowing_generators.ML"
 
-setup {* Narrowing_Generators.setup *}
+setup Narrowing_Generators.setup
 
 definition narrowing_dummy_partial_term_of :: "('a :: partial_term_of) itself => narrowing_term => term"
 where
