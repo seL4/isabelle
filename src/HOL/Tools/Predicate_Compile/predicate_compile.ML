@@ -7,7 +7,6 @@ commands code_pred and values.
 
 signature PREDICATE_COMPILE =
 sig
-  val setup : theory -> theory
   val preprocess : Predicate_Compile_Aux.options -> term -> theory -> theory
   val present_graph : bool Unsynchronized.ref
   val intro_hook : (theory -> thm -> unit) option Unsynchronized.ref
@@ -212,8 +211,6 @@ fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) l
       end
     else Predicate_Compile_Core.code_pred_cmd options raw_const lthy
   end
-
-val setup = Predicate_Compile_Core.setup
 
 
 (* Parser for mode annotations *)

@@ -12,7 +12,6 @@ sig
   type compilation = Predicate_Compile_Aux.compilation
   type compilation_funs = Predicate_Compile_Aux.compilation_funs
 
-  val setup : theory -> theory
   val code_pred : options -> string -> Proof.context -> Proof.state
   val code_pred_cmd : options -> string -> Proof.context -> Proof.state
   val values_cmd : string list -> mode option list option ->
@@ -1615,10 +1614,11 @@ val default_values_timeout = if ML_System.is_smlnj then 1200.0 else 40.0
 val values_timeout =
   Attrib.setup_config_real @{binding values_timeout} (K default_values_timeout)
 
-val setup =
-  PredData.put (Graph.empty) #>
-  Attrib.setup @{binding code_pred_intro} (Scan.lift (Scan.option Args.name) >> attrib' add_intro)
-    "adding alternative introduction rules for code generation of inductive predicates"
+val _ =
+  Theory.setup
+   (PredData.put (Graph.empty) #>
+    Attrib.setup @{binding code_pred_intro} (Scan.lift (Scan.option Args.name) >> attrib' add_intro)
+      "adding alternative introduction rules for code generation of inductive predicates")
 
 fun qualified_binding a =
   Binding.qualify true (Long_Name.qualifier a) (Binding.name (Long_Name.base_name a));

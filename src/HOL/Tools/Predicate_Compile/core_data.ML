@@ -27,7 +27,7 @@ sig
     needs_random : mode list
   };
 
-  structure PredData : THEORY_DATA
+  structure PredData : THEORY_DATA  (* FIXME keep data private *)
   
   (* queries *)
   val defined_functions : compilation -> Proof.context -> string -> bool
