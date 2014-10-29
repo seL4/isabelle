@@ -4,14 +4,8 @@
 Concrete syntax for hex chars and strings.
 *)
 
-signature STRING_SYNTAX =
-sig
-  val setup: theory -> theory
-end;
-
-structure String_Syntax: STRING_SYNTAX =
+structure String_Syntax: sig end =
 struct
-
 
 (* nibble *)
 
@@ -91,12 +85,13 @@ fun list_ast_tr' [args] =
 
 (* theory setup *)
 
-val setup =
-  Sign.parse_ast_translation
-   [(@{syntax_const "_Char"}, K char_ast_tr),
-    (@{syntax_const "_String"}, K string_ast_tr)] #>
-  Sign.print_ast_translation
-   [(@{const_syntax Char}, K char_ast_tr'),
-    (@{syntax_const "_list"}, K list_ast_tr')];
+val _ =
+  Theory.setup
+   (Sign.parse_ast_translation
+     [(@{syntax_const "_Char"}, K char_ast_tr),
+      (@{syntax_const "_String"}, K string_ast_tr)] #>
+    Sign.print_ast_translation
+     [(@{const_syntax Char}, K char_ast_tr'),
+      (@{syntax_const "_list"}, K list_ast_tr')]);
 
 end;

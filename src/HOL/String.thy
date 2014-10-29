@@ -126,7 +126,6 @@ syntax
   "_String" :: "str_position => string"    ("_")
 
 ML_file "Tools/string_syntax.ML"
-setup String_Syntax.setup
 
 lemma UNIV_char:
   "UNIV = image (split Char) (UNIV \<times> UNIV)"
