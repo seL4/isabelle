@@ -45,8 +45,6 @@ sig
   val searchf_lr_unify_all: searchinfo -> term -> match Seq.seq Seq.seq
   val searchf_lr_unify_valid: searchinfo -> term -> match Seq.seq Seq.seq
   val searchf_bt_unify_valid: searchinfo -> term -> match Seq.seq Seq.seq
-
-  val setup : theory -> theory
 end;
 
 structure EqSubst: EQSUBST =
@@ -418,12 +416,12 @@ fun eqsubst_asm_tac ctxt occs thms i st =
 (* combination method that takes a flag (true indicates that subst
    should be done to an assumption, false = apply to the conclusion of
    the goal) as well as the theorems to use *)
-val setup =
-  Method.setup @{binding subst}
-    (Scan.lift (Args.mode "asm" -- Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0]) --
-        Attrib.thms >>
-      (fn ((asm, occs), inthms) => fn ctxt =>
-        SIMPLE_METHOD' ((if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occs inthms)))
-    "single-step substitution";
+val _ =
+  Theory.setup
+    (Method.setup @{binding subst}
+      (Scan.lift (Args.mode "asm" -- Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0]) --
+        Attrib.thms >> (fn ((asm, occs), inthms) => fn ctxt =>
+          SIMPLE_METHOD' ((if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occs inthms)))
+      "single-step substitution");
 
 end;

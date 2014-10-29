@@ -10,7 +10,6 @@ sig
   val case_rule_tac: Proof.context -> string -> thm -> int -> tactic
   val induct_tac: Proof.context -> string option list list -> int -> tactic
   val induct_rules_tac: Proof.context -> string option list list -> thm list -> int -> tactic
-  val setup: theory -> theory
 end
 
 structure Induct_Tacs: INDUCT_TACS =
@@ -128,15 +127,16 @@ val varss =
 
 in
 
-val setup =
-  Method.setup @{binding case_tac}
-    (Args.goal_spec -- Scan.lift Args.name_inner_syntax -- opt_rule >>
-      (fn ((quant, s), r) => fn ctxt => SIMPLE_METHOD'' quant (gen_case_tac ctxt s r)))
-    "unstructured case analysis on types" #>
-  Method.setup @{binding induct_tac}
-    (Args.goal_spec -- varss -- opt_rules >>
-      (fn ((quant, vs), rs) => fn ctxt => SIMPLE_METHOD'' quant (gen_induct_tac ctxt vs rs)))
-    "unstructured induction on types";
+val _ =
+  Theory.setup
+   (Method.setup @{binding case_tac}
+      (Args.goal_spec -- Scan.lift Args.name_inner_syntax -- opt_rule >>
+        (fn ((quant, s), r) => fn ctxt => SIMPLE_METHOD'' quant (gen_case_tac ctxt s r)))
+      "unstructured case analysis on types" #>
+    Method.setup @{binding induct_tac}
+      (Args.goal_spec -- varss -- opt_rules >>
+        (fn ((quant, vs), rs) => fn ctxt => SIMPLE_METHOD'' quant (gen_induct_tac ctxt vs rs)))
+      "unstructured induction on types");
 
 end;
 

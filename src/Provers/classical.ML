@@ -124,7 +124,6 @@ sig
     (Proof.context -> tactic) -> (Proof.context -> Proof.method) context_parser
   val cla_method':
     (Proof.context -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
-  val setup: theory -> theory
 end;
 
 
@@ -882,17 +881,18 @@ val introN = "intro";
 val elimN = "elim";
 val destN = "dest";
 
-val setup_attrs =
-  Attrib.setup @{binding swapped} (Scan.succeed swapped)
-    "classical swap of introduction rule" #>
-  Attrib.setup @{binding dest} (Context_Rules.add safe_dest haz_dest Context_Rules.dest_query)
-    "declaration of Classical destruction rule" #>
-  Attrib.setup @{binding elim} (Context_Rules.add safe_elim haz_elim Context_Rules.elim_query)
-    "declaration of Classical elimination rule" #>
-  Attrib.setup @{binding intro} (Context_Rules.add safe_intro haz_intro Context_Rules.intro_query)
-    "declaration of Classical introduction rule" #>
-  Attrib.setup @{binding rule} (Scan.lift Args.del >> K rule_del)
-    "remove declaration of intro/elim/dest rule";
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding swapped} (Scan.succeed swapped)
+      "classical swap of introduction rule" #>
+    Attrib.setup @{binding dest} (Context_Rules.add safe_dest haz_dest Context_Rules.dest_query)
+      "declaration of Classical destruction rule" #>
+    Attrib.setup @{binding elim} (Context_Rules.add safe_elim haz_elim Context_Rules.elim_query)
+      "declaration of Classical elimination rule" #>
+    Attrib.setup @{binding intro} (Context_Rules.add safe_intro haz_intro Context_Rules.intro_query)
+      "declaration of Classical introduction rule" #>
+    Attrib.setup @{binding rule} (Scan.lift Args.del >> K rule_del)
+      "remove declaration of intro/elim/dest rule");
 
 
 
@@ -941,46 +941,40 @@ fun cla_method' tac = Method.sections cla_modifiers >> K (SIMPLE_METHOD' o tac);
 
 
 
-(** setup_methods **)
+(** method setup **)
 
-val setup_methods =
-  Method.setup @{binding default}
-   (Attrib.thms >> (fn rules => fn ctxt => METHOD (default_tac ctxt rules)))
-    "apply some intro/elim rule (potentially classical)" #>
-  Method.setup @{binding rule}
-    (Attrib.thms >> (fn rules => fn ctxt => METHOD (HEADGOAL o rule_tac ctxt rules)))
-    "apply some intro/elim rule (potentially classical)" #>
-  Method.setup @{binding contradiction}
-    (Scan.succeed (fn ctxt => Method.rule ctxt [Data.not_elim, Drule.rotate_prems 1 Data.not_elim]))
-    "proof by contradiction" #>
-  Method.setup @{binding clarify} (cla_method' (CHANGED_PROP oo clarify_tac))
-    "repeatedly apply safe steps" #>
-  Method.setup @{binding fast} (cla_method' fast_tac) "classical prover (depth-first)" #>
-  Method.setup @{binding slow} (cla_method' slow_tac) "classical prover (slow depth-first)" #>
-  Method.setup @{binding best} (cla_method' best_tac) "classical prover (best-first)" #>
-  Method.setup @{binding deepen}
-    (Scan.lift (Scan.optional Parse.nat 4) --| Method.sections cla_modifiers
-      >> (fn n => fn ctxt => SIMPLE_METHOD' (deepen_tac ctxt n)))
-    "classical prover (iterative deepening)" #>
-  Method.setup @{binding safe} (cla_method (CHANGED_PROP o safe_tac))
-    "classical prover (apply safe rules)" #>
-  Method.setup @{binding safe_step} (cla_method' safe_step_tac)
-    "single classical step (safe rules)" #>
-  Method.setup @{binding inst_step} (cla_method' inst_step_tac)
-    "single classical step (safe rules, allow instantiations)" #>
-  Method.setup @{binding step} (cla_method' step_tac)
-    "single classical step (safe and unsafe rules)" #>
-  Method.setup @{binding slow_step} (cla_method' slow_step_tac)
-    "single classical step (safe and unsafe rules, allow backtracking)" #>
-  Method.setup @{binding clarify_step} (cla_method' clarify_step_tac)
-    "single classical step (safe rules, without splitting)";
-
-
-
-(** theory setup **)
-
-val setup = setup_attrs #> setup_methods;
-
+val _ =
+  Theory.setup
+   (Method.setup @{binding default}
+     (Attrib.thms >> (fn rules => fn ctxt => METHOD (default_tac ctxt rules)))
+      "apply some intro/elim rule (potentially classical)" #>
+    Method.setup @{binding rule}
+      (Attrib.thms >> (fn rules => fn ctxt => METHOD (HEADGOAL o rule_tac ctxt rules)))
+      "apply some intro/elim rule (potentially classical)" #>
+    Method.setup @{binding contradiction}
+      (Scan.succeed (fn ctxt => Method.rule ctxt [Data.not_elim, Drule.rotate_prems 1 Data.not_elim]))
+      "proof by contradiction" #>
+    Method.setup @{binding clarify} (cla_method' (CHANGED_PROP oo clarify_tac))
+      "repeatedly apply safe steps" #>
+    Method.setup @{binding fast} (cla_method' fast_tac) "classical prover (depth-first)" #>
+    Method.setup @{binding slow} (cla_method' slow_tac) "classical prover (slow depth-first)" #>
+    Method.setup @{binding best} (cla_method' best_tac) "classical prover (best-first)" #>
+    Method.setup @{binding deepen}
+      (Scan.lift (Scan.optional Parse.nat 4) --| Method.sections cla_modifiers
+        >> (fn n => fn ctxt => SIMPLE_METHOD' (deepen_tac ctxt n)))
+      "classical prover (iterative deepening)" #>
+    Method.setup @{binding safe} (cla_method (CHANGED_PROP o safe_tac))
+      "classical prover (apply safe rules)" #>
+    Method.setup @{binding safe_step} (cla_method' safe_step_tac)
+      "single classical step (safe rules)" #>
+    Method.setup @{binding inst_step} (cla_method' inst_step_tac)
+      "single classical step (safe rules, allow instantiations)" #>
+    Method.setup @{binding step} (cla_method' step_tac)
+      "single classical step (safe and unsafe rules)" #>
+    Method.setup @{binding slow_step} (cla_method' slow_step_tac)
+      "single classical step (safe and unsafe rules, allow backtracking)" #>
+    Method.setup @{binding clarify_step} (cla_method' clarify_step_tac)
+      "single classical step (safe rules, without splitting)");
 
 
 (** outer syntax **)

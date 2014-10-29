@@ -23,8 +23,7 @@ class inverse =
   fixes inverse :: "'a \<Rightarrow> 'a"
     and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
 
-setup {* Sign.add_const_constraint
-  (@{const_name "divide"}, SOME @{typ "'a \<Rightarrow> 'a \<Rightarrow> 'a"}) *}
+setup {* Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a \<Rightarrow> 'a \<Rightarrow> 'a"}) *}
 
 
 context semiring
@@ -47,8 +46,7 @@ lemma [field_simps]:
 
 end
 
-setup {* Sign.add_const_constraint
-  (@{const_name "divide"}, SOME @{typ "'a::inverse \<Rightarrow> 'a \<Rightarrow> 'a"}) *}
+setup {* Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a::inverse \<Rightarrow> 'a \<Rightarrow> 'a"}) *}
 
 text{* Lemmas @{text divide_simps} move division to the outside and eliminates them on (in)equalities. *}
 

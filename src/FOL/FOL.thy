@@ -12,8 +12,6 @@ begin
 ML_file "~~/src/Provers/classical.ML"
 ML_file "~~/src/Provers/blast.ML"
 ML_file "~~/src/Provers/clasimp.ML"
-ML_file "~~/src/Tools/induct.ML"
-ML_file "~~/src/Tools/case_product.ML"
 
 
 subsection {* The classical axiom *}
@@ -181,8 +179,6 @@ structure Basic_Classical: BASIC_CLASSICAL = Cla;
 open Basic_Classical;
 *}
 
-setup Cla.setup
-
 (*Propositional rules*)
 lemmas [intro!] = refl TrueI conjI disjCI impI notI iffI
   and [elim!] = conjE disjE impCE FalseE iffCE
@@ -208,8 +204,6 @@ ML {*
   );
   val blast_tac = Blast.blast_tac;
 *}
-
-setup Blast.setup
 
 
 lemma ex1_functional: "[| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
@@ -344,14 +338,12 @@ val FOL_ss =
   |> simpset_of;
 *}
 
-setup {* map_theory_simpset (put_simpset FOL_ss) *}
-
-setup "Simplifier.method_setup Splitter.split_modifiers"
-setup Splitter.setup
-setup clasimp_setup
+setup {*
+  map_theory_simpset (put_simpset FOL_ss) #>
+  Simplifier.method_setup Splitter.split_modifiers
+*}
 
 ML_file "~~/src/Tools/eqsubst.ML"
-setup EqSubst.setup
 
 
 subsection {* Other simple lemmas *}
@@ -418,6 +410,7 @@ hide_const induct_forall induct_implies induct_equal induct_conj
 
 text {* Method setup. *}
 
+ML_file "~~/src/Tools/induct.ML"
 ML {*
   structure Induct = Induct
   (
@@ -431,10 +424,9 @@ ML {*
   );
 *}
 
-setup Induct.setup
 declare case_split [cases type: o]
 
-setup Case_Product.setup
+ML_file "~~/src/Tools/case_product.ML"
 
 
 hide_const (open) eq

@@ -32,7 +32,6 @@ sig
   val termination : term option -> local_theory -> Proof.state
   val termination_cmd : string option -> local_theory -> Proof.state
 
-  val setup : theory -> theory
   val get_congs : Proof.context -> thm list
 
   val get_info : Proof.context -> term -> info
@@ -264,7 +263,6 @@ val termination_cmd = gen_termination Syntax.read_term
 
 (* Datatype hook to declare datatype congs as "function_congs" *)
 
-
 fun add_case_cong n thy =
   let
     val cong = #case_cong (Old_Datatype_Data.the_info thy n)
@@ -274,12 +272,10 @@ fun add_case_cong n thy =
       (Function_Context_Tree.map_function_congs (Thm.add_thm cong)) thy
   end
 
-val setup_case_cong = Old_Datatype_Data.interpretation (K (fold add_case_cong))
+val _ = Theory.setup (Old_Datatype_Data.interpretation (K (fold add_case_cong)))
 
 
-(* setup *)
-
-val setup = setup_case_cong
+(* get info *)
 
 val get_congs = Function_Context_Tree.get_function_congs
 

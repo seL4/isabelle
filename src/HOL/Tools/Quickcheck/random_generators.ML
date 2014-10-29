@@ -18,7 +18,6 @@ sig
     -> Proof.context -> Proof.context
   val instantiate_random_datatype : Old_Datatype_Aux.config -> Old_Datatype_Aux.descr ->
     (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
-  val setup: theory -> theory
 end;
 
 structure Random_Generators : RANDOM_GENERATORS =
@@ -469,9 +468,10 @@ val test_goals =
 
 val active = Attrib.setup_config_bool @{binding quickcheck_random_active} (K false);
 
-val setup =
-  Quickcheck_Common.datatype_interpretation @{plugin quickcheck_random}
-    (@{sort random}, instantiate_random_datatype)
-  #> Context.theory_map (Quickcheck.add_tester ("random", (active, test_goals)));
+val _ =
+  Theory.setup
+   (Quickcheck_Common.datatype_interpretation @{plugin quickcheck_random}
+      (@{sort random}, instantiate_random_datatype) #>
+    Context.theory_map (Quickcheck.add_tester ("random", (active, test_goals))));
 
 end;

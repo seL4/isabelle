@@ -21,7 +21,6 @@ sig
   val quickcheck_pretty : bool Config.T
   val setup_exhaustive_datatype_interpretation : theory -> theory
   val setup_bounded_forall_datatype_interpretation : theory -> theory
-  val setup: theory -> theory
   
   val instantiate_full_exhaustive_datatype : Old_Datatype_Aux.config -> Old_Datatype_Aux.descr ->
     (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
@@ -547,11 +546,12 @@ val setup_bounded_forall_datatype_interpretation =
 
 val active = Attrib.setup_config_bool @{binding quickcheck_exhaustive_active} (K true);
 
-val setup =
-  Quickcheck_Common.datatype_interpretation @{plugin quickcheck_full_exhaustive}
-    (@{sort full_exhaustive}, instantiate_full_exhaustive_datatype)
-  #> Context.theory_map (Quickcheck.add_tester ("exhaustive", (active, test_goals)))
-  #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))
-  #> Context.theory_map (Quickcheck.add_batch_validator ("exhaustive", compile_validator_exprs));
+val _ =
+  Theory.setup
+   (Quickcheck_Common.datatype_interpretation @{plugin quickcheck_full_exhaustive}
+      (@{sort full_exhaustive}, instantiate_full_exhaustive_datatype)
+    #> Context.theory_map (Quickcheck.add_tester ("exhaustive", (active, test_goals)))
+    #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))
+    #> Context.theory_map (Quickcheck.add_batch_validator ("exhaustive", compile_validator_exprs)));
 
 end;

@@ -207,7 +207,6 @@ subsection {* Deriving random generators for datatypes *}
 
 ML_file "Tools/Quickcheck/quickcheck_common.ML" 
 ML_file "Tools/Quickcheck/random_generators.ML"
-setup Random_Generators.setup
 
 
 subsection {* Code setup *}

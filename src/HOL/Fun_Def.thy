@@ -106,11 +106,6 @@ method_setup induction_schema = {*
   Scan.succeed (NO_CASES oo Induction_Schema.induction_schema_tac)
 *} "prove an induction principle"
 
-setup {*
-  Function.setup
-  #> Function_Fun.setup
-*}
-
 
 subsection {* Measure functions *}
 
