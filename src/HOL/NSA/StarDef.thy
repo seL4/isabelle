@@ -88,7 +88,6 @@ by (subgoal_tac "P \<equiv> Q", simp, simp add: atomize_eq)
 
 text {*Initialize transfer tactic.*}
 ML_file "transfer.ML"
-setup Transfer_Principle.setup
 
 method_setup transfer = {*
   Attrib.thms >> (fn ths => fn ctxt =>

@@ -4,12 +4,7 @@
 SMT setup for reals.
 *)
 
-signature OLD_SMT_REAL =
-sig
-  val setup: theory -> theory
-end
-
-structure Old_SMT_Real: OLD_SMT_REAL =
+structure Old_SMT_Real: sig end =
 struct
 
 
@@ -125,12 +120,13 @@ val real_linarith_proc = Simplifier.simproc_global @{theory} "fast_real_arith" [
 
 (* setup *)
 
-val setup =
-  Context.theory_map (
-    Old_SMTLIB_Interface.add_logic (10, smtlib_logic) #>
-    setup_builtins #>
-    Old_Z3_Interface.add_mk_builtins z3_mk_builtins #>
-    fold Old_Z3_Proof_Reconstruction.add_z3_rule real_rules #>
-    Old_Z3_Proof_Tools.add_simproc real_linarith_proc)
+val _ =
+  Theory.setup
+   (Context.theory_map (
+      Old_SMTLIB_Interface.add_logic (10, smtlib_logic) #>
+      setup_builtins #>
+      Old_Z3_Interface.add_mk_builtins z3_mk_builtins #>
+      fold Old_Z3_Proof_Reconstruction.add_z3_rule real_rules #>
+      Old_Z3_Proof_Tools.add_simproc real_linarith_proc))
 
 end

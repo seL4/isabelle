@@ -52,8 +52,6 @@ sig
   val refute_goal :
     Proof.context -> (string * string) list -> thm -> int -> string
 
-  val setup : theory -> theory
-
 (* ------------------------------------------------------------------------- *)
 (* Additional functions used by Nitpick (to be factored out)                 *)
 (* ------------------------------------------------------------------------- *)
@@ -2926,37 +2924,33 @@ fun IDT_printer ctxt model T intr assignment =
 
 
 (* ------------------------------------------------------------------------- *)
-(* use 'setup Refute.setup' in an Isabelle theory to initialize the 'Refute' *)
-(* structure                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(* ------------------------------------------------------------------------- *)
 (* Note: the interpreters and printers are used in reverse order; however,   *)
 (*       an interpreter that can handle non-atomic terms ends up being       *)
 (*       applied before the 'stlc_interpreter' breaks the term apart into    *)
 (*       subterms that are then passed to other interpreters!                *)
 (* ------------------------------------------------------------------------- *)
 (* FIXME formal @{const_name} for some entries (!??) *)
-val setup =
-   add_interpreter "stlc"    stlc_interpreter #>
-   add_interpreter "Pure"    Pure_interpreter #>
-   add_interpreter "HOLogic" HOLogic_interpreter #>
-   add_interpreter "set"     set_interpreter #>
-   add_interpreter "IDT"             IDT_interpreter #>
-   add_interpreter "IDT_constructor" IDT_constructor_interpreter #>
-   add_interpreter "IDT_recursion"   IDT_recursion_interpreter #>
-   add_interpreter "Finite_Set.card"    Finite_Set_card_interpreter #>
-   add_interpreter "Finite_Set.finite"  Finite_Set_finite_interpreter #>
-   add_interpreter "Nat_Orderings.less" Nat_less_interpreter #>
-   add_interpreter "Nat_HOL.plus"       Nat_plus_interpreter #>
-   add_interpreter "Nat_HOL.minus"      Nat_minus_interpreter #>
-   add_interpreter "Nat_HOL.times"      Nat_times_interpreter #>
-   add_interpreter "List.append" List_append_interpreter #>
-   add_interpreter "Product_Type.prod.fst" Product_Type_fst_interpreter #>
-   add_interpreter "Product_Type.prod.snd" Product_Type_snd_interpreter #>
-   add_printer "stlc" stlc_printer #>
-   add_printer "set" set_printer #>
-   add_printer "IDT"  IDT_printer;
+val _ =
+  Theory.setup
+   (add_interpreter "stlc"    stlc_interpreter #>
+    add_interpreter "Pure"    Pure_interpreter #>
+    add_interpreter "HOLogic" HOLogic_interpreter #>
+    add_interpreter "set"     set_interpreter #>
+    add_interpreter "IDT"             IDT_interpreter #>
+    add_interpreter "IDT_constructor" IDT_constructor_interpreter #>
+    add_interpreter "IDT_recursion"   IDT_recursion_interpreter #>
+    add_interpreter "Finite_Set.card"    Finite_Set_card_interpreter #>
+    add_interpreter "Finite_Set.finite"  Finite_Set_finite_interpreter #>
+    add_interpreter "Nat_Orderings.less" Nat_less_interpreter #>
+    add_interpreter "Nat_HOL.plus"       Nat_plus_interpreter #>
+    add_interpreter "Nat_HOL.minus"      Nat_minus_interpreter #>
+    add_interpreter "Nat_HOL.times"      Nat_times_interpreter #>
+    add_interpreter "List.append" List_append_interpreter #>
+    add_interpreter "Product_Type.prod.fst" Product_Type_fst_interpreter #>
+    add_interpreter "Product_Type.prod.snd" Product_Type_snd_interpreter #>
+    add_printer "stlc" stlc_printer #>
+    add_printer "set" set_printer #>
+    add_printer "IDT"  IDT_printer);
 
 
 

@@ -10,7 +10,6 @@ begin
 
 ML_file "state_space.ML"
 ML_file "state_fun.ML"
-setup StateFun.setup
 
 text {* For every type that is to be stored in a state space, an
 instance of this locale is imported in order convert the abstract and

@@ -8,7 +8,6 @@ signature TRANSFER_PRINCIPLE =
 sig
   val transfer_tac: Proof.context -> thm list -> int -> tactic
   val add_const: string -> theory -> theory
-  val setup: theory -> theory
 end;
 
 structure Transfer_Principle: TRANSFER_PRINCIPLE =
@@ -106,12 +105,13 @@ fun add_const c = Context.theory_map (TransferData.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=intros, unfolds=unfolds, refolds=refolds, consts=c::consts}))
 
-val setup =
-  Attrib.setup @{binding transfer_intro} (Attrib.add_del intro_add intro_del)
-    "declaration of transfer introduction rule" #>
-  Attrib.setup @{binding transfer_unfold} (Attrib.add_del unfold_add unfold_del)
-    "declaration of transfer unfolding rule" #>
-  Attrib.setup @{binding transfer_refold} (Attrib.add_del refold_add refold_del)
-    "declaration of transfer refolding rule"
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding transfer_intro} (Attrib.add_del intro_add intro_del)
+      "declaration of transfer introduction rule" #>
+    Attrib.setup @{binding transfer_unfold} (Attrib.add_del unfold_add unfold_del)
+      "declaration of transfer unfolding rule" #>
+    Attrib.setup @{binding transfer_refold} (Attrib.add_del refold_add refold_del)
+      "declaration of transfer refolding rule")
 
 end;

@@ -13,7 +13,6 @@ keywords "refute" :: diag and "refute_params" :: thy_decl
 begin
 
 ML_file "refute.ML"
-setup Refute.setup
 
 refute_params
  [itself = 1,

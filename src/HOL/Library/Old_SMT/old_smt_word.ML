@@ -4,12 +4,7 @@
 SMT setup for words.
 *)
 
-signature OLD_SMT_WORD =
-sig
-  val setup: theory -> theory
-end
-
-structure Old_SMT_Word: OLD_SMT_WORD =
+structure Old_SMT_Word: sig end =
 struct
 
 open Word_Lib
@@ -143,9 +138,9 @@ end
 
 (* setup *)
 
-val setup = 
-  Context.theory_map (
-    Old_SMTLIB_Interface.add_logic (20, smtlib_logic) #>
-    setup_builtins)
+val _ = 
+  Theory.setup
+    (Context.theory_map
+      (Old_SMTLIB_Interface.add_logic (20, smtlib_logic) #> setup_builtins))
 
 end
