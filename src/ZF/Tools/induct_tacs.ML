@@ -14,7 +14,6 @@ sig
   val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
   val rep_datatype: Facts.ref * Token.src list -> Facts.ref * Token.src list ->
     (Facts.ref * Token.src list) list -> (Facts.ref * Token.src list) list -> theory -> theory
-  val setup: theory -> theory
 end;
 
 
@@ -175,15 +174,16 @@ fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
 
 (* theory setup *)
 
-val setup =
-  Method.setup @{binding induct_tac}
-    (Args.goal_spec -- Scan.lift Args.name >>
-      (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt s)))
-    "induct_tac emulation (dynamic instantiation!)" #>
-  Method.setup @{binding case_tac}
-   (Args.goal_spec -- Scan.lift Args.name >>
-      (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (exhaust_tac ctxt s)))
-    "datatype case_tac emulation (dynamic instantiation!)";
+val _ =
+  Theory.setup
+    (Method.setup @{binding induct_tac}
+      (Args.goal_spec -- Scan.lift Args.name >>
+        (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt s)))
+      "induct_tac emulation (dynamic instantiation!)" #>
+    Method.setup @{binding case_tac}
+     (Args.goal_spec -- Scan.lift Args.name >>
+        (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (exhaust_tac ctxt s)))
+      "datatype case_tac emulation (dynamic instantiation!)");
 
 
 (* outer syntax *)

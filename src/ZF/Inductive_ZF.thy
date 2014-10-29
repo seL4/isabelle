@@ -34,9 +34,6 @@ ML_file "Tools/inductive_package.ML"
 ML_file "Tools/induct_tacs.ML"
 ML_file "Tools/primrec_package.ML"
 
-setup IndCases.setup
-setup DatatypeTactics.setup
-
 ML {*
 structure Lfp =
   struct
