@@ -16,7 +16,6 @@ lemma transfer_morphismI[intro]: "transfer_morphism f A"
   by (simp add: transfer_morphism_def)
 
 ML_file "Tools/legacy_transfer.ML"
-setup Legacy_Transfer.setup
 
 
 subsection {* Set up transfer from nat to int *}
