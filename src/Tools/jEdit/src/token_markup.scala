@@ -254,7 +254,7 @@ object Token_Markup
     } yield Text.Info(Text.Range(i - tok.source.length, i), tok)
 
 
-  /* command span */
+  /* command spans */
 
   def command_span(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
     : Option[Text.Info[Command_Span.Span]] =
@@ -281,6 +281,32 @@ object Token_Markup
     }
     else None
   }
+
+  private def _command_span_iterator(
+      syntax: Outer_Syntax,
+      buffer: JEditBuffer,
+      offset: Text.Offset,
+      next_offset: Text.Range => Text.Offset): Iterator[Text.Info[Command_Span.Span]] =
+    new Iterator[Text.Info[Command_Span.Span]]
+    {
+      private var next_span = command_span(syntax, buffer, offset)
+      def hasNext: Boolean = next_span.isDefined
+      def next: Text.Info[Command_Span.Span] =
+      {
+        val span = next_span.getOrElse(Iterator.empty.next)
+        next_span = command_span(syntax, buffer, next_offset(span.range))
+        span
+      }
+    }
+
+  def command_span_iterator(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
+      : Iterator[Text.Info[Command_Span.Span]] =
+    _command_span_iterator(syntax, buffer, offset max 0, range => range.stop)
+
+  def command_span_reverse_iterator(syntax: Outer_Syntax, buffer: JEditBuffer, offset: Text.Offset)
+      : Iterator[Text.Info[Command_Span.Span]] =
+    _command_span_iterator(syntax, buffer,
+      (offset min buffer.getLength) - 1, range => range.start - 1)
 
 
   /* token marker */
