@@ -21,7 +21,6 @@ ML_file "Tools/Predicate_Compile/predicate_compile_pred.ML"
 ML_file "Tools/Predicate_Compile/predicate_compile_specialisation.ML"
 ML_file "Tools/Predicate_Compile/predicate_compile.ML"
 
-setup Predicate_Compile.setup
 
 subsection {* Set membership as a generator predicate *}
 

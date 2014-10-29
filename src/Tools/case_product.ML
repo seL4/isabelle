@@ -12,7 +12,7 @@ signature CASE_PRODUCT =
 sig
   val combine: Proof.context -> thm -> thm -> thm
   val combine_annotated: Proof.context -> thm -> thm -> thm
-  val setup: theory -> theory
+  val annotation: thm -> thm -> attribute
 end
 
 structure Case_Product: CASE_PRODUCT =
@@ -104,15 +104,15 @@ fun combine_annotated ctxt thm1 thm2 =
 
 (* attribute setup *)
 
-val case_prod_attr =
-  let
-    fun combine_list ctxt = fold (fn x => fn y => combine_annotated ctxt y x)
-  in
-    Attrib.thms >> (fn thms => Thm.rule_attribute (fn ctxt => fn thm =>
-      combine_list (Context.proof_of ctxt) thms thm))
-  end
-
-val setup =
-  Attrib.setup @{binding case_product} case_prod_attr "product with other case rules"
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding case_product}
+      let
+        fun combine_list ctxt = fold (fn x => fn y => combine_annotated ctxt y x)
+      in
+        Attrib.thms >> (fn thms => Thm.rule_attribute (fn ctxt => fn thm =>
+          combine_list (Context.proof_of ctxt) thms thm))
+      end
+    "product with other case rules")
 
 end

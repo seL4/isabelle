@@ -8,8 +8,6 @@ theory Semiring_Normalization
 imports Numeral_Simprocs Nat_Transfer
 begin
 
-ML_file "Tools/semiring_normalizer.ML"
-
 text {* Prelude *}
 
 class comm_semiring_1_cancel_crossproduct = comm_semiring_1_cancel +
@@ -69,7 +67,7 @@ qed
 
 text {* Semiring normalization proper *}
 
-setup Semiring_Normalizer.setup
+ML_file "Tools/semiring_normalizer.ML"
 
 context comm_semiring_1
 begin

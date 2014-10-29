@@ -106,11 +106,6 @@ method_setup induction_schema = {*
   Scan.succeed (NO_CASES oo Induction_Schema.induction_schema_tac)
 *} "prove an induction principle"
 
-setup {*
-  Function.setup
-  #> Function_Fun.setup
-*}
-
 
 subsection {* Measure functions *}
 
@@ -134,8 +129,6 @@ method_setup lexicographic_order = {*
   Method.sections clasimp_modifiers >>
   (K (SIMPLE_METHOD o Lexicographic_Order.lexicographic_order_tac false))
 *} "termination prover for lexicographic orderings"
-
-setup Lexicographic_Order.setup
 
 
 subsection {* Congruence rules *}
@@ -307,8 +300,6 @@ ML_file "Tools/Function/termination.ML"
 ML_file "Tools/Function/scnp_solve.ML"
 ML_file "Tools/Function/scnp_reconstruct.ML"
 ML_file "Tools/Function/fun_cases.ML"
-
-setup ScnpReconstruct.setup
 
 ML_val -- "setup inactive"
 {*

@@ -41,7 +41,6 @@ sig
   val transfer_tac: bool -> Proof.context -> int -> tactic
   val transfer_prover_tac: Proof.context -> int -> tactic
   val gen_frees_tac: (string * typ) list -> Proof.context -> int -> tactic
-  val setup: theory -> theory
 end
 
 structure Transfer : TRANSFER =
@@ -50,7 +49,7 @@ struct
 (** Theory Data **)
 
 val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o pairself snd) (single o fst);
-val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq 
+val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq
   o HOLogic.dest_Trueprop o Thm.concl_of);
 
 type pred_data = {rel_eq_onp: thm}
@@ -165,7 +164,7 @@ fun add_transfer_thm thm = Data.map
       | _ => I) o
    map_known_frees (Term.add_frees (Thm.concl_of thm)))
 
-fun del_transfer_thm thm = Data.map 
+fun del_transfer_thm thm = Data.map
   (map_transfer_raw (Item_Net.remove thm) o
    map_compound_lhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
@@ -186,7 +185,7 @@ fun transfer_raw_del thm ctxt = del_transfer_thm thm ctxt
 fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
 fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
 
-fun transfer_rel_conv conv = 
+fun transfer_rel_conv conv =
   Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.fun2_conv (Conv.arg_conv conv)))
 
 val Rel_rule = Thm.symmetric @{thm Rel_def}
@@ -258,7 +257,7 @@ fun abstract_equalities_transfer ctxt thm =
         (rel, fn rel' =>
           Logic.list_implies (prems, HOLogic.mk_Trueprop (rel' $ x $ y)))
       end
-    val contracted_eq_thm = 
+    val contracted_eq_thm =
       Conv.fconv_rule (transfer_rel_conv (bottom_rewr_conv (get_relator_eq ctxt))) thm
       handle CTERM _ => thm
   in
@@ -279,13 +278,13 @@ fun abstract_equalities_domain ctxt thm =
       in
         (dom, fn dom' => Logic.list_implies (prems, HOLogic.mk_Trueprop (eq $ dom' $ y)))
       end
-    fun transfer_rel_conv conv = 
+    fun transfer_rel_conv conv =
       Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.arg1_conv (Conv.arg_conv conv)))
-    val contracted_eq_thm = 
+    val contracted_eq_thm =
       Conv.fconv_rule (transfer_rel_conv (bottom_rewr_conv (get_relator_eq ctxt))) thm
   in
     gen_abstract_equalities ctxt dest contracted_eq_thm
-  end 
+  end
 
 
 (** Replacing explicit Domainp predicates with Domainp assumptions **)
@@ -303,13 +302,13 @@ fun fold_Domainp f (t as Const (@{const_name Domainp},_) $ (Var (_,_))) = f t
   | fold_Domainp f (Abs (_, _, t)) = fold_Domainp f t
   | fold_Domainp _ _ = I
 
-fun subst_terms tab t = 
+fun subst_terms tab t =
   let
     val t' = Termtab.lookup tab t
   in
     case t' of
       SOME t' => t'
-      | NONE => 
+      | NONE =>
         (case t of
           u $ v => (subst_terms tab u) $ (subst_terms tab v)
           | Abs (a, T, t) => Abs (a, T, subst_terms tab t)
@@ -384,13 +383,13 @@ fun detect_transfer_rules thm =
 
 (** Adding transfer domain rules **)
 
-fun prep_transfer_domain_thm ctxt thm = 
-  (abstract_equalities_domain ctxt o detect_transfer_rules) thm 
+fun prep_transfer_domain_thm ctxt thm =
+  (abstract_equalities_domain ctxt o detect_transfer_rules) thm
 
-fun add_transfer_domain_thm thm ctxt = (add_transfer_thm o 
+fun add_transfer_domain_thm thm ctxt = (add_transfer_thm o
   prep_transfer_domain_thm (Context.proof_of ctxt)) thm ctxt
 
-fun del_transfer_domain_thm thm ctxt = (del_transfer_thm o 
+fun del_transfer_domain_thm thm ctxt = (del_transfer_thm o
   prep_transfer_domain_thm (Context.proof_of ctxt)) thm ctxt
 
 (** Transfer proof method **)
@@ -558,8 +557,8 @@ fun bool_insts p (t, u) =
   end
 
 fun retrieve_terms t net = map fst (Item_Net.retrieve net t)
-  
-fun matches_list ctxt term = 
+
+fun matches_list ctxt term =
   is_some o find_first (fn pat => Pattern.matches (Proof_Context.theory_of ctxt) (pat, term))
 
 fun transfer_rule_of_term ctxt equiv t : thm =
@@ -612,12 +611,12 @@ fun transfer_rule_of_lhs ctxt t : thm =
       |> Thm.instantiate (map tinst binsts, map inst binsts)
   end
 
-fun eq_rules_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve_tac eq_rules) 
+fun eq_rules_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve_tac eq_rules)
   THEN_ALL_NEW rtac @{thm is_equality_eq}
 
 fun eq_tac ctxt = eq_rules_tac (get_relator_eq_raw ctxt)
 
-fun transfer_step_tac ctxt = (REPEAT_ALL_NEW (resolve_tac (get_transfer_raw ctxt)) 
+fun transfer_step_tac ctxt = (REPEAT_ALL_NEW (resolve_tac (get_transfer_raw ctxt))
   THEN_ALL_NEW (DETERM o eq_rules_tac (get_relator_eq_raw ctxt)))
 
 fun transfer_tac equiv ctxt i =
@@ -752,15 +751,15 @@ val transfer_prover_method : (Proof.context -> Proof.method) context_parser =
 
 (* Attribute for transfer rules *)
 
-fun prep_rule ctxt = 
+fun prep_rule ctxt =
   abstract_domains_transfer ctxt o abstract_equalities_transfer ctxt o Conv.fconv_rule prep_conv
 
 val transfer_add =
-  Thm.declaration_attribute (fn thm => fn ctxt => 
+  Thm.declaration_attribute (fn thm => fn ctxt =>
     (add_transfer_thm o prep_rule (Context.proof_of ctxt)) thm ctxt)
 
 val transfer_del =
-  Thm.declaration_attribute (fn thm => fn ctxt => 
+  Thm.declaration_attribute (fn thm => fn ctxt =>
     (del_transfer_thm o prep_rule (Context.proof_of ctxt)) thm ctxt)
 
 val transfer_attribute =
@@ -794,75 +793,76 @@ fun morph_pred_data phi {rel_eq_onp} = {rel_eq_onp = Morphism.thm phi rel_eq_onp
 fun lookup_pred_data ctxt type_name = Symtab.lookup (get_pred_data ctxt) type_name
   |> Option.map (morph_pred_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)))
 
-fun update_pred_data type_name qinfo ctxt = 
+fun update_pred_data type_name qinfo ctxt =
   Data.map (map_pred_data (Symtab.update (type_name, qinfo))) ctxt
 
 (* Theory setup *)
 
-val relator_eq_setup =
-  let
-    val name = @{binding relator_eq}
-    fun add_thm thm context = context
-      |> Data.map (map_relator_eq (Item_Net.update thm))
-      |> Data.map (map_relator_eq_raw
-          (Item_Net.update (abstract_equalities_relator_eq (Context.proof_of context) thm)))
-    fun del_thm thm context = context
-      |> Data.map (map_relator_eq (Item_Net.remove thm))
-      |> Data.map (map_relator_eq_raw
-          (Item_Net.remove (abstract_equalities_relator_eq (Context.proof_of context) thm)))
-    val add = Thm.declaration_attribute add_thm
-    val del = Thm.declaration_attribute del_thm
-    val text = "declaration of relator equality rule (used by transfer method)"
-    val content = Item_Net.content o #relator_eq o Data.get
-  in
-    Attrib.setup name (Attrib.add_del add del) text
-    #> Global_Theory.add_thms_dynamic (name, content)
-  end
+val _ =
+  Theory.setup
+    let
+      val name = @{binding relator_eq}
+      fun add_thm thm context = context
+        |> Data.map (map_relator_eq (Item_Net.update thm))
+        |> Data.map (map_relator_eq_raw
+            (Item_Net.update (abstract_equalities_relator_eq (Context.proof_of context) thm)))
+      fun del_thm thm context = context
+        |> Data.map (map_relator_eq (Item_Net.remove thm))
+        |> Data.map (map_relator_eq_raw
+            (Item_Net.remove (abstract_equalities_relator_eq (Context.proof_of context) thm)))
+      val add = Thm.declaration_attribute add_thm
+      val del = Thm.declaration_attribute del_thm
+      val text = "declaration of relator equality rule (used by transfer method)"
+      val content = Item_Net.content o #relator_eq o Data.get
+    in
+      Attrib.setup name (Attrib.add_del add del) text
+      #> Global_Theory.add_thms_dynamic (name, content)
+    end
 
-val relator_domain_setup =
-  let
-    val name = @{binding relator_domain}
-    fun add_thm thm context = 
-      let
-        val thm = abstract_domains_relator_domain (Context.proof_of context) thm
-      in
-        context |> Data.map (map_relator_domain (Item_Net.update thm)) |> add_transfer_domain_thm thm
-      end
-    fun del_thm thm context = 
-      let
-        val thm = abstract_domains_relator_domain (Context.proof_of context) thm
-      in
-        context |> Data.map (map_relator_domain (Item_Net.remove thm)) |> del_transfer_domain_thm thm
-      end
-    val add = Thm.declaration_attribute add_thm
-    val del = Thm.declaration_attribute del_thm
-    val text = "declaration of relator domain rule (used by transfer method)"
-    val content = Item_Net.content o #relator_domain o Data.get
-  in
-    Attrib.setup name (Attrib.add_del add del) text
-    #> Global_Theory.add_thms_dynamic (name, content)
-  end
+val _ =
+  Theory.setup
+    let
+      val name = @{binding relator_domain}
+      fun add_thm thm context =
+        let
+          val thm = abstract_domains_relator_domain (Context.proof_of context) thm
+        in
+          context |> Data.map (map_relator_domain (Item_Net.update thm)) |> add_transfer_domain_thm thm
+        end
+      fun del_thm thm context =
+        let
+          val thm = abstract_domains_relator_domain (Context.proof_of context) thm
+        in
+          context |> Data.map (map_relator_domain (Item_Net.remove thm)) |> del_transfer_domain_thm thm
+        end
+      val add = Thm.declaration_attribute add_thm
+      val del = Thm.declaration_attribute del_thm
+      val text = "declaration of relator domain rule (used by transfer method)"
+      val content = Item_Net.content o #relator_domain o Data.get
+    in
+      Attrib.setup name (Attrib.add_del add del) text
+      #> Global_Theory.add_thms_dynamic (name, content)
+    end
 
-val setup =
-  relator_eq_setup
-  #> relator_domain_setup
-  #> Attrib.setup @{binding transfer_rule} transfer_attribute
-     "transfer rule for transfer method"
-  #> Global_Theory.add_thms_dynamic
-     (@{binding transfer_raw}, Item_Net.content o #transfer_raw o Data.get)
-  #> Attrib.setup @{binding transfer_domain_rule} transfer_domain_attribute
-     "transfer domain rule for transfer method"
-  #> Attrib.setup @{binding transferred} transferred_attribute_parser
-     "raw theorem transferred to abstract theorem using transfer rules"
-  #> Attrib.setup @{binding untransferred} untransferred_attribute_parser
-     "abstract theorem transferred to raw theorem using transfer rules"
-  #> Global_Theory.add_thms_dynamic
-     (@{binding relator_eq_raw}, Item_Net.content o #relator_eq_raw o Data.get)
-  #> Method.setup @{binding transfer} (transfer_method true)
-     "generic theorem transfer method"
-  #> Method.setup @{binding transfer'} (transfer_method false)
-     "generic theorem transfer method"
-  #> Method.setup @{binding transfer_prover} transfer_prover_method
-     "for proving transfer rules"
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding transfer_rule} transfer_attribute
+       "transfer rule for transfer method"
+    #> Global_Theory.add_thms_dynamic
+       (@{binding transfer_raw}, Item_Net.content o #transfer_raw o Data.get)
+    #> Attrib.setup @{binding transfer_domain_rule} transfer_domain_attribute
+       "transfer domain rule for transfer method"
+    #> Attrib.setup @{binding transferred} transferred_attribute_parser
+       "raw theorem transferred to abstract theorem using transfer rules"
+    #> Attrib.setup @{binding untransferred} untransferred_attribute_parser
+       "abstract theorem transferred to raw theorem using transfer rules"
+    #> Global_Theory.add_thms_dynamic
+       (@{binding relator_eq_raw}, Item_Net.content o #relator_eq_raw o Data.get)
+    #> Method.setup @{binding transfer} (transfer_method true)
+       "generic theorem transfer method"
+    #> Method.setup @{binding transfer'} (transfer_method false)
+       "generic theorem transfer method"
+    #> Method.setup @{binding transfer_prover} transfer_prover_method
+       "for proving transfer rules")
 
 end

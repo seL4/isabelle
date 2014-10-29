@@ -16,8 +16,6 @@ sig
   val ex_lookup_ss : simpset
   val lazy_conj_simproc : simproc
   val string_eq_simp_tac : Proof.context -> int -> tactic
-
-  val setup : theory -> theory
 end;
 
 structure StateFun: STATE_FUN =
@@ -107,8 +105,7 @@ structure Data = Generic_Data
     (merge_ss (ss1, ss2), merge_ss (ex_ss1, ex_ss2), b1 orelse b2);
 );
 
-val init_state_fun_data =
-  Context.theory_map (Data.put (lookup_ss, ex_lookup_ss, false));
+val _ = Theory.setup (Context.theory_map (Data.put (lookup_ss, ex_lookup_ss, false)));
 
 val lookup_simproc =
   Simplifier.simproc_global @{theory} "lookup_simp" ["lookup d n (update d' c m v s)"]
@@ -370,29 +367,27 @@ fun gen_constr_destr comp prfx thy (Type (T, [])) =
 val mk_constr = gen_constr_destr (fn a => fn b => Syntax.const @{const_name Fun.comp} $ a $ b) "";
 val mk_destr = gen_constr_destr (fn a => fn b => Syntax.const @{const_name Fun.comp} $ b $ a) "the_";
 
-
-val statefun_simp_attr = Thm.declaration_attribute (fn thm => fn context =>
-  let
-    val ctxt = Context.proof_of context;
-    val (lookup_ss, ex_lookup_ss, simprocs_active) = Data.get context;
-    val (lookup_ss', ex_lookup_ss') =
-      (case concl_of thm of
-        (_ $ ((Const (@{const_name Ex}, _) $ _))) =>
-          (lookup_ss, simpset_map ctxt (Simplifier.add_simp thm) ex_lookup_ss)
-      | _ =>
-          (simpset_map ctxt (Simplifier.add_simp thm) lookup_ss, ex_lookup_ss));
-    val activate_simprocs =
-      if simprocs_active then I
-      else Simplifier.map_ss (fn ctxt => ctxt addsimprocs [lookup_simproc, update_simproc]);
-  in
-    context
-    |> activate_simprocs
-    |> Data.put (lookup_ss', ex_lookup_ss', true)
-  end);
-
-val setup =
-  init_state_fun_data #>
-  Attrib.setup @{binding statefun_simp} (Scan.succeed statefun_simp_attr)
-    "simplification in statespaces";
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding statefun_simp}
+      (Scan.succeed (Thm.declaration_attribute (fn thm => fn context =>
+        let
+          val ctxt = Context.proof_of context;
+          val (lookup_ss, ex_lookup_ss, simprocs_active) = Data.get context;
+          val (lookup_ss', ex_lookup_ss') =
+            (case concl_of thm of
+              (_ $ ((Const (@{const_name Ex}, _) $ _))) =>
+                (lookup_ss, simpset_map ctxt (Simplifier.add_simp thm) ex_lookup_ss)
+            | _ =>
+                (simpset_map ctxt (Simplifier.add_simp thm) lookup_ss, ex_lookup_ss));
+          val activate_simprocs =
+            if simprocs_active then I
+            else Simplifier.map_ss (fn ctxt => ctxt addsimprocs [lookup_simproc, update_simproc]);
+        in
+          context
+          |> activate_simprocs
+          |> Data.put (lookup_ss', ex_lookup_ss', true)
+        end)))
+      "simplification in statespaces");
 
 end;

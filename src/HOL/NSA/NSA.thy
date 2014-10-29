@@ -6,7 +6,7 @@
 header{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
 
 theory NSA
-imports HyperDef "~~/src/HOL/Library/Lubs_Glbs"
+imports HyperDef "~~/src/HOL/Library/Lub_Glb"
 begin
 
 definition

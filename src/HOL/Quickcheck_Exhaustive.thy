@@ -618,8 +618,6 @@ notation (output) unknown  ("?")
 
 ML_file "Tools/Quickcheck/exhaustive_generators.ML"
 
-setup {* Exhaustive_Generators.setup *}
-
 declare [[quickcheck_batch_tester = exhaustive]]
 
 subsection {* Defining generators for abstract types *}

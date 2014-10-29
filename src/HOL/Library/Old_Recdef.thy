@@ -68,7 +68,7 @@ ML_file "~~/src/HOL/Tools/TFL/thry.ML"
 ML_file "~~/src/HOL/Tools/TFL/tfl.ML"
 ML_file "~~/src/HOL/Tools/TFL/post.ML"
 ML_file "~~/src/HOL/Tools/recdef.ML"
-setup Recdef.setup
+
 
 subsection {* Rule setup *}
 

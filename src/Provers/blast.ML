@@ -62,7 +62,6 @@ sig
   val trace: bool Config.T
   val stats: bool Config.T
   val blast_tac: Proof.context -> int -> tactic
-  val setup: theory -> theory
   (*debugging tools*)
   type branch
   val tryIt: Proof.context -> int -> string ->
@@ -77,7 +76,7 @@ structure Classical = Data.Classical;
 
 (* options *)
 
-val (depth_limit, setup_depth_limit) = Attrib.config_int @{binding blast_depth_limit} (K 20);
+val depth_limit = Attrib.setup_config_int @{binding blast_depth_limit} (K 20);
 val (trace, _) = Attrib.config_bool @{binding blast_trace} (K false);
 val (stats, _) = Attrib.config_bool @{binding blast_stats} (K false);
 
@@ -1294,14 +1293,15 @@ fun tryIt ctxt lim s =
   in {fullTrace = !fullTrace, result = res} end;
 
 
+
 (** method setup **)
 
-val setup =
-  setup_depth_limit #>
-  Method.setup @{binding blast}
-    (Scan.lift (Scan.option Parse.nat) --| Method.sections Classical.cla_modifiers >>
-      (fn NONE => SIMPLE_METHOD' o blast_tac
-        | SOME lim => (fn ctxt => SIMPLE_METHOD' (depth_tac ctxt lim))))
-    "classical tableau prover";
+val _ =
+  Theory.setup
+    (Method.setup @{binding blast}
+      (Scan.lift (Scan.option Parse.nat) --| Method.sections Classical.cla_modifiers >>
+        (fn NONE => SIMPLE_METHOD' o blast_tac
+          | SOME lim => (fn ctxt => SIMPLE_METHOD' (depth_tac ctxt lim))))
+      "classical tableau prover");
 
 end;

@@ -544,7 +544,7 @@ oops
 
 text {* with the simple testing scheme *}
 
-setup {* Exhaustive_Generators.setup_exhaustive_datatype_interpretation *}
+setup Exhaustive_Generators.setup_exhaustive_datatype_interpretation
 declare [[quickcheck_full_support = false]]
 
 lemma

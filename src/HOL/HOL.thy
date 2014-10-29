@@ -27,18 +27,12 @@ ML_file "~~/src/Provers/clasimp.ML"
 ML_file "~~/src/Tools/eqsubst.ML"
 ML_file "~~/src/Provers/quantifier1.ML"
 ML_file "~~/src/Tools/atomize_elim.ML"
-ML_file "~~/src/Tools/induct.ML"
 ML_file "~~/src/Tools/cong_tac.ML"
-ML_file "~~/src/Tools/intuitionistic.ML"
+ML_file "~~/src/Tools/intuitionistic.ML" setup \<open>Intuitionistic.method_setup @{binding iprover}\<close>
 ML_file "~~/src/Tools/project_rule.ML"
 ML_file "~~/src/Tools/subtyping.ML"
 ML_file "~~/src/Tools/case_product.ML"
 
-setup {*
-  Intuitionistic.method_setup @{binding iprover}
-  #> Subtyping.setup
-  #> Case_Product.setup
-*}
 
 ML \<open>Plugin_Name.declare_setup @{binding extraction}\<close>
 
@@ -231,7 +225,7 @@ lemma trans: "[| r=s; s=t |] ==> r=t"
 lemma trans_sym [Pure.elim?]: "r = s ==> t = s ==> r = t"
   by (rule trans [OF _ sym])
 
-lemma meta_eq_to_obj_eq: 
+lemma meta_eq_to_obj_eq:
   assumes meq: "A == B"
   shows "A = B"
   by (unfold meq) (rule refl)
@@ -847,26 +841,23 @@ structure Classical = Classical
   val hyp_subst_tacs = [Hypsubst.hyp_subst_tac]
 );
 
-structure Basic_Classical: BASIC_CLASSICAL = Classical; 
+structure Basic_Classical: BASIC_CLASSICAL = Classical;
 open Basic_Classical;
 *}
 
-setup Classical.setup
-
 setup {*
-let
-  fun non_bool_eq (@{const_name HOL.eq}, Type (_, [T, _])) = T <> @{typ bool}
-    | non_bool_eq _ = false;
-  fun hyp_subst_tac' ctxt =
-    SUBGOAL (fn (goal, i) =>
-      if Term.exists_Const non_bool_eq goal
-      then Hypsubst.hyp_subst_tac ctxt i
-      else no_tac);
-in
-  Hypsubst.hypsubst_setup
   (*prevent substitution on bool*)
-  #> Context_Rules.addSWrapper (fn ctxt => fn tac => hyp_subst_tac' ctxt ORELSE' tac)
-end
+  let
+    fun non_bool_eq (@{const_name HOL.eq}, Type (_, [T, _])) = T <> @{typ bool}
+      | non_bool_eq _ = false;
+    fun hyp_subst_tac' ctxt =
+      SUBGOAL (fn (goal, i) =>
+        if Term.exists_Const non_bool_eq goal
+        then Hypsubst.hyp_subst_tac ctxt i
+        else no_tac);
+  in
+    Context_Rules.addSWrapper (fn ctxt => fn tac => hyp_subst_tac' ctxt ORELSE' tac)
+  end
 *}
 
 declare iffI [intro!]
@@ -931,8 +922,6 @@ ML {*
   );
   val blast_tac = Blast.blast_tac;
 *}
-
-setup Blast.setup
 
 
 subsubsection {* Simplifier *}
@@ -1197,17 +1186,13 @@ lemma ex_comm:
 ML_file "Tools/simpdata.ML"
 ML {* open Simpdata *}
 
-setup {* map_theory_simpset (put_simpset HOL_basic_ss) *}
+setup {*
+  map_theory_simpset (put_simpset HOL_basic_ss) #>
+  Simplifier.method_setup Splitter.split_modifiers
+*}
 
 simproc_setup defined_Ex ("EX x. P x") = {* fn _ => Quantifier1.rearrange_ex *}
 simproc_setup defined_All ("ALL x. P x") = {* fn _ => Quantifier1.rearrange_all *}
-
-setup {*
-  Simplifier.method_setup Splitter.split_modifiers
-  #> Splitter.setup
-  #> clasimp_setup
-  #> EqSubst.setup
-*}
 
 text {* Simproc for proving @{text "(y = x) == False"} from premise @{text "~(x = y)"}: *}
 
@@ -1467,6 +1452,7 @@ lemma induct_trueI: "induct_true"
 
 text {* Method setup. *}
 
+ML_file "~~/src/Tools/induct.ML"
 ML {*
 structure Induct = Induct
 (
@@ -1484,7 +1470,6 @@ structure Induct = Induct
 ML_file "~~/src/Tools/induction.ML"
 
 setup {*
-  Induct.setup #> Induction.setup #>
   Context.theory_map (Induct.map_simpset (fn ss => ss
     addsimprocs
       [Simplifier.simproc_global @{theory} "swap_induct_false"
@@ -1558,13 +1543,12 @@ lemma [induct_simp]: "(!!x. induct_true) == Trueprop induct_true"
 lemma [induct_simp]: "induct_implies induct_true P == P"
   by (simp add: induct_implies_def induct_true_def)
 
-lemma [induct_simp]: "(x = x) = True" 
+lemma [induct_simp]: "(x = x) = True"
   by (rule simp_thms)
 
 hide_const induct_forall induct_implies induct_equal induct_conj induct_true induct_false
 
 ML_file "~~/src/Tools/induct_tacs.ML"
-setup Induct_Tacs.setup
 
 
 subsubsection {* Coherent logic *}
@@ -1640,8 +1624,8 @@ lemma choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
 lemmas eq_sym_conv = eq_commute
 
 lemma nnf_simps:
-  "(\<not>(P \<and> Q)) = (\<not> P \<or> \<not> Q)" "(\<not> (P \<or> Q)) = (\<not> P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)" 
-  "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not>(P = Q)) = ((P \<and> \<not> Q) \<or> (\<not>P \<and> Q))" 
+  "(\<not>(P \<and> Q)) = (\<not> P \<or> \<not> Q)" "(\<not> (P \<or> Q)) = (\<not> P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
+  "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not>(P = Q)) = ((P \<and> \<not> Q) \<or> (\<not>P \<and> Q))"
   "(\<not> \<not>(P)) = P"
 by blast+
 
@@ -1737,10 +1721,11 @@ lemma disj_left_cong:
   by (fact arg_cong)
 
 setup {*
-  Code_Preproc.map_pre (put_simpset HOL_basic_ss)
-  #> Code_Preproc.map_post (put_simpset HOL_basic_ss)
-  #> Code_Simp.map_ss (put_simpset HOL_basic_ss
-    #> Simplifier.add_cong @{thm conj_left_cong} #> Simplifier.add_cong @{thm disj_left_cong})
+  Code_Preproc.map_pre (put_simpset HOL_basic_ss) #>
+  Code_Preproc.map_post (put_simpset HOL_basic_ss) #>
+  Code_Simp.map_ss (put_simpset HOL_basic_ss #>
+  Simplifier.add_cong @{thm conj_left_cong} #>
+  Simplifier.add_cong @{thm disj_left_cong})
 *}
 
 
@@ -1799,7 +1784,7 @@ lemma [code]:
 text {* More about @{typ prop} *}
 
 lemma [code nbe]:
-  shows "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q" 
+  shows "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q"
     and "(PROP Q \<Longrightarrow> True) \<equiv> Trueprop True"
     and "(P \<Longrightarrow> R) \<equiv> Trueprop (P \<longrightarrow> R)" by (auto intro!: equal_intr_rule)
 
@@ -1828,9 +1813,7 @@ lemma equal_itself_code [code]:
   "equal TYPE('a) TYPE('a) \<longleftrightarrow> True"
   by (simp add: equal)
 
-setup {*
-  Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>type \<Rightarrow> 'a \<Rightarrow> bool"})
-*}
+setup {* Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>type \<Rightarrow> 'a \<Rightarrow> bool"}) *}
 
 lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> ((op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> equal)" (is "?ofclass \<equiv> ?equal")
 proof
@@ -1843,14 +1826,10 @@ next
   show "PROP ?ofclass" proof
   qed (simp add: `PROP ?equal`)
 qed
-  
-setup {*
-  Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>equal \<Rightarrow> 'a \<Rightarrow> bool"})
-*}
 
-setup {*
-  Nbe.add_const_alias @{thm equal_alias_cert}
-*}
+setup {* Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>equal \<Rightarrow> 'a \<Rightarrow> bool"}) *}
+
+setup {* Nbe.add_const_alias @{thm equal_alias_cert} *}
 
 text {* Cases *}
 
@@ -1860,8 +1839,8 @@ lemma Let_case_cert:
   using assms by simp_all
 
 setup {*
-  Code.add_case @{thm Let_case_cert}
-  #> Code.add_undefined @{const_name undefined}
+  Code.add_case @{thm Let_case_cert} #>
+  Code.add_undefined @{const_name undefined}
 *}
 
 declare [[code abort: undefined]]
@@ -1877,7 +1856,7 @@ code_printing
 | constant True \<rightharpoonup>
     (SML) "true" and (OCaml) "true" and (Haskell) "True" and (Scala) "true"
 | constant False \<rightharpoonup>
-    (SML) "false" and (OCaml) "false" and (Haskell) "False" and (Scala) "false" 
+    (SML) "false" and (OCaml) "false" and (Haskell) "False" and (Scala) "false"
 
 code_reserved SML
   bool true false
@@ -1936,13 +1915,13 @@ code_printing
 subsubsection {* Evaluation and normalization by evaluation *}
 
 method_setup eval = {*
-let
-  fun eval_tac ctxt =
-    let val conv = Code_Runtime.dynamic_holds_conv ctxt
-    in CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1 conv)) ctxt) THEN' rtac TrueI end
-in
-  Scan.succeed (SIMPLE_METHOD' o eval_tac)
-end
+  let
+    fun eval_tac ctxt =
+      let val conv = Code_Runtime.dynamic_holds_conv ctxt
+      in CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1 conv)) ctxt) THEN' rtac TrueI end
+  in
+    Scan.succeed (SIMPLE_METHOD' o eval_tac)
+  end
 *} "solve goal by evaluation"
 
 method_setup normalization = {*
@@ -1989,23 +1968,23 @@ named_theorems code_pred_simp
 subsection {* Legacy tactics and ML bindings *}
 
 ML {*
-(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
-local
-  fun wrong_prem (Const (@{const_name All}, _) $ Abs (_, _, t)) = wrong_prem t
-    | wrong_prem (Bound _) = true
-    | wrong_prem _ = false;
-  val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
-in
-  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
-  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
-end;
+  (* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
+  local
+    fun wrong_prem (Const (@{const_name All}, _) $ Abs (_, _, t)) = wrong_prem t
+      | wrong_prem (Bound _) = true
+      | wrong_prem _ = false;
+    val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
+  in
+    fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
+    fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
+  end;
 
-local
-  val nnf_ss =
-    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms simp_thms nnf_simps});
-in
-  fun nnf_conv ctxt = Simplifier.rewrite (put_simpset nnf_ss ctxt);
-end
+  local
+    val nnf_ss =
+      simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms simp_thms nnf_simps});
+  in
+    fun nnf_conv ctxt = Simplifier.rewrite (put_simpset nnf_ss ctxt);
+  end
 *}
 
 hide_const (open) eq equal

@@ -258,7 +258,6 @@ theorems basic_monos =
   Collect_mono in_mono vimage_mono
 
 ML_file "Tools/inductive.ML"
-setup Inductive.setup
 
 theorems [mono] =
   imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj

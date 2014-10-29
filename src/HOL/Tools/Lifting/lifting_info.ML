@@ -42,8 +42,6 @@ sig
   val get_relator_distr_data  : Proof.context -> relator_distr_data Symtab.table
   val get_restore_data        : Proof.context -> restore_data Symtab.table
   val get_no_code_types       : Proof.context -> unit Symtab.table
-
-  val setup: theory -> theory
 end
 
 structure Lifting_Info: LIFTING_INFO =
@@ -194,9 +192,10 @@ fun add_quot_map rel_quot_thm ctxt =
     Data.map (map_quot_maps (Symtab.update (relatorT_name, minfo))) ctxt
   end    
 
-val quot_map_attribute_setup =
-  Attrib.setup @{binding quot_map} (Scan.succeed (Thm.declaration_attribute add_quot_map))
-    "declaration of the Quotient map theorem"
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding quot_map} (Scan.succeed (Thm.declaration_attribute add_quot_map))
+      "declaration of the Quotient map theorem")
 
 fun print_quot_maps ctxt =
   let
@@ -255,9 +254,10 @@ fun print_quotients ctxt =
     |> Pretty.writeln
   end
 
-val quot_del_attribute_setup =
-  Attrib.setup @{binding quot_del} (Scan.succeed (Thm.declaration_attribute delete_quotients))
-    "deletes the Quotient theorem"
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding quot_del} (Scan.succeed (Thm.declaration_attribute delete_quotients))
+      "deletes the Quotient theorem")
 
 (* data for restoring Transfer/Lifting context *)
 
@@ -498,15 +498,16 @@ fun get_mono_rules_raw ctxt = Symtab.fold
 
 val lookup_relator_distr_data = Symtab.lookup o get_relator_distr_data
 
-val relator_distr_attribute_setup =
-  Attrib.setup @{binding relator_mono} (Scan.succeed (Thm.declaration_attribute add_mono_rule))
-    "declaration of relator's monoticity"
-  #> Attrib.setup @{binding relator_distr} (Scan.succeed (Thm.declaration_attribute add_distr_rule))
-    "declaration of relator's distributivity over OO"
-  #> Global_Theory.add_thms_dynamic
-     (@{binding relator_distr_raw}, get_distr_rules_raw)
-  #> Global_Theory.add_thms_dynamic
-     (@{binding relator_mono_raw}, get_mono_rules_raw)
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding relator_mono} (Scan.succeed (Thm.declaration_attribute add_mono_rule))
+      "declaration of relator's monoticity"
+    #> Attrib.setup @{binding relator_distr} (Scan.succeed (Thm.declaration_attribute add_distr_rule))
+      "declaration of relator's distributivity over OO"
+    #> Global_Theory.add_thms_dynamic
+       (@{binding relator_distr_raw}, get_distr_rules_raw)
+    #> Global_Theory.add_thms_dynamic
+       (@{binding relator_mono_raw}, get_mono_rules_raw))
 
 (* no_code types *)
 
@@ -514,13 +515,6 @@ fun add_no_code_type type_name ctxt =
   Data.map (map_no_code_types (Symtab.update (type_name, ()))) ctxt;
 
 fun is_no_code_type ctxt type_name = (Symtab.defined o get_no_code_types) ctxt type_name
-
-(* theory setup *)
-
-val setup =
-  quot_map_attribute_setup
-  #> quot_del_attribute_setup
-  #> relator_distr_attribute_setup
 
 (* setup fixed eq_onp rules *)
 

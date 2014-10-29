@@ -64,7 +64,6 @@ sig
   val partition_rules': thm -> (thm * 'a) list -> (string * (thm * 'a) list) list
   val unpartition_rules: thm list -> (string * 'a list) list -> 'a list
   val infer_intro_vars: thm -> int -> thm list -> term list list
-  val setup: theory -> theory
 end;
 
 signature INDUCTIVE =
@@ -275,6 +274,11 @@ val mono_del =
   Thm.declaration_attribute (fn thm => fn context =>
     map_data (fn (infos, monos, equations) =>
       (infos, Thm.del_thm (mk_mono (Context.proof_of context) thm) monos, equations)) context);
+
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding mono} (Attrib.add_del mono_add mono_del)
+      "declaration of monotonicity rule");
 
 
 (* equations *)
@@ -587,19 +591,19 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
 val inductive_cases = gen_inductive_cases Attrib.check_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
-
-val ind_cases_setup =
-  Method.setup @{binding ind_cases}
-    (Scan.lift (Scan.repeat1 Args.name_inner_syntax --
-      Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.binding) []) >>
-      (fn (raw_props, fixes) => fn ctxt =>
-        let
-          val (_, ctxt') = Variable.add_fixes_binding fixes ctxt;
-          val props = Syntax.read_props ctxt' raw_props;
-          val ctxt'' = fold Variable.declare_term props ctxt';
-          val rules = Proof_Context.export ctxt'' ctxt (map (mk_cases ctxt'') props)
-        in Method.erule ctxt 0 rules end))
-    "dynamic case analysis on predicates";
+val _ =
+  Theory.setup
+    (Method.setup @{binding ind_cases}
+      (Scan.lift (Scan.repeat1 Args.name_inner_syntax --
+        Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.binding) []) >>
+        (fn (raw_props, fixes) => fn ctxt =>
+          let
+            val (_, ctxt') = Variable.add_fixes_binding fixes ctxt;
+            val props = Syntax.read_props ctxt' raw_props;
+            val ctxt'' = fold Variable.declare_term props ctxt';
+            val rules = Proof_Context.export ctxt'' ctxt (map (mk_cases ctxt'') props)
+          in Method.erule ctxt 0 rules end))
+      "dynamic case analysis on predicates");
 
 
 (* derivation of simplified equation *)
@@ -1142,17 +1146,7 @@ fun infer_intro_vars elim arity intros =
 
 
 
-(** package setup **)
-
-(* setup theory *)
-
-val setup =
-  ind_cases_setup #>
-  Attrib.setup @{binding mono} (Attrib.add_del mono_add mono_del)
-    "declaration of monotonicity rule";
-
-
-(* outer syntax *)
+(** outer syntax **)
 
 fun gen_ind_decl mk_def coind =
   Parse.fixes -- Parse.for_fixes --

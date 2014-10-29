@@ -9,7 +9,6 @@ signature LEXICOGRAPHIC_ORDER =
 sig
   val lex_order_tac : bool -> Proof.context -> tactic -> tactic
   val lexicographic_order_tac : bool -> Proof.context -> tactic
-  val setup: theory -> theory
 end
 
 structure Lexicographic_Order : LEXICOGRAPHIC_ORDER =
@@ -214,7 +213,9 @@ fun lexicographic_order_tac quiet ctxt =
   lex_order_tac quiet ctxt
     (auto_tac (ctxt addsimps (Named_Theorems.get ctxt @{named_theorems termination_simp})))
 
-val setup =
-  Context.theory_map (Function_Common.set_termination_prover (lexicographic_order_tac false))
+val _ =
+  Theory.setup
+    (Context.theory_map
+      (Function_Common.set_termination_prover (lexicographic_order_tac false)))
 
 end;

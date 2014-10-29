@@ -41,8 +41,6 @@ sig
        main: Proof.context -> conv,
        pow: Proof.context -> conv,
        sub: Proof.context -> conv}
-
-  val setup: theory -> theory
 end
 
 structure Semiring_Normalizer: SEMIRING_NORMALIZER = 
@@ -912,20 +910,21 @@ fun optional scan = Scan.optional scan [];
 
 in
 
-val setup =
-  Attrib.setup @{binding normalizer}
-    (Scan.lift (Args.$$$ delN >> K del) ||
-      ((keyword2 semiringN opsN |-- terms) --
-       (keyword2 semiringN rulesN |-- thms)) --
-      (optional (keyword2 ringN opsN |-- terms) --
-       optional (keyword2 ringN rulesN |-- thms)) --
-      (optional (keyword2 fieldN opsN |-- terms) --
-       optional (keyword2 fieldN rulesN |-- thms)) --
-      optional (keyword2 idomN rulesN |-- thms) --
-      optional (keyword2 idealN rulesN |-- thms)
-      >> (fn ((((sr, r), f), id), idl) => 
-             add {semiring = sr, ring = r, field = f, idom = id, ideal = idl}))
-    "semiring normalizer data";
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding normalizer}
+      (Scan.lift (Args.$$$ delN >> K del) ||
+        ((keyword2 semiringN opsN |-- terms) --
+         (keyword2 semiringN rulesN |-- thms)) --
+        (optional (keyword2 ringN opsN |-- terms) --
+         optional (keyword2 ringN rulesN |-- thms)) --
+        (optional (keyword2 fieldN opsN |-- terms) --
+         optional (keyword2 fieldN rulesN |-- thms)) --
+        optional (keyword2 idomN rulesN |-- thms) --
+        optional (keyword2 idealN rulesN |-- thms)
+        >> (fn ((((sr, r), f), id), idl) => 
+               add {semiring = sr, ring = r, field = f, idom = id, ideal = idl}))
+      "semiring normalizer data");
 
 end;
 

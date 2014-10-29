@@ -44,8 +44,6 @@ ML_file "Tools/Metis/metis_generate.ML"
 ML_file "Tools/Metis/metis_reconstruct.ML"
 ML_file "Tools/Metis/metis_tactic.ML"
 
-setup {* Metis_Tactic.setup *}
-
 hide_const (open) select fFalse fTrue fNot fComp fconj fdisj fimplies fAll fEx fequal lambda
 hide_fact (open) select_def not_atomize atomize_not_select not_atomize_select select_FalseI
   fFalse_def fTrue_def fNot_def fconj_def fdisj_def fimplies_def fAll_def fEx_def fequal_def

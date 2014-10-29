@@ -548,7 +548,6 @@ ML_file "Tools/Lifting/lifting_util.ML"
 named_theorems relator_eq_onp
   "theorems that a relator of an eq_onp is an eq_onp of the corresponding predicate"
 ML_file "Tools/Lifting/lifting_info.ML"
-setup Lifting_Info.setup
 
 (* setup for the function type *)
 declare fun_quotient[quot_map]

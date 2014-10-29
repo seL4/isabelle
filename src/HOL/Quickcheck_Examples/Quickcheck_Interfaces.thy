@@ -11,7 +11,7 @@ text {*
 First, this requires to setup special generators for all datatypes via the following command.
 *}
 
-setup {* Exhaustive_Generators.setup_bounded_forall_datatype_interpretation *}
+setup Exhaustive_Generators.setup_bounded_forall_datatype_interpretation
 
 text {*
 Now, the function Quickcheck.mk_batch_validator : Proof.context -> term list -> (int -> bool) list option

@@ -16,7 +16,6 @@ sig
     | Empty_Assignment
   val put_counterexample: (unit -> (bool * term list) option) -> Proof.context -> Proof.context
   val put_existential_counterexample : (unit -> counterexample option) -> Proof.context -> Proof.context
-  val setup: theory -> theory
 end;
 
 structure Narrowing_Generators : NARROWING_GENERATORS =
@@ -522,11 +521,12 @@ fun test_goals ctxt catch_code_errors insts goals =
 
 val active = Attrib.setup_config_bool @{binding quickcheck_narrowing_active} (K false);
 
-val setup =
-  Code.datatype_interpretation ensure_partial_term_of
-  #> Code.datatype_interpretation ensure_partial_term_of_code
-  #> Quickcheck_Common.datatype_interpretation @{plugin quickcheck_narrowing}
-    (@{sort narrowing}, instantiate_narrowing_datatype)
-  #> Context.theory_map (Quickcheck.add_tester ("narrowing", (active, test_goals)))
+val _ =
+  Theory.setup
+   (Code.datatype_interpretation ensure_partial_term_of
+    #> Code.datatype_interpretation ensure_partial_term_of_code
+    #> Quickcheck_Common.datatype_interpretation @{plugin quickcheck_narrowing}
+      (@{sort narrowing}, instantiate_narrowing_datatype)
+    #> Context.theory_map (Quickcheck.add_tester ("narrowing", (active, test_goals))));
     
 end;

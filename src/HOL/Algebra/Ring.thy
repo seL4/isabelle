@@ -391,10 +391,14 @@ text {* Setup algebra method:
 
 ML_file "ringsimp.ML"
 
-setup Algebra.attrib_setup
+attribute_setup algebra = {*
+  Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon || Scan.succeed true)
+    -- Scan.lift Args.name -- Scan.repeat Args.term
+    >> (fn ((b, n), ts) => if b then Ringsimp.add_struct (n, ts) else Ringsimp.del_struct (n, ts))
+*} "theorems controlling algebra method"
 
 method_setup algebra = {*
-  Scan.succeed (SIMPLE_METHOD' o Algebra.algebra_tac)
+  Scan.succeed (SIMPLE_METHOD' o Ringsimp.algebra_tac)
 *} "normalisation of algebraic structure"
 
 lemmas (in ring) ring_simprules

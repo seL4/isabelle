@@ -50,9 +50,7 @@ lemma If_case_cert:
   shows "(CASE True \<equiv> f) &&& (CASE False \<equiv> g)"
   using assms by simp_all
 
-setup {*
-  Code.add_case @{thm If_case_cert}
-*}
+setup {* Code.add_case @{thm If_case_cert} *}
 
 code_printing
   constant "HOL.equal :: bool \<Rightarrow> bool \<Rightarrow> bool" \<rightharpoonup> (Haskell) infix 4 "=="
@@ -784,7 +782,6 @@ lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)
 
 ML_file "Tools/split_rule.ML"
-setup Split_Rule.setup
 
 hide_const internal_split
 

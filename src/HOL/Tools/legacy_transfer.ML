@@ -14,7 +14,6 @@ sig
   val add: thm -> bool -> entry -> Context.generic -> Context.generic
   val del: thm -> entry -> Context.generic -> Context.generic
   val drop: thm -> Context.generic -> Context.generic
-  val setup: theory -> theory
 end;
 
 structure Legacy_Transfer : LEGACY_TRANSFER =
@@ -112,7 +111,7 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
     val transform = Thm.apply @{cterm "Trueprop"} o Thm.apply D;
     val T = Thm.typ_of (Thm.ctyp_of_term a);
     val (aT, bT) = (Term.range_type T, Term.domain_type T);
-    
+
     (* determine variables to transfer *)
     val ctxt3 = ctxt2
       |> Variable.declare_thm thm
@@ -168,7 +167,7 @@ fun extend_entry ctxt (a, D) guess
       cong = union Thm.eq_thm cong1 cong2, hints = union (op =) hints1 hints2 }
   end;
 
-fun diminish_entry 
+fun diminish_entry
     { inj = inj0, embed = embed0, return = return0, cong = cong0, hints = hints0 }
     { inj = inj2, embed = embed2, return = return2, cong = cong2, hints = hints2 } =
   { inj = subtract Thm.eq_thm inj0 inj2, embed = subtract Thm.eq_thm embed0 embed2,
@@ -243,28 +242,23 @@ val selection = (keyword_colon directionN |-- (Args.term -- Args.term) >> Direct
 
 in
 
-val transfer_attribute = keyword delN >> K (Thm.declaration_attribute drop)
-  || keyword addN |-- Scan.optional mode true -- entry_pair
-    >> (fn (guess, (entry_add, entry_del)) => Thm.declaration_attribute
-      (fn thm => add thm guess entry_add #> del thm entry_del))
-  || keyword_colon keyN |-- Attrib.thm
-    >> (fn key => Thm.declaration_attribute
-      (fn thm => add key false
-        { inj = [], embed = [], return = [thm], cong = [], hints = [] }));
-
-val transferred_attribute = selection -- these (keyword_colon leavingN |-- names)
-  >> (fn (selection, leave) => Thm.rule_attribute (fn context =>
-      Conjunction.intr_balanced o transfer context selection leave));
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding transfer}
+      (keyword delN >> K (Thm.declaration_attribute drop)
+    || keyword addN |-- Scan.optional mode true -- entry_pair
+      >> (fn (guess, (entry_add, entry_del)) =>
+          Thm.declaration_attribute (fn thm => add thm guess entry_add #> del thm entry_del))
+    || keyword_colon keyN |-- Attrib.thm
+      >> (fn key => Thm.declaration_attribute (fn thm =>
+            add key false { inj = [], embed = [], return = [thm], cong = [], hints = [] })))
+    "install transfer data" #>
+    Attrib.setup @{binding transferred}
+      (selection -- these (keyword_colon leavingN |-- names)
+        >> (fn (selection, leave) => Thm.rule_attribute (fn context =>
+              Conjunction.intr_balanced o transfer context selection leave)))
+    "transfer theorems");
 
 end;
-
-
-(* theory setup *)
-
-val setup =
-  Attrib.setup @{binding transfer} transfer_attribute
-    "Installs transfer data" #>
-  Attrib.setup @{binding transferred} transferred_attribute
-    "Transfers theorems";
 
 end;

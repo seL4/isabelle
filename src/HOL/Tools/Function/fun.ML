@@ -14,8 +14,6 @@ sig
   val add_fun_cmd : (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> Function_Common.function_config ->
     bool -> local_theory -> Proof.context
-
-  val setup : theory -> theory
 end
 
 structure Function_Fun : FUNCTION_FUN =
@@ -148,8 +146,8 @@ fun sequential_preproc (config as FunctionConfig {sequential, ...}) ctxt fixes s
   else
     Function_Common.empty_preproc check_defs config ctxt fixes spec
 
-val setup =
-  Context.theory_map (Function_Common.set_preproc sequential_preproc)
+val _ = Theory.setup (Context.theory_map (Function_Common.set_preproc sequential_preproc))
+
 
 
 val fun_config = FunctionConfig { sequential=true, default=NONE,

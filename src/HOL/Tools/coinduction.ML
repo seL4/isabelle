@@ -9,7 +9,6 @@ Coinduction method that avoids some boilerplate compared to coinduct.
 signature COINDUCTION =
 sig
   val coinduction_tac: Proof.context -> term list -> thm option -> thm list -> cases_tactic
-  val setup: theory -> theory
 end;
 
 structure Coinduction : COINDUCTION =
@@ -19,11 +18,12 @@ open Ctr_Sugar_Util
 open Ctr_Sugar_General_Tactics
 
 fun filter_in_out _ [] = ([], [])
-  | filter_in_out P (x :: xs) = (let
-      val (ins, outs) = filter_in_out P xs;
-    in
-      if P x then (x :: ins, outs) else (ins, x :: outs)
-    end);
+  | filter_in_out P (x :: xs) =
+      let
+        val (ins, outs) = filter_in_out P xs;
+      in
+        if P x then (x :: ins, outs) else (ins, x :: outs)
+      end;
 
 fun ALLGOALS_SKIP skip tac st =
   let fun doall n = if n = skip then all_tac else tac n THEN doall (n - 1)
@@ -43,7 +43,7 @@ fun DELETE_PREMS_AFTER skip tac i st =
 fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (fn (goal, _, _) =>
   let
     val lhs_of_eq = HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst;
-    fun find_coinduct t = 
+    fun find_coinduct t =
       Induct.find_coinductP ctxt t @
       (try (Induct.find_coinductT ctxt o fastype_of o lhs_of_eq) t |> the_default [])
     val raw_thm =
@@ -102,7 +102,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
                        val (init, last) = funpow_yield (p + e - 1) HOLogic.conj_elim inv;
                        val inv_thms = init @ [last];
                        val eqs = take e inv_thms;
-                       fun is_local_var t = 
+                       fun is_local_var t =
                          member (fn (t, (_, t')) => t aconv (term_of t')) params t;
                         val (eqs, assms') = filter_in_out (is_local_var o lhs_of_eq o prop_of) eqs;
                         val assms = assms' @ drop e inv_thms
@@ -146,12 +146,13 @@ val arbitrary = Scan.optional (Scan.lift (Args.$$$ arbitraryN -- Args.colon) |--
 
 in
 
-val setup =
-  Method.setup @{binding coinduction}
-    (arbitrary -- Scan.option coinduct_rule >>
-      (fn (arbitrary, opt_rule) => fn ctxt => fn facts =>
-        Seq.DETERM (coinduction_tac ctxt arbitrary opt_rule facts)))
-    "coinduction on types or predicates/sets";
+val _ =
+  Theory.setup
+    (Method.setup @{binding coinduction}
+      (arbitrary -- Scan.option coinduct_rule >>
+        (fn (arbitrary, opt_rule) => fn ctxt => fn facts =>
+          Seq.DETERM (coinduction_tac ctxt arbitrary opt_rule facts)))
+      "coinduction on types or predicates/sets");
 
 end;
 

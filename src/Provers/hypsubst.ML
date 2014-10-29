@@ -52,7 +52,6 @@ sig
   val hyp_subst_tac          : Proof.context -> int -> tactic
   val blast_hyp_subst_tac    : bool -> int -> tactic
   val stac                   : thm -> int -> tactic
-  val hypsubst_setup         : theory -> theory
 end;
 
 functor Hypsubst(Data: HYPSUBST_DATA): HYPSUBST =
@@ -120,7 +119,7 @@ fun eq_var bnd novars check_frees t =
                handle TERM _ => eq_var_aux (k+1) B (A :: hs)
                  | Match => eq_var_aux (k+1) B (A :: hs))
       | eq_var_aux k _ _ = raise EQ_VAR
-  
+
   in  eq_var_aux 0 t [] end;
 
 val thin_free_eq_tac = SUBGOAL (fn (t, i) => let
@@ -228,11 +227,10 @@ fun hyp_subst_tac_thin thin ctxt =
     gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac false,
     if thin then thin_free_eq_tac else K no_tac];
 
-val (hyp_subst_thin, hyp_subst_thin_setup) = Attrib.config_bool
-    @{binding hypsubst_thin} (K false);
+val hyp_subst_thin = Attrib.setup_config_bool @{binding hypsubst_thin} (K false);
 
-fun hyp_subst_tac ctxt = hyp_subst_tac_thin
-    (Config.get ctxt hyp_subst_thin) ctxt
+fun hyp_subst_tac ctxt =
+  hyp_subst_tac_thin (Config.get ctxt hyp_subst_thin) ctxt;
 
 (*Substitutes for Bound variables only -- this is always safe*)
 fun bound_hyp_subst_tac ctxt =
@@ -296,18 +294,18 @@ fun stac th =
   in CHANGED_GOAL (rtac (th' RS ssubst)) end;
 
 
-(* theory setup *)
+(* method setup *)
 
-val hypsubst_setup =
-  Method.setup @{binding hypsubst}
-    (Scan.succeed (fn ctxt => SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac ctxt)))
-    "substitution using an assumption (improper)" #>
-  Method.setup @{binding hypsubst_thin}
-    (Scan.succeed (fn ctxt => SIMPLE_METHOD'
-        (CHANGED_PROP o hyp_subst_tac_thin true ctxt)))
-    "substitution using an assumption, eliminating assumptions" #>
-  hyp_subst_thin_setup #>
-  Method.setup @{binding simplesubst} (Attrib.thm >> (fn th => K (SIMPLE_METHOD' (stac th))))
-    "simple substitution";
+val _ =
+  Theory.setup
+   (Method.setup @{binding hypsubst}
+      (Scan.succeed (fn ctxt => SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac ctxt)))
+      "substitution using an assumption (improper)" #>
+    Method.setup @{binding hypsubst_thin}
+      (Scan.succeed (fn ctxt => SIMPLE_METHOD'
+          (CHANGED_PROP o hyp_subst_tac_thin true ctxt)))
+      "substitution using an assumption, eliminating assumptions" #>
+    Method.setup @{binding simplesubst} (Attrib.thm >> (fn th => K (SIMPLE_METHOD' (stac th))))
+      "simple substitution");
 
 end;

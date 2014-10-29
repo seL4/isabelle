@@ -400,6 +400,8 @@ signature ORDERS =
 sig
   val print_structures: Proof.context -> unit
   val order_tac: Proof.context -> thm list -> int -> tactic
+  val add_struct: string * term list -> string -> attribute
+  val del_struct: string * term list -> attribute
 end;
 
 structure Orders: ORDERS =
@@ -483,25 +485,23 @@ fun order_tac ctxt facts =
 
 (* attributes *)
 
-fun add_struct_thm s tag =
+fun add_struct s tag =
   Thm.declaration_attribute
     (fn thm => Data.map (AList.map_default struct_eq (s, Order_Tac.empty TrueI) (Order_Tac.update tag thm)));
 fun del_struct s =
   Thm.declaration_attribute
     (fn _ => Data.map (AList.delete struct_eq s));
 
-val _ =
-  Theory.setup
-    (Attrib.setup @{binding order}
-      (Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) || Args.del >> K NONE) --|
-        Args.colon (* FIXME || Scan.succeed true *) ) -- Scan.lift Args.name --
-        Scan.repeat Args.term
-        >> (fn ((SOME tag, n), ts) => add_struct_thm (n, ts) tag
-             | ((NONE, n), ts) => del_struct (n, ts)))
-      "theorems controlling transitivity reasoner");
-
 end;
 *}
+
+attribute_setup order = {*
+  Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) || Args.del >> K NONE) --|
+    Args.colon (* FIXME || Scan.succeed true *) ) -- Scan.lift Args.name --
+    Scan.repeat Args.term
+    >> (fn ((SOME tag, n), ts) => Orders.add_struct (n, ts) tag
+         | ((NONE, n), ts) => Orders.del_struct (n, ts))
+*} "theorems controlling transitivity reasoner"
 
 method_setup order = {*
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (Orders.order_tac ctxt []))

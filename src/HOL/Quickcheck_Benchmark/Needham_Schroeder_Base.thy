@@ -194,7 +194,7 @@ setup {* Predicate_Compile_Data.ignore_consts [@{const_name analz}, @{const_name
 declare ListMem_iff[symmetric, code_pred_inline]
 declare [[quickcheck_timing]]
 
-setup {* Exhaustive_Generators.setup_exhaustive_datatype_interpretation *}
+setup Exhaustive_Generators.setup_exhaustive_datatype_interpretation
 declare [[quickcheck_full_support = false]]
 
 end

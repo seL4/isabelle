@@ -10,7 +10,6 @@ sig
   val add_type_map: term -> Context.generic -> Context.generic
   val add_coercion: term -> Context.generic -> Context.generic
   val print_coercions: Proof.context -> unit
-  val setup: theory -> theory
 end;
 
 structure Subtyping: SUBTYPING =
@@ -884,9 +883,11 @@ fun coercion_infer_types ctxt raw_ts =
 
 val coercion_enabled = Attrib.setup_config_bool @{binding coercion_enabled} (K false);
 
-val add_term_check =
-  Syntax_Phases.term_check ~100 "coercions"
-    (fn ctxt => Config.get ctxt coercion_enabled ? coercion_infer_types ctxt);
+val _ =
+  Theory.setup
+    (Context.theory_map
+      (Syntax_Phases.term_check ~100 "coercions"
+        (fn ctxt => Config.get ctxt coercion_enabled ? coercion_infer_types ctxt)));
 
 
 (* declarations *)
@@ -1088,26 +1089,26 @@ fun print_coercions ctxt =
   end |> Pretty.writeln_chunks;
 
 
-(* theory setup *)
+(* attribute setup *)
 
 val parse_coerce_args =
   Args.$$$ "+" >> K PERMIT || Args.$$$ "-" >> K FORBID || Args.$$$ "0" >> K LEAVE
 
-val setup =
-  Context.theory_map add_term_check #>
-  Attrib.setup @{binding coercion}
-    (Args.term >> (fn t => Thm.declaration_attribute (K (add_coercion t))))
-    "declaration of new coercions" #>
-  Attrib.setup @{binding coercion_delete}
-    (Args.term >> (fn t => Thm.declaration_attribute (K (delete_coercion t))))
-    "deletion of coercions" #>
-  Attrib.setup @{binding coercion_map}
-    (Args.term >> (fn t => Thm.declaration_attribute (K (add_type_map t))))
-    "declaration of new map functions" #>
-  Attrib.setup @{binding coercion_args}
-    (Args.const {proper = false, strict = false} -- Scan.lift (Scan.repeat1 parse_coerce_args) >>
-      (fn spec => Thm.declaration_attribute (K (map_coerce_args (Symtab.update spec)))))
-    "declaration of new constants with coercion-invariant arguments";
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding coercion}
+      (Args.term >> (fn t => Thm.declaration_attribute (K (add_coercion t))))
+      "declaration of new coercions" #>
+    Attrib.setup @{binding coercion_delete}
+      (Args.term >> (fn t => Thm.declaration_attribute (K (delete_coercion t))))
+      "deletion of coercions" #>
+    Attrib.setup @{binding coercion_map}
+      (Args.term >> (fn t => Thm.declaration_attribute (K (add_type_map t))))
+      "declaration of new map functions" #>
+    Attrib.setup @{binding coercion_args}
+      (Args.const {proper = false, strict = false} -- Scan.lift (Scan.repeat1 parse_coerce_args) >>
+        (fn spec => Thm.declaration_attribute (K (map_coerce_args (Symtab.update spec)))))
+      "declaration of new constants with coercion-invariant arguments");
 
 
 (* outer syntax commands *)

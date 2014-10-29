@@ -420,10 +420,7 @@ lemma [old_z3_rule]:  (* for def-axiom *)
   by auto
 
 ML_file "Old_SMT/old_smt_real.ML"
-setup Old_SMT_Real.setup
-
 ML_file "Old_SMT/old_smt_word.ML"
-setup Old_SMT_Word.setup
 
 hide_type (open) pattern
 hide_const fun_app term_true term_false z3div z3mod

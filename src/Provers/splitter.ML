@@ -37,7 +37,6 @@ sig
   val split_add: attribute
   val split_del: attribute
   val split_modifiers : Method.modifier parser list
-  val setup: theory -> theory
 end;
 
 functor Splitter(Data: SPLITTER_DATA): SPLITTER =
@@ -453,6 +452,11 @@ val splitN = "split";
 val split_add = Simplifier.attrib add_split;
 val split_del = Simplifier.attrib del_split;
 
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding split}
+      (Attrib.add_del split_add split_del) "declare case split rule");
+
 
 (* methods *)
 
@@ -461,14 +465,10 @@ val split_modifiers =
   Args.$$$ splitN -- Args.add -- Args.colon >> K (Method.modifier split_add @{here}),
   Args.$$$ splitN -- Args.del -- Args.colon >> K (Method.modifier split_del @{here})];
 
-
-(* theory setup *)
-
-val setup =
-  Attrib.setup @{binding split}
-    (Attrib.add_del split_add split_del) "declare case split rule" #>
-  Method.setup @{binding split}
-    (Attrib.thms >> (fn ths => K (SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths))))
-    "apply case split rule";
+val _ =
+  Theory.setup
+    (Method.setup @{binding split}
+      (Attrib.thms >> (fn ths => K (SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths))))
+      "apply case split rule");
 
 end;

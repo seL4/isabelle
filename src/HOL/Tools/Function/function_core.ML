@@ -73,7 +73,7 @@ datatype clause_info = ClauseInfo of
  {no: int,
   qglr : ((string * typ) list * term list * term * term),
   cdata : clause_context,
-  tree: Function_Ctx_Tree.ctx_tree,
+  tree: Function_Context_Tree.ctx_tree,
   lGI: thm,
   RCs: rec_call_info list}
 
@@ -99,7 +99,7 @@ fun find_calls tree =
       ([], (fixes, assumes, arg) :: xs)
       | add_Ri _ _ _ _ = raise Match
   in
-    rev (Function_Ctx_Tree.traverse_tree add_Ri tree [])
+    rev (Function_Context_Tree.traverse_tree add_Ri tree [])
   end
 
 
@@ -277,7 +277,7 @@ fun mk_replacement_lemma ctxt h ih_elim clause =
       Thm.assume (cterm_of thy (subst_bounds (rev qs, h_assum)))) RCs
 
     val (eql, _) =
-      Function_Ctx_Tree.rewrite_by_tree ctxt h ih_elim_case (Ris ~~ h_assums) tree
+      Function_Context_Tree.rewrite_by_tree ctxt h ih_elim_case (Ris ~~ h_assums) tree
 
     val replace_lemma = (eql RS meta_eq_to_obj_eq)
       |> Thm.implies_intr (cprop_of case_hyp)
@@ -733,11 +733,11 @@ fun mk_nest_term_case ctxt globals R' ihyp clause =
     fun step (fixes, assumes) (_ $ arg) u (sub,(hyps,thms)) =
       let
         val used = (u @ sub)
-          |> map (fn (ctxt, thm) => Function_Ctx_Tree.export_thm thy ctxt thm)
+          |> map (fn (ctxt, thm) => Function_Context_Tree.export_thm thy ctxt thm)
 
         val hyp = HOLogic.mk_Trueprop (R' $ arg $ lhs)
           |> fold_rev (curry Logic.mk_implies o prop_of) used (* additional hyps *)
-          |> Function_Ctx_Tree.export_term (fixes, assumes)
+          |> Function_Context_Tree.export_term (fixes, assumes)
           |> fold_rev (curry Logic.mk_implies o prop_of) ags
           |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
           |> cterm_of thy
@@ -745,7 +745,7 @@ fun mk_nest_term_case ctxt globals R' ihyp clause =
         val thm = Thm.assume hyp
           |> fold Thm.forall_elim cqs
           |> fold Thm.elim_implies ags
-          |> Function_Ctx_Tree.import_thm thy (fixes, assumes)
+          |> Function_Context_Tree.import_thm thy (fixes, assumes)
           |> fold Thm.elim_implies used (*  "(arg, lhs) : R'"  *)
 
         val z_eq_arg = HOLogic.mk_Trueprop (mk_eq (z, arg))
@@ -757,7 +757,7 @@ fun mk_nest_term_case ctxt globals R' ihyp clause =
               (Conv.arg_conv (Conv.arg_conv (K (Thm.symmetric (z_eq_arg RS eq_reflection)))))
 
         val ethm = z_acc_local
-          |> Function_Ctx_Tree.export_thm thy (fixes,
+          |> Function_Context_Tree.export_thm thy (fixes,
                z_eq_arg :: case_hyp :: ags @ assumes)
           |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
 
@@ -767,7 +767,7 @@ fun mk_nest_term_case ctxt globals R' ihyp clause =
       end
       | step _ _ _ _ = raise Match
   in
-    Function_Ctx_Tree.traverse_tree step tree
+    Function_Context_Tree.traverse_tree step tree
   end
 
 
@@ -846,7 +846,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val n = length abstract_qglrs
 
     fun build_tree (ClauseContext { ctxt, rhs, ...}) =
-       Function_Ctx_Tree.mk_tree (fname, fT) h ctxt rhs
+       Function_Context_Tree.mk_tree (fname, fT) h ctxt rhs
 
     val trees = map build_tree clauses
     val RCss = map find_calls trees
@@ -858,7 +858,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
       PROFILE "def_fun" (define_function (defname ^ "_sumC_def") (fname, mixfix) domT ranT G default) lthy
 
     val RCss = map (map (inst_RC (Proof_Context.theory_of lthy) fvar f)) RCss
-    val trees = map (Function_Ctx_Tree.inst_tree (Proof_Context.theory_of lthy) fvar f) trees
+    val trees = map (Function_Context_Tree.inst_tree (Proof_Context.theory_of lthy) fvar f) trees
 
     val ((R, RIntro_thmss, R_elim), lthy) =
       PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT abstract_qglrs clauses RCss) lthy

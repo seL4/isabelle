@@ -591,7 +591,6 @@ structure Hypsubst = Hypsubst
 open Hypsubst;
 *}
 
-setup hypsubst_setup
 ML_file "intprover.ML"
 
 

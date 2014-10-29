@@ -20,7 +20,7 @@ lemma is_some_is_not_None:
   "is_some x \<longleftrightarrow> x \<noteq> None"
   by (cases x) simp_all
 
-setup {* Exhaustive_Generators.setup_exhaustive_datatype_interpretation *} 
+setup Exhaustive_Generators.setup_exhaustive_datatype_interpretation
 
 subsection {* Defining the size of values *}
 

@@ -9,7 +9,6 @@ sig
   val split_rule_var: Proof.context -> term -> thm -> thm
   val split_rule: Proof.context -> thm -> thm
   val complete_split_rule: Proof.context -> thm -> thm
-  val setup: theory -> theory
 end;
 
 structure Split_Rule: SPLIT_RULE =
@@ -110,14 +109,15 @@ fun complete_split_rule ctxt rl =
 
 (* attribute syntax *)
 
-val setup =
-  Attrib.setup @{binding split_format}
-    (Scan.lift (Args.parens (Args.$$$ "complete")
-      >> K (Thm.rule_attribute (complete_split_rule o Context.proof_of))))
-    "split pair-typed subterms in premises, or function arguments" #>
-  Attrib.setup @{binding split_rule}
-    (Scan.succeed (Thm.rule_attribute (split_rule o Context.proof_of)))
-    "curries ALL function variables occurring in a rule's conclusion";
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding split_format}
+      (Scan.lift (Args.parens (Args.$$$ "complete")
+        >> K (Thm.rule_attribute (complete_split_rule o Context.proof_of))))
+      "split pair-typed subterms in premises, or function arguments" #>
+    Attrib.setup @{binding split_rule}
+      (Scan.succeed (Thm.rule_attribute (split_rule o Context.proof_of)))
+      "curries ALL function variables occurring in a rule's conclusion");
 
 end;
 
