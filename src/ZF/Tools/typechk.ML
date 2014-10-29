@@ -13,7 +13,6 @@ sig
   val typecheck_tac: Proof.context -> tactic
   val type_solver_tac: Proof.context -> thm list -> int -> tactic
   val type_solver: solver
-  val setup: theory -> theory
 end;
 
 structure TypeCheck: TYPE_CHECK =
@@ -109,28 +108,25 @@ val type_solver =
   Simplifier.mk_solver "ZF typecheck" (fn ctxt =>
     type_solver_tac ctxt (Simplifier.prems_of ctxt));
 
+val _ = Theory.setup (map_theory_simpset (fn ctxt => ctxt setSolver type_solver));
+
 
 (* concrete syntax *)
 
-val typecheck_setup =
-  Method.setup @{binding typecheck}
-    (Method.sections
-      [Args.add -- Args.colon >> K (Method.modifier TC_add @{here}),
-       Args.del -- Args.colon >> K (Method.modifier TC_del @{here})]
-      >> K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt))))
-    "ZF type-checking";
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding TC} (Attrib.add_del TC_add TC_del)
+      "declaration of type-checking rule" #>
+    Method.setup @{binding typecheck}
+      (Method.sections
+        [Args.add -- Args.colon >> K (Method.modifier TC_add @{here}),
+         Args.del -- Args.colon >> K (Method.modifier TC_del @{here})]
+        >> K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt))))
+      "ZF type-checking");
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_tcset"} "print context of ZF typecheck"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (print_tcset o Toplevel.context_of)));
-
-
-(* theory setup *)
-
-val setup =
-  Attrib.setup @{binding TC} (Attrib.add_del TC_add TC_del) "declaration of type-checking rule" #>
-  typecheck_setup #>
-  map_theory_simpset (fn ctxt => ctxt setSolver type_solver);
 
 end;

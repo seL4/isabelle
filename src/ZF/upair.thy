@@ -17,7 +17,6 @@ keywords "print_tcset" :: diag
 begin
 
 ML_file "Tools/typechk.ML"
-setup TypeCheck.setup
 
 lemma atomize_ball [symmetric, rulify]:
      "(!!x. x \<in> A ==> P(x)) == Trueprop (\<forall>x\<in>A. P(x))"
