@@ -18,7 +18,6 @@ sig
   val metis_tac : string list -> string -> Proof.context -> thm list -> int -> tactic
   val metis_lam_transs : string list
   val parse_metis_options : (string list option * string option) parser
-  val setup : theory -> theory
 end
 
 structure Metis_Tactic : METIS_TACTIC =
@@ -297,9 +296,10 @@ val parse_metis_options =
                            |> (case s' of SOME s' => consider_opt s' | _ => I)))
       (NONE, NONE)
 
-val setup =
-  Method.setup @{binding metis}
-    (Scan.lift parse_metis_options -- Attrib.thms >> (METHOD oo metis_method))
-    "Metis for FOL and HOL problems"
+val _ =
+  Theory.setup
+    (Method.setup @{binding metis}
+      (Scan.lift parse_metis_options -- Attrib.thms >> (METHOD oo metis_method))
+      "Metis for FOL and HOL problems")
 
 end;
