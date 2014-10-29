@@ -249,7 +249,6 @@ lemma Ball_Collect: "Ball A P = (A \<subseteq> (Collect P))"
 by auto
 
 ML_file "Tools/Transfer/transfer.ML"
-setup Transfer.setup
 declare refl [transfer_rule]
 
 hide_const (open) Rel
