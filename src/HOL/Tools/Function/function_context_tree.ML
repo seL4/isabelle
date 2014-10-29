@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/Function/context_tree.ML
+(*  Title:      HOL/Tools/Function/function_context_tree.ML
     Author:     Alexander Krauss, TU Muenchen
 
 Construction and traversal of trees of nested contexts along a term.
 *)
 
-signature FUNCTION_CTXTREE =
+signature FUNCTION_CONTEXT_TREE =
 sig
   (* poor man's contexts: fixes + assumes *)
   type ctxt = (string * typ) list * thm list
@@ -35,11 +35,9 @@ sig
 
   val rewrite_by_tree : Proof.context -> term -> thm -> (thm * thm) list ->
     ctx_tree -> thm * (thm * thm) list
-
-  val setup : theory -> theory
 end
 
-structure Function_Ctx_Tree : FUNCTION_CTXTREE =
+structure Function_Context_Tree : FUNCTION_CONTEXT_TREE =
 struct
 
 type ctxt = (string * typ) list * thm list
@@ -287,9 +285,5 @@ fun rewrite_by_tree ctxt h ih x tr =
   in
     rewrite_help [] [] x tr
   end
-
-val setup =
-  Attrib.setup @{binding fundef_cong} (Attrib.add_del cong_add cong_del)
-    "declaration of congruence rule for function definitions"
 
 end

@@ -271,7 +271,7 @@ fun add_case_cong n thy =
       |> safe_mk_meta_eq
   in
     Context.theory_map
-      (Function_Ctx_Tree.map_function_congs (Thm.add_thm cong)) thy
+      (Function_Context_Tree.map_function_congs (Thm.add_thm cong)) thy
   end
 
 val setup_case_cong = Old_Datatype_Data.interpretation (K (fold add_case_cong))
@@ -281,7 +281,7 @@ val setup_case_cong = Old_Datatype_Data.interpretation (K (fold add_case_cong))
 
 val setup = setup_case_cong
 
-val get_congs = Function_Ctx_Tree.get_function_congs
+val get_congs = Function_Context_Tree.get_function_congs
 
 fun get_info ctxt t = Item_Net.retrieve (get_function ctxt) t
   |> the_single |> snd
