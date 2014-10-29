@@ -390,7 +390,6 @@ theorem conj_le_cong:
   by (simp cong: conj_cong)
 
 ML_file "Tools/Qelim/cooper.ML"
-setup Cooper.setup
 
 method_setup presburger = {*
   let

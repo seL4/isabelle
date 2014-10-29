@@ -13,7 +13,6 @@ sig
   exception COOPER of string
   val conv: Proof.context -> conv
   val tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
-  val setup: theory -> theory
 end;
 
 structure Cooper: COOPER =
@@ -835,6 +834,7 @@ val splits_ss =
       [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
        @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
 in
+
 fun nat_to_int_tac ctxt = 
   simp_tac (put_simpset ss1 ctxt) THEN_ALL_NEW
   simp_tac (put_simpset ss2 ctxt) THEN_ALL_NEW
@@ -842,16 +842,17 @@ fun nat_to_int_tac ctxt =
 
 fun div_mod_tac ctxt = simp_tac (put_simpset div_mod_ss ctxt);
 fun splits_tac ctxt = simp_tac (put_simpset splits_ss ctxt);
+
 end;
 
 fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
    let
-    val cpth = 
+     val cpth = 
        if Config.get ctxt quick_and_dirty
        then oracle (ctxt, Envir.beta_norm (Envir.eta_long [] (term_of (Thm.dest_arg p))))
        else Conv.arg_conv (conv ctxt) p
-    val p' = Thm.rhs_of cpth
-    val th = Thm.implies_intr p' (Thm.equal_elim (Thm.symmetric cpth) (Thm.assume p'))
+     val p' = Thm.rhs_of cpth
+     val th = Thm.implies_intr p' (Thm.equal_elim (Thm.symmetric cpth) (Thm.assume p'))
    in rtac th i end
    handle COOPER _ => no_tac);
 
@@ -881,7 +882,7 @@ fun tac elim add_ths del_ths = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
   end 1);
 
 
-(* theory setup *)
+(* attribute syntax *)
 
 local
 
@@ -896,11 +897,12 @@ fun optional scan = Scan.optional scan [];
 
 in
 
-val setup =
-  Attrib.setup @{binding presburger}
-    ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
-      optional (keyword constsN |-- terms) >> add) "data for Cooper's algorithm"
-  #> Arith_Data.add_tactic "Presburger arithmetic" (K (tac true [] []));
+val _ =
+  Theory.setup
+    (Attrib.setup @{binding presburger}
+      ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
+        optional (keyword constsN |-- terms) >> add) "data for Cooper's algorithm"
+    #> Arith_Data.add_tactic "Presburger arithmetic" (K (tac true [] [])));
 
 end;
 

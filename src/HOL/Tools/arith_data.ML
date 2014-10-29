@@ -20,8 +20,6 @@ sig
   val prove_conv2: tactic -> (Proof.context -> tactic) -> Proof.context -> term * term -> thm
   val simp_all_tac: thm list -> Proof.context -> tactic
   val simplify_meta_eq: thm list -> Proof.context -> thm -> thm
-
-  val setup: theory -> theory
 end;
 
 structure Arith_Data: ARITH_DATA =
@@ -48,14 +46,15 @@ fun gen_arith_tac verbose ctxt =
 val arith_tac = gen_arith_tac false;
 val verbose_arith_tac = gen_arith_tac true;
 
-val setup =
-  Method.setup @{binding arith}
-    (Scan.succeed (fn ctxt =>
-      METHOD (fn facts =>
-        HEADGOAL
-        (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
-          THEN' verbose_arith_tac ctxt))))
-    "various arithmetic decision procedures";
+val _ =
+  Theory.setup
+    (Method.setup @{binding arith}
+      (Scan.succeed (fn ctxt =>
+        METHOD (fn facts =>
+          HEADGOAL
+          (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
+            THEN' verbose_arith_tac ctxt))))
+      "various arithmetic decision procedures");
 
 
 (* some specialized syntactic operations *)

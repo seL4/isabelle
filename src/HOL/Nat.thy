@@ -1599,8 +1599,6 @@ lemma subst_equals:
   shows "u = s"
   using 2 1 by (rule trans)
 
-setup Arith_Data.setup
-
 ML_file "Tools/nat_arith.ML"
 
 simproc_setup nateq_cancel_sums
