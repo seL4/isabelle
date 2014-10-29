@@ -1954,12 +1954,6 @@ by simp
 
 declare take_Cons [simp del] and drop_Cons [simp del]
 
-lemma take_1_Cons [simp]: "take 1 (x # xs) = [x]"
-by simp
-
-lemma drop_1_Cons [simp]: "drop 1 (x # xs) = xs"
-by simp
-
 lemma take_Suc: "xs ~= [] ==> take (Suc n) xs = hd xs # take n (tl xs)"
 by(clarsimp simp add:neq_Nil_conv)
 
@@ -2297,9 +2291,6 @@ proof (rule classical)
   hence "length (takeWhile P xs) < length xs" using assms by simp
   thus ?thesis using all `\<not> ?thesis` nth_length_takeWhile[of P xs] by auto
 qed
-
-text{* The following two lemmmas could be generalized to an arbitrary
-property. *}
 
 lemma takeWhile_neq_rev: "\<lbrakk>distinct xs; x \<in> set xs\<rbrakk> \<Longrightarrow>
   takeWhile (\<lambda>y. y \<noteq> x) (rev xs) = rev (tl (dropWhile (\<lambda>y. y \<noteq> x) xs))"
