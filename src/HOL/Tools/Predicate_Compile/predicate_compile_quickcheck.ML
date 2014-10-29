@@ -31,7 +31,6 @@ sig
   val nrandom : int Unsynchronized.ref
   val debug : bool Unsynchronized.ref
   val no_higher_order_predicate : string list Unsynchronized.ref
-  val setup : theory -> theory
 end;
 
 structure Predicate_Compile_Quickcheck : PREDICATE_COMPILE_QUICKCHECK =
@@ -423,11 +422,12 @@ val smart_exhaustive_active =
 val smart_slow_exhaustive_active =
   Attrib.setup_config_bool @{binding quickcheck_slow_smart_exhaustive_active} (K false)
 
-val setup =
-  Exhaustive_Generators.setup_exhaustive_datatype_interpretation
-  #> Context.theory_map (Quickcheck.add_tester ("smart_exhaustive",
-    (smart_exhaustive_active, test_goals (Predicate_Compile_Aux.Pos_Generator_CPS, false))))
-  #> Context.theory_map (Quickcheck.add_tester ("smart_slow_exhaustive",
-    (smart_slow_exhaustive_active, test_goals (Predicate_Compile_Aux.Pos_Generator_DSeq, false))))
+val _ =
+  Theory.setup
+   (Exhaustive_Generators.setup_exhaustive_datatype_interpretation #>
+    Context.theory_map (Quickcheck.add_tester ("smart_exhaustive",
+      (smart_exhaustive_active, test_goals (Predicate_Compile_Aux.Pos_Generator_CPS, false)))) #>
+    Context.theory_map (Quickcheck.add_tester ("smart_slow_exhaustive",
+      (smart_slow_exhaustive_active, test_goals (Predicate_Compile_Aux.Pos_Generator_DSeq, false)))))
 
 end

@@ -8,6 +8,4 @@ begin
 
 ML_file "../Tools/Predicate_Compile/predicate_compile_quickcheck.ML"
 
-setup {* Predicate_Compile_Quickcheck.setup *}
-
 end
