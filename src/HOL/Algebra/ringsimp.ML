@@ -3,16 +3,16 @@
 Normalisation method for locales ring and cring.
 *)
 
-signature ALGEBRA =
+signature RINGSIMP =
 sig
   val print_structures: Proof.context -> unit
-  val attrib_setup: theory -> theory
+  val add_struct: string * term list -> attribute
+  val del_struct: string * term list -> attribute
   val algebra_tac: Proof.context -> int -> tactic
 end;
 
-structure Algebra: ALGEBRA =
+structure Ringsimp: RINGSIMP =
 struct
-
 
 (** Theory and context data **)
 
@@ -56,19 +56,12 @@ fun algebra_tac ctxt =
 
 (** Attribute **)
 
-fun add_struct_thm s =
+fun add_struct s =
   Thm.declaration_attribute
     (fn thm => Data.map (AList.map_default struct_eq (s, []) (insert Thm.eq_thm_prop thm)));
 
 fun del_struct s =
   Thm.declaration_attribute
     (fn _ => Data.map (AList.delete struct_eq s));
-
-val attrib_setup =
-  Attrib.setup @{binding algebra}
-    (Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon || Scan.succeed true)
-      -- Scan.lift Args.name -- Scan.repeat Args.term
-      >> (fn ((b, n), ts) => if b then add_struct_thm (n, ts) else del_struct (n, ts)))
-    "theorems controlling algebra method";
 
 end;
