@@ -38,7 +38,7 @@ imports
   Lattice_Constructions
   Linear_Temporal_Logic_on_Streams
   ListVector
-  Lubs_Glbs
+  Lub_Glb
   Mapping
   Monad_Syntax
   More_List

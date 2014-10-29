@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Lubs_Glbs.thy
+(*  Title:      HOL/Library/Lub_Glb.thy
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Amine Chaieb, University of Cambridge *)
 
 header {* Definitions of Least Upper Bounds and Greatest Lower Bounds *}
 
-theory Lubs_Glbs
+theory Lub_Glb
 imports Complex_Main
 begin
 
