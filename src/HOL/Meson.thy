@@ -195,8 +195,6 @@ ML_file "Tools/Meson/meson.ML"
 ML_file "Tools/Meson/meson_clausify.ML"
 ML_file "Tools/Meson/meson_tactic.ML"
 
-setup {* Meson_Tactic.setup *}
-
 hide_const (open) COMBI COMBK COMBB COMBC COMBS skolem
 hide_fact (open) not_conjD not_disjD not_notD not_allD not_exD imp_to_disjD
     not_impD iff_to_disjD not_iffD not_refl_disj_D conj_exD1 conj_exD2 disj_exD
