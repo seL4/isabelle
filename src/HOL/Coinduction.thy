@@ -14,6 +14,4 @@ begin
 
 ML_file "Tools/coinduction.ML"
 
-setup Coinduction.setup
-
 end
