@@ -38,6 +38,6 @@ fun make_thm thy prop = make_thm_cterm (Thm.cterm_of thy prop);
 (* cheat_tac *)
 
 fun cheat_tac i st =
-  rtac (make_thm (Thm.theory_of_thm st) (Var (("A", 0), propT))) i st;
+  resolve_tac [make_thm (Thm.theory_of_thm st) (Var (("A", 0), propT))] i st;
 
 end;

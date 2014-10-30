@@ -1390,7 +1390,7 @@ fun rotate_rule k i state =
 
 (*Rotates a rule's premises to the left by k, leaving the first j premises
   unchanged.  Does nothing if k=0 or if k equals n-j, where n is the
-  number of premises.  Useful with etac and underlies defer_tac*)
+  number of premises.  Useful with eresolve_tac and underlies defer_tac*)
 fun permute_prems j k rl =
   let
     val Thm (der, {thy, maxidx, shyps, hyps, tpairs, prop, ...}) = rl;

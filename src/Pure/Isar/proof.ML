@@ -442,12 +442,12 @@ fun finish_tac _ 0 = K all_tac
       Goal.norm_hhf_tac ctxt THEN'
       SUBGOAL (fn (goal, i) =>
         if can Logic.unprotect (Logic.strip_assums_concl goal) then
-          etac Drule.protectI i THEN finish_tac ctxt (n - 1) i
+          eresolve_tac [Drule.protectI] i THEN finish_tac ctxt (n - 1) i
         else finish_tac ctxt (n - 1) (i + 1));
 
 fun goal_tac ctxt rule =
   Goal.norm_hhf_tac ctxt THEN'
-  rtac rule THEN'
+  resolve_tac [rule] THEN'
   finish_tac ctxt (Thm.nprems_of rule);
 
 fun FINDGOAL tac st =
@@ -886,7 +886,7 @@ fun implicit_vars props =
 fun refine_terms n =
   refine (Method.Basic (K (NO_CASES o
     K (HEADGOAL (PRECISE_CONJUNCTS n
-      (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI)))))))))
+      (HEADGOAL (CONJUNCTS (ALLGOALS (resolve_tac [Drule.termI])))))))))
   #> Seq.hd;
 
 in
