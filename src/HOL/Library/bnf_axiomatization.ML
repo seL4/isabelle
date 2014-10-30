@@ -105,7 +105,7 @@ fun read_constraint _ NONE = @{sort type}
 val bnf_axiomatization_cmd = prepare_decl Plugin_Name.make_filter read_constraint Syntax.read_typ;
 
 val parse_witTs =
-  @{keyword "["} |-- (Parse.short_ident --| @{keyword ":"} -- Scan.repeat Parse.typ
+  @{keyword "["} |-- (Parse.name --| @{keyword ":"} -- Scan.repeat Parse.typ
     >> (fn ("wits", Ts) => Ts
          | (s, _) => error ("Unknown label " ^ quote s ^ " (expected \"wits\")"))) --|
   @{keyword "]"} || Scan.succeed [];

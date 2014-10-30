@@ -289,8 +289,7 @@ fun consider_opt s =
 
 val parse_metis_options =
   Scan.optional
-      (Args.parens (Parse.short_ident
-                    -- Scan.option (@{keyword ","} |-- Parse.short_ident))
+      (Args.parens (Args.name -- Scan.option (@{keyword ","} |-- Args.name))
        >> (fn (s, s') =>
               (NONE, NONE) |> consider_opt s
                            |> (case s' of SOME s' => consider_opt s' | _ => I)))
