@@ -32,8 +32,8 @@ lemma binomial_Suc_Suc [simp]: "(Suc n choose Suc k) = (n choose k) + (n choose 
 
 lemma choose_reduce_nat: 
   "0 < (n::nat) \<Longrightarrow> 0 < k \<Longrightarrow>
-    (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
-  by (metis Suc_diff_1 binomial.simps(2) add.commute neq0_conv)
+    (n choose k) = ((n - 1) choose (k - 1)) + ((n - 1) choose k)"
+  by (metis Suc_diff_1 binomial.simps(2) neq0_conv)
 
 lemma binomial_eq_0: "n < k \<Longrightarrow> n choose k = 0"
   by (induct n arbitrary: k) auto
@@ -524,7 +524,6 @@ next
       using Suc
       apply auto
     done
-
   have "of_nat (fact (Suc k)) * (a gchoose k + (a gchoose (Suc k))) =
     ((a gchoose Suc h) * of_nat (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)"
     apply (simp add: Suc field_simps del: fact_Suc)
@@ -546,6 +545,10 @@ next
     unfolding gbinomial_mult_fact ..
   finally show ?thesis by (simp del: fact_Suc)
 qed
+
+lemma gbinomial_reduce_nat:
+  "0 < k \<Longrightarrow> (a::'a::field_char_0) gchoose k = (a - 1) gchoose (k - 1) + ((a - 1) gchoose k)"
+by (metis Suc_pred' diff_add_cancel gbinomial_Suc_Suc)
 
 
 lemma binomial_symmetric:
