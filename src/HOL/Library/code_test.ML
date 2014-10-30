@@ -348,7 +348,8 @@ fun mk_driver_polyml _ path _ value_name =
     {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
   end
 
-val evaluate_in_polyml = gen_driver mk_driver_polyml ISABELLE_POLYML "PolyML executable" polymlN
+fun evaluate_in_polyml ctxt =
+  gen_driver mk_driver_polyml ISABELLE_POLYML "PolyML executable" polymlN ctxt
 
 (* Driver for mlton *)
 
@@ -388,7 +389,8 @@ fun mk_driver_mlton _ path _ value_name =
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
   end
 
-val evaluate_in_mlton = gen_driver mk_driver_mlton ISABELLE_MLTON "MLton executable" mltonN
+fun evaluate_in_mlton ctxt =
+  gen_driver mk_driver_mlton ISABELLE_MLTON "MLton executable" mltonN ctxt
 
 (* Driver for SML/NJ *)
 
@@ -426,7 +428,8 @@ fun mk_driver_smlnj _ path _ value_name =
     {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
   end
 
-val evaluate_in_smlnj = gen_driver mk_driver_smlnj ISABELLE_SMLNJ "SMLNJ executable" smlnjN
+fun evaluate_in_smlnj ctxt =
+  gen_driver mk_driver_smlnj ISABELLE_SMLNJ "SMLNJ executable" smlnjN ctxt
 
 (* Driver for OCaml *)
 
@@ -466,7 +469,8 @@ fun mk_driver_ocaml _ path _ value_name =
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
   end
 
-val evaluate_in_ocaml = gen_driver mk_driver_ocaml ISABELLE_OCAMLC "ocamlc executable" ocamlN
+fun evaluate_in_ocaml ctxt =
+  gen_driver mk_driver_ocaml ISABELLE_OCAMLC "ocamlc executable" ocamlN ctxt
 
 (* Driver for GHC *)
 
@@ -510,7 +514,8 @@ fun mk_driver_ghc ctxt path modules value_name =
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = mk_code_file}
   end
 
-val evaluate_in_ghc = gen_driver mk_driver_ghc ISABELLE_GHC "GHC executable" ghcN
+fun evaluate_in_ghc ctxt =
+  gen_driver mk_driver_ghc ISABELLE_GHC "GHC executable" ghcN ctxt
 
 (* Driver for Scala *)
 
@@ -556,7 +561,8 @@ fun mk_driver_scala _ path _ value_name =
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
   end
 
-val evaluate_in_scala = gen_driver mk_driver_scala ISABELLE_SCALA "Scala directory" scalaN
+fun evaluate_in_scala ctxt =
+  gen_driver mk_driver_scala ISABELLE_SCALA "Scala directory" scalaN ctxt
 
 val test_codeP = Scan.repeat1 Parse.prop -- (@{keyword "in"} |-- Scan.repeat1 Parse.name)
 
