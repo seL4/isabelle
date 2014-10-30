@@ -230,7 +230,7 @@ class Pretty_Text_Area(
     key_pressed = (evt: KeyEvent) =>
       {
         evt.getKeyCode match {
-          case KeyEvent.VK_C
+          case KeyEvent.VK_C | KeyEvent.VK_INSERT
           if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 &&
               text_area.getSelectionCount != 0 =>
             Registers.copy(text_area, '$')
