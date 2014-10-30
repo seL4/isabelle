@@ -1692,7 +1692,10 @@ text {*
 *}
 
 definition NO_MATCH :: "'a \<Rightarrow> 'b \<Rightarrow> bool" where "NO_MATCH val pat \<equiv> True"
+
 lemma NO_MATCH_cong[cong]: "NO_MATCH val pat = NO_MATCH val pat" by (rule refl)
+
+declare [[coercion_args NO_MATCH - -]]
 
 simproc_setup NO_MATCH ("NO_MATCH val pat") = {* fn _ => fn ctxt => fn ct =>
   let
