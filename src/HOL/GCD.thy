@@ -584,8 +584,8 @@ proof -
   from dvdg dvdg' obtain ka kb ka' kb' where
       kab: "a = ?g * ka" "b = ?g * kb" "?a' = ?g' * ka'" "?b' = ?g' * kb'"
     unfolding dvd_def by blast
-  then have "?g * ?a' = (?g * ?g') * ka'" "?g * ?b' = (?g * ?g') * kb'"
-    by simp_all
+  from this [symmetric] have "?g * ?a' = (?g * ?g') * ka'" "?g * ?b' = (?g * ?g') * kb'"
+    by (simp_all add: mult.assoc mult.left_commute [of "gcd a b"])
   then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
     by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)]
       dvd_mult_div_cancel [OF dvdg(2)] dvd_def)

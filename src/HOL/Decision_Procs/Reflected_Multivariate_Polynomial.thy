@@ -790,7 +790,7 @@ next
     also have "\<dots> = (Ipoly bs p) ^ (Suc (Suc (Suc 0) * (Suc n div Suc (Suc 0))))"
       by (simp only: th)
     finally have ?case unfolding numeral_2_eq_2 [symmetric]
-    using odd_two_times_div_two_Suc [OF odd] by simp
+    using odd_two_times_div_two_nat [OF odd] by simp
   }
   moreover
   {

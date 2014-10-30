@@ -774,8 +774,8 @@ proof-
         unfolding mod_eq_0_iff by blast
       hence eq0: "(a^((n - 1) div p))^p = (n*s)^p" by simp
       from qrn[symmetric] have qn1: "q dvd n - 1" unfolding dvd_def by auto
-      from dvd_trans[OF p(2) qn1] div_mod_equality'[of "n - 1" p]
-      have npp: "(n - 1) div p * p = n - 1" by (simp add: dvd_eq_mod_eq_0)
+      from dvd_trans[OF p(2) qn1]
+      have npp: "(n - 1) div p * p = n - 1" by simp
       with eq0 have "a^ (n - 1) = (n*s)^p"
         by (simp add: power_mult[symmetric])
       hence "1 = (n*s)^(Suc (p - 1)) mod n" using bqn p01 by simp

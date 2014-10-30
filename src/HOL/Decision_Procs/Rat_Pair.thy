@@ -211,11 +211,7 @@ qed
 
 lemma of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
     (of_int(n div d)::'a::field_char_0) = of_int n / of_int d"
-  apply (frule of_int_div_aux [of d n, where ?'a = 'a])
-  apply simp
-  apply (simp add: dvd_eq_mod_eq_0)
-  done
-
+  using of_int_div_aux [of d n, where ?'a = 'a] by simp
 
 lemma normNum[simp]: "INum (normNum x) = (INum x :: 'a::{field_char_0, field_inverse_zero})"
 proof -

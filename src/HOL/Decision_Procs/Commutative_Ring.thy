@@ -269,7 +269,7 @@ proof (induct n arbitrary: P rule: less_induct)
         by (simp add: even_pow sqr_ci power_mult_distrib power_add [symmetric] mult_2 [symmetric] even_two_times_div_two)
     next
       case False with * show ?thesis
-        by (simp add: odd_pow mul_ci sqr_ci power_mult_distrib power_add [symmetric] mult_2 [symmetric] power_Suc [symmetric] odd_two_times_div_two_Suc)
+        by (simp add: odd_pow mul_ci sqr_ci power_mult_distrib power_add [symmetric] mult_2 [symmetric] power_Suc [symmetric])
     qed
   qed
 qed

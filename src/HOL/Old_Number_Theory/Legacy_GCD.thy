@@ -207,7 +207,8 @@ proof -
   from dvdg dvdg' obtain ka kb ka' kb' where
       kab: "a = ?g * ka" "b = ?g * kb" "?a' = ?g' * ka'" "?b' = ?g' * kb'"
     unfolding dvd_def by blast
-  then have "?g * ?a' = (?g * ?g') * ka'" "?g * ?b' = (?g * ?g') * kb'" by simp_all
+  from this(3-4) [symmetric] have "?g * ?a' = (?g * ?g') * ka'" "?g * ?b' = (?g * ?g') * kb'"
+    by (simp_all only: ac_simps mult.left_commute [of _ "gcd a b"])
   then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
     by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)]
       dvd_mult_div_cancel [OF dvdg(2)] dvd_def)
@@ -351,7 +352,7 @@ proof-
           hence "a * ((b - 1) * y) = d + (x*b*(b - 1) - d*b)" 
             by (simp only: diff_add_assoc[OF dble, of d, symmetric])
           hence "a * ((b - 1) * y) = b*(x*(b - 1) - d) + d"
-            by (simp only: diff_mult_distrib2 add.commute ac_simps)
+            by (simp only: diff_mult_distrib2 ac_simps)
           hence ?thesis using H(1,2)
             apply -
             apply (rule exI[where x=d], simp)
@@ -641,7 +642,8 @@ proof -
   from dvdg dvdg' obtain ka kb ka' kb' where
    kab: "a = ?g*ka" "b = ?g*kb" "?a' = ?g'*ka'" "?b' = ?g' * kb'"
     unfolding dvd_def by blast
-  then have "?g* ?a' = (?g * ?g') * ka'" "?g* ?b' = (?g * ?g') * kb'" by simp_all
+  from this(3-4) [symmetric] have "?g* ?a' = (?g * ?g') * ka'" "?g* ?b' = (?g * ?g') * kb'"
+    by (simp_all only: ac_simps mult.left_commute [of _ "zgcd a b"])
   then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
     by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)]
       dvd_mult_div_cancel [OF dvdg(2)] dvd_def)

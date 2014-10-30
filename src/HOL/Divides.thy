@@ -149,20 +149,24 @@ proof -
   note that ultimately show thesis by blast
 qed
 
-lemma dvd_eq_mod_eq_0 [code]: "a dvd b \<longleftrightarrow> b mod a = 0"
+lemma dvd_imp_mod_0 [simp]:
+  assumes "a dvd b"
+  shows "b mod a = 0"
+proof -
+  from assms obtain c where "b = a * c" ..
+  then have "b mod a = a * c mod a" by simp
+  then show "b mod a = 0" by simp
+qed
+  
+lemma dvd_eq_mod_eq_0 [code]:
+  "a dvd b \<longleftrightarrow> b mod a = 0"
 proof
   assume "b mod a = 0"
   with mod_div_equality [of b a] have "b div a * a = b" by simp
   then have "b = a * (b div a)" unfolding mult.commute ..
-  then have "\<exists>c. b = a * c" ..
-  then show "a dvd b" unfolding dvd_def .
+  then show "a dvd b" ..
 next
-  assume "a dvd b"
-  then have "\<exists>c. b = a * c" unfolding dvd_def .
-  then obtain c where "b = a * c" ..
-  then have "b mod a = a * c mod a" by simp
-  then have "b mod a = c * a mod a" by (simp add: mult.commute)
-  then show "b mod a = 0" by simp
+  assume "a dvd b" then show "b mod a = 0" by simp
 qed
 
 lemma mod_div_trivial [simp]: "a mod b div b = 0"
@@ -190,36 +194,37 @@ proof -
   finally show ?thesis .
 qed
 
-lemma dvd_imp_mod_0: "a dvd b \<Longrightarrow> b mod a = 0"
-by (rule dvd_eq_mod_eq_0[THEN iffD1])
+lemma dvd_div_mult_self [simp]:
+  "a dvd b \<Longrightarrow> (b div a) * a = b"
+  using mod_div_equality [of b a, symmetric] by simp
 
-lemma dvd_div_mult_self: "a dvd b \<Longrightarrow> (b div a) * a = b"
-by (subst (2) mod_div_equality [of b a, symmetric]) (simp add:dvd_imp_mod_0)
+lemma dvd_mult_div_cancel [simp]:
+  "a dvd b \<Longrightarrow> a * (b div a) = b"
+  using dvd_div_mult_self by (simp add: ac_simps)
 
-lemma dvd_mult_div_cancel: "a dvd b \<Longrightarrow> a * (b div a) = b"
-by (drule dvd_div_mult_self) (simp add: mult.commute)
+lemma dvd_div_mult:
+  "a dvd b \<Longrightarrow> (b div a) * c = (b * c) div a"
+  by (cases "a = 0") (auto elim!: dvdE simp add: mult.assoc)
 
-lemma dvd_div_mult: "a dvd b \<Longrightarrow> (b div a) * c = b * c div a"
-apply (cases "a = 0")
- apply simp
-apply (auto simp: dvd_def mult.assoc)
-done
-
-lemma div_dvd_div[simp]:
-  "a dvd b \<Longrightarrow> a dvd c \<Longrightarrow> (b div a dvd c div a) = (b dvd c)"
-apply (cases "a = 0")
- apply simp
+lemma div_dvd_div [simp]:
+  assumes "a dvd b" and "a dvd c"
+  shows "b div a dvd c div a \<longleftrightarrow> b dvd c"
+using assms apply (cases "a = 0")
+apply auto
 apply (unfold dvd_def)
 apply auto
  apply(blast intro:mult.assoc[symmetric])
 apply(fastforce simp add: mult.assoc)
 done
 
-lemma dvd_mod_imp_dvd: "[| k dvd m mod n;  k dvd n |] ==> k dvd m"
-  apply (subgoal_tac "k dvd (m div n) *n + m mod n")
-   apply (simp add: mod_div_equality)
-  apply (simp only: dvd_add dvd_mult)
-  done
+lemma dvd_mod_imp_dvd:
+  assumes "k dvd m mod n" and "k dvd n"
+  shows "k dvd m"
+proof -
+  from assms have "k dvd (m div n) * n + m mod n"
+    by (simp only: dvd_add dvd_mult)
+  then show ?thesis by (simp add: mod_div_equality)
+qed
 
 text {* Addition respects modular equivalence. *}
 
@@ -593,7 +598,7 @@ lemma even_two_times_div_two:
   "even a \<Longrightarrow> 2 * (a div 2) = a"
   by (fact dvd_mult_div_cancel)
 
-lemma odd_two_times_div_two_succ:
+lemma odd_two_times_div_two_succ [simp]:
   "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
   using mod_div_equality2 [of 2 a] by (simp add: even_iff_mod_2_eq_zero)
 
@@ -1528,9 +1533,13 @@ lemma odd_Suc_div_two [simp]:
   "odd n \<Longrightarrow> Suc n div 2 = Suc (n div 2)"
   using odd_succ_div_two [of n] by simp
 
-lemma odd_two_times_div_two_Suc:
-  "odd n \<Longrightarrow> Suc (2 * (n div 2)) = n"
+lemma odd_two_times_div_two_nat [simp]:
+  "odd n \<Longrightarrow> 2 * (n div 2) = n - (1 :: nat)"
   using odd_two_times_div_two_succ [of n] by simp
+
+lemma odd_Suc_minus_one [simp]:
+  "odd n \<Longrightarrow> Suc (n - Suc 0) = n"
+  by (auto elim: oddE)
 
 lemma parity_induct [case_names zero even odd]:
   assumes zero: "P 0"
@@ -1549,11 +1558,11 @@ proof (induct n rule: less_induct)
     proof (cases "even n")
       case True
       with hyp even [of "n div 2"] show ?thesis
-        by (simp add: dvd_mult_div_cancel)
+        by simp
     next
       case False
       with hyp odd [of "n div 2"] show ?thesis 
-        by (simp add: odd_two_times_div_two_Suc)
+        by simp
     qed
   qed
 qed

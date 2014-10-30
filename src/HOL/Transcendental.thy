@@ -203,7 +203,7 @@ proof (rule LIMSEQ_I)
       then show ?thesis by (auto simp add: even_two_times_div_two)
     next
       case False
-      then have eq: "Suc (2 * (m div 2)) = m" by (simp add: odd_two_times_div_two_Suc)
+      then have eq: "Suc (2 * (m div 2)) = m" by simp
       hence "even (2 * (m div 2))" using `odd m` by auto
       have "?SUM m = ?SUM (Suc (2 * (m div 2)))" unfolding eq ..
       also have "\<dots> = ?SUM (2 * (m div 2))" using `even (2 * (m div 2))` by auto

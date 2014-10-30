@@ -1132,12 +1132,10 @@ proof -
     by (auto simp add: add_divide_distrib algebra_simps)
 qed
 
-lemma real_of_int_div: "(d :: int) dvd n ==>
-    real(n div d) = real n / real d"
-  apply (subst real_of_int_div_aux)
-  apply simp
-  apply (simp add: dvd_eq_mod_eq_0)
-done
+lemma real_of_int_div:
+  fixes d n :: int
+  shows "d dvd n \<Longrightarrow> real (n div d) = real n / real d"
+  by (simp add: real_of_int_div_aux)
 
 lemma real_of_int_div2:
   "0 <= real (n::int) / real (x) - real (n div x)"
@@ -1391,12 +1389,15 @@ proof -
     by (rule dvd_mult_div_cancel)
   have "?gcd dvd n" .. then have gcd_l: "?gcd * ?l = n"
     by (rule dvd_mult_div_cancel)
-  from `n\<noteq>0` and gcd_l have "?l \<noteq> 0" by (auto iff del: neq0_conv)
+  from `n \<noteq> 0` and gcd_l
+  have "?gcd * ?l \<noteq> 0" by simp
+  then have "?l \<noteq> 0" by (blast dest!: mult_not_zero) 
   moreover
   have "\<bar>x\<bar> = real ?k / real ?l"
   proof -
     from gcd have "real ?k / real ?l =
-        real (?gcd * ?k) / real (?gcd * ?l)" by simp
+      real (?gcd * ?k) / real (?gcd * ?l)"
+      by (simp only: real_of_nat_mult) simp
     also from gcd_k and gcd_l have "\<dots> = real m / real n" by simp
     also from x_rat have "\<dots> = \<bar>x\<bar>" ..
     finally show ?thesis ..

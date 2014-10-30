@@ -1,4 +1,4 @@
-(* Author:     Johannes Hoelzl, TU Muenchen
+ (* Author:     Johannes Hoelzl, TU Muenchen
    Coercions removed by Dmitriy Traytel *)
 
 header {* Prove Real Valued Inequalities by Computation *}

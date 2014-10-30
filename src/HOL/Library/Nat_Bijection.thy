@@ -122,7 +122,7 @@ unfolding sum_decode_def sum_encode_def
 by (induct x) simp_all
 
 lemma sum_decode_inverse [simp]: "sum_encode (sum_decode n) = n"
-  by (simp add: even_two_times_div_two odd_two_times_div_two_Suc sum_decode_def sum_encode_def)
+  by (simp add: even_two_times_div_two sum_decode_def sum_encode_def)
 
 lemma inj_sum_encode: "inj_on sum_encode A"
 by (rule inj_on_inverseI, rule sum_encode_inverse)
@@ -269,12 +269,18 @@ lemma vimage_Suc_insert_Suc:
 by auto
 
 lemma div2_even_ext_nat:
-  "x div 2 = y div 2 \<Longrightarrow> even x \<longleftrightarrow> even y \<Longrightarrow> (x::nat) = y"
-apply (rule mod_div_equality [of x 2, THEN subst])
-apply (rule mod_div_equality [of y 2, THEN subst])
-apply (cases "even x")
-apply (simp_all add: even_iff_mod_2_eq_zero)
-done
+  fixes x y :: nat
+  assumes "x div 2 = y div 2"
+  and "even x \<longleftrightarrow> even y"
+  shows "x = y"
+proof -
+  from `even x \<longleftrightarrow> even y` have "x mod 2 = y mod 2"
+    by (simp only: even_iff_mod_2_eq_zero) auto
+  with assms have "x div 2 * 2 + x mod 2 = y div 2 * 2 + y mod 2"
+    by simp
+  then show ?thesis
+    by simp
+qed
 
 
 subsubsection {* From sets to naturals *}

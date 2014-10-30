@@ -73,8 +73,8 @@ proof -
   let ?a = "a div gcd a b"
   let ?b = "b div gcd a b"
   from `b \<noteq> 0` have "?b * gcd a b = b"
-    by (simp add: dvd_div_mult_self)
-  with `b \<noteq> 0` have "?b \<noteq> 0" by auto
+    by simp
+  with `b \<noteq> 0` have "?b \<noteq> 0" by fastforce
   from `q = Fract a b` `b \<noteq> 0` `?b \<noteq> 0` have q: "q = Fract ?a ?b"
     by (simp add: eq_rat dvd_div_mult mult.commute [of a])
   from `b \<noteq> 0` have coprime: "coprime ?a ?b"
@@ -253,7 +253,8 @@ next
   case False
   moreover have "b div gcd a b * gcd a b = b"
     by (rule dvd_div_mult_self) simp
-  ultimately have "b div gcd a b \<noteq> 0" by auto
+  ultimately have "b div gcd a b * gcd a b \<noteq> 0" by simp
+  then have "b div gcd a b \<noteq> 0" by fastforce
   with False show ?thesis by (simp add: eq_rat dvd_div_mult mult.commute [of a])
 qed
 

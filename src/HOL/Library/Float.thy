@@ -935,8 +935,7 @@ next
       unfolding normfloat_def
       using ceil_divide_floor_conv[of y x'] powr_realpow[of 2 "nat l"] `0 \<le> l` `y \<noteq> 0`
         l_def[symmetric, THEN meta_eq_to_obj_eq]
-      by transfer
-         (simp add: floor_divide_eq_div[symmetric] dvd_eq_mod_eq_0 round_up_def)
+      by transfer (auto simp add: floor_divide_eq_div [symmetric] round_up_def)
    next
     assume "\<not> 0 \<le> l"
     def y' \<equiv> "y * 2 ^ nat (- l)"
@@ -950,7 +949,7 @@ next
       using ceil_divide_floor_conv[of y' x] `\<not> 0 \<le> l` `y' \<noteq> 0` `y \<noteq> 0`
         l_def[symmetric, THEN meta_eq_to_obj_eq]
       by transfer
-         (simp add: round_up_def ceil_divide_floor_conv floor_divide_eq_div[symmetric] dvd_eq_mod_eq_0)
+         (auto simp add: round_up_def ceil_divide_floor_conv floor_divide_eq_div [symmetric])
   qed
 qed
 hide_fact (open) compute_rapprox_posrat
