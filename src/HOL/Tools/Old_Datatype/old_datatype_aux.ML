@@ -150,7 +150,7 @@ fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
           NONE => NONE
         | SOME u' => SOME (t |> getP |> snd |> head_of |> cert, cert u'))) (ts ~~ ts');
     val indrule' = cterm_instantiate insts indrule;
-  in rtac indrule' i end);
+  in resolve_tac [indrule'] i end);
 
 
 (* perform exhaustive case analysis on last parameter of subgoal i *)

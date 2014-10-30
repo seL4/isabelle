@@ -90,7 +90,7 @@ val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context=ctxt, ...} =>
               if Term.is_open arg then no_tac
               else ((DETERM o strip_cases o Induct.cases_tac ctxt false [[SOME arg]] NONE [])
                 THEN_ALL_NEW (rewrite_with_asm_tac ctxt 0)
-                THEN_ALL_NEW etac @{thm thin_rl}
+                THEN_ALL_NEW eresolve_tac @{thms thin_rl}
                 THEN_ALL_NEW (CONVERSION
                   (params_conv ~1 (fn ctxt' =>
                     arg_conv (arg_conv (abs_conv (K conv) ctxt'))) ctxt))) i
@@ -290,7 +290,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val rec_rule = let open Conv in
       Goal.prove lthy' (map (fst o dest_Free) args) [] eqn (fn _ =>
         CONVERSION ((arg_conv o arg1_conv o head_conv o rewr_conv) (mk_meta_eq unfold)) 1
-        THEN rtac @{thm refl} 1) end;
+        THEN resolve_tac @{thms refl} 1) end;
   in
     lthy'
     |> Local_Theory.note (eq_abinding, [rec_rule])

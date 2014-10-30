@@ -167,19 +167,19 @@ fun tryres (th, rls) =
           (rename_bound_vars_RS th rl handle THM _ => tryall rls)
   in  tryall rls  end;
 
-(* Special version of "rtac" that works around an explosion in the unifier.
+(* Special version of "resolve_tac" that works around an explosion in the unifier.
    If the goal has the form "?P c", the danger is that resolving it against a
    property of the form "... c ... c ... c ..." will lead to a huge unification
    problem, due to the (spurious) choices between projection and imitation. The
    workaround is to instantiate "?P := (%c. ... c ... c ... c ...)" manually. *)
-fun quant_rtac th i st =
+fun quant_resolve_tac th i st =
   case (concl_of st, prop_of th) of
     (@{const Trueprop} $ (Var _ $ (c as Free _)), @{const Trueprop} $ _) =>
     let
       val cc = cterm_of (theory_of_thm th) c
       val ct = Thm.dest_arg (cprop_of th)
-    in rtac th i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
-  | _ => rtac th i st
+    in resolve_tac [th] i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
+  | _ => resolve_tac [th] i st
 
 (*Permits forward proof from rules that discharge assumptions. The supplied proof state st,
   e.g. from conj_forward, should have the form
@@ -187,7 +187,7 @@ fun quant_rtac th i st =
   and the effect should be to instantiate ?P and ?Q with normalized versions of P' and Q'.*)
 fun forward_res ctxt nf st =
   let
-    fun tacf [prem] = quant_rtac (nf prem) 1
+    fun tacf [prem] = quant_resolve_tac (nf prem) 1
       | tacf prems =
         error (cat_lines
           ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:" ::
@@ -288,7 +288,7 @@ fun refl_clause th =
 fun forward_res2 nf hyps st =
   case Seq.pull
         (REPEAT
-         (Misc_Legacy.METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
+         (Misc_Legacy.METAHYPS (fn major::minors => resolve_tac [nf (minors @ hyps) major] 1) 1)
          st)
   of SOME(th,_) => th
    | NONE => raise THM("forward_res2", 0, [st]);
@@ -700,14 +700,14 @@ fun depth_prolog_tac horns =
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 fun skolemize_prems_tac ctxt prems =
-  cut_facts_tac (maps (try_skolemize_etc ctxt) prems) THEN' REPEAT o etac exE
+  cut_facts_tac (maps (try_skolemize_etc ctxt) prems) THEN' REPEAT o eresolve_tac [exE]
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
 fun MESON preskolem_tac mkcl cltac ctxt i st =
   SELECT_GOAL
     (EVERY [Object_Logic.atomize_prems_tac ctxt 1,
-            rtac @{thm ccontr} 1,
+            resolve_tac @{thms ccontr} 1,
             preskolem_tac,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
                       EVERY1 [skolemize_prems_tac ctxt negs,

@@ -531,7 +531,7 @@ fun copy_prems_tac [] ns i =
     if forall (curry (op =) 1) ns then all_tac else copy_prems_tac (rev ns) [] i
   | copy_prems_tac (1 :: ms) ns i = rotate_tac 1 i THEN copy_prems_tac ms (1 :: ns) i
   | copy_prems_tac (m :: ms) ns i =
-    etac copy_prem i THEN copy_prems_tac ms (m div 2 :: (m + 1) div 2 :: ns) i
+    eresolve_tac [copy_prem] i THEN copy_prems_tac ms (m div 2 :: (m + 1) div 2 :: ns) i
 
 (* Metis generates variables of the form _nnn. *)
 val is_metis_fresh_variable = String.isPrefix "_"
@@ -578,10 +578,10 @@ fun instantiate_forall_tac thy t i st =
         end
       | _ => raise Fail "expected a single non-zapped, non-Metis Var")
   in
-    (DETERM (etac @{thm allE} i THEN rotate_tac ~1 i) THEN PRIMITIVE do_instantiate) st
+    (DETERM (eresolve_tac @{thms allE} i THEN rotate_tac ~1 i) THEN PRIMITIVE do_instantiate) st
   end
 
-fun fix_exists_tac t = etac exE THEN' rename_tac [t |> dest_Var |> fst |> fst]
+fun fix_exists_tac t = eresolve_tac [exE] THEN' rename_tac [t |> dest_Var |> fst |> fst]
 
 fun release_quantifier_tac thy (skolem, t) =
   (if skolem then fix_exists_tac else instantiate_forall_tac thy) t
@@ -730,7 +730,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                        cat_lines (map string_of_subst_info substs))
 *)
 
-      fun cut_and_ex_tac axiom = cut_tac axiom 1 THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
+      fun cut_and_ex_tac axiom =
+        cut_tac axiom 1 THEN TRY (REPEAT_ALL_NEW (eresolve_tac @{thms exE}) 1)
       fun rotation_of_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
 
@@ -742,7 +743,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN copy_prems_tac (map snd ax_counts) [] 1)
             THEN release_clusters_tac thy ax_counts substs ordered_clusters 1
             THEN match_tac [prems_imp_false] 1
-            THEN ALLGOALS (fn i => rtac @{thm Meson.skolem_COMBK_I} i
+            THEN ALLGOALS (fn i => resolve_tac @{thms Meson.skolem_COMBK_I} i
               THEN rotate_tac (rotation_of_subgoal i) i
               THEN PRIMITIVE (unify_first_prem_with_concl thy i)
               THEN assume_tac i

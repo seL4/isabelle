@@ -314,95 +314,96 @@ val vimageE' =
 val collectI' = @{lemma "\<not> P a ==> a \<notin> {x. P x}" by auto}
 val collectE' = @{lemma "a \<notin> {x. P x} ==> (\<not> P a ==> Q) ==> Q" by auto}
 
-fun elim_Collect_tac ctxt = dtac @{thm iffD1[OF mem_Collect_eq]}
+fun elim_Collect_tac ctxt = dresolve_tac @{thms iffD1 [OF mem_Collect_eq]}
   THEN' (REPEAT_DETERM o (eresolve_tac @{thms exE}))
-  THEN' REPEAT_DETERM o etac @{thm conjE}
+  THEN' REPEAT_DETERM o eresolve_tac @{thms conjE}
   THEN' TRY o hyp_subst_tac ctxt;
 
-fun intro_image_tac ctxt = rtac @{thm image_eqI}
+fun intro_image_tac ctxt = resolve_tac @{thms image_eqI}
     THEN' (REPEAT_DETERM1 o
-      (rtac @{thm refl}
-      ORELSE' rtac
-        @{thm arg_cong2[OF refl, where f="op =", OF prod.case, THEN iffD2]}
+      (resolve_tac @{thms refl}
+      ORELSE' resolve_tac @{thms arg_cong2 [OF refl, where f = "op =", OF prod.case, THEN iffD2]}
       ORELSE' CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1
         (HOLogic.Trueprop_conv
           (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq case_prod_distrib)))))) ctxt)))
 
-fun elim_image_tac ctxt = etac @{thm imageE}
+fun elim_image_tac ctxt = eresolve_tac @{thms imageE}
   THEN' REPEAT_DETERM o CHANGED o
     (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.case})
-    THEN' REPEAT_DETERM o etac @{thm Pair_inject}
+    THEN' REPEAT_DETERM o eresolve_tac @{thms Pair_inject}
     THEN' TRY o hyp_subst_tac ctxt)
 
 fun tac1_of_formula ctxt (Int (fm1, fm2)) =
-    TRY o etac @{thm conjE}
-    THEN' rtac @{thm IntI}
+    TRY o eresolve_tac @{thms conjE}
+    THEN' resolve_tac @{thms IntI}
     THEN' (fn i => tac1_of_formula ctxt fm2 (i + 1))
     THEN' tac1_of_formula ctxt fm1
   | tac1_of_formula ctxt (Un (fm1, fm2)) =
-    etac @{thm disjE} THEN' rtac @{thm UnI1}
+    eresolve_tac @{thms disjE} THEN' resolve_tac @{thms UnI1}
     THEN' tac1_of_formula ctxt fm1
-    THEN' rtac @{thm UnI2}
+    THEN' resolve_tac @{thms UnI2}
     THEN' tac1_of_formula ctxt fm2
   | tac1_of_formula ctxt (Atom _) =
-    REPEAT_DETERM1 o (atac
-      ORELSE' rtac @{thm SigmaI}
-      ORELSE' ((rtac @{thm CollectI} ORELSE' rtac collectI') THEN'
+    REPEAT_DETERM1 o (assume_tac
+      ORELSE' resolve_tac @{thms SigmaI}
+      ORELSE' ((resolve_tac @{thms CollectI} ORELSE' resolve_tac [collectI']) THEN'
         TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]))
-      ORELSE' ((rtac @{thm vimageI2} ORELSE' rtac vimageI2') THEN'
+      ORELSE' ((resolve_tac @{thms vimageI2} ORELSE' resolve_tac [vimageI2']) THEN'
         TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]))
-      ORELSE' (rtac @{thm image_eqI} THEN'
+      ORELSE' (resolve_tac @{thms image_eqI} THEN'
     (REPEAT_DETERM o
-      (rtac @{thm refl}
-      ORELSE' rtac @{thm arg_cong2[OF refl, where f="op =", OF prod.case, THEN iffD2]})))
-      ORELSE' rtac @{thm UNIV_I}
-      ORELSE' rtac @{thm iffD2[OF Compl_iff]}
-      ORELSE' atac)
+      (resolve_tac @{thms refl}
+      ORELSE' resolve_tac @{thms arg_cong2[OF refl, where f = "op =", OF prod.case, THEN iffD2]})))
+      ORELSE' resolve_tac @{thms UNIV_I}
+      ORELSE' resolve_tac @{thms iffD2[OF Compl_iff]}
+      ORELSE' assume_tac)
 
 fun tac2_of_formula ctxt (Int (fm1, fm2)) =
-    TRY o etac @{thm IntE}
-    THEN' TRY o rtac @{thm conjI}
+    TRY o eresolve_tac @{thms IntE}
+    THEN' TRY o resolve_tac @{thms conjI}
     THEN' (fn i => tac2_of_formula ctxt fm2 (i + 1))
     THEN' tac2_of_formula ctxt fm1
   | tac2_of_formula ctxt (Un (fm1, fm2)) =
-    etac @{thm UnE} THEN' rtac @{thm disjI1}
+    eresolve_tac @{thms UnE} THEN' resolve_tac @{thms disjI1}
     THEN' tac2_of_formula ctxt fm1
-    THEN' rtac @{thm disjI2}
+    THEN' resolve_tac @{thms disjI2}
     THEN' tac2_of_formula ctxt fm2
   | tac2_of_formula ctxt (Atom _) =
     REPEAT_DETERM o
-      (atac
-       ORELSE' dtac @{thm iffD1[OF mem_Sigma_iff]}
-       ORELSE' etac @{thm conjE}
-       ORELSE' ((etac @{thm CollectE} ORELSE' etac collectE') THEN'
+      (assume_tac
+       ORELSE' dresolve_tac @{thms iffD1[OF mem_Sigma_iff]}
+       ORELSE' eresolve_tac @{thms conjE}
+       ORELSE' ((eresolve_tac @{thms CollectE} ORELSE' eresolve_tac [collectE']) THEN'
          TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]) THEN'
-         REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl})
-       ORELSE' (etac @{thm imageE}
+         REPEAT_DETERM o eresolve_tac @{thms Pair_inject} THEN' TRY o hyp_subst_tac ctxt THEN'
+         TRY o resolve_tac @{thms refl})
+       ORELSE' (eresolve_tac @{thms imageE}
          THEN' (REPEAT_DETERM o CHANGED o
          (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.case})
-         THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-         THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl})))
-       ORELSE' etac @{thm ComplE}
-       ORELSE' ((etac @{thm vimageE} ORELSE' etac vimageE')
+         THEN' REPEAT_DETERM o eresolve_tac @{thms Pair_inject}
+         THEN' TRY o hyp_subst_tac ctxt THEN' TRY o resolve_tac @{thms refl})))
+       ORELSE' eresolve_tac @{thms ComplE}
+       ORELSE' ((eresolve_tac @{thms vimageE} ORELSE' eresolve_tac [vimageE'])
         THEN' TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}])
-        THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl}))
+        THEN' TRY o hyp_subst_tac ctxt THEN' TRY o resolve_tac @{thms refl}))
 
 fun tac ctxt fm =
   let
-    val subset_tac1 = rtac @{thm subsetI}
+    val subset_tac1 = resolve_tac @{thms subsetI}
       THEN' elim_Collect_tac ctxt
       THEN' intro_image_tac ctxt
       THEN' tac1_of_formula ctxt fm
-    val subset_tac2 = rtac @{thm subsetI}
+    val subset_tac2 = resolve_tac @{thms subsetI}
       THEN' elim_image_tac ctxt
-      THEN' rtac @{thm iffD2[OF mem_Collect_eq]}
+      THEN' resolve_tac @{thms iffD2[OF mem_Collect_eq]}
       THEN' REPEAT_DETERM o resolve_tac @{thms exI}
-      THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
-      THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac ctxt) THEN' rtac @{thm refl}))))
+      THEN' (TRY o REPEAT_ALL_NEW (resolve_tac @{thms conjI}))
+      THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac ctxt) THEN' resolve_tac @{thms refl}))))
       THEN' (fn i => EVERY (rev (map_index (fn (j, f) =>
-        REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula ctxt f (i + j)) (strip_Int fm))))
+        REPEAT_DETERM (eresolve_tac @{thms IntE} (i + j)) THEN
+        tac2_of_formula ctxt f (i + j)) (strip_Int fm))))
   in
-    rtac @{thm subset_antisym} THEN' subset_tac1 THEN' subset_tac2
+    resolve_tac @{thms subset_antisym} THEN' subset_tac1 THEN' subset_tac2
   end;
 
 
@@ -429,18 +430,18 @@ fun comprehension_conv ctxt ct =
     fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (prop_of th))
     val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.case}
     fun tac ctxt = 
-      rtac @{thm set_eqI}
+      resolve_tac @{thms set_eqI}
       THEN' simp_tac (put_simpset HOL_basic_ss ctxt addsimps unfold_thms)
-      THEN' rtac @{thm iffI}
-      THEN' REPEAT_DETERM o rtac @{thm exI}
-      THEN' rtac @{thm conjI} THEN' rtac @{thm refl} THEN' atac
-      THEN' REPEAT_DETERM o etac @{thm exE}
-      THEN' etac @{thm conjE}
-      THEN' REPEAT_DETERM o etac @{thm Pair_inject}
+      THEN' resolve_tac @{thms iffI}
+      THEN' REPEAT_DETERM o resolve_tac @{thms exI}
+      THEN' resolve_tac @{thms conjI} THEN' resolve_tac @{thms refl} THEN' assume_tac
+      THEN' REPEAT_DETERM o eresolve_tac @{thms exE}
+      THEN' eresolve_tac @{thms conjE}
+      THEN' REPEAT_DETERM o eresolve_tac @{thms Pair_inject}
       THEN' Subgoal.FOCUS (fn {prems, ...} =>
         (* FIXME inner context!? *)
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps (filter is_eq prems)) 1) ctxt
-      THEN' TRY o atac
+      THEN' TRY o assume_tac
   in
     case try mk_term (term_of ct) of
       NONE => Thm.reflexive ct

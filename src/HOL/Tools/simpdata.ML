@@ -81,7 +81,7 @@ fun lift_meta_eq_to_obj_eq i st =
 (*Congruence rules for = (instead of ==)*)
 fun mk_meta_cong (_: Proof.context) rl = zero_var_indexes
   (let val rl' = Seq.hd (TRYALL (fn i => fn st =>
-     rtac (lift_meta_eq_to_obj_eq i st) i st) rl)
+     resolve_tac [lift_meta_eq_to_obj_eq i st] i st) rl)
    in mk_meta_eq rl' handle THM _ =>
      if can Logic.dest_equals (concl_of rl') then rl'
      else error "Conclusion of congruence rules must be =-equality"
@@ -119,7 +119,7 @@ fun unsafe_solver_tac ctxt =
     val sol_thms =
       reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt;
     fun sol_tac i =
-      FIRST [resolve_tac sol_thms i, atac i , etac @{thm FalseE} i] ORELSE
+      FIRST [resolve_tac sol_thms i, assume_tac i , eresolve_tac @{thms FalseE} i] ORELSE
       (match_tac intros THEN_ALL_NEW sol_tac) i
   in
     (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN' sol_tac

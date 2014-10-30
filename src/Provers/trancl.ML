@@ -545,7 +545,7 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
     let
       val SOME (_, _, rel', _) = decomp (term_of concl);
       val thms = map (prove thy rel' prems) prfs
-    in rtac (prove thy rel' thms prf) 1 end) ctxt n st
+    in resolve_tac [prove thy rel' thms prf] 1 end) ctxt n st
  end
  handle Cannot => Seq.empty);
 
@@ -564,7 +564,7 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
     let
       val SOME (_, _, rel', _) = decomp (term_of concl);
       val thms = map (prove thy rel' prems) prfs
-    in rtac (prove thy rel' thms prf) 1 end) ctxt n st
+    in resolve_tac [prove thy rel' thms prf] 1 end) ctxt n st
  end
  handle Cannot => Seq.empty | General.Subscript => Seq.empty);
 

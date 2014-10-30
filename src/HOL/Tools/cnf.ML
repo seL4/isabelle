@@ -141,7 +141,7 @@ fun clause2raw_thm clause =
       if i > nprems_of thm then
         thm
       else
-        not_disj_to_prem (i+1) (Seq.hd (REPEAT_DETERM (rtac clause2raw_not_disj i) thm))
+        not_disj_to_prem (i+1) (Seq.hd (REPEAT_DETERM (resolve_tac [clause2raw_not_disj] i) thm))
     (* moves all premises to hyps, i.e. "[...] |- A1 ==> ... ==> An ==> B" *)
     (* becomes "[..., A1, ..., An] |- B"                                   *)
     (* Thm.thm -> Thm.thm *)
@@ -154,7 +154,7 @@ fun clause2raw_thm clause =
     (* [...] |- ~x1 ==> ... ==> ~xn ==> False *)
     |> not_disj_to_prem 1
     (* [...] |- x1' ==> ... ==> xn' ==> False *)
-    |> Seq.hd o TRYALL (rtac clause2raw_not_not)
+    |> Seq.hd o TRYALL (resolve_tac [clause2raw_not_not])
     (* [..., x1', ..., xn'] |- False *)
     |> prems_to_hyps
   end;
@@ -529,7 +529,7 @@ fun make_cnfx_thm ctxt t =
 (* ------------------------------------------------------------------------- *)
 
 fun weakening_tac i =
-  dtac weakening_thm i THEN atac (i+1);
+  dresolve_tac [weakening_thm] i THEN assume_tac (i+1);
 
 (* ------------------------------------------------------------------------- *)
 (* cnf_rewrite_tac: converts all premises of the 'i'-th subgoal to CNF       *)

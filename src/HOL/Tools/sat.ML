@@ -406,7 +406,7 @@ fun rawsat_thm ctxt clauses =
 
 fun rawsat_tac ctxt i =
   Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
-    rtac (rawsat_thm ctxt' (map cprop_of prems)) 1) ctxt i;
+    resolve_tac [rawsat_thm ctxt' (map cprop_of prems)] 1) ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* pre_cnf_tac: converts the i-th subgoal                                    *)
@@ -421,7 +421,7 @@ fun rawsat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun pre_cnf_tac ctxt =
-  rtac @{thm ccontr} THEN'
+  resolve_tac @{thms ccontr} THEN'
   Object_Logic.atomize_prems_tac ctxt THEN'
   CONVERSION Drule.beta_eta_conversion;
 
@@ -433,7 +433,7 @@ fun pre_cnf_tac ctxt =
 (* ------------------------------------------------------------------------- *)
 
 fun cnfsat_tac ctxt i =
-  (etac FalseE i) ORELSE (REPEAT_DETERM (etac conjE i) THEN rawsat_tac ctxt i);
+  (eresolve_tac [FalseE] i) ORELSE (REPEAT_DETERM (eresolve_tac [conjE] i) THEN rawsat_tac ctxt i);
 
 (* ------------------------------------------------------------------------- *)
 (* cnfxsat_tac: checks if the empty clause "False" occurs among the          *)
@@ -443,8 +443,8 @@ fun cnfsat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun cnfxsat_tac ctxt i =
-  (etac FalseE i) ORELSE
-    (REPEAT_DETERM (etac conjE i ORELSE etac exE i) THEN rawsat_tac ctxt i);
+  (eresolve_tac [FalseE] i) ORELSE
+    (REPEAT_DETERM (eresolve_tac [conjE] i ORELSE eresolve_tac [exE] i) THEN rawsat_tac ctxt i);
 
 (* ------------------------------------------------------------------------- *)
 (* sat_tac: tactic for calling an external SAT solver, taking as input an    *)
