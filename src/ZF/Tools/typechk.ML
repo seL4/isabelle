@@ -99,7 +99,7 @@ val basic_res_tac = net_resolve_tac [@{thm TrueI}, @{thm refl}, reflexive_thm, @
 (*Instantiates variables in typing conditions.
   drawback: does not simplify conjunctions*)
 fun type_solver_tac ctxt hyps = SELECT_GOAL
-    (DEPTH_SOLVE (etac @{thm FalseE} 1
+    (DEPTH_SOLVE (eresolve_tac @{thms FalseE} 1
                   ORELSE basic_res_tac 1
                   ORELSE (ares_tac hyps 1
                           APPEND typecheck_step_tac (tcset_of ctxt))));

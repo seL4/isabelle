@@ -189,7 +189,7 @@ let
   val bnd_mono =
     Goal.prove_global thy1 [] [] (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs))
       (fn _ => EVERY
-        [rtac (@{thm Collect_subset} RS @{thm bnd_monoI}) 1,
+        [resolve_tac [@{thm Collect_subset} RS @{thm bnd_monoI}] 1,
          REPEAT (ares_tac (@{thms basic_monos} @ monos) 1)]);
 
   val dom_subset = Drule.export_without_context (big_rec_def RS Fp.subs);
@@ -218,13 +218,13 @@ let
     [DETERM (stac unfold 1),
      REPEAT (resolve_tac [@{thm Part_eqI}, @{thm CollectI}] 1),
      (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
-     rtac disjIn 2,
+     resolve_tac [disjIn] 2,
      (*Not ares_tac, since refl must be tried before equality assumptions;
        backtracking may occur if the premises have extra variables!*)
      DEPTH_SOLVE_1 (resolve_tac [@{thm refl}, @{thm exI}, @{thm conjI}] 2 APPEND assume_tac 2),
      (*Now solve the equations like Tcons(a,f) = Inl(?b4)*)
      rewrite_goals_tac ctxt con_defs,
-     REPEAT (rtac @{thm refl} 2),
+     REPEAT (resolve_tac @{thms refl} 2),
      (*Typechecking; this can fail*)
      if !Ind_Syntax.trace then print_tac ctxt "The type-checking subgoal:"
      else all_tac,
@@ -332,15 +332,15 @@ let
            setSolver (mk_solver "minimal"
                       (fn ctxt => resolve_tac (triv_rls @ Simplifier.prems_of ctxt)
                                    ORELSE' assume_tac
-                                   ORELSE' etac @{thm FalseE}));
+                                   ORELSE' eresolve_tac @{thms FalseE}));
 
      val quant_induct =
        Goal.prove_global thy1 [] ind_prems
          (FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp (big_rec_tm, pred)))
          (fn {context = ctxt, prems} => EVERY
            [rewrite_goals_tac ctxt part_rec_defs,
-            rtac (@{thm impI} RS @{thm allI}) 1,
-            DETERM (etac raw_induct 1),
+            resolve_tac [@{thm impI} RS @{thm allI}] 1,
+            DETERM (eresolve_tac [raw_induct] 1),
             (*Push Part inside Collect*)
             full_simp_tac (min_ss addsimps [@{thm Part_Collect}]) 1,
             (*This CollectE and disjE separates out the introduction rules*)
@@ -470,8 +470,8 @@ let
                       (mut_ss addsimps @{thms conj_simps} @ @{thms imp_simps} @ @{thms quant_simps}) 1
                    THEN
                    (*unpackage and use "prem" in the corresponding place*)
-                   REPEAT (rtac @{thm impI} 1)  THEN
-                   rtac (rewrite_rule ctxt all_defs prem) 1  THEN
+                   REPEAT (resolve_tac @{thms impI} 1)  THEN
+                   resolve_tac [rewrite_rule ctxt all_defs prem] 1  THEN
                    (*prem must not be REPEATed below: could loop!*)
                    DEPTH_SOLVE (FIRSTGOAL (ares_tac [@{thm impI}] ORELSE'
                                            eresolve_tac (@{thm conjE} :: @{thm mp} :: cmonos))))
@@ -483,7 +483,7 @@ let
          Goal.prove_global thy1 [] (map (induct_prem (rec_tms~~preds)) intr_tms)
            mutual_induct_concl
            (fn {context = ctxt, prems} => EVERY
-             [rtac (quant_induct RS lemma) 1,
+             [resolve_tac [quant_induct RS lemma] 1,
               mutual_ind_tac ctxt (rev prems) (length prems)])
        else @{thm TrueI};
 

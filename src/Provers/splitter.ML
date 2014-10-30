@@ -99,7 +99,7 @@ val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;  (* (P == Q) ==> Q ==> P *)
 val lift = Goal.prove_global Pure.thy ["P", "Q", "R"]
   [Syntax.read_prop_global Pure.thy "!!x :: 'b. Q(x) == R(x) :: 'c"]
   (Syntax.read_prop_global Pure.thy "P(%x. Q(x)) == P(%x. R(x))")
-  (fn {context = ctxt, prems} => rewrite_goals_tac ctxt prems THEN rtac reflexive_thm 1)
+  (fn {context = ctxt, prems} => rewrite_goals_tac ctxt prems THEN resolve_tac [reflexive_thm] 1)
 
 val _ $ _ $ (_ $ (_ $ abs_lift) $ _) = prop_of lift;
 
@@ -365,11 +365,11 @@ fun split_tac [] i = no_tac
                    (case apsns of
                       [] => compose_tac (false, inst_split Ts t tt thm TB state i, 0) i state
                     | p::_ => EVERY [lift_tac Ts t p,
-                                     rtac reflexive_thm (i+1),
+                                     resolve_tac [reflexive_thm] (i+1),
                                      lift_split_tac] state)
             end
   in COND (has_fewer_prems i) no_tac
-          (rtac meta_iffD i THEN lift_split_tac)
+          (resolve_tac [meta_iffD] i THEN lift_split_tac)
   end;
 
 in (split_tac, exported_split_posns) end;  (* mk_case_split_tac *)
@@ -400,16 +400,16 @@ fun split_asm_tac [] = K no_tac
       (* does not work properly if the split variable is bound by a quantifier *)
               fun flat_prems_tac i = SUBGOAL (fn (t,i) =>
                            (if first_prem_is_disj t
-                            then EVERY[etac Data.disjE i,rotate_tac ~1 i,
+                            then EVERY[eresolve_tac [Data.disjE] i, rotate_tac ~1 i,
                                        rotate_tac ~1  (i+1),
                                        flat_prems_tac (i+1)]
                             else all_tac)
                            THEN REPEAT (eresolve_tac [Data.conjE,Data.exE] i)
                            THEN REPEAT (dresolve_tac [Data.notnotD]   i)) i;
           in if n<0 then  no_tac  else (DETERM (EVERY'
-                [rotate_tac n, etac Data.contrapos2,
+                [rotate_tac n, eresolve_tac [Data.contrapos2],
                  split_tac splits,
-                 rotate_tac ~1, etac Data.contrapos, rotate_tac ~1,
+                 rotate_tac ~1, eresolve_tac [Data.contrapos], rotate_tac ~1,
                  flat_prems_tac] i))
           end;
   in SUBGOAL tac

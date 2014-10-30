@@ -488,8 +488,8 @@ fun TRACE ctxt rl tac i st =
 
 (*Resolution/matching tactics: if upd then the proof state may be updated.
   Matching makes the tactics more deterministic in the presence of Vars.*)
-fun emtac ctxt upd rl = TRACE ctxt rl (if upd then etac rl else ematch_tac [rl]);
-fun rmtac ctxt upd rl = TRACE ctxt rl (if upd then rtac rl else match_tac [rl]);
+fun emtac ctxt upd rl = TRACE ctxt rl (if upd then eresolve_tac [rl] else ematch_tac [rl]);
+fun rmtac ctxt upd rl = TRACE ctxt rl (if upd then resolve_tac [rl] else match_tac [rl]);
 
 (*Tableau rule from elimination rule.
   Flag "upd" says that the inference updated the branch.
@@ -624,7 +624,7 @@ fun negOfGoals pairs = map (fn (Gs,haz) => (map negOfGoal2 Gs, haz)) pairs;
 
 (*Tactic.  Convert *Goal* to negated assumption in FIRST position*)
 fun negOfGoal_tac ctxt i =
-  TRACE ctxt Data.ccontr (rtac Data.ccontr) i THEN rotate_tac ~1 i;
+  TRACE ctxt Data.ccontr (resolve_tac [Data.ccontr]) i THEN rotate_tac ~1 i;
 
 fun traceTerm ctxt t =
   let val thy = Proof_Context.theory_of ctxt

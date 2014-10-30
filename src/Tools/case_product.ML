@@ -70,9 +70,9 @@ fun case_product_tac ctxt prems struc thm1 thm2 =
     val (p_cons1 :: p_cons2 :: premss) = unflat struc prems
     val thm2' = thm2 OF p_cons2
   in
-    rtac (thm1 OF p_cons1)
+    resolve_tac [thm1 OF p_cons1]
      THEN' EVERY' (map (fn p =>
-       rtac thm2' THEN' EVERY' (map (Proof_Context.fact_tac ctxt o single) p)) premss)
+       resolve_tac [thm2'] THEN' EVERY' (map (Proof_Context.fact_tac ctxt o single) p)) premss)
   end
 
 fun combine ctxt thm1 thm2 =

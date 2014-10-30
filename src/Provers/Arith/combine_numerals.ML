@@ -83,7 +83,7 @@ fun proc ctxt t =
   in
     Option.map (export o Data.simplify_meta_eq ctxt)
       (Data.prove_conv
-         [Data.trans_tac reshape, rtac Data.left_distrib 1,
+         [Data.trans_tac reshape, resolve_tac [Data.left_distrib] 1,
           Data.numeral_simp_tac ctxt] ctxt
          (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end

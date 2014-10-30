@@ -65,7 +65,7 @@ lemmas mini_simps = demorgans nnf_simps ex_simps all_simps
 
 ML {*
 val mini_ss = simpset_of (@{context} addsimps @{thms mini_simps});
-fun mini_tac ctxt = rtac @{thm ccontr} THEN' asm_full_simp_tac (put_simpset mini_ss ctxt);
+fun mini_tac ctxt = resolve_tac @{thms ccontr} THEN' asm_full_simp_tac (put_simpset mini_ss ctxt);
 *}
 
 end

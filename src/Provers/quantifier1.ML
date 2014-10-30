@@ -126,10 +126,10 @@ fun prove_conv ctxt tu tac =
       yield_singleton (Variable.import_terms true) (Logic.mk_equals tu) ctxt;
     val thm =
       Goal.prove ctxt' [] [] goal
-        (fn {context = ctxt'', ...} => rtac Data.iff_reflection 1 THEN tac ctxt'');
+        (fn {context = ctxt'', ...} => resolve_tac [Data.iff_reflection] 1 THEN tac ctxt'');
   in singleton (Variable.export ctxt' ctxt) thm end;
 
-fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i);
+fun qcomm_tac qcomm qI i = REPEAT_DETERM (resolve_tac [qcomm] i THEN resolve_tac [qI] i);
 
 (* Proves (? x0..xn. ... & x0 = t & ...) = (? x1..xn x0. x0 = t & ... & ...)
    Better: instantiate exI
@@ -138,9 +138,10 @@ local
   val excomm = Data.ex_comm RS Data.iff_trans;
 in
   val prove_one_point_ex_tac =
-    qcomm_tac excomm Data.iff_exI 1 THEN rtac Data.iffI 1 THEN
+    qcomm_tac excomm Data.iff_exI 1 THEN resolve_tac [Data.iffI] 1 THEN
     ALLGOALS
-      (EVERY' [etac Data.exE, REPEAT_DETERM o etac Data.conjE, rtac Data.exI,
+      (EVERY' [eresolve_tac [Data.exE], REPEAT_DETERM o eresolve_tac [Data.conjE],
+        resolve_tac [Data.exI],
         DEPTH_SOLVE_1 o ares_tac [Data.conjI]])
 end;
 
@@ -150,12 +151,17 @@ end;
 local
   val tac =
     SELECT_GOAL
-      (EVERY1 [REPEAT o dtac Data.uncurry, REPEAT o rtac Data.impI, etac Data.mp,
-        REPEAT o etac Data.conjE, REPEAT o ares_tac [Data.conjI]]);
+      (EVERY1 [REPEAT o dresolve_tac [Data.uncurry],
+        REPEAT o resolve_tac [Data.impI],
+        eresolve_tac [Data.mp],
+        REPEAT o eresolve_tac [Data.conjE],
+        REPEAT o ares_tac [Data.conjI]]);
   val allcomm = Data.all_comm RS Data.iff_trans;
 in
   val prove_one_point_all_tac =
-    EVERY1 [qcomm_tac allcomm Data.iff_allI, rtac Data.iff_allI, rtac Data.iffI, tac, tac];
+    EVERY1 [qcomm_tac allcomm Data.iff_allI,
+      resolve_tac [Data.iff_allI],
+      resolve_tac [Data.iffI], tac, tac];
 end
 
 fun renumber l u (Bound i) =

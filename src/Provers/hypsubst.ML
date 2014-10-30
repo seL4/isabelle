@@ -126,7 +126,7 @@ val thin_free_eq_tac = SUBGOAL (fn (t, i) => let
      val (k, _) = eq_var false false false t
      val ok = (eq_var false false true t |> fst) > k
         handle EQ_VAR => true
-   in if ok then EVERY [rotate_tac k i, etac thin_rl i, rotate_tac (~k) i]
+   in if ok then EVERY [rotate_tac k i, eresolve_tac [thin_rl] i, rotate_tac (~k) i]
     else no_tac
    end handle EQ_VAR => no_tac)
 
@@ -151,11 +151,11 @@ in
         val (k, (orient, is_free)) = eq_var bnd true true Bi
         val hyp_subst_ctxt = empty_simpset ctxt |> Simplifier.set_mksimps (K (mk_eqs bnd))
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ctxt i,
-        if not is_free then etac thin_rl i
-          else if orient then etac Data.rev_mp i
-          else etac (Data.sym RS Data.rev_mp) i,
+        if not is_free then eresolve_tac [thin_rl] i
+          else if orient then eresolve_tac [Data.rev_mp] i
+          else eresolve_tac [Data.sym RS Data.rev_mp] i,
         rotate_tac (~k) i,
-        if is_free then rtac Data.imp_intr i else all_tac]
+        if is_free then resolve_tac [Data.imp_intr] i else all_tac]
       end handle THM _ => no_tac | EQ_VAR => no_tac)
 
 end;
@@ -194,7 +194,7 @@ fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
       end
   | NONE => no_tac);
 
-val imp_intr_tac = rtac Data.imp_intr;
+val imp_intr_tac = resolve_tac [Data.imp_intr];
 
 fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
 val dup_subst = rev_dup_elim ssubst
@@ -211,9 +211,9 @@ fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
           val rl = if orient then rl else Data.sym RS rl
       in
          DETERM
-           (EVERY [REPEAT_DETERM_N k (etac Data.rev_mp i),
+           (EVERY [REPEAT_DETERM_N k (eresolve_tac [Data.rev_mp] i),
                    rotate_tac 1 i,
-                   REPEAT_DETERM_N (n-k) (etac Data.rev_mp i),
+                   REPEAT_DETERM_N (n-k) (eresolve_tac [Data.rev_mp] i),
                    inst_subst_tac orient rl i,
                    REPEAT_DETERM_N n (imp_intr_tac i THEN rotate_tac ~1 i)])
       end
@@ -245,7 +245,7 @@ fun bound_hyp_subst_tac ctxt =
 fun reverse_n_tac 0 i = all_tac
   | reverse_n_tac 1 i = rotate_tac ~1 i
   | reverse_n_tac n i =
-      REPEAT_DETERM_N n (rotate_tac ~1 i THEN etac Data.rev_mp i) THEN
+      REPEAT_DETERM_N n (rotate_tac ~1 i THEN eresolve_tac [Data.rev_mp] i) THEN
       REPEAT_DETERM_N n (imp_intr_tac i THEN rotate_tac ~1 i);
 
 (*Use imp_intr, comparing the old hyps with the new ones as they come out.*)
@@ -279,9 +279,9 @@ fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
       in
          if trace then tracing "Substituting an equality" else ();
          DETERM
-           (EVERY [REPEAT_DETERM_N k (etac Data.rev_mp i),
+           (EVERY [REPEAT_DETERM_N k (eresolve_tac [Data.rev_mp] i),
                    rotate_tac 1 i,
-                   REPEAT_DETERM_N (n-k) (etac Data.rev_mp i),
+                   REPEAT_DETERM_N (n-k) (eresolve_tac [Data.rev_mp] i),
                    inst_subst_tac symopt (if symopt then ssubst else Data.subst) i,
                    all_imp_intr_tac hyps i])
       end
@@ -291,7 +291,7 @@ fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
   fails unless the substitution has an effect*)
 fun stac th =
   let val th' = th RS Data.rev_eq_reflection handle THM _ => th
-  in CHANGED_GOAL (rtac (th' RS ssubst)) end;
+  in CHANGED_GOAL (resolve_tac [th' RS ssubst]) end;
 
 
 (* method setup *)

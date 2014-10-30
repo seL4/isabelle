@@ -157,7 +157,7 @@ fun classical_rule rule =
       val rule'' =
         rule' |> ALLGOALS (SUBGOAL (fn (goal, i) =>
           if i = 1 orelse redundant_hyp goal
-          then etac thin_rl i
+          then eresolve_tac [thin_rl] i
           else all_tac))
         |> Seq.hd
         |> Drule.zero_var_indexes;
@@ -209,7 +209,7 @@ fun dup_elim th =  (* FIXME proper context!? *)
   let
     val rl = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
     val ctxt = Proof_Context.init_global (Thm.theory_of_thm rl);
-  in rule_by_tactic ctxt (TRYALL (etac revcut_rl)) rl end;
+  in rule_by_tactic ctxt (TRYALL (eresolve_tac [revcut_rl])) rl end;
 
 
 (**** Classical rule sets ****)
@@ -689,8 +689,8 @@ fun ctxt addbefore (name, tac1) =
 fun ctxt addafter (name, tac2) =
   ctxt addWrapper (name, fn ctxt => fn tac1 => tac1 APPEND' tac2 ctxt);
 
-fun ctxt addD2 (name, thm) = ctxt addafter (name, fn _ => dtac thm THEN' assume_tac);
-fun ctxt addE2 (name, thm) = ctxt addafter (name, fn _ => etac thm THEN' assume_tac);
+fun ctxt addD2 (name, thm) = ctxt addafter (name, fn _ => dresolve_tac [thm] THEN' assume_tac);
+fun ctxt addE2 (name, thm) = ctxt addafter (name, fn _ => eresolve_tac [thm] THEN' assume_tac);
 fun ctxt addSD2 (name, thm) = ctxt addSafter (name, fn _ => dmatch_tac [thm] THEN' eq_assume_tac);
 fun ctxt addSE2 (name, thm) = ctxt addSafter (name, fn _ => ematch_tac [thm] THEN' eq_assume_tac);
 
@@ -909,7 +909,7 @@ fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
     val ruleq = Drule.multi_resolves facts rules;
     val _ = Method.trace ctxt rules;
   in
-    fn st => Seq.maps (fn rule => rtac rule i st) ruleq
+    fn st => Seq.maps (fn rule => resolve_tac [rule] i st) ruleq
   end)
   THEN_ALL_NEW Goal.norm_hhf_tac ctxt;
 
