@@ -208,8 +208,8 @@ fun old_skolem_theorem_of_def ctxt rhs0 =
       |> Drule.beta_conv cabs |> Thm.apply cTrueprop
     fun tacf [prem] =
       rewrite_goals_tac ctxt @{thms skolem_def [abs_def]}
-      THEN rtac ((prem |> rewrite_rule ctxt @{thms skolem_def [abs_def]})
-                 RS Global_Theory.get_thm thy "Hilbert_Choice.someI_ex") 1
+      THEN resolve_tac [(prem |> rewrite_rule ctxt @{thms skolem_def [abs_def]})
+                 RS Global_Theory.get_thm thy "Hilbert_Choice.someI_ex"] 1
   in
     Goal.prove_internal ctxt [ex_tm] conc tacf
     |> forall_intr_list frees

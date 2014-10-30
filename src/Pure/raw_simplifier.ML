@@ -148,7 +148,7 @@ type rrule =
  {thm: thm,         (*the rewrite rule*)
   name: string,     (*name of theorem from which rewrite rule was extracted*)
   lhs: term,        (*the left-hand side*)
-  elhs: cterm,      (*the etac-contracted lhs*)
+  elhs: cterm,      (*the eta-contracted lhs*)
   extra: bool,      (*extra variables outside of elhs*)
   fo: bool,         (*use first-order matching*)
   perm: bool};      (*the rewrite rule is permutative*)

@@ -565,9 +565,9 @@ fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  in
   Subgoal.FOCUS (fn {prems, ...} =>
     let val thms = map (prove prems) prfs
-    in rtac (prove thms prf) 1 end) ctxt n st
+    in resolve_tac [prove thms prf] 1 end) ctxt n st
  end
- handle Contr p => Subgoal.FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n st
+ handle Contr p => Subgoal.FOCUS (fn {prems, ...} => resolve_tac [prove prems p] 1) ctxt n st
   | Cannot  => Seq.empty);
 
 
@@ -585,10 +585,10 @@ fun quasi_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  in
   Subgoal.FOCUS (fn {prems, ...} =>
     let val thms = map (prove prems) prfs
-    in rtac (prove thms prf) 1 end) ctxt n st
+    in resolve_tac [prove thms prf] 1 end) ctxt n st
  end
  handle Contr p =>
-    (Subgoal.FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n st
+    (Subgoal.FOCUS (fn {prems, ...} => resolve_tac [prove prems p] 1) ctxt n st
       handle General.Subscript => Seq.empty)
   | Cannot => Seq.empty
   | General.Subscript => Seq.empty);

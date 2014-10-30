@@ -71,10 +71,11 @@ to the front (and similarly for @{text "t=x"}):
 simproc_setup defined_Collect ("{x. P x & Q x}") = {*
   fn _ => Quantifier1.rearrange_Collect
     (fn _ =>
-      rtac @{thm Collect_cong} 1 THEN
-      rtac @{thm iffI} 1 THEN
+      resolve_tac @{thms Collect_cong} 1 THEN
+      resolve_tac @{thms iffI} 1 THEN
       ALLGOALS
-        (EVERY' [REPEAT_DETERM o etac @{thm conjE}, DEPTH_SOLVE_1 o ares_tac @{thms conjI}]))
+        (EVERY' [REPEAT_DETERM o eresolve_tac @{thms conjE},
+          DEPTH_SOLVE_1 o ares_tac @{thms conjI}]))
 *}
 
 lemmas CollectE = CollectD [elim_format]
@@ -382,7 +383,7 @@ text {*
 
 setup {*
   map_theory_claset (fn ctxt =>
-    ctxt addbefore ("bspec", fn _ => dtac @{thm bspec} THEN' assume_tac))
+    ctxt addbefore ("bspec", fn _ => dresolve_tac @{thms bspec} THEN' assume_tac))
 *}
 
 ML {*

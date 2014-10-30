@@ -258,14 +258,15 @@ fun transform_witness phi = map_witness (fn (t, th) => (Morphism.term phi t, Mor
 fun prove_witness ctxt t tac =
   Witness (t,
     Thm.close_derivation
-      (Goal.prove ctxt [] [] (mark_witness t) (fn _ => rtac Drule.protectI 1 THEN tac)));
+      (Goal.prove ctxt [] [] (mark_witness t)
+        (fn _ => resolve_tac [Drule.protectI] 1 THEN tac)));
 
 
 local
 
 val refine_witness =
   Proof.refine (Method.Basic (K (NO_CASES o
-    K (ALLGOALS (CONJUNCTS (ALLGOALS (CONJUNCTS (TRYALL (rtac Drule.protectI)))))))));
+    K (ALLGOALS (CONJUNCTS (ALLGOALS (CONJUNCTS (TRYALL (resolve_tac [Drule.protectI])))))))));
 
 fun gen_witness_proof proof after_qed wit_propss eq_props =
   let

@@ -107,7 +107,9 @@ val split_asm_tac = Splitter.split_asm_tac;
 val triv_rls = [@{thm TrueI}, @{thm refl}, reflexive_thm, @{thm iff_refl}, @{thm notFalseI}];
 
 fun unsafe_solver ctxt =
-  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ctxt), atac, etac @{thm FalseE}];
+  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ctxt),
+    assume_tac,
+    eresolve_tac @{thms FalseE}];
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver ctxt =

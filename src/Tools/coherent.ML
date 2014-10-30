@@ -215,7 +215,7 @@ and thm_of_case_prf ctxt goal asms ((params, prf), (_, asms')) =
 (** external interface **)
 
 fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context = ctxt', ...} =>
-  rtac (rulify_elim_conv ctxt' concl RS Drule.equal_elim_rule2) 1 THEN
+  resolve_tac [rulify_elim_conv ctxt' concl RS Drule.equal_elim_rule2] 1 THEN
   SUBPROOF (fn {prems = prems', concl, context = ctxt'', ...} =>
     let
       val xs =
@@ -227,7 +227,7 @@ fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context = ctxt
         valid ctxt'' (map (mk_rule ctxt'') (prems' @ prems @ rules)) (term_of concl)
           (mk_dom xs) Net.empty 0 0 of
         NONE => no_tac
-      | SOME prf => rtac (thm_of_cl_prf ctxt'' concl [] prf) 1)
+      | SOME prf => resolve_tac [thm_of_cl_prf ctxt'' concl [] prf] 1)
     end) ctxt' 1) ctxt;
 
 val _ = Theory.setup

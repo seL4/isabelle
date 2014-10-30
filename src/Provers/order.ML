@@ -1243,10 +1243,10 @@ in
   in
    Subgoal.FOCUS (fn {prems = asms, ...} =>
      let val thms = map (prove (prems @ asms)) prfs
-     in rtac (prove thms prf) 1 end) ctxt n st
+     in resolve_tac [prove thms prf] 1 end) ctxt n st
   end
   handle Contr p =>
-      (Subgoal.FOCUS (fn {prems = asms, ...} => rtac (prove asms p) 1) ctxt n st
+      (Subgoal.FOCUS (fn {prems = asms, ...} => resolve_tac [prove asms p] 1) ctxt n st
         handle General.Subscript => Seq.empty)
    | Cannot => Seq.empty
    | General.Subscript => Seq.empty)

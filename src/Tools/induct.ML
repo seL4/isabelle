@@ -512,7 +512,7 @@ fun cases_tac ctxt simp insts opt_rule facts =
         in
           CASES (Rule_Cases.make_common (thy,
               Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
-            ((Method.insert_tac more_facts THEN' rtac rule' THEN_ALL_NEW
+            ((Method.insert_tac more_facts THEN' resolve_tac [rule'] THEN_ALL_NEW
                 (if simp then TRY o trivial_tac else K all_tac)) i) st
         end)
   end;
@@ -683,7 +683,8 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   in
     (case goal_concl n [] goal of
       SOME concl =>
-        (compose_tac (false, spec_rule (goal_prefix n goal) concl, 1) THEN' rtac asm_rl) i
+        (compose_tac (false, spec_rule (goal_prefix n goal) concl, 1) THEN'
+          resolve_tac [asm_rl]) i
     | NONE => all_tac)
   end);
 
@@ -804,7 +805,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
               |> Seq.map (rule_instance ctxt (burrow_options (Variable.polymorphic ctxt) taking))
               |> Seq.maps (fn rule' =>
                 CASES (rule_cases ctxt rule' cases)
-                  (rtac rule' i THEN
+                  (resolve_tac [rule'] i THEN
                     PRIMITIVE (singleton (Proof_Context.export defs_ctxt ctxt))) st')))
       end)
       THEN_ALL_NEW_CASES
@@ -862,7 +863,7 @@ fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i, s
         |> Seq.maps (fn rule' =>
           CASES (Rule_Cases.make_common (thy,
               Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
-            (Method.insert_tac more_facts i THEN rtac rule' i) st))
+            (Method.insert_tac more_facts i THEN resolve_tac [rule'] i) st))
   end);
 
 end;

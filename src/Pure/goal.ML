@@ -293,7 +293,7 @@ fun precise_conjunction_tac 0 i = eq_assume_tac i
 
 val adhoc_conjunction_tac = REPEAT_ALL_NEW
   (SUBGOAL (fn (goal, i) =>
-    if can Logic.dest_conjunction goal then rtac Conjunction.conjunctionI i
+    if can Logic.dest_conjunction goal then resolve_tac [Conjunction.conjunctionI] i
     else no_tac));
 
 val conjunction_tac = SUBGOAL (fn (goal, i) =>
@@ -317,7 +317,7 @@ fun CONJUNCTS tac =
 (* hhf normal form *)
 
 fun norm_hhf_tac ctxt =
-  rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
+  resolve_tac [Drule.asm_rl]  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
   THEN' SUBGOAL (fn (t, i) =>
     if Drule.is_norm_hhf t then all_tac
     else rewrite_goal_tac ctxt Drule.norm_hhf_eqs i);
@@ -335,7 +335,7 @@ fun assume_rule_tac ctxt = norm_hhf_tac ctxt THEN' CSUBGOAL (fn (goal, i) =>
     val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';
     val Rs = filter (non_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
     val tacs = Rs |> map (fn R =>
-      etac (Raw_Simplifier.norm_hhf ctxt (Thm.trivial R)) THEN_ALL_NEW assume_tac);
+      eresolve_tac [Raw_Simplifier.norm_hhf ctxt (Thm.trivial R)] THEN_ALL_NEW assume_tac);
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
 
 end;

@@ -169,8 +169,8 @@ fun mk_names a 0 = []
   | mk_names a n = map (fn i => a ^ string_of_int i) (1 upto n);
 
 fun select_disj 1 1 = []
-  | select_disj _ 1 = [rtac disjI1]
-  | select_disj n i = rtac disjI2 :: select_disj (n - 1) (i - 1);
+  | select_disj _ 1 = [resolve_tac [disjI1]]
+  | select_disj n i = resolve_tac [disjI2] :: select_disj (n - 1) (i - 1);
 
 
 
@@ -378,12 +378,13 @@ fun prove_mono quiet_mode skip_mono predT fp_fun monos ctxt =
     [] []
     (HOLogic.mk_Trueprop
       (Const (@{const_name Orderings.mono}, (predT --> predT) --> HOLogic.boolT) $ fp_fun))
-    (fn _ => EVERY [rtac @{thm monoI} 1,
+    (fn _ => EVERY [resolve_tac @{thms monoI} 1,
       REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI'}] 1),
       REPEAT (FIRST
-        [atac 1,
+        [assume_tac 1,
          resolve_tac (map (mk_mono ctxt) monos @ get_monos ctxt) 1,
-         etac @{thm le_funE} 1, dtac @{thm le_boolD} 1])]));
+         eresolve_tac @{thms le_funE} 1,
+         dresolve_tac @{thms le_boolD} 1])]));
 
 
 (* prove introduction rules *)
@@ -401,7 +402,7 @@ fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt'
     val intrs = map_index (fn (i, intr) =>
       Goal.prove_sorry ctxt [] [] intr (fn _ => EVERY
        [rewrite_goals_tac ctxt rec_preds_defs,
-        rtac (unfold RS iffD2) 1,
+        resolve_tac [unfold RS iffD2] 1,
         EVERY1 (select_disj (length intr_ts) (i + 1)),
         (*Not ares_tac, since refl must be tried before any equality assumptions;
           backtracking may occur if the premises have extra variables!*)
@@ -447,7 +448,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
           (fn {context = ctxt4, prems} => EVERY
             [cut_tac (hd prems) 1,
              rewrite_goals_tac ctxt4 rec_preds_defs,
-             dtac (unfold RS iffD1) 1,
+             dresolve_tac [unfold RS iffD1] 1,
              REPEAT (FIRSTGOAL (eresolve_tac rules1)),
              REPEAT (FIRSTGOAL (eresolve_tac rules2)),
              EVERY (map (fn prem =>
@@ -494,37 +495,39 @@ fun prove_eqs quiet_mode cs params intr_ts intrs
         val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
         fun prove_intr1 (i, _) = Subgoal.FOCUS_PREMS (fn {params, prems, ...} =>
             EVERY1 (select_disj (length c_intrs) (i + 1)) THEN
-            EVERY (replicate (length params) (rtac @{thm exI} 1)) THEN
-            (if null prems then rtac @{thm TrueI} 1
+            EVERY (replicate (length params) (resolve_tac @{thms exI} 1)) THEN
+            (if null prems then resolve_tac @{thms TrueI} 1
              else
               let
                 val (prems', last_prem) = split_last prems;
               in
-                EVERY (map (fn prem => (rtac @{thm conjI} 1 THEN rtac prem 1)) prems') THEN
-                rtac last_prem 1
+                EVERY (map (fn prem =>
+                  (resolve_tac @{thms conjI} 1 THEN resolve_tac [prem] 1)) prems') THEN
+                resolve_tac [last_prem] 1
               end)) ctxt' 1;
         fun prove_intr2 (((_, _, us, _), ts, params'), intr) =
-          EVERY (replicate (length params') (etac @{thm exE} 1)) THEN
-          (if null ts andalso null us then rtac intr 1
+          EVERY (replicate (length params') (eresolve_tac @{thms exE} 1)) THEN
+          (if null ts andalso null us then resolve_tac [intr] 1
            else
-            EVERY (replicate (length ts + length us - 1) (etac @{thm conjE} 1)) THEN
+            EVERY (replicate (length ts + length us - 1) (eresolve_tac @{thms conjE} 1)) THEN
             Subgoal.FOCUS_PREMS (fn {context = ctxt'', params, prems, ...} =>
               let
                 val (eqs, prems') = chop (length us) prems;
                 val rew_thms = map (fn th => th RS @{thm eq_reflection}) eqs;
               in
                 rewrite_goal_tac ctxt'' rew_thms 1 THEN
-                rtac intr 1 THEN
-                EVERY (map (fn p => rtac p 1) prems')
+                resolve_tac [intr] 1 THEN
+                EVERY (map (fn p => resolve_tac [p] 1) prems')
               end) ctxt' 1);
       in
         Goal.prove_sorry ctxt' [] [] eq (fn _ =>
-          rtac @{thm iffI} 1 THEN etac (#1 elim) 1 THEN
+          resolve_tac @{thms iffI} 1 THEN
+          eresolve_tac [#1 elim] 1 THEN
           EVERY (map_index prove_intr1 c_intrs) THEN
-          (if null c_intrs then etac @{thm FalseE} 1
+          (if null c_intrs then eresolve_tac @{thms FalseE} 1
            else
             let val (c_intrs', last_c_intr) = split_last c_intrs in
-              EVERY (map (fn ci => etac @{thm disjE} 1 THEN prove_intr2 ci) c_intrs') THEN
+              EVERY (map (fn ci => eresolve_tac @{thms disjE} 1 THEN prove_intr2 ci) c_intrs') THEN
               prove_intr2 last_c_intr
             end))
         |> rulify ctxt'
@@ -729,16 +732,16 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
     val induct = Goal.prove_sorry ctxt'' [] ind_prems ind_concl
       (fn {context = ctxt3, prems} => EVERY
         [rewrite_goals_tac ctxt3 [inductive_conj_def],
-         DETERM (rtac raw_fp_induct 1),
+         DETERM (resolve_tac [raw_fp_induct] 1),
          REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI}] 1),
          rewrite_goals_tac ctxt3 simp_thms2,
          (*This disjE separates out the introduction rules*)
          REPEAT (FIRSTGOAL (eresolve_tac [disjE, exE, FalseE])),
          (*Now break down the individual cases.  No disjE here in case
            some premise involves disjunction.*)
-         REPEAT (FIRSTGOAL (etac conjE ORELSE' bound_hyp_subst_tac ctxt3)),
+         REPEAT (FIRSTGOAL (eresolve_tac [conjE] ORELSE' bound_hyp_subst_tac ctxt3)),
          REPEAT (FIRSTGOAL
-           (resolve_tac [conjI, impI] ORELSE' (etac notE THEN' atac))),
+           (resolve_tac [conjI, impI] ORELSE' (eresolve_tac [notE] THEN' assume_tac))),
          EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [rewrite_rule ctxt3
              (inductive_conj_def :: rec_preds_defs @ simp_thms2) prem,
            conjI, refl] 1)) prems)]);
@@ -749,9 +752,9 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
          REPEAT (EVERY
            [REPEAT (resolve_tac [conjI, impI] 1),
             REPEAT (eresolve_tac [@{thm le_funE}, @{thm le_boolE}] 1),
-            atac 1,
+            assume_tac 1,
             rewrite_goals_tac ctxt3 simp_thms1,
-            atac 1])]);
+            assume_tac 1])]);
 
   in singleton (Proof_Context.export ctxt'' ctxt''') (induct RS lemma) end;
 

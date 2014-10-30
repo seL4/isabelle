@@ -37,7 +37,7 @@ fun DELETE_PREMS_AFTER skip tac i st =
   let
     val n = nth (prems_of st) (i - 1) |> Logic.strip_assums_hyp |> length;
   in
-    (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o etac thin_rl)) i st
+    (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o eresolve_tac [thin_rl])) i st
   end;
 
 fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (fn (goal, _, _) =>
@@ -87,13 +87,15 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (f
           val e = length eqs;
           val p = length prems;
         in
-          HEADGOAL (EVERY' [rtac thm,
+          HEADGOAL (EVERY' [resolve_tac [thm],
             EVERY' (map (fn var =>
-              rtac (cterm_instantiate_pos [NONE, SOME (certify ctxt var)] exI)) vars),
-            if p = 0 then CONJ_WRAP' (K (rtac refl)) eqs
-            else REPEAT_DETERM_N e o (rtac conjI THEN' rtac refl) THEN' CONJ_WRAP' rtac prems,
+              resolve_tac [cterm_instantiate_pos [NONE, SOME (certify ctxt var)] exI]) vars),
+            if p = 0 then CONJ_WRAP' (K (resolve_tac [refl])) eqs
+            else
+              REPEAT_DETERM_N e o (resolve_tac [conjI] THEN' resolve_tac [refl]) THEN'
+              CONJ_WRAP' (resolve_tac o single) prems,
             K (ALLGOALS_SKIP skip
-               (REPEAT_DETERM_N (length vars) o (etac exE THEN' rotate_tac ~1) THEN'
+               (REPEAT_DETERM_N (length vars) o (eresolve_tac [exE] THEN' rotate_tac ~1) THEN'
                DELETE_PREMS_AFTER 0 (Subgoal.FOCUS (fn {prems, params, context = ctxt, ...} =>
                  (case prems of
                    [] => all_tac

@@ -181,7 +181,7 @@ fun distinct_subgoals_tac state =
 
 (*The conclusion of the rule gets assumed in subgoal i,
   while subgoal i+1,... are the premises of the rule.*)
-fun cut_tac rule i = rtac cut_rl i THEN rtac rule (i + 1);
+fun cut_tac rule i = resolve_tac [cut_rl] i THEN resolve_tac [rule] (i + 1);
 
 (*"Cut" a list of rules into the goal.  Their premises will become new
   subgoals.*)
@@ -327,7 +327,7 @@ fun filter_prems_tac p =
         | Then (SOME tac) tac' = SOME(tac THEN' tac');
       fun thins H (tac,n) =
         if p H then (tac,n+1)
-        else (Then tac (rotate_tac n THEN' etac thin_rl),0);
+        else (Then tac (rotate_tac n THEN' eresolve_tac [thin_rl]),0);
   in SUBGOAL(fn (subg,n) =>
        let val Hs = Logic.strip_assums_hyp subg
        in case fst(fold thins Hs (NONE,0)) of

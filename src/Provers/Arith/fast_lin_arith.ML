@@ -815,7 +815,7 @@ fun refute_tac ctxt (i, split_neq, justs) =
           all_tac) THEN
           PRIMITIVE (trace_thm ctxt ["State after neqE:"]) THEN
           (* use theorems generated from the actual justifications *)
-          Subgoal.FOCUS (fn {prems, ...} => rtac (mkthm ctxt prems j) 1) ctxt i
+          Subgoal.FOCUS (fn {prems, ...} => resolve_tac [mkthm ctxt prems j] 1) ctxt i
     in
       (* rewrite "[| A1; ...; An |] ==> B" to "[| A1; ...; An; ~B |] ==> False" *)
       DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i) THEN

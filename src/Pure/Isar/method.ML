@@ -100,7 +100,7 @@ val succeed = METHOD (K all_tac);
 local
 
 fun cut_rule_tac rule =
-  rtac (Drule.forall_intr_vars rule COMP_INCR revcut_rl);
+  resolve_tac [Drule.forall_intr_vars rule COMP_INCR revcut_rl];
 
 in
 
@@ -147,7 +147,7 @@ fun atomize false ctxt =
 
 (* this -- resolve facts directly *)
 
-val this = METHOD (EVERY o map (HEADGOAL o rtac));
+val this = METHOD (EVERY o map (HEADGOAL o resolve_tac o single));
 
 
 (* fact -- composition by facts from context *)
@@ -162,7 +162,7 @@ local
 
 fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
   if cond (Logic.strip_assums_concl prop)
-  then rtac rule i else no_tac);
+  then resolve_tac [rule] i else no_tac);
 
 in
 
