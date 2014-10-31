@@ -734,34 +734,12 @@ val _ =
 
 
 
-(** nested commands **)
-
-val props_text =
-  Scan.optional Parse.properties [] -- Parse.position Parse.string
-  >> (fn (props, (str, pos)) =>
-      (Position.of_properties (Position.default_properties pos props), str));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "Isabelle.command"} "evaluate nested Isabelle command"
-    (props_text :|-- (fn (pos, str) =>
-      (case Outer_Syntax.parse (Outer_Syntax.get_syntax ()) pos str of
-        [tr] => Scan.succeed (K tr)
-      | _ => Scan.fail_with (K (fn () => "exactly one command expected")))
-      handle ERROR msg => Scan.fail_with (K (fn () => msg))));
-
-
-
 (** diagnostic commands (for interactive mode only) **)
 
 val opt_modes =
   Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
 
 val opt_bang = Scan.optional (@{keyword "!"} >> K true) false;
-
-val _ = (*Proof General legacy*)
-  Outer_Syntax.improper_command @{command_spec "pretty_setmargin"}
-    "change default margin for pretty printing"
-    (Parse.nat >> (fn n => Toplevel.imperative (fn () => Pretty.margin_default := n)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "help"}
@@ -890,13 +868,6 @@ val _ =
     (Scan.succeed Isar_Cmd.locale_deps);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_binds"}
-    "print term bindings of proof context -- Proof General legacy"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep
-        (Pretty.writeln_chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of)));
-
-val _ =
   Outer_Syntax.improper_command @{command_spec "print_term_bindings"}
     "print term bindings of proof context"
     (Scan.succeed (Toplevel.unknown_context o
@@ -966,7 +937,7 @@ val _ =
     "kill theory -- try to remove from loader database"
     (Parse.name >> (fn name => Toplevel.imperative (fn () => Thy_Info.kill_thy name)));
 
-val _ = (*partial Proof General legacy*)
+val _ =
   Outer_Syntax.improper_command @{command_spec "display_drafts"}
     "display raw source files with symbols"
     (Scan.repeat1 Parse.path >> (fn names =>
@@ -976,25 +947,6 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "print_state"}
     "print current proof state (if present)"
     (opt_modes >> (fn modes => Toplevel.keep (Print_Mode.with_modes modes Toplevel.print_state)));
-
-val _ = (*Proof General legacy, e.g. for ProofGeneral-3.7.x*)
-  Outer_Syntax.improper_command @{command_spec "pr"} "print current proof state (if present)"
-    (opt_modes -- Scan.option Parse.nat >> (fn (modes, limit) =>
-      Toplevel.keep (fn state =>
-       (if Isabelle_Process.is_active () then error "Illegal TTY command" else ();
-        case limit of NONE => () | SOME n => Options.default_put_int @{system_option goals_limit} n;
-        Toplevel.quiet := false;
-        Print_Mode.with_modes modes Toplevel.print_state state))));
-
-val _ = (*Proof General legacy*)
-  Outer_Syntax.improper_command @{command_spec "disable_pr"}
-    "disable printing of toplevel state"
-    (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := true)));
-
-val _ = (*Proof General legacy*)
-  Outer_Syntax.improper_command @{command_spec "enable_pr"}
-    "enable printing of toplevel state"
-    (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := false)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "commit"}
@@ -1040,13 +992,6 @@ val _ =
     (Scan.optional Parse.nat 1 >> (fn n =>
       Toplevel.keep (fn state =>
         if Toplevel.is_proof state then (Isar.undo n; Isar.print ()) else raise Toplevel.UNDEF)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "cannot_undo"}
-    "partial undo -- Proof General legacy"
-    (Parse.name >>
-      (fn "end" => Toplevel.imperative (fn () => Isar.undo 1)
-        | txt => Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt))));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "kill"}
