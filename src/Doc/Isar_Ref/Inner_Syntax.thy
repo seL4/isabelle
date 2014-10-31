@@ -151,8 +151,7 @@ text \<open>
   and sort constraints.  This enables Prover IDE users to retrieve
   that information via tooltips or popups while hovering with the
   mouse over the output window, for example.  Consequently, this
-  option is enabled by default for Isabelle/jEdit, but disabled for
-  TTY and Proof~General~/Emacs where document markup would not work.
+  option is enabled by default for Isabelle/jEdit.
 
   \item @{attribute show_types} and @{attribute show_sorts} control
   printing of type constraints for term variables, and sort
@@ -274,12 +273,6 @@ text \<open>
 
   \end{description}
 
-  \begin{warn}
-  The old global reference @{ML print_mode} should never be used
-  directly in applications.  Its main reason for being publicly
-  accessible is to support historic versions of Proof~General.
-  \end{warn}
-
   \medskip The pretty printer for inner syntax maintains alternative
   mixfix productions for any print mode name invented by the user, say
   in commands like @{command notation} or @{command abbreviation}.
@@ -299,9 +292,7 @@ text \<open>
 
   \item @{verbatim xsymbols}: enable proper mathematical symbols
   instead of ASCII art.\footnote{This traditional mode name stems from
-  the ``X-Symbol'' package for old versions Proof~General with XEmacs,
-  although that package has been superseded by Unicode in recent
-  years.}
+  the ``X-Symbol'' package for classic Proof~General with XEmacs.}
 
   \item @{verbatim HTML}: additional mode that is active in HTML
   presentation of Isabelle theory sources; allows to provide

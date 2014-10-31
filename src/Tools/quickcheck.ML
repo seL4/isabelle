@@ -90,16 +90,6 @@ val noneN = "none";
 val unknownN = "unknown";
 
 
-(* preferences *)
-
-val _ =
-  ProofGeneral.preference_option ProofGeneral.category_tracing
-    NONE
-    @{system_option auto_quickcheck}
-    "auto-quickcheck"
-    "Run Quickcheck automatically";
-
-
 (* quickcheck report *)
 
 datatype report = Report of

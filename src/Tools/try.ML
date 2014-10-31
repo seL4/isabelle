@@ -27,16 +27,6 @@ type tool =
 val tryN = "try"
 
 
-(* preferences *)
-
-val _ =
-  ProofGeneral.preference_option ProofGeneral.category_tracing
-    (SOME "4.0")
-    @{system_option auto_time_limit}
-    "auto-try-time-limit"
-    "Time limit for automatically tried tools (in seconds)"
-
-
 (* helpers *)
 
 fun serial_commas _ [] = ["??"]

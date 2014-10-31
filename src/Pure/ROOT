@@ -211,7 +211,6 @@ session Pure =
     "Tools/build.ML"
     "Tools/named_thms.ML"
     "Tools/plugin.ML"
-    "Tools/proof_general.ML"
     "assumption.ML"
     "axclass.ML"
     "config.ML"

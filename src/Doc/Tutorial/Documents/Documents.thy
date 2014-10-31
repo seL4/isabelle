@@ -102,9 +102,8 @@ text {*
   Here $ident$ is any sequence of letters. 
   This results in an infinite store of symbols, whose
   interpretation is left to further front-end tools.  For example, the
-  user-interface of Proof~General + X-Symbol and the Isabelle document
-  processor (see \S\ref{sec:document-preparation}) display the
-  \verb,\,\verb,<forall>, symbol as~@{text \<forall>}.
+  Isabelle document processor (see \S\ref{sec:document-preparation})
+  display the \verb,\,\verb,<forall>, symbol as~@{text \<forall>}.
 
   A list of standard Isabelle symbols is given in
   @{cite "isabelle-isar-ref"}.  You may introduce your own
@@ -147,12 +146,7 @@ setup {* Sign.local_path *}
 (*>*)
 
 text {*
-  \noindent Proof~General provides several input methods to enter
-  @{text \<oplus>} in the text.  If all fails one may just type a named
-  entity \verb,\,\verb,<oplus>, by hand; the corresponding symbol will
-  be displayed after further input.
-
-  More flexible is to provide alternative syntax forms
+  It is possible to provide alternative syntax forms
   through the \bfindex{print mode} concept~@{cite "isabelle-isar-ref"}.  By
   convention, the mode of ``$xsymbols$'' is enabled whenever
   Proof~General's X-Symbol mode or {\LaTeX} output is active.  Now

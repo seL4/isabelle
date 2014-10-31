@@ -34,13 +34,6 @@ val unknownN = "none";
 
 val max_solutions = Unsynchronized.ref 5;
 
-val _ =
-  ProofGeneral.preference_option ProofGeneral.category_tracing
-    NONE
-    @{system_option auto_solve_direct}
-    "auto-solve-direct"
-    ("Run " ^ quote solve_directN ^ " automatically");
-
 
 (* solve_direct command *)
 

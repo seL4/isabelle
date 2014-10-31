@@ -363,7 +363,6 @@ Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
   Options are:
     -I           startup Isar interaction mode
     -O           system options from given YXML file
-    -P           startup Proof General interaction mode
     -S           secure mode -- disallow critical operations
     -T ADDR      startup process wrapper, with socket address
     -W IN:OUT    startup process wrapper, with input/output fifos
@@ -437,8 +436,6 @@ text \<open>
 
   \medskip The @{verbatim "-I"} option makes Isabelle enter Isar
   interaction mode on startup, instead of the primitive ML top-level.
-  The @{verbatim "-P"} option configures the top-level loop for
-  interaction with the Proof General user interface.
 
   \medskip The @{verbatim "-T"} or @{verbatim "-W"} option makes
   Isabelle enter a special process wrapper for interaction via

@@ -13,7 +13,6 @@ sig
   val use_text: use_context -> int * string -> bool -> string -> unit
   val use_file: use_context -> bool -> string -> unit
   val toplevel_pp: string list -> string -> unit
-  val PG_setup: unit -> unit
   val commit: unit -> unit
 end;
 
@@ -52,9 +51,6 @@ fun toplevel_pp path pp = (secure_mltext (); raw_toplevel_pp ML_Parse.global_con
 val use_global = raw_use_text ML_Parse.global_context (0, "") false;
 
 fun commit () = use_global "commit();";   (*commit is dynamically bound!*)
-
-fun PG_setup () =
-  use_global "val change = Unsynchronized.change; structure ThyLoad = ProofGeneral.ThyLoad;";
 
 end;
 

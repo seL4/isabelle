@@ -11,8 +11,7 @@ val _ =
   Outer_Syntax.command
     (("theory", Keyword.tag_theory Keyword.thy_begin), @{here}) "begin theory"
     (Thy_Header.args >> (fn header =>
-      Toplevel.init_theory
-        (fn () => Thy_Info.toplevel_begin_theory (! ProofGeneral.master_path) header)));
+      Toplevel.init_theory (fn () => Thy_Info.toplevel_begin_theory Path.current header)));
 
 val _ =
   Outer_Syntax.command

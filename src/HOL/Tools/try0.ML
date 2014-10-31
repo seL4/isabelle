@@ -22,13 +22,6 @@ val noneN = "none";
 
 datatype mode = Auto_Try | Try | Normal;
 
-val _ =
-  ProofGeneral.preference_option ProofGeneral.category_tracing
-    NONE
-    @{system_option auto_methods}
-    "auto-try0"
-    "Try standard proof methods";
-
 val default_timeout = seconds 5.0;
 
 fun can_apply timeout_opt pre post tac st =

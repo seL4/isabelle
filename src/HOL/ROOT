@@ -600,7 +600,6 @@ session "HOL-ex" in ex = HOL +
     Simps_Case_Conv_Examples
     ML
     SAT_Examples
-    Nominal2_Dummy
     SOS
     SOS_Cert
   theories [skip_proofs = false]

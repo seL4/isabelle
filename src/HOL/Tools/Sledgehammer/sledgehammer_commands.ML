@@ -38,13 +38,6 @@ val running_proversN = "running_provers"
 val running_learnersN = "running_learners"
 val refresh_tptpN = "refresh_tptp"
 
-val _ =
-  ProofGeneral.preference_option ProofGeneral.category_tracing
-    NONE
-    @{system_option auto_sledgehammer}
-    "auto-sledgehammer"
-    "Run Sledgehammer automatically"
-
 (** Sledgehammer commands **)
 
 fun add_fact_override ns : fact_override = {add = ns, del = [], only = false}
@@ -57,20 +50,6 @@ fun merge_fact_overrides rs = fold merge_fact_override_pairwise rs (only_fact_ov
 (*** parameters ***)
 
 val provers = Unsynchronized.ref ""
-
-val _ =
-  ProofGeneral.preference_string ProofGeneral.category_proof
-    NONE
-    provers
-    "Sledgehammer: Provers"
-    "Default automatic provers (separated by whitespace)"
-
-val _ =
-  ProofGeneral.preference_option ProofGeneral.category_proof
-    NONE
-    @{system_option sledgehammer_timeout}
-    "Sledgehammer: Time Limit"
-    "ATPs will be interrupted after this time (in seconds)"
 
 type raw_param = string * string list
 

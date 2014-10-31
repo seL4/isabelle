@@ -31,13 +31,6 @@ val nitpick_paramsN = "nitpick_params"
    its time slot with several other automatic tools. *)
 val auto_try_max_scopes = 6
 
-val _ =
-  ProofGeneral.preference_option ProofGeneral.category_tracing
-    NONE
-    @{system_option auto_nitpick}
-    "auto-nitpick"
-    "Run Nitpick automatically"
-
 type raw_param = string * string list
 
 val default_default_params =

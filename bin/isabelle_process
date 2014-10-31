@@ -28,7 +28,6 @@ function usage()
   echo "  Options are:"
   echo "    -I           startup Isar interaction mode"
   echo "    -O           system options from given YXML file"
-  echo "    -P           startup Proof General interaction mode"
   echo "    -S           secure mode -- disallow critical operations"
   echo "    -T ADDR      startup process wrapper, with socket address"
   echo "    -W IN:OUT    startup process wrapper, with input/output fifos"
@@ -60,7 +59,6 @@ function fail()
 
 ISAR=""
 OPTIONS_FILE=""
-PROOFGENERAL=""
 SECURE=""
 WRAPPER_SOCKET=""
 WRAPPER_FIFOS=""
@@ -71,7 +69,7 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IO:PST:W:e:m:o:qrw" OPT
+while getopts "IO:ST:W:e:m:o:qrw" OPT
 do
   case "$OPT" in
     I)
@@ -79,9 +77,6 @@ do
       ;;
     O)
       OPTIONS_FILE="$OPTARG"
-      ;;
-    P)
-      PROOFGENERAL=true
       ;;
     S)
       SECURE=true
@@ -237,9 +232,7 @@ else
   if [ "$INPUT" != RAW_ML_SYSTEM -a "$INPUT" != RAW ]; then
     MLTEXT="Exn.capture_exit 2 Options.load_default (); $MLTEXT"
   fi
-  if [ -n "$PROOFGENERAL" ]; then
-    MLTEXT="$MLTEXT; ProofGeneral.init ();"
-  elif [ -n "$ISAR" ]; then
+  if [ -n "$ISAR" ]; then
     MLTEXT="$MLTEXT; Isar.main ();"
   else
     NICE=""
