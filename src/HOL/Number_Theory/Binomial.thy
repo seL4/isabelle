@@ -58,22 +58,25 @@ lemma binomial_eq_0_iff [simp]: "n choose k = 0 \<longleftrightarrow> n < k"
 lemma zero_less_binomial_iff [simp]: "n choose k > 0 \<longleftrightarrow> k \<le> n"
   by (metis binomial_eq_0_iff not_less0 not_less zero_less_binomial)
 
-(*Might be more useful if re-oriented*)
 lemma Suc_times_binomial_eq:
   "k \<le> n \<Longrightarrow> Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
-  apply (induct n arbitrary: k)
-   apply (simp add: binomial.simps)
-   apply (case_tac k)
-  apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
+  apply (induct n arbitrary: k, simp)
+  apply (case_tac k)
+   apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
   done
 
-text{*This is the well-known version, but it's harder to use because of the
+text{*The absorption property*}
+lemma Suc_times_binomial:
+  "k \<le> n \<Longrightarrow> (Suc n choose Suc k) * Suc k = Suc n * (n choose k)"
+  by (rule Suc_times_binomial_eq [symmetric])
+
+text{*This is the well-known version of absorption, but it's harder to use because of the
   need to reason about division.*}
 lemma binomial_Suc_Suc_eq_times:
     "k \<le> n \<Longrightarrow> (Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k"
   by (simp add: Suc_times_binomial_eq del: mult_Suc mult_Suc_right)
 
-text{*Another version, with -1 instead of Suc.*}
+text{*Another version of absorption, with -1 instead of Suc.*}
 lemma times_binomial_minus1_eq:
   "k \<le> n \<Longrightarrow> 0 < k \<Longrightarrow> (n choose k) * k = n * ((n - 1) choose (k - 1))"
   using Suc_times_binomial_eq [where n = "n - 1" and k = "k - 1"]
@@ -201,6 +204,7 @@ lemma natsum_reverse_index:
   shows "(\<And>k. m \<le> k \<Longrightarrow> k \<le> n \<Longrightarrow> g k = f (m + n - k)) \<Longrightarrow> (\<Sum>k=m..n. f k) = (\<Sum>k=m..n. g k)"
   by (rule setsum.reindex_bij_witness[where i="\<lambda>k. m+n-k" and j="\<lambda>k. m+n-k"]) auto
 
+text{*NW diagonal sum property*}
 lemma sum_choose_diagonal:
   assumes "m\<le>n" shows "(\<Sum>k=0..m. (n-k) choose (m-k)) = Suc n choose m"
 proof -
