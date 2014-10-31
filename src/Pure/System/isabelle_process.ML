@@ -204,7 +204,7 @@ val init = uninterruptible (fn _ => fn rendezvous =>
     val channel = rendezvous ();
     val msg_channel = init_channels channel;
     val _ = Session.init_protocol_handlers ();
-    val _ = (loop |> Unsynchronized.setmp Toplevel.quiet true) channel;
+    val _ = loop channel;
   in Message_Channel.shutdown msg_channel end);
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);

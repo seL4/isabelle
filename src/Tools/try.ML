@@ -91,17 +91,6 @@ fun auto_try state =
                            | _ => NONE)
   |> the_default state
 
-val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
-  let
-    val auto_time_limit = Options.default_real @{system_option auto_time_limit}
-  in
-    if interact andalso not (!Toplevel.quiet) andalso auto_time_limit > 0.0 then
-      TimeLimit.timeLimit (seconds auto_time_limit) auto_try state
-      handle TimeLimit.TimeOut => state
-    else
-      state
-  end))
-
 
 (* asynchronous print function (PIDE) *)
 
