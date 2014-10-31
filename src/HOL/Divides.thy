@@ -2047,8 +2047,8 @@ local
   val less = @{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"}
   val le = @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"}
   val simps = @{thms arith_simps} @ @{thms rel_simps} @ [@{thm numeral_1_eq_1 [symmetric]}]
-  fun prove ctxt goal = (writeln "prove"; Goal.prove ctxt [] [] (HOLogic.mk_Trueprop goal)
-    (K (ALLGOALS (full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps)))));
+  fun prove ctxt goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop goal)
+    (K (ALLGOALS (full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps))));
   fun binary_proc proc ctxt ct =
     (case Thm.term_of ct of
       _ $ t $ u =>
