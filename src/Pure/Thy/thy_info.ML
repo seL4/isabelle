@@ -22,7 +22,6 @@ sig
   val use_thys: (string * Position.T) list -> unit
   val use_thy: string * Position.T -> unit
   val script_thy: Position.T -> string -> theory
-  val toplevel_begin_theory: Path.T -> Thy_Header.header -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
 end;
@@ -377,15 +376,6 @@ fun script_thy pos txt =
     val end_pos = if null trs then pos else Toplevel.pos_of (List.last trs);
     val end_state = fold (Toplevel.command_exception true) trs Toplevel.toplevel;
   in Toplevel.end_theory end_pos end_state end;
-
-fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
-  let
-    val {name = (name, _), imports, ...} = header;
-    val _ = kill_thy name;
-    val _ = use_theories {document = false, last_timing = K NONE, master_dir = master_dir} imports;
-    val _ = Thy_Header.define_keywords header;
-    val parents = map (get_theory o base_name o fst) imports;
-  in Resources.begin_theory master_dir header parents end;
 
 
 (* register theory *)
