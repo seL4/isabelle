@@ -143,7 +143,7 @@ fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
   else
     let
       val succs = thy_graph String_Graph.all_succs [name];
-      val _ = Output.urgent_message ("Theory loader: removing " ^ commas_quote succs);
+      val _ = writeln ("Theory loader: removing " ^ commas_quote succs);
       val _ = List.app (perform Remove) succs;
       val _ = change_thys (fold String_Graph.del_node succs);
     in () end);
@@ -269,7 +269,7 @@ fun required_by _ [] = ""
 fun load_thy document last_timing initiators update_time deps text (name, pos) keywords parents =
   let
     val _ = kill_thy name;
-    val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
     val _ = Output.try_protocol_message (Markup.loading_theory name) [];
 
     val {master = (thy_path, _), imports} = deps;
@@ -405,7 +405,7 @@ fun register_thy theory =
   in
     NAMED_CRITICAL "Thy_Info" (fn () =>
      (kill_thy name;
-      Output.urgent_message ("Registering theory " ^ quote name);
+      writeln ("Registering theory " ^ quote name);
       update_thy (make_deps master imports) theory))
   end;
 

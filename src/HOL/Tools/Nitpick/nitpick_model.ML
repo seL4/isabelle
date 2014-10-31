@@ -1059,7 +1059,7 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
           if debug then
             (if negate then "Genuineness" else "Spuriousness") ^ " goal: " ^
             Syntax.string_of_term ctxt prop ^ "."
-            |> Output.urgent_message
+            |> writeln
           else
             ()
         val goal = prop |> cterm_of thy |> Goal.init

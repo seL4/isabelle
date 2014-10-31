@@ -171,7 +171,7 @@ fun invoke_refute thy t =
   let
     val params = []
     val res = Refute.refute_term (Proof_Context.init_global thy) params [] t
-    val _ = Output.urgent_message ("Refute: " ^ res)
+    val _ = writeln ("Refute: " ^ res)
   in
     (rpair []) (case res of
       "genuine" => GenuineCex
@@ -194,7 +194,7 @@ fun invoke_nitpick thy t =
     val state = Proof.init ctxt
     val (res, _) = Nitpick.pick_nits_in_term state
       (Nitpick_Commands.default_params thy []) Nitpick.Normal 1 1 1 [] [] [] t
-    val _ = Output.urgent_message ("Nitpick: " ^ res)
+    val _ = writeln ("Nitpick: " ^ res)
   in
     (rpair []) (case res of
       "genuine" => GenuineCex
@@ -343,21 +343,21 @@ fun elapsed_time description e =
 (*
 fun unsafe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let
-    val _ = Output.urgent_message ("Invoking " ^ mtd_name)
+    val _ = writeln ("Invoking " ^ mtd_name)
     val ((res, (timing, reports)), time) = cpu_time "total time" (fn () => invoke_mtd thy t
       handle ERROR s => (tracing s; (Error, ([], NONE))))
-    val _ = Output.urgent_message (" Done")
+    val _ = writeln (" Done")
   in (res, (time :: timing, reports)) end
 *)  
 fun safe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let
-    val _ = Output.urgent_message ("Invoking " ^ mtd_name)
+    val _ = writeln ("Invoking " ^ mtd_name)
     val (res, timing) = elapsed_time "total time"
       (fn () => case try (invoke_mtd thy) t of
           SOME (res, _) => res
-        | NONE => (Output.urgent_message ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
+        | NONE => (writeln ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
             Error))
-    val _ = Output.urgent_message (" Done")
+    val _ = writeln (" Done")
   in (res, [timing]) end
 
 (* creating entries *)
@@ -387,7 +387,7 @@ fun mutate_theorem create_entry thy (num_mutations, max_mutants) mtds thm =
     val mutants =
       if exec then
         let
-          val _ = Output.urgent_message ("BEFORE PARTITION OF " ^
+          val _ = writeln ("BEFORE PARTITION OF " ^
                             string_of_int (length mutants) ^ " MUTANTS")
           val (execs, noexecs) = List.partition (is_executable_term thy) (take_random (20 * max_mutants) mutants)
           val _ = tracing ("AFTER PARTITION (" ^ string_of_int (length execs) ^
@@ -404,7 +404,7 @@ fun mutate_theorem create_entry thy (num_mutations, max_mutants) mtds thm =
           |> filter (is_some o try (Thm.cterm_of thy))
           |> filter (is_some o try (Syntax.check_term (Proof_Context.init_global thy)))
           |> take_random max_mutants
-    val _ = map (fn t => Output.urgent_message ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
+    val _ = map (fn t => writeln ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
   in
     create_entry thy thm exec mutants mtds
   end
@@ -458,7 +458,7 @@ fun write_report file_name =
 (* theory -> mtd list -> thm list -> string -> unit *)
 fun mutate_theorems_and_write_report thy (num_mutations, max_mutants) mtds thms file_name =
   let
-    val _ = Output.urgent_message "Starting Mutabelle..."
+    val _ = writeln "Starting Mutabelle..."
     val ctxt = Proof_Context.init_global thy
     val path = Path.explode file_name
     (* for normal report: *)

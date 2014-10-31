@@ -60,19 +60,19 @@ val register_tool = Data.map o Ord_List.insert tool_ord
 
 fun try_tools state =
   if subgoal_count state = 0 then
-    (Output.urgent_message "No subgoal!"; NONE)
+    (writeln "No subgoal!"; NONE)
   else
     get_tools (Proof.theory_of state)
     |> tap (fn tools =>
                "Trying " ^ space_implode " "
                     (serial_commas "and" (map (quote o fst) tools)) ^ "..."
-               |> Output.urgent_message)
+               |> writeln)
     |> Par_List.get_some
            (fn (name, (_, _, tool)) =>
                case try (tool false) state of
                  SOME (true, (outcome_code, _)) => SOME (name, outcome_code)
                | _ => NONE)
-    |> tap (fn NONE => Output.urgent_message "Tried in vain." | _ => ())
+    |> tap (fn NONE => writeln "Tried in vain." | _ => ())
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "try"}

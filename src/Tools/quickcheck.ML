@@ -294,11 +294,11 @@ fun limit timeout (limit_time, is_interactive) f exc () =
         if is_interactive then exc () else raise TimeLimit.TimeOut
   else f ();
 
-fun message ctxt s = if Config.get ctxt quiet then () else Output.urgent_message s;
+fun message ctxt s = if Config.get ctxt quiet then () else writeln s;
 
 fun verbose_message ctxt s =
   if not (Config.get ctxt quiet) andalso Config.get ctxt verbose
-  then Output.urgent_message s else ();
+  then writeln s else ();
 
 fun test_terms ctxt (limit_time, is_interactive) insts goals =
   (case active_testers ctxt of
@@ -517,7 +517,7 @@ fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
   |> apfst (Option.map (the o get_first response_of))
   |> (fn (r, state) =>
-      Output.urgent_message (Pretty.string_of
+      writeln (Pretty.string_of
         (pretty_counterex (Proof.context_of state) false r)));
 
 val parse_arg =
@@ -563,7 +563,7 @@ fun try_quickcheck auto state =
              |> (if auto then
                    Proof.goal_message (K (Pretty.mark Markup.information msg))
                  else
-                   tap (fn _ => Output.urgent_message (Pretty.string_of msg))))
+                   tap (fn _ => writeln (Pretty.string_of msg))))
           else
             (noneN, state)
         end)

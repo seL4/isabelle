@@ -198,7 +198,7 @@ fun supported_provers ctxt =
       sort_strings (supported_atps thy) @ sort_strings (SMT_Config.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in
-    Output.urgent_message ("Supported provers: " ^ commas (local_provers @ remote_provers) ^ ".")
+    writeln ("Supported provers: " ^ commas (local_provers @ remote_provers) ^ ".")
   end
 
 fun kill_provers () = Async_Manager.kill_threads SledgehammerN "prover"

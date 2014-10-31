@@ -117,7 +117,7 @@ fun refute_tptp_file thy timeout file_name =
          if falsify then "CounterSatisfiable" else "Satisfiable"
        else
          "Unknown")
-      |> Output.urgent_message
+      |> writeln
     val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy snd file_name
     val params =
       [("maxtime", string_of_int timeout),
@@ -135,7 +135,7 @@ fun can_tac ctxt tactic conj = can (Goal.prove ctxt [] [] conj) (K tactic)
 
 fun SOLVE_TIMEOUT seconds name tac st =
   let
-    val _ = Output.urgent_message ("running " ^ name ^ " for " ^ string_of_int seconds ^ " s")
+    val _ = writeln ("running " ^ name ^ " for " ^ string_of_int seconds ^ " s")
     val result =
       TimeLimit.timeLimit (Time.fromSeconds seconds) (fn () => SINGLE (SOLVE tac) st) ()
       handle
@@ -143,8 +143,8 @@ fun SOLVE_TIMEOUT seconds name tac st =
       | ERROR _ => NONE
   in
     (case result of
-      NONE => (Output.urgent_message ("FAILURE: " ^ name); Seq.empty)
-    | SOME st' => (Output.urgent_message ("SUCCESS: " ^ name); Seq.single st'))
+      NONE => (writeln ("FAILURE: " ^ name); Seq.empty)
+    | SOME st' => (writeln ("SUCCESS: " ^ name); Seq.single st'))
   end
 
 fun nitpick_finite_oracle_tac ctxt timeout i th =
@@ -264,7 +264,7 @@ fun make_conj (defs, nondefs) conjs =
   Logic.list_implies (rev defs @ rev nondefs, case conjs of conj :: _ => conj | [] => @{prop False})
 
 fun print_szs_of_success conjs success =
-  Output.urgent_message ("% SZS status " ^
+  writeln ("% SZS status " ^
     (if success then
        if null conjs then "Unsatisfiable" else "Theorem"
      else

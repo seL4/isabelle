@@ -137,7 +137,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
       |> commas
       |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
                   " proof (of " ^ string_of_int (length facts) ^ "): ") "."
-      |> Output.urgent_message
+      |> writeln
 
     fun spying_str_of_res ({outcome = NONE, used_facts, used_from, ...} : prover_result) =
         let
@@ -230,7 +230,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
           else
             outcome
             |> Async_Manager.break_into_chunks
-            |> List.app Output.urgent_message
+            |> List.app writeln
       in (outcome_code, state) end
     else
       (Async_Manager.thread SledgehammerN birth_time death_time
@@ -259,12 +259,12 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
   else
     (case subgoal_count state of
       0 =>
-      ((if blocking then error else Output.urgent_message) "No subgoal!"; (false, (noneN, state)))
+      ((if blocking then error else writeln) "No subgoal!"; (false, (noneN, state)))
     | n =>
       let
         val _ = Proof.assert_backward state
         val print =
-          if mode = Normal andalso is_none output_result then Output.urgent_message else K ()
+          if mode = Normal andalso is_none output_result then writeln else K ()
         val ctxt = Proof.context_of state
         val {facts = chained, goal, ...} = Proof.goal state
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt

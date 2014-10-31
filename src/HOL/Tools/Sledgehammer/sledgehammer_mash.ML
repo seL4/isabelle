@@ -1016,7 +1016,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover aut
       val num_isar_deps = length isar_deps
     in
       if verbose andalso auto_level = 0 then
-        Output.urgent_message ("MaSh: " ^ quote prover ^ " on " ^ quote name ^ " with " ^
+        writeln ("MaSh: " ^ quote prover ^ " on " ^ quote name ^ " with " ^
           string_of_int num_isar_deps ^ " + " ^ string_of_int (length facts - num_isar_deps) ^
           " facts.")
       else
@@ -1025,7 +1025,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover aut
         {outcome = NONE, used_facts, ...} =>
         (if verbose andalso auto_level = 0 then
            let val num_facts = length used_facts in
-             Output.urgent_message ("Found proof with " ^ string_of_int num_facts ^ " fact" ^
+             writeln ("Found proof with " ^ string_of_int num_facts ^ " fact" ^
                plural_s num_facts ^ ".")
            end
          else
@@ -1212,7 +1212,7 @@ fun mash_suggested_facts ctxt thy ({debug, ...} : params) max_suggs hyp_ts concl
     |> pairself (map fact_of_raw_fact)
   end
 
-fun mash_unlearn () = (clear_state (); Output.urgent_message "Reset MaSh.")
+fun mash_unlearn () = (clear_state (); writeln "Reset MaSh.")
 
 fun learn_wrt_access_graph ctxt (name, parents, feats, deps)
     (accum as (access_G, (fact_xtab, feat_xtab))) =
@@ -1361,11 +1361,11 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
             end
 
         fun commit last learns relearns flops =
-          (if debug andalso auto_level = 0 then Output.urgent_message "Committing..." else ();
+          (if debug andalso auto_level = 0 then writeln "Committing..." else ();
            map_state ctxt (do_commit (rev learns) relearns flops);
            if not last andalso auto_level = 0 then
              let val num_proofs = length learns + length relearns in
-               Output.urgent_message ("Learned " ^ string_of_int num_proofs ^ " " ^
+               writeln ("Learned " ^ string_of_int num_proofs ^ " " ^
                  (if run_prover then "automatic" else "Isar") ^ " proof" ^
                  plural_s num_proofs ^ " in the last " ^ string_of_time commit_timeout ^ ".")
              end
@@ -1474,18 +1474,18 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
 
     fun learn auto_level run_prover =
       mash_learn_facts ctxt params prover auto_level run_prover one_year facts
-      |> Output.urgent_message
+      |> writeln
   in
     if run_prover then
-      (Output.urgent_message ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
+      (writeln ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
          plural_s num_facts ^ " for automatic proofs (" ^ quote prover ^ " timeout: " ^
          string_of_time timeout ^ ").\n\nCollecting Isar proofs first...");
        learn 1 false;
-       Output.urgent_message "Now collecting automatic proofs. This may take several hours. You \
+       writeln "Now collecting automatic proofs. This may take several hours. You \
          \can safely stop the learning process at any point.";
        learn 0 true)
     else
-      (Output.urgent_message ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
+      (writeln ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
          plural_s num_facts ^ " for Isar proofs...");
        learn 0 false)
   end
@@ -1522,7 +1522,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
            Time.toSeconds timeout >= min_secs_for_learning then
           let val timeout = time_mult learn_timeout_slack timeout in
             (if verbose then
-               Output.urgent_message ("Started MaShing through " ^
+               writeln ("Started MaShing through " ^
                  (if exact then "" else "at least ") ^ string_of_int min_num_facts_to_learn ^
                  " fact" ^ plural_s min_num_facts_to_learn ^ " in the background.")
              else
@@ -1545,7 +1545,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
             | num_facts_to_learn =>
               if num_facts_to_learn <= max_facts_to_learn_before_query then
                 mash_learn_facts ctxt params prover 2 false timeout facts
-                |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s))
+                |> (fn "" => () | s => writeln (MaShN ^ ": " ^ s))
               else
                 maybe_launch_thread true num_facts_to_learn)
           else

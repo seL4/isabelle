@@ -150,7 +150,7 @@ val skolem_methods = Moura_Method :: systematic_methods
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as ((used_facts, (_, one_line_play)), banner, subgoal, subgoal_count)) =
   let
-    val _ = if debug then Output.urgent_message "Constructing Isar proof..." else ()
+    val _ = if debug then writeln "Constructing Isar proof..." else ()
 
     fun generate_proof_text () =
       let

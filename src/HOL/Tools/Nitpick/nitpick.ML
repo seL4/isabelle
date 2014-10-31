@@ -241,11 +241,11 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         o Pretty.mark Markup.information
       else
         print o Pretty.string_of
-    val pprint_a = pprint Output.urgent_message
-    fun pprint_nt f = () |> is_mode_nt mode ? pprint Output.urgent_message o f
-    fun pprint_v f = () |> verbose ? pprint Output.urgent_message o f
+    val pprint_a = pprint writeln
+    fun pprint_nt f = () |> is_mode_nt mode ? pprint writeln o f
+    fun pprint_v f = () |> verbose ? pprint writeln o f
     fun pprint_d f = () |> debug ? pprint tracing o f
-    val print = pprint Output.urgent_message o curry Pretty.blk 0 o pstrs
+    val print = pprint writeln o curry Pretty.blk 0 o pstrs
     fun print_t f = () |> mode = TPTP ? print o f
 (*
     val print_g = pprint tracing o Pretty.str
@@ -1015,8 +1015,8 @@ val timeout_bonus = seconds 1.0
 fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
                       subst def_assm_ts nondef_assm_ts orig_t =
   let
-    val print_nt = if is_mode_nt mode then Output.urgent_message else K ()
-    val print_t = if mode = TPTP then Output.urgent_message else K ()
+    val print_nt = if is_mode_nt mode then writeln else K ()
+    val print_t = if mode = TPTP then writeln else K ()
   in
     if getenv "KODKODI" = "" then
       (* The "expect" argument is deliberately ignored if Kodkodi is missing so
@@ -1068,7 +1068,7 @@ fun pick_nits_in_subgoal state params mode i step =
     val t = state |> Proof.raw_goal |> #goal |> prop_of
   in
     case Logic.count_prems t of
-      0 => (Output.urgent_message "No subgoal!"; (noneN, state))
+      0 => (writeln "No subgoal!"; (noneN, state))
     | n =>
       let
         val t = Logic.goal_params t i |> fst

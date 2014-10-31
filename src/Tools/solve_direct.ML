@@ -83,13 +83,13 @@ fun do_solve_direct mode state =
                    Pretty.markup Markup.information (message results))
              else
                tap (fn _ =>
-                 Output.urgent_message (Pretty.string_of (Pretty.chunks (message results))))))
+                 writeln (Pretty.string_of (Pretty.chunks (message results))))))
     | SOME NONE =>
-        (if mode = Normal then Output.urgent_message "No proof found."
+        (if mode = Normal then writeln "No proof found."
          else ();
          (noneN, state))
     | NONE =>
-        (if mode = Normal then Output.urgent_message "An error occurred."
+        (if mode = Normal then writeln "An error occurred."
          else ();
          (unknownN, state)))
   end

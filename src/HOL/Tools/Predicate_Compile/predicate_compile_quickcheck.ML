@@ -360,7 +360,7 @@ fun compile_term compilation options ctxt t =
 fun try_upto_depth ctxt f =
   let
     val max_depth = Config.get ctxt Quickcheck.depth
-    fun message s = if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message s
+    fun message s = if Config.get ctxt Quickcheck.quiet then () else writeln s
     fun try' i =
       if i <= max_depth then
         let

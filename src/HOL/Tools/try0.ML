@@ -124,12 +124,12 @@ fun generic_try0 mode timeout_opt quad st =
     if mode = Normal then
       "Trying " ^ space_implode " " (Try.serial_commas "and" (map (quote o fst) named_methods)) ^
       "..."
-      |> Output.urgent_message
+      |> writeln
     else
       ();
     (case par_map (fn f => f mode timeout_opt quad st) apply_methods of
       [] =>
-      (if mode = Normal then Output.urgent_message "No proof found." else (); (false, (noneN, st)))
+      (if mode = Normal then writeln "No proof found." else (); (false, (noneN, st)))
     | xs as (name, command, _) :: _ =>
       let
         val xs = xs |> map (fn (name, _, n) => (n, name))
@@ -152,7 +152,7 @@ fun generic_try0 mode timeout_opt quad st =
            |> (if mode = Auto_Try then
                  Proof.goal_message (fn () => Pretty.markup Markup.information [Pretty.str message])
                else
-                 tap (fn _ => Output.urgent_message message))))
+                 tap (fn _ => writeln message))))
       end)
   end;
 

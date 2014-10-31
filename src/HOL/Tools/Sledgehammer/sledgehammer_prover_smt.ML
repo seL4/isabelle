@@ -113,7 +113,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
           if debug then
             quote name ^ " slice " ^ string_of_int slice ^ " with " ^ string_of_int num_facts ^
             " fact" ^ plural_s num_facts ^ " for " ^ string_of_time slice_timeout
-            |> Output.urgent_message
+            |> writeln
           else
             ()
         val birth = Timer.checkRealTimer timer
@@ -163,7 +163,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
                 string_of_atp_failure (failure_of_smt_failure (the outcome)) ^
                 " Retrying with " ^ num_of_facts new_fact_filter new_num_facts ^
                 "..."
-                |> Output.urgent_message
+                |> writeln
               else
                 ()
           in
@@ -204,7 +204,7 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
           (preferred_methss,
            fn preplay =>
              let
-               val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
+               val _ = if verbose then writeln "Generating proof text..." else ()
 
                fun isar_params () =
                  (verbose, (NONE, NONE), preplay_timeout, compress, try0, minimize, atp_proof (),
