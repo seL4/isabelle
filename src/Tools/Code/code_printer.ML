@@ -373,7 +373,7 @@ fun read_infix (fixity_this, i) s =
 
 fun read_mixfix s =
   let
-    val sym_any = Scan.one Symbol.is_regular;
+    val sym_any = Scan.one Symbol.not_eof;
     val parse = Scan.optional ($$ "!" >> K NOBR) BR -- Scan.repeat (
          ($$ "(" -- $$ "_" -- $$ ")" >> K (Arg NOBR))
       || ($$ "_" >> K (Arg BR))

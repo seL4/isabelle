@@ -192,8 +192,8 @@ val parse_name = Scan.one name_start_char ::: Scan.many name_char;
 
 val blanks = Scan.many Symbol.is_blank;
 val special = $$ "&" ^^ (parse_name >> implode) ^^ $$ ";" >> decode;
-val regular = Scan.one Symbol.is_regular;
-fun regular_except x = Scan.one (fn c => Symbol.is_regular c andalso c <> x);
+val regular = Scan.one Symbol.not_eof;
+fun regular_except x = Scan.one (fn c => Symbol.not_eof c andalso c <> x);
 
 val parse_chars = Scan.repeat1 (special || regular_except "<") >> implode;
 

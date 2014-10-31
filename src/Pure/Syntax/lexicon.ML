@@ -230,7 +230,7 @@ val explode_string = explode_literal scan_string_body;
 val scan_chr =
   $$ "\\" |-- $$$ "'" ||
   Scan.one
-    ((fn s => s <> "\\" andalso s <> "'" andalso Symbol.is_regular s) o
+    ((fn s => s <> "\\" andalso s <> "'" andalso Symbol.not_eof s) o
       Symbol_Pos.symbol) >> single ||
   $$$ "'" --| Scan.ahead (~$$ "'");
 
@@ -339,7 +339,7 @@ fun read_var str =
     val scan =
       $$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof)
         >> Syntax.var ||
-      Scan.many (Symbol.is_regular o Symbol_Pos.symbol)
+      Scan.many (Symbol.not_eof o Symbol_Pos.symbol)
         >> (Syntax.free o implode o map Symbol_Pos.symbol);
   in the (Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none))) end;
 

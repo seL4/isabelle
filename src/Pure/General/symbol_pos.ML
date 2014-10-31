@@ -111,7 +111,7 @@ val char_code =
 fun scan_str q err_prefix =
   $$$ "\\" |-- !!! (fn () => err_prefix ^ "bad escape character in string")
     ($$$ q || $$$ "\\" || char_code) ||
-  Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
+  Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.not_eof s) >> single;
 
 fun scan_strs q err_prefix =
   Scan.ahead ($$ q) |--
@@ -164,7 +164,7 @@ val scan_cartouche_depth =
   Scan.repeat1 (Scan.depend (fn (d: int) =>
     $$ "\\<open>" >> pair (d + 1) ||
       (if d > 0 then
-        Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.is_regular s) >> pair d ||
+        Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.not_eof s) >> pair d ||
         $$ "\\<close>" >> pair (d - 1)
       else Scan.fail)));
 
@@ -198,7 +198,7 @@ val scan_cmt =
   Scan.depend (fn (d: int) => $$$ "(" @@@ $$$ "*" >> pair (d + 1)) ||
   Scan.depend (fn 0 => Scan.fail | d => $$$ "*" @@@ $$$ ")" >> pair (d - 1)) ||
   Scan.lift ($$$ "*" --| Scan.ahead (~$$$ ")")) ||
-  Scan.lift (Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s)) >> single;
+  Scan.lift (Scan.one (fn (s, _) => s <> "*" andalso Symbol.not_eof s)) >> single;
 
 val scan_cmts = Scan.pass 0 (Scan.repeat scan_cmt >> flat);
 

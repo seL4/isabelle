@@ -75,9 +75,7 @@ fun pretty_command (cmd as (name, Command {comment, ...})) =
 local
 
 fun terminate false = Scan.succeed ()
-  | terminate true =
-      Parse.group (fn () => "end of input")
-        (Scan.option Parse.sync -- Parse.semicolon >> K ());
+  | terminate true = Parse.group (fn () => "end of input") (Parse.semicolon >> K ());
 
 fun body cmd (name, _) =
   (case cmd name of
@@ -91,7 +89,6 @@ in
 
 fun parse_command do_terminate cmd =
   Parse.semicolon >> K NONE ||
-  Parse.sync >> K NONE ||
   (Parse.position Parse.command :-- body cmd) --| terminate do_terminate
     >> (fn ((name, pos), (int_only, f)) =>
       SOME (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
@@ -234,8 +231,7 @@ fun print_outer_syntax () =
 
 fun toplevel_source term do_recover cmd src =
   let
-    val no_terminator =
-      Scan.unless Parse.semicolon (Scan.one (Token.not_sync andf Token.not_eof));
+    val no_terminator = Scan.unless Parse.semicolon (Scan.one Token.not_eof);
     fun recover int = (int, fn _ => Scan.repeat no_terminator >> K [NONE]);
   in
     src

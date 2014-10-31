@@ -49,12 +49,12 @@ val err_prefix = "Antiquotation lexical error: ";
 
 val scan_txt =
   Scan.repeat1 ($$$ "@" --| Scan.ahead (~$$ "{") ||
-    Scan.many1 (fn (s, _) => s <> "@" andalso Symbol.is_regular s)) >> flat;
+    Scan.many1 (fn (s, _) => s <> "@" andalso Symbol.not_eof s)) >> flat;
 
 val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
   Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >> #2 ||
-  Scan.one (fn (s, _) => s <> "}" andalso Symbol.is_regular s) >> single;
+  Scan.one (fn (s, _) => s <> "}" andalso Symbol.not_eof s) >> single;
 
 in
 

@@ -236,7 +236,7 @@ val scan_escape =
     Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) >> (fn ((a, b), c) => [a, b, c]);
 
 val scan_str =
-  Scan.one (fn (s, _) => Symbol.is_regular s andalso s <> "\"" andalso s <> "\\" andalso
+  Scan.one (fn (s, _) => Symbol.not_eof s andalso s <> "\"" andalso s <> "\\" andalso
     (not (Symbol.is_char s) orelse Symbol.is_printable s)) >> single ||
   $$$ "\\" @@@ !!! "bad escape character in string" scan_escape;
 

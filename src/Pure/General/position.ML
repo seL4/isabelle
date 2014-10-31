@@ -90,7 +90,7 @@ fun file_of (Pos (_, props)) = Properties.get props Markup.fileN;
 fun advance_count "\n" (i: int, j: int, k: int) =
       (if_valid i (i + 1), if_valid j (j + 1), k)
   | advance_count s (i, j, k) =
-      if Symbol.is_regular s then (i, if_valid j (j + 1), k)
+      if Symbol.not_eof s then (i, if_valid j (j + 1), k)
       else (i, j, k);
 
 fun invalid_count (i, j, _: int) =

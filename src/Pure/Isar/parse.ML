@@ -32,7 +32,6 @@ sig
   val alt_string: string parser
   val verbatim: string parser
   val cartouche: string parser
-  val sync: string parser
   val eof: string parser
   val command_name: string -> string parser
   val keyword_with: (string -> bool) -> string parser
@@ -196,7 +195,6 @@ val string = kind Token.String;
 val alt_string = kind Token.AltString;
 val verbatim = kind Token.Verbatim;
 val cartouche = kind Token.Cartouche;
-val sync = kind Token.Sync;
 val eof = kind Token.EOF;
 
 fun command_name x =
