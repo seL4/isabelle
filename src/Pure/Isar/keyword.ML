@@ -9,7 +9,6 @@ sig
   type T
   val kind_of: T -> string
   val kind_files_of: T -> string * string list
-  val control: T
   val diag: T
   val thy_begin: T
   val thy_end: T
@@ -56,8 +55,6 @@ sig
   val dest: unit -> string list * string list
   val define: string * T option -> unit
   val is_diag: string -> bool
-  val is_control: string -> bool
-  val is_regular: string -> bool
   val is_heading: string -> bool
   val is_theory_begin: string -> bool
   val is_theory_load: string -> bool
@@ -92,7 +89,6 @@ fun add_files fs (Keyword {kind, files, tags}) =
 
 (* kinds *)
 
-val control = kind "control";
 val diag = kind "diag";
 val thy_begin = kind "thy_begin";
 val thy_end = kind "thy_end";
@@ -124,7 +120,7 @@ val prf_asm_goal_script = kind "prf_asm_goal_script";
 val prf_script = kind "prf_script";
 
 val kinds =
-  [control, diag, thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
+  [diag, thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
     thy_load, thy_decl, thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global,
     prf_heading2, prf_heading3, prf_heading4, prf_goal, prf_block, prf_open,
     prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
@@ -238,8 +234,6 @@ fun command_category ks =
   end;
 
 val is_diag = command_category [diag];
-val is_control = command_category [control];
-val is_regular = not o command_category [diag, control];
 
 val is_heading =
   command_category [thy_heading1, thy_heading2, thy_heading3, thy_heading4,

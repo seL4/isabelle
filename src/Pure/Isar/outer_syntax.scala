@@ -129,7 +129,7 @@ final class Outer_Syntax private(
     val keywords1 = keywords + (name -> kind)
     val lexicon1 = lexicon + name
     val completion1 =
-      if (Keyword.control(kind._1) || replace == Some("")) completion
+      if (replace == Some("")) completion
       else completion + (name, replace getOrElse name)
     new Outer_Syntax(keywords1, lexicon1, completion1, language_context, true)
   }

@@ -12,7 +12,6 @@ object Keyword
   /* kinds */
 
   val MINOR = "minor"
-  val CONTROL = "control"
   val DIAG = "diag"
   val THY_BEGIN = "thy_begin"
   val THY_END = "thy_end"
@@ -46,7 +45,6 @@ object Keyword
   /* categories */
 
   val diag = Set(DIAG)
-  val control = Set(CONTROL)
 
   val heading = Set(THY_HEADING1, THY_HEADING2, THY_HEADING3, THY_HEADING4,
     PRF_HEADING2, PRF_HEADING3, PRF_HEADING4)
