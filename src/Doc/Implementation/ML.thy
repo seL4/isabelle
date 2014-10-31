@@ -1056,9 +1056,7 @@ text %mlref \<open>
 
   \begin{warn}
   The actual error channel is accessed via @{ML Output.error_message}, but
-  the old interaction protocol of Proof~General \emph{crashes} if that
-  function is used in regular ML code: error output and toplevel
-  command failure always need to coincide in classic TTY interaction.
+  this is normally not used directly in user code.
   \end{warn}
 
   \end{description}

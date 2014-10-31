@@ -14,7 +14,6 @@ sig
   val get_theory: string -> theory
   val is_finished: string -> bool
   val master_directory: string -> Path.T
-  val loaded_files: string -> Path.T list
   val remove_thy: string -> unit
   val kill_thy: string -> unit
   val use_theories:
@@ -22,8 +21,7 @@ sig
     (string * Position.T) list -> unit
   val use_thys: (string * Position.T) list -> unit
   val use_thy: string * Position.T -> unit
-  val script_thy: Position.T -> string -> theory
-  val toplevel_begin_theory: Path.T -> Thy_Header.header -> theory
+  val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
 end;
@@ -126,12 +124,6 @@ fun get_theory name =
 
 val get_imports = Resources.imports_of o get_theory;
 
-(*Proof General legacy*)
-fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
-  (case get_deps name of
-    NONE => []
-  | SOME {master = (thy_path, _), ...} => thy_path :: Resources.loaded_files (get_theory name)));
-
 
 
 (** thy operations **)
@@ -143,7 +135,7 @@ fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
   else
     let
       val succs = thy_graph String_Graph.all_succs [name];
-      val _ = Output.urgent_message ("Theory loader: removing " ^ commas_quote succs);
+      val _ = writeln ("Theory loader: removing " ^ commas_quote succs);
       val _ = List.app (perform Remove) succs;
       val _ = change_thys (fold String_Graph.del_node succs);
     in () end);
@@ -269,7 +261,7 @@ fun required_by _ [] = ""
 fun load_thy document last_timing initiators update_time deps text (name, pos) keywords parents =
   let
     val _ = kill_thy name;
-    val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
     val _ = Output.try_protocol_message (Markup.loading_theory name) [];
 
     val {master = (thy_path, _), imports} = deps;
@@ -378,21 +370,14 @@ val use_thy = use_thys o single;
 
 (* toplevel scripting -- without maintaining database *)
 
-fun script_thy pos txt =
+fun script_thy pos txt thy =
   let
-    val trs = Outer_Syntax.parse (Outer_Syntax.get_syntax ()) pos txt;
+    val trs =
+      Outer_Syntax.parse (Outer_Syntax.get_syntax ()) pos txt
+      |> map (Toplevel.modify_init (K thy));
     val end_pos = if null trs then pos else Toplevel.pos_of (List.last trs);
     val end_state = fold (Toplevel.command_exception true) trs Toplevel.toplevel;
   in Toplevel.end_theory end_pos end_state end;
-
-fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
-  let
-    val {name = (name, _), imports, ...} = header;
-    val _ = kill_thy name;
-    val _ = use_theories {document = false, last_timing = K NONE, master_dir = master_dir} imports;
-    val _ = Thy_Header.define_keywords header;
-    val parents = map (get_theory o base_name o fst) imports;
-  in Resources.begin_theory master_dir header parents end;
 
 
 (* register theory *)
@@ -405,7 +390,7 @@ fun register_thy theory =
   in
     NAMED_CRITICAL "Thy_Info" (fn () =>
      (kill_thy name;
-      Output.urgent_message ("Registering theory " ^ quote name);
+      writeln ("Registering theory " ^ quote name);
       update_thy (make_deps master imports) theory))
   end;
 

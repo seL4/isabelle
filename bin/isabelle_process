@@ -26,9 +26,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [INPUT] [OUTPUT]"
   echo
   echo "  Options are:"
-  echo "    -I           startup Isar interaction mode"
   echo "    -O           system options from given YXML file"
-  echo "    -P           startup Proof General interaction mode"
   echo "    -S           secure mode -- disallow critical operations"
   echo "    -T ADDR      startup process wrapper, with socket address"
   echo "    -W IN:OUT    startup process wrapper, with input/output fifos"
@@ -58,9 +56,7 @@ function fail()
 
 # options
 
-ISAR=""
 OPTIONS_FILE=""
-PROOFGENERAL=""
 SECURE=""
 WRAPPER_SOCKET=""
 WRAPPER_FIFOS=""
@@ -71,17 +67,11 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IO:PST:W:e:m:o:qrw" OPT
+while getopts "O:ST:W:e:m:o:qrw" OPT
 do
   case "$OPT" in
-    I)
-      ISAR=true
-      ;;
     O)
       OPTIONS_FILE="$OPTARG"
-      ;;
-    P)
-      PROOFGENERAL=true
       ;;
     S)
       SECURE=true
@@ -213,8 +203,6 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 [ -n "$SECURE" ] && MLTEXT="$MLTEXT; Secure.set_secure ();"
 
-NICE="nice"
-
 if [ -n "$WRAPPER_SOCKET" ]; then
   MLTEXT="$MLTEXT; Isabelle_Process.init_socket \"$WRAPPER_SOCKET\";"
 elif [ -n "$WRAPPER_FIFOS" ]; then
@@ -237,21 +225,14 @@ else
   if [ "$INPUT" != RAW_ML_SYSTEM -a "$INPUT" != RAW ]; then
     MLTEXT="Exn.capture_exit 2 Options.load_default (); $MLTEXT"
   fi
-  if [ -n "$PROOFGENERAL" ]; then
-    MLTEXT="$MLTEXT; ProofGeneral.init ();"
-  elif [ -n "$ISAR" ]; then
-    MLTEXT="$MLTEXT; Isar.main ();"
-  else
-    NICE=""
-  fi
 fi
 
 export INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_PID ISABELLE_TMP ISABELLE_PROCESS_OPTIONS
 
 if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
-  $NICE "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
+  "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
 else
-  $NICE "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE"
+  "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE"
 fi
 RC="$?"
 

@@ -264,7 +264,6 @@ object Markup
   val VERBATIM = "verbatim"
   val CARTOUCHE = "cartouche"
   val COMMENT = "comment"
-  val CONTROL = "control"
 
 
   /* timing */

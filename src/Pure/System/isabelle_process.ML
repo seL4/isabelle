@@ -126,8 +126,6 @@ fun init_channels channel =
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
     Output.system_message_fn := message Markup.systemN [];
     Output.protocol_message_fn := message Markup.protocolN;
-    Output.urgent_message_fn := ! Output.writeln_fn;
-    Output.prompt_fn := ignore;
     message Markup.initN [] [Session.welcome ()];
     msg_channel
   end;
@@ -205,7 +203,7 @@ val init = uninterruptible (fn _ => fn rendezvous =>
     val channel = rendezvous ();
     val msg_channel = init_channels channel;
     val _ = Session.init_protocol_handlers ();
-    val _ = (loop |> Unsynchronized.setmp Toplevel.quiet true) channel;
+    val _ = loop channel;
   in Message_Channel.shutdown msg_channel end);
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);

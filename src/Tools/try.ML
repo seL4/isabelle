@@ -27,16 +27,6 @@ type tool =
 val tryN = "try"
 
 
-(* preferences *)
-
-val _ =
-  ProofGeneral.preference_option ProofGeneral.category_tracing
-    (SOME "4.0")
-    @{system_option auto_time_limit}
-    "auto-try-time-limit"
-    "Time limit for automatically tried tools (in seconds)"
-
-
 (* helpers *)
 
 fun serial_commas _ [] = ["??"]
@@ -70,19 +60,19 @@ val register_tool = Data.map o Ord_List.insert tool_ord
 
 fun try_tools state =
   if subgoal_count state = 0 then
-    (Output.urgent_message "No subgoal!"; NONE)
+    (writeln "No subgoal!"; NONE)
   else
     get_tools (Proof.theory_of state)
     |> tap (fn tools =>
                "Trying " ^ space_implode " "
                     (serial_commas "and" (map (quote o fst) tools)) ^ "..."
-               |> Output.urgent_message)
+               |> writeln)
     |> Par_List.get_some
            (fn (name, (_, _, tool)) =>
                case try (tool false) state of
                  SOME (true, (outcome_code, _)) => SOME (name, outcome_code)
                | _ => NONE)
-    |> tap (fn NONE => Output.urgent_message "Tried in vain." | _ => ())
+    |> tap (fn NONE => writeln "Tried in vain." | _ => ())
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "try"}
@@ -100,17 +90,6 @@ fun auto_try state =
                              SOME (true, (_, state)) => SOME state
                            | _ => NONE)
   |> the_default state
-
-val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
-  let
-    val auto_time_limit = Options.default_real @{system_option auto_time_limit}
-  in
-    if interact andalso not (!Toplevel.quiet) andalso auto_time_limit > 0.0 then
-      TimeLimit.timeLimit (seconds auto_time_limit) auto_try state
-      handle TimeLimit.TimeOut => state
-    else
-      state
-  end))
 
 
 (* asynchronous print function (PIDE) *)

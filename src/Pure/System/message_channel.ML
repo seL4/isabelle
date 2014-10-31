@@ -51,8 +51,7 @@ fun message_output mbox channel =
         [] => (flush channel; continue NONE)
       | msgs => received timeout msgs)
     and received _ (NONE :: _) = flush channel
-      | received timeout (SOME msg :: rest) =
-          (output_message channel msg; received flush_timeout rest)
+      | received _ (SOME msg :: rest) = (output_message channel msg; received flush_timeout rest)
       | received timeout [] = continue timeout;
   in fn () => continue NONE end;
 

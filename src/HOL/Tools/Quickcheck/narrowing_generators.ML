@@ -221,8 +221,8 @@ fun elapsed_time description e =
 fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt cookie (code_modules, _) =
   let
     val ((is_genuine, counterexample_of), (get, put, put_ml)) = cookie
-    fun message s = if quiet then () else Output.urgent_message s
-    fun verbose_message s = if not quiet andalso verbose then Output.urgent_message s else ()
+    fun message s = if quiet then () else writeln s
+    fun verbose_message s = if not quiet andalso verbose then writeln s else ()
     val current_size = Unsynchronized.ref 0
     val current_result = Unsynchronized.ref Quickcheck.empty_result 
     val tmp_prefix = "Quickcheck_Narrowing"
@@ -511,7 +511,7 @@ fun test_goals ctxt catch_code_errors insts goals =
         (maps (map snd) correct_inst_goals) []
     end
   else
-    (if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message
+    (if Config.get ctxt Quickcheck.quiet then () else writeln
       ("Environment variable ISABELLE_GHC is not set. To use narrowing-based quickcheck, please set "
         ^ "this variable to your GHC Haskell compiler in your settings file. "
         ^ "To deactivate narrowing-based quickcheck, set quickcheck_narrowing_active to false.");

@@ -90,7 +90,6 @@ declare -a SOURCES=(
   Tools/build_doc.scala
   Tools/check_source.scala
   Tools/doc.scala
-  Tools/keywords.scala
   Tools/main.scala
   Tools/ml_statistics.scala
   Tools/print_operation.scala

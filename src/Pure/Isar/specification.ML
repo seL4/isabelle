@@ -74,7 +74,6 @@ sig
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     (xstring * Position.T) list -> Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
-  val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic
 end;
 
 structure Specification: SPECIFICATION =
@@ -372,14 +371,6 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             #2 #> pair ths);
       in ((more_atts, prems, stmt, SOME facts), goal_ctxt) end);
 
-structure Theorem_Hook = Generic_Data
-(
-  type T = ((bool -> Proof.state -> Proof.state) * stamp) list;
-  val empty = [];
-  val extend = I;
-  fun merge data : T = Library.merge (eq_snd op =) data;
-);
-
 fun gen_theorem schematic bundle_includes prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl int lthy =
   let
@@ -419,7 +410,6 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)
     |> tap (fn state => not schematic andalso Proof.schematic_goal state andalso
         error "Illegal schematic goal statement")
-    |> fold_rev (fn (f, _) => f int) (Theorem_Hook.get (Context.Proof goal_ctxt))
   end;
 
 in
@@ -433,8 +423,6 @@ val schematic_theorem =
   gen_theorem true Bundle.includes (K I) Expression.cert_statement;
 val schematic_theorem_cmd =
   gen_theorem true Bundle.includes_cmd Attrib.check_src Expression.read_statement;
-
-fun add_theorem_hook f = Theorem_Hook.map (cons (f, stamp ()));
 
 end;
 

@@ -42,25 +42,10 @@ text \<open>
   next command keyword.
 
   More advanced interfaces such as Isabelle/jEdit @{cite "Wenzel:2012"}
-  and Proof~General @{cite proofgeneral} do not require explicit
-  semicolons: command spans are determined by inspecting the content
-  of the editor buffer.  In the printed presentation of Isabelle/Isar
-  documents semicolons are omitted altogether for readability.
-
-  \begin{warn}
-    Proof~General requires certain syntax classification tables in
-    order to achieve properly synchronized interaction with the
-    Isabelle/Isar process.  These tables need to be consistent with
-    the Isabelle version and particular logic image to be used in a
-    running session (common object-logics may well change the outer
-    syntax).  The standard setup should work correctly with any of the
-    ``official'' logic images derived from Isabelle/HOL (including
-    HOLCF etc.).  Users of alternative logics may need to tell
-    Proof~General explicitly, e.g.\ by giving an option @{verbatim "-k ZF"}
-    (in conjunction with @{verbatim "-l ZF"}, to specify the default
-    logic image).  Note that option @{verbatim "-L"} does both
-    of this at the same time.
-  \end{warn}
+  do not require explicit semicolons: command spans are determined by
+  inspecting the content of the editor buffer.  In the printed
+  presentation of Isabelle/Isar documents semicolons are omitted
+  altogether for readability.
 \<close>
 
 
@@ -205,7 +190,7 @@ text \<open>The outer lexical syntax consists of three main categories of
   Common mathematical symbols such as @{text \<forall>} are represented in
   Isabelle as @{verbatim \<forall>}.  There are infinitely many Isabelle
   symbols like this, although proper presentation is left to front-end
-  tools such as {\LaTeX}, Proof~General, or Isabelle/jEdit.  A list of
+  tools such as {\LaTeX} or Isabelle/jEdit.  A list of
   predefined Isabelle symbols that work well with these tools is given
   in \appref{app:symbols}.  Note that @{verbatim "\<lambda>"} does not belong
   to the @{text letter} category, since it is already used differently

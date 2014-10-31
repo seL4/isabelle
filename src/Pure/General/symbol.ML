@@ -19,9 +19,6 @@ sig
   val is_eof: symbol -> bool
   val not_eof: symbol -> bool
   val stopper: symbol Scan.stopper
-  val sync: symbol
-  val is_sync: symbol -> bool
-  val is_regular: symbol -> bool
   val is_malformed: symbol -> bool
   val malformed_msg: symbol -> string
   val is_ascii: symbol -> bool
@@ -118,12 +115,6 @@ val eof = "";
 fun is_eof s = s = eof;
 fun not_eof s = s <> eof;
 val stopper = Scan.stopper (K eof) is_eof;
-
-(*Proof General legacy*)
-val sync = "\\<^sync>";
-fun is_sync s = s = sync;
-
-fun is_regular s = not_eof s andalso s <> sync;
 
 fun is_malformed s =
   String.isPrefix "\\<" s andalso not (String.isSuffix ">" s)

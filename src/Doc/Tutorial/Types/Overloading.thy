@@ -37,8 +37,7 @@ text {* \noindent Note that the name @{const [source] plus} carries a
 suffix @{text "_nat"}; by default, the local name of a class operation
 @{text f} to be instantiated on type constructor @{text \<kappa>} is mangled
 as @{text f_\<kappa>}.  In case of uncertainty, these names may be inspected
-using the @{command "print_context"} command or the corresponding
-ProofGeneral button.
+using the @{command "print_context"} command.
 
 Although class @{class [source] plus} has no axioms, the instantiation must be
 formally concluded by a (trivial) instantiation proof ``..'': *}

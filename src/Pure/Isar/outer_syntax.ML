@@ -35,8 +35,6 @@ sig
   val parse: (Scan.lexicon * Scan.lexicon) * outer_syntax ->
     Position.T -> string -> Toplevel.transition list
   val parse_spans: Token.T list -> Command_Span.span list
-  type isar
-  val isar: TextIO.instream -> bool -> isar
   val side_comments: Token.T list -> Token.T list
   val command_reports: outer_syntax -> Token.T -> Position.report_text list
   val read_spans: outer_syntax -> Token.T list -> Toplevel.transition list
@@ -77,14 +75,12 @@ fun pretty_command (cmd as (name, Command {comment, ...})) =
 local
 
 fun terminate false = Scan.succeed ()
-  | terminate true =
-      Parse.group (fn () => "end of input")
-        (Scan.option Parse.sync -- Parse.semicolon >> K ());
+  | terminate true = Parse.group (fn () => "end of input") (Parse.semicolon >> K ());
 
 fun body cmd (name, _) =
   (case cmd name of
     SOME (Command {int_only, parse, ...}) =>
-      Parse.!!! (Scan.prompt (name ^ "# ") (Parse.tags |-- parse >> pair int_only))
+      Parse.!!! (Parse.tags |-- parse >> pair int_only)
   | NONE =>
       Scan.succeed (false, Toplevel.imperative (fn () =>
         error ("Bad parser for outer syntax command " ^ quote name))));
@@ -93,7 +89,6 @@ in
 
 fun parse_command do_terminate cmd =
   Parse.semicolon >> K NONE ||
-  Parse.sync >> K NONE ||
   (Parse.position Parse.command :-- body cmd) --| terminate do_terminate
     >> (fn ((name, pos), (int_only, f)) =>
       SOME (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
@@ -184,8 +179,6 @@ fun check_syntax () =
     | missing => error ("Missing outer syntax command(s) " ^ commas_quote missing))
   end;
 
-fun lookup_commands_dynamic () = lookup_commands (! global_outer_syntax);
-
 fun command (spec, pos) comment parse =
   add_command spec (new_command comment NONE false parse pos);
 
@@ -238,10 +231,8 @@ fun print_outer_syntax () =
 
 fun toplevel_source term do_recover cmd src =
   let
-    val no_terminator =
-      Scan.unless Parse.semicolon (Scan.one (Token.not_sync andf Token.not_eof));
-    fun recover int =
-      (int, fn _ => Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [NONE]);
+    val no_terminator = Scan.unless Parse.semicolon (Scan.one Token.not_eof);
+    fun recover int = (int, fn _ => Scan.repeat no_terminator >> K [NONE]);
   in
     src
     |> Token.source_proper
@@ -301,24 +292,6 @@ fun parse_spans toks =
   fold parse toks ([], [], []) |> flush |> rev;
 
 end;
-
-
-(* interactive source of toplevel transformers *)
-
-type isar =
-  (Toplevel.transition, (Toplevel.transition option,
-    (Token.T, (Token.T option, (Token.T, (Token.T,
-      (Symbol_Pos.T,
-        Position.T * (Symbol.symbol, (Symbol.symbol, (string, unit) Source.source) Source.source)
-  Source.source) Source.source) Source.source) Source.source)
-  Source.source) Source.source) Source.source) Source.source;
-
-fun isar in_stream term : isar =
-  Source.tty in_stream
-  |> Symbol.source
-  |> Source.map_filter (fn "\<^newline>" => SOME "\n" | s => SOME s)  (*Proof General legacy*)
-  |> Token.source {do_recover = SOME true} Keyword.get_lexicons Position.none
-  |> toplevel_source term (SOME true) lookup_commands_dynamic;
 
 
 (* side-comments *)

@@ -15,7 +15,6 @@ sig
   val parse_files: string -> (theory -> Token.file list) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
-  val loaded_files: theory -> Path.T list
   val loaded_files_current: theory -> bool
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: bool -> (Toplevel.transition -> Time.time option) -> int -> Path.T ->
@@ -116,11 +115,6 @@ fun loaded_files_current thy =
         NONE => false
       | SOME ((_, id'), _) => id = id'));
 
-(*Proof General legacy*)
-fun loaded_files thy =
-  let val {master_dir, provided, ...} = Files.get thy
-  in map (File.full_path master_dir o #1) provided end;
-
 
 (* load theory *)
 
@@ -151,8 +145,6 @@ fun excursion master_dir last_timing init elements =
 
 fun load_thy document last_timing update_time master_dir header text_pos text parents =
   let
-    val time = ! Toplevel.timing;
-
     val {name = (name, _), ...} = header;
     val _ = Thy_Header.define_keywords header;
 
@@ -166,10 +158,9 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
       |> Present.begin_theory update_time
           (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
-    val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val (results, thy) =
-      cond_timeit time "" (fn () => excursion master_dir last_timing init elements);
-    val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
+      cond_timeit true ("theory " ^ quote name)
+        (fn () => excursion master_dir last_timing init elements);
 
     fun present () =
       let

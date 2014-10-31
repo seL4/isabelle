@@ -179,8 +179,7 @@ text {*
   primrec declaration; by default, the local name of a class operation
   @{text f} to be instantiated on type constructor @{text \<kappa>} is
   mangled as @{text f_\<kappa>}.  In case of uncertainty, these names may be
-  inspected using the @{command "print_context"} command or the
-  corresponding ProofGeneral button.
+  inspected using the @{command "print_context"} command.
 *}
 
 subsection {* Lifting and parametric types *}

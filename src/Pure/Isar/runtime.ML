@@ -172,7 +172,7 @@ fun thread interrupts body =
     (fn () =>
       debugging NONE body () handle exn =>
         if Exn.is_interrupt exn then ()
-        else Output.urgent_message ("## INTERNAL ERROR ##\n" ^ exn_message exn),
+        else writeln ("## INTERNAL ERROR ##\n" ^ exn_message exn),
       Simple_Thread.attributes interrupts);
 
 end;

@@ -162,10 +162,7 @@ fun read init master_dir blobs span =
     if is_malformed then Toplevel.malformed pos "Malformed command syntax"
     else
       (case Outer_Syntax.read_spans outer_syntax (resolve_files master_dir blobs span) of
-        [tr] =>
-          if Keyword.is_control (Toplevel.name_of tr) then
-            Toplevel.malformed pos "Illegal control command"
-          else Toplevel.modify_init init tr
+        [tr] => Toplevel.modify_init init tr
       | [] => Toplevel.ignored (#1 (Token.range_of span))
       | _ => Toplevel.malformed (#1 proper_range) "Exactly one command expected")
       handle ERROR msg => Toplevel.malformed (#1 proper_range) msg

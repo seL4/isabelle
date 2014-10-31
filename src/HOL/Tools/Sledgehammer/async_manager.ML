@@ -106,7 +106,7 @@ fun print_new_messages () =
                   tool ^ ": " ^
                   implode_message (workers |> sort_distinct string_ord, work)
                   |> break_into_chunks
-                  |> List.app Output.urgent_message)
+                  |> List.app writeln)
 
 fun check_thread_manager () = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
@@ -178,7 +178,7 @@ fun kill_threads tool das_wort_worker = Synchronized.change global_state
       val state' = make_state manager timeout_heap [] (killing @ canceling) messages store
       val _ =
         if null killing then ()
-        else Output.urgent_message ("Interrupted active " ^ das_wort_worker ^ "s.")
+        else writeln ("Interrupted active " ^ das_wort_worker ^ "s.")
     in state' end)
 
 fun str_of_time time = string_of_int (Time.toSeconds time) ^ " s"
@@ -210,7 +210,7 @@ fun running_threads tool das_wort_worker =
       case map_filter canceling_info canceling of
         [] => []
       | ss => "Interrupting " ^ das_wort_worker ^ "s" :: ss
-  in Output.urgent_message (space_implode "\n\n" (running @ interrupting)) end
+  in writeln (space_implode "\n\n" (running @ interrupting)) end
 
 fun thread_messages tool das_wort_worker opt_limit =
   let
@@ -222,6 +222,6 @@ fun thread_messages tool das_wort_worker opt_limit =
         (if length tool_store <= limit then ":"
          else " (" ^ string_of_int limit ^ " displayed):")
     val ss = tool_store |> chop limit |> #1 |> map (op ^ o snd)
-  in List.app Output.urgent_message (header :: maps break_into_chunks ss) end
+  in List.app writeln (header :: maps break_into_chunks ss) end
 
 end;

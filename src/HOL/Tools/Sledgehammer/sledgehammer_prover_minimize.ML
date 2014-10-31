@@ -76,7 +76,7 @@ fun n_facts names =
     (if n > 0 then ": " ^ (names |> map fst |> sort string_ord |> space_implode " ") else "")
   end
 
-fun print silent f = if silent then () else Output.urgent_message (f ())
+fun print silent f = if silent then () else writeln (f ())
 
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,

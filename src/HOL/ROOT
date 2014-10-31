@@ -600,7 +600,6 @@ session "HOL-ex" in ex = HOL +
     Simps_Case_Conv_Examples
     ML
     SAT_Examples
-    Nominal2_Dummy
     SOS
     SOS_Cert
   theories [skip_proofs = false]
@@ -759,7 +758,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Misc_Datatype
     Misc_Primcorec
     Misc_Primrec
-  theories [condition = ISABELLE_FULL_TEST, timing]
+  theories [condition = ISABELLE_FULL_TEST]
     Brackin
     IsaFoR
     Misc_N2M
@@ -1099,6 +1098,6 @@ session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
     Some benchmark on large record.
   *}
   options [document = false]
-  theories [condition = ISABELLE_FULL_TEST, timing]
+  theories [condition = ISABELLE_FULL_TEST]
     Record_Benchmark
 

@@ -250,7 +250,7 @@ fun run_atp mode name
                 quote name ^ " slice #" ^ string_of_int (slice + 1) ^
                 " with " ^ string_of_int num_facts ^ " fact" ^
                 plural_s num_facts ^ " for " ^ string_of_time slice_timeout ^ "..."
-                |> Output.urgent_message
+                |> writeln
               else
                 ()
             val readable_names = not (Config.get ctxt atp_full_names)
@@ -370,7 +370,7 @@ fun run_atp mode name
           (used_facts, preferred_methss,
            fn preplay =>
               let
-                val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
+                val _ = if verbose then writeln "Generating proof text..." else ()
 
                 fun isar_params () =
                   let

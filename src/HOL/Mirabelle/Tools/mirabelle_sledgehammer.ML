@@ -428,7 +428,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           |> tap (fn factss =>
                      "Line " ^ str0 (Position.line_of pos) ^ ": " ^
                      Sledgehammer.string_of_factss factss
-                     |> Output.urgent_message)
+                     |> writeln)
         val prover = get_prover ctxt prover_name params goal facts
         val problem =
           {comment = "", state = st', goal = goal, subgoal = i,

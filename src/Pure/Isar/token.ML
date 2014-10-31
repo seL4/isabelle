@@ -9,7 +9,7 @@ sig
   datatype kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
-    Error of string | Sync | EOF
+    Error of string | EOF
   val str_of_kind: kind -> string
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   type T
@@ -35,7 +35,6 @@ sig
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
-  val not_sync: T -> bool
   val stopper: T Scan.stopper
   val kind_of: T -> kind
   val is_kind: kind -> T -> bool
@@ -104,7 +103,7 @@ struct
 datatype kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
   Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
-  Error of string | Sync | EOF;
+  Error of string | EOF;
 
 val str_of_kind =
  fn Command => "command"
@@ -125,7 +124,6 @@ val str_of_kind =
   | Comment => "comment text"
   | InternalValue => "internal value"
   | Error _ => "bad input"
-  | Sync => "sync marker"
   | EOF => "end-of-input";
 
 val delimited_kind = member (op =) [String, AltString, Verbatim, Cartouche, Comment];
@@ -201,7 +199,7 @@ fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
   in (Src {name = (name, pos), args = args, output_info = SOME (kind, markup)}, x) end;
 
 
-(* control tokens *)
+(* stopper *)
 
 fun mk_eof pos = Token (("", (pos, Position.none)), (EOF, ""), Slot);
 val eof = mk_eof Position.none;
@@ -210,9 +208,6 @@ fun is_eof (Token (_, (EOF, _), _)) = true
   | is_eof _ = false;
 
 val not_eof = not o is_eof;
-
-fun not_sync (Token (_, (Sync, _), _)) = false
-  | not_sync _ = true;
 
 val stopper =
   Scan.stopper (fn [] => eof | toks => mk_eof (end_pos_of (List.last toks))) is_eof;
@@ -305,8 +300,7 @@ val token_kind_markup =
   | Comment       => (Markup.comment, "")
   | InternalValue => (Markup.empty, "")
   | Error msg     => (Markup.bad, msg)
-  | Sync          => (Markup.control, "")
-  | EOF           => (Markup.control, "");
+  | EOF           => (Markup.empty, "");
 
 in
 
@@ -339,7 +333,6 @@ fun unparse (Token (_, (kind, x), _)) =
   | Verbatim => enclose "{*" "*}" x
   | Cartouche => cartouche x
   | Comment => enclose "(*" "*)" x
-  | Sync => ""
   | EOF => ""
   | _ => x);
 
@@ -493,14 +486,13 @@ fun ident_or_symbolic "begin" = false
 
 val scan_verb =
   $$$ "*" --| Scan.ahead (~$$ "}") ||
-  Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s) >> single;
+  Scan.one (fn (s, _) => s <> "*" andalso Symbol.not_eof s) >> single;
 
 val scan_verbatim =
   Scan.ahead ($$ "{" -- $$ "*") |--
     !!! "unclosed verbatim text"
       ((Symbol_Pos.scan_pos --| $$ "{" --| $$ "*") --
-        Symbol_Pos.change_prompt
-          ((Scan.repeat scan_verb >> flat) -- ($$ "*" |-- $$ "}" |-- Symbol_Pos.scan_pos)));
+        ((Scan.repeat scan_verb >> flat) -- ($$ "*" |-- $$ "}" |-- Symbol_Pos.scan_pos)));
 
 val recover_verbatim =
   $$$ "{" @@@ $$$ "*" @@@ (Scan.repeat scan_verb >> flat);
@@ -550,7 +542,6 @@ fun scan (lex1, lex2) = !!! "bad input"
     scan_cartouche >> token_range Cartouche ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||
-    Scan.one (Symbol.is_sync o Symbol_Pos.symbol) >> (token Sync o single) ||
     (Scan.max token_leq
       (Scan.max token_leq
         (Scan.literal lex2 >> pair Command)
@@ -570,7 +561,7 @@ fun recover msg =
     recover_verbatim ||
     Symbol_Pos.recover_cartouche ||
     Symbol_Pos.recover_comment ||
-    Scan.one (Symbol.is_regular o Symbol_Pos.symbol) >> single)
+    Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> single)
   >> (single o token (Error msg));
 
 in

@@ -26,9 +26,6 @@ sig
   val pretty_state: state -> Pretty.T list
   val print_state: state -> unit
   val pretty_abstract: state -> Pretty.T
-  val quiet: bool Unsynchronized.ref
-  val interact: bool Unsynchronized.ref
-  val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
   type transition
   val empty: transition
@@ -213,9 +210,6 @@ fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
 (** toplevel transitions **)
 
-val quiet = Unsynchronized.ref false;  (*Proof General legacy*)
-val interact = Unsynchronized.ref false;  (*Proof General legacy*)
-val timing = Unsynchronized.ref false;  (*Proof General legacy*)
 val profiling = Unsynchronized.ref 0;
 
 
@@ -528,12 +522,10 @@ fun actual_proof f = transaction (fn _ =>
   (fn Proof (prf, x) => Proof (f prf, x)
     | _ => raise UNDEF));
 
-(*Proof General legacy*)
 fun skip_proof f = transaction (fn _ =>
   (fn Skipped_Proof (h, x) => Skipped_Proof (f h, x)
     | _ => raise UNDEF));
 
-(*Proof General legacy*)
 fun skip_proof_to_theory pred = transaction (fn _ =>
   (fn Skipped_Proof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
     | _ => raise UNDEF));
@@ -580,10 +572,6 @@ fun app int (tr as Transition {name, trans, ...}) =
       val (result, opt_err) =
          state |> (apply_trans int trans |> ! profiling > 0 ? profile (! profiling));
 
-      val _ =
-        if int andalso not (! quiet) andalso Keyword.is_printed name
-        then print_state result else ();
-
       val timing_result = Timing.result timing_start;
       val timing_props =
         Markup.command_timing :: (Markup.nameN, name_of tr) :: Position.properties_of (pos_of tr);
@@ -627,7 +615,7 @@ fun command_exception int tr st =
       if Exn.is_interrupt exn then reraise exn else raise Runtime.EXCURSION_FAIL (exn, info)
   | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
 
-fun command tr = command_exception (! interact) tr;
+val command = command_exception false;
 
 
 (* reset state *)

@@ -10,9 +10,8 @@ struct
 val _ =
   Outer_Syntax.command
     (("theory", Keyword.tag_theory Keyword.thy_begin), @{here}) "begin theory"
-    (Thy_Header.args >> (fn header =>
-      Toplevel.init_theory
-        (fn () => Thy_Info.toplevel_begin_theory (! ProofGeneral.master_path) header)));
+    (Thy_Header.args >>
+      (fn _ => Toplevel.init_theory (fn () => error "Missing theory initialization")));
 
 val _ =
   Outer_Syntax.command

@@ -79,30 +79,23 @@ theory Pure
   and "also" "moreover" :: prf_decl % "proof"
   and "finally" "ultimately" :: prf_chain % "proof"
   and "back" :: prf_script % "proof"
-  and "Isabelle.command" :: control
   and "help" "print_commands" "print_options" "print_context"
     "print_theory" "print_syntax" "print_abbrevs" "print_defn_rules"
     "print_theorems" "print_locales" "print_classes" "print_locale"
     "print_interps" "print_dependencies" "print_attributes"
     "print_simpset" "print_rules" "print_trans_rules" "print_methods"
     "print_antiquotations" "print_ML_antiquotations" "thy_deps"
-    "locale_deps" "class_deps" "thm_deps" "print_binds" "print_term_bindings"
+    "locale_deps" "class_deps" "thm_deps" "print_term_bindings"
     "print_facts" "print_cases" "print_statement" "thm" "prf" "full_prf"
     "prop" "term" "typ" "print_codesetup" "unused_thms" :: diag
-  and "use_thy" "remove_thy" "kill_thy" :: control
-  and "display_drafts" "print_state" "pr" :: diag
-  and "pretty_setmargin" "disable_pr" "enable_pr" "commit" "quit" "exit" :: control
+  and "display_drafts" "print_state" :: diag
   and "welcome" :: diag
-  and "init_toplevel" "linear_undo" "undo" "undos_proof" "cannot_undo" "kill" :: control
   and "end" :: thy_end % "theory"
   and "realizers" :: thy_decl == ""
   and "realizability" :: thy_decl == ""
   and "extract_type" "extract" :: thy_decl
   and "find_theorems" "find_consts" :: diag
   and "named_theorems" :: thy_decl
-  and "ProofGeneral.process_pgip" "ProofGeneral.pr" "ProofGeneral.undo"
-    "ProofGeneral.restart" "ProofGeneral.kill_proof" "ProofGeneral.inform_file_processed"
-    "ProofGeneral.inform_file_retracted" :: control
 begin
 
 ML_file "ML/ml_antiquotations.ML"
@@ -117,7 +110,6 @@ ML_file "Tools/thm_deps.ML";
 ML_file "Tools/class_deps.ML"
 ML_file "Tools/find_theorems.ML"
 ML_file "Tools/find_consts.ML"
-ML_file "Tools/proof_general_pure.ML"
 ML_file "Tools/simplifier_trace.ML"
 ML_file "Tools/named_theorems.ML"
 
