@@ -26,7 +26,6 @@ sig
   val pretty_state: state -> Pretty.T list
   val print_state: state -> unit
   val pretty_abstract: state -> Pretty.T
-  val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
   type transition
   val empty: transition
@@ -211,7 +210,6 @@ fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
 (** toplevel transitions **)
 
-val timing = Unsynchronized.ref false;
 val profiling = Unsynchronized.ref 0;
 
 

@@ -758,7 +758,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Misc_Datatype
     Misc_Primcorec
     Misc_Primrec
-  theories [condition = ISABELLE_FULL_TEST, timing]
+  theories [condition = ISABELLE_FULL_TEST]
     Brackin
     IsaFoR
     Misc_N2M
@@ -1098,6 +1098,6 @@ session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
     Some benchmark on large record.
   *}
   options [document = false]
-  theories [condition = ISABELLE_FULL_TEST, timing]
+  theories [condition = ISABELLE_FULL_TEST]
     Record_Benchmark
 

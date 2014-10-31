@@ -151,8 +151,6 @@ fun excursion master_dir last_timing init elements =
 
 fun load_thy document last_timing update_time master_dir header text_pos text parents =
   let
-    val time = ! Toplevel.timing;
-
     val {name = (name, _), ...} = header;
     val _ = Thy_Header.define_keywords header;
 
@@ -166,10 +164,9 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
       |> Present.begin_theory update_time
           (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
-    val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val (results, thy) =
-      cond_timeit time "" (fn () => excursion master_dir last_timing init elements);
-    val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
+      cond_timeit true ("theory " ^ quote name)
+        (fn () => excursion master_dir last_timing init elements);
 
     fun present () =
       let
