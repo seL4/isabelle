@@ -187,7 +187,8 @@ parameterized antiquotations, e.g. @{map 4} for lists of quadruples.
 
 *** System ***
 
-* Proof General support has been discontinued.  Minor INCOMPATIBILITY.
+* Support for Proof General and Isar TTY loop has been discontinued.
+Minor INCOMPATIBILITY.
 
 * The Isabelle tool "update_cartouches" changes theory files to use
 cartouches instead of old-style {* verbatim *} or `alt_string` tokens.

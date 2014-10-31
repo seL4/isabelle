@@ -919,84 +919,20 @@ val _ =
     (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Code.print_codesetup o Toplevel.theory_of)));
 
-
-
-(** system commands (for interactive mode only) **)
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "use_thy"} "use theory file"
-    (Parse.position Parse.name >>
-      (fn name => Toplevel.imperative (fn () => Thy_Info.use_thy name)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "remove_thy"} "remove theory from loader database"
-    (Parse.name >> (fn name => Toplevel.imperative (fn () => Thy_Info.remove_thy name)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "kill_thy"}
-    "kill theory -- try to remove from loader database"
-    (Parse.name >> (fn name => Toplevel.imperative (fn () => Thy_Info.kill_thy name)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "display_drafts"}
-    "display raw source files with symbols"
-    (Scan.repeat1 Parse.path >> (fn names =>
-      Toplevel.imperative (fn () => ignore (Present.display_drafts (map Path.explode names)))));
-
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_state"}
     "print current proof state (if present)"
     (opt_modes >> (fn modes => Toplevel.keep (Print_Mode.with_modes modes Toplevel.print_state)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "commit"}
-    "commit current session to ML session image"
-    (Parse.opt_unit >> K (Toplevel.imperative Secure.commit));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "quit"} "quit Isabelle process"
-    (Parse.opt_unit >> (K (Toplevel.imperative quit)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "exit"} "exit Isar loop"
-    (Scan.succeed
-      (Toplevel.keep (fn state =>
-        (Context.set_thread_data (try Toplevel.generic_theory_of state);
-          raise Runtime.TERMINATE))));
-
-val _ =
   Outer_Syntax.improper_command @{command_spec "welcome"} "print welcome message"
     (Scan.succeed (Toplevel.imperative (writeln o Session.welcome)));
 
-
-
-(** raw Isar read-eval-print loop **)
-
 val _ =
-  Outer_Syntax.improper_command @{command_spec "init_toplevel"} "init toplevel point-of-interest"
-    (Scan.succeed (Toplevel.imperative Isar.init));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "linear_undo"} "undo commands"
-    (Scan.optional Parse.nat 1 >>
-      (fn n => Toplevel.imperative (fn () => Isar.linear_undo n)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "undo"} "undo commands (skipping closed proofs)"
-    (Scan.optional Parse.nat 1 >>
-      (fn n => Toplevel.imperative (fn () => Isar.undo n)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "undos_proof"}
-    "undo commands (skipping closed proofs)"
-    (Scan.optional Parse.nat 1 >> (fn n =>
-      Toplevel.keep (fn state =>
-        if Toplevel.is_proof state then (Isar.undo n; Isar.print ()) else raise Toplevel.UNDEF)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "kill"}
-    "kill partial proof or theory development"
-    (Scan.succeed (Toplevel.imperative Isar.kill));
+  Outer_Syntax.improper_command @{command_spec "display_drafts"}
+    "display raw source files with symbols"
+    (Scan.repeat1 Parse.path >> (fn names =>
+      Toplevel.imperative (fn () => ignore (Present.display_drafts (map Path.explode names)))));
 
 
 

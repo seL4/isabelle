@@ -13,7 +13,6 @@ sig
   val use_text: use_context -> int * string -> bool -> string -> unit
   val use_file: use_context -> bool -> string -> unit
   val toplevel_pp: string list -> string -> unit
-  val commit: unit -> unit
 end;
 
 structure Secure: SECURE =
@@ -32,8 +31,6 @@ fun deny_secure msg = if is_secure () then error msg else ();
 
 (** critical operations **)
 
-(* ML evaluation *)
-
 fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 
 val raw_use_text = use_text;
@@ -44,13 +41,6 @@ fun use_text context pos verbose txt = (secure_mltext (); raw_use_text context p
 fun use_file context verbose name = (secure_mltext (); raw_use_file context verbose name);
 
 fun toplevel_pp path pp = (secure_mltext (); raw_toplevel_pp ML_Parse.global_context path pp);
-
-
-(* global evaluation *)
-
-val use_global = raw_use_text ML_Parse.global_context (0, "") false;
-
-fun commit () = use_global "commit();";   (*commit is dynamically bound!*)
 
 end;
 

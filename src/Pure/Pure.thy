@@ -88,11 +88,8 @@ theory Pure
     "locale_deps" "class_deps" "thm_deps" "print_term_bindings"
     "print_facts" "print_cases" "print_statement" "thm" "prf" "full_prf"
     "prop" "term" "typ" "print_codesetup" "unused_thms" :: diag
-  and "use_thy" "remove_thy" "kill_thy" :: control
   and "display_drafts" "print_state" :: diag
-  and "commit" "quit" "exit" :: control
   and "welcome" :: diag
-  and "init_toplevel" "linear_undo" "undo" "undos_proof" "kill" :: control
   and "end" :: thy_end % "theory"
   and "realizers" :: thy_decl == ""
   and "realizability" :: thy_decl == ""

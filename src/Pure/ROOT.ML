@@ -327,7 +327,6 @@ use "System/message_channel.ML";
 use "System/isabelle_process.ML";
 use "System/invoke_scala.ML";
 use "PIDE/protocol.ML";
-use "System/isar.ML";
 
 
 (* miscellaneous tools and packages for Pure Isabelle *)
