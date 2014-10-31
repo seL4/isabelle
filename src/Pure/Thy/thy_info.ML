@@ -14,7 +14,6 @@ sig
   val get_theory: string -> theory
   val is_finished: string -> bool
   val master_directory: string -> Path.T
-  val loaded_files: string -> Path.T list
   val remove_thy: string -> unit
   val kill_thy: string -> unit
   val use_theories:
@@ -125,12 +124,6 @@ fun get_theory name =
   | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
 
 val get_imports = Resources.imports_of o get_theory;
-
-(*Proof General legacy*)
-fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
-  (case get_deps name of
-    NONE => []
-  | SOME {master = (thy_path, _), ...} => thy_path :: Resources.loaded_files (get_theory name)));
 
 
 
