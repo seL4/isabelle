@@ -499,8 +499,7 @@ val scan_verbatim =
   Scan.ahead ($$ "{" -- $$ "*") |--
     !!! "unclosed verbatim text"
       ((Symbol_Pos.scan_pos --| $$ "{" --| $$ "*") --
-        Symbol_Pos.change_prompt
-          ((Scan.repeat scan_verb >> flat) -- ($$ "*" |-- $$ "}" |-- Symbol_Pos.scan_pos)));
+        ((Scan.repeat scan_verb >> flat) -- ($$ "*" |-- $$ "}" |-- Symbol_Pos.scan_pos)));
 
 val recover_verbatim =
   $$$ "{" @@@ $$$ "*" @@@ (Scan.repeat scan_verb >> flat);

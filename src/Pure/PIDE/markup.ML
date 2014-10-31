@@ -162,7 +162,6 @@ sig
   val systemN: string
   val protocolN: string
   val legacyN: string val legacy: T
-  val promptN: string val prompt: T
   val reportN: string val report: T
   val no_reportN: string val no_report: T
   val badN: string val bad: T
@@ -547,7 +546,6 @@ val systemN = "system";
 val protocolN = "protocol";
 
 val (legacyN, legacy) = markup_elem "legacy";
-val (promptN, prompt) = markup_elem "prompt";
 
 val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";

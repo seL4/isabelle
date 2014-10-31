@@ -17,7 +17,6 @@ sig
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : Scan.message -> (T list -> 'a) -> T list -> 'a
-  val change_prompt: ('a -> 'b) -> 'a -> 'b
   val scan_pos: T list -> Position.T * T list
   val scan_string_q: string -> T list -> (Position.T * (T list * Position.T)) * T list
   val scan_string_qq: string -> T list -> (Position.T * (T list * Position.T)) * T list
@@ -88,8 +87,6 @@ fun !!! text scan =
       (case msg of NONE => "" | SOME m => "\n" ^ m ());
   in Scan.!! err scan end;
 
-fun change_prompt scan = Scan.prompt "# " scan;
-
 fun $$ s = Scan.one (fn x => symbol x = s);
 fun ~$$ s = Scan.one (fn x => symbol x <> s);
 
@@ -120,7 +117,7 @@ fun scan_strs q err_prefix =
   Scan.ahead ($$ q) |--
     !!! (fn () => err_prefix ^ "unclosed string literal")
       ((scan_pos --| $$$ q) --
-        (change_prompt ((Scan.repeat (scan_str q err_prefix) >> flat) -- ($$$ q |-- scan_pos))));
+        ((Scan.repeat (scan_str q err_prefix) >> flat) -- ($$$ q |-- scan_pos)));
 
 fun recover_strs q =
   $$$ q @@@ (Scan.repeat (Scan.permissive (scan_str q "")) >> flat);
@@ -174,7 +171,7 @@ val scan_cartouche_depth =
 fun scan_cartouche err_prefix =
   Scan.ahead ($$ "\\<open>") |--
     !!! (fn () => err_prefix ^ "unclosed text cartouche")
-      (change_prompt (Scan.provide (fn d => d = 0) 0 scan_cartouche_depth));
+      (Scan.provide (fn d => d = 0) 0 scan_cartouche_depth);
 
 val recover_cartouche = Scan.pass 0 scan_cartouche_depth;
 
@@ -205,19 +202,17 @@ val scan_cmt =
 
 val scan_cmts = Scan.pass 0 (Scan.repeat scan_cmt >> flat);
 
-val scan_body = change_prompt scan_cmts;
-
 in
 
 fun scan_comment err_prefix =
   Scan.ahead ($$ "(" -- $$ "*") |--
     !!! (fn () => err_prefix ^ "unclosed comment")
-      ($$$ "(" @@@ $$$ "*" @@@ scan_body @@@ $$$ "*" @@@ $$$ ")");
+      ($$$ "(" @@@ $$$ "*" @@@ scan_cmts @@@ $$$ "*" @@@ $$$ ")");
 
 fun scan_comment_body err_prefix =
   Scan.ahead ($$ "(" -- $$ "*") |--
     !!! (fn () => err_prefix ^ "unclosed comment")
-      ($$ "(" |-- $$ "*" |-- scan_body --| $$ "*" --| $$ ")");
+      ($$ "(" |-- $$ "*" |-- scan_cmts --| $$ "*" --| $$ ")");
 
 val recover_comment =
   $$$ "(" @@@ $$$ "*" @@@ scan_cmts;

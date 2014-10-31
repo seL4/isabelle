@@ -38,7 +38,6 @@ end;
 signature SCAN =
 sig
   include BASIC_SCAN
-  val prompt: string -> ('a -> 'b) -> 'a -> 'b
   val permissive: ('a -> 'b) -> 'a -> 'b
   val error: ('a -> 'b) -> 'a -> 'b
   val catch: ('a -> 'b) -> 'a -> 'b    (*exception Fail*)
@@ -76,8 +75,8 @@ sig
     -> 'b * 'a list -> 'c * ('d * 'a list)
   val finite: 'a stopper -> ('a list -> 'b * 'a list) -> 'a list -> 'b * 'a list
   val read: 'a stopper -> ('a list -> 'b * 'a list) -> 'a list -> 'b option
-  val drain: string -> (string -> 'a -> 'b list * 'a) -> 'b stopper ->
-    ('c * 'b list -> 'd * ('e * 'b list)) -> ('c * 'b list) * 'a -> ('d * ('e * 'b list)) * 'a
+  val drain: ('a -> 'b list * 'a) -> 'b stopper -> ('c * 'b list -> 'd * ('e * 'b list)) ->
+    ('c * 'b list) * 'a -> ('d * ('e * 'b list)) * 'a
   type lexicon
   val is_literal: lexicon -> string list -> bool
   val literal: lexicon -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
@@ -98,14 +97,13 @@ struct
 
 type message = unit -> string;
 
-exception MORE of string option;        (*need more input (prompt)*)
-exception FAIL of message option;       (*try alternatives (reason of failure)*)
-exception ABORT of message;             (*dead end*)
+exception MORE of unit;  (*need more input*)
+exception FAIL of message option;  (*try alternatives (reason of failure)*)
+exception ABORT of message;  (*dead end*)
 
 fun !! err scan xs = scan xs handle FAIL msg => raise ABORT (err (xs, msg));
-fun permissive scan xs = scan xs handle MORE _ => raise FAIL NONE | ABORT _ => raise FAIL NONE;
-fun strict scan xs = scan xs handle MORE _ => raise FAIL NONE;
-fun prompt str scan xs = scan xs handle MORE NONE => raise MORE (SOME str);
+fun permissive scan xs = scan xs handle MORE () => raise FAIL NONE | ABORT _ => raise FAIL NONE;
+fun strict scan xs = scan xs handle MORE () => raise FAIL NONE;
 fun error scan xs = scan xs handle ABORT msg => Library.error (msg ());
 
 fun catch scan xs = scan xs
@@ -140,11 +138,11 @@ fun fail _ = raise FAIL NONE;
 fun fail_with msg_of xs = raise FAIL (SOME (msg_of xs));
 fun succeed y xs = (y, xs);
 
-fun some _ [] = raise MORE NONE
+fun some _ [] = raise MORE ()
   | some f (x :: xs) =
       (case f x of SOME y => (y, xs) | _ => raise FAIL NONE);
 
-fun one _ [] = raise MORE NONE
+fun one _ [] = raise MORE ()
   | one pred (x :: xs) =
       if pred x then (x, xs) else raise FAIL NONE;
 
@@ -154,14 +152,14 @@ fun ~$$ a = one (fn s: string => s <> a);
 fun this ys xs =
   let
     fun drop_prefix [] xs = xs
-      | drop_prefix (_ :: _) [] = raise MORE NONE
+      | drop_prefix (_ :: _) [] = raise MORE ()
       | drop_prefix (y :: ys) (x :: xs) =
           if (y: string) = x then drop_prefix ys xs else raise FAIL NONE;
   in (ys, drop_prefix ys xs) end;
 
 fun this_string s = this (raw_explode s) >> K s;  (*primitive string -- no symbols here!*)
 
-fun many _ [] = raise MORE NONE
+fun many _ [] = raise MORE ()
   | many pred (lst as x :: xs) =
       if pred x then apfst (cons x) (many pred xs)
       else ([], lst);
@@ -265,11 +263,11 @@ fun read stopper scan xs =
 
 (* infinite scans -- draining state-based source *)
 
-fun drain def_prompt get stopper scan ((state, xs), src) =
-  (scan (state, xs), src) handle MORE prompt =>
-    (case get (the_default def_prompt prompt) src of
+fun drain get stopper scan ((state, xs), src) =
+  (scan (state, xs), src) handle MORE () =>
+    (case get src of
       ([], _) => (finite' stopper scan (state, xs), src)
-    | (xs', src') => drain def_prompt get stopper scan ((state, xs @ xs'), src'));
+    | (xs', src') => drain get stopper scan ((state, xs @ xs'), src'));
 
 
 
@@ -292,7 +290,8 @@ fun literal lexicon =
   let
     fun finish (SOME (res, rest)) = (rev res, rest)
       | finish NONE = raise FAIL NONE;
-    fun scan _ res (Lexicon tab) [] = if Symtab.is_empty tab then finish res else raise MORE NONE
+    fun scan _ res (Lexicon tab) [] =
+          if Symtab.is_empty tab then finish res else raise MORE ()
       | scan path res (Lexicon tab) (c :: cs) =
           (case Symtab.lookup tab (fst c) of
             SOME (tip, lex) =>

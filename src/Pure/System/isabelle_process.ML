@@ -126,7 +126,6 @@ fun init_channels channel =
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
     Output.system_message_fn := message Markup.systemN [];
     Output.protocol_message_fn := message Markup.protocolN;
-    Output.prompt_fn := ignore;
     message Markup.initN [] [Session.welcome ()];
     msg_channel
   end;
