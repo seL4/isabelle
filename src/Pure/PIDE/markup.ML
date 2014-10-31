@@ -118,7 +118,6 @@ sig
   val verbatimN: string val verbatim: T
   val cartoucheN: string val cartouche: T
   val commentN: string val comment: T
-  val controlN: string val control: T
   val tokenN: string val token: bool -> Properties.T -> T
   val keyword1N: string val keyword1: T
   val keyword2N: string val keyword2: T
@@ -464,7 +463,6 @@ val (altstringN, altstring) = markup_elem "altstring";
 val (verbatimN, verbatim) = markup_elem "verbatim";
 val (cartoucheN, cartouche) = markup_elem "cartouche";
 val (commentN, comment) = markup_elem "comment";
-val (controlN, control) = markup_elem "control";
 
 val tokenN = "token";
 fun token delimited props = (tokenN, (delimitedN, print_bool delimited) :: props);

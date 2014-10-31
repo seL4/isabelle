@@ -199,7 +199,7 @@ fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
   in (Src {name = (name, pos), args = args, output_info = SOME (kind, markup)}, x) end;
 
 
-(* control tokens *)
+(* stopper *)
 
 fun mk_eof pos = Token (("", (pos, Position.none)), (EOF, ""), Slot);
 val eof = mk_eof Position.none;
@@ -300,7 +300,7 @@ val token_kind_markup =
   | Comment       => (Markup.comment, "")
   | InternalValue => (Markup.empty, "")
   | Error msg     => (Markup.bad, msg)
-  | EOF           => (Markup.control, "");
+  | EOF           => (Markup.empty, "");
 
 in
 

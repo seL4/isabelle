@@ -73,7 +73,7 @@ fun pos_of (Token ((pos, _), _)) = pos;
 fun end_pos_of (Token ((_, pos), _)) = pos;
 
 
-(* control tokens *)
+(* stopper *)
 
 fun mk_eof pos = Token ((pos, Position.none), (EOF, ""));
 val eof = mk_eof Position.none;
