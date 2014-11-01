@@ -291,7 +291,7 @@ fun read_attribs ctxt source =
     val syms = Symbol_Pos.source_explode source;
     val lex = #1 (Keyword.get_lexicons ());
   in
-    (case Token.read lex Parse.attribs (syms, #pos source) of
+    (case Token.read lex Parse.attribs syms of
       [raw_srcs] => check_attribs ctxt raw_srcs
     | _ => error ("Malformed attributes" ^ Position.here (#pos source)))
   end;

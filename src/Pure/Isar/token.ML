@@ -87,7 +87,7 @@ sig
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
-  val read: Scan.lexicon -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a list
+  val read: Scan.lexicon -> 'a parser -> Symbol_Pos.T list -> 'a list
   val read_antiq: Scan.lexicon -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
   val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
@@ -582,7 +582,7 @@ type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T l
 
 (* read source *)
 
-fun read lex scan (syms, pos) =
+fun read lex scan syms =
   Source.of_list syms
   |> source' true (K (lex, Scan.empty_lexicon))
   |> source_proper
@@ -594,7 +594,7 @@ fun read_antiq lex scan (syms, pos) =
     fun err msg =
       cat_error msg ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
         "@{" ^ Symbol_Pos.content syms ^ "}");
-    val res = read lex scan (syms, pos) handle ERROR msg => err msg;
+    val res = read lex scan syms handle ERROR msg => err msg;
   in (case res of [x] => x | _ => err "") end;
 
 
