@@ -18,10 +18,8 @@ sig
   val of_string: string -> (string, string list) source
   val of_string_limited: int -> string -> (string, substring) source
   val source': 'a -> 'b Scan.stopper -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
-    (string -> 'a * 'b list -> 'c list * ('a * 'b list)) option ->
     ('b, 'e) source -> ('c, 'a * ('b, 'e) source) source
   val source: 'a Scan.stopper -> ('a list -> 'b list * 'a list) ->
-    (string -> 'a list -> 'b list * 'a list) option ->
     ('a, 'd) source -> ('b, ('a, 'd) source) source
 end;
 
@@ -107,33 +105,25 @@ fun of_string_limited limit str =
 
 (* state-based *)
 
-fun drain_source' stopper scan opt_recover (state, src) =
+fun drain_source' stopper scan (state, src) =
   let
     val drain = Scan.drain get stopper;
     val (xs, s) = get src;
-    val inp = ((state, xs), s);
     val ((ys, (state', xs')), src') =
       if null xs then (([], (state, [])), s)
-      else
-        (case opt_recover of
-          NONE => drain (Scan.error scan) inp
-        | SOME recover =>
-            (drain (Scan.catch scan) inp handle Fail msg =>
-              (drain (Scan.unless (Scan.lift (Scan.one (Scan.is_stopper stopper))) (recover msg))
-                inp)));
+      else drain (Scan.error scan) ((state, xs), s);
   in (ys, (state', unget (xs', src'))) end;
 
-fun source' init_state stopper scan recover src =
-  make_source [] (init_state, src) (drain_source' stopper scan recover);
+fun source' init_state stopper scan src =
+  make_source [] (init_state, src) (drain_source' stopper scan);
 
 
 (* non state-based *)
 
-fun drain_source stopper scan opt_recover =
-  Scan.unlift (drain_source' stopper (Scan.lift scan)
-    (Option.map (fn r => Scan.lift o r) opt_recover));
+fun drain_source stopper scan =
+  Scan.unlift (drain_source' stopper (Scan.lift scan));
 
-fun source stopper scan recover src =
-  make_source [] src (drain_source stopper scan recover);
+fun source stopper scan src =
+  make_source [] src (drain_source stopper scan);
 
 end;

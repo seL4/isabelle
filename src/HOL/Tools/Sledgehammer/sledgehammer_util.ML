@@ -131,9 +131,9 @@ fun thms_of_name ctxt name =
   in
     Source.of_string name
     |> Symbol.source
-    |> Token.source {do_recover = true} lex Position.start
+    |> Token.source lex Position.start
     |> Token.source_proper
-    |> Source.source Token.stopper (Parse.xthms1 >> get) NONE
+    |> Source.source Token.stopper (Parse.xthms1 >> get)
     |> Source.exhaust
   end
 

@@ -224,7 +224,7 @@ end;
 
 fun source pos =
   Source.source' pos Symbol.stopper (Scan.bulk (Scan.depend (fn pos =>
-    Scan.one Symbol.not_eof >> (fn s => (Position.advance s pos, (s, pos)))))) NONE;
+    Scan.one Symbol.not_eof >> (fn s => (Position.advance s pos, (s, pos))))));
 
 
 (* compact representation -- with Symbol.DEL padding *)

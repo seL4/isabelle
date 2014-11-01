@@ -438,7 +438,7 @@ val scan_total =
 
 in
 
-fun source src = Source.source stopper (Scan.bulk scan_total) NONE src;
+fun source src = Source.source stopper (Scan.bulk scan_total) src;
 
 end;
 

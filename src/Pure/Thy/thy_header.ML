@@ -127,13 +127,13 @@ fun token_source pos str =
   str
   |> Source.of_string_limited 8000
   |> Symbol.source
-  |> Token.source {do_recover = false} (K header_lexicons) pos;
+  |> Token.source_strict (K header_lexicons) pos;
 
 fun read_source pos source =
   let val res =
     source
     |> Token.source_proper
-    |> Source.source Token.stopper (Scan.single (Scan.error (Parse.!!! header))) NONE
+    |> Source.source Token.stopper (Scan.single (Scan.error (Parse.!!! header)))
     |> Source.get_single;
   in
     (case res of

@@ -415,8 +415,8 @@ fun present_thy lex default_tags is_markup command_results toks =
     val spans = toks
       |> take_suffix Token.is_space |> #1
       |> Source.of_list
-      |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk token)) NONE
-      |> Source.source stopper (Scan.error (Scan.bulk span)) NONE
+      |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk token))
+      |> Source.source stopper (Scan.error (Scan.bulk span))
       |> Source.exhaust;
 
 

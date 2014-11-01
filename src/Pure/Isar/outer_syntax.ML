@@ -224,9 +224,9 @@ in
 
 fun commands_source syntax =
   Token.source_proper #>
-  Source.source Token.stopper (Scan.bulk (parse_cmt >> K NONE || Parse.not_eof >> SOME)) NONE #>
+  Source.source Token.stopper (Scan.bulk (parse_cmt >> K NONE || Parse.not_eof >> SOME)) #>
   Source.map_filter I #>
-  Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command syntax) xs)) NONE;
+  Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command syntax) xs));
 
 end;
 
@@ -236,13 +236,13 @@ end;
 fun scan lexs pos =
   Source.of_string #>
   Symbol.source #>
-  Token.source {do_recover = true} (K lexs) pos #>
+  Token.source (K lexs) pos #>
   Source.exhaust;
 
 fun parse (lexs, syntax) pos str =
   Source.of_string str
   |> Symbol.source
-  |> Token.source {do_recover = true} (K lexs) pos
+  |> Token.source (K lexs) pos
   |> commands_source syntax
   |> Source.exhaust;
 

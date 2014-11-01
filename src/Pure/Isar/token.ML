@@ -79,9 +79,10 @@ sig
   val pretty_src: Proof.context -> src -> Pretty.T
   val ident_or_symbolic: string -> bool
   val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
-  val source': {do_recover: bool} -> (unit -> Scan.lexicon * Scan.lexicon) ->
-    (Symbol_Pos.T, 'a) Source.source -> (T, (Symbol_Pos.T, 'a) Source.source) Source.source
-  val source: {do_recover: bool} -> (unit -> Scan.lexicon * Scan.lexicon) ->
+  val source: (unit -> Scan.lexicon * Scan.lexicon) ->
+    Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
+      (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
+  val source_strict: (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   type 'a parser = T list -> 'a * T list
@@ -560,13 +561,14 @@ fun recover msg =
 
 in
 
-fun source' {do_recover} get_lex =
-  Source.source Symbol_Pos.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
-    (if do_recover then SOME recover else NONE);
+fun source' strict get_lex =
+  let
+    val scan_strict = Scan.bulk (fn xs => scan (get_lex ()) xs);
+    val scan = if strict then scan_strict else Scan.recover scan_strict recover;
+  in Source.source Symbol_Pos.stopper scan end;
 
-fun source do_recover get_lex pos src =
-  Symbol_Pos.source pos src
-  |> source' do_recover get_lex;
+fun source get_lex pos src = Symbol_Pos.source pos src |> source' false get_lex;
+fun source_strict get_lex pos src = Symbol_Pos.source pos src |> source' true get_lex;
 
 end;
 
@@ -582,9 +584,9 @@ type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T l
 
 fun read lex scan (syms, pos) =
   Source.of_list syms
-  |> source' {do_recover = false} (K (lex, Scan.empty_lexicon))
+  |> source' true (K (lex, Scan.empty_lexicon))
   |> source_proper
-  |> Source.source stopper (Scan.error (Scan.bulk scan)) NONE
+  |> Source.source stopper (Scan.error (Scan.bulk scan))
   |> Source.exhaust;
 
 fun read_antiq lex scan (syms, pos) =

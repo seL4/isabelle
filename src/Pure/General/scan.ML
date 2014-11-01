@@ -41,6 +41,7 @@ sig
   val permissive: ('a -> 'b) -> 'a -> 'b
   val error: ('a -> 'b) -> 'a -> 'b
   val catch: ('a -> 'b) -> 'a -> 'b    (*exception Fail*)
+  val recover: ('a -> 'b) -> (string -> 'a -> 'b) -> 'a -> 'b
   val fail: 'a -> 'b
   val fail_with: ('a -> message) -> 'a -> 'b
   val succeed: 'a -> 'b -> 'a * 'b
@@ -109,6 +110,9 @@ fun error scan xs = scan xs handle ABORT msg => Library.error (msg ());
 fun catch scan xs = scan xs
   handle ABORT msg => raise Fail (msg ())
     | FAIL msg => raise Fail (case msg of NONE => "Syntax error" | SOME m => m ());
+
+fun recover scan1 scan2 xs =
+  catch scan1 xs handle Fail msg => scan2 msg xs;
 
 
 (* scanner combinators *)

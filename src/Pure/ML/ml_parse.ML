@@ -57,7 +57,7 @@ val fix_ints =
   ML_System.is_smlnj ?
    (Source.of_string #>
     ML_Lex.source #>
-    Source.source ML_Lex.stopper (Scan.bulk (!!! fix_int)) NONE #>
+    Source.source ML_Lex.stopper (Scan.bulk (!!! fix_int)) #>
     Source.exhaust #>
     implode);
 

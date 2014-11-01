@@ -105,7 +105,7 @@ in
 
 val parse_elements =
   Source.of_list #>
-  Source.source stopper (Scan.bulk other_element) NONE #>
+  Source.source stopper (Scan.bulk other_element) #>
   Source.exhaust;
 
 end;
