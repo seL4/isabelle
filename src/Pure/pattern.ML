@@ -12,7 +12,6 @@ TODO: optimize red by special-casing it
 
 signature PATTERN =
 sig
-  val unify_trace_failure_default: bool Unsynchronized.ref
   val unify_trace_failure_raw: Config.raw
   val unify_trace_failure: bool Config.T
   val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
@@ -40,10 +39,8 @@ struct
 exception Unif;
 exception Pattern;
 
-val unify_trace_failure_default = Unsynchronized.ref false;
 val unify_trace_failure_raw =
-  Config.declare_global ("unify_trace_failure", @{here})
-    (fn _ => Config.Bool (! unify_trace_failure_default));
+  Config.declare_global ("unify_trace_failure", @{here}) (fn _ => Config.Bool false);
 val unify_trace_failure = Config.bool unify_trace_failure_raw;
 
 fun string_of_term thy env binders t =
