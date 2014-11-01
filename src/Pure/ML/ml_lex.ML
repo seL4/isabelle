@@ -308,7 +308,7 @@ fun gen_read SML pos text =
     val input =
       Source.of_list syms
       |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan))
-        (SOME (false, fn msg => recover msg >> map Antiquote.Text))
+        (SOME (fn msg => recover msg >> map Antiquote.Text))
       |> Source.exhaust
       |> tap (Position.reports_text o Antiquote.antiquote_reports (single o report_of_token SML))
       |> tap (List.app check);
@@ -318,7 +318,7 @@ in
 
 fun source src =
   Symbol_Pos.source (Position.line 1) src
-  |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
+  |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME recover);
 
 val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
 

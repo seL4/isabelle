@@ -236,13 +236,13 @@ end;
 fun scan lexs pos =
   Source.of_string #>
   Symbol.source #>
-  Token.source {do_recover = SOME false} (K lexs) pos #>
+  Token.source {do_recover = true} (K lexs) pos #>
   Source.exhaust;
 
 fun parse (lexs, syntax) pos str =
   Source.of_string str
   |> Symbol.source
-  |> Token.source {do_recover = SOME false} (K lexs) pos
+  |> Token.source {do_recover = true} (K lexs) pos
   |> commands_source syntax
   |> Source.exhaust;
 

@@ -127,7 +127,7 @@ fun token_source pos str =
   str
   |> Source.of_string_limited 8000
   |> Symbol.source
-  |> Token.source {do_recover = NONE} (K header_lexicons) pos;
+  |> Token.source {do_recover = false} (K header_lexicons) pos;
 
 fun read_source pos source =
   let val res =

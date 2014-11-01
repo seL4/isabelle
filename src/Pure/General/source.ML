@@ -18,10 +18,10 @@ sig
   val of_string: string -> (string, string list) source
   val of_string_limited: int -> string -> (string, substring) source
   val source': 'a -> 'b Scan.stopper -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
-    (bool * (string -> 'a * 'b list -> 'c list * ('a * 'b list))) option ->
+    (string -> 'a * 'b list -> 'c list * ('a * 'b list)) option ->
     ('b, 'e) source -> ('c, 'a * ('b, 'e) source) source
   val source: 'a Scan.stopper -> ('a list -> 'b list * 'a list) ->
-    (bool * (string -> 'a list -> 'b list * 'a list)) option ->
+    (string -> 'a list -> 'b list * 'a list) option ->
     ('a, 'd) source -> ('b, ('a, 'd) source) source
 end;
 
@@ -117,11 +117,10 @@ fun drain_source' stopper scan opt_recover (state, src) =
       else
         (case opt_recover of
           NONE => drain (Scan.error scan) inp
-        | SOME (interactive, recover) =>
+        | SOME recover =>
             (drain (Scan.catch scan) inp handle Fail msg =>
-              (if interactive then Output.error_message msg else ();
-                drain (Scan.unless (Scan.lift (Scan.one (Scan.is_stopper stopper))) (recover msg))
-                  inp)));
+              (drain (Scan.unless (Scan.lift (Scan.one (Scan.is_stopper stopper))) (recover msg))
+                inp)));
   in (ys, (state', unget (xs', src'))) end;
 
 fun source' init_state stopper scan recover src =
@@ -132,7 +131,7 @@ fun source' init_state stopper scan recover src =
 
 fun drain_source stopper scan opt_recover =
   Scan.unlift (drain_source' stopper (Scan.lift scan)
-    (Option.map (fn (int, r) => (int, Scan.lift o r)) opt_recover));
+    (Option.map (fn r => Scan.lift o r) opt_recover));
 
 fun source stopper scan recover src =
   make_source [] src (drain_source stopper scan recover);
