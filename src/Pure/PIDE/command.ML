@@ -147,8 +147,8 @@ in
 
 fun read init master_dir blobs span =
   let
-    val outer_syntax = #2 (Outer_Syntax.get_syntax ());
-    val command_reports = Outer_Syntax.command_reports outer_syntax;
+    val syntax = #2 (Outer_Syntax.get_syntax ());
+    val command_reports = Outer_Syntax.command_reports syntax;
 
     val proper_range = Token.range_of (#1 (take_suffix Token.is_improper span));
     val pos =
@@ -161,7 +161,7 @@ fun read init master_dir blobs span =
   in
     if is_malformed then Toplevel.malformed pos "Malformed command syntax"
     else
-      (case Outer_Syntax.read_spans outer_syntax (resolve_files master_dir blobs span) of
+      (case Outer_Syntax.read_spans syntax (resolve_files master_dir blobs span) of
         [tr] => Toplevel.modify_init init tr
       | [] => Toplevel.ignored (#1 (Token.range_of span))
       | _ => Toplevel.malformed (#1 proper_range) "Exactly one command expected")

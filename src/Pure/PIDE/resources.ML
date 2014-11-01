@@ -165,14 +165,14 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
     fun present () =
       let
         val res = filter_out (Toplevel.is_ignored o #1) (maps Toplevel.join_results results);
-        val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax ();
+        val ((minor, _), syntax) = Outer_Syntax.get_syntax ();
       in
         if exists (Toplevel.is_skipped_proof o #2) res then
           warning ("Cannot present theory with skipped proofs: " ^ quote name)
         else
           let val tex_source =
             Thy_Output.present_thy minor Keyword.command_tags
-              (Outer_Syntax.is_markup outer_syntax) res toks
+              (Outer_Syntax.is_markup syntax) res toks
             |> Buffer.content;
           in if document then Present.theory_output name tex_source else () end
       end;

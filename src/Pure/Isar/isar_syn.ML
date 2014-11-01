@@ -745,11 +745,11 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "help"}
     "retrieve outer syntax commands according to name patterns"
     (Scan.repeat Parse.name >>
-      (fn pats => Toplevel.imperative (fn () => Outer_Syntax.help_outer_syntax pats)));
+      (fn pats => Toplevel.imperative (fn () => Outer_Syntax.help_syntax pats)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_commands"} "print outer syntax commands"
-    (Scan.succeed (Toplevel.imperative Outer_Syntax.print_outer_syntax));
+    (Scan.succeed (Toplevel.imperative Outer_Syntax.print_syntax));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_options"} "print configuration options"
