@@ -31,21 +31,6 @@ text \<open>
   "\\isabellestyle"}, see also @{cite "isabelle-sys"}).  Experienced
   users of Isabelle/Isar may easily reconstruct the lost technical
   information, while mere readers need not care about quotes at all.
-
-  \medskip Isabelle/Isar input may contain any number of input
-  termination characters ``@{verbatim ";"}'' (semicolon) to separate
-  commands explicitly.  This is particularly useful in interactive
-  shell sessions to make clear where the current command is intended
-  to end.  Otherwise, the interpreter loop will continue to issue a
-  secondary prompt ``@{verbatim "#"}'' until an end-of-command is
-  clearly recognized from the input syntax, e.g.\ encounter of the
-  next command keyword.
-
-  More advanced interfaces such as Isabelle/jEdit @{cite "Wenzel:2012"}
-  do not require explicit semicolons: command spans are determined by
-  inspecting the content of the editor buffer.  In the printed
-  presentation of Isabelle/Isar documents semicolons are omitted
-  altogether for readability.
 \<close>
 
 

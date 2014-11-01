@@ -74,7 +74,7 @@ val beginN = "begin";
 
 val header_lexicons =
   pairself (Scan.make_lexicon o map Symbol.explode)
-   (["%", "(", ")", ",", "::", ";", "==", "and", beginN, importsN, keywordsN],
+   (["%", "(", ")", ",", "::", "==", "and", beginN, importsN, keywordsN],
     [headerN, theoryN]);
 
 
@@ -120,8 +120,7 @@ end;
 
 val header =
   (Parse.command_name headerN -- Parse.tags) |--
-    (Parse.!!! (Parse.document_source -- Scan.repeat Parse.semicolon --
-      (Parse.command_name theoryN -- Parse.tags) |-- args)) ||
+    (Parse.!!! (Parse.document_source -- (Parse.command_name theoryN -- Parse.tags) |-- args)) ||
   (Parse.command_name theoryN -- Parse.tags) |-- Parse.!!! args;
 
 fun token_source pos str =

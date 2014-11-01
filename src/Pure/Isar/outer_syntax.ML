@@ -70,33 +70,6 @@ fun pretty_command (cmd as (name, Command {comment, ...})) =
         command_markup false cmd], name) :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
 
 
-(* parse command *)
-
-local
-
-fun terminate false = Scan.succeed ()
-  | terminate true = Parse.group (fn () => "end of input") (Parse.semicolon >> K ());
-
-fun body cmd (name, _) =
-  (case cmd name of
-    SOME (Command {int_only, parse, ...}) =>
-      Parse.!!! (Parse.tags |-- parse >> pair int_only)
-  | NONE =>
-      Scan.succeed (false, Toplevel.imperative (fn () =>
-        error ("Bad parser for outer syntax command " ^ quote name))));
-
-in
-
-fun parse_command do_terminate cmd =
-  Parse.semicolon >> K NONE ||
-  (Parse.position Parse.command :-- body cmd) --| terminate do_terminate
-    >> (fn ((name, pos), (int_only, f)) =>
-      SOME (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
-        Toplevel.interactive int_only |> f));
-
-end;
-
-
 (* type outer_syntax *)
 
 datatype outer_syntax = Outer_Syntax of
@@ -227,24 +200,35 @@ fun print_outer_syntax () =
 
 (** toplevel parsing **)
 
-(* basic sources *)
+(* parse commands *)
 
-fun toplevel_source term do_recover cmd src =
-  let
-    val no_terminator = Scan.unless Parse.semicolon (Scan.one Token.not_eof);
-    fun recover int = (int, fn _ => Scan.repeat no_terminator >> K [NONE]);
-  in
-    src
-    |> Token.source_proper
-    |> Source.source Token.stopper
-      (Scan.bulk (Parse.$$$ "--" -- Parse.!!! Parse.document_source >> K NONE || Parse.not_eof >> SOME))
-        (Option.map recover do_recover)
-    |> Source.map_filter I
-    |> Source.source Token.stopper
-        (Scan.bulk (fn xs => Parse.!!! (parse_command term (cmd ())) xs))
-        (Option.map recover do_recover)
-    |> Source.map_filter I
-  end;
+local
+
+fun parse_command outer_syntax =
+  Parse.position Parse.command :|-- (fn (name, pos) =>
+    let
+      val tr0 = Toplevel.empty |> Toplevel.name name |> Toplevel.position pos;
+    in
+      (case lookup_commands outer_syntax name of
+        SOME (Command {int_only, parse, ...}) =>
+          Parse.!!! (Parse.tags |-- parse) >> (fn f => tr0 |> Toplevel.interactive int_only |> f)
+      | NONE =>
+          Scan.succeed
+            (tr0 |> Toplevel.imperative (fn () =>
+              error ("Bad parser for outer syntax command " ^ quote name ^ Position.here pos))))
+    end);
+
+val parse_cmt = Parse.$$$ "--" -- Parse.!!! Parse.document_source;
+
+in
+
+fun commands_source outer_syntax =
+  Token.source_proper #>
+  Source.source Token.stopper (Scan.bulk (parse_cmt >> K NONE || Parse.not_eof >> SOME)) NONE #>
+  Source.map_filter I #>
+  Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command outer_syntax) xs)) NONE;
+
+end;
 
 
 (* off-line scanning/parsing *)
@@ -259,7 +243,7 @@ fun parse (lexs, syntax) pos str =
   Source.of_string str
   |> Symbol.source
   |> Token.source {do_recover = SOME false} (K lexs) pos
-  |> toplevel_source false NONE (K (lookup_commands syntax))
+  |> commands_source syntax
   |> Source.exhaust;
 
 
@@ -317,7 +301,7 @@ fun command_reports outer_syntax tok =
 
 fun read_spans outer_syntax toks =
   Source.of_list toks
-  |> toplevel_source false NONE (K (lookup_commands outer_syntax))
+  |> commands_source outer_syntax
   |> Source.exhaust;
 
 end;

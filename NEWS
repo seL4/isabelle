@@ -190,6 +190,10 @@ parameterized antiquotations, e.g. @{map 4} for lists of quadruples.
 * Support for Proof General and Isar TTY loop has been discontinued.
 Minor INCOMPATIBILITY.
 
+* Historical command-line terminator ";" is no longer accepted.  Minor
+INCOMPATIBILITY, use "isabelle update_semicolons" to remove obsolete
+semicolons from theory sources.
+
 * The Isabelle tool "update_cartouches" changes theory files to use
 cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
 

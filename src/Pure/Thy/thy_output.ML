@@ -413,7 +413,6 @@ fun present_thy lex default_tags is_markup command_results toks =
           make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
 
     val spans = toks
-      |> filter_out Token.is_semicolon
       |> take_suffix Token.is_space |> #1
       |> Source.of_list
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk token)) NONE

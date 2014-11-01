@@ -39,7 +39,6 @@ sig
   val keyword_improper: string -> string parser
   val $$$ : string -> string parser
   val reserved: string -> string parser
-  val semicolon: string parser
   val underscore: string parser
   val maybe: 'a parser -> 'a option parser
   val tag_name: string parser
@@ -215,8 +214,6 @@ val $$$ = keyword_markup (false, Markup.quasi_keyword);
 fun reserved x =
   group (fn () => "reserved identifier " ^ quote x)
     (RESET_VALUE (Scan.one (Token.ident_with (fn y => x = y)) >> Token.content_of));
-
-val semicolon = $$$ ";";
 
 val minus = sym_ident :-- (fn "-" => Scan.succeed () | _ => Scan.fail) >> #1;
 val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #1;

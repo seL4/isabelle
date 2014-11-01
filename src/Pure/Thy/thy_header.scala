@@ -23,7 +23,7 @@ object Thy_Header extends Parse.Parser
   val BEGIN = "begin"
 
   private val lexicon =
-    Scan.Lexicon("%", "(", ")", ",", "::", ";", "==",
+    Scan.Lexicon("%", "(", ")", ",", "::", "==",
       AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY)
 
 
@@ -75,8 +75,7 @@ object Thy_Header extends Parse.Parser
       { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
     (keyword(HEADER) ~ tags) ~!
-      ((document_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^
-        { case _ ~ x => x } |
+      ((document_source ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
     (keyword(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
   }
 

@@ -202,9 +202,5 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     else if (kind == Token.Kind.CARTOUCHE) Scan.Parsers.cartouche_content(source)
     else if (kind == Token.Kind.COMMENT) Scan.Parsers.comment_content(source)
     else source
-
-  def text: (String, String) =
-    if (is_keyword && source == ";") ("terminator", "")
-    else (kind.toString, source)
 }
 

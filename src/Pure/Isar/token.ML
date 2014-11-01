@@ -44,7 +44,6 @@ sig
   val is_name: T -> bool
   val is_proper: T -> bool
   val is_improper: T -> bool
-  val is_semicolon: T -> bool
   val is_comment: T -> bool
   val is_begin_ignore: T -> bool
   val is_end_ignore: T -> bool
@@ -233,9 +232,6 @@ fun is_proper (Token (_, (Space, _), _)) = false
 
 val is_improper = not o is_proper;
 
-fun is_semicolon (Token (_, (Keyword, ";"), _)) = true
-  | is_semicolon _ = false;
-
 fun is_comment (Token (_, (Comment, _), _)) = true
   | is_comment _ = false;
 
@@ -341,18 +337,16 @@ fun unparse_src (Src {args, ...}) = map unparse args;
 fun print tok = Markup.markup (markup tok) (unparse tok);
 
 fun text_of tok =
-  if is_semicolon tok then ("terminator", "")
-  else
-    let
-      val k = str_of_kind (kind_of tok);
-      val m = markup tok;
-      val s = unparse tok;
-    in
-      if s = "" then (k, "")
-      else if size s < 40 andalso not (exists_string (fn c => c = "\n") s)
-      then (k ^ " " ^ Markup.markup m s, "")
-      else (k, Markup.markup m s)
-    end;
+  let
+    val k = str_of_kind (kind_of tok);
+    val m = markup tok;
+    val s = unparse tok;
+  in
+    if s = "" then (k, "")
+    else if size s < 40 andalso not (exists_string (fn c => c = "\n") s)
+    then (k ^ " " ^ Markup.markup m s, "")
+    else (k, Markup.markup m s)
+  end;
 
 
 

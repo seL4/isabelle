@@ -39,13 +39,7 @@ object Parse
               }
             val token = in.first
             if (pred(token)) Success((token, pos), proper(in.rest))
-            else
-              token.text match {
-                case (txt, "") =>
-                  Failure(s + " expected,\nbut " + txt + " was found", in)
-                case (txt1, txt2) =>
-                  Failure(s + " expected,\nbut " + txt1 + " was found:\n" + txt2, in)
-              }
+            else Failure(s + " expected,\nbut " + token.kind + " was found:\n" + token.source, in)
           }
         }
       }

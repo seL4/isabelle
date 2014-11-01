@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: remove obsolete semicolons from theory sources
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [FILES|DIRS...]"
+  echo
+  echo "  Recursively find .thy files and remove obsolete semicolons."
+  echo
+  echo "  Old versions of files are preserved by appending \"~~\"."
+  echo
+  exit 1
+}
+
+
+## process command line
+
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
+
+SPECS="$@"; shift "$#"
+
+
+## main
+
+find $SPECS -name \*.thy -print0 | \
+  xargs -0 "$ISABELLE_TOOL" java isabelle.Update_Semicolons
