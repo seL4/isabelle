@@ -355,7 +355,7 @@ apply (simp add:stables_def)
 apply(simp add: stables_def split_paired_all)
 apply(rename_tac ss w)
 apply(subgoal_tac "(SOME p. p \<in> w) \<in> w")
- prefer 2; apply (fast intro: someI)
+ prefer 2 apply (fast intro: someI)
 apply(subgoal_tac "\<forall>(q,t) \<in> set (step (SOME p. p \<in> w) (ss ! (SOME p. p \<in> w))). q < length ss \<and> t \<in> A")
  prefer 2
  apply clarify
@@ -406,7 +406,7 @@ apply (rule wf_finite_psubset)
 apply(simp add: stables_def split_paired_all)
 apply(rename_tac ss w)
 apply(subgoal_tac "(SOME p. p \<in> w) \<in> w")
- prefer 2; apply (fast intro: someI)
+ prefer 2 apply (fast intro: someI)
 apply(subgoal_tac "\<forall>(q,t) \<in> set (step (SOME p. p \<in> w) (ss ! (SOME p. p \<in> w))). q < length ss \<and> t \<in> A")
  prefer 2
  apply clarify

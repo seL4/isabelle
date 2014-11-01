@@ -80,7 +80,7 @@ apply blast
 done  
 
 lemma list_update_le_cong:
-  "\<lbrakk> i<size xs; xs <=[r] ys; x <=_r y \<rbrakk> \<Longrightarrow> xs[i:=x] <=[r] ys[i:=y]";
+  "\<lbrakk> i<size xs; xs <=[r] ys; x <=_r y \<rbrakk> \<Longrightarrow> xs[i:=x] <=[r] ys[i:=y]"
 apply (unfold unfold_lesub_list)
 apply (unfold Listn.le_def)
 apply (simp add: list_all2_conv_all_nth nth_list_update)
@@ -189,12 +189,12 @@ apply auto
 done 
 
 lemma Cons_in_list_Suc [iff]:
-  "(x#xs : list (Suc n) A) = (x\<in> A & xs : list n A)";
+  "(x#xs : list (Suc n) A) = (x\<in> A & xs : list n A)"
 apply (simp add: in_list_Suc_iff)
 done 
 
 lemma list_not_empty:
-  "\<exists>a. a\<in> A \<Longrightarrow> \<exists>xs. xs : list n A";
+  "\<exists>a. a\<in> A \<Longrightarrow> \<exists>xs. xs : list n A"
 apply (induct "n")
  apply simp
 apply (simp add: in_list_Suc_iff)

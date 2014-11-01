@@ -743,7 +743,7 @@ done
 
 lemma Fake_parts_insert_in_Un:
      "[|Z \<in> parts (insert X H);  X: synth (analz H)|] 
-      ==> Z \<in>  synth (analz H) \<union> parts H";
+      ==> Z \<in>  synth (analz H) \<union> parts H"
 by (blast dest: Fake_parts_insert  [THEN subsetD, dest])
 
 text{*@{term H} is sometimes @{term"Key ` KK \<union> spies evs"}, so can't put 
@@ -882,24 +882,24 @@ apply (simp add: synth_increasing[THEN Un_absorb2])
 apply (drule synth_mono)
 apply (simp add: synth_idem)
 apply (rule equalityI)
-apply (simp add: );
+apply (simp add: )
 apply (rule synth_analz_mono, blast)   
 done
 
 text{*Two generalizations of @{text analz_insert_eq}*}
 lemma gen_analz_insert_eq [rule_format]:
-     "X \<in> analz H ==> ALL G. H \<subseteq> G --> analz (insert X G) = analz G";
+     "X \<in> analz H ==> ALL G. H \<subseteq> G --> analz (insert X G) = analz G"
 by (blast intro: analz_cut analz_insertI analz_mono [THEN [2] rev_subsetD])
 
 lemma synth_analz_insert_eq [rule_format]:
      "X \<in> synth (analz H) 
-      ==> ALL G. H \<subseteq> G --> (Key K \<in> analz (insert X G)) = (Key K \<in> analz G)";
+      ==> ALL G. H \<subseteq> G --> (Key K \<in> analz (insert X G)) = (Key K \<in> analz G)"
 apply (erule synth.induct) 
 apply (simp_all add: gen_analz_insert_eq subset_trans [OF _ subset_insertI]) 
 done
 
 lemma Fake_parts_sing:
-     "X \<in> synth (analz H) ==> parts{X} \<subseteq> synth (analz H) \<union> parts H";
+     "X \<in> synth (analz H) ==> parts{X} \<subseteq> synth (analz H) \<union> parts H"
 apply (rule subset_trans) 
  apply (erule_tac [2] Fake_parts_insert)
 apply (rule parts_mono, blast)

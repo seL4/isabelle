@@ -359,7 +359,7 @@ lemma if_P: "|- P ==> |- (if P then x else y) = x"
   apply fast
   done
 
-lemma if_not_P: "|- ~P ==> |- (if P then x else y) = y";
+lemma if_not_P: "|- ~P ==> |- (if P then x else y) = y"
   apply (unfold If_def)
   apply (erule thinR [THEN cut])
   apply fast

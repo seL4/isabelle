@@ -224,7 +224,7 @@ lemma Partition:
   OD
  {leq A u & (!k. u<k & k<l --> A!k = pivot) & geq A l}"
 (* expand and delete abbreviations first *)
-apply (simp);
+apply (simp)
 apply (erule thin_rl)+
 apply vcg_simp
    apply (force simp: neq_Nil_conv)

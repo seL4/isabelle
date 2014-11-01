@@ -12,7 +12,7 @@ Consider the following model of terms
 where function symbols can be applied to a list of arguments:
 *}
 (*<*)hide_const Var(*>*)
-datatype ('v,'f)"term" = Var 'v | App 'f "('v,'f)term list";
+datatype ('v,'f)"term" = Var 'v | App 'f "('v,'f)term list"
 
 text{*\noindent
 Note that we need to quote @{text term} on the left to avoid confusion with
@@ -66,8 +66,8 @@ strengthened and proved as follows:
 *}
 
 lemma subst_id(*<*)(*referred to from ABexpr*)(*>*): "subst  Var t  = (t ::('v,'f)term)  \<and>
-                  substs Var ts = (ts::('v,'f)term list)";
-apply(induct_tac t and ts rule: subst.induct substs.induct, simp_all);
+                  substs Var ts = (ts::('v,'f)term list)"
+apply(induct_tac t and ts rule: subst.induct substs.induct, simp_all)
 done
 
 text{*\noindent

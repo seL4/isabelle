@@ -16,7 +16,7 @@ text{*\noindent and prove*}
 (*<*)
 lemma [simp]: "!xs. flatten2 t xs = flatten t @ xs"
 apply(induct_tac t)
-by(auto);
+by(auto)
 (*>*)
 lemma "flatten2 t [] = flatten t"
 (*<*)

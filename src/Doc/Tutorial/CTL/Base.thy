@@ -69,7 +69,7 @@ reduces clutter.  Similarly we declare an arbitrary but fixed
 transition system, i.e.\ a relation between states:
 *}
 
-consts M :: "(state \<times> state)set";
+consts M :: "(state \<times> state)set"
 
 text{*\noindent
 This is Isabelle's way of declaring a constant without defining it.

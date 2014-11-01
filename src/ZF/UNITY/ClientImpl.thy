@@ -105,14 +105,14 @@ done
 
 
 lemma preserves_lift_imp_stable:
-     "G \<in> preserves(lift(ff)) ==> G \<in> stable({s \<in> state. P(s`ff)})";
+     "G \<in> preserves(lift(ff)) ==> G \<in> stable({s \<in> state. P(s`ff)})"
 apply (drule preserves_imp_stable)
 apply (simp add: lift_def)
 done
 
 lemma preserves_imp_prefix:
      "G \<in> preserves(lift(ff))
-      ==> G \<in> stable({s \<in> state. \<langle>k, s`ff\<rangle> \<in> prefix(nat)})";
+      ==> G \<in> stable({s \<in> state. \<langle>k, s`ff\<rangle> \<in> prefix(nat)})"
 by (erule preserves_lift_imp_stable)
 
 (*Safety property 1 \<in> ask, rel are increasing: (24) *)

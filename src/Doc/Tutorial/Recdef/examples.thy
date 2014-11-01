@@ -1,16 +1,16 @@
 (*<*)
-theory examples imports Main begin;
+theory examples imports Main begin
 (*>*)
 
 text{*
 Here is a simple example, the \rmindex{Fibonacci function}:
 *}
 
-consts fib :: "nat \<Rightarrow> nat";
+consts fib :: "nat \<Rightarrow> nat"
 recdef fib "measure(\<lambda>n. n)"
   "fib 0 = 0"
   "fib (Suc 0) = 1"
-  "fib (Suc(Suc x)) = fib x + fib (Suc x)";
+  "fib (Suc(Suc x)) = fib x + fib (Suc x)"
 
 text{*\noindent
 \index{measure functions}%
@@ -27,11 +27,11 @@ Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:
 *}
 
-consts sep :: "'a \<times> 'a list \<Rightarrow> 'a list";
+consts sep :: "'a \<times> 'a list \<Rightarrow> 'a list"
 recdef sep "measure (\<lambda>(a,xs). length xs)"
   "sep(a, [])     = []"
   "sep(a, [x])    = [x]"
-  "sep(a, x#y#zs) = x # a # sep(a,y#zs)";
+  "sep(a, x#y#zs) = x # a # sep(a,y#zs)"
 
 text{*\noindent
 This time the measure is the length of the list, which decreases with the
@@ -43,20 +43,20 @@ Pattern matching\index{pattern matching!and \isacommand{recdef}}
 need not be exhaustive:
 *}
 
-consts last :: "'a list \<Rightarrow> 'a";
+consts last :: "'a list \<Rightarrow> 'a"
 recdef last "measure (\<lambda>xs. length xs)"
   "last [x]      = x"
-  "last (x#y#zs) = last (y#zs)";
+  "last (x#y#zs) = last (y#zs)"
 
 text{*
 Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:
 *}
 
-consts sep1 :: "'a \<times> 'a list \<Rightarrow> 'a list";
+consts sep1 :: "'a \<times> 'a list \<Rightarrow> 'a list"
 recdef sep1 "measure (\<lambda>(a,xs). length xs)"
   "sep1(a, x#y#zs) = x # a # sep1(a,y#zs)"
-  "sep1(a, xs)     = xs";
+  "sep1(a, xs)     = xs"
 
 text{*\noindent
 To guarantee that the second equation can only be applied if the first
@@ -74,10 +74,10 @@ by the two possibilities that are left: @{prop"sep1(a,[]) = []"} and
   arguments as in the following definition:
 \end{warn}
 *}
-consts sep2 :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a list";
+consts sep2 :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a list"
 recdef sep2 "measure length"
   "sep2 (x#y#zs) = (\<lambda>a. x # a # sep2 (y#zs) a)"
-  "sep2 xs       = (\<lambda>a. xs)";
+  "sep2 xs       = (\<lambda>a. xs)"
 
 text{*
 Because of its pattern-matching syntax, \isacommand{recdef} is also useful
@@ -85,10 +85,10 @@ for the definition of non-recursive functions, where the termination measure
 degenerates to the empty set @{term"{}"}:
 *}
 
-consts swap12 :: "'a list \<Rightarrow> 'a list";
+consts swap12 :: "'a list \<Rightarrow> 'a list"
 recdef swap12 "{}"
   "swap12 (x#y#zs) = y#x#zs"
-  "swap12 zs       = zs";
+  "swap12 zs       = zs"
 
 (*<*)
 end

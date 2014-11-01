@@ -969,7 +969,7 @@ locale Formula_Rec = M_eclose +
            "M(g) ==>
             strong_replacement
               (M, \<lambda>x y. x \<in> formula &
-                  y = \<langle>x, formula_rec_case(a,b,c,d,g,x)\<rangle>)";
+                  y = \<langle>x, formula_rec_case(a,b,c,d,g,x)\<rangle>)"
 
 lemma (in Formula_Rec) formula_rec_case_closed:
     "[|M(g); p \<in> formula|] ==> M(formula_rec_case(a, b, c, d, g, p))"

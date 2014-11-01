@@ -383,7 +383,7 @@ apply (simp add: iso_def bij_converse_bij, clarify)
 apply (subgoal_tac "converse(h) \<in> carrier(H) \<rightarrow> carrier(G)")
  prefer 2 apply (simp add: bij_converse_bij bij_is_fun)
 apply (auto intro: left_inverse_eq [of _ "carrier(G)" "carrier(H)"]
-            simp add: hom_def bij_is_inj right_inverse_bij);
+            simp add: hom_def bij_is_inj right_inverse_bij)
 done
 
 lemma (in group) iso_trans:
@@ -658,7 +658,7 @@ lemma normal_imp_subgroup: "H \<lhd> G ==> subgroup(H,G)"
   by (simp add: normal_def subgroup_def)
 
 lemma (in group) normalI:
-  "subgroup(H,G) \<Longrightarrow> (\<forall>x \<in> carrier(G). H #> x = x <# H) \<Longrightarrow> H \<lhd> G";
+  "subgroup(H,G) \<Longrightarrow> (\<forall>x \<in> carrier(G). H #> x = x <# H) \<Longrightarrow> H \<lhd> G"
   by (simp add: normal_def normal_axioms_def)
 
 lemma (in normal) inv_op_closed1:
@@ -1086,7 +1086,7 @@ text{*The quotient by the kernel of a homomorphism is isomorphic to the
 definition
   kernel :: "[i,i,i] => i" where
     --{*the kernel of a homomorphism*}
-  "kernel(G,H,h) == {x \<in> carrier(G). h ` x = \<one>\<^bsub>H\<^esub>}";
+  "kernel(G,H,h) == {x \<in> carrier(G). h ` x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel(G,H,h), G)"
 apply (rule subgroup.intro)

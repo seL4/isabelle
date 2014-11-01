@@ -16,7 +16,7 @@ a typing rule for it, based on some notion of "productivity..."
 theory LList imports Main begin
 
 consts
-  llist  :: "i=>i";
+  llist  :: "i=>i"
 
 codatatype
   "llist(A)" = LNil | LCons ("a \<in> A", "l \<in> llist(A)")

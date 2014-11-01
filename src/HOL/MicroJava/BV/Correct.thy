@@ -299,7 +299,7 @@ lemma correct_frames_field_update [rule_format]:
   hp a = Some (C,fs) \<longrightarrow> 
   map_of (fields (G, C)) fl = Some fd \<longrightarrow> 
   G,hp\<turnstile>v::\<preceq>fd 
-  \<longrightarrow> correct_frames G (hp(a \<mapsto> (C, fs(fl\<mapsto>v)))) phi rT sig frs";
+  \<longrightarrow> correct_frames G (hp(a \<mapsto> (C, fs(fl\<mapsto>v)))) phi rT sig frs"
 apply (induct frs)
  apply simp
 apply clarify

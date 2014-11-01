@@ -22,10 +22,10 @@ text {* \medskip
   The following are not added to the default simpset because
   (a) they duplicate the body and (b) there are no similar rules for @{text Int}.*}
 
-lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<forall>x \<in> A. P(x)) & (\<forall>x \<in> B. P(x))";
+lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<forall>x \<in> A. P(x)) & (\<forall>x \<in> B. P(x))"
   by blast
 
-lemma bex_Un: "(\<exists>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<exists>x \<in> A. P(x)) | (\<exists>x \<in> B. P(x))";
+lemma bex_Un: "(\<exists>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<exists>x \<in> A. P(x)) | (\<exists>x \<in> B. P(x))"
   by blast
 
 lemma ball_UN: "(\<forall>z \<in> (\<Union>x\<in>A. B(x)). P(z)) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>z \<in> B(x). P(z))"

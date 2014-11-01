@@ -1,5 +1,5 @@
 (*<*)
-theory ABexpr imports Main begin;
+theory ABexpr imports Main begin
 (*>*)
 
 text{*
@@ -24,7 +24,7 @@ datatype 'a aexp = IF   "'a bexp" "'a aexp" "'a aexp"
                  | Num nat
 and      'a bexp = Less "'a aexp" "'a aexp"
                  | And  "'a bexp" "'a bexp"
-                 | Neg  "'a bexp";
+                 | Neg  "'a bexp"
 
 text{*\noindent
 Type @{text"aexp"} is similar to @{text"expr"} in \S\ref{sec:ExprCompiler},
@@ -92,13 +92,13 @@ theorems simultaneously:
 *}
 
 lemma "evala (substa s a) env = evala a (\<lambda>x. evala (s x) env) \<and>
-        evalb (substb s b) env = evalb b (\<lambda>x. evala (s x) env)";
-apply(induct_tac a and b);
+        evalb (substb s b) env = evalb b (\<lambda>x. evala (s x) env)"
+apply(induct_tac a and b)
 
 txt{*\noindent The resulting 8 goals (one for each constructor) are proved in one fell swoop:
 *}
 
-apply simp_all;
+apply simp_all
 (*<*)done(*>*)
 
 text{*

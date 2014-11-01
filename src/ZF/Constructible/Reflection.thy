@@ -6,10 +6,10 @@ header {* The Reflection Theorem*}
 
 theory Reflection imports Normal begin
 
-lemma all_iff_not_ex_not: "(\<forall>x. P(x)) \<longleftrightarrow> (~ (\<exists>x. ~ P(x)))";
+lemma all_iff_not_ex_not: "(\<forall>x. P(x)) \<longleftrightarrow> (~ (\<exists>x. ~ P(x)))"
 by blast
 
-lemma ball_iff_not_bex_not: "(\<forall>x\<in>A. P(x)) \<longleftrightarrow> (~ (\<exists>x\<in>A. ~ P(x)))";
+lemma ball_iff_not_bex_not: "(\<forall>x\<in>A. P(x)) \<longleftrightarrow> (~ (\<exists>x\<in>A. ~ P(x)))"
 by blast
 
 text{*From the notes of A. S. Kechris, page 6, and from
@@ -339,14 +339,14 @@ text{*Example 3'*}
 schematic_lemma (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & y = Collect(x,P),
-               \<lambda>a x. \<exists>y\<in>Mset(a). y = Collect(x,P))";
+               \<lambda>a x. \<exists>y\<in>Mset(a). y = Collect(x,P))"
 by fast
 
 text{*Example 3''*}
 schematic_lemma (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & y = Replace(x,P),
-               \<lambda>a x. \<exists>y\<in>Mset(a). y = Replace(x,P))";
+               \<lambda>a x. \<exists>y\<in>Mset(a). y = Replace(x,P))"
 by fast
 
 text{*Example 4: Axiom of Choice.  Possibly wrong, since @{text \<Pi>} needs

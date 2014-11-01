@@ -309,13 +309,13 @@ apply (rule Finite_lesspoll_infinite_Ord)
 apply (rule Finite_def [THEN def_imp_iff, THEN iffD2]) 
 apply (blast dest: ltD bij_is_fun [THEN apply_type], assumption)  
 apply (blast intro: Card_is_Ord) 
-done;
+done
 
 (* back to the proof *)
 
 lemmas disj_Un_eqpoll_nat_sum = 
     eqpoll_trans [THEN eqpoll_trans, 
-                  OF disj_Un_eqpoll_sum sum_eqpoll_cong nat_sum_eqpoll_sum];
+                  OF disj_Un_eqpoll_sum sum_eqpoll_cong nat_sum_eqpoll_sum]
 
 
 lemma Un_in_Collect: "[| x \<in> Pow(A - B - h`i); x\<approx>m;   

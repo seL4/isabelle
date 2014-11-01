@@ -407,7 +407,7 @@ done
 text{*For proving @{text new_keys_not_used}*}
 lemma keysFor_parts_insert:
      "\<lbrakk> K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) \<rbrakk>   
-      \<Longrightarrow> K \<in> keysFor (parts (G \<union> H)) \<or> Key (invKey K) \<in> parts H"; 
+      \<Longrightarrow> K \<in> keysFor (parts (G \<union> H)) \<or> Key (invKey K) \<in> parts H" 
 by (force 
     dest!: parts_insert_subset_Un [THEN keysFor_mono, THEN [2] rev_subsetD]
            analz_subset_parts [THEN keysFor_mono, THEN [2] rev_subsetD]

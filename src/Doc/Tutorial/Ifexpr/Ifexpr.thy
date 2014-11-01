@@ -1,5 +1,5 @@
 (*<*)
-theory Ifexpr imports Main begin;
+theory Ifexpr imports Main begin
 (*>*)
 
 subsection{*Case Study: Boolean Expressions*}
@@ -19,7 +19,7 @@ that purpose:
 *}
 
 datatype boolex = Const bool | Var nat | Neg boolex
-                | And boolex boolex;
+                | And boolex boolex
 
 text{*\noindent
 The two constants are represented by @{term"Const True"} and
@@ -51,7 +51,7 @@ from constants (@{term"CIF"}), variables (@{term"VIF"}) and conditionals
 (@{term"IF"}):
 *}
 
-datatype ifex = CIF bool | VIF nat | IF ifex ifex ifex;
+datatype ifex = CIF bool | VIF nat | IF ifex ifex ifex
 
 text{*\noindent
 The evaluation of If-expressions proceeds as for @{typ"boolex"}:
@@ -82,14 +82,14 @@ At last, we have something we can verify: that @{term"bool2if"} preserves the
 value of its argument:
 *}
 
-lemma "valif (bool2if b) env = value b env";
+lemma "valif (bool2if b) env = value b env"
 
 txt{*\noindent
 The proof is canonical:
 *}
 
-apply(induct_tac b);
-apply(auto);
+apply(induct_tac b)
+apply(auto)
 done
 
 text{*\noindent
@@ -120,7 +120,7 @@ intuitive understanding. Fortunately, Isabelle can help us to verify that the
 transformation preserves the value of the expression:
 *}
 
-theorem "valif (norm b) env = valif b env";(*<*)oops;(*>*)
+theorem "valif (norm b) env = valif b env"(*<*)oops(*>*)
 
 text{*\noindent
 The proof is canonical, provided we first show the following simplification
@@ -128,14 +128,14 @@ lemma, which also helps to understand what @{term"normif"} does:
 *}
 
 lemma [simp]:
-  "\<forall>t e. valif (normif b t e) env = valif (IF b t e) env";
+  "\<forall>t e. valif (normif b t e) env = valif (IF b t e) env"
 (*<*)
-apply(induct_tac b);
-by(auto);
+apply(induct_tac b)
+by(auto)
 
-theorem "valif (norm b) env = valif b env";
-apply(induct_tac b);
-by(auto);
+theorem "valif (norm b) env = valif b env"
+apply(induct_tac b)
+by(auto)
 (*>*)
 text{*\noindent
 Note that the lemma does not have a name, but is implicitly used in the proof
@@ -156,14 +156,14 @@ Now we prove @{term"normal(norm b)"}. Of course, this requires a lemma about
 normality of @{term"normif"}:
 *}
 
-lemma [simp]: "\<forall>t e. normal(normif b t e) = (normal t \<and> normal e)";
+lemma [simp]: "\<forall>t e. normal(normif b t e) = (normal t \<and> normal e)"
 (*<*)
-apply(induct_tac b);
-by(auto);
+apply(induct_tac b)
+by(auto)
 
-theorem "normal(norm b)";
-apply(induct_tac b);
-by(auto);
+theorem "normal(norm b)"
+apply(induct_tac b)
+by(auto)
 (*>*)
 
 text{*\medskip

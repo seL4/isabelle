@@ -259,7 +259,7 @@ proof -
 qed
 
 lemma listset_Rep_Exp_Abs_Exp:
-     "listset (map Rep_Exp (Abs_ExpList Us)) = listrel exprel `` {Us}";
+     "listset (map Rep_Exp (Abs_ExpList Us)) = listrel exprel `` {Us}"
   by (induct Us) (simp_all add: listrel_Cons Abs_ExpList_def)
 
 lemma FnCall:

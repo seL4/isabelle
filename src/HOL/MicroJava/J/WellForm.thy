@@ -260,9 +260,9 @@ apply auto
 done
 qed
 
-lemmas method_rec = wf_subcls1 [THEN [2] method_rec_lemma];
+lemmas method_rec = wf_subcls1 [THEN [2] method_rec_lemma]
 
-lemmas fields_rec = wf_subcls1 [THEN [2] fields_rec_lemma];
+lemmas fields_rec = wf_subcls1 [THEN [2] fields_rec_lemma]
 
 lemma field_rec: "\<lbrakk>class G C = Some (D, fs, ms); ws_prog G\<rbrakk>
 \<Longrightarrow> field (G, C) =

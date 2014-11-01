@@ -10,7 +10,7 @@ numeric literals; default simprules; can re-orient
 lemma "2 * m = m + m"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 oops
 
 fun h :: "nat \<Rightarrow> nat" where
@@ -46,11 +46,11 @@ these form ac_simps; similarly there is ac_simps
 lemma "Suc(i + j*l*k + m*n) = f (n*m + i + k*j*l)"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply (simp add: ac_simps ac_simps)
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 oops
 
 text{*
@@ -213,21 +213,21 @@ by simp
 lemma "P ((3/4) * (8/15 :: real))"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply simp 
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 oops
 
 lemma "(3/4) * (8/15) < (x :: real)"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply simp 
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 oops
 
 text{*

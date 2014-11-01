@@ -114,7 +114,7 @@ definition method :: "cname => (mname \<rightharpoonup> methd)" where
 lemma method_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
 method C = (if C=Object then empty else method (super m)) ++ map_of (methods m)"
 apply (unfold method_def)
-apply (erule (1) class_rec [THEN trans]);
+apply (erule (1) class_rec [THEN trans])
 apply simp
 done
 
@@ -126,7 +126,7 @@ definition field  :: "cname => (fname \<rightharpoonup> ty)" where
 lemma flds_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
 field C = (if C=Object then empty else field (super m)) ++ map_of (flds m)"
 apply (unfold field_def)
-apply (erule (1) class_rec [THEN trans]);
+apply (erule (1) class_rec [THEN trans])
 apply simp
 done
 

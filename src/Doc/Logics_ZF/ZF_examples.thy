@@ -42,7 +42,7 @@ inductive_cases Br_in_bt: "Br(a,l,r) \<in> bt(A)"
 
 text {*
 @{thm[display] Br_in_bt[no_vars]}
-*};
+*}
 
 subsection{*Primitive recursion*}
 
@@ -92,7 +92,7 @@ inductive
 
 
 consts
-  llist  :: "i=>i";
+  llist  :: "i=>i"
 
 codatatype
   "llist(A)" = LNil | LCons ("a \<in> A", "l \<in> llist(A)")

@@ -77,7 +77,7 @@ rule @{thm[source]split_split} replaces @{term p} by a pair:%
 *}
 
 lemma "(\<lambda>(x,y).y) p = snd p"
-apply(split split_split);
+apply(split split_split)
 
 txt{*
 @{subgoals[display,indent=0]}
@@ -93,7 +93,7 @@ text{*
 Let us look at a second example:
 *}
 
-lemma "let (x,y) = p in fst p = x";
+lemma "let (x,y) = p in fst p = x"
 apply(simp only: Let_def)
 
 txt{*
@@ -189,7 +189,7 @@ Finally, the simplifier automatically splits all @{text"\<forall>"} and
 *}
 
 lemma "\<forall>p. \<exists>q. swap p = swap q"
-by simp;
+by simp
 
 text{*\noindent
 To turn off this automatic splitting, disable the

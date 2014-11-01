@@ -105,8 +105,8 @@ ML_file "Isar/isar_syn.ML"
 ML_file "Isar/calculation.ML"
 ML_file "Tools/bibtex.ML"
 ML_file "Tools/rail.ML"
-ML_file "Tools/rule_insts.ML";
-ML_file "Tools/thm_deps.ML";
+ML_file "Tools/rule_insts.ML"
+ML_file "Tools/thm_deps.ML"
 ML_file "Tools/class_deps.ML"
 ML_file "Tools/find_theorems.ML"
 ML_file "Tools/find_consts.ML"

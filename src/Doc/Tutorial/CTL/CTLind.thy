@@ -29,7 +29,7 @@ inductive_set
   for s :: state and A :: "state set"
 where
     "s \<in> Avoid s A"
-  | "\<lbrakk> t \<in> Avoid s A; t \<notin> A; (t,u) \<in> M \<rbrakk> \<Longrightarrow> u \<in> Avoid s A";
+  | "\<lbrakk> t \<in> Avoid s A; t \<notin> A; (t,u) \<in> M \<rbrakk> \<Longrightarrow> u \<in> Avoid s A"
 
 text{*
 It is easy to see that for any infinite @{term A}-avoiding path @{term f}
@@ -44,12 +44,12 @@ the @{text rule_format} directive undoes the reformulation after the proof.
 
 lemma ex_infinite_path[rule_format]:
   "t \<in> Avoid s A  \<Longrightarrow>
-   \<forall>f\<in>Paths t. (\<forall>i. f i \<notin> A) \<longrightarrow> (\<exists>p\<in>Paths s. \<forall>i. p i \<notin> A)";
-apply(erule Avoid.induct);
- apply(blast);
-apply(clarify);
-apply(drule_tac x = "\<lambda>i. case i of 0 \<Rightarrow> t | Suc i \<Rightarrow> f i" in bspec);
-apply(simp_all add: Paths_def split: nat.split);
+   \<forall>f\<in>Paths t. (\<forall>i. f i \<notin> A) \<longrightarrow> (\<exists>p\<in>Paths s. \<forall>i. p i \<notin> A)"
+apply(erule Avoid.induct)
+ apply(blast)
+apply(clarify)
+apply(drule_tac x = "\<lambda>i. case i of 0 \<Rightarrow> t | Suc i \<Rightarrow> f i" in bspec)
+apply(simp_all add: Paths_def split: nat.split)
 done
 
 text{*\noindent
@@ -69,7 +69,7 @@ is contained in @{term"lfp(af A)"}:
 *}
 
 lemma Avoid_in_lfp[rule_format(no_asm)]:
-  "\<forall>p\<in>Paths s. \<exists>i. p i \<in> A \<Longrightarrow> t \<in> Avoid s A \<longrightarrow> t \<in> lfp(af A)";
+  "\<forall>p\<in>Paths s. \<exists>i. p i \<in> A \<Longrightarrow> t \<in> Avoid s A \<longrightarrow> t \<in> lfp(af A)"
 
 txt{*\noindent
 The proof is by induction on the ``distance'' between @{term t} and @{term
@@ -87,9 +87,9 @@ starting from @{term s} implies well-foundedness of this relation. For the
 moment we assume this and proceed with the induction:
 *}
 
-apply(subgoal_tac "wf{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> x \<notin> A}");
- apply(erule_tac a = t in wf_induct);
- apply(clarsimp);
+apply(subgoal_tac "wf{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> x \<notin> A}")
+ apply(erule_tac a = t in wf_induct)
+ apply(clarsimp)
 (*<*)apply(rename_tac t)(*>*)
 
 txt{*\noindent
@@ -106,9 +106,9 @@ Hence, by the induction hypothesis, all successors of @{term t} are indeed in
 @{term"lfp(af A)"}. Mechanically:
 *}
 
- apply(subst lfp_unfold[OF mono_af]);
- apply(simp (no_asm) add: af_def);
- apply(blast intro: Avoid.intros);
+ apply(subst lfp_unfold[OF mono_af])
+ apply(simp (no_asm) add: af_def)
+ apply(blast intro: Avoid.intros)
 
 txt{*
 Having proved the main goal, we return to the proof obligation that the 
@@ -121,11 +121,11 @@ From lemma @{thm[source]ex_infinite_path} the existence of an infinite
 @{term A}-avoiding path starting in @{term s} follows, contradiction.
 *}
 
-apply(erule contrapos_pp);
-apply(simp add: wf_iff_no_infinite_down_chain);
-apply(erule exE);
-apply(rule ex_infinite_path);
-apply(auto simp add: Paths_def);
+apply(erule contrapos_pp)
+apply(simp add: wf_iff_no_infinite_down_chain)
+apply(erule exE)
+apply(rule ex_infinite_path)
+apply(auto simp add: Paths_def)
 done
 
 text{*
@@ -141,8 +141,8 @@ when the assumption @{prop"t \<in> Avoid s A"} is trivially true
 by the first @{const Avoid}-rule. Isabelle confirms this:%
 \index{CTL|)}*}
 
-theorem AF_lemma2:  "{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
-by(auto elim: Avoid_in_lfp intro: Avoid.intros);
+theorem AF_lemma2:  "{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)"
+by(auto elim: Avoid_in_lfp intro: Avoid.intros)
 
 
 (*<*)end(*>*)

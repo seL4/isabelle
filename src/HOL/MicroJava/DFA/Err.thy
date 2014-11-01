@@ -117,7 +117,7 @@ lemma OK_le_conv:
  "OK x <=_(le r) e  =  (e = Err | (? y. e = OK y & x <=_r y))"
   by (simp add: unfold_lesub_err le_def split: err.split)
 
-lemma top_Err [iff]: "top (le r) Err";
+lemma top_Err [iff]: "top (le r) Err"
   by (simp add: top_def)
 
 lemma OK_less_conv [rule_format, iff]:
@@ -231,7 +231,7 @@ lemma semilat_le_err_plus_Err [simp]:
 
 lemma semilat_le_err_OK1:
   "\<lbrakk> x:A; y:A; semilat(err A, le r, f); OK x +_f OK y = OK z \<rbrakk> 
-  \<Longrightarrow> x <=_r z";
+  \<Longrightarrow> x <=_r z"
 apply (rule OK_le_err_OK [THEN iffD1])
 apply (erule subst)
 apply (simp add: Semilat.ub1 [OF Semilat.intro])

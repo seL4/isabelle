@@ -273,7 +273,7 @@ by blast
 lemma rex_is_bex [simp]: "(\<exists>x[%z. z\<in>A]. P(x)) <-> (\<exists>x\<in>A. P(x))"
 by blast
 
-lemma atomize_rall: "(!!x. M(x) ==> P(x)) == Trueprop (\<forall>x[M]. P(x))";
+lemma atomize_rall: "(!!x. M(x) ==> P(x)) == Trueprop (\<forall>x[M]. P(x))"
 by (simp add: rall_def atomize_all atomize_imp)
 
 declare atomize_rall [symmetric, rulify]

@@ -57,7 +57,7 @@ done
 
 lemma closed_lift2_sup:
   "\<lbrakk> closed (err A) (lift2 f); closed (err B) (lift2 g) \<rbrakk> \<Longrightarrow> 
-  closed (err(A<*>B)) (lift2(sup f g))";
+  closed (err(A<*>B)) (lift2(sup f g))"
 apply (unfold closed_def plussub_def lift2_def err_def sup_def)
 apply (simp split: err.split)
 apply blast

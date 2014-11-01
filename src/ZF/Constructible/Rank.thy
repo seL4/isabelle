@@ -566,7 +566,7 @@ done
 subsubsection{*Ordinal Multiplication*}
 
 lemma omult_eqns_unique:
-     "[| omult_eqns(i,x,g,z); omult_eqns(i,x,g,z') |] ==> z=z'";
+     "[| omult_eqns(i,x,g,z); omult_eqns(i,x,g,z') |] ==> z=z'"
 apply (simp add: omult_eqns_def, clarify) 
 apply (erule Ord_cases, simp_all) 
 done

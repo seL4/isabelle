@@ -9,7 +9,7 @@ text{*\indexbold{*option (type)}\indexbold{*None (constant)}%
 Our final datatype is very simple but still eminently useful:
 *}
 
-datatype 'a option = None | Some 'a;
+datatype 'a option = None | Some 'a
 
 text{*\noindent
 Frequently one needs to add a distinguished element to some existing type.

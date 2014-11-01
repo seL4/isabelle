@@ -73,7 +73,7 @@ small sample proof
 \rulename{fun_eq_iff}
 *}
 
-lemma "inj f \<Longrightarrow> (f o g = f o h) = (g = h)";
+lemma "inj f \<Longrightarrow> (f o g = f o h) = (g = h)"
   apply (simp add: fun_eq_iff inj_on_def)
   apply (auto)
   done

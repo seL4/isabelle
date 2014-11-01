@@ -10,7 +10,7 @@ begin
 
 
 (**********************************************************************)
-;
+
 
 (*** Inversion of typing rules -- to be moved into WellType.thy
      Also modify the wtpd_expr_\<dots> proofs in CorrComp.thy ***)

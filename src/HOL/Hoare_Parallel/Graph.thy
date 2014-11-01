@@ -90,7 +90,7 @@ done
 subsubsection{* Graph 2 *}
 
 lemma Ex_first_occurrence [rule_format]: 
-  "P (n::nat) \<longrightarrow> (\<exists>m. P m \<and> (\<forall>i. i<m \<longrightarrow> \<not> P i))";
+  "P (n::nat) \<longrightarrow> (\<exists>m. P m \<and> (\<forall>i. i<m \<longrightarrow> \<not> P i))"
 apply(rule nat_less_induct)
 apply clarify
 apply(case_tac "\<forall>m. m<n \<longrightarrow> \<not> P m")

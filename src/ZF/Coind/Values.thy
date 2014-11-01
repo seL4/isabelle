@@ -10,7 +10,7 @@ theory Values imports Language Map begin
 consts
   Val  :: i
   ValEnv  :: i
-  Val_ValEnv  :: i;
+  Val_ValEnv  :: i
 
 codatatype
     "Val" = v_const ("c \<in> Const")

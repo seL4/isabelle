@@ -298,8 +298,8 @@ This example suggests a heuristic:
 \end{quote}
 Of course one cannot do this naively: @{prop"itrev xs ys = rev xs"} is
 just not true.  The correct generalization is
-*};
-(*<*)oops;(*>*)
+*}
+(*<*)oops(*>*)
 lemma "itrev xs ys = rev xs @ ys"
 (*<*)apply(induction xs, auto)(*>*)
 txt{*

@@ -11,7 +11,7 @@ SKIP most developments...
 (** Commutativity **)
 
 lemma is_gcd_commute: "is_gcd k m n = is_gcd k n m"
-apply (auto simp add: is_gcd_def);
+apply (auto simp add: is_gcd_def)
 done
 
 lemma gcd_commute: "gcd m n = gcd n m"
@@ -48,15 +48,15 @@ done
 text {*
 @{thm[display] gcd_mult_distrib2}
 \rulename{gcd_mult_distrib2}
-*};
+*}
 
 text{*\noindent
 of, simplified
 *}
 
 
-lemmas gcd_mult_0 = gcd_mult_distrib2 [of k 1];
-lemmas gcd_mult_1 = gcd_mult_0 [simplified];
+lemmas gcd_mult_0 = gcd_mult_distrib2 [of k 1]
+lemmas gcd_mult_1 = gcd_mult_0 [simplified]
 
 lemmas where1 = gcd_mult_distrib2 [where m=1]
 
@@ -82,23 +82,23 @@ example using ``where'', ``and'':
 
 @{thm[display] sym}
 \rulename{sym}
-*};
+*}
 
-lemmas gcd_mult0 = gcd_mult_1 [THEN sym];
+lemmas gcd_mult0 = gcd_mult_1 [THEN sym]
       (*not quite right: we need ?k but this gives k*)
 
-lemmas gcd_mult0' = gcd_mult_distrib2 [of k 1, simplified, THEN sym];
+lemmas gcd_mult0' = gcd_mult_distrib2 [of k 1, simplified, THEN sym]
       (*better in one step!*)
 
 text {*
 more legible, and variables properly generalized
-*};
+*}
 
 lemma gcd_mult [simp]: "gcd k (k*n) = k"
 by (rule gcd_mult_distrib2 [of k 1, simplified, THEN sym])
 
 
-lemmas gcd_self0 = gcd_mult [of k 1, simplified];
+lemmas gcd_self0 = gcd_mult [of k 1, simplified]
 
 
 text {*
@@ -107,7 +107,7 @@ text {*
 
 @{thm[display] gcd_self0}
 \rulename{gcd_self0}
-*};
+*}
 
 text {*
 Rules handy with THEN
@@ -117,12 +117,12 @@ Rules handy with THEN
 
 @{thm[display] iffD2}
 \rulename{iffD2}
-*};
+*}
 
 
 text {*
 again: more legible, and variables properly generalized
-*};
+*}
 
 lemma gcd_self [simp]: "gcd k k = k"
 by (rule gcd_mult [of k 1, simplified])
@@ -143,12 +143,12 @@ apply (intro notI)
 txt{*
 before using arg_cong
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply (drule_tac f="\<lambda>x. x mod u" in arg_cong)
 txt{*
 after using arg_cong
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply (simp add: mod_Suc)
 done
 
@@ -172,7 +172,7 @@ apply (insert gcd_mult_distrib2 [of m k n])
 txt{*@{subgoals[display,indent=0,margin=65]}*}
 apply simp
 txt{*@{subgoals[display,indent=0,margin=65]}*}
-apply (erule_tac t="m" in ssubst);
+apply (erule_tac t="m" in ssubst)
 apply simp
 done
 
@@ -185,16 +185,16 @@ Another example of "insert"
 
 @{thm[display] mod_div_equality}
 \rulename{mod_div_equality}
-*};
+*}
 
 (*MOVED to Force.thy, which now depends only on Divides.thy
 lemma div_mult_self_is_m: "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
 *)
 
-lemma relprime_dvd_mult_iff: "gcd k n = 1 \<Longrightarrow> (k dvd m*n) = (k dvd m)";
+lemma relprime_dvd_mult_iff: "gcd k n = 1 \<Longrightarrow> (k dvd m*n) = (k dvd m)"
 by (auto intro: relprime_dvd_mult elim: dvdE)
 
-lemma relprime_20_81: "gcd 20 81 = 1";
+lemma relprime_20_81: "gcd 20 81 = 1"
 by (simp add: gcd.simps)
 
 text {*
@@ -214,20 +214,20 @@ Examples of 'OF'
 @{thm[display] dvd_add [OF dvd_refl dvd_refl]}
 
 @{thm[display] dvd_add [OF _ dvd_refl]}
-*};
+*}
 
-lemma "\<lbrakk>(z::int) < 37; 66 < 2*z; z*z \<noteq> 1225; Q(34); Q(36)\<rbrakk> \<Longrightarrow> Q(z)";
+lemma "\<lbrakk>(z::int) < 37; 66 < 2*z; z*z \<noteq> 1225; Q(34); Q(36)\<rbrakk> \<Longrightarrow> Q(z)"
 apply (subgoal_tac "z = 34 \<or> z = 36")
 txt{*
 the tactic leaves two subgoals:
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply blast
 apply (subgoal_tac "z \<noteq> 35")
 txt{*
 the tactic leaves two subgoals:
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply arith
 apply force
 done

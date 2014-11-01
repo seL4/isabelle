@@ -2,7 +2,7 @@ theory Force imports Main begin
   (*Use Divides rather than Main to experiment with the first proof.
     Otherwise, it is done by the nat_divide_cancel_factor simprocs.*)
 
-declare div_mult_self_is_m [simp del];
+declare div_mult_self_is_m [simp del]
 
 lemma div_mult_self_is_m: 
       "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
@@ -21,14 +21,14 @@ proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isad
 goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
 {\isacharparenleft}{\isasymforall}x{\isachardot}\ P\ x{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymexists}x{\isachardot}\ Q\ x{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}x{\isachardot}\ P\ x\ {\isasymand}\ Q\ x{\isacharparenright}\isanewline
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ xa{\isachardot}\ {\isasymlbrakk}{\isasymforall}x{\isachardot}\ P\ x{\isacharsemicolon}\ Q\ xa{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x\ {\isasymand}\ Q\ x
-*};
+*}
 
 text {*
 couldn't find a good example of clarsimp
 
 @{thm[display]"someI"}
 \rulename{someI}
-*};
+*}
 
 lemma "\<lbrakk>Q a; P a\<rbrakk> \<Longrightarrow> P (SOME x. P x \<and> Q x) \<and> Q (SOME x. P x \<and> Q x)"
 apply (rule someI)

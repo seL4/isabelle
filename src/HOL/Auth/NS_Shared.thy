@@ -231,7 +231,7 @@ apply (erule ns_shared.induct)
 apply (drule_tac [8] Says_Server_message_form)
 apply (erule_tac [5] Says_S_message_form [THEN disjE], analz_freshK, spy_analz)
 txt{*NS2, NS3*}
-apply blast+; 
+apply blast+ 
 done
 
 
@@ -468,7 +468,7 @@ lemma A_trusts_NS5:
      Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace> \<in> parts(spies evs);
      Key K \<notin> analz (spies evs);
      A \<notin> bad; B \<notin> bad; evs \<in> ns_shared \<rbrakk>
- \<Longrightarrow> Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) \<in> set evs";
+ \<Longrightarrow> Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) \<in> set evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)

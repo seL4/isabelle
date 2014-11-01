@@ -363,7 +363,7 @@ qed
 theorem sup_state_length [simp]:
   "G \<turnstile> s2 <=s s1 \<Longrightarrow> 
    length (fst s2) = length (fst s1) \<and> length (snd s2) = length (snd s1)"
-  by (auto dest: sup_loc_length simp add: sup_state_def stk_convert lesub_def Product.le_def);
+  by (auto dest: sup_loc_length simp add: sup_state_def stk_convert lesub_def Product.le_def)
 
 theorem sup_state_append_snd:
   "length a = length b \<Longrightarrow> 

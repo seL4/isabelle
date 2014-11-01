@@ -12,7 +12,7 @@ but lists, thus avoiding ambiguities caused by defining lists twice.
 *}
 
 datatype 'a list = Nil                          ("[]")
-                 | Cons 'a "'a list"            (infixr "#" 65);
+                 | Cons 'a "'a list"            (infixr "#" 65)
 
 text{*\noindent
 The datatype\index{datatype@\isacommand {datatype} (command)}
@@ -140,7 +140,7 @@ Our goal is to show that reversing a list twice produces the original
 list.
 *}
 
-theorem rev_rev [simp]: "rev(rev xs) = xs";
+theorem rev_rev [simp]: "rev(rev xs) = xs"
 
 txt{*\index{theorem@\isacommand {theorem} (command)|bold}%
 \noindent
@@ -179,7 +179,7 @@ defined functions are best established by induction. In this case there is
 nothing obvious except induction on @{term"xs"}:
 *}
 
-apply(induct_tac xs);
+apply(induct_tac xs)
 
 txt{*\noindent\index{*induct_tac (method)}%
 This tells Isabelle to perform induction on variable @{term"xs"}. The suffix
@@ -211,7 +211,7 @@ are multiple assumptions, they are enclosed in the bracket pair
 Let us try to solve both goals automatically:
 *}
 
-apply(auto);
+apply(auto)
 
 txt{*\noindent
 This command tells Isabelle to apply a proof strategy called
@@ -234,7 +234,7 @@ After abandoning the above proof attempt (at the shell level type
 \commdx{oops}) we start a new proof:
 *}
 
-lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
+lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)"
 
 txt{*\noindent The keywords \commdx{theorem} and
 \commdx{lemma} are interchangeable and merely indicate
@@ -246,13 +246,13 @@ There are two variables that we could induct on: @{term"xs"} and
 the first argument, @{term"xs"} is the correct one:
 *}
 
-apply(induct_tac xs);
+apply(induct_tac xs)
 
 txt{*\noindent
 This time not even the base case is solved automatically:
 *}
 
-apply(auto);
+apply(auto)
 
 txt{*
 @{subgoals[display,indent=0,goals_limit=1]}
@@ -270,9 +270,9 @@ text{*
 We again try the canonical proof procedure:
 *}
 
-lemma app_Nil2 [simp]: "xs @ [] = xs";
-apply(induct_tac xs);
-apply(auto);
+lemma app_Nil2 [simp]: "xs @ [] = xs"
+apply(induct_tac xs)
+apply(auto)
 
 txt{*
 \noindent
@@ -298,9 +298,9 @@ replaced by the unknown @{text"?xs"}, just as explained in
 Going back to the proof of the first lemma
 *}
 
-lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
-apply(induct_tac xs);
-apply(auto);
+lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)"
+apply(induct_tac xs)
+apply(auto)
 
 txt{*
 \noindent
@@ -324,9 +324,9 @@ Abandoning the previous attempt, the canonical proof procedure
 succeeds without further ado.
 *}
 
-lemma app_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)";
-apply(induct_tac xs);
-apply(auto);
+lemma app_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)"
+apply(induct_tac xs)
+apply(auto)
 done
 
 text{*
@@ -334,18 +334,18 @@ text{*
 Now we can prove the first lemma:
 *}
 
-lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
-apply(induct_tac xs);
-apply(auto);
+lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)"
+apply(induct_tac xs)
+apply(auto)
 done
 
 text{*\noindent
 Finally, we prove our main theorem:
 *}
 
-theorem rev_rev [simp]: "rev(rev xs) = xs";
-apply(induct_tac xs);
-apply(auto);
+theorem rev_rev [simp]: "rev(rev xs) = xs"
+apply(induct_tac xs)
+apply(auto)
 done
 
 text{*\noindent

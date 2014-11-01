@@ -27,7 +27,7 @@ between any two elements of a list:
 fun sep :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "sep a []     = []" |
 "sep a [x]    = [x]" |
-"sep a (x#y#zs) = x # a # sep a (y#zs)";
+"sep a (x#y#zs) = x # a # sep a (y#zs)"
 
 text{*\noindent
 This time the length of the list decreases with the
@@ -217,7 +217,7 @@ is the result of applying @{term"f"} to all elements of @{term"xs"}. We prove
 this lemma by recursion induction over @{term"sep"}:
 *}
 
-apply(induct_tac x xs rule: sep.induct);
+apply(induct_tac x xs rule: sep.induct)
 
 txt{*\noindent
 The resulting proof state has three subgoals corresponding to the three
@@ -226,7 +226,7 @@ clauses for @{term"sep"}:
 The rest is pure simplification:
 *}
 
-apply simp_all;
+apply simp_all
 done
 
 text{*\noindent The proof goes smoothly because the induction rule

@@ -357,7 +357,7 @@ apply(clarsimp)
 apply(unfold is_class_def)
 apply(clarsimp)
 
-apply(rule Call_type_sound);
+apply(rule Call_type_sound)
 prefer 11
 apply blast
 apply (simp (no_asm_simp))+ 

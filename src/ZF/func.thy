@@ -249,7 +249,7 @@ by (unfold lam_def, blast)
 
 lemma Repfun_function_if:
      "function(f)
-      ==> {f`x. x \<in> C} = (if C \<subseteq> domain(f) then f``C else cons(0,f``C))";
+      ==> {f`x. x \<in> C} = (if C \<subseteq> domain(f) then f``C else cons(0,f``C))"
 apply simp
 apply (intro conjI impI)
  apply (blast dest: function_apply_equality intro: function_apply_Pair)
@@ -261,7 +261,7 @@ done
 (*For this lemma and the next, the right-hand side could equivalently
   be written \<Union>x\<in>C. {f`x} *)
 lemma image_function:
-     "[| function(f);  C \<subseteq> domain(f) |] ==> f``C = {f`x. x \<in> C}";
+     "[| function(f);  C \<subseteq> domain(f) |] ==> f``C = {f`x. x \<in> C}"
 by (simp add: Repfun_function_if)
 
 lemma image_fun: "[| f \<in> Pi(A,B);  C \<subseteq> A |] ==> f``C = {f`x. x \<in> C}"

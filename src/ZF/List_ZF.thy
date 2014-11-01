@@ -1216,7 +1216,7 @@ by (simp add: sublist_Cons)
 lemma sublist_upt_eq_take [rule_format, simp]:
     "xs:list(A) ==> \<forall>n\<in>nat. sublist(xs,n) = take(n,xs)"
 apply (erule list.induct, simp)
-apply (clarify );
+apply (clarify )
 apply (erule natE)
 apply (simp_all add: nat_eq_Collect_lt Ord_mem_iff_lt sublist_Cons)
 done

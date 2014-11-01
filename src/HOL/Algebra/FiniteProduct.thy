@@ -33,7 +33,7 @@ definition
 
 lemma foldSetD_closed:
   "[| (A, z) \<in> foldSetD D f e ; e \<in> D; !!x y. [| x \<in> A; y \<in> D |] ==> f x y \<in> D 
-      |] ==> z \<in> D";
+      |] ==> z \<in> D"
   by (erule foldSetD.cases) auto
 
 lemma Diff1_foldSetD:
@@ -72,7 +72,7 @@ locale LCD =
   and f_closed [simp, intro!]: "!!x y. [| x \<in> B; y \<in> D |] ==> f x y \<in> D"
 
 lemma (in LCD) foldSetD_closed [dest]:
-  "(A, z) \<in> foldSetD D f e ==> z \<in> D";
+  "(A, z) \<in> foldSetD D f e ==> z \<in> D"
   by (erule foldSetD.cases) auto
 
 lemma (in LCD) Diff1_foldSetD:

@@ -244,7 +244,7 @@ by (simp add: nat_case_def)
 
 lemma nat_case_type [TC]:
     "[| n \<in> nat;  a \<in> C(0);  !!m. m \<in> nat ==> b(m): C(succ(m)) |]
-     ==> nat_case(a,b,n) \<in> C(n)";
+     ==> nat_case(a,b,n) \<in> C(n)"
 by (erule nat_induct, auto)
 
 lemma split_nat_case:

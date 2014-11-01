@@ -34,10 +34,10 @@ makes the termination proof less obvious.
 
 The following lemma has a simple proof by induction:  *}
 
-lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
+lemma "map_bt (g o f) T = map_bt g (map_bt f T)"
 apply(induct_tac T, simp_all)
 done
-(*<*)lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
+(*<*)lemma "map_bt (g o f) T = map_bt g (map_bt f T)"
 apply(induct_tac T, rename_tac[2] F)(*>*)
 txt{*\noindent
 Because of the function type, the proof state after induction looks unusual.

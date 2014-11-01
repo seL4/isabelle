@@ -145,7 +145,7 @@ schematic_lemma "?p : (ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))
   by (tactic "fast_tac FOLP_cs 1")
 
 text "Problem 21"
-schematic_lemma "?p : (EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> (EX x. P<->Q(x))";
+schematic_lemma "?p : (EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> (EX x. P<->Q(x))"
   by (tactic "best_tac FOLP_dup_cs 1")
 
 text "Problem 22"
@@ -173,7 +173,7 @@ schematic_lemma "?p : (EX x. P(x)) &
 text "Problem 26"
 schematic_lemma "?u : ((EX x. p(x)) <-> (EX x. q(x))) &   
      (ALL x. ALL y. p(x) & q(y) --> (r(x) <-> s(y)))   
-  --> ((ALL x. p(x)-->r(x)) <-> (ALL x. q(x)-->s(x)))";
+  --> ((ALL x. p(x)-->r(x)) <-> (ALL x. q(x)-->s(x)))"
   by (tactic "fast_tac FOLP_cs 1")
 
 text "Problem 27"

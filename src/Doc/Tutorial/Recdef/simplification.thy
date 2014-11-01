@@ -1,5 +1,5 @@
 (*<*)
-theory simplification imports Main begin;
+theory simplification imports Main begin
 (*>*)
 
 text{*
@@ -12,9 +12,9 @@ terminate because of automatic splitting of @{text "if"}.
 Let us look at an example:
 *}
 
-consts gcd :: "nat\<times>nat \<Rightarrow> nat";
+consts gcd :: "nat\<times>nat \<Rightarrow> nat"
 recdef gcd "measure (\<lambda>(m,n).n)"
-  "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))";
+  "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 
 text{*\noindent
 According to the measure function, the second argument should decrease with
@@ -50,10 +50,10 @@ rather than @{text "if"} on the right. In the case of @{term gcd} the
 following alternative definition suggests itself:
 *}
 
-consts gcd1 :: "nat\<times>nat \<Rightarrow> nat";
+consts gcd1 :: "nat\<times>nat \<Rightarrow> nat"
 recdef gcd1 "measure (\<lambda>(m,n).n)"
   "gcd1 (m, 0) = m"
-  "gcd1 (m, n) = gcd1(n, m mod n)";
+  "gcd1 (m, n) = gcd1(n, m mod n)"
 
 
 text{*\noindent
@@ -65,9 +65,9 @@ A simple alternative is to replace @{text "if"} by @{text case},
 which is also available for @{typ bool} and is not split automatically:
 *}
 
-consts gcd2 :: "nat\<times>nat \<Rightarrow> nat";
+consts gcd2 :: "nat\<times>nat \<Rightarrow> nat"
 recdef gcd2 "measure (\<lambda>(m,n).n)"
-  "gcd2(m,n) = (case n=0 of True \<Rightarrow> m | False \<Rightarrow> gcd2(n,m mod n))";
+  "gcd2(m,n) = (case n=0 of True \<Rightarrow> m | False \<Rightarrow> gcd2(n,m mod n))"
 
 text{*\noindent
 This is probably the neatest solution next to pattern matching, and it is
@@ -78,12 +78,12 @@ derived conditional ones. For @{term gcd} it means we have to prove
 these lemmas:
 *}
 
-lemma [simp]: "gcd (m, 0) = m";
-apply(simp);
+lemma [simp]: "gcd (m, 0) = m"
+apply(simp)
 done
 
-lemma [simp]: "n \<noteq> 0 \<Longrightarrow> gcd(m, n) = gcd(n, m mod n)";
-apply(simp);
+lemma [simp]: "n \<noteq> 0 \<Longrightarrow> gcd(m, n) = gcd(n, m mod n)"
+apply(simp)
 done
 
 text{*\noindent

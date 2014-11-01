@@ -58,15 +58,15 @@ compiled into a loop.
 
 Naturally, we would like to show that @{term"itrev"} does indeed reverse
 its first argument provided the second one is empty:
-*};
+*}
 
-lemma "itrev xs [] = rev xs";
+lemma "itrev xs [] = rev xs"
 
 txt{*\noindent
 There is no choice as to the induction variable, and we immediately simplify:
-*};
+*}
 
-apply(induct_tac xs, simp_all);
+apply(induct_tac xs, simp_all)
 
 txt{*\noindent
 Unfortunately, this attempt does not prove
@@ -80,9 +80,9 @@ This example suggests a heuristic:
 \end{quote}
 Of course one cannot do this na\"{\i}vely: @{term"itrev xs ys = rev xs"} is
 just not true.  The correct generalization is
-*};
-(*<*)oops;(*>*)
-lemma "itrev xs ys = rev xs @ ys";
+*}
+(*<*)oops(*>*)
+lemma "itrev xs ys = rev xs @ ys"
 (*<*)apply(induct_tac xs, simp_all)(*>*)
 txt{*\noindent
 If @{term"ys"} is replaced by @{term"[]"}, the right-hand side simplifies to
@@ -100,11 +100,11 @@ intuition to generalize: the problem is that @{term"ys"} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
 @{term"a # ys"} instead of @{term"ys"}. Hence we prove the theorem
 for all @{term"ys"} instead of a fixed one:
-*};
-(*<*)oops;(*>*)
-lemma "\<forall>ys. itrev xs ys = rev xs @ ys";
+*}
+(*<*)oops(*>*)
+lemma "\<forall>ys. itrev xs ys = rev xs @ ys"
 (*<*)
-by(induct_tac xs, simp_all);
+by(induct_tac xs, simp_all)
 (*>*)
 
 text{*\noindent

@@ -1336,7 +1336,7 @@ subsubsection{*Functions and function space*}
 text{*The assumption @{term "M(A->B)"} is unusual, but essential: in
 all but trivial cases, A->B cannot be expected to belong to @{term M}.*}
 lemma (in M_basic) is_funspace_abs [simp]:
-     "[|M(A); M(B); M(F); M(A->B)|] ==> is_funspace(M,A,B,F) \<longleftrightarrow> F = A->B";
+     "[|M(A); M(B); M(F); M(A->B)|] ==> is_funspace(M,A,B,F) \<longleftrightarrow> F = A->B"
 apply (simp add: is_funspace_def)
 apply (rule iffI)
  prefer 2 apply blast

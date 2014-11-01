@@ -415,7 +415,7 @@ apply (subgoal_tac "0 \<le> tokens(take (x ` NbR, x ` rel)) #- tokens(x`giv) ")
  prefer 2 apply (force)
 apply (subgoal_tac "x`available_tok =
                     NbT #+ (tokens(take(x`NbR,x`rel)) #- tokens(x`giv))")
-apply (simp add: );
+apply (simp add: )
 apply (auto split add: nat_diff_split dest: lt_trans2)
 done
 

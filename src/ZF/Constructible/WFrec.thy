@@ -135,7 +135,7 @@ lemma (in M_basic) is_recfun_relativize:
   "[| M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |] 
    ==> is_recfun(r,a,H,f) \<longleftrightarrow>
        (\<forall>z[M]. z \<in> f \<longleftrightarrow> 
-        (\<exists>x[M]. <x,a> \<in> r & z = <x, H(x, restrict(f, r-``{x}))>))";
+        (\<exists>x[M]. <x,a> \<in> r & z = <x, H(x, restrict(f, r-``{x}))>))"
 apply (simp add: is_recfun_def lam_def)
 apply (safe intro!: equalityI) 
    apply (drule equalityD1 [THEN subsetD], assumption) 

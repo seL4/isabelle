@@ -52,8 +52,8 @@ distinction over all constructors of the datatype suffices.  This is performed
 by \methdx{case_tac}.  Here is a trivial example:
 *}
 
-lemma "(case xs of [] \<Rightarrow> [] | y#ys \<Rightarrow> xs) = xs";
-apply(case_tac xs);
+lemma "(case xs of [] \<Rightarrow> [] | y#ys \<Rightarrow> xs) = xs"
+apply(case_tac xs)
 
 txt{*\noindent
 results in the proof state

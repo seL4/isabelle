@@ -508,7 +508,7 @@ lemma used'_parts [rule_format]: "X:used' evs ==> Y:parts {X} --> Y:used' evs"
 apply (induct evs, simp)
 apply (rename_tac a b)
 apply (case_tac a, simp_all) 
-apply (blast dest: parts_trans)+; 
+apply (blast dest: parts_trans)+ 
 done
 
 subsubsection{*monotonicity of used*}

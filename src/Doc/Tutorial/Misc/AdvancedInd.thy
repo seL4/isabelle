@@ -1,5 +1,5 @@
 (*<*)
-theory AdvancedInd imports Main begin;
+theory AdvancedInd imports Main begin
 (*>*)
 
 text{*\noindent
@@ -9,9 +9,9 @@ proposition to be proved is not directly amenable to induction
 (\S\ref{sec:ind-var-in-prems}), and how to utilize (\S\ref{sec:complete-ind})
 and even derive (\S\ref{sec:derive-ind}) new induction schemas. We conclude
 with an extended example of induction (\S\ref{sec:CTL-revisited}).
-*};
+*}
 
-subsection{*Massaging the Proposition*};
+subsection{*Massaging the Proposition*}
 
 text{*\label{sec:ind-var-in-prems}
 Often we have assumed that the theorem to be proved is already in a form
@@ -19,7 +19,7 @@ that is amenable to induction, but sometimes it isn't.
 Here is an example.
 Since @{term"hd"} and @{term"last"} return the first and last element of a
 non-empty list, this lemma looks easy to prove:
-*};
+*}
 
 lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) = last xs"
 apply(induct_tac xs)
@@ -51,11 +51,11 @@ Thus we should state the lemma as an ordinary
 implication~(@{text"\<longrightarrow>"}), letting
 \attrdx{rule_format} (\S\ref{sec:forward}) convert the
 result to the usual @{text"\<Longrightarrow>"} form:
-*};
-(*<*)oops;(*>*)
-lemma hd_rev [rule_format]: "xs \<noteq> [] \<longrightarrow> hd(rev xs) = last xs";
+*}
+(*<*)oops(*>*)
+lemma hd_rev [rule_format]: "xs \<noteq> [] \<longrightarrow> hd(rev xs) = last xs"
 (*<*)
-apply(induct_tac xs);
+apply(induct_tac xs)
 (*>*)
 
 txt{*\noindent
@@ -112,7 +112,7 @@ the notation $\overline{y}$ is merely an informal device.
 *}
 (*<*)by auto(*>*)
 
-subsection{*Beyond Structural and Recursion Induction*};
+subsection{*Beyond Structural and Recursion Induction*}
 
 text{*\label{sec:complete-ind}
 So far, inductive proofs were by structural induction for
@@ -130,7 +130,7 @@ holds for all $m<n$. In Isabelle, this is the theorem \tdx{nat_less_induct}:
 @{thm[display]"nat_less_induct"[no_vars]}
 As an application, we prove a property of the following
 function:
-*};
+*}
 
 axiomatization f :: "nat \<Rightarrow> nat"
   where f_ax: "f(f(n)) < f(Suc(n))"
@@ -148,17 +148,17 @@ development, you should replace axioms by theorems.
 The axiom for @{term"f"} implies @{prop"n <= f n"}, which can
 be proved by induction on \mbox{@{term"f n"}}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:
-*};
+*}
 
-lemma f_incr_lem: "\<forall>i. k = f i \<longrightarrow> i \<le> f i";
+lemma f_incr_lem: "\<forall>i. k = f i \<longrightarrow> i \<le> f i"
 
 txt{*\noindent
 To perform induction on @{term k} using @{thm[source]nat_less_induct}, we use
 the same general induction method as for recursion induction (see
 \S\ref{sec:fun-induction}):
-*};
+*}
 
-apply(induct_tac k rule: nat_less_induct);
+apply(induct_tac k rule: nat_less_induct)
 
 txt{*\noindent
 We get the following proof state:
@@ -203,17 +203,17 @@ translate the internal proof into a human-readable format.  Automatic
 proofs are easy to write but hard to read and understand.
 
 The desired result, @{prop"i <= f i"}, follows from @{thm[source]f_incr_lem}:
-*};
+*}
 
-lemmas f_incr = f_incr_lem[rule_format, OF refl];
+lemmas f_incr = f_incr_lem[rule_format, OF refl]
 
 text{*\noindent
 The final @{thm[source]refl} gets rid of the premise @{text"?k = f ?i"}. 
 We could have included this derivation in the original statement of the lemma:
-*};
+*}
 
-lemma f_incr[rule_format, OF refl]: "\<forall>i. k = f i \<longrightarrow> i \<le> f i";
-(*<*)oops;(*>*)
+lemma f_incr[rule_format, OF refl]: "\<forall>i. k = f i \<longrightarrow> i \<le> f i"
+(*<*)oops(*>*)
 
 text{*
 \begin{exercise}
@@ -237,7 +237,7 @@ which is a special case of @{thm[source]measure_induct}
 where @{term f} may be any function into type @{typ nat}.
 *}
 
-subsection{*Derivation of New Induction Schemas*};
+subsection{*Derivation of New Induction Schemas*}
 
 text{*\label{sec:derive-ind}
 \index{induction!deriving new schemas}%
@@ -246,18 +246,18 @@ whenever you wish.  This section shows you how, using the example
 of @{thm[source]nat_less_induct}. Assume we only have structural induction
 available for @{typ"nat"} and want to derive complete induction.  We
 must generalize the statement as shown:
-*};
+*}
 
-lemma induct_lem: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> \<forall>m<n. P m";
-apply(induct_tac n);
+lemma induct_lem: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> \<forall>m<n. P m"
+apply(induct_tac n)
 
 txt{*\noindent
 The base case is vacuously true. For the induction step (@{prop"m <
 Suc n"}) we distinguish two cases: case @{prop"m < n"} is true by induction
 hypothesis and case @{prop"m = n"} follows from the assumption, again using
 the induction hypothesis:
-*};
- apply(blast);
+*}
+ apply(blast)
 by(blast elim: less_SucE)
 
 text{*\noindent
@@ -270,10 +270,10 @@ lemma: instantiate @{term"n"} by @{term"Suc n"} and @{term"m"} by @{term"n"}
 and remove the trivial condition @{prop"n < Suc n"}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:
-*};
+*}
 
-theorem nat_less_induct: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> P n";
-by(insert induct_lem, blast);
+theorem nat_less_induct: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> P n"
+by(insert induct_lem, blast)
 
 text{*
 HOL already provides the mother of

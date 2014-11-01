@@ -453,7 +453,7 @@ apply (blast intro: i_subset_Vfrom [THEN subsetD]
                     Ord_in_Ord [THEN rank_of_Ord, THEN ssubst])
 done
 
-lemma Finite_Vset: "i \<in> nat ==> Finite(Vset(i))";
+lemma Finite_Vset: "i \<in> nat ==> Finite(Vset(i))"
 apply (erule nat_induct)
  apply (simp add: Vfrom_0)
 apply (simp add: Vset_succ)

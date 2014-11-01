@@ -13,7 +13,7 @@ lemma "(\<forall>x. honest(x) \<and> industrious(x) \<longrightarrow> healthy(x)
        (\<forall>x. industrious(x) \<and> grocer(x) \<longrightarrow> honest(x)) \<and> 
        (\<forall>x. cyclist(x) \<longrightarrow> industrious(x)) \<and> 
        (\<forall>x. \<not>healthy(x) \<and> cyclist(x) \<longrightarrow> \<not>honest(x))  
-       \<longrightarrow> (\<forall>x. grocer(x) \<longrightarrow> \<not>cyclist(x))";
+       \<longrightarrow> (\<forall>x. grocer(x) \<longrightarrow> \<not>cyclist(x))"
 by blast
 
 lemma "(\<Union>i\<in>I. A(i)) \<inter> (\<Union>j\<in>J. B(j)) =
@@ -26,12 +26,12 @@ text {*
 
 @{thm[display] finite_Un}
  \rulename{finite_Un}}
-*};
+*}
 
 
 lemma [iff]: "(xs@ys = []) = (xs=[] & ys=[])"
   apply (induct_tac xs)
-  by (simp_all);
+  by (simp_all)
 
 (*ideas for uses of intro, etc.: ex/Primes/is_gcd_unique?*)
 end

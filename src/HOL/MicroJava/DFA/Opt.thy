@@ -69,7 +69,7 @@ apply (simp split: option.split)
 done 
 
 lemma le_None [iff]:
-  "(ox <=_(le r) None) = (ox = None)";
+  "(ox <=_(le r) None) = (ox = None)"
 apply (unfold lesub_def le_def)
 apply (simp split: option.split)
 done 
@@ -282,7 +282,7 @@ done
 
 lemma option_map_in_optionI:
   "\<lbrakk> ox : opt S; !x:S. ox = Some x \<longrightarrow> f x : S \<rbrakk> 
-  \<Longrightarrow> map_option f ox : opt S";
+  \<Longrightarrow> map_option f ox : opt S"
 apply (unfold map_option_case)
 apply (simp split: option.split)
 apply blast

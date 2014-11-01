@@ -118,7 +118,7 @@ proof -
 qed
 
 lemma (in algebra) smult_r_null [simp]:
-  "a \<in> carrier R ==> a \<odot>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub> = \<zero>\<^bsub>M\<^esub>";
+  "a \<in> carrier R ==> a \<odot>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub> = \<zero>\<^bsub>M\<^esub>"
 proof -
   assume R: "a \<in> carrier R"
   note facts = R smult_closed

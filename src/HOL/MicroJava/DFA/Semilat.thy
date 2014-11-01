@@ -145,7 +145,7 @@ lemma (in Semilat) ub2 [simp, intro?]: "\<lbrakk> x \<in> A; y \<in> A \<rbrakk>
   (*<*) by (insert semilat) (unfold semilat_Def, simp) (*>*)
 
 lemma (in Semilat) lub [simp, intro?]:
-  "\<lbrakk> x \<sqsubseteq>\<^sub>r z; y \<sqsubseteq>\<^sub>r z; x \<in> A; y \<in> A; z \<in> A \<rbrakk> \<Longrightarrow> x \<squnion>\<^sub>f y \<sqsubseteq>\<^sub>r z";
+  "\<lbrakk> x \<sqsubseteq>\<^sub>r z; y \<sqsubseteq>\<^sub>r z; x \<in> A; y \<in> A; z \<in> A \<rbrakk> \<Longrightarrow> x \<squnion>\<^sub>f y \<sqsubseteq>\<^sub>r z"
   (*<*) by (insert semilat) (unfold semilat_Def, simp) (*>*)
 
 lemma (in Semilat) plus_le_conv [simp]:
@@ -299,7 +299,7 @@ done
 
 lemma is_lub_some_lub:
   "\<lbrakk> single_valued r; acyclic r; (x,u)\<in>r^*; (y,u)\<in>r^* \<rbrakk> 
-  \<Longrightarrow> is_lub (r^* ) x y (some_lub (r^* ) x y)";
+  \<Longrightarrow> is_lub (r^* ) x y (some_lub (r^* ) x y)"
   (*<*) by (fastforce dest: single_valued_has_lubs simp add: some_lub_conv) (*>*)
 
 subsection{*An executable lub-finder*}
@@ -331,7 +331,7 @@ done
 
 lemma exec_lub_conv:
   "\<lbrakk> acyclic r; \<forall>x y. (x,y) \<in> r \<longrightarrow> f x = y; is_lub (r\<^sup>*) x y u \<rbrakk> \<Longrightarrow>
-  exec_lub r f x y = u";
+  exec_lub r f x y = u"
 (*<*)
 apply(unfold exec_lub_def)
 apply(rule_tac P = "\<lambda>z. (y,z) \<in> r\<^sup>* \<and> (z,u) \<in> r\<^sup>*" and
@@ -343,9 +343,9 @@ apply(rule_tac P = "\<lambda>z. (y,z) \<in> r\<^sup>* \<and> (z,u) \<in> r\<^sup
    apply(blast dest:rtrancl_into_rtrancl)
   apply(rename_tac s)
   apply(subgoal_tac "is_ub (r\<^sup>*) x y s")
-   prefer 2; apply(simp add:is_ub_def)
+   prefer 2 apply(simp add:is_ub_def)
   apply(subgoal_tac "(u, s) \<in> r\<^sup>*")
-   prefer 2; apply(blast dest:is_lubD)
+   prefer 2 apply(blast dest:is_lubD)
   apply(erule converse_rtranclE)
    apply blast
   apply(simp only:acyclic_def)

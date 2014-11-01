@@ -1,5 +1,5 @@
 (*<*)
-theory Induction imports examples simplification begin;
+theory Induction imports examples simplification begin
 (*>*)
 
 text{*
@@ -19,7 +19,7 @@ for all recursive calls on the right-hand side. Here is a simple example
 involving the predefined @{term"map"} functional on lists:
 *}
 
-lemma "map f (sep(x,xs)) = sep(f x, map f xs)";
+lemma "map f (sep(x,xs)) = sep(f x, map f xs)"
 
 txt{*\noindent
 Note that @{term"map f xs"}
@@ -27,7 +27,7 @@ is the result of applying @{term"f"} to all elements of @{term"xs"}. We prove
 this lemma by recursion induction over @{term"sep"}:
 *}
 
-apply(induct_tac x xs rule: sep.induct);
+apply(induct_tac x xs rule: sep.induct)
 
 txt{*\noindent
 The resulting proof state has three subgoals corresponding to the three
@@ -36,7 +36,7 @@ clauses for @{term"sep"}:
 The rest is pure simplification:
 *}
 
-apply simp_all;
+apply simp_all
 done
 
 text{*

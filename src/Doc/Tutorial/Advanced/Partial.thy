@@ -138,7 +138,7 @@ recursive functions.  Here is a simple example of recursion induction:
 *}
 
 lemma "wf(step1 f) \<longrightarrow> f(find(f,x)) = find(f,x)"
-apply(induct_tac f x rule: find.induct);
+apply(induct_tac f x rule: find.induct)
 apply simp
 done
 
@@ -191,7 +191,7 @@ lemma lem: "wf(step1 f) \<Longrightarrow>
   \<exists>y. while (\<lambda>(x,x'). x' \<noteq> x) (\<lambda>(x,x'). (x',f x')) (x,f x) = (y,y) \<and>
        f y = y"
 apply(rule_tac P = "\<lambda>(x,x'). x' = f x" and
-               r = "inv_image (step1 f) fst" in while_rule);
+               r = "inv_image (step1 f) fst" in while_rule)
 apply auto
 apply(simp add: inv_image_def step1_def)
 done

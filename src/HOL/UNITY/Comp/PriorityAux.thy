@@ -131,7 +131,7 @@ apply (simp add: maximal_converse_image0 trancl_converse)
 done
 
 lemma above_lemma_b: 
-     "acyclic r ==> above i r\<noteq>{}-->(\<exists>j \<in> above i r. above j r = {})";
+     "acyclic r ==> above i r\<noteq>{}-->(\<exists>j \<in> above i r. above j r = {})"
 apply (drule above_lemma_a)
 apply (auto simp add: image0_trancl_iff_image0_r)
 done

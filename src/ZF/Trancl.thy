@@ -90,7 +90,7 @@ by (unfold trans_on_def, blast)
 lemma trans_imp_trans_on: "trans(r) ==> trans[A](r)"
 by (unfold trans_def trans_on_def, blast)
 
-lemma trans_on_imp_trans: "[|trans[A](r); r \<subseteq> A*A|] ==> trans(r)";
+lemma trans_on_imp_trans: "[|trans[A](r); r \<subseteq> A*A|] ==> trans(r)"
 by (simp add: trans_on_def trans_def, blast)
 
 

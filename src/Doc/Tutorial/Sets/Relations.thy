@@ -91,7 +91,7 @@ lemma rtrancl_converseD: "(x,y) \<in> (r\<inverse>)\<^sup>* \<Longrightarrow> (y
 apply (erule rtrancl_induct)
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
  apply (rule rtrancl_refl)
 apply (blast intro: rtrancl_trans)
 done
@@ -112,12 +112,12 @@ txt{*
 after intro rules
 
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply clarify
 txt{*
 after splitting
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 oops
 
 
@@ -127,13 +127,13 @@ txt{*
 @{subgoals[display,indent=0,margin=65]}
 
 after subsetI
-*};
+*}
 apply clarify
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 
 subgoals after clarify
-*};
+*}
 by blast
 
 

@@ -15,10 +15,10 @@ a fixed set of binary operations: instead the expression contains the
 appropriate function itself.
 *}
 
-type_synonym 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v";
+type_synonym 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v"
 datatype (dead 'a, 'v) expr = Cex 'v
                       | Vex 'a
-                      | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr";
+                      | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr"
 
 text{*\noindent
 The three constructors represent constants, variables and the application of
@@ -42,7 +42,7 @@ the result. As for @{text"expr"}, addresses and values are type parameters:
 
 datatype (dead 'a, 'v) instr = Const 'v
                        | Load 'a
-                       | Apply "'v binop";
+                       | Apply "'v binop"
 
 text{*
 The execution of the stack machine is modelled by a function
@@ -83,22 +83,22 @@ text{*
 Now we have to prove the correctness of the compiler, i.e.\ that the
 execution of a compiled expression results in the value of the expression:
 *}
-theorem "exec (compile e) s [] = [value e s]";
-(*<*)oops;(*>*)
+theorem "exec (compile e) s [] = [value e s]"
+(*<*)oops(*>*)
 text{*\noindent
 This theorem needs to be generalized:
 *}
 
-theorem "\<forall>vs. exec (compile e) s vs = (value e s) # vs";
+theorem "\<forall>vs. exec (compile e) s vs = (value e s) # vs"
 
 txt{*\noindent
 It will be proved by induction on @{term"e"} followed by simplification.  
 First, we must prove a lemma about executing the concatenation of two
 instruction sequences:
 *}
-(*<*)oops;(*>*)
+(*<*)oops(*>*)
 lemma exec_app[simp]:
-  "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
+  "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)" 
 
 txt{*\noindent
 This requires induction on @{term"xs"} and ordinary simplification for the
@@ -106,7 +106,7 @@ base cases. In the induction step, simplification leaves us with a formula
 that contains two @{text"case"}-expressions over instructions. Thus we add
 automatic case splitting, which finishes the proof:
 *}
-apply(induct_tac xs, simp, simp split: instr.split);
+apply(induct_tac xs, simp, simp split: instr.split)
 (*<*)done(*>*)
 text{*\noindent
 Note that because both \methdx{simp_all} and \methdx{auto} perform simplification, they can
@@ -114,10 +114,10 @@ be modified in the same way as @{text simp}.  Thus the proof can be
 rewritten as
 *}
 (*<*)
-declare exec_app[simp del];
-lemma [simp]: "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
+declare exec_app[simp del]
+lemma [simp]: "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)" 
 (*>*)
-apply(induct_tac xs, simp_all split: instr.split);
+apply(induct_tac xs, simp_all split: instr.split)
 (*<*)done(*>*)
 text{*\noindent
 Although this is more compact, it is less clear for the reader of the proof.
@@ -129,7 +129,7 @@ its instance.%
 \index{compiling expressions example|)}
 *}
 (*<*)
-theorem "\<forall>vs. exec (compile e) s vs = (value e s) # vs";
-by(induct_tac e, auto);
+theorem "\<forall>vs. exec (compile e) s vs = (value e s) # vs"
+by(induct_tac e, auto)
 end
 (*>*)

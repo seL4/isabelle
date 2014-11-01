@@ -109,10 +109,10 @@ by blast
 lemma sum_iff: "u \<in> A+B \<longleftrightarrow> (\<exists>x. x \<in> A & u=Inl(x)) | (\<exists>y. y \<in> B & u=Inr(y))"
 by blast
 
-lemma Inl_in_sum_iff [simp]: "(Inl(x) \<in> A+B) \<longleftrightarrow> (x \<in> A)";
+lemma Inl_in_sum_iff [simp]: "(Inl(x) \<in> A+B) \<longleftrightarrow> (x \<in> A)"
 by auto
 
-lemma Inr_in_sum_iff [simp]: "(Inr(y) \<in> A+B) \<longleftrightarrow> (y \<in> B)";
+lemma Inr_in_sum_iff [simp]: "(Inr(y) \<in> A+B) \<longleftrightarrow> (y \<in> B)"
 by auto
 
 lemma sum_subset_iff: "A+B \<subseteq> C+D \<longleftrightarrow> A<=C & B<=D"

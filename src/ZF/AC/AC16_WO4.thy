@@ -45,7 +45,7 @@ by (blast intro: lepoll_trans)
 (* There exists a well ordered set y such that ...                        *)
 (* ********************************************************************** *)
 
-lemmas lepoll_paired = paired_eqpoll [THEN eqpoll_sym, THEN eqpoll_imp_lepoll];
+lemmas lepoll_paired = paired_eqpoll [THEN eqpoll_sym, THEN eqpoll_imp_lepoll]
 
 lemma lemma2: "\<exists>y R. well_ord(y,R) & x \<inter> y = 0 & ~y \<lesssim> z & ~Finite(y)"
 apply (rule_tac x = "{{a,x}. a \<in> nat \<union> Hartog (z) }" in exI)

@@ -1,5 +1,5 @@
 (*<*)
-theory Trie imports Main begin;
+theory Trie imports Main begin
 (*>*)
 text{*
 To minimize running time, each node of a trie should contain an array that maps
@@ -7,9 +7,9 @@ letters to subtries. We have chosen a
 representation where the subtries are held in an association list, i.e.\ a
 list of (letter,trie) pairs.  Abstracting over the alphabet @{typ"'a"} and the
 values @{typ"'v"} we define a trie as follows:
-*};
+*}
 
-datatype ('a,'v)trie = Trie  "'v option"  "('a * ('a,'v)trie)list";
+datatype ('a,'v)trie = Trie  "'v option"  "('a * ('a,'v)trie)list"
 
 text{*\noindent
 \index{datatypes!and nested recursion}%
@@ -17,7 +17,7 @@ The first component is the optional value, the second component the
 association list of subtries.  This is an example of nested recursion involving products,
 which is fine because products are datatypes as well.
 We define two selector functions:
-*};
+*}
 
 primrec "value" :: "('a,'v)trie \<Rightarrow> 'v option" where
 "value(Trie ov al) = ov"
@@ -27,7 +27,7 @@ primrec alist :: "('a,'v)trie \<Rightarrow> ('a * ('a,'v)trie)list" where
 text{*\noindent
 Association lists come with a generic lookup function.  Its result
 involves type @{text option} because a lookup can fail:
-*};
+*}
 
 primrec assoc :: "('key * 'val)list \<Rightarrow> 'key \<Rightarrow> 'val option" where
 "assoc [] x = None" |
@@ -39,7 +39,7 @@ Now we can define the lookup function for tries. It descends into the trie
 examining the letters of the search string one by one. As
 recursion on lists is simpler than on tries, let us express this as primitive
 recursion on the search string argument:
-*};
+*}
 
 primrec lookup :: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v option" where
 "lookup t [] = value t" |
@@ -51,17 +51,17 @@ text{*
 As a first simple property we prove that looking up a string in the empty
 trie @{term"Trie None []"} always returns @{const None}. The proof merely
 distinguishes the two cases whether the search string is empty or not:
-*};
+*}
 
-lemma [simp]: "lookup (Trie None []) as = None";
-apply(case_tac as, simp_all);
+lemma [simp]: "lookup (Trie None []) as = None"
+apply(case_tac as, simp_all)
 done
 
 text{*
 Things begin to get interesting with the definition of an update function
 that adds a new (string, value) pair to a trie, overwriting the old value
 associated with that string:
-*};
+*}
 
 primrec update:: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarrow> ('a,'v)trie" where
 "update t []     v = Trie (Some v) (alist t)" |
@@ -81,7 +81,7 @@ optimizations!
 Before we start on any proofs about @{const update} we tell the simplifier to
 expand all @{text let}s and to split all @{text case}-constructs over
 options:
-*};
+*}
 
 declare Let_def[simp] option.split[split]
 
@@ -92,10 +92,10 @@ attempt) at the body of @{const update}: it contains both
 
 Our main goal is to prove the correct interaction of @{const update} and
 @{const lookup}:
-*};
+*}
 
 theorem "\<forall>t v bs. lookup (update t as v) bs =
-                    (if as=bs then Some v else lookup t bs)";
+                    (if as=bs then Some v else lookup t bs)"
 
 txt{*\noindent
 Our plan is to induct on @{term as}; hence the remaining variables are
@@ -105,8 +105,8 @@ guided by the intuition that simplification of @{const lookup} might be easier
 if @{const update} has already been simplified, which can only happen if
 @{term as} is instantiated.
 The start of the proof is conventional:
-*};
-apply(induct_tac as, auto);
+*}
+apply(induct_tac as, auto)
 
 txt{*\noindent
 Unfortunately, this time we are left with three intimidating looking subgoals:
@@ -118,8 +118,8 @@ Unfortunately, this time we are left with three intimidating looking subgoals:
 Clearly, if we want to make headway we have to instantiate @{term bs} as
 well now. It turns out that instead of induction, case distinction
 suffices:
-*};
-apply(case_tac[!] bs, auto);
+*}
+apply(case_tac[!] bs, auto)
 done
 
 text{*\noindent
@@ -158,7 +158,7 @@ sense and solves the proof.
   with @{typ"'a \<Rightarrow> ('a,'v)trie option"}.
 \end{exercise}
 
-*};
+*}
 
 (*<*)
 
@@ -174,9 +174,9 @@ where
       in Trie (value t) ((a, update1 tt as vo) # alist t))"
 
 theorem [simp]: "\<forall>t v bs. lookup (update1 t as v) bs =
-                    (if as = bs then v else lookup t bs)";
-apply (induct_tac as, auto);
-apply (case_tac[!] bs, auto);
+                    (if as = bs then v else lookup t bs)"
+apply (induct_tac as, auto)
+apply (case_tac[!] bs, auto)
 done
 
 
@@ -198,17 +198,17 @@ where
      (let tt = (case assoc (alist t) a of 
                   None \<Rightarrow> Trie None []  
                 | Some at \<Rightarrow> at) 
-      in Trie (value t) (overwrite a (update2 tt as vo) (alist t)))"; 
+      in Trie (value t) (overwrite a (update2 tt as vo) (alist t)))" 
 
 theorem "\<forall>t v bs. lookup (update2 t as vo) bs =
-                    (if as = bs then vo else lookup t bs)";
-apply (induct_tac as, auto);
-apply (case_tac[!] bs, auto);
+                    (if as = bs then vo else lookup t bs)"
+apply (induct_tac as, auto)
+apply (case_tac[!] bs, auto)
 done
 
 
 (* Exercise 3. Solution by Getrud Bauer *)
-datatype ('a,dead 'v) triem = Triem  "'v option" "'a \<Rightarrow> ('a,'v) triem option";
+datatype ('a,dead 'v) triem = Triem  "'v option" "'a \<Rightarrow> ('a,'v) triem option"
 
 primrec valuem :: "('a, 'v) triem \<Rightarrow> 'v option" where
 "valuem (Triem ov m) = ov"
@@ -220,10 +220,10 @@ primrec lookupm :: "('a,'v) triem \<Rightarrow> 'a list \<Rightarrow> 'v option"
   "lookupm t [] = valuem t" |
   "lookupm t (a#as) = (case mapping t a of
                         None \<Rightarrow> None
-                      | Some at \<Rightarrow> lookupm at as)";
+                      | Some at \<Rightarrow> lookupm at as)"
 
-lemma [simp]: "lookupm (Triem None  (\<lambda>c. None)) as = None";
-apply (case_tac as, simp_all);
+lemma [simp]: "lookupm (Triem None  (\<lambda>c. None)) as = None"
+apply (case_tac as, simp_all)
 done
 
 primrec updatem :: "('a,'v)triem \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarrow> ('a,'v)triem" where
@@ -233,13 +233,13 @@ primrec updatem :: "('a,'v)triem \<Rightarrow> 'a list \<Rightarrow> 'v \<Righta
                   None \<Rightarrow> Triem None (\<lambda>c. None) 
                 | Some at \<Rightarrow> at)
       in Triem (valuem t) 
-              (\<lambda>c. if c = a then Some (updatem tt as v) else mapping t c))";
+              (\<lambda>c. if c = a then Some (updatem tt as v) else mapping t c))"
 
 theorem "\<forall>t v bs. lookupm (updatem t as v) bs = 
-                    (if as = bs then Some v else lookupm t bs)";
-apply (induct_tac as, auto);
-apply (case_tac[!] bs, auto);
+                    (if as = bs then Some v else lookupm t bs)"
+apply (induct_tac as, auto)
+apply (case_tac[!] bs, auto)
 done
 
-end;
+end
 (*>*)

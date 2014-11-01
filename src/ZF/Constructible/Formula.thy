@@ -42,7 +42,7 @@ definition
 
 definition
   Exists :: "i=>i" where
-  "Exists(p) == Neg(Forall(Neg(p)))";
+  "Exists(p) == Neg(Forall(Neg(p)))"
 
 lemma Neg_type [TC]: "p \<in> formula ==> Neg(p) \<in> formula"
 by (simp add: Neg_def)
@@ -107,7 +107,7 @@ lemma sats_Forall_iff [simp]:
    ==> sats(A, Forall(p), env) \<longleftrightarrow> (\<forall>x\<in>A. sats(A, p, Cons(x,env)))"
 by simp
 
-declare satisfies.simps [simp del];
+declare satisfies.simps [simp del]
 
 subsection{*Dividing line between primitive and derived connectives*}
 
@@ -601,10 +601,10 @@ text{*NOT SUITABLE FOR REWRITING -- RECURSIVE!*}
 lemma Lset: "Lset(i) = (\<Union>j\<in>i. DPow(Lset(j)))"
 by (subst Lset_def [THEN def_transrec], simp)
 
-lemma LsetI: "[|y\<in>x; A \<in> DPow(Lset(y))|] ==> A \<in> Lset(x)";
+lemma LsetI: "[|y\<in>x; A \<in> DPow(Lset(y))|] ==> A \<in> Lset(x)"
 by (subst Lset, blast)
 
-lemma LsetD: "A \<in> Lset(x) ==> \<exists>y\<in>x. A \<in> DPow(Lset(y))";
+lemma LsetD: "A \<in> Lset(x) ==> \<exists>y\<in>x. A \<in> DPow(Lset(y))"
 apply (insert Lset [of x])
 apply (blast intro: elim: equalityE)
 done
@@ -888,7 +888,7 @@ text{*This is lrank(lrank(a)) = lrank(a) *}
 declare Ord_lrank [THEN lrank_of_Ord, simp]
 
 text{*Kunen's VI 1.10 *}
-lemma Lset_in_Lset_succ: "Lset(i) \<in> Lset(succ(i))";
+lemma Lset_in_Lset_succ: "Lset(i) \<in> Lset(succ(i))"
 apply (simp add: Lset_succ DPow_def)
 apply (rule_tac x=Nil in bexI)
  apply (rule_tac x="Equal(0,0)" in bexI)
@@ -907,7 +907,7 @@ apply (blast intro!: le_imp_subset Lset_mono)
 done
 
 text{*Kunen's VI 1.11 *}
-lemma Lset_subset_Vset: "Ord(i) ==> Lset(i) \<subseteq> Vset(i)";
+lemma Lset_subset_Vset: "Ord(i) ==> Lset(i) \<subseteq> Vset(i)"
 apply (erule trans_induct)
 apply (subst Lset)
 apply (subst Vset)
@@ -917,7 +917,7 @@ apply (rule Pow_mono, blast)
 done
 
 text{*Kunen's VI 1.12 *}
-lemma Lset_subset_Vset': "i \<in> nat ==> Lset(i) = Vset(i)";
+lemma Lset_subset_Vset': "i \<in> nat ==> Lset(i) = Vset(i)"
 apply (erule nat_induct)
  apply (simp add: Vfrom_0)
 apply (simp add: Lset_succ Vset_succ Finite_Vset Finite_DPow_eq_Pow)
@@ -1002,7 +1002,7 @@ definition
                 \<exists>env \<in> list(A). \<exists>p \<in> formula.
                     X = {x\<in>A. sats(A, p, Cons(x,env))}}"
 
-lemma DPow_subset_DPow': "DPow(A) \<subseteq> DPow'(A)";
+lemma DPow_subset_DPow': "DPow(A) \<subseteq> DPow'(A)"
 by (simp add: DPow_def DPow'_def, blast)
 
 lemma DPow'_0: "DPow'(0) = {0}"

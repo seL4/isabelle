@@ -161,7 +161,7 @@ lemma cong_diff_aux_int:
 lemma cong_diff_nat:
   assumes"[a = b] (mod m)" "[c = d] (mod m)" "(a::nat) >= c" "b >= d" 
   shows "[a - c = b - d] (mod m)"
-  using assms by (rule cong_diff_aux_int [transferred]);
+  using assms by (rule cong_diff_aux_int [transferred])
 
 lemma cong_mult_nat:
     "[(a::nat) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow> [a * c = b * d] (mod m)"

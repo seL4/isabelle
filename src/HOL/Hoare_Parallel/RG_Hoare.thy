@@ -220,7 +220,7 @@ apply(rule etran_or_ctran2_disjI2,simp_all)
 apply(force intro:tl_of_cptn_is_cptn)
 done
 
-lemma Ex_first_occurrence [rule_format]: "P (n::nat) \<longrightarrow> (\<exists>m. P m \<and> (\<forall>i<m. \<not> P i))";
+lemma Ex_first_occurrence [rule_format]: "P (n::nat) \<longrightarrow> (\<exists>m. P m \<and> (\<forall>i<m. \<not> P i))"
 apply(rule nat_less_induct)
 apply clarify
 apply(case_tac "\<forall>m. m<n \<longrightarrow> \<not> P m")

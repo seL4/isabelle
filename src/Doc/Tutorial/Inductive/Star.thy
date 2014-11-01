@@ -39,7 +39,7 @@ the standard definition. We start with a simple lemma:
 *}
 
 lemma [intro]: "(x,y) \<in> r \<Longrightarrow> (x,y) \<in> r*"
-by(blast intro: rtc_step);
+by(blast intro: rtc_step)
 
 text{*\noindent
 Although the lemma itself is an unremarkable consequence of the basic rules,
@@ -110,8 +110,8 @@ Now induction produces two subgoals which are both proved automatically:
 @{subgoals[display,indent=0]}
 *}
 
- apply(blast);
-apply(blast intro: rtc_step);
+ apply(blast)
+apply(blast intro: rtc_step)
 done
 
 text{*
@@ -134,16 +134,16 @@ inductions:
 *}
 
 lemma "(x,y) \<in> rtc2 r \<Longrightarrow> (x,y) \<in> r*"
-apply(erule rtc2.induct);
-  apply(blast);
- apply(blast);
-apply(blast intro: rtc_trans);
+apply(erule rtc2.induct)
+  apply(blast)
+ apply(blast)
+apply(blast intro: rtc_trans)
 done
 
 lemma "(x,y) \<in> r* \<Longrightarrow> (x,y) \<in> rtc2 r"
-apply(erule rtc.induct);
- apply(blast intro: rtc2.intros);
-apply(blast intro: rtc2.intros);
+apply(erule rtc.induct)
+ apply(blast intro: rtc2.intros)
+apply(blast intro: rtc2.intros)
 done
 
 text{*
@@ -167,8 +167,8 @@ in exercise~\ref{ex:converse-rtc-step}.
 *}
 (*<*)
 lemma rtc_step2[rule_format]: "(x,y) : r* \<Longrightarrow> (y,z) : r --> (x,z) : r*"
-apply(erule rtc.induct);
- apply blast;
+apply(erule rtc.induct)
+ apply blast
 apply(blast intro: rtc_step)
 done
 

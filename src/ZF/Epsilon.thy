@@ -117,14 +117,14 @@ apply (rule subset_refl)
 done
 
 text{*A transitive set either is empty or contains the empty set.*}
-lemma Transset_0_lemma [rule_format]: "Transset(A) ==> x\<in>A \<longrightarrow> 0\<in>A";
+lemma Transset_0_lemma [rule_format]: "Transset(A) ==> x\<in>A \<longrightarrow> 0\<in>A"
 apply (simp add: Transset_def)
 apply (rule_tac a=x in eps_induct, clarify)
 apply (drule bspec, assumption)
 apply (case_tac "x=0", auto)
 done
 
-lemma Transset_0_disj: "Transset(A) ==> A=0 | 0\<in>A";
+lemma Transset_0_disj: "Transset(A) ==> A=0 | 0\<in>A"
 by (blast dest: Transset_0_lemma)
 
 
