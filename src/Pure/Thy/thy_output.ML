@@ -615,12 +615,10 @@ end;
 
 (* embedded lemma *)
 
-val _ = Keyword.define ("by", NONE);  (*overlap with command category*)
-
 val _ = Theory.setup
   (antiquotation @{binding lemma}
     (Scan.lift (Scan.ahead Parse.not_eof) -- Args.prop --
-      Scan.lift (Parse.position (Args.$$$ "by") -- Method.parse -- Scan.option Method.parse))
+      Scan.lift (Parse.position (Parse.reserved "by") -- Method.parse -- Scan.option Method.parse))
     (fn {source, context = ctxt, ...} => fn ((prop_token, prop), (((_, by_pos), m1), m2)) =>
       let
         val prop_src = Token.src (Token.name_of_src source) [prop_token];

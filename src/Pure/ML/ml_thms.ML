@@ -80,16 +80,17 @@ val _ = Theory.setup
 (* ad-hoc goals *)
 
 val and_ = Args.$$$ "and";
-val by = Args.$$$ "by";
+val by = Parse.reserved "by";
 val goal = Scan.unless (by || and_) Args.name_inner_syntax;
 
 val _ = Theory.setup
   (ML_Antiquotation.declaration @{binding lemma}
     (Scan.lift (Args.mode "open" -- Parse.enum1 "and" (Scan.repeat1 goal) --
-      (by |-- Method.parse -- Scan.option Method.parse)))
-    (fn _ => fn ((is_open, raw_propss), (m1, m2)) => fn ctxt =>
+      (Parse.position by -- Method.parse -- Scan.option Method.parse)))
+    (fn _ => fn ((is_open, raw_propss), (((_, by_pos), m1), m2)) => fn ctxt =>
       let
-        val _ = Context_Position.reports ctxt (maps Method.reports_of (m1 :: the_list m2));
+        val reports = (by_pos, Markup.keyword1) :: maps Method.reports_of (m1 :: the_list m2);
+        val _ = Context_Position.reports ctxt reports;
 
         val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
         val prep_result = Goal.norm_result ctxt #> not is_open ? Thm.close_derivation;
