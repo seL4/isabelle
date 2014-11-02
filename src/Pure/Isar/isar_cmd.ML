@@ -51,6 +51,7 @@ sig
   val local_theory_markup: (xstring * Position.T) option * Symbol_Pos.source ->
     Toplevel.transition -> Toplevel.transition
   val proof_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
+  val header_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
   val heading_markup: (xstring * Position.T) option * Symbol_Pos.source ->
     Toplevel.transition -> Toplevel.transition
 end;
@@ -385,12 +386,16 @@ fun reject_target NONE = ()
   | reject_target (SOME (_, pos)) =
       error ("Illegal target specification -- not a theory context" ^ Position.here pos);
 
-fun heading_markup (loc, txt) =
+fun header_markup txt =
   Toplevel.keep (fn state =>
     if Toplevel.is_toplevel state then
      (legacy_feature "Obsolete 'header' command -- use 'chapter', 'section' etc. instead";
-      reject_target loc;
       Thy_Output.check_text txt state)
+    else raise Toplevel.UNDEF);
+
+fun heading_markup (loc, txt) =
+  Toplevel.keep (fn state =>
+    if Toplevel.is_toplevel state then (reject_target loc; Thy_Output.check_text txt state)
     else raise Toplevel.UNDEF) o
   local_theory_markup (loc, txt) o
   Toplevel.present_proof (fn state => (reject_target loc; Thy_Output.check_text txt state));

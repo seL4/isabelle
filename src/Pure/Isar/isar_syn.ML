@@ -12,7 +12,7 @@ struct
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "header"} "theory header"
-    (Parse.document_source >> (fn s => Isar_Cmd.heading_markup (NONE, s)));
+    (Parse.document_source >> Isar_Cmd.header_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
