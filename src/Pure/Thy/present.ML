@@ -369,7 +369,7 @@ fun finish () =
 
 fun theory_output name s =
   with_session_info () (fn _ =>
-    change_theory_info name (fn (_, html_source) => (Latex.isabelle_file name s, html_source)));
+    change_theory_info name (fn (_, html_source) => (Latex.isabelle_theory name s, html_source)));
 
 fun begin_theory update_time mk_text thy =
   with_session_info thy (fn {name = session_name, chapter, ...} =>

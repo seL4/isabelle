@@ -21,7 +21,7 @@ sig
   val begin_tag: string -> string
   val end_tag: string -> string
   val tex_trailer: string
-  val isabelle_file: string -> string -> string
+  val isabelle_theory: string -> string -> string
   val symbol_source: (string -> bool) * (string -> bool) ->
     string -> Symbol.symbol list -> string
   val theory_entry: string -> string
@@ -167,14 +167,15 @@ val tex_trailer =
   \%%% TeX-master: \"root\"\n\
   \%%% End:\n";
 
-fun isabelle_file name txt =
+fun isabelle_theory name txt =
   "%\n\\begin{isabellebody}%\n\
-  \\\def\\isabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
+  \\\setisabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
   "\\end{isabellebody}%\n" ^ tex_trailer;
 
-fun symbol_source known name syms = isabelle_file name
-  ("\\isamarkupheader{" ^ output_known_symbols known (Symbol.explode name) ^ "}%\n" ^
-    output_known_symbols known syms);
+fun symbol_source known name syms =
+  isabelle_theory name
+    ("\\isamarkupfile{" ^ output_known_symbols known (Symbol.explode name) ^ "}%\n" ^
+      output_known_symbols known syms);
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 
