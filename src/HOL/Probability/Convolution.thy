@@ -2,7 +2,7 @@
     Author:     Sudeep Kanav, TU München
     Author:     Johannes Hölzl, TU München *)
 
-header {* Convolution Measure *}
+section {* Convolution Measure *}
 
 theory Convolution
   imports Independent_Family

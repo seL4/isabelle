@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU München
 *)
 
-header {* Finite Maps *}
+section {* Finite Maps *}
 
 theory Fin_Map
 imports Finite_Product_Measure

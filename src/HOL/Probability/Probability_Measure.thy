@@ -3,7 +3,7 @@
     Author:     Armin Heller, TU München
 *)
 
-header {*Probability measure*}
+section {*Probability measure*}
 
 theory Probability_Measure
   imports Lebesgue_Measure Radon_Nikodym

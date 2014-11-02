@@ -5,7 +5,7 @@
     translated by Lawrence Paulson.
 *)
 
-header {* Describing measurable sets *}
+section {* Describing measurable sets *}
 
 theory Sigma_Algebra
 imports

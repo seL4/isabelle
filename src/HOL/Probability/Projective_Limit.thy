@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU München
 *)
 
-header {* Projective Limit *}
+section {* Projective Limit *}
 
 theory Projective_Limit
   imports

@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-header {*Caratheodory Extension Theorem*}
+section {*Caratheodory Extension Theorem*}
 
 theory Caratheodory
   imports Measure_Space

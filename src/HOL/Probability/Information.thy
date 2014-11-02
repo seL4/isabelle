@@ -3,7 +3,7 @@
     Author:     Armin Heller, TU München
 *)
 
-header {*Information theory*}
+section {*Information theory*}
 
 theory Information
 imports

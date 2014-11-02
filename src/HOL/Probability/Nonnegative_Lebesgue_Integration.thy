@@ -3,7 +3,7 @@
     Author:     Armin Heller, TU München
 *)
 
-header {* Lebesgue Integration for Nonnegative Functions *}
+section {* Lebesgue Integration for Nonnegative Functions *}
 
 theory Nonnegative_Lebesgue_Integration
   imports Measure_Space Borel_Space

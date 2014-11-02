@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-header {*Binary product measures*}
+section {*Binary product measures*}
 
 theory Binary_Product_Measure
 imports Nonnegative_Lebesgue_Integration

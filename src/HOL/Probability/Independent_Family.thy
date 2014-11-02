@@ -3,7 +3,7 @@
     Author:     Sudeep Kanav, TU München
 *)
 
-header {* Independent families of events, event sets, and random variables *}
+section {* Independent families of events, event sets, and random variables *}
 
 theory Independent_Family
   imports Probability_Measure Infinite_Product_Measure

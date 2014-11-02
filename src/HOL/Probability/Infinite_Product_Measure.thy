@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-header {*Infinite Product Measure*}
+section {*Infinite Product Measure*}
 
 theory Infinite_Product_Measure
   imports Probability_Measure Caratheodory Projective_Family

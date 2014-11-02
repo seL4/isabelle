@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-header {*Projective Family*}
+section {*Projective Family*}
 
 theory Projective_Family
 imports Finite_Product_Measure Probability_Measure

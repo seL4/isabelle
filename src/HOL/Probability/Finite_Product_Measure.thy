@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-header {*Finite product measures*}
+section {*Finite product measures*}
 
 theory Finite_Product_Measure
 imports Binary_Product_Measure

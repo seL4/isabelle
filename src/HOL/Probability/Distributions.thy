@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl, TU München
     Author:     Jeremy Avigad, CMU *)
 
-header {* Properties of Various Distributions *}
+section {* Properties of Various Distributions *}
 
 theory Distributions
   imports Convolution Information

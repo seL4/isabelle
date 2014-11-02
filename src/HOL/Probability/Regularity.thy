@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU München
 *)
 
-header {* Regularity of Measures *}
+section {* Regularity of Measures *}
 
 theory Regularity
 imports Measure_Space Borel_Space

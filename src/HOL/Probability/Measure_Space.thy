@@ -4,7 +4,7 @@
     Author:     Armin Heller, TU München
 *)
 
-header {* Measure spaces and their properties *}
+section {* Measure spaces and their properties *}
 
 theory Measure_Space
 imports

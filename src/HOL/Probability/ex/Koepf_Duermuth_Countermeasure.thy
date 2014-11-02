@@ -1,6 +1,6 @@
 (* Author: Johannes Hölzl, TU München *)
 
-header {* Formalization of a Countermeasure by Koepf \& Duermuth 2009 *}
+section {* Formalization of a Countermeasure by Koepf \& Duermuth 2009 *}
 
 theory Koepf_Duermuth_Countermeasure
   imports "~~/src/HOL/Probability/Information" "~~/src/HOL/Library/Permutation"
