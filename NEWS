@@ -167,6 +167,13 @@ argument. Minor INCOMPATIBILITY.
 
 *** Document preparation ***
 
+* Document headings work uniformly via the commands 'chapter',
+'section', 'subsection', 'subsubsection' -- in any context, even
+before the initial 'theory' command.  Obsolete proof commands 'sect',
+'subsect', 'subsubsect' have been discontinued.  The Obsolete 'header'
+command is still retained for some time, but should be replaced by
+'chapter', 'section' etc. Minor INCOMPATIBILITY.
+
 * Official support for "tt" style variants, via \isatt{...} or
 \begin{isabellett}...\end{isabellett}. The somewhat fragile \verb or
 verbatim environment of LaTeX is no longer used. This allows @{ML} etc.

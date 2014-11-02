@@ -13,12 +13,9 @@ object Keyword
 
   val MINOR = "minor"
   val DIAG = "diag"
+  val HEADING = "heading"
   val THY_BEGIN = "thy_begin"
   val THY_END = "thy_end"
-  val THY_HEADING1 = "thy_heading1"
-  val THY_HEADING2 = "thy_heading2"
-  val THY_HEADING3 = "thy_heading3"
-  val THY_HEADING4 = "thy_heading4"
   val THY_DECL = "thy_decl"
   val THY_DECL_BLOCK = "thy_decl_block"
   val THY_LOAD = "thy_load"
@@ -27,9 +24,6 @@ object Keyword
   val QED_SCRIPT = "qed_script"
   val QED_BLOCK = "qed_block"
   val QED_GLOBAL = "qed_global"
-  val PRF_HEADING2 = "prf_heading2"
-  val PRF_HEADING3 = "prf_heading3"
-  val PRF_HEADING4 = "prf_heading4"
   val PRF_GOAL = "prf_goal"
   val PRF_BLOCK = "prf_block"
   val PRF_OPEN = "prf_open"
@@ -46,26 +40,21 @@ object Keyword
 
   val diag = Set(DIAG)
 
-  val heading = Set(THY_HEADING1, THY_HEADING2, THY_HEADING3, THY_HEADING4,
-    PRF_HEADING2, PRF_HEADING3, PRF_HEADING4)
+  val heading = Set(HEADING)
 
-  val theory =
-    Set(THY_BEGIN, THY_END, THY_HEADING1, THY_HEADING2, THY_HEADING3, THY_HEADING4,
-      THY_LOAD, THY_DECL, THY_GOAL)
+  val theory = Set(THY_BEGIN, THY_END, THY_LOAD, THY_DECL, THY_DECL_BLOCK, THY_GOAL)
 
   val theory_block = Set(THY_BEGIN, THY_DECL_BLOCK)
 
-  val theory_body =
-    Set(THY_HEADING1, THY_HEADING2, THY_HEADING3, THY_HEADING4, THY_LOAD, THY_DECL, THY_GOAL)
+  val theory_body = Set(THY_LOAD, THY_DECL, THY_DECL_BLOCK, THY_GOAL)
 
   val proof =
-    Set(QED, QED_SCRIPT, QED_BLOCK, QED_GLOBAL, PRF_HEADING2, PRF_HEADING3, PRF_HEADING4,
-      PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN, PRF_DECL,
-      PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
+    Set(QED, QED_SCRIPT, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE,
+      PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
 
   val proof_body =
-    Set(DIAG, PRF_HEADING2, PRF_HEADING3, PRF_HEADING4, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN,
-      PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
+    Set(DIAG, HEADING, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN, PRF_DECL, PRF_ASM,
+      PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
 
   val theory_goal = Set(THY_GOAL)
   val proof_goal = Set(PRF_GOAL, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT)

@@ -10,12 +10,9 @@ sig
   val kind_of: T -> string
   val kind_files_of: T -> string * string list
   val diag: T
+  val heading: T
   val thy_begin: T
   val thy_end: T
-  val thy_heading1: T
-  val thy_heading2: T
-  val thy_heading3: T
-  val thy_heading4: T
   val thy_decl: T
   val thy_decl_block: T
   val thy_load: T
@@ -25,9 +22,6 @@ sig
   val qed_script: T
   val qed_block: T
   val qed_global: T
-  val prf_heading2: T
-  val prf_heading3: T
-  val prf_heading4: T
   val prf_goal: T
   val prf_block: T
   val prf_open: T
@@ -90,12 +84,9 @@ fun add_files fs (Keyword {kind, files, tags}) =
 (* kinds *)
 
 val diag = kind "diag";
+val heading = kind "heading";
 val thy_begin = kind "thy_begin";
 val thy_end = kind "thy_end";
-val thy_heading1 = kind "thy_heading1";
-val thy_heading2 = kind "thy_heading2";
-val thy_heading3 = kind "thy_heading3";
-val thy_heading4 = kind "thy_heading4";
 val thy_decl = kind "thy_decl";
 val thy_decl_block = kind "thy_decl_block";
 val thy_load = kind "thy_load";
@@ -105,9 +96,6 @@ val qed = kind "qed";
 val qed_script = kind "qed_script";
 val qed_block = kind "qed_block";
 val qed_global = kind "qed_global";
-val prf_heading2 = kind "prf_heading2";
-val prf_heading3 = kind "prf_heading3";
-val prf_heading4 = kind "prf_heading4";
 val prf_goal = kind "prf_goal";
 val prf_block = kind "prf_block";
 val prf_open = kind "prf_open";
@@ -120,10 +108,9 @@ val prf_asm_goal_script = kind "prf_asm_goal_script";
 val prf_script = kind "prf_script";
 
 val kinds =
-  [diag, thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_load, thy_decl, thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global,
-    prf_heading2, prf_heading3, prf_heading4, prf_goal, prf_block, prf_open,
-    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
+  [diag, heading, thy_begin, thy_end, thy_load, thy_decl, thy_decl_block, thy_goal,
+    qed, qed_script, qed_block, qed_global, prf_goal, prf_block, prf_open, prf_close,
+    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 
 (* tags *)
@@ -235,30 +222,25 @@ fun command_category ks =
 
 val is_diag = command_category [diag];
 
-val is_heading =
-  command_category [thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    prf_heading2, prf_heading3, prf_heading4];
+val is_heading = command_category [heading];
 
 val is_theory_begin = command_category [thy_begin];
 
 val is_theory_load = command_category [thy_load];
 
 val is_theory = command_category
-  [thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_load, thy_decl, thy_decl_block, thy_goal];
+  [thy_begin, thy_end, thy_load, thy_decl, thy_decl_block, thy_goal];
 
 val is_theory_body = command_category
-  [thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_load, thy_decl, thy_decl_block, thy_goal];
+  [thy_load, thy_decl, thy_decl_block, thy_goal];
 
 val is_proof = command_category
-  [qed, qed_script, qed_block, qed_global, prf_heading2, prf_heading3, prf_heading4,
-    prf_goal, prf_block, prf_open, prf_close, prf_chain, prf_decl,
-    prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
+  [qed, qed_script, qed_block, qed_global, prf_goal, prf_block, prf_open, prf_close,
+    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 val is_proof_body = command_category
-  [diag, prf_heading2, prf_heading3, prf_heading4, prf_block, prf_open, prf_close, prf_chain,
-    prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
+  [diag, heading, prf_block, prf_open, prf_close, prf_chain, prf_decl, prf_asm,
+    prf_asm_goal, prf_asm_goal_script, prf_script];
 
 val is_theory_goal = command_category [thy_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_asm_goal_script];

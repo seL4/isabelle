@@ -76,7 +76,7 @@ object Options
 
   lazy val options_syntax =
     Outer_Syntax.init() + ":" + "=" + "--" +
-      (SECTION, Keyword.THY_HEADING2) + (PUBLIC, Keyword.THY_DECL) + (OPTION, Keyword.THY_DECL)
+      (SECTION, Keyword.HEADING) + (PUBLIC, Keyword.THY_DECL) + (OPTION, Keyword.THY_DECL)
 
   lazy val prefs_syntax = Outer_Syntax.init() + "="
 

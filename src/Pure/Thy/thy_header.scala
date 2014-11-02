@@ -16,6 +16,11 @@ import scala.util.matching.Regex
 object Thy_Header extends Parse.Parser
 {
   val HEADER = "header"
+  val CHAPTER = "chapter"
+  val SECTION = "section"
+  val SUBSECTION = "subsection"
+  val SUBSUBSECTION = "subsubsection"
+
   val THEORY = "theory"
   val IMPORTS = "imports"
   val KEYWORDS = "keywords"
@@ -23,8 +28,8 @@ object Thy_Header extends Parse.Parser
   val BEGIN = "begin"
 
   private val lexicon =
-    Scan.Lexicon("%", "(", ")", ",", "::", "==",
-      AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY)
+    Scan.Lexicon("%", "(", ")", ",", "::", "==", AND, BEGIN,
+      HEADER, CHAPTER, SECTION, SUBSECTION, SUBSUBSECTION, IMPORTS, KEYWORDS, THEORY)
 
 
   /* theory file name */
@@ -74,9 +79,15 @@ object Thy_Header extends Parse.Parser
       keyword(BEGIN) ^^
       { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
-    (keyword(HEADER) ~ tags) ~!
-      ((document_source ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
-    (keyword(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
+    val heading =
+      (keyword(HEADER) |
+        keyword(CHAPTER) |
+        keyword(SECTION) |
+        keyword(SUBSECTION) |
+        keyword(SUBSUBSECTION)) ~
+      tags ~! document_source
+
+    (rep(heading) ~ keyword(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
   }
 
 

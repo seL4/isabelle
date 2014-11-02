@@ -22,16 +22,12 @@ section \<open>Markup commands \label{sec:markup}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "header"} & : & @{text "toplevel \<rightarrow> toplevel"} \\[0.5ex]
-    @{command_def "chapter"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "section"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "subsection"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "subsubsection"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "chapter"} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "section"} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "subsection"} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "subsubsection"} & : & @{text "any \<rightarrow> any"} \\
     @{command_def "text"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "text_raw"} & : & @{text "local_theory \<rightarrow> local_theory"} \\[0.5ex]
-    @{command_def "sect"} & : & @{text "proof \<rightarrow> proof"} \\
-    @{command_def "subsect"} & : & @{text "proof \<rightarrow> proof"} \\
-    @{command_def "subsubsect"} & : & @{text "proof \<rightarrow> proof"} \\
     @{command_def "txt"} & : & @{text "proof \<rightarrow> proof"} \\
     @{command_def "txt_raw"} & : & @{text "proof \<rightarrow> proof"} \\
   \end{matharray}
@@ -51,26 +47,17 @@ text \<open>
     (@@{command chapter} | @@{command section} | @@{command subsection} |
       @@{command subsubsection} | @@{command text}) @{syntax target}? @{syntax text}
     ;
-    (@@{command header} | @@{command text_raw} | @@{command sect} | @@{command subsect} |
-      @@{command subsubsect} | @@{command txt} | @@{command txt_raw}) @{syntax text}
+    (@@{command text_raw} | @@{command txt} | @@{command txt_raw}) @{syntax text}
   \<close>}
 
   \begin{description}
 
-  \item @{command header} provides plain text markup just preceding
-  the formal beginning of a theory.  The corresponding {\LaTeX} macro
-  is @{verbatim \<open>\isamarkupheader\<close>}, which acts like @{command
-  section} by default.
-  
-  \item @{command chapter}, @{command section}, @{command subsection},
-  and @{command subsubsection} mark chapter and section headings
-  within the main theory body or local theory targets.  The
-  corresponding {\LaTeX} macros are @{verbatim \<open>\isamarkupchapter\<close>},
-  @{verbatim \<open>\isamarkupsection\<close>}, @{verbatim \<open>\isamarkupsubsection\<close>} etc.
-
-  \item @{command sect}, @{command subsect}, and @{command subsubsect}
-  mark section headings within proofs.  The corresponding {\LaTeX}
-  macros are @{verbatim \<open>\isamarkupsect\<close>}, @{verbatim \<open>\isamarkupsubsect\<close>} etc.
+  \item @{command chapter}, @{command section}, @{command subsection}, and
+  @{command subsubsection} mark chapter and section headings within the
+  theory source; this works in any context, even before the initial
+  @{command theory} command. The corresponding {\LaTeX} macros are
+  @{verbatim \<open>\isamarkupchapter\<close>}, @{verbatim \<open>\isamarkupsection\<close>},
+  @{verbatim \<open>\isamarkupsubsection\<close>}, @{verbatim \<open>\isamarkupsubsubsection\<close>}.
 
   \item @{command text} and @{command txt} specify paragraphs of plain
   text.  This corresponds to a {\LaTeX} environment @{verbatim
@@ -91,8 +78,7 @@ text \<open>
 
   \medskip The proof markup commands closely resemble those for theory
   specifications, but have a different formal status and produce
-  different {\LaTeX} macros.  The default definitions coincide for
-  analogous commands such as @{command section} and @{command sect}.
+  different {\LaTeX} macros.
 \<close>
 
 

@@ -424,24 +424,6 @@ text {*
   do not affect the formal meaning of a theory (or proof), but result
   in corresponding {\LaTeX} elements.
 
-  There are separate markup commands depending on the textual context:
-  in header position (just before \isakeyword{theory}), within the
-  theory body, or within a proof.  The header needs to be treated
-  specially here, since ordinary theory and proof commands may only
-  occur \emph{after} the initial \isakeyword{theory} specification.
-
-  \medskip
-
-  \begin{tabular}{llll}
-  header & theory & proof & default meaning \\\hline
-    & \commdx{chapter} & & \verb,\chapter, \\
-  \commdx{header} & \commdx{section} & \commdx{sect} & \verb,\section, \\
-    & \commdx{subsection} & \commdx{subsect} & \verb,\subsection, \\
-    & \commdx{subsubsection} & \commdx{subsubsect} & \verb,\subsubsection, \\
-  \end{tabular}
-
-  \medskip
-
   From the Isabelle perspective, each markup command takes a single
   $text$ argument (delimited by \verb,",~@{text \<dots>}~\verb,", or
   \verb,{,\verb,*,~@{text \<dots>}~\verb,*,\verb,},).  After stripping any

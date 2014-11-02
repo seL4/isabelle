@@ -14,15 +14,12 @@ theory Pure
     "infixr" "is" "keywords" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "shows" "structure" "unchecked" "where" "|"
   and "theory" :: thy_begin % "theory"
-  and "header" :: diag
-  and "chapter" :: thy_heading1
-  and "section" :: thy_heading2
-  and "subsection" :: thy_heading3
-  and "subsubsection" :: thy_heading4
+  and "header" :: heading
+  and "chapter" :: heading
+  and "section" :: heading
+  and "subsection" :: heading
+  and "subsubsection" :: heading
   and "text" "text_raw" :: thy_decl
-  and "sect" :: prf_heading2 % "proof"
-  and "subsect" :: prf_heading3 % "proof"
-  and "subsubsect" :: prf_heading4 % "proof"
   and "txt" "txt_raw" :: prf_decl % "proof"
   and "default_sort" :: thy_decl == ""
   and "typedecl" "type_synonym" "nonterminal" "judgment"

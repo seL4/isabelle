@@ -67,6 +67,11 @@ fun the_keyword thy name =
 (* header keywords *)
 
 val headerN = "header";
+val chapterN = "chapter";
+val sectionN = "section";
+val subsectionN = "subsection";
+val subsubsectionN = "subsubsection";
+
 val theoryN = "theory";
 val importsN = "imports";
 val keywordsN = "keywords";
@@ -75,7 +80,7 @@ val beginN = "begin";
 val header_lexicons =
   pairself (Scan.make_lexicon o map Symbol.explode)
    (["%", "(", ")", ",", "::", "==", "and", beginN, importsN, keywordsN],
-    [headerN, theoryN]);
+    [headerN, chapterN, sectionN, subsectionN, subsubsectionN, theoryN]);
 
 
 (* header args *)
@@ -118,10 +123,16 @@ end;
 
 (* read header *)
 
+val heading =
+  (Parse.command_name headerN ||
+    Parse.command_name chapterN ||
+    Parse.command_name sectionN ||
+    Parse.command_name subsectionN ||
+    Parse.command_name subsubsectionN) --
+  Parse.tags -- Parse.!!! Parse.document_source;
+
 val header =
-  (Parse.command_name headerN -- Parse.tags) |--
-    (Parse.!!! (Parse.document_source -- (Parse.command_name theoryN -- Parse.tags) |-- args)) ||
-  (Parse.command_name theoryN -- Parse.tags) |-- Parse.!!! args;
+  (Scan.repeat heading -- Parse.command_name theoryN -- Parse.tags) |-- Parse.!!! args;
 
 fun token_source pos str =
   str

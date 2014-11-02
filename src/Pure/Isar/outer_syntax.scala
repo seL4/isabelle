@@ -277,14 +277,16 @@ final class Outer_Syntax private(
 
   def heading_level(command: Command): Option[Int] =
   {
-    keyword_kind(command.name) match {
-      case _ if command.name == "header" => Some(0)
-      case Some(Keyword.THY_HEADING1) => Some(1)
-      case Some(Keyword.THY_HEADING2) | Some(Keyword.PRF_HEADING2) => Some(2)
-      case Some(Keyword.THY_HEADING3) | Some(Keyword.PRF_HEADING3) => Some(3)
-      case Some(Keyword.THY_HEADING4) | Some(Keyword.PRF_HEADING4) => Some(4)
-      case Some(kind) if Keyword.theory(kind) => Some(5)
-      case _ => None
+    command.name match {
+      case "chapter" => Some(0)
+      case "section" | "header" => Some(1)
+      case "subsection" => Some(2)
+      case "subsubsection" => Some(3)
+      case _ =>
+        keyword_kind(command.name) match {
+          case Some(kind) if Keyword.theory(kind) => Some(4)
+          case _ => None
+        }
     }
   }
 
