@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header \<open>Some algebraic identities derived from group axioms -- theory context version\<close>
+section \<open>Some algebraic identities derived from group axioms -- theory context version\<close>
 
 theory Group_Context
 imports Main

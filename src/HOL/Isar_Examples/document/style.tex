@@ -4,8 +4,6 @@
 \isabellestyle{it}
 \usepackage{pdfsetup}\urlstyle{rm}
 
-\renewcommand{\isamarkupheader}[1]{\section{#1}}
-
 \renewcommand{\isacommand}[1]
 {\ifthenelse{\equal{sorry}{#1}}{$\;$\dummyproof}
   {\ifthenelse{\equal{oops}{#1}}{$\vdots$}{\isakeyword{#1}}}}

@@ -2,7 +2,7 @@
     Author:     Markus Wenzel
 *)
 
-header \<open>Summing natural numbers\<close>
+section \<open>Summing natural numbers\<close>
 
 theory Summation
 imports Main

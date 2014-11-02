@@ -1,4 +1,4 @@
-header \<open>Nested datatypes\<close>
+section \<open>Nested datatypes\<close>
 
 theory Nested_Datatype
 imports Main

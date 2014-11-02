@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header \<open>The Drinker's Principle\<close>
+section \<open>The Drinker's Principle\<close>
 
 theory Drinker
 imports Main

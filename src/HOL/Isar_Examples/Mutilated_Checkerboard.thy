@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory (original scripts)
 *)
 
-header \<open>The Mutilated Checker Board Problem\<close>
+section \<open>The Mutilated Checker Board Problem\<close>
 
 theory Mutilated_Checkerboard
 imports Main

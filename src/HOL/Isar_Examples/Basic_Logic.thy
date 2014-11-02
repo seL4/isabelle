@@ -4,7 +4,7 @@
 Basic propositional and quantifier reasoning.
 *)
 
-header \<open>Basic logical reasoning\<close>
+section \<open>Basic logical reasoning\<close>
 
 theory Basic_Logic
 imports Main

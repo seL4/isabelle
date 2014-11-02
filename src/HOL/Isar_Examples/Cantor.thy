@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header \<open>Cantor's Theorem\<close>
+section \<open>Cantor's Theorem\<close>
 
 theory Cantor
 imports Main

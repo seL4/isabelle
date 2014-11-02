@@ -1,4 +1,4 @@
-header \<open>Using Hoare Logic\<close>
+section \<open>Using Hoare Logic\<close>
 
 theory Hoare_Ex
 imports Hoare

@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header \<open>Some algebraic identities derived from group axioms -- proof notepad version\<close>
+section \<open>Some algebraic identities derived from group axioms -- proof notepad version\<close>
 
 theory Group_Notepad
 imports Main

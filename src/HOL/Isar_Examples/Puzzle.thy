@@ -1,4 +1,4 @@
-header \<open>An old chestnut\<close>
+section \<open>An old chestnut\<close>
 
 theory Puzzle
 imports Main

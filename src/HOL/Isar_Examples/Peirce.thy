@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header \<open>Peirce's Law\<close>
+section \<open>Peirce's Law\<close>
 
 theory Peirce
 imports Main

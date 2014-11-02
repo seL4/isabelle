@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header \<open>Basic group theory\<close>
+section \<open>Basic group theory\<close>
 
 theory Group
 imports Main

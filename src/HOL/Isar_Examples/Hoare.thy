@@ -4,7 +4,7 @@
 A formulation of Hoare logic suitable for Isar.
 *)
 
-header \<open>Hoare Logic\<close>
+section \<open>Hoare Logic\<close>
 
 theory Hoare
 imports Main

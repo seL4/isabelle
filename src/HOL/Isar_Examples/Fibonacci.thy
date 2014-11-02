@@ -12,7 +12,7 @@ Fibonacci numbers: proofs of laws taken from
   (Addison-Wesley, 1989)
 *)
 
-header \<open>Fib and Gcd commute\<close>
+section \<open>Fib and Gcd commute\<close>
 
 theory Fibonacci
 imports "../Number_Theory/Primes"

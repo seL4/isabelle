@@ -4,7 +4,7 @@
 Correctness of a simple expression/stack-machine compiler.
 *)
 
-header \<open>Correctness of a simple expression compiler\<close>
+section \<open>Correctness of a simple expression compiler\<close>
 
 theory Expr_Compiler
 imports Main

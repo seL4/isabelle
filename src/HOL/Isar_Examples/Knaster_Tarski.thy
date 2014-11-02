@@ -4,7 +4,7 @@
 Typical textbook proof example.
 *)
 
-header \<open>Textbook-style reasoning: the Knaster-Tarski Theorem\<close>
+section \<open>Textbook-style reasoning: the Knaster-Tarski Theorem\<close>
 
 theory Knaster_Tarski
 imports Main "~~/src/HOL/Library/Lattice_Syntax"
