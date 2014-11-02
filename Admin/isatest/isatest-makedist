@@ -103,8 +103,8 @@ mkdir -p $RUNNING
 $SSH lxbroy10 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
 $SSH lxbroy4 "
-  $MAKEALL $HOME/settings/at-poly;
-  $MAKEALL $HOME/settings/at-poly-e;
+  $MAKEALL -l HOL-Library $HOME/settings/at-poly;
+  $MAKEALL -l HOL-Library $HOME/settings/at-poly-e;
   $MAKEALL $HOME/settings/at-poly-test"
 sleep 15
 $SSH lxbroy3 "$MAKEALL -l HOL-Library $HOME/settings/at-sml-dev-e"
