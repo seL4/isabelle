@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson
 *)
 
-header{* Limits and Continuity (Nonstandard) *}
+section{* Limits and Continuity (Nonstandard) *}
 
 theory HLim
 imports Star

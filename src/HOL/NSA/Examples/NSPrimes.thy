@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-header{*The Nonstandard Primes as an Extension of the Prime Numbers*}
+section{*The Nonstandard Primes as an Extension of the Prime Numbers*}
 
 theory NSPrimes
 imports "~~/src/HOL/Number_Theory/UniqueFactorization" "../Hyperreal"

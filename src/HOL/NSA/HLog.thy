@@ -3,7 +3,7 @@
     Copyright   : 2000,2001 University of Edinburgh
 *)
 
-header{*Logarithms: Non-Standard Version*}
+section{*Logarithms: Non-Standard Version*}
 
 theory HLog
 imports HTranscendental

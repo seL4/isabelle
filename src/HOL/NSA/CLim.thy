@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-header{*Limits, Continuity and Differentiation for Complex Functions*}
+section{*Limits, Continuity and Differentiation for Complex Functions*}
 
 theory CLim
 imports CStar

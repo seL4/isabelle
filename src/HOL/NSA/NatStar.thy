@@ -5,7 +5,7 @@
 Converted to Isar and polished by lcp
 *)
 
-header{*Star-transforms for the Hypernaturals*}
+section{*Star-transforms for the Hypernaturals*}
 
 theory NatStar
 imports Star

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson
 *)
 
-header{*Nonstandard Complex Numbers*}
+section{*Nonstandard Complex Numbers*}
 
 theory NSComplex
 imports NSA

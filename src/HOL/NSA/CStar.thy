@@ -3,7 +3,7 @@
     Copyright   : 2001 University of Edinburgh
 *)
 
-header{*Star-transforms in NSA, Extending Sets of Complex Numbers
+section{*Star-transforms in NSA, Extending Sets of Complex Numbers
       and Complex Functions*}
 
 theory CStar

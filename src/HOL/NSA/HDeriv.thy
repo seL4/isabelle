@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-header{* Differentiation (Nonstandard) *}
+section{* Differentiation (Nonstandard) *}
 
 theory HDeriv
 imports HLim

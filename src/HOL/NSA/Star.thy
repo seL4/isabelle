@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
 
-header{*Star-Transforms in Non-Standard Analysis*}
+section{*Star-Transforms in Non-Standard Analysis*}
 
 theory Star
 imports NSA

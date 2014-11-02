@@ -6,7 +6,7 @@
     Additional contributions by Jeremy Avigad and Brian Huffman
 *)
 
-header {* Sequences and Convergence (Nonstandard) *}
+section {* Sequences and Convergence (Nonstandard) *}
 
 theory HSEQ
 imports Limits NatStar

@@ -5,7 +5,7 @@
 Converted to Isar and polished by lcp    
 *) 
 
-header{*Finite Summation and Infinite Series for Hyperreals*}
+section{*Finite Summation and Infinite Series for Hyperreals*}
 
 theory HSeries
 imports HSEQ

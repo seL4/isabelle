@@ -4,7 +4,7 @@
     Author:     Brian Huffman
 *) 
 
-header {* Filters and Ultrafilters *}
+section {* Filters and Ultrafilters *}
 
 theory Filter
 imports "~~/src/HOL/Library/Infinite_Set"

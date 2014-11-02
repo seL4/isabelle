@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-header{*Construction of Hyperreals Using Ultrafilters*}
+section{*Construction of Hyperreals Using Ultrafilters*}
 
 theory HyperDef
 imports Complex_Main HyperNat

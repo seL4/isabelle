@@ -5,7 +5,7 @@
 Converted to Isar and polished by lcp    
 *)
 
-header{*Hypernatural numbers*}
+section{*Hypernatural numbers*}
 
 theory HyperNat
 imports StarDef

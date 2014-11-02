@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, University of Cambridge
 *)
 
-header{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
+section{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
 
 theory NSA
 imports HyperDef "~~/src/HOL/Library/Lub_Glb"

@@ -2,7 +2,7 @@
     Author      : Jacques D. Fleuriot and Brian Huffman
 *)
 
-header {* Construction of Star Types Using Ultrafilters *}
+section {* Construction of Star Types Using Ultrafilters *}
 
 theory StarDef
 imports Filter
