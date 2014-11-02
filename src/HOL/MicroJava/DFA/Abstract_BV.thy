@@ -3,7 +3,7 @@
     Copyright   2003 TUM
 *)
 
-header {* Abstract Bytecode Verifier *}
+section {* Abstract Bytecode Verifier *}
 
 (*<*)
 theory Abstract_BV

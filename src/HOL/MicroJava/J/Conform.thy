@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Conformity Relations for Type Soundness Proof} *}
+section {* Conformity Relations for Type Soundness Proof *}
 
 theory Conform imports State WellType Exceptions begin
 
@@ -44,7 +44,7 @@ notation (xsymbols)
   conforms  ("_ ::\<preceq> _" [51,51] 50)
 
 
-section "hext"
+subsection "hext"
 
 lemma hextI: 
 " \<forall>a C fs . h  a = Some (C,fs) -->   
@@ -79,7 +79,7 @@ apply auto
 done
 
 
-section "conf"
+subsection "conf"
 
 lemma conf_Null [simp]: "G,h\<turnstile>Null::\<preceq>T = G\<turnstile>RefT NullT\<preceq>T"
 apply (unfold conf_def)
@@ -182,7 +182,7 @@ apply(fast elim: conf_widen)
 done
 
 
-section "lconf"
+subsection "lconf"
 
 lemma lconfD: "[| G,h\<turnstile>vs[::\<preceq>]Ts; Ts n = Some T |] ==> G,h\<turnstile>(the (vs n))::\<preceq>T"
 apply (unfold lconf_def)
@@ -242,7 +242,7 @@ apply (case_tac "n = vn")
 apply auto
 done
 
-section "oconf"
+subsection "oconf"
 
 lemma oconf_hext: "G,h\<turnstile>obj\<surd> ==> h\<le>|h' ==> G,h'\<turnstile>obj\<surd>"
 apply (unfold oconf_def)
@@ -258,7 +258,7 @@ done
 lemmas oconf_objD = oconf_obj [THEN iffD1, THEN spec, THEN spec, THEN mp]
 
 
-section "hconf"
+subsection "hconf"
 
 lemma hconfD: "[|G\<turnstile>h h\<surd>; h a = Some obj|] ==> G,h\<turnstile>obj\<surd>"
 apply (unfold hconf_def)
@@ -271,14 +271,14 @@ apply (fast)
 done
 
 
-section "xconf"
+subsection "xconf"
 
 lemma xconf_raise_if: "xconf h x \<Longrightarrow> xconf h (raise_if b xcn x)"
 by (simp add: xconf_def raise_if_def)
 
 
 
-section "conforms"
+subsection "conforms"
 
 lemma conforms_heapD: "(x, (h, l))::\<preceq>(G, lT) ==> G\<turnstile>h h\<surd>"
 apply (unfold conforms_def)

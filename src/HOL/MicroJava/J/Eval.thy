@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Operational Evaluation (big step) Semantics} *}
+section {* Operational Evaluation (big step) Semantics *}
 
 theory Eval imports State WellType begin
 

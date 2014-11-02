@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{Typing and Dataflow Analysis Framework} *}
+section {* Typing and Dataflow Analysis Framework *}
 
 theory Typing_Framework
 imports Listn

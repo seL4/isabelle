@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer
 *)
 
-header {* \isaheader{Example for generating executable code from JVM semantics}\label{sec:JVMListExample} *}
+section {* Example for generating executable code from JVM semantics \label{sec:JVMListExample} *}
 
 theory JVMListExample
 imports "../J/SystemClasses" JVMExec

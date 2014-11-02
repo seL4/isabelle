@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer
 *)
 
-header {* \isaheader{Example for generating executable code from Java semantics} *}
+section {* Example for generating executable code from Java semantics *}
 
 theory JListExample
 imports Eval

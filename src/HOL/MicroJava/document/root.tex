@@ -10,10 +10,7 @@
 \addtolength{\voffset}{-1cm}
 \addtolength{\textheight}{2cm}
 
-\newcommand{\isaheader}[1]
-{\newpage\markright{Theory~\isabellecontext}\section{#1}}
-\renewcommand{\isamarkupheader}[1]{#1}
-\renewcommand{\isamarkupsection}[1]{\subsection{#1}}
+\renewcommand{\setisabellecontext}[1]{\markright{Theory~#1}}
 
 \newcommand{\mJava}{$\mu$Java}
 \newcommand{\secref}[1]{Section~\ref{#1}}

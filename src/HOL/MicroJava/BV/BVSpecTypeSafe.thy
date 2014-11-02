@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{BV Type Safety Proof}\label{sec:BVSpecTypeSafe} *}
+section {* BV Type Safety Proof \label{sec:BVSpecTypeSafe} *}
 
 theory BVSpecTypeSafe
 imports Correct
@@ -14,7 +14,7 @@ text {*
   verifier only admits type safe programs.  
 *}
 
-section {* Preliminaries *}
+subsection {* Preliminaries *}
 
 text {*
   Simp and intro setup for the type safety proof:
@@ -41,7 +41,7 @@ apply (blast intro: wt_jvm_prog_impl_wt_instr)
 done
 
 
-section {* Exception Handling *}
+subsection {* Exception Handling *}
 
 text {*
   Exceptions don't touch anything except the stack:
@@ -582,7 +582,7 @@ qed
 
 
 
-section {* Single Instructions *}
+subsection {* Single Instructions *}
 
 text {*
   In this section we look at each single (welltyped) instruction, and
@@ -1265,7 +1265,7 @@ apply (rule Ifcmpeq_correct, assumption+)
 apply (rule Throw_correct, assumption+)
 done
 
-section {* Main *}
+subsection {* Main *}
 
 lemma correct_state_impl_Some_method:
   "G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> 

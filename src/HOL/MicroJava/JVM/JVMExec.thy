@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Program Execution in the JVM} *}
+section {* Program Execution in the JVM *}
 
 theory JVMExec imports JVMExecInstr JVMExceptions begin
 

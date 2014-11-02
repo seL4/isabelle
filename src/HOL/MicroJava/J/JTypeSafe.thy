@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Type Safety Proof} *}
+section {* Type Safety Proof *}
 
 theory JTypeSafe imports Eval Conform begin
 

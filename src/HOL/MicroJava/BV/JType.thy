@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{The Java Type System as Semilattice} *}
+section {* The Java Type System as Semilattice *}
 
 theory JType
 imports "../DFA/Semilattices" "../J/WellForm"

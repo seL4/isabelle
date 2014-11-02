@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Example MicroJava Program} *}
+section {* Example MicroJava Program *}
 
 theory Example imports SystemClasses Eval begin
 

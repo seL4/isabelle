@@ -2,16 +2,15 @@
     Author:     Cornelia Pusch, Gerwin Klein, Technische Universitaet Muenchen
 *)
 
-header {* 
-  \chapter{Java Virtual Machine}\label{cha:jvm}
-  \isaheader{State of the JVM} 
-*}
+chapter {* Java Virtual Machine \label{cha:jvm} *}
+
+section {* State of the JVM *}
 
 theory JVMState
 imports "../J/Conform"
 begin
 
-section {* Frame Stack *}
+subsection {* Frame Stack *}
 type_synonym opstack = "val list"
 type_synonym locvars = "val list"
 type_synonym p_count = nat
@@ -30,16 +29,16 @@ type_synonym
   -- "program counter within frame"
 
 
-section {* Exceptions *}
+subsection {* Exceptions *}
 definition raise_system_xcpt :: "bool \<Rightarrow> xcpt \<Rightarrow> val option" where
   "raise_system_xcpt b x \<equiv> raise_if b x None"
 
-section {* Runtime State *}
+subsection {* Runtime State *}
 type_synonym
   jvm_state = "val option \<times> aheap \<times> frame list"  -- "exception flag, heap, frames"
 
 
-section {* Lemmas *}
+subsection {* Lemmas *}
 
 lemma new_Addr_OutOfMemory:
   "snd (new_Addr hp) = Some xcp \<Longrightarrow> xcp = Addr (XcptRef OutOfMemory)"

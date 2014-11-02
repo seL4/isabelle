@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{LBV for the JVM}\label{sec:JVM} *}
+section {* LBV for the JVM \label{sec:JVM} *}
 
 theory LBVJVM
 imports Typing_Framework_JVM

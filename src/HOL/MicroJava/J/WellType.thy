@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Well-typedness Constraints} *}
+section {* Well-typedness Constraints *}
 
 theory WellType imports Term WellForm begin
 

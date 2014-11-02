@@ -3,7 +3,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Exception handling in the JVM} *}
+section {* Exception handling in the JVM *}
 
 theory JVMExceptions imports JVMInstructions begin
 

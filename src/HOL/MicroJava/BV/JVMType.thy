@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{The JVM Type System as Semilattice} *}
+section {* The JVM Type System as Semilattice *}
 
 theory JVMType
 imports JType

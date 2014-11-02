@@ -2,7 +2,7 @@
     Author:     Gerwin Klein
 *)
 
-header {* \isaheader{Example Welltypings}\label{sec:BVExample} *}
+section {* Example Welltypings \label{sec:BVExample} *}
 
 theory BVExample
 imports
@@ -19,7 +19,7 @@ text {*
   execution is guaranteed.
 *}
 
-section "Setup"
+subsection "Setup"
 
 text {* Abbreviations for definitions we will have to use often in the
 proofs below: *}
@@ -178,7 +178,7 @@ lemma pc_end: "x \<in> [n,n) \<Longrightarrow> P x"
   by (unfold intervall_def) arith
 
 
-section "Program structure"
+subsection "Program structure"
 
 text {*
   The program is structurally wellformed:
@@ -225,7 +225,7 @@ proof -
     by (simp add: wf_prog_def ws_prog_def wf_cdecl_mrT_cdecl_mdecl E_def SystemClasses_def)
 qed
 
-section "Welltypings"
+subsection "Welltypings"
 text {*
   We show welltypings of the methods @{term append_name} in class @{term list_name}, 
   and @{term makelist_name} in class @{term test_name}:
@@ -385,7 +385,7 @@ lemma wf_prog:
   done 
 
 
-section "Conformance"
+subsection "Conformance"
 text {* Execution of the program will be typesafe, because its
   start state conforms to the welltyping: *}
 
@@ -397,7 +397,7 @@ lemma "E,\<Phi> \<turnstile>JVM start_state E test_name makelist_name \<surd>"
   done
 
 
-section "Example for code generation: inferring method types"
+subsection "Example for code generation: inferring method types"
 
 definition test_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
              exception_table \<Rightarrow> instr list \<Rightarrow> JVMType.state list" where

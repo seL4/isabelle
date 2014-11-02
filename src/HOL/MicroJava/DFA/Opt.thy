@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{More about Options} *}
+section {* More about Options *}
 
 theory Opt
 imports Err

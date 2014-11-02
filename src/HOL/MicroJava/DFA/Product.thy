@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{Products as Semilattices} *}
+section {* Products as Semilattices *}
 
 theory Product
 imports Err

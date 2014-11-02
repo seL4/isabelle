@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{The Error Type} *}
+section {* The Error Type *}
 
 theory Err
 imports Semilat
@@ -166,7 +166,7 @@ lemma Err_in_err [iff]: "Err : err A"
 lemma Ok_in_err [iff]: "(OK x : err A) = (x:A)"
   by (auto simp add: err_def)
 
-section {* lift *}
+subsection {* lift *}
 
 lemma lift_in_errI:
   "\<lbrakk> e : err S; !x:S. e = OK x \<longrightarrow> f x : err S \<rbrakk> \<Longrightarrow> lift f e : err S"
@@ -188,7 +188,7 @@ lemma OK_lift2_OK [simp]:
   by (simp add: lift2_def plussub_def split: err.split)
 
 
-section {* sup *}
+subsection {* sup *}
 
 lemma Err_sup_Err [simp]:
   "Err +_(Err.sup f) x = Err"
@@ -217,7 +217,7 @@ apply (unfold Err.sup_def lift2_def plussub_def)
 apply (simp split: err.split)
 done 
 
-section {* semilat (err A) (le r) f *}
+subsection {* semilat (err A) (le r) f *}
 
 lemma semilat_le_err_Err_plus [simp]:
   "\<lbrakk> x: err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> Err +_f x = Err"
@@ -283,7 +283,7 @@ proof -
   done 
 qed
 
-section {* semilat (err(Union AS)) *}
+subsection {* semilat (err(Union AS)) *}
 
 (* FIXME? *)
 lemma all_bex_swap_lemma [iff]:

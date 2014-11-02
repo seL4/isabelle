@@ -2,7 +2,7 @@
     Author:     Martin Strecker
 *)
 
-header {* Alternative definition of well-typing of bytecode,  used in compiler type correctness proof *}
+section {* Alternative definition of well-typing of bytecode,  used in compiler type correctness proof *}
 
 theory Altern
 imports BVSpec

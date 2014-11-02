@@ -4,7 +4,7 @@
 *)
 
 
-header {* \isaheader{JVM Instruction Semantics} *}
+section {* JVM Instruction Semantics *}
 
 
 theory JVMExecInstr imports JVMInstructions JVMState begin

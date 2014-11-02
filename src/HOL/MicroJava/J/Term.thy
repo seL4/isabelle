@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Expressions and Statements} *}
+section {* Expressions and Statements *}
 
 theory Term imports Value begin
 

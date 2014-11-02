@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Program State} *}
+section {* Program State *}
 
 theory State
 imports TypeRel Value

@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{Kildall's Algorithm}\label{sec:Kildall} *}
+section {* Kildall's Algorithm \label{sec:Kildall} *}
 
 theory Kildall
 imports SemilatAlg "~~/src/HOL/Library/While_Combinator"

@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Java Values} *}
+section {* Java Values *}
 
 theory Value imports Type begin
 

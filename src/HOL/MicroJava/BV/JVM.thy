@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{Kildall for the JVM}\label{sec:JVM} *}
+section {* Kildall for the JVM \label{sec:JVM} *}
 
 theory JVM
 imports Typing_Framework_JVM

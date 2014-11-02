@@ -3,7 +3,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Effect of Instructions on the State Type} *}
+section {* Effect of Instructions on the State Type *}
 
 theory Effect 
 imports JVMType "../JVM/JVMExceptions"

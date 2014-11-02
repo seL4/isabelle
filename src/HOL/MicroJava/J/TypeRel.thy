@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Relations between Java Types} *}
+section {* Relations between Java Types *}
 
 theory TypeRel
 imports Decl

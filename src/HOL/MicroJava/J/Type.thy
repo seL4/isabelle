@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Java types} *}
+section {* Java types *}
 
 theory Type imports JBasis begin
 

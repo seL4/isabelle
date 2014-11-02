@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* \isaheader{Well-formedness of Java programs} *}
+section {* Well-formedness of Java programs *}
 
 theory WellForm
 imports TypeRel SystemClasses

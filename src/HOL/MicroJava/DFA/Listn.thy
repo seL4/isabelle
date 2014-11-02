@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{Fixed Length Lists} *}
+section {* Fixed Length Lists *}
 
 theory Listn
 imports Err

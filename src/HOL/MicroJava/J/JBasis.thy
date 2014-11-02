@@ -2,16 +2,15 @@
     Author:     David von Oheimb, TU Muenchen
 *)
 
-header {* 
-  \chapter{Java Source Language}\label{cha:j}
-  \isaheader{Some Auxiliary Definitions}
-*}
+chapter {* Java Source Language \label{cha:j} *}
+
+section {* Some Auxiliary Definitions *}
 
 theory JBasis imports Main "~~/src/HOL/Library/Transitive_Closure_Table" begin 
 
 lemmas [simp] = Let_def
 
-section "unique"
+subsection "unique"
  
 definition unique :: "('a \<times> 'b) list => bool" where
   "unique == distinct \<circ> map fst"
@@ -34,7 +33,7 @@ lemma unique_map_inj: "unique l ==> inj f ==> unique (map (%(k,x). (f k, g k x))
   by (induct l) (auto dest: fst_in_set_lemma simp add: inj_eq)
 
 
-section "More about Maps"
+subsection "More about Maps"
 
 lemma map_of_SomeI: "unique l ==> (k, x) : set l ==> map_of l k = Some x"
   by (induct l) auto

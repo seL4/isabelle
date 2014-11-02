@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-header {* \isaheader{Lifting the Typing Framework to err, app, and eff} *}
+section {* Lifting the Typing Framework to err, app, and eff *}
 
 theory Typing_Framework_err
 imports Typing_Framework SemilatAlg
