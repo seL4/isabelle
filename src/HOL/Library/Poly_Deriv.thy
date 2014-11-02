@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header{* Polynomials and Differentiation *}
+section{* Polynomials and Differentiation *}
 
 theory Poly_Deriv
 imports Deriv Polynomial

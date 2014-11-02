@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Pointwise order on product types *}
+section {* Pointwise order on product types *}
 
 theory Product_Order
 imports Product_plus Conditionally_Complete_Lattices

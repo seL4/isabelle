@@ -2,7 +2,7 @@
     Author:     Johannes Hoelzl (TU Muenchen)
 *)
 
-header {* Indicator Function *}
+section {* Indicator Function *}
 
 theory Indicator_Function
 imports Complex_Main

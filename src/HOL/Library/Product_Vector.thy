@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Cartesian Products as Vector Spaces *}
+section {* Cartesian Products as Vector Spaces *}
 
 theory Product_Vector
 imports Inner_Product Product_plus

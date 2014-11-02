@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Boolean Algebras *}
+section {* Boolean Algebras *}
 
 theory Boolean_Algebra
 imports Main

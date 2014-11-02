@@ -2,7 +2,7 @@
     Author:     Andreas Lochbihler
 *)
 
-header {* A generic phantom type *}
+section {* A generic phantom type *}
 
 theory Phantom_Type
 imports Main

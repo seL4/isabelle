@@ -2,7 +2,7 @@
     Author:     Florian Haftmann
 *)
 
-header {* Code generation of pretty characters (and strings) *}
+section {* Code generation of pretty characters (and strings) *}
 
 theory Code_Char
 imports Main Char_ord

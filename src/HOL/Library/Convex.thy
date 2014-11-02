@@ -3,7 +3,7 @@
     Author:     Johannes Hoelzl, TU Muenchen
 *)
 
-header {* Convexity in real vector spaces *}
+section {* Convexity in real vector spaces *}
 
 theory Convex
 imports Product_Vector

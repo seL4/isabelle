@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-header \<open>Abstract type of association lists with unique keys\<close>
+section \<open>Abstract type of association lists with unique keys\<close>
 
 theory DAList
 imports AList

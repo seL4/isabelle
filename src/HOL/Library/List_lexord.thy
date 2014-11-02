@@ -2,7 +2,7 @@
     Author:     Norbert Voelker
 *)
 
-header {* Lexicographic order on lists *}
+section {* Lexicographic order on lists *}
 
 theory List_lexord
 imports Main

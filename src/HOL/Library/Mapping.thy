@@ -2,7 +2,7 @@
     Author:     Florian Haftmann and Ondrej Kuncar
 *)
 
-header {* An abstract view on maps for code generation. *}
+section {* An abstract view on maps for code generation. *}
 
 theory Mapping
 imports Main

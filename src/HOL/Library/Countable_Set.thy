@@ -3,7 +3,7 @@
     Author:     Andrei Popescu
 *)
 
-header {* Countable sets *}
+section {* Countable sets *}
 
 theory Countable_Set
 imports Countable Infinite_Set

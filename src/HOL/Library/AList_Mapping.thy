@@ -2,7 +2,7 @@
    Author: Florian Haftmann, TU Muenchen
 *)
 
-header {* Implementation of mappings with Association Lists *}
+section {* Implementation of mappings with Association Lists *}
 
 theory AList_Mapping
 imports AList Mapping

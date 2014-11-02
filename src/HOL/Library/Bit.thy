@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* The Field of Integers mod 2 *}
+section {* The Field of Integers mod 2 *}
 
 theory Bit
 imports Main

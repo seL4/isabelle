@@ -2,7 +2,7 @@
     Author:     Konrad Slind and Markus Wenzel, TU Muenchen
 *)
 
-header {* TFL: recursive function definitions *}
+section {* TFL: recursive function definitions *}
 
 theory Old_Recdef
 imports Main

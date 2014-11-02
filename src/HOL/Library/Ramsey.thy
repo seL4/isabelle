@@ -2,7 +2,7 @@
     Author:     Tom Ridge.  Converted to structured Isar by L C Paulson
 *)
 
-header "Ramsey's Theorem"
+section "Ramsey's Theorem"
 
 theory Ramsey
 imports Main Infinite_Set

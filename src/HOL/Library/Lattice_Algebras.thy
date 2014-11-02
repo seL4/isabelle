@@ -1,6 +1,6 @@
 (* Author: Steven Obua, TU Muenchen *)
 
-header {* Various algebraic structures combined with a lattice *}
+section {* Various algebraic structures combined with a lattice *}
 
 theory Lattice_Algebras
 imports Complex_Main

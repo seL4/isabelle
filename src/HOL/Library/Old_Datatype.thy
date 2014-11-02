@@ -3,7 +3,7 @@
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 
-header {* Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
+section {* Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
 
 theory Old_Datatype
 imports "../Main"

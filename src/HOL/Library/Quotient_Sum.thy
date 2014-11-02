@@ -2,7 +2,7 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-header {* Quotient infrastructure for the sum type *}
+section {* Quotient infrastructure for the sum type *}
 
 theory Quotient_Sum
 imports Main Quotient_Syntax

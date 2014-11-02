@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)  
 
-header {* Common discrete functions *}
+section {* Common discrete functions *}
 
 theory Discrete
 imports Main

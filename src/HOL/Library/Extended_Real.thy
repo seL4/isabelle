@@ -5,7 +5,7 @@
     Author:     Bogdan Grechuk, University of Edinburgh
 *)
 
-header {* Extended real number line *}
+section {* Extended real number line *}
 
 theory Extended_Real
 imports Complex_Main Extended_Nat Liminf_Limsup

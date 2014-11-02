@@ -2,7 +2,7 @@
     Author:     Norbert Voelker, Florian Haftmann
 *)
 
-header {* Order on characters *}
+section {* Order on characters *}
 
 theory Char_ord
 imports Main

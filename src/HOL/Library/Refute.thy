@@ -5,7 +5,7 @@
 Basic setup and documentation for the 'refute' (and 'refute_params') command.
 *)
 
-header {* Refute *}
+section {* Refute *}
 
 theory Refute
 imports Main

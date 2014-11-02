@@ -4,7 +4,7 @@
     Author:     Andrei Popescu, TU Muenchen
 *)
 
-header {* Type of finite sets defined as a subtype of sets *}
+section {* Type of finite sets defined as a subtype of sets *}
 
 theory FSet
 imports Conditionally_Complete_Lattices

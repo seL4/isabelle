@@ -1,6 +1,6 @@
 (*  Author: Tobias Nipkow, 2007 *)
 
-header {* Lists as vectors *}
+section {* Lists as vectors *}
 
 theory ListVector
 imports List Main

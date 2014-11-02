@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-header {* Permutations, both general and specifically on finite sets.*}
+section {* Permutations, both general and specifically on finite sets.*}
 
 theory Permutations
 imports Fact

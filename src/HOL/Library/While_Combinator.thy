@@ -3,7 +3,7 @@
     Author:     Alexander Krauss
 *)
 
-header {* A general ``while'' combinator *}
+section {* A general ``while'' combinator *}
 
 theory While_Combinator
 imports Main

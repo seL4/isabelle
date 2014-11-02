@@ -2,7 +2,7 @@
     Author:     Florian Haftmann and Ondrej Kuncar
 *)
 
-header {* Implementation of mappings with Red-Black Trees *}
+section {* Implementation of mappings with Red-Black Trees *}
 
 (*<*)
 theory RBT_Mapping

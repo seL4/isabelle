@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header {* Binary Tree *}
+section {* Binary Tree *}
 
 theory Tree
 imports Main

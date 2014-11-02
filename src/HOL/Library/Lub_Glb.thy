@@ -2,7 +2,7 @@
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Amine Chaieb, University of Cambridge *)
 
-header {* Definitions of Least Upper Bounds and Greatest Lower Bounds *}
+section {* Definitions of Least Upper Bounds and Greatest Lower Bounds *}
 
 theory Lub_Glb
 imports Complex_Main

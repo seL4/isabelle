@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Additive group operations on product types *}
+section {* Additive group operations on product types *}
 
 theory Product_plus
 imports Main

@@ -3,7 +3,7 @@
     Author:     Philipp Meyer, TU Muenchen
 *)
 
-header {* Examples with remote CSDP *}
+section {* Examples with remote CSDP *}
 
 theory Sum_of_Squares_Remote
 imports Sum_of_Squares

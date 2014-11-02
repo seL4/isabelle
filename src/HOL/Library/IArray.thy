@@ -1,4 +1,4 @@
-header "Immutable Arrays with Code Generation"
+section "Immutable Arrays with Code Generation"
 
 theory IArray
 imports Main

@@ -1,7 +1,7 @@
 (* Author: Andreas Lochbihler, ETH Zürich
    Author: Florian Haftmann, TU Muenchen  *)
 
-header \<open>Less common functions on lists\<close>
+section \<open>Less common functions on lists\<close>
 
 theory More_List
 imports Main

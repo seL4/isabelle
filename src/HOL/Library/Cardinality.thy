@@ -2,7 +2,7 @@
     Author:     Brian Huffman, Andreas Lochbihler
 *)
 
-header {* Cardinality of types *}
+section {* Cardinality of types *}
 
 theory Cardinality
 imports Phantom_Type

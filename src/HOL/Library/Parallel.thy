@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Futures and parallel lists for code generated towards Isabelle/ML *}
+section {* Futures and parallel lists for code generated towards Isabelle/ML *}
 
 theory Parallel
 imports Main

@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-header \<open>Multisets partially implemented by association lists\<close>
+section \<open>Multisets partially implemented by association lists\<close>
 
 theory DAList_Multiset
 imports Multiset DAList

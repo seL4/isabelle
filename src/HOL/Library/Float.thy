@@ -3,7 +3,7 @@
     Copyright   2012  TU München
 *)
 
-header {* Floating-Point Numbers *}
+section {* Floating-Point Numbers *}
 
 theory Float
 imports Complex_Main Lattice_Algebras

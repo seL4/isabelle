@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-header{* A formalization of formal power series *}
+section{* A formalization of formal power series *}
 
 theory Formal_Power_Series
 imports "~~/src/HOL/Number_Theory/Binomial"

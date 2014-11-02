@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Canonical order on option type *}
+section {* Canonical order on option type *}
 
 theory Option_ord
 imports Option Main

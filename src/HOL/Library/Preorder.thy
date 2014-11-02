@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Preorders with explicit equivalence relation *}
+section {* Preorders with explicit equivalence relation *}
 
 theory Preorder
 imports Orderings

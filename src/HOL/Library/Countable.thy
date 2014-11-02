@@ -4,7 +4,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* Encoding (almost) everything into natural numbers *}
+section {* Encoding (almost) everything into natural numbers *}
 
 theory Countable
 imports Old_Datatype Rat Nat_Bijection

@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TUM 2010
 *)
 
-header {* Code generation of prolog programs *}
+section {* Code generation of prolog programs *}
 
 theory Code_Prolog
 imports Main

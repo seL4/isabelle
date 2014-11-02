@@ -1,6 +1,6 @@
 (* Author: Amine Chaieb, TU Muenchen *)
 
-header{*Fundamental Theorem of Algebra*}
+section{*Fundamental Theorem of Algebra*}
 
 theory Fundamental_Theorem_Algebra
 imports Polynomial Complex_Main

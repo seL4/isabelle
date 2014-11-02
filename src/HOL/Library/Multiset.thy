@@ -3,7 +3,7 @@
     Author:     Andrei Popescu, TU Muenchen
 *)
 
-header {* (Finite) multisets *}
+section {* (Finite) multisets *}
 
 theory Multiset
 imports Main

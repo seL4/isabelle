@@ -2,7 +2,7 @@
     Author:     Stephan Merz
 *)
 
-header {* Infinite Sets and Related Concepts *}
+section {* Infinite Sets and Related Concepts *}
 
 theory Infinite_Set
 imports Main

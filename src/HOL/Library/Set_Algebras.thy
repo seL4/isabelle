@@ -2,7 +2,7 @@
     Author:     Jeremy Avigad and Kevin Donnelly; Florian Haftmann, TUM
 *)
 
-header {* Algebraic operations on sets *}
+section {* Algebraic operations on sets *}
 
 theory Set_Algebras
 imports Main

@@ -2,7 +2,7 @@
     Author:     Florian Kammueller and Lawrence C Paulson, Lukas Bulwahn
 *)
 
-header \<open>Pi and Function Sets\<close>
+section \<open>Pi and Function Sets\<close>
 
 theory FuncSet
 imports Hilbert_Choice Main

@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Implementation of natural numbers as binary numerals *}
+section {* Implementation of natural numbers as binary numerals *}
 
 theory Code_Binary_Nat
 imports Code_Abstract_Nat

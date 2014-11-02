@@ -3,7 +3,7 @@
                 Florian Haftmann, Tobias Nipkow, TU Muenchen
 *)
 
-header {* Sublist Ordering *}
+section {* Sublist Ordering *}
 
 theory Sublist_Order
 imports Sublist

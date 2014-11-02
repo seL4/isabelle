@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson and Thomas M Rasmussen and Norbert Voelker
 *)
 
-header {* Permutations *}
+section {* Permutations *}
 
 theory Permutation
 imports Multiset

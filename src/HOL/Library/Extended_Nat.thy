@@ -3,7 +3,7 @@
     Contributions: David Trachtenherz, TU Muenchen
 *)
 
-header {* Extended natural numbers (i.e. with infinity) *}
+section {* Extended natural numbers (i.e. with infinity) *}
 
 theory Extended_Nat
 imports Main Countable

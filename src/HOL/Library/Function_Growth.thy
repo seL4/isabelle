@@ -1,7 +1,7 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Comparing growth of functions on natural numbers by a preorder relation *}
+section {* Comparing growth of functions on natural numbers by a preorder relation *}
 
 theory Function_Growth
 imports Main Preorder Discrete

@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 *)
 
-header {* Avoidance of pattern matching on natural numbers *}
+section {* Avoidance of pattern matching on natural numbers *}
 
 theory Code_Abstract_Nat
 imports Main

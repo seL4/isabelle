@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-header {* Liminf and Limsup on complete lattices *}
+section {* Liminf and Limsup on complete lattices *}
 
 theory Liminf_Limsup
 imports Complex_Main

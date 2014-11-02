@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-header {* Old Version of Bindings to Satisfiability Modulo Theories (SMT) solvers *}
+section {* Old Version of Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 
 theory Old_SMT
 imports "../Real" "../Word/Word"

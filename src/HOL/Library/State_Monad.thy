@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Combinator syntax for generic, open state monads (single-threaded monads) *}
+section {* Combinator syntax for generic, open state monads (single-threaded monads) *}
 
 theory State_Monad
 imports Main Monad_Syntax

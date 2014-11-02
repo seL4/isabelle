@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header \<open>Big sum and product over function bodies\<close>
+section \<open>Big sum and product over function bodies\<close>
 
 theory Groups_Big_Fun
 imports

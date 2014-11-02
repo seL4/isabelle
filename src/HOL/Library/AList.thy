@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, Tobias Nipkow, Martin Wildmoser, TU Muenchen
 *)
 
-header {* Implementation of Association Lists *}
+section {* Implementation of Association Lists *}
 
 theory AList
 imports Main

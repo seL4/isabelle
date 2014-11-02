@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad and Kevin Donnelly
 *)
 
-header {* Big O notation *}
+section {* Big O notation *}
 
 theory BigO
 imports Complex_Main Function_Algebras Set_Algebras

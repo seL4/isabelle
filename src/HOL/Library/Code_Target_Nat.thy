@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Implementation of natural numbers by target-language integers *}
+section {* Implementation of natural numbers by target-language integers *}
 
 theory Code_Target_Nat
 imports Code_Abstract_Nat

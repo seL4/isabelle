@@ -3,7 +3,7 @@
     Author:     Christian Sternagel, JAIST
 *)
 
-header {* List prefixes, suffixes, and homeomorphic embedding *}
+section {* List prefixes, suffixes, and homeomorphic embedding *}
 
 theory Sublist
 imports Main

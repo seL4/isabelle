@@ -2,7 +2,7 @@
     Author:     Jeremy Avigad and Kevin Donnelly; Florian Haftmann, TUM
 *)
 
-header {* Pointwise instantiation of functions to algebra type classes *}
+section {* Pointwise instantiation of functions to algebra type classes *}
 
 theory Function_Algebras
 imports Main

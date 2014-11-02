@@ -4,7 +4,7 @@
     Author:     Florian Haftmann
 *)
 
-header {* Polynomials as type over a ring structure *}
+section {* Polynomials as type over a ring structure *}
 
 theory Polynomial
 imports Main GCD "~~/src/HOL/Library/More_List"

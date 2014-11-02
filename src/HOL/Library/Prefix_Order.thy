@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 *)
 
-header {* Prefix order on lists as order class instance *}
+section {* Prefix order on lists as order class instance *}
 
 theory Prefix_Order
 imports Sublist

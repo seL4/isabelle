@@ -6,7 +6,7 @@
 Infinite streams.
 *)
 
-header {* Infinite Streams *}
+section {* Infinite Streams *}
 
 theory Stream
 imports "~~/src/HOL/Library/Nat_Bijection"

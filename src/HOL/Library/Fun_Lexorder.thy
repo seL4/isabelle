@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header \<open>Lexical order on functions\<close>
+section \<open>Lexical order on functions\<close>
 
 theory Fun_Lexorder
 imports Main

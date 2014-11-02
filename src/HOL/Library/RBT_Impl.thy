@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header {* Implementation of Red-Black Trees *}
+section {* Implementation of Red-Black Trees *}
 
 theory RBT_Impl
 imports Main

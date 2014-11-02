@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Quotient types *}
+section {* Quotient types *}
 
 theory Quotient_Type
 imports Main

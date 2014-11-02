@@ -6,7 +6,7 @@
     Author:     Alexander Krauss
 *)
 
-header {* Bijections between natural numbers and other types *}
+section {* Bijections between natural numbers and other types *}
 
 theory Nat_Bijection
 imports Main

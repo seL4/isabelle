@@ -2,7 +2,7 @@
     Author:     David von Oheimb, TU Muenchen
 *)
 
-header {* Continuity and iterations (of set transformers) *}
+section {* Continuity and iterations (of set transformers) *}
 
 theory Order_Continuity
 imports Main

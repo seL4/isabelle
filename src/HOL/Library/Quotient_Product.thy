@@ -2,7 +2,7 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-header {* Quotient infrastructure for the product type *}
+section {* Quotient infrastructure for the product type *}
 
 theory Quotient_Product
 imports Main Quotient_Syntax

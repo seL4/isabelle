@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Pretty syntax for lattice operations *}
+section {* Pretty syntax for lattice operations *}
 
 theory Lattice_Syntax
 imports Complete_Lattices

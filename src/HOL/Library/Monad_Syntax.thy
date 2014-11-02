@@ -2,7 +2,7 @@
    Author: Christian Sternagel, University of Innsbruck
 *)
 
-header {* Monad notation for arbitrary types *}
+section {* Monad notation for arbitrary types *}
 
 theory Monad_Syntax
 imports Main "~~/src/Tools/Adhoc_Overloading"

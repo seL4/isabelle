@@ -4,7 +4,7 @@
     Author:     Florian Haftmann
 *)
 
-header {* Saturated arithmetic *}
+section {* Saturated arithmetic *}
 
 theory Saturated
 imports Numeral_Type "~~/src/HOL/Word/Type_Length"

@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn and Ondrej Kuncar
 *)
 
-header {* Abstract type of RBT trees *}
+section {* Abstract type of RBT trees *}
 
 theory RBT 
 imports Main RBT_Impl

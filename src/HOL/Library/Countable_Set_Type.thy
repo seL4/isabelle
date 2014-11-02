@@ -5,7 +5,7 @@
 Type of (at most) countable sets.
 *)
 
-header {* Type of (at Most) Countable Sets *}
+section {* Type of (at Most) Countable Sets *}
 
 theory Countable_Set_Type
 imports Countable_Set Cardinal_Notations

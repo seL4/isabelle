@@ -3,7 +3,7 @@
     Author:     Dmitriy Traytel, TU Muenchen
 *)
 
-header {* Linear Temporal Logic on Streams *}
+section {* Linear Temporal Logic on Streams *}
 
 theory Linear_Temporal_Logic_on_Streams
   imports Stream Sublist

@@ -2,7 +2,7 @@
     Author:     Norbert Voelker
 *)
 
-header {* Lexicographic order on product types *}
+section {* Lexicographic order on product types *}
 
 theory Product_Lexorder
 imports Main

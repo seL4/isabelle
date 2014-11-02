@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TUM
 *)
 
-header {* Pointwise instantiation of functions to division *}
+section {* Pointwise instantiation of functions to division *}
 
 theory Function_Division
 imports Function_Algebras

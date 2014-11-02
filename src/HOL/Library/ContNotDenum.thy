@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-header {* Non-denumerability of the Continuum. *}
+section {* Non-denumerability of the Continuum. *}
 
 theory ContNotDenum
 imports Complex_Main Countable_Set

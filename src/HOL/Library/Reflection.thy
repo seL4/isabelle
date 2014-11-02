@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-header {* Generic reflection and reification *}
+section {* Generic reflection and reification *}
 
 theory Reflection
 imports Main

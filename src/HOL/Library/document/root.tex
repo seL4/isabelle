@@ -18,9 +18,7 @@
 \tableofcontents
 \newpage
 
-\renewcommand{\isamarkupheader}[1]%
-{\ifthenelse{\equal{#1}{}}{\section{\isabellecontext}}{\section{\isabellecontext: #1}}%
-\markright{THEORY~``\isabellecontext''}}
+\renewcommand{\setisabellecontext}[1]{\markright{THEORY~``#1''}}
 
 \input{session}
 

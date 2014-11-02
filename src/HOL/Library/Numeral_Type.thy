@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Numeral Syntax for Types *}
+section {* Numeral Syntax for Types *}
 
 theory Numeral_Type
 imports Cardinality

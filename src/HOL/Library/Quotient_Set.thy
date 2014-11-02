@@ -2,7 +2,7 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-header {* Quotient infrastructure for the set type *}
+section {* Quotient infrastructure for the set type *}
 
 theory Quotient_Set
 imports Main Quotient_Syntax

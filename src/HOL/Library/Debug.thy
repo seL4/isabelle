@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Debugging facilities for code generated towards Isabelle/ML *}
+section {* Debugging facilities for code generated towards Isabelle/ML *}
 
 theory Debug
 imports Main
