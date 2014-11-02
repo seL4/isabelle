@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>An order on functions\<close>
+section \<open>An order on functions\<close>
 
 theory Function_Order
 imports Subspace Linearform

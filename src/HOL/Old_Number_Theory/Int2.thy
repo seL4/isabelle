@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-header {*Integers: Divisibility and Congruences*}
+section {*Integers: Divisibility and Congruences*}
 
 theory Int2
 imports Finite2 WilsonRuss

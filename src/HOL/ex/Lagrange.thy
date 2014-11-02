@@ -3,7 +3,7 @@
     Copyright   1996 TU Muenchen
 *)
 
-header {* A lemma for Lagrange's theorem *}
+section {* A lemma for Lagrange's theorem *}
 
 theory Lagrange imports Main begin
 

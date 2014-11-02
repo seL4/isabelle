@@ -1,6 +1,6 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-header {* Lazy sequences *}
+section {* Lazy sequences *}
 
 theory Lazy_Sequence
 imports Predicate

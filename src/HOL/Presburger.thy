@@ -2,7 +2,7 @@
    Author:     Amine Chaieb, TU Muenchen
 *)
 
-header {* Decision Procedure for Presburger Arithmetic *}
+section {* Decision Procedure for Presburger Arithmetic *}
 
 theory Presburger
 imports Groebner_Basis Set_Interval

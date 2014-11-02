@@ -2,7 +2,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header {* Conventional protocols: rely on conventional Message, Event and Public -- Shared-key protocols *}
+section {* Conventional protocols: rely on conventional Message, Event and Public -- Shared-key protocols *}
 
 theory Auth_Shared
 imports

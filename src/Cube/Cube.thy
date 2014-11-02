@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow
 *)
 
-header \<open>Barendregt's Lambda-Cube\<close>
+section \<open>Barendregt's Lambda-Cube\<close>
 
 theory Cube
 imports Pure

@@ -7,7 +7,7 @@ Conditional Fairness versions of transient, ensures, leadsTo.
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-header{*Progress*}
+section{*Progress*}
 
 theory WFair imports UNITY begin
 

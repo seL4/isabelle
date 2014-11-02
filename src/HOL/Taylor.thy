@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, Bernhard Haeupler, Technische Universitaet Muenchen
 *)
 
-header {* Taylor series *}
+section {* Taylor series *}
 
 theory Taylor
 imports MacLaurin

@@ -2,7 +2,7 @@
     Author:  Florian Haftmann, TU Muenchen
 *)
 
-header {* Permanent interpretation accompanied with mixin definitions. *}
+section {* Permanent interpretation accompanied with mixin definitions. *}
 
 theory Permanent_Interpretation
 imports Pure

@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* The two-element type (booleans and conditionals) *}
+section {* The two-element type (booleans and conditionals) *}
 
 theory Bool
 imports CTT

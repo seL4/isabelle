@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* First-Order Logic: quantifier examples (classical version) *}
+section {* First-Order Logic: quantifier examples (classical version) *}
 
 theory Quantifiers_Cla
 imports FOL

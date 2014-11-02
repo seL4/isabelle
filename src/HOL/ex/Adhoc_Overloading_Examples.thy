@@ -2,7 +2,7 @@
     Author:     Christian Sternagel
 *)
 
-header {* Ad Hoc Overloading *}
+section {* Ad Hoc Overloading *}
 
 theory Adhoc_Overloading_Examples
 imports

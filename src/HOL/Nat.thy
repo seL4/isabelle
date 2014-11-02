@@ -5,7 +5,7 @@ Type "nat" is a linear order, and a datatype; arithmetic operators + -
 and * (for div and mod, see theory Divides).
 *)
 
-header {* Natural numbers *}
+section {* Natural numbers *}
 
 theory Nat
 imports Inductive Typedef Fun Fields

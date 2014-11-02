@@ -3,7 +3,7 @@
    Author:      Alexander Krauss, TU Muenchen
 *)
 
-header {* Examples and regression tests for automated termination proofs *}
+section {* Examples and regression tests for automated termination proofs *}
  
 theory Termination
 imports Main "~~/src/HOL/Library/Multiset"

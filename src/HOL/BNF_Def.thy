@@ -6,7 +6,7 @@
 Definition of bounded natural functors.
 *)
 
-header {* Definition of Bounded Natural Functors *}
+section {* Definition of Bounded Natural Functors *}
 
 theory BNF_Def
 imports BNF_Cardinal_Arithmetic Fun_Def_Base

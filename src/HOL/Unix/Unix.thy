@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header \<open>Unix file-systems \label{sec:unix-file-system}\<close>
+section \<open>Unix file-systems \label{sec:unix-file-system}\<close>
 
 theory Unix
 imports

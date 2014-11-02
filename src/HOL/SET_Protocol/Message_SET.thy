@@ -4,7 +4,7 @@
     Author:     Lawrence C Paulson
 *)
 
-header{*The Message Theory, Modified for SET*}
+section{*The Message Theory, Modified for SET*}
 
 theory Message_SET
 imports Main "~~/src/HOL/Library/Nat_Bijection"

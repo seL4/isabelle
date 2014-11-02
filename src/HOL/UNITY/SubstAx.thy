@@ -5,7 +5,7 @@
 Weak LeadsTo relation (restricted to the set of reachable states)
 *)
 
-header{*Weak Progress*}
+section{*Weak Progress*}
 
 theory SubstAx imports WFair Constrains begin
 

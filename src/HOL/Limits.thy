@@ -5,7 +5,7 @@
     Author:     Jeremy Avigad
 *)
 
-header {* Limits on Real Vector Spaces *}
+section {* Limits on Real Vector Spaces *}
 
 theory Limits
 imports Real_Vector_Spaces

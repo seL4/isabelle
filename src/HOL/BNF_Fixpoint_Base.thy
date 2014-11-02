@@ -8,7 +8,7 @@
 Shared fixpoint operations on bounded natural functors.
 *)
 
-header {* Shared Fixpoint Operations on Bounded Natural Functors *}
+section {* Shared Fixpoint Operations on Bounded Natural Functors *}
 
 theory BNF_Fixpoint_Base
 imports BNF_Composition Basic_BNFs

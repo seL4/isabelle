@@ -5,7 +5,7 @@
 Miscellaneous tests for the nested-to-mutual reduction.
 *)
 
-header \<open>Miscellaneous Tests for the Nested-to-Mutual Reduction\<close>
+section \<open>Miscellaneous Tests for the Nested-to-Mutual Reduction\<close>
 
 theory Misc_N2M
 imports "~~/src/HOL/Library/BNF_Axiomatization"

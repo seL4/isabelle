@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header {* Abstract Natural Numbers primitive recursion *}
+section {* Abstract Natural Numbers primitive recursion *}
 
 theory Abstract_NAT
 imports Main

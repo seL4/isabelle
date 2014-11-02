@@ -1,5 +1,5 @@
 
-header {* Meson test cases *}
+section {* Meson test cases *}
 
 theory Meson_Test
 imports Main

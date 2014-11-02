@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* First-Order Logic: propositional examples *}
+section {* First-Order Logic: propositional examples *}
 
 theory Propositional_Cla
 imports FOLP

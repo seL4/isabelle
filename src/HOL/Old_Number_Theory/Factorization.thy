@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header {* Fundamental Theorem of Arithmetic (unique factorization into primes) *}
+section {* Fundamental Theorem of Arithmetic (unique factorization into primes) *}
 
 theory Factorization
 imports Primes "~~/src/HOL/Library/Permutation"

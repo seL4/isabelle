@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, QAware GmbH
 *)
 
-header {* Importer machinery and required theorems *}
+section {* Importer machinery and required theorems *}
 
 theory Import_Setup
 imports Main "~~/src/HOL/Fact"

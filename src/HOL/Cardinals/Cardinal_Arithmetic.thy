@@ -5,7 +5,7 @@
 Cardinal arithmetic.
 *)
 
-header {* Cardinal Arithmetic *}
+section {* Cardinal Arithmetic *}
 
 theory Cardinal_Arithmetic
 imports BNF_Cardinal_Arithmetic Cardinal_Order_Relation

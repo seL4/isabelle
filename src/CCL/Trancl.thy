@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Transitive closure of a relation *}
+section {* Transitive closure of a relation *}
 
 theory Trancl
 imports CCL

@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-header {* Groebner Basis Examples *}
+section {* Groebner Basis Examples *}
 
 theory Groebner_Examples
 imports Groebner_Basis

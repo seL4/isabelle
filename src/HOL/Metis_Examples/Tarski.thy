@@ -5,7 +5,7 @@
 Metis example featuring the full theorem of Tarski.
 *)
 
-header {* Metis Example Featuring the Full Theorem of Tarski *}
+section {* Metis Example Featuring the Full Theorem of Tarski *}
 
 theory Tarski
 imports Main "~~/src/HOL/Library/FuncSet"

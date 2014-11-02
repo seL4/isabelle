@@ -4,7 +4,7 @@ Example theory involving Unicode characters (UTF-8 encoding) -- both
 formal and informal ones.
 *)
 
-header {* A Chinese theory *}
+section {* A Chinese theory *}
 
 theory Chinese imports Main begin
 

@@ -3,7 +3,7 @@
     Copyright   2003  University of Cambridge
 *)
 
-header{*Comprehensive UNITY Theory*}
+section{*Comprehensive UNITY Theory*}
 
 theory UNITY_Main
 imports Detects PPROD Follows ProgressSets

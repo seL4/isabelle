@@ -5,7 +5,7 @@
 Tests for compatibility with the old datatype package.
 *)
 
-header {* Tests for Compatibility with the Old Datatype Package *}
+section {* Tests for Compatibility with the Old Datatype Package *}
 
 theory Compat
 imports "~~/src/HOL/Library/Old_Datatype"

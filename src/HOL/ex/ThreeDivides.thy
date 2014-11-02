@@ -2,7 +2,7 @@
     Author:     Benjamin Porter, 2005
 *)
 
-header {* Three Divides Theorem *}
+section {* Three Divides Theorem *}
 
 theory ThreeDivides
 imports Main "~~/src/HOL/Library/LaTeXsugar"

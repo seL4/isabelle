@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-header {* Distinctness of Names in a Binary Tree \label{sec:DistinctTreeProver}*}
+section {* Distinctness of Names in a Binary Tree \label{sec:DistinctTreeProver}*}
 
 theory DistinctTreeProver 
 imports Main

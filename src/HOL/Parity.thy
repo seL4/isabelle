@@ -3,7 +3,7 @@
     Author:     Jacques D. Fleuriot
 *)
 
-header {* Parity in rings and semirings *}
+section {* Parity in rings and semirings *}
 
 theory Parity
 imports Nat_Transfer

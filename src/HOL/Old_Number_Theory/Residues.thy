@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-header {* Residue Sets *}
+section {* Residue Sets *}
 
 theory Residues
 imports Int2

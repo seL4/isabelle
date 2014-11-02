@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-header {* The pigeonhole principle *}
+section {* The pigeonhole principle *}
 
 theory Pigeonhole
 imports Util "~~/src/HOL/Library/Code_Target_Numeral"

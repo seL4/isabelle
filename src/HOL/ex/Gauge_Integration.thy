@@ -4,7 +4,7 @@
     Replaced by ~~/src/HOL/Multivariate_Analysis/Real_Integral.thy .
 *)
 
-header{*Theory of Integration on real intervals*}
+section{*Theory of Integration on real intervals*}
 
 theory Gauge_Integration
 imports Complex_Main

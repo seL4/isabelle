@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
 *)
 
-header {* Abstract orderings *}
+section {* Abstract orderings *}
 
 theory Orderings
 imports HOL

@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header{*The Otway-Bull Recursive Authentication Protocol*}
+section{*The Otway-Bull Recursive Authentication Protocol*}
 
 theory Recur imports Public begin
 

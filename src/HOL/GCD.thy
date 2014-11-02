@@ -25,7 +25,7 @@ Tobias Nipkow cleaned up a lot.
 *)
 
 
-header {* Greatest common divisor and least common multiple *}
+section {* Greatest common divisor and least common multiple *}
 
 theory GCD
 imports Fact

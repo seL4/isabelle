@@ -5,7 +5,7 @@
 Well-order embeddings as needed by bounded natural functors.
 *)
 
-header {* Well-Order Embeddings as Needed by Bounded Natural Functors *}
+section {* Well-Order Embeddings as Needed by Bounded Natural Functors *}
 
 theory BNF_Wellorder_Embedding
 imports Hilbert_Choice BNF_Wellorder_Relation

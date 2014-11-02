@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header{*The Yahalom Protocol: A Flawed Version*}
+section{*The Yahalom Protocol: A Flawed Version*}
 
 theory Yahalom_Bad imports Public begin
 

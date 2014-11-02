@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-header {* Gauss' Lemma *}
+section {* Gauss' Lemma *}
 
 theory Gauss
 imports Euler

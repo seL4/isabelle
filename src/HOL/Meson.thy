@@ -5,7 +5,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header {* MESON Proof Method *}
+section {* MESON Proof Method *}
 
 theory Meson
 imports Nat

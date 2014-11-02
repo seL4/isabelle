@@ -2,7 +2,7 @@
     Author:     Ondrej Kuncar
 *)
 
-header {* Example of lifting definitions with contravariant or co/contravariant type variables *}
+section {* Example of lifting definitions with contravariant or co/contravariant type variables *}
 
 
 theory Lift_Fun

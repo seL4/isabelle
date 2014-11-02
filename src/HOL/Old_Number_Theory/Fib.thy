@@ -3,7 +3,7 @@
     Copyright   1997  University of Cambridge
 *)
 
-header {* The Fibonacci function *}
+section {* The Fibonacci function *}
 
 theory Fib
 imports Primes

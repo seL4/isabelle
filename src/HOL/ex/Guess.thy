@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header {* Proof by guessing *}
+section {* Proof by guessing *}
 
 theory Guess
 imports Main

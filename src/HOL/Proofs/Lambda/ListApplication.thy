@@ -3,7 +3,7 @@
     Copyright   1998 TU Muenchen
 *)
 
-header {* Application of a term to a list of terms *}
+section {* Application of a term to a list of terms *}
 
 theory ListApplication imports Lambda begin
 

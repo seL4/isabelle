@@ -1,7 +1,7 @@
  (* Author:     Johannes Hoelzl, TU Muenchen
    Coercions removed by Dmitriy Traytel *)
 
-header {* Prove Real Valued Inequalities by Computation *}
+section {* Prove Real Valued Inequalities by Computation *}
 
 theory Approximation
 imports

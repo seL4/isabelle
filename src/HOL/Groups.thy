@@ -2,7 +2,7 @@
     Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, Markus Wenzel, Jeremy Avigad
 *)
 
-header {* Groups, also combined with orderings *}
+section {* Groups, also combined with orderings *}
 
 theory Groups
 imports Orderings

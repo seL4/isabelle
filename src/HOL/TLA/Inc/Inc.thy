@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-header {* Lamport's "increment" example *}
+section {* Lamport's "increment" example *}
 
 theory Inc
 imports TLA

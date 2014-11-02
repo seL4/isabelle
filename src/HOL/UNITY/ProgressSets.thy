@@ -13,7 +13,7 @@ Progress Sets.  From
     Swiss Federal Institute of Technology Zurich (1997)
 *)
 
-header{*Progress Sets*}
+section{*Progress Sets*}
 
 theory ProgressSets imports Transformers begin
 

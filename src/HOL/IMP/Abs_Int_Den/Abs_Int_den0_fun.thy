@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header "Denotational Abstract Interpretation"
+section "Denotational Abstract Interpretation"
 
 theory Abs_Int_den0_fun
 imports "~~/src/Tools/Permanent_Interpretation" "../Big_Step"

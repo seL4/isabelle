@@ -4,7 +4,7 @@
     Conversion of Mac Laurin to Isar by Lukas Bulwahn and Bernhard Häupler, 2005
 *)
 
-header{*MacLaurin Series*}
+section{*MacLaurin Series*}
 
 theory MacLaurin
 imports Transcendental

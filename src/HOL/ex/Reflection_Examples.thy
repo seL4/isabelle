@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-header {* Examples for generic reflection and reification *}
+section {* Examples for generic reflection and reification *}
 
 theory Reflection_Examples
 imports Complex_Main "~~/src/HOL/Library/Reflection"

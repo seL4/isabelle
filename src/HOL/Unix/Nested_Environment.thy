@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header \<open>Nested environments\<close>
+section \<open>Nested environments\<close>
 
 theory Nested_Environment
 imports Main

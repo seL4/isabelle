@@ -3,7 +3,7 @@
     Copyright   2005 TU Muenchen
 *)
 
-header {* Standardization *}
+section {* Standardization *}
 
 theory Standardization
 imports NormalForm

@@ -3,7 +3,7 @@
     Copyright   2005, 2008 TU Muenchen
 *)
 
-header {* Standardization *}
+section {* Standardization *}
 
 theory Standardization
 imports "../Nominal"

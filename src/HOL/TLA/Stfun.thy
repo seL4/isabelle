@@ -3,7 +3,7 @@
     Copyright:  1998 University of Munich
 *)
 
-header {* States and state functions for TLA as an "intensional" logic *}
+section {* States and state functions for TLA as an "intensional" logic *}
 
 theory Stfun
 imports Intensional

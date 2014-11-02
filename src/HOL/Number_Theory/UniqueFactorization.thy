@@ -8,7 +8,7 @@ factorization due to Thomas Marthedal Rasmussen, and, building on
 that, by Jeremy Avigad and David Gray.  
 *)
 
-header {* UniqueFactorization *}
+section {* UniqueFactorization *}
 
 theory UniqueFactorization
 imports Cong "~~/src/HOL/Library/Multiset"

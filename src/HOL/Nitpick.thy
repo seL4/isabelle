@@ -5,7 +5,7 @@
 Nitpick: Yet another counterexample generator for Isabelle/HOL.
 *)
 
-header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
+section {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
 imports Record

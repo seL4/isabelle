@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-header {* Semiring normalization *}
+section {* Semiring normalization *}
 
 theory Semiring_Normalization
 imports Numeral_Simprocs Nat_Transfer

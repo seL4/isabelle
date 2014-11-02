@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Classical Computational Logic for Untyped Lambda Calculus
+section {* Classical Computational Logic for Untyped Lambda Calculus
   with reduction to weak head-normal form *}
 
 theory CCL

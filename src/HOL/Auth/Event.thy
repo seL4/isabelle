@@ -8,7 +8,7 @@ Datatype of events; function "spies"; freshness
     stores are visible to him
 *)
 
-header{*Theory of Events for Security Protocols*}
+section{*Theory of Events for Security Protocols*}
 
 theory Event imports Message begin
 

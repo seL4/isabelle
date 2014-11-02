@@ -1,4 +1,4 @@
-header{*Examples of Reasoning in ZF Set Theory*}
+section{*Examples of Reasoning in ZF Set Theory*}
 
 theory ZF_examples imports Main_ZFC begin
 

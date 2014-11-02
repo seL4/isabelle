@@ -7,7 +7,7 @@ From G. Karjoth, N. Asokan and C. Gulcu
 Mobiles Agents 1998, LNCS 1477.
 *)
 
-header{*Protocol P2*}
+section{*Protocol P2*}
 
 theory P2 imports Guard_Public List_Msg begin
 

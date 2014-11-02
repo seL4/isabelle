@@ -5,7 +5,7 @@
 Cardinal-order relations.
 *)
 
-header {* Cardinal-Order Relations *}
+section {* Cardinal-Order Relations *}
 
 theory Cardinal_Order_Relation
 imports BNF_Cardinal_Order_Relation Wellorder_Constructions

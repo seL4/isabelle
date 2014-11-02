@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* ATP Theory Exporter *}
+section {* ATP Theory Exporter *}
 
 theory ATP_Theory_Export
 imports Complex_Main

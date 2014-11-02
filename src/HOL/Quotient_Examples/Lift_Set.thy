@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn and Ondrej Kuncar
 *)
 
-header {* Example of lifting definitions with the lifting infrastructure *}
+section {* Example of lifting definitions with the lifting infrastructure *}
 
 theory Lift_Set
 imports Main

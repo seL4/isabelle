@@ -1,7 +1,7 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Pervasive test of code generator *}
+section {* Pervasive test of code generator *}
 
 theory Generate_Target_Nat
 imports

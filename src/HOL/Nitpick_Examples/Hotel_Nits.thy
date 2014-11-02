@@ -5,7 +5,7 @@
 Nitpick example based on Tobias Nipkow's hotel key card formalization.
 *)
 
-header {* Nitpick Example Based on Tobias Nipkow's Hotel Key Card
+section {* Nitpick Example Based on Tobias Nipkow's Hotel Key Card
           Formalization *}
 
 theory Hotel_Nits

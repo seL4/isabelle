@@ -1,4 +1,4 @@
-header {* Example 3.8 *}
+section {* Example 3.8 *}
 
 theory Ex2
 imports LCF

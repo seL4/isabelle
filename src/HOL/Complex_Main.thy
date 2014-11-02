@@ -1,4 +1,4 @@
-header {* Comprehensive Complex Theory *}
+section {* Comprehensive Complex Theory *}
 
 theory Complex_Main
 imports

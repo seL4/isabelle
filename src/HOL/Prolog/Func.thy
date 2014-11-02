@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-header {* Untyped functional language, with call by value semantics *}
+section {* Untyped functional language, with call by value semantics *}
 
 theory Func
 imports HOHH

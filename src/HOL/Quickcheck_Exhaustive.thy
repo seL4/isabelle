@@ -1,6 +1,6 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-header {* A simple counterexample generator performing exhaustive testing *}
+section {* A simple counterexample generator performing exhaustive testing *}
 
 theory Quickcheck_Exhaustive
 imports Quickcheck_Random

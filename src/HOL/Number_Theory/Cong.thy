@@ -23,7 +23,7 @@ these, revised and tidied them, made the development uniform for the
 natural numbers and the integers, and added a number of new theorems.
 *)
 
-header {* Congruence *}
+section {* Congruence *}
 
 theory Cong
 imports Primes

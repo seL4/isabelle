@@ -3,7 +3,7 @@
     Author:     Stephan Hohe
 *)
 
-header {* Divisibility in monoids and rings *}
+section {* Divisibility in monoids and rings *}
 
 theory Divisibility
 imports "~~/src/HOL/Library/Permutation" Coset Group

@@ -3,7 +3,7 @@
     Copyright:  1998 University of Munich
 *)
 
-header {* The temporal level of TLA *}
+section {* The temporal level of TLA *}
 
 theory TLA
 imports Init

@@ -3,7 +3,7 @@
     Copyright   2000 TU Muenchen
 *)
 
-header {* Strong normalization for simply-typed lambda calculus *}
+section {* Strong normalization for simply-typed lambda calculus *}
 
 theory StrongNorm imports LambdaType InductTermi begin
 

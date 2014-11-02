@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Multiple nested quotations and anti-quotations *}
+section {* Multiple nested quotations and anti-quotations *}
 
 theory Multiquote
 imports Main

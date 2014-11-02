@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-header {* Sorted lists as representation of finite sets *}
+section {* Sorted lists as representation of finite sets *}
 
 theory Sorted_List
 imports Main

@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Parsing and pretty-printing of sequences *}
+section {* Parsing and pretty-printing of sequences *}
 
 theory Sequents
 imports Pure

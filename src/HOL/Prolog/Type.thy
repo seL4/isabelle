@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-header {* Type inference *}
+section {* Type inference *}
 
 theory Type
 imports Func

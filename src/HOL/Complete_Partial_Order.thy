@@ -3,7 +3,7 @@
    Author:   Alexander Krauss, TU Muenchen
 *)
 
-header {* Chain-complete partial orders and their fixpoints *}
+section {* Chain-complete partial orders and their fixpoints *}
 
 theory Complete_Partial_Order
 imports Product_Type

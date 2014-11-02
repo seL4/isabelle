@@ -4,7 +4,7 @@ Example theory involving Unicode characters (UTF-8 encoding) --
 Conversion between Serbian cyrillic and latin letters (српска ћирилица и латиница)
 *)
 
-header {* A Serbian theory *}
+section {* A Serbian theory *}
 
 theory Serbian
 imports Main

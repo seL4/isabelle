@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
 *)
 
-header {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 
+section {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 
 
 theory Int
 imports Equiv_Relations Power Quotient Fun_Def

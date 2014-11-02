@@ -1,4 +1,4 @@
-header {* Extending FOL by a modified version of HOL set theory *}
+section {* Extending FOL by a modified version of HOL set theory *}
 
 theory Set
 imports "~~/src/FOL/FOL"

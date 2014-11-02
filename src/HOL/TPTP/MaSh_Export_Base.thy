@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* MaSh Exporter Base *}
+section {* MaSh Exporter Base *}
 
 theory MaSh_Export_Base
 imports Main

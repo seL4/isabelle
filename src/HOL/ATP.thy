@@ -3,7 +3,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* Automatic Theorem Provers (ATPs) *}
+section {* Automatic Theorem Provers (ATPs) *}
 
 theory ATP
 imports Meson

@@ -1,5 +1,5 @@
 
-header {* Comprehensive number theory *}
+section {* Comprehensive number theory *}
 
 theory Number_Theory
 imports Fib Residues Eratosthenes

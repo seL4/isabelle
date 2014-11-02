@@ -2,7 +2,7 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
-header {* Monadic references *}
+section {* Monadic references *}
 
 theory Ref
 imports Array

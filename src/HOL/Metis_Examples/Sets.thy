@@ -5,7 +5,7 @@
 Metis example featuring typed set theory.
 *)
 
-header {* Metis Example Featuring Typed Set Theory *}
+section {* Metis Example Featuring Typed Set Theory *}
 
 theory Sets
 imports Main

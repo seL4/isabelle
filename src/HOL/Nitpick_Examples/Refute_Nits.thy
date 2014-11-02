@@ -5,7 +5,7 @@
 Refute examples adapted to Nitpick.
 *)
 
-header {* Refute Examples Adapted to Nitpick *}
+section {* Refute Examples Adapted to Nitpick *}
 
 theory Refute_Nits
 imports Main

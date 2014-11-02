@@ -1,6 +1,6 @@
 (*  Author:     Andreas Lochbihler *)
 
-header {*
+section {*
   Predicates modelled as FinFuns
 *}
 

@@ -5,7 +5,7 @@
 Metis example featuring the Big O notation.
 *)
 
-header {* Metis Example Featuring the Big O Notation *}
+section {* Metis Example Featuring the Big O Notation *}
 
 theory Big_O
 imports

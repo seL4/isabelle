@@ -2,7 +2,7 @@
     Author:     David von Oheimb, TUM
 *)
 
-header {* Several examples for Hoare logic *}
+section {* Several examples for Hoare logic *}
 
 theory Misc
 imports Hoare

@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header {* The Chinese Remainder Theorem *}
+section {* The Chinese Remainder Theorem *}
 
 theory Chinese 
 imports IntPrimes

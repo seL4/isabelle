@@ -5,7 +5,7 @@
 Basic setup for the 'sat' and 'satx' tactics.
 *)
 
-header {* Reconstructing external resolution proofs for propositional logic *}
+section {* Reconstructing external resolution proofs for propositional logic *}
 
 theory SAT
 imports HOL

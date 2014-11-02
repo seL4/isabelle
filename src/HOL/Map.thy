@@ -5,7 +5,7 @@
 The datatype of `maps' (written ~=>); strongly resembles maps in VDM.
 *)
 
-header {* Maps *}
+section {* Maps *}
 
 theory Map
 imports List

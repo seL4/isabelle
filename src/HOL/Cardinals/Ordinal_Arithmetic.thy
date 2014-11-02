@@ -5,7 +5,7 @@
 Ordinal arithmetic.
 *)
 
-header {* Ordinal Arithmetic *}
+section {* Ordinal Arithmetic *}
 
 theory Ordinal_Arithmetic
 imports Wellorder_Constructions

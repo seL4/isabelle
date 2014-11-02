@@ -10,7 +10,7 @@ From page 260 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-header{*Verifying the Needham-Schroeder Public-Key Protocol*}
+section{*Verifying the Needham-Schroeder Public-Key Protocol*}
 
 theory NS_Public_Bad imports Public begin
 

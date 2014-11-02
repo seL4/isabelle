@@ -2,7 +2,7 @@
     Author:     Giampaolo Bella, Catania University
 *)
 
-header{*Bella's version of the Otway-Rees protocol*}
+section{*Bella's version of the Otway-Rees protocol*}
 
 
 theory OtwayReesBella imports Public begin

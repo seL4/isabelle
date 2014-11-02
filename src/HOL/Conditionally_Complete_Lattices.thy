@@ -4,7 +4,7 @@
     Author:     Luke S. Serafin, Carnegie Mellon University
 *)
 
-header {* Conditionally-complete Lattices *}
+section {* Conditionally-complete Lattices *}
 
 theory Conditionally_Complete_Lattices
 imports Main

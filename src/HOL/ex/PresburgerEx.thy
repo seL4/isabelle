@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-header {* Some examples for Presburger Arithmetic *}
+section {* Some examples for Presburger Arithmetic *}
 
 theory PresburgerEx
 imports Presburger

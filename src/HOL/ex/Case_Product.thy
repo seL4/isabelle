@@ -3,7 +3,7 @@
     Copyright   2011 TU Muenchen
 *)
 
-header {* Examples for the 'case_product' attribute *}
+section {* Examples for the 'case_product' attribute *}
 
 theory Case_Product
 imports Main

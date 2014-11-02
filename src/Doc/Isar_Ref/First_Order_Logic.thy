@@ -1,5 +1,5 @@
 
-header \<open>Example: First-Order Logic\<close>
+section \<open>Example: First-Order Logic\<close>
 
 theory %visible First_Order_Logic
 imports Base  (* FIXME Pure!? *)

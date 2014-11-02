@@ -5,7 +5,7 @@
 Cardinal arithmetic as needed by bounded natural functors.
 *)
 
-header {* Cardinal Arithmetic as Needed by Bounded Natural Functors *}
+section {* Cardinal Arithmetic as Needed by Bounded Natural Functors *}
 
 theory BNF_Cardinal_Arithmetic
 imports BNF_Cardinal_Order_Relation

@@ -5,7 +5,7 @@ Based on typedef version "Library/Dlist" by Florian Haftmann
 and theory morphism version by Maksym Bortin
 *)
 
-header {* Lists with distinct elements *}
+section {* Lists with distinct elements *}
 
 theory DList
 imports "~~/src/HOL/Library/Quotient_List"

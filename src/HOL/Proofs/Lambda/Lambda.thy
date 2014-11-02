@@ -3,7 +3,7 @@
     Copyright   1995 TU Muenchen
 *)
 
-header {* Basic definitions of Lambda-calculus *}
+section {* Basic definitions of Lambda-calculus *}
 
 theory Lambda
 imports Main

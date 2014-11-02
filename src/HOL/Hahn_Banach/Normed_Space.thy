@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>Normed vector spaces\<close>
+section \<open>Normed vector spaces\<close>
 
 theory Normed_Space
 imports Subspace

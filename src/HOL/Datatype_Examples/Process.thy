@@ -5,7 +5,7 @@
 Processes.
 *)
 
-header {* Processes *}
+section {* Processes *}
 
 theory Process
 imports "~~/src/HOL/Library/Stream"

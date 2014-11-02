@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header{*Needham-Schroeder Shared-Key Protocol and the Issues Property*}
+section{*Needham-Schroeder Shared-Key Protocol and the Issues Property*}
 
 theory NS_Shared imports Public begin
 

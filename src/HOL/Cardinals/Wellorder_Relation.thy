@@ -5,7 +5,7 @@
 Well-order relations.
 *)
 
-header {* Well-Order Relations *}
+section {* Well-Order Relations *}
 
 theory Wellorder_Relation
 imports BNF_Wellorder_Relation Wellfounded_More

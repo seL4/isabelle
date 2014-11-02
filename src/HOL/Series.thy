@@ -7,7 +7,7 @@ Converted to setsum and polished yet more by TNN
 Additional contributions by Jeremy Avigad
 *)
 
-header {* Infinite Series *}
+section {* Infinite Series *}
 
 theory Series
 imports Limits

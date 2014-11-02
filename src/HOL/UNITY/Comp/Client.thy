@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-header{*Distributed Resource Management System: the Client*}
+section{*Distributed Resource Management System: the Client*}
 
 theory Client imports "../Rename" AllocBase begin
 

@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>Bounds\<close>
+section \<open>Bounds\<close>
 
 theory Bounds
 imports Main "~~/src/HOL/Library/ContNotDenum"

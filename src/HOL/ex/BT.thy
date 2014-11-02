@@ -5,7 +5,7 @@
 Binary trees
 *)
 
-header {* Binary trees *}
+section {* Binary trees *}
 
 theory BT imports Main begin
 

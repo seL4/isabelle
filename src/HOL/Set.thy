@@ -1,6 +1,6 @@
 (*  Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel *)
 
-header {* Set theory for higher-order logic *}
+section {* Set theory for higher-order logic *}
 
 theory Set
 imports Lattices

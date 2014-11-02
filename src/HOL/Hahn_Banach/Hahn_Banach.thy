@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>The Hahn-Banach Theorem\<close>
+section \<open>The Hahn-Banach Theorem\<close>
 
 theory Hahn_Banach
 imports Hahn_Banach_Lemmas

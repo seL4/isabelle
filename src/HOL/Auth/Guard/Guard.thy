@@ -3,7 +3,7 @@
     Copyright   2002  University of Cambridge
 *)
 
-header{*Protocol-Independent Confidentiality Theorem on Nonces*}
+section{*Protocol-Independent Confidentiality Theorem on Nonces*}
 
 theory Guard imports Analz Extensions begin
 

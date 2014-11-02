@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-header{*Implementation of a multiple-client allocator from a single-client allocator*}
+section{*Implementation of a multiple-client allocator from a single-client allocator*}
 
 theory AllocImpl imports AllocBase "../Follows" "../PPROD" begin
 

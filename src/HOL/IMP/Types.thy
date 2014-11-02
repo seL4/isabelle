@@ -1,4 +1,4 @@
-header "A Typed Language"
+section "A Typed Language"
 
 theory Types imports Star Complex_Main begin
 

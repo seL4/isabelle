@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* Theory of the natural numbers: Peano's axioms, primitive recursion *}
+section {* Theory of the natural numbers: Peano's axioms, primitive recursion *}
 
 theory Nat
 imports FOL

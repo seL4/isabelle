@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-header{*The Kerberos Protocol, BAN Version*}
+section{*The Kerberos Protocol, BAN Version*}
 
 theory Kerberos_BAN imports Public begin
 

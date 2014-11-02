@@ -5,7 +5,7 @@
 Metis example featuring the transitive closure.
 *)
 
-header {* Metis Example Featuring the Transitive Closure *}
+section {* Metis Example Featuring the Transitive Closure *}
 
 theory Trans_Closure
 imports Main

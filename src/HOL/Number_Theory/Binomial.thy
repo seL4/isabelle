@@ -4,7 +4,7 @@
 Defines the "choose" function, and establishes basic properties.
 *)
 
-header {* Binomial *}
+section {* Binomial *}
 
 theory Binomial
 imports Cong Fact Complex_Main

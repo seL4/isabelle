@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Constructive Type Theory *}
+section {* Constructive Type Theory *}
 
 theory CTT
 imports Pure

@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-header "Statements and expression emulations"
+section "Statements and expression emulations"
 
 theory Term imports Main begin
 

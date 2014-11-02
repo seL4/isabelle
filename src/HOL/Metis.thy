@@ -4,7 +4,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* Metis Proof Method *}
+section {* Metis Proof Method *}
 
 theory Metis
 imports ATP

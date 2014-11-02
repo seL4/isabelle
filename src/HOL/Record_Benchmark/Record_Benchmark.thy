@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, DFKI
 *)
 
-header {* Benchmark for large record *}
+section {* Benchmark for large record *}
 
 theory Record_Benchmark
 imports Main

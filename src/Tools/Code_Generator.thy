@@ -2,7 +2,7 @@
     Author:  Florian Haftmann, TU Muenchen
 *)
 
-header {* Loading the code generator and related modules *}
+section {* Loading the code generator and related modules *}
 
 theory Code_Generator
 imports Pure

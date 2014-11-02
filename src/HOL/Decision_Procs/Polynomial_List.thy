@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-header {* Univariate Polynomials as lists *}
+section {* Univariate Polynomials as lists *}
 
 theory Polynomial_List
 imports Complex_Main

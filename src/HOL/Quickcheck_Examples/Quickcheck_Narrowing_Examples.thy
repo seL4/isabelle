@@ -3,7 +3,7 @@
     Copyright   2011 TU Muenchen
 *)
 
-header {* Examples for narrowing-based testing  *}
+section {* Examples for narrowing-based testing  *}
 
 theory Quickcheck_Narrowing_Examples
 imports Main

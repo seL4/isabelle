@@ -3,7 +3,7 @@
     Copyright   1994  TU Muenchen
 *)
 
-header {* Action signatures *}
+section {* Action signatures *}
 
 theory Asig
 imports Main

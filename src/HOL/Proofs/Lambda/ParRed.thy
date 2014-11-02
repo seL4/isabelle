@@ -6,7 +6,7 @@ Properties of => and "cd", in particular the diamond property of => and
 confluence of beta.
 *)
 
-header {* Parallel reduction and a complete developments *}
+section {* Parallel reduction and a complete developments *}
 
 theory ParRed imports Lambda Commutation begin
 

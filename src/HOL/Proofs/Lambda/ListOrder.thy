@@ -3,7 +3,7 @@
     Copyright   1998 TU Muenchen
 *)
 
-header {* Lifting an order to lists of elements *}
+section {* Lifting an order to lists of elements *}
 
 theory ListOrder
 imports Main

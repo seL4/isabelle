@@ -2,7 +2,7 @@
     Author:     Giampaolo Bella, Catania University
 *)
 
-header{*The Kerberos Protocol, BAN Version, with Gets event*}
+section{*The Kerberos Protocol, BAN Version, with Gets event*}
 
 theory Kerberos_BAN_Gets imports Public begin
 

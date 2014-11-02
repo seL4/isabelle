@@ -6,7 +6,7 @@
 Finitely branching possibly infinite trees.
 *)
 
-header {* Finitely Branching Possibly Infinite Trees *}
+section {* Finitely Branching Possibly Infinite Trees *}
 
 theory TreeFI
 imports Main

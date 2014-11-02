@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header {* Square roots of primes are irrational (script version) *}
+section {* Square roots of primes are irrational (script version) *}
 
 theory Sqrt_Script
 imports Complex_Main "~~/src/HOL/Number_Theory/Primes"

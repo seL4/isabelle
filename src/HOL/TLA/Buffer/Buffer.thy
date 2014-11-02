@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-header {* A simple FIFO buffer (synchronous communication, interleaving) *}
+section {* A simple FIFO buffer (synchronous communication, interleaving) *}
 
 theory Buffer
 imports TLA

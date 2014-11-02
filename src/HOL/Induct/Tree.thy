@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {* Infinitely branching trees *}
+section {* Infinitely branching trees *}
 
 theory Tree
 imports Main

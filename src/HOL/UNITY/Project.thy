@@ -7,7 +7,7 @@ Projections of state sets (also of actions and programs).
 Inheritance of GUARANTEES properties under extension.
 *)
 
-header{*Projections of State Sets*}
+section{*Projections of State Sets*}
 
 theory Project imports Extend begin
 

@@ -1,4 +1,4 @@
-header "IMP --- A Simple Imperative Language"
+section "IMP --- A Simple Imperative Language"
 
 theory Com imports BExp begin
 

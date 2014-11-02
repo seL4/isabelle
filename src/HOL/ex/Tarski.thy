@@ -2,7 +2,7 @@
     Author:     Florian Kammüller, Cambridge University Computer Laboratory
 *)
 
-header {* The Full Theorem of Tarski *}
+section {* The Full Theorem of Tarski *}
 
 theory Tarski
 imports Main "~~/src/HOL/Library/FuncSet"

@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header{*The Original Otway-Rees Protocol*}
+section{*The Original Otway-Rees Protocol*}
 
 theory OtwayRees imports Public begin
 

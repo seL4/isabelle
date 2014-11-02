@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* Cartesian products *}
+section {* Cartesian products *}
 
 theory Product_Type
 imports Typedef Inductive Fun

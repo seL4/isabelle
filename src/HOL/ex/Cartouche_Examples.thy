@@ -1,4 +1,4 @@
-header {* Some examples with text cartouches *}
+section {* Some examples with text cartouches *}
 
 theory Cartouche_Examples
 imports Main

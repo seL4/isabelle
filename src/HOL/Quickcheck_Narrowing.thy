@@ -1,6 +1,6 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-header {* Counterexample generator performing narrowing-based testing *}
+section {* Counterexample generator performing narrowing-based testing *}
 
 theory Quickcheck_Narrowing
 imports Quickcheck_Random

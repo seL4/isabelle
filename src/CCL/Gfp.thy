@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* Greatest fixed points *}
+section {* Greatest fixed points *}
 
 theory Gfp
 imports Lfp

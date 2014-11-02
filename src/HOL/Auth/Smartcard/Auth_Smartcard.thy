@@ -2,7 +2,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header {* Smartcard protocols: rely on conventional Message and on new EventSC and Smartcard *}
+section {* Smartcard protocols: rely on conventional Message and on new EventSC and Smartcard *}
 
 theory Auth_Smartcard
 imports

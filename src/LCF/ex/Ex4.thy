@@ -1,5 +1,5 @@
 
-header {* Prefixpoints *}
+section {* Prefixpoints *}
 
 theory Ex4
 imports LCF

@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann & Lukas Bulwahn, TU Muenchen *)
 
-header {* A simple counterexample generator performing random testing *}
+section {* A simple counterexample generator performing random testing *}
 
 theory Quickcheck_Random
 imports Random Code_Evaluation Enum

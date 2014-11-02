@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-header {* Proving Boogie-generated verification conditions *}
+section {* Proving Boogie-generated verification conditions *}
 
 theory Boogie
 imports Main

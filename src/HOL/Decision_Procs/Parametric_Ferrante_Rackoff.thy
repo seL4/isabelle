@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-header{* A formalization of Ferrante and Rackoff's procedure with polynomial parameters, see Paper in CALCULEMUS 2008 *}
+section{* A formalization of Ferrante and Rackoff's procedure with polynomial parameters, see Paper in CALCULEMUS 2008 *}
 
 theory Parametric_Ferrante_Rackoff
 imports

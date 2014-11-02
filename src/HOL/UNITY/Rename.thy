@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header{*Renaming of State Sets*}
+section{*Renaming of State Sets*}
 
 theory Rename imports Extend begin
 

@@ -3,7 +3,7 @@
     Copyright   2004  University of Cambridge
 *)
 
-header{*Defining an Initial Algebra by Quotienting a Free Algebra*}
+section{*Defining an Initial Algebra by Quotienting a Free Algebra*}
 
 theory QuoDataType imports Main begin
 

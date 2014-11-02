@@ -8,7 +8,7 @@ From Chandy and Sanders, "Reasoning About Program Composition",
 Technical Report 2000-003, University of Florida, 2000.
 *)
 
-header{*Composition: Basic Primitives*}
+section{*Composition: Basic Primitives*}
 
 theory Comp
 imports Union

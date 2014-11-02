@@ -11,7 +11,7 @@ where c = closed, o = open, i = infinite.
 Examples: Ico = {_ ..< _} and Ici = {_ ..}
 *)
 
-header {* Set intervals *}
+section {* Set intervals *}
 
 theory Set_Interval
 imports Lattices_Big Nat_Transfer

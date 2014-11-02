@@ -5,7 +5,7 @@ Example that exercises Metis's and Sledgehammer's logical symbol proxies for
 rudimentary higher-order reasoning.
 *)
 
-header {*
+section {*
 Example that Exercises Metis's and Sledgehammer's Logical Symbol Proxies for
 Rudimentary Higher-Order Reasoning.
 *}

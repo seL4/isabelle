@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Antiquotations *}
+section {* Antiquotations *}
 
 theory Antiquote
 imports Main

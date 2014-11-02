@@ -1,4 +1,4 @@
-header{*Examples of Intuitionistic Reasoning*}
+section{*Examples of Intuitionistic Reasoning*}
 
 theory IFOL_examples imports "~~/src/FOL/IFOL" begin
 

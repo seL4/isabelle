@@ -2,7 +2,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header {* Examples of automatically derived induction rules *}
+section {* Examples of automatically derived induction rules *}
 
 theory Induction_Schema
 imports Main

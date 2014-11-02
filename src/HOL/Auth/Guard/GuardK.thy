@@ -8,7 +8,7 @@ Very similar to Guard except:
 - the hypothesis Key n ~:G (keyset G) is added
 *)
 
-header{*protocol-independent confidentiality theorem on keys*}
+section{*protocol-independent confidentiality theorem on keys*}
 
 theory GuardK
 imports Analz Extensions

@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow and Gerwin Klein *)
 
-header "Compiler for IMP"
+section "Compiler for IMP"
 
 theory Compiler imports Big_Step Star
 begin

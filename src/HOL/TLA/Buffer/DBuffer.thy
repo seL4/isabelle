@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-header {* Two FIFO buffers in a row, with interleaving assumption *}
+section {* Two FIFO buffers in a row, with interleaving assumption *}
 
 theory DBuffer
 imports Buffer

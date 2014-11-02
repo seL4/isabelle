@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Programs defined over the natural numbers *}
+section {* Programs defined over the natural numbers *}
 
 theory Nat
 imports Wfd

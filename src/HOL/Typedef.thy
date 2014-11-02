@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Munich
 *)
 
-header {* HOL type definitions *}
+section {* HOL type definitions *}
 
 theory Typedef
 imports Set

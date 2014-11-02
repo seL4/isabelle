@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Archimedean Fields, Floor and Ceiling Functions *}
+section {* Archimedean Fields, Floor and Ceiling Functions *}
 
 theory Archimedean_Field
 imports Main

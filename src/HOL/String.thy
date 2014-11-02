@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow, Florian Haftmann, TU Muenchen *)
 
-header {* Character and string types *}
+section {* Character and string types *}
 
 theory String
 imports Enum

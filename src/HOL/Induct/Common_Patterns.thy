@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header {* Common patterns of induction *}
+section {* Common patterns of induction *}
 
 theory Common_Patterns
 imports Main

@@ -1,4 +1,4 @@
-header "Arithmetic and Boolean Expressions"
+section "Arithmetic and Boolean Expressions"
 
 theory AExp imports Main begin
 

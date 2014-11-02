@@ -7,7 +7,7 @@ From G. Karjoth, N. Asokan and C. Gulcu
 Mobiles Agents 1998, LNCS 1477.
 *)
 
-header{*Protocol P1*}
+section{*Protocol P1*}
 
 theory P1 imports "../Public" Guard_Public List_Msg begin
 

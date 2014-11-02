@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow
 *)
 
-header {* Abstract lattices *}
+section {* Abstract lattices *}
 
 theory Lattices
 imports Groups

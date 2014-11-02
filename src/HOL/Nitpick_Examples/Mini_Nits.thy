@@ -5,7 +5,7 @@
 Examples featuring Minipick, the minimalistic version of Nitpick.
 *)
 
-header {* Examples Featuring Minipick, the Minimalistic Version of Nitpick *}
+section {* Examples Featuring Minipick, the Minimalistic Version of Nitpick *}
 
 theory Mini_Nits
 imports Main

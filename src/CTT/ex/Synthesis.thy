@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header "Synthesis examples, using a crude form of narrowing"
+section "Synthesis examples, using a crude form of narrowing"
 
 theory Synthesis
 imports Arith

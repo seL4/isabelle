@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>Extending non-maximal functions\<close>
+section \<open>Extending non-maximal functions\<close>
 
 theory Hahn_Banach_Ext_Lemmas
 imports Function_Norm

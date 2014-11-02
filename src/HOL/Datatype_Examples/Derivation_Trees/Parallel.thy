@@ -5,7 +5,7 @@
 Parallel composition.
 *)
 
-header {* Parallel Composition *}
+section {* Parallel Composition *}
 
 theory Parallel
 imports DTree

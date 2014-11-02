@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson and Markus Wenzel
 *)
 
-header {* Intuitionistic first-order logic *}
+section {* Intuitionistic first-order logic *}
 
 theory IFOL
 imports Pure

@@ -3,7 +3,7 @@
     Copyright   1997  University of Cambridge
 *)
 
-header {* Exponentiation *}
+section {* Exponentiation *}
 
 theory Power
 imports Num Equiv_Relations

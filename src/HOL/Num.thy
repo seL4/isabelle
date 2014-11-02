@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Binary Numerals *}
+section {* Binary Numerals *}
 
 theory Num
 imports BNF_Least_Fixpoint

@@ -5,7 +5,7 @@
 Detects definition (Section 3.8 of Chandy & Misra) using LeadsTo
 *)
 
-header{*The Detects Relation*}
+section{*The Detects Relation*}
 
 theory Detects imports FP SubstAx begin
 

@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-header {* RPC-Memory example: RPC parameters *}
+section {* RPC-Memory example: RPC parameters *}
 
 theory RPCParameters
 imports MemoryParameters

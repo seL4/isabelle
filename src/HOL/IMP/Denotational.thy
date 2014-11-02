@@ -1,6 +1,6 @@
 (* Authors: Heiko Loetzbeyer, Robert Sandner, Tobias Nipkow *)
 
-header "Denotational Semantics of Commands"
+section "Denotational Semantics of Commands"
 
 theory Denotational imports Big_Step begin
 

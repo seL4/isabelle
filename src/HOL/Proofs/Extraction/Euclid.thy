@@ -4,7 +4,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-header {* Euclid's theorem *}
+section {* Euclid's theorem *}
 
 theory Euclid
 imports

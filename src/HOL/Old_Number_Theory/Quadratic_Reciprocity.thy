@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-header {* The law of Quadratic reciprocity *}
+section {* The law of Quadratic reciprocity *}
 
 theory Quadratic_Reciprocity
 imports Gauss

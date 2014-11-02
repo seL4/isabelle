@@ -1,7 +1,7 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* A HOL random engine *}
+section {* A HOL random engine *}
 
 theory Random
 imports List Groups_List

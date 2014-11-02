@@ -4,7 +4,7 @@
     Author:     Alexander Krauss, TUM
 *)
 
-header {* Substitution and Unification *}
+section {* Substitution and Unification *}
 
 theory Unification
 imports Main

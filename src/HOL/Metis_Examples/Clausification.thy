@@ -4,7 +4,7 @@
 Example that exercises Metis's Clausifier.
 *)
 
-header {* Example that Exercises Metis's Clausifier *}
+section {* Example that Exercises Metis's Clausifier *}
 
 theory Clausification
 imports Complex_Main

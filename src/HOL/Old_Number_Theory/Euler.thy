@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-header {* Euler's criterion *}
+section {* Euler's criterion *}
 
 theory Euler
 imports Residues EvenOdd

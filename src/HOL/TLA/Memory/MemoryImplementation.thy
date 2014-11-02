@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-header {* RPC-Memory example: Memory implementation *}
+section {* RPC-Memory example: Memory implementation *}
 
 theory MemoryImplementation
 imports Memory RPC MemClerk

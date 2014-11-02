@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* A simple cookbook example how to eliminate choice in programs. *}
+section {* A simple cookbook example how to eliminate choice in programs. *}
 
 theory Execute_Choice
 imports Main "~~/src/HOL/Library/AList_Mapping"

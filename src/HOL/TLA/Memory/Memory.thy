@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-header {* RPC-Memory example: Memory specification *}
+section {* RPC-Memory example: Memory specification *}
 
 theory Memory
 imports MemoryParameters ProcedureInterface

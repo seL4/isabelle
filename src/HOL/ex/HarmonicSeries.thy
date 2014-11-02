@@ -2,7 +2,7 @@
     Author:     Benjamin Porter, 2006
 *)
 
-header {* Divergence of the Harmonic Series *}
+section {* Divergence of the Harmonic Series *}
 
 theory HarmonicSeries
 imports Complex_Main

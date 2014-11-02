@@ -2,7 +2,7 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, TU Muenchen
 *)
 
-header {* A polymorphic heap based on cantor encodings *}
+section {* A polymorphic heap based on cantor encodings *}
 
 theory Heap
 imports Main "~~/src/HOL/Library/Countable"

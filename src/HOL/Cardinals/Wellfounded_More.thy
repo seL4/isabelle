@@ -5,7 +5,7 @@
 More on well-founded relations.
 *)
 
-header {* More on Well-Founded Relations *}
+section {* More on Well-Founded Relations *}
 
 theory Wellfounded_More
 imports Wellfounded Order_Relation_More

@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* First-Order Logic: propositional examples (classical version) *}
+section {* First-Order Logic: propositional examples (classical version) *}
 
 theory Propositional_Cla
 imports FOL

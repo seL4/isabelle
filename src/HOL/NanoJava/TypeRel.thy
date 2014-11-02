@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-header "Type relations"
+section "Type relations"
 
 theory TypeRel
 imports Decl

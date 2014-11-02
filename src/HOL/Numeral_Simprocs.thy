@@ -1,6 +1,6 @@
 (* Author: Various *)
 
-header {* Combination and Cancellation Simprocs for Numeral Expressions *}
+section {* Combination and Cancellation Simprocs for Numeral Expressions *}
 
 theory Numeral_Simprocs
 imports Divides

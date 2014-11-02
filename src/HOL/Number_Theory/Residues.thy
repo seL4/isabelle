@@ -5,7 +5,7 @@ An algebraic treatment of residue rings, and resulting proofs of
 Euler's theorem and Wilson's theorem.
 *)
 
-header {* Residue rings *}
+section {* Residue rings *}
 
 theory Residues
 imports

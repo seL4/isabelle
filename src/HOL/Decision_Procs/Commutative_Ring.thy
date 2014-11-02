@@ -3,7 +3,7 @@
 Proving equalities in commutative rings done "right" in Isabelle/HOL.
 *)
 
-header {* Proving equalities in commutative rings *}
+section {* Proving equalities in commutative rings *}
 
 theory Commutative_Ring
 imports Main

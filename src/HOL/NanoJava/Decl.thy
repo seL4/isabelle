@@ -3,7 +3,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-header "Types, class Declarations, and whole programs"
+section "Types, class Declarations, and whole programs"
 
 theory Decl imports Term begin
 

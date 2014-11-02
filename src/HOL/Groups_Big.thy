@@ -3,7 +3,7 @@
                 with contributions by Jeremy Avigad
 *)
 
-header {* Big sum and product over finite (non-empty) sets *}
+section {* Big sum and product over finite (non-empty) sets *}
 
 theory Groups_Big
 imports Finite_Set

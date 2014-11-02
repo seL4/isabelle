@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Well-founded relations in CCL *}
+section {* Well-founded relations in CCL *}
 
 theory Wfd
 imports Trancl Type Hered

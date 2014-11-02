@@ -3,7 +3,7 @@
     Copyright   2012 TU Muenchen
 *)
 
-header {* Proving completeness of exhaustive generators *}
+section {* Proving completeness of exhaustive generators *}
 
 theory Completeness
 imports Main

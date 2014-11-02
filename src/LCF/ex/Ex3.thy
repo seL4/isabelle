@@ -1,4 +1,4 @@
-header {* Addition with fixpoint of successor *}
+section {* Addition with fixpoint of successor *}
 
 theory Ex3
 imports LCF

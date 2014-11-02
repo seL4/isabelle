@@ -3,7 +3,7 @@
     Copyright   2004 - 2010 TU Muenchen
 *)
 
-header {* Examples for the 'quickcheck' command *}
+section {* Examples for the 'quickcheck' command *}
 
 theory Quickcheck_Examples
 imports Complex_Main "~~/src/HOL/Library/Dlist" "~~/src/HOL/Library/DAList_Multiset"

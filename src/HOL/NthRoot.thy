@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-header {* Nth Roots of Real Numbers *}
+section {* Nth Roots of Real Numbers *}
 
 theory NthRoot
 imports Deriv

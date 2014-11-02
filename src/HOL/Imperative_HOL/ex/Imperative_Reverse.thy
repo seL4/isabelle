@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-header {* An imperative in-place reversal on arrays *}
+section {* An imperative in-place reversal on arrays *}
 
 theory Imperative_Reverse
 imports Subarray "~~/src/HOL/Imperative_HOL/Imperative_HOL"

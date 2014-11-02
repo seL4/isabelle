@@ -6,7 +6,7 @@
 Composition of bounded natural functors.
 *)
 
-header {* Composition of Bounded Natural Functors *}
+section {* Composition of Bounded Natural Functors *}
 
 theory BNF_Composition
 imports BNF_Def

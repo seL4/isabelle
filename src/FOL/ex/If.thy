@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* First-Order Logic: the 'if' example *}
+section {* First-Order Logic: the 'if' example *}
 
 theory If imports FOL begin
 

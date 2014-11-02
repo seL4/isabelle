@@ -8,7 +8,7 @@ The original "Fib" is due to Lawrence C. Paulson, and was adapted by
 Jeremy Avigad.
 *)
 
-header {* Fib *}
+section {* Fib *}
 
 theory Fib
 imports Binomial

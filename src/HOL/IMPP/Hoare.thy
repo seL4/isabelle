@@ -3,7 +3,7 @@
     Copyright   1999 TUM
 *)
 
-header {* Inductive definition of Hoare logic for partial correctness *}
+section {* Inductive definition of Hoare logic for partial correctness *}
 
 theory Hoare
 imports Natural

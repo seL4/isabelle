@@ -7,7 +7,7 @@
     Author:     Jeremy Avigad
 *)
 
-header {* Fields *}
+section {* Fields *}
 
 theory Fields
 imports Rings

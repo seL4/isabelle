@@ -3,7 +3,7 @@
 Ported by lcp but unfinished
 *)
 
-header {* Gauss' Lemma *}
+section {* Gauss' Lemma *}
 
 theory Gauss
 imports Residues

@@ -2,7 +2,7 @@
     Author:     Brian Huffman and Ondrej Kuncar
 *)
 
-header {* Setup for Lifting/Transfer for the product type *}
+section {* Setup for Lifting/Transfer for the product type *}
 
 theory Lifting_Product
 imports Lifting Basic_BNFs

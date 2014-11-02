@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* Intuitionistic First-Order Logic with Proofs *}
+section {* Intuitionistic First-Order Logic with Proofs *}
 
 theory IFOLP
 imports Pure

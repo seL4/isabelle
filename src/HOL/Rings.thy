@@ -7,7 +7,7 @@
     Author:     Jeremy Avigad
 *)
 
-header {* Rings *}
+section {* Rings *}
 
 theory Rings
 imports Groups

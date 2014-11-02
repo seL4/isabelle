@@ -1,7 +1,7 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* A huge collection of equations to generate code from *}
+section {* A huge collection of equations to generate code from *}
 
 theory Candidates
 imports

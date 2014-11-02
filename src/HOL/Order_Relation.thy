@@ -3,7 +3,7 @@
     Author:     Andrei Popescu, TU Muenchen
 *)
 
-header {* Orders as Relations *}
+section {* Orders as Relations *}
 
 theory Order_Relation
 imports Wfrec

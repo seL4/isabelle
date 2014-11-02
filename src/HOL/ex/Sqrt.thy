@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, Tobias Nipkow, TU Muenchen
 *)
 
-header {*  Square roots of primes are irrational *}
+section {*  Square roots of primes are irrational *}
 
 theory Sqrt
 imports Complex_Main "~~/src/HOL/Number_Theory/Primes"

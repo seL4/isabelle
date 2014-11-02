@@ -5,7 +5,7 @@
 Examples featuring Nitpick's functional core.
 *)
 
-header {* Examples Featuring Nitpick's Functional Core *}
+section {* Examples Featuring Nitpick's Functional Core *}
 
 theory Core_Nits
 imports Main

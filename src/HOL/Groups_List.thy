@@ -1,7 +1,7 @@
 
 (* Author: Tobias Nipkow, TU Muenchen *)
 
-header {* Sum and product over lists *}
+section {* Sum and product over lists *}
 
 theory Groups_List
 imports List

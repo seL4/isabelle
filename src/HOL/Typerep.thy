@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Reflecting Pure types into HOL *}
+section {* Reflecting Pure types into HOL *}
 
 theory Typerep
 imports String

@@ -10,7 +10,7 @@ property, from Charpentier and Chandy "Theorems about Composition",
 Fifth International Conference on Mathematics of Program, 2000.
 *)
 
-header{*Guarantees Specifications*}
+section{*Guarantees Specifications*}
 
 theory Guar
 imports Comp

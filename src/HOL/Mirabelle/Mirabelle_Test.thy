@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Munich
 *)
 
-header {* Simple test theory for Mirabelle actions *}
+section {* Simple test theory for Mirabelle actions *}
 
 theory Mirabelle_Test
 imports Main Mirabelle

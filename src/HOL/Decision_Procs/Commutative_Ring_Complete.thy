@@ -5,7 +5,7 @@ method.  As long as the reified atomic polynomials of type 'a pol are
 in normal form, the cring method is complete.
 *)
 
-header {* Proof of the relative completeness of method comm-ring *}
+section {* Proof of the relative completeness of method comm-ring *}
 
 theory Commutative_Ring_Complete
 imports Commutative_Ring

@@ -2,7 +2,7 @@
     Author:     Giampaolo Bella, Christiano Longo and Lawrence C Paulson
 *)
 
-header{*The Certified Electronic Mail Protocol by Abadi et al.*}
+section{*The Certified Electronic Mail Protocol by Abadi et al.*}
 
 theory CertifiedEmail imports Public begin
 

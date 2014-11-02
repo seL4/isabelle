@@ -2,7 +2,7 @@
     Author:     Folklore
 *)
 
-header {* Datatype option *}
+section {* Datatype option *}
 
 theory Option
 imports BNF_Least_Fixpoint Finite_Set

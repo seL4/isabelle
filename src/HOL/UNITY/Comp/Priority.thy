@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header{*The priority system*}
+section{*The priority system*}
 
 theory Priority imports PriorityAux begin
 

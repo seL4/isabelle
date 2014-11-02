@@ -3,7 +3,7 @@
     Author:     Monika Seisenberger, LMU Muenchen
 *)
 
-header {* Higman's lemma *}
+section {* Higman's lemma *}
 
 theory Higman
 imports Old_Datatype

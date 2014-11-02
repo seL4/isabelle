@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header{*The Otway-Rees Protocol as Modified by Abadi and Needham*}
+section{*The Otway-Rees Protocol as Modified by Abadi and Needham*}
 
 theory OtwayRees_AN imports Public begin
 

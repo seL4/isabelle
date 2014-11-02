@@ -3,7 +3,7 @@
                 with contributions by Jeremy Avigad
 *)
 
-header {* Big infimum (minimum) and supremum (maximum) over finite (non-empty) sets *}
+section {* Big infimum (minimum) and supremum (maximum) over finite (non-empty) sets *}
 
 theory Lattices_Big
 imports Finite_Set Option

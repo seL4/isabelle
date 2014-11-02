@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-header {* Binary arithmetic examples *}
+section {* Binary arithmetic examples *}
 
 theory BinEx
 imports Complex_Main

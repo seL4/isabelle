@@ -1,4 +1,4 @@
-header {* Main HOL *}
+section {* Main HOL *}
 
 theory Main
 imports Predicate_Compile Quickcheck_Narrowing Extraction Lifting_Sum Coinduction Nitpick

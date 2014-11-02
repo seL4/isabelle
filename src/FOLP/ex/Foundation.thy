@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header "Intuitionistic FOL: Examples from The Foundation of a Generic Theorem Prover"
+section "Intuitionistic FOL: Examples from The Foundation of a Generic Theorem Prover"
 
 theory Foundation
 imports IFOLP

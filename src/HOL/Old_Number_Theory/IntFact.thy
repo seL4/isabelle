@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header {* Factorial on integers *}
+section {* Factorial on integers *}
 
 theory IntFact
 imports IntPrimes

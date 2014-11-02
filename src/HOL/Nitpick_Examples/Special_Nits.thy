@@ -5,7 +5,7 @@
 Examples featuring Nitpick's "specialize" optimization.
 *)
 
-header {* Examples Featuring Nitpick's \textit{specialize} Optimization *}
+section {* Examples Featuring Nitpick's \textit{specialize} Optimization *}
 
 theory Special_Nits
 imports Main

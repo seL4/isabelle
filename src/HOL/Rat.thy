@@ -2,7 +2,7 @@
     Author: Markus Wenzel, TU Muenchen
 *)
 
-header {* Rational numbers *}
+section {* Rational numbers *}
 
 theory Rat
 imports GCD Archimedean_Field

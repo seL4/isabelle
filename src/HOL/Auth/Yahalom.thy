@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header{*The Yahalom Protocol*}
+section{*The Yahalom Protocol*}
 
 theory Yahalom imports Public begin
 

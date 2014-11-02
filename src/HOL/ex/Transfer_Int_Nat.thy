@@ -2,7 +2,7 @@
     Author:     Brian Huffman, TU Muenchen
 *)
 
-header {* Using the transfer method between nat and int *}
+section {* Using the transfer method between nat and int *}
 
 theory Transfer_Int_Nat
 imports GCD

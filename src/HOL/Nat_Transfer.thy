@@ -1,7 +1,7 @@
 
 (* Authors: Jeremy Avigad and Amine Chaieb *)
 
-header {* Generic transfer machinery;  specific transfer from nats to ints and back. *}
+section {* Generic transfer machinery;  specific transfer from nats to ints and back. *}
 
 theory Nat_Transfer
 imports Int

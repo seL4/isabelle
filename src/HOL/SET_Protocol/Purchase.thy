@@ -4,7 +4,7 @@
     Author:     Lawrence C Paulson
 *)
 
-header{*Purchase Phase of SET*}
+section{*Purchase Phase of SET*}
 
 theory Purchase
 imports Public_SET

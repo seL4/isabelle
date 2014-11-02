@@ -3,7 +3,7 @@
     Author:     Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
 *)
 
-header {* Coherent Logic Problems *}
+section {* Coherent Logic Problems *}
 
 theory Coherent
 imports Main

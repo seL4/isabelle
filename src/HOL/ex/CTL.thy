@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer
 *)
 
-header {* CTL formulae *}
+section {* CTL formulae *}
 
 theory CTL
 imports Main

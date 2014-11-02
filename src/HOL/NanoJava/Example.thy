@@ -3,7 +3,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-header "Example"
+section "Example"
 
 theory Example
 imports Equivalence

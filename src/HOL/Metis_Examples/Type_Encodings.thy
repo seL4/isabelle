@@ -4,7 +4,7 @@
 Example that exercises Metis's (and hence Sledgehammer's) type encodings.
 *)
 
-header {*
+section {*
 Example that Exercises Metis's (and Hence Sledgehammer's) Type Encodings
 *}
 

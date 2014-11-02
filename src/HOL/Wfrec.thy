@@ -4,7 +4,7 @@
     Author:     Konrad Slind
 *)
 
-header {* Well-Founded Recursion Combinator *}
+section {* Well-Founded Recursion Combinator *}
 
 theory Wfrec
 imports Wellfounded

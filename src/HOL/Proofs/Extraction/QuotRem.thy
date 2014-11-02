@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-header {* Quotient and remainder *}
+section {* Quotient and remainder *}
 
 theory QuotRem
 imports Util

@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header {* Divisibility and prime numbers (on integers) *}
+section {* Divisibility and prime numbers (on integers) *}
 
 theory IntPrimes
 imports Primes

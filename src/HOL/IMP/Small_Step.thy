@@ -1,4 +1,4 @@
-header "Small-Step Semantics of Commands"
+section "Small-Step Semantics of Commands"
 
 theory Small_Step imports Star Big_Step begin
 

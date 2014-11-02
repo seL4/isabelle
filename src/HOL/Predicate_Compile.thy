@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, Lukas Bulwahn, Florian Haftmann, TU Muenchen
 *)
 
-header {* A compiler for predicates defined by introduction rules *}
+section {* A compiler for predicates defined by introduction rules *}
 
 theory Predicate_Compile
 imports Random_Sequence Quickcheck_Exhaustive

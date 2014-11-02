@@ -3,7 +3,7 @@
     Copyright   2002  University of Cambridge
 *)
 
-header{*Other Protocol-Independent Results*}
+section{*Other Protocol-Independent Results*}
 
 theory Proto imports Guard_Public begin
 

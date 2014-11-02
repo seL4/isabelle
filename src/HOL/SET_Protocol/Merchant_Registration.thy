@@ -4,7 +4,7 @@
     Author:     Lawrence C Paulson
 *)
 
-header{*The SET Merchant Registration Protocol*}
+section{*The SET Merchant Registration Protocol*}
 
 theory Merchant_Registration
 imports Public_SET

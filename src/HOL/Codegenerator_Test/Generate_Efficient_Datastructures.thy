@@ -1,7 +1,7 @@
 
 (* Author: Ondrej Kuncar, TU Muenchen *)
 
-header {* Pervasive test of code generator *}
+section {* Pervasive test of code generator *}
 
 theory Generate_Efficient_Datastructures
 imports

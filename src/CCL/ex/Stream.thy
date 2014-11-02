@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Programs defined over streams *}
+section {* Programs defined over streams *}
 
 theory Stream
 imports List

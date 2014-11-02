@@ -1,4 +1,4 @@
-header {* Main includes everything *}
+section {* Main includes everything *}
 
 theory Main
 imports CTT Arith Bool

@@ -5,7 +5,7 @@
 Derivation trees with nonterminal internal nodes and terminal leaves.
 *)
 
-header {* Trees with Nonterminal Internal Nodes and Terminal Leaves *}
+section {* Trees with Nonterminal Internal Nodes and Terminal Leaves *}
 
 theory DTree
 imports Prelim

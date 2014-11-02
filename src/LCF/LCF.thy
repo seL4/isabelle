@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* LCF on top of First-Order Logic *}
+section {* LCF on top of First-Order Logic *}
 
 theory LCF
 imports "~~/src/FOL/FOL"

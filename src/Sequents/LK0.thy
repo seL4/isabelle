@@ -6,7 +6,7 @@ There may be printing problems if a seqent is in expanded normal form
 (eta-expanded, beta-contracted).
 *)
 
-header {* Classical First-Order Sequent Calculus *}
+section {* Classical First-Order Sequent Calculus *}
 
 theory LK0
 imports Sequents

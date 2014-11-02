@@ -2,7 +2,7 @@
     Author:     Gerwin Klein, NICTA
 *)
 
-header {* Examples for hexadecimal and binary numerals *}
+section {* Examples for hexadecimal and binary numerals *}
 
 theory Hex_Bin_Examples imports Main 
 begin

@@ -2,7 +2,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header {* Function Definitions and Termination Proofs *}
+section {* Function Definitions and Termination Proofs *}
 
 theory Fun_Def
 imports Basic_BNF_Least_Fixpoints Partial_Function SAT

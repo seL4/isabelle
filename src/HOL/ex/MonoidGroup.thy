@@ -2,7 +2,7 @@
     Author:     Markus Wenzel
 *)
 
-header {* Monoids and Groups as predicates over record schemes *}
+section {* Monoids and Groups as predicates over record schemes *}
 
 theory MonoidGroup imports Main begin
 

@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl
 *)
 
-header {* Topological Spaces *}
+section {* Topological Spaces *}
 
 theory Topological_Spaces
 imports Main Conditionally_Complete_Lattices

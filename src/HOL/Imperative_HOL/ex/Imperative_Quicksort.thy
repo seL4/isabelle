@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-header {* An imperative implementation of Quicksort on arrays *}
+section {* An imperative implementation of Quicksort on arrays *}
 
 theory Imperative_Quicksort
 imports

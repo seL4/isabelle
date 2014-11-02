@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-header {* Slices of lists *}
+section {* Slices of lists *}
 
 theory Sublist
 imports "~~/src/HOL/Library/Multiset"

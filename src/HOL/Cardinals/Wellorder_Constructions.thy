@@ -5,7 +5,7 @@
 Constructions on wellorders.
 *)
 
-header {* Constructions on Wellorders *}
+section {* Constructions on Wellorders *}
 
 theory Wellorder_Constructions
 imports

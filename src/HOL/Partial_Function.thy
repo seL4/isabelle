@@ -2,7 +2,7 @@
    Author:   Alexander Krauss, TU Muenchen
 *)
 
-header {* Partial Function Definitions *}
+section {* Partial Function Definitions *}
 
 theory Partial_Function
 imports Complete_Partial_Order Fun_Def_Base Option

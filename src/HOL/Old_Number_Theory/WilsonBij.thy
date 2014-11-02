@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header {* Wilson's Theorem using a more abstract approach *}
+section {* Wilson's Theorem using a more abstract approach *}
 
 theory WilsonBij
 imports BijectionRel IntFact

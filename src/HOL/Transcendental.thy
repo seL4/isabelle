@@ -4,7 +4,7 @@
     Author:     Jeremy Avigad
 *)
 
-header{*Power Series, Transcendental Functions etc.*}
+section{*Power Series, Transcendental Functions etc.*}
 
 theory Transcendental
 imports Fact Series Deriv NthRoot

@@ -1,6 +1,6 @@
 (* Author: Stefan Berghofer, Lukas Bulwahn, TU Muenchen *)
 
-header {* Simple example for table-based implementation of the reflexive transitive closure *}
+section {* Simple example for table-based implementation of the reflexive transitive closure *}
 
 theory Transitive_Closure_Table_Ex
 imports "~~/src/HOL/Library/Transitive_Closure_Table"

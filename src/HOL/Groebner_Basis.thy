@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-header {* Groebner bases *}
+section {* Groebner bases *}
 
 theory Groebner_Basis
 imports Semiring_Normalization Parity

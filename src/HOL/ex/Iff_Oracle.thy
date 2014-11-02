@@ -3,7 +3,7 @@
     Author:     Makarius
 *)
 
-header {* Example of Declaring an Oracle *}
+section {* Example of Declaring an Oracle *}
 
 theory Iff_Oracle
 imports Main

@@ -5,7 +5,7 @@
 Examples from the Nitpick manual.
 *)
 
-header {* Examples from the Nitpick Manual *}
+section {* Examples from the Nitpick Manual *}
 
 (* The "expect" arguments to Nitpick in this theory and the other example
    theories are there so that the example can also serve as a regression test

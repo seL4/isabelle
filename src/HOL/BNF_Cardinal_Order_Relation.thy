@@ -5,7 +5,7 @@
 Cardinal-order relations as needed by bounded natural functors.
 *)
 
-header {* Cardinal-Order Relations as Needed by Bounded Natural Functors *}
+section {* Cardinal-Order Relations as Needed by Bounded Natural Functors *}
 
 theory BNF_Cardinal_Order_Relation
 imports Zorn BNF_Wellorder_Constructions

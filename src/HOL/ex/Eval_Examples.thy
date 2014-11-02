@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Small examples for evaluation mechanisms *}
+section {* Small examples for evaluation mechanisms *}
 
 theory Eval_Examples
 imports Complex_Main

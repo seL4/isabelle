@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Munich
 *)
 
-header {* Natural numbers *}
+section {* Natural numbers *}
 
 theory Natural_Numbers
 imports FOL

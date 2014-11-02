@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-header{*The Follows Relation of Charpentier and Sivilotte*}
+section{*The Follows Relation of Charpentier and Sivilotte*}
 
 theory Follows
 imports SubstAx ListOrder "~~/src/HOL/Library/Multiset"

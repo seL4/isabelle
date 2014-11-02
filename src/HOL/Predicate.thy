@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn and Florian Haftmann, TU Muenchen
 *)
 
-header {* Predicates as enumerations *}
+section {* Predicates as enumerations *}
 
 theory Predicate
 imports String

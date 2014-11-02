@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header {* Bubblesort *}
+section {* Bubblesort *}
 
 theory Bubblesort
 imports "~~/src/HOL/Library/Multiset"

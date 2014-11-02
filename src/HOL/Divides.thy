@@ -3,7 +3,7 @@
     Copyright   1999  University of Cambridge
 *)
 
-header {* The division operators div and mod *}
+section {* The division operators div and mod *}
 
 theory Divides
 imports Parity

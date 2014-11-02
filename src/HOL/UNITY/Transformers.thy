@@ -13,7 +13,7 @@ Predicate Transformers.  From
     Swiss Federal Institute of Technology Zurich (1997)
 *)
 
-header{*Predicate Transformers*}
+section{*Predicate Transformers*}
 
 theory Transformers imports Comp begin
 

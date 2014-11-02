@@ -3,7 +3,7 @@
     Copyright   2005-2009
 *)
 
-header {* Examples for proof methods "sat" and "satx" *}
+section {* Examples for proof methods "sat" and "satx" *}
 
 theory SAT_Examples
 imports Main

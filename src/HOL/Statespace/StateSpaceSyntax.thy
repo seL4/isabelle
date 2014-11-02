@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-header {* Syntax for State Space Lookup and Update \label{sec:StateSpaceSyntax}*}
+section {* Syntax for State Space Lookup and Update \label{sec:StateSpaceSyntax}*}
 theory StateSpaceSyntax
 imports StateSpaceLocale
 begin

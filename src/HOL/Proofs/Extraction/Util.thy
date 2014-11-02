@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-header {* Auxiliary lemmas used in program extraction examples *}
+section {* Auxiliary lemmas used in program extraction examples *}
 
 theory Util
 imports Old_Datatype

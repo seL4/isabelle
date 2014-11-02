@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>Linearforms\<close>
+section \<open>Linearforms\<close>
 
 theory Linearform
 imports Vector_Space

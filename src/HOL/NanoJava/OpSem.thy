@@ -3,7 +3,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-header "Operational Evaluation Semantics"
+section "Operational Evaluation Semantics"
 
 theory OpSem imports State begin
 

@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* The sieve of Eratosthenes *}
+section {* The sieve of Eratosthenes *}
 
 theory Eratosthenes
 imports Main Primes

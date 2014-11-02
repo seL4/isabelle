@@ -3,7 +3,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-header "Equivalence of Operational and Axiomatic Semantics"
+section "Equivalence of Operational and Axiomatic Semantics"
 
 theory Equivalence imports OpSem AxSem begin
 

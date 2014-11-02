@@ -6,7 +6,7 @@
     GMVT by Benjamin Porter, 2005
 *)
 
-header{* Differentiation *}
+section{* Differentiation *}
 
 theory Deriv
 imports Limits

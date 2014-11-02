@@ -3,7 +3,7 @@
     Copyright   2005-2014
 *)
 
-header {* A SAT-based Sudoku Solver *}
+section {* A SAT-based Sudoku Solver *}
 
 theory Sudoku
 imports Main

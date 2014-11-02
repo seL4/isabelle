@@ -38,7 +38,7 @@ about that message (which B receives) and the stronger event
 Notes A {|Agent B, Nonce PMS|}.
 *)
 
-header{*The TLS Protocol: Transport Layer Security*}
+section{*The TLS Protocol: Transport Layer Security*}
 
 theory TLS imports Public "~~/src/HOL/Library/Nat_Bijection" begin
 

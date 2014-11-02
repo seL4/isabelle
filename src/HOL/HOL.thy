@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
 *)
 
-header {* The basis of Higher-Order Logic *}
+section {* The basis of Higher-Order Logic *}
 
 theory HOL
 imports Pure "~~/src/Tools/Code_Generator"

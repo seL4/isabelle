@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header{*The Woo-Lam Protocol*}
+section{*The Woo-Lam Protocol*}
 
 theory WooLam imports Public begin
 

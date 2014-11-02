@@ -1,4 +1,4 @@
-header {* A simple example demonstrating parallelism for code generated towards Isabelle/ML *}
+section {* A simple example demonstrating parallelism for code generated towards Isabelle/ML *}
 
 theory Parallel_Example
 imports Complex_Main "~~/src/HOL/Library/Parallel" "~~/src/HOL/Library/Debug"

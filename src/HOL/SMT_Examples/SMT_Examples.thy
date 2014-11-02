@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-header {* Examples for the SMT binding *}
+section {* Examples for the SMT binding *}
 
 theory SMT_Examples
 imports Complex_Main

@@ -5,7 +5,7 @@
 Weak safety relations: restricted to the set of reachable states.
 *)
 
-header{*Weak Safety*}
+section{*Weak Safety*}
 
 theory Constrains imports UNITY begin
 

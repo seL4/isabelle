@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header \<open>Finite sequences\<close>
+section \<open>Finite sequences\<close>
 
 theory Seq
 imports Main

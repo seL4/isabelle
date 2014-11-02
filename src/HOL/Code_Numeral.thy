@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Numeric types for code generation onto target language numerals only *}
+section {* Numeric types for code generation onto target language numerals only *}
 
 theory Code_Numeral
 imports Nat_Transfer Divides Lifting

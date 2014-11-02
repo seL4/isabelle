@@ -7,7 +7,7 @@ Zorn's Lemma (ported from Larry Paulson's Zorn.thy in ZF).
 The well-ordering theorem.
 *)
 
-header {* Zorn's Lemma *}
+section {* Zorn's Lemma *}
 
 theory Zorn
 imports Order_Relation Hilbert_Choice

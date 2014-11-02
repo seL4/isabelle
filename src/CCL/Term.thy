@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Definitions of usual program constructs in CCL *}
+section {* Definitions of usual program constructs in CCL *}
 
 theory Term
 imports CCL

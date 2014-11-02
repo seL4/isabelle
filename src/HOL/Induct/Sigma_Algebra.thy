@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Sigma algebras *}
+section {* Sigma algebras *}
 
 theory Sigma_Algebra
 imports Main

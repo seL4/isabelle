@@ -6,7 +6,7 @@
 Stream processors---a syntactic representation of continuous functions on streams.
 *)
 
-header {* Stream Processors---A Syntactic Representation of Continuous Functions on Streams *}
+section {* Stream Processors---A Syntactic Representation of Continuous Functions on Streams *}
 
 theory Stream_Processor
 imports "~~/src/HOL/Library/Stream" "~~/src/HOL/Library/BNF_Axiomatization"

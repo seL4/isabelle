@@ -12,7 +12,7 @@ Written up as
     Report 308, Computer Lab, University of Cambridge (1993).
 *)
 
-header {* Milner-Tofte: Co-induction in Relational Semantics *}
+section {* Milner-Tofte: Co-induction in Relational Semantics *}
 
 theory MT
 imports Main

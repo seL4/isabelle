@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Finite types as explicit enumerations *}
+section {* Finite types as explicit enumerations *}
 
 theory Enum
 imports Map Groups_List

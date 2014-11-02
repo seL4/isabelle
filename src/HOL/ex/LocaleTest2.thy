@@ -8,7 +8,7 @@ Hence we do them here in HOL, not in the main test suite for locales,
 which is FOL/ex/LocaleTest.thy
 *)
 
-header {* Test of Locale Interpretation *}
+section {* Test of Locale Interpretation *}
 
 theory LocaleTest2
 imports Main GCD

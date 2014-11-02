@@ -6,7 +6,7 @@
     Author:     Andrei Popescu, TU Muenchen
 *)
 
-header {*Well-founded Recursion*}
+section {*Well-founded Recursion*}
 
 theory Wellfounded
 imports Transitive_Closure

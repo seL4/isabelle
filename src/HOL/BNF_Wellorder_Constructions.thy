@@ -5,7 +5,7 @@
 Constructions on wellorders as needed by bounded natural functors.
 *)
 
-header {* Constructions on Wellorders as Needed by Bounded Natural Functors *}
+section {* Constructions on Wellorders as Needed by Bounded Natural Functors *}
 
 theory BNF_Wellorder_Constructions
 imports BNF_Wellorder_Embedding

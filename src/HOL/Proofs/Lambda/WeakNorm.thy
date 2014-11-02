@@ -3,7 +3,7 @@
     Copyright   2003 TU Muenchen
 *)
 
-header {* Weak normalization for simply-typed lambda calculus *}
+section {* Weak normalization for simply-typed lambda calculus *}
 
 theory WeakNorm
 imports LambdaType NormalForm "~~/src/HOL/Library/Old_Datatype"

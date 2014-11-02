@@ -1,7 +1,7 @@
 (*  Author:     Giampaolo Bella, Catania University
 *)
 
-header{*Original Shoup-Rubin protocol*}
+section{*Original Shoup-Rubin protocol*}
 
 theory ShoupRubin imports Smartcard begin
 

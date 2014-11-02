@@ -2,7 +2,7 @@
     Author:     Giampaolo Bella, Catania University
 *)
 
-header{*The Kerberos Protocol, Version V*}
+section{*The Kerberos Protocol, Version V*}
 
 theory KerberosV imports Public begin
 

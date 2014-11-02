@@ -2,7 +2,7 @@
     Author: Tjark Weber
 *)
 
-header {* Arithmetic *}
+section {* Arithmetic *}
 
 theory Arith_Examples
 imports Main

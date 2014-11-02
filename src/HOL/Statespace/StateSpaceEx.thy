@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-header {* Examples \label{sec:Examples} *}
+section {* Examples \label{sec:Examples} *}
 theory StateSpaceEx
 imports StateSpaceLocale StateSpaceSyntax
 begin

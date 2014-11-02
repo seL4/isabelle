@@ -3,7 +3,7 @@
     Author:     Ondrej Kuncar, TU Muenchen
 *)
 
-header {* Generic theorem transfer using relations *}
+section {* Generic theorem transfer using relations *}
 
 theory Transfer
 imports Hilbert_Choice Metis Option

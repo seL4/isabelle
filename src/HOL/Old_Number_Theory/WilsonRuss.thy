@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header {* Wilson's Theorem according to Russinoff *}
+section {* Wilson's Theorem according to Russinoff *}
 
 theory WilsonRuss
 imports EulerFermat

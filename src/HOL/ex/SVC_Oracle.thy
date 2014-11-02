@@ -5,7 +5,7 @@
 Based upon the work of Søren T. Heilmann.
 *)
 
-header {* Installing an oracle for SVC (Stanford Validity Checker) *}
+section {* Installing an oracle for SVC (Stanford Validity Checker) *}
 
 theory SVC_Oracle
 imports Main

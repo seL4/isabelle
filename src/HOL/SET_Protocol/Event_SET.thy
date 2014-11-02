@@ -4,7 +4,7 @@
     Author:     Lawrence C Paulson
 *)
 
-header{*Theory of Events for SET*}
+section{*Theory of Events for SET*}
 
 theory Event_SET
 imports Message_SET

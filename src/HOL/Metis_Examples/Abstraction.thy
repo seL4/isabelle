@@ -5,7 +5,7 @@
 Example featuring Metis's support for lambda-abstractions.
 *)
 
-header {* Example Featuring Metis's Support for Lambda-Abstractions *}
+section {* Example Featuring Metis's Support for Lambda-Abstractions *}
 
 theory Abstraction
 imports "~~/src/HOL/Library/FuncSet"

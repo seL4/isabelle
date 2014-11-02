@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-header {* Arithmetic and boolean expressions *}
+section {* Arithmetic and boolean expressions *}
 
 theory ABexp
 imports Main

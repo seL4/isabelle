@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* Elementary arithmetic *}
+section {* Elementary arithmetic *}
 
 theory Arith
 imports Bool

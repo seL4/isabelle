@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a theory by Tobias Nipkow et al), TUM
 *)
 
-header {* Semantics of arithmetic and boolean expressions, Syntax of commands *}
+section {* Semantics of arithmetic and boolean expressions, Syntax of commands *}
 
 theory Com
 imports Main

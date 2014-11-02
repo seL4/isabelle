@@ -6,7 +6,7 @@ Some examples taken from P. Martin-L\"of, Intuitionistic type theory
 (Bibliopolis, 1984).
 *)
 
-header "Examples with elimination rules"
+section "Examples with elimination rules"
 
 theory Elimination
 imports CTT

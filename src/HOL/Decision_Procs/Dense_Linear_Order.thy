@@ -2,7 +2,7 @@
     Author      : Amine Chaieb, TU Muenchen
 *)
 
-header {* Dense linear order without endpoints
+section {* Dense linear order without endpoints
   and a quantifier elimination procedure in Ferrante and Rackoff style *}
 
 theory Dense_Linear_Order

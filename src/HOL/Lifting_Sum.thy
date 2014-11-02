@@ -2,7 +2,7 @@
     Author:     Brian Huffman and Ondrej Kuncar
 *)
 
-header {* Setup for Lifting/Transfer for the sum type *}
+section {* Setup for Lifting/Transfer for the sum type *}
 
 theory Lifting_Sum
 imports Lifting Basic_BNFs

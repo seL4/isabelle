@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>Zorn's Lemma\<close>
+section \<open>Zorn's Lemma\<close>
 
 theory Zorn_Lemma
 imports Main

@@ -2,7 +2,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header {* Examples of function definitions *}
+section {* Examples of function definitions *}
 
 theory Fundefs 
 imports Main "~~/src/HOL/Library/Monad_Syntax"

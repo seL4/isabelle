@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer and Markus Wenzel, TU Muenchen
 *)
 
-header {* Foundations of HOL *}
+section {* Foundations of HOL *}
 
 theory Higher_Order_Logic imports Pure begin
 

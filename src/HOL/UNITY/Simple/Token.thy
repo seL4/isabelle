@@ -4,7 +4,7 @@
 *)
 
 
-header {*The Token Ring*}
+section {*The Token Ring*}
 
 theory Token
 imports "../WFair"

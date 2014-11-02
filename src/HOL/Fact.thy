@@ -5,7 +5,7 @@
     The integer version of factorial and other additions by Jeremy Avigad.
 *)
 
-header{*Factorial Function*}
+section{*Factorial Function*}
 
 theory Fact
 imports Main

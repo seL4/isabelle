@@ -6,7 +6,7 @@
 Lambda-terms.
 *)
 
-header {* Lambda-Terms *}
+section {* Lambda-Terms *}
 
 theory Lambda_Term
 imports "~~/src/HOL/Library/FSet"

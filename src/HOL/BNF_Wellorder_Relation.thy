@@ -5,7 +5,7 @@
 Well-order relations as needed by bounded natural functors.
 *)
 
-header {* Well-Order Relations as Needed by Bounded Natural Functors *}
+section {* Well-Order Relations as Needed by Bounded Natural Functors *}
 
 theory BNF_Wellorder_Relation
 imports Order_Relation

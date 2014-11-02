@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* Classical First-Order Logic with Proofs *}
+section {* Classical First-Order Logic with Proofs *}
 
 theory FOLP
 imports IFOLP

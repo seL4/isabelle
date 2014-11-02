@@ -2,7 +2,7 @@
     Author: Lukas Bulwahn, TU Muenchen, 2007
 *)
 
-header {* A Formulation of the Birthday Paradox *}
+section {* A Formulation of the Birthday Paradox *}
 
 theory Birthday_Paradox
 imports Main "~~/src/HOL/Fact" "~~/src/HOL/Library/FuncSet"

@@ -5,7 +5,7 @@
 See HOL/Refute.thy for help.
 *)
 
-header {* Examples for the 'refute' command *}
+section {* Examples for the 'refute' command *}
 
 theory Refute_Examples
 imports "~~/src/HOL/Library/Refute"

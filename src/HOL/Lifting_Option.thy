@@ -3,7 +3,7 @@
     Author:     Andreas Lochbihler, Karlsruhe Institute of Technology
 *)
 
-header {* Setup for Lifting/Transfer for the option type *}
+section {* Setup for Lifting/Transfer for the option type *}
 
 theory Lifting_Option
 imports Lifting Option

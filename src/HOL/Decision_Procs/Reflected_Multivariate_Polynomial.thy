@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-header {* Implementation and verification of multivariate polynomials *}
+section {* Implementation and verification of multivariate polynomials *}
 
 theory Reflected_Multivariate_Polynomial
 imports Complex_Main Rat_Pair Polynomial_List

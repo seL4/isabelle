@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header "Equality reasoning by rewriting"
+section "Equality reasoning by rewriting"
 
 theory Equality
 imports CTT

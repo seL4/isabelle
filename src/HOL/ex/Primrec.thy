@@ -6,7 +6,7 @@ Ackermann's Function and the
 Primitive Recursive Functions.
 *)
 
-header {* Primitive Recursive Functions *}
+section {* Primitive Recursive Functions *}
 
 theory Primrec imports Main begin
 

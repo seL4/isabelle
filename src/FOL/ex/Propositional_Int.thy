@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* First-Order Logic: propositional examples (intuitionistic version) *}
+section {* First-Order Logic: propositional examples (intuitionistic version) *}
 
 theory Propositional_Int
 imports IFOL

@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* Reflexive and Transitive closure of a relation *}
+section {* Reflexive and Transitive closure of a relation *}
 
 theory Transitive_Closure
 imports Relation

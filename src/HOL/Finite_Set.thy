@@ -3,7 +3,7 @@
                 with contributions by Jeremy Avigad and Andrei Popescu
 *)
 
-header {* Finite sets *}
+section {* Finite sets *}
 
 theory Finite_Set
 imports Product_Type Sum_Type Nat

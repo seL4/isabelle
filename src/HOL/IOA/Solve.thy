@@ -3,7 +3,7 @@
     Copyright   1994  TU Muenchen
 *)
 
-header {* Weak possibilities mapping (abstraction) *}
+section {* Weak possibilities mapping (abstraction) *}
 
 theory Solve
 imports IOA

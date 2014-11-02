@@ -8,7 +8,7 @@ operator).
 From Misra, "A Logic for Concurrent Programming", 1994.
 *)
 
-header {*The Basic UNITY Theory*}
+section {*The Basic UNITY Theory*}
 
 theory UNITY imports Main begin
 

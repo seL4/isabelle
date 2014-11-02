@@ -2,7 +2,7 @@
     Author: Tobias Nipkow
 *)
 
-header {* Summing natural numbers *}
+section {* Summing natural numbers *}
 
 theory NatSum imports Main begin
 

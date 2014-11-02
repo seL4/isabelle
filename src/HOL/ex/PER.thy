@@ -2,7 +2,7 @@
     Author:     Oscar Slotosch and Markus Wenzel, TU Muenchen
 *)
 
-header {* Partial equivalence relations *}
+section {* Partial equivalence relations *}
 
 theory PER imports Main begin
 

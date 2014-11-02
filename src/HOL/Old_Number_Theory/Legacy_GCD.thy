@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header {* The Greatest Common Divisor *}
+section {* The Greatest Common Divisor *}
 
 theory Legacy_GCD
 imports Main

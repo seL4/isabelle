@@ -3,7 +3,7 @@
     Copyright   1998 TU Muenchen
 *)
 
-header {* Lifting beta-reduction to lists *}
+section {* Lifting beta-reduction to lists *}
 
 theory ListBeta imports ListApplication ListOrder begin
 

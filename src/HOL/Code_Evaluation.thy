@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Term evaluation using the generic code generator *}
+section {* Term evaluation using the generic code generator *}
 
 theory Code_Evaluation
 imports Typerep Limited_Sequence

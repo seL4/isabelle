@@ -2,7 +2,7 @@
     Author:     Brian Huffman and Ondrej Kuncar
 *)
 
-header {* Setup for Lifting/Transfer for the set type *}
+section {* Setup for Lifting/Transfer for the set type *}
 
 theory Lifting_Set
 imports Lifting

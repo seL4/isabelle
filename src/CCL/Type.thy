@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Types in CCL are defined as sets of terms *}
+section {* Types in CCL are defined as sets of terms *}
 
 theory Type
 imports Term

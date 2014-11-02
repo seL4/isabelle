@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Tentative attempt at including fixed point induction; justified by Smith *}
+section {* Tentative attempt at including fixed point induction; justified by Smith *}
 
 theory Fix
 imports Type

@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-header \<open>Isabelle/ML basics\<close>
+section \<open>Isabelle/ML basics\<close>
 
 theory "ML"
 imports Main

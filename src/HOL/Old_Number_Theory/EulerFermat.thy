@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header {* Fermat's Little Theorem extended to Euler's Totient function *}
+section {* Fermat's Little Theorem extended to Euler's Totient function *}
 
 theory EulerFermat
 imports BijectionRel IntFact

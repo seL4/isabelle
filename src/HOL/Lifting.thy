@@ -3,7 +3,7 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-header {* Lifting package *}
+section {* Lifting package *}
 
 theory Lifting
 imports Equiv_Relations Transfer

@@ -1,6 +1,6 @@
 (*  Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel; Florian Haftmann, TU Muenchen *)
 
-header {* Complete lattices *}
+section {* Complete lattices *}
 
 theory Complete_Lattices
 imports Fun

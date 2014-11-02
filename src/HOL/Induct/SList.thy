@@ -21,7 +21,7 @@ such as
 datatype 'a m = Node 'a * 'a m list
 *)
 
-header {* Extended List Theory (old) *}
+section {* Extended List Theory (old) *}
 
 theory SList
 imports Sexp

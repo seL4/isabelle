@@ -2,7 +2,7 @@
     Author:     Christian Sternagel, JAIST
 *)
 
-header {* Extending Well-founded Relations to Wellorders *}
+section {* Extending Well-founded Relations to Wellorders *}
 
 theory Wellorder_Extension
 imports Main Order_Union

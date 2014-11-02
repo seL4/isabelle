@@ -10,7 +10,7 @@ Lists are partially ordered by Charpentier's Generalized Prefix Relation
 Also overloads <= and < for lists!
 *)
 
-header {*The Prefix Ordering on Lists*}
+section {*The Prefix Ordering on Lists*}
 
 theory ListOrder
 imports Main

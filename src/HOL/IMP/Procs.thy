@@ -1,4 +1,4 @@
-header "Extensions and Variations of IMP"
+section "Extensions and Variations of IMP"
 
 theory Procs imports BExp begin
 

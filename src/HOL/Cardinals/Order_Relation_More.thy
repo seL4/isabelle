@@ -5,7 +5,7 @@
 Basics on order-like relations.
 *)
 
-header {* Basics on Order-Like Relations *}
+section {* Basics on Order-Like Relations *}
 
 theory Order_Relation_More
 imports Main

@@ -2,7 +2,7 @@
     Author:     Brian Huffman, TU Munich
 *)
 
-header {* Lifting and transfer with a finite set type *}
+section {* Lifting and transfer with a finite set type *}
 
 theory Lift_FSet
 imports Main

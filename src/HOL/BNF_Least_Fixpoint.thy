@@ -7,7 +7,7 @@
 Least fixpoint (datatype) operation on bounded natural functors.
 *)
 
-header {* Least Fixpoint (Datatype) Operation on Bounded Natural Functors *}
+section {* Least Fixpoint (Datatype) Operation on Bounded Natural Functors *}
 
 theory BNF_Least_Fixpoint
 imports BNF_Fixpoint_Base

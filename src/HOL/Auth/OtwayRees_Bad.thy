@@ -4,7 +4,7 @@
 *)
 
 
-header{*The Otway-Rees Protocol: The Faulty BAN Version*}
+section{*The Otway-Rees Protocol: The Faulty BAN Version*}
 
 theory OtwayRees_Bad imports Public begin
 

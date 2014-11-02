@@ -7,7 +7,7 @@ Raamsdonk & Severi. On normalization. CWI TR CS-R9545, 1995.  Also
 rediscovered by Matthes and Joachimski.
 *)
 
-header {* Inductive characterization of terminating lambda terms *}
+section {* Inductive characterization of terminating lambda terms *}
 
 theory InductTermi imports ListBeta begin
 

@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* Set Theory examples: Cantor's Theorem, Schröder-Bernstein Theorem, etc. *}
+section {* Set Theory examples: Cantor's Theorem, Schröder-Bernstein Theorem, etc. *}
 
 theory Set_Theory
 imports Main

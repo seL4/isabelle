@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-header {* Higher-order hereditary Harrop formulas *}
+section {* Higher-order hereditary Harrop formulas *}
 
 theory HOHH
 imports HOL

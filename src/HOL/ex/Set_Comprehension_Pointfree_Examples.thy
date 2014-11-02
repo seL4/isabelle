@@ -3,7 +3,7 @@
     Copyright   2012 TU Muenchen
 *)
 
-header {* Examples for the set comprehension to pointfree simproc *}
+section {* Examples for the set comprehension to pointfree simproc *}
 
 theory Set_Comprehension_Pointfree_Examples
 imports Main

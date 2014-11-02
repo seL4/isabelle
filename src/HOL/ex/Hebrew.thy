@@ -4,7 +4,7 @@ Example theory involving Unicode characters (UTF-8 encoding) -- both
 formal and informal ones.
 *)
 
-header {* A Hebrew theory *}
+section {* A Hebrew theory *}
 
 theory Hebrew
 imports Main

@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen, 2003
 *)
 
-header {* Inductive characterization of lambda terms in normal form *}
+section {* Inductive characterization of lambda terms in normal form *}
 
 theory NormalForm
 imports ListBeta

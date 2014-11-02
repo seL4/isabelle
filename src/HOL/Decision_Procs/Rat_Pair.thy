@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-header {* Rational numbers as pairs *}
+section {* Rational numbers as pairs *}
 
 theory Rat_Pair
 imports Complex_Main

@@ -5,7 +5,7 @@
 Metis example featuring message authentication.
 *)
 
-header {* Metis Example Featuring Message Authentication *}
+section {* Metis Example Featuring Message Authentication *}
 
 theory Message
 imports Main

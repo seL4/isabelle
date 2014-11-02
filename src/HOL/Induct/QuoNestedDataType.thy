@@ -3,7 +3,7 @@
     Copyright   2004  University of Cambridge
 *)
 
-header{*Quotienting a Free Algebra Involving Nested Recursion*}
+section{*Quotienting a Free Algebra Involving Nested Recursion*}
 
 theory QuoNestedDataType imports Main begin
 

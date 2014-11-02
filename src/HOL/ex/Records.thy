@@ -3,7 +3,7 @@
                 TU Muenchen
 *)
 
-header {* Using extensible records in HOL -- points and coloured points *}
+section {* Using extensible records in HOL -- points and coloured points *}
 
 theory Records
 imports Main

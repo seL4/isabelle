@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* First-Order Logic: PROLOG examples *}
+section {* First-Order Logic: PROLOG examples *}
 
 theory Prolog
 imports FOL

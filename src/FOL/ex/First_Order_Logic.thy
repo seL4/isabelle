@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Munich
 *)
 
-header {* A simple formulation of First-Order Logic *}
+section {* A simple formulation of First-Order Logic *}
 
 theory First_Order_Logic imports Pure begin
 

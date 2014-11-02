@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-header {* An efficient checker for proofs from a SAT solver *}
+section {* An efficient checker for proofs from a SAT solver *}
 
 theory SatChecker
 imports "~~/src/HOL/Library/RBT_Impl" Sorted_List "../Imperative_HOL"

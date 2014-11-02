@@ -7,7 +7,7 @@
     Construction of Cauchy Reals by Brian Huffman, 2010
 *)
 
-header {* Development of the Reals using Cauchy Sequences *}
+section {* Development of the Reals using Cauchy Sequences *}
 
 theory Real
 imports Rat Conditionally_Complete_Lattices

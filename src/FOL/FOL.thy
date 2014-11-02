@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson and Markus Wenzel
 *)
 
-header {* Classical first-order logic *}
+section {* Classical first-order logic *}
 
 theory FOL
 imports IFOL

@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Simple examples for natural numbers implemented in binary representation. *}
+section {* Simple examples for natural numbers implemented in binary representation. *}
 
 theory Code_Binary_Nat_examples
 imports Complex_Main "~~/src/HOL/Library/Code_Binary_Nat"

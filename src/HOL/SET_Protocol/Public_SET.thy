@@ -4,7 +4,7 @@
     Author:     Lawrence C Paulson
 *)
 
-header{*The Public-Key Theory, Modified for SET*}
+section{*The Public-Key Theory, Modified for SET*}
 
 theory Public_SET
 imports Event_SET

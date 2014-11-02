@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>The norm of a function\<close>
+section \<open>The norm of a function\<close>
 
 theory Function_Norm
 imports Normed_Space Function_Order

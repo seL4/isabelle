@@ -5,7 +5,7 @@
 More on injections, bijections and inverses.
 *)
 
-header {* More on Injections, Bijections and Inverses *}
+section {* More on Injections, Bijections and Inverses *}
 
 theory Fun_More
 imports Main

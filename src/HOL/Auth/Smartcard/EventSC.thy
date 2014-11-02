@@ -1,4 +1,4 @@
-header{*Theory of Events for Security Protocols that use smartcards*}
+section{*Theory of Events for Security Protocols that use smartcards*}
 
 theory EventSC
 imports

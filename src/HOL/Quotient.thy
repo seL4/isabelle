@@ -2,7 +2,7 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-header {* Definition of Quotient Types *}
+section {* Definition of Quotient Types *}
 
 theory Quotient
 imports Lifting

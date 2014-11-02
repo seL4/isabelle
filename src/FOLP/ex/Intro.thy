@@ -5,7 +5,7 @@
 Derives some inference rules, illustrating the use of definitions.
 *)
 
-header {* Examples for the manual ``Introduction to Isabelle'' *}
+section {* Examples for the manual ``Introduction to Isabelle'' *}
 
 theory Intro
 imports FOLP

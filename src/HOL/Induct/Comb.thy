@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header {* Combinatory Logic example: the Church-Rosser Theorem *}
+section {* Combinatory Logic example: the Church-Rosser Theorem *}
 
 theory Comb imports Main begin
 

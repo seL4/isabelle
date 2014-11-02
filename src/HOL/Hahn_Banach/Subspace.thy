@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>Subspaces\<close>
+section \<open>Subspaces\<close>
 
 theory Subspace
 imports Vector_Space "~~/src/HOL/Library/Set_Algebras"

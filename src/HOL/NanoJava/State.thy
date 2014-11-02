@@ -3,7 +3,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-header "Program State"
+section "Program State"
 
 theory State imports TypeRel begin
 

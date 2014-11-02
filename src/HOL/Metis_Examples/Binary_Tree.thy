@@ -5,7 +5,7 @@
 Metis example featuring binary trees.
 *)
 
-header {* Metis Example Featuring Binary Trees *}
+section {* Metis Example Featuring Binary Trees *}
 
 theory Binary_Tree
 imports Main

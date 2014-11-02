@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-header{*The Kerberos Protocol, Version IV*}
+section{*The Kerberos Protocol, Version IV*}
 
 theory KerberosIV imports Public begin
 

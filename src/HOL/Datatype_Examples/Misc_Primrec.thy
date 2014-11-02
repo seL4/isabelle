@@ -5,7 +5,7 @@
 Miscellaneous primitive recursive function definitions.
 *)
 
-header {* Miscellaneous Primitive Recursive Function Definitions *}
+section {* Miscellaneous Primitive Recursive Function Definitions *}
 
 theory Misc_Primrec
 imports Misc_Datatype

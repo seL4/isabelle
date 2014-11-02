@@ -5,7 +5,7 @@
 Examples featuring Nitpick applied to datatypes.
 *)
 
-header {* Examples Featuring Nitpick Applied to Datatypes *}
+section {* Examples Featuring Nitpick Applied to Datatypes *}
 
 theory Datatype_Nits
 imports Main

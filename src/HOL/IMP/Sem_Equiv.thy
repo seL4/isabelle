@@ -1,4 +1,4 @@
-header "Constant Folding"
+section "Constant Folding"
 
 theory Sem_Equiv
 imports Big_Step

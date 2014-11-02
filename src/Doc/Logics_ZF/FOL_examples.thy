@@ -1,4 +1,4 @@
-header{*Examples of Classical Reasoning*}
+section{*Examples of Classical Reasoning*}
 
 theory FOL_examples imports "~~/src/FOL/FOL" begin
 

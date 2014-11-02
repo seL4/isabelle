@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-header {*Finite Sets and Finite Sums*}
+section {*Finite Sets and Finite Sums*}
 
 theory Finite2
 imports IntFact "~~/src/HOL/Library/Infinite_Set"

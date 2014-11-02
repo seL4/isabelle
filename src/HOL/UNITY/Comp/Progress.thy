@@ -5,7 +5,7 @@
 David Meier's thesis
 *)
 
-header{*Progress Set Examples*}
+section{*Progress Set Examples*}
 
 theory Progress imports "../UNITY_Main" begin
 

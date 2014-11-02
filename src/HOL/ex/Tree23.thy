@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow, TU Muenchen
 *)
 
-header {* 2-3 Trees *}
+section {* 2-3 Trees *}
 
 theory Tree23
 imports Main

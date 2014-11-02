@@ -5,7 +5,7 @@
 Nitpick tests.
 *)
 
-header {* Nitpick Tests *}
+section {* Nitpick Tests *}
 
 theory Tests_Nits
 imports Main

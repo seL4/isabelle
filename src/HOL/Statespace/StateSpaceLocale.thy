@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-header {* Setup for State Space Locales \label{sec:StateSpaceLocale}*}
+section {* Setup for State Space Locales \label{sec:StateSpaceLocale}*}
 
 theory StateSpaceLocale imports StateFun 
 keywords "statespace" :: thy_decl

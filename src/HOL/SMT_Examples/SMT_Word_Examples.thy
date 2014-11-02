@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-header {* Word examples for for SMT binding *}
+section {* Word examples for for SMT binding *}
 
 theory SMT_Word_Examples
 imports "~~/src/HOL/Word/Word"

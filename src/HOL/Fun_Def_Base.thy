@@ -2,7 +2,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header {* Function Definition Base *}
+section {* Function Definition Base *}
 
 theory Fun_Def_Base
 imports Ctr_Sugar Set Wellfounded

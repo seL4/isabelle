@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>The supremum w.r.t.~the function order\<close>
+section \<open>The supremum w.r.t.~the function order\<close>
 
 theory Hahn_Banach_Sup_Lemmas
 imports Function_Norm Zorn_Lemma

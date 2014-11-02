@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 
-header {* Hilbert's choice and classical logic *}
+section {* Hilbert's choice and classical logic *}
 
 theory Hilbert_Classical
 imports Main

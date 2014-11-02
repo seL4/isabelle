@@ -2,7 +2,7 @@
     Author:     Stephan Merz, University of Munich
 *)
 
-header {* RPC-Memory example: specification of the memory clerk *}
+section {* RPC-Memory example: specification of the memory clerk *}
 
 theory MemClerk
 imports Memory RPC MemClerkParameters

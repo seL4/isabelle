@@ -5,7 +5,7 @@
 Example of Mutual Induction via Iteratived Inductive Definitions: Commands
 *)
 
-header{*Mutual Induction via Iteratived Inductive Definitions*}
+section{*Mutual Induction via Iteratived Inductive Definitions*}
 
 theory Com imports Main begin
 

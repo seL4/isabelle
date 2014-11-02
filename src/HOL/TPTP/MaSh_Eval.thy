@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* MaSh Evaluation Driver *}
+section {* MaSh Evaluation Driver *}
 
 theory MaSh_Eval
 imports MaSh_Export_Base

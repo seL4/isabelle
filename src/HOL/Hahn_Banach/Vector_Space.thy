@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header \<open>Vector spaces\<close>
+section \<open>Vector spaces\<close>
 
 theory Vector_Space
 imports Complex_Main Bounds

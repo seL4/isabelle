@@ -3,7 +3,7 @@
     Copyright   1995, 2005 TU Muenchen
 *)
 
-header {* Eta-reduction *}
+section {* Eta-reduction *}
 
 theory Eta imports ParRed begin
 

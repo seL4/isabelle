@@ -3,7 +3,7 @@
     Copyright   2002  University of Cambridge
 *)
 
-header{*Otway-Rees Protocol*}
+section{*Otway-Rees Protocol*}
 
 theory Guard_OtwayRees imports Guard_Shared begin
 

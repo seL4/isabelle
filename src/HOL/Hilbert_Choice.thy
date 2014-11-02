@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
+section {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
 imports Nat Wellfounded

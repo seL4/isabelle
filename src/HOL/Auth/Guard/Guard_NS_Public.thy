@@ -5,7 +5,7 @@
 Incorporating Lowe's fix (inclusion of B's identity in round 2).
 *)
 
-header{*Needham-Schroeder-Lowe Public-Key Protocol*}
+section{*Needham-Schroeder-Lowe Public-Key Protocol*}
 
 theory Guard_NS_Public imports Guard_Public begin
 

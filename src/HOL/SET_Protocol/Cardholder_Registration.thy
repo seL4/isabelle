@@ -5,7 +5,7 @@
     Author:     Piero Tramontano
 *)
 
-header{*The SET Cardholder Registration Protocol*}
+section{*The SET Cardholder Registration Protocol*}
 
 theory Cardholder_Registration
 imports Public_SET

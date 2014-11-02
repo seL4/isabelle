@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-header {* Warshall's algorithm *}
+section {* Warshall's algorithm *}
 
 theory Warshall
 imports Old_Datatype

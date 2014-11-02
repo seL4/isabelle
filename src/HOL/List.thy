@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow
 *)
 
-header {* The datatype of finite lists *}
+section {* The datatype of finite lists *}
 
 theory List
 imports Sledgehammer Code_Numeral Lifting_Set Lifting_Option Lifting_Product

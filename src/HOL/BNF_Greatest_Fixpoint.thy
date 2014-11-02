@@ -7,7 +7,7 @@
 Greatest fixpoint (codatatype) operation on bounded natural functors.
 *)
 
-header {* Greatest Fixpoint (Codatatype) Operation on Bounded Natural Functors *}
+section {* Greatest Fixpoint (Codatatype) Operation on Bounded Natural Functors *}
 
 theory BNF_Greatest_Fixpoint
 imports BNF_Fixpoint_Base String

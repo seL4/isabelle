@@ -1,5 +1,5 @@
 
-header {* Various examples for transfer procedure *}
+section {* Various examples for transfer procedure *}
 
 theory Transfer_Ex
 imports Main Transfer_Int_Nat

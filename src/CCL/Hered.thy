@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Hereditary Termination -- cf. Martin Lo\"f *}
+section {* Hereditary Termination -- cf. Martin Lo\"f *}
 
 theory Hered
 imports Type

@@ -1,4 +1,4 @@
-header "Security Type Systems"
+section "Security Type Systems"
 
 theory Sec_Type_Expr imports Big_Step
 begin

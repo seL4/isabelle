@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-header {* Tests for the SMT binding *}
+section {* Tests for the SMT binding *}
 
 theory SMT_Tests
 imports Complex_Main

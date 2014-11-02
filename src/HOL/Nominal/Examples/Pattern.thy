@@ -1,4 +1,4 @@
-header {* Simply-typed lambda-calculus with let and tuple patterns *}
+section {* Simply-typed lambda-calculus with let and tuple patterns *}
 
 theory Pattern
 imports "../Nominal"

@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-header {* Program extraction for HOL *}
+section {* Program extraction for HOL *}
 
 theory Extraction
 imports Option

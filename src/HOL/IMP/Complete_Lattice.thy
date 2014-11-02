@@ -1,4 +1,4 @@
-header "Abstract Interpretation"
+section "Abstract Interpretation"
 
 theory Complete_Lattice
 imports Main

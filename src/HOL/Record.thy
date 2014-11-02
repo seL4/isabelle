@@ -6,7 +6,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Extensible records with structural subtyping *}
+section {* Extensible records with structural subtyping *}
 
 theory Record
 imports Quickcheck_Exhaustive

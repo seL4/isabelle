@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header{*Decomposition of Analz into two parts*}
+section{*Decomposition of Analz into two parts*}
 
 theory Analz imports Extensions begin
 

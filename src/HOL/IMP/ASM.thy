@@ -1,4 +1,4 @@
-header "Stack Machine and Compilation"
+section "Stack Machine and Compilation"
 
 theory ASM imports AExp begin
 

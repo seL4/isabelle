@@ -1,7 +1,7 @@
 (*  Author:     Giampaolo Bella, Catania University
 *)
 
-header{*Bella's modification of the Shoup-Rubin protocol*}
+section{*Bella's modification of the Shoup-Rubin protocol*}
 
 theory ShoupRubinBella imports Smartcard begin
 

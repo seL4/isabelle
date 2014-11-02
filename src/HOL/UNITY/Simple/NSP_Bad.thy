@@ -5,7 +5,7 @@
 Original file is ../Auth/NS_Public_Bad
 *)
 
-header{*Analyzing the Needham-Schroeder Public-Key Protocol in UNITY*}
+section{*Analyzing the Needham-Schroeder Public-Key Protocol in UNITY*}
 
 theory NSP_Bad imports "../../Auth/Public" "../UNITY_Main" begin
 

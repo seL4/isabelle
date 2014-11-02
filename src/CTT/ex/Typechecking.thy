@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header "Easy examples: type checking and type deduction"
+section "Easy examples: type checking and type deduction"
 
 theory Typechecking
 imports CTT

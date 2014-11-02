@@ -3,7 +3,7 @@
     Copyright   2002  University of Cambridge
 *)
 
-header{*lemmas on guarded messages for protocols with symmetric keys*}
+section{*lemmas on guarded messages for protocols with symmetric keys*}
 
 theory Guard_Shared imports Guard GuardK "../Shared" begin
 

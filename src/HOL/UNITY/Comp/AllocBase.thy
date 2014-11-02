@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-header{*Common Declarations for Chandy and Charpentier's Allocator*}
+section{*Common Declarations for Chandy and Charpentier's Allocator*}
 
 theory AllocBase imports "../UNITY_Main" begin
 

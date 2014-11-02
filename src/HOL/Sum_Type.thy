@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header{*The Disjoint Sum of Two Types*}
+section{*The Disjoint Sum of Two Types*}
 
 theory Sum_Type
 imports Typedef Inductive Fun

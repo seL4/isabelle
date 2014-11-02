@@ -3,7 +3,7 @@
     Copyright   2000 TU Muenchen
 *)
 
-header {* Simply-typed lambda terms *}
+section {* Simply-typed lambda terms *}
 
 theory LambdaType imports ListApplication begin
 

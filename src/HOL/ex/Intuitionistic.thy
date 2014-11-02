@@ -5,7 +5,7 @@
 Taken from FOL/ex/int.ML
 *)
 
-header {* Higher-Order Logic: Intuitionistic predicate calculus problems *}
+section {* Higher-Order Logic: Intuitionistic predicate calculus problems *}
 
 theory Intuitionistic imports Main begin
 

@@ -3,7 +3,7 @@
     Copyright   2000 TU Muenchen
 *)
 
-header {* An application of the While combinator *}
+section {* An application of the While combinator *}
 
 theory While_Combinator_Example
 imports "~~/src/HOL/Library/While_Combinator"

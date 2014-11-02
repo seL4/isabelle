@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl
 *)
 
-header {* Vector Spaces and Algebras over the Reals *}
+section {* Vector Spaces and Algebras over the Reals *}
 
 theory Real_Vector_Spaces
 imports Real Topological_Spaces

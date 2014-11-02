@@ -25,7 +25,7 @@ Tobias Nipkow cleaned up a lot.
 *)
 
 
-header {* Primes *}
+section {* Primes *}
 
 theory Primes
 imports "~~/src/HOL/GCD"

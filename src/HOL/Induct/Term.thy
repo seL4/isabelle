@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer,  TU Muenchen
 *)
 
-header {* Terms over a given alphabet *}
+section {* Terms over a given alphabet *}
 
 theory Term
 imports Main

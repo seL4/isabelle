@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header {* Bijections between sets *}
+section {* Bijections between sets *}
 
 theory BijectionRel
 imports Main

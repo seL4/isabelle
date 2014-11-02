@@ -3,7 +3,7 @@
     Copyright   2011 TU Muenchen
 *)
 
-header {* Examples for the list comprehension to set comprehension simproc *}
+section {* Examples for the list comprehension to set comprehension simproc *}
 
 theory List_to_Set_Comprehension_Examples
 imports Main

@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header{*Lists of Messages and Lists of Agents*}
+section{*Lists of Messages and Lists of Agents*}
 
 theory List_Msg imports Extensions begin
 

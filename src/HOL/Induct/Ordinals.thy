@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 
-header {* Ordinals *}
+section {* Ordinals *}
 
 theory Ordinals
 imports Main

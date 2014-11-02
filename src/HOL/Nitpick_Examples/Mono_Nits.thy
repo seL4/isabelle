@@ -5,7 +5,7 @@
 Examples featuring Nitpick's monotonicity check.
 *)
 
-header {* Examples Featuring Nitpick's Monotonicity Check *}
+section {* Examples Featuring Nitpick's Monotonicity Check *}
 
 theory Mono_Nits
 imports Main

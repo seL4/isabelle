@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header {*Extensions to Standard Theories*}
+section {*Extensions to Standard Theories*}
 
 theory Extensions
 imports "../Event"

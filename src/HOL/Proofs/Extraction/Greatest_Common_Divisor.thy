@@ -3,7 +3,7 @@
     Author:     Helmut Schwichtenberg, LMU Muenchen
 *)
 
-header {* Greatest common divisor *}
+section {* Greatest common divisor *}
 
 theory Greatest_Common_Divisor
 imports QuotRem

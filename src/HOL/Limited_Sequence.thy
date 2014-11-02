@@ -1,7 +1,7 @@
 
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-header {* Depth-Limited Sequences with failure element *}
+section {* Depth-Limited Sequences with failure element *}
 
 theory Limited_Sequence
 imports Lazy_Sequence

@@ -1,4 +1,4 @@
-header {*  Section 10.4 *}
+section {*  Section 10.4 *}
 
 theory Ex1
 imports LCF

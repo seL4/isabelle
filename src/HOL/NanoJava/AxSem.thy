@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-header "Axiomatic Semantics"
+section "Axiomatic Semantics"
 
 theory AxSem imports State begin
 

@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* ATP Problem Importer *}
+section {* ATP Problem Importer *}
 
 theory ATP_Problem_Import
 imports Complex_Main TPTP_Interpret "~~/src/HOL/Library/Refute"

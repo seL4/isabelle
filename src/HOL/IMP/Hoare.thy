@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header "Hoare Logic"
+section "Hoare Logic"
 
 theory Hoare imports Big_Step begin
 

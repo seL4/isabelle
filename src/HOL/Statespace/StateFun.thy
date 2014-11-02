@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-header {* State Space Representation as Function \label{sec:StateFun}*}
+section {* State Space Representation as Function \label{sec:StateFun}*}
 
 theory StateFun imports DistinctTreeProver 
 begin

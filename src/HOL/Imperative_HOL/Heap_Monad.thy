@@ -2,7 +2,7 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
-header {* A monad with a polymorphic heap and primitive reasoning infrastructure *}
+section {* A monad with a polymorphic heap and primitive reasoning infrastructure *}
 
 theory Heap_Monad
 imports

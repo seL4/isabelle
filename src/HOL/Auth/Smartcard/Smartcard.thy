@@ -1,7 +1,7 @@
 (* Author:     Giampaolo Bella, Catania University
 *)
 
-header{*Theory of smartcards*}
+section{*Theory of smartcards*}
 
 theory Smartcard
 imports EventSC "../All_Symmetric"

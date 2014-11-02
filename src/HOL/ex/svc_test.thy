@@ -1,4 +1,4 @@
-header {* Demonstrating the interface SVC *}
+section {* Demonstrating the interface SVC *}
 
 theory svc_test
 imports SVC_Oracle

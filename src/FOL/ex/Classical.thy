@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Classical Predicate Calculus Problems*}
+section{*Classical Predicate Calculus Problems*}
 
 theory Classical imports FOL begin
 

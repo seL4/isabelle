@@ -3,7 +3,7 @@
     Copyright:  1998 University of Munich
 *)
 
-header {* The action level of TLA as an Isabelle theory *}
+section {* The action level of TLA as an Isabelle theory *}
 
 theory Action
 imports Stfun

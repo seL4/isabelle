@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* Intuitionistic First-Order Logic *}
+section {* Intuitionistic First-Order Logic *}
 
 theory Intuitionistic
 imports IFOL

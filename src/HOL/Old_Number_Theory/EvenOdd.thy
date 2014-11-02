@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-header {*Parity: Even and Odd Integers*}
+section {*Parity: Even and Odd Integers*}
 
 theory EvenOdd
 imports Int2

@@ -3,7 +3,7 @@
     Copyright:  1998 University of Munich
 *)
 
-header {* A framework for "intensional" (possible-world based) logics
+section {* A framework for "intensional" (possible-world based) logics
   on top of HOL, with lifting of constants and functions *}
 
 theory Intensional

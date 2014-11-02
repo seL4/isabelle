@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header {* Primality on nat *}
+section {* Primality on nat *}
 
 theory Primes
 imports Complex_Main Legacy_GCD

@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
+section {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 
 theory Inductive
 imports Complete_Lattices Ctr_Sugar

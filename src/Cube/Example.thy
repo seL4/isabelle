@@ -1,4 +1,4 @@
-header \<open>Lambda Cube Examples\<close>
+section \<open>Lambda Cube Examples\<close>
 
 theory Example
 imports Cube

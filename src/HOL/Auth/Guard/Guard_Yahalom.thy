@@ -3,7 +3,7 @@
     Copyright   2002  University of Cambridge
 *)
 
-header{*Yahalom Protocol*}
+section{*Yahalom Protocol*}
 
 theory Guard_Yahalom imports "../Shared" Guard_Shared begin
 

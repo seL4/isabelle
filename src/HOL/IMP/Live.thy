@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header "Live Variable Analysis"
+section "Live Variable Analysis"
 
 theory Live imports Vars Big_Step
 begin

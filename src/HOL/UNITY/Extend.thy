@@ -7,7 +7,7 @@ Extending of state setsExtending of state sets
   function g (forgotten) maps the extended state to the "extending part"
 *)
 
-header{*Extending State Sets*}
+section{*Extending State Sets*}
 
 theory Extend imports Guar begin
 

@@ -2,7 +2,7 @@
     Author:     David von Oheimb (based on a theory by Tobias Nipkow et al), TUM
 *)
 
-header {* Natural semantics of commands *}
+section {* Natural semantics of commands *}
 
 theory Natural
 imports Com

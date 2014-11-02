@@ -5,7 +5,7 @@
 Examples featuring Nitpick's "destroy_constrs" optimization.
 *)
 
-header {* Examples Featuring Nitpick's \textit{destroy\_constrs} Optimization *}
+section {* Examples Featuring Nitpick's \textit{destroy\_constrs} Optimization *}
 
 theory Pattern_Nits
 imports Main

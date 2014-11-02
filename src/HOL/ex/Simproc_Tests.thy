@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Testing of arithmetic simprocs *}
+section {* Testing of arithmetic simprocs *}
 
 theory Simproc_Tests
 imports Main

@@ -3,7 +3,7 @@
     Copyright   1995  TU Muenchen
 *)
 
-header {* Abstract commutation and confluence notions *}
+section {* Abstract commutation and confluence notions *}
 
 theory Commutation
 imports Main

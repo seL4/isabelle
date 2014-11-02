@@ -4,7 +4,7 @@
     Copyright   1994, 2012
 *)
 
-header {* Notions about functions *}
+section {* Notions about functions *}
 
 theory Fun
 imports Set

@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
 
-header {* Complex Numbers: Rectangular and Polar Representations *}
+section {* Complex Numbers: Rectangular and Polar Representations *}
 
 theory Complex
 imports Transcendental

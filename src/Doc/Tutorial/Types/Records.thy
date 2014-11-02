@@ -1,5 +1,5 @@
 
-header {* Records \label{sec:records} *}
+section {* Records \label{sec:records} *}
 
 (*<*)
 theory Records imports Main begin

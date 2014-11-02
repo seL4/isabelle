@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header "Definite Initialization Analysis"
+section "Definite Initialization Analysis"
 
 theory Vars imports Com
 begin

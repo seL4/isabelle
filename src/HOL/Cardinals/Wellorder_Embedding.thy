@@ -5,7 +5,7 @@
 Well-order embeddings.
 *)
 
-header {* Well-Order Embeddings *}
+section {* Well-Order Embeddings *}
 
 theory Wellorder_Embedding
 imports BNF_Wellorder_Embedding Fun_More Wellorder_Relation
