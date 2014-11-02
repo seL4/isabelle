@@ -16,7 +16,7 @@
 (*              (c) Copyright, John Harrison 1998-2008                       *)
 (* ========================================================================= *)
 
-header {* Results connected with topological dimension. *}
+section {* Results connected with topological dimension. *}
 
 theory Brouwer_Fixpoint
 imports Convex_Euclidean_Space

@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-header {* Definition of finite Cartesian product types. *}
+section {* Definition of finite Cartesian product types. *}
 
 theory Finite_Cartesian_Product
 imports

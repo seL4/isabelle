@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Operator Norm *}
+section {* Operator Norm *}
 
 theory Operator_Norm
 imports Complex_Main

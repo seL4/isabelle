@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-header {* Elementary linear algebra on Euclidean spaces *}
+section {* Elementary linear algebra on Euclidean spaces *}
 
 theory Linear_Algebra
 imports

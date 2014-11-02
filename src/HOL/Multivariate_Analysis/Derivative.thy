@@ -3,7 +3,7 @@
     Author:     Robert Himmelmann, TU Muenchen (translation from HOL Light)
 *)
 
-header {* Multivariate calculus in Euclidean space *}
+section {* Multivariate calculus in Euclidean space *}
 
 theory Derivative
 imports Brouwer_Fixpoint Operator_Norm

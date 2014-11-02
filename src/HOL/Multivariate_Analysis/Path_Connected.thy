@@ -2,7 +2,7 @@
     Author:     Robert Himmelmann, TU Muenchen
 *)
 
-header {* Continuous paths and path-connected sets *}
+section {* Continuous paths and path-connected sets *}
 
 theory Path_Connected
 imports Convex_Euclidean_Space

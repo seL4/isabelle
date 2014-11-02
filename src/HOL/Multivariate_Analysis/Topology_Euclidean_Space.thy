@@ -4,7 +4,7 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-header {* Elementary topology in Euclidean space. *}
+section {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
 imports

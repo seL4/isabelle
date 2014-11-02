@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-header {* Traces, Determinant of square matrices and some properties *}
+section {* Traces, Determinant of square matrices and some properties *}
 
 theory Determinants
 imports

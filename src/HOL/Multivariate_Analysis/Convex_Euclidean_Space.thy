@@ -3,7 +3,7 @@
     Author:     Bogdan Grechuk, University of Edinburgh
 *)
 
-header {* Convex sets, functions and related things. *}
+section {* Convex sets, functions and related things. *}
 
 theory Convex_Euclidean_Space
 imports

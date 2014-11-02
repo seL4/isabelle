@@ -1,4 +1,4 @@
-header {* polynomial functions: extremal behaviour and root counts *}
+section {* polynomial functions: extremal behaviour and root counts *}
 
 (*  Author: John Harrison and Valentina Bruno
     Ported from "hol_light/Multivariate/complexes.ml" by L C Paulson

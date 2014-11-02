@@ -2,7 +2,7 @@
     Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light)
 *)
 
-header {* Kurzweil-Henstock Gauge Integration in many dimensions. *}
+section {* Kurzweil-Henstock Gauge Integration in many dimensions. *}
 
 theory Integration
 imports

@@ -2,7 +2,7 @@
     Ported from "hol_light/Multivariate/canal.ml" by L C Paulson (2014)
 *)
 
-header {* Complex Analysis Basics *}
+section {* Complex Analysis Basics *}
 
 theory Complex_Analysis_Basics
 imports  "~~/src/HOL/Multivariate_Analysis/Cartesian_Euclidean_Space"

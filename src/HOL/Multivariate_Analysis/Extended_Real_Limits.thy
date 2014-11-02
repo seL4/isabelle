@@ -5,7 +5,7 @@
     Author:     Bogdan Grechuk, University of Edinburgh
 *)
 
-header {* Limits on the Extended real number line *}
+section {* Limits on the Extended real number line *}
 
 theory Extended_Real_Limits
   imports Topology_Euclidean_Space "~~/src/HOL/Library/Extended_Real" "~~/src/HOL/Library/Indicator_Function"

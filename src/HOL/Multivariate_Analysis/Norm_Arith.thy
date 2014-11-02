@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-header {* General linear decision procedure for normed spaces *}
+section {* General linear decision procedure for normed spaces *}
 
 theory Norm_Arith
 imports "~~/src/HOL/Library/Sum_of_Squares"
