@@ -1,4 +1,4 @@
-header {* \section{The Proof System} *}
+section {* The Proof System *}
 
 theory RG_Hoare imports RG_Tran begin
 

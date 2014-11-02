@@ -1,7 +1,6 @@
+chapter {* The Owicki-Gries Method *} 
 
-header {* \chapter{The Owicki-Gries Method} 
-
-\section{Abstract Syntax} *} 
+section {* Abstract Syntax *}
 
 theory OG_Com imports Main begin
 

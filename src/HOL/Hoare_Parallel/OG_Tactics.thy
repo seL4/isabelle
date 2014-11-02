@@ -1,4 +1,4 @@
-header {* \section{Generation of Verification Conditions} *}
+section {* Generation of Verification Conditions *}
 
 theory OG_Tactics
 imports OG_Hoare

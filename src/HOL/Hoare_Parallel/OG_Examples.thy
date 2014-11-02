@@ -1,4 +1,4 @@
-header {* \section{Examples} *}
+section {* Examples *}
 
 theory OG_Examples imports OG_Syntax begin
 

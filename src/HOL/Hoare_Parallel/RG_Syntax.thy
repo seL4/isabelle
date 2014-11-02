@@ -1,4 +1,4 @@
-header {* \section{Concrete Syntax} *}
+section {* Concrete Syntax *}
 
 theory RG_Syntax
 imports RG_Hoare Quote_Antiquote

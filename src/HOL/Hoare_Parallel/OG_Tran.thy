@@ -1,5 +1,4 @@
-
-header {* \section{Operational Semantics} *}
+section {* Operational Semantics *}
 
 theory OG_Tran imports OG_Com begin
 

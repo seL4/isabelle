@@ -1,5 +1,4 @@
-
-header {* \section{The Proof System} *}
+section {* The Proof System *}
 
 theory OG_Hoare imports OG_Tran begin
 

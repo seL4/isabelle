@@ -1,4 +1,4 @@
-header {* \section{The Single Mutator Case} *}
+section {* The Single Mutator Case *}
 
 theory Gar_Coll imports Graph OG_Syntax begin
 

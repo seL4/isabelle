@@ -1,8 +1,6 @@
+chapter {* The Rely-Guarantee Method *}
 
-header {* \chapter{The Rely-Guarantee Method} 
-
-\section {Abstract Syntax}
-*}
+section {* Abstract Syntax *}
 
 theory RG_Com imports Main begin
 

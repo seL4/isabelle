@@ -1,4 +1,4 @@
-header {* \section{Operational Semantics} *}
+section {* Operational Semantics *}
 
 theory RG_Tran
 imports RG_Com

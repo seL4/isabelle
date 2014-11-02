@@ -1,5 +1,4 @@
-
-header {* \section{The Multi-Mutator Case} *}
+section {* The Multi-Mutator Case *}
 
 theory Mul_Gar_Coll imports Graph OG_Syntax begin
 

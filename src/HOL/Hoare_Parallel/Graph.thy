@@ -1,6 +1,6 @@
-header {* \chapter{Case Study: Single and Multi-Mutator Garbage Collection Algorithms}
+chapter {* Case Study: Single and Multi-Mutator Garbage Collection Algorithms *}
 
-\section {Formalization of the Memory} *}
+section {* Formalization of the Memory *}
 
 theory Graph imports Main begin
 

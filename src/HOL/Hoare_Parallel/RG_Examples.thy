@@ -1,4 +1,4 @@
-header {* \section{Examples} *}
+section {* Examples *}
 
 theory RG_Examples
 imports RG_Syntax

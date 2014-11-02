@@ -1,5 +1,4 @@
-
-header {* \section{Concrete Syntax} *}
+section {* Concrete Syntax *}
 
 theory Quote_Antiquote imports Main begin
 
