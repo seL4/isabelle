@@ -172,7 +172,8 @@ argument. Minor INCOMPATIBILITY.
 before the initial 'theory' command.  Obsolete proof commands 'sect',
 'subsect', 'subsubsect' have been discontinued.  The Obsolete 'header'
 command is still retained for some time, but should be replaced by
-'chapter', 'section' etc. Minor INCOMPATIBILITY.
+'chapter', 'section' etc. (using "isabelle update_header"). Minor
+INCOMPATIBILITY.
 
 * Official support for "tt" style variants, via \isatt{...} or
 \begin{isabellett}...\end{isabellett}. The somewhat fragile \verb or
