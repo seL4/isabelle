@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/TypeRel.thy
     Author:     David von Oheimb
 *)
-header {* The relations between Java types *}
+subsection {* The relations between Java types *}
 
 theory TypeRel imports Decl begin
 
@@ -55,7 +55,7 @@ notation (xsymbols)
   implmt1_syntax   ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
 
 
-section "subclass and subinterface relations"
+subsubsection "subclass and subinterface relations"
 
   (* direct subinterface in Decl.thy, cf. 9.1.3 *)
   (* direct subclass     in Decl.thy, cf. 8.1.3 *)
@@ -327,7 +327,7 @@ proof -
   qed
 qed
 
-section "implementation relation"
+subsubsection "implementation relation"
 
 lemma implmt1D: "G\<turnstile>C\<leadsto>1I \<Longrightarrow> C\<noteq>Object \<and> (\<exists>c\<in>class G C: I\<in>set (superIfs c))"
 apply (unfold implmt1_def)
@@ -366,7 +366,7 @@ apply (auto dest: implmt1D subcls1D)
 done
 
 
-section "widening relation"
+subsubsection "widening relation"
 
 inductive
  --{*widening, viz. method invocation conversion, cf. 5.3
@@ -583,7 +583,7 @@ apply auto
 done
 
 
-section "narrowing relation"
+subsubsection "narrowing relation"
 
 (* all properties of narrowing and casting conversions we actually need *)
 (* these can easily be proven from the definitions below *)
@@ -643,7 +643,7 @@ by (ind_cases "G\<turnstile>PrimT Boolean\<succ>T")
 lemma narrow_Boolean2: "G\<turnstile>S\<succ>PrimT Boolean \<Longrightarrow> S=PrimT Boolean"
 by (ind_cases "G\<turnstile>S\<succ>PrimT Boolean")
 
-section "casting relation"
+subsubsection "casting relation"
 
 inductive --{* casting conversion, cf. 5.5 *}
   cast :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>? _" [71,71,71] 70)

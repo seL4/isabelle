@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/State.thy
     Author:     David von Oheimb
 *)
-header {* State for evaluation of Java expressions and statements *}
+subsection {* State for evaluation of Java expressions and statements *}
 
 theory State
 imports DeclConcepts
@@ -17,7 +17,7 @@ design issues:
 \end{itemize}
 *}
 
-section "objects"
+subsubsection "objects"
 
 datatype  obj_tag =     --{* tag for generic object   *}
           CInst qtname  --{* class instance           *}
@@ -128,7 +128,7 @@ apply (case_tac "statC = Object")
 apply (auto dest: widen_Array_Class)
 done
 
-section "object references"
+subsubsection "object references"
 
 type_synonym oref = "loc + qtname"         --{* generalized object reference *}
 syntax
@@ -211,7 +211,7 @@ apply (force split add: sum.split_asm sum.split obj_tag.split)
 done
 
 
-section "stores"
+subsubsection "stores"
 
 type_synonym globs               --{* global variables: heap and static variables *}
         = "(oref , obj) table"
@@ -459,7 +459,7 @@ apply (simp (no_asm))
 done
 
 
-section "abrupt completion"
+subsubsection "abrupt completion"
 
 
 
@@ -577,7 +577,7 @@ lemma absorb_Some_JumpD: "absorb j s = Some (Jump j') \<Longrightarrow> j'\<note
   by (simp add: absorb_def)
 
 
-section "full program state"
+subsubsection "full program state"
 
 type_synonym
   state = "abopt \<times> st"          --{* state including abruption information *}
@@ -687,7 +687,7 @@ apply (simp (no_asm_simp) only: split_tupled_all)
 apply (simp (no_asm))
 done
 
-section "initialisation test"
+subsubsection "initialisation test"
 
 definition
   inited :: "qtname \<Rightarrow> globs \<Rightarrow> bool"
@@ -727,7 +727,7 @@ apply (unfold initd_def)
 apply (simp (no_asm))
 done
 
-section {* @{text error_free} *}
+subsubsection {* @{text error_free} *}
 
 definition
   error_free :: "state \<Rightarrow> bool"

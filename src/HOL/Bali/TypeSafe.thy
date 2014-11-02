@@ -1,13 +1,13 @@
 (*  Title:      HOL/Bali/TypeSafe.thy
     Author:     David von Oheimb and Norbert Schirmer
 *)
-header {* The type soundness proof for Java *}
+subsection {* The type soundness proof for Java *}
 
 theory TypeSafe
 imports DefiniteAssignmentCorrect Conform
 begin
 
-section "error free"
+subsubsection "error free"
  
 lemma error_free_halloc:
   assumes halloc: "G\<turnstile>s0 \<midarrow>halloc oi\<succ>a\<rightarrow> s1" and
@@ -90,7 +90,7 @@ lemma error_free_throw [simp,intro]:
 by (cases s) (simp add: throw_def)
 
 
-section "result conformance"
+subsubsection "result conformance"
 
 definition
   assign_conforms :: "st \<Rightarrow> (val \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> ty \<Rightarrow> env' \<Rightarrow> bool" ("_\<le>|_\<preceq>_\<Colon>\<preceq>_" [71,71,71,71] 70)
@@ -163,7 +163,7 @@ apply (unfold rconf_def)
 apply (simp (no_asm))
 done
 
-section "fits and conf"
+subsubsection "fits and conf"
 
 (* unused *)
 lemma conf_fits: "G,s\<turnstile>v\<Colon>\<preceq>T \<Longrightarrow> G,s\<turnstile>v fits T"
@@ -188,7 +188,7 @@ done
 
 
 
-section "gext"
+subsubsection "gext"
 
 lemma halloc_gext: "\<And>s1 s2. G\<turnstile>s1 \<midarrow>halloc oi\<succ>a\<rightarrow> s2 \<Longrightarrow> snd s1\<le>|snd s2"
 apply (simp (no_asm_simp) only: split_tupled_all)
@@ -242,7 +242,7 @@ apply (simp (no_asm_use))
 done
 
 
-section "Lemmas"
+subsubsection "Lemmas"
 
 lemma obj_ty_obj_class1: 
  "\<lbrakk>wf_prog G; is_type G (obj_ty obj)\<rbrakk> \<Longrightarrow> is_class G (obj_class obj)"
@@ -809,7 +809,7 @@ apply   (force elim!: fits_Array dest: gext_objD
 done
 
 
-section "Call"
+subsubsection "Call"
 
 lemma conforms_init_lvars_lemma: "\<lbrakk>wf_prog G;  
   wf_mhead G P sig mh;
@@ -1699,7 +1699,7 @@ proof -
   thus ?thesis ..
 qed
 
-section "main proof of type safety"
+subsubsection "main proof of type safety"
     
 lemma eval_type_sound:
   assumes  eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" 

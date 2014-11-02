@@ -2,7 +2,7 @@
     Author:     David von Oheimb
 *)
 
-header {* Example of a proof based on the Bali axiomatic semantics *}
+subsection {* Example of a proof based on the Bali axiomatic semantics *}
 
 theory AxExample
 imports AxSem Example

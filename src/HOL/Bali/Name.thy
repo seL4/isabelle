@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Name.thy
     Author:     David von Oheimb
 *)
-header {* Java names *}
+subsection {* Java names *}
 
 theory Name imports Basis begin
 

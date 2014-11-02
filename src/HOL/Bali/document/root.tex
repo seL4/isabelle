@@ -19,8 +19,7 @@
 
 %subsection instead of section to make the toc readable
 \renewcommand{\thesubsection}{\arabic{subsection}}
-\renewcommand{\isamarkupheader}[1]{\newpage\markright{Theory~\isabellecontext}\subsection{#1}}
-\renewcommand{\isamarkupsection}[1]{\subsubsection{#1}}
+\renewcommand{\setisabellecontext}[1]{\markright{Theory~#1}}
 
 %remove spaces from the isabelle environment (trivlist makes them too large)
 \renewenvironment{isabelle}

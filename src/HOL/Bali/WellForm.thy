@@ -2,7 +2,7 @@
     Author:     David von Oheimb and Norbert Schirmer
 *)
 
-header {* Well-formedness of Java programs *}
+subsection {* Well-formedness of Java programs *}
 theory WellForm imports DefiniteAssignment begin
 
 text {*
@@ -27,7 +27,7 @@ simplifications:
 \end{itemize}
 *}
 
-section "well-formed field declarations"
+subsubsection "well-formed field declarations"
 text  {* well-formed field declaration (common part for classes and interfaces),
         cf. 8.3 and (9.3) *}
 
@@ -42,7 +42,7 @@ done
 
 
 
-section "well-formed method declarations"
+subsubsection "well-formed method declarations"
   (*well-formed method declaration,cf. 8.4, 8.4.1, 8.4.3, 8.4.5, 14.3.2, (9.4)*)
   (* cf. 14.15, 15.7.2, for scope issues cf. 8.4.1 and 14.3.2 *)
 
@@ -202,7 +202,7 @@ apply (unfold wf_mhead_def)
 apply auto
 done
 
-section "well-formed interface declarations"
+subsubsection "well-formed interface declarations"
   (* well-formed interface declaration, cf. 9.1, 9.1.2.1, 9.1.3, 9.4 *)
 
 text {*
@@ -273,7 +273,7 @@ apply (unfold wf_idecl_def ws_idecl_def)
 apply auto
 done
 
-section "well-formed class declarations"
+subsubsection "well-formed class declarations"
   (* well-formed class declaration, cf. 8.1, 8.1.2.1, 8.1.2.2, 8.1.3, 8.1.4 and
    class method declaration, cf. 8.4.3.3, 8.4.6.1, 8.4.6.2, 8.4.6.3, 8.4.6.4 *)
 
@@ -500,7 +500,7 @@ apply auto
 done
 
 
-section "well-formed programs"
+subsubsection "well-formed programs"
   (* well-formed program, cf. 8.1, 9.1 *)
 
 text {*

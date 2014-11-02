@@ -2,7 +2,7 @@
     Author:     David von Oheimb
 *)
 
-header {* Java types *}
+subsection {* Java types *}
 
 theory Type imports Name begin
 

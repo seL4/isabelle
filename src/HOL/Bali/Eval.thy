@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Eval.thy
     Author:     David von Oheimb
 *)
-header {* Operational evaluation (big-step) semantics of Java expressions and 
+subsection {* Operational evaluation (big-step) semantics of Java expressions and 
           statements
 *}
 
@@ -157,7 +157,7 @@ lemma [simp]: "undefined3 (In3  x) = In3 undefined"
 by (simp add: undefined3_def)
 
 
-section "exception throwing and catching"
+subsubsection "exception throwing and catching"
 
 definition
   throw :: "val \<Rightarrow> abopt \<Rightarrow> abopt" where
@@ -233,7 +233,7 @@ done
 
 
 
-section "misc"
+subsubsection "misc"
 
 definition
   assign :: "('a \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> 'a \<Rightarrow> state \<Rightarrow> state" where
@@ -385,7 +385,7 @@ apply (unfold body_def Let_def)
 apply auto
 done
 
-section "variables"
+subsubsection "variables"
 
 definition
   lvar :: "lname \<Rightarrow> st \<Rightarrow> vvar"
@@ -467,7 +467,7 @@ definition
                   AccessViolation)
         s)"
        
-section "evaluation judgments"
+subsubsection "evaluation judgments"
 
 inductive
   halloc :: "[prog,state,obj_tag,loc,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>halloc _\<succ>_\<rightarrow> _"[61,61,61,61,61]60) for G::prog
@@ -1123,7 +1123,7 @@ proof -
 qed
 
 
-section "single valued"
+subsubsection "single valued"
 
 lemma unique_halloc [rule_format (no_asm)]: 
   "G\<turnstile>s \<midarrow>halloc oi\<succ>a \<rightarrow> s' \<Longrightarrow> G\<turnstile>s \<midarrow>halloc oi\<succ>a' \<rightarrow> s'' \<longrightarrow> a' = a \<and> s'' = s'"

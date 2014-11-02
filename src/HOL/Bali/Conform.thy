@@ -2,7 +2,7 @@
     Author:     David von Oheimb
 *)
 
-header {* Conformance notions for the type soundness proof for Java *}
+subsection {* Conformance notions for the type soundness proof for Java *}
 
 theory Conform imports State begin
 
@@ -19,7 +19,7 @@ design issues:
 type_synonym env' = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
 
 
-section "extension of global store"
+subsubsection "extension of global store"
 
 
 definition gext :: "st \<Rightarrow> st \<Rightarrow> bool" ("_\<le>|_"       [71,71]   70) where
@@ -94,7 +94,7 @@ apply (auto dest: gext_objD)
 done
 
 
-section "value conformance"
+subsubsection "value conformance"
 
 definition conf :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>_"   [71,71,71,71] 70)
   where "G,s\<turnstile>v\<Colon>\<preceq>T = (\<exists>T'\<in>typeof (\<lambda>a. map_option obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T)"
@@ -175,7 +175,7 @@ apply (auto dest: widen_PrimT)
 done
 
 
-section "value list conformance"
+subsubsection "value list conformance"
 
 definition
   lconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" ("_,_\<turnstile>_[\<Colon>\<preceq>]_" [71,71,71,71] 70)
@@ -248,7 +248,7 @@ apply (unfold lconf_def)
 apply force
 done
 
-section "weak value list conformance"
+subsubsection "weak value list conformance"
 
 text {* Only if the value is defined it has to conform to its type. 
         This is the contribution of the definite assignment analysis to 
@@ -338,7 +338,7 @@ lemma lconf_wlconf:
  "G,s\<turnstile>l[\<Colon>\<preceq>]L \<Longrightarrow> G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L"
 by (force simp add: lconf_def wlconf_def)
 
-section "object conformance"
+subsubsection "object conformance"
 
 definition
   oconf :: "prog \<Rightarrow> st \<Rightarrow> obj \<Rightarrow> oref \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>\<surd>_"  [71,71,71,71] 70) where
@@ -373,7 +373,7 @@ apply (subst obj_ty_cong)
 apply (auto dest!: fields_table_SomeD split add: sum.split_asm obj_tag.split_asm)
 done
 
-section "state conformance"
+subsubsection "state conformance"
 
 definition
   conforms :: "state \<Rightarrow> env' \<Rightarrow> bool"  ("_\<Colon>\<preceq>_" [71,71] 70)  where
@@ -383,7 +383,7 @@ definition
         (\<forall>a. fst xs=Some(Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)) \<and>
              (fst xs=Some(Jump Ret) \<longrightarrow> l Result \<noteq> None))"
 
-section "conforms"
+subsubsection "conforms"
 
 lemma conforms_globsD: 
 "\<lbrakk>(x, s)\<Colon>\<preceq>(G, L); globs s r = Some obj\<rbrakk> \<Longrightarrow> G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r"

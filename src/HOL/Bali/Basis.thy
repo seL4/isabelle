@@ -1,13 +1,13 @@
 (*  Title:      HOL/Bali/Basis.thy
     Author:     David von Oheimb
 *)
-header {* Definitions extending HOL as logical basis of Bali *}
+subsection {* Definitions extending HOL as logical basis of Bali *}
 
 theory Basis
 imports Main "~~/src/HOL/Library/Old_Recdef"
 begin
 
-section "misc"
+subsubsection "misc"
 
 ML {* fun strip_tac i = REPEAT (resolve_tac [impI, allI] i) *}
 
@@ -109,7 +109,7 @@ lemma list_all2_trans: "\<forall>a b c. P1 a b \<longrightarrow> P2 b c \<longri
   done
 
 
-section "pairs"
+subsubsection "pairs"
 
 lemma surjective_pairing5:
   "p = (fst p, fst (snd p), fst (snd (snd p)), fst (snd (snd (snd p))),
@@ -125,7 +125,7 @@ lemma fst_in_set_lemma: "(x, y) : set l \<Longrightarrow> x : fst ` set l"
   by (induct l) auto
 
 
-section "quantifiers"
+subsubsection "quantifiers"
 
 lemma All_Ex_refl_eq2 [simp]: "(\<forall>x. (\<exists>b. x = f b \<and> Q b) \<longrightarrow> P x) = (\<forall>b. Q b \<longrightarrow> P (f b))"
   by auto
@@ -143,7 +143,7 @@ lemma All_Ex_refl_eq1 [simp]: "(\<forall>x. (\<exists>b. x = f b) \<longrightarr
   by auto
 
 
-section "sums"
+subsubsection "sums"
 
 notation case_sum  (infixr "'(+')" 80)
 
@@ -186,7 +186,7 @@ fun sum3_instantiate ctxt thm =
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 
 
-section "quantifiers for option type"
+subsubsection "quantifiers for option type"
 
 syntax
   "_Oall" :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   ("(3! _:_:/ _)" [0,0,10] 10)
@@ -201,7 +201,7 @@ translations
   "\<exists>x\<in>A: P" \<rightleftharpoons> "\<exists>x\<in>CONST set_option A. P"
 
 
-section "Special map update"
+subsubsection "Special map update"
 
 text{* Deemed too special for theory Map. *}
 
@@ -218,7 +218,7 @@ lemma chg_map_other [simp]: "a \<noteq> b \<Longrightarrow> chg_map f a m b = m 
   by (auto simp: chg_map_def)
 
 
-section "unique association lists"
+subsubsection "unique association lists"
 
 definition unique :: "('a \<times> 'b) list \<Rightarrow> bool"
   where "unique = distinct \<circ> map fst"
@@ -250,7 +250,7 @@ lemma map_of_SomeI: "unique l \<Longrightarrow> (k, x) : set l \<Longrightarrow>
   by (induct l) auto
 
 
-section "list patterns"
+subsubsection "list patterns"
 
 definition lsplit :: "[['a, 'a list] \<Rightarrow> 'b, 'a list] \<Rightarrow> 'b"
   where "lsplit = (\<lambda>f l. f (hd l) (tl l))"

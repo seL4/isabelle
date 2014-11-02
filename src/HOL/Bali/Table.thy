@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Table.thy
     Author:     David von Oheimb
 *)
-header {* Abstract tables and their implementation as lists *}
+subsection {* Abstract tables and their implementation as lists *}
 
 theory Table imports Basis begin
 
@@ -35,7 +35,7 @@ type_synonym ('a, 'b) tables   --{* non-unique table with key 'a and contents 'b
       = "'a \<Rightarrow> 'b set"
 
 
-section "map of / table of"
+subsubsection "map of / table of"
 
 abbreviation
   table_of :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   --{* concrete table *}
@@ -49,7 +49,7 @@ lemma map_add_find_left[simp]: "n k = None \<Longrightarrow> (m ++ n) k = m k"
   by (simp add: map_add_def)
 
 
-section {* Conditional Override *}
+subsubsection {* Conditional Override *}
 
 definition cond_override :: "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b) table" where
 
@@ -95,7 +95,7 @@ apply (rule dom_cond_override)
 by (rule finite_UnI)
 
 
-section {* Filter on Tables *}
+subsubsection {* Filter on Tables *}
 
 definition filter_tab :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) table \<Rightarrow> ('a, 'b) table"
   where
@@ -179,7 +179,7 @@ lemma cond_override_filter:
 by (auto simp add: fun_eq_iff cond_override_def filter_tab_def )
 
 
-section {* Misc *}
+subsubsection {* Misc *}
 
 lemma Ball_set_table: "(\<forall> (x,y)\<in> set l. P x y) \<Longrightarrow> \<forall> x. \<forall> y\<in> map_of l x: P x y"
 apply (erule rev_mp)
@@ -289,7 +289,7 @@ definition
   where "(t hiding  s under C entails R) = (\<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: C x y \<longrightarrow> R x y)"
 
 
-section "Untables"
+subsubsection "Untables"
 
 lemma Un_tablesI [intro]:  "t \<in> ts \<Longrightarrow> x \<in> t k \<Longrightarrow> x \<in> Un_tables ts k"
   by (auto simp add: Un_tables_def)
@@ -301,7 +301,7 @@ lemma Un_tables_empty [simp]: "Un_tables {} = (\<lambda>k. {})"
   by (simp add: Un_tables_def)
 
 
-section "overrides"
+subsubsection "overrides"
 
 lemma empty_overrides_t [simp]: "(\<lambda>k. {}) \<oplus>\<oplus> m = m"
   by (simp add: overrides_t_def)
@@ -322,7 +322,7 @@ lemma overrides_t_find_right [simp]: "n k \<noteq> {} \<Longrightarrow> (m \<opl
   by (simp add: overrides_t_def)
 
 
-section "hiding entails"
+subsubsection "hiding entails"
 
 lemma hiding_entailsD: 
   "t hiding s entails R \<Longrightarrow> t k = Some x \<Longrightarrow> s k = Some y \<Longrightarrow> R x y"
@@ -335,7 +335,7 @@ lemma hiding_empty_entails [simp]: "t hiding empty entails R"
   by (simp add: hiding_entails_def)
 
 
-section "cond hiding entails"
+subsubsection "cond hiding entails"
 
 lemma cond_hiding_entailsD: 
 "\<lbrakk>t hiding s under C entails R; t k = Some x; s k = Some y; C x y\<rbrakk> \<Longrightarrow> R x y"

@@ -1,4 +1,4 @@
-header {* Correctness of Definite Assignment *}
+subsection {* Correctness of Definite Assignment *}
 
 theory DefiniteAssignmentCorrect imports WellForm Eval begin
 

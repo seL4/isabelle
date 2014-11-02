@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Decl.thy
     Author:     David von Oheimb and Norbert Schirmer
 *)
-header {* Field, method, interface, and class declarations, whole Java programs
+subsection {* Field, method, interface, and class declarations, whole Java programs
 *}
 
 theory Decl
@@ -367,7 +367,7 @@ lemma init_cbody [simp]:"init (cbody c) = init c"
 by (simp add: cbody_def)
 
 
-section "standard classes"
+subsubsection "standard classes"
 
 consts
   Object_mdecls  ::  "mdecl list" --{* methods of Object *}
@@ -399,7 +399,7 @@ definition
                 SXcptC NegArrSize , SXcptC IndOutBound, SXcptC ArrStore]"
 
 
-section "programs"
+subsubsection "programs"
 
 record prog =
         ifaces ::"idecl list"
@@ -426,7 +426,7 @@ abbreviation
   where "is_class G C == class G C \<noteq> None"
 
 
-section "is type"
+subsubsection "is type"
 
 primrec is_type :: "prog \<Rightarrow> ty \<Rightarrow> bool"
   and isrtype :: "prog \<Rightarrow> ref_ty \<Rightarrow> bool"
@@ -445,7 +445,7 @@ lemma type_is_class: "is_type G (Class C) \<Longrightarrow>  is_class G C"
 by auto
 
 
-section "subinterface and subclass relation, in anticipation of TypeRel.thy"
+subsubsection "subinterface and subclass relation, in anticipation of TypeRel.thy"
 
 definition
   subint1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct subinterface *}
@@ -516,7 +516,7 @@ apply (erule trancl_induct)
 apply (auto intro: no_subcls1_Object)
 done
 
-section "well-structured programs"
+subsubsection "well-structured programs"
 
 definition
   ws_idecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname list \<Rightarrow> bool"
@@ -562,7 +562,7 @@ apply auto
 done
 
 
-section "well-foundedness"
+subsubsection "well-foundedness"
 
 lemma finite_is_iface: "finite {I. is_iface G I}"
 apply (fold dom_def)
@@ -765,7 +765,7 @@ proof -
   qed
 qed
 
-section "general recursion operators for the interface and class hiearchies"
+subsubsection "general recursion operators for the interface and class hiearchies"
 
 function iface_rec  :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<Rightarrow> iface \<Rightarrow> 'a set \<Rightarrow> 'a) \<Rightarrow> 'a"
 where

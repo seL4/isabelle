@@ -2,7 +2,7 @@
     Author:     David von Oheimb and Norbert Schirmer
 *)
 
-header {*
+subsection {*
 Completeness proof for Axiomatic semantics of Java expressions and statements
 *}
 
@@ -18,7 +18,7 @@ design issues:
 
 
            
-section "set of not yet initialzed classes"
+subsubsection "set of not yet initialzed classes"
 
 definition
   nyinitcls :: "prog \<Rightarrow> state \<Rightarrow> qtname set"
@@ -93,7 +93,7 @@ apply assumption
 done
 
 
-section "init-le"
+subsubsection "init-le"
 
 definition
   init_le :: "prog \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> bool" ("_\<turnstile>init\<le>_"  [51,51] 50)
@@ -113,7 +113,7 @@ apply clarsimp
 apply (rule card_nyinitcls_bound)
 done
 
-section "Most General Triples and Formulas"
+subsubsection "Most General Triples and Formulas"
 
 definition
   remember_init_state :: "state assn" ("\<doteq>")
@@ -265,7 +265,7 @@ apply (erule conseq12)
 apply blast
 done
 
-section "main lemmas"
+subsubsection "main lemmas"
 
 lemma MGFn_Init: 
  assumes mgf_hyp: "\<forall>m. Suc m\<le>n \<longrightarrow> (\<forall>t. G,A\<turnstile>{=:m} t\<succ> {G\<rightarrow>})"
@@ -1355,7 +1355,7 @@ apply (force dest: wt_Methd_is_methd)
 apply assumption (* wf_prog G *)
 done
 
-section "nested version"
+subsubsection "nested version"
 
 lemma nesting_lemma' [rule_format (no_asm)]: 
   assumes ax_derivs_asm: "\<And>A ts. ts \<subseteq> A \<Longrightarrow> P A ts" 
@@ -1425,7 +1425,7 @@ apply (auto intro: MGFNormalI)
 done
 
 
-section "simultaneous version"
+subsubsection "simultaneous version"
 
 lemma MGF_simult_Methd_lemma: "finite ms \<Longrightarrow>  
   G,A \<union> (\<lambda>(C,sig). {Normal \<doteq>} \<langle>Methd  C sig\<rangle>\<^sub>e\<succ> {G\<rightarrow>}) ` ms  
@@ -1460,7 +1460,7 @@ apply   (auto intro: MGFNormalI)
 done
 
 
-section "corollaries"
+subsubsection "corollaries"
 
 lemma eval_to_evaln: "\<lbrakk>G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (Y', s');type_ok G t s; wf_prog G\<rbrakk>
  \<Longrightarrow>   \<exists>n. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y', s')"

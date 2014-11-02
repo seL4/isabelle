@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/WellType.thy
     Author:     David von Oheimb
 *)
-header {* Well-typedness of Java programs *}
+subsection {* Well-typedness of Java programs *}
 
 theory WellType
 imports DeclConcepts
@@ -47,7 +47,7 @@ abbreviation
   pkg :: "env \<Rightarrow> pname" --{* select the current package from an environment *}
   where "pkg e == pid (cls e)"
 
-section "Static overloading: maximally specific methods "
+subsubsection "Static overloading: maximally specific methods "
 
 type_synonym
   emhead = "ref_ty \<times> mhead"
@@ -174,7 +174,7 @@ lemma Null_staticD:
 apply (clarsimp simp add: invmode_IntVir_eq)
 done
 
-section "Typing for unary operations"
+subsubsection "Typing for unary operations"
 
 primrec unop_type :: "unop \<Rightarrow> prim_ty"
 where
@@ -190,7 +190,7 @@ where
 | "wt_unop UBitNot t = (t = PrimT Integer)"
 | "wt_unop UNot    t = (t = PrimT Boolean)"
 
-section "Typing for binary operations"
+subsubsection "Typing for binary operations"
 
 primrec binop_type :: "binop \<Rightarrow> prim_ty"
 where
@@ -242,7 +242,7 @@ where
 | "wt_binop G CondAnd t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
 | "wt_binop G CondOr  t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
 
-section "Typing for terms"
+subsubsection "Typing for terms"
 
 type_synonym tys  = "ty + ty list"
 translations

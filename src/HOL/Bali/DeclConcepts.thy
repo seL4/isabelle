@@ -1,12 +1,12 @@
 (*  Title:      HOL/Bali/DeclConcepts.thy
     Author:     Norbert Schirmer
 *)
-header {* Advanced concepts on Java declarations like overriding, inheritance,
+subsection {* Advanced concepts on Java declarations like overriding, inheritance,
 dynamic method lookup*}
 
 theory DeclConcepts imports TypeRel begin
 
-section "access control (cf. 6.6), overriding and hiding (cf. 8.4.6.1)"
+subsubsection "access control (cf. 6.6), overriding and hiding (cf. 8.4.6.1)"
 
 definition is_public :: "prog \<Rightarrow> qtname \<Rightarrow> bool" where
 "is_public G qn = (case class G qn of
@@ -1389,7 +1389,7 @@ proof -
   qed
 qed
 
-section "fields and methods"
+subsubsection "fields and methods"
 
 
 type_synonym
@@ -2282,7 +2282,7 @@ apply (erule finite_dom_methd)
 apply assumption
 done
 
-section "calculation of the superclasses of a class"
+subsubsection "calculation of the superclasses of a class"
 
 definition
   superclasses :: "prog \<Rightarrow> qtname \<Rightarrow> qtname set" where

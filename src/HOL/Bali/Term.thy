@@ -2,7 +2,7 @@
     Author:     David von Oheimb
 *)
 
-header {* Java expressions and statements *}
+subsection {* Java expressions and statements *}
 
 theory Term imports Value Table begin
 
@@ -427,7 +427,7 @@ lemma term_cases: "
   apply auto
   done
 
-section {* Evaluation of unary operations *}
+subsubsection {* Evaluation of unary operations *}
 primrec eval_unop :: "unop \<Rightarrow> val \<Rightarrow> val"
 where
   "eval_unop UPlus v = Intg (the_Intg v)"
@@ -435,7 +435,7 @@ where
 | "eval_unop UBitNot v = Intg 42"                -- "FIXME: Not yet implemented"
 | "eval_unop UNot v = Bool (\<not> the_Bool v)"
 
-section {* Evaluation of binary operations *}
+subsubsection {* Evaluation of binary operations *}
 primrec eval_binop :: "binop \<Rightarrow> val \<Rightarrow> val \<Rightarrow> val"
 where
   "eval_binop Mul     v1 v2 = Intg ((the_Intg v1) * (the_Intg v2))" 

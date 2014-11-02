@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Example.thy
     Author:     David von Oheimb
 *)
-header {* Example Bali program *}
+subsection {* Example Bali program *}
 
 theory Example
 imports Eval WellForm
@@ -63,7 +63,7 @@ done
 declare wf_fdecl_def2 [iff]
 
 
-section "type and expression names"
+subsubsection "type and expression names"
 
 (** unfortunately cannot simply instantiate tnam **)
 datatype tnam'  = HasFoo' | Base' | Ext' | Main'
@@ -141,7 +141,7 @@ by (simp add: SXcpt_def)
 lemma neq_Main_SXcpt [simp]: "Main\<noteq>SXcpt xn"
 by (simp add: SXcpt_def)
 
-section "classes and interfaces"
+subsubsection "classes and interfaces"
 
 defs
 
@@ -266,7 +266,7 @@ apply (unfold table_classes_defs )
 apply (simp (no_asm) add: Object_def SXcpt_def)
 done
 
-section "program"
+subsubsection "program"
 
 abbreviation
   tprg :: prog where
@@ -281,7 +281,7 @@ definition
                         (Acc (arr_viewed_from Main Ext).[Lit (Intg 2)])) Skip))"
 
 
-section "well-structuredness"
+subsubsection "well-structuredness"
 
 lemma not_Object_subcls_any [elim!]: "(Object, C) \<in> (subcls1 tprg)^+ \<Longrightarrow> R"
 apply (auto dest!: tranclD subcls1D)
@@ -378,7 +378,7 @@ apply (auto intro!: ws_idecl_all ws_cdecl_all)
 done
 
 
-section "misc program properties (independent of well-structuredness)"
+subsubsection "misc program properties (independent of well-structuredness)"
 
 lemma single_iface [simp]: "is_iface tprg I = (I = HasFoo)"
 apply (unfold Ifaces_def)
@@ -421,7 +421,7 @@ done
 
 
 
-section "fields and method lookup"
+subsubsection "fields and method lookup"
 
 lemma fields_tprg_Object [simp]: "DeclConcepts.fields tprg Object = []"
 by (rule ws_tprg [THEN fields_emptyI], force+)
@@ -531,7 +531,7 @@ apply (rule methd_rec')
 apply   (auto simp add: ExtCl_def Object_def Ext_method_inheritance)
 done
 
-section "accessibility"
+subsubsection "accessibility"
 
 lemma classesDefined: 
  "\<lbrakk>class tprg C = Some c; C\<noteq>Object\<rbrakk> \<Longrightarrow> \<exists> sc. class tprg (super c) = Some sc"
@@ -881,7 +881,7 @@ apply (auto simp add: is_acc_class_def accessible_in_RefT_simp is_public_def)
 done
 
 
-section "well-formedness"
+subsubsection "well-formedness"
 
 
 lemma wf_HasFoo: "wf_idecl tprg (HasFoo, HasFooInt)"
@@ -1059,7 +1059,7 @@ apply  (insert wf_cdecl_all)
 apply  auto
 done
 
-section "max spec"
+subsubsection "max spec"
 
 lemma appl_methds_Base_foo: 
 "appl_methds tprg S (ClassT Base) \<lparr>name=foo, parTs=[NT]\<rparr> =  
@@ -1076,7 +1076,7 @@ lemma max_spec_Base_foo: "max_spec tprg S (ClassT Base) \<lparr>name=foo,parTs=[
    , [Class Base])}"
 by (simp add: max_spec_def appl_methds_Base_foo Collect_conv_if)
 
-section "well-typedness"
+subsubsection "well-typedness"
 
 schematic_lemma wt_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>\<turnstile>test ?pTs\<Colon>\<surd>"
 apply (unfold test_def arr_viewed_from_def)
@@ -1128,7 +1128,7 @@ apply  (simp)
 apply (rule wtIs (* Skip *))
 done
 
-section "definite assignment"
+subsubsection "definite assignment"
 
 schematic_lemma da_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>
                   \<turnstile>{} \<guillemotright>\<langle>test ?pTs\<rangle>\<guillemotright> \<lparr>nrm={VName e},brk=\<lambda> l. UNIV\<rparr>"
@@ -1171,7 +1171,7 @@ apply (simp add: intersect_ts_def)
 done
 
 
-section "execution"
+subsubsection "execution"
 
 lemma alloc_one: "\<And>a obj. \<lbrakk>the (new_Addr h) = a; atleast_free h (Suc n)\<rbrakk> \<Longrightarrow>  
   new_Addr h = Some a \<and> atleast_free (h(a\<mapsto>obj)) n"

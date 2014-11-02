@@ -1,4 +1,4 @@
-header {* Definite Assignment *}
+subsection {* Definite Assignment *}
 
 theory DefiniteAssignment imports WellType begin 
 
@@ -39,7 +39,7 @@ Not covered yet:
 \end{itemize}
 *}
 
-section {* Correct nesting of jump statements *}
+subsubsection {* Correct nesting of jump statements *}
 
 text {* For definite assignment it becomes crucial, that jumps (break, 
 continue, return) are nested correctly i.e. a continue jump is nested in a
@@ -111,7 +111,7 @@ by (simp add: inj_term_simps)
 
 
 
-section {* Calculation of assigned variables for boolean expressions*}
+subsubsection {* Calculation of assigned variables for boolean expressions*}
 
 
 subsection {* Very restricted calculation fallback calculation *}
@@ -495,7 +495,7 @@ lemma all_union_tsE [elim!]:
   by (unfold all_union_ts_def) blast
 
 
-section "The rules of definite assignment"
+subsubsection "The rules of definite assignment"
 
  
 type_synonym breakass = "(label, lname) tables" 

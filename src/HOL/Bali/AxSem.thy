@@ -2,7 +2,7 @@
     Author:     David von Oheimb
 *)
 
-header {* Axiomatic semantics of Java expressions and statements 
+subsection {* Axiomatic semantics of Java expressions and statements 
           (see also Eval.thy)
         *}
 theory AxSem imports Evaln TypeSafe begin
@@ -72,7 +72,7 @@ apply (rule HOL.refl)
 done
 
 
-section "assertion transformers"
+subsubsection "assertion transformers"
 
 subsection "peek-and"
 
@@ -369,7 +369,7 @@ apply (unfold SXAlloc_def)
 apply (simp (no_asm))
 done
 
-section "validity"
+subsubsection "validity"
 
 definition
   type_ok :: "prog \<Rightarrow> term \<Rightarrow> state \<Rightarrow> bool" where
@@ -644,7 +644,7 @@ definition
   where "adapt_pre P Q Q' = (\<lambda>Y s Z. \<forall>Y' s'. \<exists>Z'. P Y s Z' \<and> (Q Y' s' Z' \<longrightarrow> Q' Y' s' Z))"
 
 
-section "rules derived by induction"
+subsubsection "rules derived by induction"
 
 lemma cut_valid: "\<lbrakk>G,A'|\<Turnstile>ts; G,A|\<Turnstile>A'\<rbrakk> \<Longrightarrow> G,A|\<Turnstile>ts"
 apply (unfold ax_valids_def)
@@ -715,7 +715,7 @@ apply  (rule HOL.refl)
 oops (* dead end, Methd is to blame *)
 
 
-section "rules derived from conseq"
+subsubsection "rules derived from conseq"
 
 text {* In the following rules we often have to give some type annotations like:
  @{term "G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q}"}.
@@ -914,7 +914,7 @@ apply (force elim!: conseq1)
 done
 
 
-section "alternative axioms"
+subsubsection "alternative axioms"
 
 lemma ax_Lit2: 
   "G,(A::'a triple set)\<turnstile>{Normal P::'a assn} Lit v-\<succ> {Normal (P\<down>=Val v)}"
@@ -945,7 +945,7 @@ apply force
 done
 
 
-section "misc derived structural rules"
+subsubsection "misc derived structural rules"
 
 (* unused *)
 lemma ax_finite_mtriples_lemma: "\<lbrakk>F \<subseteq> ms; finite ms; \<forall>(C,sig)\<in>ms. 
@@ -1019,7 +1019,7 @@ done
 lemmas ax_SkipI = ax_Skip [THEN conseq1]
 
 
-section "derived rules for methd call"
+subsubsection "derived rules for methd call"
 
 lemma ax_Call_known_DynT: 
 "\<lbrakk>G\<turnstile>IntVir\<rightarrow>C\<preceq>statT; 
@@ -1084,7 +1084,7 @@ apply (rule ax_Lit2 [THEN conseq2])
 apply clarsimp
 done
 
-section "rules derived from Init and Done"
+subsubsection "rules derived from Init and Done"
 
   lemma ax_InitS: "\<lbrakk>the (class G C) = c; C \<noteq> Object;  
      \<forall>l. G,A\<turnstile>{Q \<and>. (\<lambda>s. l = locals (store s)) ;. set_lvars empty}  
@@ -1139,7 +1139,7 @@ apply force
 done
 
 
-section "introduction rules for Alloc and SXAlloc"
+subsubsection "introduction rules for Alloc and SXAlloc"
 
 lemma ax_SXAlloc_Normal: 
  "G,(A::'a triple set)\<turnstile>{P::'a assn} .c. {Normal Q} 

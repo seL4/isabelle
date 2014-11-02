@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Value.thy
     Author:     David von Oheimb
 *)
-header {* Java values *}
+subsection {* Java values *}
 
 
 

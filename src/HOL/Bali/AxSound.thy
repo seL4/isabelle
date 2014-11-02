@@ -1,13 +1,13 @@
 (*  Title:      HOL/Bali/AxSound.thy
     Author:     David von Oheimb and Norbert Schirmer
 *)
-header {* Soundness proof for Axiomatic semantics of Java expressions and 
+subsection {* Soundness proof for Axiomatic semantics of Java expressions and 
           statements
        *}
 
 theory AxSound imports AxSem begin
 
-section "validity"
+subsubsection "validity"
 
 definition
   triple_valid2 :: "prog \<Rightarrow> nat \<Rightarrow> 'a triple \<Rightarrow> bool"  ("_\<Turnstile>_\<Colon>_"[61,0, 58] 57)
@@ -100,7 +100,7 @@ lemma "G|\<Turnstile>n:insert t A = (G\<Turnstile>n:t \<and> G|\<Turnstile>n:A)"
 oops
 
 
-section "soundness"
+subsubsection "soundness"
 
 lemma Methd_sound: 
   assumes recursive: "G,A\<union>  {{P} Methd-\<succ> {Q} | ms}|\<Turnstile>\<Colon>{{P} body G-\<succ> {Q} | ms}"

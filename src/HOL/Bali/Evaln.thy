@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Evaln.thy
     Author:     David von Oheimb and Norbert Schirmer
 *)
-header {* Operational evaluation (big-step) semantics of Java expressions and 
+subsection {* Operational evaluation (big-step) semantics of Java expressions and 
           statements
 *}
 
@@ -401,7 +401,7 @@ done
 
 
 
-section {* evaln implies eval *}
+subsubsection {* evaln implies eval *}
 
 lemma evaln_eval:  
   assumes evaln: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)" 
@@ -510,7 +510,7 @@ qed
 
 declare [[simproc del: wt_expr wt_var wt_exprs wt_stmt]]
 
-section {* eval implies evaln *}
+subsubsection {* eval implies evaln *}
 lemma eval_evaln: 
   assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)"
   shows  "\<exists>n. G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)"
