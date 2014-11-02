@@ -437,7 +437,7 @@ text {*
   section headings as well.
 
   \begin{ttbox}
-  header {\ttlbrace}* Some properties of Foo Bar elements *{\ttrbrace}
+  section {\ttlbrace}* Some properties of Foo Bar elements *{\ttrbrace}
 
   theory Foo_Bar
   imports Main
@@ -459,33 +459,7 @@ text {*
   theorem main: \dots
 
   end
-  \end{ttbox}\vspace{-\medskipamount}
-
-  You may occasionally want to change the meaning of markup commands,
-  say via \verb,\renewcommand, in \texttt{root.tex}.  For example,
-  \verb,\isamarkupheader, is a good candidate for some tuning.  We
-  could move it up in the hierarchy to become \verb,\chapter,.
-
-\begin{verbatim}
-  \renewcommand{\isamarkupheader}[1]{\chapter{#1}}
-\end{verbatim}
-
-  \noindent Now we must change the document class given in
-  \texttt{root.tex} to something that supports chapters.  A suitable
-  command is \verb,\documentclass{report},.
-
-  \medskip The {\LaTeX} macro \verb,\isabellecontext, is maintained to
-  hold the name of the current theory context.  This is particularly
-  useful for document headings:
-
-\begin{verbatim}
-  \renewcommand{\isamarkupheader}[1]
-  {\chapter{#1}\markright{THEORY~\isabellecontext}}
-\end{verbatim}
-
-  \noindent Make sure to include something like
-  \verb,\pagestyle{headings}, in \texttt{root.tex}; the document
-  should have more than two pages to show the effect.
+  \end{ttbox}
 *}
 
 
