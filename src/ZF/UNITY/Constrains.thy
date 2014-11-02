@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header{*Weak Safety Properties*}
+section{*Weak Safety Properties*}
 
 theory Constrains
 imports UNITY

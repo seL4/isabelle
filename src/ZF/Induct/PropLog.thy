@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header {* Meta-theory of propositional logic *}
+section {* Meta-theory of propositional logic *}
 
 theory PropLog imports Main begin
 

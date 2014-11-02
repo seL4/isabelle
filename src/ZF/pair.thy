@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header{*Ordered Pairs*}
+section{*Ordered Pairs*}
 
 theory pair imports upair
 begin

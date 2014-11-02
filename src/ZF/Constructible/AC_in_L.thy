@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {* The Axiom of Choice Holds in L! *}
+section {* The Axiom of Choice Holds in L! *}
 
 theory AC_in_L imports Formula Separation begin
 

@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header{*Relations: Their General Properties and Transitive Closure*}
+section{*Relations: Their General Properties and Transitive Closure*}
 
 theory Trancl imports Fixedpt Perm begin
 

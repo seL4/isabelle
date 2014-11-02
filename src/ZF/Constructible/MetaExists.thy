@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header{*The meta-existential quantifier*}
+section{*The meta-existential quantifier*}
 
 theory MetaExists imports Main begin
 

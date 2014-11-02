@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*The Axiom of Choice*}
+section{*The Axiom of Choice*}
 
 theory AC imports Main_ZF begin
 

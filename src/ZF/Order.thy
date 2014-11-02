@@ -7,7 +7,7 @@ Results from the book "Set Theory: an Introduction to Independence Proofs"
 Additional definitions and lemmas for reflexive orders.
 *)
 
-header{*Partial and Total Orderings: Basic Definitions and Properties*}
+section{*Partial and Total Orderings: Basic Definitions and Properties*}
 
 theory Order imports WF Perm begin
 

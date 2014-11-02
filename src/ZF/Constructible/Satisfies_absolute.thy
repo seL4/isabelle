@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Absoluteness for the Satisfies Relation on Formulas*}
+section {*Absoluteness for the Satisfies Relation on Formulas*}
 
 theory Satisfies_absolute imports Datatype_absolute Rec_Separation begin 
 

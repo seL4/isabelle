@@ -2,7 +2,7 @@
     Authors:    Krzysztof Grabczewski and L C Paulson
 *)
 
-header {*Special quantifiers*}
+section {*Special quantifiers*}
 
 theory OrdQuant imports Ordinal begin
 

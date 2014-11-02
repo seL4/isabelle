@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* Primitive Recursive Functions: the inductive definition *}
+section {* Primitive Recursive Functions: the inductive definition *}
 
 theory Primrec imports Main begin
 

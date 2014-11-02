@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header {* Binary trees *}
+section {* Binary trees *}
 
 theory Binary_Trees imports Main begin
 

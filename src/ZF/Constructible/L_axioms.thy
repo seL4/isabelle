@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {* The ZF Axioms (Except Separation) in L *}
+section {* The ZF Axioms (Except Separation) in L *}
 
 theory L_axioms imports Formula Relative Reflection MetaExists begin
 

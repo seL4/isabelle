@@ -1,4 +1,4 @@
-header{*Theory Main: Everything Except AC*}
+section{*Theory Main: Everything Except AC*}
 
 theory Main_ZF imports List_ZF IntDiv_ZF CardinalArith begin
 

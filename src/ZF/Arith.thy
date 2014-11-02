@@ -9,7 +9,7 @@
   Also, rec(m, 0, %z w.z) is pred(m).
 *)
 
-header{*Arithmetic Operators and Their Definitions*}
+section{*Arithmetic Operators and Their Definitions*}
 
 theory Arith imports Univ begin
 

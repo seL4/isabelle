@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Absoluteness Properties for Recursive Datatypes*}
+section {*Absoluteness Properties for Recursive Datatypes*}
 
 theory Datatype_absolute imports Formula WF_absolute begin
 

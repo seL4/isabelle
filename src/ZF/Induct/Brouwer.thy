@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* Infinite branching datatype definitions *}
+section {* Infinite branching datatype definitions *}
 
 theory Brouwer imports Main_ZFC begin
 

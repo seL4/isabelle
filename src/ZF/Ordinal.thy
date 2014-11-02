@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Transitive Sets and Ordinals*}
+section{*Transitive Sets and Ordinals*}
 
 theory Ordinal imports WF Bool equalities begin
 

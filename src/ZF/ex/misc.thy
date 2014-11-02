@@ -5,7 +5,7 @@
 Composition of homomorphisms, Pastre's examples, ...
 *)
 
-header{*Miscellaneous ZF Examples*}
+section{*Miscellaneous ZF Examples*}
 
 theory misc imports Main begin
 

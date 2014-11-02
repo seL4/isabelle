@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header{*Basic Equalities and Inclusions*}
+section{*Basic Equalities and Inclusions*}
 
 theory equalities imports pair begin
 

@@ -8,7 +8,7 @@ Formalizes UNITY-program states using dependent types so that:
  - variables can be quantified over.
 *)
 
-header{*UNITY Program States*}
+section{*UNITY Program States*}
 
 theory State imports Main begin
 

@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {* The Reflection Theorem*}
+section {* The Reflection Theorem*}
 
 theory Reflection imports Normal begin
 

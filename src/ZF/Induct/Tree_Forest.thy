@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* Trees and forests, a mutually recursive type definition *}
+section {* Trees and forests, a mutually recursive type definition *}
 
 theory Tree_Forest imports Main begin
 

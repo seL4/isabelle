@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-header{*Progress under Weak Fairness*}
+section{*Progress under Weak Fairness*}
 
 theory WFair
 imports UNITY Main_ZFC

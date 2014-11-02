@@ -1,6 +1,6 @@
 (*  Title:      ZF/ex/Group.thy *)
 
-header {* Groups *}
+section {* Groups *}
 
 theory Group imports Main begin
 

@@ -2,7 +2,7 @@
 
 *)
 
-header {* Rings *}
+section {* Rings *}
 
 theory Ring imports Group begin
 

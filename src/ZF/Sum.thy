@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header{*Disjoint Sums*}
+section{*Disjoint Sums*}
 
 theory Sum imports Bool equalities begin
 

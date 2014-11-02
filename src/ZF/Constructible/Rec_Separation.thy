@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Separation for Facts About Recursion*}
+section {*Separation for Facts About Recursion*}
 
 theory Rec_Separation imports Separation Internalize begin
 

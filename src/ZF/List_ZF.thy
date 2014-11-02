@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Lists in Zermelo-Fraenkel Set Theory*}
+section{*Lists in Zermelo-Fraenkel Set Theory*}
 
 theory List_ZF imports Datatype_ZF ArithSimp begin
 

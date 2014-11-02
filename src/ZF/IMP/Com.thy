@@ -2,7 +2,7 @@
     Author:     Heiko Loetzbeyer and Robert Sandner, TU München
 *)
 
-header {* Arithmetic expressions, boolean expressions, commands *}
+section {* Arithmetic expressions, boolean expressions, commands *}
 
 theory Com imports Main begin
 

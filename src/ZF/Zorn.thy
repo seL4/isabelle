@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Zorn's Lemma*}
+section{*Zorn's Lemma*}
 
 theory Zorn imports OrderArith AC Inductive_ZF begin
 

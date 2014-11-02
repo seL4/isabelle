@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header {* The Mutilated Chess Board Problem, formalized inductively *}
+section {* The Mutilated Chess Board Problem, formalized inductively *}
 
 theory Mutil imports Main begin
 

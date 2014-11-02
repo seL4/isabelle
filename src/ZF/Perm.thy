@@ -8,7 +8,7 @@ The theory underlying permutation groups
   -- Lemmas for the Schroeder-Bernstein Theorem
 *)
 
-header{*Injections, Surjections, Bijections, Composition*}
+section{*Injections, Surjections, Bijections, Composition*}
 
 theory Perm imports func begin
 

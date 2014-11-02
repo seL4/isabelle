@@ -13,7 +13,7 @@ The representation expects that (m mod 2) is 0 or 1, even if m is negative;
 For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
 *)
 
-header{*Arithmetic on Binary Integers*}
+section{*Arithmetic on Binary Integers*}
 
 theory Bin
 imports Int_ZF Datatype_ZF

@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* Lists of n elements *}
+section {* Lists of n elements *}
 
 theory ListN imports Main begin
 

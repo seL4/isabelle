@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header{*Common declarations for Chandy and Charpentier's Allocator*}
+section{*Common declarations for Chandy and Charpentier's Allocator*}
 
 theory AllocBase imports Follows MultisetSum Guar begin
 

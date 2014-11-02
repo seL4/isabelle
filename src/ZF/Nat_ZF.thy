@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*The Natural numbers As a Least Fixed Point*}
+section{*The Natural numbers As a Least Fixed Point*}
 
 theory Nat_ZF imports OrdQuant Bool begin
 

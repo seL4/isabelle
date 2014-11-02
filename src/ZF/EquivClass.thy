@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Equivalence Relations*}
+section{*Equivalence Relations*}
 
 theory EquivClass imports Trancl Perm begin
 

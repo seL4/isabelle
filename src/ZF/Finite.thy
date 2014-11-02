@@ -5,7 +5,7 @@
 prove:  b \<in> Fin(A) ==> inj(b,b) \<subseteq> surj(b,b)
 *)
 
-header{*Finite Powerset Operator and Finite Function Space*}
+section{*Finite Powerset Operator and Finite Function Space*}
 
 theory Finite imports Inductive_ZF Epsilon Nat_ZF begin
 

@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Cardinal Numbers Without the Axiom of Choice*}
+section{*Cardinal Numbers Without the Axiom of Choice*}
 
 theory Cardinal imports OrderType Finite Nat_ZF Sum begin
 

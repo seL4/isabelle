@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* Sample datatype definitions *}
+section {* Sample datatype definitions *}
 
 theory Datatypes imports Main begin
 

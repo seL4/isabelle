@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Absoluteness for the Definable Powerset Function*}
+section {*Absoluteness for the Definable Powerset Function*}
 
 
 theory DPow_absolute imports Satisfies_absolute begin

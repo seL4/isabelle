@@ -27,7 +27,7 @@ Here is the division algorithm in ML:
                           else        negateSnd (posDivAlg (~a,~b));
 *)
 
-header{*The Division Operators Div and Mod*}
+section{*The Division Operators Div and Mod*}
 
 theory IntDiv_ZF
 imports Bin OrderArith

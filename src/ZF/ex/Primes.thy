@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header{*The Divides Relation and Euclid's algorithm for the GCD*}
+section{*The Divides Relation and Euclid's algorithm for the GCD*}
 
 theory Primes imports Main begin
 

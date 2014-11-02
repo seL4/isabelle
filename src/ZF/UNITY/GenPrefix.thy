@@ -9,7 +9,7 @@
 Based on Lex/Prefix
 *)
 
-header{*Charpentier's Generalized Prefix Relation*}
+section{*Charpentier's Generalized Prefix Relation*}
 
 theory GenPrefix
 imports Main

@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* Datatype definition n-ary branching trees *}
+section {* Datatype definition n-ary branching trees *}
 
 theory Ntree imports Main begin
 

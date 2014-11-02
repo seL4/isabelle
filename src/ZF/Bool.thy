@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header{*Booleans in Zermelo-Fraenkel Set Theory*}
+section{*Booleans in Zermelo-Fraenkel Set Theory*}
 
 theory Bool imports pair begin
 

@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* The accessible part of a relation *}
+section {* The accessible part of a relation *}
 
 theory Acc imports Main begin
 

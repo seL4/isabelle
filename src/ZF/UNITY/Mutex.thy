@@ -9,7 +9,7 @@ reduces to the usual ZF typechecking \<in> an ill-tyed expression will
 reduce to the empty set.
 *)
 
-header{*Mutual Exclusion*}
+section{*Mutual Exclusion*}
 
 theory Mutex
 imports SubstAx

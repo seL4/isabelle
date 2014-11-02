@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {* First-Order Formulas and the Definition of the Class L *}
+section {* First-Order Formulas and the Definition of the Class L *}
 
 theory Formula imports Main begin
 

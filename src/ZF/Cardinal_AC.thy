@@ -5,7 +5,7 @@
 These results help justify infinite-branching datatypes
 *)
 
-header{*Cardinal Arithmetic Using AC*}
+section{*Cardinal Arithmetic Using AC*}
 
 theory Cardinal_AC imports CardinalArith Zorn begin
 

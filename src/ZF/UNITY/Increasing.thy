@@ -6,7 +6,7 @@ Increasing's parameters are a state function f, a domain A and an order
 relation r over the domain A. 
 *)
 
-header{*Charpentier's "Increasing" Relation*}
+section{*Charpentier's "Increasing" Relation*}
 
 theory Increasing imports Constrains Monotonicity begin
 

@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* An operator to ``map'' a relation over a list *}
+section {* An operator to ``map'' a relation over a list *}
 
 theory Rmap imports Main begin
 

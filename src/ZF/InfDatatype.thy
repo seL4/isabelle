@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Infinite-Branching Datatype Definitions*}
+section{*Infinite-Branching Datatype Definitions*}
 
 theory InfDatatype imports Datatype_ZF Univ Finite Cardinal_AC begin
 

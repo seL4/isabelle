@@ -8,7 +8,7 @@ Do we EVER have rank(a) < rank(<a;b>) ?  Perhaps if the latter rank
 is not a limit ordinal?
 *)
 
-header{*Quine-Inspired Ordered Pairs and Disjoint Sums*}
+section{*Quine-Inspired Ordered Pairs and Disjoint Sums*}
 
 theory QPair imports Sum func begin
 

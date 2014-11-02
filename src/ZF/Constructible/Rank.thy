@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Absoluteness for Order Types, Rank Functions and Well-Founded 
+section {*Absoluteness for Order Types, Rank Functions and Well-Founded 
          Relations*}
 
 theory Rank imports WF_absolute begin

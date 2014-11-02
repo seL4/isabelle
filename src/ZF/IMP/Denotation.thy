@@ -2,7 +2,7 @@
     Author:     Heiko Loetzbeyer and Robert Sandner, TU München
 *)
 
-header {* Denotational semantics of expressions and commands *}
+section {* Denotational semantics of expressions and commands *}
 
 theory Denotation imports Com begin
 

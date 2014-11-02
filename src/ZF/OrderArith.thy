@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Combining Orderings: Foundations of Ordinal Arithmetic*}
+section{*Combining Orderings: Foundations of Ordinal Arithmetic*}
 
 theory OrderArith imports Order Sum Ordinal begin
 

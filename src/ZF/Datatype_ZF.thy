@@ -3,7 +3,7 @@
     Copyright   1997  University of Cambridge
 *)
 
-header{*Datatype and CoDatatype Definitions*}
+section{*Datatype and CoDatatype Definitions*}
 
 theory Datatype_ZF
 imports Inductive_ZF Univ QUniv

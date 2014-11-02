@@ -14,7 +14,7 @@ epsilon.ML.  Expanding out the definition of wftrec in wfrec would yield
 a mess.
 *)
 
-header{*Well-Founded Recursion*}
+section{*Well-Founded Recursion*}
 
 theory WF imports Trancl begin
 

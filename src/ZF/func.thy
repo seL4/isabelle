@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header{*Functions, Function Spaces, Lambda-Abstraction*}
+section{*Functions, Function Spaces, Lambda-Abstraction*}
 
 theory func imports equalities Sum begin
 

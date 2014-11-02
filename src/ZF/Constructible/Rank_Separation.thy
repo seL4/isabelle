@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Separation for Facts About Order Types, Rank Functions and 
+section {*Separation for Facts About Order Types, Rank Functions and 
       Well-Founded Relations*}
 
 theory Rank_Separation imports Rank Rec_Separation begin

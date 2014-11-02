@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-header{*Arithmetic with simplification*}
+section{*Arithmetic with simplification*}
 
 theory ArithSimp
 imports Arith

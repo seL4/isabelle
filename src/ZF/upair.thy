@@ -9,7 +9,7 @@ Observe the order of dependence:
     Ordered pairs and descriptions are defined using cons ("set notation")
 *)
 
-header{*Unordered Pairs*}
+section{*Unordered Pairs*}
 
 theory upair
 imports ZF

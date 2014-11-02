@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header{*A Small Universe for Lazy Recursive Types*}
+section{*A Small Universe for Lazy Recursive Types*}
 
 theory QUniv imports Univ QPair begin
 

@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header{*The Integers as Equivalence Classes Over Pairs of Natural Numbers*}
+section{*The Integers as Equivalence Classes Over Pairs of Natural Numbers*}
 
 theory Int_ZF imports EquivClass ArithSimp begin
 

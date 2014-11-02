@@ -6,7 +6,7 @@ Monotonicity of an operator (meta-function) with respect to arbitrary
 set relations.
 *)
 
-header{*Monotonicity of an Operator WRT a Relation*}
+section{*Monotonicity of an Operator WRT a Relation*}
 
 theory Monotonicity imports GenPrefix MultisetSum
 begin

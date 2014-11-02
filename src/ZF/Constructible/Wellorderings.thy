@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Relativized Wellorderings*}
+section {*Relativized Wellorderings*}
 
 theory Wellorderings imports Relative begin
 

@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* Trivial codatatype definitions, one of which goes wrong! *}
+section {* Trivial codatatype definitions, one of which goes wrong! *}
 
 theory CoUnit imports Main begin
 

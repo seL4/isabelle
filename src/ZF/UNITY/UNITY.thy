@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header {*The Basic UNITY Theory*}
+section {*The Basic UNITY Theory*}
 
 theory UNITY imports State begin
 

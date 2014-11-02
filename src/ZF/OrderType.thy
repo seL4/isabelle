@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Order Types and Ordinal Arithmetic*}
+section{*Order Types and Ordinal Arithmetic*}
 
 theory OrderType imports OrderArith OrdQuant Nat_ZF begin
 

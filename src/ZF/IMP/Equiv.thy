@@ -2,7 +2,7 @@
     Author:     Heiko Loetzbeyer and Robert Sandner, TU München
 *)
 
-header {* Equivalence *}
+section {* Equivalence *}
 
 theory Equiv imports Denotation Com begin
 

@@ -9,7 +9,7 @@ NOTE: univ(A) could be a translation; would simplify many proofs!
   But Ind_Syntax.univ refers to the constant "Univ.univ"
 *)
 
-header{*The Cumulative Hierarchy and a Small Universe for Recursive Types*}
+section{*The Cumulative Hierarchy and a Small Universe for Recursive Types*}
 
 theory Univ imports Epsilon Cardinal begin
 

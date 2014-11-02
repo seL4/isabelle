@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header{*Relativized Well-Founded Recursion*}
+section{*Relativized Well-Founded Recursion*}
 
 theory WFrec imports Wellorderings begin
 

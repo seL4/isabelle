@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-header{*Least and Greatest Fixed Points; the Knaster-Tarski Theorem*}
+section{*Least and Greatest Fixed Points; the Knaster-Tarski Theorem*}
 
 theory Fixedpt imports equalities begin
 

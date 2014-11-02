@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Relativization and Absoluteness*}
+section {*Relativization and Absoluteness*}
 
 theory Relative imports Main begin
 

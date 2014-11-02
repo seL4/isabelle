@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Closed Unbounded Classes and Normal Functions*}
+section {*Closed Unbounded Classes and Normal Functions*}
 
 theory Normal imports Main begin
 

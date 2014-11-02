@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {* Terms over an alphabet *}
+section {* Terms over an alphabet *}
 
 theory Term imports Main begin
 

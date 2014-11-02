@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header{*Cardinal Arithmetic Without the Axiom of Choice*}
+section{*Cardinal Arithmetic Without the Axiom of Choice*}
 
 theory CardinalArith imports Cardinal OrderArith ArithSimp Finite begin
 

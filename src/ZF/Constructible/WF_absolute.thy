@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header {*Absoluteness of Well-Founded Recursion*}
+section {*Absoluteness of Well-Founded Recursion*}
 
 theory WF_absolute imports WFrec begin
 

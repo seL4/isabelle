@@ -19,7 +19,7 @@ Theory ported from HOL.
 *)
 
 
-header{*The Chandy-Sanders Guarantees Operator*}
+section{*The Chandy-Sanders Guarantees Operator*}
 
 theory Guar imports Comp begin 
 

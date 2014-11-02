@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-header{*Early Instances of Separation and Strong Replacement*}
+section{*Early Instances of Separation and Strong Replacement*}
 
 theory Separation imports L_axioms WF_absolute begin
 

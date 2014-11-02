@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header{*Epsilon Induction and Recursion*}
+section{*Epsilon Induction and Recursion*}
 
 theory Epsilon imports Nat_ZF begin
 

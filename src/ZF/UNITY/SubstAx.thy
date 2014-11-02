@@ -5,7 +5,7 @@
 Theory ported from HOL.
 *)
 
-header{*Weak LeadsTo relation (restricted to the set of reachable states)*}
+section{*Weak LeadsTo relation (restricted to the set of reachable states)*}
 
 theory SubstAx
 imports WFair Constrains

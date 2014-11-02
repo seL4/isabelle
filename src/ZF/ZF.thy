@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-header{*Zermelo-Fraenkel Set Theory*}
+section{*Zermelo-Fraenkel Set Theory*}
 
 theory ZF
 imports "~~/src/FOL/FOL"

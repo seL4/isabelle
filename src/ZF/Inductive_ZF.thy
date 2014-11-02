@@ -9,7 +9,7 @@ Sums are used only for mutual recursion;
 Products are used only to derive "streamlined" induction rules for relations
 *)
 
-header{*Inductive and Coinductive Definitions*}
+section{*Inductive and Coinductive Definitions*}
 
 theory Inductive_ZF
 imports Fixedpt QPair Nat_ZF
