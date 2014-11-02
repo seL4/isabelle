@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Logical Connectives lifted to predicates *}
+section {* Logical Connectives lifted to predicates *}
 
 theory Pred
 imports Main

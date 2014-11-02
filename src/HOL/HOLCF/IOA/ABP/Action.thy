@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The set of all actions of the system *}
+section {* The set of all actions of the system *}
 
 theory Action
 imports Packet

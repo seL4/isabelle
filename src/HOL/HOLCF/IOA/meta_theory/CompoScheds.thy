@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Compositionality on Schedule level *}
+section {* Compositionality on Schedule level *}
 
 theory CompoScheds
 imports CompoExecs

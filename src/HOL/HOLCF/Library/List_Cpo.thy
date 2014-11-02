@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Lists as a complete partial order *}
+section {* Lists as a complete partial order *}
 
 theory List_Cpo
 imports HOLCF

@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Discrete cpo instance for 8-bit char type *}
+section {* Discrete cpo instance for 8-bit char type *}
 
 theory Char_Discrete
 imports HOLCF

@@ -2,7 +2,7 @@
     Author:     David von Oheimb, TU Muenchen
 *)
 
-header {* Admissibility for streams *}
+section {* Admissibility for streams *}
 
 theory Stream_adm
 imports "~~/src/HOL/HOLCF/Library/Stream" "~~/src/HOL/Library/Order_Continuity"

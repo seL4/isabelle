@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Correctness of Simulations in HOLCF/IOA *}
+section {* Correctness of Simulations in HOLCF/IOA *}
 
 theory SimCorrectness
 imports Simulations

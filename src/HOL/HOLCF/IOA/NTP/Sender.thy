@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-header {* The implementation: sender *}
+section {* The implementation: sender *}
 
 theory Sender
 imports IOA Action

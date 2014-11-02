@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-header {* The main correctness proof: Impl implements Spec *}
+section {* The main correctness proof: Impl implements Spec *}
 
 theory Correctness
 imports Impl Spec

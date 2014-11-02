@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Partial, Finite and Infinite Sequences (lazy lists), modeled as domain *}
+section {* Partial, Finite and Infinite Sequences (lazy lists), modeled as domain *}
 
 theory Seq
 imports "../../HOLCF"

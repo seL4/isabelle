@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Defining algebraic domains by ideal completion *}
+section {* Defining algebraic domains by ideal completion *}
 
 theory Completion
 imports Plain_HOLCF

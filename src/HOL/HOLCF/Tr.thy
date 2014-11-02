@@ -2,7 +2,7 @@
     Author:     Franz Regensburger
 *)
 
-header {* The type of lifted booleans *}
+section {* The type of lifted booleans *}
 
 theory Tr
 imports Lift

@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Domain package examples *}
+section {* Domain package examples *}
 
 theory Domain_ex
 imports HOLCF

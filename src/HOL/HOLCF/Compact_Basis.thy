@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* A compact basis for powerdomains *}
+section {* A compact basis for powerdomains *}
 
 theory Compact_Basis
 imports Universal

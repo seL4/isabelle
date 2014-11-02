@@ -2,7 +2,7 @@
     Author:     Franz Regensburger
 *)
 
-header {* Classes cpo and pcpo *}
+section {* Classes cpo and pcpo *}
 
 theory Pcpo
 imports Porder

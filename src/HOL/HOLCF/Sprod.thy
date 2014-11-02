@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* The type of strict products *}
+section {* The type of strict products *}
 
 theory Sprod
 imports Cfun

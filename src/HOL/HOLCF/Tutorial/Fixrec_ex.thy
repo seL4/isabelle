@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Fixrec package examples *}
+section {* Fixrec package examples *}
 
 theory Fixrec_ex
 imports HOLCF

@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The (faulty) transmission channel (both directions) *}
+section {* The (faulty) transmission channel (both directions) *}
 
 theory Abschannel
 imports IOA Action

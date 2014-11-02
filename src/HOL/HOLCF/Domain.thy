@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Domain package *}
+section {* Domain package *}
 
 theory Domain
 imports Representable Domain_Aux

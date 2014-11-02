@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Correctness Proof *}
+section {* Correctness Proof *}
 
 theory Correctness
 imports SimCorrectness Spec Impl

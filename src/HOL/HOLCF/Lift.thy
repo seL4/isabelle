@@ -2,7 +2,7 @@
     Author:     Olaf Mueller
 *)
 
-header {* Lifting types of class type to flat pcpo's *}
+section {* Lifting types of class type to flat pcpo's *}
 
 theory Lift
 imports Discrete Up

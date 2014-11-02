@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Lower powerdomain *}
+section {* Lower powerdomain *}
 
 theory LowerPD
 imports Compact_Basis

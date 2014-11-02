@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Convex powerdomain *}
+section {* Convex powerdomain *}
 
 theory ConvexPD
 imports UpperPD LowerPD

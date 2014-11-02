@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Fixed point operator and admissibility *}
+section {* Fixed point operator and admissibility *}
 
 theory Fix
 imports Cfun

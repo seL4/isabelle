@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Map functions for various types *}
+section {* Map functions for various types *}
 
 theory Map_Functions
 imports Deflation

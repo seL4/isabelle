@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Definitional domain package *}
+section {* Definitional domain package *}
 
 theory New_Domain
 imports HOLCF

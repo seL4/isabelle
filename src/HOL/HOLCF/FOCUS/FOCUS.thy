@@ -2,7 +2,7 @@
     Author:     David von Oheimb, TU Muenchen
 *)
 
-header {* Top level of FOCUS *}
+section {* Top level of FOCUS *}
 
 theory FOCUS
 imports Fstream

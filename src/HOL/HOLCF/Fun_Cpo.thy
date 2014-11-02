@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Class instances for the full function space *}
+section {* Class instances for the full function space *}
 
 theory Fun_Cpo
 imports Adm

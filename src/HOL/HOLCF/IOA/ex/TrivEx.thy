@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Trivial Abstraction Example *}
+section {* Trivial Abstraction Example *}
 
 theory TrivEx
 imports Abstraction

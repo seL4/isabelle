@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Domain package support *}
+section {* Domain package support *}
 
 theory Domain_Aux
 imports Map_Functions Fixrec

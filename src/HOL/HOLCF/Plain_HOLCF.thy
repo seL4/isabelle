@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Plain HOLCF *}
+section {* Plain HOLCF *}
 
 theory Plain_HOLCF
 imports Cfun Sfun Cprod Sprod Ssum Up Discrete Lift One Tr Fix

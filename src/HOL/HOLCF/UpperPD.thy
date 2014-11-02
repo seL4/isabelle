@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Upper powerdomain *}
+section {* Upper powerdomain *}
 
 theory UpperPD
 imports Compact_Basis

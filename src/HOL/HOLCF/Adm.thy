@@ -2,7 +2,7 @@
     Author:     Franz Regensburger and Brian Huffman
 *)
 
-header {* Admissibility and compactness *}
+section {* Admissibility and compactness *}
 
 theory Adm
 imports Cont

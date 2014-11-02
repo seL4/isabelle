@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Correctness of Refinement Mappings in HOLCF/IOA *}
+section {* Correctness of Refinement Mappings in HOLCF/IOA *}
 
 theory RefCorrectness
 imports RefMappings

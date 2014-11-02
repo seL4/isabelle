@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Abstraction Theory -- tailored for I/O automata *}
+section {* Abstraction Theory -- tailored for I/O automata *}
 
 theory Abstraction
 imports LiveIOA

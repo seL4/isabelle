@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Temporal Logic of Steps -- tailored for I/O automata *}
+section {* Temporal Logic of Steps -- tailored for I/O automata *}
 
 theory TLS
 imports IOA TL

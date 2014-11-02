@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* The cpo of disjoint sums *}
+section {* The cpo of disjoint sums *}
 
 theory Sum_Cpo
 imports HOLCF

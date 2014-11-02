@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Powerdomain examples *}
+section {* Powerdomain examples *}
 
 theory Powerdomain_ex
 imports HOLCF

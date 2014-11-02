@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The implementation: sender *}
+section {* The implementation: sender *}
 
 theory Sender
 imports IOA Action Lemmas

@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-header {* The implementation *}
+section {* The implementation *}
 
 theory Impl
 imports Sender Receiver Abschannel

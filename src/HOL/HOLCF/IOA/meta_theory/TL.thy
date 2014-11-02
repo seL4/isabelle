@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* A General Temporal Logic *}
+section {* A General Temporal Logic *}
 
 theory TL
 imports Pred Sequence

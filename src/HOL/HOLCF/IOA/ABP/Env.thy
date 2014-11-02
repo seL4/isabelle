@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The environment *}
+section {* The environment *}
 
 theory Env
 imports IOA Action

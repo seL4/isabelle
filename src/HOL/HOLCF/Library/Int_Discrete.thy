@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Discrete cpo instance for integers *}
+section {* Discrete cpo instance for integers *}
 
 theory Int_Discrete
 imports HOLCF

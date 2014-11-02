@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Powerdomains *}
+section {* Powerdomains *}
 
 theory Powerdomains
 imports ConvexPD Domain

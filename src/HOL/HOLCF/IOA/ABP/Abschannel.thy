@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The transmission channel *}
+section {* The transmission channel *}
 
 theory Abschannel
 imports IOA Action Lemmas

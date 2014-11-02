@@ -3,7 +3,7 @@
     Copyright   1997 TUM
 *)
 
-header "Correctness of Hoare by Fixpoint Reasoning"
+section "Correctness of Hoare by Fixpoint Reasoning"
 
 theory HoareEx imports Denotational begin
 

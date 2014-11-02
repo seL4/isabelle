@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* The type of lifted values *}
+section {* The type of lifted values *}
 
 theory Up
 imports Cfun

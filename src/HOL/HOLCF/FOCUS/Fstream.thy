@@ -6,7 +6,7 @@ FOCUS streams (with lifted elements).
 TODO: integrate Fstreams.thy
 *)
 
-header {* FOCUS flat streams *}
+section {* FOCUS flat streams *}
 
 theory Fstream
 imports "~~/src/HOL/HOLCF/Library/Stream"

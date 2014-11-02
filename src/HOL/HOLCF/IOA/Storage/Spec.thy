@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The specification of a memory *}
+section {* The specification of a memory *}
 
 theory Spec
 imports IOA Action

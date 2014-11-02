@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Discrete cpo instance for booleans *}
+section {* Discrete cpo instance for booleans *}
 
 theory Bool_Discrete
 imports HOLCF

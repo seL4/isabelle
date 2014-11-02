@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Algebraic deflations are a bifinite domain *}
+section {* Algebraic deflations are a bifinite domain *}
 
 theory Defl_Bifinite
 imports HOLCF "~~/src/HOL/Library/Infinite_Set"

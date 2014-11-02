@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-header {* The implementation: receiver *}
+section {* The implementation: receiver *}
 
 theory Receiver
 imports IOA Action

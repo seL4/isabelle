@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Representable domains *}
+section {* Representable domains *}
 
 theory Representable
 imports Algebraic Map_Functions "~~/src/HOL/Library/Countable"

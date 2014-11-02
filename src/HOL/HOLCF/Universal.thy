@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* A universal bifinite domain *}
+section {* A universal bifinite domain *}
 
 theory Universal
 imports Bifinite Completion "~~/src/HOL/Library/Nat_Bijection"

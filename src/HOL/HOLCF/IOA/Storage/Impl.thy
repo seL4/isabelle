@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The implementation of a memory *}
+section {* The implementation of a memory *}
 
 theory Impl
 imports IOA Action

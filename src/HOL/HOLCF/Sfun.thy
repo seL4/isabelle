@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* The Strict Function Type *}
+section {* The Strict Function Type *}
 
 theory Sfun
 imports Cfun

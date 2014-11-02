@@ -2,7 +2,7 @@
     Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
 *)
 
-header {* Action signatures *}
+section {* Action signatures *}
 
 theory Asig
 imports Main

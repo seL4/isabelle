@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Trivial Abstraction Example with fairness *}
+section {* Trivial Abstraction Example with fairness *}
 
 theory TrivEx2
 imports IOA Abstraction

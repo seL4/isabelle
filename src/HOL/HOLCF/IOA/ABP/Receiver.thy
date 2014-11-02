@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The implementation: receiver *}
+section {* The implementation: receiver *}
 
 theory Receiver
 imports IOA Action Lemmas

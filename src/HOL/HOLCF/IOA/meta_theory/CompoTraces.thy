@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *) 
 
-header {* Compositionality on Trace level *}
+section {* Compositionality on Trace level *}
 
 theory CompoTraces
 imports CompoScheds ShortExecutions

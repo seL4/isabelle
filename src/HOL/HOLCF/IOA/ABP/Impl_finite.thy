@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The implementation *}
+section {* The implementation *}
 
 theory Impl_finite
 imports Sender Receiver Abschannel_finite

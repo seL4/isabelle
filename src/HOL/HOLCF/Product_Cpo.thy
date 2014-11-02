@@ -2,7 +2,7 @@
     Author:     Franz Regensburger
 *)
 
-header {* The cpo of cartesian products *}
+section {* The cpo of cartesian products *}
 
 theory Product_Cpo
 imports Adm

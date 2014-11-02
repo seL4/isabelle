@@ -3,7 +3,7 @@
     Copyright   1996 TUM
 *)
 
-header "Denotational Semantics of Commands in HOLCF"
+section "Denotational Semantics of Commands in HOLCF"
 
 theory Denotational imports HOLCF "~~/src/HOL/IMP/Big_Step" begin
 

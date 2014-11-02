@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* An experimental pattern-matching notation *}
+section {* An experimental pattern-matching notation *}
 
 theory Pattern_Match
 imports HOLCF

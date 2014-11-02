@@ -2,7 +2,7 @@
     Author:     Franz Regensburger and Brian Huffman
 *)
 
-header {* Partial orders *}
+section {* Partial orders *}
 
 theory Porder
 imports Main

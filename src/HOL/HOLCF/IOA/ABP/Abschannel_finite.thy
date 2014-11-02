@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The transmission channel -- finite version *}
+section {* The transmission channel -- finite version *}
 
 theory Abschannel_finite
 imports Abschannel IOA Action Lemmas

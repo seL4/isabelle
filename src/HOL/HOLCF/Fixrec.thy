@@ -2,7 +2,7 @@
     Author:     Amber Telfer and Brian Huffman
 *)
 
-header "Package for defining recursive functions in HOLCF"
+section "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
 imports Plain_HOLCF

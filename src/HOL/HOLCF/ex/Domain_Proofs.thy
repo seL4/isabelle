@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Internal domain package proofs done manually *}
+section {* Internal domain package proofs done manually *}
 
 theory Domain_Proofs
 imports HOLCF

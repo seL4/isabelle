@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* The type of continuous functions *}
+section {* The type of continuous functions *}
 
 theory Cfun
 imports Cpodef Fun_Cpo Product_Cpo

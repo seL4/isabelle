@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Live I/O automata -- specified by temproal formulas *}
+section {* Live I/O automata -- specified by temproal formulas *}
 
 theory LiveIOA
 imports TLS

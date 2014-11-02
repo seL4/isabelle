@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The main correctness proof: System_fin implements System *}
+section {* The main correctness proof: System_fin implements System *}
 
 theory Correctness
 imports IOA Env Impl Impl_finite

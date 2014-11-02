@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Algebraic deflations *}
+section {* Algebraic deflations *}
 
 theory Algebraic
 imports Universal Map_Functions

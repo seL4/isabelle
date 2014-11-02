@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Subtypes of pcpos *}
+section {* Subtypes of pcpos *}
 
 theory Cpodef
 imports Adm

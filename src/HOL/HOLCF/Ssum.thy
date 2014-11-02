@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* The type of strict sums *}
+section {* The type of strict sums *}
 
 theory Ssum
 imports Tr

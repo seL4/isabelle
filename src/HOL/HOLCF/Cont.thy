@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Continuity and monotonicity *}
+section {* Continuity and monotonicity *}
 
 theory Cont
 imports Pcpo

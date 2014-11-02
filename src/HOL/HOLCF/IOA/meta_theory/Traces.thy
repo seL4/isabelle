@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Executions and Traces of I/O automata in HOLCF *}
+section {* Executions and Traces of I/O automata in HOLCF *}
 
 theory Traces
 imports Sequence Automata

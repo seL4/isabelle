@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Continuous deflations and ep-pairs *}
+section {* Continuous deflations and ep-pairs *}
 
 theory Deflation
 imports Plain_HOLCF

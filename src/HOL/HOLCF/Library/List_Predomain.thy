@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Predomain class instance for HOL list type *}
+section {* Predomain class instance for HOL list type *}
 
 theory List_Predomain
 imports List_Cpo Sum_Cpo

@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow
 *)
 
-header {* Discrete cpo types *}
+section {* Discrete cpo types *}
 
 theory Discrete
 imports Cont

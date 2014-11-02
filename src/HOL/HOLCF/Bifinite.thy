@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Profinite and bifinite cpos *}
+section {* Profinite and bifinite cpos *}
 
 theory Bifinite
 imports Map_Functions "~~/src/HOL/Library/Countable"

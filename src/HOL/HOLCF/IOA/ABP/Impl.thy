@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The implementation *}
+section {* The implementation *}
 
 theory Impl
 imports Sender Receiver Abschannel

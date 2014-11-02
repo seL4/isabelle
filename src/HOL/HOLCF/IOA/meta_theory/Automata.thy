@@ -2,7 +2,7 @@
     Author:     Olaf Müller, Konrad Slind, Tobias Nipkow
 *)
 
-header {* The I/O automata of Lynch and Tuttle in HOLCF *}
+section {* The I/O automata of Lynch and Tuttle in HOLCF *}
 
 theory Automata
 imports Asig

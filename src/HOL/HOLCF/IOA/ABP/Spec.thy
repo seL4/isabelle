@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* The specification of reliable transmission *}
+section {* The specification of reliable transmission *}
 
 theory Spec
 imports IOA Action

@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Compositionality of I/O automata *}
+section {* Compositionality of I/O automata *}
 theory Compositionality
 imports CompoTraces
 begin

@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Cpo class instance for HOL option type *}
+section {* Cpo class instance for HOL option type *}
 
 theory Option_Cpo
 imports HOLCF Sum_Cpo

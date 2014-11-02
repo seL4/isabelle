@@ -2,7 +2,7 @@
     Author:     Oscar Slotosch
 *)
 
-header {* The unit domain *}
+section {* The unit domain *}
 
 theory One
 imports Lift

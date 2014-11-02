@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-header {* Compositionality on Execution level *}
+section {* Compositionality on Execution level *}
 
 theory CompoExecs
 imports Traces

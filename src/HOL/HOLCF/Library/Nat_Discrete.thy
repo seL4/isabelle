@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Discrete cpo instance for naturals *}
+section {* Discrete cpo instance for naturals *}
 
 theory Nat_Discrete
 imports HOLCF

@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Cpo class instances for all HOL types *}
+section {* Cpo class instances for all HOL types *}
 
 theory HOL_Cpo
 imports
