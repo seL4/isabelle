@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Bounds *}
+section {* Bounds *}
 
 theory Bounds imports Orders begin
 

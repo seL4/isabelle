@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Lattices *}
+section {* Lattices *}
 
 theory Lattice imports Bounds begin
 

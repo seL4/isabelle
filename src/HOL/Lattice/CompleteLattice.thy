@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Complete lattices *}
+section {* Complete lattices *}
 
 theory CompleteLattice imports Lattice begin
 

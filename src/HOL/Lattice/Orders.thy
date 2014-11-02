@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Orders *}
+section {* Orders *}
 
 theory Orders imports Main begin
 
