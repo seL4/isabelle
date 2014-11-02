@@ -6,7 +6,7 @@
   and concatenation.
 *) 
 
-header "Bool lists and integers"
+section "Bool lists and integers"
 
 theory Bool_List_Representation
 imports Main Bits_Int

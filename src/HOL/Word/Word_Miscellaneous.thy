@@ -2,7 +2,7 @@
     Author:     Miscellaneous
 *)
 
-header {* Miscellaneous lemmas, of at least doubtful value *}
+section {* Miscellaneous lemmas, of at least doubtful value *}
 
 theory Word_Miscellaneous
 imports Main "~~/src/HOL/Library/Bit" Misc_Numeric

@@ -2,7 +2,7 @@
   Author: Jeremy Dawson, NICTA
 *) 
 
-header {* Integers as implict bit strings *}
+section {* Integers as implict bit strings *}
 
 theory Bit_Representation
 imports Misc_Numeric

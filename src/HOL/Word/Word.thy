@@ -2,7 +2,7 @@
     Author:     Jeremy Dawson and Gerwin Klein, NICTA
 *)
 
-header {* A type of finite bit strings *}
+section {* A type of finite bit strings *}
 
 theory Word
 imports

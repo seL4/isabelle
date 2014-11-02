@@ -4,7 +4,7 @@
   Consequences of type definition theorems, and of extended type definition.
 *)
 
-header {* Type Definition Theorems *}
+section {* Type Definition Theorems *}
 
 theory Misc_Typedef
 imports Main

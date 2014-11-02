@@ -2,7 +2,7 @@
   Author:  Jeremy Dawson, NICTA
 *) 
 
-header {* Useful Numerical Lemmas *}
+section {* Useful Numerical Lemmas *}
 
 theory Misc_Numeric
 imports Main

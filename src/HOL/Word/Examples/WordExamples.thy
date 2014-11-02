@@ -4,7 +4,7 @@
   Examples demonstrating and testing various word operations.
 *)
 
-header "Examples of word operations"
+section "Examples of word operations"
 
 theory WordExamples
 imports "../Word" "../WordBitwise"

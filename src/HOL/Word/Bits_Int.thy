@@ -6,7 +6,7 @@
   and converting them to and from lists of bools.
 *) 
 
-header {* Bitwise Operations on Binary Integers *}
+section {* Bitwise Operations on Binary Integers *}
 
 theory Bits_Int
 imports Bits Bit_Representation

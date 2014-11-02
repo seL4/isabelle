@@ -2,7 +2,7 @@
     Author:     John Matthews, Galois Connections, Inc., copyright 2006
 *)
 
-header {* Assigning lengths to types by typeclasses *}
+section {* Assigning lengths to types by typeclasses *}
 
 theory Type_Length
 imports "~~/src/HOL/Library/Numeral_Type"

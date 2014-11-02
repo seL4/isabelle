@@ -2,7 +2,7 @@
     Author:     Author: Brian Huffman, PSU and Gerwin Klein, NICTA
 *)
 
-header {* Syntactic classes for bitwise operations *}
+section {* Syntactic classes for bitwise operations *}
 
 theory Bits
 imports Main
