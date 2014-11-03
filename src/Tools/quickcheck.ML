@@ -552,20 +552,16 @@ fun try_quickcheck auto state =
       |> try (test_goal (false, false) ([], []) i);
   in
     (case res of
-      NONE => (unknownN, state)
+      NONE => (unknownN, [])
     | SOME results =>
         let
           val msg = pretty_counterex ctxt auto (Option.map (the o get_first response_of) results)
         in
           if is_some results then
             (genuineN,
-             state
-             |> (if auto then
-                   Proof.goal_message (K (Pretty.mark Markup.information msg))
-                 else
-                   tap (fn _ => writeln (Pretty.string_of msg))))
-          else
-            (noneN, state)
+              if auto then [Pretty.string_of (Pretty.mark Markup.information msg)]
+              else (writeln (Pretty.string_of msg); []))
+          else (noneN, [])
         end)
   end
   |> `(fn (outcome_code, _) => outcome_code = genuineN);

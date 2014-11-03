@@ -15,7 +15,7 @@ sig
   val noneN: string
   val unknownN: string
   val max_solutions: int Unsynchronized.ref
-  val solve_direct: Proof.state -> bool * (string * Proof.state)
+  val solve_direct: Proof.state -> bool * (string * string list)
 end;
 
 structure Solve_Direct: SOLVE_DIRECT =
@@ -76,22 +76,17 @@ fun do_solve_direct mode state =
     (case try seek_against_goal () of
       SOME (SOME results) =>
         (someN,
-          state |>
-            (if mode = Auto_Try then
-               Proof.goal_message
-                 (fn () =>
-                   Pretty.markup Markup.information (message results))
-             else
-               tap (fn _ =>
-                 writeln (Pretty.string_of (Pretty.chunks (message results))))))
+          if mode = Auto_Try then
+            [Pretty.string_of (Pretty.markup Markup.information (message results))]
+          else (writeln (Pretty.string_of (Pretty.chunks (message results))); []))
     | SOME NONE =>
         (if mode = Normal then writeln "No proof found."
          else ();
-         (noneN, state))
+         (noneN, []))
     | NONE =>
         (if mode = Normal then writeln "An error occurred."
          else ();
-         (unknownN, state)))
+         (unknownN, [])))
   end
   |> `(fn (outcome_code, _) => outcome_code = someN);
 

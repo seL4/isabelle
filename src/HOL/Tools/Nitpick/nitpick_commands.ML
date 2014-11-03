@@ -350,12 +350,12 @@ fun pick_nits override_params mode i step state =
     val params as {blocking, debug, ...} =
       extract_params ctxt mode (default_raw_params thy) override_params
     fun go () =
-      (unknownN, state)
+      (unknownN, [])
       |> (if mode = Auto_Try then perhaps o try
           else if debug then fn f => fn x => f x
           else handle_exceptions ctxt)
-         (fn (_, state) => pick_nits_in_subgoal state params mode i step)
-  in if blocking then go () else Future.fork (tap go) |> K (unknownN, state) end
+         (fn _ => pick_nits_in_subgoal state params mode i step)
+  in if blocking then go () else Future.fork (tap go) |> K (unknownN, []) end
   |> `(fn (outcome_code, _) => outcome_code = genuineN)
 
 fun string_for_raw_param (name, value) =

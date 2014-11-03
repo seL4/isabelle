@@ -24,7 +24,7 @@ sig
     proof_method * proof_method list list -> (string * 'a) list * (proof_method * play_outcome)
   val string_of_factss : (string * fact list) list -> string
   val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
-    Proof.state -> bool * (string * Proof.state)
+    Proof.state -> bool * (string * string list)
 end;
 
 structure Sledgehammer : SLEDGEHAMMER =
@@ -214,10 +214,8 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
     if mode = Auto_Try then
       let val (outcome_code, message) = TimeLimit.timeLimit timeout go () in
         (outcome_code,
-         state
-         |> outcome_code = someN
-            ? Proof.goal_message (fn () =>
-                  Pretty.mark Markup.information (Pretty.str (message ()))))
+          if outcome_code = someN then [Markup.markup Markup.information (message ())]
+          else [])
       end
     else if blocking then
       let
@@ -231,12 +229,12 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
             outcome
             |> Async_Manager.break_into_chunks
             |> List.app writeln
-      in (outcome_code, state) end
+      in (outcome_code, []) end
     else
       (Async_Manager.thread SledgehammerN birth_time death_time
          (prover_description verbose name num_facts)
          ((fn (outcome_code, message) => (verbose orelse outcome_code = someN, message ())) o go);
-       (unknownN, state))
+       (unknownN, []))
   end
 
 val auto_try_max_facts_divisor = 2 (* FUDGE *)
@@ -259,7 +257,7 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
   else
     (case subgoal_count state of
       0 =>
-      ((if blocking then error else writeln) "No subgoal!"; (false, (noneN, state)))
+      ((if blocking then error else writeln) "No subgoal!"; (false, (noneN, [])))
     | n =>
       let
         val _ = Proof.assert_backward state
@@ -303,7 +301,7 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
               (state, i, "All", "Selected facts: " ^ spying_str_of_factss factss)))
           end
 
-        fun launch_provers state =
+        fun launch_provers () =
           let
             val factss = get_factss provers
             val problem =
@@ -313,7 +311,7 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
             val launch = launch_prover params mode output_result only learn
           in
             if mode = Auto_Try then
-              (unknownN, state)
+              (unknownN, [])
               |> fold (fn prover => fn accum as (outcome_code, _) =>
                   if outcome_code = someN then accum else launch problem prover)
                 provers
@@ -321,12 +319,12 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
               (learn chained;
                provers
                |> (if blocking then Par_List.map else map) (launch problem #> fst)
-               |> max_outcome_code |> rpair state)
+               |> max_outcome_code |> rpair [])
           end
       in
-        (if blocking then launch_provers state
-         else (Future.fork (tap (fn () => launch_provers state)); (unknownN, state)))
-        handle TimeLimit.TimeOut => (print "Sledgehammer ran out of time."; (unknownN, state))
+        (if blocking then launch_provers ()
+         else (Future.fork launch_provers; (unknownN, [])))
+        handle TimeLimit.TimeOut => (print "Sledgehammer ran out of time."; (unknownN, []))
       end
       |> `(fn (outcome_code, _) => outcome_code = someN))
 

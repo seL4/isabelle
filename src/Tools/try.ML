@@ -7,7 +7,7 @@ Manager for tools that should be tried on conjectures.
 signature TRY =
 sig
   type tool =
-    string * (int * string * (bool -> Proof.state -> bool * (string * Proof.state)))
+    string * (int * string * (bool -> Proof.state -> bool * (string * string list)))
 
   val tryN : string
 
@@ -22,7 +22,7 @@ structure Try : TRY =
 struct
 
 type tool =
-  string * (int * string * (bool -> Proof.state -> bool * (string * Proof.state)))
+  string * (int * string * (bool -> Proof.state -> bool * (string * string list)))
 
 val tryN = "try"
 
@@ -87,9 +87,9 @@ fun auto_try state =
   |> map_filter (fn (_, (_, auto, tool)) => if Options.default_bool auto then SOME tool else NONE)
   |> Par_List.get_some (fn tool =>
                            case try (tool true) state of
-                             SOME (true, (_, state)) => SOME state
+                             SOME (true, (_, outcome)) => SOME outcome
                            | _ => NONE)
-  |> the_default state
+  |> the_default []
 
 
 (* asynchronous print function (PIDE) *)
@@ -111,8 +111,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
             in
               if auto_time_limit > 0.0 then
                 (case TimeLimit.timeLimit (seconds auto_time_limit) (fn () => tool true state) () of
-                  (true, (_, state')) =>
-                    List.app Pretty.writeln (Proof.pretty_goal_messages state')
+                  (true, (_, outcome)) => List.app writeln outcome
                 | _ => ())
               else ()
             end handle exn => if Exn.is_interrupt exn then reraise exn else ()}

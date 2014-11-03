@@ -72,9 +72,9 @@ sig
   val unregister_term_postprocessor : typ -> theory -> theory
   val pick_nits_in_term :
     Proof.state -> params -> mode -> int -> int -> int -> (term * term) list
-    -> term list -> term list -> term -> string * Proof.state
+    -> term list -> term list -> term -> string * string list
   val pick_nits_in_subgoal :
-    Proof.state -> params -> mode -> int -> int -> string * Proof.state
+    Proof.state -> params -> mode -> int -> int -> string * string list
 end;
 
 structure Nitpick : NITPICK =
@@ -234,13 +234,13 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
          kodkod_sym_break, tac_timeout, max_threads, show_types, show_skolems,
          show_consts, evals, formats, atomss, max_potential, max_genuine,
          check_potential, check_genuine, batch_size, ...} = params
-    val state_ref = Unsynchronized.ref state
-    fun pprint print =
+    val outcome = Synchronized.var "Nitpick.outcome" (Queue.empty: string Queue.T)
+    fun pprint print prt =
       if mode = Auto_Try then
-        Unsynchronized.change state_ref o Proof.goal_message o K
-        o Pretty.mark Markup.information
+        Synchronized.change outcome
+          (Queue.enqueue (Pretty.string_of (Pretty.mark Markup.information prt)))
       else
-        print o Pretty.string_of
+        print (Pretty.string_of prt)
     val pprint_a = pprint writeln
     fun pprint_nt f = () |> is_mode_nt mode ? pprint writeln o f
     fun pprint_v f = () |> verbose ? pprint writeln o f
@@ -1007,7 +1007,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                 "Total time: " ^ string_of_time (Timer.checkRealTimer timer) ^
                 ".")
     val _ = spying spy (fn () => (state, i, "outcome: " ^ outcome_code))
-  in (outcome_code, !state_ref) end
+  in (outcome_code, Queue.content (Synchronized.value outcome)) end
 
 (* Give the inner timeout a chance. *)
 val timeout_bonus = seconds 1.0
@@ -1022,10 +1022,10 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
       (* The "expect" argument is deliberately ignored if Kodkodi is missing so
          that the "Nitpick_Examples" can be processed on any machine. *)
       (print_nt (Pretty.string_of (plazy (K kodkodi_not_installed_message)));
-       ("no_kodkodi", state))
+       ("no_kodkodi", []))
     else
       let
-        val unknown_outcome = (unknownN, state)
+        val unknown_outcome = (unknownN, [])
         val deadline = Time.+ (Time.now (), timeout)
         val outcome as (outcome_code, _) =
           TimeLimit.timeLimit (Time.+ (timeout, timeout_bonus))
@@ -1068,7 +1068,7 @@ fun pick_nits_in_subgoal state params mode i step =
     val t = state |> Proof.raw_goal |> #goal |> prop_of
   in
     case Logic.count_prems t of
-      0 => (writeln "No subgoal!"; (noneN, state))
+      0 => (writeln "No subgoal!"; (noneN, []))
     | n =>
       let
         val t = Logic.goal_params t i |> fst

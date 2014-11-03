@@ -32,8 +32,6 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val has_bottom_goal: state -> bool
-  val goal_message: (unit -> Pretty.T) -> state -> state
-  val pretty_goal_messages: state -> Pretty.T list
   val pretty_state: int -> state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
@@ -151,7 +149,6 @@ and goal =
   Goal of
    {statement: (string * Position.T) * term list list * term,
       (*goal kind and statement (starting with vars), initial proposition*)
-    messages: (unit -> Pretty.T) list,    (*persistent messages (hints etc.)*)
     using: thm list,                      (*goal facts*)
     goal: thm,                            (*subgoals ==> statement*)
     before_qed: Method.text option,
@@ -159,8 +156,8 @@ and goal =
       (thm list list -> state -> state) *
       (thm list list -> context -> context)};
 
-fun make_goal (statement, messages, using, goal, before_qed, after_qed) =
-  Goal {statement = statement, messages = messages, using = using, goal = goal,
+fun make_goal (statement, using, goal, before_qed, after_qed) =
+  Goal {statement = statement, using = using, goal = goal,
     before_qed = before_qed, after_qed = after_qed};
 
 fun make_node (context, facts, mode, goal) =
@@ -318,8 +315,8 @@ fun map_goal f g h (State stack) =
   (case Stack.dest stack of
     (Node {context, facts, mode, goal = SOME goal}, node :: nodes) =>
       let
-        val Goal {statement, messages, using, goal, before_qed, after_qed} = goal;
-        val goal' = make_goal (g (statement, messages, using, goal, before_qed, after_qed));
+        val Goal {statement, using, goal, before_qed, after_qed} = goal;
+        val goal' = make_goal (g (statement, using, goal, before_qed, after_qed));
         val node' = map_node_context h node;
         val stack' = Stack.make (make_node (f context, facts, mode, SOME goal')) (node' :: nodes);
       in State stack' end
@@ -331,14 +328,11 @@ fun map_goal f g h (State stack) =
       in State (Stack.make nd' (node' :: nodes')) end
   | _ => State stack);
 
-fun provide_goal goal = map_goal I (fn (statement, _, using, _, before_qed, after_qed) =>
-  (statement, [], using, goal, before_qed, after_qed)) I;
+fun provide_goal goal = map_goal I (fn (statement, using, _, before_qed, after_qed) =>
+  (statement, using, goal, before_qed, after_qed)) I;
 
-fun goal_message msg = map_goal I (fn (statement, messages, using, goal, before_qed, after_qed) =>
-  (statement, msg :: messages, using, goal, before_qed, after_qed)) I;
-
-fun using_facts using = map_goal I (fn (statement, _, _, goal, before_qed, after_qed) =>
-  (statement, [], using, goal, before_qed, after_qed)) I;
+fun using_facts using = map_goal I (fn (statement, _, goal, before_qed, after_qed) =>
+  (statement, using, goal, before_qed, after_qed)) I;
 
 local
   fun find i state =
@@ -355,11 +349,6 @@ fun get_goal state =
 
 (** pretty_state **)
 
-fun pretty_goal_messages state =
-  (case try find_goal state of
-    SOME (_, (_, {messages, ...})) => map (fn msg => msg ()) (rev messages)
-  | NONE => []);
-
 fun pretty_facts _ _ NONE = []
   | pretty_facts ctxt s (SOME ths) = [Proof_Display.pretty_goal_facts ctxt s ths, Pretty.str ""];
 
@@ -369,11 +358,10 @@ fun pretty_state nr state =
     val verbose = Config.get ctxt Proof_Context.verbose;
 
     fun prt_goal (SOME (_, (_,
-      {statement = ((_, pos), _, _), messages, using, goal, before_qed = _, after_qed = _}))) =
+      {statement = ((_, pos), _, _), using, goal, before_qed = _, after_qed = _}))) =
           pretty_facts ctxt "using"
             (if mode <> Backward orelse null using then NONE else SOME using) @
-          [Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal @
-          (map (fn msg => Position.setmp_thread_data pos msg ()) (rev messages))
+          [Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal
       | prt_goal NONE = [];
 
     val prt_ctxt =
@@ -412,15 +400,14 @@ fun goal_cases st =
     (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
 
 fun apply_method text ctxt state =
-  #2 (#2 (find_goal state))
-  |> (fn {statement, messages = _, using, goal, before_qed, after_qed} =>
+  #2 (#2 (find_goal state)) |> (fn {statement, using, goal, before_qed, after_qed} =>
     Method.evaluate text ctxt using goal
     |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
           (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases goal') #>
            Proof_Context.update_cases true meth_cases)
-          (K (statement, [], using, goal', before_qed, after_qed)) I));
+          (K (statement, using, goal', before_qed, after_qed)) I));
 
 in
 
@@ -716,11 +703,11 @@ fun gen_using f g prep_att prep_fact args state =
     (fn ctxt => ctxt |> Proof_Context.note_thmss ""
       (Attrib.map_facts_refs (map (prep_att ctxt)) (prep_fact ctxt) (no_binding args)))
   |> (fn (named_facts, state') =>
-    state' |> map_goal I (fn (statement, _, using, goal, before_qed, after_qed) =>
+    state' |> map_goal I (fn (statement, using, goal, before_qed, after_qed) =>
       let
         val ctxt = context_of state';
         val ths = maps snd named_facts;
-      in (statement, [], f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end) I);
+      in (statement, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end) I);
 
 fun append_using _ ths using = using @ filter_out Thm.is_dummy ths;
 fun unfold_using ctxt ths = map (Local_Defs.unfold ctxt ths);
@@ -918,7 +905,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)
-    |> set_goal (make_goal (statement, [], [], Goal.init goal, before_qed, after_qed'))
+    |> set_goal (make_goal (statement, [], Goal.init goal, before_qed, after_qed'))
     |> map_context (Proof_Context.auto_bind_goal props)
     |> chaining ? (`the_facts #-> using_facts)
     |> reset_facts
@@ -1130,7 +1117,7 @@ fun future_proof fork_proof state =
   let
     val _ = assert_backward state;
     val (goal_ctxt, (_, goal)) = find_goal state;
-    val {statement as (kind, _, prop), messages, using, goal, before_qed, after_qed} = goal;
+    val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal;
     val goal_tfrees =
       fold Term.add_tfrees
         (prop :: map Thm.term_of (Assumption.all_assms_of goal_ctxt)) [];
@@ -1145,7 +1132,7 @@ fun future_proof fork_proof state =
     val result_ctxt =
       state
       |> map_context reset_result
-      |> map_goal I (K (statement', messages, using, goal', before_qed, after_qed'))
+      |> map_goal I (K (statement', using, goal', before_qed, after_qed'))
         (fold (Variable.declare_typ o TFree) goal_tfrees)
       |> fork_proof;
 
@@ -1153,7 +1140,7 @@ fun future_proof fork_proof state =
     val finished_goal = Goal.future_result goal_ctxt future_thm prop';
     val state' =
       state
-      |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed)) I;
+      |> map_goal I (K (statement, using, finished_goal, NONE, after_qed)) I;
   in (Future.map fst result_ctxt, state') end;
 
 end;
