@@ -4,9 +4,9 @@
     Author:     Jasmin Blanchette, TU Muenchen
 
 Central manager for asynchronous diagnosis tool threads.
-*)
 
-(*Proof General legacy*)
+Proof General legacy!
+*)
 
 signature ASYNC_MANAGER =
 sig
@@ -21,6 +21,14 @@ end;
 
 structure Async_Manager : ASYNC_MANAGER =
 struct
+
+fun make_thread interrupts body =
+  Thread.fork
+    (fn () =>
+      Runtime.debugging NONE body () handle exn =>
+        if Exn.is_interrupt exn then ()
+        else writeln ("## INTERNAL ERROR ##\n" ^ Runtime.exn_message exn),
+      Simple_Thread.attributes interrupts);
 
 val message_store_limit = 20
 val message_display_limit = 10
@@ -111,7 +119,7 @@ fun print_new_messages () =
 fun check_thread_manager () = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
     if (case manager of SOME thread => Thread.isActive thread | NONE => false) then state
-    else let val manager = SOME (Runtime.thread false (fn () =>
+    else let val manager = SOME (make_thread false (fn () =>
       let
         fun time_limit timeout_heap =
           (case try Thread_Heap.min timeout_heap of
@@ -160,7 +168,7 @@ fun register tool birth_time death_time desc thread =
   check_thread_manager ())
 
 fun thread tool birth_time death_time desc f =
-  (Runtime.thread true
+  (make_thread true
        (fn () =>
            let
              val self = Thread.self ()

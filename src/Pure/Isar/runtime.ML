@@ -22,7 +22,6 @@ sig
   val controlled_execution: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val toplevel_error: (exn -> unit) -> ('a -> 'b) -> 'a -> 'b
   val toplevel_program: (unit -> 'a) -> 'a
-  val thread: bool -> (unit -> unit) -> Thread.thread
 end;
 
 structure Runtime: RUNTIME =
@@ -165,15 +164,6 @@ fun toplevel_error output_exn f x = f x
 
 fun toplevel_program body =
   (body |> controlled_execution NONE |> toplevel_error exn_error_message) ();
-
-(*Proof General legacy*)
-fun thread interrupts body =
-  Thread.fork
-    (fn () =>
-      debugging NONE body () handle exn =>
-        if Exn.is_interrupt exn then ()
-        else writeln ("## INTERNAL ERROR ##\n" ^ exn_message exn),
-      Simple_Thread.attributes interrupts);
 
 end;
 
