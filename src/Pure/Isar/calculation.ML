@@ -222,7 +222,7 @@ val _ =
     (Scan.succeed (Toplevel.proof' ultimately));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_trans_rules"} "print transitivity rules"
+  Outer_Syntax.command @{command_spec "print_trans_rules"} "print transitivity rules"
     (Scan.succeed (Toplevel.unknown_context o Toplevel.keep (print_rules o Toplevel.context_of)));
 
 end;

@@ -229,15 +229,15 @@ fun print_quotconsts ctxt =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_quotmapsQ3"} "print quotient map functions"
+  Outer_Syntax.command @{command_spec "print_quotmapsQ3"} "print quotient map functions"
     (Scan.succeed (Toplevel.keep (print_quotmaps o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_quotientsQ3"} "print quotients"
+  Outer_Syntax.command @{command_spec "print_quotientsQ3"} "print quotients"
     (Scan.succeed (Toplevel.keep (print_quotients o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_quotconsts"} "print quotient constants"
+  Outer_Syntax.command @{command_spec "print_quotconsts"} "print quotient constants"
     (Scan.succeed (Toplevel.keep (print_quotconsts o Toplevel.context_of)))
 
 end;

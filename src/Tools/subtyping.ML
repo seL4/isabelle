@@ -1114,7 +1114,7 @@ val _ =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_coercions"}
+  Outer_Syntax.command @{command_spec "print_coercions"}
     "print information about coercions"
     (Scan.succeed (Toplevel.keep (print_coercions o Toplevel.context_of)));
 

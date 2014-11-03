@@ -126,7 +126,7 @@ val _ =
     (Parse.name >> (fn name => Toplevel.local_theory_to_proof NONE (prove_vc name)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "spark_status"}
+  Outer_Syntax.command @{command_spec "spark_status"}
     "show the name and state of all loaded verification conditions"
     (Scan.optional
        (Args.parens

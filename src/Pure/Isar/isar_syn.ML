@@ -397,7 +397,7 @@ val _ =
     (Scan.repeat1 (Parse.position Parse.xname) >> (Toplevel.proof o Bundle.including_cmd));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_bundles"}
+  Outer_Syntax.command @{command_spec "print_bundles"}
     "print bundles of declarations"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Bundle.print_bundles o Toplevel.context_of)));
@@ -727,194 +727,194 @@ val opt_modes =
 val opt_bang = Scan.optional (@{keyword "!"} >> K true) false;
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "help"}
+  Outer_Syntax.command @{command_spec "help"}
     "retrieve outer syntax commands according to name patterns"
     (Scan.repeat Parse.name >>
       (fn pats => Toplevel.imperative (fn () => Outer_Syntax.help_syntax pats)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_commands"} "print outer syntax commands"
+  Outer_Syntax.command @{command_spec "print_commands"} "print outer syntax commands"
     (Scan.succeed (Toplevel.imperative Outer_Syntax.print_syntax));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_options"} "print configuration options"
+  Outer_Syntax.command @{command_spec "print_options"} "print configuration options"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Attrib.print_options o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_context"}
+  Outer_Syntax.command @{command_spec "print_context"}
     "print context of local theory target"
     (Scan.succeed (Toplevel.keep (Pretty.writeln_chunks o Toplevel.pretty_context)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_theory"}
+  Outer_Syntax.command @{command_spec "print_theory"}
     "print logical theory contents (verbose!)"
     (opt_bang >> (fn b => Toplevel.unknown_theory o
       Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory b o Toplevel.theory_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_syntax"}
+  Outer_Syntax.command @{command_spec "print_syntax"}
     "print inner syntax of context (verbose!)"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Proof_Context.print_syntax o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_defn_rules"}
+  Outer_Syntax.command @{command_spec "print_defn_rules"}
     "print definitional rewrite rules of context"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Local_Defs.print_rules o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_abbrevs"}
+  Outer_Syntax.command @{command_spec "print_abbrevs"}
     "print constant abbreviations of context"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Proof_Context.print_abbrevs o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_theorems"}
+  Outer_Syntax.command @{command_spec "print_theorems"}
     "print theorems of local theory or proof context"
     (opt_bang >> (fn b =>
       Toplevel.unknown_context o
       Toplevel.keep (Pretty.writeln o Pretty.chunks o Isar_Cmd.pretty_theorems b)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_locales"}
+  Outer_Syntax.command @{command_spec "print_locales"}
     "print locales of this theory"
     (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Locale.print_locales o Toplevel.theory_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_classes"}
+  Outer_Syntax.command @{command_spec "print_classes"}
     "print classes of this theory"
     (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Class.print_classes o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_locale"}
+  Outer_Syntax.command @{command_spec "print_locale"}
     "print locale of this theory"
     (opt_bang -- Parse.position Parse.xname >> (fn (b, name) =>
       Toplevel.unknown_theory o
       Toplevel.keep (fn state => Locale.print_locale (Toplevel.theory_of state) b name)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_interps"}
+  Outer_Syntax.command @{command_spec "print_interps"}
     "print interpretations of locale for this theory or proof context"
     (Parse.position Parse.xname >> (fn name =>
       Toplevel.unknown_context o
       Toplevel.keep (fn state => Locale.print_registrations (Toplevel.context_of state) name)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_dependencies"}
+  Outer_Syntax.command @{command_spec "print_dependencies"}
     "print dependencies of locale expression"
     (opt_bang -- Parse_Spec.locale_expression true >> (fn (b, expr) =>
       Toplevel.unknown_context o
       Toplevel.keep (fn state => Expression.print_dependencies (Toplevel.context_of state) b expr)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_attributes"}
+  Outer_Syntax.command @{command_spec "print_attributes"}
     "print attributes of this theory"
     (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Attrib.print_attributes o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_simpset"}
+  Outer_Syntax.command @{command_spec "print_simpset"}
     "print context of Simplifier"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Pretty.writeln o Simplifier.pretty_simpset o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_rules"} "print intro/elim rules"
+  Outer_Syntax.command @{command_spec "print_rules"} "print intro/elim rules"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Context_Rules.print_rules o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_methods"} "print methods of this theory"
+  Outer_Syntax.command @{command_spec "print_methods"} "print methods of this theory"
     (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Method.print_methods o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_antiquotations"}
+  Outer_Syntax.command @{command_spec "print_antiquotations"}
     "print document antiquotations"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Thy_Output.print_antiquotations o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_ML_antiquotations"}
+  Outer_Syntax.command @{command_spec "print_ML_antiquotations"}
     "print ML antiquotations"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (ML_Context.print_antiquotations o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "thy_deps"} "visualize theory dependencies"
+  Outer_Syntax.command @{command_spec "thy_deps"} "visualize theory dependencies"
     (Scan.succeed Isar_Cmd.thy_deps);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "locale_deps"} "visualize locale dependencies"
+  Outer_Syntax.command @{command_spec "locale_deps"} "visualize locale dependencies"
     (Scan.succeed Isar_Cmd.locale_deps);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_term_bindings"}
+  Outer_Syntax.command @{command_spec "print_term_bindings"}
     "print term bindings of proof context"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep
         (Pretty.writeln_chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_facts"} "print facts of proof context"
+  Outer_Syntax.command @{command_spec "print_facts"} "print facts of proof context"
     (opt_bang >> (fn verbose => Toplevel.unknown_context o
       Toplevel.keep (fn st => Proof_Context.print_local_facts (Toplevel.context_of st) verbose)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_cases"} "print cases of proof context"
+  Outer_Syntax.command @{command_spec "print_cases"} "print cases of proof context"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_cases o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_statement"}
+  Outer_Syntax.command @{command_spec "print_statement"}
     "print theorems as long statements"
     (opt_modes -- Parse.xthms1 >> Isar_Cmd.print_stmts);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "thm"} "print theorems"
+  Outer_Syntax.command @{command_spec "thm"} "print theorems"
     (opt_modes -- Parse.xthms1 >> Isar_Cmd.print_thms);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "prf"} "print proof terms of theorems"
+  Outer_Syntax.command @{command_spec "prf"} "print proof terms of theorems"
     (opt_modes -- Scan.option Parse.xthms1 >> Isar_Cmd.print_prfs false);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "full_prf"} "print full proof terms of theorems"
+  Outer_Syntax.command @{command_spec "full_prf"} "print full proof terms of theorems"
     (opt_modes -- Scan.option Parse.xthms1 >> Isar_Cmd.print_prfs true);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "prop"} "read and print proposition"
+  Outer_Syntax.command @{command_spec "prop"} "read and print proposition"
     (opt_modes -- Parse.term >> Isar_Cmd.print_prop);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "term"} "read and print term"
+  Outer_Syntax.command @{command_spec "term"} "read and print term"
     (opt_modes -- Parse.term >> Isar_Cmd.print_term);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "typ"} "read and print type"
+  Outer_Syntax.command @{command_spec "typ"} "read and print type"
     (opt_modes -- (Parse.typ -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort))
       >> Isar_Cmd.print_type);
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_codesetup"} "print code generator setup"
+  Outer_Syntax.command @{command_spec "print_codesetup"} "print code generator setup"
     (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Code.print_codesetup o Toplevel.theory_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_state"}
+  Outer_Syntax.command @{command_spec "print_state"}
     "print current proof state (if present)"
     (opt_modes >> (fn modes => Toplevel.keep (Print_Mode.with_modes modes Toplevel.print_state)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "welcome"} "print welcome message"
+  Outer_Syntax.command @{command_spec "welcome"} "print welcome message"
     (Scan.succeed (Toplevel.imperative (writeln o Session.welcome)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "display_drafts"}
+  Outer_Syntax.command @{command_spec "display_drafts"}
     "display raw source files with symbols"
     (Scan.repeat1 Parse.path >> (fn names =>
       Toplevel.imperative (fn () => ignore (Present.display_drafts (map Path.explode names)))));

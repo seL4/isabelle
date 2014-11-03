@@ -534,7 +534,7 @@ val _ =
     (parse_args >> (fn args => Toplevel.theory (quickcheck_params_cmd args)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "quickcheck"}
+  Outer_Syntax.command @{command_spec "quickcheck"}
     "try to find counterexample for subgoal"
     (parse_args -- Scan.optional Parse.nat 1 >> (fn (args, i) =>
       Toplevel.unknown_proof o Toplevel.keep (quickcheck_cmd args i)));

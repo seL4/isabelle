@@ -584,7 +584,7 @@ val _ =
   end;
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_codeproc"} "print code preprocessor setup"
+  Outer_Syntax.command @{command_spec "print_codeproc"} "print code preprocessor setup"
     (Scan.succeed (Toplevel.unknown_context o Toplevel.keep (print_codeproc o Toplevel.context_of)));
 
 end; (*struct*)

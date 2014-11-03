@@ -1598,7 +1598,7 @@ fun print_bnfs ctxt =
   end;
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_bnfs"}
+  Outer_Syntax.command @{command_spec "print_bnfs"}
     "print all bounded natural functors"
     (Scan.succeed (Toplevel.keep (print_bnfs o Toplevel.context_of)));
 

@@ -1028,7 +1028,7 @@ val opt_print_modes =
   Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) []
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "values_prolog"}
+  Outer_Syntax.command @{command_spec "values_prolog"}
     "enumerate and print comprehensions"
     (opt_print_modes -- Scan.optional (Parse.nat >> SOME) NONE -- Parse.term
      >> (fn ((print_modes, soln), t) => Toplevel.keep (values_cmd print_modes soln t)))

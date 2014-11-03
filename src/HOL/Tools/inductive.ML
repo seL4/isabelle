@@ -1179,7 +1179,7 @@ val _ =
     (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_simps));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_inductives"}
+  Outer_Syntax.command @{command_spec "print_inductives"}
     "print (co)inductive definitions and monotonicity rules"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (print_inductives o Toplevel.context_of)));

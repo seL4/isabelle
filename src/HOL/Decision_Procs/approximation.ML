@@ -151,7 +151,7 @@ val opt_modes =
   Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "approximate"} "print approximation of term"
+  Outer_Syntax.command @{command_spec "approximate"} "print approximation of term"
     (opt_modes -- Parse.term
       >> (fn (modes, t) => Toplevel.keep (approximate_cmd modes t)));
 

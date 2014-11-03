@@ -19,8 +19,6 @@ sig
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val markup_command: Thy_Output.markup -> command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val improper_command: command_spec -> string ->
-    (Toplevel.transition -> Toplevel.transition) parser -> unit
   val local_theory': command_spec -> string ->
     (bool -> local_theory -> local_theory) parser -> unit
   val local_theory: command_spec -> string ->
@@ -50,14 +48,12 @@ struct
 datatype command = Command of
  {comment: string,
   markup: Thy_Output.markup option,
-  int_only: bool,
   parse: (Toplevel.transition -> Toplevel.transition) parser,
   pos: Position.T,
   id: serial};
 
-fun new_command comment markup int_only parse pos =
-  Command {comment = comment, markup = markup, int_only = int_only, parse = parse,
-    pos = pos, id = serial ()};
+fun new_command comment markup parse pos =
+  Command {comment = comment, markup = markup, parse = parse, pos = pos, id = serial ()};
 
 fun command_markup def (name, Command {pos, id, ...}) =
   Markup.properties (Position.entity_properties_of def id pos)
@@ -153,13 +149,10 @@ fun check_syntax () =
   end;
 
 fun command (spec, pos) comment parse =
-  add_command spec (new_command comment NONE false parse pos);
+  add_command spec (new_command comment NONE parse pos);
 
 fun markup_command markup (spec, pos) comment parse =
-  add_command spec (new_command comment (SOME markup) false parse pos);
-
-fun improper_command (spec, pos) comment parse =
-  add_command spec (new_command comment NONE true parse pos);
+  add_command spec (new_command comment (SOME markup) parse pos);
 
 end;
 
@@ -185,14 +178,11 @@ fun help_syntax pats =
 
 fun print_syntax () =
   let
-    val ((keywords, _), syntax) =
-      CRITICAL (fn () => (Keyword.dest (), #2 (get_syntax ())));
-    val (int_cmds, cmds) =
-      List.partition (fn (_, Command {int_only, ...}) => int_only) (dest_commands syntax);
+    val ((keywords, _), syntax) = CRITICAL (fn () => (Keyword.dest (), #2 (get_syntax ())));
+    val commands = dest_commands syntax;
   in
     [Pretty.strs ("syntax keywords:" :: map quote keywords),
-      Pretty.big_list "commands:" (map pretty_command cmds),
-      Pretty.big_list "interactive-only commands:" (map pretty_command int_cmds)]
+      Pretty.big_list "commands:" (map pretty_command commands)]
     |> Pretty.writeln_chunks
   end;
 
@@ -210,8 +200,7 @@ fun parse_command syntax =
       val tr0 = Toplevel.empty |> Toplevel.name name |> Toplevel.position pos;
     in
       (case lookup_commands syntax name of
-        SOME (Command {int_only, parse, ...}) =>
-          Parse.!!! (Parse.tags |-- parse) >> (fn f => tr0 |> Toplevel.interactive int_only |> f)
+        SOME (Command {parse, ...}) => Parse.!!! (Parse.tags |-- parse) >> (fn f => f tr0)
       | NONE =>
           Scan.succeed
             (tr0 |> Toplevel.imperative (fn () =>

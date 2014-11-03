@@ -2967,7 +2967,7 @@ val scan_parms = Scan.optional (@{keyword "["} |-- Parse.list scan_parm --| @{ke
 (* 'refute' command *)
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "refute"}
+  Outer_Syntax.command @{command_spec "refute"}
     "try to find a model that refutes a given subgoal"
     (scan_parms -- Scan.optional Parse.nat 1 >>
       (fn (parms, i) =>

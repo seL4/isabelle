@@ -374,7 +374,7 @@ fun nitpick_params_trans params =
                                       |> sort_strings |> cat_lines)))))
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "nitpick"}
+  Outer_Syntax.command @{command_spec "nitpick"}
     "try to find a counterexample for a given subgoal using Nitpick"
     (parse_params -- Scan.optional Parse.nat 1 >> (fn (params, i) =>
       Toplevel.unknown_proof o

@@ -36,7 +36,7 @@ end
 subsection {* Outer syntax: cartouche within command syntax *}
 
 ML {*
-  Outer_Syntax.improper_command @{command_spec "cartouche"} ""
+  Outer_Syntax.command @{command_spec "cartouche"} ""
     (Parse.cartouche >> (fn s =>
       Toplevel.imperative (fn () => writeln s)))
 *}
@@ -112,7 +112,7 @@ term "\"\001\010\100\""
 subsubsection {* Term cartouche and regular quotes *}
 
 ML {*
-  Outer_Syntax.improper_command @{command_spec "term_cartouche"} ""
+  Outer_Syntax.command @{command_spec "term_cartouche"} ""
     (Parse.inner_syntax Parse.cartouche >> (fn s =>
       Toplevel.keep (fn state =>
         let

@@ -34,7 +34,6 @@ sig
   val type_error: transition -> state -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
-  val interactive: bool -> transition -> transition
   val init_theory: (unit -> theory) -> transition -> transition
   val is_init: transition -> bool
   val modify_init: (unit -> theory) -> transition -> transition
@@ -295,18 +294,16 @@ end;
 datatype transition = Transition of
  {name: string,              (*command name*)
   pos: Position.T,           (*source position*)
-  int_only: bool,            (*interactive-only*)  (* TTY / Proof General legacy*)
   timing: Time.time option,  (*prescient timing information*)
   trans: trans list};        (*primitive transitions (union)*)
 
-fun make_transition (name, pos, int_only, timing, trans) =
-  Transition {name = name, pos = pos, int_only = int_only,
-    timing = timing, trans = trans};
+fun make_transition (name, pos, timing, trans) =
+  Transition {name = name, pos = pos, timing = timing, trans = trans};
 
-fun map_transition f (Transition {name, pos, int_only, timing, trans}) =
-  make_transition (f (name, pos, int_only, timing, trans));
+fun map_transition f (Transition {name, pos, timing, trans}) =
+  make_transition (f (name, pos, timing, trans));
 
-val empty = make_transition ("", Position.none, false, NONE, []);
+val empty = make_transition ("", Position.none, NONE, []);
 
 
 (* diagnostics *)
@@ -323,20 +320,17 @@ fun type_error tr state =
 
 (* modify transitions *)
 
-fun name name = map_transition (fn (_, pos, int_only, timing, trans) =>
-  (name, pos, int_only, timing, trans));
+fun name name = map_transition (fn (_, pos, timing, trans) =>
+  (name, pos, timing, trans));
 
-fun position pos = map_transition (fn (name, _, int_only, timing, trans) =>
-  (name, pos, int_only, timing, trans));
+fun position pos = map_transition (fn (name, _, timing, trans) =>
+  (name, pos, timing, trans));
 
-fun interactive int_only = map_transition (fn (name, pos, _, timing, trans) =>
-  (name, pos, int_only, timing, trans));
+fun add_trans tr = map_transition (fn (name, pos, timing, trans) =>
+  (name, pos, timing, tr :: trans));
 
-fun add_trans tr = map_transition (fn (name, pos, int_only, timing, trans) =>
-  (name, pos, int_only, timing, tr :: trans));
-
-val reset_trans = map_transition (fn (name, pos, int_only, timing, _) =>
-  (name, pos, int_only, timing, []));
+val reset_trans = map_transition (fn (name, pos, timing, _) =>
+  (name, pos, timing, []));
 
 
 (* basic transitions *)
@@ -559,8 +553,7 @@ end;
 (* apply transitions *)
 
 fun get_timing (Transition {timing, ...}) = timing;
-fun put_timing timing = map_transition (fn (name, pos, int_only, _, trans) =>
-  (name, pos, int_only, timing, trans));
+fun put_timing timing = map_transition (fn (name, pos, _, trans) => (name, pos, timing, trans));
 
 local
 

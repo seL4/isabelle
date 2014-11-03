@@ -37,7 +37,7 @@ val visualize = gen_visualize (Type.cert_sort o Proof_Context.tsig_of);
 val visualize_cmd = gen_visualize Syntax.read_sort;
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "class_deps"} "visualize class dependencies"
+  Outer_Syntax.command @{command_spec "class_deps"} "visualize class dependencies"
     ((Scan.optional Parse.sort "{}" -- Scan.option Parse.sort) >> (fn (raw_super, raw_sub) =>
       ((Toplevel.unknown_theory oo Toplevel.keep) (fn st => visualize_cmd (Toplevel.context_of st) raw_super raw_sub))));
 
