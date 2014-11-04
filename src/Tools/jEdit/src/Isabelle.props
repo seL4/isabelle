@@ -15,8 +15,8 @@ plugin.isabelle.jedit.Plugin.usePluginHome=false
 #dependencies
 plugin.isabelle.jedit.Plugin.depend.0=jdk 1.7
 plugin.isabelle.jedit.Plugin.depend.1=jedit 05.01.00.00
-plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.1
-plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.1
+plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
+plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.3
 plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.6
 plugin.isabelle.jedit.Plugin.depend.5=plugin gatchan.highlight.HighlightPlugin 2.0
 
