@@ -1,0 +1,61 @@
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2013-07-28 19:03:36.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2014-11-04 17:51:00.000000000 +0100
+@@ -95,6 +95,7 @@
+ 			closeBox.putClientProperty("JButton.buttonType","toolbar");
+ 
+ 		closeBox.setMargin(new Insets(0,0,0,0));
++		GUIUtilities.setButtonContentMargin(closeBox, closeBox.getMargin());
+ 
+ 		closeBox.addActionListener(new ActionHandler());
+ 
+@@ -105,6 +106,7 @@
+ 			menuBtn.putClientProperty("JButton.buttonType","toolbar");
+ 
+ 		menuBtn.setMargin(new Insets(0,0,0,0));
++		GUIUtilities.setButtonContentMargin(menuBtn, menuBtn.getMargin());
+ 
+ 		menuBtn.addMouseListener(new MenuMouseHandler());
+ 
+@@ -148,6 +150,7 @@
+ 
+ 		JToggleButton button = new JToggleButton();
+ 		button.setMargin(new Insets(1,1,1,1));
++		GUIUtilities.setButtonContentMargin(button, new Insets(6,6,6,6));
+ 		button.setRequestFocusEnabled(false);
+ 		button.setIcon(new RotatedTextIcon(rotation,button.getFont(),
+ 			entry.shortTitle()));
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2013-07-28 19:03:53.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java	2014-11-04 17:52:52.000000000 +0100
+@@ -38,6 +38,7 @@
+ import org.gjt.sp.jedit.textarea.TextAreaMouseHandler;
+ import org.gjt.sp.util.Log;
+ import org.gjt.sp.util.SyntaxUtilities;
++import javax.swing.UIDefaults;
+ 
+ 
+ import java.net.URL;
+@@ -1833,6 +1834,21 @@
+ 		return (View)getComponentParent(comp,View.class);
+ 	} //}}}
+ 
++	//{{{ setButtonContentMargin() method
++	/**
++	 * Sets the content margin of a button (for Nimbus L&F).
++	 * @param button  the button to modify
++	 * @param margin  the new margin
++	 * @since jEdit 5.3
++	 */
++	public static void setButtonContentMargin(AbstractButton button, Insets margin)
++	{
++		UIDefaults defaults = new UIDefaults();
++		defaults.put("Button.contentMargins", margin);
++		defaults.put("ToggleButton.contentMargins", margin);
++		button.putClientProperty("Nimbus.Overrides", defaults);
++	} //}}}
++
+ 	//{{{ addSizeSaver() method
+ 	/**
+ 	* Adds a SizeSaver to the specified Frame. For non-Frame's use {@link #saveGeometry(Window,String)}
+

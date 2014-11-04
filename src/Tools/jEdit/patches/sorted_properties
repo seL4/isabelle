@@ -1,0 +1,63 @@
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2013-07-28 19:03:53.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2014-11-04 17:48:25.000000000 +0100
+@@ -1468,6 +1468,27 @@
+ 
+ 	//}}}
+ 
++	//{{{ storeProperties() method
++	/**
++	 * Stores properties with sorted keys.
++	 * @param props  Given properties.
++	 * @param out  Output stream.
++	 * @param comments  Description of the property list.
++	 * @since jEdit 5.3
++	 */
++	public static void storeProperties(Properties props, OutputStream out, String comments)
++	 	throws IOException
++	{
++	   Properties sorted = new Properties() {
++		   @Override
++		   public synchronized Enumeration<Object> keys() {
++			   return Collections.enumeration(new TreeSet<Object>(super.keySet()));
++		   }
++	   };
++	   sorted.putAll(props);
++	   sorted.store(out, comments);
++	} //}}}
++
+ 	static VarCompressor svc = null;
+ 
+ 	//{{{ VarCompressor class
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/PropertyManager.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/PropertyManager.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/PropertyManager.java	2013-07-28 19:03:53.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/PropertyManager.java	2014-11-04 17:45:54.000000000 +0100
+@@ -77,7 +77,7 @@
+ 	void saveUserProps(OutputStream out)
+ 		throws IOException
+ 	{
+-		user.store(out,"jEdit properties");
++		MiscUtilities.storeProperties(user, out, "jEdit properties");
+ 	} //}}}
+ 
+ 	//{{{ loadPluginProps() method
+diff -ru 5.1.0/jEdit/org/jedit/keymap/KeymapImpl.java 5.1.0/jEdit-patched/org/jedit/keymap/KeymapImpl.java
+--- 5.1.0/jEdit/org/jedit/keymap/KeymapImpl.java	2013-07-28 19:03:20.000000000 +0200
++++ 5.1.0/jEdit-patched/org/jedit/keymap/KeymapImpl.java	2014-11-04 17:58:09.660507580 +0100
+@@ -32,6 +32,7 @@
+ import java.io.InputStream;
+ import java.util.Properties;
+ 
++import org.gjt.sp.jedit.MiscUtilities;
+ import org.gjt.sp.util.IOUtilities;
+ import org.gjt.sp.util.Log;
+ //}}}
+@@ -150,7 +151,7 @@
+ 			try
+ 			{
+ 				out = new BufferedOutputStream(new FileOutputStream(userKeymapFile));
+-				props.store(out, "jEdit's keymap " + name);
++				MiscUtilities.storeProperties(props, out, "jEdit's keymap " + name);
+ 			}
+ 			catch (IOException e)
+ 			{
