@@ -130,6 +130,17 @@ by (cases x) auto
 lemma bind_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> bind x f = bind y g"
 by (cases x) auto
 
+lemma bind_split: "P (bind m f) 
+  \<longleftrightarrow> (m = None \<longrightarrow> P None) \<and> (\<forall>v. m=Some v \<longrightarrow> P (f v))"
+    by (cases m) auto
+
+lemma bind_split_asm: "P (bind m f) = (\<not>(
+    m=None \<and> \<not>P None 
+  \<or> (\<exists>x. m=Some x \<and> \<not>P (f x))))"
+  by (cases m) auto
+
+lemmas bind_splits = bind_split bind_split_asm
+
 definition these :: "'a option set \<Rightarrow> 'a set"
 where
   "these A = the ` {x \<in> A. x \<noteq> None}"
