@@ -196,7 +196,7 @@ fun print_syntax () =
 local
 
 fun parse_command syntax =
-  Parse.position Parse.command :|-- (fn (name, pos) =>
+  Parse.position Parse.command_ :|-- (fn (name, pos) =>
     let
       val tr0 = Toplevel.empty |> Toplevel.name name |> Toplevel.position pos;
     in

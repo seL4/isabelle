@@ -57,7 +57,7 @@ object Thy_Header extends Parse.Parser
     val file_name = atom("file name", _.is_name)
 
     val opt_files =
-      keyword("(") ~! (rep1sep(name, keyword(",")) <~ keyword(")")) ^^ { case _ ~ x => x } |
+      $$$("(") ~! (rep1sep(name, $$$(",")) <~ $$$(")")) ^^ { case _ ~ x => x } |
       success(Nil)
     val keyword_spec =
       atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
@@ -65,24 +65,24 @@ object Thy_Header extends Parse.Parser
 
     val keyword_decl =
       rep1(string) ~
-      opt(keyword("::") ~! keyword_spec ^^ { case _ ~ x => x }) ~
-      opt(keyword("==") ~! name ^^ { case _ ~ x => x }) ^^
+      opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ~
+      opt($$$("==") ~! name ^^ { case _ ~ x => x }) ^^
       { case xs ~ y ~ z => xs.map((_, y, z)) }
     val keyword_decls =
-      keyword_decl ~ rep(keyword(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
+      keyword_decl ~ rep($$$(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
       { case xs ~ yss => (xs :: yss).flatten }
 
     val file =
-      keyword("(") ~! (file_name ~ keyword(")")) ^^ { case _ ~ (x ~ _) => (x, false) } |
+      $$$("(") ~! (file_name ~ $$$(")")) ^^ { case _ ~ (x ~ _) => (x, false) } |
       file_name ^^ (x => (x, true))
 
     val args =
       theory_name ~
-      (opt(keyword(IMPORTS) ~! (rep1(theory_xname))) ^^
+      (opt($$$(IMPORTS) ~! (rep1(theory_xname))) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
-      (opt(keyword(KEYWORDS) ~! keyword_decls) ^^
+      (opt($$$(KEYWORDS) ~! keyword_decls) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
-      keyword(BEGIN) ^^
+      $$$(BEGIN) ^^
       { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
     val heading =
