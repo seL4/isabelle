@@ -13,7 +13,6 @@ object Keyword
 
   /* kinds */
 
-  val MINOR = "minor"
   val DIAG = "diag"
   val HEADING = "heading"
   val THY_BEGIN = "thy_begin"
@@ -74,55 +73,59 @@ object Keyword
   {
     def empty: Keywords = new Keywords()
 
-    def apply(names: List[String]): Keywords =
-      (empty /: names)({ case (keywords, a) => keywords + (a, (MINOR, Nil)) })
+    def apply(keywords: List[String]): Keywords = (empty /: keywords)(_ + _)
   }
 
   class Keywords private(
-    keywords: Map[String, (String, List[String])] = Map.empty,
     val minor: Scan.Lexicon = Scan.Lexicon.empty,
-    val major: Scan.Lexicon = Scan.Lexicon.empty)
+    val major: Scan.Lexicon = Scan.Lexicon.empty,
+    command_kinds: Map[String, (String, List[String])] = Map.empty)
   {
     /* content */
 
-    override def toString: String =
-      (for ((name, (kind, files)) <- keywords) yield {
-        if (kind == MINOR) quote(name)
-        else
-          quote(name) + " :: " + quote(kind) +
-          (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
-      }).toList.sorted.mkString("keywords\n  ", " and\n  ", "")
+    def is_empty: Boolean = minor.isEmpty && major.isEmpty
 
-    def is_empty: Boolean = keywords.isEmpty
+    def + (name: String): Keywords =
+      new Keywords(minor + name, major, command_kinds)
 
     def + (name: String, kind: (String, List[String])): Keywords =
     {
-      val keywords1 = keywords + (name -> kind)
-      val (minor1, major1) =
-        if (kind._1 == MINOR) (minor + name, major) else (minor, major + name)
-      new Keywords(keywords1, minor1, major1)
+      val major1 = major + name
+      val command_kinds1 = command_kinds + (name -> kind)
+      new Keywords(minor, major1, command_kinds1)
+    }
+
+    override def toString: String =
+    {
+      val keywords = minor.iterator.map(quote(_)).toList
+      val commands =
+        for ((name, (kind, files)) <- command_kinds.toList.sortBy(_._1)) yield {
+          quote(name) + " :: " + quote(kind) +
+          (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
+        }
+      (keywords ::: commands).mkString("keywords\n  ", " and\n  ", "")
     }
 
 
-    /* kind */
+    /* command kind */
 
-    def kind(name: String): Option[String] = keywords.get(name).map(_._1)
+    def command_kind(name: String): Option[String] = command_kinds.get(name).map(_._1)
 
-    def command_kind(token: Token, pred: String => Boolean): Boolean =
+    def is_command_kind(token: Token, pred: String => Boolean): Boolean =
       token.is_command &&
-        (kind(token.source) match { case Some(k) => k != MINOR && pred(k) case None => false })
+        (command_kind(token.source) match { case Some(k) => pred(k) case None => false })
 
 
     /* load commands */
 
     def load_command(name: String): Option[List[String]] =
-      keywords.get(name) match {
+      command_kinds.get(name) match {
         case Some((THY_LOAD, exts)) => Some(exts)
         case _ => None
       }
 
     private lazy val load_commands: List[(String, List[String])] =
-      (for ((name, (THY_LOAD, files)) <- keywords.iterator) yield (name, files)).toList
+      (for ((name, (THY_LOAD, files)) <- command_kinds.iterator) yield (name, files)).toList
 
     def load_commands_in(text: String): Boolean =
       load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })

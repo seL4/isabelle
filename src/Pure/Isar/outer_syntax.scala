@@ -86,33 +86,29 @@ final class Outer_Syntax private(
 
   /* add keywords */
 
-  def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =
+  def + (name: String, opt_kind: Option[(String, List[String])], replace: Option[String])
+    : Outer_Syntax =
   {
-    val keywords1 = keywords + (name, kind)
+    val keywords1 =
+      opt_kind match {
+        case None => keywords + name
+        case Some(kind) => keywords + (name, kind)
+      }
     val completion1 =
       if (replace == Some("")) completion
       else completion + (name, replace getOrElse name)
     new Outer_Syntax(keywords1, completion1, language_context, true)
   }
-
-  def + (name: String, kind: (String, List[String])): Outer_Syntax =
-    this + (name, kind, Some(name))
-  def + (name: String, kind: String): Outer_Syntax =
-    this + (name, (kind, Nil), Some(name))
-  def + (name: String, replace: Option[String]): Outer_Syntax =
-    this + (name, (Keyword.MINOR, Nil), replace)
-  def + (name: String): Outer_Syntax = this + (name, None)
+  def + (name: String): Outer_Syntax = this + (name, None, None)
+  def + (name: String, kind: String): Outer_Syntax = this + (name, Some((kind, Nil)), None)
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
-      case (syntax, (name, Some((kind, _)), replace)) =>
+      case (syntax, (name, opt_spec, replace)) =>
+        val opt_kind = opt_spec.map(_._1)
         syntax +
-          (Symbol.decode(name), kind, replace) +
-          (Symbol.encode(name), kind, replace)
-      case (syntax, (name, None, replace)) =>
-        syntax +
-          (Symbol.decode(name), replace) +
-          (Symbol.encode(name), replace)
+          (Symbol.decode(name), opt_kind, replace) +
+          (Symbol.encode(name), opt_kind, replace)
     }
 
 
@@ -149,7 +145,7 @@ final class Outer_Syntax private(
     val command1 = tokens.exists(_.is_command)
 
     val depth1 =
-      if (tokens.exists(tok => keywords.command_kind(tok, Keyword.theory))) 0
+      if (tokens.exists(tok => keywords.is_command_kind(tok, Keyword.theory))) 0
       else if (command1) struct.after_span_depth
       else struct.span_depth
 
@@ -157,15 +153,15 @@ final class Outer_Syntax private(
       ((struct.span_depth, struct.after_span_depth) /: tokens) {
         case ((x, y), tok) =>
           if (tok.is_command) {
-            if (keywords.command_kind(tok, Keyword.theory_goal))
+            if (keywords.is_command_kind(tok, Keyword.theory_goal))
               (2, 1)
-            else if (keywords.command_kind(tok, Keyword.theory))
+            else if (keywords.is_command_kind(tok, Keyword.theory))
               (1, 0)
-            else if (keywords.command_kind(tok, Keyword.proof_goal) || tok.is_begin_block)
+            else if (keywords.is_command_kind(tok, Keyword.proof_goal) || tok.is_begin_block)
               (y + 2, y + 1)
-            else if (keywords.command_kind(tok, Keyword.qed) || tok.is_end_block)
+            else if (keywords.is_command_kind(tok, Keyword.qed) || tok.is_end_block)
               (y + 1, y - 1)
-            else if (keywords.command_kind(tok, Keyword.qed_global))
+            else if (keywords.is_command_kind(tok, Keyword.qed_global))
               (1, 0)
             else (x, y)
           }
@@ -254,7 +250,7 @@ final class Outer_Syntax private(
       case "subsection" => Some(2)
       case "subsubsection" => Some(3)
       case _ =>
-        keywords.kind(command.name) match {
+        keywords.command_kind(command.name) match {
           case Some(kind) if Keyword.theory(kind) => Some(4)
           case _ => None
         }

@@ -44,8 +44,8 @@ object Structure_Matching
         case Some(syntax) =>
           val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
-          def command_kind(token: Token, pred: String => Boolean): Boolean =
-            syntax.keywords.command_kind(token, pred)
+          def is_command_kind(token: Token, pred: String => Boolean): Boolean =
+            syntax.keywords.is_command_kind(token, pred)
 
           def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
             Token_Markup.line_token_iterator(syntax, buffer, line, line + lim).
@@ -63,45 +63,45 @@ object Structure_Matching
 
           iterator(caret_line, 1).find(info => info.range.touches(caret))
           match {
-            case Some(Text.Info(range1, tok)) if command_kind(tok, Keyword.theory_goal) =>
+            case Some(Text.Info(range1, tok)) if is_command_kind(tok, Keyword.theory_goal) =>
               find_block(
-                command_kind(_, Keyword.proof_goal),
-                command_kind(_, Keyword.qed),
-                command_kind(_, Keyword.qed_global),
+                is_command_kind(_, Keyword.proof_goal),
+                is_command_kind(_, Keyword.qed),
+                is_command_kind(_, Keyword.qed_global),
                 t =>
-                  command_kind(t, Keyword.diag) ||
-                  command_kind(t, Keyword.proof),
+                  is_command_kind(t, Keyword.diag) ||
+                  is_command_kind(t, Keyword.proof),
                 caret_iterator())
 
-            case Some(Text.Info(range1, tok)) if command_kind(tok, Keyword.proof_goal) =>
+            case Some(Text.Info(range1, tok)) if is_command_kind(tok, Keyword.proof_goal) =>
               find_block(
-                command_kind(_, Keyword.proof_goal),
-                command_kind(_, Keyword.qed),
+                is_command_kind(_, Keyword.proof_goal),
+                is_command_kind(_, Keyword.qed),
                 _ => false,
                 t =>
-                  command_kind(t, Keyword.diag) ||
-                  command_kind(t, Keyword.proof),
+                  is_command_kind(t, Keyword.diag) ||
+                  is_command_kind(t, Keyword.proof),
                 caret_iterator())
 
-            case Some(Text.Info(range1, tok)) if command_kind(tok, Keyword.qed_global) =>
-              rev_caret_iterator().find(info => command_kind(info.info, Keyword.theory))
+            case Some(Text.Info(range1, tok)) if is_command_kind(tok, Keyword.qed_global) =>
+              rev_caret_iterator().find(info => is_command_kind(info.info, Keyword.theory))
               match {
                 case Some(Text.Info(range2, tok))
-                if command_kind(tok, Keyword.theory_goal) => Some((range1, range2))
+                if is_command_kind(tok, Keyword.theory_goal) => Some((range1, range2))
                 case _ => None
               }
 
-            case Some(Text.Info(range1, tok)) if command_kind(tok, Keyword.qed) =>
+            case Some(Text.Info(range1, tok)) if is_command_kind(tok, Keyword.qed) =>
               find_block(
-                command_kind(_, Keyword.qed),
+                is_command_kind(_, Keyword.qed),
                 t =>
-                  command_kind(t, Keyword.proof_goal) ||
-                  command_kind(t, Keyword.theory_goal),
+                  is_command_kind(t, Keyword.proof_goal) ||
+                  is_command_kind(t, Keyword.theory_goal),
                 _ => false,
                 t =>
-                  command_kind(t, Keyword.diag) ||
-                  command_kind(t, Keyword.proof) ||
-                  command_kind(t, Keyword.theory_goal),
+                  is_command_kind(t, Keyword.diag) ||
+                  is_command_kind(t, Keyword.proof) ||
+                  is_command_kind(t, Keyword.theory_goal),
                 rev_caret_iterator())
 
             case Some(Text.Info(range1, tok)) if tok.is_begin =>
@@ -117,7 +117,7 @@ object Structure_Matching
                     find(info => info.info.is_command || info.info.is_begin)
                   match {
                     case Some(Text.Info(range3, tok)) =>
-                      if (command_kind(tok, Keyword.theory_block)) Some((range1, range3))
+                      if (is_command_kind(tok, Keyword.theory_block)) Some((range1, range3))
                       else Some((range1, range2))
                     case None => None
                   }
