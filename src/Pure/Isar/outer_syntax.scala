@@ -74,66 +74,25 @@ object Outer_Syntax
 }
 
 final class Outer_Syntax private(
-  keywords: Map[String, (String, List[String])] = Map.empty,
-  minor: Scan.Lexicon = Scan.Lexicon.empty,
-  major: Scan.Lexicon = Scan.Lexicon.empty,
+  val keywords: Keyword.Keywords = Keyword.Keywords.empty,
   val completion: Completion = Completion.empty,
   val language_context: Completion.Language_Context = Completion.Language_Context.outer,
   val has_tokens: Boolean = true) extends Prover.Syntax
 {
   /** syntax content **/
 
-  override def toString: String =
-    (for ((name, (kind, files)) <- keywords) yield {
-      if (kind == Keyword.MINOR) quote(name)
-      else
-        quote(name) + " :: " + quote(kind) +
-        (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
-    }).toList.sorted.mkString("keywords\n  ", " and\n  ", "")
-
-
-  /* keyword kind */
-
-  def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
-  def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
-
-  def is_command(name: String): Boolean =
-    keyword_kind(name) match {
-      case Some(kind) => kind != Keyword.MINOR
-      case None => false
-    }
-
-  def command_kind(token: Token, pred: String => Boolean): Boolean =
-    token.is_command && is_command(token.source) &&
-      pred(keyword_kind(token.source).get)
-
-
-  /* load commands */
-
-  def load_command(name: String): Option[List[String]] =
-    keywords.get(name) match {
-      case Some((Keyword.THY_LOAD, exts)) => Some(exts)
-      case _ => None
-    }
-
-  val load_commands: List[(String, List[String])] =
-    (for ((name, (Keyword.THY_LOAD, files)) <- keywords.iterator) yield (name, files)).toList
-
-  def load_commands_in(text: String): Boolean =
-    load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
+  override def toString: String = keywords.toString
 
 
   /* add keywords */
 
   def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =
   {
-    val keywords1 = keywords + (name -> kind)
-    val (minor1, major1) =
-      if (kind._1 == Keyword.MINOR) (minor + name, major) else (minor, major + name)
+    val keywords1 = keywords + (name, kind)
     val completion1 =
       if (replace == Some("")) completion
       else completion + (name, replace getOrElse name)
-    new Outer_Syntax(keywords1, minor1, major1, completion1, language_context, true)
+    new Outer_Syntax(keywords1, completion1, language_context, true)
   }
 
   def + (name: String, kind: (String, List[String])): Outer_Syntax =
@@ -157,14 +116,20 @@ final class Outer_Syntax private(
     }
 
 
+  /* load commands */
+
+  def load_command(name: String): Option[List[String]] = keywords.load_command(name)
+  def load_commands_in(text: String): Boolean = keywords.load_commands_in(text)
+
+
   /* language context */
 
   def set_language_context(context: Completion.Language_Context): Outer_Syntax =
-    new Outer_Syntax(keywords, minor, major, completion, context, has_tokens)
+    new Outer_Syntax(keywords, completion, context, has_tokens)
 
   def no_tokens: Outer_Syntax =
   {
-    require(keywords.isEmpty && minor.isEmpty && major.isEmpty)
+    require(keywords.is_empty)
     new Outer_Syntax(
       completion = completion,
       language_context = language_context,
@@ -184,7 +149,7 @@ final class Outer_Syntax private(
     val command1 = tokens.exists(_.is_command)
 
     val depth1 =
-      if (tokens.exists(tok => command_kind(tok, Keyword.theory))) 0
+      if (tokens.exists(tok => keywords.command_kind(tok, Keyword.theory))) 0
       else if (command1) struct.after_span_depth
       else struct.span_depth
 
@@ -192,11 +157,16 @@ final class Outer_Syntax private(
       ((struct.span_depth, struct.after_span_depth) /: tokens) {
         case ((x, y), tok) =>
           if (tok.is_command) {
-            if (command_kind(tok, Keyword.theory_goal)) (2, 1)
-            else if (command_kind(tok, Keyword.theory)) (1, 0)
-            else if (command_kind(tok, Keyword.proof_goal) || tok.is_begin_block) (y + 2, y + 1)
-            else if (command_kind(tok, Keyword.qed) || tok.is_end_block) (y + 1, y - 1)
-            else if (command_kind(tok, Keyword.qed_global)) (1, 0)
+            if (keywords.command_kind(tok, Keyword.theory_goal))
+              (2, 1)
+            else if (keywords.command_kind(tok, Keyword.theory))
+              (1, 0)
+            else if (keywords.command_kind(tok, Keyword.proof_goal) || tok.is_begin_block)
+              (y + 2, y + 1)
+            else if (keywords.command_kind(tok, Keyword.qed) || tok.is_end_block)
+              (y + 1, y - 1)
+            else if (keywords.command_kind(tok, Keyword.qed_global))
+              (1, 0)
             else (x, y)
           }
           else (x, y)
@@ -211,7 +181,7 @@ final class Outer_Syntax private(
   def scan(input: CharSequence): List[Token] =
   {
     val in: Reader[Char] = new CharSequenceReader(input)
-    Token.Parsers.parseAll(Token.Parsers.rep(Token.Parsers.token(minor, major)), in) match {
+    Token.Parsers.parseAll(Token.Parsers.rep(Token.Parsers.token(keywords)), in) match {
       case Token.Parsers.Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
     }
@@ -223,7 +193,7 @@ final class Outer_Syntax private(
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
-      Token.Parsers.parse(Token.Parsers.token_line(minor, major, ctxt), in) match {
+      Token.Parsers.parse(Token.Parsers.token_line(keywords, ctxt), in) match {
         case Token.Parsers.Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
         case Token.Parsers.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
@@ -284,7 +254,7 @@ final class Outer_Syntax private(
       case "subsection" => Some(2)
       case "subsubsection" => Some(3)
       case _ =>
-        keyword_kind(command.name) match {
+        keywords.kind(command.name) match {
           case Some(kind) if Keyword.theory(kind) => Some(4)
           case _ => None
         }

@@ -1,7 +1,7 @@
 /*  Title:      Pure/Isar/keyword.scala
     Author:     Makarius
 
-Isar command keyword classification and keyword tables.
+Isar keyword classification.
 */
 
 package isabelle
@@ -9,6 +9,8 @@ package isabelle
 
 object Keyword
 {
+  /** keyword classification **/
+
   /* kinds */
 
   val MINOR = "minor"
@@ -60,5 +62,70 @@ object Keyword
   val proof_goal = Set(PRF_GOAL, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT)
   val qed = Set(QED, QED_SCRIPT, QED_BLOCK)
   val qed_global = Set(QED_GLOBAL)
+
+
+  type Spec = ((String, List[String]), List[String])
+
+
+
+  /** keyword tables **/
+
+  object Keywords
+  {
+    def empty: Keywords = new Keywords()
+
+    def apply(names: List[String]): Keywords =
+      (empty /: names)({ case (keywords, a) => keywords + (a, (MINOR, Nil)) })
+  }
+
+  class Keywords private(
+    keywords: Map[String, (String, List[String])] = Map.empty,
+    val minor: Scan.Lexicon = Scan.Lexicon.empty,
+    val major: Scan.Lexicon = Scan.Lexicon.empty)
+  {
+    /* content */
+
+    override def toString: String =
+      (for ((name, (kind, files)) <- keywords) yield {
+        if (kind == MINOR) quote(name)
+        else
+          quote(name) + " :: " + quote(kind) +
+          (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
+      }).toList.sorted.mkString("keywords\n  ", " and\n  ", "")
+
+    def is_empty: Boolean = keywords.isEmpty
+
+    def + (name: String, kind: (String, List[String])): Keywords =
+    {
+      val keywords1 = keywords + (name -> kind)
+      val (minor1, major1) =
+        if (kind._1 == MINOR) (minor + name, major) else (minor, major + name)
+      new Keywords(keywords1, minor1, major1)
+    }
+
+
+    /* kind */
+
+    def kind(name: String): Option[String] = keywords.get(name).map(_._1)
+
+    def command_kind(token: Token, pred: String => Boolean): Boolean =
+      token.is_command &&
+        (kind(token.source) match { case Some(k) => k != MINOR && pred(k) case None => false })
+
+
+    /* load commands */
+
+    def load_command(name: String): Option[List[String]] =
+      keywords.get(name) match {
+        case Some((THY_LOAD, exts)) => Some(exts)
+        case _ => None
+      }
+
+    private lazy val load_commands: List[(String, List[String])] =
+      (for ((name, (THY_LOAD, files)) <- keywords.iterator) yield (name, files)).toList
+
+    def load_commands_in(text: String): Boolean =
+      load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
+  }
 }
 

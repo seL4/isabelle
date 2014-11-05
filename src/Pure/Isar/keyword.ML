@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/keyword.ML
     Author:     Makarius
 
-Isar command keyword classification and global keyword tables.
+Isar keyword classification.
 *)
 
 signature KEYWORD =
