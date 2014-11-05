@@ -5667,19 +5667,19 @@ method_setup mir = {*
 *} "decision procedure for MIR arithmetic"
 
 
-lemma "ALL (x::real). (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> = (x = real \<lfloor>x\<rfloor>))"
+lemma "\<forall>x::real. (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> = (x = real \<lfloor>x\<rfloor>))"
   by mir
 
-lemma "ALL (x::real). real (2::int)*x - (real (1::int)) < real \<lfloor>x\<rfloor> + real \<lceil>x\<rceil> \<and> real \<lfloor>x\<rfloor> + real \<lceil>x\<rceil>  \<le> real (2::int)*x + (real (1::int))"
+lemma "\<forall>x::real. real (2::int)*x - (real (1::int)) < real \<lfloor>x\<rfloor> + real \<lceil>x\<rceil> \<and> real \<lfloor>x\<rfloor> + real \<lceil>x\<rceil>  \<le> real (2::int)*x + (real (1::int))"
   by mir
 
-lemma "ALL (x::real). 2*\<lfloor>x\<rfloor> \<le> \<lfloor>2*x\<rfloor> \<and> \<lfloor>2*x\<rfloor> \<le> 2*\<lfloor>x+1\<rfloor>"
+lemma "\<forall>x::real. 2*\<lfloor>x\<rfloor> \<le> \<lfloor>2*x\<rfloor> \<and> \<lfloor>2*x\<rfloor> \<le> 2*\<lfloor>x+1\<rfloor>"
   by mir 
 
-lemma "ALL (x::real). \<exists>y \<le> x. (\<lfloor>x\<rfloor> = \<lceil>y\<rceil>)"
+lemma "\<forall>x::real. \<exists>y \<le> x. (\<lfloor>x\<rfloor> = \<lceil>y\<rceil>)"
   by mir
 
-lemma "ALL (x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
+lemma "\<forall>(x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
   by mir
 
 end
