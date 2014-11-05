@@ -28,9 +28,14 @@ object Thy_Header extends Parse.Parser
   val BEGIN = "begin"
 
   private val header_keywords =
-    Keyword.Keywords(
-      List("%", "(", ")", ",", "::", "==", AND, BEGIN,
-        HEADER, CHAPTER, SECTION, SUBSECTION, SUBSUBSECTION, IMPORTS, KEYWORDS, THEORY))
+    Keyword.Keywords.empty +
+      "%" + "(" + ")" + "," + "::" + "==" + AND + BEGIN + IMPORTS + KEYWORDS +
+      (HEADER, Keyword.HEADING) +
+      (CHAPTER, Keyword.HEADING) +
+      (SECTION, Keyword.HEADING) +
+      (SUBSECTION, Keyword.HEADING) +
+      (SUBSUBSECTION, Keyword.HEADING) +
+      (THEORY, Keyword.THY_BEGIN)
 
 
   /* theory file name */
@@ -81,14 +86,14 @@ object Thy_Header extends Parse.Parser
       { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
     val heading =
-      (keyword(HEADER) |
-        keyword(CHAPTER) |
-        keyword(SECTION) |
-        keyword(SUBSECTION) |
-        keyword(SUBSUBSECTION)) ~
+      (command(HEADER) |
+        command(CHAPTER) |
+        command(SECTION) |
+        command(SUBSECTION) |
+        command(SUBSUBSECTION)) ~
       tags ~! document_source
 
-    (rep(heading) ~ keyword(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
+    (rep(heading) ~ command(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
   }
 
 

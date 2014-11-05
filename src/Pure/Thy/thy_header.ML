@@ -81,9 +81,13 @@ val header_keywords =
   Keyword.empty_keywords
   |> fold (Keyword.add o rpair NONE)
     ["%", "(", ")", ",", "::", "==", "and", beginN, importsN, keywordsN]
-  |> fold (Keyword.add o rpair (SOME Keyword.heading))
-    [headerN, chapterN, sectionN, subsectionN, subsubsectionN]
-  |> Keyword.add (theoryN, SOME Keyword.thy_begin);
+  |> fold Keyword.add
+    [(headerN, SOME Keyword.heading),
+     (chapterN, SOME Keyword.heading),
+     (sectionN, SOME Keyword.heading),
+     (subsectionN, SOME Keyword.heading),
+     (subsubsectionN, SOME Keyword.heading),
+     (theoryN, SOME Keyword.thy_begin)];
 
 
 (* header args *)

@@ -86,6 +86,8 @@ final class Outer_Syntax private(
 
   /* add keywords */
 
+  def + (name: String): Outer_Syntax = this + (name, None, None)
+  def + (name: String, kind: String): Outer_Syntax = this + (name, Some((kind, Nil)), None)
   def + (name: String, opt_kind: Option[(String, List[String])], replace: Option[String])
     : Outer_Syntax =
   {
@@ -99,8 +101,6 @@ final class Outer_Syntax private(
       else completion + (name, replace getOrElse name)
     new Outer_Syntax(keywords1, completion1, language_context, true)
   }
-  def + (name: String): Outer_Syntax = this + (name, None, None)
-  def + (name: String, kind: String): Outer_Syntax = this + (name, Some((kind, Nil)), None)
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {

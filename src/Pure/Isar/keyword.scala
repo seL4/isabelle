@@ -72,8 +72,6 @@ object Keyword
   object Keywords
   {
     def empty: Keywords = new Keywords()
-
-    def apply(keywords: List[String]): Keywords = (empty /: keywords)(_ + _)
   }
 
   class Keywords private(
@@ -99,9 +97,8 @@ object Keyword
 
     /* add keywords */
 
-    def + (name: String): Keywords =
-      new Keywords(minor + name, major, commands)
-
+    def + (name: String): Keywords = new Keywords(minor + name, major, commands)
+    def + (name: String, kind: String): Keywords = this + (name, (kind, Nil))
     def + (name: String, kind: (String, List[String])): Keywords =
     {
       val major1 = major + name
