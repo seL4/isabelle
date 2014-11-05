@@ -157,19 +157,25 @@ proof -
   then have "b mod a = a * c mod a" by simp
   then show "b mod a = 0" by simp
 qed
-  
-lemma dvd_eq_mod_eq_0 [code]:
-  "a dvd b \<longleftrightarrow> b mod a = 0"
+
+lemma mod_eq_0_iff_dvd:
+  "a mod b = 0 \<longleftrightarrow> b dvd a"
 proof
-  assume "b mod a = 0"
-  with mod_div_equality [of b a] have "b div a * a = b" by simp
-  then have "b = a * (b div a)" unfolding mult.commute ..
-  then show "a dvd b" ..
+  assume "b dvd a"
+  then show "a mod b = 0" by simp
 next
-  assume "a dvd b" then show "b mod a = 0" by simp
+  assume "a mod b = 0"
+  with mod_div_equality [of a b] have "a div b * b = a" by simp
+  then have "a = b * (a div b)" by (simp add: ac_simps)
+  then show "b dvd a" ..
 qed
 
-lemma mod_div_trivial [simp]: "a mod b div b = 0"
+lemma dvd_eq_mod_eq_0 [code]:
+  "a dvd b \<longleftrightarrow> b mod a = 0"
+  by (simp add: mod_eq_0_iff_dvd)
+
+lemma mod_div_trivial [simp]:
+  "a mod b div b = 0"
 proof (cases "b = 0")
   assume "b = 0"
   thus ?thesis by simp
@@ -185,7 +191,8 @@ next
     by (rule add_left_imp_eq)
 qed
 
-lemma mod_mod_trivial [simp]: "a mod b mod b = a mod b"
+lemma mod_mod_trivial [simp]:
+  "a mod b mod b = a mod b"
 proof -
   have "a mod b mod b = (a mod b + a div b * b) mod b"
     by (simp only: mod_mult_self1)
