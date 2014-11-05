@@ -23,9 +23,9 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   datatype markup = Markup | MarkupEnv | Verbatim
-  val eval_antiq: Scan.lexicon -> Toplevel.state -> Antiquote.antiq -> string
+  val eval_antiq: Keyword.keywords -> Toplevel.state -> Antiquote.antiq -> string
   val check_text: Symbol_Pos.source -> Toplevel.state -> unit
-  val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
+  val present_thy: Keyword.keywords -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
@@ -158,9 +158,9 @@ end;
 
 (* eval_antiq *)
 
-fun eval_antiq lex state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
+fun eval_antiq keywords state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
   let
-    val (opts, src) = Token.read_antiq lex antiq (ss, pos);
+    val (opts, src) = Token.read_antiq keywords antiq (ss, pos);
     fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
     val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
@@ -171,13 +171,13 @@ fun eval_antiq lex state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
 
 (* check_text *)
 
-fun eval_antiquote lex state (txt, pos) =
+fun eval_antiquote keywords state (txt, pos) =
   let
     fun words (Antiquote.Text ss) = [(#1 (Symbol_Pos.range ss), Markup.words)]
       | words (Antiquote.Antiq _) = [];
 
     fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
-      | expand (Antiquote.Antiq antiq) = eval_antiq lex state antiq;
+      | expand (Antiquote.Antiq antiq) = eval_antiq keywords state antiq;
 
     val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
     val _ = Position.reports (maps words ants);
@@ -190,7 +190,7 @@ fun eval_antiquote lex state (txt, pos) =
 fun check_text {delimited, text, pos} state =
  (Position.report pos (Markup.language_document delimited);
   if Toplevel.is_skipped_proof state then ()
-  else ignore (eval_antiquote (#1 (Keyword.get_lexicons ())) state (text, pos)));
+  else ignore (eval_antiquote (Keyword.get_keywords ()) state (text, pos)));
 
 
 
@@ -207,8 +207,8 @@ datatype token =
   | MarkupEnvToken of string * (string * Position.T)
   | VerbatimToken of string * Position.T;
 
-fun output_token lex state =
-  let val eval = eval_antiquote lex state in
+fun output_token keywords state =
+  let val eval = eval_antiquote keywords state in
     fn NoToken => ""
      | BasicToken tok => Latex.output_basic tok
      | MarkupToken (cmd, txt) => Latex.output_markup cmd (eval txt)
@@ -265,11 +265,11 @@ fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.
 
 in
 
-fun present_span lex default_tags span state state'
+fun present_span keywords default_tags span state state'
     (tag_stack, active_tag, newline, buffer, present_cont) =
   let
     val present = fold (fn (tok, (flag, 0)) =>
-        Buffer.add (output_token lex state' tok)
+        Buffer.add (output_token keywords state' tok)
         #> Buffer.add flag
       | _ => I);
 
@@ -351,7 +351,7 @@ val locale =
 
 in
 
-fun present_thy lex default_tags is_markup command_results toks =
+fun present_thy keywords default_tags is_markup command_results toks =
   let
     (* tokens *)
 
@@ -423,7 +423,7 @@ fun present_thy lex default_tags is_markup command_results toks =
     (* present commands *)
 
     fun present_command tr span st st' =
-      Toplevel.setmp_thread_position tr (present_span lex default_tags span st st');
+      Toplevel.setmp_thread_position tr (present_span keywords default_tags span st st');
 
     fun present _ [] = I
       | present st (((tr, st'), span) :: rest) = present_command tr span st st' #> present st' rest;

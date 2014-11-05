@@ -12,7 +12,7 @@ sig
   type syntax
   val batch_mode: bool Unsynchronized.ref
   val is_markup: syntax -> Thy_Output.markup -> string -> bool
-  val get_syntax: unit -> (Scan.lexicon * Scan.lexicon) * syntax
+  val get_syntax: unit -> Keyword.keywords * syntax
   val check_syntax: unit -> unit
   type command_spec = (string * Keyword.T) * Position.T
   val command: command_spec -> string ->
@@ -29,9 +29,8 @@ sig
     (local_theory -> Proof.state) parser -> unit
   val help_syntax: string list -> unit
   val print_syntax: unit -> unit
-  val scan: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
-  val parse: (Scan.lexicon * Scan.lexicon) * syntax ->
-    Position.T -> string -> Toplevel.transition list
+  val scan: Keyword.keywords -> Position.T -> string -> Token.T list
+  val parse: Keyword.keywords * syntax -> Position.T -> string -> Toplevel.transition list
   val parse_spans: Token.T list -> Command_Span.span list
   val side_comments: Token.T list -> Token.T list
   val command_reports: syntax -> Token.T -> Position.report_text list
@@ -137,13 +136,14 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
 
 in
 
-fun get_syntax () = CRITICAL (fn () => (Keyword.get_lexicons (), ! global_syntax));
+fun get_syntax () = CRITICAL (fn () => (Keyword.get_keywords (), ! global_syntax));
 
 fun check_syntax () =
   let
-    val ((_, major), syntax) = CRITICAL (fn () => (Keyword.dest (), ! global_syntax));
+    val (keywords, syntax) = CRITICAL (fn () => (Keyword.get_keywords (), ! global_syntax));
+    val major = Keyword.major_keywords keywords;
   in
-    (case subtract (op =) (map #1 (dest_commands syntax)) major of
+    (case subtract (op =) (map #1 (dest_commands syntax)) (Scan.dest_lexicon major) of
       [] => ()
     | missing => error ("Missing outer syntax command(s) " ^ commas_quote missing))
   end;
@@ -178,10 +178,11 @@ fun help_syntax pats =
 
 fun print_syntax () =
   let
-    val ((keywords, _), syntax) = CRITICAL (fn () => (Keyword.dest (), #2 (get_syntax ())));
+    val (keywords, syntax) = CRITICAL (fn () => (Keyword.get_keywords (), #2 (get_syntax ())));
+    val minor = Scan.dest_lexicon (Keyword.minor_keywords keywords);
     val commands = dest_commands syntax;
   in
-    [Pretty.strs ("syntax keywords:" :: map quote keywords),
+    [Pretty.strs ("keywords:" :: map quote minor),
       Pretty.big_list "commands:" (map pretty_command commands)]
     |> Pretty.writeln_chunks
   end;
@@ -222,16 +223,16 @@ end;
 
 (* off-line scanning/parsing *)
 
-fun scan lexs pos =
+fun scan keywords pos =
   Source.of_string #>
   Symbol.source #>
-  Token.source (K lexs) pos #>
+  Token.source (K keywords) pos #>
   Source.exhaust;
 
-fun parse (lexs, syntax) pos str =
+fun parse (keywords, syntax) pos str =
   Source.of_string str
   |> Symbol.source
-  |> Token.source (K lexs) pos
+  |> Token.source (K keywords) pos
   |> commands_source syntax
   |> Source.exhaust;
 

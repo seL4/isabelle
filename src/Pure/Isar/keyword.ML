@@ -41,13 +41,20 @@ sig
   type spec = (string * string list) * string list
   val spec: spec -> T
   val command_spec: (string * spec) * Position.T -> (string * T) * Position.T
+  type keywords
+  val minor_keywords: keywords -> Scan.lexicon
+  val major_keywords: keywords -> Scan.lexicon
+  val empty_keywords: keywords
+  val merge_keywords: keywords * keywords -> keywords
+  val no_command_keywords: keywords -> keywords
+  val add: string * T option -> keywords -> keywords
+  val define: string * T option -> unit
+  val get_keywords: unit -> keywords
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
   val command_keyword: string -> T option
   val command_files: string -> Path.T -> Path.T list
   val command_tags: string -> string list
-  val dest: unit -> string list * string list
-  val define: string * T option -> unit
   val is_diag: string -> bool
   val is_heading: string -> bool
   val is_theory_begin: string -> bool
@@ -144,32 +151,69 @@ fun command_spec ((name, s), pos) = ((name, spec s), pos);
 
 
 
-(** global keyword tables **)
+(** keyword tables **)
+
+(* type keywords *)
 
 datatype keywords = Keywords of
- {lexicons: Scan.lexicon * Scan.lexicon,  (*minor, major*)
-  commands: T Symtab.table};  (*command classification*)
+ {minor: Scan.lexicon,
+  major: Scan.lexicon,
+  command_kinds: T Symtab.table};
 
-fun make_keywords (lexicons, commands) =
-  Keywords {lexicons = lexicons, commands = commands};
+fun minor_keywords (Keywords {minor, ...}) = minor;
+fun major_keywords (Keywords {major, ...}) = major;
+fun command_kinds (Keywords {command_kinds, ...}) = command_kinds;
 
-local
+fun make_keywords (minor, major, command_kinds) =
+  Keywords {minor = minor, major = major, command_kinds = command_kinds};
 
-val global_keywords =
-  Unsynchronized.ref (make_keywords ((Scan.empty_lexicon, Scan.empty_lexicon), Symtab.empty));
+fun map_keywords f (Keywords {minor, major, command_kinds}) =
+  make_keywords (f (minor, major, command_kinds));
 
-in
+val empty_keywords =
+  make_keywords (Scan.empty_lexicon, Scan.empty_lexicon, Symtab.empty);
 
+fun merge_keywords
+  (Keywords {minor = minor1, major = major1, command_kinds = command_kinds1},
+    Keywords {minor = minor2, major = major2, command_kinds = command_kinds2}) =
+  make_keywords
+   (Scan.merge_lexicons (minor1, minor2),
+    Scan.merge_lexicons (major1, major2),
+    Symtab.merge (K true) (command_kinds1, command_kinds2));
+
+val no_command_keywords =
+  map_keywords (fn (minor, _, _) => (minor, Scan.empty_lexicon, Symtab.empty));
+
+
+(* add keywords *)
+
+fun add (name, opt_kind) = map_keywords (fn (minor, major, command_kinds) =>
+  (case opt_kind of
+    NONE =>
+      let
+        val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
+      in (minor', major, command_kinds) end
+  | SOME kind =>
+      let
+        val major' = Scan.extend_lexicon (Symbol.explode name) major;
+        val command_kinds' = Symtab.update (name, kind) command_kinds;
+      in (minor, major', command_kinds') end));
+
+
+(* global state *)
+
+local val global_keywords = Unsynchronized.ref empty_keywords in
+
+fun define decl = CRITICAL (fn () => Unsynchronized.change global_keywords (add decl));
 fun get_keywords () = ! global_keywords;
-
-fun change_keywords f = CRITICAL (fn () =>
-  Unsynchronized.change global_keywords
-    (fn Keywords {lexicons, commands} => make_keywords (f (lexicons, commands))));
 
 end;
 
-fun get_lexicons () = get_keywords () |> (fn Keywords {lexicons, ...} => lexicons);
-fun get_commands () = get_keywords () |> (fn Keywords {commands, ...} => commands);
+fun get_lexicons () =
+  let val keywords = get_keywords ()
+  in (minor_keywords keywords, major_keywords keywords) end;
+
+fun get_commands () = command_kinds (get_keywords ());
 
 
 (* lookup *)
@@ -191,23 +235,6 @@ fun command_files name path =
       else map (fn ext => Path.ext ext path) files);
 
 val command_tags = these o Option.map tags_of o command_keyword;
-
-fun dest () = pairself (sort_strings o Scan.dest_lexicon) (get_lexicons ());
-
-
-(* define *)
-
-fun define (name, opt_kind) = change_keywords (fn ((minor, major), commands) =>
-  (case opt_kind of
-    NONE =>
-      let
-        val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
-      in ((minor', major), commands) end
-  | SOME kind =>
-      let
-        val major' = Scan.extend_lexicon (Symbol.explode name) major;
-        val commands' = Symtab.update (name, kind) commands;
-      in ((minor, major'), commands') end));
 
 
 (* command categories *)

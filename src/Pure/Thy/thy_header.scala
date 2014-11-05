@@ -27,7 +27,7 @@ object Thy_Header extends Parse.Parser
   val AND = "and"
   val BEGIN = "begin"
 
-  private val keywords =
+  private val header_keywords =
     Keyword.Keywords(
       List("%", "(", ")", ",", "::", "==", AND, BEGIN,
         HEADER, CHAPTER, SECTION, SUBSECTION, SUBSUBSECTION, IMPORTS, KEYWORDS, THEORY))
@@ -96,7 +96,7 @@ object Thy_Header extends Parse.Parser
 
   def read(reader: Reader[Char]): Thy_Header =
   {
-    val token = Token.Parsers.token(keywords)
+    val token = Token.Parsers.token(header_keywords)
     val toks = new mutable.ListBuffer[Token]
 
     @tailrec def scan_to_begin(in: Reader[Char])

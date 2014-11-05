@@ -230,8 +230,8 @@ use "Syntax/syntax_phases.ML";
 use "Isar/local_defs.ML";
 
 (*outer syntax*)
-use "Isar/token.ML";
 use "Isar/keyword.ML";
+use "Isar/token.ML";
 use "Isar/parse.ML";
 use "Isar/args.ML";
 

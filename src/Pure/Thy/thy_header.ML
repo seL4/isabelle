@@ -77,10 +77,13 @@ val importsN = "imports";
 val keywordsN = "keywords";
 val beginN = "begin";
 
-val header_lexicons =
-  pairself (Scan.make_lexicon o map Symbol.explode)
-   (["%", "(", ")", ",", "::", "==", "and", beginN, importsN, keywordsN],
-    [headerN, chapterN, sectionN, subsectionN, subsubsectionN, theoryN]);
+val header_keywords =
+  Keyword.empty_keywords
+  |> fold (Keyword.add o rpair NONE)
+    ["%", "(", ")", ",", "::", "==", "and", beginN, importsN, keywordsN]
+  |> fold (Keyword.add o rpair (SOME Keyword.heading))
+    [headerN, chapterN, sectionN, subsectionN, subsubsectionN]
+  |> Keyword.add (theoryN, SOME Keyword.thy_begin);
 
 
 (* header args *)
@@ -138,7 +141,7 @@ fun token_source pos str =
   str
   |> Source.of_string_limited 8000
   |> Symbol.source
-  |> Token.source_strict (K header_lexicons) pos;
+  |> Token.source_strict (K header_keywords) pos;
 
 fun read_source pos source =
   let val res =
