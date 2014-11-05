@@ -79,7 +79,7 @@ object Keyword
   class Keywords private(
     val minor: Scan.Lexicon = Scan.Lexicon.empty,
     val major: Scan.Lexicon = Scan.Lexicon.empty,
-    command_kinds: Map[String, (String, List[String])] = Map.empty)
+    commands: Map[String, (String, List[String])] = Map.empty)
   {
     /* content */
 
@@ -87,32 +87,32 @@ object Keyword
 
     override def toString: String =
     {
-      val keywords = minor.iterator.map(quote(_)).toList
-      val commands =
-        for ((name, (kind, files)) <- command_kinds.toList.sortBy(_._1)) yield {
+      val keywords1 = minor.iterator.map(quote(_)).toList
+      val keywords2 =
+        for ((name, (kind, files)) <- commands.toList.sortBy(_._1)) yield {
           quote(name) + " :: " + quote(kind) +
           (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
         }
-      (keywords ::: commands).mkString("keywords\n  ", " and\n  ", "")
+      (keywords1 ::: keywords2).mkString("keywords\n  ", " and\n  ", "")
     }
 
 
     /* add keywords */
 
     def + (name: String): Keywords =
-      new Keywords(minor + name, major, command_kinds)
+      new Keywords(minor + name, major, commands)
 
     def + (name: String, kind: (String, List[String])): Keywords =
     {
       val major1 = major + name
-      val command_kinds1 = command_kinds + (name -> kind)
-      new Keywords(minor, major1, command_kinds1)
+      val commands1 = commands + (name -> kind)
+      new Keywords(minor, major1, commands1)
     }
 
 
     /* command kind */
 
-    def command_kind(name: String): Option[String] = command_kinds.get(name).map(_._1)
+    def command_kind(name: String): Option[String] = commands.get(name).map(_._1)
 
     def is_command_kind(token: Token, pred: String => Boolean): Boolean =
       token.is_command &&
@@ -122,13 +122,13 @@ object Keyword
     /* load commands */
 
     def load_command(name: String): Option[List[String]] =
-      command_kinds.get(name) match {
+      commands.get(name) match {
         case Some((THY_LOAD, exts)) => Some(exts)
         case _ => None
       }
 
     private lazy val load_commands: List[(String, List[String])] =
-      (for ((name, (THY_LOAD, files)) <- command_kinds.iterator) yield (name, files)).toList
+      (for ((name, (THY_LOAD, files)) <- commands.iterator) yield (name, files)).toList
 
     def load_commands_in(text: String): Boolean =
       load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })

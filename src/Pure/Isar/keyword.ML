@@ -158,28 +158,28 @@ fun command_spec ((name, s), pos) = ((name, spec s), pos);
 datatype keywords = Keywords of
  {minor: Scan.lexicon,
   major: Scan.lexicon,
-  command_kinds: T Symtab.table};
+  commands: T Symtab.table};
 
 fun minor_keywords (Keywords {minor, ...}) = minor;
 fun major_keywords (Keywords {major, ...}) = major;
-fun command_kinds (Keywords {command_kinds, ...}) = command_kinds;
+fun commands (Keywords {commands, ...}) = commands;
 
-fun make_keywords (minor, major, command_kinds) =
-  Keywords {minor = minor, major = major, command_kinds = command_kinds};
+fun make_keywords (minor, major, commands) =
+  Keywords {minor = minor, major = major, commands = commands};
 
-fun map_keywords f (Keywords {minor, major, command_kinds}) =
-  make_keywords (f (minor, major, command_kinds));
+fun map_keywords f (Keywords {minor, major, commands}) =
+  make_keywords (f (minor, major, commands));
 
 val empty_keywords =
   make_keywords (Scan.empty_lexicon, Scan.empty_lexicon, Symtab.empty);
 
 fun merge_keywords
-  (Keywords {minor = minor1, major = major1, command_kinds = command_kinds1},
-    Keywords {minor = minor2, major = major2, command_kinds = command_kinds2}) =
+  (Keywords {minor = minor1, major = major1, commands = commands1},
+    Keywords {minor = minor2, major = major2, commands = commands2}) =
   make_keywords
    (Scan.merge_lexicons (minor1, minor2),
     Scan.merge_lexicons (major1, major2),
-    Symtab.merge (K true) (command_kinds1, command_kinds2));
+    Symtab.merge (K true) (commands1, commands2));
 
 val no_command_keywords =
   map_keywords (fn (minor, _, _) => (minor, Scan.empty_lexicon, Symtab.empty));
@@ -187,17 +187,17 @@ val no_command_keywords =
 
 (* add keywords *)
 
-fun add (name, opt_kind) = map_keywords (fn (minor, major, command_kinds) =>
+fun add (name, opt_kind) = map_keywords (fn (minor, major, commands) =>
   (case opt_kind of
     NONE =>
       let
         val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
-      in (minor', major, command_kinds) end
+      in (minor', major, commands) end
   | SOME kind =>
       let
         val major' = Scan.extend_lexicon (Symbol.explode name) major;
-        val command_kinds' = Symtab.update (name, kind) command_kinds;
-      in (minor, major', command_kinds') end));
+        val commands' = Symtab.update (name, kind) commands;
+      in (minor, major', commands') end));
 
 
 (* global state *)
@@ -213,7 +213,7 @@ fun get_lexicons () =
   let val keywords = get_keywords ()
   in (minor_keywords keywords, major_keywords keywords) end;
 
-fun get_commands () = command_kinds (get_keywords ());
+fun get_commands () = commands (get_keywords ());
 
 
 (* lookup *)
