@@ -51,7 +51,7 @@ object Parse
       token("command " + quote(name), tok => tok.is_command && tok.source == name) ^^
         { case (_, pos) => pos.position }
 
-    def keyword(name: String): Parser[String] =
+    def $$$(name: String): Parser[String] =
       atom("keyword " + quote(name), tok => tok.is_keyword && tok.source == name)
 
     def string: Parser[String] = atom("string", _.is_string)
@@ -73,7 +73,7 @@ object Parse
           tok.kind == Token.Kind.IDENT ||
           tok.kind == Token.Kind.STRING)
 
-    def tags: Parser[List[String]] = rep(keyword("%") ~> tag_name)
+    def tags: Parser[List[String]] = rep($$$("%") ~> tag_name)
 
 
     /* wrappers */

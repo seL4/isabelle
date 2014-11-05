@@ -80,7 +80,7 @@ fun parse_time name s =
 val subgoal_count = Try.subgoal_count
 
 fun reserved_isar_keyword_table () =
-  Keyword.dest () |-> union (op =) |> map (rpair ()) |> Symtab.make
+  Symtab.make_set (Scan.dest_lexicon (Scan.merge_lexicons (Keyword.get_lexicons ())));
 
 exception TOO_MANY of unit
 
@@ -126,12 +126,12 @@ fun thms_in_proof max_thms name_tabs th =
 
 fun thms_of_name ctxt name =
   let
-    val lex = Keyword.get_lexicons
     val get = maps (Proof_Context.get_fact ctxt o fst)
+    val keywords = Keyword.get_keywords ()
   in
     Source.of_string name
     |> Symbol.source
-    |> Token.source lex Position.start
+    |> Token.source keywords Position.start
     |> Token.source_proper
     |> Source.source Token.stopper (Parse.xthms1 >> get)
     |> Source.exhaust

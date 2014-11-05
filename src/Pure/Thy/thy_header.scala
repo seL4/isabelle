@@ -27,9 +27,15 @@ object Thy_Header extends Parse.Parser
   val AND = "and"
   val BEGIN = "begin"
 
-  private val lexicon =
-    Scan.Lexicon("%", "(", ")", ",", "::", "==", AND, BEGIN,
-      HEADER, CHAPTER, SECTION, SUBSECTION, SUBSUBSECTION, IMPORTS, KEYWORDS, THEORY)
+  private val header_keywords =
+    Keyword.Keywords.empty +
+      "%" + "(" + ")" + "," + "::" + "==" + AND + BEGIN + IMPORTS + KEYWORDS +
+      (HEADER, Keyword.HEADING) +
+      (CHAPTER, Keyword.HEADING) +
+      (SECTION, Keyword.HEADING) +
+      (SUBSECTION, Keyword.HEADING) +
+      (SUBSUBSECTION, Keyword.HEADING) +
+      (THEORY, Keyword.THY_BEGIN)
 
 
   /* theory file name */
@@ -51,7 +57,7 @@ object Thy_Header extends Parse.Parser
     val file_name = atom("file name", _.is_name)
 
     val opt_files =
-      keyword("(") ~! (rep1sep(name, keyword(",")) <~ keyword(")")) ^^ { case _ ~ x => x } |
+      $$$("(") ~! (rep1sep(name, $$$(",")) <~ $$$(")")) ^^ { case _ ~ x => x } |
       success(Nil)
     val keyword_spec =
       atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
@@ -59,35 +65,35 @@ object Thy_Header extends Parse.Parser
 
     val keyword_decl =
       rep1(string) ~
-      opt(keyword("::") ~! keyword_spec ^^ { case _ ~ x => x }) ~
-      opt(keyword("==") ~! name ^^ { case _ ~ x => x }) ^^
+      opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ~
+      opt($$$("==") ~! name ^^ { case _ ~ x => x }) ^^
       { case xs ~ y ~ z => xs.map((_, y, z)) }
     val keyword_decls =
-      keyword_decl ~ rep(keyword(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
+      keyword_decl ~ rep($$$(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
       { case xs ~ yss => (xs :: yss).flatten }
 
     val file =
-      keyword("(") ~! (file_name ~ keyword(")")) ^^ { case _ ~ (x ~ _) => (x, false) } |
+      $$$("(") ~! (file_name ~ $$$(")")) ^^ { case _ ~ (x ~ _) => (x, false) } |
       file_name ^^ (x => (x, true))
 
     val args =
       theory_name ~
-      (opt(keyword(IMPORTS) ~! (rep1(theory_xname))) ^^
+      (opt($$$(IMPORTS) ~! (rep1(theory_xname))) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
-      (opt(keyword(KEYWORDS) ~! keyword_decls) ^^
+      (opt($$$(KEYWORDS) ~! keyword_decls) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
-      keyword(BEGIN) ^^
+      $$$(BEGIN) ^^
       { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
     val heading =
-      (keyword(HEADER) |
-        keyword(CHAPTER) |
-        keyword(SECTION) |
-        keyword(SUBSECTION) |
-        keyword(SUBSUBSECTION)) ~
+      (command(HEADER) |
+        command(CHAPTER) |
+        command(SECTION) |
+        command(SUBSECTION) |
+        command(SUBSUBSECTION)) ~
       tags ~! document_source
 
-    (rep(heading) ~ keyword(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
+    (rep(heading) ~ command(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
   }
 
 
@@ -95,7 +101,7 @@ object Thy_Header extends Parse.Parser
 
   def read(reader: Reader[Char]): Thy_Header =
   {
-    val token = Token.Parsers.token(lexicon, _ => false)
+    val token = Token.Parsers.token(header_keywords)
     val toks = new mutable.ListBuffer[Token]
 
     @tailrec def scan_to_begin(in: Reader[Char])
@@ -121,7 +127,7 @@ object Thy_Header extends Parse.Parser
 
   /* keywords */
 
-  type Keywords = List[(String, Option[((String, List[String]), List[String])], Option[String])]
+  type Keywords = List[(String, Option[Keyword.Spec], Option[String])]
 }
 
 
@@ -138,7 +144,7 @@ sealed case class Thy_Header(
     val f = Symbol.decode _
     Thy_Header(f(name), imports.map(f),
       keywords.map({ case (a, b, c) =>
-        (f(a), b.map({ case ((x, y), z) => ((f(x), y.map(f)), z.map(f))  }), c.map(f)) }))
+        (f(a), b.map({ case ((x, y), z) => ((f(x), y.map(f)), z.map(f)) }), c.map(f)) }))
   }
 }
 

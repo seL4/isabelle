@@ -526,10 +526,12 @@ val options =
 
 val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
 
+val query_keywords = Keyword.add (":", NONE) Keyword.empty_keywords;
+
 in
 
 fun read_query pos str =
-  Outer_Syntax.scan (Keyword.get_lexicons ()) pos str
+  Outer_Syntax.scan query_keywords pos str
   |> filter Token.is_proper
   |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query --| Scan.ahead Parse.eof)))
   |> #1;

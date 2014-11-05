@@ -228,30 +228,30 @@ object Build
       val session_name = atom("session name", _.is_name)
 
       val option =
-        name ~ opt(keyword("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
-      val options = keyword("[") ~> rep1sep(option, keyword(",")) <~ keyword("]")
+        name ~ opt($$$("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
+      val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
 
       val theories =
-        (keyword(GLOBAL_THEORIES) | keyword(THEORIES)) ~!
+        ($$$(GLOBAL_THEORIES) | $$$(THEORIES)) ~!
           ((options | success(Nil)) ~ rep(theory_xname)) ^^
           { case x ~ (y ~ z) => (x == GLOBAL_THEORIES, y, z) }
 
       val document_files =
-        keyword(DOCUMENT_FILES) ~!
-          ((keyword("(") ~! (keyword(IN) ~! (path ~ keyword(")"))) ^^
+        $$$(DOCUMENT_FILES) ~!
+          (($$$("(") ~! ($$$(IN) ~! (path ~ $$$(")"))) ^^
               { case _ ~ (_ ~ (x ~ _)) => x } | success("document")) ~
             rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
 
       command(SESSION) ~!
         (session_name ~
-          ((keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
-          ((keyword(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
-          (keyword("=") ~!
-            (opt(session_name ~! keyword("+") ^^ { case x ~ _ => x }) ~
-              ((keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
-              ((keyword(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
+          (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
+          (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
+          ($$$("=") ~!
+            (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
+              (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
+              (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep1(theories) ~
-              ((keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
+              (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               (rep(document_files) ^^ (x => x.flatten))))) ^^
         { case pos ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
             Session_Entry(pos, a, b, c, d, e, f, g, h, i) }

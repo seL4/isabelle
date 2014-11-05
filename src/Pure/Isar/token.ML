@@ -79,16 +79,16 @@ sig
   val pretty_src: Proof.context -> src -> Pretty.T
   val ident_or_symbolic: string -> bool
   val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
-  val source: (unit -> Scan.lexicon * Scan.lexicon) ->
+  val source: Keyword.keywords ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
-  val source_strict: (unit -> Scan.lexicon * Scan.lexicon) ->
+  val source_strict: Keyword.keywords ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
-  val read: Scan.lexicon -> 'a parser -> Symbol_Pos.T list -> 'a list
-  val read_antiq: Scan.lexicon -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
+  val read_no_commands: Keyword.keywords -> 'a parser -> Symbol_Pos.T list -> 'a list
+  val read_antiq: Keyword.keywords -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
   val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
@@ -530,7 +530,7 @@ fun token k ss =
 fun token_range k (pos1, (ss, pos2)) =
   Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.content ss), Slot);
 
-fun scan (lex1, lex2) = !!! "bad input"
+fun scan keywords = !!! "bad input"
   (Symbol_Pos.scan_string_qq err_prefix >> token_range String ||
     Symbol_Pos.scan_string_bq err_prefix >> token_range AltString ||
     scan_verbatim >> token_range Verbatim ||
@@ -539,8 +539,8 @@ fun scan (lex1, lex2) = !!! "bad input"
     scan_space >> token Space ||
     (Scan.max token_leq
       (Scan.max token_leq
-        (Scan.literal lex2 >> pair Command)
-        (Scan.literal lex1 >> pair Keyword))
+        (Scan.literal (Keyword.major_keywords keywords) >> pair Command)
+        (Scan.literal (Keyword.minor_keywords keywords) >> pair Keyword))
       (Lexicon.scan_longid >> pair LongIdent ||
         Lexicon.scan_id >> pair Ident ||
         Lexicon.scan_var >> pair Var ||
@@ -561,14 +561,14 @@ fun recover msg =
 
 in
 
-fun source' strict get_lex =
+fun source' strict keywords =
   let
-    val scan_strict = Scan.bulk (fn xs => scan (get_lex ()) xs);
+    val scan_strict = Scan.bulk (scan keywords);
     val scan = if strict then scan_strict else Scan.recover scan_strict recover;
   in Source.source Symbol_Pos.stopper scan end;
 
-fun source get_lex pos src = Symbol_Pos.source pos src |> source' false get_lex;
-fun source_strict get_lex pos src = Symbol_Pos.source pos src |> source' true get_lex;
+fun source keywords pos src = Symbol_Pos.source pos src |> source' false keywords;
+fun source_strict keywords pos src = Symbol_Pos.source pos src |> source' true keywords;
 
 end;
 
@@ -582,19 +582,19 @@ type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T l
 
 (* read source *)
 
-fun read lex scan syms =
+fun read_no_commands keywords scan syms =
   Source.of_list syms
-  |> source' true (K (lex, Scan.empty_lexicon))
+  |> source' true (Keyword.no_command_keywords keywords)
   |> source_proper
   |> Source.source stopper (Scan.error (Scan.bulk scan))
   |> Source.exhaust;
 
-fun read_antiq lex scan (syms, pos) =
+fun read_antiq keywords scan (syms, pos) =
   let
     fun err msg =
       cat_error msg ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
         "@{" ^ Symbol_Pos.content syms ^ "}");
-    val res = read lex scan syms handle ERROR msg => err msg;
+    val res = read_no_commands keywords scan syms handle ERROR msg => err msg;
   in (case res of [x] => x | _ => err "") end;
 
 
