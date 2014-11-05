@@ -127,10 +127,11 @@ fun thms_in_proof max_thms name_tabs th =
 fun thms_of_name ctxt name =
   let
     val get = maps (Proof_Context.get_fact ctxt o fst)
+    val keywords = Keyword.get_keywords ()
   in
     Source.of_string name
     |> Symbol.source
-    |> Token.source Keyword.get_keywords Position.start
+    |> Token.source keywords Position.start
     |> Token.source_proper
     |> Source.source Token.stopper (Parse.xthms1 >> get)
     |> Source.exhaust

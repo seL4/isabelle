@@ -79,10 +79,10 @@ sig
   val pretty_src: Proof.context -> src -> Pretty.T
   val ident_or_symbolic: string -> bool
   val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
-  val source: (unit -> Keyword.keywords) ->
+  val source: Keyword.keywords ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
-  val source_strict: (unit -> Keyword.keywords) ->
+  val source_strict: Keyword.keywords ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   type 'a parser = T list -> 'a * T list
@@ -561,14 +561,14 @@ fun recover msg =
 
 in
 
-fun source' strict get_keywords =
+fun source' strict keywords =
   let
-    val scan_strict = Scan.bulk (fn xs => scan (get_keywords ()) xs);
+    val scan_strict = Scan.bulk (scan keywords);
     val scan = if strict then scan_strict else Scan.recover scan_strict recover;
   in Source.source Symbol_Pos.stopper scan end;
 
-fun source get pos src = Symbol_Pos.source pos src |> source' false get;
-fun source_strict get pos src = Symbol_Pos.source pos src |> source' true get;
+fun source keywords pos src = Symbol_Pos.source pos src |> source' false keywords;
+fun source_strict keywords pos src = Symbol_Pos.source pos src |> source' true keywords;
 
 end;
 
@@ -584,7 +584,7 @@ type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T l
 
 fun read_no_commands keywords scan syms =
   Source.of_list syms
-  |> source' true (K (Keyword.no_command_keywords keywords))
+  |> source' true (Keyword.no_command_keywords keywords)
   |> source_proper
   |> Source.source stopper (Scan.error (Scan.bulk scan))
   |> Source.exhaust;

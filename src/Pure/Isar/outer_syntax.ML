@@ -226,13 +226,13 @@ end;
 fun scan keywords pos =
   Source.of_string #>
   Symbol.source #>
-  Token.source (K keywords) pos #>
+  Token.source keywords pos #>
   Source.exhaust;
 
 fun parse (keywords, syntax) pos str =
   Source.of_string str
   |> Symbol.source
-  |> Token.source (K keywords) pos
+  |> Token.source keywords pos
   |> commands_source syntax
   |> Source.exhaust;
 
