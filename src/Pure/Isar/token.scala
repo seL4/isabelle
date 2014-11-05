@@ -51,8 +51,7 @@ object Token
       string | (alt_string | (verb | (cart | cmt)))
     }
 
-    private def other_token(lexicon: Scan.Lexicon, is_command: String => Boolean)
-      : Parser[Token] =
+    private def other_token(minor: Scan.Lexicon, major: Scan.Lexicon): Parser[Token] =
     {
       val letdigs1 = many1(Symbol.is_letdig)
       val sub = one(s => s == Symbol.sub_decoded || s == "\\<^sub>")
@@ -80,9 +79,9 @@ object Token
         (many1(Symbol.is_symbolic_char) | one(sym => Symbol.is_symbolic(sym))) ^^
         (x => Token(Token.Kind.SYM_IDENT, x))
 
-      val command_keyword =
-        literal(lexicon) ^^
-          (x => Token(if (is_command(x)) Token.Kind.COMMAND else Token.Kind.KEYWORD, x))
+      val keyword =
+        literal(minor) ^^ (x => Token(Token.Kind.KEYWORD, x)) |||
+        literal(major) ^^ (x => Token(Token.Kind.COMMAND, x))
 
       val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
@@ -96,13 +95,13 @@ object Token
 
       space | (recover_delimited |
         (((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||
-          command_keyword) | bad))
+          keyword) | bad))
     }
 
-    def token(lexicon: Scan.Lexicon, is_command: String => Boolean): Parser[Token] =
-      delimited_token | other_token(lexicon, is_command)
+    def token(minor: Scan.Lexicon, major: Scan.Lexicon): Parser[Token] =
+      delimited_token | other_token(minor, major)
 
-    def token_line(lexicon: Scan.Lexicon, is_command: String => Boolean, ctxt: Scan.Line_Context)
+    def token_line(minor: Scan.Lexicon, major: Scan.Lexicon, ctxt: Scan.Line_Context)
       : Parser[(Token, Scan.Line_Context)] =
     {
       val string =
@@ -112,7 +111,7 @@ object Token
       val verb = verbatim_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
       val cart = cartouche_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.CARTOUCHE, x), c) }
       val cmt = comment_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
-      val other = other_token(lexicon, is_command) ^^ { case x => (x, Scan.Finished) }
+      val other = other_token(minor, major) ^^ { case x => (x, Scan.Finished) }
 
       string | (alt_string | (verb | (cart | (cmt | other))))
     }

@@ -75,7 +75,8 @@ object Outer_Syntax
 
 final class Outer_Syntax private(
   keywords: Map[String, (String, List[String])] = Map.empty,
-  lexicon: Scan.Lexicon = Scan.Lexicon.empty,
+  minor: Scan.Lexicon = Scan.Lexicon.empty,
+  major: Scan.Lexicon = Scan.Lexicon.empty,
   val completion: Completion = Completion.empty,
   val language_context: Completion.Language_Context = Completion.Language_Context.outer,
   val has_tokens: Boolean = true) extends Prover.Syntax
@@ -127,11 +128,12 @@ final class Outer_Syntax private(
   def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =
   {
     val keywords1 = keywords + (name -> kind)
-    val lexicon1 = lexicon + name
+    val (minor1, major1) =
+      if (kind._1 == Keyword.MINOR) (minor + name, major) else (minor, major + name)
     val completion1 =
       if (replace == Some("")) completion
       else completion + (name, replace getOrElse name)
-    new Outer_Syntax(keywords1, lexicon1, completion1, language_context, true)
+    new Outer_Syntax(keywords1, minor1, major1, completion1, language_context, true)
   }
 
   def + (name: String, kind: (String, List[String])): Outer_Syntax =
@@ -158,11 +160,11 @@ final class Outer_Syntax private(
   /* language context */
 
   def set_language_context(context: Completion.Language_Context): Outer_Syntax =
-    new Outer_Syntax(keywords, lexicon, completion, context, has_tokens)
+    new Outer_Syntax(keywords, minor, major, completion, context, has_tokens)
 
   def no_tokens: Outer_Syntax =
   {
-    require(keywords.isEmpty && lexicon.isEmpty)
+    require(keywords.isEmpty && minor.isEmpty && major.isEmpty)
     new Outer_Syntax(
       completion = completion,
       language_context = language_context,
@@ -209,8 +211,7 @@ final class Outer_Syntax private(
   def scan(input: CharSequence): List[Token] =
   {
     val in: Reader[Char] = new CharSequenceReader(input)
-    Token.Parsers.parseAll(
-        Token.Parsers.rep(Token.Parsers.token(lexicon, is_command)), in) match {
+    Token.Parsers.parseAll(Token.Parsers.rep(Token.Parsers.token(minor, major)), in) match {
       case Token.Parsers.Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
     }
@@ -222,7 +223,7 @@ final class Outer_Syntax private(
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
-      Token.Parsers.parse(Token.Parsers.token_line(lexicon, is_command, ctxt), in) match {
+      Token.Parsers.parse(Token.Parsers.token_line(minor, major, ctxt), in) match {
         case Token.Parsers.Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
         case Token.Parsers.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)

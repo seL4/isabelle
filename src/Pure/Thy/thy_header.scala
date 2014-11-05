@@ -95,7 +95,7 @@ object Thy_Header extends Parse.Parser
 
   def read(reader: Reader[Char]): Thy_Header =
   {
-    val token = Token.Parsers.token(lexicon, _ => false)
+    val token = Token.Parsers.token(lexicon, Scan.Lexicon.empty)
     val toks = new mutable.ListBuffer[Token]
 
     @tailrec def scan_to_begin(in: Reader[Char])
@@ -138,7 +138,7 @@ sealed case class Thy_Header(
     val f = Symbol.decode _
     Thy_Header(f(name), imports.map(f),
       keywords.map({ case (a, b, c) =>
-        (f(a), b.map({ case ((x, y), z) => ((f(x), y.map(f)), z.map(f))  }), c.map(f)) }))
+        (f(a), b.map({ case ((x, y), z) => ((f(x), y.map(f)), z.map(f)) }), c.map(f)) }))
   }
 }
 
