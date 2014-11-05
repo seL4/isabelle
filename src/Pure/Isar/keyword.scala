@@ -85,16 +85,6 @@ object Keyword
 
     def is_empty: Boolean = minor.isEmpty && major.isEmpty
 
-    def + (name: String): Keywords =
-      new Keywords(minor + name, major, command_kinds)
-
-    def + (name: String, kind: (String, List[String])): Keywords =
-    {
-      val major1 = major + name
-      val command_kinds1 = command_kinds + (name -> kind)
-      new Keywords(minor, major1, command_kinds1)
-    }
-
     override def toString: String =
     {
       val keywords = minor.iterator.map(quote(_)).toList
@@ -104,6 +94,19 @@ object Keyword
           (if (files.isEmpty) "" else " (" + commas_quote(files) + ")")
         }
       (keywords ::: commands).mkString("keywords\n  ", " and\n  ", "")
+    }
+
+
+    /* add keywords */
+
+    def + (name: String): Keywords =
+      new Keywords(minor + name, major, command_kinds)
+
+    def + (name: String, kind: (String, List[String])): Keywords =
+    {
+      val major1 = major + name
+      val command_kinds1 = command_kinds + (name -> kind)
+      new Keywords(minor, major1, command_kinds1)
     }
 
 
