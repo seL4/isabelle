@@ -79,9 +79,9 @@ val beginN = "begin";
 
 val header_keywords =
   Keyword.empty_keywords
-  |> fold (Keyword.add o rpair NONE)
+  |> fold (Keyword.add_keywords o rpair NONE)
     ["%", "(", ")", ",", "::", "==", "and", beginN, importsN, keywordsN]
-  |> fold Keyword.add
+  |> fold Keyword.add_keywords
     [(headerN, SOME Keyword.heading),
      (chapterN, SOME Keyword.heading),
      (sectionN, SOME Keyword.heading),

@@ -37,10 +37,10 @@ sig
   type keywords
   val minor_keywords: keywords -> Scan.lexicon
   val major_keywords: keywords -> Scan.lexicon
+  val no_command_keywords: keywords -> keywords
   val empty_keywords: keywords
   val merge_keywords: keywords * keywords -> keywords
-  val no_command_keywords: keywords -> keywords
-  val add: string * T option -> keywords -> keywords
+  val add_keywords: string * T option -> keywords -> keywords
   val define: string * T option -> unit
   val get_keywords: unit -> keywords
   val is_keyword: keywords -> string -> bool
@@ -142,6 +142,12 @@ fun make_keywords (minor, major, commands) =
 fun map_keywords f (Keywords {minor, major, commands}) =
   make_keywords (f (minor, major, commands));
 
+val no_command_keywords =
+  map_keywords (fn (minor, _, _) => (minor, Scan.empty_lexicon, Symtab.empty));
+
+
+(* build keywords *)
+
 val empty_keywords =
   make_keywords (Scan.empty_lexicon, Scan.empty_lexicon, Symtab.empty);
 
@@ -153,13 +159,7 @@ fun merge_keywords
     Scan.merge_lexicons (major1, major2),
     Symtab.merge (K true) (commands1, commands2));
 
-val no_command_keywords =
-  map_keywords (fn (minor, _, _) => (minor, Scan.empty_lexicon, Symtab.empty));
-
-
-(* add keywords *)
-
-fun add (name, opt_kind) = map_keywords (fn (minor, major, commands) =>
+fun add_keywords (name, opt_kind) = map_keywords (fn (minor, major, commands) =>
   (case opt_kind of
     NONE =>
       let
@@ -176,7 +176,7 @@ fun add (name, opt_kind) = map_keywords (fn (minor, major, commands) =>
 
 local val global_keywords = Unsynchronized.ref empty_keywords in
 
-fun define decl = CRITICAL (fn () => Unsynchronized.change global_keywords (add decl));
+fun define decl = CRITICAL (fn () => Unsynchronized.change global_keywords (add_keywords decl));
 fun get_keywords () = ! global_keywords;
 
 end;
