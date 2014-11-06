@@ -17,7 +17,6 @@ sig
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time : string -> string -> Time.time
   val subgoal_count : Proof.state -> int
-  val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof : int -> (string Symtab.table * string Symtab.table) option -> thm ->
     string list option
   val thms_of_name : Proof.context -> string -> thm list
@@ -78,9 +77,6 @@ fun parse_time name s =
   end
 
 val subgoal_count = Try.subgoal_count
-
-fun reserved_isar_keyword_table () =
-  Symtab.make_set (Scan.dest_lexicon (Scan.merge_lexicons (Keyword.get_lexicons ())));
 
 exception TOO_MANY of unit
 

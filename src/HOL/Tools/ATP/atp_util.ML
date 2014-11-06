@@ -140,7 +140,7 @@ fun maybe_quote y =
   let val s = unyxml y in
     y |> ((not (is_long_identifier (unquote_tvar s)) andalso
            not (is_long_identifier (unquery_var s))) orelse
-           Keyword.is_keyword s) ? quote
+           Keyword.is_keyword (Keyword.get_keywords ()) s) ? quote
   end
 
 fun string_of_ext_time (plus, time) =

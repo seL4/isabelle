@@ -191,6 +191,9 @@ local
 
 fun no_check _ _ = true;
 
+fun is_keyword _ (name, _) =
+  Keyword.is_keyword (Keyword.get_keywords ()) name;
+
 fun check_command ctxt (name, pos) =
   is_some (Keyword.command_keyword name) andalso
     let
@@ -259,8 +262,8 @@ val _ =
   Theory.setup
    (entity_antiqs no_check "" @{binding syntax} #>
     entity_antiqs check_command "isacommand" @{binding command} #>
-    entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" @{binding keyword} #>
-    entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" @{binding element} #>
+    entity_antiqs is_keyword "isakeyword" @{binding keyword} #>
+    entity_antiqs is_keyword "isakeyword" @{binding element} #>
     entity_antiqs (can o Method.check_name) "" @{binding method} #>
     entity_antiqs (can o Attrib.check_name) "" @{binding attribute} #>
     entity_antiqs no_check "" @{binding fact} #>

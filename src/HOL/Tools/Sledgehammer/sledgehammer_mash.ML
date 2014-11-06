@@ -1467,7 +1467,8 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
   let
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val ctxt = ctxt |> Config.put instantiate_inducts false
-    val facts = nearly_all_facts ctxt false fact_override Symtab.empty css chained [] @{prop True}
+    val facts =
+      nearly_all_facts ctxt false fact_override Keyword.empty_keywords css chained [] @{prop True}
       |> sort (crude_thm_ord o pairself snd o swap)
     val num_facts = length facts
     val prover = hd provers

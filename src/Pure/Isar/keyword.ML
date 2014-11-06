@@ -43,8 +43,7 @@ sig
   val add: string * T option -> keywords -> keywords
   val define: string * T option -> unit
   val get_keywords: unit -> keywords
-  val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
-  val is_keyword: string -> bool
+  val is_keyword: keywords -> string -> bool
   val command_keyword: string -> T option
   val command_files: string -> Path.T -> Path.T list
   val command_tags: string -> string list
@@ -182,18 +181,15 @@ fun get_keywords () = ! global_keywords;
 
 end;
 
-fun get_lexicons () =
-  let val keywords = get_keywords ()
-  in (minor_keywords keywords, major_keywords keywords) end;
-
 fun get_commands () = commands (get_keywords ());
 
 
 (* lookup *)
 
-fun is_keyword s =
+fun is_keyword keywords s =
   let
-    val (minor, major) = get_lexicons ();
+    val minor = minor_keywords keywords;
+    val major = major_keywords keywords;
     val syms = Symbol.explode s;
   in Scan.is_literal minor syms orelse Scan.is_literal major syms end;
 
