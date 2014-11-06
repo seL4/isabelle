@@ -145,8 +145,8 @@ fun excursion master_dir last_timing init elements =
 
 fun load_thy document last_timing update_time master_dir header text_pos text parents =
   let
-    val {name = (name, _), ...} = header;
-    val _ = Thy_Header.define_keywords header;
+    val (name, _) = #name header;
+    val _ = Thy_Header.define_keywords (#keywords header);
     val keywords = Keyword.get_keywords ();
 
     val toks = Outer_Syntax.scan keywords text_pos text;

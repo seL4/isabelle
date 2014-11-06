@@ -99,6 +99,7 @@ declare -a SOURCES=(
   Tools/update_header.scala
   Tools/update_semicolons.scala
   library.scala
+  pure_syn.scala
   term.scala
   term_xml.scala
   "../Tools/Graphview/src/graph_panel.scala"

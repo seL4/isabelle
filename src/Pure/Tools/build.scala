@@ -437,7 +437,7 @@ object Build
             val (loaded_theories0, known_theories0, syntax0) =
               info.parent.map(deps(_)) match {
                 case None =>
-                  (Set.empty[String], Map.empty[String, Document.Node.Name], Outer_Syntax.init())
+                  (Set.empty[String], Map.empty[String, Document.Node.Name], Pure_Syn.init())
                 case Some(parent) =>
                   (parent.loaded_theories, parent.known_theories, parent.syntax)
               }

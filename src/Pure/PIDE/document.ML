@@ -208,7 +208,7 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         let
           val imports = map fst (#imports header);
           val errors1 =
-            (Thy_Header.define_keywords header; errors)
+            (Thy_Header.define_keywords (#keywords header); errors)
               handle ERROR msg => errors @ [msg];
           val nodes1 = nodes
             |> default_node name

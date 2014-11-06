@@ -116,12 +116,11 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
       (case try (Thy_Header.the_keyword thy) name of
         SOME spec =>
           if Option.map #1 spec = SOME (Keyword.kind_files_of kind) then ()
-          else error ("Inconsistent outer syntax keyword declaration " ^
-            command_name ^ Position.here pos)
+          else
+            error ("Inconsistent outer syntax keyword declaration " ^
+              command_name ^ Position.here pos)
       | NONE =>
-          if Context.theory_name thy = Context.PureN
-          then Keyword.define (name, SOME kind)
-          else error ("Undeclared outer syntax command " ^ command_name ^ Position.here pos));
+          error ("Undeclared outer syntax command " ^ command_name ^ Position.here pos));
     val _ = Context_Position.report_generic context pos (command_markup true (name, cmd));
   in
     Unsynchronized.change global_syntax (map_commands (fn commands =>

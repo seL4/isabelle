@@ -12,7 +12,7 @@ sig
     imports: (string * Position.T) list,
     keywords: keywords}
   val make: string * Position.T -> (string * Position.T) list -> keywords -> header
-  val define_keywords: header -> unit
+  val define_keywords: keywords -> unit
   val declare_keyword: string * Keyword.spec option -> theory -> theory
   val the_keyword: theory -> string -> Keyword.spec option
   val args: header parser
@@ -37,7 +37,7 @@ fun make name imports keywords : header =
 
 (** keyword declarations **)
 
-fun define_keywords ({keywords, ...}: header) =
+fun define_keywords (keywords: keywords) =
   List.app (Keyword.define o apsnd (Option.map Keyword.spec)) keywords;
 
 fun err_dup name = error ("Duplicate declaration of outer syntax keyword " ^ quote name);
