@@ -38,7 +38,7 @@ fun make name imports keywords : header =
 (** keyword declarations **)
 
 fun define_keywords (keywords: keywords) =
-  List.app (Keyword.define o apsnd (Option.map Keyword.spec)) keywords;
+  List.app (Keyword.define o apsnd (Option.map Keyword.check_spec)) keywords;
 
 fun err_dup name = error ("Duplicate declaration of outer syntax keyword " ^ quote name);
 
@@ -52,7 +52,7 @@ structure Data = Theory_Data
 
 fun declare_keyword (name, spec) =
   Data.map (fn data =>
-    (Option.map Keyword.spec spec;
+    (Option.map Keyword.check_spec spec;
       Symtab.update_new (name, spec) data handle Symtab.DUP dup => err_dup dup));
 
 fun the_keyword thy name =

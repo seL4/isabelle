@@ -32,7 +32,7 @@ sig
   val prf_asm_goal_script: T
   val prf_script: T
   type spec = (string * string list) * string list
-  val spec: spec -> T
+  val check_spec: spec -> T
   val command_spec: (string * spec) * Position.T -> (string * T) * Position.T
   type keywords
   val minor_keywords: keywords -> Scan.lexicon
@@ -112,14 +112,14 @@ val kinds =
 
 type spec = (string * string list) * string list;
 
-fun spec ((kind, files), tags) =
+fun check_spec ((kind, files), tags) =
   if not (member (op =) kinds kind) then
     error ("Unknown outer syntax keyword kind " ^ quote kind)
   else if not (null files) andalso kind <> kind_of thy_load then
     error ("Illegal specification of files for " ^ quote kind)
   else Keyword {kind = kind, files = files, tags = tags};
 
-fun command_spec ((name, s), pos) = ((name, spec s), pos);
+fun command_spec ((name, s), pos) = ((name, check_spec s), pos);
 
 
 
