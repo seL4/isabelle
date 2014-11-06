@@ -424,7 +424,7 @@ fun zipper_map f =
       | zed xs (y :: ys) = f (xs, y, ys) :: zed (xs @ [y]) ys;
   in zed [] end;
 
-fun unfla _ = rpair [];
+fun unfla xss = fold_map (fn _ => fn (c :: cs) => (c,cs)) xss;
 fun unflat xss = fold_map unfla xss;
 fun unflatt xsss = fold_map unflat xsss;
 fun unflattt xssss = fold_map unflatt xssss;
