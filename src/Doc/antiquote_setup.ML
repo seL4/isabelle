@@ -195,14 +195,16 @@ fun is_keyword _ (name, _) =
   Keyword.is_keyword (Keyword.get_keywords ()) name;
 
 fun check_command ctxt (name, pos) =
-  is_some (Keyword.command_keyword name) andalso
-    let
-      val markup =
-        Outer_Syntax.scan (Keyword.get_keywords ()) Position.none name
-        |> maps (Outer_Syntax.command_reports (#2 (Outer_Syntax.get_syntax ())))
-        |> map (snd o fst);
-      val _ = Context_Position.reports ctxt (map (pair pos) markup);
-    in true end;
+  let val keywords = Keyword.get_keywords () in
+    is_some (Keyword.command_keyword keywords name) andalso
+      let
+        val markup =
+          Outer_Syntax.scan keywords Position.none name
+          |> maps (Outer_Syntax.command_reports (#2 (Outer_Syntax.get_syntax ())))
+          |> map (snd o fst);
+        val _ = Context_Position.reports ctxt (map (pair pos) markup);
+      in true end
+  end;
 
 fun check_system_option ctxt (name, pos) =
   (Context_Position.report ctxt pos (Options.default_markup (name, pos)); true)

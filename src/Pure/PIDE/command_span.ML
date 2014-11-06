@@ -10,7 +10,8 @@ sig
   datatype span = Span of kind * Token.T list
   val kind: span -> kind
   val content: span -> Token.T list
-  val resolve_files: (string -> Path.T * Position.T -> Token.file Exn.result list) -> span -> span
+  val resolve_files: Keyword.keywords ->
+    (string -> Path.T * Position.T -> Token.file Exn.result list) -> span -> span
 end;
 
 structure Command_Span: COMMAND_SPAN =
@@ -49,10 +50,10 @@ fun find_file ((_, tok) :: toks) =
 
 in
 
-fun resolve_files read_files span =
+fun resolve_files keywords read_files span =
   (case span of
     Span (Command_Span (cmd, pos), toks) =>
-      if Keyword.is_theory_load cmd then
+      if Keyword.is_theory_load keywords cmd then
         (case find_file (clean_tokens toks) of
           NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.here pos)
         | SOME (i, path) =>

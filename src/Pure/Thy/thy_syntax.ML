@@ -14,7 +14,7 @@ sig
   val map_element: ('a -> 'b) -> 'a element -> 'b element
   val flat_element: 'a element -> 'a list
   val last_element: 'a element -> 'a
-  val parse_elements: Command_Span.span list -> Command_Span.span element list
+  val parse_elements: Keyword.keywords -> Command_Span.span list -> Command_Span.span element list
 end;
 
 structure Thy_Syntax: THY_SYNTAX =
@@ -89,23 +89,27 @@ fun command_with pred =
   Scan.one
     (fn (Command_Span.Span (Command_Span.Command_Span (name, _), _)) => pred name | _ => false);
 
-val proof_atom =
-  Scan.one
-    (fn (Command_Span.Span (Command_Span.Command_Span (name, _), _)) => Keyword.is_proof_body name
-      | _ => true) >> atom;
-
-fun proof_element x = (command_with Keyword.is_proof_goal -- proof_rest >> element || proof_atom) x
-and proof_rest x = (Scan.repeat proof_element -- command_with Keyword.is_qed) x;
-
-val other_element =
-  command_with Keyword.is_theory_goal -- proof_rest >> element ||
-  Scan.one not_eof >> atom;
+fun parse_element keywords =
+  let
+    val proof_atom =
+      Scan.one
+        (fn (Command_Span.Span (Command_Span.Command_Span (name, _), _)) =>
+              Keyword.is_proof_body keywords name
+          | _ => true) >> atom;
+    fun proof_element x =
+      (command_with (Keyword.is_proof_goal keywords) -- proof_rest >> element || proof_atom) x
+    and proof_rest x =
+      (Scan.repeat proof_element -- command_with (Keyword.is_qed keywords)) x;
+  in
+    command_with (Keyword.is_theory_goal keywords) -- proof_rest >> element ||
+    Scan.one not_eof >> atom
+  end;
 
 in
 
-val parse_elements =
+fun parse_elements keywords =
   Source.of_list #>
-  Source.source stopper (Scan.bulk other_element) #>
+  Source.source stopper (Scan.bulk (parse_element keywords)) #>
   Source.exhaust;
 
 end;

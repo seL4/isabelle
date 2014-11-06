@@ -88,7 +88,7 @@ sig
   val reset_proof: state -> state option
   type result
   val join_results: result -> (transition * state) list
-  val element_result: transition Thy_Syntax.element -> state -> result * state
+  val element_result: Keyword.keywords -> transition Thy_Syntax.element -> state -> result * state
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -681,10 +681,10 @@ fun proof_future_enabled estimate st =
             NONE => Goal.future_enabled 2
           | SOME t => Goal.future_enabled_timing t)));
 
-fun atom_result tr st =
+fun atom_result keywords tr st =
   let
     val st' =
-      if Goal.future_enabled 1 andalso Keyword.is_diag (name_of tr) then
+      if Goal.future_enabled 1 andalso Keyword.is_diag keywords (name_of tr) then
         (Execution.fork
           {name = "Toplevel.diag", pos = pos_of tr,
             pri = priority (timing_estimate true (Thy_Syntax.atom tr))}
@@ -694,10 +694,10 @@ fun atom_result tr st =
 
 in
 
-fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
-  | element_result (elem as Thy_Syntax.Element (head_tr, SOME element_rest)) st =
+fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result keywords tr st
+  | element_result keywords (elem as Thy_Syntax.Element (head_tr, SOME element_rest)) st =
       let
-        val (head_result, st') = atom_result head_tr st;
+        val (head_result, st') = atom_result keywords head_tr st;
         val (body_elems, end_tr) = element_rest;
         val estimate = timing_estimate false elem;
       in
@@ -705,7 +705,7 @@ fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
         then
           let
             val proof_trs = maps Thy_Syntax.flat_element body_elems @ [end_tr];
-            val (proof_results, st'') = fold_map atom_result proof_trs st';
+            val (proof_results, st'') = fold_map (atom_result keywords) proof_trs st';
           in (Result_List (head_result :: proof_results), st'') end
         else
           let
@@ -721,7 +721,7 @@ fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
                       val prf' = Proof_Node.apply (K state) prf;
                       val (result, result_state) =
                         State (SOME (Proof (prf', (finish, orig_gthy))), prev)
-                        |> fold_map element_result body_elems ||> command end_tr;
+                        |> fold_map (element_result keywords) body_elems ||> command end_tr;
                     in (Result_List result, presentation_context_of result_state) end))
               #> (fn (res, state') => state' |> put_result (Result_Future res));
 

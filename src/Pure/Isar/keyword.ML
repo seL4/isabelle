@@ -41,25 +41,25 @@ sig
   val empty_keywords: keywords
   val merge_keywords: keywords * keywords -> keywords
   val add_keywords: string * T option -> keywords -> keywords
+  val is_keyword: keywords -> string -> bool
+  val command_keyword: keywords -> string -> T option
+  val command_files: keywords -> string -> Path.T -> Path.T list
+  val command_tags: keywords -> string -> string list
+  val is_diag: keywords -> string -> bool
+  val is_heading: keywords -> string -> bool
+  val is_theory_begin: keywords -> string -> bool
+  val is_theory_load: keywords -> string -> bool
+  val is_theory: keywords -> string -> bool
+  val is_theory_body: keywords -> string -> bool
+  val is_proof: keywords -> string -> bool
+  val is_proof_body: keywords -> string -> bool
+  val is_theory_goal: keywords -> string -> bool
+  val is_proof_goal: keywords -> string -> bool
+  val is_qed: keywords -> string -> bool
+  val is_qed_global: keywords -> string -> bool
+  val is_printed: keywords -> string -> bool
   val define: string * T option -> unit
   val get_keywords: unit -> keywords
-  val is_keyword: keywords -> string -> bool
-  val command_keyword: string -> T option
-  val command_files: string -> Path.T -> Path.T list
-  val command_tags: string -> string list
-  val is_diag: string -> bool
-  val is_heading: string -> bool
-  val is_theory_begin: string -> bool
-  val is_theory_load: string -> bool
-  val is_theory: string -> bool
-  val is_theory_body: string -> bool
-  val is_proof: string -> bool
-  val is_proof_body: string -> bool
-  val is_theory_goal: string -> bool
-  val is_proof_goal: string -> bool
-  val is_qed: string -> bool
-  val is_qed_global: string -> bool
-  val is_printed: string -> bool
 end;
 
 structure Keyword: KEYWORD =
@@ -134,7 +134,6 @@ datatype keywords = Keywords of
 
 fun minor_keywords (Keywords {minor, ...}) = minor;
 fun major_keywords (Keywords {major, ...}) = major;
-fun commands (Keywords {commands, ...}) = commands;
 
 fun make_keywords (minor, major, commands) =
   Keywords {minor = minor, major = major, commands = commands};
@@ -172,18 +171,6 @@ fun add_keywords (name, opt_kind) = map_keywords (fn (minor, major, commands) =>
       in (minor, major', commands') end));
 
 
-(* global state *)
-
-local val global_keywords = Unsynchronized.ref empty_keywords in
-
-fun define decl = CRITICAL (fn () => Unsynchronized.change global_keywords (add_keywords decl));
-fun get_keywords () = ! global_keywords;
-
-end;
-
-fun get_commands () = commands (get_keywords ());
-
-
 (* lookup *)
 
 fun is_keyword keywords s =
@@ -193,18 +180,18 @@ fun is_keyword keywords s =
     val syms = Symbol.explode s;
   in Scan.is_literal minor syms orelse Scan.is_literal major syms end;
 
-fun command_keyword name = Symtab.lookup (get_commands ()) name;
+fun command_keyword (Keywords {commands, ...}) = Symtab.lookup commands;
 
-fun command_files name path =
-  (case command_keyword name of
+fun command_files keywords name path =
+  (case command_keyword keywords name of
     NONE => []
   | SOME (Keyword {kind, files, ...}) =>
       if kind <> kind_of thy_load then []
       else if null files then [path]
       else map (fn ext => Path.ext ext path) files);
 
-fun command_tags name =
-  (case command_keyword name of
+fun command_tags keywords name =
+  (case command_keyword keywords name of
     SOME (Keyword {tags, ...}) => tags
   | NONE => []);
 
@@ -212,12 +199,13 @@ fun command_tags name =
 (* command categories *)
 
 fun command_category ks =
-  let val tab = Symtab.make_set (map kind_of ks) in
-    fn name =>
-      (case command_keyword name of
+  let
+    val tab = Symtab.make_set (map kind_of ks);
+    fun pred keywords name =
+      (case command_keyword keywords name of
         NONE => false
-      | SOME k => Symtab.defined tab (kind_of k))
-  end;
+      | SOME k => Symtab.defined tab (kind_of k));
+  in pred end;
 
 val is_diag = command_category [diag];
 
@@ -246,7 +234,18 @@ val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_asm_goal_scrip
 val is_qed = command_category [qed, qed_script, qed_block];
 val is_qed_global = command_category [qed_global];
 
-val is_printed = is_theory_goal orf is_proof;
+fun is_printed keywords = is_theory_goal keywords orf is_proof keywords;
+
+
+
+(** global state **)
+
+local val global_keywords = Unsynchronized.ref empty_keywords in
+
+fun define decl = CRITICAL (fn () => Unsynchronized.change global_keywords (add_keywords decl));
+fun get_keywords () = ! global_keywords;
+
+end;
 
 end;
 

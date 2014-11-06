@@ -25,7 +25,7 @@ sig
   datatype markup = Markup | MarkupEnv | Verbatim
   val eval_antiq: Keyword.keywords -> Toplevel.state -> Antiquote.antiq -> string
   val check_text: Symbol_Pos.source -> Toplevel.state -> unit
-  val present_thy: Keyword.keywords -> (string -> string list) -> (markup -> string -> bool) ->
+  val present_thy: Keyword.keywords -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
@@ -265,8 +265,7 @@ fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.
 
 in
 
-fun present_span keywords default_tags span state state'
-    (tag_stack, active_tag, newline, buffer, present_cont) =
+fun present_span keywords span state state' (tag_stack, active_tag, newline, buffer, present_cont) =
   let
     val present = fold (fn (tok, (flag, 0)) =>
         Buffer.add (output_token keywords state' tok)
@@ -281,7 +280,7 @@ fun present_span keywords default_tags span state state'
     val active_tag' =
       if is_some tag' then tag'
       else if cmd_name = "end" andalso not (Toplevel.is_toplevel state') then NONE
-      else try hd (default_tags cmd_name);
+      else try hd (Keyword.command_tags keywords cmd_name);
     val edge = (active_tag, active_tag');
 
     val newline' =
@@ -351,7 +350,7 @@ val locale =
 
 in
 
-fun present_thy keywords default_tags is_markup command_results toks =
+fun present_thy keywords is_markup command_results toks =
   let
     (* tokens *)
 
@@ -423,7 +422,7 @@ fun present_thy keywords default_tags is_markup command_results toks =
     (* present commands *)
 
     fun present_command tr span st st' =
-      Toplevel.setmp_thread_position tr (present_span keywords default_tags span st st');
+      Toplevel.setmp_thread_position tr (present_span keywords span st st');
 
     fun present _ [] = I
       | present st (((tr, st'), span) :: rest) = present_command tr span st st' #> present st' rest;

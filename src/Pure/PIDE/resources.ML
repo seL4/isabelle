@@ -82,9 +82,10 @@ fun parse_files cmd =
     (case Token.get_files tok of
       [] =>
         let
+          val keywords = Keyword.get_keywords ();
           val master_dir = master_directory thy;
           val pos = Token.pos_of tok;
-          val src_paths = Keyword.command_files cmd (Path.explode name);
+          val src_paths = Keyword.command_files keywords cmd (Path.explode name);
         in map (Command.read_file master_dir pos) src_paths end
     | files => map Exn.release files));
 
@@ -123,17 +124,17 @@ fun begin_theory master_dir {name, imports, keywords} parents =
   |> put_deps master_dir imports
   |> fold Thy_Header.declare_keyword keywords;
 
-fun excursion master_dir last_timing init elements =
+fun excursion keywords master_dir last_timing init elements =
   let
     fun prepare_span span =
       Command_Span.content span
-      |> Command.read init master_dir []
+      |> Command.read keywords master_dir init []
       |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
 
     fun element_result span_elem (st, _) =
       let
         val elem = Thy_Syntax.map_element prepare_span span_elem;
-        val (results, st') = Toplevel.element_result elem st;
+        val (results, st') = Toplevel.element_result keywords elem st;
         val pos' = Toplevel.pos_of (Thy_Syntax.last_element elem);
       in (results, (st', pos')) end;
 
@@ -151,7 +152,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
     val toks = Outer_Syntax.scan keywords text_pos text;
     val spans = Outer_Syntax.parse_spans toks;
-    val elements = Thy_Syntax.parse_elements spans;
+    val elements = Thy_Syntax.parse_elements keywords spans;
 
     fun init () =
       begin_theory master_dir header parents
@@ -160,7 +161,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
     val (results, thy) =
       cond_timeit true ("theory " ^ quote name)
-        (fn () => excursion master_dir last_timing init elements);
+        (fn () => excursion keywords master_dir last_timing init elements);
 
     fun present () =
       let
@@ -171,8 +172,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
           warning ("Cannot present theory with skipped proofs: " ^ quote name)
         else
           let val tex_source =
-            Thy_Output.present_thy keywords Keyword.command_tags
-              (Outer_Syntax.is_markup syntax) res toks
+            Thy_Output.present_thy keywords (Outer_Syntax.is_markup syntax) res toks
             |> Buffer.content;
           in if document then Present.theory_output name tex_source else () end
       end;
