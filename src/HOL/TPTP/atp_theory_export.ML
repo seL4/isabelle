@@ -165,7 +165,7 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
     val mono = not (is_type_enc_polymorphic type_enc)
     val facts =
       Sledgehammer_Fact.all_facts (Proof_Context.init_global thy) true false
-                                  Symtab.empty [] [] css_table
+                                  Keyword.empty_keywords [] [] css_table
       |> sort (Sledgehammer_MaSh.crude_thm_ord o pairself snd)
     val problem =
       facts

@@ -53,7 +53,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
     val liness' = Ctr_Sugar_Util.transpose (map pad liness0)
 
     val css = clasimpset_rule_table_of ctxt
-    val facts = all_facts ctxt true false Symtab.empty [] [] css
+    val facts = all_facts ctxt true false Keyword.empty_keywords [] [] css
     val name_tabs = build_name_tables nickname_of_thm facts
 
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
