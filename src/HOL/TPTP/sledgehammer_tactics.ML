@@ -36,10 +36,10 @@ fun run_prover override_params fact_override chained i n ctxt goal =
     val default_max_facts = default_max_facts_of_prover ctxt name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
     val ho_atp = exists (is_ho_atp ctxt) provers
-    val reserved = reserved_isar_keyword_table ()
+    val keywords = Keyword.get_keywords ()
     val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      nearly_all_facts ctxt ho_atp fact_override reserved css_table chained hyp_ts concl_t
+      nearly_all_facts ctxt ho_atp fact_override keywords css_table chained hyp_ts concl_t
       |> relevant_facts ctxt params name (the_default default_max_facts max_facts) fact_override
         hyp_ts concl_t
       |> hd |> snd

@@ -414,11 +414,11 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val ho_atp = Sledgehammer_Prover_ATP.is_ho_atp ctxt prover_name
-        val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
+        val keywords = Keyword.get_keywords ()
         val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
         val facts =
           Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
-              Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
+              Sledgehammer_Fact.no_fact_override keywords css_table chained_ths
               hyp_ts concl_t
         val factss =
           facts
