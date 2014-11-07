@@ -179,12 +179,9 @@ fun prepare_hints_i thy () =
 
 (** add_recdef(_i) **)
 
-fun requires_recdef thy = Theory.requires thy (Context.theory_name @{theory}) "recursive functions";
-
 fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs hints thy =
   let
     val _ = legacy_feature "Old 'recdef' command -- use 'fun' or 'function' instead";
-    val _ = requires_recdef thy;
 
     val name = Sign.intern_const thy raw_name;
     val bname = Long_Name.base_name name;
@@ -230,7 +227,6 @@ fun gen_defer_recdef tfl_fn eval_thms raw_name eqs raw_congs thy =
     val name = Sign.intern_const thy raw_name;
     val bname = Long_Name.base_name name;
 
-    val _ = requires_recdef thy;
     val _ = writeln ("Deferred recursive function " ^ quote name ^ " ...");
 
     val congs = eval_thms (Proof_Context.init_global thy) raw_congs;

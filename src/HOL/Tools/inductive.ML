@@ -1007,9 +1007,6 @@ fun gen_add_inductive_i mk_def
     cnames_syn pnames spec monos lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val _ =
-      Theory.requires thy (Context.theory_name @{theory})
-        (coind_prefix coind ^ "inductive definitions");
 
 
     (* abbrevs *)

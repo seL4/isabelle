@@ -84,8 +84,6 @@ fun gen_add_domaindef
       (thy: theory)
     : (Typedef.info * Cpodef.cpo_info * Cpodef.pcpo_info * rep_info) * theory =
   let
-    val _ = Theory.requires thy (Context.theory_name @{theory}) "domaindefs"
-
     (*rhs*)
     val tmp_ctxt =
       Proof_Context.init_global thy

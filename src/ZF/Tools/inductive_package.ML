@@ -59,7 +59,6 @@ fun mk_frees a [] = []
 fun add_inductive_i verbose (rec_tms, dom_sum)
   raw_intr_specs (monos, con_defs, type_intrs, type_elims) thy =
 let
-  val _ = Theory.requires thy (Context.theory_name @{theory}) "(co)inductive definitions";
   val ctxt = Proof_Context.init_global thy;
 
   val intr_specs = map (apfst (apfst Binding.name_of)) raw_intr_specs;

@@ -2262,8 +2262,6 @@ in
 
 fun add_record (params, binding) raw_parent raw_fields thy =
   let
-    val _ = Theory.requires thy (Context.theory_name @{theory}) "record definitions";
-
     val ctxt = Proof_Context.init_global thy;
     fun cert_typ T = Type.no_tvars (Proof_Context.cert_typ ctxt T)
       handle TYPE (msg, _, _) => error msg;
