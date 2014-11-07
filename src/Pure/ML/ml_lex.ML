@@ -44,7 +44,7 @@ val keywords =
   "type", "val", "where", "while", "with", "withtype"];
 
 val keywords2 =
- ["case", "do", "else", "end", "if", "in", "let", "local", "of",
+ ["and", "case", "do", "else", "end", "if", "in", "let", "local", "of",
   "sig", "struct", "then", "while", "with"];
 
 val keywords3 =

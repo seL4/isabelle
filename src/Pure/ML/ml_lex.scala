@@ -26,8 +26,8 @@ object ML_Lex
       "with", "withtype")
 
   val keywords2: Set[String] =
-    Set("case", "do", "else", "end", "if", "in", "let", "local", "of",
-      "sig", "struct", "then", "while", "with")
+    Set("and", "case", "do", "else", "end", "if", "in", "let", "local",
+      "of", "sig", "struct", "then", "while", "with")
 
   val keywords3: Set[String] =
     Set("handle", "open", "raise")
