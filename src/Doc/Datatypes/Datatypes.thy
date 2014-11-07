@@ -1538,7 +1538,7 @@ from the tedium of manual derivations:
 
 \item
 Introduce a fully unspecified constant @{text "un_D\<^sub>0 \<Colon> 'a"} using
-@{keyword consts}.
+@{command consts}.
 
 \item
 Define the datatype, specifying @{text "un_D\<^sub>0"} as the selector's default
@@ -2597,7 +2597,7 @@ text {* \blankline *}
 
 text {*
 \noindent
-Using \keyw{print_theorems} and @{keyword print_bnfs}, we can contemplate and
+Using \keyw{print_theorems} and @{command print_bnfs}, we can contemplate and
 show the world what we have achieved.
 
 This particular example does not need any nonemptiness witness, because the

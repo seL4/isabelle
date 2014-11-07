@@ -192,7 +192,7 @@ local
 fun no_check _ _ = true;
 
 fun is_keyword ctxt (name, _) =
-  Keyword.is_literal (Thy_Header.get_keywords' ctxt) name;
+  Keyword.is_keyword (Thy_Header.get_keywords' ctxt) name;
 
 fun check_command ctxt (name, pos) =
   let

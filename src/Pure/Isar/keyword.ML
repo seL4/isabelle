@@ -36,8 +36,9 @@ sig
   val empty_keywords: keywords
   val merge_keywords: keywords * keywords -> keywords
   val add_keywords: (string * spec option) list -> keywords -> keywords
-  val is_literal: keywords -> string -> bool
+  val is_keyword: keywords -> string -> bool
   val is_command: keywords -> string -> bool
+  val is_literal: keywords -> string -> bool
   val command_files: keywords -> string -> Path.T -> Path.T list
   val command_tags: keywords -> string -> string list
   val is_diag: keywords -> string -> bool
@@ -159,21 +160,19 @@ val add_keywords =
         in (minor, major', commands') end)));
 
 
-(* lookup keywords *)
+(* keyword status *)
 
-fun is_literal keywords s =
-  let
-    val minor = minor_keywords keywords;
-    val major = major_keywords keywords;
-    val syms = Symbol.explode s;
-  in Scan.is_literal minor syms orelse Scan.is_literal major syms end;
-
+fun is_keyword keywords s = Scan.is_literal (minor_keywords keywords) (Symbol.explode s);
 fun is_command (Keywords {commands, ...}) = Symtab.defined commands;
+fun is_literal keywords = is_keyword keywords orf is_command keywords;
 
-fun command_keyword (Keywords {commands, ...}) = Symtab.lookup commands;
+
+(* command kind *)
+
+fun command_kind (Keywords {commands, ...}) = Symtab.lookup commands;
 
 fun command_files keywords name path =
-  (case command_keyword keywords name of
+  (case command_kind keywords name of
     NONE => []
   | SOME {kind, files, ...} =>
       if kind <> thy_load then []
@@ -181,7 +180,7 @@ fun command_files keywords name path =
       else map (fn ext => Path.ext ext path) files);
 
 fun command_tags keywords name =
-  (case command_keyword keywords name of
+  (case command_kind keywords name of
     SOME {tags, ...} => tags
   | NONE => []);
 
@@ -192,7 +191,7 @@ fun command_category ks =
   let
     val tab = Symtab.make_set ks;
     fun pred keywords name =
-      (case command_keyword keywords name of
+      (case command_kind keywords name of
         NONE => false
       | SOME {kind, ...} => Symtab.defined tab kind);
   in pred end;
