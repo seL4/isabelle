@@ -2873,10 +2873,14 @@ The plugin derives the following properties:
 \item[@{text "t."}\hthm{size_gen_o_map}\rm:] ~ \\
 @{thm list.size_gen_o_map[no_vars]}
 
+\item[@{text "t."}\hthm{size_neq}\rm:] ~ \\
+This property is missing for @{typ "'a list"}. If the @{term size} function
+always evaluate to a non-zero value, this theorem have the form
+@{prop "\<not> size x = 0"}.
+
 \end{description}
 \end{indentblock}
 *}
-
 
 subsection {* Transfer
   \label{ssec:transfer} *}
