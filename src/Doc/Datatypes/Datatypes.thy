@@ -853,20 +853,28 @@ a set function, the map function, or the relator:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{case_transfer}\rm:] ~ \\
-@{thm list.case_transfer[no_vars]}
+\item[@{text "t."}\hthm{case_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm list.case_transfer[no_vars]} \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
-\item[@{text "t."}\hthm{sel_transfer}\rm:] ~ \\
+\item[@{text "t."}\hthm{sel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 This property is missing for @{typ "'a list"} because there is no common
-selector to all constructors.
+selector to all constructors. \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
-\item[@{text "t."}\hthm{ctr_transfer}\rm:] ~ \\
+\item[@{text "t."}\hthm{ctr_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.ctr_transfer(1)[no_vars]} \\
-@{thm list.ctr_transfer(2)[no_vars]}
+@{thm list.ctr_transfer(2)[no_vars]} \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
-\item[@{text "t."}\hthm{disc_transfer}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.disc_transfer(1)[no_vars]} \\
-@{thm list.disc_transfer(2)[no_vars]}
+@{thm list.disc_transfer(2)[no_vars]} \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
 \item[@{text "t."}\hthm{set} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.set(1)[no_vars]} \\
@@ -938,8 +946,10 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{set_map}\rm:] ~ \\
 @{thm list.set_map[no_vars]}
 
-\item[@{text "t."}\hthm{set_transfer}\rm:] ~ \\
-@{thm list.set_transfer[no_vars]}
+\item[@{text "t."}\hthm{set_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm list.set_transfer[no_vars]} \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
 \item[@{text "t."}\hthm{map_cong0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
@@ -959,8 +969,10 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{map_ident}\rm:] ~ \\
 @{thm list.map_ident[no_vars]}
 
-\item[@{text "t."}\hthm{map_transfer}\rm:] ~ \\
-@{thm list.map_transfer[no_vars]}
+\item[@{text "t."}\hthm{map_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm list.map_transfer[no_vars]} \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
 \item[@{text "t."}\hthm{rel_compp} @{text "[relator_distr]"}\rm:] ~ \\
 @{thm list.rel_compp[no_vars]} \\
@@ -985,8 +997,10 @@ Section~\ref{ssec:lifting}.)
 (The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin,
 Section~\ref{ssec:lifting}.)
 
-\item[@{text "t."}\hthm{rel_transfer}\rm:] ~ \\
-@{thm list.rel_transfer[no_vars]}
+\item[@{text "t."}\hthm{rel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm list.rel_transfer[no_vars]} \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
 \end{description}
 \end{indentblock}
@@ -1024,8 +1038,10 @@ Section~\ref{ssec:code-generator}.)
 \item[@{text "t."}\hthm{rec_o_map}\rm:] ~ \\
 @{thm list.rec_o_map[no_vars]}
 
-\item[@{text "t."}\hthm{rec_transfer}\rm:] ~ \\
-@{thm list.rec_transfer[no_vars]}
+\item[@{text "t."}\hthm{rec_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm list.rec_transfer[no_vars]} \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
 \end{description}
 \end{indentblock}
@@ -1858,8 +1874,10 @@ Section~\ref{ssec:code-generator}.)
 \item[@{text "t."}\hthm{map_o_corec}\rm:] ~ \\
 @{thm llist.map_o_corec[no_vars]}
 
-\item[@{text "t."}\hthm{corec_transfer}\rm:] ~ \\
-@{thm llist.corec_transfer[no_vars]}
+\item[@{text "t."}\hthm{corec_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm llist.corec_transfer[no_vars]} \\
+(The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin,
+Section~\ref{ssec:transfer}.)
 
 \end{description}
 \end{indentblock}
