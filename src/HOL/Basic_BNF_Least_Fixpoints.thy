@@ -53,6 +53,43 @@ lemma ctor_rec_def_alt: "f = ctor_rec (f \<circ> id_bnf)"
 lemma ctor_rec_o_map: "ctor_rec f \<circ> g = ctor_rec (f \<circ> (id_bnf \<circ> g \<circ> id_bnf))"
   unfolding ctor_rec_def id_bnf_def comp_def by (rule refl)
 
+lemma eq_fst_iff: "a = fst p \<longleftrightarrow> (\<exists>b. p = (a, b))"
+  by (cases p) auto
+
+lemma eq_snd_iff: "b = snd p \<longleftrightarrow> (\<exists>a. p = (a, b))"
+  by (cases p) auto
+
+lemma ex_neg_all_pos: "((\<exists>x. P x) \<Longrightarrow> Q) \<equiv> (\<And>x. P x \<Longrightarrow> Q)"
+  by default blast+
+
+lemma hypsubst_in_prems: "(\<And>x. y = x \<Longrightarrow> z = f x \<Longrightarrow> P) \<equiv> (z = f y \<Longrightarrow> P)"
+  by default blast+
+
+lemma isl_map_sum:
+  "isl (map_sum f g s) = isl s"
+  by (cases s) simp_all
+
+lemma map_sum_sel:
+  "isl s \<Longrightarrow> projl (map_sum f g s) = f (projl s)"
+  "\<not> isl s \<Longrightarrow> projr (map_sum f g s) = g (projr s)"
+  by (case_tac [!] s) simp_all
+
+lemma set_sum_sel:
+  "isl s \<Longrightarrow> projl s \<in> setl s"
+  "\<not> isl s \<Longrightarrow> projr s \<in> setr s"
+  by (case_tac [!] s) (auto intro: setl.intros setr.intros)
+
+lemma rel_sum_sel: "rel_sum R1 R2 a b = (isl a = isl b \<and>
+  (isl a \<longrightarrow> isl b \<longrightarrow> R1 (projl a) (projl b)) \<and>
+  (\<not> isl a \<longrightarrow> \<not> isl b \<longrightarrow> R2 (projr a) (projr b)))"
+  by (cases a b rule: sum.exhaust[case_product sum.exhaust]) simp_all
+
+lemma isl_transfer: "rel_fun (rel_sum A B) (op =) isl isl"
+  unfolding rel_fun_def rel_sum_sel by simp
+
+lemma rel_prod_sel: "rel_prod R1 R2 p q = (R1 (fst p) (fst q) \<and> R2 (snd p) (snd q))"
+  by (force simp: rel_prod.simps elim: rel_prod.cases)
+
 ML_file "Tools/BNF/bnf_lfp_basic_sugar.ML"
 
 ML_file "~~/src/HOL/Tools/Old_Datatype/old_size.ML"

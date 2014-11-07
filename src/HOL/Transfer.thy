@@ -6,12 +6,8 @@
 section {* Generic theorem transfer using relations *}
 
 theory Transfer
-imports Hilbert_Choice Metis Option
+imports Hilbert_Choice Metis Basic_BNF_Least_Fixpoints
 begin
-
-(* We import Option here although it's not needed here.
-   By doing this, we avoid a diamond problem for BNF and
-   FP sugar interpretation defined in this file. *)
 
 subsection {* Relator for function space *}
 
@@ -453,10 +449,13 @@ declare If_transfer [transfer_rule]
 lemma Let_transfer [transfer_rule]: "(A ===> (A ===> B) ===> B) Let Let"
   unfolding rel_fun_def by simp
 
-lemma id_transfer [transfer_rule]: "(A ===> A) id id"
-  unfolding rel_fun_def by simp
+declare id_transfer [transfer_rule]
 
 declare comp_transfer [transfer_rule]
+
+lemma curry_transfer [transfer_rule]:
+  "((rel_prod A B ===> C) ===> A ===> B ===> C) curry curry"
+  unfolding curry_def by transfer_prover
 
 lemma fun_upd_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"

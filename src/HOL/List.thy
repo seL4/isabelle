@@ -5,7 +5,7 @@
 section {* The datatype of finite lists *}
 
 theory List
-imports Sledgehammer Code_Numeral Lifting_Set Lifting_Option Lifting_Product
+imports Sledgehammer Code_Numeral Lifting_Set
 begin
 
 datatype (set: 'a) list =

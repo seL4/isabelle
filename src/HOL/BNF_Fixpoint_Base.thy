@@ -85,7 +85,7 @@ lemma case_sum_if:
 lemma prod_set_simps:
   "fsts (x, y) = {x}"
   "snds (x, y) = {y}"
-  unfolding fsts_def snds_def by simp+
+  unfolding prod_set_defs by simp+
 
 lemma sum_set_simps:
   "setl (Inl x) = {x}"
@@ -204,7 +204,7 @@ lemma case_sum_map_sum: "case_sum l r (map_sum f g x) = case_sum (l \<circ> f) (
 
 lemma case_sum_transfer:
   "rel_fun (rel_fun R T) (rel_fun (rel_fun S T) (rel_fun (rel_sum R S) T)) case_sum case_sum"
-  unfolding rel_fun_def rel_sum_def by (auto split: sum.splits)
+  unfolding rel_fun_def by (auto split: sum.splits)
 
 lemma case_prod_map_prod: "case_prod h (map_prod f g x) = case_prod (\<lambda>l r. h (f l) (g r)) x"
   by (case_tac x) simp+
@@ -214,10 +214,7 @@ lemma case_prod_o_map_prod: "case_prod f \<circ> map_prod g1 g2 = case_prod (\<l
 
 lemma case_prod_transfer:
   "(rel_fun (rel_fun A (rel_fun B C)) (rel_fun (rel_prod A B) C)) case_prod case_prod"
-  unfolding rel_fun_def rel_prod_def by simp
-
-lemma prod_inj_map: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (map_prod f g)"
-  by (simp add: inj_on_def)
+  unfolding rel_fun_def by simp
 
 lemma eq_ifI: "(P \<longrightarrow> t = u1) \<Longrightarrow> (\<not> P \<longrightarrow> t = u2) \<Longrightarrow> t = (if P then u1 else u2)"
   by simp
@@ -246,7 +243,7 @@ lemma Inr_transfer:
   by auto
 
 lemma Pair_transfer: "rel_fun A (rel_fun B (rel_prod A B)) Pair Pair"
-  unfolding rel_fun_def rel_prod_def by simp
+  unfolding rel_fun_def by simp
 
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"

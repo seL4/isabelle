@@ -176,18 +176,14 @@ lemma id_transfer: "rel_fun A A id id"
   unfolding rel_fun_def by simp
 
 lemma fst_transfer: "rel_fun (rel_prod A B) A fst fst"
-  unfolding rel_fun_def rel_prod_def by simp
+  unfolding rel_fun_def by simp
 
 lemma snd_transfer: "rel_fun (rel_prod A B) B snd snd"
-  unfolding rel_fun_def rel_prod_def by simp
-
-lemma map_sum_transfer:
-  "rel_fun (rel_fun R T) (rel_fun (rel_fun S U) (rel_fun (rel_sum R S) (rel_sum T U))) map_sum map_sum"
-  unfolding rel_fun_def rel_sum_def by (auto split: sum.splits)
+  unfolding rel_fun_def by simp
 
 lemma convol_transfer:
   "rel_fun (rel_fun R S) (rel_fun (rel_fun R T) (rel_fun R (rel_prod S T))) BNF_Def.convol BNF_Def.convol"
-  unfolding rel_prod_def rel_fun_def convol_def by auto
+  unfolding rel_fun_def convol_def by auto
 
 lemma ssubst_Pair_rhs: "\<lbrakk>(r, s) \<in> R; s' = s\<rbrakk> \<Longrightarrow> (r, s') \<in> R"
   by (rule ssubst)
@@ -242,7 +238,5 @@ ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 ML_file "Tools/BNF/bnf_lfp_size.ML"
-
-hide_fact (open) id_transfer
 
 end

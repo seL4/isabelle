@@ -54,12 +54,12 @@ declare [[mapQ3 option = (rel_option, option_quotient)]]
 lemma option_None_rsp [quot_respect]:
   assumes q: "Quotient3 R Abs Rep"
   shows "rel_option R None None"
-  by (rule None_transfer)
+  by (rule option.ctr_transfer(1))
 
 lemma option_Some_rsp [quot_respect]:
   assumes q: "Quotient3 R Abs Rep"
   shows "(R ===> rel_option R) Some Some"
-  by (rule Some_transfer)
+  by (rule option.ctr_transfer(2))
 
 lemma option_None_prs [quot_preserve]:
   assumes q: "Quotient3 R Abs Rep"

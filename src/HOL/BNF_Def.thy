@@ -18,13 +18,13 @@ begin
 lemma Collect_splitD: "x \<in> Collect (split A) \<Longrightarrow> A (fst x) (snd x)"
   by auto
 
-definition
-   rel_sum :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
+inductive
+   rel_sum :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool" for R1 R2
 where
-   "rel_sum R1 R2 x y =
-     (case (x, y) of (Inl x, Inl y) \<Rightarrow> R1 x y
-     | (Inr x, Inr y) \<Rightarrow> R2 x y
-     | _ \<Rightarrow> False)"
+  "R1 a c \<Longrightarrow> rel_sum R1 R2 (Inl a) (Inl c)"
+| "R2 b d \<Longrightarrow> rel_sum R1 R2 (Inr b) (Inr d)"
+
+hide_fact rel_sum_def
 
 definition
   rel_fun :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool"

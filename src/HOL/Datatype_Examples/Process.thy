@@ -17,14 +17,7 @@ codatatype 'a process =
 
 (* Read: prefix of, continuation of, choice 1 of, choice 2 of *)
 
-section {* Customization *}
-
 subsection {* Basic properties *}
-
-declare
-  rel_pre_process_def[simp]
-  rel_sum_def[simp]
-  rel_prod_def[simp]
 
 (* Constructors versus discriminators *)
 theorem isAction_isChoice:

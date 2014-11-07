@@ -13,20 +13,22 @@ theory Basic_BNFs
 imports BNF_Def
 begin
 
-definition setl :: "'a + 'b \<Rightarrow> 'a set" where
-"setl x = (case x of Inl z => {z} | _ => {})"
+inductive_set setl :: "'a + 'b \<Rightarrow> 'a set" for s :: "'a + 'b" where
+  "s = Inl x \<Longrightarrow> x \<in> setl s"
+inductive_set setr :: "'a + 'b \<Rightarrow> 'b set" for s :: "'a + 'b" where
+  "s = Inr x \<Longrightarrow> x \<in> setr s"
 
-definition setr :: "'a + 'b \<Rightarrow> 'b set" where
-"setr x = (case x of Inr z => {z} | _ => {})"
+lemma sum_set_defs[code]:
+  "setl = (\<lambda>x. case x of Inl z => {z} | _ => {})"
+  "setr = (\<lambda>x. case x of Inr z => {z} | _ => {})"
+  by (auto simp: fun_eq_iff intro: setl.intros setr.intros elim: setl.cases setr.cases split: sum.splits)
 
-lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
-
-lemma rel_sum_simps[simp]:
+lemma rel_sum_simps[code, simp]:
   "rel_sum R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
   "rel_sum R1 R2 (Inl a1) (Inr b2) = False"
   "rel_sum R1 R2 (Inr a2) (Inl b1) = False"
   "rel_sum R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
-  unfolding rel_sum_def by simp_all
+  by (auto intro: rel_sum.intros elim: rel_sum.cases)
 
 bnf "'a + 'b"
   map: map_sum
@@ -46,18 +48,18 @@ next
          a2: "\<And>z. z \<in> setr x \<Longrightarrow> f2 z = g2 z"
   thus "map_sum f1 f2 x = map_sum g1 g2 x"
   proof (cases x)
-    case Inl thus ?thesis using a1 by (clarsimp simp: setl_def)
+    case Inl thus ?thesis using a1 by (clarsimp simp: sum_set_defs(1))
   next
-    case Inr thus ?thesis using a2 by (clarsimp simp: setr_def)
+    case Inr thus ?thesis using a2 by (clarsimp simp: sum_set_defs(2))
   qed
 next
   fix f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r"
   show "setl o map_sum f1 f2 = image f1 o setl"
-    by (rule ext, unfold o_apply) (simp add: setl_def split: sum.split)
+    by (rule ext, unfold o_apply) (simp add: sum_set_defs(1) split: sum.split)
 next
   fix f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r"
   show "setr o map_sum f1 f2 = image f2 o setr"
-    by (rule ext, unfold o_apply) (simp add: setr_def split: sum.split)
+    by (rule ext, unfold o_apply) (simp add: sum_set_defs(2) split: sum.split)
 next
   show "card_order natLeq" by (rule natLeq_card_order)
 next
@@ -67,42 +69,48 @@ next
   show "|setl x| \<le>o natLeq"
     apply (rule ordLess_imp_ordLeq)
     apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
-    by (simp add: setl_def split: sum.split)
+    by (simp add: sum_set_defs(1) split: sum.split)
 next
   fix x :: "'o + 'p"
   show "|setr x| \<le>o natLeq"
     apply (rule ordLess_imp_ordLeq)
     apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
-    by (simp add: setr_def split: sum.split)
+    by (simp add: sum_set_defs(2) split: sum.split)
 next
   fix R1 R2 S1 S2
   show "rel_sum R1 R2 OO rel_sum S1 S2 \<le> rel_sum (R1 OO S1) (R2 OO S2)"
-    by (auto simp: rel_sum_def split: sum.splits)
+    by (force elim: rel_sum.cases)
 next
   fix R S
   show "rel_sum R S =
         (Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (map_sum fst fst))\<inverse>\<inverse> OO
         Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (map_sum snd snd)"
-  unfolding setl_def setr_def rel_sum_def Grp_def relcompp.simps conversep.simps fun_eq_iff
-  by (fastforce split: sum.splits)
+  unfolding sum_set_defs Grp_def relcompp.simps conversep.simps fun_eq_iff
+  by (fastforce elim: rel_sum.cases split: sum.splits)
 qed (auto simp: sum_set_defs)
 
-definition fsts :: "'a \<times> 'b \<Rightarrow> 'a set" where
-"fsts x = {fst x}"
+inductive_set fsts :: "'a \<times> 'b \<Rightarrow> 'a set" for p :: "'a \<times> 'b" where
+  "fst p \<in> fsts p"
+inductive_set snds :: "'a \<times> 'b \<Rightarrow> 'b set" for p :: "'a \<times> 'b" where
+  "snd p \<in> snds p"
 
-definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
-"snds x = {snd x}"
+lemma prod_set_defs[code]: "fsts = (\<lambda>p. {fst p})" "snds = (\<lambda>p. {snd p})"
+  by (auto intro: fsts.intros snds.intros elim: fsts.cases snds.cases)
 
-lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
-
-definition
-  rel_prod :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool"
+inductive
+  rel_prod :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool" for R1 R2
 where
-  "rel_prod R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
+  "\<lbrakk>R1 a b; R2 c d\<rbrakk> \<Longrightarrow> rel_prod R1 R2 (a, c) (b, d)"
 
-lemma rel_prod_apply [simp]:
+hide_fact rel_prod_def
+
+lemma rel_prod_apply [code, simp]:
   "rel_prod R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
-  by (simp add: rel_prod_def)
+  by (auto intro: rel_prod.intros elim: rel_prod.cases)
+
+lemma rel_prod_conv:
+  "rel_prod R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
+  by (rule ext, rule ext) auto
 
 bnf "'a \<times> 'b"
   map: map_prod
@@ -147,7 +155,7 @@ next
   show "rel_prod R S =
         (Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_prod fst fst))\<inverse>\<inverse> OO
         Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_prod snd snd)"
-  unfolding prod_set_defs rel_prod_def Grp_def relcompp.simps conversep.simps fun_eq_iff
+  unfolding prod_set_defs rel_prod_apply Grp_def relcompp.simps conversep.simps fun_eq_iff
   by auto
 qed
 

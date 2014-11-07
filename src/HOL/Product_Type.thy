@@ -867,7 +867,7 @@ lemma fst_map_prod [simp]:
   "fst (map_prod f g x) = f (fst x)"
   by (cases x) simp_all
 
-lemma snd_prod_fun [simp]:
+lemma snd_map_prod [simp]:
   "snd (map_prod f g x) = g (snd x)"
   by (cases x) simp_all
 

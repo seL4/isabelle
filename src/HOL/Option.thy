@@ -5,7 +5,7 @@
 section {* Datatype option *}
 
 theory Option
-imports BNF_Least_Fixpoint Finite_Set
+imports Lifting Finite_Set
 begin
 
 datatype 'a option =
@@ -114,6 +114,12 @@ lemma case_map_option [simp]:
   "case_option g h (map_option f x) = case_option g (h \<circ> f) x"
   by (cases x) simp_all
 
+lemma rel_option_iff:
+  "rel_option R x y = (case (x, y) of (None, None) \<Rightarrow> True
+    | (Some x, Some y) \<Rightarrow> R x y
+    | _ \<Rightarrow> False)"
+by (auto split: prod.split option.split)
+
 primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option" where
 bind_lzero: "bind None f = None" |
 bind_lunit: "bind (Some x) f = f x"
@@ -190,6 +196,20 @@ lemma these_not_empty_eq:
 
 hide_const (open) bind these
 hide_fact (open) bind_cong
+
+
+subsection {* Transfer rules for the Transfer package *}
+
+context
+begin
+interpretation lifting_syntax .
+
+lemma option_bind_transfer [transfer_rule]:
+  "(rel_option A ===> (A ===> rel_option B) ===> rel_option B)
+    Option.bind Option.bind"
+  unfolding rel_fun_def split_option_all by simp
+
+end
 
 
 subsubsection {* Interaction with finite sets *}

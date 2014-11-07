@@ -89,7 +89,7 @@ lemma split_prs [quot_preserve]:
 lemma [quot_respect]:
   shows "((R2 ===> R2 ===> op =) ===> (R1 ===> R1 ===> op =) ===>
   rel_prod R2 R1 ===> rel_prod R2 R1 ===> op =) rel_prod rel_prod"
-  by (rule rel_prod_transfer)
+  by (rule prod.rel_transfer)
 
 lemma [quot_preserve]:
   assumes q1: "Quotient3 R1 abs1 rep1"

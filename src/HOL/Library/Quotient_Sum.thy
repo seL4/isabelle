@@ -12,11 +12,11 @@ subsection {* Rules for the Quotient package *}
 
 lemma rel_sum_map1:
   "rel_sum R1 R2 (map_sum f1 f2 x) y \<longleftrightarrow> rel_sum (\<lambda>x. R1 (f1 x)) (\<lambda>x. R2 (f2 x)) x y"
-  by (simp add: rel_sum_def split: sum.split)
+  by (rule sum.rel_map(1))
 
 lemma rel_sum_map2:
   "rel_sum R1 R2 x (map_sum f1 f2 y) \<longleftrightarrow> rel_sum (\<lambda>x y. R1 x (f1 y)) (\<lambda>x y. R2 x (f2 y)) x y"
-  by (simp add: rel_sum_def split: sum.split)
+  by (rule sum.rel_map(2))
 
 lemma map_sum_id [id_simps]:
   "map_sum id id = id"
@@ -24,7 +24,7 @@ lemma map_sum_id [id_simps]:
 
 lemma rel_sum_eq [id_simps]:
   "rel_sum (op =) (op =) = (op =)"
-  by (simp add: rel_sum_def fun_eq_iff split: sum.split)
+  by (rule sum.rel_eq)
 
 lemma reflp_rel_sum:
   "reflp R1 \<Longrightarrow> reflp R2 \<Longrightarrow> reflp (rel_sum R1 R2)"
@@ -50,7 +50,7 @@ lemma sum_quotient [quot_thm]:
   apply (simp_all add: map_sum.compositionality comp_def map_sum.identity rel_sum_eq rel_sum_map1 rel_sum_map2
     Quotient3_abs_rep [OF q1] Quotient3_rel_rep [OF q1] Quotient3_abs_rep [OF q2] Quotient3_rel_rep [OF q2])
   using Quotient3_rel [OF q1] Quotient3_rel [OF q2]
-  apply (simp add: rel_sum_def comp_def split: sum.split)
+  apply (fastforce elim!: rel_sum.cases simp add: comp_def split: sum.split)
   done
 
 declare [[mapQ3 sum = (rel_sum, sum_quotient)]]
