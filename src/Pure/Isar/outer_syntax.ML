@@ -8,8 +8,8 @@ signature OUTER_SYNTAX =
 sig
   datatype markup = Markup | Markup_Env | Verbatim
   val is_markup: theory -> markup -> string -> bool
-  val help_syntax: theory -> string list -> unit
-  val print_syntax: theory -> unit
+  val help: theory -> string list -> unit
+  val print_commands: theory -> unit
   type command_spec = string * Position.T
   val command: command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
@@ -114,13 +114,13 @@ val is_markup =
   get_syntax #> (fn Syntax {markups, ...} => fn kind => fn name =>
     AList.lookup (op =) markups name = SOME kind);
 
-fun help_syntax thy pats =
+fun help thy pats =
   dest_commands thy
   |> filter (fn (name, _) => forall (fn pat => match_string pat name) pats)
   |> map pretty_command
   |> Pretty.writeln_chunks;
 
-fun print_syntax thy =
+fun print_commands thy =
   let
     val keywords = Thy_Header.get_keywords thy;
     val minor = Scan.dest_lexicon (Keyword.minor_keywords keywords);

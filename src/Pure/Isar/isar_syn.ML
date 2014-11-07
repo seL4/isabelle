@@ -705,11 +705,11 @@ val _ =
   Outer_Syntax.command @{command_spec "help"}
     "retrieve outer syntax commands according to name patterns"
     (Scan.repeat Parse.name >>
-      (fn pats => Toplevel.keep (fn st => Outer_Syntax.help_syntax (Toplevel.theory_of st) pats)));
+      (fn pats => Toplevel.keep (fn st => Outer_Syntax.help (Toplevel.theory_of st) pats)));
 
 val _ =
   Outer_Syntax.command @{command_spec "print_commands"} "print outer syntax commands"
-    (Scan.succeed (Toplevel.keep (Outer_Syntax.print_syntax o Toplevel.theory_of)));
+    (Scan.succeed (Toplevel.keep (Outer_Syntax.print_commands o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.command @{command_spec "print_options"} "print configuration options"
