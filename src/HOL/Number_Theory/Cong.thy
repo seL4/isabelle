@@ -40,10 +40,10 @@ declare mod_pos_pos_trivial [simp]
 subsection {* Main definitions *}
 
 class cong =
-  fixes cong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" ("(1[_ = _] '(mod _'))")
+  fixes cong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" ("(1[_ = _] '(()mod _'))")
 begin
 
-abbreviation notcong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  ("(1[_ \<noteq> _] '(mod _'))")
+abbreviation notcong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  ("(1[_ \<noteq> _] '(()mod _'))")
   where "notcong x y m \<equiv> \<not> cong x y m"
 
 end
