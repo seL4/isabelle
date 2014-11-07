@@ -211,8 +211,7 @@ fun parse_command thy =
         SOME (Command {parse, ...}) => Parse.!!! (Parse.tags |-- parse) >> (fn f => f tr0)
       | NONE =>
           Scan.succeed
-            (tr0 |> Toplevel.imperative (fn () =>
-              err_command "Bad parser for outer syntax command " name [pos])))
+            (tr0 |> Toplevel.imperative (fn () => err_command "Undefined command " name [pos])))
     end);
 
 val parse_cmt = Parse.$$$ "--" -- Parse.!!! Parse.document_source;

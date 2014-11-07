@@ -9,14 +9,15 @@ sig
   type blob = (string * (SHA1.digest * string list) option) Exn.result
   val read_file: Path.T -> Position.T -> Path.T -> Token.file
   val read_thy: Toplevel.state -> theory
-  val read: theory -> Path.T-> (unit -> theory) -> blob list -> Token.T list ->
-    Toplevel.transition
+  val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
+    blob list -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval: Path.T -> (unit -> theory) -> blob list -> Token.T list -> eval -> eval
+  val eval: Keyword.keywords -> Path.T -> (unit -> theory) ->
+    blob list -> Token.T list -> eval -> eval
   type print
   val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
     eval -> print list -> print list option
@@ -151,9 +152,8 @@ in
 
 fun read_thy st = Toplevel.theory_of st handle Toplevel.UNDEF => bootstrap_thy;
 
-fun read thy master_dir init blobs span =
+fun read keywords thy master_dir init blobs span =
   let
-    val keywords = Thy_Header.get_keywords thy;
     val command_reports = Outer_Syntax.command_reports thy;
 
     val proper_range = Token.range_of (#1 (take_suffix Token.is_improper span));
@@ -268,7 +268,7 @@ fun eval_state keywords span tr ({malformed, state, ...}: eval_state) =
 
 in
 
-fun eval master_dir init blobs span eval0 =
+fun eval keywords master_dir init blobs span eval0 =
   let
     val exec_id = Document_ID.make ();
     fun process () =
@@ -277,8 +277,8 @@ fun eval master_dir init blobs span eval0 =
         val thy = read_thy (#state eval_state0);
         val tr =
           Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id))
-            (fn () => read thy master_dir init blobs span |> Toplevel.exec_id exec_id) ();
-      in eval_state (Thy_Header.get_keywords thy) span tr eval_state0 end;
+            (fn () => read keywords thy master_dir init blobs span |> Toplevel.exec_id exec_id) ();
+      in eval_state keywords span tr eval_state0 end;
   in Eval {exec_id = exec_id, eval_process = memo exec_id process} end;
 
 end;

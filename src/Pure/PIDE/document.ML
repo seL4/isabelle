@@ -544,7 +544,7 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
       val span = Lazy.force span0;
 
       val eval' =
-        Command.eval (master_directory node)
+        Command.eval keywords (master_directory node)
           (fn () => the_default illegal_init init span) blobs span eval;
       val prints' =
         perhaps (Command.print command_visible command_overlays keywords command_name eval') [];
