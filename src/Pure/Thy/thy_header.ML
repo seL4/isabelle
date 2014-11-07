@@ -16,7 +16,6 @@ sig
   val add_keywords: keywords -> theory -> theory
   val get_keywords: theory -> Keyword.keywords
   val get_keywords': Proof.context -> Keyword.keywords
-  val the_keyword: theory -> string * Position.T -> bool
   val args: header parser
   val read: Position.T -> string -> header
   val read_tokens: Token.T list -> header
@@ -89,13 +88,6 @@ val add_keywords = Data.map o Keyword.add_keywords;
 
 val get_keywords = Data.get;
 val get_keywords' = get_keywords o Proof_Context.theory_of;
-
-fun the_keyword thy (name, pos) =
-  let val keywords = get_keywords thy in
-    if Keyword.is_literal keywords name
-    then Keyword.is_command keywords name
-    else error ("Undeclared outer syntax keyword " ^ quote name ^ Position.here pos)
-  end;
 
 
 
