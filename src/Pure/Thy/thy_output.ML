@@ -22,11 +22,9 @@ sig
       theory -> theory
   val boolean: string -> bool
   val integer: string -> int
-  datatype markup = Markup | MarkupEnv | Verbatim
-  val eval_antiq: Keyword.keywords -> Toplevel.state -> Antiquote.antiq -> string
+  val eval_antiq: Toplevel.state -> Antiquote.antiq -> string
   val check_text: Symbol_Pos.source -> Toplevel.state -> unit
-  val present_thy: Keyword.keywords -> (markup -> string -> bool) ->
-    (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
+  val present_thy: theory -> (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -35,6 +33,12 @@ sig
     Token.src -> 'a list -> Pretty.T list
   val output: Proof.context -> Pretty.T list -> string
   val verbatim_text: Proof.context -> string -> string
+  val local_theory_markup: (xstring * Position.T) option * Symbol_Pos.source ->
+    Toplevel.transition -> Toplevel.transition
+  val proof_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
+  val header_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
+  val heading_markup: (xstring * Position.T) option * Symbol_Pos.source ->
+    Toplevel.transition -> Toplevel.transition
 end;
 
 structure Thy_Output: THY_OUTPUT =
@@ -158,10 +162,18 @@ end;
 
 (* eval_antiq *)
 
-fun eval_antiq keywords state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
+fun eval_antiq state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
   let
+    val keywords =
+      (case try Toplevel.presentation_context_of state of
+        SOME ctxt => Thy_Header.get_keywords' ctxt
+      | NONE =>
+          error ("Unknown context -- cannot expand document antiquotations" ^
+            Position.here pos));
+
     val (opts, src) = Token.read_antiq keywords antiq (ss, pos);
     fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
+
     val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
     val _ = cmd preview_ctxt;
@@ -171,26 +183,22 @@ fun eval_antiq keywords state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
 
 (* check_text *)
 
-fun eval_antiquote keywords state (txt, pos) =
+fun eval_antiquote state (txt, pos) =
   let
     fun words (Antiquote.Text ss) = [(#1 (Symbol_Pos.range ss), Markup.words)]
       | words (Antiquote.Antiq _) = [];
 
     fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
-      | expand (Antiquote.Antiq antiq) = eval_antiq keywords state antiq;
+      | expand (Antiquote.Antiq antiq) = eval_antiq state antiq;
 
     val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
     val _ = Position.reports (maps words ants);
-  in
-    if Toplevel.is_toplevel state andalso not (forall Antiquote.is_text ants) then
-      error ("Unknown context -- cannot expand document antiquotations" ^ Position.here pos)
-    else implode (map expand ants)
-  end;
+  in implode (map expand ants) end;
 
 fun check_text {delimited, text, pos} state =
  (Position.report pos (Markup.language_document delimited);
   if Toplevel.is_skipped_proof state then ()
-  else ignore (eval_antiquote (Keyword.get_keywords ()) state (text, pos)));
+  else ignore (eval_antiquote state (text, pos)));
 
 
 
@@ -207,8 +215,8 @@ datatype token =
   | MarkupEnvToken of string * (string * Position.T)
   | VerbatimToken of string * Position.T;
 
-fun output_token keywords state =
-  let val eval = eval_antiquote keywords state in
+fun output_token state =
+  let val eval = eval_antiquote state in
     fn NoToken => ""
      | BasicToken tok => Latex.output_basic tok
      | MarkupToken (cmd, txt) => Latex.output_markup cmd (eval txt)
@@ -268,7 +276,7 @@ in
 fun present_span keywords span state state' (tag_stack, active_tag, newline, buffer, present_cont) =
   let
     val present = fold (fn (tok, (flag, 0)) =>
-        Buffer.add (output_token keywords state' tok)
+        Buffer.add (output_token state' tok)
         #> Buffer.add flag
       | _ => I);
 
@@ -321,8 +329,6 @@ end;
 
 (* present_thy *)
 
-datatype markup = Markup | MarkupEnv | Verbatim;
-
 local
 
 val space_proper =
@@ -350,8 +356,12 @@ val locale =
 
 in
 
-fun present_thy keywords is_markup command_results toks =
+fun present_thy thy command_results toks =
   let
+    val keywords = Thy_Header.get_keywords thy;
+    val is_markup = Outer_Syntax.is_markup thy;
+
+
     (* tokens *)
 
     val ignored = Scan.state --| ignore
@@ -382,9 +392,9 @@ fun present_thy keywords is_markup command_results toks =
 
     val token =
       ignored ||
-      markup Markup MarkupToken Latex.markup_true ||
-      markup MarkupEnv MarkupEnvToken Latex.markup_true ||
-      markup Verbatim (VerbatimToken o #2) "" ||
+      markup Outer_Syntax.Markup MarkupToken Latex.markup_true ||
+      markup Outer_Syntax.Markup_Env MarkupEnvToken Latex.markup_true ||
+      markup Outer_Syntax.Verbatim (VerbatimToken o #2) "" ||
       command || cmt || other;
 
 
@@ -689,5 +699,30 @@ val _ = Theory.setup
     (fn {context = ctxt, ...} => fn (name, pos) =>
       (Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url name)];
        enclose "\\url{" "}" name)));
+
+
+
+(** markup commands **)
+
+fun local_theory_markup (loc, txt) = Toplevel.present_local_theory loc (check_text txt);
+val proof_markup = Toplevel.present_proof o check_text;
+
+fun reject_target NONE = ()
+  | reject_target (SOME (_, pos)) =
+      error ("Illegal target specification -- not a theory context" ^ Position.here pos);
+
+fun header_markup txt =
+  Toplevel.keep (fn state =>
+    if Toplevel.is_toplevel state then
+     (legacy_feature "Obsolete 'header' command -- use 'chapter', 'section' etc. instead";
+      check_text txt state)
+    else raise Toplevel.UNDEF);
+
+fun heading_markup (loc, txt) =
+  Toplevel.keep (fn state =>
+    if Toplevel.is_toplevel state then (reject_target loc; check_text txt state)
+    else raise Toplevel.UNDEF) o
+  local_theory_markup (loc, txt) o
+  Toplevel.present_proof (fn state => (reject_target loc; check_text txt state));
 
 end;

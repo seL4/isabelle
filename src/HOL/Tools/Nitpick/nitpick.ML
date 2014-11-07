@@ -220,6 +220,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val timer = Timer.startRealTimer ()
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
+    val keywords = Thy_Header.get_keywords thy
 (* FIXME: reintroduce code before new release:
 
     val nitpick_thy = Thy_Info.get_theory "Nitpick"
@@ -365,7 +366,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
     fun monotonicity_message Ts extra =
-      let val pretties = map (pretty_maybe_quote o pretty_for_type ctxt) Ts in
+      let val pretties = map (pretty_maybe_quote keywords o pretty_for_type ctxt) Ts in
         Pretty.blk (0,
           pstrs ("The type" ^ plural_s_for_list pretties ^ " ") @
           pretty_serial_commas "and" pretties @

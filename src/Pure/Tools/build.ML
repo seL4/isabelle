@@ -157,7 +157,6 @@ fun build args_file = Command_Line.tool0 (fn () =>
         theories |>
           (List.app (use_theories_condition last_timing)
             |> session_timing name verbose
-            |> Unsynchronized.setmp Outer_Syntax.batch_mode true
             |> Unsynchronized.setmp Output.protocol_message_fn protocol_message
             |> Multithreading.max_threads_setmp (Options.int options "threads")
             |> Exn.capture);

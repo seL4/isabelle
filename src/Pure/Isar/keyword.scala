@@ -63,11 +63,10 @@ object Keyword
   val qed_global = Set(QED_GLOBAL)
 
 
-  type Spec = ((String, List[String]), List[String])
-
-
 
   /** keyword tables **/
+
+  type Spec = ((String, List[String]), List[String])
 
   object Keywords
   {
@@ -99,12 +98,20 @@ object Keyword
 
     def + (name: String): Keywords = new Keywords(minor + name, major, commands)
     def + (name: String, kind: String): Keywords = this + (name, (kind, Nil))
-    def + (name: String, kind: (String, List[String])): Keywords =
+    def + (name: String, kind_tags: (String, List[String])): Keywords =
     {
       val major1 = major + name
-      val commands1 = commands + (name -> kind)
+      val commands1 = commands + (name -> kind_tags)
       new Keywords(minor, major1, commands1)
     }
+
+    def add_keywords(header: Thy_Header.Keywords): Keywords =
+      (this /: header) {
+        case (keywords, (name, None, _)) =>
+          keywords + Symbol.decode(name) + Symbol.encode(name)
+        case (keywords, (name, Some((kind_tags, _)), _)) =>
+          keywords + (Symbol.decode(name), kind_tags) + (Symbol.encode(name), kind_tags)
+      }
 
 
     /* command kind */

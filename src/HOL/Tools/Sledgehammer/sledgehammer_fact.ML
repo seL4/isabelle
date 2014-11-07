@@ -67,7 +67,7 @@ val instantiate_inducts =
 val no_fact_override = {add = [], del = [], only = false}
 
 fun needs_quoting keywords s =
-  Keyword.is_keyword keywords s orelse
+  Keyword.is_literal keywords s orelse
   exists (not o Symbol_Pos.is_identifier) (Long_Name.explode s)
 
 fun make_name keywords multi j name =

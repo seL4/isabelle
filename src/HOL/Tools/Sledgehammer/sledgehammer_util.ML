@@ -123,7 +123,7 @@ fun thms_in_proof max_thms name_tabs th =
 fun thms_of_name ctxt name =
   let
     val get = maps (Proof_Context.get_fact ctxt o fst)
-    val keywords = Keyword.get_keywords ()
+    val keywords = Thy_Header.get_keywords' ctxt
   in
     Source.of_string name
     |> Symbol.source

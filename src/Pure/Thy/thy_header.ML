@@ -12,9 +12,11 @@ sig
     imports: (string * Position.T) list,
     keywords: keywords}
   val make: string * Position.T -> (string * Position.T) list -> keywords -> header
-  val define_keywords: keywords -> unit
-  val declare_keyword: string * Keyword.spec option -> theory -> theory
-  val the_keyword: theory -> string -> Keyword.spec option
+  val bootstrap_keywords: Keyword.keywords
+  val add_keywords: keywords -> theory -> theory
+  val get_keywords: theory -> Keyword.keywords
+  val get_keywords': Proof.context -> Keyword.keywords
+  val the_keyword: theory -> string * Position.T -> bool
   val args: header parser
   val read: Position.T -> string -> header
   val read_tokens: Token.T list -> header
@@ -22,6 +24,10 @@ end;
 
 structure Thy_Header: THY_HEADER =
 struct
+
+(** keyword declarations **)
+
+(* header *)
 
 type keywords = (string * Keyword.spec option) list;
 
@@ -34,37 +40,7 @@ fun make name imports keywords : header =
   {name = name, imports = imports, keywords = keywords};
 
 
-
-(** keyword declarations **)
-
-fun define_keywords (keywords: keywords) =
-  List.app (Keyword.define o apsnd (Option.map Keyword.check_spec)) keywords;
-
-fun err_dup name = error ("Duplicate declaration of outer syntax keyword " ^ quote name);
-
-structure Data = Theory_Data
-(
-  type T = Keyword.spec option Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge data : T = Symtab.merge (op =) data handle Symtab.DUP name => err_dup name;
-);
-
-fun declare_keyword (name, spec) =
-  Data.map (fn data =>
-    (Option.map Keyword.check_spec spec;
-      Symtab.update_new (name, spec) data handle Symtab.DUP dup => err_dup dup));
-
-fun the_keyword thy name =
-  (case Symtab.lookup (Data.get thy) name of
-    SOME spec => spec
-  | NONE => error ("Undeclared outer syntax keyword " ^ quote name));
-
-
-
-(** concrete syntax **)
-
-(* header keywords *)
+(* bootstrap keywords *)
 
 val headerN = "header";
 val chapterN = "chapter";
@@ -77,18 +53,53 @@ val importsN = "imports";
 val keywordsN = "keywords";
 val beginN = "begin";
 
-val header_keywords =
+val bootstrap_keywords =
   Keyword.empty_keywords
-  |> fold (Keyword.add_keywords o rpair NONE)
-    ["%", "(", ")", ",", "::", "==", "and", beginN, importsN, keywordsN]
-  |> fold Keyword.add_keywords
-    [(headerN, SOME Keyword.heading),
-     (chapterN, SOME Keyword.heading),
-     (sectionN, SOME Keyword.heading),
-     (subsectionN, SOME Keyword.heading),
-     (subsubsectionN, SOME Keyword.heading),
-     (theoryN, SOME Keyword.thy_begin)];
+  |> Keyword.add_keywords
+    [("%", NONE),
+     ("(", NONE),
+     (")", NONE),
+     (",", NONE),
+     ("::", NONE),
+     ("==", NONE),
+     ("and", NONE),
+     (beginN, NONE),
+     (importsN, NONE),
+     (keywordsN, NONE),
+     (headerN, SOME ((Keyword.heading, []), [])),
+     (chapterN, SOME ((Keyword.heading, []), [])),
+     (sectionN, SOME ((Keyword.heading, []), [])),
+     (subsectionN, SOME ((Keyword.heading, []), [])),
+     (subsubsectionN, SOME ((Keyword.heading, []), [])),
+     (theoryN, SOME ((Keyword.thy_begin, []), ["theory"])),
+     ("ML_file", SOME ((Keyword.thy_load, []), ["ML"]))];
 
+
+(* theory data *)
+
+structure Data = Theory_Data
+(
+  type T = Keyword.keywords;
+  val empty = bootstrap_keywords;
+  val extend = I;
+  val merge = Keyword.merge_keywords;
+);
+
+val add_keywords = Data.map o Keyword.add_keywords;
+
+val get_keywords = Data.get;
+val get_keywords' = get_keywords o Proof_Context.theory_of;
+
+fun the_keyword thy (name, pos) =
+  let val keywords = get_keywords thy in
+    if Keyword.is_literal keywords name
+    then Keyword.is_command keywords name
+    else error ("Undeclared outer syntax keyword " ^ quote name ^ Position.here pos)
+  end;
+
+
+
+(** concrete syntax **)
 
 (* header args *)
 
@@ -145,7 +156,7 @@ fun token_source pos str =
   str
   |> Source.of_string_limited 8000
   |> Symbol.source
-  |> Token.source_strict header_keywords pos;
+  |> Token.source_strict bootstrap_keywords pos;
 
 fun read_source pos source =
   let val res =

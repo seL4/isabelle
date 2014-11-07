@@ -2016,7 +2016,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             val fake_T = qsoty (unfreeze_fp X);
             val fake_T_backdrop = qsoty (unfreeze_fp X_backdrop);
             fun register_hint () =
-              "\nUse the " ^ quote (fst (fst @{command_spec "bnf"})) ^ " command to register " ^
+              "\nUse the " ^ quote (#1 @{command_spec "bnf"}) ^ " command to register " ^
               quote bad_tc ^ " as a bounded natural functor to allow nested (co)recursion through \
               \it";
           in

@@ -1,23 +1,19 @@
 (*  Title:      Pure/Isar/outer_syntax.ML
     Author:     Markus Wenzel, TU Muenchen
 
-The global Isabelle/Isar outer syntax.
-
-Note: the syntax for files is statically determined at the very
-beginning; for interactive processing it may change dynamically.
+Isabelle/Isar outer syntax.
 *)
 
 signature OUTER_SYNTAX =
 sig
-  type syntax
-  val batch_mode: bool Unsynchronized.ref
-  val is_markup: syntax -> Thy_Output.markup -> string -> bool
-  val get_syntax: unit -> Keyword.keywords * syntax
-  val check_syntax: unit -> unit
-  type command_spec = (string * Keyword.T) * Position.T
+  datatype markup = Markup | Markup_Env | Verbatim
+  val is_markup: theory -> markup -> string -> bool
+  val help_syntax: theory -> string list -> unit
+  val print_syntax: theory -> unit
+  type command_spec = string * Position.T
   val command: command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val markup_command: Thy_Output.markup -> command_spec -> string ->
+  val markup_command: markup -> command_spec -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val local_theory': command_spec -> string ->
     (bool -> local_theory -> local_theory) parser -> unit
@@ -27,14 +23,12 @@ sig
     (bool -> local_theory -> Proof.state) parser -> unit
   val local_theory_to_proof: command_spec -> string ->
     (local_theory -> Proof.state) parser -> unit
-  val help_syntax: string list -> unit
-  val print_syntax: unit -> unit
   val scan: Keyword.keywords -> Position.T -> string -> Token.T list
-  val parse: Keyword.keywords * syntax -> Position.T -> string -> Toplevel.transition list
+  val parse: theory -> Position.T -> string -> Toplevel.transition list
+  val parse_tokens: theory -> Token.T list -> Toplevel.transition list
   val parse_spans: Token.T list -> Command_Span.span list
   val side_comments: Token.T list -> Token.T list
-  val command_reports: syntax -> Token.T -> Position.report_text list
-  val read_spans: syntax -> Token.T list -> Toplevel.transition list
+  val command_reports: theory -> Token.T -> Position.report_text list
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -42,17 +36,32 @@ struct
 
 (** outer syntax **)
 
+(* errors *)
+
+fun err_command msg name ps =
+  error (msg ^ quote (Markup.markup Markup.keyword1 name) ^ Position.here_list ps);
+
+fun err_dup_command name ps =
+  err_command "Duplicate outer syntax command " name ps;
+
+
 (* command parsers *)
+
+datatype markup = Markup | Markup_Env | Verbatim;
 
 datatype command = Command of
  {comment: string,
-  markup: Thy_Output.markup option,
+  markup: markup option,
   parse: (Toplevel.transition -> Toplevel.transition) parser,
   pos: Position.T,
   id: serial};
 
+fun eq_command (Command {id = id1, ...}, Command {id = id2, ...}) = id1 = id2;
+
 fun new_command comment markup parse pos =
   Command {comment = comment, markup = markup, parse = parse, pos = pos, id = serial ()};
+
+fun command_pos (Command {pos, ...}) = pos;
 
 fun command_markup def (name, Command {pos, id, ...}) =
   Markup.properties (Position.entity_properties_of def id pos)
@@ -69,94 +78,104 @@ fun pretty_command (cmd as (name, Command {comment, ...})) =
 
 datatype syntax = Syntax of
  {commands: command Symtab.table,
-  markups: (string * Thy_Output.markup) list};
+  markups: (string * markup) list};
 
-fun make_syntax commands markups =
+fun make_syntax (commands, markups) =
   Syntax {commands = commands, markups = markups};
 
-val empty_syntax = make_syntax Symtab.empty [];
+structure Data = Theory_Data
+(
+  type T = syntax;
+  val empty = make_syntax (Symtab.empty, []);
+  val extend = I;
+  fun merge (Syntax {commands = commands1, markups = markups1},
+      Syntax {commands = commands2, markups = markups2}) =
+    let
+      val commands' = (commands1, commands2)
+        |> Symtab.join (fn name => fn (cmd1, cmd2) =>
+          if eq_command (cmd1, cmd2) then raise Symtab.SAME
+          else err_dup_command name [command_pos cmd1, command_pos cmd2]);
+      val markups' = AList.merge (op =) (K true) (markups1, markups2);
+    in make_syntax (commands', markups') end;
+);
 
 
-fun map_commands f (Syntax {commands, ...}) =
+(* inspect syntax *)
+
+val get_syntax = Data.get;
+
+val dest_commands =
+  get_syntax #> (fn Syntax {commands, ...} => commands |> Symtab.dest |> sort_wrt #1);
+
+val lookup_commands =
+  get_syntax #> (fn Syntax {commands, ...} => Symtab.lookup commands);
+
+val is_markup =
+  get_syntax #> (fn Syntax {markups, ...} => fn kind => fn name =>
+    AList.lookup (op =) markups name = SOME kind);
+
+fun help_syntax thy pats =
+  dest_commands thy
+  |> filter (fn (name, _) => forall (fn pat => match_string pat name) pats)
+  |> map pretty_command
+  |> Pretty.writeln_chunks;
+
+fun print_syntax thy =
   let
-    val commands' = f commands;
+    val keywords = Thy_Header.get_keywords thy;
+    val minor = Scan.dest_lexicon (Keyword.minor_keywords keywords);
+    val commands = dest_commands thy;
+  in
+    [Pretty.strs ("keywords:" :: map quote minor),
+      Pretty.big_list "commands:" (map pretty_command commands)]
+    |> Pretty.writeln_chunks
+  end;
+
+
+(* build syntax *)
+
+fun add_command name cmd thy = thy |> Data.map (fn Syntax {commands, ...} =>
+  let
+    val keywords = Thy_Header.get_keywords thy;
+    val _ =
+      Keyword.is_command keywords name orelse
+        err_command "Undeclared outer syntax command " name [command_pos cmd];
+
+    val _ =
+      (case Symtab.lookup commands name of
+        NONE => ()
+      | SOME cmd' => err_dup_command name [command_pos cmd, command_pos cmd']);
+
+    val _ =
+      Context_Position.report_generic (ML_Context.the_generic_context ())
+        (command_pos cmd) (command_markup true (name, cmd));
+
+    val commands' = Symtab.update (name, cmd) commands;
     val markups' =
       Symtab.fold (fn (name, Command {markup = SOME m, ...}) => cons (name, m) | _ => I)
         commands' [];
-  in make_syntax commands' markups' end;
+  in make_syntax (commands', markups') end);
 
-fun dest_commands (Syntax {commands, ...}) =
-  commands |> Symtab.dest |> sort_wrt #1;
-
-fun lookup_commands (Syntax {commands, ...}) = Symtab.lookup commands;
-
-fun is_markup (Syntax {markups, ...}) kind name =
-  AList.lookup (op =) markups name = SOME kind;
-
-
-
-(** global outer syntax **)
-
-type command_spec = (string * Keyword.T) * Position.T;
-
-val batch_mode = Unsynchronized.ref false;
-
-local
-
-(*synchronized wrt. Keywords*)
-val global_syntax = Unsynchronized.ref empty_syntax;
-
-fun add_command (name, kind) cmd = CRITICAL (fn () =>
+val _ = Theory.setup (Theory.at_end (fn thy =>
   let
-    val context = ML_Context.the_generic_context ();
-    val thy = Context.theory_of context;
-    val Command {pos, ...} = cmd;
-    val command_name = quote (Markup.markup Markup.keyword1 name);
-    val _ =
-      (case try (Thy_Header.the_keyword thy) name of
-        SOME spec =>
-          if Option.map #1 spec = SOME (Keyword.kind_files_of kind) then ()
-          else
-            error ("Inconsistent outer syntax keyword declaration " ^
-              command_name ^ Position.here pos)
-      | NONE =>
-          error ("Undeclared outer syntax command " ^ command_name ^ Position.here pos));
-    val _ = Context_Position.report_generic context pos (command_markup true (name, cmd));
-  in
-    Unsynchronized.change global_syntax (map_commands (fn commands =>
-     (if not (Symtab.defined commands name) then ()
-      else if ! batch_mode then
-        error ("Attempt to redefine outer syntax command " ^ command_name)
-      else
-        warning ("Redefining outer syntax command " ^ command_name ^
-          Position.here (Position.thread_data ()));
-      Symtab.update (name, cmd) commands)))
-  end);
-
-in
-
-fun get_syntax () = CRITICAL (fn () => (Keyword.get_keywords (), ! global_syntax));
-
-fun check_syntax () =
-  let
-    val (keywords, syntax) = CRITICAL (fn () => (Keyword.get_keywords (), ! global_syntax));
+    val keywords = Thy_Header.get_keywords thy;
     val major = Keyword.major_keywords keywords;
-  in
-    (case subtract (op =) (map #1 (dest_commands syntax)) (Scan.dest_lexicon major) of
-      [] => ()
-    | missing => error ("Missing outer syntax command(s) " ^ commas_quote missing))
-  end;
-
-fun command (spec, pos) comment parse =
-  add_command spec (new_command comment NONE parse pos);
-
-fun markup_command markup (spec, pos) comment parse =
-  add_command spec (new_command comment (SOME markup) parse pos);
-
-end;
+    val _ =
+      (case subtract (op =) (map #1 (dest_commands thy)) (Scan.dest_lexicon major) of
+        [] => ()
+      | missing => error ("Missing outer syntax command(s) " ^ commas_quote missing))
+  in NONE end));
 
 
-(* local_theory commands *)
+(* implicit theory setup *)
+
+type command_spec = string * Position.T;
+
+fun command (name, pos) comment parse =
+  Theory.setup (add_command name (new_command comment NONE parse pos));
+
+fun markup_command markup (name, pos) comment parse =
+  Theory.setup (add_command name (new_command comment (SOME markup) parse pos));
 
 fun local_theory_command trans command_spec comment parse =
   command command_spec comment (Parse.opt_target -- parse >> (fn (loc, f) => trans loc f));
@@ -167,60 +186,10 @@ val local_theory_to_proof' = local_theory_command Toplevel.local_theory_to_proof
 val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 
 
-(* inspect syntax *)
-
-fun help_syntax pats =
-  dest_commands (#2 (get_syntax ()))
-  |> filter (fn (name, _) => forall (fn pat => match_string pat name) pats)
-  |> map pretty_command
-  |> Pretty.writeln_chunks;
-
-fun print_syntax () =
-  let
-    val (keywords, syntax) = CRITICAL (fn () => (Keyword.get_keywords (), #2 (get_syntax ())));
-    val minor = Scan.dest_lexicon (Keyword.minor_keywords keywords);
-    val commands = dest_commands syntax;
-  in
-    [Pretty.strs ("keywords:" :: map quote minor),
-      Pretty.big_list "commands:" (map pretty_command commands)]
-    |> Pretty.writeln_chunks
-  end;
-
-
 
 (** toplevel parsing **)
 
-(* parse commands *)
-
-local
-
-fun parse_command syntax =
-  Parse.position Parse.command_ :|-- (fn (name, pos) =>
-    let
-      val tr0 = Toplevel.empty |> Toplevel.name name |> Toplevel.position pos;
-    in
-      (case lookup_commands syntax name of
-        SOME (Command {parse, ...}) => Parse.!!! (Parse.tags |-- parse) >> (fn f => f tr0)
-      | NONE =>
-          Scan.succeed
-            (tr0 |> Toplevel.imperative (fn () =>
-              error ("Bad parser for outer syntax command " ^ quote name ^ Position.here pos))))
-    end);
-
-val parse_cmt = Parse.$$$ "--" -- Parse.!!! Parse.document_source;
-
-in
-
-fun commands_source syntax =
-  Token.source_proper #>
-  Source.source Token.stopper (Scan.bulk (parse_cmt >> K NONE || Parse.not_eof >> SOME)) #>
-  Source.map_filter I #>
-  Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command syntax) xs));
-
-end;
-
-
-(* off-line scanning/parsing *)
+(* scan tokens *)
 
 fun scan keywords pos =
   Source.of_string #>
@@ -228,11 +197,46 @@ fun scan keywords pos =
   Token.source keywords pos #>
   Source.exhaust;
 
-fun parse (keywords, syntax) pos str =
+
+(* parse commands *)
+
+local
+
+fun parse_command thy =
+  Parse.position Parse.command_ :|-- (fn (name, pos) =>
+    let
+      val tr0 = Toplevel.empty |> Toplevel.name name |> Toplevel.position pos;
+    in
+      (case lookup_commands thy name of
+        SOME (Command {parse, ...}) => Parse.!!! (Parse.tags |-- parse) >> (fn f => f tr0)
+      | NONE =>
+          Scan.succeed
+            (tr0 |> Toplevel.imperative (fn () =>
+              err_command "Bad parser for outer syntax command " name [pos])))
+    end);
+
+val parse_cmt = Parse.$$$ "--" -- Parse.!!! Parse.document_source;
+
+in
+
+fun commands_source thy =
+  Token.source_proper #>
+  Source.source Token.stopper (Scan.bulk (parse_cmt >> K NONE || Parse.not_eof >> SOME)) #>
+  Source.map_filter I #>
+  Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command thy) xs));
+
+end;
+
+fun parse thy pos str =
   Source.of_string str
   |> Symbol.source
-  |> Token.source keywords pos
-  |> commands_source syntax
+  |> Token.source (Thy_Header.get_keywords thy) pos
+  |> commands_source thy
+  |> Source.exhaust;
+
+fun parse_tokens thy toks =
+  Source.of_list toks
+  |> commands_source thy
   |> Source.exhaust;
 
 
@@ -279,19 +283,14 @@ val side_comments = filter Token.is_proper #> cmts;
 
 (* read commands *)
 
-fun command_reports syntax tok =
+fun command_reports thy tok =
   if Token.is_command tok then
     let val name = Token.content_of tok in
-      (case lookup_commands syntax name of
+      (case lookup_commands thy name of
         NONE => []
       | SOME cmd => [((Token.pos_of tok, command_markup false (name, cmd)), "")])
     end
   else [];
-
-fun read_spans syntax toks =
-  Source.of_list toks
-  |> commands_source syntax
-  |> Source.exhaust;
 
 end;
 

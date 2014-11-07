@@ -261,7 +261,7 @@ class Plugin extends EBPlugin
         }
 
       case Session.Ready =>
-        PIDE.session.update_options(PIDE.options.value)
+        PIDE.session.init_options(PIDE.options.value)
         PIDE.init_models()
 
         if (!Isabelle.continuous_checking) {

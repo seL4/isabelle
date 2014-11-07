@@ -154,6 +154,7 @@ session Pure =
     "ML/ml_compiler_polyml.ML"
     "ML/ml_context.ML"
     "ML/ml_env.ML"
+    "ML/ml_file.ML"
     "ML/ml_lex.ML"
     "ML/ml_parse.ML"
     "ML/ml_options.ML"

@@ -221,7 +221,7 @@ fun lifting_bundle qty_full_name qinfo lthy =
 
     val thy = Proof_Context.theory_of lthy
     val dummy_thm = Thm.transfer thy Drule.dummy_thm
-    val pointer = Outer_Syntax.scan (Keyword.get_keywords ()) Position.none bundle_name
+    val pointer = Outer_Syntax.scan (Thy_Header.get_keywords thy) Position.none bundle_name
     val restore_lifting_att = 
       ([dummy_thm], [Token.src ("Lifting.lifting_restore_internal", Position.none) pointer])
   in

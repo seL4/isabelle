@@ -191,16 +191,19 @@ local
 
 fun no_check _ _ = true;
 
-fun is_keyword _ (name, _) =
-  Keyword.is_keyword (Keyword.get_keywords ()) name;
+fun is_keyword ctxt (name, _) =
+  Keyword.is_literal (Thy_Header.get_keywords' ctxt) name;
 
 fun check_command ctxt (name, pos) =
-  let val keywords = Keyword.get_keywords () in
-    is_some (Keyword.command_keyword keywords name) andalso
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val keywords = Thy_Header.get_keywords thy;
+  in
+    Keyword.is_command keywords name andalso
       let
         val markup =
           Outer_Syntax.scan keywords Position.none name
-          |> maps (Outer_Syntax.command_reports (#2 (Outer_Syntax.get_syntax ())))
+          |> maps (Outer_Syntax.command_reports thy)
           |> map (snd o fst);
         val _ = Context_Position.reports ctxt (map (pair pos) markup);
       in true end

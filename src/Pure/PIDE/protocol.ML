@@ -23,6 +23,10 @@ val _ =
       end);
 
 val _ =
+  Isabelle_Process.protocol_command "Document.init_keywords"
+    (fn [] => Document.init_keywords ());
+
+val _ =
   Isabelle_Process.protocol_command "Document.define_blob"
     (fn [digest, content] => Document.change_state (Document.define_blob digest content));
 

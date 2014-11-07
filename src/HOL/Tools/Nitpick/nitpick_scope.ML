@@ -180,9 +180,10 @@ fun pretties_for_scope scope verbose =
   let
     fun standard_blocks s = map (Pretty.block o cons (Pretty.str (s ^ " ")))
     val (primary_cards, secondary_cards, maxes, iters, miscs) =
-      quintuple_for_scope (pretty_maybe_quote oo pretty_for_type)
-                          (pretty_maybe_quote oo Syntax.pretty_term)
-                          Pretty.str scope
+      quintuple_for_scope
+        (fn ctxt => pretty_maybe_quote (Thy_Header.get_keywords' ctxt) o pretty_for_type ctxt)
+        (fn ctxt => pretty_maybe_quote (Thy_Header.get_keywords' ctxt) o Syntax.pretty_term ctxt)
+        Pretty.str scope
   in
     standard_blocks "card" primary_cards @
     (if verbose then

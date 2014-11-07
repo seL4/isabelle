@@ -8,6 +8,7 @@ list of commands, associated with asynchronous execution process.
 signature DOCUMENT =
 sig
   val timing: bool Unsynchronized.ref
+  val init_keywords: unit -> unit
   type node_header = string * Thy_Header.header * string list
   type overlay = Document_ID.command * (string * string list)
   datatype node_edit =
@@ -34,6 +35,20 @@ struct
 
 val timing = Unsynchronized.ref false;
 fun timeit msg e = cond_timeit (! timing) msg e;
+
+
+
+(** global keywords **)
+
+val global_keywords = Synchronized.var "global_keywords" Keyword.empty_keywords;
+
+fun init_keywords () =
+  Synchronized.change global_keywords
+    (fn _ =>
+      fold (curry Keyword.merge_keywords o Thy_Header.get_keywords o Thy_Info.get_theory)
+        (Thy_Info.get_names ()) Keyword.empty_keywords);
+
+fun get_keywords () = Synchronized.value global_keywords;
 
 
 
@@ -208,7 +223,7 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         let
           val imports = map fst (#imports header);
           val errors1 =
-            (Thy_Header.define_keywords (#keywords header); errors)
+            (Synchronized.change global_keywords (Keyword.add_keywords (#keywords header)); errors)
               handle ERROR msg => errors @ [msg];
           val nodes1 = nodes
             |> default_node name
@@ -318,7 +333,7 @@ fun define_command command_id name command_blobs text =
       val span =
         Lazy.lazy (fn () =>
           Position.setmp_thread_data (Position.id_only id)
-            (fn () => Outer_Syntax.scan (Keyword.get_keywords ()) (Position.id id) text) ());
+            (fn () => Outer_Syntax.scan (get_keywords ()) (Position.id id) text) ());
       val _ =
         Position.setmp_thread_data (Position.id_only id)
           (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
@@ -529,7 +544,7 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
       val span = Lazy.force span0;
 
       val eval' =
-        Command.eval keywords (master_directory node)
+        Command.eval (master_directory node)
           (fn () => the_default illegal_init init span) blobs span eval;
       val prints' =
         perhaps (Command.print command_visible command_overlays keywords command_name eval') [];
@@ -562,7 +577,7 @@ fun update old_version_id new_version_id edits state =
               deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
             (fn () => timeit ("Document.update " ^ name) (fn () =>
               let
-                val keywords = Keyword.get_keywords ();
+                val keywords = get_keywords ();
                 val imports = map (apsnd Future.join) deps;
                 val imports_result_changed = exists (#4 o #1 o #2) imports;
                 val node_required = Symtab.defined required name;

@@ -18,6 +18,10 @@ semantics due to external visual order vs. internal reverse order.
 structure in the body: 'oops' is no longer supported here. Minor
 INCOMPATIBILITY, use 'sorry' instead.
 
+* Outer syntax commands are managed authentically within the theory
+context, without implicit global state.  Potential for accidental
+INCOMPATIBILITY, make sure that required theories are really imported.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

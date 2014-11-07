@@ -48,12 +48,6 @@ sig
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_type: (string list * (string * string option)) ->
     Toplevel.transition -> Toplevel.transition
-  val local_theory_markup: (xstring * Position.T) option * Symbol_Pos.source ->
-    Toplevel.transition -> Toplevel.transition
-  val proof_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
-  val header_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
-  val heading_markup: (xstring * Position.T) option * Symbol_Pos.source ->
-    Toplevel.transition -> Toplevel.transition
 end;
 
 structure Isar_Cmd: ISAR_CMD =
@@ -375,29 +369,5 @@ val print_term = print_item (string_of_term o Toplevel.context_of);
 val print_type = print_item (string_of_type o Toplevel.context_of);
 
 end;
-
-
-(* markup commands *)
-
-fun local_theory_markup (loc, txt) = Toplevel.present_local_theory loc (Thy_Output.check_text txt);
-val proof_markup = Toplevel.present_proof o Thy_Output.check_text;
-
-fun reject_target NONE = ()
-  | reject_target (SOME (_, pos)) =
-      error ("Illegal target specification -- not a theory context" ^ Position.here pos);
-
-fun header_markup txt =
-  Toplevel.keep (fn state =>
-    if Toplevel.is_toplevel state then
-     (legacy_feature "Obsolete 'header' command -- use 'chapter', 'section' etc. instead";
-      Thy_Output.check_text txt state)
-    else raise Toplevel.UNDEF);
-
-fun heading_markup (loc, txt) =
-  Toplevel.keep (fn state =>
-    if Toplevel.is_toplevel state then (reject_target loc; Thy_Output.check_text txt state)
-    else raise Toplevel.UNDEF) o
-  local_theory_markup (loc, txt) o
-  Toplevel.present_proof (fn state => (reject_target loc; Thy_Output.check_text txt state));
 
 end;

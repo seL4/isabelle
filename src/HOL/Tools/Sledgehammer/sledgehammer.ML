@@ -264,10 +264,10 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
         val print =
           if mode = Normal andalso is_none output_result then writeln else K ()
         val ctxt = Proof.context_of state
+        val keywords = Thy_Header.get_keywords' ctxt
         val {facts = chained, goal, ...} = Proof.goal state
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
         val ho_atp = exists (is_ho_atp ctxt) provers
-        val keywords = Keyword.get_keywords ()
         val css = clasimpset_rule_table_of ctxt
         val all_facts =
           nearly_all_facts ctxt ho_atp fact_override keywords css chained hyp_ts concl_t

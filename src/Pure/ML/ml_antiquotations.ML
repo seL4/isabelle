@@ -234,29 +234,19 @@ end;
 (* outer syntax *)
 
 fun with_keyword f =
-  Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
-    (f ((name, Thy_Header.the_keyword thy name), pos)
-      handle ERROR msg => error (msg ^ Position.here pos)));
+  Args.theory -- Scan.lift (Parse.position Parse.string)
+    >> (fn (thy, (name, pos)) => (f (name, pos, Thy_Header.the_keyword thy (name, pos))));
 
 val _ = Theory.setup
  (ML_Antiquotation.value @{binding keyword}
-    (with_keyword
-      (fn ((name, NONE), _) => "Parse.$$$ " ^ ML_Syntax.print_string name
-        | ((name, SOME _), pos) =>
-            error ("Expected minor keyword " ^ quote name ^ Position.here pos))) #>
+    (with_keyword (fn (name, pos, is_command) =>
+      if not is_command then "Parse.$$$ " ^ ML_Syntax.print_string name
+      else error ("Expected minor keyword " ^ quote name ^ Position.here pos))) #>
   ML_Antiquotation.value @{binding command_spec}
-    (with_keyword
-      (fn ((name, SOME kind), pos) =>
-          "Keyword.command_spec " ^ ML_Syntax.atomic
-            ((ML_Syntax.print_pair
-              (ML_Syntax.print_pair ML_Syntax.print_string
-                (ML_Syntax.print_pair
-                  (ML_Syntax.print_pair ML_Syntax.print_string
-                    (ML_Syntax.print_list ML_Syntax.print_string))
-                  (ML_Syntax.print_list ML_Syntax.print_string)))
-              ML_Syntax.print_position) ((name, kind), pos))
-        | ((name, NONE), pos) =>
-            error ("Expected command keyword " ^ quote name ^ Position.here pos))));
+    (with_keyword (fn (name, pos, is_command) =>
+      if is_command then
+        ML_Syntax.print_pair ML_Syntax.print_string ML_Syntax.print_position (name, pos)
+      else error ("Expected command keyword " ^ quote name ^ Position.here pos))));
 
 end;
 
