@@ -25,6 +25,7 @@ val size_N = "size_";
 val sizeN = "size";
 val size_genN = "size_gen";
 val size_gen_o_mapN = "size_gen_o_map";
+val size_neqN = "size_neq";
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
@@ -68,6 +69,12 @@ fun mk_size_gen_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   HEADGOAL (rtac (rec_o_map RS trans) THEN'
     asm_simp_tac (ss_only (inj_maps @ size_maps @ size_gen_o_map_simps) ctxt)) THEN
   IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
+
+fun mk_size_neq ctxt cts exhaust sizes =
+  HEADGOAL (rtac (Ctr_Sugar_Util.cterm_instantiate_pos (map SOME cts) exhaust)) THEN
+  ALLGOALS (hyp_subst_tac ctxt) THEN
+  Ctr_Sugar_Tactics.unfold_thms_tac ctxt (@{thm neq0_conv} :: sizes) THEN
+  ALLGOALS (REPEAT_DETERM o (rtac @{thm zero_less_Suc} ORELSE' rtac @{thm trans_less_add2}));
 
 fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
       fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_maps = ctor_rec_o_maps, ...}, fp_nesting_bnfs,
@@ -252,6 +259,28 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         map2 (map o derive_overloaded_size_simp) overloaded_size_defs' size_simpss;
       val size_thmss = map2 append size_simpss overloaded_size_simpss;
       val size_gen_thmss = size_simpss
+      fun rhs_is_zero thm =
+        let val Const (trueprop, _) $ (Const (eq, _) $ _ $ rhs) = prop_of thm in
+          trueprop = @{const_name Trueprop} andalso
+          eq = @{const_name HOL.eq} andalso
+          rhs = HOLogic.zero
+        end;
+
+      val size_neq_thmss = @{map 3} (fn fp_sugar => fn size => fn size_thms =>
+        if exists rhs_is_zero size_thms then []
+        else
+          let
+            val (xs, names_lthy2) = mk_Frees "x" (binder_types (fastype_of size)) lthy2;
+            val goal =
+              HOLogic.mk_Trueprop (BNF_LFP_Util.mk_not_eq (list_comb (size, xs)) HOLogic.zero);
+            val thm =
+              Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
+                mk_size_neq ctxt (map (certify lthy2) xs)
+                (#exhaust (#ctr_sugar (#fp_ctr_sugar fp_sugar))) size_thms)
+              |> single
+              |> Proof_Context.export names_lthy2 lthy2
+              |> map Thm.close_derivation;
+          in thm end) fp_sugars overloaded_size_consts overloaded_size_simpss
 
       val ABs = As ~~ Bs;
       val g_names = variant_names num_As "g";
@@ -318,7 +347,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val notes =
         [(sizeN, size_thmss, code_attrs :: nitpicksimp_attrs @ simp_attrs),
          (size_genN, size_gen_thmss, []),
-         (size_gen_o_mapN, size_gen_o_map_thmss, [])]
+         (size_gen_o_mapN, size_gen_o_map_thmss, []),
+         (size_neqN, size_neq_thmss, [])]
         |> massage_multi_notes;
 
       val (noted, lthy3) =
