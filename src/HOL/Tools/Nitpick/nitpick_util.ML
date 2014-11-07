@@ -289,7 +289,7 @@ val maybe_quote = ATP_Util.maybe_quote
 
 fun pretty_maybe_quote keywords pretty =
   let val s = Pretty.str_of pretty in
-    if maybe_quote keywords s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
+    if maybe_quote keywords s = s then pretty else Pretty.quote pretty
   end
 
 val hashw = ATP_Util.hashw
