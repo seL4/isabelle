@@ -8,6 +8,7 @@ list of commands, associated with asynchronous execution process.
 signature DOCUMENT =
 sig
   val timing: bool Unsynchronized.ref
+  val init_keywords: unit -> unit
   type node_header = string * Thy_Header.header * string list
   type overlay = Document_ID.command * (string * string list)
   datatype node_edit =
@@ -34,6 +35,20 @@ struct
 
 val timing = Unsynchronized.ref false;
 fun timeit msg e = cond_timeit (! timing) msg e;
+
+
+
+(** global keywords **)
+
+val global_keywords = Synchronized.var "global_keywords" Keyword.empty_keywords;
+
+fun init_keywords () =
+  Synchronized.change global_keywords
+    (fn _ =>
+      fold (curry Keyword.merge_keywords o Thy_Header.get_keywords o Thy_Info.get_theory)
+        (Thy_Info.get_names ()) Keyword.empty_keywords);
+
+fun get_keywords () = Synchronized.value global_keywords;
 
 
 
@@ -208,7 +223,7 @@ fun edit_nodes (name, node_edit) (Version nodes) =
         let
           val imports = map fst (#imports header);
           val errors1 =
-            (Thy_Header.define_keywords header; errors)
+            (Synchronized.change global_keywords (Keyword.add_keywords (#keywords header)); errors)
               handle ERROR msg => errors @ [msg];
           val nodes1 = nodes
             |> default_node name
@@ -318,7 +333,7 @@ fun define_command command_id name command_blobs text =
       val span =
         Lazy.lazy (fn () =>
           Position.setmp_thread_data (Position.id_only id)
-            (fn () => Outer_Syntax.scan (Keyword.get_keywords ()) (Position.id id) text) ());
+            (fn () => Outer_Syntax.scan (get_keywords ()) (Position.id id) text) ());
       val _ =
         Position.setmp_thread_data (Position.id_only id)
           (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
@@ -466,7 +481,7 @@ fun check_theory full name node =
   is_some (loaded_theory name) orelse
   can get_header node andalso (not full orelse is_some (get_result node));
 
-fun last_common state node_required node0 node =
+fun last_common keywords state node_required node0 node =
   let
     fun update_flags prev (visible, initial) =
       let
@@ -474,7 +489,8 @@ fun last_common state node_required node0 node =
         val initial' = initial andalso
           (case prev of
             NONE => true
-          | SOME command_id => not (Keyword.is_theory_begin (the_command_name state command_id)));
+          | SOME command_id =>
+              not (Keyword.is_theory_begin keywords (the_command_name state command_id)));
       in (visible', initial') end;
 
     fun get_common ((prev, command_id), opt_exec) (_, ok, flags, assign_update) =
@@ -495,7 +511,9 @@ fun last_common state node_required node0 node =
                   val command_overlays = overlays node command_id;
                   val command_name = the_command_name state command_id;
                 in
-                  (case Command.print command_visible command_overlays command_name eval prints of
+                  (case
+                    Command.print command_visible command_overlays keywords command_name eval prints
+                   of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
                   | NONE => I)
                 end
@@ -513,7 +531,7 @@ fun last_common state node_required node0 node =
 
 fun illegal_init _ = error "Illegal theory header after end of theory";
 
-fun new_exec state node proper_init command_id' (assign_update, command_exec, init) =
+fun new_exec keywords state node proper_init command_id' (assign_update, command_exec, init) =
   if not proper_init andalso is_none init then NONE
   else
     let
@@ -526,13 +544,14 @@ fun new_exec state node proper_init command_id' (assign_update, command_exec, in
       val span = Lazy.force span0;
 
       val eval' =
-        Command.eval (fn () => the_default illegal_init init span)
-          (master_directory node) blobs span eval;
-      val prints' = perhaps (Command.print command_visible command_overlays command_name eval') [];
+        Command.eval keywords (master_directory node)
+          (fn () => the_default illegal_init init span) blobs span eval;
+      val prints' =
+        perhaps (Command.print command_visible command_overlays keywords command_name eval') [];
       val exec' = (eval', prints');
 
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;
-      val init' = if Keyword.is_theory_begin command_name then NONE else init;
+      val init' = if Keyword.is_theory_begin keywords command_name then NONE else init;
     in SOME (assign_update', (command_id', (eval', prints')), init') end;
 
 fun removed_execs node0 (command_id, exec_ids) =
@@ -558,6 +577,7 @@ fun update old_version_id new_version_id edits state =
               deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
             (fn () => timeit ("Document.update " ^ name) (fn () =>
               let
+                val keywords = get_keywords ();
                 val imports = map (apsnd Future.join) deps;
                 val imports_result_changed = exists (#4 o #1 o #2) imports;
                 val node_required = Symtab.defined required name;
@@ -574,7 +594,7 @@ fun update old_version_id new_version_id edits state =
 
                     val (print_execs, common, (still_visible, initial)) =
                       if imports_result_changed then (assign_update_empty, NONE, (true, true))
-                      else last_common state node_required node0 node;
+                      else last_common keywords state node_required node0 node;
                     val common_command_exec = the_default_entry node common;
 
                     val (updated_execs, (command_id', (eval', _)), _) =
@@ -583,7 +603,7 @@ fun update old_version_id new_version_id edits state =
                         iterate_entries_after common
                           (fn ((prev, id), _) => fn res =>
                             if not node_required andalso prev = visible_last node then NONE
-                            else new_exec state node proper_init id res) node;
+                            else new_exec keywords state node proper_init id res) node;
 
                     val assigned_execs =
                       (node0, updated_execs) |-> iterate_entries_after common

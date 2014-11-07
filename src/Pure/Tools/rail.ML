@@ -316,7 +316,7 @@ and vertical_range (Bar cats) y =
 
 fun output_rules state rules =
   let
-    val output_antiq = Thy_Output.eval_antiq (Keyword.get_keywords ()) state;
+    val output_antiq = Thy_Output.eval_antiq state;
     fun output_text b s =
       Output.output s
       |> b ? enclose "\\isakeyword{" "}"

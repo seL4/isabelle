@@ -6,19 +6,12 @@ Final stage of bootstrapping Pure, based on implicit background theory.
 
 theory Pure
   keywords
-    "!!" "!" "%" "(" ")" "+" "," "--" ":" "::" ";" "<" "<=" "=" "=="
-    "=>" "?" "[" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>"
-    "\<rightleftharpoons>" "\<subseteq>" "]" "and" "assumes"
-    "attach" "begin" "binder" "constrains" "defines" "fixes" "for"
-    "identifier" "if" "imports" "in" "includes" "infix" "infixl"
-    "infixr" "is" "keywords" "notes" "obtains" "open" "output"
+    "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<equiv>"
+    "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
+    "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
+    "defines" "fixes" "for" "identifier" "if" "in" "includes" "infix"
+    "infixl" "infixr" "is" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "shows" "structure" "unchecked" "where" "|"
-  and "theory" :: thy_begin % "theory"
-  and "header" :: heading
-  and "chapter" :: heading
-  and "section" :: heading
-  and "subsection" :: heading
-  and "subsubsection" :: heading
   and "text" "text_raw" :: thy_decl
   and "txt" "txt_raw" :: prf_decl % "proof"
   and "default_sort" :: thy_decl == ""
@@ -27,7 +20,7 @@ theory Pure
     "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
     "no_notation" "axiomatization" "theorems" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
-  and "SML_file" "ML_file" :: thy_load % "ML"
+  and "SML_file" :: thy_load % "ML"
   and "SML_import" "SML_export" :: thy_decl % "ML"
   and "ML" :: thy_decl % "ML"
   and "ML_prf" :: prf_decl % "proof"  (* FIXME % "ML" ?? *)

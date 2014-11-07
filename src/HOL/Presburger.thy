@@ -6,6 +6,7 @@ section {* Decision Procedure for Presburger Arithmetic *}
 
 theory Presburger
 imports Groebner_Basis Set_Interval
+keywords "try0" :: diag
 begin
 
 ML_file "Tools/Qelim/qelim.ML"

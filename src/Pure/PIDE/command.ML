@@ -8,19 +8,22 @@ signature COMMAND =
 sig
   type blob = (string * (SHA1.digest * string list) option) Exn.result
   val read_file: Path.T -> Position.T -> Path.T -> Token.file
-  val read: (unit -> theory) -> Path.T -> blob list -> Token.T list -> Toplevel.transition
+  val read_thy: Toplevel.state -> theory
+  val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
+    blob list -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval: (unit -> theory) -> Path.T -> blob list -> Token.T list -> eval -> eval
+  val eval: Keyword.keywords -> Path.T -> (unit -> theory) ->
+    blob list -> Token.T list -> eval -> eval
   type print
-  val print: bool -> (string * string list) list -> string ->
+  val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
     eval -> print list -> print list option
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   type print_function =
-    {command_name: string, args: string list, exec_id: Document_ID.exec} ->
+    {keywords: Keyword.keywords, command_name: string, args: string list, exec_id: Document_ID.exec} ->
       {delay: Time.time option, pri: int, persistent: bool, strict: bool, print_fn: print_fn} option
   val print_function: string -> print_function -> unit
   val no_print_function: string -> unit
@@ -120,10 +123,10 @@ fun blob_file src_path lines digest file_node =
       | SOME exec_id => Position.put_id exec_id);
   in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
 
-fun resolve_files master_dir blobs toks =
+fun resolve_files keywords master_dir blobs toks =
   (case Outer_Syntax.parse_spans toks of
     [span] => span
-      |> Command_Span.resolve_files (fn cmd => fn (path, pos) =>
+      |> Command_Span.resolve_files keywords (fn cmd => fn (path, pos) =>
         let
           fun make_file src_path (Exn.Res (file_node, NONE)) =
                 Exn.interruptible_capture (fn () =>
@@ -132,7 +135,7 @@ fun resolve_files master_dir blobs toks =
                (Position.reports [(pos, Markup.language_path), (pos, Markup.path file_node)];
                 Exn.Res (blob_file src_path lines digest file_node))
             | make_file _ (Exn.Exn e) = Exn.Exn e;
-          val src_paths = Keyword.command_files cmd path;
+          val src_paths = Keyword.command_files keywords cmd path;
         in
           if null blobs then
             map2 make_file src_paths (map (K (Exn.Res ("", NONE))) src_paths)
@@ -143,12 +146,15 @@ fun resolve_files master_dir blobs toks =
       |> Command_Span.content
   | _ => toks);
 
+val bootstrap_thy = ML_Context.the_global_context ();
+
 in
 
-fun read init master_dir blobs span =
+fun read_thy st = Toplevel.theory_of st handle Toplevel.UNDEF => bootstrap_thy;
+
+fun read keywords thy master_dir init blobs span =
   let
-    val syntax = #2 (Outer_Syntax.get_syntax ());
-    val command_reports = Outer_Syntax.command_reports syntax;
+    val command_reports = Outer_Syntax.command_reports thy;
 
     val proper_range = Token.range_of (#1 (take_suffix Token.is_improper span));
     val pos =
@@ -161,7 +167,7 @@ fun read init master_dir blobs span =
   in
     if is_malformed then Toplevel.malformed pos "Malformed command syntax"
     else
-      (case Outer_Syntax.read_spans syntax (resolve_files master_dir blobs span) of
+      (case Outer_Syntax.parse_tokens thy (resolve_files keywords master_dir blobs span) of
         [tr] => Toplevel.modify_init init tr
       | [] => Toplevel.ignored (#1 (Token.range_of span))
       | _ => Toplevel.malformed (#1 proper_range) "Exactly one command expected")
@@ -191,12 +197,12 @@ val eval_result_state = #state o eval_result;
 
 local
 
-fun reset_state tr st0 = Toplevel.setmp_thread_position tr (fn () =>
+fun reset_state keywords tr st0 = Toplevel.setmp_thread_position tr (fn () =>
   let
     val name = Toplevel.name_of tr;
     val res =
-      if Keyword.is_theory_body name then Toplevel.reset_theory st0
-      else if Keyword.is_proof name then Toplevel.reset_proof st0
+      if Keyword.is_theory_body keywords name then Toplevel.reset_theory st0
+      else if Keyword.is_proof keywords name then Toplevel.reset_proof st0
       else NONE;
   in
     (case res of
@@ -204,8 +210,8 @@ fun reset_state tr st0 = Toplevel.setmp_thread_position tr (fn () =>
     | SOME st => (Output.error_message (Toplevel.type_error tr st0 ^ " -- using reset state"); st))
   end) ();
 
-fun run int tr st =
-  if Goal.future_enabled 1 andalso Keyword.is_diag (Toplevel.name_of tr) then
+fun run keywords int tr st =
+  if Goal.future_enabled 1 andalso Keyword.is_diag keywords (Toplevel.name_of tr) then
     (Execution.fork {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
       (fn () => Toplevel.command_exception int tr st); ([], SOME st))
   else Toplevel.command_errors int tr st;
@@ -230,7 +236,7 @@ fun proof_status tr st =
     SOME prf => status tr (Proof.status_markup prf)
   | NONE => ());
 
-fun eval_state span tr ({malformed, state, ...}: eval_state) =
+fun eval_state keywords span tr ({malformed, state, ...}: eval_state) =
   if malformed then
     {failed = true, malformed = malformed, command = tr, state = Toplevel.toplevel}
   else
@@ -238,10 +244,10 @@ fun eval_state span tr ({malformed, state, ...}: eval_state) =
       val _ = Multithreading.interrupted ();
 
       val malformed' = Toplevel.is_malformed tr;
-      val st = reset_state tr state;
+      val st = reset_state keywords tr state;
 
       val _ = status tr Markup.running;
-      val (errs1, result) = run true tr st;
+      val (errs1, result) = run keywords true tr st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
       val errs = errs1 @ errs2;
       val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
@@ -262,15 +268,17 @@ fun eval_state span tr ({malformed, state, ...}: eval_state) =
 
 in
 
-fun eval init master_dir blobs span eval0 =
+fun eval keywords master_dir init blobs span eval0 =
   let
     val exec_id = Document_ID.make ();
     fun process () =
       let
+        val eval_state0 = eval_result eval0;
+        val thy = read_thy (#state eval_state0);
         val tr =
           Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id))
-            (fn () => read init master_dir blobs span |> Toplevel.exec_id exec_id) ();
-      in eval_state span tr (eval_result eval0) end;
+            (fn () => read keywords thy master_dir init blobs span |> Toplevel.exec_id exec_id) ();
+      in eval_state keywords span tr eval_state0 end;
   in Eval {exec_id = exec_id, eval_process = memo exec_id process} end;
 
 end;
@@ -288,7 +296,7 @@ val print_eq = op = o pairself print_exec_id;
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
 type print_function =
-  {command_name: string, args: string list, exec_id: Document_ID.exec} ->
+  {keywords: Keyword.keywords, command_name: string, args: string list, exec_id: Document_ID.exec} ->
     {delay: Time.time option, pri: int, persistent: bool, strict: bool, print_fn: print_fn} option;
 
 local
@@ -310,7 +318,7 @@ val overlay_ord = prod_ord string_ord (list_ord string_ord);
 
 in
 
-fun print command_visible command_overlays command_name eval old_prints =
+fun print command_visible command_overlays keywords command_name eval old_prints =
   let
     val print_functions = Synchronized.value print_functions;
 
@@ -338,7 +346,11 @@ fun print command_visible command_overlays command_name eval old_prints =
 
     fun new_print name args get_pr =
       let
-        val params = {command_name = command_name, args = args, exec_id = eval_exec_id eval};
+        val params =
+         {keywords = keywords,
+          command_name = command_name,
+          args = args,
+          exec_id = eval_exec_id eval};
       in
         (case Exn.capture (Runtime.controlled_execution NONE get_pr) params of
           Exn.Res NONE => NONE
@@ -385,8 +397,8 @@ val _ =
 
 val _ =
   print_function "print_state"
-    (fn {command_name, ...} =>
-      if Keyword.is_printed command_name then
+    (fn {keywords, command_name, ...} =>
+      if Keyword.is_printed keywords command_name then
         SOME {delay = NONE, pri = 1, persistent = false, strict = true,
           print_fn = fn _ => fn st => if Toplevel.is_proof st then Toplevel.print_state st else ()}
       else NONE);

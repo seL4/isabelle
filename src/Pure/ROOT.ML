@@ -302,10 +302,11 @@ use "Proof/extraction.ML";
 (*theory documents*)
 use "System/isabelle_system.ML";
 use "Thy/term_style.ML";
-use "Thy/thy_output.ML";
 use "Isar/outer_syntax.ML";
+use "Thy/thy_output.ML";
 use "General/graph_display.ML";
 use "Thy/present.ML";
+use "pure_syn.ML";
 use "PIDE/command.ML";
 use "PIDE/query_operation.ML";
 use "PIDE/resources.ML";
@@ -361,7 +362,7 @@ if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
 
 (* the Pure theory *)
 
-use "pure_syn.ML";
+use "ML/ml_file.ML";
 Runtime.toplevel_program (fn () => Thy_Info.use_thy ("Pure", Position.none));
 Context.set_thread_data NONE;
 structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;

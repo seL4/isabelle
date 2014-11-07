@@ -116,12 +116,12 @@ fun eval_antiquotes (ants, pos) opt_context =
       then ((begin_env0, map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
       else
         let
-          val keywords = Keyword.get_keywords ();
           fun no_decl _ = ([], []);
 
           fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
             | expand (Antiquote.Antiq (ss, {range, ...})) ctxt =
                 let
+                  val keywords = Thy_Header.get_keywords' ctxt;
                   val (decl, ctxt') =
                     apply_antiquotation (Token.read_antiq keywords antiq (ss, #1 range)) ctxt;
                   val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));

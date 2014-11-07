@@ -1,5 +1,5 @@
 theory ToyList_Test
-imports BNF_Least_Fixpoint
+imports Main
 begin
 
 ML {*
@@ -7,7 +7,7 @@ ML {*
     map (File.read o Path.append (Resources.master_directory @{theory}) o Path.explode)
       ["ToyList1.txt", "ToyList2.txt"]
     |> implode
-  in Thy_Info.script_thy Position.start text @{theory BNF_Least_Fixpoint} end
+  in Thy_Info.script_thy Position.start text @{theory} end
 *}
 
 end

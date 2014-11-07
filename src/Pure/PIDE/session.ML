@@ -54,7 +54,6 @@ fun finish () =
  (Execution.shutdown ();
   Thy_Info.finish ();
   Present.finish ();
-  Outer_Syntax.check_syntax ();
   Future.shutdown ();
   Event_Timer.shutdown ();
   Future.shutdown ();

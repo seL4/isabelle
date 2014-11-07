@@ -140,7 +140,7 @@ val criterion =
 
 val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
 
-val query_keywords = Keyword.add (":", NONE) Keyword.empty_keywords;
+val query_keywords = Keyword.add_keywords [(":", NONE)] Keyword.empty_keywords;
 
 in
 

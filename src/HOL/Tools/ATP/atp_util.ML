@@ -19,7 +19,7 @@ sig
   val nat_subscript : int -> string
   val unquote_tvar : string -> string
   val unyxml : string -> string
-  val maybe_quote : string -> string
+  val maybe_quote : Keyword.keywords -> string -> string
   val string_of_ext_time : bool * Time.time -> string
   val string_of_time : Time.time -> string
   val type_instance : theory -> typ -> typ -> bool
@@ -136,11 +136,11 @@ val unquery_var = perhaps (try (unprefix "?"))
 val unyxml = XML.content_of o YXML.parse_body
 
 val is_long_identifier = forall Symbol_Pos.is_identifier o Long_Name.explode
-fun maybe_quote y =
+fun maybe_quote keywords y =
   let val s = unyxml y in
     y |> ((not (is_long_identifier (unquote_tvar s)) andalso
            not (is_long_identifier (unquery_var s))) orelse
-           Keyword.is_keyword s) ? quote
+           Keyword.is_literal keywords s) ? quote
   end
 
 fun string_of_ext_time (plus, time) =

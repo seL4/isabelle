@@ -110,11 +110,11 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val subgoal = 1
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal subgoal ctxt
          val ho_atp = Sledgehammer_Prover_ATP.is_ho_atp ctxt prover
-         val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
+         val keywords = Thy_Header.get_keywords' ctxt
          val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
          val facts =
            Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
-               Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
+               Sledgehammer_Fact.no_fact_override keywords css_table chained_ths
                hyp_ts concl_t
            |> Sledgehammer_Fact.drop_duplicate_facts
            |> Sledgehammer_MePo.mepo_suggested_facts ctxt params

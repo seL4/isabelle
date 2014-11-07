@@ -233,30 +233,17 @@ end;
 
 (* outer syntax *)
 
-fun with_keyword f =
-  Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
-    (f ((name, Thy_Header.the_keyword thy name), pos)
-      handle ERROR msg => error (msg ^ Position.here pos)));
-
 val _ = Theory.setup
  (ML_Antiquotation.value @{binding keyword}
-    (with_keyword
-      (fn ((name, NONE), _) => "Parse.$$$ " ^ ML_Syntax.print_string name
-        | ((name, SOME _), pos) =>
-            error ("Expected minor keyword " ^ quote name ^ Position.here pos))) #>
+    (Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
+      if Keyword.is_keyword (Thy_Header.get_keywords thy) name then
+        "Parse.$$$ " ^ ML_Syntax.print_string name
+      else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos))) #>
   ML_Antiquotation.value @{binding command_spec}
-    (with_keyword
-      (fn ((name, SOME kind), pos) =>
-          "Keyword.command_spec " ^ ML_Syntax.atomic
-            ((ML_Syntax.print_pair
-              (ML_Syntax.print_pair ML_Syntax.print_string
-                (ML_Syntax.print_pair
-                  (ML_Syntax.print_pair ML_Syntax.print_string
-                    (ML_Syntax.print_list ML_Syntax.print_string))
-                  (ML_Syntax.print_list ML_Syntax.print_string)))
-              ML_Syntax.print_position) ((name, kind), pos))
-        | ((name, NONE), pos) =>
-            error ("Expected command keyword " ^ quote name ^ Position.here pos))));
+    (Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
+      if Keyword.is_command (Thy_Header.get_keywords thy) name then
+        ML_Syntax.print_pair ML_Syntax.print_string ML_Syntax.print_position (name, pos)
+      else error ("Bad outer syntax command " ^ quote name ^ Position.here pos))));
 
 end;
 

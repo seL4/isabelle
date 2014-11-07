@@ -693,9 +693,10 @@ val _ =
 
 fun codegen_tool thyname cmd_expr =
   let
-    val ctxt = Proof_Context.init_global (Thy_Info.get_theory thyname);
+    val thy = Thy_Info.get_theory thyname;
+    val ctxt = Proof_Context.init_global thy;
     val parse = Scan.read Token.stopper (Parse.!!! code_exprP) o
-      (filter Token.is_proper o Outer_Syntax.scan (Keyword.get_keywords ()) Position.none);
+      (filter Token.is_proper o Outer_Syntax.scan (Thy_Header.get_keywords thy) Position.none);
   in case parse cmd_expr
    of SOME f => (writeln "Now generating code..."; f ctxt)
     | NONE => error ("Bad directive " ^ quote cmd_expr)

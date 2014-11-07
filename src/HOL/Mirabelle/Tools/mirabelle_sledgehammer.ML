@@ -414,11 +414,11 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val ho_atp = Sledgehammer_Prover_ATP.is_ho_atp ctxt prover_name
-        val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
+        val keywords = Thy_Header.get_keywords' ctxt
         val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
         val facts =
           Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
-              Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
+              Sledgehammer_Fact.no_fact_override keywords css_table chained_ths
               hyp_ts concl_t
         val factss =
           facts
@@ -535,8 +535,8 @@ fun run_proof_method trivial full name meth named_thms id
     fun do_method named_thms ctxt =
       let
         val ref_of_str =
-          suffix ";" #> Outer_Syntax.scan (Keyword.get_keywords ()) Position.none #> Parse.xthm
-          #> fst
+          suffix ";" #> Outer_Syntax.scan (Thy_Header.get_keywords' ctxt) Position.none
+          #> Parse.xthm #> fst
         val thms = named_thms |> maps snd
         val facts = named_thms |> map (ref_of_str o fst o fst)
         val fact_override = {add = facts, del = [], only = true}
@@ -561,7 +561,7 @@ fun run_proof_method trivial full name meth named_thms id
           let
             val (type_encs, lam_trans) =
               !meth
-              |> Outer_Syntax.scan (Keyword.get_keywords ()) Position.start
+              |> Outer_Syntax.scan (Thy_Header.get_keywords' ctxt) Position.start
               |> filter Token.is_proper |> tl
               |> Metis_Tactic.parse_metis_options |> fst
               |>> the_default [ATP_Proof_Reconstruct.partial_typesN]

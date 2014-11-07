@@ -21,7 +21,7 @@ sig
   val instantiate_inducts : bool Config.T
   val no_fact_override : fact_override
 
-  val fact_of_ref : Proof.context -> unit Symtab.table -> thm list -> status Termtab.table ->
+  val fact_of_ref : Proof.context -> Keyword.keywords -> thm list -> status Termtab.table ->
     Facts.ref * Token.src list -> ((string * stature) * thm) list
   val backquote_thm : Proof.context -> thm -> string
   val is_blacklisted_or_something : Proof.context -> bool -> string -> bool
@@ -33,9 +33,9 @@ sig
   val fact_of_raw_fact : raw_fact -> fact
   val is_useful_unnamed_local_fact : Proof.context -> thm -> bool
 
-  val all_facts : Proof.context -> bool -> bool -> unit Symtab.table -> thm list -> thm list ->
+  val all_facts : Proof.context -> bool -> bool -> Keyword.keywords -> thm list -> thm list ->
     status Termtab.table -> raw_fact list
-  val nearly_all_facts : Proof.context -> bool -> fact_override -> unit Symtab.table ->
+  val nearly_all_facts : Proof.context -> bool -> fact_override -> Keyword.keywords ->
     status Termtab.table -> thm list -> term list -> term -> raw_fact list
   val drop_duplicate_facts : raw_fact list -> raw_fact list
 end;
@@ -66,12 +66,12 @@ val instantiate_inducts =
 
 val no_fact_override = {add = [], del = [], only = false}
 
-fun needs_quoting reserved s =
-  Symtab.defined reserved s orelse
+fun needs_quoting keywords s =
+  Keyword.is_literal keywords s orelse
   exists (not o Symbol_Pos.is_identifier) (Long_Name.explode s)
 
-fun make_name reserved multi j name =
-  (name |> needs_quoting reserved name ? quote) ^
+fun make_name keywords multi j name =
+  (name |> needs_quoting keywords name ? quote) ^
   (if multi then "(" ^ string_of_int j ^ ")" else "")
 
 fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
@@ -157,7 +157,7 @@ fun status_of_thm css name th =
 fun stature_of_thm global assms chained css name th =
   (scope_of_thm global assms chained th, status_of_thm css name th)
 
-fun fact_of_ref ctxt reserved chained css (xthm as (xref, args)) =
+fun fact_of_ref ctxt keywords chained css (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket = implode (map (enclose "[" "]" o Pretty.str_of o Token.pretty_src ctxt) args)
@@ -166,9 +166,9 @@ fun fact_of_ref ctxt reserved chained css (xthm as (xref, args)) =
       (case xref of
         Facts.Fact s => backquote (simplify_spaces (unyxml s)) ^ bracket
       | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
-      | Facts.Named ((name, _), NONE) => make_name reserved (length ths > 1) (j + 1) name ^ bracket
+      | Facts.Named ((name, _), NONE) => make_name keywords (length ths > 1) (j + 1) name ^ bracket
       | Facts.Named ((name, _), SOME intervals) =>
-        make_name reserved true
+        make_name keywords true
           (nth (maps (explode_interval (length ths)) intervals) j) name ^ bracket)
 
     fun add_nth th (j, rest) =
@@ -455,7 +455,7 @@ fun is_useful_unnamed_local_fact ctxt =
       forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
   end
 
-fun all_facts ctxt generous ho_atp reserved add_ths chained css =
+fun all_facts ctxt generous ho_atp keywords add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
@@ -514,7 +514,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
                                name0
                            end
                        end
-                       |> make_name reserved multi j
+                       |> make_name keywords multi j
                    val stature = stature_of_thm global assms chained css name0 th
                    val new = ((get_name, stature), th)
                  in
@@ -530,7 +530,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
     |> op @
   end
 
-fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts concl_t =
+fun nearly_all_facts ctxt ho_atp {add, del, only} keywords css chained hyp_ts concl_t =
   if only andalso null add then
     []
   else
@@ -539,12 +539,12 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts co
     in
       (if only then
          maps (map (fn ((name, stature), th) => ((K name, stature), th))
-           o fact_of_ref ctxt reserved chained css) add
+           o fact_of_ref ctxt keywords chained css) add
        else
          let
            val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del)
            val facts =
-             all_facts ctxt false ho_atp reserved add chained css
+             all_facts ctxt false ho_atp keywords add chained css
              |> filter_out ((member Thm.eq_thm_prop del orf
                (Named_Theorems.member ctxt @{named_theorems no_atp} andf
                  not o member Thm.eq_thm_prop add)) o snd)

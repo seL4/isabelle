@@ -17,7 +17,6 @@ sig
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time : string -> string -> Time.time
   val subgoal_count : Proof.state -> int
-  val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof : int -> (string Symtab.table * string Symtab.table) option -> thm ->
     string list option
   val thms_of_name : Proof.context -> string -> thm list
@@ -79,9 +78,6 @@ fun parse_time name s =
 
 val subgoal_count = Try.subgoal_count
 
-fun reserved_isar_keyword_table () =
-  Symtab.make_set (Scan.dest_lexicon (Scan.merge_lexicons (Keyword.get_lexicons ())));
-
 exception TOO_MANY of unit
 
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few fixes that seem to
@@ -127,7 +123,7 @@ fun thms_in_proof max_thms name_tabs th =
 fun thms_of_name ctxt name =
   let
     val get = maps (Proof_Context.get_fact ctxt o fst)
-    val keywords = Keyword.get_keywords ()
+    val keywords = Thy_Header.get_keywords' ctxt
   in
     Source.of_string name
     |> Symbol.source

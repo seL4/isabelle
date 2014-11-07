@@ -6,68 +6,54 @@ Isar keyword classification.
 
 signature KEYWORD =
 sig
-  type T
-  val kind_of: T -> string
-  val kind_files_of: T -> string * string list
-  val diag: T
-  val heading: T
-  val thy_begin: T
-  val thy_end: T
-  val thy_decl: T
-  val thy_decl_block: T
-  val thy_load: T
-  val thy_load_files: string list -> T
-  val thy_goal: T
-  val qed: T
-  val qed_script: T
-  val qed_block: T
-  val qed_global: T
-  val prf_goal: T
-  val prf_block: T
-  val prf_open: T
-  val prf_close: T
-  val prf_chain: T
-  val prf_decl: T
-  val prf_asm: T
-  val prf_asm_goal: T
-  val prf_asm_goal_script: T
-  val prf_script: T
-  val kinds: T list
-  val tag: string -> T -> T
-  val tags_of: T -> string list
-  val tag_theory: T -> T
-  val tag_proof: T -> T
-  val tag_ml: T -> T
+  val diag: string
+  val heading: string
+  val thy_begin: string
+  val thy_end: string
+  val thy_decl: string
+  val thy_decl_block: string
+  val thy_load: string
+  val thy_goal: string
+  val qed: string
+  val qed_script: string
+  val qed_block: string
+  val qed_global: string
+  val prf_goal: string
+  val prf_block: string
+  val prf_open: string
+  val prf_close: string
+  val prf_chain: string
+  val prf_decl: string
+  val prf_asm: string
+  val prf_asm_goal: string
+  val prf_asm_goal_script: string
+  val prf_script: string
   type spec = (string * string list) * string list
-  val spec: spec -> T
-  val command_spec: (string * spec) * Position.T -> (string * T) * Position.T
   type keywords
   val minor_keywords: keywords -> Scan.lexicon
   val major_keywords: keywords -> Scan.lexicon
+  val no_command_keywords: keywords -> keywords
   val empty_keywords: keywords
   val merge_keywords: keywords * keywords -> keywords
-  val no_command_keywords: keywords -> keywords
-  val add: string * T option -> keywords -> keywords
-  val define: string * T option -> unit
-  val get_keywords: unit -> keywords
-  val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
-  val is_keyword: string -> bool
-  val command_keyword: string -> T option
-  val command_files: string -> Path.T -> Path.T list
-  val command_tags: string -> string list
-  val is_diag: string -> bool
-  val is_heading: string -> bool
-  val is_theory_begin: string -> bool
-  val is_theory_load: string -> bool
-  val is_theory: string -> bool
-  val is_theory_body: string -> bool
-  val is_proof: string -> bool
-  val is_proof_body: string -> bool
-  val is_theory_goal: string -> bool
-  val is_proof_goal: string -> bool
-  val is_qed: string -> bool
-  val is_qed_global: string -> bool
-  val is_printed: string -> bool
+  val add_keywords: (string * spec option) list -> keywords -> keywords
+  val is_keyword: keywords -> string -> bool
+  val is_command: keywords -> string -> bool
+  val is_literal: keywords -> string -> bool
+  val command_files: keywords -> string -> Path.T -> Path.T list
+  val command_tags: keywords -> string -> string list
+  val is_diag: keywords -> string -> bool
+  val is_heading: keywords -> string -> bool
+  val is_theory_begin: keywords -> string -> bool
+  val is_theory_load: keywords -> string -> bool
+  val is_theory: keywords -> string -> bool
+  val is_theory_body: keywords -> string -> bool
+  val is_proof: keywords -> string -> bool
+  val is_proof_body: keywords -> string -> bool
+  val is_theory_goal: keywords -> string -> bool
+  val is_proof_goal: keywords -> string -> bool
+  val is_qed: keywords -> string -> bool
+  val is_qed_global: keywords -> string -> bool
+  val is_printed: keywords -> string -> bool
 end;
 
 structure Keyword: KEYWORD =
@@ -75,44 +61,30 @@ struct
 
 (** keyword classification **)
 
-datatype T = Keyword of
- {kind: string,
-  files: string list,  (*extensions of embedded files*)
-  tags: string list};  (*tags in canonical reverse order*)
-
-fun kind s = Keyword {kind = s, files = [], tags = []};
-fun kind_of (Keyword {kind, ...}) = kind;
-fun kind_files_of (Keyword {kind, files, ...}) = (kind, files);
-
-fun add_files fs (Keyword {kind, files, tags}) =
-  Keyword {kind = kind, files = files @ fs, tags = tags};
-
-
 (* kinds *)
 
-val diag = kind "diag";
-val heading = kind "heading";
-val thy_begin = kind "thy_begin";
-val thy_end = kind "thy_end";
-val thy_decl = kind "thy_decl";
-val thy_decl_block = kind "thy_decl_block";
-val thy_load = kind "thy_load";
-fun thy_load_files files = Keyword {kind = "thy_load", files = files, tags = []};
-val thy_goal = kind "thy_goal";
-val qed = kind "qed";
-val qed_script = kind "qed_script";
-val qed_block = kind "qed_block";
-val qed_global = kind "qed_global";
-val prf_goal = kind "prf_goal";
-val prf_block = kind "prf_block";
-val prf_open = kind "prf_open";
-val prf_close = kind "prf_close";
-val prf_chain = kind "prf_chain";
-val prf_decl = kind "prf_decl";
-val prf_asm = kind "prf_asm";
-val prf_asm_goal = kind "prf_asm_goal";
-val prf_asm_goal_script = kind "prf_asm_goal_script";
-val prf_script = kind "prf_script";
+val diag = "diag";
+val heading = "heading";
+val thy_begin = "thy_begin";
+val thy_end = "thy_end";
+val thy_decl = "thy_decl";
+val thy_decl_block = "thy_decl_block";
+val thy_load = "thy_load";
+val thy_goal = "thy_goal";
+val qed = "qed";
+val qed_script = "qed_script";
+val qed_block = "qed_block";
+val qed_global = "qed_global";
+val prf_goal = "prf_goal";
+val prf_block = "prf_block";
+val prf_open = "prf_open";
+val prf_close = "prf_close";
+val prf_chain = "prf_chain";
+val prf_decl = "prf_decl";
+val prf_asm = "prf_asm";
+val prf_asm_goal = "prf_asm_goal";
+val prf_asm_goal_script = "prf_asm_goal_script";
+val prf_script = "prf_script";
 
 val kinds =
   [diag, heading, thy_begin, thy_end, thy_load, thy_decl, thy_decl_block, thy_goal,
@@ -120,34 +92,21 @@ val kinds =
     prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 
-(* tags *)
+(* specifications *)
 
-fun tag t (Keyword {kind, files, tags}) =
-  Keyword {kind = kind, files = files, tags = update (op =) t tags};
-fun tags_of (Keyword {tags, ...}) = tags;
-
-val tag_theory = tag "theory";
-val tag_proof = tag "proof";
-val tag_ml = tag "ML";
-
-
-(* external names *)
-
-val name_table = Symtab.make (map (`kind_of) kinds);
+type T =
+ {kind: string,
+  files: string list,  (*extensions of embedded files*)
+  tags: string list};
 
 type spec = (string * string list) * string list;
 
-fun spec ((name, files), tags) =
-  (case Symtab.lookup name_table name of
-    SOME kind =>
-      let val kind' = kind |> fold tag tags in
-        if null files then kind'
-        else if name = kind_of thy_load then kind' |> add_files files
-        else error ("Illegal specification of files for " ^ quote name)
-      end
-  | NONE => error ("Unknown outer syntax keyword kind " ^ quote name));
-
-fun command_spec ((name, s), pos) = ((name, spec s), pos);
+fun check_spec ((kind, files), tags) : T =
+  if not (member (op =) kinds kind) then
+    error ("Unknown outer syntax keyword kind " ^ quote kind)
+  else if not (null files) andalso kind <> thy_load then
+    error ("Illegal specification of files for " ^ quote kind)
+  else {kind = kind, files = files, tags = tags};
 
 
 
@@ -162,13 +121,18 @@ datatype keywords = Keywords of
 
 fun minor_keywords (Keywords {minor, ...}) = minor;
 fun major_keywords (Keywords {major, ...}) = major;
-fun commands (Keywords {commands, ...}) = commands;
 
 fun make_keywords (minor, major, commands) =
   Keywords {minor = minor, major = major, commands = commands};
 
 fun map_keywords f (Keywords {minor, major, commands}) =
   make_keywords (f (minor, major, commands));
+
+val no_command_keywords =
+  map_keywords (fn (minor, _, _) => (minor, Scan.empty_lexicon, Symtab.empty));
+
+
+(* build keywords *)
 
 val empty_keywords =
   make_keywords (Scan.empty_lexicon, Scan.empty_lexicon, Symtab.empty);
@@ -181,71 +145,56 @@ fun merge_keywords
     Scan.merge_lexicons (major1, major2),
     Symtab.merge (K true) (commands1, commands2));
 
-val no_command_keywords =
-  map_keywords (fn (minor, _, _) => (minor, Scan.empty_lexicon, Symtab.empty));
+val add_keywords =
+  fold (fn (name, opt_spec) => map_keywords (fn (minor, major, commands) =>
+    (case opt_spec of
+      NONE =>
+        let
+          val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
+        in (minor', major, commands) end
+    | SOME spec =>
+        let
+          val kind = check_spec spec;
+          val major' = Scan.extend_lexicon (Symbol.explode name) major;
+          val commands' = Symtab.update (name, kind) commands;
+        in (minor, major', commands') end)));
 
 
-(* add keywords *)
+(* keyword status *)
 
-fun add (name, opt_kind) = map_keywords (fn (minor, major, commands) =>
-  (case opt_kind of
-    NONE =>
-      let
-        val minor' = Scan.extend_lexicon (Symbol.explode name) minor;
-      in (minor', major, commands) end
-  | SOME kind =>
-      let
-        val major' = Scan.extend_lexicon (Symbol.explode name) major;
-        val commands' = Symtab.update (name, kind) commands;
-      in (minor, major', commands') end));
+fun is_keyword keywords s = Scan.is_literal (minor_keywords keywords) (Symbol.explode s);
+fun is_command (Keywords {commands, ...}) = Symtab.defined commands;
+fun is_literal keywords = is_keyword keywords orf is_command keywords;
 
 
-(* global state *)
+(* command kind *)
 
-local val global_keywords = Unsynchronized.ref empty_keywords in
+fun command_kind (Keywords {commands, ...}) = Symtab.lookup commands;
 
-fun define decl = CRITICAL (fn () => Unsynchronized.change global_keywords (add decl));
-fun get_keywords () = ! global_keywords;
-
-end;
-
-fun get_lexicons () =
-  let val keywords = get_keywords ()
-  in (minor_keywords keywords, major_keywords keywords) end;
-
-fun get_commands () = commands (get_keywords ());
-
-
-(* lookup *)
-
-fun is_keyword s =
-  let
-    val (minor, major) = get_lexicons ();
-    val syms = Symbol.explode s;
-  in Scan.is_literal minor syms orelse Scan.is_literal major syms end;
-
-fun command_keyword name = Symtab.lookup (get_commands ()) name;
-
-fun command_files name path =
-  (case command_keyword name of
+fun command_files keywords name path =
+  (case command_kind keywords name of
     NONE => []
-  | SOME (Keyword {kind, files, ...}) =>
-      if kind <> kind_of thy_load then []
+  | SOME {kind, files, ...} =>
+      if kind <> thy_load then []
       else if null files then [path]
       else map (fn ext => Path.ext ext path) files);
 
-val command_tags = these o Option.map tags_of o command_keyword;
+fun command_tags keywords name =
+  (case command_kind keywords name of
+    SOME {tags, ...} => tags
+  | NONE => []);
 
 
 (* command categories *)
 
 fun command_category ks =
-  let val tab = Symtab.make_set (map kind_of ks) in
-    fn name =>
-      (case command_keyword name of
+  let
+    val tab = Symtab.make_set ks;
+    fun pred keywords name =
+      (case command_kind keywords name of
         NONE => false
-      | SOME k => Symtab.defined tab (kind_of k))
-  end;
+      | SOME {kind, ...} => Symtab.defined tab kind);
+  in pred end;
 
 val is_diag = command_category [diag];
 
@@ -274,7 +223,7 @@ val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_asm_goal_scrip
 val is_qed = command_category [qed, qed_script, qed_block];
 val is_qed_global = command_category [qed_global];
 
-val is_printed = is_theory_goal orf is_proof;
+fun is_printed keywords = is_theory_goal keywords orf is_proof keywords;
 
 end;
 

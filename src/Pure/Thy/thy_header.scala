@@ -15,6 +15,10 @@ import scala.util.matching.Regex
 
 object Thy_Header extends Parse.Parser
 {
+  /* bootstrap keywords */
+
+  type Keywords = List[(String, Option[Keyword.Spec], Option[String])]
+
   val HEADER = "header"
   val CHAPTER = "chapter"
   val SECTION = "section"
@@ -27,15 +31,31 @@ object Thy_Header extends Parse.Parser
   val AND = "and"
   val BEGIN = "begin"
 
-  private val header_keywords =
-    Keyword.Keywords.empty +
-      "%" + "(" + ")" + "," + "::" + "==" + AND + BEGIN + IMPORTS + KEYWORDS +
-      (HEADER, Keyword.HEADING) +
-      (CHAPTER, Keyword.HEADING) +
-      (SECTION, Keyword.HEADING) +
-      (SUBSECTION, Keyword.HEADING) +
-      (SUBSUBSECTION, Keyword.HEADING) +
-      (THEORY, Keyword.THY_BEGIN)
+  private val bootstrap_header: Keywords =
+    List(
+      ("%", None, None),
+      ("(", None, None),
+      (")", None, None),
+      (",", None, None),
+      ("::", None, None),
+      ("==", None, None),
+      (AND, None, None),
+      (BEGIN, None, None),
+      (IMPORTS, None, None),
+      (KEYWORDS, None, None),
+      (HEADER, Some(((Keyword.HEADING, Nil), Nil)), None),
+      (CHAPTER, Some(((Keyword.HEADING, Nil), Nil)), None),
+      (SECTION, Some(((Keyword.HEADING, Nil), Nil)), None),
+      (SUBSECTION, Some(((Keyword.HEADING, Nil), Nil)), None),
+      (SUBSUBSECTION, Some(((Keyword.HEADING, Nil), Nil)), None),
+      (THEORY, Some((Keyword.THY_BEGIN, Nil), List("theory")), None),
+      ("ML_file", Some((Keyword.THY_LOAD, Nil), List("ML")), None))
+
+  private val bootstrap_keywords =
+    Keyword.Keywords.empty.add_keywords(bootstrap_header)
+
+  def bootstrap_syntax(): Outer_Syntax =
+    Outer_Syntax.init().add_keywords(bootstrap_header)
 
 
   /* theory file name */
@@ -101,7 +121,7 @@ object Thy_Header extends Parse.Parser
 
   def read(reader: Reader[Char]): Thy_Header =
   {
-    val token = Token.Parsers.token(header_keywords)
+    val token = Token.Parsers.token(bootstrap_keywords)
     val toks = new mutable.ListBuffer[Token]
 
     @tailrec def scan_to_begin(in: Reader[Char])
@@ -123,11 +143,6 @@ object Thy_Header extends Parse.Parser
 
   def read(source: CharSequence): Thy_Header =
     read(new CharSequenceReader(source))
-
-
-  /* keywords */
-
-  type Keywords = List[(String, Option[Keyword.Spec], Option[String])]
 }
 
 

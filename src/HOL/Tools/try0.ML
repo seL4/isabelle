@@ -41,15 +41,15 @@ fun apply_generic timeout_opt name command pre post apply st =
       NONE
   end;
 
-fun parse_method s =
+fun parse_method keywords s =
   enclose "(" ")" s
-  |> Outer_Syntax.scan (Keyword.get_keywords ()) Position.start
+  |> Outer_Syntax.scan keywords Position.start
   |> filter Token.is_proper
   |> Scan.read Token.stopper Method.parse
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
 
 fun apply_named_method_on_first_goal ctxt =
-  parse_method
+  parse_method (Thy_Header.get_keywords' ctxt)
   #> Method.method_cmd ctxt
   #> Method.Basic
   #> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))

@@ -267,6 +267,8 @@ val indent_size = 2
 
 fun string_of_isar_proof ctxt0 i n proof =
   let
+    val keywords = Thy_Header.get_keywords' ctxt0
+
     (* Make sure only type constraints inserted by the type annotation code are printed. *)
     val ctxt = ctxt0
       |> Config.put show_markup false
@@ -300,7 +302,7 @@ fun string_of_isar_proof ctxt0 i n proof =
             |> annotate_types_in_term ctxt
             |> with_vanilla_print_mode (Syntax.unparse_term ctxt #> Pretty.string_of)
             |> simplify_spaces
-            |> maybe_quote),
+            |> maybe_quote keywords),
        ctxt |> perhaps (try (Variable.auto_fixes term)))
 
     fun using_facts [] [] = ""
@@ -317,8 +319,8 @@ fun string_of_isar_proof ctxt0 i n proof =
       end
 
     fun of_free (s, T) =
-      maybe_quote s ^ " :: " ^
-      maybe_quote (simplify_spaces (with_vanilla_print_mode (Syntax.string_of_typ ctxt) T))
+      maybe_quote keywords s ^ " :: " ^
+      maybe_quote keywords (simplify_spaces (with_vanilla_print_mode (Syntax.string_of_typ ctxt) T))
 
     fun add_frees xs (s, ctxt) =
       (s ^ space_implode " and " (map of_free xs), ctxt |> fold Variable.auto_fixes (map Free xs))

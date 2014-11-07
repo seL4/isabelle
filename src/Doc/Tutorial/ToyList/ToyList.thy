@@ -1,15 +1,17 @@
 theory ToyList
-imports BNF_Least_Fixpoint
+imports Main
 begin
 
 text{*\noindent
 HOL already has a predefined theory of lists called @{text List} ---
-@{text ToyList} is merely a small fragment of it chosen as an example. In
-contrast to what is recommended in \S\ref{sec:Basic:Theories},
-@{text ToyList} is not based on @{text Main} but on
-@{text BNF_Least_Fixpoint}, a theory that contains pretty much everything
-but lists, thus avoiding ambiguities caused by defining lists twice.
+@{text ToyList} is merely a small fragment of it chosen as an example.
+To avoid some ambiguities caused by defining lists twice, we manipulate
+the concrete syntax and name space of theory @{theory Main} as follows.
 *}
+
+no_notation Nil ("[]") and Cons (infixr "#" 65) and append (infixr "@" 65)
+hide_type list
+hide_const rev
 
 datatype 'a list = Nil                          ("[]")
                  | Cons 'a "'a list"            (infixr "#" 65)

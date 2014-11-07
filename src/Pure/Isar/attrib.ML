@@ -288,8 +288,8 @@ fun check_attribs ctxt raw_srcs =
 
 fun read_attribs ctxt source =
   let
+    val keywords = Thy_Header.get_keywords' ctxt;
     val syms = Symbol_Pos.source_explode source;
-    val keywords = Keyword.get_keywords ();
   in
     (case Token.read_no_commands keywords Parse.attribs syms of
       [raw_srcs] => check_attribs ctxt raw_srcs

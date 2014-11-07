@@ -72,7 +72,7 @@ sig
   val indent_size : int
   val pstrs : string -> Pretty.T list
   val unyxml : string -> string
-  val pretty_maybe_quote : Pretty.T -> Pretty.T
+  val pretty_maybe_quote : Keyword.keywords -> Pretty.T -> Pretty.T
   val hash_term : term -> int
   val spying : bool -> (unit -> Proof.state * int * string) -> unit
 end;
@@ -287,9 +287,9 @@ val unyxml = ATP_Util.unyxml
 
 val maybe_quote = ATP_Util.maybe_quote
 
-fun pretty_maybe_quote pretty =
+fun pretty_maybe_quote keywords pretty =
   let val s = Pretty.str_of pretty in
-    if maybe_quote s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
+    if maybe_quote keywords s = s then pretty else Pretty.quote pretty
   end
 
 val hashw = ATP_Util.hashw

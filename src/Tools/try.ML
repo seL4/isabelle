@@ -96,8 +96,8 @@ fun auto_try state =
 
 fun print_function ((name, (weight, auto, tool)): tool) =
   Command.print_function ("auto_" ^ name)
-    (fn {command_name, ...} =>
-      if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
+    (fn {keywords, command_name, ...} =>
+      if Keyword.is_theory_goal keywords command_name andalso Options.default_bool auto then
         SOME
          {delay = SOME (seconds (Options.default_real @{system_option auto_time_start})),
           pri = ~ weight,

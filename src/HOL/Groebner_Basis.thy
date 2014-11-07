@@ -6,7 +6,6 @@ section {* Groebner bases *}
 
 theory Groebner_Basis
 imports Semiring_Normalization Parity
-keywords "try0" :: diag
 begin
 
 subsection {* Groebner Bases *}

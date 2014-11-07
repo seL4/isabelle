@@ -10,49 +10,24 @@ struct
 (** markup commands **)
 
 val _ =
-  Outer_Syntax.markup_command Thy_Output.Markup
-    @{command_spec "header"} "theory header"
-    (Parse.document_source >> Isar_Cmd.header_markup);
-
-val _ =
-  Outer_Syntax.markup_command Thy_Output.Markup
-    @{command_spec "chapter"} "chapter heading"
-    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.heading_markup);
-
-val _ =
-  Outer_Syntax.markup_command Thy_Output.Markup
-    @{command_spec "section"} "section heading"
-    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.heading_markup);
-
-val _ =
-  Outer_Syntax.markup_command Thy_Output.Markup
-    @{command_spec "subsection"} "subsection heading"
-    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.heading_markup);
-
-val _ =
-  Outer_Syntax.markup_command Thy_Output.Markup
-    @{command_spec "subsubsection"} "subsubsection heading"
-    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.heading_markup);
-
-val _ =
-  Outer_Syntax.markup_command Thy_Output.MarkupEnv
+  Outer_Syntax.markup_command Outer_Syntax.Markup_Env
     @{command_spec "text"} "formal comment (theory)"
-    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.local_theory_markup);
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.local_theory_markup);
 
 val _ =
-  Outer_Syntax.markup_command Thy_Output.Verbatim
+  Outer_Syntax.markup_command Outer_Syntax.Verbatim
     @{command_spec "text_raw"} "raw document preparation text"
-    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.local_theory_markup);
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.local_theory_markup);
 
 val _ =
-  Outer_Syntax.markup_command Thy_Output.MarkupEnv
+  Outer_Syntax.markup_command Outer_Syntax.Markup_Env
     @{command_spec "txt"} "formal comment (proof)"
-    (Parse.document_source >> Isar_Cmd.proof_markup);
+    (Parse.document_source >> Thy_Output.proof_markup);
 
 val _ =
-  Outer_Syntax.markup_command Thy_Output.Verbatim
+  Outer_Syntax.markup_command Outer_Syntax.Verbatim
     @{command_spec "txt_raw"} "raw document preparation text (proof)"
-    (Parse.document_source >> Isar_Cmd.proof_markup);
+    (Parse.document_source >> Thy_Output.proof_markup);
 
 
 
@@ -730,11 +705,11 @@ val _ =
   Outer_Syntax.command @{command_spec "help"}
     "retrieve outer syntax commands according to name patterns"
     (Scan.repeat Parse.name >>
-      (fn pats => Toplevel.imperative (fn () => Outer_Syntax.help_syntax pats)));
+      (fn pats => Toplevel.keep (fn st => Outer_Syntax.help (Toplevel.theory_of st) pats)));
 
 val _ =
   Outer_Syntax.command @{command_spec "print_commands"} "print outer syntax commands"
-    (Scan.succeed (Toplevel.imperative Outer_Syntax.print_syntax));
+    (Scan.succeed (Toplevel.keep (Outer_Syntax.print_commands o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.command @{command_spec "print_options"} "print configuration options"

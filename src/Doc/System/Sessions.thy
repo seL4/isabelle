@@ -126,7 +126,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   files that are involved in the processing of this session.  This
   should cover anything outside the formal content of the theory
   sources.  In contrast, files that are loaded formally
-  within a theory, e.g.\ via @{keyword "ML_file"}, need not be
+  within a theory, e.g.\ via @{command "ML_file"}, need not be
   declared again.
 
   \item \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
