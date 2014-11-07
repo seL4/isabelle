@@ -59,26 +59,26 @@ lemma zero_less_binomial_iff [simp]: "n choose k > 0 \<longleftrightarrow> k \<l
   by (metis binomial_eq_0_iff not_less0 not_less zero_less_binomial)
 
 lemma Suc_times_binomial_eq:
-  "k \<le> n \<Longrightarrow> Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
-  apply (induct n arbitrary: k, simp)
+  "Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
+  apply (induct n arbitrary: k, simp add: binomial.simps)
   apply (case_tac k)
    apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
   done
 
 text{*The absorption property*}
 lemma Suc_times_binomial:
-  "k \<le> n \<Longrightarrow> (Suc n choose Suc k) * Suc k = Suc n * (n choose k)"
-  by (rule Suc_times_binomial_eq [symmetric])
+  "Suc k * (Suc n choose Suc k) = Suc n * (n choose k)"
+  using Suc_times_binomial_eq by auto
 
 text{*This is the well-known version of absorption, but it's harder to use because of the
   need to reason about division.*}
 lemma binomial_Suc_Suc_eq_times:
-    "k \<le> n \<Longrightarrow> (Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k"
+    "(Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k"
   by (simp add: Suc_times_binomial_eq del: mult_Suc mult_Suc_right)
 
 text{*Another version of absorption, with -1 instead of Suc.*}
 lemma times_binomial_minus1_eq:
-  "k \<le> n \<Longrightarrow> 0 < k \<Longrightarrow> (n choose k) * k = n * ((n - 1) choose (k - 1))"
+  "0 < k \<Longrightarrow> k * (n choose k) = n * ((n - 1) choose (k - 1))"
   using Suc_times_binomial_eq [where n = "n - 1" and k = "k - 1"]
   by (auto split add: nat_diff_split)
 
@@ -665,6 +665,7 @@ proof -
     by (simp add: binomial_altdef_nat mult.commute)
 qed
 
+text{*The "Subset of a Subset" identity*}
 lemma choose_mult:
   assumes "k\<le>m" "m\<le>n"
     shows "(n choose m) * (m choose k) = (n choose k) * ((n-k) choose (m-k))"
@@ -673,14 +674,6 @@ by simp
 
 
 subsection {* Binomial coefficients *}
-
-lemma choose_plus_one_nat:
-     "((n::nat) + 1) choose (k + 1) =(n choose (k + 1)) + (n choose k)"
-  by (simp add: choose_reduce_nat)
-
-lemma choose_Suc_nat: 
-     "(Suc n) choose (Suc k) = (n choose (Suc k)) + (n choose k)"
-  by (simp add: choose_reduce_nat)
 
 lemma choose_one: "(n::nat) choose 1 = n"
   by simp

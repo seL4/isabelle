@@ -256,11 +256,8 @@ apply (subgoal_tac "exponent p ((Suc (j+k) choose Suc k) * Suc k) =
   @{term "exponent p (Suc (j + k) choose Suc k) + exponent p (Suc k)"}
   the common terms cancel, proving the conclusion.*}
  apply (simp del: bad_Sucs add: exponent_mult_add)
-txt{*Establishing the equation requires first applying 
-   @{text Suc_times_binomial_eq} ...*}
-apply (simp del: bad_Sucs add: Suc_times_binomial_eq [symmetric])
-txt{*...then @{text exponent_mult_add} and the quantified premise.*}
-apply (simp del: bad_Sucs add: exponent_mult_add)
+apply (simp del: bad_Sucs add: mult_ac Suc_times_binomial exponent_mult_add)
+
 done
 
 (*The lemma above, with two changes of variables*)
@@ -308,11 +305,10 @@ apply (subgoal_tac "exponent p ((( (p^a) * m) choose p^a) * p^a) =
                     a + exponent p m")
  apply (simp add: exponent_mult_add)
 txt{*one subgoal left!*}
-apply (subst times_binomial_minus1_eq, simp, simp)
-apply (subst exponent_mult_add, simp)
-apply (simp (no_asm_simp))
-apply arith
-apply (simp del: bad_Sucs add: exponent_mult_add const_p_fac_right)
+apply (auto simp: mult_ac)
+apply (subst times_binomial_minus1_eq, simp)
+apply (simp add: diff_le_mono exponent_mult_add)
+apply (metis const_p_fac_right mult.commute)
 done
 
 end
