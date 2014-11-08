@@ -22,7 +22,7 @@ class Visualizer(val model: Model)
   /* font rendering information */
 
   val font_family: String = "IsabelleText"
-  val font_size: Int = 14
+  val font_size: Int = 32
   val font = new Font(font_family, Font.BOLD, font_size)
 
   val rendering_hints =
@@ -41,7 +41,7 @@ class Visualizer(val model: Model)
 
   /* rendering parameters */
 
-  val gap_x = 20
+  val gap_x = 5
   val pad_x = 8
   val pad_y = 5
 

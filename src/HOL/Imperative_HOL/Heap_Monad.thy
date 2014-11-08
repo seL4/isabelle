@@ -566,16 +566,16 @@ readSTRef = Data.STRef.readSTRef;
 writeSTRef = Data.STRef.writeSTRef;
 
 newArray :: Integer -> a -> ST s (STArray s a);
-newArray k = Data.Array.ST.newArray (0, k);
+newArray k = Data.Array.ST.newArray (0, k - 1);
 
 newListArray :: [a] -> ST s (STArray s a);
-newListArray xs = Data.Array.ST.newListArray (0, (fromInteger . toInteger . length) xs) xs;
+newListArray xs = Data.Array.ST.newListArray (0, (fromInteger . toInteger . length) xs - 1) xs;
 
 newFunArray :: Integer -> (Integer -> a) -> ST s (STArray s a);
-newFunArray k f = Data.Array.ST.newListArray (0, k) (map f [0..k-1]);
+newFunArray k f = Data.Array.ST.newListArray (0, k - 1) (map f [0..k-1]);
 
 lengthArray :: STArray s a -> ST s Integer;
-lengthArray a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
+lengthArray a = Control.Monad.liftM (\(_, l) -> l + 1) (Data.Array.ST.getBounds a);
 
 readArray :: STArray s a -> Integer -> ST s a;
 readArray = Data.Array.ST.readArray;
