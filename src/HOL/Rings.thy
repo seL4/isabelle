@@ -405,17 +405,22 @@ lemma dvd_diff [simp]:
 
 end
 
-class ring_no_zero_divisors = ring + no_zero_divisors
+class semiring_no_zero_divisors = semiring_0 + no_zero_divisors
 begin
 
 lemma mult_eq_0_iff [simp]:
-  shows "a * b = 0 \<longleftrightarrow> (a = 0 \<or> b = 0)"
+  shows "a * b = 0 \<longleftrightarrow> a = 0 \<or> b = 0"
 proof (cases "a = 0 \<or> b = 0")
   case False then have "a \<noteq> 0" and "b \<noteq> 0" by auto
     then show ?thesis using no_zero_divisors by simp
 next
   case True then show ?thesis by auto
 qed
+
+end
+
+class ring_no_zero_divisors = ring + semiring_no_zero_divisors
+begin
 
 text{*Cancellation of equalities with a common factor*}
 lemma mult_cancel_right [simp]:
@@ -434,11 +439,13 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma mult_left_cancel: "c \<noteq> 0 \<Longrightarrow> (c*a=c*b) = (a=b)"
-by simp 
+lemma mult_left_cancel:
+  "c \<noteq> 0 \<Longrightarrow> c * a = c * b \<longleftrightarrow> a = b"
+  by simp 
 
-lemma mult_right_cancel: "c \<noteq> 0 \<Longrightarrow> (a*c=b*c) = (a=b)"
-by simp 
+lemma mult_right_cancel:
+  "c \<noteq> 0 \<Longrightarrow> a * c = b * c \<longleftrightarrow> a = b"
+  by simp 
 
 end
 

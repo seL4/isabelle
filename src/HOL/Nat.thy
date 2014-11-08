@@ -785,9 +785,10 @@ proof
   show "\<And>m n q :: nat. m < n \<Longrightarrow> 0 < q \<Longrightarrow> q * m < q * n" by (simp add: mult_less_mono2)
 qed
 
-instance nat :: no_zero_divisors
+instance nat :: semiring_no_zero_divisors
 proof
-  fix a::nat and b::nat show "a ~= 0 \<Longrightarrow> b ~= 0 \<Longrightarrow> a * b ~= 0" by auto
+  fix m n :: nat
+  show "m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> m * n \<noteq> 0" by simp
 qed
 
 
