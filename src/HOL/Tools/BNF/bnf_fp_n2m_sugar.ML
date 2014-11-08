@@ -442,8 +442,8 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
                 let
                   val unify_pairs = split_list (maps (curry (op ~~) gen_tyargs) gen_tyargss_tl);
                   val mgu = Type.raw_unifys unify_pairs Vartab.empty;
-                  val gen_tyargs' = map (Envir.subst_type mgu) gen_tyargs;
-                  val gen_seen' = map (Envir.subst_type mgu) gen_seen;
+                  val gen_tyargs' = map (Envir.norm_type mgu) gen_tyargs;
+                  val gen_seen' = map (Envir.norm_type mgu) gen_seen;
                 in
                   (rho, gen_tyargs', gen_seen', lthy)
                 end)
