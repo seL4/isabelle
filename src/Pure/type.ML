@@ -436,11 +436,10 @@ exception TYPE_MATCH;
 
 fun typ_match tsig =
   let
-    fun match (V as TVar (v, S), T) subs =
+    fun match (TVar (v, S), T) subs =
           (case lookup subs (v, S) of
             NONE =>
-              if V = T then subs
-              else if of_sort tsig (T, S) then Vartab.update_new (v, (S, T)) subs
+              if of_sort tsig (T, S) then Vartab.update_new (v, (S, T)) subs
               else raise TYPE_MATCH
           | SOME U => if U = T then subs else raise TYPE_MATCH)
       | match (Type (a, Ts), Type (b, Us)) subs =
@@ -457,9 +456,9 @@ fun typ_instance tsig (T, U) =
   (typ_match tsig (U, T) Vartab.empty; true) handle TYPE_MATCH => false;
 
 (*purely structural matching*)
-fun raw_match (V as TVar (v, S), T) subs =
+fun raw_match (TVar (v, S), T) subs =
       (case lookup subs (v, S) of
-        NONE => if V = T then subs else Vartab.update_new (v, (S, T)) subs
+        NONE => Vartab.update_new (v, (S, T)) subs
       | SOME U => if U = T then subs else raise TYPE_MATCH)
   | raw_match (Type (a, Ts), Type (b, Us)) subs =
       if a <> b then raise TYPE_MATCH
