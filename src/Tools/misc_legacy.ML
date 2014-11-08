@@ -204,7 +204,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
         end
       (*function to replace the current subgoal*)
       fun next st =
-        Thm.bicompose {flatten = true, match = false, incremented = false}
+        Thm.bicompose NONE {flatten = true, match = false, incremented = false}
           (false, relift st, nprems_of st) gno state
   in Seq.maps next (tacf subprems (Thm.trivial (cterm concl))) end;
 

@@ -454,7 +454,7 @@ text %mlref \<open>
   \begin{mldecls}
   @{index_ML rotate_tac: "int -> int -> tactic"} \\
   @{index_ML distinct_subgoals_tac: tactic} \\
-  @{index_ML flexflex_tac: tactic} \\
+  @{index_ML flexflex_tac: "Proof.context -> tactic"} \\
   \end{mldecls}
 
   \begin{description}

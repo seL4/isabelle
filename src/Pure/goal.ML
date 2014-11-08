@@ -97,7 +97,7 @@ fun finish ctxt = check_finished ctxt #> conclude;
 (* normal form *)
 
 fun norm_result ctxt =
-  Drule.flexflex_unique
+  Drule.flexflex_unique (SOME ctxt)
   #> Raw_Simplifier.norm_hhf_protect ctxt
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;
@@ -144,7 +144,7 @@ fun future_result ctxt result prop =
       cert (Logic.varify_types_global (fold_rev Logic.all xs (Logic.list_implies (As, prop))))
       |> Thm.weaken_sorts (Variable.sorts_of ctxt);
     val global_result = result |> Future.map
-      (Drule.flexflex_unique #>
+      (Drule.flexflex_unique (SOME ctxt) #>
         Thm.adjust_maxidx_thm ~1 #>
         Drule.implies_intr_list assms #>
         Drule.forall_intr_list fixes #>
@@ -216,12 +216,13 @@ fun prove_common immediate pri ctxt xs asms props tac =
               Theory.subthy (theory_of_thm st, thy) orelse err "Bad background theory of goal state";
             val res =
               (finish ctxt' st
-                |> Drule.flexflex_unique
+                |> Drule.flexflex_unique (SOME ctxt')
                 |> Thm.check_shyps sorts
                 |> Thm.check_hyps (Context.Proof ctxt'))
               handle THM (msg, _, _) => err msg | ERROR msg => err msg;
           in
-            if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res] then res
+            if Unify.matches_list (Context.Proof ctxt') [Thm.term_of stmt] [Thm.prop_of res]
+            then res
             else err ("Proved a different theorem: " ^ Syntax.string_of_term ctxt' (Thm.prop_of res))
           end);
     val res =

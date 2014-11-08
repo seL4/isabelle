@@ -37,8 +37,8 @@ val res_inst_tac_term =
 val res_inst_tac_term' =
   gen_res_inst_tac_term (K Drule.cterm_instantiate) [];
 
-fun cut_inst_tac_term' tinst th =
-  res_inst_tac_term' tinst false (Rule_Insts.make_elim_preserve th);
+fun cut_inst_tac_term' ctxt tinst th =
+  res_inst_tac_term' tinst false (Rule_Insts.make_elim_preserve ctxt th);
 
 fun get_dyn_thm thy name atom_name =
   Global_Theory.get_thm thy name handle ERROR _ =>
@@ -76,7 +76,7 @@ fun generate_fresh_tac ctxt atom_name = SUBGOAL (fn (goal, _) =>
    val x = hd (Misc_Legacy.term_vars (prop_of exists_fresh'));
  in
    fn st =>
-   (cut_inst_tac_term' [(x,s)] exists_fresh' 1 THEN
+   (cut_inst_tac_term' ctxt [(x,s)] exists_fresh' 1 THEN
    rtac fs_name_thm 1 THEN
    etac exE 1) st
   handle List.Empty  => all_tac st (* if we collected no variables then we do nothing *)

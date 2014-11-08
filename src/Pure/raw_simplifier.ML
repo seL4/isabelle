@@ -1306,7 +1306,7 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
     val _ =
       cond_tracing ctxt (fn () =>
         print_term ctxt "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" (term_of ct));
-  in bottomc (mode, Option.map Drule.flexflex_unique oo prover, maxidx) ctxt ct end;
+  in bottomc (mode, Option.map (Drule.flexflex_unique (SOME ctxt)) oo prover, maxidx) ctxt ct end;
 
 val simple_prover =
   SINGLE o (fn ctxt => ALLGOALS (resolve_tac (prems_of ctxt)));

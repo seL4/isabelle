@@ -85,8 +85,9 @@ val sym_del =
 
 (* symmetric *)
 
-val symmetric = Thm.rule_attribute (fn x => fn th =>
-  (case Seq.chop 2 (Drule.multi_resolves [th] (#2 (#1 (Data.get x)))) of
+val symmetric = Thm.rule_attribute (fn context => fn th =>
+  (case Seq.chop 2
+      (Drule.multi_resolves (SOME (Context.proof_of context)) [th] (#2 (#1 (Data.get context)))) of
     ([th'], _) => Drule.zero_var_indexes th'
   | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
   | _ => raise THM ("symmetric: multiple unifiers", 1, [th])));
@@ -155,7 +156,7 @@ fun calculate prep_rules final raw_rules int state =
             (case ths of
               [] => Item_Net.content (#1 (get_rules ctxt))
             | th :: _ => Item_Net.retrieve (#1 (get_rules ctxt)) (strip_assums_concl th)))
-        |> Seq.of_list |> Seq.maps (Drule.multi_resolve ths)
+        |> Seq.of_list |> Seq.maps (Drule.multi_resolve (SOME ctxt) ths)
         |> Seq.map (check_projection ths))
         (Seq.single (Seq.Error (fn () =>
           (Pretty.string_of o Pretty.block o Pretty.fbreaks)

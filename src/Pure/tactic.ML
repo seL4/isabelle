@@ -28,7 +28,7 @@ sig
   val match_tac: thm list -> int -> tactic
   val ematch_tac: thm list -> int -> tactic
   val dmatch_tac: thm list -> int -> tactic
-  val flexflex_tac: tactic
+  val flexflex_tac: Proof.context -> tactic
   val distinct_subgoal_tac: int -> tactic
   val distinct_subgoals_tac: tactic
   val cut_tac: thm -> int -> tactic
@@ -101,7 +101,7 @@ fun rule_by_tactic ctxt tac rl =
      thus (REPEAT (resolve_tac rules i)) stops once subgoal i disappears. *)
 
 (*Solve subgoal i by assumption*)
-fun assume_tac i = PRIMSEQ (Thm.assumption i);
+fun assume_tac i = PRIMSEQ (Thm.assumption NONE i);
 
 (*Solve subgoal i by assumption, using no unification*)
 fun eq_assume_tac i = PRIMITIVE (Thm.eq_assumption i);
@@ -112,14 +112,14 @@ fun eq_assume_tac i = PRIMITIVE (Thm.eq_assumption i);
 (*The composition rule/state: no lifting or var renaming.
   The arg = (bires_flg, orule, m);  see Thm.bicompose for explanation.*)
 fun compose_tac arg i =
-  PRIMSEQ (Thm.bicompose {flatten = true, match = false, incremented = false} arg i);
+  PRIMSEQ (Thm.bicompose NONE {flatten = true, match = false, incremented = false} arg i);
 
 (*Converts a "destruct" rule like P&Q==>P to an "elimination" rule
   like [| P&Q; P==>R |] ==> R *)
 fun make_elim rl = zero_var_indexes (rl RS revcut_rl);
 
 (*Attack subgoal i by resolution, using flags to indicate elimination rules*)
-fun biresolve_tac brules i = PRIMSEQ (Thm.biresolution false brules i);
+fun biresolve_tac brules i = PRIMSEQ (Thm.biresolution NONE false brules i);
 
 (*Resolution: the simple case, works for introduction rules*)
 fun resolve_tac rules = biresolve_tac (map (pair false) rules);
@@ -146,13 +146,13 @@ fun ares_tac rules = assume_tac  ORELSE'  resolve_tac rules;
 fun solve_tac rules = resolve_tac rules THEN_ALL_NEW assume_tac;
 
 (*Matching tactics -- as above, but forbid updating of state*)
-fun bimatch_tac brules i = PRIMSEQ (Thm.biresolution true brules i);
+fun bimatch_tac brules i = PRIMSEQ (Thm.biresolution NONE true brules i);
 fun match_tac rules  = bimatch_tac (map (pair false) rules);
 fun ematch_tac rules = bimatch_tac (map (pair true) rules);
 fun dmatch_tac rls   = ematch_tac (map make_elim rls);
 
 (*Smash all flex-flex disagreement pairs in the proof state.*)
-val flexflex_tac = PRIMSEQ Thm.flexflex_rule;
+fun flexflex_tac ctxt = PRIMSEQ (Thm.flexflex_rule (SOME ctxt));
 
 (*Remove duplicate subgoals.*)
 val permute_tac = PRIMITIVE oo Thm.permute_prems;
@@ -244,7 +244,7 @@ fun biresolution_from_nets_tac order match (inet,enet) =
       let val hyps = Logic.strip_assums_hyp prem
           and concl = Logic.strip_assums_concl prem
           val kbrls = Net.unify_term inet concl @ maps (Net.unify_term enet) hyps
-      in PRIMSEQ (Thm.biresolution match (order kbrls) i) end);
+      in PRIMSEQ (Thm.biresolution NONE match (order kbrls) i) end);
 
 (*versions taking pre-built nets.  No filtering of brls*)
 val biresolve_from_nets_tac = biresolution_from_nets_tac order_list false;
@@ -269,15 +269,12 @@ fun build_net rls =
 
 (*resolution using a net rather than rules; pred supports filt_resolve_tac*)
 fun filt_resolution_from_net_tac match pred net =
-  SUBGOAL
-    (fn (prem,i) =>
-      let val krls = Net.unify_term net (Logic.strip_assums_concl prem)
-      in
-         if pred krls
-         then PRIMSEQ
-                (Thm.biresolution match (map (pair false) (order_list krls)) i)
-         else no_tac
-      end);
+  SUBGOAL (fn (prem,i) =>
+    let val krls = Net.unify_term net (Logic.strip_assums_concl prem) in
+      if pred krls then
+        PRIMSEQ (Thm.biresolution NONE match (map (pair false) (order_list krls)) i)
+      else no_tac
+    end);
 
 (*Resolve the subgoal using the rules (making a net) unless too flexible,
    which means more than maxr rules are unifiable.      *)

@@ -187,7 +187,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
   let
     val tha = incr_type_indexes (1 + Thm.maxidx_of thb) tha
     fun res (tha, thb) =
-      (case Thm.bicompose {flatten = true, match = false, incremented = true}
+      (case Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = true}
             (false, tha, nprems_of tha) i thb
            |> Seq.list_of |> distinct Thm.eq_thm of
         [th] => th
@@ -211,7 +211,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
           |> AList.group (op =)
           |> maps (fn ((s, _), T :: Ts) => map (fn T' => (Free (s, T), Free (s, T'))) Ts)
           |> rpair (Envir.empty ~1)
-          |-> fold (Pattern.unify thy)
+          |-> fold (Pattern.unify (Context.Proof ctxt))
           |> Envir.type_env |> Vartab.dest
           |> map (fn (x, (S, T)) => pairself (ctyp_of thy) (TVar (x, S), T))
       in
@@ -747,7 +747,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN rotate_tac (rotation_of_subgoal i) i
               THEN PRIMITIVE (unify_first_prem_with_concl thy i)
               THEN assume_tac i
-              THEN flexflex_tac)))
+              THEN flexflex_tac ctxt')))
       handle ERROR msg =>
         cat_error msg
           "Cannot replay Metis proof in Isabelle: error when discharging Skolem assumptions"

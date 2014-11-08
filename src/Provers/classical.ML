@@ -207,7 +207,7 @@ fun dup_intr th = zero_var_indexes (th RS Data.classical);
 
 fun dup_elim th =  (* FIXME proper context!? *)
   let
-    val rl = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
+    val rl = (th RSN (2, revcut_rl)) |> Thm.assumption NONE 2 |> Seq.hd;
     val ctxt = Proof_Context.init_global (Thm.theory_of_thm rl);
   in rule_by_tactic ctxt (TRYALL (eresolve_tac [revcut_rl])) rl end;
 
@@ -906,7 +906,7 @@ fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
     val {xtra_netpair, ...} = rep_claset_of ctxt;
     val rules3 = Context_Rules.find_rules_netpair true facts goal xtra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
-    val ruleq = Drule.multi_resolves facts rules;
+    val ruleq = Drule.multi_resolves (SOME ctxt) facts rules;
     val _ = Method.trace ctxt rules;
   in
     fn st => Seq.maps (fn rule => resolve_tac [rule] i st) ruleq

@@ -115,7 +115,7 @@ sig
   val combination: thm -> thm -> thm
   val equal_intr: thm -> thm -> thm
   val equal_elim: thm -> thm -> thm
-  val flexflex_rule: thm -> thm Seq.seq
+  val flexflex_rule: Proof.context option -> thm -> thm Seq.seq
   val generalize: string list * string list -> int -> thm -> thm
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val instantiate_cterm: (ctyp * ctyp) list * (cterm * cterm) list -> cterm -> cterm
@@ -128,15 +128,15 @@ sig
   val legacy_freezeT: thm -> thm
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
-  val assumption: int -> thm -> thm Seq.seq
+  val assumption: Proof.context option -> int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
   val rotate_rule: int -> int -> thm -> thm
   val permute_prems: int -> int -> thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
-  val bicompose: {flatten: bool, match: bool, incremented: bool} ->
+  val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
-  val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
+  val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   val extern_oracles: Proof.context -> (Markup.T * xstring) list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
@@ -414,6 +414,11 @@ fun transfer thy' thm =
         tpairs = tpairs,
         prop = prop})
   end;
+
+fun make_context NONE thy = Context.Theory thy
+  | make_context (SOME ctxt) thy =
+      if Theory.subthy (thy, Proof_Context.theory_of ctxt) then Context.Proof ctxt
+      else raise THEORY ("Bad context", [thy, Proof_Context.theory_of ctxt]);
 
 (*explicit weakening: maps |- B to A |- B*)
 fun weaken raw_ct th =
@@ -989,8 +994,8 @@ fun equal_elim th1 th2 =
   Instantiates the theorem and deletes trivial tpairs.  Resulting
   sequence may contain multiple elements if the tpairs are not all
   flex-flex.*)
-fun flexflex_rule (th as Thm (der, {thy, maxidx, shyps, hyps, tpairs, prop, ...})) =
-  Unify.smash_unifiers thy tpairs (Envir.empty maxidx)
+fun flexflex_rule opt_ctxt (th as Thm (der, {thy, maxidx, shyps, hyps, tpairs, prop, ...})) =
+  Unify.smash_unifiers (make_context opt_ctxt thy) tpairs (Envir.empty maxidx)
   |> Seq.map (fn env =>
       if Envir.is_empty env then th
       else
@@ -1304,9 +1309,10 @@ fun incr_indexes i (thm as Thm (der, {thy, maxidx, shyps, hyps, tpairs, prop, ..
       prop = Logic.incr_indexes ([], i) prop});
 
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption. *)
-fun assumption i state =
+fun assumption opt_ctxt i state =
   let
     val Thm (der, {thy, maxidx, shyps, hyps, ...}) = state;
+    val context = make_context opt_ctxt thy;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     fun newth n (env, tpairs) =
       Thm (deriv_rule1
@@ -1332,7 +1338,7 @@ fun assumption i state =
       | addprfs (asm :: rest) n = Seq.make (fn () => Seq.pull
           (Seq.mapp (newth n)
             (if Term.could_unify (asm, concl) then
-              (Unify.unifiers (thy, Envir.empty maxidx, (close asm, concl') :: tpairs))
+              (Unify.unifiers (context, Envir.empty maxidx, (close asm, concl') :: tpairs))
              else Seq.empty)
             (addprfs rest (n + 1))))
   in addprfs asms 1 end;
@@ -1555,9 +1561,9 @@ fun norm_term_skip env 0 t = Envir.norm_term env t
 
 
 (*unify types of schematic variables (non-lifted case)*)
-fun unify_var_types thy (th1, th2) env =
+fun unify_var_types context (th1, th2) env =
   let
-    fun unify_vars (T :: Us) = fold (fn U => Pattern.unify_types thy (T, U)) Us
+    fun unify_vars (T :: Us) = fold (fn U => Pattern.unify_types context (T, U)) Us
       | unify_vars _ = I;
     val add_vars =
       full_prop_of #>
@@ -1576,7 +1582,7 @@ fun unify_var_types thy (th1, th2) env =
 *)
 local exception COMPOSE
 in
-fun bicompose_aux {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), lifted)
+fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), lifted)
                         (eres_flg, orule, nsubgoal) =
  let val Thm (sder, {maxidx=smax, shyps=sshyps, hyps=shyps, ...}) = state
      and Thm (rder, {maxidx=rmax, shyps=rshyps, hyps=rhyps,
@@ -1584,6 +1590,7 @@ fun bicompose_aux {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), li
          (*How many hyps to skip over during normalization*)
      and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0)
      val thy = merge_thys2 state orule;
+     val context = make_context opt_ctxt thy;
      (** Add new theorem with prop = '[| Bs; As |] ==> C' to thq **)
      fun addth A (As, oldAs, rder', n) ((env, tpairs), thq) =
        let val normt = Envir.norm_term env;
@@ -1646,7 +1653,7 @@ fun bicompose_aux {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), li
                | tryasms (asm :: rest) n =
                    if Term.could_unify (asm, concl) then
                      let val asm' = close asm in
-                       (case Seq.pull (Unify.unifiers (thy, env, (asm', concl') :: dpairs)) of
+                       (case Seq.pull (Unify.unifiers (context, env, (asm', concl') :: dpairs)) of
                          NONE => tryasms rest (n + 1)
                        | cell as SOME ((_, tpairs), _) =>
                            Seq.it_right (addth A (newAs (As, n, [BBi, (concl', asm')], tpairs)))
@@ -1658,7 +1665,7 @@ fun bicompose_aux {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), li
 
      (*ordinary resolution*)
      fun res env =
-       (case Seq.pull (Unify.unifiers (thy, env, dpairs)) of
+       (case Seq.pull (Unify.unifiers (context, env, dpairs)) of
          NONE => Seq.empty
        | cell as SOME ((_, tpairs), _) =>
            Seq.it_right (addth NONE (newAs (rev rAs, 0, [BBi], tpairs)))
@@ -1666,14 +1673,14 @@ fun bicompose_aux {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), li
 
      val env0 = Envir.empty (Int.max (rmax, smax));
  in
-   (case if incremented then SOME env0 else unify_var_types thy (state, orule) env0 of
+   (case if incremented then SOME env0 else unify_var_types context (state, orule) env0 of
      NONE => Seq.empty
    | SOME env => if eres_flg then eres env (rev rAs) else res env)
  end;
 end;
 
-fun bicompose flags arg i state =
-  bicompose_aux flags (state, dest_state (state,i), false) arg;
+fun bicompose opt_ctxt flags arg i state =
+  bicompose_aux opt_ctxt flags (state, dest_state (state,i), false) arg;
 
 (*Quick test whether rule is resolvable with the subgoal with hyps Hs
   and conclusion B.  If eres_flg then checks 1st premise of rule also*)
@@ -1686,18 +1693,18 @@ fun could_bires (Hs, B, eres_flg, rule) =
 
 (*Bi-resolution of a state with a list of (flag,rule) pairs.
   Puts the rule above:  rule/state.  Renames vars in the rules. *)
-fun biresolution match brules i state =
+fun biresolution opt_ctxt match brules i state =
     let val (stpairs, Bs, Bi, C) = dest_state(state,i);
         val lift = lift_rule (cprem_of state i);
         val B = Logic.strip_assums_concl Bi;
         val Hs = Logic.strip_assums_hyp Bi;
         val compose =
-          bicompose_aux {flatten = true, match = match, incremented = true}
+          bicompose_aux opt_ctxt {flatten = true, match = match, incremented = true}
             (state, (stpairs, Bs, Bi, C), true);
         fun res [] = Seq.empty
           | res ((eres_flg, rule)::brules) =
-              if Config.get_global (theory_of_thm state) Pattern.unify_trace_failure orelse
-                 could_bires (Hs, B, eres_flg, rule)
+              if Config.get_generic (make_context opt_ctxt (theory_of_thm state))
+                  Pattern.unify_trace_failure orelse could_bires (Hs, B, eres_flg, rule)
               then Seq.make (*delay processing remainder till needed*)
                   (fn()=> SOME(compose (eres_flg, lift rule, nprems_of rule),
                                res brules))

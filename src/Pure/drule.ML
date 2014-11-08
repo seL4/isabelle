@@ -59,15 +59,15 @@ sig
   val strip_type: ctyp -> ctyp list * ctyp
   val beta_conv: cterm -> cterm -> cterm
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
-  val flexflex_unique: thm -> thm
+  val flexflex_unique: Proof.context option -> thm -> thm
   val export_without_context: thm -> thm
   val export_without_context_open: thm -> thm
   val store_thm: binding -> thm -> thm
   val store_standard_thm: binding -> thm -> thm
   val store_thm_open: binding -> thm -> thm
   val store_standard_thm_open: binding -> thm -> thm
-  val multi_resolve: thm list -> thm -> thm Seq.seq
-  val multi_resolves: thm list -> thm list -> thm Seq.seq
+  val multi_resolve: Proof.context option -> thm list -> thm -> thm Seq.seq
+  val multi_resolves: Proof.context option -> thm list -> thm list -> thm Seq.seq
   val compose: thm * int * thm -> thm
   val equals_cong: thm
   val imp_cong: thm
@@ -268,9 +268,9 @@ fun implies_intr_hyps th =
 
 (*Squash a theorem's flexflex constraints provided it can be done uniquely.
   This step can lose information.*)
-fun flexflex_unique th =
+fun flexflex_unique opt_ctxt th =
   if null (Thm.tpairs_of th) then th else
-    case distinct Thm.eq_thm (Seq.list_of (Thm.flexflex_rule th)) of
+    case distinct Thm.eq_thm (Seq.list_of (Thm.flexflex_rule opt_ctxt th)) of
       [th] => th
     | []   => raise THM("flexflex_unique: impossible constraints", 0, [th])
     |  _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
@@ -289,7 +289,7 @@ val export_without_context_open =
     #> Thm.varifyT_global);
 
 val export_without_context =
-  flexflex_unique
+  flexflex_unique NONE
   #> export_without_context_open
   #> Thm.close_derivation;
 
@@ -315,19 +315,21 @@ val rearrange_prems =
 
 (*Resolution: multiple arguments, multiple results*)
 local
-  fun res th i rule =
-    Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
+  fun res opt_ctxt th i rule =
+    Thm.biresolution opt_ctxt false [(false, th)] i rule handle THM _ => Seq.empty;
 
-  fun multi_res _ [] rule = Seq.single rule
-    | multi_res i (th :: ths) rule = Seq.maps (res th i) (multi_res (i + 1) ths rule);
+  fun multi_res _ _ [] rule = Seq.single rule
+    | multi_res opt_ctxt i (th :: ths) rule =
+        Seq.maps (res opt_ctxt th i) (multi_res opt_ctxt (i + 1) ths rule);
 in
-  val multi_resolve = multi_res 1;
-  fun multi_resolves facts rules = Seq.maps (multi_resolve facts) (Seq.of_list rules);
+  fun multi_resolve opt_ctxt = multi_res opt_ctxt 1;
+  fun multi_resolves opt_ctxt facts rules =
+    Seq.maps (multi_resolve opt_ctxt facts) (Seq.of_list rules);
 end;
 
 (*Resolution: exactly one resolvent must be produced*)
 fun tha RSN (i, thb) =
-  (case Seq.chop 2 (Thm.biresolution false [(false, tha)] i thb) of
+  (case Seq.chop 2 (Thm.biresolution NONE false [(false, tha)] i thb) of
     ([th], _) => th
   | ([], _) => raise THM ("RSN: no unifiers", i, [tha, thb])
   | _ => raise THM ("RSN: multiple unifiers", i, [tha, thb]));
@@ -337,7 +339,7 @@ fun tha RS thb = tha RSN (1,thb);
 
 (*For joining lists of rules*)
 fun thas RLN (i, thbs) =
-  let val resolve = Thm.biresolution false (map (pair false) thas) i
+  let val resolve = Thm.biresolution NONE false (map (pair false) thas) i
       fun resb thb = Seq.list_of (resolve thb) handle THM _ => []
   in maps resb thbs end;
 
@@ -345,7 +347,7 @@ fun thas RL thbs = thas RLN (1, thbs);
 
 (*Isar-style multi-resolution*)
 fun bottom_rl OF rls =
-  (case Seq.chop 2 (multi_resolve rls bottom_rl) of
+  (case Seq.chop 2 (multi_resolve NONE rls bottom_rl) of
     ([th], _) => th
   | ([], _) => raise THM ("OF: no unifiers", 0, bottom_rl :: rls)
   | _ => raise THM ("OF: multiple unifiers", 0, bottom_rl :: rls));
@@ -358,7 +360,7 @@ fun rls MRS bottom_rl = bottom_rl OF rls;
   with no lifting or renaming!  Q may contain ==> or meta-quants
   ALWAYS deletes premise i *)
 fun compose (tha, i, thb) =
-  Thm.bicompose {flatten = true, match = false, incremented = false} (false, tha, 0) i thb
+  Thm.bicompose NONE {flatten = true, match = false, incremented = false} (false, tha, 0) i thb
   |> Seq.list_of |> distinct Thm.eq_thm
   |> (fn [th] => th | _ => raise THM ("compose: unique result expected", i, [tha, thb]));
 
@@ -739,7 +741,7 @@ local
 
 (*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
 fun comp incremented th1 th2 =
-  Thm.bicompose {flatten = true, match = false, incremented = incremented} (false, th1, 0) 1 th2
+  Thm.bicompose NONE {flatten = true, match = false, incremented = incremented} (false, th1, 0) 1 th2
   |> Seq.list_of |> distinct Thm.eq_thm
   |> (fn [th] => th | _ => raise THM ("COMP", 1, [th1, th2]));
 
@@ -753,7 +755,7 @@ end;
 
 fun comp_no_flatten (th, n) i rule =
   (case distinct Thm.eq_thm (Seq.list_of
-      (Thm.bicompose {flatten = false, match = false, incremented = true}
+      (Thm.bicompose NONE {flatten = false, match = false, incremented = true}
         (false, th, n) i (incr_indexes th rule))) of
     [th'] => th'
   | [] => raise THM ("comp_no_flatten", i, [th, rule])

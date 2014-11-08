@@ -121,7 +121,7 @@ fun make_constraints_cprf thy env cprf =
         val t' = mk_abs Ts t;
         val u' = mk_abs Ts u
       in
-        (prop, prf, cs, Pattern.unify thy (t', u') env, vTs)
+        (prop, prf, cs, Pattern.unify (Context.Theory thy) (t', u') env, vTs)
         handle Pattern.Pattern =>
             let val (cs', env') = decompose thy [] (t', u') env
             in (prop, prf, cs @ cs', env', vTs) end
@@ -263,7 +263,7 @@ fun solve _ [] bigenv = bigenv
                   val tn2 = Envir.norm_term bigenv t2
                 in
                   if Pattern.pattern tn1 andalso Pattern.pattern tn2 then
-                    (Pattern.unify thy (tn1, tn2) env, ps) handle Pattern.Unif =>
+                    (Pattern.unify (Context.Theory thy) (tn1, tn2) env, ps) handle Pattern.Unif =>
                        cantunify thy (tn1, tn2)
                   else
                     let val (cs', env') = decompose thy [] (tn1, tn2) env

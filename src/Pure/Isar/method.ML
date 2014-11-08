@@ -185,7 +185,7 @@ fun assumption ctxt = METHOD (HEADGOAL o
     | _ => K no_tac));
 
 fun finish immed ctxt =
-  METHOD (K ((if immed then all_assm_tac ctxt else all_tac) THEN flexflex_tac));
+  METHOD (K ((if immed then all_assm_tac ctxt else all_tac) THEN flexflex_tac ctxt));
 
 end;
 
@@ -205,7 +205,9 @@ local
 fun gen_rule_tac tac ctxt rules facts =
   (fn i => fn st =>
     if null facts then tac rules i st
-    else Seq.maps (fn rule => (tac o single) rule i st) (Drule.multi_resolves facts rules))
+    else
+      Seq.maps (fn rule => (tac o single) rule i st)
+        (Drule.multi_resolves (SOME ctxt) facts rules))
   THEN_ALL_NEW Goal.norm_hhf_tac ctxt;
 
 fun gen_arule_tac tac ctxt j rules facts =

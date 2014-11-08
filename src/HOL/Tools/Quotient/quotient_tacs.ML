@@ -80,7 +80,7 @@ fun prep_ty thy (x, (S, ty)) =
 
 fun get_match_inst thy pat trm =
   let
-    val univ = Unify.matchers thy [(pat, trm)]
+    val univ = Unify.matchers (Context.Theory thy) [(pat, trm)]
     val SOME (env, _) = Seq.pull univ           (* raises Bind, if no unifier *) (* FIXME fragile *)
     val tenv = Vartab.dest (Envir.term_env env)
     val tyenv = Vartab.dest (Envir.type_env env)

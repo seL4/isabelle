@@ -196,7 +196,7 @@ fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
 
 val imp_intr_tac = resolve_tac [Data.imp_intr];
 
-fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
+fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption NONE 2 |> Seq.hd;
 val dup_subst = rev_dup_elim ssubst
 
 (* FIXME: "etac Data.rev_mp i" will not behave as expected if goal has *)

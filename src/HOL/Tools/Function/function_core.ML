@@ -351,7 +351,8 @@ fun mk_uniqueness_case ctxt globals G f ihyp ih_intro G_cases compat_store claus
       map2 (mk_uniqueness_clause thy globals compat_store clausei) clauses rep_lemmas
 
     fun elim_implies_eta A AB =
-      Thm.bicompose {flatten = false, match = true, incremented = false} (false, A, 0) 1 AB
+      Thm.bicompose (SOME ctxt) {flatten = false, match = true, incremented = false}
+        (false, A, 0) 1 AB
       |> Seq.list_of |> the_single
 
     val uniqueness = G_cases

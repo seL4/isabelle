@@ -35,7 +35,7 @@ exception FAILED of unit;
 
 fun retrofit st' =
   rotate_prems ~1 #>
-  Thm.bicompose {flatten = false, match = false, incremented = false}
+  Thm.bicompose NONE {flatten = false, match = false, incremented = false}
       (false, Goal.conclude st', Thm.nprems_of st') 1;
 
 in

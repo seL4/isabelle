@@ -471,7 +471,7 @@ fun conclude_goal ctxt goal propss =
     val th =
       (Goal.conclude (if length (flat propss) > 1 then Thm.norm_proof goal else goal)
         handle THM _ => lost_structure ())
-      |> Drule.flexflex_unique
+      |> Drule.flexflex_unique (SOME ctxt)
       |> Thm.check_shyps (Variable.sorts_of ctxt)
       |> Thm.check_hyps (Context.Proof ctxt);
 
@@ -480,8 +480,9 @@ fun conclude_goal ctxt goal propss =
       Conjunction.elim_balanced (length goal_propss) th
       |> map2 Conjunction.elim_balanced (map length goal_propss)
       handle THM _ => lost_structure ();
-    val _ = Unify.matches_list thy (flat goal_propss) (map Thm.prop_of (flat results)) orelse
-      error ("Proved a different theorem:\n" ^ Display.string_of_thm ctxt th);
+    val _ =
+      Unify.matches_list (Context.Proof ctxt) (flat goal_propss) (map Thm.prop_of (flat results))
+        orelse error ("Proved a different theorem:\n" ^ Display.string_of_thm ctxt th);
 
     fun recover_result ([] :: pss) thss = [] :: recover_result pss thss
       | recover_result (_ :: pss) (ths :: thss) = ths :: recover_result pss thss

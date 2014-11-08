@@ -122,7 +122,7 @@ fun splitto ctxt splitths genth =
       (* check if we are a member of splitths - FIXME: quicker and
       more flexible with discrim net. *)
       fun solve_by_splitth th split =
-        Thm.biresolution false [(false,split)] 1 th;
+        Thm.biresolution (SOME ctxt) false [(false,split)] 1 th;
 
       fun split th =
         (case find_thms_split splitths 1 th of

@@ -126,7 +126,7 @@ fun retrofit ctxt1 ctxt0 params asms i st1 st0 =
       |> Thm.adjust_maxidx_thm idx
       |> singleton (Variable.export ctxt2 ctxt0);
   in
-    Thm.bicompose {flatten = true, match = false, incremented = false}
+    Thm.bicompose (SOME ctxt0) {flatten = true, match = false, incremented = false}
       (false, result, Thm.nprems_of st1) i st0
   end;
 

@@ -790,7 +790,7 @@ fun norm_export_morphism inner outer =
 (* simult_matches *)
 
 fun simult_matches ctxt (t, pats) =
-  (case Seq.pull (Unify.matchers (theory_of ctxt) (map (rpair t) pats)) of
+  (case Seq.pull (Unify.matchers (Context.Proof ctxt) (map (rpair t) pats)) of
     NONE => error "Pattern match failed!"
   | SOME (env, _) => Vartab.fold (fn (v, (_, t)) => cons (v, t)) (Envir.term_env env) []);
 
@@ -898,17 +898,18 @@ end;
 
 local
 
-fun comp_hhf_tac th i st =
-  PRIMSEQ (Thm.bicompose {flatten = true, match = false, incremented = true}
+fun comp_hhf_tac ctxt th i st =
+  PRIMSEQ (Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = true}
     (false, Drule.lift_all (Thm.cprem_of st i) th, 0) i) st;
 
-fun comp_incr_tac [] _ = no_tac
-  | comp_incr_tac (th :: ths) i =
-      (fn st => comp_hhf_tac (Drule.incr_indexes st th) i st) APPEND comp_incr_tac ths i;
+fun comp_incr_tac _ [] _ = no_tac
+  | comp_incr_tac ctxt (th :: ths) i =
+      (fn st => comp_hhf_tac ctxt (Drule.incr_indexes st th) i st) APPEND
+      comp_incr_tac ctxt ths i;
 
 in
 
-fun fact_tac ctxt facts = Goal.norm_hhf_tac ctxt THEN' comp_incr_tac facts;
+fun fact_tac ctxt facts = Goal.norm_hhf_tac ctxt THEN' comp_incr_tac ctxt facts;
 
 fun potential_facts ctxt prop =
   Facts.could_unify (facts_of ctxt) (Term.strip_all_body prop);

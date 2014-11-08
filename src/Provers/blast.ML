@@ -461,7 +461,7 @@ fun convertRule state vars t =
 
 
 (*Like dup_elim, but puts the duplicated major premise FIRST*)
-fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
+fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption NONE 2 |> Seq.hd;
 
 
 (*Rotate the assumptions in all new subgoals for the LIFO discipline*)

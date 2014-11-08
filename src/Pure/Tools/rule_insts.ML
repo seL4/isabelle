@@ -24,7 +24,7 @@ sig
     (binding * string option * mixfix) list -> thm -> thm
   val read_instantiate: Proof.context -> (indexname * string) list -> string list -> thm -> thm
   val instantiate_tac: Proof.context -> (indexname * string) list -> string list -> tactic
-  val make_elim_preserve: thm -> thm
+  val make_elim_preserve: Proof.context -> thm -> thm
   val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
     (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
 end;
@@ -280,7 +280,7 @@ val eres_inst_tac = bires_inst_tac true;
 
 (* forward resolution *)
 
-fun make_elim_preserve rl =
+fun make_elim_preserve ctxt rl =
   let
     val cert = Thm.cterm_of (Thm.theory_of_thm rl);
     val maxidx = Thm.maxidx_of rl;
@@ -290,7 +290,7 @@ fun make_elim_preserve rl =
         (cvar ("W", 0), cvar ("W", maxidx + 1))]) Drule.revcut_rl;
   in
     (case Seq.list_of
-      (Thm.bicompose {flatten = true, match = false, incremented = false}
+      (Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = false}
         (false, rl, Thm.nprems_of rl) 1 revcut_rl')
      of
       [th] => th
@@ -298,13 +298,13 @@ fun make_elim_preserve rl =
   end;
 
 (*instantiate and cut -- for atomic fact*)
-fun cut_inst_tac ctxt insts rule = res_inst_tac ctxt insts (make_elim_preserve rule);
+fun cut_inst_tac ctxt insts rule = res_inst_tac ctxt insts (make_elim_preserve ctxt rule);
 
 (*forward tactic applies a rule to an assumption without deleting it*)
 fun forw_inst_tac ctxt insts rule = cut_inst_tac ctxt insts rule THEN' assume_tac;
 
 (*dresolve tactic applies a rule to replace an assumption*)
-fun dres_inst_tac ctxt insts rule = eres_inst_tac ctxt insts (make_elim_preserve rule);
+fun dres_inst_tac ctxt insts rule = eres_inst_tac ctxt insts (make_elim_preserve ctxt rule);
 
 
 (* derived tactics *)

@@ -221,7 +221,7 @@ fun consume ctxt defs facts ((xx, n), th) =
     th
     |> unfold_prems ctxt n defs
     |> unfold_prems_concls ctxt defs
-    |> Drule.multi_resolve (take m facts)
+    |> Drule.multi_resolve (SOME ctxt) (take m facts)
     |> Seq.map (pair (xx, (n - m, drop m facts)))
   end;
 

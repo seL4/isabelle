@@ -161,7 +161,7 @@ fun clean_unify thy ix (a as (pat, tgt)) =
              Vartab.dest (Envir.term_env env));
           val initenv =
             Envir.Envir {maxidx = ix2, tenv = Vartab.empty, tyenv = typinsttab};
-          val useq = Unify.smash_unifiers thy [a] initenv
+          val useq = Unify.smash_unifiers (Context.Theory thy) [a] initenv
             handle ListPair.UnequalLengths => Seq.empty
               | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () =
