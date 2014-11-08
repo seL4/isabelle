@@ -124,7 +124,7 @@ fun lookup_check check tenv (xi, T) =
   and use = instead of eq_type.*)
 fun lookup1 tenv = lookup_check (op =) tenv;
 
-fun lookup (Envir {tenv, tyenv, ...}) = lookup_check (Type.eq_type tyenv) tenv;
+fun lookup (Envir {tenv, tyenv, ...}) = lookup_check (Type.unified tyenv) tenv;
 
 fun update ((xi, T), t) (Envir {maxidx, tenv, tyenv}) =
   Envir {maxidx = maxidx, tenv = Vartab.update_new (xi, (T, t)) tenv, tyenv = tyenv};

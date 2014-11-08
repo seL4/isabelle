@@ -87,7 +87,7 @@ sig
   val raw_unifys: typ list * typ list -> tyenv -> tyenv
   val could_unify: typ * typ -> bool
   val could_unifys: typ list * typ list -> bool
-  val eq_type: tyenv -> typ * typ -> bool
+  val unified: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
   val add_class: Context.generic -> binding * class list -> tsig -> tsig
@@ -587,16 +587,17 @@ and could_unifys (T :: Ts, U :: Us) = could_unify (T, U) andalso could_unifys (T
   | could_unifys ([], []) = true
   | could_unifys _ = false;
 
-
 (*equality with respect to a type environment*)
-fun equal_type tye (T, T') =
-  (case (devar tye T, devar tye T') of
-     (Type (s, Ts), Type (s', Ts')) =>
-       s = s' andalso ListPair.all (equal_type tye) (Ts, Ts')
-   | (U, U') => U = U');
-
-fun eq_type tye =
-  if Vartab.is_empty tye then op = else equal_type tye;
+fun unified tye =
+  let
+    fun unif (T, T') =
+      (case (devar tye T, devar tye T') of
+         (Type (s, Ts), Type (s', Ts')) => s = s' andalso unifs (Ts, Ts')
+       | (U, U') => U = U')
+    and unifs ([], []) = true
+      | unifs (T :: Ts, T' :: Ts') = unif (T', T') andalso unifs (Ts, Ts')
+      | unifs _ = false;
+  in if Vartab.is_empty tye then op = else unif end;
 
 
 
