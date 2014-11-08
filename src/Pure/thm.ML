@@ -1545,7 +1545,7 @@ fun strip_assums2 (Const("Pure.imp", _) $ _ $ B1,
 fun norm_term_skip env 0 t = Envir.norm_term env t
   | norm_term_skip env n (Const ("Pure.all", _) $ Abs (a, T, t)) =
       let
-        val T' = Envir.subst_type (Envir.type_env env) T
+        val T' = Envir.norm_type (Envir.type_env env) T
         (*Must instantiate types of parameters because they are flattened;
           this could be a NEW parameter*)
       in Logic.all_const T' $ Abs (a, T', norm_term_skip env n t) end
