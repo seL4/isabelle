@@ -124,9 +124,7 @@ fun lookup_check check tenv (xi, T) =
   and use = instead of eq_type.*)
 fun lookup1 tenv = lookup_check (op =) tenv;
 
-fun lookup2 (tyenv, tenv) = lookup_check (Type.eq_type tyenv) tenv;
-
-fun lookup (Envir {tenv, tyenv, ...}) = lookup2 (tyenv, tenv);
+fun lookup (Envir {tenv, tyenv, ...}) = lookup_check (Type.eq_type tyenv) tenv;
 
 fun update ((xi, T), t) (Envir {maxidx, tenv, tyenv}) =
   Envir {maxidx = maxidx, tenv = Vartab.update_new (xi, (T, t)) tenv, tyenv = tyenv};
@@ -183,13 +181,13 @@ fun norm_term1 tenv : term Same.operation =
       | norm _ = raise Same.SAME;
   in norm end;
 
-fun norm_term2 tenv tyenv : term Same.operation =
+fun norm_term2 (envir as Envir {tenv, tyenv, ...}) : term Same.operation =
   let
     val normT = norm_type0 tyenv;
     fun norm (Const (a, T)) = Const (a, normT T)
       | norm (Free (a, T)) = Free (a, normT T)
       | norm (Var (xi, T)) =
-          (case lookup2 (tyenv, tenv) (xi, T) of
+          (case lookup envir (xi, T) of
             SOME u => Same.commit norm u
           | NONE => Var (xi, normT T))
       | norm (Abs (a, T, body)) =
@@ -216,9 +214,9 @@ fun norm_types_same tyenv Ts =
 
 fun norm_type tyenv T = norm_type_same tyenv T handle Same.SAME => T;
 
-fun norm_term_same (Envir {tenv, tyenv, ...}) =
+fun norm_term_same (envir as Envir {tenv, tyenv, ...}) =
   if Vartab.is_empty tyenv then norm_term1 tenv
-  else norm_term2 tenv tyenv;
+  else norm_term2 envir;
 
 fun norm_term envir t = norm_term_same envir t handle Same.SAME => t;
 fun beta_norm t = if Term.has_abs t then norm_term (empty 0) t else t;
