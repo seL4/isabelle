@@ -567,10 +567,11 @@ lemma (in CLF) T_thm_1_lub: "lub P cl = lub {x. (x, f x) \<in> r & x \<in> A} cl
 apply (rule sym)
 apply (simp add: P_def)
 apply (rule lubI)
-apply (metis P_def fix_subset)
-apply (metis Collect_conj_eq Collect_mem_eq Int_commute Int_lower1 lub_in_lattice vimage_def)
-apply (metis P_def fixf_le_lubH)
-by (metis P_def lubH_least_fixf)
+apply (simp add: fix_subset)
+using fix_subset lubH_is_fixp apply fastforce
+apply (simp add: fixf_le_lubH)
+using lubH_is_fixp apply blast
+done
 
 declare CL.lubI[rule del] fix_subset[rule del] CL.lub_in_lattice[rule del]
         CLF.fixf_le_lubH[simp del] CLF.lubH_least_fixf[simp del]
