@@ -957,8 +957,7 @@ done
 
 lemma (in Tarski) f'z_in_int_rel: "[| z \<in> P; \<forall>y\<in>Y. (y, z) \<in> induced P r |]
       ==> ((%x: intY1. f x) z, z) \<in> induced intY1 r"
-apply (metis P_def acc_def fix_imp_eq fix_subset indI reflE restrict_apply subset_eq z_in_interval)
-done
+using P_def fix_imp_eq indI intY1_elem reflE z_in_interval by fastforce
 
 (*never proved, 2007-01-22*)
 
