@@ -865,7 +865,7 @@ doesn't work with polymorphism (for which we'd need to use type unification) -- 
 *)
     fun use_candidate target_ty params acc cur_ty =
       if null params then
-        if Type.eq_type Vartab.empty (cur_ty, target_ty) then
+        if cur_ty = target_ty then
           SOME (rev acc)
         else NONE
       else
@@ -873,9 +873,7 @@ doesn't work with polymorphism (for which we'd need to use type unification) -- 
           val (arg_ty, val_ty) = Term.dest_funT cur_ty
           (*now find a param of type arg_ty*)
           val (candidate_param, params') =
-            find_and_remove
-             (snd #> pair arg_ty #> Type.eq_type Vartab.empty)
-             params
+            find_and_remove (snd #> pair arg_ty #> op =) params
         in
           use_candidate target_ty params' (candidate_param :: acc) val_ty
         end
