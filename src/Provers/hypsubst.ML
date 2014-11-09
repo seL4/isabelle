@@ -196,8 +196,8 @@ fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
 
 val imp_intr_tac = resolve_tac [Data.imp_intr];
 
-fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption NONE 2 |> Seq.hd;
-val dup_subst = rev_dup_elim ssubst
+fun rev_dup_elim ctxt th = (th RSN (2, revcut_rl)) |> Thm.assumption (SOME ctxt) 2 |> Seq.hd;
+fun dup_subst ctxt = rev_dup_elim ctxt ssubst
 
 (* FIXME: "etac Data.rev_mp i" will not behave as expected if goal has *)
 (* premises containing meta-implications or quantifiers                *)
@@ -207,7 +207,7 @@ val dup_subst = rev_dup_elim ssubst
 fun vars_gen_hyp_subst_tac ctxt bnd = SUBGOAL(fn (Bi,i) =>
       let val n = length(Logic.strip_assums_hyp Bi) - 1
           val (k, (orient, is_free)) = eq_var bnd false true Bi
-          val rl = if is_free then dup_subst else ssubst
+          val rl = if is_free then dup_subst ctxt else ssubst
           val rl = if orient then rl else Data.sym RS rl
       in
          DETERM

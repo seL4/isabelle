@@ -461,7 +461,7 @@ fun convertRule state vars t =
 
 
 (*Like dup_elim, but puts the duplicated major premise FIRST*)
-fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption NONE 2 |> Seq.hd;
+fun rev_dup_elim ctxt th = (th RSN (2, revcut_rl)) |> Thm.assumption (SOME ctxt) 2 |> Seq.hd;
 
 
 (*Rotate the assumptions in all new subgoals for the LIFO discipline*)
@@ -498,7 +498,7 @@ fun fromRule (state as State {ctxt, ...}) vars rl =
   let val thy = Proof_Context.theory_of ctxt
       val trl = rl |> Thm.prop_of |> fromTerm thy |> convertRule state vars
       fun tac (upd, dup,rot) i =
-        emtac ctxt upd (if dup then rev_dup_elim rl else rl) i
+        emtac ctxt upd (if dup then rev_dup_elim ctxt rl else rl) i
         THEN
         rot_subgoals_tac (rot, #2 trl) i
   in Option.SOME (trl, tac) end

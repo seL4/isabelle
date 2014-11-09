@@ -905,7 +905,7 @@ lemma alt_ex1E [elim!]:
 apply (rule ex1E [OF major])
 apply (rule prem)
 apply (tactic {* ares_tac @{thms allI} 1 *})+
-apply (tactic {* eresolve_tac [Classical.dup_elim @{thm allE}] 1 *})
+apply (tactic {* eresolve_tac [Classical.dup_elim NONE @{thm allE}] 1 *})
 apply iprover
 done
 

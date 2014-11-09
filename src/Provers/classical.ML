@@ -72,7 +72,7 @@ sig
   val deepen_tac: Proof.context -> int -> int -> tactic
 
   val contr_tac: int -> tactic
-  val dup_elim: thm -> thm
+  val dup_elim: Context.generic option -> thm -> thm
   val dup_intr: thm -> thm
   val dup_step_tac: Proof.context -> int -> tactic
   val eq_mp_tac: Proof.context -> int -> tactic
@@ -205,10 +205,13 @@ fun swap_res_tac rls =
 (*Duplication of hazardous rules, for complete provers*)
 fun dup_intr th = zero_var_indexes (th RS Data.classical);
 
-fun dup_elim th =  (* FIXME proper context!? *)
+fun dup_elim context th =
   let
-    val rl = (th RSN (2, revcut_rl)) |> Thm.assumption NONE 2 |> Seq.hd;
-    val ctxt = Proof_Context.init_global (Thm.theory_of_thm rl);
+    val ctxt =
+      (case context of
+        SOME c => Context.proof_of c
+      | NONE => Proof_Context.init_global (Thm.theory_of_thm th));
+    val rl = (th RSN (2, revcut_rl)) |> Thm.assumption (SOME ctxt) 2 |> Seq.hd;
   in rule_by_tactic ctxt (TRYALL (eresolve_tac [revcut_rl])) rl end;
 
 
@@ -428,7 +431,7 @@ fun addE w context th
       CS
        {hazEs = Item_Net.update th hazEs,
         haz_netpair = insert (nI, nE) ([], [th']) haz_netpair,
-        dup_netpair = insert (nI, nE) ([], [dup_elim th']) dup_netpair,
+        dup_netpair = insert (nI, nE) ([], [dup_elim context th']) dup_netpair,
         safeIs = safeIs,
         safeEs = safeEs,
         hazIs = hazIs,
@@ -523,7 +526,7 @@ fun delE context th
     let val th' = classical_rule (flat_rule context th) in
       CS
        {haz_netpair = delete ([], [th']) haz_netpair,
-        dup_netpair = delete ([], [dup_elim th']) dup_netpair,
+        dup_netpair = delete ([], [dup_elim context th']) dup_netpair,
         safeIs = safeIs,
         safeEs = safeEs,
         hazIs = hazIs,
