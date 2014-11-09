@@ -154,7 +154,7 @@ lemma two_is_prime_nat [simp]: "prime (2::nat)"
 
 text{* A bit of regression testing: *}
 
-lemma "prime(7::nat)" by simp
+lemma "prime(97::nat)" by simp
 lemma "prime(997::nat)" by eval
 
 
