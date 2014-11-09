@@ -284,10 +284,10 @@ text %mlref \<open>
   @{index_ML biresolve_tac: "(bool * thm) list -> int -> tactic"} \\[1ex]
   @{index_ML assume_tac: "int -> tactic"} \\
   @{index_ML eq_assume_tac: "int -> tactic"} \\[1ex]
-  @{index_ML match_tac: "thm list -> int -> tactic"} \\
-  @{index_ML ematch_tac: "thm list -> int -> tactic"} \\
-  @{index_ML dmatch_tac: "thm list -> int -> tactic"} \\
-  @{index_ML bimatch_tac: "(bool * thm) list -> int -> tactic"} \\
+  @{index_ML match_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{index_ML ematch_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{index_ML dmatch_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{index_ML bimatch_tac: "Proof.context -> (bool * thm) list -> int -> tactic"} \\
   \end{mldecls}
 
   \begin{description}

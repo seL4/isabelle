@@ -17,13 +17,13 @@ struct
 
 local
 
-val remdups_tac = SUBGOAL (fn (g, i) =>
+fun remdups_tac ctxt = SUBGOAL (fn (g, i) =>
   let val prems = Logic.strip_assums_hyp g in
     REPEAT_DETERM_N (length prems - length (distinct op aconv prems))
-    (ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i)
+    (ematch_tac ctxt [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i)
   end);
 
-fun REMDUPS tac = tac THEN_ALL_NEW remdups_tac;
+fun REMDUPS tac ctxt = tac ctxt THEN_ALL_NEW remdups_tac ctxt;
 
 val bires_tac = Tactic.biresolution_from_nets_tac Context_Rules.orderlist;
 
@@ -39,8 +39,8 @@ fun unsafe_step_tac ctxt =
     bires_tac false (Context_Rules.netpair ctxt));
 
 fun step_tac ctxt i =
-  REPEAT_DETERM1 (REMDUPS (safe_step_tac ctxt) i) ORELSE
-  REMDUPS (unsafe_step_tac ctxt) i;
+  REPEAT_DETERM1 (REMDUPS safe_step_tac ctxt i) ORELSE
+  REMDUPS unsafe_step_tac ctxt i;
 
 fun intprover_tac ctxt gs d lim = SUBGOAL (fn (g, i) =>
   if d > lim then no_tac

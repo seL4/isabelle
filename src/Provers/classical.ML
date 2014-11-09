@@ -75,7 +75,7 @@ sig
   val dup_elim: thm -> thm
   val dup_intr: thm -> thm
   val dup_step_tac: Proof.context -> int -> tactic
-  val eq_mp_tac: int -> tactic
+  val eq_mp_tac: Proof.context -> int -> tactic
   val haz_step_tac: Proof.context -> int -> tactic
   val joinrules: thm list * thm list -> (bool * thm) list
   val mp_tac: int -> tactic
@@ -187,7 +187,7 @@ val contr_tac =
 fun mp_tac i = eresolve_tac [Data.not_elim, Data.imp_elim] i THEN assume_tac i;
 
 (*Like mp_tac but instantiates no variables*)
-fun eq_mp_tac i = ematch_tac [Data.not_elim, Data.imp_elim] i THEN eq_assume_tac i;
+fun eq_mp_tac ctxt i = ematch_tac ctxt [Data.not_elim, Data.imp_elim] i THEN eq_assume_tac i;
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [Data.swap]);
@@ -689,10 +689,14 @@ fun ctxt addbefore (name, tac1) =
 fun ctxt addafter (name, tac2) =
   ctxt addWrapper (name, fn ctxt => fn tac1 => tac1 APPEND' tac2 ctxt);
 
-fun ctxt addD2 (name, thm) = ctxt addafter (name, fn _ => dresolve_tac [thm] THEN' assume_tac);
-fun ctxt addE2 (name, thm) = ctxt addafter (name, fn _ => eresolve_tac [thm] THEN' assume_tac);
-fun ctxt addSD2 (name, thm) = ctxt addSafter (name, fn _ => dmatch_tac [thm] THEN' eq_assume_tac);
-fun ctxt addSE2 (name, thm) = ctxt addSafter (name, fn _ => ematch_tac [thm] THEN' eq_assume_tac);
+fun ctxt addD2 (name, thm) =
+  ctxt addafter (name, fn _ => dresolve_tac [thm] THEN' assume_tac);
+fun ctxt addE2 (name, thm) =
+  ctxt addafter (name, fn _ => eresolve_tac [thm] THEN' assume_tac);
+fun ctxt addSD2 (name, thm) =
+  ctxt addSafter (name, fn ctxt' => dmatch_tac ctxt' [thm] THEN' eq_assume_tac);
+fun ctxt addSE2 (name, thm) =
+  ctxt addSafter (name, fn ctxt' => ematch_tac ctxt' [thm] THEN' eq_assume_tac);
 
 
 
@@ -704,7 +708,7 @@ fun safe_step_tac ctxt =
     appSWrappers ctxt
       (FIRST'
        [eq_assume_tac,
-        eq_mp_tac,
+        eq_mp_tac ctxt,
         bimatch_from_nets_tac safe0_netpair,
         FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
         bimatch_from_nets_tac safep_netpair])
@@ -727,24 +731,24 @@ fun nsubgoalsP n (k, brl) = (subgoals_of_brl brl = n);
 fun n_bimatch_from_nets_tac n =
   biresolution_from_nets_tac (order_list o filter (nsubgoalsP n)) true;
 
-fun eq_contr_tac i = ematch_tac [Data.not_elim] i THEN eq_assume_tac i;
-val eq_assume_contr_tac = eq_assume_tac ORELSE' eq_contr_tac;
+fun eq_contr_tac ctxt i = ematch_tac ctxt [Data.not_elim] i THEN eq_assume_tac i;
+fun eq_assume_contr_tac ctxt = eq_assume_tac ORELSE' eq_contr_tac ctxt;
 
 (*Two-way branching is allowed only if one of the branches immediately closes*)
-fun bimatch2_tac netpair i =
+fun bimatch2_tac ctxt netpair i =
   n_bimatch_from_nets_tac 2 netpair i THEN
-  (eq_assume_contr_tac i ORELSE eq_assume_contr_tac (i + 1));
+  (eq_assume_contr_tac ctxt i ORELSE eq_assume_contr_tac ctxt (i + 1));
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 fun clarify_step_tac ctxt =
   let val {safe0_netpair, safep_netpair, ...} = rep_claset_of ctxt in
     appSWrappers ctxt
      (FIRST'
-       [eq_assume_contr_tac,
+       [eq_assume_contr_tac ctxt,
         bimatch_from_nets_tac safe0_netpair,
         FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
         n_bimatch_from_nets_tac 1 safep_netpair,
-        bimatch2_tac safep_netpair])
+        bimatch2_tac ctxt safep_netpair])
   end;
 
 fun clarify_tac ctxt = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac ctxt 1));

@@ -412,17 +412,17 @@ local
     @{lemma "(!!x. ~P x == Q x) ==> ~(ALL x. P x) == EX x. Q x" by simp},
     @{lemma "(!!x. ~P x == Q x) ==> ~(EX x. P x) == ALL x. Q x" by simp}])
 
-  fun nnf_quant_tac thm (qs as (qs1, qs2)) i st = (
+  fun nnf_quant_tac ctxt thm (qs as (qs1, qs2)) i st = (
     rtac thm ORELSE'
-    (match_tac qs1 THEN' nnf_quant_tac thm qs) ORELSE'
-    (match_tac qs2 THEN' nnf_quant_tac thm qs)) i st
+    (match_tac ctxt qs1 THEN' nnf_quant_tac ctxt thm qs) ORELSE'
+    (match_tac ctxt qs2 THEN' nnf_quant_tac ctxt thm qs)) i st
 
-  fun nnf_quant_tac_varified vars eq =
-    nnf_quant_tac (Old_Z3_Proof_Tools.varify vars eq)
+  fun nnf_quant_tac_varified ctxt vars eq =
+    nnf_quant_tac ctxt (Old_Z3_Proof_Tools.varify vars eq)
 
   fun nnf_quant ctxt vars qs p ct =
     Old_Z3_Proof_Tools.as_meta_eq ct
-    |> Old_Z3_Proof_Tools.by_tac ctxt (nnf_quant_tac_varified vars (meta_eq_of p) qs)
+    |> Old_Z3_Proof_Tools.by_tac ctxt (nnf_quant_tac_varified ctxt vars (meta_eq_of p) qs)
 
   fun prove_nnf ctxt = try_apply ctxt [] [
     named ctxt "conj/disj" Old_Z3_Proof_Literals.prove_conj_disj_eq,
@@ -555,7 +555,7 @@ fun quant_intro ctxt vars p ct =
     val thm = meta_eq_of p
     val rules' = Old_Z3_Proof_Tools.varify vars thm :: rules
     val cu = Old_Z3_Proof_Tools.as_meta_eq ct
-    val tac = REPEAT_ALL_NEW (match_tac rules')
+    val tac = REPEAT_ALL_NEW (match_tac ctxt rules')
   in MetaEq (Old_Z3_Proof_Tools.by_tac ctxt tac cu) end
 end
 
@@ -577,15 +577,15 @@ local
   val elim_all = @{lemma "P = Q ==> (ALL x. P) = Q" by fast}
   val elim_ex = @{lemma "P = Q ==> (EX x. P) = Q" by fast}
 
-  fun elim_unused_tac i st = (
-    match_tac [@{thm refl}]
-    ORELSE' (match_tac [elim_all, elim_ex] THEN' elim_unused_tac)
+  fun elim_unused_tac ctxt i st = (
+    match_tac ctxt [@{thm refl}]
+    ORELSE' (match_tac ctxt [elim_all, elim_ex] THEN' elim_unused_tac ctxt)
     ORELSE' (
-      match_tac [@{thm iff_allI}, @{thm iff_exI}]
-      THEN' elim_unused_tac)) i st
+      match_tac ctxt [@{thm iff_allI}, @{thm iff_exI}]
+      THEN' elim_unused_tac ctxt)) i st
 in
 
-fun elim_unused_vars ctxt = Thm o Old_Z3_Proof_Tools.by_tac ctxt elim_unused_tac
+fun elim_unused_vars ctxt = Thm o Old_Z3_Proof_Tools.by_tac ctxt (elim_unused_tac ctxt)
 
 end
 
@@ -601,7 +601,7 @@ local
   val rule = @{lemma "~ P x | Q ==> ~(ALL x. P x) | Q" by fast}
 in
 fun quant_inst ctxt = Thm o Old_Z3_Proof_Tools.by_tac ctxt (
-  REPEAT_ALL_NEW (match_tac [rule])
+  REPEAT_ALL_NEW (match_tac ctxt [rule])
   THEN' rtac @{thm excluded_middle})
 end
 

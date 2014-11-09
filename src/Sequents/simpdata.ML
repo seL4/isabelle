@@ -62,7 +62,8 @@ fun unsafe_solver ctxt =
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver ctxt =
-  FIRST' [fn i => DETERM (match_tac (triv_rls @ Simplifier.prems_of ctxt) i), eq_assume_tac];
+  FIRST' [fn i => DETERM (match_tac ctxt (triv_rls @ Simplifier.prems_of ctxt) i),
+    eq_assume_tac];
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =

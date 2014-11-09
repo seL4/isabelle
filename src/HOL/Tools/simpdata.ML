@@ -120,9 +120,9 @@ fun unsafe_solver_tac ctxt =
       reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt;
     fun sol_tac i =
       FIRST [resolve_tac sol_thms i, assume_tac i , eresolve_tac @{thms FalseE} i] ORELSE
-      (match_tac intros THEN_ALL_NEW sol_tac) i
+      (match_tac ctxt intros THEN_ALL_NEW sol_tac) i
   in
-    (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN' sol_tac
+    (fn i => REPEAT_DETERM (match_tac ctxt @{thms simp_impliesI} i)) THEN' sol_tac
   end;
 
 val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
@@ -130,9 +130,9 @@ val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver_tac ctxt =
-  (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN'
-  FIRST' [match_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt),
-    eq_assume_tac, ematch_tac @{thms FalseE}];
+  (fn i => REPEAT_DETERM (match_tac ctxt @{thms simp_impliesI} i)) THEN'
+  FIRST' [match_tac ctxt (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt),
+    eq_assume_tac, ematch_tac ctxt @{thms FalseE}];
 
 val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 

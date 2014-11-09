@@ -471,14 +471,14 @@ fun push_quant _ _ _ = raise Fail "unsupported" (* FIXME *)
 val elim_all = @{lemma "P = Q ==> (ALL x. P) = Q" by fast}
 val elim_ex = @{lemma "P = Q ==> (EX x. P) = Q" by fast}
 
-fun elim_unused_tac i st = (
-  match_tac [@{thm refl}]
-  ORELSE' (match_tac [elim_all, elim_ex] THEN' elim_unused_tac)
+fun elim_unused_tac ctxt i st = (
+  match_tac ctxt [@{thm refl}]
+  ORELSE' (match_tac ctxt [elim_all, elim_ex] THEN' elim_unused_tac ctxt)
   ORELSE' (
-    match_tac [@{thm iff_allI}, @{thm iff_exI}]
-    THEN' elim_unused_tac)) i st
+    match_tac ctxt [@{thm iff_allI}, @{thm iff_exI}]
+    THEN' elim_unused_tac ctxt)) i st
 
-fun elim_unused ctxt _ t = prove ctxt t (fn _ => elim_unused_tac)
+fun elim_unused ctxt _ t = prove ctxt t elim_unused_tac
 
 
 (* destructive equality resolution *)

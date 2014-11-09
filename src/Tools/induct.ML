@@ -12,7 +12,7 @@ sig
   val rulify_fallback: thm list
   val equal_def: thm
   val dest_def: term -> (term * term) option
-  val trivial_tac: int -> tactic
+  val trivial_tac: Proof.context -> int -> tactic
 end;
 
 signature INDUCT =
@@ -67,7 +67,7 @@ sig
   val rulify_tac: Proof.context -> int -> tactic
   val simplified_rule: Proof.context -> thm -> thm
   val simplify_tac: Proof.context -> int -> tactic
-  val trivial_tac: int -> tactic
+  val trivial_tac: Proof.context -> int -> tactic
   val rotate_tac: int -> int -> int -> tactic
   val internalize: Proof.context -> int -> thm -> thm
   val guess_instance: Proof.context -> thm -> int -> thm -> thm Seq.seq
@@ -513,7 +513,7 @@ fun cases_tac ctxt simp insts opt_rule facts =
           CASES (Rule_Cases.make_common (thy,
               Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
             ((Method.insert_tac more_facts THEN' resolve_tac [rule'] THEN_ALL_NEW
-                (if simp then TRY o trivial_tac else K all_tac)) i) st
+                (if simp then TRY o trivial_tac ctxt else K all_tac)) i) st
         end)
   end;
 
@@ -810,7 +810,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
                     PRIMITIVE (singleton (Proof_Context.export defs_ctxt ctxt))) st')))
       end)
       THEN_ALL_NEW_CASES
-        ((if simp then simplify_tac ctxt THEN' (TRY o trivial_tac) else K all_tac)
+        ((if simp then simplify_tac ctxt THEN' (TRY o trivial_tac ctxt) else K all_tac)
          THEN_ALL_NEW rulify_tac ctxt);
 
 val induct_tac = gen_induct_tac (K I);

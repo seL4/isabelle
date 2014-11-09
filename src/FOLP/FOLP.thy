@@ -134,7 +134,7 @@ schematic_lemma cla_rews:
   "?p2 : ~P | P"
   "?p3 : ~ ~ P <-> P"
   "?p4 : (~P --> P) <-> P"
-  apply (tactic {* ALLGOALS (Cla.fast_tac FOLP_cs) *})
+  apply (tactic {* ALLGOALS (Cla.fast_tac @{context} FOLP_cs) *})
   done
 
 ML_file "simpdata.ML"

@@ -148,7 +148,7 @@ simproc_setup beta_cfun_proc ("Rep_cfun (Abs_cfun f)") = {*
       val tr = instantiate' [SOME T, SOME U] [SOME f]
           (mk_meta_eq @{thm Abs_cfun_inverse2});
       val rules = Named_Theorems.get ctxt @{named_theorems cont2cont};
-      val tac = SOLVED' (REPEAT_ALL_NEW (match_tac (rev rules)));
+      val tac = SOLVED' (REPEAT_ALL_NEW (match_tac ctxt (rev rules)));
     in SOME (perhaps (SINGLE (tac 1)) tr) end
 *}
 

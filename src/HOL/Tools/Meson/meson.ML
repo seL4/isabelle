@@ -40,8 +40,8 @@ sig
   val best_meson_tac: (thm -> int) -> Proof.context -> int -> tactic
   val safe_best_meson_tac: Proof.context -> int -> tactic
   val depth_meson_tac: Proof.context -> int -> tactic
-  val prolog_step_tac': thm list -> int -> tactic
-  val iter_deepen_prolog_tac: thm list -> tactic
+  val prolog_step_tac': Proof.context -> thm list -> int -> tactic
+  val iter_deepen_prolog_tac: Proof.context -> thm list -> tactic
   val iter_deepen_meson_tac: Proof.context -> thm list -> int -> tactic
   val make_meta_clause: thm -> thm
   val make_meta_clauses: thm list -> thm list
@@ -741,17 +741,17 @@ fun depth_meson_tac ctxt =
 
 (*This version does only one inference per call;
   having only one eq_assume_tac speeds it up!*)
-fun prolog_step_tac' horns =
+fun prolog_step_tac' ctxt horns =
     let val (horn0s, _) = (*0 subgoals vs 1 or more*)
             take_prefix Thm.no_prems horns
         val nrtac = net_resolve_tac horns
     in  fn i => eq_assume_tac i ORELSE
-                match_tac horn0s i ORELSE  (*no backtracking if unit MATCHES*)
+                match_tac ctxt horn0s i ORELSE  (*no backtracking if unit MATCHES*)
                 ((assume_tac i APPEND nrtac i) THEN check_tac)
     end;
 
-fun iter_deepen_prolog_tac horns =
-    ITER_DEEPEN iter_deepen_limit (has_fewer_prems 1) (prolog_step_tac' horns);
+fun iter_deepen_prolog_tac ctxt horns =
+    ITER_DEEPEN iter_deepen_limit (has_fewer_prems 1) (prolog_step_tac' ctxt horns);
 
 fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac (make_clauses ctxt)
   (fn cls =>
@@ -766,7 +766,7 @@ fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac (make_clauses ctxt)
               ["clauses:"] @ map (Display.string_of_thm ctxt) horns))
         in
           THEN_ITER_DEEPEN iter_deepen_limit
-            (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
+            (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' ctxt horns)
         end));
 
 fun meson_tac ctxt ths =

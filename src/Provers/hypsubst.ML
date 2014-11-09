@@ -223,7 +223,7 @@ fun vars_gen_hyp_subst_tac ctxt bnd = SUBGOAL(fn (Bi,i) =>
   discarding equalities on Bound variables
   and on Free variables if thin=true*)
 fun hyp_subst_tac_thin thin ctxt =
-  REPEAT_DETERM1 o FIRST' [ematch_tac [Data.thin_refl],
+  REPEAT_DETERM1 o FIRST' [ematch_tac ctxt [Data.thin_refl],
     gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac ctxt false,
     if thin then thin_free_eq_tac else K no_tac];
 

@@ -45,13 +45,13 @@ subsubsection {* Demonstration of @{text "fast"} *}
 
 schematic_lemma "?p : (EX y. ALL x. J(y,x) <-> ~J(x,x))
         -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))"
-apply (tactic {* fast_tac FOLP_cs 1 *})
+apply (tactic {* fast_tac @{context} FOLP_cs 1 *})
 done
 
 
 schematic_lemma "?p : ALL x. P(x,f(x)) <->
         (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))"
-apply (tactic {* fast_tac FOLP_cs 1 *})
+apply (tactic {* fast_tac @{context} FOLP_cs 1 *})
 done
 
 

@@ -1463,7 +1463,7 @@ structure Induct = Induct
   val equal_def = @{thm induct_equal_def}
   fun dest_def (Const (@{const_name induct_equal}, _) $ t $ u) = SOME (t, u)
     | dest_def _ = NONE
-  val trivial_tac = match_tac @{thms induct_trueI}
+  fun trivial_tac ctxt = match_tac ctxt @{thms induct_trueI}
 )
 *}
 

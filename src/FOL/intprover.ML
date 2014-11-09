@@ -66,9 +66,9 @@ fun safe_step_tac ctxt =
   FIRST' [
     eq_assume_tac,
     eq_mp_tac,
-    bimatch_tac safe0_brls,
+    bimatch_tac ctxt safe0_brls,
     hyp_subst_tac ctxt,
-    bimatch_tac safep_brls];
+    bimatch_tac ctxt safep_brls];
 
 (*Repeatedly attack subgoals using safe inferences -- it's deterministic!*)
 fun safe_tac ctxt = REPEAT_DETERM_FIRST (safe_step_tac ctxt);

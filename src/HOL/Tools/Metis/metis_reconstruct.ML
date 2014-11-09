@@ -742,7 +742,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN rename_tac outer_param_names 1
               THEN copy_prems_tac (map snd ax_counts) [] 1)
             THEN release_clusters_tac thy ax_counts substs ordered_clusters 1
-            THEN match_tac [prems_imp_false] 1
+            THEN match_tac ctxt' [prems_imp_false] 1
             THEN ALLGOALS (fn i => resolve_tac @{thms Meson.skolem_COMBK_I} i
               THEN rotate_tac (rotation_of_subgoal i) i
               THEN PRIMITIVE (unify_first_prem_with_concl thy i)

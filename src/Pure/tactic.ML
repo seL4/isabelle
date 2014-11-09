@@ -24,10 +24,10 @@ sig
   val ftac: thm -> int -> tactic
   val ares_tac: thm list -> int -> tactic
   val solve_tac: thm list -> int -> tactic
-  val bimatch_tac: (bool * thm) list -> int -> tactic
-  val match_tac: thm list -> int -> tactic
-  val ematch_tac: thm list -> int -> tactic
-  val dmatch_tac: thm list -> int -> tactic
+  val bimatch_tac: Proof.context -> (bool * thm) list -> int -> tactic
+  val match_tac: Proof.context -> thm list -> int -> tactic
+  val ematch_tac: Proof.context -> thm list -> int -> tactic
+  val dmatch_tac: Proof.context -> thm list -> int -> tactic
   val flexflex_tac: Proof.context -> tactic
   val distinct_subgoal_tac: int -> tactic
   val distinct_subgoals_tac: tactic
@@ -146,10 +146,10 @@ fun ares_tac rules = assume_tac  ORELSE'  resolve_tac rules;
 fun solve_tac rules = resolve_tac rules THEN_ALL_NEW assume_tac;
 
 (*Matching tactics -- as above, but forbid updating of state*)
-fun bimatch_tac brules i = PRIMSEQ (Thm.biresolution NONE true brules i);
-fun match_tac rules  = bimatch_tac (map (pair false) rules);
-fun ematch_tac rules = bimatch_tac (map (pair true) rules);
-fun dmatch_tac rls   = ematch_tac (map make_elim rls);
+fun bimatch_tac ctxt brules i = PRIMSEQ (Thm.biresolution (SOME ctxt) true brules i);
+fun match_tac ctxt rules = bimatch_tac ctxt (map (pair false) rules);
+fun ematch_tac ctxt rules = bimatch_tac ctxt (map (pair true) rules);
+fun dmatch_tac ctxt rls = ematch_tac ctxt (map make_elim rls);
 
 (*Smash all flex-flex disagreement pairs in the proof state.*)
 fun flexflex_tac ctxt = PRIMSEQ (Thm.flexflex_rule (SOME ctxt));

@@ -453,10 +453,11 @@ fun rcall_tac ctxt i =
   in IHinst tac @{thms rcallTs} i end
   THEN eresolve_tac @{thms rcall_lemmas} i
 
-fun raw_step_tac ctxt prems i = ares_tac (prems@type_rls) i ORELSE
-                           rcall_tac ctxt i ORELSE
-                           ematch_tac [@{thm SubtypeE}] i ORELSE
-                           match_tac [@{thm SubtypeI}] i
+fun raw_step_tac ctxt prems i =
+  ares_tac (prems@type_rls) i ORELSE
+  rcall_tac ctxt i ORELSE
+  ematch_tac ctxt [@{thm SubtypeE}] i ORELSE
+  match_tac ctxt [@{thm SubtypeI}] i
 
 fun tc_step_tac ctxt prems = SUBGOAL (fn (Bi,i) =>
           if is_rigid_prog Bi then raw_step_tac ctxt prems i else no_tac)

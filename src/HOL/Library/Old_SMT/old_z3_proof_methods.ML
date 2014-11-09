@@ -80,7 +80,7 @@ fun prove_inj_prop ctxt def lhs =
 fun prove_rhs ctxt def lhs =
   Old_Z3_Proof_Tools.by_tac ctxt (
     CONVERSION (Conv.top_sweep_conv (K (Conv.rewr_conv def)) ctxt)
-    THEN' REPEAT_ALL_NEW (match_tac @{thms allI})
+    THEN' REPEAT_ALL_NEW (match_tac ctxt @{thms allI})
     THEN' rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt def lhs]))
 
 

@@ -113,7 +113,8 @@ fun unsafe_solver ctxt =
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver ctxt =
-  FIRST' [match_tac (triv_rls @ Simplifier.prems_of ctxt), eq_assume_tac, ematch_tac @{thms FalseE}];
+  FIRST' [match_tac ctxt (triv_rls @ Simplifier.prems_of ctxt),
+    eq_assume_tac, ematch_tac ctxt @{thms FalseE}];
 
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss =

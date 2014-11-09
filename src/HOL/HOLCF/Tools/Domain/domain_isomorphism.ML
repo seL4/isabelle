@@ -151,9 +151,9 @@ fun add_fixdefs
       let
         val prop = mk_trp (mk_cont functional)
         val rules = Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems cont2cont}
-        val tac = REPEAT_ALL_NEW (match_tac (rev rules)) 1
+        fun tac ctxt = REPEAT_ALL_NEW (match_tac ctxt (rev rules)) 1
       in
-        Goal.prove_global thy [] [] prop (K tac)
+        Goal.prove_global thy [] [] prop (tac o #context)
       end
 
     val tuple_unfold_thm =

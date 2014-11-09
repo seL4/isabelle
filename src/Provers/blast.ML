@@ -488,8 +488,8 @@ fun TRACE ctxt rl tac i st =
 
 (*Resolution/matching tactics: if upd then the proof state may be updated.
   Matching makes the tactics more deterministic in the presence of Vars.*)
-fun emtac ctxt upd rl = TRACE ctxt rl (if upd then eresolve_tac [rl] else ematch_tac [rl]);
-fun rmtac ctxt upd rl = TRACE ctxt rl (if upd then resolve_tac [rl] else match_tac [rl]);
+fun emtac ctxt upd rl = TRACE ctxt rl (if upd then eresolve_tac [rl] else ematch_tac ctxt [rl]);
+fun rmtac ctxt upd rl = TRACE ctxt rl (if upd then resolve_tac [rl] else match_tac ctxt [rl]);
 
 (*Tableau rule from elimination rule.
   Flag "upd" says that the inference updated the branch.
@@ -781,8 +781,8 @@ exception NEWBRANCHES and CLOSEF;
 exception PROVE;
 
 (*Trying eq_contr_tac first INCREASES the effort, slowing reconstruction*)
-val contr_tac = ematch_tac [Data.notE] THEN'
-                (eq_assume_tac ORELSE' assume_tac);
+fun contr_tac ctxt =
+  ematch_tac ctxt [Data.notE] THEN' (eq_assume_tac ORELSE' assume_tac);
 
 (*Try to unify complementary literals and return the corresponding tactic. *)
 fun tryClose state (G, L) =
@@ -795,8 +795,8 @@ fun tryClose state (G, L) =
   in
     if isGoal G then close (arg G) L eAssume_tac
     else if isGoal L then close G (arg L) eAssume_tac
-    else if isNot G then close (arg G) L eContr_tac
-    else if isNot L then close G (arg L) eContr_tac
+    else if isNot G then close (arg G) L (eContr_tac ctxt)
+    else if isNot L then close G (arg L) (eContr_tac ctxt)
     else NONE
   end;
 

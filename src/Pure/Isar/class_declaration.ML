@@ -94,11 +94,11 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val loc_axiom_intros = map Drule.export_without_context_open (Locale.axioms_of thy class);
     val axclass_intro = #intro (Axclass.get_info thy class);
     val base_sort_trivs = Thm.of_sort (Thm.ctyp_of thy aT, base_sort);
-    val tac =
+    fun tac ctxt =
       REPEAT (SOMEGOAL
-        (match_tac (axclass_intro :: sup_of_classes @ loc_axiom_intros @ base_sort_trivs)
+        (match_tac ctxt (axclass_intro :: sup_of_classes @ loc_axiom_intros @ base_sort_trivs)
           ORELSE' assume_tac));
-    val of_class = Goal.prove_sorry_global thy [] [] of_class_prop (K tac);
+    val of_class = Goal.prove_sorry_global thy [] [] of_class_prop (tac o #context);
 
   in (base_morph, eq_morph, export_morph, some_axiom, some_assm_intro, of_class) end;
 

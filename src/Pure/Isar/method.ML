@@ -18,8 +18,8 @@ sig
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
   val cheating: Proof.context -> bool -> method
-  val intro: thm list -> method
-  val elim: thm list -> method
+  val intro: Proof.context -> thm list -> method
+  val elim: Proof.context -> thm list -> method
   val unfold: thm list -> Proof.context -> method
   val fold: thm list -> Proof.context -> method
   val atomize: bool -> Proof.context -> method
@@ -127,8 +127,8 @@ fun cheating ctxt int = METHOD (fn _ => fn st =>
 
 (* unfold intro/elim rules *)
 
-fun intro ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (match_tac ths));
-fun elim ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (ematch_tac ths));
+fun intro ctxt ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (match_tac ctxt ths));
+fun elim ctxt ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (ematch_tac ctxt ths));
 
 
 (* unfold/fold definitions *)
@@ -590,9 +590,9 @@ val _ = Theory.setup
     "do nothing (insert current facts only)" #>
   setup @{binding insert} (Attrib.thms >> (K o insert))
     "insert theorems, ignoring facts (improper)" #>
-  setup @{binding intro} (Attrib.thms >> (K o intro))
+  setup @{binding intro} (Attrib.thms >> (fn ths => fn ctxt => intro ctxt ths))
     "repeatedly apply introduction rules" #>
-  setup @{binding elim} (Attrib.thms >> (K o elim))
+  setup @{binding elim} (Attrib.thms >> (fn ths => fn ctxt => elim ctxt ths))
     "repeatedly apply elimination rules" #>
   setup @{binding unfold} (Attrib.thms >> unfold_meth) "unfold definitions" #>
   setup @{binding fold} (Attrib.thms >> fold_meth) "fold definitions" #>

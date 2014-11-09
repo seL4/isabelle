@@ -391,7 +391,6 @@ done
 
 subsection "input_enabledness and par"
 
-
 (* ugly case distinctions. Heart of proof:
      1. inpAAactB_is_inpBoroutB ie. internals are really hidden.
      2. inputs_of_par: outputs are no longer inputs of par. This is important here *)
@@ -400,7 +399,7 @@ lemma input_enabled_par:
       ==> input_enabled (A||B)"
 apply (unfold input_enabled_def)
 apply (simp add: Let_def inputs_of_par trans_of_par)
-apply (tactic "safe_tac @{theory_context Fun}")
+apply (tactic "safe_tac (Context.raw_transfer @{theory} @{theory_context Fun})")
 apply (simp add: inp_is_act)
 prefer 2
 apply (simp add: inp_is_act)

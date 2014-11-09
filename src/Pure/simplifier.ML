@@ -389,7 +389,7 @@ fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn
 
     (*no premature instantiation of variables during simplification*)
     fun safe_solver_tac ctxt =
-      FIRST' [match_tac (trivialities @ Raw_Simplifier.prems_of ctxt), eq_assume_tac];
+      FIRST' [match_tac ctxt (trivialities @ Raw_Simplifier.prems_of ctxt), eq_assume_tac];
     val safe_solver = mk_solver "easy safe" safe_solver_tac;
 
     fun mk_eq thm =
