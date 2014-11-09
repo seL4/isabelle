@@ -130,7 +130,7 @@ by(rule while_least[OF assms(1,2) _ _ assms(3) _ assms(5)[unfolded pfp_def]])
 
 lemma pfp_inv:
   "pfp f x = Some y \<Longrightarrow> (\<And>x. P x \<Longrightarrow> P(f x)) \<Longrightarrow> P x \<Longrightarrow> P y"
-unfolding pfp_def by (erule while_option_rule [rotated])
+unfolding pfp_def by (blast intro: while_option_rule)
 
 lemma strip_pfp:
 assumes "\<And>x. g(f x) = g x" and "pfp f x0 = Some x" shows "g x = g x0"
