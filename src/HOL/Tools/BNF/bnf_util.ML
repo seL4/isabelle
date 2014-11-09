@@ -104,7 +104,8 @@ sig
   val parse_map_rel_bindings: (binding * binding) parser
 
   val typedef: binding * (string * sort) list * mixfix -> term ->
-    (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
+    (binding * binding) option -> (Proof.context -> tactic) ->
+    local_theory -> (string * Typedef.info) * local_theory
 end;
 
 structure BNF_Util : BNF_UTIL =

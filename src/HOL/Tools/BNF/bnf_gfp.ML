@@ -719,7 +719,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
             typedef (sbdT_bind, sum_bdT_params', NoSyn)
-              (HOLogic.mk_UNIV sum_bdT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+              (HOLogic.mk_UNIV sum_bdT) NONE (fn _ => EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
           val sbdT = Type (sbdT_name, sum_bdT_params);
           val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
@@ -1269,7 +1269,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       lthy
       |> @{fold_map 4} (fn b => fn mx => fn car_final => fn in_car_final =>
         typedef (b, params, mx) car_final NONE
-          (EVERY' [rtac exI, rtac in_car_final] 1)) bs mixfixes car_finals in_car_final_thms
+          (fn _ => EVERY' [rtac exI, rtac in_car_final] 1)) bs mixfixes car_finals in_car_final_thms
       |>> apsnd split_list o split_list;
 
     val Ts = map (fn name => Type (name, params')) T_names;

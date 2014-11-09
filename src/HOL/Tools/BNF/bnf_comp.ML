@@ -770,7 +770,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
     val TA_params = Term.add_tfreesT repTA (if has_live_phantoms then As' else []);
     val ((TA, (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, _)), lthy) =
       maybe_typedef has_live_phantoms (T_bind, TA_params, NoSyn) (HOLogic.mk_UNIV repTA) NONE
-        (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+        (fn _ => EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val repTB = mk_T_of_bnf Ds Bs bnf;
     val TB = Term.typ_subst_atomic (As ~~ Bs) TA;
@@ -800,7 +800,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
 
     val ((bdT, (_, Abs_bd_name, _, _, Abs_bdT_inject, Abs_bdT_cases)), lthy) =
       maybe_typedef false (bdT_bind, params, NoSyn)
-        (HOLogic.mk_UNIV bd_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+        (HOLogic.mk_UNIV bd_repT) NONE (fn _ => EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite) =
       if bdT = bd_repT then (bnf_bd, bd_Card_order_of_bnf bnf RS @{thm ordIso_refl},

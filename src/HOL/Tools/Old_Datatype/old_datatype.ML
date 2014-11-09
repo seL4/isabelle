@@ -188,7 +188,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
         (fn (((name, mx), tvs), c) =>
           Typedef.add_typedef_global false (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
-            (rtac exI 1 THEN rtac CollectI 1 THEN
+            (fn _ => rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
               (resolve_tac rep_intrs 1)))
         (types_syntax ~~ tyvars ~~ take (length newTs) rep_set_names)

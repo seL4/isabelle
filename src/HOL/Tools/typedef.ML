@@ -17,9 +17,11 @@ sig
   val get_info_global: theory -> string -> info list
   val interpretation: (string -> local_theory -> local_theory) -> theory -> theory
   val add_typedef: bool -> binding * (string * sort) list * mixfix ->
-    term -> (binding * binding) option -> tactic -> local_theory -> (string * info) * local_theory
+    term -> (binding * binding) option -> (Proof.context -> tactic) -> local_theory ->
+    (string * info) * local_theory
   val add_typedef_global: bool -> binding * (string * sort) list * mixfix ->
-    term -> (binding * binding) option -> tactic -> theory -> (string * info) * theory
+    term -> (binding * binding) option -> (Proof.context -> tactic) -> theory ->
+    (string * info) * theory
   val typedef: (binding * (string * sort) list * mixfix) * term *
     (binding * binding) option -> local_theory -> Proof.state
   val typedef_cmd: (binding * (string * string option) list * mixfix) * string *
@@ -245,7 +247,7 @@ fun add_typedef conceal typ set opt_morphs tac lthy =
     val ((goal, _, typedef_result), lthy') =
       prepare_typedef conceal Syntax.check_term typ set opt_morphs lthy;
     val inhabited =
-      Goal.prove lthy' [] [] goal (K tac)
+      Goal.prove lthy' [] [] goal (tac o #context)
       |> Goal.norm_result lthy' |> Thm.close_derivation;
   in typedef_result inhabited lthy' end;
 

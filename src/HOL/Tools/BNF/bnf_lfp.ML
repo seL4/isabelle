@@ -457,7 +457,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
             typedef (sbdT_bind, sum_bdT_params', NoSyn)
-              (HOLogic.mk_UNIV sum_bdT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+              (HOLogic.mk_UNIV sum_bdT) NONE (fn _ => EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
           val sbdT = Type (sbdT_name, sum_bdT_params);
           val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
@@ -716,7 +716,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((IIT_name, (IIT_glob_info, IIT_loc_info)), lthy) =
       typedef (IIT_bind, params, NoSyn)
-        (HOLogic.mk_UNIV II_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+        (HOLogic.mk_UNIV II_repT) NONE (fn _ => EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val IIT = Type (IIT_name, params');
     val Abs_IIT = Const (#Abs_name IIT_glob_info, II_repT --> IIT);
@@ -860,7 +860,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       lthy
       |> @{fold_map 3} (fn b => fn mx => fn car_init =>
         typedef (b, params, mx) car_init NONE
-          (EVERY' [rtac iffD2, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
+          (fn _ => EVERY' [rtac iffD2, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
             rtac alg_init_thm] 1)) bs mixfixes car_inits
       |>> apsnd split_list o split_list;
 
@@ -1393,7 +1393,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
               val ((sbd0T_name, (sbd0T_glob_info, sbd0T_loc_info)), lthy) =
                 typedef (sbd0T_bind, sum_bd0T_params', NoSyn)
-                  (HOLogic.mk_UNIV sum_bd0T) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+                  (HOLogic.mk_UNIV sum_bd0T) NONE (fn _ => EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
               val sbd0T = Type (sbd0T_name, sum_bd0T_params);
               val Abs_sbd0T = Const (#Abs_name sbd0T_glob_info, sum_bd0T --> sbd0T);

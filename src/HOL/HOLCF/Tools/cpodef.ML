@@ -15,14 +15,14 @@ sig
       Rep_bottom_iff: thm, Abs_bottom_iff: thm }
 
   val add_podef: binding * (string * sort) list * mixfix ->
-    term -> (binding * binding) option -> tactic -> theory ->
+    term -> (binding * binding) option -> (Proof.context -> tactic) -> theory ->
     (Typedef.info * thm) * theory
   val add_cpodef: binding * (string * sort) list * mixfix ->
-    term -> (binding * binding) option -> tactic * tactic -> theory ->
-    (Typedef.info * cpo_info) * theory
+    term -> (binding * binding) option -> (Proof.context -> tactic) * (Proof.context -> tactic) ->
+    theory -> (Typedef.info * cpo_info) * theory
   val add_pcpodef: binding * (string * sort) list * mixfix ->
-    term -> (binding * binding) option -> tactic * tactic -> theory ->
-    (Typedef.info * cpo_info * pcpo_info) * theory
+    term -> (binding * binding) option -> (Proof.context -> tactic) * (Proof.context -> tactic) ->
+    theory -> (Typedef.info * cpo_info * pcpo_info) * theory
 
   val cpodef_proof:
     (binding * (string * sort) list * mixfix) * term
@@ -205,7 +205,7 @@ fun prepare_cpodef
     fun cpodef_result nonempty admissible thy =
       let
         val ((info as (_, {type_definition, ...}), below_def), thy) = thy
-          |> add_podef typ set opt_morphs (rtac nonempty 1)
+          |> add_podef typ set opt_morphs (fn _ => rtac nonempty 1)
         val (cpo_info, thy) = thy
           |> prove_cpo name newT morphs type_definition below_def admissible
       in
@@ -237,7 +237,7 @@ fun prepare_pcpodef
 
     fun pcpodef_result bottom_mem admissible thy =
       let
-        val tac = rtac exI 1 THEN rtac bottom_mem 1
+        fun tac _ = rtac exI 1 THEN rtac bottom_mem 1
         val ((info as (_, {type_definition, ...}), below_def), thy) = thy
           |> add_podef typ set opt_morphs tac
         val (cpo_info, thy) = thy
@@ -260,10 +260,10 @@ fun add_cpodef typ set opt_morphs (tac1, tac2) thy =
   let
     val (goal1, goal2, cpodef_result) =
       prepare_cpodef Syntax.check_term typ set opt_morphs thy
-    val thm1 = Goal.prove_global thy [] [] goal1 (K tac1)
+    val thm1 = Goal.prove_global thy [] [] goal1 (tac1 o #context)
       handle ERROR msg => cat_error msg
         ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set))
-    val thm2 = Goal.prove_global thy [] [] goal2 (K tac2)
+    val thm2 = Goal.prove_global thy [] [] goal2 (tac2 o #context)
       handle ERROR msg => cat_error msg
         ("Failed to prove admissibility of " ^ quote (Syntax.string_of_term_global thy set))
   in cpodef_result thm1 thm2 thy end
@@ -272,10 +272,10 @@ fun add_pcpodef typ set opt_morphs (tac1, tac2) thy =
   let
     val (goal1, goal2, pcpodef_result) =
       prepare_pcpodef Syntax.check_term typ set opt_morphs thy
-    val thm1 = Goal.prove_global thy [] [] goal1 (K tac1)
+    val thm1 = Goal.prove_global thy [] [] goal1 (tac1 o #context)
       handle ERROR msg => cat_error msg
         ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set))
-    val thm2 = Goal.prove_global thy [] [] goal2 (K tac2)
+    val thm2 = Goal.prove_global thy [] [] goal2 (tac2 o #context)
       handle ERROR msg => cat_error msg
         ("Failed to prove admissibility of " ^ quote (Syntax.string_of_term_global thy set))
   in pcpodef_result thm1 thm2 thy end

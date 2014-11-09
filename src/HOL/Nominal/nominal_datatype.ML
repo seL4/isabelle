@@ -578,7 +578,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (name, map (fn (v, _) => (v, dummyS)) tvs, mx)  (* FIXME keep constraints!? *)
             (Const (@{const_name Collect}, (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
-            (rtac exI 1 THEN rtac CollectI 1 THEN
+            (fn _ => rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
               (resolve_tac rep_intrs 1)) thy |> (fn ((_, r), thy) =>
         let

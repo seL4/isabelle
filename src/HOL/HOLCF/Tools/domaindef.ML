@@ -108,8 +108,8 @@ fun gen_add_domaindef
     val set = @{term "defl_set :: udom defl => udom set"} $ defl
 
     (*pcpodef*)
-    val tac1 = rtac @{thm defl_set_bottom} 1
-    val tac2 = rtac @{thm adm_defl_set} 1
+    fun tac1 _ = rtac @{thm defl_set_bottom} 1
+    fun tac2 _ = rtac @{thm adm_defl_set} 1
     val ((info, cpo_info, pcpo_info), thy) = thy
       |> Cpodef.add_pcpodef typ set (SOME morphs) (tac1, tac2)
 

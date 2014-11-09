@@ -42,7 +42,7 @@ fun typedef_term rel rty lthy =
 (* makes the new type definitions and proves non-emptyness *)
 fun typedef_make (vs, qty_name, mx, rel, rty) equiv_thm lthy =
   let
-    val typedef_tac =
+    fun typedef_tac _ =
       EVERY1 (map rtac [@{thm part_equivp_typedef}, equiv_thm])
   in
     Typedef.add_typedef false (qty_name, map (rpair dummyS) vs, mx)

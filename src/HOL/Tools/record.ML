@@ -112,7 +112,7 @@ fun do_typedef raw_tyco repT raw_vs thy =
   in
     thy
     |> Typedef.add_typedef_global false (raw_tyco, vs, NoSyn)
-        (HOLogic.mk_UNIV repT) NONE (rtac UNIV_witness 1)
+        (HOLogic.mk_UNIV repT) NONE (fn _ => rtac UNIV_witness 1)
     |-> (fn (tyco, info) => get_typedef_info tyco vs info)
   end;
 
