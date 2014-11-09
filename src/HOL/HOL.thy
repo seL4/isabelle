@@ -274,7 +274,7 @@ apply (erule subst)+
 apply (rule refl)
 done
 
-ML {* val cong_tac = Cong_Tac.cong_tac @{thm cong} *}
+ML {* fun cong_tac ctxt = Cong_Tac.cong_tac ctxt @{thm cong} *}
 
 
 subsubsection {* Equality of booleans -- iff *}

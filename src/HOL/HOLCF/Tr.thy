@@ -154,7 +154,7 @@ done
 ML {*
 fun split_If_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm If2_def} RS sym])
-    THEN' (split_tac [@{thm split_If2}])
+    THEN' (split_tac ctxt [@{thm split_If2}])
 *}
 
 subsection "Rewriting of HOLCF operations to HOL functions"

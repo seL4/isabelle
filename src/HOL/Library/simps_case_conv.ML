@@ -88,7 +88,7 @@ fun build_case_t fun_t lhss rhss ctxt =
 
 fun tac ctxt {splits, intros, defs} =
   let val ctxt' = Classical.addSIs (ctxt, intros) in
-    REPEAT_DETERM1 (FIRSTGOAL (split_tac splits))
+    REPEAT_DETERM1 (FIRSTGOAL (split_tac ctxt splits))
     THEN Local_Defs.unfold_tac ctxt defs
     THEN safe_tac ctxt'
   end

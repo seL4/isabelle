@@ -53,7 +53,7 @@ sig
   val app_bnds : term -> int -> term
 
   val ind_tac : thm -> string list -> int -> tactic
-  val exh_tac : (string -> thm) -> int -> tactic
+  val exh_tac : Proof.context -> (string -> thm) -> int -> tactic
 
   exception Datatype
   exception Datatype_Empty of string
@@ -155,7 +155,7 @@ fun ind_tac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
 
 (* perform exhaustive case analysis on last parameter of subgoal i *)
 
-fun exh_tac exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
+fun exh_tac ctxt exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
   let
     val thy = Thm.theory_of_cterm cgoal;
     val goal = term_of cgoal;
@@ -167,7 +167,7 @@ fun exh_tac exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
     val exhaustion' =
       cterm_instantiate [(cterm_of thy (head_of lhs),
         cterm_of thy (fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0)))] exhaustion;
-  in compose_tac (false, exhaustion', nprems_of exhaustion) i end);
+  in compose_tac ctxt (false, exhaustion', nprems_of exhaustion) i end);
 
 
 (********************** Internal description of datatypes *********************)

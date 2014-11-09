@@ -308,7 +308,7 @@ fun prove_match2 options ctxt out_ts =
           in
             trace_tac ctxt options ("Term " ^ (Syntax.string_of_term ctxt t) ^
               " splitting with rules \n" ^ Display.string_of_thm ctxt split_asm)
-            THEN TRY (Splitter.split_asm_tac [split_asm] 1
+            THEN TRY (Splitter.split_asm_tac ctxt [split_asm] 1
               THEN (trace_tac ctxt options "after splitting with split_asm rules")
             (* THEN (Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt) 1)
               THEN (DETERM (TRY (etac @{thm Pair_inject} 1)))*)
@@ -320,7 +320,7 @@ fun prove_match2 options ctxt out_ts =
       else all_tac
   in
     split_term_tac (HOLogic.mk_tuple out_ts)
-    THEN (DETERM (TRY ((Splitter.split_asm_tac [@{thm "split_if_asm"}] 1)
+    THEN (DETERM (TRY ((Splitter.split_asm_tac ctxt [@{thm "split_if_asm"}] 1)
     THEN (etac @{thm botE} 2))))
   end
 

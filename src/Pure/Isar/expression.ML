@@ -683,8 +683,9 @@ fun def_pred binding parms defs ts norm_ts thy =
     val intro = Goal.prove_global defs_thy [] norm_ts statement
       (fn {context = ctxt, ...} =>
         rewrite_goals_tac ctxt [pred_def] THEN
-        compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
-        compose_tac (false, Conjunction.intr_balanced (map (Thm.assume o cert) norm_ts), 0) 1);
+        compose_tac defs_ctxt (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
+        compose_tac defs_ctxt
+          (false, Conjunction.intr_balanced (map (Thm.assume o cert) norm_ts), 0) 1);
 
     val conjuncts =
       (Drule.equal_elim_rule2 OF
@@ -695,7 +696,7 @@ fun def_pred binding parms defs ts norm_ts thy =
       |> Assumption.add_assumes (maps (#hyps o Thm.crep_thm) (defs @ conjuncts));
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       Element.prove_witness axioms_ctxt t
-       (rewrite_goals_tac axioms_ctxt defs THEN compose_tac (false, ax, 0) 1));
+       (rewrite_goals_tac axioms_ctxt defs THEN compose_tac axioms_ctxt (false, ax, 0) 1));
   in ((statement, intro, axioms), defs_thy) end;
 
 in

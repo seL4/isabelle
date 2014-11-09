@@ -47,7 +47,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun linr_tac ctxt q =
     Object_Logic.atomize_prems_tac ctxt
-        THEN' (REPEAT_DETERM o split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}])
+        THEN' (REPEAT_DETERM o split_tac ctxt [@{thm split_min}, @{thm split_max}, @{thm abs_split}])
         THEN' SUBGOAL (fn (g, i) =>
   let
     val thy = Proof_Context.theory_of ctxt

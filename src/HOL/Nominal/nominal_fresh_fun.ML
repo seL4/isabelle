@@ -10,7 +10,7 @@ a tactic to analyse instances of the fresh_fun.
 (* FIXME res_inst_tac mostly obsolete, cf. Subgoal.FOCUS *)
 
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
-fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
+fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
   let
     val thy = theory_of_thm st;
     val cgoal = nth (cprems_of st) (i - 1);
@@ -27,18 +27,18 @@ fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
       (map (pairself (cterm_of thy)) tinst')
       (Thm.lift_rule cgoal th)
   in
-    compose_tac (elim, th', nprems_of th) i st
+    compose_tac ctxt (elim, th', nprems_of th) i st
   end handle General.Subscript => Seq.empty;
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 
-val res_inst_tac_term =
-  gen_res_inst_tac_term (curry Thm.instantiate);
+fun res_inst_tac_term ctxt =
+  gen_res_inst_tac_term ctxt (curry Thm.instantiate);
 
-val res_inst_tac_term' =
-  gen_res_inst_tac_term (K Drule.cterm_instantiate) [];
+fun res_inst_tac_term' ctxt =
+  gen_res_inst_tac_term ctxt (K Drule.cterm_instantiate) [];
 
 fun cut_inst_tac_term' ctxt tinst th =
-  res_inst_tac_term' tinst false (Rule_Insts.make_elim_preserve ctxt th);
+  res_inst_tac_term' ctxt tinst false (Rule_Insts.make_elim_preserve ctxt th);
 
 fun get_dyn_thm thy name atom_name =
   Global_Theory.get_thm thy name handle ERROR _ =>

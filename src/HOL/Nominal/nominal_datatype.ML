@@ -654,7 +654,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                 ((Rep RS perm_closed1 RS Abs_inverse) ::
                  (if atom1 = atom2 then []
                   else [Rep RS perm_closed2 RS Abs_inverse]))) 1,
-              cong_tac 1,
+              cong_tac ctxt 1,
               rtac refl 1,
               rtac cp1' 1]) thy)
         (Abs_inverse_thms ~~ Rep_thms ~~ perm_defs ~~ new_type_names ~~

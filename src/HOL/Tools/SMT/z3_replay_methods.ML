@@ -308,14 +308,14 @@ fun trans _ [thm1, thm2] _ = thm1 RSN (1, thm2 RSN (2, @{thm trans}))
 
 (* congruence *)
 
-fun ctac prems i st = st |> (
+fun ctac ctxt prems i st = st |> (
   resolve_tac (@{thm refl} :: prems) i
-  ORELSE (cong_tac i THEN ctac prems (i + 1) THEN ctac prems i))
+  ORELSE (cong_tac ctxt i THEN ctac ctxt prems (i + 1) THEN ctac ctxt prems i))
 
 fun cong_basic ctxt thms t =
   let val st = Thm.trivial (certify_prop ctxt t)
   in
-    (case Seq.pull (ctac thms 1 st) of
+    (case Seq.pull (ctac ctxt thms 1 st) of
       SOME (thm, _) => thm
     | NONE => raise THM ("cong", 0, thms @ [st]))
   end

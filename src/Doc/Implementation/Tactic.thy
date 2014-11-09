@@ -492,14 +492,14 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML compose_tac: "(bool * thm * int) -> int -> tactic"} \\
+  @{index_ML compose_tac: "Proof.context -> (bool * thm * int) -> int -> tactic"} \\
   @{index_ML Drule.compose: "thm * int * thm -> thm"} \\
   @{index_ML_op COMP: "thm * thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML compose_tac}~@{text "(flag, rule, m) i"} refines subgoal
+  \item @{ML compose_tac}~@{text "ctxt (flag, rule, m) i"} refines subgoal
   @{text "i"} using @{text "rule"}, without lifting.  The @{text
   "rule"} is taken to have the form @{text "\<psi>\<^sub>1 \<Longrightarrow> \<dots> \<psi>\<^sub>m \<Longrightarrow> \<psi>"}, where
   @{text "\<psi>"} need not be atomic; thus @{text "m"} determines the

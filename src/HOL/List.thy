@@ -610,7 +610,7 @@ fun simproc ctxt redex =
       | dest_if _ = NONE
     fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
       | tac ctxt (If :: cont) =
-          Splitter.split_tac [@{thm split_if}] 1
+          Splitter.split_tac ctxt [@{thm split_if}] 1
           THEN rtac @{thm conjI} 1
           THEN rtac @{thm impI} 1
           THEN Subgoal.FOCUS (fn {prems, context, ...} =>
@@ -631,7 +631,7 @@ fun simproc ctxt redex =
               Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type T))
           in
             (* do case distinction *)
-            Splitter.split_tac [split] 1
+            Splitter.split_tac ctxt [split] 1
             THEN EVERY (map_index (fn (i', _) =>
               (if i' < length case_thms - 1 then rtac @{thm conjI} 1 else all_tac)
               THEN REPEAT_DETERM (rtac @{thm allI} 1)

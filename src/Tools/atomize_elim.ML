@@ -120,7 +120,7 @@ fun atomize_elim_tac ctxt = SUBGOAL (fn (subg, i) =>
               val rule = instantiate' [SOME (ctyp_of_term cthesis)] [NONE, SOME cthesis]
                          @{thm meta_spec}
             in
-              compose_tac (false, rule, 1) i
+              compose_tac ctxt (false, rule, 1) i
             end
     in
       quantify_thesis

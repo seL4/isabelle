@@ -209,7 +209,7 @@ fun add_enum_type tyname tyname' thy =
       (fn _ =>
          rtac @{thm subset_antisym} 1 THEN
          rtac @{thm subsetI} 1 THEN
-         Old_Datatype_Aux.exh_tac (K (#exhaust (BNF_LFP_Compat.the_info
+         Old_Datatype_Aux.exh_tac lthy (K (#exhaust (BNF_LFP_Compat.the_info
            (Proof_Context.theory_of lthy) [BNF_LFP_Compat.Keep_Nesting] tyname'))) 1 THEN
          ALLGOALS (asm_full_simp_tac lthy));
 

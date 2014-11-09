@@ -50,7 +50,7 @@ sig
   val hyp_subst_tac_thin     : bool -> Proof.context -> int -> tactic
   val hyp_subst_thin         : bool Config.T
   val hyp_subst_tac          : Proof.context -> int -> tactic
-  val blast_hyp_subst_tac    : bool -> int -> tactic
+  val blast_hyp_subst_tac    : Proof.context -> bool -> int -> tactic
   val stac                   : thm -> int -> tactic
 end;
 
@@ -162,11 +162,12 @@ end;
 
 val ssubst = Drule.zero_var_indexes (Data.sym RS Data.subst);
 
-fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
+fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
   case try (Logic.strip_assums_hyp #> hd #>
       Data.dest_Trueprop #> Data.dest_eq #> pairself contract) (Thm.term_of cBi) of
     SOME (t, t') =>
       let
+        val thy = Proof_Context.theory_of ctxt;
         val Bi = Thm.term_of cBi;
         val ps = Logic.strip_params Bi;
         val U = Term.fastype_of1 (rev (map snd ps), t);
@@ -182,10 +183,9 @@ fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
             (case (if b then t else t') of
               Bound j => subst_bounds (map Bound ((1 upto j) @ 0 :: (j + 2 upto length ps)), Q)
             | t => Term.abstract_over (t, Term.incr_boundvars 1 Q));
-        val thy = Thm.theory_of_thm rl';
         val (instT, _) = Thm.match (pairself (cterm_of thy o Logic.mk_type) (V, U));
       in
-        compose_tac (true, Drule.instantiate_normalize (instT,
+        compose_tac ctxt (true, Drule.instantiate_normalize (instT,
           map (pairself (cterm_of thy))
             [(Var (ixn, Ts ---> U --> body_type T), u),
              (Var (fst (dest_Var (head_of v1)), Ts ---> U), fold_rev Term.abs ps t),
@@ -204,7 +204,7 @@ val dup_subst = rev_dup_elim ssubst
 
 (*Old version of the tactic above -- slower but the only way
   to handle equalities containing Vars.*)
-fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
+fun vars_gen_hyp_subst_tac ctxt bnd = SUBGOAL(fn (Bi,i) =>
       let val n = length(Logic.strip_assums_hyp Bi) - 1
           val (k, (orient, is_free)) = eq_var bnd false true Bi
           val rl = if is_free then dup_subst else ssubst
@@ -214,7 +214,7 @@ fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
            (EVERY [REPEAT_DETERM_N k (eresolve_tac [Data.rev_mp] i),
                    rotate_tac 1 i,
                    REPEAT_DETERM_N (n-k) (eresolve_tac [Data.rev_mp] i),
-                   inst_subst_tac orient rl i,
+                   inst_subst_tac ctxt orient rl i,
                    REPEAT_DETERM_N n (imp_intr_tac i THEN rotate_tac ~1 i)])
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);
@@ -224,7 +224,7 @@ fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
   and on Free variables if thin=true*)
 fun hyp_subst_tac_thin thin ctxt =
   REPEAT_DETERM1 o FIRST' [ematch_tac [Data.thin_refl],
-    gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac false,
+    gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac ctxt false,
     if thin then thin_free_eq_tac else K no_tac];
 
 val hyp_subst_thin = Attrib.setup_config_bool @{binding hypsubst_thin} (K false);
@@ -235,7 +235,7 @@ fun hyp_subst_tac ctxt =
 (*Substitutes for Bound variables only -- this is always safe*)
 fun bound_hyp_subst_tac ctxt =
   REPEAT_DETERM1 o (gen_hyp_subst_tac ctxt true
-    ORELSE' vars_gen_hyp_subst_tac true);
+    ORELSE' vars_gen_hyp_subst_tac ctxt true);
 
 (** Version for Blast_tac.  Hyps that are affected by the substitution are
     moved to the front.  Defect: even trivial changes are noticed, such as
@@ -270,7 +270,7 @@ fun all_imp_intr_tac hyps i =
   in imptac (0, rev hyps) end;
 
 
-fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
+fun blast_hyp_subst_tac ctxt trace = SUBGOAL(fn (Bi,i) =>
       let val (k, (symopt, _)) = eq_var false false false Bi
           val hyps0 = map Data.dest_Trueprop (Logic.strip_assums_hyp Bi)
           (*omit selected equality, returning other hyps*)
@@ -282,7 +282,7 @@ fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
            (EVERY [REPEAT_DETERM_N k (eresolve_tac [Data.rev_mp] i),
                    rotate_tac 1 i,
                    REPEAT_DETERM_N (n-k) (eresolve_tac [Data.rev_mp] i),
-                   inst_subst_tac symopt (if symopt then ssubst else Data.subst) i,
+                   inst_subst_tac ctxt symopt (if symopt then ssubst else Data.subst) i,
                    all_imp_intr_tac hyps i])
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);

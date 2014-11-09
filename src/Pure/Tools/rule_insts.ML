@@ -270,7 +270,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
               (map lifttvar envT', map liftpair cenv)
               (Thm.lift_rule cgoal thm)
       in
-        compose_tac (bires_flag, rule, nprems_of thm) i
+        compose_tac ctxt' (bires_flag, rule, nprems_of thm) i
       end) i st;
   in tac end;
 

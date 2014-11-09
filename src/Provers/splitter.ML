@@ -29,9 +29,9 @@ sig
     theory -> typ list -> term -> (thm * (typ * typ * int list) list * int list * typ * term) list
     (* first argument is a "cmap", returns a list of "split packs" *)
   (* the "real" interface, providing a number of tactics *)
-  val split_tac       : thm list -> int -> tactic
-  val split_inside_tac: thm list -> int -> tactic
-  val split_asm_tac   : thm list -> int -> tactic
+  val split_tac       : Proof.context -> thm list -> int -> tactic
+  val split_inside_tac: Proof.context -> thm list -> int -> tactic
+  val split_asm_tac   : Proof.context -> thm list -> int -> tactic
   val add_split: thm -> Proof.context -> Proof.context
   val del_split: thm -> Proof.context -> Proof.context
   val split_add: attribute
@@ -353,17 +353,17 @@ fun inst_split Ts t tt thm TB state i =
    i      : number of subgoal the tactic should be applied to
 *****************************************************************************)
 
-fun split_tac [] i = no_tac
-  | split_tac splits i =
+fun split_tac _ [] i = no_tac
+  | split_tac ctxt splits i =
   let val cmap = cmap_of_split_thms splits
-      fun lift_tac Ts t p st = compose_tac (false, inst_lift Ts t p st i, 2) i st
+      fun lift_tac Ts t p st = compose_tac ctxt (false, inst_lift Ts t p st i, 2) i st
       fun lift_split_tac state =
             let val (Ts, t, splits) = select cmap state i
             in case splits of
                  [] => no_tac state
                | (thm, apsns, pos, TB, tt)::_ =>
                    (case apsns of
-                      [] => compose_tac (false, inst_split Ts t tt thm TB state i, 0) i state
+                      [] => compose_tac ctxt (false, inst_split Ts t tt thm TB state i, 0) i state
                     | p::_ => EVERY [lift_tac Ts t p,
                                      resolve_tac [reflexive_thm] (i+1),
                                      lift_split_tac] state)
@@ -385,8 +385,8 @@ val (split_inside_tac, _) = mk_case_split_tac (rev_order o int_ord);
 
    splits : list of split-theorems to be tried
 ****************************************************************************)
-fun split_asm_tac [] = K no_tac
-  | split_asm_tac splits =
+fun split_asm_tac _ [] = K no_tac
+  | split_asm_tac ctxt splits =
 
   let val cname_list = map (fst o fst o split_thm_info) splits;
       fun tac (t,i) =
@@ -408,18 +408,18 @@ fun split_asm_tac [] = K no_tac
                            THEN REPEAT (dresolve_tac [Data.notnotD]   i)) i;
           in if n<0 then  no_tac  else (DETERM (EVERY'
                 [rotate_tac n, eresolve_tac [Data.contrapos2],
-                 split_tac splits,
+                 split_tac ctxt splits,
                  rotate_tac ~1, eresolve_tac [Data.contrapos], rotate_tac ~1,
                  flat_prems_tac] i))
           end;
   in SUBGOAL tac
   end;
 
-fun gen_split_tac [] = K no_tac
-  | gen_split_tac (split::splits) =
+fun gen_split_tac _ [] = K no_tac
+  | gen_split_tac ctxt (split::splits) =
       let val (_,asm) = split_thm_info split
-      in (if asm then split_asm_tac else split_tac) [split] ORELSE'
-         gen_split_tac splits
+      in (if asm then split_asm_tac else split_tac) ctxt [split] ORELSE'
+         gen_split_tac ctxt splits
       end;
 
 
@@ -437,8 +437,8 @@ fun split_name (name, T) asm = "split " ^
 fun add_split split ctxt =
   let
     val (name, asm) = split_thm_info split
-    val tac = (if asm then split_asm_tac else split_tac) [split]
-  in Simplifier.addloop (ctxt, (split_name name asm, K tac)) end;
+    fun tac ctxt' = (if asm then split_asm_tac else split_tac) ctxt' [split]
+  in Simplifier.addloop (ctxt, (split_name name asm, tac)) end;
 
 fun del_split split ctxt =
   let val (name, asm) = split_thm_info split
@@ -468,7 +468,7 @@ val split_modifiers =
 val _ =
   Theory.setup
     (Method.setup @{binding split}
-      (Attrib.thms >> (fn ths => K (SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths))))
+      (Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ctxt ths)))
       "apply case split rule");
 
 end;

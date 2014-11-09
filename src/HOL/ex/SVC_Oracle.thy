@@ -109,13 +109,15 @@ fun svc_abstract t =
   abstracted.  Use via compose_tac, which performs no lifting but will
   instantiate variables.*)
 
-val svc_tac = CSUBGOAL (fn (ct, i) =>
+fun svc_tac ctxt = CSUBGOAL (fn (ct, i) =>
   let
     val thy = Thm.theory_of_cterm ct;
     val (abs_goal, _) = svc_abstract (Thm.term_of ct);
     val th = svc_oracle (Thm.cterm_of thy abs_goal);
-   in compose_tac (false, th, 0) i end
+   in compose_tac ctxt (false, th, 0) i end
    handle TERM _ => no_tac);
 *}
+
+method_setup svc = {* Scan.succeed (SIMPLE_METHOD' o svc_tac) *}
 
 end

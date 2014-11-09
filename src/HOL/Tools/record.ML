@@ -1458,7 +1458,7 @@ fun cases_type_global name = [case_names_fields, Induct.cases_type name];
   (or on s if there are no parameters).
   Instatiation of record variable (and predicate) in rule is calculated to
   avoid problems with higher order unification.*)
-fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
+fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
   let
     val cert = Thm.cterm_of (Thm.theory_of_cterm cgoal);
 
@@ -1484,7 +1484,7 @@ fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
           | (_, T) :: _ =>
               [(P, fold_rev Term.abs params (if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
                 (x, fold_rev Term.abs params (Bound 0))])) rule';
-  in compose_tac (false, rule'', nprems_of rule) i end);
+  in compose_tac ctxt (false, rule'', nprems_of rule) i end);
 
 
 fun extension_definition name fields alphas zeta moreT more vars thy =
@@ -2119,15 +2119,16 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       Goal.prove_sorry_global defs_thy [] [] induct_scheme_prop
         (fn {context = ctxt, ...} =>
           EVERY
-           [case parent_induct of NONE => all_tac | SOME ind => try_param_tac rN ind 1,
-            try_param_tac rN ext_induct 1,
+           [case parent_induct of NONE => all_tac | SOME ind => try_param_tac ctxt rN ind 1,
+            try_param_tac ctxt rN ext_induct 1,
             asm_simp_tac (put_simpset HOL_basic_ss ctxt) 1]));
 
     val induct = timeit_msg ctxt "record induct proof:" (fn () =>
-      Goal.prove_sorry_global defs_thy [] [#1 induct_prop] (#2 induct_prop) (fn {prems, ...} =>
-        try_param_tac rN induct_scheme 1
-        THEN try_param_tac "more" @{thm unit.induct} 1
-        THEN resolve_tac prems 1));
+      Goal.prove_sorry_global defs_thy [] [#1 induct_prop] (#2 induct_prop)
+        (fn {context = ctxt, prems, ...} =>
+          try_param_tac ctxt rN induct_scheme 1
+          THEN try_param_tac ctxt "more" @{thm unit.induct} 1
+          THEN resolve_tac prems 1));
 
     val surjective = timeit_msg ctxt "record surjective proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] surjective_prop
@@ -2150,7 +2151,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val cases = timeit_msg ctxt "record cases proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] cases_prop
         (fn {context = ctxt, ...} =>
-          try_param_tac rN cases_scheme 1 THEN
+          try_param_tac ctxt rN cases_scheme 1 THEN
           ALLGOALS (asm_full_simp_tac
             (put_simpset HOL_basic_ss ctxt addsimps @{thms unit_all_eq1}))));
 

@@ -190,6 +190,9 @@ style.
 
 *** ML ***
 
+* Proper context for various elementary tactics: compose_tac,
+Splitter.split_tac etc.  Minor INCOMPATIBILITY.
+
 * Tactical PARALLEL_ALLGOALS is the most common way to refer to
 PARALLEL_GOALS.
 

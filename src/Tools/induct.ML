@@ -684,7 +684,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   in
     (case goal_concl n [] goal of
       SOME concl =>
-        (compose_tac (false, spec_rule (goal_prefix n goal) concl, 1) THEN'
+        (compose_tac ctxt (false, spec_rule (goal_prefix n goal) concl, 1) THEN'
           resolve_tac [asm_rl]) i
     | NONE => all_tac)
   end);

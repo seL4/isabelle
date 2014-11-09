@@ -11,7 +11,7 @@ text {*
   in its length, though @{text "fast"} manages.
 *}
 lemma "P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P"
-  by (tactic {* svc_tac 1 *})
+  by svc
 
 
 subsection {* Some big tautologies supplied by John Harrison *}
@@ -39,7 +39,7 @@ lemma puz013_1: "~(~v12 &
    (~v4 | v5 | v6) &
    (~v7 | ~v8 | v9) &
    (~v10 | ~v11 | v12))"
-  by (tactic {* svc_tac 1 *})
+  by svc
 
 lemma dk17_be:
   "(GE17 <-> ~IN4 & ~IN3 & ~IN2 & ~IN1) &
@@ -117,7 +117,7 @@ lemma dk17_be:
         (OUT2 <-> WRES8 & ~IN9 | WRES10 & IN8) &
         (OUT1 <-> WRES7 & IN8) &
         (OUT0 <-> WRES7 & ~IN8)"
-  by (tactic {* svc_tac 1 *})
+  by svc
 
 text {* @{text "fast"} only takes a couple of seconds. *}
 
@@ -221,7 +221,7 @@ lemma sqn_be: "(GE0 <-> IN6 & IN1 | ~IN6 & ~IN1) &
         WRES16 & WRES7 |
         WRES18 & WRES0 & ~IN5 |
         WRES19)"
-  by (tactic {* svc_tac 1 *})
+  by svc
 
 
 subsection {* Linear arithmetic *}
@@ -229,20 +229,20 @@ subsection {* Linear arithmetic *}
 lemma "x ~= 14 & x ~= 13 & x ~= 12 & x ~= 11 & x ~= 10 & x ~= 9 &
       x ~= 8 & x ~= 7 & x ~= 6 & x ~= 5 & x ~= 4 & x ~= 3 &
       x ~= 2 & x ~= 1 & 0 < x & x < 16 --> 15 = (x::int)"
-  by (tactic {* svc_tac 1 *})
+  by svc
 
 text {*merely to test polarity handling in the presence of biconditionals*}
 lemma "(x < (y::int)) = (x+1 <= y)"
-  by (tactic {* svc_tac 1 *})
+  by svc
 
 
 subsection {* Natural number examples requiring implicit "non-negative" assumptions *}
 
 lemma "(3::nat)*a <= 2 + 4*b + 6*c  & 11 <= 2*a + b + 2*c &
       a + 3*b <= 5 + 2*c  --> 2 + 3*b <= 2*a + 6*c"
-  by (tactic {* svc_tac 1 *})
+  by svc
 
 lemma "(n::nat) < 2 ==> (n = 0) | (n = 1)"
-  by (tactic {* svc_tac 1 *})
+  by svc
 
 end

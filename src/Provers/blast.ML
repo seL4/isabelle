@@ -43,7 +43,7 @@ sig
   val not_name: string
   val notE: thm           (* [| ~P;  P |] ==> R *)
   val ccontr: thm
-  val hyp_subst_tac: bool -> int -> tactic
+  val hyp_subst_tac: Proof.context -> bool -> int -> tactic
 end;
 
 signature BLAST =
@@ -1021,7 +1021,7 @@ fun prove (state, start, brs, cont) =
              trace_prover state brs0;
              if lim<0 then (cond_tracing trace (fn () => "Limit reached."); backtrack trace choices)
              else
-             prv (Data.hyp_subst_tac trace :: tacs,
+             prv (Data.hyp_subst_tac ctxt trace :: tacs,
                   brs0::trs,  choices,
                   equalSubst ctxt
                     (G, {pairs = (br,haz)::pairs,

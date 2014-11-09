@@ -67,7 +67,7 @@ fun mir_tac ctxt q =
     Object_Logic.atomize_prems_tac ctxt
         THEN' simp_tac (put_simpset HOL_basic_ss ctxt
           addsimps [@{thm "abs_ge_zero"}] addsimps @{thms simp_thms})
-        THEN' (REPEAT_DETERM o split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
+        THEN' (REPEAT_DETERM o split_tac ctxt [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
         THEN' SUBGOAL (fn (g, i) =>
   let
     val thy = Proof_Context.theory_of ctxt

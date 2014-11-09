@@ -431,7 +431,7 @@ fun prove_nchotomys (config : Old_Datatype_Aux.config) new_type_names descr case
         Goal.prove_sorry_global thy [] [] t
           (fn {context = ctxt, ...} =>
             EVERY [resolve_tac [allI] 1,
-             Old_Datatype_Aux.exh_tac (K exhaustion) 1,
+             Old_Datatype_Aux.exh_tac ctxt (K exhaustion) 1,
              ALLGOALS (fn i => tac ctxt i (i - 1))])
       end;
 

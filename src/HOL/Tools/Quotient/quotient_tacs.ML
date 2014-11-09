@@ -392,7 +392,7 @@ fun injection_step_tac ctxt rel_refl =
 
     (* (op =) (t $ ...) (t' $ ...) ----> Cong   provided type of t does not need lifting *)
     (* merge with previous tactic *)
-    Cong_Tac.cong_tac @{thm cong} THEN'
+    Cong_Tac.cong_tac ctxt @{thm cong} THEN'
                  RANGE [quot_true_tac ctxt (fst o dest_comb), quot_true_tac ctxt (snd o dest_comb)],
 
     (* resolving with R x y assumptions *)

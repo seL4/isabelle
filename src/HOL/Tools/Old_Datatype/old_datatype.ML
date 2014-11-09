@@ -421,7 +421,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
               [(Old_Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
                REPEAT (EVERY
                  [rtac allI 1, rtac impI 1,
-                  Old_Datatype_Aux.exh_tac (exh_thm_of dt_info) 1,
+                  Old_Datatype_Aux.exh_tac ctxt (exh_thm_of dt_info) 1,
                   REPEAT (EVERY
                     [hyp_subst_tac ctxt 1,
                      rewrite_goals_tac ctxt rewrites,
@@ -430,7 +430,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
                      ORELSE (EVERY
                        [REPEAT (eresolve_tac (Scons_inject ::
                           map make_elim [Leaf_inject, Inl_inject, Inr_inject]) 1),
-                        REPEAT (cong_tac 1), rtac refl 1,
+                        REPEAT (cong_tac ctxt 1), rtac refl 1,
                         REPEAT (atac 1 ORELSE (EVERY
                           [REPEAT (rtac @{thm ext} 1),
                            REPEAT (eresolve_tac (mp :: allE ::

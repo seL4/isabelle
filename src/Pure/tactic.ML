@@ -10,7 +10,7 @@ sig
   val rule_by_tactic: Proof.context -> tactic -> thm -> thm
   val assume_tac: int -> tactic
   val eq_assume_tac: int -> tactic
-  val compose_tac: (bool * thm * int) -> int -> tactic
+  val compose_tac: Proof.context -> (bool * thm * int) -> int -> tactic
   val make_elim: thm -> thm
   val biresolve_tac: (bool * thm) list -> int -> tactic
   val resolve_tac: thm list -> int -> tactic
@@ -111,8 +111,8 @@ fun eq_assume_tac i = PRIMITIVE (Thm.eq_assumption i);
 
 (*The composition rule/state: no lifting or var renaming.
   The arg = (bires_flg, orule, m);  see Thm.bicompose for explanation.*)
-fun compose_tac arg i =
-  PRIMSEQ (Thm.bicompose NONE {flatten = true, match = false, incremented = false} arg i);
+fun compose_tac ctxt arg i =
+  PRIMSEQ (Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = false} arg i);
 
 (*Converts a "destruct" rule like P&Q==>P to an "elimination" rule
   like [| P&Q; P==>R |] ==> R *)

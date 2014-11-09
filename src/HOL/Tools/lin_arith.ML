@@ -723,7 +723,7 @@ fun split_once_tac ctxt split_thms =
         if null splits orelse length splits > Config.get ctxt split_limit then
           no_tac
         else if null (#2 (hd splits)) then
-          split_tac split_thms i
+          split_tac ctxt split_thms i
         else
           (* disallow a split that involves non-locally bound variables      *)
           (* (except when bound by outermost meta-quantifiers)               *)
@@ -866,7 +866,7 @@ fun raw_tac ctxt ex =
     (* split_limit may trigger.                                           *)
     (* Therefore splitting outside of simple_tac may allow us to prove    *)
     (* some goals that simple_tac alone would fail on.                    *)
-    (REPEAT_DETERM o split_tac (#splits (get_arith_data ctxt)))
+    (REPEAT_DETERM o split_tac ctxt (#splits (get_arith_data ctxt)))
     (lin_arith_tac ctxt ex);
 
 in

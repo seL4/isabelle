@@ -227,7 +227,7 @@ fun perm_compose_tac ctxt i =
       asm_full_simp_tac (empty_simpset ctxt addsimprocs [perm_compose_simproc]) i,
       asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [perm_aux_fold]) i] st);
 
-fun apply_cong_tac i = ("application of congruence", cong_tac i);
+fun apply_cong_tac ctxt i = ("application of congruence", cong_tac ctxt i);
 
 
 (* unfolds the definition of permutations     *)
@@ -256,7 +256,7 @@ fun perm_extend_simp_tac_i tactical ctxt =
                (FIRST'[fn i => tactical ctxt ("splitting conjunctions on the rhs", rtac conjI i),
                        fn i => tactical ctxt (perm_simp asm_full_simp_tac ctxt i),
                        fn i => tactical ctxt (perm_compose_tac ctxt i),
-                       fn i => tactical ctxt (apply_cong_tac i), 
+                       fn i => tactical ctxt (apply_cong_tac ctxt i), 
                        fn i => tactical ctxt (unfold_perm_fun_def_tac i),
                        fn i => tactical ctxt (ext_fun_tac i)]
                       THEN_ALL_NEW (TRY o (perm_extend_simp_tac_aux tactical ctxt (n-1))))
@@ -315,7 +315,7 @@ fun finite_guess_tac_i tactical ctxt i st =
             val ctxt' = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
           in
             (tactical ctxt ("guessing of the right supports-set",
-                      EVERY [compose_tac (false, supports_rule'', 2) i,
+                      EVERY [compose_tac ctxt (false, supports_rule'', 2) i,
                              asm_full_simp_tac ctxt' (i+1),
                              supports_tac_i tactical ctxt i])) st
           end
@@ -357,7 +357,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
               [(cert (head_of S), cert s')] supports_fresh_rule'
           in
             (tactical ctxt ("guessing of the right set that supports the goal", 
-                      (EVERY [compose_tac (false, supports_fresh_rule'', 3) i,
+                      (EVERY [compose_tac ctxt (false, supports_fresh_rule'', 3) i,
                              asm_full_simp_tac ctxt1 (i+2),
                              asm_full_simp_tac ctxt2 (i+1), 
                              supports_tac_i tactical ctxt i]))) st

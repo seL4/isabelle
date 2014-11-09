@@ -133,8 +133,8 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_ident0s
   HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE'
     eresolve_tac falseEs ORELSE'
     resolve_tac split_connectI ORELSE'
-    Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
-    Splitter.split_tac (split_if :: splits) ORELSE'
+    Splitter.split_asm_tac ctxt (split_if_asm :: split_asms) ORELSE'
+    Splitter.split_tac ctxt (split_if :: splits) ORELSE'
     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
     etac notE THEN' atac ORELSE'
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt (@{thms fst_conv snd_conv id_def comp_def split_def
@@ -171,8 +171,8 @@ fun raw_code_single_tac ctxt distincts discIs splits split_asms m fun_ctr =
       SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
       (rtac refl ORELSE' atac ORELSE'
        resolve_tac (@{thm Code.abort_def} :: split_connectI) ORELSE'
-       Splitter.split_tac (split_if :: splits) ORELSE'
-       Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
+       Splitter.split_tac ctxt (split_if :: splits) ORELSE'
+       Splitter.split_asm_tac ctxt (split_if_asm :: split_asms) ORELSE'
        mk_primcorec_assumption_tac ctxt discIs ORELSE'
        distinct_in_prems_tac distincts ORELSE'
        (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac)))))
@@ -204,7 +204,7 @@ fun mk_primcorec_code_tac ctxt distincts splits raw =
     SELECT_GOAL (unfold_thms_tac ctxt unfold_lets) THEN' REPEAT_DETERM o
     (rtac refl ORELSE' atac ORELSE'
      resolve_tac split_connectI ORELSE'
-     Splitter.split_tac (split_if :: splits) ORELSE'
+     Splitter.split_tac ctxt (split_if :: splits) ORELSE'
      distinct_in_prems_tac distincts ORELSE'
      rtac sym THEN' atac ORELSE'
      etac notE THEN' atac));
