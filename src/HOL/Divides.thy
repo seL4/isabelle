@@ -26,6 +26,8 @@ class semiring_div = comm_semiring_1_cancel + no_zero_divisors + div +
     and div_mult_mult1 [simp]: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
 begin
 
+subclass semiring_no_zero_divisors ..
+
 text {* @{const div} and @{const mod} *}
 
 lemma mod_div_equality2: "b * (a div b) + a mod b = a"
@@ -539,8 +541,8 @@ next
   case False
   from mod_div_equality have "1 div 2 * 2 + 1 mod 2 = 1" .
   with one_mod_two_eq_one have "1 div 2 * 2 + 1 = 1" by simp
-  then have "1 div 2 * 2 = 0" by (simp add: ac_simps add_left_imp_eq)
-  then have "1 div 2 = 0 \<or> 2 = 0" by (rule divisors_zero)
+  then have "1 div 2 * 2 = 0" by (simp add: ac_simps add_left_imp_eq del: mult_eq_0_iff)
+  then have "1 div 2 = 0 \<or> 2 = 0" by simp
   with False show ?thesis by auto
 qed
 
@@ -640,6 +642,20 @@ begin
 lemma diff_zero [simp]:
   "a - 0 = a"
   by (rule diff_invert_add1 [symmetric]) simp
+
+lemma dvd_times_left_cancel_iff [simp]: -- \<open>FIXME generalize\<close>
+  assumes "c \<noteq> 0"
+  shows "c * a dvd c * b \<longleftrightarrow> a dvd b"
+proof -
+  have "(c * b) mod (c * a) = 0 \<longleftrightarrow> b mod a = 0" (is "?P \<longleftrightarrow> ?Q")
+    using assms by (simp add: mod_mult_mult1)
+  then show ?thesis by (simp add: mod_eq_0_iff_dvd)
+qed
+
+lemma dvd_times_right_cancel_iff [simp]: -- \<open>FIXME generalize\<close>
+  assumes "c \<noteq> 0"
+  shows "a * c dvd b * c \<longleftrightarrow> a dvd b"
+  using assms dvd_times_left_cancel_iff [of c a b] by (simp add: ac_simps)
 
 subclass semiring_div_parity
 proof
@@ -799,7 +815,12 @@ next
   with False show ?thesis by simp
 qed
 
-lemma divmod_cancel [code]:
+lemma divmod_eq [simp]:
+  "m < n \<Longrightarrow> divmod m n = (0, numeral m)"
+  "n \<le> m \<Longrightarrow> divmod m n = divmod_step n (divmod m (Num.Bit0 n))"
+  by (auto simp add: divmod_divmod_step [of m n])
+
+lemma divmod_cancel [simp, code]:
   "divmod (Num.Bit0 m) (Num.Bit0 n) = (case divmod m n of (q, r) \<Rightarrow> (q, 2 * r))" (is ?P)
   "divmod (Num.Bit1 m) (Num.Bit0 n) = (case divmod m n of (q, r) \<Rightarrow> (q, 2 * r + 1))" (is ?Q)
 proof -
@@ -810,7 +831,21 @@ proof -
   then show ?P and ?Q
     by (simp_all add: prod_eq_iff split_def * [of m] * [of n] mod_mult_mult1
       div_mult2_eq [of _ _ 2] mod_mult2_eq [of _ _ 2] add.commute del: numeral_times_numeral)
- qed
+qed
+
+text {* Special case: divisibility *}
+
+definition divides_aux :: "'a \<times> 'a \<Rightarrow> bool"
+where
+  "divides_aux qr \<longleftrightarrow> snd qr = 0"
+
+lemma divides_aux_eq [simp]:
+  "divides_aux (q, r) \<longleftrightarrow> r = 0"
+  by (simp add: divides_aux_def)
+
+lemma dvd_numeral_simp [simp]:
+  "numeral m dvd numeral n \<longleftrightarrow> divides_aux (divmod n m)"
+  by (simp add: divmod_def mod_eq_0_iff_dvd)
 
 end
 
@@ -2556,8 +2591,9 @@ done
 
 subsubsection {* The Divides Relation *}
 
-lemmas dvd_eq_mod_eq_0_numeral [simp] =
-  dvd_eq_mod_eq_0 [of "numeral x" "numeral y"] for x y
+lemma dvd_eq_mod_eq_0_numeral:
+  "numeral x dvd (numeral y :: 'a) \<longleftrightarrow> numeral y mod numeral x = (0 :: 'a::semiring_div)"
+  by (fact dvd_eq_mod_eq_0)
 
 
 subsubsection {* Further properties *}

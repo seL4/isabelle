@@ -71,10 +71,10 @@ lemma even_One_int: "even (numeral Num.One :: int) = False"
   by simp
 
 lemma even_Bit0_int: "even (numeral (Num.Bit0 x) :: int) = True"
-  by simp
+  by (simp only: even_numeral)
 
 lemma even_Bit1_int: "even (numeral (Num.Bit1 x) :: int) = False"
-  by simp
+  by (simp only: odd_numeral)
 
 lemmas compute_even = even_0_int even_One_int even_Bit0_int even_Bit1_int
 

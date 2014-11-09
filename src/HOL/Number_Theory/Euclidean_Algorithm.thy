@@ -108,7 +108,7 @@ lemma inv_imp_eq_ring_inv:
 
 lemma ring_inv_is_inv1 [simp]:
   "is_unit a \<Longrightarrow> a * ring_inv a = 1"
-  unfolding is_unit_def ring_inv_def by (simp add: dvd_mult_div_cancel)
+  unfolding is_unit_def ring_inv_def by simp
 
 lemma ring_inv_is_inv2 [simp]:
   "is_unit a \<Longrightarrow> ring_inv a * a = 1"
@@ -1034,19 +1034,19 @@ lemma lcm_gcd_prod:
 proof (cases "a * b = 0")
   let ?nf = normalisation_factor
   assume "a * b \<noteq> 0"
-  hence "gcd a b \<noteq> 0" by (auto simp add: gcd_zero)
+  hence "gcd a b \<noteq> 0" by simp
   from lcm_gcd have "lcm a b * gcd a b = gcd a b * (a * b div (?nf (a*b) * gcd a b))" 
     by (simp add: mult_ac)
   also from `a * b \<noteq> 0` have "... = a * b div ?nf (a*b)" 
-    by (simp_all add: unit_ring_inv'1 dvd_mult_div_cancel unit_ring_inv)
+    by (simp_all add: unit_ring_inv'1 unit_ring_inv)
   finally show ?thesis .
-qed (simp add: lcm_gcd)
+qed (auto simp add: lcm_gcd)
 
 lemma lcm_dvd1 [iff]:
   "x dvd lcm x y"
 proof (cases "x*y = 0")
   assume "x * y \<noteq> 0"
-  hence "gcd x y \<noteq> 0" by (auto simp: gcd_zero)
+  hence "gcd x y \<noteq> 0" by simp
   let ?c = "ring_inv (normalisation_factor (x*y))"
   from `x * y \<noteq> 0` have [simp]: "is_unit (normalisation_factor (x*y))" by simp
   from lcm_gcd_prod[of x y] have "lcm x y * gcd x y = x * ?c * y"
@@ -1057,7 +1057,7 @@ proof (cases "x*y = 0")
   also have "... = x * (?c * y div gcd x y)"
     by (metis div_mult_swap gcd_dvd2 mult_assoc)
   finally show ?thesis by (rule dvdI)
-qed (simp add: lcm_gcd)
+qed (auto simp add: lcm_gcd)
 
 lemma lcm_least:
   "\<lbrakk>a dvd k; b dvd k\<rbrakk> \<Longrightarrow> lcm a b dvd k"
@@ -1067,17 +1067,17 @@ proof (cases "k = 0")
   hence "is_unit (?nf k)" by simp
   hence "?nf k \<noteq> 0" by (metis not_is_unit_0)
   assume A: "a dvd k" "b dvd k"
-  hence "gcd a b \<noteq> 0" using `k \<noteq> 0` by (auto simp add: gcd_zero)
+  hence "gcd a b \<noteq> 0" using `k \<noteq> 0` by auto
   from A obtain r s where ar: "k = a * r" and bs: "k = b * s" 
     unfolding dvd_def by blast
-  with `k \<noteq> 0` have "r * s \<noteq> 0" 
-    by (intro notI) (drule divisors_zero, elim disjE, simp_all)
+  with `k \<noteq> 0` have "r * s \<noteq> 0"
+    by auto (drule sym [of 0], simp)
   hence "is_unit (?nf (r * s))" by simp
   let ?c = "?nf k div ?nf (r*s)"
   from `is_unit (?nf k)` and `is_unit (?nf (r * s))` have "is_unit ?c" by (rule unit_div)
   hence "?c \<noteq> 0" using not_is_unit_0 by fast 
   from ar bs have "k * k * gcd s r = ?nf k * k * gcd (k * s) (k * r)"
-    by (subst mult_assoc, subst gcd_mult_distrib[of k s r], simp only: ac_simps mult_assoc)
+    by (subst mult_assoc, subst gcd_mult_distrib[of k s r], simp only: ac_simps)
   also have "... = ?nf k * k * gcd ((r*s) * a) ((r*s) * b)"
     by (subst (3) `k = a * r`, subst (3) `k = b * s`, simp add: algebra_simps)
   also have "... = ?c * r*s * k * gcd a b" using `r * s \<noteq> 0`
@@ -1138,7 +1138,7 @@ lemma normalisation_factor_lcm [simp]:
   "normalisation_factor (lcm a b) = (if a = 0 \<or> b = 0 then 0 else 1)"
 proof (cases "a = 0 \<or> b = 0")
   case True then show ?thesis
-    by (simp add: lcm_gcd) (metis div_0 ac_simps mult_zero_left normalisation_factor_0)
+    by (auto simp add: lcm_gcd) 
 next
   case False
   let ?nf = normalisation_factor
@@ -1146,8 +1146,8 @@ next
     have "?nf (lcm a b) * ?nf (gcd a b) = ?nf (a*b) div ?nf (a*b)"
     by (metis div_by_0 div_self normalisation_correct normalisation_factor_0 normalisation_factor_mult)
   also have "... = (if a*b = 0 then 0 else 1)"
-    by (cases "a*b = 0", simp, subst div_self, metis dvd_0_left normalisation_factor_dvd, simp)
-  finally show ?thesis using False by (simp add: no_zero_divisors)
+    by simp
+  finally show ?thesis using False by simp
 qed
 
 lemma lcm_dvd2 [iff]: "y dvd lcm x y"
