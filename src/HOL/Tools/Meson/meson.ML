@@ -30,8 +30,8 @@ sig
   val make_clauses_unsorted: Proof.context -> thm list -> thm list
   val make_clauses: Proof.context -> thm list -> thm list
   val make_horns: thm list -> thm list
-  val best_prolog_tac: (thm -> int) -> thm list -> tactic
-  val depth_prolog_tac: thm list -> tactic
+  val best_prolog_tac: Proof.context -> (thm -> int) -> thm list -> tactic
+  val depth_prolog_tac: Proof.context -> thm list -> tactic
   val gocls: thm list -> thm list
   val skolemize_prems_tac : Proof.context -> thm list -> int -> tactic
   val MESON:
@@ -503,8 +503,8 @@ fun check_tac st =
 
 
 (* net_resolve_tac actually made it slower... *)
-fun prolog_step_tac horns i =
-    (assume_tac i APPEND resolve_tac horns i) THEN check_tac THEN
+fun prolog_step_tac ctxt horns i =
+    (assume_tac ctxt i APPEND resolve_tac horns i) THEN check_tac THEN
     TRYALL_eq_assume_tac;
 
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
@@ -690,11 +690,11 @@ fun make_horns ths =
 (*Could simply use nprems_of, which would count remaining subgoals -- no
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)
 
-fun best_prolog_tac sizef horns =
-    BEST_FIRST (has_fewer_prems 1, sizef) (prolog_step_tac horns 1);
+fun best_prolog_tac ctxt sizef horns =
+    BEST_FIRST (has_fewer_prems 1, sizef) (prolog_step_tac ctxt horns 1);
 
-fun depth_prolog_tac horns =
-    DEPTH_FIRST (has_fewer_prems 1) (prolog_step_tac horns 1);
+fun depth_prolog_tac ctxt horns =
+    DEPTH_FIRST (has_fewer_prems 1) (prolog_step_tac ctxt horns 1);
 
 (*Return all negative clauses, as possible goal clauses*)
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
@@ -723,7 +723,7 @@ fun best_meson_tac sizef ctxt =
     (fn cls =>
          THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
                          (has_fewer_prems 1, sizef)
-                         (prolog_step_tac (make_horns cls) 1))
+                         (prolog_step_tac ctxt (make_horns cls) 1))
     ctxt
 
 (*First, breaks the goal into independent units*)
@@ -734,7 +734,7 @@ fun safe_best_meson_tac ctxt =
 
 fun depth_meson_tac ctxt =
   MESON all_tac (make_clauses ctxt)
-    (fn cls => EVERY [resolve_tac (gocls cls) 1, depth_prolog_tac (make_horns cls)])
+    (fn cls => EVERY [resolve_tac (gocls cls) 1, depth_prolog_tac ctxt (make_horns cls)])
     ctxt
 
 (** Iterative deepening version **)
@@ -747,7 +747,7 @@ fun prolog_step_tac' ctxt horns =
         val nrtac = net_resolve_tac horns
     in  fn i => eq_assume_tac i ORELSE
                 match_tac ctxt horn0s i ORELSE  (*no backtracking if unit MATCHES*)
-                ((assume_tac i APPEND nrtac i) THEN check_tac)
+                ((assume_tac ctxt i APPEND nrtac i) THEN check_tac)
     end;
 
 fun iter_deepen_prolog_tac ctxt horns =

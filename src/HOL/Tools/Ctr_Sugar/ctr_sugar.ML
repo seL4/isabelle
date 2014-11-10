@@ -906,7 +906,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   val thms =
                     @{map 5} (fn m => fn discD => fn sel_thms => fn triv => fn goal =>
                         Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                          mk_collapse_tac ctxt m discD sel_thms ORELSE HEADGOAL atac)
+                          mk_collapse_tac ctxt m discD sel_thms ORELSE HEADGOAL (assume_tac ctxt))
                         |> Thm.close_derivation
                         |> not triv ? perhaps (try (fn thm => refl RS thm)))
                       ms discD_thms sel_thmss trivs goals;

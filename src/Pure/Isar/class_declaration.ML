@@ -97,7 +97,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     fun tac ctxt =
       REPEAT (SOMEGOAL
         (match_tac ctxt (axclass_intro :: sup_of_classes @ loc_axiom_intros @ base_sort_trivs)
-          ORELSE' assume_tac));
+          ORELSE' assume_tac ctxt));
     val of_class = Goal.prove_sorry_global thy [] [] of_class_prop (tac o #context);
 
   in (base_morph, eq_morph, export_morph, some_axiom, some_assm_intro, of_class) end;

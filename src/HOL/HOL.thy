@@ -1982,7 +1982,7 @@ ML {*
     val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
   in
     fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
-    fun smp_tac j = EVERY'[dresolve_tac (smp j), assume_tac];
+    fun smp_tac ctxt j = EVERY'[dresolve_tac (smp j), assume_tac ctxt];
   end;
 
   local

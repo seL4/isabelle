@@ -2471,7 +2471,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         fun distinct_prems ctxt thm =
           Goal.prove (*no sorry*) ctxt [] []
             (thm |> Thm.prop_of |> Logic.strip_horn |>> distinct (op aconv) |> Logic.list_implies)
-            (fn _ => HEADGOAL (cut_tac thm THEN' atac) THEN ALLGOALS eq_assume_tac);
+            (fn _ => HEADGOAL (cut_tac thm THEN' assume_tac ctxt) THEN ALLGOALS eq_assume_tac);
 
         fun eq_ifIN _ [thm] = thm
           | eq_ifIN ctxt (thm :: thms) =

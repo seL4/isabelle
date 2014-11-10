@@ -119,7 +119,7 @@ fun unsafe_solver_tac ctxt =
     val sol_thms =
       reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt;
     fun sol_tac i =
-      FIRST [resolve_tac sol_thms i, assume_tac i , eresolve_tac @{thms FalseE} i] ORELSE
+      FIRST [resolve_tac sol_thms i, assume_tac ctxt i , eresolve_tac @{thms FalseE} i] ORELSE
       (match_tac ctxt intros THEN_ALL_NEW sol_tac) i
   in
     (fn i => REPEAT_DETERM (match_tac ctxt @{thms simp_impliesI} i)) THEN' sol_tac

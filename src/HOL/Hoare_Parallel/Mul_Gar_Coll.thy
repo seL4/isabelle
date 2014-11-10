@@ -1187,7 +1187,7 @@ apply(tactic {* TRYALL (etac disjE) *})
 --{* 72 subgoals left *}
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 --{* 35 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI1,rtac subset_trans,etac @{thm Graph3},force_tac @{context}, assume_tac]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI1,rtac subset_trans,etac @{thm Graph3},force_tac @{context}, assume_tac @{context}]) *})
 --{* 28 subgoals left *}
 apply(tactic {* TRYALL (etac conjE) *})
 apply(tactic {* TRYALL (etac disjE) *})

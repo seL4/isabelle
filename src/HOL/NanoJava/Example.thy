@@ -131,7 +131,7 @@ apply (induct n)
 apply  auto
 apply  (case_tac "aa=a")
 apply   auto
-apply (tactic "smp_tac 1 1")
+apply (tactic "smp_tac @{context} 1 1")
 apply (case_tac "aa=a")
 apply  auto
 done

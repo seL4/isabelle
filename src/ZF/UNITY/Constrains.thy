@@ -459,7 +459,8 @@ named_theorems program "program definitions"
 ML
 {*
 (*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
-val Always_Int_tac = dtac @{thm Always_Int_I} THEN' assume_tac THEN' etac @{thm Always_thin};
+fun Always_Int_tac ctxt =
+  dtac @{thm Always_Int_I} THEN' assume_tac ctxt THEN' etac @{thm Always_thin};
 
 (*Combines a list of invariance THEOREMS into one.*)
 val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS @{thm Always_Int_I});
@@ -468,7 +469,7 @@ val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS @{thm Always_Int_I})
 
 fun constrains_tac ctxt =
    SELECT_GOAL
-      (EVERY [REPEAT (Always_Int_tac 1),
+      (EVERY [REPEAT (Always_Int_tac ctxt 1),
               REPEAT (etac @{thm Always_ConstrainsI} 1
                       ORELSE
                       resolve_tac [@{thm StableI}, @{thm stableI},

@@ -125,7 +125,7 @@ fun mk_partial_elim_rules ctxt result =
           REPEAT (eresolve_tac @{thms Pair_inject} i)
           THEN Method.insert_tac (case asms_thms of thm :: thms => (thm RS sym) :: thms) i
           THEN propagate_tac ctxt i
-          THEN TRY ((EqSubst.eqsubst_asm_tac ctxt [1] psimps i) THEN atac i)
+          THEN TRY ((EqSubst.eqsubst_asm_tac ctxt [1] psimps i) THEN assume_tac ctxt i)
           THEN bool_subst_tac ctxt i;
 
       val elim_stripped =

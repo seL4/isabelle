@@ -171,8 +171,8 @@ fun introrulify thy ths =
               THEN EVERY1 (select_disj (length disjuncts) (index + 1)) 
               THEN (EVERY (map (fn y =>
                 rtac (Drule.cterm_instantiate [(x, cterm_of thy (Free y))] @{thm exI}) 1) ps))
-              THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN atac 1)
-              THEN TRY (atac 1)
+              THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN assume_tac ctxt' 1)
+              THEN TRY (assume_tac ctxt' 1)
           in
             Goal.prove ctxt' (map fst ps) [] introrule (fn _ => tac)
           end

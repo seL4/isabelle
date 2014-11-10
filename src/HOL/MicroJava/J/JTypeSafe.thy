@@ -138,7 +138,7 @@ apply( clarsimp)
 apply( drule (3) Call_lemma)
 apply( clarsimp simp add: wf_java_mdecl_def)
 apply( erule_tac V = "method ?sig ?x = ?y" in thin_rl)
-apply( drule spec, erule impE,  erule_tac [2] notE impE, tactic "assume_tac 2")
+apply( drule spec, erule impE,  erule_tac [2] notE impE, tactic "assume_tac @{context} 2")
 apply(  rule conformsI)
 apply(   erule conforms_heapD)
 apply(  rule lconf_ext)
@@ -156,10 +156,10 @@ apply( rule conjI)
 apply(  fast intro: hext_trans)
 apply( rule conjI)
 apply(  rule_tac [2] impI)
-apply(  erule_tac [2] notE impE, tactic "assume_tac 2")
+apply(  erule_tac [2] notE impE, tactic "assume_tac @{context} 2")
 apply(  frule_tac [2] conf_widen)
-apply(    tactic "assume_tac 4")
-apply(   tactic "assume_tac 2")
+apply(    tactic "assume_tac @{context} 4")
+apply(   tactic "assume_tac @{context} 2")
 prefer 2
 apply(  fast elim!: widen_trans)
 apply (rule conforms_xcpt_change)
@@ -177,8 +177,9 @@ declare fun_upd_same [simp]
 declare wf_prog_ws_prog [simp]
 
 ML{*
-val forward_hyp_tac = ALLGOALS (TRY o (EVERY' [dtac spec, mp_tac,
-  (mp_tac ORELSE' (dtac spec THEN' mp_tac)), REPEAT o (etac conjE)]))
+fun forward_hyp_tac ctxt =
+  ALLGOALS (TRY o (EVERY' [dtac spec, mp_tac ctxt,
+    (mp_tac ctxt ORELSE' (dtac spec THEN' mp_tac ctxt)), REPEAT o (etac conjE)]))
 *}
 
 
@@ -226,8 +227,8 @@ defer 1
 apply( erule conf_litval)
 
 -- "13 BinOp"
-apply (tactic "forward_hyp_tac")
-apply (tactic "forward_hyp_tac")
+apply (tactic "forward_hyp_tac @{context}")
+apply (tactic "forward_hyp_tac @{context}")
 apply( rule conjI, erule (1) hext_trans)
 apply( erule conjI)
 apply( clarsimp)
@@ -246,7 +247,7 @@ apply( tactic {* EVERY'[eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases
 apply( tactic {* (Induct_Tacs.case_tac @{context} "the_Bool v" THEN_ALL_NEW
   (asm_full_simp_tac @{context})) 7*})
 
-apply (tactic "forward_hyp_tac")
+apply (tactic "forward_hyp_tac @{context}")
 
 -- "11+1 if"
 prefer 7
@@ -294,7 +295,7 @@ apply(erule_tac V = "?a \<longrightarrow> ?b" in thin_rl)
 apply(drule (1) ty_expr_ty_exprs_wt_stmt.Loop)
 apply(force elim: hext_trans)
 
-apply (tactic "forward_hyp_tac")
+apply (tactic "forward_hyp_tac @{context}")
 
 -- "4 Cond"
 prefer 4
@@ -317,7 +318,7 @@ apply (subgoal_tac "(np a' x1, aa, ba) ::\<preceq> (G, lT)")
 apply( case_tac "x2")
   -- "x2 = None"
   apply (simp)
-  apply (tactic forward_hyp_tac, clarify)
+  apply (tactic "forward_hyp_tac @{context}", clarify)
   apply( drule eval_no_xcpt)
   apply( erule FAss_type_sound, rule HOL.refl, assumption+)
   -- "x2 = Some a"

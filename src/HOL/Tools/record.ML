@@ -1625,9 +1625,9 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         (fn {context = ctxt, ...} =>
           EVERY1
            [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac ctxt,
-            etac @{thm meta_allE}, atac,
+            etac @{thm meta_allE}, assume_tac ctxt,
             rtac (@{thm prop_subst} OF [surject]),
-            REPEAT o etac @{thm meta_allE}, atac]));
+            REPEAT o etac @{thm meta_allE}, assume_tac ctxt]));
 
     val induct = timeit_msg ctxt "record extension induct proof:" (fn () =>
       let val (assm, concl) = induct_prop in
@@ -2160,9 +2160,9 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         (fn {context = ctxt', ...} =>
           EVERY1
            [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac ctxt',
-            etac @{thm meta_allE}, atac,
+            etac @{thm meta_allE}, assume_tac ctxt',
             rtac (@{thm prop_subst} OF [surjective]),
-            REPEAT o etac @{thm meta_allE}, atac]));
+            REPEAT o etac @{thm meta_allE}, assume_tac ctxt']));
 
     val split_object = timeit_msg ctxt "record split_object proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_object_prop

@@ -45,17 +45,17 @@ signature CLASSICAL =
        safe0_brls:(bool*thm)list, safep_brls: (bool*thm)list,
        haz_brls: (bool*thm)list}
   val best_tac : Proof.context -> claset -> int -> tactic
-  val contr_tac : int -> tactic
+  val contr_tac : Proof.context -> int -> tactic
   val fast_tac : Proof.context -> claset -> int -> tactic
-  val inst_step_tac : int -> tactic
+  val inst_step_tac : Proof.context -> int -> tactic
   val joinrules : thm list * thm list -> (bool * thm) list
-  val mp_tac: int -> tactic
+  val mp_tac: Proof.context -> int -> tactic
   val safe_tac : Proof.context -> claset -> tactic
   val safe_step_tac : Proof.context -> claset -> int -> tactic
   val slow_step_tac : Proof.context -> claset -> int -> tactic
   val step_tac : Proof.context -> claset -> int -> tactic
   val swapify : thm list -> thm list
-  val swap_res_tac : thm list -> int -> tactic
+  val swap_res_tac : Proof.context -> thm list -> int -> tactic
   val uniq_mp_tac: Proof.context -> int -> tactic
   end;
 
@@ -70,22 +70,22 @@ local open Data in
 val imp_elim = make_elim mp;
 
 (*Solve goal that assumes both P and ~P. *)
-val contr_tac = etac not_elim THEN'  assume_tac;
+fun contr_tac ctxt = etac not_elim THEN'  assume_tac ctxt;
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-fun mp_tac i = eresolve_tac ([not_elim,imp_elim]) i  THEN  assume_tac i;
+fun mp_tac ctxt i = eresolve_tac ([not_elim,imp_elim]) i  THEN  assume_tac ctxt i;
 
 (*Like mp_tac but instantiates no variables*)
-fun uniq_mp_tac ctxt i = ematch_tac ctxt ([not_elim,imp_elim]) i  THEN  uniq_assume_tac i;
+fun uniq_mp_tac ctxt i = ematch_tac ctxt ([not_elim,imp_elim]) i  THEN  uniq_assume_tac ctxt i;
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [swap]);
 
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
-fun swap_res_tac rls = 
+fun swap_res_tac ctxt rls = 
     let fun tacf rl = rtac rl ORELSE' etac (rl RSN (2,swap))
-    in  assume_tac ORELSE' contr_tac ORELSE' FIRST' (map tacf rls)
+    in  assume_tac ctxt ORELSE' contr_tac ctxt ORELSE' FIRST' (map tacf rls)
     end;
 
 
@@ -149,7 +149,7 @@ fun cs addDs ths = cs addEs (map make_elim ths);
 
 (*Attack subgoals using safe inferences*)
 fun safe_step_tac ctxt (CS{safe0_brls,safep_brls,...}) = 
-  FIRST' [uniq_assume_tac,
+  FIRST' [uniq_assume_tac ctxt,
           uniq_mp_tac ctxt,
           biresolve_tac safe0_brls,
           FIRST' hyp_subst_tacs,
@@ -159,12 +159,12 @@ fun safe_step_tac ctxt (CS{safe0_brls,safep_brls,...}) =
 fun safe_tac ctxt cs = DETERM (REPEAT_FIRST (safe_step_tac ctxt cs));
 
 (*These steps could instantiate variables and are therefore unsafe.*)
-val inst_step_tac = assume_tac APPEND' contr_tac;
+fun inst_step_tac ctxt = assume_tac ctxt APPEND' contr_tac ctxt;
 
 (*Single step for the prover.  FAILS unless it makes progress. *)
 fun step_tac ctxt (cs as (CS{haz_brls,...})) i = 
   FIRST [safe_tac ctxt cs,
-         inst_step_tac i,
+         inst_step_tac ctxt i,
          biresolve_tac haz_brls i];
 
 (*** The following tactics all fail unless they solve one goal ***)
@@ -179,7 +179,7 @@ fun best_tac ctxt cs =
 (*Using a "safe" rule to instantiate variables is unsafe.  This tactic
   allows backtracking from "safe" rules to "unsafe" rules here.*)
 fun slow_step_tac ctxt (cs as (CS{haz_brls,...})) i = 
-    safe_tac ctxt cs ORELSE (assume_tac i APPEND biresolve_tac haz_brls i);
+    safe_tac ctxt cs ORELSE (assume_tac ctxt i APPEND biresolve_tac haz_brls i);
 
 end; 
 end;

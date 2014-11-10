@@ -220,7 +220,7 @@ let
      resolve_tac [disjIn] 2,
      (*Not ares_tac, since refl must be tried before equality assumptions;
        backtracking may occur if the premises have extra variables!*)
-     DEPTH_SOLVE_1 (resolve_tac [@{thm refl}, @{thm exI}, @{thm conjI}] 2 APPEND assume_tac 2),
+     DEPTH_SOLVE_1 (resolve_tac [@{thm refl}, @{thm exI}, @{thm conjI}] 2 APPEND assume_tac ctxt 2),
      (*Now solve the equations like Tcons(a,f) = Inl(?b4)*)
      rewrite_goals_tac ctxt con_defs,
      REPEAT (resolve_tac @{thms refl} 2),
@@ -233,7 +233,7 @@ let
                         ORELSE' hyp_subst_tac ctxt1)),
      if !Ind_Syntax.trace then print_tac ctxt "The subgoal after monos, type_elims:"
      else all_tac,
-     DEPTH_SOLVE (swap_res_tac (@{thm SigmaI} :: @{thm subsetI} :: type_intrs) 1)];
+     DEPTH_SOLVE (swap_res_tac ctxt (@{thm SigmaI} :: @{thm subsetI} :: type_intrs) 1)];
 
   (*combines disjI1 and disjI2 to get the corresponding nested disjunct...*)
   val mk_disj_rls = Balanced_Tree.accesses
@@ -330,7 +330,7 @@ let
              |> Simplifier.set_mksimps (K (map mk_eq o ZF_atomize o gen_all)))
            setSolver (mk_solver "minimal"
                       (fn ctxt => resolve_tac (triv_rls @ Simplifier.prems_of ctxt)
-                                   ORELSE' assume_tac
+                                   ORELSE' assume_tac ctxt
                                    ORELSE' eresolve_tac @{thms FalseE}));
 
      val quant_induct =

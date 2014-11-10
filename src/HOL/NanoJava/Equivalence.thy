@@ -111,7 +111,7 @@ apply (simp_all only: cnvalid1_eq cenvalid_def2)
                  apply fast
                 apply fast
                apply fast
-              apply (clarify,tactic "smp_tac 1 1",erule(2) Loop_sound_lemma,(rule HOL.refl)+)
+              apply (clarify,tactic "smp_tac @{context} 1 1",erule(2) Loop_sound_lemma,(rule HOL.refl)+)
              apply fast
             apply fast
            apply fast

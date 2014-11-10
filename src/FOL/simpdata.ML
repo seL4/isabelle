@@ -108,7 +108,7 @@ val triv_rls = [@{thm TrueI}, @{thm refl}, reflexive_thm, @{thm iff_refl}, @{thm
 
 fun unsafe_solver ctxt =
   FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ctxt),
-    assume_tac,
+    assume_tac ctxt,
     eresolve_tac @{thms FalseE}];
 
 (*No premature instantiation of variables during simplification*)

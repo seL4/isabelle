@@ -396,7 +396,7 @@ fun injection_step_tac ctxt rel_refl =
                  RANGE [quot_true_tac ctxt (fst o dest_comb), quot_true_tac ctxt (snd o dest_comb)],
 
     (* resolving with R x y assumptions *)
-    atac,
+    assume_tac ctxt,
 
     (* (op =) (%x...) (%y...) ----> (op =) (...) (...) *)
     rtac @{thm ext} THEN' quot_true_tac ctxt unlam,
@@ -560,7 +560,7 @@ fun gen_frees_tac ctxt =
       val concl' = apply_under_Trueprop (all_list vrs) concl
       val goal = Logic.mk_implies (concl', concl)
       val rule = Goal.prove ctxt [] [] goal
-        (K (EVERY1 [inst_spec_tac (rev cvrs), atac]))
+        (K (EVERY1 [inst_spec_tac (rev cvrs), assume_tac ctxt]))
     in
       rtac rule i
     end)

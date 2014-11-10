@@ -71,12 +71,12 @@ apply (unfold hoare_valids_def)
 apply (simp (no_asm_use) add: triple_valid_def2)
 apply clarsimp
 apply (drule_tac x = "s<Y>" in spec)
-apply (tactic "smp_tac 1 1")
+apply (tactic "smp_tac @{context} 1 1")
 apply (drule spec)
 apply (drule_tac x = "s[Loc Y::=a s]" in spec)
 apply (simp (no_asm_use))
 apply (erule (1) notE impE)
-apply (tactic "smp_tac 1 1")
+apply (tactic "smp_tac @{context} 1 1")
 apply simp
 done
 

@@ -78,7 +78,7 @@ fun prove_param options ctxt nargs t deriv =
     THEN trace_tac ctxt options "prove_param"
     THEN f_tac
     THEN trace_tac ctxt options "after prove_param"
-    THEN (REPEAT_DETERM (atac 1))
+    THEN (REPEAT_DETERM (assume_tac ctxt 1))
     THEN (EVERY (map2 (prove_param options ctxt nargs) ho_args param_derivations))
     THEN REPEAT_DETERM (rtac @{thm refl} 1)
   end
@@ -97,11 +97,11 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
         THEN trace_tac ctxt options "after intro rule"
         (* for the right assumption in first position *)
         THEN rotate_tac premposition 1
-        THEN atac 1
+        THEN assume_tac ctxt 1
         THEN trace_tac ctxt options "parameter goal"
         (* work with parameter arguments *)
         THEN (EVERY (map2 (prove_param options ctxt nargs) ho_args param_derivations))
-        THEN (REPEAT_DETERM (atac 1))
+        THEN (REPEAT_DETERM (assume_tac ctxt 1))
       end
   | (Free _, _) =>
       trace_tac ctxt options "proving parameter call.."
@@ -242,7 +242,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
                       THEN rtac (nth prems premposition) 1) ctxt 1
                     THEN trace_tac ctxt options "after applying not introduction rule"
                     THEN (EVERY (map2 (prove_param options ctxt nargs) params param_derivations))
-                    THEN (REPEAT_DETERM (atac 1))
+                    THEN (REPEAT_DETERM (assume_tac ctxt 1))
                   else
                     rtac @{thm not_predI'} 1
                     (* test: *)
@@ -410,8 +410,10 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
         THEN (rtac pred_intro_rule
         (* How to handle equality correctly? *)
         THEN_ALL_NEW (K (trace_tac ctxt options "state before assumption matching")
-        THEN' (atac ORELSE' ((CHANGED o asm_full_simp_tac split_simpset) THEN' (TRY o atac)))
-          THEN' (K (trace_tac ctxt options "state after pre-simplification:"))
+        THEN' (assume_tac ctxt ORELSE'
+          ((CHANGED o asm_full_simp_tac split_simpset) THEN'
+            (TRY o assume_tac ctxt))) THEN'
+          (K (trace_tac ctxt options "state after pre-simplification:"))
         THEN' (K (trace_tac ctxt options "state after assumption matching:")))) 1))
     | prove_prems2 out_ts ((p, deriv) :: ps) =
       let

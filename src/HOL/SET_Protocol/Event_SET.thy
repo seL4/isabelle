@@ -182,14 +182,14 @@ lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)"] for Y ev
 
 ML
 {*
-val analz_mono_contra_tac = 
+fun analz_mono_contra_tac ctxt = 
   rtac @{thm analz_impI} THEN' 
   REPEAT1 o (dresolve_tac @{thms analz_mono_contra})
-  THEN' mp_tac
+  THEN' mp_tac ctxt
 *}
 
 method_setup analz_mono_contra = {*
-    Scan.succeed (K (SIMPLE_METHOD (REPEAT_FIRST analz_mono_contra_tac))) *}
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (analz_mono_contra_tac ctxt))) *}
     "for proving theorems of the form X \<notin> analz (knows Spy evs) --> P"
 
 end

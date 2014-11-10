@@ -1565,8 +1565,8 @@ fun uint_arith_tacs ctxt =
       ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
                          REPEAT (etac conjE n) THEN
                          REPEAT (dtac @{thm word_of_int_inverse} n 
-                                 THEN atac n 
-                                 THEN atac n)),
+                                 THEN assume_tac ctxt n 
+                                 THEN assume_tac ctxt n)),
       TRYALL arith_tac' ]
   end
 

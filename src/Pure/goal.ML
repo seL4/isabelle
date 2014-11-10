@@ -336,7 +336,7 @@ fun assume_rule_tac ctxt = norm_hhf_tac ctxt THEN' CSUBGOAL (fn (goal, i) =>
     val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';
     val Rs = filter (non_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
     val tacs = Rs |> map (fn R =>
-      eresolve_tac [Raw_Simplifier.norm_hhf ctxt (Thm.trivial R)] THEN_ALL_NEW assume_tac);
+      eresolve_tac [Raw_Simplifier.norm_hhf ctxt (Thm.trivial R)] THEN_ALL_NEW assume_tac ctxt);
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
 
 end;

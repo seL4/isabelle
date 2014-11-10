@@ -209,13 +209,13 @@ qed "thin";
 *)
 lemma thin [rule_format]: "G'||-ts ==> !G. G' <= G --> G||-ts"
 apply (erule hoare_derivs.induct)
-apply                (tactic {* ALLGOALS (EVERY'[clarify_tac @{context}, REPEAT o smp_tac 1]) *})
+apply                (tactic {* ALLGOALS (EVERY'[clarify_tac @{context}, REPEAT o smp_tac @{context} 1]) *})
 apply (rule hoare_derivs.empty)
 apply               (erule (1) hoare_derivs.insert)
 apply              (fast intro: hoare_derivs.asm)
 apply             (fast intro: hoare_derivs.cut)
 apply            (fast intro: hoare_derivs.weaken)
-apply           (rule hoare_derivs.conseq, intro strip, tactic "smp_tac 2 1", clarify, tactic "smp_tac 1 1",rule exI, rule exI, erule (1) conjI)
+apply           (rule hoare_derivs.conseq, intro strip, tactic "smp_tac @{context} 2 1", clarify, tactic "smp_tac @{context} 1 1",rule exI, rule exI, erule (1) conjI)
 prefer 7
 apply          (rule_tac hoare_derivs.Body, drule_tac spec, erule_tac mp, fast)
 apply         (tactic {* ALLGOALS (resolve_tac ((funpow 5 tl) @{thms hoare_derivs.intros}) THEN_ALL_NEW (fast_tac @{context})) *})
@@ -287,9 +287,9 @@ apply         (blast) (* cut *)
 apply        (blast) (* weaken *)
 apply       (tactic {* ALLGOALS (EVERY'
   [REPEAT o thin_tac @{context} "hoare_derivs ?x ?y",
-   simp_tac @{context}, clarify_tac @{context}, REPEAT o smp_tac 1]) *})
+   simp_tac @{context}, clarify_tac @{context}, REPEAT o smp_tac @{context} 1]) *})
 apply       (simp_all (no_asm_use) add: triple_valid_def2)
-apply       (intro strip, tactic "smp_tac 2 1", blast) (* conseq *)
+apply       (intro strip, tactic "smp_tac @{context} 2 1", blast) (* conseq *)
 apply      (tactic {* ALLGOALS (clarsimp_tac @{context}) *}) (* Skip, Ass, Local *)
 prefer 3 apply   (force) (* Call *)
 apply  (erule_tac [2] evaln_elim_cases) (* If *)

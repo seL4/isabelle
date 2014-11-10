@@ -396,6 +396,6 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
 
 
 fun induction_schema_tac ctxt =
-  mk_ind_tac (K all_tac) (assume_tac APPEND' Goal.assume_rule_tac ctxt) (K all_tac) ctxt;
+  mk_ind_tac (K all_tac) (assume_tac ctxt APPEND' Goal.assume_rule_tac ctxt) (K all_tac) ctxt;
 
 end

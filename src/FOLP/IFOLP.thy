@@ -252,7 +252,7 @@ ML {*
 local
   fun discard_proof (Const (@{const_name Proof}, _) $ P $ _) = P;
 in
-val uniq_assume_tac =
+fun uniq_assume_tac ctxt =
   SUBGOAL
     (fn (prem,i) =>
       let val hyps = map discard_proof (Logic.strip_assums_hyp prem)
@@ -260,7 +260,7 @@ val uniq_assume_tac =
       in
           if exists (fn hyp => hyp aconv concl) hyps
           then case distinct (op =) (filter (fn hyp => Term.could_unify (hyp, concl)) hyps) of
-                   [_] => assume_tac i
+                   [_] => assume_tac ctxt i
                  |  _  => no_tac
           else no_tac
       end);
@@ -272,12 +272,14 @@ end;
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
 ML {*
-  fun mp_tac i = eresolve_tac [@{thm notE}, make_elim @{thm mp}] i  THEN  assume_tac i
+  fun mp_tac ctxt i =
+    eresolve_tac [@{thm notE}, make_elim @{thm mp}] i  THEN  assume_tac ctxt i
 *}
 
 (*Like mp_tac but instantiates no variables*)
 ML {*
-  fun int_uniq_mp_tac i = eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  uniq_assume_tac i
+  fun int_uniq_mp_tac ctxt i =
+    eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  uniq_assume_tac ctxt i
 *}
 
 
@@ -374,7 +376,7 @@ schematic_lemma conj_cong:
 
 schematic_lemma disj_cong:
   "[| p:P <-> P'; q:Q <-> Q' |] ==> ?p:(P|Q) <-> (P'|Q')"
-  apply (erule iffE disjE disjI1 disjI2 | assumption | rule iffI | tactic {* mp_tac 1 *})+
+  apply (erule iffE disjE disjI1 disjI2 | assumption | rule iffI | tactic {* mp_tac @{context} 1 *})+
   done
 
 schematic_lemma imp_cong:
@@ -382,31 +384,31 @@ schematic_lemma imp_cong:
     and "!!x. x:P' ==> q(x):Q <-> Q'"
   shows "?p:(P-->Q) <-> (P'-->Q')"
   apply (insert assms(1))
-  apply (assumption | rule iffI impI | erule iffE | tactic {* mp_tac 1 *} |
+  apply (assumption | rule iffI impI | erule iffE | tactic {* mp_tac @{context} 1 *} |
     tactic {* iff_tac @{thms assms} 1 *})+
   done
 
 schematic_lemma iff_cong:
   "[| p:P <-> P'; q:Q <-> Q' |] ==> ?p:(P<->Q) <-> (P'<->Q')"
-  apply (erule iffE | assumption | rule iffI | tactic {* mp_tac 1 *})+
+  apply (erule iffE | assumption | rule iffI | tactic {* mp_tac @{context} 1 *})+
   done
 
 schematic_lemma not_cong:
   "p:P <-> P' ==> ?p:~P <-> ~P'"
-  apply (assumption | rule iffI notI | tactic {* mp_tac 1 *} | erule iffE notE)+
+  apply (assumption | rule iffI notI | tactic {* mp_tac @{context} 1 *} | erule iffE notE)+
   done
 
 schematic_lemma all_cong:
   assumes "!!x. f(x):P(x) <-> Q(x)"
   shows "?p:(ALL x. P(x)) <-> (ALL x. Q(x))"
-  apply (assumption | rule iffI allI | tactic {* mp_tac 1 *} | erule allE |
+  apply (assumption | rule iffI allI | tactic {* mp_tac @{context} 1 *} | erule allE |
     tactic {* iff_tac @{thms assms} 1 *})+
   done
 
 schematic_lemma ex_cong:
   assumes "!!x. f(x):P(x) <-> Q(x)"
   shows "?p:(EX x. P(x)) <-> (EX x. Q(x))"
-  apply (erule exE | assumption | rule iffI exI | tactic {* mp_tac 1 *} |
+  apply (erule exE | assumption | rule iffI exI | tactic {* mp_tac @{context} 1 *} |
     tactic {* iff_tac @{thms assms} 1 *})+
   done
 
@@ -636,7 +638,7 @@ schematic_lemma conj_rews:
   "?p6 : P & ~P <-> False"
   "?p7 : ~P & P <-> False"
   "?p8 : (P & Q) & R <-> P & (Q & R)"
-  apply (tactic {* fn st => IntPr.fast_tac 1 st *})+
+  apply (tactic {* fn st => IntPr.fast_tac @{context} 1 st *})+
   done
 
 schematic_lemma disj_rews:
@@ -646,13 +648,13 @@ schematic_lemma disj_rews:
   "?p4 : False | P <-> P"
   "?p5 : P | P <-> P"
   "?p6 : (P | Q) | R <-> P | (Q | R)"
-  apply (tactic {* IntPr.fast_tac 1 *})+
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
   done
 
 schematic_lemma not_rews:
   "?p1 : ~ False <-> True"
   "?p2 : ~ True <-> False"
-  apply (tactic {* IntPr.fast_tac 1 *})+
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
   done
 
 schematic_lemma imp_rews:
@@ -662,7 +664,7 @@ schematic_lemma imp_rews:
   "?p4 : (True --> P) <-> P"
   "?p5 : (P --> P) <-> True"
   "?p6 : (P --> ~P) <-> ~P"
-  apply (tactic {* IntPr.fast_tac 1 *})+
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
   done
 
 schematic_lemma iff_rews:
@@ -671,13 +673,13 @@ schematic_lemma iff_rews:
   "?p3 : (P <-> P) <-> True"
   "?p4 : (False <-> P) <-> ~P"
   "?p5 : (P <-> False) <-> ~P"
-  apply (tactic {* IntPr.fast_tac 1 *})+
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
   done
 
 schematic_lemma quant_rews:
   "?p1 : (ALL x. P) <-> P"
   "?p2 : (EX x. P) <-> P"
-  apply (tactic {* IntPr.fast_tac 1 *})+
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
   done
 
 (*These are NOT supplied by default!*)
@@ -686,7 +688,7 @@ schematic_lemma distrib_rews1:
   "?p2 : P & (Q | R) <-> P&Q | P&R"
   "?p3 : (Q | R) & P <-> Q&P | R&P"
   "?p4 : (P | Q --> R) <-> (P --> R) & (Q --> R)"
-  apply (tactic {* IntPr.fast_tac 1 *})+
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
   done
 
 schematic_lemma distrib_rews2:
@@ -694,17 +696,17 @@ schematic_lemma distrib_rews2:
   "?p2 : ((EX x. NORM(P(x))) --> Q) <-> (ALL x. NORM(P(x)) --> Q)"
   "?p3 : (EX x. NORM(P(x))) & NORM(Q) <-> (EX x. NORM(P(x)) & NORM(Q))"
   "?p4 : NORM(Q) & (EX x. NORM(P(x))) <-> (EX x. NORM(Q) & NORM(P(x)))"
-  apply (tactic {* IntPr.fast_tac 1 *})+
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
   done
 
 lemmas distrib_rews = distrib_rews1 distrib_rews2
 
 schematic_lemma P_Imp_P_iff_T: "p:P ==> ?p:(P <-> True)"
-  apply (tactic {* IntPr.fast_tac 1 *})
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})
   done
 
 schematic_lemma not_P_imp_P_iff_F: "p:~P ==> ?p:(P <-> False)"
-  apply (tactic {* IntPr.fast_tac 1 *})
+  apply (tactic {* IntPr.fast_tac @{context} 1 *})
   done
 
 end

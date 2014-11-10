@@ -61,7 +61,7 @@ fun linr_tac ctxt q =
       [simp_tac simpset0 1,
        TRY (simp_tac (put_simpset ferrack_ss ctxt) 1)]
       (Thm.trivial ct))
-    fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
+    fun assm_tac i = REPEAT_DETERM_N nh (assume_tac ctxt i)
     (* The result of the quantifier elimination *)
     val (th, tac) = case prop_of pre_thm of
         Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>

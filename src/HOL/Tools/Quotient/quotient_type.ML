@@ -51,7 +51,7 @@ fun typedef_make (vs, qty_name, mx, rel, rty) equiv_thm lthy =
 
 
 (* tactic to prove the quot_type theorem for the new type *)
-fun typedef_quot_type_tac equiv_thm ((_, typedef_info): Typedef.info) =
+fun typedef_quot_type_tac ctxt equiv_thm ((_, typedef_info): Typedef.info) =
   let
     val rep_thm = #Rep typedef_info RS mem_def1
     val rep_inv = #Rep_inverse typedef_info
@@ -62,7 +62,7 @@ fun typedef_quot_type_tac equiv_thm ((_, typedef_info): Typedef.info) =
       rtac equiv_thm,
       rtac rep_thm,
       rtac rep_inv,
-      rtac abs_inv THEN' rtac mem_def2 THEN' atac,
+      rtac abs_inv THEN' rtac mem_def2 THEN' assume_tac ctxt,
       rtac rep_inj]) 1
   end
 
@@ -74,7 +74,7 @@ fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
     val goal = HOLogic.mk_Trueprop (quot_type_const $ rel $ abs $ rep)
   in
     Goal.prove lthy [] [] goal
-      (K (typedef_quot_type_tac equiv_thm typedef_info))
+      (fn {context = ctxt, ...} => typedef_quot_type_tac ctxt equiv_thm typedef_info)
   end
    
 open Lifting_Util

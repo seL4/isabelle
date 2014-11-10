@@ -78,12 +78,13 @@ fun side_constraint_tac bnf constr_defs ctxt i =
       rel_OO_of_bnf bnf]
   in
     (SELECT_GOAL (Local_Defs.unfold_tac ctxt thms) THEN' rtac (rel_mono_of_bnf bnf)
-      THEN_ALL_NEW atac) i
+      THEN_ALL_NEW assume_tac ctxt) i
   end
 
 fun bi_constraint_tac constr_iff sided_constr_intros ctxt i =
   (SELECT_GOAL (Local_Defs.unfold_tac ctxt [constr_iff]) THEN'
-    CONJ_WRAP' (fn thm => rtac thm THEN_ALL_NEW (REPEAT_DETERM o etac conjE THEN' atac)) sided_constr_intros) i
+    CONJ_WRAP' (fn thm => rtac thm THEN_ALL_NEW
+      (REPEAT_DETERM o etac conjE THEN' assume_tac ctxt)) sided_constr_intros) i
 
 fun generate_relation_constraint_goal ctxt bnf constraint_def =
   let
@@ -199,7 +200,8 @@ fun Domainp_tac bnf pred_def ctxt i =
         in_rel_of_bnf bnf, pred_def]), rtac iffI,
         REPEAT_DETERM o eresolve_tac [exE, conjE, CollectE], hyp_subst_tac ctxt,
         CONJ_WRAP' (fn set_map => EVERY' [rtac ballI, dtac (set_map RS equalityD1 RS set_mp),
-          etac imageE, dtac set_rev_mp, atac, REPEAT_DETERM o eresolve_tac [CollectE, @{thm case_prodE}],
+          etac imageE, dtac set_rev_mp, assume_tac ctxt,
+          REPEAT_DETERM o eresolve_tac [CollectE, @{thm case_prodE}],
           hyp_subst_tac ctxt, rtac @{thm iffD2[OF arg_cong2[of _ _ _ _ Domainp, OF refl fst_conv]]},
           etac @{thm DomainPI}]) set_map's,
         REPEAT_DETERM o etac conjE, REPEAT_DETERM o resolve_tac [exI, (refl RS conjI), rotate_prems 1 conjI],
@@ -209,7 +211,8 @@ fun Domainp_tac bnf pred_def ctxt i =
           rtac @{thm fst_conv}]), rtac CollectI,
         CONJ_WRAP' (fn set_map => EVERY' [rtac (set_map RS @{thm ord_eq_le_trans}),
           REPEAT_DETERM o resolve_tac [@{thm image_subsetI}, CollectI, @{thm case_prodI}],
-          dtac (rotate_prems 1 bspec), atac, etac @{thm DomainpE}, etac @{thm someI}]) set_map's
+          dtac (rotate_prems 1 bspec), assume_tac ctxt,
+          etac @{thm DomainpE}, etac @{thm someI}]) set_map's
       ] i
   end
 

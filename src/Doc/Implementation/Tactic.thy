@@ -282,7 +282,7 @@ text %mlref \<open>
   @{index_ML dresolve_tac: "thm list -> int -> tactic"} \\
   @{index_ML forward_tac: "thm list -> int -> tactic"} \\
   @{index_ML biresolve_tac: "(bool * thm) list -> int -> tactic"} \\[1ex]
-  @{index_ML assume_tac: "int -> tactic"} \\
+  @{index_ML assume_tac: "Proof.context -> int -> tactic"} \\
   @{index_ML eq_assume_tac: "int -> tactic"} \\[1ex]
   @{index_ML match_tac: "Proof.context -> thm list -> int -> tactic"} \\
   @{index_ML ematch_tac: "Proof.context -> thm list -> int -> tactic"} \\
@@ -324,7 +324,7 @@ text %mlref \<open>
   elimination rules, which is useful to organize the search process
   systematically in proof tools.
 
-  \item @{ML assume_tac}~@{text i} attempts to solve subgoal @{text i}
+  \item @{ML assume_tac}~@{text "ctxt i"} attempts to solve subgoal @{text i}
   by assumption (modulo higher-order unification).
 
   \item @{ML eq_assume_tac} is similar to @{ML assume_tac}, but checks

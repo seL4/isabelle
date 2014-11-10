@@ -452,7 +452,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl = HOLogic.mk_Trueprop (mk_mor Bs ss B's s's fs_copy);
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (K ((hyp_subst_tac lthy THEN' atac) 1))
+          (K ((hyp_subst_tac lthy THEN' assume_tac lthy) 1))
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;
@@ -550,7 +550,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl = HOLogic.mk_Trueprop (mk_bis Bs ss B's s's Rs_copy);
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (fn {context = ctxt, prems = _} => (hyp_subst_tac ctxt THEN' atac) 1)
+          (fn {context = ctxt, prems = _} => (hyp_subst_tac ctxt THEN' assume_tac ctxt) 1)
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;

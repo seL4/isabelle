@@ -48,7 +48,7 @@ lemma wfd_strengthen_lemma:
 
 ML {*
   fun wfd_strengthen_tac ctxt s i =
-    res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac (i+1)
+    res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac ctxt (i+1)
 *}
 
 lemma wf_anti_sym: "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P"

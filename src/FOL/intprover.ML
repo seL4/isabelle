@@ -20,7 +20,7 @@ sig
   val best_tac: Proof.context -> int -> tactic
   val best_dup_tac: Proof.context -> int -> tactic
   val fast_tac: Proof.context -> int -> tactic
-  val inst_step_tac: int -> tactic
+  val inst_step_tac: Proof.context -> int -> tactic
   val safe_step_tac: Proof.context -> int -> tactic
   val safe_brls: (bool * thm) list
   val safe_tac: Proof.context -> tactic
@@ -74,14 +74,14 @@ fun safe_step_tac ctxt =
 fun safe_tac ctxt = REPEAT_DETERM_FIRST (safe_step_tac ctxt);
 
 (*These steps could instantiate variables and are therefore unsafe.*)
-val inst_step_tac =
-  assume_tac APPEND' mp_tac APPEND' 
+fun inst_step_tac ctxt =
+  assume_tac ctxt APPEND' mp_tac APPEND' 
   biresolve_tac (safe0_brls @ safep_brls);
 
 (*One safe or unsafe step. *)
-fun step_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac i, biresolve_tac haz_brls i];
+fun step_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac haz_brls i];
 
-fun step_dup_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac i, biresolve_tac haz_dup_brls i];
+fun step_dup_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac haz_dup_brls i];
 
 (*Dumb but fast*)
 fun fast_tac ctxt = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));

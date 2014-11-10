@@ -782,14 +782,14 @@ exception PROVE;
 
 (*Trying eq_contr_tac first INCREASES the effort, slowing reconstruction*)
 fun contr_tac ctxt =
-  ematch_tac ctxt [Data.notE] THEN' (eq_assume_tac ORELSE' assume_tac);
+  ematch_tac ctxt [Data.notE] THEN' (eq_assume_tac ORELSE' assume_tac ctxt);
 
 (*Try to unify complementary literals and return the corresponding tactic. *)
 fun tryClose state (G, L) =
   let
     val State {ctxt, ...} = state;
     val eContr_tac = TRACE ctxt Data.notE contr_tac;
-    val eAssume_tac = TRACE ctxt asm_rl (eq_assume_tac ORELSE' assume_tac);
+    val eAssume_tac = TRACE ctxt asm_rl (eq_assume_tac ORELSE' assume_tac ctxt);
     fun close t u tac = if unify state ([], t, u) then SOME tac else NONE;
     fun arg (_ $ t) = t;
   in

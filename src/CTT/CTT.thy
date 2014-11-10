@@ -336,11 +336,11 @@ fun is_rigid_elem (Const(@{const_name Elem},_) $ a $ _) = not(is_Var (head_of a)
 in
 
 (*Try solving a:A or a=b:A by assumption provided a is rigid!*)
-val test_assume_tac = SUBGOAL(fn (prem,i) =>
+fun test_assume_tac ctxt = SUBGOAL(fn (prem,i) =>
     if is_rigid_elem (Logic.strip_assums_concl prem)
-    then  assume_tac i  else  no_tac)
+    then  assume_tac ctxt i  else  no_tac)
 
-fun ASSUME tf i = test_assume_tac i  ORELSE  tf i
+fun ASSUME ctxt tf i = test_assume_tac ctxt i  ORELSE  tf i
 
 end;
 
@@ -356,26 +356,26 @@ local
     @{thms elimL_rls} @ @{thms refl_elem}
 in
 
-fun routine_tac rls prems = ASSUME (filt_resolve_tac (prems @ rls) 4);
+fun routine_tac rls ctxt prems = ASSUME ctxt (filt_resolve_tac (prems @ rls) 4);
 
 (*Solve all subgoals "A type" using formation rules. *)
-val form_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac @{thms form_rls} 1));
+fun form_tac ctxt = REPEAT_FIRST (ASSUME ctxt (filt_resolve_tac @{thms form_rls} 1));
 
 (*Type checking: solve a:A (a rigid, A flexible) by intro and elim rules. *)
-fun typechk_tac thms =
+fun typechk_tac ctxt thms =
   let val tac = filt_resolve_tac (thms @ @{thms form_rls} @ @{thms element_rls}) 3
-  in  REPEAT_FIRST (ASSUME tac)  end
+  in  REPEAT_FIRST (ASSUME ctxt tac)  end
 
 (*Solve a:A (a flexible, A rigid) by introduction rules.
   Cannot use stringtrees (filt_resolve_tac) since
   goals like ?a:SUM(A,B) have a trivial head-string *)
-fun intr_tac thms =
+fun intr_tac ctxt thms =
   let val tac = filt_resolve_tac(thms @ @{thms form_rls} @ @{thms intr_rls}) 1
-  in  REPEAT_FIRST (ASSUME tac)  end
+  in  REPEAT_FIRST (ASSUME ctxt tac)  end
 
 (*Equality proving: solve a=b:A (where a is rigid) by long rules. *)
-fun equal_tac thms =
-  REPEAT_FIRST (ASSUME (filt_resolve_tac (thms @ equal_rls) 3))
+fun equal_tac ctxt thms =
+  REPEAT_FIRST (ASSUME ctxt (filt_resolve_tac (thms @ equal_rls) 3))
 
 end
 
@@ -408,7 +408,8 @@ lemmas reduction_rls = comp_rls [THEN trans_elem]
 ML {*
 (*Converts each goal "e : Eq(A,a,b)" into "a=b:A" for simplification.
   Uses other intro rules to avoid changing flexible goals.*)
-val eqintr_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac (@{thm EqI} :: @{thms intr_rls}) 1))
+fun eqintr_tac ctxt =
+  REPEAT_FIRST (ASSUME ctxt (filt_resolve_tac (@{thm EqI} :: @{thms intr_rls}) 1))
 
 (** Tactics that instantiate CTT-rules.
     Vars in the given terms will be incremented!
@@ -426,11 +427,11 @@ fun PlusE_tac ctxt sp i =
 (** Predicate logic reasoning, WITH THINNING!!  Procedures adapted from NJ. **)
 
 (*Finds f:Prod(A,B) and a:A in the assumptions, concludes there is z:B(a) *)
-fun add_mp_tac i =
-    rtac @{thm subst_prodE} i  THEN  assume_tac i  THEN  assume_tac i
+fun add_mp_tac ctxt i =
+    rtac @{thm subst_prodE} i  THEN  assume_tac ctxt i  THEN  assume_tac ctxt i
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-fun mp_tac i = etac @{thm subst_prodE} i  THEN  assume_tac i
+fun mp_tac ctxt i = etac @{thm subst_prodE} i  THEN  assume_tac ctxt i
 
 (*"safe" when regarded as predicate calculus rules*)
 val safe_brls = sort (make_ord lessb)
@@ -445,18 +446,18 @@ val unsafe_brls =
 val (safe0_brls, safep_brls) =
     List.partition (curry (op =) 0 o subgoals_of_brl) safe_brls
 
-fun safestep_tac thms i =
-    form_tac  ORELSE
+fun safestep_tac ctxt thms i =
+    form_tac ctxt ORELSE
     resolve_tac thms i  ORELSE
-    biresolve_tac safe0_brls i  ORELSE  mp_tac i  ORELSE
+    biresolve_tac safe0_brls i  ORELSE  mp_tac ctxt i  ORELSE
     DETERM (biresolve_tac safep_brls i)
 
-fun safe_tac thms i = DEPTH_SOLVE_1 (safestep_tac thms i)
+fun safe_tac ctxt thms i = DEPTH_SOLVE_1 (safestep_tac ctxt thms i)
 
-fun step_tac thms = safestep_tac thms  ORELSE'  biresolve_tac unsafe_brls
+fun step_tac ctxt thms = safestep_tac ctxt thms  ORELSE'  biresolve_tac unsafe_brls
 
 (*Fails unless it solves the goal!*)
-fun pc_tac thms = DEPTH_SOLVE_1 o (step_tac thms)
+fun pc_tac ctxt thms = DEPTH_SOLVE_1 o (step_tac ctxt thms)
 *}
 
 ML_file "rew.ML"
@@ -479,7 +480,7 @@ lemma SumE_snd:
   apply (unfold basic_defs)
   apply (rule major [THEN SumE])
   apply (rule SumC [THEN subst_eqtyparg, THEN replace_type])
-  apply (tactic {* typechk_tac @{thms assms} *})
+  apply (tactic {* typechk_tac @{context} @{thms assms} *})
   done
 
 end

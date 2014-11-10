@@ -451,7 +451,7 @@ fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
                      thm', anet, ats, (ss,thm,anet,ats,seq',more)::cs)
             end
     | NONE => if more
-            then rew((lhs_net_tac anet i THEN assume_tac i) thm,
+            then rew((lhs_net_tac anet i THEN atac i) thm,
                      thm,ss,anet,ats,cs,false)
             else (ss,thm,anet,ats,cs);
 

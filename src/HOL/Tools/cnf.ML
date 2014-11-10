@@ -42,7 +42,7 @@ sig
   val clause2raw_thm: thm -> thm
   val make_nnf_thm: theory -> term -> thm
 
-  val weakening_tac: int -> tactic  (* removes the first hypothesis of a subgoal *)
+  val weakening_tac: Proof.context -> int -> tactic  (* removes the first hypothesis of a subgoal *)
 
   val make_cnf_thm: Proof.context -> term -> thm
   val make_cnfx_thm: Proof.context -> term -> thm
@@ -528,8 +528,8 @@ fun make_cnfx_thm ctxt t =
 (* weakening_tac: removes the first hypothesis of the 'i'-th subgoal         *)
 (* ------------------------------------------------------------------------- *)
 
-fun weakening_tac i =
-  dresolve_tac [weakening_thm] i THEN assume_tac (i+1);
+fun weakening_tac ctxt i =
+  dresolve_tac [weakening_thm] i THEN assume_tac ctxt (i+1);
 
 (* ------------------------------------------------------------------------- *)
 (* cnf_rewrite_tac: converts all premises of the 'i'-th subgoal to CNF       *)
@@ -551,7 +551,7 @@ fun cnf_rewrite_tac ctxt i =
     let
       val n = Logic.count_prems ((Term.strip_all_body o fst o Logic.dest_implies o prop_of) thm)
     in
-      PRIMITIVE (funpow (n div 2) (Seq.hd o weakening_tac 1)) thm
+      PRIMITIVE (funpow (n div 2) (Seq.hd o weakening_tac ctxt 1)) thm
     end) i;
 
 (* ------------------------------------------------------------------------- *)
@@ -573,7 +573,7 @@ fun cnfx_rewrite_tac ctxt i =
     let
       val n = Logic.count_prems ((Term.strip_all_body o fst o Logic.dest_implies o prop_of) thm)
     in
-      PRIMITIVE (funpow (n div 2) (Seq.hd o weakening_tac 1)) thm
+      PRIMITIVE (funpow (n div 2) (Seq.hd o weakening_tac ctxt 1)) thm
     end) i;
 
 end;
