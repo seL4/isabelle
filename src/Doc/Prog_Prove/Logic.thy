@@ -537,23 +537,23 @@ Showing that all even numbers have some property is more complicated.  For
 example, let us prove that the inductive definition of even numbers agrees
 with the following recursive one:*}
 
-fun even :: "nat \<Rightarrow> bool" where
-"even 0 = True" |
-"even (Suc 0) = False" |
-"even (Suc(Suc n)) = even n"
+fun evn :: "nat \<Rightarrow> bool" where
+"evn 0 = True" |
+"evn (Suc 0) = False" |
+"evn (Suc(Suc n)) = evn n"
 
-text{* We prove @{prop"ev m \<Longrightarrow> even m"}.  That is, we
+text{* We prove @{prop"ev m \<Longrightarrow> evn m"}.  That is, we
 assume @{prop"ev m"} and by induction on the form of its derivation
-prove @{prop"even m"}. There are two cases corresponding to the two rules
+prove @{prop"evn m"}. There are two cases corresponding to the two rules
 for @{const ev}:
 \begin{description}
 \item[Case @{thm[source]ev0}:]
  @{prop"ev m"} was derived by rule @{prop "ev 0"}: \\
- @{text"\<Longrightarrow>"} @{prop"m=(0::nat)"} @{text"\<Longrightarrow>"} @{text "even m = even 0 = True"}
+ @{text"\<Longrightarrow>"} @{prop"m=(0::nat)"} @{text"\<Longrightarrow>"} @{text "evn m = evn 0 = True"}
 \item[Case @{thm[source]evSS}:]
  @{prop"ev m"} was derived by rule @{prop "ev n \<Longrightarrow> ev(n+2)"}: \\
-@{text"\<Longrightarrow>"} @{prop"m=n+(2::nat)"} and by induction hypothesis @{prop"even n"}\\
-@{text"\<Longrightarrow>"} @{text"even m = even(n + 2) = even n = True"}
+@{text"\<Longrightarrow>"} @{prop"m=n+(2::nat)"} and by induction hypothesis @{prop"evn n"}\\
+@{text"\<Longrightarrow>"} @{text"evn m = evn(n + 2) = evn n = True"}
 \end{description}
 
 What we have just seen is a special case of \concept{rule induction}.
@@ -627,7 +627,7 @@ text{* \indent
 Rule induction is applied by giving the induction rule explicitly via the
 @{text"rule:"} modifier:\index{inductionrule@@{text"induction ... rule:"}}*}
 
-lemma "ev m \<Longrightarrow> even m"
+lemma "ev m \<Longrightarrow> evn m"
 apply(induction rule: ev.induct)
 by(simp_all)
 
@@ -636,17 +636,17 @@ of the form @{prop"ev t"}, method @{text induction} will induct on the leftmost
 one.
 
 As a bonus, we also prove the remaining direction of the equivalence of
-@{const ev} and @{const even}:
+@{const ev} and @{const evn}:
 *}
 
-lemma "even n \<Longrightarrow> ev n"
-apply(induction n rule: even.induct)
+lemma "evn n \<Longrightarrow> ev n"
+apply(induction n rule: evn.induct)
 
 txt{* This is a proof by computation induction on @{text n} (see
 \autoref{sec:recursive-funs}) that sets up three subgoals corresponding to
-the three equations for @{const even}:
+the three equations for @{const evn}:
 @{subgoals[display,indent=0]}
-The first and third subgoals follow with @{thm[source]ev0} and @{thm[source]evSS}, and the second subgoal is trivially true because @{prop"even(Suc 0)"} is @{const False}:
+The first and third subgoals follow with @{thm[source]ev0} and @{thm[source]evSS}, and the second subgoal is trivially true because @{prop"evn(Suc 0)"} is @{const False}:
 *}
 
 by (simp_all add: ev0 evSS)
@@ -674,8 +674,8 @@ definition only expresses the positive information directly. The negative
 information, for example, that @{text 1} is not even, has to be proved from
 it (by induction or rule inversion). On the other hand, rule induction is
 tailor-made for proving \mbox{@{prop"ev n \<Longrightarrow> P n"}} because it only asks you
-to prove the positive cases. In the proof of @{prop"even n \<Longrightarrow> P n"} by
-computation induction via @{thm[source]even.induct}, we are also presented
+to prove the positive cases. In the proof of @{prop"evn n \<Longrightarrow> P n"} by
+computation induction via @{thm[source]evn.induct}, we are also presented
 with the trivial negative cases. If you want the convenience of both
 rewriting and rule induction, you can make two definitions and show their
 equivalence (as above) or make one definition and prove additional properties
