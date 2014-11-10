@@ -713,7 +713,7 @@ fun rename_client_map_tac ctxt =
   EVERY [
     simp_tac (ctxt addsimps [@{thm rename_guarantees_eq_rename_inv}]) 1,
     rtac @{thm guarantees_PLam_I} 1,
-    assume_tac 2,
+    assume_tac ctxt 2,
          (*preserves: routine reasoning*)
     asm_simp_tac (ctxt addsimps [@{thm lift_preserves_sub}]) 2,
          (*the guarantee for  "lift i (rename client_map Client)" *)

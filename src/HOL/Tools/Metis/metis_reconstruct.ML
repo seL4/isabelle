@@ -439,7 +439,10 @@ fun resynchronize ctxt fol_th th =
         val prems = prems0 |> map normalize_literal |> distinct Term.aconv_untyped
         val goal = Logic.list_implies (prems, concl)
         val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm th)) ctxt
-        val tac = cut_tac th 1 THEN rewrite_goals_tac ctxt' meta_not_not THEN ALLGOALS assume_tac
+        val tac =
+          cut_tac th 1 THEN
+          rewrite_goals_tac ctxt' meta_not_not THEN
+          ALLGOALS (assume_tac ctxt')
       in
         if length prems = length prems0 then
           raise METIS_RECONSTRUCT ("resynchronize", "Out of sync")
@@ -746,7 +749,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
             THEN ALLGOALS (fn i => resolve_tac @{thms Meson.skolem_COMBK_I} i
               THEN rotate_tac (rotation_of_subgoal i) i
               THEN PRIMITIVE (unify_first_prem_with_concl thy i)
-              THEN assume_tac i
+              THEN assume_tac ctxt' i
               THEN flexflex_tac ctxt')))
       handle ERROR msg =>
         cat_error msg

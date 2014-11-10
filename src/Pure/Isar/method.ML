@@ -167,7 +167,7 @@ fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
 in
 
 fun assm_tac ctxt =
-  assume_tac APPEND'
+  assume_tac ctxt APPEND'
   Goal.assume_rule_tac ctxt APPEND'
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
@@ -211,7 +211,7 @@ fun gen_rule_tac tac ctxt rules facts =
   THEN_ALL_NEW Goal.norm_hhf_tac ctxt;
 
 fun gen_arule_tac tac ctxt j rules facts =
-  EVERY' (gen_rule_tac tac ctxt rules facts :: replicate j assume_tac);
+  EVERY' (gen_rule_tac tac ctxt rules facts :: replicate j (assume_tac ctxt));
 
 fun gen_some_rule_tac tac ctxt arg_rules facts = SUBGOAL (fn (goal, i) =>
   let

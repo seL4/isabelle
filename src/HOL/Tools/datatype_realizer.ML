@@ -118,7 +118,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
             ALLGOALS (Object_Logic.atomize_prems_tac ctxt),
             rewrite_goals_tac ctxt (@{thm o_def} :: map mk_meta_eq rec_rewrites),
             REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
-              REPEAT (etac allE i) THEN atac i)) 1)])
+              REPEAT (etac allE i) THEN assume_tac ctxt i)) 1)])
       |> Drule.export_without_context;
 
     val ind_name = Thm.derivation_name induct;

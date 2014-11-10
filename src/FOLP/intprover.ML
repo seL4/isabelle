@@ -15,13 +15,13 @@ J. Symbolic Logic (in press)
 
 signature INT_PROVER = 
   sig
-  val best_tac: int -> tactic
-  val fast_tac: int -> tactic
-  val inst_step_tac: int -> tactic
-  val safe_step_tac: int -> tactic
+  val best_tac: Proof.context -> int -> tactic
+  val fast_tac: Proof.context -> int -> tactic
+  val inst_step_tac: Proof.context -> int -> tactic
+  val safe_step_tac: Proof.context -> int -> tactic
   val safe_brls: (bool * thm) list
-  val safe_tac: tactic
-  val step_tac: int -> tactic
+  val safe_tac: Proof.context -> tactic
+  val step_tac: Proof.context -> int -> tactic
   val haz_brls: (bool * thm) list
   end;
 
@@ -52,26 +52,26 @@ val (safe0_brls, safep_brls) =
     List.partition (curry (op =) 0 o subgoals_of_brl) safe_brls;
 
 (*Attack subgoals using safe inferences*)
-val safe_step_tac = FIRST' [uniq_assume_tac,
-                            int_uniq_mp_tac,
+fun safe_step_tac ctxt = FIRST' [uniq_assume_tac ctxt,
+                            int_uniq_mp_tac ctxt,
                             biresolve_tac safe0_brls,
                             hyp_subst_tac,
                             biresolve_tac safep_brls] ;
 
 (*Repeatedly attack subgoals using safe inferences*)
-val safe_tac = DETERM (REPEAT_FIRST safe_step_tac);
+fun safe_tac ctxt = DETERM (REPEAT_FIRST (safe_step_tac ctxt));
 
 (*These steps could instantiate variables and are therefore unsafe.*)
-val inst_step_tac = assume_tac APPEND' mp_tac;
+fun inst_step_tac ctxt = assume_tac ctxt APPEND' mp_tac ctxt;
 
 (*One safe or unsafe step. *)
-fun step_tac i = FIRST [safe_tac, inst_step_tac i, biresolve_tac haz_brls i];
+fun step_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac ctxt i, biresolve_tac haz_brls i];
 
 (*Dumb but fast*)
-val fast_tac = SELECT_GOAL (DEPTH_SOLVE (step_tac 1));
+fun fast_tac ctxt = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
 
 (*Slower but smarter than fast_tac*)
-val best_tac = 
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac 1));
+fun best_tac ctxt =
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac ctxt 1));
 
 end;

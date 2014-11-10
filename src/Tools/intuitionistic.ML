@@ -34,7 +34,7 @@ fun safe_step_tac ctxt =
 
 fun unsafe_step_tac ctxt =
   Context_Rules.wrap ctxt
-   (assume_tac APPEND'
+   (assume_tac ctxt APPEND'
     bires_tac false (Context_Rules.netpair_bang ctxt) APPEND'
     bires_tac false (Context_Rules.netpair ctxt));
 

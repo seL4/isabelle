@@ -301,7 +301,7 @@ fun make_elim_preserve ctxt rl =
 fun cut_inst_tac ctxt insts rule = res_inst_tac ctxt insts (make_elim_preserve ctxt rule);
 
 (*forward tactic applies a rule to an assumption without deleting it*)
-fun forw_inst_tac ctxt insts rule = cut_inst_tac ctxt insts rule THEN' assume_tac;
+fun forw_inst_tac ctxt insts rule = cut_inst_tac ctxt insts rule THEN' assume_tac ctxt;
 
 (*dresolve tactic applies a rule to replace an assumption*)
 fun dres_inst_tac ctxt insts rule = eres_inst_tac ctxt insts (make_elim_preserve ctxt rule);

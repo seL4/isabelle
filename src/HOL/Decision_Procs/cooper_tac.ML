@@ -80,7 +80,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
        TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1),
        TRY (simp_tac simpset3 1), TRY (simp_tac (put_simpset cooper_ss ctxt) 1)]
       (Thm.trivial ct))
-    fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
+    fun assm_tac i = REPEAT_DETERM_N nh (assume_tac ctxt i)
     (* The result of the quantifier elimination *)
     val (th, tac) =
       (case (prop_of pre_thm) of

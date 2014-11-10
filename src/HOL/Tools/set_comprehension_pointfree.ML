@@ -344,7 +344,7 @@ fun tac1_of_formula ctxt (Int (fm1, fm2)) =
     THEN' resolve_tac @{thms UnI2}
     THEN' tac1_of_formula ctxt fm2
   | tac1_of_formula ctxt (Atom _) =
-    REPEAT_DETERM1 o (assume_tac
+    REPEAT_DETERM1 o (assume_tac ctxt
       ORELSE' resolve_tac @{thms SigmaI}
       ORELSE' ((resolve_tac @{thms CollectI} ORELSE' resolve_tac [collectI']) THEN'
         TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]))
@@ -356,7 +356,7 @@ fun tac1_of_formula ctxt (Int (fm1, fm2)) =
       ORELSE' resolve_tac @{thms arg_cong2[OF refl, where f = "op =", OF prod.case, THEN iffD2]})))
       ORELSE' resolve_tac @{thms UNIV_I}
       ORELSE' resolve_tac @{thms iffD2[OF Compl_iff]}
-      ORELSE' assume_tac)
+      ORELSE' assume_tac ctxt)
 
 fun tac2_of_formula ctxt (Int (fm1, fm2)) =
     TRY o eresolve_tac @{thms IntE}
@@ -370,7 +370,7 @@ fun tac2_of_formula ctxt (Int (fm1, fm2)) =
     THEN' tac2_of_formula ctxt fm2
   | tac2_of_formula ctxt (Atom _) =
     REPEAT_DETERM o
-      (assume_tac
+      (assume_tac ctxt
        ORELSE' dresolve_tac @{thms iffD1[OF mem_Sigma_iff]}
        ORELSE' eresolve_tac @{thms conjE}
        ORELSE' ((eresolve_tac @{thms CollectE} ORELSE' eresolve_tac [collectE']) THEN'
@@ -434,14 +434,14 @@ fun comprehension_conv ctxt ct =
       THEN' simp_tac (put_simpset HOL_basic_ss ctxt addsimps unfold_thms)
       THEN' resolve_tac @{thms iffI}
       THEN' REPEAT_DETERM o resolve_tac @{thms exI}
-      THEN' resolve_tac @{thms conjI} THEN' resolve_tac @{thms refl} THEN' assume_tac
+      THEN' resolve_tac @{thms conjI} THEN' resolve_tac @{thms refl} THEN' assume_tac ctxt
       THEN' REPEAT_DETERM o eresolve_tac @{thms exE}
       THEN' eresolve_tac @{thms conjE}
       THEN' REPEAT_DETERM o eresolve_tac @{thms Pair_inject}
       THEN' Subgoal.FOCUS (fn {prems, ...} =>
         (* FIXME inner context!? *)
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps (filter is_eq prems)) 1) ctxt
-      THEN' TRY o assume_tac
+      THEN' TRY o assume_tac ctxt
   in
     case try mk_term (term_of ct) of
       NONE => Thm.reflexive ct

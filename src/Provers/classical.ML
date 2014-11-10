@@ -71,14 +71,14 @@ sig
   val depth_tac: Proof.context -> int -> int -> tactic
   val deepen_tac: Proof.context -> int -> int -> tactic
 
-  val contr_tac: int -> tactic
+  val contr_tac: Proof.context -> int -> tactic
   val dup_elim: Context.generic option -> thm -> thm
   val dup_intr: thm -> thm
   val dup_step_tac: Proof.context -> int -> tactic
   val eq_mp_tac: Proof.context -> int -> tactic
   val haz_step_tac: Proof.context -> int -> tactic
   val joinrules: thm list * thm list -> (bool * thm) list
-  val mp_tac: int -> tactic
+  val mp_tac: Proof.context -> int -> tactic
   val safe_tac: Proof.context -> tactic
   val safe_steps_tac: Proof.context -> int -> tactic
   val safe_step_tac: Proof.context -> int -> tactic
@@ -87,7 +87,7 @@ sig
   val step_tac: Proof.context -> int -> tactic
   val slow_step_tac: Proof.context -> int -> tactic
   val swapify: thm list -> thm list
-  val swap_res_tac: thm list -> int -> tactic
+  val swap_res_tac: Proof.context -> thm list -> int -> tactic
   val inst_step_tac: Proof.context -> int -> tactic
   val inst0_step_tac: Proof.context -> int -> tactic
   val instp_step_tac: Proof.context -> int -> tactic
@@ -179,12 +179,12 @@ fun flat_rule opt_context th =
 (*Prove goal that assumes both P and ~P.
   No backtracking if it finds an equal assumption.  Perhaps should call
   ematch_tac instead of eresolve_tac, but then cannot prove ZF/cantor.*)
-val contr_tac =
-  eresolve_tac [Data.not_elim] THEN' (eq_assume_tac ORELSE' assume_tac);
+fun contr_tac ctxt =
+  eresolve_tac [Data.not_elim] THEN' (eq_assume_tac ORELSE' assume_tac ctxt);
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q.
   Could do the same thing for P<->Q and P... *)
-fun mp_tac i = eresolve_tac [Data.not_elim, Data.imp_elim] i THEN assume_tac i;
+fun mp_tac ctxt i = eresolve_tac [Data.not_elim, Data.imp_elim] i THEN assume_tac ctxt i;
 
 (*Like mp_tac but instantiates no variables*)
 fun eq_mp_tac ctxt i = ematch_tac ctxt [Data.not_elim, Data.imp_elim] i THEN eq_assume_tac i;
@@ -195,10 +195,10 @@ val swapped = Thm.rule_attribute (fn _ => fn th => th RSN (2, Data.swap));
 
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
-fun swap_res_tac rls =
+fun swap_res_tac ctxt rls =
   let fun addrl rl brls = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls in
-    assume_tac ORELSE'
-    contr_tac ORELSE'
+    assume_tac ctxt ORELSE'
+    contr_tac ctxt ORELSE'
     biresolve_tac (fold_rev addrl rls [])
   end;
 
@@ -693,9 +693,9 @@ fun ctxt addafter (name, tac2) =
   ctxt addWrapper (name, fn ctxt => fn tac1 => tac1 APPEND' tac2 ctxt);
 
 fun ctxt addD2 (name, thm) =
-  ctxt addafter (name, fn _ => dresolve_tac [thm] THEN' assume_tac);
+  ctxt addafter (name, fn ctxt' => dresolve_tac [thm] THEN' assume_tac ctxt');
 fun ctxt addE2 (name, thm) =
-  ctxt addafter (name, fn _ => eresolve_tac [thm] THEN' assume_tac);
+  ctxt addafter (name, fn ctxt' => eresolve_tac [thm] THEN' assume_tac ctxt');
 fun ctxt addSD2 (name, thm) =
   ctxt addSafter (name, fn ctxt' => dmatch_tac ctxt' [thm] THEN' eq_assume_tac);
 fun ctxt addSE2 (name, thm) =
@@ -762,8 +762,8 @@ fun clarify_tac ctxt = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac ctxt 1));
 (*Backtracking is allowed among the various these unsafe ways of
   proving a subgoal.  *)
 fun inst0_step_tac ctxt =
-  assume_tac APPEND'
-  contr_tac APPEND'
+  assume_tac ctxt APPEND'
+  contr_tac ctxt APPEND'
   biresolve_from_nets_tac (#safe0_netpair (rep_claset_of ctxt));
 
 (*These unsafe steps could generate more subgoals.*)

@@ -438,11 +438,11 @@ fun gen_nominal_datatype prep_specs config dts thy =
         in
           fold (fn (s, tvs) => fn thy => Axclass.prove_arity
               (s, map (inter_sort thy [pt_name] o snd) tvs, [pt_name])
-              (fn _ => EVERY
+              (fn ctxt => EVERY
                 [Class.intro_classes_tac [],
                  resolve_tac perm_empty_thms 1,
                  resolve_tac perm_append_thms 1,
-                 resolve_tac perm_eq_thms 1, assume_tac 1]) thy)
+                 resolve_tac perm_eq_thms 1, assume_tac ctxt 1]) thy)
             (full_new_type_names' ~~ tyvars) thy
         end) atoms |>
       Global_Theory.add_thmss
@@ -562,7 +562,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
            [Old_Datatype_Aux.ind_tac rep_induct [] 1,
             ALLGOALS (simp_tac (ctxt addsimps
               (Thm.symmetric perm_fun_def :: abs_perm))),
-            ALLGOALS (resolve_tac rep_intrs THEN_ALL_NEW assume_tac)])),
+            ALLGOALS (resolve_tac rep_intrs THEN_ALL_NEW assume_tac ctxt)])),
         length new_type_names));
 
     val perm_closed_thmss = map mk_perm_closed atoms;
@@ -1721,9 +1721,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
                       (S $ Free x $ Free y, P $ (Free y)))
                         (rec_unique_frees'' ~~ rec_unique_frees' ~~
                            rec_sets ~~ rec_preds)))))
-               (fn _ =>
+               (fn {context = ctxt, ...} =>
                   rtac rec_induct 1 THEN
-                  REPEAT ((resolve_tac P_ind_ths THEN_ALL_NEW assume_tac) 1))));
+                  REPEAT ((resolve_tac P_ind_ths THEN_ALL_NEW assume_tac ctxt) 1))));
            val rec_fin_supp_thms' = map
              (fn (ths, (T, fin_ths)) => (T, map (curry op MRS fin_ths) ths))
              (rec_fin_supp_thms ~~ finite_thss);

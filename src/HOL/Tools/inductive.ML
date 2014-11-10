@@ -381,7 +381,7 @@ fun prove_mono quiet_mode skip_mono predT fp_fun monos ctxt =
     (fn _ => EVERY [resolve_tac @{thms monoI} 1,
       REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI'}] 1),
       REPEAT (FIRST
-        [assume_tac 1,
+        [assume_tac ctxt 1,
          resolve_tac (map (mk_mono ctxt) monos @ get_monos ctxt) 1,
          eresolve_tac @{thms le_funE} 1,
          dresolve_tac @{thms le_boolD} 1])]));
@@ -406,7 +406,7 @@ fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt'
         EVERY1 (select_disj (length intr_ts) (i + 1)),
         (*Not ares_tac, since refl must be tried before any equality assumptions;
           backtracking may occur if the premises have extra variables!*)
-        DEPTH_SOLVE_1 (resolve_tac rules 1 APPEND assume_tac 1)])
+        DEPTH_SOLVE_1 (resolve_tac rules 1 APPEND assume_tac ctxt 1)])
        |> singleton (Proof_Context.export ctxt ctxt')) intr_ts
 
   in (intrs, unfold) end;
@@ -544,7 +544,7 @@ local
 
 (*delete needless equality assumptions*)
 val refl_thin = Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
-  (fn _ => assume_tac 1);
+  (fn {context = ctxt, ...} => assume_tac ctxt 1);
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
 val elim_tac = REPEAT o eresolve_tac elim_rls;
 
@@ -741,7 +741,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
            some premise involves disjunction.*)
          REPEAT (FIRSTGOAL (eresolve_tac [conjE] ORELSE' bound_hyp_subst_tac ctxt3)),
          REPEAT (FIRSTGOAL
-           (resolve_tac [conjI, impI] ORELSE' (eresolve_tac [notE] THEN' assume_tac))),
+           (resolve_tac [conjI, impI] ORELSE' (eresolve_tac [notE] THEN' assume_tac ctxt3))),
          EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [rewrite_rule ctxt3
              (inductive_conj_def :: rec_preds_defs @ simp_thms2) prem,
            conjI, refl] 1)) prems)]);
@@ -752,9 +752,9 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
          REPEAT (EVERY
            [REPEAT (resolve_tac [conjI, impI] 1),
             REPEAT (eresolve_tac [@{thm le_funE}, @{thm le_boolE}] 1),
-            assume_tac 1,
+            assume_tac ctxt3 1,
             rewrite_goals_tac ctxt3 simp_thms1,
-            assume_tac 1])]);
+            assume_tac ctxt3 1])]);
 
   in singleton (Proof_Context.export ctxt'' ctxt''') (induct RS lemma) end;
 

@@ -81,16 +81,17 @@ fun is_rigid_elem (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_)
   | is_rigid_elem _ = false;
 
 (*Try solving a:A by assumption provided a is rigid!*)
-val test_assume_tac = SUBGOAL(fn (prem,i) =>
+fun test_assume_tac ctxt = SUBGOAL(fn (prem,i) =>
     if is_rigid_elem (Logic.strip_assums_concl prem)
-    then  assume_tac i  else  eq_assume_tac i);
+    then  assume_tac ctxt i  else  eq_assume_tac i);
 
 (*Type checking solves a:?A (a rigid, ?A maybe flexible).
   match_tac is too strict; would refuse to instantiate ?A*)
-fun typecheck_step_tac (TC{net,...}) =
-    FIRSTGOAL (test_assume_tac ORELSE' net_res_tac 3 net);
+fun typecheck_step_tac ctxt =
+  let val TC {net, ...} = tcset_of ctxt
+  in FIRSTGOAL (test_assume_tac ctxt ORELSE' net_res_tac 3 net) end;
 
-fun typecheck_tac ctxt = REPEAT (typecheck_step_tac (tcset_of ctxt));
+fun typecheck_tac ctxt = REPEAT (typecheck_step_tac ctxt);
 
 (*Compiles a term-net for speed*)
 val basic_res_tac = net_resolve_tac [@{thm TrueI}, @{thm refl}, reflexive_thm, @{thm iff_refl},
@@ -102,7 +103,7 @@ fun type_solver_tac ctxt hyps = SELECT_GOAL
     (DEPTH_SOLVE (eresolve_tac @{thms FalseE} 1
                   ORELSE basic_res_tac 1
                   ORELSE (ares_tac hyps 1
-                          APPEND typecheck_step_tac (tcset_of ctxt))));
+                          APPEND typecheck_step_tac ctxt)));
 
 val type_solver =
   Simplifier.mk_solver "ZF typecheck" (fn ctxt =>

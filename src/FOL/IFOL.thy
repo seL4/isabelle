@@ -208,7 +208,7 @@ lemma contrapos:
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
 ML {*
-  fun mp_tac i = eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  assume_tac i
+  fun mp_tac i = eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  atac i
   fun eq_mp_tac i = eresolve_tac [@{thm notE}, @{thm impE}] i  THEN  eq_assume_tac i
 *}
 

@@ -8,7 +8,7 @@ signature BASIC_TACTIC =
 sig
   val trace_goalno_tac: (int -> tactic) -> int -> tactic
   val rule_by_tactic: Proof.context -> tactic -> thm -> thm
-  val assume_tac: int -> tactic
+  val assume_tac: Proof.context -> int -> tactic
   val eq_assume_tac: int -> tactic
   val compose_tac: Proof.context -> (bool * thm * int) -> int -> tactic
   val make_elim: thm -> thm
@@ -101,7 +101,8 @@ fun rule_by_tactic ctxt tac rl =
      thus (REPEAT (resolve_tac rules i)) stops once subgoal i disappears. *)
 
 (*Solve subgoal i by assumption*)
-fun assume_tac i = PRIMSEQ (Thm.assumption NONE i);
+fun assume_tac ctxt i = PRIMSEQ (Thm.assumption (SOME ctxt) i);
+fun atac i = PRIMSEQ (Thm.assumption NONE i);
 
 (*Solve subgoal i by assumption, using no unification*)
 fun eq_assume_tac i = PRIMITIVE (Thm.eq_assumption i);
@@ -128,22 +129,21 @@ fun resolve_tac rules = biresolve_tac (map (pair false) rules);
 fun eresolve_tac rules = biresolve_tac (map (pair true) rules);
 
 (*Forward reasoning using destruction rules.*)
-fun forward_tac rls = resolve_tac (map make_elim rls) THEN' assume_tac;
+fun forward_tac rls = resolve_tac (map make_elim rls) THEN' atac;
 
 (*Like forward_tac, but deletes the assumption after use.*)
 fun dresolve_tac rls = eresolve_tac (map make_elim rls);
 
 (*Shorthand versions: for resolution with a single theorem*)
-val atac    =   assume_tac;
 fun rtac rl =  resolve_tac [rl];
 fun dtac rl = dresolve_tac [rl];
 fun etac rl = eresolve_tac [rl];
 fun ftac rl =  forward_tac [rl];
 
 (*Use an assumption or some rules ... A popular combination!*)
-fun ares_tac rules = assume_tac  ORELSE'  resolve_tac rules;
+fun ares_tac rules = atac  ORELSE'  resolve_tac rules;
 
-fun solve_tac rules = resolve_tac rules THEN_ALL_NEW assume_tac;
+fun solve_tac rules = resolve_tac rules THEN_ALL_NEW atac;
 
 (*Matching tactics -- as above, but forbid updating of state*)
 fun bimatch_tac ctxt brules i = PRIMSEQ (Thm.biresolution (SOME ctxt) true brules i);

@@ -110,7 +110,7 @@ fun ns_constrains_tac ctxt i =
       full_simp_tac ctxt 1,
       REPEAT (FIRSTGOAL (etac disjE)),
       ALLGOALS (clarify_tac (ctxt delrules [impI, @{thm impCE}])),
-      REPEAT (FIRSTGOAL analz_mono_contra_tac),
+      REPEAT (FIRSTGOAL (analz_mono_contra_tac ctxt)),
       ALLGOALS (asm_simp_tac ctxt)]) i;
 
 (*Tactic for proving secrecy theorems*)

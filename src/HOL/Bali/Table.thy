@@ -396,7 +396,7 @@ apply  (erule not_sym)
 apply (rename_tac "ba")
 apply (drule_tac x = "ba" in spec)
 apply clarify
-apply (tactic "smp_tac 2 1")
+apply (tactic "smp_tac @{context} 2 1")
 apply (erule (1) notE impE)
 apply (case_tac "aa = b")
 apply fast+

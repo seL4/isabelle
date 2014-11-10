@@ -18,19 +18,19 @@ signature TSIMP_DATA =
   (*Built-in rewrite rules*)
   val default_rls: thm list
   (*Type checking or similar -- solution of routine conditions*)
-  val routine_tac: thm list -> int -> tactic
+  val routine_tac: Proof.context -> thm list -> int -> tactic
   end;
 
 signature TSIMP =
   sig
-  val asm_res_tac: thm list -> int -> tactic   
-  val cond_norm_tac: ((int->tactic) * thm list * thm list) -> tactic
-  val cond_step_tac: ((int->tactic) * thm list * thm list) -> int -> tactic
-  val norm_tac: (thm list * thm list) -> tactic
+  val asm_res_tac: Proof.context -> thm list -> int -> tactic   
+  val cond_norm_tac: Proof.context -> ((int->tactic) * thm list * thm list) -> tactic
+  val cond_step_tac: Proof.context -> ((int->tactic) * thm list * thm list) -> int -> tactic
+  val norm_tac: Proof.context -> (thm list * thm list) -> tactic
   val process_rules: thm list -> thm list * thm list
   val rewrite_res_tac: int -> tactic   
   val split_eqn: thm
-  val step_tac: (thm list * thm list) -> int -> tactic
+  val step_tac: Proof.context -> (thm list * thm list) -> int -> tactic
   val subconv_res_tac: thm list -> int -> tactic   
   end;
 
@@ -95,29 +95,29 @@ fun subconv_res_tac congr_rls =
   ORELSE'  filt_resolve_tac [refl,refl_red] 1;
 
 (*Resolve with asms, whether rewrites or not*)
-fun asm_res_tac asms =
+fun asm_res_tac ctxt asms =
     let val (xsimp_rls,xother_rls) = process_rules asms
-    in  routine_tac xother_rls  ORELSE'  
+    in  routine_tac ctxt xother_rls  ORELSE'  
         filt_resolve_tac xsimp_rls 2
     end;
 
 (*Single step for simple rewriting*)
-fun step_tac (congr_rls,asms) =
-    asm_res_tac asms   ORELSE'  rewrite_res_tac  ORELSE'  
+fun step_tac ctxt (congr_rls,asms) =
+    asm_res_tac ctxt asms   ORELSE'  rewrite_res_tac  ORELSE'  
     subconv_res_tac congr_rls;
 
 (*Single step for conditional rewriting: prove_cond_tac handles new subgoals.*)
-fun cond_step_tac (prove_cond_tac, congr_rls, asms) =
-    asm_res_tac asms   ORELSE'  rewrite_res_tac  ORELSE'  
+fun cond_step_tac ctxt (prove_cond_tac, congr_rls, asms) =
+    asm_res_tac ctxt asms   ORELSE'  rewrite_res_tac  ORELSE'  
     (resolve_tac [trans, red_trans]  THEN'  prove_cond_tac)  ORELSE'  
     subconv_res_tac congr_rls;
 
 (*Unconditional normalization tactic*)
-fun norm_tac arg = REPEAT_FIRST (step_tac arg)  THEN
+fun norm_tac ctxt arg = REPEAT_FIRST (step_tac ctxt arg)  THEN
     TRYALL (resolve_tac [red_if_equal]);
 
 (*Conditional normalization tactic*)
-fun cond_norm_tac arg = REPEAT_FIRST (cond_step_tac arg)  THEN
+fun cond_norm_tac ctxt arg = REPEAT_FIRST (cond_step_tac ctxt arg)  THEN
     TRYALL (resolve_tac [red_if_equal]);
 
 end;

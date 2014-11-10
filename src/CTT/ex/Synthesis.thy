@@ -12,21 +12,21 @@ begin
 text "discovery of predecessor function"
 schematic_lemma "?a : SUM pred:?A . Eq(N, pred`0, 0)
                   *  (PROD n:N. Eq(N, pred ` succ(n), n))"
-apply (tactic "intr_tac []")
-apply (tactic eqintr_tac)
+apply (tactic "intr_tac @{context} []")
+apply (tactic "eqintr_tac @{context}")
 apply (rule_tac [3] reduction_rls)
 apply (rule_tac [5] comp_rls)
-apply (tactic "rew_tac []")
+apply (tactic "rew_tac @{context} []")
 done
 
 text "the function fst as an element of a function type"
 schematic_lemma [folded basic_defs]:
   "A type ==> ?a: SUM f:?B . PROD i:A. PROD j:A. Eq(A, f ` <i,j>, i)"
-apply (tactic "intr_tac []")
-apply (tactic eqintr_tac)
+apply (tactic "intr_tac @{context} []")
+apply (tactic "eqintr_tac @{context}")
 apply (rule_tac [2] reduction_rls)
 apply (rule_tac [4] comp_rls)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 txt "now put in A everywhere"
 apply assumption+
 done
@@ -36,10 +36,10 @@ text "An interesting use of the eliminator, when"
   See following example.*)
 schematic_lemma "?a : PROD i:N. Eq(?A, ?b(inl(i)), <0    ,   i>)
                    * Eq(?A, ?b(inr(i)), <succ(0), i>)"
-apply (tactic "intr_tac []")
-apply (tactic eqintr_tac)
+apply (tactic "intr_tac @{context} []")
+apply (tactic "eqintr_tac @{context}")
 apply (rule comp_rls)
-apply (tactic "rew_tac []")
+apply (tactic "rew_tac @{context} []")
 done
 
 (*Here we allow the type to depend on i.
@@ -55,13 +55,13 @@ text "A tricky combination of when and split"
 schematic_lemma [folded basic_defs]:
   "?a : PROD i:N. PROD j:N. Eq(?A, ?b(inl(<i,j>)), i)
                            *  Eq(?A, ?b(inr(<i,j>)), j)"
-apply (tactic "intr_tac []")
-apply (tactic eqintr_tac)
+apply (tactic "intr_tac @{context} []")
+apply (tactic "eqintr_tac @{context}")
 apply (rule PlusC_inl [THEN trans_elem])
 apply (rule_tac [4] comp_rls)
 apply (rule_tac [7] reduction_rls)
 apply (rule_tac [10] comp_rls)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 done
 
 (*similar but allows the type to depend on i and j*)
@@ -79,10 +79,10 @@ text "Deriving the addition operator"
 schematic_lemma [folded arith_defs]:
   "?c : PROD n:N. Eq(N, ?f(0,n), n)
                   *  (PROD m:N. Eq(N, ?f(succ(m), n), succ(?f(m,n))))"
-apply (tactic "intr_tac []")
-apply (tactic eqintr_tac)
+apply (tactic "intr_tac @{context} []")
+apply (tactic "eqintr_tac @{context}")
 apply (rule comp_rls)
-apply (tactic "rew_tac []")
+apply (tactic "rew_tac @{context} []")
 done
 
 text "The addition function -- using explicit lambdas"
@@ -90,15 +90,15 @@ schematic_lemma [folded arith_defs]:
   "?c : SUM plus : ?A .
          PROD x:N. Eq(N, plus`0`x, x)
                 *  (PROD y:N. Eq(N, plus`succ(y)`x, succ(plus`y`x)))"
-apply (tactic "intr_tac []")
-apply (tactic eqintr_tac)
+apply (tactic "intr_tac @{context} []")
+apply (tactic "eqintr_tac @{context}")
 apply (tactic "resolve_tac [TSimp.split_eqn] 3")
-apply (tactic "SELECT_GOAL (rew_tac []) 4")
+apply (tactic "SELECT_GOAL (rew_tac @{context} []) 4")
 apply (tactic "resolve_tac [TSimp.split_eqn] 3")
-apply (tactic "SELECT_GOAL (rew_tac []) 4")
+apply (tactic "SELECT_GOAL (rew_tac @{context} []) 4")
 apply (rule_tac [3] p = "y" in NC_succ)
   (**  by (resolve_tac comp_rls 3);  caused excessive branching  **)
-apply (tactic "rew_tac []")
+apply (tactic "rew_tac @{context} []")
 done
 
 end

@@ -183,7 +183,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
                 REPEAT_DETERM_N j distinct_tac,
                 TRY (dresolve_tac inject 1),
                 REPEAT (eresolve_tac [conjE] 1), hyp_subst_tac ctxt 1,
-                REPEAT (EVERY [eresolve_tac [allE] 1, dresolve_tac [mp] 1, assume_tac 1]),
+                REPEAT (EVERY [eresolve_tac [allE] 1, dresolve_tac [mp] 1, assume_tac ctxt 1]),
                 TRY (hyp_subst_tac ctxt 1),
                 resolve_tac [refl] 1,
                 REPEAT_DETERM_N (n - j - 1) distinct_tac],

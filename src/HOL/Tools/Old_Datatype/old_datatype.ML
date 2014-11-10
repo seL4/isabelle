@@ -382,8 +382,8 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
                    (map (pair "x") Ts, S $ Old_Datatype_Aux.app_bnds f i)),
                  HOLogic.mk_Trueprop (HOLogic.mk_eq (fold_rev (Term.abs o pair "x") Ts
                    (r $ (a $ Old_Datatype_Aux.app_bnds f i)), f))))
-              (fn _ => EVERY [REPEAT_DETERM_N i (rtac @{thm ext} 1),
-                 REPEAT (etac allE 1), rtac thm 1, atac 1])
+              (fn {context = ctxt, ...} => EVERY [REPEAT_DETERM_N i (rtac @{thm ext} 1),
+                 REPEAT (etac allE 1), rtac thm 1, assume_tac ctxt 1])
           end
       in map (fn r => r RS subst) (thm :: map mk_thm arities) end;
 
@@ -431,12 +431,12 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
                        [REPEAT (eresolve_tac (Scons_inject ::
                           map make_elim [Leaf_inject, Inl_inject, Inr_inject]) 1),
                         REPEAT (cong_tac ctxt 1), rtac refl 1,
-                        REPEAT (atac 1 ORELSE (EVERY
+                        REPEAT (assume_tac ctxt 1 ORELSE (EVERY
                           [REPEAT (rtac @{thm ext} 1),
                            REPEAT (eresolve_tac (mp :: allE ::
                              map make_elim (Suml_inject :: Sumr_inject ::
                                Lim_inject :: inj_thms') @ fun_congs) 1),
-                           atac 1]))])])])]);
+                           assume_tac ctxt 1]))])])])]);
 
         val inj_thms'' = map (fn r => r RS datatype_injI) (Old_Datatype_Aux.split_conj_thm inj_thm);
 
@@ -565,7 +565,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
              REPEAT (eresolve_tac inj_thms 1),
              REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [REPEAT (rtac @{thm ext} 1),
                REPEAT (eresolve_tac (make_elim fun_cong :: inj_thms) 1),
-               atac 1]))])
+               assume_tac ctxt 1]))])
       end;
 
     val constr_inject =

@@ -352,7 +352,7 @@ ML {*
 (*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac ctxt sact =
   SELECT_GOAL
-    (EVERY [REPEAT (Always_Int_tac 1),
+    (EVERY [REPEAT (Always_Int_tac ctxt 1),
             etac @{thm Always_LeadsTo_Basis} 1
                 ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
                 REPEAT (ares_tac [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},

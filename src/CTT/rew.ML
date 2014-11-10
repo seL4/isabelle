@@ -23,7 +23,7 @@ structure TSimp_data: TSIMP_DATA =
   val trans_red         = @{thm trans_red}
   val red_if_equal      = @{thm red_if_equal}
   val default_rls       = @{thms comp_rls}
-  val routine_tac       = routine_tac (@{thms routine_rls})
+  val routine_tac       = routine_tac @{thms routine_rls}
   end;
 
 structure TSimp = TSimpFun (TSimp_data);
@@ -31,12 +31,12 @@ structure TSimp = TSimpFun (TSimp_data);
 val standard_congr_rls = @{thms intrL2_rls} @ @{thms elimL_rls};
 
 (*Make a rewriting tactic from a normalization tactic*)
-fun make_rew_tac ntac =
-    TRY eqintr_tac  THEN  TRYALL (resolve_tac [TSimp.split_eqn])  THEN  
+fun make_rew_tac ctxt ntac =
+    TRY (eqintr_tac ctxt)  THEN  TRYALL (resolve_tac [TSimp.split_eqn])  THEN  
     ntac;
 
-fun rew_tac thms = make_rew_tac
-    (TSimp.norm_tac(standard_congr_rls, thms));
+fun rew_tac ctxt thms = make_rew_tac ctxt
+    (TSimp.norm_tac ctxt (standard_congr_rls, thms));
 
-fun hyp_rew_tac thms = make_rew_tac
-    (TSimp.cond_norm_tac(prove_cond_tac, standard_congr_rls, thms));
+fun hyp_rew_tac ctxt thms = make_rew_tac ctxt
+    (TSimp.cond_norm_tac ctxt (prove_cond_tac, standard_congr_rls, thms));

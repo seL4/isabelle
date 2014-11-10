@@ -260,10 +260,10 @@ lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)"] for Y ev
 
 ML
 {*
-val analz_mono_contra_tac = 
+fun analz_mono_contra_tac ctxt =
   rtac @{thm analz_impI} THEN' 
   REPEAT1 o (dresolve_tac @{thms analz_mono_contra})
-  THEN' mp_tac
+  THEN' mp_tac ctxt
 *}
 
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
@@ -285,7 +285,7 @@ by (force
     intro: analz_subset_parts [THEN subsetD] parts_mono [THEN [2] rev_subsetD])
 
 method_setup analz_mono_contra = {*
-    Scan.succeed (K (SIMPLE_METHOD (REPEAT_FIRST analz_mono_contra_tac))) *}
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (analz_mono_contra_tac ctxt))) *}
     "for proving theorems of the form X \<notin> analz (knows Spy evs) --> P"
 
 subsubsection{*Useful for case analysis on whether a hash is a spoof or not*}
@@ -330,7 +330,7 @@ val knows_Spy_subset_knows_Spy_Notes = @{thm knows_Spy_subset_knows_Spy_Notes};
 val knows_Spy_subset_knows_Spy_Gets = @{thm knows_Spy_subset_knows_Spy_Gets};
 
 
-val synth_analz_mono_contra_tac = 
+fun synth_analz_mono_contra_tac ctxt = 
   rtac @{thm syan_impI} THEN'
   REPEAT1 o 
     (dresolve_tac 
@@ -338,11 +338,11 @@ val synth_analz_mono_contra_tac =
       @{thm knows_Spy_subset_knows_Spy_Notes} RS @{thm synth_analz_mono} RS @{thm contra_subsetD},
       @{thm knows_Spy_subset_knows_Spy_Gets} RS @{thm synth_analz_mono} RS @{thm contra_subsetD}])
   THEN'
-  mp_tac
+  mp_tac ctxt
 *}
 
 method_setup synth_analz_mono_contra = {*
-    Scan.succeed (K (SIMPLE_METHOD (REPEAT_FIRST synth_analz_mono_contra_tac))) *}
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (synth_analz_mono_contra_tac ctxt))) *}
     "for proving theorems of the form X \<notin> synth (analz (knows Spy evs)) --> P"
 (*>*)
 

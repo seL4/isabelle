@@ -152,7 +152,7 @@ lemma Thin_lemma:
   "(A' |\<turnstile>  C         \<longrightarrow> (\<forall>A. A' \<subseteq> A \<longrightarrow> A |\<turnstile>  C       )) \<and> 
    (A'  \<turnstile>\<^sub>e {P} e {Q} \<longrightarrow> (\<forall>A. A' \<subseteq> A \<longrightarrow> A  \<turnstile>\<^sub>e {P} e {Q}))"
 apply (rule hoare_ehoare.induct)
-apply (tactic "ALLGOALS(EVERY'[clarify_tac @{context}, REPEAT o smp_tac 1])")
+apply (tactic "ALLGOALS(EVERY'[clarify_tac @{context}, REPEAT o smp_tac @{context} 1])")
 apply (blast intro: hoare_ehoare.Skip)
 apply (blast intro: hoare_ehoare.Comp)
 apply (blast intro: hoare_ehoare.Cond)
@@ -164,7 +164,7 @@ apply (blast intro: hoare_ehoare.FAss)
 apply (blast intro: hoare_ehoare.NewC)
 apply (blast intro: hoare_ehoare.Cast)
 apply (erule hoare_ehoare.Call)
-apply   (rule, drule spec, erule conjE, tactic "smp_tac 1 1", assumption)
+apply   (rule, drule spec, erule conjE, tactic "smp_tac @{context} 1 1", assumption)
 apply  blast
 apply (blast intro!: hoare_ehoare.Meth)
 apply (blast intro!: hoare_ehoare.Impl)
@@ -172,9 +172,9 @@ apply (blast intro!: hoare_ehoare.Asm)
 apply (blast intro: hoare_ehoare.ConjI)
 apply (blast intro: hoare_ehoare.ConjE)
 apply (rule hoare_ehoare.Conseq)
-apply  (rule, drule spec, erule conjE, tactic "smp_tac 1 1", assumption+)
+apply  (rule, drule spec, erule conjE, tactic "smp_tac @{context} 1 1", assumption+)
 apply (rule hoare_ehoare.eConseq)
-apply  (rule, drule spec, erule conjE, tactic "smp_tac 1 1", assumption+)
+apply  (rule, drule spec, erule conjE, tactic "smp_tac @{context} 1 1", assumption+)
 done
 
 lemma cThin: "\<lbrakk>A' |\<turnstile> C; A' \<subseteq> A\<rbrakk> \<Longrightarrow> A |\<turnstile> C"

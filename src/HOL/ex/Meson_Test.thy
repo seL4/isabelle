@@ -40,7 +40,7 @@ lemma problem_25:
     val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go25 :: horns25)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       rtac go25 1 THEN
-      Meson.depth_prolog_tac horns25);
+      Meson.depth_prolog_tac ctxt' horns25);
   *}
   oops
 
@@ -66,7 +66,7 @@ lemma problem_26:
     val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go26 :: horns26)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       rtac go26 1 THEN
-      Meson.depth_prolog_tac horns26);  (*7 ms*)
+      Meson.depth_prolog_tac ctxt' horns26);  (*7 ms*)
     (*Proof is of length 107!!*)
   *}
   oops
@@ -93,7 +93,7 @@ lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
     val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go43 :: horns43)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       rtac go43 1 THEN
-      Meson.best_prolog_tac Meson.size_of_subgoals horns43);   (*7ms*)
+      Meson.best_prolog_tac ctxt' Meson.size_of_subgoals horns43);   (*7ms*)
     *}
   oops
 

@@ -33,7 +33,7 @@ subsection {* Derivation of rules for the type Bool *}
 (*formation rule*)
 lemma boolF: "Bool type"
 apply (unfold bool_defs)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 done
 
 
@@ -41,21 +41,21 @@ done
 
 lemma boolI_true: "true : Bool"
 apply (unfold bool_defs)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 done
 
 lemma boolI_false: "false : Bool"
 apply (unfold bool_defs)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 done
 
 (*elimination rule: typing of cond*)
 lemma boolE: 
     "[| p:Bool;  a : C(true);  b : C(false) |] ==> cond(p,a,b) : C(p)"
 apply (unfold bool_defs)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 apply (erule_tac [!] TE)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 done
 
 lemma boolEL: 
@@ -72,18 +72,18 @@ lemma boolC_true:
     "[| a : C(true);  b : C(false) |] ==> cond(true,a,b) = a : C(true)"
 apply (unfold bool_defs)
 apply (rule comp_rls)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 apply (erule_tac [!] TE)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 done
 
 lemma boolC_false: 
     "[| a : C(true);  b : C(false) |] ==> cond(false,a,b) = b : C(false)"
 apply (unfold bool_defs)
 apply (rule comp_rls)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 apply (erule_tac [!] TE)
-apply (tactic "typechk_tac []")
+apply (tactic "typechk_tac @{context} []")
 done
 
 end
