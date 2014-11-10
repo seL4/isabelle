@@ -6449,23 +6449,6 @@ context
 begin
 interpretation lifting_syntax .
 
-lemma Nil_transfer [transfer_rule]: "(list_all2 A) [] []"
-  by simp
-
-lemma Cons_transfer [transfer_rule]:
-  "(A ===> list_all2 A ===> list_all2 A) Cons Cons"
-  unfolding rel_fun_def by simp
-
-lemma case_list_transfer [transfer_rule]:
-  "(B ===> (A ===> list_all2 A ===> B) ===> list_all2 A ===> B)
-    case_list case_list"
-  unfolding rel_fun_def by (simp split: list.split)
-
-lemma rec_list_transfer [transfer_rule]:
-  "(B ===> (A ===> list_all2 A ===> B ===> B) ===> list_all2 A ===> B)
-    rec_list rec_list"
-  unfolding rel_fun_def by (clarify, erule list_all2_induct, simp_all)
-
 lemma tl_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) tl tl"
   unfolding tl_def[abs_def] by transfer_prover
@@ -6474,16 +6457,8 @@ lemma butlast_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) butlast butlast"
   by (rule rel_funI, erule list_all2_induct, auto)
 
-lemma set_transfer [transfer_rule]:
-  "(list_all2 A ===> rel_set A) set set"
-  unfolding set_rec[abs_def] by transfer_prover
-
 lemma map_rec: "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
   by (induct xs) auto
-
-lemma map_transfer [transfer_rule]:
-  "((A ===> B) ===> list_all2 A ===> list_all2 B) map map"
-  unfolding map_rec[abs_def] by transfer_prover
 
 lemma append_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A ===> list_all2 A) append append"
@@ -6595,14 +6570,6 @@ lemma rotate1_transfer [transfer_rule]:
 lemma rotate_transfer [transfer_rule]:
   "(op = ===> list_all2 A ===> list_all2 A) rotate rotate"
   unfolding rotate_def [abs_def] by transfer_prover
-
-lemma list_all2_transfer [transfer_rule]:
-  "((A ===> B ===> op =) ===> list_all2 A ===> list_all2 B ===> op =)
-    list_all2 list_all2"
-  apply (subst (4) list_all2_iff [abs_def])
-  apply (subst (3) list_all2_iff [abs_def])
-  apply transfer_prover
-  done
 
 lemma sublist_transfer [transfer_rule]:
   "(list_all2 A ===> rel_set (op =) ===> list_all2 A) sublist sublist"

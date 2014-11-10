@@ -117,7 +117,7 @@ lemma map_rsp [quot_respect]:
   and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((R1 ===> R2) ===> (list_all2 R1) ===> list_all2 R2) map map"
   and   "((R1 ===> op =) ===> (list_all2 R1) ===> op =) map map"
-  unfolding list_all2_eq [symmetric] by (rule map_transfer)+
+  unfolding list_all2_eq [symmetric] by (rule list.map_transfer)+
 
 lemma foldr_prs_aux:
   assumes a: "Quotient3 R1 abs1 rep1"
@@ -169,7 +169,7 @@ lemma list_all2_rsp:
 
 lemma [quot_respect]:
   "((R ===> R ===> op =) ===> list_all2 R ===> list_all2 R ===> op =) list_all2 list_all2"
-  by (rule list_all2_transfer)
+  by (rule list.rel_transfer)
 
 lemma [quot_preserve]:
   assumes a: "Quotient3 R abs1 rep1"

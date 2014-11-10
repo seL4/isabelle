@@ -39,21 +39,21 @@ quotient_type 'a fset = "'a list" / "list_eq" parametric list_eq_transfer
 
 subsection {* Lifted constant definitions *}
 
-lift_definition fnil :: "'a fset" ("{||}") is "[]" parametric Nil_transfer .
+lift_definition fnil :: "'a fset" ("{||}") is "[]" parametric list.ctr_transfer(1) .
 
-lift_definition fcons :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Cons parametric Cons_transfer
+lift_definition fcons :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Cons parametric list.ctr_transfer(2)
   by simp
 
 lift_definition fappend :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is append parametric append_transfer
   by simp
 
-lift_definition fmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" is map parametric map_transfer
+lift_definition fmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" is map parametric list.map_transfer
   by simp
 
 lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is filter parametric filter_transfer
   by simp
 
-lift_definition fset :: "'a fset \<Rightarrow> 'a set" is set parametric set_transfer
+lift_definition fset :: "'a fset \<Rightarrow> 'a set" is set parametric list.set_transfer
   by simp
 
 text {* Constants with nested types (like concat) yield a more
