@@ -251,10 +251,13 @@ fun mk_corec_transfer_tac ctxt actives passives type_definitions corec_defs dtor
     val num_pgs = length pgs;
     fun prem_no_of x = 1 + find_index (curry (op =) x) pgs;
 
-    val Inl_Inr_Pair_tac = REPEAT_DETERM o
-      (rtac (mk_rel_funDN 1 @{thm Inl_transfer}) ORELSE'
-       rtac (mk_rel_funDN 1 @{thm Inr_transfer}) ORELSE'
-       rtac (mk_rel_funDN 2 @{thm Pair_transfer}));
+    val Inl_Inr_Pair_tac = REPEAT_DETERM o (resolve_tac
+      [mk_rel_funDN 1 @{thm Inl_transfer},
+       mk_rel_funDN 1 @{thm Inl_transfer[of "op =" "op =", unfolded sum.rel_eq]},
+       mk_rel_funDN 1 @{thm Inr_transfer},
+       mk_rel_funDN 1 @{thm Inr_transfer[of "op =" "op =", unfolded sum.rel_eq]},
+       mk_rel_funDN 2 @{thm Pair_transfer},
+       mk_rel_funDN 2 @{thm Pair_transfer[of "op =" "op =", unfolded prod.rel_eq]}]);
 
     fun mk_unfold_If_tac total pos =
       HEADGOAL (Inl_Inr_Pair_tac THEN'
