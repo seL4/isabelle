@@ -26,7 +26,7 @@ local
 
 fun reports_of_token tok =
   let
-    val {text, pos, ...} = Token.source_position_of tok;
+    val {text, range = (pos, _), ...} = Token.source_position_of tok;
     val malformed_symbols =
       Symbol_Pos.explode (text, pos)
       |> map_filter (fn (sym, pos) =>

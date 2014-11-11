@@ -13,7 +13,7 @@ val _ =
         let
           val [{src_path, lines, digest, pos}] = files (Context.theory_of gthy);
           val provide = Resources.provide (src_path, digest);
-          val source = {delimited = true, text = cat_lines lines, pos = pos};
+          val source = {delimited = true, text = cat_lines lines, range = (pos, pos)};
           val flags = {SML = false, exchange = false, redirect = true, verbose = true};
         in
           gthy

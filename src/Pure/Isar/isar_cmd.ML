@@ -60,12 +60,14 @@ struct
 
 fun global_setup source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source) "val setup: theory -> theory" "Context.map_theory setup"
+  |> ML_Context.expression (#range source)
+    "val setup: theory -> theory" "Context.map_theory setup"
   |> Context.theory_map;
 
 fun local_setup source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source) "val setup: local_theory -> local_theory" "Context.map_proof setup"
+  |> ML_Context.expression (#range source)
+    "val setup: local_theory -> local_theory" "Context.map_proof setup"
   |> Context.proof_map;
 
 
@@ -73,35 +75,35 @@ fun local_setup source =
 
 fun parse_ast_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source)
+  |> ML_Context.expression (#range source)
     "val parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
     "Context.map_theory (Sign.parse_ast_translation parse_ast_translation)"
   |> Context.theory_map;
 
 fun parse_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source)
+  |> ML_Context.expression (#range source)
     "val parse_translation: (string * (Proof.context -> term list -> term)) list"
     "Context.map_theory (Sign.parse_translation parse_translation)"
   |> Context.theory_map;
 
 fun print_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source)
+  |> ML_Context.expression (#range source)
     "val print_translation: (string * (Proof.context -> term list -> term)) list"
     "Context.map_theory (Sign.print_translation print_translation)"
   |> Context.theory_map;
 
 fun typed_print_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source)
+  |> ML_Context.expression (#range source)
     "val typed_print_translation: (string * (Proof.context -> typ -> term list -> term)) list"
     "Context.map_theory (Sign.typed_print_translation typed_print_translation)"
   |> Context.theory_map;
 
 fun print_ast_translation source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source)
+  |> ML_Context.expression (#range source)
     "val print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
     "Context.map_theory (Sign.print_ast_translation print_ast_translation)"
   |> Context.theory_map;
@@ -139,7 +141,7 @@ fun oracle (name, pos) source =
         \end;\n");
   in
     Context.theory_map
-      (ML_Context.exec (fn () => ML_Context.eval ML_Compiler.flags (#pos source) ants))
+      (ML_Context.exec (fn () => ML_Context.eval ML_Compiler.flags (#1 (#range source)) ants))
   end;
 
 
@@ -158,7 +160,7 @@ fun add_defs ((unchecked, overloaded), args) thy =
 
 fun declaration {syntax, pervasive} source =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source)
+  |> ML_Context.expression (#range source)
     "val declaration: Morphism.declaration"
     ("Context.map_proof (Local_Theory.declaration {syntax = " ^ Bool.toString syntax ^ ", \
       \pervasive = " ^ Bool.toString pervasive ^ "} declaration)")
@@ -169,7 +171,7 @@ fun declaration {syntax, pervasive} source =
 
 fun simproc_setup name lhss source identifier =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#pos source)
+  |> ML_Context.expression (#range source)
     "val proc: Morphism.morphism -> Proof.context -> cterm -> thm option"
     ("Context.map_proof (Simplifier.def_simproc_cmd {name = " ^ ML_Syntax.make_binding name ^ ", \
       \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \

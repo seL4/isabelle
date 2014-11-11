@@ -25,8 +25,8 @@ sig
   val eval_in: Proof.context option -> ML_Compiler.flags -> Position.T ->
     ML_Lex.token Antiquote.antiquote list -> unit
   val eval_source_in: Proof.context option -> ML_Compiler.flags -> Symbol_Pos.source -> unit
-  val expression: Position.T -> string -> string -> ML_Lex.token Antiquote.antiquote list ->
-    Context.generic -> Context.generic
+  val expression: Position.range -> string -> string ->
+    ML_Lex.token Antiquote.antiquote list -> Context.generic -> Context.generic
 end
 
 structure ML_Context: ML_CONTEXT =
@@ -173,7 +173,7 @@ fun eval_file flags path =
   in eval flags pos (ML_Lex.read pos (File.read path)) end;
 
 fun eval_source flags source =
-  eval flags (#pos source) (ML_Lex.read_source (#SML flags) source);
+  eval flags (#1 (#range source)) (ML_Lex.read_source (#SML flags) source);
 
 fun eval_in ctxt flags pos ants =
   Context.setmp_thread_data (Option.map Context.Proof ctxt)
@@ -183,11 +183,12 @@ fun eval_source_in ctxt flags source =
   Context.setmp_thread_data (Option.map Context.Proof ctxt)
     (fn () => eval_source flags source) ();
 
-fun expression pos bind body ants =
+fun expression range bind body ants =
   exec (fn () =>
-    eval ML_Compiler.flags pos
-     (ML_Lex.read Position.none ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @ ants @
-      ML_Lex.read Position.none (" in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
+    eval ML_Compiler.flags (#1 range)
+     (ML_Lex.read_set_range range ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @
+      ants @
+      ML_Lex.read_set_range range (" in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
 
 end;
 

@@ -47,6 +47,7 @@ sig
   val completionN: string val completion: T
   val no_completionN: string val no_completion: T
   val lineN: string
+  val end_lineN: string
   val offsetN: string
   val end_offsetN: string
   val fileN: string
@@ -329,8 +330,11 @@ val (no_completionN, no_completion) = markup_elem "no_completion";
 (* position *)
 
 val lineN = "line";
+val end_lineN = "end_line";
+
 val offsetN = "offset";
 val end_offsetN = "end_offset";
+
 val fileN = "file";
 val idN = "id";
 

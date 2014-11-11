@@ -210,7 +210,7 @@ fun attribute_setup name source cmt =
   (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
     ML_Lex.read_source false source @
     ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")"))
-  |> ML_Context.expression (#pos source)
+  |> ML_Context.expression (#range source)
     "val (name, scan, comment): binding * attribute context_parser * string"
     "Context.map_proof (Attrib.local_setup name scan comment)"
   |> Context.proof_map;
@@ -293,7 +293,7 @@ fun read_attribs ctxt source =
   in
     (case Token.read_no_commands keywords Parse.attribs syms of
       [raw_srcs] => check_attribs ctxt raw_srcs
-    | _ => error ("Malformed attributes" ^ Position.here (#pos source)))
+    | _ => error ("Malformed attributes" ^ Position.here (#1 (#range source))))
   end;
 
 

@@ -195,10 +195,10 @@ fun eval_antiquote state (txt, pos) =
     val _ = Position.reports (maps words ants);
   in implode (map expand ants) end;
 
-fun check_text {delimited, text, pos} state =
- (Position.report pos (Markup.language_document delimited);
+fun check_text {delimited, text, range} state =
+ (Position.report (fst range) (Markup.language_document delimited);
   if Toplevel.is_skipped_proof state then ()
-  else ignore (eval_antiquote state (text, pos)));
+  else ignore (eval_antiquote state (text, fst range)));
 
 
 
@@ -372,7 +372,7 @@ fun present_thy thy command_results toks =
         Parse.position (Scan.one (Token.is_command andf is_markup mark o Token.content_of)) --
       Scan.repeat tag --
       Parse.!!!! ((improper -- locale -- improper) |-- Parse.document_source --| improper_end)
-      >> (fn (((tok, pos'), tags), {text, pos, ...}) =>
+      >> (fn (((tok, pos'), tags), {text, range = (pos, _), ...}) =>
         let val name = Token.content_of tok
         in (SOME (name, pos', tags), (mk (name, (text, pos)), (flag, d))) end));
 
@@ -385,7 +385,7 @@ fun present_thy thy command_results toks =
 
     val cmt = Scan.peek (fn d =>
       Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source)
-      >> (fn {text, pos, ...} => (NONE, (MarkupToken ("cmt", (text, pos)), ("", d)))));
+      >> (fn {text, range = (pos, _), ...} => (NONE, (MarkupToken ("cmt", (text, pos)), ("", d)))));
 
     val other = Scan.peek (fn d =>
        Parse.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
@@ -482,7 +482,7 @@ fun pretty_text ctxt =
 
 fun pretty_text_report ctxt source =
   let
-    val {delimited, pos, ...} = source;
+    val {delimited, range = (pos, _), ...} = source;
     val _ = Context_Position.report ctxt pos (Markup.language_text delimited);
     val (s, _) = Symbol_Pos.source_content source;
   in pretty_text ctxt s end;
@@ -664,7 +664,7 @@ local
 
 fun ml_text name ml = antiquotation name (Scan.lift Args.text_source_position)
   (fn {context = ctxt, ...} => fn source =>
-   (ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (#pos source) (ml source);
+   (ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (#1 (#range source)) (ml source);
     Symbol_Pos.source_content source |> #1
     |> verbatim_text ctxt));
 

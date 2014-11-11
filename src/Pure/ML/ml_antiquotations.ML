@@ -34,10 +34,10 @@ val _ = Theory.setup
 
 val _ = Theory.setup
  (ML_Antiquotation.value @{binding source}
-    (Scan.lift Args.text_source_position >> (fn {delimited, text, pos} =>
+    (Scan.lift Args.text_source_position >> (fn {delimited, text, range} =>
       "{delimited = " ^ Bool.toString delimited ^
       ", text = " ^ ML_Syntax.print_string text ^
-      ", pos = " ^ ML_Syntax.print_position pos ^ "}")));
+      ", range = " ^ ML_Syntax.print_range range ^ "}")));
 
 
 (* formal entities *)

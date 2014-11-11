@@ -163,21 +163,21 @@ val ambiguity_limit = Config.int ambiguity_limit_raw;
 
 local
 
-fun token_position (XML.Elem ((name, props), _)) =
+fun token_range (XML.Elem ((name, props), _)) =
       if name = Markup.tokenN
-      then (Markup.is_delimited props, Position.of_properties props)
-      else (false, Position.none)
-  | token_position (XML.Text _) = (false, Position.none);
+      then (Markup.is_delimited props, Position.range_of_properties props)
+      else (false, Position.no_range)
+  | token_range (XML.Text _) = (false, Position.no_range);
 
-fun token_source tree =
+fun token_source tree : Symbol_Pos.source =
   let
     val text = XML.content_of [tree];
-    val (delimited, pos) = token_position tree;
-  in {delimited = delimited, text = text, pos = pos} end;
+    val (delimited, range) = token_range tree;
+  in {delimited = delimited, text = text, range = range} end;
 
 in
 
-fun read_token_pos str = #2 (token_position (YXML.parse str handle Fail msg => error msg));
+fun read_token_pos str = #1 (#2 (token_range (YXML.parse str handle Fail msg => error msg)));
 
 fun read_token str = token_source (YXML.parse str handle Fail msg => error msg);
 
@@ -187,8 +187,9 @@ fun parse_token ctxt decode markup parse str =
       let
         val source = token_source tree;
         val syms = Symbol_Pos.source_explode source;
-        val _ = Context_Position.report ctxt (#pos source) (markup (#delimited source));
-      in parse (syms, #pos source) end;
+        val (pos, _) = #range source;
+        val _ = Context_Position.report ctxt pos (markup (#delimited source));
+      in parse (syms, pos) end;
   in
     (case YXML.parse_body str handle Fail msg => error msg of
       body as [tree as XML.Elem ((name, _), _)] =>

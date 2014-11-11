@@ -53,6 +53,8 @@ sig
   val set_range: range -> T
   val reset_range: T -> T
   val range: T -> T -> range
+  val range_of_properties: Properties.T -> range
+  val properties_of_range: range -> Properties.T
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
   val default: T -> bool * T
@@ -134,17 +136,16 @@ fun parse_id pos = Option.map Markup.parse_int (get_id pos);
 
 (* markup properties *)
 
-fun of_properties props =
-  let
-    fun get name =
-      (case Properties.get props name of
-        NONE => 0
-      | SOME s => Markup.parse_int s);
-  in
-    make {line = get Markup.lineN, offset = get Markup.offsetN,
-      end_offset = get Markup.end_offsetN, props = props}
-  end;
+fun get props name =
+  (case Properties.get props name of
+    NONE => 0
+  | SOME s => Markup.parse_int s);
 
+fun of_properties props =
+  make {line = get props Markup.lineN,
+    offset = get props Markup.offsetN,
+    end_offset = get props Markup.end_offsetN,
+    props = props};
 
 fun value k i = if valid i then [(k, Markup.print_int i)] else [];
 
@@ -220,6 +221,19 @@ fun set_range (Pos ((i, j, _), props), Pos ((_, j', _), _)) = Pos ((i, j, j'), p
 fun reset_range (Pos ((i, j, _), props)) = Pos ((i, j, 0), props);
 
 fun range pos pos' = (set_range (pos, pos'), pos');
+
+fun range_of_properties props =
+  let
+    val pos = of_properties props;
+    val pos' =
+      make {line = get props Markup.end_lineN,
+        offset = get props Markup.end_offsetN,
+        end_offset = 0,
+        props = props};
+  in (pos, pos') end;
+
+fun properties_of_range (pos, pos') =
+  properties_of pos @ value Markup.end_lineN (the_default 0 (line_of pos'));
 
 
 (* thread data *)

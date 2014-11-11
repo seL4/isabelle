@@ -90,7 +90,7 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
         else txt1 ^ " : " ^ txt2;
       val txt' = if kind = "" then txt else kind ^ " " ^ txt;
 
-      val pos = #pos source1;
+      val (pos, _) = #range source1;
       val _ =
         ML_Context.eval_in (SOME ctxt) ML_Compiler.flags pos (ml (toks1, toks2))
           handle ERROR msg => error (msg ^ Position.here pos);
