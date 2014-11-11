@@ -13,43 +13,43 @@ consts
 
   one        :: "i"
 
-  "if"       :: "[i,i,i]=>i"           ("(3if _/ then _/ else _)" [0,0,60] 60)
+  "if"       :: "[i,i,i]\<Rightarrow>i"           ("(3if _/ then _/ else _)" [0,0,60] 60)
 
-  inl        :: "i=>i"
-  inr        :: "i=>i"
-  when       :: "[i,i=>i,i=>i]=>i"
+  inl        :: "i\<Rightarrow>i"
+  inr        :: "i\<Rightarrow>i"
+  when       :: "[i,i\<Rightarrow>i,i\<Rightarrow>i]\<Rightarrow>i"
 
-  split      :: "[i,[i,i]=>i]=>i"
-  fst        :: "i=>i"
-  snd        :: "i=>i"
-  thd        :: "i=>i"
+  split      :: "[i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
+  fst        :: "i\<Rightarrow>i"
+  snd        :: "i\<Rightarrow>i"
+  thd        :: "i\<Rightarrow>i"
 
   zero       :: "i"
-  succ       :: "i=>i"
-  ncase      :: "[i,i,i=>i]=>i"
-  nrec       :: "[i,i,[i,i]=>i]=>i"
+  succ       :: "i\<Rightarrow>i"
+  ncase      :: "[i,i,i\<Rightarrow>i]\<Rightarrow>i"
+  nrec       :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
 
   nil        :: "i"                        ("([])")
-  cons       :: "[i,i]=>i"                 (infixr "$" 80)
-  lcase      :: "[i,i,[i,i]=>i]=>i"
-  lrec       :: "[i,i,[i,i,i]=>i]=>i"
+  cons       :: "[i,i]\<Rightarrow>i"                 (infixr "$" 80)
+  lcase      :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
+  lrec       :: "[i,i,[i,i,i]\<Rightarrow>i]\<Rightarrow>i"
 
-  "let"      :: "[i,i=>i]=>i"
-  letrec     :: "[[i,i=>i]=>i,(i=>i)=>i]=>i"
-  letrec2    :: "[[i,i,i=>i=>i]=>i,(i=>i=>i)=>i]=>i"
-  letrec3    :: "[[i,i,i,i=>i=>i=>i]=>i,(i=>i=>i=>i)=>i]=>i"
+  "let"      :: "[i,i\<Rightarrow>i]\<Rightarrow>i"
+  letrec     :: "[[i,i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
+  letrec2    :: "[[i,i,i\<Rightarrow>i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
+  letrec3    :: "[[i,i,i,i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
 
 syntax
-  "_let"     :: "[id,i,i]=>i"             ("(3let _ be _/ in _)"
+  "_let"     :: "[id,i,i]\<Rightarrow>i"             ("(3let _ be _/ in _)"
                         [0,0,60] 60)
 
-  "_letrec"  :: "[id,id,i,i]=>i"         ("(3letrec _ _ be _/ in _)"
+  "_letrec"  :: "[id,id,i,i]\<Rightarrow>i"         ("(3letrec _ _ be _/ in _)"
                         [0,0,0,60] 60)
 
-  "_letrec2" :: "[id,id,id,i,i]=>i"     ("(3letrec _ _ _ be _/ in _)"
+  "_letrec2" :: "[id,id,id,i,i]\<Rightarrow>i"     ("(3letrec _ _ _ be _/ in _)"
                         [0,0,0,0,60] 60)
 
-  "_letrec3" :: "[id,id,id,id,i,i]=>i" ("(3letrec _ _ _ _ be _/ in _)"
+  "_letrec3" :: "[id,id,id,id,i,i]\<Rightarrow>i" ("(3letrec _ _ _ _ be _/ in _)"
                         [0,0,0,0,0,60] 60)
 
 ML {*
@@ -91,7 +91,6 @@ fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
          val (x',a') = Syntax_Trans.variant_abs(x,T,a3)
      in Const(@{syntax_const "_letrec3"},dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ Free(z',V) $ a' $ b'
       end;
-
 *}
 
 parse_translation {*
@@ -109,40 +108,40 @@ print_translation {*
 *}
 
 consts
-  napply     :: "[i=>i,i,i]=>i"            ("(_ ^ _ ` _)" [56,56,56] 56)
+  napply     :: "[i\<Rightarrow>i,i,i]\<Rightarrow>i"            ("(_ ^ _ ` _)" [56,56,56] 56)
 
 defs
   one_def:                    "one == true"
-  if_def:     "if b then t else u  == case(b,t,u,% x y. bot,%v. bot)"
+  if_def:     "if b then t else u  == case(b, t, u, \<lambda> x y. bot, \<lambda>v. bot)"
   inl_def:                 "inl(a) == <true,a>"
   inr_def:                 "inr(b) == <false,b>"
-  when_def:           "when(t,f,g) == split(t,%b x. if b then f(x) else g(x))"
-  split_def:           "split(t,f) == case(t,bot,bot,f,%u. bot)"
-  fst_def:                 "fst(t) == split(t,%x y. x)"
-  snd_def:                 "snd(t) == split(t,%x y. y)"
-  thd_def:                 "thd(t) == split(t,%x p. split(p,%y z. z))"
+  when_def:           "when(t,f,g) == split(t, \<lambda>b x. if b then f(x) else g(x))"
+  split_def:           "split(t,f) == case(t, bot, bot, f, \<lambda>u. bot)"
+  fst_def:                 "fst(t) == split(t, \<lambda>x y. x)"
+  snd_def:                 "snd(t) == split(t, \<lambda>x y. y)"
+  thd_def:                 "thd(t) == split(t, \<lambda>x p. split(p, \<lambda>y z. z))"
   zero_def:                  "zero == inl(one)"
   succ_def:               "succ(n) == inr(n)"
-  ncase_def:         "ncase(n,b,c) == when(n,%x. b,%y. c(y))"
-  nrec_def:          " nrec(n,b,c) == letrec g x be ncase(x,b,%y. c(y,g(y))) in g(n)"
+  ncase_def:         "ncase(n,b,c) == when(n, \<lambda>x. b, \<lambda>y. c(y))"
+  nrec_def:          " nrec(n,b,c) == letrec g x be ncase(x, b, \<lambda>y. c(y,g(y))) in g(n)"
   nil_def:                     "[] == inl(one)"
   cons_def:                   "h$t == inr(<h,t>)"
-  lcase_def:         "lcase(l,b,c) == when(l,%x. b,%y. split(y,c))"
-  lrec_def:           "lrec(l,b,c) == letrec g x be lcase(x,b,%h t. c(h,t,g(t))) in g(l)"
+  lcase_def:         "lcase(l,b,c) == when(l, \<lambda>x. b, \<lambda>y. split(y,c))"
+  lrec_def:           "lrec(l,b,c) == letrec g x be lcase(x, b, \<lambda>h t. c(h,t,g(t))) in g(l)"
 
-  let_def:  "let x be t in f(x) == case(t,f(true),f(false),%x y. f(<x,y>),%u. f(lam x. u(x)))"
+  let_def:  "let x be t in f(x) == case(t,f(true),f(false), \<lambda>x y. f(<x,y>), \<lambda>u. f(lam x. u(x)))"
   letrec_def:
-  "letrec g x be h(x,g) in b(g) == b(%x. fix(%f. lam x. h(x,%y. f`y))`x)"
+  "letrec g x be h(x,g) in b(g) == b(\<lambda>x. fix(\<lambda>f. lam x. h(x,\<lambda>y. f`y))`x)"
 
   letrec2_def:  "letrec g x y be h(x,y,g) in f(g)==
-               letrec g' p be split(p,%x y. h(x,y,%u v. g'(<u,v>)))
-                          in f(%x y. g'(<x,y>))"
+               letrec g' p be split(p,\<lambda>x y. h(x,y,\<lambda>u v. g'(<u,v>)))
+                          in f(\<lambda>x y. g'(<x,y>))"
 
   letrec3_def:  "letrec g x y z be h(x,y,z,g) in f(g) ==
-             letrec g' p be split(p,%x xs. split(xs,%y z. h(x,y,z,%u v w. g'(<u,<v,w>>))))
-                          in f(%x y z. g'(<x,<y,z>>))"
+             letrec g' p be split(p,\<lambda>x xs. split(xs,\<lambda>y z. h(x,y,z,\<lambda>u v w. g'(<u,<v,w>>))))
+                          in f(\<lambda>x y z. g'(<x,<y,z>>))"
 
-  napply_def: "f ^n` a == nrec(n,a,%x g. f(g))"
+  napply_def: "f ^n` a == nrec(n,a,\<lambda>x g. f(g))"
 
 
 lemmas simp_can_defs = one_def inl_def inr_def
@@ -159,7 +158,7 @@ lemmas data_defs = simp_defs ind_defs napply_def
 
 subsection {* Beta Rules, including strictness *}
 
-lemma letB: "~ t=bot ==> let x be t in f(x) = f(t)"
+lemma letB: "\<not> t=bot \<Longrightarrow> let x be t in f(x) = f(t)"
   apply (unfold let_def)
   apply (erule rev_mp)
   apply (rule_tac t = "t" in term_case)
@@ -194,7 +193,7 @@ lemma fixB: "fix(f) = f(fix(f))"
   done
 
 lemma letrecB:
-    "letrec g x be h(x,g) in g(a) = h(a,%y. letrec g x be h(x,g) in g(y))"
+    "letrec g x be h(x,g) in g(a) = h(a,\<lambda>y. letrec g x be h(x,g) in g(y))"
   apply (unfold letrec_def)
   apply (rule fixB [THEN ssubst], rule applyB [THEN ssubst], rule refl)
   done
@@ -254,12 +253,12 @@ lemma lrecBnil: "lrec([],t,u) = t"
   unfolding data_defs by beta_rl+
 
 lemma letrec2B:
-  "letrec g x y be h(x,y,g) in g(p,q) = h(p,q,%u v. letrec g x y be h(x,y,g) in g(u,v))"
+  "letrec g x y be h(x,y,g) in g(p,q) = h(p,q,\<lambda>u v. letrec g x y be h(x,y,g) in g(u,v))"
   unfolding data_defs letrec2_def by beta_rl+
 
 lemma letrec3B:
   "letrec g x y z be h(x,y,z,g) in g(p,q,r) =
-    h(p,q,r,%u v w. letrec g x y z be h(x,y,z,g) in g(u,v,w))"
+    h(p,q,r,\<lambda>u v w. letrec g x y z be h(x,y,z,g) in g(u,v,w))"
   unfolding data_defs letrec3_def by beta_rl+
 
 lemma napplyBzero: "f^zero`a = a"
@@ -276,10 +275,10 @@ lemmas termBs = letB applyB applyBbot splitB splitBbot fstB fstBbot
 subsection {* Constructors are injective *}
 
 lemma term_injs:
-  "(inl(a) = inl(a')) <-> (a=a')"
-  "(inr(a) = inr(a')) <-> (a=a')"
-  "(succ(a) = succ(a')) <-> (a=a')"
-  "(a$b = a'$b') <-> (a=a' & b=b')"
+  "(inl(a) = inl(a')) \<longleftrightarrow> (a=a')"
+  "(inr(a) = inr(a')) \<longleftrightarrow> (a=a')"
+  "(succ(a) = succ(a')) \<longleftrightarrow> (a=a')"
+  "(a$b = a'$b') \<longleftrightarrow> (a=a' \<and> b=b')"
   by (inj_rl applyB splitB whenBinl whenBinr ncaseBsucc lcaseBcons)
 
 
@@ -295,10 +294,10 @@ ML_Thms.bind_thms ("term_dstncts",
 subsection {* Rules for pre-order @{text "[="} *}
 
 lemma term_porews:
-  "inl(a) [= inl(a') <-> a [= a'"
-  "inr(b) [= inr(b') <-> b [= b'"
-  "succ(n) [= succ(n') <-> n [= n'"
-  "x$xs [= x'$xs' <-> x [= x'  & xs [= xs'"
+  "inl(a) [= inl(a') \<longleftrightarrow> a [= a'"
+  "inr(b) [= inr(b') \<longleftrightarrow> b [= b'"
+  "succ(n) [= succ(n') \<longleftrightarrow> n [= n'"
+  "x$xs [= x'$xs' \<longleftrightarrow> x [= x' \<and> xs [= xs'"
   by (simp_all add: data_defs ccl_porews)
 
 

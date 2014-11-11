@@ -26,6 +26,7 @@ sig
       Source.source) Source.source
   val tokenize: string -> token list
   val read: Position.T -> Symbol_Pos.text -> token Antiquote.antiquote list
+  val read_set_range: Position.range -> Symbol_Pos.text -> token Antiquote.antiquote list
   val read_source: bool -> Symbol_Pos.source -> token Antiquote.antiquote list
 end;
 
@@ -325,7 +326,11 @@ val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
 
 val read = gen_read false;
 
-fun read_source SML {delimited, text, pos} =
+fun read_set_range range =
+  read Position.none
+  #> map (fn Antiquote.Text tok => Antiquote.Text (set_range range tok) | antiq => antiq);
+
+fun read_source SML ({delimited, text, range = (pos, _)}: Symbol_Pos.source) =
   let
     val language = if SML then Markup.language_SML else Markup.language_ML;
     val _ =

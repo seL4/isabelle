@@ -2,15 +2,15 @@
 section {* Prefixpoints *}
 
 theory Ex4
-imports LCF
+imports "../LCF"
 begin
 
 lemma example:
-  assumes asms: "f(p) << p"  "!!q. f(q) << q ==> p << q"
+  assumes asms: "f(p) << p"  "\<And>q. f(q) << q \<Longrightarrow> p << q"
   shows "FIX(f)=p"
   apply (unfold eq_def)
   apply (rule conjI)
-  apply (tactic {* induct_tac @{context} "f" 1 *})
+  apply (induct f)
   apply (rule minimal)
   apply (intro strip)
   apply (rule less_trans)

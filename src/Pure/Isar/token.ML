@@ -268,8 +268,8 @@ fun inner_syntax_of (Token ((source, (pos, _)), (kind, x), _)) =
       val tree = XML.Elem (Markup.token delimited (Position.properties_of pos), [XML.Text source]);
     in YXML.string_of tree end;
 
-fun source_position_of (Token ((source, (pos, _)), (kind, _), _)) =
-  {delimited = delimited_kind kind, text = source, pos = pos};
+fun source_position_of (Token ((source, range), (kind, _), _)) =
+  {delimited = delimited_kind kind, text = source, range = range};
 
 fun content_of (Token (_, (_, x), _)) = x;
 

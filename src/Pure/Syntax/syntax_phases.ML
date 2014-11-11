@@ -462,10 +462,11 @@ fun parse_ast_pattern ctxt (root, str) =
       | decode ps (Ast.Appl asts) = decode_appl ps asts;
 
     val source = Syntax.read_token str;
+    val (pos, _) = #range source;
     val syms = Symbol_Pos.source_explode source;
     val ast =
-      parse_asts ctxt true root (syms, #pos source)
-      |> uncurry (report_result ctxt (#pos source))
+      parse_asts ctxt true root (syms, pos)
+      |> uncurry (report_result ctxt pos)
       |> decode [];
     val _ = Context_Position.reports_text ctxt (! reports);
   in ast end;

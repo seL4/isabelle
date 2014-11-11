@@ -11,19 +11,12 @@ session LCF = Pure +
     Logic and Computation: Interactive proof with Cambridge LCF (CUP, 1987)
   *}
   options [document = false]
-  theories LCF
-
-session "LCF-ex" in ex = LCF +
-  description {*
-    Author:     Tobias Nipkow
-    Copyright   1991  University of Cambridge
-
-    Some examples from Lawrence Paulson's book Logic and Computation.
-  *}
-  options [document = false]
   theories
-    Ex1
-    Ex2
-    Ex3
-    Ex4
+    LCF
+
+    (* Some examples from Lawrence Paulson's book Logic and Computation *)
+    "ex/Ex1"
+    "ex/Ex2"
+    "ex/Ex3"
+    "ex/Ex4"
 

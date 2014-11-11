@@ -11,39 +11,39 @@ begin
 
 consts
 
-  Subtype       :: "['a set, 'a => o] => 'a set"
+  Subtype       :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> 'a set"
   Bool          :: "i set"
   Unit          :: "i set"
-  Plus           :: "[i set, i set] => i set"        (infixr "+" 55)
-  Pi            :: "[i set, i => i set] => i set"
-  Sigma         :: "[i set, i => i set] => i set"
+  Plus           :: "[i set, i set] \<Rightarrow> i set"        (infixr "+" 55)
+  Pi            :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
+  Sigma         :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
   Nat           :: "i set"
-  List          :: "i set => i set"
-  Lists         :: "i set => i set"
-  ILists        :: "i set => i set"
-  TAll          :: "(i set => i set) => i set"       (binder "TALL " 55)
-  TEx           :: "(i set => i set) => i set"       (binder "TEX " 55)
-  Lift          :: "i set => i set"                  ("(3[_])")
+  List          :: "i set \<Rightarrow> i set"
+  Lists         :: "i set \<Rightarrow> i set"
+  ILists        :: "i set \<Rightarrow> i set"
+  TAll          :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"       (binder "TALL " 55)
+  TEx           :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"       (binder "TEX " 55)
+  Lift          :: "i set \<Rightarrow> i set"                  ("(3[_])")
 
-  SPLIT         :: "[i, [i, i] => i set] => i set"
+  SPLIT         :: "[i, [i, i] \<Rightarrow> i set] \<Rightarrow> i set"
 
 syntax
-  "_Pi"         :: "[idt, i set, i set] => i set"    ("(3PROD _:_./ _)"
+  "_Pi"         :: "[idt, i set, i set] \<Rightarrow> i set"    ("(3PROD _:_./ _)"
                                 [0,0,60] 60)
 
-  "_Sigma"      :: "[idt, i set, i set] => i set"    ("(3SUM _:_./ _)"
+  "_Sigma"      :: "[idt, i set, i set] \<Rightarrow> i set"    ("(3SUM _:_./ _)"
                                 [0,0,60] 60)
 
-  "_arrow"      :: "[i set, i set] => i set"         ("(_ ->/ _)"  [54, 53] 53)
-  "_star"       :: "[i set, i set] => i set"         ("(_ */ _)" [56, 55] 55)
-  "_Subtype"    :: "[idt, 'a set, o] => 'a set"      ("(1{_: _ ./ _})")
+  "_arrow"      :: "[i set, i set] \<Rightarrow> i set"         ("(_ ->/ _)"  [54, 53] 53)
+  "_star"       :: "[i set, i set] \<Rightarrow> i set"         ("(_ */ _)" [56, 55] 55)
+  "_Subtype"    :: "[idt, 'a set, o] \<Rightarrow> 'a set"      ("(1{_: _ ./ _})")
 
 translations
-  "PROD x:A. B" => "CONST Pi(A, %x. B)"
-  "A -> B"      => "CONST Pi(A, %_. B)"
-  "SUM x:A. B"  => "CONST Sigma(A, %x. B)"
-  "A * B"       => "CONST Sigma(A, %_. B)"
-  "{x: A. B}"   == "CONST Subtype(A, %x. B)"
+  "PROD x:A. B" => "CONST Pi(A, \<lambda>x. B)"
+  "A -> B"      => "CONST Pi(A, \<lambda>_. B)"
+  "SUM x:A. B"  => "CONST Sigma(A, \<lambda>x. B)"
+  "A * B"       => "CONST Sigma(A, \<lambda>_. B)"
+  "{x: A. B}"   == "CONST Subtype(A, \<lambda>x. B)"
 
 print_translation {*
  [(@{const_syntax Pi},
@@ -53,23 +53,23 @@ print_translation {*
 *}
 
 defs
-  Subtype_def: "{x:A. P(x)} == {x. x:A & P(x)}"
+  Subtype_def: "{x:A. P(x)} == {x. x:A \<and> P(x)}"
   Unit_def:          "Unit == {x. x=one}"
   Bool_def:          "Bool == {x. x=true | x=false}"
   Plus_def:           "A+B == {x. (EX a:A. x=inl(a)) | (EX b:B. x=inr(b))}"
-  Pi_def:         "Pi(A,B) == {x. EX b. x=lam x. b(x) & (ALL x:A. b(x):B(x))}"
+  Pi_def:         "Pi(A,B) == {x. EX b. x=lam x. b(x) \<and> (ALL x:A. b(x):B(x))}"
   Sigma_def:   "Sigma(A,B) == {x. EX a:A. EX b:B(a).x=<a,b>}"
-  Nat_def:            "Nat == lfp(% X. Unit + X)"
-  List_def:       "List(A) == lfp(% X. Unit + A*X)"
+  Nat_def:            "Nat == lfp(\<lambda>X. Unit + X)"
+  List_def:       "List(A) == lfp(\<lambda>X. Unit + A*X)"
 
-  Lists_def:     "Lists(A) == gfp(% X. Unit + A*X)"
-  ILists_def:   "ILists(A) == gfp(% X.{} + A*X)"
+  Lists_def:     "Lists(A) == gfp(\<lambda>X. Unit + A*X)"
+  ILists_def:   "ILists(A) == gfp(\<lambda>X.{} + A*X)"
 
   Tall_def:   "TALL X. B(X) == Inter({X. EX Y. X=B(Y)})"
   Tex_def:     "TEX X. B(X) == Union({X. EX Y. X=B(Y)})"
   Lift_def:           "[A] == A Un {bot}"
 
-  SPLIT_def:   "SPLIT(p,B) == Union({A. EX x y. p=<x,y> & A=B(x,y)})"
+  SPLIT_def:   "SPLIT(p,B) == Union({A. EX x y. p=<x,y> \<and> A=B(x,y)})"
 
 
 lemmas simp_type_defs =
@@ -78,31 +78,29 @@ lemmas simp_type_defs =
   and simp_data_defs = one_def inl_def inr_def
   and ind_data_defs = zero_def succ_def nil_def cons_def
 
-lemma subsetXH: "A <= B <-> (ALL x. x:A --> x:B)"
+lemma subsetXH: "A <= B \<longleftrightarrow> (ALL x. x:A \<longrightarrow> x:B)"
   by blast
 
 
 subsection {* Exhaustion Rules *}
 
-lemma EmptyXH: "!!a. a : {} <-> False"
-  and SubtypeXH: "!!a A P. a : {x:A. P(x)} <-> (a:A & P(a))"
-  and UnitXH: "!!a. a : Unit          <-> a=one"
-  and BoolXH: "!!a. a : Bool          <-> a=true | a=false"
-  and PlusXH: "!!a A B. a : A+B           <-> (EX x:A. a=inl(x)) | (EX x:B. a=inr(x))"
-  and PiXH: "!!a A B. a : PROD x:A. B(x) <-> (EX b. a=lam x. b(x) & (ALL x:A. b(x):B(x)))"
-  and SgXH: "!!a A B. a : SUM x:A. B(x)  <-> (EX x:A. EX y:B(x).a=<x,y>)"
+lemma EmptyXH: "\<And>a. a : {} \<longleftrightarrow> False"
+  and SubtypeXH: "\<And>a A P. a : {x:A. P(x)} \<longleftrightarrow> (a:A \<and> P(a))"
+  and UnitXH: "\<And>a. a : Unit          \<longleftrightarrow> a=one"
+  and BoolXH: "\<And>a. a : Bool          \<longleftrightarrow> a=true | a=false"
+  and PlusXH: "\<And>a A B. a : A+B           \<longleftrightarrow> (EX x:A. a=inl(x)) | (EX x:B. a=inr(x))"
+  and PiXH: "\<And>a A B. a : PROD x:A. B(x) \<longleftrightarrow> (EX b. a=lam x. b(x) \<and> (ALL x:A. b(x):B(x)))"
+  and SgXH: "\<And>a A B. a : SUM x:A. B(x)  \<longleftrightarrow> (EX x:A. EX y:B(x).a=<x,y>)"
   unfolding simp_type_defs by blast+
 
 lemmas XHs = EmptyXH SubtypeXH UnitXH BoolXH PlusXH PiXH SgXH
 
-lemma LiftXH: "a : [A] <-> (a=bot | a:A)"
-  and TallXH: "a : TALL X. B(X) <-> (ALL X. a:B(X))"
-  and TexXH: "a : TEX X. B(X) <-> (EX X. a:B(X))"
+lemma LiftXH: "a : [A] \<longleftrightarrow> (a=bot | a:A)"
+  and TallXH: "a : TALL X. B(X) \<longleftrightarrow> (ALL X. a:B(X))"
+  and TexXH: "a : TEX X. B(X) \<longleftrightarrow> (EX X. a:B(X))"
   unfolding simp_type_defs by blast+
 
-ML {*
-ML_Thms.bind_thms ("case_rls", XH_to_Es @{thms XHs});
-*}
+ML {* ML_Thms.bind_thms ("case_rls", XH_to_Es @{thms XHs}) *}
 
 
 subsection {* Canonical Type Rules *}
@@ -110,10 +108,10 @@ subsection {* Canonical Type Rules *}
 lemma oneT: "one : Unit"
   and trueT: "true : Bool"
   and falseT: "false : Bool"
-  and lamT: "!!b B. [| !!x. x:A ==> b(x):B(x) |] ==> lam x. b(x) : Pi(A,B)"
-  and pairT: "!!b B. [| a:A; b:B(a) |] ==> <a,b>:Sigma(A,B)"
-  and inlT: "a:A ==> inl(a) : A+B"
-  and inrT: "b:B ==> inr(b) : A+B"
+  and lamT: "\<And>b B. (\<And>x. x:A \<Longrightarrow> b(x):B(x)) \<Longrightarrow> lam x. b(x) : Pi(A,B)"
+  and pairT: "\<And>b B. \<lbrakk>a:A; b:B(a)\<rbrakk> \<Longrightarrow> <a,b>:Sigma(A,B)"
+  and inlT: "a:A \<Longrightarrow> inl(a) : A+B"
+  and inrT: "b:B \<Longrightarrow> inr(b) : A+B"
   by (blast intro: XHs [THEN iffD2])+
 
 lemmas canTs = oneT trueT falseT pairT lamT inlT inrT
@@ -121,7 +119,7 @@ lemmas canTs = oneT trueT falseT pairT lamT inlT inrT
 
 subsection {* Non-Canonical Type Rules *}
 
-lemma lem: "[| a:B(u);  u=v |] ==> a : B(v)"
+lemma lem: "\<lbrakk>a:B(u); u = v\<rbrakk> \<Longrightarrow> a : B(v)"
   by blast
 
 
@@ -139,22 +137,19 @@ method_setup ncanT = {*
   Scan.succeed (SIMPLE_METHOD' o mk_ncanT_tac @{thms case_rls} @{thms case_rls})
 *}
 
-lemma ifT:
-  "[| b:Bool; b=true ==> t:A(true); b=false ==> u:A(false) |] ==>
-    if b then t else u : A(b)"
+lemma ifT: "\<lbrakk>b:Bool; b=true \<Longrightarrow> t:A(true); b=false \<Longrightarrow> u:A(false)\<rbrakk> \<Longrightarrow> if b then t else u : A(b)"
   by ncanT
 
-lemma applyT: "[| f : Pi(A,B);  a:A |] ==> f ` a : B(a)"
+lemma applyT: "\<lbrakk>f : Pi(A,B); a:A\<rbrakk> \<Longrightarrow> f ` a : B(a)"
   by ncanT
 
-lemma splitT:
-  "[| p:Sigma(A,B); !!x y. [| x:A;  y:B(x); p=<x,y> |] ==> c(x,y):C(<x,y>) |]
-    ==> split(p,c):C(p)"
+lemma splitT: "\<lbrakk>p:Sigma(A,B); \<And>x y. \<lbrakk>x:A; y:B(x); p=<x,y>\<rbrakk> \<Longrightarrow> c(x,y):C(<x,y>)\<rbrakk> \<Longrightarrow> split(p,c):C(p)"
   by ncanT
 
 lemma whenT:
-  "[| p:A+B; !!x.[| x:A;  p=inl(x) |] ==> a(x):C(inl(x)); !!y.[| y:B;  p=inr(y) |]
-    ==> b(y):C(inr(y)) |] ==> when(p,a,b) : C(p)"
+  "\<lbrakk>p:A+B;
+    \<And>x. \<lbrakk>x:A; p=inl(x)\<rbrakk> \<Longrightarrow> a(x):C(inl(x));
+    \<And>y. \<lbrakk>y:B;  p=inr(y)\<rbrakk> \<Longrightarrow> b(y):C(inr(y))\<rbrakk> \<Longrightarrow> when(p,a,b) : C(p)"
   by ncanT
 
 lemmas ncanTs = ifT applyT splitT whenT
@@ -162,30 +157,30 @@ lemmas ncanTs = ifT applyT splitT whenT
 
 subsection {* Subtypes *}
 
-lemma SubtypeD1: "a : Subtype(A, P) ==> a : A"
-  and SubtypeD2: "a : Subtype(A, P) ==> P(a)"
+lemma SubtypeD1: "a : Subtype(A, P) \<Longrightarrow> a : A"
+  and SubtypeD2: "a : Subtype(A, P) \<Longrightarrow> P(a)"
   by (simp_all add: SubtypeXH)
 
-lemma SubtypeI: "[| a:A;  P(a) |] ==> a : {x:A. P(x)}"
+lemma SubtypeI: "\<lbrakk>a:A; P(a)\<rbrakk> \<Longrightarrow> a : {x:A. P(x)}"
   by (simp add: SubtypeXH)
 
-lemma SubtypeE: "[| a : {x:A. P(x)};  [| a:A;  P(a) |] ==> Q |] ==> Q"
+lemma SubtypeE: "\<lbrakk>a : {x:A. P(x)}; \<lbrakk>a:A; P(a)\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
   by (simp add: SubtypeXH)
 
 
 subsection {* Monotonicity *}
 
-lemma idM: "mono (%X. X)"
+lemma idM: "mono (\<lambda>X. X)"
   apply (rule monoI)
   apply assumption
   done
 
-lemma constM: "mono(%X. A)"
+lemma constM: "mono(\<lambda>X. A)"
   apply (rule monoI)
   apply (rule subset_refl)
   done
 
-lemma "mono(%X. A(X)) ==> mono(%X.[A(X)])"
+lemma "mono(\<lambda>X. A(X)) \<Longrightarrow> mono(\<lambda>X.[A(X)])"
   apply (rule subsetI [THEN monoI])
   apply (drule LiftXH [THEN iffD1])
   apply (erule disjE)
@@ -196,18 +191,16 @@ lemma "mono(%X. A(X)) ==> mono(%X.[A(X)])"
   done
 
 lemma SgM:
-  "[| mono(%X. A(X)); !!x X. x:A(X) ==> mono(%X. B(X,x)) |] ==>
-    mono(%X. Sigma(A(X),B(X)))"
+  "\<lbrakk>mono(\<lambda>X. A(X)); \<And>x X. x:A(X) \<Longrightarrow> mono(\<lambda>X. B(X,x))\<rbrakk> \<Longrightarrow>
+    mono(\<lambda>X. Sigma(A(X),B(X)))"
   by (blast intro!: subsetI [THEN monoI] canTs elim!: case_rls
     dest!: monoD [THEN subsetD])
 
-lemma PiM:
-  "[| !!x. x:A ==> mono(%X. B(X,x)) |] ==> mono(%X. Pi(A,B(X)))"
+lemma PiM: "(\<And>x. x:A \<Longrightarrow> mono(\<lambda>X. B(X,x))) \<Longrightarrow> mono(\<lambda>X. Pi(A,B(X)))"
   by (blast intro!: subsetI [THEN monoI] canTs elim!: case_rls
     dest!: monoD [THEN subsetD])
 
-lemma PlusM:
-    "[| mono(%X. A(X));  mono(%X. B(X)) |] ==> mono(%X. A(X)+B(X))"
+lemma PlusM: "\<lbrakk>mono(\<lambda>X. A(X)); mono(\<lambda>X. B(X))\<rbrakk> \<Longrightarrow> mono(\<lambda>X. A(X)+B(X))"
   by (blast intro!: subsetI [THEN monoI] canTs elim!: case_rls
     dest!: monoD [THEN subsetD])
 
@@ -216,7 +209,7 @@ subsection {* Recursive types *}
 
 subsubsection {* Conversion Rules for Fixed Points via monotonicity and Tarski *}
 
-lemma NatM: "mono(%X. Unit+X)"
+lemma NatM: "mono(\<lambda>X. Unit+X)"
   apply (rule PlusM constM idM)+
   done
 
@@ -225,7 +218,7 @@ lemma def_NatB: "Nat = Unit + Nat"
   apply (rule NatM)
   done
 
-lemma ListM: "mono(%X.(Unit+Sigma(A,%y. X)))"
+lemma ListM: "mono(\<lambda>X.(Unit+Sigma(A,\<lambda>y. X)))"
   apply (rule PlusM SgM constM idM)+
   done
 
@@ -239,7 +232,7 @@ lemma def_ListsB: "Lists(A) = Unit + A * Lists(A)"
   apply (rule ListM)
   done
 
-lemma IListsM: "mono(%X.({} + Sigma(A,%y. X)))"
+lemma IListsM: "mono(\<lambda>X.({} + Sigma(A,\<lambda>y. X)))"
   apply (rule PlusM SgM constM idM)+
   done
 
@@ -253,10 +246,10 @@ lemmas ind_type_eqs = def_NatB def_ListB def_ListsB def_IListsB
 
 subsection {* Exhaustion Rules *}
 
-lemma NatXH: "a : Nat <-> (a=zero | (EX x:Nat. a=succ(x)))"
-  and ListXH: "a : List(A) <-> (a=[] | (EX x:A. EX xs:List(A).a=x$xs))"
-  and ListsXH: "a : Lists(A) <-> (a=[] | (EX x:A. EX xs:Lists(A).a=x$xs))"
-  and IListsXH: "a : ILists(A) <-> (EX x:A. EX xs:ILists(A).a=x$xs)"
+lemma NatXH: "a : Nat \<longleftrightarrow> (a=zero | (EX x:Nat. a=succ(x)))"
+  and ListXH: "a : List(A) \<longleftrightarrow> (a=[] | (EX x:A. EX xs:List(A).a=x$xs))"
+  and ListsXH: "a : Lists(A) \<longleftrightarrow> (a=[] | (EX x:A. EX xs:Lists(A).a=x$xs))"
+  and IListsXH: "a : ILists(A) \<longleftrightarrow> (EX x:A. EX xs:ILists(A).a=x$xs)"
   unfolding ind_data_defs
   by (rule ind_type_eqs [THEN XHlemma1], blast intro!: canTs elim!: case_rls)+
 
@@ -268,9 +261,9 @@ ML {* ML_Thms.bind_thms ("icase_rls", XH_to_Es @{thms iXHs}) *}
 subsection {* Type Rules *}
 
 lemma zeroT: "zero : Nat"
-  and succT: "n:Nat ==> succ(n) : Nat"
+  and succT: "n:Nat \<Longrightarrow> succ(n) : Nat"
   and nilT: "[] : List(A)"
-  and consT: "[| h:A;  t:List(A) |] ==> h$t : List(A)"
+  and consT: "\<lbrakk>h:A; t:List(A)\<rbrakk> \<Longrightarrow> h$t : List(A)"
   by (blast intro: iXHs [THEN iffD2])+
 
 lemmas icanTs = zeroT succT nilT consT
@@ -280,14 +273,12 @@ method_setup incanT = {*
   Scan.succeed (SIMPLE_METHOD' o mk_ncanT_tac @{thms icase_rls} @{thms case_rls})
 *}
 
-lemma ncaseT:
-  "[| n:Nat; n=zero ==> b:C(zero); !!x.[| x:Nat;  n=succ(x) |] ==> c(x):C(succ(x)) |]
-    ==> ncase(n,b,c) : C(n)"
+lemma ncaseT: "\<lbrakk>n:Nat; n=zero \<Longrightarrow> b:C(zero); \<And>x. \<lbrakk>x:Nat; n=succ(x)\<rbrakk> \<Longrightarrow> c(x):C(succ(x))\<rbrakk>
+    \<Longrightarrow> ncase(n,b,c) : C(n)"
   by incanT
 
-lemma lcaseT:
-  "[| l:List(A); l=[] ==> b:C([]); !!h t.[| h:A;  t:List(A); l=h$t |] ==>
-    c(h,t):C(h$t) |] ==> lcase(l,b,c) : C(l)"
+lemma lcaseT: "\<lbrakk>l:List(A); l = [] \<Longrightarrow> b:C([]); \<And>h t. \<lbrakk>h:A; t:List(A); l=h$t\<rbrakk> \<Longrightarrow> c(h,t):C(h$t)\<rbrakk>
+    \<Longrightarrow> lcase(l,b,c) : C(l)"
   by incanT
 
 lemmas incanTs = ncaseT lcaseT
@@ -297,14 +288,13 @@ subsection {* Induction Rules *}
 
 lemmas ind_Ms = NatM ListM
 
-lemma Nat_ind: "[| n:Nat; P(zero); !!x.[| x:Nat; P(x) |] ==> P(succ(x)) |] ==> P(n)"
+lemma Nat_ind: "\<lbrakk>n:Nat; P(zero); \<And>x. \<lbrakk>x:Nat; P(x)\<rbrakk> \<Longrightarrow> P(succ(x))\<rbrakk> \<Longrightarrow> P(n)"
   apply (unfold ind_data_defs)
   apply (erule def_induct [OF Nat_def _ NatM])
   apply (blast intro: canTs elim!: case_rls)
   done
 
-lemma List_ind:
-  "[| l:List(A); P([]); !!x xs.[| x:A;  xs:List(A); P(xs) |] ==> P(x$xs) |] ==> P(l)"
+lemma List_ind: "\<lbrakk>l:List(A); P([]); \<And>x xs. \<lbrakk>x:A; xs:List(A); P(xs)\<rbrakk> \<Longrightarrow> P(x$xs)\<rbrakk> \<Longrightarrow> P(l)"
   apply (unfold ind_data_defs)
   apply (erule def_induct [OF List_def _ ListM])
   apply (blast intro: canTs elim!: case_rls)
@@ -315,16 +305,12 @@ lemmas inds = Nat_ind List_ind
 
 subsection {* Primitive Recursive Rules *}
 
-lemma nrecT:
-  "[| n:Nat; b:C(zero);
-      !!x g.[| x:Nat; g:C(x) |] ==> c(x,g):C(succ(x)) |] ==>
-      nrec(n,b,c) : C(n)"
+lemma nrecT: "\<lbrakk>n:Nat; b:C(zero); \<And>x g. \<lbrakk>x:Nat; g:C(x)\<rbrakk> \<Longrightarrow> c(x,g):C(succ(x))\<rbrakk>
+    \<Longrightarrow> nrec(n,b,c) : C(n)"
   by (erule Nat_ind) auto
 
-lemma lrecT:
-  "[| l:List(A); b:C([]);
-      !!x xs g.[| x:A;  xs:List(A); g:C(xs) |] ==> c(x,xs,g):C(x$xs) |] ==>
-      lrec(l,b,c) : C(l)"
+lemma lrecT: "\<lbrakk>l:List(A); b:C([]); \<And>x xs g. \<lbrakk>x:A; xs:List(A); g:C(xs)\<rbrakk> \<Longrightarrow> c(x,xs,g):C(x$xs) \<rbrakk>
+    \<Longrightarrow> lrec(l,b,c) : C(l)"
   by (erule List_ind) auto
 
 lemmas precTs = nrecT lrecT
@@ -332,8 +318,7 @@ lemmas precTs = nrecT lrecT
 
 subsection {* Theorem proving *}
 
-lemma SgE2:
-  "[| <a,b> : Sigma(A,B);  [| a:A;  b:B(a) |] ==> P |] ==> P"
+lemma SgE2: "\<lbrakk><a,b> : Sigma(A,B); \<lbrakk>a:A; b:B(a)\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   unfolding SgXH by blast
 
 (* General theorem proving ignores non-canonical term-formers,             *)
@@ -348,7 +333,7 @@ lemmas [intro!] = SubtypeI canTs icanTs
 
 subsection {* Infinite Data Types *}
 
-lemma lfp_subset_gfp: "mono(f) ==> lfp(f) <= gfp(f)"
+lemma lfp_subset_gfp: "mono(f) \<Longrightarrow> lfp(f) <= gfp(f)"
   apply (rule lfp_lowerbound [THEN subset_trans])
    apply (erule gfp_lemma3)
   apply (rule subset_refl)
@@ -356,16 +341,14 @@ lemma lfp_subset_gfp: "mono(f) ==> lfp(f) <= gfp(f)"
 
 lemma gfpI:
   assumes "a:A"
-    and "!!x X.[| x:A;  ALL y:A. t(y):X |] ==> t(x) : B(X)"
+    and "\<And>x X. \<lbrakk>x:A; ALL y:A. t(y):X\<rbrakk> \<Longrightarrow> t(x) : B(X)"
   shows "t(a) : gfp(B)"
   apply (rule coinduct)
-   apply (rule_tac P = "%x. EX y:A. x=t (y)" in CollectI)
+   apply (rule_tac P = "\<lambda>x. EX y:A. x=t (y)" in CollectI)
    apply (blast intro!: assms)+
   done
 
-lemma def_gfpI:
-  "[| C==gfp(B);  a:A;  !!x X.[| x:A;  ALL y:A. t(y):X |] ==> t(x) : B(X) |] ==>
-    t(a) : C"
+lemma def_gfpI: "\<lbrakk>C == gfp(B); a:A; \<And>x X. \<lbrakk>x:A; ALL y:A. t(y):X\<rbrakk> \<Longrightarrow> t(x) : B(X)\<rbrakk> \<Longrightarrow> t(a) : C"
   apply unfold
   apply (erule gfpI)
   apply blast
@@ -383,15 +366,15 @@ lemma "letrec g x be zero$g(x) in g(bot) : Lists(Nat)"
 subsection {* Lemmas and tactics for using the rule @{text
   "coinduct3"} on @{text "[="} and @{text "="} *}
 
-lemma lfpI: "[| mono(f);  a : f(lfp(f)) |] ==> a : lfp(f)"
+lemma lfpI: "\<lbrakk>mono(f); a : f(lfp(f))\<rbrakk> \<Longrightarrow> a : lfp(f)"
   apply (erule lfp_Tarski [THEN ssubst])
   apply assumption
   done
 
-lemma ssubst_single: "[| a=a';  a' : A |] ==> a : A"
+lemma ssubst_single: "\<lbrakk>a = a'; a' : A\<rbrakk> \<Longrightarrow> a : A"
   by simp
 
-lemma ssubst_pair: "[| a=a';  b=b';  <a',b'> : A |] ==> <a,b> : A"
+lemma ssubst_pair: "\<lbrakk>a = a'; b = b'; <a',b'> : A\<rbrakk> \<Longrightarrow> <a,b> : A"
   by simp
 
 
@@ -402,14 +385,14 @@ ML {*
 
 method_setup coinduct3 = {* Scan.succeed (SIMPLE_METHOD' o coinduct3_tac) *}
 
-lemma ci3_RI: "[| mono(Agen);  a : R |] ==> a : lfp(%x. Agen(x) Un R Un A)"
+lemma ci3_RI: "\<lbrakk>mono(Agen); a : R\<rbrakk> \<Longrightarrow> a : lfp(\<lambda>x. Agen(x) Un R Un A)"
   by coinduct3
 
-lemma ci3_AgenI: "[| mono(Agen);  a : Agen(lfp(%x. Agen(x) Un R Un A)) |] ==>
-    a : lfp(%x. Agen(x) Un R Un A)"
+lemma ci3_AgenI: "\<lbrakk>mono(Agen); a : Agen(lfp(\<lambda>x. Agen(x) Un R Un A))\<rbrakk> \<Longrightarrow>
+    a : lfp(\<lambda>x. Agen(x) Un R Un A)"
   by coinduct3
 
-lemma ci3_AI: "[| mono(Agen);  a : A |] ==> a : lfp(%x. Agen(x) Un R Un A)"
+lemma ci3_AI: "\<lbrakk>mono(Agen); a : A\<rbrakk> \<Longrightarrow> a : lfp(\<lambda>x. Agen(x) Un R Un A)"
   by coinduct3
 
 ML {*
@@ -434,19 +417,19 @@ lemma PO_refl: "<a,a> : PO"
 lemma POgenIs:
   "<true,true> : POgen(R)"
   "<false,false> : POgen(R)"
-  "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : POgen(R)"
-  "!!b b'. [|!!x. <b(x),b'(x)> : R |] ==><lam x. b(x),lam x. b'(x)> : POgen(R)"
+  "\<lbrakk><a,a'> : R; <b,b'> : R\<rbrakk> \<Longrightarrow> <<a,b>,<a',b'>> : POgen(R)"
+  "\<And>b b'. (\<And>x. <b(x),b'(x)> : R) \<Longrightarrow> <lam x. b(x),lam x. b'(x)> : POgen(R)"
   "<one,one> : POgen(R)"
-  "<a,a'> : lfp(%x. POgen(x) Un R Un PO) ==>
-    <inl(a),inl(a')> : POgen(lfp(%x. POgen(x) Un R Un PO))"
-  "<b,b'> : lfp(%x. POgen(x) Un R Un PO) ==>
-    <inr(b),inr(b')> : POgen(lfp(%x. POgen(x) Un R Un PO))"
-  "<zero,zero> : POgen(lfp(%x. POgen(x) Un R Un PO))"
-  "<n,n'> : lfp(%x. POgen(x) Un R Un PO) ==>
-    <succ(n),succ(n')> : POgen(lfp(%x. POgen(x) Un R Un PO))"
-  "<[],[]> : POgen(lfp(%x. POgen(x) Un R Un PO))"
-  "[| <h,h'> : lfp(%x. POgen(x) Un R Un PO);  <t,t'> : lfp(%x. POgen(x) Un R Un PO) |]
-    ==> <h$t,h'$t'> : POgen(lfp(%x. POgen(x) Un R Un PO))"
+  "<a,a'> : lfp(\<lambda>x. POgen(x) Un R Un PO) \<Longrightarrow>
+    <inl(a),inl(a')> : POgen(lfp(\<lambda>x. POgen(x) Un R Un PO))"
+  "<b,b'> : lfp(\<lambda>x. POgen(x) Un R Un PO) \<Longrightarrow>
+    <inr(b),inr(b')> : POgen(lfp(\<lambda>x. POgen(x) Un R Un PO))"
+  "<zero,zero> : POgen(lfp(\<lambda>x. POgen(x) Un R Un PO))"
+  "<n,n'> : lfp(\<lambda>x. POgen(x) Un R Un PO) \<Longrightarrow>
+    <succ(n),succ(n')> : POgen(lfp(\<lambda>x. POgen(x) Un R Un PO))"
+  "<[],[]> : POgen(lfp(\<lambda>x. POgen(x) Un R Un PO))"
+  "\<lbrakk><h,h'> : lfp(\<lambda>x. POgen(x) Un R Un PO);  <t,t'> : lfp(\<lambda>x. POgen(x) Un R Un PO)\<rbrakk>
+    \<Longrightarrow> <h$t,h'$t'> : POgen(lfp(\<lambda>x. POgen(x) Un R Un PO))"
   unfolding data_defs by (genIs POgenXH POgen_mono)+
 
 ML {*
@@ -468,19 +451,19 @@ lemma EQ_refl: "<a,a> : EQ"
 lemma EQgenIs:
   "<true,true> : EQgen(R)"
   "<false,false> : EQgen(R)"
-  "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : EQgen(R)"
-  "!!b b'. [|!!x. <b(x),b'(x)> : R |] ==> <lam x. b(x),lam x. b'(x)> : EQgen(R)"
+  "\<lbrakk><a,a'> : R; <b,b'> : R\<rbrakk> \<Longrightarrow> <<a,b>,<a',b'>> : EQgen(R)"
+  "\<And>b b'. (\<And>x. <b(x),b'(x)> : R) \<Longrightarrow> <lam x. b(x),lam x. b'(x)> : EQgen(R)"
   "<one,one> : EQgen(R)"
-  "<a,a'> : lfp(%x. EQgen(x) Un R Un EQ) ==>
-    <inl(a),inl(a')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
-  "<b,b'> : lfp(%x. EQgen(x) Un R Un EQ) ==>
-    <inr(b),inr(b')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
-  "<zero,zero> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
-  "<n,n'> : lfp(%x. EQgen(x) Un R Un EQ) ==>
-    <succ(n),succ(n')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
-  "<[],[]> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
-  "[| <h,h'> : lfp(%x. EQgen(x) Un R Un EQ); <t,t'> : lfp(%x. EQgen(x) Un R Un EQ) |]
-    ==> <h$t,h'$t'> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
+  "<a,a'> : lfp(\<lambda>x. EQgen(x) Un R Un EQ) \<Longrightarrow>
+    <inl(a),inl(a')> : EQgen(lfp(\<lambda>x. EQgen(x) Un R Un EQ))"
+  "<b,b'> : lfp(\<lambda>x. EQgen(x) Un R Un EQ) \<Longrightarrow>
+    <inr(b),inr(b')> : EQgen(lfp(\<lambda>x. EQgen(x) Un R Un EQ))"
+  "<zero,zero> : EQgen(lfp(\<lambda>x. EQgen(x) Un R Un EQ))"
+  "<n,n'> : lfp(\<lambda>x. EQgen(x) Un R Un EQ) \<Longrightarrow>
+    <succ(n),succ(n')> : EQgen(lfp(\<lambda>x. EQgen(x) Un R Un EQ))"
+  "<[],[]> : EQgen(lfp(\<lambda>x. EQgen(x) Un R Un EQ))"
+  "\<lbrakk><h,h'> : lfp(\<lambda>x. EQgen(x) Un R Un EQ); <t,t'> : lfp(\<lambda>x. EQgen(x) Un R Un EQ)\<rbrakk>
+    \<Longrightarrow> <h$t,h'$t'> : EQgen(lfp(\<lambda>x. EQgen(x) Un R Un EQ))"
   unfolding data_defs by (genIs EQgenXH EQgen_mono)+
 
 ML {*
@@ -500,6 +483,10 @@ fun EQgen_tac ctxt rews i =
     resolve_tac ((rews @ [@{thm refl}]) RL ((rews @ [@{thm refl}]) RL [@{thm ssubst_pair}])) i THEN
     ALLGOALS (simp_tac ctxt) THEN
     ALLGOALS EQgen_raw_tac) i
+*}
+
+method_setup EQgen = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (EQgen_tac ctxt ths))
 *}
 
 end

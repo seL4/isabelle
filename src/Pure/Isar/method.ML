@@ -282,7 +282,7 @@ val parse_tactic =
     Scan.lift (Args.text_declaration (fn source =>
       let
         val context' = context |>
-          ML_Context.expression (#pos source)
+          ML_Context.expression (#range source)
             "fun tactic (morphism: Morphism.morphism) (facts: thm list) : tactic"
             "Method.set_tactic tactic" (ML_Lex.read_source false source);
         val tac = the_tactic context';
@@ -377,13 +377,12 @@ fun method_syntax scan src ctxt : method =
 fun setup binding scan comment = define_global binding (method_syntax scan) comment #> snd;
 fun local_setup binding scan comment = define binding (method_syntax scan) comment #> snd;
 
-fun method_setup name source cmt =
-  (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-    ML_Lex.read_source false source @
-    ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")"))
-  |> ML_Context.expression (#pos source)
-    "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
-    "Context.map_proof (Method.local_setup name scan comment)"
+fun method_setup name source comment =
+  ML_Lex.read_source false source
+  |> ML_Context.expression (#range source)
+    "val parser: (Proof.context -> Proof.method) context_parser"
+    ("Context.map_proof (Method.local_setup " ^ ML_Syntax.atomic (ML_Syntax.make_binding name) ^
+      " parser " ^ ML_Syntax.print_string comment ^ ")")
   |> Context.proof_map;
 
 

@@ -22,32 +22,32 @@ definition white :: "i"
 definition blue :: "i"
   where "blue == inr(inr(one))"
 
-definition ccase :: "[i,i,i,i]=>i"
-  where "ccase(c,r,w,b) == when(c,%x. r,%wb. when(wb,%x. w,%x. b))"
+definition ccase :: "[i,i,i,i]\<Rightarrow>i"
+  where "ccase(c,r,w,b) == when(c, \<lambda>x. r, \<lambda>wb. when(wb, \<lambda>x. w, \<lambda>x. b))"
 
 definition flag :: "i"
   where
     "flag == lam l. letrec
       flagx l be lcase(l,<[],<[],[]>>,
-                       %h t. split(flagx(t),%lr p. split(p,%lw lb.
+                       \<lambda>h t. split(flagx(t), \<lambda>lr p. split(p, \<lambda>lw lb.
                             ccase(h, <red$lr,<lw,lb>>,
                                      <lr,<white$lw,lb>>,
                                      <lr,<lw,blue$lb>>))))
       in flagx(l)"
 
-axiomatization Perm :: "i => i => o"
-definition Flag :: "i => i => o" where
+axiomatization Perm :: "i \<Rightarrow> i \<Rightarrow> o"
+definition Flag :: "i \<Rightarrow> i \<Rightarrow> o" where
   "Flag(l,x) == ALL lr:List(Colour).ALL lw:List(Colour).ALL lb:List(Colour).
-                x = <lr,<lw,lb>> -->
-              (ALL c:Colour.(c mem lr = true --> c=red) &
-                            (c mem lw = true --> c=white) &
-                            (c mem lb = true --> c=blue)) &
+                x = <lr,<lw,lb>> \<longrightarrow>
+              (ALL c:Colour.(c mem lr = true \<longrightarrow> c=red) \<and>
+                            (c mem lw = true \<longrightarrow> c=white) \<and>
+                            (c mem lb = true \<longrightarrow> c=blue)) \<and>
               Perm(l,lr @ lw @ lb)"
 
 
 lemmas flag_defs = Colour_def red_def white_def blue_def ccase_def
 
-lemma ColourXH: "a : Colour <-> (a=red | a=white | a=blue)"
+lemma ColourXH: "a : Colour \<longleftrightarrow> (a=red | a=white | a=blue)"
   unfolding simp_type_defs flag_defs by blast
 
 lemma redT: "red : Colour"
@@ -56,23 +56,21 @@ lemma redT: "red : Colour"
   unfolding ColourXH by blast+
 
 lemma ccaseT:
-  "[| c:Colour; c=red ==> r : C(red); c=white ==> w : C(white); c=blue ==> b : C(blue) |]
-    ==> ccase(c,r,w,b) : C(c)"
+  "\<lbrakk>c:Colour; c=red \<Longrightarrow> r : C(red); c=white \<Longrightarrow> w : C(white); c=blue \<Longrightarrow> b : C(blue)\<rbrakk>
+    \<Longrightarrow> ccase(c,r,w,b) : C(c)"
   unfolding flag_defs by ncanT
 
 lemma "flag : List(Colour)->List(Colour)*List(Colour)*List(Colour)"
   apply (unfold flag_def)
-  apply (tactic {* typechk_tac @{context}
-    [@{thm redT}, @{thm whiteT}, @{thm blueT}, @{thm ccaseT}] 1 *})
-  apply (tactic "clean_ccs_tac @{context}")
+  apply (typechk redT whiteT blueT ccaseT)
+  apply clean_ccs
   apply (erule ListPRI [THEN ListPR_wf [THEN wfI]])
   apply assumption
   done
 
 lemma "flag : PROD l:List(Colour).{x:List(Colour)*List(Colour)*List(Colour).Flag(x,l)}"
   apply (unfold flag_def)
-  apply (tactic {* gen_ccs_tac @{context}
-    [@{thm redT}, @{thm whiteT}, @{thm blueT}, @{thm ccaseT}] 1 *})
+  apply (gen_ccs redT whiteT blueT ccaseT)
   oops
 
 end

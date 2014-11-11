@@ -283,7 +283,7 @@ end;
 
 fun read ctxt (source: Symbol_Pos.source) =
   let
-    val {text, pos, ...} = source;
+    val {text, range = (pos, _), ...} = source;
     val _ = Context_Position.report ctxt pos Markup.language_rail;
     val toks = tokenize (Symbol_Pos.explode (text, pos));
     val _ = Context_Position.reports ctxt (maps reports_of_token toks);

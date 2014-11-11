@@ -9,56 +9,57 @@ theory Wfd
 imports Trancl Type Hered
 begin
 
-definition Wfd :: "[i set] => o"
-  where "Wfd(R) == ALL P.(ALL x.(ALL y.<y,x> : R --> y:P) --> x:P) --> (ALL a. a:P)"
+definition Wfd :: "[i set] \<Rightarrow> o"
+  where "Wfd(R) == ALL P.(ALL x.(ALL y.<y,x> : R \<longrightarrow> y:P) \<longrightarrow> x:P) \<longrightarrow> (ALL a. a:P)"
 
-definition wf :: "[i set] => i set"
-  where "wf(R) == {x. x:R & Wfd(R)}"
+definition wf :: "[i set] \<Rightarrow> i set"
+  where "wf(R) == {x. x:R \<and> Wfd(R)}"
 
-definition wmap :: "[i=>i,i set] => i set"
-  where "wmap(f,R) == {p. EX x y. p=<x,y>  &  <f(x),f(y)> : R}"
+definition wmap :: "[i\<Rightarrow>i,i set] \<Rightarrow> i set"
+  where "wmap(f,R) == {p. EX x y. p=<x,y> \<and> <f(x),f(y)> : R}"
 
 definition lex :: "[i set,i set] => i set"      (infixl "**" 70)
-  where "ra**rb == {p. EX a a' b b'. p = <<a,b>,<a',b'>> & (<a,a'> : ra | (a=a' & <b,b'> : rb))}"
+  where "ra**rb == {p. EX a a' b b'. p = <<a,b>,<a',b'>> \<and> (<a,a'> : ra | (a=a' \<and> <b,b'> : rb))}"
 
 definition NatPR :: "i set"
   where "NatPR == {p. EX x:Nat. p=<x,succ(x)>}"
 
-definition ListPR :: "i set => i set"
+definition ListPR :: "i set \<Rightarrow> i set"
   where "ListPR(A) == {p. EX h:A. EX t:List(A). p=<t,h$t>}"
 
 
 lemma wfd_induct:
   assumes 1: "Wfd(R)"
-    and 2: "!!x.[| ALL y. <y,x>: R --> P(y) |] ==> P(x)"
+    and 2: "\<And>x. ALL y. <y,x>: R \<longrightarrow> P(y) \<Longrightarrow> P(x)"
   shows "P(a)"
   apply (rule 1 [unfolded Wfd_def, rule_format, THEN CollectD])
   using 2 apply blast
   done
 
 lemma wfd_strengthen_lemma:
-  assumes 1: "!!x y.<x,y> : R ==> Q(x)"
-    and 2: "ALL x. (ALL y. <y,x> : R --> y : P) --> x : P"
-    and 3: "!!x. Q(x) ==> x:P"
+  assumes 1: "\<And>x y.<x,y> : R \<Longrightarrow> Q(x)"
+    and 2: "ALL x. (ALL y. <y,x> : R \<longrightarrow> y : P) \<longrightarrow> x : P"
+    and 3: "\<And>x. Q(x) \<Longrightarrow> x:P"
   shows "a:P"
   apply (rule 2 [rule_format])
   using 1 3
   apply blast
   done
 
-ML {*
-  fun wfd_strengthen_tac ctxt s i =
-    res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac ctxt (i+1)
+method_setup wfd_strengthen = {*
+  Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt =>
+    SIMPLE_METHOD' (fn i =>
+      res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac ctxt (i+1)))
 *}
 
-lemma wf_anti_sym: "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P"
-  apply (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P")
+lemma wf_anti_sym: "\<lbrakk>Wfd(r); <a,x>:r; <x,a>:r\<rbrakk> \<Longrightarrow> P"
+  apply (subgoal_tac "ALL x. <a,x>:r \<longrightarrow> <x,a>:r \<longrightarrow> P")
    apply blast
   apply (erule wfd_induct)
   apply blast
   done
 
-lemma wf_anti_refl: "[| Wfd(r);  <a,a>: r |] ==> P"
+lemma wf_anti_refl: "\<lbrakk>Wfd(r); <a,a>: r\<rbrakk> \<Longrightarrow> P"
   apply (rule wf_anti_sym)
   apply assumption+
   done
@@ -86,26 +87,26 @@ lemma trancl_wf:
 subsection {* Lexicographic Ordering *}
 
 lemma lexXH:
-  "p : ra**rb <-> (EX a a' b b'. p = <<a,b>,<a',b'>> & (<a,a'> : ra | a=a' & <b,b'> : rb))"
+  "p : ra**rb \<longleftrightarrow> (EX a a' b b'. p = <<a,b>,<a',b'>> \<and> (<a,a'> : ra | a=a' \<and> <b,b'> : rb))"
   unfolding lex_def by blast
 
-lemma lexI1: "<a,a'> : ra ==> <<a,b>,<a',b'>> : ra**rb"
+lemma lexI1: "<a,a'> : ra \<Longrightarrow> <<a,b>,<a',b'>> : ra**rb"
   by (blast intro!: lexXH [THEN iffD2])
 
-lemma lexI2: "<b,b'> : rb ==> <<a,b>,<a,b'>> : ra**rb"
+lemma lexI2: "<b,b'> : rb \<Longrightarrow> <<a,b>,<a,b'>> : ra**rb"
   by (blast intro!: lexXH [THEN iffD2])
 
 lemma lexE:
   assumes 1: "p : ra**rb"
-    and 2: "!!a a' b b'.[| <a,a'> : ra; p=<<a,b>,<a',b'>> |] ==> R"
-    and 3: "!!a b b'.[| <b,b'> : rb;  p = <<a,b>,<a,b'>> |] ==> R"
+    and 2: "\<And>a a' b b'. \<lbrakk><a,a'> : ra; p=<<a,b>,<a',b'>>\<rbrakk> \<Longrightarrow> R"
+    and 3: "\<And>a b b'. \<lbrakk><b,b'> : rb; p = <<a,b>,<a,b'>>\<rbrakk> \<Longrightarrow> R"
   shows R
   apply (rule 1 [THEN lexXH [THEN iffD1], THEN exE])
   using 2 3
   apply blast
   done
 
-lemma lex_pair: "[| p : r**s;  !!a a' b b'. p = <<a,b>,<a',b'>> ==> P |] ==>P"
+lemma lex_pair: "\<lbrakk>p : r**s; \<And>a a' b b'. p = <<a,b>,<a',b'>> \<Longrightarrow> P\<rbrakk> \<Longrightarrow>P"
   apply (erule lexE)
    apply blast+
   done
@@ -116,7 +117,7 @@ lemma lex_wf:
   shows "Wfd(R**S)"
   apply (unfold Wfd_def)
   apply safe
-  apply (tactic {* wfd_strengthen_tac @{context} "%x. EX a b. x=<a,b>" 1 *})
+  apply (wfd_strengthen "\<lambda>x. EX a b. x=<a,b>")
    apply (blast elim!: lex_pair)
   apply (subgoal_tac "ALL a b.<a,b>:P")
    apply blast
@@ -128,13 +129,13 @@ lemma lex_wf:
 
 subsection {* Mapping *}
 
-lemma wmapXH: "p : wmap(f,r) <-> (EX x y. p=<x,y>  &  <f(x),f(y)> : r)"
+lemma wmapXH: "p : wmap(f,r) \<longleftrightarrow> (EX x y. p=<x,y> \<and> <f(x),f(y)> : r)"
   unfolding wmap_def by blast
 
-lemma wmapI: "<f(a),f(b)> : r ==> <a,b> : wmap(f,r)"
+lemma wmapI: "<f(a),f(b)> : r \<Longrightarrow> <a,b> : wmap(f,r)"
   by (blast intro!: wmapXH [THEN iffD2])
 
-lemma wmapE: "[| p : wmap(f,r);  !!a b.[| <f(a),f(b)> : r;  p=<a,b> |] ==> R |] ==> R"
+lemma wmapE: "\<lbrakk>p : wmap(f,r); \<And>a b. \<lbrakk><f(a),f(b)> : r; p=<a,b>\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
   by (blast dest!: wmapXH [THEN iffD1])
 
 lemma wmap_wf:
@@ -142,7 +143,7 @@ lemma wmap_wf:
   shows "Wfd(wmap(f,r))"
   apply (unfold Wfd_def)
   apply clarify
-  apply (subgoal_tac "ALL b. ALL a. f (a) =b-->a:P")
+  apply (subgoal_tac "ALL b. ALL a. f (a) = b \<longrightarrow> a:P")
    apply blast
   apply (rule 1 [THEN wfd_induct, THEN allI])
   apply clarify
@@ -156,17 +157,17 @@ lemma wmap_wf:
 
 subsection {* Projections *}
 
-lemma wfstI: "<xa,ya> : r ==> <<xa,xb>,<ya,yb>> : wmap(fst,r)"
+lemma wfstI: "<xa,ya> : r \<Longrightarrow> <<xa,xb>,<ya,yb>> : wmap(fst,r)"
   apply (rule wmapI)
   apply simp
   done
 
-lemma wsndI: "<xb,yb> : r ==> <<xa,xb>,<ya,yb>> : wmap(snd,r)"
+lemma wsndI: "<xb,yb> : r \<Longrightarrow> <<xa,xb>,<ya,yb>> : wmap(snd,r)"
   apply (rule wmapI)
   apply simp
   done
 
-lemma wthdI: "<xc,yc> : r ==> <<xa,<xb,xc>>,<ya,<yb,yc>>> : wmap(thd,r)"
+lemma wthdI: "<xc,yc> : r \<Longrightarrow> <<xa,<xb,xc>>,<ya,<yb,yc>>> : wmap(thd,r)"
   apply (rule wmapI)
   apply simp
   done
@@ -174,7 +175,7 @@ lemma wthdI: "<xc,yc> : r ==> <<xa,<xb,xc>>,<ya,<yb,yc>>> : wmap(thd,r)"
 
 subsection {* Ground well-founded relations *}
 
-lemma wfI: "[| Wfd(r);  a : r |] ==> a : wf(r)"
+lemma wfI: "\<lbrakk>Wfd(r);  a : r\<rbrakk> \<Longrightarrow> a : wf(r)"
   unfolding wf_def by blast
 
 lemma Empty_wf: "Wfd({})"
@@ -187,22 +188,22 @@ lemma wf_wf: "Wfd(wf(R))"
   apply (rule Empty_wf)
   done
 
-lemma NatPRXH: "p : NatPR <-> (EX x:Nat. p=<x,succ(x)>)"
+lemma NatPRXH: "p : NatPR \<longleftrightarrow> (EX x:Nat. p=<x,succ(x)>)"
   unfolding NatPR_def by blast
 
-lemma ListPRXH: "p : ListPR(A) <-> (EX h:A. EX t:List(A).p=<t,h$t>)"
+lemma ListPRXH: "p : ListPR(A) \<longleftrightarrow> (EX h:A. EX t:List(A).p=<t,h$t>)"
   unfolding ListPR_def by blast
 
-lemma NatPRI: "x : Nat ==> <x,succ(x)> : NatPR"
+lemma NatPRI: "x : Nat \<Longrightarrow> <x,succ(x)> : NatPR"
   by (auto simp: NatPRXH)
 
-lemma ListPRI: "[| t : List(A); h : A |] ==> <t,h $ t> : ListPR(A)"
+lemma ListPRI: "\<lbrakk>t : List(A); h : A\<rbrakk> \<Longrightarrow> <t,h $ t> : ListPR(A)"
   by (auto simp: ListPRXH)
 
 lemma NatPR_wf: "Wfd(NatPR)"
   apply (unfold Wfd_def)
   apply clarify
-  apply (tactic {* wfd_strengthen_tac @{context} "%x. x:Nat" 1 *})
+  apply (wfd_strengthen "\<lambda>x. x:Nat")
    apply (fastforce iff: NatPRXH)
   apply (erule Nat_ind)
    apply (fastforce iff: NatPRXH)+
@@ -211,7 +212,7 @@ lemma NatPR_wf: "Wfd(NatPR)"
 lemma ListPR_wf: "Wfd(ListPR(A))"
   apply (unfold Wfd_def)
   apply clarify
-  apply (tactic {* wfd_strengthen_tac @{context} "%x. x:List (A)" 1 *})
+  apply (wfd_strengthen "\<lambda>x. x:List (A)")
    apply (fastforce iff: ListPRXH)
   apply (erule List_ind)
    apply (fastforce iff: ListPRXH)+
@@ -222,7 +223,7 @@ subsection {* General Recursive Functions *}
 
 lemma letrecT:
   assumes 1: "a : A"
-    and 2: "!!p g.[| p:A; ALL x:{x: A. <x,p>:wf(R)}. g(x) : D(x) |] ==> h(p,g) : D(p)"
+    and 2: "\<And>p g. \<lbrakk>p:A; ALL x:{x: A. <x,p>:wf(R)}. g(x) : D(x)\<rbrakk> \<Longrightarrow> h(p,g) : D(p)"
   shows "letrec g x be h(x,g) in g(a) : D(a)"
   apply (rule 1 [THEN rev_mp])
   apply (rule wf_wf [THEN wfd_induct])
@@ -241,8 +242,8 @@ lemma SPLITB: "SPLIT(<a,b>,B) = B(a,b)"
 lemma letrec2T:
   assumes "a : A"
     and "b : B"
-    and "!!p q g.[| p:A; q:B;
-              ALL x:A. ALL y:{y: B. <<x,y>,<p,q>>:wf(R)}. g(x,y) : D(x,y) |] ==> 
+    and "\<And>p q g. \<lbrakk>p:A; q:B;
+              ALL x:A. ALL y:{y: B. <<x,y>,<p,q>>:wf(R)}. g(x,y) : D(x,y)\<rbrakk> \<Longrightarrow> 
                 h(p,q,g) : D(p,q)"
   shows "letrec g x y be h(x,y,g) in g(a,b) : D(a,b)"
   apply (unfold letrec2_def)
@@ -255,16 +256,16 @@ lemma letrec2T:
     erule bspec SubtypeE sym [THEN subst])+
   done
 
-lemma lem: "SPLIT(<a,<b,c>>,%x xs. SPLIT(xs,%y z. B(x,y,z))) = B(a,b,c)"
+lemma lem: "SPLIT(<a,<b,c>>,\<lambda>x xs. SPLIT(xs,\<lambda>y z. B(x,y,z))) = B(a,b,c)"
   by (simp add: SPLITB)
 
 lemma letrec3T:
   assumes "a : A"
     and "b : B"
     and "c : C"
-    and "!!p q r g.[| p:A; q:B; r:C;
-       ALL x:A. ALL y:B. ALL z:{z:C. <<x,<y,z>>,<p,<q,r>>> : wf(R)}.  
-                                                        g(x,y,z) : D(x,y,z) |] ==> 
+    and "\<And>p q r g. \<lbrakk>p:A; q:B; r:C;
+       ALL x:A. ALL y:B. ALL z:{z:C. <<x,<y,z>>,<p,<q,r>>> : wf(R)}.
+                                                        g(x,y,z) : D(x,y,z) \<rbrakk> \<Longrightarrow>
                 h(p,q,r,g) : D(p,q,r)"
   shows "letrec g x y z be h(x,y,z,g) in g(a,b,c) : D(a,b,c)"
   apply (unfold letrec3_def)
@@ -283,22 +284,19 @@ lemmas letrecTs = letrecT letrec2T letrec3T
 subsection {* Type Checking for Recursive Calls *}
 
 lemma rcallT:
-  "[| ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x);  
-      g(a) : D(a) ==> g(a) : E;  a:A;  <a,p>:wf(R) |] ==>  
-  g(a) : E"
+  "\<lbrakk>ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x);  
+    g(a) : D(a) \<Longrightarrow> g(a) : E;  a:A;  <a,p>:wf(R)\<rbrakk> \<Longrightarrow> g(a) : E"
   by blast
 
 lemma rcall2T:
-  "[| ALL x:A. ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y);  
-      g(a,b) : D(a,b) ==> g(a,b) : E;  a:A;  b:B;  <<a,b>,<p,q>>:wf(R) |] ==>  
-  g(a,b) : E"
+  "\<lbrakk>ALL x:A. ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y);
+    g(a,b) : D(a,b) \<Longrightarrow> g(a,b) : E; a:A; b:B; <<a,b>,<p,q>>:wf(R)\<rbrakk> \<Longrightarrow> g(a,b) : E"
   by blast
 
 lemma rcall3T:
-  "[| ALL x:A. ALL y:B. ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}. g(x,y,z):D(x,y,z);  
-      g(a,b,c) : D(a,b,c) ==> g(a,b,c) : E;   
-      a:A;  b:B;  c:C;  <<a,<b,c>>,<p,<q,r>>> : wf(R) |] ==>  
-  g(a,b,c) : E"
+  "\<lbrakk>ALL x:A. ALL y:B. ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}. g(x,y,z):D(x,y,z);
+    g(a,b,c) : D(a,b,c) \<Longrightarrow> g(a,b,c) : E;
+    a:A; b:B; c:C; <<a,<b,c>>,<p,<q,r>>> : wf(R)\<rbrakk> \<Longrightarrow> g(a,b,c) : E"
   by blast
 
 lemmas rcallTs = rcallT rcall2T rcall3T
@@ -309,9 +307,9 @@ subsection {* Instantiating an induction hypothesis with an equality assumption 
 lemma hyprcallT:
   assumes 1: "g(a) = b"
     and 2: "ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x)"
-    and 3: "ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x) ==> b=g(a) ==> g(a) : D(a) ==> P"
-    and 4: "ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x) ==> a:A"
-    and 5: "ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x) ==> <a,p>:wf(R)"
+    and 3: "ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x) \<Longrightarrow> b=g(a) \<Longrightarrow> g(a) : D(a) \<Longrightarrow> P"
+    and 4: "ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x) \<Longrightarrow> a:A"
+    and 5: "ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x) \<Longrightarrow> <a,p>:wf(R)"
   shows P
   apply (rule 3 [OF 2, OF 1 [symmetric]])
   apply (rule rcallT [OF 2])
@@ -323,7 +321,7 @@ lemma hyprcallT:
 lemma hyprcall2T:
   assumes 1: "g(a,b) = c"
     and 2: "ALL x:A. ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y)"
-    and 3: "[| c=g(a,b);  g(a,b) : D(a,b) |] ==> P"
+    and 3: "\<lbrakk>c = g(a,b); g(a,b) : D(a,b)\<rbrakk> \<Longrightarrow> P"
     and 4: "a:A"
     and 5: "b:B"
     and 6: "<<a,b>,<p,q>>:wf(R)"
@@ -341,7 +339,7 @@ lemma hyprcall2T:
 lemma hyprcall3T:
   assumes 1: "g(a,b,c) = d"
     and 2: "ALL x:A. ALL y:B. ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}.g(x,y,z):D(x,y,z)"
-    and 3: "[| d=g(a,b,c);  g(a,b,c) : D(a,b,c) |] ==> P"
+    and 3: "\<lbrakk>d = g(a,b,c); g(a,b,c) : D(a,b,c)\<rbrakk> \<Longrightarrow> P"
     and 4: "a:A"
     and 5: "b:B"
     and 6: "c:C"
@@ -363,14 +361,12 @@ lemmas hyprcallTs = hyprcallT hyprcall2T hyprcall3T
 
 subsection {* Rules to Remove Induction Hypotheses after Type Checking *}
 
-lemma rmIH1: "[| ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x); P |] ==> P" .
+lemma rmIH1: "\<lbrakk>ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x); P\<rbrakk> \<Longrightarrow> P" .
 
-lemma rmIH2: "[| ALL x:A. ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y); P |] ==> P" .
+lemma rmIH2: "\<lbrakk>ALL x:A. ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y); P\<rbrakk> \<Longrightarrow> P" .
   
 lemma rmIH3:
- "[| ALL x:A. ALL y:B. ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}.g(x,y,z):D(x,y,z);  
-     P |] ==>  
-     P" .
+ "\<lbrakk>ALL x:A. ALL y:B. ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}.g(x,y,z):D(x,y,z); P\<rbrakk> \<Longrightarrow> P" .
 
 lemmas rmIHs = rmIH1 rmIH2 rmIH3
 
@@ -381,27 +377,27 @@ subsection {* Lemmas for constructors and subtypes *}
 (*                                      correctly by applying SubtypeI *)
 
 lemma Subtype_canTs:
-  "!!a b A B P. a : {x:A. b:{y:B(a).P(<x,y>)}} ==> <a,b> : {x:Sigma(A,B).P(x)}"
-  "!!a A B P. a : {x:A. P(inl(x))} ==> inl(a) : {x:A+B. P(x)}"
-  "!!b A B P. b : {x:B. P(inr(x))} ==> inr(b) : {x:A+B. P(x)}"
-  "!!a P. a : {x:Nat. P(succ(x))} ==> succ(a) : {x:Nat. P(x)}"
-  "!!h t A P. h : {x:A. t : {y:List(A).P(x$y)}} ==> h$t : {x:List(A).P(x)}"
+  "\<And>a b A B P. a : {x:A. b:{y:B(a).P(<x,y>)}} \<Longrightarrow> <a,b> : {x:Sigma(A,B).P(x)}"
+  "\<And>a A B P. a : {x:A. P(inl(x))} \<Longrightarrow> inl(a) : {x:A+B. P(x)}"
+  "\<And>b A B P. b : {x:B. P(inr(x))} \<Longrightarrow> inr(b) : {x:A+B. P(x)}"
+  "\<And>a P. a : {x:Nat. P(succ(x))} \<Longrightarrow> succ(a) : {x:Nat. P(x)}"
+  "\<And>h t A P. h : {x:A. t : {y:List(A).P(x$y)}} \<Longrightarrow> h$t : {x:List(A).P(x)}"
   by (assumption | rule SubtypeI canTs icanTs | erule SubtypeE)+
 
-lemma letT: "[| f(t):B;  ~t=bot  |] ==> let x be t in f(x) : B"
+lemma letT: "\<lbrakk>f(t):B; \<not>t=bot\<rbrakk> \<Longrightarrow> let x be t in f(x) : B"
   apply (erule letB [THEN ssubst])
   apply assumption
   done
 
-lemma applyT2: "[| a:A;  f : Pi(A,B)  |] ==> f ` a  : B(a)"
+lemma applyT2: "\<lbrakk>a:A; f : Pi(A,B)\<rbrakk> \<Longrightarrow> f ` a  : B(a)"
   apply (erule applyT)
   apply assumption
   done
 
-lemma rcall_lemma1: "[| a:A;  a:A ==> P(a) |] ==> a : {x:A. P(x)}"
+lemma rcall_lemma1: "\<lbrakk>a:A; a:A \<Longrightarrow> P(a)\<rbrakk> \<Longrightarrow> a : {x:A. P(x)}"
   by blast
 
-lemma rcall_lemma2: "[| a:{x:A. Q(x)};  [| a:A; Q(a) |] ==> P(a) |] ==> a : {x:A. P(x)}"
+lemma rcall_lemma2: "\<lbrakk>a:{x:A. Q(x)}; \<lbrakk>a:A; Q(a)\<rbrakk> \<Longrightarrow> P(a)\<rbrakk> \<Longrightarrow> a : {x:A. P(x)}"
   by blast
 
 lemmas rcall_lemmas = asm_rl rcall_lemma1 SubtypeD1 rcall_lemma2
@@ -410,7 +406,6 @@ lemmas rcall_lemmas = asm_rl rcall_lemma1 SubtypeD1 rcall_lemma2
 subsection {* Typechecking *}
 
 ML {*
-
 local
 
 val type_rls =
@@ -443,9 +438,11 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
   in try_IHs rnames end)
 
 fun is_rigid_prog t =
-     case (Logic.strip_assums_concl t) of
-        (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_) $ a $ _)) => null (Term.add_vars a [])
-       | _ => false
+  (case (Logic.strip_assums_concl t) of
+    (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_) $ a $ _)) =>
+      null (Term.add_vars a [])
+  | _ => false)
+
 in
 
 fun rcall_tac ctxt i =
@@ -460,11 +457,10 @@ fun raw_step_tac ctxt prems i =
   match_tac ctxt [@{thm SubtypeI}] i
 
 fun tc_step_tac ctxt prems = SUBGOAL (fn (Bi,i) =>
-          if is_rigid_prog Bi then raw_step_tac ctxt prems i else no_tac)
+    if is_rigid_prog Bi then raw_step_tac ctxt prems i else no_tac)
 
 fun typechk_tac ctxt rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls)) i
 
-fun tac ctxt = typechk_tac ctxt [] 1
 
 (*** Clean up Correctness Condictions ***)
 
@@ -479,6 +475,18 @@ fun gen_ccs_tac ctxt rls i =
   SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls) THEN clean_ccs_tac ctxt) i
 
 end
+*}
+
+method_setup typechk = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (typechk_tac ctxt ths))
+*}
+
+method_setup clean_ccs = {*
+  Scan.succeed (SIMPLE_METHOD o clean_ccs_tac)
+*}
+
+method_setup gen_ccs = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (gen_ccs_tac ctxt ths))
 *}
 
 
@@ -517,7 +525,7 @@ lemma letV:
       etac @{thm substitute} 1)) *})
   done
 
-lemma fixV: "f(fix(f)) ---> c ==> fix(f) ---> c"
+lemma fixV: "f(fix(f)) ---> c \<Longrightarrow> fix(f) ---> c"
   apply (unfold fix_def)
   apply (rule applyV)
    apply (rule lamV)
@@ -525,7 +533,7 @@ lemma fixV: "f(fix(f)) ---> c ==> fix(f) ---> c"
   done
 
 lemma letrecV:
-  "h(t,%y. letrec g x be h(x,g) in g(y)) ---> c ==>  
+  "h(t,\<lambda>y. letrec g x be h(x,g) in g(y)) ---> c \<Longrightarrow>  
                  letrec g x be h(x,g) in g(t) ---> c"
   apply (unfold letrec_def)
   apply (assumption | rule fixV applyV  lamV)+
@@ -536,51 +544,51 @@ lemmas [eval] = letV letrecV fixV
 lemma V_rls [eval]:
   "true ---> true"
   "false ---> false"
-  "!!b c t u. [| b--->true;  t--->c |] ==> if b then t else u ---> c"
-  "!!b c t u. [| b--->false;  u--->c |] ==> if b then t else u ---> c"
-  "!!a b. <a,b> ---> <a,b>"
-  "!!a b c t h. [| t ---> <a,b>;  h(a,b) ---> c |] ==> split(t,h) ---> c"
+  "\<And>b c t u. \<lbrakk>b--->true; t--->c\<rbrakk> \<Longrightarrow> if b then t else u ---> c"
+  "\<And>b c t u. \<lbrakk>b--->false; u--->c\<rbrakk> \<Longrightarrow> if b then t else u ---> c"
+  "\<And>a b. <a,b> ---> <a,b>"
+  "\<And>a b c t h. \<lbrakk>t ---> <a,b>; h(a,b) ---> c\<rbrakk> \<Longrightarrow> split(t,h) ---> c"
   "zero ---> zero"
-  "!!n. succ(n) ---> succ(n)"
-  "!!c n t u. [| n ---> zero; t ---> c |] ==> ncase(n,t,u) ---> c"
-  "!!c n t u x. [| n ---> succ(x); u(x) ---> c |] ==> ncase(n,t,u) ---> c"
-  "!!c n t u. [| n ---> zero; t ---> c |] ==> nrec(n,t,u) ---> c"
-  "!!c n t u x. [| n--->succ(x); u(x,nrec(x,t,u))--->c |] ==> nrec(n,t,u)--->c"
+  "\<And>n. succ(n) ---> succ(n)"
+  "\<And>c n t u. \<lbrakk>n ---> zero; t ---> c\<rbrakk> \<Longrightarrow> ncase(n,t,u) ---> c"
+  "\<And>c n t u x. \<lbrakk>n ---> succ(x); u(x) ---> c\<rbrakk> \<Longrightarrow> ncase(n,t,u) ---> c"
+  "\<And>c n t u. \<lbrakk>n ---> zero; t ---> c\<rbrakk> \<Longrightarrow> nrec(n,t,u) ---> c"
+  "\<And>c n t u x. \<lbrakk>n--->succ(x); u(x,nrec(x,t,u))--->c\<rbrakk> \<Longrightarrow> nrec(n,t,u)--->c"
   "[] ---> []"
-  "!!h t. h$t ---> h$t"
-  "!!c l t u. [| l ---> []; t ---> c |] ==> lcase(l,t,u) ---> c"
-  "!!c l t u x xs. [| l ---> x$xs; u(x,xs) ---> c |] ==> lcase(l,t,u) ---> c"
-  "!!c l t u. [| l ---> []; t ---> c |] ==> lrec(l,t,u) ---> c"
-  "!!c l t u x xs. [| l--->x$xs; u(x,xs,lrec(xs,t,u))--->c |] ==> lrec(l,t,u)--->c"
+  "\<And>h t. h$t ---> h$t"
+  "\<And>c l t u. \<lbrakk>l ---> []; t ---> c\<rbrakk> \<Longrightarrow> lcase(l,t,u) ---> c"
+  "\<And>c l t u x xs. \<lbrakk>l ---> x$xs; u(x,xs) ---> c\<rbrakk> \<Longrightarrow> lcase(l,t,u) ---> c"
+  "\<And>c l t u. \<lbrakk>l ---> []; t ---> c\<rbrakk> \<Longrightarrow> lrec(l,t,u) ---> c"
+  "\<And>c l t u x xs. \<lbrakk>l--->x$xs; u(x,xs,lrec(xs,t,u))--->c\<rbrakk> \<Longrightarrow> lrec(l,t,u)--->c"
   unfolding data_defs by eval+
 
 
 subsection {* Factorial *}
 
 schematic_lemma
-  "letrec f n be ncase(n,succ(zero),%x. nrec(n,zero,%y g. nrec(f(x),g,%z h. succ(h))))  
+  "letrec f n be ncase(n,succ(zero),\<lambda>x. nrec(n,zero,\<lambda>y g. nrec(f(x),g,\<lambda>z h. succ(h))))  
    in f(succ(succ(zero))) ---> ?a"
   by eval
 
 schematic_lemma
-  "letrec f n be ncase(n,succ(zero),%x. nrec(n,zero,%y g. nrec(f(x),g,%z h. succ(h))))  
+  "letrec f n be ncase(n,succ(zero),\<lambda>x. nrec(n,zero,\<lambda>y g. nrec(f(x),g,\<lambda>z h. succ(h))))  
    in f(succ(succ(succ(zero)))) ---> ?a"
   by eval
 
 subsection {* Less Than Or Equal *}
 
 schematic_lemma
-  "letrec f p be split(p,%m n. ncase(m,true,%x. ncase(n,false,%y. f(<x,y>))))
+  "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
    in f(<succ(zero), succ(zero)>) ---> ?a"
   by eval
 
 schematic_lemma
-  "letrec f p be split(p,%m n. ncase(m,true,%x. ncase(n,false,%y. f(<x,y>))))
+  "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
    in f(<succ(zero), succ(succ(succ(succ(zero))))>) ---> ?a"
   by eval
 
 schematic_lemma
-  "letrec f p be split(p,%m n. ncase(m,true,%x. ncase(n,false,%y. f(<x,y>))))
+  "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
    in f(<succ(succ(succ(succ(succ(zero))))), succ(succ(succ(succ(zero))))>) ---> ?a"
   by eval
 
@@ -588,12 +596,12 @@ schematic_lemma
 subsection {* Reverse *}
 
 schematic_lemma
-  "letrec id l be lcase(l,[],%x xs. x$id(xs))  
+  "letrec id l be lcase(l,[],\<lambda>x xs. x$id(xs))  
    in id(zero$succ(zero)$[]) ---> ?a"
   by eval
 
 schematic_lemma
-  "letrec rev l be lcase(l,[],%x xs. lrec(rev(xs),x$[],%y ys g. y$g))  
+  "letrec rev l be lcase(l,[],\<lambda>x xs. lrec(rev(xs),x$[],\<lambda>y ys g. y$g))  
    in rev(zero$succ(zero)$(succ((lam x. x)`succ(zero)))$([])) ---> ?a"
   by eval
 

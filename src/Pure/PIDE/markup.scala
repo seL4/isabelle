@@ -100,6 +100,7 @@ object Markup
   /* position */
 
   val LINE = "line"
+  val END_LINE = "line"
   val OFFSET = "offset"
   val END_OFFSET = "end_offset"
   val FILE = "file"

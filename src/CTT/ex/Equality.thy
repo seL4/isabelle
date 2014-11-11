@@ -6,64 +6,63 @@
 section "Equality reasoning by rewriting"
 
 theory Equality
-imports CTT
+imports "../CTT"
 begin
 
-lemma split_eq: "p : Sum(A,B) ==> split(p,pair) = p : Sum(A,B)"
+lemma split_eq: "p : Sum(A,B) \<Longrightarrow> split(p,pair) = p : Sum(A,B)"
 apply (rule EqE)
 apply (rule elim_rls, assumption)
-apply (tactic "rew_tac @{context} []")
+apply rew
 done
 
-lemma when_eq: "[| A type;  B type;  p : A+B |] ==> when(p,inl,inr) = p : A + B"
+lemma when_eq: "\<lbrakk>A type; B type; p : A+B\<rbrakk> \<Longrightarrow> when(p,inl,inr) = p : A + B"
 apply (rule EqE)
 apply (rule elim_rls, assumption)
-apply (tactic "rew_tac @{context} []")
+apply rew
 done
 
 (*in the "rec" formulation of addition, 0+n=n *)
-lemma "p:N ==> rec(p,0, %y z. succ(y)) = p : N"
+lemma "p:N \<Longrightarrow> rec(p,0, \<lambda>y z. succ(y)) = p : N"
 apply (rule EqE)
 apply (rule elim_rls, assumption)
-apply (tactic "rew_tac @{context} []")
+apply rew
 done
 
 (*the harder version, n+0=n: recursive, uses induction hypothesis*)
-lemma "p:N ==> rec(p,0, %y z. succ(z)) = p : N"
+lemma "p:N \<Longrightarrow> rec(p,0, \<lambda>y z. succ(z)) = p : N"
 apply (rule EqE)
 apply (rule elim_rls, assumption)
-apply (tactic "hyp_rew_tac @{context} []")
+apply hyp_rew
 done
 
 (*Associativity of addition*)
-lemma "[| a:N;  b:N;  c:N |]
-      ==> rec(rec(a, b, %x y. succ(y)), c, %x y. succ(y)) =
-          rec(a, rec(b, c, %x y. succ(y)), %x y. succ(y)) : N"
-apply (tactic {* NE_tac @{context} "a" 1 *})
-apply (tactic "hyp_rew_tac @{context} []")
+lemma "\<lbrakk>a:N; b:N; c:N\<rbrakk>
+  \<Longrightarrow> rec(rec(a, b, \<lambda>x y. succ(y)), c, \<lambda>x y. succ(y)) =
+    rec(a, rec(b, c, \<lambda>x y. succ(y)), \<lambda>x y. succ(y)) : N"
+apply (NE a)
+apply hyp_rew
 done
 
 (*Martin-Lof (1984) page 62: pairing is surjective*)
-lemma "p : Sum(A,B) ==> <split(p,%x y. x), split(p,%x y. y)> = p : Sum(A,B)"
+lemma "p : Sum(A,B) \<Longrightarrow> <split(p,\<lambda>x y. x), split(p,\<lambda>x y. y)> = p : Sum(A,B)"
 apply (rule EqE)
 apply (rule elim_rls, assumption)
 apply (tactic {* DEPTH_SOLVE_1 (rew_tac @{context} []) *}) (*!!!!!!!*)
 done
 
-lemma "[| a : A;  b : B |] ==>
-     (lam u. split(u, %v w.<w,v>)) ` <a,b> = <b,a> : SUM x:B. A"
-apply (tactic "rew_tac @{context} []")
+lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (lam u. split(u, \<lambda>v w.<w,v>)) ` <a,b> = <b,a> : SUM x:B. A"
+apply rew
 done
 
 (*a contrived, complicated simplication, requires sum-elimination also*)
-lemma "(lam f. lam x. f`(f`x)) ` (lam u. split(u, %v w.<w,v>)) =
+lemma "(lam f. lam x. f`(f`x)) ` (lam u. split(u, \<lambda>v w.<w,v>)) =
       lam x. x  :  PROD x:(SUM y:N. N). (SUM y:N. N)"
 apply (rule reduction_rls)
 apply (rule_tac [3] intrL_rls)
 apply (rule_tac [4] EqE)
-apply (rule_tac [4] SumE, tactic "assume_tac @{context} 4")
+apply (erule_tac [4] SumE)
 (*order of unifiers is essential here*)
-apply (tactic "rew_tac @{context} []")
+apply rew
 done
 
 end
