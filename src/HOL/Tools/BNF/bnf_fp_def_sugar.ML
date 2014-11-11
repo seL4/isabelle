@@ -2227,12 +2227,12 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         (Rs, Ss, map2 (mk_parametricity_goal lthy (Rs @ Ss)) co_recs co_recBs, names_lthy)
       end;
 
-    fun derive_rec_transfer_thms lthy recs rec_defs =
+    fun derive_rec_transfer_thms lthy recs rec_defs (SOME (_, _, _, xsssss)) =
       let val (Rs, Ss, goals, names_lthy) = mk_co_rec_transfer_goals lthy recs in
         Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
           (fn {context = ctxt, prems = _} =>
-             mk_rec_transfer_tac ctxt nn ns (map (certify ctxt) Ss) (map (certify ctxt) Rs) rec_defs
-               xtor_co_rec_transfers pre_rel_defs live_nesting_rel_eqs)
+             mk_rec_transfer_tac ctxt nn ns (map (certify ctxt) Ss) (map (certify ctxt) Rs) xsssss
+               rec_defs xtor_co_rec_transfers pre_rel_defs live_nesting_rel_eqs)
         |> Conjunction.elim_balanced nn
         |> Proof_Context.export names_lthy lthy
         |> map Thm.close_derivation
@@ -2319,7 +2319,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
         val rec_transfer_thmss =
           if live = 0 then replicate nn []
-          else map single (derive_rec_transfer_thms lthy recs rec_defs);
+          else map single (derive_rec_transfer_thms lthy recs rec_defs recs_args_types);
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
         val induct_pred_attr = Attrib.internal o K o Induct.induct_pred;

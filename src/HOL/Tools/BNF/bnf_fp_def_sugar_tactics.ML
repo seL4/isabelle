@@ -39,7 +39,7 @@ sig
   val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
   val mk_rec_transfer_tac: Proof.context -> int -> int list -> cterm list -> cterm list ->
-    thm list -> thm list -> thm list -> thm list -> tactic
+    term list list list list -> thm list -> thm list -> thm list -> thm list -> tactic
   val mk_rel_cases_tac:  Proof.context -> cterm -> cterm -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list -> tactic
   val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
@@ -182,12 +182,19 @@ fun mk_rec_tac pre_map_defs map_ident0s rec_defs ctor_rec fp_abs_inverse abs_inv
   unfold_thms_tac ctxt (ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
     pre_map_defs @ map_ident0s @ rec_unfold_thms) THEN HEADGOAL (rtac refl);
 
-fun mk_rec_transfer_tac ctxt nn ns actives passives rec_defs ctor_rec_transfers rel_pre_T_defs
+fun mk_rec_transfer_tac ctxt nn ns actives passives xssss rec_defs ctor_rec_transfers rel_pre_T_defs
     rel_eqs =
   let
     val ctor_rec_transfers' =
       map (cterm_instantiate_pos (map SOME (passives @ actives))) ctor_rec_transfers;
     val total_n = Integer.sum ns;
+    val True = @{term True};
+    fun magic eq xs xs' = Subgoal.FOCUS (fn {prems, ...} =>
+      let
+        val thm = prems
+          |> Ctr_Sugar_Util.permute_like eq xs xs'
+          |> Library.foldl1 (fn (acc, elem) => elem RS (acc RS @{thm rel_funD}))
+      in HEADGOAL (rtac thm) end)
   in
     HEADGOAL Goal.conjunction_tac THEN
     EVERY (map (fn ctor_rec_transfer =>
@@ -195,23 +202,27 @@ fun mk_rec_transfer_tac ctxt nn ns actives passives rec_defs ctor_rec_transfers 
         unfold_thms_tac ctxt rec_defs THEN
         HEADGOAL (etac (mk_rel_funDN_rotated (nn + 1) ctor_rec_transfer)) THEN
         unfold_thms_tac ctxt rel_pre_T_defs THEN
-        EVERY (fst (fold_map (fn k => fn acc => rpair (k + acc)
+        EVERY (fst (@{fold_map 2} (fn k => fn xsss => fn acc =>
+            rpair (k + acc)
             (HEADGOAL (rtac (mk_rel_funDN_rotated 2 @{thm comp_transfer})) THEN
              HEADGOAL (rtac @{thm vimage2p_rel_fun}) THEN
              unfold_thms_tac ctxt rel_eqs THEN
-             EVERY (map (fn n =>
-                 REPEAT_DETERM (HEADGOAL
-                   (rtac (mk_rel_funDN 2 case_sum_transfer_eq) ORELSE'
-                    rtac (mk_rel_funDN 2 case_sum_transfer))) THEN
+             EVERY (@{map 2} (fn n => fn xss =>
+                 REPEAT_DETERM (HEADGOAL (resolve_tac
+                   [mk_rel_funDN 2 case_sum_transfer_eq, mk_rel_funDN 2 case_sum_transfer])) THEN
                  HEADGOAL (select_prem_tac total_n (dtac asm_rl) (acc + n)) THEN
                  HEADGOAL (SELECT_GOAL (HEADGOAL
-                   ((REPEAT_DETERM o (atac ORELSE'
-                       rtac (mk_rel_funDN 1 case_prod_transfer_eq) ORELSE'
-                       rtac (mk_rel_funDN 1 case_prod_transfer) ORELSE'
-                       rtac rel_funI)) THEN_ALL_NEW
-                    (REPEAT_ALL_NEW (dtac rel_funD) THEN_ALL_NEW atac)))))
-               (1 upto k))))
-          ns 0)))
+                   (REPEAT_DETERM o (atac ORELSE' resolve_tac
+                       [mk_rel_funDN 1 case_prod_transfer_eq,
+                        mk_rel_funDN 1 case_prod_transfer,
+                        rel_funI]) THEN_ALL_NEW
+                    (Subgoal.FOCUS (fn {prems, ...} =>
+                       let val thm = prems
+                         |> permute_like (op =) (True :: flat xss) (True :: flat_rec_arg_args xss)
+                         |> Library.foldl1 (fn (acc, elem) => elem RS (acc RS rel_funD))
+                       in HEADGOAL (rtac thm) end) ctxt)))))
+               (1 upto k) xsss)))
+          ns xssss 0)))
       ctor_rec_transfers')
   end;
 
