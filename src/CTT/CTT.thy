@@ -480,7 +480,7 @@ method_setup eqintr = {*
 *}
 
 method_setup NE = {*
-  Scan.lift Args.name >> (fn s => fn ctxt => SIMPLE_METHOD' (NE_tac ctxt s))
+  Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt => SIMPLE_METHOD' (NE_tac ctxt s))
 *}
 
 method_setup pc = {*

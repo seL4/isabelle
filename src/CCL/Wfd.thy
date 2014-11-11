@@ -47,7 +47,7 @@ lemma wfd_strengthen_lemma:
   done
 
 method_setup wfd_strengthen = {*
-  Scan.lift Args.name >> (fn s => fn ctxt =>
+  Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac ctxt (i+1)))
 *}

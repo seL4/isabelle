@@ -319,7 +319,7 @@ lemmas adm_lemmas =
   adm_not_eq_tr adm_conj adm_disj adm_imp adm_all
 
 method_setup induct = {*
-  Scan.lift Args.name >> (fn v => fn ctxt =>
+  Scan.lift Args.name_inner_syntax >> (fn v => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       res_inst_tac ctxt [(("f", 0), v)] @{thm induct} i THEN
       REPEAT (resolve_tac @{thms adm_lemmas} i)))
