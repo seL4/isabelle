@@ -380,21 +380,10 @@ fun equal_tac ctxt thms =
 end
 *}
 
-method_setup form = {*
-  Scan.succeed (fn ctxt => SIMPLE_METHOD (form_tac ctxt))
-*}
-
-method_setup typechk = {*
-  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (typechk_tac ctxt ths))
-*}
-
-method_setup intr = {*
-  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (intr_tac ctxt ths))
-*}
-
-method_setup equal = {*
-  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (equal_tac ctxt ths))
-*}
+method_setup form = {* Scan.succeed (fn ctxt => SIMPLE_METHOD (form_tac ctxt)) *}
+method_setup typechk = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (typechk_tac ctxt ths)) *}
+method_setup intr = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (intr_tac ctxt ths)) *}
+method_setup equal = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (equal_tac ctxt ths)) *}
 
 
 subsection {* Simplification *}
@@ -475,31 +464,16 @@ fun step_tac ctxt thms = safestep_tac ctxt thms  ORELSE'  biresolve_tac unsafe_b
 fun pc_tac ctxt thms = DEPTH_SOLVE_1 o (step_tac ctxt thms)
 *}
 
-method_setup eqintr = {*
-  Scan.succeed (SIMPLE_METHOD o eqintr_tac)
-*}
-
+method_setup eqintr = {* Scan.succeed (SIMPLE_METHOD o eqintr_tac) *}
 method_setup NE = {*
   Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt => SIMPLE_METHOD' (NE_tac ctxt s))
 *}
-
-method_setup pc = {*
-  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (pc_tac ctxt ths))
-*}
-
-method_setup add_mp = {*
-  Scan.succeed (SIMPLE_METHOD' o add_mp_tac)
-*}
+method_setup pc = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (pc_tac ctxt ths)) *}
+method_setup add_mp = {* Scan.succeed (SIMPLE_METHOD' o add_mp_tac) *}
 
 ML_file "rew.ML"
-
-method_setup rew = {*
-  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (rew_tac ctxt ths))
-*}
-
-method_setup hyp_rew = {*
-  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (hyp_rew_tac ctxt ths))
-*}
+method_setup rew = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (rew_tac ctxt ths)) *}
+method_setup hyp_rew = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (hyp_rew_tac ctxt ths)) *}
 
 
 subsection {* The elimination rules for fst/snd *}

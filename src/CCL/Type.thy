@@ -100,9 +100,7 @@ lemma LiftXH: "a : [A] <-> (a=bot | a:A)"
   and TexXH: "a : TEX X. B(X) <-> (EX X. a:B(X))"
   unfolding simp_type_defs by blast+
 
-ML {*
-ML_Thms.bind_thms ("case_rls", XH_to_Es @{thms XHs});
-*}
+ML {* ML_Thms.bind_thms ("case_rls", XH_to_Es @{thms XHs}) *}
 
 
 subsection {* Canonical Type Rules *}

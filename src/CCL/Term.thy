@@ -91,7 +91,6 @@ fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
          val (x',a') = Syntax_Trans.variant_abs(x,T,a3)
      in Const(@{syntax_const "_letrec3"},dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ Free(z',V) $ a' $ b'
       end;
-
 *}
 
 parse_translation {*

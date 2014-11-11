@@ -66,9 +66,7 @@ done
 
 (*Proofs involving arbitrary types.
   For concreteness, every type variable left over is forced to be N*)
-method_setup N = {*
-  Scan.succeed (fn _ => SIMPLE_METHOD (TRYALL (resolve_tac @{thms NF})))
-*}
+method_setup N = {* Scan.succeed (fn _ => SIMPLE_METHOD (TRYALL (resolve_tac @{thms NF}))) *}
 
 schematic_lemma "lam w. <w,w> : ?A"
 apply typechk

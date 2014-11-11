@@ -411,7 +411,6 @@ lemmas rcall_lemmas = asm_rl rcall_lemma1 SubtypeD1 rcall_lemma2
 subsection {* Typechecking *}
 
 ML {*
-
 local
 
 val type_rls =
@@ -444,9 +443,11 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
   in try_IHs rnames end)
 
 fun is_rigid_prog t =
-     case (Logic.strip_assums_concl t) of
-        (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_) $ a $ _)) => null (Term.add_vars a [])
-       | _ => false
+  (case (Logic.strip_assums_concl t) of
+    (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_) $ a $ _)) =>
+      null (Term.add_vars a [])
+  | _ => false)
+
 in
 
 fun rcall_tac ctxt i =
@@ -461,11 +462,10 @@ fun raw_step_tac ctxt prems i =
   match_tac ctxt [@{thm SubtypeI}] i
 
 fun tc_step_tac ctxt prems = SUBGOAL (fn (Bi,i) =>
-          if is_rigid_prog Bi then raw_step_tac ctxt prems i else no_tac)
+    if is_rigid_prog Bi then raw_step_tac ctxt prems i else no_tac)
 
 fun typechk_tac ctxt rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls)) i
 
-fun tac ctxt = typechk_tac ctxt [] 1
 
 (*** Clean up Correctness Condictions ***)
 

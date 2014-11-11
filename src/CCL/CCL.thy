@@ -230,7 +230,6 @@ lemma lem: "t=t' ==> case(t,b,c,d,e) = case(t',b,c,d,e)"
   by simp
 
 ML {*
-
 local
   fun pairs_of f x [] = []
     | pairs_of f x (y::ys) = (f x y) :: (f y x) :: (pairs_of f x ys)
@@ -259,11 +258,9 @@ in
   fun mk_lemmas rls = maps mk_lemma (mk_combs pair rls)
   fun mk_dstnct_rls thy xs = mk_combs (mk_thm_str thy) xs
 end
-
 *}
 
 ML {*
-
 val caseB_lemmas = mk_lemmas @{thms caseBs}
 
 val ccl_dstncts =
