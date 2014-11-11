@@ -51,9 +51,10 @@ lemma pred_sets2: "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Lon
 ML_file "measurable.ML"
 
 attribute_setup measurable = {*
-  Scan.lift (Scan.optional (Args.parens (Scan.optional (Args.$$$ "raw" >> K true) false --
-    Scan.optional (Args.$$$ "generic" >> K Measurable.Generic) Measurable.Concrete))
-    (false, Measurable.Concrete) >> (Thm.declaration_attribute o Measurable.add_thm))
+  Scan.lift (Scan.optional (Args.$$$ "del" >> K false) true --
+    Scan.optional (Args.parens (Scan.optional (Args.$$$ "raw" >> K true) false --
+      Scan.optional (Args.$$$ "generic" >> K Measurable.Generic) Measurable.Concrete))
+    (false, Measurable.Concrete) >> (Thm.declaration_attribute o uncurry Measurable.add_del_thm))
 *} "declaration of measurability theorems"
 
 attribute_setup measurable_dest = {*
@@ -69,6 +70,10 @@ method_setup measurable = {*
 *} "measurability prover"
 
 simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = {* K Measurable.simproc *}
+
+setup {*
+  Global_Theory.add_thms_dynamic (@{binding measurable}, Measurable.get_all o Context.proof_of)
+*}
 
 declare
   measurable_compose_rev[measurable_dest]

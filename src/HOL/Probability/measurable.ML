@@ -11,6 +11,8 @@ sig
   val add_app : thm -> Context.generic -> Context.generic
   val add_dest : thm -> Context.generic -> Context.generic
   val add_thm : bool * level -> thm -> Context.generic -> Context.generic
+  val del_thm : bool * level -> thm -> Context.generic -> Context.generic
+  val add_del_thm : bool -> (bool * level) -> thm -> Context.generic -> Context.generic
 
   val measurable_tac : Proof.context -> thm list -> tactic
 
@@ -20,7 +22,6 @@ sig
   val get_all : Proof.context -> thm list
 
   val update : (thm Item_Net.T -> thm Item_Net.T) -> level -> Context.generic -> Context.generic
-
 end ;
 
 structure Measurable : MEASURABLE =
@@ -77,6 +78,7 @@ fun map_app_thms f = map_data I I I f
 
 fun update f lv = Data.map (case lv of Concrete => map_concrete_thms f | Generic => map_generic_thms f);
 fun add thms' = update (fold Item_Net.update thms');
+fun del thms' = update (fold Item_Net.remove thms');
 
 val get_dest = Item_Net.content o #dest_thms o Data.get;
 val add_dest = Data.map o map_dest_thms o Item_Net.update;
@@ -93,7 +95,12 @@ fun is_too_generic thm =
 fun import_theorem ctxt thm = if is_too_generic thm then [] else
   [thm] @ map_filter (try (fn th' => thm RS th')) (get_dest ctxt);
 
-fun add_thm (raw, lv) thm ctxt = add (if raw then [thm] else import_theorem ctxt thm) lv ctxt;
+fun add_del_thm_gen f (raw, lv) thm ctxt = f (if raw then [thm] else import_theorem ctxt thm) lv ctxt;
+
+val add_thm = add_del_thm_gen add;
+val del_thm = add_del_thm_gen del;
+fun add_del_thm true = add_thm
+  | add_del_thm false = del_thm
 
 fun debug_tac ctxt msg f = if Config.get ctxt debug then print_tac ctxt (msg ()) THEN f else f
 
