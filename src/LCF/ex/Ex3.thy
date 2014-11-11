@@ -14,7 +14,7 @@ where
 declare p_strict [simp] p_s [simp]
 
 lemma example: "p(FIX(s),y) = FIX(s)"
-  apply (tactic {* induct_tac @{context} "s" 1 *})
+  apply (induct s)
   apply simp
   apply simp
   done

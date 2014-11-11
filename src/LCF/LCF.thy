@@ -318,15 +318,15 @@ lemmas adm_lemmas =
   adm_not_free adm_eq adm_less adm_not_less
   adm_not_eq_tr adm_conj adm_disj adm_imp adm_all
 
-
-ML {*
-  fun induct_tac ctxt v i =
-    res_inst_tac ctxt [(("f", 0), v)] @{thm induct} i THEN
-    REPEAT (resolve_tac @{thms adm_lemmas} i)
+method_setup induct = {*
+  Scan.lift Args.name >> (fn v => fn ctxt =>
+    SIMPLE_METHOD' (fn i =>
+      res_inst_tac ctxt [(("f", 0), v)] @{thm induct} i THEN
+      REPEAT (resolve_tac @{thms adm_lemmas} i)))
 *}
 
 lemma least_FIX: "f(p) = p ==> FIX(f) << p"
-  apply (tactic {* induct_tac @{context} "f" 1 *})
+  apply (induct f)
   apply (rule minimal)
   apply (intro strip)
   apply (erule subst)

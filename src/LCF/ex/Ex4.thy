@@ -10,7 +10,7 @@ lemma example:
   shows "FIX(f)=p"
   apply (unfold eq_def)
   apply (rule conjI)
-  apply (tactic {* induct_tac @{context} "f" 1 *})
+  apply (induct f)
   apply (rule minimal)
   apply (intro strip)
   apply (rule less_trans)
