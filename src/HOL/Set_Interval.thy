@@ -488,6 +488,19 @@ lemma Iio_eq_empty_iff: "{..< n::'a::{linorder, order_bot}} = {} \<longleftright
 lemma Iio_eq_empty_iff_nat: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
   by (simp add: Iio_eq_empty_iff bot_nat_def)
 
+lemma mono_image_least:
+  assumes f_mono: "mono f" and f_img: "f ` {m ..< n} = {m' ..< n'}" "m < n"
+  shows "f m = m'"
+proof -
+  from f_img have "{m' ..< n'} \<noteq> {}"
+    by (metis atLeastLessThan_empty_iff image_is_empty)
+  with f_img have "m' \<in> f ` {m ..< n}" by auto
+  then obtain k where "f k = m'" "m \<le> k" by auto
+  moreover have "m' \<le> f m" using f_img by auto
+  ultimately show "f m = m'"
+    using f_mono by (auto elim: monoE[where x=m and y=k])
+qed
+
 
 subsection {* Infinite intervals *}
 
