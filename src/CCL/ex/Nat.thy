@@ -6,7 +6,7 @@
 section {* Programs defined over the natural numbers *}
 
 theory Nat
-imports Wfd
+imports "../Wfd"
 begin
 
 definition not :: "i=>i"

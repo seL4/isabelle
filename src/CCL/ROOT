@@ -11,15 +11,13 @@ session CCL = Pure +
     evaluation to weak head-normal form.
   *}
   options [document = false]
-  theories Wfd Fix
+  theories
+    Wfd
+    Fix
 
-session "CCL-ex" in ex = CCL +
-  description {*
-    Author:     Martin Coen, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
-
-    Examples for Classical Computational Logic.
-  *}
-  options [document = false]
-  theories Nat List Stream Flag
+    (* Examples for Classical Computational Logic *)
+    "ex/Nat"
+    "ex/List"
+    "ex/Stream"
+    "ex/Flag"
 

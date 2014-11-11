@@ -17,14 +17,11 @@ session CTT = Pure +
     1991)
   *}
   options [document = false]
-  theories Main
+  theories
+    Main
 
-session "CTT-ex" in ex = CTT +
-  description {*
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1991  University of Cambridge
-
-    Examples for Constructive Type Theory.
-  *}
-  options [document = false]
-  theories Typechecking Elimination Equality Synthesis
+    (* Examples for Constructive Type Theory *)
+    "ex/Typechecking"
+    "ex/Elimination"
+    "ex/Equality"
+    "ex/Synthesis"

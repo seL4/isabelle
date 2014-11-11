@@ -2,7 +2,7 @@
 section {* Prefixpoints *}
 
 theory Ex4
-imports LCF
+imports "../LCF"
 begin
 
 lemma example:

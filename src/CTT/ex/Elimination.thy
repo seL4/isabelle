@@ -9,7 +9,7 @@ Some examples taken from P. Martin-L\"of, Intuitionistic type theory
 section "Examples with elimination rules"
 
 theory Elimination
-imports CTT
+imports "../CTT"
 begin
 
 text "This finds the functions fst and snd!"

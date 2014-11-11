@@ -1,7 +1,7 @@
 section {* Example 3.8 *}
 
 theory Ex2
-imports LCF
+imports "../LCF"
 begin
 
 axiomatization

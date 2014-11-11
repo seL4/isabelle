@@ -6,7 +6,7 @@
 section "Easy examples: type checking and type deduction"
 
 theory Typechecking
-imports CTT
+imports "../CTT"
 begin
 
 subsection {* Single-step proofs: verifying that a type is well-formed *}

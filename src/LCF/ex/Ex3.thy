@@ -1,7 +1,7 @@
 section {* Addition with fixpoint of successor *}
 
 theory Ex3
-imports LCF
+imports "../LCF"
 begin
 
 axiomatization

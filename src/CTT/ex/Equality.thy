@@ -6,7 +6,7 @@
 section "Equality reasoning by rewriting"
 
 theory Equality
-imports CTT
+imports "../CTT"
 begin
 
 lemma split_eq: "p : Sum(A,B) ==> split(p,pair) = p : Sum(A,B)"

@@ -6,7 +6,7 @@
 section "Synthesis examples, using a crude form of narrowing"
 
 theory Synthesis
-imports Arith
+imports "../Arith"
 begin
 
 text "discovery of predecessor function"
