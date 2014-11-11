@@ -21,7 +21,7 @@ done
 
 text "the function fst as an element of a function type"
 schematic_lemma [folded basic_defs]:
-  "A type ==> ?a: SUM f:?B . PROD i:A. PROD j:A. Eq(A, f ` <i,j>, i)"
+  "A type \<Longrightarrow> ?a: SUM f:?B . PROD i:A. PROD j:A. Eq(A, f ` <i,j>, i)"
 apply intr
 apply eqintr
 apply (rule_tac [2] reduction_rls)

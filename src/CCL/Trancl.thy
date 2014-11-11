@@ -9,29 +9,28 @@ theory Trancl
 imports CCL
 begin
 
-definition trans :: "i set => o"  (*transitivity predicate*)
-  where "trans(r) == (ALL x y z. <x,y>:r --> <y,z>:r --> <x,z>:r)"
+definition trans :: "i set \<Rightarrow> o"  (*transitivity predicate*)
+  where "trans(r) == (ALL x y z. <x,y>:r \<longrightarrow> <y,z>:r \<longrightarrow> <x,z>:r)"
 
 definition id :: "i set"  (*the identity relation*)
   where "id == {p. EX x. p = <x,x>}"
 
-definition relcomp :: "[i set,i set] => i set"  (infixr "O" 60)  (*composition of relations*)
-  where "r O s == {xz. EX x y z. xz = <x,z> & <x,y>:s & <y,z>:r}"
+definition relcomp :: "[i set,i set] \<Rightarrow> i set"  (infixr "O" 60)  (*composition of relations*)
+  where "r O s == {xz. EX x y z. xz = <x,z> \<and> <x,y>:s \<and> <y,z>:r}"
 
-definition rtrancl :: "i set => i set"  ("(_^*)" [100] 100)
-  where "r^* == lfp(%s. id Un (r O s))"
+definition rtrancl :: "i set \<Rightarrow> i set"  ("(_^*)" [100] 100)
+  where "r^* == lfp(\<lambda>s. id Un (r O s))"
 
-definition trancl :: "i set => i set"  ("(_^+)" [100] 100)
+definition trancl :: "i set \<Rightarrow> i set"  ("(_^+)" [100] 100)
   where "r^+ == r O rtrancl(r)"
 
 
 subsection {* Natural deduction for @{text "trans(r)"} *}
 
-lemma transI:
-  "(!! x y z. [| <x,y>:r;  <y,z>:r |] ==> <x,z>:r) ==> trans(r)"
+lemma transI: "(\<And>x y z. \<lbrakk><x,y>:r; <y,z>:r\<rbrakk> \<Longrightarrow> <x,z>:r) \<Longrightarrow> trans(r)"
   unfolding trans_def by blast
 
-lemma transD: "[| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r"
+lemma transD: "\<lbrakk>trans(r); <a,b>:r; <b,c>:r\<rbrakk> \<Longrightarrow> <a,c>:r"
   unfolding trans_def by blast
 
 
@@ -44,8 +43,7 @@ lemma idI: "<a,a> : id"
   apply (rule refl)
   done
 
-lemma idE:
-    "[| p: id;  !!x.[| p = <x,x> |] ==> P |] ==>  P"
+lemma idE: "\<lbrakk>p: id;  \<And>x. p = <x,x> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (unfold id_def)
   apply (erule CollectE)
   apply blast
@@ -54,20 +52,14 @@ lemma idE:
 
 subsection {* Composition of two relations *}
 
-lemma compI: "[| <a,b>:s; <b,c>:r |] ==> <a,c> : r O s"
+lemma compI: "\<lbrakk><a,b>:s; <b,c>:r\<rbrakk> \<Longrightarrow> <a,c> : r O s"
   unfolding relcomp_def by blast
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
-lemma compE:
-    "[| xz : r O s;
-        !!x y z. [| xz = <x,z>;  <x,y>:s;  <y,z>:r |] ==> P
-     |] ==> P"
+lemma compE: "\<lbrakk>xz : r O s; \<And>x y z. \<lbrakk>xz = <x,z>; <x,y>:s; <y,z>:r\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   unfolding relcomp_def by blast
 
-lemma compEpair:
-  "[| <a,c> : r O s;
-      !!y. [| <a,y>:s;  <y,c>:r |] ==> P
-   |] ==> P"
+lemma compEpair: "\<lbrakk><a,c> : r O s; \<And>y. \<lbrakk><a,y>:s; <y,c>:r\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   apply (erule compE)
   apply (simp add: pair_inject)
   done
@@ -76,13 +68,13 @@ lemmas [intro] = compI idI
   and [elim] = compE idE
   and [elim!] = pair_inject
 
-lemma comp_mono: "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)"
+lemma comp_mono: "\<lbrakk>r'<=r; s'<=s\<rbrakk> \<Longrightarrow> (r' O s') <= (r O s)"
   by blast
 
 
 subsection {* The relation rtrancl *}
 
-lemma rtrancl_fun_mono: "mono(%s. id Un (r O s))"
+lemma rtrancl_fun_mono: "mono(\<lambda>s. id Un (r O s))"
   apply (rule monoI)
   apply (rule monoI subset_refl comp_mono Un_mono)+
   apply assumption
@@ -98,13 +90,13 @@ lemma rtrancl_refl: "<a,a> : r^*"
   done
 
 (*Closure under composition with r*)
-lemma rtrancl_into_rtrancl: "[| <a,b> : r^*;  <b,c> : r |] ==> <a,c> : r^*"
+lemma rtrancl_into_rtrancl: "\<lbrakk><a,b> : r^*; <b,c> : r\<rbrakk> \<Longrightarrow> <a,c> : r^*"
   apply (subst rtrancl_unfold)
   apply blast
   done
 
 (*rtrancl of r contains r*)
-lemma r_into_rtrancl: "[| <a,b> : r |] ==> <a,b> : r^*"
+lemma r_into_rtrancl: "<a,b> : r \<Longrightarrow> <a,b> : r^*"
   apply (rule rtrancl_refl [THEN rtrancl_into_rtrancl])
   apply assumption
   done
@@ -113,10 +105,10 @@ lemma r_into_rtrancl: "[| <a,b> : r |] ==> <a,b> : r^*"
 subsection {* standard induction rule *}
 
 lemma rtrancl_full_induct:
-  "[| <a,b> : r^*;
-      !!x. P(<x,x>);
-      !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |]
-   ==>  P(<a,b>)"
+  "\<lbrakk><a,b> : r^*;
+      \<And>x. P(<x,x>);
+      \<And>x y z. \<lbrakk>P(<x,y>); <x,y>: r^*; <y,z>: r\<rbrakk>  \<Longrightarrow> P(<x,z>)\<rbrakk>
+   \<Longrightarrow>  P(<a,b>)"
   apply (erule def_induct [OF rtrancl_def])
    apply (rule rtrancl_fun_mono)
   apply blast
@@ -124,12 +116,12 @@ lemma rtrancl_full_induct:
 
 (*nice induction rule*)
 lemma rtrancl_induct:
-  "[| <a,b> : r^*;
+  "\<lbrakk><a,b> : r^*;
       P(a);
-      !!y z.[| <a,y> : r^*;  <y,z> : r;  P(y) |] ==> P(z) |]
-    ==> P(b)"
+      \<And>y z. \<lbrakk><a,y> : r^*; <y,z> : r;  P(y)\<rbrakk> \<Longrightarrow> P(z) \<rbrakk>
+    \<Longrightarrow> P(b)"
 (*by induction on this formula*)
-  apply (subgoal_tac "ALL y. <a,b> = <a,y> --> P(y)")
+  apply (subgoal_tac "ALL y. <a,b> = <a,y> \<longrightarrow> P(y)")
 (*now solve first subgoal: this formula is sufficient*)
   apply blast
 (*now do the induction*)
@@ -147,10 +139,8 @@ lemma trans_rtrancl: "trans(r^*)"
 
 (*elimination of rtrancl -- by induction on a special formula*)
 lemma rtranclE:
-  "[| <a,b> : r^*;  (a = b) ==> P;
-      !!y.[| <a,y> : r^*; <y,b> : r |] ==> P |]
-   ==> P"
-  apply (subgoal_tac "a = b | (EX y. <a,y> : r^* & <y,b> : r)")
+  "\<lbrakk><a,b> : r^*; a = b \<Longrightarrow> P; \<And>y. \<lbrakk><a,y> : r^*; <y,b> : r\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  apply (subgoal_tac "a = b | (EX y. <a,y> : r^* \<and> <y,b> : r)")
    prefer 2
    apply (erule rtrancl_induct)
     apply blast
@@ -163,7 +153,7 @@ subsection {* The relation trancl *}
 
 subsubsection {* Conversions between trancl and rtrancl *}
 
-lemma trancl_into_rtrancl: "[| <a,b> : r^+ |] ==> <a,b> : r^*"
+lemma trancl_into_rtrancl: "<a,b> : r^+ \<Longrightarrow> <a,b> : r^*"
   apply (unfold trancl_def)
   apply (erule compEpair)
   apply (erule rtrancl_into_rtrancl)
@@ -171,15 +161,15 @@ lemma trancl_into_rtrancl: "[| <a,b> : r^+ |] ==> <a,b> : r^*"
   done
 
 (*r^+ contains r*)
-lemma r_into_trancl: "[| <a,b> : r |] ==> <a,b> : r^+"
+lemma r_into_trancl: "<a,b> : r \<Longrightarrow> <a,b> : r^+"
   unfolding trancl_def by (blast intro: rtrancl_refl)
 
 (*intro rule by definition: from rtrancl and r*)
-lemma rtrancl_into_trancl1: "[| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+"
+lemma rtrancl_into_trancl1: "\<lbrakk><a,b> : r^*; <b,c> : r\<rbrakk> \<Longrightarrow> <a,c> : r^+"
   unfolding trancl_def by blast
 
 (*intro rule from r and rtrancl*)
-lemma rtrancl_into_trancl2: "[| <a,b> : r;  <b,c> : r^* |]   ==>  <a,c> : r^+"
+lemma rtrancl_into_trancl2: "\<lbrakk><a,b> : r; <b,c> : r^*\<rbrakk> \<Longrightarrow> <a,c> : r^+"
   apply (erule rtranclE)
    apply (erule subst)
    apply (erule r_into_trancl)
@@ -189,11 +179,10 @@ lemma rtrancl_into_trancl2: "[| <a,b> : r;  <b,c> : r^* |]   ==>  <a,c> : r^+"
 
 (*elimination of r^+ -- NOT an induction rule*)
 lemma tranclE:
-  "[| <a,b> : r^+;
-      <a,b> : r ==> P;
-      !!y.[| <a,y> : r^+;  <y,b> : r |] ==> P
-   |] ==> P"
-  apply (subgoal_tac "<a,b> : r | (EX y. <a,y> : r^+ & <y,b> : r)")
+  "\<lbrakk><a,b> : r^+;
+    <a,b> : r \<Longrightarrow> P;
+    \<And>y. \<lbrakk><a,y> : r^+; <y,b> : r\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  apply (subgoal_tac "<a,b> : r | (EX y. <a,y> : r^+ \<and> <y,b> : r)")
    apply blast
   apply (unfold trancl_def)
   apply (erule compEpair)
@@ -212,7 +201,7 @@ lemma trans_trancl: "trans(r^+)"
     apply assumption+
   done
 
-lemma trancl_into_trancl2: "[| <a,b> : r;  <b,c> : r^+ |]   ==>  <a,c> : r^+"
+lemma trancl_into_trancl2: "\<lbrakk><a,b> : r; <b,c> : r^+\<rbrakk> \<Longrightarrow> <a,c> : r^+"
   apply (rule r_into_trancl [THEN trans_trancl [THEN transD]])
    apply assumption+
   done

@@ -14,80 +14,80 @@ begin
 
 text "This finds the functions fst and snd!"
 
-schematic_lemma [folded basic_defs]: "A type ==> ?a : (A*A) --> A"
+schematic_lemma [folded basic_defs]: "A type \<Longrightarrow> ?a : (A*A) --> A"
 apply pc
 done
 
-schematic_lemma [folded basic_defs]: "A type ==> ?a : (A*A) --> A"
+schematic_lemma [folded basic_defs]: "A type \<Longrightarrow> ?a : (A*A) --> A"
 apply pc
 back
 done
 
 text "Double negation of the Excluded Middle"
-schematic_lemma "A type ==> ?a : ((A + (A-->F)) --> F) --> F"
+schematic_lemma "A type \<Longrightarrow> ?a : ((A + (A-->F)) --> F) --> F"
 apply intr
 apply (rule ProdE)
 apply assumption
 apply pc
 done
 
-schematic_lemma "[| A type;  B type |] ==> ?a : (A*B) --> (B*A)"
+schematic_lemma "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : (A*B) \<longrightarrow> (B*A)"
 apply pc
 done
 (*The sequent version (ITT) could produce an interesting alternative
   by backtracking.  No longer.*)
 
 text "Binary sums and products"
-schematic_lemma "[| A type; B type; C type |] ==> ?a : (A+B --> C) --> (A-->C) * (B-->C)"
+schematic_lemma "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A+B --> C) --> (A-->C) * (B-->C)"
 apply pc
 done
 
 (*A distributive law*)
-schematic_lemma "[| A type;  B type;  C type |] ==> ?a : A * (B+C)  -->  (A*B + A*C)"
+schematic_lemma "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : A * (B+C)  -->  (A*B + A*C)"
 apply pc
 done
 
 (*more general version, same proof*)
 schematic_lemma
   assumes "A type"
-    and "!!x. x:A ==> B(x) type"
-    and "!!x. x:A ==> C(x) type"
+    and "\<And>x. x:A \<Longrightarrow> B(x) type"
+    and "\<And>x. x:A \<Longrightarrow> C(x) type"
   shows "?a : (SUM x:A. B(x) + C(x)) --> (SUM x:A. B(x)) + (SUM x:A. C(x))"
 apply (pc assms)
 done
 
 text "Construction of the currying functional"
-schematic_lemma "[| A type;  B type;  C type |] ==> ?a : (A*B --> C) --> (A--> (B-->C))"
+schematic_lemma "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A*B --> C) --> (A--> (B-->C))"
 apply pc
 done
 
 (*more general goal with same proof*)
 schematic_lemma
   assumes "A type"
-    and "!!x. x:A ==> B(x) type"
-    and "!!z. z: (SUM x:A. B(x)) ==> C(z) type"
+    and "\<And>x. x:A \<Longrightarrow> B(x) type"
+    and "\<And>z. z: (SUM x:A. B(x)) \<Longrightarrow> C(z) type"
   shows "?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).
                       (PROD x:A . PROD y:B(x) . C(<x,y>))"
 apply (pc assms)
 done
 
 text "Martin-Lof (1984), page 48: axiom of sum-elimination (uncurry)"
-schematic_lemma "[| A type;  B type;  C type |] ==> ?a : (A --> (B-->C)) --> (A*B --> C)"
+schematic_lemma "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A --> (B-->C)) --> (A*B --> C)"
 apply pc
 done
 
 (*more general goal with same proof*)
 schematic_lemma
   assumes "A type"
-    and "!!x. x:A ==> B(x) type"
-    and "!!z. z: (SUM x:A . B(x)) ==> C(z) type"
+    and "\<And>x. x:A \<Longrightarrow> B(x) type"
+    and "\<And>z. z: (SUM x:A . B(x)) \<Longrightarrow> C(z) type"
   shows "?a : (PROD x:A . PROD y:B(x) . C(<x,y>))
         --> (PROD z : (SUM x:A . B(x)) . C(z))"
 apply (pc assms)
 done
 
 text "Function application"
-schematic_lemma "[| A type;  B type |] ==> ?a : ((A --> B) * A) --> B"
+schematic_lemma "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : ((A --> B) * A) --> B"
 apply pc
 done
 
@@ -95,7 +95,7 @@ text "Basic test of quantifier reasoning"
 schematic_lemma
   assumes "A type"
     and "B type"
-    and "!!x y.[| x:A;  y:B |] ==> C(x,y) type"
+    and "\<And>x y. \<lbrakk>x:A; y:B\<rbrakk> \<Longrightarrow> C(x,y) type"
   shows
     "?a :     (SUM y:B . PROD x:A . C(x,y))
           --> (PROD x:A . SUM y:B . C(x,y))"
@@ -105,8 +105,8 @@ done
 text "Martin-Lof (1984) pages 36-7: the combinator S"
 schematic_lemma
   assumes "A type"
-    and "!!x. x:A ==> B(x) type"
-    and "!!x y.[| x:A; y:B(x) |] ==> C(x,y) type"
+    and "\<And>x. x:A \<Longrightarrow> B(x) type"
+    and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
   shows "?a :    (PROD x:A. PROD y:B(x). C(x,y))
              --> (PROD f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
 apply (pc assms)
@@ -116,7 +116,7 @@ text "Martin-Lof (1984) page 58: the axiom of disjunction elimination"
 schematic_lemma
   assumes "A type"
     and "B type"
-    and "!!z. z: A+B ==> C(z) type"
+    and "\<And>z. z: A+B \<Longrightarrow> C(z) type"
   shows "?a : (PROD x:A. C(inl(x))) --> (PROD y:B. C(inr(y)))
           --> (PROD z: A+B. C(z))"
 apply (pc assms)
@@ -124,7 +124,7 @@ done
 
 (*towards AXIOM OF CHOICE*)
 schematic_lemma [folded basic_defs]:
-  "[| A type; B type; C type |] ==> ?a : (A --> B*C) --> (A-->B) * (A-->C)"
+  "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A --> B*C) --> (A-->B) * (A-->C)"
 apply pc
 done
 
@@ -133,8 +133,8 @@ done
 text "AXIOM OF CHOICE!  Delicate use of elimination rules"
 schematic_lemma
   assumes "A type"
-    and "!!x. x:A ==> B(x) type"
-    and "!!x y.[| x:A;  y:B(x) |] ==> C(x,y) type"
+    and "\<And>x. x:A \<Longrightarrow> B(x) type"
+    and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
   shows "?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).
                          (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
 apply (intr assms)
@@ -151,8 +151,8 @@ done
 text "Axiom of choice.  Proof without fst, snd.  Harder still!"
 schematic_lemma [folded basic_defs]:
   assumes "A type"
-    and "!!x. x:A ==> B(x) type"
-    and "!!x y.[| x:A;  y:B(x) |] ==> C(x,y) type"
+    and "\<And>x. x:A \<Longrightarrow> B(x) type"
+    and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
   shows "?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).
                          (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
 apply (intr assms)
@@ -175,11 +175,11 @@ done
 
 text "Example of sequent_style deduction"
 (*When splitting z:A*B, the assumption C(z) is affected;  ?a becomes
-    lam u. split(u,%v w.split(v,%x y.lam z. <x,<y,z>>) ` w)     *)
+    lam u. split(u,\<lambda>v w.split(v,\<lambda>x y.lam z. <x,<y,z>>) ` w)     *)
 schematic_lemma
   assumes "A type"
     and "B type"
-    and "!!z. z:A*B ==> C(z) type"
+    and "\<And>z. z:A*B \<Longrightarrow> C(z) type"
   shows "?a : (SUM z:A*B. C(z)) --> (SUM u:A. SUM v:B. C(<u,v>))"
 apply (rule intr_rls)
 apply (tactic {* biresolve_tac safe_brls 2 *})

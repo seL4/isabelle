@@ -50,17 +50,17 @@ apply typechk
 done
 
 text "typechecking an application of fst"
-schematic_lemma "(lam u. split(u, %v w. v)) ` <0, succ(0)> : ?A"
+schematic_lemma "(lam u. split(u, \<lambda>v w. v)) ` <0, succ(0)> : ?A"
 apply typechk
 done
 
 text "typechecking the predecessor function"
-schematic_lemma "lam n. rec(n, 0, %x y. x) : ?A"
+schematic_lemma "lam n. rec(n, 0, \<lambda>x y. x) : ?A"
 apply typechk
 done
 
 text "typechecking the addition function"
-schematic_lemma "lam n. lam m. rec(n, m, %x y. succ(y)) : ?A"
+schematic_lemma "lam n. lam m. rec(n, m, \<lambda>x y. succ(y)) : ?A"
 apply typechk
 done
 
@@ -79,7 +79,7 @@ apply N
 done
 
 text "typechecking fst (as a function object)"
-schematic_lemma "lam i. split(i, %j k. j) : ?A"
+schematic_lemma "lam i. split(i, \<lambda>j k. j) : ?A"
 apply typechk
 apply N
 done

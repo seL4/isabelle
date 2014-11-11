@@ -31,28 +31,28 @@ consts
  UU     :: "'a"
  TT     :: "tr"
  FF     :: "tr"
- FIX    :: "('a => 'a) => 'a"
- FST    :: "'a*'b => 'a"
- SND    :: "'a*'b => 'b"
- INL    :: "'a => 'a+'b"
- INR    :: "'b => 'a+'b"
- WHEN   :: "['a=>'c, 'b=>'c, 'a+'b] => 'c"
- adm    :: "('a => o) => o"
+ FIX    :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
+ FST    :: "'a*'b \<Rightarrow> 'a"
+ SND    :: "'a*'b \<Rightarrow> 'b"
+ INL    :: "'a \<Rightarrow> 'a+'b"
+ INR    :: "'b \<Rightarrow> 'a+'b"
+ WHEN   :: "['a\<Rightarrow>'c, 'b\<Rightarrow>'c, 'a+'b] \<Rightarrow> 'c"
+ adm    :: "('a \<Rightarrow> o) \<Rightarrow> o"
  VOID   :: "void"               ("'(')")
- PAIR   :: "['a,'b] => 'a*'b"   ("(1<_,/_>)" [0,0] 100)
- COND   :: "[tr,'a,'a] => 'a"   ("(_ =>/ (_ |/ _))" [60,60,60] 60)
- less   :: "['a,'a] => o"       (infixl "<<" 50)
+ PAIR   :: "['a,'b] \<Rightarrow> 'a*'b"   ("(1<_,/_>)" [0,0] 100)
+ COND   :: "[tr,'a,'a] \<Rightarrow> 'a"   ("(_ \<Rightarrow>/ (_ |/ _))" [60,60,60] 60)
+ less   :: "['a,'a] \<Rightarrow> o"       (infixl "<<" 50)
 
 axiomatization where
   (** DOMAIN THEORY **)
 
-  eq_def:        "x=y == x << y & y << x" and
+  eq_def:        "x=y == x << y \<and> y << x" and
 
-  less_trans:    "[| x << y; y << z |] ==> x << z" and
+  less_trans:    "\<lbrakk>x << y; y << z\<rbrakk> \<Longrightarrow> x << z" and
 
-  less_ext:      "(ALL x. f(x) << g(x)) ==> f << g" and
+  less_ext:      "(\<forall>x. f(x) << g(x)) \<Longrightarrow> f << g" and
 
-  mono:          "[| f << g; x << y |] ==> f(x) << g(y)" and
+  mono:          "\<lbrakk>f << g; x << y\<rbrakk> \<Longrightarrow> f(x) << g(y)" and
 
   minimal:       "UU << x" and
 
@@ -61,16 +61,16 @@ axiomatization where
 axiomatization where
   (** TR **)
 
-  tr_cases:      "p=UU | p=TT | p=FF" and
+  tr_cases:      "p=UU \<or> p=TT \<or> p=FF" and
 
-  not_TT_less_FF: "~ TT << FF" and
-  not_FF_less_TT: "~ FF << TT" and
-  not_TT_less_UU: "~ TT << UU" and
-  not_FF_less_UU: "~ FF << UU" and
+  not_TT_less_FF: "\<not> TT << FF" and
+  not_FF_less_TT: "\<not> FF << TT" and
+  not_TT_less_UU: "\<not> TT << UU" and
+  not_FF_less_UU: "\<not> FF << UU" and
 
-  COND_UU:       "UU => x | y  =  UU" and
-  COND_TT:       "TT => x | y  =  x" and
-  COND_FF:       "FF => x | y  =  y"
+  COND_UU:       "UU \<Rightarrow> x | y  =  UU" and
+  COND_TT:       "TT \<Rightarrow> x | y  =  x" and
+  COND_FF:       "FF \<Rightarrow> x | y  =  y"
 
 axiomatization where
   (** PAIRS **)
@@ -83,18 +83,18 @@ axiomatization where
 axiomatization where
   (*** STRICT SUM ***)
 
-  INL_DEF: "~x=UU ==> ~INL(x)=UU" and
-  INR_DEF: "~x=UU ==> ~INR(x)=UU" and
+  INL_DEF: "\<not>x=UU \<Longrightarrow> \<not>INL(x)=UU" and
+  INR_DEF: "\<not>x=UU \<Longrightarrow> \<not>INR(x)=UU" and
 
   INL_STRICT: "INL(UU) = UU" and
   INR_STRICT: "INR(UU) = UU" and
 
   WHEN_UU:  "WHEN(f,g,UU) = UU" and
-  WHEN_INL: "~x=UU ==> WHEN(f,g,INL(x)) = f(x)" and
-  WHEN_INR: "~x=UU ==> WHEN(f,g,INR(x)) = g(x)" and
+  WHEN_INL: "\<not>x=UU \<Longrightarrow> WHEN(f,g,INL(x)) = f(x)" and
+  WHEN_INR: "\<not>x=UU \<Longrightarrow> WHEN(f,g,INR(x)) = g(x)" and
 
   SUM_EXHAUSTION:
-    "z = UU | (EX x. ~x=UU & z = INL(x)) | (EX y. ~y=UU & z = INR(y))"
+    "z = UU \<or> (\<exists>x. \<not>x=UU \<and> z = INL(x)) \<or> (\<exists>y. \<not>y=UU \<and> z = INR(y))"
 
 axiomatization where
   (** VOID **)
@@ -104,7 +104,7 @@ axiomatization where
   (** INDUCTION **)
 
 axiomatization where
-  induct:        "[| adm(P); P(UU); ALL x. P(x) --> P(f(x)) |] ==> P(FIX(f))"
+  induct: "\<lbrakk>adm(P); P(UU); \<forall>x. P(x) \<longrightarrow> P(f(x))\<rbrakk> \<Longrightarrow> P(FIX(f))"
 
 axiomatization where
   (** Admissibility / Chain Completeness **)
@@ -112,20 +112,20 @@ axiomatization where
      Note that "easiness" of types is not taken into account
      because it cannot be expressed schematically; flatness could be. *)
 
-  adm_less:      "\<And>t u. adm(%x. t(x) << u(x))" and
-  adm_not_less:  "\<And>t u. adm(%x.~ t(x) << u)" and
-  adm_not_free:  "\<And>A. adm(%x. A)" and
-  adm_subst:     "\<And>P t. adm(P) ==> adm(%x. P(t(x)))" and
-  adm_conj:      "\<And>P Q. [| adm(P); adm(Q) |] ==> adm(%x. P(x)&Q(x))" and
-  adm_disj:      "\<And>P Q. [| adm(P); adm(Q) |] ==> adm(%x. P(x)|Q(x))" and
-  adm_imp:       "\<And>P Q. [| adm(%x.~P(x)); adm(Q) |] ==> adm(%x. P(x)-->Q(x))" and
-  adm_all:       "\<And>P. (!!y. adm(P(y))) ==> adm(%x. ALL y. P(y,x))"
+  adm_less:      "\<And>t u. adm(\<lambda>x. t(x) << u(x))" and
+  adm_not_less:  "\<And>t u. adm(\<lambda>x.\<not> t(x) << u)" and
+  adm_not_free:  "\<And>A. adm(\<lambda>x. A)" and
+  adm_subst:     "\<And>P t. adm(P) \<Longrightarrow> adm(\<lambda>x. P(t(x)))" and
+  adm_conj:      "\<And>P Q. \<lbrakk>adm(P); adm(Q)\<rbrakk> \<Longrightarrow> adm(\<lambda>x. P(x)\<and>Q(x))" and
+  adm_disj:      "\<And>P Q. \<lbrakk>adm(P); adm(Q)\<rbrakk> \<Longrightarrow> adm(\<lambda>x. P(x)\<or>Q(x))" and
+  adm_imp:       "\<And>P Q. \<lbrakk>adm(\<lambda>x.\<not>P(x)); adm(Q)\<rbrakk> \<Longrightarrow> adm(\<lambda>x. P(x)\<longrightarrow>Q(x))" and
+  adm_all:       "\<And>P. (\<And>y. adm(P(y))) \<Longrightarrow> adm(\<lambda>x. \<forall>y. P(y,x))"
 
 
-lemma eq_imp_less1: "x = y ==> x << y"
+lemma eq_imp_less1: "x = y \<Longrightarrow> x << y"
   by (simp add: eq_def)
 
-lemma eq_imp_less2: "x = y ==> y << x"
+lemma eq_imp_less2: "x = y \<Longrightarrow> y << x"
   by (simp add: eq_def)
 
 lemma less_refl [simp]: "x << x"
@@ -133,37 +133,37 @@ lemma less_refl [simp]: "x << x"
   apply (rule refl)
   done
 
-lemma less_anti_sym: "[| x << y; y << x |] ==> x=y"
+lemma less_anti_sym: "\<lbrakk>x << y; y << x\<rbrakk> \<Longrightarrow> x=y"
   by (simp add: eq_def)
 
-lemma ext: "(!!x::'a::cpo. f(x)=(g(x)::'b::cpo)) ==> (%x. f(x))=(%x. g(x))"
+lemma ext: "(\<And>x::'a::cpo. f(x)=(g(x)::'b::cpo)) \<Longrightarrow> (\<lambda>x. f(x))=(\<lambda>x. g(x))"
   apply (rule less_anti_sym)
   apply (rule less_ext)
   apply simp
   apply simp
   done
 
-lemma cong: "[| f=g; x=y |] ==> f(x)=g(y)"
+lemma cong: "\<lbrakk>f = g; x = y\<rbrakk> \<Longrightarrow> f(x)=g(y)"
   by simp
 
-lemma less_ap_term: "x << y ==> f(x) << f(y)"
+lemma less_ap_term: "x << y \<Longrightarrow> f(x) << f(y)"
   by (rule less_refl [THEN mono])
 
-lemma less_ap_thm: "f << g ==> f(x) << g(x)"
+lemma less_ap_thm: "f << g \<Longrightarrow> f(x) << g(x)"
   by (rule less_refl [THEN [2] mono])
 
-lemma ap_term: "(x::'a::cpo) = y ==> (f(x)::'b::cpo) = f(y)"
+lemma ap_term: "(x::'a::cpo) = y \<Longrightarrow> (f(x)::'b::cpo) = f(y)"
   apply (rule cong [OF refl])
   apply simp
   done
 
-lemma ap_thm: "f = g ==> f(x) = g(x)"
+lemma ap_thm: "f = g \<Longrightarrow> f(x) = g(x)"
   apply (erule cong)
   apply (rule refl)
   done
 
 
-lemma UU_abs: "(%x::'a::cpo. UU) = UU"
+lemma UU_abs: "(\<lambda>x::'a::cpo. UU) = UU"
   apply (rule less_anti_sym)
   prefer 2
   apply (rule minimal)
@@ -175,28 +175,28 @@ lemma UU_abs: "(%x::'a::cpo. UU) = UU"
 lemma UU_app: "UU(x) = UU"
   by (rule UU_abs [symmetric, THEN ap_thm])
 
-lemma less_UU: "x << UU ==> x=UU"
+lemma less_UU: "x << UU \<Longrightarrow> x=UU"
   apply (rule less_anti_sym)
   apply assumption
   apply (rule minimal)
   done
 
-lemma tr_induct: "[| P(UU); P(TT); P(FF) |] ==> ALL b. P(b)"
+lemma tr_induct: "\<lbrakk>P(UU); P(TT); P(FF)\<rbrakk> \<Longrightarrow> \<forall>b. P(b)"
   apply (rule allI)
   apply (rule mp)
   apply (rule_tac [2] p = b in tr_cases)
   apply blast
   done
 
-lemma Contrapos: "~ B ==> (A ==> B) ==> ~A"
+lemma Contrapos: "\<not> B \<Longrightarrow> (A \<Longrightarrow> B) \<Longrightarrow> \<not>A"
   by blast
 
-lemma not_less_imp_not_eq1: "~ x << y \<Longrightarrow> x \<noteq> y"
+lemma not_less_imp_not_eq1: "\<not> x << y \<Longrightarrow> x \<noteq> y"
   apply (erule Contrapos)
   apply simp
   done
 
-lemma not_less_imp_not_eq2: "~ y << x \<Longrightarrow> x \<noteq> y"
+lemma not_less_imp_not_eq2: "\<not> y << x \<Longrightarrow> x \<noteq> y"
   apply (erule Contrapos)
   apply simp
   done
@@ -216,7 +216,7 @@ lemma not_FF_eq_TT: "FF \<noteq> TT"
 
 
 lemma COND_cases_iff [rule_format]:
-    "ALL b. P(b=>x|y) <-> (b=UU-->P(UU)) & (b=TT-->P(x)) & (b=FF-->P(y))"
+    "\<forall>b. P(b\<Rightarrow>x|y) \<longleftrightarrow> (b=UU\<longrightarrow>P(UU)) \<and> (b=TT\<longrightarrow>P(x)) \<and> (b=FF\<longrightarrow>P(y))"
   apply (insert not_UU_eq_TT not_UU_eq_FF not_TT_eq_UU
     not_TT_eq_FF not_FF_eq_UU not_FF_eq_TT)
   apply (rule tr_induct)
@@ -229,7 +229,7 @@ lemma COND_cases_iff [rule_format]:
   done
 
 lemma COND_cases: 
-  "[| x = UU --> P(UU); x = TT --> P(xa); x = FF --> P(y) |] ==> P(x => xa | y)"
+  "\<lbrakk>x = UU \<longrightarrow> P(UU); x = TT \<longrightarrow> P(xa); x = FF \<longrightarrow> P(y)\<rbrakk> \<Longrightarrow> P(x \<Rightarrow> xa | y)"
   apply (rule COND_cases_iff [THEN iffD2])
   apply blast
   done
@@ -247,7 +247,7 @@ lemmas [simp] =
 
 subsection {* Ordered pairs and products *}
 
-lemma expand_all_PROD: "(ALL p. P(p)) <-> (ALL x y. P(<x,y>))"
+lemma expand_all_PROD: "(\<forall>p. P(p)) \<longleftrightarrow> (\<forall>x y. P(<x,y>))"
   apply (rule iffI)
   apply blast
   apply (rule allI)
@@ -255,7 +255,7 @@ lemma expand_all_PROD: "(ALL p. P(p)) <-> (ALL x y. P(<x,y>))"
   apply blast
   done
 
-lemma PROD_less: "(p::'a*'b) << q <-> FST(p) << FST(q) & SND(p) << SND(q)"
+lemma PROD_less: "(p::'a*'b) << q \<longleftrightarrow> FST(p) << FST(q) \<and> SND(p) << SND(q)"
   apply (rule iffI)
   apply (rule conjI)
   apply (erule less_ap_term)
@@ -266,17 +266,17 @@ lemma PROD_less: "(p::'a*'b) << q <-> FST(p) << FST(q) & SND(p) << SND(q)"
   apply (rule mono, erule less_ap_term, assumption)
   done
 
-lemma PROD_eq: "p=q <-> FST(p)=FST(q) & SND(p)=SND(q)"
+lemma PROD_eq: "p=q \<longleftrightarrow> FST(p)=FST(q) \<and> SND(p)=SND(q)"
   apply (rule iffI)
   apply simp
   apply (unfold eq_def)
   apply (simp add: PROD_less)
   done
 
-lemma PAIR_less [simp]: "<a,b> << <c,d> <-> a<<c & b<<d"
+lemma PAIR_less [simp]: "<a,b> << <c,d> \<longleftrightarrow> a<<c \<and> b<<d"
   by (simp add: PROD_less)
 
-lemma PAIR_eq [simp]: "<a,b> = <c,d> <-> a=c & b=d"
+lemma PAIR_eq [simp]: "<a,b> = <c,d> \<longleftrightarrow> a=c \<and> b=d"
   by (simp add: PROD_eq)
 
 lemma UU_is_UU_UU [simp]: "<UU,UU> = UU"
@@ -295,20 +295,20 @@ lemma SND_STRICT [simp]: "SND(UU) = UU"
 
 subsection {* Fixedpoint theory *}
 
-lemma adm_eq: "adm(%x. t(x)=(u(x)::'a::cpo))"
+lemma adm_eq: "adm(\<lambda>x. t(x)=(u(x)::'a::cpo))"
   apply (unfold eq_def)
   apply (rule adm_conj adm_less)+
   done
 
-lemma adm_not_not: "adm(P) ==> adm(%x.~~P(x))"
+lemma adm_not_not: "adm(P) \<Longrightarrow> adm(\<lambda>x. \<not> \<not> P(x))"
   by simp
 
-lemma not_eq_TT: "ALL p. ~p=TT <-> (p=FF | p=UU)"
-  and not_eq_FF: "ALL p. ~p=FF <-> (p=TT | p=UU)"
-  and not_eq_UU: "ALL p. ~p=UU <-> (p=TT | p=FF)"
+lemma not_eq_TT: "\<forall>p. \<not>p=TT \<longleftrightarrow> (p=FF \<or> p=UU)"
+  and not_eq_FF: "\<forall>p. \<not>p=FF \<longleftrightarrow> (p=TT \<or> p=UU)"
+  and not_eq_UU: "\<forall>p. \<not>p=UU \<longleftrightarrow> (p=TT \<or> p=FF)"
   by (rule tr_induct, simp_all)+
 
-lemma adm_not_eq_tr: "ALL p::tr. adm(%x. ~t(x)=p)"
+lemma adm_not_eq_tr: "\<forall>p::tr. adm(\<lambda>x. \<not>t(x)=p)"
   apply (rule tr_induct)
   apply (simp_all add: not_eq_TT not_eq_FF not_eq_UU)
   apply (rule adm_disj adm_eq)+
@@ -325,7 +325,7 @@ method_setup induct = {*
       REPEAT (resolve_tac @{thms adm_lemmas} i)))
 *}
 
-lemma least_FIX: "f(p) = p ==> FIX(f) << p"
+lemma least_FIX: "f(p) = p \<Longrightarrow> FIX(f) << p"
   apply (induct f)
   apply (rule minimal)
   apply (intro strip)
@@ -335,7 +335,7 @@ lemma least_FIX: "f(p) = p ==> FIX(f) << p"
 
 lemma lfp_is_FIX:
   assumes 1: "f(p) = p"
-    and 2: "ALL q. f(q)=q --> p << q"
+    and 2: "\<forall>q. f(q)=q \<longrightarrow> p << q"
   shows "p = FIX(f)"
   apply (rule less_anti_sym)
   apply (rule 2 [THEN spec, THEN mp])
@@ -345,7 +345,7 @@ lemma lfp_is_FIX:
   done
 
 
-lemma FIX_pair: "<FIX(f),FIX(g)> = FIX(%p.<f(FST(p)),g(SND(p))>)"
+lemma FIX_pair: "<FIX(f),FIX(g)> = FIX(\<lambda>p.<f(FST(p)),g(SND(p))>)"
   apply (rule lfp_is_FIX)
   apply (simp add: FIX_eq [of f] FIX_eq [of g])
   apply (intro strip)
@@ -357,20 +357,20 @@ lemma FIX_pair: "<FIX(f),FIX(g)> = FIX(%p.<f(FST(p)),g(SND(p))>)"
   apply (erule subst, rule SND [symmetric])
   done
 
-lemma FIX1: "FIX(f) = FST(FIX(%p. <f(FST(p)),g(SND(p))>))"
+lemma FIX1: "FIX(f) = FST(FIX(\<lambda>p. <f(FST(p)),g(SND(p))>))"
   by (rule FIX_pair [unfolded PROD_eq FST SND, THEN conjunct1])
 
-lemma FIX2: "FIX(g) = SND(FIX(%p. <f(FST(p)),g(SND(p))>))"
+lemma FIX2: "FIX(g) = SND(FIX(\<lambda>p. <f(FST(p)),g(SND(p))>))"
   by (rule FIX_pair [unfolded PROD_eq FST SND, THEN conjunct2])
 
 lemma induct2:
-  assumes 1: "adm(%p. P(FST(p),SND(p)))"
+  assumes 1: "adm(\<lambda>p. P(FST(p),SND(p)))"
     and 2: "P(UU::'a,UU::'b)"
-    and 3: "ALL x y. P(x,y) --> P(f(x),g(y))"
+    and 3: "\<forall>x y. P(x,y) \<longrightarrow> P(f(x),g(y))"
   shows "P(FIX(f),FIX(g))"
   apply (rule FIX1 [THEN ssubst, of _ f g])
   apply (rule FIX2 [THEN ssubst, of _ f g])
-  apply (rule induct [where ?f = "%x. <f(FST(x)),g(SND(x))>"])
+  apply (rule induct [where ?f = "\<lambda>x. <f(FST(x)),g(SND(x))>"])
   apply (rule 1)
   apply simp
   apply (rule 2)

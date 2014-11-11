@@ -9,20 +9,20 @@ theory Fix
 imports Type
 begin
 
-definition idgen :: "i => i"
-  where "idgen(f) == lam t. case(t,true,false,%x y.<f`x, f`y>,%u. lam x. f ` u(x))"
+definition idgen :: "i \<Rightarrow> i"
+  where "idgen(f) == lam t. case(t,true,false, \<lambda>x y.<f`x, f`y>, \<lambda>u. lam x. f ` u(x))"
 
-axiomatization INCL :: "[i=>o]=>o" where
-  INCL_def: "INCL(%x. P(x)) == (ALL f.(ALL n:Nat. P(f^n`bot)) --> P(fix(f)))" and
-  po_INCL: "INCL(%x. a(x) [= b(x))" and
-  INCL_subst: "INCL(P) ==> INCL(%x. P((g::i=>i)(x)))"
+axiomatization INCL :: "[i\<Rightarrow>o]\<Rightarrow>o" where
+  INCL_def: "INCL(\<lambda>x. P(x)) == (ALL f.(ALL n:Nat. P(f^n`bot)) \<longrightarrow> P(fix(f)))" and
+  po_INCL: "INCL(\<lambda>x. a(x) [= b(x))" and
+  INCL_subst: "INCL(P) \<Longrightarrow> INCL(\<lambda>x. P((g::i\<Rightarrow>i)(x)))"
 
 
 subsection {* Fixed Point Induction *}
 
 lemma fix_ind:
   assumes base: "P(bot)"
-    and step: "!!x. P(x) ==> P(f(x))"
+    and step: "\<And>x. P(x) \<Longrightarrow> P(f(x))"
     and incl: "INCL(P)"
   shows "P(fix(f))"
   apply (rule incl [unfolded INCL_def, rule_format])
@@ -35,22 +35,22 @@ lemma fix_ind:
 
 subsection {* Inclusive Predicates *}
 
-lemma inclXH: "INCL(P) <-> (ALL f. (ALL n:Nat. P(f ^ n ` bot)) --> P(fix(f)))"
+lemma inclXH: "INCL(P) \<longleftrightarrow> (ALL f. (ALL n:Nat. P(f ^ n ` bot)) \<longrightarrow> P(fix(f)))"
   by (simp add: INCL_def)
 
-lemma inclI: "[| !!f. ALL n:Nat. P(f^n`bot) ==> P(fix(f)) |] ==> INCL(%x. P(x))"
+lemma inclI: "\<lbrakk>\<And>f. ALL n:Nat. P(f^n`bot) \<Longrightarrow> P(fix(f))\<rbrakk> \<Longrightarrow> INCL(\<lambda>x. P(x))"
   unfolding inclXH by blast
 
-lemma inclD: "[| INCL(P);  !!n. n:Nat ==> P(f^n`bot) |] ==> P(fix(f))"
+lemma inclD: "\<lbrakk>INCL(P); \<And>n. n:Nat \<Longrightarrow> P(f^n`bot)\<rbrakk> \<Longrightarrow> P(fix(f))"
   unfolding inclXH by blast
 
-lemma inclE: "[| INCL(P);  (ALL n:Nat. P(f^n`bot))-->P(fix(f)) ==> R |] ==> R"
+lemma inclE: "\<lbrakk>INCL(P); (ALL n:Nat. P(f^n`bot)) \<longrightarrow> P(fix(f)) \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
   by (blast dest: inclD)
 
 
 subsection {* Lemmas for Inclusive Predicates *}
 
-lemma npo_INCL: "INCL(%x.~ a(x) [= t)"
+lemma npo_INCL: "INCL(\<lambda>x. \<not> a(x) [= t)"
   apply (rule inclI)
   apply (drule bspec)
    apply (rule zeroT)
@@ -62,16 +62,16 @@ lemma npo_INCL: "INCL(%x.~ a(x) [= t)"
   apply (rule po_cong, rule po_bot)
   done
 
-lemma conj_INCL: "[| INCL(P);  INCL(Q) |] ==> INCL(%x. P(x) & Q(x))"
+lemma conj_INCL: "\<lbrakk>INCL(P); INCL(Q)\<rbrakk> \<Longrightarrow> INCL(\<lambda>x. P(x) \<and> Q(x))"
   by (blast intro!: inclI dest!: inclD)
 
-lemma all_INCL: "[| !!a. INCL(P(a)) |] ==> INCL(%x. ALL a. P(a,x))"
+lemma all_INCL: "(\<And>a. INCL(P(a))) \<Longrightarrow> INCL(\<lambda>x. ALL a. P(a,x))"
   by (blast intro!: inclI dest!: inclD)
 
-lemma ball_INCL: "[| !!a. a:A ==> INCL(P(a)) |] ==> INCL(%x. ALL a:A. P(a,x))"
+lemma ball_INCL: "(\<And>a. a:A \<Longrightarrow> INCL(P(a))) \<Longrightarrow> INCL(\<lambda>x. ALL a:A. P(a,x))"
   by (blast intro!: inclI dest!: inclD)
 
-lemma eq_INCL: "INCL(%x. a(x) = (b(x)::'a::prog))"
+lemma eq_INCL: "INCL(\<lambda>x. a(x) = (b(x)::'a::prog))"
   apply (simp add: eq_iff)
   apply (rule conj_INCL po_INCL)+
   done
@@ -93,7 +93,7 @@ lemma id_idgenfp: "idgen(lam x. x) = lam x. x"
 
 (* All fixed points are lam-expressions *)
 
-schematic_lemma idgenfp_lam: "idgen(d) = d ==> d = lam x. ?f(x)"
+schematic_lemma idgenfp_lam: "idgen(d) = d \<Longrightarrow> d = lam x. ?f(x)"
   apply (unfold idgen_def)
   apply (erule ssubst)
   apply (rule refl)
@@ -101,15 +101,15 @@ schematic_lemma idgenfp_lam: "idgen(d) = d ==> d = lam x. ?f(x)"
 
 (* Lemmas for rewriting fixed points of idgen *)
 
-lemma l_lemma: "[| a = b;  a ` t = u |] ==> b ` t = u"
+lemma l_lemma: "\<lbrakk>a = b; a ` t = u\<rbrakk> \<Longrightarrow> b ` t = u"
   by (simp add: idgen_def)
 
 lemma idgen_lemmas:
-  "idgen(d) = d ==> d ` bot = bot"
-  "idgen(d) = d ==> d ` true = true"
-  "idgen(d) = d ==> d ` false = false"
-  "idgen(d) = d ==> d ` <a,b> = <d ` a,d ` b>"
-  "idgen(d) = d ==> d ` (lam x. f(x)) = lam x. d ` f(x)"
+  "idgen(d) = d \<Longrightarrow> d ` bot = bot"
+  "idgen(d) = d \<Longrightarrow> d ` true = true"
+  "idgen(d) = d \<Longrightarrow> d ` false = false"
+  "idgen(d) = d \<Longrightarrow> d ` <a,b> = <d ` a,d ` b>"
+  "idgen(d) = d \<Longrightarrow> d ` (lam x. f(x)) = lam x. d ` f(x)"
   by (erule l_lemma, simp add: idgen_def)+
 
 
@@ -117,7 +117,7 @@ lemma idgen_lemmas:
   of idgen and hence are they same *)
 
 lemma po_eta:
-  "[| ALL x. t ` x [= u ` x;  EX f. t=lam x. f(x);  EX f. u=lam x. f(x) |] ==> t [= u"
+  "\<lbrakk>ALL x. t ` x [= u ` x; EX f. t=lam x. f(x); EX f. u=lam x. f(x)\<rbrakk> \<Longrightarrow> t [= u"
   apply (drule cond_eta)+
   apply (erule ssubst)
   apply (erule ssubst)
@@ -125,15 +125,15 @@ lemma po_eta:
   apply simp
   done
 
-schematic_lemma po_eta_lemma: "idgen(d) = d ==> d = lam x. ?f(x)"
+schematic_lemma po_eta_lemma: "idgen(d) = d \<Longrightarrow> d = lam x. ?f(x)"
   apply (unfold idgen_def)
   apply (erule sym)
   done
 
 lemma lemma1:
-  "idgen(d) = d ==>
-    {p. EX a b. p=<a,b> & (EX t. a=fix(idgen) ` t & b = d ` t)} <=
-      POgen({p. EX a b. p=<a,b> & (EX t. a=fix(idgen) ` t  & b = d ` t)})"
+  "idgen(d) = d \<Longrightarrow>
+    {p. EX a b. p=<a,b> \<and> (EX t. a=fix(idgen) ` t \<and> b = d ` t)} <=
+      POgen({p. EX a b. p=<a,b> \<and> (EX t. a=fix(idgen) ` t  \<and> b = d ` t)})"
   apply clarify
   apply (rule_tac t = t in term_case)
       apply (simp_all add: POgenXH idgen_lemmas idgen_lemmas [OF fix_idgenfp])
@@ -141,22 +141,22 @@ lemma lemma1:
   apply fast
   done
 
-lemma fix_least_idgen: "idgen(d) = d ==> fix(idgen) [= d"
+lemma fix_least_idgen: "idgen(d) = d \<Longrightarrow> fix(idgen) [= d"
   apply (rule allI [THEN po_eta])
     apply (rule lemma1 [THEN [2] po_coinduct])
      apply (blast intro: po_eta_lemma fix_idgenfp)+
   done
 
 lemma lemma2:
-  "idgen(d) = d ==>
-    {p. EX a b. p=<a,b> & b = d ` a} <= POgen({p. EX a b. p=<a,b> & b = d ` a})"
+  "idgen(d) = d \<Longrightarrow>
+    {p. EX a b. p=<a,b> \<and> b = d ` a} <= POgen({p. EX a b. p=<a,b> \<and> b = d ` a})"
   apply clarify
   apply (rule_tac t = a in term_case)
       apply (simp_all add: POgenXH idgen_lemmas)
   apply fast
   done
 
-lemma id_least_idgen: "idgen(d) = d ==> lam x. x [= d"
+lemma id_least_idgen: "idgen(d) = d \<Longrightarrow> lam x. x [= d"
   apply (rule allI [THEN po_eta])
     apply (rule lemma2 [THEN [2] po_coinduct])
      apply simp
@@ -170,15 +170,15 @@ lemma reachability: "fix(idgen) = lam x. x"
 
 (********)
 
-lemma id_apply: "f = lam x. x ==> f`t = t"
+lemma id_apply: "f = lam x. x \<Longrightarrow> f`t = t"
   apply (erule ssubst)
   apply (rule applyB)
   done
 
 lemma term_ind:
   assumes 1: "P(bot)" and 2: "P(true)" and 3: "P(false)"
-    and 4: "!!x y.[| P(x);  P(y) |] ==> P(<x,y>)"
-    and 5: "!!u.(!!x. P(u(x))) ==> P(lam x. u(x))"
+    and 4: "\<And>x y. \<lbrakk>P(x); P(y)\<rbrakk> \<Longrightarrow> P(<x,y>)"
+    and 5: "\<And>u.(\<And>x. P(u(x))) \<Longrightarrow> P(lam x. u(x))"
     and 6: "INCL(P)"
   shows "P(t)"
   apply (rule reachability [THEN id_apply, THEN subst])

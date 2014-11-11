@@ -5,8 +5,8 @@ imports "../LCF"
 begin
 
 axiomatization
-  s     :: "'a => 'a" and
-  p     :: "'a => 'a => 'a"
+  s     :: "'a \<Rightarrow> 'a" and
+  p     :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where
   p_strict:     "p(UU) = UU" and
   p_s:          "p(s(x),y) = s(p(x,y))"

@@ -27,18 +27,18 @@ instance i :: prog ..
 
 consts
   (*** Evaluation Judgement ***)
-  Eval      ::       "[i,i]=>prop"          (infixl "--->" 20)
+  Eval      ::       "[i,i]\<Rightarrow>prop"          (infixl "--->" 20)
 
   (*** Bisimulations for pre-order and equality ***)
-  po          ::       "['a,'a]=>o"           (infixl "[=" 50)
+  po          ::       "['a,'a]\<Rightarrow>o"           (infixl "[=" 50)
 
   (*** Term Formers ***)
   true        ::       "i"
   false       ::       "i"
-  pair        ::       "[i,i]=>i"             ("(1<_,/_>)")
-  lambda      ::       "(i=>i)=>i"            (binder "lam " 55)
-  "case"      ::       "[i,i,i,[i,i]=>i,(i=>i)=>i]=>i"
-  "apply"     ::       "[i,i]=>i"             (infixl "`" 56)
+  pair        ::       "[i,i]\<Rightarrow>i"             ("(1<_,/_>)")
+  lambda      ::       "(i\<Rightarrow>i)\<Rightarrow>i"            (binder "lam " 55)
+  "case"      ::       "[i,i,i,[i,i]\<Rightarrow>i,(i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
+  "apply"     ::       "[i,i]\<Rightarrow>i"             (infixl "`" 56)
   bot         ::       "i"
 
   (******* EVALUATION SEMANTICS *******)
@@ -53,23 +53,23 @@ axiomatization where
   pairV:       "<a,b> ---> <a,b>" and
   lamV:        "\<And>b. lam x. b(x) ---> lam x. b(x)" and
 
-  caseVtrue:   "[| t ---> true;  d ---> c |] ==> case(t,d,e,f,g) ---> c" and
-  caseVfalse:  "[| t ---> false;  e ---> c |] ==> case(t,d,e,f,g) ---> c" and
-  caseVpair:   "[| t ---> <a,b>;  f(a,b) ---> c |] ==> case(t,d,e,f,g) ---> c" and
-  caseVlam:    "\<And>b. [| t ---> lam x. b(x);  g(b) ---> c |] ==> case(t,d,e,f,g) ---> c"
+  caseVtrue:   "\<lbrakk>t ---> true; d ---> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) ---> c" and
+  caseVfalse:  "\<lbrakk>t ---> false; e ---> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) ---> c" and
+  caseVpair:   "\<lbrakk>t ---> <a,b>; f(a,b) ---> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) ---> c" and
+  caseVlam:    "\<And>b. \<lbrakk>t ---> lam x. b(x); g(b) ---> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) ---> c"
 
   (*** Properties of evaluation: note that "t ---> c" impies that c is canonical ***)
 
 axiomatization where
-  canonical:  "[| t ---> c; c==true ==> u--->v;
-                          c==false ==> u--->v;
-                    !!a b. c==<a,b> ==> u--->v;
-                      !!f. c==lam x. f(x) ==> u--->v |] ==>
+  canonical:  "\<lbrakk>t ---> c; c==true \<Longrightarrow> u--->v;
+                          c==false \<Longrightarrow> u--->v;
+                    \<And>a b. c==<a,b> \<Longrightarrow> u--->v;
+                      \<And>f. c==lam x. f(x) \<Longrightarrow> u--->v\<rbrakk> \<Longrightarrow>
              u--->v"
 
   (* Should be derivable - but probably a bitch! *)
 axiomatization where
-  substitute: "[| a==a'; t(a)--->c(a) |] ==> t(a')--->c(a')"
+  substitute: "\<lbrakk>a==a'; t(a)--->c(a)\<rbrakk> \<Longrightarrow> t(a')--->c(a')"
 
   (************** LOGIC ***************)
 
@@ -77,26 +77,26 @@ axiomatization where
 
 axiomatization where
   bot_def:         "bot == (lam x. x`x)`(lam x. x`x)" and
-  apply_def:     "f ` t == case(f,bot,bot,%x y. bot,%u. u(t))"
+  apply_def:     "f ` t == case(f, bot, bot, \<lambda>x y. bot, \<lambda>u. u(t))"
 
-definition "fix" :: "(i=>i)=>i"
+definition "fix" :: "(i\<Rightarrow>i)\<Rightarrow>i"
   where "fix(f) == (lam x. f(x`x))`(lam x. f(x`x))"
 
   (*  The pre-order ([=) is defined as a simulation, and behavioural equivalence (=) *)
   (*  as a bisimulation.  They can both be expressed as (bi)simulations up to        *)
   (*  behavioural equivalence (ie the relations PO and EQ defined below).            *)
 
-definition SIM :: "[i,i,i set]=>o"
+definition SIM :: "[i,i,i set]\<Rightarrow>o"
   where
-  "SIM(t,t',R) ==  (t=true & t'=true) | (t=false & t'=false) |
-                  (EX a a' b b'. t=<a,b> & t'=<a',b'> & <a,a'> : R & <b,b'> : R) |
-                  (EX f f'. t=lam x. f(x) & t'=lam x. f'(x) & (ALL x.<f(x),f'(x)> : R))"
+  "SIM(t,t',R) ==  (t=true \<and> t'=true) | (t=false \<and> t'=false) |
+                  (\<exists>a a' b b'. t=<a,b> \<and> t'=<a',b'> \<and> <a,a'> : R \<and> <b,b'> : R) |
+                  (\<exists>f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x.<f(x),f'(x)> : R))"
 
-definition POgen :: "i set => i set"
-  where "POgen(R) == {p. EX t t'. p=<t,t'> & (t = bot | SIM(t,t',R))}"
+definition POgen :: "i set \<Rightarrow> i set"
+  where "POgen(R) == {p. \<exists>t t'. p=<t,t'> \<and> (t = bot | SIM(t,t',R))}"
 
-definition EQgen :: "i set => i set"
-  where "EQgen(R) == {p. EX t t'. p=<t,t'> & (t = bot & t' = bot | SIM(t,t',R))}"
+definition EQgen :: "i set \<Rightarrow> i set"
+  where "EQgen(R) == {p. \<exists>t t'. p=<t,t'> \<and> (t = bot \<and> t' = bot | SIM(t,t',R))}"
 
 definition PO :: "i set"
   where "PO == gfp(POgen)"
@@ -111,23 +111,23 @@ definition EQ :: "i set"
 
 axiomatization where
   po_refl:        "a [= a" and
-  po_trans:       "[| a [= b;  b [= c |] ==> a [= c" and
-  po_cong:        "a [= b ==> f(a) [= f(b)" and
+  po_trans:       "\<lbrakk>a [= b;  b [= c\<rbrakk> \<Longrightarrow> a [= c" and
+  po_cong:        "a [= b \<Longrightarrow> f(a) [= f(b)" and
 
   (* Extend definition of [= to program fragments of higher type *)
-  po_abstractn:   "(!!x. f(x) [= g(x)) ==> (%x. f(x)) [= (%x. g(x))"
+  po_abstractn:   "(\<And>x. f(x) [= g(x)) \<Longrightarrow> (\<lambda>x. f(x)) [= (\<lambda>x. g(x))"
 
   (** Equality - equivalence axioms inherited from FOL.thy   **)
   (**          - congruence of "=" is axiomatised implicitly **)
 
 axiomatization where
-  eq_iff:         "t = t' <-> t [= t' & t' [= t"
+  eq_iff:         "t = t' \<longleftrightarrow> t [= t' \<and> t' [= t"
 
   (** Properties of canonical values given by greatest fixed point definitions **)
 
 axiomatization where
-  PO_iff:         "t [= t' <-> <t,t'> : PO" and
-  EQ_iff:         "t =  t' <-> <t,t'> : EQ"
+  PO_iff:         "t [= t' \<longleftrightarrow> <t,t'> : PO" and
+  EQ_iff:         "t =  t' \<longleftrightarrow> <t,t'> : EQ"
 
   (** Behaviour of non-canonical terms (ie case) given by the following beta-rules **)
 
@@ -140,19 +140,19 @@ axiomatization where
 
   (** The theory is non-trivial **)
 axiomatization where
-  distinctness:   "~ lam x. b(x) = bot"
+  distinctness:   "\<not> lam x. b(x) = bot"
 
   (*** Definitions of Termination and Divergence ***)
 
-definition Dvg :: "i => o"
+definition Dvg :: "i \<Rightarrow> o"
   where "Dvg(t) == t = bot"
 
-definition Trm :: "i => o"
-  where "Trm(t) == ~ Dvg(t)"
+definition Trm :: "i \<Rightarrow> o"
+  where "Trm(t) == \<not> Dvg(t)"
 
 text {*
 Would be interesting to build a similar theory for a typed programming language:
-    ie.     true :: bool,      fix :: ('a=>'a)=>'a  etc......
+    ie.     true :: bool,      fix :: ('a\<Rightarrow>'a)\<Rightarrow>'a  etc......
 
 This is starting to look like LCF.
 What are the advantages of this approach?
@@ -169,14 +169,14 @@ declare po_refl [simp]
 subsection {* Congruence Rules *}
 
 (*similar to AP_THM in Gordon's HOL*)
-lemma fun_cong: "(f::'a=>'b) = g ==> f(x)=g(x)"
+lemma fun_cong: "(f::'a\<Rightarrow>'b) = g \<Longrightarrow> f(x)=g(x)"
   by simp
 
 (*similar to AP_TERM in Gordon's HOL and FOL's subst_context*)
-lemma arg_cong: "x=y ==> f(x)=f(y)"
+lemma arg_cong: "x=y \<Longrightarrow> f(x)=f(y)"
   by simp
 
-lemma abstractn: "(!!x. f(x) = g(x)) ==> f = g"
+lemma abstractn: "(\<And>x. f(x) = g(x)) \<Longrightarrow> f = g"
   apply (simp add: eq_iff)
   apply (blast intro: po_abstractn)
   done
@@ -186,16 +186,16 @@ lemmas caseBs = caseBtrue caseBfalse caseBpair caseBlam caseBbot
 
 subsection {* Termination and Divergence *}
 
-lemma Trm_iff: "Trm(t) <-> ~ t = bot"
+lemma Trm_iff: "Trm(t) \<longleftrightarrow> \<not> t = bot"
   by (simp add: Trm_def Dvg_def)
 
-lemma Dvg_iff: "Dvg(t) <-> t = bot"
+lemma Dvg_iff: "Dvg(t) \<longleftrightarrow> t = bot"
   by (simp add: Trm_def Dvg_def)
 
 
 subsection {* Constructors are injective *}
 
-lemma eq_lemma: "[| x=a;  y=b;  x=y |] ==> a=b"
+lemma eq_lemma: "\<lbrakk>x=a; y=b; x=y\<rbrakk> \<Longrightarrow> a=b"
   by simp
 
 ML {*
@@ -215,8 +215,8 @@ method_setup inj_rl = {*
 *}
 
 lemma ccl_injs:
-  "<a,b> = <a',b'> <-> (a=a' & b=b')"
-  "!!b b'. (lam x. b(x) = lam x. b'(x)) <-> ((ALL z. b(z)=b'(z)))"
+  "<a,b> = <a',b'> \<longleftrightarrow> (a=a' \<and> b=b')"
+  "\<And>b b'. (lam x. b(x) = lam x. b'(x)) \<longleftrightarrow> ((ALL z. b(z)=b'(z)))"
   by (inj_rl caseBs)
 
 
@@ -226,7 +226,7 @@ lemma pair_inject: "<a,b> = <a',b'> \<Longrightarrow> (a = a' \<Longrightarrow> 
 
 subsection {* Constructors are distinct *}
 
-lemma lem: "t=t' ==> case(t,b,c,d,e) = case(t',b,c,d,e)"
+lemma lem: "t=t' \<Longrightarrow> case(t,b,c,d,e) = case(t',b,c,d,e)"
   by simp
 
 ML {*
@@ -246,7 +246,7 @@ local
            val arity = length (binder_types T)
        in sy ^ (arg_str arity name "") end
 
-  fun mk_thm_str thy a b = "~ " ^ (saturate thy a "a") ^ " = " ^ (saturate thy b "b")
+  fun mk_thm_str thy a b = "\<not> " ^ (saturate thy a "a") ^ " = " ^ (saturate thy b "b")
 
   val lemma = @{thm lem};
   val eq_lemma = @{thm eq_lemma};
@@ -267,7 +267,7 @@ val ccl_dstncts =
   let
     fun mk_raw_dstnct_thm rls s =
       Goal.prove_global @{theory} [] [] (Syntax.read_prop_global @{theory} s)
-        (fn _=> rtac @{thm notI} 1 THEN eresolve_tac rls 1)
+        (fn _ => rtac @{thm notI} 1 THEN eresolve_tac rls 1)
   in map (mk_raw_dstnct_thm caseB_lemmas)
     (mk_dstnct_rls @{theory} ["bot","true","false","pair","lambda"]) end
 
@@ -304,33 +304,33 @@ lemmas [simp] = ccl_rews
 
 subsection {* Facts from gfp Definition of @{text "[="} and @{text "="} *}
 
-lemma XHlemma1: "[| A=B;  a:B <-> P |] ==> a:A <-> P"
+lemma XHlemma1: "\<lbrakk>A=B; a:B \<longleftrightarrow> P\<rbrakk> \<Longrightarrow> a:A \<longleftrightarrow> P"
   by simp
 
-lemma XHlemma2: "(P(t,t') <-> Q) ==> (<t,t'> : {p. EX t t'. p=<t,t'> &  P(t,t')} <-> Q)"
+lemma XHlemma2: "(P(t,t') \<longleftrightarrow> Q) \<Longrightarrow> (<t,t'> : {p. \<exists>t t'. p=<t,t'> \<and>  P(t,t')} \<longleftrightarrow> Q)"
   by blast
 
 
 subsection {* Pre-Order *}
 
-lemma POgen_mono: "mono(%X. POgen(X))"
+lemma POgen_mono: "mono(\<lambda>X. POgen(X))"
   apply (unfold POgen_def SIM_def)
   apply (rule monoI)
   apply blast
   done
 
 lemma POgenXH: 
-  "<t,t'> : POgen(R) <-> t= bot | (t=true & t'=true)  | (t=false & t'=false) |  
-           (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) |  
-           (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. <f(x),f'(x)> : R))"
+  "<t,t'> : POgen(R) \<longleftrightarrow> t= bot | (t=true \<and> t'=true)  | (t=false \<and> t'=false) |  
+           (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> <a,a'> : R \<and> <b,b'> : R) |  
+           (EX f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x. <f(x),f'(x)> : R))"
   apply (unfold POgen_def SIM_def)
   apply (rule iff_refl [THEN XHlemma2])
   done
 
 lemma poXH: 
-  "t [= t' <-> t=bot | (t=true & t'=true) | (t=false & t'=false) |  
-                 (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') |  
-                 (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x) [= f'(x)))"
+  "t [= t' \<longleftrightarrow> t=bot | (t=true \<and> t'=true) | (t=false \<and> t'=false) |  
+                 (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> a [= a' \<and> b [= b') |  
+                 (EX f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x. f(x) [= f'(x)))"
   apply (simp add: PO_iff del: ex_simps)
   apply (rule POgen_mono
     [THEN PO_def [THEN def_gfp_Tarski], THEN XHlemma1, unfolded POgen_def SIM_def])
@@ -342,17 +342,17 @@ lemma po_bot: "bot [= b"
   apply simp
   done
 
-lemma bot_poleast: "a [= bot ==> a=bot"
+lemma bot_poleast: "a [= bot \<Longrightarrow> a=bot"
   apply (drule poXH [THEN iffD1])
   apply simp
   done
 
-lemma po_pair: "<a,b> [= <a',b'> <->  a [= a' & b [= b'"
+lemma po_pair: "<a,b> [= <a',b'> \<longleftrightarrow>  a [= a' \<and> b [= b'"
   apply (rule poXH [THEN iff_trans])
   apply simp
   done
 
-lemma po_lam: "lam x. f(x) [= lam x. f'(x) <-> (ALL x. f(x) [= f'(x))"
+lemma po_lam: "lam x. f(x) [= lam x. f'(x) \<longleftrightarrow> (ALL x. f(x) [= f'(x))"
   apply (rule poXH [THEN iff_trans])
   apply fastforce
   done
@@ -363,41 +363,41 @@ lemma case_pocong:
   assumes 1: "t [= t'"
     and 2: "a [= a'"
     and 3: "b [= b'"
-    and 4: "!!x y. c(x,y) [= c'(x,y)"
-    and 5: "!!u. d(u) [= d'(u)"
+    and 4: "\<And>x y. c(x,y) [= c'(x,y)"
+    and 5: "\<And>u. d(u) [= d'(u)"
   shows "case(t,a,b,c,d) [= case(t',a',b',c',d')"
   apply (rule 1 [THEN po_cong, THEN po_trans])
   apply (rule 2 [THEN po_cong, THEN po_trans])
   apply (rule 3 [THEN po_cong, THEN po_trans])
   apply (rule 4 [THEN po_abstractn, THEN po_abstractn, THEN po_cong, THEN po_trans])
-  apply (rule_tac f1 = "%d. case (t',a',b',c',d)" in
+  apply (rule_tac f1 = "\<lambda>d. case (t',a',b',c',d)" in
     5 [THEN po_abstractn, THEN po_cong, THEN po_trans])
   apply (rule po_refl)
   done
 
-lemma apply_pocong: "[| f [= f';  a [= a' |] ==> f ` a [= f' ` a'"
+lemma apply_pocong: "\<lbrakk>f [= f'; a [= a'\<rbrakk> \<Longrightarrow> f ` a [= f' ` a'"
   unfolding ccl_data_defs
   apply (rule case_pocong, (rule po_refl | assumption)+)
   apply (erule po_cong)
   done
 
-lemma npo_lam_bot: "~ lam x. b(x) [= bot"
+lemma npo_lam_bot: "\<not> lam x. b(x) [= bot"
   apply (rule notI)
   apply (drule bot_poleast)
   apply (erule distinctness [THEN notE])
   done
 
-lemma po_lemma: "[| x=a;  y=b;  x[=y |] ==> a[=b"
+lemma po_lemma: "\<lbrakk>x=a; y=b; x[=y\<rbrakk> \<Longrightarrow> a[=b"
   by simp
 
-lemma npo_pair_lam: "~ <a,b> [= lam x. f(x)"
+lemma npo_pair_lam: "\<not> <a,b> [= lam x. f(x)"
   apply (rule notI)
   apply (rule npo_lam_bot [THEN notE])
   apply (erule case_pocong [THEN caseBlam [THEN caseBpair [THEN po_lemma]]])
   apply (rule po_refl npo_lam_bot)+
   done
 
-lemma npo_lam_pair: "~ lam x. f(x) [= <a,b>"
+lemma npo_lam_pair: "\<not> lam x. f(x) [= <a,b>"
   apply (rule notI)
   apply (rule npo_lam_bot [THEN notE])
   apply (erule case_pocong [THEN caseBpair [THEN caseBlam [THEN po_lemma]]])
@@ -405,16 +405,16 @@ lemma npo_lam_pair: "~ lam x. f(x) [= <a,b>"
   done
 
 lemma npo_rls1:
-  "~ true [= false"
-  "~ false [= true"
-  "~ true [= <a,b>"
-  "~ <a,b> [= true"
-  "~ true [= lam x. f(x)"
-  "~ lam x. f(x) [= true"
-  "~ false [= <a,b>"
-  "~ <a,b> [= false"
-  "~ false [= lam x. f(x)"
-  "~ lam x. f(x) [= false"
+  "\<not> true [= false"
+  "\<not> false [= true"
+  "\<not> true [= <a,b>"
+  "\<not> <a,b> [= true"
+  "\<not> true [= lam x. f(x)"
+  "\<not> lam x. f(x) [= true"
+  "\<not> false [= <a,b>"
+  "\<not> <a,b> [= false"
+  "\<not> false [= lam x. f(x)"
+  "\<not> lam x. f(x) [= false"
   by (rule notI, drule case_pocong, erule_tac [5] rev_mp, simp_all,
     (rule po_refl npo_lam_bot)+)+
 
@@ -423,7 +423,7 @@ lemmas npo_rls = npo_pair_lam npo_lam_pair npo_rls1
 
 subsection {* Coinduction for @{text "[="} *}
 
-lemma po_coinduct: "[|  <t,u> : R;  R <= POgen(R) |] ==> t [= u"
+lemma po_coinduct: "\<lbrakk><t,u> : R; R <= POgen(R)\<rbrakk> \<Longrightarrow> t [= u"
   apply (rule PO_def [THEN def_coinduct, THEN PO_iff [THEN iffD2]])
    apply assumption+
   done
@@ -431,26 +431,29 @@ lemma po_coinduct: "[|  <t,u> : R;  R <= POgen(R) |] ==> t [= u"
 
 subsection {* Equality *}
 
-lemma EQgen_mono: "mono(%X. EQgen(X))"
+lemma EQgen_mono: "mono(\<lambda>X. EQgen(X))"
   apply (unfold EQgen_def SIM_def)
   apply (rule monoI)
   apply blast
   done
 
 lemma EQgenXH: 
-  "<t,t'> : EQgen(R) <-> (t=bot & t'=bot)  | (t=true & t'=true)  |  
-                                             (t=false & t'=false) |  
-                 (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) |  
-                 (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x.<f(x),f'(x)> : R))"
+  "<t,t'> : EQgen(R) \<longleftrightarrow> (t=bot \<and> t'=bot)  | (t=true \<and> t'=true)  |  
+                                             (t=false \<and> t'=false) |  
+                 (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> <a,a'> : R \<and> <b,b'> : R) |  
+                 (EX f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x.<f(x),f'(x)> : R))"
   apply (unfold EQgen_def SIM_def)
   apply (rule iff_refl [THEN XHlemma2])
   done
 
 lemma eqXH: 
-  "t=t' <-> (t=bot & t'=bot)  | (t=true & t'=true)  | (t=false & t'=false) |  
-                     (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a=a' & b=b') |  
-                     (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x)=f'(x)))"
-  apply (subgoal_tac "<t,t'> : EQ <-> (t=bot & t'=bot) | (t=true & t'=true) | (t=false & t'=false) | (EX a a' b b'. t=<a,b> & t'=<a',b'> & <a,a'> : EQ & <b,b'> : EQ) | (EX f f'. t=lam x. f (x) & t'=lam x. f' (x) & (ALL x. <f (x) ,f' (x) > : EQ))")
+  "t=t' \<longleftrightarrow> (t=bot \<and> t'=bot)  | (t=true \<and> t'=true)  | (t=false \<and> t'=false) |  
+                     (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> a=a' \<and> b=b') |  
+                     (EX f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x. f(x)=f'(x)))"
+  apply (subgoal_tac "<t,t'> : EQ \<longleftrightarrow>
+    (t=bot \<and> t'=bot) | (t=true \<and> t'=true) | (t=false \<and> t'=false) |
+    (EX a a' b b'. t=<a,b> \<and> t'=<a',b'> \<and> <a,a'> : EQ \<and> <b,b'> : EQ) |
+    (EX f f'. t=lam x. f (x) \<and> t'=lam x. f' (x) \<and> (ALL x. <f (x) ,f' (x) > : EQ))")
   apply (erule rev_mp)
   apply (simp add: EQ_iff [THEN iff_sym])
   apply (rule EQgen_mono [THEN EQ_def [THEN def_gfp_Tarski], THEN XHlemma1,
@@ -458,13 +461,13 @@ lemma eqXH:
   apply (rule iff_refl [THEN XHlemma2])
   done
 
-lemma eq_coinduct: "[|  <t,u> : R;  R <= EQgen(R) |] ==> t = u"
+lemma eq_coinduct: "\<lbrakk><t,u> : R; R <= EQgen(R)\<rbrakk> \<Longrightarrow> t = u"
   apply (rule EQ_def [THEN def_coinduct, THEN EQ_iff [THEN iffD2]])
    apply assumption+
   done
 
 lemma eq_coinduct3:
-  "[|  <t,u> : R;  R <= EQgen(lfp(%x. EQgen(x) Un R Un EQ)) |] ==> t = u"
+  "\<lbrakk><t,u> : R;  R <= EQgen(lfp(\<lambda>x. EQgen(x) Un R Un EQ))\<rbrakk> \<Longrightarrow> t = u"
   apply (rule EQ_def [THEN def_coinduct3, THEN EQ_iff [THEN iffD2]])
   apply (rule EQgen_mono | assumption)+
   done
@@ -477,7 +480,7 @@ method_setup eq_coinduct3 = {*
 
 subsection {* Untyped Case Analysis and Other Facts *}
 
-lemma cond_eta: "(EX f. t=lam x. f(x)) ==> t = lam x.(t ` x)"
+lemma cond_eta: "(EX f. t=lam x. f(x)) \<Longrightarrow> t = lam x.(t ` x)"
   by (auto simp: apply_def)
 
 lemma exhaustion: "(t=bot) | (t=true) | (t=false) | (EX a b. t=<a,b>) | (EX f. t=lam x. f(x))"
@@ -486,7 +489,7 @@ lemma exhaustion: "(t=bot) | (t=true) | (t=false) | (EX a b. t=<a,b>) | (EX f. t
   done
 
 lemma term_case:
-  "[| P(bot);  P(true);  P(false);  !!x y. P(<x,y>);  !!b. P(lam x. b(x)) |] ==> P(t)"
+  "\<lbrakk>P(bot); P(true); P(false); \<And>x y. P(<x,y>); \<And>b. P(lam x. b(x))\<rbrakk> \<Longrightarrow> P(t)"
   using exhaustion [of t] by blast
 
 end

@@ -6,7 +6,7 @@ imports "../LCF"
 begin
 
 lemma example:
-  assumes asms: "f(p) << p"  "!!q. f(q) << q ==> p << q"
+  assumes asms: "f(p) << p"  "\<And>q. f(q) << q \<Longrightarrow> p << q"
   shows "FIX(f)=p"
   apply (unfold eq_def)
   apply (rule conjI)
