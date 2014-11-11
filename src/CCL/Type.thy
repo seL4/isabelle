@@ -502,4 +502,8 @@ fun EQgen_tac ctxt rews i =
     ALLGOALS EQgen_raw_tac) i
 *}
 
+method_setup EQgen = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (EQgen_tac ctxt ths))
+*}
+
 end

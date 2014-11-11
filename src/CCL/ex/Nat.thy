@@ -67,32 +67,32 @@ lemma napply_f: "n:Nat ==> f^n`f(a) = f^succ(n)`a"
 
 lemma addT: "[| a:Nat;  b:Nat |] ==> a #+ b : Nat"
   apply (unfold add_def)
-  apply (tactic {* typechk_tac @{context} [] 1 *})
+  apply typechk
   done
 
 lemma multT: "[| a:Nat;  b:Nat |] ==> a #* b : Nat"
   apply (unfold add_def mult_def)
-  apply (tactic {* typechk_tac @{context} [] 1 *})
+  apply typechk
   done
 
 (* Defined to return zero if a<b *)
 lemma subT: "[| a:Nat;  b:Nat |] ==> a #- b : Nat"
   apply (unfold sub_def)
-  apply (tactic {* typechk_tac @{context} [] 1 *})
-  apply (tactic {* clean_ccs_tac @{context} *})
+  apply typechk
+  apply clean_ccs
   apply (erule NatPRI [THEN wfstI, THEN NatPR_wf [THEN wmap_wf, THEN wfI]])
   done
 
 lemma leT: "[| a:Nat;  b:Nat |] ==> a #<= b : Bool"
   apply (unfold le_def)
-  apply (tactic {* typechk_tac @{context} [] 1 *})
-  apply (tactic {* clean_ccs_tac @{context} *})
+  apply typechk
+  apply clean_ccs
   apply (erule NatPRI [THEN wfstI, THEN NatPR_wf [THEN wmap_wf, THEN wfI]])
   done
 
 lemma ltT: "[| a:Nat;  b:Nat |] ==> a #< b : Bool"
   apply (unfold not_def lt_def)
-  apply (tactic {* typechk_tac @{context} @{thms leT} 1 *})
+  apply (typechk leT)
   done
 
 
@@ -102,7 +102,7 @@ lemmas relI = NatPR_wf [THEN NatPR_wf [THEN lex_wf, THEN wfI]]
 
 lemma "[| a:Nat;  b:Nat |] ==> ackermann(a,b) : Nat"
   apply (unfold ackermann_def)
-  apply (tactic {* gen_ccs_tac @{context} [] 1 *})
+  apply gen_ccs
   apply (erule NatPRI [THEN lexI1 [THEN relI]] NatPRI [THEN lexI2 [THEN relI]])+
   done
 

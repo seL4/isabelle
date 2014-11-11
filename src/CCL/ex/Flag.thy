@@ -62,17 +62,15 @@ lemma ccaseT:
 
 lemma "flag : List(Colour)->List(Colour)*List(Colour)*List(Colour)"
   apply (unfold flag_def)
-  apply (tactic {* typechk_tac @{context}
-    [@{thm redT}, @{thm whiteT}, @{thm blueT}, @{thm ccaseT}] 1 *})
-  apply (tactic "clean_ccs_tac @{context}")
+  apply (typechk redT whiteT blueT ccaseT)
+  apply clean_ccs
   apply (erule ListPRI [THEN ListPR_wf [THEN wfI]])
   apply assumption
   done
 
 lemma "flag : PROD l:List(Colour).{x:List(Colour)*List(Colour)*List(Colour).Flag(x,l)}"
   apply (unfold flag_def)
-  apply (tactic {* gen_ccs_tac @{context}
-    [@{thm redT}, @{thm whiteT}, @{thm blueT}, @{thm ccaseT}] 1 *})
+  apply (gen_ccs redT whiteT blueT ccaseT)
   oops
 
 end

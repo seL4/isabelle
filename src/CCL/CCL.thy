@@ -418,12 +418,8 @@ lemma npo_rls1:
   "~ <a,b> [= false"
   "~ false [= lam x. f(x)"
   "~ lam x. f(x) [= false"
-  by (tactic {*
-    REPEAT (rtac @{thm notI} 1 THEN
-      dtac @{thm case_pocong} 1 THEN
-      etac @{thm rev_mp} 5 THEN
-      ALLGOALS (simp_tac @{context}) THEN
-      REPEAT (resolve_tac [@{thm po_refl}, @{thm npo_lam_bot}] 1)) *})
+  by (rule notI, drule case_pocong, erule_tac [5] rev_mp, simp_all,
+    (rule po_refl npo_lam_bot)+)+
 
 lemmas npo_rls = npo_pair_lam npo_lam_pair npo_rls1
 
@@ -476,9 +472,9 @@ lemma eq_coinduct3:
   apply (rule EQgen_mono | assumption)+
   done
 
-ML {*
-  fun eq_coinduct_tac ctxt s i = res_inst_tac ctxt [(("R", 0), s)] @{thm eq_coinduct} i
-  fun eq_coinduct3_tac ctxt s i = res_inst_tac ctxt [(("R", 0), s)] @{thm eq_coinduct3} i
+method_setup eq_coinduct3 = {*
+  Scan.lift Args.name >> (fn s => fn ctxt =>
+    SIMPLE_METHOD' (res_inst_tac ctxt [(("R", 0), s)] @{thm eq_coinduct3}))
 *}
 
 

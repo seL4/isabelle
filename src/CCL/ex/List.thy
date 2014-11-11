@@ -75,13 +75,13 @@ lemma nmapBcons: "n:Nat ==> map(f)^n`(x$xs) = (f^n`x)$(map(f)^n`xs)"
 
 lemma mapT: "[| !!x. x:A==>f(x):B;  l : List(A) |] ==> map(f,l) : List(B)"
   apply (unfold map_def)
-  apply (tactic "typechk_tac @{context} [] 1")
+  apply typechk
   apply blast
   done
 
 lemma appendT: "[| l : List(A);  m : List(A) |] ==> l @ m : List(A)"
   apply (unfold append_def)
-  apply (tactic "typechk_tac @{context} [] 1")
+  apply typechk
   done
 
 lemma appendTS:
@@ -90,17 +90,17 @@ lemma appendTS:
 
 lemma filterT: "[| f:A->Bool;   l : List(A) |] ==> filter(f,l) : List(A)"
   apply (unfold filter_def)
-  apply (tactic "typechk_tac @{context} [] 1")
+  apply typechk
   done
 
 lemma flatT: "l : List(List(A)) ==> flat(l) : List(A)"
   apply (unfold flat_def)
-  apply (tactic {* typechk_tac @{context} @{thms appendT} 1 *})
+  apply (typechk appendT)
   done
 
 lemma insertT: "[|  f : A->A->Bool; a:A; l : List(A) |] ==> insert(f,a,l) : List(A)"
   apply (unfold insert_def)
-  apply (tactic "typechk_tac @{context} [] 1")
+  apply typechk
   done
 
 lemma insertTS:
@@ -111,8 +111,8 @@ lemma insertTS:
 lemma partitionT:
   "[| f:A->Bool;  l : List(A) |] ==> partition(f,l) : List(A)*List(A)"
   apply (unfold partition_def)
-  apply (tactic "typechk_tac @{context} [] 1")
-  apply (tactic "clean_ccs_tac @{context}")
+  apply typechk
+  apply clean_ccs
   apply (rule ListPRI [THEN wfstI, THEN ListPR_wf [THEN wmap_wf, THEN wfI]])
     apply assumption+
   apply (rule ListPRI [THEN wfstI, THEN ListPR_wf [THEN wmap_wf, THEN wfI]])

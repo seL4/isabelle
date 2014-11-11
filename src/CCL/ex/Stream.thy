@@ -27,12 +27,11 @@ subsection {* Map of composition is composition of maps *}
 lemma map_comp:
   assumes 1: "l:Lists(A)"
   shows "map(f \<circ> g,l) = map(f,map(g,l))"
-  apply (tactic {* eq_coinduct3_tac @{context}
-    "{p. EX x y. p=<x,y> & (EX l:Lists (A) .x=map (f \<circ> g,l) & y=map (f,map (g,l)))}" 1 *})
+  apply (eq_coinduct3 "{p. EX x y. p=<x,y> & (EX l:Lists (A) .x=map (f \<circ> g,l) & y=map (f,map (g,l)))}")
    apply (blast intro: 1)
   apply safe
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac @{context} [] 1")
+  apply EQgen
    apply fastforce
   done
 
@@ -41,12 +40,11 @@ lemma map_comp:
 lemma map_id:
   assumes 1: "l:Lists(A)"
   shows "map(%x. x,l) = l"
-  apply (tactic {* eq_coinduct3_tac @{context}
-    "{p. EX x y. p=<x,y> & (EX l:Lists (A) .x=map (%x. x,l) & y=l) }" 1 *})
+  apply (eq_coinduct3 "{p. EX x y. p=<x,y> & (EX l:Lists (A) .x=map (%x. x,l) & y=l) }")
   apply (blast intro: 1)
   apply safe
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac @{context} [] 1")
+  apply EQgen
   apply blast
   done
 
@@ -57,14 +55,14 @@ lemma map_append:
   assumes "l:Lists(A)"
     and "m:Lists(A)"
   shows "map(f,l@m) = map(f,l) @ map(f,m)"
-  apply (tactic {* eq_coinduct3_tac @{context}
-    "{p. EX x y. p=<x,y> & (EX l:Lists (A). EX m:Lists (A). x=map (f,l@m) & y=map (f,l) @ map (f,m))}" 1 *})
+  apply (eq_coinduct3
+    "{p. EX x y. p=<x,y> & (EX l:Lists (A). EX m:Lists (A). x=map (f,l@m) & y=map (f,l) @ map (f,m))}")
   apply (blast intro: assms)
   apply safe
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac @{context} [] 1")
+  apply EQgen
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac @{context} [] 1")
+  apply EQgen
   apply blast
   done
 
@@ -76,12 +74,12 @@ lemma append_assoc:
     and "l:Lists(A)"
     and "m:Lists(A)"
   shows "k @ l @ m = (k @ l) @ m"
-  apply (tactic {* eq_coinduct3_tac @{context}
-    "{p. EX x y. p=<x,y> & (EX k:Lists (A). EX l:Lists (A). EX m:Lists (A). x=k @ l @ m & y= (k @ l) @ m) }" 1*})
+  apply (eq_coinduct3
+    "{p. EX x y. p=<x,y> & (EX k:Lists (A). EX l:Lists (A). EX m:Lists (A). x=k @ l @ m & y= (k @ l) @ m) }")
   apply (blast intro: assms)
   apply safe
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac @{context} [] 1")
+  apply EQgen
    prefer 2
    apply blast
   apply (tactic {* DEPTH_SOLVE (etac (XH_to_E @{thm ListsXH}) 1
@@ -94,12 +92,11 @@ subsection {* Appending anything to an infinite list doesn't alter it *}
 lemma ilist_append:
   assumes "l:ILists(A)"
   shows "l @ m = l"
-  apply (tactic {* eq_coinduct3_tac @{context}
-    "{p. EX x y. p=<x,y> & (EX l:ILists (A) .EX m. x=l@m & y=l)}" 1 *})
+  apply (eq_coinduct3 "{p. EX x y. p=<x,y> & (EX l:ILists (A) .EX m. x=l@m & y=l)}")
   apply (blast intro: assms)
   apply safe
   apply (drule IListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac @{context} [] 1")
+  apply EQgen
   apply blast
   done
 
@@ -128,10 +125,10 @@ lemma iter2Blemma:
   done
 
 lemma iter1_iter2_eq: "iter1(f,a) = iter2(f,a)"
-  apply (tactic {* eq_coinduct3_tac @{context}
-    "{p. EX x y. p=<x,y> & (EX n:Nat. x=iter1 (f,f^n`a) & y=map (f) ^n`iter2 (f,a))}" 1*})
+  apply (eq_coinduct3
+    "{p. EX x y. p=<x,y> & (EX n:Nat. x=iter1 (f,f^n`a) & y=map (f) ^n`iter2 (f,a))}")
   apply (fast intro!: napplyBzero [symmetric] napplyBzero [symmetric, THEN arg_cong])
-  apply (tactic {* EQgen_tac @{context} [@{thm iter1B}, @{thm iter2Blemma}] 1 *})
+  apply (EQgen iter1B iter2Blemma)
   apply (subst napply_f, assumption)
   apply (rule_tac f1 = f in napplyBsucc [THEN subst])
   apply blast

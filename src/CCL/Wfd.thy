@@ -46,9 +46,10 @@ lemma wfd_strengthen_lemma:
   apply blast
   done
 
-ML {*
-  fun wfd_strengthen_tac ctxt s i =
-    res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac ctxt (i+1)
+method_setup wfd_strengthen = {*
+  Scan.lift Args.name >> (fn s => fn ctxt =>
+    SIMPLE_METHOD' (fn i =>
+      res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac ctxt (i+1)))
 *}
 
 lemma wf_anti_sym: "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P"
@@ -116,7 +117,7 @@ lemma lex_wf:
   shows "Wfd(R**S)"
   apply (unfold Wfd_def)
   apply safe
-  apply (tactic {* wfd_strengthen_tac @{context} "%x. EX a b. x=<a,b>" 1 *})
+  apply (wfd_strengthen "%x. EX a b. x=<a,b>")
    apply (blast elim!: lex_pair)
   apply (subgoal_tac "ALL a b.<a,b>:P")
    apply blast
@@ -202,7 +203,7 @@ lemma ListPRI: "[| t : List(A); h : A |] ==> <t,h $ t> : ListPR(A)"
 lemma NatPR_wf: "Wfd(NatPR)"
   apply (unfold Wfd_def)
   apply clarify
-  apply (tactic {* wfd_strengthen_tac @{context} "%x. x:Nat" 1 *})
+  apply (wfd_strengthen "%x. x:Nat")
    apply (fastforce iff: NatPRXH)
   apply (erule Nat_ind)
    apply (fastforce iff: NatPRXH)+
@@ -211,7 +212,7 @@ lemma NatPR_wf: "Wfd(NatPR)"
 lemma ListPR_wf: "Wfd(ListPR(A))"
   apply (unfold Wfd_def)
   apply clarify
-  apply (tactic {* wfd_strengthen_tac @{context} "%x. x:List (A)" 1 *})
+  apply (wfd_strengthen "%x. x:List (A)")
    apply (fastforce iff: ListPRXH)
   apply (erule List_ind)
    apply (fastforce iff: ListPRXH)+
@@ -479,6 +480,18 @@ fun gen_ccs_tac ctxt rls i =
   SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls) THEN clean_ccs_tac ctxt) i
 
 end
+*}
+
+method_setup typechk = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (typechk_tac ctxt ths))
+*}
+
+method_setup clean_ccs = {*
+  Scan.succeed (SIMPLE_METHOD o clean_ccs_tac)
+*}
+
+method_setup gen_ccs = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (gen_ccs_tac ctxt ths))
 *}
 
 
