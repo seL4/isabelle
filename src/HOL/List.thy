@@ -3361,6 +3361,175 @@ lemma distinct_length_2_or_more:
   "distinct (a # b # xs) \<longleftrightarrow> (a \<noteq> b \<and> distinct (a # xs) \<and> distinct (b # xs))"
 by force
 
+lemma remdups_adj_altdef: "(remdups_adj xs = ys) \<longleftrightarrow>
+  (\<exists>f::nat => nat. mono f & f ` {0 ..< size xs} = {0 ..< size ys}
+    \<and> (\<forall>i < size xs. xs!i = ys!(f i))
+    \<and> (\<forall>i. i + 1 < size xs \<longrightarrow> (xs!i = xs!(i+1) <-> f i = f(i+1))))" (is "?L \<longleftrightarrow> (\<exists>f. ?p f xs ys)")
+proof
+  assume ?L
+  then show "\<exists>f. ?p f xs ys"
+  proof (induct xs arbitrary: ys rule: remdups_adj.induct)
+    case (1 ys)
+    thus ?case by (intro exI[of _ id]) (auto simp: mono_def)
+  next
+    case (2 x ys)
+    thus ?case by (intro exI[of _ id]) (auto simp: mono_def)
+  next
+    case (3 x1 x2 xs ys)
+    let ?xs = "x1 # x2 # xs"
+    let ?cond = "x1 = x2"
+    def zs \<equiv> "remdups_adj (x2 # xs)"
+    from 3(1-2)[of zs]
+    obtain f where p: "?p f (x2 # xs) zs" unfolding zs_def by (cases ?cond) auto
+    then have f0: "f 0 = 0"
+      by (intro mono_image_least[where f=f]) blast+
+    from p have mono: "mono f" and f_xs_zs: "f ` {0..<length (x2 # xs)} = {0..<length zs}" by auto
+    have ys: "ys = (if x1 = x2 then zs else x1 # zs)"
+      unfolding 3(3)[symmetric] zs_def by auto
+    have zs0: "zs ! 0 = x2" unfolding zs_def by (induct xs) auto
+    have zsne: "zs \<noteq> []" unfolding zs_def by (induct xs) auto
+    let ?Succ = "if ?cond then id else Suc"
+    let ?x1 = "if ?cond then id else Cons x1"
+    let ?f = "\<lambda> i. if i = 0 then 0 else ?Succ (f (i - 1))"
+    have ys: "ys = ?x1 zs" unfolding ys by (cases ?cond, auto)
+    have mono: "mono ?f" using `mono f` unfolding mono_def by auto
+    show ?case unfolding ys
+    proof (intro exI[of _ ?f] conjI allI impI)
+      show "mono ?f" by fact
+    next
+      fix i assume i: "i < length ?xs"
+      with p show "?xs ! i = ?x1 zs ! (?f i)" using zs0 by auto
+    next
+      fix i assume i: "i + 1 < length ?xs"
+      with p show "(?xs ! i = ?xs ! (i + 1)) = (?f i = ?f (i + 1))"
+        by (cases i) (auto simp: f0)
+    next
+      have id: "{0 ..< length (?x1 zs)} = insert 0 (?Succ ` {0 ..< length zs})"
+        using zsne by (cases ?cond, auto)
+      { fix i  assume "i < Suc (length xs)"
+        hence "Suc i \<in> {0..<Suc (Suc (length xs))} \<inter> Collect (op < 0)" by auto
+        from imageI[OF this, of "\<lambda>i. ?Succ (f (i - Suc 0))"]
+        have "?Succ (f i) \<in> (\<lambda>i. ?Succ (f (i - Suc 0))) ` ({0..<Suc (Suc (length xs))} \<inter> Collect (op < 0))" by auto
+      }
+      then show "?f ` {0 ..< length ?xs} = {0 ..< length (?x1  zs)}"
+        unfolding id f_xs_zs[symmetric] by auto
+    qed
+  qed
+next
+  assume "\<exists> f. ?p f xs ys"
+  then show ?L
+  proof (induct xs arbitrary: ys rule: remdups_adj.induct)
+    case 1 then show ?case by auto
+  next
+    case (2 x) then obtain f where f_img: "f ` {0 ..< size [x]} = {0 ..< size ys}"
+        and f_nth: "\<And>i. i < size [x] \<Longrightarrow> [x]!i = ys!(f i)"
+      by blast
+
+    have "length ys = card (f ` {0 ..< size [x]})"
+      using f_img by auto
+    then have "length ys = 1" by auto
+    moreover
+    then have "f 0 = 0" using f_img by auto
+    ultimately show ?case using f_nth by (cases ys) auto
+  next
+    case (3 x1 x2 xs)
+    from "3.prems" obtain f where f_mono: "mono f"
+      and f_img: "f ` {0..<length (x1 # x2 # xs)} = {0..<length ys}"
+      and f_nth:
+        "\<And>i. i < length (x1 # x2 # xs) \<Longrightarrow> (x1 # x2 # xs) ! i = ys ! f i"
+        "\<And>i. i + 1 < length (x1 # x2 #xs) \<Longrightarrow>
+          ((x1 # x2 # xs) ! i = (x1 # x2 # xs) ! (i + 1)) = (f i = f (i + 1))"
+      by blast
+
+    show ?case
+    proof cases
+      assume "x1 = x2"
+
+      let ?f' = "f o Suc"
+
+      have "remdups_adj (x1 # xs) = ys"
+      proof (intro "3.hyps" exI conjI impI allI)
+        show "mono ?f'"
+          using f_mono by (simp add: mono_iff_le_Suc)
+      next
+        have "?f' ` {0 ..< length (x1 # xs)} = f ` {Suc 0 ..< length (x1 # x2 # xs)}"
+          by safe (fastforce, rename_tac x, case_tac x, auto)
+        also have "\<dots> = f ` {0 ..< length (x1 # x2 # xs)}"
+        proof -
+          have "f 0 = f (Suc 0)" using \<open>x1 = x2\<close> f_nth[of 0] by simp
+          then show ?thesis by safe (fastforce, rename_tac x, case_tac x, auto)
+        qed
+        also have "\<dots> = {0 ..< length ys}" by fact
+        finally show  "?f' ` {0 ..< length (x1 # xs)} = {0 ..< length ys}" .
+      qed (insert f_nth[of "Suc i" for i], auto simp: \<open>x1 = x2\<close>)
+      then show ?thesis using \<open>x1 = x2\<close> by simp
+    next
+      assume "x1 \<noteq> x2"
+
+      have "2 \<le> length ys"
+      proof -
+        have "2 = card {f 0, f 1}" using \<open>x1 \<noteq> x2\<close> f_nth[of 0] by auto
+        also have "\<dots> \<le> card (f ` {0..< length (x1 # x2 # xs)})"
+          by (rule card_mono) auto
+        finally show ?thesis using f_img by simp
+      qed
+
+      have "f 0 = 0" using f_mono f_img by (rule mono_image_least) simp
+
+      have "f (Suc 0) = Suc 0"
+      proof (rule ccontr)
+        assume "f (Suc 0) \<noteq> Suc 0"
+        then have "Suc 0 < f (Suc 0)" using f_nth[of 0] \<open>x1 \<noteq> x2\<close> \<open>f 0 = 0\<close> by auto
+        then have "\<And>i. Suc 0 < f (Suc i)"
+          using f_mono
+          by (meson Suc_le_mono le0 less_le_trans monoD)
+        then have "\<And>i. Suc 0 \<noteq> f i" using \<open>f 0 = 0\<close>
+          by (case_tac i) fastforce+
+        then have "Suc 0 \<notin> f ` {0 ..< length (x1 # x2 # xs)}" by auto
+        then show False using f_img \<open>2 \<le> length ys\<close> by auto
+      qed
+
+      obtain ys' where "ys = x1 # x2 # ys'"
+        using \<open>2 \<le> length ys\<close> f_nth[of 0] f_nth[of 1]
+        apply (cases ys)
+        apply (rename_tac [2] ys', case_tac [2] ys')
+        by (auto simp: \<open>f 0 = 0\<close> \<open>f (Suc 0) = Suc 0\<close>)
+
+      def f' \<equiv> "\<lambda>x. f (Suc x) - 1"
+
+      { fix i
+        have "Suc 0 \<le> f (Suc 0)" using f_nth[of 0] \<open>x1 \<noteq> x2\<close> \<open>f 0 = 0\<close>  by auto
+        also have "\<dots> \<le> f (Suc i)" using f_mono by (rule monoD) arith
+        finally have "Suc 0 \<le> f (Suc i)" .
+      } note Suc0_le_f_Suc = this
+
+      { fix i have "f (Suc i) = Suc (f' i)"
+          using Suc0_le_f_Suc[of i] by (auto simp: f'_def)
+      } note f_Suc = this
+
+      have "remdups_adj (x2 # xs) = (x2 # ys')"
+      proof (intro "3.hyps" exI conjI impI allI)
+        show "mono f'"
+          using Suc0_le_f_Suc f_mono by (auto simp: f'_def mono_iff_le_Suc le_diff_iff)
+      next
+        have "f' ` {0 ..< length (x2 # xs)} = (\<lambda>x. f x - 1) ` {0 ..< length (x1 # x2 #xs)}"
+          apply safe
+          apply (rename_tac [!] n,  case_tac [!] n)
+          apply (auto simp: f'_def \<open>f 0 = 0\<close> \<open>f (Suc 0) = Suc 0\<close> intro: rev_image_eqI)
+          done
+        also have "\<dots> = (\<lambda>x. x - 1) ` f ` {0 ..< length (x1 # x2 #xs)}"
+          by (auto simp: image_comp)
+        also have "\<dots> = (\<lambda>x. x - 1) ` {0 ..< length ys}"
+          by (simp only: f_img)
+        also have "\<dots> = {0 ..< length (x2 # ys')}"
+          using \<open>ys = _\<close> by (fastforce intro: rev_image_eqI)
+        finally show  "f' ` {0 ..< length (x2 # xs)} = {0 ..< length (x2 # ys')}" .
+      qed (insert f_nth[of "Suc i" for i] \<open>x1 \<noteq> x2\<close>, auto simp add: f_Suc \<open>ys = _\<close>)
+      then show ?case using \<open>ys = _\<close> \<open>x1 \<noteq> x2\<close> by simp
+    qed
+  qed
+qed
+
 lemma hd_remdups_adj[simp]: "hd (remdups_adj xs) = hd xs"
 by (induction xs rule: remdups_adj.induct) simp_all
 
