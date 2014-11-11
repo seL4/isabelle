@@ -34,54 +34,56 @@ done
 subsection {* Multi-step proofs: Type inference *}
 
 lemma "PROD w:N. N + N type"
-apply (tactic "form_tac @{context}")
+apply form
 done
 
 schematic_lemma "<0, succ(0)> : ?A"
-apply (tactic "intr_tac @{context} []")
+apply intr
 done
 
 schematic_lemma "PROD w:N . Eq(?A,w,w) type"
-apply (tactic "typechk_tac @{context} []")
+apply typechk
 done
 
 schematic_lemma "PROD x:N . PROD y:N . Eq(?A,x,y) type"
-apply (tactic "typechk_tac @{context} []")
+apply typechk
 done
 
 text "typechecking an application of fst"
 schematic_lemma "(lam u. split(u, %v w. v)) ` <0, succ(0)> : ?A"
-apply (tactic "typechk_tac @{context} []")
+apply typechk
 done
 
 text "typechecking the predecessor function"
 schematic_lemma "lam n. rec(n, 0, %x y. x) : ?A"
-apply (tactic "typechk_tac @{context} []")
+apply typechk
 done
 
 text "typechecking the addition function"
 schematic_lemma "lam n. lam m. rec(n, m, %x y. succ(y)) : ?A"
-apply (tactic "typechk_tac @{context} []")
+apply typechk
 done
 
 (*Proofs involving arbitrary types.
   For concreteness, every type variable left over is forced to be N*)
-ML {* val N_tac = TRYALL (rtac @{thm NF}) *}
+method_setup N = {*
+  Scan.succeed (fn _ => SIMPLE_METHOD (TRYALL (resolve_tac @{thms NF})))
+*}
 
 schematic_lemma "lam w. <w,w> : ?A"
-apply (tactic "typechk_tac @{context} []")
-apply (tactic N_tac)
+apply typechk
+apply N
 done
 
 schematic_lemma "lam x. lam y. x : ?A"
-apply (tactic "typechk_tac @{context} []")
-apply (tactic N_tac)
+apply typechk
+apply N
 done
 
 text "typechecking fst (as a function object)"
 schematic_lemma "lam i. split(i, %j k. j) : ?A"
-apply (tactic "typechk_tac @{context} []")
-apply (tactic N_tac)
+apply typechk
+apply N
 done
 
 end

@@ -378,7 +378,22 @@ fun equal_tac ctxt thms =
   REPEAT_FIRST (ASSUME ctxt (filt_resolve_tac (thms @ equal_rls) 3))
 
 end
+*}
 
+method_setup form = {*
+  Scan.succeed (fn ctxt => SIMPLE_METHOD (form_tac ctxt))
+*}
+
+method_setup typechk = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (typechk_tac ctxt ths))
+*}
+
+method_setup intr = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (intr_tac ctxt ths))
+*}
+
+method_setup equal = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (equal_tac ctxt ths))
 *}
 
 
@@ -460,7 +475,31 @@ fun step_tac ctxt thms = safestep_tac ctxt thms  ORELSE'  biresolve_tac unsafe_b
 fun pc_tac ctxt thms = DEPTH_SOLVE_1 o (step_tac ctxt thms)
 *}
 
+method_setup eqintr = {*
+  Scan.succeed (SIMPLE_METHOD o eqintr_tac)
+*}
+
+method_setup NE = {*
+  Scan.lift Args.name >> (fn s => fn ctxt => SIMPLE_METHOD' (NE_tac ctxt s))
+*}
+
+method_setup pc = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (pc_tac ctxt ths))
+*}
+
+method_setup add_mp = {*
+  Scan.succeed (SIMPLE_METHOD' o add_mp_tac)
+*}
+
 ML_file "rew.ML"
+
+method_setup rew = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (rew_tac ctxt ths))
+*}
+
+method_setup hyp_rew = {*
+  Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (hyp_rew_tac ctxt ths))
+*}
 
 
 subsection {* The elimination rules for fst/snd *}
@@ -480,7 +519,7 @@ lemma SumE_snd:
   apply (unfold basic_defs)
   apply (rule major [THEN SumE])
   apply (rule SumC [THEN subst_eqtyparg, THEN replace_type])
-  apply (tactic {* typechk_tac @{context} @{thms assms} *})
+  apply (typechk assms)
   done
 
 end

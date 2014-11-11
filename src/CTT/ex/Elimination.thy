@@ -15,36 +15,36 @@ begin
 text "This finds the functions fst and snd!"
 
 schematic_lemma [folded basic_defs]: "A type ==> ?a : (A*A) --> A"
-apply (tactic {* pc_tac @{context} [] 1 *})
+apply pc
 done
 
 schematic_lemma [folded basic_defs]: "A type ==> ?a : (A*A) --> A"
-apply (tactic {* pc_tac @{context} [] 1 *})
+apply pc
 back
 done
 
 text "Double negation of the Excluded Middle"
 schematic_lemma "A type ==> ?a : ((A + (A-->F)) --> F) --> F"
-apply (tactic "intr_tac @{context} []")
+apply intr
 apply (rule ProdE)
 apply assumption
-apply (tactic "pc_tac @{context} [] 1")
+apply pc
 done
 
 schematic_lemma "[| A type;  B type |] ==> ?a : (A*B) --> (B*A)"
-apply (tactic "pc_tac @{context} [] 1")
+apply pc
 done
 (*The sequent version (ITT) could produce an interesting alternative
   by backtracking.  No longer.*)
 
 text "Binary sums and products"
 schematic_lemma "[| A type; B type; C type |] ==> ?a : (A+B --> C) --> (A-->C) * (B-->C)"
-apply (tactic "pc_tac @{context} [] 1")
+apply pc
 done
 
 (*A distributive law*)
 schematic_lemma "[| A type;  B type;  C type |] ==> ?a : A * (B+C)  -->  (A*B + A*C)"
-apply (tactic "pc_tac @{context} [] 1")
+apply pc
 done
 
 (*more general version, same proof*)
@@ -53,12 +53,12 @@ schematic_lemma
     and "!!x. x:A ==> B(x) type"
     and "!!x. x:A ==> C(x) type"
   shows "?a : (SUM x:A. B(x) + C(x)) --> (SUM x:A. B(x)) + (SUM x:A. C(x))"
-apply (tactic {* pc_tac @{context} @{thms assms} 1 *})
+apply (pc assms)
 done
 
 text "Construction of the currying functional"
 schematic_lemma "[| A type;  B type;  C type |] ==> ?a : (A*B --> C) --> (A--> (B-->C))"
-apply (tactic "pc_tac @{context} [] 1")
+apply pc
 done
 
 (*more general goal with same proof*)
@@ -68,12 +68,12 @@ schematic_lemma
     and "!!z. z: (SUM x:A. B(x)) ==> C(z) type"
   shows "?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).
                       (PROD x:A . PROD y:B(x) . C(<x,y>))"
-apply (tactic {* pc_tac @{context} @{thms assms} 1 *})
+apply (pc assms)
 done
 
 text "Martin-Lof (1984), page 48: axiom of sum-elimination (uncurry)"
 schematic_lemma "[| A type;  B type;  C type |] ==> ?a : (A --> (B-->C)) --> (A*B --> C)"
-apply (tactic "pc_tac @{context} [] 1")
+apply pc
 done
 
 (*more general goal with same proof*)
@@ -83,12 +83,12 @@ schematic_lemma
     and "!!z. z: (SUM x:A . B(x)) ==> C(z) type"
   shows "?a : (PROD x:A . PROD y:B(x) . C(<x,y>))
         --> (PROD z : (SUM x:A . B(x)) . C(z))"
-apply (tactic {* pc_tac @{context} @{thms assms} 1 *})
+apply (pc assms)
 done
 
 text "Function application"
 schematic_lemma "[| A type;  B type |] ==> ?a : ((A --> B) * A) --> B"
-apply (tactic "pc_tac @{context} [] 1")
+apply pc
 done
 
 text "Basic test of quantifier reasoning"
@@ -99,7 +99,7 @@ schematic_lemma
   shows
     "?a :     (SUM y:B . PROD x:A . C(x,y))
           --> (PROD x:A . SUM y:B . C(x,y))"
-apply (tactic {* pc_tac @{context} @{thms assms} 1 *})
+apply (pc assms)
 done
 
 text "Martin-Lof (1984) pages 36-7: the combinator S"
@@ -109,7 +109,7 @@ schematic_lemma
     and "!!x y.[| x:A; y:B(x) |] ==> C(x,y) type"
   shows "?a :    (PROD x:A. PROD y:B(x). C(x,y))
              --> (PROD f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
-apply (tactic {* pc_tac @{context} @{thms assms} 1 *})
+apply (pc assms)
 done
 
 text "Martin-Lof (1984) page 58: the axiom of disjunction elimination"
@@ -119,13 +119,13 @@ schematic_lemma
     and "!!z. z: A+B ==> C(z) type"
   shows "?a : (PROD x:A. C(inl(x))) --> (PROD y:B. C(inr(y)))
           --> (PROD z: A+B. C(z))"
-apply (tactic {* pc_tac @{context} @{thms assms} 1 *})
+apply (pc assms)
 done
 
 (*towards AXIOM OF CHOICE*)
 schematic_lemma [folded basic_defs]:
   "[| A type; B type; C type |] ==> ?a : (A --> B*C) --> (A-->B) * (A-->C)"
-apply (tactic "pc_tac @{context} [] 1")
+apply pc
 done
 
 
@@ -137,15 +137,15 @@ schematic_lemma
     and "!!x y.[| x:A;  y:B(x) |] ==> C(x,y) type"
   shows "?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).
                          (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
-apply (tactic {* intr_tac @{context} @{thms assms} *})
-apply (tactic "add_mp_tac @{context} 2")
-apply (tactic "add_mp_tac @{context} 1")
+apply (intr assms)
+prefer 2 apply add_mp
+prefer 2 apply add_mp
 apply (erule SumE_fst)
 apply (rule replace_type)
 apply (rule subst_eqtyparg)
 apply (rule comp_rls)
 apply (rule_tac [4] SumE_snd)
-apply (tactic {* typechk_tac @{context} (@{thm SumE_fst} :: @{thms assms}) *})
+apply (typechk SumE_fst assms)
 done
 
 text "Axiom of choice.  Proof without fst, snd.  Harder still!"
@@ -155,19 +155,21 @@ schematic_lemma [folded basic_defs]:
     and "!!x y.[| x:A;  y:B(x) |] ==> C(x,y) type"
   shows "?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).
                          (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
-apply (tactic {* intr_tac @{context} @{thms assms} *})
-(*Must not use add_mp_tac as subst_prodE hides the construction.*)
-apply (rule ProdE [THEN SumE], assumption)
-apply (tactic "TRYALL (assume_tac @{context})")
+apply (intr assms)
+(*Must not use add_mp as subst_prodE hides the construction.*)
+apply (rule ProdE [THEN SumE])
+apply assumption
+apply assumption
+apply assumption
 apply (rule replace_type)
 apply (rule subst_eqtyparg)
 apply (rule comp_rls)
 apply (erule_tac [4] ProdE [THEN SumE])
-apply (tactic {* typechk_tac @{context} @{thms assms} *})
+apply (typechk assms)
 apply (rule replace_type)
 apply (rule subst_eqtyparg)
 apply (rule comp_rls)
-apply (tactic {* typechk_tac @{context} @{thms assms} *})
+apply (typechk assms)
 apply assumption
 done
 
@@ -183,11 +185,12 @@ apply (rule intr_rls)
 apply (tactic {* biresolve_tac safe_brls 2 *})
 (*Now must convert assumption C(z) into antecedent C(<kd,ke>) *)
 apply (rule_tac [2] a = "y" in ProdE)
-apply (tactic {* typechk_tac @{context} @{thms assms} *})
+apply (typechk assms)
 apply (rule SumE, assumption)
-apply (tactic "intr_tac @{context} []")
-apply (tactic "TRYALL (assume_tac @{context})")
-apply (tactic {* typechk_tac @{context} @{thms assms} *})
+apply intr
+defer 1
+apply assumption+
+apply (typechk assms)
 done
 
 end
