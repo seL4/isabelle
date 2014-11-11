@@ -2318,8 +2318,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             type_definitions abs_inverses ctrss ctr_defss recs rec_defs lthy;
 
         val rec_transfer_thmss =
-          if live = 0 then replicate nn []
-          else map single (derive_rec_transfer_thms lthy recs rec_defs recs_args_types);
+          map single (derive_rec_transfer_thms lthy recs rec_defs recs_args_types);
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
         val induct_pred_attr = Attrib.internal o K o Induct.induct_pred;
@@ -2487,9 +2486,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
         val flat_corec_thms = append oo append;
 
-        val corec_transfer_thmss =
-          if live = 0 then replicate nn []
-          else map single (derive_corec_transfer_thms lthy corecs corec_defs);
+        val corec_transfer_thmss = map single (derive_corec_transfer_thms lthy corecs corec_defs);
 
         val ((rel_coinduct_thmss, common_rel_coinduct_thms),
              (rel_coinduct_attrs, common_rel_coinduct_attrs)) =
