@@ -67,7 +67,7 @@ fun global_setup source =
 fun local_setup source =
   ML_Lex.read_source false source
   |> ML_Context.expression (#range source)
-    "val setup: local_theory -> local_theory" "Context.map_proof setup"
+    "val local_setup: local_theory -> local_theory" "Context.map_proof local_setup"
   |> Context.proof_map;
 
 

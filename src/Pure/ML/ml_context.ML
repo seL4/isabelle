@@ -184,11 +184,15 @@ fun eval_source_in ctxt flags source =
     (fn () => eval_source flags source) ();
 
 fun expression range bind body ants =
-  exec (fn () =>
-    eval ML_Compiler.flags (#1 range)
-     (ML_Lex.read_set_range range ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @
-      ants @
-      ML_Lex.read_set_range range (" in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
+  let
+    val hidden = ML_Lex.read Position.none;
+    val visible = ML_Lex.read_set_range range;
+  in
+    exec (fn () =>
+      eval ML_Compiler.flags (#1 range)
+       (hidden "Context.set_thread_data (SOME (let" @ visible bind @ hidden "=" @ ants @
+        hidden ("in " ^ body ^ " end (ML_Context.the_generic_context ())));")))
+  end;
 
 end;
 
