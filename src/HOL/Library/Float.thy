@@ -580,12 +580,10 @@ lemmas real_of_nats =
   real_of_nat_add
   real_of_nat_mult
   real_of_nat_power
+  real_of_nat_numeral
 
 lemmas int_of_reals = real_of_ints[symmetric]
 lemmas nat_of_reals = real_of_nats[symmetric]
-
-lemma two_real_int: "(2::real) = real (2::int)" by simp
-lemma two_real_nat: "(2::real) = real (2::nat)" by simp
 
 
 subsection {* Rounding Real Numbers *}
@@ -661,23 +659,12 @@ lemma round_up_less1:
   assumes "x < 1 / 2" "p > 0"
   shows "round_up p x < 1"
 proof -
-  have powr1: "2 powr p = 2 ^ nat p"
-    using `p > 0` by (simp add: powr_realpow[symmetric])
   have "x * 2 powr p < 1 / 2 * 2 powr p"
     using assms by simp
-  also have "\<dots> = 2 powr (p - 1)"
-    by (simp add: algebra_simps powr_mult_base)
-  also have "\<dots> = 2 ^ nat (p - 1)"
-    using `p > 0` by (simp add: powr_realpow[symmetric])
-  also have "\<dots> \<le> 2 ^ nat p - 1"
-    using `p > 0`
-    unfolding int_of_reals real_of_int_le_iff
-    by simp
-  finally show ?thesis
-    apply (simp add: round_up_def field_simps powr_minus powr1)
-    unfolding int_of_reals real_of_int_less_iff
-    apply (simp add: ceiling_less_eq)
-    done
+  also have "\<dots> \<le> 2 powr p - 1" using `p > 0`
+    by (auto simp: powr_divide2[symmetric] powr_int field_simps self_le_power)
+  finally show ?thesis using `p > 0`
+    by (simp add: round_up_def field_simps powr_minus powr_int ceiling_less_eq)
 qed
 
 lemma round_down_ge1:
@@ -856,7 +843,7 @@ next
     apply (simp add: powr_realpow[symmetric])
     using `x > 0` by simp
   finally show "x < 2 ^ nat (bitlen x)" using `x > 0`
-    by (simp add: bitlen_def ac_simps int_of_reals del: real_of_ints)
+    by (simp add: bitlen_def ac_simps)
 qed
 
 lemma bitlen_pow2[simp]:
@@ -1810,8 +1797,7 @@ proof (cases "x = 0", simp)
   also have "mantissa x \<le> \<bar>mantissa x\<bar>" by simp
   also have "... \<le> 2 powr (bitlen \<bar>mantissa x\<bar>)"
     using bitlen_bounds[of "\<bar>mantissa x\<bar>"] bitlen_nonneg `mantissa x \<noteq> 0`
-    by (simp add: powr_int) (simp only: two_real_int int_of_reals real_of_int_abs[symmetric]
-      real_of_int_le_iff less_imp_le)
+    by (auto simp del: real_of_int_abs simp add: powr_int)
   finally show ?thesis by (simp add: powr_add)
 qed
 
