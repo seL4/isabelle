@@ -195,7 +195,7 @@ fun eval_antiquote state (txt, pos) =
     val _ = Position.reports (maps words ants);
   in implode (map expand ants) end;
 
-fun check_text {delimited, text, range} state =
+fun check_text ({delimited, text, range}: Symbol_Pos.source) state =
  (Position.report (fst range) (Markup.language_document delimited);
   if Toplevel.is_skipped_proof state then ()
   else ignore (eval_antiquote state (text, fst range)));

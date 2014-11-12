@@ -214,9 +214,10 @@ struct
   fun ml_tactic source ctxt =
     let
       val ctxt' = ctxt |> Context.proof_map
-        (ML_Context.expression (#range source)
-          "fun tactic (ctxt : Proof.context) : tactic"
-          "Context.map_proof (ML_Tactic.set tactic)" (ML_Lex.read_source false source));
+        (ML_Context.expression (#range source) "tactic" "Proof.context -> tactic"
+          "Context.map_proof (ML_Tactic.set tactic)"
+          (ML_Lex.read Position.none "fn ctxt: Proof.context =>" @
+           ML_Lex.read_source false source));
     in Data.get ctxt' ctxt end;
 end;
 *}

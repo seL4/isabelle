@@ -32,10 +32,12 @@ fun report_parse_tree redirect depth space parse_tree =
       end;
 
     fun reported_entity kind loc decl =
-      let val pos = Exn_Properties.position_of loc in
-        is_reported pos ?
+      let
+        val pos = Exn_Properties.position_of loc;
+        val def_pos = Exn_Properties.position_of decl;
+      in
+        (is_reported pos andalso pos <> def_pos) ?
           let
-            val def_pos = Exn_Properties.position_of decl;
             fun markup () =
               (Markup.entityN, (Markup.kindN, kind) :: Position.def_properties_of def_pos);
           in cons (pos, markup, fn () => "") end

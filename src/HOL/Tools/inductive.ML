@@ -585,7 +585,7 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
   let
     val thmss =
       map snd args
-      |> burrow (grouped 10 Par_List.map (mk_cases lthy o prep_prop lthy));
+      |> burrow (grouped 10 Par_List.map_independent (mk_cases lthy o prep_prop lthy));
     val facts =
       map2 (fn ((a, atts), _) => fn thms => ((a, map (prep_att lthy) atts), [(thms, [])]))
         args thmss;

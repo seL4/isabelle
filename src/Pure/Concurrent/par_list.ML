@@ -18,6 +18,7 @@ signature PAR_LIST =
 sig
   val managed_results: string -> ('a -> 'b) -> 'a list -> 'b Exn.result list
   val map_name: string -> ('a -> 'b) -> 'a list -> 'b list
+  val map_independent: ('a -> 'b) -> 'a list -> 'b list
   val map: ('a -> 'b) -> 'a list -> 'b list
   val get_some: ('a -> 'b option) -> 'a list -> 'b option
   val find_some: ('a -> bool) -> 'a list -> 'a option
@@ -51,6 +52,7 @@ fun managed_results name f xs =
 
 fun map_name name f xs = Par_Exn.release_first (managed_results name f xs);
 fun map f = map_name "Par_List.map" f;
+fun map_independent f = map (Exn.interruptible_capture f) #> Par_Exn.release_all;
 
 fun get_some f xs =
   let

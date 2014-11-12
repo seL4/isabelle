@@ -208,8 +208,7 @@ fun local_setup binding scan comment = define binding (attribute_syntax scan) co
 
 fun attribute_setup name source comment =
   ML_Lex.read_source false source
-  |> ML_Context.expression (#range source)
-    "val parser: Thm.attribute context_parser"
+  |> ML_Context.expression (#range source) "parser" "Thm.attribute context_parser"
     ("Context.map_proof (Attrib.local_setup " ^ ML_Syntax.atomic (ML_Syntax.make_binding name) ^
       " parser " ^ ML_Syntax.print_string comment ^ ")")
   |> Context.proof_map;
