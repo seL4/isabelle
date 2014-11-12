@@ -450,7 +450,8 @@ proof -
     let ?k = "lapprox_rat prec 1 k"
     have "1 div k = 0" using div_pos_pos_trivial[OF _ `1 < k`] by auto
     have "1 / k \<le> 1" using `1 < k` by auto
-    have "\<And>n. 0 \<le> real ?k" using lapprox_rat_nonneg[where x=1 and y=k, OF zero_le_one `0 < k`] by (auto simp add: `1 div k = 0`)
+    have "\<And>n. 0 \<le> real ?k" using lapprox_rat_nonneg[where x=1 and y=k, OF zero_le_one `0 \<le> k`]
+      by (auto simp add: `1 div k = 0`)
     have "\<And>n. real ?k \<le> 1" using lapprox_rat by (rule order_trans, auto simp add: `1 / k \<le> 1`)
 
     have "?k \<le> 1 / k" using lapprox_rat[where x=1 and y=k] by auto
@@ -1398,7 +1399,7 @@ proof -
   have "1 / 4 = (Float 1 (- 2))" unfolding Float_num by auto
   also have "\<dots> \<le> lb_exp_horner 1 (get_even 4) 1 1 (- 1)"
     unfolding get_even_def eq4
-    by (auto simp add: Float.compute_lapprox_rat Float.compute_rapprox_rat
+    by (auto simp add: Float.compute_lapprox_rat Float.compute_rapprox_rat divmod_int_mod_div
                   Float.compute_lapprox_posrat Float.compute_rapprox_posrat rat_precision_def Float.compute_bitlen)
   also have "\<dots> \<le> exp (- 1 :: float)" using bnds_exp_horner[where x="- 1"] by auto
   finally show ?thesis by simp
@@ -1458,14 +1459,14 @@ proof -
     hence "real (int_floor_fl x) < 0" unfolding less_float_def by auto
     have fl_eq: "real (- int_floor_fl x) = real (- floor_fl x)"
       by (simp add: floor_fl_def int_floor_fl_def)
-    from `0 < - int_floor_fl x` have "0 < real (- floor_fl x)"
+    from `0 < - int_floor_fl x` have "0 \<le> real (- floor_fl x)"
       by (simp add: floor_fl_def int_floor_fl_def)
     from `real (int_floor_fl x) < 0` have "real (floor_fl x) < 0"
       by (simp add: floor_fl_def int_floor_fl_def)
     have "exp x \<le> ub_exp prec x"
     proof -
       have div_less_zero: "real (float_divr prec x (- floor_fl x)) \<le> 0"
-        using float_divr_nonpos_pos_upper_bound[OF `real x \<le> 0` `0 < real (- floor_fl x)`]
+        using float_divr_nonpos_pos_upper_bound[OF `real x \<le> 0` `0 \<le> real (- floor_fl x)`]
         unfolding less_eq_float_def zero_float.rep_eq .
 
       have "exp x = exp (?num * (x / ?num))" using `real ?num \<noteq> 0` by auto
@@ -1669,7 +1670,8 @@ proof -
   have lb2: "0 \<le> real (Float 1 (- 1))" and ub2: "real (Float 1 (- 1)) < 1" unfolding Float_num by auto
 
   have "0 \<le> (1::int)" and "0 < (3::int)" by auto
-  have ub3_ub: "real ?uthird < 1" by (simp add: Float.compute_rapprox_rat rapprox_posrat_less1)
+  have ub3_ub: "real ?uthird < 1"
+    by (simp add: Float.compute_rapprox_rat Float.compute_lapprox_rat rapprox_posrat_less1)
 
   have third_gt0: "(0 :: real) < 1 / 3 + 1" by auto
   have uthird_gt0: "0 < real ?uthird + 1" using ub3_lb by auto
@@ -1714,7 +1716,7 @@ by pat_completeness auto
 termination proof (relation "measure (\<lambda> v. let (prec, x) = case_sum id id v in (if x < 1 then 1 else 0))", auto)
   fix prec and x :: float assume "\<not> real x \<le> 0" and "real x < 1" and "real (float_divl (max prec (Suc 0)) 1 x) < 1"
   hence "0 < real x" "1 \<le> max prec (Suc 0)" "real x < 1" by auto
-  from float_divl_pos_less1_bound[OF `0 < real x` `real x < 1` `1 \<le> max prec (Suc 0)`]
+  from float_divl_pos_less1_bound[OF `0 < real x` `real x < 1`[THEN less_imp_le] `1 \<le> max prec (Suc 0)`]
   show False using `real (float_divl (max prec (Suc 0)) 1 x) < 1` by auto
 next
   fix prec x assume "\<not> real x \<le> 0" and "real x < 1" and "real (float_divr prec 1 x) < 1"
@@ -1963,13 +1965,13 @@ proof (cases "x < 1")
   show ?thesis using ub_ln_lb_ln_bounds'[OF `1 \<le> x`] .
 next
   case True have "\<not> x \<le> 0" using `0 < x` by auto
-  from True have "real x < 1" by simp
+  from True have "real x \<le> 1" "x \<le> 1" by simp_all
   have "0 < real x" and "real x \<noteq> 0" using `0 < x` by auto
   hence A: "0 < 1 / real x" by auto
 
   {
     let ?divl = "float_divl (max prec 1) 1 x"
-    have A': "1 \<le> ?divl" using float_divl_pos_less1_bound[OF `0 < real x` `real x < 1`] by auto
+    have A': "1 \<le> ?divl" using float_divl_pos_less1_bound[OF `0 < real x` `real x \<le> 1`] by auto
     hence B: "0 < real ?divl" by auto
 
     have "ln ?divl \<le> ln (1 / x)" unfolding ln_le_cancel_iff[OF B A] using float_divl[of _ 1 x] by auto
@@ -1979,7 +1981,7 @@ next
   } moreover
   {
     let ?divr = "float_divr prec 1 x"
-    have A': "1 \<le> ?divr" using float_divr_pos_less1_lower_bound[OF `0 < x` `x < 1`] unfolding less_eq_float_def less_float_def by auto
+    have A': "1 \<le> ?divr" using float_divr_pos_less1_lower_bound[OF `0 < x` `x \<le> 1`] unfolding less_eq_float_def less_float_def by auto
     hence B: "0 < real ?divr" by auto
 
     have "ln (1 / x) \<le> ln ?divr" unfolding ln_le_cancel_iff[OF A B] using float_divr[of 1 x] by auto
