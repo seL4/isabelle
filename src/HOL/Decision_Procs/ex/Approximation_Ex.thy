@@ -65,7 +65,7 @@ lemma "1 / 2^1 \<le> x \<and> x \<le> 9 / 2^1 \<Longrightarrow> \<bar> arctan x 
   by (approximation 10)
 
 lemma "3.2 \<le> x \<and> x \<le> 6.2 \<Longrightarrow> sin x \<le> 0"
-  by (approximation 9)
+  by (approximation 10)
 
 lemma
   defines "g \<equiv> 9.80665" and "v \<equiv> 128.61" and "d \<equiv> pi / 180"
