@@ -1861,6 +1861,9 @@ lemma powr_minus: "x powr (-a) = inverse (x powr a)"
 lemma powr_minus_divide: "x powr (-a) = 1/(x powr a)"
   by (simp add: divide_inverse powr_minus)
 
+lemma divide_powr_uminus: "a / b powr c = a * b powr (- c)"
+  by (simp add: powr_minus_divide)
+
 lemma powr_less_mono: "a < b \<Longrightarrow> 1 < x \<Longrightarrow> x powr a < x powr b"
   by (simp add: powr_def)
 
@@ -1926,6 +1929,12 @@ lemma log_inverse: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x
 lemma log_divide: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a (x/y) = log a x - log a y"
   by (simp add: log_mult divide_inverse log_inverse)
 
+lemma log_add_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log b x + y = log b (x * b powr y)"
+  and add_log_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> y + log b x = log b (b powr y * x)"
+  and log_minus_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log b x - y = log b (x * b powr -y)"
+  and minus_log_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> y - log b x = log b (b powr y / x)"
+  by (simp_all add: log_mult log_divide)
+
 lemma log_less_cancel_iff [simp]:
   "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a x < log a y \<longleftrightarrow> x < y"
   apply safe
@@ -1981,6 +1990,34 @@ lemma log_less_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrighta
 
 lemma log_le_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x \<le> 1 \<longleftrightarrow> x \<le> a"
   using log_le_cancel_iff[of a x a] by simp
+
+lemma le_log_iff:
+  assumes "1 < b" "x > 0"
+  shows "y \<le> log b x \<longleftrightarrow> b powr y \<le> x"
+  by (metis assms(1) assms(2) dual_order.strict_trans powr_le_cancel_iff powr_log_cancel
+    powr_one_eq_one powr_one_gt_zero_iff)
+
+lemma less_log_iff:
+  assumes "1 < b" "x > 0"
+  shows "y < log b x \<longleftrightarrow> b powr y < x"
+  by (metis assms(1) assms(2) dual_order.strict_trans less_irrefl powr_less_cancel_iff
+    powr_log_cancel zero_less_one)
+
+lemma
+  assumes "1 < b" "x > 0"
+  shows log_less_iff: "log b x < y \<longleftrightarrow> x < b powr y"
+    and log_le_iff: "log b x \<le> y \<longleftrightarrow> x \<le> b powr y"
+  using le_log_iff[OF assms, of y] less_log_iff[OF assms, of y]
+  by auto
+
+lemmas powr_le_iff = le_log_iff[symmetric]
+  and powr_less_iff = le_log_iff[symmetric]
+  and less_powr_iff = log_less_iff[symmetric]
+  and le_powr_iff = log_le_iff[symmetric]
+
+lemma
+  floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
+  by (auto simp add: floor_eq_iff powr_le_iff less_powr_iff)
 
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   apply (induct n)
