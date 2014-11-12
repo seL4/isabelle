@@ -260,6 +260,46 @@ lemma
     and float_of_neg_numeral[simp]: "- numeral k = float_of (- numeral k)"
   unfolding real_of_float_eq by simp_all
 
+subsection {* Quickcheck *}
+
+instantiation float :: exhaustive
+begin
+
+definition exhaustive_float where
+  "exhaustive_float f d =
+    Quickcheck_Exhaustive.exhaustive (%x. Quickcheck_Exhaustive.exhaustive (%y. f (Float x y)) d) d"
+
+instance ..
+
+end
+
+definition (in term_syntax) [code_unfold]:
+  "valtermify_float x y = Code_Evaluation.valtermify Float {\<cdot>} x {\<cdot>} y"
+
+instantiation float :: full_exhaustive
+begin
+
+definition full_exhaustive_float where
+  "full_exhaustive_float f d =
+    Quickcheck_Exhaustive.full_exhaustive
+      (\<lambda>x. Quickcheck_Exhaustive.full_exhaustive (\<lambda>y. f (valtermify_float x y)) d) d"
+
+instance ..
+
+end
+
+instantiation float :: random
+begin
+
+definition "Quickcheck_Random.random i =
+  scomp (Quickcheck_Random.random (2 ^ nat_of_natural i))
+    (\<lambda>man. scomp (Quickcheck_Random.random i) (\<lambda>exp. Pair (valtermify_float man exp)))"
+
+instance ..
+
+end
+
+
 subsection {* Represent floats as unique mantissa and exponent *}
 
 lemma int_induct_abs[case_names less]:
