@@ -25,7 +25,7 @@ sig
   val eval_in: Proof.context option -> ML_Compiler.flags -> Position.T ->
     ML_Lex.token Antiquote.antiquote list -> unit
   val eval_source_in: Proof.context option -> ML_Compiler.flags -> Symbol_Pos.source -> unit
-  val expression: Position.range -> string -> string ->
+  val expression: Position.range -> string -> string -> string ->
     ML_Lex.token Antiquote.antiquote list -> Context.generic -> Context.generic
 end
 
@@ -183,14 +183,15 @@ fun eval_source_in ctxt flags source =
   Context.setmp_thread_data (Option.map Context.Proof ctxt)
     (fn () => eval_source flags source) ();
 
-fun expression range bind body ants =
+fun expression range name constraint body ants =
   let
     val hidden = ML_Lex.read Position.none;
     val visible = ML_Lex.read_set_range range;
   in
     exec (fn () =>
       eval ML_Compiler.flags (#1 range)
-       (hidden "Context.set_thread_data (SOME (let" @ visible bind @ hidden "=" @ ants @
+       (hidden "Context.set_thread_data (SOME (let val " @ visible name @
+        hidden (": " ^ constraint ^ " =") @ ants @
         hidden ("in " ^ body ^ " end (ML_Context.the_generic_context ())));")))
   end;
 
