@@ -1550,6 +1550,25 @@ lemma realpow_square_minus_le [simp]: "- u\<^sup>2 \<le> (x::real)\<^sup>2"
 by (auto simp add: power2_eq_square)
 
 
+lemma numeral_power_eq_real_of_int_cancel_iff[simp]:
+  "numeral x ^ n = real (y::int) \<longleftrightarrow> numeral x ^ n = y"
+  by (metis real_numeral(1) real_of_int_inject real_of_int_power)
+
+lemma real_of_int_eq_numeral_power_cancel_iff[simp]:
+  "real (y::int) = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
+  using numeral_power_eq_real_of_int_cancel_iff[of x n y]
+  by metis
+
+lemma numeral_power_eq_real_of_nat_cancel_iff[simp]:
+  "numeral x ^ n = real (y::nat) \<longleftrightarrow> numeral x ^ n = y"
+  by (metis of_nat_eq_iff of_nat_numeral real_of_int_eq_numeral_power_cancel_iff
+    real_of_int_of_nat_eq zpower_int)
+
+lemma real_of_nat_eq_numeral_power_cancel_iff[simp]:
+  "real (y::nat) = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
+  using numeral_power_eq_real_of_nat_cancel_iff[of x n y]
+  by metis
+
 lemma numeral_power_le_real_of_nat_cancel_iff[simp]:
   "(numeral x::real) ^ n \<le> real a \<longleftrightarrow> (numeral x::nat) ^ n \<le> a"
   unfolding real_of_nat_le_iff[symmetric] by simp
@@ -1565,6 +1584,22 @@ lemma numeral_power_le_real_of_int_cancel_iff[simp]:
 lemma real_of_int_le_numeral_power_cancel_iff[simp]:
   "real a \<le> (numeral x::real) ^ n \<longleftrightarrow> a \<le> (numeral x::int) ^ n"
   unfolding real_of_int_le_iff[symmetric] by simp
+
+lemma numeral_power_less_real_of_nat_cancel_iff[simp]:
+  "(numeral x::real) ^ n < real a \<longleftrightarrow> (numeral x::nat) ^ n < a"
+  unfolding real_of_nat_less_iff[symmetric] by simp
+
+lemma real_of_nat_less_numeral_power_cancel_iff[simp]:
+  "real a < (numeral x::real) ^ n \<longleftrightarrow> a < (numeral x::nat) ^ n"
+  unfolding real_of_nat_less_iff[symmetric] by simp
+
+lemma numeral_power_less_real_of_int_cancel_iff[simp]:
+  "(numeral x::real) ^ n < real a \<longleftrightarrow> (numeral x::int) ^ n < a"
+  unfolding real_of_int_less_iff[symmetric] by simp
+
+lemma real_of_int_less_numeral_power_cancel_iff[simp]:
+  "real a < (numeral x::real) ^ n \<longleftrightarrow> a < (numeral x::int) ^ n"
+  unfolding real_of_int_less_iff[symmetric] by simp
 
 lemma neg_numeral_power_le_real_of_int_cancel_iff[simp]:
   "(- numeral x::real) ^ n \<le> real a \<longleftrightarrow> (- numeral x::int) ^ n \<le> a"
@@ -1719,7 +1754,13 @@ lemma less_floor_eq: "(a < floor x) = (real a + 1 <= x)"
 lemma floor_le_eq: "(floor x <= a) = (x < real a + 1)"
   by linarith
 
+lemma floor_eq_iff: "floor x = b \<longleftrightarrow> real b \<le> x \<and> x < real (b + 1)"
+  by linarith
+
 lemma floor_add [simp]: "floor (x + real a) = floor x + a"
+  by linarith
+
+lemma floor_add2[simp]: "floor (real a + x) = a + floor x"
   by linarith
 
 lemma floor_subtract [simp]: "floor (x - real a) = floor x - a"
@@ -2014,6 +2055,14 @@ proof -
   show ?thesis unfolding natfloor_def nat_power_eq[OF `0 \<le> floor x`, symmetric]
     by simp
 qed
+
+lemma floor_numeral_power[simp]:
+  "\<lfloor>numeral x ^ n\<rfloor> = numeral x ^ n"
+  by (metis floor_of_int of_int_numeral of_int_power)
+
+lemma ceiling_numeral_power[simp]:
+  "\<lceil>numeral x ^ n\<rceil> = numeral x ^ n"
+  by (metis ceiling_of_int of_int_numeral of_int_power)
 
 
 subsection {* Implementation of rational real numbers *}
