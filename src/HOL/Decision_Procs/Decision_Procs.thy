@@ -10,6 +10,7 @@ imports
   Commutative_Ring_Complete
   "ex/Commutative_Ring_Ex"
   "ex/Approximation_Ex"
+  "ex/Approximation_Quickcheck_Ex"
   "ex/Dense_Linear_Order_Ex"
 begin
 

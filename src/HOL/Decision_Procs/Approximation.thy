@@ -3494,7 +3494,8 @@ let
     | term_of_bool false = @{term False};
 
   val mk_int = HOLogic.mk_number @{typ int} o @{code integer_of_int};
-  val dest_int = @{code int_of_integer} o snd o HOLogic.dest_number;
+  fun dest_int (@{term int_of_integer} $ j) = @{code int_of_integer} (snd (HOLogic.dest_number j))
+    | dest_int i = @{code int_of_integer} (snd (HOLogic.dest_number i));
 
   fun term_of_float (@{code Float} (k, l)) =
     @{term Float} $ mk_int k $ mk_int l;
@@ -3705,5 +3706,12 @@ method_setup approximation = {*
 *} "real number approximation"
 
 ML_file "approximation.ML"
+
+
+section "Quickcheck Generator"
+
+ML_file "approximation_generator.ML"
+
+setup "Approximation_Generator.setup"
 
 end
