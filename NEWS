@@ -168,6 +168,15 @@ use local CSDP executable, which is much faster than the NEOS server.
 The "sos_cert" functionality is invoked as "sos" with additional
 argument. Minor INCOMPATIBILITY.
 
+* HOL-Decision_Procs:
+  - New counterexample generator quickcheck[approximation] for
+    inequalities of transcendental functions.
+    Uses hardware floating point arithmetic to randomly discover
+    potential counterexamples. Counterexamples are certified with the
+    'approximation' method.
+    See HOL/Decision_Procs/ex/Approximation_Quickcheck_Ex.thy for
+    examples.
+
 
 *** Document preparation ***
 
