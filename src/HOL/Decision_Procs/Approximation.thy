@@ -2713,13 +2713,17 @@ datatype form = Bound floatarith floatarith floatarith form
               | Less floatarith floatarith
               | LessEqual floatarith floatarith
               | AtLeastAtMost floatarith floatarith floatarith
+              | Conj form form
+              | Disj form form
 
 fun interpret_form :: "form \<Rightarrow> real list \<Rightarrow> bool" where
 "interpret_form (Bound x a b f) vs = (interpret_floatarith x vs \<in> { interpret_floatarith a vs .. interpret_floatarith b vs } \<longrightarrow> interpret_form f vs)" |
 "interpret_form (Assign x a f) vs  = (interpret_floatarith x vs = interpret_floatarith a vs \<longrightarrow> interpret_form f vs)" |
 "interpret_form (Less a b) vs      = (interpret_floatarith a vs < interpret_floatarith b vs)" |
 "interpret_form (LessEqual a b) vs = (interpret_floatarith a vs \<le> interpret_floatarith b vs)" |
-"interpret_form (AtLeastAtMost x a b) vs = (interpret_floatarith x vs \<in> { interpret_floatarith a vs .. interpret_floatarith b vs })"
+"interpret_form (AtLeastAtMost x a b) vs = (interpret_floatarith x vs \<in> { interpret_floatarith a vs .. interpret_floatarith b vs })" |
+"interpret_form (Conj f g) vs \<longleftrightarrow> interpret_form f vs \<and> interpret_form g vs" |
+"interpret_form (Disj f g) vs \<longleftrightarrow> interpret_form f vs \<or> interpret_form g vs"
 
 fun approx_form' and approx_form :: "nat \<Rightarrow> form \<Rightarrow> (float * float) option list \<Rightarrow> nat list \<Rightarrow> bool" where
 "approx_form' prec f 0 n l u bs ss = approx_form prec f (bs[n := Some (l, u)]) ss" |
@@ -2746,6 +2750,8 @@ fun approx_form' and approx_form :: "nat \<Rightarrow> form \<Rightarrow> (float
    (case (approx prec x bs, approx prec a bs, approx prec b bs)
    of (Some (lx, ux), Some (l, u), Some (l', u')) \<Rightarrow> float_plus_up prec u (-lx) \<le> 0 \<and> float_plus_up prec ux (-l') \<le> 0
     | _ \<Rightarrow> False)" |
+"approx_form prec (Conj a b) bs ss \<longleftrightarrow> approx_form prec a bs ss \<and> approx_form prec b bs ss" |
+"approx_form prec (Disj a b) bs ss \<longleftrightarrow> approx_form prec a bs ss \<or> approx_form prec b bs ss" |
 "approx_form _ _ _ _ = False"
 
 lemma lazy_conj: "(if A then B else False) = (A \<and> B)" by simp
@@ -2865,7 +2871,7 @@ next
   from order_trans[OF float_plus_up inequality(1)] order_trans[OF float_plus_up inequality(2)]
     approx[OF AtLeastAtMost.prems(2) l_eq] approx[OF AtLeastAtMost.prems(2) u_eq] approx[OF AtLeastAtMost.prems(2) x_eq]
   show ?case by auto
-qed
+qed auto
 
 lemma approx_form:
   assumes "n = length xs"
@@ -3388,19 +3394,26 @@ proof -
   show ?thesis by auto
 qed
 
+fun approx_tse_concl where
+"approx_tse_concl prec t (Less lf rt) s l u l' u' \<longleftrightarrow>
+    approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 < l)" |
+"approx_tse_concl prec t (LessEqual lf rt) s l u l' u' \<longleftrightarrow>
+    approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)" |
+"approx_tse_concl prec t (AtLeastAtMost x lf rt) s l u l' u' \<longleftrightarrow>
+    (if approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l) then
+      approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l) else False)" |
+"approx_tse_concl prec t (Conj f g) s l u l' u' \<longleftrightarrow>
+    approx_tse_concl prec t f s l u l' u' \<and> approx_tse_concl prec t g s l u l' u'" |
+"approx_tse_concl prec t (Disj f g) s l u l' u' \<longleftrightarrow>
+    approx_tse_concl prec t f s l u l' u' \<or> approx_tse_concl prec t g s l u l' u'" |
+"approx_tse_concl _ _ _ _ _ _ _ _ \<longleftrightarrow> False"
+
 definition
 "approx_tse_form prec t s f =
   (case f
    of (Bound x a b f) \<Rightarrow> x = Var 0 \<and>
      (case (approx prec a [None], approx prec b [None])
-      of (Some (l, u), Some (l', u')) \<Rightarrow>
-        (case f
-         of Less lf rt \<Rightarrow> approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 < l)
-          | LessEqual lf rt \<Rightarrow> approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)
-          | AtLeastAtMost x lf rt \<Rightarrow>
-            (if approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l) then
-            approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l) else False)
-          | _ \<Rightarrow> False)
+      of (Some (l, u), Some (l', u')) \<Rightarrow> approx_tse_concl prec t f s l u l' u'
        | _ \<Rightarrow> False)
    | _ \<Rightarrow> False)"
 
@@ -3423,48 +3436,32 @@ proof (cases f)
     have bnd: "x \<in> { l .. u'}" unfolding bounded_by_def i by auto
 
     have "interpret_form f' [x]"
-    proof (cases f')
+      using assms[unfolded Bound]
+    proof (induct f')
       case (Less lf rt)
-      with Bound a b assms
+      with a b
       have "approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 < l)"
         unfolding approx_tse_form_def by auto
       from approx_tse_form'_less[OF this bnd]
-      show ?thesis using Less by auto
+      show ?case using Less by auto
     next
       case (LessEqual lf rt)
       with Bound a b assms
       have "approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
         unfolding approx_tse_form_def by auto
       from approx_tse_form'_le[OF this bnd]
-      show ?thesis using LessEqual by auto
+      show ?case using LessEqual by auto
     next
       case (AtLeastAtMost x lf rt)
       with Bound a b assms
       have "approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l)"
         and "approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
-        unfolding approx_tse_form_def lazy_conj by auto
+        unfolding approx_tse_form_def lazy_conj by (auto split: split_if_asm)
       from approx_tse_form'_le[OF this(1) bnd] approx_tse_form'_le[OF this(2) bnd]
-      show ?thesis using AtLeastAtMost by auto
-    next
-      case (Bound x a b f') with assms
-      show ?thesis by (auto elim!: case_optionE simp add: f_def approx_tse_form_def)
-    next
-      case (Assign x a f') with assms
-      show ?thesis by (auto elim!: case_optionE simp add: f_def approx_tse_form_def)
-    qed } thus ?thesis unfolding f_def by auto
-next
-  case Assign
-  with assms show ?thesis by (auto simp add: approx_tse_form_def)
-next
-  case LessEqual
-  with assms show ?thesis by (auto simp add: approx_tse_form_def)
-next
-  case Less
-  with assms show ?thesis by (auto simp add: approx_tse_form_def)
-next
-  case AtLeastAtMost
-  with assms show ?thesis by (auto simp add: approx_tse_form_def)
-qed
+      show ?case using AtLeastAtMost by auto
+    qed (auto simp: f_def approx_tse_form_def elim!: case_optionE)
+  } thus ?thesis unfolding f_def by auto
+qed (insert assms, auto simp add: approx_tse_form_def)
 
 text {* @{term approx_form_eval} is only used for the {\tt value}-command. *}
 
@@ -3543,6 +3540,10 @@ let
         (floatarith_of_term a, floatarith_of_term b)
     | form_of_term (@{term LessEqual} $ a $ b) = @{code LessEqual}
         (floatarith_of_term a, floatarith_of_term b)
+    | form_of_term (@{term Conj} $ a $ b) = @{code Conj}
+        (form_of_term a, form_of_term b)
+    | form_of_term (@{term Disj} $ a $ b) = @{code Disj}
+        (form_of_term a, form_of_term b)
     | form_of_term (@{term AtLeastAtMost} $ a $ b $ c) = @{code AtLeastAtMost}
         (floatarith_of_term a, floatarith_of_term b, floatarith_of_term c)
     | form_of_term t = bad t;
