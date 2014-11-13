@@ -1,4 +1,3 @@
-
 (* Author: Tobias Nipkow, TU Muenchen *)
 
 section {* Sum and product over lists *}
@@ -158,6 +157,10 @@ lemma (in monoid_add) listsum_map_filter:
 lemma (in comm_monoid_add) distinct_listsum_conv_Setsum:
   "distinct xs \<Longrightarrow> listsum xs = Setsum (set xs)"
   by (induct xs) simp_all
+
+lemma listsum_upt[simp]:
+  "m \<le> n \<Longrightarrow> listsum [m..<n] = \<Sum> {m..<n}"
+by(simp add: distinct_listsum_conv_Setsum)
 
 lemma listsum_eq_0_nat_iff_nat [simp]:
   "listsum ns = (0::nat) \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
