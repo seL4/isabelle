@@ -24,6 +24,9 @@ object Thy_Header extends Parse.Parser
   val SECTION = "section"
   val SUBSECTION = "subsection"
   val SUBSUBSECTION = "subsubsection"
+  val TEXT = "text"
+  val TXT = "txt"
+  val TEXT_RAW = "text_raw"
 
   val THEORY = "theory"
   val IMPORTS = "imports"
@@ -43,11 +46,14 @@ object Thy_Header extends Parse.Parser
       (BEGIN, None, None),
       (IMPORTS, None, None),
       (KEYWORDS, None, None),
-      (HEADER, Some(((Keyword.HEADING, Nil), Nil)), None),
-      (CHAPTER, Some(((Keyword.HEADING, Nil), Nil)), None),
-      (SECTION, Some(((Keyword.HEADING, Nil), Nil)), None),
-      (SUBSECTION, Some(((Keyword.HEADING, Nil), Nil)), None),
-      (SUBSUBSECTION, Some(((Keyword.HEADING, Nil), Nil)), None),
+      (HEADER, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (CHAPTER, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (SECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (SUBSECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (SUBSUBSECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (TEXT, Some(((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
+      (TXT, Some(((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
+      (TEXT_RAW, Some(((Keyword.DOCUMENT_RAW, Nil), Nil)), None),
       (THEORY, Some((Keyword.THY_BEGIN, Nil), List("theory")), None),
       ("ML_file", Some((Keyword.THY_LOAD, Nil), List("ML")), None))
 
@@ -110,7 +116,10 @@ object Thy_Header extends Parse.Parser
         command(CHAPTER) |
         command(SECTION) |
         command(SUBSECTION) |
-        command(SUBSUBSECTION)) ~
+        command(SUBSUBSECTION) |
+        command(TEXT) |
+        command(TXT) |
+        command(TEXT_RAW)) ~
       tags ~! document_source
 
     (rep(heading) ~ command(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }

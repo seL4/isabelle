@@ -33,11 +33,8 @@ sig
     Token.src -> 'a list -> Pretty.T list
   val output: Proof.context -> Pretty.T list -> string
   val verbatim_text: Proof.context -> string -> string
-  val local_theory_markup: (xstring * Position.T) option * Symbol_Pos.source ->
-    Toplevel.transition -> Toplevel.transition
-  val proof_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
-  val header_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
-  val heading_markup: (xstring * Position.T) option * Symbol_Pos.source ->
+  val old_header_command: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
+  val document_command: (xstring * Position.T) option * Symbol_Pos.source ->
     Toplevel.transition -> Toplevel.transition
 end;
 
@@ -285,22 +282,30 @@ fun present_span keywords span state state' (tag_stack, active_tag, newline, buf
     val (tag, tags) = tag_stack;
     val tag' = try hd (fold (update (op =)) cmd_tags (the_list tag));
 
+    val nesting = Toplevel.level state' - Toplevel.level state;
+
     val active_tag' =
       if is_some tag' then tag'
       else if cmd_name = "end" andalso not (Toplevel.is_toplevel state') then NONE
-      else try hd (Keyword.command_tags keywords cmd_name);
+      else
+        (case Keyword.command_tags keywords cmd_name of
+          default_tag :: _ => SOME default_tag
+        | [] =>
+            if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
+            then active_tag
+            else NONE);
+
     val edge = (active_tag, active_tag');
 
     val newline' =
       if is_none active_tag' then span_newline else newline;
 
-    val nesting = Toplevel.level state' - Toplevel.level state;
     val tag_stack' =
       if nesting = 0 andalso not (Toplevel.is_proof state) then tag_stack
       else if nesting >= 0 then (tag', replicate nesting tag @ tags)
       else
         (case drop (~ nesting - 1) tags of
-          tgs :: tgss => (tgs, tgss)
+          tg :: tgs => (tg, tgs)
         | [] => err_bad_nesting (Position.here cmd_pos));
 
     val buffer' =
@@ -359,7 +364,6 @@ in
 fun present_thy thy command_results toks =
   let
     val keywords = Thy_Header.get_keywords thy;
-    val is_markup = Outer_Syntax.is_markup thy;
 
 
     (* tokens *)
@@ -367,9 +371,10 @@ fun present_thy thy command_results toks =
     val ignored = Scan.state --| ignore
       >> (fn d => (NONE, (NoToken, ("", d))));
 
-    fun markup mark mk flag = Scan.peek (fn d =>
+    fun markup pred mk flag = Scan.peek (fn d =>
       improper |--
-        Parse.position (Scan.one (Token.is_command andf is_markup mark o Token.content_of)) --
+        Parse.position (Scan.one (fn tok =>
+          Token.is_command tok andalso pred keywords (Token.content_of tok))) --
       Scan.repeat tag --
       Parse.!!!! ((improper -- locale -- improper) |-- Parse.document_source --| improper_end)
       >> (fn (((tok, pos'), tags), {text, range = (pos, _), ...}) =>
@@ -392,9 +397,9 @@ fun present_thy thy command_results toks =
 
     val token =
       ignored ||
-      markup Outer_Syntax.Markup MarkupToken Latex.markup_true ||
-      markup Outer_Syntax.Markup_Env MarkupEnvToken Latex.markup_true ||
-      markup Outer_Syntax.Verbatim (VerbatimToken o #2) "" ||
+      markup Keyword.is_document_heading MarkupToken Latex.markup_true ||
+      markup Keyword.is_document_body MarkupEnvToken Latex.markup_true ||
+      markup Keyword.is_document_raw (VerbatimToken o #2) "" ||
       command || cmt || other;
 
 
@@ -702,27 +707,21 @@ val _ = Theory.setup
 
 
 
-(** markup commands **)
+(** document commands **)
 
-fun local_theory_markup (loc, txt) = Toplevel.present_local_theory loc (check_text txt);
-val proof_markup = Toplevel.present_proof o check_text;
-
-fun reject_target NONE = ()
-  | reject_target (SOME (_, pos)) =
-      error ("Illegal target specification -- not a theory context" ^ Position.here pos);
-
-fun header_markup txt =
+fun old_header_command txt =
   Toplevel.keep (fn state =>
     if Toplevel.is_toplevel state then
      (legacy_feature "Obsolete 'header' command -- use 'chapter', 'section' etc. instead";
       check_text txt state)
     else raise Toplevel.UNDEF);
 
-fun heading_markup (loc, txt) =
+fun document_command (loc, txt) =
   Toplevel.keep (fn state =>
-    if Toplevel.is_toplevel state then (reject_target loc; check_text txt state)
-    else raise Toplevel.UNDEF) o
-  local_theory_markup (loc, txt) o
-  Toplevel.present_proof (fn state => (reject_target loc; check_text txt state));
+    (case loc of
+      NONE => check_text txt state
+    | SOME (_, pos) =>
+        error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
+  Toplevel.present_local_theory loc (check_text txt);
 
 end;

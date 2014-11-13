@@ -14,7 +14,9 @@ object Keyword
   /* kinds */
 
   val DIAG = "diag"
-  val HEADING = "heading"
+  val DOCUMENT_HEADING = "document_heading"
+  val DOCUMENT_BODY = "document_body"
+  val DOCUMENT_RAW = "document_raw"
   val THY_BEGIN = "thy_begin"
   val THY_END = "thy_end"
   val THY_DECL = "thy_decl"
@@ -39,9 +41,14 @@ object Keyword
 
   /* categories */
 
+  val vacous = Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW)
+
   val diag = Set(DIAG)
 
-  val heading = Set(HEADING)
+  val document_heading = Set(DOCUMENT_HEADING)
+  val document_body = Set(DOCUMENT_BODY)
+  val document_raw = Set(DOCUMENT_RAW)
+  val document = Set(DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW)
 
   val theory = Set(THY_BEGIN, THY_END, THY_LOAD, THY_DECL, THY_DECL_BLOCK, THY_GOAL)
 
@@ -54,8 +61,8 @@ object Keyword
       PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
 
   val proof_body =
-    Set(DIAG, HEADING, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN, PRF_DECL, PRF_ASM,
-      PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
+    Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW, PRF_BLOCK, PRF_OPEN, PRF_CLOSE,
+      PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
 
   val theory_goal = Set(THY_GOAL)
   val proof_goal = Set(PRF_GOAL, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT)

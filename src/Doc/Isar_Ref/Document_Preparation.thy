@@ -26,10 +26,9 @@ text \<open>
     @{command_def "section"} & : & @{text "any \<rightarrow> any"} \\
     @{command_def "subsection"} & : & @{text "any \<rightarrow> any"} \\
     @{command_def "subsubsection"} & : & @{text "any \<rightarrow> any"} \\
-    @{command_def "text"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "text_raw"} & : & @{text "local_theory \<rightarrow> local_theory"} \\[0.5ex]
-    @{command_def "txt"} & : & @{text "proof \<rightarrow> proof"} \\
-    @{command_def "txt_raw"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "text"} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "txt"} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "text_raw"} & : & @{text "any \<rightarrow> any"} \\
   \end{matharray}
 
   Markup commands provide a structured way to insert text into the
@@ -45,9 +44,10 @@ text \<open>
 
   @{rail \<open>
     (@@{command chapter} | @@{command section} | @@{command subsection} |
-      @@{command subsubsection} | @@{command text}) @{syntax target}? @{syntax text}
+      @@{command subsubsection} | @@{command text} | @@{command txt})
+      @{syntax target}? @{syntax text}
     ;
-    (@@{command text_raw} | @@{command txt} | @@{command txt_raw}) @{syntax text}
+    @@{command text_raw} @{syntax text}
   \<close>}
 
   \begin{description}
@@ -59,22 +59,22 @@ text \<open>
   @{verbatim \<open>\isamarkupchapter\<close>}, @{verbatim \<open>\isamarkupsection\<close>},
   @{verbatim \<open>\isamarkupsubsection\<close>}, @{verbatim \<open>\isamarkupsubsubsection\<close>}.
 
-  \item @{command text} and @{command txt} specify paragraphs of plain
-  text.  This corresponds to a {\LaTeX} environment @{verbatim
-  \<open>\begin{isamarkuptext}\<close>} @{text "\<dots>"} @{verbatim \<open>\end{isamarkuptext}\<close>} etc.
+  \item @{command text} and @{command txt} specify paragraphs of plain text.
+  This corresponds to a {\LaTeX} environment @{verbatim
+  \<open>\begin{isamarkuptext}\<close>} @{text "\<dots>"} @{verbatim \<open>\end{isamarkuptext}\<close>}
+  etc.
 
-  \item @{command text_raw} and @{command txt_raw} insert {\LaTeX}
-  source into the output, without additional markup.  Thus the full
-  range of document manipulations becomes available, at the risk of
-  messing up document output.
+  \item @{command text_raw} inserts {\LaTeX} source directly into the
+  output, without additional markup. Thus the full range of document
+  manipulations becomes available, at the risk of messing up document
+  output.
 
   \end{description}
 
-  Except for @{command "text_raw"} and @{command "txt_raw"}, the text
-  passed to any of the above markup commands may refer to formal
-  entities via \emph{document antiquotations}, see also
-  \secref{sec:antiq}.  These are interpreted in the present theory or
-  proof context, or the named @{text "target"}.
+  Except for @{command "text_raw"}, the text passed to any of the above
+  markup commands may refer to formal entities via \emph{document
+  antiquotations}, see also \secref{sec:antiq}. These are interpreted in the
+  present theory or proof context, or the named @{text "target"}.
 
   \medskip The proof markup commands closely resemble those for theory
   specifications, but have a different formal status and produce

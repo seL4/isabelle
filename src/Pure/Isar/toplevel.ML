@@ -65,7 +65,6 @@ sig
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
   val forget_proof: bool -> transition -> transition
-  val present_proof: (state -> unit) -> transition -> transition
   val proofs': (bool -> Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
@@ -496,11 +495,6 @@ fun forget_proof strict = transaction (fn _ =>
         if strict andalso not (Proof.has_bottom_goal (Proof_Node.current prf))
         then raise UNDEF else Theory (orig_gthy, NONE)
     | Skipped_Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
-    | _ => raise UNDEF));
-
-val present_proof = present_transaction (fn _ =>
-  (fn Proof (prf, x) => Proof (Proof_Node.apply I prf, x)
-    | skip as Skipped_Proof _ => skip
     | _ => raise UNDEF));
 
 fun proofs' f = transaction (fn int =>

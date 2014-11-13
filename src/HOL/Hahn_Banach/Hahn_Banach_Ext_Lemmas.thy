@@ -121,7 +121,7 @@ proof -
           unfolding H'_def sum_def lin_def by blast
         
         have ya: "y1 + y2 = y \<and> a1 + a2 = a" using E HE _ y x0
-        proof (rule decomp_H') txt_raw \<open>\label{decomp-H-use}\<close>
+        proof (rule decomp_H') text_raw \<open>\label{decomp-H-use}\<close>
           from HE y1 y2 show "y1 + y2 \<in> H"
             by (rule subspace.add_closed)
           from x0 and HE y y1 y2

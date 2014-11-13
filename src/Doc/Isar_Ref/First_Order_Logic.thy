@@ -414,7 +414,7 @@ theorem "\<And>A. PROP A \<Longrightarrow> PROP A"
 proof -
 (*>*)
 
-  txt_raw \<open>\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "A \<longrightarrow> B"
   proof
@@ -422,12 +422,12 @@ proof -
     show B sorry %noproof
   qed
 
-  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "A \<longrightarrow> B" and A sorry %noproof
   then have B ..
 
-  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have A sorry %noproof
   then have "A \<or> B" ..
@@ -435,7 +435,7 @@ proof -
   have B sorry %noproof
   then have "A \<or> B" ..
 
-  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "A \<or> B" sorry %noproof
   then have C
@@ -447,26 +447,26 @@ proof -
     then show C sorry %noproof
   qed
 
-  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have A and B sorry %noproof
   then have "A \<and> B" ..
 
-  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "A \<and> B" sorry %noproof
   then obtain A and B ..
 
-  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<bottom>" sorry %noproof
   then have A ..
 
-  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<top>" ..
 
-  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<not> A"
   proof
@@ -474,12 +474,12 @@ proof -
     then show "\<bottom>" sorry %noproof
   qed
 
-  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<not> A" and A sorry %noproof
   then have B ..
 
-  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<forall>x. B x"
   proof
@@ -487,24 +487,24 @@ proof -
     show "B x" sorry %noproof
   qed
 
-  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<forall>x. B x" sorry %noproof
   then have "B a" ..
 
-  txt_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<exists>x. B x"
   proof
     show "B a" sorry %noproof
   qed
 
-  txt_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
+  text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<exists>x. B x" sorry %noproof
   then obtain a where "B a" ..
 
-  txt_raw \<open>\end{minipage}\<close>
+  text_raw \<open>\end{minipage}\<close>
 
 (*<*)
 qed

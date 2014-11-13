@@ -179,7 +179,7 @@ subsubsection {* Uniform nesting of sub-languages: document source, ML, term, st
 ML {*
   Outer_Syntax.command
     @{command_spec "text_cartouche"} ""
-    (Parse.opt_target -- Parse.source_position Parse.cartouche >> Thy_Output.local_theory_markup)
+    (Parse.opt_target -- Parse.source_position Parse.cartouche >> Thy_Output.document_command)
 *}
 
 text_cartouche
